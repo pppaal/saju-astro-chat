@@ -77,7 +77,16 @@ export interface SajuCompatFacts {
   elementBalance: SajuCompatElementBalance | null
 }
 
-const SPOUSE_STARS = new Set(['정재', '편재', '정관', '편관'])
+// 배우자성 도식 — 남성 일간은 재성(처성), 여성 일간은 관성(부성). 성별을 모르면
+// 둘 다 보는 superset 으로 폴백(과거 동작 — 절반은 라벨이 틀릴 수 있어 차선).
+const SPOUSE_STARS_MALE = new Set(['정재', '편재'])
+const SPOUSE_STARS_FEMALE = new Set(['정관', '편관'])
+const SPOUSE_STARS_ALL = new Set(['정재', '편재', '정관', '편관'])
+function spouseSetFor(gender?: 'male' | 'female' | null): Set<string> {
+  if (gender === 'male') return SPOUSE_STARS_MALE
+  if (gender === 'female') return SPOUSE_STARS_FEMALE
+  return SPOUSE_STARS_ALL
+}
 const SPOUSE_ROLE: Record<string, string> = {
   정재: '처성(안정·가정)',
   편재: '처성(활달·자유)',
@@ -127,11 +136,16 @@ export function computeSajuSynastryFacts(input: SajuSynastryInput): SajuCompatFa
 
   // 2. 배우자성 — findSpouseSignals 와 동일 (stem + 지지 본기).
   const spouseStars: SajuCompatSpouseStar[] = []
-  const collectSpouse = (from: 'A' | 'B', dayStem: string, other: SajuPillarInput[]) => {
+  const collectSpouse = (
+    from: 'A' | 'B',
+    dayStem: string,
+    other: SajuPillarInput[],
+    spouseSet: Set<string>
+  ) => {
     other.forEach((p, idx) => {
       if (p.stem) {
         const s = sibseongFor(dayStem, p.stem)
-        if (SPOUSE_STARS.has(s)) {
+        if (spouseSet.has(s)) {
           spouseStars.push({
             from,
             sibsin: s,
@@ -146,7 +160,7 @@ export function computeSajuSynastryFacts(input: SajuSynastryInput): SajuCompatFa
       const branchStem = BRANCH_MAIN_STEM[p.branch]
       if (branchStem) {
         const sBr = sibseongFor(dayStem, branchStem)
-        if (SPOUSE_STARS.has(sBr)) {
+        if (spouseSet.has(sBr)) {
           spouseStars.push({
             from,
             sibsin: sBr,
@@ -161,8 +175,9 @@ export function computeSajuSynastryFacts(input: SajuSynastryInput): SajuCompatFa
     })
   }
   if (aDay?.stem && bDay?.stem) {
-    collectSpouse('A', aDay.stem, B)
-    collectSpouse('B', bDay.stem, A)
+    // A 의 배우자성은 A 일간 + A 성별 기준, B 는 B 기준.
+    collectSpouse('A', aDay.stem, B, spouseSetFor(input.genderA))
+    collectSpouse('B', bDay.stem, A, spouseSetFor(input.genderB))
   }
 
   // 3. 기둥 관계 — 천간합/충 + 지지 합/충/형/자형/해/파 (동일 표·규칙).

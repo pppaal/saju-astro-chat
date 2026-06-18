@@ -7,6 +7,7 @@
 import { NextRequest } from 'next/server'
 import { buildCompatReport } from '@/lib/compatibility/compatReport'
 import type { SajuPillarInput } from '@/lib/compatibility/sajuSynastryFormatter'
+import { normalizeGender } from '@/lib/utils/gender'
 import {
   withApiMiddleware,
   createAstrologyGuard,
@@ -22,7 +23,16 @@ type Body = {
   astroB?: unknown
   pillarsA?: SajuPillarInput[] | null
   pillarsB?: SajuPillarInput[] | null
+  genderA?: unknown
+  genderB?: unknown
   lang?: 'ko' | 'en'
+}
+
+// 클라가 보낸 성별을 신뢰 전 정규화 — 배우자성 도식엔 male/female 만 의미가
+// 있으므로 그 둘만 통과, 나머지(other/미상)는 null(=superset 폴백).
+function sanitizeGender(v: unknown): 'male' | 'female' | null {
+  const g = typeof v === 'string' ? normalizeGender(v) : undefined
+  return g === 'male' || g === 'female' ? g : null
 }
 
 // 클라가 보낸 pillars 배열을 신뢰 전 정규화 — 각 칸 {stem,branch} 문자열만 취함.
@@ -50,6 +60,8 @@ export const POST = withApiMiddleware(async (req: NextRequest, _context: ApiCont
     astroB: body.astroB ?? null,
     pillarsA: sanitizePillars(body.pillarsA),
     pillarsB: sanitizePillars(body.pillarsB),
+    genderA: sanitizeGender(body.genderA),
+    genderB: sanitizeGender(body.genderB),
     lang: body.lang === 'en' ? 'en' : 'ko',
   })
 

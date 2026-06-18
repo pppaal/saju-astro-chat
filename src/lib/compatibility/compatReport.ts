@@ -94,17 +94,21 @@ export interface CompatReportInput {
   /** {stem,branch}[] (년·월·일·시) — A/B. 없으면 사주측 생략 */
   pillarsA: SajuPillarInput[] | null
   pillarsB: SajuPillarInput[] | null
+  /** A/B 성별 — 배우자성(재성/관성) 도출용. 없으면 둘 다 보는 superset 폴백. */
+  genderA?: 'male' | 'female' | null
+  genderB?: 'male' | 'female' | null
   lang?: 'ko' | 'en'
 }
 
 const ELEMENTS = ['목', '화', '토', '금', '수'] as const
 
 export function buildCompatReport(input: CompatReportInput): CompatReport {
-  const { astroA, astroB, pillarsA, pillarsB, lang = 'ko' } = input
+  const { astroA, astroB, pillarsA, pillarsB, genderA, genderB, lang = 'ko' } = input
 
   const synView = computeSynastryView(astroA, astroB, lang)
 
-  const sajuFacts = pillarsA && pillarsB ? computeSajuSynastryFacts({ pillarsA, pillarsB }) : null
+  const sajuFacts =
+    pillarsA && pillarsB ? computeSajuSynastryFacts({ pillarsA, pillarsB, genderA, genderB }) : null
 
   // 배우자성 — 일주(배우자궁)에 잡힌 것 우선, 상위 4.
   const spouseStars = sajuFacts

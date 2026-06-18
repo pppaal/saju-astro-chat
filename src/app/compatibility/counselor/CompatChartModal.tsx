@@ -37,6 +37,9 @@ interface CompatChartModalProps {
   person2Astro?: Record<string, unknown> | null
   nameA?: string
   nameB?: string
+  /** A/B 성별 — 배우자성(재성/관성) 도식용. 정규화는 서버 라우트에서. */
+  genderA?: string
+  genderB?: string
   lang?: 'ko' | 'en'
 }
 
@@ -262,6 +265,8 @@ export function CompatChartModal({
   person2Astro,
   nameA = '',
   nameB = '',
+  genderA,
+  genderB,
   lang = 'ko',
 }: CompatChartModalProps) {
   const isKo = lang === 'ko'
@@ -294,6 +299,8 @@ export function CompatChartModal({
       astroB: unwrapAstro(person2Astro) ?? null,
       pillarsA: sajuToPillars(unwrapSaju(person1Saju)),
       pillarsB: sajuToPillars(unwrapSaju(person2Saju)),
+      genderA,
+      genderB,
       lang,
     }
     fetch('/api/compatibility/report', {
@@ -323,7 +330,7 @@ export function CompatChartModal({
     return () => {
       cancelled = true
     }
-  }, [open, person1Saju, person2Saju, person1Astro, person2Astro, lang, retryKey])
+  }, [open, person1Saju, person2Saju, person1Astro, person2Astro, genderA, genderB, lang, retryKey])
 
   if (!open) return null
 
