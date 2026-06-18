@@ -526,6 +526,7 @@ export function CompatChartModal({
                   shareTitle={isKo ? 'DestinyPal 궁합 결과' : 'My DestinyPal Compatibility'}
                   shareText={report.crossVerdict?.text}
                   size={1080}
+                  backgroundColor="#f4f1ea"
                   renderCard={(ref) => (
                     <CompatShareCard
                       ref={ref}

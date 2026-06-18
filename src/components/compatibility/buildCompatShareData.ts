@@ -23,14 +23,13 @@ const COUPLE_TYPE: Record<CompatCoupleTone, { ko: string; en: string }> = {
   neutral: { ko: '은은하게 오래가는 사이', en: 'Quiet & Lasting' },
 }
 
-// 일간 오행(한글 한 글자) → 한자 + 색. (사주 카드라 오행은 한자로 — 火水木金土.
-// 이모지는 캡처 불안정 → 카드에서 이 색으로 점을 그린다.)
-const ELEMENT_META: Record<string, { hanja: string; en: string; color: string }> = {
-  목: { hanja: '木', en: 'Wood', color: '#6fbf8a' },
-  화: { hanja: '火', en: 'Fire', color: '#ec7b70' },
-  토: { hanja: '土', en: 'Earth', color: '#d2ad62' },
-  금: { hanja: '金', en: 'Metal', color: '#cdd3dd' },
-  수: { hanja: '水', en: 'Water', color: '#69a8e0' },
+// 일간 오행(한글) → 한자 + 명식 셀 색(라이트/한지 테마, SajuChart 와 동일 오행 색).
+const ELEMENT_META: Record<string, { hanja: string; textColor: string; bgColor: string }> = {
+  목: { hanja: '木', textColor: '#047857', bgColor: '#ecfdf5' },
+  화: { hanja: '火', textColor: '#be123c', bgColor: '#fff1f2' },
+  토: { hanja: '土', textColor: '#b45309', bgColor: '#fffbeb' },
+  금: { hanja: '金', textColor: '#334155', bgColor: '#f1f5f9' },
+  수: { hanja: '水', textColor: '#0369a1', bgColor: '#f0f9ff' },
 }
 
 // 일간 오행 관계(상생/상극/비화) — 한 단어로.
@@ -55,18 +54,12 @@ function truncate(text: string, max: number): string {
   return t.length > max ? `${t.slice(0, max - 1).trim()}…` : t
 }
 
-// 천간(한자) + 오행 한자. 예: 丙 + 火 → "丙火". 영어는 stem 한자 + 영문 오행.
-function toElement(
-  stem: string | undefined,
-  el: string | undefined,
-  isKo: boolean
-): CompatShareElement | null {
+// 일간 = 천간(한자) + 오행(한자) → 명식 셀로 그릴 데이터. 예: 乙 + 木.
+function toElement(stem: string | undefined, el: string | undefined): CompatShareElement | null {
   if (!el) return null
   const meta = ELEMENT_META[el]
   if (!meta) return null
-  const s = stem ?? ''
-  const label = isKo ? `${s}${meta.hanja}` : `${s} ${meta.en}`
-  return { label, color: meta.color }
+  return { stem: stem ?? '', el: meta.hanja, textColor: meta.textColor, bgColor: meta.bgColor }
 }
 
 export function buildCompatShareData(
@@ -90,8 +83,8 @@ export function buildCompatShareData(
 
   // 두 사람 일간 천간+오행(한자) + 오행 관계. dayMaster 없으면 생략.
   const dm = report.dayMaster
-  const a = toElement(dm?.aStem, dm?.aEl, isKo)
-  const b = toElement(dm?.bStem, dm?.bEl, isKo)
+  const a = toElement(dm?.aStem, dm?.aEl)
+  const b = toElement(dm?.bStem, dm?.bEl)
   const elements = a && b ? { a, b, relation: relationWord(dm?.relation, isKo) } : null
 
   // 사용자가 이름을 안 넣어 A/B 기본값이면 중립 제목으로. (이름은 길면 자른다.)
