@@ -162,7 +162,7 @@ export function buildInterpretStreamPrompts(
     { "position": "자리명(네가 명명)", "interpretation": "자리 × 카드 × 정/역 × 질문 4중 cross, 그 자리 고유 관점으로. 가벼운 질문이면 2-3문장, 진지하면 400-650자(약 140-220단어 분량). 상대 시점 앵커 포함(예: 2-3주 내·다음 달)" }
   ],
   "advice": "위 카드 전체를 종합한 뒤 내리는 결론적 조언. 가벼운 질문이면 1-2줄로 구체적인 한 가지를 콕 집어(메뉴·물건·장소 하나) 자신있게, 진지하면 구체 행동 1-3개 200-280자(약 70-100단어 분량). 결정형 질문(예/아니오·선택)이면 첫 문장에 기울기를 분명히(예: 지금은 유보를 권해요)",
-  "hook": "SNS 공유 카드에 큼직하게 박을 한 줄. 30자 이내. 이 리딩의 핵심을 *정곡을 찌르되 여운이 남게* — 단정적이고 살짝 찔리지만 과하지 않게(예: '먼저 마음 여는 쪽은 상대, 근데 도망갈 준비도 같이 함', '좋아하는 건 맞는데 정착할 자신은 아직'). 받는 사람이 '이거 내 얘기 아냐?' 하고 캡처해 보낼 만한 톤. 카드에서 끌어오되 따옴표·해시태그·마침표·마크다운 없이 평서문 한 줄."
+  "hook": "SNS 공유 카드에 큼직하게 박을 *한 줄 펀치라인*. 30자 이내, 평서문(따옴표·해시태그·마침표·마크다운 X). 공식: ①2인칭(너/당신·상대) ②단정조('~할 수도' 금지) ③손에 잡히는 구체 디테일 1개 ④겉과 속이 뒤집히는 양면 트위스트(예: '좋아하는 건 맞는데 정착할 자신은 아직', '먼저 마음 여는 쪽은 상대, 근데 도망갈 준비도 같이 함'). 받는 사람이 '이거 내 얘기 아냐?' 하고 *뜨끔해서 캡처*할 만한 — 웃기거나 찔리거나 소름 돋는 한 방. 단 저주·우울·'넌 안 돼' 톤 금지: 간파당한 느낌이지 깎아내리는 게 아님."
 }`,
       `Output — exactly this JSON schema (no code fences, no preamble, no comments):
 {
@@ -171,7 +171,7 @@ export function buildInterpretStreamPrompts(
     { "position": "seat name you named", "interpretation": "seat × card × orientation × question cross, from that seat's own vantage. 2-3 sentences if the question is casual, 140-220 words if serious, with a relative time anchor (e.g. next 2-3 weeks)" }
   ],
   "advice": "Conclusion drawn after weighing ALL cards together. One or two lines that commit to one concrete pick (a dish / item / place) if the question is casual, otherwise 1-3 concrete actions (70-100 words). For a yes/no or choice question, state your lean in the first sentence (e.g. lean toward waiting for now)",
-  "hook": "A single bold line for the SNS share card. Max ~12 words. The reading's core, *cutting but with a lingering sting* — assertive and a little pointed, not cruel (e.g. 'They reach out first — but they're half-ready to run', 'They like you; just not sure they'll stay'). The kind of line someone screenshots and sends a friend with 'isn't this literally me?'. Draw it from the cards; plain line, no quotes, hashtags, period, or markdown."
+  "hook": "A single *punchline* for the SNS share card. Max ~12 words, plain line (no quotes, hashtags, period, markdown). Formula: (1) second person (you / they), (2) assertive — no 'might/maybe', (3) one concrete specific, (4) a two-sided twist where the surface flips underneath (e.g. 'They like you — just not sure they'll stay', 'They reach out first, but they're half-packed to run'). The kind of line someone screenshots because it stings in a good way — funny, called-out, or eerily accurate. Never a curse, a downer, or 'you're doomed': it nails them, it doesn't put them down."
 }`
     ),
     '',

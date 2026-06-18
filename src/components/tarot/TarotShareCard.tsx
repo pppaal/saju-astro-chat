@@ -66,8 +66,7 @@ export const TarotShareCard = React.forwardRef<HTMLDivElement, { data: ShareCard
             'radial-gradient(820px 700px at 85% 100%, rgba(212,181,114,0.16), transparent 60%),' +
             'linear-gradient(160deg, #0b1022 0%, #070a1a 58%, #0a0e1f 100%)',
           color: TEXT,
-          fontFamily:
-            "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+          fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
         }}
       >
         {/* 골드 내부 프레임 */}
@@ -111,28 +110,25 @@ export const TarotShareCard = React.forwardRef<HTMLDivElement, { data: ShareCard
           </span>
         </div>
 
-        {/* 질문 */}
+        {/* 질문 — 맥락 라인(작게). 주인공은 아래 펀치라인. */}
         <div style={{ zIndex: 1, textAlign: 'center', maxWidth: 880 }}>
           <div
             style={{
-              fontSize: 22,
+              fontSize: 20,
               letterSpacing: '0.22em',
               textTransform: 'uppercase',
               color: GOLD_SOFT,
-              marginBottom: 22,
+              marginBottom: 14,
             }}
           >
             {isKo ? '오늘의 타로' : 'TAROT READING'}
           </div>
           <div
             style={{
-              fontFamily: "'Cinzel', Georgia, serif",
-              fontSize: question.length > 40 ? 40 : 50,
-              lineHeight: 1.3,
-              fontWeight: 600,
-              color: TEXT,
-              // html-to-image 캡처에서 -webkit-line-clamp 가 안 먹어 한 줄로
-              // 잘리던 문제 → 일반 줄바꿈 사용. 한국어는 단어 중간 분리 방지.
+              fontSize: 27,
+              lineHeight: 1.35,
+              color: MUTED,
+              // 한국어 단어 중간 분리 방지 + 일반 줄바꿈(캡처 line-clamp 미동작).
               wordBreak: 'keep-all',
               whiteSpace: 'pre-wrap',
             }}
@@ -195,21 +191,24 @@ export const TarotShareCard = React.forwardRef<HTMLDivElement, { data: ShareCard
           ))}
         </div>
 
-        {/* 한 줄 메시지 */}
-        <div style={{ zIndex: 1, maxWidth: 880, textAlign: 'center' }}>
+        {/* 펀치라인 — 카드의 주인공(가장 큼). 이게 캡처·재공유되는 한 줄. */}
+        <div style={{ zIndex: 1, maxWidth: 920, textAlign: 'center' }}>
           {keyMessage ? (
             <div
               style={{
-                fontFamily: "'Cinzel', Georgia, serif",
-                fontSize: 30,
-                lineHeight: 1.5,
+                fontWeight: 800,
+                // 짧을수록 더 크게. 한국어 22자/영어 ~40자 기준 2단계.
+                fontSize: keyMessage.length > 22 ? 48 : 58,
+                lineHeight: 1.32,
+                letterSpacing: isKo ? '-0.01em' : '0',
                 color: GOLD,
-                // 캡처에서 line-clamp 가 안 먹어 한 줄로 잘리던 문제 → 일반 줄바꿈.
+                textShadow: '0 2px 24px rgba(212,181,114,0.18)',
+                // 캡처에서 line-clamp 미동작 → 일반 줄바꿈. 한국어 단어 보존.
                 wordBreak: 'keep-all',
                 whiteSpace: 'pre-wrap',
               }}
             >
-              “{keyMessage}”
+              {keyMessage}
             </div>
           ) : null}
         </div>
