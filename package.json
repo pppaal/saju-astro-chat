@@ -63,6 +63,7 @@
     "test:load:spike": "k6 run tests/performance/k6/spike-test.js",
     "db:migrate": "prisma migrate deploy",
     "db:status": "prisma migrate status",
+    "tarot:eval": "tsx scripts/tarot/eval.ts",
     "db:studio": "prisma studio",
     "test:load:endurance": "k6 run tests/performance/k6/endurance-test.js",
     "test:load:realistic": "k6 run tests/performance/k6/realistic-scenario.js",
