@@ -94,7 +94,7 @@ export function pickKeyMessage(source: string | undefined | null, max = 58): str
 // 후크 아래에 깔 "해석 티저" — 본문 앞부분을 짧게 따 "…"로 끊어 궁금증을
 // 남긴다(Berger 의 curiosity gap). 실명(앞머리 호명)은 떼고, 후크와 겹치지
 // 않게 호출부에서 후크가 따로 있을 때만 쓴다.
-export function pickTeaser(source: string | undefined | null, max = 60): string {
+export function pickTeaser(source: string | undefined | null, max = 100): string {
   let s = stripMarkdown(source)
   if (!s) return ''
   // 실명 노출 방지 — pickKeyMessage 와 동일한 호명 제거.

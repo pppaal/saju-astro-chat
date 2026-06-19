@@ -219,13 +219,13 @@ export const TarotShareCard = React.forwardRef<HTMLDivElement, { data: ShareCard
             </div>
           ) : null}
 
-          {/* 해석 티저 — 후크 아래 한 줄, "…"로 끊어 궁금증을 남긴다. */}
+          {/* 해석 티저 — 후크 아래 3~4줄, "…"로 끊어 궁금증을 남긴다. */}
           {showTeaser ? (
             <div
               style={{
-                marginTop: 22,
-                fontSize: 30,
-                lineHeight: 1.4,
+                marginTop: 20,
+                fontSize: 27,
+                lineHeight: 1.5,
                 color: '#c7cedd',
                 wordBreak: 'keep-all',
                 whiteSpace: 'pre-wrap',
