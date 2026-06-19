@@ -15,6 +15,7 @@
 // GET  : 오늘 이미 뽑았으면 그 결과, 아니면 ready:false (아직 안 뽑음).
 // POST : 오늘 처음이면 뽑고 LLM 해석해 캐시 후 반환, 이미 있으면 그대로.
 
+import { createHash } from 'crypto'
 import { NextRequest } from 'next/server'
 import {
   withApiMiddleware,
@@ -65,9 +66,14 @@ interface DailyReading {
   message: string
 }
 
-function drawOne(): { card: Card; isReversed: boolean } {
-  const card = tarotDeck[Math.floor(Math.random() * tarotDeck.length)]
-  return { card, isReversed: Math.random() < 0.3 }
+// 데일리 카드는 (userId, KST날짜)의 순수 함수 — 같은 날 같은 사람은 항상 같은
+// 카드. 캐시가 사라지거나(에빅션·인스턴스 교체) 동시 요청 레이스가 나도 재추첨
+// 시 동일 카드가 나와, "하루 1장(같은 카드)" 불변식이 캐시에 의존하지 않는다.
+function drawDaily(userId: string, date: string): { card: Card; isReversed: boolean } {
+  const h = createHash('sha256').update(`${userId}:${date}`).digest()
+  const idx = h.readUInt32BE(0) % tarotDeck.length
+  const reversed = h[4] < 77 // 77/256 ≈ 0.30 → 약 30% 역방향(결정적)
+  return { card: tarotDeck[idx], isReversed: reversed }
 }
 
 // 데일리 프롬프트 — 한 줄 후크 + 충분히 읽을거리가 되는 본문. 무료지만
@@ -168,7 +174,7 @@ export const POST = withApiMiddleware(
 
     try {
       const locale = context.locale === 'en' ? 'en' : 'ko'
-      const { card, isReversed } = drawOne()
+      const { card, isReversed } = drawDaily(userId, date)
       const meaning = isReversed ? card.reversed : card.upright
       const keywords =
         locale === 'ko' ? meaning.keywordsKo || meaning.keywords || [] : meaning.keywords || []

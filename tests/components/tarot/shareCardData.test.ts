@@ -15,10 +15,10 @@ import {
 } from '@/components/tarot/shareCardData'
 
 describe('pickTeaser — 후크 아래 궁금증 한 줄', () => {
-  it('본문을 잘라 "…"로 끊는다', () => {
+  it('본문을 잘라 "…"로 끊는다 (… 포함 길이 ≤ max)', () => {
     const out = pickTeaser('가'.repeat(60), 44)
     expect(out.endsWith('…')).toBe(true)
-    expect(out.length).toBeLessThanOrEqual(45)
+    expect(out.length).toBeLessThanOrEqual(44)
   })
   it('앞머리 호명(실명)을 떼어 공유 이미지에 새지 않게 한다', () => {
     const out = pickTeaser('이준영님, 오늘은 새로운 시작에 좋은 흐름이 이어집니다.')

@@ -111,8 +111,8 @@ export function pickTeaser(source: string | undefined | null, max = 100): string
     .trim()
   if (!s) return ''
   if (/^[a-z]/.test(s)) s = s[0].toUpperCase() + s.slice(1)
-  // 끊어서 궁금증 — 항상 max 근처에서 자르고 "…" 를 붙인다.
-  if (s.length > max) s = s.slice(0, max).trim()
+  // 끊어서 궁금증 — max 안에서 자르고 "…" 를 붙인다(… 포함 길이 ≤ max).
+  if (s.length > max) s = s.slice(0, max - 1).trim()
   s = s.replace(/[.!?。！？,，·\s]+$/, '').trim()
   return s ? `${s}…` : ''
 }

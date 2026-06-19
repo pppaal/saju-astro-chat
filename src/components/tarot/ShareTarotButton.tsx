@@ -48,6 +48,8 @@ export function ShareTarotButton({ data: shareData, language, body }: ShareTarot
   const [error, setError] = useState<string | null>(null)
   // 링크 공유: 'idle' | 'creating'(토큰 발급 중) | 'copied'(클립보드 복사 완료)
   const [linkPhase, setLinkPhase] = useState<'idle' | 'creating' | 'copied'>('idle')
+  // 빠른 더블클릭으로 토큰이 두 번 발급되지 않게 하는 동기 가드(state 는 비동기).
+  const linkBusyRef = useRef(false)
 
   // 공개 공유 링크를 만들고(서버에 토큰 저장) URL 을 돌려준다. 실패 시 null.
   const createShareUrl = useCallback(async (): Promise<string | null> => {
@@ -88,6 +90,8 @@ export function ShareTarotButton({ data: shareData, language, body }: ShareTarot
 
   // 링크 공유 버튼 — 토큰 발급 후 Web Share(url) 또는 클립보드 복사로 폴백.
   const handleShareLink = useCallback(async () => {
+    if (linkBusyRef.current) return // 더블클릭 → 토큰 중복 발급 방지.
+    linkBusyRef.current = true
     setError(null)
     setLinkPhase('creating')
     try {
@@ -116,6 +120,7 @@ export function ShareTarotButton({ data: shareData, language, body }: ShareTarot
         setError(isKo ? `링크: ${url}` : `Link: ${url}`)
       }
     } finally {
+      linkBusyRef.current = false
       setLinkPhase((p) => (p === 'creating' ? 'idle' : p))
     }
   }, [createShareUrl, shareData, isKo])
