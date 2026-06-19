@@ -221,11 +221,11 @@ export default function TarotChatScreen() {
             initial={{ opacity: 0, scale: 0.96 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-            className="text-center space-y-4 w-full max-w-xl"
+            className="text-center space-y-3 w-full max-w-xl"
           >
-            <div className="flex justify-center mb-4">
-              <div className="p-4 bg-[rgba(212,181,114,0.1)] rounded-full border border-[rgba(212,181,114,0.2)] shadow-[0_0_30px_rgba(212,181,114,0.2)]">
-                <MoonStar className="w-12 h-12 text-[#d4b572]" />
+            <div className="flex justify-center mb-2">
+              <div className="p-3 bg-[rgba(212,181,114,0.1)] rounded-full border border-[rgba(212,181,114,0.2)] shadow-[0_0_30px_rgba(212,181,114,0.2)]">
+                <MoonStar className="w-9 h-9 text-[#d4b572]" />
               </div>
             </div>
             <h1 className="text-2xl md:text-3xl font-semibold tracking-tight text-slate-100">
@@ -249,11 +249,11 @@ export default function TarotChatScreen() {
               </button>
             </div>
 
-            <div className="pt-6 flex flex-col items-center gap-2.5">
+            <div className="pt-2 flex flex-col items-center gap-2">
               {/* z-0: 카드 인라인 zIndex(8~10)를 이 컨테이너 stacking context 안에
                   가둬, 위로 열리는 덱·스프레드 메뉴(입력창 z-index:6 안)가 카드에
                   가려지지 않게 한다. */}
-              <div className="relative z-0 h-36 w-full max-w-xs mx-auto" aria-hidden>
+              <div className="relative z-0 h-28 w-full max-w-xs mx-auto" aria-hidden>
                 {Array.from({ length: Math.min(selectedSpread.spread.cardCount, 5) }).map(
                   (_, i, arr) => {
                     const n = arr.length
@@ -264,7 +264,7 @@ export default function TarotChatScreen() {
                     return (
                       <div
                         key={i}
-                        className="absolute left-1/2 top-3 w-16 h-24 md:w-20 md:h-32 rounded-lg overflow-hidden ring-1 ring-white/15 shadow-xl shadow-black/40"
+                        className="absolute left-1/2 top-2 w-14 h-20 md:w-16 md:h-24 rounded-lg overflow-hidden ring-1 ring-white/15 shadow-xl shadow-black/40"
                         style={{
                           transform: `translateX(calc(-50% + ${tx}px)) translateY(${ty}px) rotate(${rot}deg)`,
                           zIndex: 10 - Math.abs(i - mid),
