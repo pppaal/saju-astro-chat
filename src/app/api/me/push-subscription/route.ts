@@ -20,6 +20,7 @@ import {
 } from '@/lib/api/middleware'
 import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/logger'
+import { getWebPush } from '@/lib/push/webPush'
 import { pushSubscriptionUpsertSchema, pushSubscriptionDeleteSchema } from '@/lib/api/zodValidation'
 
 export const dynamic = 'force-dynamic'
@@ -61,6 +62,28 @@ export const POST = withApiMiddleware(
     })
 
     logger.info('[push-subscription] upserted', { userId, subscriptionId: subscription.id })
+
+    // 구독 즉시 "환영 알림" 1건 — (1) 사용자에게 "켜졌다" 확인 (2) 발송 파이프
+    // 점검(서버→web-push→기기). 실패해도 구독은 이미 저장됐으니 무시.
+    try {
+      const wp = getWebPush()
+      if (wp) {
+        const isKo = (subscription.locale ?? locale) === 'ko'
+        await wp.sendNotification(
+          { endpoint, keys: { p256dh: keys.p256dh, auth: keys.auth } },
+          JSON.stringify({
+            title: isKo ? '오늘의 운세 알림 켜짐 🔔' : 'Daily fortune is on 🔔',
+            body: isKo
+              ? '매일 아침 7시, 오늘의 운세 한 줄을 보내드릴게요.'
+              : "Every morning we'll send your one-line fortune.",
+            url: '/calendar',
+          })
+        )
+      }
+    } catch (err) {
+      logger.warn('[push-subscription] welcome push failed', { error: err })
+    }
+
     return apiSuccess({ subscribed: true, locale: subscription.locale })
   },
   createAuthenticatedGuard({
