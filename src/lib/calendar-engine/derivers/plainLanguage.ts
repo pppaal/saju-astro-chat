@@ -34,18 +34,18 @@ const SIBSIN_DOMAIN: Record<string, { area: string; areaEn: string; gloss: strin
   건록: { area: '실력·자리', areaEn: 'skill & standing', gloss: '제 실력으로 선 자리' },
 }
 
-/** 행성 → 쉬운 한 줄(별 별명). 한자식/영문 용어를 일상어로. */
+/** 행성 → 쉬운 한 줄(일상 개념어). '하늘/별' 같은 표현은 쓰지 않는다. */
 const PLANET_PLAIN: Record<string, { ko: string; en: string }> = {
-  Sun: { ko: '나·활력의 별', en: 'self & energy' },
-  Moon: { ko: '감정·기분의 별', en: 'mood & feelings' },
-  Mercury: { ko: '말·소통의 별', en: 'talk & ideas' },
-  Venus: { ko: '사랑·돈의 별', en: 'love & money' },
-  Mars: { ko: '추진·다툼의 별', en: 'drive & friction' },
-  Jupiter: { ko: '기회·확장의 별', en: 'luck & growth' },
-  Saturn: { ko: '책임·인내의 별', en: 'duty & limits' },
-  Uranus: { ko: '변화·돌발의 별', en: 'sudden change' },
-  Neptune: { ko: '꿈·영성의 별', en: 'dreams & spirit' },
-  Pluto: { ko: '변형·권력의 별', en: 'power & change' },
+  Sun: { ko: '나·활력', en: 'self & energy' },
+  Moon: { ko: '감정·기분', en: 'mood & feelings' },
+  Mercury: { ko: '말·소통', en: 'talk & ideas' },
+  Venus: { ko: '사랑·돈', en: 'love & money' },
+  Mars: { ko: '추진·다툼', en: 'drive & friction' },
+  Jupiter: { ko: '기회·확장', en: 'luck & growth' },
+  Saturn: { ko: '책임·인내', en: 'duty & limits' },
+  Uranus: { ko: '변화·돌발', en: 'sudden change' },
+  Neptune: { ko: '꿈·영성', en: 'dreams & spirit' },
+  Pluto: { ko: '변형·권력', en: 'power & change' },
 }
 
 /** 한글 행성명 → 영문 키 (교차 카드는 KO 행성명을 들고 옴). */

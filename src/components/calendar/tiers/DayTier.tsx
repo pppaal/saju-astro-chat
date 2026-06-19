@@ -379,27 +379,25 @@ function CrossActivationCard({
             >
               <span
                 style={{
-                  fontSize: 12,
+                  fontSize: 13,
                   color: 'var(--dp-ember-2)',
                   background: 'rgba(176,58,34,0.09)',
                   borderRadius: 5,
                   padding: '3px 9px',
                 }}
               >
-                {ko ? '내 사주 · ' : 'me · '}
                 {sajuPlain}
               </span>
               <span style={{ color: arrowCol, fontWeight: 700 }}>⇄</span>
               <span
                 style={{
-                  fontSize: 12,
+                  fontSize: 13,
                   color: 'var(--dp-accent)',
                   background: 'rgba(52,64,111,0.09)',
                   borderRadius: 5,
                   padding: '3px 9px',
                 }}
               >
-                {ko ? '하늘 · ' : 'sky · '}
                 {astroPlain}
               </span>
             </div>
