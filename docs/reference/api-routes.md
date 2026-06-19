@@ -15,7 +15,7 @@ status: auto-generated
 <!-- gen:api-routes -->
 <!-- 이 표는 자동 생성됩니다. 직접 수정하지 마세요 — `npm run docs:sync`. -->
 
-**총 77개 라우트** (원천: `src/app/api/**/route.ts`)
+**총 78개 라우트** (원천: `src/app/api/**/route.ts`)
 
 | 라우트                                  | 메서드             |
 | --------------------------------------- | ------------------ |
@@ -94,6 +94,7 @@ status: auto-generated
 | `/api/tarot/prefetch`                   | POST               |
 | `/api/tarot/save`                       | GET, POST          |
 | `/api/tarot/save/[id]`                  | GET, PATCH, DELETE |
+| `/api/tarot/share`                      | POST               |
 | `/api/track/visit`                      | POST               |
 | `/api/webhook/stripe`                   | POST               |
 

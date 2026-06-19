@@ -179,8 +179,7 @@ export function ResultsStage(props: ResultsStageProps) {
                       ? '기록에 저장'
                       : 'Save to history'}
                 </button>
-                {(saveMessage.startsWith('저장 실패') ||
-                  saveMessage.startsWith('Save failed')) && (
+                {(saveMessage.startsWith('저장 실패') || saveMessage.startsWith('Save failed')) && (
                   <span className="text-[11px] text-rose-300/80 text-center max-w-xs">
                     {saveMessage}
                   </span>
@@ -306,6 +305,7 @@ export function ResultsStage(props: ResultsStageProps) {
               language === 'ko'
             )}
             language={language}
+            body={insight?.overall_message || undefined}
           />
         )}
 

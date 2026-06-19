@@ -10,7 +10,8 @@
 
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import * as htmlToImage from 'html-to-image'
-import { Share2, Download, Loader2, X } from 'lucide-react'
+import { Share2, Download, Loader2, X, Link2, Check } from 'lucide-react'
+import { apiFetch } from '@/lib/api'
 import { tarotLogger } from '@/lib/logger'
 import { TarotShareCard, SHARE_CARD_SIZE, type ShareCardData } from './TarotShareCard'
 
@@ -18,6 +19,8 @@ interface ShareTarotButtonProps {
   /** 공유 카드에 그릴 데이터 — buildShareDataFrom* 로 미리 만든다. */
   data: ShareCardData
   language: string
+  /** 공개 링크(/r/[token]) 페이지에 실을 본문(선택) — 데일리 message / 리딩 overall. */
+  body?: string
 }
 
 // 캡처 전 카드/로고 이미지를 미리 디코드해 빈 칸 캡처를 방지.
@@ -35,7 +38,7 @@ async function preloadImages(srcs: string[]): Promise<void> {
   )
 }
 
-export function ShareTarotButton({ data: shareData, language }: ShareTarotButtonProps) {
+export function ShareTarotButton({ data: shareData, language, body }: ShareTarotButtonProps) {
   const isKo = language === 'ko'
   const cardRef = useRef<HTMLDivElement>(null)
   // 'idle' | 'rendering'(캡처 중) | 'preview'(모달)
@@ -43,6 +46,84 @@ export function ShareTarotButton({ data: shareData, language }: ShareTarotButton
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [blob, setBlob] = useState<Blob | null>(null)
   const [error, setError] = useState<string | null>(null)
+  // 링크 공유: 'idle' | 'creating'(토큰 발급 중) | 'copied'(클립보드 복사 완료)
+  const [linkPhase, setLinkPhase] = useState<'idle' | 'creating' | 'copied'>('idle')
+  // 빠른 더블클릭으로 토큰이 두 번 발급되지 않게 하는 동기 가드(state 는 비동기).
+  const linkBusyRef = useRef(false)
+
+  // 공개 공유 링크를 만들고(서버에 토큰 저장) URL 을 돌려준다. 실패 시 null.
+  const createShareUrl = useCallback(async (): Promise<string | null> => {
+    try {
+      const res = await apiFetch('/api/tarot/share', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          isKo,
+          question: shareData.question,
+          spreadTitle: shareData.spreadTitle,
+          cards: shareData.cards.map((c) => ({
+            name: c.name,
+            image: c.image,
+            isReversed: c.isReversed,
+          })),
+          keyMessage: shareData.keyMessage || '',
+          body: body || undefined,
+        }),
+      })
+      if (res.status === 401) {
+        setError(isKo ? '로그인 후 링크 공유가 가능해요.' : 'Sign in to share a link.')
+        return null
+      }
+      const json = (await res.json().catch(() => null)) as { data?: { url?: string } } | null
+      const url = json?.data?.url
+      if (!res.ok || !url) {
+        setError(isKo ? '링크를 만들지 못했어요.' : 'Could not create a link.')
+        return null
+      }
+      return url
+    } catch (err) {
+      tarotLogger.error('[ShareTarot] link create failed', err instanceof Error ? err : undefined)
+      setError(isKo ? '네트워크 오류가 발생했어요.' : 'A network error occurred.')
+      return null
+    }
+  }, [isKo, shareData, body])
+
+  // 링크 공유 버튼 — 토큰 발급 후 Web Share(url) 또는 클립보드 복사로 폴백.
+  const handleShareLink = useCallback(async () => {
+    if (linkBusyRef.current) return // 더블클릭 → 토큰 중복 발급 방지.
+    linkBusyRef.current = true
+    setError(null)
+    setLinkPhase('creating')
+    try {
+      const url = await createShareUrl()
+      if (!url) return
+      const shareText = shareData.keyMessage || shareData.question
+      if (typeof navigator !== 'undefined' && typeof navigator.share === 'function') {
+        try {
+          await navigator.share({
+            title: isKo ? 'DestinyPal 타로' : 'DestinyPal Tarot',
+            text: shareText,
+            url,
+          })
+          return
+        } catch (err) {
+          if ((err as Error & { name?: string })?.name === 'AbortError') return
+          // 공유 실패 → 복사로 폴백.
+        }
+      }
+      try {
+        await navigator.clipboard.writeText(url)
+        setLinkPhase('copied')
+        setTimeout(() => setLinkPhase('idle'), 2000)
+        return
+      } catch {
+        setError(isKo ? `링크: ${url}` : `Link: ${url}`)
+      }
+    } finally {
+      linkBusyRef.current = false
+      setLinkPhase((p) => (p === 'creating' ? 'idle' : p))
+    }
+  }, [createShareUrl, shareData, isKo])
 
   // object URL 누수 방지.
   useEffect(() => {
@@ -72,7 +153,11 @@ export function ShareTarotButton({ data: shareData, language }: ShareTarotButton
       setPhase('preview')
     } catch (err) {
       tarotLogger.error('[ShareTarot] capture failed', err instanceof Error ? err : undefined)
-      setError(isKo ? '이미지를 만들지 못했어요. 다시 시도해 주세요.' : 'Could not create the image. Please try again.')
+      setError(
+        isKo
+          ? '이미지를 만들지 못했어요. 다시 시도해 주세요.'
+          : 'Could not create the image. Please try again.'
+      )
       setPhase('idle')
     }
   }, [shareData.cards, isKo])
@@ -143,6 +228,34 @@ export function ShareTarotButton({ data: shareData, language }: ShareTarotButton
   return (
     <>
       <div className="flex flex-col items-center gap-2">
+        {/* 링크 공유 — 받는 사람이 한 번 탭하면 우리 사이트로. 가장 바이럴한 액션. */}
+        <button
+          type="button"
+          onClick={() => void handleShareLink()}
+          disabled={linkPhase === 'creating'}
+          className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+          style={{ background: '#e8cc8a', color: '#1a1305' }}
+        >
+          {linkPhase === 'creating' ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : linkPhase === 'copied' ? (
+            <Check className="w-4 h-4" />
+          ) : (
+            <Link2 className="w-4 h-4" />
+          )}
+          {linkPhase === 'creating'
+            ? isKo
+              ? '링크 만드는 중…'
+              : 'Creating link…'
+            : linkPhase === 'copied'
+              ? isKo
+                ? '링크 복사됨!'
+                : 'Link copied!'
+              : isKo
+                ? '링크로 공유'
+                : 'Share link'}
+        </button>
+
         <button
           type="button"
           onClick={onClickShare}
@@ -167,7 +280,9 @@ export function ShareTarotButton({ data: shareData, language }: ShareTarotButton
               ? '결과 이미지로 공유'
               : 'Share as image'}
         </button>
-        {error && <span className="text-[11px] text-rose-300/80 text-center max-w-xs">{error}</span>}
+        {error && (
+          <span className="text-[11px] text-rose-300/80 text-center max-w-xs">{error}</span>
+        )}
       </div>
 
       {/* 캡처용 화면 밖 카드 — rendering/preview 동안만 마운트. */}

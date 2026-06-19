@@ -14,6 +14,7 @@ import { useI18n } from '@/i18n/I18nProvider'
 import { apiFetch } from '@/lib/api'
 import { tarotLogger } from '@/lib/logger'
 import { ShareTarotButton } from '@/components/tarot/ShareTarotButton'
+import { pickTeaser } from '@/components/tarot/shareCardData'
 import type { ShareCardData } from '@/components/tarot/TarotShareCard'
 
 interface DailyReading {
@@ -87,10 +88,20 @@ export default function DailyTarotPage() {
     }
   }, [isKo])
 
+  // 공유 카드 상단 라벨이 이미 "오늘의 타로"라, 질문/푸터까지 같은 문구를 쓰면
+  // 한 카드에 "오늘의 타로"가 세 번 박힌다. 질문은 날짜로, 푸터는 "오늘의 카드"로
+  // 바꿔 중복을 없앤다.
+  const dateLabel = reading
+    ? new Date(`${reading.date}T00:00:00`).toLocaleDateString(isKo ? 'ko-KR' : 'en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      })
+    : ''
   const shareData: ShareCardData | null = reading
     ? {
-        question: isKo ? '오늘의 타로' : "Today's Tarot",
-        spreadTitle: isKo ? '오늘의 타로' : "Today's Tarot",
+        question: dateLabel,
+        spreadTitle: isKo ? '오늘의 카드' : 'Card of the day',
         cards: [
           {
             image: reading.card.image,
@@ -99,6 +110,10 @@ export default function DailyTarotPage() {
           },
         ],
         keyMessage: reading.hook || reading.message || '',
+        // 데일리만 상단 라벨을 "오늘의 타로"로(일반 리딩은 "타로 리딩" 기본값).
+        eyebrow: isKo ? '오늘의 타로' : "TODAY'S TAROT",
+        // 후크가 있을 때만 본문(message) 티저로 궁금증 한 줄.
+        teaser: reading.hook ? pickTeaser(reading.message) : undefined,
         isKo,
       }
     : null
@@ -239,7 +254,7 @@ export default function DailyTarotPage() {
 
             {shareData ? (
               <div style={{ marginTop: 28, display: 'flex', justifyContent: 'center' }}>
-                <ShareTarotButton data={shareData} language={locale} />
+                <ShareTarotButton data={shareData} language={locale} body={reading.message} />
               </div>
             ) : null}
 

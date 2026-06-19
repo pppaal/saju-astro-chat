@@ -91,6 +91,32 @@ export function pickKeyMessage(source: string | undefined | null, max = 58): str
   return sentence
 }
 
+// 후크 아래에 깔 "해석 티저" — 본문 앞부분을 짧게 따 "…"로 끊어 궁금증을
+// 남긴다(Berger 의 curiosity gap). 실명(앞머리 호명)은 떼고, 후크와 겹치지
+// 않게 호출부에서 후크가 따로 있을 때만 쓴다.
+export function pickTeaser(source: string | undefined | null, max = 100): string {
+  let s = stripMarkdown(source)
+  if (!s) return ''
+  // 실명 노출 방지 — pickKeyMessage 와 동일한 호명 제거.
+  s = s.replace(/^[가-힣A-Za-z·\s]{1,12}님(께서|은|이|,|，|!|\s)+/, '').trim()
+  s = s
+    .replace(
+      /^(?:hi|hey|hello|dear)\b[\s,]+[A-Za-z][A-Za-z'’.-]*(?:\s+[A-Za-z][A-Za-z'’.-]*){0,2}\s*[,!:.—-]+\s*/i,
+      ''
+    )
+    .trim()
+  s = s
+    .replace(/[\r\n]+/g, ' ')
+    .replace(/\s{2,}/g, ' ')
+    .trim()
+  if (!s) return ''
+  if (/^[a-z]/.test(s)) s = s[0].toUpperCase() + s.slice(1)
+  // 끊어서 궁금증 — max 안에서 자르고 "…" 를 붙인다(… 포함 길이 ≤ max).
+  if (s.length > max) s = s.slice(0, max - 1).trim()
+  s = s.replace(/[.!?。！？,，·\s]+$/, '').trim()
+  return s ? `${s}…` : ''
+}
+
 /** 라이브 결과 화면용. */
 export function buildShareDataFromReading(
   readingResult: ReadingResponse,
@@ -105,6 +131,8 @@ export function buildShareDataFromReading(
         : readingResult.spread.title),
     90
   )
+  // LLM 펀치라인(정곡+여운)을 방탄 정리해 우선 사용. 비면 overall 첫 문장 폴백.
+  const hook = cleanShareHook(interpretation?.hook)
   return {
     question,
     spreadTitle: isKo
@@ -115,11 +143,13 @@ export function buildShareDataFromReading(
       name: isKo ? dc.card.nameKo || dc.card.name : dc.card.name,
       isReversed: dc.isReversed,
     })),
-    // LLM 펀치라인(정곡+여운)을 방탄 정리해 우선 사용 — 모델이 뭘 뱉든 한 줄
-    // 깔끔하게. 비면 overall 첫 문장으로 폴백.
     keyMessage:
-      cleanShareHook(interpretation?.hook) ||
-      pickKeyMessage(interpretation?.overall_message || interpretation?.affirmation),
+      hook || pickKeyMessage(interpretation?.overall_message || interpretation?.affirmation),
+    // 후크가 따로 있을 때만 본문 티저를 깐다(후크=주인공, 티저=궁금증 한 줄).
+    // 후크가 없으면 keyMessage 가 이미 본문 첫 문장이라 중복되므로 생략.
+    teaser: hook
+      ? pickTeaser(interpretation?.overall_message || interpretation?.affirmation)
+      : undefined,
     isKo,
   }
 }

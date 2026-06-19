@@ -7,7 +7,35 @@
  */
 
 import { describe, it, expect } from 'vitest'
-import { pickKeyMessage, stripMarkdown, cleanShareHook } from '@/components/tarot/shareCardData'
+import {
+  pickKeyMessage,
+  stripMarkdown,
+  cleanShareHook,
+  pickTeaser,
+} from '@/components/tarot/shareCardData'
+
+describe('pickTeaser — 후크 아래 궁금증 한 줄', () => {
+  it('본문을 잘라 "…"로 끊는다 (… 포함 길이 ≤ max)', () => {
+    const out = pickTeaser('가'.repeat(60), 44)
+    expect(out.endsWith('…')).toBe(true)
+    expect(out.length).toBeLessThanOrEqual(44)
+  })
+  it('앞머리 호명(실명)을 떼어 공유 이미지에 새지 않게 한다', () => {
+    const out = pickTeaser('이준영님, 오늘은 새로운 시작에 좋은 흐름이 이어집니다.')
+    expect(out).not.toContain('이준영')
+    expect(out).not.toContain('님')
+  })
+  it('영어 호명도 떼고 첫 글자를 대문자로 보정한다', () => {
+    const out = pickTeaser('Hi Jun, a steady current is forming under the surface today.')
+    expect(out).not.toContain('Jun')
+    expect(out.startsWith('A')).toBe(true)
+  })
+  it('빈 값이면 빈 문자열', () => {
+    expect(pickTeaser('')).toBe('')
+    expect(pickTeaser(undefined)).toBe('')
+    expect(pickTeaser(null)).toBe('')
+  })
+})
 
 describe('cleanShareHook — 모델이 뭘 뱉든 한 줄 깔끔하게', () => {
   it('감싼 따옴표를 벗긴다', () => {
