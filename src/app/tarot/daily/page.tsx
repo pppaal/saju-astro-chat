@@ -87,10 +87,20 @@ export default function DailyTarotPage() {
     }
   }, [isKo])
 
+  // 공유 카드 상단 라벨이 이미 "오늘의 타로"라, 질문/푸터까지 같은 문구를 쓰면
+  // 한 카드에 "오늘의 타로"가 세 번 박힌다. 질문은 날짜로, 푸터는 "오늘의 카드"로
+  // 바꿔 중복을 없앤다.
+  const dateLabel = reading
+    ? new Date(`${reading.date}T00:00:00`).toLocaleDateString(isKo ? 'ko-KR' : 'en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      })
+    : ''
   const shareData: ShareCardData | null = reading
     ? {
-        question: isKo ? '오늘의 타로' : "Today's Tarot",
-        spreadTitle: isKo ? '오늘의 타로' : "Today's Tarot",
+        question: dateLabel,
+        spreadTitle: isKo ? '오늘의 카드' : 'Card of the day',
         cards: [
           {
             image: reading.card.image,
