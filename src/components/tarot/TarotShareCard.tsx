@@ -23,6 +23,10 @@ export interface ShareCardData {
   /** 한 줄 핵심 메시지(따옴표로 강조). */
   keyMessage: string
   isKo: boolean
+  /** 상단 라벨 — 일반 리딩 "타로 리딩", 데일리 "오늘의 타로". 미지정 시 기본값. */
+  eyebrow?: string
+  /** 후크 아래 살짝 보여줄 해석 티저(궁금증 유발 — "…"로 끊김). 선택. */
+  teaser?: string
 }
 
 const GOLD = '#e8cc8a'
@@ -42,7 +46,10 @@ function cardWidthFor(n: number): number {
 
 export const TarotShareCard = React.forwardRef<HTMLDivElement, { data: ShareCardData }>(
   function TarotShareCard({ data }, ref) {
-    const { question, spreadTitle, cards, keyMessage, isKo } = data
+    const { question, spreadTitle, cards, keyMessage, isKo, eyebrow, teaser } = data
+    const eyebrowLabel = eyebrow ?? (isKo ? '타로 리딩' : 'TAROT READING')
+    // 티저가 후크와 같으면(중복) 숨김.
+    const showTeaser = !!teaser && teaser.trim() !== keyMessage.trim()
     const shown = cards.slice(0, 5)
     const cardW = cardWidthFor(shown.length)
     const cardH = Math.round(cardW * 1.6)
@@ -121,7 +128,7 @@ export const TarotShareCard = React.forwardRef<HTMLDivElement, { data: ShareCard
               marginBottom: 14,
             }}
           >
-            {isKo ? '오늘의 타로' : 'TAROT READING'}
+            {eyebrowLabel}
           </div>
           <div
             style={{
@@ -209,6 +216,22 @@ export const TarotShareCard = React.forwardRef<HTMLDivElement, { data: ShareCard
               }}
             >
               {keyMessage}
+            </div>
+          ) : null}
+
+          {/* 해석 티저 — 후크 아래 한 줄, "…"로 끊어 궁금증을 남긴다. */}
+          {showTeaser ? (
+            <div
+              style={{
+                marginTop: 22,
+                fontSize: 30,
+                lineHeight: 1.4,
+                color: '#c7cedd',
+                wordBreak: 'keep-all',
+                whiteSpace: 'pre-wrap',
+              }}
+            >
+              {teaser}
             </div>
           ) : null}
         </div>

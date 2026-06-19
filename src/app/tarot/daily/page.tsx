@@ -14,6 +14,7 @@ import { useI18n } from '@/i18n/I18nProvider'
 import { apiFetch } from '@/lib/api'
 import { tarotLogger } from '@/lib/logger'
 import { ShareTarotButton } from '@/components/tarot/ShareTarotButton'
+import { pickTeaser } from '@/components/tarot/shareCardData'
 import type { ShareCardData } from '@/components/tarot/TarotShareCard'
 
 interface DailyReading {
@@ -109,6 +110,10 @@ export default function DailyTarotPage() {
           },
         ],
         keyMessage: reading.hook || reading.message || '',
+        // 데일리만 상단 라벨을 "오늘의 타로"로(일반 리딩은 "타로 리딩" 기본값).
+        eyebrow: isKo ? '오늘의 타로' : "TODAY'S TAROT",
+        // 후크가 있을 때만 본문(message) 티저로 궁금증 한 줄.
+        teaser: reading.hook ? pickTeaser(reading.message) : undefined,
         isKo,
       }
     : null
