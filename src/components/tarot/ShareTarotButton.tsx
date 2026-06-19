@@ -186,6 +186,9 @@ export function ShareTarotButton({ data: shareData, language, body }: ShareTarot
     if (previewUrl) URL.revokeObjectURL(previewUrl)
     setPreviewUrl(null)
     setBlob(null)
+    setError(null)
+    setLinkPhase('idle')
+    linkBusyRef.current = false
   }
 
   const filename = `destinypal-tarot-${Date.now()}.png`
@@ -228,44 +231,13 @@ export function ShareTarotButton({ data: shareData, language, body }: ShareTarot
   return (
     <>
       <div className="flex flex-col items-center gap-2">
-        {/* 링크 공유 — 받는 사람이 한 번 탭하면 우리 사이트로. 가장 바이럴한 액션. */}
-        <button
-          type="button"
-          onClick={() => void handleShareLink()}
-          disabled={linkPhase === 'creating'}
-          className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
-          style={{ background: '#e8cc8a', color: '#1a1305' }}
-        >
-          {linkPhase === 'creating' ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
-          ) : linkPhase === 'copied' ? (
-            <Check className="w-4 h-4" />
-          ) : (
-            <Link2 className="w-4 h-4" />
-          )}
-          {linkPhase === 'creating'
-            ? isKo
-              ? '링크 만드는 중…'
-              : 'Creating link…'
-            : linkPhase === 'copied'
-              ? isKo
-                ? '링크 복사됨!'
-                : 'Link copied!'
-              : isKo
-                ? '링크로 공유'
-                : 'Share link'}
-        </button>
-
+        {/* 단일 진입 — 누르면 미리보기 카드를 먼저 보여주고, 그 안에서 링크/이미지 선택. */}
         <button
           type="button"
           onClick={onClickShare}
           disabled={phase === 'rendering'}
-          className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full text-sm font-medium transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
-          style={{
-            background: 'rgba(212,181,114,0.14)',
-            border: '1px solid rgba(212,181,114,0.4)',
-            color: '#e8cc8a',
-          }}
+          className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+          style={{ background: '#e8cc8a', color: '#1a1305' }}
         >
           {phase === 'rendering' ? (
             <Loader2 className="w-4 h-4 animate-spin" />
@@ -274,13 +246,13 @@ export function ShareTarotButton({ data: shareData, language, body }: ShareTarot
           )}
           {phase === 'rendering'
             ? isKo
-              ? '이미지 만드는 중…'
-              : 'Creating image…'
+              ? '미리보기 만드는 중…'
+              : 'Preparing preview…'
             : isKo
-              ? '결과 이미지로 공유'
-              : 'Share as image'}
+              ? '결과 공유하기'
+              : 'Share result'}
         </button>
-        {error && (
+        {error && phase !== 'preview' && (
           <span className="text-[11px] text-rose-300/80 text-center max-w-xs">{error}</span>
         )}
       </div>
@@ -333,10 +305,39 @@ export function ShareTarotButton({ data: shareData, language, body }: ShareTarot
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={previewUrl}
-              alt={isKo ? '공유 이미지 미리보기' : 'Share image preview'}
+              alt={isKo ? '공유 카드 미리보기' : 'Share card preview'}
               className="w-full rounded-xl mb-4"
               style={{ aspectRatio: '1 / 1', objectFit: 'cover' }}
             />
+
+            {/* 링크로 공유 — 받는 사람이 한 번 탭하면 우리 사이트로(가장 바이럴). */}
+            <button
+              type="button"
+              onClick={() => void handleShareLink()}
+              disabled={linkPhase === 'creating'}
+              className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors disabled:opacity-60 disabled:cursor-not-allowed mb-2"
+              style={{ background: '#e8cc8a', color: '#1a1305' }}
+            >
+              {linkPhase === 'creating' ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : linkPhase === 'copied' ? (
+                <Check className="w-4 h-4" />
+              ) : (
+                <Link2 className="w-4 h-4" />
+              )}
+              {linkPhase === 'creating'
+                ? isKo
+                  ? '링크 만드는 중…'
+                  : 'Creating link…'
+                : linkPhase === 'copied'
+                  ? isKo
+                    ? '링크 복사됨!'
+                    : 'Link copied!'
+                  : isKo
+                    ? '링크로 공유'
+                    : 'Share link'}
+            </button>
+            {error && <p className="mb-2 text-[11px] text-center text-rose-300/80">{error}</p>}
 
             <div className="flex gap-2">
               {canNativeShare && (
@@ -347,7 +348,7 @@ export function ShareTarotButton({ data: shareData, language, body }: ShareTarot
                   style={{ background: '#e8cc8a', color: '#1a1305' }}
                 >
                   <Share2 className="w-4 h-4" />
-                  {isKo ? '공유하기' : 'Share'}
+                  {isKo ? '이미지 공유' : 'Share image'}
                 </button>
               )}
               <button
