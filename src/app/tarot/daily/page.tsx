@@ -239,7 +239,7 @@ export default function DailyTarotPage() {
 
             {shareData ? (
               <div style={{ marginTop: 28, display: 'flex', justifyContent: 'center' }}>
-                <ShareTarotButton data={shareData} language={locale} />
+                <ShareTarotButton data={shareData} language={locale} body={reading.message} />
               </div>
             ) : null}
 
