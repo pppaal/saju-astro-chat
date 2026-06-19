@@ -253,7 +253,7 @@ export default function TarotChatScreen() {
               {/* z-0: 카드 인라인 zIndex(8~10)를 이 컨테이너 stacking context 안에
                   가둬, 위로 열리는 덱·스프레드 메뉴(입력창 z-index:6 안)가 카드에
                   가려지지 않게 한다. */}
-              <div className="relative z-0 h-28 w-full max-w-xs mx-auto" aria-hidden>
+              <div className="relative z-0 h-24 md:h-28 w-full max-w-xs mx-auto" aria-hidden>
                 {Array.from({ length: Math.min(selectedSpread.spread.cardCount, 5) }).map(
                   (_, i, arr) => {
                     const n = arr.length
