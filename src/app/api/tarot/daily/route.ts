@@ -48,8 +48,13 @@ function secondsUntilKstMidnight(now: Date = new Date()): number {
   return Math.max(60, Math.round((endOfDay - kstMs) / 1000))
 }
 
-const dailyKey = (userId: string, date: string) => `tarot:daily:${userId}:${date}`
-const dailyLockKey = (userId: string, date: string) => `tarot:daily:lock:${userId}:${date}`
+// 캐시 스키마/프롬프트가 바뀌면 이 버전을 올린다 — 당일 자정 전에도 오래된
+// 캐시(예: 짧은 본문)를 우회해 새 결과가 즉시 나오게 한다.
+const DAILY_CACHE_VERSION = 'v2'
+const dailyKey = (userId: string, date: string) =>
+  `tarot:daily:${DAILY_CACHE_VERSION}:${userId}:${date}`
+const dailyLockKey = (userId: string, date: string) =>
+  `tarot:daily:lock:${DAILY_CACHE_VERSION}:${userId}:${date}`
 
 interface DailyReading {
   date: string
