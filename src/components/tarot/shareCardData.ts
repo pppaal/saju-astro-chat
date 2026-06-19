@@ -9,6 +9,8 @@ import type {
   ReadingResponse,
   InterpretationResult,
 } from '@/app/tarot/[categoryName]/[spreadId]/types'
+import type { DrawnCard } from '@/lib/tarot/tarot.types'
+import { signatureKeywords, signatureName } from '@/lib/tarot/signatureCard'
 import { findCardBySavedName } from '@/lib/tarot/findCardByName'
 import type { ShareCardData } from './TarotShareCard'
 
@@ -147,6 +149,36 @@ export function buildShareDataFromReading(
       hook || pickKeyMessage(interpretation?.overall_message || interpretation?.affirmation),
     // 후크가 따로 있을 때만 본문 티저를 깐다(후크=주인공, 티저=궁금증 한 줄).
     // 후크가 없으면 keyMessage 가 이미 본문 첫 문장이라 중복되므로 생략.
+    teaser: hook
+      ? pickTeaser(interpretation?.overall_message || interpretation?.affirmation)
+      : undefined,
+    isKo,
+  }
+}
+
+/**
+ * "지금 나를 닮은 카드" 공유 카드 — 대표 1장 + 아키타입 + 후크.
+ * eyebrow 로 정체성 라벨을 박아, 한 장짜리 정체성 카드로 공유된다.
+ */
+export function buildSignatureShareData(
+  signature: DrawnCard,
+  interpretation: InterpretationResult | null,
+  isKo: boolean
+): ShareCardData {
+  const hook = cleanShareHook(interpretation?.hook)
+  return {
+    question: signatureKeywords(signature, isKo), // 맥락 줄 = 본질 키워드
+    spreadTitle: isKo ? '나를 닮은 카드' : 'The card that is you',
+    cards: [
+      {
+        image: signature.card.image,
+        name: signatureName(signature, isKo),
+        isReversed: signature.isReversed,
+      },
+    ],
+    keyMessage:
+      hook || pickKeyMessage(interpretation?.overall_message || interpretation?.affirmation),
+    eyebrow: isKo ? '지금 나를 닮은 카드' : 'THE CARD THAT IS YOU',
     teaser: hook
       ? pickTeaser(interpretation?.overall_message || interpretation?.affirmation)
       : undefined,

@@ -53,8 +53,7 @@ import { HorizontalCardsGrid, DetailedCardsSection, ActionButtons } from '../../
 import { ResultsHeader } from './ResultsHeader'
 import { GuidanceSection } from './GuidanceSection'
 import { FollowupChat } from './FollowupChat'
-import { ShareTarotButton } from '@/components/tarot/ShareTarotButton'
-import { buildShareDataFromReading } from '@/components/tarot/shareCardData'
+import { SignatureCardBlock } from '@/components/tarot/SignatureCardBlock'
 import { renderWithLastSentenceHighlight } from '../../ResultsView/highlight'
 
 export interface ResultsStageProps {
@@ -294,18 +293,14 @@ export function ResultsStage(props: ResultsStageProps) {
         {/* ⑤ 조언과 예측 */}
         {hasGuidance && <GuidanceSection guidance={insight!.guidance!} language={language} />}
 
-        {/* ⑥ SNS 공유 — 결과를 1:1 이미지로 만들어 인스타/카톡에 공유·저장.
-            AI 응답이 도착한 후에만 노출(질문+카드+한줄 메시지 카드). */}
+        {/* ⑥ "지금 나를 닮은 카드" — 대표 1장으로 만든 정체성 한 컷 + 공유.
+            (질문/카드 전체 공유 대신, 캡처·재공유가 잘 되는 정체성 카드로.)
+            AI 응답이 도착한 후에만 노출. */}
         {!aiPending && insight?.overall_message && (
-          <ShareTarotButton
-            data={buildShareDataFromReading(
-              readingResult,
-              interpretation,
-              userTopic,
-              language === 'ko'
-            )}
+          <SignatureCardBlock
+            readingResult={readingResult}
+            interpretation={interpretation}
             language={language}
-            body={insight?.overall_message || undefined}
           />
         )}
 
