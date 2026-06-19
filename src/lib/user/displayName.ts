@@ -18,7 +18,7 @@ const CTRL_OR_LINE_SEP_RE = new RegExp('[\\u0000-\\u001f\\u007f-\\u009f\\u2028\\
  *
  * 정규화 후 빈 문자열이면 null 반환 (호명 생략).
  */
-function sanitizeDisplayName(raw: string | null | undefined): string | null {
+export function sanitizeDisplayName(raw: string | null | undefined): string | null {
   if (!raw) return null
   const cleaned = raw
     .replace(CTRL_OR_LINE_SEP_RE, ' ')

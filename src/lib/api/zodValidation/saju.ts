@@ -557,6 +557,9 @@ export const counselorRealtimeRequestSchema = z
   .object({
     messages: z.array(realtimeCounselorTurnSchema).min(1),
     birthDate: z.string().min(1).max(64),
+    // 상담 대상 이름('다른 사람으로 보기' 시 그 사람 이름). 라우트가
+    // sanitizeDisplayName 으로 50자 cap + 정규화하므로 여기선 폭주만 차단.
+    name: z.string().max(200).optional(),
     // 라우트는 80자로 자르지만 입력은 여유 있게 — 길이만 abuse 방지 캡.
     turnId: z.string().max(200).optional(),
     // 첨부 파일 텍스트 — 라우트가 12,000자로 자르므로 여기선 폭주만 차단.
