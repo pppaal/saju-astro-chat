@@ -65,7 +65,8 @@ function drawOne(): { card: Card; isReversed: boolean } {
   return { card, isReversed: Math.random() < 0.3 }
 }
 
-// 데일리 맛보기 프롬프트 — 일부러 짧고 얕게. 한 줄 후크 + 2문장.
+// 데일리 프롬프트 — 한 줄 후크 + 충분히 읽을거리가 되는 본문. 무료지만
+// "읽고 나면 만족스러운" 분량(오늘의 흐름 + 구체적 행동 제안)을 준다.
 function buildDailyTeaserPrompt(
   locale: 'ko' | 'en',
   cardName: string,
@@ -84,19 +85,21 @@ function buildDailyTeaserPrompt(
   if (locale === 'ko') {
     return {
       systemPrompt: [
-        '너는 따뜻하고 통찰력 있는 타로 리더다. "오늘의 한 장" 무료 맛보기를 준다.',
+        '너는 따뜻하고 통찰력 있는 타로 리더다. "오늘의 한 장" 무료 리딩을 준다.',
         '규칙:',
-        '- 짧고 강하게. 깊은 분석/조언은 하지 않는다(맛보기다).',
+        '- 따뜻하고 구체적으로, 충분히 읽을거리가 되게 쓴다. 단, 한 장짜리라 "오늘 하루"에 집중한다.',
         '- 마크다운(*, _, #, `), 해시태그(#), 따옴표로 문장 전체 감싸기 금지.',
         '- 저주·불행·공포 조장 금지. 양면이 있되 희망의 여지를 남긴다.',
+        '- 막연한 덕담 금지. 카드 키워드를 오늘의 상황·감정·행동으로 풀어 구체적으로.',
         '반드시 아래 JSON 만 출력:',
-        '{"hook": "한 줄 후크", "message": "2문장 이내 메시지"}',
+        '{"hook": "한 줄 후크", "message": "본문(4~6문장)"}',
         'hook 규칙: 28자 이내. 2인칭("당신/너")으로 단언하고, 구체적인 디테일 1개를 넣고, 살짝 양면의 트위스트로 여운을 남긴다.',
+        'message 규칙: 4~6문장. ①오늘의 큰 흐름 ②카드가 비추는 마음/관계/일의 한 면 ③오늘 해보면 좋은 구체적 행동 1가지 ④따뜻한 마무리 한 줄. 줄바꿈으로 문단을 나눠도 좋다.',
       ].join('\n'),
       userPrompt: [
         `오늘의 카드: ${cardName} (${orientation})`,
         kw ? `키워드: ${kw}` : '',
-        '이 한 장으로 "오늘 하루"의 맛보기 한 줄 후크와 2문장 메시지를 써라.',
+        '이 한 장으로 "오늘 하루"의 후크 한 줄과 4~6문장 본문을 써라.',
       ]
         .filter(Boolean)
         .join('\n'),
@@ -105,19 +108,21 @@ function buildDailyTeaserPrompt(
 
   return {
     systemPrompt: [
-      'You are a warm, insightful tarot reader giving a free "card of the day" teaser.',
+      'You are a warm, insightful tarot reader giving a free "card of the day" reading.',
       'Rules:',
-      '- Keep it short and punchy. No deep analysis or advice (this is a teaser).',
+      '- Warm, specific, and a satisfying read — but focused on "today" since it is a single card.',
       '- No markdown (*, _, #, `), no hashtags, do not wrap the whole line in quotes.',
       '- No curses, doom, or fear-mongering. Acknowledge both sides but leave hope.',
+      '- No vague platitudes. Translate the card keywords into concrete situations, feelings, and actions for today.',
       'Output ONLY this JSON:',
-      '{"hook": "one-line hook", "message": "message in 2 sentences or fewer"}',
-      'hook rules: max 12 words. Speak in second person ("you"), make a confident claim, include one concrete detail, and end with a slight two-sided twist.',
+      '{"hook": "one-line hook", "message": "body (4-6 sentences)"}',
+      'hook rules: max 12 words. Speak in second person ("you"), make a confident claim, include one concrete detail, end with a slight two-sided twist.',
+      'message rules: 4-6 sentences. (1) the overall flow of today (2) one facet the card highlights in your heart/relationships/work (3) one concrete thing worth doing today (4) a warm closing line. Paragraph breaks are fine.',
     ].join('\n'),
     userPrompt: [
       `Card of the day: ${cardName} (${orientation})`,
       kw ? `Keywords: ${kw}` : '',
-      'Write a one-line hook and a 2-sentence teaser message for "today" from this single card.',
+      'Write a one-line hook and a 4-6 sentence body for "today" from this single card.',
     ]
       .filter(Boolean)
       .join('\n'),
@@ -171,14 +176,14 @@ export const POST = withApiMiddleware(
         keywords
       )
 
-      // 싸게: 기본 모델(Haiku) + 작은 출력. 맛보기라 토큰을 아낀다.
+      // 싸게: 기본 모델(Haiku). 무료지만 본문 4~6문장이 잘리지 않게 토큰 여유.
       const { text } = await callClaude({
         systemPrompt,
         userPrompt,
-        maxTokens: 320,
+        maxTokens: 900,
         temperature: 0.85,
-        timeoutMs: 20000,
-        label: 'tarot-daily-teaser',
+        timeoutMs: 25000,
+        label: 'tarot-daily',
       })
 
       const parsed = extractJsonObject<{ hook?: string; message?: string }>(text)
