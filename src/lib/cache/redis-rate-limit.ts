@@ -294,7 +294,10 @@ export async function rateLimit(
     }
 
     if (count > limit) {
-      recordCounter('api.rate_limit.exceeded', 1, { backend, key })
+      // `key` 는 per-user/IP 식별자(고카디널리티) — metric 라벨에 넣으면 metrics.ts
+      // 의 series 맵이 고유 사용자/IP 수만큼 무한 증가한다(공격자 증폭 가능). 라벨엔
+      // backend 만 남기고 key 는 아래 logger 로만 남긴다.
+      recordCounter('api.rate_limit.exceeded', 1, { backend })
     }
 
     return { allowed, limit, remaining, reset, retryAfter, headers, backend }
@@ -308,7 +311,9 @@ export async function rateLimit(
    * Upstash-down path when fail-closed is requested.
    */
   const buildDeniedResult = (reason: string): RateLimitResult => {
-    recordCounter('api.rate_limit.fail_closed', 1, { key })
+    // key(고카디널리티)는 라벨에서 제외 — metrics series 무한 증가 방지. 진단용
+    // key 는 아래 logger.error 에 남는다.
+    recordCounter('api.rate_limit.fail_closed', 1)
     logger.error(`[RateLimit] ${reason} — failing closed (deny)`, {
       env: process.env.NODE_ENV || 'unknown',
       key,
