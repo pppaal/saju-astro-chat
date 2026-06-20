@@ -248,7 +248,16 @@ export async function POST(req: NextRequest) {
     } else {
       let consumed: { success: boolean }
       try {
-        consumed = await consumeCredits(userId, 'reading', 1)
+        // 과금↔활동 링크 — 클라가 정본 세션 id 를 x-session-id 로 보내고, onComplete
+        // 의 ensureCounselorSessionRecord 가 같은 id 로 행을 보장한다. 과금 시점에
+        // 이미 아는 이 id 를 CONSUME 감사행에 박아 사후 reconciliation 이 "차감됐는데
+        // 세션 행 없음"을 정확히 잡게 한다(헤더 없으면 링크 생략).
+        const sidForLink = (req.headers.get('x-session-id') ?? '').trim() || undefined
+        consumed = await consumeCredits(userId, 'reading', 1, {
+          apiRoute: 'counselor/realtime',
+          activityType: 'counselor_session',
+          activityRef: sidForLink,
+        })
       } catch (err) {
         // 차감 중 예외(DB 등) — 선점 해제 후 503 으로 막는다. 예전엔 여기서 그대로
         // 스트림으로 떨어져 프리미엄 답변이 무료로 나갔다. 절대 무료 스트림 금지.

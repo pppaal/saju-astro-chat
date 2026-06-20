@@ -124,7 +124,11 @@ describe('interpret-stream — single-use draw nonce gating (Fix A)', () => {
     await POST(makeReq(BODY_3CARD, 'valid-nonce'))
     expect(mockConsume).toHaveBeenCalledWith('valid-nonce', 'user:user-123')
     expect(mockCheckAndConsumeCredits).toHaveBeenCalledTimes(1)
-    expect(mockCheckAndConsumeCredits).toHaveBeenCalledWith('reading', 1)
+    expect(mockCheckAndConsumeCredits).toHaveBeenCalledWith(
+      'reading',
+      1,
+      expect.objectContaining({ apiRoute: 'tarot/interpret-stream', activityType: 'tarot_reading' })
+    )
   })
 
   it('does NOT net-double-charge a genuine replay (charges then refunds the SAME nonce)', async () => {
@@ -162,6 +166,10 @@ describe('interpret-stream — single-use draw nonce gating (Fix A)', () => {
     }
     mockSafeParse.mockReturnValue({ success: true, data: { ...big, drawNonce: 'n5' } })
     await POST(makeReq(big, 'n5'))
-    expect(mockCheckAndConsumeCredits).toHaveBeenCalledWith('reading', 2)
+    expect(mockCheckAndConsumeCredits).toHaveBeenCalledWith(
+      'reading',
+      2,
+      expect.objectContaining({ apiRoute: 'tarot/interpret-stream', activityType: 'tarot_reading' })
+    )
   })
 })

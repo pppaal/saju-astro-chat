@@ -155,6 +155,10 @@ describe('followup — free-replay hardening (Fix B)', () => {
       )
     )
     expect(mockCheckAndConsumeCredits).toHaveBeenCalledTimes(2)
-    expect(mockCheckAndConsumeCredits).toHaveBeenCalledWith('reading', 1)
+    expect(mockCheckAndConsumeCredits).toHaveBeenCalledWith(
+      'reading',
+      1,
+      expect.objectContaining({ apiRoute: 'tarot/followup', activityType: 'tarot_followup' })
+    )
   })
 })

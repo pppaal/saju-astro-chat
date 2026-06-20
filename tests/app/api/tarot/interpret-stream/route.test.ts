@@ -21,11 +21,12 @@ vi.mock('@/lib/api/middleware', () => ({
 }))
 
 const mockCheckAndConsumeCredits = vi.fn()
-const mockCreditErrorResponse = vi.fn((result: { error?: string; errorCode?: string }) =>
-  new Response(JSON.stringify({ error: result.error, code: result.errorCode }), {
-    status: 401,
-    headers: { 'Content-Type': 'application/json' },
-  })
+const mockCreditErrorResponse = vi.fn(
+  (result: { error?: string; errorCode?: string }) =>
+    new Response(JSON.stringify({ error: result.error, code: result.errorCode }), {
+      status: 401,
+      headers: { 'Content-Type': 'application/json' },
+    })
 )
 vi.mock('@/lib/credits/withCredits', () => ({
   checkAndConsumeCredits: (...args: unknown[]) => mockCheckAndConsumeCredits(...args),
@@ -350,7 +351,14 @@ describe('POST /api/tarot/interpret-stream', () => {
 
       await POST(req)
 
-      expect(mockCheckAndConsumeCredits).toHaveBeenCalledWith('reading', 1)
+      expect(mockCheckAndConsumeCredits).toHaveBeenCalledWith(
+        'reading',
+        1,
+        expect.objectContaining({
+          apiRoute: 'tarot/interpret-stream',
+          activityType: 'tarot_reading',
+        })
+      )
     })
 
     it('should charge 2 credits for a large spread (>= 8 cards)', async () => {
@@ -367,7 +375,14 @@ describe('POST /api/tarot/interpret-stream', () => {
 
       await POST(req)
 
-      expect(mockCheckAndConsumeCredits).toHaveBeenCalledWith('reading', 2)
+      expect(mockCheckAndConsumeCredits).toHaveBeenCalledWith(
+        'reading',
+        2,
+        expect.objectContaining({
+          apiRoute: 'tarot/interpret-stream',
+          activityType: 'tarot_reading',
+        })
+      )
     })
 
     it('should return credit error response when not authenticated', async () => {
@@ -928,7 +943,6 @@ describe('Tarot Stream - Internal Function Behavior', () => {
       expect(response.status).not.toBe(400)
     })
   })
-
 })
 
 // ===================================================================

@@ -250,7 +250,15 @@ export async function POST(req: NextRequest) {
           userId: context.userId,
         })
       } else {
-        const res = await consumeCredits(context.userId, 'compatibility', 1)
+        // 과금↔활동 링크 — persistSessionId(위에서 산출, 로그인 사용자면 항상
+        // 비어있지 않음)는 onComplete 의 ensureCounselorSessionRecord 가 행을
+        // 보장하는 바로 그 id. CONSUME 감사행에 박아 사후 reconciliation 이
+        // "차감됐는데 세션 행 없음"을 정확히 잡게 한다.
+        const res = await consumeCredits(context.userId, 'compatibility', 1, {
+          apiRoute: 'compatibility/counselor',
+          activityType: 'compat_session',
+          activityRef: persistSessionId || undefined,
+        })
         if (!res.success) {
           // 차감 실패 → 선점 해제 후 결제 요구 응답(재시도가 다시 차감 가능).
           if (scopedIdemKey) await idemStore.release(scopedIdemKey)
