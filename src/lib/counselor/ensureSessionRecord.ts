@@ -22,6 +22,7 @@
 
 import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/logger'
+import { isCounselorSessionDeleted } from '@/lib/counselor/sessionTombstone'
 
 // sidebar 제목과 동일 규칙(=chat-history 라우트의 truncateChatTitle)을 맞춰,
 // 안전망이 만든 행도 사용자가 보는 제목과 어긋나지 않게 한다.
@@ -113,6 +114,10 @@ export async function ensureCounselorSessionRecord(
   // seed 모드는 빈 대화면 만들 의미가 없다. existenceOnly 는 제목이 없어도
   // (행 존재 자체가 목적이라) 진행한다.
   if (!existenceOnly && normalized.length === 0) return 'skipped'
+
+  // 스트리밍 도중 사용자가 이 채팅을 삭제했다면(묘비 존재), 안전망이 방금 지운
+  // 세션을 되살리면 안 된다 — 생성 스킵.
+  if (await isCounselorSessionDeleted(sessionId)) return 'skipped'
 
   try {
     // PK 단건 조회(인덱스) — 행이 있으면(클라 저장 성공 or 타 사용자 소유) 건드리지

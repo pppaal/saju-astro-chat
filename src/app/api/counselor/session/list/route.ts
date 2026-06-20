@@ -7,6 +7,7 @@ import {
 } from '@/lib/api/middleware'
 import { prisma } from '@/lib/db/prisma'
 import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
+import { markCounselorSessionDeleted } from '@/lib/counselor/sessionTombstone'
 import {
   counselorSessionListQuerySchema,
   counselorSessionDeleteQuerySchema,
@@ -163,6 +164,10 @@ export const DELETE = withApiMiddleware(
         route: 'counselor/session/list',
       })
     }
+
+    // 진행 중이던 답변의 안전망/지연된 자동저장이 방금 지운 세션을 되살리지
+    // 못하도록 묘비를 남긴다(짧은 TTL). 두 생성 경로가 생성 직전 이걸 확인한다.
+    await markCounselorSessionDeleted(sessionId)
 
     return NextResponse.json({ success: true })
   },

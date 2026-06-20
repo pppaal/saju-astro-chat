@@ -9,6 +9,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 
 const mockFindUnique = vi.fn()
 const mockCreate = vi.fn()
+const mockIsDeleted = vi.fn()
 
 vi.mock('@/lib/db/prisma', () => ({
   prisma: {
@@ -21,6 +22,10 @@ vi.mock('@/lib/db/prisma', () => ({
 
 vi.mock('@/lib/logger', () => ({
   logger: { info: vi.fn(), warn: vi.fn(), error: vi.fn(), debug: vi.fn() },
+}))
+
+vi.mock('@/lib/counselor/sessionTombstone', () => ({
+  isCounselorSessionDeleted: (...args: unknown[]) => mockIsDeleted(...args),
 }))
 
 import { ensureCounselorSessionRecord } from '@/lib/counselor/ensureSessionRecord'
@@ -40,6 +45,18 @@ describe('ensureCounselorSessionRecord', () => {
     vi.clearAllMocks()
     mockFindUnique.mockResolvedValue(null)
     mockCreate.mockResolvedValue({})
+    mockIsDeleted.mockResolvedValue(false)
+  })
+
+  it('스트리밍 도중 삭제된 세션은 되살리지 않는다 (묘비 → skipped)', async () => {
+    // 답변 완료 직전 사용자가 채팅을 삭제 → 묘비 존재. 안전망이 행을 다시
+    // 만들면 삭제한 채팅이 부활한다. 생성을 스킵해야 한다.
+    mockIsDeleted.mockResolvedValue(true)
+
+    const result = await ensureCounselorSessionRecord(baseArgs())
+
+    expect(result).toBe('skipped')
+    expect(mockCreate).not.toHaveBeenCalled()
   })
 
   it('행이 없으면 생성한다 (차감됐는데 기록 0 인 케이스를 메움)', async () => {

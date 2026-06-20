@@ -14,6 +14,7 @@ import {
 } from '@/lib/api/zodValidation'
 import { logger } from '@/lib/logger'
 import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
+import { isCounselorSessionDeleted } from '@/lib/counselor/sessionTombstone'
 
 export const dynamic = 'force-dynamic'
 
@@ -138,6 +139,11 @@ export const POST = withApiMiddleware(
         },
       })
       saveMode = 'update'
+    } else if (await isCounselorSessionDeleted(sessionId)) {
+      // 스트리밍/디바운스 도중 사용자가 이 채팅을 삭제했다면, 지연 도착한 이
+      // 자동저장이 세션을 되살리면 안 된다 — 생성 스킵하고 조용히 성공 반환
+      // (클라는 이미 목록에서 지웠으므로 에러로 만들 필요 없음).
+      return NextResponse.json({ success: true, sessionId, skipped: 'deleted' })
     } else {
       try {
         chatSession = await prisma.counselorChatSession.create({
