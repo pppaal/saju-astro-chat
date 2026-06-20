@@ -15,7 +15,7 @@ status: auto-generated
 <!-- gen:api-routes -->
 <!-- 이 표는 자동 생성됩니다. 직접 수정하지 마세요 — `npm run docs:sync`. -->
 
-**총 78개 라우트** (원천: `src/app/api/**/route.ts`)
+**총 80개 라우트** (원천: `src/app/api/**/route.ts`)
 
 | 라우트                                  | 메서드             |
 | --------------------------------------- | ------------------ |
@@ -28,6 +28,7 @@ status: auto-generated
 | `/api/admin/metrics/funnel`             | GET                |
 | `/api/admin/overview`                   | GET                |
 | `/api/admin/purchases`                  | GET                |
+| `/api/admin/reconcile-activity`         | GET                |
 | `/api/admin/reconcile-purchase`         | POST               |
 | `/api/admin/refund-credit-pack`         | POST               |
 | `/api/admin/revenue`                    | GET                |
@@ -62,6 +63,7 @@ status: auto-generated
 | `/api/counselor/session/save`           | POST               |
 | `/api/counselor/warm`                   | POST               |
 | `/api/cron/daily-fortune`               | GET, POST          |
+| `/api/cron/reconcile-activity`          | GET, POST          |
 | `/api/cron/reset-credits`               | GET, POST          |
 | `/api/csp-report`                       | GET, POST          |
 | `/api/db-ping`                          | GET                |
