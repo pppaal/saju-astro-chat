@@ -115,6 +115,12 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+.topbarRight {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
 .tierName {
   pointer-events: auto;
   font-family: var(--dp-serif-ko);
@@ -124,6 +130,29 @@
   display: flex;
   align-items: baseline;
   gap: 10px;
+}
+.localeToggle {
+  pointer-events: auto;
+  flex: none;
+  font-family: var(--dp-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  color: var(--dp-ink-dim);
+  background: transparent;
+  border: 1px solid var(--dp-line);
+  border-radius: 999px;
+  padding: 5px 11px;
+  cursor: pointer;
+  transition:
+    color 0.15s ease,
+    border-color 0.15s ease,
+    background 0.15s ease;
+}
+.localeToggle:hover {
+  color: var(--dp-ink);
+  border-color: var(--dp-ink-dim);
+  background: rgba(58, 46, 28, 0.05);
 }
 .tierName b {
   font-weight: 400;
@@ -165,10 +194,13 @@
     padding-left: 8px;
     max-width: 38vw;
   }
+  .topbarRight {
+    margin-left: auto;
+    gap: 8px;
+  }
   .tierName {
     font-size: 13px;
     gap: 6px;
-    margin-left: auto;
   }
   .tierName b {
     font-size: 9.5px;

@@ -46,7 +46,7 @@ export function DestinypalTopbar({
   tierEn,
   tierScale,
 }: DestinypalTopbarProps) {
-  const { locale } = useI18n()
+  const { locale, setLocale } = useI18n()
   const ko = locale === 'ko'
   return (
     <div className={styles.topbar}>
@@ -58,13 +58,23 @@ export function DestinypalTopbar({
           {whoBirthLine} · {place} · {ilganHanja}
         </span>
       </div>
-      <div className={styles.tierName}>
-        <span>{ko ? `${tierKo}의 흐름` : (EN_TIER_LABEL[tierEn] ?? tierEn)}</span>
-        <b>
-          {tierEn} · {ko ? tierScale : scaleEn(tierScale)}
-        </b>
+      <div className={styles.topbarRight}>
+        <div className={styles.tierName}>
+          <span>{ko ? `${tierKo}의 흐름` : (EN_TIER_LABEL[tierEn] ?? tierEn)}</span>
+          <b>
+            {tierEn} · {ko ? tierScale : scaleEn(tierScale)}
+          </b>
+        </div>
+        {/* 언어 토글 — 캘린더는 몰입형이라 글로벌 헤더를 숨겨, 토글을 자체 제공한다. */}
+        <button
+          type="button"
+          className={styles.localeToggle}
+          onClick={() => setLocale(ko ? 'en' : 'ko')}
+          aria-label={ko ? 'Switch to English' : '한국어로 전환'}
+        >
+          {ko ? 'EN' : 'KO'}
+        </button>
       </div>
     </div>
   )
 }
-
