@@ -113,4 +113,56 @@ describe('ensureCounselorSessionRecord', () => {
     expect(result).toBe('skipped')
     expect(mockFindUnique).not.toHaveBeenCalled()
   })
+
+  describe('existenceOnly 모드 (궁합 — 메시지는 클라 append 가 채움)', () => {
+    it('메시지를 비운 채 제목만 가진 존재 보장 행을 만든다', async () => {
+      const result = await ensureCounselorSessionRecord({
+        sessionId: 'compat_1718800000000_abcdefg',
+        userId: 'user-1',
+        messages: [],
+        existenceOnly: true,
+        title: '우리 둘 잘 맞을까요?',
+        locale: 'ko',
+        type: 'compat',
+      })
+
+      expect(result).toBe('created')
+      const data = mockCreate.mock.calls[0][0].data
+      expect(data.type).toBe('compat')
+      // 메시지는 비어 있어야 한다 — 클라 append 와 합쳐져 중복되면 안 되므로.
+      expect(data.messages).toEqual([])
+      expect(data.messageCount).toBe(0)
+      // 제목은 메시지가 아니라 중복 위험이 없어 질문에서 뽑는다.
+      expect(data.title).toBe('우리 둘 잘 맞을까요?')
+    })
+
+    it('제목이 없어도(질문 비어도) 행은 만든다 — 존재 자체가 목적', async () => {
+      const result = await ensureCounselorSessionRecord({
+        sessionId: 'compat_1718800000000_zzzzzzz',
+        userId: 'user-1',
+        messages: [],
+        existenceOnly: true,
+        title: '   ',
+        type: 'compat',
+      })
+      expect(result).toBe('created')
+      const data = mockCreate.mock.calls[0][0].data
+      expect(data.messages).toEqual([])
+      expect(data.title).toBeUndefined()
+    })
+
+    it('이미 있으면 건드리지 않는다', async () => {
+      mockFindUnique.mockResolvedValue({ id: 'compat_1718800000000_abcdefg' })
+      const result = await ensureCounselorSessionRecord({
+        sessionId: 'compat_1718800000000_abcdefg',
+        userId: 'user-1',
+        messages: [],
+        existenceOnly: true,
+        title: 'q',
+        type: 'compat',
+      })
+      expect(result).toBe('exists')
+      expect(mockCreate).not.toHaveBeenCalled()
+    })
+  })
 })

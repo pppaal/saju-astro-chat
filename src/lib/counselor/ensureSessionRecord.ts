@@ -45,6 +45,18 @@ export interface EnsureCounselorSessionArgs {
   locale?: string
   /** "destiny" | "compat". destiny 상담사 기본값. */
   type?: string
+  /**
+   * 존재 보장 전용 모드(궁합 상담사). 클라가 chat-history 에 *append* 방식으로
+   * 저장하는 경로에서는, 서버가 같은 턴 메시지를 미리 써두면 클라 append 와
+   * 합쳐져 메시지가 중복된다(destiny 의 session/save 는 overwrite 라 안전했음).
+   * 그래서 compat 에서는 메시지를 비운 채(messages:[]) 행만 만들어 "차감된 턴은
+   * 세션 행이 반드시 존재"라는 불변식(어드민 활동 = 행 수)만 보장하고, 실제
+   * 내용은 클라 append 가 채우게 둔다. 제목은 메시지가 아니라 중복되지 않으므로
+   * 첫 질문에서 뽑아 둔다.
+   */
+  existenceOnly?: boolean
+  /** existenceOnly 모드에서 행 제목으로 쓸 사용자 질문(앞부분만 잘라 저장). */
+  title?: string
 }
 
 export type EnsureCounselorSessionResult = 'created' | 'exists' | 'skipped'
@@ -58,12 +70,15 @@ function isUniqueConstraintError(error: unknown): boolean {
   )
 }
 
-function deriveTitle(messages: PersistMessage[]): string | null {
-  const firstUser = messages.find((m) => m.role === 'user')?.content ?? ''
-  const cleaned = firstUser.replace(/\s+/g, ' ').trim()
+function deriveTitleFromText(text: string): string | null {
+  const cleaned = (text ?? '').replace(/\s+/g, ' ').trim()
   if (!cleaned) return null
   if (cleaned.length <= CHAT_TITLE_MAX) return cleaned
   return `${cleaned.slice(0, CHAT_TITLE_MAX - 1).trim()}…`
+}
+
+function deriveTitle(messages: PersistMessage[]): string | null {
+  return deriveTitleFromText(messages.find((m) => m.role === 'user')?.content ?? '')
 }
 
 /**
@@ -73,23 +88,31 @@ function deriveTitle(messages: PersistMessage[]): string | null {
 export async function ensureCounselorSessionRecord(
   args: EnsureCounselorSessionArgs
 ): Promise<EnsureCounselorSessionResult> {
-  const { sessionId, userId } = args
+  const { sessionId, userId, existenceOnly } = args
   if (!sessionId || !userId) return 'skipped'
   if (sessionId.length > MAX_SESSION_ID_LEN) return 'skipped'
 
-  const normalized = (args.messages ?? [])
-    .filter(
-      (m): m is PersistMessage =>
-        !!m &&
-        (m.role === 'user' || m.role === 'assistant') &&
-        typeof m.content === 'string' &&
-        m.content.trim() !== ''
-    )
-    // chat-history 라우트가 저장하는 shape 와 동일하게 맞춘다({role, content,
-    // timestamp}). 클라 자동 저장이 나중에 같은 id 로 덮어쓸 때도 형식이 일관.
-    .map((m) => ({ role: m.role, content: m.content, timestamp: new Date().toISOString() }))
+  // existenceOnly(궁합): 메시지는 클라 append 가 채우므로 서버는 비워 둔다.
+  const normalized = existenceOnly
+    ? []
+    : (args.messages ?? [])
+        .filter(
+          (m): m is PersistMessage =>
+            !!m &&
+            (m.role === 'user' || m.role === 'assistant') &&
+            typeof m.content === 'string' &&
+            m.content.trim() !== ''
+        )
+        // chat-history 라우트가 저장하는 shape 와 동일하게 맞춘다({role, content,
+        // timestamp}). 클라 저장이 나중에 같은 id 로 덮어쓸 때도 형식이 일관.
+        .map((m) => ({ role: m.role, content: m.content, timestamp: new Date().toISOString() }))
 
-  if (normalized.length === 0) return 'skipped'
+  // seed 모드(destiny)는 실제 메시지가 있어야 의미가 있다. existenceOnly 는
+  // 메시지가 비어도(행만 만들면 되므로) 진행한다 — 단 제목/질문 단서는 필요.
+  const title = existenceOnly ? deriveTitleFromText(args.title ?? '') : deriveTitle(normalized)
+  // seed 모드는 빈 대화면 만들 의미가 없다. existenceOnly 는 제목이 없어도
+  // (행 존재 자체가 목적이라) 진행한다.
+  if (!existenceOnly && normalized.length === 0) return 'skipped'
 
   try {
     // PK 단건 조회(인덱스) — 행이 있으면(클라 저장 성공 or 타 사용자 소유) 건드리지
@@ -100,7 +123,6 @@ export async function ensureCounselorSessionRecord(
     })
     if (existing) return 'exists'
 
-    const title = deriveTitle(normalized)
     await prisma.counselorChatSession.create({
       data: {
         id: sessionId,

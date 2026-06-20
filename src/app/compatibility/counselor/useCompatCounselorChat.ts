@@ -9,7 +9,7 @@
 // result 폴링) / "다시 시도" / 게스트 드래프트 저장은 전부 공용 훅이 소유 —
 // 운명 상담사(useChatApi)와 단일 출처.
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { logger } from '@/lib/logger'
 import { apiFetch } from '@/lib/api'
 import { getErrorMessage as getCounselorErrorMessage } from '@/lib/counselor/errorMessage'
@@ -76,6 +76,16 @@ export function useCompatCounselorChat(
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const lang = locale === 'ko' ? 'ko' : 'en'
 
+  // 커플 차트 스냅샷(meta)을 chat-history 에 한 번만 실어 보내기 위한 플래그.
+  // 예전엔 "첫 저장(=chatSessionId 없음)"으로 첫 저장을 판별했지만, 이제 세션
+  // id 가 서버에서 정해져 첫 턴부터 chatSessionId 가 채워지므로 그 판별이
+  // 깨진다. 대신 이 ref 로 "meta 를 아직 못 실었음"을 추적한다. 새 채팅으로
+  // chatSessionId 가 비워지면 리셋해 다음 대화의 첫 저장에 meta 가 다시 붙는다.
+  const metaSentRef = useRef(false)
+  useEffect(() => {
+    if (!chatSessionId) metaSentRef.current = false
+  }, [chatSessionId])
+
   return useCounselorChat<ChatMessage>({
     namespace: 'compat',
     messagesState: [messages, setMessages],
@@ -134,6 +144,11 @@ export function useCompatCounselorChat(
             headers: {
               'Content-Type': 'application/json',
               'x-idempotency-key': turn.idempotencyKey,
+              // 직전 턴에 서버가 정해 응답 헤더로 돌려준 세션 id 를 echo. 첫 턴엔
+              // 비어 있어 서버가 새로 발급하고, onComplete 가 그 id 로 세션 행을
+              // 보장 생성한다(차감-기록 불일치 방지). 응답 헤더로 다시 받아
+              // chat-history 저장도 같은 id 로 한다(행 분리·중복 방지).
+              'x-session-id': chatSessionId ?? '',
             },
             body: requestBody,
             signal,
@@ -232,17 +247,28 @@ export function useCompatCounselorChat(
       // Persist the exchange so it shows up in the past-chats sidebar
       // next visit. Fire-and-forget; save failure must not block UX.
       if (finalContent) {
-        const isFirstSave = !chatSessionId
+        // 세션 id 는 서버가 정한다(응답 헤더). 차감 시점에 onComplete 가 같은
+        // id 로 존재 보장 행을 이미 만들어 두므로, 여기 저장은 같은 행에 내용을
+        // append 한다(create:true — 혹시 행이 아직 없으면 그 id 로 생성). 헤더가
+        // 없으면(구버전/게스트) 기존처럼 chatSessionId 폴백.
+        const serverSessionId = response.headers.get('x-session-id') || undefined
+        const sid = serverSessionId || chatSessionId || undefined
+        // 다음 턴이 같은 id 를 echo 하고 ⋮ 메뉴/사이드바가 이 세션을 가리키도록
+        // 동기화(존재 보장 행이 서버에 이미 있으므로 메뉴가 빈 세션을 가리킬
+        // 위험 없음).
+        if (sid && sid !== chatSessionId) setChatSessionId(sid)
+        // meta(커플 차트 스냅샷)는 아직 못 실었을 때만 첨부 — 서버 존재 보장
+        // 행은 meta 없이 생성되므로 클라 첫 저장이 차트 컨텍스트를 채운다.
+        const includeMeta = !metaSentRef.current && persons.length >= 2
         const body: Record<string, unknown> = {
-          sessionId: chatSessionId,
+          sessionId: sid,
           locale: lang,
           userMessage: turn.text,
           assistantMessage: finalContent,
           type: 'compat',
+          create: true,
         }
-        // On the *first* save attach the couple snapshot so a future
-        // re-open can restore the chart without recomputing.
-        if (isFirstSave) {
+        if (includeMeta) {
           body.meta = {
             persons,
             person1Saju,
@@ -262,8 +288,9 @@ export function useCompatCounselorChat(
           .then((r) => (r.ok ? r.json() : null))
           .then((data: { success?: boolean; session?: { id: string } } | null) => {
             if (!mountedRef.current) return
-            if (data?.success && data.session?.id && !chatSessionId) {
-              setChatSessionId(data.session.id)
+            if (data?.success) {
+              if (includeMeta) metaSentRef.current = true
+              if (data.session?.id && !chatSessionId) setChatSessionId(data.session.id)
             }
           })
           .catch((err) => logger.warn('[CompatCounselor] chat-history save failed', { error: err }))
@@ -320,13 +347,16 @@ export function useCompatCounselorChat(
           lang,
         })
       )
-      // 복원 답안도 정상 경로와 동일하게 past-chats 사이드바에 저장.
+      // 복원 답안도 정상 경로와 동일하게 past-chats 사이드바에 저장. chatSessionId
+      // 는 원래 턴의 completeTurn 에서 서버 헤더로 이미 맞춰져 있다(존재 보장 행과
+      // 동일 id). create:true — 혹시 행이 아직 없으면 그 id 로 생성.
       const body: Record<string, unknown> = {
         sessionId: chatSessionId,
         locale: lang,
         userMessage: userText,
         assistantMessage: cleanContent,
         type: 'compat',
+        create: true,
       }
       apiFetch('/api/counselor/chat-history', {
         method: 'POST',

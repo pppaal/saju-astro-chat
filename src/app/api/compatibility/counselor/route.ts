@@ -14,6 +14,7 @@ import { buildCompatibilityCounselorPrompt } from '@/lib/prompts/compatibilityCo
 import { sanitizeForXmlTagBoundary, sanitizePriorTurns } from '@/lib/llm/promptSafety'
 import { consumeCredits } from '@/lib/credits/creditService'
 import { refundCreditsOnce } from '@/lib/credits/refundOnce'
+import { ensureCounselorSessionRecord } from '@/lib/counselor/ensureSessionRecord'
 import { createIdempotencyStore, idemContentTag } from '@/lib/api/idempotency'
 import { cacheSet } from '@/lib/cache/redis-cache'
 import type { Relation } from '../types'
@@ -172,6 +173,20 @@ export async function POST(req: NextRequest) {
     // 복원 대상에서 제외(아래 onComplete 가 recoverUserId 가드).
     const turnId = typeof rawTurnId === 'string' ? rawTurnId.slice(0, 80) : ''
     const recoverUserId = context.userId // string | null — 로그인 사용자만 복구 캐시
+
+    // 차감-기록 불일치 방지(destiny realtime 과 동일 취지). 궁합 상담은 차감은
+    // 서버에서 확실히 일어나지만 세션 기록은 클라의 fire-and-forget chat-history
+    // 저장에만 의존했다 — 그 POST 가 실패하면 "차감됐는데 활동 0". 해결: 세션
+    // id 를 서버가 정해(클라가 직전 턴 응답 헤더로 받은 값을 echo; 첫 턴엔 비어
+    // 새로 생성) onComplete 에서 그 id 로 세션 행을 보장 생성하고, 같은 id 를
+    // 응답 헤더로 돌려줘 클라 저장이 동일 행에 내용을 append 하게 한다(행 분리·
+    // 중복 차단). 로그인 사용자만 — 게스트는 기존대로 영속화 안 함.
+    const incomingSessionId = (req.headers.get('x-session-id') ?? '').trim()
+    const persistSessionId = recoverUserId
+      ? incomingSessionId && incomingSessionId.length <= 128
+        ? incomingSessionId
+        : `compat_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`
+      : ''
 
     const trimmedHistory = clampMessages(messages)
 
@@ -623,12 +638,19 @@ export async function POST(req: NextRequest) {
         // 로 캐시 저장 → 사용자가 돌아오면 result 엔드포인트로 복원).
         abortSignal: req.signal,
         keepGeneratingOnDisconnect: true,
-        // 생성이 끝나면(클라 연결 여부 무관) 완성 답안을 캐시에 저장. 끊겼다가
-        // 돌아온 사용자가 /api/compatibility/counselor/result?turnId=… 로 받아간다.
-        // 게스트(recoverUserId 없음) 는 끊김 복구 미지원 — turnId 가 있어도 캐시 안 함.
-        onComplete:
-          turnId && recoverUserId
-            ? async (full) => {
+        // 클라가 같은 세션 id 로 chat-history 에 내용을 저장하도록 응답 헤더로
+        // 돌려준다(아래 onComplete 의 존재 보장 행과 동일 id). 로그인 사용자만.
+        additionalHeaders: persistSessionId ? { 'x-session-id': persistSessionId } : {},
+        // 생성이 끝나면(클라 연결 여부 무관) 두 가지를 한다 — 로그인 사용자만.
+        //   1) 완성 답안을 캐시에 저장(turnId 있을 때) — 끊겼다 돌아온 사용자가
+        //      /api/compatibility/counselor/result?turnId=… 로 받아간다.
+        //   2) 세션 행 존재 보장 — 클라의 chat-history 저장이 끝내 안 와도 활동
+        //      기록이 남도록 같은 id 로 행을 없으면 생성(차감-기록 불일치 방지).
+        //      메시지는 비워 둔다(클라가 append 로 채움 → 중복 방지). 제목만 질문
+        //      에서 뽑는다.
+        onComplete: recoverUserId
+          ? async (full) => {
+              if (turnId) {
                 try {
                   await cacheSet(
                     compatTurnResultKey(recoverUserId, turnId),
@@ -639,7 +661,21 @@ export async function POST(req: NextRequest) {
                   /* 캐시 실패는 무시 — 단순히 복원이 안 될 뿐, 스트림엔 영향 없음 */
                 }
               }
-            : undefined,
+              try {
+                await ensureCounselorSessionRecord({
+                  sessionId: persistSessionId,
+                  userId: recoverUserId,
+                  messages: [],
+                  existenceOnly: true,
+                  title: lastUser?.content ?? '',
+                  locale: lang,
+                  type: 'compat',
+                })
+              } catch {
+                /* 존재 보장 실패는 무시 — 과금/응답 경로엔 영향 없음 */
+              }
+            }
+          : undefined,
         systemPrompt,
         cachedUserContext,
         userPrompt,
