@@ -9,6 +9,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getShareLink } from '@/lib/tarot/shareLink'
+import { recordCounter } from '@/lib/metrics/index'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -46,6 +47,9 @@ export default async function SharedReadingPage({ params }: PageProps) {
   const { token } = await params
   const reading = await getShareLink(token)
   if (!reading) notFound()
+
+  // 퍼널 측정 — 공유 링크가 실제로 열린 횟수(바이럴 도달). 토큰 단위는 아니고 총량.
+  recordCounter('tarot.share.viewed', 1)
 
   const isKo = reading.isKo
   const cards = reading.cards.slice(0, 10)
