@@ -760,3 +760,171 @@ export async function revokeBonusCreditPurchase(
     return { revoked: false, reclaimed: 0, alreadyUsed: 0, error: true }
   }
 }
+
+/* ===================== 셀프/어드민 환불 공유 원시함수 ===================== */
+//
+// me/refund-credit-pack 과 admin/refund-credit-pack 은 동일한 "현금 환불 전에
+// 크레딧을 원자적으로 회수" 로직을 각자 복붙해 갖고 있었다 → 한 쪽만 고치면
+// 나머지에 같은 TOCTOU 가 남는 두더지잡기. 두 라우트가 공유하는 단일 출처로
+// 흡수한다. 핵심 불변식:
+//   1) claim 은 Stripe 환불 *전에* 실행. 조건부 updateMany(remaining===expected
+//      && !expired)로 그 사이 소비/이중환불이 일어났으면 count!==1 → 거부(현금
+//      미이동). 같은 트랜잭션에서 잔액을 회수하고 REVOKE 원장을 남긴다.
+//   2) Stripe 환불 실패 시 호출자는 rollback 으로 pack/잔액을 원복(GRANT 원장).
+
+export interface RefundClaimParams {
+  /** 대상 구매(pack) PK. */
+  purchaseId: string
+  /** pack 소유자 userId — 잔액 회수 + 원장 기록 대상. */
+  ownerUserId: string
+  /** pack 총 발급량(alreadyUsed 계산/메타용). */
+  amount: number
+  /**
+   * 낙관적 가드 — 현재 remaining 이 정확히 이 값일 때만 claim 한다. me/(완전
+   * 미사용)는 amount, admin force(부분 사용 허용)는 현재 remaining 을 넘긴다.
+   * 회수량(reclaim)도 이 값이다.
+   */
+  expectedRemaining: number
+  /** REVOKE 원장 reason ('self_refund' | 'admin_refund'). */
+  reason: string
+  initiatedBy: 'self' | 'admin'
+  /** stripePaymentId — 원장 sourceRef. */
+  sourceRef: string
+  /** me/ 는 source='purchase' 가드 추가(프로모/추천분 환불 차단). admin 은 생략. */
+  requireSourcePurchase?: boolean
+  /** admin 호출 시 감사 메타에 남길 admin userId. */
+  actorUserId?: string
+}
+
+/**
+ * 환불용 원자적 claim + 회수. 성공 시 pack 은 만료(expired, remaining 0)되고
+ * 잔액에서 reclaim(=expectedRemaining)만큼 회수된다. 그 사이 remaining 이
+ * 달라졌거나 이미 만료됐으면 claimed:false (현금 미이동으로 거부해야 함).
+ * 절대 throw 하지 않도록 호출자가 try 로 감싸되, 여기선 트랜잭션만 수행한다.
+ */
+export async function claimBonusPurchaseForRefund(
+  params: RefundClaimParams
+): Promise<{ claimed: boolean; reclaimed: number; alreadyUsed: number }> {
+  const {
+    purchaseId,
+    ownerUserId,
+    amount,
+    expectedRemaining,
+    reason,
+    initiatedBy,
+    sourceRef,
+    requireSourcePurchase,
+    actorUserId,
+  } = params
+  const reclaimed = expectedRemaining
+  const alreadyUsed = amount - expectedRemaining
+
+  const claimed = await prisma.$transaction(async (tx) => {
+    const lock = await tx.bonusCreditPurchase.updateMany({
+      where: {
+        id: purchaseId,
+        userId: ownerUserId,
+        expired: false,
+        remaining: expectedRemaining,
+        ...(requireSourcePurchase ? { source: 'purchase' } : {}),
+      },
+      data: { remaining: 0, expired: true, expiresAt: new Date() },
+    })
+    if (lock.count !== 1) return false
+    if (reclaimed > 0) {
+      await tx.$executeRaw`
+        UPDATE "UserCredits"
+        SET "bonusCredits" = GREATEST(0, "bonusCredits" - ${reclaimed})
+        WHERE "userId" = ${ownerUserId}
+      `
+      await tx.creditTransaction.create({
+        data: {
+          userId: ownerUserId,
+          type: 'REVOKE',
+          pool: 'BONUS',
+          amount: -reclaimed,
+          reason,
+          sourceRef,
+          metadata: {
+            purchaseId,
+            stripePaymentId: sourceRef,
+            reclaimed,
+            alreadyUsed,
+            initiatedBy,
+            ...(actorUserId ? { adminUserId: actorUserId } : {}),
+          },
+        },
+      })
+    }
+    return true
+  })
+
+  return { claimed, reclaimed, alreadyUsed }
+}
+
+export interface RefundRollbackParams {
+  purchaseId: string
+  ownerUserId: string
+  /** claim 에서 회수했던 양 — 그대로 재지급. 0 이면 잔액/원장 건드리지 않음. */
+  reclaimed: number
+  /** 복원할 remaining(=claim 의 expectedRemaining). */
+  restoreRemaining: number
+  /** 복원할 원래 만료시각(claim 이 now 로 덮었으므로 원복). */
+  restoreExpiresAt: Date
+  reason: string
+  initiatedBy: 'self' | 'admin'
+  sourceRef: string
+  actorUserId?: string
+}
+
+/**
+ * claim 을 되돌린다 — Stripe 환불이 실패했을 때 "크레딧만 뺏기고 현금은 못
+ * 받는" 상태를 막기 위해 pack(remaining/expired/expiresAt)과 잔액을 원복하고
+ * 보상 GRANT 원장을 남긴다. 호출자가 try 로 감싸 롤백 실패도 삼키고 CRITICAL
+ * 로그를 남기도록 한다(throw 가능).
+ */
+export async function rollbackBonusPurchaseRefundClaim(
+  params: RefundRollbackParams
+): Promise<void> {
+  const {
+    purchaseId,
+    ownerUserId,
+    reclaimed,
+    restoreRemaining,
+    restoreExpiresAt,
+    reason,
+    initiatedBy,
+    sourceRef,
+    actorUserId,
+  } = params
+  await prisma.$transaction(async (tx) => {
+    await tx.bonusCreditPurchase.update({
+      where: { id: purchaseId },
+      data: { remaining: restoreRemaining, expired: false, expiresAt: restoreExpiresAt },
+    })
+    if (reclaimed > 0) {
+      await tx.$executeRaw`
+        UPDATE "UserCredits"
+        SET "bonusCredits" = "bonusCredits" + ${reclaimed}
+        WHERE "userId" = ${ownerUserId}
+      `
+      await tx.creditTransaction.create({
+        data: {
+          userId: ownerUserId,
+          type: 'GRANT',
+          pool: 'BONUS',
+          amount: reclaimed,
+          reason,
+          sourceRef,
+          metadata: {
+            purchaseId,
+            stripePaymentId: sourceRef,
+            restored: reclaimed,
+            initiatedBy,
+            ...(actorUserId ? { adminUserId: actorUserId } : {}),
+          },
+        },
+      })
+    }
+  })
+}
