@@ -27,11 +27,15 @@ interface UserDetail {
     totalBonusReceived: number
   } | null
   activity: {
-    readings: number
     tarot: number
     counselor: number
     total: number
-    lastReadingAt: string | null
+    lastActiveAt: string | null
+  }
+  spend: {
+    purchasedCredits: number
+    consumedCredits: number
+    firstPurchaseAt: string | null
   }
   purchases: {
     paidCount: number
@@ -278,13 +282,24 @@ export default function UsersClient() {
               {/* 활동 */}
               <div>
                 <div className="mb-2 text-[12px] font-medium uppercase tracking-wide text-stone-400">
-                  활동 (마지막 리딩 {dt(detail.activity.lastReadingAt)})
+                  활동 (마지막 활동 {dt(detail.activity.lastActiveAt)})
                 </div>
-                <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                  <Field label="저장 리딩" value={fmt(detail.activity.readings)} />
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                   <Field label="타로" value={fmt(detail.activity.tarot)} />
                   <Field label="상담(사주·궁합)" value={fmt(detail.activity.counselor)} />
                   <Field label="총 활동" value={fmt(detail.activity.total)} />
+                </div>
+              </div>
+
+              {/* 구매·소비 분석 */}
+              <div>
+                <div className="mb-2 text-[12px] font-medium uppercase tracking-wide text-stone-400">
+                  크레딧 흐름 (첫 결제 {dt(detail.spend.firstPurchaseAt)})
+                </div>
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                  <Field label="구매 크레딧" value={fmt(detail.spend.purchasedCredits)} />
+                  <Field label="소비 크레딧" value={fmt(detail.spend.consumedCredits)} />
+                  <Field label="실결제 건수" value={fmt(detail.purchases.paidCount)} />
                 </div>
               </div>
 

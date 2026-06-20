@@ -18,6 +18,7 @@ import {
 } from '@/lib/api/middleware'
 import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/logger'
+import { realUserWhere } from '@/lib/admin/realUser'
 import type { Prisma } from '@prisma/client'
 
 export const dynamic = 'force-dynamic'
@@ -31,11 +32,25 @@ export const GET = withApiMiddleware(
       }
 
       // 이메일/이름 부분일치(대소문자 무시) 또는 정확한 ID 일치.
+      // 이름/이메일 검색은 realUserWhere(=가입 회원: OAuth Account 또는
+      // passwordHash 보유)로 제한한다. 안 그러면 출처불명 셀 행(~41,500개)이
+      // 흔한 조각 검색에 잔뜩 잡혀 25건 cap 을 잡아먹고 진짜 회원을 가린다(클릭해도
+      // 빈 상세). 정확한 ID 조회는 셀 행 포함 누구든 찾도록 예외(과금 조사 등에서
+      // raw id 로 찾는 케이스).
       const where: Prisma.UserWhereInput = {
         OR: [
-          { email: { contains: q, mode: 'insensitive' } },
-          { name: { contains: q, mode: 'insensitive' } },
           { id: q },
+          {
+            AND: [
+              realUserWhere,
+              {
+                OR: [
+                  { email: { contains: q, mode: 'insensitive' } },
+                  { name: { contains: q, mode: 'insensitive' } },
+                ],
+              },
+            ],
+          },
         ],
       }
 

@@ -141,7 +141,10 @@ export const GET = withApiMiddleware(
         },
       }
 
-      return apiSuccess({ data: funnelData, timeRange } as Record<string, unknown>)
+      // apiSuccess 가 이미 { success, data: payload } 로 감싼다. 여기서 다시
+      // { data: ... } 로 싸면 json.data.data.* 로 이중 래핑돼 소비자가 빈 값을
+      // 받는다. payload 를 평평하게 펼친다.
+      return apiSuccess({ ...funnelData, timeRange } as Record<string, unknown>)
     } catch (err) {
       logger.error('[Funnel API Error]', err)
       return apiError(ErrorCodes.INTERNAL_ERROR, 'Internal server error')

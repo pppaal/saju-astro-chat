@@ -59,6 +59,9 @@ export async function GET(request: NextRequest, routeContext: RouteContext) {
           recentTarot,
           recentCounselor,
           recentTx,
+          purchasedAgg,
+          consumedAgg,
+          firstPurchase,
         ] = await Promise.all([
           prisma.userCredits.findUnique({ where: { userId: id } }),
           prisma.bonusCreditPurchase.count({
@@ -98,6 +101,22 @@ export async function GET(request: NextRequest, routeContext: RouteContext) {
             orderBy: { createdAt: 'desc' },
             take: 15,
             select: { createdAt: true, amount: true, reason: true, type: true },
+          }),
+          // 총 구매(실결제) 크레딧 — stripePaymentId 있는 pack 의 amount 합.
+          prisma.bonusCreditPurchase.aggregate({
+            _sum: { amount: true },
+            where: { userId: id, stripePaymentId: { not: null } },
+          }),
+          // 총 소비 크레딧 — CONSUME 감사행 amount 합(음수)이라 부호 뒤집어 노출.
+          prisma.creditTransaction.aggregate({
+            _sum: { amount: true },
+            where: { userId: id, type: 'CONSUME' },
+          }),
+          // 첫 실결제 시각 — 가입→첫구매 전환 파악용.
+          prisma.bonusCreditPurchase.findFirst({
+            where: { userId: id, stripePaymentId: { not: null } },
+            orderBy: { createdAt: 'asc' },
+            select: { createdAt: true },
           }),
         ])
 
@@ -158,6 +177,19 @@ export async function GET(request: NextRequest, routeContext: RouteContext) {
             tarot,
             counselor,
             total: tarot + counselor,
+            // 마지막 활동 시각 — 타로/상담 중 가장 최근(둘 다 desc 정렬의 첫 행).
+            lastActiveAt:
+              [recentTarot[0]?.createdAt, recentCounselor[0]?.createdAt]
+                .filter((d): d is Date => !!d)
+                .sort((a, b) => b.getTime() - a.getTime())[0]
+                ?.toISOString() ?? null,
+          },
+          spend: {
+            // 실결제로 받은 크레딧 총량.
+            purchasedCredits: purchasedAgg._sum.amount ?? 0,
+            // 소비 총량(양수로 노출). CONSUME amount 는 음수.
+            consumedCredits: Math.abs(consumedAgg._sum.amount ?? 0),
+            firstPurchaseAt: firstPurchase?.createdAt.toISOString() ?? null,
           },
           purchases: {
             paidCount: purchases,

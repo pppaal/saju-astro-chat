@@ -364,17 +364,17 @@ describe('GET /api/admin/metrics/funnel', () => {
 
       expect(response.status).toBe(200)
       expect(data.success).toBe(true)
-      expect(data.data.data).toBeDefined()
+      expect(data.data.registrations).toBeDefined()
       expect(data.data.timeRange).toBe('24h')
     })
 
     it('should NOT include the removed fake "visitors" block', async () => {
-      const data = (await (await GET(createRequest())).json()).data.data
+      const data = (await (await GET(createRequest())).json()).data
       expect(data.visitors).toBeUndefined()
     })
 
     it('should include real registrations metrics', async () => {
-      const data = (await (await GET(createRequest())).json()).data.data
+      const data = (await (await GET(createRequest())).json()).data
       expect(data.registrations.total).toBe(1000)
       expect(data.registrations.daily).toBe(50)
       expect(typeof data.registrations.trend).toBe('number')
@@ -383,14 +383,14 @@ describe('GET /api/admin/metrics/funnel', () => {
     })
 
     it('should include real activations metrics', async () => {
-      const data = (await (await GET(createRequest())).json()).data.data
+      const data = (await (await GET(createRequest())).json()).data
       expect(data.activations.total).toBe(600)
       expect(data.activations.rate).toBeGreaterThanOrEqual(0)
       expect(data.activations.rate).toBeLessThanOrEqual(100)
     })
 
     it('should include real engagement metrics', async () => {
-      const data = (await (await GET(createRequest())).json()).data.data
+      const data = (await (await GET(createRequest())).json()).data
       expect(data.engagement.dailyActiveUsers).toBe(80)
       expect(data.engagement.weeklyActiveUsers).toBe(200)
       expect(data.engagement.readingsPerUser).toBeGreaterThanOrEqual(0)
@@ -405,7 +405,7 @@ describe('GET /api/admin/metrics/funnel', () => {
   describe('Real Metric Calculations', () => {
     it('should compute activation rate from distinct active users', async () => {
       setupHappyPath({ totalUsers: 1000, activatedUsers: 600 })
-      const data = (await (await GET(createRequest())).json()).data.data
+      const data = (await (await GET(createRequest())).json()).data
       // 600 / 1000 * 100
       expect(data.activations.total).toBe(600)
       expect(data.activations.rate).toBeCloseTo(60, 5)
@@ -413,35 +413,35 @@ describe('GET /api/admin/metrics/funnel', () => {
 
     it('should report DAU/WAU as distinct active-user counts', async () => {
       setupHappyPath({ dau: 33, wau: 111 })
-      const data = (await (await GET(createRequest())).json()).data.data
+      const data = (await (await GET(createRequest())).json()).data
       expect(data.engagement.dailyActiveUsers).toBe(33)
       expect(data.engagement.weeklyActiveUsers).toBe(111)
     })
 
     it('should compute readingsPerUser from weekly actions / WAU', async () => {
       setupHappyPath({ wau: 100, weeklyTarot: 100, weeklyCounsel: 100 })
-      const data = (await (await GET(createRequest())).json()).data.data
+      const data = (await (await GET(createRequest())).json()).data
       // (100 tarot + 100 counsel) / 100 wau = 2
       expect(data.engagement.readingsPerUser).toBeCloseTo(2, 5)
     })
 
     it('should compute a positive registration trend vs previous period', async () => {
       setupHappyPath({ newUsers: 60, prevNewUsers: 40 })
-      const data = (await (await GET(createRequest())).json()).data.data
+      const data = (await (await GET(createRequest())).json()).data
       // (60 - 40) / 40 * 100 = 50
       expect(data.registrations.trend).toBeCloseTo(50, 5)
     })
 
     it('should compute a negative registration trend when signups fall', async () => {
       setupHappyPath({ newUsers: 20, prevNewUsers: 40 })
-      const data = (await (await GET(createRequest())).json()).data.data
+      const data = (await (await GET(createRequest())).json()).data
       // (20 - 40) / 40 * 100 = -50
       expect(data.registrations.trend).toBeCloseTo(-50, 5)
     })
 
     it('should report 100% trend when previous period had zero signups', async () => {
       setupHappyPath({ newUsers: 10, prevNewUsers: 0 })
-      const data = (await (await GET(createRequest())).json()).data.data
+      const data = (await (await GET(createRequest())).json()).data
       expect(data.registrations.trend).toBe(100)
     })
   })
@@ -464,7 +464,7 @@ describe('GET /api/admin/metrics/funnel', () => {
       })
 
       const response = await GET(createRequest())
-      const data = (await response.json()).data.data
+      const data = (await response.json()).data
 
       expect(response.status).toBe(200)
       expect(data.registrations.total).toBe(0)
@@ -476,7 +476,7 @@ describe('GET /api/admin/metrics/funnel', () => {
     it('should handle large numbers', async () => {
       setupHappyPath({ totalUsers: 1_000_000, activatedUsers: 750_000 })
       const response = await GET(createRequest())
-      const data = (await response.json()).data.data
+      const data = (await response.json()).data
       expect(response.status).toBe(200)
       expect(data.registrations.total).toBe(1_000_000)
       expect(data.activations.rate).toBeCloseTo(75, 5)
@@ -504,7 +504,7 @@ describe('GET /api/admin/metrics/funnel', () => {
       vi.mocked(prisma.user.count).mockRejectedValue(new Error('DB error'))
 
       const response = await GET(createRequest())
-      const data = (await response.json()).data.data
+      const data = (await response.json()).data
 
       expect(response.status).toBe(200)
       expect(data.registrations.total).toBe(0)
@@ -515,7 +515,7 @@ describe('GET /api/admin/metrics/funnel', () => {
       vi.mocked(prisma.tarotReading.groupBy).mockRejectedValue(new Error('groupBy failed'))
 
       const response = await GET(createRequest())
-      const data = (await response.json()).data.data
+      const data = (await response.json()).data
 
       expect(response.status).toBe(200)
       expect(data.activations.total).toBe(0)
