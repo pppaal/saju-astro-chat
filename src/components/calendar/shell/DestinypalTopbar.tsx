@@ -8,8 +8,10 @@
    - tier-name:  현재 줌 단의 라벨 + 영문·스케일 (locale 대응)
    ============================================================ */
 
+import { useState } from 'react'
 import styles from '../styles/shell.module.css'
 import { useI18n } from '@/i18n/I18nProvider'
+import { MenuDrawerPanel } from '@/components/ui/MenuDrawerPanel'
 
 export interface DestinypalTopbarProps {
   whoBirthLine: string
@@ -48,9 +50,21 @@ export function DestinypalTopbar({
 }: DestinypalTopbarProps) {
   const { locale, setLocale } = useI18n()
   const ko = locale === 'ko'
+  const [drawerOpen, setDrawerOpen] = useState(false)
   return (
     <div className={styles.topbar}>
       <div className={styles.brand}>
+        {/* 메뉴 — 캘린더는 몰입형이라 글로벌 헤더를 숨겨, 햄버거를 자체 제공한다. */}
+        <button
+          type="button"
+          className={styles.menuBtn}
+          onClick={() => setDrawerOpen(true)}
+          aria-label={ko ? '메뉴 열기' : 'Open menu'}
+        >
+          <span />
+          <span />
+          <span />
+        </button>
         <span className={styles.brandMark}>
           destiny<em>pal</em>
         </span>
@@ -75,6 +89,13 @@ export function DestinypalTopbar({
           {ko ? 'EN' : 'KO'}
         </button>
       </div>
+      {/* 한지 톤이라 light variant 드로어. */}
+      <MenuDrawerPanel
+        open={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        locale={ko ? 'ko' : 'en'}
+        variant="light"
+      />
     </div>
   )
 }

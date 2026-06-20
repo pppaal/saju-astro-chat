@@ -93,6 +93,35 @@
   pointer-events: auto;
   min-width: 0;
 }
+.menuBtn {
+  pointer-events: auto;
+  flex: none;
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  width: 30px;
+  height: 30px;
+  padding: 6px;
+  border: 1px solid var(--dp-line);
+  border-radius: 8px;
+  background: transparent;
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease;
+}
+.menuBtn span {
+  display: block;
+  height: 1.5px;
+  width: 100%;
+  background: var(--dp-ink-dim);
+  border-radius: 2px;
+}
+.menuBtn:hover {
+  border-color: var(--dp-ink-dim);
+  background: rgba(58, 46, 28, 0.05);
+}
 .brandMark {
   font-family: var(--dp-serif);
   font-size: 23px;
