@@ -63,6 +63,8 @@ function createInterpretStreamResponse(payload: {
   let sent = false
   return {
     ok: true,
+    // interpret-stream 은 서버 발급 readingId 를 x-reading-id 헤더로 돌려준다.
+    headers: new Headers({ 'x-reading-id': 'tr_inlinetest0001' }),
     body: {
       getReader: () => ({
         read: async () => {

@@ -281,7 +281,7 @@ export function useInlineTarotAPI({ stateManager, lang, origin }: UseInlineTarot
 
         // 서버가 발급한 readingId 회수 — 저장이 같은 행(차감 시점 안전망 행)을
         // 채우도록. 헤더는 본문보다 먼저 도착해 스트림이 끊겨도 잡힌다.
-        const headerReadingId = res.headers.get('x-reading-id')
+        const headerReadingId = res.headers?.get?.('x-reading-id')
         if (headerReadingId) {
           serverReadingIdRef.current = headerReadingId
         }
