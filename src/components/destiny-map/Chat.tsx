@@ -214,6 +214,22 @@ const Chat = memo(function Chat({
   }, [activeSessionId, sessionHistory, onSessionChange])
 
   // 자동 저장 — 공통 hook (debounce + beforeunload sendBeacon).
+  // 이 채팅이 "누구 사주"인지를 저장 payload 에 실어, 세션 생성 시 서버가 meta 로
+  // 박게 한다. 사이드바가 과거 채팅마다 그 사람 이름을 보여주고(현재 사람으로
+  // 도배되지 않게), 후속으로 재개 시 그 사람 컨텍스트를 복원하는 기반이 된다.
+  // useMemo 로 참조 안정화 — autosave effect 가 매 렌더 재실행되지 않게.
+  const autoSaveExtra = React.useMemo(
+    () => ({
+      subject: {
+        name: profile?.name,
+        birthDate: profile?.birthDate,
+        birthTime: profile?.birthTime,
+        gender: profile?.gender,
+      },
+    }),
+    [profile?.name, profile?.birthDate, profile?.birthTime, profile?.gender]
+  )
+
   // sessionIdRef 를 그대로 넘기면 새 채팅 시작(startNewChat) 시 ref 가 바뀌어도
   // 다음 저장에 새 id 가 사용된다 (current 평가는 effect 안).
   useChatAutoSave({
@@ -221,6 +237,7 @@ const Chat = memo(function Chat({
     sessionId: sessionIdRef,
     locale: lang || 'ko',
     messages,
+    extra: autoSaveExtra,
   })
 
   useSeedEvent({

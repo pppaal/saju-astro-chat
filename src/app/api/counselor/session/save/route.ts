@@ -69,7 +69,26 @@ export const POST = withApiMiddleware(
       })
     }
 
-    const { sessionId, messages, locale = 'ko' } = validationResult.data
+    const { sessionId, messages, locale = 'ko', subject } = validationResult.data
+
+    // 세션을 "사람"에 묶는다 — 사이드바 부제(누구 채팅인지)와 후속 재개의 기준.
+    // 생성 시 한 번만 저장한다(대화 도중 대상자는 안 바뀜). name/birth 가 전혀
+    // 없으면 meta 를 만들지 않는다. profile.name 은 사이드바가 읽는 위치라 같이 둔다.
+    const subjectName = subject?.name?.trim() || ''
+    const hasSubject = Boolean(
+      subjectName || subject?.birthDate?.trim() || subject?.birthTime?.trim()
+    )
+    const sessionMeta = hasSubject
+      ? {
+          ...(subjectName ? { profile: { name: subjectName } } : {}),
+          subject: {
+            ...(subjectName ? { name: subjectName } : {}),
+            ...(subject?.birthDate?.trim() ? { birthDate: subject.birthDate.trim() } : {}),
+            ...(subject?.birthTime?.trim() ? { birthTime: subject.birthTime.trim() } : {}),
+            ...(subject?.gender?.trim() ? { gender: subject.gender.trim() } : {}),
+          },
+        }
+      : undefined
 
     if (!sessionId || !messages.length) {
       return createErrorResponse({
@@ -116,6 +135,7 @@ export const POST = withApiMiddleware(
             messages,
             messageCount: messages.length,
             lastMessageAt: new Date(),
+            ...(sessionMeta ? { meta: sessionMeta } : {}),
           },
         })
         saveMode = 'create'

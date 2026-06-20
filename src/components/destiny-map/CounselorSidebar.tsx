@@ -26,15 +26,11 @@ type SessionItem = {
   } | null
 }
 
-/** 한 채팅 row 의 부제 — destiny: 'Jun' / compat: 'Jun ↔ Yuna'. compat 는
- *  meta.persons 가 없으면 (구버전 데이터) 부제 생략. destiny 는 저장된
- *  profile.name 우선, 없으면 현재 프로필 이름(fallbackName)으로 폴백해서
- *  meta 가 비어 있던 옛 세션도 이름이 한 줄 뜨게 한다. */
-function getSessionSubtitle(
-  item: SessionItem,
-  serviceType: ServiceType,
-  fallbackName?: string | null
-): string | null {
+/** 한 채팅 row 의 부제 — destiny: 'Jun' / compat: 'Jun ↔ Yuna'. 각 세션에
+ *  저장된 인물 이름만 쓴다. 예전엔 destiny 에서 meta 가 비면 "현재 프로필 이름"
+ *  으로 폴백했는데, 그게 모든 과거 채팅을 '지금 보는 사람' 이름으로 도배하는
+ *  버그였다(사람 바꾸면 전부 바뀜) — 폴백 제거. 저장된 이름 없으면 부제 생략. */
+function getSessionSubtitle(item: SessionItem, serviceType: ServiceType): string | null {
   const meta = item.meta
   if (serviceType === 'compat') {
     const a = meta?.persons?.[0]?.name?.trim()
@@ -43,8 +39,7 @@ function getSessionSubtitle(
     if (a || b) return (a || b) as string
     return null
   }
-  const name = meta?.profile?.name?.trim()
-  return name || fallbackName?.trim() || null
+  return meta?.profile?.name?.trim() || null
 }
 
 type ServiceType = 'destiny' | 'compat'
@@ -75,11 +70,6 @@ interface CounselorSidebarProps {
   lightTheme?: boolean
   /** Extra footer content (tarot / chart triggers) rendered above the auth button. */
   footerSlot?: React.ReactNode
-  /**
-   * destiny 전용 — 세션 meta 에 저장된 profile.name 이 없을 때(meta 가 추가되기
-   * 전에 만들어진 옛 세션) 부제에 띄울 현재 프로필 이름. compat 은 무시.
-   */
-  fallbackName?: string | null
   /**
    * Called when a rename/delete request fails so the parent can surface a
    * toast / notice in the user's locale instead of the old blocking
@@ -115,7 +105,6 @@ export default function CounselorSidebar({
   lightTheme = false,
   footerSlot,
   onActionError,
-  fallbackName,
   activeSessionId,
   activeSessionTitle,
 }: CounselorSidebarProps) {
@@ -221,7 +210,11 @@ export default function CounselorSidebar({
       return base
     }
     return [
-      { id: activeSessionId, title: activeSessionTitle ?? null, updatedAt: new Date().toISOString() },
+      {
+        id: activeSessionId,
+        title: activeSessionTitle ?? null,
+        updatedAt: new Date().toISOString(),
+      },
       ...base,
     ]
   }, [sessions, deletedIds, activeSessionId, activeSessionTitle])
@@ -261,9 +254,12 @@ export default function CounselorSidebar({
     async (id: string) => {
       let status: number | undefined
       try {
-        const res = await apiFetch(`/api/counselor/session/list?sessionId=${encodeURIComponent(id)}`, {
-          method: 'DELETE',
-        })
+        const res = await apiFetch(
+          `/api/counselor/session/list?sessionId=${encodeURIComponent(id)}`,
+          {
+            method: 'DELETE',
+          }
+        )
         status = res.status
         if (!res.ok) throw new Error(`HTTP ${res.status}`)
         setDeletedIds((prev) => {
@@ -422,7 +418,7 @@ export default function CounselorSidebar({
           >
             <span className={styles.sessionTitle}>{displayName}</span>
             {(() => {
-              const subtitle = getSessionSubtitle(s, serviceType, fallbackName)
+              const subtitle = getSessionSubtitle(s, serviceType)
               if (!subtitle) return null
               return <span className={styles.sessionSubtitle}>{subtitle}</span>
             })()}
@@ -593,10 +589,7 @@ export default function CounselorSidebar({
         mode="confirm"
         open={pendingDeleteId !== null}
         title={t('destinyMap.counselor.confirmDeleteTitle', 'Delete chat')}
-        message={t(
-          'destinyMap.counselor.confirmDelete',
-          'Delete this chat? Cannot be undone.'
-        )}
+        message={t('destinyMap.counselor.confirmDelete', 'Delete this chat? Cannot be undone.')}
         confirmLabel={t('common.delete', 'Delete')}
         cancelLabel={t('common.cancel', 'Cancel')}
         danger

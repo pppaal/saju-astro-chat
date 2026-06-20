@@ -138,6 +138,7 @@ function createValidSafeParse() {
         sessionId: data.sessionId.trim(),
         messages: data.messages,
         locale: data.locale || 'ko',
+        ...(data.subject ? { subject: data.subject } : {}),
       },
     }
   }
@@ -449,6 +450,72 @@ describe('/api/counselor/session/save', () => {
           lastMessageAt: expect.any(Date),
         }),
       })
+    })
+
+    it('should store subject as meta on create (사이드바가 세션별 이름을 읽도록)', async () => {
+      mockFindUnique.mockResolvedValue(null)
+      mockCreate.mockResolvedValue({ id: 'session-123', userId: mockUserId })
+
+      const req = new NextRequest('http://localhost:3000/api/counselor/session/save', {
+        method: 'POST',
+        body: JSON.stringify({
+          ...validSessionData,
+          subject: {
+            name: '이차연',
+            birthDate: '1990-05-15',
+            birthTime: '08:30',
+            gender: 'female',
+          },
+        }),
+      })
+
+      const { POST } = await import('@/app/api/counselor/session/save/route')
+      await POST(req)
+
+      expect(mockCreate).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          meta: {
+            profile: { name: '이차연' },
+            subject: {
+              name: '이차연',
+              birthDate: '1990-05-15',
+              birthTime: '08:30',
+              gender: 'female',
+            },
+          },
+        }),
+      })
+    })
+
+    it('should NOT set meta when no subject provided (구버전 클라 호환)', async () => {
+      mockFindUnique.mockResolvedValue(null)
+      mockCreate.mockResolvedValue({ id: 'session-123', userId: mockUserId })
+
+      const req = new NextRequest('http://localhost:3000/api/counselor/session/save', {
+        method: 'POST',
+        body: JSON.stringify(validSessionData),
+      })
+
+      const { POST } = await import('@/app/api/counselor/session/save/route')
+      await POST(req)
+
+      expect(mockCreate.mock.calls[0][0].data.meta).toBeUndefined()
+    })
+
+    it('should NOT touch meta on update (대상자는 생성 시 한 번만)', async () => {
+      mockFindUnique.mockResolvedValue({ userId: mockUserId })
+      mockUpdate.mockResolvedValue({ id: 'session-123', userId: mockUserId })
+
+      const req = new NextRequest('http://localhost:3000/api/counselor/session/save', {
+        method: 'POST',
+        body: JSON.stringify({ ...validSessionData, subject: { name: '이차연' } }),
+      })
+
+      const { POST } = await import('@/app/api/counselor/session/save/route')
+      await POST(req)
+
+      expect(mockCreate).not.toHaveBeenCalled()
+      expect(mockUpdate.mock.calls[0][0].data.meta).toBeUndefined()
     })
 
     it('should use default locale "ko" when not provided', async () => {
@@ -925,5 +992,4 @@ describe('/api/counselor/session/save', () => {
       expect(response.status).toBe(422)
     })
   })
-
 })
