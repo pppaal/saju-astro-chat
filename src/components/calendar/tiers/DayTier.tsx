@@ -416,6 +416,100 @@ function CrossActivationCard({
   )
 }
 
+// ============================================================================
+// MonthFlow — 이달 흐름 속 오늘. day.monthScores(이달 일별 점수)를 먹선 추이로,
+// 오늘을 朱 점으로 표시. "지금 이달 어디쯤" 캘린더 맥락.
+// ============================================================================
+function MonthFlow({
+  scores,
+  ko,
+}: {
+  scores: NonNullable<DestinyDay['monthScores']>
+  ko: boolean
+}) {
+  if (!scores || scores.length < 3) return null
+  const W = 320,
+    H = 60,
+    pad = 6
+  const n = scores.length
+  const X = (i: number) => pad + (i / (n - 1)) * (W - 2 * pad)
+  const Y = (v: number) => H - 8 - (Math.max(0, Math.min(100, v)) / 100) * (H - 18)
+  let d = `M ${X(0)} ${Y(scores[0].score)}`
+  for (let i = 1; i < n; i++) {
+    const xc = (X(i - 1) + X(i)) / 2
+    d += ` C ${xc} ${Y(scores[i - 1].score)} ${xc} ${Y(scores[i].score)} ${X(i)} ${Y(scores[i].score)}`
+  }
+  const area = `${d} L ${X(n - 1)} ${H - 6} L ${X(0)} ${H - 6} Z`
+  const ti = scores.findIndex((s) => s.today)
+  return (
+    <div className={styles.flowWrap}>
+      <div className={styles.flowHead}>
+        <span>{ko ? '이달 흐름 속 오늘' : 'Today within the month'}</span>
+        <span className={styles.flowSub}>
+          {ko
+            ? `${scores.length}일 중 ${ti >= 0 ? ti + 1 : '?'}일째`
+            : `day ${ti >= 0 ? ti + 1 : '?'}`}
+        </span>
+      </div>
+      <svg width="100%" viewBox={`0 0 ${W} ${H}`} style={{ display: 'block' }}>
+        <path d={area} fill="rgba(47,125,91,0.16)" />
+        <path d={d} fill="none" stroke="var(--dp-pos)" strokeWidth={2} />
+        {ti >= 0 && (
+          <>
+            <circle cx={X(ti)} cy={Y(scores[ti].score)} r={4.5} fill="var(--dp-ember)" />
+            <text
+              x={X(ti)}
+              y={Y(scores[ti].score) - 7}
+              textAnchor="middle"
+              style={{ font: '600 9px var(--dp-sans)', fill: 'var(--dp-ember)' }}
+            >
+              {ko ? '오늘' : 'today'}
+            </text>
+          </>
+        )}
+      </svg>
+    </div>
+  )
+}
+
+// ============================================================================
+// UpcomingRow — 다가오는 며칠. day.upcoming 점수를 색 칸으로(좋음/주의/피하기).
+// ============================================================================
+function UpcomingRow({ days, ko }: { days: NonNullable<DestinyDay['upcoming']>; ko: boolean }) {
+  if (!days || days.length === 0) return null
+  const bg = (s: number) =>
+    s >= 65
+      ? 'rgba(47,125,91,0.28)'
+      : s <= 35
+        ? 'rgba(176,58,34,0.26)'
+        : s >= 50
+          ? 'rgba(47,125,91,0.12)'
+          : 'rgba(179,135,58,0.22)'
+  const weekday = (iso: string) => {
+    const wd = new Date(`${iso}T00:00:00Z`).getUTCDay()
+    return (
+      ko ? ['일', '월', '화', '수', '목', '금', '토'] : ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
+    )[wd]
+  }
+  return (
+    <div className={styles.flowWrap}>
+      <div className={styles.flowHead}>
+        <span>{ko ? '다가오는 며칠' : 'Next few days'}</span>
+      </div>
+      <div className={styles.upRow}>
+        {days.map((d) => (
+          <div key={d.date} className={styles.upCell}>
+            <div className={styles.upBox} style={{ background: bg(d.score) }}>
+              {Number(d.date.slice(8, 10))}
+            </div>
+            <span className={styles.upWd}>{weekday(d.date)}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 export function DayTier({ day, voc, onRise, sex = '남' }: DayTierProps) {
   const { locale } = useI18n()
   const ko = locale === 'ko'
@@ -628,12 +722,19 @@ export function DayTier({ day, voc, onRise, sex = '남' }: DayTierProps) {
         </div>
       </div>
 
+      {/* ── 그날 총평 (deriveDaySummary) — 한 문단. ── */}
+      {day.totalSummary && <p className={styles.totalSummary}>{day.totalSummary}</p>}
+
       {/* 본명 상태 — 격국 / 공망 / VOC */}
       <div className={styles.headChips}>
         <GeokgukStatusFrame status={day.geokgukStatus} />
       </div>
       <GongmangBanner gongmang={day.gongmang} />
       <VocBanner voc={voc} />
+
+      {/* ── 타이밍 맥락 — 이달 흐름 속 오늘 + 다가오는 며칠 (캘린더 정체성) ── */}
+      {day.monthScores && <MonthFlow scores={day.monthScores} ko={ko} />}
+      {day.upcoming && <UpcomingRow days={day.upcoming} ko={ko} />}
 
       {/* ── 오늘의 운세 카드 공유 (1080×1080 PNG · Web Share / 저장) ── */}
       <div style={{ display: 'flex', justifyContent: 'center', margin: '4px 0 2px' }}>

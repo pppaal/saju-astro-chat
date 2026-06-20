@@ -1337,3 +1337,64 @@
   color: var(--dp-ink-faint);
   flex: 0 0 auto;
 }
+
+/* ---------- 그날 총평 (deriveDaySummary) ---------- */
+.totalSummary {
+  margin: 16px 0 0;
+  font-family: var(--dp-serif-ko);
+  font-size: 15px;
+  line-height: 1.75;
+  color: var(--dp-ink);
+  word-break: keep-all;
+}
+
+/* ---------- 타이밍 추이 (이달 흐름 / 다가오는 며칠) ---------- */
+.flowWrap {
+  margin-top: 20px;
+  padding: 13px 14px;
+  border: 1px solid var(--dp-line);
+  border-radius: 10px;
+  background: var(--dp-panel);
+}
+.flowHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-family: var(--dp-sans);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--dp-ink);
+}
+.flowSub {
+  font-weight: 400;
+  font-size: 11px;
+  color: var(--dp-ink-mute);
+}
+.upRow {
+  display: flex;
+  gap: 6px;
+}
+.upCell {
+  flex: 1;
+  text-align: center;
+}
+.upBox {
+  aspect-ratio: 1;
+  border: 1px solid var(--dp-line);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--dp-sans);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--dp-ink);
+}
+.upWd {
+  display: block;
+  margin-top: 3px;
+  font-family: var(--dp-sans);
+  font-size: 9px;
+  color: var(--dp-ink-faint);
+}

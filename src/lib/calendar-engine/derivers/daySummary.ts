@@ -22,13 +22,22 @@ export interface DaySummaryInput {
   lang: 'ko' | 'en'
 }
 
-/** 사유 문자열에서 핵심구만 — 선행 화살표·마크·라벨, '— 설명' 꼬리 제거. */
+/**
+ * 사유 문자열에서 핵심구만 추출.
+ *  - 선행 화살표/마크/대괄호 라벨, '— 설명' 꼬리 제거.
+ *  - 스케일 접두('이달 · '/'오늘 · '/'올해 · ' 등) 제거 — 월/연 레이어 사유가
+ *    일 총평에 섞일 때 군더더기.
+ *  - 괄호 글로스('(고양)(게자리)' 등) 제거 — 산문에선 거슬린다(monthSummary 와 동일 처리).
+ */
 function core(s: string): string {
   return s
     .replace(/^[↑↓·\s]+/, '')
     .replace(/^\[[^\]]*\]\s*/, '')
+    .replace(/^(이달|오늘|올해|이번 달|month|day|year|decade|hour|peak)\s*·\s*/i, '')
     .split('—')[0]
     .split(' — ')[0]
+    .replace(/\s*[(（][^)）]*[)）]/g, '')
+    .replace(/\s{2,}/g, ' ')
     .trim()
 }
 
