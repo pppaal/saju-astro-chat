@@ -15,6 +15,7 @@ import { deriveConvergence } from '@/lib/calendar-engine/derivers/convergence'
 import { deriveLifetimeFlow } from '@/lib/calendar-engine/derivers/lifetimeFlow'
 import { deriveLifetimePivots } from '@/lib/calendar-engine/derivers/lifetimePivots'
 import { deriveMonthSummary } from '@/lib/calendar-engine/derivers/monthSummary'
+import { deriveDaySummary } from '@/lib/calendar-engine/derivers/daySummary'
 import { deriveLayeredScores } from '@/lib/calendar-engine/derivers/layeredScore'
 import { computeDayPillarIndices } from '@/lib/saju/dayPillar'
 import { getMonthPillarForDate } from '@/lib/saju/datePillars'
@@ -654,6 +655,33 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
   const dayCrossActivations: DestinyDay['crossActivations'] = [...dayCrossByPair.values()].sort(
     (a, b) => Math.abs(b.polarity) - Math.abs(a.polarity)
   )
+  // ── 타이밍 컨텍스트 (총평 문단 + 이달 흐름 추이 + 다가오는 7일) ──
+  const totalSummary = deriveDaySummary({
+    tone: dayAdapter.dayTone?.tone ?? 'mixed',
+    topReasons: dayAdapter.topReasons ?? [],
+    cautions: dayAdapter.cautions ?? [],
+    lang,
+  })
+  // 이달 일별 점수(추이선) — monthCells 순서대로, layered.daily 의 정규화 점수.
+  const dayMonthScores = monthCells.map((c) => {
+    const iso = c.datetime.slice(0, 10)
+    return {
+      day: Number(iso.slice(8, 10)),
+      score: Math.round(layered.daily.get(iso)?.score ?? 50),
+      today: iso === targetDayIso,
+    }
+  })
+  // 다가오는 7일 — 오늘 다음날부터. cells 범위 밖(월말 등)은 자연히 짧아진다.
+  const cellByIso = new Map(cells.map((c) => [c.datetime.slice(0, 10), c]))
+  const upcoming: Array<{ date: string; score: number }> = []
+  for (let i = 1; i <= 7; i++) {
+    const d = new Date(`${targetDayIso}T00:00:00Z`)
+    d.setUTCDate(d.getUTCDate() + i)
+    const iso = d.toISOString().slice(0, 10)
+    if (!cellByIso.has(iso)) continue
+    upcoming.push({ date: iso, score: Math.round(layered.daily.get(iso)?.score ?? 50) })
+  }
+
   const day: DestinyDay = {
     date: dayAdapter.date,
     dateKo: dayAdapter.dateKo,
@@ -689,6 +717,9 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
     // fallback 으로 떨어져 tense/bright 화해가 프로덕션에서 죽는다(반드시 전달).
     dayTone: dayAdapter.dayTone,
     twelveStageMatrix: dayAdapter.twelveStageMatrix,
+    totalSummary,
+    monthScores: dayMonthScores,
+    upcoming,
     hourCrossings: buildHourCrossings(dayCell, targetDayIso, natal.astro.location),
     // 시(時)별 달 정밀 — 그날 12 시진 달을 재계산해 달×본명 어스펙트 절정 시각.
     hourMoon: await buildHourMoon(targetDayIso, natal),

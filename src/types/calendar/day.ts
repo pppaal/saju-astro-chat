@@ -192,6 +192,14 @@ export interface DestinyDay extends DestinyIljinHeader {
   /** 본명 4기둥(천간) × 일진 지지 12운성 (기둥별 실제값). */
   twelveStageMatrix: Array<{ pillar: string; stem: string; branch: string; stage: string }>
 
+  // ── 타이밍 컨텍스트 (캘린더용 — assembleTiers 가 주변 날짜에서 채움) ──
+  /** 그날 총평 문단 (deriveDaySummary, 로케일 반영). */
+  totalSummary?: string
+  /** 이달 일별 점수 — 흐름 추이선용. day=1..31, score=0..100, today 표시. */
+  monthScores?: Array<{ day: number; score: number; today: boolean }>
+  /** 다가오는 며칠(오늘 다음날~) — 미리보기용. date='YYYY-MM-DD', score=0..100. */
+  upcoming?: Array<{ date: string; score: number }>
+
   // ── 부속 (기존 destinypal data.js) ──
   /** 활성 신살 한글 이름들 — ['천을귀인','도화','역마']. */
   shinsalActive: string[]
