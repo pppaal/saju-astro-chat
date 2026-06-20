@@ -36,6 +36,7 @@
   --dp-pos: #2f7d5b;
   --dp-neg: #b03a22;
   --dp-neu: #8a7c61;
+  --dp-tone-mixed: #b3873a; /* 평이/혼조 톤 — gold (게이지·흐름 점선) */
 
   /* 오행 five elements */
   --dp-el-wood: #4f7a40;

@@ -40,7 +40,7 @@ const PLANET_PLAIN: Record<string, { ko: string; en: string }> = {
   Moon: { ko: '감정·기분', en: 'mood & feelings' },
   Mercury: { ko: '말·소통', en: 'talk & ideas' },
   Venus: { ko: '사랑·돈', en: 'love & money' },
-  Mars: { ko: '추진·다툼', en: 'drive & friction' },
+  Mars: { ko: '추진·마찰', en: 'drive & friction' },
   Jupiter: { ko: '기회·확장', en: 'luck & growth' },
   Saturn: { ko: '책임·인내', en: 'duty & limits' },
   Uranus: { ko: '변화·돌발', en: 'sudden change' },

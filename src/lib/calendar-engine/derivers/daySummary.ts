@@ -36,6 +36,11 @@ function core(s: string, ko: boolean): string {
     .trim()
 }
 
+/** 문장 첫 글자 대문자(영문 사유가 소문자로 시작할 때). */
+function cap(s: string): string {
+  return s ? s.charAt(0).toUpperCase() + s.slice(1) : s
+}
+
 export function deriveDaySummary(i: DaySummaryInput): string {
   const ko = i.lang === 'ko'
   const parts: string[] = []
@@ -59,8 +64,8 @@ export function deriveDaySummary(i: DaySummaryInput): string {
       i.tone === 'positive'
         ? 'Today the flow is on your side.'
         : i.tone === 'caution'
-          ? 'A careful day — it rewards a steadier hand over bold moves.'
-          : 'A day of swings — good and tricky parts sit side by side.'
+          ? 'A careful day — steady beats bold.'
+          : 'A day of swings — some things click, others snag.'
     )
   }
 
@@ -69,13 +74,15 @@ export function deriveDaySummary(i: DaySummaryInput): string {
     parts.push(
       ko
         ? `특히 ${goods.join(' · ')} 흐름이 살아나요.`
-        : `In particular, ${goods.join(' and ')} come alive.`
+        : `${cap(goods.join(' and '))} — that's where the day flows.`
     )
   }
 
   // 3) 주의 — '다만'으로 전환.
   if (caution) {
-    parts.push(ko ? `다만 ${caution}는 한 박자 늦추세요.` : `That said, ease off on ${caution}.`)
+    parts.push(
+      ko ? `다만 ${caution} 쪽은 한 박자 늦추는 게 좋아요.` : `That said, ease off on ${caution}.`
+    )
   }
 
   // 4) 톤별 마무리 행동 제안.

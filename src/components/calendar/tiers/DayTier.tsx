@@ -98,7 +98,11 @@ function ToneDial({ tone, label }: { tone: DayVerdict['tone']; label?: string })
   const dialLabel = label ?? (ko ? '오늘' : 'Today')
   const frac = tone === 'positive' ? 1 : tone === 'mixed' ? 0.55 : 0.3
   const col =
-    tone === 'positive' ? 'var(--dp-pos)' : tone === 'caution' ? 'var(--dp-neg)' : '#b3873a'
+    tone === 'positive'
+      ? 'var(--dp-pos)'
+      : tone === 'caution'
+        ? 'var(--dp-neg)'
+        : 'var(--dp-tone-mixed)'
   const word = ko
     ? tone === 'positive'
       ? '순풍'
@@ -171,8 +175,8 @@ function GongmangBanner({ gongmang }: { gongmang: DestinyDay['gongmang'] | undef
       <span className="gmNote">
         {gongmang.note ??
           (ko
-            ? `본명 일주 공망 [${gongmang.natalBranches.join(' · ')}] 활성`
-            : `Natal day-pillar void [${gongmang.natalBranches.join(' · ')}] active`)}
+            ? `타고난 [${gongmang.natalBranches.join(' · ')}] 자리가 비는 날 — 힘이 덜 실려요`
+            : `Your natal [${gongmang.natalBranches.join(' · ')}] runs hollow today — less force behind things`)}
       </span>
     </div>
   )
@@ -188,7 +192,7 @@ function VocBanner({ voc }: { voc: DayVoc | undefined }) {
   if (!voc?.active) return null
   return (
     <div className={styles.vocBanner}>
-      <span className="vocLabel">{ko ? 'Moon VOC · 무경로' : 'Moon VOC · no path'}</span>
+      <span className="vocLabel">{ko ? '달의 빈 시간' : 'Quiet Moon window'}</span>
       {(voc.from || voc.to) && (
         <span className="vocTime">
           {voc.from ?? '—'} → {voc.to ?? '—'}
@@ -530,34 +534,6 @@ export function DayTier({ day, voc, onRise, sex = '남' }: DayTierProps) {
       hasCautionReason: (day.cautions ?? []).length > 0,
     })
   const dayBand = verdict.band
-  const goodButTense = verdict.band === 'good' && verdict.tense
-  const midButTense = verdict.band === 'mid' && verdict.tense
-  const lowButBright = verdict.band === 'low' && verdict.bright
-  // 히어로 한 줄 아래 '행동 조언' — 밴드 + 화해(tense/bright) 기반 한 문장.
-  const daySub =
-    dayBand === 'good'
-      ? goodButTense
-        ? ko
-          ? '잘 풀리는 흐름은 살리되, 조심 신호가 있는 한 곳은 무리하지 마세요.'
-          : 'Ride the flow that works, but don’t force the one spot flagged for care.'
-        : ko
-          ? '하고 싶던 일을 밀어붙이기 좋아요. 연락·제안·중요한 결정에 우호적인 날.'
-          : 'Good day to push what you want forward — outreach, proposals, big calls.'
-      : dayBand === 'mid'
-        ? midButTense
-          ? ko
-            ? '큰 결정·충돌·이동은 한 박자 늦추고, 잘 풀리는 분야 위주로 가세요.'
-            : 'Postpone big calls, clashes and travel; lean on the areas that flow.'
-          : ko
-            ? '큰일을 새로 벌이기보다 정리·마무리에 좋은 날. 무리만 안 하면 무난해요.'
-            : 'Better for wrapping up than starting big. Fine as long as you don’t overreach.'
-        : lowButBright
-          ? ko
-            ? '전반적으로 무리는 피하되, 잘 맞는 한 곳은 활용해도 좋아요.'
-            : 'Avoid overreaching overall, but the one spot that fits is worth using.'
-          : ko
-            ? '새 일을 벌이기보다 점검·휴식에 좋은 날. 중요한 결정은 가능하면 미루세요.'
-            : 'Better for review and rest than new ventures. Postpone big decisions if you can.'
 
   // ── 시간별 사주 × 점성 교차 — 켜지는 시진(십신) × 그 시각 상승궁. ──
   // 메인엔 가장 센 시진 3개만(사전 매칭된 진짜 교차 우선), 나머진 '자세히 보기'.
@@ -681,8 +657,11 @@ export function DayTier({ day, voc, onRise, sex = '남' }: DayTierProps) {
         {ko && day.dateKo && <span style={{ marginLeft: 8 }}>{day.dateKo}</span>}
       </div>
 
-      {/* ── 핵심 hero: 일진 + 톤 다이얼 + 한 줄 결론. 분야별·시간·신호는 아래 자세히로. ── */}
+      {/* ── 핵심 hero: 단일 중앙 컬럼 — 톤 게이지 → 일진 인장 → 한 줄 결론.
+          (heroSub 는 총평과 중복이라 제거. 결론=oneLine, 풀이=총평, 행동=칩.) ── */}
       <div className={styles.dayHead}>
+        {/* 점수 숫자 비노출 — 다이얼은 헤드라인·칩과 같은 단일 verdict 톤만 보여준다. */}
+        <ToneDial tone={verdict.tone} label={ko ? '오늘' : 'Today'} />
         <div className={styles.iljinBig}>
           <span className="han">{day.iljin.hanja}</span>
           <div className="meta">
@@ -701,12 +680,7 @@ export function DayTier({ day, voc, onRise, sex = '남' }: DayTierProps) {
             </div>
           </div>
         </div>
-        <div className={styles.dayScore}>
-          {/* 점수 숫자 비노출 — 다이얼은 헤드라인·칩과 같은 단일 verdict 톤만 보여준다. */}
-          <ToneDial tone={verdict.tone} label={ko ? '오늘' : 'Today'} />
-          <p className={styles.oneline}>{localizeLabel(day.oneLine, ko)}</p>
-          <p className={styles.heroSub}>{daySub}</p>
-        </div>
+        <p className={styles.oneline}>{localizeLabel(day.oneLine, ko)}</p>
       </div>
 
       {/* ── 그날 총평 (deriveDaySummary) — 한 문단. ── */}
@@ -728,7 +702,7 @@ export function DayTier({ day, voc, onRise, sex = '남' }: DayTierProps) {
           {ko ? '조심 · ' : 'CAUTION · '}
           {dayBand === 'good'
             ? ko
-              ? '과욕만'
+              ? '과욕 부리지 않기'
               : "don't overreach"
             : ko
               ? '크게 벌이지 않기'

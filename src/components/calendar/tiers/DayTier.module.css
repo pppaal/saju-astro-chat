@@ -184,35 +184,34 @@
   color: var(--dp-ink);
 }
 
-/* ---------- day head ---------- */
+/* ---------- day head — 단일 중앙 컬럼 (게이지 → 인장 → 한 줄) ---------- */
 .dayHead {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 28px;
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  margin-top: 16px;
-}
-@media (max-width: 680px) {
-  .dayHead {
-    grid-template-columns: 1fr;
-    gap: 18px;
-  }
+  text-align: center;
+  gap: 14px;
+  margin-top: 10px;
 }
 .iljinBig {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 18px;
+  gap: 10px;
 }
 .iljinBig .han {
   font-family: var(--dp-serif-ko);
   font-weight: 700;
-  font-size: 72px;
+  font-size: 52px;
   line-height: 0.9;
   color: #f6ecd9;
   background: var(--dp-ember);
-  padding: 10px 16px;
+  padding: 8px 16px;
   border-radius: 4px;
-  box-shadow: 0 10px 26px -14px rgba(176, 58, 34, 0.7);
+  box-shadow: 0 6px 18px -12px rgba(176, 58, 34, 0.55);
+}
+.iljinBig .meta {
+  text-align: center;
 }
 .iljinBig .meta .kr {
   font-family: var(--dp-mono);
@@ -247,10 +246,10 @@
 .oneline {
   font-family: var(--dp-serif-ko);
   font-style: italic;
-  font-size: clamp(16px, 2.4vw, 21px);
+  font-size: clamp(18px, 2.6vw, 23px);
   line-height: 1.5;
   color: var(--dp-ink);
-  flex: 1;
+  max-width: 30em;
   text-wrap: pretty;
 }
 
