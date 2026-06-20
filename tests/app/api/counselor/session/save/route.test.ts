@@ -411,7 +411,7 @@ describe('/api/counselor/session/save', () => {
       expect(result.error.code).toBe('FORBIDDEN')
       expect(mockFindUnique).toHaveBeenCalledWith({
         where: { id: 'session-123' },
-        select: { userId: true, meta: true },
+        select: { userId: true, meta: true, title: true },
       })
     })
   })
@@ -450,6 +450,63 @@ describe('/api/counselor/session/save', () => {
           lastMessageAt: expect.any(Date),
         }),
       })
+    })
+
+    it('derives a title from the first user message on create (사이드바 제목 NULL 방지)', async () => {
+      // 회귀: 자동저장이 안전망보다 먼저 행을 만들면 title 이 NULL 로 남아
+      // 목록이 매번 fallback 쿼리로 제목을 다시 뽑았다. 생성 시 박아 둔다.
+      mockFindUnique.mockResolvedValue(null)
+      mockCreate.mockResolvedValue({ id: 'session-123', userId: mockUserId })
+
+      const req = new NextRequest('http://localhost:3000/api/counselor/session/save', {
+        method: 'POST',
+        body: JSON.stringify({
+          ...validSessionData,
+          messages: [{ role: 'user', content: 'Career advice?' }],
+        }),
+      })
+
+      const { POST } = await import('@/app/api/counselor/session/save/route')
+      await POST(req)
+
+      expect(mockCreate.mock.calls[0][0].data.title).toBe('Career advice?')
+    })
+
+    it('backfills title on update when the existing row has none', async () => {
+      mockFindUnique.mockResolvedValue({ userId: mockUserId, meta: { x: 1 }, title: null })
+      mockUpdate.mockResolvedValue({ id: 'session-123', userId: mockUserId })
+
+      const req = new NextRequest('http://localhost:3000/api/counselor/session/save', {
+        method: 'POST',
+        body: JSON.stringify({
+          ...validSessionData,
+          messages: [{ role: 'user', content: '올해 이직운 어때?' }],
+        }),
+      })
+
+      const { POST } = await import('@/app/api/counselor/session/save/route')
+      await POST(req)
+
+      expect(mockUpdate.mock.calls[0][0].data.title).toBe('올해 이직운 어때?')
+    })
+
+    it('does NOT overwrite an existing title on update', async () => {
+      mockFindUnique.mockResolvedValue({
+        userId: mockUserId,
+        meta: { x: 1 },
+        title: '내가 정한 제목',
+      })
+      mockUpdate.mockResolvedValue({ id: 'session-123', userId: mockUserId })
+
+      const req = new NextRequest('http://localhost:3000/api/counselor/session/save', {
+        method: 'POST',
+        body: JSON.stringify(validSessionData),
+      })
+
+      const { POST } = await import('@/app/api/counselor/session/save/route')
+      await POST(req)
+
+      expect(mockUpdate.mock.calls[0][0].data.title).toBeUndefined()
     })
 
     it('should store subject as meta on create (사이드바가 세션별 이름을 읽도록)', async () => {
