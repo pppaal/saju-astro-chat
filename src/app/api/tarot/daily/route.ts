@@ -29,6 +29,7 @@ import { tarotDeck } from '@/lib/tarot/data'
 import type { Card } from '@/lib/tarot/tarot.types'
 import { callClaude, extractJsonObject, isClaudeAvailable } from '@/lib/llm/claude'
 import { cacheGet, cacheSet } from '@/lib/cache/redis-cache'
+import { recordCounter } from '@/lib/metrics/index'
 import { logger } from '@/lib/logger'
 
 export const dynamic = 'force-dynamic'
@@ -240,6 +241,8 @@ export const POST = withApiMiddleware(
       }
 
       await cacheSet(key, reading, secondsUntilKstMidnight())
+      // 퍼널 측정 — 신규 데일리 1장(게스트/유저 구분). 시딩 효과를 숫자로 본다.
+      recordCounter('tarot.daily.drawn', 1, { source: context.userId ? 'user' : 'guest' })
       return apiSuccess({ reading, fresh: true })
     } catch (error) {
       logger.error('[tarot-daily] generation error', error)

@@ -19,6 +19,7 @@ import {
 } from '@/lib/api/middleware'
 import { createShareLink, siteBaseUrl, type ShareLinkPayload } from '@/lib/tarot/shareLink'
 import { getUserDisplayName } from '@/lib/user/displayName'
+import { recordCounter } from '@/lib/metrics/index'
 import { logger } from '@/lib/logger'
 
 export const dynamic = 'force-dynamic'
@@ -95,6 +96,9 @@ export const POST = withApiMiddleware(
       logger.error('[tarot/share] failed to persist share link')
       return apiError(ErrorCodes.INTERNAL_ERROR, 'share_create_failed')
     }
+
+    // 퍼널 측정 — 공유 링크 생성(게스트/유저 구분). 자가증식 여부의 핵심 지표.
+    recordCounter('tarot.share.created', 1, { source: context.userId ? 'user' : 'guest' })
 
     const path = `/r/${token}`
     return apiSuccess({ token, path, url: `${siteBaseUrl()}${path}` })
