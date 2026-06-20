@@ -22,7 +22,7 @@
    ============================================================ */
 
 import * as React from 'react'
-import type { DestinyDay, AstroSignal, Polarity } from '@/types/calendar'
+import type { DestinyDay, Polarity } from '@/types/calendar'
 import {
   sibsinArea,
   sibsinAreaEn,
@@ -65,19 +65,7 @@ export interface DayTierProps {
   sex?: string
 }
 
-const OUTER_PLANETS = new Set(['Saturn', 'Uranus', 'Neptune', 'Pluto'])
-
-const ASPECT_EN: Record<string, string> = {
-  합: 'conjunction',
-  사각: 'square',
-  삼각: 'trine',
-  대립: 'opposition',
-  섹스타일: 'sextile',
-  퀸컹스: 'quincunx',
-  반섹스타일: 'semisextile',
-}
-
-// 점성 어스펙트 EN → KO (트랜짓 행 표시용).
+// 점성 어스펙트 EN → KO (EvidenceDetails 트랜짓 행 표시용).
 const ASPECT_KO: Record<string, string> = {
   conjunction: '합',
   sextile: '육각',
@@ -87,48 +75,6 @@ const ASPECT_KO: Record<string, string> = {
 }
 
 // localizeLabel(+SIGN_KO/행성맵)은 MonthTier 와 공유 — adapters/localizeLabel 로 분리.
-
-/**
- * 트랜짓 1행 렌더 — KO 는 행성/대상/어스펙트를 한글로, EN 은 영문 유지.
- * 어스펙트나 대상이 없는(디그니티 전용) 행은 건너뛴다 → null.
- */
-function renderTransit(
-  t: AstroSignal | DestinyDay['transits'][number],
-  key: string,
-  ko: boolean,
-  outer: boolean
-): React.ReactElement | null {
-  const body = (t as { body?: string }).body ?? ''
-  const aspect = (t as { aspect?: string }).aspect ?? ''
-  const target = (t as { target?: string }).target ?? ''
-  const glyph = (t as { glyph?: string }).glyph ?? '✦'
-  // 어스펙트·대상 둘 다 있어야 본명 파트너가 있는 진짜 행 — 아니면 스킵.
-  if (!aspect || !target) return null
-  // target 은 "본명 Mars" 처럼 접두가 이미 붙어 옴 → 접두 떼고 행성만 KO 치환 후
-  // 접두를 한 번만 다시 붙인다(예전엔 "본명 본명 Mars" 중복 + 영문 잔존).
-  const rawTarget = target.replace(/^(본명|natal)\s+/i, '')
-  // localizeLabel 의 풀 행성맵(카이런·릴리스·북교점 포함) 사용 — PLANET_KO 엔 일부 없음.
-  const bodyTxt = localizeLabel(body, ko)
-  const targetTxt = localizeLabel(rawTarget, ko)
-  const aspectTxt = ko ? (ASPECT_KO[aspect] ?? aspect) : aspect
-  const natalPrefix = ko ? '본명 ' : 'natal '
-  return (
-    <div className={`${styles.transit} ${outer ? styles.outer : ''}`.trim()} key={key}>
-      <span className="g">{glyph}</span>
-      <div className="tt">
-        <div className="a">
-          {bodyTxt} {aspectTxt}{' '}
-          <span className="aTarget">
-            → {natalPrefix}
-            {targetTxt}
-          </span>
-        </div>
-        {!ko && <div className="s">{ASPECT_EN[aspect] ?? aspect}</div>}
-      </div>
-      <PolChip v={t.polarity} />
-    </div>
-  )
-}
 
 // ============================================================================
 // Polarity chip (util.jsx Polarity 포팅).
@@ -515,18 +461,70 @@ function UpcomingRow({ days, ko }: { days: NonNullable<DestinyDay['upcoming']>; 
   )
 }
 
+// ============================================================================
+// EvidenceDetails — 근거 "자세히" 전문 펼침. 평소엔 쉬운 한 줄(왜 이런 하루),
+// 펼치면 실제 신호 데이터: 출처(사주 십신/점성 트랜짓/교차) · 라벨 · 점성은
+// aspect→본명점 · 극성(±)·강도(강/중/약). 지어내지 않고 allSignals 그대로.
+// ============================================================================
+function EvidenceDetails({ day, ko }: { day: DestinyDay; ko: boolean }) {
+  const rows = [...day.allSignals]
+    .filter((s) => s.polarity !== 0)
+    .sort((a, b) => Math.abs(b.polarity * b.weight) - Math.abs(a.polarity * a.weight))
+    .slice(0, 12)
+  if (rows.length === 0) return null
+  const strength = (w: number) =>
+    w >= 0.66 ? (ko ? '강' : 'strong') : w >= 0.33 ? (ko ? '중' : 'med') : ko ? '약' : 'weak'
+  const srcTag = (s: (typeof rows)[number]) =>
+    s.kind === 'cross-activation'
+      ? ko
+        ? '교차'
+        : 'cross'
+      : s.source === 'astro'
+        ? ko
+          ? '점성'
+          : 'astro'
+        : ko
+          ? '사주'
+          : 'saju'
+  return (
+    <details className={styles.evidence}>
+      <summary className={styles.evidenceSummary}>
+        {ko ? '근거 자세히 · 신호와 강도' : 'Details · signals & strength'}
+      </summary>
+      <div className={styles.evList}>
+        {rows.map((s, i) => {
+          const astro = s.source === 'astro' && (s as { aspect?: string }).aspect
+          const aspect = (s as { aspect?: string }).aspect ?? ''
+          const target = (s as { target?: string }).target ?? ''
+          const rawTarget = target.replace(/^(본명|natal)\s+/i, '')
+          return (
+            <div className={styles.evRow} key={s.id ?? i}>
+              <span className={styles.evSrc}>{srcTag(s)}</span>
+              <span className={styles.evLabel}>
+                {localizeLabel(s.label, ko)}
+                {astro && aspect && target && (
+                  <span className={styles.evAspect}>
+                    {' '}
+                    · {ko ? (ASPECT_KO[aspect] ?? aspect) : aspect} → {ko ? '본명 ' : 'natal '}
+                    {localizeLabel(rawTarget, ko)}
+                  </span>
+                )}
+              </span>
+              <span className={styles.evStrength}>{strength(s.weight)}</span>
+              <PolChip v={s.polarity} />
+            </div>
+          )
+        })}
+      </div>
+    </details>
+  )
+}
+
 export function DayTier({ day, voc, onRise, sex = '남' }: DayTierProps) {
   const { locale } = useI18n()
   const ko = locale === 'ko'
-  // ── transit 분리: 일반 (Sun~Mars) + 외행성 (Saturn/Uranus/Neptune/Pluto). ──
-  const allTransitSignals = day.transits
-  // 외행성 — day.transits 중 body 가 OUTER_PLANETS 에 들어가면 outer 로 분리.
-  // adapter 의 DestinypalDayTransit 은 source 가 없으므로 AstroSignal 형태로
-  // 다루기 위한 정규화.
-  type T = AstroSignal | (typeof day.transits)[number]
-  const isOuter = (t: T): boolean => OUTER_PLANETS.has((t as { body?: string }).body ?? '')
-  const innerTransits = allTransitSignals.filter((t) => !isOuter(t))
-  const outerTransits = allTransitSignals.filter((t) => isOuter(t))
+  // 점성 트랜짓 원자료는 이제 EvidenceDetails(전 신호 통합 펼침)에서 보여준다 —
+  // 별도 inner/outer 분리 렌더는 제거.
 
   // ── 쉬운 요약 — 화해된 verdict 로 "오늘 어때" 한 줄 + 좋은것/조심 카드 ──
   // adapter(toDay)가 점수 밴드 ↔ 신호/사유 톤을 묶은 단일 권위 verdict 를 준다.
@@ -779,16 +777,8 @@ export function DayTier({ day, voc, onRise, sex = '남' }: DayTierProps) {
             </div>
           )}
 
-          {/* 근거 신호 (점성 트랜짓 원자료) — 기본 접힘. 원하는 사람만 펼침. */}
-          <details className={styles.evidence}>
-            <summary className={styles.evidenceSummary}>
-              {ko ? '근거 신호 보기 · 점성 트랜짓' : 'View evidence signals · astro transits'}
-            </summary>
-            <div className={styles.transitRow}>
-              {innerTransits.map((t, i) => renderTransit(t, `it-${i}`, ko, false))}
-              {outerTransits.map((t, i) => renderTransit(t, `ot-${i}`, ko, true))}
-            </div>
-          </details>
+          {/* 근거 "자세히" — 전 신호(사주·점성·교차) + 극성·강도. 기본 접힘. ── */}
+          <EvidenceDetails day={day} ko={ko} />
         </div>
       </div>
 
