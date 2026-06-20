@@ -108,7 +108,7 @@ export const POST = withApiMiddleware(
       })
     }
 
-    const { sessionId, locale, userMessage, assistantMessage, type, meta } = validation.data
+    const { sessionId, locale, userMessage, assistantMessage, type, meta, create } = validation.data
     const sessionType = type ?? 'destiny'
 
     const now = new Date()
@@ -136,12 +136,46 @@ export const POST = withApiMiddleware(
       })
 
       if (!existingSession) {
-        return createErrorResponse({
-          code: ErrorCodes.NOT_FOUND,
-          message: 'Session not found',
-          locale: extractLocale(req),
-          route: 'counselor/chat-history',
-        })
+        // Default: unknown id → 404 (guards against arbitrary id injection).
+        // Opt-in (compat): create the row with the client-supplied id so the
+        // charge-time safety-net id and the client's content converge on one
+        // row. P2002 = the id belongs to *another* user → keep 404 (no leak).
+        if (!create) {
+          return createErrorResponse({
+            code: ErrorCodes.NOT_FOUND,
+            message: 'Session not found',
+            locale: extractLocale(req),
+            route: 'counselor/chat-history',
+          })
+        }
+        const firstUserContent = newMessages.find((m) => m.role === 'user')?.content?.trim() || ''
+        const upsertTitle = firstUserContent ? truncateChatTitle(firstUserContent) : null
+        try {
+          const createdWithId = await prisma.counselorChatSession.create({
+            data: {
+              id: sessionId,
+              userId,
+              locale,
+              type: sessionType,
+              ...(upsertTitle ? { title: upsertTitle } : {}),
+              ...(meta ? { meta: meta as Prisma.InputJsonValue } : {}),
+              messages: newMessages,
+              messageCount: newMessages.length,
+              lastMessageAt: now,
+            },
+          })
+          return NextResponse.json({ success: true, session: createdWithId, action: 'created' })
+        } catch (err) {
+          if (err && typeof err === 'object' && 'code' in err && err.code === 'P2002') {
+            return createErrorResponse({
+              code: ErrorCodes.NOT_FOUND,
+              message: 'Session not found',
+              locale: extractLocale(req),
+              route: 'counselor/chat-history',
+            })
+          }
+          throw err
+        }
       }
 
       const existingMessages = (existingSession.messages as ChatMessage[]) || []
@@ -161,6 +195,12 @@ export const POST = withApiMiddleware(
           messageCount: updatedMessages.length,
           lastMessageAt: now,
           ...(backfillTitle ? { title: backfillTitle } : {}),
+          // Persist the couple/profile snapshot if the client attaches it.
+          // The server's existence-only safety-net row is created without
+          // meta, so the client's first save is what carries the chart
+          // context for past-chat restore — accept it on update too, not
+          // just create. (Compat sends meta until it's persisted once.)
+          ...(meta ? { meta: meta as Prisma.InputJsonValue } : {}),
         },
       })
 

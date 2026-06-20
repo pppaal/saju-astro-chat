@@ -89,6 +89,7 @@ export const POST = withApiMiddleware(
 
     const body = validationResult.data
     const {
+      readingId: providedReadingId,
       question,
       spreadId,
       spreadTitle,
@@ -130,16 +131,94 @@ export const POST = withApiMiddleware(
       createData.followupTurns = followupTurns
     }
 
-    // 중복 저장 방지용 결정적 PK. 같은 리딩은 같은 id → 두 번째 INSERT 는
-    // 유니크 제약으로 거부되고 아래에서 기존 행을 그대로 돌려준다.
-    const dedupeId = deterministicReadingId(
-      context.userId!,
-      spreadId,
-      createData.cards,
-      overallMessage
-    )
-    if (dedupeId) {
-      createData.id = dedupeId
+    // 서버가 발급한 readingId(interpret-stream x-reading-id)가 오면 그 행을
+    // upsert 한다 — 차감 시점 안전망이 만든 존재 행(cards/question 만 있고 해석은
+    // 비어 있음)을 여기서 채운다. 차감과 기록이 같은 행으로 수렴(중복 차단).
+    if (providedReadingId) {
+      const existing = await prisma.tarotReading.findUnique({
+        where: { id: providedReadingId },
+        select: { id: true, userId: true },
+      })
+      if (existing) {
+        // 소유권 가드 — 남의 readingId 면 건드리지도, 정보 누출도 하지 않는다.
+        if (existing.userId !== context.userId!) {
+          return apiError(ErrorCodes.NOT_FOUND, 'reading not found')
+        }
+        // 존재 행에 해석을 채운다. create 와 동일하게 P2022(누락 컬럼) 방어로
+        // strippable 컬럼만 빼며 재시도해 prod 마이그레이션 지연에도 살아남는다.
+        const updateData: Prisma.TarotReadingUncheckedUpdateInput = {
+          question,
+          spreadTitle,
+          cards: createData.cards,
+          overallMessage,
+          cardInsights,
+          guidance,
+          affirmation,
+          source,
+          locale,
+        }
+        if (counselorSessionId !== undefined) updateData.counselorSessionId = counselorSessionId
+        if (clarifierCard !== undefined) updateData.clarifierCard = clarifierCard
+        if (followupTurns !== undefined) updateData.followupTurns = followupTurns
+        try {
+          for (let attempt = 0; attempt < 10; attempt++) {
+            try {
+              await prisma.tarotReading.update({
+                where: { id: providedReadingId },
+                data: updateData,
+              })
+              break
+            } catch (err) {
+              const e = err as { code?: string; meta?: { column?: unknown } }
+              const col = typeof e?.meta?.column === 'string' ? e.meta.column : ''
+              const hit =
+                e?.code === 'P2022'
+                  ? [
+                      'overallMessage',
+                      'cardInsights',
+                      'guidance',
+                      'affirmation',
+                      'counselorSessionId',
+                      'clarifierCard',
+                      'followupTurns',
+                      'locale',
+                      'source',
+                    ].find((s) => col.includes(s))
+                  : undefined
+              if (!hit) throw err
+              delete (updateData as Record<string, unknown>)[hit]
+            }
+          }
+        } catch (err) {
+          logger.error('[TarotSave] update failed', err instanceof Error ? err : undefined)
+          const e = err as { code?: string; meta?: { column?: unknown; constraint?: unknown } }
+          const diag = [
+            e?.code,
+            typeof e?.meta?.column === 'string' ? e.meta.column : undefined,
+            typeof e?.meta?.constraint === 'string' ? e.meta.constraint : undefined,
+          ]
+            .filter(Boolean)
+            .join(' ')
+          return apiError(ErrorCodes.DATABASE_ERROR, `db ${diag || 'update_failed'}`)
+        }
+        return apiSuccess({ success: true, readingId: providedReadingId })
+      }
+      // 안전망 행이 아직 없다(클라가 서버 onComplete 보다 빨랐거나 nonce 없음) →
+      // 이 id 로 새로 만든다. 아래 create 경로가 createData.id 로 생성.
+      createData.id = providedReadingId
+    } else {
+      // 레거시 경로(서버 readingId 없음) — 결정적 PK 로 중복 저장 방지. 같은
+      // 리딩은 같은 id → 두 번째 INSERT 는 유니크 제약으로 거부되고 아래에서
+      // 기존 행을 그대로 돌려준다.
+      const dedupeId = deterministicReadingId(
+        context.userId!,
+        spreadId,
+        createData.cards,
+        overallMessage
+      )
+      if (dedupeId) {
+        createData.id = dedupeId
+      }
     }
 
     // 누락 컬럼(P2022) 방어 — 마이그레이션이 prod 에 늦게 닿아 어떤 컬럼이
@@ -166,23 +245,25 @@ export const POST = withApiMiddleware(
           break
         } catch (err) {
           const e = err as { code?: string; meta?: { column?: unknown } }
-          // 같은 리딩의 중복 저장 — deterministic PK 충돌(P2002). 새 행을 만들지
-          // 않고 이미 저장된 행을 그대로 반환해 멱등 보장. (자동저장+수동저장
+          // 같은 리딩의 중복 저장 — PK 충돌(P2002). 새 행을 만들지 않고 이미
+          // 저장된 행을 그대로 반환해 멱등 보장. id 는 결정적 dedupeId 또는
+          // 서버 발급 readingId(둘 다 createData.id 에 실림). (자동저장+수동저장
           // 동시 요청도 DB 유니크 PK 가 원자적으로 막아 check-then-create 레이스
           // 없음. Postgres 는 선행 INSERT 커밋까지 블록 후 P2002 → 아래 조회 성공.)
-          if (e?.code === 'P2002' && dedupeId) {
-            const existing = await prisma.tarotReading.findUnique({ where: { id: dedupeId } })
+          if (e?.code === 'P2002' && createData.id) {
+            const existing = await prisma.tarotReading.findUnique({
+              where: { id: createData.id as string },
+            })
             if (existing) {
               logger.info('[TarotSave] duplicate save — returning existing reading', {
-                id: dedupeId,
+                id: createData.id,
               })
               tarotReading = existing
               break
             }
           }
           const col = typeof e?.meta?.column === 'string' ? e.meta.column : ''
-          const hit =
-            e?.code === 'P2022' ? STRIPPABLE.find((s) => col.includes(s)) : undefined
+          const hit = e?.code === 'P2022' ? STRIPPABLE.find((s) => col.includes(s)) : undefined
           if (!hit) throw err
           logger.warn('[TarotSave] column missing on DB — stripping & retrying', { column: col })
           delete (createData as Record<string, unknown>)[hit]

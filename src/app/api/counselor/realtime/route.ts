@@ -30,6 +30,7 @@ import { buildDestinyCounselorPrompt } from '@/lib/prompts/destinyCounselorPromp
 const idemStore = createIdempotencyStore('counselor-realtime')
 
 import { refundCreditsOnce } from '@/lib/credits/refundOnce'
+import { ensureCounselorSessionRecord } from '@/lib/counselor/ensureSessionRecord'
 import { cacheSet } from '@/lib/cache/redis-cache'
 import { getUserDisplayName, sanitizeDisplayName } from '@/lib/user/displayName'
 import { currentManAge } from '@/lib/datetime/currentAge'
@@ -278,6 +279,11 @@ export async function POST(req: NextRequest) {
   // compat/counselor 처럼 outer-catch 로 잡아 환불한다. refundKey 는 스트림
   // onFailure 와 공유해 이중 환불 없음(refundCreditsOnce 가 dedupe).
   const turnId = typeof body.turnId === 'string' ? body.turnId.slice(0, 80) : ''
+  // 클라가 자동 저장(useChatAutoSave → session/save)에 쓰는 정본 세션 id 와
+  // 동일한 값이 여기 x-session-id 로 온다. 답변이 완료되면(=과금 확정) 이 id 로
+  // 세션 행을 없으면 생성해, 클라 자동 저장이 끝내 도착하지 않아도 "차감됐는데
+  // 활동 0" 불일치가 생기지 않게 한다. (아래 onComplete 의 안전망 참조.)
+  const clientSessionId = (req.headers.get('x-session-id') ?? '').trim()
   // 환불 dedup 키를 차감 멱등키(scopedIdemKey)와 정렬 — 차감 1회당 환불 1회.
   // 예전엔 환불키가 body.turnId 에서만 파생돼, turnId 가 비면 refundCreditsOnce
   // 가 시간버킷 합성키로 떨어졌고, 같은 시각 두 실패 턴이 같은 키로 dedupe 돼
@@ -403,17 +409,38 @@ export async function POST(req: NextRequest) {
       // 로 캐시 저장 → 사용자가 돌아오면 result 엔드포인트로 복원).
       abortSignal: req.signal,
       keepGeneratingOnDisconnect: true,
-      // 생성이 끝나면(클라 연결 여부 무관) 완성 답안을 캐시에 저장. 끊겼다가
-      // 돌아온 사용자가 /api/counselor/realtime/result?turnId=… 로 받아간다.
-      onComplete: turnId
-        ? async (full) => {
-            try {
-              await cacheSet(counselorTurnResultKey(userId, turnId), full, TURN_RESULT_TTL_SEC)
-            } catch {
-              /* 캐시 실패는 무시 — 단순히 복원이 안 될 뿐, 스트림엔 영향 없음 */
-            }
+      // 생성이 끝나면(클라 연결 여부 무관) 두 가지를 한다. claudeSSE 는 fullText
+      // 가 비어있지 않을 때만(=과금되고 환불 안 된 턴) onComplete 를 부른다.
+      //   1) 완성 답안을 캐시에 저장 — 끊겼다 돌아온 사용자가
+      //      /api/counselor/realtime/result?turnId=… 로 받아간다(turnId 있을 때).
+      //   2) 세션 행 안전망 — 클라 자동 저장이 끝내 안 와도 활동 기록이 남도록
+      //      같은 세션 id 로 행을 없으면 생성(차감-기록 불일치 방지).
+      onComplete: async (full) => {
+        if (turnId) {
+          try {
+            await cacheSet(counselorTurnResultKey(userId, turnId), full, TURN_RESULT_TTL_SEC)
+          } catch {
+            /* 캐시 실패는 무시 — 단순히 복원이 안 될 뿐, 스트림엔 영향 없음 */
           }
-        : undefined,
+        }
+        // body.messages 는 마지막 user 질문까지의 대화. 거기에 방금 생성한
+        // assistant 답변을 더해 이 턴까지의 기록으로 만든다. 행이 이미 있으면
+        // (클라 저장 성공) 헬퍼가 건드리지 않는다.
+        try {
+          const priorDialog = (Array.isArray(body.messages) ? body.messages : [])
+            .filter((m) => m && (m.role === 'user' || m.role === 'assistant'))
+            .map((m) => ({ role: m.role, content: m.content }))
+          await ensureCounselorSessionRecord({
+            sessionId: clientSessionId,
+            userId,
+            messages: [...priorDialog, { role: 'assistant', content: full }],
+            locale: lang,
+            type: 'destiny',
+          })
+        } catch {
+          /* 안전망 실패는 무시 — 과금/응답 경로엔 영향 없음 */
+        }
+      },
       systemPrompt,
       userPrompt,
       cachedUserContext,

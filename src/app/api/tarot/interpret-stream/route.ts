@@ -33,6 +33,8 @@ import { checkAndConsumeCredits, creditErrorResponse } from '@/lib/credits/withC
 import { refundCreditsOnce } from '@/lib/credits/refundOnce'
 import { getUserDisplayName } from '@/lib/user/displayName'
 import { cacheSet } from '@/lib/cache/redis-cache'
+import { ensureTarotReadingRecord } from '@/lib/tarot/ensureReadingRecord'
+import { createHash } from 'crypto'
 
 // 단일 Claude 호출의 최대 wall-clock — Sonnet 4.5 + 7장 streaming 기준
 // Haiku 보다 응답 길어 통상 15-30s. 여유 있게 60s.
@@ -362,6 +364,19 @@ export async function POST(req: NextRequest) {
     const turnId = typeof body.turnId === 'string' ? body.turnId.slice(0, 80) : ''
     const recoverableUserId = context.userId || ''
     const isRecoverable = Boolean(turnId && recoverableUserId)
+
+    // 차감-기록 불일치 방지: 로그인 사용자면 안정적 readingId 를 서버가 정하고
+    // 응답 헤더(x-reading-id)로 돌려준다. 정상 완료(과금 확정) 시 이 id 로
+    // TarotReading 존재 행을 보장 생성하고, 클라 tarot/save 가 같은 id 로 upsert
+    // 하며 해석을 채운다 — 행이 갈라지거나 중복되지 않게. id 는 draw nonce 에서
+    // 파생해 새로고침/뒤로가기(replay) 가 같은 리딩을 같은 id 로 가리키게 한다
+    // (replay 는 차감을 환불하므로 행은 첫 요청에서만 생성됨). nonce 가 없으면
+    // (레거시/인라인) 무작위 — 이 경우 replay 보호는 없지만 단발 저장엔 충분.
+    const persistReadingId = recoverableUserId
+      ? drawNonce
+        ? `tr_${createHash('sha256').update(`${ownerKey}:${drawNonce}`).digest('hex').slice(0, 24)}`
+        : `tr_${createHash('sha256').update(`${recoverableUserId}:${Date.now()}:${Math.random()}`).digest('hex').slice(0, 24)}`
+      : ''
     // Per-turn key so every refund path (fallback / claude error / stream error
     // / outer catch) refunds this turn at most once. (declared at fn scope above)
     // turnId 가 없으면 draw nonce(서버 발급, draw 마다 고유)로 대체 — 둘 다
@@ -568,6 +583,24 @@ export async function POST(req: NextRequest) {
           } else {
             // 정상 완료 → 복구 가능 턴이면 완성 리딩 캐시 저장. (클라 연결 여부 무관.)
             await persistIfRecoverable()
+            // 차감-기록 안전망 — 이번 요청이 실제로 과금했고(creditResult 존재,
+            // replay 면 null) 로그인 사용자면 같은 readingId 로 존재 행을 보장
+            // 생성한다. 클라 tarot/save 가 끝내 안 와도 활동 기록이 남는다.
+            if (creditResult?.userId && persistReadingId) {
+              try {
+                await ensureTarotReadingRecord({
+                  readingId: persistReadingId,
+                  userId: creditResult.userId,
+                  question: userQuestion,
+                  spreadId,
+                  spreadTitle,
+                  cards: rawCards,
+                  locale: language,
+                })
+              } catch {
+                /* 존재 보장 실패는 무시 — 과금/응답 경로엔 영향 없음 */
+              }
+            }
             safeEnqueue(encoder.encode(createSSEDoneEvent()))
           }
         } catch (streamErr) {
@@ -660,6 +693,9 @@ export async function POST(req: NextRequest) {
         'X-Accel-Buffering': 'no',
         'X-Provider': 'claude',
         'X-Tarot-Strategy': 'streaming',
+        // 클라 tarot/save 가 같은 id 로 행을 채우도록 서버가 정한 readingId 를
+        // 돌려준다(위 존재 보장 행과 동일 id). 로그인 사용자일 때만 non-empty.
+        ...(persistReadingId ? { 'x-reading-id': persistReadingId } : {}),
       },
     })
   } catch (err) {

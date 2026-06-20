@@ -614,6 +614,82 @@ describe('/api/counselor/chat-history', () => {
       expect(result.error.code).toBe('NOT_FOUND')
     })
 
+    it('create:true 면 없는 sessionId 를 그 id 로 생성한다 (compat 안전망 합류)', async () => {
+      mockFindFirst.mockResolvedValue(null)
+      mockCreate.mockResolvedValue({ id: 'compat_123_abc', messageCount: 2 })
+
+      const req = new NextRequest('http://localhost:3000/api/counselor/chat-history', {
+        method: 'POST',
+        body: JSON.stringify({
+          sessionId: 'compat_123_abc',
+          type: 'compat',
+          create: true,
+          userMessage: '우리 잘 맞을까요?',
+          assistantMessage: '흐름은 좋아요.',
+          meta: { persons: [{ name: 'A' }, { name: 'B' }] },
+        }),
+      })
+
+      const response = await POST(req)
+      const result = await response.json()
+
+      expect(response.status).toBe(200)
+      expect(result.action).toBe('created')
+      const arg = mockCreate.mock.calls[0][0]
+      expect(arg.data.id).toBe('compat_123_abc')
+      expect(arg.data.type).toBe('compat')
+      expect(arg.data.meta).toEqual({ persons: [{ name: 'A' }, { name: 'B' }] })
+    })
+
+    it('create:true 라도 id 가 타 사용자 소유(P2002)면 404 (정보 누출 없음)', async () => {
+      mockFindFirst.mockResolvedValue(null)
+      mockCreate.mockRejectedValue({ code: 'P2002' })
+
+      const req = new NextRequest('http://localhost:3000/api/counselor/chat-history', {
+        method: 'POST',
+        body: JSON.stringify({
+          sessionId: 'compat_someone_elses',
+          create: true,
+          userMessage: 'hi',
+        }),
+      })
+
+      const response = await POST(req)
+      const result = await response.json()
+
+      expect(response.status).toBe(404)
+      expect(result.error.code).toBe('NOT_FOUND')
+    })
+
+    it('update 경로에서도 meta 를 받으면 저장한다 (서버 존재 보장 행에 차트 채우기)', async () => {
+      mockFindFirst.mockResolvedValue({
+        id: 'compat_123_abc',
+        userId: mockUserId,
+        title: 'q',
+        messages: [],
+      })
+      mockUpdate.mockResolvedValue({ id: 'compat_123_abc', messageCount: 2 })
+
+      const req = new NextRequest('http://localhost:3000/api/counselor/chat-history', {
+        method: 'POST',
+        body: JSON.stringify({
+          sessionId: 'compat_123_abc',
+          type: 'compat',
+          create: true,
+          userMessage: '우리 잘 맞을까요?',
+          assistantMessage: '흐름은 좋아요.',
+          meta: { persons: [{ name: 'A' }] },
+        }),
+      })
+
+      await POST(req)
+
+      expect(mockUpdate).toHaveBeenCalledWith({
+        where: { id: 'compat_123_abc' },
+        data: expect.objectContaining({ meta: { persons: [{ name: 'A' }] } }),
+      })
+    })
+
     it('should append messages to existing session', async () => {
       const existingMessages = [
         { role: 'user', content: 'Hello', timestamp: '2024-01-15T10:00:00Z' },

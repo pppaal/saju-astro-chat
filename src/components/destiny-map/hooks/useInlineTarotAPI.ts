@@ -77,6 +77,9 @@ export function useInlineTarotAPI({ stateManager, lang, origin }: UseInlineTarot
   // 같은 리딩으로 자동 재시도하지 않는다. 새 draw 가 시작될 때 drawCards 안에서
   // 다시 false 로 초기화한다.
   const saveAttemptedRef = useRef(false)
+  // interpret-stream 이 응답 헤더(x-reading-id)로 돌려준 서버 발급 id. 저장이
+  // 이 id 로 같은 행(차감 시점 안전망 행)을 채우게 해 차감-기록 행을 통일한다.
+  const serverReadingIdRef = useRef<string | null>(null)
   const defaultOverallMessage =
     lang === 'ko'
       ? '카드가 보여준 흐름을 기준으로 현재 상황의 핵심을 정리했습니다.'
@@ -274,6 +277,13 @@ export function useInlineTarotAPI({ stateManager, lang, origin }: UseInlineTarot
             showDepleted()
           }
           throw new Error(`Interpretation failed (${res.status})`)
+        }
+
+        // 서버가 발급한 readingId 회수 — 저장이 같은 행(차감 시점 안전망 행)을
+        // 채우도록. 헤더는 본문보다 먼저 도착해 스트림이 끊겨도 잡힌다.
+        const headerReadingId = res.headers?.get?.('x-reading-id')
+        if (headerReadingId) {
+          serverReadingIdRef.current = headerReadingId
         }
 
         // SSE: 토큰 delta 가 도착할 때마다 progressive 로 부분 JSON 을
@@ -524,6 +534,9 @@ export function useInlineTarotAPI({ stateManager, lang, origin }: UseInlineTarot
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
+          // readingId: interpret-stream 이 발급한 서버 id 로 같은 행을 upsert —
+          // 차감 시점 안전망 행과 통일(중복 차단). 없으면 서버가 결정적 dedupe.
+          ...(serverReadingIdRef.current ? { readingId: serverReadingIdRef.current } : {}),
           question: concern,
           theme: selectedCategory,
           spreadId: selectedSpread.id,

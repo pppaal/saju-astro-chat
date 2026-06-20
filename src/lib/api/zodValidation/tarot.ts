@@ -94,6 +94,11 @@ const tarotFollowupTurnSchema = z.object({
 // ============ Tarot Request Schemas ============
 
 export const tarotSaveRequestSchema = z.object({
+  // Server-minted reading id (returned by interpret-stream as x-reading-id).
+  // When present, save upserts THIS row — the same one the charge-time
+  // safety-net created — so the charge and the record converge on one row
+  // instead of fragmenting into a separate deterministic-id row.
+  readingId: z.string().max(128).optional(),
   question: z.string().min(1).max(1000).trim(),
   spreadId: z.string().min(1).max(100),
   spreadTitle: z.string().min(1).max(200),
