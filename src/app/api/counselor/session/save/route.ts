@@ -108,7 +108,7 @@ export const POST = withApiMiddleware(
 
     const existing = await prisma.counselorChatSession.findUnique({
       where: { id: sessionId },
-      select: { userId: true },
+      select: { userId: true, meta: true },
     })
 
     if (existing && existing.userId !== userId) {
@@ -129,6 +129,12 @@ export const POST = withApiMiddleware(
           messages: messages as never,
           messageCount: messages.length,
           lastMessageAt: new Date(),
+          // 서버 안전망(ensureCounselorSessionRecord)이 답변 완료 시점에 meta
+          // 없이 행을 먼저 만들면, 이 클라 저장이 update 로 떨어진다. 예전엔
+          // update 가 meta 를 안 건드려 대상자(subject)가 영영 저장되지 않았다
+          // (사이드바 이름·재개 복원이 깨짐). 행에 meta 가 아직 없을 때만
+          // backfill — 이미 있으면 덮어쓰지 않는다(클라가 갱신 권한 보유).
+          ...(!existing.meta && sessionMeta ? { meta: sessionMeta } : {}),
         },
       })
       saveMode = 'update'
@@ -158,7 +164,7 @@ export const POST = withApiMiddleware(
 
         const collided = await prisma.counselorChatSession.findUnique({
           where: { id: sessionId },
-          select: { userId: true },
+          select: { userId: true, meta: true },
         })
 
         if (collided && collided.userId !== userId) {
@@ -180,6 +186,8 @@ export const POST = withApiMiddleware(
             messages: messages as never,
             messageCount: messages.length,
             lastMessageAt: new Date(),
+            // 동시 생성자가 안전망(meta 없음)이었을 수 있으니 여기서도 backfill.
+            ...(!collided?.meta && sessionMeta ? { meta: sessionMeta } : {}),
           },
         })
         saveMode = 'create-race-recovery'

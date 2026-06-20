@@ -411,7 +411,7 @@ describe('/api/counselor/session/save', () => {
       expect(result.error.code).toBe('FORBIDDEN')
       expect(mockFindUnique).toHaveBeenCalledWith({
         where: { id: 'session-123' },
-        select: { userId: true },
+        select: { userId: true, meta: true },
       })
     })
   })
@@ -540,8 +540,11 @@ describe('/api/counselor/session/save', () => {
       expect(mockCreate.mock.calls[0][0].data.meta).toBeUndefined()
     })
 
-    it('should NOT touch meta on update (대상자는 생성 시 한 번만)', async () => {
-      mockFindUnique.mockResolvedValue({ userId: mockUserId })
+    it('update backfills meta when existing row has none (서버 안전망 race 보호)', async () => {
+      // 서버 안전망(ensureCounselorSessionRecord)이 meta 없이 행을 먼저 만들면
+      // 클라 저장이 update 로 떨어진다. 그때 subject 를 backfill 해야 사이드바
+      // 이름·재개 복원이 깨지지 않는다.
+      mockFindUnique.mockResolvedValue({ userId: mockUserId, meta: null })
       mockUpdate.mockResolvedValue({ id: 'session-123', userId: mockUserId })
 
       const req = new NextRequest('http://localhost:3000/api/counselor/session/save', {
@@ -553,6 +556,27 @@ describe('/api/counselor/session/save', () => {
       await POST(req)
 
       expect(mockCreate).not.toHaveBeenCalled()
+      expect(mockUpdate.mock.calls[0][0].data.meta).toEqual({
+        profile: { name: '이차연' },
+        subject: { name: '이차연' },
+      })
+    })
+
+    it('update does NOT overwrite existing meta (클라가 갱신 권한 보유)', async () => {
+      mockFindUnique.mockResolvedValue({
+        userId: mockUserId,
+        meta: { profile: { name: '먼저저장된사람' } },
+      })
+      mockUpdate.mockResolvedValue({ id: 'session-123', userId: mockUserId })
+
+      const req = new NextRequest('http://localhost:3000/api/counselor/session/save', {
+        method: 'POST',
+        body: JSON.stringify({ ...validSessionData, subject: { name: '이차연' } }),
+      })
+
+      const { POST } = await import('@/app/api/counselor/session/save/route')
+      await POST(req)
+
       expect(mockUpdate.mock.calls[0][0].data.meta).toBeUndefined()
     })
 
