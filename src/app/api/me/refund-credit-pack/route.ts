@@ -10,6 +10,10 @@ import {
 } from '@/lib/api/middleware'
 import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/logger'
+import {
+  claimBonusPurchaseForRefund,
+  rollbackBonusPurchaseRefundClaim,
+} from '@/lib/credits/creditService'
 import { getStripeOrNull } from '@/lib/stripe/client'
 
 export const dynamic = 'force-dynamic'
@@ -125,45 +129,24 @@ export const POST = withApiMiddleware(
     // 을 못 고르게 막고, 같은 트랜잭션에서 잔액(bonusCredits)에서 전량 회수한다.
     // count!==1 이면 그 사이 누가 썼거나 이미 환불된 것 → 현금 한 푼 안 움직이고
     // 거부.
+    // claim+reclaim/rollback 은 admin/refund-credit-pack 과 공유하는 단일 출처
+    // (creditService). me/ 는 "완전 미사용"만 환불하므로 expectedRemaining=amount,
+    // source='purchase' 가드.
     const amount = purchase.amount
     const stripePaymentId = purchase.stripePaymentId
     let claimed = false
     try {
-      claimed = await prisma.$transaction(async (tx) => {
-        const lock = await tx.bonusCreditPurchase.updateMany({
-          where: {
-            id: purchase.id,
-            userId: context.userId!,
-            source: 'purchase',
-            expired: false,
-            remaining: amount,
-          },
-          data: { remaining: 0, expired: true, expiresAt: new Date() },
-        })
-        if (lock.count !== 1) return false
-        await tx.$executeRaw`
-          UPDATE "UserCredits"
-          SET "bonusCredits" = GREATEST(0, "bonusCredits" - ${amount})
-          WHERE "userId" = ${context.userId!}
-        `
-        await tx.creditTransaction.create({
-          data: {
-            userId: context.userId!,
-            type: 'REVOKE',
-            pool: 'BONUS',
-            amount: -amount,
-            reason: 'self_refund',
-            sourceRef: stripePaymentId,
-            metadata: {
-              purchaseId: purchase.id,
-              stripePaymentId,
-              reclaimed: amount,
-              initiatedBy: 'self',
-            },
-          },
-        })
-        return true
+      const res = await claimBonusPurchaseForRefund({
+        purchaseId: purchase.id,
+        ownerUserId: context.userId!,
+        amount,
+        expectedRemaining: amount,
+        reason: 'self_refund',
+        initiatedBy: 'self',
+        sourceRef: stripePaymentId,
+        requireSourcePurchase: true,
       })
+      claimed = res.claimed
     } catch (err) {
       logger.error('[me/refund-credit-pack] claim+reclaim failed', { purchaseId, err })
       return apiError(ErrorCodes.INTERNAL_ERROR, 'refund_claim_failed')
@@ -204,32 +187,15 @@ export const POST = withApiMiddleware(
         err,
       })
       try {
-        await prisma.$transaction(async (tx) => {
-          await tx.bonusCreditPurchase.update({
-            where: { id: purchase.id },
-            data: { remaining: amount, expired: false, expiresAt: purchase.expiresAt },
-          })
-          await tx.$executeRaw`
-            UPDATE "UserCredits"
-            SET "bonusCredits" = "bonusCredits" + ${amount}
-            WHERE "userId" = ${context.userId!}
-          `
-          await tx.creditTransaction.create({
-            data: {
-              userId: context.userId!,
-              type: 'GRANT',
-              pool: 'BONUS',
-              amount,
-              reason: 'self_refund_rollback',
-              sourceRef: stripePaymentId,
-              metadata: {
-                purchaseId: purchase.id,
-                stripePaymentId,
-                restored: amount,
-                initiatedBy: 'self',
-              },
-            },
-          })
+        await rollbackBonusPurchaseRefundClaim({
+          purchaseId: purchase.id,
+          ownerUserId: context.userId!,
+          reclaimed: amount,
+          restoreRemaining: amount,
+          restoreExpiresAt: purchase.expiresAt,
+          reason: 'self_refund_rollback',
+          initiatedBy: 'self',
+          sourceRef: stripePaymentId,
         })
       } catch (rollbackErr) {
         // 롤백까지 실패 — 드문 이중 DB 장애. 수동 정합성 복구가 필요하므로

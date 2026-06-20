@@ -11,6 +11,10 @@ import {
 import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/logger'
 import { logAdminAction } from '@/lib/auth/adminAudit'
+import {
+  claimBonusPurchaseForRefund,
+  rollbackBonusPurchaseRefundClaim,
+} from '@/lib/credits/creditService'
 import { getStripeOrNull } from '@/lib/stripe/client'
 
 export const dynamic = 'force-dynamic'
@@ -154,44 +158,27 @@ export const POST = withApiMiddleware(
     // 막고 같은 트랜잭션에서 회수한다. non-force 는 완전 미사용(remaining===amount)
     // 만, force 는 현재 remaining 을 그대로 회수 대상으로(부분 사용 pack 도 환불).
     // count!==1 이면 그 사이 소비/이미 환불 → 현금 미이동 거부.
+    // claim+reclaim/rollback 은 me/refund-credit-pack 과 공유하는 단일 출처
+    // (creditService). non-force 는 완전 미사용(expectedRemaining=amount)만, force
+    // 는 현재 remaining 을 그대로 회수 대상으로(부분 사용 pack 도 환불). admin 은
+    // source 가드 없음(어떤 pack 이든 환불 도구).
     const amount = purchase.amount
     const expectedRemaining = force ? purchase.remaining : amount
     const reclaimed = expectedRemaining
     const alreadyUsed = amount - expectedRemaining
     let claimed = false
     try {
-      claimed = await prisma.$transaction(async (tx) => {
-        const lock = await tx.bonusCreditPurchase.updateMany({
-          where: { id: purchase.id, expired: false, remaining: expectedRemaining },
-          data: { remaining: 0, expired: true, expiresAt: new Date() },
-        })
-        if (lock.count !== 1) return false
-        if (reclaimed > 0) {
-          await tx.$executeRaw`
-            UPDATE "UserCredits"
-            SET "bonusCredits" = GREATEST(0, "bonusCredits" - ${reclaimed})
-            WHERE "userId" = ${purchase.userId}
-          `
-          await tx.creditTransaction.create({
-            data: {
-              userId: purchase.userId,
-              type: 'REVOKE',
-              pool: 'BONUS',
-              amount: -reclaimed,
-              reason: 'admin_refund',
-              sourceRef: stripePaymentId,
-              metadata: {
-                purchaseId: purchase.id,
-                stripePaymentId,
-                reclaimed,
-                alreadyUsed,
-                adminUserId,
-              },
-            },
-          })
-        }
-        return true
+      const res = await claimBonusPurchaseForRefund({
+        purchaseId: purchase.id,
+        ownerUserId: purchase.userId,
+        amount,
+        expectedRemaining,
+        reason: 'admin_refund',
+        initiatedBy: 'admin',
+        sourceRef: stripePaymentId,
+        actorUserId: adminUserId,
       })
+      claimed = res.claimed
     } catch (err) {
       logger.error('[admin/refund-credit-pack] claim+reclaim failed', { stripePaymentId, err })
       return apiError(ErrorCodes.INTERNAL_ERROR, 'refund_claim_failed')
@@ -229,34 +216,16 @@ export const POST = withApiMiddleware(
         err,
       })
       try {
-        await prisma.$transaction(async (tx) => {
-          await tx.bonusCreditPurchase.update({
-            where: { id: purchase.id },
-            data: { remaining: expectedRemaining, expired: false, expiresAt: purchase.expiresAt },
-          })
-          if (reclaimed > 0) {
-            await tx.$executeRaw`
-              UPDATE "UserCredits"
-              SET "bonusCredits" = "bonusCredits" + ${reclaimed}
-              WHERE "userId" = ${purchase.userId}
-            `
-            await tx.creditTransaction.create({
-              data: {
-                userId: purchase.userId,
-                type: 'GRANT',
-                pool: 'BONUS',
-                amount: reclaimed,
-                reason: 'admin_refund_rollback',
-                sourceRef: stripePaymentId,
-                metadata: {
-                  purchaseId: purchase.id,
-                  stripePaymentId,
-                  restored: reclaimed,
-                  adminUserId,
-                },
-              },
-            })
-          }
+        await rollbackBonusPurchaseRefundClaim({
+          purchaseId: purchase.id,
+          ownerUserId: purchase.userId,
+          reclaimed,
+          restoreRemaining: expectedRemaining,
+          restoreExpiresAt: purchase.expiresAt,
+          reason: 'admin_refund_rollback',
+          initiatedBy: 'admin',
+          sourceRef: stripePaymentId,
+          actorUserId: adminUserId,
         })
       } catch (rollbackErr) {
         logger.error('[admin/refund-credit-pack] CRITICAL: claim rollback failed', {
