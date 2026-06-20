@@ -19,7 +19,7 @@ import { createHash } from 'crypto'
 import { NextRequest } from 'next/server'
 import {
   withApiMiddleware,
-  createAuthenticatedGuard,
+  createPublicStreamGuard,
   apiSuccess,
   apiError,
   ErrorCodes,
@@ -52,10 +52,27 @@ function secondsUntilKstMidnight(now: Date = new Date()): number {
 // 캐시 스키마/프롬프트가 바뀌면 이 버전을 올린다 — 당일 자정 전에도 오래된
 // 캐시(예: 짧은 본문)를 우회해 새 결과가 즉시 나오게 한다.
 const DAILY_CACHE_VERSION = 'v3'
-const dailyKey = (userId: string, date: string) =>
-  `tarot:daily:${DAILY_CACHE_VERSION}:${userId}:${date}`
-const dailyLockKey = (userId: string, date: string) =>
-  `tarot:daily:lock:${DAILY_CACHE_VERSION}:${userId}:${date}`
+const dailyKey = (id: string, date: string) => `tarot:daily:${DAILY_CACHE_VERSION}:${id}:${date}`
+const dailyLockKey = (id: string, date: string) =>
+  `tarot:daily:lock:${DAILY_CACHE_VERSION}:${id}:${date}`
+
+// 로그인 없이도 "오늘의 카드" 1장은 맛보게 한다(바이럴 유입 — 받은 사람이
+// 가입 없이 결과부터 본다). 게스트 식별:
+//  1) 로그인 → u:{userId}
+//  2) 클라가 보낸 안정적 게스트 id(localStorage) → g:{id}
+//  3) 둘 다 없으면 IP+UA 지문 → 쿠키 없이도 같은 기기는 같은 카드(당일 캐시·
+//     결정적 추첨·1일 1장이 흔들리지 않게). 비용은 라우트 IP 레이트리밋이 가둠.
+function clientFingerprint(req: NextRequest): string {
+  const ip = (req.headers.get('x-forwarded-for') || '').split(',')[0].trim() || 'noip'
+  const ua = req.headers.get('user-agent') || 'noua'
+  return createHash('sha256').update(`${ip}|${ua}`).digest('base64url').slice(0, 16)
+}
+function resolveDailyId(req: NextRequest, userId: string | null | undefined): string {
+  if (userId) return `u:${userId}`
+  const raw = (req.headers.get('x-dp-guest') || '').trim()
+  if (/^[A-Za-z0-9_-]{8,64}$/.test(raw)) return `g:${raw}`
+  return `g:${clientFingerprint(req)}`
+}
 
 interface DailyReading {
   date: string
@@ -142,20 +159,21 @@ function buildDailyTeaserPrompt(
 }
 
 export const GET = withApiMiddleware(
-  async (_req: NextRequest, context: ApiContext) => {
+  async (req: NextRequest, context: ApiContext) => {
+    const id = resolveDailyId(req, context.userId)
     const date = todayKeyKST()
-    const cached = await cacheGet<DailyReading>(dailyKey(context.userId!, date))
+    const cached = await cacheGet<DailyReading>(dailyKey(id, date))
     if (cached) return apiSuccess({ ready: true, reading: cached })
     return apiSuccess({ ready: false })
   },
-  createAuthenticatedGuard({ route: '/api/tarot/daily', limit: 30, windowSeconds: 60 })
+  createPublicStreamGuard({ route: '/api/tarot/daily', limit: 30, windowSeconds: 60 })
 )
 
 export const POST = withApiMiddleware(
-  async (_req: NextRequest, context: ApiContext) => {
-    const userId = context.userId!
+  async (req: NextRequest, context: ApiContext) => {
+    const id = resolveDailyId(req, context.userId)
     const date = todayKeyKST()
-    const key = dailyKey(userId, date)
+    const key = dailyKey(id, date)
 
     // 이미 오늘 뽑았으면 그대로 (무료·동일 카드).
     const existing = await cacheGet<DailyReading>(key)
@@ -167,7 +185,7 @@ export const POST = withApiMiddleware(
 
     // in-flight 락 — 같은 사용자의 동시 POST 가 LLM 을 두 번 부르지 않게 베스트
     // 에포트로 막는다(원자적이진 않지만 결과 캐시가 곧 채워져 수렴).
-    const lockKey = dailyLockKey(userId, date)
+    const lockKey = dailyLockKey(id, date)
     if (await cacheGet<string>(lockKey)) {
       return apiError(ErrorCodes.RATE_LIMITED, 'daily_in_progress')
     }
@@ -175,7 +193,7 @@ export const POST = withApiMiddleware(
 
     try {
       const locale = context.locale === 'en' ? 'en' : 'ko'
-      const { card, isReversed } = drawDaily(userId, date)
+      const { card, isReversed } = drawDaily(id, date)
       const meaning = isReversed ? card.reversed : card.upright
       const keywords =
         locale === 'ko' ? meaning.keywordsKo || meaning.keywords || [] : meaning.keywords || []
@@ -230,5 +248,5 @@ export const POST = withApiMiddleware(
       await cacheSet(lockKey, '', 1).catch(() => {})
     }
   },
-  createAuthenticatedGuard({ route: '/api/tarot/daily', limit: 20, windowSeconds: 60 })
+  createPublicStreamGuard({ route: '/api/tarot/daily', limit: 20, windowSeconds: 60 })
 )
