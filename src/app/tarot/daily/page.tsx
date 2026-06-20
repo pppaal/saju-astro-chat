@@ -28,6 +28,30 @@ const GOLD = '#e8cc8a'
 const GOLD_SOFT = '#d4b572'
 const MUTED = '#9aa3b8'
 
+// 로그인 없이도 "오늘의 카드"가 같은 기기에선 같은 1장으로 고정되게, 안정적
+// 게스트 id 를 localStorage 에 두고 요청 헤더로 보낸다(서버 캐시·결정적 추첨 키).
+function getGuestId(): string {
+  if (typeof window === 'undefined') return ''
+  try {
+    let g = localStorage.getItem('dp_guest')
+    if (!g || !/^[A-Za-z0-9_-]{8,64}$/.test(g)) {
+      const rnd = (
+        globalThis.crypto?.randomUUID?.() ?? Math.random().toString(36).slice(2)
+      ).replace(/-/g, '')
+      g = rnd.slice(0, 24)
+      localStorage.setItem('dp_guest', g)
+    }
+    return g
+  } catch {
+    return ''
+  }
+}
+
+function dailyHeaders(): Record<string, string> {
+  const g = getGuestId()
+  return g ? { 'x-dp-guest': g } : {}
+}
+
 export default function DailyTarotPage() {
   const { locale } = useI18n()
   const isKo = locale === 'ko'
@@ -41,7 +65,7 @@ export default function DailyTarotPage() {
     let cancelled = false
     void (async () => {
       try {
-        const res = await apiFetch('/api/tarot/daily', { method: 'GET' })
+        const res = await apiFetch('/api/tarot/daily', { method: 'GET', headers: dailyHeaders() })
         const json = (await res.json().catch(() => null)) as {
           data?: { ready?: boolean; reading?: DailyReading }
         } | null
@@ -62,15 +86,11 @@ export default function DailyTarotPage() {
     setError(null)
     setLoading(true)
     try {
-      const res = await apiFetch('/api/tarot/daily', { method: 'POST' })
+      const res = await apiFetch('/api/tarot/daily', { method: 'POST', headers: dailyHeaders() })
       const json = (await res.json().catch(() => null)) as {
         data?: { reading?: DailyReading }
       } | null
       const r = json?.data?.reading
-      if (res.status === 401) {
-        setError(isKo ? '로그인 후 이용할 수 있어요.' : 'Please sign in to use this.')
-        return
-      }
       if (!res.ok || !r) {
         setError(
           isKo
