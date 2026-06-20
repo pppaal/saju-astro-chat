@@ -135,7 +135,18 @@ export default async function SharedReadingPage({ params }: PageProps) {
                   style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
                 />
               </div>
-              <span style={{ fontSize: 11, color: MUTED, display: 'block', marginTop: 6 }}>
+              <span
+                style={{
+                  fontSize: 11,
+                  color: MUTED,
+                  display: 'block',
+                  marginTop: 6,
+                  maxWidth: 104,
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                }}
+              >
                 {c.name}
                 {c.isReversed ? (isKo ? ' (역)' : ' (R)') : ''}
               </span>
@@ -177,10 +188,11 @@ export default async function SharedReadingPage({ params }: PageProps) {
           </p>
         ) : null}
 
-        {/* CTA — 나도 뽑기 */}
+        {/* CTA — 나도 뽑기. 공유 링크로 온 사람은 가입·폼 없이 "오늘의 카드"를
+            바로 무료로 받게 /tarot/daily 로 보낸다(즉시 가치 → 전환율↑). */}
         <div style={{ marginTop: 44 }}>
           <Link
-            href="/tarot"
+            href="/tarot/daily"
             style={{
               display: 'inline-block',
               padding: '15px 30px',
@@ -192,12 +204,12 @@ export default async function SharedReadingPage({ params }: PageProps) {
               fontSize: 16,
             }}
           >
-            {isKo ? '나도 카드 뽑아보기 →' : 'Pull your own cards →'}
+            {isKo ? '나도 카드 뽑아보기 →' : 'Pull your own card →'}
           </Link>
           <p style={{ marginTop: 14, fontSize: 12, color: MUTED }}>
             {isKo
-              ? '질문 하나면 나만의 타로 해석을 받아볼 수 있어요.'
-              : 'Ask one question and get your own tarot reading.'}
+              ? '로그인 없이 오늘의 카드 한 장을 무료로 받아보세요.'
+              : 'Get your free card of the day — no sign-up needed.'}
           </p>
         </div>
       </div>
