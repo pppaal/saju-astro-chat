@@ -281,3 +281,31 @@ describe('궁합 follow-up UI — chip render + sendMessage refactor (#306, 공�
     expect(hook).toMatch(/PENDING_TURN_TTL_MS/)
   })
 })
+
+describe('궁합 truncated 턴 — 중복 append 방지', () => {
+  // 버그: truncated(모바일 끊김) 턴에서 completeTurn 이 부분 답을 append 하고,
+  // 복원 성공 시 applyRecovered 가 완성본을 또 append → 같은 턴이 두 번(user 줄
+  // 중복 + 부분/완성 두 답) 저장. chat-history append 는 dedupe 가 없다. fix:
+  // completeTurn 의 저장을 !wasTruncated 로 게이트해 applyRecovered 를 단독
+  // 저장자로 두되, session id 동기화는 항상 하고 meta 는 복원 저장이 챙긴다.
+  const compatAdapter = read('app/compatibility/counselor/useCompatCounselorChat.ts')
+
+  it('completeTurn 의 chat-history 저장이 !wasTruncated 로 게이트된다', () => {
+    expect(compatAdapter).toMatch(/if \(!wasTruncated\) \{/)
+  })
+
+  it('truncated 여도 session id 동기화는 게이트 밖(항상 수행)', () => {
+    // setChatSessionId 동기화가 if (!wasTruncated) 블록보다 먼저 와야 한다 —
+    // applyRecovered 가 같은 존재 보장 행에 append 하도록.
+    const syncIdx = compatAdapter.indexOf('if (sid && sid !== chatSessionId) setChatSessionId(sid)')
+    const gateIdx = compatAdapter.indexOf('if (!wasTruncated) {')
+    expect(syncIdx).toBeGreaterThan(0)
+    expect(gateIdx).toBeGreaterThan(syncIdx)
+  })
+
+  it('applyRecovered 가 meta(커플 차트)를 챙긴다 — 첫 턴 끊겨도 컨텍스트 보존', () => {
+    // 복원 저장 블록 안에 includeMeta 분기가 있어야 한다.
+    expect(compatAdapter).toMatch(/recover chat-history save failed/)
+    expect(compatAdapter).toMatch(/body\.meta = \{ persons, person1Saju, person2Saju/)
+  })
+})
