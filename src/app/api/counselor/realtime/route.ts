@@ -31,7 +31,7 @@ const idemStore = createIdempotencyStore('counselor-realtime')
 
 import { refundCreditsOnce } from '@/lib/credits/refundOnce'
 import { cacheSet } from '@/lib/cache/redis-cache'
-import { getUserDisplayName } from '@/lib/user/displayName'
+import { getUserDisplayName, sanitizeDisplayName } from '@/lib/user/displayName'
 import { currentManAge } from '@/lib/datetime/currentAge'
 import { resolveCounselorLang } from '@/lib/destiny/counselorRequest'
 
@@ -47,6 +47,9 @@ interface ChatMessage {
 interface RealtimeBody {
   messages: ChatMessage[]
   lang?: 'ko' | 'en'
+  /** 상담 대상의 표시 이름. '다른 사람으로 보기' 시 그 사람 이름이 들어온다.
+   *  비어 있으면(구버전 클라/미지정) 로그인 사용자 이름으로 폴백한다. */
+  name?: string
   birthDate?: string
   birthTime?: string
   /** true when the user did not know their birth hour. */
@@ -339,7 +342,12 @@ export async function POST(req: NextRequest) {
     // 메타라 cache prefix 에 들어가면 prompt-cache 무효화 (이름 변경 / 생일
     // 통과 시). 매 턴 userPrompt prefix 로 붙여 chart 데이터만으로 prefix
     // 안정.
-    const userName = await getUserDisplayName(userId)
+    // 상담 대상의 이름. '다른 사람으로 보기'면 클라가 그 사람 이름을 body.name
+    // 으로 보낸다 — 차트(birthDate 등)는 이미 그 사람 기준으로 계산되므로 호명도
+    // 같은 사람으로 맞춰야 한다. body.name 은 사용자 입력이라 sanitizeDisplayName
+    // 으로 개행/제어문자/길이를 정규화한 뒤 프롬프트에 박는다. 비어 있으면(구버전
+    // 클라 / 미지정) 로그인 사용자의 DB 이름으로 폴백.
+    const userName = sanitizeDisplayName(body.name) ?? (await getUserDisplayName(userId))
     // 만나이 앵커 — 출생 시간대 기준(currentManAge)으로 도출해 profection 나이와
     // 동일 기준을 쓴다. 예전 computeAgeYears 는 서버 로컬 시계로 계산해, 생일
     // 경계에서 이 앵커와 대운/프로펙션 나이가 1년 어긋날 수 있었다.
