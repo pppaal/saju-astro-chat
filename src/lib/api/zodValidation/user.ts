@@ -102,6 +102,16 @@ export const counselorSessionSaveRequestSchema = z.object({
   sessionId: z.string().min(1).max(100).trim(),
   messages: z.array(chatMessageSchema).min(1).max(200),
   locale: localeSchema.optional(),
+  // 이 세션이 "누구 사주"인지. 세션 생성 시 meta 로 저장해 사이드바 부제 +
+  // (후속) 재개 시 대상자 복원에 쓴다. 없으면(구버전 클라) 저장 안 함.
+  subject: z
+    .object({
+      name: z.string().max(80).optional(),
+      birthDate: z.string().max(40).optional(),
+      birthTime: z.string().max(20).optional(),
+      gender: z.string().max(20).optional(),
+    })
+    .optional(),
 })
 
 export type CounselorSessionSaveRequestValidated = z.infer<typeof counselorSessionSaveRequestSchema>

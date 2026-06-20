@@ -296,7 +296,6 @@ export default function CounselorPage() {
         onNewChat={handleChatReset}
         lightTheme
         enableGrouping
-        fallbackName={name}
         activeSessionId={activeSession.sessionId}
         activeSessionTitle={activeSession.title}
         onActionError={({ kind, status }) => showActionFailureToast(kind, status)}
