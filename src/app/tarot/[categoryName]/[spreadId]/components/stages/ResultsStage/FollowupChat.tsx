@@ -320,6 +320,9 @@ export function FollowupChat({
           'x-idempotency-key': idempotencyKey,
         },
         body: JSON.stringify({
+          // 서버가 같은 행에 followup turn 을 직접 append 하도록 readingId 전달.
+          // 클라 PATCH(replace)가 유실돼도 유료 후속 대화가 기록에 남는 안전망.
+          ...(readingId ? { readingId } : {}),
           spreadTitle: readingResult.spread.title,
           originalQuestion: userTopic,
           overallMessage: interpretation?.overall_message,
@@ -509,10 +512,7 @@ export function FollowupChat({
     >
       <div className="flex items-center gap-2">
         <MessageCircle className="w-4 h-4" style={{ color: pal.accent }} />
-        <h2
-          className="text-sm font-medium tracking-wider uppercase"
-          style={{ color: pal.accent }}
-        >
+        <h2 className="text-sm font-medium tracking-wider uppercase" style={{ color: pal.accent }}>
           {isKo ? '이 리딩에 대해 더 묻기' : 'Ask about this reading'}
         </h2>
       </div>

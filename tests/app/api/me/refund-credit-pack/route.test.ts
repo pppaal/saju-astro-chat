@@ -31,10 +31,10 @@ vi.mock('@/lib/security/csrf', () => ({ csrfGuard: vi.fn(() => null) }))
 vi.mock('@/lib/db/prisma', () => ({
   prisma: {
     bonusCreditPurchase: { findFirst: vi.fn() },
+    $transaction: vi.fn(),
   },
 }))
 
-vi.mock('@/lib/credits/creditService', () => ({ revokeBonusCreditPurchase: vi.fn() }))
 vi.mock('@/lib/stripe/client', () => ({ getStripeOrNull: vi.fn() }))
 vi.mock('@/lib/logger', () => ({
   logger: { warn: vi.fn(), error: vi.fn(), info: vi.fn(), debug: vi.fn() },
@@ -43,8 +43,31 @@ vi.mock('@/lib/logger', () => ({
 import { POST } from '@/app/api/me/refund-credit-pack/route'
 import { getServerSession } from '@/lib/auth/session'
 import { prisma } from '@/lib/db/prisma'
-import { revokeBonusCreditPurchase } from '@/lib/credits/creditService'
 import { getStripeOrNull } from '@/lib/stripe/client'
+
+// 원자적 claim+reclaim / 롤백 트랜잭션 mock. route 는 prisma.$transaction(cb)
+// 를 interactive 형태로 호출하므로 cb(tx) 를 실행해 준다. updateMany 의 count
+// 가 claim 성공/실패(TOCTOU)를 가른다.
+let txMock: {
+  bonusCreditPurchase: { updateMany: ReturnType<typeof vi.fn>; update: ReturnType<typeof vi.fn> }
+  $executeRaw: ReturnType<typeof vi.fn>
+  creditTransaction: { create: ReturnType<typeof vi.fn> }
+}
+
+function setupTx(claimCount = 1) {
+  txMock = {
+    bonusCreditPurchase: {
+      updateMany: vi.fn().mockResolvedValue({ count: claimCount }),
+      update: vi.fn().mockResolvedValue({}),
+    },
+    $executeRaw: vi.fn().mockResolvedValue(1),
+    creditTransaction: { create: vi.fn().mockResolvedValue({}) },
+  }
+  vi.mocked(prisma.$transaction).mockImplementation(
+    // @ts-expect-error — interactive-transaction callback form
+    async (cb: (tx: typeof txMock) => unknown) => cb(txMock)
+  )
+}
 
 const userSession = { user: { id: 'user-1', email: 'user@example.com' }, expires: '2099-12-31' }
 
@@ -88,10 +111,14 @@ function setupHappyPath(overrides: PurchaseOverrides = {}) {
     amount: 100,
     remaining: 100 - used,
     expired,
+    expiresAt: new Date(Date.now() + 80 * 24 * 60 * 60 * 1000),
     source,
     createdAt: new Date(Date.now() - ageDays * 24 * 60 * 60 * 1000),
     stripePaymentId,
   } as never)
+
+  // 기본: claim 성공(count 1). TOCTOU 테스트에서 setupTx(0) 로 덮어쓴다.
+  setupTx(1)
 
   // 원금 10,000 / 수수료 350 (balance_transaction 경로)
   stripeMock = {
@@ -104,12 +131,6 @@ function setupHappyPath(overrides: PurchaseOverrides = {}) {
     refunds: { create: vi.fn().mockResolvedValue({ id: 're_1' }) },
   }
   vi.mocked(getStripeOrNull).mockReturnValue(stripeMock as never)
-
-  vi.mocked(revokeBonusCreditPurchase).mockResolvedValue({
-    revoked: true,
-    reclaimed: 100,
-    alreadyUsed: 0,
-  })
 }
 
 describe('POST /api/me/refund-credit-pack', () => {
@@ -192,7 +213,8 @@ describe('POST /api/me/refund-credit-pack', () => {
       setupHappyPath({ used: 30 })
       await POST(makeRequest({ purchaseId: 'purchase-1' }))
       expect(stripeMock.refunds.create).not.toHaveBeenCalled()
-      expect(revokeBonusCreditPurchase).not.toHaveBeenCalled()
+      // claim 트랜잭션에도 진입하지 않는다(stale read 단계에서 컷).
+      expect(prisma.$transaction).not.toHaveBeenCalled()
     })
   })
 
@@ -211,7 +233,28 @@ describe('POST /api/me/refund-credit-pack', () => {
         stripeRefundId: 're_1',
         creditsRevoked: 100,
       })
-      expect(revokeBonusCreditPurchase).toHaveBeenCalledWith('pi_1')
+      // 회수는 Stripe 환불 *전에* 원자적 claim 으로 일어난다. claim 의 조건부
+      // updateMany 가 "아직 완전 미사용"(remaining===amount, !expired)을 가드.
+      expect(txMock.bonusCreditPurchase.updateMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({ id: 'purchase-1', expired: false, remaining: 100 }),
+          data: expect.objectContaining({ remaining: 0, expired: true }),
+        })
+      )
+      // claim 1회만(롤백 없음).
+      expect(prisma.$transaction).toHaveBeenCalledTimes(1)
+    })
+
+    it('TOCTOU 방어 — claim 직전 일부 사용되면(count 0) 환불 거부, Stripe 미호출', async () => {
+      setupHappyPath()
+      // stale read 는 미사용처럼 보이지만 원자적 claim 시점엔 누가 써서 count 0.
+      setupTx(0)
+      const res = await POST(makeRequest({ purchaseId: 'purchase-1' }))
+
+      expect(res.status).toBe(400)
+      expect((await res.json()).error.message).toBe('partially_used_or_already_refunded')
+      // 현금 한 푼도 움직이지 않는다.
+      expect(stripeMock.refunds.create).not.toHaveBeenCalled()
     })
 
     it('더블클릭/재시도 방어 — Stripe 멱등키가 purchaseId 에 고정된다', async () => {
@@ -266,7 +309,7 @@ describe('POST /api/me/refund-credit-pack', () => {
       expect(stripeMock.refunds.create).not.toHaveBeenCalled()
     })
 
-    it('Stripe 환불 실패는 500 — 크레딧은 회수되지 않는다', async () => {
+    it('Stripe 환불 실패는 500 — claim 을 롤백해 크레딧을 복원한다', async () => {
       setupHappyPath()
       stripeMock.refunds.create.mockRejectedValue(new Error('card_declined'))
 
@@ -274,8 +317,15 @@ describe('POST /api/me/refund-credit-pack', () => {
 
       expect(res.status).toBe(500)
       expect((await res.json()).error.message).toBe('stripe_refund_failed')
-      // 환불이 안 됐는데 크레딧만 뺏기는 최악 시나리오 방지.
-      expect(revokeBonusCreditPurchase).not.toHaveBeenCalled()
+      // 회수는 환불 전에 일어나므로, 환불 실패 시 "크레딧만 뺏기는" 상태가 되지
+      // 않도록 롤백한다: claim 트랜잭션 + 롤백 트랜잭션 = 2회, pack 복원 update 호출.
+      expect(prisma.$transaction).toHaveBeenCalledTimes(2)
+      expect(txMock.bonusCreditPurchase.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: 'purchase-1' },
+          data: expect.objectContaining({ remaining: 100, expired: false }),
+        })
+      )
     })
 
     it('환불액이 0 이하(수수료 ≥ 원금)면 400 refund_amount_zero', async () => {

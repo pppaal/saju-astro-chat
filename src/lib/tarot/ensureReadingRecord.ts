@@ -94,3 +94,49 @@ export async function ensureTarotReadingRecord(
     return 'skipped'
   }
 }
+
+export interface TarotFollowupTurn {
+  role: 'user' | 'assistant'
+  content: string
+}
+
+/**
+ * 유료 followup Q&A 의 차감-기록 안전망. /api/tarot/followup 은 1크레딧을
+ * 차감하고 답변을 응답으로 돌려주지만, 그 Q&A 의 기록(TarotReading.followupTurns)
+ * 은 클라의 best-effort PATCH 에만 의존했다 — PATCH 가 유실되면 과금된 후속
+ * 대화가 히스토리에서 사라진다. 이 헬퍼는 서버가 같은 readingId 행에 새 turn 을
+ * 직접 append 한다.
+ *
+ * 중복 안 됨: 클라 PATCH(/api/tarot/save/[id])는 followupTurns 를 *replace* 한다.
+ * 클라가 정상 저장하면 같은 내용으로 덮어써 turn 이 한 번만 남고, 유실되면 이
+ * append 가 남는다. 호출 측은 첫 과금(claimed)일 때만 호출해야 한다 — 멱등 replay
+ * 는 이미 append 됐으므로.
+ *
+ * 소유권 가드: readingId 가 호출자 소유가 아니면 아무것도 하지 않는다. 절대
+ * throw 하지 않는다(답변 응답 경로를 깨면 안 됨).
+ */
+export async function appendTarotFollowupTurns(
+  readingId: string,
+  userId: string,
+  newTurns: TarotFollowupTurn[]
+): Promise<void> {
+  if (!readingId || !userId || newTurns.length === 0) return
+  if (readingId.length > MAX_READING_ID_LEN) return
+  try {
+    const reading = await prisma.tarotReading.findUnique({
+      where: { id: readingId },
+      select: { userId: true, followupTurns: true },
+    })
+    if (!reading || reading.userId !== userId) return
+    const existing = Array.isArray(reading.followupTurns)
+      ? (reading.followupTurns as unknown[])
+      : []
+    await prisma.tarotReading.update({
+      where: { id: readingId },
+      data: { followupTurns: [...existing, ...newTurns] as Prisma.InputJsonValue },
+    })
+  } catch (err) {
+    // P2022(followupTurns 컬럼 prod 미적용) / 일시 DB 오류 — 삼킨다.
+    logger.warn('[appendTarotFollowupTurns] failed', { err, readingId })
+  }
+}
