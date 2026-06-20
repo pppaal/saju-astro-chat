@@ -9,15 +9,15 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 
 const mockFindUnique = vi.fn()
 const mockCreate = vi.fn()
-const mockUpdate = vi.fn()
+const mockExecuteRaw = vi.fn()
 
 vi.mock('@/lib/db/prisma', () => ({
   prisma: {
     tarotReading: {
       findUnique: (...args: unknown[]) => mockFindUnique(...args),
       create: (...args: unknown[]) => mockCreate(...args),
-      update: (...args: unknown[]) => mockUpdate(...args),
     },
+    $executeRaw: (...args: unknown[]) => mockExecuteRaw(...args),
   },
 }))
 
@@ -100,54 +100,39 @@ describe('appendTarotFollowupTurns', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
-    mockUpdate.mockResolvedValue({})
+    mockExecuteRaw.mockResolvedValue(1)
   })
 
-  it('기존 followupTurns 뒤에 새 turn 을 append 한다 (유료 후속 기록 보존)', async () => {
-    mockFindUnique.mockResolvedValue({
-      userId: 'user-1',
-      followupTurns: [{ role: 'user', content: '이전' }],
-    })
-
+  it('원자적 jsonb concat 으로 새 turn 을 이어 붙인다 (lost-update 경쟁 제거)', async () => {
     await appendTarotFollowupTurns('tr_abcdef0123456789abcdef01', 'user-1', turns)
 
-    expect(mockUpdate).toHaveBeenCalledWith({
-      where: { id: 'tr_abcdef0123456789abcdef01' },
-      data: { followupTurns: [{ role: 'user', content: '이전' }, ...turns] },
-    })
+    // $executeRaw 는 tagged template — (strings, ...values) 로 호출된다. 단일
+    // UPDATE(read-modify-write 없음)이고 값 순서는 turnsJson, readingId, userId.
+    expect(mockExecuteRaw).toHaveBeenCalledTimes(1)
+    const values = mockExecuteRaw.mock.calls[0].slice(1)
+    expect(values).toEqual([JSON.stringify(turns), 'tr_abcdef0123456789abcdef01', 'user-1'])
   })
 
-  it('followupTurns 가 비어 있으면(null) 새 turn 만으로 시작한다', async () => {
-    mockFindUnique.mockResolvedValue({ userId: 'user-1', followupTurns: null })
+  it('소유권은 WHERE "userId" 로 강제된다 (쿼리 파라미터에 userId 포함)', async () => {
     await appendTarotFollowupTurns('tr_x', 'user-1', turns)
-    expect(mockUpdate).toHaveBeenCalledWith({
-      where: { id: 'tr_x' },
-      data: { followupTurns: turns },
-    })
+    const values = mockExecuteRaw.mock.calls[0].slice(1)
+    expect(values).toContain('user-1')
   })
 
-  it('남의 리딩이면 아무것도 안 한다 (소유권 가드)', async () => {
-    mockFindUnique.mockResolvedValue({ userId: 'someone-else', followupTurns: [] })
-    await appendTarotFollowupTurns('tr_x', 'user-1', turns)
-    expect(mockUpdate).not.toHaveBeenCalled()
-  })
-
-  it('리딩이 없으면(아직 저장 전) 아무것도 안 한다', async () => {
-    mockFindUnique.mockResolvedValue(null)
-    await appendTarotFollowupTurns('tr_x', 'user-1', turns)
-    expect(mockUpdate).not.toHaveBeenCalled()
-  })
-
-  it('빈 turn 배열 / readingId·userId 없음은 조회조차 안 한다', async () => {
+  it('빈 turn 배열 / readingId·userId 없음은 쿼리조차 안 친다', async () => {
     await appendTarotFollowupTurns('tr_x', 'user-1', [])
     await appendTarotFollowupTurns('', 'user-1', turns)
     await appendTarotFollowupTurns('tr_x', '', turns)
-    expect(mockFindUnique).not.toHaveBeenCalled()
+    expect(mockExecuteRaw).not.toHaveBeenCalled()
+  })
+
+  it('비정상적으로 긴 readingId 는 거부한다', async () => {
+    await appendTarotFollowupTurns('x'.repeat(200), 'user-1', turns)
+    expect(mockExecuteRaw).not.toHaveBeenCalled()
   })
 
   it('DB 오류(컬럼 누락 등)는 삼킨다 — 답변 응답 경로를 깨지 않는다', async () => {
-    mockFindUnique.mockResolvedValue({ userId: 'user-1', followupTurns: [] })
-    mockUpdate.mockRejectedValue({ code: 'P2022' })
+    mockExecuteRaw.mockRejectedValue({ code: 'P2022' })
     await expect(appendTarotFollowupTurns('tr_x', 'user-1', turns)).resolves.toBeUndefined()
   })
 })

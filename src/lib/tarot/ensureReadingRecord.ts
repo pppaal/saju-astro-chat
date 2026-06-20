@@ -123,20 +123,20 @@ export async function appendTarotFollowupTurns(
   if (!readingId || !userId || newTurns.length === 0) return
   if (readingId.length > MAX_READING_ID_LEN) return
   try {
-    const reading = await prisma.tarotReading.findUnique({
-      where: { id: readingId },
-      select: { userId: true, followupTurns: true },
-    })
-    if (!reading || reading.userId !== userId) return
-    const existing = Array.isArray(reading.followupTurns)
-      ? (reading.followupTurns as unknown[])
-      : []
-    await prisma.tarotReading.update({
-      where: { id: readingId },
-      data: { followupTurns: [...existing, ...newTurns] as Prisma.InputJsonValue },
-    })
+    // DB 측 원자적 jsonb concat — read-modify-write 를 쓰면 같은 리딩에 서로
+    // 다른 followup 두 개가 동시에 들어올 때(다른 탭/기기) 둘 다 같은 기존
+    // 배열을 읽고 덮어써 한쪽의 유료 turn 이 사라진다(lost update). 단일 UPDATE
+    // 로 `기존(||'[]') || 새 turn` 을 이어 붙이면 그 경쟁창이 사라진다. 소유권은
+    // WHERE "userId" 로 강제(남의 리딩이면 0행 갱신=no-op). updateMany 가 아닌
+    // raw 라 count 로 적용 여부만 확인.
+    const turnsJson = JSON.stringify(newTurns)
+    await prisma.$executeRaw`
+      UPDATE "TarotReading"
+      SET "followupTurns" = COALESCE("followupTurns", '[]'::jsonb) || ${turnsJson}::jsonb
+      WHERE "id" = ${readingId} AND "userId" = ${userId}
+    `
   } catch (err) {
-    // P2022(followupTurns 컬럼 prod 미적용) / 일시 DB 오류 — 삼킨다.
+    // P2022/42703(followupTurns 컬럼 prod 미적용) / 일시 DB 오류 — 삼킨다.
     logger.warn('[appendTarotFollowupTurns] failed', { err, readingId })
   }
 }

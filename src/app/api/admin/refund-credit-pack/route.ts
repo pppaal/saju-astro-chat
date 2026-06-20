@@ -11,7 +11,6 @@ import {
 import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/logger'
 import { logAdminAction } from '@/lib/auth/adminAudit'
-import { revokeBonusCreditPurchase } from '@/lib/credits/creditService'
 import { getStripeOrNull } from '@/lib/stripe/client'
 
 export const dynamic = 'force-dynamic'
@@ -64,6 +63,7 @@ export const POST = withApiMiddleware(
         amount: true,
         remaining: true,
         expired: true,
+        expiresAt: true,
         createdAt: true,
       },
     })
@@ -146,7 +146,63 @@ export const POST = withApiMiddleware(
       return apiError(ErrorCodes.BAD_REQUEST, 'refund_amount_zero')
     }
 
-    // 4) Stripe 부분 환불 (수수료만큼 차감)
+    // 4) 원자적 claim + 회수 — Stripe 환불 *전에*. me/refund-credit-pack 과
+    // 동일한 TOCTOU 방어: 직전엔 자격검사(L102)가 stale read 였고 Stripe 왕복
+    // (수초) 동안 사용자가 크레딧을 쓰면 L179 revoke 가 줄어든 remaining 만 회수해
+    // 현금 전액 환불 + 크레딧 일부 잔존 누수가 났다. 여기서 조건부 updateMany 로
+    // "기대한 remaining 그대로"일 때만 원자적으로 pack 을 만료시켜 이후 소비를
+    // 막고 같은 트랜잭션에서 회수한다. non-force 는 완전 미사용(remaining===amount)
+    // 만, force 는 현재 remaining 을 그대로 회수 대상으로(부분 사용 pack 도 환불).
+    // count!==1 이면 그 사이 소비/이미 환불 → 현금 미이동 거부.
+    const amount = purchase.amount
+    const expectedRemaining = force ? purchase.remaining : amount
+    const reclaimed = expectedRemaining
+    const alreadyUsed = amount - expectedRemaining
+    let claimed = false
+    try {
+      claimed = await prisma.$transaction(async (tx) => {
+        const lock = await tx.bonusCreditPurchase.updateMany({
+          where: { id: purchase.id, expired: false, remaining: expectedRemaining },
+          data: { remaining: 0, expired: true, expiresAt: new Date() },
+        })
+        if (lock.count !== 1) return false
+        if (reclaimed > 0) {
+          await tx.$executeRaw`
+            UPDATE "UserCredits"
+            SET "bonusCredits" = GREATEST(0, "bonusCredits" - ${reclaimed})
+            WHERE "userId" = ${purchase.userId}
+          `
+          await tx.creditTransaction.create({
+            data: {
+              userId: purchase.userId,
+              type: 'REVOKE',
+              pool: 'BONUS',
+              amount: -reclaimed,
+              reason: 'admin_refund',
+              sourceRef: stripePaymentId,
+              metadata: {
+                purchaseId: purchase.id,
+                stripePaymentId,
+                reclaimed,
+                alreadyUsed,
+                adminUserId,
+              },
+            },
+          })
+        }
+        return true
+      })
+    } catch (err) {
+      logger.error('[admin/refund-credit-pack] claim+reclaim failed', { stripePaymentId, err })
+      return apiError(ErrorCodes.INTERNAL_ERROR, 'refund_claim_failed')
+    }
+    if (!claimed) {
+      return apiError(ErrorCodes.BAD_REQUEST, 'partially_used_or_already_refunded')
+    }
+
+    // 5) Stripe 부분 환불. 회수를 이미 원자적으로 끝냈으므로 환불액-회수량이
+    // 항상 일치(누수 없음). 환불 실패 시 claim 을 롤백해 "크레딧만 뺏기는" 상태
+    // 방지(pack 복원 + 잔액 재지급).
     let stripeRefundId = ''
     try {
       const refund = await stripe.refunds.create(
@@ -168,15 +224,50 @@ export const POST = withApiMiddleware(
       )
       stripeRefundId = refund.id
     } catch (err) {
-      logger.error('[admin/refund-credit-pack] stripe refund failed', {
+      logger.error('[admin/refund-credit-pack] stripe refund failed — rolling back claim', {
         stripePaymentId,
         err,
       })
+      try {
+        await prisma.$transaction(async (tx) => {
+          await tx.bonusCreditPurchase.update({
+            where: { id: purchase.id },
+            data: { remaining: expectedRemaining, expired: false, expiresAt: purchase.expiresAt },
+          })
+          if (reclaimed > 0) {
+            await tx.$executeRaw`
+              UPDATE "UserCredits"
+              SET "bonusCredits" = "bonusCredits" + ${reclaimed}
+              WHERE "userId" = ${purchase.userId}
+            `
+            await tx.creditTransaction.create({
+              data: {
+                userId: purchase.userId,
+                type: 'GRANT',
+                pool: 'BONUS',
+                amount: reclaimed,
+                reason: 'admin_refund_rollback',
+                sourceRef: stripePaymentId,
+                metadata: {
+                  purchaseId: purchase.id,
+                  stripePaymentId,
+                  restored: reclaimed,
+                  adminUserId,
+                },
+              },
+            })
+          }
+        })
+      } catch (rollbackErr) {
+        logger.error('[admin/refund-credit-pack] CRITICAL: claim rollback failed', {
+          stripePaymentId,
+          purchaseUserId: purchase.userId,
+          reclaimed,
+          rollbackErr,
+        })
+      }
       return apiError(ErrorCodes.INTERNAL_ERROR, 'stripe_refund_failed')
     }
-
-    // 5) 크레딧 회수 (charge.refunded 웹훅도 같이 호출되지만 멱등이라 안전)
-    const revoke = await revokeBonusCreditPurchase(stripePaymentId)
 
     logger.info('[admin/refund-credit-pack] success', {
       stripePaymentId,
@@ -185,8 +276,8 @@ export const POST = withApiMiddleware(
       refundAmount,
       feeWithheld,
       feeSource,
-      creditsRevoked: revoke.reclaimed,
-      alreadyUsedCredits: revoke.alreadyUsed,
+      creditsRevoked: reclaimed,
+      alreadyUsedCredits: alreadyUsed,
     })
 
     // Persistent audit trail. Failures here are swallowed inside
@@ -203,8 +294,8 @@ export const POST = withApiMiddleware(
         feeWithheld,
         feeSource,
         stripeRefundId,
-        creditsRevoked: revoke.reclaimed,
-        alreadyUsedCredits: revoke.alreadyUsed,
+        creditsRevoked: reclaimed,
+        alreadyUsedCredits: alreadyUsed,
       },
       success: true,
       ipAddress: context.ip,
@@ -217,8 +308,8 @@ export const POST = withApiMiddleware(
       feeWithheld,
       originalAmount,
       stripeRefundId,
-      creditsRevoked: revoke.reclaimed,
-      alreadyUsedCredits: revoke.alreadyUsed,
+      creditsRevoked: reclaimed,
+      alreadyUsedCredits: alreadyUsed,
       feeSource,
     }
     return apiSuccess(result as unknown as Record<string, unknown>)
