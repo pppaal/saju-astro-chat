@@ -145,15 +145,17 @@ export const DELETE = withApiMiddleware(
     }
     const { sessionId } = deleteValidation.data
 
-    // Verify ownership and delete
-    const chatSession = await prisma.counselorChatSession.findFirst({
-      where: {
-        id: sessionId,
-        userId,
-      },
+    // 원자적 소유권 검사 + 삭제. 예전엔 findFirst 후 delete(by id) 였는데,
+    //  (1) find-then-delete TOCTOU 가 있었고
+    //  (2) 같은 행을 두 번 삭제(더블탭/이미 삭제)하면 delete 가 Prisma P2025 를
+    //      던져 미들웨어가 500 으로 바꿨다(사용자에겐 멀쩡히 삭제됐는데 에러).
+    // deleteMany 는 0건이어도 throw 하지 않고 count 만 돌려주므로 멱등하다.
+    // userId 를 where 에 같이 넣어 타인 세션은 count 0 → 404 로 떨어진다.
+    const { count } = await prisma.counselorChatSession.deleteMany({
+      where: { id: sessionId, userId },
     })
 
-    if (!chatSession) {
+    if (count === 0) {
       return createErrorResponse({
         code: ErrorCodes.NOT_FOUND,
         message: 'Session not found',
@@ -161,10 +163,6 @@ export const DELETE = withApiMiddleware(
         route: 'counselor/session/list',
       })
     }
-
-    await prisma.counselorChatSession.delete({
-      where: { id: sessionId },
-    })
 
     return NextResponse.json({ success: true })
   },

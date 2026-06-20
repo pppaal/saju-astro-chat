@@ -261,7 +261,10 @@ export default function CounselorSidebar({
           }
         )
         status = res.status
-        if (!res.ok) throw new Error(`HTTP ${res.status}`)
+        // 404 = 이 사용자에게 그 세션이 이미 없음(더블탭 / 직전 삭제 성공 /
+        // 다른 탭에서 삭제). 목표(목록에서 제거)는 이미 달성됐으니 성공처럼
+        // 처리해 불필요한 에러 토스트를 띄우지 않는다.
+        if (!res.ok && res.status !== 404) throw new Error(`HTTP ${res.status}`)
         setDeletedIds((prev) => {
           const next = new Set(prev)
           next.add(id)

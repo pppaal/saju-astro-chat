@@ -10,6 +10,7 @@ const mockFindMany = vi.fn()
 const mockFindFirst = vi.fn()
 const mockUpdate = vi.fn()
 const mockDelete = vi.fn()
+const mockDeleteMany = vi.fn()
 
 vi.mock('@/lib/db/prisma', () => ({
   prisma: {
@@ -18,18 +19,15 @@ vi.mock('@/lib/db/prisma', () => ({
       findFirst: (...args: unknown[]) => mockFindFirst(...args),
       update: (...args: unknown[]) => mockUpdate(...args),
       delete: (...args: unknown[]) => mockDelete(...args),
+      deleteMany: (...args: unknown[]) => mockDeleteMany(...args),
     },
   },
 }))
 
 vi.mock('@/lib/api/middleware', async () => {
   return {
-    withApiMiddleware: <T>(
-      handler: (
-        req: NextRequest,
-        ctx: { userId: string; locale: string }
-      ) => Promise<T>
-    ) =>
+    withApiMiddleware:
+      <T>(handler: (req: NextRequest, ctx: { userId: string; locale: string }) => Promise<T>) =>
       async (req: NextRequest): Promise<T> =>
         handler(req, { userId: 'user_test_1', locale: 'en' }),
     createAuthenticatedGuard: vi.fn(() => ({})),
@@ -37,17 +35,14 @@ vi.mock('@/lib/api/middleware', async () => {
   }
 })
 
-import {
-  GET,
-  DELETE,
-  PATCH,
-} from '@/app/api/counselor/session/list/route'
+import { GET, DELETE, PATCH } from '@/app/api/counselor/session/list/route'
 
 beforeEach(() => {
   mockFindMany.mockReset()
   mockFindFirst.mockReset()
   mockUpdate.mockReset()
   mockDelete.mockReset()
+  mockDeleteMany.mockReset()
 })
 
 function jsonRequest(method: string, url: string, body?: unknown) {
@@ -92,42 +87,31 @@ describe('counselor/session/list GET', () => {
 
 describe('counselor/session/list DELETE', () => {
   it('deletes a session owned by the user', async () => {
-    mockFindFirst.mockResolvedValue({ id: 'cm_target' })
-    mockDelete.mockResolvedValue({ id: 'cm_target' })
+    mockDeleteMany.mockResolvedValue({ count: 1 })
 
     const res = await DELETE(
-      jsonRequest(
-        'DELETE',
-        'http://localhost/api/counselor/session/list?sessionId=cm_target'
-      )
+      jsonRequest('DELETE', 'http://localhost/api/counselor/session/list?sessionId=cm_target')
     )
     expect(res.status).toBe(200)
-    expect(mockDelete).toHaveBeenCalledWith({ where: { id: 'cm_target' } })
+    expect(mockDeleteMany).toHaveBeenCalledWith({
+      where: { id: 'cm_target', userId: 'user_test_1' },
+    })
   })
 
   it('refuses to delete a session not owned by the user', async () => {
-    mockFindFirst.mockResolvedValue(null)
+    mockDeleteMany.mockResolvedValue({ count: 0 })
 
     const res = await DELETE(
-      jsonRequest(
-        'DELETE',
-        'http://localhost/api/counselor/session/list?sessionId=cm_other'
-      )
+      jsonRequest('DELETE', 'http://localhost/api/counselor/session/list?sessionId=cm_other')
     )
     expect(res.status).toBe(404)
-    expect(mockDelete).not.toHaveBeenCalled()
   })
 
   it('rejects missing sessionId param', async () => {
-    const res = await DELETE(
-      jsonRequest(
-        'DELETE',
-        'http://localhost/api/counselor/session/list'
-      )
-    )
+    const res = await DELETE(jsonRequest('DELETE', 'http://localhost/api/counselor/session/list'))
     // Missing required field → MISSING_FIELD (400)
     expect(res.status).toBe(400)
-    expect(mockDelete).not.toHaveBeenCalled()
+    expect(mockDeleteMany).not.toHaveBeenCalled()
   })
 })
 
