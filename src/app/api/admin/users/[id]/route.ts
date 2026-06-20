@@ -164,11 +164,11 @@ export async function GET(request: NextRequest, routeContext: RouteContext) {
           },
           credits: credits
             ? {
-                // 구독 플랜은 폐지됨 — 실제 사용가능 잔액(보너스/구매 크레딧)만 노출.
-                usable: Math.max(
-                  0,
-                  credits.monthlyCredits - credits.usedCredits + credits.bonusCredits
-                ),
+                // 실제 사용가능 잔액 = bonusCredits (SSOT). monthlyCredits/
+                // usedCredits 는 폐기된 frozen 컬럼이라 제외 — getCreditBalance/
+                // canUseCredits 와 동일한 bonus-only 정의로 맞춰 과금 로직과 어긋나지
+                // 않게 한다(직전엔 monthly @default(1) 만큼 +1 부풀려졌다).
+                usable: Math.max(0, credits.bonusCredits),
                 bonusCredits: credits.bonusCredits,
                 totalBonusReceived: credits.totalBonusReceived,
               }

@@ -158,7 +158,30 @@ describe('Credit Service', () => {
 
       const balance = await getCreditBalance(mockUserId)
 
-      expect(balance.remainingCredits).toBe(12) // 10 - 3 + 5
+      // bonus-only — frozen monthly/used(10/3)는 무시, bonusCredits(5)만 잔액.
+      expect(balance.remainingCredits).toBe(5)
+    })
+
+    it('잔액은 bonus-only — frozen monthly/used 를 무시한다 (canUseCredits 정합)', () => {
+      return (async () => {
+        ;(prisma.userCredits.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
+          userId: mockUserId,
+          plan: 'free',
+          monthlyCredits: 99, // frozen — 잔액에 안 더해짐
+          usedCredits: 0,
+          bonusCredits: 7,
+          totalBonusReceived: 7,
+          compatibilityUsed: 0,
+          compatibilityLimit: 0,
+          followUpUsed: 0,
+          followUpLimit: 0,
+          historyRetention: 365,
+          periodEnd: new Date('2024-02-01'),
+        })
+        const balance = await getCreditBalance(mockUserId)
+        expect(balance.remainingCredits).toBe(7)
+        expect(balance.totalCredits).toBe(7)
+      })()
     })
 
     it('should handle negative credits as zero', async () => {
@@ -203,7 +226,8 @@ describe('Credit Service', () => {
 
       const balance = await getCreditBalance(mockUserId)
 
-      expect(balance.totalCredits).toBe(50) // 30 + 20
+      // bonus-only — totalBonusReceived(20)만, frozen monthly(30)는 제외.
+      expect(balance.totalCredits).toBe(20)
     })
   })
 
@@ -212,9 +236,9 @@ describe('Credit Service', () => {
       const mockCredits = {
         userId: mockUserId,
         plan: 'free',
-        monthlyCredits: 10,
-        usedCredits: 5,
-        bonusCredits: 0,
+        monthlyCredits: 0,
+        usedCredits: 0,
+        bonusCredits: 5,
         compatibilityUsed: 0,
         compatibilityLimit: 0,
         followUpUsed: 0,
@@ -228,16 +252,16 @@ describe('Credit Service', () => {
       const result = await canUseCredits(mockUserId, 'reading', 3)
 
       expect(result.allowed).toBe(true)
-      expect(result.remaining).toBe(2) // 5 - 3
+      expect(result.remaining).toBe(2) // bonus 5 - 3
     })
 
     it('should deny reading with insufficient credits', async () => {
       const mockCredits = {
         userId: mockUserId,
         plan: 'free',
-        monthlyCredits: 10,
-        usedCredits: 9,
-        bonusCredits: 0,
+        monthlyCredits: 0,
+        usedCredits: 0,
+        bonusCredits: 1,
         compatibilityUsed: 0,
         compatibilityLimit: 0,
         followUpUsed: 0,
@@ -258,9 +282,9 @@ describe('Credit Service', () => {
       const mockCredits = {
         userId: mockUserId,
         plan: 'free',
-        monthlyCredits: 10,
+        monthlyCredits: 0,
         usedCredits: 0,
-        bonusCredits: 0,
+        bonusCredits: 10,
         compatibilityUsed: 99,
         compatibilityLimit: 0,
         followUpUsed: 0,
@@ -281,9 +305,9 @@ describe('Credit Service', () => {
       const mockCredits = {
         userId: mockUserId,
         plan: 'free',
-        monthlyCredits: 30,
+        monthlyCredits: 0,
         usedCredits: 0,
-        bonusCredits: 0,
+        bonusCredits: 30,
         compatibilityUsed: 0,
         compatibilityLimit: 0,
         followUpUsed: 99,
