@@ -86,10 +86,20 @@ describe('GET /api/admin/users', () => {
     expect(data.users[0]).toMatchObject({ id: 'u1', email: 'alice@example.com' })
 
     const where = vi.mocked(prisma.user.findMany).mock.calls[0][0] as any
+    // 정확 ID 는 셀 행 포함 누구든, 이름/이메일 검색은 realUserWhere 로 제한.
     expect(where.where.OR).toEqual([
-      { email: { contains: 'alice', mode: 'insensitive' } },
-      { name: { contains: 'alice', mode: 'insensitive' } },
       { id: 'alice' },
+      {
+        AND: [
+          { OR: [{ accounts: { some: {} } }, { passwordHash: { not: null } }] },
+          {
+            OR: [
+              { email: { contains: 'alice', mode: 'insensitive' } },
+              { name: { contains: 'alice', mode: 'insensitive' } },
+            ],
+          },
+        ],
+      },
     ])
     // take: 26 — 25건 초과 여부(capped) 판별용으로 한 건 더 받는다.
     expect(where.take).toBe(26)

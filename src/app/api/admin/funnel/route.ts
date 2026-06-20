@@ -19,13 +19,12 @@ import {
 import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/logger'
 import { adminDaysQuerySchema, formatZodErrors } from '@/lib/api/zodValidation'
-import type { Prisma } from '@prisma/client'
+// realUserWhere 는 @/lib/admin/realUser 의 단일 출처를 쓴다. 직전엔 이 파일이
+// 같은 정의를 인라인 복붙해, overview·users-by 와 "회원" 정의가 드리프트할
+// 위험이 있었다(셀프 환불 TOCTOU 가 복붙으로 두 군데 났던 것과 같은 부류).
+import { realUserWhere } from '@/lib/admin/realUser'
 
 export const dynamic = 'force-dynamic'
-
-const realUserWhere: Prisma.UserWhereInput = {
-  OR: [{ accounts: { some: {} } }, { passwordHash: { not: null } }],
-}
 
 export const GET = withApiMiddleware(
   async (req: NextRequest, _context: ApiContext) => {
@@ -92,7 +91,13 @@ export const GET = withApiMiddleware(
       }
 
       const signups = ids.length
-      const pct = (n: number, base: number) => (base > 0 ? Math.round((n / base) * 1000) / 10 : 0)
+      // 100 으로 clamp — 퍼널 각 단계는 직전 단계의 부분집합이어야 하지만, '첫
+      // 결제'는 '첫 리딩'의 엄밀한 부분집합이 아니다(리딩 없이 크레딧만 사거나,
+      // 활성으로 안 잡히는 경로로 산 사용자). 그 경우 paid/activated 가 100%를
+      // 넘어 "직전 단계 대비 >100%" 라는 깨진 막대로 보였다. 비율 자체는 의미가
+      // 없으니 표시상 100%로 막는다.
+      const pct = (n: number, base: number) =>
+        base > 0 ? Math.min(100, Math.round((n / base) * 1000) / 10) : 0
 
       return apiSuccess({
         rangeDays: days,
