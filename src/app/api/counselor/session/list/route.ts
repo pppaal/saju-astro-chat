@@ -16,6 +16,28 @@ import {
 
 export const dynamic = 'force-dynamic'
 
+// 사이드바 목록은 부제로 '인물 이름'만 쓴다(destiny: profile.name / compat:
+// persons[].name). 그런데 세션 meta 에는 궁합의 경우 두 사람의 전체 사주+점성
+// 차트(person1Saju/2Saju/1Astro/2Astro)가 통째로 들어있어, 그대로 내려주면
+// 목록 한 번 로드에 수십~수백 KB 가 낭비된다(재개는 session/load 가 풀 meta 를
+// 따로 준다). 목록 응답에선 이름만 남기고 무거운 필드를 버린다.
+function slimSidebarMeta(
+  meta: unknown
+): { profile?: { name?: string }; persons?: Array<{ name?: string }> } | null {
+  if (!meta || typeof meta !== 'object') return null
+  const m = meta as Record<string, unknown>
+  const out: { profile?: { name?: string }; persons?: Array<{ name?: string }> } = {}
+  const profileName = (m.profile as { name?: unknown } | undefined)?.name
+  if (typeof profileName === 'string') out.profile = { name: profileName }
+  if (Array.isArray(m.persons)) {
+    out.persons = m.persons.map((p) => {
+      const name = (p as { name?: unknown } | null)?.name
+      return { name: typeof name === 'string' ? name : undefined }
+    })
+  }
+  return out.profile || out.persons ? out : null
+}
+
 // GET: List all chat sessions for a user
 export const GET = withApiMiddleware(
   async (req: NextRequest, context: ApiContext) => {
@@ -43,8 +65,8 @@ export const GET = withApiMiddleware(
     // before sending and only keep the derived 30-char title.
     // 사이드바 리스트는 메타데이터만 필요 — messages JSON (수십 KB ~ MB) 은
     // 제외. 이전엔 title fallback 용으로 전체 messages 를 들고와서 1000명 ×
-    // 30 세션 × 평균 50KB = 약 1.5GB egress / 페이지 진입 회당. 사이드바 부제 +
-    // 인물 이름만 필요한 meta 는 작아서 유지.
+    // 30 세션 × 평균 50KB = 약 1.5GB egress / 페이지 진입 회당. meta 는 fetch 하되
+    // 응답에선 slimSidebarMeta 로 인물 이름만 남긴다(궁합 meta 의 차트 블롭 제외).
     const rows = await prisma.counselorChatSession.findMany({
       where: {
         userId,
@@ -94,6 +116,7 @@ export const GET = withApiMiddleware(
     const sessions = rows.map((row) => ({
       ...row,
       title: row.title || titleFallbacks[row.id] || row.title,
+      meta: slimSidebarMeta(row.meta),
     }))
 
     return NextResponse.json({ sessions })

@@ -45,7 +45,7 @@ vi.mock('@/lib/db/prisma', () => ({
 
 // Mock Zod validation schemas
 vi.mock('@/lib/api/zodValidation', async (importOriginal) => {
-  const actual = await importOriginal() as Record<string, unknown>
+  const actual = (await importOriginal()) as Record<string, unknown>
   return {
     ...actual,
     counselorSessionListQuerySchema: {
@@ -241,10 +241,9 @@ describe('/api/counselor/session/list', () => {
 
   describe('GET - Query Parameter Validation', () => {
     it('should return 422 when type is not a valid service value', async () => {
-      const req = new NextRequest(
-        'http://localhost:3000/api/counselor/session/list?type=bogus',
-        { method: 'GET' }
-      )
+      const req = new NextRequest('http://localhost:3000/api/counselor/session/list?type=bogus', {
+        method: 'GET',
+      })
 
       const { GET } = await import('@/app/api/counselor/session/list/route')
       const response = await GET(req)
@@ -312,10 +311,9 @@ describe('/api/counselor/session/list', () => {
     it('should accept valid type parameter', async () => {
       mockFindMany.mockResolvedValue([mockSessionData[0], mockSessionData[2]])
 
-      const req = new NextRequest(
-        'http://localhost:3000/api/counselor/session/list?type=destiny',
-        { method: 'GET' }
-      )
+      const req = new NextRequest('http://localhost:3000/api/counselor/session/list?type=destiny', {
+        method: 'GET',
+      })
 
       const { GET } = await import('@/app/api/counselor/session/list/route')
       const response = await GET(req)
@@ -382,14 +380,71 @@ describe('/api/counselor/session/list', () => {
       expect(result.sessions[0].id).toBe('session-1')
     })
 
+    it('strips heavy chart blobs from meta, keeping only names (perf)', async () => {
+      // 궁합 meta 에는 두 사람 전체 사주+점성 차트가 통째로 들어있다. 사이드바
+      // 목록은 이름만 필요하므로 응답에서 차트를 버리고 이름만 남겨야 한다.
+      mockFindMany.mockResolvedValue([
+        {
+          id: 'compat-1',
+          type: 'compat',
+          title: 'A & B',
+          locale: 'ko',
+          messageCount: 4,
+          summary: null,
+          keyTopics: [],
+          meta: {
+            persons: [
+              { name: '김철수', birthDate: '1990-01-01', gender: 'male' },
+              { name: '이영희', birthDate: '1992-02-02', gender: 'female' },
+            ],
+            person1Saju: { huge: 'chart'.repeat(1000) },
+            person2Saju: { huge: 'chart'.repeat(1000) },
+            person1Astro: { huge: 'chart'.repeat(1000) },
+            person2Astro: { huge: 'chart'.repeat(1000) },
+          },
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          lastMessageAt: new Date(),
+        },
+        {
+          id: 'destiny-1',
+          type: 'destiny',
+          title: '뭐하냐',
+          locale: 'ko',
+          messageCount: 2,
+          summary: null,
+          keyTopics: [],
+          meta: {
+            profile: { name: '이차연' },
+            subject: { name: '이차연', birthDate: '1990-05-15', latitude: 37.5 },
+          },
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          lastMessageAt: new Date(),
+        },
+      ])
+
+      const req = new NextRequest('http://localhost:3000/api/counselor/session/list', {
+        method: 'GET',
+      })
+      const { GET } = await import('@/app/api/counselor/session/list/route')
+      const result = await (await GET(req)).json()
+
+      // compat: only names survive, charts dropped
+      expect(result.sessions[0].meta).toEqual({
+        persons: [{ name: '김철수' }, { name: '이영희' }],
+      })
+      // destiny: only profile.name survives, heavy subject dropped
+      expect(result.sessions[1].meta).toEqual({ profile: { name: '이차연' } })
+    })
+
     it('should filter sessions by type', async () => {
       const destinySessions = mockSessionData.filter((s) => s.type === 'destiny')
       mockFindMany.mockResolvedValue(destinySessions)
 
-      const req = new NextRequest(
-        'http://localhost:3000/api/counselor/session/list?type=destiny',
-        { method: 'GET' }
-      )
+      const req = new NextRequest('http://localhost:3000/api/counselor/session/list?type=destiny', {
+        method: 'GET',
+      })
 
       const { GET } = await import('@/app/api/counselor/session/list/route')
       const response = await GET(req)
@@ -642,10 +697,9 @@ describe('/api/counselor/session/list', () => {
         error: { issues: [{ path: ['sessionId'], message: 'sessionId is required' }] },
       })
 
-      const req = new NextRequest(
-        'http://localhost:3000/api/counselor/session/list?sessionId=',
-        { method: 'DELETE' }
-      )
+      const req = new NextRequest('http://localhost:3000/api/counselor/session/list?sessionId=', {
+        method: 'DELETE',
+      })
 
       const { DELETE } = await import('@/app/api/counselor/session/list/route')
       const response = await DELETE(req)
