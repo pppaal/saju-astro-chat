@@ -230,9 +230,11 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
   const dayIdx = computeDayPillarIndices(focusY, focusM, focusD)
   const iljinStem = STEM_NAMES[dayIdx.stemIndex]
   const iljinBranch = BRANCH_NAMES[dayIdx.branchIndex]
-  const woolunRef = getMonthPillarForDate(
-    new Date(`${TARGET_YEAR}-${String(TARGET_MONTH).padStart(2, '0')}-15T00:00:00`)
-  )
+  // 월운 기준 인스턴트는 *UTC* 로 만든다. tz-less `new Date('YYYY-MM-15T00:00:00')`
+  // 는 서버 로컬로 해석돼 절입(節入) 근처에서 서버 시간대별로 60갑자가 갈렸다
+  // (Honolulu↔Seoul ~19h 차). 15일이라 실제 플립은 드물지만 결정성 위반이라 고정.
+  // (extractor 경로 saju-pillar.ts 는 이미 UTC — 이 표시 경로만 회귀였다.)
+  const woolunRef = getMonthPillarForDate(new Date(Date.UTC(TARGET_YEAR, TARGET_MONTH - 1, 15)))
   const woolunStem = woolunRef.stem
   const woolunBranch = woolunRef.branch
 
