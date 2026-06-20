@@ -51,7 +51,7 @@ function secondsUntilKstMidnight(now: Date = new Date()): number {
 
 // 캐시 스키마/프롬프트가 바뀌면 이 버전을 올린다 — 당일 자정 전에도 오래된
 // 캐시(예: 짧은 본문)를 우회해 새 결과가 즉시 나오게 한다.
-const DAILY_CACHE_VERSION = 'v2'
+const DAILY_CACHE_VERSION = 'v3'
 const dailyKey = (userId: string, date: string) =>
   `tarot:daily:${DAILY_CACHE_VERSION}:${userId}:${date}`
 const dailyLockKey = (userId: string, date: string) =>
@@ -98,14 +98,15 @@ function buildDailyTeaserPrompt(
       systemPrompt: [
         '너는 따뜻하고 통찰력 있는 타로 리더다. "오늘의 한 장" 무료 리딩을 준다.',
         '규칙:',
+        '- 말투: 마주 앉아 카드를 펴주며 말해주듯 따뜻한 *해요체 존댓말*("~해요/~예요/~보세요"). 반말("~해/~할 거야/~네") 절대 금지.',
         '- 따뜻하고 구체적으로, 충분히 읽을거리가 되게 쓴다. 단, 한 장짜리라 "오늘 하루"에 집중한다.',
         '- 마크다운(*, _, #, `), 해시태그(#), 따옴표로 문장 전체 감싸기 금지.',
         '- 저주·불행·공포 조장 금지. 양면이 있되 희망의 여지를 남긴다.',
         '- 막연한 덕담 금지. 카드 키워드를 오늘의 상황·감정·행동으로 풀어 구체적으로.',
         '반드시 아래 JSON 만 출력:',
         '{"hook": "한 줄 후크", "message": "본문(4~6문장)"}',
-        'hook 규칙: 28자 이내. 2인칭("당신/너")으로 단언하고, 구체적인 디테일 1개를 넣고, 살짝 양면의 트위스트로 여운을 남긴다.',
-        'message 규칙: 4~6문장. ①오늘의 큰 흐름 ②카드가 비추는 마음/관계/일의 한 면 ③오늘 해보면 좋은 구체적 행동 1가지 ④따뜻한 마무리 한 줄. 줄바꿈으로 문단을 나눠도 좋다.',
+        'hook 규칙: 28자 이내. 2인칭("당신")으로 단언하되 *해요체 존댓말*, 구체적인 디테일 1개를 넣고, 살짝 양면의 트위스트로 여운을 남긴다. 반말 금지.',
+        'message 규칙: 4~6문장 *해요체 존댓말*. ①오늘의 큰 흐름 ②카드가 비추는 마음/관계/일의 한 면 ③오늘 해보면 좋은 구체적 행동 1가지 ④따뜻한 마무리 한 줄. *한 문단으로 자연스럽게 이어 쓰고, 중간에 줄바꿈(빈 줄)은 넣지 마라.*',
       ].join('\n'),
       userPrompt: [
         `오늘의 카드: ${cardName} (${orientation})`,
@@ -128,7 +129,7 @@ function buildDailyTeaserPrompt(
       'Output ONLY this JSON:',
       '{"hook": "one-line hook", "message": "body (4-6 sentences)"}',
       'hook rules: max 12 words. Speak in second person ("you"), make a confident claim, include one concrete detail, end with a slight two-sided twist.',
-      'message rules: 4-6 sentences. (1) the overall flow of today (2) one facet the card highlights in your heart/relationships/work (3) one concrete thing worth doing today (4) a warm closing line. Paragraph breaks are fine.',
+      'message rules: 4-6 sentences. (1) the overall flow of today (2) one facet the card highlights in your heart/relationships/work (3) one concrete thing worth doing today (4) a warm closing line. Write it as ONE flowing paragraph — do not insert line breaks or blank lines.',
     ].join('\n'),
     userPrompt: [
       `Card of the day: ${cardName} (${orientation})`,
