@@ -26,8 +26,8 @@ vi.mock('@/lib/security/csrf', () => ({ csrfGuard: vi.fn(() => null) }))
 vi.mock('@/lib/db/prisma', () => ({
   prisma: {
     user: { findMany: vi.fn() },
-    tarotReading: { findMany: vi.fn() },
-    counselorChatSession: { findMany: vi.fn() },
+    tarotReading: { groupBy: vi.fn() },
+    counselorChatSession: { groupBy: vi.fn() },
     bonusCreditPurchase: { findMany: vi.fn() },
   },
 }))
@@ -90,13 +90,13 @@ describe('GET /api/admin/funnel', () => {
     ] as any)
     // u1,u2 타로 / u2,u3 상담(u2 중복) → activated distinct = {u1,u2,u3}=3
     // (Reading 모델 제거됨 — 활성 판정은 tarotReading + counselorChatSession)
-    vi.mocked(prisma.tarotReading.findMany).mockResolvedValue([
-      { userId: 'u1' },
-      { userId: 'u2' },
+    vi.mocked(prisma.tarotReading.groupBy).mockResolvedValue([
+      { userId: 'u1', _max: { createdAt: null } },
+      { userId: 'u2', _max: { createdAt: null } },
     ] as any)
-    vi.mocked(prisma.counselorChatSession.findMany).mockResolvedValue([
-      { userId: 'u2' },
-      { userId: 'u3' },
+    vi.mocked(prisma.counselorChatSession.groupBy).mockResolvedValue([
+      { userId: 'u2', _max: { createdAt: null } },
+      { userId: 'u3', _max: { createdAt: null } },
     ] as any)
     // u1 결제 → paid = 1
     vi.mocked(prisma.bonusCreditPurchase.findMany).mockResolvedValue([{ userId: 'u1' }] as any)
@@ -120,12 +120,11 @@ describe('GET /api/admin/funnel', () => {
       { id: 'u2', createdAt: t0 },
     ] as any)
     // u1: 가입 당일 + 2일 뒤 활동(재방문) / u2: 가입 1시간 뒤만(재방문 아님)
-    vi.mocked(prisma.tarotReading.findMany).mockResolvedValue([
-      { userId: 'u1', createdAt: t0 },
-      { userId: 'u1', createdAt: new Date(t0.getTime() + 2 * 24 * 3600 * 1000) },
-      { userId: 'u2', createdAt: new Date(t0.getTime() + 3600 * 1000) },
+    vi.mocked(prisma.tarotReading.groupBy).mockResolvedValue([
+      { userId: 'u1', _max: { createdAt: new Date(t0.getTime() + 2 * 24 * 3600 * 1000) } },
+      { userId: 'u2', _max: { createdAt: new Date(t0.getTime() + 3600 * 1000) } },
     ] as any)
-    vi.mocked(prisma.counselorChatSession.findMany).mockResolvedValue([] as any)
+    vi.mocked(prisma.counselorChatSession.groupBy).mockResolvedValue([] as any)
     vi.mocked(prisma.bonusCreditPurchase.findMany).mockResolvedValue([] as any)
 
     const data = (await (await GET(req('30'))).json()).data
@@ -139,7 +138,7 @@ describe('GET /api/admin/funnel', () => {
     vi.mocked(prisma.user.findMany).mockResolvedValue([] as any)
     const data = (await (await GET(req())).json()).data
     expect(data.steps.map((s: { count: number }) => s.count)).toEqual([0, 0, 0])
-    expect(prisma.tarotReading.findMany).not.toHaveBeenCalled()
+    expect(prisma.tarotReading.groupBy).not.toHaveBeenCalled()
   })
 
   it('returns 500 on db error', async () => {

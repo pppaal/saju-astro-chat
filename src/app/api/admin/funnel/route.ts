@@ -57,15 +57,22 @@ export const GET = withApiMiddleware(
       let returned = 0
       if (ids.length > 0) {
         const inIds = { userId: { in: ids } }
-        // Reading 모델 제거 (2026-06-06) — 옛 일반 리딩 archive.
-        // 활성 판정은 tarotReading + counselorChatSession 만으로.
-        // 재방문(리텐션): 가입 후 24h 이상 지나 다시 활동한 코호트 사용자.
-        // → 활동 timestamp 가 필요하므로 distinct 대신 (userId, createdAt) 로 조회.
-        const [tarotRows, counselorRows, buyerUsers] = await Promise.all([
-          prisma.tarotReading.findMany({ where: inIds, select: { userId: true, createdAt: true } }),
-          prisma.counselorChatSession.findMany({
+        // Reading 모델 제거 (2026-06-06) — 활성 판정은 tarotReading +
+        // counselorChatSession 만. 직전엔 코호트의 *모든* 활동 행을 메모리로
+        // 로드했는데(대형 코호트·장기 윈도에서 OOM 위험), 활성/재방문 판정엔
+        // 사용자별 *마지막* 활동 시각만 있으면 된다 → groupBy(userId) + _max 로
+        // DB 집계해 테이블당 사용자 수만큼만 들고 온다. 재방문(리텐션): 가입 후
+        // 24h 이상 지나 다시 활동한 코호트 사용자(= 마지막 활동이 가입+24h 이후).
+        const [tarotAgg, counselorAgg, buyerUsers] = await Promise.all([
+          prisma.tarotReading.groupBy({
+            by: ['userId'],
             where: inIds,
-            select: { userId: true, createdAt: true },
+            _max: { createdAt: true },
+          }),
+          prisma.counselorChatSession.groupBy({
+            by: ['userId'],
+            where: inIds,
+            _max: { createdAt: true },
           }),
           prisma.bonusCreditPurchase.findMany({
             // 실결제 표식(stripePaymentId)이 있는 행만 — source='purchase' 는
@@ -77,12 +84,20 @@ export const GET = withApiMiddleware(
         ])
         const RETURN_THRESHOLD_MS = 24 * 60 * 60 * 1000
         const activeSet = new Set<string>()
+        // 사용자별 가장 늦은 활동 시각(두 테이블의 _max 중 더 큰 값).
+        const lastActiveAt = new Map<string, number>()
+        for (const g of [...tarotAgg, ...counselorAgg]) {
+          activeSet.add(g.userId)
+          const t = g._max.createdAt?.getTime()
+          if (t === undefined) continue
+          const prev = lastActiveAt.get(g.userId)
+          if (prev === undefined || t > prev) lastActiveAt.set(g.userId, t)
+        }
         const returnedSet = new Set<string>()
-        for (const r of [...tarotRows, ...counselorRows]) {
-          activeSet.add(r.userId)
-          const signed = signupAt.get(r.userId)
-          if (signed && r.createdAt.getTime() - signed.getTime() >= RETURN_THRESHOLD_MS) {
-            returnedSet.add(r.userId)
+        for (const [uid, t] of lastActiveAt) {
+          const signed = signupAt.get(uid)
+          if (signed && t - signed.getTime() >= RETURN_THRESHOLD_MS) {
+            returnedSet.add(uid)
           }
         }
         activated = activeSet.size

@@ -70,17 +70,19 @@ export const GET = withApiMiddleware(
         }),
       ])
 
-      const topConsumersRaw = consumeGroups
+      // 필터(>0) 후 전체 모수를 먼저 잡고 slice — "TOP N / 전체 M" 표기를 위해
+      // 잘리기 전 인원수를 클라에 같이 내려준다(audit/webhooks 의 cap 표기와 통일).
+      const consumersFiltered = consumeGroups
         .map((g) => ({ userId: g.userId, consumed: Math.abs(g._sum.amount ?? 0) }))
         .filter((g) => g.consumed > 0)
         .sort((a, b) => b.consumed - a.consumed)
-        .slice(0, TOP_N)
+      const topConsumersRaw = consumersFiltered.slice(0, TOP_N)
 
-      const topGrantedRaw = grantGroups
+      const grantedFiltered = grantGroups
         .map((g) => ({ userId: g.userId, granted: g._sum.amount ?? 0 }))
         .filter((g) => g.granted > 0)
         .sort((a, b) => b.granted - a.granted)
-        .slice(0, TOP_N)
+      const topGrantedRaw = grantedFiltered.slice(0, TOP_N)
 
       const ids = [
         ...new Set([
@@ -101,6 +103,10 @@ export const GET = withApiMiddleware(
         rangeDays: days,
         topConsumers: decorate(topConsumersRaw),
         topGranted: decorate(topGrantedRaw),
+        // 잘리기 전 전체 모수(>0 인 인원) — 클라가 "TOP N / 전체 M" 으로 표기.
+        topConsumersTotal: consumersFiltered.length,
+        topGrantedTotal: grantedFiltered.length,
+        cap: TOP_N,
       } as Record<string, unknown>)
     } catch (err) {
       logger.error('[admin/anomalies] error', err)
