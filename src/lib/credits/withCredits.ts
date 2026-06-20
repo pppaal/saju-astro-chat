@@ -5,6 +5,7 @@ import {
   canUseCredits,
   getUserCredits,
   initializeUserCredits,
+  type ChargeActivityLink,
 } from './creditService'
 import { logger } from '@/lib/logger'
 
@@ -36,7 +37,10 @@ interface CreditCheckResult {
  */
 export async function checkAndConsumeCredits(
   type: CreditType = 'reading',
-  amount: number = 1
+  amount: number = 1,
+  // 과금↔활동 reconciliation 용 활동 링크 — 라우트가 과금 시점에 아는
+  // readingId 등을 실으면 CONSUME 감사행에 박힌다. consumeCredits 로 그대로 전달.
+  activity?: ChargeActivityLink
 ): Promise<CreditCheckResult> {
   const session = await getServerSession()
 
@@ -86,7 +90,7 @@ export async function checkAndConsumeCredits(
   }
 
   // 크레딧 소비
-  const consumeResult = await consumeCredits(userId, type, amount)
+  const consumeResult = await consumeCredits(userId, type, amount, activity)
   if (!consumeResult.success) {
     return {
       allowed: false,

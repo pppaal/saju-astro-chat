@@ -126,7 +126,8 @@ describe('withCredits helpers', () => {
       expect(result.userId).toBe('user-123')
       expect(result.remaining).toBe(5)
       expect(canUseCredits).toHaveBeenCalledWith('user-123', 'reading', 1)
-      expect(consumeCredits).toHaveBeenCalledWith('user-123', 'reading', 1)
+      // 4번째 인자는 과금↔활동 링크(activity) — 이 호출은 미지정이라 undefined.
+      expect(consumeCredits).toHaveBeenCalledWith('user-123', 'reading', 1, undefined)
     })
 
     it('should return error when no credits available', async () => {

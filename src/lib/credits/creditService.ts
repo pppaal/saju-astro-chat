@@ -208,7 +208,10 @@ class CreditBusinessError extends Error {
 export async function consumeCredits(
   userId: string,
   type: 'reading' | 'compatibility' | 'followUp' = 'reading',
-  amount: number = 1
+  amount: number = 1,
+  // 선택적 활동 링크 — 과금↔활동 reconciliation 용. 호출 라우트가 과금 시점에
+  // 이미 아는 sessionId/readingId 를 실으면 CONSUME 감사행에 박힌다.
+  activity?: ChargeActivityLink
 ): Promise<{
   success: boolean
   error?: string
@@ -244,6 +247,7 @@ export async function consumeCredits(
       const actualConsumed = await consumeBonusCreditsFromPurchasesInTx(tx, userId, amount, {
         reason: 'consume_reading',
         emitAudit: true,
+        activity,
       })
 
       // 실제 차감량이 모자라면 purchase 가 만료됐거나 동시 차감 race —
@@ -278,11 +282,20 @@ export async function consumeCredits(
 // `opts.emitAudit` 가 true 면 차감한 purchase 행마다 CreditTransaction
 // (CONSUME / BONUS) 을 한 줄씩 남긴다. consumeCredits 가 부르는 경로는 항상
 // 켜고, 백필이나 fallback 경로에서는 호출자가 직접 audit 을 통제하도록 끈다.
+export interface ChargeActivityLink {
+  /** 과금을 일으킨 API 경로 (예: 'counselor/realtime'). 귀속/그루핑용. */
+  apiRoute?: string
+  /** 활동 종류 — reconciliation 이 어느 테이블을 조회할지 결정. */
+  activityType?: 'counselor_session' | 'compat_session' | 'tarot_reading' | 'tarot_followup'
+  /** 활동 레코드 식별자(sessionId/readingId 등). 과금 시점에 이미 알려진 값. */
+  activityRef?: string
+}
+
 export async function consumeBonusCreditsFromPurchasesInTx(
   tx: Prisma.TransactionClient,
   userId: string,
   amountToConsume: number,
-  opts: { reason?: string; emitAudit?: boolean } = {}
+  opts: { reason?: string; emitAudit?: boolean; activity?: ChargeActivityLink } = {}
 ): Promise<number> {
   const now = new Date()
   // select 명시 — 신규 컬럼(acknowledgedAt) prod 미적용 환경에서 P2022
@@ -330,6 +343,7 @@ export async function consumeBonusCreditsFromPurchasesInTx(
     totalConsumed += toConsume
 
     if (opts.emitAudit) {
+      const act = opts.activity
       await tx.creditTransaction.create({
         data: {
           userId,
@@ -338,7 +352,16 @@ export async function consumeBonusCreditsFromPurchasesInTx(
           amount: -toConsume,
           reason,
           sourceRef: purchase.id,
-          metadata: { purchaseId: purchase.id, drained: toConsume },
+          // 활동 링크(apiRoute/activityType/activityRef)를 메타에 박아, 사후
+          // reconciliation 이 "과금됐는데 그 활동 레코드가 없음"을 정확히 잡는다.
+          // 과금 시점에 이미 알려진 값만 싣고, 없으면 종전과 동일.
+          metadata: {
+            purchaseId: purchase.id,
+            drained: toConsume,
+            ...(act?.apiRoute ? { apiRoute: act.apiRoute } : {}),
+            ...(act?.activityType ? { activityType: act.activityType } : {}),
+            ...(act?.activityRef ? { activityRef: act.activityRef } : {}),
+          },
         },
       })
     }
