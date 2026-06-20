@@ -11,6 +11,7 @@ import { NextRequest, NextResponse } from 'next/server'
 const mockFindMany = vi.fn()
 const mockFindFirst = vi.fn()
 const mockDelete = vi.fn()
+const mockDeleteMany = vi.fn()
 const mockListSafeParse = vi.fn()
 const mockDeleteSafeParse = vi.fn()
 
@@ -39,6 +40,7 @@ vi.mock('@/lib/db/prisma', () => ({
       findMany: (...args: any[]) => mockFindMany(...args),
       findFirst: (...args: any[]) => mockFindFirst(...args),
       delete: (...args: any[]) => mockDelete(...args),
+      deleteMany: (...args: any[]) => mockDeleteMany(...args),
     },
   },
 }))
@@ -202,6 +204,8 @@ describe('/api/counselor/session/list', () => {
     // Set up default mock implementations
     mockListSafeParse.mockImplementation(createValidListSafeParse())
     mockDeleteSafeParse.mockImplementation(createValidDeleteSafeParse())
+    // DELETE 는 이제 deleteMany 단일 쿼리(원자적 소유권+삭제). 기본은 1건 삭제.
+    mockDeleteMany.mockResolvedValue({ count: 1 })
   })
 
   describe('GET - Authentication Requirements', () => {
@@ -663,7 +667,7 @@ describe('/api/counselor/session/list', () => {
       await DELETE(req)
 
       // Verify the handler receives the userId and uses it for ownership verification
-      expect(mockFindFirst).toHaveBeenCalledWith({
+      expect(mockDeleteMany).toHaveBeenCalledWith({
         where: {
           id: 'session-1',
           userId: mockUserId,
@@ -734,7 +738,7 @@ describe('/api/counselor/session/list', () => {
 
   describe('DELETE - Session Ownership Verification', () => {
     it('should return 404 when session does not exist', async () => {
-      mockFindFirst.mockResolvedValue(null)
+      mockDeleteMany.mockResolvedValue({ count: 0 })
 
       const req = new NextRequest(
         'http://localhost:3000/api/counselor/session/list?sessionId=non-existent',
@@ -750,8 +754,8 @@ describe('/api/counselor/session/list', () => {
     })
 
     it('should return 404 when session belongs to another user', async () => {
-      // When findFirst queries with userId, it returns null for mismatched ownership
-      mockFindFirst.mockResolvedValue(null)
+      // deleteMany scoped by userId → 0 rows for a session owned by someone else.
+      mockDeleteMany.mockResolvedValue({ count: 0 })
 
       const req = new NextRequest(
         'http://localhost:3000/api/counselor/session/list?sessionId=other-user-session',
@@ -767,8 +771,7 @@ describe('/api/counselor/session/list', () => {
     })
 
     it('should verify ownership with correct query parameters', async () => {
-      mockFindFirst.mockResolvedValue({ id: 'session-1', userId: mockUserId })
-      mockDelete.mockResolvedValue({ id: 'session-1' })
+      mockDeleteMany.mockResolvedValue({ count: 1 })
 
       const req = new NextRequest(
         'http://localhost:3000/api/counselor/session/list?sessionId=session-1',
@@ -778,7 +781,7 @@ describe('/api/counselor/session/list', () => {
       const { DELETE } = await import('@/app/api/counselor/session/list/route')
       await DELETE(req)
 
-      expect(mockFindFirst).toHaveBeenCalledWith({
+      expect(mockDeleteMany).toHaveBeenCalledWith({
         where: {
           id: 'session-1',
           userId: mockUserId,
@@ -789,8 +792,7 @@ describe('/api/counselor/session/list', () => {
 
   describe('DELETE - Session Deletion', () => {
     it('should delete session when owned by user', async () => {
-      mockFindFirst.mockResolvedValue({ id: 'session-1', userId: mockUserId })
-      mockDelete.mockResolvedValue({ id: 'session-1' })
+      mockDeleteMany.mockResolvedValue({ count: 1 })
 
       const req = new NextRequest(
         'http://localhost:3000/api/counselor/session/list?sessionId=session-1',
@@ -803,14 +805,13 @@ describe('/api/counselor/session/list', () => {
 
       expect(response.status).toBe(200)
       expect(result.success).toBe(true)
-      expect(mockDelete).toHaveBeenCalledWith({
-        where: { id: 'session-1' },
+      expect(mockDeleteMany).toHaveBeenCalledWith({
+        where: { id: 'session-1', userId: mockUserId },
       })
     })
 
     it('should return success true on successful deletion', async () => {
-      mockFindFirst.mockResolvedValue({ id: 'session-2', userId: mockUserId })
-      mockDelete.mockResolvedValue({ id: 'session-2' })
+      mockDeleteMany.mockResolvedValue({ count: 1 })
 
       const req = new NextRequest(
         'http://localhost:3000/api/counselor/session/list?sessionId=session-2',
@@ -824,11 +825,10 @@ describe('/api/counselor/session/list', () => {
       expect(response.status).toBe(200)
       expect(result).toEqual({ success: true })
     })
-  })
 
-  describe('DELETE - Error Handling', () => {
-    it('should handle database errors during ownership check', async () => {
-      mockFindFirst.mockRejectedValue(new Error('Database connection failed'))
+    it('is idempotent: deleting an already-gone session → 404 (no 500/P2025)', async () => {
+      // 더블탭/이미 삭제: deleteMany 가 0건이어도 throw 안 함 → 404, 500 아님.
+      mockDeleteMany.mockResolvedValue({ count: 0 })
 
       const req = new NextRequest(
         'http://localhost:3000/api/counselor/session/list?sessionId=session-1',
@@ -836,13 +836,15 @@ describe('/api/counselor/session/list', () => {
       )
 
       const { DELETE } = await import('@/app/api/counselor/session/list/route')
+      const response = await DELETE(req)
 
-      await expect(DELETE(req)).rejects.toThrow('Database connection failed')
+      expect(response.status).toBe(404)
     })
+  })
 
-    it('should handle database errors during deletion', async () => {
-      mockFindFirst.mockResolvedValue({ id: 'session-1', userId: mockUserId })
-      mockDelete.mockRejectedValue(new Error('Delete operation failed'))
+  describe('DELETE - Error Handling', () => {
+    it('should propagate database errors during deletion', async () => {
+      mockDeleteMany.mockRejectedValue(new Error('Delete operation failed'))
 
       const req = new NextRequest(
         'http://localhost:3000/api/counselor/session/list?sessionId=session-1',
