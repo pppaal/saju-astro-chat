@@ -143,11 +143,18 @@ export async function getUserCredits(userId: string) {
 // 크레딧 잔여량 조회
 export async function getCreditBalance(userId: string) {
   const credits = await getUserCredits(userId)
-  const remaining = credits.monthlyCredits - credits.usedCredits + credits.bonusCredits
+  // bonusCredits 가 실제 잔액의 단일 진실원천(SSOT). monthlyCredits/usedCredits 는
+  // 폐기된 월간충전 모델의 frozen 컬럼이라 잔액에서 제외한다. 직전엔
+  // remaining = monthly - used + bonus 였는데, monthly @default(1) 인 행에서
+  // remaining 이 +1 부풀려져 canUseCredits 는 "쓸 수 있다"는데 consumeCredits 는
+  // (bonus 만 차감) 못 빼는 유령 크레딧 불일치가 났다. bonus-only 로 통일해
+  // 게이팅(canUseCredits)과 실제 차감을 정확히 맞춘다. monthly/used 필드 자체는
+  // 호환을 위해 그대로 반환만 한다(잔액 계산엔 안 씀).
+  const remaining = credits.bonusCredits
   // totalBonusReceived가 없는 기존 유저는 현재 bonusCredits를 사용
   const totalBonus =
     (credits as { totalBonusReceived?: number }).totalBonusReceived ?? credits.bonusCredits
-  const totalCredits = credits.monthlyCredits + totalBonus
+  const totalCredits = totalBonus
 
   return {
     plan: credits.plan,
