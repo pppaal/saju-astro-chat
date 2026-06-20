@@ -245,10 +245,10 @@ export default function DailyTarotPage() {
                   fontSize: 16,
                   lineHeight: 1.8,
                   color: '#dfe3ee',
-                  whiteSpace: 'pre-wrap',
                 }}
               >
-                {reading.message}
+                {/* 한 문단으로 흐르게 — 모델이 넣은 줄바꿈/빈 줄은 한 칸으로 정리(뚝뚝 끊김 방지). */}
+                {reading.message.replace(/\s*\n+\s*/g, ' ').trim()}
               </p>
             ) : null}
 

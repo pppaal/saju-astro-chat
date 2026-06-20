@@ -172,7 +172,8 @@ export default async function SharedReadingPage({ params }: PageProps) {
               whiteSpace: 'pre-wrap',
             }}
           >
-            {reading.body}
+            {/* 정상 문단 줄바꿈은 유지하되, 과한 빈 줄(3줄+)은 정리해 뚝뚝 끊김 방지. */}
+            {reading.body.replace(/\n{3,}/g, '\n\n').trim()}
           </p>
         ) : null}
 

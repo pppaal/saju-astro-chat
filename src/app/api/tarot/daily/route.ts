@@ -106,7 +106,7 @@ function buildDailyTeaserPrompt(
         '반드시 아래 JSON 만 출력:',
         '{"hook": "한 줄 후크", "message": "본문(4~6문장)"}',
         'hook 규칙: 28자 이내. 2인칭("당신")으로 단언하되 *해요체 존댓말*, 구체적인 디테일 1개를 넣고, 살짝 양면의 트위스트로 여운을 남긴다. 반말 금지.',
-        'message 규칙: 4~6문장 *해요체 존댓말*. ①오늘의 큰 흐름 ②카드가 비추는 마음/관계/일의 한 면 ③오늘 해보면 좋은 구체적 행동 1가지 ④따뜻한 마무리 한 줄. 줄바꿈으로 문단을 나눠도 좋다.',
+        'message 규칙: 4~6문장 *해요체 존댓말*. ①오늘의 큰 흐름 ②카드가 비추는 마음/관계/일의 한 면 ③오늘 해보면 좋은 구체적 행동 1가지 ④따뜻한 마무리 한 줄. *한 문단으로 자연스럽게 이어 쓰고, 중간에 줄바꿈(빈 줄)은 넣지 마라.*',
       ].join('\n'),
       userPrompt: [
         `오늘의 카드: ${cardName} (${orientation})`,
@@ -129,7 +129,7 @@ function buildDailyTeaserPrompt(
       'Output ONLY this JSON:',
       '{"hook": "one-line hook", "message": "body (4-6 sentences)"}',
       'hook rules: max 12 words. Speak in second person ("you"), make a confident claim, include one concrete detail, end with a slight two-sided twist.',
-      'message rules: 4-6 sentences. (1) the overall flow of today (2) one facet the card highlights in your heart/relationships/work (3) one concrete thing worth doing today (4) a warm closing line. Paragraph breaks are fine.',
+      'message rules: 4-6 sentences. (1) the overall flow of today (2) one facet the card highlights in your heart/relationships/work (3) one concrete thing worth doing today (4) a warm closing line. Write it as ONE flowing paragraph — do not insert line breaks or blank lines.',
     ].join('\n'),
     userPrompt: [
       `Card of the day: ${cardName} (${orientation})`,

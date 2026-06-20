@@ -87,35 +87,7 @@ export const TarotShareCard = React.forwardRef<HTMLDivElement, { data: ShareCard
           }}
         />
 
-        {/* 헤더 — 브랜드 */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 14,
-            zIndex: 1,
-          }}
-        >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/logo/logo.png"
-            alt="DestinyPal"
-            width={44}
-            height={44}
-            style={{ width: 44, height: 44, objectFit: 'contain', borderRadius: 8 }}
-          />
-          <span
-            style={{
-              fontFamily: "'Cinzel', Georgia, serif",
-              fontSize: 34,
-              fontWeight: 600,
-              letterSpacing: '0.04em',
-              color: GOLD,
-            }}
-          >
-            DestinyPal
-          </span>
-        </div>
+        {/* 상단 브랜드는 제거 — 카드/문구에 시선 집중. 브랜드는 하단 푸터에만. */}
 
         {/* 질문 — 맥락 라인(작게). 주인공은 아래 펀치라인. */}
         <div style={{ zIndex: 1, textAlign: 'center', maxWidth: 880 }}>
@@ -206,13 +178,14 @@ export const TarotShareCard = React.forwardRef<HTMLDivElement, { data: ShareCard
                 fontWeight: 800,
                 // 짧을수록 더 크게. 한국어 22자/영어 ~40자 기준 2단계.
                 fontSize: keyMessage.length > 22 ? 48 : 58,
-                lineHeight: 1.32,
+                lineHeight: 1.4,
                 letterSpacing: isKo ? '-0.01em' : '0',
                 color: GOLD,
                 textShadow: '0 2px 24px rgba(212,181,114,0.18)',
-                // 캡처에서 line-clamp 미동작 → 일반 줄바꿈. 한국어 단어 보존.
+                // 한국어는 어절 보존(keep-all). 단, 공백 없는 초장문 어절은
+                // 프레임 밖으로 삐져나가지 않게 anywhere 로 폴백.
                 wordBreak: 'keep-all',
-                whiteSpace: 'pre-wrap',
+                overflowWrap: 'anywhere',
               }}
             >
               {keyMessage}
@@ -223,12 +196,12 @@ export const TarotShareCard = React.forwardRef<HTMLDivElement, { data: ShareCard
           {showTeaser ? (
             <div
               style={{
-                marginTop: 20,
+                marginTop: 22,
                 fontSize: 27,
-                lineHeight: 1.5,
+                lineHeight: 1.55,
                 color: '#c7cedd',
                 wordBreak: 'keep-all',
-                whiteSpace: 'pre-wrap',
+                overflowWrap: 'anywhere',
               }}
             >
               {teaser}
