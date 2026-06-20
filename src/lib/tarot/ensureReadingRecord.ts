@@ -94,3 +94,49 @@ export async function ensureTarotReadingRecord(
     return 'skipped'
   }
 }
+
+export interface TarotFollowupTurn {
+  role: 'user' | 'assistant'
+  content: string
+}
+
+/**
+ * 유료 followup Q&A 의 차감-기록 안전망. /api/tarot/followup 은 1크레딧을
+ * 차감하고 답변을 응답으로 돌려주지만, 그 Q&A 의 기록(TarotReading.followupTurns)
+ * 은 클라의 best-effort PATCH 에만 의존했다 — PATCH 가 유실되면 과금된 후속
+ * 대화가 히스토리에서 사라진다. 이 헬퍼는 서버가 같은 readingId 행에 새 turn 을
+ * 직접 append 한다.
+ *
+ * 중복 안 됨: 클라 PATCH(/api/tarot/save/[id])는 followupTurns 를 *replace* 한다.
+ * 클라가 정상 저장하면 같은 내용으로 덮어써 turn 이 한 번만 남고, 유실되면 이
+ * append 가 남는다. 호출 측은 첫 과금(claimed)일 때만 호출해야 한다 — 멱등 replay
+ * 는 이미 append 됐으므로.
+ *
+ * 소유권 가드: readingId 가 호출자 소유가 아니면 아무것도 하지 않는다. 절대
+ * throw 하지 않는다(답변 응답 경로를 깨면 안 됨).
+ */
+export async function appendTarotFollowupTurns(
+  readingId: string,
+  userId: string,
+  newTurns: TarotFollowupTurn[]
+): Promise<void> {
+  if (!readingId || !userId || newTurns.length === 0) return
+  if (readingId.length > MAX_READING_ID_LEN) return
+  try {
+    // DB 측 원자적 jsonb concat — read-modify-write 를 쓰면 같은 리딩에 서로
+    // 다른 followup 두 개가 동시에 들어올 때(다른 탭/기기) 둘 다 같은 기존
+    // 배열을 읽고 덮어써 한쪽의 유료 turn 이 사라진다(lost update). 단일 UPDATE
+    // 로 `기존(||'[]') || 새 turn` 을 이어 붙이면 그 경쟁창이 사라진다. 소유권은
+    // WHERE "userId" 로 강제(남의 리딩이면 0행 갱신=no-op). updateMany 가 아닌
+    // raw 라 count 로 적용 여부만 확인.
+    const turnsJson = JSON.stringify(newTurns)
+    await prisma.$executeRaw`
+      UPDATE "TarotReading"
+      SET "followupTurns" = COALESCE("followupTurns", '[]'::jsonb) || ${turnsJson}::jsonb
+      WHERE "id" = ${readingId} AND "userId" = ${userId}
+    `
+  } catch (err) {
+    // P2022/42703(followupTurns 컬럼 prod 미적용) / 일시 DB 오류 — 삼킨다.
+    logger.warn('[appendTarotFollowupTurns] failed', { err, readingId })
+  }
+}

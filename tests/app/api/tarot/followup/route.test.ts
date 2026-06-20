@@ -7,8 +7,10 @@ import { NextRequest } from 'next/server'
 
 // ---------- Mocks (must come before route import) ----------
 
+// requireAuth: true 라 핸들러는 항상 인증 context(userId)를 받는다.
 vi.mock('@/lib/api/middleware', () => ({
-  withApiMiddleware: (handler: any, _opts: any) => handler,
+  withApiMiddleware: (handler: any, _opts: any) => (req: any) =>
+    handler(req, { userId: 'user-123' }),
   createPublicStreamGuard: (opts: any) => opts,
 }))
 
