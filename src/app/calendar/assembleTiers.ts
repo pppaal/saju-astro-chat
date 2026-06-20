@@ -15,7 +15,6 @@ import { deriveConvergence } from '@/lib/calendar-engine/derivers/convergence'
 import { deriveLifetimeFlow } from '@/lib/calendar-engine/derivers/lifetimeFlow'
 import { deriveLifetimePivots } from '@/lib/calendar-engine/derivers/lifetimePivots'
 import { deriveMonthSummary } from '@/lib/calendar-engine/derivers/monthSummary'
-import { deriveDaySummary } from '@/lib/calendar-engine/derivers/daySummary'
 import { deriveLayeredScores } from '@/lib/calendar-engine/derivers/layeredScore'
 import { computeDayPillarIndices } from '@/lib/saju/dayPillar'
 import { getMonthPillarForDate } from '@/lib/saju/datePillars'
@@ -655,13 +654,7 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
   const dayCrossActivations: DestinyDay['crossActivations'] = [...dayCrossByPair.values()].sort(
     (a, b) => Math.abs(b.polarity) - Math.abs(a.polarity)
   )
-  // ── 타이밍 컨텍스트 (총평 문단 + 이달 흐름 추이 + 다가오는 7일) ──
-  const totalSummary = deriveDaySummary({
-    tone: dayAdapter.dayTone?.tone ?? 'mixed',
-    topReasons: dayAdapter.topReasons ?? [],
-    cautions: dayAdapter.cautions ?? [],
-    lang,
-  })
+  // ── 타이밍 컨텍스트 (이달 흐름 추이 + 다가오는 7일) ──
   // 이달 일별 점수(추이선) — monthCells 순서대로, layered.daily 의 정규화 점수.
   const dayMonthScores = monthCells.map((c) => {
     const iso = c.datetime.slice(0, 10)
@@ -717,7 +710,6 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
     // fallback 으로 떨어져 tense/bright 화해가 프로덕션에서 죽는다(반드시 전달).
     dayTone: dayAdapter.dayTone,
     twelveStageMatrix: dayAdapter.twelveStageMatrix,
-    totalSummary,
     monthScores: dayMonthScores,
     upcoming,
     hourCrossings: buildHourCrossings(dayCell, targetDayIso, natal.astro.location),

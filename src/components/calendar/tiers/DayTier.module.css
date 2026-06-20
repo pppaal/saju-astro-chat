@@ -236,13 +236,6 @@
   padding: 3px 10px;
 }
 
-.dayScore {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  gap: 8px;
-}
 .oneline {
   font-family: var(--dp-serif-ko);
   font-style: italic;
@@ -1084,14 +1077,6 @@
   line-height: 1.5;
   margin: 2px 0 0;
 }
-/* 히어로 한 줄 결론 아래 행동 조언(daySub) — 차분한 본문 톤. */
-.heroSub {
-  font-family: var(--dp-sans);
-  font-size: 13px;
-  color: var(--dp-ink-dim);
-  line-height: 1.55;
-  margin: 8px 0 0;
-}
 .evidence {
   margin-top: 14px;
   border-top: 1px solid var(--dp-line-soft);
@@ -1334,16 +1319,6 @@
   text-transform: uppercase;
   color: var(--dp-ink-faint);
   flex: 0 0 auto;
-}
-
-/* ---------- 그날 총평 (deriveDaySummary) ---------- */
-.totalSummary {
-  margin: 16px 0 0;
-  font-family: var(--dp-serif-ko);
-  font-size: 15px;
-  line-height: 1.75;
-  color: var(--dp-ink);
-  word-break: keep-all;
 }
 
 /* ---------- 타이밍 추이 (이달 흐름 / 다가오는 며칠) ---------- */

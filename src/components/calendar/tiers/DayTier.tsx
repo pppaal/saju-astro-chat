@@ -658,7 +658,8 @@ export function DayTier({ day, voc, onRise, sex = '남' }: DayTierProps) {
       </div>
 
       {/* ── 핵심 hero: 단일 중앙 컬럼 — 톤 게이지 → 일진 인장 → 한 줄 결론.
-          (heroSub 는 총평과 중복이라 제거. 결론=oneLine, 풀이=총평, 행동=칩.) ── */}
+          결론=oneLine · 행동=이렇게/조심 칩 · 근거='오늘의 핵심' ↑/↓ 리스트로
+          역할을 나눈다(겹치는 총평/서브 문단 제거). ── */}
       <div className={styles.dayHead}>
         {/* 점수 숫자 비노출 — 다이얼은 헤드라인·칩과 같은 단일 verdict 톤만 보여준다. */}
         <ToneDial tone={verdict.tone} label={ko ? '오늘' : 'Today'} />
@@ -683,8 +684,9 @@ export function DayTier({ day, voc, onRise, sex = '남' }: DayTierProps) {
         <p className={styles.oneline}>{localizeLabel(day.oneLine, ko)}</p>
       </div>
 
-      {/* ── 그날 총평 (deriveDaySummary) — 한 문단. ── */}
-      {day.totalSummary && <p className={styles.totalSummary}>{day.totalSummary}</p>}
+      {/* 총평 문단 제거 — oneLine(결론) + 아래 '오늘의 핵심' ↑/↓ 사유 리스트와
+          내용이 겹치고, 사유 절을 한 문장에 끼워 넣으면 문법이 어색해진다.
+          결론=oneLine · 행동=칩 · 근거=핵심 패널로 역할을 나눈다. */}
 
       {/* ── 이렇게 / 조심 — 톤 기반 행동 한 줄(시안). ── */}
       <div className={styles.doRow}>
