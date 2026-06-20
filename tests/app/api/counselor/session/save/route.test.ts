@@ -487,6 +487,44 @@ describe('/api/counselor/session/save', () => {
       })
     })
 
+    it('should store full birth identity in subject (재개 시 그 사람 사주 복원용)', async () => {
+      mockFindUnique.mockResolvedValue(null)
+      mockCreate.mockResolvedValue({ id: 'session-123', userId: mockUserId })
+
+      const req = new NextRequest('http://localhost:3000/api/counselor/session/save', {
+        method: 'POST',
+        body: JSON.stringify({
+          ...validSessionData,
+          subject: {
+            name: '이차연',
+            birthDate: '1990-05-15',
+            birthTime: '08:30',
+            birthTimeUnknown: false,
+            gender: 'female',
+            latitude: 37.5665,
+            longitude: 126.978,
+            city: 'Seoul',
+            timeZone: 'Asia/Seoul',
+          },
+        }),
+      })
+
+      const { POST } = await import('@/app/api/counselor/session/save/route')
+      await POST(req)
+
+      expect(mockCreate.mock.calls[0][0].data.meta.subject).toEqual({
+        name: '이차연',
+        birthDate: '1990-05-15',
+        birthTime: '08:30',
+        birthTimeUnknown: false,
+        gender: 'female',
+        latitude: 37.5665,
+        longitude: 126.978,
+        city: 'Seoul',
+        timeZone: 'Asia/Seoul',
+      })
+    })
+
     it('should NOT set meta when no subject provided (구버전 클라 호환)', async () => {
       mockFindUnique.mockResolvedValue(null)
       mockCreate.mockResolvedValue({ id: 'session-123', userId: mockUserId })

@@ -14,6 +14,9 @@ export interface ChatProfile {
   gender?: string
   latitude?: number
   longitude?: number
+  /** 출생지 시간대 — 세션 저장 시 subject 에 담아 재개 때 같은 사람 사주를
+   *  정확히 복원하기 위함(시주는 출생 시간대 기준). */
+  timeZone?: string
 }
 
 // Saju (Four Pillars) data structure

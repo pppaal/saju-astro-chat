@@ -85,7 +85,14 @@ export const POST = withApiMiddleware(
             ...(subjectName ? { name: subjectName } : {}),
             ...(subject?.birthDate?.trim() ? { birthDate: subject.birthDate.trim() } : {}),
             ...(subject?.birthTime?.trim() ? { birthTime: subject.birthTime.trim() } : {}),
+            ...(typeof subject?.birthTimeUnknown === 'boolean'
+              ? { birthTimeUnknown: subject.birthTimeUnknown }
+              : {}),
             ...(subject?.gender?.trim() ? { gender: subject.gender.trim() } : {}),
+            ...(typeof subject?.latitude === 'number' ? { latitude: subject.latitude } : {}),
+            ...(typeof subject?.longitude === 'number' ? { longitude: subject.longitude } : {}),
+            ...(subject?.city?.trim() ? { city: subject.city.trim() } : {}),
+            ...(subject?.timeZone?.trim() ? { timeZone: subject.timeZone.trim() } : {}),
           },
         }
       : undefined

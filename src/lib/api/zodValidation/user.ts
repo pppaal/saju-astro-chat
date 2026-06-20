@@ -109,7 +109,12 @@ export const counselorSessionSaveRequestSchema = z.object({
       name: z.string().max(80).optional(),
       birthDate: z.string().max(40).optional(),
       birthTime: z.string().max(20).optional(),
+      birthTimeUnknown: z.boolean().optional(),
       gender: z.string().max(20).optional(),
+      latitude: z.number().optional(),
+      longitude: z.number().optional(),
+      city: z.string().max(120).optional(),
+      timeZone: z.string().max(60).optional(),
     })
     .optional(),
 })

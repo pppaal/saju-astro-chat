@@ -218,16 +218,34 @@ const Chat = memo(function Chat({
   // 박게 한다. 사이드바가 과거 채팅마다 그 사람 이름을 보여주고(현재 사람으로
   // 도배되지 않게), 후속으로 재개 시 그 사람 컨텍스트를 복원하는 기반이 된다.
   // useMemo 로 참조 안정화 — autosave effect 가 매 렌더 재실행되지 않게.
+  // 출생 식별 전체(좌표·시간대 포함)를 저장 — 재개 시 useCounselorData 가
+  // 이걸로 그 사람 사주를 정확히 다시 계산한다. 일부만 저장하면 시주/하우스가
+  // 현재 사용자 기준으로 어긋난다.
   const autoSaveExtra = React.useMemo(
     () => ({
       subject: {
         name: profile?.name,
         birthDate: profile?.birthDate,
         birthTime: profile?.birthTime,
+        birthTimeUnknown: profile?.birthTimeUnknown,
         gender: profile?.gender,
+        latitude: profile?.latitude,
+        longitude: profile?.longitude,
+        city: profile?.city,
+        timeZone: profile?.timeZone,
       },
     }),
-    [profile?.name, profile?.birthDate, profile?.birthTime, profile?.gender]
+    [
+      profile?.name,
+      profile?.birthDate,
+      profile?.birthTime,
+      profile?.birthTimeUnknown,
+      profile?.gender,
+      profile?.latitude,
+      profile?.longitude,
+      profile?.city,
+      profile?.timeZone,
+    ]
   )
 
   // sessionIdRef 를 그대로 넘기면 새 채팅 시작(startNewChat) 시 ref 가 바뀌어도
