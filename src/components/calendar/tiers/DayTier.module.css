@@ -239,8 +239,10 @@
 
 .dayScore {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 18px;
+  text-align: center;
+  gap: 8px;
 }
 .oneline {
   font-family: var(--dp-serif-ko);
@@ -515,9 +517,10 @@
 /* ---------- score dial ---------- */
 .scoreDial {
   position: relative;
-  width: 96px;
-  height: 96px;
+  width: 150px;
+  max-width: 100%;
   flex: none;
+  line-height: 0;
 }
 .scoreDial .sdNum {
   position: absolute;
@@ -952,11 +955,7 @@
     font-size: 12.5px;
   }
   .scoreDial {
-    width: 80px;
-    height: 80px;
-  }
-  .scoreDial .sdNum b {
-    font-size: 26px;
+    width: 138px;
   }
   /* 24h grid: 12 → 4 columns */
   .hourGrid {

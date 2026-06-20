@@ -35,7 +35,7 @@ import styles from './DayTier.module.css'
 import { useI18n } from '@/i18n/I18nProvider'
 import { CrossingList } from '@/components/calendar/atoms/CrossingList'
 import { localizeLabel } from '@/components/calendar/adapters/localizeLabel'
-import { geokgukStatusEn, shinsalEn } from '@/components/calendar/adapters/dayTierEnMaps'
+import { shinsalEn } from '@/components/calendar/adapters/dayTierEnMaps'
 import { ShareDayButton } from '@/components/calendar/share/ShareDayButton'
 import type { DayShareData } from '@/components/calendar/share/DayShareCard'
 
@@ -149,32 +149,6 @@ function ToneDial({ tone, label }: { tone: DayVerdict['tone']; label?: string })
         </text>
       </svg>
     </div>
-  )
-}
-
-// ============================================================================
-// Head 보강 — GeokgukStatusFrame chip.
-// ============================================================================
-
-function GeokgukStatusFrame({ status }: { status: DestinyDay['geokgukStatus'] | undefined }) {
-  const { locale } = useI18n()
-  const ko = locale === 'ko'
-  if (!status) return null
-  const klass =
-    status.status === '성격'
-      ? styles.kStatusOk
-      : status.status === '파격'
-        ? styles.kStatusBad
-        : styles.kStatusMid
-  const nameTxt = ko ? status.name : (status.nameEn ?? localizeLabel(status.name, false))
-  const statusTxt = ko ? status.status : geokgukStatusEn(status.status)
-  return (
-    <span className={styles.statusChip}>
-      <span className="kHan">{nameTxt}</span>
-      <span className={`${styles.kStatus} ${klass}`}>{statusTxt}</span>
-      {/* description 은 KO 산문이라 KO 로케일에서만 노출. */}
-      {ko && <span style={{ color: 'var(--dp-ink-dim)' }}>{status.description}</span>}
-    </span>
   )
 }
 
@@ -762,10 +736,8 @@ export function DayTier({ day, voc, onRise, sex = '남' }: DayTierProps) {
         </span>
       </div>
 
-      {/* 본명 상태 — 격국 / 공망 / VOC */}
-      <div className={styles.headChips}>
-        <GeokgukStatusFrame status={day.geokgukStatus} />
-      </div>
+      {/* 본명 상태 — 격국 성패는 *정적 본명 분석*(타이밍 아님)이라 일 화면에서 제외
+          (전문 상세는 "근거 자세히"에서 신호로 확인). 공망/VOC 는 그날 활성이라 유지. */}
       <GongmangBanner gongmang={day.gongmang} />
       <VocBanner voc={voc} />
 
