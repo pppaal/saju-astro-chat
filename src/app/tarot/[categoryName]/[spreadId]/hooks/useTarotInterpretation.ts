@@ -484,6 +484,9 @@ export function useTarotInterpretation({
   // 서버 저장 후 부여된 readingId — 클래리파이어 / followup 채팅을
   // PATCH 로 같은 row 에 추가 저장할 때 사용.
   const [readingId, setReadingId] = useState<string | null>(null)
+  // interpret-stream 이 응답 헤더(x-reading-id)로 돌려준 서버 발급 id. 저장이
+  // 이 id 로 같은 행(차감 시점 안전망 행)을 채우게 해 차감-기록 행을 통일한다.
+  const serverReadingIdRef = useRef<string | null>(null)
   const [saveMessage, setSaveMessage] = useState<string>('')
 
   // Mount lifecycle ref so post-await setStates in handleSaveReading
@@ -619,6 +622,13 @@ export function useTarotInterpretation({
         }
 
         if (response.ok) {
+          // 서버가 발급한 readingId 회수 — 저장이 같은 행(차감 시점 안전망 행)을
+          // 채우도록 한다. 헤더는 스트림 본문보다 먼저 도착해 끊겨도 잡힌다.
+          const headerReadingId = response.headers.get('x-reading-id')
+          if (headerReadingId) {
+            serverReadingIdRef.current = headerReadingId
+            if (mountedRef.current) setReadingId(headerReadingId)
+          }
           const contentType = response.headers.get('content-type') || ''
 
           if (contentType.includes('text/event-stream') && response.body) {
@@ -843,7 +853,13 @@ export function useTarotInterpretation({
           const preferredSaveResponse = await apiFetch('/api/tarot/save', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(savePayload),
+            // readingId: interpret-stream 이 발급한 서버 id 로 같은 행을 upsert —
+            // 차감 시점 안전망 행과 통일(중복 차단). 없으면 서버가 결정적 dedupe.
+            body: JSON.stringify(
+              serverReadingIdRef.current
+                ? { ...savePayload, readingId: serverReadingIdRef.current }
+                : savePayload
+            ),
           })
 
           if (!preferredSaveResponse.ok) {

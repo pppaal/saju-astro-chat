@@ -21,13 +21,14 @@ vi.mock('@/lib/api/middleware', () => ({
   apiError: vi.fn((code: string, message?: string, details?: any) =>
     NextResponse.json(
       { success: false, error: { code, message }, ...(details && { details: details.details }) },
-      { status: code === 'VALIDATION_ERROR' ? 400 : 500 }
+      { status: code === 'VALIDATION_ERROR' ? 400 : code === 'NOT_FOUND' ? 404 : 500 }
     )
   ),
   ErrorCodes: {
     VALIDATION_ERROR: 'VALIDATION_ERROR',
     DATABASE_ERROR: 'DATABASE_ERROR',
     INTERNAL_ERROR: 'INTERNAL_ERROR',
+    NOT_FOUND: 'NOT_FOUND',
   },
 }))
 
@@ -35,6 +36,8 @@ vi.mock('@/lib/db/prisma', () => ({
   prisma: {
     tarotReading: {
       create: vi.fn(),
+      update: vi.fn(),
+      findUnique: vi.fn(),
       findMany: vi.fn(),
       count: vi.fn(),
     },
@@ -865,6 +868,97 @@ describe('/api/tarot/save', () => {
 
         const res = await POST(req)
         expect(res.status).toBe(500)
+      })
+    })
+
+    describe('readingId upsert (차감 시점 안전망 행과 통일)', () => {
+      const withReadingId = { ...validTarotData, readingId: 'tr_serverminted0001' }
+
+      it('서버 발급 readingId 의 기존 행(본인 소유)을 update 로 채운다', async () => {
+        const mockSchema = tarotSaveRequestSchema as { safeParse: ReturnType<typeof vi.fn> }
+        mockSchema.safeParse.mockReturnValue({ success: true, data: withReadingId })
+
+        const mockPrisma = prisma.tarotReading as {
+          findUnique: ReturnType<typeof vi.fn>
+          update: ReturnType<typeof vi.fn>
+          create: ReturnType<typeof vi.fn>
+        }
+        // 차감 시점 안전망이 만든 존재 행 (해석은 비어 있음, 본인 소유).
+        mockPrisma.findUnique.mockResolvedValue({ id: 'tr_serverminted0001', userId: mockUserId })
+        mockPrisma.update.mockResolvedValue({ id: 'tr_serverminted0001' })
+
+        const req = new NextRequest('http://localhost:3000/api/tarot/save', {
+          method: 'POST',
+          body: JSON.stringify(withReadingId),
+        })
+
+        const { POST } = await import('@/app/api/tarot/save/route')
+        const response = await POST(req)
+        const data = await response.json()
+
+        expect(response.status).toBe(200)
+        expect(data.readingId).toBe('tr_serverminted0001')
+        // 해석을 채우는 update 가 그 id 로 호출됐는지.
+        expect(mockPrisma.update).toHaveBeenCalledWith(
+          expect.objectContaining({ where: { id: 'tr_serverminted0001' } })
+        )
+        // 새 행을 만들지 않는다(중복 차단).
+        expect(mockPrisma.create).not.toHaveBeenCalled()
+      })
+
+      it('readingId 가 남의 소유면 404 (정보 누출·덮어쓰기 차단)', async () => {
+        const mockSchema = tarotSaveRequestSchema as { safeParse: ReturnType<typeof vi.fn> }
+        mockSchema.safeParse.mockReturnValue({ success: true, data: withReadingId })
+
+        const mockPrisma = prisma.tarotReading as {
+          findUnique: ReturnType<typeof vi.fn>
+          update: ReturnType<typeof vi.fn>
+          create: ReturnType<typeof vi.fn>
+        }
+        mockPrisma.findUnique.mockResolvedValue({
+          id: 'tr_serverminted0001',
+          userId: 'someone-else',
+        })
+
+        const req = new NextRequest('http://localhost:3000/api/tarot/save', {
+          method: 'POST',
+          body: JSON.stringify(withReadingId),
+        })
+
+        const { POST } = await import('@/app/api/tarot/save/route')
+        const response = await POST(req)
+
+        expect(response.status).toBe(404)
+        expect(mockPrisma.update).not.toHaveBeenCalled()
+        expect(mockPrisma.create).not.toHaveBeenCalled()
+      })
+
+      it('안전망 행이 아직 없으면 그 readingId 로 새로 만든다', async () => {
+        const mockSchema = tarotSaveRequestSchema as { safeParse: ReturnType<typeof vi.fn> }
+        mockSchema.safeParse.mockReturnValue({ success: true, data: withReadingId })
+
+        const mockPrisma = prisma.tarotReading as {
+          findUnique: ReturnType<typeof vi.fn>
+          update: ReturnType<typeof vi.fn>
+          create: ReturnType<typeof vi.fn>
+        }
+        mockPrisma.findUnique.mockResolvedValue(null)
+        mockPrisma.create.mockResolvedValue({ id: 'tr_serverminted0001' })
+
+        const req = new NextRequest('http://localhost:3000/api/tarot/save', {
+          method: 'POST',
+          body: JSON.stringify(withReadingId),
+        })
+
+        const { POST } = await import('@/app/api/tarot/save/route')
+        const response = await POST(req)
+
+        expect(response.status).toBe(200)
+        // create 가 서버 발급 id 로 호출됐는지.
+        expect(mockPrisma.create).toHaveBeenCalledWith({
+          data: expect.objectContaining({ id: 'tr_serverminted0001' }),
+        })
+        expect(mockPrisma.update).not.toHaveBeenCalled()
       })
     })
   })
