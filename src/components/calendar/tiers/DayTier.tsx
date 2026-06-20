@@ -96,11 +96,9 @@ function ToneDial({ tone, label }: { tone: DayVerdict['tone']; label?: string })
   const { locale } = useI18n()
   const ko = locale === 'ko'
   const dialLabel = label ?? (ko ? '오늘' : 'Today')
-  const r = 40
-  const c = 2 * Math.PI * r
-  const frac = tone === 'positive' ? 1 : tone === 'mixed' ? 0.6 : 0.3
+  const frac = tone === 'positive' ? 1 : tone === 'mixed' ? 0.55 : 0.3
   const col =
-    tone === 'positive' ? 'var(--dp-pos)' : tone === 'caution' ? 'var(--dp-neg)' : 'var(--dp-ember)'
+    tone === 'positive' ? 'var(--dp-pos)' : tone === 'caution' ? 'var(--dp-neg)' : '#b3873a'
   const word = ko
     ? tone === 'positive'
       ? '순풍'
@@ -112,28 +110,44 @@ function ToneDial({ tone, label }: { tone: DayVerdict['tone']; label?: string })
       : tone === 'caution'
         ? 'Headwind'
         : 'Steady'
+  // 반원 게이지 — 시안과 동일. 점수 숫자 비노출(톤 단어만), 호는 톤별 고정 비율.
+  const W = 150,
+    H = 88,
+    cx = 75,
+    cy = 78,
+    R = 58
+  const pt = (a: number) => `${cx + R * Math.cos(a)},${cy - R * Math.sin(a)}`
+  const arc = (s: number, e: number, c2: string, w: number) => (
+    <path
+      d={`M ${pt(s)} A ${R} ${R} 0 0 1 ${pt(e)}`}
+      fill="none"
+      stroke={c2}
+      strokeWidth={w}
+      strokeLinecap="round"
+    />
+  )
   return (
     <div className={styles.scoreDial}>
-      <svg width={96} height={96} viewBox="0 0 96 96">
-        <circle cx={48} cy={48} r={r} fill="none" stroke="rgba(58,46,28,0.12)" strokeWidth={5} />
-        <circle
-          cx={48}
-          cy={48}
-          r={r}
-          fill="none"
-          stroke={col}
-          strokeWidth={5}
-          strokeLinecap="round"
-          strokeDasharray={c}
-          strokeDashoffset={c * (1 - frac)}
-          transform="rotate(-90 48 48)"
-          style={{ filter: `drop-shadow(0 0 6px ${col})` }}
-        />
+      <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`}>
+        {arc(Math.PI, 0, 'rgba(58,46,28,0.12)', 8)}
+        {arc(Math.PI, Math.PI * (1 - frac), col, 8)}
+        <text
+          x={cx}
+          y={cy - 16}
+          textAnchor="middle"
+          style={{ font: '700 30px var(--dp-serif-ko)', fill: 'var(--dp-ink)' }}
+        >
+          {word}
+        </text>
+        <text
+          x={cx}
+          y={cy + 2}
+          textAnchor="middle"
+          style={{ font: '11px var(--dp-sans)', fill: 'var(--dp-ink-mute)' }}
+        >
+          {dialLabel}
+        </text>
       </svg>
-      <div className={styles.sdNum}>
-        <b>{word}</b>
-        <span>{dialLabel}</span>
-      </div>
     </div>
   )
 }
@@ -723,6 +737,30 @@ export function DayTier({ day, voc, onRise, sex = '남' }: DayTierProps) {
 
       {/* ── 그날 총평 (deriveDaySummary) — 한 문단. ── */}
       {day.totalSummary && <p className={styles.totalSummary}>{day.totalSummary}</p>}
+
+      {/* ── 이렇게 / 조심 — 톤 기반 행동 한 줄(시안). ── */}
+      <div className={styles.doRow}>
+        <span className={styles.doChip}>
+          {ko ? '이렇게 · ' : 'DO · '}
+          {dayBand === 'low'
+            ? ko
+              ? '정리·점검부터'
+              : 'start with review & tidying'
+            : ko
+              ? '잘 풀리는 일 밀어붙이기'
+              : 'push what works'}
+        </span>
+        <span className={styles.dontChip}>
+          {ko ? '조심 · ' : 'CAUTION · '}
+          {dayBand === 'good'
+            ? ko
+              ? '과욕만'
+              : "don't overreach"
+            : ko
+              ? '크게 벌이지 않기'
+              : "don't start big"}
+        </span>
+      </div>
 
       {/* 본명 상태 — 격국 / 공망 / VOC */}
       <div className={styles.headChips}>
