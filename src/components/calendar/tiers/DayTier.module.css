@@ -258,10 +258,14 @@
     grid-template-columns: 1fr;
   }
 }
+/* 최상위 섹션 간격 — 일관 리듬 */
+.section {
+  margin-top: var(--dp-section);
+}
 .panel {
   background: var(--dp-panel);
   border: 1px solid var(--dp-line);
-  border-radius: var(--dp-r);
+  border-radius: var(--dp-r-lg);
   padding: 20px;
   box-shadow: 0 1px 0 rgba(255, 255, 255, 0.4) inset;
 }
@@ -398,28 +402,40 @@
   margin-bottom: 8px;
 }
 
-/* ---------- section ---------- */
-.block {
-  margin-top: 40px;
-}
-.blockSm {
-  margin-top: 26px;
-}
+/* ---------- section header — 전 섹션 공통 1패턴 (serif + 작은 朱 점) ---------- */
 .secHead {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
   gap: 14px;
   flex-wrap: wrap;
-  margin-bottom: 4px;
+  margin-bottom: 12px;
 }
 .secTitle {
   font-family: var(--dp-serif-ko);
   font-weight: 700;
-  font-size: clamp(20px, 3vw, 27px);
+  font-size: clamp(16px, 2.3vw, 19px);
   color: var(--dp-ink);
   margin: 0;
   letter-spacing: -0.01em;
+  display: inline-flex;
+  align-items: baseline;
+}
+.secTitle::before {
+  content: '';
+  flex: none;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--dp-ember);
+  margin-right: 9px;
+  transform: translateY(-2px);
+}
+.secNote {
+  font-family: var(--dp-sans);
+  font-size: 11.5px;
+  color: var(--dp-ink-mute);
+  letter-spacing: 0.01em;
 }
 .tiny {
   font-family: var(--dp-mono);
@@ -1108,14 +1124,7 @@
 
 /* ── HourRhythm — 시진 길/주의 리듬 ── */
 .rhythmWrap {
-  margin: 16px 0 4px;
-}
-.rhythmLabel {
-  font-family: var(--sans);
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--ink);
-  margin-bottom: 10px;
+  margin: var(--dp-section) 0 4px;
 }
 .rhythmRow {
   display: flex;
@@ -1141,7 +1150,7 @@
   right: 0;
   top: 50%;
   height: 1px;
-  background: var(--line);
+  background: var(--dp-line);
 }
 .rhythmBar {
   position: absolute;
@@ -1152,14 +1161,14 @@
   border-radius: 3px;
 }
 .rhythmTime {
-  font-family: var(--mono);
+  font-family: var(--dp-mono);
   font-size: 8px;
-  color: var(--ink-dim);
+  color: var(--dp-ink-dim);
   white-space: nowrap;
 }
 /* ---------- 분야별 오늘 조언 (연애·돈·직업·관계·공부·건강) ---------- */
 .domainBlock {
-  margin-top: 24px;
+  margin-top: var(--dp-section);
 }
 .domainGrid {
   display: flex;
@@ -1173,12 +1182,12 @@
   gap: 12px;
   padding: 12px 14px;
   border: 1px solid var(--dp-line);
-  border-radius: 12px;
+  border-radius: var(--dp-r-lg);
   background: var(--dp-panel-2);
 }
 .domainActive {
-  border-color: var(--dp-ember);
-  background: color-mix(in srgb, var(--dp-ember) 8%, var(--dp-panel-2));
+  border-color: var(--dp-accent);
+  background: color-mix(in srgb, var(--dp-accent) 8%, var(--dp-panel-2));
 }
 .domainIcon {
   font-size: 18px;
@@ -1205,8 +1214,8 @@
   font-size: 9.5px;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: var(--dp-ember);
-  border: 1px solid var(--dp-ember);
+  color: var(--dp-accent);
+  border: 1px solid var(--dp-accent);
   border-radius: 999px;
   padding: 1px 7px;
 }
@@ -1321,28 +1330,92 @@
   flex: 0 0 auto;
 }
 
-/* ---------- 타이밍 추이 (이달 흐름 / 다가오는 며칠) ---------- */
-.flowWrap {
-  margin-top: 20px;
-  padding: 13px 14px;
+/* ---------- 사주 × 별자리 교차 카드 ---------- */
+.crossCard {
+  margin-top: var(--dp-section);
+  padding: 16px;
   border: 1px solid var(--dp-line);
-  border-radius: 10px;
+  border-radius: var(--dp-r-lg);
   background: var(--dp-panel);
 }
-.flowHead {
+.crossRow {
+  border-top: 1px solid var(--dp-line);
+  padding-top: 10px;
+  margin-top: 10px;
+}
+.crossRow:first-of-type {
+  border-top: 0;
+  padding-top: 0;
+  margin-top: 2px;
+}
+.crossPair {
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  margin-bottom: 8px;
-  font-family: var(--dp-sans);
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 5px;
+  flex-wrap: wrap;
+}
+.crossSaju {
   font-size: 13px;
+  color: var(--dp-ember-2);
+  background: rgba(176, 58, 34, 0.09);
+  border-radius: 5px;
+  padding: 3px 9px;
+}
+.crossAstro {
+  font-size: 13px;
+  color: var(--dp-accent);
+  background: rgba(52, 64, 111, 0.09);
+  border-radius: 5px;
+  padding: 3px 9px;
+}
+.crossArrowPos {
+  color: var(--dp-pos);
   font-weight: 700;
-  color: var(--dp-ink);
+}
+.crossArrowNeg {
+  color: var(--dp-neg);
+  font-weight: 700;
+}
+.crossMeaning {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--dp-ink-dim);
+}
+.crossFoot {
+  font-size: 11px;
+  color: var(--dp-ink-faint);
+  margin-top: 11px;
+}
+
+/* ---------- 타이밍 추이 (이달 흐름 + 다가오는 며칠 — 한 카드) ---------- */
+.flowWrap {
+  margin-top: var(--dp-section);
+  padding: 16px;
+  border: 1px solid var(--dp-line);
+  border-radius: var(--dp-r-lg);
+  background: var(--dp-panel);
 }
 .flowSub {
   font-weight: 400;
   font-size: 11px;
   color: var(--dp-ink-mute);
+}
+.flowDivider {
+  height: 1px;
+  background: var(--dp-line-soft);
+  border: 0;
+  margin: 14px 0;
+}
+.flowSubHead {
+  font-family: var(--dp-sans);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--dp-ink-dim);
+  margin-bottom: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
 }
 .upRow {
   display: flex;
@@ -1434,6 +1507,6 @@
   border-color: var(--dp-pos);
 }
 .dontChip {
-  color: var(--dp-ember);
-  border-color: var(--dp-ember);
+  color: var(--dp-neg);
+  border-color: var(--dp-neg);
 }

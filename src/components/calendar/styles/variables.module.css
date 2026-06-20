@@ -65,6 +65,10 @@
   --dp-r: 6px;
   --dp-r-lg: 10px;
 
+  /* spacing rhythm — 그룹 내부 간격 / 최상위 섹션 간격 */
+  --dp-gap: 18px;
+  --dp-section: 36px;
+
   /* legacy aliases — util.jsx 의 var(--ember), var(--accent), var(--el-*),
      var(--serif-ko), var(--mono), var(--ink), var(--ink-mute), var(--ink-faint),
      var(--pos), var(--neg) 를 inline style로 그대로 쓰는 atom 들이 작동하도록

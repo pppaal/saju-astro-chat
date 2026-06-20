@@ -208,6 +208,20 @@ function VocBanner({ voc }: { voc: DayVoc | undefined }) {
 }
 
 // ============================================================================
+// SecHead — 전 섹션 공통 헤더 1패턴 (serif 제목 + 작은 朱 점 + 우측 보조설명).
+// 직전엔 eyebrow(mono)·flowHead(sans)·인라인 mono·secTitle(특대) 가 뒤섞여
+// "위젯을 붙여 놓은" 느낌이었다 — 한 컴포넌트로 통일.
+// ============================================================================
+function SecHead({ title, note }: { title: string; note?: string }) {
+  return (
+    <div className={styles.secHead}>
+      <h2 className={styles.secTitle}>{title}</h2>
+      {note ? <span className={styles.secNote}>{note}</span> : null}
+    </div>
+  )
+}
+
+// ============================================================================
 // DayTier (main).
 // ============================================================================
 
@@ -230,7 +244,10 @@ function HourRhythm({
   })
   return (
     <div className={styles.rhythmWrap}>
-      <div className={styles.rhythmLabel}>{label}</div>
+      <SecHead
+        title={label}
+        note={ko ? '좋음 ↑ 쪽빛 · 주의 ↓ 주황' : 'good ↑ indigo · caution ↓ amber'}
+      />
       <div className={styles.rhythmRow}>
         {rows.map((h, i) => {
           const up = h.tone === 'good'
@@ -246,7 +263,7 @@ function HourRhythm({
                   style={{
                     height: `${mag * 50}%`,
                     [up ? 'bottom' : 'top']: '50%',
-                    background: up ? '#4f5d96' : '#c0741f',
+                    background: up ? 'var(--dp-accent-2)' : 'var(--dp-tone-mixed)',
                   }}
                 />
               </div>
@@ -275,84 +292,29 @@ function CrossActivationCard({
   const rows = [...items].sort((a, b) => Math.abs(b.polarity) - Math.abs(a.polarity)).slice(0, 4)
   if (rows.length === 0) return null
   return (
-    <div
-      style={{
-        marginTop: 14,
-        padding: 15,
-        border: '1.5px solid var(--dp-accent)',
-        borderRadius: 10,
-        background: 'var(--dp-panel)',
-      }}
-    >
-      <div
-        style={{
-          fontFamily: 'var(--dp-mono)',
-          fontSize: 12,
-          fontWeight: 700,
-          letterSpacing: '0.04em',
-          color: 'var(--dp-accent)',
-          marginBottom: 3,
-        }}
-      >
-        {ko ? '사주 × 별자리 교차' : 'Saju × Astrology'}
-      </div>
-      <div style={{ fontSize: 11, color: 'var(--dp-ink-mute)', marginBottom: 6 }}>
-        {ko ? '둘 다 가리키는 신호만' : 'only where both point the same way'}
-      </div>
+    <div className={styles.crossCard}>
+      <SecHead
+        title={ko ? '사주 × 별자리 교차' : 'Saju × Astrology'}
+        note={ko ? '둘 다 가리키는 신호만' : 'only where both point the same way'}
+      />
       {rows.map((c, i) => {
         const sajuPlain = ko
           ? sibsinArea(c.sajuKo ?? c.sajuSide)
           : sibsinAreaEn(c.sajuKo ?? c.sajuSide)
         const astroPlain = planetPlain(c.astroKo ?? c.astroSide, ko)
         const good = c.polarity >= 0
-        const arrowCol = good ? 'var(--dp-pos)' : 'var(--dp-ember)'
         return (
-          <div
-            key={c.id ?? i}
-            style={{ borderTop: '1px solid var(--dp-line)', paddingTop: 10, marginTop: 10 }}
-          >
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 8,
-                marginBottom: 5,
-                flexWrap: 'wrap',
-              }}
-            >
-              <span
-                style={{
-                  fontSize: 13,
-                  color: 'var(--dp-ember-2)',
-                  background: 'rgba(176,58,34,0.09)',
-                  borderRadius: 5,
-                  padding: '3px 9px',
-                }}
-              >
-                {sajuPlain}
-              </span>
-              <span style={{ color: arrowCol, fontWeight: 700 }}>⇄</span>
-              <span
-                style={{
-                  fontSize: 13,
-                  color: 'var(--dp-accent)',
-                  background: 'rgba(52,64,111,0.09)',
-                  borderRadius: 5,
-                  padding: '3px 9px',
-                }}
-              >
-                {astroPlain}
-              </span>
+          <div key={c.id ?? i} className={styles.crossRow}>
+            <div className={styles.crossPair}>
+              <span className={styles.crossSaju}>{sajuPlain}</span>
+              <span className={good ? styles.crossArrowPos : styles.crossArrowNeg}>⇄</span>
+              <span className={styles.crossAstro}>{astroPlain}</span>
             </div>
-            {c.meaning && (
-              <div style={{ fontSize: 14, lineHeight: 1.5, color: 'var(--dp-ink-dim)' }}>
-                {c.meaning}
-              </div>
-            )}
+            {c.meaning && <div className={styles.crossMeaning}>{c.meaning}</div>}
           </div>
         )
       })}
-      <div style={{ fontSize: 11, color: 'var(--dp-ink-faint)', marginTop: 11 }}>
+      <div className={styles.crossFoot}>
         {ko ? '내 사주와 그날 별이 실제로 겹칠 때만 떠요' : 'shown only when both actually overlap'}
       </div>
     </div>
@@ -360,66 +322,65 @@ function CrossActivationCard({
 }
 
 // ============================================================================
-// MonthFlow — 이달 흐름 속 오늘. day.monthScores(이달 일별 점수)를 먹선 추이로,
-// 오늘을 朱 점으로 표시. "지금 이달 어디쯤" 캘린더 맥락.
+// TimingCard — 타이밍 한 카드. 이달 흐름(먹선 추이, 오늘=쪽빛 점) + 다가오는 며칠
+// (점수 색칸)을 *한 카드*로 묶는다(직전엔 박스 2개로 쌓여 산만했다). 캘린더 정체성.
 // ============================================================================
-function MonthFlow({
+function TimingCard({
   scores,
+  days,
   ko,
 }: {
-  scores: NonNullable<DestinyDay['monthScores']>
+  scores: DestinyDay['monthScores']
+  days: DestinyDay['upcoming']
   ko: boolean
 }) {
-  if (!scores || scores.length < 3) return null
-  const W = 320,
-    H = 60,
-    pad = 6
-  const n = scores.length
-  const X = (i: number) => pad + (i / (n - 1)) * (W - 2 * pad)
-  const Y = (v: number) => H - 8 - (Math.max(0, Math.min(100, v)) / 100) * (H - 18)
-  let d = `M ${X(0)} ${Y(scores[0].score)}`
-  for (let i = 1; i < n; i++) {
-    const xc = (X(i - 1) + X(i)) / 2
-    d += ` C ${xc} ${Y(scores[i - 1].score)} ${xc} ${Y(scores[i].score)} ${X(i)} ${Y(scores[i].score)}`
-  }
-  const area = `${d} L ${X(n - 1)} ${H - 6} L ${X(0)} ${H - 6} Z`
-  const ti = scores.findIndex((s) => s.today)
-  return (
-    <div className={styles.flowWrap}>
-      <div className={styles.flowHead}>
-        <span>{ko ? '이달 흐름 속 오늘' : 'Today within the month'}</span>
-        <span className={styles.flowSub}>
-          {ko
-            ? `${scores.length}일 중 ${ti >= 0 ? ti + 1 : '?'}일째`
-            : `day ${ti >= 0 ? ti + 1 : '?'}`}
-        </span>
-      </div>
+  const hasFlow = !!scores && scores.length >= 3
+  const hasUp = !!days && days.length > 0
+  if (!hasFlow && !hasUp) return null
+
+  // 이달 흐름 sparkline
+  let flow: React.ReactNode = null
+  let dayLabel = ''
+  if (hasFlow && scores) {
+    const W = 320,
+      H = 60,
+      pad = 6
+    const n = scores.length
+    const X = (i: number) => pad + (i / (n - 1)) * (W - 2 * pad)
+    const Y = (v: number) => H - 8 - (Math.max(0, Math.min(100, v)) / 100) * (H - 18)
+    let d = `M ${X(0)} ${Y(scores[0].score)}`
+    for (let i = 1; i < n; i++) {
+      const xc = (X(i - 1) + X(i)) / 2
+      d += ` C ${xc} ${Y(scores[i - 1].score)} ${xc} ${Y(scores[i].score)} ${X(i)} ${Y(scores[i].score)}`
+    }
+    const area = `${d} L ${X(n - 1)} ${H - 6} L ${X(0)} ${H - 6} Z`
+    const ti = scores.findIndex((s) => s.today)
+    dayLabel = ko
+      ? `${scores.length}일 중 ${ti >= 0 ? ti + 1 : '?'}일째`
+      : `day ${ti >= 0 ? ti + 1 : '?'}`
+    flow = (
       <svg width="100%" viewBox={`0 0 ${W} ${H}`} style={{ display: 'block' }}>
         <path d={area} fill="rgba(47,125,91,0.16)" />
         <path d={d} fill="none" stroke="var(--dp-pos)" strokeWidth={2} />
         {ti >= 0 && (
           <>
-            <circle cx={X(ti)} cy={Y(scores[ti].score)} r={4.5} fill="var(--dp-ember)" />
+            {/* 오늘 = 쪽빛(now) — 朱는 사주 신호 전용으로 비운다. */}
+            <circle cx={X(ti)} cy={Y(scores[ti].score)} r={4.5} fill="var(--dp-accent)" />
             <text
               x={X(ti)}
               y={Y(scores[ti].score) - 7}
               textAnchor="middle"
-              style={{ font: '600 9px var(--dp-sans)', fill: 'var(--dp-ember)' }}
+              style={{ font: '600 9px var(--dp-sans)', fill: 'var(--dp-accent)' }}
             >
               {ko ? '오늘' : 'today'}
             </text>
           </>
         )}
       </svg>
-    </div>
-  )
-}
+    )
+  }
 
-// ============================================================================
-// UpcomingRow — 다가오는 며칠. day.upcoming 점수를 색 칸으로(좋음/주의/피하기).
-// ============================================================================
-function UpcomingRow({ days, ko }: { days: NonNullable<DestinyDay['upcoming']>; ko: boolean }) {
-  if (!days || days.length === 0) return null
+  // 다가오는 며칠
   const bg = (s: number) =>
     s >= 65
       ? 'rgba(47,125,91,0.28)'
@@ -434,21 +395,36 @@ function UpcomingRow({ days, ko }: { days: NonNullable<DestinyDay['upcoming']>; 
       ko ? ['일', '월', '화', '수', '목', '금', '토'] : ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
     )[wd]
   }
+
   return (
     <div className={styles.flowWrap}>
-      <div className={styles.flowHead}>
-        <span>{ko ? '다가오는 며칠' : 'Next few days'}</span>
-      </div>
-      <div className={styles.upRow}>
-        {days.map((d) => (
-          <div key={d.date} className={styles.upCell}>
-            <div className={styles.upBox} style={{ background: bg(d.score) }}>
-              {Number(d.date.slice(8, 10))}
-            </div>
-            <span className={styles.upWd}>{weekday(d.date)}</span>
+      <SecHead title={ko ? '타이밍' : 'Timing'} note={hasFlow ? dayLabel : undefined} />
+      {hasFlow && (
+        <>
+          <div className={styles.flowSubHead}>
+            <span>{ko ? '이달 흐름 속 오늘' : 'Today within the month'}</span>
           </div>
-        ))}
-      </div>
+          {flow}
+        </>
+      )}
+      {hasFlow && hasUp && <hr className={styles.flowDivider} />}
+      {hasUp && days && (
+        <>
+          <div className={styles.flowSubHead}>
+            <span>{ko ? '다가오는 며칠' : 'Next few days'}</span>
+          </div>
+          <div className={styles.upRow}>
+            {days.map((d) => (
+              <div key={d.date} className={styles.upCell}>
+                <div className={styles.upBox} style={{ background: bg(d.score) }}>
+                  {Number(d.date.slice(8, 10))}
+                </div>
+                <span className={styles.upWd}>{weekday(d.date)}</span>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
     </div>
   )
 }
@@ -717,9 +693,8 @@ export function DayTier({ day, voc, onRise, sex = '남' }: DayTierProps) {
       <GongmangBanner gongmang={day.gongmang} />
       <VocBanner voc={voc} />
 
-      {/* ── 타이밍 맥락 — 이달 흐름 속 오늘 + 다가오는 며칠 (캘린더 정체성) ── */}
-      {day.monthScores && <MonthFlow scores={day.monthScores} ko={ko} />}
-      {day.upcoming && <UpcomingRow days={day.upcoming} ko={ko} />}
+      {/* ── 타이밍 맥락 — 이달 흐름 속 오늘 + 다가오는 며칠 (한 카드, 캘린더 정체성) ── */}
+      <TimingCard scores={day.monthScores} days={day.upcoming} ko={ko} />
 
       {/* ── 오늘의 운세 카드 공유 (1080×1080 PNG · Web Share / 저장) ── */}
       <div style={{ display: 'flex', justifyContent: 'center', margin: '4px 0 2px' }}>
@@ -727,11 +702,13 @@ export function DayTier({ day, voc, onRise, sex = '남' }: DayTierProps) {
       </div>
 
       {/* ── 오늘의 핵심 — 왜 이런 하루 (topReasons/cautions) + 신살. 근거 트랜짓은 접힘. ── */}
-      <div>
+      <div className={styles.section}>
         <div className={`${styles.panel} ${styles.astro}`}>
-          <div className={styles.eyebrow}>
-            {ko ? '오늘의 핵심 · 왜 이런 하루?' : "Today's core · why this day?"}
-          </div>
+          <SecHead
+            title={ko ? '오늘의 핵심' : "Today's core"}
+            note={ko ? '왜 이런 하루?' : 'why this day?'}
+          />
+
           {(day.topReasons ?? []).length === 0 && (day.cautions ?? []).length === 0 ? (
             <p className={styles.whyMuted}>
               {ko
@@ -784,10 +761,11 @@ export function DayTier({ day, voc, onRise, sex = '남' }: DayTierProps) {
       {/* ── 분야별 오늘 조언 — 연애·돈·직업·관계·공부·건강 (그날 십신 기반). ── */}
       {dayDomains && (
         <div className={styles.domainBlock}>
-          <div className={styles.secHead}>
-            <h2 className={styles.secTitle}>{ko ? '분야별 오늘 조언' : 'Today by area'}</h2>
-            <span className={styles.tiny}>{ko ? dayDomains.bandNote : dayDomains.bandNoteEn}</span>
-          </div>
+          <SecHead
+            title={ko ? '분야별 오늘 조언' : 'Today by area'}
+            note={ko ? dayDomains.bandNote : dayDomains.bandNoteEn}
+          />
+
           <div className={styles.domainGrid}>
             {dayDomains.domains.map((d) => (
               <div
