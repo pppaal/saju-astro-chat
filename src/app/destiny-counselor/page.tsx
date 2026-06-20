@@ -92,6 +92,7 @@ export default function CounselorPage() {
     initialQuestion,
     latitude,
     longitude,
+    timeZone,
   } = parsedParams
 
   // handleLogin removed alongside the guest banner. If we reintroduce
@@ -428,6 +429,7 @@ export default function CounselorPage() {
               gender,
               latitude,
               longitude,
+              timeZone,
             }}
             lang={lang}
             initialContext={initialQuestion ? `User's initial question: ${initialQuestion}` : ''}

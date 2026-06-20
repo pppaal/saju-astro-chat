@@ -18,6 +18,7 @@ interface ProfileFallback {
   name?: string
   birthDate?: string
   birthTime?: string
+  birthTimeUnknown?: boolean
   gender?: string
   birthCity?: string
   tzId?: string
@@ -122,13 +123,82 @@ export function useCounselorData(sp: SearchParams) {
     }
   }, [hasUrlBirthInfo])
 
-  // Merged values — URL params win, profile fills in.
-  const name = urlName || profileFallback.name || ''
-  const birthDate = urlBirthDate || profileFallback.birthDate || ''
-  const birthTime = urlBirthTime || profileFallback.birthTime || ''
-  const city = urlCity || profileFallback.birthCity || ''
-  const effectiveGender = rawGender || profileFallback.gender || ''
-  const birthTimeUnknown = rawBirthTimeUnknown === '1' || rawBirthTimeUnknown === 'true'
+  // ── Resume: restore the session's subject (누구 사주였는지) ──────────────
+  // 사이드바에서 과거 채팅을 누르거나(?session=) 맨몸 진입 자동 재개는 URL 에
+  // 생년월일이 없다. 그대로 두면 로그인 사용자 본인 프로필로 폴백해 "남의 채팅을
+  // 내 사주로" 이어보는 버그가 난다. 세션 생성 시 저장해 둔 subject 를 불러와
+  // 본인 프로필보다 우선 적용한다. (subject 없는 옛 세션은 본인 폴백 유지.)
+  const urlSession = (Array.isArray(sp.session) ? sp.session[0] : sp.session) ?? ''
+  const shouldLoadSessionSubject = Boolean(urlSession) && !hasUrlBirthInfo
+  const [sessionSubject, setSessionSubject] = useState<ProfileFallback | null>(null)
+  const [sessionSubjectLoading, setSessionSubjectLoading] = useState(shouldLoadSessionSubject)
+
+  useEffect(() => {
+    if (!shouldLoadSessionSubject) {
+      setSessionSubject(null)
+      setSessionSubjectLoading(false)
+      return
+    }
+    let cancelled = false
+    setSessionSubjectLoading(true)
+    apiFetch(`/api/counselor/session/load?sessionId=${encodeURIComponent(urlSession)}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (cancelled) return
+        const s = data?.session?.meta?.subject as
+          | {
+              name?: string
+              birthDate?: string
+              birthTime?: string
+              birthTimeUnknown?: boolean
+              gender?: string
+              latitude?: number
+              longitude?: number
+              city?: string
+              timeZone?: string
+            }
+          | undefined
+        if (s && (s.birthDate || s.name)) {
+          setSessionSubject({
+            name: s.name,
+            birthDate: s.birthDate,
+            birthTime: s.birthTime,
+            birthTimeUnknown: s.birthTimeUnknown,
+            gender: s.gender,
+            birthCity: s.city,
+            tzId: s.timeZone,
+            latitude: s.latitude,
+            longitude: s.longitude,
+          })
+        } else {
+          setSessionSubject(null)
+        }
+      })
+      .catch((e) => logger.warn('[useCounselorData] session subject load failed', { e }))
+      .finally(() => {
+        if (!cancelled) setSessionSubjectLoading(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [shouldLoadSessionSubject, urlSession])
+
+  // 재개 subject 로딩 중엔 본인 프로필로 폴백하지 않는다(잠깐 본인 사주가
+  // 깜빡이고 재계산되는 낭비 방지). 로딩이 끝나면: subject 가 있으면 그걸,
+  // 없으면(옛 세션) 본인 프로필로 폴백.
+  const resolvingSubject = shouldLoadSessionSubject && sessionSubjectLoading
+  const birthSource: ProfileFallback = sessionSubject ?? (resolvingSubject ? {} : profileFallback)
+
+  // Merged values — URL params win, then resumed subject, then own profile.
+  const name = urlName || birthSource.name || ''
+  const birthDate = urlBirthDate || birthSource.birthDate || ''
+  const birthTime = urlBirthTime || birthSource.birthTime || ''
+  const city = urlCity || birthSource.birthCity || ''
+  const effectiveGender = rawGender || birthSource.gender || ''
+  const birthTimeUnknown =
+    rawBirthTimeUnknown === '1' ||
+    rawBirthTimeUnknown === 'true' ||
+    Boolean(birthSource.birthTimeUnknown)
 
   const latStr =
     (Array.isArray(sp.lat) ? sp.lat[0] : sp.lat) ??
@@ -142,10 +212,10 @@ export function useCounselorData(sp: SearchParams) {
   // URL 좌표 > localStorage 폴백 좌표 > 서울 기본값.
   const resolvedLatitude = Number.isFinite(latitude)
     ? latitude
-    : (profileFallback.latitude ?? DEFAULT_LATITUDE)
+    : (birthSource.latitude ?? DEFAULT_LATITUDE)
   const resolvedLongitude = Number.isFinite(longitude)
     ? longitude
-    : (profileFallback.longitude ?? DEFAULT_LONGITUDE)
+    : (birthSource.longitude ?? DEFAULT_LONGITUDE)
 
   // Honor the birth-place timezone when the home modal forwarded one
   // (URL or server profile). Falling back to the browser's tz is wrong
@@ -155,7 +225,7 @@ export function useCounselorData(sp: SearchParams) {
     (Array.isArray(sp.timeZone) ? sp.timeZone[0] : sp.timeZone) ??
     (Array.isArray(sp.tz) ? sp.tz[0] : sp.tz)
   const browserTz = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Asia/Seoul'
-  const resolvedTimeZone = urlTimeZone || profileFallback.tzId || browserTz
+  const resolvedTimeZone = urlTimeZone || birthSource.tzId || browserTz
   // 'F' / 'Female' / 'female' / 'f' / 'M' / 'Male' 다 처리. 기존
   // `lowercase === 'female'` 패턴은 'F'(한 글자) → 'f' 로 떨어져 매칭 실패
   // → 여자 사용자가 'male' 로 분류돼 대운 순/역행이 거꾸로 가던 회귀.
@@ -663,6 +733,7 @@ export function useCounselorData(sp: SearchParams) {
     chatSessionId,
     handleSaveMessage,
     parsedParams,
-    profileLoading,
+    // 재개 subject 로딩 중에도 게이트(생일 폼)를 띄우지 않도록 loading 에 포함.
+    profileLoading: profileLoading || resolvingSubject,
   }
 }
