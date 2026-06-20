@@ -12,6 +12,8 @@
  * 화살표·라벨 머리만 떼어 쓴다.
  */
 
+import { plainReason } from './plainLanguage'
+
 export interface DaySummaryInput {
   /** verdict.tone — 화해된 단일 톤. */
   tone: 'positive' | 'mixed' | 'caution'
@@ -23,29 +25,25 @@ export interface DaySummaryInput {
 }
 
 /**
- * 사유 문자열에서 핵심구만 추출.
- *  - 선행 화살표/마크/대괄호 라벨, '— 설명' 꼬리 제거.
- *  - 스케일 접두('이달 · '/'오늘 · '/'올해 · ' 등) 제거 — 월/연 레이어 사유가
- *    일 총평에 섞일 때 군더더기.
- *  - 괄호 글로스('(고양)(게자리)' 등) 제거 — 산문에선 거슬린다(monthSummary 와 동일 처리).
+ * 사유 문자열에서 핵심구만 추출 — 공용 plainReason(화살표·레이어 대괄호·괄호
+ * 글로스·한자月 정리) 후, 스케일 접두('이달 · ' 등)와 '— 설명' 꼬리를 더 떼낸다.
  */
-function core(s: string): string {
-  return s
-    .replace(/^[↑↓·\s]+/, '')
-    .replace(/^\[[^\]]*\]\s*/, '')
+function core(s: string, ko: boolean): string {
+  return plainReason(s, ko)
     .replace(/^(이달|오늘|올해|이번 달|month|day|year|decade|hour|peak)\s*·\s*/i, '')
     .split('—')[0]
     .split(' — ')[0]
-    .replace(/\s*[(（][^)）]*[)）]/g, '')
-    .replace(/\s{2,}/g, ' ')
     .trim()
 }
 
 export function deriveDaySummary(i: DaySummaryInput): string {
   const ko = i.lang === 'ko'
   const parts: string[] = []
-  const goods = i.topReasons.map(core).filter(Boolean).slice(0, 2)
-  const caution = i.cautions.map(core).filter(Boolean)[0]
+  const goods = i.topReasons
+    .map((s) => core(s, ko))
+    .filter(Boolean)
+    .slice(0, 2)
+  const caution = i.cautions.map((s) => core(s, ko)).filter(Boolean)[0]
 
   // 1) 전반 톤 한 문장.
   if (ko) {

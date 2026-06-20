@@ -131,6 +131,40 @@ export function planetPlain(name: string | undefined, ko: boolean): string {
   return entry ? (ko ? entry.ko : entry.en) : name
 }
 
+/** 한자 지지 → 한글 (사유 문자열의 '午月' 같은 한자月 표기 풀이용). */
+const BRANCH_HANJA_TO_KO: Record<string, string> = {
+  子: '자',
+  丑: '축',
+  寅: '인',
+  卯: '묘',
+  辰: '진',
+  巳: '사',
+  午: '오',
+  未: '미',
+  申: '신',
+  酉: '유',
+  戌: '술',
+  亥: '해',
+}
+
+/**
+ * 사유(topReasons/cautions) 문자열을 화면용 plain 으로 정리.
+ * formatReason 이 `${화살표} [레이어] ${korean}` 형태로 만들고 korean 에 전문용어·
+ * 괄호 글로스·한자月 표기가 섞여 들어온다. 총평·근거 리스트가 공통으로 쓴다.
+ *  - 선행 화살표/마크, `[이달]` 등 레이어 대괄호, 괄호 글로스 제거.
+ *  - (ko) '午月' 같은 한자月 → '오월' 로 풀어 읽기.
+ */
+export function plainReason(text: string | undefined, ko: boolean): string {
+  let t = (text ?? '')
+    .replace(/^[↑↓·\s]+/, '')
+    .replace(/\[[^\]]*\]\s*/g, '')
+    .replace(/\s*[(（][^)）]*[)）]/g, '')
+  if (ko) {
+    t = t.replace(/([子丑寅卯辰巳午未申酉戌亥])月/g, (_, b: string) => `${BRANCH_HANJA_TO_KO[b]}월`)
+  }
+  return t.replace(/\s{2,}/g, ' ').trim()
+}
+
 /** 관계명(…육합/충 등)에서 종류를 뽑아 쉬운 한 줄. */
 export function relationPlain(label: string | undefined): string {
   if (!label) return ''

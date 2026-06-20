@@ -23,7 +23,12 @@
 
 import * as React from 'react'
 import type { DestinyDay, AstroSignal, Polarity } from '@/types/calendar'
-import { sibsinArea, sibsinAreaEn, planetPlain } from '@/lib/calendar-engine/derivers/plainLanguage'
+import {
+  sibsinArea,
+  sibsinAreaEn,
+  planetPlain,
+  plainReason,
+} from '@/lib/calendar-engine/derivers/plainLanguage'
 import { deriveDayDomains } from '@/lib/calendar-engine/derivers/dayDomains'
 import { reconcileDayTone, type DayVerdict } from '@/lib/calendar-engine/derivers/reconcile'
 import styles from './DayTier.module.css'
@@ -675,12 +680,8 @@ export function DayTier({ day, voc, onRise, sex = '남' }: DayTierProps) {
     toneWord: shareToneWord,
     tone: verdict.tone,
     oneLine: localizeLabel(day.oneLine, ko),
-    goods: (day.topReasons ?? [])
-      .slice(0, 3)
-      .map((r) => localizeLabel(r.replace(/^[↑↓·]\s*/, ''), ko)),
-    cautions: (day.cautions ?? [])
-      .slice(0, 3)
-      .map((c) => localizeLabel(c.replace(/^[↑↓·]\s*/, ''), ko)),
+    goods: (day.topReasons ?? []).slice(0, 3).map((r) => localizeLabel(plainReason(r, ko), ko)),
+    cautions: (day.cautions ?? []).slice(0, 3).map((c) => localizeLabel(plainReason(c, ko), ko)),
   }
 
   return (
@@ -757,14 +758,12 @@ export function DayTier({ day, voc, onRise, sex = '남' }: DayTierProps) {
             <ul className={styles.whyList}>
               {(day.topReasons ?? []).map((r, i) => (
                 <li className={styles.whyPos} key={`wp-${i}`}>
-                  <span className={styles.whyArrow}>↑</span>{' '}
-                  {localizeLabel(r.replace(/^[↑↓·]\s*/, ''), ko)}
+                  <span className={styles.whyArrow}>↑</span> {localizeLabel(plainReason(r, ko), ko)}
                 </li>
               ))}
               {(day.cautions ?? []).map((c, i) => (
                 <li className={styles.whyNeg} key={`wn-${i}`}>
-                  <span className={styles.whyArrow}>↓</span>{' '}
-                  {localizeLabel(c.replace(/^[↑↓·]\s*/, ''), ko)}
+                  <span className={styles.whyArrow}>↓</span> {localizeLabel(plainReason(c, ko), ko)}
                 </li>
               ))}
             </ul>
