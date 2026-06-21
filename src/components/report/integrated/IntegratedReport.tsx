@@ -446,27 +446,17 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
         <div className={s.hero}>
           {cross?.synthesis && <p className={s.heroSummary}>{cross.synthesis}</p>}
           {(() => {
-            // 여러 카드(일간·격국)에 흩어진 강점/약점을 한곳에 종합 (Opus: TOP 묶기).
-            const dmx = getHanjaRich(S.dayMaster, lang) as {
-              strength?: string[]
-              weakness?: string[]
-            } | null
+            // 강점은 위 ViralTopCard 해시태그로 이동 — 여기선 '주의(약점)'만 남겨
+            // 중복 제거. (Opus: top 카드 ↔ 히어로 강점 이중 노출 정리.)
+            const dmx = getHanjaRich(S.dayMaster, lang) as { weakness?: string[] } | null
             const uniq = (a: string[]) => Array.from(new Set(a.filter(Boolean))).slice(0, 4)
-            const str = uniq([...(dmx?.strength ?? []), ...((geok?.strength as string[]) ?? [])])
             const weak = uniq([...(dmx?.weakness ?? []), ...((geok?.weakness as string[]) ?? [])])
-            if (!str.length && !weak.length) return null
+            if (!weak.length) return null
             return (
               <div className={s.heroSW}>
-                {str.length > 0 && (
-                  <div>
-                    <b>{lang === 'en' ? 'Strengths' : '강점'}</b> {str.join(' · ')}
-                  </div>
-                )}
-                {weak.length > 0 && (
-                  <div>
-                    <b>{lang === 'en' ? 'Watch for' : '주의'}</b> {weak.join(' · ')}
-                  </div>
-                )}
+                <div>
+                  <b>{lang === 'en' ? 'Watch for' : '주의'}</b> {weak.join(' · ')}
+                </div>
               </div>
             )
           })()}
