@@ -749,6 +749,7 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
     dayMaster: { hanja: user.ilgan.hanja, kr: user.ilgan.kr, en: user.ilgan.en },
     score: dayAdapter.score,
     oneLine: dayAdapter.oneLine,
+    oneLineEn: dayAdapter.oneLineEn,
     totalSignals: dayAdapter.totalSignals,
     signals: daySajuSignals,
     transits: dayTransits,
@@ -772,7 +773,9 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
     shinsalActive: dayAdapter.shinsalActive,
     narrative: dayAdapter.narrative,
     topReasons: dayAdapter.topReasons,
+    topReasonsEn: dayAdapter.topReasonsEn,
     cautions: dayAdapter.cautions,
+    cautionsEn: dayAdapter.cautionsEn,
     // 출력 화해 verdict — toDay 가 산출한 단일 권위. 빠뜨리면 DayTier 가 중립
     // fallback 으로 떨어져 tense/bright 화해가 프로덕션에서 죽는다(반드시 전달).
     dayTone: dayAdapter.dayTone,

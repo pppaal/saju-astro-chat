@@ -161,6 +161,8 @@ export interface DestinyIljinHeader {
   score: number
   /** 한 줄 요약 — '오늘은 같은 금(金) 기운이 겹쳐...'. */
   oneLine: string
+  /** 한 줄 요약 영문 — 클라이언트 로케일 토글용(서버언어 고정 방지). */
+  oneLineEn?: string
   /** 활성 신호 총 개수. */
   totalSignals: number
 }
@@ -212,10 +214,14 @@ export interface DestinyDay extends DestinyIljinHeader {
   shinsalActive: string[]
   /** narrative chip 묶음 (옵션). */
   narrative?: TaggedNarrative[]
-  /** 상위 우호 사유 3..5 (백엔드 CalendarCell.topReasons). */
+  /** 상위 우호 사유 3..5 (백엔드 CalendarCell.topReasons). KO. */
   topReasons?: string[]
-  /** 상위 주의 사유 3..5 (백엔드 CalendarCell.cautions). */
+  /** 상위 우호 사유 영문 — 토글용. */
+  topReasonsEn?: string[]
+  /** 상위 주의 사유 3..5 (백엔드 CalendarCell.cautions). KO. */
   cautions?: string[]
+  /** 상위 주의 사유 영문 — 토글용. */
+  cautionsEn?: string[]
   /**
    * 출력 화해 verdict — 점수 밴드 ↔ 신호/사유 톤을 묶은 단일 권위.
    * 헤드라인·한줄·칩이 같은 톤(positive/mixed/caution)을 말하도록 adapter 가

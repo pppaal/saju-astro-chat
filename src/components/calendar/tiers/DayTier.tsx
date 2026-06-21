@@ -526,6 +526,12 @@ export function DayTier({ day, voc, onRise, sex = '남' }: DayTierProps) {
   const dayBand: DayVerdict['band'] =
     verdict.tone === 'positive' ? 'good' : verdict.tone === 'caution' ? 'low' : 'mid'
 
+  // oneLine·핵심사유는 양쪽 로케일이 저장돼 있다 — 클라이언트 로케일로 고른다
+  // (서버언어로 굳어 토글 시 한/영이 섞이던 문제 해소).
+  const dayOneLine = ko ? day.oneLine : (day.oneLineEn ?? day.oneLine)
+  const dayReasons = ko ? (day.topReasons ?? []) : (day.topReasonsEn ?? day.topReasons ?? [])
+  const dayCautions = ko ? (day.cautions ?? []) : (day.cautionsEn ?? day.cautions ?? [])
+
   // hero 톤 단어 — 단일 verdict.tone 출처 (순풍/평이/역풍).
   const heroToneWord = ko
     ? verdict.tone === 'positive'
@@ -672,9 +678,9 @@ export function DayTier({ day, voc, onRise, sex = '남' }: DayTierProps) {
     sibsinLabel: shareSibsinLabel,
     toneWord: shareToneWord,
     tone: verdict.tone,
-    oneLine: localizeLabel(day.oneLine, ko),
-    goods: (day.topReasons ?? []).slice(0, 3).map((r) => localizeLabel(plainReason(r, ko), ko)),
-    cautions: (day.cautions ?? []).slice(0, 3).map((c) => localizeLabel(plainReason(c, ko), ko)),
+    oneLine: localizeLabel(dayOneLine, ko),
+    goods: dayReasons.slice(0, 3).map((r) => localizeLabel(plainReason(r, ko), ko)),
+    cautions: dayCautions.slice(0, 3).map((c) => localizeLabel(plainReason(c, ko), ko)),
   }
 
   return (
@@ -727,7 +733,7 @@ export function DayTier({ day, voc, onRise, sex = '남' }: DayTierProps) {
             <div className="cap">SCORE</div>
           </div>
         </div>
-        <p className={styles.oneline}>{localizeLabel(day.oneLine, ko)}</p>
+        <p className={styles.oneline}>{localizeLabel(dayOneLine, ko)}</p>
       </div>
 
       {/* ── 오늘 깊이 읽기 — 합성 해석 문단(일진 십신 + 교차 + 톤). ── */}
@@ -785,7 +791,7 @@ export function DayTier({ day, voc, onRise, sex = '남' }: DayTierProps) {
             note={ko ? '왜 이런 하루?' : 'why this day?'}
           />
 
-          {(day.topReasons ?? []).length === 0 && (day.cautions ?? []).length === 0 ? (
+          {dayReasons.length === 0 && dayCautions.length === 0 ? (
             <p className={styles.whyMuted}>
               {ko
                 ? '오늘은 두드러진 신호 없이 무난한 흐름이에요.'
@@ -793,12 +799,12 @@ export function DayTier({ day, voc, onRise, sex = '남' }: DayTierProps) {
             </p>
           ) : (
             <ul className={styles.whyList}>
-              {(day.topReasons ?? []).map((r, i) => (
+              {dayReasons.map((r, i) => (
                 <li className={styles.whyPos} key={`wp-${i}`}>
                   <span className={styles.whyArrow}>↑</span> {localizeLabel(plainReason(r, ko), ko)}
                 </li>
               ))}
-              {(day.cautions ?? []).map((c, i) => (
+              {dayCautions.map((c, i) => (
                 <li className={styles.whyNeg} key={`wn-${i}`}>
                   <span className={styles.whyArrow}>↓</span> {localizeLabel(plainReason(c, ko), ko)}
                 </li>
