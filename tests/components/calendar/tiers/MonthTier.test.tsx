@@ -253,6 +253,47 @@ describe('MonthTier (정갈)', () => {
       render(<MonthTier month={month} onDive={noop} onRise={noop} />)
       expect(screen.queryByText('본문')).not.toBeInTheDocument()
     })
+
+    it('renders the English summary body from bodyEn on locale toggle', () => {
+      mockLocale = 'en'
+      const month = makeMonth({
+        narrative: [{ tag: '이달 총평', body: '한국어 총평', bodyEn: 'A steady, ripening month.' }],
+      })
+      render(<MonthTier month={month} onDive={noop} onRise={noop} />)
+      expect(screen.getByText('A steady, ripening month.')).toBeInTheDocument()
+      expect(screen.queryByText('한국어 총평')).not.toBeInTheDocument()
+      expect(screen.getByText('This month')).toBeInTheDocument()
+    })
+  })
+
+  describe('이달의 사주 × 점성 교차 (month cross)', () => {
+    const crossFixture = {
+      crossActivations: [
+        {
+          saju: '정재',
+          sajuEn: 'Direct Wealth',
+          astro: '금성',
+          astroEn: 'Venus',
+          meaning: '안정된 가치가 살아남',
+          meaningEn: 'stable value lights up',
+          polarity: 2,
+        },
+      ],
+    }
+
+    it('renders monthly cross pairs (ko)', () => {
+      render(<MonthTier month={makeMonth(crossFixture)} onDive={noop} onRise={noop} />)
+      expect(screen.getByText('이달의 사주 × 점성')).toBeInTheDocument()
+      expect(screen.getByText('정재 × 금성')).toBeInTheDocument()
+      expect(screen.getByText('안정된 가치가 살아남')).toBeInTheDocument()
+    })
+
+    it('renders monthly cross pairs in English', () => {
+      mockLocale = 'en'
+      render(<MonthTier month={makeMonth(crossFixture)} onDive={noop} onRise={noop} />)
+      expect(screen.getByText('Direct Wealth × Venus')).toBeInTheDocument()
+      expect(screen.getByText('stable value lights up')).toBeInTheDocument()
+    })
   })
 
   describe('dive button', () => {

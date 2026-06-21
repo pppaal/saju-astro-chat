@@ -354,6 +354,42 @@
   color: var(--dp-ink-mute);
 }
 
+/* ---------- 이달의 사주 × 점성 교차 ---------- */
+.mcross {
+  display: flex;
+  flex-direction: column;
+}
+.mcrossRow {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--dp-line-soft);
+  flex-wrap: wrap;
+}
+.mcrossPair {
+  flex-shrink: 0;
+  font-family: var(--dp-serif-ko);
+  font-size: 13px;
+  padding-left: 9px;
+  border-left: 2px solid var(--dp-line);
+}
+.mcrossPos {
+  border-left-color: var(--dp-pos);
+  color: var(--dp-ink);
+}
+.mcrossNeg {
+  border-left-color: var(--dp-ember);
+  color: var(--dp-ink);
+}
+.mcrossMeaning {
+  flex: 1 1 12em;
+  min-width: 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--dp-ink-mute);
+}
+
 /* ---------- 이달 총평 ---------- */
 .card {
   margin-top: 24px;

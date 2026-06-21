@@ -240,6 +240,8 @@ function CrossActivationCard({
           : sibsinAreaEn(c.sajuKo ?? c.sajuSide)
         const astroPlain = planetPlain(c.astroKo ?? c.astroSide, ko)
         const good = c.polarity >= 0
+        // 의미는 로케일로 선택(서버언어 고정 방지) — meaningEn 없으면 KO 폴백.
+        const meaning = ko ? c.meaning : (c.meaningEn ?? c.meaning)
         return (
           <div key={c.id ?? i} className={styles.crossRow}>
             <div className={styles.crossPair}>
@@ -247,7 +249,7 @@ function CrossActivationCard({
               <span className={good ? styles.crossArrowPos : styles.crossArrowNeg}>⇄</span>
               <span className={styles.crossAstro}>{astroPlain}</span>
             </div>
-            {c.meaning && <div className={styles.crossMeaning}>{c.meaning}</div>}
+            {meaning && <div className={styles.crossMeaning}>{meaning}</div>}
           </div>
         )
       })}

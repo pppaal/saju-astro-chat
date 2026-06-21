@@ -173,6 +173,36 @@ describe('DayTier', () => {
     })
   })
 
+  describe('saju × astrology cross card', () => {
+    const crossDay = {
+      crossActivations: [
+        {
+          id: 'x1',
+          sajuSide: '정재',
+          astroSide: '금성',
+          sajuKo: '정재',
+          astroKo: '금성',
+          meaning: '안정된 가치·관계가 살아남',
+          meaningEn: 'stable value and ties light up',
+          polarity: 2 as const,
+          weight: 0.8,
+        },
+      ],
+    }
+
+    it('renders the cross meaning in Korean', () => {
+      setup({ day: crossDay })
+      expect(screen.getByText('안정된 가치·관계가 살아남')).toBeInTheDocument()
+    })
+
+    it('picks meaningEn in English (no server-locale baking)', () => {
+      mockLocale = 'en'
+      setup({ day: crossDay })
+      expect(screen.getByText('stable value and ties light up')).toBeInTheDocument()
+      expect(screen.queryByText('안정된 가치·관계가 살아남')).not.toBeInTheDocument()
+    })
+  })
+
   describe('natal detail fold (hidden signals)', () => {
     it('renders the collapsible natal detail with hidden stems (ko)', () => {
       setup()

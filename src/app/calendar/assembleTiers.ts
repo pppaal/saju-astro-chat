@@ -534,23 +534,47 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
   // 이달 총평 — 타이밍·톤·지배 테마를 이어지는 한 문단으로 합성(deriveMonthSummary).
   // 기존 narrative(인트로+토막)가 안 녹이던 best/caution/converge 날짜·분포를 글로.
   // narrative 맨 앞에 '이달 총평' 태그로 넣어 카드 선두에 노출.
-  const monthSummaryText = deriveMonthSummary({
+  // 양쪽 로케일 요약을 함께 만들어 보관 — 클라이언트 로케일 토글 시 서버언어로
+  // 굳어 한글/영문이 어긋나던 문제(감사 #1 가시성) 해소. 정본 태그 '이달 총평'으로
+  // 찾고, body=ko / bodyEn=en 를 MonthTier 가 로케일로 고른다.
+  const monthReasonsBy = (en: boolean): string[] =>
+    dedupeByBody(
+      monthCells
+        .flatMap((c) =>
+          ((en ? c.topReasonsEn : c.topReasons) ?? []).map((r) => ({
+            score: c.derivedScore,
+            body: r,
+          }))
+        )
+        .sort((a, b) => b.score - a.score)
+    )
+      .slice(0, 4)
+      .map((r) => r.body)
+  const summaryCommon = {
     woolunKr: month.woolun?.kr && month.woolun.kr !== '—' ? month.woolun.kr : undefined,
     goodDays: month.goodDays.length,
     cautionDays: month.cautionDays.length,
     totalDays: monthCells.length,
-    topReasons: monthTopReasons.map((r) => r.body),
     bestDay: month.bestDay?.date || undefined,
-    bestDayReason: monthKeyDays.find((k) => k.date === month.bestDay?.date)?.meaning,
     cautionDay: month.cautionDays[0],
     convergeDate: month.converge?.date || undefined,
-    lang,
+  }
+  // bestDayReason(keyDays meaning)은 서버 lang 으로만 산출돼 있어 그 로케일 요약에만 싣는다.
+  const bestDayReason = monthKeyDays.find((k) => k.date === month.bestDay?.date)?.meaning
+  const summaryKo = deriveMonthSummary({
+    ...summaryCommon,
+    topReasons: monthReasonsBy(false),
+    bestDayReason: lang === 'ko' ? bestDayReason : undefined,
+    lang: 'ko',
   })
-  if (monthSummaryText) {
-    month.narrative = [
-      { tag: lang === 'ko' ? '이달 총평' : 'This month', body: monthSummaryText },
-      ...month.narrative,
-    ]
+  const summaryEn = deriveMonthSummary({
+    ...summaryCommon,
+    topReasons: monthReasonsBy(true),
+    bestDayReason: lang === 'en' ? bestDayReason : undefined,
+    lang: 'en',
+  })
+  if (summaryKo || summaryEn) {
+    month.narrative = [{ tag: '이달 총평', body: summaryKo, bodyEn: summaryEn }, ...month.narrative]
   }
 
   // 이 달의 사주×점성 교차 — monthly 층 cross-activation 페어를 모아 카드 원료로.
@@ -685,7 +709,9 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
       astroSide: ko ? astroKo : (PLANET_EN_FROM_KO[astroKo] ?? astroKo),
       sajuKo, // raw — 분야 라우팅이 로케일에 흔들리지 않게(EN 에선 영문이라 키워드 매칭 실패).
       astroKo,
-      meaning: stripCrossPair((ko ? s.korean : s.english) ?? ''),
+      // 양쪽 로케일 보관 — DayTier 가 클라이언트 로케일로 고른다(토글 불일치 방지).
+      meaning: stripCrossPair(s.korean ?? ''),
+      meaningEn: stripCrossPair(s.english ?? ''),
       polarity: s.polarity,
       weight: s.weight,
     })

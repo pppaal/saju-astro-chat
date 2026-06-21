@@ -22,7 +22,6 @@
 import type { DestinyMonth, DestinyDayMark } from '@/types/calendar'
 import styles from './MonthTier.module.css'
 import { useI18n } from '@/i18n/I18nProvider'
-import { localizeLabel } from '@/components/calendar/adapters/localizeLabel'
 import { toneMeaningFor, type MeaningTone } from '@/lib/calendar-engine/derivers/toneMeaning'
 
 const MONTH_EN = [
@@ -173,9 +172,11 @@ export function MonthTier({ month, onDive, onRise, showRise = true }: MonthTierP
   const bigDays = keyDayItems.sort((a, b) => a.when.localeCompare(b.when))
   const keyDates = new Set(bigDays.map((i) => i.when))
 
-  // ── 이달 총평 — narrative 에서 요약 한 문단 ──
-  const summaryTag = ko ? '이달 총평' : 'This month'
-  const summaryCard = (month.narrative ?? []).find((n) => n.tag === summaryTag)
+  // ── 이달 총평 — 정본 태그 '이달 총평'으로 찾고, body(ko)/bodyEn(en) 로케일 선택. ──
+  const summaryCard = (month.narrative ?? []).find((n) => n.tag === '이달 총평')
+
+  // ── 이달의 사주 × 점성 교차 — 월운 십신 × 그 달 점성(monthly 층 페어). ──
+  const monthCross = month.crossActivations ?? []
 
   // 'MM-DD' → 'M/D' (큰 날 날짜 라벨)
   const mdLabel = (ds: string) => {
@@ -331,11 +332,36 @@ export function MonthTier({ month, onDive, onRise, showRise = true }: MonthTierP
         </>
       )}
 
+      {/* ===== 이달의 사주 × 점성 교차 ===== */}
+      {monthCross.length > 0 && (
+        <>
+          <div className={styles.subhead}>
+            {ko ? '이달의 사주 × 점성' : 'This month · Saju × Astrology'}
+          </div>
+          <div className={styles.mcross}>
+            {monthCross.map((c, i) => (
+              <div className={styles.mcrossRow} key={i}>
+                <span
+                  className={`${styles.mcrossPair} ${c.polarity >= 0 ? styles.mcrossPos : styles.mcrossNeg}`}
+                >
+                  {ko ? c.saju : c.sajuEn} × {ko ? c.astro : c.astroEn}
+                </span>
+                <span className={styles.mcrossMeaning}>
+                  {ko ? c.meaning : (c.meaningEn ?? c.meaning)}
+                </span>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+
       {/* ===== 이달 총평 ===== */}
-      {summaryCard && (
+      {summaryCard && (summaryCard.body || summaryCard.bodyEn) && (
         <div className={styles.card}>
-          <div className={styles.cardLabel}>{summaryCard.tag}</div>
-          <p className={styles.cardBody}>{localizeLabel(summaryCard.body, ko)}</p>
+          <div className={styles.cardLabel}>{ko ? '이달 총평' : 'This month'}</div>
+          <p className={styles.cardBody}>
+            {ko ? summaryCard.body : (summaryCard.bodyEn ?? summaryCard.body)}
+          </p>
         </div>
       )}
 
