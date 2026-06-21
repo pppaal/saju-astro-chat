@@ -1,17 +1,12 @@
-import { STEMS, BRANCHES, FIVE_ELEMENT_RELATIONS } from '@/lib/saju/constants'
+import { STEMS, BRANCHES, FIVE_ELEMENT_RELATIONS, ELEMENT_KO_TO_EN } from '@/lib/saju/constants'
 import { computeDayBranch, computeDayStem } from './saju-shinsal'
 // 일진 천간의 그날 십신(정관/정인/식신…) — cross-activation 매칭 키로 evidence.sibsin 에 태깅.
 import { getSibsinFromStemInfo as getSibsin } from './shared/sibsin'
 import type { ActiveSignal, ExtractorContext, SignalExtractor, Polarity } from '../types'
 import type { FiveElement } from '@/lib/saju/types'
 
-const ELEMENT_EN: Record<string, string> = {
-  목: 'Wood',
-  화: 'Fire',
-  토: 'Earth',
-  금: 'Metal',
-  수: 'Water',
-}
+// 오행 KO→EN — 공용 SSOT(constants.ELEMENT_KO_TO_EN)에서 파생(복붙 금지).
+const ELEMENT_EN = ELEMENT_KO_TO_EN
 // 일진 오행 → 본명 일간 관계의 EN 동사구 (kind 기준).
 const RELATION_EN: Record<string, string> = {
   same: 'reinforces (peer/rival)',

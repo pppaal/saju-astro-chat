@@ -1,4 +1,4 @@
-import { STEMS } from '@/lib/saju/constants'
+import { STEMS, ELEMENT_KO_TO_EN } from '@/lib/saju/constants'
 import { getYearPillarForDate, getMonthPillarForDate } from '@/lib/saju/datePillars'
 import type { ActiveSignal, ExtractorContext, SignalExtractor, Polarity } from '../types'
 import type { FiveElement } from '@/lib/saju/types'
@@ -174,13 +174,8 @@ const PERIOD_LABEL_EN: Record<BuildArgs['layer'], string> = {
   yearly: 'year',
   monthly: 'month',
 }
-const ELEMENT_EN: Record<FiveElement, string> = {
-  목: 'Wood',
-  화: 'Fire',
-  토: 'Earth',
-  금: 'Metal',
-  수: 'Water',
-}
+// 오행 KO→EN — 공용 SSOT(constants.ELEMENT_KO_TO_EN)에서 파생(복붙 금지).
+const ELEMENT_EN = ELEMENT_KO_TO_EN
 
 function verdictFlowLine(
   verdict: BuildArgs['verdict'],

@@ -6,6 +6,7 @@
  * Increment ①: SAJU section.
  */
 import { currentManAge } from '@/lib/datetime/currentAge'
+import { ELEMENT_KO_TO_EN } from '@/lib/saju/constants'
 import { collectSajuFacts } from '@/lib/destiny/sajuFacts'
 import { computeCurrentUnse, type CurrentUnse } from '@/lib/saju/currentUnse'
 import { getSajuYearForDate } from '@/lib/saju/datePillars'
@@ -79,13 +80,8 @@ const SIBSIN_EN: Record<string, string> = {
   ...SIBSIN_EN_BASE,
   일간: 'Self',
 }
-const ELEM_EN: Record<string, string> = {
-  목: 'Wood',
-  화: 'Fire',
-  토: 'Earth',
-  금: 'Metal',
-  수: 'Water',
-}
+// 오행 KO→EN — 공용 SSOT(constants.ELEMENT_KO_TO_EN)에서 파생(복붙 금지).
+const ELEM_EN = ELEMENT_KO_TO_EN
 const STRENGTH_EN: Record<string, string> = {
   신강: 'strong',
   신약: 'weak',
