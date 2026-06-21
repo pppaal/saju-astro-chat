@@ -19,6 +19,7 @@ import type {
   DestinyArabicLot,
   DestinyLifeStage,
   DestinyLifetime,
+  DestinyMilestone,
   DestinyUserSummary,
   DestinyZRChapter,
   ElementCounts,
@@ -452,6 +453,8 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
   }
 
   // ── 교차 리스트 — "언제 · 무엇이 교차 · 근거" 한 줄씩. 캘린더의 본질. ──
+  // 라벨은 로케일에 맞춰 고른다(서버 baked 언어에 묶이지 않게 — labelEn 폴백 label).
+  const mLabel = (m: DestinyMilestone) => (ko ? m.label : (m.labelEn ?? m.label))
   const evHead = (label: string) => (label.includes('—') ? label.split('—')[0].trim() : label)
   const evWhy = (label: string) =>
     label.includes('—') ? label.split('—').slice(1).join('—').trim() : ''
@@ -480,10 +483,10 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
       sort: c.startYear,
       when: c.startYear === c.endYear ? `${c.startYear}` : `${c.startYear}–${c.endYear}`,
       title: all
-        .map((m) => evHead(m.label))
+        .map((m) => evHead(mLabel(m)))
         .slice(0, 3)
         .join(bothSystems ? ' × ' : ' · '),
-      detail: all.map((m) => evWhy(m.label)).find(Boolean),
+      detail: all.map((m) => evWhy(mLabel(m))).find(Boolean),
       past: c.endYear < lifetime.currentYear,
     })
   }
@@ -875,7 +878,7 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
                   </small>
                 </span>
                 <span className={styles.lab}>
-                  {m.label}
+                  {mLabel(m)}
                   {m.now && <span className={styles.nowMark}>{ko ? '← 지금' : '← now'}</span>}
                 </span>
               </div>
@@ -1178,4 +1181,3 @@ function ZRLane({
     </div>
   )
 }
-

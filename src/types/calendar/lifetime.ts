@@ -107,8 +107,10 @@ export interface DestinyMilestone {
   year: number
   /** 만 나이. */
   age: number
-  /** 한 줄 라벨 — '첫 토성 회귀 — 진짜 어른됨의 통과의례'. */
+  /** 한 줄 라벨(KO) — '첫 토성 회귀 — 진짜 어른됨의 통과의례'. */
   label: string
+  /** 한 줄 라벨 영문 — 클라이언트 언어 토글용. 미지정 시 label 폴백. */
+  labelEn?: string
   /** 시각화 카테고리 — 색상·아이콘 분기 키. */
   kind: DestinyMilestoneKind
   /** 현재 시점에 가장 가까운 마일스톤 표시. */
