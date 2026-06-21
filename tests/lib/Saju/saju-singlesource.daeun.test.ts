@@ -83,6 +83,26 @@ describe('대운 single-source — 라우트가 보정된 daeWoon 을 서빙', (
   })
 })
 
+describe('대운수 — 거리도 절기 경계와 같은 진태양시(effectiveDateTime) 기준', () => {
+  // 버그: sajuMonth/sajuYear 경계는 longitude 보정된 effectiveDateTime 으로
+  // 정해지는데, 대운수 거리(nextTerm - birth / birth - prevTerm)만 raw
+  // birthDateTime 으로 재고 있었다. 경도 보정분만큼 두 기준이 갈려, 절기 경계
+  // 근방 출생자의 대운수가 ±1 어긋났다.
+  // 회귀 잠금: 부산 서편 경도(124°E, ~-44분)를 넘긴 1990-03-06 10:15 출생은
+  // 보정 전이면 9, 거리도 effectiveDateTime 으로 재면 10 이 된다(경계 기준과 일치).
+  it('1990-03-06 10:15 KST @124°E: 대운수 = 10 (raw 거리였다면 9)', () => {
+    const r = calculateSajuData('1990-03-06', '10:15', 'male', 'solar', 'Asia/Seoul', false, 124.0)
+    expect(r.daeWoon.isForward).toBe(true)
+    expect(r.daeWoon.startAge).toBe(10)
+  })
+
+  it('경도 없으면 effectiveDateTime == birthDateTime → 보정 없는 옛 값 보존', () => {
+    // 같은 입력, 경도 미지정. 보정이 0 이므로 거리 기준이 어느 쪽이든 동일해야 한다.
+    const a = calculateSajuData('1990-03-06', '10:15', 'male', 'solar', 'Asia/Seoul')
+    expect(a.daeWoon.startAge).toBe(9)
+  })
+})
+
 describe('대운 회귀 — 라우트는 항상 canonical daeWoon 을 서빙(옛 raw 경로 아님)', () => {
   // route.ts 가 예전에 하던 방식: raw toDate instant 를 unse.getDaeunCycles 에
   // 그대로 넘겨 서빙. 절기 경계 출생자에서 보정 daeWoon 과 갈라질 수 있다.
