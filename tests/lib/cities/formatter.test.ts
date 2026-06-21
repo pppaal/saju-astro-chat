@@ -5,6 +5,8 @@ import {
   getCityNameInKorean,
   getCountryNameInKorean,
   getCityNameFromKorean,
+  localizeStoredCity,
+  COUNTRY_FULL_NAME,
 } from '@/lib/cities/formatter'
 
 describe('cities/formatter', () => {
@@ -399,6 +401,57 @@ describe('cities/formatter', () => {
       europeanCities.forEach((city) => {
         expect(getCityNameInKorean(city)).not.toBeNull()
       })
+    })
+  })
+
+  describe('localizeStoredCity', () => {
+    it('returns empty string for nullish / blank input', () => {
+      expect(localizeStoredCity(null)).toBe('')
+      expect(localizeStoredCity(undefined)).toBe('')
+      expect(localizeStoredCity('   ')).toBe('')
+    })
+
+    it('localizes "City, CC" with a 2-letter code (ko)', () => {
+      // Korean city for Korean reader -> city only
+      expect(localizeStoredCity('Seoul, KR', 'ko')).toBe('서울')
+      expect(localizeStoredCity('Tokyo, JP', 'ko')).toBe('도쿄, 일본')
+    })
+
+    it('localizes "City, CC" with a 2-letter code (en, default)', () => {
+      expect(localizeStoredCity('Seoul, KR', 'en')).toBe('Seoul, South Korea')
+      expect(localizeStoredCity('Tokyo, JP')).toBe('Tokyo, Japan')
+    })
+
+    it('resolves a full English country name to its code', () => {
+      expect(localizeStoredCity('Tokyo, Japan', 'en')).toBe('Tokyo, Japan')
+      expect(localizeStoredCity('Seoul, South Korea', 'ko')).toBe('서울')
+    })
+
+    it('keeps an already-Hangul value unchanged in ko locale', () => {
+      expect(localizeStoredCity('서울', 'ko')).toBe('서울')
+      expect(localizeStoredCity('도쿄', 'ko')).toBe('도쿄')
+    })
+
+    it('translates a known English-only city to Korean in ko locale', () => {
+      expect(localizeStoredCity('Seoul', 'ko')).toBe('서울')
+      expect(localizeStoredCity('Paris', 'ko')).toBe('파리')
+    })
+
+    it('falls back to the raw city when no Korean translation exists (ko)', () => {
+      expect(localizeStoredCity('Atlantisburg', 'ko')).toBe('Atlantisburg')
+    })
+
+    it('returns the raw value unchanged in en locale when no country code', () => {
+      expect(localizeStoredCity('Seoul', 'en')).toBe('Seoul')
+      expect(localizeStoredCity('SomePlace', 'en')).toBe('SomePlace')
+    })
+  })
+
+  describe('COUNTRY_FULL_NAME export', () => {
+    it('exposes overridden full names for major countries', () => {
+      expect(COUNTRY_FULL_NAME['KR']).toBe('South Korea')
+      expect(COUNTRY_FULL_NAME['US']).toBe('United States')
+      expect(COUNTRY_FULL_NAME['JP']).toBe('Japan')
     })
   })
 })
