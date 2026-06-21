@@ -230,9 +230,11 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
   const dayIdx = computeDayPillarIndices(focusY, focusM, focusD)
   const iljinStem = STEM_NAMES[dayIdx.stemIndex]
   const iljinBranch = BRANCH_NAMES[dayIdx.branchIndex]
-  const woolunRef = getMonthPillarForDate(
-    new Date(`${TARGET_YEAR}-${String(TARGET_MONTH).padStart(2, '0')}-15T00:00:00`)
-  )
+  // 월운 기준 인스턴트는 *UTC* 로 만든다. tz-less `new Date('YYYY-MM-15T00:00:00')`
+  // 는 서버 로컬로 해석돼 절입(節入) 근처에서 서버 시간대별로 60갑자가 갈렸다
+  // (Honolulu↔Seoul ~19h 차). 15일이라 실제 플립은 드물지만 결정성 위반이라 고정.
+  // (extractor 경로 saju-pillar.ts 는 이미 UTC — 이 표시 경로만 회귀였다.)
+  const woolunRef = getMonthPillarForDate(new Date(Date.UTC(TARGET_YEAR, TARGET_MONTH - 1, 15)))
   const woolunStem = woolunRef.stem
   const woolunBranch = woolunRef.branch
 
@@ -652,6 +654,27 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
   const dayCrossActivations: DestinyDay['crossActivations'] = [...dayCrossByPair.values()].sort(
     (a, b) => Math.abs(b.polarity) - Math.abs(a.polarity)
   )
+  // ── 타이밍 컨텍스트 (이달 흐름 추이 + 다가오는 7일) ──
+  // 이달 일별 점수(추이선) — monthCells 순서대로, layered.daily 의 정규화 점수.
+  const dayMonthScores = monthCells.map((c) => {
+    const iso = c.datetime.slice(0, 10)
+    return {
+      day: Number(iso.slice(8, 10)),
+      score: Math.round(layered.daily.get(iso)?.score ?? 50),
+      today: iso === targetDayIso,
+    }
+  })
+  // 다가오는 7일 — 오늘 다음날부터. cells 범위 밖(월말 등)은 자연히 짧아진다.
+  const cellByIso = new Map(cells.map((c) => [c.datetime.slice(0, 10), c]))
+  const upcoming: Array<{ date: string; score: number }> = []
+  for (let i = 1; i <= 7; i++) {
+    const d = new Date(`${targetDayIso}T00:00:00Z`)
+    d.setUTCDate(d.getUTCDate() + i)
+    const iso = d.toISOString().slice(0, 10)
+    if (!cellByIso.has(iso)) continue
+    upcoming.push({ date: iso, score: Math.round(layered.daily.get(iso)?.score ?? 50) })
+  }
+
   const day: DestinyDay = {
     date: dayAdapter.date,
     dateKo: dayAdapter.dateKo,
@@ -687,6 +710,8 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
     // fallback 으로 떨어져 tense/bright 화해가 프로덕션에서 죽는다(반드시 전달).
     dayTone: dayAdapter.dayTone,
     twelveStageMatrix: dayAdapter.twelveStageMatrix,
+    monthScores: dayMonthScores,
+    upcoming,
     hourCrossings: buildHourCrossings(dayCell, targetDayIso, natal.astro.location),
     // 시(時)별 달 정밀 — 그날 12 시진 달을 재계산해 달×본명 어스펙트 절정 시각.
     hourMoon: await buildHourMoon(targetDayIso, natal),
