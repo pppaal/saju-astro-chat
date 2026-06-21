@@ -374,6 +374,15 @@
   padding-left: 9px;
   border-left: 2px solid var(--dp-line);
 }
+/* 용어 참고(작게·흐리게) — 뜻 뒤에 붙는 정재×금성 등. */
+.mcrossTerm {
+  display: block;
+  font-family: var(--dp-mono);
+  font-size: 10px;
+  letter-spacing: 0.02em;
+  color: var(--dp-ink-mute);
+  margin-top: 2px;
+}
 .mcrossPos {
   border-left-color: var(--dp-pos);
   color: var(--dp-ink);

@@ -23,6 +23,7 @@ import type { DestinyMonth, DestinyDayMark } from '@/types/calendar'
 import styles from './MonthTier.module.css'
 import { useI18n } from '@/i18n/I18nProvider'
 import { toneMeaningFor, type MeaningTone } from '@/lib/calendar-engine/derivers/toneMeaning'
+import { sibsinArea, sibsinAreaEn, planetPlain } from '@/lib/calendar-engine/derivers/plainLanguage'
 
 const MONTH_EN = [
   'January',
@@ -344,7 +345,13 @@ export function MonthTier({ month, onDive, onRise, showRise = true }: MonthTierP
                 <span
                   className={`${styles.mcrossPair} ${c.polarity >= 0 ? styles.mcrossPos : styles.mcrossNeg}`}
                 >
-                  {ko ? c.saju : c.sajuEn} × {ko ? c.astro : c.astroEn}
+                  {/* 쉬운말 우선 — 뜻을 앞에, 용어(정재×금성)는 작은 참고로. */}
+                  {ko
+                    ? `${sibsinArea(c.saju)} × ${planetPlain(c.astro, true)}`
+                    : `${sibsinAreaEn(c.saju)} × ${planetPlain(c.astro, false)}`}
+                  <span className={styles.mcrossTerm}>
+                    {ko ? c.saju : c.sajuEn} × {ko ? c.astro : c.astroEn}
+                  </span>
                 </span>
                 <span className={styles.mcrossMeaning}>
                   {ko ? c.meaning : (c.meaningEn ?? c.meaning)}

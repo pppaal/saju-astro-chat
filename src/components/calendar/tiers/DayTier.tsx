@@ -28,6 +28,7 @@ import {
   sibsinAreaEn,
   planetPlain,
   plainReason,
+  twelveStagePlain,
 } from '@/lib/calendar-engine/derivers/plainLanguage'
 import { deriveDayDomains } from '@/lib/calendar-engine/derivers/dayDomains'
 import { deriveDayDeepRead } from '@/lib/calendar-engine/derivers/dayDeepRead'
@@ -432,6 +433,27 @@ function EvidenceDetails({ day, ko }: { day: DestinyDay; ko: boolean }) {
 // 숨겨둔 신호: 응용격국(동적)·지장간(일지 3층)·일진 12운성(본명 기둥별). 펼치면
 // 노출. EN 은 dayTierEnMaps 고정 치환(한글 누출 방지).
 // ============================================================================
+// 오행/지장간 층 쉬운말(ko) — 용어 대신 풀이를 앞에 둔다.
+const ELEM_PLAIN_KO: Record<string, string> = {
+  목: '나무(木)',
+  화: '불(火)',
+  토: '흙(土)',
+  금: '쇠(金)',
+  수: '물(水)',
+}
+const LAYER_PLAIN_KO: Record<string, string> = {
+  정기: '주된 기운',
+  중기: '중간 기운',
+  여기: '남은 기운',
+}
+// 본명 기둥(연/월/일/시) 쉬운말 — 年월일시 한자 대신.
+const PILLAR_PLAIN: Record<string, { ko: string; en: string }> = {
+  年: { ko: '태어난 해', en: 'birth year' },
+  月: { ko: '태어난 달', en: 'birth month' },
+  日: { ko: '나 자신', en: 'self (day)' },
+  時: { ko: '태어난 시', en: 'birth hour' },
+}
+
 function NatalDetails({ day, ko }: { day: DestinyDay; ko: boolean }) {
   const patterns = day.appliedPatterns ?? []
   const jj = day.jijanggan
@@ -443,22 +465,27 @@ function NatalDetails({ day, ko }: { day: DestinyDay; ko: boolean }) {
   return (
     <details className={styles.natal}>
       <summary className={styles.natalSummary}>
-        {ko ? '본명 상세 · 격국 · 지장간 · 운성' : 'Natal detail · patterns, hidden stems, stages'}
+        {ko ? '오늘 더 자세히 — 타고난 기운 풀이' : 'More detail · your chart, explained'}
       </summary>
       <div className={styles.natalBody}>
         {patterns.length > 0 && (
           <div className={styles.natalBlock}>
-            <div className={styles.natalLabel}>{ko ? '응용 격국' : 'Applied patterns'}</div>
+            <div className={styles.natalLabel}>
+              {ko ? '오늘 만들어진 기운 조합' : 'Combinations forming today'}
+            </div>
             {patterns.map((p, i) => {
               const en = appliedPatternEn(String(p.id))
               const good = p.polarity >= 0
               return (
                 <div className={styles.natalRow} key={p.id ?? i}>
+                  {/* 풀이를 앞에(크게), 용어는 작은 참고로. */}
                   <span className={good ? styles.natalPos : styles.natalNeg}>
+                    {ko ? p.rule : (en?.gloss ?? '')}
+                  </span>
+                  <span className={styles.natalDesc}>
                     {ko ? p.korean : (en?.name ?? p.korean)}{' '}
                     <span className={styles.natalHan}>{p.name}</span>
                   </span>
-                  <span className={styles.natalDesc}>{ko ? p.rule : (en?.gloss ?? '')}</span>
                 </div>
               )
             })}
@@ -466,14 +493,16 @@ function NatalDetails({ day, ko }: { day: DestinyDay; ko: boolean }) {
         )}
         {jjLayers.length > 0 && (
           <div className={styles.natalBlock}>
-            <div className={styles.natalLabel}>{ko ? '지장간 · 일지 속 천간' : 'Hidden stems'}</div>
+            <div className={styles.natalLabel}>
+              {ko ? '내 안에 숨은 기운 (일지 속)' : 'Hidden energies within'}
+            </div>
             <div className={styles.natalChips}>
               {jjLayers.map((L, i) => (
                 <span className={styles.natalChip} key={i}>
-                  <span className={styles.natalHan}>{L.stem}</span>{' '}
-                  {ko ? L.layer : jijangganLayerEn(L.layer)} ·{' '}
-                  {ko ? sibsinArea(String(L.sibsin)) : sibsinAreaEn(String(L.sibsin))} ·{' '}
-                  {ko ? L.element : elementEn(L.element)}
+                  {ko
+                    ? `${ELEM_PLAIN_KO[L.element] ?? L.element} · ${sibsinArea(String(L.sibsin))} · ${LAYER_PLAIN_KO[L.layer] ?? L.layer}`
+                    : `${elementEn(L.element)} · ${sibsinAreaEn(String(L.sibsin))} · ${jijangganLayerEn(L.layer)}`}{' '}
+                  <span className={styles.natalHan}>{L.stem}</span>
                 </span>
               ))}
             </div>
@@ -482,13 +511,15 @@ function NatalDetails({ day, ko }: { day: DestinyDay; ko: boolean }) {
         {stages.length > 0 && (
           <div className={styles.natalBlock}>
             <div className={styles.natalLabel}>
-              {ko ? '일진 12운성 · 본명 기둥별' : 'Twelve stages vs natal pillars'}
+              {ko ? '기둥별 기운의 세기' : 'Energy strength by pillar'}
             </div>
             <div className={styles.natalChips}>
               {stages.map((s, i) => (
                 <span className={styles.natalChip} key={i}>
-                  <span className={styles.natalHan}>{s.pillar}</span>{' '}
-                  {ko ? s.stage : twelveStageEn(s.stage)}
+                  {ko
+                    ? `${PILLAR_PLAIN[s.pillar]?.ko ?? s.pillar} · ${twelveStagePlain(s.stage)}`
+                    : `${PILLAR_PLAIN[s.pillar]?.en ?? s.pillar} · ${twelveStageEn(s.stage)}`}{' '}
+                  <span className={styles.natalHan}>{s.stage}</span>
                 </span>
               ))}
             </div>
@@ -705,24 +736,25 @@ export function DayTier({ day, voc, onRise, sex = '남' }: DayTierProps) {
           <div className={styles.dmRef}>
             <span className={styles.dmHan}>{day.dayMaster.hanja}</span>
             <span className={styles.dmMeaning}>
-              {ko ? `내 일간 · ${day.dayMaster.kr} 기준` : `your day master · ${day.dayMaster.en}`}
+              {ko
+                ? `나의 타고난 기운 · ${day.dayMaster.kr}`
+                : `your core nature · ${day.dayMaster.en}`}
             </span>
           </div>
         )}
         <div className={styles.iljinBig}>
           <span className="han">{day.iljin.hanja}</span>
           <div className="meta">
+            {/* 뜻 먼저(크게) — 용어(일진·십신)는 아래 작은 참고로. */}
             <div className="kr">
-              {day.iljin.kr} · {ko ? '오늘의 일진' : "today's pillar"}
+              {ko
+                ? `오늘은 ‘${sibsinArea(String(day.iljinSibsin))}’의 기운`
+                : `today leans toward ${sibsinAreaEn(String(day.iljinSibsin))}`}
             </div>
             <div className="ss">
               {ko
-                ? `${String(day.iljinSibsin)}${
-                    sibsinArea(String(day.iljinSibsin)) !== String(day.iljinSibsin)
-                      ? ` · ${sibsinArea(String(day.iljinSibsin))}`
-                      : ''
-                  }`
-                : sibsinAreaEn(String(day.iljinSibsin))}
+                ? `오늘의 기운 ${day.iljin.kr}(${day.iljin.hanja}) · 십신 ${String(day.iljinSibsin)}`
+                : `today's pillar ${day.iljin.en} · ${day.iljin.hanja}`}
             </div>
             <span className="tone" data-tone={verdict.tone}>
               {heroToneWord}

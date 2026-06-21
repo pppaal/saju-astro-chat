@@ -143,23 +143,24 @@ describe('DayTier', () => {
       expect(screen.getByText('2024년 6월 15일')).toBeInTheDocument()
     })
 
-    it('renders the iljin hanja and korean reading', () => {
+    it('renders the iljin hanja and a PLAIN-language lead (meaning before jargon)', () => {
       setup()
       expect(screen.getByText('甲子')).toBeInTheDocument()
-      // 정갈 hero: kr reading sits on the "갑자 · 오늘의 일진" line.
-      expect(screen.getByText(/갑자 · 오늘의 일진/)).toBeInTheDocument()
+      // 쉬운말 우선: 뜻("돈·현실")을 앞세우고, 갑자/편재 용어는 작은 참고로.
+      expect(screen.getByText('오늘은 ‘돈·현실’의 기운')).toBeInTheDocument()
+      expect(screen.getByText(/오늘의 기운 갑자/)).toBeInTheDocument()
     })
 
-    it('shows the natal day master as the reference line at the top (ko)', () => {
+    it('shows the natal day master plainly as "나의 타고난 기운" (ko)', () => {
       setup()
       expect(screen.getByText('辛')).toBeInTheDocument()
-      expect(screen.getByText(/내 일간 · 신금 기준/)).toBeInTheDocument()
+      expect(screen.getByText(/나의 타고난 기운 · 신금/)).toBeInTheDocument()
     })
 
-    it('shows the day master reference in English', () => {
+    it('shows the day master reference in plain English', () => {
       mockLocale = 'en'
       setup()
-      expect(screen.getByText(/your day master · Sin · Yin Metal/)).toBeInTheDocument()
+      expect(screen.getByText(/your core nature · Sin · Yin Metal/)).toBeInTheDocument()
     })
 
     it('renders the one-line summary', () => {
@@ -217,19 +218,19 @@ describe('DayTier', () => {
   })
 
   describe('natal detail fold (hidden signals)', () => {
-    it('renders the collapsible natal detail with hidden stems (ko)', () => {
+    it('renders the collapsible natal detail with PLAIN labels + hidden stems (ko)', () => {
       setup()
-      expect(screen.getByText(/본명 상세/)).toBeInTheDocument()
-      expect(screen.getAllByText(/지장간/).length).toBeGreaterThan(0)
+      expect(screen.getByText(/오늘 더 자세히/)).toBeInTheDocument()
+      expect(screen.getByText(/숨은 기운/)).toBeInTheDocument()
       // 癸 hidden-stem (jeonggi) chip from the fixture jijanggan.
       expect(screen.getByText('癸')).toBeInTheDocument()
     })
 
-    it('translates the natal detail labels to English', () => {
+    it('translates the natal detail labels to plain English', () => {
       mockLocale = 'en'
       setup()
-      expect(screen.getByText(/Natal detail/)).toBeInTheDocument()
-      expect(screen.getByText(/Hidden stems/)).toBeInTheDocument()
+      expect(screen.getByText(/More detail/)).toBeInTheDocument()
+      expect(screen.getByText(/Hidden energies within/)).toBeInTheDocument()
     })
 
     it('shows applied patterns with an English gloss (no Korean leak)', () => {
@@ -286,8 +287,8 @@ describe('DayTier', () => {
     // the day-pillar status renders AND the removed geokguk text does NOT.
     it('renders the iljin sibsin status in the head and drops the geokguk chip (ko)', () => {
       const { container } = setup()
-      // 정갈 hero: kr line carries "일진", sibsin line carries 편재(재물).
-      expect(container.textContent).toContain('일진')
+      // 쉬운말 hero: 뜻("오늘의 기운") + sibsin 용어(편재)가 참고로 함께.
+      expect(container.textContent).toContain('오늘의 기운')
       expect(screen.getAllByText(/편재/).length).toBeGreaterThan(0)
       // geokguk name / status / description are no longer rendered on the day tier.
       expect(screen.queryByText('편재격')).not.toBeInTheDocument()
