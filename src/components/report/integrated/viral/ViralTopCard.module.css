@@ -1,0 +1,115 @@
+/* ViralTopCard — 리포트 최상단 임팩트 카드. 토큰은 상위 .report 스코프 상속. */
+.card {
+  margin: 0 0 28px;
+  padding: 26px 24px 22px;
+  border: 1px solid var(--gold);
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(169, 131, 59, 0.1), rgba(169, 131, 59, 0.02));
+  text-align: center;
+  word-break: keep-all;
+}
+.crown {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+.emoji {
+  font-size: 40px;
+  line-height: 1;
+}
+.eyebrow {
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--gold);
+  font-weight: 700;
+}
+.name {
+  margin: 10px 0 0;
+  font-family: var(--serif);
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  line-height: 1.2;
+}
+.oneLiner {
+  margin: 10px auto 0;
+  max-width: 30em;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--ink-2);
+}
+.outer {
+  margin: 12px 0 0;
+  font-size: 12.5px;
+  color: var(--ink-3);
+}
+.outer b {
+  color: var(--gold);
+  font-weight: 700;
+  margin-right: 5px;
+}
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 7px;
+  margin-top: 14px;
+}
+.tag {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--gold);
+  background: rgba(169, 131, 59, 0.1);
+  border: 1px solid rgba(169, 131, 59, 0.28);
+  border-radius: 20px;
+  padding: 3px 11px;
+}
+.divider {
+  height: 1px;
+  margin: 18px auto 0;
+  max-width: 220px;
+  background: linear-gradient(90deg, transparent, var(--line), transparent);
+}
+.hook,
+.partner {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 7px;
+  margin: 14px auto 0;
+  max-width: 32em;
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--ink-2);
+  text-align: left;
+}
+.hook b,
+.partner b {
+  color: var(--ink);
+  font-weight: 700;
+}
+.hookIcon {
+  flex: 0 0 auto;
+  font-size: 15px;
+  line-height: 1.4;
+}
+.action {
+  margin-top: 18px;
+  display: flex;
+  justify-content: center;
+}
+
+@media (max-width: 600px) {
+  .card {
+    padding: 22px 16px 18px;
+  }
+  .name {
+    font-size: 24px;
+  }
+  .oneLiner {
+    font-size: 14px;
+  }
+}

@@ -65,6 +65,8 @@ import ElementsDetail from './detail/ElementsDetail'
 import PlanetDetail from './detail/PlanetDetail'
 import HouseDetail from './detail/HouseDetail'
 import AspectDetail from './detail/AspectDetail'
+import ViralTopCard from './viral/ViralTopCard'
+import { buildViralSummary } from './viral/viralArchetype'
 
 export type { Lang, CrossRow } from './integratedReportLabels'
 
@@ -355,6 +357,24 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
   const dayGanji = `${S.pillars.day.stem}${S.pillars.day.branch}`
   const ilju = getIljuArchetype(dayGanji, lang)
 
+  // ── 바이럴 "한 장 요약" — 맨 위 임팩트 카드. 일간 유형 + 강점 + 동·서양
+  //    일치 + 궁합. 한자/전문용어는 아래 섹션에 그대로, 여기선 평어만. ──
+  const viralStrengths = (() => {
+    const dmx = getHanjaRich(S.dayMaster, lang) as { strength?: string[] } | null
+    const set = Array.from(
+      new Set([...(dmx?.strength ?? []), ...((geok?.strength as string[]) ?? [])].filter(Boolean))
+    )
+    return set.slice(0, 3)
+  })()
+  const viral = buildViralSummary({
+    dayMaster: S.dayMaster,
+    ascTrait: A.ascendant ? (SIGN_TRAIT[abbr(A.ascendant.sign)]?.[lang] ?? null) : null,
+    strengths: viralStrengths,
+    resonant: (cross?.rows ?? []).filter((r) => r.tone === 'resonant').map((r) => r.category),
+    yongsinElement: S.yongsin.primary,
+    lang,
+  })
+
   return (
     <div className={s.report}>
       <div className={s.wrap}>
@@ -403,25 +423,13 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
           </div>
         )}
 
-        {/* ── 한눈에 (결론 먼저) — 별명 + 종합 교차 + 가장 필요한 기운 ── */}
+        {/* ── 바이럴 한 장 요약 — 유형 별명 + 소름 한 줄 + 동·서양 일치 + 궁합.
+            매칭(일간 10간) 없으면 자동 생략하고 기존 히어로만 노출. ── */}
+        {viral && <ViralTopCard summary={viral} lang={lang} />}
+
+        {/* ── 한눈에 (결론 먼저) — 종합 교차 + 강점 + 가장 필요한 기운.
+            암호 같던 한자 별명 줄은 위 ViralTopCard 가 평어로 대체. ── */}
         <div className={s.hero}>
-          {/* 별명 — 사주(일간 속) × 점성(ASC 겉) 융합. 일주 카드 별명과 차별. */}
-          <div className={s.heroTag}>
-            {(() => {
-              const EL_KW: Record<string, string> = {
-                metal: '예리한',
-                wood: '뻗어나가는',
-                fire: '타오르는',
-                earth: '단단한',
-                water: '깊은',
-              }
-              if (lang === 'en') return ilju?.character?.split('.')[0].trim() ?? ''
-              const inner = EL_KW[stemEl(S.dayMaster)] ?? ''
-              const han = ELEMENTS[stemEl(S.dayMaster)]?.han ?? ''
-              const ascKo = A.ascendant ? signLabel(abbr(A.ascendant.sign), lang) : ''
-              return `${inner} 속(${S.dayMaster}${han}) · ${ascKo}의 겉`
-            })()}
-          </div>
           {cross?.synthesis && <p className={s.heroSummary}>{cross.synthesis}</p>}
           {(() => {
             // 여러 카드(일간·격국)에 흩어진 강점/약점을 한곳에 종합 (Opus: TOP 묶기).
