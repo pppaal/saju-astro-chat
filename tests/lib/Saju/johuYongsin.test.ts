@@ -72,12 +72,22 @@ describe('getJohuYongsin', () => {
     expect(hit!.month).toBe('寅')
   })
 
-  it('golden: 한겨울 병화(丙·子)는 조후가 급하고 화(火) 계열을 쓴다', () => {
-    // 궁통보감의 대표 케이스 — 데이터 교체/오타 회귀를 잠그는 골든.
+  it('golden: 한겨울 병화(丙·子)는 임수로 강휘상영 — 수(水) 용신', () => {
+    // 궁통보감 대표 케이스: 丙(태양)는 겨울에 壬水로 강휘상영(태양이 호수에 빛남).
+    // 데이터 교체/오타 회귀를 잠그는 골든. (丁火 등불은 겨울에도 甲木 — 아래 가드.)
     const hit = getJohuYongsin('丙', '子')
     expect(hit).not.toBeNull()
     expect(hit!.climate).toBe('한')
+    expect(hit!.primaryYongsin).toBe('수')
     expect(hit!.rating).toBeGreaterThanOrEqual(4)
+  })
+
+  it('golden: 丙火 겨울 3개월(亥/子/丑) 모두 수(水), 丁火 겨울은 목(木) 유지', () => {
+    for (const m of ['亥', '子', '丑']) {
+      expect(getJohuYongsin('丙', m)!.primaryYongsin).toBe('수')
+      // 丁(음화·등불)은 겨울에도 甲木(땔감) — 丙과 구분.
+      expect(getJohuYongsin('丁', m)!.primaryYongsin).toBe('목')
+    }
   })
 
   it('없는 조합(잘못된 글자)은 null', () => {

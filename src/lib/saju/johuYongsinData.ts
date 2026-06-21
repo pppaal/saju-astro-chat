@@ -538,10 +538,11 @@ export const JOHU_YONGSIN_DB: JohuYongsinInfo[] = [
     month: '亥',
     climate: '한',
     climate_en: 'cold',
-    primaryYongsin: '목',
-    secondaryYongsin: '화',
-    reasoning: '초겨울 병화는 갑목의 생조 급히 필요.',
-    reasoning_en: 'In early winter the yang fire urgently needs wood to feed it.',
+    primaryYongsin: '수',
+    secondaryYongsin: '토',
+    reasoning: '초겨울 병화는 임수로 강휘상영(태양이 호수에 빛남), 무토로 수를 조절.',
+    reasoning_en:
+      'In early winter the yang sun shines on water (壬水) — water is the climatic god, with earth to regulate it.',
     rating: 4,
   },
   {
@@ -549,11 +550,11 @@ export const JOHU_YONGSIN_DB: JohuYongsinInfo[] = [
     month: '子',
     climate: '한',
     climate_en: 'cold',
-    primaryYongsin: '목',
+    primaryYongsin: '수',
     secondaryYongsin: '토',
-    reasoning: '한겨울 병화 쇠약, 갑을목 생조 필수. 무토로 수 막음.',
+    reasoning: '한겨울 병화는 임수로 강휘상영이 으뜸, 무토로 넘치는 수를 막음.',
     reasoning_en:
-      'In deep winter the yang fire is faint — wood is essential to feed it, and earth holds back the water.',
+      'In deep winter 강휘상영 (sun on 壬水) is paramount, with earth to hold back the surging water.',
     rating: 5,
   },
   {
@@ -561,10 +562,11 @@ export const JOHU_YONGSIN_DB: JohuYongsinInfo[] = [
     month: '丑',
     climate: '한',
     climate_en: 'cold',
-    primaryYongsin: '목',
-    secondaryYongsin: '화',
-    reasoning: '늦겨울 병화는 갑목으로 생조받아야 빛남.',
-    reasoning_en: 'In late winter the yang fire shines only when fed by yang wood.',
+    primaryYongsin: '수',
+    secondaryYongsin: '토',
+    reasoning: '늦겨울 병화도 임수로 강휘상영, 무토로 수 조절.',
+    reasoning_en:
+      'In late winter the yang sun still wants 壬水 for 강휘상영, with earth regulating the water.',
     rating: 4,
   },
 
