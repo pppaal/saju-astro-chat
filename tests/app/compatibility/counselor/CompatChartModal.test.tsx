@@ -202,7 +202,9 @@ describe('CompatChartModal', () => {
       render(<CompatChartModal open {...baseProps} />)
       expect(await screen.findByText('두 사람의 본질(일간)')).toBeInTheDocument()
       const dialog = screen.getByRole('dialog', { name: '궁합 차트' })
-      expect(dialog.textContent).toContain('서로 끌리는 관계')
+      // 일간 관계 라벨은 facts.relationLabel(KO prose) 대신 relation enum + 오행에서
+      // dayMasterRelationText 로 합성한다(compatChartLabels). bControlsA·화/수 → "수극화".
+      expect(dialog.textContent).toContain('수극화, 다듬어주는 흐름')
     })
 
     it('renders the spouse-seat badge for a day-pillar spouse star', async () => {

@@ -28,6 +28,24 @@ export type AspectType =
   | 'biquintile'
   | 'sesquiquadrate'
 
+/**
+ * 어스펙트별 기하학적 각도(°) — 수학 상수(SSOT). natal/transit 엔진이 동일한
+ * 표를 각자 복제하던 것을 여기로 통합. orb/weight 표는 엔진별 의도적 튜닝이라
+ * 여기 두지 않는다.
+ */
+export const ASPECT_ANGLES: Record<AspectType, number> = {
+  conjunction: 0,
+  sextile: 60,
+  square: 90,
+  trine: 120,
+  opposition: 180,
+  semisextile: 30,
+  quincunx: 150,
+  quintile: 72,
+  biquintile: 144,
+  sesquiquadrate: 135,
+}
+
 export type AspectRules = {
   aspects?: AspectType[]
   includeMinor?: boolean

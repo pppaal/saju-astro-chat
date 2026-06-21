@@ -26,10 +26,12 @@ export interface CrossRow {
   reason: string
   left?: string
   right?: string
+  /** 공망/카르마(결핍 축) — resonant 톤이라도 '잘 맞아요' 집계에서 제외하기 위한 표식. */
+  karmaAxis?: boolean
 }
 
 export const UI: Record<string, BiLabel> = {
-  eyebrow: { ko: '四柱 × 占星 · Integrated Reading', en: '四柱 × 占星 · Integrated Reading' },
+  eyebrow: { ko: '四柱 × 占星', en: '四柱 × 占星 · Integrated Reading' },
   titlePre: { ko: '통합', en: 'Integrated' },
   titleAccent: { ko: '명식', en: 'Chart' },
   titlePost: { ko: '리포트', en: 'Report' },
@@ -46,7 +48,7 @@ export const UI: Record<string, BiLabel> = {
   metaHouse: { ko: '하우스', en: 'Houses' },
   timeUnknownTitle: { ko: '출생시각 미상', en: 'Birth time unknown' },
   timeUnknownBody: {
-    ko: '출생시각이 입력되지 않아 정오 기준으로 계산했습니다. 상승궁(ASC)·중천(MC)·하우스에 의존하는 해석(사회적 역할, 첫인상, 영역별 강조)은 근사치이니 참고용으로만 보세요. 사주와 행성 배치 해석은 영향이 적습니다.',
+    ko: '출생시각이 입력되지 않아 정오를 기준으로 계산했어요. 상승궁·중천·하우스에 기대는 해석(사회적 역할, 첫인상, 영역별 강조)은 근사치이니 참고용으로만 봐 주세요. 사주와 행성 배치 해석은 영향을 거의 받지 않아요.',
     en: 'No birth time was provided, so the chart is computed for noon. Readings that depend on the Ascendant, Midheaven, or houses (social role, first impression, life-area emphasis) are approximate — treat them as indicative only. Saju and planet-placement readings are largely unaffected.',
   },
   day: { ko: '주간', en: 'diurnal' },
@@ -70,16 +72,16 @@ export const UI: Record<string, BiLabel> = {
   rootedYes: { ko: '뿌리 ✓', en: 'Rooted ✓' },
   rootedNo: { ko: '뿌리 ✗', en: 'Rooted ✗' },
   rootedYesTip: {
-    ko: '통근 — 일간의 오행이 지지 지장간에 박혀있음. 일간 강도 보강.',
+    ko: '통근 — 일간의 오행이 지지 속 지장간에 뿌리내려 있어요. 일간의 힘을 받쳐 줘요.',
     en: 'Rooted — the Day Master element is lodged in the hidden stems, reinforcing its strength.',
   },
   rootedNoTip: {
-    ko: '무근 — 일간 오행이 지지에 박혀있지 않음. 강도 약화 요인.',
+    ko: '무근 — 일간의 오행이 지지에 뿌리내리지 못했어요. 그만큼 힘이 약해지는 요인이에요.',
     en: 'Unrooted — the Day Master element is not lodged in the branches, weakening its strength.',
   },
   gongmangLab: { ko: '공망', en: 'Void' },
   gongmangTip: {
-    ko: '공망 — 일주 60갑자 그룹에서 비어있는 지지 2개. 해당 지지의 작용이 약함.',
+    ko: '공망 — 일주가 속한 60갑자 그룹에서 비어 있는 지지 2개예요. 그 지지의 작용이 약해져요.',
     en: 'Void branches — the two empty branches of the day-pillar sexagenary group; their influence is muted.',
   },
   johuLab: { ko: '조후', en: 'Climate' },
@@ -100,9 +102,9 @@ export const UI: Record<string, BiLabel> = {
   sibsinCap: { ko: '주도 십성 · 十星', en: 'Dominant Ten God · 十星' },
   sec03Title: { ko: '출생 천궁도', en: 'Natal Chart' },
   sec03Han: { ko: '本命 天宮圖', en: '本命 天宮圖' },
-  planetsCap: { ko: '행성 위치 · Planets', en: 'Planet Positions · Planets' },
-  sectLab: { ko: 'Sect', en: 'Sect' },
-  houseLab: { ko: 'House', en: 'House' },
+  planetsCap: { ko: '행성 위치', en: 'Planet Positions · Planets' },
+  sectLab: { ko: '주야', en: 'Sect' },
+  houseLab: { ko: '하우스', en: 'House' },
   sectDay: { ko: '주간 (晝)', en: 'Diurnal (晝)' },
   sectNight: { ko: '야간 (夜)', en: 'Nocturnal (夜)' },
   signSuffix: { ko: '자리', en: '' },
@@ -113,7 +115,7 @@ export const UI: Record<string, BiLabel> = {
   legNeutral: { ko: '같이 있어요', en: 'Together' },
   dignityCap: { ko: '위계 · Dignities', en: 'Dignities' },
   noDignity: {
-    ko: '뚜렷한 위계 없음 — 행성이 모두 중립(peregrine) 자리예요.',
+    ko: '뚜렷한 위계 없음 — 행성이 모두 중립 자리예요.',
     en: 'No notable dignity — every planet sits in a neutral (peregrine) position.',
   },
   sec05Title: { ko: '통합 교차', en: 'Cross-System' },
@@ -125,7 +127,7 @@ export const UI: Record<string, BiLabel> = {
     ko: '동·서양 통합 분석 엔진',
     en: 'East–West integrated analysis',
   },
-  orb: { ko: 'orb', en: 'orb' },
+  orb: { ko: '오차', en: 'orb' },
   // '더보기'(접기) 요약 라벨 — 전문(Level 2) 자료를 한 탭 뒤로 숨길 때.
   l2Pillars: {
     ko: '전문 명식 보기 · 한자 · 지장간 · 12운성',
@@ -173,7 +175,7 @@ export const SIGN_TRAIT: Record<string, BiLabel> = {
   Lib: { ko: '조화를 맞추고 어울리는', en: 'balanced and relational' },
   Sco: { ko: '깊고 강렬하게 파고드는', en: 'deep and intense' },
   Sag: { ko: '자유롭게 멀리 뻗는', en: 'free and far-reaching' },
-  Cap: { ko: '현실적으로 끝까지 성취하는', en: 'grounded and ambitious' },
+  Cap: { ko: '현실적으로 끝까지 성취하는', en: 'disciplined and ambitious' },
   Aqu: { ko: '독창적이고 틀을 깨는', en: 'original and unconventional' },
   Pis: { ko: '섬세하고 상상력 넘치는', en: 'sensitive and imaginative' },
 }

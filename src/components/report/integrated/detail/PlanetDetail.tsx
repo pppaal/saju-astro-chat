@@ -53,9 +53,9 @@ function buildRead(label: string, sign: string, house: number, lang: Lang): stri
   const h = house ? getHouseRich(house as HouseNumber, lang) : null
   const dom = h ? h.domain.split('·')[0].trim() : ''
   return lang === 'en'
-    ? `In ${sgn}, your ${label} comes through ${tr.en}` +
+    ? `In ${sgn}, your ${label} comes through as ${tr.en}` +
         (h ? `, and plays out mainly in the ${ord(house)} house of ${dom}.` : '.')
-    : `${sgn} 자리라 ${label}이 ${tr.ko} 색으로 드러나` +
+    : `${sgn} 자리라 ${label}의 기운이 ${tr.ko} 색으로 드러나` +
         (h ? `고, ${house}하우스(${dom}) 무대에서 주로 펼쳐져요.` : '요.')
 }
 

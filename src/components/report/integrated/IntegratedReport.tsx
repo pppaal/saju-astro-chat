@@ -65,8 +65,101 @@ import ElementsDetail from './detail/ElementsDetail'
 import PlanetDetail from './detail/PlanetDetail'
 import HouseDetail from './detail/HouseDetail'
 import AspectDetail from './detail/AspectDetail'
+import ViralTopCard from './viral/ViralTopCard'
+import { buildViralSummary } from './viral/viralArchetype'
+import { ShareReportButton } from './viral/ShareReportButton'
 
-export type { Lang, CrossRow } from './integratedReportLabels'
+export type { Lang } from './integratedReportLabels'
+
+// 통합 교차 카테고리 → 평어 한 줄 뜻. 동·서양이 같이 가리키는 주제를 맨 위 훅과
+// §05 목록에서 "라벨 — 쉬운 뜻"으로 읽히게 한다. 사용자별 하드코딩이 아니라
+// 카테고리별 고정 의미(데이터). 키는 ko/en 라벨 문자열 둘 다(어댑터 CAT 라벨과 일치).
+const CATEGORY_MEANING: Record<string, BiLabel> = {
+  // identity
+  정체성: { ko: '내가 나답게 느껴지는 핵심 결', en: 'the core that feels most like you' },
+  Identity: { ko: '내가 나답게 느껴지는 핵심 결', en: 'the core that feels most like you' },
+  // needs
+  욕망: { ko: '마음 깊이 진짜로 채우고 싶은 것', en: 'what you most want filled inside' },
+  Needs: { ko: '마음 깊이 진짜로 채우고 싶은 것', en: 'what you most want filled inside' },
+  // socialRole
+  사회역할: { ko: '밖에서 맡으면 빛나는 자리', en: 'the role that suits you in the world' },
+  'Social Role': { ko: '밖에서 맡으면 빛나는 자리', en: 'the role that suits you in the world' },
+  // fortune — 단정형 길흉이 아니라 '잘 풀리는 결' 경향으로 풀어쓴다(안전).
+  길흉: { ko: '일이 비교적 잘 풀리는 흐름의 결', en: 'where things tend to flow your way' },
+  Fortune: { ko: '일이 비교적 잘 풀리는 흐름의 결', en: 'where things tend to flow your way' },
+  // relations
+  관계: { ko: '사람과 이어지고 거리를 두는 방식', en: 'how you connect and keep distance' },
+  Relationships: {
+    ko: '사람과 이어지고 거리를 두는 방식',
+    en: 'how you connect and keep distance',
+  },
+  // strength
+  강점: { ko: '꾸준히 기댈 수 있는 단단한 힘', en: 'a steady strength you can lean on' },
+  Strength: { ko: '꾸준히 기댈 수 있는 단단한 힘', en: 'a steady strength you can lean on' },
+  // temperament
+  기질: { ko: '평소 마음이 움직이는 기본 성향', en: 'your everyday inner temperament' },
+  Temperament: { ko: '평소 마음이 움직이는 기본 성향', en: 'your everyday inner temperament' },
+  // energy
+  에너지: { ko: '힘을 주로 쏟는 방향', en: 'where your energy tends to flow' },
+  Energy: { ko: '힘을 주로 쏟는 방향', en: 'where your energy tends to flow' },
+  // drive
+  추진력: { ko: '목표가 생기면 끝까지 미는 힘', en: 'the push to see a goal all the way through' },
+  Drive: { ko: '목표가 생기면 끝까지 미는 힘', en: 'the push to see a goal all the way through' },
+  // keyTrait
+  '핵심 성향': { ko: '한마디로 요약되는 대표 색깔', en: 'the standout trait that defines you' },
+  'Core Trait': { ko: '한마디로 요약되는 대표 색깔', en: 'the standout trait that defines you' },
+  // romance
+  '연애·매력': { ko: '사람을 끌고 사랑을 다루는 결', en: 'how you draw people in and love' },
+  'Love & Magnetism': { ko: '사람을 끌고 사랑을 다루는 결', en: 'how you draw people in and love' },
+  // expression
+  '소통·표현': {
+    ko: '생각을 말과 글로 나누는 방식',
+    en: 'how you share ideas in words',
+  },
+  'Voice & Expression': {
+    ko: '생각을 말과 글로 나누는 방식',
+    en: 'how you share ideas in words',
+  },
+  // movement
+  '이동·변화': { ko: '새 환경으로 옮겨가는 흐름', en: 'your pull toward change and new ground' },
+  'Movement & Change': {
+    ko: '새 환경으로 옮겨가는 흐름',
+    en: 'your pull toward change and new ground',
+  },
+  // spirit
+  '예술·영성': { ko: '아름다움과 깊은 의미를 향한 마음', en: 'a pull toward beauty and meaning' },
+  'Art & Spirit': {
+    ko: '아름다움과 깊은 의미를 향한 마음',
+    en: 'a pull toward beauty and meaning',
+  },
+  // wealth
+  '재물 그릇': { ko: '돈과 자원을 모으고 키우는 그릇', en: 'how you gather and grow resources' },
+  'Wealth Capacity': {
+    ko: '돈과 자원을 모으고 키우는 그릇',
+    en: 'how you gather and grow resources',
+  },
+  // karma
+  '공망/카르마': { ko: '타고나기보다 스스로 채워가는 영역', en: 'an area you build for yourself' },
+  'Void / Karma': { ko: '타고나기보다 스스로 채워가는 영역', en: 'an area you build for yourself' },
+  // growth
+  '성장 방향': {
+    ko: '평생에 걸쳐 자라나는 방향',
+    en: 'the direction you grow toward over a lifetime',
+  },
+  'Growth Direction': {
+    ko: '평생에 걸쳐 자라나는 방향',
+    en: 'the direction you grow toward over a lifetime',
+  },
+  // yinYang
+  '음양 리듬': { ko: '발산과 수렴을 오가는 리듬', en: 'your rhythm between outward and inward' },
+  'Yin-Yang Rhythm': {
+    ko: '발산과 수렴을 오가는 리듬',
+    en: 'your rhythm between outward and inward',
+  },
+}
+// 카테고리 라벨(이미 lang 해석됨) → 평어 한 줄. 매칭 없으면 빈 문자열.
+const categoryMeaning = (category: string, lang: Lang): string =>
+  CATEGORY_MEANING[category]?.[lang] ?? ''
 
 // 초보자용 "쉽게 풀이" 더보기 — 사주·점성 용어를 모르는 사람을 위해 각 섹션의
 // 용어를 한 줄로 풀어준다. 네이티브 <details> 라 모바일/접근성 OK, 기본 접힘.
@@ -192,8 +285,8 @@ function Wheel({ astro, lang }: { astro: ReportData['astro']; lang: Lang }) {
       })}
       {/* ASC / MC 축 */}
       {[
-        ['ASC', ascLon],
-        ['MC', astro.mc.lon],
+        [lang === 'en' ? 'ASC' : '상승점', ascLon],
+        [lang === 'en' ? 'MC' : '중천', astro.mc.lon],
       ].map(([lab, lon]) => {
         const [x1, y1] = polar(cx, cy, rInner, screen(lon as number))
         const [x2, y2] = polar(cx, cy, rOuter + 6, screen(lon as number))
@@ -332,7 +425,33 @@ function AspectGrid({ astro, lang }: { astro: ReportData['astro']; lang: Lang })
 // ── 메인 ────────────────────────────────────────────────────────────────
 export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportProps) {
   const { input, saju: S, astro: A } = data
+  // 어댑터 전용 확장 필드(reportTypes 에 없는 보조 정보) — 옵셔널로 읽는다.
+  const extras = data as typeof data & {
+    geokgukMeta?: { confidence?: 'high' | 'medium' | 'low'; fallback?: boolean }
+    sibsinCategoryCount?: Record<string, number>
+  }
+  const geokgukMeta = extras.geokgukMeta
+  const sibsinCategoryCount = extras.sibsinCategoryCount
   const t = (k: keyof typeof UI): string => UI[k][lang]
+  // KO 가시 텍스트 라틴 0 — 하우스 시스템·표준시를 한글/숫자로 현지화.
+  const HOUSE_SYS_KO: Record<string, string> = {
+    Placidus: '플라시더스',
+    'Whole Sign': '홀사인',
+    'Whole-Sign': '홀사인',
+    Koch: '코흐',
+    'Equal House': '등분하우스',
+    Equal: '등분하우스',
+    Regiomontanus: '레기오몬타누스',
+    Campanus: '캄파누스',
+    Porphyry: '포르피리우스',
+  }
+  const houseSysLabel = (hs: string): string => (lang === 'en' ? hs : (HOUSE_SYS_KO[hs] ?? hs))
+  // 표준시: KO 는 IANA 식별자(Asia/Seoul) 를 빼고 UTC 오프셋만 노출.
+  const tzLabel = (tz: string): string => {
+    if (lang === 'en') return tz
+    const m = tz.match(/UTC[+\-−]?\d+(?::?\d+)?/i)
+    return m ? m[0] : tz.replace(/[A-Za-z_/]+/g, '').trim() || tz
+  }
   const pillarsArr: Array<
     [BiLabel, ReportData['saju']['pillars'][keyof ReportData['saju']['pillars']]]
   > = [
@@ -342,18 +461,55 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
     [UI.pYear, S.pillars.year],
   ]
   const strengthPct = S.strength === 'strong' ? 76 : S.strength === 'weak' ? 28 : 52
-  const strengthState: SibsinState =
-    S.strength === 'strong' ? 'dominant' : S.strength === 'weak' ? 'missing' : 'balanced'
 
   // §02 격국 풀이 — geokguk-rich 사전. '미정' 이거나 매칭 없으면 자동 생략.
   const geok = S.geokguk && S.geokguk !== '미정' ? getGeokgukRich(S.geokguk, lang) : null
-  // §02 주도 십성 — 일지 십성 카테고리(정/편 통합) → 우세 상태 의미.
+  // §02 격국 신뢰도 — fallback(월령 본기 추정)/medium 이면 헤딩을 "추정 격국"으로
+  // 약화해 확정 정격으로 단정하지 않는다(CONVENTIONS §9).
+  const geokTentative = !!geokgukMeta?.fallback || geokgukMeta?.confidence === 'medium'
+  // §02 일지(배우자궁) 십성 — 일지 십성 카테고리(정/편 통합).
+  // 주의: 일지는 배우자궁 자리이지 월령 기반 "주도 십성"이 아니므로(C1) 카드 라벨을
+  // 정직하게 "일지(배우자궁) 십성"으로 단다. 우세/부족 상태는 일간 강약이 아니라
+  // 해당 카테고리의 실제 개수(sibsinCategoryCount)로 산출한다(C1-a).
   const domSibsinName = S.pillars.day.sibsinBranch || S.pillars.month.sibsinBranch || ''
   const domCategory = SIBSIN_NAME_TO_CATEGORY[domSibsinName]
-  const sibsinBlock = domCategory ? getSibsinCategory(domCategory, strengthState, lang) : null
+  const domCategoryCount = domCategory
+    ? (sibsinCategoryCount?.[domCategory] ?? undefined)
+    : undefined
+  // 카테고리 개수 기반 상태: 0개=부족 / 3개 이상=우세 / 그 외=균형.
+  // 카운트 정보가 없으면(구데이터) 균형으로 안전 폴백.
+  const sibsinState: SibsinState =
+    domCategoryCount === undefined
+      ? 'balanced'
+      : domCategoryCount === 0
+        ? 'missing'
+        : domCategoryCount >= 3
+          ? 'dominant'
+          : 'balanced'
+  const sibsinBlock = domCategory ? getSibsinCategory(domCategory, sibsinState, lang) : null
   // §01 일주 원형 — 일간+일지 간지 → ilju-60 사전.
   const dayGanji = `${S.pillars.day.stem}${S.pillars.day.branch}`
   const ilju = getIljuArchetype(dayGanji, lang)
+
+  // ── 바이럴 "한 장 요약" — 맨 위 임팩트 카드. 일간 유형 + 강점 + 동·서양
+  //    일치 + 궁합. 한자/전문용어는 아래 섹션에 그대로, 여기선 평어만. ──
+  const viralStrengths = (() => {
+    const dmx = getHanjaRich(S.dayMaster, lang) as { strength?: string[] } | null
+    const set = Array.from(
+      new Set([...(dmx?.strength ?? []), ...((geok?.strength as string[]) ?? [])].filter(Boolean))
+    )
+    return set.slice(0, 3)
+  })()
+  const viral = buildViralSummary({
+    dayMaster: S.dayMaster,
+    ascTrait: A.ascendant ? (SIGN_TRAIT[abbr(A.ascendant.sign)]?.[lang] ?? null) : null,
+    strengths: viralStrengths,
+    resonant: (cross?.rows ?? [])
+      .filter((r) => r.tone === 'resonant' && !r.karmaAxis)
+      .map((r) => r.category),
+    yongsinElement: S.yongsin.primary,
+    lang,
+  })
 
   return (
     <div className={s.report}>
@@ -383,10 +539,16 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
           {[
             [t('metaBirth'), `${input.calendar} ${input.date.replace(/-/g, '.')} · ${input.time}`],
             [t('metaPlace'), input.place],
-            [t('metaCoord'), `${input.lat}°N · ${input.lng}°E`],
-            [t('metaTz'), input.timeZone],
-            [t('metaHouse'), `${A.houseSystem} · ${A.sect === 'day' ? t('day') : t('night')}`],
-            ['UTC', input.isoUTC],
+            [
+              t('metaCoord'),
+              // 부호로 반구 분기 — 남반구(-lat)는 S, 서경(-lng)은 W (C7).
+              `${Math.abs(input.lat).toFixed(2)}°${input.lat < 0 ? 'S' : 'N'} · ${Math.abs(input.lng).toFixed(2)}°${input.lng < 0 ? 'W' : 'E'}`,
+            ],
+            [t('metaTz'), tzLabel(input.timeZone)],
+            [
+              t('metaHouse'),
+              `${houseSysLabel(A.houseSystem)} · ${A.sect === 'day' ? t('day') : t('night')}`,
+            ],
           ].map(([k, v]) => (
             <div className={s.metaCell} key={k}>
               <span className={s.metaK}>{k}</span>
@@ -403,48 +565,48 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
           </div>
         )}
 
-        {/* ── 한눈에 (결론 먼저) — 별명 + 종합 교차 + 가장 필요한 기운 ── */}
+        {/* ── 바이럴 한 장 요약 — 유형 별명 + 소름 한 줄 + 동·서양 일치 + 궁합.
+            매칭(일간 10간) 없으면 자동 생략하고 기존 히어로만 노출. ── */}
+        {viral && (
+          <ViralTopCard
+            summary={viral}
+            lang={lang}
+            action={
+              <ShareReportButton
+                summary={viral}
+                name={input.name}
+                dateLabel={input.date}
+                isKo={lang === 'ko'}
+              />
+            }
+          />
+        )}
+
+        {/* ── 한눈에 (결론 먼저) — 종합 교차 + 강점 + 가장 필요한 기운.
+            암호 같던 한자 별명 줄은 위 ViralTopCard 가 평어로 대체. ── */}
         <div className={s.hero}>
-          {/* 별명 — 사주(일간 속) × 점성(ASC 겉) 융합. 일주 카드 별명과 차별. */}
-          <div className={s.heroTag}>
-            {(() => {
-              const EL_KW: Record<string, string> = {
-                metal: '예리한',
-                wood: '뻗어나가는',
-                fire: '타오르는',
-                earth: '단단한',
-                water: '깊은',
-              }
-              if (lang === 'en') return ilju?.character?.split('.')[0].trim() ?? ''
-              const inner = EL_KW[stemEl(S.dayMaster)] ?? ''
-              const han = ELEMENTS[stemEl(S.dayMaster)]?.han ?? ''
-              const ascKo = A.ascendant ? signLabel(abbr(A.ascendant.sign), lang) : ''
-              return `${inner} 속(${S.dayMaster}${han}) · ${ascKo}의 겉`
-            })()}
-          </div>
           {cross?.synthesis && <p className={s.heroSummary}>{cross.synthesis}</p>}
+          {/* 정체성 화해 한 줄(I1) — 바이럴 일간 별명(겉)과 격국 유형(판 짜는 방식)이
+              다른 사람처럼 읽히지 않도록 둘을 잇는다. 둘 다 있을 때만. */}
+          {viral && geok?.tagline && (
+            <p className={s.heroSummary}>
+              {lang === 'en'
+                ? `Your "${viral.name}" face is how you show up, while "${geok.tagline}" is how you actually set up the game — same person, two layers.`
+                : `겉으로 드러나는 "${viral.name}" 기질과, 실제로 판을 짜는 "${geok.tagline}" 방식은 어긋나 보여도 결국 한 사람의 두 겹이에요.`}
+            </p>
+          )}
           {(() => {
-            // 여러 카드(일간·격국)에 흩어진 강점/약점을 한곳에 종합 (Opus: TOP 묶기).
-            const dmx = getHanjaRich(S.dayMaster, lang) as {
-              strength?: string[]
-              weakness?: string[]
-            } | null
+            // 강점은 위 ViralTopCard 해시태그로 이동 — 여기선 '주의(약점)'만 남겨
+            // 중복 제거. (Opus: top 카드 ↔ 히어로 강점 이중 노출 정리.)
+            const dmx = getHanjaRich(S.dayMaster, lang) as { weakness?: string[] } | null
             const uniq = (a: string[]) => Array.from(new Set(a.filter(Boolean))).slice(0, 4)
-            const str = uniq([...(dmx?.strength ?? []), ...((geok?.strength as string[]) ?? [])])
             const weak = uniq([...(dmx?.weakness ?? []), ...((geok?.weakness as string[]) ?? [])])
-            if (!str.length && !weak.length) return null
+            if (!weak.length) return null
             return (
               <div className={s.heroSW}>
-                {str.length > 0 && (
-                  <div>
-                    <b>{lang === 'en' ? 'Strengths' : '강점'}</b> {str.join(' · ')}
-                  </div>
-                )}
-                {weak.length > 0 && (
-                  <div>
-                    <b>{lang === 'en' ? 'Watch for' : '주의'}</b> {weak.join(' · ')}
-                  </div>
-                )}
+                <div>
+                  <b>{lang === 'en' ? 'Watch for' : '주의'}</b> {weak.join(' · ')}
+                </div>
               </div>
             )
           })()}
@@ -477,7 +639,7 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
               {lang === 'en' ? 'Four Pillars' : '사주 명식'}
               <span className={s.han}>四柱命式</span>
             </span>
-            <span className={s.secEn}>Four Pillars</span>
+            {lang === 'en' && <span className={s.secEn}>Four Pillars</span>}
           </div>
           <Explain section="s01" lang={lang} />
           {/* 일간(나) 카드 — hanja-rich 의 일간성격·강점·약점·직업을 hover→본문으로. */}
@@ -537,7 +699,11 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
                         <b className={elClass[stemEl(j.g)]} title={hanjaHover(j.g, lang)}>
                           {j.g}
                         </b>
-                        <i>{j.d}</i>
+                        <i>
+                          {lang === 'en'
+                            ? { main: 'main', mid: 'mid', sub: 'sub' }[j.layer]
+                            : { main: '본', mid: '중', sub: '여' }[j.layer]}
+                        </i>
                       </div>
                     ))}
                   </div>
@@ -673,7 +839,7 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
               {t('sec02Title')}
               <span className={s.han}>{UI.sec02Han.ko}</span>
             </span>
-            <span className={s.secEn}>Elements & Balance</span>
+            {lang === 'en' && <span className={s.secEn}>Elements & Balance</span>}
           </div>
           <Explain section="s02" lang={lang} />
           <div className={s.gridElem}>
@@ -785,14 +951,29 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
               </div>
             </div>
           </div>
-          {/* 격국 풀이 — geokguk-rich 사전. '미정'/매칭 없으면 자동 생략. */}
+          {/* 격국 풀이 — geokguk-rich 사전. '미정'/매칭 없으면 자동 생략.
+              fallback/medium(월령 본기 추정·투출 미확인)이면 헤딩을 "추정 격국"으로
+              약화하고 안내 줄을 덧붙여 확정 정격으로 단정하지 않는다(C2). */}
           {geok && (
             <div className={`${s.card} ${s.cardPad}`} style={{ marginTop: 16 }}>
-              <div className={s.subcap}>{t('geokgukCap')}</div>
+              <div className={s.subcap}>
+                {geokTentative
+                  ? lang === 'en'
+                    ? 'Tentative Structure · 格局'
+                    : '추정 격국 · 格局'
+                  : t('geokgukCap')}
+              </div>
               <div className={s.gaugeHead}>
                 {lang === 'ko' && <span className={s.mono}>{S.geokguk}</span>}
                 <b>{geok.tagline}</b>
               </div>
+              {geokTentative && (
+                <div className={s.themeReason} style={{ marginTop: 6, color: 'var(--ink-3)' }}>
+                  {lang === 'en'
+                    ? 'Estimated from the month-branch main qi (no confirmed reveal) — read as a tentative direction, not a settled verdict.'
+                    : '월지 본기로 추정한 격(투출 미확인)이에요 — 확정된 격이라기보다 대략의 방향으로 참고해 주세요.'}
+                </div>
+              )}
               <div className={s.themeReason} style={{ marginTop: 6 }}>
                 <b>{t('geokPersonality')}</b> {geok.personality}
               </div>
@@ -812,10 +993,16 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
               </div>
             </div>
           )}
-          {/* 주도 십성 — sibsin-category 사전. 매칭 없으면 자동 생략. */}
+          {/* 일지(배우자궁) 십성 — sibsin-category 사전. 매칭 없으면 자동 생략.
+              일지는 배우자궁 자리라 월령 기반 "주도 십성"이 아니므로(C1) 라벨을
+              정직하게 "일지(배우자궁) 십성"으로 둔다. */}
           {sibsinBlock && (
             <div className={`${s.card} ${s.cardPad}`} style={{ marginTop: 16 }}>
-              <div className={s.subcap}>{t('sibsinCap')}</div>
+              <div className={s.subcap}>
+                {lang === 'en'
+                  ? 'Day-Branch (Spouse Palace) Ten God · 十星'
+                  : '일지(배우자궁) 십성 · 十星'}
+              </div>
               <div className={s.gaugeHead}>
                 <span>{sibsinLabel(domSibsinName, lang)}</span>
                 <b>{sibsinBlock.title}</b>
@@ -841,7 +1028,7 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
               {lang === 'en' ? 'Natal Chart' : '출생 천궁도'}
               <span className={s.han}>本命 天宮圖</span>
             </span>
-            <span className={s.secEn}>Natal Chart</span>
+            {lang === 'en' && <span className={s.secEn}>Natal Chart</span>}
           </div>
           <Explain section="s03" lang={lang} />
           <div className={s.gridChart}>
@@ -869,10 +1056,7 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
                             .join(' · ')}
                         >
                           <td className={s.plG}>{p.glyph}</td>
-                          <td className={s.plN}>
-                            {lang === 'en' ? p.name : p.ko}
-                            {lang === 'en' ? null : <i>{p.name}</i>}
-                          </td>
+                          <td className={s.plN}>{lang === 'en' ? p.name : p.ko}</td>
                           <td className={`${s.plS} ${elClass[SIGN_META[abbr(p.sign)]?.el]}`}>
                             {SIGN_META[abbr(p.sign)]?.glyph} {signLabel(abbr(p.sign), lang)}
                           </td>
@@ -890,8 +1074,8 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
                 </div>
                 <div className={s.axes}>
                   {[
-                    ['ASC', A.ascendant],
-                    ['MC', A.mc],
+                    [lang === 'en' ? 'ASC' : '상승점', A.ascendant],
+                    [lang === 'en' ? 'MC' : '중천', A.mc],
                   ].map(([lab, ax]) => {
                     const a = ax as { sign: string; deg: string }
                     return (
@@ -909,7 +1093,7 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
                   </div>
                   <div className={s.axisItem}>
                     <span>{t('houseLab')}</span>
-                    <b>{A.houseSystem}</b>
+                    <b>{houseSysLabel(A.houseSystem)}</b>
                   </div>
                 </div>
                 {/* 6하우스 그리드 제거 — 아래 HouseDetail 이 12하우스 전체를 풀이로 대체. */}
@@ -941,7 +1125,7 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
                   house: moon.house,
                 },
                 asc && {
-                  glyph: 'Asc',
+                  glyph: lang === 'en' ? 'Asc' : '↑',
                   label: lang === 'en' ? 'Rising' : '상승',
                   core: getPlanetCore('Ascendant', lang),
                   sign: asc.sign,
@@ -1036,7 +1220,7 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
               {lang === 'en' ? 'Aspects' : '어스펙트'}
               <span className={s.han}>行星 角度</span>
             </span>
-            <span className={s.secEn}>Aspects</span>
+            {lang === 'en' && <span className={s.secEn}>Aspects</span>}
           </div>
           <Explain section="s04" lang={lang} />
           <div className={s.gridAsp}>
@@ -1121,7 +1305,7 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
                 {lang === 'en' ? 'Cross-System' : '통합 교차'}
                 <span className={s.han}>交叉 統合</span>
               </span>
-              <span className={s.secEn}>Cross-System</span>
+              {lang === 'en' && <span className={s.secEn}>Cross-System</span>}
             </div>
             <Explain section="s05" lang={lang} />
             {/* 종합 문장은 상단 히어로로 이동(중복 제거). 여기선 톤 분포 막대만. */}
@@ -1129,6 +1313,9 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
             {(() => {
               const counts = { resonant: 0, complement: 0, tension: 0, neutral: 0 }
               cross.rows.forEach((r) => {
+                // 공망/카르마(결핍 축)는 resonant 톤이라도 강점 수렴이 아니라 평생 숙제라
+                // '잘 맞아요' 막대에 섞지 않는다(아래 별도 '숙제' 줄로 안내).
+                if (r.karmaAxis) return
                 counts[r.tone]++
               })
               const segs = (['resonant', 'complement', 'tension', 'neutral'] as const).filter(
@@ -1162,7 +1349,12 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
               {cross.rows.map((r, i) => (
                 <div className={s.theme} key={i} style={{ ['--tc' as string]: TONE_COLOR[r.tone] }}>
                   <div className={s.themeHead}>
-                    <span className={s.themeName}>{r.category}</span>
+                    <span className={s.themeName}>
+                      {r.category}
+                      {categoryMeaning(r.category, lang) && (
+                        <span className={s.themeGloss}>{categoryMeaning(r.category, lang)}</span>
+                      )}
+                    </span>
                     <span className={s.themeBadge}>{TONE_LABEL[r.tone][lang]}</span>
                   </div>
                   {r.left && r.right && (
@@ -1211,8 +1403,21 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
                         {lang === 'en' ? 'East and West agree on ' : '동·서양이 똑같이 가리키는 '}
                         <b>{reson.join(' · ')}</b>
                         {lang === 'en'
-                          ? ' — two systems converging means this is your most unshakable core. Make it the center of your work and brand.'
-                          : '은(는) 두 점술이 독립적으로 합의한 지점 — 가장 흔들리지 않는 정체성 코어예요. 직업·브랜딩의 중심축으로 삼으세요.'}
+                          ? ' — two systems converging suggests this is one of your steadiest cores, so you might consider leaning on it in your work and the way you show up.'
+                          : '은(는) 두 점술이 독립적으로 합의한 지점 — 비교적 흔들리지 않는 정체성 코어로 보여요. 일이나 자기표현에서 이 결을 살려 활용해 볼 만해요.'}
+                        {/* 합의 주제별 평어 한 줄 — 라벨만으로 막막하지 않게 뜻을 곁들인다. */}
+                        {reson.some((c) => categoryMeaning(c, lang)) && (
+                          <ul className={s.crossGlossList}>
+                            {reson.map(
+                              (c) =>
+                                categoryMeaning(c, lang) && (
+                                  <li key={c}>
+                                    <b>{c}</b> — {categoryMeaning(c, lang)}
+                                  </li>
+                                )
+                            )}
+                          </ul>
+                        )}
                       </li>
                     )}
                     {tens.length > 0 && (
@@ -1242,8 +1447,23 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
           </section>
         )}
 
+        {/* 면책 — 항상 노출(C3). 자기 이해용 참고일 뿐 전문 조언이 아님을 고지. */}
+        <div
+          className={s.foot}
+          role="note"
+          style={{ fontSize: 12, lineHeight: 1.5, color: 'var(--ink-3)' }}
+        >
+          {lang === 'en'
+            ? 'This report is for self-reflection only and is not a substitute for professional medical, legal, or financial advice.'
+            : '이 리포트는 자기 이해를 돕는 참고용이에요. 의료·법률·재무 같은 전문적인 판단을 대신하지 않으니 참고로만 봐 주세요.'}
+        </div>
+
         <div className={s.foot}>
-          <span>四柱命理 × Tropical Natal · {A.houseSystem} House System</span>
+          <span>
+            {lang === 'en'
+              ? `四柱命理 × Tropical Natal · ${A.houseSystem} House System`
+              : `四柱命理 × 回歸黃道 · ${houseSysLabel(A.houseSystem)} 하우스`}
+          </span>
           <span className={s.mono}>{t('footBrain')}</span>
         </div>
       </div>

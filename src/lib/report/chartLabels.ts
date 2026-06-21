@@ -4,23 +4,32 @@
  * 한쪽만 고쳐서 어긋나는 드리프트 방지.
  */
 import type { SajuElement } from '@/lib/saju/elementBridge'
+// 행성 KO 정본(캘린더 엔진 공용). 10행성 한글명은 여기서만 정의.
+import { PLANET_KO } from '@/lib/calendar-engine/data/planetNames'
 
 // 별자리 EN↔KO — 정본(astrology/signLabels) 재export. 복사본 두지 않음(드리프트 차단).
-export {  SIGN_KO_TO_EN } from '@/lib/astrology/signLabels'
+export { SIGN_KO_TO_EN } from '@/lib/astrology/signLabels'
 
-/** 행성 영문 → {한국어, 영문}. */
-export const PLANET_LABEL: Record<string, { ko: string; en: string }> = {
-  Sun: { ko: '태양', en: 'Sun' },
-  Moon: { ko: '달', en: 'Moon' },
-  Mercury: { ko: '수성', en: 'Mercury' },
-  Venus: { ko: '금성', en: 'Venus' },
-  Mars: { ko: '화성', en: 'Mars' },
-  Jupiter: { ko: '목성', en: 'Jupiter' },
-  Saturn: { ko: '토성', en: 'Saturn' },
-  Uranus: { ko: '천왕성', en: 'Uranus' },
-  Neptune: { ko: '해왕성', en: 'Neptune' },
-  Pluto: { ko: '명왕성', en: 'Pluto' },
-}
+/**
+ * 행성 영문 → {한국어, 영문}.
+ * SSOT: 한글명은 planetNames.PLANET_KO 에서 derive(드리프트 차단). 영문은 PascalCase 키 그대로.
+ * 리포트는 10행성만 쓰므로 앵글(ASC/MC)은 제외.
+ */
+const REPORT_PLANETS = [
+  'Sun',
+  'Moon',
+  'Mercury',
+  'Venus',
+  'Mars',
+  'Jupiter',
+  'Saturn',
+  'Uranus',
+  'Neptune',
+  'Pluto',
+] as const
+export const PLANET_LABEL: Record<string, { ko: string; en: string }> = Object.fromEntries(
+  REPORT_PLANETS.map((en) => [en, { ko: PLANET_KO[en] ?? en, en }])
+)
 
 /** 오행 → 라벨. ko(짧게 '목'), koLong('목(나무)'), en. 소비처가 골라 쓴다. */
 export const ELEMENT_LABEL: Record<SajuElement, { ko: string; koLong: string; en: string }> = {

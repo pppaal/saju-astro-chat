@@ -5,7 +5,7 @@
       "dominant": {
         "title": "독립·자기 사업 면",
         "meaning": "당신은 자기 주장이 강하고 동료·형제·경쟁자가 인생에 큰 영향을 주는 사람이에요. 혼자 결정하고 혼자 움직일 때 효율이 가장 좋아요. 조직보다 1인 사업·프리랜서·전문직이 잘 맞아요.",
-        "warning": "고집과 고립을 조심하세요. 비겁이 3개 이상이면 자아가 너무 강해 협력에 의식적 노력이 필요해요. 재물 손실과 동업 갈등이 자주 따라와요."
+        "warning": "고집과 고립을 조심하세요. 비겁이 강하면 자아가 뚜렷해 협력에는 의식적인 노력이 필요해요. 금전·동업에서 마찰이 생기기 쉬우니 경계를 분명히 하면 좋아요."
       },
       "missing": {
         "title": "의존·뒷받침 받는 면",
@@ -18,11 +18,11 @@
       }
     },
     "en": {
-      "category_meaning": "Bigyeon + Geopjae — self, siblings, peers, competition",
+      "category_meaning": "Bigyeon (Companion) + Geopjae (Rob Wealth) — self, siblings, peers, competition",
       "dominant": {
         "title": "Independent / Solo-business signature",
         "meaning": "You have a strong sense of self, and peers, siblings, and rivals shape your life heavily. You work most efficiently when you decide and act alone. Solo business, freelancing, and specialist work suit you better than corporate structures.",
-        "warning": "Beware of stubbornness and isolation. Three or more Bigeop stars mean a very strong ego — collaboration takes conscious effort. Financial losses and conflicts with business partners often follow."
+        "warning": "Beware of stubbornness and isolation. A strong Companion/Rob Wealth pull means a clear, firm ego, so collaboration takes conscious effort. Money and partnerships can become sore points — keeping boundaries clear helps."
       },
       "missing": {
         "title": "Dependent / Support-seeking signature",
@@ -54,16 +54,16 @@
       }
     },
     "en": {
-      "category_meaning": "Siksin + Sanggwan — expression, creativity, speech, children, output",
+      "category_meaning": "Siksin (Eating God) + Sanggwan (Hurting Officer) — expression, creativity, speech, children, output",
       "dominant": {
         "title": "Expression / Creative / Language signature",
         "meaning": "You influence the world through speech, writing, art, and ideas. Your urge to express is strong, and your creativity and planning skills stand out. You shine in content, education, art, and culinary fields.",
-        "warning": "You talk much and bluntly, so you often clash with authority and elders. Strong Sanggwan makes rules and organizations feel suffocating, which can lead to workplace misfit. Restrain your tongue so a single remark doesn't cost you a relationship."
+        "warning": "You talk much and bluntly, so you often clash with authority and elders. A strong Hurting Officer pull makes rules and organizations feel suffocating, which can make it hard to settle into a workplace. Choose your words with care so a single remark doesn't cost you a relationship."
       },
       "missing": {
         "title": "Suppressed-expression / Introverted signature",
         "meaning": "You struggle to reveal your inner thoughts and lack confidence in creative or expressive activities. Even when you have good ideas, you often miss chances because you can't put them into words.",
-        "advice": "Train writing, social media, and speaking deliberately. Repeated experiences of expressing on small stages will unblock Siksang flow and open up luck around children and tangible output."
+        "advice": "Train writing, social media, and speaking deliberately. Repeated experiences of expressing on small stages will unblock your Eating God / Hurting Officer (expression) energy and tend to open things up around children and tangible output."
       },
       "balanced": {
         "title": "Expression + Restraint balance",
@@ -73,11 +73,11 @@
   },
   "재성": {
     "ko": {
-      "category_meaning": "정재 + 편재 — 돈·재물·이성(남자에게 여자)·현실 감각",
+      "category_meaning": "정재 + 편재 — 돈·재물·이성/배우자 인연·현실 감각",
       "dominant": {
         "title": "돈·사업·이성 면",
         "meaning": "당신은 돈의 흐름을 보는 눈이 밝고 현실 감각이 뛰어난 사람이에요. 사업·투자·영업에 적성이 있고 이성 인연도 풍부해요. 편재가 강하면 큰돈을 다루는 그릇이에요.",
-        "warning": "재성이 너무 많으면 오히려 재물이 새고 인성(공부·정신)이 무너져요. 여자 문제·과소비·도박성 투자를 조심하세요. 부모(특히 모친)와의 갈등도 자주 따라와요."
+        "warning": "재성이 너무 많으면 오히려 재물이 새고 인성(공부·정신)이 약해지기 쉬워요. 이성 관계나 과소비, 무리한 투자에는 균형이 필요해요. 가까운 가족과의 마찰도 신경 쓰면 좋아요."
       },
       "missing": {
         "title": "재물·현실감 부족 면",
@@ -90,16 +90,16 @@
       }
     },
     "en": {
-      "category_meaning": "Jeongjae + Pyeonjae — money, wealth, romantic partners (women for men), realism",
+      "category_meaning": "Jeongjae (Direct Wealth) + Pyeonjae (Indirect Wealth) — money, wealth, romantic/partner ties, realism",
       "dominant": {
         "title": "Money / Business / Romance signature",
-        "meaning": "You have a sharp eye for the flow of money and strong real-world sense. Business, investing, and sales suit you, and romantic connections come abundantly. Strong Pyeonjae marks a vessel made for handling big money.",
-        "warning": "Too much Jaeseong actually leaks wealth and breaks down Inseong (study, intellect). Watch out for romantic trouble, overspending, and gambling-style investments. Conflict with parents — especially the mother — often follows."
+        "meaning": "You have a sharp eye for the flow of money and strong real-world sense. Business, investing, and sales suit you, and romantic connections tend to come easily. A strong Indirect Wealth pull marks a vessel made for handling big money.",
+        "warning": "Too much Wealth energy can actually scatter money and crowd out Resource (study, intellect). Romance, overspending, and overreaching investments may need balance, and friction with close family can crop up."
       },
       "missing": {
         "title": "Lack of wealth / realism signature",
         "meaning": "You are weak at accumulating money and tend to live in ideals and theory rather than reality. Even when chances to handle big money come, you hesitate and miss them, and romantic connections are also hard to form.",
-        "advice": "Train yourself to manage and invest small amounts deliberately. Keep a budget, track expenses, and try small businesses — these experiences grow your Jaeseong vessel. Spending time with realistic, grounded people helps too."
+        "advice": "Train yourself to manage and invest small amounts deliberately. Keep a budget, track expenses, and try small businesses — these experiences grow your Wealth vessel. Spending time with realistic, grounded people helps too."
       },
       "balanced": {
         "title": "Wealth + Spirit balance",
@@ -109,15 +109,15 @@
   },
   "관성": {
     "ko": {
-      "category_meaning": "정관 + 편관(칠살) — 직장·명예·권위·자식(여자에게)·규율",
+      "category_meaning": "정관 + 편관(칠살) — 직장·명예·권위·책임/자식 인연·규율",
       "dominant": {
         "title": "조직·명예·책임 면",
         "meaning": "당신은 책임감이 강하고 권위·지위·명예를 추구하는 사람이에요. 공무원·대기업·군경 같은 위계 조직에서 빛나요. 편관이 강하면 위기 돌파력과 카리스마가 뛰어나요.",
-        "warning": "관이 너무 많으면 압박·스트레스에 시달리고 건강이 무너져요. 칠살이 제압되지 않으면 송사·사고·관재가 따라와요. 여자에게는 남편·이성 문제가 복잡해질 수 있어요."
+        "warning": "관이 너무 많으면 압박·스트레스가 커지기 쉬우니 스스로 페이스를 챙기는 게 좋아요. 기운이 강할 땐 다툼에 휘말리지 않도록 주의하고, 배우자·이성 관계의 균형에도 신경 쓰면 좋아요."
       },
       "missing": {
         "title": "자유·규율 약함 면",
-        "meaning": "당신은 조직·위계·규칙을 답답해하고 자유롭게 일할 때 능력을 내요. 직장 생활이 오래가지 못하고 책임 있는 자리를 부담스러워해요. 여자에게는 배우자 인연이 약할 수 있어요.",
+        "meaning": "당신은 조직·위계·규칙을 답답해하고 자유롭게 일할 때 능력을 내요. 직장 생활이 오래가지 못하고 책임 있는 자리를 부담스러워해요. 배우자 인연이 다소 약하게 느껴질 수 있어요.",
         "advice": "스스로 규율을 세우고 지키는 훈련이 필요해요. 자기 일정·약속·마감을 엄격히 관리해보세요. 프리랜서·1인 사업이 맞지만 최소한의 자기 통제는 꼭 필요해요."
       },
       "balanced": {
@@ -126,15 +126,15 @@
       }
     },
     "en": {
-      "category_meaning": "Jeonggwan + Pyeongwan (Chilsal) — career, honor, authority, children (for women), discipline",
+      "category_meaning": "Jeonggwan (Direct Officer) + Pyeongwan / Chilsal (Seven Killings) — career, honor, authority, responsibility/children, discipline",
       "dominant": {
         "title": "Organization / Honor / Responsibility signature",
-        "meaning": "You carry strong responsibility and pursue authority, status, and honor. You shine in hierarchical organizations like government, large corporations, or military and police. Strong Pyeongwan brings outstanding crisis-handling power and charisma.",
-        "warning": "Too much Gwanseong brings constant pressure and stress, and breaks down your health. If Chilsal is not subdued, lawsuits, accidents, and official troubles follow. For women, husband and romantic issues can grow complicated."
+        "meaning": "You carry strong responsibility and pursue authority, status, and honor. You shine in hierarchical organizations like government, large corporations, or military and police. A strong Seven Killings pull brings outstanding crisis-handling power and charisma.",
+        "warning": "Too much Officer energy can pile on pressure and stress, so pacing yourself matters. When it runs high, take care not to get pulled into conflicts, and keep balance in your partner and romantic relationships."
       },
       "missing": {
         "title": "Freedom / Weak-discipline signature",
-        "meaning": "You find organizations, hierarchies, and rules suffocating, and you perform best when working freely. You can't sustain corporate life long and feel burdened by positions of responsibility. For women, marital connection may be weak.",
+        "meaning": "You find organizations, hierarchies, and rules suffocating, and you perform best when working freely. You can't sustain corporate life long and feel burdened by positions of responsibility. A partner connection may feel somewhat weak.",
         "advice": "You need to train in building and keeping your own discipline. Strictly manage your schedule, commitments, and deadlines. Freelancing and solo business suit you, but minimum self-control is essential."
       },
       "balanced": {
@@ -149,7 +149,7 @@
       "dominant": {
         "title": "학문·정신·문서 면",
         "meaning": "당신은 공부·연구·학문에 깊이를 가진 사람이고 정신세계가 풍부해요. 교수·연구원·작가·종교인·전문 자격에 잘 맞아요. 모친·스승의 사랑과 도움을 많이 받아요.",
-        "warning": "인성이 너무 많으면 생각만 많고 행동이 느려져요. 게으름·의존성·현실 도피가 나타나고 재물 운이 약해져요. 편인이 강하면 외로움·의심·종교 집착이 따라와요."
+        "warning": "인성이 너무 많으면 생각만 많고 행동이 느려지기 쉬워요. 미루기·의존·현실 도피 경향이 나타나고 재물 쪽 흐름은 약해지는 편이에요. 편인이 강하면 외로움·의심이 따라오고 한 가지에 깊이 몰입하는 성향이 강해져요."
       },
       "missing": {
         "title": "학문·뒷받침 부족 면",
@@ -162,16 +162,16 @@
       }
     },
     "en": {
-      "category_meaning": "Jeongin + Pyeonin — study, scholarship, parents (especially mother), documents, spirit",
+      "category_meaning": "Jeongin (Direct Resource) + Pyeonin (Indirect Resource) — study, scholarship, parents (especially mother), documents, spirit",
       "dominant": {
         "title": "Scholarship / Spirit / Document signature",
         "meaning": "You hold depth in study, research, and scholarship, and your inner world is rich. Professor, researcher, writer, religious leader, and certified specialist roles suit you. You receive much love and support from your mother and teachers.",
-        "warning": "Too much Inseong means too much thinking and too little action. Laziness, dependency, and escapism appear, and wealth luck weakens. Strong Pyeonin brings loneliness, suspicion, and religious obsession."
+        "warning": "Too much Resource energy tends toward too much thinking and too little action. Procrastination, dependency, and escapism can show up, and the flow around money tends to thin out. A strong Indirect Resource pull can bring loneliness and suspicion, along with a tendency to immerse yourself deeply in one thing."
       },
       "missing": {
         "title": "Lack of scholarship / support signature",
         "meaning": "You lack the perseverance for deep study, and support from parents or backers is thin. Mental stability shakes easily, and there is no elder to lean on before big decisions. Luck for licenses and degrees is also weak.",
-        "advice": "Seek out teachers and mentors deliberately, and make lifelong learning a habit. Books, certifications, and written records fill in the missing Inseong. Meditation and journaling are essential for building spiritual roots."
+        "advice": "Seek out teachers and mentors deliberately, and make lifelong learning a habit. Books, certifications, and written records help fill in the missing Resource energy. Meditation and journaling go a long way toward building your inner roots."
       },
       "balanced": {
         "title": "Scholarship + Practice balance",

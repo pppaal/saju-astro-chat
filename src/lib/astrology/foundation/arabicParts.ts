@@ -64,7 +64,7 @@ function getPlanetLongitude(chart: Chart, name: string): number {
 /**
  * 모든 7대 Arabic Parts 산출.
  * @param chart 출생 차트
- * @param isDayChart Sun이 지평선 위 (1·12·11·10·9·8궁) 일 때 true. 보통 sunHouse <=6 의 반대로 판단.
+ * @param isDayChart Sun이 지평선 위 (7·8·9·10·11·12궁) 일 때 true. 즉 sunHouse >= 7.
  */
 export function calculateArabicLots(chart: Chart, isDayChart: boolean): ArabicLot[] {
   const asc = chart.ascendant.longitude

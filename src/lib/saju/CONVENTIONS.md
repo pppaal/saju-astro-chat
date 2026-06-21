@@ -159,10 +159,20 @@ const sajuYear = birthDateTime < ipchunUTC ? year - 1 : year
 
 **선택:** 신강/신약(억부) + 한난조습(조후)을 _함께_ 본다.
 
-- **DaymasterStrength 5단계**: 극강·강·중화·신약·극약
+- **DaymasterStrength 5단계**: 극신강·신강·중화·신약·극신약
 - **YongsinType**: 억부용신·조후용신·통관용신·병약용신·전왕용신 (코드 우선순위 명시)
 
-**위치:** [`yongsin.ts:14-37`](./yongsin.ts#L14-L37)
+**일간 강약은 §11 SSOT에서 도출** — `assessDaymasterStrength` 는 옛 countElements
+비율(totalSupport/totalWeaken) 휴리스틱을 버리고, 강약 점수 SSOT
+(`computeStrengthScore`)의 `total`(0~100)을 5단계로 매핑한다:
+
+| 점수 | ≥80    | 60–79 | 40–59 | 21–39 | ≤20    |
+| ---- | ------ | ----- | ----- | ----- | ------ |
+| 단계 | 극신강 | 신강  | 중화  | 신약  | 극신약 |
+
+(임계 60/40·80/20 은 `geokguk` 의 `getStrength`/`getStrengthExtreme` 와 동일.)
+
+**위치:** [`yongsin.ts:14-37`](./yongsin.ts#L14-L37), `assessDaymasterStrength`
 
 ---
 
@@ -178,7 +188,16 @@ const sajuYear = birthDateTime < ipchunUTC ? year - 1 : year
 | ----------- | ---- | ---- |
 | 값          | 0.40 | 0.60 |
 
-**위치:** [`strengthScore.ts:84-96`](./strengthScore.ts#L84-L96) — `POSITION_WEIGHTS`, `STEM_BRANCH_WEIGHTS`
+**SSOT 코어:** `computeStrengthScore(StrengthCoreInput)` — 강약 점수 알고리즘의
+_유일한_ 출처. 입력 형태가 다른 두 경로가 모두 이 코어로 위임한다:
+
+- `calculateStrengthScore(SajuPillars)` — full 형태(리포트/팩트 수집)
+- `geokguk.getStrengthScore(SajuPillarsInput)` — simple 형태(격국/종격 판정).
+  옛날엔 같은 알고리즘을 별도 재구현해 드리프트 위험이 있었으나 이제 위임.
+- `yongsin.assessDaymasterStrength` — §10 의 5단계 라벨을 이 점수에서 도출.
+
+**위치:** [`strengthScore.ts`](./strengthScore.ts) — `computeStrengthScore`,
+`POSITION_WEIGHTS`, `STEM_BRANCH_WEIGHTS`
 
 ---
 

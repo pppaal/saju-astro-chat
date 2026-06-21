@@ -53,6 +53,13 @@ function tx(key: keyof typeof TX, lang: Lang): string {
   return TX[key][lang]
 }
 
+/** 지장간 결 — 본기/중기/여기를 한 글자 칩으로(EN은 Main/Mid/Sub). */
+const LAYER_LABEL: Record<'main' | 'mid' | 'sub', { ko: string; en: string }> = {
+  main: { ko: '본', en: 'Main' },
+  mid: { ko: '중', en: 'Mid' },
+  sub: { ko: '여', en: 'Sub' },
+}
+
 /** 한 줄 라벨 + 값. value 가 비면 렌더하지 않는다(헬퍼가 '' 반환 가능). */
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -67,18 +74,31 @@ function PillarCard({
   col,
   p,
   lang,
+  seen,
 }: {
   col: 'hour' | 'day' | 'month' | 'year'
   p: ReportPillar
   lang: Lang
+  /** 글자 풀이 중복 방지 — 같은 한자는 네 기둥 통틀어 처음 나올 때만 뜻을 보인다. */
+  seen: Set<string>
 }) {
   const isDay = !!p.isDay
-  const stemMeaning = hanjaHover(p.stem, lang)
-  const branchMeaning = hanjaHover(p.branch, lang)
+  // 처음 보는 글자면 true(이후 같은 글자는 풀이 생략). 글자 자체는 항상 렌더.
+  const firstSee = (c: string): boolean => {
+    if (seen.has(c)) return false
+    seen.add(c)
+    return true
+  }
+  const stemMeaning = firstSee(p.stem) ? hanjaHover(p.stem, lang) : ''
+  const branchMeaning = firstSee(p.branch) ? hanjaHover(p.branch, lang) : ''
 
-  // 지장간: 빈 의미는 건너뛴다.
+  // 지장간: 빈 의미는 건너뛰고, 이미 나온 글자는 뜻 생략. 결(본/중/여)도 함께.
   const hidden = (p.jijanggan ?? [])
-    .map((j) => ({ char: j.g, meaning: hanjaHover(j.g, lang) }))
+    .map((j) => ({
+      char: j.g,
+      layer: j.layer,
+      meaning: firstSee(j.g) ? hanjaHover(j.g, lang) : '',
+    }))
     .filter((h) => !!h.char)
 
   // 십신: 천간/지지 각각 라벨 + 짧은 글로스(있으면).
@@ -114,6 +134,11 @@ function PillarCard({
           <span className={s.hiddenList}>
             {hidden.map((h, i) => (
               <span className={s.hiddenItem} key={`${h.char}-${i}`}>
+                {LAYER_LABEL[h.layer] ? (
+                  <span className={s.layerChip} data-layer={h.layer}>
+                    {LAYER_LABEL[h.layer][lang]}
+                  </span>
+                ) : null}
                 <b className={`${s.hanSm} ${elClass[stemEl(h.char)] ?? ''}`}>{h.char}</b>
                 {h.meaning ? <span className={s.meaning}>{h.meaning}</span> : null}
               </span>
@@ -156,12 +181,14 @@ function PillarCard({
 }
 
 export default function PillarDetail({ pillars, lang }: PillarDetailProps) {
+  // 네 기둥에 걸쳐 같은 한자의 글자 풀이가 똑같이 반복되지 않게 공유 추적.
+  const seen = new Set<string>()
   return (
     <details className={s.box}>
       <summary>{tx('summary', lang)}</summary>
       <div className={s.body}>
         {ORDER.map((col) => (
-          <PillarCard col={col} p={pillars[col]} lang={lang} key={col} />
+          <PillarCard col={col} p={pillars[col]} lang={lang} seen={seen} key={col} />
         ))}
       </div>
     </details>
