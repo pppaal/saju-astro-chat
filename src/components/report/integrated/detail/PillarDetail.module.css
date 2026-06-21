@@ -1,90 +1,126 @@
-/* PillarDetail — 기둥별 글자 풀이 펼침 카드.
-   상위 컨테이너가 노출하는 CSS 변수만 사용한다:
-   --ink,--ink-2,--ink-3,--line,--line-2,--gold,--card,--card-2,--serif,--mono.
+/* PillarDetail — 기둥별 글자 풀이 펼침 카드 (미스틱 프리미엄 라이트).
+   상위 .report 가 cascade 하는 토큰만 사용:
+   --ink,--ink-2,--ink-3,--line,--line-2,--gold,--gold-soft,--gold-wash,--gold-line,
+   --card,--card-2,--plum,--plum-soft,--plum-wash,--celeste,--shadow-soft,
+   --radius,--radius-sm,--star-dots,--serif,--mono.
    원색 hex 금지 — 변수/rgba() 만. */
 
 .box {
-  margin: 12px 0 0;
+  margin: 14px 0 0;
   border: 1px solid var(--line);
-  border-left: 3px solid var(--gold);
-  border-radius: 6px;
-  background: rgba(169, 131, 59, 0.04);
+  border-radius: var(--radius);
+  background: var(--gold-wash);
+  box-shadow: var(--shadow-soft);
+  overflow: hidden;
 }
 .box > summary {
   cursor: pointer;
   list-style: none;
   user-select: none;
-  padding: 10px 14px;
-  font-size: 12.5px;
+  padding: 12px 16px;
+  font-family: var(--serif);
+  font-size: 13px;
   font-weight: 700;
+  letter-spacing: -0.01em;
   color: var(--gold);
   word-break: keep-all;
+  display: flex;
+  align-items: center;
 }
 .box > summary::-webkit-details-marker {
   display: none;
 }
 .box[open] > summary {
-  border-bottom: 1px solid var(--line-2);
+  border-bottom: 1px solid var(--gold-line);
 }
 .body {
-  padding: 10px 14px 12px;
+  padding: 14px 16px 16px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
 }
 
 /* 기둥 카드 */
 .card {
+  position: relative;
   border: 1px solid var(--line);
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   background: var(--card);
-  padding: 10px 12px;
+  box-shadow: var(--shadow-soft);
+  padding: 14px 16px;
   display: flex;
   flex-direction: column;
-  gap: 7px;
+  gap: 8px;
 }
+/* 강조(일간) 카드 — 상단 골드 헤어라인 + 은은한 celeste 워시 + 코너 ✦ */
 .dayCard {
-  border-color: var(--gold);
+  border-color: var(--gold-line);
   background: var(--card-2);
+}
+.dayCard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 14px;
+  right: 14px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold-line), transparent);
+}
+.dayCard::after {
+  content: '✦';
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  font-size: 11px;
+  color: var(--gold-soft);
+  opacity: 0.5;
+  pointer-events: none;
 }
 
 .cardHead {
   display: flex;
   align-items: baseline;
   gap: 8px;
-  padding-bottom: 4px;
+  padding-bottom: 6px;
   border-bottom: 1px solid var(--line-2);
 }
 .colLabel {
   font-family: var(--serif);
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 700;
+  letter-spacing: -0.01em;
   color: var(--ink);
 }
 .dayBadge {
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 600;
+  letter-spacing: 0.02em;
   color: var(--gold);
+  background: var(--gold-wash);
+  border: 1px solid var(--gold-line);
+  border-radius: 999px;
+  padding: 2px 9px;
   word-break: keep-all;
 }
 
 /* 라벨 + 값 한 줄 */
 .row {
   display: grid;
-  grid-template-columns: 64px 1fr;
-  gap: 8px;
+  grid-template-columns: 68px 1fr;
+  gap: 10px;
   align-items: baseline;
 }
 .rowLabel {
   font-size: 11px;
-  font-weight: 700;
-  color: var(--ink-3);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--plum);
   word-break: keep-all;
 }
 .rowValue {
   font-size: 12.5px;
   color: var(--ink-2);
-  line-height: 1.5;
+  line-height: 1.65;
   word-break: keep-all;
   display: flex;
   flex-wrap: wrap;
@@ -92,16 +128,16 @@
   gap: 6px;
 }
 
-/* 한자 글자 */
+/* 한자 글자 — 크고 우아하게 */
 .han {
   font-family: var(--serif);
-  font-size: 17px;
+  font-size: 19px;
   font-weight: 700;
   line-height: 1;
 }
 .hanSm {
   font-family: var(--serif);
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 700;
   line-height: 1;
 }
@@ -110,6 +146,7 @@
 .meaning {
   font-size: 12px;
   color: var(--ink-2);
+  line-height: 1.6;
   word-break: keep-all;
 }
 
@@ -118,7 +155,7 @@
 .sibList {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px 12px;
+  gap: 6px 14px;
 }
 .hiddenItem,
 .sibItem {
@@ -127,13 +164,21 @@
   gap: 5px;
   word-break: keep-all;
 }
+/* 십신 라벨 — 골드 워시 pill */
 .sibItem b {
-  font-weight: 700;
-  color: var(--ink);
+  font-weight: 600;
+  color: var(--gold);
+  background: var(--gold-wash);
+  border: 1px solid var(--gold-line);
+  border-radius: 999px;
+  padding: 2px 10px;
+  font-size: 12px;
 }
 
 .stageName {
+  font-family: var(--serif);
   font-weight: 700;
+  letter-spacing: -0.01em;
   color: var(--ink);
   word-break: keep-all;
 }
@@ -141,15 +186,28 @@
 /* 오행 색 — elClass 가 IntegratedReport.module.css 의 .elWood 등을 주입하므로
    여기서 색을 다시 정의하지 않는다(--el-* 변수 기반 색을 그대로 상속). */
 
-/* 펼침 표시 캐럿 — 접힘 상태에서도 "열 수 있음"이 보이도록(.l2 와 일관). */
+/* 펼침 표시 — 골드 ✦ 글리프, 펼치면 회전. */
 .box > summary::before {
-  content: '▸';
+  content: '✦';
   display: inline-block;
-  margin-right: 6px;
-  font-size: 10px;
-  color: var(--gold);
-  transition: transform 0.15s ease;
+  margin-right: 8px;
+  font-size: 11px;
+  color: var(--gold-soft);
+  transition: transform 0.2s ease;
 }
 .box[open] > summary::before {
   transform: rotate(90deg);
+}
+
+@media (max-width: 600px) {
+  .body {
+    padding: 12px 12px 14px;
+  }
+  .card {
+    padding: 12px 13px;
+  }
+  .row {
+    grid-template-columns: 56px 1fr;
+    gap: 8px;
+  }
 }

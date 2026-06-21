@@ -47,7 +47,7 @@ export default function ElementsDetail({ saju, lang }: ElementsDetailProps) {
           const isAvoid = Array.isArray(yong?.avoid) && yong.avoid.includes(k)
 
           return (
-            <div className={s.row} key={k}>
+            <div className={`${s.row} ${s[`el_${k}`] ?? ''}`} key={k}>
               <div className={s.head}>
                 <span className={`${s.name} ${elClass[k] ?? ''}`}>
                   <span className={s.han}>{meta?.han}</span>
