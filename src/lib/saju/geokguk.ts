@@ -141,6 +141,25 @@ function getTransparentSipsung(pillars: SajuPillarsInput): Sipsung | null {
   return null
 }
 
+// 월지 정기(본기) 십신 — 투출 여부와 무관하게 월령(月令)으로 격을 잡는 폴백.
+// 고전 자평: 월지 본기가 천간에 투출하지 않아도 월령 용사지신(用事之神)으로
+// 격을 정한다. 비견/겁재면 건록·양인격(checkBigyeok)에서 이미 처리되므로 null.
+function getMonthBranchMainSipsung(pillars: SajuPillarsInput): Sipsung | null {
+  const dayS = normalizeStem(pillars.day.stem)
+  const monthB = normalizeBranch(pillars.month.branch)
+  const main = JIJANGGAN[monthB]?.정기
+  if (!main) {
+    return null
+  }
+  const sipsung = getSipsung(
+    getStemElement(dayS),
+    getStemYinYang(dayS),
+    getStemElement(main),
+    getStemYinYang(main)
+  )
+  return sipsung === '비견' || sipsung === '겁재' ? null : sipsung
+}
+
 // 오행별 개수 세기
 function countElements(pillars: SajuPillarsInput): Record<FiveElement, number> {
   const counts: Record<FiveElement, number> = { 목: 0, 화: 0, 토: 0, 금: 0, 수: 0 }
@@ -745,6 +764,35 @@ export function determineGeokguk(pillars: SajuPillarsInput): GeokgukResult {
       category: '정격',
       confidence: 'high',
       description: `${geokgukName}: 월지 지장간의 ${transparent}이 투출하여 형성`,
+      yongsin,
+      gisin,
+    }
+  }
+
+  // 5b. 투출이 없을 때 — 고전 자평의 월령 용사: 월지 본기(정기) 십신으로 격을
+  //     잡는다. 투출 정격(5번, confidence high)보다 한 단계 낮은 medium.
+  const monthMain = getMonthBranchMainSipsung(pillars)
+  if (monthMain) {
+    const geokgukName = `${monthMain}격` as GeokgukType
+    const strength = getStrength(pillars)
+
+    let yongsin = ''
+    let gisin = ''
+    if (strength === '신강') {
+      yongsin = '재성/관성/식상'
+      gisin = '비겁/인성'
+    } else if (strength === '신약') {
+      yongsin = '인성/비겁'
+      gisin = '재성/관성/식상'
+    } else {
+      yongsin = '격국에 맞는 용신'
+    }
+
+    return {
+      primary: geokgukName,
+      category: '정격',
+      confidence: 'medium',
+      description: `${geokgukName}: 월지 본기 ${monthMain}으로 격을 정함(월령 용사, 투출 미확인)`,
       yongsin,
       gisin,
     }
