@@ -6,19 +6,19 @@
  * 읽을거리로 만든다. 같은 입력이면 항상 같은 문장(결정론·재현가능).
  *
  * 구성:
- *   1) 오늘 일진의 기운 한 줄 (일진 + 십신 분야).
+ *   1) 오늘 기운 한 줄 — 전문용어(간지) 대신 *생활영역 쉬운말*로 연다.
  *   2) 가장 센 *우호* 교차가 있으면 — 그 페어가 힘을 보탠다.
  *   3) 가장 센 *충돌* 교차가 있으면 — 그 페어가 마찰을 준다(조심).
  *   4) 톤별 마무리 조언(순풍/평이/역풍).
  * 교차가 없으면 1)+4)만 — 여전히 십신·톤에 근거한 두 문장.
  *
- * 한글 조사 안전: 동적 페어 텍스트("정재 × 금성")엔 주격/목적격 조사를 붙이지
+ * 쉬운말 우선: 십신/행성은 이름(정재·금성) 대신 생활영역("돈·안정 × 사랑·돈")으로
+ * 옮겨 읽는다. 한글 조사 안전 — 동적 페어 텍스트엔 주격/목적격 조사를 붙이지
  * 않고 em-dash 로 절을 잇는다(비문 방지).
  */
 
-import { sibsinArea, sibsinAreaEn } from './plainLanguage'
+import { sibsinArea, sibsinAreaEn, planetPlain } from './plainLanguage'
 import { pickBySeed } from './personSeed'
-import { SIBSIN_EN } from '@/lib/saju/sibsinLabels'
 
 export type DeepReadTone = 'positive' | 'caution' | 'mixed'
 
@@ -63,45 +63,30 @@ const ROLE = {
   close: 5,
 } as const
 
-// KO 행성명 → EN (교차 페어 EN 표기용). plainLanguage 의 행성 평이어와 별개로
-// 페어엔 행성 *이름* 을 쓴다("정재 × 금성" / "Direct Wealth × Venus").
-const PLANET_KO_EN: Record<string, string> = {
-  태양: 'Sun',
-  달: 'Moon',
-  수성: 'Mercury',
-  금성: 'Venus',
-  화성: 'Mars',
-  목성: 'Jupiter',
-  토성: 'Saturn',
-  천왕성: 'Uranus',
-  해왕성: 'Neptune',
-  명왕성: 'Pluto',
-}
-
 // ── 변형 풀 (variant pools) ───────────────────────────────────────────────
 // 같은 구조라도 사람(seed)마다 다른 표현이 나오게 역할별 풀을 둔다. 동적 슬롯
-// ({kr}/{area}/pair/when)엔 한글 조사를 붙이지 않는다(비문 방지) — em-dash/콜론으로.
+// ({area}/pair/when)엔 한글 조사를 붙이지 않는다(비문 방지) — em-dash/콜론으로.
 
-/** 1) 오프너 — "오늘은 {kr}({area}) …". {kr}/{area} 슬롯 유지. */
+/** 1) 오프너 — "오늘은 '{area}' …". 간지 대신 생활영역 쉬운말로 연다. */
 const OPENER: ReadonlyArray<{
-  ko: (kr: string, area: string) => string
-  en: (kr: string, area: string) => string
+  ko: (area: string) => string
+  en: (area: string) => string
 }> = [
   {
-    ko: (kr, area) => `오늘은 ${kr}(${area}) 기운이 흐르는 하루입니다.`,
-    en: (kr, area) => `Today carries the energy of ${kr} — ${area}.`,
+    ko: (area) => `오늘은 ‘${area}’ 기운이 흐르는 하루입니다.`,
+    en: (area) => `Today runs on the energy of ${area}.`,
   },
   {
-    ko: (kr, area) => `오늘 하루는 ${kr}(${area})의 결을 탑니다.`,
-    en: (kr, area) => `The day rides the grain of ${kr} — ${area}.`,
+    ko: (area) => `오늘 하루는 ‘${area}’의 결을 탑니다.`,
+    en: (area) => `The day rides the grain of ${area}.`,
   },
   {
-    ko: (kr, area) => `오늘을 이끄는 기운은 ${kr}(${area})입니다.`,
-    en: (kr, area) => `Leading today is ${kr} — ${area}.`,
+    ko: (area) => `오늘을 이끄는 기운은 ‘${area}’입니다.`,
+    en: (area) => `Leading today is ${area}.`,
   },
   {
-    ko: (kr, area) => `${kr}(${area}) 기운이 오늘 하루를 감쌉니다.`,
-    en: (kr, area) => `${kr} energy — ${area} — colours the whole day.`,
+    ko: (area) => `‘${area}’ 기운이 오늘 하루를 감쌉니다.`,
+    en: (area) => `${area} energy colours the whole day.`,
   },
 ]
 
@@ -282,11 +267,13 @@ const TONE_CLOSE: Record<DeepReadTone, ReadonlyArray<{ ko: string; en: string }>
   ],
 }
 
+// 교차 페어를 *쉬운말*로 — 십신은 생활영역, 행성은 일상 개념어로 옮긴다.
+// "정재 × 금성" → "돈·안정 × 사랑·돈" / "steady wealth × love & money".
 function pairKo(c: DeepReadCross): string {
-  return `${c.sajuKo} × ${c.astroKo}`
+  return `${sibsinArea(c.sajuKo)} × ${planetPlain(c.astroKo, true)}`
 }
 function pairEn(c: DeepReadCross): string {
-  return `${SIBSIN_EN[c.sajuKo] ?? c.sajuKo} × ${PLANET_KO_EN[c.astroKo] ?? c.astroKo}`
+  return `${sibsinAreaEn(c.sajuKo)} × ${planetPlain(c.astroKo, false)}`
 }
 
 export function deriveDayDeepRead(args: DayDeepReadArgs): { ko: string; en: string } {
@@ -307,8 +294,8 @@ export function deriveDayDeepRead(args: DayDeepReadArgs): { ko: string; en: stri
 
   // 1) 오늘 일진의 기운.
   const opener = pickBySeed(OPENER, seed, ROLE.opener)
-  ko.push(opener.ko(args.iljinKr, areaKo))
-  en.push(opener.en(args.iljinKr, areaEn))
+  ko.push(opener.ko(areaKo))
+  en.push(opener.en(areaEn))
 
   // 2) 우호 교차.
   if (pos) {

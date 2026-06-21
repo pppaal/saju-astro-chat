@@ -6,6 +6,10 @@ describe('deriveDayDeepRead', () => {
   // (opener=0, lift=1, drag=2, shinsal=3, hour=4, close=5), so at seed=0 the
   // chosen variant index = (0 + roleKey) % poolLen — NOT uniformly index 0.
   // Default wording below reflects those concrete picks.
+  //
+  // Plain-language: the opener leads with the iljin's life-area ('편재' →
+  // '돈·현실'), and cross pairs read as life-areas, never raw terms
+  // ('정재 × 금성' → '돈·안정 × 사랑·돈' / 'steady wealth × love & money').
   const base = {
     iljinKr: '갑자',
     iljinSibsin: '편재',
@@ -13,19 +17,19 @@ describe('deriveDayDeepRead', () => {
     crosses: [],
   }
 
-  it('always opens with the iljin energy and closes with a tone line (no crosses)', () => {
+  it('always opens with the iljin life-area and closes with a tone line (no crosses)', () => {
     const r = deriveDayDeepRead(base)
-    expect(r.ko).toContain('갑자')
-    expect(r.ko.startsWith('오늘은 갑자')).toBe(true) // opener idx0
+    expect(r.ko).toContain('돈·현실')
+    expect(r.ko.startsWith('오늘은 ‘돈·현실’')).toBe(true) // opener idx0
     // positive tone close (seed=0 → close key5 → idx1)
     expect(r.ko).toContain('마음 가는 대로 밀고 가세요')
     // only two sentences when there are no crosses
     expect(r.ko.split('. ').filter(Boolean).length).toBe(2)
-    expect(r.en).toContain('갑자')
+    expect(r.en).toContain('opportunity & money')
     expect(r.en).toContain('push on where your heart leads')
   })
 
-  it('weaves the strongest favorable cross pair (ko + en)', () => {
+  it('weaves the strongest favorable cross pair as plain life-areas (ko + en)', () => {
     const r = deriveDayDeepRead({
       ...base,
       crosses: [
@@ -33,10 +37,10 @@ describe('deriveDayDeepRead', () => {
         { sajuKo: '식신', astroKo: '수성', polarity: 1 },
       ],
     })
-    // strongest positive (정재 × 금성, polarity 2) wins
-    expect(r.ko).toContain('정재 × 금성')
+    // strongest positive (정재 × 금성, polarity 2) wins — read as life-areas
+    expect(r.ko).toContain('돈·안정 × 사랑·돈')
     expect(r.ko).toContain('서로를 밀어줍니다') // seed=0 → lift key1 → idx1
-    expect(r.en).toContain('Direct Wealth × Venus')
+    expect(r.en).toContain('steady wealth × love & money')
   })
 
   it('marks a clashing cross with a lead word / That said-style prefix and a caution clause', () => {
@@ -48,14 +52,14 @@ describe('deriveDayDeepRead', () => {
         { sajuKo: '편관', astroKo: '화성', polarity: -2 },
       ],
     })
-    expect(r.ko).toContain('정재 × 금성') // favorable
+    expect(r.ko).toContain('돈·안정 × 사랑·돈') // favorable
     // seed=0 → drag key2 → idx2: lead '한편 ', en 'That said, '
-    expect(r.ko).toContain('한편 편관 × 화성')
-    expect(r.ko).toMatch(/(다만|한편) 편관 × 화성/) // a KO lead precedes the clash
+    expect(r.ko).toContain('한편 일·도전 × 추진·마찰')
+    expect(r.ko).toMatch(/(다만|한편) 일·도전 × 추진·마찰/) // a KO lead precedes the clash
     expect(r.ko).toContain('무리는 금물입니다')
     // mixed-tone close (seed=0 → close key5 → idx1)
     expect(r.ko).toContain('나아갈 곳엔')
-    expect(r.en).toContain('That said, Seven Killings × Mars')
+    expect(r.en).toContain('That said, challenge & pressure × drive & friction')
   })
 
   it('does not prefix any lead word when there is only a clash (no favorable cross)', () => {
@@ -64,8 +68,8 @@ describe('deriveDayDeepRead', () => {
       tone: 'caution',
       crosses: [{ sajuKo: '편관', astroKo: '화성', polarity: -3 }],
     })
-    expect(r.ko).toContain('편관 × 화성')
-    expect(r.ko).not.toMatch(/(다만|한편) 편관/)
+    expect(r.ko).toContain('일·도전 × 추진·마찰')
+    expect(r.ko).not.toMatch(/(다만|한편) 일·도전/)
     // caution close (seed=0 → close key5 → idx1)
     expect(r.ko).toContain('서두르지 말고')
   })
@@ -117,8 +121,8 @@ describe('deriveDayDeepRead', () => {
       shinsal: [{ ko: '천을귀인', en: 'Heavenly Benefactor' }],
       peakHour: { whenKo: '09–11시', whenEn: '9–11am', tone: 'good' },
     })
-    const iOpener = r.ko.indexOf('갑자')
-    const iCross = r.ko.indexOf('편관 × 화성')
+    const iOpener = r.ko.indexOf('돈·현실')
+    const iCross = r.ko.indexOf('일·도전 × 추진·마찰')
     const iShinsal = r.ko.indexOf('천을귀인')
     const iHour = r.ko.indexOf('09–11시')
     const iClose = r.ko.length - 1
@@ -134,8 +138,8 @@ describe('deriveDayDeepRead', () => {
       crosses: [{ sajuKo: '정재', astroKo: '금성', polarity: 2 }],
     })
     // pair is followed by an em-dash clause, never 이/가/을/를/은/는
-    expect(r.ko).toMatch(/정재 × 금성 —/)
-    expect(r.ko).not.toMatch(/정재 × 금성[이가을를은는]/)
+    expect(r.ko).toMatch(/돈·안정 × 사랑·돈 —/)
+    expect(r.ko).not.toMatch(/돈·안정 × 사랑·돈[이가을를은는]/)
   })
 
   // ── personalization via seed ───────────────────────────────────────────
@@ -177,10 +181,10 @@ describe('deriveDayDeepRead', () => {
   it('preserves order and particle-safety across seeds', () => {
     for (const seed of [0, 1, 2, 3, 5, 11, 99, 123456]) {
       const r = deriveDayDeepRead({ ...rich, seed })
-      // order: opener(갑자) → favorable(정재 × 금성) → clash(편관 × 화성) → shinsal → hour
-      const iOpener = r.ko.indexOf('갑자')
-      const iLift = r.ko.indexOf('정재 × 금성')
-      const iDrag = r.ko.indexOf('편관 × 화성')
+      // order: opener(돈·현실) → favorable(돈·안정 × 사랑·돈) → clash(일·도전 × 추진·마찰) → shinsal → hour
+      const iOpener = r.ko.indexOf('돈·현실')
+      const iLift = r.ko.indexOf('돈·안정 × 사랑·돈')
+      const iDrag = r.ko.indexOf('일·도전 × 추진·마찰')
       const iShinsal = r.ko.indexOf('천을귀인')
       const iHour = r.ko.indexOf('09–11시')
       expect(iOpener).toBeGreaterThanOrEqual(0)
@@ -189,9 +193,9 @@ describe('deriveDayDeepRead', () => {
       expect(iDrag).toBeLessThan(iShinsal)
       expect(iShinsal).toBeLessThan(iHour)
       // particle safety: dynamic slots never glued to KO particles
-      expect(r.ko).toMatch(/정재 × 금성 —/)
-      expect(r.ko).not.toMatch(/정재 × 금성[이가을를은는]/)
-      expect(r.ko).not.toMatch(/편관 × 화성[이가을를은는]/)
+      expect(r.ko).toMatch(/돈·안정 × 사랑·돈 —/)
+      expect(r.ko).not.toMatch(/돈·안정 × 사랑·돈[이가을를은는]/)
+      expect(r.ko).not.toMatch(/일·도전 × 추진·마찰[이가을를은는]/)
       // when-slot followed by a comma, never a particle
       expect(r.ko).toMatch(/09–11시,/)
       expect(r.ko).not.toMatch(/09–11시[이가을를은는]/)
@@ -209,11 +213,13 @@ describe('deriveDayDeepRead', () => {
         crosses: [{ sajuKo: '편관', astroKo: '화성', polarity: -3 }],
         seed,
       })
-      expect(only.ko).toMatch(/(^|\. )편관 × 화성/)
+      expect(only.ko).toMatch(/(^|\. )일·도전 × 추진·마찰/)
       // favorable + clash — some lead word precedes the clash pair
       const both = deriveDayDeepRead({ ...rich, seed })
-      expect(both.ko).toMatch(/(다만|한편) 편관 × 화성/)
-      expect(both.en).toMatch(/(That said,|Even so,|Still,) Seven Killings × Mars/)
+      expect(both.ko).toMatch(/(다만|한편) 일·도전 × 추진·마찰/)
+      expect(both.en).toMatch(
+        /(That said,|Even so,|Still,) challenge & pressure × drive & friction/
+      )
     }
   })
 })

@@ -170,21 +170,23 @@ describe('DayTier', () => {
   })
 
   describe('today in depth (deep read)', () => {
-    it('renders the synthesis paragraph grounded in the iljin (ko)', () => {
+    it('renders the synthesis paragraph grounded in the iljin life-area (ko)', () => {
       setup()
       expect(screen.getByText('오늘 깊이 읽기')).toBeInTheDocument()
-      // opener is grounded in the iljin reading (갑자) — unique to the deep-read body.
-      const para = screen.getByText(/오늘은 갑자/)
+      // the woven shinsal list (천을귀인 · 도화) is contiguous only inside the
+      // deep-read body — the chips render each star as a separate node.
+      const para = screen.getByText(/천을귀인 · 도화/)
       expect(para).toBeInTheDocument()
-      // weaves active shinsal into the prose (connective wording is seed-varied).
-      expect(para.textContent).toContain('천을귀인')
+      // opener leads with the iljin's plain life-area, not the raw ganji term.
+      expect(para.textContent).toContain('돈·현실')
     })
 
-    it('renders the deep-read label in English', () => {
+    it('renders the deep-read paragraph with plain life-areas in English', () => {
       mockLocale = 'en'
       setup()
       expect(screen.getByText('Today in depth')).toBeInTheDocument()
-      expect(screen.getByText(/Today carries the energy of/)).toBeInTheDocument()
+      // opener leads with the plain life-area ('opportunity & money'), no ganji.
+      expect(screen.getAllByText(/opportunity & money/).length).toBeGreaterThan(0)
     })
   })
 
