@@ -10,6 +10,7 @@ import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
 import { tarotThemes, tarotCreditCostFor } from '@/lib/tarot/tarot-spreads-data'
 import { Card, DrawnCard } from '@/lib/tarot/tarot.types'
 import { tarotDeck } from '@/lib/tarot/data'
+import { TAROT_REVERSED_PROBABILITY } from '@/lib/tarot/reversedProbability'
 import { checkCreditsOnly, creditErrorResponse } from '@/lib/credits/withCredits'
 import { createDrawNonceStore, drawNonceOwnerKey } from '@/lib/api/idempotency'
 import { storeDrawCards, type StoredDrawCard } from '@/lib/tarot/drawCardsCache'
@@ -39,9 +40,8 @@ function drawCards(count: number): DrawnCard[] {
   }
   return deck.slice(0, n).map((card: Card) => ({
     card,
-    // 역방향 15% — 30% 도 부정 카드가 너무 잦다는 피드백으로 더 낮춤.
-    // (역방향은 부정적으로 읽혀 공유·긍정 톤에 불리.)
-    isReversed: Math.random() < 0.15,
+    // 역방향 확률 SSOT — 클래리파이어·데일리와 동일 값(reversedProbability.ts).
+    isReversed: Math.random() < TAROT_REVERSED_PROBABILITY,
   }))
 }
 

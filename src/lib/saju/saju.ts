@@ -499,9 +499,13 @@ export function calculateSajuData(
       nextTermUTC = termUTC_current // 역행에서는 사용되지 않음
     }
 
+    // 대운수 거리는 절기 경계와 *같은 시간 기준*으로 재야 한다. sajuMonth/sajuYear
+    // 경계는 effectiveDateTime(평균태양시 보정)으로 정해지는데, 거리만 raw
+    // birthDateTime 으로 재면 경도 보정분(최대 ±수십 분)만큼 대운수가 어긋난다.
+    // 경도 없으면 effectiveDateTime == birthDateTime 이라 옛 동작 그대로 보존.
     const diffToTermMs = isForward
-      ? nextTermUTC.getTime() - birthDateTime.getTime()
-      : birthDateTime.getTime() - prevTermUTC.getTime()
+      ? nextTermUTC.getTime() - effectiveDateTime.getTime()
+      : effectiveDateTime.getTime() - prevTermUTC.getTime()
     const daeWoonStartAge = daysToDaeunAge(diffToTermMs / 86400000)
 
     const daeWoonList: DaeunPillar[] = []

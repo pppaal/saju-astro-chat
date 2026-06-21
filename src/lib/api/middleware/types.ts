@@ -70,6 +70,12 @@ export interface MiddlewareOptions {
   route?: string
   /** Skip CSRF origin validation (default: false). CSRF is enforced on POST/PUT/PATCH/DELETE. */
   skipCsrf?: boolean
+  /**
+   * 최대 요청 본문 크기(바이트). 설정 시 content-length 가 이를 넘으면 핸들러
+   * 실행 *전* 413 으로 거부 — req.json() 이 거대 본문을 버퍼링하기 전에 막는다.
+   * content-length 없으면(스트리밍) 통과. 미설정 시 플랫폼 한도에 위임.
+   */
+  maxBodyBytes?: number
 }
 
 // ============ Handler Types ============

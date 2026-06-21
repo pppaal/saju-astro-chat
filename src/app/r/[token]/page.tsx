@@ -104,7 +104,15 @@ export default async function SharedReadingPage({ params }: PageProps) {
         >
           {isKo ? '타로 리딩' : 'TAROT READING'}
         </p>
-        <p style={{ marginTop: 10, fontSize: 16, color: MUTED, wordBreak: 'keep-all' }}>
+        <p
+          style={{
+            marginTop: 10,
+            fontSize: 16,
+            color: MUTED,
+            wordBreak: 'keep-all',
+            overflowWrap: 'anywhere',
+          }}
+        >
           {reading.question}
         </p>
 
@@ -168,6 +176,7 @@ export default async function SharedReadingPage({ params }: PageProps) {
               lineHeight: 1.35,
               color: GOLD,
               wordBreak: 'keep-all',
+              overflowWrap: 'anywhere',
               textShadow: '0 2px 24px rgba(212,181,114,0.18)',
             }}
           >

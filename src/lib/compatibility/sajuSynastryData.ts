@@ -9,8 +9,9 @@ import { getGongmang as getGongmangByPillar } from '@/lib/saju/pillarLookup'
 import { pickTwelveSingle } from '@/lib/saju/shinsal'
 import { STEM_KO, BRANCH_KO } from '@/lib/saju/ganjiKo'
 import { getSibseong, BRANCH_MAIN_QI } from '@/lib/saju/core/sibsin'
-import { STEMS, FIVE_ELEMENT_RELATIONS } from '@/lib/saju/constants'
+import { STEMS, FIVE_ELEMENT_RELATIONS, CHEONEUL_GWIIN_MAP } from '@/lib/saju/constants'
 import type { FiveElement, YinYang } from '@/lib/saju/types'
+import { getYearPillarForDate, getSajuYearForDate } from '@/lib/saju/datePillars'
 
 export const STEM_HAP: Record<string, { other: string; element: string }> = {
   甲: { other: '己', element: '토' },
@@ -179,32 +180,19 @@ export const SIBSIN_GLOSS: Record<string, string> = {
   정인: '후원·안정',
 }
 
-export const CHEONULGWIIN: Record<string, string[]> = {
-  甲: ['丑', '未'],
-  戊: ['丑', '未'],
-  庚: ['丑', '未'],
-  乙: ['子', '申'],
-  己: ['子', '申'],
-  丙: ['亥', '酉'],
-  丁: ['亥', '酉'],
-  辛: ['寅', '午'],
-  壬: ['巳', '卯'],
-  癸: ['巳', '卯'],
-}
+// 천을귀인 — constants.CHEONEUL_GWIIN_MAP(SSOT) 재사용. 로컬 복제 금지(드리프트
+// 방지). 소비처는 .includes 로만 보므로 두 지지의 순서는 무관.
+export const CHEONULGWIIN: Record<string, string[]> = CHEONEUL_GWIIN_MAP
 
-const BRANCH_ORDER = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥']
 const STEM_ORDER = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸']
 
-// 현재 연도의 세운 간지 (입춘 근사: 2/4 이전은 전년). 두 사람 공통 시기축.
+// 현재 연도의 세운 간지. 두 사람 공통 시기축.
+// 입춘 경계는 절기 SSOT(datePillars)에 위임 — 예전엔 2/4 고정 근사 + Gregorian
+// 필드(getFullYear/Month/Date)로 직접 산출해, 실제 입춘(연마다 2/3~2/5 변동)과
+// 어긋나고 본명/월운/일진 차트의 절기 convention 과도 달랐다.
 export function currentSeun(now: Date): { stem: string; branch: string; year: number } {
-  let y = now.getFullYear()
-  const m = now.getMonth() + 1
-  if (m < 2 || (m === 2 && now.getDate() < 4)) y -= 1
-  return {
-    stem: STEM_ORDER[(((y - 4) % 10) + 10) % 10],
-    branch: BRANCH_ORDER[(((y - 4) % 12) + 12) % 12],
-    year: y,
-  }
+  const { stem, branch } = getYearPillarForDate(now)
+  return { stem, branch, year: getSajuYearForDate(now) }
 }
 
 // 십성(十星) — 일간(day) 입장에서 상대 천간(other)이 무슨 십성인가.
@@ -296,6 +284,14 @@ export interface SajuSynastryInput {
   /** A/B 실명. 있으면 라벨·오행·극 방향을 이름에 고정해 모델이 뒤집지 못하게 한다. */
   nameA?: string | null
   nameB?: string | null
+  /**
+   * 출생 시각 미상 플래그. true 면 그 사람의 시주(時, index 3)는 자정(子시) 가정으로
+   * 날조된 값이라 cross(합/충/형/신살/공망)에서 통째로 제외한다. [Meta] 라인이
+   * LLM 에게 "인용 금지"라 말해도, 엔진이 애초에 날조 cross 를 만들지 않는 게
+   * doctrine(엔진이 판단, LLM 은 표현)에 맞다.
+   */
+  timeUnknownA?: boolean
+  timeUnknownB?: boolean
   /** 출력 언어. 'en' 이면 한국어 라벨이 영어 응답에 새지 않게 영어로 렌더. 기본 'ko'. */
   lang?: 'ko' | 'en'
 }

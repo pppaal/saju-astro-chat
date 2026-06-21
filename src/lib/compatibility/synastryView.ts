@@ -11,22 +11,13 @@
 
 import { calculateSynastry } from '@/lib/astrology/foundation/synastry'
 import type { Chart } from '@/lib/astrology/foundation/types'
+import { PLANET_KO as PLANET_KO_BASE } from '@/lib/calendar-engine/data/planetNames'
 
+// 행성 한글 라벨 — 공용 SSOT(planetNames)에서 파생. 교점(北/南)만 시너스트리용으로 추가.
 const PLANET_KO: Record<string, string> = {
-  Sun: '태양',
-  Moon: '달',
-  Mercury: '수성',
-  Venus: '금성',
-  Mars: '화성',
-  Jupiter: '목성',
-  Saturn: '토성',
-  Uranus: '천왕성',
-  Neptune: '해왕성',
-  Pluto: '명왕성',
+  ...PLANET_KO_BASE,
   Node: '북교점',
   'True Node': '북교점',
-  Ascendant: '상승점',
-  MC: '중천점',
 }
 
 // 엔진의 HARMONY/TENSION 분류와 동일 (synastry.ts).
@@ -75,6 +66,8 @@ const HOUSE_MEANING_EN: Record<number, string> = {
 // 개인 행성 — 어스펙트/오버레이의 핵심. 외행성끼리는 동세대 노이즈라 비중↓.
 const PERSONAL = new Set(['Sun', 'Moon', 'Mercury', 'Venus', 'Mars', 'Ascendant'])
 const PERSONAL_OVERLAY = new Set(['Sun', 'Moon', 'Mercury', 'Venus', 'Mars'])
+// 출생 시각 의존 앵글 — 시각 미상이면 cross 제외 대상.
+const ANGLE_POINTS = new Set(['Ascendant', 'MC'])
 
 // 행성별 "관계에서의 역할" 한 마디 — 의미 사전에 없는 쌍을 위한 폴백 조합용.
 const PLANET_ROLE: Record<string, { ko: string; en: string }> = {
@@ -256,7 +249,13 @@ const pko = (name: string, isKo: boolean) => (isKo ? (PLANET_KO[name] ?? name) :
 export function computeSynastryView(
   astroA: unknown,
   astroB: unknown,
-  lang: 'ko' | 'en' = 'ko'
+  lang: 'ko' | 'en' = 'ko',
+  // 출생 시각 미상 — 그 사람 ASC/MC/하우스는 자정 기준 날조값이라 cross 에서 제외.
+  // astroSynastryFormatter 와 동일 규칙: 미상 쪽 앵글이 낀 aspect 제외 + 그 사람
+  // 하우스로의 overlay 제외. 안 그러면 차트/리포트(band·crossVerdict 점수 포함)가
+  // 날조된 ASC/하우스로 계산된다(LLM 텍스트 경로만 고쳤던 #1533 의 구조화판 미완결).
+  timeUnknownA = false,
+  timeUnknownB = false
 ): SynastryView | null {
   const a = toChartLike(astroA)
   const b = toChartLike(astroB)
@@ -278,6 +277,9 @@ export function computeSynastryView(
       if (asp.orb > 5) return false
       // 이름 없는 엔드포인트(미라벨 각·결손 데이터)는 "undefined" 노출 방지로 제외.
       if (!asp.from?.name || !asp.to?.name) return false
+      // 미상 쪽 앵글(ASC/MC, from=A·to=B)이 낀 각은 날조라 제외.
+      if (timeUnknownA && ANGLE_POINTS.has(asp.from.name)) return false
+      if (timeUnknownB && ANGLE_POINTS.has(asp.to.name)) return false
       return PERSONAL.has(asp.from.name) || PERSONAL.has(asp.to.name)
     })
     .slice(0, 8)
@@ -307,10 +309,11 @@ export function computeSynastryView(
     house: o.inHouse,
     meaning: houseMeaning[o.inHouse] ?? '',
   })
-  const overlaysAtoB = result.houseOverlaysAtoB
+  // overlay A→B 는 B 의 하우스 경계 필요 → B 미상이면 통째 제외. 반대도 동일.
+  const overlaysAtoB = (timeUnknownB ? [] : result.houseOverlaysAtoB)
     .filter((o) => PERSONAL_OVERLAY.has(o.planet))
     .map(mapOverlay)
-  const overlaysBtoA = result.houseOverlaysBtoA
+  const overlaysBtoA = (timeUnknownA ? [] : result.houseOverlaysBtoA)
     .filter((o) => PERSONAL_OVERLAY.has(o.planet))
     .map(mapOverlay)
 

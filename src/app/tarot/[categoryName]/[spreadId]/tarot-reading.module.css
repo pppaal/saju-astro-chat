@@ -1110,7 +1110,9 @@
   color: rgba(255, 255, 255, 0.93);
   margin: 0;
   letter-spacing: 0.08px;
+  /* 한국어는 단어 중간 분리 방지, 영어 긴 토큰은 넘칠 때만 끊기. */
   word-break: keep-all;
+  overflow-wrap: anywhere;
   white-space: pre-line;
 }
 

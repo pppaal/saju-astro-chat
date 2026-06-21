@@ -6,8 +6,10 @@
  * Increment ①: SAJU section.
  */
 import { currentManAge } from '@/lib/datetime/currentAge'
+import { ELEMENT_KO_TO_EN } from '@/lib/saju/constants'
 import { collectSajuFacts } from '@/lib/destiny/sajuFacts'
 import { computeCurrentUnse, type CurrentUnse } from '@/lib/saju/currentUnse'
+import { getSajuYearForDate } from '@/lib/saju/datePillars'
 import { collectAstroFacts } from '@/lib/destiny/astroFacts'
 import { getShinsalHits, getTwelveStagesForPillars, toSajuPillarsLike } from '@/lib/saju/shinsal'
 import { formatAstroSelf } from '@/lib/destiny/astroSelfFormatter'
@@ -79,13 +81,8 @@ const SIBSIN_EN: Record<string, string> = {
   ...SIBSIN_EN_BASE,
   일간: 'Self',
 }
-const ELEM_EN: Record<string, string> = {
-  목: 'Wood',
-  화: 'Fire',
-  토: 'Earth',
-  금: 'Metal',
-  수: 'Water',
-}
+// 오행 KO→EN — 공용 SSOT(constants.ELEMENT_KO_TO_EN)에서 파생(복붙 금지).
+const ELEM_EN = ELEMENT_KO_TO_EN
 const STRENGTH_EN: Record<string, string> = {
   신강: 'strong',
   신약: 'weak',
@@ -971,7 +968,11 @@ function buildSajuSection(
       ' '
     )
   }
-  if (current?.seun) timing.push(periodLine(L('세운', 'Annual'), current.seun, year))
+  // 세운 라벨의 연도는 절기 기준 사주연(getSajuYearForDate)이라야 간지와 맞는다.
+  // current.seun 간지는 입춘 경계로 산출되는데(currentUnse), 라벨만 Gregorian
+  // year 를 쓰면 1/1~입춘 구간에서 "2026 乙巳(=2025 간지)" 처럼 어긋났다.
+  if (current?.seun)
+    timing.push(periodLine(L('세운', 'Annual'), current.seun, getSajuYearForDate(now)))
   if (current?.wolun) timing.push(periodLine(L('월운', 'Monthly'), current.wolun))
   // 일진 standalone 라인은 `## 일진 8일` 블록 첫 줄(`05-28(오늘) X (X/X)`)
   // 과 동일 정보라 잉여. 교차 lines (`일진X ↔ ...`) 는 인라인으로 branch 를

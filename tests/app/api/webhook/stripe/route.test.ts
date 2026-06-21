@@ -270,46 +270,24 @@ describe('Stripe Webhook API - POST /api/webhook/stripe', () => {
   })
 
   // =========================================================================
-  // 4. Stale event rejection (replay attack prevention)
+  // 4. Old event.created is NOT rejected (Stripe-retry fix)
   // =========================================================================
-  describe('Stale event rejection', () => {
-    it('should return 400 for events older than 5 minutes', async () => {
-      const staleEvent = makeEvent(
-        'checkout.session.completed',
-        {},
-        {
-          created: nowEpoch(-301), // 301 seconds ago
-        }
-      )
-      mockConstructEvent.mockReturnValue(staleEvent)
-
-      const response = await POST(makeWebhookRequest('body'))
-      const data = await response.json()
-
-      expect(response.status).toBe(400)
-      expect(data.error.message).toBe('Event too old')
-      expect(vi.mocked(logger.warn)).toHaveBeenCalledWith(
-        expect.stringContaining('Stale event rejected'),
-        expect.any(Object)
-      )
-      expect(vi.mocked(recordCounter)).toHaveBeenCalledWith('stripe_webhook_stale_event', 1, {
-        event: 'checkout.session.completed',
-      })
-    })
-
-    it('should accept events within the 5-minute window', async () => {
-      const freshEvent = makeEvent(
+  // Replay 방어는 constructEvent 의 서명 t= tolerance + eventId dedupe 가 한다.
+  // 옛 event.created 기반 거부는 Stripe 재시도(원본 created 유지)를 전부 막아
+  // 일시 실패 이벤트가 영구 방치됐으므로 제거됨.
+  describe('Old event.created is processed (retry fix)', () => {
+    it('processes an event whose created is >5min old (signature already verified)', async () => {
+      const oldEvent = makeEvent(
         'checkout.session.completed',
         {
           metadata: { type: 'credit_pack', creditPack: 'mini', userId: 'u1' },
           amount_total: 5000,
           currency: 'krw',
-          id: 'cs_test',
+          id: 'cs_test_old',
         },
-        { created: nowEpoch(-100) }
-      ) // 100 seconds ago (within 300s limit)
-      mockConstructEvent.mockReturnValue(freshEvent)
-
+        { created: nowEpoch(-3600) } // 1 hour ago (a real Stripe retry)
+      )
+      mockConstructEvent.mockReturnValue(oldEvent)
       vi.mocked(prisma.user.findUnique).mockResolvedValue({
         id: 'u1',
         email: 'u@e.com',
@@ -318,7 +296,13 @@ describe('Stripe Webhook API - POST /api/webhook/stripe', () => {
       vi.mocked(addBonusCredits).mockResolvedValue(undefined as any)
 
       const response = await POST(makeWebhookRequest('body'))
+      // 더 이상 400 'Event too old' 가 아니라 정상 처리(200).
       expect(response.status).toBe(200)
+      expect(vi.mocked(recordCounter)).not.toHaveBeenCalledWith(
+        'stripe_webhook_stale_event',
+        expect.anything(),
+        expect.anything()
+      )
     })
   })
 
@@ -781,8 +765,7 @@ describe('Stripe Webhook API - POST /api/webhook/stripe', () => {
       mockConstructEvent.mockReturnValue(event)
 
       const response = await POST(makeWebhookRequest())
-      // 299 seconds old is within the 300s window (eventAgeSeconds > 300 check).
-      // Use -299 instead of -300 to avoid timing drift between event creation and assertion.
+      // event.created 기반 age 거부는 제거됨 — 어떤 created 든 서명만 유효하면 처리.
       expect(response.status).toBe(200)
     })
 

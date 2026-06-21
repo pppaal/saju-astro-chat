@@ -89,7 +89,8 @@ describe('formatAstroSelf — 기본 구조', () => {
   })
 
   it('Fixed Stars / Current transits / Eclipses 섹션 렌더 (이 fixture 에서)', async () => {
-    const out = await formatAstroSelf(baseInput())
+    // 항성 합은 *출생연도* 세차보정이라 natalInput(출생연도) 필요.
+    const out = await formatAstroSelf(baseInput({ natalInput: NATAL }))
     expect(out).toContain('[Fixed Stars — 본명 행성·angle ↔ 항성 합 (orb 1°)]')
     expect(out).toContain('[Current transits — 행성 (오늘) → natal, 2024-06-21]')
     // transit 라인은 "(transit)" 표기와 natal 키워드 포함
@@ -97,6 +98,11 @@ describe('formatAstroSelf — 기본 구조', () => {
     expect(out).toContain('[Upcoming Eclipses — 본명 차트에 임팩트 (orb 3°)]')
     // eclipse 라인 — 일식/월식 + House + orb
     expect(out).toMatch(/(일식|월식) \d{4}-\d{2}-\d{2}/)
+  })
+
+  it('출생연도(natalInput) 없으면 항성 합 섹션 skip (세차 epoch 불명)', async () => {
+    const out = await formatAstroSelf(baseInput())
+    expect(out).not.toContain('[Fixed Stars')
   })
 
   it('현재 시점 행성 신호 — day ruler 항상 출력', async () => {

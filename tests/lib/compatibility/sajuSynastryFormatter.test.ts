@@ -117,6 +117,26 @@ describe('computeSajuSynastryFacts — pillar relations & balance', () => {
     expect(facts.spouseStars.some((s) => s.from === 'A')).toBe(true)
   })
 
+  it('시각 미상이면 facts(차트/리포트)도 시주를 cross/배우자성/오행균형에서 제외', () => {
+    // 회귀: 예전엔 포매터만 시주를 잘라 차트(facts)와 상담사(텍스트)가 갈렸다.
+    // richInput 시주: A=壬辰, B=丁亥 → 壬丁合化木 (시천간 천간합, (시,시) 위치).
+    const base = computeSajuSynastryFacts(richInput)
+    expect(base.pillarRelations.some((r) => r.aPillar === '시' && r.bPillar === '시')).toBe(true)
+    expect(Object.values(base.elementBalance!.merged).reduce((a, b) => a + b, 0)).toBe(16)
+
+    const aUnknown = computeSajuSynastryFacts({ ...richInput, timeUnknownA: true })
+    // A 시주가 빠지면 A 위치(시) 관계 전무. (spouseStars from:'B' 는 A 를 스캔하므로
+    // A 시주 배우자성도 사라진다.)
+    expect(aUnknown.pillarRelations.some((r) => r.aPillar === '시')).toBe(false)
+    expect(aUnknown.spouseStars.some((s) => s.from === 'B' && s.pillar === '시')).toBe(false)
+    // 오행 슬롯: A 4→3 기둥 → 16 - 2 = 14.
+    expect(Object.values(aUnknown.elementBalance!.merged).reduce((a, b) => a + b, 0)).toBe(14)
+
+    const bUnknown = computeSajuSynastryFacts({ ...richInput, timeUnknownB: true })
+    expect(bUnknown.pillarRelations.some((r) => r.bPillar === '시')).toBe(false)
+    expect(Object.values(bUnknown.elementBalance!.merged).reduce((a, b) => a + b, 0)).toBe(14)
+  })
+
   it('computes a merged element balance over all 16 element slots', () => {
     const facts = computeSajuSynastryFacts(richInput)
     const bal = facts.elementBalance
@@ -158,5 +178,26 @@ describe('formatSajuSynastry', () => {
     const out = formatSajuSynastry({ ...valid, nameA: '민수', nameB: '지영' })
     expect(out).toContain('시너스트리')
     expect(out.length).toBeGreaterThan(50)
+  })
+
+  describe('시각 미상 — 시주(index 3) cross 제외', () => {
+    // valid 의 시주: A=壬辰, B=丁亥 → 壬丁合化木 (시천간 천간합). 시각 미상이면 이
+    // 날조 cross 가 빠져야 한다. 반대로 일/월주 cross(천간충 庚↔甲)는 유지.
+    it('둘 다 시각 알면 시주 천간합이 보인다(baseline)', () => {
+      const out = formatSajuSynastry(valid)
+      expect(out).toContain('시천간 임 + B 시천간 정')
+      expect(out).toContain('천간충')
+    })
+
+    it('A 시각 미상이면 A 시주 cross 가 사라지고 일/월주 cross 는 남는다', () => {
+      const out = formatSajuSynastry({ ...valid, timeUnknownA: true })
+      expect(out).not.toContain('시천간 임 + B 시천간 정')
+      expect(out).toContain('천간충') // A 일간 庚 ↔ B 월간 甲 (시주 무관)
+    })
+
+    it('B 시각 미상이면 B 시주가 빠져 시주 천간합이 사라진다', () => {
+      const out = formatSajuSynastry({ ...valid, timeUnknownB: true })
+      expect(out).not.toContain('시천간 임 + B 시천간 정')
+    })
   })
 })

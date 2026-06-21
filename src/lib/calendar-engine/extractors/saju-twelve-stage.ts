@@ -311,7 +311,11 @@ const sajuTwelveStageExtractor: SignalExtractor = {
     // 2-3) 월운 매트릭스 (monthly)
     const monthCursor = new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth(), 1))
     while (monthCursor <= end) {
-      const mp = getMonthPillarForDate(monthCursor)
+      // 월주는 그 달 중순(15일) 기준 — 1일은 절입 직전이라 전월 절기달이 잡힌다.
+      const midMonth = new Date(
+        Date.UTC(monthCursor.getUTCFullYear(), monthCursor.getUTCMonth(), 15)
+      )
+      const mp = getMonthPillarForDate(midMonth)
       const mStart = new Date(monthCursor).toISOString()
       const mEndMs = Date.UTC(
         monthCursor.getUTCFullYear(),

@@ -127,6 +127,9 @@ export function createSajuGuard(options?: {
   return {
     route: options?.route || 'saju',
     requireToken: true,
+    // 본문 1MB 캡 — 생년/차트 JSON 은 수십 KB 라 여유가 크고, 거대 본문이
+    // req.json() 으로 버퍼링되기 전에 413 으로 막는다(메모리 DoS 방지).
+    maxBodyBytes: 1024 * 1024,
     rateLimit: {
       limit: options?.limit || RATE_LIMIT_PRESETS.SAJU_CALCULATION.limit,
       windowSeconds: options?.windowSeconds || RATE_LIMIT_PRESETS.SAJU_CALCULATION.windowSeconds,
@@ -148,6 +151,8 @@ export function createAstrologyGuard(options?: {
   return {
     route: options?.route || 'astrology',
     requireToken: true,
+    // 본문 1MB 캡 — 차트 JSON 은 작아 여유가 크고, 거대 본문 버퍼링 전 413.
+    maxBodyBytes: 1024 * 1024,
     rateLimit: {
       limit: options?.limit || RATE_LIMIT_PRESETS.ASTROLOGY_CALCULATION.limit,
       windowSeconds:

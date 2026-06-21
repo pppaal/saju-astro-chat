@@ -72,6 +72,38 @@ describe('synastryView — 행성쌍 의미', () => {
   })
 })
 
+describe('synastryView — 시각 미상 시 ASC/MC 각·하우스 오버레이 제외', () => {
+  // calculateSynastry 는 ascendant/mc 를 각 pool 에 넣는데(synastry.ts:163), 실차트는
+  // name='Ascendant' 가 있어야 각이 라벨링된다. 헬퍼 차트에 named 앵글 부여.
+  const namedChart = (planets: Array<[string, number]>, ascLon: number) => ({
+    planets: planets.map(([name, longitude]) => ({ name, longitude, sign: 'Aries' })),
+    ascendant: { name: 'Ascendant', longitude: ascLon, sign: 'Aries' },
+    mc: { name: 'MC', longitude: (ascLon + 270) % 360, sign: 'Capricorn' },
+    houses: Array.from({ length: 12 }, (_, i) => ({ cusp: i * 30 })),
+  })
+  // A.ascendant=0; B Sun=0 → A 상승점 ↔ B 태양 합. A Sun=100 → B 4H overlay.
+  const aChart = namedChart([['Sun', 100]], 0)
+  const bChart = namedChart([['Sun', 0]], 200)
+
+  it('baseline: A 상승점 각 + A→B 하우스 overlay 가 잡힌다', () => {
+    const v = computeSynastryView(aChart, bChart, 'ko')!
+    expect(v.aspects.some((a) => a.a === '상승점' || a.b === '상승점')).toBe(true)
+    expect(v.overlaysAtoB.length).toBeGreaterThan(0)
+  })
+
+  it('A 시각 미상: A 상승점이 낀 각 제외 + B→A overlay 제외(A→B 는 유지)', () => {
+    const v = computeSynastryView(aChart, bChart, 'ko', true, false)!
+    expect(v.aspects.some((a) => a.a === '상승점')).toBe(false)
+    expect(v.overlaysBtoA.length).toBe(0)
+    expect(v.overlaysAtoB.length).toBeGreaterThan(0) // B 하우스는 유효
+  })
+
+  it('B 시각 미상: A→B overlay 제외', () => {
+    const v = computeSynastryView(aChart, bChart, 'ko', false, true)!
+    expect(v.overlaysAtoB.length).toBe(0)
+  })
+})
+
 // ── 추가: 미커버 분기(가드/catch/strength 티어/overlay 매핑/tone/기본언어) ──
 
 // computeSynastry.test.ts(app 사본)와 동일 형태의 결정적 natal fixture.

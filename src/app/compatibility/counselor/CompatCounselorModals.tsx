@@ -107,6 +107,10 @@ export function CompatCounselorModals({
         person2Saju={person2Saju}
         person1Astro={person1Astro}
         person2Astro={person2Astro}
+        // 시각 미상 — 서버 라우트(isTimeUnknown)와 동일 규칙(누락/00:00). 차트가
+        // 상담사처럼 날조된 子시 시주 cross 를 만들지 않게 facts 경로에 전달.
+        timeUnknownA={!persons[0]?.time || persons[0]?.time === '00:00'}
+        timeUnknownB={!persons[1]?.time || persons[1]?.time === '00:00'}
         nameA={persons[0]?.name || ''}
         nameB={persons[1]?.name || ''}
         lang={isKo ? 'ko' : 'en'}

@@ -26,6 +26,7 @@ import {
   type ApiContext,
 } from '@/lib/api/middleware'
 import { tarotDeck } from '@/lib/tarot/data'
+import { TAROT_REVERSED_BYTE_THRESHOLD } from '@/lib/tarot/reversedProbability'
 import type { Card } from '@/lib/tarot/tarot.types'
 import { callClaude, extractJsonObject, isClaudeAvailable } from '@/lib/llm/claude'
 import { cacheGet, cacheSet } from '@/lib/cache/redis-cache'
@@ -90,7 +91,8 @@ interface DailyReading {
 function drawDaily(userId: string, date: string): { card: Card; isReversed: boolean } {
   const h = createHash('sha256').update(`${userId}:${date}`).digest()
   const idx = h.readUInt32BE(0) % tarotDeck.length
-  const reversed = h[4] < 38 // 38/256 ≈ 0.15 → 약 15% 역방향(결정적)
+  // 역방향 확률 SSOT 를 바이트 임계값으로 환산(byte<threshold). 38/256 ≈ 0.15.
+  const reversed = h[4] < TAROT_REVERSED_BYTE_THRESHOLD
   return { card: tarotDeck[idx], isReversed: reversed }
 }
 
