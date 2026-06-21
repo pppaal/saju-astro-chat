@@ -260,7 +260,9 @@ export default function DailyTarotPage() {
                   fontWeight: 700,
                   color: GOLD,
                   lineHeight: 1.4,
+                  // 한국어는 단어 중간 분리 방지, 영어는 긴 토큰이 넘칠 때만 끊기.
                   wordBreak: 'keep-all',
+                  overflowWrap: 'anywhere',
                 }}
               >
                 {reading.hook}
