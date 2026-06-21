@@ -36,6 +36,33 @@ describe('암록(暗祿) = 건록의 육합신', () => {
   })
 })
 
+describe('금여성(金輿) = 일간 건록 +2 지지', () => {
+  // 甲辰 乙巳 丙未 丁申 戊未 己申 庚戌 辛亥 壬丑 癸寅.
+  const GEUMYEO: Record<string, string> = {
+    甲: '辰',
+    乙: '巳',
+    丙: '未',
+    丁: '申',
+    戊: '未',
+    己: '申',
+    庚: '戌',
+    辛: '亥',
+    壬: '丑',
+    癸: '寅',
+  }
+  for (const [stem, branch] of Object.entries(GEUMYEO)) {
+    it(`${stem} 일간의 금여성은 ${branch}`, () => {
+      expect(hitKinds(stem, branch)).toContain('금여성')
+    })
+  }
+  it('옛 고정값(甲→酉/辰 무관)은 더 이상 일간 무시로 안 뜬다(회귀 가드)', () => {
+    // 甲 금여는 辰. 酉 는 甲 금여 아님(옛 코드는 辰/酉 둘 다 떴다).
+    expect(hitKinds('甲', '酉')).not.toContain('금여성')
+    // 乙 금여는 巳 — 辰 은 아님(옛 코드는 辰 보유 전원 오탐).
+    expect(hitKinds('乙', '辰')).not.toContain('금여성')
+  })
+})
+
 describe('양인(羊刃) = 양간(陽干)만', () => {
   // 양간: 甲卯 丙午 戊午 庚酉 壬子
   it('양간은 양인을 갖는다', () => {

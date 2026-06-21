@@ -452,8 +452,8 @@ const TAEGEUK_BY_DAY_STEM: Record<string, string[]> = {
   壬: ['寅', '申'],
   癸: ['寅', '申'],
 }
-function isGeumYeoseong(branch: string): boolean {
-  return branch === '酉' || branch === '辰'
+function isGeumYeoseong(dayStem: string, branch: string): boolean {
+  return GEUMYEO_BY_DAY_STEM[dayStem] === branch
 }
 function isCheonMunSeong(branch: string): boolean {
   return branch === '子' || branch === '午'
@@ -614,6 +614,18 @@ const AMNOK_BY_DAY_STEM: Record<string, string> = Object.fromEntries(
 function isAmnok(dayStem: string, targetBranch: string): boolean {
   return AMNOK_BY_DAY_STEM[dayStem] === targetBranch
 }
+
+// 금여성(金輿): 정통 = 일간 건록(祿)에서 *지지 2칸 앞*. (직전엔 일간 무시하고
+//   酉/辰 고정이라 辰/酉 보유자 전원 오탐·나머지 전원 누락이었다 — 암록/양인과
+//   같은 결함. 건록표 +2 지지로 파생해 드리프트 차단.)
+//   甲辰 乙巳 丙未 丁申 戊未 己申 庚戌 辛亥 壬丑 癸寅.
+const BRANCH_NAME_ORDER = BRANCHES.map((b) => b.name)
+const GEUMYEO_BY_DAY_STEM: Record<string, string> = Object.fromEntries(
+  Object.entries(GEONROK_BY_DAY_STEM).map(([stem, rok]) => {
+    const idx = BRANCH_NAME_ORDER.indexOf(rok)
+    return [stem, BRANCH_NAME_ORDER[(idx + 2) % 12]]
+  })
+)
 
 // 제왕(帝旺): 12운성 중 왕지와 동일한 위치
 const JEWANG_BY_DAY_STEM: Record<string, string> = {
@@ -865,9 +877,9 @@ export function getShinsalHitsForDailyTarget(
   }
 
   // ─── target branch 단독 기준 ───
-  // 금여성 (안정·풍요)
-  if (isGeumYeoseong(targetBranch)) {
-    hits.push({ kind: '금여성', basis: `target=${targetBranch}` })
+  // 금여성 (안정·풍요) — 일간 건록 +2 지지
+  if (isGeumYeoseong(natalDayStem, targetBranch)) {
+    hits.push({ kind: '금여성', basis: `일간(${natalDayStem})` })
   }
   // 천문성 (영성·종교·예지)
   if (isCheonMunSeong(targetBranch)) {
@@ -1050,7 +1062,7 @@ export function getShinsalHits(
         if (tg.includes(br)) {
           hits.push({ kind: '태극귀인', pillars: [kind], target: br })
         }
-        if (isGeumYeoseong(br)) {
+        if (isGeumYeoseong(dayStem, br)) {
           hits.push({ kind: '금여성', pillars: [kind], target: br })
         }
         if (isCheonMunSeong(br)) {
