@@ -188,8 +188,12 @@ describe('sajuJijangganExtractor — 암합 polarity (용신 4-way)', () => {
 
 describe('sajuJijangganExtractor — 충 ladder (층 조합별 3-tier)', () => {
   it('정기↔정기 충 = polarity −3, tier jeonggi-jeonggi', () => {
-    // 본명 일지 午 정기 丁. 시기 지장간 정기 癸(子) → 癸-丁 충 정기↔정기.
-    const out = run(ctx({ day: STD, ...DAY(6) }))
+    // 본명 일지 午 정기 丁. 시기(월운) 지장간 정기 癸(子) → 癸-丁 충 정기↔정기.
+    // 子월 = 대설月(~12/7~1/5). 월주는 중순(12/15) 기준이므로 12월 range 로 子월 확보.
+    // (1월 6일은 소한 이후라 丑월 — 옛 day-1 샘플링이 子 를 잘못 잡던 자리.)
+    const out = run(
+      ctx({ day: STD, start: '2025-12-10T00:00:00.000Z', end: '2025-12-10T23:59:59.999Z' })
+    )
     const jj = out.find((s) => {
       const d = s.evidence.detail as { mode: string; chungTier?: string }
       return d.mode === 'chung' && d.chungTier === 'jeonggi-jeonggi'
@@ -237,5 +241,22 @@ describe('sajuJijangganExtractor — 대운 / 세운 layer', () => {
     expect(layers.has('yearly')).toBe(true)
     expect(layers.has('monthly')).toBe(true)
     expect(layers.has('daily')).toBe(true)
+  })
+
+  it('월운 월주는 그 달 중순(15일) 절기 기준 — 1일(전월 절기달) 아님', () => {
+    // 2026-06: 1일은 망종 전이라 巳월, 15일은 午월. 한 달 내내 day-15 의 午 를
+    // 써야 한다(직전엔 day-1 의 巳 가 한 달 전체에 도장됐다).
+    const out = run(
+      ctx({
+        day: STD,
+        start: '2026-06-01T00:00:00.000Z',
+        end: '2026-06-30T23:59:59.999Z',
+      })
+    )
+    const monthly = out.filter((s) => s.layer === 'monthly')
+    expect(monthly.length).toBeGreaterThan(0)
+    // 월운 signal id 는 `...wolun.2026-6.<월지>...` — 午(중순) 이어야 하고 巳 아님.
+    expect(monthly.every((s) => s.id.includes('.午'))).toBe(true)
+    expect(monthly.some((s) => s.id.includes('wolun.2026-6.巳'))).toBe(false)
   })
 })

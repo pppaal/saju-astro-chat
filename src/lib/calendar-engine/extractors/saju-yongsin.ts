@@ -88,7 +88,13 @@ const sajuYongsinExtractor: SignalExtractor = {
     // ─── 월운 ───
     const monthCursor = new Date(Date.UTC(rangeStart.getUTCFullYear(), rangeStart.getUTCMonth(), 1))
     while (monthCursor <= rangeEnd) {
-      const mp = getMonthPillarForDate(monthCursor)
+      // 월주는 *그 달 중순(15일)* 기준 — 1일은 절입(節, ~4~8일) 직전이라 전월
+      // 절기달이 잡혀 한 달 내내 한 칸 밀린 월지로 점수가 났다(saju-johu-yongsin·
+      // saju-pillar 와 동일 보정).
+      const midMonth = new Date(
+        Date.UTC(monthCursor.getUTCFullYear(), monthCursor.getUTCMonth(), 15)
+      )
+      const mp = getMonthPillarForDate(midMonth)
       const stemInfo = STEMS.find((s) => s.name === mp.stem)
       if (stemInfo) {
         const element = stemInfo.element as FiveElement
