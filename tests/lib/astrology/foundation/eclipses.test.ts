@@ -5,16 +5,14 @@
 // 천문학에 기반한다. 전역 setup 의 swisseph/ephe mock 은 cursor 기준 고정
 // 오프셋으로 가짜 이클립스를 무한히 만들어 빈-배열/별자리 단언을 깨뜨린다.
 // real-ephemeris-correctness.test.ts 와 동일하게 mock 을 풀어 진짜 천체력을 쓴다.
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi } from 'vitest'
 
-vi.unmock('swisseph');
-vi.unmock('@/lib/astrology/foundation/ephe');
+vi.unmock('swisseph')
+vi.unmock('@/lib/astrology/foundation/ephe')
 
 // CI 등 native swisseph 바이너리가 로드 안 되는 환경에서는 hard-fail 대신 skip.
-const swissephAvailable = await import('swisseph')
-  .then(() => true)
-  .catch(() => false);
-const describeWithEphemeris = swissephAvailable ? describe : describe.skip;
+const swissephAvailable = await import('swisseph').then(() => true).catch(() => false)
+const describeWithEphemeris = swissephAvailable ? describe : describe.skip
 
 import {
   findEclipseImpact,
@@ -25,8 +23,8 @@ import {
   checkEclipseSensitivity,
   getAllEclipses,
   type Eclipse,
-} from '@/lib/astrology/foundation/eclipses';
-import type { Chart, PlanetBase } from '@/lib/astrology/foundation/types';
+} from '@/lib/astrology/foundation/eclipses'
+import type { Chart, PlanetBase } from '@/lib/astrology/foundation/types'
 
 function createMockChart(planets: Partial<PlanetBase>[] = []): Chart {
   const defaultPlanets: PlanetBase[] = planets.map((p, i) => ({
@@ -35,134 +33,165 @@ function createMockChart(planets: Partial<PlanetBase>[] = []): Chart {
     sign: p.sign || 'Aries',
     degree: p.degree ?? 0,
     minute: p.minute ?? 0,
-    formatted: p.formatted || '0°00\'',
+    formatted: p.formatted || "0°00'",
     house: p.house ?? 1,
     speed: p.speed ?? 1,
-  })) as PlanetBase[];
+  })) as PlanetBase[]
 
   return {
     planets: defaultPlanets,
-    ascendant: { name: 'ASC', longitude: 0, sign: 'Aries', degree: 0, minute: 0, formatted: '0°', house: 1, speed: 0 },
-    mc: { name: 'MC', longitude: 90, sign: 'Cancer', degree: 0, minute: 0, formatted: '90°', house: 10, speed: 0 },
+    ascendant: {
+      name: 'ASC',
+      longitude: 0,
+      sign: 'Aries',
+      degree: 0,
+      minute: 0,
+      formatted: '0°',
+      house: 1,
+      speed: 0,
+    },
+    mc: {
+      name: 'MC',
+      longitude: 90,
+      sign: 'Cancer',
+      degree: 0,
+      minute: 0,
+      formatted: '90°',
+      house: 10,
+      speed: 0,
+    },
     houses: Array.from({ length: 12 }, (_, i) => ({
       index: i + 1,
       cusp: i * 30,
-      sign: ['Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo', 'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces'][i] as any,
+      sign: [
+        'Aries',
+        'Taurus',
+        'Gemini',
+        'Cancer',
+        'Leo',
+        'Virgo',
+        'Libra',
+        'Scorpio',
+        'Sagittarius',
+        'Capricorn',
+        'Aquarius',
+        'Pisces',
+      ][i] as any,
       formatted: `${i * 30}°`,
     })),
-  };
+  }
 }
 
 describeWithEphemeris('eclipses', () => {
   describe('getAllEclipses', () => {
     it('should return array of eclipses', () => {
-      const eclipses = getAllEclipses();
-      expect(Array.isArray(eclipses)).toBe(true);
-      expect(eclipses.length).toBeGreaterThan(0);
-    });
+      const eclipses = getAllEclipses()
+      expect(Array.isArray(eclipses)).toBe(true)
+      expect(eclipses.length).toBeGreaterThan(0)
+    })
 
     it('should have valid eclipse structure', () => {
-      const eclipses = getAllEclipses();
-      const eclipse = eclipses[0];
+      const eclipses = getAllEclipses()
+      const eclipse = eclipses[0]
 
-      expect(eclipse).toHaveProperty('type');
-      expect(eclipse).toHaveProperty('date');
-      expect(eclipse).toHaveProperty('longitude');
-      expect(eclipse).toHaveProperty('sign');
-      expect(eclipse).toHaveProperty('degree');
-      expect(['solar', 'lunar']).toContain(eclipse.type);
-    });
+      expect(eclipse).toHaveProperty('type')
+      expect(eclipse).toHaveProperty('date')
+      expect(eclipse).toHaveProperty('longitude')
+      expect(eclipse).toHaveProperty('sign')
+      expect(eclipse).toHaveProperty('degree')
+      expect(['solar', 'lunar']).toContain(eclipse.type)
+    })
 
     it('should have eclipses in date order', () => {
-      const eclipses = getAllEclipses();
+      const eclipses = getAllEclipses()
       for (let i = 1; i < eclipses.length; i++) {
-        const prev = new Date(eclipses[i - 1].date);
-        const curr = new Date(eclipses[i].date);
-        expect(curr >= prev).toBe(true);
+        const prev = new Date(eclipses[i - 1].date)
+        const curr = new Date(eclipses[i].date)
+        expect(curr >= prev).toBe(true)
       }
-    });
-  });
+    })
+  })
 
   describe('getEclipsesBetween', () => {
     it('should return eclipses within date range', () => {
-      const eclipses = getEclipsesBetween('2020-01-01', '2020-12-31');
+      const eclipses = getEclipsesBetween('2020-01-01', '2020-12-31')
 
-      expect(Array.isArray(eclipses)).toBe(true);
-      eclipses.forEach(e => {
-        const date = new Date(e.date);
-        expect(date >= new Date('2020-01-01')).toBe(true);
-        expect(date <= new Date('2020-12-31')).toBe(true);
-      });
-    });
+      expect(Array.isArray(eclipses)).toBe(true)
+      eclipses.forEach((e) => {
+        const date = new Date(e.date)
+        expect(date >= new Date('2020-01-01')).toBe(true)
+        expect(date <= new Date('2020-12-31')).toBe(true)
+      })
+    })
 
     // NOTE: Previously expected an empty array for the year 2000 ("no eclipses
     // in range"), a relic of the old hardcoded 2020–2030 table. Swiss Ephemeris
     // computes eclipses for any year, and 2000 had real eclipses, so we assert
     // the astronomically correct, in-range result instead.
     it('should compute real eclipses for years outside the legacy table', () => {
-      const eclipses = getEclipsesBetween('2000-01-01', '2000-12-31');
-      expect(eclipses.length).toBeGreaterThan(0);
-      eclipses.forEach(e => {
-        const date = new Date(e.date);
-        expect(date >= new Date('2000-01-01')).toBe(true);
-        expect(date <= new Date('2000-12-31')).toBe(true);
-      });
-    });
+      const eclipses = getEclipsesBetween('2000-01-01', '2000-12-31')
+      expect(eclipses.length).toBeGreaterThan(0)
+      eclipses.forEach((e) => {
+        const date = new Date(e.date)
+        expect(date >= new Date('2000-01-01')).toBe(true)
+        expect(date <= new Date('2000-12-31')).toBe(true)
+      })
+    })
 
     it('should handle single day range', () => {
-      const eclipses = getEclipsesBetween('2020-06-21', '2020-06-21');
-      expect(eclipses.length).toBeGreaterThanOrEqual(0);
-    });
-  });
+      const eclipses = getEclipsesBetween('2020-06-21', '2020-06-21')
+      expect(eclipses.length).toBeGreaterThanOrEqual(0)
+    })
+  })
 
   describe('getUpcomingEclipses', () => {
     it('should return future eclipses from given date', () => {
-      const eclipses = getUpcomingEclipses(new Date('2020-01-01'), 3);
+      const eclipses = getUpcomingEclipses(new Date('2020-01-01'), 3)
 
-      expect(eclipses.length).toBeLessThanOrEqual(3);
-      eclipses.forEach(e => {
-        expect(new Date(e.date) >= new Date('2020-01-01')).toBe(true);
-      });
-    });
+      expect(eclipses.length).toBeLessThanOrEqual(3)
+      eclipses.forEach((e) => {
+        expect(new Date(e.date) >= new Date('2020-01-01')).toBe(true)
+      })
+    })
 
     it('should respect count parameter', () => {
-      const eclipses = getUpcomingEclipses(new Date('2020-01-01'), 5);
-      expect(eclipses.length).toBeLessThanOrEqual(5);
-    });
+      const eclipses = getUpcomingEclipses(new Date('2020-01-01'), 5)
+      expect(eclipses.length).toBeLessThanOrEqual(5)
+    })
 
     // NOTE: Previously expected an empty array after 2100 ("no future
     // eclipses"), a relic of the old hardcoded 2020–2030 table. Swiss Ephemeris
     // covers far beyond 2100, so eclipses exist; assert the correct count/range.
     it('should compute future eclipses beyond the legacy table horizon', () => {
-      const from = new Date('2100-01-01');
-      const eclipses = getUpcomingEclipses(from, 5);
-      expect(eclipses.length).toBe(5);
-      eclipses.forEach(e => {
-        expect(new Date(e.date) >= from).toBe(true);
-      });
-    });
-  });
+      const from = new Date('2100-01-01')
+      const eclipses = getUpcomingEclipses(from, 5)
+      expect(eclipses.length).toBe(5)
+      eclipses.forEach((e) => {
+        expect(new Date(e.date) >= from).toBe(true)
+      })
+    })
+  })
 
   describe('getEclipsesInSign', () => {
     it('should return eclipses in Aries', () => {
-      const eclipses = getEclipsesInSign('Aries');
-      eclipses.forEach(e => {
-        expect(e.sign).toBe('Aries');
-      });
-    });
+      const eclipses = getEclipsesInSign('Aries')
+      eclipses.forEach((e) => {
+        expect(e.sign).toBe('Aries')
+      })
+    })
 
     it('should return eclipses in Taurus', () => {
-      const eclipses = getEclipsesInSign('Taurus');
-      eclipses.forEach(e => {
-        expect(e.sign).toBe('Taurus');
-      });
-    });
+      const eclipses = getEclipsesInSign('Taurus')
+      eclipses.forEach((e) => {
+        expect(e.sign).toBe('Taurus')
+      })
+    })
 
     it('should return empty array for signs with no eclipses', () => {
-      const eclipses = getEclipsesInSign('Leo');
-      expect(Array.isArray(eclipses)).toBe(true);
-    });
-  });
+      const eclipses = getEclipsesInSign('Leo')
+      expect(Array.isArray(eclipses)).toBe(true)
+    })
+  })
 
   describe('getEclipseAxis', () => {
     it('should return primary and opposite signs', () => {
@@ -173,14 +202,14 @@ describeWithEphemeris('eclipses', () => {
         sign: 'Aries',
         degree: 0,
         description: 'Test',
-      };
+      }
 
-      const axis = getEclipseAxis(eclipse);
-      expect(axis).toHaveProperty('primary');
-      expect(axis).toHaveProperty('opposite');
-      expect(axis.primary).toBe('Aries');
-      expect(axis.opposite).toBe('Libra');
-    });
+      const axis = getEclipseAxis(eclipse)
+      expect(axis).toHaveProperty('primary')
+      expect(axis).toHaveProperty('opposite')
+      expect(axis.primary).toBe('Aries')
+      expect(axis.opposite).toBe('Libra')
+    })
 
     it('should handle Taurus-Scorpio axis', () => {
       const eclipse: Eclipse = {
@@ -190,34 +219,30 @@ describeWithEphemeris('eclipses', () => {
         sign: 'Taurus',
         degree: 10,
         description: 'Test',
-      };
+      }
 
-      const axis = getEclipseAxis(eclipse);
-      expect(axis.primary).toBe('Taurus');
-      expect(axis.opposite).toBe('Scorpio');
-    });
-  });
+      const axis = getEclipseAxis(eclipse)
+      expect(axis.primary).toBe('Taurus')
+      expect(axis.opposite).toBe('Scorpio')
+    })
+  })
 
   describe('checkEclipseSensitivity', () => {
     it('should detect sensitivity when planet near nodes', () => {
-      const chart = createMockChart([
-        { name: 'Sun', longitude: 90, sign: 'Cancer' }
-      ]);
+      const chart = createMockChart([{ name: 'Sun', longitude: 90, sign: 'Cancer' }])
 
-      const result = checkEclipseSensitivity(chart);
-      expect(result).toHaveProperty('sensitive');
-      expect(typeof result.sensitive).toBe('boolean');
-    });
+      const result = checkEclipseSensitivity(chart)
+      expect(result).toHaveProperty('sensitive')
+      expect(typeof result.sensitive).toBe('boolean')
+    })
 
     it('should return sensitivePoints array', () => {
-      const chart = createMockChart([
-        { name: 'Sun', longitude: 0, sign: 'Aries' }
-      ]);
+      const chart = createMockChart([{ name: 'Sun', longitude: 0, sign: 'Aries' }])
 
-      const result = checkEclipseSensitivity(chart);
-      expect(Array.isArray(result.sensitivePoints)).toBe(true);
-    });
-  });
+      const result = checkEclipseSensitivity(chart)
+      expect(Array.isArray(result.sensitivePoints)).toBe(true)
+    })
+  })
 
   describe('findEclipseImpact', () => {
     it('should find conjunction with natal planet', () => {
@@ -228,21 +253,19 @@ describeWithEphemeris('eclipses', () => {
         sign: 'Cancer',
         degree: 0,
         description: 'Test',
-      };
+      }
 
-      const chart = createMockChart([
-        { name: 'Sun', longitude: 90, sign: 'Cancer', house: 4 }
-      ]);
+      const chart = createMockChart([{ name: 'Sun', longitude: 90, sign: 'Cancer', house: 4 }])
 
-      const impacts = findEclipseImpact(chart, [eclipse]);
-      expect(Array.isArray(impacts)).toBe(true);
+      const impacts = findEclipseImpact(chart, [eclipse])
+      expect(Array.isArray(impacts)).toBe(true)
 
       if (impacts.length > 0) {
-        expect(impacts[0]).toHaveProperty('aspectType');
-        expect(impacts[0]).toHaveProperty('affectedPoint');
-        expect(impacts[0]).toHaveProperty('orb');
+        expect(impacts[0]).toHaveProperty('aspectType')
+        expect(impacts[0]).toHaveProperty('affectedPoint')
+        expect(impacts[0]).toHaveProperty('orb')
       }
-    });
+    })
 
     it('should find opposition aspect', () => {
       const eclipse: Eclipse = {
@@ -252,15 +275,15 @@ describeWithEphemeris('eclipses', () => {
         sign: 'Cancer',
         degree: 0,
         description: 'Test',
-      };
+      }
 
       const chart = createMockChart([
-        { name: 'Moon', longitude: 270, sign: 'Capricorn', house: 10 }
-      ]);
+        { name: 'Moon', longitude: 270, sign: 'Capricorn', house: 10 },
+      ])
 
-      const impacts = findEclipseImpact(chart, [eclipse]);
-      expect(Array.isArray(impacts)).toBe(true);
-    });
+      const impacts = findEclipseImpact(chart, [eclipse])
+      expect(Array.isArray(impacts)).toBe(true)
+    })
 
     it('should include house information', () => {
       const eclipse: Eclipse = {
@@ -270,18 +293,16 @@ describeWithEphemeris('eclipses', () => {
         sign: 'Aries',
         degree: 0,
         description: 'Test',
-      };
-
-      const chart = createMockChart([
-        { name: 'Venus', longitude: 5, sign: 'Aries', house: 1 }
-      ]);
-
-      const impacts = findEclipseImpact(chart, [eclipse]);
-      if (impacts.length > 0) {
-        expect(impacts[0].house).toBeGreaterThanOrEqual(1);
-        expect(impacts[0].house).toBeLessThanOrEqual(12);
       }
-    });
+
+      const chart = createMockChart([{ name: 'Venus', longitude: 5, sign: 'Aries', house: 1 }])
+
+      const impacts = findEclipseImpact(chart, [eclipse])
+      if (impacts.length > 0) {
+        expect(impacts[0].house).toBeGreaterThanOrEqual(1)
+        expect(impacts[0].house).toBeLessThanOrEqual(12)
+      }
+    })
 
     it('should handle empty chart', () => {
       const eclipse: Eclipse = {
@@ -291,22 +312,22 @@ describeWithEphemeris('eclipses', () => {
         sign: 'Aries',
         degree: 0,
         description: 'Test',
-      };
+      }
 
-      const chart = createMockChart([]);
-      const impacts = findEclipseImpact(chart, [eclipse]);
-      expect(Array.isArray(impacts)).toBe(true);
-    });
-  });
+      const chart = createMockChart([])
+      const impacts = findEclipseImpact(chart, [eclipse])
+      expect(Array.isArray(impacts)).toBe(true)
+    })
+  })
 
   describe('integration', () => {
     it('should work with real eclipse data', () => {
-      const eclipses = getAllEclipses();
-      expect(eclipses.length).toBeGreaterThan(10);
+      const eclipses = getAllEclipses()
+      expect(eclipses.length).toBeGreaterThan(10)
 
-      const eclipse2020 = getEclipsesBetween('2020-01-01', '2020-12-31');
-      expect(eclipse2020.length).toBeGreaterThan(0);
-    });
+      const eclipse2020 = getEclipsesBetween('2020-01-01', '2020-12-31')
+      expect(eclipse2020.length).toBeGreaterThan(0)
+    })
 
     it('should find impacts for multiple planets', () => {
       const eclipse: Eclipse = {
@@ -316,17 +337,212 @@ describeWithEphemeris('eclipses', () => {
         sign: 'Cancer',
         degree: 0,
         description: 'Test',
-      };
+      }
 
       const chart = createMockChart([
         { name: 'Sun', longitude: 88, sign: 'Cancer', house: 4 },
         { name: 'Moon', longitude: 270, sign: 'Capricorn', house: 10 },
         { name: 'Mars', longitude: 180, sign: 'Libra', house: 7 },
-      ]);
+      ])
 
-      const impacts = findEclipseImpact(chart, [eclipse]);
-      expect(impacts.length).toBeGreaterThan(0);
-    });
-  });
-});
+      const impacts = findEclipseImpact(chart, [eclipse])
+      expect(impacts.length).toBeGreaterThan(0)
+    })
+  })
 
+  // ── 추가: 미커버 분기 타겟 ──────────────────────────────────────────
+
+  describe('getEclipsesBetween — guard branches', () => {
+    it('returns [] for an invalid start date', () => {
+      expect(getEclipsesBetween('not-a-date', '2020-12-31')).toEqual([])
+    })
+
+    it('returns [] for an invalid end date', () => {
+      expect(getEclipsesBetween('2020-01-01', 'bogus')).toEqual([])
+    })
+
+    it('returns [] when end is not after start', () => {
+      expect(getEclipsesBetween('2020-12-31', '2020-01-01')).toEqual([])
+    })
+
+    it('accepts Date objects as well as strings', () => {
+      const eclipses = getEclipsesBetween(new Date('2021-01-01'), new Date('2021-12-31'))
+      expect(Array.isArray(eclipses)).toBe(true)
+      eclipses.forEach((e) => {
+        expect(new Date(e.date).getFullYear()).toBe(2021)
+      })
+    })
+  })
+
+  describe('getUpcomingEclipses — default count', () => {
+    it('defaults to 4 eclipses when count omitted', () => {
+      const eclipses = getUpcomingEclipses(new Date('2020-01-01'))
+      expect(eclipses.length).toBeLessThanOrEqual(4)
+      expect(eclipses.length).toBeGreaterThan(0)
+    })
+  })
+
+  describe('getEclipsesInSign — explicit range', () => {
+    it('honors an explicit start/end window', () => {
+      const result = getEclipsesInSign('Aries', new Date('2024-01-01'), new Date('2026-12-31'))
+      result.forEach((e) => expect(e.sign).toBe('Aries'))
+    })
+  })
+
+  describe('findEclipseImpact — aspect branches (pure math)', () => {
+    it('detects a square impact (90° from a natal planet)', () => {
+      const eclipse: Eclipse = {
+        type: 'solar',
+        date: '2020-01-01',
+        longitude: 0,
+        sign: 'Aries',
+        degree: 0,
+        description: 'Test',
+      }
+      const chart = createMockChart([{ name: 'Mars', longitude: 90, sign: 'Cancer', house: 4 }])
+      const impacts = findEclipseImpact(chart, [eclipse], 3)
+      const square = impacts.find((i) => i.aspectType === 'square')
+      expect(square).toBeDefined()
+      expect(square?.orb).toBeCloseTo(0, 5)
+      expect(square?.interpretation).toContain('사각')
+    })
+
+    it('detects an opposition impact (180°)', () => {
+      const eclipse: Eclipse = {
+        type: 'lunar',
+        date: '2020-01-01',
+        longitude: 0,
+        sign: 'Aries',
+        degree: 0,
+        description: 'Test',
+      }
+      const chart = createMockChart([{ name: 'Saturn', longitude: 180, sign: 'Libra', house: 7 }])
+      const impacts = findEclipseImpact(chart, [eclipse], 3)
+      const opp = impacts.find((i) => i.aspectType === 'opposition')
+      expect(opp).toBeDefined()
+      expect(opp?.orb).toBeCloseTo(0, 5)
+      expect(opp?.interpretation).toContain('충')
+    })
+
+    it('produces no impact when no point is within orb', () => {
+      const eclipse: Eclipse = {
+        type: 'solar',
+        date: '2020-01-01',
+        longitude: 0,
+        sign: 'Aries',
+        degree: 0,
+        description: 'Test',
+      }
+      // 45° from eclipse is neither conj/opp/square within 3° orb.
+      const chart = createMockChart([{ name: 'Mercury', longitude: 45, sign: 'Taurus', house: 2 }])
+      const impacts = findEclipseImpact(chart, [eclipse], 3)
+      expect(impacts.find((i) => i.affectedPoint === 'Mercury')).toBeUndefined()
+    })
+
+    it('sorts impacts by ascending orb', () => {
+      const eclipse: Eclipse = {
+        type: 'solar',
+        date: '2020-01-01',
+        longitude: 0,
+        sign: 'Aries',
+        degree: 0,
+        description: 'Test',
+      }
+      const chart = createMockChart([
+        { name: 'Sun', longitude: 2, sign: 'Aries', house: 1 }, // orb 2 conj
+        { name: 'Moon', longitude: 0.5, sign: 'Aries', house: 1 }, // orb 0.5 conj
+      ])
+      const impacts = findEclipseImpact(chart, [eclipse], 3)
+      for (let i = 1; i < impacts.length; i++) {
+        expect(impacts[i - 1].orb).toBeLessThanOrEqual(impacts[i].orb)
+      }
+    })
+
+    it('falls back to default eclipse computation when none supplied', () => {
+      const chart = createMockChart([{ name: 'Sun', longitude: 100, sign: 'Cancer', house: 4 }])
+      // No eclipse list → uses getAllEclipses() default lifespan window.
+      const impacts = findEclipseImpact(chart)
+      expect(Array.isArray(impacts)).toBe(true)
+    })
+
+    it('uses the default 3° orb when not specified', () => {
+      const eclipse: Eclipse = {
+        type: 'solar',
+        date: '2020-01-01',
+        longitude: 0,
+        sign: 'Aries',
+        degree: 0,
+        description: 'Test',
+      }
+      const chart = createMockChart([
+        { name: 'Sun', longitude: 2.5, sign: 'Aries', house: 1 }, // within default 3
+      ])
+      const impacts = findEclipseImpact(chart, [eclipse])
+      expect(impacts.some((i) => i.aspectType === 'conjunction')).toBe(true)
+    })
+  })
+
+  describe('checkEclipseSensitivity — node branches', () => {
+    it('returns not-sensitive with null node when chart has no node', () => {
+      const chart = createMockChart([{ name: 'Sun', longitude: 0, sign: 'Aries' }])
+      const result = checkEclipseSensitivity(chart)
+      expect(result.sensitive).toBe(false)
+      expect(result.sensitivePoints).toEqual([])
+      expect(result.nodeSign).toBeNull()
+    })
+
+    it('flags a planet conjunct the node as sensitive', () => {
+      const chart = createMockChart([
+        { name: 'True Node', longitude: 100, sign: 'Cancer' },
+        { name: 'Venus', longitude: 102, sign: 'Cancer' }, // within 5° of node
+      ])
+      const result = checkEclipseSensitivity(chart)
+      expect(result.sensitive).toBe(true)
+      expect(result.sensitivePoints).toContain('Venus')
+      expect(result.nodeSign).toBe('Cancer')
+    })
+
+    it('flags a planet opposite the node as sensitive', () => {
+      const chart = createMockChart([
+        { name: 'Mean Node', longitude: 10, sign: 'Aries' },
+        { name: 'Mars', longitude: 188, sign: 'Libra' }, // ~180° from node
+      ])
+      const result = checkEclipseSensitivity(chart, 5)
+      expect(result.sensitive).toBe(true)
+      expect(result.sensitivePoints).toContain('Mars')
+    })
+
+    it('does not flag a planet far from the node', () => {
+      const chart = createMockChart([
+        { name: 'True Node', longitude: 0, sign: 'Aries' },
+        { name: 'Saturn', longitude: 90, sign: 'Cancer' }, // 90° → not conj/opp
+      ])
+      const result = checkEclipseSensitivity(chart)
+      expect(result.sensitivePoints).not.toContain('Saturn')
+    })
+  })
+
+  describe('getEclipseAxis — full sign wheel coverage', () => {
+    const pairs: Array<[string, string]> = [
+      ['Gemini', 'Sagittarius'],
+      ['Cancer', 'Capricorn'],
+      ['Leo', 'Aquarius'],
+      ['Virgo', 'Pisces'],
+    ]
+    pairs.forEach(([sign, opposite]) => {
+      it(`maps ${sign} to ${opposite}`, () => {
+        const eclipse: Eclipse = {
+          type: 'solar',
+          date: '2020-01-01',
+          longitude: 0,
+          sign: sign as Eclipse['sign'],
+          degree: 0,
+          description: 'Test',
+        }
+        const axis = getEclipseAxis(eclipse)
+        expect(axis.primary).toBe(sign)
+        expect(axis.opposite).toBe(opposite)
+      })
+    })
+  })
+})
