@@ -7,9 +7,6 @@
      1) wheel 위 본명 행성 도트(natalDots) + 외행성 트랜짓 도트(transitDots)
      2) profection readout — sect(낮/밤) 한 줄 + Lord-of-Year dignity 한 줄
      3) ZR 카드 (Spirit L1+L2 / Fortune L1+L2)
-     4) SR 카드 (Solar Return: Asc / MC / exactDate)
-     5) 응용패턴 칩 row (appliedPatterns)
-     6) cross-activation 페어 (crossPairs)
      7) wheel 좌상단 Pivotal 배지 (LoB · 풀린·매듭 / Peak · 정점)
    ============================================================ */
 
@@ -176,43 +173,6 @@ function zrPivotalTag(c: DestinyDecadeZRChapter, ko: boolean): string | null {
   return null
 }
 
-/** Solar Return 추출 — DestinyYear.zrSpiritChapters / profection 에 부재시 graceful skip. */
-interface SolarReturnLike {
-  ascSign?: string
-  mcSign?: string
-  exactDate?: string
-}
-function readSolarReturn(year: DestinyYear): SolarReturnLike | null {
-  // DestinyYear 타입은 solarReturn 명시 필드 없음 — 디자인 데이터 보강 위임.
-  // 향후 adapter 가 채우는 일관 키 (solarReturn) 를 안전하게 탐색.
-  const anyYear = year as unknown as { solarReturn?: SolarReturnLike }
-  return anyYear.solarReturn ?? null
-}
-
-/** 응용 패턴 칩 — 디자인 데이터 보강. 향후 adapter 가 채우는 일관 키 (appliedPatterns). */
-interface AppliedPattern {
-  hanja?: string
-  ko: string
-  romaji?: string
-}
-function readAppliedPatterns(year: DestinyYear): AppliedPattern[] {
-  const anyYear = year as unknown as { appliedPatterns?: AppliedPattern[] }
-  return anyYear.appliedPatterns ?? []
-}
-
-/** Cross-activation 페어 — 사주 ↔ 점성 의미 연결. */
-interface CrossPair {
-  sajuLabel: string
-  sajuRomaji?: string
-  astroLabel: string
-  astroRomaji?: string
-  meaning: string
-}
-function readCrossPairs(year: DestinyYear): CrossPair[] {
-  const anyYear = year as unknown as { crossPairs?: CrossPair[] }
-  return anyYear.crossPairs ?? []
-}
-
 /** wheel 좌상단 pivotal 배지 — 올해에 ZR LoB/Peak 가 걸려있나. */
 function readWheelPivotal(year: DestinyYear): {
   kind: 'lob' | 'peak'
@@ -302,15 +262,6 @@ export function YearTier({ user, year, onDive, onRise }: YearTierProps) {
   // 보강 #3 — ZR.
   const zrSpiritNow = (year.zrSpiritChapters ?? []).find((c) => c.now)
   const zrFortuneNow = (year.zrFortuneChapters ?? []).find((c) => c.now)
-
-  // 보강 #4 — SR.
-  const sr = readSolarReturn(year)
-
-  // 보강 #5 — applied patterns.
-  const patterns = readAppliedPatterns(year)
-
-  // 보강 #6 — cross-activation pairs.
-  const crossPairs = readCrossPairs(year)
 
   // 보강 #7 — wheel pivotal 배지.
   const wheelPivotal = readWheelPivotal(year)
@@ -741,89 +692,6 @@ export function YearTier({ user, year, onDive, onRise }: YearTierProps) {
             </div>
           </div>
         </section>
-
-        {/* ── 보강 #4 — SR (Solar Return) 카드 ── */}
-        {sr && (
-          <section className={styles.blockSm}>
-            <div className={styles.secHead}>
-              <h2 className={styles.secTitle}>{ko ? '태양회귀 · Solar Return' : 'Solar Return'}</h2>
-              <span className={styles.secTag}>
-                {ko ? '본명 태양 정확 회귀' : 'exact natal Sun return'}
-              </span>
-            </div>
-            <div className={styles.srCard}>
-              <div className={styles.srGlyph}>☉</div>
-              <div className={styles.srBody}>
-                <div className="head">SR · {year.year}</div>
-                <div className="lab">
-                  {sr.ascSign && (
-                    <>
-                      {ko ? '상승 ' : 'Asc '}
-                      <b>{sr.ascSign}</b>
-                    </>
-                  )}
-                  {sr.mcSign && (
-                    <>
-                      {sr.ascSign ? ' · ' : ''}MC <b>{sr.mcSign}</b>
-                    </>
-                  )}
-                </div>
-              </div>
-              {sr.exactDate && <div className={styles.srDate}>{sr.exactDate}</div>}
-            </div>
-          </section>
-        )}
-
-        {/* ── 보강 #5 — 응용 패턴 칩 row ── */}
-        {patterns.length > 0 && (
-          <section className={styles.blockSm}>
-            <div className={styles.secHead}>
-              <h2 className={styles.secTitle}>
-                {ko ? '올해의 응용 패턴' : "This year's applied patterns"}
-              </h2>
-              <span className={styles.secTag}>Applied Patterns</span>
-            </div>
-            <div className={styles.patternRow}>
-              {patterns.map((pt, i) => (
-                <span key={i} className={styles.patternChip}>
-                  {pt.hanja && <span className="han">{pt.hanja}</span>}
-                  <span>{pt.ko}</span>
-                  {pt.romaji && <span className="k">{pt.romaji}</span>}
-                </span>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* ── 보강 #6 — Cross-activation 페어 ── */}
-        {crossPairs.length > 0 && (
-          <section className={styles.block}>
-            <div className={styles.secHead}>
-              <h2 className={styles.secTitle}>
-                {ko ? '사주 ↔ 점성 연결' : 'Saju ↔ Astrology links'}
-              </h2>
-              <span className={styles.secTag}>Cross Activation</span>
-            </div>
-            <div className={styles.crossList}>
-              {crossPairs.map((cp, i) => (
-                <div key={i}>
-                  <div className={styles.crossRow}>
-                    <div className={`${styles.crossSide} ${styles.saju || ''}`}>
-                      <b>{cp.sajuLabel}</b>
-                      {cp.sajuRomaji && <span className="sub">{cp.sajuRomaji}</span>}
-                    </div>
-                    <div className={styles.crossLink}>↔</div>
-                    <div className={`${styles.crossSide} ${styles.astro || ''}`}>
-                      <b>{cp.astroLabel}</b>
-                      {cp.astroRomaji && <span className="sub">{cp.astroRomaji}</span>}
-                    </div>
-                  </div>
-                  {cp.meaning && <p className={styles.crossMeaning}>{cp.meaning}</p>}
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
       </details>
 
       {/* ── dive 버튼 (원본 그대로) ── */}
@@ -835,4 +703,3 @@ export function YearTier({ user, year, onDive, onRise }: YearTierProps) {
     </div>
   )
 }
-

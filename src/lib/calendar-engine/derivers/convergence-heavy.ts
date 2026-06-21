@@ -22,12 +22,6 @@ const HEAVY_SAJU_KINDS = new Set(['hyeongchung'])
 
 export const MIN_IMPACT = 0.4
 
-// "양쪽 수렴" 축 임계값 — sajuAxis/astroAxis(0~100, 중립 50)가 둘 다 이만큼
-// 벗어나면 양쪽 시스템 모두 그날 실제 신호가 있다고 본다. 전 신호 기반 정밀
-// 판정(bothSystems)이 불가능한 구간/뷰의 프록시 (연간 뷰, 분기 밖 데일리).
-// NOTE: 분포 보정값이 아니라 고정 휴리스틱 — 정밀 보정은 후속 과제.
-const CONVERGENCE_AXIS_MIN = 15
-
 function leadToken(name: string | null | undefined): string {
   return (name || '').split(/[ ·]/)[0]
 }
@@ -89,26 +83,4 @@ export function cleanSignalName(s: HeavySignalInput, lang: 'ko' | 'en' = 'ko'): 
       .replace(/\s+\S*$/, '')
       .trim() + '…'
   )
-}
-
-// 두 축이 둘 다 중립서 충분히 벗어남 = 양쪽 다 실제 신호 (방향 무관).
-// ※ Raw 축을 우선 사용 — v2 override 활성 시 sajuAxis/astroAxis는 헤드라인
-//   점수와 평균 정렬을 위해 시프트된 표시값이라, 그걸 그대로 쓰면 두 축이
-//   동시에 시프트돼 거짓 "양쪽 수렴" 트리거가 난다. raw 필드(시프트 전)가
-//   없으면 호환을 위해 시프트값 사용.
-export function isAxisConverged(
-  sb:
-    | {
-        sajuAxis: number
-        astroAxis: number
-        sajuAxisRaw?: number
-        astroAxisRaw?: number
-      }
-    | null
-    | undefined
-): boolean {
-  if (!sb) return false
-  const saju = typeof sb.sajuAxisRaw === 'number' ? sb.sajuAxisRaw : sb.sajuAxis
-  const astro = typeof sb.astroAxisRaw === 'number' ? sb.astroAxisRaw : sb.astroAxis
-  return Math.abs(saju - 50) >= CONVERGENCE_AXIS_MIN && Math.abs(astro - 50) >= CONVERGENCE_AXIS_MIN
 }
