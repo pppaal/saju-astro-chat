@@ -242,6 +242,114 @@ describe('calculateInteractionScore', () => {
     const result = calculateInteractionScore(analysis)
     expect(result.balance).toBe('중립')
   })
+
+  // ============ 추가: 미커버 분기 ============
+
+  it("returns '길함' for small positive overall (0 < overall <= 20)", () => {
+    const analysis: HyeongchungAnalysis = {
+      interactions: [],
+      summary: {
+        totalPositive: 110,
+        totalNegative: 100, // overall = 10
+        dominantInteraction: '육합',
+        netEffect: '길',
+      },
+      warnings: [],
+    }
+    const result = calculateInteractionScore(analysis)
+    expect(result.overall).toBe(10)
+    expect(result.balance).toBe('길함')
+  })
+
+  it("returns '흉함' for small negative overall (-20 <= overall < 0)", () => {
+    const analysis: HyeongchungAnalysis = {
+      interactions: [],
+      summary: {
+        totalPositive: 100,
+        totalNegative: 110, // overall = -10
+        dominantInteraction: '충',
+        netEffect: '흉',
+      },
+      warnings: [],
+    }
+    const result = calculateInteractionScore(analysis)
+    expect(result.overall).toBe(-10)
+    expect(result.balance).toBe('흉함')
+  })
+
+  it('exact +20 boundary stays in 길함 (not 매우 길함)', () => {
+    const analysis: HyeongchungAnalysis = {
+      interactions: [],
+      summary: {
+        totalPositive: 20,
+        totalNegative: 0, // overall = 20, not > 20
+        dominantInteraction: '육합',
+        netEffect: '길',
+      },
+      warnings: [],
+    }
+    expect(calculateInteractionScore(analysis).balance).toBe('길함')
+  })
+
+  it('exact -20 boundary stays in 흉함 (not 매우 흉함)', () => {
+    const analysis: HyeongchungAnalysis = {
+      interactions: [],
+      summary: {
+        totalPositive: 0,
+        totalNegative: 20, // overall = -20, not < -20
+        dominantInteraction: '충',
+        netEffect: '흉',
+      },
+      warnings: [],
+    }
+    expect(calculateInteractionScore(analysis).balance).toBe('흉함')
+  })
+})
+
+describe('analyzeHyeongchung - 미커버 분기', () => {
+  it('handles 3-pillar input (no hour) without throwing', () => {
+    const pillars: SajuPillarsInput = {
+      year: { stem: '甲', branch: '子' },
+      month: { stem: '甲', branch: '丑' },
+      day: { stem: '甲', branch: '寅' },
+      // hour omitted → branchMap.set('hour', ...) skipped
+    }
+    const result = analyzeHyeongchung(pillars)
+    expect(result.interactions).toBeDefined()
+    // 子丑 육합은 여전히 잡혀야 함
+    const yukap = result.interactions.find((i) => i.type === '육합')
+    expect(yukap).toBeDefined()
+  })
+
+  it('returns null dominantInteraction and 중립 when no interactions', () => {
+    // 어떤 육합도 없는 지지 조합
+    const pillars: SajuPillarsInput = {
+      year: { stem: '甲', branch: '寅' },
+      month: { stem: '甲', branch: '寅' },
+      day: { stem: '甲', branch: '寅' },
+      hour: { stem: '甲', branch: '寅' },
+    }
+    const result = analyzeHyeongchung(pillars)
+    expect(result.interactions).toHaveLength(0)
+    expect(result.summary.dominantInteraction).toBeNull()
+    expect(result.summary.netEffect).toBe('중립')
+    expect(result.summary.totalPositive).toBe(0)
+    expect(result.summary.totalNegative).toBe(0)
+    expect(result.warnings).toHaveLength(0)
+  })
+
+  it('does not warn when only positive interactions exist', () => {
+    const pillars: SajuPillarsInput = {
+      year: { stem: '甲', branch: '子' },
+      month: { stem: '甲', branch: '丑' },
+      day: { stem: '甲', branch: '寅' },
+      hour: { stem: '甲', branch: '亥' },
+    }
+    const result = analyzeHyeongchung(pillars)
+    // checkYukap만 동작 → 흉 작용 없음 → warnings 비어있음
+    expect(result.warnings).toHaveLength(0)
+    expect(result.summary.netEffect).toBe('길')
+  })
 })
 
 describe('Type interfaces', () => {

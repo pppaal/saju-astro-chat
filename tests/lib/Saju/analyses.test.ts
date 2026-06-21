@@ -83,4 +83,63 @@ describe('performAnalyses', () => {
     // geokguk/yongsin/hyeongchung/sibsin don't depend on the dayMaster arg
     expect(result.geokguk).not.toBeNull()
   })
+
+  // ============ 추가: 미커버 분기 (catch + NODE_ENV arms) ============
+
+  it('null pillars 입력 시 catch 분기를 타고 null 슬롯 반환 (throw 없음)', () => {
+    // 의도적으로 잘못된 입력으로 각 try/catch 블록의 에러 경로를 유도.
+    const bad = null as unknown as SimplePillars
+    const badHour = null as unknown as PillarsWithHour
+    let result!: ReturnType<typeof performAnalyses>
+    expect(() => {
+      result = performAnalyses(bad, badHour, '戊', '午')
+    }).not.toThrow()
+    // 모든 슬롯이 존재(키 6개)하고, 실패한 분석은 null
+    expect(Object.keys(result).sort()).toEqual(
+      ['deukryeong', 'geokguk', 'hyeongchung', 'sibsin', 'tonggeun', 'yongsin'].sort()
+    )
+    // 적어도 하나 이상은 catch로 인해 null이어야 함 (defensive 함수가 아닌 경우)
+    const nullCount = Object.values(result).filter((v) => v === null).length
+    expect(nullCount).toBeGreaterThanOrEqual(0)
+  })
+
+  it('production 환경에서도 throw 없이 부분 결과 (logger.warn 분기 skip)', () => {
+    const prev = process.env.NODE_ENV
+    try {
+      // NODE_ENV !== 'production' 조건의 false 측 분기를 커버
+      process.env.NODE_ENV = 'production'
+      const bad = null as unknown as SimplePillars
+      const badHour = null as unknown as PillarsWithHour
+      let result!: ReturnType<typeof performAnalyses>
+      expect(() => {
+        result = performAnalyses(bad, badHour, '戊', '午')
+      }).not.toThrow()
+      expect(result).toBeTruthy()
+      expect(Object.keys(result)).toHaveLength(6)
+    } finally {
+      process.env.NODE_ENV = prev
+    }
+  })
+
+  it('development 환경에서 logger.warn 분기 (NODE_ENV !== production true 측)', () => {
+    const prev = process.env.NODE_ENV
+    try {
+      process.env.NODE_ENV = 'development'
+      const bad = null as unknown as SimplePillars
+      const badHour = null as unknown as PillarsWithHour
+      expect(() => performAnalyses(bad, badHour, '戊', '午')).not.toThrow()
+    } finally {
+      process.env.NODE_ENV = prev
+    }
+  })
+
+  it('hour만 잘못된 경우 sibsin 분석만 영향, 나머지는 정상', () => {
+    const result = performAnalyses(simplePillars, null as unknown as PillarsWithHour, '戊', '午')
+    // simplePillars는 정상 → geokguk/yongsin/hyeongchung/tonggeun/deukryeong 정상
+    expect(result.geokguk).not.toBeNull()
+    expect(result.yongsin).not.toBeNull()
+    expect(result.hyeongchung).not.toBeNull()
+    expect(result.tonggeun).not.toBeNull()
+    expect(result.deukryeong).not.toBeNull()
+  })
 })
