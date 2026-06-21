@@ -1,10 +1,10 @@
 // src/lib/Saju/strengthScore.ts
 // 사주 강약 종합 점수화 시스템 (200% 급 모듈)
 
-import { FiveElement, SajuPillars, PillarData, SibsinKind } from './types'
+import { FiveElement, SajuPillars, PillarData, SibsinKind, SajuPillarsInput } from './types'
 import { JIJANGGAN, FIVE_ELEMENT_RELATIONS } from './constants'
 import { BRANCH_CLASH, SIX_HARMONY, toBidiRecord } from './relationTables'
-import { getStemElement, getBranchElement, getStemYinYang } from './stemBranchUtils'
+import { getStemElement, getBranchElement, normalizeStem, normalizeBranch } from './stemBranchUtils'
 
 // ============================================================
 // 타입 정의
@@ -148,48 +148,134 @@ export function calculateElementScores(pillars: SajuPillars): ElementScore[] {
 }
 
 // ============================================================
-// 신강/신약 점수 계산
+// 신강/신약 점수 계산 — SSOT 코어
 // ============================================================
+//
+// 강약 점수의 *유일한* 알고리즘 출처. 다른 입력 형태(SajuPillars full /
+// SajuPillarsInput simple)는 정규화된 천간·지지 이름 배열로 변환해 이 코어를
+// 호출한다. (CONVENTIONS §11). geokguk.getStrengthScore 도 이 코어를 위임 호출.
+//
+// 점수 기준:
+//   득령 (월령) 0~30점 — 일간이 월지와 같은 오행이면 30 (왕지)
+//   통근 (지지 근) 0~25점 — 지장간 정·중·여기에 일간 오행이 있으면 가산
+//   인성 지원 0~20점 / 비겁 지원 0~15점
+//   설기·재성·관성 음수 — 일간을 소모/극하는 오행의 존재감
+
+/** 코어 입력: 정규화(한자)된 4주의 천간·지지 이름. */
+export interface StrengthCoreInput {
+  /** 년·월·일·시 순 천간 (한자) */
+  stems: [string, string, string, string]
+  /** 년·월·일·시 순 지지 (한자) */
+  branches: [string, string, string, string]
+  /** 일간 천간 (한자) — stems[2] 와 동일하지만 명시적으로 전달 */
+  dayStem: string
+  /** 월령 판정에 쓸 지지 override (없으면 branches[1] = 월지) */
+  monthBranch?: string
+}
+
+function deukryeongScore(dayElement: FiveElement, monthElement: FiveElement): number {
+  if (dayElement === monthElement) {
+    return 30
+  } // 왕지
+  if (FIVE_ELEMENT_RELATIONS['생받는관계'][dayElement] === monthElement) {
+    return 25
+  } // 상생
+  if (FIVE_ELEMENT_RELATIONS['생하는관계'][dayElement] === monthElement) {
+    return 10
+  } // 설기
+  if (FIVE_ELEMENT_RELATIONS['극하는관계'][dayElement] === monthElement) {
+    return 5
+  } // 극출
+  if (FIVE_ELEMENT_RELATIONS['극받는관계'][dayElement] === monthElement) {
+    return 0
+  } // 극입
+  return 15 // 중립
+}
+
+function tonggeunScore(branches: string[], dayElement: FiveElement): number {
+  let score = 0
+  for (const branch of branches) {
+    const jijanggan = JIJANGGAN[branch]
+    if (!jijanggan) {
+      continue
+    }
+    for (const [qi, stem] of Object.entries(jijanggan)) {
+      if (getStemElement(stem) === dayElement) {
+        const qiWeight = qi === '정기' ? 8 : qi === '중기' ? 5 : 3
+        score += qiWeight
+      }
+    }
+  }
+  return Math.min(25, score)
+}
+
+function elementPresenceScore(
+  stems: string[],
+  branches: string[],
+  element: FiveElement,
+  maxScore: number
+): number {
+  let score = 0
+  for (const stem of stems) {
+    if (getStemElement(stem) === element) {
+      score += 3
+    }
+  }
+  for (const branch of branches) {
+    if (getBranchElement(branch) === element) {
+      score += 2
+    }
+    const jijanggan = JIJANGGAN[branch]
+    if (jijanggan) {
+      for (const stem of Object.values(jijanggan)) {
+        if (getStemElement(stem) === element) {
+          score += 1
+        }
+      }
+    }
+  }
+  return Math.min(maxScore, score)
+}
 
 /**
- * 신강/신약 점수 계산
+ * 강약 점수 SSOT 코어 — 정규화된 이름 배열을 받아 5요소 가중 합산.
+ * `calculateStrengthScore`(full)·`geokguk.getStrengthScore`(simple) 모두 이 함수를 호출.
  */
-export function calculateStrengthScore(pillars: SajuPillars, monthBranch?: string): StrengthScore {
-  const dayMaster = pillars.day.heavenlyStem.name
-  const dayElement = getStemElement(dayMaster)
-  const dayYinYang = getStemYinYang(dayMaster)
+export function computeStrengthScore(input: StrengthCoreInput): StrengthScore {
+  const { stems, branches } = input
+  const dayElement = getStemElement(input.dayStem)
 
   const items: ScoreItem[] = []
   let supportScore = 0
   let resistScore = 0
 
   // 1. 득령(월지 계절) 점수 - 30점 만점
-  const actualMonthBranch = monthBranch || pillars.month.earthlyBranch.name
+  const actualMonthBranch = input.monthBranch || branches[1]
   const monthElement = getBranchElement(actualMonthBranch)
-  const deukryeongScore = calculateDeukryeongScore(dayElement, monthElement)
+  const deukryeong = deukryeongScore(dayElement, monthElement)
   items.push({
     category: '득령',
     name: `${actualMonthBranch}월 ${monthElement}`,
-    score: deukryeongScore,
+    score: deukryeong,
     weight: 0.3,
-    description: deukryeongScore >= 20 ? '득령' : deukryeongScore >= 10 ? '평령' : '실령',
+    description: deukryeong >= 20 ? '득령' : deukryeong >= 10 ? '평령' : '실령',
   })
-  supportScore += deukryeongScore
+  supportScore += deukryeong
 
   // 2. 통근(지지 근) 점수 - 25점 만점
-  const tonggeunScore = calculateTonggeunScore(pillars, dayElement)
+  const tonggeun = tonggeunScore(branches, dayElement)
   items.push({
     category: '통근',
     name: '지지 뿌리',
-    score: tonggeunScore,
+    score: tonggeun,
     weight: 0.25,
-    description: tonggeunScore >= 15 ? '강한 뿌리' : tonggeunScore >= 8 ? '보통 뿌리' : '약한 뿌리',
+    description: tonggeun >= 15 ? '강한 뿌리' : tonggeun >= 8 ? '보통 뿌리' : '약한 뿌리',
   })
-  supportScore += tonggeunScore
+  supportScore += tonggeun
 
   // 3. 인성 지원 점수 - 20점 만점
   const inseongElement = FIVE_ELEMENT_RELATIONS['생받는관계'][dayElement]
-  const inseongScore = calculateElementPresenceScore(pillars, inseongElement, 20)
+  const inseongScore = elementPresenceScore(stems, branches, inseongElement, 20)
   items.push({
     category: '인성',
     name: `${inseongElement} 지원`,
@@ -200,7 +286,7 @@ export function calculateStrengthScore(pillars: SajuPillars, monthBranch?: strin
   supportScore += inseongScore
 
   // 4. 비겁 지원 점수 - 15점 만점
-  const bigyeobScore = calculateElementPresenceScore(pillars, dayElement, 15)
+  const bigyeobScore = elementPresenceScore(stems, branches, dayElement, 15)
   items.push({
     category: '비겁',
     name: '비겁 지원',
@@ -212,7 +298,7 @@ export function calculateStrengthScore(pillars: SajuPillars, monthBranch?: strin
 
   // 5. 설기 (식상) 점수 - 음수
   const siksangElement = FIVE_ELEMENT_RELATIONS['생하는관계'][dayElement]
-  const siksangScore = calculateElementPresenceScore(pillars, siksangElement, 15)
+  const siksangScore = elementPresenceScore(stems, branches, siksangElement, 15)
   items.push({
     category: '식상',
     name: `${siksangElement} 설기`,
@@ -224,7 +310,7 @@ export function calculateStrengthScore(pillars: SajuPillars, monthBranch?: strin
 
   // 6. 재성 점수 - 음수
   const jaeseongElement = FIVE_ELEMENT_RELATIONS['극하는관계'][dayElement]
-  const jaeseongScore = calculateElementPresenceScore(pillars, jaeseongElement, 15)
+  const jaeseongScore = elementPresenceScore(stems, branches, jaeseongElement, 15)
   items.push({
     category: '재성',
     name: `${jaeseongElement} 극`,
@@ -236,7 +322,7 @@ export function calculateStrengthScore(pillars: SajuPillars, monthBranch?: strin
 
   // 7. 관성 점수 - 음수
   const gwanseongElement = FIVE_ELEMENT_RELATIONS['극받는관계'][dayElement]
-  const gwanseongScore = calculateElementPresenceScore(pillars, gwanseongElement, 20)
+  const gwanseongScore = elementPresenceScore(stems, branches, gwanseongElement, 20)
   items.push({
     category: '관성',
     name: `${gwanseongElement} 극`,
@@ -276,96 +362,53 @@ export function calculateStrengthScore(pillars: SajuPillars, monthBranch?: strin
   }
 }
 
-function calculateDeukryeongScore(dayElement: FiveElement, monthElement: FiveElement): number {
-  if (dayElement === monthElement) {
-    return 30
-  } // 왕지
-  if (FIVE_ELEMENT_RELATIONS['생받는관계'][dayElement] === monthElement) {
-    return 25
-  } // 상생
-  if (FIVE_ELEMENT_RELATIONS['생하는관계'][dayElement] === monthElement) {
-    return 10
-  } // 설기
-  if (FIVE_ELEMENT_RELATIONS['극하는관계'][dayElement] === monthElement) {
-    return 5
-  } // 극출
-  if (FIVE_ELEMENT_RELATIONS['극받는관계'][dayElement] === monthElement) {
-    return 0
-  } // 극입
-  return 15 // 중립
+/** SajuPillarsInput(simple) → 정규화된 코어 입력으로 변환. */
+export function toStrengthCoreInput(
+  pillars: SajuPillarsInput,
+  monthBranch?: string
+): StrengthCoreInput {
+  const stems: [string, string, string, string] = [
+    normalizeStem(pillars.year.stem),
+    normalizeStem(pillars.month.stem),
+    normalizeStem(pillars.day.stem),
+    normalizeStem(pillars.time.stem),
+  ]
+  const branches: [string, string, string, string] = [
+    normalizeBranch(pillars.year.branch),
+    normalizeBranch(pillars.month.branch),
+    normalizeBranch(pillars.day.branch),
+    normalizeBranch(pillars.time.branch),
+  ]
+  return {
+    stems,
+    branches,
+    dayStem: stems[2],
+    monthBranch: monthBranch ? normalizeBranch(monthBranch) : undefined,
+  }
 }
 
-function calculateTonggeunScore(pillars: SajuPillars, dayElement: FiveElement): number {
-  let score = 0
-  const branches = [
-    pillars.year.earthlyBranch.name,
-    pillars.month.earthlyBranch.name,
-    pillars.day.earthlyBranch.name,
-    pillars.time.earthlyBranch.name,
+/**
+ * 신강/신약 점수 계산 (SajuPillars full). SSOT 코어 `computeStrengthScore` 위임.
+ */
+export function calculateStrengthScore(pillars: SajuPillars, monthBranch?: string): StrengthScore {
+  const stems: [string, string, string, string] = [
+    normalizeStem(pillars.year.heavenlyStem.name),
+    normalizeStem(pillars.month.heavenlyStem.name),
+    normalizeStem(pillars.day.heavenlyStem.name),
+    normalizeStem(pillars.time.heavenlyStem.name),
   ]
-
-  for (const branch of branches) {
-    const jijanggan = JIJANGGAN[branch]
-    if (!jijanggan) {
-      continue
-    }
-
-    for (const [qi, stem] of Object.entries(jijanggan)) {
-      if (getStemElement(stem) === dayElement) {
-        const qiWeight = qi === '정기' ? 8 : qi === '중기' ? 5 : 3
-        score += qiWeight
-      }
-    }
-  }
-
-  return Math.min(25, score)
-}
-
-function calculateElementPresenceScore(
-  pillars: SajuPillars,
-  element: FiveElement,
-  maxScore: number
-): number {
-  let score = 0
-
-  // 천간 체크
-  const stems = [
-    pillars.year.heavenlyStem.name,
-    pillars.month.heavenlyStem.name,
-    pillars.day.heavenlyStem.name,
-    pillars.time.heavenlyStem.name,
+  const branches: [string, string, string, string] = [
+    normalizeBranch(pillars.year.earthlyBranch.name),
+    normalizeBranch(pillars.month.earthlyBranch.name),
+    normalizeBranch(pillars.day.earthlyBranch.name),
+    normalizeBranch(pillars.time.earthlyBranch.name),
   ]
-
-  for (const stem of stems) {
-    if (getStemElement(stem) === element) {
-      score += 3
-    }
-  }
-
-  // 지지 체크
-  const branches = [
-    pillars.year.earthlyBranch.name,
-    pillars.month.earthlyBranch.name,
-    pillars.day.earthlyBranch.name,
-    pillars.time.earthlyBranch.name,
-  ]
-
-  for (const branch of branches) {
-    if (getBranchElement(branch) === element) {
-      score += 2
-    }
-
-    const jijanggan = JIJANGGAN[branch]
-    if (jijanggan) {
-      for (const stem of Object.values(jijanggan)) {
-        if (getStemElement(stem) === element) {
-          score += 1
-        }
-      }
-    }
-  }
-
-  return Math.min(maxScore, score)
+  return computeStrengthScore({
+    stems,
+    branches,
+    dayStem: stems[2],
+    monthBranch: monthBranch ? normalizeBranch(monthBranch) : undefined,
+  })
 }
 
 // ============================================================
@@ -490,8 +533,20 @@ export function calculateYongsinFitScore(
 ): YongsinFitScore {
   const items: ScoreItem[] = []
 
-  // 용신 존재감 점수
-  const presenceScore = calculateElementPresenceScore(pillars, yongsin, 50) * 2
+  // 용신 존재감 점수 — SSOT 코어와 동일한 elementPresenceScore 헬퍼 재사용
+  const fitStems = [
+    pillars.year.heavenlyStem.name,
+    pillars.month.heavenlyStem.name,
+    pillars.day.heavenlyStem.name,
+    pillars.time.heavenlyStem.name,
+  ]
+  const fitBranches = [
+    pillars.year.earthlyBranch.name,
+    pillars.month.earthlyBranch.name,
+    pillars.day.earthlyBranch.name,
+    pillars.time.earthlyBranch.name,
+  ]
+  const presenceScore = elementPresenceScore(fitStems, fitBranches, yongsin, 50) * 2
   items.push({
     category: '존재감',
     name: `${yongsin} 현존`,
@@ -535,4 +590,3 @@ export function calculateYongsinFitScore(
     items,
   }
 }
-
