@@ -169,14 +169,14 @@ export const GLOSSARY: Record<GlossarySection, GlossaryEntry[]> = {
       },
     },
     {
-      term: { ko: 'ASC(상승) · MC(중천)', en: 'ASC (rising) · MC (midheaven)' },
+      term: { ko: '상승점 · 중천', en: 'ASC (rising) · MC (midheaven)' },
       body: {
-        ko: 'ASC는 남에게 보이는 첫인상·겉모습, MC는 사회적 위치·커리어 방향을 뜻해요.',
+        ko: '상승점은 남에게 보이는 첫인상·겉모습, 중천은 사회적 위치·커리어 방향을 뜻해요.',
         en: 'ASC is your outward first impression; MC is your social standing and career direction.',
       },
     },
     {
-      term: { ko: '주간 · 야간 (sect)', en: 'Sect (day · night)' },
+      term: { ko: '주간 · 야간', en: 'Sect (day · night)' },
       body: {
         ko: '해가 지평선 위에 있을 때(낮) 태어났는지, 아래에 있을 때(밤) 태어났는지로 차트를 주간·야간으로 나눠요. 낮 차트면 해 쪽 행성이, 밤 차트면 달 쪽 행성이 더 편하게 힘을 내요.',
         en: 'Whether you were born with the Sun above the horizon (day) or below it (night) sorts the chart into day or night. In a day chart the Sun-side planets work more comfortably; in a night chart the Moon-side ones do.',
@@ -192,14 +192,14 @@ export const GLOSSARY: Record<GlossarySection, GlossaryEntry[]> = {
       },
     },
     {
-      term: { ko: '오차각 (orb)', en: 'Orb' },
+      term: { ko: '오차각', en: 'Orb' },
       body: {
         ko: '두 행성의 각도가 딱 떨어지는 값(예: 90°)에서 얼마나 벗어났는지 그 여유 폭이에요. 0°에 가까울수록 정확히 맞은 각이라 그만큼 더 강하게 작용해요.',
         en: 'How far two planets sit from an exact angle (e.g. 90°) — the allowed wiggle room. The closer to 0°, the more exact the angle, and the stronger it works.',
       },
     },
     {
-      term: { ko: '역행 (retrograde)', en: 'Retrograde' },
+      term: { ko: '역행', en: 'Retrograde' },
       body: {
         ko: '하늘에서 행성이 잠시 뒤로 가는 것처럼 보이는 때예요. 그 행성의 기운이 밖으로 뻗기보다 안으로 향하고 곱씹는 식으로 작동한다고 봐요.',
         en: 'A time when a planet appears to move backward in the sky. Its energy is read as turning inward and reflective rather than reaching outward.',

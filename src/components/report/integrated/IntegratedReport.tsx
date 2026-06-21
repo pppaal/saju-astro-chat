@@ -285,8 +285,8 @@ function Wheel({ astro, lang }: { astro: ReportData['astro']; lang: Lang }) {
       })}
       {/* ASC / MC 축 */}
       {[
-        ['ASC', ascLon],
-        ['MC', astro.mc.lon],
+        [lang === 'en' ? 'ASC' : '상승점', ascLon],
+        [lang === 'en' ? 'MC' : '중천', astro.mc.lon],
       ].map(([lab, lon]) => {
         const [x1, y1] = polar(cx, cy, rInner, screen(lon as number))
         const [x2, y2] = polar(cx, cy, rOuter + 6, screen(lon as number))
@@ -433,6 +433,25 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
   const geokgukMeta = extras.geokgukMeta
   const sibsinCategoryCount = extras.sibsinCategoryCount
   const t = (k: keyof typeof UI): string => UI[k][lang]
+  // KO 가시 텍스트 라틴 0 — 하우스 시스템·표준시를 한글/숫자로 현지화.
+  const HOUSE_SYS_KO: Record<string, string> = {
+    Placidus: '플라시더스',
+    'Whole Sign': '홀사인',
+    'Whole-Sign': '홀사인',
+    Koch: '코흐',
+    'Equal House': '등분하우스',
+    Equal: '등분하우스',
+    Regiomontanus: '레기오몬타누스',
+    Campanus: '캄파누스',
+    Porphyry: '포르피리우스',
+  }
+  const houseSysLabel = (hs: string): string => (lang === 'en' ? hs : (HOUSE_SYS_KO[hs] ?? hs))
+  // 표준시: KO 는 IANA 식별자(Asia/Seoul) 를 빼고 UTC 오프셋만 노출.
+  const tzLabel = (tz: string): string => {
+    if (lang === 'en') return tz
+    const m = tz.match(/UTC[+\-−]?\d+(?::?\d+)?/i)
+    return m ? m[0] : tz.replace(/[A-Za-z_/]+/g, '').trim() || tz
+  }
   const pillarsArr: Array<
     [BiLabel, ReportData['saju']['pillars'][keyof ReportData['saju']['pillars']]]
   > = [
@@ -525,8 +544,11 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
               // 부호로 반구 분기 — 남반구(-lat)는 S, 서경(-lng)은 W (C7).
               `${Math.abs(input.lat).toFixed(2)}°${input.lat < 0 ? 'S' : 'N'} · ${Math.abs(input.lng).toFixed(2)}°${input.lng < 0 ? 'W' : 'E'}`,
             ],
-            [t('metaTz'), input.timeZone],
-            [t('metaHouse'), `${A.houseSystem} · ${A.sect === 'day' ? t('day') : t('night')}`],
+            [t('metaTz'), tzLabel(input.timeZone)],
+            [
+              t('metaHouse'),
+              `${houseSysLabel(A.houseSystem)} · ${A.sect === 'day' ? t('day') : t('night')}`,
+            ],
           ].map(([k, v]) => (
             <div className={s.metaCell} key={k}>
               <span className={s.metaK}>{k}</span>
@@ -617,7 +639,7 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
               {lang === 'en' ? 'Four Pillars' : '사주 명식'}
               <span className={s.han}>四柱命式</span>
             </span>
-            <span className={s.secEn}>Four Pillars</span>
+            {lang === 'en' && <span className={s.secEn}>Four Pillars</span>}
           </div>
           <Explain section="s01" lang={lang} />
           {/* 일간(나) 카드 — hanja-rich 의 일간성격·강점·약점·직업을 hover→본문으로. */}
@@ -817,7 +839,7 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
               {t('sec02Title')}
               <span className={s.han}>{UI.sec02Han.ko}</span>
             </span>
-            <span className={s.secEn}>Elements & Balance</span>
+            {lang === 'en' && <span className={s.secEn}>Elements & Balance</span>}
           </div>
           <Explain section="s02" lang={lang} />
           <div className={s.gridElem}>
@@ -1006,7 +1028,7 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
               {lang === 'en' ? 'Natal Chart' : '출생 천궁도'}
               <span className={s.han}>本命 天宮圖</span>
             </span>
-            <span className={s.secEn}>Natal Chart</span>
+            {lang === 'en' && <span className={s.secEn}>Natal Chart</span>}
           </div>
           <Explain section="s03" lang={lang} />
           <div className={s.gridChart}>
@@ -1034,10 +1056,7 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
                             .join(' · ')}
                         >
                           <td className={s.plG}>{p.glyph}</td>
-                          <td className={s.plN}>
-                            {lang === 'en' ? p.name : p.ko}
-                            {lang === 'en' ? null : <i>{p.name}</i>}
-                          </td>
+                          <td className={s.plN}>{lang === 'en' ? p.name : p.ko}</td>
                           <td className={`${s.plS} ${elClass[SIGN_META[abbr(p.sign)]?.el]}`}>
                             {SIGN_META[abbr(p.sign)]?.glyph} {signLabel(abbr(p.sign), lang)}
                           </td>
@@ -1055,8 +1074,8 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
                 </div>
                 <div className={s.axes}>
                   {[
-                    ['ASC', A.ascendant],
-                    ['MC', A.mc],
+                    [lang === 'en' ? 'ASC' : '상승점', A.ascendant],
+                    [lang === 'en' ? 'MC' : '중천', A.mc],
                   ].map(([lab, ax]) => {
                     const a = ax as { sign: string; deg: string }
                     return (
@@ -1074,7 +1093,7 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
                   </div>
                   <div className={s.axisItem}>
                     <span>{t('houseLab')}</span>
-                    <b>{A.houseSystem}</b>
+                    <b>{houseSysLabel(A.houseSystem)}</b>
                   </div>
                 </div>
                 {/* 6하우스 그리드 제거 — 아래 HouseDetail 이 12하우스 전체를 풀이로 대체. */}
@@ -1106,7 +1125,7 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
                   house: moon.house,
                 },
                 asc && {
-                  glyph: 'Asc',
+                  glyph: lang === 'en' ? 'Asc' : '↑',
                   label: lang === 'en' ? 'Rising' : '상승',
                   core: getPlanetCore('Ascendant', lang),
                   sign: asc.sign,
@@ -1201,7 +1220,7 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
               {lang === 'en' ? 'Aspects' : '어스펙트'}
               <span className={s.han}>行星 角度</span>
             </span>
-            <span className={s.secEn}>Aspects</span>
+            {lang === 'en' && <span className={s.secEn}>Aspects</span>}
           </div>
           <Explain section="s04" lang={lang} />
           <div className={s.gridAsp}>
@@ -1286,7 +1305,7 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
                 {lang === 'en' ? 'Cross-System' : '통합 교차'}
                 <span className={s.han}>交叉 統合</span>
               </span>
-              <span className={s.secEn}>Cross-System</span>
+              {lang === 'en' && <span className={s.secEn}>Cross-System</span>}
             </div>
             <Explain section="s05" lang={lang} />
             {/* 종합 문장은 상단 히어로로 이동(중복 제거). 여기선 톤 분포 막대만. */}
@@ -1440,7 +1459,11 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
         </div>
 
         <div className={s.foot}>
-          <span>四柱命理 × Tropical Natal · {A.houseSystem} House System</span>
+          <span>
+            {lang === 'en'
+              ? `四柱命理 × Tropical Natal · ${A.houseSystem} House System`
+              : `四柱命理 × 回歸黃道 · ${houseSysLabel(A.houseSystem)} 하우스`}
+          </span>
           <span className={s.mono}>{t('footBrain')}</span>
         </div>
       </div>

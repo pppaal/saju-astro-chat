@@ -31,7 +31,7 @@ export interface CrossRow {
 }
 
 export const UI: Record<string, BiLabel> = {
-  eyebrow: { ko: '四柱 × 占星 · Integrated Reading', en: '四柱 × 占星 · Integrated Reading' },
+  eyebrow: { ko: '四柱 × 占星', en: '四柱 × 占星 · Integrated Reading' },
   titlePre: { ko: '통합', en: 'Integrated' },
   titleAccent: { ko: '명식', en: 'Chart' },
   titlePost: { ko: '리포트', en: 'Report' },
@@ -48,7 +48,7 @@ export const UI: Record<string, BiLabel> = {
   metaHouse: { ko: '하우스', en: 'Houses' },
   timeUnknownTitle: { ko: '출생시각 미상', en: 'Birth time unknown' },
   timeUnknownBody: {
-    ko: '출생시각이 입력되지 않아 정오를 기준으로 계산했어요. 상승궁(ASC)·중천(MC)·하우스에 기대는 해석(사회적 역할, 첫인상, 영역별 강조)은 근사치이니 참고용으로만 봐 주세요. 사주와 행성 배치 해석은 영향을 거의 받지 않아요.',
+    ko: '출생시각이 입력되지 않아 정오를 기준으로 계산했어요. 상승궁·중천·하우스에 기대는 해석(사회적 역할, 첫인상, 영역별 강조)은 근사치이니 참고용으로만 봐 주세요. 사주와 행성 배치 해석은 영향을 거의 받지 않아요.',
     en: 'No birth time was provided, so the chart is computed for noon. Readings that depend on the Ascendant, Midheaven, or houses (social role, first impression, life-area emphasis) are approximate — treat them as indicative only. Saju and planet-placement readings are largely unaffected.',
   },
   day: { ko: '주간', en: 'diurnal' },
@@ -102,9 +102,9 @@ export const UI: Record<string, BiLabel> = {
   sibsinCap: { ko: '주도 십성 · 十星', en: 'Dominant Ten God · 十星' },
   sec03Title: { ko: '출생 천궁도', en: 'Natal Chart' },
   sec03Han: { ko: '本命 天宮圖', en: '本命 天宮圖' },
-  planetsCap: { ko: '행성 위치 · Planets', en: 'Planet Positions · Planets' },
-  sectLab: { ko: 'Sect', en: 'Sect' },
-  houseLab: { ko: 'House', en: 'House' },
+  planetsCap: { ko: '행성 위치', en: 'Planet Positions · Planets' },
+  sectLab: { ko: '주야', en: 'Sect' },
+  houseLab: { ko: '하우스', en: 'House' },
   sectDay: { ko: '주간 (晝)', en: 'Diurnal (晝)' },
   sectNight: { ko: '야간 (夜)', en: 'Nocturnal (夜)' },
   signSuffix: { ko: '자리', en: '' },
@@ -115,7 +115,7 @@ export const UI: Record<string, BiLabel> = {
   legNeutral: { ko: '같이 있어요', en: 'Together' },
   dignityCap: { ko: '위계 · Dignities', en: 'Dignities' },
   noDignity: {
-    ko: '뚜렷한 위계 없음 — 행성이 모두 중립(peregrine) 자리예요.',
+    ko: '뚜렷한 위계 없음 — 행성이 모두 중립 자리예요.',
     en: 'No notable dignity — every planet sits in a neutral (peregrine) position.',
   },
   sec05Title: { ko: '통합 교차', en: 'Cross-System' },
@@ -127,7 +127,7 @@ export const UI: Record<string, BiLabel> = {
     ko: '동·서양 통합 분석 엔진',
     en: 'East–West integrated analysis',
   },
-  orb: { ko: 'orb', en: 'orb' },
+  orb: { ko: '오차', en: 'orb' },
   // '더보기'(접기) 요약 라벨 — 전문(Level 2) 자료를 한 탭 뒤로 숨길 때.
   l2Pillars: {
     ko: '전문 명식 보기 · 한자 · 지장간 · 12운성',
