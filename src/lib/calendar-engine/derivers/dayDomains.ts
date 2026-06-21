@@ -10,6 +10,8 @@
  * 한 줄로 톤을 잡고, 분야별 '오늘 켜짐(active)' 플래그로 강조한다.
  */
 
+import { translateSignalLabel } from './signalI18n'
+
 export type DayScoreBand = 'good' | 'mid' | 'low'
 
 /** 십신 5분류 — 비겁/식상/재성/관성/인성. */
@@ -423,11 +425,12 @@ function classifyEvidence(input: DayEvidenceInput, ko: boolean): Record<string, 
       : `${body} ${ASPECT_EN[aspect] ?? aspect}`.trim()
     for (const d of doms) out[d].push({ text, polarity: t.polarity, kind: 'astro' })
   }
-  // 신살 (사주)
+  // 신살 (사주) — EN 로케일에선 신살명을 영문으로(원문 한글 누출 방지).
   for (const s of input.shinsal) {
+    const label = ko ? s : translateSignalLabel(s, 'en')
     for (const rule of SHINSAL_DOMAINS) {
       if (s.includes(rule.match)) {
-        for (const d of rule.domains) out[d].push({ text: s, polarity: 0, kind: 'saju' })
+        for (const d of rule.domains) out[d].push({ text: label, polarity: 0, kind: 'saju' })
       }
     }
   }
