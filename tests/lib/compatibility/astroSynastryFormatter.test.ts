@@ -262,6 +262,44 @@ describe('formatAstroSynastry — 하우스 오버레이 + ASC 라인', () => {
   })
 })
 
+describe('formatAstroSynastry — 시각 미상 시 ASC/MC/하우스 제외', () => {
+  // A Venus 190 → B 7H ; B Mars 130 → A 5H ; ASC A=Aries(19) / B=Taurus(48).
+  const A = chartA([planet('Venus', 190)])
+  const B = chartB([planet('Mars', 130)])
+
+  it('A 시각 미상: A 하우스로의 overlay(B→A) 제외 + ASC A=미상, A→B overlay 는 유지', () => {
+    const out = formatAstroSynastry({ ...baseInput, chartA: A, chartB: B, timeUnknownA: true })
+    // B 화성 → A 5H 는 A 하우스가 필요 → 제외
+    expect(out).not.toMatch(/B 화성 → A 5H/)
+    // A 금성 → B 7H 는 B 하우스 기반 → 유지
+    expect(out).toMatch(/A 금성 → B 7H/)
+    // ASC A 는 미상 표기, B 는 별자리 유지
+    expect(out).toMatch(/상승점 A 미상 \/ B /)
+  })
+
+  it('B 시각 미상: B 하우스로의 overlay(A→B) 제외 + ASC B=미상', () => {
+    const out = formatAstroSynastry({ ...baseInput, chartA: A, chartB: B, timeUnknownB: true })
+    expect(out).not.toMatch(/A 금성 → B 7H/)
+    expect(out).toMatch(/B 화성 → A 5H/)
+    expect(out).toMatch(/상승점 A .+ \/ B 미상/)
+  })
+
+  it('앵글(ASC/MC) 이 낀 aspect 는 미상 쪽에서 제외된다', () => {
+    // A ASC(19) ↔ B Venus(19) = conjunction. timeUnknownA 면 사라져야 한다.
+    const a2 = chartA([planet('Sun', 200)])
+    const b2 = chartB([planet('Venus', 19)])
+    const base2 = formatAstroSynastry({ ...baseInput, chartA: a2, chartB: b2 })
+    expect(base2).toMatch(/A 상승점 \[결합\] B 금성/)
+    const unknown = formatAstroSynastry({
+      ...baseInput,
+      chartA: a2,
+      chartB: b2,
+      timeUnknownA: true,
+    })
+    expect(unknown).not.toMatch(/A 상승점 \[결합\] B 금성/)
+  })
+})
+
 describe('formatAstroSynastry — ASC 별자리 EN 변환', () => {
   it('한글 별자리 ASC 가 en 모드에서 영어로', () => {
     const A = chartA([planet('Sun', 0)])

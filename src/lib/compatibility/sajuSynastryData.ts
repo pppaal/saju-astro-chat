@@ -345,6 +345,14 @@ export interface SajuSynastryInput {
   /** A/B 실명. 있으면 라벨·오행·극 방향을 이름에 고정해 모델이 뒤집지 못하게 한다. */
   nameA?: string | null
   nameB?: string | null
+  /**
+   * 출생 시각 미상 플래그. true 면 그 사람의 시주(時, index 3)는 자정(子시) 가정으로
+   * 날조된 값이라 cross(합/충/형/신살/공망)에서 통째로 제외한다. [Meta] 라인이
+   * LLM 에게 "인용 금지"라 말해도, 엔진이 애초에 날조 cross 를 만들지 않는 게
+   * doctrine(엔진이 판단, LLM 은 표현)에 맞다.
+   */
+  timeUnknownA?: boolean
+  timeUnknownB?: boolean
   /** 출력 언어. 'en' 이면 한국어 라벨이 영어 응답에 새지 않게 영어로 렌더. 기본 'ko'. */
   lang?: 'ko' | 'en'
 }
