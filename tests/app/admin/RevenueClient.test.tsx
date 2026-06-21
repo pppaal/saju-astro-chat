@@ -1,6 +1,6 @@
 import React from 'react'
 import { describe, expect, it, vi, beforeEach } from 'vitest'
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor, within, cleanup } from '@testing-library/react'
 import RevenueClient from '@/app/admin/revenue/RevenueClient'
 
 const mockFetch = global.fetch as ReturnType<typeof vi.fn>
@@ -42,23 +42,28 @@ const REVENUE = {
 
 describe('RevenueClient', () => {
   beforeEach(() => {
+    // Defend against any DOM left mounted by a prior test/file so the
+    // container-scoped queries below can't match stale revenue markup.
+    cleanup()
     mockFetch.mockReset()
   })
 
   it('shows loading then renders revenue metrics', async () => {
     fetchOnce({ data: REVENUE })
-    render(<RevenueClient />)
+    const { container } = render(<RevenueClient />)
+    const q = within(container)
 
-    expect(screen.getByText('불러오는 중…')).toBeInTheDocument()
+    expect(q.getByText('불러오는 중…')).toBeInTheDocument()
 
-    await waitFor(() => expect(screen.getByText('₩1,000,000')).toBeInTheDocument())
+    // findByText awaits the post-fetch render; the whole tree commits together.
+    expect(await q.findByText('₩1,000,000')).toBeInTheDocument()
     expect(mockFetch).toHaveBeenCalledWith('/api/admin/revenue?days=30', { cache: 'no-store' })
     // Credit economy + by-pack table.
-    expect(screen.getByText('팩별 판매')).toBeInTheDocument()
-    expect(screen.getByText('₩450,000')).toBeInTheDocument()
-    expect(screen.getByText('크레딧 경제 (전체 누적)')).toBeInTheDocument()
+    expect(q.getByText('팩별 판매')).toBeInTheDocument()
+    expect(q.getByText('₩450,000')).toBeInTheDocument()
+    expect(q.getByText('크레딧 경제 (전체 누적)')).toBeInTheDocument()
     // Refund footnote.
-    expect(screen.getByText(/환불:/)).toBeInTheDocument()
+    expect(q.getByText(/환불:/)).toBeInTheDocument()
   })
 
   it('renders an error banner on failure', async () => {
