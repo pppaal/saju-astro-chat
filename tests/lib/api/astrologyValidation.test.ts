@@ -247,5 +247,59 @@ describe('api/astrology-validation', () => {
         ProgressionsRequestSchema.safeParse({ ...validBirth, targetDate: '01-01-2025' }).success
       ).toBe(false)
     })
+
+    it('rejects an impossible calendar targetDate (2025-13-40)', () => {
+      expect(
+        ProgressionsRequestSchema.safeParse({ ...validBirth, targetDate: '2025-13-40' }).success
+      ).toBe(false)
+    })
+
+    it('accepts a future targetDate (transits/progressions may target the future)', () => {
+      expect(
+        ProgressionsRequestSchema.safeParse({ ...validBirth, targetDate: '2099-01-01' }).success
+      ).toBe(true)
+    })
+  })
+
+  // 강화 회귀: 맨 정규식(^\d{4}-\d{2}-\d{2}$)·min(1) timezone 시절엔 불가능 날짜와
+  // 가짜 시간대가 그대로 통과해 Swiss Ephemeris/saju 엔진까지 흘렀다. canonical
+  // 검증기(dateSchema/timezoneSchema)로 통일한 뒤로는 전부 거부돼야 한다.
+  describe('hardened rejection (garbage that used to pass)', () => {
+    it('rejects an impossible calendar date 2024-13-40', () => {
+      expect(AsteroidsRequestSchema.safeParse({ ...validBirth, date: '2024-13-40' }).success).toBe(
+        false
+      )
+    })
+
+    it('rejects month 00 / day 00', () => {
+      expect(AsteroidsRequestSchema.safeParse({ ...validBirth, date: '2024-00-10' }).success).toBe(
+        false
+      )
+      expect(AsteroidsRequestSchema.safeParse({ ...validBirth, date: '2024-05-00' }).success).toBe(
+        false
+      )
+    })
+
+    it('rejects a birth year outside 1900..current (0000, 1800, 9999)', () => {
+      for (const date of ['0000-01-01', '1800-05-15', '9999-05-15']) {
+        expect(AsteroidsRequestSchema.safeParse({ ...validBirth, date }).success, date).toBe(false)
+      }
+    })
+
+    it('rejects a non-existent IANA timezone', () => {
+      for (const timeZone of ['garbage', 'Mars/Olympus', 'Asia/Nowhere']) {
+        expect(
+          AsteroidsRequestSchema.safeParse({ ...validBirth, timeZone }).success,
+          timeZone
+        ).toBe(false)
+      }
+    })
+
+    it('still accepts a genuine birth + IANA zone', () => {
+      expect(AsteroidsRequestSchema.safeParse(validBirth).success).toBe(true)
+      expect(
+        AsteroidsRequestSchema.safeParse({ ...validBirth, timeZone: 'America/New_York' }).success
+      ).toBe(true)
+    })
   })
 })

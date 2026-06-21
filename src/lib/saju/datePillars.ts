@@ -9,10 +9,12 @@
 // just (date) → pillar values. The caller can layer profile-specific
 // computations (sibsin, sinsals, johu, yongsin alignment) on top.
 
-import { getSolarTermKST, MONTH_STEM_LOOKUP } from './constants'
+import { getSolarTermKST, MONTH_STEM_LOOKUP, STEM_NAMES, BRANCH_NAMES } from './constants'
 
-const STEMS = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸']
-const BRANCHES = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥']
+// 천간/지지 이름 배열은 constants SSOT 에서 파생(복사 금지) — 예전엔 여기·cycleRelations·
+// shinsal 이 같은 배열을 따로 들고 있어 한쪽만 바뀌면 조용히 어긋났다.
+const STEMS = STEM_NAMES
+const BRANCHES = BRANCH_NAMES
 
 // Solar-term index 1=소한, 2=입춘, 3=경칩, 4=청명, 5=입하, 6=망종, 7=소서,
 // 8=입추, 9=백로, 10=한로, 11=입동, 12=대설.
