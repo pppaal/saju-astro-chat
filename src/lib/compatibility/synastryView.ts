@@ -75,6 +75,8 @@ const HOUSE_MEANING_EN: Record<number, string> = {
 // 개인 행성 — 어스펙트/오버레이의 핵심. 외행성끼리는 동세대 노이즈라 비중↓.
 const PERSONAL = new Set(['Sun', 'Moon', 'Mercury', 'Venus', 'Mars', 'Ascendant'])
 const PERSONAL_OVERLAY = new Set(['Sun', 'Moon', 'Mercury', 'Venus', 'Mars'])
+// 출생 시각 의존 앵글 — 시각 미상이면 cross 제외 대상.
+const ANGLE_POINTS = new Set(['Ascendant', 'MC'])
 
 // 행성별 "관계에서의 역할" 한 마디 — 의미 사전에 없는 쌍을 위한 폴백 조합용.
 const PLANET_ROLE: Record<string, { ko: string; en: string }> = {
@@ -256,7 +258,13 @@ const pko = (name: string, isKo: boolean) => (isKo ? (PLANET_KO[name] ?? name) :
 export function computeSynastryView(
   astroA: unknown,
   astroB: unknown,
-  lang: 'ko' | 'en' = 'ko'
+  lang: 'ko' | 'en' = 'ko',
+  // 출생 시각 미상 — 그 사람 ASC/MC/하우스는 자정 기준 날조값이라 cross 에서 제외.
+  // astroSynastryFormatter 와 동일 규칙: 미상 쪽 앵글이 낀 aspect 제외 + 그 사람
+  // 하우스로의 overlay 제외. 안 그러면 차트/리포트(band·crossVerdict 점수 포함)가
+  // 날조된 ASC/하우스로 계산된다(LLM 텍스트 경로만 고쳤던 #1533 의 구조화판 미완결).
+  timeUnknownA = false,
+  timeUnknownB = false
 ): SynastryView | null {
   const a = toChartLike(astroA)
   const b = toChartLike(astroB)
@@ -278,6 +286,9 @@ export function computeSynastryView(
       if (asp.orb > 5) return false
       // 이름 없는 엔드포인트(미라벨 각·결손 데이터)는 "undefined" 노출 방지로 제외.
       if (!asp.from?.name || !asp.to?.name) return false
+      // 미상 쪽 앵글(ASC/MC, from=A·to=B)이 낀 각은 날조라 제외.
+      if (timeUnknownA && ANGLE_POINTS.has(asp.from.name)) return false
+      if (timeUnknownB && ANGLE_POINTS.has(asp.to.name)) return false
       return PERSONAL.has(asp.from.name) || PERSONAL.has(asp.to.name)
     })
     .slice(0, 8)
@@ -307,10 +318,11 @@ export function computeSynastryView(
     house: o.inHouse,
     meaning: houseMeaning[o.inHouse] ?? '',
   })
-  const overlaysAtoB = result.houseOverlaysAtoB
+  // overlay A→B 는 B 의 하우스 경계 필요 → B 미상이면 통째 제외. 반대도 동일.
+  const overlaysAtoB = (timeUnknownB ? [] : result.houseOverlaysAtoB)
     .filter((o) => PERSONAL_OVERLAY.has(o.planet))
     .map(mapOverlay)
-  const overlaysBtoA = result.houseOverlaysBtoA
+  const overlaysBtoA = (timeUnknownA ? [] : result.houseOverlaysBtoA)
     .filter((o) => PERSONAL_OVERLAY.has(o.planet))
     .map(mapOverlay)
 

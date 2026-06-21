@@ -107,7 +107,7 @@ const ELEMENTS = ['목', '화', '토', '금', '수'] as const
 export function buildCompatReport(input: CompatReportInput): CompatReport {
   const { astroA, astroB, pillarsA, pillarsB, timeUnknownA, timeUnknownB, lang = 'ko' } = input
 
-  const synView = computeSynastryView(astroA, astroB, lang)
+  const synView = computeSynastryView(astroA, astroB, lang, timeUnknownA, timeUnknownB)
 
   const sajuFacts =
     pillarsA && pillarsB
