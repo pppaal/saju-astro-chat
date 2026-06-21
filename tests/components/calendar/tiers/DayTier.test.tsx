@@ -178,11 +178,11 @@ describe('DayTier', () => {
   })
 
   describe('head chips / banners', () => {
-    it('renders the geokguk status chip with a 성격 status (ko)', () => {
+    it('does not render a geokguk status chip on the day view (natal, not timing)', () => {
+      // #1519: 격국 성패는 정적 본명 분석이라 일(日) 화면에서 의도적으로 제외됨.
       setup()
-      expect(screen.getByText('편재격')).toBeInTheDocument()
-      expect(screen.getByText('성격')).toBeInTheDocument()
-      expect(screen.getByText('재성이 뚜렷한 격국')).toBeInTheDocument()
+      expect(screen.queryByText('편재격')).not.toBeInTheDocument()
+      expect(screen.queryByText('재성이 뚜렷한 격국')).not.toBeInTheDocument()
     })
 
     it('renders the gongmang banner with active branches when present', () => {
@@ -200,13 +200,13 @@ describe('DayTier', () => {
 
     it('renders the VOC banner when voc is active', () => {
       setup({ props: { voc: { active: true, from: '10:00', to: '12:00' } } })
-      expect(screen.getByText(/Moon VOC/)).toBeInTheDocument()
+      expect(screen.getByText(/달의 빈 시간/)).toBeInTheDocument()
       expect(screen.getByText(/10:00 → 12:00/)).toBeInTheDocument()
     })
 
     it('hides the VOC banner when voc is inactive', () => {
       setup({ props: { voc: { active: false } } })
-      expect(screen.queryByText(/Moon VOC/)).not.toBeInTheDocument()
+      expect(screen.queryByText(/달의 빈 시간/)).not.toBeInTheDocument()
     })
   })
 
@@ -230,9 +230,43 @@ describe('DayTier', () => {
     })
 
     it('renders the evidence transits inside the details disclosure', () => {
-      setup()
-      // renderTransit emits "본명 Sun"/"본명 Moon" targets in ko (one per transit row).
-      expect(screen.getByText(/근거 신호 보기/)).toBeInTheDocument()
+      // EvidenceDetails reads day.allSignals (not .transits); provide a couple of
+      // non-zero-polarity astro signals so the "근거 자세히" disclosure renders.
+      setup({
+        day: {
+          allSignals: [
+            {
+              id: 'e1',
+              cat: 'astro/transit',
+              label: 'Mars conjunction Sun',
+              polarity: 1,
+              weight: 1,
+              kind: 'transit',
+              layer: 'daily',
+              source: 'astro',
+              body: 'Mars',
+              aspect: 'conjunction',
+              target: '본명 Sun',
+              glyph: '♂',
+            },
+            {
+              id: 'e2',
+              cat: 'astro/transit',
+              label: 'Saturn square Moon',
+              polarity: -2,
+              weight: 1,
+              kind: 'transit',
+              layer: 'daily',
+              source: 'astro',
+              body: 'Saturn',
+              aspect: 'square',
+              target: '본명 Moon',
+              glyph: '♄',
+            },
+          ] as never,
+        },
+      })
+      expect(screen.getByText(/근거 자세히/)).toBeInTheDocument()
       expect(screen.getAllByText(/본명/).length).toBeGreaterThan(0)
     })
   })

@@ -421,18 +421,21 @@ describe('Geokguk Module', () => {
   // 미정 / 잡기격 — fallback 경로
   // ───────────────────────────────────────────────────────────────────────
   describe('미정 / 잡기격', () => {
-    it('미정 — 어떤 격에도 해당하지 않을 때', () => {
-      // 월지가 록/양인/비겁 아님, 정기·중·여기 투출이 비겁뿐이라 투출 없음
+    it('월령 용사 — 투출 없으면 월지 본기로 정격을 잡고 fallback 표시', () => {
+      // CONVENTIONS §9: 투출이 없어도 월지 본기 십신으로 격을 정한다(월령 용사).
+      // 월지 申 본기 庚 = (甲 일간 기준) 편관 → 편관격. 표시용 폴백(타이밍 신호 제외).
       const p = createPillars('丙', '午', '丙', '申', '甲', '午', '丁', '午')
       const r = determineGeokguk(p)
-      expect(r.primary).toBe('미정')
-      expect(r.category).toBe('미정')
-      expect(r.confidence).toBe('low')
+      expect(r.primary).toBe('편관격')
+      expect(r.category).toBe('정격')
+      expect(r.confidence).toBe('medium')
+      expect(r.fallback).toBe(true)
     })
 
-    it('잡기격 — 진술축미월 정기 미투출, 중기/여기 투출 (advanced 경로)', () => {
+    it('잡기격 — 진술축미월 정기 미투출, 중기/여기 투출 (basic·advanced 모두)', () => {
+      // 리포트는 basic determineGeokguk 을 쓰므로 잡기격을 basic 에서도 잡는다.
       const p = createPillars('乙', '巳', '丁', '辰', '乙', '亥', '丁', '戌')
-      expect(determineGeokguk(p).primary).toBe('미정')
+      expect(determineGeokguk(p).primary).toBe('잡기격')
       const adv = determineGeokgukAdvanced(p)
       expect(adv.primary).toBe('잡기격')
       expect(adv.category).toBe('비격')
@@ -442,7 +445,7 @@ describe('Geokguk Module', () => {
 
     it('잡기격 — 여기(餘氣)만 투출한 진술축미월', () => {
       const p = createPillars('癸', '卯', '丁', '未', '丁', '酉', '戊', '戌')
-      expect(determineGeokguk(p).primary).toBe('미정')
+      expect(determineGeokguk(p).primary).toBe('잡기격')
       expect(determineGeokgukAdvanced(p).primary).toBe('잡기격')
     })
 
