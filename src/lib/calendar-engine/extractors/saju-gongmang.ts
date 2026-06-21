@@ -134,7 +134,12 @@ const sajuGongmangExtractor: SignalExtractor = {
     // ─── 3) 월운 지지 (monthly) ───
     const monthCursor = new Date(Date.UTC(rangeStart.getUTCFullYear(), rangeStart.getUTCMonth(), 1))
     while (monthCursor <= rangeEnd) {
-      const mp = getMonthPillarForDate(monthCursor)
+      // 월주는 그 달 중순(15일) 기준 — 1일은 절입 직전이라 전월 절기달이 잡힌다.
+      // (saju-jijanggan/twelve-stage/yongsin 과 동일한 #1547 샘플링 규칙)
+      const midMonth = new Date(
+        Date.UTC(monthCursor.getUTCFullYear(), monthCursor.getUTCMonth(), 15)
+      )
+      const mp = getMonthPillarForDate(midMonth)
       if (gongmangSet.has(mp.branch)) {
         const y = monthCursor.getUTCFullYear()
         const m = monthCursor.getUTCMonth()

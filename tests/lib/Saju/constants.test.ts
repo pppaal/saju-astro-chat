@@ -126,7 +126,7 @@ describe('Saju Constants', () => {
     })
   })
 
-  describe('MONTH_STEM_LOOKUP', () => {
+  describe('MONTH_STEM_LOOKUP (월두법 / 五虎遁)', () => {
     it('maps all 10 stems', () => {
       expect(Object.keys(MONTH_STEM_LOOKUP)).toHaveLength(10)
     })
@@ -136,9 +136,31 @@ describe('Saju Constants', () => {
         expect(STEM_NAMES).toContain(stem)
       })
     })
+
+    // 값-골든: 五虎遁 — 연간(年干) → 寅월(첫 절기달) 천간.
+    // 甲己年 丙寅頭 / 乙庚年 戊寅頭 / 丙辛年 庚寅頭 / 丁壬年 壬寅頭 / 戊癸年 甲寅頭.
+    // 한 칸이라도 틀리면 그 연주 그룹(전체의 1/5)의 월주 천간이 통째로 어긋난다.
+    // ("maps to valid stems" 만으로는 못 잡으므로 정통 도식 값을 직접 고정한다.)
+    it('matches 五虎遁 doctrine for every year stem', () => {
+      const FIVE_TIGER: Record<string, string> = {
+        甲: '丙',
+        己: '丙',
+        乙: '戊',
+        庚: '戊',
+        丙: '庚',
+        辛: '庚',
+        丁: '壬',
+        壬: '壬',
+        戊: '甲',
+        癸: '甲',
+      }
+      for (const [yearStem, expected] of Object.entries(FIVE_TIGER)) {
+        expect(MONTH_STEM_LOOKUP[yearStem], `${yearStem}年 → 寅월 천간`).toBe(expected)
+      }
+    })
   })
 
-  describe('TIME_STEM_LOOKUP', () => {
+  describe('TIME_STEM_LOOKUP (시두법 / 五鼠遁)', () => {
     it('maps all 10 stems', () => {
       expect(Object.keys(TIME_STEM_LOOKUP)).toHaveLength(10)
     })
@@ -147,6 +169,27 @@ describe('Saju Constants', () => {
       Object.values(TIME_STEM_LOOKUP).forEach((stem) => {
         expect(STEM_NAMES).toContain(stem)
       })
+    })
+
+    // 값-골든: 五鼠遁 — 일간(日干) → 子시 천간.
+    // 甲己日 甲子時 / 乙庚日 丙子時 / 丙辛日 戊子時 / 丁壬日 庚子時 / 戊癸日 壬子時.
+    // 틀리면 그 일간 그룹의 시주 천간이 통째로 어긋난다(→ 십신·신살 연쇄 오류).
+    it('matches 五鼠遁 doctrine for every day stem', () => {
+      const FIVE_RAT: Record<string, string> = {
+        甲: '甲',
+        己: '甲',
+        乙: '丙',
+        庚: '丙',
+        丙: '戊',
+        辛: '戊',
+        丁: '庚',
+        壬: '庚',
+        戊: '壬',
+        癸: '壬',
+      }
+      for (const [dayStem, expected] of Object.entries(FIVE_RAT)) {
+        expect(TIME_STEM_LOOKUP[dayStem], `${dayStem}日 → 子시 천간`).toBe(expected)
+      }
     })
   })
 
