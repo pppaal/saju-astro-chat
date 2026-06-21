@@ -95,8 +95,15 @@ const MORE_SERVICES: readonly MoreService[] = [
     href: '/calendar',
     icon: '🗓️',
     tint: '#38bdf8',
-    title: { ko: '운세 캘린더', en: 'Fortune Calendar' },
-    desc: { ko: '일·월·년 운세 타이밍', en: 'Daily · monthly · yearly' },
+    title: { ko: '운흐름 캘린더', en: 'Fortune Calendar' },
+    desc: { ko: '하루·한 달 운세 타이밍', en: 'Daily · monthly timing' },
+  },
+  {
+    href: '/destiny',
+    icon: '🌌',
+    tint: '#8b9dff',
+    title: { ko: '인생 흐름', en: 'Life Flow' },
+    desc: { ko: '인생·대운·올해 큰 흐름', en: 'Life · decades · year' },
   },
   {
     href: '__report__',
