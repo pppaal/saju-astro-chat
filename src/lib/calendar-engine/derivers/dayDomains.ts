@@ -507,6 +507,64 @@ const CAUTION_BODY: Record<string, { ko: string; en: string }> = {
   },
 }
 
+// 분야별 band-aware 한 줄 — 섹션 머리말(BAND_NOTE)과 *다른* 짧은 문장으로,
+// 그 분야에 한정해 톤만 잡는다. 'caution' 은 polaritySum ≤ -2(주의 본문) 가지로,
+// 순풍이라도 "밀어붙이라"고 말하지 않게 톤을 누른다(칩과 모순 방지).
+const BAND_DOMAIN_CLAUSE: Record<DayScoreBand | 'caution', { ko: string; en: string }> = {
+  good: {
+    ko: ' 흐름이 받쳐주니 한 발 더 내디뎌도 좋아요.',
+    en: ' The flow is behind you, so it’s fine to lean in a step further.',
+  },
+  mid: {
+    ko: ' 욕심만 내려놓으면 꾸준히 가기 좋은 결입니다.',
+    en: ' Set greed aside and it’s a fine groove to keep steady in.',
+  },
+  low: {
+    ko: ' 결이 거세니 무리하지 말고 한 박자 천천히 가세요.',
+    en: ' The grain runs rough, so don’t force it — go a beat slower.',
+  },
+  caution: {
+    ko: ' 오늘은 벌이기보다 지키고 추스르는 쪽이 낫습니다.',
+    en: ' Today leans toward holding steady and regrouping rather than pushing.',
+  },
+}
+
+/**
+ * 분야별 band-aware 한 줄. 주의 본문 가지(caution)면 band 무관하게 누른 톤을 쓴다.
+ * 머리말과 겹치지 않게 짧고 분야 한정으로.
+ */
+function bandDomainClause(band: DayScoreBand, caution: boolean, ko: boolean): string {
+  const c = caution ? BAND_DOMAIN_CLAUSE.caution : BAND_DOMAIN_CLAUSE[band]
+  return ko ? c.ko : c.en
+}
+
+/**
+ * 그 분야의 *가장 센 실제 신호*(|polarity| 최대, moon 제외 — moon 은 moonTimeClause 가
+ * 따로 시각으로 엮음)를 산문 한 줄로 엮는다. 동적 텍스트(예: '편재 ↔ 금성', '천을귀인',
+ * '토성 사각')에 한국어 주격/목적격 조사(이/가·을/를·은/는)를 직접 붙이면 비문이 되므로,
+ * em-dash·콜론·쉼표 구조로만 잇는다. 방향(부호)에 따라 동사를 고른다.
+ */
+function strongSignalClause(ev: DomainEvidence[], ko: boolean): string {
+  let best: DomainEvidence | null = null
+  for (const e of ev) {
+    if (e.kind === 'moon') continue
+    if (e.polarity === 0) continue // 신살(중립 polarity 0)은 방향이 없어 산문화 보류
+    if (!best || Math.abs(e.polarity) > Math.abs(best.polarity)) best = e
+  }
+  if (!best) return ''
+  const text = best.text.trim()
+  if (!text) return ''
+  if (best.polarity > 0) {
+    // 동적 텍스트 뒤에 조사 없이 em-dash 로 이어 받침 유무와 무관하게 자연스럽게.
+    return ko
+      ? ` 오늘은 ${text} — 이 분야를 밀어주는 신호예요.`
+      : ` Today, ${text} is the signal pushing this area forward.`
+  }
+  return ko
+    ? ` 다만 ${text} — 이 분야에 마찰을 더하니 살펴보세요.`
+    : ` That said, ${text} adds friction here, so keep an eye on it.`
+}
+
 /**
  * 분야 근거 중 시별 달(moon) 신호가 있으면, 가장 센(|polarity| 최대) 달의 시각을
  * 본문에 한 줄로 엮는다. 시각 창만 남기고 "달…" 꼬리는 떼어 시간만 보이게 한다.
@@ -548,15 +606,24 @@ export function deriveDayDomains(args: {
     const polaritySum = ev.reduce((s, e) => s + e.polarity, 0)
     // 본문: 근거가 뚜렷이 부정적(합 ≤ -2)이면 긍정 십신 조언 대신 '주의' 본문으로
     // 바꿔, 칩(긴장 신호)과 글의 톤이 어긋나지 않게 한다(모순 제거).
+    const caution = polaritySum <= -2
     let body: string
     let bodyEn: string
-    if (polaritySum <= -2) {
+    if (caution) {
       body = CAUTION_BODY[d.key].ko
       bodyEn = CAUTION_BODY[d.key].en
     } else {
       body = d.key === 'love' ? loveLine(cat, args.sex, true) : ADVICE[cat][d.key].ko
       bodyEn = d.key === 'love' ? loveLine(cat, args.sex, false) : ADVICE[cat][d.key].en
     }
+    // (2) band-aware 한 줄 — 점수 구간에 맞춰 톤을 잡는다. 주의(caution) 가지면
+    // 순풍이라도 "밀어붙이라" 대신 누른 톤을 써 칩과 모순이 안 나게 한다.
+    body += bandDomainClause(args.scoreBand, caution, true)
+    bodyEn += bandDomainClause(args.scoreBand, caution, false)
+    // (3) 그 분야의 가장 센 실제 신호를 산문 한 줄로 — 조사 없이 em-dash 로 이어
+    // 동적 텍스트의 한국어 받침 문제를 피한다(particle-safe).
+    body += strongSignalClause(ev, true)
+    bodyEn += strongSignalClause(ev, false)
     // 시별 달 근거가 있으면 실제 절정 시각을 본문에 엮어 더 구체적으로(KO/EN).
     const koClause = moonTimeClause(ev, true)
     const enClause = moonTimeClause(ev, false)

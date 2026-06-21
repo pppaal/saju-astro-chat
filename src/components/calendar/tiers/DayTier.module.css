@@ -144,6 +144,28 @@
   text-wrap: pretty;
 }
 
+/* ---------- 오늘 깊이 읽기 (합성 해석 문단) ---------- */
+.deepRead {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--dp-line-soft);
+}
+.deepReadLabel {
+  font-family: var(--dp-mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--dp-ink-mute);
+  margin-bottom: 8px;
+}
+.deepReadBody {
+  font-family: var(--dp-serif-ko);
+  font-size: 14.5px;
+  line-height: 1.78;
+  color: var(--dp-ink-dim);
+  text-wrap: pretty;
+}
+
 /* ---------- 이렇게 / 조심 칩 ---------- */
 .doRow {
   display: flex;

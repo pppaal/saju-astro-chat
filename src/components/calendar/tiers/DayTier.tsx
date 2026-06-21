@@ -30,6 +30,7 @@ import {
   plainReason,
 } from '@/lib/calendar-engine/derivers/plainLanguage'
 import { deriveDayDomains } from '@/lib/calendar-engine/derivers/dayDomains'
+import { deriveDayDeepRead } from '@/lib/calendar-engine/derivers/dayDeepRead'
 import { reconcileDayTone, type DayVerdict } from '@/lib/calendar-engine/derivers/reconcile'
 import styles from './DayTier.module.css'
 import { useI18n } from '@/i18n/I18nProvider'
@@ -458,6 +459,21 @@ export function DayTier({ day, voc, onRise, sex = '남' }: DayTierProps) {
         ? 'Headwind'
         : 'Steady'
 
+  // ── 오늘 깊이 읽기 — 일진 십신 + 사주×점성 교차 페어 + 화해 톤을 이어 붙인
+  //    합성 해석 문단(결정론·근거 기반, 지어내지 않음). ──
+  const deepRead = deriveDayDeepRead({
+    iljinKr: day.iljin.kr,
+    iljinSibsin: String(day.iljinSibsin),
+    tone: verdict.tone,
+    crosses: (day.crossActivations ?? [])
+      .filter((c) => c.sajuKo && c.astroKo)
+      .map((c) => ({
+        sajuKo: c.sajuKo as string,
+        astroKo: c.astroKo as string,
+        polarity: c.polarity,
+      })),
+  })
+
   // ── 시간별 사주 × 점성 교차 — 켜지는 시진(십신) × 그 시각 상승궁. ──
   // 메인엔 가장 센 시진 3개만(사전 매칭된 진짜 교차 우선), 나머진 '자세히 보기'.
   // matched(의미사전 매칭)일 때만 제목에 '× 상승'을 올려 교차로 표기, 아니면
@@ -610,6 +626,12 @@ export function DayTier({ day, voc, onRise, sex = '남' }: DayTierProps) {
           </div>
         </div>
         <p className={styles.oneline}>{localizeLabel(day.oneLine, ko)}</p>
+      </div>
+
+      {/* ── 오늘 깊이 읽기 — 합성 해석 문단(일진 십신 + 교차 + 톤). ── */}
+      <div className={styles.deepRead}>
+        <div className={styles.deepReadLabel}>{ko ? '오늘 깊이 읽기' : 'Today in depth'}</div>
+        <p className={styles.deepReadBody}>{ko ? deepRead.ko : deepRead.en}</p>
       </div>
 
       {/* 총평 문단 제거 — oneLine(결론) + 아래 '오늘의 핵심' ↑/↓ 사유 리스트와

@@ -386,6 +386,139 @@ describe('CAUTION_BODY — net-negative 분야 톤 전환', () => {
   })
 })
 
+describe('본문 band-aware 변주 + 신호 산문화', () => {
+  it('같은 십신이라도 good vs low 면 본문(band 한 줄)이 달라진다', () => {
+    const good = deriveDayDomains({ iljinSibsin: '정인', sex: '남', scoreBand: 'good' })!
+    const low = deriveDayDomains({ iljinSibsin: '정인', sex: '남', scoreBand: 'low' })!
+    const gStudy = find(good, 'study').body
+    const lStudy = find(low, 'study').body
+    expect(gStudy).not.toBe(lStudy)
+    // 공통 코어(십신 조언)는 양쪽 모두 그대로 들어 있다.
+    expect(gStudy).toContain('공부·시험·자격에 최고의 날')
+    expect(lStudy).toContain('공부·시험·자격에 최고의 날')
+    // band 한 줄만 다르다.
+    expect(gStudy).toContain('한 발 더 내디뎌도')
+    expect(lStudy).toContain('무리하지 말고')
+    // EN 도 동일하게 변주된다(ko/en parity).
+    expect(find(good, 'study').bodyEn).not.toBe(find(low, 'study').bodyEn)
+    expect(find(good, 'study').bodyEn).toContain('lean in')
+    expect(find(low, 'study').bodyEn).toContain('go a beat slower')
+  })
+
+  it('mid 밴드는 good/low 와 또 다른 본문을 낸다(3구간 모두 구분)', () => {
+    const bodies = (['good', 'mid', 'low'] as DayScoreBand[]).map(
+      (b) => find(deriveDayDomains({ iljinSibsin: '정인', sex: '남', scoreBand: b })!, 'study').body
+    )
+    expect(new Set(bodies).size).toBe(3)
+  })
+
+  it('강한 양(+) 교차 신호가 있으면 본문에 그 신호가 산문으로 엮인다(밀어주는)', () => {
+    const evidence: DayEvidenceInput = {
+      transits: [],
+      shinsal: [],
+      crossActivations: [{ sajuSide: '편재', astroSide: '금성', route: '재성 재물', polarity: 3 }],
+    }
+    const res = deriveDayDomains({
+      iljinSibsin: '정재',
+      sex: '남',
+      scoreBand: 'good',
+      evidence,
+    })!
+    const money = find(res, 'money')
+    expect(money.body).toContain('편재 ↔ 금성')
+    expect(money.body).toContain('밀어주는')
+    expect(money.bodyEn).toContain('편재 ↔ 금성')
+    expect(money.bodyEn).toContain('pushing this area forward')
+  })
+
+  it('강한 음(−) 교차 신호면 마찰 방향 동사로 산문화된다(주의 본문 + 누른 band 톤)', () => {
+    const evidence: DayEvidenceInput = {
+      transits: [],
+      shinsal: [],
+      crossActivations: [
+        { sajuSide: '관성', astroSide: '토성', route: '관성 직업 충', polarity: -3 },
+      ],
+    }
+    const res = deriveDayDomains({
+      iljinSibsin: '정관',
+      sex: '남',
+      scoreBand: 'good', // 순풍이라도 주의 분야엔 "밀어붙이라"가 나오면 안 된다.
+      evidence,
+    })!
+    const career = find(res, 'career')
+    // 주의 본문 + 신호 산문(마찰 방향).
+    expect(career.body).toContain('마찰')
+    expect(career.body).toContain('관성 ↔ 토성')
+    expect(career.body).toContain('마찰을 더하니')
+    // 순풍이라도 주의 가지면 누른 band 톤("지키고 추스르는")을 쓴다 — "밀어붙이" 금지.
+    expect(career.body).toContain('지키고 추스르는')
+    expect(career.body).not.toContain('한 발 더 내디뎌도')
+    expect(career.bodyEn).toContain('adds friction here')
+    expect(career.bodyEn).not.toContain('lean in')
+  })
+
+  it('한국어 조사 안전 — 동적 신호 텍스트에 이/가·을/를·은/는 을 직접 붙이지 않는다', () => {
+    // 받침 있는 신호('토성 사각')와 받침 없는 신호('금성 삼각') 둘 다 비문이 안 나야 한다.
+    const mk = (saju: string, astro: string, polarity: number): DayEvidenceInput => ({
+      transits: [],
+      shinsal: [],
+      crossActivations: [{ sajuSide: saju, astroSide: astro, route: '재성 재물', polarity }],
+    })
+    for (const [saju, astro, pol] of [
+      ['편재', '금성', 2],
+      ['재성', '토성', -3],
+    ] as const) {
+      const res = deriveDayDomains({
+        iljinSibsin: '정재',
+        sex: '남',
+        scoreBand: 'good',
+        evidence: mk(saju, astro, pol),
+      })!
+      const body = find(res, 'money').body
+      const sig = `${saju} ↔ ${astro}`
+      expect(body).toContain(sig)
+      // 신호 텍스트 바로 뒤가 조사가 아니라 ' — '(em-dash 구조)여야 한다.
+      const after = body.slice(body.indexOf(sig) + sig.length)
+      expect(after.startsWith(' — ')).toBe(true)
+      // 신호 직후에 주격/목적격/주제 조사가 붙어 비문이 되는 패턴이 없어야 한다.
+      expect(new RegExp(`${astro}(이|가|을|를|은|는)`).test(body)).toBe(false)
+    }
+  })
+
+  it('중립(polarity 0) 신살만 있으면 산문 신호 클로즈는 붙지 않는다', () => {
+    const evidence: DayEvidenceInput = {
+      transits: [],
+      shinsal: ['문창귀인'],
+      crossActivations: [],
+    }
+    const res = deriveDayDomains({ iljinSibsin: '정인', sex: '남', scoreBand: 'good', evidence })!
+    const study = find(res, 'study')
+    // 신살 칩은 붙지만(evidence), 산문 신호 클로즈(밀어주는/마찰)는 안 붙는다.
+    expect(study.evidence.some((e) => e.text === '문창귀인')).toBe(true)
+    expect(study.body).not.toContain('밀어주는')
+    expect(study.body).not.toContain('마찰을 더하니')
+  })
+
+  it('본문은 코어 조언 + band 한 줄 + (신호) + (달) 순으로 2~3문장이 된다', () => {
+    const evidence: DayEvidenceInput = {
+      transits: [{ body: 'Jupiter', aspect: 'trine', polarity: 3 }],
+      shinsal: [],
+      crossActivations: [],
+    }
+    const res = deriveDayDomains({
+      iljinSibsin: '정재',
+      sex: '남',
+      scoreBand: 'good',
+      evidence,
+    })!
+    const money = find(res, 'money')
+    // 코어(좋다) + band(한 발 더) + 신호(밀어주는) 세 조각이 모두 들어간다.
+    expect(money.body).toContain('돈 기운이 켜진 날')
+    expect(money.body).toContain('한 발 더 내디뎌도')
+    expect(money.body).toContain('밀어주는')
+  })
+})
+
 describe('active 플래그 — 근거 폴라리티 조건', () => {
   it('십신 관장 분야라도 근거 합이 음수면 active 가 꺼진다', () => {
     const evidence: DayEvidenceInput = {
