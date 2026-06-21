@@ -139,11 +139,9 @@ describe('compatibility helpers', () => {
       expect(sections).toHaveLength(1)
       expect(sections[0].title).toBe('Saju Analysis')
       expect(sections[0].icon).toBe('☯️')
-      // NOTE (quirk): for *known* section patterns the matched header line is
-      // appended to the section's own content (the foundSection guard isn't
-      // applied to the push branch). The generic-heading branch does NOT do this.
-      // See "BUG NOTE" in the final report. Asserting actual behavior here.
-      expect(sections[0].content).toBe('## Saju Analysis\nThe pillars align nicely.')
+      // The matched header line starts a new section and is NOT part of the
+      // body (consistent with the generic-heading branch).
+      expect(sections[0].content).toBe('The pillars align nicely.')
     })
 
     it('recognizes the Korean Saju heading', () => {
@@ -151,7 +149,7 @@ describe('compatibility helpers', () => {
       const sections = parseResultSections(text)
       expect(sections).toHaveLength(1)
       expect(sections[0].title).toBe('Saju Analysis')
-      expect(sections[0].content).toBe('## 사주\nBody line.')
+      expect(sections[0].content).toBe('Body line.')
     })
 
     it('splits multiple known sections', () => {
@@ -169,10 +167,10 @@ describe('compatibility helpers', () => {
         'Astrology Analysis',
         'Advice',
       ])
-      // Known-pattern header lines are folded into their own section content (quirk).
-      expect(sections[0].content).toBe('## Overall Score\n87/100 — great match.')
-      expect(sections[1].content).toBe('## Astrology Analysis\nSun trine Sun.')
-      expect(sections[2].content).toBe('## Advice\nCommunicate openly.')
+      // Header lines start sections and are excluded from section bodies.
+      expect(sections[0].content).toBe('87/100 — great match.')
+      expect(sections[1].content).toBe('Sun trine Sun.')
+      expect(sections[2].content).toBe('Communicate openly.')
     })
 
     it('treats an unrecognized markdown heading as a generic section with sparkle icon', () => {
@@ -184,14 +182,12 @@ describe('compatibility helpers', () => {
       expect(sections[0].content).toBe('Some body.')
     })
 
-    it('still emits a known header section even with no body text (header folds into content)', () => {
-      // Because the matched header line is pushed into the section content, the
-      // section has length>0 and is flushed at the end — it is NOT dropped.
+    it('drops a known header section that has no body text', () => {
+      // The header line no longer folds into content, so a header with no body
+      // has empty content and is not flushed (nothing to display).
       const text = '## Advice'
       const sections = parseResultSections(text)
-      expect(sections).toHaveLength(1)
-      expect(sections[0].title).toBe('Advice')
-      expect(sections[0].content).toBe('## Advice')
+      expect(sections).toEqual([])
     })
 
     it('keeps content after the last known header (flushes final section)', () => {
@@ -199,7 +195,7 @@ describe('compatibility helpers', () => {
       const sections = parseResultSections(text)
       expect(sections).toHaveLength(1)
       expect(sections[0].title).toBe('Summary')
-      expect(sections[0].content).toBe('## Summary\nFinal thoughts here.')
+      expect(sections[0].content).toBe('Final thoughts here.')
     })
 
     it('transitions from pre-section Overview content into a known section', () => {
@@ -209,7 +205,7 @@ describe('compatibility helpers', () => {
       expect(sections[0].title).toBe('Overview')
       expect(sections[0].content).toBe('Intro before any heading.')
       expect(sections[1].title).toBe('Strengths')
-      expect(sections[1].content).toBe('## Strengths\nMutual trust.')
+      expect(sections[1].content).toBe('Mutual trust.')
     })
 
     it('ignores blank lines that appear before any section header', () => {
@@ -217,7 +213,7 @@ describe('compatibility helpers', () => {
       const sections = parseResultSections(text)
       expect(sections).toHaveLength(1)
       expect(sections[0].title).toBe('Communication')
-      expect(sections[0].content).toBe('## Communication\nTalk it out.')
+      expect(sections[0].content).toBe('Talk it out.')
     })
   })
 })
