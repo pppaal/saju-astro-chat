@@ -132,6 +132,23 @@ describe('ensureCounselorContext (운명상담사 컨텍스트 캐시)', () => {
     expect(stableKey).toContain(':cU:')
   })
 
+  it('EN 세션 → Meta 가드/미상 태그가 영어, 한국어(Hangul) 누수 없음', async () => {
+    mockCacheGet.mockResolvedValue(null)
+    mockBuildDestinyContext.mockResolvedValue({ stable: 'BODY', daily: 'd' })
+    const body = { ...fullBody, birthTimeUnknown: true, birthCityUnknown: true }
+    const result = await ensureCounselorContext(body, 'user-en', 'en')
+    // 영어 가드 + unknown 태그
+    expect(result.stableContext).toContain(
+      'Birth time unknown — do not cite hour pillar / iljin / ASC / MC / houses.'
+    )
+    expect(result.stableContext).toContain('Birth city unknown')
+    expect(result.stableContext).toContain('location: unknown')
+    expect(result.stableContext).toContain('birthTime: unknown')
+    // 캐시 레이어가 붙이는 Meta/가드 부분(빌드 본문 BODY 제외)에 Hangul 0.
+    const metaOnly = result.stableContext.replace('BODY', '')
+    expect(/[가-힣]/.test(metaOnly)).toBe(false)
+  })
+
   it('lat/lng/tz 모두 없으면 cityUnknown 추론', async () => {
     mockCacheGet.mockResolvedValue(null)
     mockBuildDestinyContext.mockResolvedValue({ stable: 's', daily: 'd' })

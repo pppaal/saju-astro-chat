@@ -78,17 +78,34 @@ export async function ensureCounselorContext(
   const birthTimeUnknown = hourUnknown
   const birthCityUnknown = cityUnknown
 
+  // 이 Meta 블록은 buildDestinyContext 밖(캐시 레이어)에서 붙으므로 EN-safety
+  // 패스(koStructuralLabels)가 안 닿는다 → lang 분기를 직접 해야 EN 세션에
+  // 한국어('미상', '# 시간 미상…')가 새지 않는다.
+  const L = (ko: string, en: string) => (lang === 'en' ? en : ko)
+  const unknownTag = L('미상', 'unknown')
   const parts: string[] = []
   const locTag = birthCityUnknown
-    ? '미상'
+    ? unknownTag
     : `${body.latitude?.toFixed(4) ?? '?'},${body.longitude?.toFixed(4) ?? '?'}`
-  const timeTag = birthTimeUnknown ? '미상' : (body.birthTime ?? '미상')
+  const timeTag = birthTimeUnknown ? unknownTag : (body.birthTime ?? unknownTag)
   const genderTag = body.gender === 'female' ? 'F' : 'M'
   parts.push(
     `[Meta] birthDate: ${body.birthDate} | birthTime: ${timeTag} | gender: ${genderTag} | location: ${locTag} | timezone: ${body.timezone ?? 'Asia/Seoul'} | birthTimeUnknown: ${birthTimeUnknown ? 'true' : 'false'} | birthCityUnknown: ${birthCityUnknown ? 'true' : 'false'}`
   )
-  if (birthTimeUnknown) parts.push('# 시간 미상 — 시주/일진/ASC/MC/하우스 인용 금지.')
-  if (birthCityUnknown) parts.push('# 출생지 미상 — 위치 의존 결론 금지.')
+  if (birthTimeUnknown)
+    parts.push(
+      L(
+        '# 시간 미상 — 시주/일진/ASC/MC/하우스 인용 금지.',
+        '# Birth time unknown — do not cite hour pillar / iljin / ASC / MC / houses.'
+      )
+    )
+  if (birthCityUnknown)
+    parts.push(
+      L(
+        '# 출생지 미상 — 위치 의존 결론 금지.',
+        '# Birth city unknown — avoid location-dependent conclusions.'
+      )
+    )
 
   let stableCtxBody = ''
   let dailyCtxBody = ''
