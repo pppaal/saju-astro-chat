@@ -954,5 +954,90 @@
       "love": "You are a deep, quiet partner. You open up to someone capable of real private conversation rather than loud, shallow ties, and once you start flowing together you go far.",
       "advice": "Yunha most fears Earth clashing and controlling Water. Blocking the flow breaks the chart. Don't only dive deep — occasionally surface and take in the sun. Flow is alive only when it doesn't stop."
     }
+  },
+  "월겁격": {
+    "ko": {
+      "tagline": "함께, 그러나 경쟁 — 동료와 승부의 격",
+      "personality": "당신은 '월겁격(月劫格)'이에요. 월지에 겁재(劫財)가 자리한 비겁(比劫)의 격국입니다. 비견보다 더 경쟁적이고 독립적이며, 재물·기회를 두고 동료나 형제와 나누거나 겨루는 군겁쟁재(群劫爭財)의 기운이 있어요. 혼자 밀고 나가는 힘과 끈끈한 동료애가 함께 있는 사람입니다.",
+      "strength": [
+        "강한 독립심과 추진력",
+        "위기·경쟁에서 발휘되는 승부 근성",
+        "동료와 뭉치는 의리와 팀워크"
+      ],
+      "weakness": [
+        "겁재 특성상 지출·재물 손실이 잦음",
+        "경쟁심·욕심이 지나치면 마찰",
+        "고집이 세고 양보가 어려움"
+      ],
+      "career": [
+        "동업보다 독립·자영업·전문직",
+        "영업·경쟁이 핵심인 분야",
+        "스포츠·팀 기반 직업",
+        "현장 추진형 리더"
+      ],
+      "love": "솔직하고 주도적인 파트너지만 자기 중심이 강할 수 있어요. 대등하게 맞서고 받아주는, 독립적인 상대와 잘 맞습니다.",
+      "advice": "겁재의 힘은 식상(표현·생산)으로 흘려보내고 관성(규율·책임)으로 다잡을 때 성취가 됩니다. 동업·보증·즉흥 투자는 특히 조심하세요."
+    },
+    "en": {
+      "tagline": "Together, yet competing — the ally and the contender",
+      "personality": "You are a 'Wolgeop' (Month Rob-Wealth) chart. The Rob Wealth sits on the Month Branch — a Companion/Rob-Wealth structure. You are more competitive and independent than a plain Companion type, with a 'crowd robbing wealth' undertone where money and opportunity get shared or fought over with peers and siblings. You carry both a go-it-alone drive and fierce loyalty to your circle.",
+      "strength": [
+        "Strong independence and drive",
+        "Competitive grit in crisis and rivalry",
+        "Loyalty and teamwork when the group rallies"
+      ],
+      "weakness": [
+        "Frequent spending or loss of money (Rob Wealth)",
+        "Friction when competitiveness or wanting runs high",
+        "Stubborn; finds yielding hard"
+      ],
+      "career": [
+        "Independent work, self-employment, expertise over partnership",
+        "Fields driven by sales and competition",
+        "Sports and team-based careers",
+        "Hands-on, front-line leadership"
+      ],
+      "love": "You are a frank, leading partner, but can be self-centered. You match best with an independent equal who can push back and still hold you.",
+      "advice": "Rob Wealth turns into achievement when drained through Output (expression, production) and reined in by Officer (discipline, duty). Be especially careful with partnerships, guarantees, and impulsive investments."
+    }
+  },
+  "잡기격": {
+    "ko": {
+      "tagline": "사고(四庫)의 창고 — 여러 재능을 품은 보관함",
+      "personality": "당신은 '잡기격(雜氣格)'이에요. 진술축미(辰戌丑未) 토(土)의 달에 태어나 여러 기운이 창고처럼 한데 섞인 격국입니다. 정기(正氣)가 또렷이 투출하지 않아 다재다능하지만 초점이 흐려지기 쉬워요. 형충(刑沖)으로 창고가 '열릴' 때 비로소 묻어둔 재능과 재물이 드러납니다.",
+      "strength": [
+        "여러 분야를 아우르는 다재다능함",
+        "겉보다 속이 깊은 잠재력과 실속",
+        "묵묵히 쌓아가는 인내와 포용"
+      ],
+      "weakness": ["초점이 분산돼 발현이 늦을 수 있음", "결정을 미루거나 두루뭉술해지기 쉬움"],
+      "career": [
+        "부동산·창고·유통·자산 관리",
+        "여러 분야를 묶는 종합 기획·관리",
+        "수집·감정·중개처럼 '보관과 교환'이 핵심인 일"
+      ],
+      "love": "천천히 깊어지는 인연을 선호해요. 한 번 마음을 열면 든든하게 오래 갑니다.",
+      "advice": "창고는 '열어야' 빛납니다. 재능을 한 분야로 모아 집중하세요. 형충 운에서 기회가 크게 열리니 그때 과감하게 움직이는 게 좋습니다."
+    },
+    "en": {
+      "tagline": "The four-storehouse vault — a cabinet of many talents",
+      "personality": "You are a 'Japgi' (Mixed-Qi) chart. Born in an Earth month of the four storehouses (辰戌丑未), your chart blends several energies together like a vault. With no single dominant Qi clearly revealed, you are versatile but can lose focus. Your buried talents and wealth surface only when the storehouse is 'opened' by clash or punishment.",
+      "strength": [
+        "Versatility across many fields",
+        "Deep, substantial potential beneath the surface",
+        "Patience and breadth, building quietly"
+      ],
+      "weakness": [
+        "Scattered focus; talents may surface late",
+        "Tends to delay decisions or stay vague"
+      ],
+      "career": [
+        "Real estate, storage, distribution, asset management",
+        "Integrative planning and management across fields",
+        "Work centered on storing and exchanging — collecting, appraisal, brokerage"
+      ],
+      "love": "You prefer bonds that deepen slowly. Once you open your heart, you stay steady for the long run.",
+      "advice": "A storehouse shines only when opened. Gather your talents into one field and focus. Opportunity opens wide in clash and punishment years — move boldly when it does."
+    }
   }
 }
