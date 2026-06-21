@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { expireBonusCredits } from '@/lib/credits/creditService'
+import { sweepExpiredIdempotency } from '@/lib/credits/sweepExpiredIdempotency'
 import { logger } from '@/lib/logger'
 import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
 import { extractLocale } from '@/lib/api/middleware'
@@ -55,10 +56,15 @@ export async function GET(request: Request) {
     const bonusResult = await expireBonusCredits()
     logger.warn('[Cron] Bonus credit expiration completed:', bonusResult)
 
+    // 만료된 멱등/취소-큐 행 정리 — 무한 누적으로 핫 머니 경로가 느려지는 것 방지.
+    const sweep = await sweepExpiredIdempotency()
+    logger.warn('[Cron] Expired idempotency/revocation sweep completed:', sweep)
+
     return NextResponse.json({
       success: true,
       message: 'Credit maintenance completed',
       bonusExpiration: bonusResult,
+      idempotencySweep: sweep,
     })
   } catch (err: unknown) {
     logger.error('[Cron Reset error]', err)
