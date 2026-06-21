@@ -159,4 +159,25 @@ describe('formatSajuSynastry', () => {
     expect(out).toContain('시너스트리')
     expect(out.length).toBeGreaterThan(50)
   })
+
+  describe('시각 미상 — 시주(index 3) cross 제외', () => {
+    // valid 의 시주: A=壬辰, B=丁亥 → 壬丁合化木 (시천간 천간합). 시각 미상이면 이
+    // 날조 cross 가 빠져야 한다. 반대로 일/월주 cross(천간충 庚↔甲)는 유지.
+    it('둘 다 시각 알면 시주 천간합이 보인다(baseline)', () => {
+      const out = formatSajuSynastry(valid)
+      expect(out).toContain('시천간 임 + B 시천간 정')
+      expect(out).toContain('천간충')
+    })
+
+    it('A 시각 미상이면 A 시주 cross 가 사라지고 일/월주 cross 는 남는다', () => {
+      const out = formatSajuSynastry({ ...valid, timeUnknownA: true })
+      expect(out).not.toContain('시천간 임 + B 시천간 정')
+      expect(out).toContain('천간충') // A 일간 庚 ↔ B 월간 甲 (시주 무관)
+    })
+
+    it('B 시각 미상이면 B 시주가 빠져 시주 천간합이 사라진다', () => {
+      const out = formatSajuSynastry({ ...valid, timeUnknownB: true })
+      expect(out).not.toContain('시천간 임 + B 시천간 정')
+    })
+  })
 })

@@ -215,9 +215,19 @@ export interface AstroSynastryInput {
   /** A/B 실명. 있으면 행성 소유(누구의 달·화성인지)를 이름에 고정한다. */
   nameA?: string | null
   nameB?: string | null
+  /**
+   * 출생 시각 미상 플래그. true 면 그 사람의 ASC/MC/하우스는 자정 기준 날조값이라
+   * synastry 에서 제외한다(앵글 aspect · 그 사람 하우스로의 overlay · ASC 표시).
+   * Moon 등 행성 경도는 시각 미상이어도 [Meta] 룰상 인용 허용이라 유지.
+   */
+  timeUnknownA?: boolean
+  timeUnknownB?: boolean
   /** 출력 언어. 'en' 이면 한국어 라벨이 영어 응답에 새지 않게 영어로 렌더. 기본 'ko'. */
   lang?: 'ko' | 'en'
 }
+
+// ASC/MC = 출생 시각 의존 앵글. 시각 미상이면 cross 에서 제외 대상.
+const ANGLE_POINTS = new Set(['Ascendant', 'MC'])
 
 /**
  * 점성 synastry 라인 list를 한 string으로 반환 (LLM 직접 injection용).
@@ -263,6 +273,9 @@ export function formatAstroSynastry(input: AstroSynastryInput): string {
   const generationalNames = new Set<string>()
   let generationalCount = 0
   for (const asp of synastry.aspects) {
+    // 시각 미상인 쪽의 앵글(ASC/MC) 이 낀 aspect 는 날조라 제외 (from=A, to=B).
+    if (input.timeUnknownA && ANGLE_POINTS.has(asp.from.name)) continue
+    if (input.timeUnknownB && ANGLE_POINTS.has(asp.to.name)) continue
     const fromP = PERSONAL_POINTS.has(asp.from.name)
     const toP = PERSONAL_POINTS.has(asp.to.name)
     // 외행성↔외행성 컨정션 = 동세대 노이즈 → 묶어서 요약 1줄
@@ -309,23 +322,30 @@ export function formatAstroSynastry(input: AstroSynastryInput): string {
   const overlayLinesAtoB: string[] = []
   const overlayLinesBtoA: string[] = []
   let outerDiffCount = 0
-  for (const o of synastry.houseOverlaysAtoB) {
-    if (!PERSONAL_FOR_OVERLAY.has(o.planet)) {
-      outerDiffCount++
-      continue
+  // overlay A→B 는 B 의 하우스 경계가 필요 → B 시각 미상이면 통째 제외.
+  if (!input.timeUnknownB) {
+    for (const o of synastry.houseOverlaysAtoB) {
+      if (!PERSONAL_FOR_OVERLAY.has(o.planet)) {
+        outerDiffCount++
+        continue
+      }
+      overlayLinesAtoB.push(
+        `${labelA} ${pk(o.planet)} → ${labelB} ${o.inHouse}H (${houseD(o.inHouse)})`
+      )
     }
-    overlayLinesAtoB.push(
-      `${labelA} ${pk(o.planet)} → ${labelB} ${o.inHouse}H (${houseD(o.inHouse)})`
-    )
   }
-  for (const o of synastry.houseOverlaysBtoA) {
-    if (!PERSONAL_FOR_OVERLAY.has(o.planet)) continue
-    overlayLinesBtoA.push(
-      `${labelB} ${pk(o.planet)} → ${labelA} ${o.inHouse}H (${houseD(o.inHouse)})`
-    )
+  // overlay B→A 는 A 의 하우스가 필요 → A 시각 미상이면 제외.
+  if (!input.timeUnknownA) {
+    for (const o of synastry.houseOverlaysBtoA) {
+      if (!PERSONAL_FOR_OVERLAY.has(o.planet)) continue
+      overlayLinesBtoA.push(
+        `${labelB} ${pk(o.planet)} → ${labelA} ${o.inHouse}H (${houseD(o.inHouse)})`
+      )
+    }
   }
-  const ascA = signD(chartA.ascendant?.sign)
-  const ascB = signD(chartB.ascendant?.sign)
+  // ASC 는 시각 의존 → 미상인 쪽은 '미상'으로 표기(날조 별자리 노출 금지).
+  const ascA = input.timeUnknownA ? L('미상', 'unknown') : signD(chartA.ascendant?.sign)
+  const ascB = input.timeUnknownB ? L('미상', 'unknown') : signD(chartB.ascendant?.sign)
   const ascLine = `${L('상승점', 'ASC')} ${labelA} ${ascA} / ${labelB} ${ascB}`
 
   const out: string[] = [L('== 시너스트리 (점성 cross) ==', '== Synastry (astrology cross) ==')]

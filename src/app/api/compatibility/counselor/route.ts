@@ -310,6 +310,15 @@ export async function POST(req: NextRequest) {
     const person1Seed = buildPersonSeed((persons?.[0] as Record<string, unknown>) || null)
     const person2Seed = buildPersonSeed((persons?.[1] as Record<string, unknown>) || null)
 
+    // 출생 시각 미상 — 시주/ASC/MC/하우스 cross 가 날조되지 않게 formatter 에 전달.
+    // 명시 플래그 OR 시각 누락 OR 자정(00:00) 기본값 = 미상으로 간주(seed 도 00:00 폴백).
+    const isTimeUnknown = (idx: number): boolean => {
+      const raw = persons?.[idx] as { time?: string; birthTimeUnknown?: boolean } | undefined
+      return !!raw?.birthTimeUnknown || !raw?.time || raw.time === '00:00'
+    }
+    const timeUnknownA = isTimeUnknown(0)
+    const timeUnknownB = isTimeUnknown(1)
+
     // Phase E (2026-06-06): stale 모니터링 정리.
     // Phase A/B 후 사주/점성 시나스트리 블록은 compatSajuFacts /
     // compatAstroFacts 가 server-side 에서 만든다. client 가 보내는
@@ -504,6 +513,8 @@ export async function POST(req: NextRequest) {
           currentDaeunB: compatSaju.b.currentDaeun,
           nameA: (persons?.[0] as { name?: string } | undefined)?.name ?? null,
           nameB: (persons?.[1] as { name?: string } | undefined)?.name ?? null,
+          timeUnknownA,
+          timeUnknownB,
           lang,
         })
       }
@@ -548,6 +559,8 @@ export async function POST(req: NextRequest) {
           lonB: compatAstro.b.longitude,
           nameA: nA,
           nameB: nB,
+          timeUnknownA,
+          timeUnknownB,
           lang,
         })
         // Composite chart — 두 차트의 entity 톤 (관계 자체). synastry 가
@@ -558,6 +571,8 @@ export async function POST(req: NextRequest) {
           chartB: compatAstro.b.chart,
           nameA: nA,
           nameB: nB,
+          timeUnknownA,
+          timeUnknownB,
         })
       } catch (err) {
         logger.warn('[compat counselor] astro synastry failed', {
@@ -573,8 +588,7 @@ export async function POST(req: NextRequest) {
     ;[person1Seed, person2Seed].forEach((seed, i) => {
       if (!seed) return
       const label = i === 0 ? 'A' : 'B'
-      const raw = persons?.[i] as { time?: string; birthTimeUnknown?: boolean } | undefined
-      const timeUnknown = !!raw?.birthTimeUnknown || !raw?.time || raw.time === '00:00'
+      const timeUnknown = i === 0 ? timeUnknownA : timeUnknownB
       const cityUnknown = !!seed.source?.usedDefaultLocation
       // location/timezone 은 LLM 한테 직접 의미 없음 (이미 사주/점성 계산이
       // 적용된 결과만 전달). unknown 플래그만 가드 룰 위해 명시.
