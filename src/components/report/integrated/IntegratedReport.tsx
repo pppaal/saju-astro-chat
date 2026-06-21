@@ -58,7 +58,29 @@ import {
   signLabel,
 } from './integratedReportLabels'
 
+import { GLOSSARY, type GlossarySection } from './reportGlossary'
+
 export type { Lang, CrossRow } from './integratedReportLabels'
+
+// 초보자용 "쉽게 풀이" 더보기 — 사주·점성 용어를 모르는 사람을 위해 각 섹션의
+// 용어를 한 줄로 풀어준다. 네이티브 <details> 라 모바일/접근성 OK, 기본 접힘.
+function Explain({ section, lang }: { section: GlossarySection; lang: Lang }) {
+  const entries = GLOSSARY[section]
+  if (!entries?.length) return null
+  return (
+    <details className={s.explain}>
+      <summary>{lang === 'en' ? '❓ In plain words' : '❓ 쉽게 풀이 — 용어가 궁금하면'}</summary>
+      <dl className={s.explainBody}>
+        {entries.map((e, i) => (
+          <div className={s.explainRow} key={i}>
+            <dt className={s.explainTerm}>{e.term[lang]}</dt>
+            <dd className={s.explainDef}>{e.body[lang]}</dd>
+          </div>
+        ))}
+      </dl>
+    </details>
+  )
+}
 
 export interface IntegratedReportProps {
   data: ReportData
@@ -438,6 +460,9 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
           })()}
         </div>
 
+        {/* 입문 용어 풀이 — 사주팔자/천궁도가 뭔지부터 */}
+        <Explain section="intro" lang={lang} />
+
         {/* 01 사주 명식 */}
         <section className={s.section}>
           <div className={s.secHead}>
@@ -448,6 +473,7 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
             </span>
             <span className={s.secEn}>Four Pillars</span>
           </div>
+          <Explain section="s01" lang={lang} />
           {/* 일간(나) 카드 — hanja-rich 의 일간성격·강점·약점·직업을 hover→본문으로. */}
           {(() => {
             const dm = getHanjaRich(S.dayMaster, lang) as {
@@ -641,6 +667,7 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
             </span>
             <span className={s.secEn}>Elements & Balance</span>
           </div>
+          <Explain section="s02" lang={lang} />
           <div className={s.gridElem}>
             <div className={`${s.card} ${s.cardPad}`}>
               <div className={s.subcap}>{t('elemDist')}</div>
@@ -807,6 +834,7 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
             </span>
             <span className={s.secEn}>Natal Chart</span>
           </div>
+          <Explain section="s03" lang={lang} />
           <div className={s.gridChart}>
             <div className={`${s.card} ${s.wheelCard}`}>
               <Wheel astro={A} lang={lang} />
@@ -1008,6 +1036,7 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
             </span>
             <span className={s.secEn}>Aspects</span>
           </div>
+          <Explain section="s04" lang={lang} />
           <div className={s.gridAsp}>
             <div>
               <div className={s.aspLegend}>
@@ -1091,6 +1120,7 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
               </span>
               <span className={s.secEn}>Cross-System</span>
             </div>
+            <Explain section="s05" lang={lang} />
             {/* 종합 문장은 상단 히어로로 이동(중복 제거). 여기선 톤 분포 막대만. */}
             {/* 교차 그림 — 톤 분포(잘맞음/채워줌/부딪힘) 한눈에. */}
             {(() => {
