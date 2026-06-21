@@ -61,7 +61,7 @@ export async function calculateTransitChart(
 // Transit Aspects 계산
 // ======================================================
 
-import { AspectHit, AspectType, PlanetBase } from './types'
+import { ASPECT_ANGLES, AspectHit, AspectType, PlanetBase } from './types'
 import { angleDiff } from './utils'
 import { evaluateAspect, AspectEngineConfig } from './aspectCore'
 
@@ -71,18 +71,8 @@ export interface TransitAspect extends AspectHit {
   isApplying: boolean // 접근 중인지 분리 중인지
 }
 
-const TRANSIT_ASPECT_ANGLES: Record<AspectType, number> = {
-  conjunction: 0,
-  sextile: 60,
-  square: 90,
-  trine: 120,
-  opposition: 180,
-  semisextile: 30,
-  quincunx: 150,
-  quintile: 72,
-  biquintile: 144,
-  sesquiquadrate: 135,
-}
+// 어스펙트 각도는 공용 SSOT(ASPECT_ANGLES, foundation/types) 사용.
+const TRANSIT_ASPECT_ANGLES = ASPECT_ANGLES
 
 // 트랜짓은 더 타이트한 오브 사용. 마이너 어스펙트(5종)는 1.5° 안쪽으로 묶어
 // 메이저와의 오브 오버랩으로 인한 신호 중복을 줄인다 (calendar-engine 추출기는
