@@ -1,0 +1,107 @@
+/* PlanetDetail — '모든 행성 읽기' 접고펼침 블록.
+   변수는 상위 .report 스코프에서 내려오지만, 단독 렌더 안전망으로 폴백 정의를
+   둔다(앱 전역 오염 없이 이 컴포넌트 트리에서만). raw #hex 직접 사용 금지 — 모두
+   var() 경유. 한글 줄바꿈은 word-break:keep-all. */
+.box {
+  --ink: #211f1b;
+  --ink-2: #6c665b;
+  --ink-3: #9c9588;
+  --line: #e2dccf;
+  --line-2: #ece7db;
+  --gold: #a9833b;
+  --card: #fcfbf7;
+  --card-2: #f9f6ef;
+  --el-wood: #4e8c6a;
+  --el-fire: #c0564a;
+  --el-earth: #b0853a;
+  --el-metal: #79818a;
+  --el-water: #3f6ca0;
+  --mono: 'IBM Plex Mono', ui-monospace, monospace;
+  --serif: 'Noto Serif KR', serif;
+  --sym: 'Noto Sans Symbols 2', 'Noto Sans Symbols', sans-serif;
+
+  margin: 12px 0 0;
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--gold);
+  border-radius: 6px;
+  background: rgba(169, 131, 59, 0.04);
+}
+.box > summary {
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+  padding: 10px 14px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--gold);
+}
+.box > summary::-webkit-details-marker {
+  display: none;
+}
+.box[open] > summary {
+  border-bottom: 1px solid var(--line-2);
+}
+.body {
+  padding: 10px 14px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* 한 행성 카드 */
+.row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--line-2);
+}
+.row:last-child {
+  padding-bottom: 0;
+  border-bottom: none;
+}
+.head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.head b {
+  font-size: 13.5px;
+  font-weight: 700;
+  word-break: keep-all;
+}
+.coord {
+  font-style: normal;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-3);
+  word-break: keep-all;
+}
+.glyph {
+  font-family: var(--sym);
+}
+.retro {
+  font-family: var(--sym);
+  color: var(--gold);
+}
+.prin {
+  font-family: var(--serif);
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--ink);
+  word-break: keep-all;
+}
+.read {
+  font-size: 12.5px;
+  color: var(--ink-2);
+  line-height: 1.55;
+  word-break: keep-all;
+}
+.mean {
+  font-size: 12px;
+  color: var(--ink-3);
+  line-height: 1.5;
+  word-break: keep-all;
+}

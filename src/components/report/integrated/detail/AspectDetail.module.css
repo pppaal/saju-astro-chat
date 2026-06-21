@@ -1,0 +1,137 @@
+/* AspectDetail — §04 어스펙트·위계 뜻풀이 (플레인 리스트).
+   §04 그리드/디그니티는 의미가 툴팁뿐이라 모바일에서 안 보임. 여기서 평문으로 펼친다.
+   변수는 self-contained 하게 .box 스코프에 선언(부모 .report 밖에서도 동작). */
+.box {
+  /* tokens — mirror .report scope so this component stands alone */
+  --ink: #211f1b;
+  --ink-2: #6c665b;
+  --ink-3: #9c9588;
+  --line: #e2dccf;
+  --line-2: #ece7db;
+  --gold: #a9833b;
+  --card: #fcfbf7;
+  --card-2: #f9f6ef;
+  --sym: 'Noto Sans Symbols 2', 'Noto Sans Symbols', sans-serif;
+  --mono: 'IBM Plex Mono', ui-monospace, monospace;
+  --serif: 'Noto Serif KR', serif;
+  --el-fire: #c0564a;
+  --el-water: #3f6ca0;
+
+  margin: 12px 0 0;
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--gold);
+  border-radius: 6px;
+  background: rgba(169, 131, 59, 0.04);
+}
+.box > summary {
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+  padding: 10px 14px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--gold);
+}
+.box > summary::-webkit-details-marker {
+  display: none;
+}
+.box[open] > summary {
+  border-bottom: 1px solid var(--line-2);
+}
+.body {
+  padding: 10px 14px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.subcap {
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  font-weight: 700;
+}
+
+/* ── section ── */
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* ── one aspect / dignity row ── */
+.row {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 7px 10px;
+  border: 1px solid var(--line-2);
+  border-radius: 5px;
+  background: var(--card);
+}
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 5px;
+  font-size: 12.5px;
+  line-height: 1.4;
+  word-break: keep-all;
+}
+.gly {
+  font-family: var(--sym);
+  font-size: 13px;
+}
+.name {
+  font-weight: 600;
+  color: var(--ink);
+  word-break: keep-all;
+}
+.label {
+  font-weight: 700;
+  word-break: keep-all;
+}
+.aspGly {
+  font-family: var(--sym);
+  font-size: 12px;
+}
+.sep {
+  color: var(--ink-3);
+}
+.orb {
+  margin-left: auto;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-3);
+}
+.sign {
+  color: var(--ink-2);
+  word-break: keep-all;
+}
+.meaning {
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--ink-2);
+  word-break: keep-all;
+}
+.empty {
+  font-size: 12px;
+  color: var(--ink-3);
+  word-break: keep-all;
+}
+
+/* hard / soft / neutral tone color for the aspect label */
+.hard {
+  color: var(--el-fire);
+}
+.soft {
+  color: var(--el-water);
+}
+.neutral {
+  color: var(--ink-2);
+}

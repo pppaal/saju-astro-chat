@@ -59,6 +59,12 @@ import {
 } from './integratedReportLabels'
 
 import { GLOSSARY, type GlossarySection } from './reportGlossary'
+import PillarDetail from './detail/PillarDetail'
+import InteractionDetail from './detail/InteractionDetail'
+import ElementsDetail from './detail/ElementsDetail'
+import PlanetDetail from './detail/PlanetDetail'
+import HouseDetail from './detail/HouseDetail'
+import AspectDetail from './detail/AspectDetail'
 
 export type { Lang, CrossRow } from './integratedReportLabels'
 
@@ -565,6 +571,7 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
               )
             })}
           </div>
+          <PillarDetail pillars={S.pillars} lang={lang} />
           <div className={s.row2}>
             <div>
               <div className={s.subcap}>{t('shinsalCap')}</div>
@@ -655,6 +662,7 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
               </div>
             </>
           )}
+          <InteractionDetail shinsal={S.natalShinsal} relations={S.natalRelations} lang={lang} />
         </section>
 
         {/* 02 오행과 용신 */}
@@ -822,6 +830,7 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
               )}
             </div>
           )}
+          <ElementsDetail saju={S} lang={lang} />
         </section>
 
         {/* 03 천궁도 */}
@@ -1024,6 +1033,8 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
               })
             })()}
           </div>
+          <PlanetDetail astro={A} lang={lang} />
+          <HouseDetail astro={A} lang={lang} />
         </section>
 
         {/* 04 어스펙트 */}
@@ -1107,6 +1118,7 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
               </div>
             </details>
           </div>
+          <AspectDetail astro={A} lang={lang} />
         </section>
 
         {/* 05 통합 테마 — natalCross 교차 */}
