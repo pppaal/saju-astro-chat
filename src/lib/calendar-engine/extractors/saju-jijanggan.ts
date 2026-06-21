@@ -284,7 +284,11 @@ const sajuJijangganExtractor: SignalExtractor = {
     // ─── 3) 월운 지지 (monthly) ───
     const monthCursor = new Date(Date.UTC(rangeStart.getUTCFullYear(), rangeStart.getUTCMonth(), 1))
     while (monthCursor <= rangeEnd) {
-      const mp = getMonthPillarForDate(monthCursor)
+      // 월주는 그 달 중순(15일) 기준 — 1일은 절입 직전이라 전월 절기달이 잡힌다.
+      const midMonth = new Date(
+        Date.UTC(monthCursor.getUTCFullYear(), monthCursor.getUTCMonth(), 15)
+      )
+      const mp = getMonthPillarForDate(midMonth)
       const jijanggan = JIJANGGAN[mp.branch]
       if (jijanggan) {
         const mStart = new Date(monthCursor).toISOString()
