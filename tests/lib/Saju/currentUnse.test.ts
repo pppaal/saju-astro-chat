@@ -6,8 +6,8 @@
 // 고정 본명 + 고정 운 간지로 관계 4종을 모두 골든으로 잠근다.
 
 import { describe, it, expect } from 'vitest'
-import { computeCurrentUnse } from '@/lib/saju/currentUnse'
-import { getMonthPillarForDate } from '@/lib/saju/datePillars'
+import { computeCurrentUnse, detectUnseRelations } from '@/lib/saju/currentUnse'
+import { getMonthPillarForDate, getYearPillarForDate } from '@/lib/saju/datePillars'
 import type { CalculateSajuDataResult, PillarData } from '@/lib/saju/types'
 
 function pillar(stem: string, branch: string): PillarData {
@@ -38,38 +38,46 @@ function makeRaw(
 }
 
 const QUERY = new Date(2026, 5, 10) // 2026-06-10
+// 본명 4기둥(壬子/甲寅/丙午/己亥) — 운 간지 vs 본명 충/합 단언용.
+const NATAL = makeRaw([], []).pillars
 
-describe('computeCurrentUnse — 세운 충/합 감지', () => {
-  it('세운 丙午: 년주 壬子와 천간충(丙-壬) + 지지충(午-子)', () => {
-    const raw = makeRaw([{ year: 2026, heavenlyStem: '丙', earthlyBranch: '午' }], [])
-    const { seun, relations } = computeCurrentUnse(raw, QUERY)
-
-    expect(seun).toEqual({ stem: '丙', branch: '午' })
-    const fromSeun = relations.filter((r) => r.source === 'seun')
-    expect(fromSeun.map((r) => `${r.relation.kind}:${r.relation.pillars[0]}`).sort()).toEqual([
+describe('detectUnseRelations — 운 간지 vs 본명 충/합', () => {
+  // 세운/월운/일진 공통 충·합 판정. 직전엔 raw.unse.annual 에 합성 간지를 주입해
+  // pickSeun 경유로 테스트했지만, 이제 세운은 절기로 직접 산출하므로(주입 불가)
+  // 판정 함수를 직접 단언한다 — 커버리지(천간충/지지충/천간합/지지육합/없음) 동일.
+  it('丙午: 년주 壬子와 천간충(丙-壬) + 지지충(午-子)', () => {
+    const rels = detectUnseRelations(NATAL, '丙', '午')
+    expect(rels.map((r) => `${r.kind}:${r.pillars[0]}`).sort()).toEqual([
       '지지충:year',
       '천간충:year',
     ])
   })
 
-  it('세운 己丑: 월주 甲과 천간합(甲-己) + 년주 子와 지지육합(子-丑)', () => {
-    const raw = makeRaw([{ year: 2026, heavenlyStem: '己', earthlyBranch: '丑' }], [])
-    const { relations } = computeCurrentUnse(raw, QUERY)
-
-    const fromSeun = relations.filter((r) => r.source === 'seun')
-    const kinds = fromSeun.map((r) => `${r.relation.kind}:${r.relation.pillars[0]}`)
+  it('己丑: 월주 甲과 천간합(甲-己) + 년주 子와 지지육합(子-丑)', () => {
+    const kinds = detectUnseRelations(NATAL, '己', '丑').map((r) => `${r.kind}:${r.pillars[0]}`)
     expect(kinds).toContain('천간합:month')
     expect(kinds).toContain('지지육합:year')
     // 시주 己亥 의 己 와 운 己 — 동일 천간은 충도 합도 아니다.
     expect(kinds.filter((k) => k.endsWith(':time'))).toHaveLength(0)
   })
 
-  it('관계없는 세운(戊戌 vs 본명)은 빈 관계 — 오탐 방지', () => {
-    // 戊: 壬/甲/丙/己 와 충·합 조합 없음(戊-癸 합만 존재). 戌: 子/寅/午/亥 와
-    // 충 없음… 단 卯-戌 합 제외 확인 — 본명에 卯 없음.
-    const raw = makeRaw([{ year: 2026, heavenlyStem: '戊', earthlyBranch: '戌' }], [])
-    const { relations } = computeCurrentUnse(raw, QUERY)
-    expect(relations.filter((r) => r.source === 'seun')).toHaveLength(0)
+  it('관계없는 운(戊戌 vs 본명)은 빈 관계 — 오탐 방지', () => {
+    expect(detectUnseRelations(NATAL, '戊', '戌')).toHaveLength(0)
+  })
+})
+
+describe('computeCurrentUnse — 세운 입춘 경계', () => {
+  it('세운은 1/1 이 아니라 입춘에 바뀐다(절기 기준)', () => {
+    const raw = makeRaw([], [])
+    // 입춘 후(6/10) → 그 해 2026 丙午.
+    const afterIpchun = computeCurrentUnse(raw, new Date(2026, 5, 10)).seun
+    expect(afterIpchun).toEqual(getYearPillarForDate(new Date(2026, 5, 10)))
+    expect(afterIpchun).toEqual({ stem: '丙', branch: '午' })
+    // 입춘 전(1/15) → 직전 해 2025 乙巳. getFullYear()(1/1 경계)였다면 잘못된
+    // 丙午 가 떴을 구간.
+    const beforeIpchun = computeCurrentUnse(raw, new Date(2026, 0, 15)).seun
+    expect(beforeIpchun).toEqual(getYearPillarForDate(new Date(2026, 0, 15)))
+    expect(beforeIpchun).toEqual({ stem: '乙', branch: '巳' })
   })
 })
 
@@ -86,14 +94,15 @@ describe('computeCurrentUnse — 월운/일진/누락 처리', () => {
     expect(wolun).not.toEqual({ stem: '己', branch: '丑' })
   })
 
-  it('조회 연도 세운 데이터 없으면 seun 은 null(throw X) — wolun 은 절기로 항상 산출', () => {
+  it('세운·월운은 raw.unse 배열과 무관하게 절기로 산출(엉뚱한 배열 무시, throw X)', () => {
+    // 배열에 조회 시점과 안 맞는 옛 데이터만 있어도, 세운/월운은 절기 기준으로
+    // 늘 정확히 나온다(배열 lookup 의존 제거).
     const raw = makeRaw(
       [{ year: 2020, heavenlyStem: '庚', earthlyBranch: '子' }],
       [{ year: 2020, month: 1, ganji: '丁丑' }]
     )
     const { seun, wolun } = computeCurrentUnse(raw, QUERY)
-    expect(seun).toBeNull()
-    // 월운은 배열 lookup 이 아니라 절기 계산이라 데이터 유무와 무관하게 늘 나온다.
+    expect(seun).toEqual(getYearPillarForDate(QUERY))
     expect(wolun).toEqual(getMonthPillarForDate(QUERY))
   })
 
