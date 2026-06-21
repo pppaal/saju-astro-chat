@@ -260,7 +260,8 @@ describe('getTwelveShinsalSingleByPillar', () => {
 
 describe('getLuckySingleByPillar', () => {
   it("marks a pillar '길성' when a 길성 lands there, '' otherwise", () => {
-    // day stem 甲: 午 → 태극귀인 + 천문성 (길성), 寅 → none
+    // day stem 甲: 午 → 태극귀인 (길성, 甲乙 태극귀인=子午), 寅 → none.
+    // (천문성은 戌亥 라 이 차트엔 안 뜸 — 길성 판정은 태극귀인이 단독으로.)
     const c = chart('甲', '午', '丙', '寅', '甲', '寅', '庚', '寅')
     const lucky = getLuckySingleByPillar(c)
     expect(lucky.year).toBe('길성')
