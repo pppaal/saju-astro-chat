@@ -28,7 +28,11 @@ export async function getCachedTransitChart(args: {
   inMemoryCache: ExtractorCache
 }): Promise<Chart> {
   const { iso, latitude, longitude, timeZone, inMemoryCache } = args
-  const localKey = `transit-chart:${iso}:${latitude}:${longitude}`
+  // timeZone 은 키의 일부여야 한다 — iso 가 tz 없는 wall-clock 문자열이라
+  // calculateTransitChart(iso, timeZone) 가 tz 로 JD(행성 위치)를 정한다. 빼면
+  // 같은 iso+좌표·다른 tz 가 키 충돌 → 남의 tz 로 계산된 차트가 서빙됐다
+  // (natalChart 키는 이미 timeZone 포함으로 고쳐졌던 동일 버그 클래스).
+  const localKey = `transit-chart:${iso}:${latitude}:${longitude}:${timeZone}`
 
   // 1) InMemoryCache (요청 단위) — resolved Chart 또는 *in-flight* Promise<Chart>.
   //    buildCalendar 는 모든 추출기를 Promise.all 로 동시 실행한다. 값만 캐시하면
@@ -41,7 +45,8 @@ export async function getCachedTransitChart(args: {
   // 2) Redis (전역·영구)
   // 같은 위치의 같은 시각 차트는 영원히 결정적.
   // TRANSIT_CHART TTL은 1시간(짧음) — 우리는 결정적 데이터라 NATAL_CHART TTL(30일) 사용.
-  const redisKey = `ephe:transit:${iso}:${latitude.toFixed(4)}:${longitude.toFixed(4)}`
+  // v2: timeZone 추가(위 버그 수정). 기존 tz-less Redis 엔트리는 키가 달라 자연 폐기.
+  const redisKey = `ephe:transit:v2:${iso}:${latitude.toFixed(4)}:${longitude.toFixed(4)}:${timeZone}`
   const chartPromise = cacheOrCalculate(
     redisKey,
     async () => {
