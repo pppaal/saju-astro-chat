@@ -33,7 +33,6 @@
 import type { ActiveSignal, ActiveWindow, Polarity, SignalEvidence } from '../types'
 import {
   SAJU_ASTRO_MAPPINGS,
-  lookupCrossMapping,
   crossLayerAllowed,
   type CrossMapping,
 } from '../data/saju-astro-mapping'
@@ -63,10 +62,20 @@ function extractSajuKey(s: ActiveSignal): string | undefined {
  * 넣는다 — 활성 주체(식의 광체)가 아니다. 그대로 키로 쓰면 "토성 식이 본명 금성을
  * 때릴 때" astroKey='금성' 이 돼 정재×금성·도화×금성 교차가 *엉뚱한 인과*로
  * 오발화한다(감사 지적). 식은 교차의 활성 행성 키로 부적합하므로 제외한다.
+ *
+ * 같은 이유로 profection·zodiacal-releasing 도 제외한다. 둘 다 planets[0] 에
+ * *상징적 룰러*(연주술 lordOfYear / ZR period.ruler)를 박는데, 이는 하늘에서
+ * 실제로 트랜짓하는 활성 행성이 아니라 *지정(designation)* 일 뿐이다. 교차의
+ * "planets[0] = 트랜짓(활성) 행성" 불변식과 어긋나, 실제 천문 활성 없이 명칭만으로
+ * 교차 신호를 발화시킨다 — eclipse 제외와 같은 선례. (그 룰러가 실제로 트랜짓하면
+ * transit/dignity 추출기가 별도로 활성 신호를 내고, 그게 교차의 정당한 키가 된다.)
  */
 function extractAstroKey(s: ActiveSignal): string | undefined {
   if (s.source !== 'astro') return undefined
-  if (s.kind === 'eclipse') return undefined // affectedPoint(본명점)라 활성 주체 아님 — 교차 제외
+  // affectedPoint(본명점) 또는 상징적 룰러라 활성 주체 아님 — 교차 제외.
+  if (s.kind === 'eclipse' || s.kind === 'profection' || s.kind === 'zodiacal-releasing') {
+    return undefined
+  }
   const planets = s.evidence?.planets ?? []
   return planets[0]
 }

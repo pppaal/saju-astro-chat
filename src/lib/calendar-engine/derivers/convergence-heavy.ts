@@ -8,6 +8,9 @@ export interface HeavySignalInput {
   name?: string | null
   korean?: string | null
   english?: string | null
+  // 구조화된 근거 — astro transit 등은 evidence.planets[0]에 트랜짓 행성(영문
+  // canonical)을 담는다. 이름 문자열 파싱(현지화/포맷 변형에 취약)보다 이걸 우선.
+  evidence?: { planets?: string[] | null } | null
 }
 
 // 무거운 점성 = 느린 행성 transit + lifecycle/eclipse/angle-contact.
@@ -29,12 +32,26 @@ function leadToken(name: string | null | undefined): string {
   return (name || '').split(/[ ·]/)[0]
 }
 
+// 트랜짓 행성을 *구조화된* 근거에서 우선 추출 — astro-transit.ts는
+// evidence.planets = [transitPlanet, natalPoint] 로 채운다(planets[0]=트랜짓 행성,
+// 영문 canonical). 이름 문자열 토큰 파싱은 현지화/포맷 변형에 취약하므로,
+// evidence 가 있으면 그걸 쓰고 없을 때만 name 토큰으로 폴백한다.
+function transitingPlanet(s: HeavySignalInput): string {
+  const fromEvidence = s.evidence?.planets?.[0]
+  if (typeof fromEvidence === 'string' && fromEvidence) return fromEvidence
+  return leadToken(s.name)
+}
+
+// 느린 행성(목성~명왕·키론) 또는 달의 교점(True/North Node) 여부.
+function isSlowTransitingBody(p: string): boolean {
+  return SLOW_PLANETS.has(p) || p === 'True' || p === 'North' // True/North Node
+}
+
 export function isHeavyAstro(s: HeavySignalInput): boolean {
   if (s.source !== 'astro') return false
   if (HEAVY_ASTRO_KINDS.has(s.kind)) return true
   if (s.kind === 'transit') {
-    const p = leadToken(s.name)
-    return SLOW_PLANETS.has(p) || p === 'True' || p === 'North' // True/North Node
+    return isSlowTransitingBody(transitingPlanet(s))
   }
   return false
 }
@@ -46,8 +63,7 @@ export function isHeavyAstro(s: HeavySignalInput): boolean {
 // 특정 *사건*이라 transit 이 아니므로 그대로 노출된다.
 export function isSlowBackgroundAstro(s: HeavySignalInput): boolean {
   if (s.source !== 'astro' || s.kind !== 'transit') return false
-  const p = leadToken(s.name)
-  return SLOW_PLANETS.has(p) || p === 'True' || p === 'North' // 달의 교점(~18개월)도 배경
+  return isSlowTransitingBody(transitingPlanet(s)) // 달의 교점(~18개월)도 배경
 }
 
 export function isHeavySaju(s: HeavySignalInput): boolean {

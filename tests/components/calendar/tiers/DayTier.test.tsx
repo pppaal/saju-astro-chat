@@ -228,6 +228,23 @@ describe('DayTier', () => {
       expect(screen.getByText('관성 충돌 주의')).toBeInTheDocument()
     })
 
+    it('translates aggregate-star + relation tokens in reasons/cautions (en)', () => {
+      mockLocale = 'en'
+      setup({
+        day: {
+          topReasons: ['재성 우호 트랜짓'],
+          cautions: ['관성 충 주의'],
+        },
+      })
+      // localizeLabel now falls back to translateSignalLabel, so the aggregate
+      // stars (재성/관성) and the relation token (충) no longer leak as Hangul.
+      expect(screen.queryByText(/재성/)).not.toBeInTheDocument()
+      expect(screen.queryByText(/관성/)).not.toBeInTheDocument()
+      expect(screen.getByText(/Wealth star/)).toBeInTheDocument()
+      expect(screen.getByText(/Officer star/)).toBeInTheDocument()
+      expect(screen.getByText(/clash/)).toBeInTheDocument()
+    })
+
     it('renders the muted "steady day" line when no reasons and no cautions', () => {
       setup({ day: { topReasons: [], cautions: [] } })
       expect(screen.getByText('오늘은 두드러진 신호 없이 무난한 흐름이에요.')).toBeInTheDocument()

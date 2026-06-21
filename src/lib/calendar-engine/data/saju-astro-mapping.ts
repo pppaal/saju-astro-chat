@@ -12,8 +12,11 @@
  *
  * 본 파일은 데이터만 보관 — 매칭 로직은 cross-activation extractor 에 분리.
  *
- * 페어 polarity 합산 모델 (extractor):
- *   pair.polarity = sign(saju.polarity × astro.polarity) × |mapping.polarity|
+ * 페어 polarity 합산 모델 (extractor combinePolarity):
+ *   - 두 부모 부호가 같은 방향(++ 또는 --) → mapping.polarity 를 **부호 그대로** 사용
+ *     (예: 편관×Mars −2 는 둘 다 압력이면 −2 유지 — 흉을 더 키움. sign 곱이 아님).
+ *   - 부호가 반대(+− / −+) → 0 (의미 충돌 — 톤 무력화).
+ *   - 한쪽 polarity = 0 → mapping.polarity 그대로 (부호 정보 부재 시 매핑이 결정).
  * pair.weight  = saju.weight × astro.weight × 0.6 (cross 신호 noise 방지)
  */
 
@@ -32,9 +35,7 @@ export type SajuMatchKey =
   | '편인'
   | '정인'
   | '도화'
-  | '도화살'
   | '역마'
-  | '역마살'
   | '건록'
   | '양인'
 
@@ -66,8 +67,9 @@ export interface CrossMapping {
    *  -: 두 신호가 같은 방향으로 압력 가중 (예: 편관 × Mars — 압박·돌발).
    *   0: 중립적 자원형 (도화 × Venus — 매력·관계).
    *
-   * 최종 페어 polarity 는 extractor 가 두 부모 신호 polarity 의 곱셈
-   * 부호와 합산해 산출 — 본 값은 의미 톤의 *방향* 만 결정.
+   * 최종 페어 polarity 는 extractor combinePolarity 가 산출:
+   * 두 부모 부호가 같은 방향이면 이 값을 **부호 그대로** 채택(편관×Mars −2 → −2),
+   * 부호가 반대면 0, 한쪽이 0 이면 이 값을 그대로 — 본 값은 의미 톤의 *방향* 을 결정.
    */
   polarity: Polarity
   grade: CrossMappingGrade
@@ -226,17 +228,6 @@ export const SAJU_ASTRO_MAPPINGS: readonly CrossMapping[] = [
     note: '도화(인연·끌림) ↔ Venus(attraction·beauty). 매칭 완전 일치.',
   },
   {
-    saju: '도화살',
-    astro: 'Venus',
-    meaning: {
-      ko: '도화살 × 금성 — 관계·매력·인기 결이 동시에 살아남. 사교·연애·미적 활동에 우호.',
-      en: 'Peach Blossom × Venus — connection, charm, and popularity light up together. Favours socializing, romance, and aesthetic work.',
-    },
-    polarity: 2,
-    grade: 'A',
-    note: '도화살 = 도화의 이명. 동일 매핑.',
-  },
-  {
     saju: '역마',
     astro: 'Mercury',
     meaning: {
@@ -246,17 +237,6 @@ export const SAJU_ASTRO_MAPPINGS: readonly CrossMapping[] = [
     polarity: 1,
     grade: 'A',
     note: '역마(이동) ↔ Mercury(travel·message). 동·서 모두 이동축.',
-  },
-  {
-    saju: '역마살',
-    astro: 'Mercury',
-    meaning: {
-      ko: '역마살 × 수성 — 이동·소통·정보 결이 두 배. 출장·교섭·매체 활용에 우호.',
-      en: 'Travelling Horse × Mercury — movement, messages, and information all run twice as strong. Favours travel, negotiation, and media work.',
-    },
-    polarity: 1,
-    grade: 'A',
-    note: '역마살 = 역마의 이명. 동일 매핑.',
   },
   {
     saju: '양인',

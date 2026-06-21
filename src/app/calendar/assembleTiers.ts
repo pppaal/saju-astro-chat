@@ -186,6 +186,21 @@ function parseCrossName(name: string | undefined): { sajuKo: string; astroKo: st
   const parts = (name ?? '').split('×').map((x) => x.trim())
   return { sajuKo: parts[0] ?? '', astroKo: parts[1] ?? '' }
 }
+// 교차 페어 키 — 구조화 evidence.detail(sajuKey=KO 십신/신살, astroKey=영문 행성)이
+// 있으면 그걸 쓰고, 없으면(연 셀은 detail 을 비움) 표시 name 파싱으로 폴백. detail
+// 우선이 견고하다 — name 의 '×' 글리프/구분자/로케일 포맷 변경에 안 흔들린다.
+function crossKeys(s: {
+  name?: string
+  evidence?: { detail?: Record<string, unknown> | null } | null
+}): { sajuKo: string; astroKo: string } {
+  const d = s.evidence?.detail
+  const sajuKey = typeof d?.sajuKey === 'string' ? d.sajuKey : ''
+  const astroKey = typeof d?.astroKey === 'string' ? d.astroKey : ''
+  if (sajuKey && astroKey) {
+    return { sajuKo: sajuKey, astroKo: PLANET_KO[astroKey] ?? astroKey }
+  }
+  return parseCrossName(s.name)
+}
 // 매핑 의미문은 "편관 × 화성 — …" 로 시작 — 카드가 페어를 따로 보여주므로 머리 제거.
 function stripCrossPair(t: string): string {
   return t.replace(/^[^—]*×[^—]*—\s*/, '')
@@ -543,8 +558,8 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
   for (const c of monthCells) {
     for (const s of c.signals) {
       if (s.kind !== 'cross-activation' || s.layer !== 'monthly') continue
-      // name("편관 × 화성")에서 파싱 — 연 셀은 evidence.detail 이 비어 있다.
-      const { sajuKo, astroKo } = parseCrossName(s.name)
+      // 구조화 detail 우선(연 셀은 비어 name 파싱으로 폴백).
+      const { sajuKo, astroKo } = crossKeys(s)
       if (!sajuKo || !astroKo) continue
       const pairKey = `${sajuKo}|${astroKo}`
       const prev = monthCrossByPair.get(pairKey)
@@ -572,6 +587,26 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
     favorScore: layered.daily.get(dayCell.datetime.slice(0, 10))?.score,
     lang,
   })
+
+  // ── 포커스(오늘) 셀 톤 정합 ──
+  // 월 grid 의 셀 색은 *원점수 밴드*(60/35)인데, 일 카드 헤드라인은 toDay 가 화해한
+  // verdict(tense/bright)다. 밴드↔신호 톤이 어긋난 날(tense: 좋은밴드인데 흉신 우세 /
+  // bright: 낮은밴드인데 살릴 구석)은 같은 날 월=초록"좋음" vs 일=평이 로 모순됐다.
+  // 포커스일(양쪽에 동시에 보이는 유일한 날)만 화해와 어긋나는 밴드 바를 중립화해
+  // (mark→'focus': 바 없음, 오늘 링만) 두 화면의 톤을 일치시킨다. 비포커스일은
+  // evidence 가 없어 화해 불가 — 그날로 다이브하면 그 셀이 포커스가 되어 동일 처리.
+  if (dayAdapter.dayTone?.tense || dayAdapter.dayTone?.bright) {
+    const focusCell = month.calendar.find((c) => c.focus)
+    if (
+      focusCell &&
+      focusCell.mark &&
+      focusCell.mark !== 'focus' &&
+      focusCell.mark !== 'converge'
+    ) {
+      focusCell.mark = 'focus'
+    }
+  }
+
   const advanced = natal.saju.analyses
   const statusResult = advanced?.geokguk?.statusResult
   const geokgukName = advanced?.geokguk?.primary ?? '미정'
@@ -634,7 +669,8 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
   const dayCrossByPair = new Map<string, DestinyDay['crossActivations'][number]>()
   for (const s of dayCell.signals) {
     if (s.kind !== 'cross-activation') continue
-    const { sajuKo, astroKo } = parseCrossName(s.name)
+    // 포커스일 셀은 evidence.detail 이 살아 있어 구조화 키를 직접 쓴다(견고).
+    const { sajuKo, astroKo } = crossKeys(s)
     if (!sajuKo || !astroKo) continue
     const key = `${sajuKo}|${astroKo}`
     const prev = dayCrossByPair.get(key)
