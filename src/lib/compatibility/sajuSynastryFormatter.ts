@@ -618,7 +618,7 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
   }
   const HONGYEOM: Record<string, string> = {
     甲: '午',
-    乙: '申',
+    乙: '午',
     丙: '寅',
     丁: '未',
     戊: '辰',
@@ -750,12 +750,12 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
     卯: ['乙'],
     辰: ['乙', '癸', '戊'],
     巳: ['戊', '庚', '丙'],
-    午: ['己', '丁'],
+    午: ['丙', '己', '丁'],
     未: ['丁', '乙', '己'],
     申: ['戊', '壬', '庚'],
     酉: ['辛'],
     戌: ['辛', '丁', '戊'],
-    亥: ['戊', '壬'],
+    亥: ['戊', '甲', '壬'],
   }
   const jijangganCrossLines: string[] = []
   // (1) A 일간이 B 일지 지장간 안에 — 숨은 매혹/통제 결정.
