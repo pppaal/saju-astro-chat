@@ -52,7 +52,7 @@ function secondsUntilKstMidnight(now: Date = new Date()): number {
 
 // 캐시 스키마/프롬프트가 바뀌면 이 버전을 올린다 — 당일 자정 전에도 오래된
 // 캐시(예: 짧은 본문)를 우회해 새 결과가 즉시 나오게 한다.
-const DAILY_CACHE_VERSION = 'v3'
+const DAILY_CACHE_VERSION = 'v4'
 const dailyKey = (id: string, date: string) => `tarot:daily:${DAILY_CACHE_VERSION}:${id}:${date}`
 const dailyLockKey = (id: string, date: string) =>
   `tarot:daily:lock:${DAILY_CACHE_VERSION}:${id}:${date}`
@@ -90,7 +90,7 @@ interface DailyReading {
 function drawDaily(userId: string, date: string): { card: Card; isReversed: boolean } {
   const h = createHash('sha256').update(`${userId}:${date}`).digest()
   const idx = h.readUInt32BE(0) % tarotDeck.length
-  const reversed = h[4] < 77 // 77/256 ≈ 0.30 → 약 30% 역방향(결정적)
+  const reversed = h[4] < 38 // 38/256 ≈ 0.15 → 약 15% 역방향(결정적)
   return { card: tarotDeck[idx], isReversed: reversed }
 }
 
@@ -211,7 +211,7 @@ export const POST = withApiMiddleware(
       const { text } = await callClaude({
         systemPrompt,
         userPrompt,
-        maxTokens: 900,
+        maxTokens: 550,
         temperature: 0.85,
         timeoutMs: 25000,
         label: 'tarot-daily',

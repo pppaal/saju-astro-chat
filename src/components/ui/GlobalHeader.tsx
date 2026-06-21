@@ -26,12 +26,16 @@ function GlobalHeaderContent() {
   const isMainPage = !pathname || pathname === '/' || pathname === ''
   const hasCustomPageHeader = Boolean(
     pathname &&
-      ['/destiny-counselor', '/astrology/counselor', '/compatibility/counselor', '/tarot'].includes(
-        pathname
-      )
+    ['/destiny-counselor', '/astrology/counselor', '/compatibility/counselor', '/tarot'].includes(
+      pathname
+    )
   )
   const isAdminPage = Boolean(pathname && pathname.startsWith('/admin'))
-  if (isMainPage || hasCustomPageHeader || isAdminPage) {
+  // 캘린더(destinypal 5-tier)는 자체 상단 chrome(브랜드·EN 토글·티어 라벨)을
+  // 가진 몰입형 화면 — 글로벌 헤더의 "DestinyPal" 워드마크가 캘린더 토프바 위에
+  // 겹쳐 뜨므로 /calendar* 에선 글로벌 헤더를 숨긴다.
+  const isCalendarPage = Boolean(pathname && pathname.startsWith('/calendar'))
+  if (isMainPage || hasCustomPageHeader || isAdminPage || isCalendarPage) {
     return null
   }
 

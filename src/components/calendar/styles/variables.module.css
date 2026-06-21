@@ -36,6 +36,7 @@
   --dp-pos: #2f7d5b;
   --dp-neg: #b03a22;
   --dp-neu: #8a7c61;
+  --dp-tone-mixed: #b3873a; /* 평이/혼조 톤 — gold (게이지·흐름 점선) */
 
   /* 오행 five elements */
   --dp-el-wood: #4f7a40;
@@ -63,6 +64,10 @@
 
   --dp-r: 6px;
   --dp-r-lg: 10px;
+
+  /* spacing rhythm — 그룹 내부 간격 / 최상위 섹션 간격 */
+  --dp-gap: 18px;
+  --dp-section: 36px;
 
   /* legacy aliases — util.jsx 의 var(--ember), var(--accent), var(--el-*),
      var(--serif-ko), var(--mono), var(--ink), var(--ink-mute), var(--ink-faint),

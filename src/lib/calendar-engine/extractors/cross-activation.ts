@@ -15,12 +15,13 @@
  * 겹친 구간이 짧으면 (1~2일) 페어 신호도 짧음. 겹친 구간이 길면 (10일+)
  * 그만큼 길게 유지. 정점(peak)은 두 부모 peak 의 중간점.
  *
- * ── 페어 polarity ──
- * sign(saju.polarity × astro.polarity) × |mapping.polarity| 형태.
- *  - 둘 다 우호(++) 면 +|m.p|
- *  - 둘 다 흉(--) 면 +|m.p|  (둘 다 압력으로 흐름 같음 — 매핑 polarity 자체로 톤 결정)
- *  - 부호 다르면 (-+ 또는 +-) → 0
- *  - 한쪽이 polarity=0 이면 mapping polarity 그대로 사용 (부호 정보 부재 시 매핑이 결정).
+ * ── 페어 polarity ── (combinePolarity 구현과 일치하게 기술)
+ *  - 두 부모 부호가 *같은 방향*(++ 또는 --) → mapping.polarity 를 **부호 그대로** 사용.
+ *      · 둘 다 우호: 매핑이 + 면 +, - 면 -.
+ *      · 둘 다 흉: 매핑 부호 그대로(예: 편관×화성 -2 → 압박 가중 -2). ※ sign 곱(−×−=+)이
+ *        아니다 — 둘 다 압력이면 흉을 더 키우는 게 맞으므로 매핑 부호를 보존한다.
+ *  - 부호 다르면 (+- 또는 -+) → 0 (의미 충돌 — 톤 무력화).
+ *  - 한쪽이 polarity=0 이면 mapping.polarity 그대로 (부호 정보 부재 시 매핑이 결정).
  *
  * ── 페어 weight ──
  * saju.weight × astro.weight × 0.6 (cross 신호 noise 방지 목적의 보수 계수).
@@ -55,11 +56,17 @@ function extractSajuKey(s: ActiveSignal): string | undefined {
 
 /**
  * Astro 신호에서 매칭 키 (단일 행성명) 를 추출.
- * 대부분의 astro extractor 가 evidence.planets[0] 에 트랜짓 행성을 박음
+ * 대부분의 astro extractor 가 evidence.planets[0] 에 *트랜짓(활성) 행성* 을 박음
  * (transit, dignity, house-transit, return, fixed-star 등).
+ *
+ * 단, eclipse 는 planets[0] 에 *본명 피영향점*(affectedPoint, 예: 본명 금성)을
+ * 넣는다 — 활성 주체(식의 광체)가 아니다. 그대로 키로 쓰면 "토성 식이 본명 금성을
+ * 때릴 때" astroKey='금성' 이 돼 정재×금성·도화×금성 교차가 *엉뚱한 인과*로
+ * 오발화한다(감사 지적). 식은 교차의 활성 행성 키로 부적합하므로 제외한다.
  */
 function extractAstroKey(s: ActiveSignal): string | undefined {
   if (s.source !== 'astro') return undefined
+  if (s.kind === 'eclipse') return undefined // affectedPoint(본명점)라 활성 주체 아님 — 교차 제외
   const planets = s.evidence?.planets ?? []
   return planets[0]
 }
@@ -265,5 +272,3 @@ function debugCrossActivations(signals: readonly ActiveSignal[]): {
     byMapping,
   }
 }
-
-

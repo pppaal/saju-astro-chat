@@ -8,24 +8,58 @@
 // 적용된 동일 기준이라, 현재 운도 본명과 같은 평균태양시 위에서 나온다.
 
 import { getIljinCalendar } from './unse'
+import { getMonthPillarForDate } from './datePillars'
 import type { CalculateSajuDataResult, RelationHit, SajuPillars, PillarKind } from './types'
 
 const BRANCH_CHUNG = new Set([
-  '子-午', '午-子', '丑-未', '未-丑', '寅-申', '申-寅',
-  '卯-酉', '酉-卯', '辰-戌', '戌-辰', '巳-亥', '亥-巳',
+  '子-午',
+  '午-子',
+  '丑-未',
+  '未-丑',
+  '寅-申',
+  '申-寅',
+  '卯-酉',
+  '酉-卯',
+  '辰-戌',
+  '戌-辰',
+  '巳-亥',
+  '亥-巳',
 ])
 const BRANCH_YUKHAP = new Set([
-  '子-丑', '丑-子', '寅-亥', '亥-寅', '卯-戌', '戌-卯',
-  '辰-酉', '酉-辰', '巳-申', '申-巳', '午-未', '未-午',
+  '子-丑',
+  '丑-子',
+  '寅-亥',
+  '亥-寅',
+  '卯-戌',
+  '戌-卯',
+  '辰-酉',
+  '酉-辰',
+  '巳-申',
+  '申-巳',
+  '午-未',
+  '未-午',
 ])
 const STEM_CHUNG = new Set(['甲-庚', '庚-甲', '乙-辛', '辛-乙', '丙-壬', '壬-丙', '丁-癸', '癸-丁'])
 const STEM_HAP = new Set([
-  '甲-己', '己-甲', '乙-庚', '庚-乙', '丙-辛', '辛-丙', '丁-壬', '壬-丁', '戊-癸', '癸-戊',
+  '甲-己',
+  '己-甲',
+  '乙-庚',
+  '庚-乙',
+  '丙-辛',
+  '辛-丙',
+  '丁-壬',
+  '壬-丁',
+  '戊-癸',
+  '癸-戊',
 ])
 const PILLAR_NAMES: PillarKind[] = ['year', 'month', 'day', 'time']
 
 /** 운(運)의 천간·지지가 본명 네 기둥과 이루는 충/합. */
-function detectUnseRelations(pillars: SajuPillars, unseStem: string, unseBranch: string): RelationHit[] {
+function detectUnseRelations(
+  pillars: SajuPillars,
+  unseStem: string,
+  unseBranch: string
+): RelationHit[] {
   const out: RelationHit[] = []
   for (const name of PILLAR_NAMES) {
     const p = pillars[name]
@@ -48,7 +82,11 @@ interface StemBranch {
   branch: string
 }
 
-function splitGanji(found: { heavenlyStem?: string; earthlyBranch?: string; ganji?: string }): StemBranch | null {
+function splitGanji(found: {
+  heavenlyStem?: string
+  earthlyBranch?: string
+  ganji?: string
+}): StemBranch | null {
   const stem = found.heavenlyStem ?? (found.ganji ? found.ganji.slice(0, 1) : '')
   const branch = found.earthlyBranch ?? (found.ganji ? found.ganji.slice(1) : '')
   return stem && branch ? { stem, branch } : null
@@ -60,11 +98,14 @@ function pickSeun(raw: CalculateSajuDataResult, queryDate: Date): StemBranch | n
   return found ? splitGanji(found) : null
 }
 
-function pickWolun(raw: CalculateSajuDataResult, queryDate: Date): StemBranch | null {
-  const yr = queryDate.getFullYear()
-  const mo = queryDate.getMonth() + 1
-  const found = (raw.unse?.monthly ?? []).find((m) => m.year === yr && m.month === mo)
-  return found ? splitGanji(found) : null
+function pickWolun(_raw: CalculateSajuDataResult, queryDate: Date): StemBranch | null {
+  // 월운(月運) = 절기 기준 현재 사주월. 생일 차트·운흐름 캘린더·일진과 동일한
+  // 절기(태양 황경) convention 으로 통일한다. 직전엔 raw.unse.monthly
+  // (getSajuMonthlyCycles, 寅-first 달력 산술 배열)에서 (연,달력월) 로 lookup 했는데,
+  // 그 배열은 "달력월 = 사주월 번호"로 퉁쳐 현재 달이 항상 한 칸 밀렸다(예: 달력
+  // 6월에 未월 → 정답은 午월). datePillars(절기)로 직접 산출해 바로잡는다.
+  const { stem, branch } = getMonthPillarForDate(queryDate)
+  return stem && branch ? { stem, branch } : null
 }
 
 function pickIljin(raw: CalculateSajuDataResult, queryDate: Date): StemBranch | null {
