@@ -93,6 +93,9 @@ const PLANET_GLYPH: Record<string, string> = {
 const PLANET_KO: Record<string, string> = {
   ...PLANET_KO_BASE,
   'North Node': '북교점',
+  'True Node': '북교점',
+  'Mean Node': '북교점',
+  'South Node': '남교점',
   Node: '북교점',
   Chiron: '카이런',
   Lilith: '릴리스',
