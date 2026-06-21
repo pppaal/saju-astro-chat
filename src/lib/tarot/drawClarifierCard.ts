@@ -18,7 +18,8 @@ export interface ClarifierCard {
   isReversed: boolean
 }
 
-const REVERSED_PROBABILITY = 0.3
+// 역방향 15% — 다른 타로 추첨(데일리/일반 뽑기)과 동일 비율로 맞춤.
+const REVERSED_PROBABILITY = 0.15
 
 export function drawClarifierCard(): ClarifierCard {
   const idx = Math.floor(Math.random() * tarotDeck.length)

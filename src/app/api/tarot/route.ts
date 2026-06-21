@@ -40,7 +40,7 @@ function drawCards(count: number): DrawnCard[] {
   return deck.slice(0, n).map((card: Card) => ({
     card,
     // 역방향 15% — 30% 도 부정 카드가 너무 잦다는 피드백으로 더 낮춤.
-    // (역방향은 부정적으로 읽혀 공유·긍정 톤에 불리.)
+    // (역방향은 부정적으로 읽혀 공유·긍정 톤에 불리. 데일리 결정적 추첨도 동일.)
     isReversed: Math.random() < 0.15,
   }))
 }
