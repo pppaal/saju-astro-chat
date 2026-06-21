@@ -1,1044 +1,403 @@
 /* ============================================================
-   destinypal · MonthTier — ink-on-hanji
-   (ported from destinypal-extracted/css-ink/{base,tiers}.css —
-    month section only, scoped via CSS Modules)
+   destinypal · MonthTier — "정갈" Editorial Letterpress 만세력
+   ────────────────────────────────────────────────────────────
+   디자인 토큰은 styles/variables.module.css(.dpRoot)의 --dp-* 를 상속.
+   여기선 그 토큰만 소비한다(로컬 재정의 금지 — 옛 버전의 토큰 중복/표류 제거).
+
+   원칙: 여백·헤어라인·먹선. 글로우/페이지프레임/별표/판정어 없음.
+   셀 = 날짜 숫자 + 상태 밑줄 하나. 오늘=먹선 링, 큰날=주사 도장 점.
    ============================================================ */
 
-/* ---------- local tokens (mirror css-ink/base.css :root) ----- */
 .tier {
-  --bg: #ece2cd;
-  --bg-2: #e6dac1;
-  --bg-3: #ddcfb1;
-  --void: #f3ecdc;
-
-  --ink: #2a2318;
-  --ink-dim: #4d4334;
-  --ink-mute: #82745c;
-  --ink-faint: #b4a584;
-
-  --accent: #34406f;
-  --accent-2: #4f5d96;
-  --accent-deep: #222a4e;
-  --accent-glow: rgba(52, 64, 111, 0.28);
-
-  --ember: #b03a22;
-  --ember-2: #c8492c;
-  --ember-glow: rgba(176, 58, 34, 0.26);
-
-  --violet: #6c4a73;
-  --violet-2: #855a8d;
-
-  --pos: #2f7d5b;
-  --neg: #b03a22;
-  --neu: #8a7c61;
-
-  --el-wood: #4f7a40;
-  --el-fire: #bd472b;
-  --el-earth: #b3873a;
-  --el-metal: #6f7689;
-  --el-water: #345a86;
-
-  --panel: rgba(255, 251, 242, 0.46);
-  --panel-2: rgba(255, 251, 242, 0.74);
-  --line: rgba(58, 46, 28, 0.18);
-  --line-soft: rgba(58, 46, 28, 0.1);
-  --now-ring: rgba(52, 64, 111, 0.85);
-
-  --serif: 'Newsreader', 'Gowun Batang', 'Noto Serif KR', serif;
-  --serif-ko: 'Gowun Batang', 'Noto Serif KR', serif;
-  --sans: 'Gowun Dodum', 'Noto Sans KR', system-ui, sans-serif;
-  --mono: 'IBM Plex Mono', 'Noto Sans KR', monospace;
-
-  --r: 6px;
-  --r-lg: 10px;
-
   position: relative;
-  width: min(1120px, 100%);
+  width: min(680px, 100%);
   margin: 0 auto;
-  padding: clamp(80px, 9vh, 120px) clamp(30px, 5vw, 64px) 170px;
-  color: var(--ink);
-  font-family: var(--sans);
+  padding: clamp(64px, 8vh, 104px) clamp(20px, 5vw, 40px) 132px;
+  color: var(--dp-ink);
+  font-family: var(--dp-serif-ko);
   word-break: keep-all;
   line-break: strict;
-}
-.tier::before {
-  content: '';
-  position: absolute;
-  left: clamp(12px, 2.2vw, 30px);
-  right: clamp(12px, 2.2vw, 30px);
-  top: clamp(54px, 6vh, 80px);
-  bottom: 92px;
-  border: 1px solid var(--line);
-  box-shadow:
-    inset 0 0 0 3px var(--bg),
-    inset 0 0 0 4px var(--line-soft);
-  pointer-events: none;
-  z-index: -1;
-}
-
-/* ---------- generic atoms ---------- */
-.eyebrow {
-  font-family: var(--mono);
-  font-size: 11px;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: var(--ink-mute);
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-.eyebrow::before {
-  content: '';
-  width: 18px;
-  height: 1px;
-  background: var(--ink-dim);
-}
-.eyebrowEmber {
-  color: var(--ember);
-}
-.eyebrowEmber::before {
-  background: var(--ember);
-}
-
-.tiny {
-  font-family: var(--mono);
-  font-size: 10.5px;
-  letter-spacing: 0.04em;
-  color: var(--ink-faint);
-}
-
-.display {
-  font-family: var(--serif-ko);
-  font-weight: 700;
-  line-height: 1.12;
-  letter-spacing: -0.01em;
-}
-
-.layerTag {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  font-family: var(--mono);
-  font-size: 10px;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--ink-mute);
-}
-.layerTag .pip {
-  width: 8px;
-  height: 8px;
-  border-radius: 1px;
-  transform: rotate(45deg);
-}
-.layerTagSaju .pip {
-  background: var(--ember);
-}
-.layerTagAstro .pip {
-  background: var(--accent);
-}
-
-.pol {
-  font-family: var(--mono);
-  font-size: 10px;
-  letter-spacing: 0.04em;
-  padding: 2px 7px;
-  border-radius: 2px;
-  border: 1px solid;
-}
-.polP {
-  color: var(--pos);
-  border-color: rgba(47, 125, 91, 0.45);
-  background: rgba(47, 125, 91, 0.08);
-}
-.polN {
-  color: var(--neg);
-  border-color: rgba(176, 58, 34, 0.4);
-  background: rgba(176, 58, 34, 0.07);
-}
-.polZ {
-  color: var(--neu);
-  border-color: var(--line);
-}
-.polGood {
-  color: var(--el-earth);
-  border-color: rgba(179, 135, 58, 0.4);
-  background: rgba(179, 135, 58, 0.08);
-}
-
-.panel {
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: var(--r);
-  padding: 20px;
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.4) inset;
-}
-.panelSaju {
-  border-left: 3px solid var(--ember);
-}
-.panelAstro {
-  border-left: 3px solid var(--accent);
-}
-
-.split {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 18px;
-}
-@media (max-width: 760px) {
-  .split {
-    grid-template-columns: 1fr;
-  }
-}
-
-/* ---------- section title ---------- */
-.secTitle {
-  font-family: var(--serif-ko);
-  font-weight: 700;
-  font-size: clamp(20px, 3vw, 27px);
-  color: var(--ink);
-  margin: 0;
-  letter-spacing: -0.01em;
-}
-.secHead {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 14px;
-  flex-wrap: wrap;
-  margin-bottom: 4px;
-}
-.block {
-  margin-top: 40px;
-}
-.blockSm {
-  margin-top: 26px;
 }
 
 /* ---------- rise (zoom-out) ---------- */
 .rise {
   display: inline-flex;
   align-items: center;
-  gap: 9px;
+  gap: 8px;
   background: none;
   border: 0;
-  color: var(--ink-mute);
+  color: var(--dp-ink-mute);
   cursor: pointer;
-  font-family: var(--mono);
+  font-family: var(--dp-mono);
   font-size: 11px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  padding: 6px 4px;
-  transition: color 0.25s;
-  margin-bottom: 6px;
+  padding: 6px 2px;
+  margin-bottom: 8px;
+  transition: color 0.2s;
 }
 .rise:hover {
-  color: var(--ember);
+  color: var(--dp-ember);
 }
 
-/* ---------- dive (zoom-in) ---------- */
-.diveWrap {
-  display: flex;
-  justify-content: center;
-}
-.dive {
-  display: inline-flex;
-  align-items: center;
-  gap: 12px;
-  margin: 30px auto 0;
-  padding: 12px 24px;
-  background: var(--ember);
-  border: 1px solid var(--ember);
-  border-radius: 3px;
-  color: #f6ecd9;
-  cursor: pointer;
-  font-family: var(--mono);
-  font-size: 12px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  transition: all 0.25s;
-  position: relative;
-  box-shadow: 0 6px 18px -10px rgba(176, 58, 34, 0.7);
-}
-.dive:hover {
-  background: var(--ember-2);
-  box-shadow: 0 10px 26px -10px rgba(176, 58, 34, 0.85);
-  transform: translateY(-1px);
-}
-.diveArrow {
-  font-size: 15px;
-  animation: dpBob 2.4s ease-in-out infinite;
-}
-@keyframes dpBob {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(3px);
-  }
-}
-
-/* ---------- cal head ---------- */
-.calHead {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 12px;
-}
-.calHeadRight {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
-.calHeadTitle {
-  font-size: clamp(28px, 4.5vw, 46px);
-  margin: 12px 0 4px;
-}
-.woolunMeta {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 4px;
-}
-.woolunSibsin {
-  font-family: var(--mono);
-  font-size: 10.5px;
-  color: var(--ink-mute);
-  letter-spacing: 0.04em;
-  border: 1px solid var(--line);
-  background: var(--panel);
-  border-radius: 3px;
-  padding: 2px 7px;
-}
-
-/* ---------- ZR L2 progress bar (above narrative) ---------- */
-.zrProgress {
-  margin-top: 18px;
-  padding: 12px 14px;
-  border: 1px solid var(--line);
-  border-radius: var(--r);
-  background: var(--panel);
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-.zrLabelRow {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
-}
-.zrLabel {
-  font-family: var(--mono);
-  font-size: 10.5px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--accent-2);
-}
-.zrChapter {
-  font-family: var(--serif-ko);
-  font-size: 13px;
-  color: var(--ink-dim);
-}
-.zrTrack {
-  height: 4px;
-  border-radius: 2px;
-  background: rgba(58, 46, 28, 0.12);
-  overflow: hidden;
-}
-.zrFill {
-  height: 100%;
-  background: linear-gradient(90deg, var(--accent-deep), var(--accent-2));
-  box-shadow: 0 0 8px var(--accent-glow);
-}
-.zrMeta {
-  font-family: var(--mono);
-  font-size: 10px;
-  color: var(--ink-faint);
-  letter-spacing: 0.04em;
-}
-
-/* ---------- calendar grid ---------- */
-.calGrid {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 6px;
-  margin-top: 18px;
-}
-.calDow {
-  font-family: var(--mono);
-  font-size: 10px;
-  color: var(--ink-faint);
-  text-align: center;
-  letter-spacing: 0.1em;
-  padding-bottom: 2px;
-}
-
-.cell {
-  position: relative;
-  aspect-ratio: 1;
-  border-radius: 3px;
-  border: 1px solid var(--line-soft);
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: flex-start;
-  padding: 7px 8px;
-  cursor: default;
-  transition:
-    transform 0.2s,
-    box-shadow 0.2s;
-  overflow: hidden;
-}
-.cellGlow {
-  position: absolute;
-  inset: 0;
-  border-radius: 3px;
-  pointer-events: none;
-}
-.cellDnum {
-  font-family: var(--mono);
-  font-size: 12px;
-  color: var(--ink-dim);
-  position: relative;
-  z-index: 2;
-}
-.cellScore {
-  font-family: var(--mono);
-  font-size: 9px;
-  line-height: 1;
-  color: var(--ink-mute);
-  margin-top: 2px;
-  position: relative;
-  z-index: 2;
-}
-.cellGood .cellScore {
-  color: #4f5d96;
-}
-.cellCaution .cellScore,
-.cellAvoid .cellScore {
-  color: #c0741f;
-}
-.cellStar {
-  position: absolute;
-  right: 7px;
-  bottom: 6px;
+/* ---------- header ---------- */
+.eyebrow {
+  font-family: var(--dp-mono);
   font-size: 11px;
-  z-index: 2;
-}
-/* 큰 날(주목) — 사주×점성 수렴. 점수 색(우호도)과 직교하는 자초(plum) 링. */
-.cellKeyDay {
-  border-color: var(--dp-violet-2);
-}
-.cellKeyRing {
-  position: absolute;
-  inset: -1px;
-  border: 2px solid var(--dp-violet-2);
-  border-radius: 4px;
-  pointer-events: none;
-  z-index: 1;
-}
-.cellFtag {
-  position: absolute;
-  top: 5px;
-  right: 6px;
-  font-family: var(--mono);
-  font-size: 8px;
-  letter-spacing: 0.1em;
-  color: var(--ember);
-  z-index: 2;
-}
-.cellVerdict {
-  position: absolute;
-  left: 6px;
-  bottom: 5px;
-  font-family: var(--sans);
-  font-size: 8px;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  line-height: 1;
-  color: var(--ink-dim);
-  z-index: 2;
-}
-.cellGood .cellVerdict {
-  color: #4f5d96;
-}
-.cellCaution .cellVerdict {
-  color: #c0741f;
-}
-.cellAvoid .cellVerdict {
-  color: #b03a22;
-}
-.cellBest .cellVerdict {
-  color: #4f5d96;
-}
-.cellConverge .cellVerdict {
-  color: #b3873a;
-}
-.cellVocBand {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 3px;
-  background: repeating-linear-gradient(45deg, rgba(130, 116, 92, 0.35) 0 4px, transparent 4px 8px);
-  z-index: 2;
-}
-.cellFocus {
-  cursor: pointer;
-  border-color: var(--ember);
-  box-shadow: 0 0 0 1px var(--ember);
-}
-.cellFocus:hover {
-  transform: scale(1.05);
-}
-.cellBest .cellStar {
-  color: var(--pos);
-}
-.cellAvoid .cellStar {
-  color: var(--neg);
-}
-.cellConverge .cellStar {
-  color: var(--el-earth);
-}
-.cellCaution {
-  border-color: rgba(176, 58, 34, 0.3);
-}
-.cellPhase .cellStar {
-  color: var(--violet-2);
-}
-.cellReturn .cellStar {
-  color: var(--accent-2);
-}
-.cellLifecycle .cellStar {
-  color: var(--el-water);
-}
-
-.calLegend {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 14px;
-  margin-top: 16px;
-}
-.leg {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  font-family: var(--mono);
-  font-size: 10px;
-  color: var(--ink-mute);
-  letter-spacing: 0.03em;
-}
-.leg .sw {
-  width: 11px;
-  height: 11px;
-  border-radius: 2px;
-}
-.legPos {
-  color: var(--pos);
-}
-.legNeg {
-  color: var(--neg);
-}
-.legEarth {
-  color: var(--el-earth);
-}
-.legAccent {
-  color: var(--accent-2);
-}
-.legViolet {
-  color: var(--violet-2);
-}
-.legWater {
-  color: var(--el-water);
-}
-.legMute {
-  color: var(--ink-mute);
-  font-style: italic;
-}
-
-/* ---------- key events column ---------- */
-.eventsCol {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-.eventRow {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-.eventDate {
-  color: var(--ink);
-  font-family: var(--mono);
-  font-size: 14px;
-}
-.eventDateDim {
-  color: var(--ink-dim);
-  font-family: var(--mono);
-  font-size: 14px;
-}
-.eventScore {
-  font-family: var(--mono);
-  font-size: 10.5px;
-  color: var(--ink-faint);
-  letter-spacing: 0.04em;
-}
-
-/* ---------- 응용패턴 daily-count chip strip ---------- */
-.patternStrip {
-  margin-top: 14px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-.patternChip {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 6px;
-  padding: 5px 10px;
-  border-radius: 3px;
-  background: var(--panel);
-  border: 1px solid var(--line);
-  font-family: var(--serif-ko);
-  font-size: 12px;
-  color: var(--ink-dim);
-}
-.patternChip b {
-  font-family: var(--mono);
-  font-size: 11px;
-  color: var(--ember);
-  font-weight: 700;
-}
-
-/* ---------- 조후 강조 box ---------- */
-.johoBox {
-  margin-top: 18px;
-  padding: 12px 16px;
-  border-radius: var(--r);
-  background: linear-gradient(120deg, rgba(52, 90, 134, 0.1), rgba(255, 251, 242, 0.5));
-  border: 1px solid rgba(52, 90, 134, 0.32);
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-.johoLabel {
-  font-family: var(--mono);
-  font-size: 10px;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: var(--el-water);
-}
-.johoBody {
-  font-family: var(--serif-ko);
-  font-size: 13.5px;
-  line-height: 1.6;
-  color: var(--ink-dim);
-}
-.johoBody b {
-  color: var(--ink);
-  font-weight: 700;
-}
-
-/* ---------- narrative grid ---------- */
-.narr {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  margin-top: 22px;
-}
-@media (max-width: 720px) {
-  .narr {
-    grid-template-columns: 1fr;
-  }
-}
-.narrCard {
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: 4px;
-  padding: 15px 17px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-.narrTag {
-  display: inline-block;
-  font-family: var(--mono);
-  font-size: 9.5px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--ember);
-  border: 1px solid rgba(176, 58, 34, 0.3);
-  border-radius: 2px;
-  padding: 2px 9px;
-  align-self: flex-start;
-}
-.narrBody {
-  font-family: var(--serif-ko);
-  font-size: 13px;
-  line-height: 1.7;
-  color: var(--ink-dim);
-}
-.narrSource {
-  font-family: var(--mono);
-  font-size: 9.5px;
-  color: var(--ink-faint);
-  letter-spacing: 0.04em;
-  margin-top: 4px;
-}
-
-/* ---------- converge card ---------- */
-.converge {
-  margin-top: 22px;
-  padding: 22px 24px;
-  border-radius: var(--r-lg);
-  background: var(--panel-2);
-  border: 1px solid rgba(176, 58, 34, 0.3);
-  position: relative;
-  overflow: hidden;
-  box-shadow:
-    inset 0 0 0 3px var(--panel-2),
-    inset 0 0 0 4px rgba(176, 58, 34, 0.18);
-}
-.converge::after {
-  content: '';
-  position: absolute;
-  right: -36px;
-  top: -36px;
-  width: 150px;
-  height: 150px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(179, 135, 58, 0.16), transparent 70%);
-}
-.convergeHead {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-.convergeDateRow {
-  display: flex;
-  align-items: baseline;
-  gap: 14px;
-  margin-top: 10px;
-  flex-wrap: wrap;
-}
-.convergeDate {
-  font-family: var(--serif-ko);
-  font-weight: 700;
-  font-size: 32px;
-  color: var(--ember-2);
-  line-height: 1;
-}
-.convergeMeaning {
-  font-family: var(--serif-ko);
-  font-style: italic;
-  font-size: 17px;
-  color: var(--ink);
-  line-height: 1.4;
-}
-.convergeCrossMap {
-  margin-top: 10px;
-  font-family: var(--mono);
-  font-size: 11px;
-  color: var(--ink-mute);
-  letter-spacing: 0.04em;
-}
-.convergeCrossMap b {
-  color: var(--ember);
-  font-weight: 700;
-}
-.convSys {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-  margin-top: 14px;
-  position: relative;
-  z-index: 1;
-}
-@media (max-width: 600px) {
-  .convSys {
-    grid-template-columns: 1fr;
-  }
-}
-.convSys ul {
-  list-style: none;
-  margin: 8px 0 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-.convSys li {
-  font-family: var(--mono);
-  font-size: 11.5px;
-  color: var(--ink-dim);
-  display: flex;
-  gap: 8px;
-  align-items: baseline;
-}
-.convSys li::before {
-  content: '◇';
-  color: var(--ember);
-  font-size: 9px;
-}
-
-/* ============================================================
-   Mobile breakpoints — 640px / 480px
-   ============================================================ */
-
-@media (max-width: 640px) {
-  .tier {
-    padding: clamp(56px, 10vh, 86px) 16px calc(140px + env(safe-area-inset-bottom, 0px));
-  }
-  .tier::before {
-    left: 6px;
-    right: 6px;
-    top: clamp(40px, 6vh, 60px);
-    bottom: calc(110px + env(safe-area-inset-bottom, 0px));
-  }
-  .calHeadTitle {
-    font-size: clamp(22px, 6.5vw, 32px);
-  }
-  .secTitle {
-    font-size: clamp(17px, 4.6vw, 22px);
-  }
-  .panel {
-    padding: 16px;
-  }
-  .block {
-    margin-top: 30px;
-  }
-  .blockSm {
-    margin-top: 20px;
-  }
-  /* keep 7 columns but shrink cells */
-  .calGrid {
-    gap: 4px;
-    margin-top: 14px;
-  }
-  .cell {
-    padding: 4px 5px;
-    border-radius: 2px;
-  }
-  .cellDnum {
-    font-size: 10.5px;
-  }
-  .cellStar {
-    font-size: 9px;
-    right: 4px;
-    bottom: 4px;
-  }
-  .cellFtag {
-    font-size: 7px;
-    top: 3px;
-    right: 3px;
-  }
-  .calDow {
-    font-size: 8.5px;
-    letter-spacing: 0.06em;
-  }
-  .calLegend {
-    gap: 9px;
-  }
-  .leg {
-    font-size: 9px;
-    gap: 5px;
-  }
-  .leg .sw {
-    width: 9px;
-    height: 9px;
-  }
-  .converge {
-    padding: 16px 16px;
-    margin-top: 18px;
-  }
-  .convergeDate {
-    font-size: 26px;
-  }
-  .convergeMeaning {
-    font-size: 15px;
-  }
-  .narrCard {
-    padding: 12px 14px;
-  }
-  .narrBody {
-    font-size: 12.5px;
-  }
-  .patternChip {
-    font-size: 11.5px;
-    padding: 4px 9px;
-  }
-  .dive {
-    padding: 11px 20px;
-    font-size: 11px;
-    margin: 24px auto 0;
-  }
-  .zrProgress {
-    padding: 10px 12px;
-    gap: 6px;
-  }
-  .johoBox {
-    padding: 10px 14px;
-    margin-top: 14px;
-  }
-  .johoBody {
-    font-size: 13px;
-  }
-  .eventDate,
-  .eventDateDim {
-    font-size: 13px;
-  }
-}
-
-@media (max-width: 480px) {
-  .tier {
-    padding: clamp(50px, 9vh, 78px) 10px calc(130px + env(safe-area-inset-bottom, 0px));
-  }
-  .calGrid {
-    gap: 3px;
-  }
-  .cell {
-    padding: 3px 4px;
-  }
-  .cellDnum {
-    font-size: 9.5px;
-  }
-  .cellStar {
-    font-size: 8.5px;
-  }
-  .convergeDate {
-    font-size: 24px;
-  }
-  .convergeMeaning {
-    font-size: 14px;
-    line-height: 1.45;
-  }
-}
-
-/* ── 이달의 큰 날 (convergence keyDays — 윈도우+신뢰도) ── */
-.bigDays {
-  margin-top: 22px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-.bigDayBackdrop {
-  font-family: var(--dp-serif-ko);
-  font-size: 12.5px;
   color: var(--dp-ink-mute);
-  letter-spacing: 0.01em;
-  padding: 2px 2px 4px;
-  border-bottom: 1px dashed var(--dp-line);
-  margin-bottom: 2px;
 }
-.bigDay {
-  border: 1px solid var(--dp-line);
-  border-radius: var(--dp-r-lg);
-  background: var(--dp-panel);
-  padding: 12px 14px;
+.secTitle {
+  font-family: var(--dp-serif-ko);
+  font-weight: 500;
+  font-size: clamp(23px, 4.4vw, 30px);
+  letter-spacing: -0.01em;
+  line-height: 1.18;
+  color: var(--dp-ink);
+  margin: 6px 0 0;
 }
-.bigDayHead {
+
+.stampRow {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 14px;
+  margin: 18px 0 14px;
+}
+.ganji {
   display: flex;
   align-items: baseline;
-  flex-wrap: wrap;
-  gap: 8px;
+  gap: 10px;
+  min-width: 0;
 }
-.bigDayDate {
-  font-family: var(--dp-serif-ko);
-  font-size: 18px;
+.ganjiHanja {
+  font-family: var(--dp-serif);
+  font-size: clamp(34px, 7vw, 42px);
+  line-height: 1;
+  letter-spacing: 0.04em;
+  color: var(--dp-ember);
+}
+.ganjiRead {
+  font-size: 13.5px;
+  color: var(--dp-ink-dim);
+  letter-spacing: 0.03em;
+}
+.tagSaju {
+  flex-shrink: 0;
+  align-self: center;
+  font-family: var(--dp-mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  padding: 3px 9px;
+  border: 1px solid rgba(176, 58, 34, 0.32);
+  border-radius: 2px;
+  color: var(--dp-ember);
+}
+
+.summary {
+  font-size: 13.5px;
+  color: var(--dp-ink-dim);
+  letter-spacing: 0.01em;
+  line-height: 1.6;
+  margin: 4px 0 22px;
+}
+.summary b {
   font-weight: 600;
   color: var(--dp-ink);
 }
-.bigDayWindow {
-  font-family: var(--dp-mono);
-  font-size: 11.5px;
-  color: var(--dp-accent);
-  letter-spacing: 0.02em;
+
+/* ---------- calendar grid ---------- */
+.weekHead {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  margin-bottom: 8px;
 }
-.bigDayBoth {
-  font-size: 10.5px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  color: var(--dp-ember);
-  border: 1px solid var(--dp-ember-glow);
-  border-radius: 999px;
-  padding: 2px 8px;
-}
-.bigDayConf {
-  margin-left: auto;
+.weekHead span {
+  text-align: center;
   font-family: var(--dp-mono);
   font-size: 11px;
+  letter-spacing: 0.06em;
   color: var(--dp-ink-mute);
+  padding-bottom: 6px;
 }
-.bigDayMeaning {
-  font-family: var(--dp-serif-ko);
-  font-size: 14px;
-  line-height: 1.5;
-  color: var(--dp-ink-dim);
-  margin-top: 7px;
+.dowSun {
+  color: var(--dp-ember) !important;
 }
-.bigDayChips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 5px;
-  margin-top: 9px;
+.dowSat {
+  color: var(--dp-accent) !important;
 }
-.chip {
-  font-size: 11px;
-  border-radius: 999px;
-  padding: 3px 9px;
-  border: 1px solid var(--dp-line);
-  color: var(--dp-ink-mute);
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  row-gap: 2px;
+  border-top: 1px solid var(--dp-line);
 }
-.chipSaju {
-  border-color: var(--dp-ember-glow);
-  color: var(--dp-ember-2);
-}
-.chipAstro {
-  border-color: var(--dp-accent-glow);
-  color: var(--dp-accent-2);
-}
-/* ---------- 이 달의 사주×점성 교차 ---------- */
-.mcrossList {
+.cell {
+  position: relative;
+  aspect-ratio: 1 / 1.16;
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  margin-top: 10px;
+  align-items: center;
+  justify-content: center;
+  border-bottom: 1px solid var(--dp-line-soft);
+  cursor: default;
 }
-.mcrossRow {
+.cellPad {
+  border-bottom: 1px solid var(--dp-line-soft);
+}
+.num {
+  position: relative;
+  z-index: 2;
+  font-family: var(--dp-serif);
+  font-size: clamp(15px, 3.6vw, 18px);
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: 0.01em;
+  color: var(--dp-ink-dim);
+}
+.cellSun .num {
+  color: var(--dp-ember-2);
+}
+
+/* state under-rule (단일 3px bar) */
+.bar {
+  width: 18px;
+  height: 3px;
+  border-radius: 2px;
+  margin-top: 7px;
+}
+.barGood {
+  background: var(--dp-accent);
+}
+.barBest {
+  width: 22px;
+  background: var(--dp-accent-deep);
+}
+.barCaution {
+  background: var(--dp-tone-mixed);
+}
+.barAvoid {
+  background: transparent;
+  height: 0;
+  width: 18px;
+  margin-top: 9px;
+  border-bottom: 2px solid var(--dp-ember);
+}
+
+/* best 셀 — 날짜 숫자만 한 톤 진하게 */
+.cell:has(.barBest) .num {
+  color: var(--dp-ink);
+  font-weight: 500;
+}
+
+/* 오늘 — 먹선 링 (별개 채널, 색이 아니라 형태) */
+.cellToday {
+  cursor: pointer;
+}
+.cellToday .num {
+  color: var(--dp-ink);
+}
+.todayRing {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -58%);
+  width: 30px;
+  height: 30px;
+  border: 1.4px solid var(--dp-ink);
+  border-radius: 50%;
+  z-index: 1;
+  pointer-events: none;
+}
+.cellToday:hover .todayRing,
+.cellToday:focus-visible .todayRing {
+  border-color: var(--dp-ember);
+}
+
+/* 큰 날(수렴) — 주사 도장 점 (또 다른 채널) */
+.keySeal {
+  position: absolute;
+  top: 6px;
+  right: calc(50% - 16px);
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--dp-ember);
+  z-index: 2;
+}
+
+/* ---------- legend ---------- */
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin: 18px 0 4px;
+  padding-top: 14px;
+  border-top: 1px solid var(--dp-line-soft);
+}
+.legItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--dp-mono);
+  font-size: 11.5px;
+  letter-spacing: 0.04em;
+  color: var(--dp-ink-mute);
+}
+.swatch {
+  display: inline-block;
+  width: 16px;
+  height: 3px;
+  border-radius: 2px;
+}
+.swatchGood {
+  background: var(--dp-accent);
+}
+.swatchCaution {
+  background: var(--dp-tone-mixed);
+}
+.swatchAvoid {
+  background: transparent;
+  border-bottom: 2px solid var(--dp-ember);
+}
+.swatchRing {
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  border: 1.3px solid var(--dp-ink);
+}
+.swatchSeal {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--dp-ember);
+}
+
+/* ---------- 이달의 큰 날 ---------- */
+.subhead {
+  font-family: var(--dp-mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--dp-ink-mute);
+  margin: 30px 0 10px;
+}
+.bigDays {
+  display: flex;
+  flex-direction: column;
+}
+.bigDay {
   display: flex;
   align-items: baseline;
   gap: 12px;
-  padding: 10px 13px;
-  border: 1px solid var(--dp-line);
-  border-radius: 10px;
-  background: var(--dp-panel-2);
-  flex-wrap: wrap;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--dp-line-soft);
 }
-.mcrossPos {
-  border-left: 3px solid var(--dp-pos);
-}
-.mcrossNeg {
-  border-left: 3px solid var(--dp-neg);
-}
-.mcrossNeu {
-  border-left: 3px solid var(--dp-line);
-}
-.mcrossPair {
-  font-family: var(--dp-serif-ko);
-  font-weight: 700;
-  font-size: 14px;
-  color: var(--dp-ink);
-  flex: 0 0 auto;
-}
-.mcrossMeaning {
-  font-family: var(--dp-serif-ko);
+.bigDayDate {
+  flex-shrink: 0;
+  min-width: 40px;
+  font-family: var(--dp-mono);
   font-size: 13px;
-  line-height: 1.55;
+  letter-spacing: 0.04em;
+  color: var(--dp-ember);
+}
+.bigDayTxt {
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--dp-ink-dim);
+}
+
+/* ---------- 이달 총평 ---------- */
+.card {
+  margin-top: 24px;
+  padding: 18px 18px 19px;
+  background: var(--dp-panel);
+  border: 1px solid var(--dp-line);
+  border-radius: var(--dp-r);
+}
+.cardLabel {
+  font-family: var(--dp-mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
   color: var(--dp-ink-mute);
-  flex: 1 1 auto;
-  min-width: 0;
+  margin-bottom: 10px;
+}
+.cardBody {
+  font-size: 14px;
+  line-height: 1.78;
+  letter-spacing: 0.005em;
+  color: var(--dp-ink-dim);
+}
+
+/* ---------- dive (zoom-in) ---------- */
+.dive {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  margin: 26px 0 8px;
+  padding: 15px;
+  background: transparent;
+  border: 1px solid var(--dp-ink-dim);
+  border-radius: var(--dp-r);
+  color: var(--dp-ink);
+  cursor: pointer;
+  font-family: var(--dp-mono);
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  transition:
+    background 0.2s,
+    border-color 0.2s;
+}
+.dive:hover {
+  background: var(--dp-panel);
+  border-color: var(--dp-ink);
+}
+.diveArrow {
+  font-size: 14px;
+}
+
+/* ============================================================
+   Mobile
+   ============================================================ */
+@media (max-width: 640px) {
+  .tier {
+    padding: clamp(48px, 8vh, 72px) 16px calc(120px + env(safe-area-inset-bottom, 0px));
+  }
+  .num {
+    font-size: 16px;
+  }
+  .todayRing {
+    width: 27px;
+    height: 27px;
+  }
+}
+
+@media (max-width: 380px) {
+  .tier {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+  .num {
+    font-size: 15px;
+  }
+  .bar,
+  .barAvoid,
+  .barBest {
+    width: 16px;
+  }
+  .todayRing {
+    width: 24px;
+    height: 24px;
+  }
+  .legend {
+    gap: 10px;
+  }
+  .legItem {
+    font-size: 10.5px;
+  }
 }

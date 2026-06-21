@@ -145,7 +145,8 @@ describe('DayTier', () => {
     it('renders the iljin hanja and korean reading', () => {
       setup()
       expect(screen.getByText('甲子')).toBeInTheDocument()
-      expect(screen.getByText('갑자')).toBeInTheDocument()
+      // 정갈 hero: kr reading sits on the "갑자 · 일진" line.
+      expect(screen.getByText(/갑자 · 일진/)).toBeInTheDocument()
     })
 
     it('renders the one-line summary', () => {
@@ -184,9 +185,9 @@ describe('DayTier', () => {
     // current head-status surface is the iljin sibsin (일진 십신) line. Assert that
     // the day-pillar status renders AND the removed geokguk text does NOT.
     it('renders the iljin sibsin status in the head and drops the geokguk chip (ko)', () => {
-      setup()
-      // 일진 십신 status line ("일진 · 일간 기준 편재 (재물)") replaces the old geokguk chip.
-      expect(screen.getByText(/일진 · 일간 기준/)).toBeInTheDocument()
+      const { container } = setup()
+      // 정갈 hero: kr line carries "일진", sibsin line carries 편재(재물).
+      expect(container.textContent).toContain('일진')
       expect(screen.getAllByText(/편재/).length).toBeGreaterThan(0)
       // geokguk name / status / description are no longer rendered on the day tier.
       expect(screen.queryByText('편재격')).not.toBeInTheDocument()

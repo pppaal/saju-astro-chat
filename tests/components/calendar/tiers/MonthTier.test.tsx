@@ -7,7 +7,7 @@ vi.mock('@/i18n/I18nProvider', () => ({
   useI18n: () => ({ locale: mockLocale }),
 }))
 
-import { MonthTier, type MonthTierProps } from '@/components/calendar/tiers/MonthTier'
+import { MonthTier } from '@/components/calendar/tiers/MonthTier'
 import type { DestinyMonth, DestinyCalendarCell } from '@/types/calendar'
 
 // ── fixtures ────────────────────────────────────────────────────────────────
@@ -83,11 +83,11 @@ beforeEach(() => {
   mockLocale = 'ko'
 })
 
-describe('MonthTier', () => {
-  describe('cal head', () => {
+describe('MonthTier (정갈)', () => {
+  describe('header', () => {
     it('renders the monthly eyebrow + ko flow title', () => {
       render(<MonthTier month={makeMonth()} onDive={noop} onRise={noop} />)
-      expect(screen.getByText('1달 · MONTHLY · 2026-06')).toBeInTheDocument()
+      expect(screen.getByText('1달 · Monthly · 2026-06')).toBeInTheDocument()
       expect(screen.getByText('2026년 6월의 흐름')).toBeInTheDocument()
     })
 
@@ -97,12 +97,10 @@ describe('MonthTier', () => {
       expect(screen.getByText('June 2026')).toBeInTheDocument()
     })
 
-    it('renders the woolun sibsin caption + tag (ko)', () => {
+    it('renders the woolun ganji stamp (hanja + read line)', () => {
       render(<MonthTier month={makeMonth()} onDive={noop} onRise={noop} />)
-      // caption: "월운 · 午월 · 정재"
-      expect(screen.getByText(/월운 · 午월 · 정재/)).toBeInTheDocument()
-      // sibsin tag: "甲(정재) / 午"
-      expect(screen.getByText('甲(정재) / 午')).toBeInTheDocument()
+      expect(screen.getByText('甲午')).toBeInTheDocument()
+      expect(screen.getByText('갑오 · 월운')).toBeInTheDocument()
     })
   })
 
@@ -122,74 +120,65 @@ describe('MonthTier', () => {
 
   describe('day-count summary', () => {
     it('summarizes good/caution/avoid counts (ko)', () => {
-      render(<MonthTier month={makeMonth()} onDive={noop} onRise={noop} />)
+      const { container } = render(<MonthTier month={makeMonth()} onDive={noop} onRise={noop} />)
       // goodDays:2 cautionDays:1 avoidDays:1
-      expect(screen.getByText('좋은 날 2개 · 주의 1개 · 피하기 1개')).toBeInTheDocument()
+      expect(container.textContent).toContain('좋은 날 2개 · 주의 1개 · 피하기 1개')
     })
 
-    it('summarizes counts in English with pluralization', () => {
+    it('summarizes counts in English', () => {
       mockLocale = 'en'
-      render(<MonthTier month={makeMonth()} onDive={noop} onRise={noop} />)
-      expect(screen.getByText(/2 good days · 1 caution · 1 avoid/)).toBeInTheDocument()
+      const { container } = render(<MonthTier month={makeMonth()} onDive={noop} onRise={noop} />)
+      expect(container.textContent).toContain('2 good · 1 caution · 1 avoid')
     })
   })
 
-  describe('calendar heatmap', () => {
-    it('renders a cell per calendar entry with day numbers and scores', () => {
-      const { container } = render(<MonthTier month={makeMonth()} onDive={noop} onRise={noop} />)
-      // day numbers present.
+  describe('calendar grid', () => {
+    it('renders a cell per calendar entry with day numbers', () => {
+      render(<MonthTier month={makeMonth()} onDive={noop} onRise={noop} />)
       expect(screen.getByText('6')).toBeInTheDocument()
       expect(screen.getByText('15')).toBeInTheDocument()
-      // score badges rendered (Math.round).
-      expect(screen.getByText('92')).toBeInTheDocument()
-      // best-day star glyph.
-      expect(container.textContent).toContain('✦')
+      expect(screen.getByText('25')).toBeInTheDocument()
     })
 
-    it('renders the Today tag on the focus cell and fires onDive when clicked', () => {
+    it('does NOT render per-cell score badges or star glyphs (decluttered)', () => {
+      const { container } = render(<MonthTier month={makeMonth()} onDive={noop} onRise={noop} />)
+      // score 92 was a dead field badge in the old design — gone now.
+      expect(screen.queryByText('92')).not.toBeInTheDocument()
+      expect(container.textContent).not.toContain('✦')
+    })
+
+    it('marks the focus cell as an activatable today button and fires onDive on click', () => {
       const onDive = vi.fn()
       render(<MonthTier month={makeMonth()} onDive={onDive} onRise={noop} />)
-      const today = screen.getByText('오늘')
-      fireEvent.click(today.closest('[role="button"]')!)
+      const cell = screen.getByRole('button', { name: '오늘 15일로 줌인' })
+      fireEvent.click(cell)
       expect(onDive).toHaveBeenCalledWith(15)
     })
 
     it('fires onDive when the focus cell receives a Space keydown', () => {
       const onDive = vi.fn()
       render(<MonthTier month={makeMonth()} onDive={onDive} onRise={noop} />)
-      const today = screen.getByText('오늘')
-      fireEvent.keyDown(today.closest('[role="button"]')!, { key: ' ' })
+      const cell = screen.getByRole('button', { name: '오늘 15일로 줌인' })
+      fireEvent.keyDown(cell, { key: ' ' })
       expect(onDive).toHaveBeenCalledWith(15)
     })
   })
 
   describe('legend', () => {
-    it('renders best/avoid/converge legend chips', () => {
-      const { container } = render(<MonthTier month={makeMonth()} onDive={noop} onRise={noop} />)
-      expect(container.textContent).toContain('최고')
-      expect(container.textContent).toContain('피함')
-      expect(container.textContent).toContain('수렴')
-    })
-
-    it('renders a lunar-return legend chip when lunarReturnIso present', () => {
-      const month = makeMonth({ lunarReturnIso: '2026-06-18' })
-      render(<MonthTier month={month} onDive={noop} onRise={noop} />)
-      expect(screen.getByText(/Lunar Return 06-18/)).toBeInTheDocument()
-    })
-
-    it('renders a void-of-course legend chip when voc dates present', () => {
-      const month = makeMonth({ voidOfCourseDates: ['2026-06-11T00:00:00Z'] })
-      render(<MonthTier month={month} onDive={noop} onRise={noop} />)
-      expect(screen.getByText(/void-of-course · 1일/)).toBeInTheDocument()
+    it('renders the three verdict swatches + today (ko)', () => {
+      render(<MonthTier month={makeMonth()} onDive={noop} onRise={noop} />)
+      expect(screen.getByText('좋음')).toBeInTheDocument()
+      expect(screen.getByText('주의')).toBeInTheDocument()
+      expect(screen.getByText('피함')).toBeInTheDocument()
+      expect(screen.getByText('오늘')).toBeInTheDocument()
     })
   })
 
-  describe('key-days crossing list', () => {
+  describe('이달의 큰 날 (key days)', () => {
     it('renders the key-days heading and entries', () => {
       render(<MonthTier month={makeMonth()} onDive={noop} onRise={noop} />)
-      expect(screen.getByText('이달의 큰 날 · 주목 (사주 × 점성 수렴)')).toBeInTheDocument()
-      // best day 06-06 is marked 'best' → verdict prefix "좋은 날" (may appear on
-      // multiple key-day entries / calendar cells).
+      expect(screen.getByText('이달의 큰 날 · 사주 × 점성')).toBeInTheDocument()
+      // best day 06-06 is marked 'best' → verdict prefix "좋은 날".
       expect(screen.getAllByText(/좋은 날/).length).toBeGreaterThan(0)
     })
 
@@ -198,11 +187,10 @@ describe('MonthTier', () => {
         keyDays: [
           { date: '06-20', meaning: '주의 흐름', astro: [], saju: ['편관'], bothSystems: false },
         ],
-        // bestDay 06-06 not in keyDays → component appends it.
       })
       render(<MonthTier month={month} onDive={noop} onRise={noop} />)
-      // appended best-day detail line.
-      expect(screen.getByText('이달 점수가 가장 높은 날')).toBeInTheDocument()
+      // appended best-day entry carries the "최고의 날" prefix.
+      expect(screen.getByText(/최고의 날/)).toBeInTheDocument()
     })
   })
 
@@ -224,7 +212,7 @@ describe('MonthTier', () => {
     it('fires onDive with focusDay from the bottom button (ko)', () => {
       const onDive = vi.fn()
       render(<MonthTier month={makeMonth()} onDive={onDive} onRise={noop} />)
-      fireEvent.click(screen.getByRole('button', { name: /오늘 06월 15일로 줌인/ }))
+      fireEvent.click(screen.getByRole('button', { name: /오늘 6월 15일로 줌인/ }))
       expect(onDive).toHaveBeenCalledWith(15)
     })
 

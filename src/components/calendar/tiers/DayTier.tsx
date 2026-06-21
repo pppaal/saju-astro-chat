@@ -87,76 +87,6 @@ function PolChip({ v }: { v: Polarity | number }) {
 }
 
 // ============================================================================
-// ToneDial — 단일 verdict 톤만 반영하는 다이얼. (옇 ScoreDial: raw 점수 60/35로
-// 색·글자를 *따로* 계산해 헤드라인/톤과 어긋났다. 점수 숫자는 노출하지 않으며,
-// 호(arc)는 톤별 고정 비율의 장식일 뿐 — 점수 누출 없음. 단일 출처 = verdict.tone.)
-// ============================================================================
-
-function ToneDial({ tone, label }: { tone: DayVerdict['tone']; label?: string }) {
-  const { locale } = useI18n()
-  const ko = locale === 'ko'
-  const dialLabel = label ?? (ko ? '오늘' : 'Today')
-  const frac = tone === 'positive' ? 1 : tone === 'mixed' ? 0.55 : 0.3
-  const col =
-    tone === 'positive'
-      ? 'var(--dp-pos)'
-      : tone === 'caution'
-        ? 'var(--dp-neg)'
-        : 'var(--dp-tone-mixed)'
-  const word = ko
-    ? tone === 'positive'
-      ? '순풍'
-      : tone === 'caution'
-        ? '역풍'
-        : '평이'
-    : tone === 'positive'
-      ? 'Tailwind'
-      : tone === 'caution'
-        ? 'Headwind'
-        : 'Steady'
-  // 반원 게이지 — 시안과 동일. 점수 숫자 비노출(톤 단어만), 호는 톤별 고정 비율.
-  const W = 150,
-    H = 88,
-    cx = 75,
-    cy = 78,
-    R = 58
-  const pt = (a: number) => `${cx + R * Math.cos(a)},${cy - R * Math.sin(a)}`
-  const arc = (s: number, e: number, c2: string, w: number) => (
-    <path
-      d={`M ${pt(s)} A ${R} ${R} 0 0 1 ${pt(e)}`}
-      fill="none"
-      stroke={c2}
-      strokeWidth={w}
-      strokeLinecap="round"
-    />
-  )
-  return (
-    <div className={styles.scoreDial}>
-      <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`}>
-        {arc(Math.PI, 0, 'rgba(58,46,28,0.12)', 8)}
-        {arc(Math.PI, Math.PI * (1 - frac), col, 8)}
-        <text
-          x={cx}
-          y={cy - 16}
-          textAnchor="middle"
-          style={{ font: '700 30px var(--dp-serif-ko)', fill: 'var(--dp-ink)' }}
-        >
-          {word}
-        </text>
-        <text
-          x={cx}
-          y={cy + 2}
-          textAnchor="middle"
-          style={{ font: '11px var(--dp-sans)', fill: 'var(--dp-ink-mute)' }}
-        >
-          {dialLabel}
-        </text>
-      </svg>
-    </div>
-  )
-}
-
-// ============================================================================
 // Head 보강 — GongmangBanner.
 // ============================================================================
 
@@ -511,6 +441,19 @@ export function DayTier({ day, voc, onRise, sex = '남' }: DayTierProps) {
     })
   const dayBand = verdict.band
 
+  // hero 톤 단어 — 단일 verdict.tone 출처 (순풍/평이/역풍).
+  const heroToneWord = ko
+    ? verdict.tone === 'positive'
+      ? '순풍'
+      : verdict.tone === 'caution'
+        ? '역풍'
+        : '평이'
+    : verdict.tone === 'positive'
+      ? 'Tailwind'
+      : verdict.tone === 'caution'
+        ? 'Headwind'
+        : 'Steady'
+
   // ── 시간별 사주 × 점성 교차 — 켜지는 시진(십신) × 그 시각 상승궁. ──
   // 메인엔 가장 센 시진 3개만(사전 매칭된 진짜 교차 우선), 나머진 '자세히 보기'.
   // matched(의미사전 매칭)일 때만 제목에 '× 상승'을 올려 교차로 표기, 아니면
@@ -633,28 +576,33 @@ export function DayTier({ day, voc, onRise, sex = '남' }: DayTierProps) {
         {ko && day.dateKo && <span style={{ marginLeft: 8 }}>{day.dateKo}</span>}
       </div>
 
-      {/* ── 핵심 hero: 단일 중앙 컬럼 — 톤 게이지 → 일진 인장 → 한 줄 결론.
-          결론=oneLine · 행동=이렇게/조심 칩 · 근거='오늘의 핵심' ↑/↓ 리스트로
-          역할을 나눈다(겹치는 총평/서브 문단 제거). ── */}
+      {/* ── 핵심 hero (정갈): 일진 인장(주사) — 읽기·십신·톤 — 조용한 점수 가로 배치.
+          그 아래 한 줄 결론. 결론=oneLine · 행동=이렇게/조심 칩 · 근거='오늘의 핵심'
+          ↑/↓ 리스트로 역할을 나눈다. (옛 반원 게이지는 톤별 고정 비율의 장식이라
+          제거 — 점수는 정직한 숫자 한 줄로.) ── */}
       <div className={styles.dayHead}>
-        {/* 점수 숫자 비노출 — 다이얼은 헤드라인·칩과 같은 단일 verdict 톤만 보여준다. */}
-        <ToneDial tone={verdict.tone} label={ko ? '오늘' : 'Today'} />
         <div className={styles.iljinBig}>
           <span className="han">{day.iljin.hanja}</span>
           <div className="meta">
-            <div className="kr">{day.iljin.kr}</div>
-            <div className="ss">
-              {ko ? (
-                <>
-                  {'일진 · 일간 기준'} {String(day.iljinSibsin)}
-                  {sibsinArea(String(day.iljinSibsin)) !== String(day.iljinSibsin)
-                    ? ` (${sibsinArea(String(day.iljinSibsin))})`
-                    : ''}
-                </>
-              ) : (
-                `daily pillar · vs day master ${sibsinAreaEn(String(day.iljinSibsin))}`
-              )}
+            <div className="kr">
+              {day.iljin.kr} · {ko ? '일진' : 'day pillar'}
             </div>
+            <div className="ss">
+              {ko
+                ? `${String(day.iljinSibsin)}${
+                    sibsinArea(String(day.iljinSibsin)) !== String(day.iljinSibsin)
+                      ? ` · ${sibsinArea(String(day.iljinSibsin))}`
+                      : ''
+                  }`
+                : sibsinAreaEn(String(day.iljinSibsin))}
+            </div>
+            <span className="tone" data-tone={verdict.tone}>
+              {heroToneWord}
+            </span>
+          </div>
+          <div className="score">
+            <div className="n">{Math.round(day.score)}</div>
+            <div className="cap">SCORE</div>
           </div>
         </div>
         <p className={styles.oneline}>{localizeLabel(day.oneLine, ko)}</p>
