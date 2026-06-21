@@ -7,9 +7,9 @@
   margin: 4px 0 30px;
   padding: 30px 26px 26px;
   border-radius: var(--radius-lg);
-  border: 1px solid var(--line);
+  border: 1px solid var(--gold-line);
   background:
-    radial-gradient(120% 70% at 50% -10%, var(--gold-wash), transparent 60%), var(--celeste),
+    radial-gradient(120% 70% at 50% -10%, rgba(169, 131, 59, 0.1), transparent 60%), var(--celeste),
     var(--card);
   box-shadow: var(--shadow-card);
   text-align: center;
@@ -70,8 +70,9 @@
   height: 78px;
   margin: 16px auto 0;
   border-radius: 50%;
-  border: 1px solid var(--gold);
-  background: radial-gradient(circle at 50% 40%, var(--gold-wash), transparent 70%), var(--card);
+  border: 2px solid var(--gold);
+  background:
+    radial-gradient(circle at 50% 40%, rgba(169, 131, 59, 0.16), transparent 72%), var(--card);
   box-shadow:
     var(--shadow-soft),
     inset 0 0 0 4px var(--card),
@@ -121,17 +122,17 @@
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 8px;
+  gap: 9px;
   margin-top: 16px;
 }
 .tag {
   font-size: 12.5px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--gold);
-  background: var(--gold-wash);
-  border: 1px solid var(--gold-line);
+  background: rgba(169, 131, 59, 0.14);
+  border: 1px solid var(--gold);
   border-radius: 999px;
-  padding: 4px 12px;
+  padding: 4px 13px;
 }
 
 .facts {
@@ -169,8 +170,8 @@
   height: 30px;
   border-radius: 50%;
   font-size: 15px;
-  background: var(--card);
-  border: 1px solid var(--gold-line);
+  background: rgba(169, 131, 59, 0.1);
+  border: 1px solid var(--gold);
 }
 
 .action {
