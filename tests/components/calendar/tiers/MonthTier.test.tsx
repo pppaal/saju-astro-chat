@@ -100,7 +100,7 @@ describe('MonthTier (정갈)', () => {
     it('renders the woolun ganji stamp (hanja + read line)', () => {
       render(<MonthTier month={makeMonth()} onDive={noop} onRise={noop} />)
       expect(screen.getByText('甲午')).toBeInTheDocument()
-      expect(screen.getByText('갑오 · 월운')).toBeInTheDocument()
+      expect(screen.getByText('이 달의 기운 · 갑오')).toBeInTheDocument()
     })
   })
 

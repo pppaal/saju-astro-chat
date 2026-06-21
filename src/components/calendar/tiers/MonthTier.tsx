@@ -99,10 +99,10 @@ export function MonthTier({ month, onDive, onRise, showRise = true }: MonthTierP
   const flowTitle = ko
     ? `${month.label}의 흐름`
     : `${MONTH_EN[(ymM ?? 1) - 1] ?? ''} ${ymY ?? ''}`.trim()
-  // 월운 읽기 줄 — "갑오 · 월운" (woolunSibsin 은 런타임에 항상 빈 값이라 안 씀).
+  // 월운 읽기 줄 — 쉬운말 우선("이 달의 기운"), 간지(갑오)는 작은 참고.
   const woolunRead = ko
-    ? `${month.woolun?.kr ?? ''} · 월운`.trim()
-    : `${month.woolun?.en ?? month.woolun?.kr ?? ''} · monthly pillar`.trim()
+    ? `이 달의 기운 · ${month.woolun?.kr ?? ''}`.trim()
+    : `this month's energy · ${month.woolun?.en ?? month.woolun?.kr ?? ''}`.trim()
 
   const goodN = month.goodDays?.length ?? 0
   const cautionN = month.cautionDays?.length ?? 0
