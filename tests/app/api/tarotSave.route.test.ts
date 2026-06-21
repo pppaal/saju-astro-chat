@@ -49,24 +49,16 @@ vi.mock('@/lib/api/zodValidation', () => ({
     }),
   },
   tarotSavePatchSchema: {
+    // followupTurns 는 더 이상 PATCH 로 안 받는다(서버 append 가 유일 writer).
+    // clarifierCard 만 받으며 필수.
     safeParse: vi.fn((data: any) => {
-      if (!data || typeof data !== 'object') {
-        return { success: false, error: { issues: [{ path: [], message: 'invalid' }] } }
-      }
-      if (data.clarifierCard === undefined && data.followupTurns === undefined) {
+      if (!data || typeof data !== 'object' || data.clarifierCard === undefined) {
         return {
           success: false,
-          error: {
-            issues: [
-              {
-                path: [],
-                message: 'At least one of clarifierCard or followupTurns must be provided',
-              },
-            ],
-          },
+          error: { issues: [{ path: ['clarifierCard'], message: 'clarifierCard is required' }] },
         }
       }
-      return { success: true, data }
+      return { success: true, data: { clarifierCard: data.clarifierCard } }
     }),
   },
   createValidationErrorResponse: vi.fn(
@@ -189,13 +181,19 @@ describe('PATCH /api/tarot/save/[id]', () => {
   it('인증 없으면 401', async () => {
     ;(getServerSession as ReturnType<typeof vi.fn>).mockResolvedValue(null)
     const { PATCH } = await import('@/app/api/tarot/save/[id]/route')
-    const res = await PATCH(patchReq({ followupTurns: [] }), createRouteContext(mockReadingId))
+    const res = await PATCH(
+      patchReq({ clarifierCard: { name: 'X', isReversed: false } }),
+      createRouteContext(mockReadingId)
+    )
     expect(res.status).toBe(401)
   })
 
   it('빈 id 파라미터면 400 VALIDATION_ERROR', async () => {
     const { PATCH } = await import('@/app/api/tarot/save/[id]/route')
-    const res = await PATCH(patchReq({ followupTurns: [] }), createRouteContext(''))
+    const res = await PATCH(
+      patchReq({ clarifierCard: { name: 'X', isReversed: false } }),
+      createRouteContext('')
+    )
     expect(res.status).toBe(400)
   })
 
@@ -211,7 +209,10 @@ describe('PATCH /api/tarot/save/[id]', () => {
   it('리딩이 없으면(타인 소유 포함) NOT_FOUND', async () => {
     ;(prisma.tarotReading.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue(null)
     const { PATCH } = await import('@/app/api/tarot/save/[id]/route')
-    const res = await PATCH(patchReq({ followupTurns: [] }), createRouteContext(mockReadingId))
+    const res = await PATCH(
+      patchReq({ clarifierCard: { name: 'X', isReversed: false } }),
+      createRouteContext(mockReadingId)
+    )
     const data = await res.json()
     expect(res.status).toBe(404)
     expect(data.error.code).toBe('NOT_FOUND')
@@ -223,25 +224,17 @@ describe('PATCH /api/tarot/save/[id]', () => {
     })
   })
 
-  it('followupTurns 만 정상 업데이트 → updated:[followupTurns]', async () => {
-    ;(prisma.tarotReading.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue({
-      id: mockReadingId,
-    })
-    ;(prisma.tarotReading.update as ReturnType<typeof vi.fn>).mockResolvedValue({
-      id: mockReadingId,
-    })
+  it('followupTurns 단독은 거부(clarifierCard 필수) — 422, update 안 함', async () => {
+    // followupTurns 는 PATCH 의 writer 가 아니다(서버 append 가 SSOT). clarifierCard
+    // 없는 PATCH 는 검증 실패 → 행을 건드리지 않는다(lost-update 문 봉쇄).
     const { PATCH } = await import('@/app/api/tarot/save/[id]/route')
     const res = await PATCH(
       patchReq({ followupTurns: [{ role: 'user', content: 'hi' }] }),
       createRouteContext(mockReadingId)
     )
-    const data = await res.json()
-    expect(res.status).toBe(200)
-    expect(data.data.updated).toEqual(['followupTurns'])
-    expect(prisma.tarotReading.update).toHaveBeenCalledWith({
-      where: { id: mockReadingId },
-      data: { followupTurns: [{ role: 'user', content: 'hi' }] },
-    })
+    expect(res.status).toBe(422)
+    expect(prisma.tarotReading.findFirst).not.toHaveBeenCalled()
+    expect(prisma.tarotReading.update).not.toHaveBeenCalled()
   })
 
   it('clarifierCard 만 정상 업데이트 → updated:[clarifierCard]', async () => {
@@ -259,7 +252,7 @@ describe('PATCH /api/tarot/save/[id]', () => {
     expect(data.data.updated).toEqual(['clarifierCard'])
   })
 
-  it('clarifierCard + followupTurns 둘 다 업데이트', async () => {
+  it('clarifierCard + followupTurns 를 같이 보내도 followupTurns 는 무시(clarifierCard 만 기록)', async () => {
     ;(prisma.tarotReading.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue({
       id: mockReadingId,
     })
@@ -273,7 +266,10 @@ describe('PATCH /api/tarot/save/[id]', () => {
     )
     const data = await res.json()
     expect(res.status).toBe(200)
-    expect(data.data.updated).toEqual(expect.arrayContaining(['clarifierCard', 'followupTurns']))
+    expect(data.data.updated).toEqual(['clarifierCard'])
+    // update payload 에 followupTurns 가 들어가지 않는다.
+    const call = (prisma.tarotReading.update as ReturnType<typeof vi.fn>).mock.calls[0][0]
+    expect(call.data).not.toHaveProperty('followupTurns')
   })
 
   it('P2022(컬럼 누락)면 success + skipped:columns_missing, warn 로그', async () => {
@@ -284,7 +280,10 @@ describe('PATCH /api/tarot/save/[id]', () => {
     err.code = 'P2022'
     ;(prisma.tarotReading.update as ReturnType<typeof vi.fn>).mockRejectedValue(err)
     const { PATCH } = await import('@/app/api/tarot/save/[id]/route')
-    const res = await PATCH(patchReq({ followupTurns: [] }), createRouteContext(mockReadingId))
+    const res = await PATCH(
+      patchReq({ clarifierCard: { name: 'X', isReversed: false } }),
+      createRouteContext(mockReadingId)
+    )
     const data = await res.json()
     expect(res.status).toBe(200)
     expect(data.data.skipped).toBe('columns_missing')
@@ -298,7 +297,10 @@ describe('PATCH /api/tarot/save/[id]', () => {
     })
     ;(prisma.tarotReading.update as ReturnType<typeof vi.fn>).mockRejectedValue(new Error('boom'))
     const { PATCH } = await import('@/app/api/tarot/save/[id]/route')
-    const res = await PATCH(patchReq({ followupTurns: [] }), createRouteContext(mockReadingId))
+    const res = await PATCH(
+      patchReq({ clarifierCard: { name: 'X', isReversed: false } }),
+      createRouteContext(mockReadingId)
+    )
     const data = await res.json()
     expect(res.status).toBe(500)
     expect(data.error.code).toBe('DATABASE_ERROR')
@@ -310,7 +312,10 @@ describe('PATCH /api/tarot/save/[id]', () => {
       new Error('db down')
     )
     const { PATCH } = await import('@/app/api/tarot/save/[id]/route')
-    const res = await PATCH(patchReq({ followupTurns: [] }), createRouteContext(mockReadingId))
+    const res = await PATCH(
+      patchReq({ clarifierCard: { name: 'X', isReversed: false } }),
+      createRouteContext(mockReadingId)
+    )
     const data = await res.json()
     expect(res.status).toBe(500)
     expect(data.error.code).toBe('DATABASE_ERROR')
