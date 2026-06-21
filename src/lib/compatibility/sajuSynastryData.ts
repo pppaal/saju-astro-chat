@@ -8,6 +8,9 @@
 import { getGongmang as getGongmangByPillar } from '@/lib/saju/pillarLookup'
 import { pickTwelveSingle } from '@/lib/saju/shinsal'
 import { STEM_KO, BRANCH_KO } from '@/lib/saju/ganjiKo'
+import { getSibseong, BRANCH_MAIN_QI } from '@/lib/saju/core/sibsin'
+import { STEMS, FIVE_ELEMENT_RELATIONS } from '@/lib/saju/constants'
+import type { FiveElement, YinYang } from '@/lib/saju/types'
 
 export const STEM_HAP: Record<string, { other: string; element: string }> = {
   甲: { other: '己', element: '토' },
@@ -123,56 +126,25 @@ export const STEM_EL: Record<string, string> = {
   癸: '수',
 }
 
-// 천간 음양 — 십성(sibsin) cross 계산용. 같은 음양이면 비견/식신/편재/편관/편인,
-// 다른 음양이면 겁재/상관/정재/정관/정인.
-const STEM_YIN_YANG: Record<string, '양' | '음'> = {
-  甲: '양',
-  丙: '양',
-  戊: '양',
-  庚: '양',
-  壬: '양',
-  乙: '음',
-  丁: '음',
-  己: '음',
-  辛: '음',
-  癸: '음',
-}
-
 // 지지 본기 천간 (지지를 천간 시각으로 보는 매핑) — 지지 십성 계산용.
-export const BRANCH_MAIN_STEM: Record<string, string> = {
-  子: '癸',
-  丑: '己',
-  寅: '甲',
-  卯: '乙',
-  辰: '戊',
-  巳: '丙',
-  午: '丁',
-  未: '己',
-  申: '庚',
-  酉: '辛',
-  戌: '戊',
-  亥: '壬',
-}
+// SSOT(@/lib/saju/core/sibsin.BRANCH_MAIN_QI) 재노출. 표 중복 금지.
+export const BRANCH_MAIN_STEM: Record<string, string> = BRANCH_MAIN_QI
 
-// 오행 관계 — 상생/상극 방향. 목→화→토→금→수→목 (생). 木克土, 火克金, 土克水, 金克木, 水克火 (극).
-const EL_GEN: Record<string, string> = { 목: '화', 화: '토', 토: '금', 금: '수', 수: '목' }
-const EL_KE: Record<string, string> = { 목: '토', 화: '금', 토: '수', 금: '목', 수: '화' }
+// 천간 한자 → {오행, 음양} (SSOT STEMS 에서). getSibseong 입력 빌드용.
+const STEM_INFO: Record<string, { element: FiveElement; yin_yang: YinYang }> = Object.fromEntries(
+  STEMS.map((s) => [s.name, { element: s.element, yin_yang: s.yin_yang }])
+)
 
 /**
  * 일간(dayStem) 기준 대상(targetStem) 의 십성(sibsin) 반환. 정재/편재 → 배우자성
  * (남자 기준 처), 정관/편관 → 배우자성 (여자 기준 부). 궁합 cross 의 핵심 신호.
+ * SSOT getSibseong 위임 — 음양·오행 매핑을 STEMS 단일 소스에서 가져온다.
  */
 export function sibseongFor(dayStem: string, targetStem: string): string {
-  const dayEl = STEM_EL[dayStem]
-  const tgtEl = STEM_EL[targetStem]
-  if (!dayEl || !tgtEl) return ''
-  const sameYY = STEM_YIN_YANG[dayStem] === STEM_YIN_YANG[targetStem]
-  if (dayEl === tgtEl) return sameYY ? '비견' : '겁재'
-  if (EL_GEN[dayEl] === tgtEl) return sameYY ? '식신' : '상관'
-  if (EL_KE[dayEl] === tgtEl) return sameYY ? '편재' : '정재'
-  if (EL_KE[tgtEl] === dayEl) return sameYY ? '편관' : '정관'
-  if (EL_GEN[tgtEl] === dayEl) return sameYY ? '편인' : '정인'
-  return ''
+  const day = STEM_INFO[dayStem]
+  const tgt = STEM_INFO[targetStem]
+  if (!day || !tgt) return ''
+  return getSibseong(day, tgt)
 }
 
 export const BRANCH_EL: Record<string, string> = {
@@ -190,21 +162,8 @@ export const BRANCH_EL: Record<string, string> = {
   亥: '수',
 }
 
-export const EL_CONTROLS: Record<string, string> = {
-  목: '토',
-  토: '수',
-  수: '화',
-  화: '금',
-  금: '목',
-}
-
-const EL_GENERATES: Record<string, string> = {
-  목: '화',
-  화: '토',
-  토: '금',
-  금: '수',
-  수: '목',
-}
+// 오행 극(克) 방향 — SSOT FIVE_ELEMENT_RELATIONS.극하는관계 재노출. 표 중복 금지.
+export const EL_CONTROLS: Record<string, string> = FIVE_ELEMENT_RELATIONS.극하는관계
 
 // 십성 짧은 글로싱 — 관계의 질감을 LLM이 곧장 읽게.
 export const SIBSIN_GLOSS: Record<string, string> = {
@@ -249,23 +208,12 @@ export function currentSeun(now: Date): { stem: string; branch: string; year: nu
 }
 
 // 십성(十星) — 일간(day) 입장에서 상대 천간(other)이 무슨 십성인가.
-// 같은 오행 비견/겁재 · 일간生상대 식신/상관 · 상대生일간 편인/정인 ·
-// 일간克상대 편재/정재 · 상대克일간 편관/정관. 음양 같으면 편(식신 포함),
-// 다르면 정(겁재·상관 포함).
+// SSOT getSibseong 위임. 미지 천간이면 null (기존 계약 유지).
 export function sibsinOf(dayStem: string, otherStem: string): string | null {
-  const dayEl = STEM_EL[dayStem],
-    otherEl = STEM_EL[otherStem]
-  if (!dayEl || !otherEl) return null
-  const dayPol = STEM_ORDER.indexOf(dayStem) % 2
-  const otherPol = STEM_ORDER.indexOf(otherStem) % 2
-  if (dayPol < 0 || otherPol < 0) return null
-  const samePol = dayPol === otherPol
-  if (dayEl === otherEl) return samePol ? '비견' : '겁재'
-  if (EL_GENERATES[dayEl] === otherEl) return samePol ? '식신' : '상관'
-  if (EL_GENERATES[otherEl] === dayEl) return samePol ? '편인' : '정인'
-  if (EL_CONTROLS[dayEl] === otherEl) return samePol ? '편재' : '정재'
-  if (EL_CONTROLS[otherEl] === dayEl) return samePol ? '편관' : '정관'
-  return null
+  const day = STEM_INFO[dayStem]
+  const other = STEM_INFO[otherStem]
+  if (!day || !other) return null
+  return getSibseong(day, other) || null
 }
 
 // 공망(空亡) — 일주 기준 비어 있는 2지지. pillarLookup.getGongmang(SSOT) 위임.
