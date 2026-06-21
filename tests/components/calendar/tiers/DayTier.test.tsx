@@ -178,9 +178,17 @@ describe('DayTier', () => {
   })
 
   describe('head chips / banners', () => {
-    it('does not render a geokguk status chip on the day view (natal, not timing)', () => {
-      // #1519: 격국 성패는 정적 본명 분석이라 일(日) 화면에서 의도적으로 제외됨.
+    // #1519 dropped the static geokguk (격국) chip from the day screen — geokguk
+    // success/failure is a static natal analysis, not day-level timing, so it was
+    // removed from this tier (see DayTier.tsx head-status comment). The closest
+    // current head-status surface is the iljin sibsin (일진 십신) line. Assert that
+    // the day-pillar status renders AND the removed geokguk text does NOT.
+    it('renders the iljin sibsin status in the head and drops the geokguk chip (ko)', () => {
       setup()
+      // 일진 십신 status line ("일진 · 일간 기준 편재 (재물)") replaces the old geokguk chip.
+      expect(screen.getByText(/일진 · 일간 기준/)).toBeInTheDocument()
+      expect(screen.getAllByText(/편재/).length).toBeGreaterThan(0)
+      // geokguk name / status / description are no longer rendered on the day tier.
       expect(screen.queryByText('편재격')).not.toBeInTheDocument()
       expect(screen.queryByText('재성이 뚜렷한 격국')).not.toBeInTheDocument()
     })
@@ -199,14 +207,16 @@ describe('DayTier', () => {
     })
 
     it('renders the VOC banner when voc is active', () => {
+      // #1519 relabelled the VOC banner: "Moon VOC" → "달의 빈 시간" (ko) and renders
+      // the window as "{from} → {to}".
       setup({ props: { voc: { active: true, from: '10:00', to: '12:00' } } })
-      expect(screen.getByText(/달의 빈 시간/)).toBeInTheDocument()
-      expect(screen.getByText(/10:00 → 12:00/)).toBeInTheDocument()
+      expect(screen.getByText('달의 빈 시간')).toBeInTheDocument()
+      expect(screen.getByText('10:00 → 12:00')).toBeInTheDocument()
     })
 
     it('hides the VOC banner when voc is inactive', () => {
       setup({ props: { voc: { active: false } } })
-      expect(screen.queryByText(/달의 빈 시간/)).not.toBeInTheDocument()
+      expect(screen.queryByText('달의 빈 시간')).not.toBeInTheDocument()
     })
   })
 
@@ -230,43 +240,44 @@ describe('DayTier', () => {
     })
 
     it('renders the evidence transits inside the details disclosure', () => {
-      // EvidenceDetails reads day.allSignals (not .transits); provide a couple of
-      // non-zero-polarity astro signals so the "근거 자세히" disclosure renders.
-      setup({
-        day: {
-          allSignals: [
-            {
-              id: 'e1',
-              cat: 'astro/transit',
-              label: 'Mars conjunction Sun',
-              polarity: 1,
-              weight: 1,
-              kind: 'transit',
-              layer: 'daily',
-              source: 'astro',
-              body: 'Mars',
-              aspect: 'conjunction',
-              target: '본명 Sun',
-              glyph: '♂',
-            },
-            {
-              id: 'e2',
-              cat: 'astro/transit',
-              label: 'Saturn square Moon',
-              polarity: -2,
-              weight: 1,
-              kind: 'transit',
-              layer: 'daily',
-              source: 'astro',
-              body: 'Saturn',
-              aspect: 'square',
-              target: '본명 Moon',
-              glyph: '♄',
-            },
-          ] as never,
+      // #1519 replaced the per-transit "근거 신호 보기" list with EvidenceDetails, a
+      // <details> disclosure summarised "근거 자세히 · 신호와 강도" that renders
+      // day.allSignals (polarity ≠ 0). Astro rows emit a "natal" target span which
+      // localizes to "본명 …" in ko. Feed allSignals (the new prop) the astro rows.
+      const astroSignals = [
+        {
+          id: 't1',
+          cat: 'astro/transit',
+          label: 'Mars conjunction Sun',
+          polarity: 1,
+          weight: 1,
+          kind: 'transit' as never,
+          layer: 'daily' as never,
+          source: 'astro',
+          body: 'Mars',
+          aspect: 'conjunction',
+          target: '본명 Sun',
+          glyph: '♂',
         },
-      })
-      expect(screen.getByText(/근거 자세히/)).toBeInTheDocument()
+        {
+          id: 't2',
+          cat: 'astro/transit',
+          label: 'Saturn square Moon',
+          polarity: -2,
+          weight: 1,
+          kind: 'transit' as never,
+          layer: 'daily' as never,
+          source: 'astro',
+          body: 'Saturn',
+          aspect: 'square',
+          target: '본명 Moon',
+          glyph: '♄',
+        },
+      ] as never
+      setup({ day: { allSignals: astroSignals } })
+      // disclosure summary for the evidence/details section.
+      expect(screen.getByText('근거 자세히 · 신호와 강도')).toBeInTheDocument()
+      // astro rows render a "본명 …" natal-target span (one per signal).
       expect(screen.getAllByText(/본명/).length).toBeGreaterThan(0)
     })
   })

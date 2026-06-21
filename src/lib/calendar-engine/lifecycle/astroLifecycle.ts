@@ -174,24 +174,6 @@ const TABLE: AstroLifecycleEvent[] = [
   },
 ]
 
-function lifecycleEvents(): AstroLifecycleEvent[] {
-  return TABLE
-}
-
-/** Events whose age window overlaps [ageLow, ageHigh]. */
-function eventsInAgeRange(ageLow: number, ageHigh: number): AstroLifecycleEvent[] {
-  return TABLE.filter((e) => e.ageEnd >= ageLow && e.ageStart <= ageHigh)
-}
-
-/** Parse birth year from MainSajuOutput.input.birthDate (YYYY-MM-DD). */
-function birthYearFromBirthDate(birthDate: string): number | undefined {
-  if (!birthDate) return undefined
-  const m = birthDate.match(/^(\d{4})/)
-  if (!m) return undefined
-  const y = Number(m[1])
-  return Number.isFinite(y) ? y : undefined
-}
-
 // ─────────────────────────────────────────────────────────────────────────────
 // Legacy-compatible wrapper for calendar-engine extractor.
 // Mirrors the old astrology/foundation/lifecycleTiming.ts surface, but now

@@ -27,12 +27,3 @@ export const SIGN_KO: Record<string, string> = {
 export const SIGN_KO_TO_EN: Record<string, string> = Object.fromEntries(
   Object.entries(SIGN_KO).map(([en, ko]) => [ko, en])
 )
-
-/**
- * Label a sign for display. Unknown signs pass through unchanged; an empty
- * sign falls back to "하늘"/"the sky" (matches the prior fusion behavior).
- */
-function signLabel(sign: string | undefined, lang: SignLang): string {
-  if (!sign) return lang === 'ko' ? '하늘' : 'the sky'
-  return lang === 'ko' ? (SIGN_KO[sign] ?? sign) : sign
-}

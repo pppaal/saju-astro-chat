@@ -8,7 +8,7 @@
 // 적용된 동일 기준이라, 현재 운도 본명과 같은 평균태양시 위에서 나온다.
 
 import { getIljinCalendar } from './unse'
-import { getMonthPillarForDate } from './datePillars'
+import { getMonthPillarForDate, getYearPillarForDate } from './datePillars'
 import type { CalculateSajuDataResult, RelationHit, SajuPillars, PillarKind } from './types'
 
 const BRANCH_CHUNG = new Set([
@@ -55,7 +55,7 @@ const STEM_HAP = new Set([
 const PILLAR_NAMES: PillarKind[] = ['year', 'month', 'day', 'time']
 
 /** 운(運)의 천간·지지가 본명 네 기둥과 이루는 충/합. */
-function detectUnseRelations(
+export function detectUnseRelations(
   pillars: SajuPillars,
   unseStem: string,
   unseBranch: string
@@ -82,23 +82,17 @@ interface StemBranch {
   branch: string
 }
 
-function splitGanji(found: {
-  heavenlyStem?: string
-  earthlyBranch?: string
-  ganji?: string
-}): StemBranch | null {
-  const stem = found.heavenlyStem ?? (found.ganji ? found.ganji.slice(0, 1) : '')
-  const branch = found.earthlyBranch ?? (found.ganji ? found.ganji.slice(1) : '')
+function pickSeun(queryDate: Date): StemBranch | null {
+  // 세운(年運) = 절기 기준 현재 사주 연주. 세운은 1/1 이 아니라 *입춘*에 바뀐다.
+  // 직전엔 raw.unse.annual 을 queryDate.getFullYear()(=1/1 경계)로 lookup 해서,
+  // 1/1 ~ 입춘(~2/4) 구간이 다음 해 세운으로 잘못 떴다(예: 1/15 에 이미 다음 해
+  // 간지). datePillars(입춘-aware getYearPillarForDate)로 직접 산출해 바로잡는다 —
+  // 월운·일진·생일 차트와 동일 convention.
+  const { stem, branch } = getYearPillarForDate(queryDate)
   return stem && branch ? { stem, branch } : null
 }
 
-function pickSeun(raw: CalculateSajuDataResult, queryDate: Date): StemBranch | null {
-  const yr = queryDate.getFullYear()
-  const found = (raw.unse?.annual ?? []).find((a) => a.year === yr)
-  return found ? splitGanji(found) : null
-}
-
-function pickWolun(_raw: CalculateSajuDataResult, queryDate: Date): StemBranch | null {
+function pickWolun(queryDate: Date): StemBranch | null {
   // 월운(月運) = 절기 기준 현재 사주월. 생일 차트·운흐름 캘린더·일진과 동일한
   // 절기(태양 황경) convention 으로 통일한다. 직전엔 raw.unse.monthly
   // (getSajuMonthlyCycles, 寅-first 달력 산술 배열)에서 (연,달력월) 로 lookup 했는데,
@@ -130,8 +124,8 @@ export interface CurrentUnse {
  * raw 는 진경도 보정이 적용된 calculateSajuData 결과(collectSajuFacts._raw).
  */
 export function computeCurrentUnse(raw: CalculateSajuDataResult, queryDate: Date): CurrentUnse {
-  const seun = pickSeun(raw, queryDate)
-  const wolun = pickWolun(raw, queryDate)
+  const seun = pickSeun(queryDate)
+  const wolun = pickWolun(queryDate)
   const iljin = pickIljin(raw, queryDate)
   const relations: CurrentUnse['relations'] = []
   for (const [sb, source] of [

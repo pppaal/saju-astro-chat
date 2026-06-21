@@ -247,39 +247,43 @@ export default defineConfig({
               // (global 85→56.8 / 77→43.8 등) v3 floor 가 전부 깨졌다. CI 실측치
               // 대비 ~3-4pt 여유로 floor 재기준. lines/statements 는 remapping
               // 영향이 작아 소폭만 조정. 커버리지 자체를 다시 끌어올리면 ratchet.
-              lines: 61,
-              functions: 53,
-              branches: 40,
-              statements: 57,
+              // 2026-06-21: ratcheted up after the large coverage push (PR #1520)
+              // + dead-code removal. Floors sit ~3pt under measured actuals
+              // (global L91.2 / S89.6 / F88.8 / B75.8) to absorb CI (Node 24) vs
+              // local (Node 20) v8-remapping variance while locking in the gains.
+              lines: 87,
+              functions: 84,
+              branches: 71,
+              statements: 85,
               'src/lib/auth/**': {
-                lines: 75,
-                functions: 66,
-                branches: 70,
-                statements: 72,
+                lines: 77,
+                functions: 70,
+                branches: 73,
+                statements: 75,
               },
               'src/lib/credits/**': {
-                lines: 81,
-                functions: 85,
-                branches: 75,
-                statements: 81,
+                lines: 88,
+                functions: 92,
+                branches: 79,
+                statements: 87,
               },
               'src/lib/payments/**': {
-                lines: 80,
+                lines: 92,
                 functions: 54,
-                branches: 60,
+                branches: 86,
                 statements: 67,
               },
               'src/lib/security/**': {
-                lines: 85,
-                functions: 85,
-                branches: 80,
-                statements: 85,
+                lines: 93,
+                functions: 95,
+                branches: 90,
+                statements: 93,
               },
               'src/app/api/**': {
-                lines: 50,
-                functions: 50,
-                branches: 45,
-                statements: 50,
+                lines: 88,
+                functions: 88,
+                branches: 72,
+                statements: 86,
               },
             },
           }
