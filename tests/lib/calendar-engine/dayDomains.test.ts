@@ -396,13 +396,13 @@ describe('본문 band-aware 변주 + 신호 산문화', () => {
     // 공통 코어(십신 조언)는 양쪽 모두 그대로 들어 있다.
     expect(gStudy).toContain('공부·시험·자격에 최고의 날')
     expect(lStudy).toContain('공부·시험·자격에 최고의 날')
-    // band 한 줄만 다르다.
-    expect(gStudy).toContain('한 발 더 내디뎌도')
-    expect(lStudy).toContain('무리하지 말고')
+    // band 한 줄만 다르다. (변주 풀이라 모든 변주에 공통인 토큰으로 검증)
+    expect(gStudy).toContain('한 발 더')
+    expect(lStudy).toContain('한 박자')
     // EN 도 동일하게 변주된다(ko/en parity).
     expect(find(good, 'study').bodyEn).not.toBe(find(low, 'study').bodyEn)
     expect(find(good, 'study').bodyEn).toContain('lean in')
-    expect(find(low, 'study').bodyEn).toContain('go a beat slower')
+    expect(find(low, 'study').bodyEn).toContain('beat slower')
   })
 
   it('mid 밴드는 good/low 와 또 다른 본문을 낸다(3구간 모두 구분)', () => {
@@ -514,8 +514,150 @@ describe('본문 band-aware 변주 + 신호 산문화', () => {
     const money = find(res, 'money')
     // 코어(좋다) + band(한 발 더) + 신호(밀어주는) 세 조각이 모두 들어간다.
     expect(money.body).toContain('돈 기운이 켜진 날')
-    expect(money.body).toContain('한 발 더 내디뎌도')
+    expect(money.body).toContain('한 발 더')
     expect(money.body).toContain('밀어주는')
+  })
+})
+
+describe('seed — 사람별 문구 개인화(판단 불변, 표현만 회전)', () => {
+  // 같은 일진/성별/밴드/분야라도 본명 seed 가 다르면 *본문 표현*이 달라져야 한다.
+  // (트랜짓 없는 순수 십신 조언 경로 — 분야별 신호가 아니라 시드로만 갈린다.)
+  it('(a) 두 seed 가 같은 입력에서 서로 다른 본문 표현을 낸다 (ADVICE)', () => {
+    const base = { iljinSibsin: '정인', sex: '남', scoreBand: 'good' as DayScoreBand }
+    // 여러 seed 를 훑어 ADVICE 변주 풀이 회전함을 보인다(풀 길이가 작아 일부 seed 는
+    // 겹칠 수 있으므로 집합 크기로 검증).
+    const studyBodies = new Set(
+      [0, 1, 2, 3, 4, 5].map((seed) => find(deriveDayDomains({ ...base, seed })!, 'study').body)
+    )
+    expect(studyBodies.size).toBeGreaterThan(1)
+  })
+
+  it('(a) loveLine 도 seed 로 표현이 갈린다 (성별 분기 유지)', () => {
+    const base = { iljinSibsin: '편관', sex: '여', scoreBand: 'good' as DayScoreBand }
+    const loves = new Set(
+      [0, 1, 2, 3, 4, 5].map((seed) => find(deriveDayDomains({ ...base, seed })!, 'love').body)
+    )
+    expect(loves.size).toBeGreaterThan(1)
+  })
+
+  it('(a) band note 도 seed 로 표현이 갈린다(판단 구간은 그대로 good)', () => {
+    const notes = new Set(
+      [0, 1, 2, 3, 4, 5].map(
+        (seed) =>
+          deriveDayDomains({ iljinSibsin: '정재', sex: '남', scoreBand: 'good', seed })!.bandNote
+      )
+    )
+    expect(notes.size).toBeGreaterThan(1)
+  })
+
+  it('(b) 같은 seed + 같은 입력 → 같은 출력(재현가능)', () => {
+    const evidence: DayEvidenceInput = {
+      transits: [{ body: 'Jupiter', aspect: 'trine', polarity: 3 }],
+      shinsal: ['천을귀인'],
+      crossActivations: [],
+      moon: [
+        {
+          body: 'Venus',
+          aspectKo: '삼각',
+          aspectEn: 'trine',
+          when: '13-15시 (미시)',
+          whenEn: '1-3pm',
+          polarity: 1,
+        },
+      ],
+    }
+    const args = {
+      iljinSibsin: '정재',
+      sex: '남',
+      scoreBand: 'good' as DayScoreBand,
+      evidence,
+      seed: 12345,
+    }
+    const a = deriveDayDomains(args)!
+    const b = deriveDayDomains(args)!
+    expect(JSON.stringify(a)).toBe(JSON.stringify(b))
+  })
+
+  it('(b) seed 미지정(기본 0)과 seed:0 이 동일하다', () => {
+    const a = deriveDayDomains({ iljinSibsin: '비견', sex: '남', scoreBand: 'mid' })!
+    const b = deriveDayDomains({ iljinSibsin: '비견', sex: '남', scoreBand: 'mid', seed: 0 })!
+    expect(JSON.stringify(a)).toBe(JSON.stringify(b))
+  })
+
+  it('(c) ko/en parity — 어떤 seed 든 body 와 bodyEn 이 둘 다 채워진다', () => {
+    for (const seed of [0, 7, 42, 100, 9999]) {
+      for (const sb of ['비견', '식신', '정재', '정관', '정인']) {
+        const res = deriveDayDomains({ iljinSibsin: sb, sex: '여', scoreBand: 'low', seed })!
+        for (const d of res.domains) {
+          expect(d.body).toBeTruthy()
+          expect(d.bodyEn).toBeTruthy()
+        }
+        expect(res.bandNote).toBeTruthy()
+        expect(res.bandNoteEn).toBeTruthy()
+      }
+    }
+  })
+
+  it('(d) caution 전환은 seed 와 무관하게 항상 이긴다(주의 본문 + active off)', () => {
+    const evidence: DayEvidenceInput = {
+      transits: [
+        { body: 'Saturn', aspect: 'square', polarity: -2 },
+        { body: 'Mars', aspect: 'opposition', polarity: -1 },
+      ],
+      shinsal: [],
+      crossActivations: [],
+    }
+    for (const seed of [0, 1, 2, 3, 17, 256, 99991]) {
+      const res = deriveDayDomains({
+        iljinSibsin: '정관',
+        sex: '남',
+        scoreBand: 'low',
+        evidence,
+        seed,
+      })!
+      const career = find(res, 'career')
+      // 어떤 seed 든 주의 본문(마찰 신호어)으로 바뀌고 active 는 꺼진다.
+      expect(career.body).toContain('마찰')
+      expect(career.bodyEn.toLowerCase()).toContain('friction')
+      expect(career.active).toBe(false)
+      // 긍정 십신 조언 코어("자리·인정·승진"…)는 절대 나오지 않는다.
+      expect(career.body).not.toContain('승진')
+    }
+  })
+
+  it('(d) caution 가지에서도 seed 로 주의 본문 표현은 갈린다(의미는 동일=마찰)', () => {
+    const evidence: DayEvidenceInput = {
+      transits: [{ body: 'Saturn', aspect: 'square', polarity: -3 }],
+      shinsal: [],
+      crossActivations: [],
+    }
+    const bodies = new Set(
+      [0, 1, 2, 3, 4, 5].map(
+        (seed) =>
+          find(
+            deriveDayDomains({
+              iljinSibsin: '정관',
+              sex: '남',
+              scoreBand: 'low',
+              evidence,
+              seed,
+            })!,
+            'career'
+          ).body
+      )
+    )
+    expect(bodies.size).toBeGreaterThan(1)
+  })
+
+  it('(c) 한국어 조사 안전 — band 클로즈 변주는 앞 문장과 마침표로 끊겨 비문이 없다', () => {
+    // 동적 신호 없이 코어+band 클로즈만일 때, 어떤 seed 든 band 클로즈 직전이
+    // 마침표(또는 ')')로 끝나 조사 충돌이 없어야 한다.
+    for (const seed of [0, 3, 11, 77]) {
+      const res = deriveDayDomains({ iljinSibsin: '정인', sex: '남', scoreBand: 'good', seed })!
+      const body = find(res, 'study').body
+      // band 클로즈는 ' 흐름'/' 받쳐'… 로 시작하며 그 앞은 문장부호로 끝난다.
+      expect(/[.?!)]\s/.test(body)).toBe(true)
+    }
   })
 })
 

@@ -174,9 +174,10 @@ describe('DayTier', () => {
       setup()
       expect(screen.getByText('오늘 깊이 읽기')).toBeInTheDocument()
       // opener is grounded in the iljin reading (갑자) — unique to the deep-read body.
-      expect(screen.getByText(/오늘은 갑자/)).toBeInTheDocument()
-      // weaves active shinsal into the prose.
-      expect(screen.getByText(/오늘 함께하는 기운/)).toBeInTheDocument()
+      const para = screen.getByText(/오늘은 갑자/)
+      expect(para).toBeInTheDocument()
+      // weaves active shinsal into the prose (connective wording is seed-varied).
+      expect(para.textContent).toContain('천을귀인')
     })
 
     it('renders the deep-read label in English', () => {

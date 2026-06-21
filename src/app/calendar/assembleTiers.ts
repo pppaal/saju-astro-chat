@@ -578,12 +578,14 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
     topReasons: monthReasonsBy(false),
     bestDayReason: lang === 'ko' ? bestDayReason : undefined,
     lang: 'ko',
+    seed,
   })
   const summaryEn = deriveMonthSummary({
     ...summaryCommon,
     topReasons: monthReasonsBy(true),
     bestDayReason: lang === 'en' ? bestDayReason : undefined,
     lang: 'en',
+    seed,
   })
   if (summaryKo || summaryEn) {
     month.narrative = [{ tag: '이달 총평', body: summaryKo, bodyEn: summaryEn }, ...month.narrative]

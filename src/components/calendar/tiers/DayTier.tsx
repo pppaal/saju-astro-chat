@@ -601,6 +601,7 @@ export function DayTier({ day, voc, onRise, sex = '남' }: DayTierProps) {
           tone: peakHourSrc.tone === 'good' ? 'good' : 'caution',
         }
       : null,
+    seed: day.seed ?? 0,
   })
 
   // ── 시간별 사주 × 점성 교차 — 켜지는 시진(십신) × 그 시각 상승궁. ──
@@ -657,6 +658,7 @@ export function DayTier({ day, voc, onRise, sex = '남' }: DayTierProps) {
     sex,
     scoreBand: dayBand,
     ko,
+    seed: day.seed ?? 0,
     evidence: {
       transits: day.transits.map((t) => ({
         body: (t as { body?: string }).body,
