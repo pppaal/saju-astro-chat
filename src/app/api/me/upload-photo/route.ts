@@ -9,6 +9,7 @@ import {
   type ApiContext,
 } from '@/lib/api/middleware'
 import { logger } from '@/lib/logger'
+import { enforceBodySize } from '@/lib/http'
 
 // 브라우저에서 직접 Firebase 로 올리던 구조는 NextAuth 와 Firebase Auth 가
 // 분리돼 있어 storage 규칙·CORS 양쪽에서 자주 막혔다 (60초 timeout 다발).
@@ -27,6 +28,11 @@ export const runtime = 'nodejs'
 export const POST = withApiMiddleware(
   async (req: NextRequest, context: ApiContext) => {
     const userId = context.userId!
+
+    // content-length 선검사 — formData() 가 전체 멀티파트를 메모리에 버퍼링하기
+    // *전에* 거대 업로드를 거부(메모리 DoS 방지). 5MB 파일 + 멀티파트 오버헤드 여유.
+    const tooLarge = enforceBodySize(req, 6 * 1024 * 1024)
+    if (tooLarge) return tooLarge
 
     if (!process.env.BLOB_READ_WRITE_TOKEN) {
       logger.error('[upload-photo] BLOB_READ_WRITE_TOKEN missing')

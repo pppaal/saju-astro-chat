@@ -81,6 +81,34 @@ describe('API Middleware', () => {
     vi.mocked(getServerSession).mockResolvedValue(null)
   })
 
+  describe('maxBodyBytes 가드', () => {
+    // 런타임이 in-memory body 의 content-length 를 동기 설정 안 하므로, 헤더를
+    // 명시 보존하는 Headers 로 mock req 구성(가드는 initializeApiContext *전*에
+    // 반환하므로 url+headers 만 있으면 충분).
+    const mockReq = (contentLength: number) =>
+      ({
+        url: 'http://localhost/api/test',
+        method: 'POST',
+        headers: new Headers({ 'content-length': String(contentLength) }),
+      }) as unknown as NextRequest
+
+    it('content-length 가 한도 초과면 핸들러 실행 전 413', async () => {
+      const handler = vi.fn(async () => ({ data: { ok: true } }))
+      const wrapped = withApiMiddleware(handler, { maxBodyBytes: 1024 })
+      const res = await wrapped(mockReq(2048))
+      expect(res.status).toBe(413)
+      expect(handler).not.toHaveBeenCalled()
+    })
+
+    it('maxBodyBytes 미설정이면 본문 가드를 적용하지 않는다(opt-in)', async () => {
+      // 가드 미적용 → 413 아님. (정상 처리 경로는 기존 라우트 테스트가 커버.)
+      const handler = vi.fn(async () => ({ data: { ok: true } }))
+      const wrapped = withApiMiddleware(handler, {})
+      const res = await wrapped(mockReq(50 * 1024 * 1024))
+      expect(res.status).not.toBe(413)
+    })
+  })
+
   describe('extractLocale', () => {
     it('extracts Korean from URL', () => {
       const req = new Request('http://localhost?locale=ko')
