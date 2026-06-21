@@ -171,20 +171,34 @@ export async function buildHourMoon(
   }
   const peak = new Map<string, Peak>()
 
-  for (const sj of SIJIN) {
-    const iso = `${focusDayIso}T${String(sj.hour).padStart(2, '0')}:00:00`
-    let chart: Chart
-    try {
-      chart = await getCachedTransitChart({
-        iso,
-        latitude: loc.latitude,
-        longitude: loc.longitude,
-        timeZone: loc.timeZone,
-        inMemoryCache: cache,
-      })
-    } catch {
-      continue // 고위도·ephemeris 실패 시 해당 시진 건너뜀.
-    }
+  // 12 시진 차트를 *병렬*로 받는다. assembleTiers 는 DB 캐시 바깥이라 매 요청 재실행
+  // 되는데, 직전엔 이 12개를 for 루프로 하나씩 await 해 Swiss Ephemeris(미스 시)나
+  // Redis(히트 시) 호출 12번이 직렬로 쌓였다(시각별 키라 정오 스냅샷 캐시와도 별개라
+  // 항상 새로). getCachedTransitChart 는 in-flight 프로미스를 캐시해 동시 호출이
+  // 한 계산을 공유하므로, Promise.all 로 묶으면 직렬 12회 → 1배치 round-trip.
+  const charts = await Promise.all(
+    SIJIN.map(async (sj): Promise<Chart | null> => {
+      const iso = `${focusDayIso}T${String(sj.hour).padStart(2, '0')}:00:00`
+      try {
+        return await getCachedTransitChart({
+          iso,
+          latitude: loc.latitude,
+          longitude: loc.longitude,
+          timeZone: loc.timeZone,
+          inMemoryCache: cache,
+        })
+      } catch {
+        return null // 고위도·ephemeris 실패 시 해당 시진 건너뜀.
+      }
+    })
+  )
+
+  // peak 선택은 SIJIN 순서(이른 시각 우선)로 — 직전 직렬 루프와 동일한 동점
+  // tie-break(같은 orb 면 먼저 본 이른 시진 유지)를 보존해 출력이 바뀌지 않게 한다.
+  for (let i = 0; i < SIJIN.length; i++) {
+    const sj = SIJIN[i]
+    const chart = charts[i]
+    if (!chart) continue
     const moon = chart.planets.find((p) => p.name === 'Moon')
     if (!moon) continue
     const aspects = findTransitAspects(chart, natalChart, MAJOR).filter(

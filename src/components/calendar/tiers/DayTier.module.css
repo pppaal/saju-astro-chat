@@ -184,35 +184,34 @@
   color: var(--dp-ink);
 }
 
-/* ---------- day head ---------- */
+/* ---------- day head — 단일 중앙 컬럼 (게이지 → 인장 → 한 줄) ---------- */
 .dayHead {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 28px;
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  margin-top: 16px;
-}
-@media (max-width: 680px) {
-  .dayHead {
-    grid-template-columns: 1fr;
-    gap: 18px;
-  }
+  text-align: center;
+  gap: 14px;
+  margin-top: 10px;
 }
 .iljinBig {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 18px;
+  gap: 10px;
 }
 .iljinBig .han {
   font-family: var(--dp-serif-ko);
   font-weight: 700;
-  font-size: 72px;
+  font-size: 52px;
   line-height: 0.9;
   color: #f6ecd9;
   background: var(--dp-ember);
-  padding: 10px 16px;
+  padding: 8px 16px;
   border-radius: 4px;
-  box-shadow: 0 10px 26px -14px rgba(176, 58, 34, 0.7);
+  box-shadow: 0 6px 18px -12px rgba(176, 58, 34, 0.55);
+}
+.iljinBig .meta {
+  text-align: center;
 }
 .iljinBig .meta .kr {
   font-family: var(--dp-mono);
@@ -237,18 +236,13 @@
   padding: 3px 10px;
 }
 
-.dayScore {
-  display: flex;
-  align-items: center;
-  gap: 18px;
-}
 .oneline {
   font-family: var(--dp-serif-ko);
   font-style: italic;
-  font-size: clamp(16px, 2.4vw, 21px);
+  font-size: clamp(18px, 2.6vw, 23px);
   line-height: 1.5;
   color: var(--dp-ink);
-  flex: 1;
+  max-width: 30em;
   text-wrap: pretty;
 }
 
@@ -264,10 +258,14 @@
     grid-template-columns: 1fr;
   }
 }
+/* 최상위 섹션 간격 — 일관 리듬 */
+.section {
+  margin-top: var(--dp-section);
+}
 .panel {
   background: var(--dp-panel);
   border: 1px solid var(--dp-line);
-  border-radius: var(--dp-r);
+  border-radius: var(--dp-r-lg);
   padding: 20px;
   box-shadow: 0 1px 0 rgba(255, 255, 255, 0.4) inset;
 }
@@ -404,28 +402,40 @@
   margin-bottom: 8px;
 }
 
-/* ---------- section ---------- */
-.block {
-  margin-top: 40px;
-}
-.blockSm {
-  margin-top: 26px;
-}
+/* ---------- section header — 전 섹션 공통 1패턴 (serif + 작은 朱 점) ---------- */
 .secHead {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
   gap: 14px;
   flex-wrap: wrap;
-  margin-bottom: 4px;
+  margin-bottom: 12px;
 }
 .secTitle {
   font-family: var(--dp-serif-ko);
   font-weight: 700;
-  font-size: clamp(20px, 3vw, 27px);
+  font-size: clamp(16px, 2.3vw, 19px);
   color: var(--dp-ink);
   margin: 0;
   letter-spacing: -0.01em;
+  display: inline-flex;
+  align-items: baseline;
+}
+.secTitle::before {
+  content: '';
+  flex: none;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--dp-ember);
+  margin-right: 9px;
+  transform: translateY(-2px);
+}
+.secNote {
+  font-family: var(--dp-sans);
+  font-size: 11.5px;
+  color: var(--dp-ink-mute);
+  letter-spacing: 0.01em;
 }
 .tiny {
   font-family: var(--dp-mono);
@@ -515,9 +525,10 @@
 /* ---------- score dial ---------- */
 .scoreDial {
   position: relative;
-  width: 96px;
-  height: 96px;
+  width: 150px;
+  max-width: 100%;
   flex: none;
+  line-height: 0;
 }
 .scoreDial .sdNum {
   position: absolute;
@@ -952,11 +963,7 @@
     font-size: 12.5px;
   }
   .scoreDial {
-    width: 80px;
-    height: 80px;
-  }
-  .scoreDial .sdNum b {
-    font-size: 26px;
+    width: 138px;
   }
   /* 24h grid: 12 → 4 columns */
   .hourGrid {
@@ -1086,14 +1093,6 @@
   line-height: 1.5;
   margin: 2px 0 0;
 }
-/* 히어로 한 줄 결론 아래 행동 조언(daySub) — 차분한 본문 톤. */
-.heroSub {
-  font-family: var(--dp-sans);
-  font-size: 13px;
-  color: var(--dp-ink-dim);
-  line-height: 1.55;
-  margin: 8px 0 0;
-}
 .evidence {
   margin-top: 14px;
   border-top: 1px solid var(--dp-line-soft);
@@ -1125,14 +1124,7 @@
 
 /* ── HourRhythm — 시진 길/주의 리듬 ── */
 .rhythmWrap {
-  margin: 16px 0 4px;
-}
-.rhythmLabel {
-  font-family: var(--sans);
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--ink);
-  margin-bottom: 10px;
+  margin: var(--dp-section) 0 4px;
 }
 .rhythmRow {
   display: flex;
@@ -1158,7 +1150,7 @@
   right: 0;
   top: 50%;
   height: 1px;
-  background: var(--line);
+  background: var(--dp-line);
 }
 .rhythmBar {
   position: absolute;
@@ -1169,14 +1161,14 @@
   border-radius: 3px;
 }
 .rhythmTime {
-  font-family: var(--mono);
+  font-family: var(--dp-mono);
   font-size: 8px;
-  color: var(--ink-dim);
+  color: var(--dp-ink-dim);
   white-space: nowrap;
 }
 /* ---------- 분야별 오늘 조언 (연애·돈·직업·관계·공부·건강) ---------- */
 .domainBlock {
-  margin-top: 24px;
+  margin-top: var(--dp-section);
 }
 .domainGrid {
   display: flex;
@@ -1190,12 +1182,12 @@
   gap: 12px;
   padding: 12px 14px;
   border: 1px solid var(--dp-line);
-  border-radius: 12px;
+  border-radius: var(--dp-r-lg);
   background: var(--dp-panel-2);
 }
 .domainActive {
-  border-color: var(--dp-ember);
-  background: color-mix(in srgb, var(--dp-ember) 8%, var(--dp-panel-2));
+  border-color: var(--dp-accent);
+  background: color-mix(in srgb, var(--dp-accent) 8%, var(--dp-panel-2));
 }
 .domainIcon {
   font-size: 18px;
@@ -1222,8 +1214,8 @@
   font-size: 9.5px;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: var(--dp-ember);
-  border: 1px solid var(--dp-ember);
+  color: var(--dp-accent);
+  border: 1px solid var(--dp-accent);
   border-radius: 999px;
   padding: 1px 7px;
 }
@@ -1336,4 +1328,185 @@
   text-transform: uppercase;
   color: var(--dp-ink-faint);
   flex: 0 0 auto;
+}
+
+/* ---------- 사주 × 별자리 교차 카드 ---------- */
+.crossCard {
+  margin-top: var(--dp-section);
+  padding: 16px;
+  border: 1px solid var(--dp-line);
+  border-radius: var(--dp-r-lg);
+  background: var(--dp-panel);
+}
+.crossRow {
+  border-top: 1px solid var(--dp-line);
+  padding-top: 10px;
+  margin-top: 10px;
+}
+.crossRow:first-of-type {
+  border-top: 0;
+  padding-top: 0;
+  margin-top: 2px;
+}
+.crossPair {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 5px;
+  flex-wrap: wrap;
+}
+.crossSaju {
+  font-size: 13px;
+  color: var(--dp-ember-2);
+  background: rgba(176, 58, 34, 0.09);
+  border-radius: 5px;
+  padding: 3px 9px;
+}
+.crossAstro {
+  font-size: 13px;
+  color: var(--dp-accent);
+  background: rgba(52, 64, 111, 0.09);
+  border-radius: 5px;
+  padding: 3px 9px;
+}
+.crossArrowPos {
+  color: var(--dp-pos);
+  font-weight: 700;
+}
+.crossArrowNeg {
+  color: var(--dp-neg);
+  font-weight: 700;
+}
+.crossMeaning {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--dp-ink-dim);
+}
+.crossFoot {
+  font-size: 11px;
+  color: var(--dp-ink-faint);
+  margin-top: 11px;
+}
+
+/* ---------- 타이밍 추이 (이달 흐름 + 다가오는 며칠 — 한 카드) ---------- */
+.flowWrap {
+  margin-top: var(--dp-section);
+  padding: 16px;
+  border: 1px solid var(--dp-line);
+  border-radius: var(--dp-r-lg);
+  background: var(--dp-panel);
+}
+.flowSub {
+  font-weight: 400;
+  font-size: 11px;
+  color: var(--dp-ink-mute);
+}
+.flowDivider {
+  height: 1px;
+  background: var(--dp-line-soft);
+  border: 0;
+  margin: 14px 0;
+}
+.flowSubHead {
+  font-family: var(--dp-sans);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--dp-ink-dim);
+  margin-bottom: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+.upRow {
+  display: flex;
+  gap: 6px;
+}
+.upCell {
+  flex: 1;
+  text-align: center;
+}
+.upBox {
+  aspect-ratio: 1;
+  border: 1px solid var(--dp-line);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--dp-sans);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--dp-ink);
+}
+.upWd {
+  display: block;
+  margin-top: 3px;
+  font-family: var(--dp-sans);
+  font-size: 9px;
+  color: var(--dp-ink-faint);
+}
+
+/* ---------- 근거 자세히 (EvidenceDetails) ---------- */
+.evList {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 8px;
+}
+.evRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--dp-line);
+  font-family: var(--dp-sans);
+  font-size: 12.5px;
+}
+.evSrc {
+  flex: 0 0 auto;
+  font-family: var(--dp-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.06em;
+  color: var(--dp-ink-mute);
+  border: 1px solid var(--dp-line);
+  border-radius: 3px;
+  padding: 1px 5px;
+}
+.evLabel {
+  flex: 1;
+  color: var(--dp-ink);
+  word-break: keep-all;
+}
+.evAspect {
+  color: var(--dp-ink-mute);
+}
+.evStrength {
+  flex: 0 0 auto;
+  font-family: var(--dp-mono);
+  font-size: 10px;
+  color: var(--dp-ink-faint);
+}
+
+/* ---------- 이렇게 / 조심 칩 (시안) ---------- */
+.doRow {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 14px;
+}
+.doChip,
+.dontChip {
+  font-family: var(--dp-sans);
+  font-size: 13px;
+  border-radius: 6px;
+  padding: 5px 12px;
+  border: 1px solid;
+}
+.doChip {
+  color: var(--dp-pos);
+  border-color: var(--dp-pos);
+}
+.dontChip {
+  color: var(--dp-neg);
+  border-color: var(--dp-neg);
 }
