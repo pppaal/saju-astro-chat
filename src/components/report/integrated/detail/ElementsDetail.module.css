@@ -1,0 +1,116 @@
+.box {
+  margin: 12px 0 0;
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--gold);
+  border-radius: 6px;
+  background: rgba(169, 131, 59, 0.04);
+}
+.box > summary {
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+  padding: 10px 14px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--gold);
+}
+.box > summary::-webkit-details-marker {
+  display: none;
+}
+.box[open] > summary {
+  border-bottom: 1px solid var(--line-2);
+}
+.body {
+  padding: 10px 14px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.row {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--line-2);
+}
+.row:last-child {
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.name {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 5px;
+  font-weight: 700;
+}
+.han {
+  font-family: var(--serif);
+  font-size: 15px;
+}
+.label {
+  font-size: 12.5px;
+}
+.count {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--ink-2);
+  background: var(--card-2);
+  border: 1px solid var(--line-2);
+  border-radius: 4px;
+  padding: 0 6px;
+  line-height: 1.6;
+}
+.tag {
+  font-size: 10.5px;
+  font-weight: 700;
+  border-radius: 4px;
+  padding: 1px 6px;
+  line-height: 1.5;
+}
+.tagNeed {
+  color: var(--gold);
+  border: 1px solid var(--gold);
+  background: rgba(169, 131, 59, 0.08);
+}
+.tagAvoid {
+  color: var(--ink-3);
+  border: 1px solid var(--line);
+  background: var(--card);
+}
+
+.nature {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--ink-2);
+  word-break: keep-all;
+}
+.lack {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--ink-3);
+  font-style: italic;
+  word-break: keep-all;
+}
+
+/* 펼침 표시 캐럿 — 접힘 상태에서도 "열 수 있음"이 보이도록(.l2 와 일관). */
+.box > summary::before {
+  content: '▸';
+  display: inline-block;
+  margin-right: 6px;
+  font-size: 10px;
+  color: var(--gold);
+  transition: transform 0.15s ease;
+}
+.box[open] > summary::before {
+  transform: rotate(90deg);
+}

@@ -126,6 +126,22 @@ export const UI: Record<string, BiLabel> = {
     en: 'East–West integrated analysis',
   },
   orb: { ko: 'orb', en: 'orb' },
+  // '더보기'(접기) 요약 라벨 — 전문(Level 2) 자료를 한 탭 뒤로 숨길 때.
+  l2Pillars: {
+    ko: '전문 명식 보기 · 한자 · 지장간 · 12운성',
+    en: 'Expert chart · pillars, hidden stems, stages',
+  },
+  l2Sub: {
+    ko: '보조 지표 보기 · 통근 · 공망 · 조후',
+    en: 'Secondary indicators · rooting, void, climate',
+  },
+  l2Planets: { ko: '행성 위치표 자세히 보기', en: 'Full planet position table' },
+  l2Aspects: { ko: '어스펙트 격자 자세히 보기', en: 'Full aspect grid' },
+  l2Dignity: { ko: '행성 위계(디그니티) 자세히 보기', en: 'Planet dignities, in detail' },
+  retroLegend: {
+    ko: '역행 — 그 행성의 힘이 밖으로 내뻗기보다 안으로·되짚는 쪽으로 작동해요.',
+    en: 'retrograde — that planet works inward and in review rather than pushing outward.',
+  },
 }
 
 // 관계 kind → 이중언어 라벨. EN 한글 누수 차단.
@@ -279,8 +295,12 @@ export const elementLabel = (key: string, lang: Lang): string => {
   if (!e) return key
   return lang === 'en' ? key.charAt(0).toUpperCase() + key.slice(1) : e.ko
 }
+// 약어(3자) → 영어 풀네임 역방향 표. EN 에서 "Sco" 대신 "Scorpio" 로 읽히게.
+const ABBR_TO_SIGN_EN: Record<string, string> = Object.fromEntries(
+  Object.entries(SIGN_ABBR).map(([full, ab]) => [ab, full])
+)
 export const signLabel = (abbrKey: string, lang: Lang): string => {
   const m = SIGN_META[abbrKey]
   if (!m) return abbrKey
-  return lang === 'en' ? abbrKey : m.ko
+  return lang === 'en' ? (ABBR_TO_SIGN_EN[abbrKey] ?? abbrKey) : m.ko
 }

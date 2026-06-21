@@ -1,0 +1,155 @@
+/* PillarDetail — 기둥별 글자 풀이 펼침 카드.
+   상위 컨테이너가 노출하는 CSS 변수만 사용한다:
+   --ink,--ink-2,--ink-3,--line,--line-2,--gold,--card,--card-2,--serif,--mono.
+   원색 hex 금지 — 변수/rgba() 만. */
+
+.box {
+  margin: 12px 0 0;
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--gold);
+  border-radius: 6px;
+  background: rgba(169, 131, 59, 0.04);
+}
+.box > summary {
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+  padding: 10px 14px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--gold);
+  word-break: keep-all;
+}
+.box > summary::-webkit-details-marker {
+  display: none;
+}
+.box[open] > summary {
+  border-bottom: 1px solid var(--line-2);
+}
+.body {
+  padding: 10px 14px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* 기둥 카드 */
+.card {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--card);
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.dayCard {
+  border-color: var(--gold);
+  background: var(--card-2);
+}
+
+.cardHead {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--line-2);
+}
+.colLabel {
+  font-family: var(--serif);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink);
+}
+.dayBadge {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--gold);
+  word-break: keep-all;
+}
+
+/* 라벨 + 값 한 줄 */
+.row {
+  display: grid;
+  grid-template-columns: 64px 1fr;
+  gap: 8px;
+  align-items: baseline;
+}
+.rowLabel {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--ink-3);
+  word-break: keep-all;
+}
+.rowValue {
+  font-size: 12.5px;
+  color: var(--ink-2);
+  line-height: 1.5;
+  word-break: keep-all;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px;
+}
+
+/* 한자 글자 */
+.han {
+  font-family: var(--serif);
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1;
+}
+.hanSm {
+  font-family: var(--serif);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* 풀어 쓴 의미 */
+.meaning {
+  font-size: 12px;
+  color: var(--ink-2);
+  word-break: keep-all;
+}
+
+/* 지장간 목록 */
+.hiddenList,
+.sibList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+}
+.hiddenItem,
+.sibItem {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 5px;
+  word-break: keep-all;
+}
+.sibItem b {
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.stageName {
+  font-weight: 700;
+  color: var(--ink);
+  word-break: keep-all;
+}
+
+/* 오행 색 — elClass 가 IntegratedReport.module.css 의 .elWood 등을 주입하므로
+   여기서 색을 다시 정의하지 않는다(--el-* 변수 기반 색을 그대로 상속). */
+
+/* 펼침 표시 캐럿 — 접힘 상태에서도 "열 수 있음"이 보이도록(.l2 와 일관). */
+.box > summary::before {
+  content: '▸';
+  display: inline-block;
+  margin-right: 6px;
+  font-size: 10px;
+  color: var(--gold);
+  transition: transform 0.15s ease;
+}
+.box[open] > summary::before {
+  transform: rotate(90deg);
+}

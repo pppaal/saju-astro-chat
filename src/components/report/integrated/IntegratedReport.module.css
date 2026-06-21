@@ -168,6 +168,10 @@
   font-weight: 500;
   font-family: var(--mono);
   letter-spacing: -0.01em;
+  /* 좌표/UTC 같은 모노 값이 글자 중간(37.5│6°N)에서 끊기지 않게 — 전역
+     overflow-wrap:anywhere 를 이 셀에서만 토큰 경계 줄바꿈으로 되돌린다. */
+  overflow-wrap: break-word;
+  word-break: keep-all;
 }
 
 /* 섹션 */
@@ -489,9 +493,14 @@
   display: flex;
   justify-content: space-between;
   align-items: baseline;
+  gap: 10px;
   font-size: 12.5px;
   color: var(--ink-2);
   margin-bottom: 9px;
+}
+/* 왼쪽 라벨(일간 · 격국 등)이 길어지면 줄어들되, 오른쪽 값(<b>)은 그대로. */
+.gaugeHead > span:first-child {
+  min-width: 0;
 }
 .gaugeHead b {
   font-size: 15px;
@@ -518,15 +527,25 @@
 .gaugeScale {
   display: flex;
   justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 4px 8px;
   font-size: 10px;
   color: var(--ink-3);
   margin-top: 5px;
   font-weight: 500;
 }
+/* 여러 항목(통근/공망/조후 · 오행 카운트)을 담는 행 — space-between 대신
+   왼쪽 정렬로 모아 좁은 폭에서 들쭉날쭉/겹침 방지. */
+.gaugeScaleRow {
+  justify-content: flex-start;
+  margin-top: 6px;
+}
 .yongRow {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 10px;
+  row-gap: 8px;
   padding: 7px 0;
   border-bottom: 1px solid var(--line-2);
 }
@@ -866,12 +885,14 @@
 }
 .themeCross {
   display: flex;
+  flex-wrap: wrap;
   gap: 10px;
   margin-top: 10px;
   font-size: 12px;
 }
 .themeSide {
-  flex: 1;
+  flex: 1 1 140px;
+  min-width: 0;
 }
 .themeSideK {
   font-size: 10px;
@@ -911,6 +932,8 @@
   padding-top: 18px;
   border-top: 1px solid var(--line);
   display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
   justify-content: space-between;
   font-size: 11px;
   color: var(--ink-3);
@@ -982,6 +1005,23 @@
   }
   .planetTable td {
     padding: 6px 4px;
+  }
+  /* 행성 이름 칸 — 좁은 폰에서 한글명+로마자가 한 줄(nowrap)로 넘쳐 표 전체가
+     가로로 삐져나가던 문제. 줄바꿈 허용(어절 단위 keep-all 유지). */
+  .plN {
+    white-space: normal;
+  }
+  /* 어스펙트 그리드 — 10행성이면 36px×10=360px 라 폰 폭을 넘는다. 셀 축소. */
+  .aspgrid td,
+  .aspgrid th {
+    width: 30px;
+    height: 30px;
+  }
+  .agGly {
+    font-size: 12px;
+  }
+  .agOrb {
+    font-size: 7px;
   }
 }
 
@@ -1207,6 +1247,9 @@
   letter-spacing: -0.01em;
   color: var(--ink);
   margin-bottom: 10px;
+  /* 헤드라인이라 어절·괄호 경계에서만 줄바꿈 — 괄호 안(예: "물의 기운")이
+     글자 중간에서 끊기지 않게. */
+  overflow-wrap: break-word;
 }
 .heroSummary {
   font-size: 14px;
@@ -1277,4 +1320,117 @@
 .crossAdviceList b {
   color: var(--gold);
   font-weight: 600;
+}
+
+/* 더보기 — 전문(Level 2) 자료 접기. 네이티브 <details>/<summary> 라 JS·상태
+   없이 모바일/터치/접근성 모두 동작. '쉬운 풀이(Level 1)'는 항상 보이고,
+   한자 명식·어스펙트 격자·디그니티 같은 원자료는 한 탭 뒤로 숨긴다. */
+.l2 {
+  margin-top: 14px;
+  border-top: 1px solid var(--line);
+}
+.l2 > summary {
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 11px 2px 3px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--ink-3);
+}
+.l2 > summary::-webkit-details-marker {
+  display: none;
+}
+.l2 > summary::before {
+  content: '▸';
+  font-size: 10px;
+  color: var(--gold);
+  transition: transform 0.15s ease;
+}
+.l2[open] > summary::before {
+  transform: rotate(90deg);
+}
+.l2 > summary:hover {
+  color: var(--ink-2);
+}
+.l2Body {
+  margin-top: 12px;
+}
+
+/* 초보자용 "쉽게 풀이" 더보기 — 섹션 헤더 아래. 골드 톤 박스로 본문과 구분.
+   기본 접힘, 펼치면 용어 한 줄 풀이 목록. */
+.explain {
+  margin: -8px 0 18px;
+  border: 1px solid var(--gold-line, var(--line));
+  border-left: 3px solid var(--gold);
+  border-radius: 6px;
+  background: rgba(169, 131, 59, 0.04);
+}
+.explain > summary {
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+  padding: 10px 14px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--gold);
+  letter-spacing: 0.01em;
+}
+.explain > summary::-webkit-details-marker {
+  display: none;
+}
+.explain > summary::before {
+  content: '▸';
+  display: inline-block;
+  margin-right: 6px;
+  font-size: 10px;
+  transition: transform 0.15s ease;
+}
+.explain[open] > summary::before {
+  transform: rotate(90deg);
+}
+.explain[open] > summary {
+  border-bottom: 1px solid var(--line-2);
+}
+.explainBody {
+  margin: 0;
+  padding: 10px 14px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.explainRow {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.explainTerm {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--ink);
+  font-family: var(--serif);
+}
+.explainDef {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--ink-2);
+}
+
+/* 작은 범례 — 본문에 노출하기 애매한 기호(℞ 역행 등)를 표 아래 한 줄로. */
+.miniLegend {
+  margin-top: 8px;
+  font-size: 11px;
+  color: var(--ink-3);
+  line-height: 1.5;
+}
+.miniLegend b {
+  font-family: var(--sym);
+  color: var(--el-fire);
+  font-weight: 600;
+  margin-right: 3px;
 }

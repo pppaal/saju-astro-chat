@@ -58,7 +58,35 @@ import {
   signLabel,
 } from './integratedReportLabels'
 
+import { GLOSSARY, type GlossarySection } from './reportGlossary'
+import PillarDetail from './detail/PillarDetail'
+import InteractionDetail from './detail/InteractionDetail'
+import ElementsDetail from './detail/ElementsDetail'
+import PlanetDetail from './detail/PlanetDetail'
+import HouseDetail from './detail/HouseDetail'
+import AspectDetail from './detail/AspectDetail'
+
 export type { Lang, CrossRow } from './integratedReportLabels'
+
+// 초보자용 "쉽게 풀이" 더보기 — 사주·점성 용어를 모르는 사람을 위해 각 섹션의
+// 용어를 한 줄로 풀어준다. 네이티브 <details> 라 모바일/접근성 OK, 기본 접힘.
+function Explain({ section, lang }: { section: GlossarySection; lang: Lang }) {
+  const entries = GLOSSARY[section]
+  if (!entries?.length) return null
+  return (
+    <details className={s.explain}>
+      <summary>{lang === 'en' ? '❓ In plain words' : '❓ 쉽게 풀이 — 용어가 궁금하면'}</summary>
+      <dl className={s.explainBody}>
+        {entries.map((e, i) => (
+          <div className={s.explainRow} key={i}>
+            <dt className={s.explainTerm}>{e.term[lang]}</dt>
+            <dd className={s.explainDef}>{e.body[lang]}</dd>
+          </div>
+        ))}
+      </dl>
+    </details>
+  )
+}
 
 export interface IntegratedReportProps {
   data: ReportData
@@ -313,7 +341,6 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
     [UI.pMonth, S.pillars.month],
     [UI.pYear, S.pillars.year],
   ]
-  const feMax = Math.max(1, ...Object.values(S.fiveElements))
   const strengthPct = S.strength === 'strong' ? 76 : S.strength === 'weak' ? 28 : 52
   const strengthState: SibsinState =
     S.strength === 'strong' ? 'dominant' : S.strength === 'weak' ? 'missing' : 'balanced'
@@ -439,6 +466,9 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
           })()}
         </div>
 
+        {/* 입문 용어 풀이 — 사주팔자/천궁도가 뭔지부터 */}
+        <Explain section="intro" lang={lang} />
+
         {/* 01 사주 명식 */}
         <section className={s.section}>
           <div className={s.secHead}>
@@ -449,6 +479,7 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
             </span>
             <span className={s.secEn}>Four Pillars</span>
           </div>
+          <Explain section="s01" lang={lang} />
           {/* 일간(나) 카드 — hanja-rich 의 일간성격·강점·약점·직업을 hover→본문으로. */}
           {(() => {
             const dm = getHanjaRich(S.dayMaster, lang) as {
@@ -465,16 +496,7 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
                   <span>{lang === 'en' ? 'Day Master · You' : '일간 · 나'}</span>
                 </div>
                 <div className={s.dmBody}>{dm?.as_daymaster ?? dm?.nature ?? ''}</div>
-                {dm?.strength?.length ? (
-                  <div className={s.dmRow}>
-                    <b>{lang === 'en' ? 'Strengths' : '강점'}</b> {dm.strength.join(', ')}
-                  </div>
-                ) : null}
-                {dm?.weakness?.length ? (
-                  <div className={s.dmRow}>
-                    <b>{lang === 'en' ? 'Watch-outs' : '약점'}</b> {dm.weakness.join(', ')}
-                  </div>
-                ) : null}
+                {/* 강점/약점은 상단 히어로에 일간+격국 종합으로 한 번만 노출(중복 제거). */}
                 {dm?.career?.length ? (
                   <div className={s.dmRow}>
                     <b>{lang === 'en' ? 'Careers' : '직업'}</b> {dm.career.join(', ')}
@@ -483,47 +505,50 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
               </div>
             )
           })()}
-          <div className={s.pillars}>
-            {pillarsArr.map(([head, p]) => (
-              <div className={`${s.pillar} ${p.isDay ? s.isDay : ''}`} key={head.ko}>
-                <div className={s.pillarHead}>{head[lang]}</div>
-                <div className={`${s.sib} ${s.sibTop}`}>
-                  {p.isDay ? t('dayBranchLabel') : sibsinLabel(p.sibsinStem, lang)}
-                </div>
-                <div className={s.gz}>
-                  <div
-                    className={`${s.gzHan} ${elClass[stemEl(p.stem)]}`}
-                    title={hanjaHover(p.stem, lang)}
-                  >
-                    {p.stem}
+          <details className={s.l2}>
+            <summary>{t('l2Pillars')}</summary>
+            <div className={`${s.pillars} ${s.l2Body}`}>
+              {pillarsArr.map(([head, p]) => (
+                <div className={`${s.pillar} ${p.isDay ? s.isDay : ''}`} key={head.ko}>
+                  <div className={s.pillarHead}>{head[lang]}</div>
+                  <div className={`${s.sib} ${s.sibTop}`}>
+                    {p.isDay ? t('dayBranchLabel') : sibsinLabel(p.sibsinStem, lang)}
                   </div>
-                </div>
-                <div className={`${s.gz} ${s.branch}`}>
-                  <div
-                    className={`${s.gzHan} ${elClass[branchEl(p.branch)]}`}
-                    title={hanjaHover(p.branch, lang)}
-                  >
-                    {p.branch}
-                  </div>
-                </div>
-                <div className={s.sib}>{sibsinLabel(p.sibsinBranch, lang)}</div>
-                <div className={s.jjg}>
-                  {p.jijanggan.map((j, i) => (
-                    <div className={s.jjgI} key={i}>
-                      <b className={elClass[stemEl(j.g)]} title={hanjaHover(j.g, lang)}>
-                        {j.g}
-                      </b>
-                      <i>{j.d}</i>
+                  <div className={s.gz}>
+                    <div
+                      className={`${s.gzHan} ${elClass[stemEl(p.stem)]}`}
+                      title={hanjaHover(p.stem, lang)}
+                    >
+                      {p.stem}
                     </div>
-                  ))}
+                  </div>
+                  <div className={`${s.gz} ${s.branch}`}>
+                    <div
+                      className={`${s.gzHan} ${elClass[branchEl(p.branch)]}`}
+                      title={hanjaHover(p.branch, lang)}
+                    >
+                      {p.branch}
+                    </div>
+                  </div>
+                  <div className={s.sib}>{sibsinLabel(p.sibsinBranch, lang)}</div>
+                  <div className={s.jjg}>
+                    {p.jijanggan.map((j, i) => (
+                      <div className={s.jjgI} key={i}>
+                        <b className={elClass[stemEl(j.g)]} title={hanjaHover(j.g, lang)}>
+                          {j.g}
+                        </b>
+                        <i>{j.d}</i>
+                      </div>
+                    ))}
+                  </div>
+                  <div className={s.stage} title={stageHover(p.twelveStage, lang)}>
+                    {stageLabel(p.twelveStage, lang)}
+                  </div>
                 </div>
-                <div className={s.stage} title={stageHover(p.twelveStage, lang)}>
-                  {stageLabel(p.twelveStage, lang)}
-                </div>
-              </div>
-            ))}
-          </div>
-          {/* 쉬운 풀이 (Level 1) — 한자/십신을 평이한 한 줄로. 위 그리드는 전문(Level 2). */}
+              ))}
+            </div>
+          </details>
+          {/* 쉬운 풀이 (Level 1) — 한자/십신을 평이한 한 줄로. 위 전문 그리드는 더보기 안. */}
           <div className={s.plainPillars}>
             {pillarsArr.map(([head, p]) => {
               const stemG = p.isDay
@@ -546,6 +571,7 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
               )
             })}
           </div>
+          <PillarDetail pillars={S.pillars} lang={lang} />
           <div className={s.row2}>
             <div>
               <div className={s.subcap}>{t('shinsalCap')}</div>
@@ -590,7 +616,8 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
                       : null
                   const tip = rel?.meaning ?? undefined
                   // EN 일 때 detail(한글 섞임)을 한자 pair 로 대체해 한글 누수 차단.
-                  const body = lang === 'en' ? r.pair || r.detail : r.detail
+                  // pair 가 비어도 detail 로 폴백하지 않는다 — 폴백하면 한글이 샌다.
+                  const body = lang === 'en' ? r.pair : r.detail
                   return (
                     <div
                       className={`${s.rel} ${r.tone === 'pos' ? s.relPos : r.tone === 'neg' ? s.relNeg : ''}`}
@@ -635,6 +662,7 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
               </div>
             </>
           )}
+          <InteractionDetail shinsal={S.natalShinsal} relations={S.natalRelations} lang={lang} />
         </section>
 
         {/* 02 오행과 용신 */}
@@ -647,6 +675,7 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
             </span>
             <span className={s.secEn}>Elements & Balance</span>
           </div>
+          <Explain section="s02" lang={lang} />
           <div className={s.gridElem}>
             <div className={`${s.card} ${s.cardPad}`}>
               <div className={s.subcap}>{t('elemDist')}</div>
@@ -656,9 +685,9 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
               <div>
                 <div className={s.subcap}>{t('strongWeak')}</div>
                 <div className={s.gaugeHead}>
+                  {/* 격국 정체성은 아래 전용 '격국 풀이' 카드에 있으므로 여기선 생략(중복 제거). */}
                   <span>
                     {t('dayMasterLab')} {S.dayMaster}
-                    {lang === 'ko' ? ` · ${S.geokguk}` : geok ? ` · ${geok.tagline}` : ''}
                   </span>
                   <b>
                     {S.strength === 'strong'
@@ -679,28 +708,31 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
                 {/* 회색 3 셀 (RAW_DISTRIBUTION v5.4): 통근 / 공망 / 조후 — 정통
                     사주 보조 정보. 한 줄 노출 + title 툴팁. 없으면 자동 생략. */}
                 {(S.rooted !== undefined || (S.gongmang && S.gongmang.length) || S.johuYongsin) && (
-                  <div className={s.gaugeScale} style={{ marginTop: 6, gap: 8, flexWrap: 'wrap' }}>
-                    {S.rooted !== undefined && (
-                      <i title={S.rooted ? t('rootedYesTip') : t('rootedNoTip')}>
-                        {S.rooted ? t('rootedYes') : t('rootedNo')}
-                      </i>
-                    )}
-                    {S.gongmang && S.gongmang.length > 0 && (
-                      <i title={t('gongmangTip')}>
-                        {t('gongmangLab')} {S.gongmang.join(' · ')}
-                      </i>
-                    )}
-                    {S.johuYongsin && (
-                      <i
-                        className={elClass[S.johuYongsin.primary]}
-                        title={`${t('johuTip')} ${S.johuYongsin.rating}/5.`}
-                      >
-                        {t('johuLab')}{' '}
-                        {ELEMENTS[S.johuYongsin.primary]?.han ?? S.johuYongsin.primary}
-                        {S.johuYongsin.rating >= 4 && ' ⚡'}
-                      </i>
-                    )}
-                  </div>
+                  <details className={s.l2}>
+                    <summary>{t('l2Sub')}</summary>
+                    <div className={`${s.gaugeScale} ${s.gaugeScaleRow} ${s.l2Body}`}>
+                      {S.rooted !== undefined && (
+                        <i title={S.rooted ? t('rootedYesTip') : t('rootedNoTip')}>
+                          {S.rooted ? t('rootedYes') : t('rootedNo')}
+                        </i>
+                      )}
+                      {S.gongmang && S.gongmang.length > 0 && (
+                        <i title={t('gongmangTip')}>
+                          {t('gongmangLab')} {S.gongmang.join(' · ')}
+                        </i>
+                      )}
+                      {S.johuYongsin && (
+                        <i
+                          className={elClass[S.johuYongsin.primary]}
+                          title={`${t('johuTip')} ${S.johuYongsin.rating}/5.`}
+                        >
+                          {t('johuLab')}{' '}
+                          {ELEMENTS[S.johuYongsin.primary]?.han ?? S.johuYongsin.primary}
+                          {S.johuYongsin.rating >= 4 && ' ⚡'}
+                        </i>
+                      )}
+                    </div>
+                  </details>
                 )}
               </div>
               <div>
@@ -727,14 +759,7 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
                     </span>
                   ))}
                 </div>
-                <div className={s.gaugeScale} style={{ marginTop: 8 }}>
-                  {(['wood', 'fire', 'earth', 'metal', 'water'] as const).map((k) => (
-                    <i key={k} className={elClass[k]}>
-                      {elementLabel(k, lang)} {S.fiveElements[k]}
-                    </i>
-                  ))}
-                  <i style={{ color: 'var(--ink-4)' }}>/ max {feMax}</i>
-                </div>
+                {/* 오행 카운트는 펜타곤 꼭짓점에 이미 표시되므로 텍스트 반복 제거(중복 제거). */}
                 {/* 용신 '왜 필요한가' — fiveElements 사전에서 성질+부족시 증상 연결. */}
                 {(() => {
                   const yk = ELEMENTS[S.yongsin.primary]?.ko
@@ -750,11 +775,9 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
                   const nature = lang === 'en' ? yi.nature_en : yi.nature
                   const lack = lang === 'en' ? yi.deficiency_en : yi.deficiency
                   return (
+                    // 용신 원소명은 바로 위 용신 행에 있으므로 반복하지 않고 성질만 설명(중복 제거).
                     <div className={s.yongWhy}>
-                      <b className={elClass[S.yongsin.primary]}>
-                        {ELEMENTS[S.yongsin.primary]?.han} {elementLabel(S.yongsin.primary, lang)}
-                      </b>{' '}
-                      — {nature}
+                      {nature}
                       {lack ? ` · ${lang === 'en' ? 'lacking: ' : '부족하면 '}${lack}` : ''}
                     </div>
                   )
@@ -773,16 +796,7 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
               <div className={s.themeReason} style={{ marginTop: 6 }}>
                 <b>{t('geokPersonality')}</b> {geok.personality}
               </div>
-              {geok.strength.length > 0 && (
-                <div className={s.themeReason} style={{ marginTop: 4 }}>
-                  <b>{t('geokStrength')}</b> {geok.strength.join(', ')}
-                </div>
-              )}
-              {geok.weakness.length > 0 && (
-                <div className={s.themeReason} style={{ marginTop: 4 }}>
-                  <b>{t('geokWeakness')}</b> {geok.weakness.join(', ')}
-                </div>
-              )}
+              {/* 강점/약점은 상단 히어로에 종합되어 있어 카드에서는 생략(중복 제거). */}
               {geok.career && geok.career.length > 0 && (
                 <div className={s.themeReason} style={{ marginTop: 4 }}>
                   <b>{t('geokCareer')}</b> {geok.career.join(', ')}
@@ -816,6 +830,7 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
               )}
             </div>
           )}
+          <ElementsDetail saju={S} lang={lang} />
         </section>
 
         {/* 03 천궁도 */}
@@ -828,81 +843,78 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
             </span>
             <span className={s.secEn}>Natal Chart</span>
           </div>
+          <Explain section="s03" lang={lang} />
           <div className={s.gridChart}>
             <div className={`${s.card} ${s.wheelCard}`}>
               <Wheel astro={A} lang={lang} />
             </div>
-            <div>
-              <div className={`${s.card} ${s.cardPad}`}>
-                <div className={s.subcap}>{t('planetsCap')}</div>
-                <table className={s.planetTable}>
-                  <tbody>
-                    {[
-                      ...A.planets,
-                      ...A.extraPoints.map((e) => ({ ...e, retro: false, speed: 0 })),
-                    ].map((p) => (
-                      <tr
-                        key={p.name}
-                        title={[planetHover(p.name, lang), p.house ? houseHover(p.house, lang) : '']
-                          .filter(Boolean)
-                          .join(' · ')}
-                      >
-                        <td className={s.plG}>{p.glyph}</td>
-                        <td className={s.plN}>
-                          {lang === 'en' ? p.name : p.ko}
-                          {lang === 'en' ? null : <i>{p.name}</i>}
-                        </td>
-                        <td className={`${s.plS} ${elClass[SIGN_META[abbr(p.sign)]?.el]}`}>
-                          {SIGN_META[abbr(p.sign)]?.glyph} {signLabel(abbr(p.sign), lang)}
-                        </td>
-                        <td className={s.plD}>{p.deg}</td>
-                        <td className={s.plH}>{p.house}H</td>
-                        <td className={s.plR}>{'retro' in p && p.retro ? '℞' : ''}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              <div className={s.axes}>
-                {[
-                  ['ASC', A.ascendant],
-                  ['MC', A.mc],
-                ].map(([lab, ax]) => {
-                  const a = ax as { sign: string; deg: string }
-                  return (
-                    <div className={s.axisItem} key={lab as string}>
-                      <span>{lab as string}</span>
-                      <b className={elClass[SIGN_META[abbr(a.sign)]?.el]}>
-                        {SIGN_META[abbr(a.sign)]?.glyph} {a.deg}
-                      </b>
-                    </div>
-                  )
-                })}
-                <div className={s.axisItem}>
-                  <span>{t('sectLab')}</span>
-                  <b>{A.sect === 'day' ? t('sectDay') : t('sectNight')}</b>
+            <details className={s.l2}>
+              <summary>{t('l2Planets')}</summary>
+              <div className={s.l2Body}>
+                <div className={`${s.card} ${s.cardPad}`}>
+                  <div className={s.subcap}>{t('planetsCap')}</div>
+                  <table className={s.planetTable}>
+                    <tbody>
+                      {[
+                        ...A.planets,
+                        ...A.extraPoints.map((e) => ({ ...e, retro: false, speed: 0 })),
+                      ].map((p) => (
+                        <tr
+                          key={p.name}
+                          title={[
+                            planetHover(p.name, lang),
+                            p.house ? houseHover(p.house, lang) : '',
+                          ]
+                            .filter(Boolean)
+                            .join(' · ')}
+                        >
+                          <td className={s.plG}>{p.glyph}</td>
+                          <td className={s.plN}>
+                            {lang === 'en' ? p.name : p.ko}
+                            {lang === 'en' ? null : <i>{p.name}</i>}
+                          </td>
+                          <td className={`${s.plS} ${elClass[SIGN_META[abbr(p.sign)]?.el]}`}>
+                            {SIGN_META[abbr(p.sign)]?.glyph} {signLabel(abbr(p.sign), lang)}
+                          </td>
+                          <td className={s.plD}>{p.deg}</td>
+                          <td className={s.plH}>{p.house}H</td>
+                          <td className={s.plR}>{'retro' in p && p.retro ? '℞' : ''}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
-                <div className={s.axisItem}>
-                  <span>{t('houseLab')}</span>
-                  <b>{A.houseSystem}</b>
+                <div className={s.miniLegend}>
+                  <b>℞</b>
+                  {t('retroLegend')}
                 </div>
-              </div>
-              <div className={s.houses}>
-                {A.houses.slice(0, 6).map((h) => (
-                  <div className={s.du} key={h.i} title={houseHover(h.i, lang)}>
-                    <div className={s.duAge}>{h.i}H</div>
-                    <div
-                      className={`${s.gzHan ?? ''}`}
-                      style={{ fontSize: 14, fontFamily: 'var(--sym)' }}
-                    >
-                      <span className={elClass[SIGN_META[h.sign]?.el]}>
-                        {SIGN_META[h.sign]?.glyph}
-                      </span>
-                    </div>
+                <div className={s.axes}>
+                  {[
+                    ['ASC', A.ascendant],
+                    ['MC', A.mc],
+                  ].map(([lab, ax]) => {
+                    const a = ax as { sign: string; deg: string }
+                    return (
+                      <div className={s.axisItem} key={lab as string}>
+                        <span>{lab as string}</span>
+                        <b className={elClass[SIGN_META[abbr(a.sign)]?.el]}>
+                          {SIGN_META[abbr(a.sign)]?.glyph} {a.deg}
+                        </b>
+                      </div>
+                    )
+                  })}
+                  <div className={s.axisItem}>
+                    <span>{t('sectLab')}</span>
+                    <b>{A.sect === 'day' ? t('sectDay') : t('sectNight')}</b>
                   </div>
-                ))}
+                  <div className={s.axisItem}>
+                    <span>{t('houseLab')}</span>
+                    <b>{A.houseSystem}</b>
+                  </div>
+                </div>
+                {/* 6하우스 그리드 제거 — 아래 HouseDetail 이 12하우스 전체를 풀이로 대체. */}
               </div>
-            </div>
+            </details>
           </div>
           {/* 핵심 3행성 — planet-core DB 의 원리·의미를 hover→본문으로 (태양·달·상승). */}
           <div className={s.bigThree}>
@@ -1007,6 +1019,13 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
               })
             })()}
           </div>
+          {/* bigThree(태양·달·상승·수·금·화)는 위에서 이미 본문 해석 → 제외해 중복 방지. */}
+          <PlanetDetail
+            astro={A}
+            lang={lang}
+            exclude={['Sun', 'Moon', 'Mercury', 'Venus', 'Mars']}
+          />
+          <HouseDetail astro={A} lang={lang} />
         </section>
 
         {/* 04 어스펙트 */}
@@ -1019,6 +1038,7 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
             </span>
             <span className={s.secEn}>Aspects</span>
           </div>
+          <Explain section="s04" lang={lang} />
           <div className={s.gridAsp}>
             <div>
               <div className={s.aspLegend}>
@@ -1044,42 +1064,52 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
                   {t('legNeutral')}
                 </span>
               </div>
-              <AspectGrid astro={A} lang={lang} />
-            </div>
-            <div className={`${s.card} ${s.cardPad} ${s.digList}`}>
-              <div className={s.subcap}>{t('dignityCap')}</div>
-              {A.dignities.length === 0 && (
-                <div className={s.digRow} style={{ color: 'var(--ink-3)' }}>
-                  {t('noDignity')}
+              <details className={s.l2}>
+                <summary>{t('l2Aspects')}</summary>
+                <div className={s.l2Body}>
+                  <AspectGrid astro={A} lang={lang} />
                 </div>
-              )}
-              {A.dignities.map((d, i) => {
-                const p = A.planets.find((x) => x.name === d.planet)
-                const friendly = (DIGNITY_TIER_FRIENDLY[d.tier] ?? DIGNITY_TIER_LABEL[d.tier])[lang]
-                const tooltip = (DIGNITY_TIER_TOOLTIP[d.tier] ?? DIGNITY_TIER_LABEL[d.tier])[lang]
-                return (
-                  <div
-                    className={s.digRow}
-                    key={i}
-                    title={[tooltip, dignityHover(d.planet, d.tier, lang)]
-                      .filter(Boolean)
-                      .join(' — ')}
-                  >
-                    <span className={s.dg}>{p?.glyph}</span>
-                    <span className={s.dn}>{lang === 'en' ? p?.name : p?.ko}</span>
-                    <span
-                      className={elClass[SIGN_META[abbr(d.sign)]?.el]}
-                      style={{ fontSize: 11.5 }}
-                    >
-                      {signLabel(abbr(d.sign), lang)}
-                      {t('signSuffix')}
-                    </span>
-                    <span className={s.dsc}>{friendly}</span>
-                  </div>
-                )
-              })}
+              </details>
             </div>
+            <details className={s.l2}>
+              <summary>{t('l2Dignity')}</summary>
+              <div className={`${s.l2Body} ${s.card} ${s.cardPad} ${s.digList}`}>
+                {A.dignities.length === 0 && (
+                  <div className={s.digRow} style={{ color: 'var(--ink-3)' }}>
+                    {t('noDignity')}
+                  </div>
+                )}
+                {A.dignities.map((d, i) => {
+                  const p = A.planets.find((x) => x.name === d.planet)
+                  const friendly = (DIGNITY_TIER_FRIENDLY[d.tier] ?? DIGNITY_TIER_LABEL[d.tier])[
+                    lang
+                  ]
+                  const tooltip = (DIGNITY_TIER_TOOLTIP[d.tier] ?? DIGNITY_TIER_LABEL[d.tier])[lang]
+                  return (
+                    <div
+                      className={s.digRow}
+                      key={i}
+                      title={[tooltip, dignityHover(d.planet, d.tier, lang)]
+                        .filter(Boolean)
+                        .join(' — ')}
+                    >
+                      <span className={s.dg}>{p?.glyph}</span>
+                      <span className={s.dn}>{lang === 'en' ? p?.name : p?.ko}</span>
+                      <span
+                        className={elClass[SIGN_META[abbr(d.sign)]?.el]}
+                        style={{ fontSize: 11.5 }}
+                      >
+                        {signLabel(abbr(d.sign), lang)}
+                        {t('signSuffix')}
+                      </span>
+                      <span className={s.dsc}>{friendly}</span>
+                    </div>
+                  )
+                })}
+              </div>
+            </details>
           </div>
+          <AspectDetail astro={A} lang={lang} />
         </section>
 
         {/* 05 통합 테마 — natalCross 교차 */}
@@ -1093,6 +1123,7 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
               </span>
               <span className={s.secEn}>Cross-System</span>
             </div>
+            <Explain section="s05" lang={lang} />
             {/* 종합 문장은 상단 히어로로 이동(중복 제거). 여기선 톤 분포 막대만. */}
             {/* 교차 그림 — 톤 분포(잘맞음/채워줌/부딪힘) 한눈에. */}
             {(() => {
