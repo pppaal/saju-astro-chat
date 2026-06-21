@@ -455,8 +455,13 @@ const TAEGEUK_BY_DAY_STEM: Record<string, string[]> = {
 function isGeumYeoseong(dayStem: string, branch: string): boolean {
   return GEUMYEO_BY_DAY_STEM[dayStem] === branch
 }
+// 천문성(天門星) — '하늘의 문' 별. 후천 12지 건괘(乾) 방위가 戌亥 라, 원국에 戌
+// 또는 亥 가 있으면 통찰·직관·종교·철학·역학에 인연(앱의 해석 텍스트 'Heavenly
+// Gate Star / 하늘의 문이 열린 별'과 동일 정통 정의). 단일 정의(SSOT)로 둬,
+// 예전 子/午(태극귀인 갑을행을 오기 복붙한 값) 같은 drift 를 차단.
+export const CHEONMUNSEONG_BRANCHES = ['戌', '亥'] as const
 function isCheonMunSeong(branch: string): boolean {
-  return branch === '子' || branch === '午'
+  return (CHEONMUNSEONG_BRANCHES as readonly string[]).includes(branch)
 }
 // 문창귀인: 일간이 만드는 식신 자리 (일간 dependent)
 //   甲→巳 乙→午 丙·戊→申 丁·己→酉 庚→亥 辛→子 壬→寅 癸→卯
