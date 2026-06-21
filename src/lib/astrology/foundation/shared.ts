@@ -58,15 +58,6 @@ export function getPlanetList(): Record<string, number> {
   return value
 }
 
-/**
- * Reset cached config-derived singletons (planet list, flags). Intended for
- * tests that mutate CALCULATION_STANDARDS between cases.
- */
-function resetSharedCaches(): void {
-  planetListCache = null
-  swFlagsCache = null
-}
-
 // ============================================================
 // Julian Day Conversion
 // ============================================================

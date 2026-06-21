@@ -362,6 +362,3 @@ export function lookupCrossMapping(
   if (!sajuKey || !astroKey) return undefined
   return MAPPING_INDEX.get(`${sajuKey}|${astroKey}`)
 }
-
-/** 매핑 통계 — 디버그·테스트용. */
-const MAPPING_COUNT = SAJU_ASTRO_MAPPINGS.length

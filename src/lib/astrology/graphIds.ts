@@ -12,21 +12,6 @@ const PLANETS = [
   'Pluto',
 ] as const
 
-const SIGNS = [
-  'Aries',
-  'Taurus',
-  'Gemini',
-  'Cancer',
-  'Leo',
-  'Virgo',
-  'Libra',
-  'Scorpio',
-  'Sagittarius',
-  'Capricorn',
-  'Aquarius',
-  'Pisces',
-] as const
-
 const POINT_ALIASES: Record<string, string> = {
   ASC: 'Asc',
   ASCENDANT: 'Asc',
@@ -45,7 +30,6 @@ const POINT_ALIASES: Record<string, string> = {
 }
 
 const PLANET_SET = new Set(PLANETS)
-const SIGN_SET = new Set(SIGNS)
 
 function matchBySet(value: string | null | undefined, set: Set<string>): string | null {
   if (!value) return null
@@ -59,10 +43,6 @@ function matchBySet(value: string | null | undefined, set: Set<string>): string 
 
 export function toAstroPlanetId(value: string | null | undefined): string | null {
   return matchBySet(value, PLANET_SET)
-}
-
-function toAstroSignId(value: string | null | undefined): string | null {
-  return matchBySet(value, SIGN_SET)
 }
 
 export function toAstroPointId(value: string | null | undefined): string | null {

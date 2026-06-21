@@ -104,50 +104,6 @@ const THEMED_FOLLOWUPS: Record<'ko' | 'en', FollowUpsByTheme> = {
   },
 }
 
-// Suggested questions based on theme (shown initially)
-const SUGGESTED_QUESTIONS: Record<'ko' | 'en', Record<string, string[]>> = {
-  ko: {
-    career: [
-      '나한테 천직이 뭐예요? 🎯',
-      '올해 이직해도 될까요?',
-      '사장 체질인지 직원 체질인지 궁금해요',
-    ],
-    love: [
-      '내 인연은 어디서 만나요? 💕',
-      '이번 연애 진지하게 가도 될까요?',
-      '왜 나는 연애가 안 될까요?',
-    ],
-    wealth: ['부자 될 팔자인가요? 💰', '주식 해도 될까요?', '돈 복이 있는 편인가요?'],
-    health: ['타고난 체질이 뭐예요? 🏃', '조심해야 할 질병 있어요?', '살 빠지는 시기가 있을까요?'],
-    life_path: ['내 인생 최고의 해는 언제예요? ⭐', '숨겨진 재능이 뭐예요?', '올해 대운이 어때요?'],
-    chat: ['나는 어떤 사람이에요? ✨', '올해 무슨 일이 생길까요?', '행운의 숫자/색깔 알려줘'],
-  },
-  en: {
-    career: [
-      "What's my dream job? 🎯",
-      'Should I change jobs this year?',
-      'Am I a boss or employee type?',
-    ],
-    love: [
-      'Where will I meet my soulmate? 💕',
-      'Is this relationship serious?',
-      "Why can't I find love?",
-    ],
-    wealth: ['Am I destined to be rich? 💰', 'Should I invest in stocks?', 'Do I have money luck?'],
-    health: ["What's my body type? 🏃", 'Any diseases to watch?', "When's good for weight loss?"],
-    life_path: [
-      "When's my best year? ⭐",
-      "What's my hidden talent?",
-      "How's my fortune this year?",
-    ],
-    chat: [
-      'What kind of person am I? ✨',
-      'What will happen this year?',
-      'Tell me my lucky number/color',
-    ],
-  },
-}
-
 /**
  * Generate follow-up questions based on the user's last message.
  */
@@ -196,14 +152,6 @@ export function generateFollowUpQuestions(
   add(shuffledUniversal)
 
   return picks.slice(0, maxCount)
-}
-
-/**
- * Get suggested initial questions for the chat hero.
- */
-export function getSuggestedQuestions(lang: LangKey): string[] {
-  const effectiveLang = lang === 'ko' ? 'ko' : 'en'
-  return SUGGESTED_QUESTIONS[effectiveLang].chat
 }
 
 /**
