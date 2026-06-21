@@ -198,9 +198,14 @@ export async function formatAstroSelf(input: AstroSelfInput): Promise<string> {
   }
   out.push('')
 
-  // Fixed Stars — 본명 행성·angle과 1° 이내 합인 항성
+  // Fixed Stars — 본명 행성·angle과 1° 이내 합인 항성.
+  // 항성 카탈로그(J2000)를 *출생연도* 로 세차보정해 본명(출생 epoch) 행성과
+  // 대조해야 한다. 예전엔 now 의 연도로 보정해(변수명은 birthYear 인데 현재년을
+  // 담음) 출생-현재 차이(×50.3″/년 ≈ 36년이면 0.5°)만큼 어긋나 경계 합이 들쭉
+  // 날쭉했다. natalInput.year(출생연도) 사용; 없으면 epoch 불명이라 skip.
   try {
-    const birthYear = (input.now ?? new Date()).getFullYear()
+    const birthYear = input.natalInput?.year
+    if (birthYear == null) throw new Error('no birth year for fixed-star precession')
     const starConjs = findFixedStarConjunctions(chart, birthYear, 1.0).slice(0, 10)
     if (starConjs.length > 0) {
       out.push('[Fixed Stars — 본명 행성·angle ↔ 항성 합 (orb 1°)]')
