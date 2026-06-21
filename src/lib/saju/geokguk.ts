@@ -50,6 +50,10 @@ export interface GeokgukResult {
   description: string
   yongsin?: string
   gisin?: string
+  // 월령 용사 폴백(투출 미확인, 월지 본기로 정한 격)임을 표시. 표시용으로는
+  // 충분하지만 타이밍 엔진(성패 신호)에는 투출 정격과 동급으로 쓰지 않도록
+  // determineGeokgukAdvanced 가 이 플래그를 보고 statusResult 부착을 건너뛴다.
+  fallback?: boolean
 }
 
 // Re-export for backward compatibility
@@ -769,8 +773,23 @@ export function determineGeokguk(pillars: SajuPillarsInput): GeokgukResult {
     }
   }
 
-  // 5b. 투출이 없을 때 — 고전 자평의 월령 용사: 월지 본기(정기) 십신으로 격을
-  //     잡는다. 투출 정격(5번, confidence high)보다 한 단계 낮은 medium.
+  // 5b. 진술축미(土 창고)월에 정기 미투출 + 중기/여기 투출 → 잡기격(고전).
+  //     5c(월령 본기 정격)보다 먼저 잡아야 잡기격이 평범한 土 정격으로
+  //     뭉개지지 않는다. category '비격' 은 advanced 의 잡기격 처리와 동일하므로
+  //     성패 신호(캘린더) 동작이 기존과 같다 — fallback 플래그를 달지 않는다.
+  const japgi = checkJapgigyeok(pillars)
+  if (japgi) {
+    return {
+      primary: japgi,
+      category: '비격',
+      confidence: 'medium',
+      description: '잡기격: 진술축미월 정기 미투출, 중기/여기 투출',
+      yongsin: '투출된 십성에 따라 결정',
+    }
+  }
+
+  // 5c. 그 외 투출이 없을 때 — 고전 자평의 월령 용사: 월지 본기(정기) 십신으로
+  //     격을 잡는다. 표시용 폴백이므로 fallback=true (타이밍 성패 신호 제외).
   const monthMain = getMonthBranchMainSipsung(pillars)
   if (monthMain) {
     const geokgukName = `${monthMain}격` as GeokgukType
@@ -792,6 +811,7 @@ export function determineGeokguk(pillars: SajuPillarsInput): GeokgukResult {
       primary: geokgukName,
       category: '정격',
       confidence: 'medium',
+      fallback: true,
       description: `${geokgukName}: 월지 본기 ${monthMain}으로 격을 정함(월령 용사, 투출 미확인)`,
       yongsin,
       gisin,
@@ -1176,8 +1196,13 @@ export function determineGeokgukAdvanced(pillars: SajuPillarsInput): GeokgukResu
     }
   }
 
-  // 성패 판정
-  if (basicResult.category === '정격' || basicResult.category === '비격') {
+  // 성패 판정 — 단, 월령 용사 폴백(fallback)은 투출 정격이 아니므로 성패
+  // 신호를 만들지 않는다(캘린더/타이밍에 동급으로 섞이지 않게). 표시용 격국
+  // 이름은 그대로 유지된다.
+  if (
+    (basicResult.category === '정격' || basicResult.category === '비격') &&
+    !basicResult.fallback
+  ) {
     const statusResult = evaluateGeokgukStatus(basicResult.primary, pillars)
     return {
       ...basicResult,
