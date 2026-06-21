@@ -1,25 +1,8 @@
 /* PlanetDetail — '모든 행성 읽기' 접고펼침 블록.
-   변수는 상위 .report 스코프에서 내려오지만, 단독 렌더 안전망으로 폴백 정의를
-   둔다(앱 전역 오염 없이 이 컴포넌트 트리에서만). raw #hex 직접 사용 금지 — 모두
-   var() 경유. 한글 줄바꿈은 word-break:keep-all. */
+   토큰(--ink/--gold/--el-* 등)은 상위 .report 스코프에서 상속받는다(테마 단일
+   소스 유지 — 컴포넌트가 자체 재선언으로 테마를 덮어쓰지 않게). 한글 줄바꿈은
+   word-break:keep-all. */
 .box {
-  --ink: #211f1b;
-  --ink-2: #6c665b;
-  --ink-3: #9c9588;
-  --line: #e2dccf;
-  --line-2: #ece7db;
-  --gold: #a9833b;
-  --card: #fcfbf7;
-  --card-2: #f9f6ef;
-  --el-wood: #4e8c6a;
-  --el-fire: #c0564a;
-  --el-earth: #b0853a;
-  --el-metal: #79818a;
-  --el-water: #3f6ca0;
-  --mono: 'IBM Plex Mono', ui-monospace, monospace;
-  --serif: 'Noto Serif KR', serif;
-  --sym: 'Noto Sans Symbols 2', 'Noto Sans Symbols', sans-serif;
-
   margin: 12px 0 0;
   border: 1px solid var(--line);
   border-left: 3px solid var(--gold);
@@ -104,4 +87,17 @@
   color: var(--ink-3);
   line-height: 1.5;
   word-break: keep-all;
+}
+
+/* 펼침 표시 캐럿 — 접힘 상태에서도 "열 수 있음"이 보이도록(.l2 와 일관). */
+.box > summary::before {
+  content: '▸';
+  display: inline-block;
+  margin-right: 6px;
+  font-size: 10px;
+  color: var(--gold);
+  transition: transform 0.15s ease;
+}
+.box[open] > summary::before {
+  transform: rotate(90deg);
 }

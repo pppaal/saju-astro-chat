@@ -1383,6 +1383,16 @@
 .explain > summary::-webkit-details-marker {
   display: none;
 }
+.explain > summary::before {
+  content: '▸';
+  display: inline-block;
+  margin-right: 6px;
+  font-size: 10px;
+  transition: transform 0.15s ease;
+}
+.explain[open] > summary::before {
+  transform: rotate(90deg);
+}
 .explain[open] > summary {
   border-bottom: 1px solid var(--line-2);
 }

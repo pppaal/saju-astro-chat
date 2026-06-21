@@ -1,22 +1,7 @@
 /* AspectDetail — §04 어스펙트·위계 뜻풀이 (플레인 리스트).
    §04 그리드/디그니티는 의미가 툴팁뿐이라 모바일에서 안 보임. 여기서 평문으로 펼친다.
-   변수는 self-contained 하게 .box 스코프에 선언(부모 .report 밖에서도 동작). */
+   토큰(--ink/--gold/--el-* 등)은 상위 .report 스코프에서 상속받는다(테마 단일 소스). */
 .box {
-  /* tokens — mirror .report scope so this component stands alone */
-  --ink: #211f1b;
-  --ink-2: #6c665b;
-  --ink-3: #9c9588;
-  --line: #e2dccf;
-  --line-2: #ece7db;
-  --gold: #a9833b;
-  --card: #fcfbf7;
-  --card-2: #f9f6ef;
-  --sym: 'Noto Sans Symbols 2', 'Noto Sans Symbols', sans-serif;
-  --mono: 'IBM Plex Mono', ui-monospace, monospace;
-  --serif: 'Noto Serif KR', serif;
-  --el-fire: #c0564a;
-  --el-water: #3f6ca0;
-
   margin: 12px 0 0;
   border: 1px solid var(--line);
   border-left: 3px solid var(--gold);
@@ -134,4 +119,17 @@
 }
 .neutral {
   color: var(--ink-2);
+}
+
+/* 펼침 표시 캐럿 — 접힘 상태에서도 "열 수 있음"이 보이도록(.l2 와 일관). */
+.box > summary::before {
+  content: '▸';
+  display: inline-block;
+  margin-right: 6px;
+  font-size: 10px;
+  color: var(--gold);
+  transition: transform 0.15s ease;
+}
+.box[open] > summary::before {
+  transform: rotate(90deg);
 }

@@ -912,21 +912,7 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
                     <b>{A.houseSystem}</b>
                   </div>
                 </div>
-                <div className={s.houses}>
-                  {A.houses.slice(0, 6).map((h) => (
-                    <div className={s.du} key={h.i} title={houseHover(h.i, lang)}>
-                      <div className={s.duAge}>{h.i}H</div>
-                      <div
-                        className={`${s.gzHan ?? ''}`}
-                        style={{ fontSize: 14, fontFamily: 'var(--sym)' }}
-                      >
-                        <span className={elClass[SIGN_META[h.sign]?.el]}>
-                          {SIGN_META[h.sign]?.glyph}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                {/* 6하우스 그리드 제거 — 아래 HouseDetail 이 12하우스 전체를 풀이로 대체. */}
               </div>
             </details>
           </div>
@@ -1033,7 +1019,12 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
               })
             })()}
           </div>
-          <PlanetDetail astro={A} lang={lang} />
+          {/* bigThree(태양·달·상승·수·금·화)는 위에서 이미 본문 해석 → 제외해 중복 방지. */}
+          <PlanetDetail
+            astro={A}
+            lang={lang}
+            exclude={['Sun', 'Moon', 'Mercury', 'Venus', 'Mars']}
+          />
           <HouseDetail astro={A} lang={lang} />
         </section>
 

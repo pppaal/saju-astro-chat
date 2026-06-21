@@ -23,6 +23,8 @@ import s from './PlanetDetail.module.css'
 export interface PlanetDetailProps {
   astro: ReportData['astro']
   lang: Lang
+  /** 이미 위 카드(bigThree)에서 보여준 행성 이름은 제외해 중복 렌더를 막는다. */
+  exclude?: string[]
 }
 
 // 한 몸(행성/포인트)이 갖는 공통 모양 — planets 와 extraPoints 를 한 줄에 통합.
@@ -89,7 +91,12 @@ function BodyRow({ b, lang }: { b: Body; lang: Lang }): React.ReactElement {
   )
 }
 
-export default function PlanetDetail({ astro, lang }: PlanetDetailProps): React.ReactElement {
+export default function PlanetDetail({
+  astro,
+  lang,
+  exclude,
+}: PlanetDetailProps): React.ReactElement | null {
+  const skip = new Set(exclude ?? [])
   const bodies: Body[] = [
     ...astro.planets.map((p) => ({
       name: p.name,
@@ -108,11 +115,20 @@ export default function PlanetDetail({ astro, lang }: PlanetDetailProps): React.
       deg: e.deg,
       house: e.house,
     })),
-  ]
+  ].filter((b) => !skip.has(b.name))
+
+  if (bodies.length === 0) return null
+  const summary = skip.size
+    ? lang === 'en'
+      ? 'The other planets, read in full'
+      : '나머지 행성 읽기'
+    : lang === 'en'
+      ? 'Every planet, read in full'
+      : '모든 행성 읽기'
 
   return (
     <details className={s.box}>
-      <summary>{lang === 'en' ? 'Every planet, read in full' : '모든 행성 읽기'}</summary>
+      <summary>{summary}</summary>
       <div className={s.body}>
         {bodies.map((b, i) => (
           <BodyRow b={b} lang={lang} key={`${b.name}-${i}`} />
