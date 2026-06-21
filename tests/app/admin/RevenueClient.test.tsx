@@ -61,7 +61,7 @@ describe('RevenueClient', () => {
     // Credit economy + by-pack table.
     expect(q.getByText('팩별 판매')).toBeInTheDocument()
     expect(q.getByText('₩450,000')).toBeInTheDocument()
-    expect(q.getByText('크레딧 경제 (전체 누적)')).toBeInTheDocument()
+    expect(q.getByText('크레딧 경제 (전체 누적, 소비는 기간 한정)')).toBeInTheDocument()
     // Refund footnote.
     expect(q.getByText(/환불:/)).toBeInTheDocument()
   })
