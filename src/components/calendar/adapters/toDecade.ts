@@ -24,7 +24,39 @@ import { CHUNG, YUKHAP } from '@/lib/saju/constants'
 import { getTwelveStage } from '@/lib/saju/shinsal'
 import { getTwelveStageInterpretation } from '@/lib/saju/interpretations'
 import { twelveStagePlain } from '@/lib/calendar-engine/derivers/plainLanguage'
-import { toGanji, type Ganji, geokgukStatusLine, computeSewoonGanji } from './shared'
+import { SIBSIN_EN } from '@/lib/saju/sibsinLabels'
+import { toGanji, type Ganji, geokgukStatusLine, computeSewoonGanji, PLANET_KO } from './shared'
+
+// 행성 한글 → 영문 키 역맵 (PLANET_KO 정본의 inverse). 'X × 화성' 의 한글 행성
+// 부분을 영문으로 되돌릴 때 사용.
+const PLANET_KO_TO_EN: Record<string, string> = Object.fromEntries(
+  Object.entries(PLANET_KO).map(([en, ko]) => [ko, en])
+)
+
+// cross 라인에 자주 붙는 한글 꼬리 — '편재 대운', '편관 지지' 등. 토큰 치환에서
+// 매칭 안 되면 한글이 남아 EN 누수 → 여기서 함께 영문화.
+const CROSS_SUFFIX_EN: Record<string, string> = {
+  대운: 'decade',
+  지지: 'branch',
+  천간: 'stem',
+  세운: 'annual',
+}
+
+/** 십신/행성 한글 토큰을 영문으로 — SIBSIN_EN 우선, PLANET_KO 역맵, 한글 꼬리, 둘 다 없으면 원어. */
+function tokenToEn(tok: string): string {
+  const t = tok.trim()
+  return SIBSIN_EN[t] ?? PLANET_KO_TO_EN[t] ?? CROSS_SUFFIX_EN[t] ?? t
+}
+
+/**
+ * cross 이름/사주라인 영문화 — '편관 × 화성' / '편재 대운' 처럼 한글 토큰이
+ * 섞인 한 줄을, 토큰 단위로 SIBSIN_EN / PLANET_KO 역맵을 적용해 영문으로.
+ * 구분자(×, ↔, 공백, 대운/지지 등 한글 꼬리)는 보존. 매칭 안 되는 토큰은 원어 유지.
+ */
+function crossLineToEn(line: string): string {
+  // ×, ↔ 같은 구분자를 살리며 토큰만 치환.
+  return line.replace(/[가-힣A-Za-z]+/g, (m) => tokenToEn(m))
+}
 
 export interface DestinypalDecadePillar {
   cheongan: { hanja: string; sibsin: string; el: string; note?: string }
@@ -65,8 +97,12 @@ export interface DestinypalDecadeRelation {
 export interface DestinypalDecadeCrossActivation {
   signalId: string
   name: string
+  /** 영문 이름 — '편관 × 화성' 의 사주/행성 부분을 영문으로 치환. 미지정 시 name 폴백. */
+  nameEn?: string
   /** 사주 신호 한 줄 + 점성 신호 한 줄 */
   sajuLine?: string
+  /** 사주 신호 한 줄 영문 — 십신을 영문으로. 미지정 시 sajuLine 폴백. */
+  sajuLineEn?: string
   astroLine?: string
   polarity: number
   /** 이 cross 활성이 가리키는 한 줄 의미 (있으면) */
@@ -391,10 +427,15 @@ export function toDecade(natal: NatalContext, opts: ToDecadeOptions = {}): Desti
       if (Math.abs(s.polarity) > Math.abs(cur.polarity)) cur.polarity = s.polarity
       continue
     }
+    const sajuLine = extractEvidenceField(s, 'sajuKey')
     crossSeen.set(s.name, {
       signalId: s.id,
       name: s.name,
-      sajuLine: extractEvidenceField(s, 'sajuKey'),
+      // 영문 이름 — '편관 × 화성' 의 한글 토큰(십신/행성)을 영문으로 치환.
+      nameEn: crossLineToEn(s.name),
+      sajuLine,
+      // 사주 라인 영문 — 십신/꼬리 토큰 영문화.
+      sajuLineEn: sajuLine ? crossLineToEn(sajuLine) : undefined,
       astroLine: extractEvidenceField(s, 'astroKey'),
       polarity: s.polarity,
       meaning: s.korean ?? extractEvidenceField(s, 'meaning'),

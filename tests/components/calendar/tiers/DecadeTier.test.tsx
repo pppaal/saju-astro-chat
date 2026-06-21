@@ -336,6 +336,68 @@ describe('DecadeTier', () => {
       setup({ decade: { bodyEn: undefined } })
       expect(screen.getByText('첫 번째 본문 단락.')).toBeInTheDocument()
     })
+
+    it('renders the big title with English sibsin + area (no Korean sibsin)', () => {
+      const { container } = setup()
+      // 편재 → Indirect Wealth · sibsinAreaEn('편재') → 'opportunity & money'
+      expect(screen.getByText(/Indirect Wealth · opportunity & money decade/)).toBeInTheDocument()
+      // raw Korean sibsin must not headline the readout.
+      expect(screen.queryByText(/편재 · /)).not.toBeInTheDocument()
+      // big title cell carries no Hangul.
+      const bigTitle = container.querySelector('[class*="bigTitle"]')
+      expect(bigTitle?.textContent).not.toMatch(/[가-힣]/)
+    })
+
+    it('renders the theme line in English only (no Korean theme)', () => {
+      setup()
+      expect(screen.getByText('Wealth · Worldly Achievement')).toBeInTheDocument()
+      expect(screen.queryByText('현실 성취 · 재물의 무대')).not.toBeInTheDocument()
+    })
+
+    it('renders the decade ten-god KV value in English', () => {
+      const { container } = setup()
+      // dt label "Decade ten-god" → dd should be English "Indirect Wealth".
+      expect(screen.getByText('Decade ten-god')).toBeInTheDocument()
+      expect(screen.getAllByText('Indirect Wealth').length).toBeGreaterThan(0)
+      // the dd <b> for the ten-god must not be the Korean 편재.
+      const dds = Array.from(container.querySelectorAll('dd'))
+      const tenGod = dds.find((dd) => dd.querySelector('b')?.textContent === '편재')
+      expect(tenGod).toBeUndefined()
+    })
+
+    it('renders sewoonNow sibsin in English', () => {
+      setup()
+      // sewoonNow.sibsin '편재' → 'Indirect Wealth' in the annual KV row.
+      expect(screen.getByText(/Annual 2024/)).toBeInTheDocument()
+      expect(screen.getAllByText('Indirect Wealth').length).toBeGreaterThan(0)
+    })
+
+    it('renders cross-activation pair titles and badges in English (no Korean name/sajuLine)', () => {
+      setup({
+        decade: {
+          crossActivations: [
+            {
+              signalId: 'x1',
+              name: '편재 × 목성',
+              nameEn: 'Indirect Wealth × Jupiter',
+              sajuLine: '편재 대운',
+              sajuLineEn: 'Indirect Wealth decade',
+              astroLine: 'Jupiter Return',
+              polarity: 2,
+              meaning: '확장과 기회',
+              meaningEn: 'Expansion and opportunity',
+            },
+          ],
+        },
+      })
+      // pair crossing-list title + badge name both English.
+      expect(screen.getAllByText('Indirect Wealth × Jupiter').length).toBeGreaterThan(0)
+      // saju line on the badge is English.
+      expect(screen.getByText('Indirect Wealth decade')).toBeInTheDocument()
+      // Korean name / sajuLine must not appear in EN mode.
+      expect(screen.queryByText('편재 × 목성')).not.toBeInTheDocument()
+      expect(screen.queryByText('편재 대운')).not.toBeInTheDocument()
+    })
   })
 
   describe('conditional sections', () => {

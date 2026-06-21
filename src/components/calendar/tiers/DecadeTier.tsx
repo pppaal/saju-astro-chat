@@ -26,7 +26,7 @@ import type { DestinyDecade, DestinyUserSummary } from '@/types/calendar'
 
 import { Ganji } from '../atoms/Ganji'
 import { LayerTag } from '../atoms/LayerTag'
-import { sibsinArea } from '@/lib/calendar-engine/derivers/plainLanguage'
+import { sibsinArea, sibsinAreaEn } from '@/lib/calendar-engine/derivers/plainLanguage'
 import styles from './DecadeTier.module.css'
 import { CrossingList } from '@/components/calendar/atoms/CrossingList'
 import summaryStyles from '@/components/calendar/atoms/TierSummary.module.css'
@@ -51,7 +51,11 @@ export interface DecadeTierProps {
     crossActivations?: Array<{
       signalId: string
       name: string
+      /** 영문 이름 — 영문 로케일에서 사용. 미지정 시 name 으로 폴백. */
+      nameEn?: string
       sajuLine?: string
+      /** 영문 사주 라인 — 영문 로케일에서 사용. 미지정 시 sajuLine 으로 폴백. */
+      sajuLineEn?: string
       astroLine?: string
       polarity: number
       meaning?: string
@@ -259,7 +263,7 @@ export function DecadeTier({ user, decade, onDive, onRise }: DecadeTierProps) {
           : ko
             ? '중립'
             : 'neutral',
-    title: c.name,
+    title: ko ? c.name : (c.nameEn ?? c.name),
     detail: ko ? c.meaning : (c.meaningEn ?? c.meaning),
   }))
 
@@ -405,12 +409,9 @@ export function DecadeTier({ user, decade, onDive, onRise }: DecadeTierProps) {
             <div className={styles.bigTitle}>
               {ko
                 ? `${decade.sibsin} · ${sibsinArea(decade.sibsin)}의 10년`
-                : `${decade.sibsin} · ${sibsinArea(decade.sibsin)} decade`}
+                : `${SIBSIN_EN[decade.sibsin] ?? decade.sibsin} · ${sibsinAreaEn(decade.sibsin)} decade`}
             </div>
-            <p className={styles.themeLine}>
-              {decade.theme}
-              <span className={styles.muted}> · {decade.themeEn}</span>
-            </p>
+            <p className={styles.themeLine}>{ko ? decade.theme : decade.themeEn}</p>
 
             <dl className={styles.kv}>
               <dt>{ko ? '기간' : 'Period'}</dt>
@@ -427,7 +428,7 @@ export function DecadeTier({ user, decade, onDive, onRise }: DecadeTierProps) {
               </dd>
               <dt>{ko ? '대운 십신' : 'Decade ten-god'}</dt>
               <dd>
-                <b>{decade.sibsin}</b>
+                <b>{ko ? decade.sibsin : (SIBSIN_EN[decade.sibsin] ?? decade.sibsin)}</b>
               </dd>
               <dt>{ko ? '천간' : 'Stem'}</dt>
               <dd>
@@ -447,7 +448,9 @@ export function DecadeTier({ user, decade, onDive, onRise }: DecadeTierProps) {
                   <dd>
                     <span className={styles.han}>{sewoonNow.gz.hanja}</span>{' '}
                     <span className={styles.muted}>{sewoonNow.gz.kr}</span> ·{' '}
-                    <b>{sewoonNow.sibsin}</b>
+                    <b>
+                      {ko ? sewoonNow.sibsin : (SIBSIN_EN[sewoonNow.sibsin] ?? sewoonNow.sibsin)}
+                    </b>
                   </dd>
                 </>
               )}
@@ -634,10 +637,16 @@ export function DecadeTier({ user, decade, onDive, onRise }: DecadeTierProps) {
                       : styles.crossNeu
                 return (
                   <div key={c.signalId || i} className={`${styles.crossBadge} ${tone}`}>
-                    <div className={styles.crossBadgeName}>{c.name}</div>
+                    <div className={styles.crossBadgeName}>
+                      {ko ? c.name : (c.nameEn ?? c.name)}
+                    </div>
                     {(c.sajuLine || c.astroLine) && (
                       <div className={styles.crossBadgeLines}>
-                        {c.sajuLine && <span className={styles.crossBadgeSaju}>{c.sajuLine}</span>}
+                        {c.sajuLine && (
+                          <span className={styles.crossBadgeSaju}>
+                            {ko ? c.sajuLine : (c.sajuLineEn ?? c.sajuLine)}
+                          </span>
+                        )}
                         {c.sajuLine && c.astroLine && (
                           <span className={styles.crossBadgeArrow}>↔</span>
                         )}

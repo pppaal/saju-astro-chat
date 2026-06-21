@@ -268,6 +268,61 @@ describe('toDecade — 현재 대운 → destinypal decade', () => {
       const d = toDecade(natalWithDaeun(), { currentAge: 5 })!
       expect(d.crossActivations).toEqual([])
     })
+
+    it('nameEn / sajuLineEn — 한글 십신·행성 토큰을 영문으로 (한글 누수 없음)', () => {
+      const signals = [
+        makeSignal({
+          kind: 'cross-activation',
+          layer: 'decadal',
+          name: '편관 × 화성',
+          id: 'c1',
+          polarity: -2,
+          korean: '압박 페어',
+          english: 'a pressure pair',
+          evidence: { module: 'x', detail: { sajuKey: '편재 대운', astroKey: 'Mars' } },
+        }),
+      ]
+      const d = toDecade(natalWithDaeun(), { currentAge: 5, decadalSignals: signals })!
+      const c = d.crossActivations[0]
+      // '편관'→Seven Killings, '화성'→Mars, '×' 보존.
+      expect(c.nameEn).toBe('Seven Killings × Mars')
+      expect(c.nameEn).not.toMatch(/[가-힣]/)
+      // '편재 대운' → Indirect Wealth decade.
+      expect(c.sajuLineEn).toBe('Indirect Wealth decade')
+      expect(c.sajuLineEn).not.toMatch(/[가-힣]/)
+      // 원본 KO 는 그대로 보존 (KO 로케일용).
+      expect(c.name).toBe('편관 × 화성')
+      expect(c.sajuLine).toBe('편재 대운')
+    })
+
+    it('nameEn — 매칭 안 되는 토큰은 원어 유지 (영문 행성은 그대로)', () => {
+      const signals = [
+        makeSignal({
+          kind: 'cross-activation',
+          layer: 'decadal',
+          name: '정재 × Venus',
+          id: 'c1',
+          polarity: 1,
+        }),
+      ]
+      const d = toDecade(natalWithDaeun(), { currentAge: 5, decadalSignals: signals })!
+      expect(d.crossActivations[0].nameEn).toBe('Direct Wealth × Venus')
+    })
+
+    it('sajuLineEn — sajuLine 없으면 undefined', () => {
+      const signals = [
+        makeSignal({
+          kind: 'cross-activation',
+          layer: 'decadal',
+          name: '편재 × 목성',
+          id: 'c1',
+          polarity: 1,
+        }),
+      ]
+      const d = toDecade(natalWithDaeun(), { currentAge: 5, decadalSignals: signals })!
+      expect(d.crossActivations[0].sajuLine).toBeUndefined()
+      expect(d.crossActivations[0].sajuLineEn).toBeUndefined()
+    })
   })
 
   describe('body / narrative / astro / geokguk', () => {
