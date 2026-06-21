@@ -11,22 +11,13 @@
 
 import { calculateSynastry } from '@/lib/astrology/foundation/synastry'
 import type { Chart } from '@/lib/astrology/foundation/types'
+import { PLANET_KO as PLANET_KO_BASE } from '@/lib/calendar-engine/data/planetNames'
 
+// 행성 한글 라벨 — 공용 SSOT(planetNames)에서 파생. 교점(北/南)만 시너스트리용으로 추가.
 const PLANET_KO: Record<string, string> = {
-  Sun: '태양',
-  Moon: '달',
-  Mercury: '수성',
-  Venus: '금성',
-  Mars: '화성',
-  Jupiter: '목성',
-  Saturn: '토성',
-  Uranus: '천왕성',
-  Neptune: '해왕성',
-  Pluto: '명왕성',
+  ...PLANET_KO_BASE,
   Node: '북교점',
   'True Node': '북교점',
-  Ascendant: '상승점',
-  MC: '중천점',
 }
 
 // 엔진의 HARMONY/TENSION 분류와 동일 (synastry.ts).
