@@ -2,6 +2,7 @@
 // 격국(格局) 판정 모듈
 
 import { JIJANGGAN, FIVE_ELEMENT_RELATIONS } from './constants'
+import { getSibseong } from './core/sibsin'
 import { STEM_KO } from './ganjiKo'
 import type { FiveElement, SajuPillarsInput } from './types'
 import {
@@ -84,24 +85,12 @@ function getSipsung(
   targetElement: FiveElement,
   targetYinYang: '양' | '음'
 ): Sipsung {
-  const sameYinYang = dayYinYang === targetYinYang
-
-  if (dayElement === targetElement) {
-    return sameYinYang ? '비견' : '겁재'
-  }
-  if (FIVE_ELEMENT_RELATIONS.생하는관계[dayElement] === targetElement) {
-    return sameYinYang ? '식신' : '상관'
-  }
-  if (FIVE_ELEMENT_RELATIONS.극하는관계[dayElement] === targetElement) {
-    return sameYinYang ? '편재' : '정재'
-  }
-  if (FIVE_ELEMENT_RELATIONS.극받는관계[dayElement] === targetElement) {
-    return sameYinYang ? '편관' : '정관'
-  }
-  if (FIVE_ELEMENT_RELATIONS.생받는관계[dayElement] === targetElement) {
-    return sameYinYang ? '편인' : '정인'
-  }
-  return '비견'
+  // 십신 SSOT(core/sibsin.getSibseong) 에 위임. no-match('')는 기존 동작 보존 위해 '비견'.
+  const r = getSibseong(
+    { element: dayElement, yin_yang: dayYinYang },
+    { element: targetElement, yin_yang: targetYinYang }
+  )
+  return (r || '비견') as Sipsung
 }
 
 // 월지 지장간에서 투출 확인
