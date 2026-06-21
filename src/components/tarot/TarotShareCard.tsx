@@ -108,7 +108,9 @@ export const TarotShareCard = React.forwardRef<HTMLDivElement, { data: ShareCard
               lineHeight: 1.35,
               color: MUTED,
               // 한국어 단어 중간 분리 방지 + 일반 줄바꿈(캡처 line-clamp 미동작).
+              // 영어 긴 토큰(URL 등)은 넘치지 않게 anywhere 폴백.
               wordBreak: 'keep-all',
+              overflowWrap: 'anywhere',
               whiteSpace: 'pre-wrap',
             }}
           >
