@@ -8,7 +8,7 @@ export interface ReportPillar {
   branch: string
   sibsinStem: string
   sibsinBranch: string
-  jijanggan: Array<{ g: string; d: number }>
+  jijanggan: Array<{ g: string; layer: 'main' | 'mid' | 'sub' }>
   twelveStage: string
   isDay?: boolean
 }

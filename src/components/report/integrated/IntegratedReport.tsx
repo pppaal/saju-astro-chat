@@ -437,7 +437,6 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
             ],
             [t('metaTz'), input.timeZone],
             [t('metaHouse'), `${A.houseSystem} · ${A.sect === 'day' ? t('day') : t('night')}`],
-            ['UTC', input.isoUTC],
           ].map(([k, v]) => (
             <div className={s.metaCell} key={k}>
               <span className={s.metaK}>{k}</span>
@@ -588,7 +587,11 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
                         <b className={elClass[stemEl(j.g)]} title={hanjaHover(j.g, lang)}>
                           {j.g}
                         </b>
-                        <i>{j.d}</i>
+                        <i>
+                          {lang === 'en'
+                            ? { main: 'main', mid: 'mid', sub: 'sub' }[j.layer]
+                            : { main: '본', mid: '중', sub: '여' }[j.layer]}
+                        </i>
                       </div>
                     ))}
                   </div>

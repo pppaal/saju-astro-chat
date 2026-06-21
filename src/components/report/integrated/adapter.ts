@@ -249,15 +249,20 @@ export function natalToReportData(
     isDay = false
   ): ReportPillar => {
     const jj = p?.jijanggan ?? {}
-    const slots = [jj.chogi, jj.junggi, jj.jeonggi].filter(Boolean)
+    // 본기(정기)·중기·여기(초기) 순. 깨진 분일수(days) 대신 '층'을 의미값으로 노출.
+    const slots = [
+      jj.jeonggi ? { sl: jj.jeonggi, layer: 'main' as const } : null,
+      jj.junggi ? { sl: jj.junggi, layer: 'mid' as const } : null,
+      jj.chogi ? { sl: jj.chogi, layer: 'sub' as const } : null,
+    ].filter((x): x is { sl: any; layer: 'main' | 'mid' | 'sub' } => !!x)
     return {
       stem: p?.heavenlyStem?.name ?? '',
       branch: p?.earthlyBranch?.name ?? '',
       sibsinStem: isDay ? '日干' : (p?.heavenlyStem?.sibsin ?? ''),
       sibsinBranch: p?.earthlyBranch?.sibsin ?? '',
-      jijanggan: slots.map((sl: any) => ({
+      jijanggan: slots.map(({ sl, layer }) => ({
         g: sl.name ?? sl.stem ?? sl.g ?? '',
-        d: sl.days ?? sl.weight ?? sl.d ?? 0,
+        layer,
       })),
       twelveStage: stages?.[key] ?? '',
       isDay,
