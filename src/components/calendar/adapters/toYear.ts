@@ -16,7 +16,7 @@ import type { NatalContext } from '@/lib/calendar-engine/context/types'
 import type { ActiveSignal, CalendarCell } from '@/lib/calendar-engine/types'
 import { toGanji, type Ganji, SIGN_KO, PLANET_KO, computeSewoonGanji } from './shared'
 import { getSibsinKo } from '@/lib/saju/cycleRelations'
-import { SIBSIN_EN } from '@/lib/saju/sibsinLabels'
+import { plainPairName } from '@/lib/calendar-engine/derivers/plainLanguage'
 import { ordinalEn } from '@/lib/calendar-engine/ordinal'
 import type { ZodiacKo } from '@/lib/astrology/foundation/types'
 import type { AstroPlanetName } from '@/lib/astrology/interpretations'
@@ -281,8 +281,8 @@ function buildYearCrossings(cells: CalendarCell[], year: number): DestinypalCros
   const agg = new Map<
     string,
     {
-      name: string
-      nameEn: string
+      title: string
+      titleEn: string
       korean?: string
       english?: string
       polarity: number
@@ -299,24 +299,10 @@ function buildYearCrossings(cells: CalendarCell[], year: number): DestinypalCros
       if (Number.isNaN(st) || Number.isNaN(en)) continue
       const cur = agg.get(s.name)
       if (!cur) {
-        // 영문 이름 — evidence 의 십신키(한글)·행성키(영문)로 'Right Officer × Saturn'.
-        // 신살(도화·역마·양인·건록)은 SIBSIN_EN 에 없어 별도 폴백.
-        const SHINSAL_EN: Record<string, string> = {
-          도화: 'Peach Blossom',
-          도화살: 'Peach Blossom',
-          역마: 'Traveling Horse',
-          역마살: 'Traveling Horse',
-          양인: 'Yang Blade',
-          건록: 'Established Stipend',
-        }
-        const det = (s.evidence?.detail ?? {}) as { sajuKey?: string; astroKey?: string }
-        const sajuEn = det.sajuKey
-          ? (SIBSIN_EN[det.sajuKey] ?? SHINSAL_EN[det.sajuKey] ?? det.sajuKey)
-          : ''
-        const nameEn = sajuEn && det.astroKey ? `${sajuEn} × ${det.astroKey}` : s.name
+        // 제목은 쉬운말 — "정관 × 토성" → "일·책임 × 책임·인내" (페어가 아니면 원문).
         agg.set(s.name, {
-          name: s.name,
-          nameEn,
+          title: plainPairName(s.name, true),
+          titleEn: plainPairName(s.name, false),
           korean: s.korean,
           english: s.english,
           polarity: s.polarity,
@@ -355,8 +341,8 @@ function buildYearCrossings(cells: CalendarCell[], year: number): DestinypalCros
     return {
       when,
       whenEn: whenLabelEn(v.start, v.end),
-      title: v.name,
-      titleEn: v.nameEn,
+      title: v.title,
+      titleEn: v.titleEn,
       detail: v.korean,
       detailEn: v.english,
       tone: (v.polarity > 0 ? 'good' : v.polarity < 0 ? 'caution' : 'neutral') as

@@ -105,6 +105,33 @@ export function planetPlain(name: string | undefined, ko: boolean): string {
   return entry ? (ko ? entry.ko : entry.en) : name
 }
 
+/**
+ * "편관 × 화성" 같은 교차 페어 이름을 토큰 분해 → { saju, astro }.
+ * '×' 가 정확히 하나가 아니면(= 페어가 아니면) null.
+ */
+export function splitPairName(name: string | undefined): { saju: string; astro: string } | null {
+  if (!name || !name.includes('×')) return null
+  const parts = name.split('×')
+  if (parts.length !== 2) return null
+  const saju = parts[0].trim()
+  const astro = parts[1].trim()
+  if (!saju || !astro) return null
+  return { saju, astro }
+}
+
+/**
+ * 교차 페어 이름을 *쉬운말*로 — "편관 × 화성" → "일·도전 × 추진·마찰"
+ * / "challenge & pressure × drive & friction". 십신·신살은 생활영역(sibsinArea),
+ * 행성은 일상 개념어(planetPlain)로. 페어가 아니면(분해 실패) 원문 그대로.
+ */
+export function plainPairName(name: string | undefined, ko: boolean): string {
+  const sp = splitPairName(name)
+  if (!sp) return name ?? ''
+  const left = (ko ? sibsinArea(sp.saju) : sibsinAreaEn(sp.saju)) || sp.saju
+  const right = planetPlain(sp.astro, ko) || sp.astro
+  return `${left} × ${right}`
+}
+
 /** 한자 지지 → 한글 (사유 문자열의 '午月' 같은 한자月 표기 풀이용). */
 const BRANCH_HANJA_TO_KO: Record<string, string> = {
   子: '자',

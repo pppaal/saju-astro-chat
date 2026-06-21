@@ -227,11 +227,11 @@ describe('toDecade — 현재 대운 → destinypal decade', () => {
       ]
       const d = toDecade(natalWithDaeun(), { currentAge: 5, decadalSignals: signals })!
       expect(d.crossActivations).toHaveLength(2)
-      // 정렬: |−3| > |1|
-      expect(d.crossActivations[0].name).toBe('편관 × 토성')
+      // 정렬: |−3| > |1| · 이름은 쉬운말(생활영역 × 일상어)
+      expect(d.crossActivations[0].name).toBe('일·도전 × 책임·인내')
       expect(d.crossActivations[0].polarity).toBe(-3)
       expect(d.crossActivations[0].meaning).toBe('압박 페어')
-      expect(d.crossActivations[1].name).toBe('정재 × 금성')
+      expect(d.crossActivations[1].name).toBe('돈·안정 × 사랑·돈')
       expect(d.crossActivations[1].sajuLine).toBe('정재')
       expect(d.crossActivations[1].astroLine).toBe('Venus')
       expect(d.crossActivations[1].meaning).toBe('재물 페어') // korean 우선
@@ -269,7 +269,7 @@ describe('toDecade — 현재 대운 → destinypal decade', () => {
       expect(d.crossActivations).toEqual([])
     })
 
-    it('nameEn / sajuLineEn — 한글 십신·행성 토큰을 영문으로 (한글 누수 없음)', () => {
+    it('name/nameEn — 쉬운말 페어 + sajuLineEn 영문화 (한글 누수 없음)', () => {
       const signals = [
         makeSignal({
           kind: 'cross-activation',
@@ -284,18 +284,18 @@ describe('toDecade — 현재 대운 → destinypal decade', () => {
       ]
       const d = toDecade(natalWithDaeun(), { currentAge: 5, decadalSignals: signals })!
       const c = d.crossActivations[0]
-      // '편관'→Seven Killings, '화성'→Mars, '×' 보존.
-      expect(c.nameEn).toBe('Seven Killings × Mars')
+      // '편관 × 화성' → 생활영역 × 일상어 (한글 누수 없음).
+      expect(c.nameEn).toBe('challenge & pressure × drive & friction')
       expect(c.nameEn).not.toMatch(/[가-힣]/)
-      // '편재 대운' → Indirect Wealth decade.
+      // '편재 대운' → Indirect Wealth decade (기술 참조 라인은 그대로 영문화).
       expect(c.sajuLineEn).toBe('Indirect Wealth decade')
       expect(c.sajuLineEn).not.toMatch(/[가-힣]/)
-      // 원본 KO 는 그대로 보존 (KO 로케일용).
-      expect(c.name).toBe('편관 × 화성')
+      // KO 이름도 쉬운말 · sajuLine 원본 보존 (작은 참조용).
+      expect(c.name).toBe('일·도전 × 추진·마찰')
       expect(c.sajuLine).toBe('편재 대운')
     })
 
-    it('nameEn — 매칭 안 되는 토큰은 원어 유지 (영문 행성은 그대로)', () => {
+    it('nameEn — KO/EN 행성 혼용도 쉬운말로 (정재 × Venus)', () => {
       const signals = [
         makeSignal({
           kind: 'cross-activation',
@@ -306,7 +306,8 @@ describe('toDecade — 현재 대운 → destinypal decade', () => {
         }),
       ]
       const d = toDecade(natalWithDaeun(), { currentAge: 5, decadalSignals: signals })!
-      expect(d.crossActivations[0].nameEn).toBe('Direct Wealth × Venus')
+      expect(d.crossActivations[0].nameEn).toBe('steady wealth × love & money')
+      expect(d.crossActivations[0].name).toBe('돈·안정 × 사랑·돈')
     })
 
     it('sajuLineEn — sajuLine 없으면 undefined', () => {

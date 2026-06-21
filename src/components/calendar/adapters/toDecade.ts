@@ -23,7 +23,7 @@ import { getStemElement, getBranchElement } from '@/lib/saju/stemBranchUtils'
 import { CHUNG, YUKHAP } from '@/lib/saju/constants'
 import { getTwelveStage } from '@/lib/saju/shinsal'
 import { getTwelveStageInterpretation } from '@/lib/saju/interpretations'
-import { twelveStagePlain } from '@/lib/calendar-engine/derivers/plainLanguage'
+import { twelveStagePlain, plainPairName } from '@/lib/calendar-engine/derivers/plainLanguage'
 import { SIBSIN_EN } from '@/lib/saju/sibsinLabels'
 import { toGanji, type Ganji, geokgukStatusLine, computeSewoonGanji, PLANET_KO } from './shared'
 
@@ -430,9 +430,9 @@ export function toDecade(natal: NatalContext, opts: ToDecadeOptions = {}): Desti
     const sajuLine = extractEvidenceField(s, 'sajuKey')
     crossSeen.set(s.name, {
       signalId: s.id,
-      name: s.name,
-      // 영문 이름 — '편관 × 화성' 의 한글 토큰(십신/행성)을 영문으로 치환.
-      nameEn: crossLineToEn(s.name),
+      // 이름은 쉬운말 — '편관 × 화성' → '일·도전 × 추진·마찰' (십신=생활영역, 행성=일상어).
+      name: plainPairName(s.name, true),
+      nameEn: plainPairName(s.name, false),
       sajuLine,
       // 사주 라인 영문 — 십신/꼬리 토큰 영문화.
       sajuLineEn: sajuLine ? crossLineToEn(sajuLine) : undefined,

@@ -307,13 +307,15 @@ describe('toYear — yearly signals → destinypal year', () => {
       const y = toYear(natal(), { year: 2026, cells: [cell] })
       expect(y.crossings).toHaveLength(1)
       const c = y.crossings[0]
-      expect(c.title).toBe('정관 × 토성')
+      // 제목은 쉬운말 — '정관 × 토성' → '일·책임 × 책임·인내'
+      expect(c.title).toBe('일·책임 × 책임·인내')
       expect(c.when).toBe('3–5월')
       expect(c.whenEn).toBe('Mar–May')
       expect(c.tone).toBe('good')
       expect(c.detail).toBe('책임 페어')
-      // 영문 이름 — SIBSIN_EN[정관] × Saturn
-      expect(c.titleEn).toContain('Saturn')
+      // 영문 제목도 쉬운말 (한글 누수 없음)
+      expect(c.titleEn).toBe('duty & standing × duty & limits')
+      expect(c.titleEn).not.toMatch(/[가-힣]/)
     })
 
     it('polarity 부호 → tone (good/caution/neutral)', () => {
