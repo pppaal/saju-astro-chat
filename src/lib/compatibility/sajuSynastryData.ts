@@ -8,6 +8,7 @@
 import { getGongmang as getGongmangByPillar } from '@/lib/saju/pillarLookup'
 import { pickTwelveSingle } from '@/lib/saju/shinsal'
 import { STEM_KO, BRANCH_KO } from '@/lib/saju/ganjiKo'
+import { getYearPillarForDate, getSajuYearForDate } from '@/lib/saju/datePillars'
 
 export const STEM_HAP: Record<string, { other: string; element: string }> = {
   甲: { other: '己', element: '토' },
@@ -233,19 +234,15 @@ export const CHEONULGWIIN: Record<string, string[]> = {
   癸: ['巳', '卯'],
 }
 
-const BRANCH_ORDER = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥']
 const STEM_ORDER = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸']
 
-// 현재 연도의 세운 간지 (입춘 근사: 2/4 이전은 전년). 두 사람 공통 시기축.
+// 현재 연도의 세운 간지. 두 사람 공통 시기축.
+// 입춘 경계는 절기 SSOT(datePillars)에 위임 — 예전엔 2/4 고정 근사 + Gregorian
+// 필드(getFullYear/Month/Date)로 직접 산출해, 실제 입춘(연마다 2/3~2/5 변동)과
+// 어긋나고 본명/월운/일진 차트의 절기 convention 과도 달랐다.
 export function currentSeun(now: Date): { stem: string; branch: string; year: number } {
-  let y = now.getFullYear()
-  const m = now.getMonth() + 1
-  if (m < 2 || (m === 2 && now.getDate() < 4)) y -= 1
-  return {
-    stem: STEM_ORDER[(((y - 4) % 10) + 10) % 10],
-    branch: BRANCH_ORDER[(((y - 4) % 12) + 12) % 12],
-    year: y,
-  }
+  const { stem, branch } = getYearPillarForDate(now)
+  return { stem, branch, year: getSajuYearForDate(now) }
 }
 
 // 십성(十星) — 일간(day) 입장에서 상대 천간(other)이 무슨 십성인가.

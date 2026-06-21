@@ -401,7 +401,11 @@ export async function POST(req: NextRequest) {
           // 32세 대운 시작 vs 만 35세 현재) in earlier production
           // turns. Korean age = ageYears + 1 (one for the year of
           // birth, conventional 만 vs 한국나이 offset).
-          const age = p.date ? getAgeFromBirthDate(p.date) : null
+          // 만나이는 그 사람의 출생 시간대 기준으로 — 앞 두 사람은 seed 의 tz 를
+          // 넘긴다(3명+는 seed 가 없어 기본 tz). getAgeFromBirthDate 가 SSOT 위임.
+          const personTz =
+            i === 0 ? person1Seed?.timeZone : i === 1 ? person2Seed?.timeZone : undefined
+          const age = p.date ? getAgeFromBirthDate(p.date, personTz) : null
           const ageNote =
             age != null ? (normalizedLang === 'ko' ? ` (만 ${age}세)` : ` (age ${age})`) : ''
           // Person 1 is always the anchor — no relation suffix. For

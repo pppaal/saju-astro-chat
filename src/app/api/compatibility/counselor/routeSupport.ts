@@ -1,4 +1,5 @@
 import { normalizeGender } from '@/lib/utils/gender'
+import { currentManAge } from '@/lib/datetime/currentAge'
 import type { ChatMessage } from '@/lib/api'
 
 function clampMessages(messages: ChatMessage[], max = 8) {
@@ -83,15 +84,20 @@ function buildPersonSeed(person: Record<string, unknown> | null | undefined): Pe
   }
 }
 
-function getAgeFromBirthDate(date?: string): number {
-  if (!date) return 30
-  const d = new Date(date)
-  if (Number.isNaN(d.getTime())) return 30
-  const today = new Date()
-  let age = today.getFullYear() - d.getFullYear()
-  const m = today.getMonth() - d.getMonth()
-  if (m < 0 || (m === 0 && today.getDate() < d.getDate())) age -= 1
-  return Math.max(0, age)
+// 만 나이는 currentManAge(SSOT)에 위임. 예전엔 `new Date(date)`(=UTC 자정)와
+// 서버-로컬 `new Date()` 필드를 섞어, 생일·연말 경계에서 ±1 어긋날 수 있었고
+// 상담사/대운 화면이 쓰는 만나이와 기준이 갈렸다. birthTimeZone 을 주면 그
+// 시간대 기준으로 계산(없으면 'Asia/Seoul' — buildPersonSeed 기본 tz 와 동일).
+function getAgeFromBirthDate(date?: string, birthTimeZone = 'Asia/Seoul'): number {
+  const parsed = parseDateString(date)
+  if (!parsed) return 30
+  const [y, m, d] = parsed.split('-').map(Number)
+  return currentManAge({
+    birthYear: y,
+    birthMonth: m,
+    birthDate: d,
+    birthTimeZone,
+  })
 }
 
 export { clampMessages, buildPersonSeed, getAgeFromBirthDate }
