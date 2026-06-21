@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useCallback, useEffect } from 'react'
+import React from 'react'
 
 /**
  * 입력창 아래 도구(📎 파일 / 🃏 타로 / ✨ 차트) 안내 힌트.
@@ -17,31 +17,6 @@ import React, { useState, useCallback, useEffect } from 'react'
  * counselor-scope 로 분리.
  */
 
-const STORAGE_PREFIX = 'destinypal:tool-hint-dismissed:'
-
-export function useToolHint(scope: 'destiny' | 'compat') {
-  const storageKey = `${STORAGE_PREFIX}${scope}`
-  const [dismissed, setDismissed] = useState(false)
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return
-    setDismissed(window.localStorage.getItem(storageKey) === '1')
-  }, [storageKey])
-
-  const dismiss = useCallback(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        window.localStorage.setItem(storageKey, '1')
-      } catch {
-        /* ignore quota */
-      }
-    }
-    setDismissed(true)
-  }, [storageKey])
-
-  return { dismissed, dismiss }
-}
-
 interface ToolHintProps {
   lang: 'ko' | 'en'
   variant?: 'destiny' | 'compat'
@@ -51,7 +26,13 @@ interface ToolHintProps {
 export function ToolHint({ lang, variant = 'destiny', onDismiss }: ToolHintProps) {
   const isKo = lang === 'ko'
   const isCompat = variant === 'compat'
-  const chartLabel = isKo ? (isCompat ? '궁합 차트' : '운세 차트') : isCompat ? 'Couple chart' : 'Destiny chart'
+  const chartLabel = isKo
+    ? isCompat
+      ? '궁합 차트'
+      : '운세 차트'
+    : isCompat
+      ? 'Couple chart'
+      : 'Destiny chart'
 
   return (
     <div
@@ -70,8 +51,8 @@ export function ToolHint({ lang, variant = 'destiny', onDismiss }: ToolHintProps
       <button
         type="button"
         onClick={onDismiss}
-        aria-label={isKo ? '다시 안 보기' : 'Don\'t show again'}
-        title={isKo ? '다시 안 보기' : 'Don\'t show again'}
+        aria-label={isKo ? '다시 안 보기' : "Don't show again"}
+        title={isKo ? '다시 안 보기' : "Don't show again"}
         style={{
           position: 'absolute',
           top: 6,
@@ -91,7 +72,7 @@ export function ToolHint({ lang, variant = 'destiny', onDismiss }: ToolHintProps
         }}
       >
         <span aria-hidden="true">×</span>
-        <span>{isKo ? '다시 안 보기' : 'Don\'t show again'}</span>
+        <span>{isKo ? '다시 안 보기' : "Don't show again"}</span>
       </button>
       <div style={{ fontWeight: 600, color: '#44403c', marginBottom: 6 }}>
         {isKo ? '💡 도구 안내' : '💡 Tools available'}

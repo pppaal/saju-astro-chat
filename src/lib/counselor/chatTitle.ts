@@ -10,7 +10,7 @@
 const CHAT_TITLE_MAX = 30
 
 /** 임의 텍스트를 사이드바용 30자 제목으로 정규화. 비면 null. */
-export function truncateChatTitle(raw: string | null | undefined): string | null {
+function truncateChatTitle(raw: string | null | undefined): string | null {
   const cleaned = (raw ?? '').replace(/\s+/g, ' ').trim()
   if (!cleaned) return null
   return cleaned.length <= CHAT_TITLE_MAX

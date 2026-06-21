@@ -248,27 +248,3 @@ export function extractCrossActivations(signals: readonly ActiveSignal[]): Activ
 
   return Array.from(bestByDay.values()).map((x) => x.sig)
 }
-
-/**
- * Cross-activation 의 부수 정보 — 디버그·테스트용.
- */
-function debugCrossActivations(signals: readonly ActiveSignal[]): {
-  totalPairsConsidered: number
-  emitted: number
-  byMapping: Record<string, number>
-} {
-  const out = extractCrossActivations(signals)
-  const byMapping: Record<string, number> = {}
-  for (const s of out) {
-    const k = s.name
-    byMapping[k] = (byMapping[k] ?? 0) + 1
-  }
-  // "considered" = (saju 활성 페어 수) × (astro 활성 페어 수) coarse estimate.
-  const sajuCount = signals.filter((s) => s.source === 'saju' && extractSajuKey(s)).length
-  const astroCount = signals.filter((s) => s.source === 'astro' && extractAstroKey(s)).length
-  return {
-    totalPairsConsidered: sajuCount * astroCount,
-    emitted: out.length,
-    byMapping,
-  }
-}

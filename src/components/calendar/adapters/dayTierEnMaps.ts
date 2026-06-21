@@ -14,24 +14,6 @@ export const GEOKGUK_STATUS_EN: Record<string, string> = {
   반성반파: 'Mixed',
 }
 
-/** 12운성 단계 KO→EN. interpretations.json twelveStages 와 동일 12단계 + 별칭. */
-export const TWELVE_STAGE_EN: Record<string, string> = {
-  장생: 'Birth',
-  목욕: 'Bath',
-  관대: 'Coming-of-age',
-  건록: 'Prime',
-  임관: 'Prime',
-  제왕: 'Peak',
-  왕지: 'Peak',
-  쇠: 'Decline',
-  병: 'Illness',
-  사: 'Death',
-  묘: 'Tomb',
-  절: 'Void',
-  태: 'Conception',
-  양: 'Nurture',
-}
-
 /**
  * 신살 KO→EN. interpretations.json shinsal 의 name_en 을 기준으로 흔한 것들을
  * 담았다(별칭 ~살 포함). 미상은 호출부에서 KO 폴백.
@@ -88,11 +70,6 @@ export const SHINSAL_EN: Record<string, string> = {
 /** 신살 EN 치환 — strip 트레일링 '살' 후 재시도, 미상은 KO 그대로. */
 export function shinsalEn(name: string): string {
   return SHINSAL_EN[name] ?? SHINSAL_EN[name.replace(/살$/, '')] ?? name
-}
-
-/** 12운성 EN 치환 — 미상은 KO 그대로. */
-export function twelveStageEn(stage: string): string {
-  return TWELVE_STAGE_EN[stage] ?? stage
 }
 
 /** 격국 성패 단어 EN 치환 — 미상은 KO 그대로. */

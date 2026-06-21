@@ -342,5 +342,3 @@ export function ElementRadar({ saju, lang = 'ko' }: ElementRadarProps) {
     </div>
   )
 }
-
-export default ElementRadar
