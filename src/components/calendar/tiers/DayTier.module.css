@@ -267,7 +267,7 @@
 .secNote {
   font-family: var(--dp-sans);
   font-size: 11.5px;
-  color: var(--dp-ink-faint);
+  color: var(--dp-ink-mute);
   letter-spacing: 0.01em;
 }
 
@@ -394,7 +394,7 @@
   flex: 0 0 auto;
   font-family: var(--dp-mono);
   font-size: 10px;
-  color: var(--dp-ink-faint);
+  color: var(--dp-ink-mute);
 }
 
 /* ---------- polarity chip ---------- */

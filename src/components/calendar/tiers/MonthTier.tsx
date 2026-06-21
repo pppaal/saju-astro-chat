@@ -273,9 +273,7 @@ export function MonthTier({ month, onDive, onRise, showRise = true }: MonthTierP
       {/* ===== 이달의 큰 날 (사주 × 점성 수렴) ===== */}
       {bigDays.length > 0 && (
         <>
-          <div className={styles.subhead}>
-            {ko ? '이달의 큰 날 · 사주 × 점성' : 'Key days · Saju × Astrology'}
-          </div>
+          <div className={styles.subhead}>{ko ? '이달의 큰 날' : 'Key days this month'}</div>
           <div className={styles.bigDays}>
             {bigDays.map((b) => (
               <div className={styles.bigDay} key={b.when}>

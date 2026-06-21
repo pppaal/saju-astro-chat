@@ -177,7 +177,7 @@ describe('MonthTier (정갈)', () => {
   describe('이달의 큰 날 (key days)', () => {
     it('renders the key-days heading and entries', () => {
       render(<MonthTier month={makeMonth()} onDive={noop} onRise={noop} />)
-      expect(screen.getByText('이달의 큰 날 · 사주 × 점성')).toBeInTheDocument()
+      expect(screen.getByText('이달의 큰 날')).toBeInTheDocument()
       // best day 06-06 is marked 'best' → verdict prefix "좋은 날".
       expect(screen.getAllByText(/좋은 날/).length).toBeGreaterThan(0)
     })

@@ -439,7 +439,11 @@ export function DayTier({ day, voc, onRise, sex = '남' }: DayTierProps) {
       hasGoodReason: (day.topReasons ?? []).length > 0,
       hasCautionReason: (day.cautions ?? []).length > 0,
     })
-  const dayBand = verdict.band
+  // 행동 칩·분야별 조언은 *화해된 톤*(verdict.tone)을 따른다 — 헤드라인과 같은
+  // 단일 권위. 옛 코드는 원점수 밴드(verdict.band)를 써서 tense/bright 날
+  // (점수밴드 ↔ 신호톤이 어긋난 날) 헤드라인과 섹션 문구가 모순됐다.
+  const dayBand: DayVerdict['band'] =
+    verdict.tone === 'positive' ? 'good' : verdict.tone === 'caution' ? 'low' : 'mid'
 
   // hero 톤 단어 — 단일 verdict.tone 출처 (순풍/평이/역풍).
   const heroToneWord = ko

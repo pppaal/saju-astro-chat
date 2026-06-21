@@ -175,8 +175,15 @@
   width: 22px;
   background: var(--dp-accent-deep);
 }
+/* a11y: 색만으로 좋음↔주의를 가르지 않는다 — 좋음=솔리드 바, 주의=비운 캡슐.
+   색각 이상에서도 형태로 구분되도록. */
 .barCaution {
-  background: var(--dp-tone-mixed);
+  background: transparent;
+  height: 6px;
+  width: 16px;
+  border: 1.5px solid var(--dp-tone-mixed);
+  border-radius: 4px;
+  margin-top: 5px;
 }
 .barAvoid {
   background: transparent;
@@ -216,11 +223,12 @@
   border-color: var(--dp-ember);
 }
 
-/* 큰 날(수렴) — 주사 도장 점 (또 다른 채널) */
+/* 큰 날(수렴) — 주사 도장 점 (또 다른 채널). 셀 우상단 모서리에 고정 —
+   중앙 기준 calc 은 좁은 셀에서 오늘 링과 겹쳐서 모서리 앵커로 변경. */
 .keySeal {
   position: absolute;
   top: 6px;
-  right: calc(50% - 16px);
+  right: 6px;
   width: 5px;
   height: 5px;
   border-radius: 50%;
@@ -256,7 +264,10 @@
   background: var(--dp-accent);
 }
 .swatchCaution {
-  background: var(--dp-tone-mixed);
+  background: transparent;
+  height: 7px;
+  border: 1.5px solid var(--dp-tone-mixed);
+  border-radius: 4px;
 }
 .swatchAvoid {
   background: transparent;
