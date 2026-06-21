@@ -100,21 +100,6 @@ export function getSibsinKo(dayStem: string, targetStem: string): string {
 }
 
 // ── 운별 갑자 컨텍스트 ──
-export interface DaeunCycleInput {
-  age: number
-  heavenlyStem: string
-  earthlyBranch: string
-}
-export interface DaeunContext {
-  ganji: string
-  ageStart: number
-  ageEnd: number
-  sibsinStem: string
-  yearsToNext?: number
-  transitionImminent?: boolean
-  nextGanji?: string
-  nextSibsinStem?: string
-}
 export interface SewoonContext {
   ganji: string
   year: number
@@ -123,45 +108,6 @@ export interface SewoonContext {
 export interface GanjiSibsin {
   ganji: string
   sibsinStem: string
-}
-
-/** 그 날짜에 활성인 대운 — 출생연도 기준 소수 나이로 [age, age+10) 구간 선택. */
-export function pickDaeunForDate(
-  cycles: DaeunCycleInput[] | undefined,
-  birthYear: number | null,
-  natalDayMaster: string,
-  d: Date
-): DaeunContext | null {
-  if (!cycles?.length || birthYear == null) return null
-  const yearStart = new Date(d.getFullYear(), 0, 1).getTime()
-  const yearEnd = new Date(d.getFullYear() + 1, 0, 1).getTime()
-  const fractionalYear = d.getFullYear() + (d.getTime() - yearStart) / (yearEnd - yearStart)
-  // cycles[].age 는 만 나이 (daeunAge SSOT, 2026-06 +1 제거). 비교 기준도 만
-  // 나이 — fractionalYear - birthYear 로 일관 비교.
-  const ageAtDate = fractionalYear - birthYear
-  let activeIdx = 0
-  for (let i = 0; i < cycles.length; i++) {
-    if (cycles[i].age <= Math.floor(ageAtDate)) activeIdx = i
-    else break
-  }
-  const active = cycles[activeIdx]
-  if (!active) return null
-  const next = cycles[activeIdx + 1] || null
-  const daeunStem = active.heavenlyStem || ''
-  const sibsinStem = natalDayMaster && daeunStem ? getSibsinKo(natalDayMaster, daeunStem) : ''
-  const nextStem = next?.heavenlyStem || ''
-  const nextSibsinStem = natalDayMaster && nextStem ? getSibsinKo(natalDayMaster, nextStem) : ''
-  const yearsToNext = next ? Math.max(0, next.age - ageAtDate) : Infinity
-  return {
-    ganji: `${daeunStem}${active.earthlyBranch}`,
-    ageStart: active.age,
-    ageEnd: active.age + 10,
-    sibsinStem,
-    yearsToNext: next ? Number(yearsToNext.toFixed(2)) : undefined,
-    transitionImminent: next ? yearsToNext <= 1 : false,
-    nextGanji: next ? `${next.heavenlyStem}${next.earthlyBranch}` : undefined,
-    nextSibsinStem: next ? nextSibsinStem : undefined,
-  }
 }
 
 /** 세운 — 그 해 60갑자. */
