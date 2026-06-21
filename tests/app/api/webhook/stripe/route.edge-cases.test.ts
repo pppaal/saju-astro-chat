@@ -184,28 +184,28 @@ describe('Stripe Webhook Edge Cases (P1)', () => {
   })
 
   describe('Replay Attack Prevention', () => {
-    it('should reject events older than 5 minutes', async () => {
-      // Event created 10 minutes ago
-      const staleEvent = {
-        id: 'evt_stale_123',
+    it('does NOT reject events on old event.created (Stripe-retry fix)', async () => {
+      // 10분 전 created 의 이벤트 = Stripe 재시도(원본 created 유지). 예전엔 400
+      // 'too old' 로 거부돼 재시도가 영원히 막혔다 — 이제 서명만 유효하면 처리.
+      // Replay 방어는 constructEvent 서명 t= tolerance + eventId dedupe 담당.
+      const oldEvent = {
+        id: 'evt_old_123',
         type: 'checkout.session.completed',
         created: Math.floor(Date.now() / 1000) - 600, // 10 minutes ago
         livemode: false,
         api_version: '2023-10-16',
-        data: { object: {} },
+        data: { object: { metadata: { type: 'other' } } },
       }
 
-      mockStripeWebhooksConstructEvent.mockReturnValue(staleEvent)
+      mockStripeWebhooksConstructEvent.mockReturnValue(oldEvent)
 
       const { POST } = await import('@/app/api/webhook/stripe/route')
 
-      const request = createWebhookRequest(staleEvent, 'valid-sig')
+      const request = createWebhookRequest(oldEvent, 'valid-sig')
 
       const response = await POST(request)
-      const data = await response.json()
-
-      expect(response.status).toBe(400)
-      expect(data.error.message).toContain('too old')
+      // 400 'too old' 가 아니라 정상 처리(200).
+      expect(response.status).toBe(200)
     })
 
     it('should accept events within 5 minute window', async () => {
