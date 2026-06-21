@@ -25,6 +25,7 @@ import {
   type ErrorCode,
 } from '../errorHandler'
 import { initializeApiContext, extractLocale } from './context'
+import { enforceBodySize } from '@/lib/http'
 import type { ApiContext, ApiHandler, ApiHandlerResult, MiddlewareOptions } from './types'
 
 function mergeHeaderRecords(
@@ -96,6 +97,12 @@ export function withApiMiddleware<T>(handler: ApiHandler<T>, options: Middleware
     const route = options.route || new URL(req.url).pathname
 
     try {
+      // 본문 크기 선검사 — req.json() 버퍼링 전에 거대 본문을 413 으로 거부.
+      if (options.maxBodyBytes != null) {
+        const tooLarge = enforceBodySize(req, options.maxBodyBytes)
+        if (tooLarge) return tooLarge
+      }
+
       // Initialize context
       const { context, error } = await initializeApiContext(req, options)
       const rateLimitHeaders: Headers | undefined = context.rateLimitHeaders
