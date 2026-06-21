@@ -693,11 +693,21 @@ export function DayTier({ day, voc, onRise, sex = '남' }: DayTierProps) {
           ↑/↓ 리스트로 역할을 나눈다. (옛 반원 게이지는 톤별 고정 비율의 장식이라
           제거 — 점수는 정직한 숫자 한 줄로.) ── */}
       <div className={styles.dayHead}>
+        {/* 기준선 — 본명 일간(日干). 그날 십신이 이 일간 기준으로 매겨지므로 "누구
+            기준인지"를 맨 위에 둔다(한자엔 음양오행 뜻을 붙여 읽힌다). */}
+        {day.dayMaster && (
+          <div className={styles.dmRef}>
+            <span className={styles.dmHan}>{day.dayMaster.hanja}</span>
+            <span className={styles.dmMeaning}>
+              {ko ? `내 일간 · ${day.dayMaster.kr} 기준` : `your day master · ${day.dayMaster.en}`}
+            </span>
+          </div>
+        )}
         <div className={styles.iljinBig}>
           <span className="han">{day.iljin.hanja}</span>
           <div className="meta">
             <div className="kr">
-              {day.iljin.kr} · {ko ? '일진' : 'day pillar'}
+              {day.iljin.kr} · {ko ? '오늘의 일진' : "today's pillar"}
             </div>
             <div className="ss">
               {ko

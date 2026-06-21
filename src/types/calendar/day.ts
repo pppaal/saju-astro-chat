@@ -194,6 +194,13 @@ export interface DestinyDay extends DestinyIljinHeader {
   /** 본명 4기둥(천간) × 일진 지지 12운성 (기둥별 실제값). */
   twelveStageMatrix: Array<{ pillar: string; stem: string; branch: string; stage: string }>
 
+  /**
+   * 본명 일간(日干, day master) — 그날 해석의 *기준*. 일진(오늘 간지)은 이 일간을
+   * 기준으로 십신이 매겨지므로, 화면 맨 위에 "누구 기준인지"를 보여준다.
+   * (assembleTiers 가 user.ilgan 에서 채움.)
+   */
+  dayMaster?: { hanja: string; kr: string; en: string }
+
   // ── 타이밍 컨텍스트 (캘린더용 — assembleTiers 가 주변 날짜에서 채움) ──
   /** 이달 일별 점수 — 흐름 추이선용. day=1..31, score=0..100, today 표시. */
   monthScores?: Array<{ day: number; score: number; today: boolean }>

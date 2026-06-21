@@ -745,6 +745,8 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
     dateKo: dayAdapter.dateKo,
     iljin: dayAdapter.iljin,
     iljinSibsin: dayAdapter.iljinSibsin,
+    // 본명 일간 — 그날 십신의 기준점. 화면 맨 위 기준선에 노출.
+    dayMaster: { hanja: user.ilgan.hanja, kr: user.ilgan.kr, en: user.ilgan.en },
     score: dayAdapter.score,
     oneLine: dayAdapter.oneLine,
     totalSignals: dayAdapter.totalSignals,

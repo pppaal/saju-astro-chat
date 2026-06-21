@@ -29,6 +29,7 @@ function makeDay(over: Partial<DestinyDay> = {}): DestinyDay {
     dateKo: '2024년 6월 15일',
     iljin: { hanja: '甲子', kr: '갑자', en: 'gapja' },
     iljinSibsin: '편재',
+    dayMaster: { hanja: '辛', kr: '신금', en: 'Sin · Yin Metal' },
     score: 72,
     oneLine: '오늘은 재물의 기운이 흐르는 날',
     totalSignals: 5,
@@ -145,8 +146,20 @@ describe('DayTier', () => {
     it('renders the iljin hanja and korean reading', () => {
       setup()
       expect(screen.getByText('甲子')).toBeInTheDocument()
-      // 정갈 hero: kr reading sits on the "갑자 · 일진" line.
-      expect(screen.getByText(/갑자 · 일진/)).toBeInTheDocument()
+      // 정갈 hero: kr reading sits on the "갑자 · 오늘의 일진" line.
+      expect(screen.getByText(/갑자 · 오늘의 일진/)).toBeInTheDocument()
+    })
+
+    it('shows the natal day master as the reference line at the top (ko)', () => {
+      setup()
+      expect(screen.getByText('辛')).toBeInTheDocument()
+      expect(screen.getByText(/내 일간 · 신금 기준/)).toBeInTheDocument()
+    })
+
+    it('shows the day master reference in English', () => {
+      mockLocale = 'en'
+      setup()
+      expect(screen.getByText(/your day master · Sin · Yin Metal/)).toBeInTheDocument()
     })
 
     it('renders the one-line summary', () => {

@@ -60,6 +60,29 @@
 .dayHead {
   margin-top: 4px;
 }
+/* 기준선 — 본명 일간(日干). 그날 해석의 기준점을 맨 위에 둔다. */
+.dmRef {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+  margin-bottom: 12px;
+  padding-bottom: 11px;
+  border-bottom: 1px solid var(--dp-line-soft);
+}
+.dmHan {
+  font-family: var(--dp-serif);
+  font-size: 22px;
+  line-height: 1;
+  letter-spacing: 0.04em;
+  color: var(--dp-ink-dim);
+}
+.dmMeaning {
+  font-family: var(--dp-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--dp-ink-mute);
+}
 .iljinBig {
   display: flex;
   align-items: flex-start;
@@ -120,10 +143,10 @@
 }
 .iljinBig .score .n {
   font-family: var(--dp-serif);
-  font-weight: 500;
-  font-size: 24px;
+  font-weight: 600;
+  font-size: 27px;
   line-height: 1;
-  color: var(--dp-ink-dim);
+  color: var(--dp-ink);
 }
 .iljinBig .score .cap {
   font-family: var(--dp-mono);
