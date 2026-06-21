@@ -461,6 +461,10 @@ export function DayTier({ day, voc, onRise, sex = '남' }: DayTierProps) {
 
   // ── 오늘 깊이 읽기 — 일진 십신 + 사주×점성 교차 페어 + 화해 톤을 이어 붙인
   //    합성 해석 문단(결정론·근거 기반, 지어내지 않음). ──
+  // 그날 가장 센 시진(時) — 사전 매칭 우선, 그다음 강도. 깊이읽기 타이밍 한 줄용.
+  const peakHourSrc = [...(day.hourCrossings ?? [])].sort(
+    (a, b) => Number(b.matched) - Number(a.matched) || b.strength - a.strength
+  )[0]
   const deepRead = deriveDayDeepRead({
     iljinKr: day.iljin.kr,
     iljinSibsin: String(day.iljinSibsin),
@@ -472,6 +476,14 @@ export function DayTier({ day, voc, onRise, sex = '남' }: DayTierProps) {
         astroKo: c.astroKo as string,
         polarity: c.polarity,
       })),
+    shinsal: (day.shinsalActive ?? []).slice(0, 2).map((s) => ({ ko: s, en: shinsalEn(s) })),
+    peakHour: peakHourSrc
+      ? {
+          whenKo: peakHourSrc.when.replace(/\s*\(.*\)/, '').trim(),
+          whenEn: peakHourSrc.whenEn.replace(/\s*\(.*\)/, '').trim(),
+          tone: peakHourSrc.tone === 'good' ? 'good' : 'caution',
+        }
+      : null,
   })
 
   // ── 시간별 사주 × 점성 교차 — 켜지는 시진(십신) × 그 시각 상승궁. ──

@@ -71,6 +71,55 @@ describe('deriveDayDeepRead', () => {
     expect(deriveDayDeepRead(args)).toEqual(deriveDayDeepRead(args))
   })
 
+  it('weaves active shinsal (max 2) as a colon clause, ko + en', () => {
+    const r = deriveDayDeepRead({
+      ...base,
+      shinsal: [
+        { ko: '천을귀인', en: 'Heavenly Benefactor' },
+        { ko: '문창', en: 'Literary Star' },
+        { ko: '도화', en: 'Peach Blossom' },
+      ],
+    })
+    expect(r.ko).toContain('오늘 함께하는 기운: 천을귀인 · 문창.')
+    expect(r.ko).not.toContain('도화') // capped at 2
+    expect(r.en).toContain('Stars in play: Heavenly Benefactor · Literary Star.')
+  })
+
+  it('weaves the peak hour with a tone-appropriate clause', () => {
+    const good = deriveDayDeepRead({
+      ...base,
+      peakHour: { whenKo: '09–11시', whenEn: '9–11am', tone: 'good' },
+    })
+    expect(good.ko).toContain('특히 09–11시, 결이 또렷해집니다.')
+    expect(good.en).toContain('Especially around 9–11am, the day reads clearest.')
+
+    const care = deriveDayDeepRead({
+      ...base,
+      peakHour: { whenKo: '17–19시', whenEn: '5–7pm', tone: 'caution' },
+    })
+    expect(care.ko).toContain('특히 17–19시, 한 박자 조심하세요.')
+    expect(care.en).toContain('ease off a beat')
+  })
+
+  it('orders sentences opener → crosses → shinsal → hour → tone close', () => {
+    const r = deriveDayDeepRead({
+      ...base,
+      tone: 'mixed',
+      crosses: [{ sajuKo: '편관', astroKo: '화성', polarity: -2 }],
+      shinsal: [{ ko: '천을귀인', en: 'Heavenly Benefactor' }],
+      peakHour: { whenKo: '09–11시', whenEn: '9–11am', tone: 'good' },
+    })
+    const iOpener = r.ko.indexOf('오늘은 갑자')
+    const iCross = r.ko.indexOf('편관 × 화성')
+    const iShinsal = r.ko.indexOf('함께하는 기운')
+    const iHour = r.ko.indexOf('특히 09–11시')
+    const iClose = r.ko.indexOf('한 박자 늦추세요')
+    expect(iOpener).toBeLessThan(iCross)
+    expect(iCross).toBeLessThan(iShinsal)
+    expect(iShinsal).toBeLessThan(iHour)
+    expect(iHour).toBeLessThan(iClose)
+  })
+
   it('does not glue Korean particles directly onto dynamic pair text', () => {
     const r = deriveDayDeepRead({
       ...base,

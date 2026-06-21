@@ -38,6 +38,10 @@ export interface DayDeepReadArgs {
   tone: DeepReadTone
   /** 그날 사주×점성 교차 페어 (polarity 포함). */
   crosses: DeepReadCross[]
+  /** 그날 활성 신살 (이미 ko/en 한 쌍으로). 있으면 한 줄 더 엮는다. */
+  shinsal?: Array<{ ko: string; en: string }>
+  /** 그날 가장 센 시진(時) — 시각창 + 길/주의 톤. 있으면 타이밍 한 줄. */
+  peakHour?: { whenKo: string; whenEn: string; tone: 'good' | 'caution' } | null
 }
 
 // KO 행성명 → EN (교차 페어 EN 표기용). plainLanguage 의 행성 평이어와 별개로
@@ -107,7 +111,23 @@ export function deriveDayDeepRead(args: DayDeepReadArgs): { ko: string; en: stri
     en.push(`${pos ? 'That said, ' : ''}${pairEn(neg)} — these grind, so take it a beat carefully.`)
   }
 
-  // 4) 톤 마무리.
+  // 4) 신살 — 그날 함께하는 기운(최대 2개). 동적 텍스트엔 조사 안 붙이고 콜론으로.
+  if (args.shinsal?.length) {
+    const ss = args.shinsal.slice(0, 2)
+    ko.push(`오늘 함께하는 기운: ${ss.map((x) => x.ko).join(' · ')}.`)
+    en.push(`Stars in play: ${ss.map((x) => x.en).join(' · ')}.`)
+  }
+
+  // 5) 시진(時) — 가장 센 시각의 타이밍 한 줄.
+  if (args.peakHour) {
+    const good = args.peakHour.tone === 'good'
+    ko.push(`특히 ${args.peakHour.whenKo}, ${good ? '결이 또렷해집니다' : '한 박자 조심하세요'}.`)
+    en.push(
+      `Especially around ${args.peakHour.whenEn}, ${good ? 'the day reads clearest' : 'ease off a beat'}.`
+    )
+  }
+
+  // 6) 톤 마무리.
   ko.push(TONE_CLOSE[args.tone].ko)
   en.push(TONE_CLOSE[args.tone].en)
 
