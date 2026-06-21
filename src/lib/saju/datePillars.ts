@@ -79,6 +79,16 @@ function getMonthRefForDate(date: Date): SajuMonthRef {
 }
 
 /**
+ * The saju *year number* `date` falls in. Flips at 입춘 (term 2), not 1/1 —
+ * 1/1 ~ 입춘 still belongs to the previous saju year. Use this anywhere a
+ * 세운 ganji is labelled with a year, so the number and the ganji agree
+ * (Gregorian getFullYear would disagree across the 입춘 boundary).
+ */
+export function getSajuYearForDate(date: Date): number {
+  return getMonthRefForDate(date).sajuYear
+}
+
+/**
  * The year-pillar stem for the saju year `date` falls in.
  * 60갑자: idx = (sajuYear - 4) mod 10 / 12.
  */
