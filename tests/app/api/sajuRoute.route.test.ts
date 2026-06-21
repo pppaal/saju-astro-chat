@@ -12,7 +12,6 @@
  *  - 비로그인(게스트) → isPremium:false
  *  - longitude 가 캐시 키 segment 로 들어가는지
  *  - calendarType='solar' 인데 lunarLeap=true → 무시(false 로 정규화)
- *  - pickCurrentDaeun 헬퍼(viewer 연도 기준 대운 current 재선택)
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest'
@@ -190,7 +189,7 @@ vi.mock('@/app/api/saju/services', () => ({
   performAnalyses: vi.fn(() => ({ summary: 'ok' })),
 }))
 
-import { POST, pickCurrentDaeun } from '@/app/api/saju/route'
+import { POST } from '@/app/api/saju/route'
 import { calculateSajuData } from '@/lib/saju/saju'
 
 function makeReq(body: unknown) {
@@ -324,31 +323,5 @@ describe('POST /api/saju', () => {
     expect(data.data.relations).toBeDefined()
     expect(data.data.analyses).toBeDefined()
     expect(data.data.analysisDate).toBe('2026-06-21')
-  })
-})
-
-describe('pickCurrentDaeun', () => {
-  const list = [{ age: 5 }, { age: 15 }, { age: 25 }, { age: 35 }]
-
-  it('viewer 한국나이 이상인 가장 늦게 진입한 항목을 고른다', () => {
-    // viewerAge = 2020 - 1990 + 1 = 31 → age<=31 중 최대 = 25
-    const picked = pickCurrentDaeun(list, 2020, 1990, null)
-    expect(picked).toEqual({ age: 25 })
-  })
-
-  it('나이가 첫 진입 미만이면 첫 항목으로 폴백', () => {
-    // viewerAge = 1992 - 1990 + 1 = 3 → 매칭 없음 → list[0]
-    const picked = pickCurrentDaeun(list, 1992, 1990, null)
-    expect(picked).toEqual({ age: 5 })
-  })
-
-  it('list 가 비어있으면 fallback 반환', () => {
-    const fb = { age: 99 }
-    expect(pickCurrentDaeun([], 2020, 1990, fb)).toBe(fb)
-  })
-
-  it('birthYear 가 비유한이면 fallback 반환', () => {
-    const fb = { age: 99 }
-    expect(pickCurrentDaeun(list, 2020, NaN, fb)).toBe(fb)
   })
 })

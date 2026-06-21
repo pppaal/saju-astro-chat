@@ -465,7 +465,7 @@ export async function buildDestinyContext(
       const houseTag = placeUnreliable ? '' : ` H${p.house}`
       posLines.push(`  ${pl(p.name)} ${sgn(p.sign)}${houseTag}${p.retrograde ? ' R' : ''}${dgTag}`)
     }
-    if (!placeUnreliable) {
+    if (!placeUnreliable && aFacts.natal.ascendant && aFacts.natal.mc) {
       posLines.push(
         `  ${pl('Ascendant')} ${sgn(aFacts.natal.ascendant.sign)}`,
         `  ${pl('MC')} ${sgn(aFacts.natal.mc.sign)}`

@@ -59,7 +59,11 @@ export interface AstroFactsInput {
 export interface PlanetFact {
   name: string
   sign: string
-  house: number
+  /**
+   * 하우스 배치 — ASC 의존. placeUnreliable(출생시각/출생지 미상) 시 자정 폴백
+   * ASC 로 계산된 "그럴듯하지만 틀린" 하우스가 새어나가지 않도록 null.
+   */
+  house: number | null
   longitude: number
   retrograde: boolean
   /** dignity tier — 'domicile' | 'exaltation' | 'detriment' | 'fall' | 'peregrine' 등. */
@@ -76,12 +80,20 @@ export interface AspectFact {
 export interface AstroFacts {
   natal: {
     planets: PlanetFact[]
-    ascendant: { sign: string; longitude: number }
-    mc: { sign: string; longitude: number }
+    /**
+     * 상승점 — ASC 의존이라 placeUnreliable(출생시각/출생지 미상) 시 null.
+     * 엔진이 스스로 가려, _chart 가 아닌 facts.natal 을 읽는 호출처(상담사·
+     * 캘린더 등)는 자정 폴백 ASC 에 절대 노출되지 않는다.
+     */
+    ascendant: { sign: string; longitude: number } | null
+    /** 중천점 — ASC 와 동일하게 placeUnreliable 시 null. */
+    mc: { sign: string; longitude: number } | null
     /**
      * 출생 시각·출생지 미상 여부 — ASC/MC/하우스 표시 자체를 막아야 하는지
      * 호출처가 결정. 안 막으면 엔진은 자정/서울 폴백으로 "그럴듯하지만 틀린"
      * 하우스/각을 만들어낸다. defense-in-depth 의 source 플래그.
+     * placeUnreliable 시 facts 의 ascendant/mc/planet.house 는 이미 null —
+     * 호출처가 플래그를 잊어도 엔진 출력 자체가 자기보호적.
      */
     placeUnreliable: boolean
   }
@@ -179,11 +191,12 @@ export async function collectAstroFacts(
   const chart = toChart(natal)
   const placeUnreliable = !!input.birthTimeUnknown || !!input.birthCityUnknown
 
-  // 행성 — sign / house / dignity 평탄화
+  // 행성 — sign / house / dignity 평탄화.
+  // house 는 ASC 의존 → placeUnreliable 면 null (자정 폴백 하우스 누출 차단).
   const planets: PlanetFact[] = natal.planets.map((p) => ({
     name: p.name,
     sign: p.sign,
-    house: p.house,
+    house: placeUnreliable ? null : p.house,
     longitude: p.longitude,
     retrograde: !!p.retrograde,
     dignity: dignityOf(p.name, p.sign) ?? 'peregrine',
@@ -264,8 +277,12 @@ export async function collectAstroFacts(
   return {
     natal: {
       planets,
-      ascendant: { sign: natal.ascendant.sign, longitude: natal.ascendant.longitude },
-      mc: { sign: natal.mc.sign, longitude: natal.mc.longitude },
+      // ASC/MC 도 ASC 의존 → placeUnreliable 면 null. 엔진이 자정 폴백 각을
+      // 스스로 가려 facts.natal 을 읽는 비-LLM 소비자(리포트 등)도 안전.
+      ascendant: placeUnreliable
+        ? null
+        : { sign: natal.ascendant.sign, longitude: natal.ascendant.longitude },
+      mc: placeUnreliable ? null : { sign: natal.mc.sign, longitude: natal.mc.longitude },
       placeUnreliable,
     },
     aspects: { strong, mid },

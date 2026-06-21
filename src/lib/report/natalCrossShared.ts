@@ -91,7 +91,14 @@ export function normSajuElement(x: string | undefined): SajuElement | undefined 
   return (SAJU_ELS as string[]).includes(lower) ? (lower as SajuElement) : undefined
 }
 
-/** 점성 sign → 사주 5원소. air 는 무손실 대응이 없어 목(확장·움직임)으로 근사. */
+/**
+ * 점성 sign → 사주 5원소. air 는 무손실 대응이 없어 목(木, 확장·움직임)으로 근사.
+ *
+ * air→오행 근사 계약(SSOT, 단일값): air→'wood'. 이 단일값 계약이 cross 평가기 전체의
+ * 기준이며 evalVoid 도 같은 단일값으로 맞춘다 — 같은 공기 별자리가 평가기마다 다른 판정을
+ * 내지 않도록(ENGINE-AUDIT E7). elementBridge 의 ASTRO_TO_SAJU(air→[wood,metal])는
+ * 더 넓은 후보 집합이지만, cross 판정은 이 단일값 계약을 정본으로 쓴다.
+ */
 export function signToSajuElement(sign: string | undefined): SajuElement | undefined {
   if (!sign) return undefined
   const a = SIGN_TO_ASTRO_ELEMENT[sign]

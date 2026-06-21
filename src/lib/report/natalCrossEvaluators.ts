@@ -804,18 +804,21 @@ export function evalVoid(
   const branchEl = BRANCH_TO_ELEMENT[gongmangBranches[0]]
   const enSign = toEnSign(southNodeSign) ?? southNodeSign
   const astroEl = SIGN_TO_ASTRO_ELEMENT[enSign]
-  // 4원소(air) → 사주(wood/metal) 대응 시 둘 중 하나라도 일치하면 매치로 본다.
-  const sajuFromAstro: SajuElement[] | undefined =
+  // air→오행 근사 계약(SSOT): air 는 사주 5원소에 무손실 대응이 없어 木으로 근사한다
+  // — signToSajuElement(air→'wood') 와 동일한 단일값 계약을 따라 평가기 간 판정을
+  // 일관되게 맞춘다. (이전엔 여기서만 wood+metal 을 인정해 같은 공기 별자리가 평가기마다
+  // 다른 판정을 냈다 — ENGINE-AUDIT E7.)
+  const sajuFromAstro: SajuElement | undefined =
     astroEl === 'fire'
-      ? ['fire']
+      ? 'fire'
       : astroEl === 'earth'
-        ? ['earth']
+        ? 'earth'
         : astroEl === 'water'
-          ? ['water']
+          ? 'water'
           : astroEl === 'air'
-            ? ['wood', 'metal']
+            ? 'wood'
             : undefined
-  const matches = !!branchEl && !!sajuFromAstro && sajuFromAstro.includes(branchEl)
+  const matches = !!branchEl && sajuFromAstro === branchEl
 
   if (matches) {
     // 둘 다 같은 자리를 가리키므로 두 시스템은 '합의'한다(resonant). 내용이 어렵다는
@@ -877,6 +880,10 @@ export function evalNorthNode(
   if (nn === weak)
     return {
       tone: 'resonant',
+      // 결핍 수렴(가장 약한 오행 = 노스노드 방향)은 evalVoid 와 같은 부류의 '결핍 축'이다.
+      // 두 시스템이 같은 '채워야 할 빈자리'를 짚는 합의(resonant)이지만 강점 수렴이 아니라
+      // 평생 성장 숙제라, evalVoid 처럼 karmaAxis 로 '잘 맞아요' 집계에서만 분리한다.
+      karmaAxis: true,
       reason: {
         ko: `이번 생 키워야 할 방향을 동·서양이 둘 다 ${tw.ko} 쪽으로 짚어요 — 타고난 가장 약한 결과 별자리가 보는 성장 방향이 같은 곳을 가리키는, 보기 드물게 또렷한 성장 신호예요. 처음엔 어색하고 불편한 영역이라 자꾸 피하게 되지만, 바로 그 불편함을 통과하는 게 이번 생의 핵심 성장이에요. 잘하는 것만 반복하지 말고 이 ${tw.ko} 쪽에 의식적으로 시간을 들이면, 인생이 한 단계 열려요.`,
         en: `Both systems point your growth the same way — toward the ${tw.en} — your weakest Saju element and your growth direction landing on the same spot, an unusually clear growth signal. It feels awkward and uncomfortable at first, so you keep avoiding it, but passing through exactly that discomfort is this life's core growth. Don't just repeat what you're good at — invest deliberate time in the ${tw.en} side and life opens to a new level.`,
