@@ -5,7 +5,7 @@
       "dominant": {
         "title": "독립·자기 사업 면",
         "meaning": "당신은 자기 주장이 강하고 동료·형제·경쟁자가 인생에 큰 영향을 주는 사람이에요. 혼자 결정하고 혼자 움직일 때 효율이 가장 좋아요. 조직보다 1인 사업·프리랜서·전문직이 잘 맞아요.",
-        "warning": "고집과 고립을 조심하세요. 비겁이 3개 이상이면 자아가 너무 강해 협력에 의식적 노력이 필요해요. 재물 손실과 동업 갈등이 자주 따라와요."
+        "warning": "고집과 고립을 조심하세요. 비겁이 강하면 자아가 뚜렷해 협력에는 의식적인 노력이 필요해요. 금전·동업에서 마찰이 생기기 쉬우니 경계를 분명히 하면 좋아요."
       },
       "missing": {
         "title": "의존·뒷받침 받는 면",
@@ -22,7 +22,7 @@
       "dominant": {
         "title": "Independent / Solo-business signature",
         "meaning": "You have a strong sense of self, and peers, siblings, and rivals shape your life heavily. You work most efficiently when you decide and act alone. Solo business, freelancing, and specialist work suit you better than corporate structures.",
-        "warning": "Beware of stubbornness and isolation. Three or more Bigeop stars mean a very strong ego — collaboration takes conscious effort. Financial losses and conflicts with business partners often follow."
+        "warning": "Beware of stubbornness and isolation. Strong Bigeop means a clear, firm ego, so collaboration takes conscious effort. Money and partnerships can rub — keeping boundaries clear helps."
       },
       "missing": {
         "title": "Dependent / Support-seeking signature",
@@ -73,11 +73,11 @@
   },
   "재성": {
     "ko": {
-      "category_meaning": "정재 + 편재 — 돈·재물·이성(남자에게 여자)·현실 감각",
+      "category_meaning": "정재 + 편재 — 돈·재물·이성/배우자 인연·현실 감각",
       "dominant": {
         "title": "돈·사업·이성 면",
         "meaning": "당신은 돈의 흐름을 보는 눈이 밝고 현실 감각이 뛰어난 사람이에요. 사업·투자·영업에 적성이 있고 이성 인연도 풍부해요. 편재가 강하면 큰돈을 다루는 그릇이에요.",
-        "warning": "재성이 너무 많으면 오히려 재물이 새고 인성(공부·정신)이 무너져요. 여자 문제·과소비·도박성 투자를 조심하세요. 부모(특히 모친)와의 갈등도 자주 따라와요."
+        "warning": "재성이 너무 많으면 오히려 재물이 새고 인성(공부·정신)이 약해지기 쉬워요. 이성 관계나 과소비, 무리한 투자에는 균형이 필요해요. 가까운 가족과의 마찰도 신경 쓰면 좋아요."
       },
       "missing": {
         "title": "재물·현실감 부족 면",
@@ -90,11 +90,11 @@
       }
     },
     "en": {
-      "category_meaning": "Jeongjae + Pyeonjae — money, wealth, romantic partners (women for men), realism",
+      "category_meaning": "Jeongjae + Pyeonjae — money, wealth, romantic/partner ties, realism",
       "dominant": {
         "title": "Money / Business / Romance signature",
         "meaning": "You have a sharp eye for the flow of money and strong real-world sense. Business, investing, and sales suit you, and romantic connections come abundantly. Strong Pyeonjae marks a vessel made for handling big money.",
-        "warning": "Too much Jaeseong actually leaks wealth and breaks down Inseong (study, intellect). Watch out for romantic trouble, overspending, and gambling-style investments. Conflict with parents — especially the mother — often follows."
+        "warning": "Too much Jaeseong can leak wealth and weaken Inseong (study, intellect). Romance, overspending, and overreaching investments may need balance, and friction with close family can crop up."
       },
       "missing": {
         "title": "Lack of wealth / realism signature",
@@ -109,15 +109,15 @@
   },
   "관성": {
     "ko": {
-      "category_meaning": "정관 + 편관(칠살) — 직장·명예·권위·자식(여자에게)·규율",
+      "category_meaning": "정관 + 편관(칠살) — 직장·명예·권위·책임/자식 인연·규율",
       "dominant": {
         "title": "조직·명예·책임 면",
         "meaning": "당신은 책임감이 강하고 권위·지위·명예를 추구하는 사람이에요. 공무원·대기업·군경 같은 위계 조직에서 빛나요. 편관이 강하면 위기 돌파력과 카리스마가 뛰어나요.",
-        "warning": "관이 너무 많으면 압박·스트레스에 시달리고 건강이 무너져요. 칠살이 제압되지 않으면 송사·사고·관재가 따라와요. 여자에게는 남편·이성 문제가 복잡해질 수 있어요."
+        "warning": "관이 너무 많으면 압박·스트레스가 커지고 건강에 무리가 올 수 있어요. 과도하면 다툼·사고에 휘말리지 않도록 주의가 필요하고, 배우자·이성 관계의 균형에도 신경 쓰면 좋아요."
       },
       "missing": {
         "title": "자유·규율 약함 면",
-        "meaning": "당신은 조직·위계·규칙을 답답해하고 자유롭게 일할 때 능력을 내요. 직장 생활이 오래가지 못하고 책임 있는 자리를 부담스러워해요. 여자에게는 배우자 인연이 약할 수 있어요.",
+        "meaning": "당신은 조직·위계·규칙을 답답해하고 자유롭게 일할 때 능력을 내요. 직장 생활이 오래가지 못하고 책임 있는 자리를 부담스러워해요. 배우자 인연이 다소 약하게 느껴질 수 있어요.",
         "advice": "스스로 규율을 세우고 지키는 훈련이 필요해요. 자기 일정·약속·마감을 엄격히 관리해보세요. 프리랜서·1인 사업이 맞지만 최소한의 자기 통제는 꼭 필요해요."
       },
       "balanced": {
@@ -126,15 +126,15 @@
       }
     },
     "en": {
-      "category_meaning": "Jeonggwan + Pyeongwan (Chilsal) — career, honor, authority, children (for women), discipline",
+      "category_meaning": "Jeonggwan + Pyeongwan (Chilsal) — career, honor, authority, responsibility/children, discipline",
       "dominant": {
         "title": "Organization / Honor / Responsibility signature",
         "meaning": "You carry strong responsibility and pursue authority, status, and honor. You shine in hierarchical organizations like government, large corporations, or military and police. Strong Pyeongwan brings outstanding crisis-handling power and charisma.",
-        "warning": "Too much Gwanseong brings constant pressure and stress, and breaks down your health. If Chilsal is not subdued, lawsuits, accidents, and official troubles follow. For women, husband and romantic issues can grow complicated."
+        "warning": "Too much Gwanseong can bring heavy pressure and stress and strain your health. When it runs high, take care not to get pulled into conflicts or accidents, and keep balance in your partner and romantic relationships."
       },
       "missing": {
         "title": "Freedom / Weak-discipline signature",
-        "meaning": "You find organizations, hierarchies, and rules suffocating, and you perform best when working freely. You can't sustain corporate life long and feel burdened by positions of responsibility. For women, marital connection may be weak.",
+        "meaning": "You find organizations, hierarchies, and rules suffocating, and you perform best when working freely. You can't sustain corporate life long and feel burdened by positions of responsibility. A partner connection may feel somewhat weak.",
         "advice": "You need to train in building and keeping your own discipline. Strictly manage your schedule, commitments, and deadlines. Freelancing and solo business suit you, but minimum self-control is essential."
       },
       "balanced": {

@@ -153,6 +153,18 @@
   color: var(--asp-neutral);
 }
 
+/* dignity tier tone — L2 디그니티 리스트(dig*)와 동일 색계로 강·약 구분.
+   본궁=골드, 그 외 길=초록(우드), 흉=빨강(파이어), 중립은 .neutral 재사용. */
+.digDomicile {
+  color: var(--gold);
+}
+.digPositive {
+  color: var(--el-wood);
+}
+.digNegative {
+  color: var(--el-fire);
+}
+
 /* 펼침 표시 캐럿 — 접힘 상태에서도 "열 수 있음"이 보이도록(.l2 와 일관). */
 .box > summary::before {
   content: '✦';

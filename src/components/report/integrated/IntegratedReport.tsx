@@ -335,6 +335,13 @@ function AspectGrid({ astro, lang }: { astro: ReportData['astro']; lang: Lang })
 // ── 메인 ────────────────────────────────────────────────────────────────
 export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportProps) {
   const { input, saju: S, astro: A } = data
+  // 어댑터 전용 확장 필드(reportTypes 에 없는 보조 정보) — 옵셔널로 읽는다.
+  const extras = data as typeof data & {
+    geokgukMeta?: { confidence?: 'high' | 'medium' | 'low'; fallback?: boolean }
+    sibsinCategoryCount?: Record<string, number>
+  }
+  const geokgukMeta = extras.geokgukMeta
+  const sibsinCategoryCount = extras.sibsinCategoryCount
   const t = (k: keyof typeof UI): string => UI[k][lang]
   const pillarsArr: Array<
     [BiLabel, ReportData['saju']['pillars'][keyof ReportData['saju']['pillars']]]
@@ -345,15 +352,32 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
     [UI.pYear, S.pillars.year],
   ]
   const strengthPct = S.strength === 'strong' ? 76 : S.strength === 'weak' ? 28 : 52
-  const strengthState: SibsinState =
-    S.strength === 'strong' ? 'dominant' : S.strength === 'weak' ? 'missing' : 'balanced'
 
   // §02 격국 풀이 — geokguk-rich 사전. '미정' 이거나 매칭 없으면 자동 생략.
   const geok = S.geokguk && S.geokguk !== '미정' ? getGeokgukRich(S.geokguk, lang) : null
-  // §02 주도 십성 — 일지 십성 카테고리(정/편 통합) → 우세 상태 의미.
+  // §02 격국 신뢰도 — fallback(월령 본기 추정)/medium 이면 헤딩을 "추정 격국"으로
+  // 약화해 확정 정격으로 단정하지 않는다(CONVENTIONS §9).
+  const geokTentative = !!geokgukMeta?.fallback || geokgukMeta?.confidence === 'medium'
+  // §02 일지(배우자궁) 십성 — 일지 십성 카테고리(정/편 통합).
+  // 주의: 일지는 배우자궁 자리이지 월령 기반 "주도 십성"이 아니므로(C1) 카드 라벨을
+  // 정직하게 "일지(배우자궁) 십성"으로 단다. 우세/부족 상태는 일간 강약이 아니라
+  // 해당 카테고리의 실제 개수(sibsinCategoryCount)로 산출한다(C1-a).
   const domSibsinName = S.pillars.day.sibsinBranch || S.pillars.month.sibsinBranch || ''
   const domCategory = SIBSIN_NAME_TO_CATEGORY[domSibsinName]
-  const sibsinBlock = domCategory ? getSibsinCategory(domCategory, strengthState, lang) : null
+  const domCategoryCount = domCategory
+    ? (sibsinCategoryCount?.[domCategory] ?? undefined)
+    : undefined
+  // 카테고리 개수 기반 상태: 0개=부족 / 3개 이상=우세 / 그 외=균형.
+  // 카운트 정보가 없으면(구데이터) 균형으로 안전 폴백.
+  const sibsinState: SibsinState =
+    domCategoryCount === undefined
+      ? 'balanced'
+      : domCategoryCount === 0
+        ? 'missing'
+        : domCategoryCount >= 3
+          ? 'dominant'
+          : 'balanced'
+  const sibsinBlock = domCategory ? getSibsinCategory(domCategory, sibsinState, lang) : null
   // §01 일주 원형 — 일간+일지 간지 → ilju-60 사전.
   const dayGanji = `${S.pillars.day.stem}${S.pillars.day.branch}`
   const ilju = getIljuArchetype(dayGanji, lang)
@@ -371,7 +395,9 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
     dayMaster: S.dayMaster,
     ascTrait: A.ascendant ? (SIGN_TRAIT[abbr(A.ascendant.sign)]?.[lang] ?? null) : null,
     strengths: viralStrengths,
-    resonant: (cross?.rows ?? []).filter((r) => r.tone === 'resonant').map((r) => r.category),
+    resonant: (cross?.rows ?? [])
+      .filter((r) => r.tone === 'resonant' && !r.karmaAxis)
+      .map((r) => r.category),
     yongsinElement: S.yongsin.primary,
     lang,
   })
@@ -404,7 +430,11 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
           {[
             [t('metaBirth'), `${input.calendar} ${input.date.replace(/-/g, '.')} · ${input.time}`],
             [t('metaPlace'), input.place],
-            [t('metaCoord'), `${input.lat}°N · ${input.lng}°E`],
+            [
+              t('metaCoord'),
+              // 부호로 반구 분기 — 남반구(-lat)는 S, 서경(-lng)은 W (C7).
+              `${Math.abs(input.lat).toFixed(2)}°${input.lat < 0 ? 'S' : 'N'} · ${Math.abs(input.lng).toFixed(2)}°${input.lng < 0 ? 'W' : 'E'}`,
+            ],
             [t('metaTz'), input.timeZone],
             [t('metaHouse'), `${A.houseSystem} · ${A.sect === 'day' ? t('day') : t('night')}`],
             ['UTC', input.isoUTC],
@@ -445,6 +475,15 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
             암호 같던 한자 별명 줄은 위 ViralTopCard 가 평어로 대체. ── */}
         <div className={s.hero}>
           {cross?.synthesis && <p className={s.heroSummary}>{cross.synthesis}</p>}
+          {/* 정체성 화해 한 줄(I1) — 바이럴 일간 별명(겉)과 격국 유형(판 짜는 방식)이
+              다른 사람처럼 읽히지 않도록 둘을 잇는다. 둘 다 있을 때만. */}
+          {viral && geok?.tagline && (
+            <p className={s.heroSummary}>
+              {lang === 'en'
+                ? `Your "${viral.name}" face is how you show up, while "${geok.tagline}" is how you actually set up the game — same person, two layers.`
+                : `겉으로 드러나는 "${viral.name}" 기질과, 실제로 판을 짜는 "${geok.tagline}" 방식은 어긋나 보여도 결국 한 사람의 두 겹이에요.`}
+            </p>
+          )}
           {(() => {
             // 강점은 위 ViralTopCard 해시태그로 이동 — 여기선 '주의(약점)'만 남겨
             // 중복 제거. (Opus: top 카드 ↔ 히어로 강점 이중 노출 정리.)
@@ -797,14 +836,29 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
               </div>
             </div>
           </div>
-          {/* 격국 풀이 — geokguk-rich 사전. '미정'/매칭 없으면 자동 생략. */}
+          {/* 격국 풀이 — geokguk-rich 사전. '미정'/매칭 없으면 자동 생략.
+              fallback/medium(월령 본기 추정·투출 미확인)이면 헤딩을 "추정 격국"으로
+              약화하고 안내 줄을 덧붙여 확정 정격으로 단정하지 않는다(C2). */}
           {geok && (
             <div className={`${s.card} ${s.cardPad}`} style={{ marginTop: 16 }}>
-              <div className={s.subcap}>{t('geokgukCap')}</div>
+              <div className={s.subcap}>
+                {geokTentative
+                  ? lang === 'en'
+                    ? 'Tentative Structure · 格局'
+                    : '추정 격국 · 格局'
+                  : t('geokgukCap')}
+              </div>
               <div className={s.gaugeHead}>
                 {lang === 'ko' && <span className={s.mono}>{S.geokguk}</span>}
                 <b>{geok.tagline}</b>
               </div>
+              {geokTentative && (
+                <div className={s.themeReason} style={{ marginTop: 6, color: 'var(--ink-3)' }}>
+                  {lang === 'en'
+                    ? 'Estimated from the month-branch main qi (no confirmed reveal) — read as a tentative direction, not a settled verdict.'
+                    : '월지 본기로 추정한 격(투출 미확인)이에요 — 확정된 격이라기보다 대략의 방향으로 참고해 주세요.'}
+                </div>
+              )}
               <div className={s.themeReason} style={{ marginTop: 6 }}>
                 <b>{t('geokPersonality')}</b> {geok.personality}
               </div>
@@ -824,10 +878,16 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
               </div>
             </div>
           )}
-          {/* 주도 십성 — sibsin-category 사전. 매칭 없으면 자동 생략. */}
+          {/* 일지(배우자궁) 십성 — sibsin-category 사전. 매칭 없으면 자동 생략.
+              일지는 배우자궁 자리라 월령 기반 "주도 십성"이 아니므로(C1) 라벨을
+              정직하게 "일지(배우자궁) 십성"으로 둔다. */}
           {sibsinBlock && (
             <div className={`${s.card} ${s.cardPad}`} style={{ marginTop: 16 }}>
-              <div className={s.subcap}>{t('sibsinCap')}</div>
+              <div className={s.subcap}>
+                {lang === 'en'
+                  ? 'Day-Branch (Spouse Palace) Ten God · 十星'
+                  : '일지(배우자궁) 십성 · 十星'}
+              </div>
               <div className={s.gaugeHead}>
                 <span>{sibsinLabel(domSibsinName, lang)}</span>
                 <b>{sibsinBlock.title}</b>
@@ -1141,6 +1201,9 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
             {(() => {
               const counts = { resonant: 0, complement: 0, tension: 0, neutral: 0 }
               cross.rows.forEach((r) => {
+                // 공망/카르마(결핍 축)는 resonant 톤이라도 강점 수렴이 아니라 평생 숙제라
+                // '잘 맞아요' 막대에 섞지 않는다(아래 별도 '숙제' 줄로 안내).
+                if (r.karmaAxis) return
                 counts[r.tone]++
               })
               const segs = (['resonant', 'complement', 'tension', 'neutral'] as const).filter(
@@ -1223,8 +1286,8 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
                         {lang === 'en' ? 'East and West agree on ' : '동·서양이 똑같이 가리키는 '}
                         <b>{reson.join(' · ')}</b>
                         {lang === 'en'
-                          ? ' — two systems converging means this is your most unshakable core. Make it the center of your work and brand.'
-                          : '은(는) 두 점술이 독립적으로 합의한 지점 — 가장 흔들리지 않는 정체성 코어예요. 직업·브랜딩의 중심축으로 삼으세요.'}
+                          ? ' — two systems converging suggests this is one of your steadiest cores, so you might consider leaning on it in your work and the way you show up.'
+                          : '은(는) 두 점술이 독립적으로 합의한 지점 — 비교적 흔들리지 않는 정체성 코어로 보여요. 일이나 자기표현에서 이 결을 살려 활용해 볼 만해요.'}
                       </li>
                     )}
                     {tens.length > 0 && (
@@ -1253,6 +1316,17 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
             })()}
           </section>
         )}
+
+        {/* 면책 — 항상 노출(C3). 자기 이해용 참고일 뿐 전문 조언이 아님을 고지. */}
+        <div
+          className={s.foot}
+          role="note"
+          style={{ fontSize: 12, lineHeight: 1.5, color: 'var(--ink-3)' }}
+        >
+          {lang === 'en'
+            ? 'This report is for self-reflection only and is not a substitute for professional medical, legal, or financial advice.'
+            : '이 리포트는 자기 이해를 돕는 참고용이며, 의료·법률·재무 등 전문적 판단을 대신하지 않습니다.'}
+        </div>
 
         <div className={s.foot}>
           <span>四柱命理 × Tropical Natal · {A.houseSystem} House System</span>

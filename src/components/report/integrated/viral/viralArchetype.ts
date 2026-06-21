@@ -20,7 +20,7 @@ export const ARCHETYPE_BY_STEM: Record<string, Archetype> = {
     name: { ko: '뻗어나가는 개척자', en: 'The Trailblazer' },
     oneLiner: {
       ko: '한번 정한 방향으로 끝까지 밀고 나가는, 타고난 리더예요.',
-      en: 'A born leader who picks a direction and pushes it all the way through.',
+      en: 'A born leader — you pick a direction and push it all the way through.',
     },
   },
   乙: {
@@ -28,7 +28,7 @@ export const ARCHETYPE_BY_STEM: Record<string, Archetype> = {
     name: { ko: '유연한 생존가', en: 'The Adapter' },
     oneLiner: {
       ko: '부드러워 보여도 어떤 환경에서든 기어이 살아남는 끈기의 사람이에요.',
-      en: 'Soft on the surface, but quietly survives and bends without breaking anywhere.',
+      en: 'Soft on the surface, but you bend without breaking and survive any environment.',
     },
   },
   丙: {
@@ -89,10 +89,10 @@ export const ARCHETYPE_BY_STEM: Record<string, Archetype> = {
   },
   癸: {
     emoji: '💧',
-    name: { ko: '깊고 조용한 전략가', en: 'The Quiet Strategist' },
+    name: { ko: '깊이 느끼는 직관가', en: 'The Quiet Seer' },
     oneLiner: {
-      ko: '겉은 잔잔한데 속으론 끝까지 읽고 있는, 조용한 전략가예요.',
-      en: 'Calm on the surface, but reading every angle underneath — a quiet strategist.',
+      ko: '겉은 잔잔한데 속은 누구보다 깊이 느끼고 꿰뚫어 보는 사람이에요.',
+      en: 'Calm on the surface, but you feel and see deeper than anyone — quietly intuitive.',
     },
   },
 }

@@ -41,6 +41,13 @@ export interface CrossVerdict {
   /** 교차 그림용 — 사주(동양) 측 값 / 점성(서양) 측 값. */
   left?: { ko: string; en: string }
   right?: { ko: string; en: string }
+  /**
+   * 공망/카르마(결핍 축) 표식 — 두 시스템이 '같은 빈자리를 짚는다'는 합의(resonant
+   * 톤)이지만, 그건 강점 수렴이 아니라 '평생 숙제'다. '잘 맞아요/aligns well' 집계에
+   * 섞이면 막대그래프가 결핍 축을 강점으로 오인하게 하므로, 톤은 유지하되 이 플래그로
+   * 집계에서만 분리한다. 별도의 '숙제' 처방 라우팅은 그대로 둔다.
+   */
+  karmaAxis?: boolean
 }
 
 export interface NatalSynthesis {
@@ -104,6 +111,11 @@ export function signTraitOverride(
 // 공기 별자리는 원소명도 '木' 대신 '공기'로 표기 — 木(사주)과 헷갈리지 않도록.
 export function signElementLabel(sign: string | undefined): { ko: string; en: string } | undefined {
   return sign && SIGN_TO_ASTRO_ELEMENT[sign] === 'air' ? { ko: '공기', en: 'Air' } : undefined
+}
+// 공기 별자리인가 — air 는 사주 5원소에 무손실 대응이 없어 木으로 근사한다.
+// 이 근사에서 나온 '같은 결(same)' 판정은 거짓 수렴일 수 있어 헤지가 필요하다.
+export function isAirSign(sign: string | undefined): boolean {
+  return !!sign && SIGN_TO_ASTRO_ELEMENT[sign] === 'air'
 }
 
 export type ElementRelation = 'same' | 'aGenB' | 'bGenA' | 'aCtrlB' | 'bCtrlA' | 'none'

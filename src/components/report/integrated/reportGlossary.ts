@@ -67,6 +67,13 @@ export const GLOSSARY: Record<GlossarySection, GlossaryEntry[]> = {
       },
     },
     {
+      term: { ko: '십신 10가지 이름 (비견~정인)', en: 'The ten Ten-God names' },
+      body: {
+        ko: '비견(나와 같은 편·동료), 겁재(경쟁·승부 기운), 식신(편안한 표현·솜씨), 상관(톡톡 튀는 재주·말솜씨), 편재(크게 굴리는 돈·기회), 정재(꾸준히 모으는 돈), 편관(밀어붙이는 압박·도전), 정관(질서·책임·자리), 편인(독특한 배움·직관), 정인(꾸준한 배움·보살핌)을 뜻해요.',
+        en: 'Companion (peers, your own kind), Rob Wealth (rivalry, competitive drive), Eating God (easy self-expression, craft), Hurting Officer (sharp talent, way with words), Indirect Wealth (big-swing money, opportunity), Direct Wealth (steady, saved-up money), Seven Killings (pressure, challenge), Direct Officer (order, responsibility, status), Indirect Resource (unusual learning, intuition), Direct Resource (steady learning, nurture).',
+      },
+    },
+    {
       term: { ko: '지장간', en: 'Hidden stems' },
       body: {
         ko: '지지(아래 글자) 속에 숨어 있는 천간이에요. 겉으로 안 보여도 속에서 작용하는 기운을 보여줍니다.',
@@ -83,8 +90,8 @@ export const GLOSSARY: Record<GlossarySection, GlossaryEntry[]> = {
     {
       term: { ko: '신살 (역마살·도화살 등)', en: 'Symbolic stars (sinsal)' },
       body: {
-        ko: '특정 글자 조합에서 나오는 별칭 같은 기운이에요. 특별한 재능이나 주의점을 짚어줍니다.',
-        en: 'Nicknamed energies from certain character combos (Traveling Horse, Peach Blossom…), flagging talents or cautions.',
+        ko: '특정 글자 조합에서 나오는 별칭 같은 기운이에요. 재능이나 주의점에 색을 더해 주는데, 강약·격국·용신을 보조하는 참고 신호예요 (단독으로 단정하지 않아요).',
+        en: 'Nicknamed energies from certain character combos (Traveling Horse, Peach Blossom…). They color the main reading — a reference signal that supports strength, structure, and the useful element, not a verdict on its own.',
       },
     },
     {
@@ -127,8 +134,8 @@ export const GLOSSARY: Record<GlossarySection, GlossaryEntry[]> = {
     {
       term: { ko: '통근 · 공망 · 조후', en: 'Rooting · Void · Climate' },
       body: {
-        ko: '통근=내 기운이 뿌리내렸는지, 공망=비어서 작용이 약한 자리, 조후=계절상 더위·추위 균형을 보는 보조 지표예요.',
-        en: 'Secondary checks: Rooting (is your energy grounded), Void (empty, muted spots), Climate (seasonal hot/cold balance).',
+        ko: '세 가지 보조 점검이에요. 통근=내 글자가 아래 자리에 같은 기운을 받아 든든히 버티고 있는지, 공망=그 자리가 비어서 힘이 잘 안 실리는 곳, 조후=태어난 계절이 너무 덥거나 추워서 따뜻함·시원함으로 균형을 맞춰야 하는지를 봅니다.',
+        en: 'Three secondary checks. Rooting: whether your character has matching support beneath it so it stands firm. Void: a spot that sits empty, so energy does not land there well. Climate: whether your birth season runs too hot or too cold and needs warmth or cooling to balance.',
       },
     },
   ],
@@ -168,6 +175,13 @@ export const GLOSSARY: Record<GlossarySection, GlossaryEntry[]> = {
         en: 'ASC is your outward first impression; MC is your social standing and career direction.',
       },
     },
+    {
+      term: { ko: '주간 · 야간 (sect)', en: 'Sect (day · night)' },
+      body: {
+        ko: '해가 지평선 위에 있을 때(낮) 태어났는지, 아래에 있을 때(밤) 태어났는지로 차트를 주간·야간으로 나눠요. 낮 차트면 해 쪽 행성이, 밤 차트면 달 쪽 행성이 더 편하게 힘을 냅니다.',
+        en: 'Whether you were born with the Sun above the horizon (day) or below it (night) sorts the chart into day or night. In a day chart the Sun-side planets work more comfortably; in a night chart the Moon-side ones do.',
+      },
+    },
   ],
   s04: [
     {
@@ -178,10 +192,34 @@ export const GLOSSARY: Record<GlossarySection, GlossaryEntry[]> = {
       },
     },
     {
+      term: { ko: '오차각 (orb)', en: 'Orb' },
+      body: {
+        ko: '두 행성의 각도가 딱 떨어지는 값(예: 90°)에서 얼마나 벗어났는지 그 여유 폭이에요. 0°에 가까울수록 정확히 맞은 각이라 그만큼 더 강하게 작용해요.',
+        en: 'How far two planets sit from an exact angle (e.g. 90°) — the allowed wiggle room. The closer to 0°, the more exact the angle, and the stronger it works.',
+      },
+    },
+    {
+      term: { ko: '역행 (retrograde)', en: 'Retrograde' },
+      body: {
+        ko: '하늘에서 행성이 잠시 뒤로 가는 것처럼 보이는 때예요. 그 행성의 기운이 밖으로 뻗기보다 안으로 향하고 곱씹는 식으로 작동한다고 봅니다.',
+        en: 'A time when a planet appears to move backward in the sky. Its energy is read as turning inward and reflective rather than reaching outward.',
+      },
+    },
+    {
       term: { ko: '디그니티 (위계)', en: 'Dignities' },
       body: {
         ko: '행성이 자기 집처럼 편한 자리인지, 기죽는 자리인지 보는 점수 같은 거예요. 그 행성의 힘이 얼마나 잘 나오는지 알려줍니다.',
         en: 'Whether a planet sits in a comfortable "home" or a weak seat — like a score for how well its power comes through.',
+      },
+    },
+    {
+      term: {
+        ko: '본궁·고양·손상·쇠퇴 (디그니티 등급)',
+        en: 'Domicile · Exaltation · Detriment · Fall',
+      },
+      body: {
+        ko: '디그니티의 네 단계예요. 본궁=자기 집처럼 가장 편하고 힘이 잘 나오는 자리, 고양=손님으로 환대받아 빛나는 자리, 손상=가장 불편해 결대로 잘 안 풀리는 자리, 쇠퇴=기운이 약하게 가라앉는 자리예요.',
+        en: 'The four levels of dignity. Domicile: its own home, most at ease and full-strength. Exaltation: an honored-guest seat where it shines. Detriment: its least comfortable seat, where it works against its grain. Fall: a seat where its energy sinks and weakens.',
       },
     },
   ],

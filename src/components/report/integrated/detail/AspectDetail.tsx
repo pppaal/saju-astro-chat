@@ -28,6 +28,18 @@ const toneClass = (cls: 'hard' | 'soft' | 'neutral' | undefined): string => {
   return s.neutral
 }
 
+// 위계 등급별 색 — L2 디그니티 리스트(dig*)와 동일 색계로 강·약 구분을 시각화.
+// 본궁=골드, 그 외 길(고양/삼분궁/바운드/안면)=초록(우드), 흉(손상/추락)=빨강(파이어),
+// 중립(peregrine)·미지 등급=중립 회색.
+const dignityToneClass = (tier: string): string => {
+  if (tier === 'domicile') return s.digDomicile
+  if (tier === 'exaltation' || tier === 'triplicity' || tier === 'term' || tier === 'face') {
+    return s.digPositive
+  }
+  if (tier === 'detriment' || tier === 'fall') return s.digNegative
+  return s.neutral
+}
+
 export default function AspectDetail({ astro, lang }: AspectDetailProps) {
   const summary = lang === 'en' ? 'Aspects & dignities, explained' : '어스펙트·위계 뜻풀이'
   const aspectsCap = lang === 'en' ? 'Aspects between planets' : '행성 간 각도'
@@ -111,7 +123,7 @@ export default function AspectDetail({ astro, lang }: AspectDetailProps) {
                       {signName}
                       {signSuffix}
                     </span>
-                    <span className={`${s.label} ${s.neutral}`}>{tier}</span>
+                    <span className={`${s.label} ${dignityToneClass(d.tier)}`}>{tier}</span>
                   </div>
                   {meaning && <div className={s.meaning}>{meaning}</div>}
                 </div>

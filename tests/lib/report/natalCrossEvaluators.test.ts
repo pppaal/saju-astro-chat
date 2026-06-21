@@ -237,12 +237,14 @@ describe('evalKeyAspect — 필터·매칭', () => {
     expect(v.tone).toBe('resonant')
     expect(v.reason.ko).toContain('같은 결')
   })
-  it('orb 없는 각도 처리(99 fallback)', () => {
+  it('orb 없는 각도 처리(99 fallback) — 하드각이라 긴장', () => {
     const v = evalKeyAspect(
       [{ from: { name: 'Sun' }, to: { name: 'Mars' }, type: 'square' }],
       '인성'
     )!
-    expect(v.tone).toBe('complement') // Mars|Sun=비겁 != 인성
+    // Mars|Sun=비겁 != 인성. square 는 하드각이라 일치 여부와 무관하게 tension(C8a).
+    expect(v.tone).toBe('tension')
+    expect(v.reason.ko).toContain('마찰을 통해 단련')
   })
 })
 

@@ -144,7 +144,7 @@
       "name": "천왕성 (♅)",
       "principle": "혁신·자유·각성",
       "meaning": "당신 안의 가장 독특한 부분이 어디서 깨어나는지. 갑작스러운 변화와 자유를 추구하는 영역.",
-      "rules": "물병자리",
+      "rules": "물병자리 (현대 룰러십 / modern rulership)",
       "natal_strong": "강하게 배치되면 (11H + 좋은 각): 독창적이고 혁신적, 시대를 앞서가며 자유로운 사고",
       "natal_weak": "약하면 (어려운 각): 반항적이고 불안정함, 관계와 일에서 갑작스러운 단절을 반복",
       "keywords": ["혁신", "자유", "독창성", "각성", "반항", "변화"]
@@ -153,7 +153,7 @@
       "name": "Uranus (♅)",
       "principle": "Innovation · Freedom · Awakening",
       "meaning": "Where the most unique part of you wakes up — the area of sudden change and the drive for freedom.",
-      "rules": "Aquarius",
+      "rules": "Aquarius (modern rulership)",
       "natal_strong": "Strongly placed (11H + good aspects): original, innovative, ahead of the times, free-thinking",
       "natal_weak": "Weakly placed (hard aspects): rebellious and unstable, repeating sudden ruptures in relationships and work",
       "keywords": ["innovation", "freedom", "originality", "awakening", "rebellion", "change"]
@@ -164,7 +164,7 @@
       "name": "해왕성 (♆)",
       "principle": "꿈·영성·해체",
       "meaning": "당신의 경계가 녹아드는 곳. 영적 갈망, 예술적 영감, 그리고 환상과 혼란이 함께 오는 영역.",
-      "rules": "물고기자리",
+      "rules": "물고기자리 (현대 룰러십 / modern rulership)",
       "natal_strong": "강하게 배치되면 (12H + 좋은 각): 풍부한 상상력과 영적 감수성, 예술·치유 영역에서 빛남",
       "natal_weak": "약하면 (어려운 각): 현실 회피, 환상에 휩쓸리거나 경계가 흐려지기 쉬움, 자기기만이나 피해의식에 빠질 수 있음",
       "keywords": ["꿈", "영성", "환상", "예술", "자비", "해체"]
@@ -173,7 +173,7 @@
       "name": "Neptune (♆)",
       "principle": "Dream · Spirituality · Dissolution",
       "meaning": "Where your boundaries melt — the area of spiritual longing, artistic inspiration, and the fog of illusion.",
-      "rules": "Pisces",
+      "rules": "Pisces (modern rulership)",
       "natal_strong": "Strongly placed (12H + good aspects): rich imagination, spiritual sensitivity, shines in art and healing",
       "natal_weak": "Weakly placed (hard aspects): escapism, easily swept up in illusion or blurred boundaries, prone to self-deception or a victim mindset",
       "keywords": ["dream", "spirituality", "illusion", "art", "compassion", "dissolution"]
@@ -184,7 +184,7 @@
       "name": "명왕성 (♇)",
       "principle": "변형·권력·심층",
       "meaning": "당신이 죽고 다시 태어나는 영역. 깊이 숨겨진 힘과 트라우마, 그리고 진짜 변화가 일어나는 곳.",
-      "rules": "전갈자리",
+      "rules": "전갈자리 (현대 룰러십 / modern rulership)",
       "natal_strong": "강하게 배치되면 (8H + 좋은 각): 강렬한 카리스마와 회복력, 위기를 통과해 깊어지는 변형의 힘",
       "natal_weak": "약하면 (어려운 각): 통제·집착에 시달림, 권력 갈등이나 강박적 패턴을 반복",
       "keywords": ["변형", "권력", "죽음과 재생", "심층", "강박", "치유"]
@@ -193,7 +193,7 @@
       "name": "Pluto (♇)",
       "principle": "Transformation · Power · Depth",
       "meaning": "Where you die and are reborn — the area of buried power, trauma, and the place where real change happens.",
-      "rules": "Scorpio",
+      "rules": "Scorpio (modern rulership)",
       "natal_strong": "Strongly placed (8H + good aspects): intense charisma, deep resilience, transformative power forged through crisis",
       "natal_weak": "Weakly placed (hard aspects): plagued by control and obsession, repeating power struggles and compulsive patterns",
       "keywords": ["transformation", "power", "death and rebirth", "depth", "obsession", "healing"]

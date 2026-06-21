@@ -24,6 +24,7 @@ import {
   toEnSign,
   signTraitOverride,
   signElementLabel,
+  isAirSign,
   planetTheme,
   type CrossVerdict,
 } from './natalCrossShared'
@@ -49,6 +50,7 @@ export function evalIdentity(
     bEn: 'outer self',
     bTrait: signTraitOverride(sunSign),
     bLabel: signElementLabel(sunSign),
+    airApprox: isAirSign(sunSign),
   })
   const c = signToSajuElement(ascSign)
   if (!c) return base
@@ -514,6 +516,9 @@ export function evalPersona(
     aEn: 'inner self',
     bKo: '남에게 비치는 첫인상',
     bEn: 'first impression',
+    bTrait: signTraitOverride(ascSign),
+    bLabel: signElementLabel(ascSign),
+    airApprox: isAirSign(ascSign),
     tailKo:
       '첫인상과 진짜 속이 다른 만큼, 처음엔 가볍게 다가가되 시간을 두고 진짜 결을 보여주면 신뢰가 더 깊어져요.',
     tailEn:
@@ -688,13 +693,29 @@ interface AspectLike {
   orb?: number
 }
 
+// 각의 성질(하드/소프트/중립) — 톤·문구가 달라야 한다. 같은 행성쌍이라도
+// 스퀘어(하드)는 마찰을 통한 단련, 트라인(소프트)은 자연스러운 흐름이라 의미가 다르다.
+const HARD_ASPECTS = new Set(['square', 'opposition'])
+const SOFT_ASPECTS = new Set(['sextile', 'trine'])
+function aspectClass(type: string): 'hard' | 'soft' | 'neutral' {
+  if (HARD_ASPECTS.has(type)) return 'hard'
+  if (SOFT_ASPECTS.has(type)) return 'soft'
+  return 'neutral' // conjunction — 융합·증폭
+}
+
 /** 핵심 각: 가장 강한(orb 작은) 주요 행성 각 1개의 의미 ↔ 사주 우세 십신. */
 export function evalKeyAspect(
   aspects: AspectLike[] | undefined,
   sajuDominantGroup: string | undefined
 ): CrossVerdict | null {
   if (!aspects || aspects.length === 0) return null
-  let best: { key: string; pairKo: string; pairEn: string; orb: number } | null = null
+  let best: {
+    key: string
+    pairKo: string
+    pairEn: string
+    orb: number
+    cls: 'hard' | 'soft' | 'neutral'
+  } | null = null
   for (const a of aspects) {
     const p1 = a.from?.name
     const p2 = a.to?.name
@@ -707,17 +728,43 @@ export function evalKeyAspect(
     if (!best || orb < best.orb) {
       const pairKo = `${PLANET_LABEL[p1]?.ko ?? p1}·${PLANET_LABEL[p2]?.ko ?? p2}`
       const pairEn = `${PLANET_LABEL[p1]?.en ?? p1}–${PLANET_LABEL[p2]?.en ?? p2}`
-      best = { key, pairKo, pairEn, orb }
+      best = { key, pairKo, pairEn, orb, cls: aspectClass(type) }
     }
   }
   if (!best) return null
   const theme = ASPECT_PAIR_THEME[best.key]
   const matches = sajuDominantGroup === theme.group
+
+  // 톤: 하드각은 마찰각이라 일치해도 '강점'으로 단정하지 않고 긴장(단련)으로 둔다.
+  // 소프트각만 무조건 강점(일치 시 resonant). 컨정션(중립)은 융합·증폭이라 소프트처럼 취급.
+  const tone: CrossVerdict['tone'] =
+    best.cls === 'hard' ? 'tension' : matches ? 'resonant' : 'complement'
+
+  // 각 성질별 결(흐름) 문구 — 같은 행성쌍이라도 하드/소프트면 의미가 갈린다.
+  const flowKo =
+    best.cls === 'hard'
+      ? ' 다만 이 각은 긴장각이라 마찰을 통해 단련되는 결이에요 — 거저 주어지기보다 부딪히며 벼려지는 힘이라, 갈등을 피하지 않고 통과할 때 진짜 강점이 돼요.'
+      : best.cls === 'soft'
+        ? ' 이 각은 조화각이라 자연스럽게 흐르는 결이에요 — 애써 끌어내지 않아도 편하게 발휘되는 면이에요.'
+        : ' 이 각은 두 기운이 한 점에 융합돼 강하게 증폭되는 결이에요 — 좋게 쓰면 큰 무기지만 한쪽으로 쏠리기도 쉬워요.'
+  const flowEn =
+    best.cls === 'hard'
+      ? ' That said, this is a hard aspect, forged through friction — it isn’t handed to you but tempered by clashing, so it becomes a real strength only when you pass through the tension rather than avoid it.'
+      : best.cls === 'soft'
+        ? ' This is a soft aspect that flows naturally — a side that comes through with ease, without forcing.'
+        : ' This is a conjunction, where the two energies fuse at one point and amplify strongly — a great asset used well, but easy to over-lean on.'
+
+  const matchKo = matches
+    ? ' 사주의 우세 성향과도 같은 결이라, 이 면이 특히 도드라져요.'
+    : ' 사주가 본 우세 성향과는 결이 달라, 상황에 따라 꺼내 쓰는 또 하나의 카드예요.'
+  const matchEn = matches
+    ? '. Your dominant Saju trait runs the same grain, so this stands out.'
+    : '. It runs a different grain from your dominant Saju trait — another card to play as the situation calls.'
   return {
-    tone: matches ? 'resonant' : 'complement',
+    tone,
     reason: {
-      ko: `별자리가 보여주는 가장 또렷한 기질은 — ${theme.ko}${matches ? ' 사주의 우세 성향과도 같은 결이라, 이 면이 특히 도드라지고 평생 일관되게 나와요.' : ' 사주가 본 우세 성향과는 결이 달라, 상황에 따라 꺼내 쓰는 또 하나의 카드예요.'} 이런 기질은 평생 잘 안 변하는 기본 성격이라, 억지로 바꾸기보다 이 결을 그대로 살릴 자리를 찾는 게 훨씬 편하고 빨라요.`,
-      en: `The clearest trait your chart shows — ${theme.en.charAt(0).toLowerCase()}${theme.en.slice(1).replace(/\.$/, '')}${matches ? '. Your dominant Saju trait runs the same grain, so this stands out and shows up consistently for life.' : '. It runs a different grain from your dominant Saju trait — another card to play as the situation calls.'} This kind of trait is a lifelong baseline, so finding a place that uses it as-is is far easier than trying to remake it.`,
+      ko: `별자리가 보여주는 가장 또렷한 기질은 — ${theme.ko}${matchKo}${flowKo} 이런 기질은 평생 잘 안 변하는 기본 성격이라, 억지로 바꾸기보다 이 결을 그대로 살릴 자리를 찾는 게 훨씬 편하고 빨라요.`,
+      en: `The clearest trait your chart shows — ${theme.en.charAt(0).toLowerCase()}${theme.en.slice(1).replace(/\.$/, '')}${matchEn}${flowEn} This kind of trait is a lifelong baseline, so finding a place that uses it as-is is far easier than trying to remake it.`,
     },
   }
 }
@@ -775,6 +822,9 @@ export function evalVoid(
     // 것과 시스템이 어긋난다는 것(tension)은 다른 축이다 — 톤은 '같은 얘길 해요'로.
     return {
       tone: 'resonant',
+      // 두 시스템이 '같은 빈자리'를 짚는 합의지만, 이건 강점 수렴이 아니라 평생 숙제다.
+      // '잘 맞아요' 집계엔 넣지 않도록 표식만 단다(톤·문구는 그대로).
+      karmaAxis: true,
       reason: {
         ko: `사주의 공망(空亡)이 ${EL_KO[branchEl]} 자리에 걸려 있는데 — 가졌어도 비어 도는 자리라 오행 개수와는 별개예요 — 별자리(사우스노드)도 똑같이 그 지점을 짚어요. 동·서양 둘 다 "이번 생엔 ${EL_KO[branchEl]} 영역이 자동으로는 안 채워진다"고 입을 모아요. 타고난 복이 아니라 의식적으로 만들어가야 하는 평생 과제라, 여기서 쌓은 건 온전히 자기 힘으로 얻은 거예요. 부족하다 느끼는 그 자리를 피하지 말고 작게라도 꾸준히 채워가면, 약점이 가장 단단한 강점으로 바뀌어요.`,
         en: `Your chart's void (空亡) falls on the ${EL_EN[branchEl]} position — a seat that stays hollow even when occupied, separate from the raw element count — and the stars (South Node) point to the very same place. East and West agree this area "won't fill itself this life." It isn't an inborn gift but a lifelong task you build by hand, so whatever you earn here is fully your own. Don't avoid the spot that feels lacking; fill it in small, steady steps and the weak point becomes your most solid strength.`,
@@ -791,9 +841,7 @@ export function evalVoid(
 }
 
 /** 오행 카운트에서 가장 부족한(결핍) 원소 — 이번 생에 키워야 할 결. */
-function weakestSajuElement(
-  counts: Record<string, number> | undefined
-): SajuElement | undefined {
+function weakestSajuElement(counts: Record<string, number> | undefined): SajuElement | undefined {
   if (!counts) return undefined
   const agg: Record<SajuElement, number> = { wood: 0, fire: 0, earth: 0, metal: 0, water: 0 }
   for (const [k, v] of Object.entries(counts)) {

@@ -38,6 +38,9 @@ export function synthesize(
   let complement = 0
   let tension = 0
   for (const v of verdicts) {
+    // 공망/카르마(결핍 축)는 '같은 얘길 해요'(resonant) 톤이라도 강점 수렴이 아니라
+    // 평생 숙제라, '잘 맞아요' 집계에서 제외한다(막대·라벨이 결핍을 강점으로 오인 방지).
+    if (v.karmaAxis) continue
     if (v.tone === 'resonant') resonant++
     else if (v.tone === 'complement') complement++
     else if (v.tone === 'tension') tension++

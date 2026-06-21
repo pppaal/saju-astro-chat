@@ -26,6 +26,8 @@ export interface CrossRow {
   reason: string
   left?: string
   right?: string
+  /** 공망/카르마(결핍 축) — resonant 톤이라도 '잘 맞아요' 집계에서 제외하기 위한 표식. */
+  karmaAxis?: boolean
 }
 
 export const UI: Record<string, BiLabel> = {

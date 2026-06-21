@@ -57,11 +57,11 @@ export default function ViralTopCard({ summary, lang, action }: ViralTopCardProp
               <div className={s.fact}>
                 <span className={s.factIcon}>🔮</span>
                 <p>
-                  {ko ? '사주와 별자리가 ' : 'Saju and astrology both point to '}
-                  <b>{joinedResonant}</b>
                   {ko
-                    ? `${eulReul(joinedResonant)} 둘 다 가리켜요 — 그래서 더 확실해요.`
-                    : ' — that’s why it’s extra solid.'}
+                    ? '사주와 별자리, 두 관점이 '
+                    : 'Saju and astrology — both lenses point the same way on '}
+                  <b>{joinedResonant}</b>
+                  {ko ? `${eulReul(joinedResonant)} 같은 결로 가리켜요.` : '.'}
                 </p>
               </div>
             )}

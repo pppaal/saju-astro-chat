@@ -49,6 +49,12 @@ export interface DomainCtx {
   /** 원소명 라벨 override — 공기 별자리는 '木' 대신 '공기'로 표기. */
   aLabel?: { ko: string; en: string }
   bLabel?: { ko: string; en: string }
+  /**
+   * 공기(air) 근사 표식 — 한쪽 오행이 공기 별자리에서 木으로 근사돼 나온 경우.
+   * 무손실 대응이 아니라 '같은 결(same)' 판정이 거짓 수렴일 수 있으므로, 그 경우
+   * 단정 대신 헤지 문구를 덧붙인다(톤은 유지).
+   */
+  airApprox?: boolean
 }
 
 /**
@@ -158,6 +164,14 @@ export function elementVerdict(a: SajuElement, b: SajuElement, d: DomainCtx): Cr
     switch (rel) {
       case 'same': {
         const cl = pickCloser('same', seed)
+        // 공기 근사로 나온 '같은 결'은 무손실 대응이 아니라 거짓 수렴일 수 있어,
+        // 단정 대신 헤지 한 줄을 덧붙인다(톤=resonant 는 유지).
+        const hedgeKo = d.airApprox
+          ? '다만 한쪽이 공기 별자리라 오행으로는 어림잡아 맞춘 면이 있어, 이 수렴은 단정이라기보다 결이 비슷하다는 정도로 봐 두세요. '
+          : ''
+        const hedgeEn = d.airApprox
+          ? 'That said, one side is an air sign mapped only approximately onto the elements, so read this as a loose resemblance rather than a firm match. '
+          : ''
         return {
           tone: 'resonant',
           reason: {
@@ -165,11 +179,13 @@ export function elementVerdict(a: SajuElement, b: SajuElement, d: DomainCtx): Cr
               (sameTrait
                 ? `${d.aKo}${waGwa(d.aKo)} ${d.bKo}${iga(d.bKo)} 둘 다 ${ta.ko} 결이라, 한 방향으로 또렷한 사람이에요. `
                 : `${d.aKo}${eunNeun(d.aKo)} ${ta.ko}, ${d.bKo}${eunNeun(d.bKo)} ${tb.ko} 결이라 겉보기엔 달라도 뿌리는 같은 흐름이라 한 방향으로 통해요. `) +
+              hedgeKo +
               cl.ko,
             en:
               (sameTrait
                 ? `Your ${d.aEn} and ${d.bEn} are both ${ta.en} — one clear, consistent direction. `
                 : `Your ${d.aEn} is ${ta.en} and your ${d.bEn} is ${tb.en} — different on the surface, yet they share one root and pull the same way. `) +
+              hedgeEn +
               cl.en,
           },
         }

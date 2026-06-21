@@ -68,10 +68,10 @@ export default function ElementsDetail({ saju, lang }: ElementsDetailProps) {
                 <p className={s.lack}>
                   {en
                     ? lack
-                      ? `Missing in your chart — you may feel ${lack.toLowerCase()}`
+                      ? `Missing in your chart — signs to watch: ${lack}`
                       : 'Missing in your chart.'
                     : lack
-                      ? `명식에 없어요 — ${lack} 경향이 나타날 수 있어요`
+                      ? `명식에 없어요 — 살펴볼 신호: ${lack}`
                       : '명식에 없어요.'}
                 </p>
               )}

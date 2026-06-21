@@ -12,13 +12,13 @@
     },
     "Detriment": {
       "sign": "Aquarius",
-      "ko": "물병 — 약화. 집단·이상 속에 개인의 자아가 흐려지고, 자기 중심을 잡기가 부담스럽다.",
-      "en": "Aquarius — in detriment. Individual identity dissolves into the collective; it's harder for the self to stand at center stage."
+      "ko": "물병 — 약화(불리한 자리). 집단·이상을 우선하는 자리라 자아의 결과 어긋나, 자기 중심을 세우는 데 평소보다 더 공이 든다.",
+      "en": "Aquarius — in detriment. This sign cuts against the Sun's grain: it favors the collective over the individual, so standing at center stage takes more deliberate effort here."
     },
     "Fall": {
       "sign": "Libra",
-      "ko": "천칭 — 추락. 타인의 시선과 관계 균형에 자아가 묻히기 쉬워, 자기 표현이 위축된다.",
-      "en": "Libra — in fall. The self gets eclipsed by the need for harmony and the other; personal expression bends to please."
+      "ko": "천칭 — 추락(거스르는 자리). 관계와 균형을 먼저 챙기는 자리라 자기 표현이 뒷전이 되기 쉬워, 자아를 앞세우려면 평소보다 더 의식적인 노력이 필요하다.",
+      "en": "Libra — in fall. This placement runs against the Sun's grain: the pull toward harmony and the other can put personal expression second, so leading with the self takes more conscious effort here."
     },
     "Peregrine": {
       "ko": "본질적 위계가 없음 — 중립. 태양은 평범한 강도로 작동하며, 별자리·하우스의 일반 의미만 살아난다.",
@@ -38,13 +38,13 @@
     },
     "Detriment": {
       "sign": "Capricorn",
-      "ko": "염소 — 약화. 감정을 의무·구조 아래 눌러두기 쉬워, 따뜻함을 표현하기가 어색하다.",
-      "en": "Capricorn — in detriment. Feelings get filed under duty and structure; warmth and vulnerability feel awkward."
+      "ko": "염소 — 약화(불리한 자리). 의무·구조를 앞세우는 자리라 감정의 결과 어긋나, 따뜻함이나 취약함을 드러내는 데 평소보다 더 공이 든다.",
+      "en": "Capricorn — in detriment. This sign cuts against the Moon's grain: it leans on duty and structure, so showing warmth and vulnerability takes more effort here."
     },
     "Fall": {
       "sign": "Scorpio",
-      "ko": "전갈 — 추락. 감정이 극단적으로 깊고 격렬해져, 평온함보다 동요·집착이 자주 일어난다.",
-      "en": "Scorpio — in fall. Emotions run intense and obsessive; calm is rare, and feelings cut to extremes."
+      "ko": "전갈 — 추락(거스르는 자리). 감정을 끝까지 파고드는 자리라 깊고 격렬해지기 쉬워, 평온함을 지키려면 평소보다 더 의식적인 노력이 필요하다.",
+      "en": "Scorpio — in fall. This placement runs against the Moon's grain: feelings go deep and intense, so keeping an even keel takes more conscious effort here."
     },
     "Peregrine": {
       "ko": "본질적 위계가 없음 — 중립. 달은 평범한 강도로 작동하며, 별자리·하우스의 일반 정서 색채만 드러난다.",
@@ -64,13 +64,13 @@
     },
     "Detriment": {
       "sign": "Sagittarius & Pisces",
-      "ko": "사수·물고기 — 약화. 큰 그림이나 직관에 사고가 흐려져, 세부 논리를 잡기가 어렵다.",
-      "en": "Sagittarius & Pisces — in detriment. The mind drifts toward big-picture or intuition; precise logic slips."
+      "ko": "사수·물고기 — 약화(불리한 자리). 큰 그림·직관을 우선하는 자리라 세부 논리의 결과 어긋나, 정밀하게 따지는 데 평소보다 더 공이 든다. (물고기자리는 약화와 추락이 겹치는 자리라 이 결이 한층 짙게 나타난다.)",
+      "en": "Sagittarius & Pisces — in detriment. These signs cut against Mercury's grain: the mind favors big-picture or intuition, so pinning down precise logic takes more effort here. (Pisces is both detriment and fall for Mercury, so this grain runs especially strong there — see Fall below.)"
     },
     "Fall": {
       "sign": "Pisces",
-      "ko": "물고기 — 추락. 사고가 안개처럼 흩어지고, 명확한 언어로 정리하기가 부담스럽다.",
-      "en": "Pisces — in fall. Thought blurs into imagination; pinning ideas into clear words feels difficult."
+      "ko": "물고기 — 추락(거스르는 자리). 수성에게 물고기자리는 약화이자 추락이 함께 걸리는 자리라, 사고가 상상·이미지 쪽으로 흐르기 쉬워 또렷한 언어로 정리하려면 평소보다 더 의식적인 노력이 필요하다.",
+      "en": "Pisces — in fall. For Mercury, Pisces is both detriment and fall — a double overlap — so thought tends to flow toward imagery and intuition, and putting ideas into clear words takes more conscious effort here."
     },
     "Peregrine": {
       "ko": "본질적 위계가 없음 — 중립. 사고·소통은 평범한 강도로 작동하며, 별자리·하우스 맥락만 따라간다.",
@@ -90,13 +90,13 @@
     },
     "Detriment": {
       "sign": "Aries & Scorpio",
-      "ko": "양·전갈 — 약화. 사랑이 충동적이거나 극단적으로 치우쳐, 부드러운 조화를 만들기 어렵다.",
-      "en": "Aries & Scorpio — in detriment. Love runs impulsive or intense; soft harmony is hard to maintain."
+      "ko": "양·전갈 — 약화(불리한 자리). 충동·강렬함을 앞세우는 자리라 금성의 결과 어긋나, 부드러운 조화를 만드는 데 평소보다 더 공이 든다.",
+      "en": "Aries & Scorpio — in detriment. These signs cut against Venus's grain: love runs impulsive or intense, so building soft harmony takes more effort here."
     },
     "Fall": {
       "sign": "Virgo",
-      "ko": "처녀 — 추락. 사랑·관계를 분석·비판으로 다루어, 정서적 흐름이 메마르기 쉽다.",
-      "en": "Virgo — in fall. Love gets analyzed and critiqued; warmth dries up under the eye of scrutiny."
+      "ko": "처녀 — 추락(거스르는 자리). 분석·점검을 먼저 하는 자리라 사랑·관계를 따지듯 다루기 쉬워, 정서적 흐름을 살려 두려면 평소보다 더 의식적인 노력이 필요하다.",
+      "en": "Virgo — in fall. This placement runs against Venus's grain: love tends to get analyzed and critiqued, so keeping warmth flowing takes more conscious effort here."
     },
     "Peregrine": {
       "ko": "본질적 위계가 없음 — 중립. 사랑·미감은 평범한 강도로 작동하며, 별자리·하우스 맥락만 따라간다.",
@@ -116,13 +116,13 @@
     },
     "Detriment": {
       "sign": "Taurus & Libra",
-      "ko": "황소·천칭 — 약화. 평화·균형을 추구해 행동을 미루기 쉽고, 갈등을 정면 돌파하기 부담스럽다.",
-      "en": "Taurus & Libra — in detriment. Drive softens under peace and balance; conflict gets postponed rather than faced."
+      "ko": "황소·천칭 — 약화(불리한 자리). 평화·균형을 우선하는 자리라 화성의 결과 어긋나, 갈등을 정면으로 돌파하는 데 평소보다 더 공이 든다.",
+      "en": "Taurus & Libra — in detriment. These signs cut against Mars's grain: the pull toward peace and balance softens drive, so facing conflict head-on takes more effort here."
     },
     "Fall": {
       "sign": "Cancer",
-      "ko": "게 — 추락. 분노·욕망이 감정·방어로 비뚤어져, 직접 부딪치지 못하고 수동공격으로 흐른다.",
-      "en": "Cancer — in fall. Anger and desire bend into moods and defensiveness; direct action turns into passive-aggression."
+      "ko": "게 — 추락(거스르는 자리). 감정·방어를 먼저 챙기는 자리라 분노·욕망이 안으로 휘어 들기 쉬워, 정면으로 부딪쳐 행동하려면 평소보다 더 의식적인 노력이 필요하다.",
+      "en": "Cancer — in fall. This placement runs against Mars's grain: anger and desire tend to bend into moods and defensiveness, so taking direct action takes more conscious effort here."
     },
     "Peregrine": {
       "ko": "본질적 위계가 없음 — 중립. 행동력·욕망은 평범한 강도로 작동하며, 별자리·하우스 맥락만 따라간다.",
@@ -142,13 +142,13 @@
     },
     "Detriment": {
       "sign": "Gemini & Virgo",
-      "ko": "쌍둥이·처녀 — 약화. 큰 의미가 작은 디테일·잡정보 속에 흩어져, 비전을 모으기가 어렵다.",
-      "en": "Gemini & Virgo — in detriment. Big meaning scatters into details and trivia; vision struggles to stay whole."
+      "ko": "쌍둥이·처녀 — 약화(불리한 자리). 디테일·정보를 잘게 다루는 자리라 목성의 결과 어긋나, 큰 의미와 비전을 하나로 모으는 데 평소보다 더 공이 든다.",
+      "en": "Gemini & Virgo — in detriment. These signs cut against Jupiter's grain: they work in details and data, so gathering big meaning and vision into a whole takes more effort here."
     },
     "Fall": {
       "sign": "Capricorn",
-      "ko": "염소 — 추락. 낙관·확장이 현실·한계 앞에 짓눌려, 믿음을 유지하기 부담스럽다.",
-      "en": "Capricorn — in fall. Optimism gets crushed by limits and realism; faith and expansion feel like a burden."
+      "ko": "염소 — 추락(거스르는 자리). 현실·한계를 먼저 따지는 자리라 낙관·확장의 결과 어긋나, 믿음과 큰 그림을 지켜 나가려면 평소보다 더 의식적인 노력이 필요하다.",
+      "en": "Capricorn — in fall. This placement runs against Jupiter's grain: it leads with limits and realism, so holding onto optimism and expansion takes more conscious effort here."
     },
     "Peregrine": {
       "ko": "본질적 위계가 없음 — 중립. 확장·믿음은 평범한 강도로 작동하며, 별자리·하우스 맥락만 따라간다.",
@@ -168,13 +168,13 @@
     },
     "Detriment": {
       "sign": "Cancer & Leo",
-      "ko": "게·사자 — 약화. 따뜻함·자기 표현을 통제·경직으로 눌러, 정서·자아에 거리감이 생긴다.",
-      "en": "Cancer & Leo — in detriment. Warmth and self-expression get clamped by control; emotion and ego feel walled off."
+      "ko": "게·사자 — 약화(불리한 자리). 따뜻함·자기 표현을 앞세우는 자리라 토성의 결과 어긋나, 구조·절제를 정서·자아와 어우러지게 두는 데 평소보다 더 공이 든다.",
+      "en": "Cancer & Leo — in detriment. These signs cut against Saturn's grain: they lead with warmth and self-expression, so letting structure and restraint sit easily alongside emotion and ego takes more effort here."
     },
     "Fall": {
       "sign": "Aries",
-      "ko": "양 — 추락. 즉흥·돌파력 앞에 자제·계획이 무너져, 책임과 인내가 가장 어려워진다.",
-      "en": "Aries — in fall. Restraint and planning collapse under impulse; discipline and patience are hardest to hold."
+      "ko": "양 — 추락(거스르는 자리). 즉흥·돌파를 먼저 하는 자리라 자제·계획의 결과 어긋나, 책임과 인내를 지켜 나가려면 평소보다 더 의식적인 노력이 필요하다.",
+      "en": "Aries — in fall. This placement runs against Saturn's grain: it leads with impulse and momentum, so holding to restraint, planning, and patience takes more conscious effort here."
     },
     "Peregrine": {
       "ko": "본질적 위계가 없음 — 중립. 구조·책임은 평범한 강도로 작동하며, 별자리·하우스 맥락만 따라간다.",
