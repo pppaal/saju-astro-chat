@@ -182,6 +182,53 @@ describe('MonthTier (정갈)', () => {
       expect(screen.getAllByText(/좋은 날/).length).toBeGreaterThan(0)
     })
 
+    it('surfaces convergence meta (사주+점성 badge · window · confidence) on bothSystems days', () => {
+      const month = makeMonth({
+        keyDays: [
+          {
+            date: '06-17',
+            meaning: '두 체계가 수렴',
+            astro: ['Jupiter'],
+            saju: ['정재'],
+            bothSystems: true,
+            window: {
+              start: '2026-06-14T00:00:00Z',
+              peak: '2026-06-17T00:00:00Z',
+              end: '2026-06-20T00:00:00Z',
+            },
+            confidence: 82,
+          },
+        ],
+        bestDay: { date: '06-17', score: 90 },
+        calendar: [
+          makeCell({ d: 15, ds: '06-15', focus: true }),
+          makeCell({ d: 17, ds: '06-17', mark: 'best', score: 90 }),
+        ],
+      })
+      render(<MonthTier month={month} onDive={noop} onRise={noop} />)
+      expect(screen.getByText('사주+점성')).toBeInTheDocument()
+      expect(screen.getByText('6/14–6/20 흐름')).toBeInTheDocument()
+      expect(screen.getByText('신뢰 82')).toBeInTheDocument()
+    })
+
+    it('hides confidence for single-system key days', () => {
+      const month = makeMonth({
+        keyDays: [
+          {
+            date: '06-20',
+            meaning: '주의',
+            astro: [],
+            saju: ['편관'],
+            bothSystems: false,
+            confidence: 41,
+          },
+        ],
+      })
+      render(<MonthTier month={month} onDive={noop} onRise={noop} />)
+      expect(screen.queryByText(/신뢰/)).not.toBeInTheDocument()
+      expect(screen.queryByText('사주+점성')).not.toBeInTheDocument()
+    })
+
     it('appends the best day to key days when missing from keyDays', () => {
       const month = makeMonth({
         keyDays: [

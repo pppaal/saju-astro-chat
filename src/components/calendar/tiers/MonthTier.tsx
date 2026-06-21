@@ -123,7 +123,24 @@ export function MonthTier({ month, onDive, onRise, showRise = true }: MonthTierP
     if (m === 'converge') return 'neutral'
     return null
   }
-  const keyDayItems = [...(month.keyDays ?? [])].map((k) => {
+  // ISO('YYYY-MM-DD…') → 'M/D' (수렴 구간 라벨). 빈/동일 경계면 null.
+  const isoMd = (iso?: string) =>
+    iso ? `${Number(iso.slice(5, 7))}/${Number(iso.slice(8, 10))}` : ''
+  const fmtWindow = (w?: { start: string; peak: string; end: string }): string | null => {
+    if (!w) return null
+    const s = isoMd(w.start)
+    const e = isoMd(w.end)
+    if (!s || !e || s === e) return null
+    return `${s}–${e}`
+  }
+  interface BigDay {
+    when: string
+    title: string
+    both: boolean
+    window: string | null
+    conf: number | null
+  }
+  const keyDayItems: BigDay[] = [...(month.keyDays ?? [])].map((k) => {
     const mark = markByDs.get(k.date) ?? null
     const tone = markToTone(mark)
     const dayNum = parseInt(k.date.slice(-2), 10)
@@ -133,7 +150,14 @@ export function MonthTier({ month, onDive, onRise, showRise = true }: MonthTierP
     const vp = verdictPrefix(mark)
     const title =
       vp && meaning ? `${vp} · ${meaning}` : meaning || vp || (ko ? '주목할 날' : 'Notable day')
-    return { when: k.date, title }
+    return {
+      when: k.date,
+      title,
+      both: !!k.bothSystems,
+      window: fmtWindow(k.window),
+      // 신뢰도는 사주↔점성 *동시* 수렴일 때만 의미 있다(단일 체계는 기준치).
+      conf: k.bothSystems && typeof k.confidence === 'number' ? k.confidence : null,
+    }
   })
   // best(최고)일이 큰 날 목록에 빠졌으면 채워 넣는다.
   if (month.bestDay?.date && !keyDayItems.some((i) => i.when === month.bestDay.date)) {
@@ -141,6 +165,9 @@ export function MonthTier({ month, onDive, onRise, showRise = true }: MonthTierP
     keyDayItems.push({
       when: month.bestDay.date,
       title: `${ko ? '최고의 날' : 'Best day'} · ${toneMeaningFor('positive', dn, ko ? 'ko' : 'en')}`,
+      both: false,
+      window: null,
+      conf: null,
     })
   }
   const bigDays = keyDayItems.sort((a, b) => a.when.localeCompare(b.when))
@@ -278,7 +305,26 @@ export function MonthTier({ month, onDive, onRise, showRise = true }: MonthTierP
             {bigDays.map((b) => (
               <div className={styles.bigDay} key={b.when}>
                 <span className={styles.bigDayDate}>{mdLabel(b.when)}</span>
-                <span className={styles.bigDayTxt}>{b.title}</span>
+                <div className={styles.bigDayMain}>
+                  <span className={styles.bigDayTxt}>{b.title}</span>
+                  {(b.both || b.window || b.conf != null) && (
+                    <div className={styles.bigDayMeta}>
+                      {b.both && (
+                        <span className={styles.bigDayBoth}>{ko ? '사주+점성' : 'Saju+Astro'}</span>
+                      )}
+                      {b.window && (
+                        <span className={styles.bigDayWindow}>
+                          {ko ? `${b.window} 흐름` : b.window}
+                        </span>
+                      )}
+                      {b.conf != null && (
+                        <span className={styles.bigDayConf}>
+                          {ko ? `신뢰 ${b.conf}` : `confidence ${b.conf}`}
+                        </span>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
             ))}
           </div>

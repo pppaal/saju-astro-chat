@@ -314,10 +314,44 @@
   letter-spacing: 0.04em;
   color: var(--dp-ember);
 }
+.bigDayMain {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
 .bigDayTxt {
   font-size: 13.5px;
   line-height: 1.5;
   color: var(--dp-ink-dim);
+}
+/* 수렴 메타 — 사주+점성 동시 여부 · 빌드업→소멸 구간 · 신뢰도 */
+.bigDayMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.bigDayBoth {
+  font-family: var(--dp-mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  color: var(--dp-ember);
+  border: 1px solid rgba(176, 58, 34, 0.32);
+  border-radius: 999px;
+  padding: 1px 8px;
+}
+.bigDayWindow {
+  font-family: var(--dp-mono);
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  color: var(--dp-accent);
+}
+.bigDayConf {
+  font-family: var(--dp-mono);
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  color: var(--dp-ink-mute);
 }
 
 /* ---------- 이달 총평 ---------- */
