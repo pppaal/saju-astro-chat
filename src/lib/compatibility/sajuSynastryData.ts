@@ -9,7 +9,13 @@ import { getGongmang as getGongmangByPillar } from '@/lib/saju/pillarLookup'
 import { pickTwelveSingle } from '@/lib/saju/shinsal'
 import { STEM_KO, BRANCH_KO } from '@/lib/saju/ganjiKo'
 import { getYearPillarForDate, getSajuYearForDate } from '@/lib/saju/datePillars'
-import { CHEONEUL_GWIIN_MAP } from '@/lib/saju/constants'
+import {
+  CHEONEUL_GWIIN_MAP,
+  FIVE_ELEMENT_RELATIONS,
+  JIJANGGAN,
+  STEMS,
+  BRANCHES,
+} from '@/lib/saju/constants'
 
 export const STEM_HAP: Record<string, { other: string; element: string }> = {
   甲: { other: '己', element: '토' },
@@ -112,53 +118,31 @@ export const BANG_HAP = [
   { branches: ['亥', '子', '丑'], element: '수' },
 ]
 
-export const STEM_EL: Record<string, string> = {
-  甲: '목',
-  乙: '목',
-  丙: '화',
-  丁: '화',
-  戊: '토',
-  己: '토',
-  庚: '금',
-  辛: '금',
-  壬: '수',
-  癸: '수',
-}
+// ── 천간/지지 기본 표는 전부 constants SSOT 에서 파생(복사 금지) ──
+// 예전엔 같은 표(천간→오행·지지→오행·지지 본기·천간 음양·오행 생극)를 여기서 따로 들고
+// 있어 한쪽만 바뀌면 엔진과 조용히 어긋났다. tableConsistency.drift-lock 이 등가를
+// 강제하던 면을 복제 제거로 닫는다(import 가 곧 잠금).
+// 한자 키 전용(STEM_TO_ELEMENT 는 한글 키도 가져 키셋이 다르므로) 구조화 배열에서 파생.
+export const STEM_EL: Record<string, string> = Object.fromEntries(
+  STEMS.map((s) => [s.name, s.element])
+)
+export const BRANCH_EL: Record<string, string> = Object.fromEntries(
+  BRANCHES.map((b) => [b.name, b.element])
+)
 
-// 천간 음양 — 십성(sibsin) cross 계산용. 같은 음양이면 비견/식신/편재/편관/편인,
-// 다른 음양이면 겁재/상관/정재/정관/정인.
-const STEM_YIN_YANG: Record<string, '양' | '음'> = {
-  甲: '양',
-  丙: '양',
-  戊: '양',
-  庚: '양',
-  壬: '양',
-  乙: '음',
-  丁: '음',
-  己: '음',
-  辛: '음',
-  癸: '음',
-}
+// 천간 음양 — 십성 cross 계산용(같은 음양↔비견/식신/편재/편관/편인, 다른 음양↔겁재/상관/정재/정관/정인).
+const STEM_YIN_YANG: Record<string, '양' | '음'> = Object.fromEntries(
+  STEMS.map((s) => [s.name, s.yin_yang])
+) as Record<string, '양' | '음'>
 
-// 지지 본기 천간 (지지를 천간 시각으로 보는 매핑) — 지지 십성 계산용.
-export const BRANCH_MAIN_STEM: Record<string, string> = {
-  子: '癸',
-  丑: '己',
-  寅: '甲',
-  卯: '乙',
-  辰: '戊',
-  巳: '丙',
-  午: '丁',
-  未: '己',
-  申: '庚',
-  酉: '辛',
-  戌: '戊',
-  亥: '壬',
-}
+// 지지 본기 천간 (지지 십성 계산용) — JIJANGGAN 정기에서 파생.
+export const BRANCH_MAIN_STEM: Record<string, string> = Object.fromEntries(
+  Object.entries(JIJANGGAN).map(([branch, layers]) => [branch, layers['정기']])
+)
 
-// 오행 관계 — 상생/상극 방향. 목→화→토→금→수→목 (생). 木克土, 火克金, 土克水, 金克木, 水克火 (극).
-const EL_GEN: Record<string, string> = { 목: '화', 화: '토', 토: '금', 금: '수', 수: '목' }
-const EL_KE: Record<string, string> = { 목: '토', 화: '금', 토: '수', 금: '목', 수: '화' }
+// 오행 상생(EL_GEN)/상극(EL_KE) — constants 정본(FIVE_ELEMENT_RELATIONS)에서 파생.
+const EL_GEN: Record<string, string> = FIVE_ELEMENT_RELATIONS.생하는관계
+const EL_KE: Record<string, string> = FIVE_ELEMENT_RELATIONS.극하는관계
 
 /**
  * 일간(dayStem) 기준 대상(targetStem) 의 십성(sibsin) 반환. 정재/편재 → 배우자성
@@ -177,36 +161,9 @@ export function sibseongFor(dayStem: string, targetStem: string): string {
   return ''
 }
 
-export const BRANCH_EL: Record<string, string> = {
-  寅: '목',
-  卯: '목',
-  巳: '화',
-  午: '화',
-  辰: '토',
-  戌: '토',
-  丑: '토',
-  未: '토',
-  申: '금',
-  酉: '금',
-  子: '수',
-  亥: '수',
-}
-
-export const EL_CONTROLS: Record<string, string> = {
-  목: '토',
-  토: '수',
-  수: '화',
-  화: '금',
-  금: '목',
-}
-
-const EL_GENERATES: Record<string, string> = {
-  목: '화',
-  화: '토',
-  토: '금',
-  금: '수',
-  수: '목',
-}
+// 오행 상극(EL_CONTROLS)/상생(EL_GENERATES) — FIVE_ELEMENT_RELATIONS 파생(위 EL_KE/EL_GEN 과 동일 정본).
+export const EL_CONTROLS: Record<string, string> = FIVE_ELEMENT_RELATIONS.극하는관계
+const EL_GENERATES: Record<string, string> = FIVE_ELEMENT_RELATIONS.생하는관계
 
 // 십성 짧은 글로싱 — 관계의 질감을 LLM이 곧장 읽게.
 export const SIBSIN_GLOSS: Record<string, string> = {
