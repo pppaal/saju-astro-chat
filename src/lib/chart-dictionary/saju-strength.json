@@ -38,7 +38,7 @@
       "meaning": "태어난 월(월령)이 일간을 도와주는지 보는 거예요. 출생 계절이 내게 유리한지 판단해요.",
       "yes": {
         "label": "득령",
-        "explain": "태어난 계절의 기운이 나를 도와줘요. 시작부터 천운이 따르는 구조라, 노력 대비 결과가 잘 나오고 본업에서 빛나기 쉬워요."
+        "explain": "태어난 계절의 기운이 나를 도와줘요. 시작부터 순풍을 받는 구조라, 노력 대비 결과가 잘 나오고 본업에서 빛나기 쉬워요."
       },
       "no": {
         "label": "실령",
@@ -110,7 +110,7 @@
       },
       "cold": {
         "label": "한랭 (水 과다)",
-        "explain": "찬 기운이 너무 강해요. 의욕 저하·우울·냉정함이 올 수 있어요. 火(활동·따뜻함·열정)로 데워주는 게 좋아요."
+        "explain": "찬 기운이 너무 강해요. 의욕 저하·가라앉는 기분·냉정함이 올 수 있어요. 火(활동·따뜻함·열정)로 데워주는 게 좋아요."
       },
       "dry": {
         "label": "건조 (金/土 과다)",
@@ -134,7 +134,7 @@
       },
       "cold": {
         "label": "Cold (Excess Water)",
-        "explain": "Too much cold — low motivation, depression, detachment. Warm up with Fire (activity, warmth, passion)"
+        "explain": "Too much cold — low motivation, low mood, detachment. Warm up with Fire (activity, warmth, passion)"
       },
       "dry": {
         "label": "Dry (Excess Metal/Earth)",
@@ -153,24 +153,24 @@
   },
   "용신": {
     "ko": {
-      "meaning": "사주의 균형을 잡아주는 핵심 원소예요. 인생의 보약 같은 존재라, 이 기운을 쓸수록 운이 풀려요.",
+      "meaning": "사주의 균형을 잡아주는 핵심 원소예요. 인생의 중심을 잡아주는 기운이라, 이 기운을 쓸수록 흐름이 풀리는 편이에요.",
       "by_element": {
-        "목": "성장·창의·시작이 보약이에요. 식물 키우기·동쪽 방향·초록색·교육/기획/스타트업 분야가 도움이 돼요. 새로운 걸 배우고 시작할 때 운이 열려요.",
-        "화": "표현·추진·열정이 보약이에요. 운동·남쪽 방향·빨강/주황색·방송/예술/영업 분야가 도움이 돼요. 적극적으로 드러내고 움직일 때 운이 풀려요.",
-        "토": "안정·실용·돌봄이 보약이에요. 부동산·중앙·노란/갈색·신뢰 기반 업종이 도움이 돼요. 약속을 지키고 꾸준할 때 운이 따라요.",
-        "금": "체계·결단·정리가 보약이에요. 정리정돈·서쪽 방향·흰색·금융/법률/기술 분야가 도움이 돼요. 원칙을 세우고 결단할 때 운이 좋아져요.",
-        "수": "지혜·유연·흐름이 보약이에요. 학습·북쪽 방향·검정/남색·연구/IT/유통 분야가 도움이 돼요. 깊이 생각하고 흐름을 탈 때 운이 열려요."
+        "목": "성장·창의·시작이 중심 기운이에요. 식물 키우기·동쪽 방향·초록색·교육/기획/스타트업 분야가 도움이 돼요. 새로운 걸 배우고 시작할수록 흐름이 풀리는 편이에요.",
+        "화": "표현·추진·열정이 중심 기운이에요. 운동·남쪽 방향·빨강/주황색·방송/예술/영업 분야가 도움이 돼요. 적극적으로 드러내고 움직일수록 흐름이 풀리는 편이에요.",
+        "토": "안정·실용·돌봄이 중심 기운이에요. 부동산·중앙·노란/갈색·신뢰 기반 업종이 도움이 돼요. 약속을 지키고 꾸준할수록 흐름이 풀리는 편이에요.",
+        "금": "체계·결단·정리가 중심 기운이에요. 정리정돈·서쪽 방향·흰색·금융/법률/기술 분야가 도움이 돼요. 원칙을 세우고 결단할수록 흐름이 풀리는 편이에요.",
+        "수": "지혜·유연·흐름이 중심 기운이에요. 학습·북쪽 방향·검정/파랑·연구/IT/유통 분야가 도움이 돼요. 깊이 생각하고 흐름을 탈수록 흐름이 풀리는 편이에요."
       },
       "advice": "용신 오행은 색·방향·직업·인간관계 등 일상에서 적극적으로 가까이 두세요. 용신을 쓰는 시기엔 적극적으로 움직이는 게 좋아요."
     },
     "en": {
-      "meaning": "The core element that balances the chart — a life-long tonic. The more this energy is used, the more luck flows",
+      "meaning": "The core element that balances the chart — a steadying anchor. Things tend to flow more easily the more this energy is used",
       "by_element": {
-        "목": "Wood is your tonic — growth, creativity, beginnings. Plants, the East, green, fields like education/planning/startups support you. Luck opens when you learn and start new things",
-        "화": "Fire is your tonic — expression, drive, passion. Exercise, the South, red/orange, fields like broadcasting/art/sales support you. Luck flows when you actively express and move",
-        "토": "Earth is your tonic — stability, practicality, care. Real estate, the Center, yellow/brown, trust-based industries support you. Luck follows when you keep promises and stay consistent",
-        "금": "Metal is your tonic — structure, decisiveness, order. Tidying, the West, white, fields like finance/law/tech support you. Luck improves when you set principles and decide firmly",
-        "수": "Water is your tonic — wisdom, flexibility, flow. Learning, the North, black/navy, fields like research/IT/distribution support you. Luck opens when you think deeply and ride the flow"
+        "목": "Wood is your anchor — growth, creativity, beginnings. Plants, the East, green, fields like education/planning/startups support you. Things tend to flow more easily when you learn and start new things",
+        "화": "Fire is your anchor — expression, drive, passion. Exercise, the South, red/orange, fields like broadcasting/art/sales support you. Things tend to flow more easily when you actively express and move",
+        "토": "Earth is your anchor — stability, practicality, care. Real estate, the Center, yellow/brown, trust-based industries support you. Things tend to flow more easily when you keep promises and stay consistent",
+        "금": "Metal is your anchor — structure, decisiveness, order. Tidying, the West, white, fields like finance/law/tech support you. Things tend to flow more easily when you set principles and decide firmly",
+        "수": "Water is your anchor — wisdom, flexibility, flow. Learning, the North, black/blue, fields like research/IT/distribution support you. Things tend to flow more easily when you think deeply and ride the flow"
       },
       "advice": "Keep the Useful God element close in daily life — color, direction, occupation, relationships. During cycles favoring it, act boldly"
     }
@@ -185,7 +185,7 @@
         "금": "금 기운이 부담이에요. 지나친 원칙·냉정·자르기는 자제하는 게 좋아요. 사람 관계를 너무 칼같이 끊지 말고 여백을 두세요.",
         "수": "수 기운이 부담이에요. 과도한 생각·우유부단·잠수는 자제하는 게 좋아요. 너무 차고 어두운 환경은 피하고, 결단력을 키워 보세요."
       },
-      "advice": "기신이 강한 시기엔 보수적으로 움직이세요. 큰 결정·확장·투자는 미루고 내실을 다지는 게 좋아요. 기신 오행의 색·방향·환경은 일상에서 줄여 보세요."
+      "advice": "기신이 강한 시기엔 천천히 페이스를 지키며 움직이세요. 무리하게 일을 벌이기보다 내실을 다지는 게 좋아요. 기신 오행의 색·방향·환경은 일상에서 줄여 보세요."
     },
     "en": {
       "meaning": "The element that breaks the chart's balance — to be avoided or moderated. When it grows strong, overreach, mistakes, and depletion rise",
@@ -196,7 +196,7 @@
         "금": "Metal burdens you — avoid excessive rigidity, coldness, cutting people off. Don't sever relationships sharply; leave breathing room",
         "수": "Water burdens you — avoid overthinking, indecision, withdrawal. Avoid overly cold and dark environments; build decisiveness"
       },
-      "advice": "During unfavorable-element cycles, play conservative — defer big decisions, expansions, and investments; build internal strength. Reduce the colors, directions, and environments tied to the burdensome element"
+      "advice": "During unfavorable-element cycles, go at a steady pace and avoid overreaching; build internal strength. Reduce the colors, directions, and environments tied to the burdensome element"
     }
   }
 }

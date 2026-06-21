@@ -1,116 +1,193 @@
+/* ElementsDetail — "미스틱 프리미엄 라이트"
+   크림 카드 + 플럼/골드 + 셀레셜 액센트. 오행색은 데이터색 그대로(칩 워시). */
+
 .box {
-  margin: 12px 0 0;
+  margin: 14px 0 0;
   border: 1px solid var(--line);
-  border-left: 3px solid var(--gold);
-  border-radius: 6px;
-  background: rgba(169, 131, 59, 0.04);
+  border-radius: var(--radius);
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+  overflow: hidden;
+  position: relative;
 }
+/* 상단 골드 헤어라인 */
+.box::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--gold-line) 18%,
+    var(--gold-line) 82%,
+    transparent
+  );
+}
+
 .box > summary {
   cursor: pointer;
   list-style: none;
   user-select: none;
-  padding: 10px 14px;
-  font-size: 12.5px;
-  font-weight: 700;
-  color: var(--gold);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 13px 18px;
+  font-family: var(--serif);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--ink);
 }
 .box > summary::-webkit-details-marker {
   display: none;
 }
 .box[open] > summary {
-  border-bottom: 1px solid var(--line-2);
+  border-bottom: 1px solid var(--gold-line);
 }
+
+/* 펼침 표시 캐럿 */
+.box > summary::after {
+  content: '▸';
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--gold);
+  transition: transform 0.18s ease;
+}
+.box[open] > summary::after {
+  transform: rotate(90deg);
+}
+/* 셀레셜 글리프 — 절제된 ✦ */
+.box > summary::before {
+  content: '✦';
+  font-size: 11px;
+  color: var(--gold);
+  opacity: 0.85;
+}
+
 .body {
-  padding: 10px 14px 12px;
+  padding: 16px 18px 18px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
+  background: var(--celeste);
 }
 
 .row {
   display: flex;
   flex-direction: column;
-  gap: 3px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid var(--line-2);
-}
-.row:last-child {
-  padding-bottom: 0;
-  border-bottom: none;
+  gap: 5px;
+  padding: 12px 14px;
+  border: 1px solid var(--line-2);
+  border-radius: var(--radius-sm);
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+  border-left: 2px solid var(--gold-line);
 }
 
 .head {
   display: flex;
   align-items: baseline;
-  gap: 8px;
+  gap: 9px;
   flex-wrap: wrap;
 }
 .name {
   display: inline-flex;
   align-items: baseline;
-  gap: 5px;
-  font-weight: 700;
+  gap: 7px;
+  font-weight: 600;
 }
 .han {
   font-family: var(--serif);
-  font-size: 15px;
+  font-size: 19px;
+  line-height: 1;
+  letter-spacing: -0.01em;
 }
 .label {
-  font-size: 12.5px;
+  font-size: 13px;
 }
 .count {
   font-family: var(--mono);
   font-size: 12px;
-  color: var(--ink-2);
-  background: var(--card-2);
-  border: 1px solid var(--line-2);
-  border-radius: 4px;
-  padding: 0 6px;
-  line-height: 1.6;
+  color: var(--gold);
+  background: var(--gold-wash);
+  border: 1px solid var(--gold-line);
+  border-radius: 999px;
+  padding: 2px 10px;
+  line-height: 1.5;
 }
+
+/* 태그 칩(pill) */
 .tag {
   font-size: 10.5px;
-  font-weight: 700;
-  border-radius: 4px;
-  padding: 1px 6px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  border-radius: 999px;
+  padding: 2px 10px;
   line-height: 1.5;
 }
 .tagNeed {
   color: var(--gold);
   border: 1px solid var(--gold);
-  background: rgba(169, 131, 59, 0.08);
+  background: rgba(169, 131, 59, 0.14);
+}
+.tagNeed::before {
+  content: '✦ ';
+  font-size: 9px;
 }
 .tagAvoid {
-  color: var(--ink-3);
-  border: 1px solid var(--line);
-  background: var(--card);
+  color: var(--plum);
+  border: 1px solid var(--plum);
+  background: rgba(91, 74, 115, 0.14);
 }
 
 .nature {
   margin: 0;
-  font-size: 12.5px;
-  line-height: 1.55;
+  font-size: 13px;
+  line-height: 1.65;
   color: var(--ink-2);
   word-break: keep-all;
 }
 .lack {
   margin: 0;
-  font-size: 12px;
-  line-height: 1.5;
-  color: var(--ink-3);
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--plum-soft);
   font-style: italic;
   word-break: keep-all;
 }
 
-/* 펼침 표시 캐럿 — 접힘 상태에서도 "열 수 있음"이 보이도록(.l2 와 일관). */
-.box > summary::before {
-  content: '▸';
-  display: inline-block;
-  margin-right: 6px;
-  font-size: 10px;
-  color: var(--gold);
-  transition: transform 0.15s ease;
+/* 오행별 좌측 액센트 — 데이터색(--el-*) 그대로 */
+.el_wood {
+  border-left-color: var(--el-wood);
 }
-.box[open] > summary::before {
-  transform: rotate(90deg);
+.el_fire {
+  border-left-color: var(--el-fire);
+}
+.el_earth {
+  border-left-color: var(--el-earth);
+}
+.el_metal {
+  border-left-color: var(--el-metal);
+}
+.el_water {
+  border-left-color: var(--el-water);
+}
+
+@media (max-width: 600px) {
+  .box > summary {
+    padding: 12px 14px;
+  }
+  .body {
+    padding: 14px;
+    gap: 10px;
+  }
+  .row {
+    padding: 11px 12px;
+  }
+  .han {
+    font-size: 18px;
+  }
 }

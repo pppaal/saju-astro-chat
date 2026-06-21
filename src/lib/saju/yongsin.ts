@@ -3,6 +3,7 @@
 
 import { FiveElement, YinYang, SajuPillars, PillarData, SajuPillarsInput } from './types'
 import { STEMS, BRANCHES, JIJANGGAN, FIVE_ELEMENT_RELATIONS } from './constants'
+import { computeStrengthScore, toStrengthCoreInput } from './strengthScore'
 
 /**
  * 용신 유형
@@ -134,7 +135,19 @@ function countElements(pillars: SajuPillarsInput): ElementStats {
 }
 
 /**
- * 일간 강약 판단
+ * 일간 강약 판단 — 강약 점수 SSOT(`computeStrengthScore`, CONVENTIONS §11)에서
+ * 5단계(DaymasterStrength)를 도출한다.
+ *
+ * 옛 코드는 countElements 비율(totalSupport/totalWeaken) 휴리스틱(임계 2.5/1.5/
+ * 0.8/0.4 + 월령 보정)을 별도로 썼는데, 이는 SSOT 5요소 가중 점수와 달라
+ * 드리프트 원인이었다(§11 위반). 이제 SSOT 점수(0~100, 50 중심) → 5단계로 매핑한다.
+ *
+ * 점수 → 5단계 임계 (geokguk.getStrength/getStrengthExtreme 와 동일한 60/40·80/20):
+ *   total ≥ 80           → 극신강
+ *   60 ≤ total < 80      → 신강
+ *   40 ≤ total < 60      → 중화
+ *   20 <  total < 40     → 신약
+ *   total ≤ 20           → 극신약
  */
 function assessDaymasterStrength(daymaster: string, pillars: SajuPillarsInput): DaymasterStrength {
   const daymasterElement = getElement(daymaster)
@@ -142,46 +155,21 @@ function assessDaymasterStrength(daymaster: string, pillars: SajuPillarsInput): 
     return '중화'
   }
 
-  const stats = countElements(pillars)
+  const total = computeStrengthScore(toStrengthCoreInput(pillars)).total
 
-  // 일간을 생하거나 같은 오행(비겁, 인성)의 힘
-  const supportingElement = FIVE_ELEMENT_RELATIONS.생받는관계[daymasterElement]
-  const selfPower = stats[daymasterElement]
-  const supportPower = supportingElement ? stats[supportingElement] : 0
-  const totalSupport = selfPower + supportPower
-
-  // 일간을 극하거나 설기하는 오행(관살, 식상, 재성)의 힘
-  const controlElement = FIVE_ELEMENT_RELATIONS.극받는관계[daymasterElement]
-  const drainElement = FIVE_ELEMENT_RELATIONS.생하는관계[daymasterElement]
-  const wealthElement = FIVE_ELEMENT_RELATIONS.극하는관계[daymasterElement]
-
-  const controlPower = controlElement ? stats[controlElement] : 0
-  const drainPower = drainElement ? stats[drainElement] : 0
-  const wealthPower = wealthElement ? stats[wealthElement] : 0
-  const totalWeaken = controlPower + drainPower + wealthPower
-
-  // 월령 득령 여부 체크
-  const monthBranchElement = getElement(pillars.month.branch)
-  const hasMonthSupport =
-    monthBranchElement === daymasterElement || monthBranchElement === supportingElement
-
-  // 강약 판단
-  const ratio = totalSupport / (totalWeaken + 0.1)
-
-  if (ratio > 2.5 || (ratio > 1.8 && hasMonthSupport)) {
+  if (total >= 80) {
     return '극신강'
   }
-  if (ratio > 1.5 || (ratio > 1.2 && hasMonthSupport)) {
+  if (total >= 60) {
     return '신강'
   }
-  if (ratio < 0.4 || (ratio < 0.6 && !hasMonthSupport)) {
-    return '극신약'
+  if (total >= 40) {
+    return '중화'
   }
-  if (ratio < 0.8 || (ratio < 0.9 && !hasMonthSupport)) {
+  if (total > 20) {
     return '신약'
   }
-
-  return '중화'
+  return '극신약'
 }
 
 /**

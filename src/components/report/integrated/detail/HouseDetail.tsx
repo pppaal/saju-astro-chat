@@ -24,6 +24,19 @@ export interface HouseDetailProps {
 
 const HOUSE_NUMS: HouseNumber[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
 
+// 빈 하우스 안내 문구 — 모든 빈 칸이 똑같은 한 줄로 반복되지 않도록
+// 몇 가지로 돌려 쓴다(표시용 텍스트만, 데이터·로직과 무관).
+const EMPTY_NOTE_KO = [
+  '비어 있음 — 자연스러운 일이에요. 강조점은 행성이 들어온 하우스에서 나와요.',
+  '비어 있음 — 특별히 걱정할 일은 아니에요. 이 영역은 조용히 흘러가는 편이에요.',
+  '비어 있음 — 행성이 없다고 의미가 없는 건 아니에요. 다른 하우스가 더 또렷하게 작동해요.',
+]
+const EMPTY_NOTE_EN = [
+  'Empty — a normal, quiet area; the emphasis comes from occupied houses.',
+  'Empty — nothing to worry about; this area tends to run smoothly in the background.',
+  'Empty — an empty house still matters; other houses simply speak more clearly here.',
+]
+
 export default function HouseDetail({ astro, lang }: HouseDetailProps) {
   const en = lang === 'en'
   if (!astro) return null
@@ -60,8 +73,8 @@ export default function HouseDetail({ astro, lang }: HouseDetailProps) {
               {i === 1 && (
                 <p className={s.ascNote}>
                   {en
-                    ? '1st house — self / first impression (the Ascendant).'
-                    : '1하우스 · 자아/첫인상(상승궁)'}
+                    ? '1st house — your sense of self and first impression (the Ascendant).'
+                    : '1하우스 — 나 자신과 첫인상을 보여주는 자리예요(상승궁).'}
                 </p>
               )}
 
@@ -75,11 +88,7 @@ export default function HouseDetail({ astro, lang }: HouseDetailProps) {
                   ))}
                 </div>
               ) : (
-                <p className={s.empty}>
-                  {en
-                    ? 'empty — a normal, quiet area; emphasis comes from occupied houses.'
-                    : '비어 있음 — 자연스러운 일이에요. 강조점은 행성이 들어온 하우스에서 나와요.'}
-                </p>
+                <p className={s.empty}>{(en ? EMPTY_NOTE_EN : EMPTY_NOTE_KO)[i % 3]}</p>
               )}
             </div>
           )

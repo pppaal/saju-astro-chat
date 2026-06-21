@@ -93,6 +93,9 @@ const PLANET_GLYPH: Record<string, string> = {
 const PLANET_KO: Record<string, string> = {
   ...PLANET_KO_BASE,
   'North Node': '북교점',
+  'True Node': '북교점',
+  'Mean Node': '북교점',
+  'South Node': '남교점',
   Node: '북교점',
   Chiron: '카이런',
   Lilith: '릴리스',
@@ -144,6 +147,19 @@ interface AnyCtx {
   astro?: any
 }
 
+// 격국 신뢰도 메타 — reportTypes.ReportData 에는 없는 보조 정보라 어댑터에서
+// 별도 채널로 흘려 §02 카드가 fallback/medium 일 때 헤딩을 약화하도록 한다.
+export interface ReportGeokgukMeta {
+  confidence?: 'high' | 'medium' | 'low'
+  fallback: boolean
+}
+// ReportData 에 얹는 어댑터 전용 확장 필드(타입은 reportTypes 가 SSOT 라 손대지
+// 않고 옵셔널로만 덧붙임). IntegratedReport 가 옵셔널로 읽는다.
+export interface ReportDataExtras {
+  geokgukMeta?: ReportGeokgukMeta
+  sibsinCategoryCount?: Record<string, number>
+}
+
 // 관계 detail 문자열에서 천간·지지 한자만 추출. 예: "亥-寅 육합" → "亥寅",
 // "亥·卯·未 삼합(목)" → "亥卯未". 카테고리 한글어(육합/삼합/충…)는 한자가
 // 아니므로 자동 제외됨.
@@ -192,11 +208,34 @@ const RELATION_CATEGORIES = new Set<string>([
 ])
 
 /** NatalContext → ReportData (chart.zip 뷰모델). */
-export function natalToReportData(ctx: AnyCtx, lang: 'ko' | 'en' = 'ko'): ReportData {
+export function natalToReportData(
+  ctx: AnyCtx,
+  lang: 'ko' | 'en' = 'ko'
+): ReportData & ReportDataExtras {
   const S = ctx.saju ?? {}
   const A = ctx.astro ?? {}
   const inp = ctx.input ?? {}
   const adv = S.analyses ?? {}
+
+  // 격국 신뢰도/폴백 플래그 — §02 카드가 "확정 정격"으로 단정하지 않도록 전달.
+  // adv.geokguk(determineGeokgukAdvanced) 가 SSOT. 월령 본기 추정(fallback:true,
+  // confidence:medium)은 카드에서 "추정 격국"으로 약화해 표시한다(CONVENTIONS §9).
+  const geokgukMeta: ReportGeokgukMeta | undefined = adv.geokguk
+    ? {
+        confidence:
+          adv.geokguk.confidence === 'high' ||
+          adv.geokguk.confidence === 'medium' ||
+          adv.geokguk.confidence === 'low'
+            ? adv.geokguk.confidence
+            : undefined,
+        fallback: !!adv.geokguk.fallback,
+      }
+    : undefined
+  // 십신 카테고리 카운트(비겁/식상/재성/관성/인성) — "주도 십성" 카드의 우세/부족
+  // 상태를 일간 강약(S.strength)이 아니라 실제 카테고리 개수로 산출하기 위해 전달.
+  const sibsinCategoryCount: Record<string, number> | undefined = adv.sibsin?.categoryCount
+    ? { ...adv.sibsin.categoryCount }
+    : undefined
 
   const date = `${String(inp.year).padStart(4, '0')}-${String(inp.month).padStart(2, '0')}-${String(inp.date).padStart(2, '0')}`
   const birthTimeUnknown = !!inp.birthTimeUnknown
@@ -213,15 +252,20 @@ export function natalToReportData(ctx: AnyCtx, lang: 'ko' | 'en' = 'ko'): Report
     isDay = false
   ): ReportPillar => {
     const jj = p?.jijanggan ?? {}
-    const slots = [jj.chogi, jj.junggi, jj.jeonggi].filter(Boolean)
+    // 본기(정기)·중기·여기(초기) 순. 깨진 분일수(days) 대신 '층'을 의미값으로 노출.
+    const slots = [
+      jj.jeonggi ? { sl: jj.jeonggi, layer: 'main' as const } : null,
+      jj.junggi ? { sl: jj.junggi, layer: 'mid' as const } : null,
+      jj.chogi ? { sl: jj.chogi, layer: 'sub' as const } : null,
+    ].filter((x): x is { sl: any; layer: 'main' | 'mid' | 'sub' } => !!x)
     return {
       stem: p?.heavenlyStem?.name ?? '',
       branch: p?.earthlyBranch?.name ?? '',
       sibsinStem: isDay ? '日干' : (p?.heavenlyStem?.sibsin ?? ''),
       sibsinBranch: p?.earthlyBranch?.sibsin ?? '',
-      jijanggan: slots.map((sl: any) => ({
+      jijanggan: slots.map(({ sl, layer }) => ({
         g: sl.name ?? sl.stem ?? sl.g ?? '',
-        d: sl.days ?? sl.weight ?? sl.d ?? 0,
+        layer,
       })),
       twelveStage: stages?.[key] ?? '',
       isDay,
@@ -400,6 +444,8 @@ export function natalToReportData(ctx: AnyCtx, lang: 'ko' | 'en' = 'ko'): Report
       lots,
       almuten,
     },
+    geokgukMeta,
+    sibsinCategoryCount,
   }
 }
 
@@ -418,6 +464,8 @@ export interface CrossRowOut {
   reason: string
   left?: string
   right?: string
+  /** 공망/카르마(결핍 축) — resonant 톤이라도 '잘 맞아요' 집계에서 제외하기 위한 표식. */
+  karmaAxis?: boolean
 }
 export function buildCrossRows(
   ctx: AnyCtx,
@@ -660,6 +708,7 @@ export function buildCrossRows(
       reason: v.reason[lang],
       left: v.left?.[lang],
       right: v.right?.[lang],
+      karmaAxis: v.karmaAxis,
     }))
   return { synthesis: synth?.text[lang], rows }
 }

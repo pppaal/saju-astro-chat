@@ -202,14 +202,14 @@
         "career": ["의사", "디자이너", "보석상", "법조", "회계", "치과", "예술"]
       },
       "en": {
-        "name": "Xin · Yin Metal",
+        "name": "Sin (Xīn)",
         "yinYang": "Yin",
         "element": "Metal",
         "image": "Jewel, gold/silver craft, refined blade — refined Yin Metal",
         "nature": "Sharp and clean with strong pride; refined and exacting",
         "strength": ["Refinement", "Sharpness", "Aesthetic sense", "Precision"],
         "weakness": ["Fussiness", "Sensitivity", "Critical nature"],
-        "as_daymaster": "With Xin (Yin Metal) as day master: pride that shines like a jewel. Values appearance and class, suited for arts/professional work",
+        "as_daymaster": "With Sin (Yin Metal) as day master: pride that shines like a jewel. Tends to value appearance and refinement, often drawn to the arts and professional work",
         "career": ["Medicine", "Design", "Jewelry", "Law", "Accounting", "Dentistry", "Arts"]
       }
     },
@@ -274,7 +274,7 @@
         "image": "깊은 밤의 차가운 물 — 한 해의 시작이자 끝, 만물의 씨앗",
         "nature": "지혜롭고 번식력 강하며 차분하지만 예리한 면",
         "as_daybranch": "일지가 子면 직관적이고 내면이 풍부하며 비밀이 많음. 머리 회전이 빠르고 적응력 있음",
-        "hidden_stems": "癸(본기) · 壬(여기) — 음수가 본기로 자리잡고 양수가 여기로 흘러 지혜와 깊이를 더함"
+        "hidden_stems": "癸(본기) — 왕지라 음수 癸 하나가 본기로 자리잡아 지혜와 깊이가 맑게 모임"
       },
       "en": {
         "name": "Ja (Zǐ)",
@@ -286,7 +286,7 @@
         "image": "Cold water of deep night — both end and beginning of the year, the seed of all things",
         "nature": "Wise and prolific; calm yet sharp",
         "as_daybranch": "With Ja as day branch: intuitive, rich inner world, keeps secrets. Quick-witted and adaptive",
-        "hidden_stems": "Gye (main) · Im (residual) — Yin Water as main qi with Yang Water as residual, flowing together to add wisdom and depth"
+        "hidden_stems": "Gye (main) — as a cardinal branch, Yin Water alone sits as the main qi, gathering wisdom and depth in clear form"
       }
     },
     "丑": {
@@ -352,7 +352,7 @@
         "image": "이른 아침의 새순과 토끼 — 부드럽게 뻗는 봄의 정기",
         "nature": "온화하고 섬세하며 예술적 감수성이 풍부한 면",
         "as_daybranch": "일지가 卯이면 온화하고 사교적이며 외모가 단정함. 인기가 많고 예술 감각이 뛰어남",
-        "hidden_stems": "甲(여기) · 乙(본기) — 여기 甲에 이어 본기 음목 乙이 자리잡아 봄의 정기가 맑게 흐름"
+        "hidden_stems": "乙(본기) — 왕지라 음목 乙 하나가 본기로 자리잡아 봄의 정기가 맑게 흐름"
       },
       "en": {
         "name": "Myo (Mǎo)",
@@ -364,7 +364,7 @@
         "image": "Early morning sprouts and rabbit — softly extending spring essence",
         "nature": "Gentle and delicate with rich artistic sensitivity",
         "as_daybranch": "With Myo as day branch: gentle, sociable, neat appearance. Popular with strong artistic sense",
-        "hidden_stems": "Gap (residual) · Eul (main) — residual Yang Wood giving way to Yin Wood as main qi, spring essence flowing clear"
+        "hidden_stems": "Eul (main) — as a cardinal branch, Yin Wood alone sits as the main qi, letting spring essence flow clear"
       }
     },
     "辰": {
@@ -377,7 +377,7 @@
         "direction": "동남동",
         "image": "봄비 머금은 옥토 위의 용 — 신비롭고 변화무쌍",
         "nature": "이상이 높고 상상력 풍부하며 변화를 좋아하는 면",
-        "as_daybranch": "일지가 辰이면 비범하고 야망이 큼. 신비주의적 매력이 있으며 예지력이 있음",
+        "as_daybranch": "일지가 辰이면 비범하고 야망이 큰 편. 신비로운 매력과 직관이 돋보이는 경향",
         "hidden_stems": "戊(본기) · 癸(중기) · 乙(여기) — 양토 본기에 申子辰 삼합 水의 중기 癸와 여기 乙이 어우러져 만물을 품는 창고"
       },
       "en": {
@@ -389,7 +389,7 @@
         "direction": "East-southeast",
         "image": "Dragon on fertile soil moistened by spring rain — mysterious and ever-changing",
         "nature": "High ideals, rich imagination, loves change",
-        "as_daybranch": "With Jin as day branch: extraordinary and ambitious. Mystical charm with foresight",
+        "as_daybranch": "With Jin as day branch: tends to be exceptional and ambitious, with a mysterious charm and keen intuition",
         "hidden_stems": "Mu (main) · Gye (middle) · Eul (residual) — Yang Earth as main, with Gye as middle (Sin-Ja-Jin Water trine) and Eul as residual, blending into a storehouse of all things"
       }
     },
@@ -485,7 +485,7 @@
         "hidden_stems": "庚(본기) · 壬(중기) · 戊(여기) — 양금·양수·양토 — 강한 의지와 흐르는 지혜를 함께 품음"
       },
       "en": {
-        "name": "Shen",
+        "name": "Sin (Shēn)",
         "animal": "Monkey",
         "element": "Metal (Yang Metal)",
         "season": "Early autumn (lunar Jul)",
@@ -508,7 +508,7 @@
         "image": "해질 무렵 닭과 익은 곡식 — 정련되고 깔끔한 음금",
         "nature": "깔끔하고 원칙적이며 미적 감각이 뛰어난 면",
         "as_daybranch": "일지가 酉이면 외모가 단정하고 자존심이 높음. 분석적이고 전문 분야에 어울림",
-        "hidden_stems": "庚(여기) · 辛(본기) — 여기 庚에 이어 본기 음금 辛이 자리잡아 가을의 정기가 예리하게 정련됨"
+        "hidden_stems": "辛(본기) — 왕지라 음금 辛 하나가 본기로 자리잡아 가을의 정기가 예리하게 정련됨"
       },
       "en": {
         "name": "Yu (Yǒu)",
@@ -520,7 +520,7 @@
         "image": "Rooster and ripe grain at sunset — refined and clean Yin Metal",
         "nature": "Neat, principled, strong aesthetic sense",
         "as_daybranch": "With Yu as day branch: neat appearance, high pride. Analytical, suited for specialized fields",
-        "hidden_stems": "Gyeong (residual) · Xin (main) — residual Yang Metal giving way to Yin Metal as main qi, autumn essence refined and sharp"
+        "hidden_stems": "Xin (main) — as a cardinal branch, Yin Metal alone sits as the main qi, refining autumn essence to a sharp edge"
       }
     },
     "戌": {
@@ -559,7 +559,7 @@
         "direction": "북북서",
         "image": "초겨울 밤의 돼지와 강물 — 모든 것을 거둬들이는 깊은 물",
         "nature": "순수하고 포용력 있으며 의리 깊은 면, 인심이 후함",
-        "as_daybranch": "일지가 亥이면 마음이 넓고 사람을 잘 챙김. 학문과 정신세계에 관심 많고 복이 두터움",
+        "as_daybranch": "일지가 亥이면 마음이 넓고 사람을 잘 챙기는 편. 학문과 정신세계에 관심이 많고 인정을 베푸는 경향",
         "hidden_stems": "壬(본기) · 甲(중기) · 戊(여기) — 양수 본기에 양목 중기와 양토 여기가 더해져 깊은 물이 새 생명(나무)과 제방을 함께 품음"
       },
       "en": {
@@ -571,7 +571,7 @@
         "direction": "North-northwest",
         "image": "Pig and river at early winter night — deep water gathering all things",
         "nature": "Pure, embracing, deeply loyal; generous-hearted",
-        "as_daybranch": "With Hae as day branch: broad-minded and caring. Interested in learning and spirituality, blessed with fortune",
+        "as_daybranch": "With Hae as day branch: tends to be broad-minded and caring. Often drawn to learning and spirituality, with a generous spirit",
         "hidden_stems": "Im (main) · Gap (middle) · Mu (residual) — Yang Water as main with Yang Wood middle and Yang Earth residual, deep water cradling new life (the tree) and embankment"
       }
     }
