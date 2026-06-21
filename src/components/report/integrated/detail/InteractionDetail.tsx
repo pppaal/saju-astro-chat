@@ -39,11 +39,11 @@ export default function InteractionDetail({ shinsal, relations, lang }: Interact
 
   return (
     <details className={s.box}>
-      <summary>{en ? 'Sinsal & interactions, explained' : '신살·합충형파 뜻풀이'}</summary>
+      <summary>{en ? 'Symbolic stars & interactions, explained' : '신살·합충형파 뜻풀이'}</summary>
       <div className={s.body}>
         {/* ── 신살 ───────────────────────────────────────── */}
         <section>
-          <div className={s.subcap}>{en ? 'Symbolic stars' : '신살'}</div>
+          <div className={s.subcap}>{en ? 'Symbolic stars' : '신살 · 타고난 기운 표식'}</div>
           {shinsalRows.length === 0 ? (
             <div className={s.empty}>{en ? 'none' : '없음'}</div>
           ) : (
@@ -71,7 +71,7 @@ export default function InteractionDetail({ shinsal, relations, lang }: Interact
 
         {/* ── 합충형파 ─────────────────────────────────────── */}
         <section>
-          <div className={s.subcap}>{en ? 'Interactions' : '합충형파'}</div>
+          <div className={s.subcap}>{en ? 'Interactions' : '합충형파 · 글자끼리의 밀고 당김'}</div>
           {relationRows.length === 0 ? (
             <div className={s.empty}>{en ? 'none' : '없음'}</div>
           ) : (

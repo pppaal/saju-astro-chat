@@ -76,8 +76,8 @@
   gap: 2px;
   font-style: normal;
   border-radius: 999px;
-  background: var(--gold-wash);
-  border: 1px solid var(--gold-line);
+  background: rgba(169, 131, 59, 0.13);
+  border: 1px solid var(--gold);
   padding: 3px 10px;
   font-family: var(--mono);
   font-size: 11px;

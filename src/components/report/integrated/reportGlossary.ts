@@ -18,21 +18,21 @@ export const GLOSSARY: Record<GlossarySection, GlossaryEntry[]> = {
     {
       term: { ko: '사주팔자가 뭔가요?', en: 'What is Saju (Four Pillars)?' },
       body: {
-        ko: '태어난 연·월·일·시를 옛 동양식 부호(천간·지지)로 바꾼 여덟 글자예요. 그 조합으로 타고난 기질과 삶의 흐름을 읽습니다.',
+        ko: '태어난 연·월·일·시를 옛 동양식 부호(천간·지지)로 바꾼 여덟 글자예요. 그 조합으로 타고난 기질과 삶의 흐름을 읽어요.',
         en: 'Your birth year, month, day, and hour written as eight East-Asian symbols (stems and branches). Their combination describes your inborn temperament and life flow.',
       },
     },
     {
       term: { ko: '천궁도(점성)는 뭔가요?', en: 'What is the natal chart (astrology)?' },
       body: {
-        ko: '태어난 순간 하늘에서 해·달·행성이 어느 별자리·위치에 있었는지 그린 지도예요. 서양 점성술의 기본 그림입니다.',
+        ko: '태어난 순간 하늘에서 해·달·행성이 어느 별자리·위치에 있었는지 그린 지도예요. 서양 점성술의 기본 그림이에요.',
         en: 'A map of where the Sun, Moon, and planets sat in the sky at your birth — the core chart of Western astrology.',
       },
     },
     {
       term: { ko: '이 리포트는 어떻게 읽나요?', en: 'How do I read this report?' },
       body: {
-        ko: '같은 사람을 동양 사주와 서양 점성으로 각각 본 뒤 겹쳐 봅니다. 둘이 같은 얘길 하면 그만큼 또렷하고 단단한 특징이에요.',
+        ko: '같은 사람을 동양 사주와 서양 점성으로 각각 본 뒤 겹쳐 봐요. 둘이 같은 얘길 하면 그만큼 또렷하고 단단한 특징이에요.',
         en: 'It reads the same person with both Eastern Saju and Western astrology, then overlays them. When both point the same way, that trait is especially strong.',
       },
     },
@@ -48,7 +48,7 @@ export const GLOSSARY: Record<GlossarySection, GlossaryEntry[]> = {
     {
       term: { ko: '천간·지지 (갑을병정 / 자축인묘)', en: 'Stems & branches' },
       body: {
-        ko: '천간은 갑·을·병·정… 10개, 지지는 자·축·인·묘… 12개의 부호예요. 각각 오행(목·화·토·금·수)과 음양을 담습니다.',
+        ko: '천간은 갑·을·병·정… 10개, 지지는 자·축·인·묘… 12개의 부호예요. 각각 오행(목·화·토·금·수)과 음양을 담고 있어요.',
         en: 'Stems are 10 symbols (Gap, Eul, Byeong…); branches are 12 (Ja, Chuk, In…). Each carries an element (Wood/Fire/Earth/Metal/Water) and a yin-yang.',
       },
     },
@@ -62,8 +62,8 @@ export const GLOSSARY: Record<GlossarySection, GlossaryEntry[]> = {
     {
       term: { ko: '십신 (정관·식신·재성 등)', en: 'Ten Gods' },
       body: {
-        ko: '나(일간)를 기준으로 다른 글자가 어떤 관계인지 붙인 이름이에요. 일·돈·관계처럼 삶의 역할을 나타냅니다.',
-        en: 'Labels for how each other character relates to you (Officer, Output, Wealth…). They map to life roles like work, money, and relationships.',
+        ko: '나(일간)를 기준으로 다른 글자가 어떤 관계인지 붙인 이름이에요. 일·돈·관계처럼 삶의 역할을 나타내요.',
+        en: 'Labels for how each other character relates to you (Direct Officer, Eating God, Wealth…). They map to life roles like work, money, and relationships.',
       },
     },
     {
@@ -76,14 +76,14 @@ export const GLOSSARY: Record<GlossarySection, GlossaryEntry[]> = {
     {
       term: { ko: '지장간', en: 'Hidden stems' },
       body: {
-        ko: '지지(아래 글자) 속에 숨어 있는 천간이에요. 겉으로 안 보여도 속에서 작용하는 기운을 보여줍니다.',
+        ko: '지지(아래 글자) 속에 숨어 있는 천간이에요. 겉으로 안 보여도 속에서 작용하는 기운을 보여줘요.',
         en: 'Stems tucked inside each branch — energies that work beneath the surface even when not visible.',
       },
     },
     {
       term: { ko: '12운성 (장생·제왕·쇠 등)', en: 'Twelve life stages' },
       body: {
-        ko: '기운이 태어나→자라→전성기→쇠퇴하는 12단계 중 어디인지 표시해요. 그 글자의 힘의 세기를 가늠합니다.',
+        ko: '기운이 태어나→자라→전성기→쇠퇴하는 12단계 중 어디인지 표시해요. 그 글자의 힘의 세기를 가늠해요.',
         en: 'A 12-stage cycle (birth → growth → peak → decline) showing how strong each character’s energy is.',
       },
     },
@@ -97,7 +97,7 @@ export const GLOSSARY: Record<GlossarySection, GlossaryEntry[]> = {
     {
       term: { ko: '합충형파', en: 'Interactions (harmony/clash)' },
       body: {
-        ko: '글자들끼리 끌어당기거나(합) 부딪히는(충) 상호작용이에요. 어떤 기운이 묶이거나 흔들리는지 보여줍니다.',
+        ko: '글자들끼리 끌어당기거나(합) 부딪히는(충) 상호작용이에요. 어떤 기운이 묶이거나 흔들리는지 보여줘요.',
         en: 'Interactions between characters — combining (harmony) or clashing — showing which energies bond or get shaken.',
       },
     },
@@ -106,21 +106,21 @@ export const GLOSSARY: Record<GlossarySection, GlossaryEntry[]> = {
     {
       term: { ko: '오행 (목·화·토·금·수)', en: 'Five elements' },
       body: {
-        ko: '세상의 기운을 나무·불·흙·금속·물 다섯으로 나눈 거예요. 사주에 어느 기운이 많고 적은지 봅니다.',
+        ko: '세상의 기운을 나무·불·흙·금속·물 다섯으로 나눈 거예요. 사주에 어느 기운이 많고 적은지 봐요.',
         en: 'The world’s energy split into Wood, Fire, Earth, Metal, Water. We look at which you have a lot or a little of.',
       },
     },
     {
       term: { ko: '신강 · 신약', en: 'Strong · weak day master' },
       body: {
-        ko: '나(일간)의 힘이 센지(신강) 약한지(신약)예요. 균형이면 중화라고 합니다. 무엇을 보완할지의 기준이 돼요.',
+        ko: '나(일간)의 힘이 센지(신강) 약한지(신약)예요. 균형이면 중화라고 해요. 무엇을 보완할지의 기준이 돼요.',
         en: 'Whether "you" (the day master) are strong or weak (balanced = neutral). It guides what to support.',
       },
     },
     {
       term: { ko: '격국', en: 'Chart structure (geokguk)' },
       body: {
-        ko: '사주 전체의 유형(타입)이에요. 그 사람의 큰 성향과 어울리는 길을 한마디로 요약해줍니다.',
+        ko: '사주 전체의 유형(타입)이에요. 그 사람의 큰 성향과 어울리는 길을 한마디로 요약해줘요.',
         en: 'The overall "type" of your chart — a one-line summary of your broad disposition and fitting path.',
       },
     },
@@ -134,7 +134,7 @@ export const GLOSSARY: Record<GlossarySection, GlossaryEntry[]> = {
     {
       term: { ko: '통근 · 공망 · 조후', en: 'Rooting · Void · Climate' },
       body: {
-        ko: '세 가지 보조 점검이에요. 통근=내 글자가 아래 자리에 같은 기운을 받아 든든히 버티고 있는지, 공망=그 자리가 비어서 힘이 잘 안 실리는 곳, 조후=태어난 계절이 너무 덥거나 추워서 따뜻함·시원함으로 균형을 맞춰야 하는지를 봅니다.',
+        ko: '세 가지 보조 점검이에요. 통근=내 글자가 아래 자리에 같은 기운을 받아 든든히 버티고 있는지, 공망=그 자리가 비어서 힘이 잘 안 실리는 곳, 조후=태어난 계절이 너무 덥거나 추워서 따뜻함·시원함으로 균형을 맞춰야 하는지를 봐요.',
         en: 'Three secondary checks. Rooting: whether your character has matching support beneath it so it stands firm. Void: a spot that sits empty, so energy does not land there well. Climate: whether your birth season runs too hot or too cold and needs warmth or cooling to balance.',
       },
     },
@@ -143,7 +143,7 @@ export const GLOSSARY: Record<GlossarySection, GlossaryEntry[]> = {
     {
       term: { ko: '천궁도', en: 'Natal wheel' },
       body: {
-        ko: '태어난 순간 하늘을 둥글게 그린 지도예요. 둘레의 12별자리 위에 행성들이 놓여 있습니다.',
+        ko: '태어난 순간 하늘을 둥글게 그린 지도예요. 둘레의 12별자리 위에 행성들이 놓여 있어요.',
         en: 'A round map of the sky at your birth, with planets placed on the 12 zodiac signs around the rim.',
       },
     },
@@ -164,7 +164,7 @@ export const GLOSSARY: Record<GlossarySection, GlossaryEntry[]> = {
     {
       term: { ko: '하우스', en: 'Houses' },
       body: {
-        ko: '그 기운이 삶의 어느 무대에서 펼쳐지는지예요. 1~12하우스가 자아·돈·관계·일 같은 영역을 나눕니다.',
+        ko: '그 기운이 삶의 어느 무대에서 펼쳐지는지예요. 1~12하우스가 자아·돈·관계·일 같은 영역을 나눠요.',
         en: 'The life "stage" where an energy plays out. Houses 1–12 cover areas like self, money, relationships, and work.',
       },
     },
@@ -178,7 +178,7 @@ export const GLOSSARY: Record<GlossarySection, GlossaryEntry[]> = {
     {
       term: { ko: '주간 · 야간 (sect)', en: 'Sect (day · night)' },
       body: {
-        ko: '해가 지평선 위에 있을 때(낮) 태어났는지, 아래에 있을 때(밤) 태어났는지로 차트를 주간·야간으로 나눠요. 낮 차트면 해 쪽 행성이, 밤 차트면 달 쪽 행성이 더 편하게 힘을 냅니다.',
+        ko: '해가 지평선 위에 있을 때(낮) 태어났는지, 아래에 있을 때(밤) 태어났는지로 차트를 주간·야간으로 나눠요. 낮 차트면 해 쪽 행성이, 밤 차트면 달 쪽 행성이 더 편하게 힘을 내요.',
         en: 'Whether you were born with the Sun above the horizon (day) or below it (night) sorts the chart into day or night. In a day chart the Sun-side planets work more comfortably; in a night chart the Moon-side ones do.',
       },
     },
@@ -187,7 +187,7 @@ export const GLOSSARY: Record<GlossarySection, GlossaryEntry[]> = {
     {
       term: { ko: '어스펙트 (행성 각도)', en: 'Aspects' },
       body: {
-        ko: '행성들 사이의 각도 관계예요. 잘 흐르거나(조화), 부딪히거나(긴장), 함께 뭉치며(합) 서로 영향을 줍니다.',
+        ko: '행성들 사이의 각도 관계예요. 잘 흐르거나(조화), 부딪히거나(긴장), 함께 뭉치며(합) 서로 영향을 줘요.',
         en: 'Angle relationships between planets — flowing (harmony), clashing (tension), or merging (conjunction).',
       },
     },
@@ -201,14 +201,14 @@ export const GLOSSARY: Record<GlossarySection, GlossaryEntry[]> = {
     {
       term: { ko: '역행 (retrograde)', en: 'Retrograde' },
       body: {
-        ko: '하늘에서 행성이 잠시 뒤로 가는 것처럼 보이는 때예요. 그 행성의 기운이 밖으로 뻗기보다 안으로 향하고 곱씹는 식으로 작동한다고 봅니다.',
+        ko: '하늘에서 행성이 잠시 뒤로 가는 것처럼 보이는 때예요. 그 행성의 기운이 밖으로 뻗기보다 안으로 향하고 곱씹는 식으로 작동한다고 봐요.',
         en: 'A time when a planet appears to move backward in the sky. Its energy is read as turning inward and reflective rather than reaching outward.',
       },
     },
     {
       term: { ko: '디그니티 (위계)', en: 'Dignities' },
       body: {
-        ko: '행성이 자기 집처럼 편한 자리인지, 기죽는 자리인지 보는 점수 같은 거예요. 그 행성의 힘이 얼마나 잘 나오는지 알려줍니다.',
+        ko: '행성이 자기 집처럼 편한 자리인지, 기죽는 자리인지 보는 점수 같은 거예요. 그 행성의 힘이 얼마나 잘 나오는지 알려줘요.',
         en: 'Whether a planet sits in a comfortable "home" or a weak seat — like a score for how well its power comes through.',
       },
     },

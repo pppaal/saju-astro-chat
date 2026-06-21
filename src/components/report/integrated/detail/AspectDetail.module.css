@@ -108,25 +108,25 @@
   font-size: 13px;
   color: var(--plum);
 }
-.sep {
-  color: var(--plum-soft);
-}
 .orb {
   margin-left: auto;
   font-family: var(--mono);
   font-size: 11px;
+  font-weight: 600;
   color: var(--gold);
-  background: var(--gold-wash);
-  border: 1px solid var(--gold-line);
+  background: rgba(169, 131, 59, 0.14);
+  border: 1px solid var(--gold);
   border-radius: 999px;
-  padding: 1px 9px;
+  padding: 2px 9px;
 }
 .sign {
   font-size: 12px;
+  font-weight: 600;
   color: var(--plum);
-  background: var(--plum-wash);
+  background: rgba(91, 74, 115, 0.12);
+  border: 1px solid var(--plum);
   border-radius: 999px;
-  padding: 1px 9px;
+  padding: 2px 9px;
   word-break: keep-all;
 }
 .meaning {

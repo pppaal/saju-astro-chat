@@ -263,7 +263,7 @@ export function ShareReportButton({ summary, name, dateLabel, isKo }: ShareRepor
             <p className="mt-3 text-[11px] text-center" style={{ color: '#9aa3b8' }}>
               {isKo
                 ? '저장한 이미지를 인스타그램 스토리·피드나 카카오톡에 올려보세요.'
-                : 'Post the saved image to Instagram or share it on any app.'}
+                : 'Post the saved image to your Instagram story or feed, or share it anywhere you like.'}
             </p>
           </div>
         </div>

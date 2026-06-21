@@ -110,8 +110,8 @@
   color: var(--gold);
   font-family: var(--serif);
   border-radius: 999px;
-  background: var(--gold-wash);
-  border: 1px solid var(--gold-line);
+  background: rgba(169, 131, 59, 0.14);
+  border: 1px solid var(--gold);
   padding: 2px 9px;
 }
 .mean {

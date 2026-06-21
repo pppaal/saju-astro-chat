@@ -108,8 +108,8 @@
   margin: 16px 0 0;
   padding: 5px 13px;
   border-radius: 999px;
-  border: 1px solid var(--line);
-  background: var(--card-2);
+  border: 1px solid var(--gold);
+  background: rgba(169, 131, 59, 0.12);
   font-size: 12.5px;
   color: var(--ink-2);
 }
@@ -170,7 +170,7 @@
   height: 30px;
   border-radius: 50%;
   font-size: 15px;
-  background: rgba(169, 131, 59, 0.1);
+  background: rgba(169, 131, 59, 0.14);
   border: 1px solid var(--gold);
 }
 

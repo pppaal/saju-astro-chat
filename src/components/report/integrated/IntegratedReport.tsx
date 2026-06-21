@@ -71,6 +71,96 @@ import { ShareReportButton } from './viral/ShareReportButton'
 
 export type { Lang, CrossRow } from './integratedReportLabels'
 
+// 통합 교차 카테고리 → 평어 한 줄 뜻. 동·서양이 같이 가리키는 주제를 맨 위 훅과
+// §05 목록에서 "라벨 — 쉬운 뜻"으로 읽히게 한다. 사용자별 하드코딩이 아니라
+// 카테고리별 고정 의미(데이터). 키는 ko/en 라벨 문자열 둘 다(어댑터 CAT 라벨과 일치).
+const CATEGORY_MEANING: Record<string, BiLabel> = {
+  // identity
+  정체성: { ko: '내가 나답게 느껴지는 핵심 결', en: 'the core that feels most like you' },
+  Identity: { ko: '내가 나답게 느껴지는 핵심 결', en: 'the core that feels most like you' },
+  // needs
+  욕망: { ko: '마음 깊이 진짜로 채우고 싶은 것', en: 'what you most want filled inside' },
+  Needs: { ko: '마음 깊이 진짜로 채우고 싶은 것', en: 'what you most want filled inside' },
+  // socialRole
+  사회역할: { ko: '밖에서 맡으면 빛나는 자리', en: 'the role that suits you in the world' },
+  'Social Role': { ko: '밖에서 맡으면 빛나는 자리', en: 'the role that suits you in the world' },
+  // fortune — 단정형 길흉이 아니라 '잘 풀리는 결' 경향으로 풀어쓴다(안전).
+  길흉: { ko: '일이 비교적 잘 풀리는 흐름의 결', en: 'where things tend to flow your way' },
+  Fortune: { ko: '일이 비교적 잘 풀리는 흐름의 결', en: 'where things tend to flow your way' },
+  // relations
+  관계: { ko: '사람과 이어지고 거리를 두는 방식', en: 'how you connect and keep distance' },
+  Relationships: {
+    ko: '사람과 이어지고 거리를 두는 방식',
+    en: 'how you connect and keep distance',
+  },
+  // strength
+  강점: { ko: '꾸준히 기댈 수 있는 단단한 힘', en: 'a steady strength you can lean on' },
+  Strength: { ko: '꾸준히 기댈 수 있는 단단한 힘', en: 'a steady strength you can lean on' },
+  // temperament
+  기질: { ko: '평소 마음이 움직이는 기본 성향', en: 'your everyday inner temperament' },
+  Temperament: { ko: '평소 마음이 움직이는 기본 성향', en: 'your everyday inner temperament' },
+  // energy
+  에너지: { ko: '힘을 주로 쏟는 방향', en: 'where your energy tends to flow' },
+  Energy: { ko: '힘을 주로 쏟는 방향', en: 'where your energy tends to flow' },
+  // drive
+  추진력: { ko: '목표가 생기면 끝까지 미는 힘', en: 'the push to see a goal all the way through' },
+  Drive: { ko: '목표가 생기면 끝까지 미는 힘', en: 'the push to see a goal all the way through' },
+  // keyTrait
+  '핵심 성향': { ko: '한마디로 요약되는 대표 색깔', en: 'the standout trait that defines you' },
+  'Core Trait': { ko: '한마디로 요약되는 대표 색깔', en: 'the standout trait that defines you' },
+  // romance
+  '연애·매력': { ko: '사람을 끌고 사랑을 다루는 결', en: 'how you draw people in and love' },
+  'Love & Magnetism': { ko: '사람을 끌고 사랑을 다루는 결', en: 'how you draw people in and love' },
+  // expression
+  '소통·표현': {
+    ko: '생각을 말과 글로 나누는 방식',
+    en: 'how you share ideas in words',
+  },
+  'Voice & Expression': {
+    ko: '생각을 말과 글로 나누는 방식',
+    en: 'how you share ideas in words',
+  },
+  // movement
+  '이동·변화': { ko: '새 환경으로 옮겨가는 흐름', en: 'your pull toward change and new ground' },
+  'Movement & Change': {
+    ko: '새 환경으로 옮겨가는 흐름',
+    en: 'your pull toward change and new ground',
+  },
+  // spirit
+  '예술·영성': { ko: '아름다움과 깊은 의미를 향한 마음', en: 'a pull toward beauty and meaning' },
+  'Art & Spirit': {
+    ko: '아름다움과 깊은 의미를 향한 마음',
+    en: 'a pull toward beauty and meaning',
+  },
+  // wealth
+  '재물 그릇': { ko: '돈과 자원을 모으고 키우는 그릇', en: 'how you gather and grow resources' },
+  'Wealth Capacity': {
+    ko: '돈과 자원을 모으고 키우는 그릇',
+    en: 'how you gather and grow resources',
+  },
+  // karma
+  '공망/카르마': { ko: '타고나기보다 스스로 채워가는 영역', en: 'an area you build for yourself' },
+  'Void / Karma': { ko: '타고나기보다 스스로 채워가는 영역', en: 'an area you build for yourself' },
+  // growth
+  '성장 방향': {
+    ko: '평생에 걸쳐 자라나는 방향',
+    en: 'the direction you grow toward over a lifetime',
+  },
+  'Growth Direction': {
+    ko: '평생에 걸쳐 자라나는 방향',
+    en: 'the direction you grow toward over a lifetime',
+  },
+  // yinYang
+  '음양 리듬': { ko: '발산과 수렴을 오가는 리듬', en: 'your rhythm between outward and inward' },
+  'Yin-Yang Rhythm': {
+    ko: '발산과 수렴을 오가는 리듬',
+    en: 'your rhythm between outward and inward',
+  },
+}
+// 카테고리 라벨(이미 lang 해석됨) → 평어 한 줄. 매칭 없으면 빈 문자열.
+const categoryMeaning = (category: string, lang: Lang): string =>
+  CATEGORY_MEANING[category]?.[lang] ?? ''
+
 // 초보자용 "쉽게 풀이" 더보기 — 사주·점성 용어를 모르는 사람을 위해 각 섹션의
 // 용어를 한 줄로 풀어준다. 네이티브 <details> 라 모바일/접근성 OK, 기본 접힘.
 function Explain({ section, lang }: { section: GlossarySection; lang: Lang }) {
@@ -1240,7 +1330,12 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
               {cross.rows.map((r, i) => (
                 <div className={s.theme} key={i} style={{ ['--tc' as string]: TONE_COLOR[r.tone] }}>
                   <div className={s.themeHead}>
-                    <span className={s.themeName}>{r.category}</span>
+                    <span className={s.themeName}>
+                      {r.category}
+                      {categoryMeaning(r.category, lang) && (
+                        <span className={s.themeGloss}>{categoryMeaning(r.category, lang)}</span>
+                      )}
+                    </span>
                     <span className={s.themeBadge}>{TONE_LABEL[r.tone][lang]}</span>
                   </div>
                   {r.left && r.right && (
@@ -1291,6 +1386,19 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
                         {lang === 'en'
                           ? ' — two systems converging suggests this is one of your steadiest cores, so you might consider leaning on it in your work and the way you show up.'
                           : '은(는) 두 점술이 독립적으로 합의한 지점 — 비교적 흔들리지 않는 정체성 코어로 보여요. 일이나 자기표현에서 이 결을 살려 활용해 볼 만해요.'}
+                        {/* 합의 주제별 평어 한 줄 — 라벨만으로 막막하지 않게 뜻을 곁들인다. */}
+                        {reson.some((c) => categoryMeaning(c, lang)) && (
+                          <ul className={s.crossGlossList}>
+                            {reson.map(
+                              (c) =>
+                                categoryMeaning(c, lang) && (
+                                  <li key={c}>
+                                    <b>{c}</b> — {categoryMeaning(c, lang)}
+                                  </li>
+                                )
+                            )}
+                          </ul>
+                        )}
                       </li>
                     )}
                     {tens.length > 0 && (
@@ -1328,7 +1436,7 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
         >
           {lang === 'en'
             ? 'This report is for self-reflection only and is not a substitute for professional medical, legal, or financial advice.'
-            : '이 리포트는 자기 이해를 돕는 참고용이며, 의료·법률·재무 등 전문적 판단을 대신하지 않습니다.'}
+            : '이 리포트는 자기 이해를 돕는 참고용이에요. 의료·법률·재무 같은 전문적인 판단을 대신하지 않으니 참고로만 봐 주세요.'}
         </div>
 
         <div className={s.foot}>

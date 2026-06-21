@@ -53,6 +53,13 @@ function tx(key: keyof typeof TX, lang: Lang): string {
   return TX[key][lang]
 }
 
+/** 지장간 결 — 본기/중기/여기를 한 글자 칩으로(EN은 Main/Mid/Sub). */
+const LAYER_LABEL: Record<'main' | 'mid' | 'sub', { ko: string; en: string }> = {
+  main: { ko: '본', en: 'Main' },
+  mid: { ko: '중', en: 'Mid' },
+  sub: { ko: '여', en: 'Sub' },
+}
+
 /** 한 줄 라벨 + 값. value 가 비면 렌더하지 않는다(헬퍼가 '' 반환 가능). */
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -85,9 +92,13 @@ function PillarCard({
   const stemMeaning = firstSee(p.stem) ? hanjaHover(p.stem, lang) : ''
   const branchMeaning = firstSee(p.branch) ? hanjaHover(p.branch, lang) : ''
 
-  // 지장간: 빈 의미는 건너뛰고, 이미 나온 글자는 뜻 생략.
+  // 지장간: 빈 의미는 건너뛰고, 이미 나온 글자는 뜻 생략. 결(본/중/여)도 함께.
   const hidden = (p.jijanggan ?? [])
-    .map((j) => ({ char: j.g, meaning: firstSee(j.g) ? hanjaHover(j.g, lang) : '' }))
+    .map((j) => ({
+      char: j.g,
+      layer: j.layer,
+      meaning: firstSee(j.g) ? hanjaHover(j.g, lang) : '',
+    }))
     .filter((h) => !!h.char)
 
   // 십신: 천간/지지 각각 라벨 + 짧은 글로스(있으면).
@@ -123,6 +134,11 @@ function PillarCard({
           <span className={s.hiddenList}>
             {hidden.map((h, i) => (
               <span className={s.hiddenItem} key={`${h.char}-${i}`}>
+                {LAYER_LABEL[h.layer] ? (
+                  <span className={s.layerChip} data-layer={h.layer}>
+                    {LAYER_LABEL[h.layer][lang]}
+                  </span>
+                ) : null}
                 <b className={`${s.hanSm} ${elClass[stemEl(h.char)] ?? ''}`}>{h.char}</b>
                 {h.meaning ? <span className={s.meaning}>{h.meaning}</span> : null}
               </span>

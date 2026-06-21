@@ -96,8 +96,8 @@
   font-weight: 600;
   letter-spacing: 0.02em;
   color: var(--gold);
-  background: var(--gold-wash);
-  border: 1px solid var(--gold-line);
+  background: rgba(169, 131, 59, 0.14);
+  border: 1px solid var(--gold);
   border-radius: 999px;
   padding: 2px 9px;
   word-break: keep-all;
@@ -164,15 +164,49 @@
   gap: 5px;
   word-break: keep-all;
 }
-/* 십신 라벨 — 골드 워시 pill */
+/* 결 칩이 있는 지장간 항목은 칩·글자가 세로 중앙으로 맞물리게. */
+.hiddenItem {
+  align-items: center;
+  gap: 6px;
+}
+/* 십신 라벨 — 또렷한 골드 pill (크림 위에서도 잘 보이게 solid 골드 테두리). */
 .sibItem b {
   font-weight: 600;
   color: var(--gold);
-  background: var(--gold-wash);
-  border: 1px solid var(--gold-line);
+  background: rgba(169, 131, 59, 0.14);
+  border: 1px solid var(--gold);
   border-radius: 999px;
   padding: 2px 10px;
   font-size: 12px;
+}
+
+/* 지장간 결(본/중/여) 칩 — 본기는 골드(가장 강함), 중기는 플럼, 여기는 옅게. */
+.layerChip {
+  flex: none;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  line-height: 1.5;
+  min-width: 15px;
+  text-align: center;
+  border-radius: 5px;
+  padding: 1px 4px;
+  word-break: keep-all;
+}
+.layerChip[data-layer='main'] {
+  color: var(--gold);
+  background: rgba(169, 131, 59, 0.14);
+  border: 1px solid var(--gold);
+}
+.layerChip[data-layer='mid'] {
+  color: var(--plum);
+  background: var(--plum-wash);
+  border: 1px solid var(--plum-soft);
+}
+.layerChip[data-layer='sub'] {
+  color: var(--ink-3);
+  background: transparent;
+  border: 1px solid var(--line);
 }
 
 .stageName {

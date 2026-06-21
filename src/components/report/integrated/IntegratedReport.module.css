@@ -958,6 +958,23 @@
   font-size: 15.5px;
   font-weight: 700;
   font-family: var(--serif);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 8px;
+  min-width: 0;
+}
+/* 카테고리 라벨 옆 평어 한 줄 — 라벨만으론 막막하니 쉬운 뜻을 곁들인다. */
+.themeGloss {
+  font-family: 'Pretendard', 'Noto Sans KR', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ink-2);
+  letter-spacing: 0;
+}
+.themeGloss::before {
+  content: '— ';
+  color: var(--ink-3);
 }
 .themeBadge {
   margin-left: auto;
@@ -1502,6 +1519,33 @@
 }
 .crossAdviceList b {
   color: var(--gold);
+  font-weight: 600;
+}
+/* 합의 주제별 평어 한 줄 목록 — '정체성 코어' 항목 안에 들여써서 라벨별 뜻을 보탠다. */
+.crossGlossList {
+  margin: 8px 0 0;
+  padding-left: 14px;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.crossGlossList li {
+  position: relative;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+.crossGlossList li::before {
+  content: '✦';
+  position: absolute;
+  left: -14px;
+  color: var(--gold);
+  font-size: 8px;
+  top: 3px;
+}
+.crossGlossList b {
+  color: var(--ink);
   font-weight: 600;
 }
 

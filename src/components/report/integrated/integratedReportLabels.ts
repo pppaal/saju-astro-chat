@@ -48,7 +48,7 @@ export const UI: Record<string, BiLabel> = {
   metaHouse: { ko: '하우스', en: 'Houses' },
   timeUnknownTitle: { ko: '출생시각 미상', en: 'Birth time unknown' },
   timeUnknownBody: {
-    ko: '출생시각이 입력되지 않아 정오 기준으로 계산했습니다. 상승궁(ASC)·중천(MC)·하우스에 의존하는 해석(사회적 역할, 첫인상, 영역별 강조)은 근사치이니 참고용으로만 보세요. 사주와 행성 배치 해석은 영향이 적습니다.',
+    ko: '출생시각이 입력되지 않아 정오를 기준으로 계산했어요. 상승궁(ASC)·중천(MC)·하우스에 기대는 해석(사회적 역할, 첫인상, 영역별 강조)은 근사치이니 참고용으로만 봐 주세요. 사주와 행성 배치 해석은 영향을 거의 받지 않아요.',
     en: 'No birth time was provided, so the chart is computed for noon. Readings that depend on the Ascendant, Midheaven, or houses (social role, first impression, life-area emphasis) are approximate — treat them as indicative only. Saju and planet-placement readings are largely unaffected.',
   },
   day: { ko: '주간', en: 'diurnal' },
@@ -72,16 +72,16 @@ export const UI: Record<string, BiLabel> = {
   rootedYes: { ko: '뿌리 ✓', en: 'Rooted ✓' },
   rootedNo: { ko: '뿌리 ✗', en: 'Rooted ✗' },
   rootedYesTip: {
-    ko: '통근 — 일간의 오행이 지지 지장간에 박혀있음. 일간 강도 보강.',
+    ko: '통근 — 일간의 오행이 지지 속 지장간에 뿌리내려 있어요. 일간의 힘을 받쳐 줘요.',
     en: 'Rooted — the Day Master element is lodged in the hidden stems, reinforcing its strength.',
   },
   rootedNoTip: {
-    ko: '무근 — 일간 오행이 지지에 박혀있지 않음. 강도 약화 요인.',
+    ko: '무근 — 일간의 오행이 지지에 뿌리내리지 못했어요. 그만큼 힘이 약해지는 요인이에요.',
     en: 'Unrooted — the Day Master element is not lodged in the branches, weakening its strength.',
   },
   gongmangLab: { ko: '공망', en: 'Void' },
   gongmangTip: {
-    ko: '공망 — 일주 60갑자 그룹에서 비어있는 지지 2개. 해당 지지의 작용이 약함.',
+    ko: '공망 — 일주가 속한 60갑자 그룹에서 비어 있는 지지 2개예요. 그 지지의 작용이 약해져요.',
     en: 'Void branches — the two empty branches of the day-pillar sexagenary group; their influence is muted.',
   },
   johuLab: { ko: '조후', en: 'Climate' },
@@ -175,7 +175,7 @@ export const SIGN_TRAIT: Record<string, BiLabel> = {
   Lib: { ko: '조화를 맞추고 어울리는', en: 'balanced and relational' },
   Sco: { ko: '깊고 강렬하게 파고드는', en: 'deep and intense' },
   Sag: { ko: '자유롭게 멀리 뻗는', en: 'free and far-reaching' },
-  Cap: { ko: '현실적으로 끝까지 성취하는', en: 'grounded and ambitious' },
+  Cap: { ko: '현실적으로 끝까지 성취하는', en: 'disciplined and ambitious' },
   Aqu: { ko: '독창적이고 틀을 깨는', en: 'original and unconventional' },
   Pis: { ko: '섬세하고 상상력 넘치는', en: 'sensitive and imaginative' },
 }

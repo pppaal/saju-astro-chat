@@ -179,8 +179,8 @@ export const ReportShareCard = React.forwardRef<HTMLDivElement, { data: ReportSh
                     color: GOLD,
                     padding: '8px 20px',
                     borderRadius: 999,
-                    border: `1px solid ${GOLD_LINE}`,
-                    background: 'rgba(212,181,114,0.08)',
+                    border: `1px solid ${GOLD_SOFT}`,
+                    background: 'rgba(212,181,114,0.16)',
                     wordBreak: 'keep-all',
                   }}
                 >

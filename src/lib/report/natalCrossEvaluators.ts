@@ -315,7 +315,7 @@ export function evalStrength(
       return {
         tone: 'resonant',
         reason: {
-          ko: `타고난 힘이 가장 셀 자리에 있고, 별자리에선 ${stk} 쪽이 특히 강해요 — 사주의 기세와 점성의 강한 자리가 같은 방향으로 모인 셈이에요. 한 분야를 깊게 파고들면 누구보다 또렷하게 두각을 내는 구조라, 이것저것 벌이기보다 ${stk} 쪽 한 우물에 힘을 모으는 게 유리해요. 가진 힘이 큰 만큼 자만이나 과속만 조심하면 멀리 갑니다.`,
+          ko: `타고난 힘이 가장 셀 자리에 있고, 별자리에선 ${stk} 쪽이 특히 강해요 — 사주의 기세와 점성의 강한 자리가 같은 방향으로 모인 셈이에요. 한 분야를 깊게 파고들면 누구보다 또렷하게 두각을 내는 구조라, 이것저것 벌이기보다 ${stk} 쪽 한 우물에 힘을 모으는 게 유리해요. 가진 힘이 큰 만큼 자만이나 과속만 조심하면 멀리 가요.`,
           en: `Your power sits at its strongest, and in your chart the ${ste} side is especially strong — Saju's momentum and the chart's strong placement gather in one direction. You stand out sharpest when you dig deep into one field, so it pays to pool your force into the ${ste} lane rather than spreading thin. With this much power, just guard against overconfidence and overspeed and you'll go far.`,
         },
       }
@@ -585,7 +585,7 @@ export function evalDrive(
   // selfEmphasized(태양·화성 강조)일 때만 의미 있다.
   if (selfEmphasized && drivePlanetCondition === 'strong') {
     sufKo +=
-      ' 게다가 그 추진의 핵심 행성이 제 자리(본궁·고양)에 있어, 의욕이 곧장 행동으로 거침없이 이어집니다.'
+      ' 게다가 그 추진의 핵심 행성이 제 자리(본궁·고양)에 있어, 의욕이 곧장 행동으로 거침없이 이어져요.'
     sufEn +=
       ' On top of that, the key drive planet sits in its own dignity, so intent flows straight into action without friction.'
   } else if (selfEmphasized && drivePlanetCondition === 'weak') {
@@ -597,7 +597,7 @@ export function evalDrive(
   // 관살혼잡(官殺混雜) — 정관+편관 공존. 규범과 돌파가 한 사람 안에 섞임.
   if (gwansalHonjap) {
     sufKo +=
-      ' 또 사주에 정관·편관이 섞여(관살혼잡) — 규범을 지키려는 힘과 틀을 깨려는 힘이 한 사람 안에 공존해, 다재다능하지만 안에서 두 동력이 부딪히기도 해요. 역할을 나눠 번갈아 쓰면 약점이 강점이 됩니다.'
+      ' 또 사주에 정관·편관이 섞여(관살혼잡) — 규범을 지키려는 힘과 틀을 깨려는 힘이 한 사람 안에 공존해, 다재다능하지만 안에서 두 동력이 부딪히기도 해요. 역할을 나눠 번갈아 쓰면 약점이 강점이 돼요.'
     sufEn +=
       ' Also, both Direct and Indirect Officer sit in your chart (mixed authority) — the urge to keep the rules and the urge to break them coexist, making you versatile yet inwardly torn at times. Split the roles and alternate them, and the friction becomes a strength.'
   }
@@ -661,7 +661,7 @@ const ASPECT_PAIR_THEME: Record<string, { ko: string; en: string; group: string 
     group: '관성',
   },
   'Moon|Sun': {
-    ko: '속과 겉이 한 방향 — 자기 자신과 잘 합의된 사람.',
+    ko: '속과 겉이 한 방향 — 자기 자신과 잘 합의된 사람이에요.',
     en: 'Inner and outer in sync — at peace with yourself.',
     group: '비겁',
   },
@@ -749,7 +749,7 @@ export function evalKeyAspect(
         : ' 이 각은 두 기운이 한 점에 융합돼 강하게 증폭되는 결이에요 — 좋게 쓰면 큰 무기지만 한쪽으로 쏠리기도 쉬워요.'
   const flowEn =
     best.cls === 'hard'
-      ? ' That said, this is a hard aspect, forged through friction — it isn’t handed to you but tempered by clashing, so it becomes a real strength only when you pass through the tension rather than avoid it.'
+      ? " That said, this is a hard aspect, forged through friction — it isn't handed to you but tempered by clashing, so it becomes a real strength only when you pass through the tension rather than avoid it."
       : best.cls === 'soft'
         ? ' This is a soft aspect that flows naturally — a side that comes through with ease, without forcing.'
         : ' This is a conjunction, where the two energies fuse at one point and amplify strongly — a great asset used well, but easy to over-lean on.'
@@ -834,7 +834,7 @@ export function evalVoid(
   return {
     tone: 'neutral',
     reason: {
-      ko: `타고난 빈자리와 별자리가 짚는 빈자리가 서로 다른 영역을 가리켜요 — 풀어내야 할 과제가 두 갈래로 흩어져 있음. 한 번에 하나씩 다루는 게 안전해요.`,
+      ko: `타고난 빈자리와 별자리가 짚는 빈자리가 서로 다른 영역을 가리켜요 — 풀어내야 할 과제가 두 갈래로 흩어져 있어요. 한 번에 하나씩 다루는 게 안전해요.`,
       en: `Your makeup and the stars each flag a different empty area — karmic work is spread across two threads. Better to address one at a time.`,
     },
   }
@@ -894,7 +894,7 @@ export function evalNorthNode(
     tone: 'complement',
     reason: {
       ko: `사주는 ${tw.ko} 기운을 채우라 하고, 별자리는 ${tn.ko} 방향을 가리켜요 — 성장 축이 서로 다른 두 갈래라 한 번에 둘 다 잡으려면 벅찰 수 있어요. 시기를 나눠 번갈아 키우는 게 핵심 — 한동안 ${tw.ko} 쪽에 집중했다가, 또 한동안 ${tn.ko} 쪽에 집중하는 식이면 둘 다 놓치지 않아요. 욕심내 동시에 밀어붙이기보다 리듬을 두는 게 멀리 가는 길이에요.`,
-      en: `Saju asks you to build ${tw.en} energy while your chart’s growth direction points to ${tn.en} — two separate growth directions, so chasing both at once can overwhelm. The key is to alternate by season: focus on ${tw.en} for a while, then on ${tn.en}, and you drop neither. Setting a rhythm rather than forcing both at once is how you go the distance.`,
+      en: `Saju asks you to build ${tw.en} energy while your chart's growth direction points to ${tn.en} — two separate growth directions, so chasing both at once can overwhelm. The key is to alternate by season: focus on ${tw.en} for a while, then on ${tn.en}, and you drop neither. Setting a rhythm rather than forcing both at once is how you go the distance.`,
     },
   }
 }
@@ -963,7 +963,7 @@ export function evalRomance(
   let palaceEn = ''
   if (dayBranchClash) {
     palaceKo =
-      ' 특히 일지(배우자궁)에 충(沖)이 걸려 — 배우자 인연이 자극적이고 역동적이며 변화가 잦은 결이에요. 안정보다 생동을 주는 상대와 맞습니다.'
+      ' 특히 일지(배우자궁)에 충(沖)이 걸려 — 배우자 인연이 자극적이고 역동적이며 변화가 잦은 결이에요. 안정보다 생동을 주는 상대와 잘 맞아요.'
     palaceEn =
       ' Notably, a clash falls on your day branch (the spouse palace) — partnership runs dynamic, stimulating, and change-prone; someone who brings aliveness over calm suits you.'
   } else if (dayBranchCombine) {
@@ -1142,7 +1142,7 @@ export function evalExpression(
     return {
       tone: 'complement',
       reason: {
-        ko: '사주엔 표현·창의 기운이 또렷한데 별자리는 말수가 적은 쪽이에요 — 안에 할 말이 많은데 겉으론 담백한 타입. 떠오른 걸 미루지 말고 그때그때 꺼내 두면 막힘이 풀려요.',
+        ko: '사주엔 표현·창의 기운이 또렷한데 별자리는 말수가 적은 쪽이에요 — 안에 할 말이 많은데 겉으론 담백한 타입이에요. 떠오른 걸 미루지 말고 그때그때 꺼내 두면 막힘이 풀려요.',
         en: 'Your Saju carries a clear expressive-creative streak, while your chart is the quieter type — plenty to say inside, plain on the surface. Get thoughts out as they come rather than holding them in, and the blockage clears.',
       },
     }

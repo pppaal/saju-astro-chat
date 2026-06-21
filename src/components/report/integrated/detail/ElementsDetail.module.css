@@ -130,8 +130,8 @@
 }
 .tagNeed {
   color: var(--gold);
-  border: 1px solid var(--gold-line);
-  background: var(--gold-wash);
+  border: 1px solid var(--gold);
+  background: rgba(169, 131, 59, 0.14);
 }
 .tagNeed::before {
   content: '✦ ';
@@ -139,8 +139,8 @@
 }
 .tagAvoid {
   color: var(--plum);
-  border: 1px solid var(--line);
-  background: var(--plum-wash);
+  border: 1px solid var(--plum);
+  background: rgba(91, 74, 115, 0.14);
 }
 
 .nature {
