@@ -69,7 +69,7 @@ import ViralTopCard from './viral/ViralTopCard'
 import { buildViralSummary } from './viral/viralArchetype'
 import { ShareReportButton } from './viral/ShareReportButton'
 
-export type { Lang, CrossRow } from './integratedReportLabels'
+export type { Lang } from './integratedReportLabels'
 
 // 통합 교차 카테고리 → 평어 한 줄 뜻. 동·서양이 같이 가리키는 주제를 맨 위 훅과
 // §05 목록에서 "라벨 — 쉬운 뜻"으로 읽히게 한다. 사용자별 하드코딩이 아니라
