@@ -22,6 +22,8 @@ type Body = {
   astroB?: unknown
   pillarsA?: SajuPillarInput[] | null
   pillarsB?: SajuPillarInput[] | null
+  timeUnknownA?: boolean
+  timeUnknownB?: boolean
   lang?: 'ko' | 'en'
 }
 
@@ -50,6 +52,8 @@ export const POST = withApiMiddleware(async (req: NextRequest, _context: ApiCont
     astroB: body.astroB ?? null,
     pillarsA: sanitizePillars(body.pillarsA),
     pillarsB: sanitizePillars(body.pillarsB),
+    timeUnknownA: body.timeUnknownA === true,
+    timeUnknownB: body.timeUnknownB === true,
     lang: body.lang === 'en' ? 'en' : 'ko',
   })
 

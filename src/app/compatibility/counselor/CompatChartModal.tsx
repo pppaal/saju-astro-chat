@@ -32,6 +32,9 @@ interface CompatChartModalProps {
   person2Saju?: Record<string, unknown> | null
   person1Astro?: Record<string, unknown> | null
   person2Astro?: Record<string, unknown> | null
+  /** 출생 시각 미상 — true 면 그 사람 시주(時)를 차트 cross 에서 제외(상담사와 동일). */
+  timeUnknownA?: boolean
+  timeUnknownB?: boolean
   nameA?: string
   nameB?: string
   lang?: 'ko' | 'en'
@@ -257,6 +260,8 @@ export function CompatChartModal({
   person2Saju,
   person1Astro,
   person2Astro,
+  timeUnknownA = false,
+  timeUnknownB = false,
   nameA = '',
   nameB = '',
   lang = 'ko',
@@ -287,6 +292,8 @@ export function CompatChartModal({
       astroB: unwrapAstro(person2Astro) ?? null,
       pillarsA: sajuToPillars(unwrapSaju(person1Saju)),
       pillarsB: sajuToPillars(unwrapSaju(person2Saju)),
+      timeUnknownA,
+      timeUnknownB,
       lang,
     }
     fetch('/api/compatibility/report', {
@@ -310,7 +317,7 @@ export function CompatChartModal({
     return () => {
       cancelled = true
     }
-  }, [open, person1Saju, person2Saju, person1Astro, person2Astro, lang])
+  }, [open, person1Saju, person2Saju, person1Astro, person2Astro, timeUnknownA, timeUnknownB, lang])
 
   if (!open) return null
 
