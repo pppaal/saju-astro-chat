@@ -106,6 +106,49 @@ describe('stripReportMarkdown', () => {
     expect(stripReportMarkdown(input)).toBe('첫 문단입니다.\n\n둘째 문단입니다.')
   })
 
+  describe('줄맞춤 / 줄 끊음', () => {
+    it('줄 끝의 공백(의도치 않은 hard-break)을 제거한다', () => {
+      expect(stripReportMarkdown('지금은 기다릴 때예요.   \n조금만 더 볼게요.')).toBe(
+        '지금은 기다릴 때예요.\n조금만 더 볼게요.'
+      )
+    })
+
+    it('탭 + 공백이 섞인 줄 끝도 정리한다', () => {
+      expect(stripReportMarkdown('첫 줄 \t \n둘째 줄')).toBe('첫 줄\n둘째 줄')
+    })
+  })
+
+  describe('연속 중복 제거', () => {
+    it('바로 뒤에 똑같이 반복된 문단을 한 번만 남긴다', () => {
+      expect(stripReportMarkdown('지금은 기다릴 때예요.\n\n지금은 기다릴 때예요.')).toBe(
+        '지금은 기다릴 때예요.'
+      )
+    })
+
+    it('공백만 다른 연속 중복 줄도 합친다', () => {
+      expect(
+        stripReportMarkdown('핵심은 균형이에요\n핵심은   균형이에요\n다음 이야기로 갈게요')
+      ).toBe('핵심은 균형이에요\n다음 이야기로 갈게요')
+    })
+
+    it('떨어져 있는(연속 아닌) 반복은 의도된 것으로 보고 보존한다', () => {
+      const input = '괜찮아요.\n\n그 다음 이야기예요.\n\n괜찮아요.'
+      expect(stripReportMarkdown(input)).toBe(input)
+    })
+
+    it('영어 답변의 연속 중복 문단도 제거한다', () => {
+      expect(
+        stripReportMarkdown(
+          'You are at a turning point.\n\nYou are at a turning point.\n\nLet us look closer.'
+        )
+      ).toBe('You are at a turning point.\n\nLet us look closer.')
+    })
+
+    it('한 줄 안의 반복(진짜 진짜)은 건드리지 않는다', () => {
+      expect(stripReportMarkdown('진짜 진짜 좋아요')).toBe('진짜 진짜 좋아요')
+    })
+  })
+
   it('복합 입력: 헤딩+테이블+불릿+백틱이 섞여도 대화체 산문만 남는다', () => {
     const input = [
       '## 종합 해석',

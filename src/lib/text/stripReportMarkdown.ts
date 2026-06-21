@@ -104,7 +104,46 @@ export function stripReportMarkdown(input: string): string {
   // Inline backticks rarely matter for chat; drop the ticks.
   text = text.replace(/`([^`\n]+)`/g, '$1')
 
+  // Trailing horizontal whitespace per line. Streamed tokens routinely
+  // leave a stray space (or two) before a newline — and a double-trailing
+  // space is markdown's *hard line break* (`<br>`), which the LLM never
+  // means here. Trim it so lines align and don't sprout phantom breaks.
+  // Leading whitespace is left alone (it can be meaningful, and the locked
+  // tests assert specific outputs that already have none).
+  text = text.replace(/[ \t]+$/gm, '')
+
   // Collapse the 3+ blank lines introduced by stripped blocks.
   text = text.replace(/\n{3,}/g, '\n\n')
+
+  // Drop consecutive duplicate paragraphs and lines. The LLM occasionally
+  // restates a sentence or whole paragraph verbatim back-to-back (a
+  // streaming/continuation artifact). Only *adjacent* identical blocks are
+  // removed — non-consecutive repetition (e.g. a reassurance that opens and
+  // closes the message) is intentional and preserved. Comparison is on a
+  // whitespace-normalized key so "균형이에요" and "균형이에요  " count as one.
+  text = dropConsecutiveDuplicates(text)
+
   return text.trim()
+}
+
+// Remove blocks/lines that are byte-for-byte repeats of the one immediately
+// before them (after collapsing internal whitespace for the comparison).
+// Operates at paragraph granularity first, then line granularity within each
+// surviving paragraph — never within a line, so intra-sentence repetition
+// ("진짜 진짜 좋아요") is untouched. Blank separators never seed a match.
+function dropConsecutiveDuplicates(text: string): string {
+  const normalize = (s: string): string => s.trim().replace(/\s+/g, ' ')
+  const dedupe = (parts: string[]): string[] => {
+    const out: string[] = []
+    let prevKey: string | null = null
+    for (const part of parts) {
+      const key = normalize(part)
+      if (key && key === prevKey) continue
+      out.push(part)
+      if (key) prevKey = key
+    }
+    return out
+  }
+  const blocks = dedupe(text.split('\n\n'))
+  return blocks.map((block) => dedupe(block.split('\n')).join('\n')).join('\n\n')
 }
