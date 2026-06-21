@@ -4,6 +4,7 @@
  */
 
 import { z } from 'zod'
+import { latitudeSchema, longitudeSchema, timezoneSchema } from '../common'
 
 // ============ Core Enums ============
 
@@ -198,9 +199,11 @@ export const natalInputSchema = z.object({
   date: z.number().int().min(1).max(31),
   hour: z.number().int().min(0).max(23),
   minute: z.number().int().min(0).max(59),
-  latitude: z.number().min(-90).max(90),
-  longitude: z.number().min(-180).max(180),
-  timeZone: z.string().min(1).max(64),
+  latitude: latitudeSchema,
+  longitude: longitudeSchema,
+  // IANA 검증 — 예전엔 z.string().min(1) 이라 'garbage' 같은 가짜 시간대도 통과했다.
+  // birth-input 검증 경계를 saju 와 공유하는 canonical primitive 로 통일.
+  timeZone: timezoneSchema,
 })
 export type NatalInputValidated = z.infer<typeof natalInputSchema>
 
