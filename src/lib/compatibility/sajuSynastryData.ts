@@ -9,6 +9,7 @@ import { getGongmang as getGongmangByPillar } from '@/lib/saju/pillarLookup'
 import { pickTwelveSingle } from '@/lib/saju/shinsal'
 import { STEM_KO, BRANCH_KO } from '@/lib/saju/ganjiKo'
 import { getYearPillarForDate, getSajuYearForDate } from '@/lib/saju/datePillars'
+import { CHEONEUL_GWIIN_MAP } from '@/lib/saju/constants'
 
 export const STEM_HAP: Record<string, { other: string; element: string }> = {
   甲: { other: '己', element: '토' },
@@ -221,18 +222,9 @@ export const SIBSIN_GLOSS: Record<string, string> = {
   정인: '후원·안정',
 }
 
-export const CHEONULGWIIN: Record<string, string[]> = {
-  甲: ['丑', '未'],
-  戊: ['丑', '未'],
-  庚: ['丑', '未'],
-  乙: ['子', '申'],
-  己: ['子', '申'],
-  丙: ['亥', '酉'],
-  丁: ['亥', '酉'],
-  辛: ['寅', '午'],
-  壬: ['巳', '卯'],
-  癸: ['巳', '卯'],
-}
+// 천을귀인 — constants.CHEONEUL_GWIIN_MAP(SSOT) 재사용. 로컬 복제 금지(드리프트
+// 방지). 소비처는 .includes 로만 보므로 두 지지의 순서는 무관.
+export const CHEONULGWIIN: Record<string, string[]> = CHEONEUL_GWIIN_MAP
 
 const STEM_ORDER = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸']
 
