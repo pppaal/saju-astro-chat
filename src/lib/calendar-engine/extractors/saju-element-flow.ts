@@ -17,8 +17,8 @@ const RELATION_EN: Record<string, string> = {
   same: 'reinforces (peer/rival)',
   'give-birth': 'nourishes (resource)',
   'receive-birth': 'draws on (output)',
-  control: 'controls (wealth)',
-  'be-controlled': 'is controlled by (officer)',
+  control: 'controls (officer)',
+  'be-controlled': 'is controlled by (wealth)',
 }
 
 /**
@@ -132,11 +132,16 @@ interface RelationResult {
 }
 
 /**
- * 일진 오행 → 본명 일간 오행 관계 + polarity.
- * 명리적으로: 생받는(印星) +2, 동(比劫) +1, 생하는(食傷) -1, 극하는(財星) 0, 극받는(官星) -2
- * (단순화 — 본명 강약 미반영. 추후 강약별 미세조정 가능)
+ * 일진 오행(from) → 본명 일간 오행(to) 관계 + polarity. 십성은 *일간 기준*:
+ *   생하는관계[일진]===일간 = 일진生일간 = 印星 +2
+ *   동(同) = 比劫 +1
+ *   생받는관계[일진]===일간 = 일간生일진 = 食傷 -1
+ *   극받는관계[일진]===일간 = 일간剋일진 = 財星 0   (내가 극하는 재물 → 중립)
+ *   극하는관계[일진]===일간 = 일진剋일간 = 官星 -2  (나를 극하는 관성 → 압박)
+ * (직전엔 극하는/극받는의 십성·polarity 가 뒤바뀌어, 관성 압박일이 재성(중립)으로
+ *  필터링돼 사라지고, 재성일이 관성 -2 로 잘못 떴다. core/sibsin SSOT 와 정렬.)
  */
-function elementRelation(from: FiveElement, to: FiveElement): RelationResult | null {
+export function elementRelation(from: FiveElement, to: FiveElement): RelationResult | null {
   if (from === to) {
     return { kind: 'same', label: '동일 (비겁)', polarity: 1 }
   }
@@ -147,10 +152,12 @@ function elementRelation(from: FiveElement, to: FiveElement): RelationResult | n
     return { kind: 'receive-birth', label: '받음 (식상)', polarity: -1 }
   }
   if (FIVE_ELEMENT_RELATIONS.극하는관계[from] === to) {
-    return { kind: 'control', label: '극함 (재성)', polarity: 0 }
+    // 일진이 일간을 극함 = (일간 입장) 官星 압박.
+    return { kind: 'control', label: '극함 (관성)', polarity: -2 }
   }
   if (FIVE_ELEMENT_RELATIONS.극받는관계[from] === to) {
-    return { kind: 'be-controlled', label: '극받음 (관성)', polarity: -2 }
+    // 일간이 일진을 극함 = (일간 입장) 財星, 중립.
+    return { kind: 'be-controlled', label: '극받음 (재성)', polarity: 0 }
   }
   return null
 }
