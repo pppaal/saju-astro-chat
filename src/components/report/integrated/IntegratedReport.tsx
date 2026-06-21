@@ -67,6 +67,7 @@ import HouseDetail from './detail/HouseDetail'
 import AspectDetail from './detail/AspectDetail'
 import ViralTopCard from './viral/ViralTopCard'
 import { buildViralSummary } from './viral/viralArchetype'
+import { ShareReportButton } from './viral/ShareReportButton'
 
 export type { Lang, CrossRow } from './integratedReportLabels'
 
@@ -425,7 +426,20 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
 
         {/* ── 바이럴 한 장 요약 — 유형 별명 + 소름 한 줄 + 동·서양 일치 + 궁합.
             매칭(일간 10간) 없으면 자동 생략하고 기존 히어로만 노출. ── */}
-        {viral && <ViralTopCard summary={viral} lang={lang} />}
+        {viral && (
+          <ViralTopCard
+            summary={viral}
+            lang={lang}
+            action={
+              <ShareReportButton
+                summary={viral}
+                name={input.name}
+                dateLabel={input.date}
+                isKo={lang === 'ko'}
+              />
+            }
+          />
+        )}
 
         {/* ── 한눈에 (결론 먼저) — 종합 교차 + 강점 + 가장 필요한 기운.
             암호 같던 한자 별명 줄은 위 ViralTopCard 가 평어로 대체. ── */}
