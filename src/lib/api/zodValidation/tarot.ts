@@ -126,17 +126,14 @@ export type TarotSaveRequestValidated = z.infer<typeof tarotSaveRequestSchema>
 // 늦게 채워질 수 있어 PATCH 에서도 동일 schema 사용.
 const tarotClarifierCardSchemaExport = tarotClarifierCardSchema
 
-// PATCH /api/tarot/save/[id] — 저장된 리딩의 보충 카드 / followup 채팅
-// 만 부분 업데이트. 두 필드 둘 다 optional 이지만 최소 하나는 있어야 의미
-// 있는 호출.
-export const tarotSavePatchSchema = z
-  .object({
-    clarifierCard: tarotClarifierCardSchema.optional(),
-    followupTurns: z.array(tarotFollowupTurnSchema).max(20).optional(),
-  })
-  .refine((data) => data.clarifierCard !== undefined || data.followupTurns !== undefined, {
-    message: 'At least one of clarifierCard or followupTurns must be provided',
-  })
+// PATCH /api/tarot/save/[id] — 저장된 리딩의 보충 카드(clarifierCard)만 부분
+// 업데이트. followupTurns 는 의도적으로 제외 — 그 컬럼의 유일 writer 는 서버의
+// 원자적 append(appendTarotFollowupTurns, /api/tarot/followup)다. PATCH 의
+// replace 를 허용하면 동시 append 를 덮어써 멀티탭/기기에서 유료 turn 이
+// 사라지는 lost-update 가 났다(클라 replace 는 이미 제거됨 — 서버 문도 봉쇄).
+export const tarotSavePatchSchema = z.object({
+  clarifierCard: tarotClarifierCardSchema,
+})
 
 export type TarotSavePatchValidated = z.infer<typeof tarotSavePatchSchema>
 

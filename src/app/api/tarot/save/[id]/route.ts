@@ -120,12 +120,10 @@ export async function PATCH(request: Request, routeContext: RouteContext) {
           return apiError(ErrorCodes.NOT_FOUND, 'reading_not_found')
         }
 
-        const updates: Prisma.TarotReadingUpdateInput = {}
-        if (bodyValidation.data.clarifierCard !== undefined) {
-          updates.clarifierCard = bodyValidation.data.clarifierCard
-        }
-        if (bodyValidation.data.followupTurns !== undefined) {
-          updates.followupTurns = bodyValidation.data.followupTurns
+        // followupTurns 는 PATCH 로 안 받는다 — 유일 writer 는 서버 append.
+        // (replace 허용 시 동시 append 를 덮어쓰는 lost-update.)
+        const updates: Prisma.TarotReadingUpdateInput = {
+          clarifierCard: bodyValidation.data.clarifierCard,
         }
 
         try {
@@ -134,8 +132,8 @@ export async function PATCH(request: Request, routeContext: RouteContext) {
             data: updates,
           })
         } catch (updateErr) {
-          // P2022 — clarifierCard/followupTurns 컬럼이 prod DB 에 아직 없는
-          // 환경. PATCH 는 정확히 그 두 컬럼만 갱신하는 거라 시도할 게 없음.
+          // P2022 — clarifierCard 컬럼이 prod DB 에 아직 없는 환경. PATCH 는
+          // 그 컬럼만 갱신하는 거라 시도할 게 없음.
           // 사용자엔 success 로 응답해서 클라가 무한 retry / 에러 토스트 안
           // 띄우게 한다 (Sentry 에는 warn 으로 남겨 마이그레이션 누락 추적).
           const code = (updateErr as { code?: string } | null)?.code
