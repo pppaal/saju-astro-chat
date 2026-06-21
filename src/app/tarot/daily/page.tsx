@@ -60,28 +60,6 @@ export default function DailyTarotPage() {
   const [checking, setChecking] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  // 마운트 시 오늘 카드가 이미 있는지 확인(무료 GET).
-  useEffect(() => {
-    let cancelled = false
-    void (async () => {
-      try {
-        const res = await apiFetch('/api/tarot/daily', { method: 'GET', headers: dailyHeaders() })
-        const json = (await res.json().catch(() => null)) as {
-          data?: { ready?: boolean; reading?: DailyReading }
-        } | null
-        const data = json?.data
-        if (!cancelled && data?.ready && data.reading) setReading(data.reading)
-      } catch {
-        /* 게스트/네트워크 — 버튼으로 폴백 */
-      } finally {
-        if (!cancelled) setChecking(false)
-      }
-    })()
-    return () => {
-      cancelled = true
-    }
-  }, [])
-
   const draw = useCallback(async () => {
     setError(null)
     setLoading(true)
@@ -107,6 +85,37 @@ export default function DailyTarotPage() {
       setLoading(false)
     }
   }, [isKo])
+
+  // 마운트: 오늘 카드가 있으면 바로 보여주고, 없으면 *자동으로* 뽑는다.
+  // (진입 칩 → 페이지 → 또 "뽑기" 버튼 누르는 중복 단계 제거: 들어오면 바로 로딩→결과.)
+  useEffect(() => {
+    let cancelled = false
+    void (async () => {
+      try {
+        const res = await apiFetch('/api/tarot/daily', { method: 'GET', headers: dailyHeaders() })
+        const json = (await res.json().catch(() => null)) as {
+          data?: { ready?: boolean; reading?: DailyReading }
+        } | null
+        const data = json?.data
+        if (cancelled) return
+        if (data?.ready && data.reading) {
+          setReading(data.reading)
+          setChecking(false)
+          return
+        }
+        // 아직 안 뽑음 → 자동 뽑기로 바로 결과까지.
+        void draw()
+        setChecking(false)
+      } catch {
+        if (!cancelled) setChecking(false)
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+    // draw 는 [isKo] 로만 바뀌고 마운트 1회 자동 뽑기면 충분 — 의존성에서 제외.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // 공유 카드 상단 라벨이 이미 "오늘의 타로"라, 질문/푸터까지 같은 문구를 쓰면
   // 한 카드에 "오늘의 타로"가 세 번 박힌다. 질문은 날짜로, 푸터는 "오늘의 카드"로
@@ -171,21 +180,33 @@ export default function DailyTarotPage() {
           {isKo ? '하루 한 장, 오늘의 메시지' : 'One card, one message for today'}
         </h1>
 
-        {checking ? (
-          <div style={{ marginTop: 48, color: MUTED }}>
-            <Loader2 className="w-6 h-6 animate-spin" style={{ display: 'inline-block' }} />
+        {checking || loading ? (
+          <div
+            style={{
+              marginTop: 56,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 14,
+            }}
+          >
+            <Loader2 className="w-7 h-7 animate-spin" style={{ color: GOLD }} />
+            <p style={{ color: MUTED, fontSize: 14 }}>
+              {isKo ? '오늘의 카드를 뽑고 있어요…' : 'Drawing your card of the day…'}
+            </p>
           </div>
         ) : !reading ? (
+          // 자동 뽑기가 실패한 경우에만 노출 — 재시도.
           <div style={{ marginTop: 40 }}>
-            <p style={{ color: MUTED, fontSize: 14, marginBottom: 24 }}>
-              {isKo
-                ? '오늘 하루를 위한 카드 한 장을 무료로 뽑아보세요.'
-                : 'Draw one free card for your day.'}
+            <p style={{ color: '#fda4af', fontSize: 13, marginBottom: 20 }}>
+              {error ||
+                (isKo
+                  ? '카드를 뽑지 못했어요. 다시 시도해 주세요.'
+                  : 'Could not draw a card. Please try again.')}
             </p>
             <button
               type="button"
               onClick={() => void draw()}
-              disabled={loading}
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
@@ -197,24 +218,12 @@ export default function DailyTarotPage() {
                 fontWeight: 700,
                 fontSize: 16,
                 border: 'none',
-                cursor: loading ? 'default' : 'pointer',
-                opacity: loading ? 0.7 : 1,
+                cursor: 'pointer',
               }}
             >
-              {loading ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <Sparkles className="w-4 h-4" />
-              )}
-              {loading
-                ? isKo
-                  ? '뽑는 중…'
-                  : 'Drawing…'
-                : isKo
-                  ? '오늘의 카드 뽑기'
-                  : "Draw today's card"}
+              <Sparkles className="w-4 h-4" />
+              {isKo ? '다시 시도' : 'Try again'}
             </button>
-            {error && <p style={{ marginTop: 16, fontSize: 12, color: '#fda4af' }}>{error}</p>}
           </div>
         ) : (
           <div style={{ marginTop: 32 }}>

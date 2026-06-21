@@ -262,12 +262,18 @@ export default function RevenueClient() {
 
           <section className="mb-8">
             <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-stone-500">
-              크레딧 경제 (전체 누적)
+              크레딧 경제 (전체 누적, 소비는 기간 한정)
             </h2>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
               <Stat label="발행 (유료)" value={num(data.credits.issuedPaid)} hint="구매 크레딧" />
               <Stat label="발행 (무료)" value={num(data.credits.issuedFree)} hint="보너스·기프트" />
-              <Stat label="소비" value={num(data.credits.consumed)} hint={`최근 ${days}일`} />
+              {/* 소비만 윈도값(최근 N일) — 나머지 발행/잔여/만료는 전체 누적이라
+                  섹션 제목에 한정 표기 + 라벨에 (기간) 을 붙여 오인 방지. */}
+              <Stat
+                label="소비 (기간)"
+                value={num(data.credits.consumed)}
+                hint={`최근 ${days}일`}
+              />
               <Stat
                 label="미사용 잔여"
                 value={num(data.credits.outstanding)}
