@@ -202,7 +202,12 @@ describe('CompatChartModal', () => {
       render(<CompatChartModal open {...baseProps} />)
       expect(await screen.findByText('두 사람의 본질(일간)')).toBeInTheDocument()
       const dialog = screen.getByRole('dialog', { name: '궁합 차트' })
-      expect(dialog.textContent).toContain('서로 끌리는 관계')
+      // 컴포넌트는 #1551 이후 dayMaster.relationLabel(원시 KO 라벨)을 그대로 쓰지 않고
+      // relation+오행으로 일간 관계 텍스트를 합성한다(EN UI 한자/한글 토큰 누수 차단).
+      // 따라서 일간 본질 블록은 두 사람의 일간(병화↔임수)과 그 생극(수극화)을 렌더한다.
+      expect(dialog.textContent).toContain('병(화)')
+      expect(dialog.textContent).toContain('임(수)')
+      expect(dialog.textContent).toContain('수극화')
     })
 
     it('renders the spouse-seat badge for a day-pillar spouse star', async () => {
