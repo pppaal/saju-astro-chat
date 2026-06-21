@@ -391,15 +391,18 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
         },
     years: decadeAdapter.years,
     body: decadeAdapter.body,
+    bodyEn: decadeAdapter.bodyEn,
     hapchung: {
       title: decadeAdapter.hapchung.title,
       romaji: decadeAdapter.hapchung.romaji,
       body: decadeAdapter.hapchung.body,
+      bodyEn: decadeAdapter.hapchung.bodyEn,
     },
     unseong: {
       title: decadeAdapter.unseong.title,
       romaji: decadeAdapter.unseong.romaji,
       body: decadeAdapter.unseong.body,
+      bodyEn: decadeAdapter.unseong.bodyEn,
     },
     astro: decadeAstroMarks.map((a) => ({
       label: a.label,

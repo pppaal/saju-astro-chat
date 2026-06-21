@@ -173,6 +173,45 @@ describe('DayTier', () => {
     })
   })
 
+  describe('natal detail fold (hidden signals)', () => {
+    it('renders the collapsible natal detail with hidden stems (ko)', () => {
+      setup()
+      expect(screen.getByText(/본명 상세/)).toBeInTheDocument()
+      expect(screen.getAllByText(/지장간/).length).toBeGreaterThan(0)
+      // 癸 hidden-stem (jeonggi) chip from the fixture jijanggan.
+      expect(screen.getByText('癸')).toBeInTheDocument()
+    })
+
+    it('translates the natal detail labels to English', () => {
+      mockLocale = 'en'
+      setup()
+      expect(screen.getByText(/Natal detail/)).toBeInTheDocument()
+      expect(screen.getByText(/Hidden stems/)).toBeInTheDocument()
+    })
+
+    it('shows applied patterns with an English gloss (no Korean leak)', () => {
+      mockLocale = 'en'
+      setup({
+        day: {
+          appliedPatterns: [
+            {
+              id: 'jaesaeng-gwan',
+              korean: '재생관',
+              name: '財生官',
+              polarity: 2,
+              weight: 0.8,
+              activeAxes: ['일진'],
+              rule: '본명 재 + 시기 관 → 관 강화',
+            },
+          ],
+        },
+      })
+      expect(screen.getByText(/Wealth generates Officer/)).toBeInTheDocument()
+      // the Korean rule must NOT leak in EN mode
+      expect(screen.queryByText(/본명 재/)).not.toBeInTheDocument()
+    })
+  })
+
   describe('tone dial (verdict-driven)', () => {
     it('shows the positive tone word for a positive verdict (ko)', () => {
       setup({ day: { dayTone: makeVerdict({ tone: 'positive' }) } })

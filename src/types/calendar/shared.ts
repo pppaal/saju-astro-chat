@@ -167,6 +167,8 @@ export interface NarrativeChip {
   romaji?: string
   /** 본문 한 단락. */
   body: string
+  /** 본문 영문 — 영문 로케일에서 사용. 미지정 시 body 로 폴백. */
+  bodyEn?: string
   /** 부가 메타 — 색상 / 아이콘 키. (jupiter / saturn / daewoon / neptune 등). */
   kind?: string
 }
@@ -177,4 +179,6 @@ export interface NarrativeChip {
 export interface TaggedNarrative {
   tag: string
   body: string
+  /** 본문 영문 — 영문 로케일에서 사용. 미지정 시 body 로 폴백. */
+  bodyEn?: string
 }

@@ -126,6 +126,8 @@ export interface DestinyDecade {
   years: DestinyDecadeYearScore[]
   /** 본문 paragraphs. */
   body: string[]
+  /** 본문 paragraphs (영문) — 영문 로케일에서 사용. 미지정 시 body 로 폴백. */
+  bodyEn?: string[]
   /** 본명 × 대운 합·충 칩. */
   hapchung: NarrativeChip
   /** 12운성 칩. */

@@ -55,6 +55,8 @@ export interface DecadeTierProps {
       astroLine?: string
       polarity: number
       meaning?: string
+      /** 영문 한 줄 의미 — 영문 로케일에서 사용. 미지정 시 meaning 으로 폴백. */
+      meaningEn?: string
     }>
     /** Phase 3 — 격국 status (대운 — 보통 본명과 같으나 화기/잡기 변동 가능). */
     geokgukStatus?: string
@@ -258,8 +260,11 @@ export function DecadeTier({ user, decade, onDive, onRise }: DecadeTierProps) {
             ? '중립'
             : 'neutral',
     title: c.name,
-    detail: c.meaning,
+    detail: ko ? c.meaning : (c.meaningEn ?? c.meaning),
   }))
+
+  // body paragraphs — 영문 로케일이면 bodyEn 우선(없으면 KO body 폴백).
+  const bodyParas = ko ? decade.body : (decade.bodyEn ?? decade.body)
 
   return (
     <div className={styles.tier} data-screen-label={`10년 ${decade.start}-${decade.end}`}>
@@ -453,9 +458,9 @@ export function DecadeTier({ user, decade, onDive, onRise }: DecadeTierProps) {
         {/* ============================================================
           body paragraphs
       ============================================================ */}
-        {decade.body && decade.body.length > 0 && (
+        {bodyParas && bodyParas.length > 0 && (
           <div className={styles.bodyBlock}>
-            {decade.body.map((p, i) => (
+            {bodyParas.map((p, i) => (
               <p key={i} className={styles.lead}>
                 {p}
               </p>
@@ -478,7 +483,7 @@ export function DecadeTier({ user, decade, onDive, onRise }: DecadeTierProps) {
               {decade.narrative.map((n, i) => (
                 <div key={i} className={styles.narrativeCard}>
                   <div className={styles.narrativeTag}>{n.tag}</div>
-                  <p className={styles.narrativeBody}>{n.body}</p>
+                  <p className={styles.narrativeBody}>{ko ? n.body : (n.bodyEn ?? n.body)}</p>
                 </div>
               ))}
             </div>
@@ -508,7 +513,9 @@ export function DecadeTier({ user, decade, onDive, onRise }: DecadeTierProps) {
                   {decade.hapchung.romaji && (
                     <div className={styles.dcardRomaji}>{decade.hapchung.romaji}</div>
                   )}
-                  <p className={styles.dcardBody}>{decade.hapchung.body}</p>
+                  <p className={styles.dcardBody}>
+                    {ko ? decade.hapchung.body : (decade.hapchung.bodyEn ?? decade.hapchung.body)}
+                  </p>
                 </div>
               )}
               {decade.unseong && (
@@ -521,7 +528,9 @@ export function DecadeTier({ user, decade, onDive, onRise }: DecadeTierProps) {
                   {decade.unseong.romaji && (
                     <div className={styles.dcardRomaji}>{decade.unseong.romaji}</div>
                   )}
-                  <p className={styles.dcardBody}>{decade.unseong.body}</p>
+                  <p className={styles.dcardBody}>
+                    {ko ? decade.unseong.body : (decade.unseong.bodyEn ?? decade.unseong.body)}
+                  </p>
                 </div>
               )}
             </div>
@@ -637,7 +646,11 @@ export function DecadeTier({ user, decade, onDive, onRise }: DecadeTierProps) {
                         )}
                       </div>
                     )}
-                    {c.meaning && <p className={styles.crossBadgeMeaning}>{c.meaning}</p>}
+                    {(ko ? c.meaning : (c.meaningEn ?? c.meaning)) && (
+                      <p className={styles.crossBadgeMeaning}>
+                        {ko ? c.meaning : (c.meaningEn ?? c.meaning)}
+                      </p>
+                    )}
                   </div>
                 )
               })}
@@ -692,4 +705,3 @@ function UnseongMatrix({ ilganHanja, decadeBranch }: { ilganHanja: string; decad
     </div>
   )
 }
-

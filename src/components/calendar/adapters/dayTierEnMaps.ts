@@ -76,3 +76,93 @@ export function shinsalEn(name: string): string {
 export function geokgukStatusEn(status: string): string {
   return GEOKGUK_STATUS_EN[status] ?? status
 }
+
+// ============================================================================
+// '본명 상세' 접힘 섹션 — 지장간·12운성·응용격국 EN 치환.
+// 누락 5신호 노출용. 모두 결정론적 고정 맵(엔진 무수정).
+// ============================================================================
+
+/** 오행 KO→EN. */
+const ELEMENT_EN: Record<string, string> = {
+  목: 'Wood',
+  화: 'Fire',
+  토: 'Earth',
+  금: 'Metal',
+  수: 'Water',
+}
+export function elementEn(el: string): string {
+  return ELEMENT_EN[el] ?? el
+}
+
+/** 지장간 층(정기/중기/여기) KO→EN. */
+const JIJANGGAN_LAYER_EN: Record<string, string> = {
+  정기: 'Primary',
+  중기: 'Mid',
+  여기: 'Residual',
+}
+export function jijangganLayerEn(layer: string): string {
+  return JIJANGGAN_LAYER_EN[layer] ?? layer
+}
+
+/** 12운성 단계 KO→EN (별칭 건록=임관, 제왕=왕지 포함). */
+const TWELVE_STAGE_EN: Record<string, string> = {
+  장생: 'Birth',
+  목욕: 'Bath',
+  관대: 'Coming of Age',
+  건록: 'Prime',
+  임관: 'Prime',
+  제왕: 'Peak',
+  왕지: 'Peak',
+  쇠: 'Decline',
+  병: 'Illness',
+  사: 'Death',
+  묘: 'Tomb',
+  절: 'Void',
+  태: 'Conception',
+  양: 'Nurture',
+}
+export function twelveStageEn(stage: string): string {
+  return TWELVE_STAGE_EN[stage] ?? stage
+}
+
+/**
+ * 응용격국 8종 — EN 이름 + 한 줄 뜻. KO 는 데이터의 korean/rule 을 그대로 쓰고,
+ * EN 은 rule 이 한글뿐이라 여기 고정 글로스를 쓴다(EN 누출 방지).
+ */
+export const APPLIED_PATTERN_EN: Record<string, { name: string; gloss: string }> = {
+  'sanggwan-gyeon-gwan': {
+    name: 'Hurting Officer meets Officer',
+    gloss: 'talent rubs against rules — friction with authority',
+  },
+  'siksin-jesal': {
+    name: 'Eating God controls the Killing',
+    gloss: 'creative output tames pressure — stress turned productive',
+  },
+  'gwanin-sangsaeng': {
+    name: 'Officer feeds Resource',
+    gloss: 'authority and learning reinforce — status through study',
+  },
+  'jaesaeng-gwan': {
+    name: 'Wealth generates Officer',
+    gloss: 'resources build standing — money supports position',
+  },
+  'insaeng-bigeop': {
+    name: 'Resource feeds Peers',
+    gloss: 'support strengthens the self and allies',
+  },
+  'bigeop-talJae': {
+    name: 'Peers rob Wealth',
+    gloss: 'rivals and expenses drain resources — guard money',
+  },
+  'gwansal-honjap': {
+    name: 'Officer and Killing mixed',
+    gloss: 'conflicting demands from authority — keep boundaries clear',
+  },
+  'hyosik-tal': {
+    name: 'Indirect Resource steals the Eating God',
+    gloss: 'over-thinking smothers output — just ship it',
+  },
+}
+export function appliedPatternEn(id: string): { name: string; gloss: string } | undefined {
+  return APPLIED_PATTERN_EN[id]
+}

@@ -80,15 +80,26 @@ function makeDecade(over: Partial<DecadeTierProps['decade']> = {}): DecadeTierPr
       { year: 2029, gz: gz('己酉', '기유'), score: 48, sibsin: '겁재' },
     ],
     body: ['첫 번째 본문 단락.', '두 번째 본문 단락.'],
-    hapchung: { title: '寅亥 육합', romaji: 'in-hae yukhap', body: '합의 본문' },
-    unseong: { title: '관대', romaji: 'gwandae', body: '12운성 본문' },
+    bodyEn: ['First body paragraph.', 'Second body paragraph.'],
+    hapchung: {
+      title: '寅亥 육합',
+      romaji: 'in-hae yukhap',
+      body: '합의 본문',
+      bodyEn: 'Harmony body in English',
+    },
+    unseong: {
+      title: '관대',
+      romaji: 'gwandae',
+      body: '12운성 본문',
+      bodyEn: 'Twelve-stage body EN',
+    },
     astro: [
       { label: '목성 회귀', date: '2025', body: 'Jupiter Return', kind: 'jupiter' },
       { label: '해왕성 사각', date: '2027', body: 'Neptune Square', kind: 'neptune' },
     ],
     narrative: [
-      { tag: '대운 결', body: '대운의 결 본문' },
-      { tag: '정점', body: '정점의 해 본문' },
+      { tag: '대운 결', body: '대운의 결 본문', bodyEn: 'Grain of the cycle EN' },
+      { tag: '정점', body: '정점의 해 본문', bodyEn: 'Peak year EN' },
     ],
     focusYear: 2024,
     zrSpiritChapters: [],
@@ -101,6 +112,7 @@ function makeDecade(over: Partial<DecadeTierProps['decade']> = {}): DecadeTierPr
         astroLine: 'Jupiter Return',
         polarity: 2,
         meaning: '확장과 기회',
+        meaningEn: 'Expansion and opportunity',
       },
       {
         signalId: 'x2',
@@ -109,6 +121,7 @@ function makeDecade(over: Partial<DecadeTierProps['decade']> = {}): DecadeTierPr
         astroLine: 'Saturn Square',
         polarity: -2,
         meaning: '구조적 압박',
+        meaningEn: 'Structural pressure',
       },
     ],
     geokgukStatus: '편재격 · 성격',
@@ -282,6 +295,46 @@ describe('DecadeTier', () => {
     it('renders sewoonNow KV row when present', () => {
       setup()
       expect(screen.getByText(/세운 2024/)).toBeInTheDocument()
+    })
+  })
+
+  describe('details section (en) — no Korean leaks', () => {
+    beforeEach(() => {
+      mockLocale = 'en'
+    })
+
+    it('renders English body paragraphs', () => {
+      setup()
+      expect(screen.getByText('First body paragraph.')).toBeInTheDocument()
+      expect(screen.getByText('Second body paragraph.')).toBeInTheDocument()
+      expect(screen.queryByText('첫 번째 본문 단락.')).not.toBeInTheDocument()
+    })
+
+    it('renders English narrative bodies', () => {
+      setup()
+      expect(screen.getByText('Grain of the cycle EN')).toBeInTheDocument()
+      expect(screen.getByText('Peak year EN')).toBeInTheDocument()
+      expect(screen.queryByText('대운의 결 본문')).not.toBeInTheDocument()
+    })
+
+    it('renders English hapchung and unseong bodies', () => {
+      setup()
+      expect(screen.getByText('Harmony body in English')).toBeInTheDocument()
+      expect(screen.getByText('Twelve-stage body EN')).toBeInTheDocument()
+      expect(screen.queryByText('합의 본문')).not.toBeInTheDocument()
+      expect(screen.queryByText('12운성 본문')).not.toBeInTheDocument()
+    })
+
+    it('renders English cross-activation meanings', () => {
+      setup()
+      expect(screen.getAllByText('Expansion and opportunity').length).toBeGreaterThan(0)
+      expect(screen.getAllByText('Structural pressure').length).toBeGreaterThan(0)
+      expect(screen.queryByText('확장과 기회')).not.toBeInTheDocument()
+    })
+
+    it('falls back to ko body when bodyEn is absent', () => {
+      setup({ decade: { bodyEn: undefined } })
+      expect(screen.getByText('첫 번째 본문 단락.')).toBeInTheDocument()
     })
   })
 

@@ -36,7 +36,13 @@ import styles from './DayTier.module.css'
 import { useI18n } from '@/i18n/I18nProvider'
 import { CrossingList } from '@/components/calendar/atoms/CrossingList'
 import { localizeLabel } from '@/components/calendar/adapters/localizeLabel'
-import { shinsalEn } from '@/components/calendar/adapters/dayTierEnMaps'
+import {
+  shinsalEn,
+  elementEn,
+  jijangganLayerEn,
+  twelveStageEn,
+  appliedPatternEn,
+} from '@/components/calendar/adapters/dayTierEnMaps'
 import { ShareDayButton } from '@/components/calendar/share/ShareDayButton'
 import type { DayShareData } from '@/components/calendar/share/DayShareCard'
 
@@ -414,6 +420,78 @@ function EvidenceDetails({ day, ko }: { day: DestinyDay; ko: boolean }) {
             </div>
           )
         })}
+      </div>
+    </details>
+  )
+}
+
+// ============================================================================
+// NatalDetails — '본명 상세' 접힘. 엔진이 매번 계산하지만 정갈 화면을 위해 평소엔
+// 숨겨둔 신호: 응용격국(동적)·지장간(일지 3층)·일진 12운성(본명 기둥별). 펼치면
+// 노출. EN 은 dayTierEnMaps 고정 치환(한글 누출 방지).
+// ============================================================================
+function NatalDetails({ day, ko }: { day: DestinyDay; ko: boolean }) {
+  const patterns = day.appliedPatterns ?? []
+  const jj = day.jijanggan
+  const jjLayers = [jj?.jeonggi, jj?.junggi, jj?.yeogi].filter(
+    (l): l is NonNullable<typeof l> => !!l
+  )
+  const stages = day.twelveStageMatrix ?? []
+  if (patterns.length === 0 && jjLayers.length === 0 && stages.length === 0) return null
+  return (
+    <details className={styles.natal}>
+      <summary className={styles.natalSummary}>
+        {ko ? '본명 상세 · 격국 · 지장간 · 운성' : 'Natal detail · patterns, hidden stems, stages'}
+      </summary>
+      <div className={styles.natalBody}>
+        {patterns.length > 0 && (
+          <div className={styles.natalBlock}>
+            <div className={styles.natalLabel}>{ko ? '응용 격국' : 'Applied patterns'}</div>
+            {patterns.map((p, i) => {
+              const en = appliedPatternEn(String(p.id))
+              const good = p.polarity >= 0
+              return (
+                <div className={styles.natalRow} key={p.id ?? i}>
+                  <span className={good ? styles.natalPos : styles.natalNeg}>
+                    {ko ? p.korean : (en?.name ?? p.korean)}{' '}
+                    <span className={styles.natalHan}>{p.name}</span>
+                  </span>
+                  <span className={styles.natalDesc}>{ko ? p.rule : (en?.gloss ?? '')}</span>
+                </div>
+              )
+            })}
+          </div>
+        )}
+        {jjLayers.length > 0 && (
+          <div className={styles.natalBlock}>
+            <div className={styles.natalLabel}>{ko ? '지장간 · 일지 속 천간' : 'Hidden stems'}</div>
+            <div className={styles.natalChips}>
+              {jjLayers.map((L, i) => (
+                <span className={styles.natalChip} key={i}>
+                  <span className={styles.natalHan}>{L.stem}</span>{' '}
+                  {ko ? L.layer : jijangganLayerEn(L.layer)} ·{' '}
+                  {ko ? sibsinArea(String(L.sibsin)) : sibsinAreaEn(String(L.sibsin))} ·{' '}
+                  {ko ? L.element : elementEn(L.element)}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+        {stages.length > 0 && (
+          <div className={styles.natalBlock}>
+            <div className={styles.natalLabel}>
+              {ko ? '일진 12운성 · 본명 기둥별' : 'Twelve stages vs natal pillars'}
+            </div>
+            <div className={styles.natalChips}>
+              {stages.map((s, i) => (
+                <span className={styles.natalChip} key={i}>
+                  <span className={styles.natalHan}>{s.pillar}</span>{' '}
+                  {ko ? s.stage : twelveStageEn(s.stage)}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </details>
   )
@@ -802,6 +880,9 @@ export function DayTier({ day, voc, onRise, sex = '남' }: DayTierProps) {
           </div>
         </div>
       )}
+
+      {/* ── 본명 상세 — 격국·지장간·12운성 (평소 접힘, 정갈 유지). ── */}
+      <NatalDetails day={day} ko={ko} />
 
       <div className={styles.riseCenter}>
         <button className={`${styles.rise} ${styles.riseSmall}`} onClick={onRise}>

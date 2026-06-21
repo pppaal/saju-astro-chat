@@ -166,6 +166,102 @@
   text-wrap: pretty;
 }
 
+/* ---------- 본명 상세 (접힘) — 격국·지장간·12운성 ---------- */
+.natal {
+  margin-top: var(--dp-section);
+  border-top: 1px solid var(--dp-line-soft);
+  padding-top: 14px;
+}
+.natalSummary {
+  cursor: pointer;
+  font-family: var(--dp-mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--dp-ink-mute);
+  list-style: none;
+  user-select: none;
+  padding: 2px 0;
+}
+.natalSummary::-webkit-details-marker {
+  display: none;
+}
+.natalSummary::before {
+  content: '▸ ';
+  color: var(--dp-ink-faint);
+}
+.natal[open] .natalSummary::before {
+  content: '▾ ';
+}
+.natalBody {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 14px;
+}
+.natalBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.natalLabel {
+  font-family: var(--dp-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--dp-ink-faint);
+}
+.natalRow {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--dp-line-soft);
+}
+.natalRow:last-child {
+  border-bottom: 0;
+}
+.natalPos,
+.natalNeg {
+  font-family: var(--dp-serif-ko);
+  font-size: 13.5px;
+  color: var(--dp-ink);
+}
+.natalPos {
+  border-left: 2px solid var(--dp-pos);
+  padding-left: 9px;
+}
+.natalNeg {
+  border-left: 2px solid var(--dp-ember);
+  padding-left: 9px;
+}
+.natalHan {
+  font-family: var(--dp-serif);
+  color: var(--dp-ink-mute);
+  font-size: 12px;
+}
+.natalDesc {
+  font-family: var(--dp-serif-ko);
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--dp-ink-mute);
+  padding-left: 11px;
+}
+.natalChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+.natalChip {
+  font-family: var(--dp-serif-ko);
+  font-size: 12px;
+  color: var(--dp-ink-dim);
+  border: 1px solid var(--dp-line);
+  border-radius: 4px;
+  padding: 4px 10px;
+  background: var(--dp-panel);
+}
+
 /* ---------- 이렇게 / 조심 칩 ---------- */
 .doRow {
   display: flex;

@@ -43,6 +43,8 @@ export interface DestinypalDecadeYear {
 export interface DestinypalDecadeNarrative {
   tag: string // "이 대운의 결" / "용신 흐름" 등
   body: string
+  /** 영문 본문 — 영문 로케일에서 사용. 미지정 시 클라이언트가 body 로 폴백. */
+  bodyEn?: string
 }
 
 export interface DestinypalDecadeAstroMark {
@@ -56,6 +58,8 @@ export interface DestinypalDecadeRelation {
   title: string
   romaji?: string
   body: string
+  /** 영문 본문 — 영문 로케일에서 사용. 미지정 시 클라이언트가 body 로 폴백. */
+  bodyEn?: string
 }
 
 export interface DestinypalDecadeCrossActivation {
@@ -67,6 +71,8 @@ export interface DestinypalDecadeCrossActivation {
   polarity: number
   /** 이 cross 활성이 가리키는 한 줄 의미 (있으면) */
   meaning?: string
+  /** 영문 한 줄 의미 — 영문 로케일에서 사용. 미지정 시 클라이언트가 meaning 으로 폴백. */
+  meaningEn?: string
 }
 
 export interface DestinypalDecade {
@@ -84,6 +90,8 @@ export interface DestinypalDecade {
   sewoonNow?: { gz: Ganji; sibsin: string }
   years: DestinypalDecadeYear[]
   body: string[]
+  /** 본문 영문 — 영문 로케일에서 사용. 어댑터가 항상 채움. */
+  bodyEn: string[]
   /** 본명 × 대운 지지 충·합 — 어댑터가 항상 채움(충·합 없으면 중립 라인). */
   hapchung: DestinypalDecadeRelation
   /** 대운 지지 12운성 — 어댑터가 항상 채움. */
@@ -176,6 +184,27 @@ const BRANCH_KO_TO_HAN: Record<string, string> = Object.fromEntries(
 
 // ── 60갑자 ↔ index helpers ──────────────────────────────────────────────
 const BRANCH_POS_KO: Record<string, string> = { year: '연', month: '월', day: '일', time: '시' }
+const BRANCH_POS_EN: Record<string, string> = {
+  year: 'year',
+  month: 'month',
+  day: 'day',
+  time: 'hour',
+}
+// 지지 한자 → 로마자 음 (영문 라인 글로스용).
+const BRANCH_ROMAJI: Record<string, string> = {
+  子: 'ja',
+  丑: 'chuk',
+  寅: 'in',
+  卯: 'myo',
+  辰: 'jin',
+  巳: 'sa',
+  午: 'o',
+  未: 'mi',
+  申: 'sin',
+  酉: 'yu',
+  戌: 'sul',
+  亥: 'hae',
+}
 
 /**
  * 대운 지지 × 본명 4지지 충·합 — 이미 있는 충/합 정본표(CHUNG/YUKHAP)를 그대로
@@ -188,21 +217,25 @@ function buildDecadeHapchung(natal: NatalContext, decadeBranch: string): Destiny
     { earthlyBranch?: { name?: string } }
   >
   const ko = (b: string) => BRANCH_KO[b] ?? b
+  const rom = (b: string) => BRANCH_ROMAJI[b] ?? b
   const db = decadeBranch
-  const hits: DestinypalDecadeRelation[] = []
+  const hits: Array<{ title: string; body: string; bodyEn: string }> = []
   for (const key of ['day', 'time', 'month', 'year']) {
     const nb = pillars[key]?.earthlyBranch?.name
     if (!nb) continue
     const pos = BRANCH_POS_KO[key] ?? key
+    const posEn = BRANCH_POS_EN[key] ?? key
     if (CHUNG[db] === nb) {
       hits.push({
         title: `${nb}${db}충`,
         body: `본명 ${pos}지 ${nb}(${ko(nb)}) × 대운 ${db}(${ko(db)}) → ${nb}${db}충 — 이 영역에 변동·이동 압력이 실려요.`,
+        bodyEn: `Natal ${posEn} branch ${nb} (${rom(nb)}) × decade ${db} (${rom(db)}) → ${nb}${db} clash — this area carries pressure to shift and move.`,
       })
     } else if (YUKHAP[db] === nb) {
       hits.push({
         title: `${nb}${db}육합`,
         body: `본명 ${pos}지 ${nb}(${ko(nb)}) × 대운 ${db}(${ko(db)}) → ${nb}${db}육합 — 환경이 손발을 맞춰줘요.`,
+        bodyEn: `Natal ${posEn} branch ${nb} (${rom(nb)}) × decade ${db} (${rom(db)}) → ${nb}${db} harmony — your surroundings fall into step with you.`,
       })
     }
   }
@@ -210,13 +243,34 @@ function buildDecadeHapchung(natal: NatalContext, decadeBranch: string): Destiny
     return {
       title: '—',
       body: `본명 지지와 대운 ${db}(${ko(db)}) 사이 뚜렷한 충·합은 없어요 — 무난히 흘러가요.`,
+      bodyEn: `No clear clash or harmony between your natal branches and the decade ${db} (${rom(db)}) — it flows along smoothly.`,
     }
   }
   // 가장 가까운(일/시지) 관계를 title 로, 나머지는 본문에 이어 붙임.
   return {
     title: hits[0].title,
     body: hits.map((h) => h.body).join(' '),
+    bodyEn: hits.map((h) => h.bodyEn).join(' '),
   }
+}
+
+// 12운성 영문 — 단계명(라벨) + 쉬운 한 줄. KO TWELVE_STAGE_PLAIN(plainLanguage)
+// 과 1:1 의미 대응. plainLanguage 는 derivers 라 손대지 않으므로 여기서 EN 병행표를 둔다.
+const TWELVE_STAGE_EN: Record<string, { label: string; desc: string }> = {
+  장생: { label: 'Birth', desc: 'the fresh momentum of a sprout just starting out' },
+  목욕: { label: 'Bath', desc: 'momentum being shaped, still wobbling' },
+  관대: { label: 'Coming-of-age', desc: 'momentum just finding its footing' },
+  건록: { label: 'Prime', desc: 'standing firm on your own strength' },
+  임관: { label: 'Prime', desc: 'standing firm on your own strength' },
+  제왕: { label: 'Peak', desc: 'momentum at its very summit' },
+  왕지: { label: 'Peak', desc: 'momentum at its very summit' },
+  쇠: { label: 'Decline', desc: 'easing off after the peak' },
+  병: { label: 'Illness', desc: 'energy fading, a time to rest' },
+  사: { label: 'Death', desc: 'a chapter closing' },
+  묘: { label: 'Tomb', desc: 'a time to gather in and store away' },
+  절: { label: 'Severance', desc: 'a time of being cut off and emptied out' },
+  태: { label: 'Conception', desc: 'a time of being newly conceived' },
+  양: { label: 'Nurture', desc: 'a time of being quietly nurtured' },
 }
 
 /**
@@ -225,15 +279,21 @@ function buildDecadeHapchung(natal: NatalContext, decadeBranch: string): Destiny
 function buildDecadeUnseong(dm: string, decadeBranch: string): DestinypalDecadeRelation {
   const stage = getTwelveStage(dm, decadeBranch)
   const ko = BRANCH_KO[decadeBranch] ?? decadeBranch
+  const rom = BRANCH_ROMAJI[decadeBranch] ?? decadeBranch
   // 쉬운말 우선: "막 자리를 잡아가는 기세" — 못 찾으면 해석사전 meaning 폴백.
   const plain = twelveStagePlain(stage)
   const interp = getTwelveStageInterpretation(stage as never)
   const desc = plain || interp?.meaning || ''
+  const en = TWELVE_STAGE_EN[stage]
   return {
     title: stage,
     body: desc
       ? `대운 자리(${decadeBranch}·${ko})는 ${stage} — ${desc}`
       : `대운 자리(${decadeBranch}·${ko})는 ${stage}예요.`,
+    // 단계명(stage)은 한글이라 EN 본문엔 영문 라벨만 쓴다(한글 누수 방지).
+    bodyEn: en
+      ? `The decade seat (${decadeBranch}·${rom}) sits at the ${en.label} stage — ${en.desc}.`
+      : `The decade seat (${decadeBranch}·${rom}) sits at this twelve-stage phase.`,
   }
 }
 
@@ -248,7 +308,9 @@ export interface ToDecadeOptions {
   yearScores?: number[]
   /** 본문 body 문장 (선택). */
   body?: string[]
-  /** 추가 narrative — 키워드 태그/본문 쌍. */
+  /** 본문 영문 (선택). 미지정 시 themeEn headline 으로 채움. */
+  bodyEn?: string[]
+  /** 추가 narrative — 키워드 태그/본문 쌍 (bodyEn 포함 시 영문 병행). */
   narrative?: DestinypalDecadeNarrative[]
   /** 외부 행성 마디 (선택) — destinypal demo 식 "세 번째 목성 회귀 2030.12" 등. */
   astroMarks?: DestinypalDecadeAstroMark[]
@@ -336,6 +398,8 @@ export function toDecade(natal: NatalContext, opts: ToDecadeOptions = {}): Desti
       astroLine: extractEvidenceField(s, 'astroKey'),
       polarity: s.polarity,
       meaning: s.korean ?? extractEvidenceField(s, 'meaning'),
+      // 영문 의미 — 신호의 english(없으면 evidence.meaning, 그래도 없으면 korean 폴백).
+      meaningEn: s.english ?? extractEvidenceField(s, 'meaning') ?? s.korean,
     })
   }
   const crossActivations: DestinypalDecadeCrossActivation[] = [...crossSeen.values()].sort(
@@ -389,6 +453,7 @@ export function toDecade(natal: NatalContext, opts: ToDecadeOptions = {}): Desti
     sewoonNow,
     years: yearsArr,
     body: opts.body ?? [theme.headline],
+    bodyEn: opts.bodyEn ?? [theme.headlineEn],
     hapchung: opts.hapchung ?? buildDecadeHapchung(natal, current.branch),
     unseong: opts.unseong ?? buildDecadeUnseong(dm, current.branch),
     astro: opts.astroMarks ?? [],

@@ -161,12 +161,25 @@ describe('toDecade — 현재 대운 → destinypal decade', () => {
         { currentAge: 5 }
       )!
       expect(d.hapchung.title).toContain('충')
+      // EN 병행 — clash 라인이 한글 누수 없이 영문으로.
+      expect(d.hapchung.bodyEn).toContain('clash')
+      expect(d.hapchung.bodyEn).not.toMatch(/[가-힣]/)
+    })
+
+    it('hapchung 중립 라인도 영문 병행', () => {
+      // 충/합 없는 대운(辰 2024) — 중립 라인.
+      const d = toDecade(natalWithDaeun(), { currentAge: 34 })!
+      expect(d.hapchung.bodyEn).toBeTruthy()
+      expect(d.hapchung.bodyEn).not.toMatch(/[가-힣]/)
     })
 
     it('unseong 은 12운성 단계 + 본문', () => {
       const d = toDecade(natalWithDaeun(), { currentAge: 5 })!
       expect(d.unseong.title).toBeTruthy()
       expect(d.unseong.body).toContain('대운 자리')
+      // EN 병행 — "decade seat" 한글 누수 없이.
+      expect(d.unseong.bodyEn).toContain('decade seat')
+      expect(d.unseong.bodyEn).not.toMatch(/[가-힣]/)
     })
 
     it('opts.hapchung / opts.unseong 직주입이 auto 보다 우선', () => {
@@ -190,6 +203,7 @@ describe('toDecade — 현재 대운 → destinypal decade', () => {
           id: 'c1',
           polarity: 1,
           korean: '재물 페어',
+          english: 'a wealth pair',
           evidence: { module: 'x', detail: { sajuKey: '정재', astroKey: 'Venus' } },
         }),
         makeSignal({
@@ -221,6 +235,9 @@ describe('toDecade — 현재 대운 → destinypal decade', () => {
       expect(d.crossActivations[1].sajuLine).toBe('정재')
       expect(d.crossActivations[1].astroLine).toBe('Venus')
       expect(d.crossActivations[1].meaning).toBe('재물 페어') // korean 우선
+      expect(d.crossActivations[1].meaningEn).toBe('a wealth pair') // english 우선
+      // english 없는 신호(편관 × 토성)는 evidence.meaning 폴백.
+      expect(d.crossActivations[0].meaningEn).toBe('압박 페어')
     })
 
     it('같은 이름 dedup — 더 강한 polarity 를 대표로', () => {
@@ -254,19 +271,24 @@ describe('toDecade — 현재 대운 → destinypal decade', () => {
   })
 
   describe('body / narrative / astro / geokguk', () => {
-    it('body 기본값은 [headline]', () => {
+    it('body 기본값은 [headline] · bodyEn 기본값은 [headlineEn]', () => {
       const d = toDecade(natalWithDaeun(), { currentAge: 5 })!
       expect(d.body).toEqual([d.headline])
+      expect(d.bodyEn).toEqual([d.headlineEn])
+      // 영문 본문에 한글 누수 없음.
+      expect(d.bodyEn.join(' ')).not.toMatch(/[가-힣]/)
     })
-    it('opts.body / narrative / astroMarks 통과', () => {
+    it('opts.body / bodyEn / narrative / astroMarks 통과', () => {
       const d = toDecade(natalWithDaeun(), {
         currentAge: 5,
         body: ['b1', 'b2'],
-        narrative: [{ tag: 't', body: 'n' }],
+        bodyEn: ['e1', 'e2'],
+        narrative: [{ tag: 't', body: 'n', bodyEn: 'nEn' }],
         astroMarks: [{ label: 'Jupiter', date: '2030', body: 'return' }],
       })!
       expect(d.body).toEqual(['b1', 'b2'])
-      expect(d.narrative).toEqual([{ tag: 't', body: 'n' }])
+      expect(d.bodyEn).toEqual(['e1', 'e2'])
+      expect(d.narrative).toEqual([{ tag: 't', body: 'n', bodyEn: 'nEn' }])
       expect(d.astro).toEqual([{ label: 'Jupiter', date: '2030', body: 'return' }])
     })
     it('astro / narrative 기본 빈 배열', () => {
