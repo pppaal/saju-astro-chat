@@ -72,7 +72,7 @@ const FREE_TOOLS: readonly FreeTool[] = [
     badge: { ko: '완전 무료 · 로그인 X', en: 'Free · no sign-up' },
   },
   {
-    href: '/compatibility',
+    href: '/compatibility/free',
     emoji: '💕',
     tint: '#ec4899',
     title: { ko: '궁합 보기', en: 'Compatibility' },
@@ -80,7 +80,7 @@ const FREE_TOOLS: readonly FreeTool[] = [
       ko: '두 사람의 사주·별자리로 보는 관계 케미. 친구·연인과 함께 해보세요.',
       en: 'Relationship chemistry from two charts. Try it with a friend or partner.',
     },
-    badge: { ko: '무료로 시작', en: 'Free to start' },
+    badge: { ko: '완전 무료 · 로그인 X', en: 'Free · no sign-up' },
   },
   {
     href: '/calendar/preview',
