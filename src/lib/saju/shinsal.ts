@@ -1,7 +1,7 @@
 // src/lib/Saju/shinsal.ts
 import { BRANCHES, STEMS, JIJANGGAN, CHEONEUL_GWIIN_MAP } from './constants'
 import type { FiveElement, YinYang, PillarKind, TwelveStage } from './types'
-import { RESENTMENT_PAIRS, toBidiRecord } from './relationTables'
+import { RESENTMENT_PAIRS, SIX_HARMONY, toBidiRecord } from './relationTables'
 import { getGongmang as getGongmangByPillar } from './pillarLookup'
 import { STEM_KO } from './ganjiKo'
 
@@ -341,17 +341,16 @@ const YEARMONTH_SHINSAL_BY_MONTH_BRANCH: Record<
 }
 
 /* ===== 일반 신살/길성 ===== */
+// 양인(羊刃) — 정통 명리는 *양간(陽干)만* 양인을 갖는다(甲丙戊庚壬). 음간은
+// 양인이 없다(乙의 卯 등은 음간의 건록이지 양인이 아니다). geokguk.ts 의
+// yanginMap(양인격 판정)과 동일 집합으로 통일 — 예전엔 여기만 음간에도 부여해
+// 두 모듈이 음간 양인 유무를 두고 어긋났다.
 const YANGIN_BY_DAY_STEM: Record<string, string> = {
   甲: '卯',
-  乙: '卯',
   丙: '午',
-  丁: '午',
   戊: '午',
-  己: '午',
   庚: '酉',
-  辛: '酉',
   壬: '子',
-  癸: '子',
 }
 // 괴강(魁罡) — 정통 5종: 庚辰, 庚戌, 壬辰, 壬戌, 戊戌
 const GWAEGANG_DAY_PAIRS = new Set(['庚辰', '庚戌', '壬辰', '壬戌', '戊戌'])
@@ -588,23 +587,6 @@ function isCheonjuGwiin(dayStem: string, targetBranch: string): boolean {
   return CHEONJU_BY_DAY_STEM[dayStem] === targetBranch
 }
 
-// 암록(暗祿): 건록의 충(沖) 지지
-const AMNOK_BY_DAY_STEM: Record<string, string> = {
-  甲: '酉',
-  乙: '申',
-  丙: '亥',
-  丁: '戌',
-  戊: '亥',
-  己: '戌',
-  庚: '卯',
-  辛: '寅',
-  壬: '巳',
-  癸: '辰',
-}
-function isAmnok(dayStem: string, targetBranch: string): boolean {
-  return AMNOK_BY_DAY_STEM[dayStem] === targetBranch
-}
-
 // 건록(建祿): 일간의 록지
 const GEONROK_BY_DAY_STEM: Record<string, string> = {
   甲: '寅',
@@ -620,6 +602,17 @@ const GEONROK_BY_DAY_STEM: Record<string, string> = {
 }
 function isGeonrok(dayStem: string, targetBranch: string): boolean {
   return GEONROK_BY_DAY_STEM[dayStem] === targetBranch
+}
+
+// 암록(暗祿): 정통 = 건록(祿)의 육합신(合). 건록 지지의 六合 짝.
+//   예: 甲 건록 寅 → 寅亥육합 → 甲 암록 亥. (직전엔 "건록의 충"이라 잘못 정의돼
+//   10간 전부 엉뚱한 지지로 떴다. 건록표 × 육합 SSOT 에서 파생해 드리프트 차단.)
+const SIX_HARMONY_PARTNER: Record<string, string> = toBidiRecord(SIX_HARMONY.map((h) => h.pair))
+const AMNOK_BY_DAY_STEM: Record<string, string> = Object.fromEntries(
+  Object.entries(GEONROK_BY_DAY_STEM).map(([stem, rok]) => [stem, SIX_HARMONY_PARTNER[rok]])
+)
+function isAmnok(dayStem: string, targetBranch: string): boolean {
+  return AMNOK_BY_DAY_STEM[dayStem] === targetBranch
 }
 
 // 제왕(帝旺): 12운성 중 왕지와 동일한 위치
