@@ -10,6 +10,8 @@
  * 도배됐다(예: 6·18·30일이 전부 같은 줄). 7 로 두고 날짜로 회전하면 충돌이 준다.
  */
 
+import { pickBySeed } from './personSeed'
+
 export type MeaningTone = 'positive' | 'negative' | 'neutral'
 
 const TONE_POOL_KO: Record<MeaningTone, string[]> = {
@@ -72,14 +74,17 @@ const TONE_POOL_EN: Record<MeaningTone, string[]> = {
   ],
 }
 
-/** 톤 + 날짜(일) → 그 톤 풀에서 회전 선택한 한 줄. */
+/**
+ * 톤 + 날짜(일) + 개인 시드 → 그 톤 풀에서 한 줄.
+ * seed(본명 고정)를 함께 회전 키로 써서 **같은 날·같은 톤이라도 사람마다 다른 문구**
+ * 가 나온다(seed 0/미지정이면 날짜만으로 회전 — 옛 동작과 호환).
+ */
 export function toneMeaningFor(
   tone: MeaningTone,
   dayNum: number,
-  lang: 'ko' | 'en' = 'ko'
+  lang: 'ko' | 'en' = 'ko',
+  seed = 0
 ): string {
   const pool = lang === 'en' ? TONE_POOL_EN : TONE_POOL_KO
-  const arr = pool[tone]
-  const i = Math.abs(Number.isFinite(dayNum) ? dayNum : 0) % arr.length
-  return arr[i]
+  return pickBySeed(pool[tone], seed, Number.isFinite(dayNum) ? dayNum : 0)
 }

@@ -15,6 +15,7 @@ import { deriveConvergence } from '@/lib/calendar-engine/derivers/convergence'
 import { deriveLifetimeFlow } from '@/lib/calendar-engine/derivers/lifetimeFlow'
 import { deriveLifetimePivots } from '@/lib/calendar-engine/derivers/lifetimePivots'
 import { deriveMonthSummary } from '@/lib/calendar-engine/derivers/monthSummary'
+import { personSeed } from '@/lib/calendar-engine/derivers/personSeed'
 import { deriveLayeredScores } from '@/lib/calendar-engine/derivers/layeredScore'
 import { computeDayPillarIndices } from '@/lib/saju/dayPillar'
 import { getMonthPillarForDate } from '@/lib/saju/datePillars'
@@ -313,6 +314,16 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
     rootStatus: userBase.rootStatus,
   }
 
+  // 개인 시드 — 본명 고정 값(일간·용신·격국·신강약)에서 한 번 산출. 템플릿 문구를
+  // 사람마다 다르게 고르는 데 쓴다(month.seed·day.seed 로 전달). 날짜 무관.
+  const seed = personSeed([
+    user.ilgan.hanja,
+    user.ilgan.kr,
+    user.yongsin.hanja,
+    user.gyeokguk,
+    user.gangyak,
+  ])
+
   const lifetime = toLifetime(natal, {
     birthYear: BIRTH_YEAR,
     currentYear: TARGET_YEAR,
@@ -529,6 +540,7 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
         },
     focusDay: monthAdapter.focusDay,
     calendar,
+    seed,
   }
 
   // 이달 총평 — 타이밍·톤·지배 테마를 이어지는 한 문단으로 합성(deriveMonthSummary).
@@ -747,6 +759,7 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
     iljinSibsin: dayAdapter.iljinSibsin,
     // 본명 일간 — 그날 십신의 기준점. 화면 맨 위 기준선에 노출.
     dayMaster: { hanja: user.ilgan.hanja, kr: user.ilgan.kr, en: user.ilgan.en },
+    seed,
     score: dayAdapter.score,
     oneLine: dayAdapter.oneLine,
     oneLineEn: dayAdapter.oneLineEn,

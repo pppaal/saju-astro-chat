@@ -208,4 +208,6 @@ export interface DestinyMonth {
     meaningEn: string
     polarity: number
   }>
+  /** 개인 시드(본명 고정) — 템플릿 문구를 사람마다 다르게 고르는 데 쓴다. */
+  seed?: number
 }

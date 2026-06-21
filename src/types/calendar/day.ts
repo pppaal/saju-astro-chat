@@ -203,6 +203,9 @@ export interface DestinyDay extends DestinyIljinHeader {
    */
   dayMaster?: { hanja: string; kr: string; en: string }
 
+  /** 개인 시드(본명 고정) — 템플릿 문구를 사람마다 다르게 고르는 데 쓴다. */
+  seed?: number
+
   // ── 타이밍 컨텍스트 (캘린더용 — assembleTiers 가 주변 날짜에서 채움) ──
   /** 이달 일별 점수 — 흐름 추이선용. day=1..31, score=0..100, today 표시. */
   monthScores?: Array<{ day: number; score: number; today: boolean }>

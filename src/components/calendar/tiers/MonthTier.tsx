@@ -107,6 +107,8 @@ export function MonthTier({ month, onDive, onRise, showRise = true }: MonthTierP
   const goodN = month.goodDays?.length ?? 0
   const cautionN = month.cautionDays?.length ?? 0
   const avoidN = month.avoidDays?.length ?? 0
+  // 개인 시드 — 큰 날 문구를 사람마다 다르게 회전(같은 날·톤이라도 본명 다르면 다른 줄).
+  const seed = month.seed ?? 0
 
   // ── 이달의 큰 날 (사주×점성 수렴) — 제목 톤을 달력 셀 판정과 같은 소스로 맞춘다 ──
   // (점수 색과 의미 톤이 어긋나지 않게: 셀이 '주의'면 의미도 '주의할 날'.)
@@ -145,7 +147,7 @@ export function MonthTier({ month, onDive, onRise, showRise = true }: MonthTierP
     const tone = markToTone(mark)
     const dayNum = parseInt(k.date.slice(-2), 10)
     const meaning = tone
-      ? toneMeaningFor(tone, dayNum, ko ? 'ko' : 'en')
+      ? toneMeaningFor(tone, dayNum, ko ? 'ko' : 'en', seed)
       : k.meaning || (k.bothSystems ? (ko ? '신호가 겹치는 날' : 'signals overlap') : '')
     const vp = verdictPrefix(mark)
     const title =
@@ -164,7 +166,7 @@ export function MonthTier({ month, onDive, onRise, showRise = true }: MonthTierP
     const dn = parseInt(month.bestDay.date.slice(-2), 10)
     keyDayItems.push({
       when: month.bestDay.date,
-      title: `${ko ? '최고의 날' : 'Best day'} · ${toneMeaningFor('positive', dn, ko ? 'ko' : 'en')}`,
+      title: `${ko ? '최고의 날' : 'Best day'} · ${toneMeaningFor('positive', dn, ko ? 'ko' : 'en', seed)}`,
       both: false,
       window: null,
       conf: null,
