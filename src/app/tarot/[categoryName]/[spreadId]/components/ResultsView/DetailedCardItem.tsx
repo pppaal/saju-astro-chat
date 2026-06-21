@@ -53,7 +53,7 @@ interface DetailedCardItemProps {
   aiPending?: boolean
 }
 
-export function DetailedCardItem({
+function DetailedCardItemBase({
   drawnCard,
   index,
   positionTitle,
@@ -205,3 +205,25 @@ export function DetailedCardItem({
     </article>
   )
 }
+
+// AI 해석 스트리밍 중엔 부모가 ~120ms 마다 새 interpretation 스냅샷을 만들어
+// card_insights 배열·객체가 매 틱 새로 생성된다. memo 없이는 카드 N장이 매
+// 틱(초당 ~8회) 전부 리렌더 → 메인스레드가 막혀 로딩/카드 애니가 렉. 이 카드의
+// *실제로 보이는* 값(해석 텍스트·자리·역방향·언어·덱·대기상태)이 바뀔 때만
+// 리렌더하도록 비교한다. cardInsight 는 객체 identity 가 아니라 그 카드가 쓰는
+// 유일 필드(interpretation)로 비교한다. translate 는 출력이 언어에만 의존하므로
+// language 비교로 대체(함수 identity 변동 무시).
+export function arePropsEqual(prev: DetailedCardItemProps, next: DetailedCardItemProps): boolean {
+  return (
+    prev.drawnCard === next.drawnCard &&
+    prev.index === next.index &&
+    prev.language === next.language &&
+    prev.selectedDeckStyle === next.selectedDeckStyle &&
+    prev.positionTitle === next.positionTitle &&
+    prev.positionMeaning === next.positionMeaning &&
+    (prev.aiPending ?? false) === (next.aiPending ?? false) &&
+    (prev.cardInsight?.interpretation ?? '') === (next.cardInsight?.interpretation ?? '')
+  )
+}
+
+export const DetailedCardItem = React.memo(DetailedCardItemBase, arePropsEqual)
