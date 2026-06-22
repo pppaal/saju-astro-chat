@@ -30,6 +30,7 @@ import {
   twelveStagePlain,
 } from '@/lib/calendar-engine/derivers/plainLanguage'
 import { deriveDayDomains } from '@/lib/calendar-engine/derivers/dayDomains'
+import { deriveDayActions } from '@/lib/calendar-engine/derivers/dayActions'
 import { deriveDayDeepRead } from '@/lib/calendar-engine/derivers/dayDeepRead'
 import { dayStrength } from '@/lib/calendar-engine/derivers/dayStrength'
 import { reconcileDayTone, type DayVerdict } from '@/lib/calendar-engine/derivers/reconcile'
@@ -744,6 +745,13 @@ export function DayTier({ day, voc, onRise, sex = '남' }: DayTierProps) {
     },
   })
 
+  // ── 이렇게 해보세요 — 일진 십신 기반 행동 처방(do/avoid/tip). ──
+  const dayActions = deriveDayActions({
+    iljinSibsin: String(day.iljinSibsin),
+    scoreBand: dayBand,
+    seed: day.seed ?? 0,
+  })
+
   // ── 공유 카드 데이터. ──
   const shareSibsinRaw = String(day.iljinSibsin)
   const shareSibsinArea = sibsinArea(shareSibsinRaw)
@@ -885,30 +893,63 @@ export function DayTier({ day, voc, onRise, sex = '남' }: DayTierProps) {
         )}
       </Band>
 
-      {/* ── 핵심 2 — 이렇게 해보세요. ── */}
+      {/* ── 핵심 2 — 이렇게 해보세요 (일진 십신 기반 행동 처방). ── */}
       <Band title={ko ? '이렇게 해보세요' : 'Try this today'}>
-        <div className={styles.doRow}>
-          <span className={styles.doChip}>
-            {ko ? '이렇게 · ' : 'DO · '}
-            {dayBand === 'low'
-              ? ko
-                ? '정리·점검부터'
-                : 'start with review & tidying'
-              : ko
-                ? '잘 풀리는 일 밀어붙이기'
-                : 'push what works'}
-          </span>
-          <span className={styles.dontChip}>
-            {ko ? '살살 · ' : 'EASE · '}
-            {dayBand === 'good'
-              ? ko
-                ? '과욕 부리지 않기'
-                : "don't overreach"
-              : ko
-                ? '크게 벌이지 않기'
-                : "don't start big"}
-          </span>
-        </div>
+        {dayActions ? (
+          <div className={styles.actions}>
+            <div className={styles.actionGroup}>
+              <span className={`${styles.actionTag} ${styles.actionDo}`}>
+                {ko ? '이렇게' : 'DO'}
+              </span>
+              <ul className={styles.actionList}>
+                {(ko ? dayActions.do : dayActions.doEn).map((a, i) => (
+                  <li className={styles.actionItem} key={i}>
+                    {a}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className={styles.actionGroup}>
+              <span className={`${styles.actionTag} ${styles.actionAvoid}`}>
+                {ko ? '살살' : 'EASE'}
+              </span>
+              <ul className={styles.actionList}>
+                {(ko ? dayActions.avoid : dayActions.avoidEn).map((a, i) => (
+                  <li className={styles.actionItem} key={i}>
+                    {a}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <p className={styles.actionTip}>
+              <span className={styles.actionTipMark}>💡</span>
+              {ko ? dayActions.tip : dayActions.tipEn}
+            </p>
+          </div>
+        ) : (
+          <div className={styles.doRow}>
+            <span className={styles.doChip}>
+              {ko ? '이렇게 · ' : 'DO · '}
+              {dayBand === 'low'
+                ? ko
+                  ? '정리·점검부터'
+                  : 'start with review & tidying'
+                : ko
+                  ? '잘 풀리는 일 밀어붙이기'
+                  : 'push what works'}
+            </span>
+            <span className={styles.dontChip}>
+              {ko ? '살살 · ' : 'EASE · '}
+              {dayBand === 'good'
+                ? ko
+                  ? '과욕 부리지 않기'
+                  : "don't overreach"
+                : ko
+                  ? '크게 벌이지 않기'
+                  : "don't start big"}
+            </span>
+          </div>
+        )}
       </Band>
 
       {/* ── 핵심 3 — 분야별 오늘 조언. ── */}

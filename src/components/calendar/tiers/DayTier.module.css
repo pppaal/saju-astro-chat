@@ -375,6 +375,79 @@
   border-top: 2px solid var(--dp-tone-mixed);
 }
 
+/* ---------- 이렇게 해보세요 — do/avoid/tip 행동 처방 ---------- */
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.actionGroup {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  border: 1px solid var(--dp-line);
+  border-radius: var(--dp-r-lg);
+  padding: 12px 13px;
+  background: var(--dp-panel);
+}
+.actionTag {
+  flex-shrink: 0;
+  font-family: var(--dp-sans);
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  margin-top: 1px;
+}
+.actionDo {
+  color: #fff;
+  background: var(--dp-pos);
+}
+.actionAvoid {
+  color: #fff;
+  background: var(--dp-tone-mixed);
+}
+.actionList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+}
+.actionItem {
+  position: relative;
+  font-family: var(--dp-serif);
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--dp-ink);
+  padding-left: 13px;
+  word-break: keep-all;
+}
+.actionItem::before {
+  content: '·';
+  position: absolute;
+  left: 2px;
+  color: var(--dp-ink-faint);
+}
+.actionTip {
+  display: flex;
+  gap: 7px;
+  align-items: baseline;
+  margin: 0;
+  padding: 2px 2px 0;
+  font-family: var(--dp-serif);
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--dp-ink-mute);
+  word-break: keep-all;
+}
+.actionTipMark {
+  flex-shrink: 0;
+}
+
 /* ---------- gongmang / voc banners ---------- */
 .gongmangBanner {
   margin-top: 16px;

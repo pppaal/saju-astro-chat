@@ -301,19 +301,22 @@ describe('DayTier', () => {
   })
 
   describe('이렇게 해보세요 (try this)', () => {
-    it('renders the section heading and DO / EASE chips (ko)', () => {
+    it('renders the section heading and DO / EASE action groups (ko)', () => {
       setup()
       expect(screen.getByText('이렇게 해보세요')).toBeInTheDocument()
-      expect(screen.getByText(/이렇게 ·/)).toBeInTheDocument()
-      expect(screen.getByText(/살살 ·/)).toBeInTheDocument()
+      // 십신 기반 행동 처방 — 이렇게/살살 태그 + do 3개 + avoid 2개.
+      expect(screen.getByText('이렇게')).toBeInTheDocument()
+      expect(screen.getByText('살살')).toBeInTheDocument()
+      const items = document.querySelectorAll('li')
+      expect(items.length).toBeGreaterThanOrEqual(5)
     })
 
-    it('renders the english section + chips in en mode', () => {
+    it('renders the english section + action groups in en mode', () => {
       mockLocale = 'en'
       setup()
       expect(screen.getByText('Try this today')).toBeInTheDocument()
-      expect(screen.getByText(/DO ·/)).toBeInTheDocument()
-      expect(screen.getByText(/EASE ·/)).toBeInTheDocument()
+      expect(screen.getByText('DO')).toBeInTheDocument()
+      expect(screen.getByText('EASE')).toBeInTheDocument()
     })
   })
 
