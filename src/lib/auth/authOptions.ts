@@ -3,6 +3,7 @@ import type { Adapter, AdapterAccount, AdapterUser } from 'next-auth/adapters'
 import GoogleProvider from 'next-auth/providers/google'
 import * as Sentry from '@sentry/nextjs'
 import { prisma } from '@/lib/db/prisma'
+import { withDbRetry } from '@/lib/db/retry'
 import { revokeGoogleTokensForAccount, revokeGoogleTokensForUser } from '@/lib/auth/tokenRevoke'
 import { encryptToken, hasTokenEncryptionKey } from '@/lib/security/tokenCrypto'
 import { generateReferralCode } from '@/lib/referral'
@@ -103,16 +104,20 @@ function createFilteredPrismaAdapter(): Adapter {
     createUser: async (user: Omit<AdapterUser, 'id'>) => {
       try {
         const referralCode = generateReferralCode()
-        const createdUser = await prisma.user.create({
-          data: {
-            ...user,
-            settings: {
-              create: {
-                referralCode,
+        const createdUser = await withDbRetry(
+          () =>
+            prisma.user.create({
+              data: {
+                ...user,
+                settings: {
+                  create: {
+                    referralCode,
+                  },
+                },
               },
-            },
-          },
-        })
+            }),
+          { label: 'adapter.createUser' }
+        )
         return createdUser as AdapterUser
       } catch (error) {
         logger.error('[auth] createUser failed:', error)
@@ -123,17 +128,25 @@ function createFilteredPrismaAdapter(): Adapter {
     // 오던 default SELECT 를 next-auth 가 실제로 쓰는 5 컬럼만 명시.
     // 이벤트 트래픽 시 분당 수천 회 호출 → pgbouncer connection 시간 단축.
     getUser: async (id: string) => {
-      const user = await prisma.user.findUnique({
-        where: { id },
-        select: { id: true, name: true, email: true, emailVerified: true, image: true },
-      })
+      const user = await withDbRetry(
+        () =>
+          prisma.user.findUnique({
+            where: { id },
+            select: { id: true, name: true, email: true, emailVerified: true, image: true },
+          }),
+        { label: 'adapter.getUser' }
+      )
       return (user as AdapterUser) ?? null
     },
     getUserByEmail: async (email: string) => {
-      const user = await prisma.user.findUnique({
-        where: { email },
-        select: { id: true, name: true, email: true, emailVerified: true, image: true },
-      })
+      const user = await withDbRetry(
+        () =>
+          prisma.user.findUnique({
+            where: { email },
+            select: { id: true, name: true, email: true, emailVerified: true, image: true },
+          }),
+        { label: 'adapter.getUserByEmail' }
+      )
       return (user as AdapterUser) ?? null
     },
     getUserByAccount: async (
@@ -141,13 +154,16 @@ function createFilteredPrismaAdapter(): Adapter {
     ) => {
       try {
         // Use raw SQL to avoid Prisma 7.x driver adapter P2022 bug with compound unique keys
-        const users = await prisma.$queryRaw<AdapterUser[]>`
+        const users = await withDbRetry(
+          () => prisma.$queryRaw<AdapterUser[]>`
           SELECT u.* FROM "User" u
           INNER JOIN "Account" a ON a."userId" = u."id"
           WHERE a."provider" = ${providerAccountId.provider}
             AND a."providerAccountId" = ${providerAccountId.providerAccountId}
           LIMIT 1
-        `
+        `,
+          { label: 'adapter.getUserByAccount' }
+        )
         return users[0] ?? null
       } catch (error) {
         logger.error('[auth] getUserByAccount failed:', error)
@@ -173,7 +189,9 @@ function createFilteredPrismaAdapter(): Adapter {
           }
         }
         const securedAccount = encryptAccountTokens(filteredAccount as AdapterAccount)
-        await prisma.account.create({ data: securedAccount as never })
+        await withDbRetry(() => prisma.account.create({ data: securedAccount as never }), {
+          label: 'adapter.linkAccount',
+        })
       } catch (error) {
         logger.error('[auth] linkAccount failed:', error)
         throw error
@@ -265,6 +283,14 @@ export const authOptions: NextAuthConfig = {
   trustHost: true,
   pages: {
     signIn: '/auth/signin',
+    // 기본 @auth/core 에러 페이지("There is a problem with the server
+    // configuration")는 영문 + 날것이라 사용자에게 그대로 노출되면 마치
+    // 서비스가 죽은 것처럼 보인다. 실제로는 OAuth 콜백 중 어댑터가 일시적
+    // DB 실패로 throw → CallbackRouteError → 무조건 ?error=Configuration 으로
+    // 떨어지는 경우가 대부분이라, 한국어로 "잠시 후 다시 시도" 안내 + 재시도
+    // 버튼을 주는 커스텀 페이지로 대체한다. (이 페이지는 인증을 요구하지
+    // 않으므로 ErrorPageLoop 위험 없음.)
+    error: '/auth/error',
   },
   session: {
     strategy: 'jwt',

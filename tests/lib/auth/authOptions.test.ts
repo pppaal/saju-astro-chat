@@ -140,6 +140,14 @@ describe('authOptions', () => {
 
       expect(authOptions.pages?.signIn).toBe('/auth/signin')
     })
+
+    it('should set custom error page (so framework default is not exposed)', async () => {
+      process.env.NEXTAUTH_SECRET = 'test-secret'
+
+      const { authOptions } = await import('@/lib/auth/authOptions')
+
+      expect(authOptions.pages?.error).toBe('/auth/error')
+    })
   })
 
   describe('cookies configuration', () => {
