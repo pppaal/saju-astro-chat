@@ -90,7 +90,7 @@ const INFO: Record<
     tip: '체크박스로 이번 상담에 어떤 관점을 쓸지 직접 고를 수 있어요. 가장 입체적인 해석을 위해 둘 다 켜두는 걸 추천해요.',
   },
   en: {
-    trigger: 'What are Saju & Astrology?',
+    trigger: 'What’s this?',
     title: 'Saju vs. Astrology — what’s the difference?',
     intro:
       'They’re two different “languages” for reading a person. Here’s how they differ, and why reading both is better.',
