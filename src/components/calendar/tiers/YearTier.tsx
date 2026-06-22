@@ -27,6 +27,13 @@ import styles from './YearTier.module.css'
 import { CrossingList } from '@/components/calendar/atoms/CrossingList'
 import summaryStyles from '@/components/calendar/atoms/TierSummary.module.css'
 import { useI18n } from '@/i18n/I18nProvider'
+import {
+  TierFrame,
+  RiseButton,
+  Eyebrow,
+  TierHero,
+  Band,
+} from '@/components/calendar/layout/TierFrame'
 
 const MONTH_ABBR = [
   'Jan',
@@ -256,6 +263,22 @@ function joinMonths(months: number[], ko: boolean): string {
   return months.map((m) => monthLabel(m, ko)).join(', ')
 }
 
+/** "열두 달의 흐름" 범례 — 큰 달 / 조심할 달 (Band aside 슬롯). */
+function MonthShapeLegend({ ko }: { ko: boolean }) {
+  return (
+    <span className={styles.shapeLegend}>
+      <span className={styles.legBig}>
+        <i className={styles.legDotBig} />
+        {ko ? '큰 달' : 'Big months'}
+      </span>
+      <span className={styles.legCaution}>
+        <i className={styles.legDotCaution} />
+        {ko ? '조심할 달' : 'Careful months'}
+      </span>
+    </span>
+  )
+}
+
 /** "열두 달의 흐름" — 톤으로 색칠한 12막대. 숫자 없음, 큰 달 봉인·조심 표시. */
 function MonthShape({ shape, ko }: { shape: ReturnType<typeof buildMonthShape>; ko: boolean }) {
   const { items } = shape
@@ -270,21 +293,6 @@ function MonthShape({ shape, ko }: { shape: ReturnType<typeof buildMonthShape>; 
 
   return (
     <div className={styles.shapeWrap}>
-      <div className={styles.shapeHead}>
-        <div className={styles.shapeTitle}>
-          {ko ? '열두 달의 흐름' : 'Shape of the twelve months'}
-        </div>
-        <div className={styles.shapeLegend}>
-          <span className={styles.legBig}>
-            <i className={styles.legDotBig} />
-            {ko ? '큰 달' : 'Big months'}
-          </span>
-          <span className={styles.legCaution}>
-            <i className={styles.legDotCaution} />
-            {ko ? '조심할 달' : 'Careful months'}
-          </span>
-        </div>
-      </div>
       <div className={styles.shapeBars}>
         {items.map((it) => (
           <div className={styles.shapeCol} key={it.month}>
@@ -387,29 +395,32 @@ export function YearTier({ user, year, onDive, onRise }: YearTierProps) {
   }))
 
   return (
-    <div className={styles.tierInner} data-screen-label={`1년 ${year.year}`}>
-      <button className={styles.rise} onClick={onRise}>
-        ↑ {ko ? '인생으로 줌아웃' : 'Zoom out to lifetime'}
-      </button>
+    <TierFrame screenLabel={`1년 ${year.year}`}>
+      <RiseButton label={ko ? '인생으로 줌아웃' : 'Zoom out to lifetime'} onClick={onRise} />
 
-      <div className={styles.eyebrow}>
+      <Eyebrow>
         {ko ? '1년' : '1 YEAR'} · YEARLY · {year.year}
-      </div>
-      <h1 className={styles.display}>
-        {ko ? `${year.year}년의 모양` : `The shape of ${year.year}`}
-      </h1>
-      <p className={styles.oneline}>
-        {ko
-          ? year.headline
-          : (year.headlineEn ??
-            (year.profection
-              ? `This year leans toward your house ${year.profection.house}${year.profection.themeEn ? ` — ${year.profection.themeEn.toLowerCase()}` : ''}.`
-              : `${year.year} — a year the flow gets re-drawn.`))}
-      </p>
+      </Eyebrow>
 
-      {/* ── 메인 ①: 열두 달의 흐름 (모양 + 큰 달/조심) ── */}
+      {/* ── Hero — "N년의 모양" + 평문 한 줄. ── */}
+      <TierHero
+        lead={ko ? `${year.year}년의 모양` : `The shape of ${year.year}`}
+        sub={
+          ko
+            ? year.headline
+            : (year.headlineEn ??
+              (year.profection
+                ? `This year leans toward your house ${year.profection.house}${year.profection.themeEn ? ` — ${year.profection.themeEn.toLowerCase()}` : ''}.`
+                : `${year.year} — a year the flow gets re-drawn.`))
+        }
+      />
+
+      {/* ── 핵심 ①: 열두 달의 흐름 (모양 + 큰 달/조심) ── */}
       {hasMonths && (
-        <>
+        <Band
+          title={ko ? '열두 달의 흐름' : 'Shape of the twelve months'}
+          aside={<MonthShapeLegend ko={ko} />}
+        >
           <MonthShape shape={monthShape} ko={ko} />
           <p className={styles.bigCaution}>
             {monthShape.bigMonths.length > 0 && (
@@ -426,11 +437,15 @@ export function YearTier({ user, year, onDive, onRise }: YearTierProps) {
               </span>
             )}
           </p>
-        </>
+        </Band>
       )}
 
-      {/* ── 메인 ②: 평문 교차 (영역 × 행성 + 톤) ── */}
-      {yearCrossItems.length > 0 && <CrossingList heading={crossHeading} items={yearCrossItems} />}
+      {/* ── 핵심 ②: 올해 무엇이 겹치나 (평문 교차) ── */}
+      {yearCrossItems.length > 0 && (
+        <Band title={crossHeading}>
+          <CrossingList items={yearCrossItems} />
+        </Band>
+      )}
 
       {/* ── 자세한 신호 보기 — 휠·글리프·프로펙션·sect·dignity·ZR·세운 간지 전부 접음 ── */}
       <details className={summaryStyles.details}>
@@ -778,6 +793,6 @@ export function YearTier({ user, year, onDive, onRise }: YearTierProps) {
           {ko ? '이번 달로 줌인' : 'Zoom in to this month'} <span className={styles.arrow}>↓</span>
         </button>
       </div>
-    </div>
+    </TierFrame>
   )
 }

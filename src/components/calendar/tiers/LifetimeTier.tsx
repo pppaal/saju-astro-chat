@@ -27,6 +27,7 @@ import type {
 import styles from './LifetimeTier.module.css'
 import { useI18n } from '@/i18n/I18nProvider'
 import summaryStyles from '@/components/calendar/atoms/TierSummary.module.css'
+import { TierFrame, Eyebrow, TierHero, Band } from '@/components/calendar/layout/TierFrame'
 
 // ============================================================================
 // Props
@@ -481,11 +482,13 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
   // C5: lifeStages 빈 배열 가드 (adapter 실패 시 깨짐 방지)
   if (!lifeStages?.length) {
     return (
-      <div className={styles.tier} data-screen-label="인생 84년">
-        <p style={{ padding: 40, opacity: 0.6 }}>
-          {ko ? '본명 정보를 불러오는 중...' : 'Loading natal data...'}
-        </p>
-      </div>
+      <TierFrame screenLabel="인생 84년">
+        <Eyebrow>{ko ? '인생 · LIFETIME · 84년' : 'LIFETIME · 84 years'}</Eyebrow>
+        <TierHero
+          lead={ko ? '내 인생의 길' : 'The path of my life'}
+          sub={ko ? '본명 정보를 불러오는 중...' : 'Loading natal data...'}
+        />
+      </TierFrame>
     )
   }
   const nowStage = lifeStages.find((s) => s.now) ?? lifeStages[1] ?? lifeStages[0]
@@ -552,40 +555,38 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
     : (lifetime.lifePattern?.lineEn ?? lifetime.lifePattern?.line)
 
   return (
-    <div className={styles.tier} data-screen-label="인생 84년">
+    <TierFrame screenLabel="인생 84년">
       {/* ============================================================
-          hero — 내 인생의 길
+          hero — 내 인생의 길 (lead = 평이한 제목, sub = 인생 유형 한 줄)
       ============================================================ */}
-      <div className={styles.eyebrow}>{ko ? '인생 · LIFETIME · 84년' : 'LIFETIME · 84 years'}</div>
-      <h1 className={styles.display}>{ko ? '내 인생의 길' : 'The path of my life'}</h1>
+      <Eyebrow>{ko ? '인생 · LIFETIME · 84년' : 'LIFETIME · 84 years'}</Eyebrow>
+      <TierHero lead={ko ? '내 인생의 길' : 'The path of my life'} sub={patternLine} />
+
+      {/* 헤더 부연 + 인생 유형 헤드라인 — 이미 plain. */}
       <p className={`${styles.tiny} ${styles.headerMeta}`}>
         {ko
           ? '봄에서 겨울까지, 계절을 지나는 길. 지금 당신은 여기에 있어요.'
           : 'A path through the seasons, spring to winter. You are here, now.'}
       </p>
-
-      {/* 인생 유형 — 이미 plain 한 한 줄 헤드라인/서사 */}
       <div className={styles.patternHero}>
         <h2 className={styles.patternHeadline}>{patternHeadline}</h2>
-        {patternLine ? <p className={styles.patternLine}>{patternLine}</p> : null}
       </div>
 
-      {/* 계절의 길 — 4 stages, 색 구간, 지금 마커, 미래 흐림 */}
-      <SeasonsPath
-        lifeStages={lifeStages}
-        nowStageId={nowStage?.id}
-        daeunFavor={lifetime.lifePattern?.daeun}
-        onDive={onDive}
-      />
+      {/* 계절의 길 — 핵심 비주얼. 4 stages, 색 구간, 지금 마커, 미래 흐림 */}
+      <Band>
+        <SeasonsPath
+          lifeStages={lifeStages}
+          nowStageId={nowStage?.id}
+          daeunFavor={lifetime.lifePattern?.daeun}
+          onDive={onDive}
+        />
+      </Band>
 
       {/* 인생의 큰 마디 — plain 라벨 + 의미 (간지 없음) */}
-      <div className={styles.turning}>
-        <div className={styles.sectionHead}>
-          <h2 className={styles.sectionTitle}>{ko ? '인생의 큰 마디' : 'Life’s major turns'}</h2>
-          <span className={styles.tiny}>
-            {ko ? '지나온 매듭과 다가올 매듭' : 'Turns behind and turns ahead'}
-          </span>
-        </div>
+      <Band
+        title={ko ? '인생의 큰 마디' : 'Life’s major turns'}
+        aside={ko ? '지나온 매듭과 다가올 매듭' : 'Turns behind and turns ahead'}
+      >
         <ul className={styles.turnList}>
           {turningItems.map((t) => (
             <li
@@ -606,9 +607,9 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
             </li>
           ))}
         </ul>
-      </div>
+      </Band>
 
-      {/* anti-fatalism footer */}
+      {/* anti-fatalism footer — 짧고 중요하므로 jargon fold 밖 plain footer 로 유지 */}
       <p className={styles.forecast}>
         {ko
           ? '앞날은 정해진 운명이 아니라 지금 기운으로 본 계절 예보 — 길은 당신이 걷습니다.'
@@ -797,7 +798,7 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
           <span className={styles.arrow}>↓</span>
         </button>
       </div>
-    </div>
+    </TierFrame>
   )
 }
 
