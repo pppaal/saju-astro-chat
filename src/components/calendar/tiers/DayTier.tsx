@@ -46,6 +46,15 @@ import {
 } from '@/components/calendar/adapters/dayTierEnMaps'
 import { ShareDayButton } from '@/components/calendar/share/ShareDayButton'
 import type { DayShareData } from '@/components/calendar/share/DayShareCard'
+import {
+  TierFrame,
+  RiseButton,
+  Eyebrow,
+  TierHero,
+  Band,
+  MoreFold,
+  type ToneKind,
+} from '@/components/calendar/layout/TierFrame'
 
 // ============================================================================
 // HourSlot — 24시진. (HourRhythm 막대는 day.hourCrossings 를 직접 쓰지만, 외부
@@ -759,34 +768,33 @@ export function DayTier({ day, voc, onRise, sex = '남' }: DayTierProps) {
     cautions: dayCautions.slice(0, 3).map((c) => localizeLabel(plainReason(c, ko), ko)),
   }
 
+  const heroToneKind: ToneKind =
+    verdict.tone === 'positive' ? 'positive' : verdict.tone === 'caution' ? 'caution' : 'neutral'
+
   return (
-    <div className={styles.tierInner} data-screen-label={`1일 ${day.date}`}>
-      <button className={styles.rise} onClick={onRise}>
-        ↑ {ko ? '이번 달로 줌아웃' : 'Zoom out to month'}
-      </button>
+    <TierFrame screenLabel={`1일 ${day.date}`}>
+      <RiseButton label={ko ? '이번 달로 줌아웃' : 'Zoom out to month'} onClick={onRise} />
 
-      <div className={styles.eyebrow}>
+      <Eyebrow>
         {ko ? '1일' : '1 DAY'} · DAILY · {day.date}
-        {ko && day.dateKo && <span style={{ marginLeft: 8 }}>{day.dateKo}</span>}
-      </div>
+        {ko && day.dateKo ? <span style={{ marginLeft: 8 }}>{day.dateKo}</span> : null}
+      </Eyebrow>
 
-      {/* ── Hero (마음의 날씨): 날씨 글리프 + 쉬운 무드 한 줄 + 톤 단어 + 세기 막대.
-          일진/일간 한자·십신 용어 줄은 hero 에서 빼 '자세한 신호 보기' fold 로. ── */}
-      <div className={styles.dayHead}>
-        <div className={styles.heroRow}>
+      {/* ── Hero (마음의 날씨): 날씨 글리프 + 쉬운 무드 한 줄 + 톤 + 세기 막대. ── */}
+      <TierHero
+        visual={
           <span className={styles.weatherGlyph} aria-hidden>
             {heroGlyph}
           </span>
-          <div className={styles.heroMeta}>
-            <div className={styles.heroLead}>
-              {ko
-                ? `오늘은 ‘${sibsinArea(String(day.iljinSibsin))}’의 기운`
-                : `today leans toward ${sibsinAreaEn(String(day.iljinSibsin))}`}
-            </div>
-            <span className={styles.heroTone} data-tone={verdict.tone}>
-              {heroToneWord}
-            </span>
-          </div>
+        }
+        lead={
+          ko
+            ? `오늘은 ‘${sibsinArea(String(day.iljinSibsin))}’의 기운`
+            : `today leans toward ${sibsinAreaEn(String(day.iljinSibsin))}`
+        }
+        tone={heroToneWord}
+        toneKind={heroToneKind}
+        aside={
           <div className={styles.strength} aria-label={ko ? strength.ko : strength.en}>
             <div className={styles.strengthBars}>
               {[1, 2, 3, 4, 5].map((i) => (
@@ -798,19 +806,16 @@ export function DayTier({ day, voc, onRise, sex = '남' }: DayTierProps) {
             </div>
             <div className={styles.strengthWord}>{ko ? strength.ko : strength.en}</div>
           </div>
-        </div>
-        <p className={styles.oneline}>{localizeLabel(dayOneLine, ko)}</p>
-      </div>
+        }
+        sub={localizeLabel(dayOneLine, ko)}
+      />
 
-      {/* ── 오늘 깊이 읽기 — 합성 해석 문단. ── */}
-      <div className={styles.deepRead}>
-        <div className={styles.deepReadLabel}>{ko ? '오늘 깊이 읽기' : 'Today in depth'}</div>
-        <p className={styles.deepReadBody}>{ko ? deepRead.ko : deepRead.en}</p>
-      </div>
+      {/* 시간-민감 경고 배너 — 활성일 때만 히어로 바로 아래. */}
+      <GongmangBanner gongmang={day.gongmang} />
+      <VocBanner voc={voc} />
 
-      {/* ── 지금 일어나는 일 — topReasons + 가장 센 교차 의미(쉬운말). ── */}
-      <div className={styles.happening}>
-        <SecHead title={ko ? '지금 일어나는 일' : "What's happening"} />
+      {/* ── 핵심 1 — 지금 일어나는 일. ── */}
+      <Band title={ko ? '지금 일어나는 일' : "What's happening"}>
         {happeningLines.length === 0 ? (
           <p className={styles.whyMuted}>
             {ko
@@ -826,11 +831,10 @@ export function DayTier({ day, voc, onRise, sex = '남' }: DayTierProps) {
             ))}
           </ul>
         )}
-      </div>
+      </Band>
 
-      {/* ── 이렇게 해보세요 — DO 칩 + 살살/주의 칩. ── */}
-      <div className={styles.doSection}>
-        <SecHead title={ko ? '이렇게 해보세요' : 'Try this today'} />
+      {/* ── 핵심 2 — 이렇게 해보세요. ── */}
+      <Band title={ko ? '이렇게 해보세요' : 'Try this today'}>
         <div className={styles.doRow}>
           <span className={styles.doChip}>
             {ko ? '이렇게 · ' : 'DO · '}
@@ -853,41 +857,14 @@ export function DayTier({ day, voc, onRise, sex = '남' }: DayTierProps) {
                 : "don't start big"}
           </span>
         </div>
-      </div>
+      </Band>
 
-      {/* 비는 자리(공망)·달의 빈 시간 — 쉬운말 배너(한자 제거). 그날 활성이라 유지. */}
-      <GongmangBanner gongmang={day.gongmang} />
-      <VocBanner voc={voc} />
-
-      {/* ── 타이밍 맥락 — 이달 흐름 속 오늘 + 다가오는 며칠. ── */}
-      <TimingCard scores={day.monthScores} days={day.upcoming} ko={ko} />
-
-      {/* ── 오늘의 운세 카드 공유. ── */}
-      <div style={{ display: 'flex', justifyContent: 'center', margin: '4px 0 2px' }}>
-        <ShareDayButton data={shareData} />
-      </div>
-
-      {/* ── 사주 × 별자리 교차 — 핵심 신호, 쉬운말 카드. ── */}
-      {day.crossActivations.length > 0 && (
-        <CrossActivationCard items={day.crossActivations} ko={ko} />
-      )}
-
-      {/* ── 시 그래프 — 시간대별 좋음/주의 리듬. ── */}
-      {hourAll.length > 0 && (
-        <HourRhythm hours={hourAll} ko={ko} label={ko ? '하루 시간 리듬' : 'The day’s rhythm'} />
-      )}
-
-      {/* ── 가장 센 시간 (쉬운말 — 점성 용어 없이). ── */}
-      {hourCrossItems.length > 0 && <CrossingList heading={hourHeading} items={hourCrossItems} />}
-
-      {/* ── 분야별 오늘 — deriveDayDomains 그리드(근거 마커 행 제거, 쉬운말만). ── */}
+      {/* ── 핵심 3 — 분야별 오늘 조언. ── */}
       {dayDomains && (
-        <div className={styles.domainBlock}>
-          <SecHead
-            title={ko ? '분야별 오늘 조언' : 'Today by area'}
-            note={ko ? dayDomains.bandNote : dayDomains.bandNoteEn}
-          />
-
+        <Band
+          title={ko ? '분야별 오늘 조언' : 'Today by area'}
+          aside={ko ? dayDomains.bandNote : dayDomains.bandNoteEn}
+        >
           <div className={styles.domainGrid}>
             {dayDomains.domains.map((d) => (
               <div
@@ -907,8 +884,38 @@ export function DayTier({ day, voc, onRise, sex = '남' }: DayTierProps) {
               </div>
             ))}
           </div>
-        </div>
+        </Band>
       )}
+
+      {/* ── 오늘의 운세 카드 공유. ── */}
+      <div style={{ display: 'flex', justifyContent: 'center' }}>
+        <ShareDayButton data={shareData} />
+      </div>
+
+      {/* ── 더 보기 — 쉬운말 보조(깊이 읽기·타이밍·교차·시간 리듬)를 접어서 demote. ── */}
+      <MoreFold label={ko ? '오늘 더 자세히' : 'More about today'}>
+        {/* 오늘 깊이 읽기 — 합성 해석 문단. */}
+        <div className={styles.deepRead}>
+          <div className={styles.deepReadLabel}>{ko ? '오늘 깊이 읽기' : 'Today in depth'}</div>
+          <p className={styles.deepReadBody}>{ko ? deepRead.ko : deepRead.en}</p>
+        </div>
+
+        {/* 타이밍 맥락 — 이달 흐름 속 오늘 + 다가오는 며칠. */}
+        <TimingCard scores={day.monthScores} days={day.upcoming} ko={ko} />
+
+        {/* 사주 × 별자리 교차 — 쉬운말 카드. */}
+        {day.crossActivations.length > 0 && (
+          <CrossActivationCard items={day.crossActivations} ko={ko} />
+        )}
+
+        {/* 시 그래프 — 시간대별 좋음/주의 리듬. */}
+        {hourAll.length > 0 && (
+          <HourRhythm hours={hourAll} ko={ko} label={ko ? '하루 시간 리듬' : 'The day’s rhythm'} />
+        )}
+
+        {/* 가장 센 시간 (쉬운말 — 점성 용어 없이). */}
+        {hourCrossItems.length > 0 && <CrossingList heading={hourHeading} items={hourCrossItems} />}
+      </MoreFold>
 
       {/* ── 자세한 신호 보기 — 흩어진 모든 용어를 담은 단 하나의 fold. ── */}
       <SignalFold day={day} ko={ko} hourRows={hourAll} />
@@ -918,6 +925,6 @@ export function DayTier({ day, voc, onRise, sex = '남' }: DayTierProps) {
           ↑ {ko ? '다시 위로 — 줌아웃' : 'Zoom back out'}
         </button>
       </div>
-    </div>
+    </TierFrame>
   )
 }
