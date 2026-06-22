@@ -37,6 +37,7 @@ const NAV_GROUPS: NavGroup[] = [
       { href: '/admin/anomalies', label: '이상징후' },
       { href: '/admin/audit', label: '감사로그' },
       { href: '/admin/push', label: '푸시 진단' },
+      { href: '/admin/automation', label: '자동화 상태' },
     ],
   },
   {
