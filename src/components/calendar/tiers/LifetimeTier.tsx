@@ -1,16 +1,14 @@
 'use client'
 
-// destinypal · LifetimeTier
+// destinypal · LifetimeTier — "계절의 길 (Seasons Path)" redesign
 //
-// Ported from destinypal-extracted/js/tiers/lifetime.jsx (181 lines)
-// — preserved structure (intro / constellation 4 nodes / now-stage detail /
-//   daewoon spine / hapchung·shinsal·unseong cards / outer chip row /
-//   milestones timeline / dive button)
-// — added Phase 3 enrichments (sect row / gyeokguk·root status chips /
-//   outer-row 7 kinds / all-stages detail cards / NatalLotsRow /
-//   ZR L1 carousel).
-// Light-tone (ink-on-hanji) palette. Uses inline primitives
-// (Ganji / ScoreOrb / ElementBars / LayerTag) gated by local stubs.
+// 인생을 봄→여름→가을→겨울 의 색 구간을 지나는 길로 그린다. "지금 여기" 마커가
+// 현재 시기를, 앞날은 흐리게(불확실) 표현한다. 메인 표면에는 용어(일간/격국/용신·
+// 오행·ZR·Arabic Lots·대운 간지·Sun/Asc/MC)가 없다 — 전부 "자세한 신호 보기"
+// <details> 폴드 안으로 들어간다.
+//
+// presentation only — lifetime shape / engine math 은 건드리지 않는다.
+// Light-tone (ink-on-hanji) 팔레트. ko/en parity via useI18n.
 
 import type { CSSProperties, ReactNode } from 'react'
 import { SIGN_KO } from '@/lib/astrology/signLabels'
@@ -27,8 +25,6 @@ import type {
 } from '@/types/calendar'
 
 import styles from './LifetimeTier.module.css'
-import { TierSummary } from '@/components/calendar/atoms/TierSummary'
-import { CrossingList } from '@/components/calendar/atoms/CrossingList'
 import { useI18n } from '@/i18n/I18nProvider'
 import summaryStyles from '@/components/calendar/atoms/TierSummary.module.css'
 
@@ -48,7 +44,7 @@ export interface LifetimeTierProps {
 }
 
 // ============================================================================
-// Inline atom stubs (Agent A 가 atoms barrel 을 deliver 하면 import 한 줄로 교체)
+// Inline atom stubs (한자 chip / 오행 bar — 폴드 안에서만 쓰인다)
 // ============================================================================
 
 function Ganji({ data, size = 30, en = true }: { data: GanjiData; size?: number; en?: boolean }) {
@@ -68,10 +64,6 @@ function Ganji({ data, size = 30, en = true }: { data: GanjiData; size?: number;
     </span>
   )
 }
-
-// 옛 ScoreOrb — 사용자 점수/등급 표시 위젯이었으나, 그 점수 자체가 가짜
-// "calculateComprehensiveScore" 의 산출물이라 2026-06-06 폐기. 사용자 호출처
-// (LifetimeTier introPanel) 에서도 같이 제거.
 
 const EL_META: Record<keyof ElementCounts, { c: string; en: string }> = {
   목: { c: 'var(--el-wood)', en: 'Wood' },
@@ -104,110 +96,6 @@ function ElementBars({ elements }: { elements: ElementCounts }) {
   )
 }
 
-// ============================================================================
-// LifeCurve — 인생 운세 기복 곡선 (대운별 favor −2~+2 를 0→84세 축에).
-// 히트맵 색 언어: 좋음=쪽빛, 주의=주황·적, 중립=옅게. 지금 나이 마커.
-// ============================================================================
-function LifeCurve({
-  daeun,
-  nowAge,
-  ko,
-}: {
-  daeun: Array<{ startAge: number; favor: number }>
-  nowAge: number
-  ko: boolean
-}) {
-  if (!daeun || daeun.length < 2) return null
-  const W = 320
-  const H = 84
-  const padX = 10
-  const padTop = 10
-  const padBot = 18
-  const ageMax = Math.max(84, daeun[daeun.length - 1].startAge + 10)
-  const x = (age: number) => padX + (age / ageMax) * (W - padX * 2)
-  // favor −2..+2 → y (위가 좋음). 대운은 10년 폭의 중간점에 찍는다.
-  const y = (favor: number) => {
-    const t = (favor + 2) / 4 // 0..1
-    return padTop + (1 - t) * (H - padTop - padBot)
-  }
-  const pts = daeun.map((d) => ({ px: x(d.startAge + 5), py: y(d.favor), favor: d.favor }))
-  // 부드러운 선 (Catmull-Rom → 베지어 근사)
-  const linePath = pts
-    .map((p, i) => {
-      if (i === 0) return `M ${p.px.toFixed(1)} ${p.py.toFixed(1)}`
-      const prev = pts[i - 1]
-      const cx = (prev.px + p.px) / 2
-      return `C ${cx.toFixed(1)} ${prev.py.toFixed(1)} ${cx.toFixed(1)} ${p.py.toFixed(1)} ${p.px.toFixed(1)} ${p.py.toFixed(1)}`
-    })
-    .join(' ')
-  const areaPath = `${linePath} L ${pts[pts.length - 1].px.toFixed(1)} ${H - padBot} L ${pts[0].px.toFixed(1)} ${H - padBot} Z`
-  const midY = y(0)
-  const nowX = x(Math.min(nowAge, ageMax))
-  const ticks = [0, 20, 40, 60, 80].filter((t) => t <= ageMax)
-  return (
-    <div className={styles.lifeCurveWrap}>
-      <div className={styles.lifeCurveLabel}>
-        {ko ? '인생 곡선 · 운세 기복' : 'Life curve · the arc of fortune'}
-      </div>
-      <svg viewBox={`0 0 ${W} ${H}`} className={styles.lifeCurveSvg} preserveAspectRatio="none">
-        <defs>
-          <linearGradient id="lcFill" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="rgba(79,93,150,0.30)" />
-            <stop offset="100%" stopColor="rgba(79,93,150,0.02)" />
-          </linearGradient>
-        </defs>
-        {/* 중립선 */}
-        <line
-          x1={padX}
-          y1={midY}
-          x2={W - padX}
-          y2={midY}
-          stroke="var(--line)"
-          strokeWidth={1}
-          strokeDasharray="2 3"
-        />
-        <path d={areaPath} fill="url(#lcFill)" />
-        <path
-          d={linePath}
-          fill="none"
-          stroke="rgba(79,93,150,0.9)"
-          strokeWidth={2}
-          strokeLinejoin="round"
-        />
-        {/* 대운 점 — 좋음/주의 색 */}
-        {pts.map((p, i) => (
-          <circle
-            key={i}
-            cx={p.px}
-            cy={p.py}
-            r={2.6}
-            fill={p.favor > 0 ? '#4f5d96' : p.favor < 0 ? '#c0741f' : '#9aa0b4'}
-          />
-        ))}
-        {/* 지금 */}
-        <line
-          x1={nowX}
-          y1={padTop - 2}
-          x2={nowX}
-          y2={H - padBot}
-          stroke="var(--dp-accent)"
-          strokeWidth={1.4}
-        />
-        <circle cx={nowX} cy={padTop - 2} r={2.4} fill="var(--dp-accent)" />
-        {/* 나이 눈금 */}
-        {ticks.map((t) => (
-          <text key={t} x={x(t)} y={H - 5} className={styles.lifeCurveTick} textAnchor="middle">
-            {t}
-          </text>
-        ))}
-        <text x={nowX} y={H - 5} className={styles.lifeCurveNow} textAnchor="middle">
-          {ko ? '지금' : 'now'}
-        </text>
-      </svg>
-    </div>
-  )
-}
-
 function LayerTag({ kind }: { kind: 'saju' | 'astro' }) {
   const { locale } = useI18n()
   const ko = locale === 'ko'
@@ -224,7 +112,7 @@ function LayerTag({ kind }: { kind: 'saju' | 'astro' }) {
 // Helpers
 // ============================================================================
 
-/** 외행성 glyph 매핑 — Phase 3 확장: 7가지 kind 모두. */
+/** 외행성 glyph 매핑 — 7가지 kind 모두. */
 const OUTER_GLYPH: Record<string, string> = {
   jupiter: '♃',
   saturn: '♄',
@@ -263,8 +151,224 @@ function zodiacKo(signEn: string): string {
   return SIGN_KO[signEn] ?? signEn
 }
 
+// 4구간 → felt 계절 테마. lifeStage.id 순서대로 봄·여름·가을·겨울.
+// stage.name/tone 은 이미 plain-ish 이지만, 계절감(자라남·쌓음·거둠·갈무리)을
+// 메인 표면 색·라벨로 입혀 용어 없이 "내 인생의 길"을 읽히게 한다.
+type SeasonKey = 'spring' | 'summer' | 'autumn' | 'winter'
+const SEASON_ORDER: SeasonKey[] = ['spring', 'summer', 'autumn', 'winter']
+const SEASON_META: Record<
+  SeasonKey,
+  { ko: string; en: string; themeKo: string; themeEn: string; color: string; soft: string }
+> = {
+  spring: {
+    ko: '봄',
+    en: 'Spring',
+    themeKo: '싹트는 봄',
+    themeEn: 'Sprouting spring',
+    color: 'var(--el-wood)',
+    soft: 'rgba(79,122,64,0.16)',
+  },
+  summer: {
+    ko: '여름',
+    en: 'Summer',
+    themeKo: '쌓아가는 여름',
+    themeEn: 'Building summer',
+    color: 'var(--el-fire)',
+    soft: 'rgba(189,71,43,0.16)',
+  },
+  autumn: {
+    ko: '가을',
+    en: 'Autumn',
+    themeKo: '거두는 가을',
+    themeEn: 'Harvesting autumn',
+    color: 'var(--el-earth)',
+    soft: 'rgba(179,135,58,0.18)',
+  },
+  winter: {
+    ko: '겨울',
+    en: 'Winter',
+    themeKo: '갈무리하는 겨울',
+    themeEn: 'Gathering winter',
+    color: 'var(--el-water)',
+    soft: 'rgba(52,90,134,0.16)',
+  },
+}
+
 // ============================================================================
-// LifeTimeline — 사주 대운 × 점성 ZR 을 한 나이축에 평행으로 (②)
+// SeasonsPath — 메인 hero. 4 lifeStages 를 길 위의 노드로, 색 구간으로.
+// 지난 시기는 또렷이(solid), 앞날은 흐리게(faded) — 불확실성. "지금" 마커.
+// ============================================================================
+
+function SeasonsPath({
+  lifeStages,
+  nowStageId,
+  daeunFavor,
+  onDive,
+}: {
+  lifeStages: DestinyLifeStage[]
+  nowStageId?: string
+  daeunFavor?: Array<{ startAge: number; favor: number }>
+  onDive: () => void
+}) {
+  const { locale } = useI18n()
+  const ko = locale === 'ko'
+
+  const n = lifeStages.length
+  const W = 100
+  const H = 46
+  const padX = 9
+  // 노드 x — 폭에 고르게.
+  const xAt = (i: number) => padX + (i / Math.max(1, n - 1)) * (W - padX * 2)
+  // 노드 y — daeun favor 가 있으면 평균 favor 로 완만한 굴곡, 없으면 중앙 가까이.
+  const stageFavor = (s: DestinyLifeStage): number => {
+    if (!daeunFavor || daeunFavor.length === 0) return 0
+    const inStage = daeunFavor.filter((d) => d.startAge >= s.ageFrom && d.startAge <= s.ageTo)
+    const pool = inStage.length > 0 ? inStage : daeunFavor
+    return pool.reduce((a, d) => a + d.favor, 0) / pool.length
+  }
+  const yAt = (favor: number) => {
+    const t = (favor + 2) / 4 // 0..1, 좋음=위
+    return 9 + (1 - t) * (H - 22)
+  }
+  const nodes = lifeStages.map((s, i) => ({
+    stage: s,
+    x: xAt(i),
+    y: yAt(stageFavor(s)),
+    now: s.id === nowStageId,
+  }))
+  const nowIndex = nodes.findIndex((nd) => nd.now)
+
+  // 부드러운 길(Catmull-Rom → 베지어 근사).
+  const pathD = nodes
+    .map((p, i) => {
+      if (i === 0) return `M ${p.x.toFixed(1)} ${p.y.toFixed(1)}`
+      const prev = nodes[i - 1]
+      const cx = (prev.x + p.x) / 2
+      return `C ${cx.toFixed(1)} ${prev.y.toFixed(1)} ${cx.toFixed(1)} ${p.y.toFixed(1)} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`
+    })
+    .join(' ')
+
+  return (
+    <div className={styles.seasons}>
+      <div className={styles.seasonsRibbon} aria-hidden>
+        {nodes.map((nd, i) => {
+          const season = SEASON_META[SEASON_ORDER[i] ?? 'spring']
+          const future = nowIndex >= 0 && i > nowIndex
+          return (
+            <span
+              key={nd.stage.id}
+              className={`${styles.seasonZone} ${future ? styles.seasonFuture : ''}`}
+              style={{ background: season.soft }}
+            />
+          )
+        })}
+      </div>
+
+      <svg
+        className={styles.seasonsSvg}
+        viewBox={`0 0 ${W} ${H}`}
+        preserveAspectRatio="none"
+        aria-hidden
+      >
+        {/* 지나온 길 — solid. 앞으로의 길 — faded. nowIndex 기준 분리. */}
+        <path
+          d={pathD}
+          fill="none"
+          stroke="var(--ink-faint)"
+          strokeWidth="0.7"
+          strokeDasharray="1.6 1.4"
+          vectorEffect="non-scaling-stroke"
+          opacity="0.5"
+        />
+        {nodes.map((nd, i) => {
+          const season = SEASON_META[SEASON_ORDER[i] ?? 'spring']
+          const future = nowIndex >= 0 && i > nowIndex
+          return (
+            <g key={nd.stage.id} opacity={future ? 0.4 : 1}>
+              {nd.now && (
+                <circle
+                  cx={nd.x}
+                  cy={nd.y}
+                  r="3.4"
+                  fill="none"
+                  stroke="var(--ember)"
+                  strokeWidth="0.5"
+                  opacity="0.55"
+                  vectorEffect="non-scaling-stroke"
+                />
+              )}
+              <circle
+                cx={nd.x}
+                cy={nd.y}
+                r={nd.now ? 2.1 : 1.5}
+                fill={nd.now ? 'var(--ember)' : season.color}
+                stroke={nd.now ? 'var(--ember-2)' : 'var(--void)'}
+                strokeWidth="0.5"
+                vectorEffect="non-scaling-stroke"
+                style={nd.now ? { filter: 'drop-shadow(0 0 4px var(--ember-glow))' } : undefined}
+              />
+            </g>
+          )
+        })}
+      </svg>
+
+      <div className={styles.seasonCards}>
+        {nodes.map((nd, i) => {
+          const season = SEASON_META[SEASON_ORDER[i] ?? 'spring']
+          const future = nowIndex >= 0 && i > nowIndex
+          const interactive = nd.now
+          // 라벨 — felt 계절 테마(용어 없음). stage.tone 은 plain-ish 라 부연으로.
+          return (
+            <div
+              key={nd.stage.id}
+              className={`${styles.seasonCard} ${nd.now ? styles.seasonNow : ''} ${
+                future ? styles.seasonCardFuture : ''
+              }`}
+              style={{ '--season-c': season.color } as CSSProperties}
+              onClick={interactive ? onDive : undefined}
+              role={interactive ? 'button' : undefined}
+              tabIndex={interactive ? 0 : undefined}
+              onKeyDown={
+                interactive
+                  ? (e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault()
+                        onDive()
+                      }
+                    }
+                  : undefined
+              }
+            >
+              {nd.now && <span className={styles.seasonNowTag}>{ko ? '지금' : 'now'}</span>}
+              <span className={styles.seasonGlyph} style={{ color: season.color }}>
+                {ko ? season.ko : season.en}
+              </span>
+              <span className={styles.seasonTheme}>{ko ? season.themeKo : season.themeEn}</span>
+              <span className={styles.seasonStageName}>
+                {ko ? nd.stage.name : (nd.stage.nameEn ?? nd.stage.name)}
+              </span>
+              <span className={styles.seasonAge}>
+                {nd.stage.ageFrom}–{nd.stage.ageTo}
+                {ko ? '세' : ' yrs'}
+              </span>
+              <span className={styles.seasonTone}>
+                {ko ? nd.stage.tone : (nd.stage.toneEn ?? nd.stage.tone)}
+              </span>
+              {nd.now && (
+                <span className={styles.seasonDiveHint}>
+                  {ko ? '탭하면 올해로 ↘' : 'Tap for this year ↘'}
+                </span>
+              )}
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+// ============================================================================
+// LifeTimeline — 사주 대운 × 점성 ZR 을 한 나이축에 평행으로 (폴드 안)
 // ============================================================================
 function LifeTimeline({ lifetime }: { lifetime: DestinyLifetime }) {
   const { locale } = useI18n()
@@ -374,11 +478,6 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
   const ko = locale === 'ko'
   const { lifeStages, daewoon, milestones, zrSpiritChapters, zrFortuneChapters } = lifetime
 
-  // constellation node positions across the width (원본과 동일)
-  const nodeX = [12, 38, 62, 88] // %
-  const nodeY = [62, 38, 50, 70]
-
-  // current life stage (Phase 3: 모든 stage detail 카드를 그릴 수 있도록 보존)
   // C5: lifeStages 빈 배열 가드 (adapter 실패 시 깨짐 방지)
   if (!lifeStages?.length) {
     return (
@@ -391,7 +490,7 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
   }
   const nowStage = lifeStages.find((s) => s.now) ?? lifeStages[1] ?? lifeStages[0]
 
-  // C2: dominant 오행 계산 (하드코딩 "목 최다" 제거)
+  // 오행 dominant (폴드 라벨용).
   const EL_HANJA: Record<string, string> = { 목: '木', 화: '火', 토: '土', 금: '金', 수: '水' }
   const elementsEntries = Object.entries(user.elements || {}).sort(
     (a, b) => Number(b[1]) - Number(a[1])
@@ -405,7 +504,7 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
       ? '사주 8자 오행 분포'
       : 'Eight-character element spread'
 
-  // C1: astro 메타 한 줄 — 누락 세그먼트 hide
+  // astro 메타 한 줄 — 폴드 안에서만. (메인 표면엔 Sun/Asc/MC 노출 금지)
   const astroSegs = [
     user.astro?.sunEn && `Sun ${user.astro.sunEn}`,
     user.astro?.ascEn && `Asc ${user.astro.ascEn}`,
@@ -415,152 +514,129 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
   // C4: rootStatus 있을 때만 "통근" 라벨, 없으면 "주십신"
   const hasRootStatus = !!user.rootStatus
 
-  // 교차 창 — 인생 전체(출생 ~ 마지막 대운 끝). 지금±N 으로 좁히지 않아야
-  // '인생 전체 흐름' tier 가 실제로 84년 호를 보여주고 10년 tier 와 안 겹친다.
-  const dwList = lifetime.daewoon ?? []
-  const lastDw = dwList[dwList.length - 1]
-  const dwStartY = (d: DestinyLifetime['daewoon'][number]) => lifetime.birthYear + d.startAge
-  const tlStart = lifetime.birthYear
-  const tlEnd = lastDw ? lifetime.birthYear + lastDw.startAge + 10 : lifetime.birthYear + 90
-  // 교차 구간 — 사주 사건(대운 경계·사주 매듭)과 점성 사건(회귀·ZR 챕터 경계)이
-  // ±2년 내로 가까운 시기. 인접하면 하나로 병합. = 두 시스템이 동시에 꿈틀하는 때.
-  const NEAR = 2
-  const inWin = (y: number) => y >= tlStart - NEAR && y <= tlEnd + NEAR
-  const sajuYears = [
-    ...(lifetime.daewoon ?? []).map(dwStartY),
-    ...lifetime.milestones.filter((m) => m.kind === 'saju').map((m) => m.year),
-  ].filter(inWin)
-  const astroYears = [
-    ...lifetime.milestones
-      .filter((m) => m.kind !== 'daewoon' && m.kind !== 'saju')
-      .map((m) => m.year),
-    ...(lifetime.zrSpiritChapters ?? []).map((c) => c.calendarStartYear),
-  ].filter(inWin)
-  const rawCross: Array<[number, number]> = []
-  for (const sy of sajuYears) {
-    for (const ay of astroYears) {
-      if (Math.abs(ay - sy) <= NEAR) rawCross.push([Math.min(sy, ay), Math.max(sy, ay)])
-    }
+  // ── 인생의 큰 마디 — 용어(간지) 없는 plain 라벨 + 의미. labelEn/meaningEn for en. ──
+  const mLabel = (m: DestinyMilestone) => (ko ? m.label : (m.labelEn ?? m.label))
+  // 라벨에서 '—' 앞 핵심만 (간지/숫자가 섞이지 않은 plain head).
+  const mHead = (m: DestinyMilestone) => {
+    const l = mLabel(m)
+    return l.includes('—') ? l.split('—')[0].trim() : l
   }
-  const crossings: Array<{ startYear: number; endYear: number }> = []
-  for (const [s, e] of rawCross
-    .map(([s, e]) => [Math.max(s, tlStart), Math.min(e, tlEnd)] as [number, number])
-    .filter(([s, e]) => e >= s)
-    .sort((a, b) => a[0] - b[0])) {
-    const last = crossings[crossings.length - 1]
-    if (last && s <= last.endYear + 1) last.endYear = Math.max(last.endYear, e)
-    else crossings.push({ startYear: s, endYear: e })
+  const mMeaning = (m: DestinyMilestone) => {
+    const baked = ko ? m.meaning : (m.meaningEn ?? m.meaning)
+    if (baked) return baked
+    const l = mLabel(m)
+    return l.includes('—') ? l.split('—').slice(1).join('—').trim() : ''
   }
 
-  // ── 교차 리스트 — "언제 · 무엇이 교차 · 근거" 한 줄씩. 캘린더의 본질. ──
-  // 라벨은 로케일에 맞춰 고른다(서버 baked 언어에 묶이지 않게 — labelEn 폴백 label).
-  const mLabel = (m: DestinyMilestone) => (ko ? m.label : (m.labelEn ?? m.label))
-  const evHead = (label: string) => (label.includes('—') ? label.split('—')[0].trim() : label)
-  const evWhy = (label: string) =>
-    label.includes('—') ? label.split('—').slice(1).join('—').trim() : ''
-  const crossingItems: Array<{
-    sort: number
-    when: string
-    title: string
-    detail?: string
-    now?: boolean
-    past?: boolean
-  }> = []
-  for (const c of crossings) {
-    const near = (y: number) => y >= c.startYear - 1 && y <= c.endYear + 1
-    const sj = lifetime.milestones.filter(
-      (m) => (m.kind === 'daewoon' || m.kind === 'saju') && near(m.year)
-    )
-    const as = lifetime.milestones.filter(
-      (m) => m.kind !== 'daewoon' && m.kind !== 'saju' && near(m.year)
-    )
-    const all = [...sj, ...as]
-    if (all.length === 0) continue
-    // '×' 는 사주·점성 *양쪽* 마디가 실제로 있을 때만 — 한쪽뿐이면 '·' 병기
-    // (단일 시스템 마디를 교차로 과장하지 않기, Day tier 와 같은 원칙).
-    const bothSystems = sj.length > 0 && as.length > 0
-    crossingItems.push({
-      sort: c.startYear,
-      when: c.startYear === c.endYear ? `${c.startYear}` : `${c.startYear}–${c.endYear}`,
-      title: all
-        .map((m) => evHead(mLabel(m)))
-        .slice(0, 3)
-        .join(bothSystems ? ' × ' : ' · '),
-      detail: all.map((m) => evWhy(mLabel(m))).find(Boolean),
-      past: c.endYear < lifetime.currentYear,
+  // 큰 마디 리스트 — 과거/지금/미래. 미래는 흐리게.
+  const turningItems = [...milestones]
+    .sort((a, b) => a.year - b.year)
+    .map((m) => {
+      const past = m.year < lifetime.currentYear
+      return {
+        key: `${m.year}-${m.age}`,
+        when: ko ? `${m.year} · ${m.age}세` : `${m.year} · age ${m.age}`,
+        title: mHead(m),
+        meaning: mMeaning(m),
+        now: !!m.now,
+        past,
+        future: !past && !m.now,
+      }
     })
-  }
-  // "지금" — 현재 대운 × 현재 ZR 챕터 (둘 다 지나는 중인 구간)
-  const nowDw = (lifetime.daewoon ?? []).find((d) => d.now)
-  const nowCh = (lifetime.zrSpiritChapters ?? []).find((c) => c.now)
-  if (nowDw || nowCh) {
-    crossingItems.push({
-      sort: lifetime.currentYear + 0.1,
-      when: `${lifetime.currentYear}`,
-      title: [
-        nowDw ? (ko ? `${nowDw.gz.hanja} 대운` : `${nowDw.gz.hanja} cycle`) : '',
-        nowCh ? (ko ? `${zodiacKo(nowCh.sign)} 흐름` : `${nowCh.sign} chapter`) : '',
-      ]
-        .filter(Boolean)
-        .join(' × '),
-      detail: ko
-        ? '지금 지나는 사주×점성 구간 — 이 흐름 안에서 위아래 교차점이 펼쳐져요.'
-        : 'The Saju × Astrology window you’re in now — its crossings unfold from here.',
-      now: true,
-    })
-  }
-  crossingItems.sort((a, b) => a.sort - b.sort)
+
+  const patternHeadline =
+    (ko ? lifetime.lifePattern?.ko : (lifetime.lifePattern?.en ?? lifetime.lifePattern?.ko)) ??
+    (ko ? '내 인생 흐름' : 'My life flow')
+  const patternLine = ko
+    ? lifetime.lifePattern?.line
+    : (lifetime.lifePattern?.lineEn ?? lifetime.lifePattern?.line)
 
   return (
     <div className={styles.tier} data-screen-label="인생 84년">
       {/* ============================================================
-          intro
+          hero — 내 인생의 길
       ============================================================ */}
       <div className={styles.eyebrow}>{ko ? '인생 · LIFETIME · 84년' : 'LIFETIME · 84 years'}</div>
-      <h1 className={styles.display}>{ko ? '내 인생 전체 흐름' : 'My whole life'}</h1>
+      <h1 className={styles.display}>{ko ? '내 인생의 길' : 'The path of my life'}</h1>
       <p className={`${styles.tiny} ${styles.headerMeta}`}>
-        {user.birthKo} · {user.place} · {user.sex}
-        {astroSegs.length > 0 ? (
-          <>
-            <span className={styles.pipe}>|</span>
-            {astroSegs.join(' · ')}
-          </>
-        ) : null}
+        {ko
+          ? '봄에서 겨울까지, 계절을 지나는 길. 지금 당신은 여기에 있어요.'
+          : 'A path through the seasons, spring to winter. You are here, now.'}
       </p>
 
-      {/* ── 한 줄 요약 + 교차 리스트. 그게 전부. ── */}
-      <TierSummary
-        headline={
-          (ko
-            ? lifetime.lifePattern?.ko
-            : (lifetime.lifePattern?.en ?? lifetime.lifePattern?.ko)) ??
-          (ko ? '내 인생 흐름' : 'My life flow')
-        }
-        sub={
-          ko
-            ? lifetime.lifePattern?.line
-            : (lifetime.lifePattern?.lineEn ?? lifetime.lifePattern?.line)
-        }
-      />
-      {lifetime.lifePattern?.daeun && lifetime.lifePattern.daeun.length >= 2 && (
-        <LifeCurve
-          daeun={lifetime.lifePattern.daeun}
-          nowAge={lifetime.currentYear - lifetime.birthYear}
-          ko={ko}
-        />
-      )}
-      <CrossingList
-        heading={ko ? '인생의 큰 마디 · 사주와 점성' : 'Life’s major turns · Saju & Astrology'}
-        items={crossingItems}
+      {/* 인생 유형 — 이미 plain 한 한 줄 헤드라인/서사 */}
+      <div className={styles.patternHero}>
+        <h2 className={styles.patternHeadline}>{patternHeadline}</h2>
+        {patternLine ? <p className={styles.patternLine}>{patternLine}</p> : null}
+      </div>
+
+      {/* 계절의 길 — 4 stages, 색 구간, 지금 마커, 미래 흐림 */}
+      <SeasonsPath
+        lifeStages={lifeStages}
+        nowStageId={nowStage?.id}
+        daeunFavor={lifetime.lifePattern?.daeun}
+        onDive={onDive}
       />
 
-      {/* ── 전문가용 상세 — 사주 원국·대운·신살·12운성·점성 일체를 접어 둔다. ── */}
+      {/* 인생의 큰 마디 — plain 라벨 + 의미 (간지 없음) */}
+      <div className={styles.turning}>
+        <div className={styles.sectionHead}>
+          <h2 className={styles.sectionTitle}>{ko ? '인생의 큰 마디' : 'Life’s major turns'}</h2>
+          <span className={styles.tiny}>
+            {ko ? '지나온 매듭과 다가올 매듭' : 'Turns behind and turns ahead'}
+          </span>
+        </div>
+        <ul className={styles.turnList}>
+          {turningItems.map((t) => (
+            <li
+              key={t.key}
+              className={`${styles.turnItem} ${t.now ? styles.turnNow : ''} ${
+                t.past ? styles.turnPast : ''
+              } ${t.future ? styles.turnFuture : ''}`}
+            >
+              <span className={styles.turnWhen}>
+                {t.when}
+                {t.now ? <em>{ko ? '지금' : 'now'}</em> : null}
+              </span>
+              <span className={styles.turnDot} aria-hidden />
+              <div className={styles.turnBody}>
+                <div className={styles.turnTitle}>{t.title}</div>
+                {t.meaning ? <div className={styles.turnMeaning}>{t.meaning}</div> : null}
+              </div>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      {/* anti-fatalism footer */}
+      <p className={styles.forecast}>
+        {ko
+          ? '앞날은 정해진 운명이 아니라 지금 기운으로 본 계절 예보 — 길은 당신이 걷습니다.'
+          : 'What lies ahead is not fixed fate but a seasonal forecast read from today’s weather — you walk the path.'}
+      </p>
+
+      {/* ============================================================
+          자세한 신호 보기 — 모든 용어(일간/격국/용신·오행·ZR·Lots·대운 간지·
+          Sun/Asc/MC)를 여기로. 메인 표면엔 노출하지 않는다.
+      ============================================================ */}
       <details className={summaryStyles.details}>
         <summary className={summaryStyles.detailsSummary}>
-          {ko ? '자세히 보기 · 사주 원국과 근거' : 'Details · natal chart & evidence'}
+          {ko
+            ? '자세한 신호 보기 · 사주 원국과 근거'
+            : 'See the detailed signals · natal chart & evidence'}
         </summary>
 
-        {/* 공유용 정체성 카드 (③) — 기존 데이터(일간·격국·인생유형·점성) 압축. */}
+        <p className={`${styles.tiny} ${styles.headerMeta}`}>
+          {user.birthKo} · {user.place} · {user.sex}
+          {astroSegs.length > 0 ? (
+            <>
+              <span className={styles.pipe}>|</span>
+              {astroSegs.join(' · ')}
+            </>
+          ) : null}
+        </p>
+
+        {/* 정체성 카드 — 일간·격국·인생유형·점성 압축. */}
         {lifetime.lifePattern && (
           <div className={styles.idCard}>
             <div className={styles.idCardRow}>
@@ -591,8 +667,6 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
           <div>
             <p className={styles.lead}>{user.intro}</p>
             <p className={`${styles.lead} ${styles.leadEn}`}>{user.introEn}</p>
-            {/* Sect/Lord-of-Asc 행 제거 — 정적 본명 메타(헬레니즘 섹트)는 타이밍
-              흐름과 무관, 리포트(본명 해설)감이라 흐름에서 뺀다. */}
           </div>
 
           <div className={`${styles.panel} ${styles.introPanel}`}>
@@ -604,7 +678,6 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
                   <span className={styles.v}>{user.ilgan.kr}</span>
                 </span>
 
-                {/* ── Phase 3 보강 ②: 격국 chip → gyeokgukStatus ── */}
                 <span className={styles.chip}>
                   <span className={styles.k}>{ko ? '격국' : 'Structure'}</span>
                   <span className={styles.v}>{user.gyeokgukStatus ?? user.gyeokguk}</span>
@@ -619,7 +692,6 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
                   <span className={styles.v}>{user.gangyak}</span>
                 </span>
 
-                {/* ── Phase 3 보강 ③: 재성 chip → rootStatus (C4: 라벨 조건부) ── */}
                 <span className={styles.chip}>
                   <span className={styles.k}>
                     {hasRootStatus ? (ko ? '통근' : 'Rooted') : ko ? '주십신' : 'Main god'}
@@ -638,9 +710,7 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
           </div>
         </div>
 
-        {/* ============================================================
-          인생 유형 — 신강약 기준 대운 흐름 (대기만성/초년발복/…)
-      ============================================================ */}
+        {/* 인생 유형 — 신강약 기준 대운 흐름 (대운 간지 방향) */}
         {lifetime.lifePattern && (
           <div className={styles.block}>
             <div className={styles.sectionHead}>
@@ -669,107 +739,10 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
           </div>
         )}
 
-        {/* 대운 × 점성(ZR) 평행 타임라인 (②) */}
+        {/* 대운 × 점성(ZR) 평행 타임라인 */}
         <LifeTimeline lifetime={lifetime} />
 
-        {/* ============================================================
-          constellation of life stages
-      ============================================================ */}
-        <div className={styles.block}>
-          <div className={styles.sectionHead}>
-            <h2 className={styles.sectionTitle}>
-              {ko ? '네 시기의 별자리' : 'The stars of four eras'}
-            </h2>
-            <span className={styles.tiny}>
-              {ko ? '0 → 84세 · 대운 10년 주기' : '0 → 84 yrs · 10-year decades'}
-            </span>
-          </div>
-
-          <div className={styles.constellation}>
-            <svg
-              className={styles.constSvg}
-              viewBox="0 0 100 150"
-              preserveAspectRatio="xMidYMid meet"
-            >
-              {/* connecting line */}
-              <polyline
-                points={nodeX.map((x, i) => `${x},${nodeY[i]}`).join(' ')}
-                fill="none"
-                stroke="rgba(52,64,111,0.45)"
-                strokeWidth="0.4"
-                vectorEffect="non-scaling-stroke"
-                strokeDasharray="2 1.5"
-              />
-              {lifeStages.map((s, i) => (
-                <g key={s.id}>
-                  <circle
-                    cx={nodeX[i] ?? 50}
-                    cy={nodeY[i] ?? 50}
-                    r={s.now ? 3.2 : 2}
-                    fill={s.now ? 'var(--ember)' : 'var(--bg-3)'}
-                    stroke={s.now ? 'var(--ember-2)' : 'var(--ink-faint)'}
-                    strokeWidth={s.now ? 1 : 0.6}
-                    vectorEffect="non-scaling-stroke"
-                    style={s.now ? { filter: 'drop-shadow(0 0 5px var(--ember-glow))' } : undefined}
-                  />
-                  {s.now && (
-                    <circle
-                      cx={nodeX[i] ?? 50}
-                      cy={nodeY[i] ?? 50}
-                      r="5.5"
-                      fill="none"
-                      stroke="var(--ember)"
-                      strokeWidth="0.4"
-                      opacity="0.55"
-                      vectorEffect="non-scaling-stroke"
-                    />
-                  )}
-                </g>
-              ))}
-            </svg>
-          </div>
-
-          <div className={styles.stageCards}>
-            {lifeStages.map((s) => (
-              <div
-                key={s.id}
-                className={`${styles.stageCard} ${s.now ? styles.now : ''}`}
-                onClick={s.now ? onDive : undefined}
-                role={s.now ? 'button' : undefined}
-                tabIndex={s.now ? 0 : undefined}
-                onKeyDown={
-                  s.now
-                    ? (e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                          e.preventDefault()
-                          onDive()
-                        }
-                      }
-                    : undefined
-                }
-              >
-                {s.now && <span className={styles.nowtag}>{ko ? '지금 · NOW' : 'now · NOW'}</span>}
-                <div className={styles.nm}>{ko ? s.name : (s.nameEn ?? s.name)}</div>
-                <div className={styles.age}>
-                  {ko
-                    ? `${s.ageFrom}–${s.ageTo}세 · ${s.yearFrom}–${s.yearTo}`
-                    : `${s.ageFrom}–${s.ageTo} yrs · ${s.yearFrom}–${s.yearTo}`}
-                </div>
-                <div className={styles.tone}>{ko ? s.tone : (s.toneEn ?? s.tone)}</div>
-                {s.now && (
-                  <div className={styles.diveHint}>
-                    {ko ? '탭하면 올해로 줌인 ↘' : 'Tap to zoom into this year ↘'}
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* ============================================================
-          stage detail blocks
-          (원본: 청년기 detail 만. Phase 3 보강 ④: detail 있는 모든 stage)
-      ============================================================ */}
+        {/* stage detail blocks — 대운 간지 spine + 합충·신살·12운성 + 외행성 */}
         {lifeStages
           .filter((s) => s.detail !== null)
           .map((stage) => (
@@ -781,99 +754,15 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
             />
           ))}
 
-        {/* ============================================================
-          Phase 3 보강 ⑥: Natal Lots row
-      ============================================================ */}
+        {/* Natal Lots row */}
         {user.lots && user.lots.length > 0 && <NatalLotsRow lots={user.lots} />}
 
-        {/* ============================================================
-          Phase 3 보강 ⑦: ZR L1 carousel (Spirit / Fortune)
-      ============================================================ */}
+        {/* ZR L1 carousel (Spirit / Fortune) */}
         {(zrSpiritChapters?.length > 0 || zrFortuneChapters?.length > 0) && (
           <ZRCarousel spirit={zrSpiritChapters ?? []} fortune={zrFortuneChapters ?? []} />
         )}
 
-        {/* ============================================================
-          운명의 전환기 — 지난 5년 → 앞으로 10년 (세로 작대기 창)
-          프리미엄 LifetimeView 의 windowed pivot 뷰 포팅. 기존 가로 "분기점
-          타임라인"(전 생애)과 별개로, *근미래에 집중한* 세로 타임라인.
-      ============================================================ */}
-        {(() => {
-          const nowYear = lifetime.currentYear
-          const win = milestones
-            .filter((m) => m.year >= nowYear - 5 && m.year <= nowYear + 10)
-            .sort((a, b) => a.year - b.year)
-          if (win.length === 0) return null
-          // 하이라이트 = 올해 또는 가장 가까운 다가오는 전환점. 없으면 마지막.
-          const hi = (() => {
-            const i = win.findIndex((m) => m.year >= nowYear)
-            return i === -1 ? win.length - 1 : i
-          })()
-          const sysOf = (k: string) =>
-            k === 'saju' || k === 'daewoon' ? (ko ? '사주' : 'Saju') : ko ? '점성' : 'Astrology'
-          return (
-            <div className={styles.pivots}>
-              <div className={styles.sectionHead}>
-                <h2 className={styles.sectionTitle}>{ko ? '운명의 전환기' : 'Turning points'}</h2>
-                <span className={styles.tiny}>
-                  {ko ? '지난 5년 → 앞으로 10년' : 'Past 5 yrs → next 10 yrs'}
-                </span>
-              </div>
-              <div className={styles.pivotList}>
-                {win.map((m, idx) => {
-                  const past = m.year < nowYear
-                  const highlight = idx === hi
-                  const [titleRaw, ...rest] = mLabel(m).split('—')
-                  // 의미는 baked meaning(EN 포함)을 우선 — labelEn 엔 '—' 절이 없어
-                  // split 만으론 EN 의미가 비기 때문. 없으면 라벨 뒤 절로 폴백.
-                  const meaning =
-                    (ko ? m.meaning : (m.meaningEn ?? m.meaning)) || rest.join('—').trim()
-                  return (
-                    <div
-                      key={`pv-${m.year}-${idx}`}
-                      className={`${styles.pivot} ${past ? styles.pivotPast : ''} ${
-                        highlight ? styles.pivotNow : ''
-                      }`}
-                    >
-                      <span className={styles.pivotDot} />
-                      <div className={styles.pivotHead}>
-                        <span className={styles.pivotYear}>
-                          {m.year}
-                          <small>
-                            {' '}
-                            · {m.age}
-                            {ko ? '세' : ' yrs'}
-                          </small>
-                        </span>
-                        <span className={styles.pivotSys}>{sysOf(m.kind)}</span>
-                        {past && (
-                          <span className={styles.pivotTag}>{ko ? '지난 시기' : 'past'}</span>
-                        )}
-                        {highlight && (
-                          <span className={styles.pivotTagNow}>
-                            {m.year === nowYear
-                              ? ko
-                                ? '올해'
-                                : 'this year'
-                              : ko
-                                ? '다가오는 시기'
-                                : 'upcoming'}
-                          </span>
-                        )}
-                      </div>
-                      <div className={styles.pivotTitle}>{titleRaw.trim()}</div>
-                      {meaning && <div className={styles.pivotMeaning}>{meaning}</div>}
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-          )
-        })()}
-
-        {/* ============================================================
-          milestone timeline
-      ============================================================ */}
+        {/* milestone timeline (간지·간격 포함 raw 타임라인) */}
         <div className={styles.miles}>
           <div className={styles.sectionHead}>
             <h2 className={styles.sectionTitle}>{ko ? '분기점 타임라인' : 'Pivot timeline'}</h2>
@@ -913,14 +802,7 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
 }
 
 // ============================================================================
-// Phase 3 보강 ①: Sect Row
-// ============================================================================
-
-// (SectRow / ascSignRuler 제거됨 — 정적 헬레니즘 섹트 메타는 타이밍 흐름과
-//  무관, 리포트감이라 흐름 화면에서 뺀다.)
-
-// ============================================================================
-// Stage detail block (원본 youth-detail 섹션 + Phase 3: 모든 detail stage)
+// Stage detail block (대운 간지 spine + 합충·신살·12운성 + 외행성) — 폴드 안
 // ============================================================================
 
 function StageDetailBlock({
@@ -1033,7 +915,7 @@ function StageDetailBlock({
         )}
       </div>
 
-      {/* outer planets — Phase 3 보강 ⑤: 7가지 kind 모두 매핑 */}
+      {/* outer planets — 7가지 kind 모두 매핑 */}
       {detail.outer.length > 0 && (
         <div className={styles.outerWrap}>
           <LayerTag kind="astro" />
@@ -1086,7 +968,7 @@ function DetailCard({
 }
 
 // ============================================================================
-// Phase 3 보강 ⑥: Natal Lots row (7개 gold chip)
+// Natal Lots row (7개 gold chip) — 폴드 안
 // ============================================================================
 
 function NatalLotsRow({ lots }: { lots: DestinyArabicLot[] }) {
@@ -1126,7 +1008,7 @@ function NatalLotsRow({ lots }: { lots: DestinyArabicLot[] }) {
 }
 
 // ============================================================================
-// Phase 3 보강 ⑦: ZR L1 carousel
+// ZR L1 carousel — 폴드 안
 // ============================================================================
 
 function ZRCarousel({
@@ -1195,12 +1077,10 @@ function ZRLane({
       <div className={styles.zrTrack}>
         {chapters.map((c, i) => {
           const sign = ko ? zodiacKo(c.sign) : c.sign
-          const cellStyle: CSSProperties | undefined = c.now ? undefined : undefined
           return (
             <div
               key={`${kindLabel}-${c.calendarStartYear}-${i}`}
               className={`${styles.zrChapter} ${c.now ? styles.now : ''}`}
-              style={cellStyle}
             >
               <span className={styles.sign}>{sign}</span>
               <span className={styles.ruler}>{c.ruler}</span>
