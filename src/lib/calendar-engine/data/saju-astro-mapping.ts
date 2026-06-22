@@ -298,6 +298,56 @@ export const SAJU_ASTRO_MAPPINGS: readonly CrossMapping[] = [
     grade: 'B',
     note: '상관(예봉·반관·천재성) ↔ Uranus(돌발·혁명·천재성). decadal 전용(밴드).',
   },
+
+  // ─── 대운 커버리지 확장 (B등급) — 장주기 십신×사회/외행성 ───
+  // 대운 십신 중 정재·식신·비견·겁재는 외행성/사회행성 대응이 없어, 외행성
+  // 트랜짓이 활성이어도 그 대운엔 교차가 못 떴다(커버리지 공백). 신호를 지어내지
+  // 않고, 천문학적으로 타당한 대응만 추가해 트랜짓이 실제 활성일 때 발화하게 한다.
+  // 토성/목성은 밴드상 yearly 에서도 발화(세운 교차도 함께 넓어짐), 명왕성은 decadal 전용.
+  {
+    saju: '정재',
+    astro: 'Saturn',
+    meaning: {
+      ko: '정재 × 토성 — 꾸준한 가치·약속·자산이 시간을 들여 단단해지는 결. 서두르지 않고 쌓을수록 오래 갑니다.',
+      en: 'Direct Wealth × Saturn — steady value, commitments, and assets harden with time. The less you rush, the longer it lasts.',
+    },
+    polarity: 1,
+    grade: 'B',
+    note: '정재(안정 재물·정처·신의) ↔ Saturn(structure·durability·time). 지속·구조축. yearly/decadal 밴드.',
+  },
+  {
+    saju: '식신',
+    astro: 'Jupiter',
+    meaning: {
+      ko: '식신 × 목성 — 만들어 내놓는 결과 풍요·확장이 같은 방향으로 흘러요. 즐기며 꾸준히 내놓을수록 불어납니다.',
+      en: 'Eating God × Jupiter — your output and abundance pull the same way; the more you create with ease, the more it grows.',
+    },
+    polarity: 1,
+    grade: 'B',
+    note: '식신(생산·향유·복록) ↔ Jupiter(abundance·growth). 복록·확장축. monthly/yearly/decadal 밴드.',
+  },
+  {
+    saju: '비견',
+    astro: 'Saturn',
+    meaning: {
+      ko: '비견 × 토성 — 홀로 서는 힘과 책임이 단단해지는 결. 남에게 기대기보다 제 자리를 시간 들여 다지게 돼요.',
+      en: 'Companion × Saturn — self-reliance and responsibility harden. Rather than leaning on others, you build your own footing over time.',
+    },
+    polarity: 0,
+    grade: 'B',
+    note: '비견(자립·주체) ↔ Saturn(self-reliance·maturation). 자립↑. yearly/decadal 밴드.',
+  },
+  {
+    saju: '겁재',
+    astro: 'Pluto',
+    meaning: {
+      ko: '겁재 × 명왕성 — 이 대운은 경쟁·분배·권력 다툼이 근본에서 뒤집히는 결. 빼앗고 빼앗기는 자리라 큰 욕심보다 재구성에 맡기기.',
+      en: 'Rob Wealth × Pluto — this decade overturns rivalry, redistribution, and power struggles at the root. A seat of taking and being taken from; surrender to restructuring rather than overreaching.',
+    },
+    polarity: -1,
+    grade: 'B',
+    note: '겁재(분탈·경쟁·공유 자원) ↔ Pluto(power·elimination·shared resources). decadal 전용(밴드).',
+  },
 ]
 
 /**

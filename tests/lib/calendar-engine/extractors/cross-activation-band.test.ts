@@ -82,4 +82,37 @@ describe('extractCrossActivations — 밴드 게이팅', () => {
     expect(out.length).toBe(1)
     expect(out[0].layer).toBe('daily')
   })
+
+  // 대운 커버리지 확장 — 정재·식신·비견·겁재 대운도 외행성/사회행성 트랜짓이
+  // 활성이면 교차가 뜬다(이전엔 대응이 없어 공백이었음). 신호를 지어내는 게 아니라,
+  // 해당 트랜짓이 실제 활성일 때만 발화한다(둘 다 활성 + 밴드 통과).
+  it('정재 × 토성: 대운 층에서 교차 발화 (확장 매핑)', () => {
+    const out = extractCrossActivations([
+      sajuSig({ sibsin: '정재', layer: 'decadal' }),
+      astroSig('Saturn', 'yearly'),
+    ])
+    expect(out.length).toBe(1)
+    expect(out[0].layer).toBe('decadal')
+    expect(out[0].name).toBe('정재 × 토성')
+  })
+
+  it('겁재 × 명왕성: 대운 층에서 교차 발화 (확장 매핑, decadal 전용)', () => {
+    const out = extractCrossActivations([
+      sajuSig({ sibsin: '겁재', layer: 'decadal' }),
+      astroSig('Pluto', 'decadal'),
+    ])
+    expect(out.length).toBe(1)
+    expect(out[0].name).toBe('겁재 × 명왕성')
+    expect(out[0].polarity).toBeLessThan(0)
+  })
+
+  it('식신 × 목성: 사회행성이라 세운(yearly) 층에서도 발화', () => {
+    const out = extractCrossActivations([
+      sajuSig({ sibsin: '식신', layer: 'yearly' }),
+      astroSig('Jupiter', 'yearly'),
+    ])
+    expect(out.length).toBe(1)
+    expect(out[0].layer).toBe('yearly')
+    expect(out[0].name).toBe('식신 × 목성')
+  })
 })
