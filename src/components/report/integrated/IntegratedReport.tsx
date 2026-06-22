@@ -607,8 +607,8 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
           {viral && geok?.tagline && (
             <p className={s.heroSummary}>
               {lang === 'en'
-                ? `Your "${viral.name}" face is how you show up, while "${geok.tagline}" is how you actually set up the game — same person, two layers.`
-                : `겉으로 드러나는 "${viral.name}" 기질과, 실제로 판을 짜는 "${geok.tagline}" 방식은 어긋나 보여도 결국 한 사람의 두 겹이에요.`}
+                ? `On the outside you read as "${viral.name}"; underneath, you move like "${geok.tagline}" — two layers of the same person.`
+                : `겉으론 '${viral.name}'처럼 보이고, 속은 '${geok.tagline}' 쪽이에요 — 둘 다 한 사람의 다른 겹이에요.`}
             </p>
           )}
           {(() => {
