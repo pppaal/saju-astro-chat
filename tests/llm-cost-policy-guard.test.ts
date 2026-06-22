@@ -46,15 +46,17 @@ describe('LLM 비용 정책 가드(=훅) — 모델 선택 분산 재발 방지'
     ).toEqual([])
   })
 
-  it('정책 표는 현재 동작을 보존한다 (premium 기능 = Sonnet, 기본 = Haiku)', () => {
+  it('정책 표가 의도한 모델 배정을 유지한다 (비용 절감: 타로·궁합 Haiku, 운명만 Sonnet)', () => {
     const HAIKU = 'claude-haiku-4-5-20251001'
     const SONNET = 'claude-sonnet-4-5-20250929'
     // 기본(미등록 feature) 은 항상 싼 모델.
     expect(resolveLlmPolicy().model).toBe(HAIKU)
     expect(resolveLlmPolicy('default').model).toBe(HAIKU)
-    // premium 기능들은 Sonnet — 마이그레이션 전 라우트들이 박아두던 값과 동일.
-    expect(resolveLlmPolicy('tarot.interpret').model).toBe(SONNET)
-    expect(resolveLlmPolicy('compatibility.counselor').model).toBe(SONNET)
+    // 비용 절감으로 Haiku 다운그레이드한 유료 기능들.
+    expect(resolveLlmPolicy('tarot.interpret').model).toBe(HAIKU)
+    expect(resolveLlmPolicy('tarot.followup').model).toBe(HAIKU)
+    expect(resolveLlmPolicy('compatibility.counselor').model).toBe(HAIKU)
+    // 간판 채널인 운명 실시간 상담만 Sonnet 유지 (통합 추론 품질 보호).
     expect(resolveLlmPolicy('counselor.realtime').model).toBe(SONNET)
     // 무료 데일리 타로는 싼 모델 유지.
     expect(resolveLlmPolicy('tarot.daily').model).toBe(HAIKU)
