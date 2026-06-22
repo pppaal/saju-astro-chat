@@ -129,3 +129,36 @@ export function MoreFold({ label, children }: { label: string; children: ReactNo
     </details>
   )
 }
+
+export interface WhyItem {
+  /** 근거 — 실제 전문용어 라벨(대운·세운·일간·격국·재성·삼각 등). 한자 허용. */
+  term: ReactNode
+  /** 그래서 — 그 신호가 뜻하는 쉬운 한 줄. */
+  because: ReactNode
+  /** 극성 색(좋음/주의/중립) — 선택. */
+  tone?: 'positive' | 'caution' | 'neutral'
+}
+
+/**
+ * 근거 목록 — "왜 이렇게 보나". 폴드 안에서만 쓴다(표면 아님).
+ * 실제 용어(term) → 쉬운 결론(because) 한 줄로 묶어, 판단의 출처를 투명하게.
+ * 모든 티어가 동일 모양으로 렌더하도록 공유.
+ */
+export function WhyList({ title, items }: { title: ReactNode; items: WhyItem[] }) {
+  if (!items || items.length === 0) return null
+  return (
+    <div className={styles.why}>
+      <div className={styles.whyHead}>{title}</div>
+      <ul className={styles.whyList}>
+        {items.map((it, i) => (
+          <li className={styles.whyRow} key={i}>
+            <span className={styles.whyTerm} data-tone={it.tone ?? 'neutral'}>
+              {it.term}
+            </span>
+            <span className={styles.whyBecause}>{it.because}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
