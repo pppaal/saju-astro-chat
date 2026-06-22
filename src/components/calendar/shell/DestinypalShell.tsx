@@ -301,7 +301,8 @@ export function DestinypalShell({
   }
 
   const camRounded = clampTier(Math.round(cam))
-  const curT = TIERS[camRounded]
+  // fail-soft: invalid/empty tierIds → no rows. Don't crash topbar on curT.ko.
+  const curT = TIERS[camRounded] ?? { id: '', ko: '', en: '', scale: '' }
 
   const renderArgs = (idx: number): DestinypalTierRenderArgs => ({
     onRise: () => goTo(idx - 1),
