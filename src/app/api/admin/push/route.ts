@@ -73,6 +73,7 @@ export const POST = withApiMiddleware(
             ? '이 알림이 보이면 푸시가 정상 동작합니다 ✓'
             : 'If you see this, push is working ✓',
           url: '/calendar',
+          tag: 'test',
         }
       },
       { ttlSeconds: 600, label: 'admin-test' }

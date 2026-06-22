@@ -75,5 +75,5 @@ export async function buildKeyDayPayload(
       ? 'The flow gathers in your favor today — don’t put off what matters.'
       : 'Strong signals today — give big decisions an extra beat.'
 
-  return { title, body: reason || fallback, url: '/calendar' }
+  return { title, body: reason || fallback, url: '/calendar', tag: 'keyday' }
 }

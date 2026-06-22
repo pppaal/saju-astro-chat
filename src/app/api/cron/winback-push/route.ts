@@ -78,7 +78,7 @@ function winbackPayload(locale: 'ko' | 'en', now: Date): PushPayload {
       ]
   const idx =
     (now.getUTCFullYear() * 372 + now.getUTCMonth() * 31 + now.getUTCDate()) % variants.length
-  return variants[idx]
+  return { ...variants[idx], tag: 'winback' }
 }
 
 async function handle(request: Request): Promise<NextResponse> {

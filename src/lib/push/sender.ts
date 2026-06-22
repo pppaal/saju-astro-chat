@@ -28,6 +28,8 @@ export interface PushPayload {
   body: string
   /** 클릭 시 열 경로(기본 '/'). */
   url?: string
+  /** 알림 종류 tag — 같은 tag 끼리만 교체된다(서비스워커 참조). */
+  tag?: string
 }
 
 export interface PushSendSummary {
@@ -74,6 +76,7 @@ export async function sendPushToTargets(
           title: payload.title,
           body: payload.body,
           url: payload.url ?? '/',
+          ...(payload.tag ? { tag: payload.tag } : {}),
         })
         try {
           await webpush.sendNotification(
