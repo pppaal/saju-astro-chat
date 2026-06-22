@@ -135,6 +135,7 @@ export default function HomeChatInput({
               onChange={setSources}
               lang={isKo ? 'ko' : 'en'}
               theme={lightMode ? 'light' : 'dark'}
+              showInfo
             />
           }
           // viewTransitionName 제거 — morph 가 폭이 다른 두 입력창 사이에서

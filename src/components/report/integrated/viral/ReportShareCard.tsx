@@ -273,7 +273,7 @@ export const ReportShareCard = React.forwardRef<HTMLDivElement, { data: ReportSh
           </span>
           <span style={{ color: GOLD_LINE, fontSize: 22 }}>·</span>
           <span style={{ fontSize: 22, color: TEXT_MUTE, wordBreak: 'keep-all' }}>
-            {isKo ? '무료 명식 리포트' : 'free birth-chart report'}
+            {isKo ? '무료 사주 리포트' : 'free birth-chart report'}
           </span>
         </div>
       </div>

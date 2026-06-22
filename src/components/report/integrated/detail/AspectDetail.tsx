@@ -41,14 +41,14 @@ const dignityToneClass = (tier: string): string => {
 }
 
 export default function AspectDetail({ astro, lang }: AspectDetailProps) {
-  const summary = lang === 'en' ? 'Aspects & dignities, explained' : '어스펙트·위계 뜻풀이'
-  const aspectsCap = lang === 'en' ? 'Aspects between planets' : '행성 간 각도'
-  const dignityCap = lang === 'en' ? 'Planet dignities' : '행성 위계'
+  const summary = lang === 'en' ? 'Aspects & dignities, explained' : '기운들의 각도 · 행성 컨디션'
+  const aspectsCap = lang === 'en' ? 'Aspects between planets' : '기운들의 각도'
+  const dignityCap = lang === 'en' ? 'Planet dignities' : '행성 컨디션'
   const signSuffix = lang === 'en' ? '' : '자리'
   const noDignity =
     lang === 'en'
       ? 'No notable dignity — all neutral (peregrine).'
-      : '뚜렷한 위계 없음 — 모두 중립(peregrine)이에요.'
+      : '뚜렷한 컨디션 차이 없음 — 모두 중립(평지)이에요.'
 
   const planets = astro.planets ?? []
   const findPlanet = (name: string) => planets.find((p) => p.name === name)
@@ -86,7 +86,12 @@ export default function AspectDetail({ astro, lang }: AspectDetailProps) {
                     <span className={`${s.label} ${toneClass(meta?.cls)}`}>{aspLabel}</span>
                     <span className={s.gly}>{pb.glyph}</span>
                     <span className={s.name}>{nameOf(pb)}</span>
-                    <span className={s.orb}>{a.orb.toFixed(1)}°</span>
+                    <span
+                      className={s.orb}
+                      title={lang === 'en' ? 'how exact the angle is (orb)' : '정확도(오차각)'}
+                    >
+                      {a.orb.toFixed(1)}°
+                    </span>
                   </div>
                   {meaning && <div className={s.meaning}>{meaning}</div>}
                 </div>

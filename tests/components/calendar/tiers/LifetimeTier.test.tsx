@@ -1,10 +1,9 @@
 import React from 'react'
-import { render, screen, fireEvent } from '@testing-library/react'
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { render, screen, fireEvent, within } from '@testing-library/react'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 
-// useI18n is consumed (locale only) by LifetimeTier and its inline sub-components
-// + the shared atoms (CrossingList / TierSummary / Ganji / LayerTag). It throws
-// without a real provider, so mock it with a mutable locale we can flip per test.
+// useI18n is consumed (locale only) by LifetimeTier and its inline sub-components.
+// It throws without a real provider, so mock it with a mutable locale we flip per test.
 let mockLocale: 'ko' | 'en' = 'ko'
 vi.mock('@/i18n/I18nProvider', () => ({
   useI18n: () => ({ locale: mockLocale }),
@@ -48,8 +47,8 @@ function makeStage(over: Partial<DestinyLifeStage> = {}): DestinyLifeStage {
     yearFrom: over.yearFrom ?? 1990,
     yearTo: over.yearTo ?? 2010,
     now: over.now ?? false,
-    tone: over.tone ?? '편재 — 현실 성취의 무대',
-    toneEn: over.toneEn ?? 'Wealth — the stage of real-world results',
+    tone: over.tone ?? '현실 성취의 무대',
+    toneEn: over.toneEn ?? 'The stage of real-world results',
     detail: over.detail ?? null,
   }
 }
@@ -120,19 +119,41 @@ function makeLifetime(over: Partial<DestinyLifetime> = {}): DestinyLifetime {
 
 const noop = () => {}
 
+// The jargon fold is the only <details> on the surface. Everything outside it is
+// the "main surface" the redesign keeps plain.
+function getFold(container: HTMLElement): HTMLDetailsElement {
+  const d = container.querySelector('details')
+  if (!d) throw new Error('expected the jargon <details> fold to be present')
+  return d as HTMLDetailsElement
+}
+
+// Returns the subtree of the main surface with the fold removed, so text queries
+// only see what a user reads before expanding "자세한 신호 보기". The clone is
+// attached to the document so Testing Library's "in the document" check passes;
+// afterEach detaches it again.
+const detachedSurfaces: HTMLElement[] = []
+function mainSurface(container: HTMLElement): HTMLElement {
+  const clone = container.cloneNode(true) as HTMLElement
+  clone.querySelector('details')?.remove()
+  document.body.appendChild(clone)
+  detachedSurfaces.push(clone)
+  return clone
+}
+
 beforeEach(() => {
   mockLocale = 'ko'
 })
 
-describe('LifetimeTier', () => {
+afterEach(() => {
+  for (const el of detachedSurfaces.splice(0)) el.remove()
+})
+
+describe('LifetimeTier — Seasons Path redesign', () => {
   describe('empty / loading guard', () => {
     it('renders a loading placeholder (ko) when lifeStages is empty', () => {
-      const props: LifetimeTierProps = {
-        user: makeUser(),
-        lifetime: makeLifetime({ lifeStages: [] }),
-        onDive: noop,
-      }
-      render(<LifetimeTier {...props} />)
+      render(
+        <LifetimeTier user={makeUser()} lifetime={makeLifetime({ lifeStages: [] })} onDive={noop} />
+      )
       expect(screen.getByText('본명 정보를 불러오는 중...')).toBeInTheDocument()
     })
 
@@ -145,89 +166,15 @@ describe('LifetimeTier', () => {
     })
   })
 
-  describe('intro header (ko)', () => {
-    it('renders the lifetime eyebrow + display heading', () => {
+  describe('hero (ko)', () => {
+    it('renders the plain "내 인생의 길" headline and a plain intro line', () => {
       render(<LifetimeTier user={makeUser()} lifetime={makeLifetime()} onDive={noop} />)
       expect(screen.getByText('인생 · LIFETIME · 84년')).toBeInTheDocument()
-      expect(screen.getByText('내 인생 전체 흐름')).toBeInTheDocument()
+      expect(screen.getByText('내 인생의 길')).toBeInTheDocument()
+      expect(screen.getByText(/봄에서 겨울까지, 계절을 지나는 길/)).toBeInTheDocument()
     })
 
-    it('renders the birth/place/sex meta line', () => {
-      render(<LifetimeTier user={makeUser()} lifetime={makeLifetime()} onDive={noop} />)
-      expect(screen.getByText(/1990년 6월 15일 12:00/)).toBeInTheDocument()
-    })
-
-    it('shows astro segments when astro fields present', () => {
-      render(<LifetimeTier user={makeUser()} lifetime={makeLifetime()} onDive={noop} />)
-      expect(screen.getByText(/Sun Gemini · Asc Aries · MC Capricorn/)).toBeInTheDocument()
-    })
-
-    it('hides astro segments when astro fields are blank', () => {
-      const user = makeUser({
-        astro: {
-          sun: '',
-          asc: '',
-          mc: '',
-          sunEn: '' as never,
-          ascEn: '' as never,
-          mcEn: '' as never,
-        },
-      })
-      render(<LifetimeTier user={user} lifetime={makeLifetime()} onDive={noop} />)
-      expect(screen.queryByText(/Sun /)).not.toBeInTheDocument()
-    })
-  })
-
-  describe('intro header (en)', () => {
-    it('renders English eyebrow + heading', () => {
-      mockLocale = 'en'
-      render(<LifetimeTier user={makeUser()} lifetime={makeLifetime()} onDive={noop} />)
-      expect(screen.getByText('LIFETIME · 84 years')).toBeInTheDocument()
-      expect(screen.getByText('My whole life')).toBeInTheDocument()
-    })
-  })
-
-  describe('detail chips', () => {
-    it('shows gyeokgukStatus when provided, falling back to gyeokguk otherwise', () => {
-      const { rerender } = render(
-        <LifetimeTier
-          user={makeUser({ gyeokgukStatus: '정인격 · 반성반파' })}
-          lifetime={makeLifetime()}
-          onDive={noop}
-        />
-      )
-      expect(screen.getByText('정인격 · 반성반파')).toBeInTheDocument()
-
-      rerender(<LifetimeTier user={makeUser()} lifetime={makeLifetime()} onDive={noop} />)
-      // gyeokguk appears in the structure chip when status absent.
-      expect(screen.getAllByText('정인격').length).toBeGreaterThan(0)
-    })
-
-    it('uses 통근 label when rootStatus present, 주십신 otherwise', () => {
-      const { rerender } = render(
-        <LifetimeTier
-          user={makeUser({ rootStatus: '월령 寅 실령 · 통근 얇음' })}
-          lifetime={makeLifetime()}
-          onDive={noop}
-        />
-      )
-      expect(screen.getByText('통근')).toBeInTheDocument()
-      expect(screen.getByText('월령 寅 실령 · 통근 얇음')).toBeInTheDocument()
-
-      rerender(<LifetimeTier user={makeUser()} lifetime={makeLifetime()} onDive={noop} />)
-      expect(screen.getByText('주십신')).toBeInTheDocument()
-      expect(screen.getByText('정인 30%')).toBeInTheDocument()
-    })
-
-    it('computes the dominant element label from user.elements (ko)', () => {
-      render(<LifetimeTier user={makeUser()} lifetime={makeLifetime()} onDive={noop} />)
-      // elements = 목:3 dominant.
-      expect(screen.getByText(/사주 8자 오행 분포 — 목\(木\) 최다/)).toBeInTheDocument()
-    })
-  })
-
-  describe('life pattern + life curve', () => {
-    it('renders the life type heading and LifeCurve when daeun has >= 2 entries', () => {
+    it('renders the plain lifePattern headline + line on the main surface (no jargon)', () => {
       const lifetime = makeLifetime({
         lifePattern: {
           key: 'late-bloom',
@@ -237,59 +184,221 @@ describe('LifetimeTier', () => {
           lineEn: 'A slowly ripening flow.',
           daeun: [
             { startAge: 10, gz: '甲子', favor: 1 },
-            { startAge: 20, gz: '乙丑', favor: -1 },
             { startAge: 30, gz: '丙寅', favor: 2 },
           ],
         },
       })
-      render(<LifetimeTier user={makeUser()} lifetime={lifetime} onDive={noop} />)
-      expect(screen.getByText('인생 유형 · 대기만성형')).toBeInTheDocument()
-      // life curve label.
-      expect(screen.getByText('인생 곡선 · 운세 기복')).toBeInTheDocument()
-    })
-
-    it('omits the LifeCurve when fewer than 2 daeun favor points', () => {
-      const lifetime = makeLifetime({
-        lifePattern: {
-          key: 'x',
-          ko: '단일',
-          line: '한 점.',
-          daeun: [{ startAge: 10, gz: '甲子', favor: 1 }],
-        },
-      })
-      render(<LifetimeTier user={makeUser()} lifetime={lifetime} onDive={noop} />)
-      expect(screen.queryByText('인생 곡선 · 운세 기복')).not.toBeInTheDocument()
+      const { container } = render(
+        <LifetimeTier user={makeUser()} lifetime={lifetime} onDive={noop} />
+      )
+      const surface = mainSurface(container)
+      expect(within(surface).getByText('대기만성형')).toBeInTheDocument()
+      expect(within(surface).getByText('천천히 무르익는 흐름.')).toBeInTheDocument()
     })
   })
 
-  describe('constellation stage cards', () => {
-    it('renders a card per life stage with the now tag on the current one', () => {
+  describe('hero (en)', () => {
+    it('renders English eyebrow + headline', () => {
+      mockLocale = 'en'
       render(<LifetimeTier user={makeUser()} lifetime={makeLifetime()} onDive={noop} />)
-      expect(screen.getByText('초년기')).toBeInTheDocument()
-      expect(screen.getByText('청년기')).toBeInTheDocument()
-      expect(screen.getByText('지금 · NOW')).toBeInTheDocument()
+      expect(screen.getByText('LIFETIME · 84 years')).toBeInTheDocument()
+      expect(screen.getByText('The path of my life')).toBeInTheDocument()
+    })
+  })
+
+  describe('seasons path', () => {
+    it('renders a felt season node per life stage with a "지금" marker on the current one', () => {
+      const lifetime = makeLifetime({
+        lifeStages: [
+          makeStage({ id: 'early', name: '초년기', ageFrom: 0, ageTo: 20 }),
+          makeStage({ id: 'youth', name: '청년기', now: true, ageFrom: 20, ageTo: 40 }),
+          makeStage({ id: 'middle', name: '중년기', ageFrom: 40, ageTo: 60 }),
+          makeStage({ id: 'late', name: '장년기', ageFrom: 60, ageTo: 84 }),
+        ],
+      })
+      const { container } = render(
+        <LifetimeTier user={makeUser()} lifetime={lifetime} onDive={noop} />
+      )
+      const surface = mainSurface(container)
+      // four felt seasons rendered plainly on the main surface.
+      expect(within(surface).getByText('봄')).toBeInTheDocument()
+      expect(within(surface).getByText('여름')).toBeInTheDocument()
+      expect(within(surface).getByText('가을')).toBeInTheDocument()
+      expect(within(surface).getByText('겨울')).toBeInTheDocument()
+      // felt theme labels (plain-language, no jargon).
+      expect(within(surface).getByText('싹트는 봄')).toBeInTheDocument()
+      expect(within(surface).getByText('쌓아가는 여름')).toBeInTheDocument()
+      // the current stage carries the 지금 marker.
+      expect(within(surface).getAllByText('지금').length).toBeGreaterThan(0)
     })
 
-    it('fires onDive when the current stage card is clicked', () => {
+    it('renders English season labels in EN locale (no Hangul season names)', () => {
+      mockLocale = 'en'
+      const { container } = render(
+        <LifetimeTier user={makeUser()} lifetime={makeLifetime()} onDive={noop} />
+      )
+      const surface = mainSurface(container)
+      expect(within(surface).getByText('Spring')).toBeInTheDocument()
+      expect(within(surface).getByText('Building summer')).toBeInTheDocument()
+      expect(within(surface).getAllByText('now').length).toBeGreaterThan(0)
+      expect(within(surface).queryByText('봄')).not.toBeInTheDocument()
+      expect(within(surface).queryByText('여름')).not.toBeInTheDocument()
+    })
+
+    it('fires onDive when the current season node is clicked', () => {
       const onDive = vi.fn()
       render(<LifetimeTier user={makeUser()} lifetime={makeLifetime()} onDive={onDive} />)
-      // current stage card carries role=button; click it.
-      const nowCard = screen.getByText('탭하면 올해로 줌인 ↘').closest('div')!
+      const nowCard = screen.getByText('탭하면 올해로 ↘').closest('div')!
       fireEvent.click(nowCard)
       expect(onDive).toHaveBeenCalledTimes(1)
     })
 
-    it('fires onDive when current stage card receives Enter key', () => {
+    it('fires onDive when the current season node receives Enter', () => {
       const onDive = vi.fn()
       render(<LifetimeTier user={makeUser()} lifetime={makeLifetime()} onDive={onDive} />)
-      const nowCard = screen.getByText('탭하면 올해로 줌인 ↘').closest('div')!
+      const nowCard = screen.getByText('탭하면 올해로 ↘').closest('div')!
       fireEvent.keyDown(nowCard, { key: 'Enter' })
       expect(onDive).toHaveBeenCalledTimes(1)
     })
   })
 
-  describe('stage detail block', () => {
-    it('renders detail body + hapchung/shinsal/unseong cards when a stage has detail', () => {
+  describe('life turning points (plain, no ganji)', () => {
+    it('renders milestone heads + meaning plainly on the main surface', () => {
+      const lifetime = makeLifetime({
+        milestones: [
+          {
+            year: 2024,
+            age: 34,
+            label: '첫 토성 회귀 — 어른됨의 통과의례',
+            meaning: '책임을 처음 온전히 짊어지는 시기.',
+            kind: 'saturn',
+          },
+          { year: 2026, age: 36, label: '대운 전환 — 새 무대', kind: 'daewoon', now: true },
+        ],
+      })
+      const { container } = render(
+        <LifetimeTier user={makeUser()} lifetime={lifetime} onDive={noop} />
+      )
+      const surface = mainSurface(container)
+      expect(within(surface).getByText('인생의 큰 마디')).toBeInTheDocument()
+      // plain head only (no '—' tail, no ganji).
+      expect(within(surface).getByText('첫 토성 회귀')).toBeInTheDocument()
+      expect(within(surface).getByText('책임을 처음 온전히 짊어지는 시기.')).toBeInTheDocument()
+      // current turn carries 지금 inside the turn list (now badge).
+      expect(within(surface).getAllByText('지금').length).toBeGreaterThan(0)
+    })
+
+    it('renders English milestone labels in EN locale', () => {
+      mockLocale = 'en'
+      const lifetime = makeLifetime({
+        milestones: [
+          {
+            year: 2024,
+            age: 34,
+            label: '첫 토성 회귀 — 어른됨의 통과의례',
+            labelEn: 'First Saturn return — a rite of adulthood',
+            meaning: '책임의 시기.',
+            meaningEn: 'A season of responsibility.',
+            kind: 'saturn',
+          },
+        ],
+      })
+      const { container } = render(
+        <LifetimeTier user={makeUser()} lifetime={lifetime} onDive={noop} />
+      )
+      const surface = mainSurface(container)
+      expect(within(surface).getByText('First Saturn return')).toBeInTheDocument()
+      expect(within(surface).getByText('A season of responsibility.')).toBeInTheDocument()
+      expect(within(surface).queryByText(/첫 토성 회귀/)).not.toBeInTheDocument()
+    })
+  })
+
+  describe('anti-fatalism forecast footer', () => {
+    it('renders the seasonal-forecast disclaimer (ko)', () => {
+      render(<LifetimeTier user={makeUser()} lifetime={makeLifetime()} onDive={noop} />)
+      expect(
+        screen.getByText(/앞날은 정해진 운명이 아니라 지금 기운으로 본 계절 예보/)
+      ).toBeInTheDocument()
+    })
+
+    it('renders the disclaimer in English', () => {
+      mockLocale = 'en'
+      render(<LifetimeTier user={makeUser()} lifetime={makeLifetime()} onDive={noop} />)
+      expect(screen.getByText(/not fixed fate but a seasonal forecast/)).toBeInTheDocument()
+    })
+  })
+
+  // ── the heart of the redesign: jargon must NOT be on the main surface ──
+  describe('jargon is hidden on the main surface', () => {
+    it('keeps 일간/격국/용신 hanja chips, Sun/Asc/MC and element bars out of the main surface', () => {
+      const { container } = render(
+        <LifetimeTier
+          user={makeUser({ gyeokgukStatus: '정인격 · 반성반파', rootStatus: '월령 寅 실령' })}
+          lifetime={makeLifetime()}
+          onDive={noop}
+        />
+      )
+      const surface = mainSurface(container)
+      // chip labels live in the fold, not the main surface.
+      expect(within(surface).queryByText('일간')).not.toBeInTheDocument()
+      expect(within(surface).queryByText('격국')).not.toBeInTheDocument()
+      expect(within(surface).queryByText('용신')).not.toBeInTheDocument()
+      // raw natal/astro signals are not on the main surface.
+      expect(within(surface).queryByText(/Sun Gemini/)).not.toBeInTheDocument()
+      expect(within(surface).queryByText(/Asc Aries/)).not.toBeInTheDocument()
+      expect(within(surface).queryByText(/사주 8자 오행 분포/)).not.toBeInTheDocument()
+    })
+
+    it('renders 일간/격국/용신 chips, ohang bars + astro meta inside the fold', () => {
+      const { container } = render(
+        <LifetimeTier user={makeUser()} lifetime={makeLifetime()} onDive={noop} />
+      )
+      const fold = getFold(container)
+      expect(within(fold).getByText('일간')).toBeInTheDocument()
+      expect(within(fold).getByText('격국')).toBeInTheDocument()
+      expect(within(fold).getByText('용신')).toBeInTheDocument()
+      expect(within(fold).getByText(/사주 8자 오행 분포 — 목\(木\) 최다/)).toBeInTheDocument()
+      expect(within(fold).getByText(/Sun Gemini · Asc Aries · MC Capricorn/)).toBeInTheDocument()
+      // fold summary label.
+      expect(within(fold).getByText(/자세한 신호 보기/)).toBeInTheDocument()
+    })
+
+    it('keeps Arabic Lots, ZR carousel and daeun ganji spine inside the fold', () => {
+      const ch = {
+        sign: 'Sagittarius',
+        ruler: 'Jupiter',
+        calendarStartYear: 2010,
+        calendarEndYear: 2022,
+        durationYears: 12,
+        now: true,
+        startLot: 'spirit',
+        level: 1,
+        index: 0,
+      }
+      const lifetime = makeLifetime({
+        zrSpiritChapters: [ch as never],
+        zrFortuneChapters: [{ ...ch, startLot: 'fortune', sign: 'Cancer', ruler: 'Moon' } as never],
+      })
+      const user = makeUser({
+        lots: [
+          { name: 'Fortune', sign: 'Leo', degree: 12.4, house: 5, sect: 'day', korean: '복점' },
+        ] as never,
+      })
+      const { container } = render(<LifetimeTier user={user} lifetime={lifetime} onDive={noop} />)
+      const surface = mainSurface(container)
+      const fold = getFold(container)
+      // Lots + ZR carousel only inside the fold.
+      expect(within(surface).queryByText(/Arabic Lots/)).not.toBeInTheDocument()
+      expect(within(surface).queryByText('SPIRIT')).not.toBeInTheDocument()
+      expect(within(fold).getByText('본명 7대 점(點) · Arabic Lots')).toBeInTheDocument()
+      expect(within(fold).getByText('복점')).toBeInTheDocument()
+      expect(within(fold).getByText('ZR L1 챕터 · Zodiacal Releasing')).toBeInTheDocument()
+      expect(within(fold).getByText('SPIRIT')).toBeInTheDocument()
+    })
+  })
+
+  describe('detail (fold) — stage detail block', () => {
+    it('renders detail body + hapchung/shinsal/unseong cards + outer chip inside the fold', () => {
       const lifetime = makeLifetime({
         lifeStages: [
           makeStage({
@@ -308,70 +417,19 @@ describe('LifetimeTier', () => {
           }),
         ],
       })
-      render(<LifetimeTier user={makeUser()} lifetime={lifetime} onDive={noop} />)
-      expect(screen.getByText('청년기 본문 한 단락.')).toBeInTheDocument()
-      expect(screen.getByText('寅亥 육합')).toBeInTheDocument()
-      expect(screen.getByText('겁살')).toBeInTheDocument()
-      expect(screen.getByText('제왕')).toBeInTheDocument()
-      // outer-planet return chip.
-      expect(screen.getByText('토성 회귀')).toBeInTheDocument()
+      const { container } = render(
+        <LifetimeTier user={makeUser()} lifetime={lifetime} onDive={noop} />
+      )
+      const fold = getFold(container)
+      expect(within(fold).getByText('청년기 본문 한 단락.')).toBeInTheDocument()
+      expect(within(fold).getByText('寅亥 육합')).toBeInTheDocument()
+      expect(within(fold).getByText('겁살')).toBeInTheDocument()
+      expect(within(fold).getByText('제왕')).toBeInTheDocument()
+      expect(within(fold).getByText('토성 회귀')).toBeInTheDocument()
     })
   })
 
-  describe('natal lots row', () => {
-    it('renders a chip per lot when user.lots is populated', () => {
-      const user = makeUser({
-        lots: [
-          { name: 'Fortune', sign: 'Leo', degree: 12.4, house: 5, sect: 'day', korean: '복점' },
-          { name: 'Spirit', sign: 'Aries', degree: 3.1, house: 1, sect: 'day' },
-        ] as never,
-      })
-      render(<LifetimeTier user={user} lifetime={makeLifetime()} onDive={noop} />)
-      expect(screen.getByText('본명 7대 점(點) · Arabic Lots')).toBeInTheDocument()
-      expect(screen.getByText('복점')).toBeInTheDocument()
-      // Spirit has no korean → falls back to name.
-      expect(screen.getByText('Spirit')).toBeInTheDocument()
-    })
-
-    it('omits the lots row when no lots', () => {
-      render(<LifetimeTier user={makeUser({ lots: [] })} lifetime={makeLifetime()} onDive={noop} />)
-      expect(screen.queryByText('본명 7대 점(點) · Arabic Lots')).not.toBeInTheDocument()
-    })
-  })
-
-  describe('ZR carousel', () => {
-    it('renders ZR lanes when spirit/fortune chapters exist', () => {
-      const ch = {
-        sign: 'Sagittarius',
-        ruler: 'Jupiter',
-        calendarStartYear: 2010,
-        calendarEndYear: 2022,
-        durationYears: 12,
-        now: true,
-        startLot: 'spirit',
-        level: 1,
-        index: 0,
-      }
-      const lifetime = makeLifetime({
-        zrSpiritChapters: [ch as never],
-        zrFortuneChapters: [{ ...ch, startLot: 'fortune', sign: 'Cancer', ruler: 'Moon' } as never],
-      })
-      render(<LifetimeTier user={makeUser()} lifetime={lifetime} onDive={noop} />)
-      expect(screen.getByText('ZR L1 챕터 · Zodiacal Releasing')).toBeInTheDocument()
-      expect(screen.getByText('SPIRIT')).toBeInTheDocument()
-      expect(screen.getByText('FORTUNE')).toBeInTheDocument()
-    })
-  })
-
-  describe('milestone timeline + dive button', () => {
-    it('renders milestone labels and the now marker', () => {
-      render(<LifetimeTier user={makeUser()} lifetime={makeLifetime()} onDive={noop} />)
-      expect(screen.getByText('분기점 타임라인')).toBeInTheDocument()
-      // milestone label appears in both the pivot list and the milestone track.
-      expect(screen.getAllByText(/첫 토성 회귀/).length).toBeGreaterThan(0)
-      expect(screen.getByText('← 지금')).toBeInTheDocument()
-    })
-
+  describe('dive button', () => {
     it('fires onDive from the bottom zoom-in button (ko)', () => {
       const onDive = vi.fn()
       render(<LifetimeTier user={makeUser()} lifetime={makeLifetime()} onDive={onDive} />)
@@ -388,9 +446,7 @@ describe('LifetimeTier', () => {
 
   // ── i18n leak guards — EN locale must NOT render KO-baked data fields ──
   describe('i18n (EN locale picks English data fields, no Korean leaks)', () => {
-    const HANGUL = /[가-힣]/
-
-    it('stage cards render nameEn / toneEn in EN (no Hangul)', () => {
+    it('season cards render nameEn / toneEn in EN (no Korean stage names)', () => {
       mockLocale = 'en'
       const lifetime = makeLifetime({
         lifeStages: [
@@ -398,8 +454,8 @@ describe('LifetimeTier', () => {
             id: 'early',
             name: '초년기',
             nameEn: 'Early years',
-            tone: '비겁 — 또래 속 주체성',
-            toneEn: 'Peer — agency among peers',
+            tone: '또래 속 주체성',
+            toneEn: 'Agency among peers',
           }),
           makeStage({
             id: 'youth',
@@ -408,26 +464,25 @@ describe('LifetimeTier', () => {
             now: true,
             ageFrom: 20,
             ageTo: 40,
-            tone: '편재 — 현실 성취의 무대',
-            toneEn: 'Wealth — the stage of real-world results',
+            tone: '현실 성취의 무대',
+            toneEn: 'The stage of real-world results',
           }),
         ],
       })
-      render(<LifetimeTier user={makeUser()} lifetime={lifetime} onDive={noop} />)
-      // English stage names present.
-      expect(screen.getByText('Early years')).toBeInTheDocument()
-      expect(screen.getByText('Young adulthood')).toBeInTheDocument()
-      // Korean stage names absent.
-      expect(screen.queryByText('초년기')).not.toBeInTheDocument()
-      expect(screen.queryByText('청년기')).not.toBeInTheDocument()
-      // EN tone present, KO tone absent (each stage has a distinct tone here).
-      expect(screen.getByText('Wealth — the stage of real-world results')).toBeInTheDocument()
-      expect(screen.getByText('Peer — agency among peers')).toBeInTheDocument()
-      expect(screen.queryByText('편재 — 현실 성취의 무대')).not.toBeInTheDocument()
-      expect(screen.queryByText('비겁 — 또래 속 주체성')).not.toBeInTheDocument()
+      const { container } = render(
+        <LifetimeTier user={makeUser()} lifetime={lifetime} onDive={noop} />
+      )
+      const surface = mainSurface(container)
+      expect(within(surface).getByText('Early years')).toBeInTheDocument()
+      expect(within(surface).getByText('Young adulthood')).toBeInTheDocument()
+      expect(within(surface).queryByText('초년기')).not.toBeInTheDocument()
+      expect(within(surface).queryByText('청년기')).not.toBeInTheDocument()
+      expect(within(surface).getByText('Agency among peers')).toBeInTheDocument()
+      expect(within(surface).getByText('The stage of real-world results')).toBeInTheDocument()
+      expect(within(surface).queryByText('또래 속 주체성')).not.toBeInTheDocument()
     })
 
-    it('lifePattern id-card + life-type heading render English (no KO leak)', () => {
+    it('lifePattern hero + fold id-card render English (no KO leak)', () => {
       mockLocale = 'en'
       const lifetime = makeLifetime({
         lifePattern: {
@@ -443,43 +498,15 @@ describe('LifetimeTier', () => {
         },
       })
       render(<LifetimeTier user={makeUser()} lifetime={lifetime} onDive={noop} />)
-      // life-type heading uses en.
+      // life-type heading (in fold) uses en.
       expect(screen.getByText('Life type · Late bloomer')).toBeInTheDocument()
-      // id-card type (Late bloomer) + lineEn rendered; KO variants absent.
       expect(screen.getAllByText('Late bloomer').length).toBeGreaterThan(0)
       expect(screen.getAllByText('A slowly ripening flow.').length).toBeGreaterThan(0)
       expect(screen.queryByText('대기만성형')).not.toBeInTheDocument()
       expect(screen.queryByText('천천히 무르익는 흐름.')).not.toBeInTheDocument()
     })
 
-    it('ZR chapter sign renders English zodiac name in EN (not Korean 자리)', () => {
-      mockLocale = 'en'
-      const ch = {
-        sign: 'Sagittarius',
-        ruler: 'Jupiter',
-        calendarStartYear: 2010,
-        calendarEndYear: 2022,
-        durationYears: 12,
-        now: true,
-        startLot: 'spirit',
-        level: 1,
-        index: 0,
-      }
-      const lifetime = makeLifetime({
-        zrSpiritChapters: [ch as never],
-        zrFortuneChapters: [{ ...ch, startLot: 'fortune', sign: 'Cancer', ruler: 'Moon' } as never],
-      })
-      render(<LifetimeTier user={makeUser()} lifetime={lifetime} onDive={noop} />)
-      // English sign names appear (in ZR carousel cells).
-      expect(screen.getAllByText('Sagittarius').length).toBeGreaterThan(0)
-      expect(screen.getAllByText('Cancer').length).toBeGreaterThan(0)
-      // Korean zodiac labels (사수자리/궁수자리, 게자리) must not appear.
-      expect(screen.queryByText('사수자리')).not.toBeInTheDocument()
-      expect(screen.queryByText('궁수자리')).not.toBeInTheDocument()
-      expect(screen.queryByText('게자리')).not.toBeInTheDocument()
-    })
-
-    it('natal lots row renders English sign in EN', () => {
+    it('natal lots row (fold) renders English sign in EN', () => {
       mockLocale = 'en'
       const user = makeUser({
         lots: [
@@ -487,58 +514,8 @@ describe('LifetimeTier', () => {
         ] as never,
       })
       render(<LifetimeTier user={user} lifetime={makeLifetime()} onDive={noop} />)
-      // sign text "Leo 12° · 5H" — English sign, not 사자자리.
       expect(screen.getByText(/Leo 12° · 5H/)).toBeInTheDocument()
       expect(screen.queryByText(/사자자리/)).not.toBeInTheDocument()
-    })
-
-    it('stage detail body renders bodyEn in EN; outer + shinsal toggle to EN', () => {
-      mockLocale = 'en'
-      const lifetime = makeLifetime({
-        lifeStages: [
-          makeStage({
-            id: 'youth',
-            name: '청년기',
-            nameEn: 'Young adulthood',
-            now: true,
-            detail: {
-              daewoonText: '乙亥(을해) 2016–26',
-              body: ['청년기 한국어 본문.'],
-              bodyEn: ['Young-adult English body line.'],
-              outer: [
-                {
-                  label: '토성 회귀',
-                  labelEn: 'Saturn return',
-                  date: '2024.06',
-                  body: '책임의 시기',
-                  bodyEn: 'a season of responsibility',
-                  kind: 'saturn',
-                },
-              ],
-              shinsal: {
-                title: '신살 활성',
-                kind: 'shinsal',
-                body: '겁살 활성 — 재물·신뢰 도전',
-                bodyEn: 'Geopsal active — trials around wealth and trust',
-              },
-            },
-          }),
-        ],
-      })
-      render(<LifetimeTier user={makeUser()} lifetime={lifetime} onDive={noop} />)
-      // body picks bodyEn.
-      expect(screen.getByText('Young-adult English body line.')).toBeInTheDocument()
-      expect(screen.queryByText('청년기 한국어 본문.')).not.toBeInTheDocument()
-      // outer chip picks labelEn / bodyEn.
-      expect(screen.getByText('Saturn return')).toBeInTheDocument()
-      expect(screen.queryByText('토성 회귀')).not.toBeInTheDocument()
-      // shinsal title localized + bodyEn rendered.
-      expect(screen.getByText('Shinsal active')).toBeInTheDocument()
-      expect(
-        screen.getByText('Geopsal active — trials around wealth and trust')
-      ).toBeInTheDocument()
-      expect(screen.queryByText('신살 활성')).not.toBeInTheDocument()
-      expect(screen.queryByText('겁살 활성 — 재물·신뢰 도전')).not.toBeInTheDocument()
     })
   })
 })

@@ -48,15 +48,15 @@ export const GLOSSARY: Record<GlossarySection, GlossaryEntry[]> = {
     {
       term: { ko: '천간·지지 (갑을병정 / 자축인묘)', en: 'Stems & branches' },
       body: {
-        ko: '천간은 갑·을·병·정… 10개, 지지는 자·축·인·묘… 12개의 부호예요. 각각 오행(목·화·토·금·수)과 음양을 담고 있어요.',
-        en: 'Stems are 10 symbols (Gap, Eul, Byeong…); branches are 12 (Ja, Chuk, In…). Each carries an element (Wood/Fire/Earth/Metal/Water) and a yin-yang.',
+        ko: '천간은 갑·을·병·정… 10개, 지지는 자·축·인·묘… 12개의 부호예요. 각각 다섯 기운(나무·불·흙·금속·물)과 음(陰)·양(陽), 즉 차분한 결과 활발한 결을 담고 있어요.',
+        en: 'Stems are 10 symbols (Gap, Eul, Byeong…); branches are 12 (Ja, Chuk, In…). Each carries one of five energies (Wood/Fire/Earth/Metal/Water) and a calm-vs-active flavor (yin and yang).',
       },
     },
     {
       term: { ko: '일간(나) · 예: 경금이 뭔가요?', en: 'Day Master (you) · e.g. "Gyeong Metal"' },
       body: {
-        ko: '네 기둥 중 "태어난 날"의 천간이 곧 나 자신이에요. 예를 들어 경금(庚)이면 금(금속) 기운의 양(陽) — 단단하고 결단력 있는 나를 뜻해요.',
-        en: 'The day-pillar stem is "you." For example Gyeong (庚) is Yang Metal — a firm, decisive self.',
+        ko: '네 기둥 중 "태어난 날"의 위 글자가 곧 나 자신이에요. 예를 들어 경금(庚)이면 활발한 결의 금속 기운 — 단단하고 결단력 있는 나를 뜻해요.',
+        en: 'The top symbol of your birth-day pillar is "you." For example Gyeong (庚) is active-flavored Metal — a firm, decisive self.',
       },
     },
     {
@@ -74,7 +74,7 @@ export const GLOSSARY: Record<GlossarySection, GlossaryEntry[]> = {
       },
     },
     {
-      term: { ko: '지장간', en: 'Hidden stems' },
+      term: { ko: '지장간 (글자 속 숨은 기운)', en: 'Hidden stems (energy inside a branch)' },
       body: {
         ko: '지지(아래 글자) 속에 숨어 있는 천간이에요. 겉으로 안 보여도 속에서 작용하는 기운을 보여줘요.',
         en: 'Stems tucked inside each branch — energies that work beneath the surface even when not visible.',
@@ -90,8 +90,8 @@ export const GLOSSARY: Record<GlossarySection, GlossaryEntry[]> = {
     {
       term: { ko: '신살 (역마살·도화살 등)', en: 'Symbolic stars (sinsal)' },
       body: {
-        ko: '특정 글자 조합에서 나오는 별칭 같은 기운이에요. 재능이나 주의점에 색을 더해 주는데, 강약·격국·용신을 보조하는 참고 신호예요 (단독으로 단정하지 않아요).',
-        en: 'Nicknamed energies from certain character combos (Traveling Horse, Peach Blossom…). They color the main reading — a reference signal that supports strength, structure, and the useful element, not a verdict on its own.',
+        ko: '특정 글자 조합에서 나오는 별칭 같은 기운이에요(역마살=이동·여행, 도화살=매력·인기 같은 식). 재능이나 주의할 점에 색을 더해 주는 참고 신호일 뿐, 이것만으로 단정하지는 않아요.',
+        en: 'Nicknamed energies from certain character combos (Traveling Horse = travel/change, Peach Blossom = charm/appeal…). They add color to your talents or things to watch for — a hint, not a verdict on their own.',
       },
     },
     {
@@ -118,7 +118,7 @@ export const GLOSSARY: Record<GlossarySection, GlossaryEntry[]> = {
       },
     },
     {
-      term: { ko: '격국', en: 'Chart structure (geokguk)' },
+      term: { ko: '격국 (사주의 큰 틀)', en: 'Chart structure (geokguk)' },
       body: {
         ko: '사주 전체의 유형(타입)이에요. 그 사람의 큰 성향과 어울리는 길을 한마디로 요약해줘요.',
         en: 'The overall "type" of your chart — a one-line summary of your broad disposition and fitting path.',
@@ -141,7 +141,7 @@ export const GLOSSARY: Record<GlossarySection, GlossaryEntry[]> = {
   ],
   s03: [
     {
-      term: { ko: '천궁도', en: 'Natal wheel' },
+      term: { ko: '천궁도 (태어난 순간 하늘 지도)', en: 'Natal wheel (your birth sky map)' },
       body: {
         ko: '태어난 순간 하늘을 둥글게 그린 지도예요. 둘레의 12별자리 위에 행성들이 놓여 있어요.',
         en: 'A round map of the sky at your birth, with planets placed on the 12 zodiac signs around the rim.',
@@ -192,14 +192,14 @@ export const GLOSSARY: Record<GlossarySection, GlossaryEntry[]> = {
       },
     },
     {
-      term: { ko: '오차각', en: 'Orb' },
+      term: { ko: '오차각 (각이 딱 맞은 정도)', en: 'Orb (how exact the angle is)' },
       body: {
         ko: '두 행성의 각도가 딱 떨어지는 값(예: 90°)에서 얼마나 벗어났는지 그 여유 폭이에요. 0°에 가까울수록 정확히 맞은 각이라 그만큼 더 강하게 작용해요.',
         en: 'How far two planets sit from an exact angle (e.g. 90°) — the allowed wiggle room. The closer to 0°, the more exact the angle, and the stronger it works.',
       },
     },
     {
-      term: { ko: '역행', en: 'Retrograde' },
+      term: { ko: '역행 (뒤로 가는 것처럼 보일 때)', en: 'Retrograde (appears to move backward)' },
       body: {
         ko: '하늘에서 행성이 잠시 뒤로 가는 것처럼 보이는 때예요. 그 행성의 기운이 밖으로 뻗기보다 안으로 향하고 곱씹는 식으로 작동한다고 봐요.',
         en: 'A time when a planet appears to move backward in the sky. Its energy is read as turning inward and reflective rather than reaching outward.',

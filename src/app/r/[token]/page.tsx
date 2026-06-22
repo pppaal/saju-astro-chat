@@ -8,7 +8,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { getShareLink } from '@/lib/tarot/shareLink'
+import { getShareLink, isCompatShare, isCalendarShare } from '@/lib/tarot/shareLink'
 import { recordCounter } from '@/lib/metrics/index'
 
 export const dynamic = 'force-dynamic'
@@ -27,6 +27,31 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     return { title: 'DestinyPal Tarot', robots: { index: false, follow: false } }
   }
   const isKo = reading.isKo
+  if (isCompatShare(reading)) {
+    const headline = reading.verdict || (isKo ? 'DestinyPal 궁합' : 'DestinyPal Compatibility')
+    const compatTitle = `${reading.nameA} ♥ ${reading.nameB} — DestinyPal`
+    const compatDesc = (reading.verdict || reading.headline || '').slice(0, 160)
+    return {
+      title: headline.length > 60 ? compatTitle : `${headline} — DestinyPal`,
+      description: compatDesc,
+      robots: { index: false, follow: false },
+      openGraph: { title: compatTitle, description: compatDesc, type: 'article' },
+      twitter: { card: 'summary_large_image', title: compatTitle, description: compatDesc },
+    }
+  }
+  if (isCalendarShare(reading)) {
+    const calTitle = reading.headline
+      ? `${reading.headline} — DestinyPal`
+      : `${reading.periodLabel} — DestinyPal`
+    const calDesc = (reading.headline || reading.periodLabel).slice(0, 160)
+    return {
+      title: calTitle,
+      description: calDesc,
+      robots: { index: false, follow: false },
+      openGraph: { title: calTitle, description: calDesc, type: 'article' },
+      twitter: { card: 'summary_large_image', title: calTitle, description: calDesc },
+    }
+  }
   const title = reading.keyMessage
     ? `${reading.keyMessage} — DestinyPal`
     : isKo
@@ -52,6 +77,265 @@ export default async function SharedReadingPage({ params }: PageProps) {
   recordCounter('tarot.share.viewed', 1)
 
   const isKo = reading.isKo
+
+  // 궁합 공유는 카드가 없고 verdict 한 줄이 주인공 — 별도 레이아웃.
+  if (isCompatShare(reading)) {
+    recordCounter('compatibility.share.viewed', 1)
+    const verdictColor =
+      reading.verdictTone === 'aligned'
+        ? GOLD
+        : reading.verdictTone === 'tension'
+          ? '#fda4af'
+          : reading.verdictTone === 'mixed'
+            ? '#fbbf24'
+            : '#dfe3ee'
+    return (
+      <main
+        style={{
+          minHeight: '100vh',
+          background:
+            'radial-gradient(900px 620px at 25% 8%, rgba(236,72,153,0.16), transparent 60%),' +
+            'radial-gradient(820px 700px at 85% 100%, rgba(212,181,114,0.14), transparent 60%),' +
+            'linear-gradient(160deg, #0b1022 0%, #070a1a 58%, #0a0e1f 100%)',
+          color: '#f1f3f9',
+        }}
+      >
+        <div
+          style={{
+            maxWidth: 600,
+            margin: '0 auto',
+            padding: '40px 20px 96px',
+            textAlign: 'center',
+          }}
+        >
+          <Link
+            href="/"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 10,
+              color: GOLD,
+              textDecoration: 'none',
+              fontWeight: 600,
+              letterSpacing: '0.04em',
+            }}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/logo/logo.png"
+              alt="DestinyPal"
+              width={30}
+              height={30}
+              style={{ borderRadius: 6 }}
+            />
+            DestinyPal
+          </Link>
+
+          <p
+            style={{
+              marginTop: 36,
+              fontSize: 12,
+              letterSpacing: '0.22em',
+              textTransform: 'uppercase',
+              color: GOLD_SOFT,
+            }}
+          >
+            {isKo ? '궁합 결과' : 'COMPATIBILITY'}
+          </p>
+          <p style={{ marginTop: 14, fontSize: 22, fontWeight: 700, color: '#f1f3f9' }}>
+            {reading.nameA} <span style={{ color: '#ec4899' }}>♥</span> {reading.nameB}
+          </p>
+
+          <h1
+            style={{
+              marginTop: 28,
+              fontSize: 28,
+              fontWeight: 800,
+              lineHeight: 1.4,
+              color: verdictColor,
+              wordBreak: 'keep-all',
+              overflowWrap: 'anywhere',
+              textShadow: '0 2px 24px rgba(212,181,114,0.18)',
+            }}
+          >
+            {reading.verdict}
+          </h1>
+
+          {reading.headline ? (
+            <p
+              style={{
+                marginTop: 18,
+                fontSize: 16,
+                lineHeight: 1.8,
+                color: '#dfe3ee',
+                wordBreak: 'keep-all',
+              }}
+            >
+              {reading.headline}
+            </p>
+          ) : null}
+
+          <div style={{ marginTop: 44 }}>
+            <Link
+              href="/compatibility/free"
+              style={{
+                display: 'inline-block',
+                padding: '15px 30px',
+                borderRadius: 999,
+                background: GOLD,
+                color: '#1a1305',
+                fontWeight: 700,
+                textDecoration: 'none',
+                fontSize: 16,
+              }}
+            >
+              {isKo ? '우리 궁합도 무료로 보기 →' : 'Check your match free →'}
+            </Link>
+            <p style={{ marginTop: 14, fontSize: 12, color: MUTED }}>
+              {isKo
+                ? '로그인 없이 두 사람 생년월일만 넣으면 바로 결과가 나와요.'
+                : 'No sign-up — just two birth dates and you get the result.'}
+            </p>
+          </div>
+        </div>
+      </main>
+    )
+  }
+
+  // 운흐름 캘린더 공유 — 기간 한 줄 총평이 주인공. 별도 레이아웃.
+  if (isCalendarShare(reading)) {
+    recordCounter('calendar.share.viewed', 1)
+    return (
+      <main
+        style={{
+          minHeight: '100vh',
+          background:
+            'radial-gradient(900px 620px at 25% 8%, rgba(212,181,114,0.18), transparent 60%),' +
+            'radial-gradient(820px 700px at 85% 100%, rgba(99,124,200,0.14), transparent 60%),' +
+            'linear-gradient(160deg, #0b1022 0%, #070a1a 58%, #0a0e1f 100%)',
+          color: '#f1f3f9',
+        }}
+      >
+        <div
+          style={{
+            maxWidth: 600,
+            margin: '0 auto',
+            padding: '40px 20px 96px',
+            textAlign: 'center',
+          }}
+        >
+          <Link
+            href="/"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 10,
+              color: GOLD,
+              textDecoration: 'none',
+              fontWeight: 600,
+              letterSpacing: '0.04em',
+            }}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/logo/logo.png"
+              alt="DestinyPal"
+              width={30}
+              height={30}
+              style={{ borderRadius: 6 }}
+            />
+            DestinyPal
+          </Link>
+
+          <p
+            style={{
+              marginTop: 36,
+              fontSize: 12,
+              letterSpacing: '0.22em',
+              textTransform: 'uppercase',
+              color: GOLD_SOFT,
+            }}
+          >
+            {isKo ? '운흐름 캘린더' : 'DESTINY CALENDAR'}
+          </p>
+          <p style={{ marginTop: 12, fontSize: 18, fontWeight: 700, color: '#f1f3f9' }}>
+            {reading.periodLabel}
+          </p>
+
+          <h1
+            style={{
+              marginTop: 26,
+              fontSize: 27,
+              fontWeight: 800,
+              lineHeight: 1.45,
+              color: GOLD,
+              wordBreak: 'keep-all',
+              overflowWrap: 'anywhere',
+              textShadow: '0 2px 24px rgba(212,181,114,0.18)',
+            }}
+          >
+            {reading.headline}
+          </h1>
+
+          {reading.highlights?.length ? (
+            <ul
+              style={{
+                marginTop: 26,
+                padding: 0,
+                listStyle: 'none',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 10,
+                textAlign: 'left',
+              }}
+            >
+              {reading.highlights.slice(0, 5).map((h, i) => (
+                <li
+                  key={i}
+                  style={{
+                    fontSize: 15,
+                    lineHeight: 1.6,
+                    color: '#dfe3ee',
+                    padding: '10px 14px',
+                    borderRadius: 12,
+                    background: 'rgba(255,255,255,0.04)',
+                    border: '1px solid rgba(232,204,138,0.14)',
+                    wordBreak: 'keep-all',
+                  }}
+                >
+                  {h}
+                </li>
+              ))}
+            </ul>
+          ) : null}
+
+          <div style={{ marginTop: 44 }}>
+            <Link
+              href="/free"
+              style={{
+                display: 'inline-block',
+                padding: '15px 30px',
+                borderRadius: 999,
+                background: GOLD,
+                color: '#1a1305',
+                fontWeight: 700,
+                textDecoration: 'none',
+                fontSize: 16,
+              }}
+            >
+              {isKo ? '내 운흐름도 무료로 보기 →' : 'See your own timing free →'}
+            </Link>
+            <p style={{ marginTop: 14, fontSize: 12, color: MUTED }}>
+              {isKo
+                ? '생년월일로 이달의 큰 날과 흐름을 무료로 확인할 수 있어요.'
+                : 'Find your key days and flow this month, free.'}
+            </p>
+          </div>
+        </div>
+      </main>
+    )
+  }
+
   const cards = reading.cards.slice(0, 10)
 
   return (

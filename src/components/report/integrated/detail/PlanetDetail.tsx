@@ -120,11 +120,11 @@ export default function PlanetDetail({
   if (bodies.length === 0) return null
   const summary = skip.size
     ? lang === 'en'
-      ? 'The other planets, read in full'
-      : '나머지 행성 읽기'
+      ? 'The other mind functions, read in full (planets)'
+      : '나머지 마음의 기능들 읽기 (행성)'
     : lang === 'en'
-      ? 'Every planet, read in full'
-      : '모든 행성 읽기'
+      ? 'Every mind function, read in full (planets)'
+      : '마음의 기능들 모두 읽기 (행성)'
 
   return (
     <details className={s.box}>

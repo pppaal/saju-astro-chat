@@ -58,49 +58,12 @@
   margin: 6px 0 0;
 }
 
-.stampRow {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 14px;
-  margin: 18px 0 14px;
-}
-.ganji {
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
-  min-width: 0;
-}
-.ganjiHanja {
-  font-family: var(--dp-serif);
-  font-size: clamp(34px, 7vw, 42px);
-  line-height: 1;
-  letter-spacing: 0.04em;
-  color: var(--dp-ember);
-}
-.ganjiRead {
-  font-size: 13.5px;
-  color: var(--dp-ink-dim);
-  letter-spacing: 0.03em;
-}
-.tagSaju {
-  flex-shrink: 0;
-  align-self: center;
-  font-family: var(--dp-mono);
-  font-size: 11px;
-  letter-spacing: 0.1em;
-  padding: 3px 9px;
-  border: 1px solid rgba(176, 58, 34, 0.32);
-  border-radius: 2px;
-  color: var(--dp-ember);
-}
-
 .summary {
   font-size: 13.5px;
   color: var(--dp-ink-dim);
   letter-spacing: 0.01em;
   line-height: 1.6;
-  margin: 4px 0 22px;
+  margin: 12px 0 22px;
 }
 .summary b {
   font-weight: 600;
@@ -254,6 +217,20 @@
   letter-spacing: 0.04em;
   color: var(--dp-ink-mute);
 }
+/* 잔잔 → 좋음 강도 띠 (Less → More). */
+.legScale {
+  font-family: var(--dp-mono);
+  font-size: 11.5px;
+  letter-spacing: 0.04em;
+  color: var(--dp-ink-mute);
+}
+.legBar {
+  display: inline-block;
+  width: 38px;
+  height: 5px;
+  border-radius: 3px;
+  background: linear-gradient(to right, var(--dp-line), var(--dp-accent-deep));
+}
 .swatch {
   display: inline-block;
   width: 16px;
@@ -268,10 +245,6 @@
   height: 7px;
   border: 1.5px solid var(--dp-tone-mixed);
   border-radius: 4px;
-}
-.swatchAvoid {
-  background: transparent;
-  border-bottom: 2px solid var(--dp-ember);
 }
 .swatchRing {
   width: 13px;
@@ -325,19 +298,19 @@
   line-height: 1.5;
   color: var(--dp-ink-dim);
 }
-/* 수렴 메타 — 사주+점성 동시 여부 · 빌드업→소멸 구간 · 신뢰도 */
+/* 큰 날 메타 — 겹치는 흐름(중립 라벨) · 빌드업→소멸 구간. 신뢰 숫자 없음. */
 .bigDayMeta {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 8px;
 }
-.bigDayBoth {
+.bigDayOverlap {
   font-family: var(--dp-mono);
   font-size: 10px;
   letter-spacing: 0.06em;
-  color: var(--dp-ember);
-  border: 1px solid rgba(176, 58, 34, 0.32);
+  color: var(--dp-ink-mute);
+  border: 1px solid var(--dp-line);
   border-radius: 999px;
   padding: 1px 8px;
 }
@@ -346,12 +319,6 @@
   font-size: 11px;
   letter-spacing: 0.02em;
   color: var(--dp-accent);
-}
-.bigDayConf {
-  font-family: var(--dp-mono);
-  font-size: 11px;
-  letter-spacing: 0.02em;
-  color: var(--dp-ink-mute);
 }
 
 /* ---------- 이달의 사주 × 점성 교차 ---------- */
@@ -373,15 +340,6 @@
   font-size: 13px;
   padding-left: 9px;
   border-left: 2px solid var(--dp-line);
-}
-/* 용어 참고(작게·흐리게) — 뜻 뒤에 붙는 정재×금성 등. */
-.mcrossTerm {
-  display: block;
-  font-family: var(--dp-mono);
-  font-size: 10px;
-  letter-spacing: 0.02em;
-  color: var(--dp-ink-mute);
-  margin-top: 2px;
 }
 .mcrossPos {
   border-left-color: var(--dp-pos);
@@ -420,6 +378,64 @@
   line-height: 1.78;
   letter-spacing: 0.005em;
   color: var(--dp-ink-dim);
+}
+
+/* ---------- 자세한 신호 보기 (간지 등 전문 신호 폴드) ---------- */
+.details {
+  margin-top: 22px;
+  border-top: 1px solid var(--dp-line-soft);
+  padding-top: 14px;
+}
+.detailsSummary {
+  list-style: none;
+  cursor: pointer;
+  font-family: var(--dp-mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--dp-ink-mute);
+}
+.detailsSummary::-webkit-details-marker {
+  display: none;
+}
+.detailsSummary::before {
+  content: '+ ';
+  color: var(--dp-ink-mute);
+}
+.details[open] .detailsSummary::before {
+  content: '− ';
+}
+.detailsSummary:hover {
+  color: var(--dp-ink);
+}
+.detailsBody {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 12px;
+}
+.ganjiRow {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+.ganjiLabel {
+  font-family: var(--dp-mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--dp-ink-mute);
+}
+.ganjiVal {
+  font-family: var(--dp-serif);
+  font-size: 22px;
+  letter-spacing: 0.04em;
+  color: var(--dp-ember);
+}
+.ganjiRead {
+  font-family: var(--dp-serif-ko);
+  font-size: 13px;
+  color: var(--dp-ink-dim);
+  letter-spacing: 0.02em;
 }
 
 /* ---------- dive (zoom-in) ---------- */

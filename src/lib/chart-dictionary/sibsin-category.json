@@ -1,7 +1,7 @@
 {
   "비겁": {
     "ko": {
-      "category_meaning": "비견 + 겁재 — 자기·형제·동료·경쟁",
+      "category_meaning": "비겁(자존·동료) — 자기·형제·동료·경쟁",
       "dominant": {
         "title": "독립·자기 사업 면",
         "meaning": "당신은 자기 주장이 강하고 동료·형제·경쟁자가 인생에 큰 영향을 주는 사람이에요. 혼자 결정하고 혼자 움직일 때 효율이 가장 좋아요. 조직보다 1인 사업·프리랜서·전문직이 잘 맞아요.",
@@ -18,7 +18,7 @@
       }
     },
     "en": {
-      "category_meaning": "Bigyeon (Companion) + Geopjae (Rob Wealth) — self, siblings, peers, competition",
+      "category_meaning": "Self & peers (your own kind) — self, siblings, peers, competition",
       "dominant": {
         "title": "Independent / Solo-business signature",
         "meaning": "You have a strong sense of self, and peers, siblings, and rivals shape your life heavily. You work most efficiently when you decide and act alone. Solo business, freelancing, and specialist work suit you better than corporate structures.",
@@ -37,7 +37,7 @@
   },
   "식상": {
     "ko": {
-      "category_meaning": "식신 + 상관 — 표현·창의·말·자식·생산",
+      "category_meaning": "식상(표현·창의) — 표현·창의·말·자식·생산",
       "dominant": {
         "title": "표현·창작·언어 면",
         "meaning": "당신은 말·글·예술·아이디어로 세상에 영향을 주는 사람이에요. 표현 욕구가 강하고 창의력·기획력이 뛰어나요. 콘텐츠·교육·예술·요리 분야에서 빛나요.",
@@ -54,7 +54,7 @@
       }
     },
     "en": {
-      "category_meaning": "Siksin (Eating God) + Sanggwan (Hurting Officer) — expression, creativity, speech, children, output",
+      "category_meaning": "Self-expression (creativity & voice) — expression, creativity, speech, children, output",
       "dominant": {
         "title": "Expression / Creative / Language signature",
         "meaning": "You influence the world through speech, writing, art, and ideas. Your urge to express is strong, and your creativity and planning skills stand out. You shine in content, education, art, and culinary fields.",
@@ -73,7 +73,7 @@
   },
   "재성": {
     "ko": {
-      "category_meaning": "정재 + 편재 — 돈·재물·이성/배우자 인연·현실 감각",
+      "category_meaning": "재성(돈·현실 감각) — 돈·재물·이성/배우자 인연·현실 감각",
       "dominant": {
         "title": "돈·사업·이성 면",
         "meaning": "당신은 돈의 흐름을 보는 눈이 밝고 현실 감각이 뛰어난 사람이에요. 사업·투자·영업에 적성이 있고 이성 인연도 풍부해요. 편재가 강하면 큰돈을 다루는 그릇이에요.",
@@ -90,7 +90,7 @@
       }
     },
     "en": {
-      "category_meaning": "Jeongjae (Direct Wealth) + Pyeonjae (Indirect Wealth) — money, wealth, romantic/partner ties, realism",
+      "category_meaning": "Wealth (money & real-world sense) — money, wealth, romantic/partner ties, realism",
       "dominant": {
         "title": "Money / Business / Romance signature",
         "meaning": "You have a sharp eye for the flow of money and strong real-world sense. Business, investing, and sales suit you, and romantic connections tend to come easily. A strong Indirect Wealth pull marks a vessel made for handling big money.",
@@ -109,7 +109,7 @@
   },
   "관성": {
     "ko": {
-      "category_meaning": "정관 + 편관(칠살) — 직장·명예·권위·책임/자식 인연·규율",
+      "category_meaning": "관성(명예·규율) — 직장·명예·권위·책임/자식 인연·규율",
       "dominant": {
         "title": "조직·명예·책임 면",
         "meaning": "당신은 책임감이 강하고 권위·지위·명예를 추구하는 사람이에요. 공무원·대기업·군경 같은 위계 조직에서 빛나요. 편관이 강하면 위기 돌파력과 카리스마가 뛰어나요.",
@@ -126,7 +126,7 @@
       }
     },
     "en": {
-      "category_meaning": "Jeonggwan (Direct Officer) + Pyeongwan / Chilsal (Seven Killings) — career, honor, authority, responsibility/children, discipline",
+      "category_meaning": "Authority (honor & discipline) — career, honor, authority, responsibility/children, discipline",
       "dominant": {
         "title": "Organization / Honor / Responsibility signature",
         "meaning": "You carry strong responsibility and pursue authority, status, and honor. You shine in hierarchical organizations like government, large corporations, or military and police. A strong Seven Killings pull brings outstanding crisis-handling power and charisma.",
@@ -145,7 +145,7 @@
   },
   "인성": {
     "ko": {
-      "category_meaning": "정인 + 편인 — 공부·학문·부모(특히 모친)·문서·정신",
+      "category_meaning": "인성(학문·보호) — 공부·학문·부모(특히 모친)·문서·정신",
       "dominant": {
         "title": "학문·정신·문서 면",
         "meaning": "당신은 공부·연구·학문에 깊이를 가진 사람이고 정신세계가 풍부해요. 교수·연구원·작가·종교인·전문 자격에 잘 맞아요. 모친·스승의 사랑과 도움을 많이 받아요.",
@@ -162,7 +162,7 @@
       }
     },
     "en": {
-      "category_meaning": "Jeongin (Direct Resource) + Pyeonin (Indirect Resource) — study, scholarship, parents (especially mother), documents, spirit",
+      "category_meaning": "Resource (learning & nurture) — study, scholarship, parents (especially mother), documents, spirit",
       "dominant": {
         "title": "Scholarship / Spirit / Document signature",
         "meaning": "You hold depth in study, research, and scholarship, and your inner world is rich. Professor, researcher, writer, religious leader, and certified specialist roles suit you. You receive much love and support from your mother and teachers.",

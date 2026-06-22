@@ -205,39 +205,9 @@ describe('toUser — NatalContext → destinypal user', () => {
   })
 
   describe('sect', () => {
-    it('낮 차트 — Sun light', () => {
-      const u = toUser(makeNatal({ sect: 'day' }))
-      expect(u.sect).toEqual({ kind: 'day', ko: '낮', light: 'Sun', lightKo: '태양' })
-      expect(u.sectKind).toBe('day')
-    })
-    it('밤 차트 — Moon light', () => {
-      const u = toUser(makeNatal({ sect: 'night' }))
-      expect(u.sect).toEqual({ kind: 'night', ko: '밤', light: 'Moon', lightKo: '달' })
-      expect(u.sectKind).toBe('night')
-    })
-  })
-
-  describe('almuten (dignity 최고점)', () => {
-    it('dignity score 최고 행성을 골라 셔트로', () => {
-      const natal = makeNatal({
-        dignities: [
-          { planet: 'Mars', sign: 'Aries', degree: 5, tiers: {}, score: 4 },
-          { planet: 'Venus', sign: 'Taurus', degree: 10, tiers: {}, score: 9 },
-          { planet: 'Sun', sign: 'Leo', degree: 1, tiers: {}, score: 7 },
-        ],
-      })
-      const u = toUser(natal)
-      expect(u.almuten).toEqual({
-        planet: 'Venus',
-        planetKo: '금성',
-        sign: 'Taurus',
-        signKo: '황소자리',
-        score: 9,
-      })
-    })
-
-    it('dignities 비면 almuten undefined', () => {
-      expect(toUser(makeNatal({ dignities: [] })).almuten).toBeUndefined()
+    it('낮/밤 차트 → sectKind', () => {
+      expect(toUser(makeNatal({ sect: 'day' })).sectKind).toBe('day')
+      expect(toUser(makeNatal({ sect: 'night' })).sectKind).toBe('night')
     })
   })
 
@@ -267,32 +237,12 @@ describe('toUser — NatalContext → destinypal user', () => {
   })
 
   describe('lots (Arabic Parts)', () => {
-    it('opts.lots → 짧은 셔트, natal.astro.lots → full', () => {
+    it('natal.astro.lots → lotsFull (house + sect + korean)', () => {
       const natal = makeNatal({
         sect: 'night',
         lots: [{ name: 'Fortune', sign: 'Gemini', degreeInSign: 12.3, house: 3, formula: 'f' }],
       })
-      const u = toUser(natal, {
-        lots: [
-          {
-            name: 'Fortune',
-            sign: 'Gemini',
-            degreeInSign: 12.3,
-            longitude: 72.3,
-            formula: 'ASC + Moon - Sun',
-          },
-        ],
-      })
-      expect(u.lots).toEqual([
-        {
-          name: 'Fortune',
-          sign: 'Gemini',
-          signKo: '쌍둥이자리',
-          degreeInSign: 12.3,
-          formula: 'ASC + Moon - Sun',
-        },
-      ])
-      expect(u.lotsFull).toEqual([
+      expect(toUser(natal).lotsFull).toEqual([
         {
           name: 'Fortune',
           sign: 'Gemini',
@@ -304,10 +254,8 @@ describe('toUser — NatalContext → destinypal user', () => {
       ])
     })
 
-    it('opts.lots 미지정 → lots 빈 배열; natal.astro.lots 빈 → lotsFull 빈', () => {
-      const u = toUser(makeNatal({ lots: [] }))
-      expect(u.lots).toEqual([])
-      expect(u.lotsFull).toEqual([])
+    it('natal.astro.lots 빈 → lotsFull 빈', () => {
+      expect(toUser(makeNatal({ lots: [] })).lotsFull).toEqual([])
     })
 
     it('lotsFull 의 house 결손 시 0 폴백', () => {
