@@ -1,13 +1,16 @@
 'use client'
 
 /* ============================================================
-   destinypal · YearTier — ② 1년 (YEARLY)
-   직역 출처: destinypal-extracted/js/tiers/year.jsx (110 라인)
-   + 5-tier 보강 (사용자 위임):
-     1) wheel 위 본명 행성 도트(natalDots) + 외행성 트랜짓 도트(transitDots)
-     2) profection readout — sect(낮/밤) 한 줄 + Lord-of-Year dignity 한 줄
-     3) ZR 카드 (Spirit L1+L2 / Fortune L1+L2)
-     7) wheel 좌상단 Pivotal 배지 (LoB · 풀린·매듭 / Peak · 정점)
+   destinypal · YearTier — ② 1년 (YEARLY) · "올해의 모양"
+
+   메인 표면은 jargon-free:
+     · "N년의 모양" 헤드라인 + 평문 한 줄
+     · "열두 달의 흐름" — monthlyScores 를 톤으로 색칠한 12막대.
+       큰 달은 봉인(ring/seal), 조심할 달은 표시. 숫자는 없음.
+     · "큰 달 / 조심" 한 줄 (monthlyScores 에서 파생)
+     · 평문 crossings 리스트 (영역 × 행성 + 톤) — 있으면.
+   전문가용(하우스 휠·글리프·프로펙션·sect·dignity·Lord-of-Year·ZR·세운 간지·raw note)은
+   전부 "자세한 신호 보기" <details> 하나로 접어 둠.
    ============================================================ */
 
 import type {
@@ -45,7 +48,7 @@ const MONTH_ABBR = [
 // ----------------------------------------------------------------
 
 export interface YearTierProps {
-  /** 본명 — 12-house wheel 본명 행성 도트 + 룰러 dignity 검색에 사용. */
+  /** 본명 — 자세히 보기 안의 하우스 휠 도트 + 룰러 dignity 검색에 사용. */
   user: DestinyUserSummary
   /** 세운 + Profection wheel. */
   year: DestinyYear
@@ -56,7 +59,7 @@ export interface YearTierProps {
 }
 
 // ----------------------------------------------------------------
-// Helpers
+// Helpers (자세히 보기 — 전문가용 휠/도트/dignity)
 // ----------------------------------------------------------------
 
 /** 영문 zodiac → 1..12 인덱스 (Aries=1) — 본명 ASC 기준 whole-sign house 매핑용. */
@@ -142,9 +145,7 @@ function buildNatalDots(user: DestinyUserSummary): NatalDot[] {
   }))
 }
 
-/** 외행성 transit 도트 — 본명 ASC 기준 (외행성: Jupiter / Saturn / Uranus / Neptune / Pluto).
- *  실데이터가 없으므로 본명 위치 기준으로 시간 변동 표시 — 본명 dignity 가 있을 때만 표시.
- */
+/** 외행성 transit 도트 — 본명 ASC 기준 (외행성: Jupiter / Saturn / Uranus / Neptune / Pluto). */
 function buildTransitDots(user: DestinyUserSummary): NatalDot[] {
   const OUTERS = ['Jupiter', 'Saturn', 'Uranus', 'Neptune', 'Pluto']
   const asc = user.astro?.ascEn ?? 'Aries'
@@ -166,7 +167,6 @@ function houseAngle(house: number): number {
 
 /** ZR chapter pivotal 표기 (LoB / Peak). */
 function zrPivotalTag(c: DestinyDecadeZRChapter, ko: boolean): string | null {
-  // ZRPeriod 는 level/index/sign/ruler 만 가짐. Pivotal 정보는 sub-period level 에 있음.
   const sub = c.subPeriods?.find((s) => s.isLoosingOfTheBond || s.isPeak)
   if (sub?.isLoosingOfTheBond) return ko ? 'LoB · 풀린 매듭' : 'LoB · loosed bond'
   if (sub?.isPeak) return ko ? 'Peak · 정점' : 'Peak'
@@ -192,43 +192,115 @@ function readWheelPivotal(year: DestinyYear): {
 }
 
 // ----------------------------------------------------------------
-// MonthBars — 12달 점수 막대그래프 (좋음=쪽빛 / 평이=회청 / 주의=주황).
+// 메인 표면 — "열두 달의 흐름" 막대 (jargon-free, 숫자 없음).
+//   톤: 큰 달(좋음) / 평이 / 조심할 달. 큰 달은 봉인 링, 조심은 점.
 // ----------------------------------------------------------------
-function barColor(score: number): string {
-  if (score >= 60) return '#4f5d96' // 좋음 — 쪽빛
-  if (score >= 40) return '#9aa0b4' // 평이 — 회청
-  return '#c0741f' // 주의 — 주황
+
+type MonthTone = 'big' | 'steady' | 'caution'
+
+function monthTone(score: number): MonthTone {
+  if (score >= 60) return 'big'
+  if (score >= 40) return 'steady'
+  return 'caution'
 }
-function MonthBars({
-  scores,
-  ko,
-  label,
-}: {
-  scores: Array<{ month: number; score: number; bestDay?: string }>
-  ko: boolean
-  label: string
-}) {
+
+interface MonthShapeItem {
+  month: number // 1..12
+  score: number
+  tone: MonthTone
+  isPeak: boolean // 큰 달 중에서도 최고점들 — 봉인
+}
+
+/** monthlyScores → 12달 모양 + 큰 달/조심 파생. 결정론적. */
+function buildMonthShape(scores: Array<{ month: number; score: number; bestDay?: string }>): {
+  items: MonthShapeItem[]
+  bigMonths: number[] // 봉인할 최고 달
+  cautionMonths: number[] // 조심할 최저 달
+} {
   const byMonth = new Map(scores.map((s) => [s.month, s.score]))
+  const items: MonthShapeItem[] = Array.from({ length: 12 }, (_, i) => {
+    const month = i + 1
+    const score = byMonth.get(month) ?? 0
+    return { month, score, tone: monthTone(score), isPeak: false }
+  })
+
+  // 큰 달 — 최고점 상위 (최대 3, 동점 포함, 좋음 밴드만).
+  const bigCandidates = items.filter((it) => it.tone === 'big')
+  const sortedDesc = [...bigCandidates].sort((a, b) => b.score - a.score)
+  const peakScore = sortedDesc.length > 0 ? sortedDesc[0].score : Infinity
+  const bigMonths = sortedDesc
+    .filter((it) => it.score === peakScore)
+    .slice(0, 3)
+    .map((it) => it.month)
+    .sort((a, b) => a - b)
+  for (const it of items) if (bigMonths.includes(it.month)) it.isPeak = true
+
+  // 조심할 달 — 최저점 (caution 밴드만, 최대 3, 최저 동점 포함).
+  const cautionCandidates = items.filter((it) => it.tone === 'caution')
+  const sortedAsc = [...cautionCandidates].sort((a, b) => a.score - b.score)
+  const lowScore = sortedAsc.length > 0 ? sortedAsc[0].score : -Infinity
+  const cautionMonths = sortedAsc
+    .filter((it) => it.score === lowScore)
+    .slice(0, 3)
+    .map((it) => it.month)
+    .sort((a, b) => a - b)
+
+  return { items, bigMonths, cautionMonths }
+}
+
+function monthLabel(month: number, ko: boolean): string {
+  return ko ? `${month}월` : MONTH_ABBR[month - 1]
+}
+
+function joinMonths(months: number[], ko: boolean): string {
+  return months.map((m) => monthLabel(m, ko)).join(', ')
+}
+
+/** "열두 달의 흐름" — 톤으로 색칠한 12막대. 숫자 없음, 큰 달 봉인·조심 표시. */
+function MonthShape({ shape, ko }: { shape: ReturnType<typeof buildMonthShape>; ko: boolean }) {
+  const { items } = shape
+  // 막대 높이는 점수에 비례하되 라벨/숫자는 노출하지 않음 (모양만).
+  const heightFor = (it: MonthShapeItem) => {
+    if (it.tone === 'big') return 100
+    if (it.tone === 'steady') return 64
+    return 36
+  }
+  const toneClass = (t: MonthTone) =>
+    t === 'big' ? styles.shapeBig : t === 'caution' ? styles.shapeCaution : styles.shapeSteady
+
   return (
-    <div className={styles.monthBarsWrap}>
-      <div className={styles.monthBarsLabel}>{label}</div>
-      <div className={styles.monthBars}>
-        {Array.from({ length: 12 }, (_, i) => {
-          const m = i + 1
-          const score = byMonth.get(m) ?? 0
-          const h = Math.max(6, Math.min(100, score)) // % 높이
-          return (
-            <div className={styles.monthBarCol} key={m} title={`${m}${ko ? '월' : ''} · ${score}`}>
-              <div className={styles.monthBarTrack}>
-                <div
-                  className={styles.monthBarFill}
-                  style={{ height: `${h}%`, background: barColor(score) }}
-                />
-              </div>
-              <span className={styles.monthBarLbl}>{ko ? m : MONTH_ABBR[i][0]}</span>
+    <div className={styles.shapeWrap}>
+      <div className={styles.shapeHead}>
+        <div className={styles.shapeTitle}>
+          {ko ? '열두 달의 흐름' : 'Shape of the twelve months'}
+        </div>
+        <div className={styles.shapeLegend}>
+          <span className={styles.legBig}>
+            <i className={styles.legDotBig} />
+            {ko ? '큰 달' : 'Big months'}
+          </span>
+          <span className={styles.legCaution}>
+            <i className={styles.legDotCaution} />
+            {ko ? '조심할 달' : 'Careful months'}
+          </span>
+        </div>
+      </div>
+      <div className={styles.shapeBars}>
+        {items.map((it) => (
+          <div className={styles.shapeCol} key={it.month}>
+            <div className={styles.shapeTrack}>
+              <div
+                className={`${styles.shapeFill} ${toneClass(it.tone)}`}
+                style={{ height: `${heightFor(it)}%` }}
+              />
+              {it.isPeak && <span className={styles.shapeSeal} aria-hidden="true" />}
+              {it.tone === 'caution' && shape.cautionMonths.includes(it.month) && (
+                <span className={styles.shapeMark} aria-hidden="true" />
+              )}
             </div>
-          )
-        })}
+            <span className={styles.shapeLbl}>{ko ? it.month : MONTH_ABBR[it.month - 1][0]}</span>
+          </div>
+        ))}
       </div>
     </div>
   )
@@ -243,30 +315,26 @@ export function YearTier({ user, year, onDive, onRise }: YearTierProps) {
   const ko = locale === 'ko'
   const p = year.profection
 
-  // 12-house wheel (원본 year.jsx 와 동일).
+  // 12-house wheel (자세히 보기 안에서만).
   const R = 150
   const cx = 180
   const cy = 180
   const houses = Array.from({ length: 12 }, (_, i) => i + 1)
 
-  // 보강 #1 — wheel 도트 데이터.
   const natalDots = buildNatalDots(user)
   const transitDots = buildTransitDots(user)
 
-  // 보강 #2 — sect / Lord-of-Year dignity.
   const sect = user.sect ?? 'day'
   const lordOfYearName = p?.rulerEn ?? ''
   const lordDignity = findDignity(user.dignities, lordOfYearName)
   const lordReadout = lordDignity ? formatDignity(lordDignity) : null
 
-  // 보강 #3 — ZR.
   const zrSpiritNow = (year.zrSpiritChapters ?? []).find((c) => c.now)
   const zrFortuneNow = (year.zrFortuneChapters ?? []).find((c) => c.now)
 
-  // 보강 #7 — wheel pivotal 배지.
   const wheelPivotal = readWheelPivotal(year)
 
-  // ── 올해 사주 × 점성 교차 — 월 구간별 진짜 교차 (엔진 cross-activation). ──
+  // ── 메인: 평문 crossings (영역 × 행성 + 톤). ──
   const toneTag = (t: 'good' | 'caution' | 'neutral') =>
     ko
       ? t === 'good'
@@ -284,8 +352,15 @@ export function YearTier({ user, year, onDive, onRise }: YearTierProps) {
     title: `${ko ? c.title : c.titleEn} · ${toneTag(c.tone)}`,
     detail: ko ? c.detail : (c.detailEn ?? c.detail),
   }))
+  const crossHeading = ko
+    ? `올해 무엇이 겹치나 · ${year.year}`
+    : `What overlaps this year · ${year.year}`
 
-  // ── 12달 흐름 리스트 — 월별 점수를 좋음/평이/주의로 (overview, 상세 안). ──
+  // ── 메인: "열두 달의 흐름" 모양 + 큰 달/조심 한 줄. ──
+  const hasMonths = (year.monthlyScores?.length ?? 0) > 0
+  const monthShape = buildMonthShape(year.monthlyScores ?? [])
+
+  // ── 자세히 보기 안: 12달 점수 리스트 (밴드 라벨). ──
   const yearBand = (s: number) =>
     s >= 60
       ? ko
@@ -298,9 +373,6 @@ export function YearTier({ user, year, onDive, onRise }: YearTierProps) {
         : ko
           ? '조심할 달'
           : 'Cautious month'
-  const crossHeading = ko
-    ? `올해의 사주 × 점성 교차 · ${year.year}`
-    : `Saju × Astrology · ${year.year}`
   const flowHeading = ko ? `올해 12달 흐름 · ${year.year}` : `12-month flow · ${year.year}`
   const yearItems = (year.monthlyScores ?? []).map((m) => ({
     when: ko ? `${m.month}월` : MONTH_ABBR[m.month - 1],
@@ -323,7 +395,9 @@ export function YearTier({ user, year, onDive, onRise }: YearTierProps) {
       <div className={styles.eyebrow}>
         {ko ? '1년' : '1 YEAR'} · YEARLY · {year.year}
       </div>
-      <h1 className={styles.display}>{ko ? '올해의 흐름' : 'This year'}</h1>
+      <h1 className={styles.display}>
+        {ko ? `${year.year}년의 모양` : `The shape of ${year.year}`}
+      </h1>
       <p className={styles.oneline}>
         {ko
           ? year.headline
@@ -333,28 +407,39 @@ export function YearTier({ user, year, onDive, onRise }: YearTierProps) {
               : `${year.year} — a year the flow gets re-drawn.`))}
       </p>
 
-      {yearCrossItems.length > 0 ? (
-        <CrossingList heading={crossHeading} items={yearCrossItems} />
-      ) : (
-        <CrossingList heading={flowHeading} items={yearItems} />
+      {/* ── 메인 ①: 열두 달의 흐름 (모양 + 큰 달/조심) ── */}
+      {hasMonths && (
+        <>
+          <MonthShape shape={monthShape} ko={ko} />
+          <p className={styles.bigCaution}>
+            {monthShape.bigMonths.length > 0 && (
+              <span className={styles.bigPhrase}>
+                <b>{ko ? '큰 달' : 'Big months'}</b> {joinMonths(monthShape.bigMonths, ko)}
+              </span>
+            )}
+            {monthShape.bigMonths.length > 0 && monthShape.cautionMonths.length > 0 && (
+              <span className={styles.bcSep}> · </span>
+            )}
+            {monthShape.cautionMonths.length > 0 && (
+              <span className={styles.cautionPhrase}>
+                <b>{ko ? '조심' : 'Careful'}</b> {joinMonths(monthShape.cautionMonths, ko)}
+              </span>
+            )}
+          </p>
+        </>
       )}
 
-      {(year.monthlyScores?.length ?? 0) > 0 && (
-        <MonthBars
-          scores={year.monthlyScores ?? []}
-          ko={ko}
-          label={ko ? '12달 흐름' : '12-month flow'}
-        />
-      )}
+      {/* ── 메인 ②: 평문 교차 (영역 × 행성 + 톤) ── */}
+      {yearCrossItems.length > 0 && <CrossingList heading={crossHeading} items={yearCrossItems} />}
 
-      {/* ── 전문가용 상세 — 프로펙션·세운·ZR·패턴 전부 접어 둠 ── */}
+      {/* ── 자세한 신호 보기 — 휠·글리프·프로펙션·sect·dignity·ZR·세운 간지 전부 접음 ── */}
       <details className={summaryStyles.details}>
         <summary className={summaryStyles.detailsSummary}>
-          {ko ? '자세히 보기 · 사주·점성 근거' : 'Details · Saju & Astrology'}
+          {ko ? '자세한 신호 보기' : 'See the detailed signals'}
         </summary>
 
-        {/* 월별 점수 overview — 교차를 메인에 띄웠으므로 상세로 내림. */}
-        {yearCrossItems.length > 0 && <CrossingList heading={flowHeading} items={yearItems} />}
+        {/* 12달 점수 리스트 (밴드 라벨) — 상세. */}
+        {hasMonths && <CrossingList heading={flowHeading} items={yearItems} />}
 
         <div className={styles.yearWrap}>
           {/* ── house wheel ── */}
@@ -435,10 +520,9 @@ export function YearTier({ user, year, onDive, onRise }: YearTierProps) {
                 )
               })}
 
-              {/* 보강 #1a — 본명 행성 도트 (안쪽 링). */}
+              {/* 본명 행성 도트 (안쪽 링). */}
               {natalDots.map((d, i) => {
                 const ang = houseAngle(d.house)
-                // jitter — same-house planets 흩뿌림.
                 const sameHouseBefore = natalDots
                   .slice(0, i)
                   .filter((x) => x.house === d.house).length
@@ -455,7 +539,7 @@ export function YearTier({ user, year, onDive, onRise }: YearTierProps) {
                 )
               })}
 
-              {/* 보강 #1b — 외행성 트랜짓 도트 (바깥쪽 링). */}
+              {/* 외행성 트랜짓 도트 (바깥쪽 링). */}
               {transitDots.map((d, i) => {
                 const ang = houseAngle(d.house)
                 const sameHouseBefore = transitDots
@@ -474,7 +558,6 @@ export function YearTier({ user, year, onDive, onRise }: YearTierProps) {
                 )
               })}
 
-              {/* center label — house# (원본 그대로). */}
               <text x={cx} y={cy - 6} textAnchor="middle" className={styles.wheelCenterTop}>
                 house
               </text>
@@ -523,7 +606,6 @@ export function YearTier({ user, year, onDive, onRise }: YearTierProps) {
                 </dl>
               )}
 
-              {/* 보강 #2 — sect + Lord-of-Year dignity. */}
               <div
                 className={
                   sect === 'day'
@@ -585,7 +667,7 @@ export function YearTier({ user, year, onDive, onRise }: YearTierProps) {
           </div>
         </div>
 
-        {/* ── 보강 #3 — ZR 카드 (Spirit / Fortune) ── */}
+        {/* ── ZR 카드 (Spirit / Fortune) ── */}
         <section className={styles.block}>
           <div className={styles.secHead}>
             <h2
@@ -690,7 +772,7 @@ export function YearTier({ user, year, onDive, onRise }: YearTierProps) {
         </section>
       </details>
 
-      {/* ── dive 버튼 (원본 그대로) ── */}
+      {/* ── dive 버튼 ── */}
       <div className={styles.diveWrap}>
         <button className={styles.dive} onClick={onDive}>
           {ko ? '이번 달로 줌인' : 'Zoom in to this month'} <span className={styles.arrow}>↓</span>

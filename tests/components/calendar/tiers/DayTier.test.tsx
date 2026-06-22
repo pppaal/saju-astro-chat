@@ -1,5 +1,5 @@
 import React from 'react'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen, fireEvent, within } from '@testing-library/react'
 import { vi, describe, it, expect, beforeEach } from 'vitest'
 
 // useI18n 은 locale 만 읽힌다 — mutable 변수로 ko/en 토글.
@@ -124,6 +124,15 @@ function makeDay(over: Partial<DestinyDay> = {}): DestinyDay {
   } as DestinyDay
 }
 
+// "자세한 신호 보기" fold 엘리먼트(<details>)를 찾는다. 표면(나머지 DOM)에
+// 용어가 새지 않았는지를 검증하기 위해 fold 안/밖을 가른다.
+function getFold(): HTMLElement {
+  const summary = screen.getByText(mockLocale === 'ko' ? '자세한 신호 보기' : 'See the raw signals')
+  const details = summary.closest('details')
+  if (!details) throw new Error('signal fold <details> not found')
+  return details as HTMLElement
+}
+
 describe('DayTier', () => {
   beforeEach(() => {
     mockLocale = 'ko'
@@ -135,7 +144,7 @@ describe('DayTier', () => {
     return { onRise, ...utils }
   }
 
-  describe('header (ko)', () => {
+  describe('hero (마음의 날씨, ko)', () => {
     it('renders the day eyebrow with the date and korean date', () => {
       setup()
       expect(screen.getByText(/1일/)).toBeInTheDocument()
@@ -143,12 +152,19 @@ describe('DayTier', () => {
       expect(screen.getByText('2024년 6월 15일')).toBeInTheDocument()
     })
 
-    it('renders the iljin hanja and a PLAIN-language lead (meaning before jargon)', () => {
-      setup()
-      expect(screen.getByText('甲子')).toBeInTheDocument()
-      // 쉬운말 우선: 뜻("돈·현실")을 앞세우고, 갑자/편재 용어는 작은 참고로.
+    it('leads with a PLAIN mood line and keeps ALL jargon off the main surface', () => {
+      const { container } = setup()
+      // 쉬운말 무드 리드 — 뜻("돈·현실")만. 일진/십신 한자·용어 줄은 hero 에 없다.
       expect(screen.getByText('오늘은 ‘돈·현실’의 기운')).toBeInTheDocument()
-      expect(screen.getByText(/오늘의 기운 갑자/)).toBeInTheDocument()
+      // 표면(= fold 를 뺀 DOM)엔 일진 한자도, 원시 "오늘의 기운 갑자(甲子)" 줄도 없다.
+      const fold = getFold()
+      const surface = container.cloneNode(true) as HTMLElement
+      surface.querySelectorAll('details').forEach((d) => d.remove())
+      expect(surface.textContent).not.toContain('甲子')
+      expect(surface.textContent).not.toMatch(/오늘의 기운 갑자/)
+      // 한자/원시 십신 줄은 fold 안에만 존재한다.
+      expect(fold.textContent).toContain('甲子')
+      expect(within(fold).getByText(/오늘의 기운 갑자/)).toBeInTheDocument()
     })
 
     it('shows strength as a word, not a raw score number (score 72 → 강한 날)', () => {
@@ -159,16 +175,48 @@ describe('DayTier', () => {
       expect(screen.queryByText('72')).not.toBeInTheDocument()
     })
 
-    it('shows the natal day master plainly as "나의 타고난 기운" (ko)', () => {
-      setup()
-      expect(screen.getByText('辛')).toBeInTheDocument()
-      expect(screen.getByText(/나의 타고난 기운 · 신금/)).toBeInTheDocument()
+    it('keeps raw polarity (±) markers off the main surface (fold only)', () => {
+      const astroSignals = [
+        {
+          id: 't1',
+          cat: 'astro/transit',
+          label: 'Mars conjunction Sun',
+          polarity: 1,
+          weight: 1,
+          kind: 'transit' as never,
+          layer: 'daily' as never,
+          source: 'astro',
+          body: 'Mars',
+          aspect: 'conjunction',
+          target: '본명 Sun',
+          glyph: '♂',
+        },
+      ] as never
+      const { container } = setup({ day: { allSignals: astroSignals } })
+      // the PolChip "+1" exists only inside the fold.
+      const fold = getFold()
+      expect(within(fold).getByText('+1')).toBeInTheDocument()
+      const surface = container.cloneNode(true) as HTMLElement
+      surface.querySelectorAll('details').forEach((d) => d.remove())
+      expect(surface.textContent).not.toContain('+1')
     })
 
-    it('shows the day master reference in plain English', () => {
+    it('moves the natal day master into the fold, plainly described', () => {
+      const { container } = setup()
+      const fold = getFold()
+      // 일간 한자·풀이는 fold 안에만.
+      expect(fold.textContent).toContain('辛')
+      expect(within(fold).getByText(/나의 타고난 기운 · 신금/)).toBeInTheDocument()
+      const surface = container.cloneNode(true) as HTMLElement
+      surface.querySelectorAll('details').forEach((d) => d.remove())
+      expect(surface.textContent).not.toContain('辛')
+    })
+
+    it('shows the day master reference in plain English inside the fold', () => {
       mockLocale = 'en'
       setup()
-      expect(screen.getByText(/your core nature · Sin · Yin Metal/)).toBeInTheDocument()
+      const fold = getFold()
+      expect(within(fold).getByText(/your core nature · Sin · Yin Metal/)).toBeInTheDocument()
     })
 
     it('renders the one-line summary', () => {
@@ -182,7 +230,7 @@ describe('DayTier', () => {
       setup()
       expect(screen.getByText('오늘 깊이 읽기')).toBeInTheDocument()
       // the woven shinsal list (천을귀인 · 도화) is contiguous only inside the
-      // deep-read body — the chips render each star as a separate node.
+      // deep-read body.
       const para = screen.getByText(/천을귀인 · 도화/)
       expect(para).toBeInTheDocument()
       // opener leads with the iljin's plain life-area, not the raw ganji term.
@@ -195,6 +243,77 @@ describe('DayTier', () => {
       expect(screen.getByText('Today in depth')).toBeInTheDocument()
       // opener leads with the plain life-area ('opportunity & money'), no ganji.
       expect(screen.getAllByText(/opportunity & money/).length).toBeGreaterThan(0)
+    })
+  })
+
+  describe('지금 일어나는 일 (what is happening)', () => {
+    it('renders the section with plain reason lines (ko)', () => {
+      setup()
+      expect(screen.getByText('지금 일어나는 일')).toBeInTheDocument()
+      expect(screen.getByText('재성 우호 트랜짓')).toBeInTheDocument()
+    })
+
+    it('renders the english heading in en mode', () => {
+      mockLocale = 'en'
+      setup()
+      expect(screen.getByText("What's happening")).toBeInTheDocument()
+    })
+
+    it('leads with the strongest cross meaning when a cross is present (ko)', () => {
+      setup({
+        day: {
+          crossActivations: [
+            {
+              id: 'x1',
+              sajuSide: '정재',
+              astroSide: '금성',
+              sajuKo: '정재',
+              astroKo: '금성',
+              meaning: '안정된 가치·관계가 살아남',
+              meaningEn: 'stable value and ties light up',
+              polarity: 2 as const,
+              weight: 0.8,
+            },
+          ] as never,
+        },
+      })
+      // cross meaning surfaces plainly in the "지금 일어나는 일" list.
+      expect(screen.getAllByText('안정된 가치·관계가 살아남').length).toBeGreaterThan(0)
+    })
+
+    it('renders the muted "steady day" line when no reasons and no cautions and no cross', () => {
+      setup({ day: { topReasons: [], cautions: [], crossActivations: [] } })
+      expect(screen.getByText('오늘은 두드러진 신호 없이 무난한 흐름이에요.')).toBeInTheDocument()
+    })
+
+    it('translates aggregate-star + relation tokens in reasons (en)', () => {
+      mockLocale = 'en'
+      setup({
+        day: {
+          topReasons: ['재성 우호 트랜짓'],
+          cautions: [],
+        },
+      })
+      // localizeLabel falls back to translateSignalLabel, so 재성 no longer leaks.
+      expect(screen.queryByText(/재성/)).not.toBeInTheDocument()
+      expect(screen.getByText(/Wealth star/)).toBeInTheDocument()
+    })
+  })
+
+  describe('이렇게 해보세요 (try this)', () => {
+    it('renders the section heading and DO / EASE chips (ko)', () => {
+      setup()
+      expect(screen.getByText('이렇게 해보세요')).toBeInTheDocument()
+      expect(screen.getByText(/이렇게 ·/)).toBeInTheDocument()
+      expect(screen.getByText(/살살 ·/)).toBeInTheDocument()
+    })
+
+    it('renders the english section + chips in en mode', () => {
+      mockLocale = 'en'
+      setup()
+      expect(screen.getByText('Try this today')).toBeInTheDocument()
+      expect(screen.getByText(/DO ·/)).toBeInTheDocument()
+      expect(screen.getByText(/EASE ·/)).toBeInTheDocument()
     })
   })
 
@@ -217,31 +336,36 @@ describe('DayTier', () => {
 
     it('renders the cross meaning in Korean', () => {
       setup({ day: crossDay })
-      expect(screen.getByText('안정된 가치·관계가 살아남')).toBeInTheDocument()
+      expect(screen.getAllByText('안정된 가치·관계가 살아남').length).toBeGreaterThan(0)
     })
 
     it('picks meaningEn in English (no server-locale baking)', () => {
       mockLocale = 'en'
       setup({ day: crossDay })
-      expect(screen.getByText('stable value and ties light up')).toBeInTheDocument()
+      expect(screen.getAllByText('stable value and ties light up').length).toBeGreaterThan(0)
       expect(screen.queryByText('안정된 가치·관계가 살아남')).not.toBeInTheDocument()
     })
   })
 
-  describe('natal detail fold (hidden signals)', () => {
-    it('renders the collapsible natal detail with PLAIN labels + hidden stems (ko)', () => {
+  describe('signal fold (all jargon, collapsed)', () => {
+    it('renders ONE collapsible fold holding the chart + natal jargon (ko)', () => {
       setup()
-      expect(screen.getByText(/오늘 더 자세히/)).toBeInTheDocument()
-      expect(screen.getByText(/숨은 기운/)).toBeInTheDocument()
-      // 癸 hidden-stem (jeonggi) chip from the fixture jijanggan.
-      expect(screen.getByText('癸')).toBeInTheDocument()
+      expect(screen.getByText('자세한 신호 보기')).toBeInTheDocument()
+      const fold = getFold()
+      // the iljin/day-master hanja live inside the fold.
+      expect(fold.textContent).toContain('甲子')
+      expect(fold.textContent).toContain('辛')
+      // natal hidden-stem (jeonggi) chip from the fixture jijanggan.
+      expect(within(fold).getByText('癸')).toBeInTheDocument()
+      expect(within(fold).getByText(/숨은 기운/)).toBeInTheDocument()
     })
 
-    it('translates the natal detail labels to plain English', () => {
+    it('translates the fold natal labels to plain English', () => {
       mockLocale = 'en'
       setup()
-      expect(screen.getByText(/More detail/)).toBeInTheDocument()
-      expect(screen.getByText(/Hidden energies within/)).toBeInTheDocument()
+      const fold = getFold()
+      expect(within(fold).getByText('See the raw signals')).toBeInTheDocument()
+      expect(within(fold).getByText(/Hidden energies within/)).toBeInTheDocument()
     })
 
     it('shows applied patterns with an English gloss (no Korean leak)', () => {
@@ -258,122 +382,16 @@ describe('DayTier', () => {
               activeAxes: ['일진'],
               rule: '본명 재 + 시기 관 → 관 강화',
             },
-          ],
+          ] as never,
         },
       })
-      expect(screen.getByText(/Wealth generates Officer/)).toBeInTheDocument()
+      const fold = getFold()
+      expect(within(fold).getByText(/Wealth generates Officer/)).toBeInTheDocument()
       // the Korean rule must NOT leak in EN mode
-      expect(screen.queryByText(/본명 재/)).not.toBeInTheDocument()
-    })
-  })
-
-  describe('tone dial (verdict-driven)', () => {
-    it('shows the positive tone word for a positive verdict (ko)', () => {
-      setup({ day: { dayTone: makeVerdict({ tone: 'positive' }) } })
-      expect(screen.getByText('순풍')).toBeInTheDocument()
+      expect(within(fold).queryByText(/본명 재/)).not.toBeInTheDocument()
     })
 
-    it('shows the caution tone word for a caution verdict (ko)', () => {
-      setup({ day: { dayTone: makeVerdict({ band: 'low', tone: 'caution' }) } })
-      expect(screen.getByText('역풍')).toBeInTheDocument()
-    })
-
-    it('shows the steady/mixed tone word for a mixed verdict (ko)', () => {
-      setup({ day: { dayTone: makeVerdict({ band: 'mid', tone: 'mixed' }) } })
-      expect(screen.getByText('평이')).toBeInTheDocument()
-    })
-
-    it('uses english tone words in en mode', () => {
-      mockLocale = 'en'
-      setup({ day: { dayTone: makeVerdict({ tone: 'positive' }) } })
-      expect(screen.getByText('Tailwind')).toBeInTheDocument()
-    })
-  })
-
-  describe('head chips / banners', () => {
-    // #1519 dropped the static geokguk (격국) chip from the day screen — geokguk
-    // success/failure is a static natal analysis, not day-level timing, so it was
-    // removed from this tier (see DayTier.tsx head-status comment). The closest
-    // current head-status surface is the iljin sibsin (일진 십신) line. Assert that
-    // the day-pillar status renders AND the removed geokguk text does NOT.
-    it('renders the iljin sibsin status in the head and drops the geokguk chip (ko)', () => {
-      const { container } = setup()
-      // 쉬운말 hero: 뜻("오늘의 기운") + sibsin 용어(편재)가 참고로 함께.
-      expect(container.textContent).toContain('오늘의 기운')
-      expect(screen.getAllByText(/편재/).length).toBeGreaterThan(0)
-      // geokguk name / status / description are no longer rendered on the day tier.
-      expect(screen.queryByText('편재격')).not.toBeInTheDocument()
-      expect(screen.queryByText('재성이 뚜렷한 격국')).not.toBeInTheDocument()
-    })
-
-    it('renders the gongmang banner with active branches when present', () => {
-      setup()
-      expect(screen.getByText(/공망 · 空亡/)).toBeInTheDocument()
-      expect(screen.getByText('오늘 공망 활성')).toBeInTheDocument()
-    })
-
-    it('hides the gongmang banner when no active branches', () => {
-      setup({
-        day: { gongmang: { natalBranches: ['戌', '亥'], activeBranches: [], activeAxes: [] } },
-      })
-      expect(screen.queryByText(/공망 · 空亡/)).not.toBeInTheDocument()
-    })
-
-    it('renders the VOC banner when voc is active', () => {
-      // #1519 relabelled the VOC banner: "Moon VOC" → "달의 빈 시간" (ko) and renders
-      // the window as "{from} → {to}".
-      setup({ props: { voc: { active: true, from: '10:00', to: '12:00' } } })
-      expect(screen.getByText('달의 빈 시간')).toBeInTheDocument()
-      expect(screen.getByText('10:00 → 12:00')).toBeInTheDocument()
-    })
-
-    it('hides the VOC banner when voc is inactive', () => {
-      setup({ props: { voc: { active: false } } })
-      expect(screen.queryByText('달의 빈 시간')).not.toBeInTheDocument()
-    })
-  })
-
-  describe('today core — reasons / cautions / shinsal', () => {
-    it('renders top reasons and cautions lists (ko)', () => {
-      setup()
-      expect(screen.getByText('재성 우호 트랜짓')).toBeInTheDocument()
-      expect(screen.getByText('관성 충돌 주의')).toBeInTheDocument()
-    })
-
-    it('translates aggregate-star + relation tokens in reasons/cautions (en)', () => {
-      mockLocale = 'en'
-      setup({
-        day: {
-          topReasons: ['재성 우호 트랜짓'],
-          cautions: ['관성 충 주의'],
-        },
-      })
-      // localizeLabel now falls back to translateSignalLabel, so the aggregate
-      // stars (재성/관성) and the relation token (충) no longer leak as Hangul.
-      expect(screen.queryByText(/재성/)).not.toBeInTheDocument()
-      expect(screen.queryByText(/관성/)).not.toBeInTheDocument()
-      expect(screen.getByText(/Wealth star/)).toBeInTheDocument()
-      expect(screen.getByText(/Officer star/)).toBeInTheDocument()
-      expect(screen.getByText(/clash/)).toBeInTheDocument()
-    })
-
-    it('renders the muted "steady day" line when no reasons and no cautions', () => {
-      setup({ day: { topReasons: [], cautions: [] } })
-      expect(screen.getByText('오늘은 두드러진 신호 없이 무난한 흐름이에요.')).toBeInTheDocument()
-    })
-
-    it('renders active shinsal pills (ko)', () => {
-      setup()
-      // shinsal names may also surface as domain evidence chips → allow multiple.
-      expect(screen.getAllByText('천을귀인').length).toBeGreaterThan(0)
-      expect(screen.getAllByText('도화').length).toBeGreaterThan(0)
-    })
-
-    it('renders the evidence transits inside the details disclosure', () => {
-      // #1519 replaced the per-transit "근거 신호 보기" list with EvidenceDetails, a
-      // <details> disclosure summarised "근거 자세히 · 신호와 강도" that renders
-      // day.allSignals (polarity ≠ 0). Astro rows emit a "natal" target span which
-      // localizes to "본명 …" in ko. Feed allSignals (the new prop) the astro rows.
+    it('renders the evidence signals (aspect→natal, polarity, strength) inside the fold', () => {
       const astroSignals = [
         {
           id: 't1',
@@ -404,11 +422,91 @@ describe('DayTier', () => {
           glyph: '♄',
         },
       ] as never
-      setup({ day: { allSignals: astroSignals } })
-      // disclosure summary for the evidence/details section.
-      expect(screen.getByText('근거 자세히 · 신호와 강도')).toBeInTheDocument()
-      // astro rows render a "본명 …" natal-target span (one per signal).
-      expect(screen.getAllByText(/본명/).length).toBeGreaterThan(0)
+      const { container } = setup({ day: { allSignals: astroSignals } })
+      const fold = getFold()
+      // the signals/strength block lives inside the fold.
+      expect(within(fold).getByText('신호와 강도')).toBeInTheDocument()
+      // astro rows render a "본명 …" natal-target span (one per signal) inside fold.
+      expect(within(fold).getAllByText(/본명/).length).toBeGreaterThan(0)
+      // and the polarity (±) markers do NOT leak to the main surface.
+      const surface = container.cloneNode(true) as HTMLElement
+      surface.querySelectorAll('details').forEach((d) => d.remove())
+      expect(surface.textContent).not.toMatch(/본명/)
+    })
+
+    it('moves the hour-row astrology terms (rising sign / ruler) into the fold', () => {
+      const { container } = setup()
+      const fold = getFold()
+      // sky-by-hour rising sign + ruler are inside the fold only.
+      expect(within(fold).getByText('시간대 하늘')).toBeInTheDocument()
+      expect(fold.textContent).toContain('사자자리')
+      expect(fold.textContent).toContain('상승')
+      const surface = container.cloneNode(true) as HTMLElement
+      surface.querySelectorAll('details').forEach((d) => d.remove())
+      expect(surface.textContent).not.toContain('사자자리')
+      expect(surface.textContent).not.toContain('상승')
+    })
+  })
+
+  describe('tone dial (verdict-driven)', () => {
+    it('shows the positive tone word for a positive verdict (ko)', () => {
+      setup({ day: { dayTone: makeVerdict({ tone: 'positive' }) } })
+      expect(screen.getByText('순풍')).toBeInTheDocument()
+    })
+
+    it('shows the caution tone word for a caution verdict (ko)', () => {
+      setup({ day: { dayTone: makeVerdict({ band: 'low', tone: 'caution' }) } })
+      expect(screen.getByText('역풍')).toBeInTheDocument()
+    })
+
+    it('shows the steady/mixed tone word for a mixed verdict (ko)', () => {
+      setup({ day: { dayTone: makeVerdict({ band: 'mid', tone: 'mixed' }) } })
+      expect(screen.getByText('평이')).toBeInTheDocument()
+    })
+
+    it('uses english tone words in en mode', () => {
+      mockLocale = 'en'
+      setup({ day: { dayTone: makeVerdict({ tone: 'positive' }) } })
+      expect(screen.getByText('Tailwind')).toBeInTheDocument()
+    })
+  })
+
+  describe('head chips / banners', () => {
+    it('keeps the plain mood lead and drops the geokguk chip (ko)', () => {
+      const { container } = setup()
+      // 쉬운말 hero: 뜻("기운")만 표면에. 십신 용어(편재)는 fold 안으로.
+      expect(container.textContent).toContain('의 기운')
+      // geokguk name / status / description are no longer rendered on the day tier.
+      expect(screen.queryByText('편재격')).not.toBeInTheDocument()
+      expect(screen.queryByText('재성이 뚜렷한 격국')).not.toBeInTheDocument()
+    })
+
+    it('renders the gongmang banner plainly (no hanja glyph) when active', () => {
+      const { container } = setup()
+      expect(screen.getByText(/비는 자리/)).toBeInTheDocument()
+      expect(screen.getByText('오늘 공망 활성')).toBeInTheDocument()
+      // the hollow-branch hanja glyph (戌) is dropped from the banner surface.
+      const surface = container.cloneNode(true) as HTMLElement
+      surface.querySelectorAll('details').forEach((d) => d.remove())
+      expect(surface.textContent).not.toContain('戌')
+    })
+
+    it('hides the gongmang banner when no active branches', () => {
+      setup({
+        day: { gongmang: { natalBranches: ['戌', '亥'], activeBranches: [], activeAxes: [] } },
+      })
+      expect(screen.queryByText(/비는 자리/)).not.toBeInTheDocument()
+    })
+
+    it('renders the VOC banner when voc is active', () => {
+      setup({ props: { voc: { active: true, from: '10:00', to: '12:00' } } })
+      expect(screen.getByText('달의 빈 시간')).toBeInTheDocument()
+      expect(screen.getByText('10:00 → 12:00')).toBeInTheDocument()
+    })
+
+    it('hides the VOC banner when voc is inactive', () => {
+      setup({ props: { voc: { active: false } } })
+      expect(screen.queryByText('달의 빈 시간')).not.toBeInTheDocument()
     })
   })
 
@@ -418,32 +516,13 @@ describe('DayTier', () => {
       expect(screen.getByText('하루 시간 리듬')).toBeInTheDocument()
     })
 
-    it('renders the strongest-hours crossing heading with × when a match exists', () => {
-      setup()
-      expect(screen.getByText(/오늘 가장 센 시간 · 사주 × 점성 교차/)).toBeInTheDocument()
-    })
-
-    it('drops the × claim in the heading when no hour matched', () => {
-      setup({
-        day: {
-          hourCrossings: [
-            {
-              when: '13-15시 (미시)',
-              whenEn: '1-3pm (Goat hour)',
-              sibsin: '정관',
-              tone: 'caution',
-              risingSignKo: '전갈자리',
-              risingSignEn: 'Scorpio',
-              ruler: '화성',
-              rulerEn: 'Mars',
-              strength: 1,
-              matched: false,
-            },
-          ],
-        },
-      })
+    it('renders the strongest-hours heading plainly (no astrology jargon)', () => {
+      const { container } = setup()
       expect(screen.getByText('오늘 가장 센 시간')).toBeInTheDocument()
-      expect(screen.queryByText(/사주 × 점성 교차/)).not.toBeInTheDocument()
+      // rising-sign / ruler astrology terms are NOT on the strongest-hours surface.
+      const surface = container.cloneNode(true) as HTMLElement
+      surface.querySelectorAll('details').forEach((d) => d.remove())
+      expect(surface.textContent).not.toContain('사자자리')
     })
 
     it('omits hour sections entirely when no hourCrossings', () => {
@@ -462,6 +541,14 @@ describe('DayTier', () => {
       mockLocale = 'en'
       setup()
       expect(screen.getByText('Today by area')).toBeInTheDocument()
+    })
+
+    it('drops the per-domain evidence marker rows (✦/△/⇄) from the domain grid', () => {
+      const { container } = setup()
+      // the raw evidence markers used by the old domain "근거/Why" rows are gone.
+      expect(container.textContent).not.toContain('근거')
+      expect(container.textContent).not.toContain('✦')
+      expect(container.textContent).not.toContain('⇄')
     })
   })
 

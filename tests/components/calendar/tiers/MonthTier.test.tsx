@@ -83,24 +83,27 @@ beforeEach(() => {
   mockLocale = 'ko'
 })
 
-describe('MonthTier (정갈)', () => {
+describe('MonthTier (이 달의 모양)', () => {
   describe('header', () => {
-    it('renders the monthly eyebrow + ko flow title', () => {
+    it('renders the monthly eyebrow + ko "N월의 모양" title', () => {
       render(<MonthTier month={makeMonth()} onDive={noop} onRise={noop} />)
       expect(screen.getByText('1달 · Monthly · 2026-06')).toBeInTheDocument()
-      expect(screen.getByText('2026년 6월의 흐름')).toBeInTheDocument()
+      expect(screen.getByText('6월의 모양')).toBeInTheDocument()
     })
 
-    it('renders the English flow title', () => {
+    it('renders the English "shape of" title', () => {
       mockLocale = 'en'
       render(<MonthTier month={makeMonth()} onDive={noop} onRise={noop} />)
-      expect(screen.getByText('June 2026')).toBeInTheDocument()
+      expect(screen.getByText('The shape of June')).toBeInTheDocument()
     })
 
-    it('renders the woolun ganji stamp (hanja + read line)', () => {
-      render(<MonthTier month={makeMonth()} onDive={noop} onRise={noop} />)
-      expect(screen.getByText('甲午')).toBeInTheDocument()
-      expect(screen.getByText('이 달의 기운 · 갑오')).toBeInTheDocument()
+    it('does NOT show the big ganji hanja stamp or 사주/四柱 tag on the main surface', () => {
+      const { container } = render(<MonthTier month={makeMonth()} onDive={noop} onRise={noop} />)
+      // The hanja stamp lives only inside the collapsed <details> fold now —
+      // it must not be a prominent header element on the main surface.
+      expect(container.querySelector('h1')?.textContent).not.toContain('甲午')
+      expect(screen.queryByText('사주 · 四柱')).not.toBeInTheDocument()
+      expect(screen.queryByText(/이 달의 기운/)).not.toBeInTheDocument()
     })
   })
 
@@ -119,10 +122,10 @@ describe('MonthTier (정갈)', () => {
   })
 
   describe('day-count summary', () => {
-    it('summarizes good/caution/avoid counts (ko)', () => {
+    it('summarizes good/caution/avoid counts (ko, plain)', () => {
       const { container } = render(<MonthTier month={makeMonth()} onDive={noop} onRise={noop} />)
       // goodDays:2 cautionDays:1 avoidDays:1
-      expect(container.textContent).toContain('좋은 날 2개 · 주의 1개 · 피하기 1개')
+      expect(container.textContent).toContain('좋은 날 2개 · 조심할 날 1개 · 피하는 날 1개')
     })
 
     it('summarizes counts in English', () => {
@@ -165,11 +168,12 @@ describe('MonthTier (정갈)', () => {
   })
 
   describe('legend', () => {
-    it('renders the three verdict swatches + today (ko)', () => {
+    it('renders the Less→More scale + standout dots (ko)', () => {
       render(<MonthTier month={makeMonth()} onDive={noop} onRise={noop} />)
+      expect(screen.getByText('잔잔')).toBeInTheDocument()
       expect(screen.getByText('좋음')).toBeInTheDocument()
-      expect(screen.getByText('주의')).toBeInTheDocument()
-      expect(screen.getByText('피함')).toBeInTheDocument()
+      expect(screen.getByText('좋은 날')).toBeInTheDocument()
+      expect(screen.getByText('조심할 날')).toBeInTheDocument()
       expect(screen.getByText('오늘')).toBeInTheDocument()
     })
   })
@@ -182,7 +186,7 @@ describe('MonthTier (정갈)', () => {
       expect(screen.getAllByText(/좋은 날/).length).toBeGreaterThan(0)
     })
 
-    it('surfaces convergence meta (사주+점성 badge · window · confidence) on bothSystems days', () => {
+    it('expresses overlap as a neutral "겹치는 흐름" label with NO confidence digit', () => {
       const month = makeMonth({
         keyDays: [
           {
@@ -205,13 +209,16 @@ describe('MonthTier (정갈)', () => {
           makeCell({ d: 17, ds: '06-17', mark: 'best', score: 90 }),
         ],
       })
-      render(<MonthTier month={month} onDive={noop} onRise={noop} />)
-      expect(screen.getByText('사주+점성')).toBeInTheDocument()
+      const { container } = render(<MonthTier month={month} onDive={noop} onRise={noop} />)
+      // neutral overlap label, plain window — but never the raw confidence digit/word.
+      expect(screen.getByText('겹치는 흐름')).toBeInTheDocument()
       expect(screen.getByText('6/14–6/20 흐름')).toBeInTheDocument()
-      expect(screen.getByText('신뢰 82')).toBeInTheDocument()
+      expect(screen.queryByText(/신뢰/)).not.toBeInTheDocument()
+      expect(container.textContent).not.toContain('82')
+      expect(screen.queryByText('사주+점성')).not.toBeInTheDocument()
     })
 
-    it('hides confidence for single-system key days', () => {
+    it('hides the overlap label for single-system key days', () => {
       const month = makeMonth({
         keyDays: [
           {
@@ -225,8 +232,8 @@ describe('MonthTier (정갈)', () => {
         ],
       })
       render(<MonthTier month={month} onDive={noop} onRise={noop} />)
+      expect(screen.queryByText('겹치는 흐름')).not.toBeInTheDocument()
       expect(screen.queryByText(/신뢰/)).not.toBeInTheDocument()
-      expect(screen.queryByText('사주+점성')).not.toBeInTheDocument()
     })
 
     it('appends the best day to key days when missing from keyDays', () => {
@@ -266,7 +273,7 @@ describe('MonthTier (정갈)', () => {
     })
   })
 
-  describe('이달의 사주 × 점성 교차 (month cross)', () => {
+  describe('이달의 겹치는 흐름 (month cross — plain pair only)', () => {
     const crossFixture = {
       crossActivations: [
         {
@@ -281,18 +288,34 @@ describe('MonthTier (정갈)', () => {
       ],
     }
 
-    it('renders monthly cross pairs (ko)', () => {
-      render(<MonthTier month={makeMonth(crossFixture)} onDive={noop} onRise={noop} />)
-      expect(screen.getByText('이달의 사주 × 점성')).toBeInTheDocument()
-      expect(screen.getByText('정재 × 금성')).toBeInTheDocument()
+    it('renders the plain area × planet pair (ko) and NOT the raw 정재 × 금성 term chip', () => {
+      const { container } = render(
+        <MonthTier month={makeMonth(crossFixture)} onDive={noop} onRise={noop} />
+      )
+      expect(screen.getByText('이달의 겹치는 흐름')).toBeInTheDocument()
       expect(screen.getByText('안정된 가치가 살아남')).toBeInTheDocument()
+      // plain pair renders (sibsinArea × planetPlain), raw jargon pair does not.
+      expect(screen.queryByText('정재 × 금성')).not.toBeInTheDocument()
+      // the plain pair contains the plain planet word, never the literal 정재 term.
+      expect(container.textContent).not.toContain('정재 × 금성')
     })
 
-    it('renders monthly cross pairs in English', () => {
+    it('renders the plain cross pair in English (Direct Wealth jargon dropped)', () => {
       mockLocale = 'en'
       render(<MonthTier month={makeMonth(crossFixture)} onDive={noop} onRise={noop} />)
-      expect(screen.getByText('Direct Wealth × Venus')).toBeInTheDocument()
       expect(screen.getByText('stable value lights up')).toBeInTheDocument()
+      expect(screen.queryByText('Direct Wealth × Venus')).not.toBeInTheDocument()
+    })
+  })
+
+  describe('자세한 신호 보기 (ganji fold)', () => {
+    it('keeps the ganji hanja inside a collapsed details fold, not on the main surface', () => {
+      render(<MonthTier month={makeMonth()} onDive={noop} onRise={noop} />)
+      // the disclosure summary exists...
+      expect(screen.getByText('자세한 신호 보기')).toBeInTheDocument()
+      // ...and the hanja lives within that <details>, which is closed by default.
+      const hanja = screen.getByText('甲午')
+      expect(hanja.closest('details')).not.toBeNull()
     })
   })
 

@@ -1,6 +1,6 @@
 import React from 'react'
-import { render, screen, fireEvent } from '@testing-library/react'
-import { vi, describe, it, expect, beforeEach } from 'vitest'
+import { render, screen, fireEvent, within } from '@testing-library/react'
+import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest'
 
 // useI18n 은 locale 만 읽힌다 — mutable 변수로 ko/en 토글.
 let mockLocale: 'ko' | 'en' = 'ko'
@@ -147,9 +147,34 @@ function makeDecade(over: Partial<DecadeTierProps['decade']> = {}): DecadeTierPr
   }
 }
 
+/**
+ * main surface = everything outside the <details> fold. We clone the rendered
+ * tree, strip the <details>, and mount the clone so `toBeInTheDocument` works
+ * against an attached node.
+ */
+const mountedClones: HTMLElement[] = []
+function mainSurface(container: HTMLElement): HTMLElement {
+  const clone = container.cloneNode(true) as HTMLElement
+  clone.querySelectorAll('details').forEach((d) => d.remove())
+  document.body.appendChild(clone)
+  mountedClones.push(clone)
+  return clone
+}
+
+/** the fold (<details>) only — already attached to the document. */
+function fold(container: HTMLElement): HTMLElement {
+  const d = container.querySelector('details')
+  if (!d) throw new Error('details fold not found')
+  return d as HTMLElement
+}
+
 describe('DecadeTier', () => {
   beforeEach(() => {
     mockLocale = 'ko'
+  })
+
+  afterEach(() => {
+    while (mountedClones.length) mountedClones.pop()?.remove()
   })
 
   function setup(
@@ -171,312 +196,358 @@ describe('DecadeTier', () => {
     return { onDive, onRise, ...utils }
   }
 
-  describe('header (ko)', () => {
-    it('renders the decade eyebrow with year range and ages', () => {
-      setup()
-      expect(screen.getByText(/10년 · DECADE · 대운/)).toBeInTheDocument()
-      expect(screen.getByText(/2020-2030/)).toBeInTheDocument()
-      // age range appears in both the eyebrow and the KV list.
-      expect(screen.getAllByText(/30–39/).length).toBeGreaterThan(0)
+  // ----------------------------------------------------------------
+  // Main surface — jargon-free season frame
+  // ----------------------------------------------------------------
+  describe('main surface (ko) — jargon-free season frame', () => {
+    it('renders the plain theme title "X의 10년" (no 大運 hanja in heading)', () => {
+      const { container } = setup()
+      const main = mainSurface(container)
+      // 편재 → sibsinArea '돈·현실' → '돈·현실의 10년'
+      expect(within(main).getByText('돈·현실의 10년')).toBeInTheDocument()
+      // 大運 ganji 甲戌 must NOT appear on the main surface.
+      expect(main.textContent).not.toContain('甲戌')
     })
 
-    it('renders the display heading with current cycle and hanja', () => {
-      setup()
-      expect(screen.getByText(/지금의 대운/)).toBeInTheDocument()
-      // hanja appears in the heading and in the Ganji atom inside details.
-      expect(screen.getAllByText('甲戌').length).toBeGreaterThan(0)
+    it('renders a season tag (가을 for 재성) on the main surface', () => {
+      const { container } = setup()
+      const main = within(mainSurface(container))
+      // 편재 → 재성 family → autumn (가을)
+      expect(main.getByText('가을')).toBeInTheDocument()
+      expect(main.getByText('거두는 때')).toBeInTheDocument()
+    })
+
+    it('maps each sibsin family to the right season tag', () => {
+      const cases: Array<[string, string]> = [
+        ['비견', '봄'],
+        ['식신', '여름'],
+        ['편재', '가을'],
+        ['정관', '가을'],
+        ['정인', '겨울'],
+      ]
+      for (const [sibsin, label] of cases) {
+        const { container, unmount } = setup({ decade: { sibsin } })
+        const main = within(mainSurface(container))
+        expect(main.getByText(label)).toBeInTheDocument()
+        unmount()
+      }
+    })
+
+    it('renders the age range on the main surface', () => {
+      const { container } = setup()
+      expect(within(mainSurface(container)).getAllByText(/30–39/).length).toBeGreaterThan(0)
     })
 
     it('renders the ko headline oneline', () => {
-      setup()
-      expect(screen.getByText('재물과 성취의 10년')).toBeInTheDocument()
+      const { container } = setup()
+      expect(within(mainSurface(container)).getByText('재물과 성취의 10년')).toBeInTheDocument()
     })
 
-    it('shows geokguk frame chip in ko (decade.geokgukStatus wins)', () => {
-      setup()
-      expect(screen.getByText('격국 frame')).toBeInTheDocument()
-      expect(screen.getByText('편재격 · 성격')).toBeInTheDocument()
+    it('shows NO 격국 frame jargon chip on the main surface', () => {
+      const { container } = setup()
+      expect(within(mainSurface(container)).queryByText('격국 frame')).not.toBeInTheDocument()
+      expect(within(mainSurface(container)).queryByText('편재격 · 성격')).not.toBeInTheDocument()
     })
   })
 
-  describe('header (en)', () => {
+  describe('이 시기에 일어나는 일 (main, ko)', () => {
+    it('renders the heading and plain lines from theme/cross/relation prose', () => {
+      const { container } = setup()
+      const main = within(mainSurface(container))
+      expect(main.getByText('이 시기에 일어나는 일')).toBeInTheDocument()
+      // theme prose is a plain line.
+      expect(main.getByText('현실 성취 · 재물의 무대')).toBeInTheDocument()
+      // strongest cross meaning (|polarity| tie → first) is plain prose;
+      // it also reappears in the plain cross card, hence getAllByText.
+      expect(main.getAllByText('확장과 기회').length).toBeGreaterThan(0)
+    })
+  })
+
+  describe('이렇게 보내면 좋아요 (main, ko)', () => {
+    it('renders the guidance heading and plain guidance lines', () => {
+      const { container } = setup()
+      const main = within(mainSurface(container))
+      expect(main.getByText('이렇게 보내면 좋아요')).toBeInTheDocument()
+      // autumn guide line.
+      expect(
+        main.getByText('뿌려 둔 것을 거두는 때 — 마무리와 결실에 집중하세요.')
+      ).toBeInTheDocument()
+    })
+  })
+
+  describe('이 10년 중 큰 해 (main, ko)', () => {
+    it('renders the big-years heading, a score strip with no ganji, and a turning-point line', () => {
+      const { container } = setup()
+      const main = within(mainSurface(container))
+      expect(main.getByText('이 10년 중 큰 해')).toBeInTheDocument()
+      // highest score year is 2024 (70).
+      expect(
+        main.getByText('이 10년 안에서는 2024년 무렵이 가장 무르익는 해예요.')
+      ).toBeInTheDocument()
+      // no per-year ganji on the main surface.
+      const mainEl = mainSurface(container)
+      expect(mainEl.textContent).not.toContain('庚子')
+      expect(mainEl.textContent).not.toContain('甲辰')
+    })
+
+    it('marks "지금" on the now year in the strip', () => {
+      const { container } = setup()
+      expect(within(mainSurface(container)).getAllByText('지금').length).toBeGreaterThan(0)
+    })
+  })
+
+  describe('plain cross signals (main, ko)', () => {
+    it('renders plain cross name + meaning, but not the raw saju/astro sub-lines', () => {
+      const { container } = setup()
+      const main = within(mainSurface(container))
+      expect(main.getByText('겹쳐서 도드라지는 신호')).toBeInTheDocument()
+      expect(main.getByText('편재 ↔ Jupiter')).toBeInTheDocument()
+      expect(main.getByText('구조적 압박')).toBeInTheDocument()
+      // raw saju/astro term rows are NOT on the main surface.
+      expect(main.queryByText('편재 대운')).not.toBeInTheDocument()
+      expect(main.queryByText('목성')).not.toBeInTheDocument()
+    })
+
+    it('omits the cross block when there are no activations', () => {
+      const { container } = setup({ decade: { crossActivations: [] } })
+      expect(
+        within(mainSurface(container)).queryByText('겹쳐서 도드라지는 신호')
+      ).not.toBeInTheDocument()
+    })
+  })
+
+  // ----------------------------------------------------------------
+  // Main surface (en)
+  // ----------------------------------------------------------------
+  describe('main surface (en)', () => {
     beforeEach(() => {
       mockLocale = 'en'
     })
 
-    it('renders english eyebrow and headline', () => {
-      setup()
-      expect(screen.getByText(/10 YEARS · DECADE/)).toBeInTheDocument()
-      expect(screen.getByText('A decade of wealth and achievement')).toBeInTheDocument()
-      expect(screen.getByText(/Current cycle/)).toBeInTheDocument()
+    it('renders english season tag, theme title and headline', () => {
+      const { container } = setup()
+      const main = within(mainSurface(container))
+      // 편재 → sibsinAreaEn 'opportunity & money' → 'A decade of opportunity & money'
+      expect(main.getByText('A decade of opportunity & money')).toBeInTheDocument()
+      expect(main.getByText('Autumn')).toBeInTheDocument()
+      expect(main.getByText('a season of harvest')).toBeInTheDocument()
+      expect(main.getByText('A decade of wealth and achievement')).toBeInTheDocument()
     })
 
-    it('hides the geokguk frame chip in english mode', () => {
-      setup()
-      expect(screen.queryByText('격국 frame')).not.toBeInTheDocument()
-    })
-
-    it('falls back to ko headline when headlineEn is absent', () => {
-      setup({ decade: { headlineEn: undefined } })
-      expect(screen.getByText('재물과 성취의 10년')).toBeInTheDocument()
-    })
-  })
-
-  describe('main crossing list', () => {
-    it('renders the cross heading and the decade-entry anchor item', () => {
-      setup()
-      expect(screen.getByText(/이 대운의 사주 × 점성 교차 · 2020–2030/)).toBeInTheDocument()
-      expect(screen.getByText('甲戌 대운 진입')).toBeInTheDocument()
-    })
-
-    it('renders astro marks as crossing items', () => {
-      setup()
-      // labels from decade.astro appear in the main span list
-      expect(screen.getAllByText('목성 회귀').length).toBeGreaterThan(0)
-    })
-  })
-
-  describe('SibsinStrip', () => {
-    it('renders the strip label and legend families (ko)', () => {
-      setup()
-      expect(screen.getByText('10년 세운 흐름')).toBeInTheDocument()
-      expect(screen.getByText('비겁')).toBeInTheDocument()
-      expect(screen.getByText('인성')).toBeInTheDocument()
-    })
-
-    it('renders english legend families in en mode', () => {
-      mockLocale = 'en'
-      setup()
-      expect(screen.getByText('Self')).toBeInTheDocument()
-      expect(screen.getByText('Resource')).toBeInTheDocument()
-    })
-  })
-
-  describe('details section', () => {
-    it('renders decade readout big title and KV period', () => {
-      setup()
-      expect(screen.getByText(/편재 ·/)).toBeInTheDocument()
-      // KV "기간" label exists
-      expect(screen.getByText('기간')).toBeInTheDocument()
-    })
-
-    it('renders body paragraphs', () => {
-      setup()
-      expect(screen.getByText('첫 번째 본문 단락.')).toBeInTheDocument()
-      expect(screen.getByText('두 번째 본문 단락.')).toBeInTheDocument()
-    })
-
-    it('renders narrative cards with tags and bodies', () => {
-      setup()
-      expect(screen.getByText('대운 결')).toBeInTheDocument()
-      expect(screen.getByText('대운의 결 본문')).toBeInTheDocument()
-      expect(screen.getByText('정점')).toBeInTheDocument()
-    })
-
-    it('renders hapchung and unseong relation cards', () => {
-      setup()
-      expect(screen.getByText('寅亥 육합')).toBeInTheDocument()
-      expect(screen.getByText('합의 본문')).toBeInTheDocument()
-      expect(screen.getByText('관대')).toBeInTheDocument()
-      expect(screen.getByText('12운성 본문')).toBeInTheDocument()
-    })
-
-    it('renders the unseong matrix with day master and decade branch (ko)', () => {
-      setup()
+    it('renders english plain headings and guidance', () => {
+      const { container } = setup()
+      const main = within(mainSurface(container))
+      expect(main.getByText('What this season brings')).toBeInTheDocument()
+      expect(main.getByText('How to spend it well')).toBeInTheDocument()
+      expect(main.getByText('The big years in this decade')).toBeInTheDocument()
       expect(
-        screen.getByText(/12운성 매트릭스 · 본명 일간\(甲\) × 대운 지지\(戌\)/)
+        main.getByText('A time to reap what you sowed — focus on finishing and results.')
       ).toBeInTheDocument()
     })
 
-    it('renders outer-planet returns section', () => {
-      setup()
-      expect(screen.getByText('외행성 마디')).toBeInTheDocument()
-      // neptune square label also appears as an astro mark in the main span list.
-      expect(screen.getAllByText('해왕성 사각').length).toBeGreaterThan(0)
+    it('renders english turning-point line', () => {
+      const { container } = setup()
+      expect(
+        within(mainSurface(container)).getByText(
+          'Within this decade, around 2024 is when things ripen most.'
+        )
+      ).toBeInTheDocument()
     })
 
-    it('renders the 10-year flow score track with a "now" marker', () => {
-      setup()
-      expect(screen.getByText('10년 흐름')).toBeInTheDocument()
-      // "지금" appears in the year-track now mark (and possibly crossing now labels).
-      expect(screen.getAllByText('지금').length).toBeGreaterThan(0)
+    it('keeps the main surface free of Korean jargon strings', () => {
+      const { container } = setup()
+      const main = mainSurface(container)
+      expect(main.textContent).not.toContain('甲戌')
+      expect(main.textContent).not.toContain('격국')
     })
 
-    it('renders cross-activation badges with names and meanings', () => {
-      setup()
-      // name appears both in the pairs crossing-list and the badge row.
-      expect(screen.getAllByText('편재 ↔ Jupiter').length).toBeGreaterThan(0)
-      expect(screen.getAllByText('확장과 기회').length).toBeGreaterThan(0)
-      expect(screen.getAllByText('구조적 압박').length).toBeGreaterThan(0)
-    })
-
-    it('renders sewoonNow KV row when present', () => {
-      setup()
-      expect(screen.getByText(/세운 2024/)).toBeInTheDocument()
+    it('falls back to ko headline when headlineEn is absent', () => {
+      const { container } = setup({ decade: { headlineEn: undefined } })
+      expect(within(mainSurface(container)).getByText('재물과 성취의 10년')).toBeInTheDocument()
     })
   })
 
-  describe('details section (en) — no Korean leaks', () => {
+  // ----------------------------------------------------------------
+  // Fold — all jargon lives here
+  // ----------------------------------------------------------------
+  describe('jargon fold (ko)', () => {
+    it('renders the fold summary', () => {
+      const { container } = setup()
+      expect(
+        within(fold(container)).getByText(/자세한 신호 보기 · 사주·점성 근거/)
+      ).toBeInTheDocument()
+    })
+
+    it('moves the 大運 hanja into the fold', () => {
+      const { container } = setup()
+      // 甲戌 appears in the fold (header chip + Ganji atom), not the main surface.
+      expect(within(fold(container)).getAllByText('甲戌').length).toBeGreaterThan(0)
+    })
+
+    it('moves the 격국 frame chip into the fold', () => {
+      const { container } = setup()
+      const f = within(fold(container))
+      expect(f.getByText('격국 frame')).toBeInTheDocument()
+      expect(f.getByText('편재격 · 성격')).toBeInTheDocument()
+    })
+
+    it('renders decade readout big title and KV period inside the fold', () => {
+      const { container } = setup()
+      const f = within(fold(container))
+      expect(f.getByText(/편재 ·/)).toBeInTheDocument()
+      expect(f.getByText('기간')).toBeInTheDocument()
+    })
+
+    it('renders body paragraphs inside the fold', () => {
+      const { container } = setup()
+      const f = within(fold(container))
+      expect(f.getByText('첫 번째 본문 단락.')).toBeInTheDocument()
+      expect(f.getByText('두 번째 본문 단락.')).toBeInTheDocument()
+    })
+
+    it('renders narrative cards inside the fold', () => {
+      const { container } = setup()
+      const f = within(fold(container))
+      expect(f.getByText('대운 결')).toBeInTheDocument()
+      expect(f.getByText('대운의 결 본문')).toBeInTheDocument()
+      expect(f.getByText('정점')).toBeInTheDocument()
+    })
+
+    it('renders hapchung + unseong cards with hanja inside the fold', () => {
+      const { container } = setup()
+      const f = within(fold(container))
+      expect(f.getByText('寅亥 육합')).toBeInTheDocument()
+      expect(f.getByText('합의 본문')).toBeInTheDocument()
+      expect(f.getByText('관대')).toBeInTheDocument()
+      expect(f.getByText('12운성 본문')).toBeInTheDocument()
+    })
+
+    it('renders the unseong matrix with day master and decade branch inside the fold', () => {
+      const { container } = setup()
+      expect(
+        within(fold(container)).getByText(/12운성 매트릭스 · 본명 일간\(甲\) × 대운 지지\(戌\)/)
+      ).toBeInTheDocument()
+    })
+
+    it('renders outer-planet returns + per-year ganji inside the fold', () => {
+      const { container } = setup()
+      const f = within(fold(container))
+      expect(f.getByText('외행성 마디')).toBeInTheDocument()
+      expect(f.getAllByText('해왕성 사각').length).toBeGreaterThan(0)
+      // per-year ganji belongs to the fold only.
+      expect(f.getAllByText('甲辰').length).toBeGreaterThan(0)
+    })
+
+    it('renders cross-activation badges with raw saju/astro sub-lines inside the fold', () => {
+      const { container } = setup()
+      const f = within(fold(container))
+      expect(f.getAllByText('편재 ↔ Jupiter').length).toBeGreaterThan(0)
+      // raw sub-line term shown only in the fold.
+      expect(f.getByText('편재 대운')).toBeInTheDocument()
+    })
+
+    it('renders sewoonNow KV row inside the fold', () => {
+      const { container } = setup()
+      expect(within(fold(container)).getByText(/세운 2024/)).toBeInTheDocument()
+    })
+
+    it('falls back to user.gyeokgukStatus when decade has none', () => {
+      const { container } = setup({ decade: { geokgukStatus: undefined } })
+      expect(
+        within(fold(container)).getByText('정인격 · 반성반파 (+정인 / -재성)')
+      ).toBeInTheDocument()
+    })
+  })
+
+  describe('jargon fold (en) — no Korean leaks', () => {
     beforeEach(() => {
       mockLocale = 'en'
     })
 
-    it('renders English body paragraphs', () => {
-      setup()
-      expect(screen.getByText('First body paragraph.')).toBeInTheDocument()
-      expect(screen.getByText('Second body paragraph.')).toBeInTheDocument()
-      expect(screen.queryByText('첫 번째 본문 단락.')).not.toBeInTheDocument()
-    })
-
-    it('renders English narrative bodies', () => {
-      setup()
-      expect(screen.getByText('Grain of the cycle EN')).toBeInTheDocument()
-      expect(screen.getByText('Peak year EN')).toBeInTheDocument()
-      expect(screen.queryByText('대운의 결 본문')).not.toBeInTheDocument()
-    })
-
-    it('renders English hapchung and unseong bodies', () => {
-      setup()
-      expect(screen.getByText('Harmony body in English')).toBeInTheDocument()
-      expect(screen.getByText('Twelve-stage body EN')).toBeInTheDocument()
-      expect(screen.queryByText('합의 본문')).not.toBeInTheDocument()
-      expect(screen.queryByText('12운성 본문')).not.toBeInTheDocument()
-    })
-
-    it('renders English cross-activation meanings', () => {
-      setup()
-      expect(screen.getAllByText('Expansion and opportunity').length).toBeGreaterThan(0)
-      expect(screen.getAllByText('Structural pressure').length).toBeGreaterThan(0)
-      expect(screen.queryByText('확장과 기회')).not.toBeInTheDocument()
-    })
-
-    it('falls back to ko body when bodyEn is absent', () => {
-      setup({ decade: { bodyEn: undefined } })
-      expect(screen.getByText('첫 번째 본문 단락.')).toBeInTheDocument()
-    })
-
-    it('renders the big title with English sibsin + area (no Korean sibsin)', () => {
+    it('renders English body paragraphs in the fold', () => {
       const { container } = setup()
-      // 편재 → Indirect Wealth · sibsinAreaEn('편재') → 'opportunity & money'
-      expect(screen.getByText(/Indirect Wealth · opportunity & money decade/)).toBeInTheDocument()
-      // raw Korean sibsin must not headline the readout.
-      expect(screen.queryByText(/편재 · /)).not.toBeInTheDocument()
-      // big title cell carries no Hangul.
-      const bigTitle = container.querySelector('[class*="bigTitle"]')
-      expect(bigTitle?.textContent).not.toMatch(/[가-힣]/)
+      const f = within(fold(container))
+      expect(f.getByText('First body paragraph.')).toBeInTheDocument()
+      expect(f.getByText('Second body paragraph.')).toBeInTheDocument()
+      expect(f.queryByText('첫 번째 본문 단락.')).not.toBeInTheDocument()
     })
 
-    it('renders the theme line in English only (no Korean theme)', () => {
-      setup()
-      expect(screen.getByText('Wealth · Worldly Achievement')).toBeInTheDocument()
-      expect(screen.queryByText('현실 성취 · 재물의 무대')).not.toBeInTheDocument()
-    })
-
-    it('renders the decade ten-god KV value in English', () => {
+    it('renders English narrative bodies in the fold', () => {
       const { container } = setup()
-      // dt label "Decade ten-god" → dd should be English "Indirect Wealth".
-      expect(screen.getByText('Decade ten-god')).toBeInTheDocument()
-      expect(screen.getAllByText('Indirect Wealth').length).toBeGreaterThan(0)
-      // the dd <b> for the ten-god must not be the Korean 편재.
-      const dds = Array.from(container.querySelectorAll('dd'))
-      const tenGod = dds.find((dd) => dd.querySelector('b')?.textContent === '편재')
-      expect(tenGod).toBeUndefined()
+      const f = within(fold(container))
+      expect(f.getByText('Grain of the cycle EN')).toBeInTheDocument()
+      expect(f.getByText('Peak year EN')).toBeInTheDocument()
     })
 
-    it('renders sewoonNow sibsin in English', () => {
-      setup()
-      // sewoonNow.sibsin '편재' → 'Indirect Wealth' in the annual KV row.
-      expect(screen.getByText(/Annual 2024/)).toBeInTheDocument()
-      expect(screen.getAllByText('Indirect Wealth').length).toBeGreaterThan(0)
+    it('renders English hapchung/unseong bodies + titles in the fold', () => {
+      const { container } = setup()
+      const f = within(fold(container))
+      expect(f.getByText('Harmony body in English')).toBeInTheDocument()
+      expect(f.getByText('Twelve-stage body EN')).toBeInTheDocument()
+      expect(f.getByText('Coming-of-age')).toBeInTheDocument()
+      expect(f.getByText('in–hae harmony')).toBeInTheDocument()
+      expect(f.queryByText('관대')).not.toBeInTheDocument()
+      expect(f.queryByText('寅亥 육합')).not.toBeInTheDocument()
     })
 
-    it('renders pillar ten-gods in English (no raw Korean sibsin in pillar/KV)', () => {
-      setup()
-      // 편재 → Indirect Wealth, 편관 → Seven Killings — appear in split panel + KV.
-      expect(screen.getAllByText(/Indirect Wealth/).length).toBeGreaterThan(0)
-      expect(screen.getAllByText(/Seven Killings/).length).toBeGreaterThan(0)
-      // raw Korean pillar sibsin must not leak.
-      expect(screen.queryByText('편재', { exact: true })).not.toBeInTheDocument()
-      expect(screen.queryByText('편관', { exact: true })).not.toBeInTheDocument()
+    it('renders the big title + KV ten-god in English (no raw Korean sibsin)', () => {
+      const { container } = setup()
+      const f = within(fold(container))
+      expect(f.getByText(/Indirect Wealth · opportunity & money decade/)).toBeInTheDocument()
+      expect(f.getByText('Decade ten-god')).toBeInTheDocument()
+      expect(f.getAllByText('Indirect Wealth').length).toBeGreaterThan(0)
     })
 
-    it('renders pillar notes in English (noteEn), not the Korean note', () => {
-      setup()
-      expect(screen.getByText('Stem note in English')).toBeInTheDocument()
-      expect(screen.getByText('Branch note in English')).toBeInTheDocument()
-      expect(screen.queryByText('천간 노트')).not.toBeInTheDocument()
-      expect(screen.queryByText('지지 노트')).not.toBeInTheDocument()
+    it('renders pillar ten-gods + notes in English in the fold', () => {
+      const { container } = setup()
+      const f = within(fold(container))
+      expect(f.getAllByText(/Indirect Wealth/).length).toBeGreaterThan(0)
+      expect(f.getAllByText(/Seven Killings/).length).toBeGreaterThan(0)
+      expect(f.getByText('Stem note in English')).toBeInTheDocument()
+      expect(f.getByText('Branch note in English')).toBeInTheDocument()
+      expect(f.queryByText('천간 노트')).not.toBeInTheDocument()
     })
 
-    it('renders unseong + hapchung titles in English (titleEn), no Korean 12-stage/clash label', () => {
-      setup()
-      expect(screen.getByText('Coming-of-age')).toBeInTheDocument()
-      expect(screen.getByText('in–hae harmony')).toBeInTheDocument()
-      // raw Korean 12운성 단계명 / 충·합 라벨 must not leak.
-      expect(screen.queryByText('관대')).not.toBeInTheDocument()
-      expect(screen.queryByText('寅亥 육합')).not.toBeInTheDocument()
+    it('renders cross-activation astro line in English in the fold', () => {
+      const { container } = setup()
+      const f = within(fold(container))
+      expect(f.getAllByText('Jupiter').length).toBeGreaterThan(0)
+      expect(f.getAllByText('Saturn').length).toBeGreaterThan(0)
+      expect(f.queryByText('목성')).not.toBeInTheDocument()
+      expect(f.queryByText('토성')).not.toBeInTheDocument()
     })
 
-    it('renders cross-activation astro line in English (astroLineEn), not Korean planet', () => {
-      setup()
-      // KO planet '목성'/'토성' must not leak in EN; English keys shown.
-      expect(screen.getAllByText('Jupiter').length).toBeGreaterThan(0)
-      expect(screen.getAllByText('Saturn').length).toBeGreaterThan(0)
-      expect(screen.queryByText('목성')).not.toBeInTheDocument()
-      expect(screen.queryByText('토성')).not.toBeInTheDocument()
-    })
-
-    it('renders cross-activation pair titles and badges in English (no Korean name/sajuLine)', () => {
-      setup({
-        decade: {
-          crossActivations: [
-            {
-              signalId: 'x1',
-              name: '편재 × 목성',
-              nameEn: 'Indirect Wealth × Jupiter',
-              sajuLine: '편재 대운',
-              sajuLineEn: 'Indirect Wealth decade',
-              astroLine: 'Jupiter Return',
-              polarity: 2,
-              meaning: '확장과 기회',
-              meaningEn: 'Expansion and opportunity',
-            },
-          ],
-        },
-      })
-      // pair crossing-list title + badge name both English.
-      expect(screen.getAllByText('Indirect Wealth × Jupiter').length).toBeGreaterThan(0)
-      // saju line on the badge is English.
-      expect(screen.getByText('Indirect Wealth decade')).toBeInTheDocument()
-      // Korean name / sajuLine must not appear in EN mode.
-      expect(screen.queryByText('편재 × 목성')).not.toBeInTheDocument()
-      expect(screen.queryByText('편재 대운')).not.toBeInTheDocument()
+    it('hides the geokguk frame chip label localization but keeps the value in the fold', () => {
+      const { container } = setup()
+      const f = within(fold(container))
+      expect(f.getByText('gyeokguk frame')).toBeInTheDocument()
+      expect(f.getByText('편재격 · 성격')).toBeInTheDocument()
     })
   })
 
+  // ----------------------------------------------------------------
+  // Conditional sections
+  // ----------------------------------------------------------------
   describe('conditional sections', () => {
-    it('omits cross-activation pairs detail and badges when empty', () => {
-      setup({ decade: { crossActivations: [] } })
-      expect(screen.queryByText('사주 ↔ 점성 동시 활성')).not.toBeInTheDocument()
-      expect(screen.queryByText('편재 ↔ Jupiter')).not.toBeInTheDocument()
+    it('omits cross-activation badges in the fold when empty', () => {
+      const { container } = setup({ decade: { crossActivations: [] } })
+      expect(within(fold(container)).queryByText('사주 ↔ 점성 동시 활성')).not.toBeInTheDocument()
     })
 
     it('omits outer-planet section when astro is empty', () => {
-      setup({ decade: { astro: [] } })
-      expect(screen.queryByText('외행성 마디')).not.toBeInTheDocument()
+      const { container } = setup({ decade: { astro: [] } })
+      expect(within(fold(container)).queryByText('외행성 마디')).not.toBeInTheDocument()
     })
 
     it('omits narrative section when narrative is empty', () => {
-      setup({ decade: { narrative: [] } })
-      expect(screen.queryByText('이 대운의 결')).not.toBeInTheDocument()
-    })
-
-    it('falls back to user.gyeokgukStatus when decade has none', () => {
-      setup({ decade: { geokgukStatus: undefined } })
-      expect(screen.getByText('정인격 · 반성반파 (+정인 / -재성)')).toBeInTheDocument()
+      const { container } = setup({ decade: { narrative: [] } })
+      expect(within(fold(container)).queryByText('이 대운의 결')).not.toBeInTheDocument()
     })
   })
 
+  // ----------------------------------------------------------------
+  // Navigation
+  // ----------------------------------------------------------------
   describe('navigation callbacks', () => {
     it('calls onRise from the zoom-out button', () => {
       const { onRise } = setup()
