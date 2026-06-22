@@ -1,4 +1,4 @@
-import { STEMS, BRANCHES, JIJANGGAN, getSolarTermKST } from '@/lib/saju/constants'
+import { STEMS, BRANCHES, JIJANGGAN, getSolarTermKST, ELEMENT_KO_TO_EN } from '@/lib/saju/constants'
 import { getYearPillarForDate, getMonthPillarForDate } from '@/lib/saju/datePillars'
 import { computeDayBranch, computeDayStem } from './saju-shinsal'
 import { getSibsinFromStemInfo as getSibsin } from './shared/sibsin'
@@ -110,13 +110,8 @@ interface StemInfoLite {
 }
 
 // ── 지장간 신호 흐름(flow) 한 줄 ── 기술적 name(통근/암합/충)을 사용자 voice 로.
-const ELEMENT_EN: Record<FiveElement, string> = {
-  목: 'Wood',
-  화: 'Fire',
-  토: 'Earth',
-  금: 'Metal',
-  수: 'Water',
-}
+// 오행 KO→EN — 공용 SSOT(constants.ELEMENT_KO_TO_EN)에서 파생(복붙 금지).
+const ELEMENT_EN = ELEMENT_KO_TO_EN
 // 지장간 층 EN — raw 키(정기/중기/여기) 기준.
 const LAYER_LABEL_EN: Record<string, string> = {
   정기: 'primary qi',
@@ -284,7 +279,11 @@ const sajuJijangganExtractor: SignalExtractor = {
     // ─── 3) 월운 지지 (monthly) ───
     const monthCursor = new Date(Date.UTC(rangeStart.getUTCFullYear(), rangeStart.getUTCMonth(), 1))
     while (monthCursor <= rangeEnd) {
-      const mp = getMonthPillarForDate(monthCursor)
+      // 월주는 그 달 중순(15일) 기준 — 1일은 절입 직전이라 전월 절기달이 잡힌다.
+      const midMonth = new Date(
+        Date.UTC(monthCursor.getUTCFullYear(), monthCursor.getUTCMonth(), 15)
+      )
+      const mp = getMonthPillarForDate(midMonth)
       const jijanggan = JIJANGGAN[mp.branch]
       if (jijanggan) {
         const mStart = new Date(monthCursor).toISOString()

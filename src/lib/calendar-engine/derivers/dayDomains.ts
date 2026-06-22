@@ -12,6 +12,7 @@
 
 import { translateSignalLabel } from './signalI18n'
 import { hashStringToInt, pickBySeed } from './personSeed'
+import { PLANET_KO as PLANET_KO_BASE } from '@/lib/calendar-engine/data/planetNames'
 
 /** ko/en 한 쌍. */
 type Pair = { ko: string; en: string }
@@ -680,18 +681,8 @@ const PLANET_DOMAINS: Record<string, string[]> = {
   Neptune: ['love', 'health'], // 해왕성=이상화된 연애·면역/수면 (명료한 학습과 상충)
   Pluto: ['money', 'career'],
 }
-const PLANET_KO_SHORT: Record<string, string> = {
-  Sun: '태양',
-  Moon: '달',
-  Mercury: '수성',
-  Venus: '금성',
-  Mars: '화성',
-  Jupiter: '목성',
-  Saturn: '토성',
-  Uranus: '천왕성',
-  Neptune: '해왕성',
-  Pluto: '명왕성',
-}
+// 행성 한글 라벨 — 공용 SSOT(planetNames)에서 파생(앵글 키는 안 쓰지만 무해).
+const PLANET_KO_SHORT: Record<string, string> = { ...PLANET_KO_BASE }
 // 엔진 신호의 aspectType 은 영문('trine'…)이라, KO 표시는 영문→한글로 옮긴다.
 // (일부 경로는 한글일 수 있어 양방향 폴백.)
 const ASPECT_EN: Record<string, string> = {

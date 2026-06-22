@@ -159,7 +159,9 @@ export const POST = withApiMiddleware(
         }
         if (counselorSessionId !== undefined) updateData.counselorSessionId = counselorSessionId
         if (clarifierCard !== undefined) updateData.clarifierCard = clarifierCard
-        if (followupTurns !== undefined) updateData.followupTurns = followupTurns
+        // followupTurns 는 *기존 행 갱신* 시 쓰지 않는다 — 이미 서버 append 가
+        // 누적한 유료 turn 을 클라 스냅샷으로 덮어쓰는 lost-update 방지. 신규 행
+        // 생성(createData)에서만 부트스트랩으로 기록(그땐 append 이력이 없음).
         try {
           for (let attempt = 0; attempt < 10; attempt++) {
             try {

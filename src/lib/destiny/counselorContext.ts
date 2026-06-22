@@ -6,6 +6,7 @@
  * Increment ①: SAJU section.
  */
 import { currentManAge } from '@/lib/datetime/currentAge'
+import { ELEMENT_KO_TO_EN } from '@/lib/saju/constants'
 import { collectSajuFacts } from '@/lib/destiny/sajuFacts'
 import { computeCurrentUnse, type CurrentUnse } from '@/lib/saju/currentUnse'
 import { getSajuYearForDate } from '@/lib/saju/datePillars'
@@ -16,7 +17,8 @@ import { slimAstroSelf } from '@/lib/destiny/astroSlim'
 import { getIljinCalendar } from '@/lib/saju/unse'
 import { isHyeong } from '@/lib/saju/hyeong'
 import { logger } from '@/lib/logger'
-import type { DayMaster } from '@/lib/saju/types'
+import type { DayMaster, FiveElement, YinYang } from '@/lib/saju/types'
+import { getSibseong, BRANCH_MAIN_QI } from '@/lib/saju/core/sibsin'
 import { SIBSIN_EN as SIBSIN_EN_BASE } from '@/lib/saju/sibsinLabels'
 import { PLANET_KO as PLANET_KO_BASE } from '@/lib/calendar-engine/data/planetNames'
 import { koStructuralLabels } from '@/lib/llm/koStructuralLabels'
@@ -79,13 +81,8 @@ const SIBSIN_EN: Record<string, string> = {
   ...SIBSIN_EN_BASE,
   일간: 'Self',
 }
-const ELEM_EN: Record<string, string> = {
-  목: 'Wood',
-  화: 'Fire',
-  토: 'Earth',
-  금: 'Metal',
-  수: 'Water',
-}
+// 오행 KO→EN — 공용 SSOT(constants.ELEMENT_KO_TO_EN)에서 파생(복붙 금지).
+const ELEM_EN = ELEMENT_KO_TO_EN
 const STRENGTH_EN: Record<string, string> = {
   신강: 'strong',
   신약: 'weak',
@@ -259,22 +256,9 @@ const STEM_INFO: Record<string, { el: string; yang: boolean }> = {
   壬: { el: '수', yang: true },
   癸: { el: '수', yang: false },
 }
-const GEN: Record<string, string> = { 목: '화', 화: '토', 토: '금', 금: '수', 수: '목' }
-const CTRL: Record<string, string> = { 목: '토', 토: '수', 수: '화', 화: '금', 금: '목' }
-const BRANCH_MAINQI: Record<string, string> = {
-  子: '癸',
-  丑: '己',
-  寅: '甲',
-  卯: '乙',
-  辰: '戊',
-  巳: '丙',
-  午: '丁',
-  未: '己',
-  申: '庚',
-  酉: '辛',
-  戌: '戊',
-  亥: '壬',
-}
+// 오행 생극表(GEN/CTRL)·지지 정기表(BRANCH_MAINQI)·인라인 sibsinOf 는 모두
+// SSOT(core/sibsin.getSibseong + constants.FIVE_ELEMENT_RELATIONS + BRANCH_MAIN_QI)
+// 로 위임. STEM_INFO 의 {el, yang} 만 getSibseong 의 {element, yin_yang} 형태로 어댑트.
 // astro aspect — 기호 대신 한국어 뜻 직접 노출 (깨진 □ 박스 + LLM 디코드
 // 오역 방지; 궁합 포매터와 동일 정책).
 const ASP_SYM: Record<string, string> = {
@@ -313,17 +297,16 @@ const EL2KEY: Record<string, string> = {
   금: 'metal',
   수: 'water',
 }
+// STEM_INFO 의 {el, yang} → SSOT getSibseong 의 {element, yin_yang} 어댑터.
+const stemToSsot = (s: { el: string; yang: boolean }) => ({
+  element: s.el as FiveElement,
+  yin_yang: (s.yang ? '양' : '음') as YinYang,
+})
 function sibsinOf(day: string, other: string): string {
   const d = STEM_INFO[day],
     o = STEM_INFO[other]
   if (!d || !o) return ''
-  const same = d.yang === o.yang
-  if (o.el === d.el) return same ? '비견' : '겁재'
-  if (GEN[d.el] === o.el) return same ? '식신' : '상관'
-  if (GEN[o.el] === d.el) return same ? '편인' : '정인'
-  if (CTRL[d.el] === o.el) return same ? '편재' : '정재'
-  if (CTRL[o.el] === d.el) return same ? '편관' : '정관'
-  return ''
+  return getSibseong(stemToSsot(d), stemToSsot(o))
 }
 
 export interface DestinyBirth {
@@ -466,7 +449,7 @@ export async function buildDestinyContext(
       const houseTag = placeUnreliable ? '' : ` H${p.house}`
       posLines.push(`  ${pl(p.name)} ${sgn(p.sign)}${houseTag}${p.retrograde ? ' R' : ''}${dgTag}`)
     }
-    if (!placeUnreliable) {
+    if (!placeUnreliable && aFacts.natal.ascendant && aFacts.natal.mc) {
       posLines.push(
         `  ${pl('Ascendant')} ${sgn(aFacts.natal.ascendant.sign)}`,
         `  ${pl('MC')} ${sgn(aFacts.natal.mc.sign)}`
@@ -924,7 +907,7 @@ function buildSajuSection(
         const s = sibsinOf(day, p.stem)
         if (s && s !== '-') tally[s] = (tally[s] ?? 0) + 1
       }
-      const b = sibsinOf(day, BRANCH_MAINQI[p.branch] ?? '')
+      const b = sibsinOf(day, BRANCH_MAIN_QI[p.branch] ?? '')
       if (b && b !== '-') tally[b] = (tally[b] ?? 0) + 1
     }
     if (Object.keys(tally).length) {
@@ -976,7 +959,7 @@ function buildSajuSection(
   // 세운 / 월운 / 일진 lines (세운 carries the year)
   const periodLine = (label: string, v: { stem: string; branch: string }, withYear?: number) => {
     const s = sibsinOf(day, v.stem),
-      b = sibsinOf(day, BRANCH_MAINQI[v.branch] ?? '')
+      b = sibsinOf(day, BRANCH_MAIN_QI[v.branch] ?? '')
     const honjap = (s === '정관' || s === '편관') && (b === '정관' || b === '편관') && s !== b
     const hj = honjap ? (locale === 'en' ? ' = Officer-Killings Mix' : ' = 관살혼잡') : ''
     const pair = s || b ? ` (${sib1(s)}/${sib1(b)}${hj})` : ''

@@ -33,8 +33,8 @@
       "career_en": "Suited for the arts and service industries. Drawn to work involving entertainment, beverages, or water. Expect frequent change.",
       "relationship": "이성 관계에서 복잡함을 겪을 수 있음. 감정적 동요 주의.",
       "relationship_en": "Romantic relationships may become complicated. Watch for emotional turbulence.",
-      "health": "피부, 신장 계통 주의. 물과 관련된 사고 조심.",
-      "health_en": "Take care of skin and kidney function. Be cautious around water-related accidents.",
+      "health": "수분 관리와 피부 관리에 신경 쓰고, 물과 관련된 활동에서는 안전에 주의하세요.",
+      "health_en": "Stay hydrated and care for your skin, and keep safety in mind around water-related activities.",
       "advice": "유혹을 경계하고 자기 절제력을 기르세요.",
       "advice_en": "Stay alert to temptation and work on your self-control."
     },
@@ -52,9 +52,9 @@
       "career_en": "Well-suited for public service, management, or professional roles. Thrives in positions of social recognition.",
       "relationship": "체면을 중시해 관계가 형식적일 수 있음. 진정성 있는 교류 필요.",
       "relationship_en": "Concern for appearances can make relationships feel formal. Aim for more genuine connection.",
-      "health": "과도한 스트레스 주의. 정신적 긴장으로 인한 질환 조심.",
-      "health_en": "Watch for excessive stress. Be careful of illness stemming from mental tension.",
-      "advice": "명예도 좋지만 실속을 챙기는 지혜도 필요합니다.",
+      "health": "과도한 스트레스 주의. 정신적 긴장이 쌓이지 않도록 충분한 휴식을 챙기세요.",
+      "health_en": "Watch for excessive stress. Make time for proper rest so mental tension does not build up.",
+      "advice": "명예도 좋지만 실속을 챙기는 지혜도 필요해요.",
       "advice_en": "Reputation matters, but so does the wisdom to look after what is real and practical."
     },
     "건록": {
@@ -90,8 +90,8 @@
       "career_en": "Capable of reaching the top. Suited for CEO, political, or executive roles in large organizations.",
       "relationship": "지배적인 성향으로 갈등 가능. 상대방 존중 필요.",
       "relationship_en": "A dominating tendency may bring conflict. Make space to respect others.",
-      "health": "강건하나 과로, 스트레스로 갑작스러운 질환 주의.",
-      "health_en": "Physically strong, but watch for sudden illness caused by overwork or stress.",
+      "health": "강건하나 과로와 스트레스가 쌓이지 않도록 휴식과 페이스 조절이 필요해요.",
+      "health_en": "Physically strong, but pace yourself and rest so overwork and stress do not pile up.",
       "advice": "정상에서는 내려올 일만 있으니 겸손과 나눔을 실천하세요.",
       "advice_en": "From the summit there is only the path down — practice humility and generosity."
     },
@@ -128,8 +128,8 @@
       "career_en": "Stability matters more than big wins. Do not stretch a business too far.",
       "relationship": "의존적인 성향. 스스로 자립심을 기르는 노력 필요.",
       "relationship_en": "A dependent tendency. Make a conscious effort to build self-reliance.",
-      "health": "건강 문제 발생 가능. 정기 검진과 예방에 신경 쓰기.",
-      "health_en": "Health issues may surface. Stay on top of regular check-ups and prevention.",
+      "health": "컨디션이 떨어지기 쉬운 때. 규칙적인 생활과 충분한 휴식에 신경 쓰기.",
+      "health_en": "A time when energy can dip. Lean on a steady routine and plenty of rest.",
       "advice": "건강이 최우선. 무리하지 말고 자기 관리에 집중하세요.",
       "advice_en": "Health comes first. Do not overdo it — focus on caring for yourself."
     },
@@ -147,9 +147,9 @@
       "career_en": "A time for closing out and organizing what came before — preparing for the next pivot.",
       "relationship": "관계의 끝과 시작이 교차. 이별 후 새 만남 가능.",
       "relationship_en": "Endings and beginnings overlap. A new connection often follows a parting.",
-      "health": "큰 병환 주의. 정밀 검사와 예방 필수.",
-      "health_en": "Watch for serious illness. Thorough check-ups and prevention are essential.",
-      "advice": "끝이 있어야 새로운 시작이 있습니다. 집착을 버리세요.",
+      "health": "몸의 신호에 귀 기울일 때. 무리하지 말고 충분히 쉬며 컨디션을 챙기세요.",
+      "health_en": "A time to listen to your body. Do not push too hard — rest well and take care of yourself.",
+      "advice": "끝이 있어야 새로운 시작이 있어요. 집착을 버리세요.",
       "advice_en": "There is no new beginning without an ending. Let go of what you cling to."
     },
     "묘": {
@@ -166,8 +166,8 @@
       "career_en": "Suited for research, religion, or philosophy. Power shows itself in less visible roles.",
       "relationship": "마음을 쉽게 열지 않음. 깊은 관계는 오래 지속.",
       "relationship_en": "Slow to open up. Deep connections, once formed, tend to last.",
-      "health": "만성 질환 주의. 숨은 병 발견을 위한 정기 검진.",
-      "health_en": "Watch for chronic conditions. Regular check-ups help catch hidden issues.",
+      "health": "꾸준한 자기 관리가 중요한 때. 규칙적인 생활 습관으로 컨디션을 다지세요.",
+      "health_en": "A time when steady self-care matters. Build a regular routine to keep your condition strong.",
       "advice": "내면의 힘을 기르고 때를 기다리세요.",
       "advice_en": "Build inner strength and wait for the right moment."
     },
@@ -185,9 +185,9 @@
       "career_en": "Suited for work that breaks existing molds — art, invention, and innovation.",
       "relationship": "인연이 끊어지기 쉬움. 관계 유지에 노력 필요.",
       "relationship_en": "Connections may be easily severed. Holding relationships together takes deliberate effort.",
-      "health": "급작스러운 건강 변화 주의. 사고 조심.",
-      "health_en": "Watch for sudden shifts in health. Be cautious of accidents.",
-      "advice": "절망 속에서도 희망을 찾으세요. 끝은 곧 시작입니다.",
+      "health": "컨디션 변화가 있을 수 있는 때. 안전에 유의하고 무리하지 마세요.",
+      "health_en": "A time when your energy can shift. Keep safety in mind and avoid overdoing it.",
+      "advice": "절망 속에서도 희망을 찾으세요. 끝은 곧 시작이에요.",
       "advice_en": "Find hope even in despair. Every ending is also a beginning."
     },
     "태": {
@@ -232,7 +232,7 @@
   "sibsin": {
     "비견": {
       "name": "비견",
-      "name_en": "Equal Peer",
+      "name_en": "Companion",
       "hanja": "比肩",
       "element": "같은 오행, 같은 음양",
       "element_en": "Same element, same yin-yang polarity",
@@ -249,7 +249,7 @@
     },
     "겁재": {
       "name": "겁재",
-      "name_en": "Rival Peer",
+      "name_en": "Rob Wealth",
       "hanja": "劫財",
       "element": "같은 오행, 다른 음양",
       "element_en": "Same element, opposite yin-yang polarity",
@@ -266,7 +266,7 @@
     },
     "식신": {
       "name": "식신",
-      "name_en": "Easeful Expression",
+      "name_en": "Eating God",
       "hanja": "食神",
       "element": "내가 생하는 오행, 같은 음양",
       "element_en": "Element you produce, same yin-yang polarity",
@@ -283,7 +283,7 @@
     },
     "상관": {
       "name": "상관",
-      "name_en": "Creative Expression",
+      "name_en": "Hurting Officer",
       "hanja": "傷官",
       "element": "내가 생하는 오행, 다른 음양",
       "element_en": "Element you produce, opposite yin-yang polarity",
@@ -300,7 +300,7 @@
     },
     "편재": {
       "name": "편재",
-      "name_en": "Fluid Resource",
+      "name_en": "Indirect Wealth",
       "hanja": "偏財",
       "element": "내가 극하는 오행, 같은 음양",
       "element_en": "Element you control, same yin-yang polarity",
@@ -317,7 +317,7 @@
     },
     "정재": {
       "name": "정재",
-      "name_en": "Steady Resource",
+      "name_en": "Direct Wealth",
       "hanja": "正財",
       "element": "내가 극하는 오행, 다른 음양",
       "element_en": "Element you control, opposite yin-yang polarity",
@@ -334,7 +334,7 @@
     },
     "편관": {
       "name": "편관",
-      "name_en": "Yang Officer",
+      "name_en": "Seven Killings",
       "hanja": "偏官",
       "element": "나를 극하는 오행, 같은 음양",
       "element_en": "Element that controls you, same yin-yang polarity",
@@ -351,7 +351,7 @@
     },
     "정관": {
       "name": "정관",
-      "name_en": "Stable Authority",
+      "name_en": "Direct Officer",
       "hanja": "正官",
       "element": "나를 극하는 오행, 다른 음양",
       "element_en": "Element that controls you, opposite yin-yang polarity",
@@ -368,7 +368,7 @@
     },
     "편인": {
       "name": "편인",
-      "name_en": "Unconventional Wisdom",
+      "name_en": "Indirect Resource",
       "hanja": "偏印",
       "element": "나를 생하는 오행, 같은 음양",
       "element_en": "Element that produces you, same yin-yang polarity",
@@ -376,8 +376,8 @@
       "meaning_en": "Off-the-beaten-path knowledge — specialized study and spirituality.",
       "positive": "영감, 창의력, 종교성, 연구심",
       "positive_en": "Inspiration, creativity, spiritual sensitivity, a research mind.",
-      "negative": "의존성, 우울, 식신 파괴, 불안정",
-      "negative_en": "Dependence, low mood, disruption of natural expression, instability.",
+      "negative": "의존성, 가라앉는 기분, 식신 파괴, 불안정",
+      "negative_en": "Dependence, low mood and feeling flat, disruption of natural expression, instability.",
       "career": "종교, 철학, 예술, 의술, 연구",
       "career_en": "Religion, philosophy, arts, medicine, research.",
       "relationship": "계모, 스승. 특별한 인연.",
@@ -385,7 +385,7 @@
     },
     "정인": {
       "name": "정인",
-      "name_en": "Orthodox Wisdom",
+      "name_en": "Direct Resource",
       "hanja": "正印",
       "element": "나를 생하는 오행, 다른 음양",
       "element_en": "Element that produces you, opposite yin-yang polarity",
@@ -438,7 +438,7 @@
       "meaning_en": "A benefactor under the moon's virtue — blessings arrive month by month.",
       "effect": "액운 해소, 문서운 상승, 시험 합격.",
       "effect_en": "Misfortune is cleared, luck with documents and contracts improves, and exams go well.",
-      "advice": "꾸준한 노력이 결실을 맺습니다.",
+      "advice": "꾸준한 노력이 결실을 맺어요.",
       "advice_en": "Steady effort will bear fruit."
     },
     "문창귀인": {
@@ -451,7 +451,7 @@
       "meaning_en": "An auspicious star of learning and the written word.",
       "effect": "학업 성취, 시험 합격, 문서 처리 원활.",
       "effect_en": "Academic success, passing exams, smooth handling of documents.",
-      "advice": "공부와 글쓰기에 집중하면 성과가 있습니다.",
+      "advice": "공부와 글쓰기에 집중하면 성과가 있어요.",
       "advice_en": "Focus on study and writing — results will follow."
     },
     "학당귀인": {
@@ -730,7 +730,7 @@
     "천문성": {
       "name": "천문성",
       "name_en": "Heavenly Gate Star",
-      "hanja": "天文星",
+      "hanja": "天門星",
       "category": "길신",
       "category_en": "auspicious star",
       "meaning": "하늘의 문이 열린 별. 통찰과 직관.",
@@ -879,7 +879,7 @@
       "meaning": "영적인 문이 열리는 별. 예민함과 직관.",
       "meaning_en": "A spirit gate cracked open — sharpness of feeling and intuition.",
       "effect": "예민하고 직관적이지만, 신경이 곤두서고 불안에 흔들리기 쉬운 스타일이에요.",
-      "effect_en": "Sensitive and intuitive — but the nerves stay on edge and anxiety can take over.",
+      "effect_en": "Sensitive and intuitive — but the nerves can run high and worry comes easily.",
       "advice": "충분한 휴식과 정신적 안정에 시간을 들이세요.",
       "advice_en": "Make real time for rest and mental settling."
     },
@@ -998,7 +998,7 @@
       "effect": "지위가 오르고 인정받는 느낌이에요.",
       "effect_en": "Position lifts and recognition arrives.",
       "advice": "오를수록 처음의 자세를 잊지 마세요.",
-      "advice_en": "The higher you rise, the more you hold on to where you started."
+      "advice_en": "The higher you rise, the more you should hold on to where you started."
     },
     "삼재": {
       "name": "삼재",
@@ -1027,7 +1027,7 @@
       "excess_en": "Stubbornness, anger, quick temper, dogmatism.",
       "deficiency": "우유부단, 자신감 부족, 추진력 부족",
       "deficiency_en": "Indecision, low confidence, lack of drive.",
-      "health": "간, 담, 눈, 힘줄 관련 질환 주의",
+      "health": "간, 담, 눈, 힘줄 관련 주의",
       "health_en": "Watch for issues with the liver, gallbladder, eyes, and tendons.",
       "career": "교육, 출판, 농업, 의류, 목재",
       "career_en": "Education, publishing, agriculture, apparel, timber."
@@ -1042,8 +1042,8 @@
       "personality_en": "Passionate and lively. Polite and expressive.",
       "excess": "급함, 분노, 충동적, 조급함",
       "excess_en": "Haste, anger, impulsiveness, impatience.",
-      "deficiency": "무기력, 우울, 표현력 부족",
-      "deficiency_en": "Low energy, depression, difficulty expressing yourself.",
+      "deficiency": "무기력, 의욕 저하·가라앉는 기분, 표현력 부족",
+      "deficiency_en": "Low energy, low mood and feeling flat, difficulty expressing yourself.",
       "health": "심장, 소장, 혀, 혈액 관련 주의",
       "health_en": "Watch for issues with the heart, small intestine, tongue, and blood.",
       "career": "예술, 연예, 광고, 전자, 요식업",
@@ -1091,8 +1091,8 @@
       "nature_en": "Wisdom and flexibility; knowledge; winter; the north.",
       "personality": "지혜롭고 유연함. 적응력 좋고 깊은 사고.",
       "personality_en": "Wise and flexible. Adaptable and deep-thinking.",
-      "excess": "우울, 두려움, 음험함",
-      "excess_en": "Depression, fearfulness, secretiveness.",
+      "excess": "가라앉는 기분, 두려움, 음험함",
+      "excess_en": "Low, flat mood, fearfulness, secretiveness.",
       "deficiency": "용기 부족, 지혜 부족, 적응력 부족",
       "deficiency_en": "Lack of courage, lack of wisdom, weak adaptability.",
       "health": "신장, 방광, 귀, 뼈 관련 주의",

@@ -7,6 +7,7 @@
  */
 
 import { getSibseong } from './core/sibsin'
+import { STEM_NAMES, BRANCH_NAMES } from './constants'
 import type { FiveElement } from './types'
 import {
   STEM_COMBINE,
@@ -24,8 +25,8 @@ import {
   toPairKeySet,
 } from './relationTables'
 
-// ── 천간/지지 기본 ──
-const STEMS = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸']
+// ── 천간/지지 기본 ── (이름 배열은 constants SSOT 에서 파생 — 복사 금지)
+const STEMS = STEM_NAMES
 const STEM_YIN: Record<string, boolean> = {
   甲: false,
   乙: true,
@@ -50,7 +51,7 @@ const STEM_TO_KO_ELEMENT: Record<string, string> = {
   壬: '수',
   癸: '수',
 }
-const BRANCHES_BY_INDEX = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥']
+const BRANCHES_BY_INDEX = BRANCH_NAMES
 
 // ── 관계 상수 — relationTables.ts(SSOT)에서 파생. 로컬 복제 금지. ──
 const STEM_HAP_PARTNER: Record<string, { partner: string; transform: string }> = (() => {

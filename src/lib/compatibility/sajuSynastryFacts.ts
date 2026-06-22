@@ -86,8 +86,11 @@ const SPOUSE_ROLE: Record<string, string> = {
 }
 
 export function computeSajuSynastryFacts(input: SajuSynastryInput): SajuCompatFacts {
-  const A = input.pillarsA ?? []
-  const B = input.pillarsB ?? []
+  // 시각 미상이면 시주(時, index 3)는 子시 가정의 날조값 → 차트/리포트의 합·충·
+  // 배우자성·오행균형에서 통째로 제외(일주=index 2 는 유지). formatSajuSynastry 와
+  // 동일 처리 — 예전엔 포매터만 잘라 텍스트(상담사)와 차트가 갈렸다.
+  const A = input.timeUnknownA ? (input.pillarsA ?? []).slice(0, 3) : (input.pillarsA ?? [])
+  const B = input.timeUnknownB ? (input.pillarsB ?? []).slice(0, 3) : (input.pillarsB ?? [])
   const aDay = A[2]
   const bDay = B[2]
 

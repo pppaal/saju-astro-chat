@@ -114,8 +114,8 @@ export const FIVE_ELEMENT_RELATIONS: {
 }
 
 /**
- * 오행 상생·상극 — 영문 키 버전 (정본). 캘린더(lib/calendar/constants)·리포트
- * (lib/report/config/elements.config)가 각자 복제하던 동일 표를 여기로 통합.
+ * 오행 상생·상극 — 영문 키 버전 (정본). 캘린더(lib/calendar/constants)가 복제하던
+ * 동일 표를 여기로 통합(리포트의 elements.config 복제본은 미사용이라 삭제됨).
  * 위 한글 키 FIVE_ELEMENT_RELATIONS 와 같은 이론, 표현(영문 키 + 4-방향)만 다름.
  */
 export const ELEMENT_RELATIONS_EN: Record<

@@ -51,6 +51,28 @@ describe('collectAstroFacts — 점성 순수 facts', () => {
     expect(f!.natal.placeUnreliable).toBe(true)
   })
 
+  it('placeUnreliable 시 ASC/MC 가 null (자정 폴백 각 누출 차단)', async () => {
+    const f = await collectAstroFacts({ ...BIRTH, birthTimeUnknown: true })
+    expect(f!.natal.ascendant).toBeNull()
+    expect(f!.natal.mc).toBeNull()
+  })
+
+  it('placeUnreliable 시 모든 행성 house 가 null (자정 폴백 하우스 누출 차단)', async () => {
+    const f = await collectAstroFacts({ ...BIRTH, birthCityUnknown: true })
+    for (const p of f!.natal.planets) {
+      expect(p.house).toBeNull()
+    }
+  })
+
+  it('정상(시간 있음) 입력은 ASC/MC/house 그대로 유지 — 회귀 방지', async () => {
+    const f = await collectAstroFacts(BIRTH)
+    expect(f!.natal.ascendant).not.toBeNull()
+    expect(f!.natal.mc).not.toBeNull()
+    for (const p of f!.natal.planets) {
+      expect(typeof p.house).toBe('number')
+    }
+  })
+
   it('aspects.strong — 모두 orb ≤ 2', async () => {
     const f = await collectAstroFacts(BIRTH)
     for (const a of f!.aspects.strong) {

@@ -47,35 +47,6 @@ import {
   performAnalyses,
 } from './services'
 
-/**
- * 대운(daeun) current 항목을 viewer 타임존 연도 기준으로 선택한다.
- *
- * saju.ts 의 daeWoon.current 는 출생 타임존의 "now" 연도로 선택되지만,
- * 연운/월운/일진은 viewer 타임존 연도로 산출된다. 1/1 경계에서 두 타임존의
- * "현재 연도"가 다르면 같은 화면에서 대운 current 가 연운과 한 해 어긋난다.
- * 이 헬퍼는 viewer 연도로 current 를 재선택해 일치시킨다.
- *
- * 선택 규칙은 saju.ts 와 동일: 한국식 나이(viewerYear - birthYear + 1)가
- * 진입 나이(d.age) 이상인 가장 높은(가장 늦게 진입한) 대운 항목.
- */
-export function pickCurrentDaeun<T extends { age: number }>(
-  list: readonly T[],
-  viewerYear: number,
-  birthYear: number,
-  fallback: T | null
-): T | null {
-  if (!Number.isFinite(birthYear) || !Number.isFinite(viewerYear) || list.length === 0) {
-    return fallback
-  }
-  const viewerAge = viewerYear - birthYear + 1
-  return (
-    list
-      .slice()
-      .reverse()
-      .find((d) => viewerAge >= d.age) ?? list[0]
-  )
-}
-
 /* -----------------------------
    Handler
 ------------------------------*/
@@ -194,27 +165,18 @@ export const POST = withApiMiddleware(async (req: NextRequest, context: ApiConte
   // 를 갖고 있으므로 cycles/daeunsu 별칭만 추가해 모든 reader 를 만족시킨다.
   const userNow = getNowInTimezone(effectiveUserTz)
 
-  // daeWoon.current 는 saju.ts 에서 출생 타임존("now")의 연도로 선택된다.
-  // 하지만 연운/월운/일진(아래 yeonun/wolun/iljin)은 viewer 타임존 연도
-  // (userNow.year)로 산출된다. 1/1 경계에서 한국 사주를 보는 미국 사용자처럼
-  // 두 타임존의 "현재 연도"가 다르면, 같은 화면에서 대운 current 가 연운과
-  // 한 해 어긋나 보인다. viewer 타임존 연도로 current 를 재선택해 일치시킨다.
-  // 선택 로직은 saju.ts 와 동일: 한국식 나이(현재연도 - 출생연도 + 1)가
-  // 진입 나이(d.age) 이상인 가장 높은 대운 항목.
-  const birthYear = Number(birthDateString.slice(0, 4))
+  // daeWoon.current 는 saju.ts 에서 currentManAge(SSOT, 출생 타임존 기준
+  // 만 나이, now 주입식)로 이미 정확히 선택된 canonical 값이다(CONVENTIONS
+  // §14). 옛 route 코드는 여기서 한국식 나이(현재연도 - 출생연도 + 1)로
+  // current 를 재선택해 §14 를 위반하고 정상 canonical current 를 덮어써
+  // 대운 경계에서 1년 빨리 넘어갔다. 이제 canonical current 를 그대로 서빙한다.
   const daeunList = sajuResult.daeWoon.list
-  const daeunCurrent = pickCurrentDaeun(
-    daeunList,
-    userNow.year,
-    birthYear,
-    sajuResult.daeWoon.current
-  )
 
   const daeunInfo = {
     startAge: sajuResult.daeWoon.startAge,
     daeunsu: sajuResult.daeWoon.startAge,
     isForward: sajuResult.daeWoon.isForward,
-    current: daeunCurrent,
+    current: sajuResult.daeWoon.current,
     list: daeunList,
     cycles: daeunList,
   }

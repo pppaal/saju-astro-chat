@@ -8,7 +8,7 @@ export interface ReportPillar {
   branch: string
   sibsinStem: string
   sibsinBranch: string
-  jijanggan: Array<{ g: string; d: number }>
+  jijanggan: Array<{ g: string; layer: 'main' | 'mid' | 'sub' }>
   twelveStage: string
   isDay?: boolean
 }
@@ -135,7 +135,7 @@ export const ASPECT_META: Record<
   sextile: { glyph: '⚹', ko: '육각', cls: 'soft' },
   square: { glyph: '□', ko: '사각', cls: 'hard' },
   trine: { glyph: '△', ko: '삼각', cls: 'soft' },
-  opposition: { glyph: '☍', ko: '대충', cls: 'hard' },
+  opposition: { glyph: '☍', ko: '대충(對沖)', cls: 'hard' },
 }
 // 별자리 약어 → glyph·한국어·원소
 export const SIGN_META: Record<string, { glyph: string; ko: string; el: string }> = {
@@ -206,35 +206,35 @@ export const DIGNITY_TIER_FRIENDLY: Record<string, BiLabel> = {
  */
 export const DIGNITY_TIER_TOOLTIP: Record<string, BiLabel> = {
   domicile: {
-    ko: '본궁 (Domicile) +5 — 행성이 본래 다스리는 별자리',
+    ko: '본궁 +5 — 행성이 본래 다스리는 별자리',
     en: 'Domicile +5 — the sign the planet naturally rules',
   },
   exaltation: {
-    ko: '고양 (Exaltation) +4 — 가장 잘 발휘되는 위치',
+    ko: '고양 +4 — 가장 잘 발휘되는 위치',
     en: 'Exaltation +4 — where the planet expresses at its best',
   },
   triplicity: {
-    ko: '삼분궁 (Triplicity) +3 — 같은 원소 그룹',
+    ko: '삼분궁 +3 — 같은 원소 그룹',
     en: 'Triplicity +3 — same elemental family',
   },
   term: {
-    ko: '바운드 (Term) +2 — 별자리 내 작은 영역 지배',
+    ko: '바운드 +2 — 별자리 내 작은 영역 지배',
     en: 'Term +2 — rulership of a small zone within the sign',
   },
   face: {
-    ko: '안면 (Face) +1 — 별자리 내 10도 영역 지배',
+    ko: '안면 +1 — 별자리 내 10도 영역 지배',
     en: 'Face +1 — rulership of a 10° decan within the sign',
   },
   detriment: {
-    ko: '손상 (Detriment) −5 — 본궁 반대편, 본성 발휘 어려움',
+    ko: '손상 −5 — 본궁 반대편, 본성 발휘 어려움',
     en: 'Detriment −5 — opposite the domicile, expression is strained',
   },
   fall: {
-    ko: '추락 (Fall) −4 — 고양 반대편, 약화',
+    ko: '추락 −4 — 고양 반대편, 약화',
     en: 'Fall −4 — opposite the exaltation, weakened',
   },
   peregrine: {
-    ko: '중립 (Peregrine) — 위계 없음',
+    ko: '중립 — 위계 없음',
     en: 'Peregrine — no essential dignity',
   },
 }
@@ -247,35 +247,35 @@ export const ASPECT_FRIENDLY: Record<string, { label: BiLabel; tooltip: BiLabel 
   conjunction: {
     label: { ko: '같이 있어요', en: 'Working together' },
     tooltip: {
-      ko: '합 (Conjunction) 0° — 두 행성이 붙어서 함께 작동',
+      ko: '합 0° — 두 행성이 붙어서 함께 작동',
       en: 'Conjunction 0° — two planets fused and acting as one',
     },
   },
   sextile: {
     label: { ko: '잘 도와줘요', en: 'Lends a hand' },
     tooltip: {
-      ko: '육각 (Sextile) 60° — 부드럽게 협력',
+      ko: '육각 60° — 부드럽게 협력',
       en: 'Sextile 60° — gentle cooperation',
     },
   },
   square: {
     label: { ko: '부딪혀요', en: 'Clashes' },
     tooltip: {
-      ko: '사각 (Square) 90° — 긴장·갈등',
+      ko: '사각 90° — 긴장·갈등',
       en: 'Square 90° — tension and friction',
     },
   },
   trine: {
     label: { ko: '잘 흘러요', en: 'Flows easily' },
     tooltip: {
-      ko: '삼각 (Trine) 120° — 자연스럽게 어울림',
+      ko: '삼각 120° — 자연스럽게 어울림',
       en: 'Trine 120° — natural harmony',
     },
   },
   opposition: {
     label: { ko: '맞서요', en: 'Faces off' },
     tooltip: {
-      ko: '대충 (Opposition) 180° — 정면 대립',
+      ko: '대충(對沖) 180° — 정면 대립',
       en: 'Opposition 180° — head-on polarity',
     },
   },

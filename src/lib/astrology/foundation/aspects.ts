@@ -1,6 +1,6 @@
 // src/lib/astrology/foundation/aspects.ts
 
-import { AspectHit, AspectRules, AspectType, Chart } from './types'
+import { ASPECT_ANGLES, AspectHit, AspectRules, AspectType, Chart } from './types'
 import { shortestAngle } from './utils'
 import { clamp } from '@/lib/utils/math'
 import { evaluateAspect, AspectEngineConfig } from './aspectCore'
@@ -59,18 +59,8 @@ const BLOCKED_MINOR = new Set<AspectType>([
   'sesquiquadrate',
 ])
 
-const DESIRED_ANGLES: Record<AspectType, number> = {
-  conjunction: 0,
-  sextile: 60,
-  square: 90,
-  trine: 120,
-  opposition: 180,
-  semisextile: 30,
-  quincunx: 150,
-  quintile: 72,
-  biquintile: 144,
-  sesquiquadrate: 135,
-}
+// 어스펙트 각도는 공용 SSOT(ASPECT_ANGLES, foundation/types) 사용.
+const DESIRED_ANGLES = ASPECT_ANGLES
 
 function baseAspectWeight(a: AspectType) {
   switch (a) {

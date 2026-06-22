@@ -47,7 +47,7 @@ export default function ElementsDetail({ saju, lang }: ElementsDetailProps) {
           const isAvoid = Array.isArray(yong?.avoid) && yong.avoid.includes(k)
 
           return (
-            <div className={s.row} key={k}>
+            <div className={`${s.row} ${s[`el_${k}`] ?? ''}`} key={k}>
               <div className={s.head}>
                 <span className={`${s.name} ${elClass[k] ?? ''}`}>
                   <span className={s.han}>{meta?.han}</span>
@@ -68,10 +68,10 @@ export default function ElementsDetail({ saju, lang }: ElementsDetailProps) {
                 <p className={s.lack}>
                   {en
                     ? lack
-                      ? `Missing in your chart — you may feel ${lack.toLowerCase()}`
+                      ? `Missing in your chart — signs to watch: ${lack}`
                       : 'Missing in your chart.'
                     : lack
-                      ? `명식에 없어요 — ${lack} 경향이 나타날 수 있어요`
+                      ? `명식에 없어요 — 살펴볼 신호: ${lack}`
                       : '명식에 없어요.'}
                 </p>
               )}

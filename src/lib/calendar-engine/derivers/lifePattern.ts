@@ -11,6 +11,7 @@
  * 순수 함수 — saju 입력만.
  */
 import { getStemElement, getBranchElement } from '@/lib/saju/stemBranchUtils'
+import { FIVE_ELEMENT_RELATIONS } from '@/lib/saju/constants'
 
 export type SibsinCategory = '비겁' | '식상' | '재성' | '관성' | '인성'
 export type LifePatternKey =
@@ -43,8 +44,9 @@ export interface LifePattern {
   daeun: DaeunFavor[]
 }
 
-const GEN: Record<string, string> = { 목: '화', 화: '토', 토: '금', 금: '수', 수: '목' }
-const CTRL: Record<string, string> = { 목: '토', 토: '수', 수: '화', 화: '금', 금: '목' }
+// 오행 상생(GEN)·상극(CTRL) — 정본 FIVE_ELEMENT_RELATIONS(saju/constants)에서 파생.
+const GEN: Record<string, string> = FIVE_ELEMENT_RELATIONS.생하는관계
+const CTRL: Record<string, string> = FIVE_ELEMENT_RELATIONS.극하는관계
 
 /** 일간 오행 대비 어떤 오행이 어느 십신 카테고리인지. */
 function categoryOf(dmEl: string, el: string): SibsinCategory {

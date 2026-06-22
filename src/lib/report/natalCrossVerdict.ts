@@ -49,6 +49,12 @@ export interface DomainCtx {
   /** 원소명 라벨 override — 공기 별자리는 '木' 대신 '공기'로 표기. */
   aLabel?: { ko: string; en: string }
   bLabel?: { ko: string; en: string }
+  /**
+   * 공기(air) 근사 표식 — 한쪽 오행이 공기 별자리에서 木으로 근사돼 나온 경우.
+   * 무손실 대응이 아니라 '같은 결(same)' 판정이 거짓 수렴일 수 있으므로, 그 경우
+   * 단정 대신 헤지 문구를 덧붙인다(톤은 유지).
+   */
+  airApprox?: boolean
 }
 
 /**
@@ -71,7 +77,7 @@ const VERDICT_CLOSERS: Record<string, ReadonlyArray<{ ko: string; en: string }>>
     },
     {
       ko: '한 길로 깊게 파기 좋은 구조라, 이 강점을 살릴 자리를 일찍 정할수록 멀리 가요.',
-      en: 'You’re built to go deep on one track — the sooner you pick a stage for it, the further it carries you.',
+      en: "You're built to go deep on one track — the sooner you pick a stage for it, the further it carries you.",
     },
   ],
   aGenB: [
@@ -85,7 +91,7 @@ const VERDICT_CLOSERS: Record<string, ReadonlyArray<{ ko: string; en: string }>>
     },
     {
       ko: '뿌리가 단단할수록 열매가 커지니, 기초를 다지는 시간을 아까워하지 마세요.',
-      en: 'The firmer the roots, the bigger the fruit — don’t begrudge the time spent on foundations.',
+      en: "The firmer the roots, the bigger the fruit — don't begrudge the time spent on foundations.",
     },
   ],
   bGenA: [
@@ -99,7 +105,7 @@ const VERDICT_CLOSERS: Record<string, ReadonlyArray<{ ko: string; en: string }>>
     },
     {
       ko: '혼자 짜내기보다 좋은 환경에 기대는 게 오히려 영리한 전략이에요.',
-      en: 'Leaning on a good environment beats grinding it out alone — that’s the smart play.',
+      en: "Leaning on a good environment beats grinding it out alone — that's the smart play.",
     },
   ],
   tension: [
@@ -123,11 +129,11 @@ const VERDICT_CLOSERS: Record<string, ReadonlyArray<{ ko: string; en: string }>>
     },
     {
       ko: '겹치지 않아 서로 방해도 안 하니, 두 자원을 따로 꺼내 쓰는 여유가 있어요.',
-      en: 'They don’t overlap or interfere, so you can draw on each as its own resource.',
+      en: "They don't overlap or interfere, so you can draw on each as its own resource.",
     },
     {
       ko: '한 데 묶이지 않은 덕에, 한쪽이 막혀도 다른 쪽으로 풀 길이 남아요.',
-      en: 'Because they aren’t bound together, if one path stalls the other still offers a way through.',
+      en: "Because they aren't bound together, if one path stalls the other still offers a way through.",
     },
   ],
 }
@@ -158,6 +164,14 @@ export function elementVerdict(a: SajuElement, b: SajuElement, d: DomainCtx): Cr
     switch (rel) {
       case 'same': {
         const cl = pickCloser('same', seed)
+        // 공기 근사로 나온 '같은 결'은 무손실 대응이 아니라 거짓 수렴일 수 있어,
+        // 단정 대신 헤지 한 줄을 덧붙인다(톤=resonant 는 유지).
+        const hedgeKo = d.airApprox
+          ? '다만 한쪽이 공기 별자리라 오행으로는 어림잡아 맞춘 면이 있어, 이 수렴은 단정이라기보다 결이 비슷하다는 정도로 봐 두세요. '
+          : ''
+        const hedgeEn = d.airApprox
+          ? 'That said, one side is an air sign mapped only approximately onto the elements, so read this as a loose resemblance rather than a firm match. '
+          : ''
         return {
           tone: 'resonant',
           reason: {
@@ -165,11 +179,13 @@ export function elementVerdict(a: SajuElement, b: SajuElement, d: DomainCtx): Cr
               (sameTrait
                 ? `${d.aKo}${waGwa(d.aKo)} ${d.bKo}${iga(d.bKo)} 둘 다 ${ta.ko} 결이라, 한 방향으로 또렷한 사람이에요. `
                 : `${d.aKo}${eunNeun(d.aKo)} ${ta.ko}, ${d.bKo}${eunNeun(d.bKo)} ${tb.ko} 결이라 겉보기엔 달라도 뿌리는 같은 흐름이라 한 방향으로 통해요. `) +
+              hedgeKo +
               cl.ko,
             en:
               (sameTrait
                 ? `Your ${d.aEn} and ${d.bEn} are both ${ta.en} — one clear, consistent direction. `
                 : `Your ${d.aEn} is ${ta.en} and your ${d.bEn} is ${tb.en} — different on the surface, yet they share one root and pull the same way. `) +
+              hedgeEn +
               cl.en,
           },
         }
@@ -179,7 +195,7 @@ export function elementVerdict(a: SajuElement, b: SajuElement, d: DomainCtx): Cr
         return {
           tone: 'complement',
           reason: {
-            ko: `${ta.ko} ${d.aKo}${iga(d.aKo)} ${tb.ko} ${d.bKo}${eulReul(d.bKo)} 자연스럽게 키워줘요 — 안에서 밖으로 잘 이어지는 타입. ${cl.ko}`,
+            ko: `${ta.ko} ${d.aKo}${iga(d.aKo)} ${tb.ko} ${d.bKo}${eulReul(d.bKo)} 자연스럽게 키워줘요 — 안에서 밖으로 잘 이어지는 타입이에요. ${cl.ko}`,
             en: `Your ${ta.en} ${d.aEn} naturally feeds your ${tb.en} ${d.bEn} — inner flows outward. ${cl.en}`,
           },
         }
@@ -189,7 +205,7 @@ export function elementVerdict(a: SajuElement, b: SajuElement, d: DomainCtx): Cr
         return {
           tone: 'complement',
           reason: {
-            ko: `${tb.ko} ${d.bKo}${iga(d.bKo)} ${ta.ko} ${d.aKo}${eulReul(d.aKo)} 받쳐줘요 — 밖이 안을 채워주는 타입. ${cl.ko}`,
+            ko: `${tb.ko} ${d.bKo}${iga(d.bKo)} ${ta.ko} ${d.aKo}${eulReul(d.aKo)} 받쳐줘요 — 밖이 안을 채워주는 타입이에요. ${cl.ko}`,
             en: `Your ${tb.en} ${d.bEn} feeds your ${ta.en} ${d.aEn} — outer replenishes inner. ${cl.en}`,
           },
         }
