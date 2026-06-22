@@ -78,6 +78,10 @@ const ALLOWLIST = new Set([
   'src/app/api/cron/daily-fortune/route.ts',
   'src/app/api/cron/reset-credits/route.ts',
   'src/app/api/cron/reconcile-activity/route.ts',
+  'src/app/api/cron/social-drafts/route.ts',
+  'src/app/api/cron/keyday-push/route.ts',
+  'src/app/api/cron/winback-push/route.ts',
+  'src/app/api/cron/anomaly-check/route.ts',
 
   // Public share viewer: public by design (SECURITY_AUDIT_REPORT "public
   // share/[id]"), rate-limited manually.

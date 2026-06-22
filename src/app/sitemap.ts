@@ -64,6 +64,29 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: 'weekly',
       priority: 0.8,
     },
+    // 무료 퍼널 허브 — 소셜(인스타/쓰레드/유튜브) 유입의 착지점. 색인되어
+    // 검색에서도 "무료 타로/궁합" 의도로 들어오게 한다. priority 높게.
+    {
+      url: `${BASE_URL}/free`,
+      lastModified: currentDate,
+      changeFrequency: 'weekly',
+      priority: 0.9,
+      alternates: {
+        languages: { en: `${BASE_URL}/free`, ko: `${BASE_URL}/free` },
+      },
+    },
+    {
+      url: `${BASE_URL}/compatibility/free`,
+      lastModified: currentDate,
+      changeFrequency: 'weekly',
+      priority: 0.8,
+      alternates: {
+        languages: {
+          en: `${BASE_URL}/compatibility/free`,
+          ko: `${BASE_URL}/compatibility/free`,
+        },
+      },
+    },
   ]
 
   const servicePages: MetadataRoute.Sitemap = ENABLED_SERVICES.map((service) => ({

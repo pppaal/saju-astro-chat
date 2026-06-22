@@ -36,7 +36,13 @@ const NAV_GROUPS: NavGroup[] = [
       { href: '/admin/webhooks', label: '결제·웹훅' },
       { href: '/admin/anomalies', label: '이상징후' },
       { href: '/admin/audit', label: '감사로그' },
+      { href: '/admin/push', label: '푸시 진단' },
+      { href: '/admin/automation', label: '자동화 상태' },
     ],
+  },
+  {
+    label: '콘텐츠',
+    items: [{ href: '/admin/social', label: '소셜 자동화' }],
   },
 ]
 

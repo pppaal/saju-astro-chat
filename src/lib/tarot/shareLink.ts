@@ -23,9 +23,12 @@ export interface ShareLinkCard {
   isReversed: boolean
 }
 
-export interface ShareLinkPayload {
+/** 타로 리딩 공유 — 기존(레거시) 페이로드. kind 없으면 'tarot' 로 본다. */
+export interface TarotShareLinkPayload {
   /** 스키마 버전 — 추후 형태 변경 시 분기. */
   v: 1
+  /** 공유 종류. 레거시 타로 링크는 이 필드가 없어 undefined → 'tarot' 취급. */
+  kind?: 'tarot'
   isKo: boolean
   question: string
   spreadTitle: string
@@ -34,6 +37,49 @@ export interface ShareLinkPayload {
   keyMessage: string
   /** 본문(선택) — 데일리 message / 리딩 overall 등 더 읽을거리. */
   body?: string
+}
+
+export type CompatVerdictTone = 'aligned' | 'mixed' | 'tension' | 'neutral'
+
+/** 무료 궁합 결과 공유 — 두 사람 verdict 한 줄을 OG/공개 페이지 주인공으로. */
+export interface CompatShareLinkPayload {
+  v: 1
+  kind: 'compatibility'
+  isKo: boolean
+  nameA: string
+  nameB: string
+  /** 동·서 교차 종합 한 줄 (공개 페이지/OG 의 주인공). */
+  verdict: string
+  verdictTone: CompatVerdictTone
+  /** 결정적 신호 한 줄(선택) — 더 읽을거리. */
+  headline?: string
+}
+
+/** 운흐름 캘린더 공유 — 기간 한 줄 총평을 OG/공개 페이지 주인공으로. */
+export interface CalendarShareLinkPayload {
+  v: 1
+  kind: 'calendar'
+  isKo: boolean
+  /** 기간 라벨 — 예: "2026년 6월" / "June 2026". */
+  periodLabel: string
+  /** 이달의 흐름 한 줄(공개 페이지/OG 주인공). */
+  headline: string
+  /** 큰 날/포인트 몇 개(선택) — 더 읽을거리. */
+  highlights?: string[]
+}
+
+export type ShareLinkPayload =
+  | TarotShareLinkPayload
+  | CompatShareLinkPayload
+  | CalendarShareLinkPayload
+
+/** 타입 가드 — 공유 종류 분기(렌더/OG). 레거시(미지정)는 tarot. */
+export function isCompatShare(p: ShareLinkPayload): p is CompatShareLinkPayload {
+  return p.kind === 'compatibility'
+}
+
+export function isCalendarShare(p: ShareLinkPayload): p is CalendarShareLinkPayload {
+  return p.kind === 'calendar'
 }
 
 const shareKey = (token: string) => `tarot:share:${token}`
@@ -64,7 +110,10 @@ export async function getShareLink(token: string): Promise<ShareLinkPayload | nu
   if (!clean) return null
   try {
     const payload = await cacheGet<ShareLinkPayload>(shareKey(clean))
-    if (!payload || payload.v !== 1 || !Array.isArray(payload.cards)) return null
+    if (!payload || payload.v !== 1) return null
+    // 궁합·캘린더 공유는 cards 가 없고, 타로(레거시 포함)는 cards 배열을 가진다.
+    if (payload.kind === 'compatibility' || payload.kind === 'calendar') return payload
+    if (!Array.isArray((payload as TarotShareLinkPayload).cards)) return null
     return payload
   } catch (error) {
     logger.error('[shareLink] get failed', error)
