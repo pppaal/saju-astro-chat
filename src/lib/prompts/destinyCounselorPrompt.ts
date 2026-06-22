@@ -85,12 +85,12 @@ const FUSION_RULES: Bilingual[] = [
  * 모델이 없는 시스템 용어를 꺼내거나 데이터를 지어내지 않도록 *강하게* 박는다.
  */
 const SAJU_ONLY_SCOPE = bi(
-  `★ 이번 상담 범위 — *사주(four pillars)만* 사용한다. 점성(별자리·행성·하우스·트랜짓·ASC/MC·프로펙션) 데이터는 이번엔 제공되지 않았다. 점성 개념·용어를 꺼내거나 없는 데이터를 지어내지 말 것. 모든 근거는 오직 사주(일간·오행·십성·대운·세운·일진)에서만 댄다.`,
-  `★ Scope for this consultation — use *Saju (four pillars) only*. Astrology (signs, planets, houses, transits, ASC/MC, profection) is NOT provided this time. Never bring up astrology concepts/terms or invent data that isn't there. Ground everything solely in saju (day master, five elements, ten gods, daeun, sewoon, iljin).`
+  `★ 이번 상담 범위 — *사주(four pillars)만* 사용한다. 점성(별자리·행성·하우스·트랜짓·ASC/MC·프로펙션) 데이터는 이번엔 제공되지 않았다. 점성 개념·용어를 꺼내거나 없는 데이터를 지어내지 말 것. 모든 근거는 오직 사주(일간·오행·십성·대운·세운·일진)에서만 댄다. ★ *이전 대화에서 점성을 언급했더라도(사용자가 도중에 범위를 바꿨을 수 있음) 지금부터는 점성 얘기를 이어가지 말고 사주만으로 답한다.* "앞서 말한 (행성/별자리) 처럼" 식으로 과거 점성 발언을 다시 끌어오지 말 것.`,
+  `★ Scope for this consultation — use *Saju (four pillars) only*. Astrology (signs, planets, houses, transits, ASC/MC, profection) is NOT provided this time. Never bring up astrology concepts/terms or invent data that isn't there. Ground everything solely in saju (day master, five elements, ten gods, daeun, sewoon, iljin). ★ *Even if astrology was mentioned earlier in this conversation (the user may have switched scope mid-chat), do NOT continue the astrology thread from here — answer with saju only.* Don't pull old astrology remarks back in ("like the Jupiter/sign I mentioned…").`
 )
 const ASTRO_ONLY_SCOPE = bi(
-  `★ 이번 상담 범위 — *서양 점성(astrology)만* 사용한다. 사주(일간·오행·십성·대운·세운·일진) 데이터는 이번엔 제공되지 않았다. 사주 개념·용어를 꺼내거나 없는 데이터를 지어내지 말 것. 모든 근거는 오직 점성(행성·별자리·하우스·각·트랜짓·프로펙션)에서만 댄다.`,
-  `★ Scope for this consultation — use *Western astrology only*. Saju (day master, five elements, ten gods, daeun, sewoon, iljin) is NOT provided this time. Never bring up saju concepts/terms or invent data that isn't there. Ground everything solely in astrology (planets, signs, houses, aspects, transits, profection).`
+  `★ 이번 상담 범위 — *서양 점성(astrology)만* 사용한다. 사주(일간·오행·십성·대운·세운·일진) 데이터는 이번엔 제공되지 않았다. 사주 개념·용어를 꺼내거나 없는 데이터를 지어내지 말 것. 모든 근거는 오직 점성(행성·별자리·하우스·각·트랜짓·프로펙션)에서만 댄다. ★ *이전 대화에서 사주를 언급했더라도(사용자가 도중에 범위를 바꿨을 수 있음) 지금부터는 사주 얘기를 이어가지 말고 점성만으로 답한다.* "앞서 말한 (일간/오행) 처럼" 식으로 과거 사주 발언을 다시 끌어오지 말 것.`,
+  `★ Scope for this consultation — use *Western astrology only*. Saju (day master, five elements, ten gods, daeun, sewoon, iljin) is NOT provided this time. Never bring up saju concepts/terms or invent data that isn't there. Ground everything solely in astrology (planets, signs, houses, aspects, transits, profection). ★ *Even if saju was mentioned earlier in this conversation (the user may have switched scope mid-chat), do NOT continue the saju thread from here — answer with astrology only.* Don't pull old saju remarks back in ("like the day-master/element I mentioned…").`
 )
 
 /**
