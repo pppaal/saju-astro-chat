@@ -160,7 +160,10 @@ export function buildBirthQuery(info: StoredBirthInfo | null): string {
 export function buildCounselorHref(
   info: StoredBirthInfo,
   question: string,
-  lang: 'en' | 'ko'
+  lang: 'en' | 'ko',
+  // 메인에서 고른 데이터 소스(사주/점성). 기본 둘 다 → 둘 다일 땐 파라미터 생략
+  // (하위호환·URL 깔끔). 한쪽만 끄면 saju=0 / astro=0 으로 실어 보낸다.
+  sources?: { saju: boolean; astro: boolean }
 ): string {
   const params = new URLSearchParams()
   if (info.name) params.set('name', info.name)
@@ -174,6 +177,8 @@ export function buildCounselorHref(
   if (typeof info.longitude === 'number') params.set('lon', String(info.longitude))
   if (info.timeZone) params.set('timeZone', info.timeZone)
   params.set('lang', lang)
+  if (sources && !sources.saju) params.set('saju', '0')
+  if (sources && !sources.astro) params.set('astro', '0')
   const q = question.trim()
   if (q) params.set('q', q)
   return `/destiny-counselor?${params.toString()}`

@@ -45,6 +45,7 @@ const Chat = memo(function Chat({
   autoSendSeed = false,
   autoFocus = false,
   initialSessionId,
+  initialSources,
   onSessionChange,
   onSendBlocked,
   inputViewTransitionName,
@@ -74,8 +75,12 @@ const Chat = memo(function Chat({
 
   const [input, setInput] = React.useState('')
   const [notice, setNotice] = React.useState<string | null>(null)
-  // 이번 상담에 넣을 데이터 소스(사주/점성). 기본 둘 다. 체크박스로 언제든 전환.
-  const [sources, setSources] = React.useState<DestinySources>({ saju: true, astro: true })
+  // 이번 상담에 넣을 데이터 소스(사주/점성). 메인에서 고른 값(initialSources)으로
+  // 시작하고, 없으면 둘 다. 이후 입력창 체크박스로 언제든 전환. (사람 전환 시
+  // Chat 이 key 로 remount 되므로 그때 다시 initialSources 가 적용된다.)
+  const [sources, setSources] = React.useState<DestinySources>(
+    initialSources ?? { saju: true, astro: true }
+  )
   const [showTarotModal, setShowTarotModal] = React.useState(false)
   const [activeSessionId, setActiveSessionId] = React.useState<string | null>(null)
 
