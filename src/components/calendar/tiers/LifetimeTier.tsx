@@ -824,7 +824,10 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
                   const past = m.year < nowYear
                   const highlight = idx === hi
                   const [titleRaw, ...rest] = mLabel(m).split('—')
-                  const meaning = rest.join('—').trim()
+                  // 의미는 baked meaning(EN 포함)을 우선 — labelEn 엔 '—' 절이 없어
+                  // split 만으론 EN 의미가 비기 때문. 없으면 라벨 뒤 절로 폴백.
+                  const meaning =
+                    (ko ? m.meaning : (m.meaningEn ?? m.meaning)) || rest.join('—').trim()
                   return (
                     <div
                       key={`pv-${m.year}-${idx}`}

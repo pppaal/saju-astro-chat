@@ -23,7 +23,11 @@ import { getStemElement, getBranchElement } from '@/lib/saju/stemBranchUtils'
 import { CHUNG, YUKHAP } from '@/lib/saju/constants'
 import { getTwelveStage } from '@/lib/saju/shinsal'
 import { getTwelveStageInterpretation } from '@/lib/saju/interpretations'
-import { twelveStagePlain, plainPairName } from '@/lib/calendar-engine/derivers/plainLanguage'
+import {
+  twelveStagePlain,
+  plainPairName,
+  splitPairName,
+} from '@/lib/calendar-engine/derivers/plainLanguage'
 import { SIBSIN_EN } from '@/lib/saju/sibsinLabels'
 import { toGanji, type Ganji, geokgukStatusLine, computeSewoonGanji, PLANET_KO } from './shared'
 
@@ -438,8 +442,14 @@ export function toDecade(natal: NatalContext, opts: ToDecadeOptions = {}): Desti
       if (Math.abs(s.polarity) > Math.abs(cur.polarity)) cur.polarity = s.polarity
       continue
     }
-    const sajuLine = extractEvidenceField(s, 'sajuKey')
-    const astroKey = extractEvidenceField(s, 'astroKey')
+    // evidence.detail 우선. /destiny(연 cells)는 includeEvidence:false 로 detail
+    // 이 비므로, 살아남는 s.name('편관 × 화성')에서 사주/행성 토큰을 폴백 파싱한다
+    // (월/일 경로의 crossKeys 와 같은 원칙).
+    const split = splitPairName(s.name)
+    const sajuLine = extractEvidenceField(s, 'sajuKey') ?? split?.saju
+    const astroKey =
+      extractEvidenceField(s, 'astroKey') ??
+      (split ? (PLANET_KO_TO_EN[split.astro] ?? split.astro) : undefined)
     crossSeen.set(s.name, {
       signalId: s.id,
       // 이름은 쉬운말 — '편관 × 화성' → '일·도전 × 추진·마찰' (십신=생활영역, 행성=일상어).

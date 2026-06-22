@@ -330,7 +330,9 @@ describe('toDecade — 현재 대운 → destinypal decade', () => {
       expect(d.crossActivations[0].name).toBe('돈·안정 × 사랑·돈')
     })
 
-    it('sajuLineEn — sajuLine 없으면 undefined', () => {
+    it('evidence.detail 비어도 페어 name 에서 사주/행성 라인 폴백 (연 cells strip 대응)', () => {
+      // /destiny(연 cells)는 includeEvidence:false 라 detail 이 비는데, 살아남는
+      // s.name 에서 사주/행성 토큰을 파싱해 서브라인이 사라지지 않게 한다.
       const signals = [
         makeSignal({
           kind: 'cross-activation',
@@ -341,8 +343,28 @@ describe('toDecade — 현재 대운 → destinypal decade', () => {
         }),
       ]
       const d = toDecade(natalWithDaeun(), { currentAge: 5, decadalSignals: signals })!
+      const c = d.crossActivations[0]
+      expect(c.sajuLine).toBe('편재')
+      expect(c.sajuLineEn).toBe('Indirect Wealth')
+      expect(c.astroLine).toBe('목성') // KO 행성
+      expect(c.astroLineEn).toBe('Jupiter') // EN 행성, 한글 누수 없음
+      expect(c.astroLineEn).not.toMatch(/[가-힣]/)
+    })
+
+    it('페어가 아닌 name 은 사주/행성 라인 undefined', () => {
+      const signals = [
+        makeSignal({
+          kind: 'cross-activation',
+          layer: 'decadal',
+          name: '단일신호',
+          id: 'c1',
+          polarity: 1,
+        }),
+      ]
+      const d = toDecade(natalWithDaeun(), { currentAge: 5, decadalSignals: signals })!
       expect(d.crossActivations[0].sajuLine).toBeUndefined()
       expect(d.crossActivations[0].sajuLineEn).toBeUndefined()
+      expect(d.crossActivations[0].astroLine).toBeUndefined()
     })
   })
 

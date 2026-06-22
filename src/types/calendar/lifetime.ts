@@ -121,6 +121,10 @@ export interface DestinyMilestone {
   label: string
   /** 한 줄 라벨 영문 — 클라이언트 언어 토글용. 미지정 시 label 폴백. */
   labelEn?: string
+  /** 한 줄 의미(KO) — 마일스톤 해석. 라벨과 별개의 풍부한 한 줄. */
+  meaning?: string
+  /** 한 줄 의미 영문 — 클라이언트 토글용. 미지정 시 meaning 폴백. */
+  meaningEn?: string
   /** 시각화 카테고리 — 색상·아이콘 분기 키. */
   kind: DestinyMilestoneKind
   /** 현재 시점에 가장 가까운 마일스톤 표시. */
