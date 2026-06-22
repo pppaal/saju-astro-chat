@@ -1,0 +1,263 @@
+/* ============================================================
+   destinypal · TierFrame — 공유 레이아웃 골격 스타일.
+   모든 티어가 같은 폭·여백·세로 리듬·히어로·섹션·카드·접기를 쓰도록.
+   토큰은 styles/variables.module.css(dp-*) 그대로 사용.
+   ============================================================ */
+
+.frame {
+  display: flex;
+  flex-direction: column;
+  gap: var(--dp-section); /* 섹션 사이 일정 리듬 — 티어마다 제각각이던 간격을 통일 */
+  width: 100%;
+  max-width: 540px;
+  margin: 0 auto;
+  padding: 18px 18px 72px;
+  box-sizing: border-box;
+}
+
+/* ---------- 줌아웃 버튼 ---------- */
+.rise {
+  align-self: flex-start;
+  margin-bottom: calc(var(--dp-section) * -0.5); /* 프레임 gap 흡수 — 다음 요소와 너무 뜨지 않게 */
+  appearance: none;
+  border: 1px solid var(--dp-line);
+  background: var(--dp-panel);
+  color: var(--dp-ink-mute);
+  font-family: var(--dp-sans);
+  font-size: 12.5px;
+  letter-spacing: 0.2px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+.rise:hover {
+  border-color: var(--dp-ink-faint);
+  color: var(--dp-ink);
+}
+
+/* ---------- eyebrow ---------- */
+.eyebrow {
+  font-family: var(--dp-mono);
+  font-size: 11px;
+  letter-spacing: 2.4px;
+  text-transform: uppercase;
+  color: var(--dp-ink-faint);
+  margin-bottom: calc(var(--dp-section) * -0.55); /* 히어로 바로 위에 붙도록 */
+}
+
+/* ---------- 히어로 ---------- */
+.hero {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.heroTop {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.heroVisual {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.heroText {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.heroLead {
+  font-family: var(--dp-serif-ko);
+  font-size: 22px;
+  line-height: 1.34;
+  font-weight: 600;
+  color: var(--dp-ink);
+  word-break: keep-all;
+}
+.heroTone {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--dp-sans);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--dp-ink-mute);
+}
+.toneDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--dp-neu);
+  flex-shrink: 0;
+}
+.heroTone[data-tone='positive'] {
+  color: var(--dp-pos);
+}
+.heroTone[data-tone='positive'] .toneDot {
+  background: var(--dp-pos);
+}
+.heroTone[data-tone='caution'] {
+  color: var(--dp-neg);
+}
+.heroTone[data-tone='caution'] .toneDot {
+  background: var(--dp-neg);
+}
+.heroTone[data-tone='mixed'] {
+  color: var(--dp-tone-mixed);
+}
+.heroTone[data-tone='mixed'] .toneDot {
+  background: var(--dp-tone-mixed);
+}
+.heroAside {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+.heroSub {
+  font-family: var(--dp-serif);
+  font-size: 15.5px;
+  line-height: 1.7;
+  color: var(--dp-ink-mute);
+  margin: 0;
+  word-break: keep-all;
+}
+
+/* 글리프 없는 티어의 큰 세리프 제목 */
+.heroTitle {
+  font-family: var(--dp-serif);
+  font-size: 30px;
+  line-height: 1.3;
+  font-weight: 600;
+  color: var(--dp-ink);
+  margin: 0;
+  word-break: keep-all;
+}
+
+/* ---------- 섹션(band) ---------- */
+.band {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.bandHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 2px;
+  border-bottom: 1px solid var(--dp-line-soft);
+}
+.bandTitle {
+  font-family: var(--dp-sans);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  color: var(--dp-ink);
+}
+.bandAside {
+  font-family: var(--dp-sans);
+  font-size: 11.5px;
+  color: var(--dp-ink-faint);
+  white-space: nowrap;
+}
+.bandBody {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* ---------- 카드 ---------- */
+.card {
+  border: 1px solid var(--dp-line);
+  border-radius: var(--dp-r-lg);
+  padding: 14px 16px;
+  background: var(--dp-panel);
+}
+
+/* ---------- 더 보기(쉬운말 보조 접기) ---------- */
+.moreFold {
+  border-top: 1px solid var(--dp-line-soft);
+  padding-top: 14px;
+}
+.moreSummary {
+  list-style: none;
+  cursor: pointer;
+  font-family: var(--dp-sans);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--dp-ink-mute);
+  letter-spacing: 0.2px;
+}
+.moreSummary::-webkit-details-marker {
+  display: none;
+}
+.moreFold[open] > .moreSummary {
+  color: var(--dp-ink);
+  margin-bottom: 14px;
+}
+.moreBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--dp-gap);
+}
+
+/* ---------- 근거 목록 (왜 이렇게 보나) — 폴드 전용 ---------- */
+.why {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.whyHead {
+  font-family: var(--dp-sans);
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  color: var(--dp-ink);
+}
+.whyList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.whyRow {
+  display: grid;
+  grid-template-columns: minmax(96px, auto) 1fr;
+  gap: 10px;
+  align-items: baseline;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--dp-line-soft);
+}
+.whyRow:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+.whyTerm {
+  font-family: var(--dp-serif-ko);
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--dp-ink);
+  line-height: 1.4;
+  word-break: keep-all;
+}
+.whyTerm[data-tone='positive'] {
+  color: var(--dp-pos);
+}
+.whyTerm[data-tone='caution'] {
+  color: var(--dp-neg);
+}
+.whyBecause {
+  font-family: var(--dp-serif);
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--dp-ink-mute);
+  word-break: keep-all;
+}

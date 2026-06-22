@@ -6,14 +6,7 @@
  */
 
 export { toUser } from './toUser'
-export type {
-  DestinypalUser,
-  DestinypalUserElements,
-  DestinypalUserSect,
-  DestinypalUserAlmuten,
-  DestinypalUserLot,
-  ToUserOptions,
-} from './toUser'
+export type { DestinypalUser, DestinypalUserElements, ToUserOptions } from './toUser'
 
 export type {
   DestinypalLifeStage,

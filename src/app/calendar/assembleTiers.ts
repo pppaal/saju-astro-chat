@@ -259,7 +259,6 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
     birthDisplay,
     place,
     sex,
-    lots: natal.astro.lots,
     intro: lifetimeFlow?.intro,
   })
   const user: DestinyUserSummary & {

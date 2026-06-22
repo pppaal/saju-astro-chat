@@ -17,10 +17,10 @@
  */
 
 import type { NatalContext } from '@/lib/calendar-engine/context/types'
-import type { ArabicLot, ArabicLotName } from '@/lib/astrology/foundation/arabicParts'
+import type { ArabicLotName } from '@/lib/astrology/foundation/arabicParts'
 import type { ZodiacKo } from '@/lib/astrology/foundation/types'
 import type { DestinyDignityEntry, DestinyAlmutenFiguris, DestinyArabicLot } from '@/types/calendar'
-import { ELEMENT_KO, ELEMENT_EN, SIGN_KO, PLANET_KO, geokgukStatusLine, rootLine } from './shared'
+import { ELEMENT_KO, ELEMENT_EN, SIGN_KO, geokgukStatusLine, rootLine } from './shared'
 
 export interface DestinypalUserElements {
   목: number
@@ -37,33 +37,6 @@ export interface DestinypalUserAstro {
   sunEn?: ZodiacKo // 영문: "Aquarius"
   ascEn?: ZodiacKo
   mcEn?: ZodiacKo
-}
-
-export interface DestinypalUserSect {
-  /** 'day' | 'night' */
-  kind: 'day' | 'night'
-  /** 한글 표기 "낮"/"밤" */
-  ko: string
-  /** sect light — 낮차트=Sun, 밤차트=Moon */
-  light: 'Sun' | 'Moon'
-  lightKo: string // "태양"/"달"
-}
-
-export interface DestinypalUserAlmuten {
-  /** 가장 dignity score 높은 행성 (Almuten Figuris 약식). */
-  planet: string
-  planetKo: string
-  sign?: string
-  signKo?: string
-  score: number
-}
-
-export interface DestinypalUserLot {
-  name: string // ArabicLotName
-  sign: string // ZodiacKo
-  signKo: string
-  degreeInSign: number // 0..30
-  formula: string
 }
 
 export interface DestinypalUser {
@@ -103,15 +76,8 @@ export interface DestinypalUser {
   geokgukStatus?: string
   /** 일간 뿌리 정통화 한 줄 — "월령 寅 실령 · 통근 얇음" */
   rootStatus?: string
-  /** 섹트 (낮/밤) + sect light — adapter local 표현. */
-  sect: DestinypalUserSect
-  /**
-   * sectKind — DestinyUserSummary.sect (literal 'day'|'night') 와 호환.
-   * 일부 tier 가 user.sectKind 를 직접 읽도록 별도 노출.
-   */
+  /** 섹트 (낮/밤) — DestinyUserSummary.sect (literal 'day'|'night') 와 호환. tier 가 직접 읽음. */
   sectKind: 'day' | 'night'
-  /** Almuten Figuris (가장 dignity 높은 행성) — adapter local 짧은 셔트. */
-  almuten?: DestinypalUserAlmuten
   /**
    * Almuten Figuris — DestinyAlmutenFiguris shape (planet + score + runnerUps).
    * 본명 5점 합산 dignity 점수 — UI 가 직접 읽음.
@@ -122,8 +88,6 @@ export interface DestinypalUser {
    * YearTier 가 dignity 칩/도트 그릴 때 직접 읽음.
    */
   dignities: DestinyDignityEntry[]
-  /** 7대 Arabic Parts — adapter local 짧은 셔트. */
-  lots: DestinypalUserLot[]
   /**
    * 7대 Arabic Parts — DestinyArabicLot[] (sign + degree + house + sect + korean).
    * UI 가 .house / .sect / .korean 으로 읽음.
@@ -245,46 +209,6 @@ function deriveAstro(natal: NatalContext): DestinypalUserAstro {
   }
 }
 
-function deriveSect(natal: NatalContext): DestinypalUserSect {
-  const k = natal.astro.sect
-  return {
-    kind: k,
-    ko: k === 'day' ? '낮' : '밤',
-    light: k === 'day' ? 'Sun' : 'Moon',
-    lightKo: k === 'day' ? '태양' : '달',
-  }
-}
-
-function deriveAlmuten(natal: NatalContext): DestinypalUserAlmuten | undefined {
-  const dignities = natal.astro.dignities
-  if (!dignities || dignities.length === 0) return undefined
-  // 가장 높은 score 한 명 — Almuten Figuris 의 quick proxy (정통은 다중 요인
-  // 가중합이지만 여기선 dignity score 최대값만).
-  let best: (typeof dignities)[number] | undefined
-  for (const d of dignities) {
-    if (!best || d.score > best.score) best = d
-  }
-  if (!best) return undefined
-  return {
-    planet: best.planet,
-    planetKo: PLANET_KO[best.planet] ?? best.planet,
-    sign: best.sign,
-    signKo: SIGN_KO[best.sign],
-    score: best.score,
-  }
-}
-
-function deriveLots(lots: ArabicLot[] | undefined): DestinypalUserLot[] {
-  if (!lots) return []
-  return lots.map((lot) => ({
-    name: lot.name,
-    sign: lot.sign,
-    signKo: SIGN_KO[lot.sign],
-    degreeInSign: lot.degreeInSign,
-    formula: lot.formula,
-  }))
-}
-
 const LOT_KO: Record<ArabicLotName, string> = {
   Fortune: '복점·재물',
   Spirit: '영점·진로',
@@ -356,8 +280,6 @@ export interface ToUserOptions {
   place?: string
   /** "남"/"여" — saju 입력 sex. */
   sex?: string
-  /** 7대 Arabic Lots — astrology.foundation.calculateArabicLots 결과를 그대로 주입. */
-  lots?: ArabicLot[]
   /** intro / introEn — lifetimeFlow.intro 그대로 들고 오면 됨. */
   intro?: string
   introEn?: string
@@ -447,12 +369,9 @@ export function toUser(natal: NatalContext, opts: ToUserOptions = {}): Destinypa
     introEn: opts.introEn ?? '',
     geokgukStatus,
     rootStatus,
-    sect: deriveSect(natal),
     sectKind: natal.astro.sect,
-    almuten: deriveAlmuten(natal),
     almutenFiguris: deriveAlmutenFigurisFull(natal),
     dignities: deriveDignitiesFull(natal),
-    lots: deriveLots(opts.lots),
     lotsFull: deriveLotsFull(natal),
   }
 }
