@@ -33,10 +33,10 @@
   --crimson-line: #eec6c2;
   --sun: #b06a6a;
 
-  /* 폰트 — 앱 토큰 재사용. "disp" 누멀럴은 세리프 + tabular-nums. */
+  /* 폰트 — 앱 토큰 재사용. "disp" 누멀럴은 Cinzel(자체호스팅) + tabular-nums. */
   --m-serif: var(--dp-serif-ko);
   --m-sans: var(--dp-sans);
-  --m-disp: var(--dp-serif);
+  --m-disp: var(--font-cinzel), var(--dp-serif);
 
   position: relative;
   max-width: 740px;
