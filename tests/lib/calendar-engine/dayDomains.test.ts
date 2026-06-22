@@ -661,6 +661,78 @@ describe('seed — 사람별 문구 개인화(판단 불변, 표현만 회전)',
   })
 })
 
+describe('변주 풀 enrichment — 더 풍부한 개인화', () => {
+  // 풀이 커졌으니 더 많은 seed 에서 더 많은 서로 다른 표현이 나와야 한다.
+  // (의미는 동일·doctrine 보존, 표현만 회전 — 판단 불변.)
+  it('ADVICE money 풀이 여러 seed 에서 3개 이상 다른 표현을 낸다(재성×재물)', () => {
+    const bodies = new Set(
+      [0, 1, 2, 3, 4, 5, 6, 7].map(
+        (seed) =>
+          find(
+            deriveDayDomains({ iljinSibsin: '정재', sex: '여', scoreBand: 'good', seed })!,
+            'money'
+          ).body
+      )
+    )
+    expect(bodies.size).toBeGreaterThanOrEqual(3)
+  })
+
+  it('LOVE_POOLS 각 분기가 여러 seed 에서 3개 이상 다른 표현을 낸다', () => {
+    // wealth:m / officer:f / output:neutral / self:neutral / resource:neutral 분기 대표.
+    const cases: Array<{ sb: string; sex: string }> = [
+      { sb: '편재', sex: '남' }, // wealth:m
+      { sb: '편관', sex: '여' }, // officer:f
+      { sb: '식신', sex: '남' }, // output:neutral
+      { sb: '비견', sex: '남' }, // self:neutral
+      { sb: '편인', sex: '남' }, // resource:neutral
+    ]
+    for (const c of cases) {
+      const loves = new Set(
+        [0, 1, 2, 3, 4, 5, 6, 7].map(
+          (seed) =>
+            find(
+              deriveDayDomains({ iljinSibsin: c.sb, sex: c.sex, scoreBand: 'good', seed })!,
+              'love'
+            ).body
+        )
+      )
+      expect(loves.size).toBeGreaterThanOrEqual(3)
+    }
+  })
+
+  it('CAUTION_BODY 풀이 여러 seed 에서 3개 이상 다른 주의 표현을 낸다(의미=마찰 보존)', () => {
+    const evidence: DayEvidenceInput = {
+      transits: [{ body: 'Saturn', aspect: 'square', polarity: -3 }],
+      shinsal: [],
+      crossActivations: [],
+    }
+    const bodies = [0, 1, 2, 3, 4, 5, 6, 7].map(
+      (seed) =>
+        find(
+          deriveDayDomains({ iljinSibsin: '정관', sex: '남', scoreBand: 'low', evidence, seed })!,
+          'career'
+        ).body
+    )
+    expect(new Set(bodies).size).toBeGreaterThanOrEqual(3)
+    // 모든 변주가 '마찰' 신호어를 유지해 칩과 톤이 어긋나지 않는다.
+    for (const b of bodies) expect(b).toContain('마찰')
+  })
+
+  it('enrich 후에도 ko/en parity + 결정성 유지(모든 카테고리·분야)', () => {
+    for (const seed of [0, 13, 271, 88888]) {
+      for (const sb of ['비견', '식신', '정재', '정관', '정인']) {
+        const a = deriveDayDomains({ iljinSibsin: sb, sex: '남', scoreBand: 'good', seed })!
+        const b = deriveDayDomains({ iljinSibsin: sb, sex: '남', scoreBand: 'good', seed })!
+        expect(JSON.stringify(a)).toBe(JSON.stringify(b)) // 결정성
+        for (const d of a.domains) {
+          expect(d.body).toBeTruthy()
+          expect(d.bodyEn).toBeTruthy()
+        }
+      }
+    }
+  })
+})
+
 describe('active 플래그 — 근거 폴라리티 조건', () => {
   it('십신 관장 분야라도 근거 합이 음수면 active 가 꺼진다', () => {
     const evidence: DayEvidenceInput = {
