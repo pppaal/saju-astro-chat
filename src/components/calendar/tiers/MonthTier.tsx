@@ -25,6 +25,14 @@ import styles from './MonthTier.module.css'
 import { useI18n } from '@/i18n/I18nProvider'
 import { toneMeaningFor, type MeaningTone } from '@/lib/calendar-engine/derivers/toneMeaning'
 import { sibsinArea, sibsinAreaEn, planetPlain } from '@/lib/calendar-engine/derivers/plainLanguage'
+import {
+  TierFrame,
+  RiseButton,
+  Eyebrow,
+  TierHero,
+  Band,
+  MoreFold,
+} from '@/components/calendar/layout/TierFrame'
 
 const MONTH_EN = [
   'January',
@@ -185,115 +193,115 @@ export function MonthTier({ month, onDive, onRise, showRise = true }: MonthTierP
     return `${ymM ?? ''}/${Number(dd)}`
   }
 
+  // 한 줄 요약(쉬운말) — 히어로 sub 로. 좋은 날/조심할 날/피하는 날 개수.
+  const summaryLine = ko ? (
+    <>
+      좋은 날 <b>{goodN}개</b> · 조심할 날 <b>{cautionN}개</b> · 피하는 날 <b>{avoidN}개</b>
+    </>
+  ) : (
+    <>
+      <b>{goodN}</b> good · <b>{cautionN}</b> caution · <b>{avoidN}</b> avoid
+    </>
+  )
+
   return (
-    <div className={styles.tier} data-screen-label={`1달 ${month.ym}`}>
+    <TierFrame screenLabel={`1달 ${month.ym}`}>
       {showRise && (
-        <button className={styles.rise} onClick={onRise} type="button">
-          ↑ {ko ? '올해로 줌아웃' : 'Zoom out to year'}
-        </button>
+        <RiseButton label={ko ? '올해로 줌아웃' : 'Zoom out to year'} onClick={onRise} />
       )}
 
-      {/* ===== header ===== */}
-      <div className={styles.eyebrow}>
+      <Eyebrow>
         {ko ? '1달' : '1 Month'} · Monthly · {month.ym}
-      </div>
-      <h1 className={styles.secTitle}>{flowTitle}</h1>
+      </Eyebrow>
 
-      <p className={styles.summary}>
-        {ko ? (
-          <>
-            좋은 날 <b>{goodN}개</b> · 조심할 날 <b>{cautionN}개</b> · 피하는 날 <b>{avoidN}개</b>
-          </>
-        ) : (
-          <>
-            <b>{goodN}</b> good · <b>{cautionN}</b> caution · <b>{avoidN}</b> avoid
-          </>
-        )}
-      </p>
+      {/* ── Hero — "N월의 모양" + 한 줄 요약(좋은/조심/피하는 날 개수). ── */}
+      <TierHero lead={flowTitle} sub={summaryLine} />
 
-      {/* ===== calendar grid ===== */}
-      <div className={styles.weekHead}>
-        {(ko ? DOWS : DOWS_EN).map((d, i) => (
-          <span
-            key={`dow-${i}`}
-            className={i === 0 ? styles.dowSun : i === 6 ? styles.dowSat : undefined}
-          >
-            {d}
-          </span>
-        ))}
-      </div>
-
-      <div className={styles.grid}>
-        {Array.from({ length: firstDow }).map((_, i) => (
-          <div key={`pad-${i}`} className={styles.cellPad} />
-        ))}
-        {calendar.map((c) => {
-          const dow = (firstDow + (c.d - 1)) % 7
-          const isSun = dow === 0
-          const isKeyDay = keyDates.has(c.ds)
-          const bar = barClass(c.mark)
-          const cls = [styles.cell, c.focus && styles.cellToday, isSun && styles.cellSun]
-            .filter(Boolean)
-            .join(' ')
-          return (
-            <div
-              key={c.d}
-              className={cls}
-              onClick={c.focus ? () => onDive(focusDay) : undefined}
-              role={c.focus ? 'button' : undefined}
-              tabIndex={c.focus ? 0 : undefined}
-              aria-label={
-                c.focus ? (ko ? `오늘 ${c.d}일로 줌인` : `Zoom in to day ${c.d}`) : undefined
-              }
-              onKeyDown={
-                c.focus
-                  ? (e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault()
-                        onDive(focusDay)
-                      }
-                    }
-                  : undefined
-              }
+      {/* ── 핵심 1 — 색 달력 그리드 + 잔잔→좋음 범례 (이 티어의 시그니처 비주얼). ── */}
+      <Band title={ko ? '이달 달력' : 'Calendar'}>
+        {/* ===== calendar grid ===== */}
+        <div className={styles.weekHead}>
+          {(ko ? DOWS : DOWS_EN).map((d, i) => (
+            <span
+              key={`dow-${i}`}
+              className={i === 0 ? styles.dowSun : i === 6 ? styles.dowSat : undefined}
             >
-              {c.focus && <span className={styles.todayRing} aria-hidden />}
-              {isKeyDay && <span className={styles.keySeal} aria-hidden />}
-              <span className={styles.num}>{c.d}</span>
-              {bar && <span className={`${styles.bar} ${bar}`} aria-hidden />}
-            </div>
-          )
-        })}
-      </div>
+              {d}
+            </span>
+          ))}
+        </div>
 
-      {/* ===== legend — 잔잔→좋음 + 좋은날/조심할날 점 ===== */}
-      <div className={styles.legend}>
-        <span className={styles.legScale}>{ko ? '잔잔' : 'Calm'}</span>
-        <span className={styles.legBar} aria-hidden />
-        <span className={styles.legScale}>{ko ? '좋음' : 'Good'}</span>
-        <span className={styles.legItem}>
-          <span className={`${styles.swatch} ${styles.swatchGood}`} />
-          {ko ? '좋은 날' : 'Good day'}
-        </span>
-        <span className={styles.legItem}>
-          <span className={`${styles.swatch} ${styles.swatchCaution}`} />
-          {ko ? '조심할 날' : 'Caution'}
-        </span>
-        <span className={styles.legItem}>
-          <span className={`${styles.swatch} ${styles.swatchRing}`} />
-          {ko ? '오늘' : 'Today'}
-        </span>
-        {bigDays.length > 0 && (
+        <div className={styles.grid}>
+          {Array.from({ length: firstDow }).map((_, i) => (
+            <div key={`pad-${i}`} className={styles.cellPad} />
+          ))}
+          {calendar.map((c) => {
+            const dow = (firstDow + (c.d - 1)) % 7
+            const isSun = dow === 0
+            const isKeyDay = keyDates.has(c.ds)
+            const bar = barClass(c.mark)
+            const cls = [styles.cell, c.focus && styles.cellToday, isSun && styles.cellSun]
+              .filter(Boolean)
+              .join(' ')
+            return (
+              <div
+                key={c.d}
+                className={cls}
+                onClick={c.focus ? () => onDive(focusDay) : undefined}
+                role={c.focus ? 'button' : undefined}
+                tabIndex={c.focus ? 0 : undefined}
+                aria-label={
+                  c.focus ? (ko ? `오늘 ${c.d}일로 줌인` : `Zoom in to day ${c.d}`) : undefined
+                }
+                onKeyDown={
+                  c.focus
+                    ? (e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault()
+                          onDive(focusDay)
+                        }
+                      }
+                    : undefined
+                }
+              >
+                {c.focus && <span className={styles.todayRing} aria-hidden />}
+                {isKeyDay && <span className={styles.keySeal} aria-hidden />}
+                <span className={styles.num}>{c.d}</span>
+                {bar && <span className={`${styles.bar} ${bar}`} aria-hidden />}
+              </div>
+            )
+          })}
+        </div>
+
+        {/* ===== legend — 잔잔→좋음 + 좋은날/조심할날 점 ===== */}
+        <div className={styles.legend}>
+          <span className={styles.legScale}>{ko ? '잔잔' : 'Calm'}</span>
+          <span className={styles.legBar} aria-hidden />
+          <span className={styles.legScale}>{ko ? '좋음' : 'Good'}</span>
           <span className={styles.legItem}>
-            <span className={`${styles.swatch} ${styles.swatchSeal}`} />
-            {ko ? '큰 날' : 'Key day'}
+            <span className={`${styles.swatch} ${styles.swatchGood}`} />
+            {ko ? '좋은 날' : 'Good day'}
           </span>
-        )}
-      </div>
+          <span className={styles.legItem}>
+            <span className={`${styles.swatch} ${styles.swatchCaution}`} />
+            {ko ? '조심할 날' : 'Caution'}
+          </span>
+          <span className={styles.legItem}>
+            <span className={`${styles.swatch} ${styles.swatchRing}`} />
+            {ko ? '오늘' : 'Today'}
+          </span>
+          {bigDays.length > 0 && (
+            <span className={styles.legItem}>
+              <span className={`${styles.swatch} ${styles.swatchSeal}`} />
+              {ko ? '큰 날' : 'Key day'}
+            </span>
+          )}
+        </div>
+      </Band>
 
-      {/* ===== 이달의 큰 날 (판정 + 뜻만 · 신뢰 숫자 없음) ===== */}
+      {/* ===== 핵심 2 — 이달의 큰 날 (판정 + 뜻만 · 신뢰 숫자 없음) ===== */}
       {bigDays.length > 0 && (
-        <>
-          <div className={styles.subhead}>{ko ? '이달의 큰 날' : 'Key days this month'}</div>
+        <Band title={ko ? '이달의 큰 날' : 'Key days this month'}>
           <div className={styles.bigDays}>
             {bigDays.map((b) => (
               <div className={styles.bigDay} key={b.when}>
@@ -318,15 +326,12 @@ export function MonthTier({ month, onDive, onRise, showRise = true }: MonthTierP
               </div>
             ))}
           </div>
-        </>
+        </Band>
       )}
 
-      {/* ===== 이달의 겹치는 흐름 (쉬운말 area × planet 쌍만) ===== */}
+      {/* ===== 핵심 3 — 이달의 겹치는 흐름 (쉬운말 area × planet 쌍만) ===== */}
       {monthCross.length > 0 && (
-        <>
-          <div className={styles.subhead}>
-            {ko ? '이달의 겹치는 흐름' : 'Overlapping flows this month'}
-          </div>
+        <Band title={ko ? '이달의 겹치는 흐름' : 'Overlapping flows this month'}>
           <div className={styles.mcross}>
             {monthCross.map((c, i) => (
               <div className={styles.mcrossRow} key={i}>
@@ -343,17 +348,20 @@ export function MonthTier({ month, onDive, onRise, showRise = true }: MonthTierP
               </div>
             ))}
           </div>
-        </>
+        </Band>
       )}
 
-      {/* ===== 이달 총평 ===== */}
+      {/* ── 더 보기 — 쉬운말 보조(이달 총평 등)를 접어서 위계상 아래로 내림. ── */}
       {summaryCard && (summaryCard.body || summaryCard.bodyEn) && (
-        <div className={styles.card}>
-          <div className={styles.cardLabel}>{ko ? '이달 총평' : 'This month'}</div>
-          <p className={styles.cardBody}>
-            {ko ? summaryCard.body : (summaryCard.bodyEn ?? summaryCard.body)}
-          </p>
-        </div>
+        <MoreFold label={ko ? '이달 더 자세히' : 'More about this month'}>
+          {/* ===== 이달 총평 ===== */}
+          <div className={styles.card}>
+            <div className={styles.cardLabel}>{ko ? '이달 총평' : 'This month'}</div>
+            <p className={styles.cardBody}>
+              {ko ? summaryCard.body : (summaryCard.bodyEn ?? summaryCard.body)}
+            </p>
+          </div>
+        </MoreFold>
       )}
 
       {/* ===== 자세한 신호 보기 (간지 등 전문 신호는 폴드 안에만) ===== */}
@@ -377,6 +385,6 @@ export function MonthTier({ month, onDive, onRise, showRise = true }: MonthTierP
         {ko ? `오늘 ${ymM ?? ''}월 ${focusDay}일로 줌인` : `Zoom in to ${monthEn} ${focusDay}`}
         <span className={styles.diveArrow}>↓</span>
       </button>
-    </div>
+    </TierFrame>
   )
 }

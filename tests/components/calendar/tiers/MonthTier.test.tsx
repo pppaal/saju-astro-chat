@@ -100,8 +100,10 @@ describe('MonthTier (이 달의 모양)', () => {
     it('does NOT show the big ganji hanja stamp or 사주/四柱 tag on the main surface', () => {
       const { container } = render(<MonthTier month={makeMonth()} onDive={noop} onRise={noop} />)
       // The hanja stamp lives only inside the collapsed <details> fold now —
-      // it must not be a prominent header element on the main surface.
-      expect(container.querySelector('h1')?.textContent).not.toContain('甲午')
+      // it must not be a prominent title element on the main surface (the title
+      // is now the shared TierHero lead, no longer an <h1>).
+      const titleText = container.querySelector('header')?.textContent ?? ''
+      expect(titleText).not.toContain('甲午')
       expect(screen.queryByText('사주 · 四柱')).not.toBeInTheDocument()
       expect(screen.queryByText(/이 달의 기운/)).not.toBeInTheDocument()
     })
