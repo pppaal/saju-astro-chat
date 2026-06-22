@@ -139,10 +139,24 @@ export function elementRelation(a: SajuElement, b: SajuElement): ElementRelation
   return 'none'
 }
 
-// ── 십신/신살 → 행성 매핑 (A급 17개 재사용, saju 키 기준 첫 매핑) ──────────
+// ── 십신/신살 → 행성 매핑 (saju 키 기준 대표 1개) ──────────────────────────
+// 한 saju 키가 데이터에 여러 번 나오면(현재 8개 중복) 배열 '순서'로 첫 행을 채택하던
+// 숨은 의존이 있었다 — 파일을 재정렬하면 행성·길흉이 조용히 바뀐다(ENGINE-AUDIT).
+// 이제 명시적 우선순위로 고른다: ① 등급(A>B>C) ② |polarity| 큰(신호가 더 결정적인)
+// 쪽 ③ 그래도 같으면 먼저 선언된 행. 데이터가 어떤 순서로 놓여도 결과가 같다.
+const GRADE_RANK: Record<string, number> = { A: 3, B: 2, C: 1 }
+function preferMapping(a: CrossMapping, b: CrossMapping): CrossMapping {
+  const ga = GRADE_RANK[a.grade] ?? 0
+  const gb = GRADE_RANK[b.grade] ?? 0
+  if (ga !== gb) return ga > gb ? a : b
+  if (Math.abs(a.polarity) !== Math.abs(b.polarity))
+    return Math.abs(a.polarity) > Math.abs(b.polarity) ? a : b
+  return a // 동률이면 먼저 선언된 쪽 유지(결정론)
+}
 const SAJU_TO_MAPPING = new Map<string, CrossMapping>()
 for (const m of SAJU_ASTRO_MAPPINGS) {
-  if (!SAJU_TO_MAPPING.has(m.saju)) SAJU_TO_MAPPING.set(m.saju, m)
+  const cur = SAJU_TO_MAPPING.get(m.saju)
+  SAJU_TO_MAPPING.set(m.saju, cur ? preferMapping(cur, m) : m)
 }
 
 export function sajuKeyMapping(key: string | undefined): CrossMapping | undefined {

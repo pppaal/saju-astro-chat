@@ -101,9 +101,8 @@ describe('evalSocialRole — peregrine 보완', () => {
     expect(v!.reason.ko).toContain('다른 방식으로 넓혀줘요')
     expect(HANGUL.test(v!.reason.en)).toBe(false)
   })
-  it('mcSign 매핑 안 되면 peregrine 처리(여전히 verdict)', () => {
-    const v = evalSocialRole('정관격', '???')
-    expect(v).not.toBeNull()
+  it('mcSign 인식 불가면 peregrine 단정 대신 행 생략(null) — ENGINE-AUDIT', () => {
+    expect(evalSocialRole('정관격', '???')).toBeNull()
   })
   it('빈 입력 null', () => {
     expect(evalSocialRole(undefined, 'Capricorn')).toBeNull()
@@ -248,14 +247,20 @@ describe('evalKeyAspect — 필터·매칭', () => {
     expect(v.tone).toBe('resonant')
     expect(v.reason.ko).toContain('같은 결')
   })
-  it('orb 없는 각도 처리(99 fallback) — 하드각이라 긴장', () => {
+  it('orb 가 숫자 아니면 99 센티넬로 끼우지 않고 건너뛴다 — ENGINE-AUDIT', () => {
+    // 유일한 후보의 orb 가 없으면 임의의 '핵심각'을 내지 말고 null.
+    expect(
+      evalKeyAspect([{ from: { name: 'Sun' }, to: { name: 'Mars' }, type: 'square' }], '인성')
+    ).toBeNull()
+    // 멀쩡한 orb 를 가진 각이 따로 있으면 그쪽이 채택된다(orb 없는 각은 무시).
     const v = evalKeyAspect(
-      [{ from: { name: 'Sun' }, to: { name: 'Mars' }, type: 'square' }],
-      '인성'
+      [
+        { from: { name: 'Sun' }, to: { name: 'Mars' }, type: 'square' }, // orb 없음 → 무시
+        { from: { name: 'Venus' }, to: { name: 'Mars' }, type: 'trine', orb: 2 }, // 채택
+      ],
+      '재성'
     )!
-    // Mars|Sun=비겁 != 인성. square 는 하드각이라 일치 여부와 무관하게 tension(C8a).
-    expect(v.tone).toBe('tension')
-    expect(v.reason.ko).toContain('마찰을 통해 단련')
+    expect(v.tone).toBe('resonant')
   })
 })
 
