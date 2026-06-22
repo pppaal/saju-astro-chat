@@ -135,7 +135,7 @@ export const ASPECT_META: Record<
   sextile: { glyph: '⚹', ko: '육각', cls: 'soft' },
   square: { glyph: '□', ko: '사각', cls: 'hard' },
   trine: { glyph: '△', ko: '삼각', cls: 'soft' },
-  opposition: { glyph: '☍', ko: '대충(對沖)', cls: 'hard' },
+  opposition: { glyph: '☍', ko: '맞섬', cls: 'hard' },
 }
 // 별자리 약어 → glyph·한국어·원소
 export const SIGN_META: Record<string, { glyph: string; ko: string; el: string }> = {

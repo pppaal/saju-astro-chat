@@ -301,8 +301,8 @@ function Wheel({ astro, lang }: { astro: ReportData['astro']; lang: Lang }) {
       })}
       {/* ASC / MC 축 */}
       {[
-        [lang === 'en' ? 'ASC' : '상승점', ascLon],
-        [lang === 'en' ? 'MC' : '중천', astro.mc.lon],
+        [lang === 'en' ? 'First impression' : '첫인상', ascLon],
+        [lang === 'en' ? 'Public face' : '사회적 위치', astro.mc.lon],
       ].map(([lab, lon]) => {
         const [x1, y1] = polar(cx, cy, rInner, screen(lon as number))
         const [x2, y2] = polar(cx, cy, rOuter + 6, screen(lon as number))
@@ -670,7 +670,7 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
               <div className={s.dmCard}>
                 <div className={s.dmHead}>
                   <b className={elClass[stemEl(S.dayMaster)]}>{S.dayMaster}</b>
-                  <span>{lang === 'en' ? 'Day Master · You' : '일간 · 나'}</span>
+                  <span>{lang === 'en' ? 'Your day character' : '태어난 날의 나'}</span>
                 </div>
                 <div className={s.dmBody}>{dm?.as_daymaster ?? dm?.nature ?? ''}</div>
                 {/* 강점/약점은 상단 히어로에 일간+격국 종합으로 한 번만 노출(중복 제거). */}
@@ -1083,8 +1083,8 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
                 </div>
                 <div className={s.axes}>
                   {[
-                    [lang === 'en' ? 'ASC' : '상승점', A.ascendant],
-                    [lang === 'en' ? 'MC' : '중천', A.mc],
+                    [lang === 'en' ? 'First impression' : '첫인상', A.ascendant],
+                    [lang === 'en' ? 'Public face' : '사회적 위치', A.mc],
                   ].map(([lab, ax]) => {
                     const a = ax as { sign: string; deg: string }
                     return (
@@ -1135,7 +1135,7 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
                 },
                 asc && {
                   glyph: lang === 'en' ? 'Asc' : '↑',
-                  label: lang === 'en' ? 'Rising' : '상승',
+                  label: lang === 'en' ? 'First impression' : '첫인상',
                   core: getPlanetCore('Ascendant', lang),
                   sign: asc.sign,
                   deg: asc.deg,
@@ -1179,7 +1179,7 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
                       </b>
                       <i>
                         {signLabel(abbr(cd.sign), lang)} {cd.deg}
-                        {cd.house ? ` · ${cd.house}H` : ''}
+                        {''}
                       </i>
                     </div>
                     <div className={s.bigPrin}>{cd.core.principle}</div>
@@ -1190,20 +1190,12 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
                       const h = cd.house ? getHouseRich(cd.house as HouseNumber, lang) : null
                       const dom = h ? h.domain.split('·')[0].trim() : ''
                       if (!tr) return null
-                      const ord = (n: number) => {
-                        const v = n % 100
-                        const suf =
-                          v >= 11 && v <= 13 ? 'th' : ['th', 'st', 'nd', 'rd'][n % 10] || 'th'
-                        return `${n}${suf}`
-                      }
                       const read =
                         lang === 'en'
                           ? `In ${sgn}, your ${cd.label} comes through ${tr.en}` +
-                            (h
-                              ? `, and plays out mainly in the ${ord(cd.house)} house of ${dom}.`
-                              : '.')
+                            (h ? `, and plays out mainly in matters of ${dom}.` : '.')
                           : `${sgn} 자리라 ${cd.label}이 ${tr.ko} 색으로 드러나` +
-                            (h ? `고, ${cd.house}하우스(${dom}) 무대에서 주로 펼쳐져요.` : '요.')
+                            (h ? `고, ${dom} 쪽 일에서 주로 펼쳐져요.` : '요.')
                       return <div className={s.bigRead}>{read}</div>
                     })()}
                     <div className={s.bigMean}>{cd.core.meaning}</div>
@@ -1467,9 +1459,7 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
 
         <div className={s.foot}>
           <span>
-            {lang === 'en'
-              ? `Saju × Tropical astrology · ${A.houseSystem} House System`
-              : `동양 사주 × 서양 점성(트로피컬) · ${houseSysLabel(A.houseSystem)} 하우스`}
+            {lang === 'en' ? `Saju × Tropical astrology` : `동양 사주 × 서양 점성(트로피컬)`}
           </span>
           <span className={s.mono}>{t('footBrain')}</span>
         </div>

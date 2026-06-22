@@ -32,12 +32,12 @@ export interface CrossRow {
 
 export const UI: Record<string, BiLabel> = {
   eyebrow: { ko: '동양 사주 + 서양 별자리', en: 'Saju + Astrology' },
-  titlePre: { ko: '통합', en: 'Integrated' },
-  titleAccent: { ko: '명식', en: 'Chart' },
-  titlePost: { ko: '리포트', en: 'Report' },
+  titlePre: { ko: '통합', en: 'Your' },
+  titleAccent: { ko: '리포트', en: 'Report' },
+  titlePost: { ko: '', en: '' },
   subtitle: {
-    ko: '사주 명식과 출생 천궁도를 하나의 평면에서 교차 분석',
-    en: 'Four Pillars and natal chart cross-read on a single plane',
+    ko: '사주와 별자리를 한 화면에서 함께 봐요',
+    en: 'Your Saju and birth chart, read together on one page',
   },
   male: { ko: '남', en: 'M' },
   female: { ko: '여', en: 'F' },
@@ -65,7 +65,7 @@ export const UI: Record<string, BiLabel> = {
   sec02Han: { ko: '', en: '' },
   elemDist: { ko: '오행 분포', en: 'Element Spread' },
   strongWeak: { ko: '내 힘의 세기', en: 'Your strength level' },
-  dayMasterLab: { ko: '일간', en: 'Day Master' },
+  dayMasterLab: { ko: '나', en: 'You' },
   strong: { ko: '힘이 센 편', en: 'Strong' },
   weak: { ko: '힘이 여린 편', en: 'Weak' },
   balanced: { ko: '균형', en: 'Balanced' },
