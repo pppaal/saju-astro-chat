@@ -11,6 +11,7 @@ import {
 } from '@/lib/api/middleware'
 import { getDrafts, listDraftDates } from '@/lib/social/draftStore'
 import { todayKeyKST } from '@/lib/social/generateDrafts'
+import { configuredPlatforms } from '@/lib/social/publish'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -22,7 +23,7 @@ export const GET = withApiMiddleware(
     const qsDate = new URL(req.url).searchParams.get('date') || ''
     const date = DATE_RE.test(qsDate) ? qsDate : todayKeyKST()
     const [drafts, dates] = await Promise.all([getDrafts(date), listDraftDates()])
-    return apiSuccess({ date, drafts, dates })
+    return apiSuccess({ date, drafts, dates, publishConfigured: configuredPlatforms() })
   },
   createAdminGuard({ route: 'admin/social/drafts' })
 )

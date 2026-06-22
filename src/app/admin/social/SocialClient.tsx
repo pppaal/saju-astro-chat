@@ -12,6 +12,14 @@ import type {
   SocialDraftStatus,
 } from '@/lib/social/types'
 
+interface PublishResult {
+  ok: boolean
+  platform: SocialPlatform
+  url?: string
+  error?: string
+  skipped?: string
+}
+
 const PLATFORM_LABEL: Record<SocialPlatform, string> = {
   instagram: 'Instagram',
   threads: 'Threads',
@@ -40,6 +48,7 @@ export default function SocialClient() {
   const [date, setDate] = useState(todayKST())
   const [drafts, setDrafts] = useState<SocialPostDraft[]>([])
   const [dates, setDates] = useState<string[]>([])
+  const [publishConfigured, setPublishConfigured] = useState<SocialPlatform[]>([])
   const [loading, setLoading] = useState(false)
   const [generating, setGenerating] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -50,10 +59,15 @@ export default function SocialClient() {
     try {
       const res = await fetch(`/api/admin/social/drafts?date=${d}`, { cache: 'no-store' })
       const json = (await res.json().catch(() => null)) as {
-        data?: { drafts?: SocialPostDraft[]; dates?: string[] }
+        data?: {
+          drafts?: SocialPostDraft[]
+          dates?: string[]
+          publishConfigured?: SocialPlatform[]
+        }
       } | null
       setDrafts(json?.data?.drafts ?? [])
       setDates(json?.data?.dates ?? [])
+      setPublishConfigured(json?.data?.publishConfigured ?? [])
     } catch {
       setError('초안을 불러오지 못했어요.')
     } finally {
@@ -104,6 +118,25 @@ export default function SocialClient() {
       if (res.ok && updated) {
         setDrafts((prev) => prev.map((d) => (d.id === id ? updated : d)))
       }
+    },
+    [date]
+  )
+
+  const publish = useCallback(
+    async (id: string): Promise<PublishResult[]> => {
+      const res = await fetch(`/api/admin/social/publish/${id}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ date }),
+      })
+      const json = (await res.json().catch(() => null)) as {
+        data?: { draft?: SocialPostDraft; results?: PublishResult[] }
+      } | null
+      const updated = json?.data?.draft
+      if (res.ok && updated) {
+        setDrafts((prev) => prev.map((d) => (d.id === id ? updated : d)))
+      }
+      return json?.data?.results ?? []
     },
     [date]
   )
@@ -163,7 +196,13 @@ export default function SocialClient() {
       ) : (
         <div className="space-y-6">
           {drafts.map((draft) => (
-            <DraftCard key={draft.id} draft={draft} onPersist={persist} />
+            <DraftCard
+              key={draft.id}
+              draft={draft}
+              onPersist={persist}
+              onPublish={publish}
+              publishConfigured={publishConfigured}
+            />
           ))}
         </div>
       )}
@@ -174,16 +213,22 @@ export default function SocialClient() {
 function DraftCard({
   draft,
   onPersist,
+  onPublish,
+  publishConfigured,
 }: {
   draft: SocialPostDraft
   onPersist: (
     id: string,
     patch: Partial<Pick<SocialPostDraft, 'variants' | 'status' | 'hook'>>
   ) => Promise<void>
+  onPublish: (id: string) => Promise<PublishResult[]>
+  publishConfigured: SocialPlatform[]
 }) {
   const [variants, setVariants] = useState<SocialVariant[]>(draft.variants)
   const [dirty, setDirty] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [publishing, setPublishing] = useState(false)
+  const [publishMsg, setPublishMsg] = useState<string | null>(null)
 
   useEffect(() => {
     setVariants(draft.variants)
@@ -203,6 +248,25 @@ function DraftCard({
   }
 
   const setStatus = (status: SocialDraftStatus) => void onPersist(draft.id, { status })
+
+  const doPublish = async () => {
+    setPublishing(true)
+    setPublishMsg(null)
+    const results = await onPublish(draft.id)
+    setPublishing(false)
+    const ok = results.filter((r) => r.ok).map((r) => r.platform)
+    const failed = results.filter((r) => !r.ok && r.skipped !== 'not_configured')
+    setPublishMsg(
+      [
+        ok.length ? `발행됨: ${ok.join(', ')}` : '',
+        failed.length
+          ? `실패: ${failed.map((r) => `${r.platform}(${r.error || r.skipped})`).join(', ')}`
+          : '',
+      ]
+        .filter(Boolean)
+        .join(' · ') || '발행 가능한 플랫폼이 없어요.'
+    )
+  }
 
   const fullText = (v: SocialVariant) =>
     [
@@ -272,6 +336,18 @@ function DraftCard({
             {v.hashtags.length ? (
               <p className="mt-2 text-xs text-sky-700">{v.hashtags.join(' ')}</p>
             ) : null}
+            {v.publishedUrl ? (
+              <a
+                href={v.publishedUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-2 inline-block text-xs font-medium text-emerald-700 underline"
+              >
+                ✓ 발행된 게시물 보기
+              </a>
+            ) : v.publishError ? (
+              <p className="mt-2 text-xs text-rose-600">발행 실패: {v.publishError}</p>
+            ) : null}
           </div>
         ))}
       </div>
@@ -301,16 +377,26 @@ function DraftCard({
         >
           반려
         </button>
-        {draft.status === 'approved' ? (
+        {publishConfigured.length > 0 ? (
           <button
             type="button"
-            onClick={() => setStatus('published')}
-            className="rounded-full bg-sky-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-sky-500"
+            onClick={() => void doPublish()}
+            disabled={publishing}
+            className="rounded-full bg-violet-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-violet-500 disabled:opacity-50"
+            title={`자동 발행: ${publishConfigured.join(', ')}`}
           >
-            발행 완료 표시
+            {publishing ? '발행 중…' : `자동 발행 (${publishConfigured.join(', ')})`}
           </button>
         ) : null}
+        <button
+          type="button"
+          onClick={() => setStatus('published')}
+          className="rounded-full bg-sky-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-sky-500"
+        >
+          발행 완료 표시
+        </button>
       </div>
+      {publishMsg ? <p className="mt-2 text-xs text-stone-500">{publishMsg}</p> : null}
     </div>
   )
 }

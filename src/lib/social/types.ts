@@ -19,6 +19,10 @@ export interface SocialVariant {
   hashtags: string[]
   /** 유튜브 Shorts 대본(선택). */
   script?: string
+  /** 발행 성공 시 외부 게시물 URL. */
+  publishedUrl?: string
+  /** 발행 실패 사유(있으면). */
+  publishError?: string
 }
 
 export interface SocialPostDraft {
