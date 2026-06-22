@@ -10,6 +10,8 @@ interface DataSourceTogglesProps {
   onChange: (next: DestinySources) => void
   lang: LangKey
   disabled?: boolean
+  /** 주변 배경 톤. 'light'(상담사 흰 배경) / 'dark'(메인 코스믹 배경). 기본 light. */
+  theme?: 'light' | 'dark'
 }
 
 const LABELS: Record<LangKey, { saju: string; astro: string; group: string }> = {
@@ -27,6 +29,7 @@ export const DataSourceToggles = React.memo(function DataSourceToggles({
   onChange,
   lang,
   disabled = false,
+  theme = 'light',
 }: DataSourceTogglesProps) {
   const L = LABELS[lang] ?? LABELS.en
   const toggle = (key: keyof DestinySources) => {
@@ -36,7 +39,7 @@ export const DataSourceToggles = React.memo(function DataSourceToggles({
     onChange(next)
   }
   return (
-    <div className={styles.toggles} role="group" aria-label={L.group}>
+    <div className={styles.toggles} data-theme={theme} role="group" aria-label={L.group}>
       <label className={styles.toggle} data-active={sources.saju || undefined}>
         <input
           type="checkbox"

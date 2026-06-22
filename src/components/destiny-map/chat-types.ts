@@ -177,6 +177,9 @@ export interface ChatProps {
   // modal. Used by the destiny counselor page to honor `?session=…` in
   // the URL (e.g. when navigating from the sidebar's past-chats list).
   initialSessionId?: string
+  // 마운트 시 데이터 소스 토글 초기값(메인에서 고른 사주/점성). 미지정 시 둘 다.
+  // 이후엔 사용자가 입력창 토글로 자유롭게 바꾼다.
+  initialSources?: DestinySources
   // 페이지 헤더가 현재 채팅의 제목 + ⋮ 메뉴(Rename/Delete) 를 표시할 수
   // 있도록 활성 세션 정보를 노출. id 는 항상 있고, title 은 저장 전이거나
   // 아직 로드 안 됐을 때 null.
