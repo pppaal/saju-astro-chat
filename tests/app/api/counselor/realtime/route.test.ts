@@ -246,4 +246,56 @@ describe('/api/counselor/realtime POST — 검증', () => {
     expect((await res.json()).error).toBe('charge_failed')
     expect(mockStreamClaudeAsSSE).not.toHaveBeenCalled()
   })
+
+  // ── 데이터 소스 토글(사주만/점성만/둘 다) ─────────────────────────────
+  // 회귀: sources 가 컨텍스트 빌드(ensureCounselorContext)와 시스템 프롬프트
+  // 양쪽에 *일관되게* 흘러야 한쪽만 선택한 답변이 새지 않는다. systemPrompt 는
+  // 라우트가 buildDestinyCounselorPrompt(lang, sources) 로 실제 조립하므로
+  // 모킹 없이 그 문자열을 직접 검사한다.
+  it('sources={saju:true,astro:false} → ensureCounselorContext 4번째 인자로 그대로 전달', async () => {
+    const { POST } = await importRoute()
+    const res = await POST(makeReq({ ...realClientPayload, sources: { saju: true, astro: false } }))
+    expect(res.status).toBe(200)
+    expect(mockEnsureCounselorContext).toHaveBeenCalledTimes(1)
+    expect(mockEnsureCounselorContext.mock.calls[0][3]).toEqual({ saju: true, astro: false })
+  })
+
+  it('사주만 → systemPrompt 에 사주-범위 지시, 점성-범위/융합 규칙 없음', async () => {
+    const { POST } = await importRoute()
+    const res = await POST(makeReq({ ...realClientPayload, sources: { saju: true, astro: false } }))
+    expect(res.status).toBe(200)
+    const arg = mockStreamClaudeAsSSE.mock.calls[0][0]
+    expect(arg.systemPrompt).toContain('사주(four pillars)만')
+    expect(arg.systemPrompt).not.toContain('한 흐름 안에서 통합')
+    expect(arg.systemPrompt).not.toContain('서양 점성(astrology)만')
+  })
+
+  it('점성만 → systemPrompt 에 점성-범위 지시, 일진/융합 규칙 없음', async () => {
+    const { POST } = await importRoute()
+    const res = await POST(makeReq({ ...realClientPayload, sources: { saju: false, astro: true } }))
+    expect(res.status).toBe(200)
+    expect(mockEnsureCounselorContext.mock.calls[0][3]).toEqual({ saju: false, astro: true })
+    const arg = mockStreamClaudeAsSSE.mock.calls[0][0]
+    expect(arg.systemPrompt).toContain('서양 점성(astrology)만')
+    expect(arg.systemPrompt).not.toContain('일진 8일')
+    expect(arg.systemPrompt).not.toContain('한 흐름 안에서 통합')
+  })
+
+  it('sources 누락(구버전 클라) → 둘 다로 폴백, 융합 규칙 유지', async () => {
+    const { POST } = await importRoute()
+    const res = await POST(makeReq(realClientPayload))
+    expect(res.status).toBe(200)
+    expect(mockEnsureCounselorContext.mock.calls[0][3]).toEqual({ saju: true, astro: true })
+    const arg = mockStreamClaudeAsSSE.mock.calls[0][0]
+    expect(arg.systemPrompt).toContain('한 흐름 안에서 통합')
+  })
+
+  it('sources 둘 다 false(잘못된 요청) → 둘 다로 안전 폴백 (빈 컨텍스트 방지)', async () => {
+    const { POST } = await importRoute()
+    const res = await POST(
+      makeReq({ ...realClientPayload, sources: { saju: false, astro: false } })
+    )
+    expect(res.status).toBe(200)
+    expect(mockEnsureCounselorContext.mock.calls[0][3]).toEqual({ saju: true, astro: true })
+  })
 })
