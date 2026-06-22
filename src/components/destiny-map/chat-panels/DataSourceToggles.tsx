@@ -23,54 +23,115 @@ const LABELS: Record<LangKey, { saju: string; astro: string; group: string }> = 
 }
 
 // "사주·점성이란?" 팝업 카드 본문 — 사주가 뭔지, 점성이 뭔지, 둘을 함께 보면
-// 무엇이 좋은지 한눈에. ko/en 같이 둬서 드리프트 방지.
+// 무엇이 좋은지 자세히. 각 섹션은 소개 문단(body) + 핵심 항목(points)으로
+// 구성해 쭉 읽기와 훑어보기를 모두 지원한다. ko/en 같이 둬서 드리프트 방지.
+type InfoSection = {
+  title: string
+  tagline: string
+  body: string
+  pointsTitle: string
+  points: string[]
+}
 const INFO: Record<
   LangKey,
   {
     trigger: string
     title: string
+    intro: string
     close: string
-    saju: { title: string; body: string }
-    astro: { title: string; body: string }
-    both: { title: string; body: string }
+    saju: InfoSection
+    astro: InfoSection
+    both: InfoSection
     tip: string
   }
 > = {
   ko: {
     trigger: '사주·점성이란?',
     title: '사주와 점성, 무엇이 다를까요?',
+    intro:
+      '두 가지는 사람을 읽는 서로 다른 "언어"예요. 무엇이 다르고, 왜 함께 보면 좋은지 짧게 정리했어요.',
     close: '닫기',
     saju: {
       title: '사주 (四柱·동양 명리)',
-      body: '태어난 연·월·일·시를 기둥 삼아 타고난 기질과 강점, 그리고 시기별 운의 흐름(대운·세운)을 읽습니다. "나는 어떤 사람이고, 언제 흐름이 바뀌는가"에 강합니다.',
+      tagline: '타고난 기질과 운의 큰 흐름',
+      body: '태어난 연·월·일·시 네 기둥(四柱)에 담긴 음양오행의 균형으로, 타고난 성향과 강점·약점, 그리고 인생 시기마다 바뀌는 운의 큰 흐름을 읽습니다. "나는 어떤 사람이고, 언제 흐름이 바뀌는가"라는 질문에 특히 강합니다.',
+      pointsTitle: '이런 걸 봐요',
+      points: [
+        '타고난 성격·기질과 잘 맞는 일·관계의 방향',
+        '재물·직업·건강 등 분야별 타고난 강점과 주의점',
+        '10년 단위 대운(大運)과 그해의 세운(歲運) — 큰 시기의 흐름',
+        '언제 변화·도전·휴식을 택하면 좋은지 타이밍',
+      ],
     },
     astro: {
       title: '점성술 (서양 점성)',
-      body: '태어난 순간 하늘의 행성 배치로 성향과 관계, 그리고 지금 들어오는 시기(트랜짓)를 읽습니다. 마음의 결과 관계의 역학을 섬세하게 비춥니다.',
+      tagline: '마음의 결과 지금의 시기',
+      body: '태어난 순간 하늘에 떠 있던 해·달·행성의 위치와 각도로, 마음의 결과 욕구·관계의 역학, 그리고 지금 당신을 지나가는 시기(트랜짓)를 읽습니다. 내면의 동기와 감정의 흐름을 섬세하게 비추는 데 강합니다.',
+      pointsTitle: '이런 걸 봐요',
+      points: [
+        '태양·달·상승점으로 보는 핵심 성향과 내면의 동기',
+        '연애·관계에서 끌리는 방식과 부딪히는 지점',
+        '지금 들어오는 행성의 흐름(트랜짓) — 현재의 시기감',
+        '성장의 과제와 기회가 어느 영역에서 열리는지',
+      ],
     },
     both: {
       title: '둘을 함께 보면',
-      body: '동양과 서양, 두 관점이 서로를 보완하고 교차 검증합니다. 한쪽만으로는 놓치기 쉬운 부분을 메워, 더 입체적이고 균형 잡힌 해석을 받을 수 있어요.',
+      tagline: '동·서양의 교차 검증',
+      body: '사주는 "큰 틀과 시기의 흐름"에, 점성은 "마음의 결과 지금의 분위기"에 강해요. 둘을 함께 보면 동양과 서양 두 관점이 서로를 보완하고 교차 검증합니다.',
+      pointsTitle: '그래서 좋은 점',
+      points: [
+        '두 관점이 같은 결론을 가리키면 신뢰도가 올라가요',
+        '한쪽이 놓친 부분을 다른 쪽이 메워 사각지대가 줄어요',
+        '"왜 그런가(사주)"와 "지금 어떤 느낌인가(점성)"가 함께 보여요',
+        '타이밍과 마음, 두 축을 같이 봐서 조언이 더 구체적이에요',
+      ],
     },
-    tip: '체크를 켜고 끄면 이번 상담에 어떤 관점을 쓸지 직접 고를 수 있어요. 둘 다 켜두는 걸 추천해요.',
+    tip: '체크박스로 이번 상담에 어떤 관점을 쓸지 직접 고를 수 있어요. 가장 입체적인 해석을 위해 둘 다 켜두는 걸 추천해요.',
   },
   en: {
     trigger: 'What are Saju & Astrology?',
     title: 'Saju vs. Astrology — what’s the difference?',
+    intro:
+      'They’re two different “languages” for reading a person. Here’s how they differ, and why reading both is better.',
     close: 'Close',
     saju: {
       title: 'Saju (Eastern four pillars)',
-      body: 'Reads your innate temperament and strengths — and how your fortune shifts over time (great/yearly luck) — from the year, month, day, and hour of your birth. Strong at “who am I, and when does the tide turn?”',
+      tagline: 'Innate nature & the big tides of fortune',
+      body: 'From the four pillars (四柱) of your birth — year, month, day, and hour — and the balance of yin-yang and the five elements within them, Saju reads your innate temperament, strengths and weak spots, and the larger tides of fortune that shift across your life. It’s especially strong at “who am I, and when does the tide turn?”',
+      pointsTitle: 'What it looks at',
+      points: [
+        'Your inborn character and the kinds of work and relationships that fit it',
+        'Innate strengths and cautions across wealth, career, and health',
+        'Ten-year luck cycles (daewoon) and the year’s luck (sewoon) — the big timing',
+        'When to choose change, challenge, or rest',
+      ],
     },
     astro: {
       title: 'Astrology (Western)',
-      body: 'Reads your tendencies, relationships, and the timing now flowing in (transits) from the positions of the planets at the moment you were born. Sensitive to the texture of the heart and relational dynamics.',
+      tagline: 'The texture of the heart & the season you’re in',
+      body: 'From the positions and angles of the Sun, Moon, and planets at the moment you were born, astrology reads the texture of your heart, your desires and relational dynamics, and the season now passing through you (transits). It’s sensitive to inner motivation and the flow of feeling.',
+      pointsTitle: 'What it looks at',
+      points: [
+        'Core tendencies and inner drives via Sun, Moon, and Ascendant',
+        'How you’re drawn to others — and where you tend to clash',
+        'The planetary cycles flowing in now (transits) — your present season',
+        'Where your growth challenges and openings appear',
+      ],
     },
     both: {
       title: 'Why read both together',
-      body: 'East and West complement and cross-check each other. Together they fill the gaps either one alone would miss, giving you a fuller, more balanced reading.',
+      tagline: 'East and West, cross-checked',
+      body: 'Saju is strong on the “big frame and timing,” astrology on the “texture of the heart and the present mood.” Reading both lets the Eastern and Western views complement and cross-check each other.',
+      pointsTitle: 'The payoff',
+      points: [
+        'When both point to the same conclusion, confidence goes up',
+        'What one misses, the other fills in — fewer blind spots',
+        'You see both “why it is” (Saju) and “how it feels now” (astrology)',
+        'Timing and heart, read together, make the advice more concrete',
+      ],
     },
-    tip: 'Toggle the checkboxes to choose which lens this reading uses. We recommend keeping both on.',
+    tip: 'Use the checkboxes to choose which lens this reading uses. For the fullest reading, we recommend keeping both on.',
   },
 }
 
@@ -207,31 +268,43 @@ function DataSourceInfoModal({
         </button>
 
         <h2 className={styles.infoTitle}>{I.title}</h2>
+        <p className={styles.infoIntro}>{I.intro}</p>
 
-        <div className={styles.infoSection} data-tone="saju">
-          <p className={styles.infoSectionTitle}>
-            <span aria-hidden="true">🔮</span> {I.saju.title}
-          </p>
-          <p className={styles.infoSectionBody}>{I.saju.body}</p>
-        </div>
-
-        <div className={styles.infoSection} data-tone="astro">
-          <p className={styles.infoSectionTitle}>
-            <span aria-hidden="true">✨</span> {I.astro.title}
-          </p>
-          <p className={styles.infoSectionBody}>{I.astro.body}</p>
-        </div>
-
-        <div className={styles.infoSection} data-tone="both">
-          <p className={styles.infoSectionTitle}>
-            <span aria-hidden="true">🤝</span> {I.both.title}
-          </p>
-          <p className={styles.infoSectionBody}>{I.both.body}</p>
-        </div>
+        <InfoSectionCard tone="saju" emoji="🔮" section={I.saju} />
+        <InfoSectionCard tone="astro" emoji="✨" section={I.astro} />
+        <InfoSectionCard tone="both" emoji="🤝" section={I.both} />
 
         <p className={styles.infoTip}>{I.tip}</p>
       </div>
     </div>,
     document.body
+  )
+}
+
+// 팝업 카드 안의 한 섹션(사주/점성/둘다) — 제목+한 줄 요약, 소개 문단,
+// 그리고 "이런 걸 봐요" 핵심 항목 리스트.
+function InfoSectionCard({
+  tone,
+  emoji,
+  section,
+}: {
+  tone: 'saju' | 'astro' | 'both'
+  emoji: string
+  section: InfoSection
+}) {
+  return (
+    <div className={styles.infoSection} data-tone={tone}>
+      <p className={styles.infoSectionTitle}>
+        <span aria-hidden="true">{emoji}</span> {section.title}
+      </p>
+      <p className={styles.infoSectionTagline}>{section.tagline}</p>
+      <p className={styles.infoSectionBody}>{section.body}</p>
+      <p className={styles.infoPointsTitle}>{section.pointsTitle}</p>
+      <ul className={styles.infoPoints}>
+        {section.points.map((point) => (
+          <li key={point}>{point}</li>
+        ))}
+      </ul>
+    </div>
   )
 }
