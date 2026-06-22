@@ -27,7 +27,14 @@ import type {
 import styles from './LifetimeTier.module.css'
 import { useI18n } from '@/i18n/I18nProvider'
 import summaryStyles from '@/components/calendar/atoms/TierSummary.module.css'
-import { TierFrame, Eyebrow, TierHero, Band } from '@/components/calendar/layout/TierFrame'
+import {
+  TierFrame,
+  Eyebrow,
+  TierHero,
+  Band,
+  WhyList,
+  type WhyItem,
+} from '@/components/calendar/layout/TierFrame'
 
 // ============================================================================
 // Props
@@ -554,6 +561,161 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
     ? lifetime.lifePattern?.line
     : (lifetime.lifePattern?.lineEn ?? lifetime.lifePattern?.line)
 
+  // ── 왜 이렇게 보나 (근거) — 인생의 결을 가장 크게 규정하는 5~6 신호를 실제 용어
+  //    그대로 묶는다. 새 계산은 없다: 이미 폴드(정체성 카드/오행/대운/ZR/Lots)에
+  //    렌더되는 값만 모아 term(용어) → because(쉬운 인생결 한 줄)로 옮긴다. ──
+  const EL_PLAIN: Record<string, { ko: string; en: string }> = {
+    목: { ko: '자라남·뻗어나감', en: 'growth & reaching out' },
+    화: { ko: '드러냄·열정', en: 'expression & passion' },
+    토: { ko: '쌓음·지킴', en: 'building & holding' },
+    금: { ko: '다듬음·결단', en: 'refining & resolve' },
+    수: { ko: '흐름·헤아림', en: 'flow & depth' },
+  }
+
+  // 대운 전체 우호 방향(초반 → 후반)으로 인생 곡선의 결을 한 줄로.
+  const daeunArr = lifetime.lifePattern?.daeun ?? []
+  const daeunArc = (() => {
+    if (daeunArr.length < 2) return null
+    const half = Math.ceil(daeunArr.length / 2)
+    const early = daeunArr.slice(0, half).reduce((a, d) => a + d.favor, 0) / half
+    const late =
+      daeunArr.slice(half).reduce((a, d) => a + d.favor, 0) / Math.max(1, daeunArr.length - half)
+    const rising = late - early
+    return { early, late, rising }
+  })()
+
+  // ZR 정점 — Spirit 챕터 중 가장 긴(가장 오래 무대에 오르는) 시기.
+  const zrPeak = [...(zrSpiritChapters ?? [])].sort(
+    (a, b) => (b.durationYears ?? 0) - (a.durationYears ?? 0)
+  )[0]
+
+  // 눈에 띄는 Arabic Lot — Fortune(체질·물질) 우선, 없으면 Spirit, 없으면 첫 칸.
+  const notableLot =
+    (user.lots ?? []).find((l) => l.name === 'Fortune') ??
+    (user.lots ?? []).find((l) => l.name === 'Spirit') ??
+    (user.lots ?? [])[0]
+
+  const whyItems: WhyItem[] = []
+  // 1) 일간 + 강약 — 타고난 바탕 기질.
+  whyItems.push({
+    term: ko
+      ? `일간 ${user.ilgan.hanja} · ${user.gangyak}`
+      : `Day master ${user.ilgan.hanja} · ${user.gangyak}`,
+    because: ko
+      ? `타고난 바탕은 ‘${user.ilgan.kr}’의 결 — 인생 전체의 기본 성격을 잡습니다.`
+      : `your core nature runs as ${user.ilgan.en} — it sets the basic grain of the whole life.`,
+    tone: 'neutral',
+  })
+  // 2) 격국 — 인생이 굴러가는 틀.
+  whyItems.push({
+    term: ko ? `격국 ${user.gyeokguk}` : `Structure ${user.gyeokgukEn || user.gyeokguk}`,
+    because: ko
+      ? '인생이 굴러가는 큰 틀 — 무엇으로 자기를 세우고 살아가는지를 정합니다.'
+      : 'the frame the life runs on — how you build and carry yourself.',
+    tone: 'neutral',
+  })
+  // 3) 용신 — 인생을 살리는 기운.
+  whyItems.push({
+    term: ko ? `용신 ${user.yongsin.hanja}` : `Yongsin ${user.yongsin.en}`,
+    because: ko
+      ? `‘${user.yongsin.kr}’ 기운이 들어올 때 일이 풀리고 균형이 잡힙니다.`
+      : `things ease and balance when ${user.yongsin.en} energy comes in.`,
+    tone: 'positive',
+  })
+  // 4) 가장 두드러진 오행 — 삶에서 가장 굵게 흐르는 결.
+  if (dominantEl) {
+    const ep = EL_PLAIN[dominantEl]
+    whyItems.push({
+      term: ko
+        ? `오행 ${EL_HANJA[dominantEl] ?? dominantEl} 왕`
+        : `Element ${EL_HANJA[dominantEl] ?? dominantEl} dominant`,
+      because: ko
+        ? `삶에 가장 굵게 흐르는 결은 ‘${ep?.ko ?? dominantEl}’입니다.`
+        : `the thickest thread running through the life is ${ep?.en ?? dominantEl}.`,
+      tone: 'neutral',
+    })
+  }
+  // 5) 대운 전체 흐름의 방향 — 인생 곡선이 오르는지 무르익는지.
+  if (daeunArc) {
+    whyItems.push({
+      term: ko ? '대운 전체 흐름' : 'Decade arc',
+      because:
+        daeunArc.rising > 0.4
+          ? ko
+            ? '후반으로 갈수록 힘이 차오르는 늦복형 곡선입니다.'
+            : 'a late-blooming curve — force builds toward the back half.'
+          : daeunArc.rising < -0.4
+            ? ko
+              ? '초반에 힘이 실리고 뒤로 갈수록 갈무리하는 곡선입니다.'
+              : 'force lands early and settles into harvest later.'
+            : ko
+              ? '큰 기복 없이 꾸준히 흐르는 곡선입니다.'
+              : 'a steady curve without big swings.',
+      tone: daeunArc.rising > 0.4 ? 'positive' : 'neutral',
+    })
+  }
+  // 6) 상승궁(Asc) — 세상에 나서는 첫인상·태도. (없으면 Sun/MC 로 폴백)
+  const ascSign = user.astro?.asc
+  const ascSignEn = user.astro?.ascEn
+  if (ascSign && ascSignEn) {
+    whyItems.push({
+      term: ko ? `상승궁 ${ascSign}` : `Asc ${ascSignEn}`,
+      because: ko
+        ? '세상에 나설 때의 첫 태도와 몸짓 — 사람들이 먼저 보는 결입니다.'
+        : 'your stance as you step into the world — what people meet first.',
+      tone: 'neutral',
+    })
+  }
+  // 7) ZR 정점 — 인생에서 가장 오래 무대에 오르는 시기.
+  if (zrPeak) {
+    whyItems.push({
+      term: ko ? `ZR 정점 — ${zodiacKo(zrPeak.sign)}` : `ZR peak — ${zrPeak.sign}`,
+      because: ko
+        ? `${zrPeak.calendarStartYear}년 무렵부터 가장 오래 무대에 오르는 인생의 큰 장(章)입니다.`
+        : `the longest chapter on stage, opening around ${zrPeak.calendarStartYear}.`,
+      tone: 'neutral',
+    })
+  }
+  // 8) 눈에 띄는 본명 점(Lot) — 인생에서 또렷이 잡히는 자리.
+  if (notableLot) {
+    whyItems.push({
+      term: ko
+        ? `${notableLot.korean ?? notableLot.name} · ${zodiacKo(notableLot.sign)}`
+        : `Lot of ${notableLot.name} · ${notableLot.sign}`,
+      because: ko
+        ? '인생에서 또렷이 자리 잡는 한 점 — 이 결이 유독 선명하게 잡힙니다.'
+        : 'a natal point that reads clearly — this thread shows up sharply in the life.',
+      tone: 'neutral',
+    })
+  }
+  // 인생의 결을 가장 크게 규정하는 5~6개만.
+  const whyTop = whyItems.slice(0, 6)
+
+  // ── 인생 풀이 — 정의 신호(일간 + 격국 + 으뜸 오행 + 대운 곡선)를 합성한 평이한
+  //    2~3문장. 표면용이라 용어는 전부 쉬운말로 풀어 쓴다. ──
+  const dominantPlain = dominantEl ? EL_PLAIN[dominantEl] : undefined
+  const arcPhraseKo = daeunArc
+    ? daeunArc.rising > 0.4
+      ? '뒤로 갈수록 무르익는'
+      : daeunArc.rising < -0.4
+        ? '초년에 힘이 실리고 차차 갈무리되는'
+        : '큰 기복 없이 꾸준한'
+    : '계절을 따라 흐르는'
+  const arcPhraseEn = daeunArc
+    ? daeunArc.rising > 0.4
+      ? 'ripening toward the later years'
+      : daeunArc.rising < -0.4
+        ? 'front-loaded and settling with time'
+        : 'steady, without big swings'
+    : 'moving with the seasons'
+  const lifeReadKo = `타고난 바탕은 ‘${user.ilgan.kr}’의 결이고, 삶에 가장 굵게 흐르는 기운은 ‘${
+    dominantPlain?.ko ?? '균형'
+  }’입니다. 그래서 당신의 인생은 ${arcPhraseKo} 길로 그려집니다. 정해진 운명이 아니라, 이 결을 알고 걸으면 한결 수월해지는 길이에요.`
+  const lifeReadEn = `Your core nature runs as ${user.ilgan.en}, and the thickest energy through the life is ${
+    dominantPlain?.en ?? 'balance'
+  }. So your path reads as one ${arcPhraseEn}. It isn't fixed fate — knowing this grain just makes the walk easier.`
+  const lifeRead = ko ? lifeReadKo : lifeReadEn
+
   return (
     <TierFrame screenLabel="인생 84년">
       {/* ============================================================
@@ -571,6 +733,9 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
       <div className={styles.patternHero}>
         <h2 className={styles.patternHeadline}>{patternHeadline}</h2>
       </div>
+
+      {/* 인생 풀이 — 정의 신호를 합성한 평이한 2~3문장. 용어 없이 surface 에 유지. */}
+      <p className={styles.lifeRead}>{lifeRead}</p>
 
       {/* 계절의 길 — 핵심 비주얼. 4 stages, 색 구간, 지금 마커, 미래 흐림 */}
       <Band>
@@ -626,6 +791,9 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
             ? '자세한 신호 보기 · 사주 원국과 근거'
             : 'See the detailed signals · natal chart & evidence'}
         </summary>
+
+        {/* 왜 이렇게 보나 — 실제 용어 신호 → 쉬운 인생결 한 줄. 폴드 맨 위. */}
+        <WhyList title={ko ? '왜 이렇게 보나' : 'Why it reads this way'} items={whyTop} />
 
         <p className={`${styles.tiny} ${styles.headerMeta}`}>
           {user.birthKo} · {user.place} · {user.sex}

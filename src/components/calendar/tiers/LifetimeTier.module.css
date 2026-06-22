@@ -336,6 +336,17 @@
   text-wrap: pretty;
 }
 
+/* ---------- 인생 풀이 (plain interpretation, surface) ---------- */
+.lifeRead {
+  margin: 10px 0 18px;
+  max-width: 720px;
+  font-family: var(--serif-ko);
+  font-size: clamp(17px, 1.6vw, 19.5px);
+  line-height: 1.8;
+  color: var(--ink-dim);
+  text-wrap: pretty;
+}
+
 /* ---------- seasons path (메인 hero) ---------- */
 .seasons {
   position: relative;

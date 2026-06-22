@@ -32,6 +32,8 @@ import {
   TierHero,
   Band,
   MoreFold,
+  WhyList,
+  type WhyItem,
 } from '@/components/calendar/layout/TierFrame'
 
 const MONTH_EN = [
@@ -186,6 +188,81 @@ export function MonthTier({ month, onDive, onRise, showRise = true }: MonthTierP
   const ganjiHanja = month.woolun?.hanja ?? ''
   const ganjiRead = ko ? (month.woolun?.kr ?? '') : (month.woolun?.en ?? month.woolun?.kr ?? '')
   const hasGanji = !!ganjiHanja || !!ganjiRead
+
+  // ── 이달 풀이 — 쉬운말 합성 해석 2~3줄. 새 계산 없음: 월운 십신(주된 분야) +
+  //    좋은/조심 날 개수 + 가장 센 겹치는 흐름을 묶어 잔잔한 한 단락으로. ──
+  const woolunSibsinRaw = month.woolunSibsin ? String(month.woolunSibsin) : ''
+  const woolunArea = woolunSibsinRaw
+    ? ko
+      ? sibsinArea(woolunSibsinRaw)
+      : sibsinAreaEn(woolunSibsinRaw)
+    : ''
+  // 가장 센(극성 절댓값 최대) 겹치는 흐름 — 풀이의 한 축.
+  const topCross = [...monthCross].sort((a, b) => Math.abs(b.polarity) - Math.abs(a.polarity))[0]
+  const topCrossMeaning = topCross
+    ? ko
+      ? topCross.meaning
+      : (topCross.meaningEn ?? topCross.meaning)
+    : ''
+  const monthReading: string = (() => {
+    const parts: string[] = []
+    if (woolunArea) {
+      parts.push(
+        ko
+          ? `이달은 ‘${woolunArea}’ 쪽으로 결이 기울어요.`
+          : `This month leans toward ${woolunArea}.`
+      )
+    }
+    if (goodN > 0 || cautionN > 0) {
+      parts.push(
+        ko
+          ? `흐름이 트이는 날이 ${goodN}개, 한 박자 조심할 날이 ${cautionN + avoidN}개라 전체적으로 ${goodN >= cautionN + avoidN ? '순한 편이에요' : '기복이 있는 달이에요'}.`
+          : `${goodN} day${goodN === 1 ? '' : 's'} open up while ${cautionN + avoidN} ask for care, so overall it reads ${goodN >= cautionN + avoidN ? 'fairly smooth' : 'a bit uneven'}.`
+      )
+    }
+    if (topCrossMeaning) {
+      parts.push(
+        ko
+          ? `가장 또렷한 흐름은 ‘${topCrossMeaning}’ — 큰 날의 색을 이 신호가 끌어요.`
+          : `The clearest thread is "${topCrossMeaning}" — it sets the color of the key days.`
+      )
+    }
+    return parts.join(' ')
+  })()
+
+  // ── 왜 이렇게 보나 (근거) — 실제 전문용어 신호 → 쉬운 결론. fold 전용. ──
+  // 새 계산 없음: 이미 이달 props 에 있는 월 간지·십신·겹치는 흐름을 용어 그대로 묶는다.
+  const whyItems: WhyItem[] = []
+  if (ganjiHanja || woolunSibsinRaw) {
+    const term = [
+      ko ? '월 간지' : 'Month pillar',
+      ganjiHanja,
+      woolunSibsinRaw ? `· ${woolunSibsinRaw}` : '',
+    ]
+      .filter(Boolean)
+      .join(' ')
+    whyItems.push({
+      term,
+      because: woolunArea
+        ? ko
+          ? `이 달의 바탕이 ‘${woolunArea}’ 기운으로 깔립니다.`
+          : `${woolunArea} sets the base of the month.`
+        : ko
+          ? '이 달의 바탕이 되는 기운입니다.'
+          : 'the base energy of the month.',
+      tone: 'neutral',
+    })
+  }
+  for (const c of [...monthCross]
+    .sort((a, b) => Math.abs(b.polarity) - Math.abs(a.polarity))
+    .slice(0, 3)) {
+    const sign = c.polarity > 0 ? '＋' : c.polarity < 0 ? '－' : ''
+    whyItems.push({
+      term: `${c.saju} × ${c.astro}${sign ? ` (${sign})` : ''}`,
+      because: ko ? c.meaning : (c.meaningEn ?? c.meaning),
+      tone: c.polarity > 0 ? 'positive' : c.polarity < 0 ? 'caution' : 'neutral',
+    })
+  }
 
   // 'MM-DD' → 'M/D' (큰 날 날짜 라벨)
   const mdLabel = (ds: string) => {
@@ -351,31 +428,49 @@ export function MonthTier({ month, onDive, onRise, showRise = true }: MonthTierP
         </Band>
       )}
 
-      {/* ── 더 보기 — 쉬운말 보조(이달 총평 등)를 접어서 위계상 아래로 내림. ── */}
-      {summaryCard && (summaryCard.body || summaryCard.bodyEn) && (
+      {/* ── 더 보기 — 쉬운말 보조(이달 총평·이달 풀이)를 접어서 위계상 아래로 내림. ── */}
+      {((summaryCard && (summaryCard.body || summaryCard.bodyEn)) || monthReading) && (
         <MoreFold label={ko ? '이달 더 자세히' : 'More about this month'}>
           {/* ===== 이달 총평 ===== */}
-          <div className={styles.card}>
-            <div className={styles.cardLabel}>{ko ? '이달 총평' : 'This month'}</div>
-            <p className={styles.cardBody}>
-              {ko ? summaryCard.body : (summaryCard.bodyEn ?? summaryCard.body)}
-            </p>
-          </div>
+          {summaryCard && (summaryCard.body || summaryCard.bodyEn) && (
+            <div className={styles.card}>
+              <div className={styles.cardLabel}>{ko ? '이달 총평' : 'This month'}</div>
+              <p className={styles.cardBody}>
+                {ko ? summaryCard.body : (summaryCard.bodyEn ?? summaryCard.body)}
+              </p>
+            </div>
+          )}
+
+          {/* ===== 이달 풀이 — 월운 분야 + 좋은/조심 날 + 가장 센 흐름 합성 해석 ===== */}
+          {monthReading && (
+            <div className={styles.card}>
+              <div className={styles.cardLabel}>{ko ? '이달 풀이' : 'How it reads'}</div>
+              <p className={styles.cardBody}>{monthReading}</p>
+            </div>
+          )}
         </MoreFold>
       )}
 
-      {/* ===== 자세한 신호 보기 (간지 등 전문 신호는 폴드 안에만) ===== */}
-      {hasGanji && (
+      {/* ===== 자세한 신호 보기 (근거 + 간지 등 전문 신호는 폴드 안에만) ===== */}
+      {(hasGanji || whyItems.length > 0) && (
         <details className={styles.details}>
           <summary className={styles.detailsSummary}>
             {ko ? '자세한 신호 보기' : 'See detailed signals'}
           </summary>
           <div className={styles.detailsBody}>
-            <span className={styles.ganjiLabel}>{ko ? '이 달의 간지' : "This month's ganji"}</span>
-            <span className={styles.ganjiVal}>
-              {ganjiHanja}
-              {ganjiRead && <span className={styles.ganjiRead}> · {ganjiRead}</span>}
-            </span>
+            {/* 왜 이렇게 보나 — 실제 용어 신호 → 쉬운 결론(근거). 표면 쉬운말의 출처. */}
+            <WhyList title={ko ? '왜 이렇게 보나' : 'Why it reads this way'} items={whyItems} />
+            {hasGanji && (
+              <div className={styles.ganjiRow}>
+                <span className={styles.ganjiLabel}>
+                  {ko ? '이 달의 간지' : "This month's ganji"}
+                </span>
+                <span className={styles.ganjiVal}>
+                  {ganjiHanja}
+                  {ganjiRead && <span className={styles.ganjiRead}> · {ganjiRead}</span>}
+                </span>
+              </div>
+            )}
           </div>
         </details>
       )}

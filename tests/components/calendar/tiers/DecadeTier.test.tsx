@@ -475,6 +475,97 @@ describe('DecadeTier', () => {
     })
   })
 
+  // ----------------------------------------------------------------
+  // 왜 이렇게 보나 (근거 / evidence WhyList) — jargon fold only
+  // ----------------------------------------------------------------
+  describe('왜 이렇게 보나 (evidence WhyList, ko)', () => {
+    it('renders the WhyList heading at the top of the jargon fold', () => {
+      const { container } = setup()
+      expect(within(fold(container)).getByText('왜 이렇게 보나')).toBeInTheDocument()
+    })
+
+    it('renders 大運 간지 + 십신 evidence term with real terminology', () => {
+      const { container } = setup()
+      // 大運 甲戌 · 편재 — real ganji + ten-god term.
+      expect(within(fold(container)).getByText('대운 甲戌 · 편재')).toBeInTheDocument()
+    })
+
+    it('renders 격국 frame, 합충, 12운성 evidence terms', () => {
+      const { container } = setup()
+      const f = within(fold(container))
+      expect(f.getByText('격국 편재격 · 성격')).toBeInTheDocument()
+      expect(f.getByText('합충 寅亥 육합')).toBeInTheDocument()
+      expect(f.getByText('12운성 관대')).toBeInTheDocument()
+    })
+
+    it('renders the strongest outer-planet node + biggest year driver evidence', () => {
+      const { container } = setup()
+      const f = within(fold(container))
+      // first astro entry = 목성 회귀 (jupiter).
+      expect(f.getByText('목성 · 목성 회귀')).toBeInTheDocument()
+      // peak year = 2024 (score 70), 편재 driver.
+      expect(f.getByText('2024 甲辰 · 편재')).toBeInTheDocument()
+    })
+
+    it('caps evidence rows at 6', () => {
+      const { container } = setup()
+      const f = fold(container)
+      const head = within(f).getByText('왜 이렇게 보나')
+      const list = head.parentElement?.querySelector('ul')
+      expect(list).toBeTruthy()
+      expect(list!.querySelectorAll('li').length).toBeLessThanOrEqual(6)
+    })
+
+    it('keeps the WhyList out of the main surface (fold-only)', () => {
+      const { container } = setup()
+      expect(within(mainSurface(container)).queryByText('왜 이렇게 보나')).not.toBeInTheDocument()
+    })
+  })
+
+  describe('왜 이렇게 보나 (evidence WhyList, en)', () => {
+    beforeEach(() => {
+      mockLocale = 'en'
+    })
+
+    it('renders the English heading and English evidence terms in the fold', () => {
+      const { container } = setup()
+      const f = within(fold(container))
+      expect(f.getByText('Why it reads this way')).toBeInTheDocument()
+      // ten-god rendered in English, no raw Korean sibsin leak in the term.
+      expect(f.getByText('Decade 甲戌 · Indirect Wealth')).toBeInTheDocument()
+      expect(f.getByText('Twelve stages Coming-of-age')).toBeInTheDocument()
+    })
+  })
+
+  // ----------------------------------------------------------------
+  // 이 10년 풀이 — plain synthesized interpretation on the main surface
+  // ----------------------------------------------------------------
+  describe('이 10년 풀이 (plain interpretation, ko)', () => {
+    it('renders a term-free interpretation paragraph on the main surface', () => {
+      const { container } = setup()
+      const main = mainSurface(container)
+      // area word + season + peak year woven in, no jargon.
+      expect(main.textContent).toContain('돈·현실')
+      expect(main.textContent).toContain('2024년 무렵이 가장 무르익어')
+      // still no 大運 hanja leak on the surface.
+      expect(main.textContent).not.toContain('甲戌')
+    })
+  })
+
+  describe('이 10년 풀이 (plain interpretation, en)', () => {
+    beforeEach(() => {
+      mockLocale = 'en'
+    })
+
+    it('renders an English interpretation paragraph on the main surface', () => {
+      const { container } = setup()
+      const main = mainSurface(container)
+      expect(main.textContent).toContain('opportunity & money')
+      expect(main.textContent).toContain('Around 2024 things ripen most')
+      expect(main.textContent).not.toContain('甲戌')
+    })
+  })
+
   describe('jargon fold (en) — no Korean leaks', () => {
     beforeEach(() => {
       mockLocale = 'en'

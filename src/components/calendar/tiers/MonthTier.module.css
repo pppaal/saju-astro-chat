@@ -410,9 +410,14 @@
 }
 .detailsBody {
   display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 12px;
+}
+.ganjiRow {
+  display: flex;
   align-items: baseline;
   gap: 10px;
-  margin-top: 12px;
 }
 .ganjiLabel {
   font-family: var(--dp-mono);

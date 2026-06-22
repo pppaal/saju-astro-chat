@@ -288,6 +288,19 @@
   background: var(--el-wood);
 }
 
+/* 이 10년 풀이 — 합성 해석 문단 (표면, term-free). */
+.interpretLine {
+  font-family: var(--serif-ko);
+  font-size: clamp(14.5px, 1.7vw, 16.5px);
+  line-height: 1.75;
+  color: var(--ink-dim);
+  margin: 14px 0 0;
+  padding-top: 12px;
+  border-top: 1px solid var(--line-soft);
+  max-width: 760px;
+  text-wrap: pretty;
+}
+
 /* ---------- 이 10년 중 큰 해 — score bar strip (no ganji) ---------- */
 .bigYearStrip {
   display: grid;

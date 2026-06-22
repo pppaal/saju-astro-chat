@@ -290,23 +290,34 @@ describe('MonthTier (이 달의 모양)', () => {
       ],
     }
 
+    // Helper: the visible surface = everything OUTSIDE the jargon <details> folds.
+    // The raw 십신 term legitimately appears inside the "왜 이렇게 보나" 근거 fold;
+    // it must just never show on the calm visible surface.
+    const visibleText = (container: HTMLElement) => {
+      const clone = container.cloneNode(true) as HTMLElement
+      clone.querySelectorAll('details').forEach((d) => d.remove())
+      return clone.textContent ?? ''
+    }
+
     it('renders the plain area × planet pair (ko) and NOT the raw 정재 × 금성 term chip', () => {
       const { container } = render(
         <MonthTier month={makeMonth(crossFixture)} onDive={noop} onRise={noop} />
       )
       expect(screen.getByText('이달의 겹치는 흐름')).toBeInTheDocument()
-      expect(screen.getByText('안정된 가치가 살아남')).toBeInTheDocument()
-      // plain pair renders (sibsinArea × planetPlain), raw jargon pair does not.
-      expect(screen.queryByText('정재 × 금성')).not.toBeInTheDocument()
-      // the plain pair contains the plain planet word, never the literal 정재 term.
-      expect(container.textContent).not.toContain('정재 × 금성')
+      // The plain meaning shows on the surface (and may also appear inside the fold 근거).
+      expect(screen.getAllByText('안정된 가치가 살아남').length).toBeGreaterThan(0)
+      // plain pair renders (sibsinArea × planetPlain); the raw jargon pair is NOT
+      // on the visible surface (it may live only inside the <details> 근거 fold).
+      expect(visibleText(container)).not.toContain('정재 × 금성')
     })
 
     it('renders the plain cross pair in English (Direct Wealth jargon dropped)', () => {
       mockLocale = 'en'
-      render(<MonthTier month={makeMonth(crossFixture)} onDive={noop} onRise={noop} />)
-      expect(screen.getByText('stable value lights up')).toBeInTheDocument()
-      expect(screen.queryByText('Direct Wealth × Venus')).not.toBeInTheDocument()
+      const { container } = render(
+        <MonthTier month={makeMonth(crossFixture)} onDive={noop} onRise={noop} />
+      )
+      expect(screen.getAllByText('stable value lights up').length).toBeGreaterThan(0)
+      expect(visibleText(container)).not.toContain('Direct Wealth × Venus')
     })
   })
 

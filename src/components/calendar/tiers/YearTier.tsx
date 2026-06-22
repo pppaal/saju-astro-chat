@@ -33,6 +33,8 @@ import {
   Eyebrow,
   TierHero,
   Band,
+  WhyList,
+  type WhyItem,
 } from '@/components/calendar/layout/TierFrame'
 
 const MONTH_ABBR = [
@@ -164,6 +166,15 @@ function buildTransitDots(user: DestinyUserSummary): NatalDot[] {
       planet: String(d.planet),
       glyph: PLANET_GLYPH[String(d.planet)] ?? '·',
     }))
+}
+
+/** 행성 영문 → benefic/malefic 극성 (whyItems 톤용). 모르면 neutral. */
+const BENEFIC = new Set(['Venus', 'Jupiter', 'Moon'])
+const MALEFIC = new Set(['Mars', 'Saturn'])
+function planetTone(planetEn: string): 'positive' | 'caution' | 'neutral' {
+  if (BENEFIC.has(planetEn)) return 'positive'
+  if (MALEFIC.has(planetEn)) return 'caution'
+  return 'neutral'
 }
 
 /** house 1..12 → wheel mid angle (radians). */
@@ -394,6 +405,181 @@ export function YearTier({ user, year, onDive, onRise }: YearTierProps) {
         : `${m.score}`,
   }))
 
+  // ── 왜 이렇게 보나 (근거) — 실제 용어 신호 → 쉬운 결론. fold 전용. ──
+  // 새 계산 없음: 이미 year 폴드에 렌더되는 세운·프로펙션·sect·dignity·ZR·교차를
+  // 용어 그대로 묶어 4~6개만 노출.
+  const whyItems: WhyItem[] = []
+
+  // ① 세운 간지 + 십신 — 한 해의 사주 바탕.
+  {
+    const gz = year.sewoonGz?.hanja ?? year.sewoon?.gz?.hanja ?? ''
+    const area = ko ? sibsinArea(year.sewoonSibsin) : sibsinAreaEn(year.sewoonSibsin)
+    whyItems.push({
+      term: ko
+        ? `세운 ${gz} · ${String(year.sewoonSibsin)}`
+        : `Annual ${gz} · ${String(year.sewoonSibsin)}`,
+      because: ko
+        ? `‘${area}’ 기운이 올 한 해의 바탕을 이룹니다.`
+        : `${area} sets the base theme of the year.`,
+      tone: 'neutral',
+    })
+  }
+
+  // ② 연간 프로펙션 하우스 + 룰러(Lord of Year).
+  if (p) {
+    whyItems.push({
+      term: ko
+        ? `프로펙션 ${p.house}실 · ${p.ruler}`
+        : `Profection ${ordinalEn(p.house)} · ${p.rulerEn}`,
+      because: ko
+        ? `${p.house}번째 영역(${p.theme})이 무대로 올라오고, ${p.ruler}이(가) 올해의 주인공입니다.`
+        : `Your ${ordinalEn(p.house)} house (${p.themeEn.toLowerCase()}) takes the stage, with ${p.rulerEn} as this year's lead.`,
+      tone: planetTone(p.rulerEn),
+    })
+  }
+
+  // ③ Sect (낮/밤) + Lord 의 길흉 — 주간생이면 길성, 야간생이면 흉성이 힘을 받음.
+  {
+    const sectKo = sect === 'day' ? '주간생(日)' : '야간생(夜)'
+    const sectEn = sect === 'day' ? 'Diurnal (day)' : 'Nocturnal (night)'
+    const lordTone = lordOfYearName ? planetTone(lordOfYearName) : 'neutral'
+    const lordWord =
+      lordTone === 'positive'
+        ? ko
+          ? '길성'
+          : 'benefic'
+        : lordTone === 'caution'
+          ? ko
+            ? '흉성'
+            : 'malefic'
+          : ko
+            ? '중립성'
+            : 'neutral'
+    const lordLabel = ko ? p?.ruler : p?.rulerEn
+    whyItems.push({
+      term: ko
+        ? `${sectKo}${lordLabel ? ` · ${lordWord} ${lordLabel}` : ''}`
+        : `${sectEn}${lordLabel ? ` · ${lordWord} ${lordLabel}` : ''}`,
+      because: ko
+        ? sect === 'day'
+          ? '낮 출생이라 길성이 더 또렷이 힘을 받습니다.'
+          : '밤 출생이라 흉성을 다스리는 결이 한 해를 좌우합니다.'
+        : sect === 'day'
+          ? 'A day birth lets benefics carry more weight this year.'
+          : 'A night birth makes handling malefics the year’s pivot.',
+      tone: lordTone,
+    })
+  }
+
+  // ④ Lord of Year 의 본명 dignity — 룰러가 강한 자리인가 약한 자리인가.
+  if (lordReadout && lordOfYearName) {
+    const dignTone =
+      lordReadout.tone === 'pos' ? 'positive' : lordReadout.tone === 'neg' ? 'caution' : 'neutral'
+    whyItems.push({
+      term: ko
+        ? `${p?.ruler ?? lordOfYearName} 위계 · ${lordReadout.text}`
+        : `${p?.rulerEn ?? lordOfYearName} dignity · ${lordReadout.text}`,
+      because:
+        lordReadout.tone === 'pos'
+          ? ko
+            ? '올해의 주인공이 본명에서 강한 자리에 있어 추진력이 좋습니다.'
+            : 'The year’s lead sits strong in your chart — good drive behind it.'
+          : lordReadout.tone === 'neg'
+            ? ko
+              ? '올해의 주인공이 약한 자리에 있어 한 박자 조심이 필요합니다.'
+              : 'The year’s lead sits weak — pace it with care.'
+            : ko
+              ? '주인공의 자리가 중립이라 결과는 노력에 달려 있습니다.'
+              : 'The lead is neutral — outcomes track your effort.',
+      tone: dignTone,
+    })
+  }
+
+  // ⑤ 가장 센 Zodiacal Releasing 챕터/사인 (Spirit 우선, 없으면 Fortune).
+  {
+    const zrPick = zrSpiritNow ?? zrFortuneNow
+    if (zrPick) {
+      const isSpirit = !!zrSpiritNow
+      whyItems.push({
+        term: ko ? `ZR ${zrPick.sign}` : `ZR ${zrPick.sign}`,
+        because: ko
+          ? isSpirit
+            ? `진로·영혼의 큰 장이 ${zrPick.sign} 구간에 있어요.`
+            : `몸·물질의 큰 장이 ${zrPick.sign} 구간에 있어요.`
+          : isSpirit
+            ? `Your path/soul chapter runs through ${zrPick.sign}.`
+            : `Your body/matter chapter runs through ${zrPick.sign}.`,
+        tone: 'neutral',
+      })
+    }
+  }
+
+  // ⑥ 가장 센 사주 × 점성 월 교차.
+  {
+    const strongest = [...(year.crossings ?? [])].sort((a, b) => {
+      const w = (t: 'good' | 'caution' | 'neutral') => (t === 'neutral' ? 0 : 1)
+      return w(b.tone) - w(a.tone)
+    })[0]
+    if (strongest) {
+      whyItems.push({
+        term: ko
+          ? `${strongest.title} · ${strongest.when}`
+          : `${strongest.titleEn} · ${strongest.whenEn}`,
+        because: ko
+          ? (strongest.detail ?? '사주와 별이 함께 가리키는 구간입니다.')
+          : (strongest.detailEn ??
+            strongest.detail ??
+            'A window where Saju and the sky point the same way.'),
+        tone:
+          strongest.tone === 'good'
+            ? 'positive'
+            : strongest.tone === 'caution'
+              ? 'caution'
+              : 'neutral',
+      })
+    }
+  }
+
+  // 4~6개만 — 강한 순(중립이 아닌 것 우선)으로 자르되 ①(세운)·②(프로펙션)는 항상 앞에.
+  const headWhy = whyItems.slice(0, 2)
+  const tailWhy = whyItems
+    .slice(2)
+    .sort(
+      (a, b) =>
+        Number((b.tone ?? 'neutral') !== 'neutral') - Number((a.tone ?? 'neutral') !== 'neutral')
+    )
+  const whyFinal = [...headWhy, ...tailWhy].slice(0, 6)
+
+  // ── 올해 풀이 — 세운 십신 영역 + 프로펙션 하우스 테마 + 가장 큰 달을 엮은 2~3문장. ──
+  const sewoonAreaPlain = ko ? sibsinArea(year.sewoonSibsin) : sibsinAreaEn(year.sewoonSibsin)
+  const biggestMonth = monthShape.bigMonths.length > 0 ? monthShape.bigMonths[0] : null
+  const cautionMonth = monthShape.cautionMonths.length > 0 ? monthShape.cautionMonths[0] : null
+  const yearReadingParts: string[] = []
+  yearReadingParts.push(
+    ko
+      ? `올해는 ‘${sewoonAreaPlain}’의 결이 한 해의 바탕을 이뤄요.`
+      : `This year, ${sewoonAreaPlain} forms the underlying grain.`
+  )
+  if (p) {
+    yearReadingParts.push(
+      ko
+        ? `무게중심은 ${p.house}번째 영역(${p.theme})으로 기울어, 그쪽 일이 가장 또렷하게 움직입니다.`
+        : `The weight tilts toward your ${ordinalEn(p.house)} house (${p.themeEn.toLowerCase()}) — that’s where things move most clearly.`
+    )
+  }
+  if (biggestMonth) {
+    yearReadingParts.push(
+      ko
+        ? cautionMonth
+          ? `${biggestMonth}월에 가장 크게 열리고, ${cautionMonth}월은 한 박자 쉬어 가세요.`
+          : `${biggestMonth}월에 흐름이 가장 크게 열립니다.`
+        : cautionMonth
+          ? `It opens up most around ${monthLabel(biggestMonth, false)}; ease off near ${monthLabel(cautionMonth, false)}.`
+          : `It opens up most around ${monthLabel(biggestMonth, false)}.`
+    )
+  }
+  const yearReading = yearReadingParts.slice(0, 3).join(' ')
+
   return (
     <TierFrame screenLabel={`1년 ${year.year}`}>
       <RiseButton label={ko ? '인생으로 줌아웃' : 'Zoom out to lifetime'} onClick={onRise} />
@@ -440,6 +626,13 @@ export function YearTier({ user, year, onDive, onRise }: YearTierProps) {
         </Band>
       )}
 
+      {/* ── 올해 풀이 — 세운 영역 + 프로펙션 테마 + 큰 달을 엮은 평문 해석. ── */}
+      {yearReading && (
+        <Band title={ko ? '올해 풀이' : 'Reading the year'}>
+          <p className={styles.yearReading}>{yearReading}</p>
+        </Band>
+      )}
+
       {/* ── 핵심 ②: 올해 무엇이 겹치나 (평문 교차) ── */}
       {yearCrossItems.length > 0 && (
         <Band title={crossHeading}>
@@ -452,6 +645,9 @@ export function YearTier({ user, year, onDive, onRise }: YearTierProps) {
         <summary className={summaryStyles.detailsSummary}>
           {ko ? '자세한 신호 보기' : 'See the detailed signals'}
         </summary>
+
+        {/* 왜 이렇게 보나 — 실제 용어 신호 → 쉬운 결론(근거). 표면 풀이의 출처. */}
+        <WhyList title={ko ? '왜 이렇게 보나' : 'Why it reads this way'} items={whyFinal} />
 
         {/* 12달 점수 리스트 (밴드 라벨) — 상세. */}
         {hasMonths && <CrossingList heading={flowHeading} items={yearItems} />}

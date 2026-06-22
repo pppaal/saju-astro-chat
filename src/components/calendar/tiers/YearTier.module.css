@@ -685,6 +685,17 @@
   color: var(--dp-ink-mute);
 }
 
+/* "올해 풀이" — 세운 영역 + 프로펙션 테마 + 큰 달을 엮은 평문 해석 (표면). */
+.yearReading {
+  margin: 0;
+  font-family: var(--dp-serif-ko);
+  font-size: clamp(14.5px, 1.9vw, 16px);
+  line-height: 1.85;
+  color: var(--dp-ink-dim);
+  text-wrap: pretty;
+  max-width: 620px;
+}
+
 /* "큰 달 / 조심" 한 줄 */
 .bigCaution {
   margin: 12px 0 4px;

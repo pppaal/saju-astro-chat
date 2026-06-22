@@ -30,6 +30,8 @@ import {
   TierHero,
   Band,
   MoreFold,
+  WhyList,
+  type WhyItem,
   type ToneKind,
 } from '@/components/calendar/layout/TierFrame'
 
@@ -159,6 +161,42 @@ const SEASON_CLASS: Record<Season, string> = {
 
 function seasonOf(sibsin: string | undefined): Season {
   return (sibsin && SIBSIN_SEASON[sibsin]) || 'autumn'
+}
+
+// ----------------------------------------------------------------
+// 근거(WhyList) 톤 휴리스틱 — fold 전용. 새 계산 없이 라벨 텍스트로 극성 추정.
+//   합 = 순(順), 충 = 거스름(逆). benefic(목성) = 순, malefic(토성·천왕성 등) = 주의.
+// ----------------------------------------------------------------
+type WhyTone = 'positive' | 'caution' | 'neutral'
+
+/** 합·충 칩 제목으로 톤 추정 — '합'이면 positive, '충'이면 caution, 아니면 neutral. */
+function hapchungTone(title: string | undefined): WhyTone {
+  if (!title) return 'neutral'
+  if (title.includes('충') || /clash/i.test(title)) return 'caution'
+  if (title.includes('합') || /harmon/i.test(title)) return 'positive'
+  return 'neutral'
+}
+
+/** 외행성 마디 톤 — benefic(목성)=positive, malefic(토성/천왕성/해왕성/명왕성)=caution. */
+const OUTER_BENEFIC = new Set(['jupiter'])
+const OUTER_MALEFIC = new Set(['saturn', 'uranus', 'neptune', 'pluto'])
+function outerTone(kind: string | undefined): WhyTone {
+  if (!kind) return 'neutral'
+  if (OUTER_BENEFIC.has(kind)) return 'positive'
+  if (OUTER_MALEFIC.has(kind)) return 'caution'
+  return 'neutral'
+}
+
+/** 외행성 마디 한글 라벨 — fold 근거 행 표시용. 미지정 시 kind 그대로. */
+const OUTER_KO: Record<string, string> = {
+  jupiter: '목성',
+  saturn: '토성',
+  uranus: '천왕성',
+  neptune: '해왕성',
+  pluto: '명왕성',
+  chiron: '카이론',
+  progressed_moon: '진행 달',
+  progressedMoon: '진행 달',
 }
 
 /** 계절별 "이렇게 보내면 좋아요" 가이드 2줄 — 쉬운 말, 전문용어 0. */
@@ -331,6 +369,127 @@ export function DecadeTier({ user, decade, onDive, onRise }: DecadeTierProps) {
   // 히어로 톤 — 계절 태그는 길흉이 아니므로 중립 처리.
   const heroToneKind: ToneKind = 'neutral'
 
+  // ── 이 10년 풀이 — 표면(term-free) 합성 해석 2–3문장. ──
+  // 대운 십신 area(계절) + 가장 무르익는 해 + (있으면) 가장 센 교차 의미를 묶는다.
+  // 새 계산 없음: 이미 가진 areaTitle·seasonInfo·peakYear·strongestMeaning 재사용.
+  const interpretSentences = ko
+    ? [
+        `이 10년은 ‘${areaTitle}’이(가) 삶의 중심에 놓이는 ${seasonInfo.ko}—${seasonInfo.sub}예요.`,
+        `그 가운데 ${peakYear}년 무렵이 가장 무르익어, 그동안 쌓아 온 것이 모양을 갖춥니다.`,
+        strongestMeaning ? `특히 ${strongestMeaning}이(가) 이 시기를 또렷하게 합니다.` : '',
+      ]
+    : [
+        `Across this decade, ${areaTitle} sits at the center of life — ${seasonInfo.subEn}.`,
+        `Around ${peakYear} things ripen most, and what you have built starts to take shape.`,
+        strongestMeaning
+          ? `In particular, ${strongestMeaning} gives this stretch its sharpest edge.`
+          : '',
+      ]
+  const interpretText = interpretSentences.filter((s) => s && s.trim().length > 0).join(' ')
+
+  // ── 왜 이렇게 보나 (근거) — 실제 전문용어 신호 → 쉬운 결론. fold 전용. ──
+  // 새 계산 없음: 이미 fold 안에 있는 大運 간지·십신, 격국, 합충, 12운성, 외행성,
+  // 가장 센 연도 십신을 용어 그대로 묶어 4–6개만 고른다.
+  const whyItems: WhyItem[] = []
+
+  // 1) 大運 간지 + 십신 — 이 10년의 바탕.
+  whyItems.push({
+    term: ko
+      ? `대운 ${decade.gz.hanja} · ${decade.sibsin}`
+      : `Decade ${decade.gz.hanja} · ${SIBSIN_EN[decade.sibsin] ?? decade.sibsin}`,
+    because: ko
+      ? `‘${areaTitle}’ 기운이 10년의 바탕을 이룹니다.`
+      : `${areaTitle} sets the base of the decade.`,
+    tone: 'neutral',
+  })
+
+  // 2) 격국 frame ↔ 대운 관계 — gyeokgukLine 이 있으면.
+  if (gyeokgukLine) {
+    whyItems.push({
+      term: ko ? `격국 ${gyeokgukLine}` : `Frame ${gyeokgukLine}`,
+      because: ko
+        ? '타고난 격국이 이 대운을 어떻게 받는지가 큰 줄기를 정합니다.'
+        : 'how your natal frame receives this decade sets the main grain.',
+      tone: 'neutral',
+    })
+  }
+
+  // 3) 합·충 — 본명 × 대운 관계. 합=순, 충=주의.
+  if (decade.hapchung) {
+    const t = hapchungTone(decade.hapchung.title)
+    whyItems.push({
+      term: ko
+        ? `합충 ${decade.hapchung.title}`
+        : `Harmony/clash ${decade.hapchung.titleEn ?? decade.hapchung.title}`,
+      because: ko
+        ? t === 'caution'
+          ? '본명의 한 자리가 흔들려 변화·이동이 도드라집니다.'
+          : t === 'positive'
+            ? '본명과 결이 맞아 일이 수월하게 풀립니다.'
+            : '본명과 대운이 맞물리는 자리입니다.'
+        : t === 'caution'
+          ? 'a natal spot gets shaken — change and movement stand out.'
+          : t === 'positive'
+            ? 'it meshes with your chart, so things flow more easily.'
+            : 'where the decade locks into your natal chart.',
+      tone: t,
+    })
+  }
+
+  // 4) 12운성 — 대운 지지의 생장 단계.
+  if (decade.unseong) {
+    whyItems.push({
+      term: ko
+        ? `12운성 ${decade.unseong.title}`
+        : `Twelve stages ${decade.unseong.titleEn ?? decade.unseong.title}`,
+      because: ko
+        ? '대운의 기운이 어느 생장 단계에 있는지를 보여 줍니다.'
+        : 'shows which growth stage the decade energy is in.',
+      tone: 'neutral',
+    })
+  }
+
+  // 5) 가장 센 외행성 마디 — benefic=순, malefic=주의.
+  const strongestAstro = (decade.astro ?? [])[0]
+  if (strongestAstro) {
+    const t = outerTone(strongestAstro.kind)
+    const planetKo = OUTER_KO[strongestAstro.kind] ?? strongestAstro.label
+    whyItems.push({
+      term: ko
+        ? `${planetKo} · ${strongestAstro.label}`
+        : `${strongestAstro.body || strongestAstro.label}`,
+      because: ko
+        ? t === 'positive'
+          ? '확장과 기회의 하늘 마디가 이 10년에 걸립니다.'
+          : t === 'caution'
+            ? '다지고 시험하는 하늘 마디가 이 10년에 걸립니다.'
+            : '바깥 하늘의 큰 마디가 이 10년에 걸립니다.'
+        : t === 'positive'
+          ? 'an expansive sky-node falls within this decade.'
+          : t === 'caution'
+            ? 'a testing, consolidating sky-node falls within this decade.'
+            : 'a major outer-sky node falls within this decade.',
+      tone: t,
+    })
+  }
+
+  // 6) 이 10년 가장 무르익는 해 + 그 해 세운 십신 — 큰 해의 동인.
+  if (peakYearObj) {
+    const peakSib = peakYearObj.sibsin
+    whyItems.push({
+      term: ko
+        ? `${peakYearObj.year} ${peakYearObj.gz.hanja}${peakSib ? ` · ${peakSib}` : ''}`
+        : `${peakYearObj.year} ${peakYearObj.gz.hanja}${peakSib ? ` · ${SIBSIN_EN[peakSib] ?? peakSib}` : ''}`,
+      because: ko
+        ? `이 10년에서 점수가 가장 높은 해 — ${peakSib ? `‘${sibsinArea(peakSib)}’ ` : ''}일이 무르익습니다.`
+        : `the highest-scoring year of the decade — ${peakSib ? `${sibsinAreaEn(peakSib)} ` : ''}matters ripen.`,
+      tone: 'positive',
+    })
+  }
+
+  // 강한 신호 4–6개만 — 위 순서가 곧 강도 우선순위.
+  const whyItemsTop = whyItems.slice(0, 6)
+
   return (
     <TierFrame screenLabel={`10년 ${decade.start}-${decade.end}`}>
       <div className={styles.tokens}>
@@ -362,16 +521,19 @@ export function DecadeTier({ user, decade, onDive, onRise }: DecadeTierProps) {
           sub={ko ? decade.headline : (decade.headlineEn ?? decade.headline)}
         />
 
-        {/* ── 핵심 1 — 이 시기에 일어나는 일 ── */}
-        {happenLines.length > 0 && (
+        {/* ── 핵심 1 — 이 시기에 일어나는 일 (+ 이 10년 풀이 합성 해석) ── */}
+        {(happenLines.length > 0 || interpretText) && (
           <Band title={ko ? '이 시기에 일어나는 일' : 'What this season brings'}>
-            <ul className={styles.plainList}>
-              {happenLines.slice(0, 3).map((line, i) => (
-                <li key={i} className={styles.plainItem}>
-                  {line}
-                </li>
-              ))}
-            </ul>
+            {happenLines.length > 0 && (
+              <ul className={styles.plainList}>
+                {happenLines.slice(0, 3).map((line, i) => (
+                  <li key={i} className={styles.plainItem}>
+                    {line}
+                  </li>
+                ))}
+              </ul>
+            )}
+            {interpretText && <p className={styles.interpretLine}>{interpretText}</p>}
           </Band>
         )}
 
@@ -430,6 +592,9 @@ export function DecadeTier({ user, decade, onDive, onRise }: DecadeTierProps) {
               ? '자세한 신호 보기 · 사주·점성 근거'
               : 'See the detailed signals · Saju & Astrology'}
           </summary>
+
+          {/* 왜 이렇게 보나 — 실제 용어 신호 → 쉬운 결론(근거). 표면 쉬운말의 출처. */}
+          <WhyList title={ko ? '왜 이렇게 보나' : 'Why it reads this way'} items={whyItemsTop} />
 
           {/* 격국 frame + 대운 한자 — 전문용어. */}
           <div className={styles.foldHeadRow}>
