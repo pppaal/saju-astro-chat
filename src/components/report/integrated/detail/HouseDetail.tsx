@@ -46,7 +46,7 @@ export default function HouseDetail({ astro, lang }: HouseDetailProps) {
 
   return (
     <details className={s.box}>
-      <summary>{en ? 'The 12 houses (life areas)' : '12하우스 — 삶의 영역 풀이'}</summary>
+      <summary>{en ? 'The 12 life areas (houses)' : '삶의 12가지 영역 풀이 (하우스)'}</summary>
       <div className={s.body}>
         {HOUSE_NUMS.map((i) => {
           const rich = getHouseRich(i, lang)
@@ -73,8 +73,8 @@ export default function HouseDetail({ astro, lang }: HouseDetailProps) {
               {i === 1 && (
                 <p className={s.ascNote}>
                   {en
-                    ? '1st house — your sense of self and first impression (the Ascendant).'
-                    : '1하우스 — 나 자신과 첫인상을 보여주는 자리예요(상승궁).'}
+                    ? 'Your sense of self and first impression — the 1st life area (1st house / Ascendant).'
+                    : '나 자신과 첫인상을 보여주는 자리예요 — 첫 번째 삶의 영역(1하우스·상승궁).'}
                 </p>
               )}
 

@@ -161,23 +161,39 @@ const CATEGORY_MEANING: Record<string, BiLabel> = {
 const categoryMeaning = (category: string, lang: Lang): string =>
   CATEGORY_MEANING[category]?.[lang] ?? ''
 
-// 초보자용 "쉽게 풀이" 더보기 — 사주·점성 용어를 모르는 사람을 위해 각 섹션의
-// 용어를 한 줄로 풀어준다. 네이티브 <details> 라 모바일/접근성 OK, 기본 접힘.
-function Explain({ section, lang }: { section: GlossarySection; lang: Lang }) {
+// 초보자용 용어 풀이 — 사주·점성 용어를 모르는 사람을 위해 각 섹션의 용어를
+// 한 줄로 풀어준다. 제목 바로 아래 "한 줄 리드"(첫 글로서리 항목의 body)는 항상
+// 보이게 노출하고, 전체 용어 목록은 네이티브 <details>("쉽게 풀이/더보기")에 접어둔다.
+// lead=false 면 리드 없이 전체 목록만 접어둔다(리포트 도입부 intro 용).
+function Explain({
+  section,
+  lang,
+  lead = true,
+}: {
+  section: GlossarySection
+  lang: Lang
+  lead?: boolean
+}) {
   const entries = GLOSSARY[section]
   if (!entries?.length) return null
+  const leadText = lead ? entries[0]?.body[lang] : ''
   return (
-    <details className={s.explain}>
-      <summary>{lang === 'en' ? '❓ In plain words' : '❓ 쉽게 풀이 — 용어가 궁금하면'}</summary>
-      <dl className={s.explainBody}>
-        {entries.map((e, i) => (
-          <div className={s.explainRow} key={i}>
-            <dt className={s.explainTerm}>{e.term[lang]}</dt>
-            <dd className={s.explainDef}>{e.body[lang]}</dd>
-          </div>
-        ))}
-      </dl>
-    </details>
+    <>
+      {leadText && <p className={s.sub}>{leadText}</p>}
+      <details className={s.explain}>
+        <summary>
+          {lang === 'en' ? '❓ In plain words — more terms' : '❓ 쉽게 풀이 — 용어 더보기'}
+        </summary>
+        <dl className={s.explainBody}>
+          {entries.map((e, i) => (
+            <div className={s.explainRow} key={i}>
+              <dt className={s.explainTerm}>{e.term[lang]}</dt>
+              <dd className={s.explainDef}>{e.body[lang]}</dd>
+            </div>
+          ))}
+        </dl>
+      </details>
+    </>
   )
 }
 
@@ -628,16 +644,15 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
           })()}
         </div>
 
-        {/* 입문 용어 풀이 — 사주팔자/천궁도가 뭔지부터 */}
-        <Explain section="intro" lang={lang} />
+        {/* 입문 용어 풀이 — 사주팔자/천궁도가 뭔지부터 (도입부라 리드 없이 더보기만) */}
+        <Explain section="intro" lang={lang} lead={false} />
 
         {/* 01 사주 명식 */}
         <section className={s.section}>
           <div className={s.secHead}>
             <span className={s.secNum}>01</span>
             <span className={s.secTitle}>
-              {lang === 'en' ? 'Four Pillars' : '사주 명식'}
-              <span className={s.han}>四柱命式</span>
+              {lang === 'en' ? 'Your birth makeup' : '타고난 나는 어떤 사람일까?'}
             </span>
             {lang === 'en' && <span className={s.secEn}>Four Pillars</span>}
           </div>
@@ -835,10 +850,7 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
         <section className={s.section}>
           <div className={s.secHead}>
             <span className={s.secNum}>02</span>
-            <span className={s.secTitle}>
-              {t('sec02Title')}
-              <span className={s.han}>{UI.sec02Han.ko}</span>
-            </span>
+            <span className={s.secTitle}>{t('sec02Title')}</span>
             {lang === 'en' && <span className={s.secEn}>Elements & Balance</span>}
           </div>
           <Explain section="s02" lang={lang} />
@@ -1024,10 +1036,7 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
         <section className={s.section}>
           <div className={s.secHead}>
             <span className={s.secNum}>03</span>
-            <span className={s.secTitle}>
-              {lang === 'en' ? 'Natal Chart' : '출생 천궁도'}
-              <span className={s.han}>本命 天宮圖</span>
-            </span>
+            <span className={s.secTitle}>{lang === 'en' ? 'Your birth sky' : '하늘이 본 나'}</span>
             {lang === 'en' && <span className={s.secEn}>Natal Chart</span>}
           </div>
           <Explain section="s03" lang={lang} />
@@ -1217,8 +1226,7 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
           <div className={s.secHead}>
             <span className={s.secNum}>04</span>
             <span className={s.secTitle}>
-              {lang === 'en' ? 'Aspects' : '어스펙트'}
-              <span className={s.han}>行星 角度</span>
+              {lang === 'en' ? 'How your forces interact' : '내 안의 기운들, 서로 잘 지내나?'}
             </span>
             {lang === 'en' && <span className={s.secEn}>Aspects</span>}
           </div>
@@ -1302,8 +1310,7 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
             <div className={s.secHead}>
               <span className={s.secNum}>05</span>
               <span className={s.secTitle}>
-                {lang === 'en' ? 'Cross-System' : '통합 교차'}
-                <span className={s.han}>交叉 統合</span>
+                {lang === 'en' ? 'Where both agree' : '동·서양이 똑같이 말하는 부분'}
               </span>
               {lang === 'en' && <span className={s.secEn}>Cross-System</span>}
             </div>
@@ -1461,8 +1468,8 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
         <div className={s.foot}>
           <span>
             {lang === 'en'
-              ? `四柱命理 × Tropical Natal · ${A.houseSystem} House System`
-              : `四柱命理 × 回歸黃道 · ${houseSysLabel(A.houseSystem)} 하우스`}
+              ? `Saju × Tropical astrology · ${A.houseSystem} House System`
+              : `동양 사주 × 서양 점성(트로피컬) · ${houseSysLabel(A.houseSystem)} 하우스`}
           </span>
           <span className={s.mono}>{t('footBrain')}</span>
         </div>
