@@ -26,6 +26,8 @@ import {
   signElementLabel,
   isAirSign,
   planetTheme,
+  AIR_TRAIT_OVERRIDE,
+  AIR_ELEMENT_LABEL,
   type CrossVerdict,
 } from './natalCrossShared'
 import { elementVerdict, ELEMENT_TRAIT, type DomainCtx } from './natalCrossVerdict'
@@ -406,7 +408,15 @@ export function dominantSajuElement(
   return bestN > 0 ? best : undefined
 }
 
-/** 점성 sign 배열에서 가장 강한 원소(5원소 공간). */
+/**
+ * 점성 sign 배열에서 가장 강한 원소.
+ *
+ * 주의: signToSajuElement 는 fire→fire / earth→earth / water→water / air→wood 라,
+ * 여기서 'wood' 는 *오직 공기(air) 별자리에서만* 나오고 'metal' 은 절대 안 나온다.
+ * air→wood 는 4원소를 5행에 끼워 맞춘 *무손실 아님*(근사)이므로, 동률일 때
+ * 근사값(wood=air)이 무손실 원소(fire/earth/water)를 이기지 않게 한다 — 이전엔
+ * SAJU_ELS 순서상 wood 가 맨 앞이라 동률에서 air 가 과대 선택됐다(ENGINE-AUDIT).
+ */
 export function dominantAstroElement(signs: string[] | undefined): SajuElement | undefined {
   if (!signs || signs.length === 0) return undefined
   const agg: Record<SajuElement, number> = { wood: 0, fire: 0, earth: 0, metal: 0, water: 0 }
@@ -414,13 +424,19 @@ export function dominantAstroElement(signs: string[] | undefined): SajuElement |
     const el = signToSajuElement(s)
     if (el) agg[el] += 1
   }
+  // 무손실 원소(불·흙·물) 중 최댓값을 먼저 고른다.
   let best: SajuElement | undefined
   let bestN = -1
-  for (const el of SAJU_ELS) {
+  for (const el of ['fire', 'earth', 'water'] as SajuElement[]) {
     if (agg[el] > bestN) {
       bestN = agg[el]
       best = el
     }
+  }
+  // 근사값 wood(=air)는 무손실 원소를 *엄격히 초과*할 때만 우세로 인정(동률은 무손실 우선).
+  if (agg.wood > bestN) {
+    best = 'wood'
+    bestN = agg.wood
   }
   return bestN > 0 ? best : undefined
 }
@@ -433,11 +449,19 @@ export function evalTemperament(
   const a = dominantSajuElement(sajuCounts)
   const b = dominantAstroElement(astroSigns)
   if (!a || !b) return null
+  // dominantAstroElement 의 'wood' 는 *항상 공기(air) 별자리 유래*다(다른 사인은
+  // 무손실로 5행에 들어가고 air 만 wood 로 근사). 그래서 b==='wood' 면 evalIdentity
+  // 와 동일하게 공기 헤지(원소명 '공기' 표기 + 근사 경고)를 적용해, 분포 우세
+  // 평가에서 木 라벨이 새거나 '같은 결' 거짓 수렴이 단정되지 않게 한다(ENGINE-AUDIT).
+  const airDom = b === 'wood'
   return elementVerdict(a, b, {
     aKo: '사주가 본 성향',
     aEn: 'Saju-read side',
     bKo: '별자리가 본 성향',
     bEn: 'astrology-read side',
+    bTrait: airDom ? AIR_TRAIT_OVERRIDE : undefined,
+    bLabel: airDom ? AIR_ELEMENT_LABEL : undefined,
+    airApprox: airDom,
   })
 }
 

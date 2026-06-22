@@ -109,15 +109,18 @@ export function signToSajuElement(sign: string | undefined): SajuElement | undef
 // 공기(air) 별자리는 생극 계산상 木으로 대응하지만, 묘사를 木의 결("뻗어나가
 // 키우는")로 쓰면 물병·쌍둥이·천칭이 "확장·성장형"으로 잘못 읽힌다. 공기 별자리에서
 // 온 트레잇은 공기 본연의 결로 표기 — 생극 매핑(木)은 그대로 두고 문구만 교정.
-const AIR_TRAIT = { ko: '퍼뜨리고 연결하는', en: 'circulating and connecting' }
+// (분포 우세 평가기 evalTemperament 도 air-우세일 때 이 상수를 재사용한다.)
+export const AIR_TRAIT_OVERRIDE = { ko: '퍼뜨리고 연결하는', en: 'circulating and connecting' }
+// 공기 별자리는 원소명도 '木' 대신 '공기'로 표기 — 木(사주)과 헷갈리지 않도록.
+export const AIR_ELEMENT_LABEL = { ko: '공기', en: 'Air' }
 export function signTraitOverride(
   sign: string | undefined
 ): { ko: string; en: string } | undefined {
-  return sign && SIGN_TO_ASTRO_ELEMENT[sign] === 'air' ? AIR_TRAIT : undefined
+  return sign && SIGN_TO_ASTRO_ELEMENT[sign] === 'air' ? AIR_TRAIT_OVERRIDE : undefined
 }
 // 공기 별자리는 원소명도 '木' 대신 '공기'로 표기 — 木(사주)과 헷갈리지 않도록.
 export function signElementLabel(sign: string | undefined): { ko: string; en: string } | undefined {
-  return sign && SIGN_TO_ASTRO_ELEMENT[sign] === 'air' ? { ko: '공기', en: 'Air' } : undefined
+  return sign && SIGN_TO_ASTRO_ELEMENT[sign] === 'air' ? AIR_ELEMENT_LABEL : undefined
 }
 // 공기 별자리인가 — air 는 사주 5원소에 무손실 대응이 없어 木으로 근사한다.
 // 이 근사에서 나온 '같은 결(same)' 판정은 거짓 수렴일 수 있어 헤지가 필요하다.

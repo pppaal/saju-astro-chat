@@ -192,6 +192,17 @@ describe('evalTemperament — 분포 우세 교차', () => {
     expect(evalTemperament({}, ['Leo'])).toBeNull()
     expect(evalTemperament({ fire: 1 }, [])).toBeNull()
   })
+  it('점성 공기 우세 → 木 라벨이 새지 않고 공기로 표기 + 근사 헤지', () => {
+    // 사주 목(wood) + 점성 공기 우세(쌍둥이·천칭·물병). air→wood 근사라 관계상
+    // same(목↔목)이 나오지만, 표시는 '공기'여야 하고 거짓 수렴 헤지가 붙어야 한다.
+    const v = evalTemperament({ wood: 3 }, ['Gemini', 'Libra', 'Aquarius'])!
+    expect(v.right?.ko).toContain('공기')
+    expect(v.right?.ko).not.toContain('木')
+    expect(v.right?.en).toContain('Air')
+    // airApprox 헤지 문구(어림잡아/approximately)가 same 분기에 포함된다.
+    expect(v.reason.ko).toContain('어림잡아')
+    expect(v.reason.en.toLowerCase()).toContain('approximat')
+  })
 })
 
 // ── evalEnergyDirection — complement arm + EN ──────────────────────────────
@@ -443,6 +454,12 @@ describe('분포 추출 헬퍼 edge', () => {
   it('dominantAstroElement: 미매핑 sign 무시 + undefined', () => {
     expect(dominantAstroElement(undefined)).toBeUndefined()
     expect(dominantAstroElement(['???'])).toBeUndefined()
+  })
+  it('dominantAstroElement: 동률이면 무손실 원소가 air-근사(wood)를 이긴다', () => {
+    // 공기 2(쌍둥이·천칭) vs 물 2(게·전갈) 동률 → air-근사 wood 가 아니라 water.
+    expect(dominantAstroElement(['Gemini', 'Libra', 'Cancer', 'Scorpio'])).toBe('water')
+    // 공기가 *엄격히* 더 많으면 그때만 wood(=air).
+    expect(dominantAstroElement(['Gemini', 'Libra', 'Aquarius', 'Cancer'])).toBe('wood')
   })
   it('dominantSibsinGroup: undefined / 모두 0', () => {
     expect(dominantSibsinGroup(undefined)).toBeUndefined()
