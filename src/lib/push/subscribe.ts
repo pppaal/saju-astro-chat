@@ -49,14 +49,21 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
   return outputArray
 }
 
+// 웹 푸시 전용 정적 SW 경로 — next-pwa(/sw.js)는 Turbopack 빌드에서 생성되지
+// 않아 우리가 직접 서빙·등록한다(public/push-sw.js). 푸시 핸들러만 들어있다.
+const PUSH_SW_URL = '/push-sw.js'
+
+function scriptUrlOf(reg: ServiceWorkerRegistration | undefined): string {
+  const w = reg?.active || reg?.waiting || reg?.installing
+  return w?.scriptURL ?? ''
+}
+
 async function getRegistration(): Promise<ServiceWorkerRegistration | null> {
   try {
-    // next-pwa 가 등록한 SW 우선. 아직 등록 전이거나(첫 방문/이 페이지에서 누락)
-    // 사용자가 SW 를 지운 경우엔 직접 등록한다 — getRegistration 만 믿으면
-    // "지원 안 함"으로 오인된다(데스크톱 크롬에서도 빈 값 가능).
+    // 우리 푸시 SW(scope '/')가 이미 떠 있으면 재사용, 아니면 등록한다.
     let registration = await navigator.serviceWorker.getRegistration()
-    if (!registration) {
-      registration = await navigator.serviceWorker.register('/sw.js', { scope: '/' })
+    if (!registration || !scriptUrlOf(registration).endsWith(PUSH_SW_URL)) {
+      registration = await navigator.serviceWorker.register(PUSH_SW_URL, { scope: '/' })
     }
     // 등록 직후엔 active 가 아직 null 일 수 있다 — 활성화까지 대기(최대 10초).
     await Promise.race([
