@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import { initializeApiContext, createAuthenticatedGuard } from '@/lib/api/middleware'
 import { createFallbackSSEStream } from '@/lib/streaming'
 import { streamClaudeAsSSE } from '@/lib/llm/claudeSSE'
-import { PREMIUM_CLAUDE_MODEL } from '@/lib/llm/claude'
 import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
 import { guardText, containsForbidden, safetyMessage } from '@/lib/textGuards'
 import { isSelfHarm, crisisMessage } from '@/lib/safety/crisis'
@@ -706,9 +705,9 @@ export async function POST(req: NextRequest) {
         cachedUserContext,
         userPrompt,
         priorTurns,
-        // Haiku → Sonnet 4.5 통일. 운명 상담사와 같은 깊이·톤. 캐싱(1h)
-        // 으로 cachedUserContext 비용 회수.
-        model: PREMIUM_CLAUDE_MODEL,
+        // 모델은 비용 정책(SSOT, llm-policy)이 정한다 — compatibility.counselor =
+        // Sonnet 4.5. 운명 상담사와 같은 깊이·톤. 캐싱(1h)으로 컨텍스트 비용 회수.
+        feature: 'compatibility.counselor',
         // maxTokens 5000 + continuation hook — 5000 도달해도 자동으로 이어
         // 써서 답이 절대 중간에 안 잘림 (최대 2회 continuation, 누적 24000
         // chars 절대 cap). claudeWithContinuation 참고.
