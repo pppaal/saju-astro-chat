@@ -579,6 +579,8 @@ export function DayTier({ day, voc, onRise, sex = '남' }: DayTierProps) {
 
   // 점수 → 세기(막대+단어). 숫자 점수는 화면에 안 쓰고 세기만 보여준다(시안).
   const strength = dayStrength(day.score)
+  // 마음의 날씨 글리프(시안) — 톤을 한눈에. 순풍=맑음, 역풍=비, 평이=구름.
+  const heroGlyph = verdict.tone === 'positive' ? '🌤️' : verdict.tone === 'caution' ? '🌧️' : '⛅'
 
   // ── 오늘 깊이 읽기 — 일진 십신 + 사주×점성 교차 페어 + 화해 톤을 이어 붙인
   //    합성 해석 문단(결정론·근거 기반, 지어내지 않음). ──
@@ -749,6 +751,9 @@ export function DayTier({ day, voc, onRise, sex = '남' }: DayTierProps) {
           </div>
         )}
         <div className={styles.iljinBig}>
+          <span className={styles.weatherGlyph} aria-hidden>
+            {heroGlyph}
+          </span>
           <span className="han">{day.iljin.hanja}</span>
           <div className="meta">
             {/* 뜻 먼저(크게) — 용어(일진·십신)는 아래 작은 참고로. */}

@@ -135,6 +135,14 @@
 .iljinBig .meta .tone[data-tone='caution'] {
   color: var(--dp-ember);
 }
+/* 마음의 날씨 글리프(시안) — 히어로 앞 톤 한눈에. */
+.weatherGlyph {
+  font-size: 30px;
+  line-height: 1;
+  flex: 0 0 auto;
+  margin-right: 2px;
+}
+
 /* 세기 미터 — 숫자 점수 대신 막대 + 고정 단어(시안). */
 .strength {
   margin-left: auto;
