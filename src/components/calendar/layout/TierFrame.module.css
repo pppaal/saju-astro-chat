@@ -11,7 +11,9 @@
   width: 100%;
   max-width: 540px;
   margin: 0 auto;
-  padding: 18px 18px 72px;
+  /* 상단 padding 은 절대배치 토픽바(shell .topbar, z-index 20)를 비켜야 한다.
+     안 그러면 히어로가 토픽바 밑으로 겹쳐 보인다(모바일). 옛 .tier 래퍼와 동일. */
+  padding: clamp(76px, 8vh, 104px) 18px 72px;
   box-sizing: border-box;
 }
 
