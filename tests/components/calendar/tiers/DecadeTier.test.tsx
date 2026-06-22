@@ -161,11 +161,26 @@ function mainSurface(container: HTMLElement): HTMLElement {
   return clone
 }
 
-/** the fold (<details>) only — already attached to the document. */
+/**
+ * the jargon fold (<details>) only — already attached to the document.
+ * There can be more than one <details> (a demoted plain "MoreFold" plus the
+ * jargon fold); the jargon "자세한 신호 보기" fold is always the last one.
+ */
 function fold(container: HTMLElement): HTMLElement {
-  const d = container.querySelector('details')
-  if (!d) throw new Error('details fold not found')
-  return d as HTMLElement
+  const all = container.querySelectorAll('details')
+  if (all.length === 0) throw new Error('details fold not found')
+  return all[all.length - 1] as HTMLElement
+}
+
+/**
+ * the demoted plain "MoreFold" (<details>) — the first <details>, holding
+ * easy-language secondary blocks (e.g. the plain cross cards). Distinct from
+ * the jargon fold returned by fold().
+ */
+function moreFold(container: HTMLElement): HTMLElement {
+  const all = container.querySelectorAll('details')
+  if (all.length < 2) throw new Error('MoreFold not found')
+  return all[0] as HTMLElement
 }
 
 describe('DecadeTier', () => {
@@ -296,23 +311,24 @@ describe('DecadeTier', () => {
     })
   })
 
-  describe('plain cross signals (main, ko)', () => {
-    it('renders plain cross name + meaning, but not the raw saju/astro sub-lines', () => {
+  describe('plain cross signals (demoted MoreFold, ko)', () => {
+    it('renders plain cross name + meaning in the MoreFold, but not the raw saju/astro sub-lines', () => {
       const { container } = setup()
-      const main = within(mainSurface(container))
-      expect(main.getByText('겹쳐서 도드라지는 신호')).toBeInTheDocument()
-      expect(main.getByText('편재 ↔ Jupiter')).toBeInTheDocument()
-      expect(main.getByText('구조적 압박')).toBeInTheDocument()
-      // raw saju/astro term rows are NOT on the main surface.
-      expect(main.queryByText('편재 대운')).not.toBeInTheDocument()
-      expect(main.queryByText('목성')).not.toBeInTheDocument()
+      // plain cross cards are demoted into the "10년 더 자세히" MoreFold (first
+      // <details>), not the jargon fold; assert against that demoted fold.
+      const more = within(moreFold(container))
+      expect(more.getByText('겹쳐서 도드라지는 신호')).toBeInTheDocument()
+      expect(more.getByText('편재 ↔ Jupiter')).toBeInTheDocument()
+      expect(more.getByText('구조적 압박')).toBeInTheDocument()
+      // raw saju/astro term rows are NOT in the demoted plain fold.
+      expect(more.queryByText('편재 대운')).not.toBeInTheDocument()
+      expect(more.queryByText('목성')).not.toBeInTheDocument()
     })
 
     it('omits the cross block when there are no activations', () => {
       const { container } = setup({ decade: { crossActivations: [] } })
-      expect(
-        within(mainSurface(container)).queryByText('겹쳐서 도드라지는 신호')
-      ).not.toBeInTheDocument()
+      // with no activations the demoted plain MoreFold is not rendered at all.
+      expect(container.textContent).not.toContain('겹쳐서 도드라지는 신호')
     })
   })
 
