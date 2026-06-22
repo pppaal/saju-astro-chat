@@ -32,6 +32,7 @@ import {
 } from '@/lib/calendar-engine/derivers/plainLanguage'
 import { deriveDayDomains } from '@/lib/calendar-engine/derivers/dayDomains'
 import { deriveDayDeepRead } from '@/lib/calendar-engine/derivers/dayDeepRead'
+import { dayStrength } from '@/lib/calendar-engine/derivers/dayStrength'
 import { reconcileDayTone, type DayVerdict } from '@/lib/calendar-engine/derivers/reconcile'
 import styles from './DayTier.module.css'
 import { useI18n } from '@/i18n/I18nProvider'
@@ -576,6 +577,9 @@ export function DayTier({ day, voc, onRise, sex = '남' }: DayTierProps) {
         ? 'Headwind'
         : 'Steady'
 
+  // 점수 → 세기(막대+단어). 숫자 점수는 화면에 안 쓰고 세기만 보여준다(시안).
+  const strength = dayStrength(day.score)
+
   // ── 오늘 깊이 읽기 — 일진 십신 + 사주×점성 교차 페어 + 화해 톤을 이어 붙인
   //    합성 해석 문단(결정론·근거 기반, 지어내지 않음). ──
   // 그날 가장 센 시진(時) — 사전 매칭 우선, 그다음 강도. 깊이읽기 타이밍 한 줄용.
@@ -762,9 +766,16 @@ export function DayTier({ day, voc, onRise, sex = '남' }: DayTierProps) {
               {heroToneWord}
             </span>
           </div>
-          <div className="score">
-            <div className="n">{Math.round(day.score)}</div>
-            <div className="cap">SCORE</div>
+          <div className={styles.strength} aria-label={ko ? strength.ko : strength.en}>
+            <div className={styles.strengthBars}>
+              {[1, 2, 3, 4, 5].map((i) => (
+                <span
+                  key={i}
+                  className={`${styles.strengthBar} ${i <= strength.level ? styles.strengthOn : ''}`}
+                />
+              ))}
+            </div>
+            <div className={styles.strengthWord}>{ko ? strength.ko : strength.en}</div>
           </div>
         </div>
         <p className={styles.oneline}>{localizeLabel(dayOneLine, ko)}</p>

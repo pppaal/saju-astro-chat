@@ -135,25 +135,32 @@
 .iljinBig .meta .tone[data-tone='caution'] {
   color: var(--dp-ember);
 }
-.iljinBig .score {
+/* 세기 미터 — 숫자 점수 대신 막대 + 고정 단어(시안). */
+.strength {
   margin-left: auto;
   text-align: right;
-  padding-top: 6px;
+  padding-top: 8px;
   flex: 0 0 auto;
 }
-.iljinBig .score .n {
-  font-family: var(--dp-serif);
-  font-weight: 600;
-  font-size: 27px;
-  line-height: 1;
-  color: var(--dp-ink);
+.strengthBars {
+  display: flex;
+  gap: 3px;
+  justify-content: flex-end;
 }
-.iljinBig .score .cap {
-  font-family: var(--dp-mono);
-  font-size: 10px;
-  letter-spacing: 0.12em;
+.strengthBar {
+  width: 6px;
+  height: 16px;
+  border-radius: 3px;
+  background: var(--dp-line);
+}
+.strengthOn {
+  background: var(--dp-pos);
+}
+.strengthWord {
+  font-family: var(--dp-serif-ko);
+  font-size: 11px;
   color: var(--dp-ink-mute);
-  margin-top: 4px;
+  margin-top: 5px;
 }
 
 .oneline {

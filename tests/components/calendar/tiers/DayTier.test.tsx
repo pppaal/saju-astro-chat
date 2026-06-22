@@ -151,6 +151,14 @@ describe('DayTier', () => {
       expect(screen.getByText(/오늘의 기운 갑자/)).toBeInTheDocument()
     })
 
+    it('shows strength as a word, not a raw score number (score 72 → 강한 날)', () => {
+      setup()
+      // 시안: 숫자 점수 제거, 막대+고정 단어. score 72 → |72-50|=22 → level 4 → 강한 날.
+      expect(screen.getByText('강한 날')).toBeInTheDocument()
+      expect(screen.queryByText('SCORE')).not.toBeInTheDocument()
+      expect(screen.queryByText('72')).not.toBeInTheDocument()
+    })
+
     it('shows the natal day master plainly as "나의 타고난 기운" (ko)', () => {
       setup()
       expect(screen.getByText('辛')).toBeInTheDocument()
