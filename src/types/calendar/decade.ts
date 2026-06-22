@@ -54,28 +54,6 @@ export interface DestinyDecadeYearScore {
 }
 
 // ============================================================================
-// 5+5 분리 — destinypal 5-tier 사양: 대운 10년을 전반 5년 / 후반 5년 으로
-// 텍스트 분기. data.js 에 명시 없음 — 신규 사양.
-// ============================================================================
-
-export interface DestinyDecadeHalfSplit {
-  /** 전반 5년 narrative. */
-  firstHalf: {
-    yearFrom: number
-    yearTo: number
-    headline: string
-    body: string[]
-  }
-  /** 후반 5년 narrative. */
-  secondHalf: {
-    yearFrom: number
-    yearTo: number
-    headline: string
-    body: string[]
-  }
-}
-
-// ============================================================================
 // ZR L1 챕터 (현재 대운에 걸친 1개 이상의 sign-walk).
 // 누락 5신호 중 ZR L1/L2 챕터 (sign + ruler + duration) 사양 충족.
 // ============================================================================
@@ -155,8 +133,6 @@ export interface DestinyDecade {
   narrative: TaggedNarrative[]
   /** 사용자 다이브 연도. */
   focusYear: number
-  /** 전반 5년 / 후반 5년 분리 (5-tier 신규). */
-  halfSplit?: DestinyDecadeHalfSplit
   /** ZR Spirit 챕터 (대운에 걸친 챕터들). */
   zrSpiritChapters: DestinyDecadeZRChapter[]
   /** ZR Fortune 챕터. */

@@ -167,8 +167,7 @@ export function toLifetime(natal: NatalContext, opts: ToLifetimeOptions): Destin
     labelEn: m.labelEn,
     meaning: m.meaning,
     meaningEn: m.meaningEn,
-    // toMilestones 는 'chiron' / 'astro' 도 반환 — DestinyMilestoneKind 와 정합.
-    kind: (m.kind === 'chiron' || m.kind === 'astro' ? 'saju' : m.kind) as DestinyMilestone['kind'],
+    kind: m.kind,
     now: m.now,
   }))
 

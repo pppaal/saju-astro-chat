@@ -39,15 +39,6 @@ export interface DestinypalYearProfection {
   rulerNatalSign: ZodiacKo
 }
 
-export interface DestinypalYearZRChapter {
-  level: 'L1' | 'L2'
-  sign: string // 한글
-  signEn: string
-  ruler: string // 한글
-  rulerEn: string
-  duration: string // "~10년 1개월" 등
-}
-
 export interface DestinypalYearSewoon {
   gz: Ganji
   sibsin: string
@@ -85,10 +76,6 @@ export interface DestinypalYear {
    * profection 활성 하우스만 `active=true`.
    */
   profectionWheel: DestinyProfectionWheelSlice[]
-  /** ZR 챕터 (L1 + L2) Phase 3 신규 */
-  zr?: { l1?: DestinypalYearZRChapter; l2?: DestinypalYearZRChapter }
-  /** Solar Return Asc sign — Phase 3 신규 */
-  solarReturnAsc?: { sign: string; signEn: string }
   sajuNote: string
   sajuNoteEn: string
   astroNote: string
@@ -116,21 +103,6 @@ const PROFECTION_THEMES: Record<number, { theme: string; themeEn: string }> = {
   10: { theme: '소명 · 사회적 자리', themeEn: 'Vocation · Status' },
   11: { theme: '집단 · 친구', themeEn: 'Community · Friends' },
   12: { theme: '뒤편 · 정리', themeEn: 'Hidden things · Release' },
-}
-
-const ZR_RULERS: Record<ZodiacKo, string> = {
-  Aries: 'Mars',
-  Taurus: 'Venus',
-  Gemini: 'Mercury',
-  Cancer: 'Moon',
-  Leo: 'Sun',
-  Virgo: 'Mercury',
-  Libra: 'Venus',
-  Scorpio: 'Mars',
-  Sagittarius: 'Jupiter',
-  Capricorn: 'Saturn',
-  Aquarius: 'Saturn',
-  Pisces: 'Jupiter',
 }
 
 // Hellenistic 정통 sign ruler — profection wheel 12 슬롯의 cusp ruler 룩업.
@@ -163,21 +135,6 @@ const ZODIAC_ORDER: ZodiacKo[] = [
   'Aquarius',
   'Pisces',
 ]
-const ZR_DURATION_KO: Record<ZodiacKo, string> = {
-  // Spirit/Fortune 공통 — sign-walk 기본 연수
-  Cancer: '25년',
-  Leo: '19년',
-  Virgo: '20년',
-  Libra: '8년',
-  Scorpio: '15년',
-  Sagittarius: '12년',
-  Capricorn: '27년',
-  Aquarius: '30년',
-  Pisces: '12년',
-  Aries: '15년',
-  Taurus: '8년',
-  Gemini: '20년',
-}
 
 export interface ToYearOptions {
   /** 대상 연도 (보통 currentYear). */
@@ -218,14 +175,6 @@ export function toYear(natal: NatalContext, opts: ToYearOptions): DestinypalYear
   const profSignal = (opts.yearlySignals ?? []).find((s) => s.kind === 'profection')
   const profection = profSignal ? extractProfection(profSignal, natal) : undefined
 
-  // ZR signal → L1 / L2
-  const zrSignals = (opts.yearlySignals ?? []).filter((s) => s.kind === 'zodiacal-releasing')
-  const zr = extractZR(zrSignals)
-
-  // Solar Return signal → SR Asc sign
-  const srSignal = (opts.yearlySignals ?? []).find((s) => s.kind === 'solar-return')
-  const solarReturnAsc = srSignal ? extractSRAsc(srSignal) : undefined
-
   // ── Profection wheel: 12 슬롯 (Asc sign 부터 whole-sign 순서) ──
   const profectionWheel = buildProfectionWheel(natal, profection?.house)
 
@@ -264,8 +213,6 @@ export function toYear(natal: NatalContext, opts: ToYearOptions): DestinypalYear
         : `${opts.year} — a year the flow gets re-drawn.`),
     profection,
     profectionWheel,
-    zr,
-    solarReturnAsc,
     sajuNote:
       opts.sajuNote ??
       `세운 ${sewoonRaw.stem}${sewoonRaw.branch} — 일간 ${dm} 기준 ${sewoonSibsin}.`,
@@ -563,38 +510,4 @@ function extractProfection(
     rulerNatalHouse: rulerPlanet?.house ?? 0,
     rulerNatalSign: (rulerPlanet?.sign ?? 'Aries') as ZodiacKo,
   }
-}
-
-function extractZR(signals: ActiveSignal[]): DestinypalYear['zr'] {
-  if (signals.length === 0) return undefined
-  // ZR signal name 형식은 extractor 마다 다를 수 있으나 evidence.detail.level 가 보통 'L1'/'L2'.
-  const result: { l1?: DestinypalYearZRChapter; l2?: DestinypalYearZRChapter } = {}
-  for (const s of signals) {
-    const detail = s.evidence?.detail ?? {}
-    const level = (detail.level as 'L1' | 'L2' | undefined) ?? 'L1'
-    const signEn =
-      (detail.sign as ZodiacKo | undefined) ?? (s.evidence?.planets?.[0] as ZodiacKo | undefined)
-    if (!signEn) continue
-    const ruler = ZR_RULERS[signEn]
-    const duration = ZR_DURATION_KO[signEn] ?? ''
-    const chapter: DestinypalYearZRChapter = {
-      level,
-      sign: SIGN_KO[signEn] ?? signEn,
-      signEn,
-      ruler: PLANET_KO[ruler] ?? ruler,
-      rulerEn: ruler,
-      duration,
-    }
-    if (level === 'L1') result.l1 = chapter
-    else result.l2 = chapter
-  }
-  return Object.keys(result).length > 0 ? result : undefined
-}
-
-function extractSRAsc(s: ActiveSignal): DestinypalYear['solarReturnAsc'] {
-  const detail = s.evidence?.detail ?? {}
-  const sign =
-    (detail.ascendantSign as ZodiacKo | undefined) ?? (detail.asc as ZodiacKo | undefined)
-  if (!sign) return undefined
-  return { sign: SIGN_KO[sign] ?? sign, signEn: sign }
 }

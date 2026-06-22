@@ -40,6 +40,7 @@ const TWELVE_STAGE_TYPES: ReadonlySet<TwelveStageType> = new Set([
   '양',
 ])
 import { SIBSIN_CAT, favorOf, type SibsinCat } from './cycleTone'
+import { SIBSIN_EN } from '@/lib/saju/sibsinLabels'
 import type { LifecycleMilestoneOverride } from '@/lib/calendar-engine/lifecycle/astroLifecycle'
 import { currentManAge } from '@/lib/datetime/currentAge'
 
@@ -1171,7 +1172,11 @@ export function deriveLifetimeFlow(
     const childPrefixKo = isChildhood ? '초년은 년주(부모·뿌리) 기준 — ' : ''
     const childPrefixEn = isChildhood ? 'From the year pillar (parents·roots) — ' : ''
     const textKo = `${childPrefixKo}${sibsinName}(${cat}) 흐름 — ${bodyKo}. ${toneKo}`
-    const textEn = `${childPrefixEn}${sibsinName} (${CAT_EN[cat]}) flow — ${bodyEn}. ${toneEn}`
+    // EN head uses the English ten-god label (not the Korean sibsinName) so the
+    // EN body — and the tone head that deriveToneFromText slices off it — stay
+    // English (was leaking '편재' into EN stage cards).
+    const sibsinNameEn = SIBSIN_EN[sibsinName] ?? CAT_EN[cat]
+    const textEn = `${childPrefixEn}${sibsinNameEn} (${CAT_EN[cat]}) flow — ${bodyEn}. ${toneEn}`
     const text = isEn ? textEn : textKo
 
     const ageRange = isEn
