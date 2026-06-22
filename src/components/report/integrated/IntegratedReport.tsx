@@ -161,23 +161,39 @@ const CATEGORY_MEANING: Record<string, BiLabel> = {
 const categoryMeaning = (category: string, lang: Lang): string =>
   CATEGORY_MEANING[category]?.[lang] ?? ''
 
-// 초보자용 "쉽게 풀이" 더보기 — 사주·점성 용어를 모르는 사람을 위해 각 섹션의
-// 용어를 한 줄로 풀어준다. 네이티브 <details> 라 모바일/접근성 OK, 기본 접힘.
-function Explain({ section, lang }: { section: GlossarySection; lang: Lang }) {
+// 초보자용 용어 풀이 — 사주·점성 용어를 모르는 사람을 위해 각 섹션의 용어를
+// 한 줄로 풀어준다. 제목 바로 아래 "한 줄 리드"(첫 글로서리 항목의 body)는 항상
+// 보이게 노출하고, 전체 용어 목록은 네이티브 <details>("쉽게 풀이/더보기")에 접어둔다.
+// lead=false 면 리드 없이 전체 목록만 접어둔다(리포트 도입부 intro 용).
+function Explain({
+  section,
+  lang,
+  lead = true,
+}: {
+  section: GlossarySection
+  lang: Lang
+  lead?: boolean
+}) {
   const entries = GLOSSARY[section]
   if (!entries?.length) return null
+  const leadText = lead ? entries[0]?.body[lang] : ''
   return (
-    <details className={s.explain}>
-      <summary>{lang === 'en' ? '❓ In plain words' : '❓ 쉽게 풀이 — 용어가 궁금하면'}</summary>
-      <dl className={s.explainBody}>
-        {entries.map((e, i) => (
-          <div className={s.explainRow} key={i}>
-            <dt className={s.explainTerm}>{e.term[lang]}</dt>
-            <dd className={s.explainDef}>{e.body[lang]}</dd>
-          </div>
-        ))}
-      </dl>
-    </details>
+    <>
+      {leadText && <p className={s.sub}>{leadText}</p>}
+      <details className={s.explain}>
+        <summary>
+          {lang === 'en' ? '❓ In plain words — more terms' : '❓ 쉽게 풀이 — 용어 더보기'}
+        </summary>
+        <dl className={s.explainBody}>
+          {entries.map((e, i) => (
+            <div className={s.explainRow} key={i}>
+              <dt className={s.explainTerm}>{e.term[lang]}</dt>
+              <dd className={s.explainDef}>{e.body[lang]}</dd>
+            </div>
+          ))}
+        </dl>
+      </details>
+    </>
   )
 }
 
@@ -285,8 +301,8 @@ function Wheel({ astro, lang }: { astro: ReportData['astro']; lang: Lang }) {
       })}
       {/* ASC / MC 축 */}
       {[
-        [lang === 'en' ? 'ASC' : '상승점', ascLon],
-        [lang === 'en' ? 'MC' : '중천', astro.mc.lon],
+        [lang === 'en' ? 'First impression' : '첫인상', ascLon],
+        [lang === 'en' ? 'Public face' : '사회적 위치', astro.mc.lon],
       ].map(([lab, lon]) => {
         const [x1, y1] = polar(cx, cy, rInner, screen(lon as number))
         const [x2, y2] = polar(cx, cy, rOuter + 6, screen(lon as number))
@@ -591,8 +607,8 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
           {viral && geok?.tagline && (
             <p className={s.heroSummary}>
               {lang === 'en'
-                ? `Your "${viral.name}" face is how you show up, while "${geok.tagline}" is how you actually set up the game — same person, two layers.`
-                : `겉으로 드러나는 "${viral.name}" 기질과, 실제로 판을 짜는 "${geok.tagline}" 방식은 어긋나 보여도 결국 한 사람의 두 겹이에요.`}
+                ? `On the outside you read as "${viral.name}"; underneath, you move like "${geok.tagline}" — two layers of the same person.`
+                : `겉으론 '${viral.name}'처럼 보이고, 속은 '${geok.tagline}' 쪽이에요 — 둘 다 한 사람의 다른 겹이에요.`}
             </p>
           )}
           {(() => {
@@ -628,16 +644,15 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
           })()}
         </div>
 
-        {/* 입문 용어 풀이 — 사주팔자/천궁도가 뭔지부터 */}
-        <Explain section="intro" lang={lang} />
+        {/* 입문 용어 풀이 — 사주팔자/천궁도가 뭔지부터 (도입부라 리드 없이 더보기만) */}
+        <Explain section="intro" lang={lang} lead={false} />
 
         {/* 01 사주 명식 */}
         <section className={s.section}>
           <div className={s.secHead}>
             <span className={s.secNum}>01</span>
             <span className={s.secTitle}>
-              {lang === 'en' ? 'Four Pillars' : '사주 명식'}
-              <span className={s.han}>四柱命式</span>
+              {lang === 'en' ? 'Your birth makeup' : '타고난 나는 어떤 사람일까?'}
             </span>
             {lang === 'en' && <span className={s.secEn}>Four Pillars</span>}
           </div>
@@ -655,7 +670,7 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
               <div className={s.dmCard}>
                 <div className={s.dmHead}>
                   <b className={elClass[stemEl(S.dayMaster)]}>{S.dayMaster}</b>
-                  <span>{lang === 'en' ? 'Day Master · You' : '일간 · 나'}</span>
+                  <span>{lang === 'en' ? 'Your day character' : '태어난 날의 나'}</span>
                 </div>
                 <div className={s.dmBody}>{dm?.as_daymaster ?? dm?.nature ?? ''}</div>
                 {/* 강점/약점은 상단 히어로에 일간+격국 종합으로 한 번만 노출(중복 제거). */}
@@ -835,10 +850,7 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
         <section className={s.section}>
           <div className={s.secHead}>
             <span className={s.secNum}>02</span>
-            <span className={s.secTitle}>
-              {t('sec02Title')}
-              <span className={s.han}>{UI.sec02Han.ko}</span>
-            </span>
+            <span className={s.secTitle}>{t('sec02Title')}</span>
             {lang === 'en' && <span className={s.secEn}>Elements & Balance</span>}
           </div>
           <Explain section="s02" lang={lang} />
@@ -956,15 +968,14 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
               약화하고 안내 줄을 덧붙여 확정 정격으로 단정하지 않는다(C2). */}
           {geok && (
             <div className={`${s.card} ${s.cardPad}`} style={{ marginTop: 16 }}>
-              <div className={s.subcap}>
+              <div className={s.subcap} title={lang === 'ko' ? S.geokguk : undefined}>
                 {geokTentative
                   ? lang === 'en'
-                    ? 'Tentative Structure · 格局'
-                    : '추정 격국 · 格局'
+                    ? 'Tentative structure'
+                    : '추정 큰 틀'
                   : t('geokgukCap')}
               </div>
               <div className={s.gaugeHead}>
-                {lang === 'ko' && <span className={s.mono}>{S.geokguk}</span>}
                 <b>{geok.tagline}</b>
               </div>
               {geokTentative && (
@@ -1024,10 +1035,7 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
         <section className={s.section}>
           <div className={s.secHead}>
             <span className={s.secNum}>03</span>
-            <span className={s.secTitle}>
-              {lang === 'en' ? 'Natal Chart' : '출생 천궁도'}
-              <span className={s.han}>本命 天宮圖</span>
-            </span>
+            <span className={s.secTitle}>{lang === 'en' ? 'Your birth sky' : '하늘이 본 나'}</span>
             {lang === 'en' && <span className={s.secEn}>Natal Chart</span>}
           </div>
           <Explain section="s03" lang={lang} />
@@ -1074,8 +1082,8 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
                 </div>
                 <div className={s.axes}>
                   {[
-                    [lang === 'en' ? 'ASC' : '상승점', A.ascendant],
-                    [lang === 'en' ? 'MC' : '중천', A.mc],
+                    [lang === 'en' ? 'First impression' : '첫인상', A.ascendant],
+                    [lang === 'en' ? 'Public face' : '사회적 위치', A.mc],
                   ].map(([lab, ax]) => {
                     const a = ax as { sign: string; deg: string }
                     return (
@@ -1126,7 +1134,7 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
                 },
                 asc && {
                   glyph: lang === 'en' ? 'Asc' : '↑',
-                  label: lang === 'en' ? 'Rising' : '상승',
+                  label: lang === 'en' ? 'First impression' : '첫인상',
                   core: getPlanetCore('Ascendant', lang),
                   sign: asc.sign,
                   deg: asc.deg,
@@ -1170,7 +1178,7 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
                       </b>
                       <i>
                         {signLabel(abbr(cd.sign), lang)} {cd.deg}
-                        {cd.house ? ` · ${cd.house}H` : ''}
+                        {''}
                       </i>
                     </div>
                     <div className={s.bigPrin}>{cd.core.principle}</div>
@@ -1181,20 +1189,12 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
                       const h = cd.house ? getHouseRich(cd.house as HouseNumber, lang) : null
                       const dom = h ? h.domain.split('·')[0].trim() : ''
                       if (!tr) return null
-                      const ord = (n: number) => {
-                        const v = n % 100
-                        const suf =
-                          v >= 11 && v <= 13 ? 'th' : ['th', 'st', 'nd', 'rd'][n % 10] || 'th'
-                        return `${n}${suf}`
-                      }
                       const read =
                         lang === 'en'
                           ? `In ${sgn}, your ${cd.label} comes through ${tr.en}` +
-                            (h
-                              ? `, and plays out mainly in the ${ord(cd.house)} house of ${dom}.`
-                              : '.')
+                            (h ? `, and plays out mainly in matters of ${dom}.` : '.')
                           : `${sgn} 자리라 ${cd.label}이 ${tr.ko} 색으로 드러나` +
-                            (h ? `고, ${cd.house}하우스(${dom}) 무대에서 주로 펼쳐져요.` : '요.')
+                            (h ? `고, ${dom} 쪽 일에서 주로 펼쳐져요.` : '요.')
                       return <div className={s.bigRead}>{read}</div>
                     })()}
                     <div className={s.bigMean}>{cd.core.meaning}</div>
@@ -1217,8 +1217,7 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
           <div className={s.secHead}>
             <span className={s.secNum}>04</span>
             <span className={s.secTitle}>
-              {lang === 'en' ? 'Aspects' : '어스펙트'}
-              <span className={s.han}>行星 角度</span>
+              {lang === 'en' ? 'How your forces interact' : '내 안의 기운들, 서로 잘 지내나?'}
             </span>
             {lang === 'en' && <span className={s.secEn}>Aspects</span>}
           </div>
@@ -1302,8 +1301,7 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
             <div className={s.secHead}>
               <span className={s.secNum}>05</span>
               <span className={s.secTitle}>
-                {lang === 'en' ? 'Cross-System' : '통합 교차'}
-                <span className={s.han}>交叉 統合</span>
+                {lang === 'en' ? 'Where both agree' : '동·서양이 똑같이 말하는 부분'}
               </span>
               {lang === 'en' && <span className={s.secEn}>Cross-System</span>}
             </div>
@@ -1460,9 +1458,7 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
 
         <div className={s.foot}>
           <span>
-            {lang === 'en'
-              ? `四柱命理 × Tropical Natal · ${A.houseSystem} House System`
-              : `四柱命理 × 回歸黃道 · ${houseSysLabel(A.houseSystem)} 하우스`}
+            {lang === 'en' ? `Saju × Tropical astrology` : `동양 사주 × 서양 점성(트로피컬)`}
           </span>
           <span className={s.mono}>{t('footBrain')}</span>
         </div>

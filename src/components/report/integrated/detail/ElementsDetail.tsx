@@ -34,7 +34,7 @@ export default function ElementsDetail({ saju, lang }: ElementsDetailProps) {
 
   return (
     <details className={s.box}>
-      <summary>{en ? 'Five elements, one by one' : '오행 다섯 가지 자세히'}</summary>
+      <summary>{en ? 'Five elements, one by one' : '다섯 기운 자세히'}</summary>
       <div className={s.body}>
         {ORDER.map((k) => {
           const meta = ELEMENTS[k]
@@ -60,7 +60,9 @@ export default function ElementsDetail({ saju, lang }: ElementsDetailProps) {
                   </span>
                 )}
                 {isAvoid && (
-                  <span className={`${s.tag} ${s.tagAvoid}`}>{en ? 'adverse' : '기신'}</span>
+                  <span className={`${s.tag} ${s.tagAvoid}`} title={en ? '' : '기신'}>
+                    {en ? 'adverse' : '부담되는 기운'}
+                  </span>
                 )}
               </div>
               {nature && <p className={s.nature}>{nature}</p>}

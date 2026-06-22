@@ -1,12 +1,12 @@
 {
   "정관격": {
     "ko": {
-      "tagline": "명예·정통 권위 — 공직·관리자형",
-      "personality": "당신은 '정관격(正官格)'이에요. 책임감이 강하고 규칙·위계·평판을 존중하며, 자기 자리를 지키는 사람이에요. 자평진전에서는 정관을 '귀(貴)의 으뜸'으로 보는데, 그만큼 체면과 신뢰를 자기 정체성처럼 다뤄요. 즉흥보다는 절차, 사적 이익보다는 공적 명분에 끌리는 타입이에요.",
+      "tagline": "질서와 책임으로 신뢰를 쌓는 사람",
+      "personality": "당신은 책임감이 강하고 규칙·위계·평판을 존중하며, 맡은 자리를 끝까지 지키는 사람이에요. 즉흥보다 절차를, 사적 이익보다 공적인 명분을 택하죠. 명예와 신뢰를 자기 정체성처럼 다루기 때문에, 약속을 지키고 떳떳하게 사는 데서 큰 만족을 느껴요.",
       "strength": ["체계적이고 일관된 사고", "공정함과 원칙주의", "조직 안에서의 안정적 리더십"],
       "weakness": [
         "융통성이 부족해 답답하게 보이기 쉬움",
-        "관습과 권위에 묶여 자기 색을 잃기 쉬움"
+        "관습과 남의 인정에 묶여 자기 색을 잃기 쉬움"
       ],
       "career": [
         "공무원·행정·정책",
@@ -15,11 +15,11 @@
         "교육·교사·교수"
       ],
       "love": "성실하고 책임지는 파트너상이에요. 약속·시간·예의에 민감해서 자유분방한 상대와는 마찰이 생기기 쉬워요. '말한 건 지킨다'는 사람과 잘 맞아요.",
-      "advice": "정관은 인성(印星)의 보호가 있어야 빛나요. 가끔은 규칙을 깨고 자기 목소리를 내야 정체되지 않아요. 평판을 지키느라 자기 욕구를 미루지 마세요."
+      "advice": "당신은 배우고 보살펴 주는 환경 속에서 가장 빛나요. 가끔은 정해진 틀을 깨고 자기 목소리를 내야 정체되지 않아요. 평판을 지키느라 자기 욕구를 자꾸 미루지 마세요."
     },
     "en": {
-      "tagline": "Honor and orthodox authority — the public servant type",
-      "personality": "You are a 'Jeonggwan' (Direct Officer) chart. You carry strong responsibility, respect rules, hierarchy, and reputation, and you defend your position carefully. Classical texts call Jeonggwan the 'head of nobility,' and you treat your dignity almost as part of your identity. You lean toward procedure over impulse, and public justification over private gain.",
+      "tagline": "Builds trust through order and responsibility",
+      "personality": "You carry strong responsibility, respect rules, hierarchy, and reputation, and you defend the position you've been given to the end. You lean toward procedure over impulse, and public justification over private gain. Because you treat honor and trust almost as part of who you are, keeping your word and living above reproach brings you deep satisfaction.",
       "strength": [
         "Systematic, consistent thinking",
         "Fairness and principled conduct",
@@ -36,13 +36,13 @@
         "Education and academia"
       ],
       "love": "You are a reliable, accountable partner who values promises, punctuality, and manners. Free-spirited partners may frustrate you. You match well with people who 'do what they said they would do.'",
-      "advice": "Jeonggwan shines when supported by Resource (In). Every now and then, break the rules and speak in your own voice — otherwise you stagnate. Don't keep postponing your own needs just to protect your reputation."
+      "advice": "You shine most in an environment that lets you keep learning and feel looked after. Every now and then, break the set mold and speak in your own voice — otherwise you stagnate. Don't keep postponing your own needs just to protect your reputation."
     }
   },
   "편관격": {
     "ko": {
-      "tagline": "결단·돌파의 칠살 — 비상사태형 리더",
-      "personality": "당신은 '편관격(偏官格)'이에요. 일명 칠살(七殺)격이죠. 위기 상황에서 더 강해지는 타입으로, 평범한 환경에서는 답답함을 느끼고, 압박과 책임이 클수록 능력이 폭발해요. 자평진전은 '살(殺)은 제(制)해야 귀해진다'라고 했는데, 당신도 자기 안의 날카로움을 조율할 도구(식신·인성)를 가질 때 비로소 그릇이 돼요.",
+      "tagline": "위기에서 더 강해지는 돌파형 리더",
+      "personality": "당신은 위기 상황에서 오히려 강해지는 타입이에요. 평범하고 잔잔한 환경에서는 답답함을 느끼고, 압박과 책임이 클수록 능력이 폭발하죠. 다만 자기 안의 날카로운 추진력을 잘 다스릴 도구 — 즉 부드럽게 풀어낼 표현 통로와, 자신을 지켜 줄 든든한 배움이나 보호 — 가 있을 때 비로소 큰 그릇이 돼요.",
       "strength": ["강한 추진력과 결단력", "위기 상황 돌파 능력", "카리스마와 강한 의지"],
       "weakness": [
         "성격이 급하고 충돌이 잦음",
@@ -55,11 +55,11 @@
         "스타트업 창업·구조조정·M&A"
       ],
       "love": "강렬하고 보호 본능이 강한 파트너예요. 미적지근한 관계는 못 견디고, 갈등을 회피하는 상대에게는 답답함을 느껴요. 자기와 맞먹는 강도의 상대를 만나야 안정돼요.",
-      "advice": "칠살은 식신의 제어나 인성의 화살(化殺)이 있어야 빛나요. 격한 감정이 올라올 때 행동 전 한 박자 멈추는 훈련이 평생 화두예요. 칼을 갈되 휘두를 자리를 신중히 고르세요."
+      "advice": "격한 감정이 올라올 때 행동 전 한 박자 멈추는 훈련이 평생의 화두예요. 그 날선 힘을 창작이나 표현으로 풀어내거나, 자신을 지탱해 줄 배움과 사람을 곁에 둘 때 가장 빛나요. 칼을 갈되 휘두를 자리를 신중히 고르세요."
     },
     "en": {
-      "tagline": "Decisive breakthrough — the crisis leader",
-      "personality": "You are a 'Pyeon-gwan' (Indirect Officer) chart, also called the Seven Killings (Chilsal). You grow stronger under pressure. Ordinary environments bore you; the more responsibility and danger, the more your abilities ignite. The classics say 'Killings must be controlled to become noble' — your edge must be tempered by Eating God or Resource before it becomes a real instrument.",
+      "tagline": "The crisis leader who grows stronger under pressure",
+      "personality": "You grow stronger under pressure. Ordinary, calm environments bore you; the more responsibility and danger, the more your abilities ignite. But your edge becomes a real instrument only when you have ways to temper it — a channel to express it softly, and steady learning or protection to keep you grounded.",
       "strength": [
         "Powerful drive and decisiveness",
         "Ability to break through crises",
@@ -76,13 +76,13 @@
         "Startup founding, turnaround, M&A"
       ],
       "love": "You are an intense, protective partner. Lukewarm relationships suffocate you, and conflict-avoidant partners frustrate you. You stabilize with someone who can match your intensity.",
-      "advice": "Seven Killings needs Eating God to control it or Resource to transmute it. Learning to pause one beat before acting on heat is your lifelong practice. Sharpen the blade, but choose carefully where you swing it."
+      "advice": "Learning to pause one beat before acting on heat is your lifelong practice. You shine most when you drain that sharp force into creating or expression, and keep steady learning and people around to support you. Sharpen the blade, but choose carefully where you swing it."
     }
   },
   "정재격": {
     "ko": {
-      "tagline": "근면·안정의 자산가 — 신뢰의 실무자",
-      "personality": "당신은 '정재격(正財格)'이에요. 정직하게 일하고 모으는 사람이에요. 한탕보다는 복리, 화려함보다는 견고함을 택하고, 약속한 돈·시간·일을 칼같이 지켜요. 고전에서는 정재를 '처와 재물(妻財)'에 견주어, 일상의 디테일과 살림을 잘 다스리는 그릇으로 봤어요.",
+      "tagline": "정직하게 일하고 모으는 신뢰의 실무자",
+      "personality": "당신은 정직하게 일하고 차곡차곡 모으는 사람이에요. 한탕보다는 복리, 화려함보다는 견고함을 택하고, 약속한 돈·시간·일을 칼같이 지키죠. 일상의 디테일과 살림을 빈틈없이 잘 챙기는, 믿을 수 있는 그릇이에요.",
       "strength": ["근면 성실, 신용 관리 능력", "현실 감각과 디테일 장악력", "꾸준한 자산 축적"],
       "weakness": ["변화·리스크 앞에서 과도하게 보수적", "쪼잔하다는 인상을 주기 쉬움"],
       "career": [
@@ -92,11 +92,11 @@
         "부동산·자산 관리"
       ],
       "love": "안정적이고 헌신적인 파트너예요. 돈 문제·생활습관에 민감하고, 사치하는 상대에게는 빠르게 식어요. 일상을 같이 잘 운영할 사람을 만나야 잘 맞아요.",
-      "advice": "정재는 신왕(身旺)할 때 비로소 그릇이 돼요. 너무 안전만 좇으면 인생의 큰 흐름을 놓쳐요. 1년에 한 번은 계산기 밖의 모험을 허용하세요."
+      "advice": "당신의 강점은 스스로 단단할 때 가장 살아나요. 너무 안전만 좇으면 인생의 큰 흐름을 놓쳐요. 1년에 한 번은 계산기 밖의 모험을 허용하세요."
     },
     "en": {
-      "tagline": "Diligent stability — the trusted operator",
-      "personality": "You are a 'Jeongjae' (Direct Wealth) chart. You earn and save honestly. You choose compound growth over jackpots, solidity over flash, and you keep your word on money, time, and tasks with precision. The classics liken Direct Wealth to 'wife and wealth' — you manage the details and the household of life well.",
+      "tagline": "The trusted operator who earns and saves honestly",
+      "personality": "You earn and save honestly. You choose compound growth over jackpots, solidity over flash, and you keep your word on money, time, and tasks with precision. You manage the small details and the running of daily life better than almost anyone — a dependable, steady presence.",
       "strength": [
         "Diligence and credit discipline",
         "Practical sense and mastery of detail",
@@ -113,22 +113,19 @@
         "Real estate and asset management"
       ],
       "love": "You are a stable, devoted partner. You are sensitive to money habits and lifestyle, and quickly cool off on extravagant partners. You need someone who can run daily life with you.",
-      "advice": "Direct Wealth only becomes a real vessel when the Day Master is strong. Chasing only safety makes you miss the bigger flow of life. Once a year, allow yourself an adventure that the calculator cannot justify."
+      "advice": "Your strengths come alive most when you yourself feel solid and steady. Chasing only safety makes you miss the bigger flow of life. Once a year, allow yourself an adventure that the calculator cannot justify."
     }
   },
   "편재격": {
     "ko": {
-      "tagline": "기회·확장의 사업가 — 큰판을 보는 자",
-      "personality": "당신은 '편재격(偏財格)'이에요. 흐르는 돈, 움직이는 사람, 큰 판을 보는 눈을 가진 타입이에요. 정재가 통장이라면 편재는 시장(市場)이에요. 사교성이 좋고, 손해도 빨리 인정하고, 기회 앞에서 두려움이 적어요. 고전에서 편재는 '뭇사람의 재(衆人之財)'라고 하는데, 당신은 혼자 쌓기보다 굴려서 키우는 사람이에요.",
+      "tagline": "큰 판을 보는 기회·확장의 사업가",
+      "personality": "당신은 흐르는 돈, 움직이는 사람, 큰 판을 보는 눈을 가진 타입이에요. 통장에 쌓아 두기보다 시장에서 굴려 키우는 사람이죠. 사교성이 좋고, 손해도 빨리 인정하고, 기회 앞에서 두려움이 적어요. 혼자 모으기보다 사람과 자본을 움직여 판을 키우는 데 강해요.",
       "strength": [
         "사업 수완과 기회 포착 감각",
         "사교성과 인맥 활용 능력",
         "큰 돈과 큰 판을 다루는 배포"
       ],
-      "weakness": [
-        "돈이 들어오는 만큼 빠르게 새어 나감",
-        "여자관계·돈관계가 복잡해지기 쉬움(남명)"
-      ],
+      "weakness": ["돈이 들어오는 만큼 빠르게 새어 나감", "이성·돈 관계가 복잡해지기 쉬움"],
       "career": [
         "무역·유통·플랫폼 사업",
         "영업·마케팅·세일즈 리더",
@@ -136,11 +133,11 @@
         "프랜차이즈·F&B 사업"
       ],
       "love": "매력적이고 화통한 파트너이지만, 한 사람에게만 시선을 두기 어려운 기질이 있어요. 질투 많은 상대보다는, 자기 세계가 분명한 독립적인 사람과 잘 맞아요.",
-      "advice": "편재는 신왕해야 다스릴 수 있어요. 신약하면 돈도 사람도 다 흩어져요. 현금흐름 장부와 한 명의 정직한 회계 파트너를 평생 곁에 두세요."
+      "advice": "큰 판을 다루려면 스스로 단단한 중심이 있어야 해요. 중심이 흔들리면 돈도 사람도 다 흩어져요. 현금흐름 장부와 한 명의 정직한 회계 파트너를 평생 곁에 두세요."
     },
     "en": {
-      "tagline": "Opportunity and expansion — the big-picture dealmaker",
-      "personality": "You are a 'Pyeonjae' (Indirect Wealth) chart. You see moving money, moving people, and bigger arenas. If Direct Wealth is a bank account, Indirect Wealth is a marketplace. You are sociable, you accept losses quickly, and you're less afraid to seize an opportunity than most. The classics call it 'wealth of the many' — you grow money by circulating it, not by hoarding it.",
+      "tagline": "The big-picture dealmaker who sees the whole arena",
+      "personality": "You see moving money, moving people, and bigger arenas. Rather than pile cash in a bank, you grow it by putting it to work in the market. You are sociable, you accept losses quickly, and you're less afraid to seize an opportunity than most. You're at your best moving people and capital to grow the whole game, not hoarding alone.",
       "strength": [
         "Business instinct and opportunity sensing",
         "Sociability and network leverage",
@@ -148,7 +145,7 @@
       ],
       "weakness": [
         "Money flows out as quickly as it comes in",
-        "Romantic and financial entanglements get complicated (especially for men)"
+        "Romantic and financial entanglements get complicated"
       ],
       "career": [
         "Trade, distribution, platform business",
@@ -157,13 +154,13 @@
         "Franchising and F&B"
       ],
       "love": "You are charismatic and warm, but your attention rarely stays on one person without effort. You do better with independent partners who have their own world than with jealous ones.",
-      "advice": "Indirect Wealth requires a strong Day Master to control it. A weak one watches both money and people scatter. Keep a cash-flow ledger and one brutally honest accountant by your side for life."
+      "advice": "To handle big arenas, you need a solid center of your own. When that center wobbles, both money and people scatter. Keep a cash-flow ledger and one brutally honest accountant by your side for life."
     }
   },
   "정인격": {
     "ko": {
-      "tagline": "학문·자비의 모성 — 사색하는 지식인",
-      "personality": "당신은 '정인격(正印格)'이에요. 어머니의 품처럼 따뜻하고, 책과 사색에 끌리며, 남을 가르치고 돌보는 일에서 자존을 찾는 타입이에요. 자평진전은 정인을 '인수(印綬)'라 하여 학자·문인·스승의 그릇으로 봤어요. 당신은 '왜?'를 끝까지 묻는 사람이고, 한 번 신뢰한 사람·신념은 잘 버리지 않아요.",
+      "tagline": "배움과 따뜻함으로 사람을 품는 사색가",
+      "personality": "당신은 어머니의 품처럼 따뜻하고, 책과 사색에 끌리며, 남을 가르치고 돌보는 일에서 자존을 찾는 타입이에요. 학자·문인·스승 같은 결을 지녔죠. '왜?'를 끝까지 묻는 사람이고, 한 번 신뢰한 사람이나 신념은 좀처럼 버리지 않아요.",
       "strength": [
         "깊이 있는 학습력과 통찰",
         "인자함과 포용력",
@@ -172,11 +169,11 @@
       "weakness": ["결정이 느리고 행동이 굼뜸", "타인 의존·과보호로 흐를 위험"],
       "career": ["교수·교사·연구자", "작가·편집자·번역", "의료·상담·심리", "종교·NGO·돌봄 영역"],
       "love": "헌신적이고 포근한 파트너예요. 그러나 잔소리·간섭처럼 비칠 수 있으니 거리감을 의식하는 게 좋아요. 자기 길을 가는 사람에게 깊이 매료돼요.",
-      "advice": "정인이 많으면 게을러지기 쉽고, 재성이 정인을 깨면 학문이 흔들려요. 책을 덮고 시장으로 한 번씩 나가세요. 머리로만 살면 그릇이 작아져요."
+      "advice": "배움과 보호가 너무 두터우면 오히려 게을러지고, 현실의 돈벌이가 학문의 기운을 흔들면 흔들리기도 해요. 책을 덮고 가끔 시장으로 나가 보세요. 머리로만 살면 그릇이 작아져요."
     },
     "en": {
-      "tagline": "Scholarship and compassion — the contemplative knower",
-      "personality": "You are a 'Jeongin' (Direct Resource) chart. You are warm like a mother's embrace, drawn to books and reflection, and you find self-worth in teaching and caring for others. The classics call this the chart of scholars, writers, and mentors. You ask 'why?' to the end, and you rarely abandon the people or beliefs you have once trusted.",
+      "tagline": "The contemplative knower who shelters people with learning and warmth",
+      "personality": "You are warm like a mother's embrace, drawn to books and reflection, and you find self-worth in teaching and caring for others. You carry the grain of a scholar, a writer, a mentor. You ask 'why?' to the end, and you rarely abandon the people or beliefs you have once trusted.",
       "strength": [
         "Deep learning capacity and insight",
         "Benevolence and tolerance",
@@ -193,13 +190,13 @@
         "Religion, NGO, caregiving"
       ],
       "love": "You are devoted and nurturing, but your care can read as nagging or hovering — mind the distance. You are deeply drawn to people who walk their own path.",
-      "advice": "Too much Direct Resource breeds laziness, and Wealth breaking Resource shakes your studies. Close the book and walk into the market once in a while. A life lived only in the head stays small."
+      "advice": "Too much learning and shelter can breed laziness, and the pull of real-world earning can shake your studies. Close the book and walk into the market once in a while. A life lived only in the head stays small."
     }
   },
   "편인격": {
     "ko": {
-      "tagline": "비주류·통찰의 효신 — 독창의 사색가",
-      "personality": "당신은 '편인격(偏印格)'이에요. 별명은 효신(梟神) — '올빼미 신'이라 불릴 만큼 야행성·비주류·깊은 통찰의 기질이에요. 정인이 정통 학문이라면 편인은 비전(秘傳), 메타, 직관, 종교, 술수에 끌려요. 남이 보지 못한 흐름을 보는 대신, 평범한 행복에는 자주 권태를 느껴요.",
+      "tagline": "남이 못 보는 흐름을 읽는 독창의 사색가",
+      "personality": "당신은 야행성·비주류·깊은 통찰의 기질을 가진 사람이에요. 정통 학문보다 남들이 잘 안 가는 길 — 직관, 종교, 미지의 지식, 숨은 원리 — 에 끌리죠. 남이 보지 못한 흐름을 읽는 대신, 평범한 행복에는 자주 권태를 느껴요.",
       "strength": ["독창적이고 비범한 사고력", "직관과 통찰의 깊이", "낯선 영역을 흡수하는 학습력"],
       "weakness": [
         "변덕과 권태, 시작은 잘 하나 마무리 약함",
@@ -212,11 +209,11 @@
         "특수의학·대체의학·연구개발"
       ],
       "love": "독특하고 깊이 있는 파트너지만 감정 표현이 서툴고 거리를 둬요. 떠들썩한 관계보다 둘만의 비밀스러운 세계를 만드는 연애에서 가장 안정돼요.",
-      "advice": "효신이 식신을 보면 도식(倒食) — 재능과 식복을 깨뜨려요. 일·식사·수면의 규칙을 의식적으로 만들어 보세요. 통찰은 일상의 단단함 위에서만 살아남아요."
+      "advice": "지나친 분석과 자기 의심이 들어오면 모처럼의 표현력과 즐거움이 꺾여요. 일·식사·수면의 규칙을 의식적으로 만들어 보세요. 통찰은 일상의 단단함 위에서만 살아남아요."
     },
     "en": {
-      "tagline": "Outsider insight — the original contemplator",
-      "personality": "You are a 'Pyeonin' (Indirect Resource) chart, also called Hyoshin, the 'owl spirit.' You are nocturnal, off-mainstream, and unusually insightful. Where Direct Resource loves orthodox learning, Indirect Resource is drawn to esoterica, meta-knowledge, intuition, religion, and occult arts. You see currents others miss, but you tire of ordinary happiness easily.",
+      "tagline": "The original contemplator who reads currents others miss",
+      "personality": "You are nocturnal, off-mainstream, and unusually insightful. More than orthodox study, you are drawn to the roads few people take — intuition, religion, hidden knowledge, the underlying patterns of things. You see currents others miss, but you tire of ordinary happiness easily.",
       "strength": [
         "Original, unconventional thinking",
         "Depth of intuition and insight",
@@ -233,13 +230,13 @@
         "Specialized or alternative medicine, R&D"
       ],
       "love": "You make a deep, unusual partner, but you express feelings poorly and keep distance. You stabilize most in relationships that build a private, almost secret two-person world.",
-      "advice": "When the owl meets Eating God, it becomes 'devouring food' — it eats your talent and good fortune. Build deliberate routines around work, meals, and sleep. Insight only survives on top of ordinary solidity."
+      "advice": "When over-analysis and self-doubt creep in, they eat the very expressiveness and joy that make you you. Build deliberate routines around work, meals, and sleep. Insight only survives on top of ordinary solidity."
     }
   },
   "식신격": {
     "ko": {
-      "tagline": "창작·향유의 식복 — 즐기는 표현가",
-      "personality": "당신은 '식신격(食神格)'이에요. 좋아하는 걸 깊게 파고, 만든 결과로 사람을 먹이고 즐겁게 하는 타입이에요. 자평진전은 식신을 '수기(秀氣)의 유출'이라며 재주·식복·장수의 별로 봤어요. 상관처럼 날카롭게 비판하기보다, 부드럽게 표현하고 직접 만들어 보여주는 사람이에요.",
+      "tagline": "좋아하는 걸 만들어 사람을 즐겁게 하는 표현가",
+      "personality": "당신은 좋아하는 걸 깊게 파고, 만든 결과로 사람을 먹이고 즐겁게 하는 타입이에요. 재주가 많고 먹을 복·즐길 복도 넉넉하죠. 날카롭게 비판하기보다, 부드럽게 표현하고 직접 만들어 보여 주는 사람이에요.",
       "strength": ["창의력과 표현력", "낙천성과 사람을 편안하게 하는 태도", "건강한 식복·재복"],
       "weakness": ["편안함에 안주, 추진력 약함", "갈등 상황을 피하다 손해 봄"],
       "career": [
@@ -249,11 +246,11 @@
         "심리·아동·여성·웰빙 산업"
       ],
       "love": "다정하고 잘 챙기는 파트너예요. 음식·여행·취향을 같이 즐길 수 있는 사람과 잘 맞고, 너무 차갑거나 메마른 상대와는 빨리 시들어요.",
-      "advice": "식신은 편인(효신)을 가장 두려워해요. 자기 의심·과도한 분석이 들어오면 식복이 꺾여요. '일단 만들어서 내놓는다'를 1순위 원칙으로 삼으세요."
+      "advice": "당신이 가장 경계할 건 과도한 자기 의심과 분석이에요. 머릿속에서 재고 따지기 시작하면 즐거움과 식복이 꺾여요. '일단 만들어서 내놓는다'를 1순위 원칙으로 삼으세요."
     },
     "en": {
-      "tagline": "Creation and enjoyment — the fed and feeding artist",
-      "personality": "You are a 'Siksin' (Eating God) chart. You dive deep into what you love and feed and delight people with what you make. The classics call Eating God 'the outflow of refined Qi' — a star of talent, abundance, and long life. Unlike Hurting Officer, you express softly and prove yourself by making things, not by sharp critique.",
+      "tagline": "The artist who makes what they love and delights people with it",
+      "personality": "You dive deep into what you love and feed and delight people with what you make. You are gifted, and good fortune around food and enjoyment comes easily to you. Rather than sharp critique, you express softly and prove yourself by making things.",
       "strength": [
         "Creativity and expressive power",
         "Optimism and a calming presence",
@@ -267,13 +264,13 @@
         "Psychology, childcare, women's and wellness industries"
       ],
       "love": "You are an affectionate, attentive partner. You match well with someone who can share food, travel, and aesthetic taste. Cold or dry partners wear you down quickly.",
-      "advice": "Eating God most fears Indirect Resource (the owl). Self-doubt and over-analysis dim your flow. Make 'ship it first' your first principle."
+      "advice": "What you most need to guard against is over-thinking and self-doubt. Once you start measuring and second-guessing in your head, your joy and your flow dim. Make 'ship it first' your first principle."
     }
   },
   "상관격": {
     "ko": {
-      "tagline": "재능·비판의 천재 — 권위에 반(反)하는 표현가",
-      "personality": "당신은 '상관격(傷官格)'이에요. 정관을 '상(傷)하게 한다'는 이름처럼, 권위·관습·체면을 본능적으로 흔드는 기질이에요. 동시에 연해자평이 '상관상진(傷官傷盡)'을, 자평진전이 '상관패인(傷官佩印)'을 귀격으로 친 만큼, 잘 조율되면 시대를 가르는 천재가 될 수 있어요. 말과 표현이 무기이고, 정답에 쉽게 만족하지 못해요.",
+      "tagline": "권위를 흔드는 비범한 재능의 표현가",
+      "personality": "당신은 권위·관습·체면을 본능적으로 흔드는 기질을 가진 사람이에요. 그 날카로움이 잘 다듬어지면 시대를 가르는 천재가 될 수 있죠. 말과 표현이 곧 무기이고, 정해진 정답에 쉽게 만족하지 못해요.",
       "strength": ["뛰어난 재능과 표현력", "기존 질서를 꿰뚫는 비판적 통찰", "예술적·창의적 감각"],
       "weakness": ["오만하고 말로 사람을 다치게 함", "상사·권위와 충돌, 구설수"],
       "career": [
@@ -283,11 +280,11 @@
         "변호사·기획자·크리에이티브 디렉터"
       ],
       "love": "재밌고 매력적이지만 자존심 충돌이 잦은 파트너예요. 상대를 가르치려 들지 않도록 조심하는 게 좋아요. 자기 세계가 단단해서 휘둘리지 않는 사람과 잘 맞아요.",
-      "advice": "상관은 인성(印)으로 다듬거나 재성(財)으로 풀어내야 격이 완성돼요. 비판은 가볍게, 작품은 무겁게. 말로만 살면 적을 만들고, 결과물로 말하면 따르는 사람이 생겨요."
+      "advice": "그 재능은 차분한 배움으로 다듬거나, 현실의 결과물·돈으로 풀어낼 때 비로소 완성돼요. 비판은 가볍게, 작품은 무겁게. 말로만 살면 적을 만들고, 결과물로 말하면 따르는 사람이 생겨요."
     },
     "en": {
-      "tagline": "Talent and critique — the genius against authority",
-      "personality": "You are a 'Sanggwan' (Hurting Officer) chart. The very name means 'injuring the Direct Officer' — you instinctively rattle authority, convention, and face-saving. Yet the classics treat 'Hurting Officer exhausted' or 'Hurting Officer wearing Resource' as the highest configurations: when tuned, you become an era-defining talent. Words and expression are your weapon, and no orthodox answer ever fully satisfies you.",
+      "tagline": "The brilliant talent who rattles authority",
+      "personality": "You instinctively rattle authority, convention, and face-saving. When that sharpness is well refined, you can become an era-defining talent. Words and expression are your weapon, and no ready-made answer ever fully satisfies you.",
       "strength": [
         "Exceptional talent and expressive power",
         "Critical insight that cuts through old order",
@@ -304,17 +301,17 @@
         "Law, planning, creative direction"
       ],
       "love": "You are fun and magnetic but prone to ego clashes. Avoid lecturing your partner. You match well with people whose own world is solid enough not to be pushed around.",
-      "advice": "Hurting Officer is completed by Resource refining it or by Wealth releasing it. Criticize lightly, build heavily. Living by words alone makes enemies; speaking through your work makes followers."
+      "advice": "Your talent is completed only when calm learning refines it, or when you channel it into real work and earnings. Criticize lightly, build heavily. Living by words alone makes enemies; speaking through your work makes followers."
     }
   },
   "건록격": {
     "ko": {
-      "tagline": "자수성가·독립의 록(祿) — 내 힘으로 서는 자",
-      "personality": "당신은 '건록격(建祿格)'이에요. 월지가 일간의 록지(祿支), 즉 자기 힘이 가장 단단한 자리에 있는 사람이에요. 부모·배경의 힘보다 자기 두 다리로 길을 내는 타입이에요. 자평진전은 건록을 '재관(財官)을 얻어야 비로소 귀해진다'고 봤어요. 그릇은 크고 단단하지만, 채울 내용물은 스스로 찾아와야 해요.",
+      "tagline": "내 두 다리로 길을 내는 자수성가형",
+      "personality": "당신은 자기 힘이 가장 단단한 자리에 선 사람이에요. 부모나 배경의 덕보다 자기 두 다리로 길을 내는 타입이죠. 그릇은 크고 단단하지만, 그 안을 채울 기회와 책임은 스스로 찾아와야 비로소 빛이 나요.",
       "strength": ["강한 자립심과 체력", "정직하고 우직한 추진력", "역경에 무너지지 않는 회복력"],
       "weakness": [
         "고집·아집, 남의 도움을 잘 못 받음",
-        "재성·관성이 약하면 평생 일은 많고 결실은 적음"
+        "기회와 자리를 못 만나면 평생 일은 많고 결실은 적음"
       ],
       "career": [
         "전문직 자영업·기술 창업",
@@ -323,11 +320,11 @@
         "공직·군경 등 자기 직(職)을 가진 분야"
       ],
       "love": "독립적이고 의리 있는 파트너예요. 의존적이거나 칭얼대는 상대를 못 견디고, 자기 일·자기 세계를 가진 사람을 매우 존중해요.",
-      "advice": "건록은 비겁이 또 들어오면 '재(財)를 뺏는다'는 군겁쟁재(群劫爭財)가 돼요. 동업·돈 관계는 매우 신중하게 다뤄 보세요. 내 힘이 강하니, 약한 사람에게 부드러워지는 연습이 필요해요."
+      "advice": "곁에 비슷한 경쟁자가 늘면 어렵게 모은 것을 함께 나눠 줄어들기 쉬워요. 동업·돈 관계는 매우 신중하게 다뤄 보세요. 내 힘이 강하니, 약한 사람에게 부드러워지는 연습이 필요해요."
     },
     "en": {
-      "tagline": "Self-made independence — standing on your own feet",
-      "personality": "You are a 'Geollok' (Established Salary) chart. The Month Branch sits exactly on your Day Master's Salary position — your strongest foothold. You build your road on your own two legs, not on your parents' or background's power. The classics say Geollok only becomes 'noble' when it actually meets Wealth or Officer. The vessel is large and solid, but you must seek and find what fills it.",
+      "tagline": "Self-made — building your road on your own two legs",
+      "personality": "You stand on your strongest possible footing. You build your road on your own two legs, not on your parents' or background's power. The vessel is large and solid, but it only truly shines once you go out and find the opportunities and responsibilities that fill it.",
       "strength": [
         "Strong independence and physical stamina",
         "Honest, dogged drive",
@@ -335,7 +332,7 @@
       ],
       "weakness": [
         "Stubborn; bad at receiving help",
-        "When Wealth and Officer are weak, a life of much work and little harvest"
+        "Without the right openings and roles, a life of much work and little harvest"
       ],
       "career": [
         "Professional self-employment, technical founding",
@@ -344,13 +341,13 @@
         "Civil service, military, police — fields where you hold your own post"
       ],
       "love": "You are an independent, loyal partner. You cannot stand clingy or whiny partners, and you deeply respect someone who has their own work and world.",
-      "advice": "When more peers and rivals enter, Geollok becomes 'a flock of rivals fighting for Wealth.' Treat partnerships and money relationships with great care. Since your own force is strong, practice being soft toward weaker people."
+      "advice": "When more rivals of your own kind gather around, what you worked hard to build tends to get split and shrink. Treat partnerships and money relationships with great care. Since your own force is strong, practice being soft toward weaker people."
     }
   },
   "양인격": {
     "ko": {
-      "tagline": "예리한 칼날 — 승부사·집도자형",
-      "personality": "당신은 '양인격(陽刃格)'이에요. 양(陽)일간의 겁재가 월지에 자리한, '칼날(刃)'의 격국이에요. 평소엔 부드러워 보여도 결정적 순간엔 누구보다 강하고 차갑게 움직이는 사람이에요. 자평진전은 양인을 '칠살로 제(制)해야 위엄이 된다'고 했어요. 즉, 당신의 칼은 직책·임무·책임이 있어야 정당해져요.",
+      "tagline": "결정적 순간 칼처럼 움직이는 승부사",
+      "personality": "당신은 평소엔 부드러워 보여도 결정적 순간엔 누구보다 강하고 차갑게 움직이는 사람이에요. 날카로운 추진력이 무기인데, 그 칼은 분명한 직책·임무·책임 안에서 쓰일 때 비로소 정당하고 빛이 나요.",
       "strength": ["승부 근성과 결단력", "위기·경쟁에서 폭발하는 추진력", "정확하고 과감한 실행력"],
       "weakness": ["격해지면 자기·타인을 다치게 함", "안정기에는 권태와 충돌을 만들어내기도 함"],
       "career": [
@@ -360,11 +357,11 @@
         "CEO·구조조정 전문가"
       ],
       "love": "강렬하고 보호 본능 강한 파트너지만, 폭발성이 있어 상대가 안전감을 느끼기 어려울 수 있어요. 자기 감정을 두려워하지 않고 받아주는 단단한 상대와 잘 맞아요.",
-      "advice": "양인은 관살(官殺)의 제(制)가 꼭 필요해요. 직책·역할·임무로 칼을 묶어두세요. 운동·격투기·외과적 일처럼 건강하게 '날'을 쓸 통로가 평생 필요해요."
+      "advice": "그 날선 힘은 분명한 규율과 책임으로 묶어 둘 때 가장 안전해요. 직책·역할·임무로 칼을 묶어 두세요. 운동·격투기·외과적 일처럼 건강하게 '날'을 쓸 통로가 평생 필요해요."
     },
     "en": {
-      "tagline": "The sharp blade — the duelist, the surgeon",
-      "personality": "You are a 'Yangin' (Yang Blade) chart. The Rob Wealth of a Yang Day Master sits on the Month Branch — the literal 'blade' configuration. You may look gentle, but in decisive moments you act harder and colder than anyone in the room. The classics say 'Yangin becomes dignified only when controlled by Seven Killings.' Your blade is justified only by an office, a duty, a responsibility.",
+      "tagline": "The duelist who moves like a blade at the decisive moment",
+      "personality": "You may look gentle most of the time, but in decisive moments you act harder and colder than anyone in the room. Sharp drive is your weapon — and that blade is justified and shines only when it's used inside a clear office, a duty, a responsibility.",
       "strength": [
         "Competitive grit and decisiveness",
         "Explosive drive in crisis and competition",
@@ -381,13 +378,13 @@
         "CEO, turnaround specialist"
       ],
       "love": "You are an intense, protective partner, but your volatility can make safety hard to feel. You match best with a grounded partner unafraid of your feelings.",
-      "advice": "Yangin requires Officer/Killings to control it. Bind your blade with a post, a role, a duty. You need a lifelong legal outlet — sports, martial arts, surgical work — to use your edge."
+      "advice": "That sharp force is safest when bound by clear discipline and responsibility. Bind your blade with a post, a role, a duty. You need a lifelong healthy outlet — sports, martial arts, surgical work — to use your edge."
     }
   },
   "종왕격": {
     "ko": {
-      "tagline": "비겁의 왕(王) — 독립·자기주도의 1인기업",
-      "personality": "당신은 '종왕격(從旺格)'이에요. 일간이 비견·겁재로 가득해 누구의 통제도 받지 않고 자기 흐름을 따라가는 격국이에요. 적천수에서는 '왕신(旺神)을 거스르지 말라'고 했어요. 즉, 당신을 꺾으려는 약한 관성·재성은 오히려 화(禍)가 되기 쉬워요. 사주의 흐름이 '내 편'으로 모이는 만큼, 인생도 결국 '내가 결정한다'로 풀려요.",
+      "tagline": "누구의 통제도 안 받는 자기주도형 1인기업",
+      "personality": "당신은 누구의 통제도 받지 않고 자기 흐름을 따라가는 사람이에요. 워낙 자아와 동력이 강해서, 억지로 꺾으려는 약한 힘은 오히려 충돌만 일으켜요. 결국 인생이 '내가 결정한다'로 풀려 나가는 타입이죠.",
       "strength": [
         "독립성과 자기주도성",
         "강한 자아와 흔들리지 않는 신념",
@@ -395,7 +392,7 @@
       ],
       "weakness": [
         "타협·협업이 매우 어려움",
-        "왕한 흐름을 억지로 거스르는 운에는 큰 마찰과 손실을 겪기 쉬움"
+        "자기 흐름을 억지로 거스르는 시기엔 큰 마찰과 손실을 겪기 쉬움"
       ],
       "career": [
         "1인 창업·프리랜서·전문직",
@@ -404,11 +401,11 @@
         "오너 셰프·장인 등 자기 이름으로 서는 업"
       ],
       "love": "내 세계를 침범하지 않는 파트너에게 가장 끌려요. 잔소리·통제는 견디지 못해요. 같이 살되 각자의 방이 분명한 관계가 좋아요.",
-      "advice": "종왕은 '왕(旺)함을 따라야' 해요. 비겁·인성 운에는 과감히 전진하고, 약한 관성·재성 운엔 무리하게 꺾지 마세요. 협업 시 지분과 결정권을 명확히 해두는 게 평생 평화의 열쇠예요."
+      "advice": "당신은 자기 기세가 살아 있을 때 과감히 전진하는 게 맞아요. 흐름이 강할 땐 밀고 나가되, 억지로 방향을 꺾어야 할 시기엔 무리하지 마세요. 협업할 땐 지분과 결정권을 명확히 해 두는 게 평생 평화의 열쇠예요."
     },
     "en": {
-      "tagline": "King of peers — the independent one-person enterprise",
-      "personality": "You are a 'Jongwang' (Following the Prosperous) chart. Your Day Master is surrounded by Companion and Rob Wealth peers; nothing dares control it, and the chart follows your own flow. The classics warn 'do not defy the prosperous spirit' — weak Officer or Wealth that tries to bend you only brings disaster. The whole chart leans your way, and life ultimately resolves as 'I decide.'",
+      "tagline": "The independent one-person enterprise no one controls",
+      "personality": "You follow your own flow and let no one control you. Your ego and momentum are so strong that any weak force trying to bend you only causes friction. In the end, life resolves for you as 'I decide.'",
       "strength": [
         "Independence and self-direction",
         "Strong ego and unshakable conviction",
@@ -416,7 +413,7 @@
       ],
       "weakness": [
         "Very poor at compromise and collaboration",
-        "Heavy friction and setbacks in years that fight the prosperous flow"
+        "Heavy friction and setbacks in seasons that force you against your own flow"
       ],
       "career": [
         "Solo founding, freelancing, professional practice",
@@ -425,13 +422,13 @@
         "Owner chef, master craftsperson — anything under your own name"
       ],
       "love": "You are drawn to partners who do not invade your world. You cannot bear nagging or control. A 'living together, separate rooms' kind of relationship suits you best.",
-      "advice": "Jongwang must follow its own prosperity. In Companion/Rob Wealth or Resource years, advance boldly; in years of weak Officer or Wealth, do not try to force a turn. In any collaboration, defining equity and decision rights up front is your lifelong peace key."
+      "advice": "You're meant to advance boldly while your own momentum is alive. When the flow is strong, push forward; in seasons that would force you to turn against yourself, don't strain. In any collaboration, defining equity and decision rights up front is your lifelong peace key."
     }
   },
   "종강격": {
     "ko": {
-      "tagline": "인성의 산(山) — 학문·정신력으로 서는 자",
-      "personality": "당신은 '종강격(從強格)'이에요. 인성(印星)이 사주를 압도해, 어머니·스승·학문·정신 세계의 힘으로 살아가는 격국이에요. 종왕이 '내 힘'이라면 종강은 '나를 받쳐주는 큰 산'이에요. 사고가 깊고 신념이 강하며, 정신적 권위에서 자기 존엄을 찾아요.",
+      "tagline": "학문과 정신력이라는 큰 산으로 서는 사람",
+      "personality": "당신은 배움·스승·정신 세계라는 든든한 받침대 위에서 살아가는 사람이에요. 자기 힘만으로 서는 게 아니라, 나를 떠받쳐 주는 '큰 산'을 등에 지고 있는 셈이죠. 사고가 깊고 신념이 강하며, 지적·정신적 권위에서 자기 존엄을 찾아요.",
       "strength": [
         "깊은 학습력과 사유 능력",
         "흔들리지 않는 정신력과 신념",
@@ -445,11 +442,11 @@
         "전문 저술가·평론가"
       ],
       "love": "정신적으로 깊이 통하는 파트너에게만 마음을 열어요. 가벼운 연애·외형 중심 관계엔 빠르게 흥미를 잃어요. '스승이자 친구' 같은 관계에서 가장 안정돼요.",
-      "advice": "종강은 인성·비겁 운에 강하고, 재성 운에는 인(印)을 깨뜨려 큰 고비가 올 수 있어요. 돈·물질 영역은 가능한 한 전문가에게 맡기고, 본인은 머리·말·글의 자리에 머무는 게 격을 지키는 길이에요."
+      "advice": "당신은 배움과 동료가 받쳐 주는 시기에 강하고, 현실의 돈·물질이 그 받침대를 흔들면 큰 고비가 올 수 있어요. 돈·물질 영역은 가능한 한 전문가에게 맡기고, 본인은 머리·말·글의 자리에 머무는 게 자기 강점을 지키는 길이에요."
     },
     "en": {
-      "tagline": "Mountain of Resource — built on learning and spirit",
-      "personality": "You are a 'Jonggang' (Following the Strong) chart. Resource floods the chart, and you live by the power of mother, teacher, learning, and spirit. If Jongwang is 'my own force,' Jonggang is 'the great mountain holding me up.' You think deeply, believe firmly, and find your dignity in intellectual or spiritual authority.",
+      "tagline": "Standing on the great mountain of learning and spirit",
+      "personality": "You live supported by a firm foundation — learning, teachers, the life of the mind. You don't stand on your own force alone; you carry a 'great mountain' that holds you up. You think deeply, believe firmly, and find your dignity in intellectual or spiritual authority.",
       "strength": [
         "Deep learning and contemplative capacity",
         "Unshakable conviction and inner strength",
@@ -463,15 +460,15 @@
         "Specialist author, critic"
       ],
       "love": "You only open up to partners with whom you connect deeply on the mental plane. You quickly lose interest in light or appearance-driven dating. A 'teacher and friend' bond stabilizes you most.",
-      "advice": "Jonggang thrives in Resource and Companion years, and faces serious crisis in Wealth years that break Resource. Delegate money and material affairs to professionals as much as possible; staying in the realm of mind, speech, and writing is how you protect your chart."
+      "advice": "You thrive in seasons when learning and companions support you, and you can hit serious crisis when money and material matters shake that foundation. Delegate money and material affairs to professionals as much as possible; staying in the realm of mind, speech, and writing is how you protect your strengths."
     }
   },
   "종아격": {
     "ko": {
-      "tagline": "재능의 분출 — 표현으로 세상을 사로잡는 자",
-      "personality": "당신은 '종아격(從兒格)'이에요. '아(兒)' 즉 식상(食傷, 식신·상관)이 사주를 가득 채워, 자기 안의 재능을 끝없이 밖으로 쏟아내는 격국이에요. 적천수가 '종아는 다시 재(財)를 보아야 진귀하다'고 했는데, 당신의 재능은 '돈·결과물·작품'으로 외화될 때 비로소 격이 완성돼요.",
+      "tagline": "재능을 끝없이 쏟아내는 표현의 사람",
+      "personality": "당신은 자기 안의 재능을 끝없이 밖으로 쏟아내는 사람이에요. 표현하고 만들어 내는 힘이 인생의 중심이죠. 다만 그 재능이 돈·결과물·작품으로 외화될 때 비로소 진짜 빛을 발해요.",
       "strength": ["폭발적 표현력·창의력", "다재다능, 빠른 습득력", "사람을 즐겁게 하는 감각"],
-      "weakness": ["관성(官)을 거스르므로 권위·체제와 부딪힘", "감정 기복, 마무리 약함"],
+      "weakness": ["규율·체제와 부딪힘", "감정 기복, 마무리 약함"],
       "career": [
         "예술·연예·작가·크리에이터",
         "강연·교육·코칭",
@@ -479,20 +476,17 @@
         "재능 기반 1인 브랜드"
       ],
       "love": "재밌고 매력적이지만 권태에 약해요. '나의 무대가 되어주는' 파트너에게 깊이 빠지고, 자기 표현을 억압하는 상대와는 길게 가지 못해요.",
-      "advice": "종아는 식상→재(財)의 흐름을 만들어야 해요. 재능만 분출하지 말고, 작품·상품·자산으로 굳히세요. 관성 운엔 잠시 무대 뒤로 물러나 휴지(休止)를 갖는 게 좋아요."
+      "advice": "재능을 분출하는 데서 그치지 말고, 작품·상품·자산으로 굳히세요. 규율과 통제가 강하게 들어오는 시기엔 잠시 무대 뒤로 물러나 숨을 고르는 게 좋아요."
     },
     "en": {
-      "tagline": "Eruption of talent — captivating the world through expression",
-      "personality": "You are a 'Jong-a' (Following the Child) chart. The 'child' — Output stars, Eating God and Hurting Officer — fills the chart, and your inner talent pours outward endlessly. The classics say 'Jong-a must again meet Wealth to be truly precious': your talent is completed only when it externalizes into money, products, and works.",
+      "tagline": "The person who pours talent out endlessly",
+      "personality": "Your inner talent pours outward endlessly. Expressing and creating is the center of your life. But that talent only truly shines once it externalizes into money, products, and works.",
       "strength": [
         "Explosive expression and creativity",
         "Versatile, quick to learn",
         "A sense for entertaining people"
       ],
-      "weakness": [
-        "Defies Officer — clashes with authority and systems",
-        "Emotional swings, weak finishing"
-      ],
+      "weakness": ["Clashes with discipline and systems", "Emotional swings, weak finishing"],
       "career": [
         "Art, entertainment, writing, creator economy",
         "Lecturing, education, coaching",
@@ -500,20 +494,20 @@
         "Talent-based personal brand"
       ],
       "love": "You are fun and magnetic but vulnerable to boredom. You fall hard for partners who 'become your stage,' and cannot last long with those who suppress your expression.",
-      "advice": "Jong-a needs the flow Output → Wealth. Don't only erupt — solidify into works, products, assets. In Officer years, step briefly off the stage and take a real pause."
+      "advice": "Don't only erupt — solidify into works, products, assets. In seasons when discipline and control press hard, step briefly off the stage and catch your breath."
     }
   },
   "종재격": {
     "ko": {
-      "tagline": "재성의 바다 — 돈과 인연으로 흐르는 자",
-      "personality": "당신은 '종재격(從財格)'이에요. 재성(財)이 사주를 가득 채워, 일간이 재의 흐름을 따라가는 격국이에요. 돈·연애 상대·아버지·현실 세계가 곧 당신의 무대예요. 적천수는 '종재는 식상이 있어야 더 귀하다'고 했어요. 즉, 자기 재능(食傷)으로 만들어내는 돈이라야 진짜 당신의 격을 완성해요.",
+      "tagline": "돈과 인연의 흐름을 타고 사는 사람",
+      "personality": "당신은 돈·기회·현실 세계의 흐름을 그대로 타고 가는 사람이에요. 돈, 연애 상대, 현실의 무대가 곧 당신의 영역이죠. 무엇보다 자기 재능으로 직접 만들어 내는 돈일 때, 그 흐름이 진짜 당신의 것으로 완성돼요.",
       "strength": [
         "현실 감각과 돈에 대한 본능적 이해",
         "사교성·인맥 활용 능력",
         "큰 자금·자산을 다루는 그릇"
       ],
       "weakness": [
-        "비겁(친구·동료·형제) 운에 큰 재산 손실",
+        "동료·형제와 얽히는 시기에 큰 재산 손실",
         "돈·이성 관계의 과잉으로 인한 사생활 혼란"
       ],
       "career": [
@@ -523,18 +517,18 @@
         "부동산·자산 관리·VC"
       ],
       "love": "현실적이고 매력적인 파트너지만, 인간관계가 많고 복잡한 편이에요. 정서적 안정을 위해서는 '돈 흐름과 별개로 같이 있어주는' 사람과의 깊은 관계가 꼭 필요해요.",
-      "advice": "종재는 비겁 운(친구·동업·동기)에 특히 흔들리기 쉬워요. 친한 사람과의 보증·동업·차용을 평생 조심하세요. 한 명의 정직한 자산관리자와 한 권의 가계부가 인생의 안전벨트가 돼줘요."
+      "advice": "친구·동료·동기와 돈이 얽히는 시기에 특히 흔들리기 쉬워요. 친한 사람과의 보증·동업·차용을 평생 조심하세요. 한 명의 정직한 자산관리자와 한 권의 가계부가 인생의 안전벨트가 돼 줘요."
     },
     "en": {
-      "tagline": "Sea of wealth — flowing with money and connection",
-      "personality": "You are a 'Jongjae' (Following Wealth) chart. Wealth saturates the chart and your Day Master follows its current. Money, romantic partners, father, and the material world are your stage. The classics note 'Jongjae becomes nobler with Output present': the money your own talent produces is what truly completes your chart.",
+      "tagline": "Flowing with money and connection",
+      "personality": "You ride the current of money, opportunity, and the material world. Money, romantic partners, and the real-world stage are your domain. Above all, when it's money your own talent produces, that current truly becomes yours.",
       "strength": [
         "Strong instinct for reality and for money",
         "Sociability and skillful use of networks",
         "Capacity to handle large funds and assets"
       ],
       "weakness": [
-        "Heavy losses in Companion/Rob Wealth years (friends, peers, siblings)",
+        "Heavy losses in seasons tangled up with peers and siblings",
         "Personal life chaos from too many money and romantic ties"
       ],
       "career": [
@@ -544,13 +538,13 @@
         "Real estate, asset management, VC"
       ],
       "love": "You are pragmatic and attractive but your social web is wide and tangled. For emotional stability, you genuinely need a deep relationship with someone who stays 'beside you regardless of cashflow.'",
-      "advice": "Jongjae is most dangerous in Companion/Rob Wealth years. Be wary of guarantees, partnerships, and loans with close friends for life. One honest wealth manager and one real household ledger are your safety belt."
+      "advice": "You are most vulnerable in seasons where money gets tangled up with friends, peers, and siblings. Be wary of guarantees, partnerships, and loans with close friends for life. One honest wealth manager and one real household ledger are your safety belt."
     }
   },
   "종살격": {
     "ko": {
-      "tagline": "관성의 산을 타다 — 권력·조직에 종속되어 큰 그릇이 되는 자",
-      "personality": "당신은 '종살격(從殺格)'이에요. 관성(官·殺)이 사주를 압도하여, 일간이 관(官)의 권위 아래 종(從)하는 격국이에요. 약해 보여도 큰 조직·큰 권력에 올라타면 누구보다 크게 풀려요. 적천수는 '종살은 거스르면 무너지고, 따르면 귀(貴)하다'고 했어요. 당신은 '내가 왕이 되는 길'보다 '큰 왕 옆의 명재상이 되는 길'에 어울리는 사람이에요.",
+      "tagline": "큰 조직·권력에 올라타 크게 풀리는 사람",
+      "personality": "당신은 큰 조직이나 큰 권력에 올라탈 때 누구보다 크게 풀리는 사람이에요. 혼자 왕이 되기보다, 큰 왕 옆의 명재상 자리에 어울리죠. 약해 보여도 큰 흐름에 몸을 맡길 때 진짜 그릇이 드러나요.",
       "strength": [
         "큰 조직·권력에 적응하고 올라타는 능력",
         "압박 상황에서 오히려 안정됨",
@@ -558,7 +552,7 @@
       ],
       "weakness": [
         "자기주도성·독립적 결정 약함",
-        "관성을 거스르는 비겁 운에서 큰 마찰과 분쟁을 겪기 쉬움"
+        "큰 흐름을 거스르려는 시기에 큰 마찰과 분쟁을 겪기 쉬움"
       ],
       "career": [
         "대기업·관료·정치 보좌",
@@ -567,11 +561,11 @@
         "권력자·VIP 측근, 외교·정보 분야"
       ],
       "love": "사회적 지위와 책임감 있는 파트너에게 끌려요. 본인은 헌신적이고, 상대의 '사회적 자리'를 함께 지켜주는 동지형 관계에서 잘 풀려요.",
-      "advice": "종살은 관성·재성 운에 크게 발복하고, 비겁 운엔 무리하게 거스르지 마세요. 독립 창업·1인 사업은 이 격에 잘 맞지 않는 편이에요. '큰 배에 올라타기'가 당신의 평생 전략이에요."
+      "advice": "당신은 명예·권한이 주어지는 시기에 크게 발복하니, 큰 흐름을 무리하게 거스르려 하지 마세요. 독립 창업·1인 사업은 이 결에 잘 맞지 않는 편이에요. '큰 배에 올라타기'가 당신의 평생 전략이에요."
     },
     "en": {
-      "tagline": "Riding the mountain of Officer — becoming great by submitting to greater power",
-      "personality": "You are a 'Jongsal' (Following the Killings) chart. Officer/Killings overwhelm the chart, and your Day Master submits to that authority. You may look weak, but on the back of a great organization or great power, you can rise enormous. The classics say 'fight Jongsal and you are ruined; follow it and you are ennobled.' You are more 'great chancellor beside the king' than 'king yourself.'",
+      "tagline": "Becoming great by riding a greater power",
+      "personality": "You rise enormous when you climb onto a great organization or great power. More than being king yourself, you suit the seat of a great chancellor beside the king. You may look weak, but your true capacity shows when you give yourself to the larger flow.",
       "strength": [
         "Ability to fit into and ride huge organizations and power structures",
         "Stabilizes under pressure rather than crumbles",
@@ -579,7 +573,7 @@
       ],
       "weakness": [
         "Weak self-direction and independent decision-making",
-        "Heavy friction and disputes in Companion/Rob Wealth years that defy Officer"
+        "Heavy friction and disputes in seasons that defy the larger flow"
       ],
       "career": [
         "Large corporations, bureaucracy, political staff",
@@ -588,13 +582,13 @@
         "Aides to power figures, diplomacy, intelligence"
       ],
       "love": "You are drawn to partners with social standing and a sense of responsibility. You are devoted, and you flourish in comrade-like relationships where you both protect each other's 'social seat.'",
-      "advice": "Jongsal flourishes in Officer and Wealth years, and must never defy in Companion/Rob Wealth years. Solo founding and one-person businesses do not suit this chart well. 'Board the bigger ship' is your lifelong strategy."
+      "advice": "You flourish in seasons when honor and authority are handed to you, so don't strain to fight the larger flow. Solo founding and one-person businesses do not suit this grain well. 'Board the bigger ship' is your lifelong strategy."
     }
   },
   "갑기화토격": {
     "ko": {
-      "tagline": "갑·기 합화 토(土) — 중후한 조정자",
-      "personality": "당신은 '갑기화토격(甲己化土格)'이에요. 갑목과 기토가 합하여 토(土)로 화(化)하는 진귀한 화기격국(化氣格局)이에요. 화(化)가 잘 이루어진 경우, 흙처럼 두텁고 신뢰감 있는 인격을 갖춰요. 갈등 사이를 중재하고, 큰 그릇으로 사람을 품는 타입이에요.",
+      "tagline": "흙처럼 두텁고 믿음직한 중후한 조정자",
+      "personality": "당신은 두 기운이 만나 흙의 성질로 어우러진, 보기 드문 결을 가진 사람이에요. 흙처럼 두텁고 신뢰감 있는 인격으로, 갈등 사이를 중재하고 큰 그릇으로 사람을 품는 타입이죠.",
       "strength": ["중후함과 신뢰감", "사람과 사람을 조정하는 능력", "장기적 안목과 인내"],
       "weakness": ["결정이 느리고 변화에 둔함", "지나친 포용으로 자기 손해를 봄"],
       "career": [
@@ -604,11 +598,11 @@
         "중후장대 산업·공공 인프라"
       ],
       "love": "묵직하고 따뜻한 파트너예요. 가벼운 사람보다는 함께 가정·자산·기반을 쌓아갈 동반자와 잘 맞아요.",
-      "advice": "화기격은 합화의 조건이 깨지지 않아야 해요. 갑·기를 충(沖)·극(剋)하는 운에 가장 조심하세요. 자기 색을 너무 흐리지 말고, 토의 두께만큼의 자기 무게를 지키세요."
+      "advice": "당신의 강점은 이 어우러진 균형이 깨지지 않을 때 유지돼요. 그 조화를 거칠게 흔드는 시기를 가장 조심하세요. 자기 색을 너무 흐리지 말고, 흙의 두께만큼의 자기 무게를 지키세요."
     },
     "en": {
-      "tagline": "Jia–Ji transformed into Earth — the dignified mediator",
-      "personality": "You are a 'Gap-Gi transformed into Earth' chart — a rare Transformation chart where Jia wood and Ji earth combine and transform into Earth. When the transformation truly succeeds, you carry a thick, trustworthy presence like the soil itself. You mediate between conflicts and embrace people with a large vessel.",
+      "tagline": "The dignified mediator, thick and trustworthy as soil",
+      "personality": "You are a person of a rare grain, where two energies meet and blend into the nature of earth. You carry a thick, trustworthy presence like the soil itself, mediating between conflicts and embracing people with a large vessel.",
       "strength": [
         "Gravitas and trustworthiness",
         "Skill at mediating between people",
@@ -622,22 +616,22 @@
         "Heavy industry and public infrastructure"
       ],
       "love": "You make a steady, warm partner. Light personalities do not suit you; you match with someone willing to build family, assets, and foundation together.",
-      "advice": "A Transformation chart must keep its combination intact. Watch carefully years that Clash or Control Jia and Ji. Don't dilute your color too much — keep a self-weight equal to Earth's thickness."
+      "advice": "Your strengths hold as long as this blended balance stays intact. Watch carefully the seasons that roughly shake that harmony. Don't dilute your color too much — keep a self-weight equal to earth's thickness."
     }
   },
   "곡직격": {
     "ko": {
-      "tagline": "곧게 뻗는 큰 나무 — 도덕·성장의 사람",
-      "personality": "당신은 '곡직격(曲直格)'이에요. 목(木) 오행이 사주를 압도하는 특수격으로, '굽고 곧음'이라는 이름처럼 큰 나무가 하늘을 향해 자라듯 살아가는 사람이에요. 인(仁)을 중시하고, 자기 성장과 타인 양성에서 깊은 보람을 느껴요.",
+      "tagline": "곧게 뻗는 큰 나무 — 도덕과 성장의 사람",
+      "personality": "당신은 큰 나무가 하늘을 향해 자라듯 살아가는 사람이에요. 따뜻한 어짊을 중시하고, 자기 성장과 남을 키우는 일에서 깊은 보람을 느끼죠. 곧고 올곧은 성품이 당신의 중심이에요.",
       "strength": ["성장 지향과 강한 생명력", "도덕성·자비심", "사람을 키우고 일으키는 능력"],
-      "weakness": ["고지식하고 융통성 부족", "지나치게 자기 의(義)를 앞세움"],
+      "weakness": ["고지식하고 융통성 부족", "지나치게 자기 옳음을 앞세움"],
       "career": ["교육·출판·콘텐츠", "환경·임업·농업", "의료·보건·치유", "리더십·조직 개발·코칭"],
       "love": "헌신적이고 보호자형 파트너예요. 자라고 싶은 사람, 함께 가치를 키울 수 있는 사람에게 깊이 끌려요.",
-      "advice": "곡직은 금(金)의 충극을 가장 두려워해요. 자기 도덕을 남에게 강요하지 마세요. 가지를 칠 줄 알아야 큰 나무로 자라요."
+      "advice": "큰 나무를 거칠게 잘라 내려는 시기를 가장 조심하세요. 자기 도덕을 남에게 강요하지 마세요. 가지를 칠 줄 알아야 더 큰 나무로 자라요."
     },
     "en": {
       "tagline": "The tall straight tree — a person of virtue and growth",
-      "personality": "You are a 'Gokjik' (Curved and Straight) chart — a special configuration where Wood dominates the chart. As the name suggests, you grow like a great tree reaching for the sky. You value benevolence and find deep meaning in your own growth and in raising others.",
+      "personality": "You grow like a great tree reaching for the sky. You value warm benevolence and find deep meaning in your own growth and in raising others. An upright, straight character is your center.",
       "strength": [
         "Growth orientation and strong life force",
         "Morality and compassion",
@@ -654,13 +648,13 @@
         "Leadership, org development, coaching"
       ],
       "love": "You are a devoted, protector-type partner. You are drawn to people who want to grow and who can grow values with you.",
-      "advice": "Gokjik most fears Metal clashing and controlling Wood. Do not impose your morals on others. Knowing how to prune branches is how you become a great tree."
+      "advice": "Be most careful of seasons that try to roughly cut the great tree down. Do not impose your morals on others. Knowing how to prune branches is how you become an even greater tree."
     }
   },
   "염상격": {
     "ko": {
-      "tagline": "타오르는 불꽃 — 예의·열정의 사람",
-      "personality": "당신은 '염상격(炎上格)'이에요. 화(火) 오행이 사주를 압도하는 특수격으로, 위로 타오르는 불꽃처럼 밝고 뜨거운 기질을 가진 사람이에요. 예(禮)를 중시하고, 무대·표현·열정의 영역에서 가장 살아 있는 느낌을 받아요.",
+      "tagline": "타오르는 불꽃 — 예의와 열정의 사람",
+      "personality": "당신은 위로 타오르는 불꽃처럼 밝고 뜨거운 기질을 가진 사람이에요. 예의와 격식을 중시하고, 무대·표현·열정의 영역에서 가장 살아 있는 느낌을 받죠.",
       "strength": ["뜨거운 열정과 추진력", "밝고 화통한 인간미", "사람의 마음을 데우는 표현력"],
       "weakness": ["성격이 급하고 감정 기복이 큼", "꺼지면 우울·번아웃이 깊음"],
       "career": [
@@ -670,11 +664,11 @@
         "강연·교육·동기부여 영역"
       ],
       "love": "뜨겁고 표현 풍부한 파트너예요. 무덤덤한 상대와는 빨리 식고, 자기 열정에 같이 불을 켜주는 사람과 강한 케미가 나요.",
-      "advice": "염상은 수(水)의 충극을 가장 두려워해요. 다 태우지 말고, 자기 회복의 그늘과 물을 일상에 꼭 두세요. 휴식 없이 빛만 내려 하면 빨리 꺼져요."
+      "advice": "불을 끄려 드는 차가운 시기를 가장 조심하세요. 다 태우지 말고, 자기 회복의 그늘과 쉴 자리를 일상에 꼭 두세요. 휴식 없이 빛만 내려 하면 빨리 꺼져요."
     },
     "en": {
       "tagline": "Rising flame — a person of decorum and passion",
-      "personality": "You are a 'Yeomsang' (Blazing Upward) chart — a special configuration where Fire dominates the chart. Like rising flame, you are bright and hot by nature. You value ritual and decorum, and you feel most alive on stages, in expression, and in passion.",
+      "personality": "Like rising flame, you are bright and hot by nature. You value courtesy and form, and you feel most alive on stages, in expression, and in passion.",
       "strength": [
         "Hot passion and drive",
         "Bright, open warmth",
@@ -691,13 +685,13 @@
         "Lecturing, education, motivation"
       ],
       "love": "You are a hot, expressive partner. You cool quickly with deadpan partners and have strong chemistry with someone who lights up alongside your passion.",
-      "advice": "Yeomsang most fears Water clashing and controlling Fire. Don't burn it all — keep shade and water for recovery in your daily life. Trying to shine without rest extinguishes you fast."
+      "advice": "Be most careful of cold seasons that try to put your fire out. Don't burn it all — keep shade and a place to rest for recovery in your daily life. Trying to shine without rest extinguishes you fast."
     }
   },
   "을경화금격": {
     "ko": {
-      "tagline": "을·경 합화 금(金) — 정련된 의리의 사람",
-      "personality": "당신은 '을경화금격(乙庚化金格)'이에요. 을목과 경금이 합하여 금(金)으로 화(化)하는 화기격국(化氣格局)이에요. 화(化)가 잘 이루어진 경우, 잘 단련된 칼처럼 결단력과 의리, 정의감을 자기 정체성으로 갖는 인격이 돼요. 자평진전 「잡격(雜格)」편에서는 합화의 조건이 갖춰질 때 비로소 진정한 귀격(貴格)으로 보았어요.",
+      "tagline": "잘 벼린 칼 — 정련된 의리의 사람",
+      "personality": "당신은 두 기운이 만나 금속의 성질로 어우러진, 잘 단련된 칼 같은 사람이에요. 결단력과 의리, 정의감을 자기 정체성으로 삼죠. 이 어우러짐이 잘 갖춰질 때 그 단단함이 가장 빛나요.",
       "strength": [
         "결단력과 정의감",
         "약속과 의리를 끝까지 지키는 신뢰",
@@ -711,11 +705,11 @@
         "정밀 엔지니어링·금속·기계 산업"
       ],
       "love": "신의 있고 단단한 파트너예요. 말과 행동이 일치하는 사람을 가장 신뢰하고, 가벼운 약속을 자주 어기는 상대와는 빠르게 식어요.",
-      "advice": "화기격은 합화의 조건이 깨지지 않아야 해요. 을·경을 충(沖)·극(剋)하는 운, 특히 화(火)가 금(金)을 녹이는 시기를 가장 조심하세요. 정의는 칼처럼 날카롭되, 쓰는 자리는 신중하게 고르세요."
+      "advice": "당신의 강점은 이 어우러진 균형이 깨지지 않을 때 유지돼요. 그 조화를 거칠게 흔드는 시기, 특히 칼을 무르게 녹이는 듯한 시기를 가장 조심하세요. 정의는 칼처럼 날카롭되, 쓰는 자리는 신중하게 고르세요."
     },
     "en": {
-      "tagline": "Yi–Geng transformed into Metal — the refined person of honor",
-      "personality": "You are an 'Eul-Gyeong transformed into Metal' chart — a Transformation chart where Yi wood and Geng metal combine and transform into Metal. When the transformation truly succeeds, you become a personality of decisiveness, loyalty, and justice, like a well-forged blade. The classics treat this as a true noble configuration only when all the conditions of transformation are met.",
+      "tagline": "The well-forged blade — a refined person of honor",
+      "personality": "You are a person like a well-tempered blade, where two energies meet and blend into the nature of metal. You take decisiveness, loyalty, and a sense of justice as your identity. That hardness shines most when this blending is fully in place.",
       "strength": [
         "Decisiveness and a strong sense of justice",
         "Loyalty that keeps promises to the end",
@@ -729,13 +723,13 @@
         "Precision engineering, metals, machinery"
       ],
       "love": "You are a loyal, solid partner. You trust people whose words match their actions, and you cool quickly on those who break small promises.",
-      "advice": "A Transformation chart must keep its combination intact. Watch years that Clash or Control Yi and Geng — especially when Fire melts Metal. Keep justice sharp as a blade, but choose carefully where you wield it."
+      "advice": "Your strengths hold as long as this blended balance stays intact. Watch most carefully the seasons that roughly shake that harmony — especially ones that soften and melt your edge. Keep justice sharp as a blade, but choose carefully where you wield it."
     }
   },
   "병신화수격": {
     "ko": {
-      "tagline": "병·신 합화 수(水) — 깊고 유연한 지혜의 사람",
-      "personality": "당신은 '병신화수격(丙辛化水格)'이에요. 병화와 신금이 합하여 수(水)로 화(化)하는 화기격국(化氣格局)이에요. 화(化)가 잘 이루어진 경우, 깊은 물처럼 통찰력 있고 유연하며, 사람과 상황을 끝까지 읽어내는 지혜를 갖춰요. 자평진전 「잡격(雜格)」편은 이러한 합화 조건이 갖춰질 때만 진귀(眞貴)로 보았어요.",
+      "tagline": "깊은 물 — 통찰과 유연함의 지혜로운 사람",
+      "personality": "당신은 두 기운이 만나 물의 성질로 어우러진 사람이에요. 깊은 물처럼 통찰력 있고 유연하며, 사람과 상황을 끝까지 읽어내는 지혜를 갖췄죠. 이 어우러짐이 잘 갖춰질 때 그 깊이가 가장 빛나요.",
       "strength": [
         "깊은 통찰력과 분석력",
         "변화에 유연하게 적응하는 지혜",
@@ -744,11 +738,11 @@
       "weakness": ["속내를 잘 드러내지 않아 차갑게 보임", "지나친 사색으로 결정이 늦어짐"],
       "career": ["전략·기획·컨설팅", "연구·학술·싱크탱크", "외교·정보·협상", "심리·상담·정신분석"],
       "love": "깊고 조용한 파트너예요. 시끄럽고 가벼운 관계는 견디지 못하고, 둘만의 깊은 대화가 가능한 상대에게 마음을 열어요.",
-      "advice": "화기격은 합화의 조건이 깨지지 않아야 해요. 병·신을 충(沖)·극(剋)하는 운, 특히 토(土)가 수(水)를 막거나 무(戊)가 들어오는 시기를 가장 조심하세요. 깊이는 유지하되, 가끔은 수면 위로 올라와 빛도 받으세요."
+      "advice": "당신의 강점은 이 어우러진 균형이 깨지지 않을 때 유지돼요. 깊은 물의 흐름을 막거나 흐리는 시기를 가장 조심하세요. 깊이는 유지하되, 가끔은 수면 위로 올라와 빛도 받으세요."
     },
     "en": {
-      "tagline": "Bing–Xin transformed into Water — the deep and flexible wisdom",
-      "personality": "You are a 'Byeong-Sin transformed into Water' chart — a Transformation chart where Bing fire and Xin metal combine and transform into Water. When the transformation succeeds, you carry insight and flexibility like deep water, with the wisdom to read people and situations to their core. The classics regard this as truly noble only when the conditions of transformation hold.",
+      "tagline": "Deep water — insight, flexibility, and wisdom",
+      "personality": "You are a person where two energies meet and blend into the nature of water. Like deep water, you carry insight and flexibility, with the wisdom to read people and situations to their core. That depth shines most when this blending is fully in place.",
       "strength": [
         "Deep insight and analytical power",
         "Flexible wisdom that adapts to change",
@@ -762,13 +756,13 @@
         "Psychology, counseling, psychoanalysis"
       ],
       "love": "You are a deep, quiet partner. You cannot stand loud, shallow relationships and open up to someone capable of real, private conversation.",
-      "advice": "A Transformation chart must keep its combination intact. Watch years that Clash or Control Bing and Xin — especially when Earth blocks Water or Wu enters. Keep your depth, but occasionally surface and let the light reach you."
+      "advice": "Your strengths hold as long as this blended balance stays intact. Watch most carefully the seasons that block or muddy the flow of your deep water. Keep your depth, but occasionally surface and let the light reach you."
     }
   },
   "정임화목격": {
     "ko": {
-      "tagline": "정·임 합화 목(木) — 인정과 성장의 사람",
-      "personality": "당신은 '정임화목격(丁壬化木格)'이에요. 정화와 임수가 합하여 목(木)으로 화(化)하는 화기격국(化氣格局)이에요. 화(化)가 잘 이루어진 경우, 봄철 새순처럼 따뜻하고 생장하는 기운을 가진 인격이 돼요. 인정 많고, 자기와 주변을 함께 키우는 데에서 깊은 보람을 느껴요.",
+      "tagline": "봄철 새순 — 인정과 성장의 사람",
+      "personality": "당신은 두 기운이 만나 나무의 성질로 어우러진 사람이에요. 봄철 새순처럼 따뜻하고 생장하는 기운을 가졌죠. 인정이 많고, 자기와 주변을 함께 키우는 데에서 깊은 보람을 느껴요.",
       "strength": [
         "따뜻한 인정과 인간미",
         "성장과 양성의 기질",
@@ -777,11 +771,11 @@
       "weakness": ["감정과 인정에 휘둘려 손해 봄", "거절을 잘 못해 자기 시간을 잃음"],
       "career": ["교육·코칭·인재개발", "출판·콘텐츠·기획", "상담·심리·치유", "환경·농업·바이오"],
       "love": "다정하고 보살피는 파트너예요. 같이 자라고 같이 배울 수 있는 사람에게 깊이 끌리고, 차갑고 메마른 상대와는 오래가기 어려워요.",
-      "advice": "화기격은 합화의 조건이 깨지지 않아야 해요. 정·임을 충(沖)·극(剋)하는 운, 특히 금(金)이 목(木)을 자르는 시기를 가장 조심하세요. 인정도 좋지만, 자기 시간과 경계는 분명히 지키세요."
+      "advice": "당신의 강점은 이 어우러진 균형이 깨지지 않을 때 유지돼요. 자라나는 새순을 거칠게 잘라 내려는 시기를 가장 조심하세요. 인정도 좋지만, 자기 시간과 경계는 분명히 지키세요."
     },
     "en": {
-      "tagline": "Ding–Ren transformed into Wood — warmth and growth",
-      "personality": "You are a 'Jeong-Im transformed into Wood' chart — a Transformation chart where Ding fire and Ren water combine and transform into Wood. When the transformation succeeds, you carry the warm, generative energy of a spring sprout. You are kind-hearted and find deep meaning in growing both yourself and the people around you.",
+      "tagline": "A spring sprout — warmth and growth",
+      "personality": "You are a person where two energies meet and blend into the nature of wood. You carry the warm, generative energy of a spring sprout. You are kind-hearted and find deep meaning in growing both yourself and the people around you.",
       "strength": [
         "Warm humanity and kindness",
         "Growth-oriented, nurturing nature",
@@ -798,13 +792,13 @@
         "Environment, agriculture, biotech"
       ],
       "love": "You are an affectionate, nurturing partner. You are drawn to people you can grow and learn alongside, and cannot last long with cold or arid partners.",
-      "advice": "A Transformation chart must keep its combination intact. Watch years that Clash or Control Ding and Ren — especially when Metal cuts Wood. Kindness is good, but defend your own time and boundaries clearly."
+      "advice": "Your strengths hold as long as this blended balance stays intact. Watch most carefully the seasons that try to roughly cut your young sprout down. Kindness is good, but defend your own time and boundaries clearly."
     }
   },
   "무계화화격": {
     "ko": {
-      "tagline": "무·계 합화 화(火) — 빛나는 예(禮)의 사람",
-      "personality": "당신은 '무계화화격(戊癸化火格)'이에요. 무토와 계수가 합하여 화(火)로 화(化)하는 화기격국(化氣格局)이에요. 화(化)가 잘 이루어진 경우, 환하고 따뜻하게 사람을 비추는 인격이 돼요. 자평진전 「잡격(雜格)」편이 강조했듯 합화의 조건이 갖춰져야 진귀(眞貴)이며, 그때 당신은 예의와 빛으로 주변을 환하게 만드는 사람이 돼요.",
+      "tagline": "환히 비추는 불빛 — 예의와 빛의 사람",
+      "personality": "당신은 두 기운이 만나 불의 성질로 어우러진 사람이에요. 환하고 따뜻하게 사람을 비추는 인격이죠. 이 어우러짐이 잘 갖춰질 때, 예의와 빛으로 주변을 환하게 만드는 사람이 돼요.",
       "strength": [
         "밝고 환한 매력과 표현력",
         "예의 바르고 의례를 아는 태도",
@@ -818,11 +812,11 @@
         "리더십·동기부여·코칭"
       ],
       "love": "밝고 다정한 파트너예요. 상대의 모든 좋은 점을 비추어 주는 재능이 있지만, 자기 그늘이 깊어질 때 같이 있어줄 사람이 꼭 필요해요.",
-      "advice": "화기격은 합화의 조건이 깨지지 않아야 해요. 무·계를 충(沖)·극(剋)하는 운, 특히 수(水)가 화(火)를 끄는 시기를 가장 조심하세요. 빛만 내려 하지 말고, 자기 안의 그늘과 어둠도 인정하세요. 빛은 어둠을 알아야 더 오래 가요."
+      "advice": "당신의 강점은 이 어우러진 균형이 깨지지 않을 때 유지돼요. 불빛을 끄려 드는 차가운 시기를 가장 조심하세요. 빛만 내려 하지 말고, 자기 안의 그늘과 어둠도 인정하세요. 빛은 어둠을 알아야 더 오래 가요."
     },
     "en": {
-      "tagline": "Wu–Gui transformed into Fire — a person of luminous decorum",
-      "personality": "You are a 'Mu-Gye transformed into Fire' chart — a Transformation chart where Wu earth and Gui water combine and transform into Fire. When the transformation succeeds, you become a personality that lights up and warms the people around you. As the classics insist, this is truly noble only when the conditions of transformation hold; then you become a person who brightens others with decorum and light.",
+      "tagline": "A bright shining light — a person of decorum and radiance",
+      "personality": "You are a person where two energies meet and blend into the nature of fire. You become a personality that lights up and warms the people around you. When this blending is fully in place, you brighten others with courtesy and light.",
       "strength": [
         "Bright charm and expressive power",
         "Mannered, ritual-aware bearing",
@@ -839,13 +833,13 @@
         "Leadership, motivation, coaching"
       ],
       "love": "You are a bright, affectionate partner with a gift for reflecting back the best of your partner. But you genuinely need someone who stays close when your own shadow deepens.",
-      "advice": "A Transformation chart must keep its combination intact. Watch years that Clash or Control Wu and Gui — especially when Water extinguishes Fire. Don't only try to shine; acknowledge the shadow inside you too. Light only lasts when it knows the dark."
+      "advice": "Your strengths hold as long as this blended balance stays intact. Be most careful of cold seasons that try to put your light out. Don't only try to shine; acknowledge the shadow inside you too. Light only lasts when it knows the dark."
     }
   },
   "가색격": {
     "ko": {
       "tagline": "씨 뿌리고 거두는 흙 — 안정·돌봄·실용의 사람",
-      "personality": "당신은 '가색격(稼穡格)'이에요. 사주가 모두 토(土)로 가득한 일행득기격(一行得氣格)으로, '심을 가(稼), 거둘 색(穡)'이라는 이름처럼 씨를 뿌리고 결실을 거두는 농부의 격국이에요. 신용(信)을 중시하고, 한 자리에서 꾸준히 키워내는 데에서 자기 본분을 찾는 사람이에요. 자평진전 「잡격(雜格)」편은 곡직·염상·가색·종혁·윤하 다섯을 함께 일행득기로 묶었어요.",
+      "personality": "당신은 씨를 뿌리고 결실을 거두는 농부 같은 사람이에요. 신용을 중시하고, 한 자리에서 꾸준히 키워내는 데에서 자기 본분을 찾죠. 흙처럼 든든하게 사람과 일을 돌봐요.",
       "strength": ["꾸준함과 안정감", "사람과 일을 돌보는 신용", "현실적이고 실용적인 감각"],
       "weakness": ["변화를 두려워하고 결정이 느림", "지나친 보수성으로 기회를 놓치기 쉬움"],
       "career": [
@@ -855,11 +849,11 @@
         "사회복지·돌봄·교육 행정"
       ],
       "love": "묵직하고 안정감 있는 파트너예요. 한 사람을 오래 챙기는 깊은 사랑을 하지만, 너무 익숙해지면 표현이 줄어드니 의식적으로 다정함을 보여주세요.",
-      "advice": "가색은 목(木)의 충극을 가장 두려워해요. 자기 자리에서 오래 키우는 것이 격을 살리는 길이에요. 한 번에 큰 도약보다 매년 한 뼘씩 쌓는 전략이 평생의 강점이 돼요."
+      "advice": "잘 다져진 흙을 거칠게 파헤치려는 시기를 가장 조심하세요. 자기 자리에서 오래 키우는 것이 당신의 강점을 살리는 길이에요. 한 번에 큰 도약보다 매년 한 뼘씩 쌓는 전략이 평생의 무기가 돼요."
     },
     "en": {
       "tagline": "Earth that sows and reaps — stability, care, and pragmatism",
-      "personality": "You are a 'Gasaek' (Sowing and Reaping) chart — a 'one-element' configuration where Earth fills the chart. The name means 'sow and harvest,' the farmer's configuration. You value trust and find your purpose in steadily cultivating one place. The classics group Gokjik, Yeomsang, Gasaek, Jonghyeok, and Yunha together as the five 'one-element' charts.",
+      "personality": "You are like a farmer who sows seed and gathers the harvest. You value trust and find your purpose in steadily cultivating one place. You care for people and tasks as dependably as the soil itself.",
       "strength": [
         "Steadiness and stability",
         "Trustworthiness in caring for people and tasks",
@@ -876,13 +870,13 @@
         "Social welfare, caregiving, education administration"
       ],
       "love": "You are a steady, grounding partner who loves one person deeply for a long time, but as familiarity grows your expression shrinks — deliberately show affection.",
-      "advice": "Gasaek most fears Wood clashing and controlling Earth. Cultivating long in your own place is how you honor this chart. Adding one hand-span each year beats a single great leap as your lifelong strength."
+      "advice": "Be most careful of seasons that try to roughly dig up your well-packed soil. Cultivating long in your own place is how you honor your strengths. Adding one hand-span each year beats a single great leap as your lifelong weapon."
     }
   },
   "종혁격": {
     "ko": {
       "tagline": "단단한 금 — 결단·정의·체계의 사람",
-      "personality": "당신은 '종혁격(從革格)'이에요. 사주가 모두 금(金)으로 가득한 일행득기격(一行得氣格)으로, '따를 종(從), 고칠 혁(革)'이라는 이름처럼 옛것을 단호히 베고 새것을 세우는 개혁가의 격국이에요. 의(義)를 중시하고, 잘못된 것을 그냥 두지 못해요. 자평진전 「잡격(雜格)」편이 분류한 다섯 일행득기 중 하나로, 깨끗하게 금만 모일 때 진귀(眞貴)가 돼요.",
+      "personality": "당신은 옛것을 단호히 베고 새것을 세우는 개혁가 같은 사람이에요. 의로움을 중시하고, 잘못된 것을 그냥 두지 못하죠. 단단한 금속처럼 결단력 있고 원칙이 뚜렷해요.",
       "strength": [
         "강한 결단력과 정의감",
         "체계와 원칙을 세우는 능력",
@@ -896,11 +890,11 @@
         "금융·회계·정밀 엔지니어링"
       ],
       "love": "단단하고 의리 있는 파트너예요. 가벼운 말과 약속에 매우 민감하고, 자기 원칙에 맞는 상대에게는 평생 충실해요.",
-      "advice": "종혁은 화(火)의 충극을 가장 두려워해요. 정의의 칼은 자기 자리(직책·역할)가 있을 때 정당해져요. 모든 일에 칼을 휘두르면 자기도 다쳐요. 베지 말고 다듬는 법을 익혀 보세요."
+      "advice": "단단한 금을 무르게 녹이는 듯한 시기를 가장 조심하세요. 정의의 칼은 분명한 직책·역할이 있을 때 정당해져요. 모든 일에 칼을 휘두르면 자기도 다쳐요. 베지 말고 다듬는 법을 익혀 보세요."
     },
     "en": {
       "tagline": "Hardened metal — decisiveness, justice, system",
-      "personality": "You are a 'Jonghyeok' (Following Reform) chart — a 'one-element' configuration where Metal fills the chart. The name means 'follow and reform,' the reformer's configuration: you cut down the old decisively and build the new. You value justice and cannot let wrong things stand. As one of the five 'one-element' charts in the classics, it becomes truly noble only when Metal gathers cleanly.",
+      "personality": "You are like a reformer who cuts down the old decisively and builds the new. You value righteousness and cannot let wrong things stand. Like hardened metal, you are decisive and clear in your principles.",
       "strength": [
         "Strong decisiveness and sense of justice",
         "Skill at building systems and principles",
@@ -914,13 +908,13 @@
         "Finance, accounting, precision engineering"
       ],
       "love": "You are a solid, loyal partner. Light words and broken promises hit you hard, and you stay faithful for life to a partner who fits your principles.",
-      "advice": "Jonghyeok most fears Fire clashing and controlling Metal. The blade of justice is justified only by an office or role. Swinging it at everything wounds you too. Learn to refine, not just to cut."
+      "advice": "Be most careful of seasons that seem to soften and melt your hard metal. The blade of justice is justified only by a clear office or role. Swinging it at everything wounds you too. Learn to refine, not just to cut."
     }
   },
   "윤하격": {
     "ko": {
       "tagline": "흐르는 물 — 지혜·유연·흐름의 사람",
-      "personality": "당신은 '윤하격(潤下格)'이에요. 사주가 모두 수(水)로 가득한 일행득기격(一行得氣格)으로, '적실 윤(潤), 흐를 하(下)'라는 이름처럼 위에서 아래로 흐르며 만물을 적시는 큰 물의 격국이에요. 지(智)를 중시하고, 깊고 유연한 사고로 세상을 읽는 사람이에요. 자평진전 「잡격(雜格)」편이 분류한 다섯 일행득기 중 하나로, 깨끗하게 수만 모일 때 진귀(眞貴)가 돼요.",
+      "personality": "당신은 위에서 아래로 흐르며 만물을 적시는 큰 물 같은 사람이에요. 지혜를 중시하고, 깊고 유연한 사고로 세상을 읽죠. 막힘 없이 흐를 때 가장 살아 있어요.",
       "strength": [
         "깊은 지혜와 통찰력",
         "변화에 유연하게 적응하는 능력",
@@ -934,11 +928,11 @@
         "심리·상담·정신분석"
       ],
       "love": "깊고 조용한 파트너예요. 시끄럽고 가벼운 관계보다 둘만의 깊은 대화가 가능한 사람에게 마음을 열고, 한 번 흐르기 시작하면 멀리까지 함께 가요.",
-      "advice": "윤하는 토(土)의 충극을 가장 두려워해요. 흐름을 막으면 격이 깨져요. 너무 깊이만 들어가지 말고, 가끔은 수면 위로 올라와 햇빛을 받으세요. 흐름은 멈추지 않아야 살아 있어요."
+      "advice": "물의 흐름을 막아 세우려는 시기를 가장 조심하세요. 흐름을 막으면 당신의 강점도 막혀요. 너무 깊이만 들어가지 말고, 가끔은 수면 위로 올라와 햇빛을 받으세요. 흐름은 멈추지 않아야 살아 있어요."
     },
     "en": {
       "tagline": "Flowing water — wisdom, flexibility, flow",
-      "personality": "You are a 'Yunha' (Moistening Downward) chart — a 'one-element' configuration where Water fills the chart. The name means 'moisten and flow down,' the configuration of great water that runs from high to low and wets all things. You value wisdom and read the world with deep, flexible thinking. As one of the five 'one-element' charts in the classics, it becomes truly noble only when Water gathers cleanly.",
+      "personality": "You are like great water that runs from high to low and wets all things. You value wisdom and read the world with deep, flexible thinking. You are most alive when you flow without obstruction.",
       "strength": [
         "Deep wisdom and insight",
         "Flexible adaptation to change",
@@ -952,20 +946,20 @@
         "Psychology, counseling, psychoanalysis"
       ],
       "love": "You are a deep, quiet partner. You open up to someone capable of real private conversation rather than loud, shallow ties, and once you start flowing together you go far.",
-      "advice": "Yunha most fears Earth clashing and controlling Water. Blocking the flow breaks the chart. Don't only dive deep — occasionally surface and take in the sun. Flow is alive only when it doesn't stop."
+      "advice": "Be most careful of seasons that try to dam your flow. Blocking the current also blocks your strengths. Don't only dive deep — occasionally surface and take in the sun. Flow is alive only when it doesn't stop."
     }
   },
   "월겁격": {
     "ko": {
-      "tagline": "함께, 그러나 경쟁 — 동료와 승부의 격",
-      "personality": "당신은 '월겁격(月劫格)'이에요. 월지에 겁재(劫財)가 자리한 비겁(比劫)의 격국이에요. 비견보다 더 경쟁적이고 독립적이며, 재물·기회를 두고 동료나 형제와 나누거나 겨루는 군겁쟁재(群劫爭財)의 기운이 있어요. 혼자 밀고 나가는 힘과 끈끈한 동료애가 함께 있는 사람이에요.",
+      "tagline": "함께, 그러나 경쟁 — 동료와 승부의 사람",
+      "personality": "당신은 혼자 밀고 나가는 힘과 끈끈한 동료애를 함께 가진 사람이에요. 보통보다 더 경쟁적이고 독립적이라, 돈·기회를 두고 동료나 형제와 나누거나 겨루는 기운이 있죠. 자존심이 강하고 승부를 즐겨요.",
       "strength": [
         "강한 독립심과 추진력",
         "위기·경쟁에서 발휘되는 승부 근성",
         "동료와 뭉치는 의리와 팀워크"
       ],
       "weakness": [
-        "겁재 특성상 지출·재물 손실이 잦음",
+        "지출이 많고 재물 손실이 잦음",
         "경쟁심·욕심이 지나치면 마찰",
         "고집이 세고 양보가 어려움"
       ],
@@ -976,18 +970,18 @@
         "현장 추진형 리더"
       ],
       "love": "솔직하고 주도적인 파트너지만 자기 중심이 강할 수 있어요. 대등하게 맞서고 받아주는, 독립적인 상대와 잘 맞아요.",
-      "advice": "겁재의 힘은 식상(표현·생산)으로 흘려보내고 관성(규율·책임)으로 다잡을 때 성취가 돼요. 동업·보증·즉흥 투자는 특히 조심하세요."
+      "advice": "그 강한 경쟁의 힘은 창작·표현으로 흘려보내고, 규율과 책임으로 다잡을 때 진짜 성취가 돼요. 동업·보증·즉흥 투자는 특히 조심하세요."
     },
     "en": {
       "tagline": "Together, yet competing — the ally and the contender",
-      "personality": "You are a 'Wolgeop' (Month Rob-Wealth) chart. The Rob Wealth sits on the Month Branch — a Companion/Rob-Wealth structure. You are more competitive and independent than a plain Companion type, with a 'crowd robbing wealth' undertone where money and opportunity get shared or fought over with peers and siblings. You carry both a go-it-alone drive and fierce loyalty to your circle.",
+      "personality": "You carry both a go-it-alone drive and fierce loyalty to your circle. You are more competitive and independent than most, with a streak where money and opportunity get shared or fought over with peers and siblings. You are proud and you enjoy a contest.",
       "strength": [
         "Strong independence and drive",
         "Competitive grit in crisis and rivalry",
         "Loyalty and teamwork when the group rallies"
       ],
       "weakness": [
-        "Frequent spending or loss of money (Rob Wealth)",
+        "Heavy spending and frequent loss of money",
         "Friction when competitiveness or wanting runs high",
         "Stubborn; finds yielding hard"
       ],
@@ -998,13 +992,13 @@
         "Hands-on, front-line leadership"
       ],
       "love": "You are a frank, leading partner, but can be self-centered. You match best with an independent equal who can push back and still hold you.",
-      "advice": "Rob Wealth turns into achievement when drained through Output (expression, production) and reined in by Officer (discipline, duty). Be especially careful with partnerships, guarantees, and impulsive investments."
+      "advice": "That strong competitive force turns into real achievement when you drain it through creating and expression, and rein it in with discipline and responsibility. Be especially careful with partnerships, guarantees, and impulsive investments."
     }
   },
   "잡기격": {
     "ko": {
-      "tagline": "사고(四庫)의 창고 — 여러 재능을 품은 보관함",
-      "personality": "당신은 '잡기격(雜氣格)'이에요. 진술축미(辰戌丑未) 토(土)의 달에 태어나 여러 기운이 창고처럼 한데 섞인 격국이에요. 정기(正氣)가 또렷이 투출하지 않아 다재다능하지만 초점이 흐려지기 쉬워요. 형충(刑沖)으로 창고가 '열릴' 때 비로소 묻어둔 재능과 재물이 드러나요.",
+      "tagline": "여러 재능을 품은 보관함",
+      "personality": "당신은 여러 기운이 창고처럼 한데 섞여 있는 사람이에요. 어느 하나가 또렷이 두드러지지 않아 다재다능하지만 초점이 흐려지기 쉽죠. 큰 변화나 충격으로 그 창고가 '열릴' 때, 묻어 둔 재능과 재물이 비로소 드러나요.",
       "strength": [
         "여러 분야를 아우르는 다재다능함",
         "겉보다 속이 깊은 잠재력과 실속",
@@ -1017,11 +1011,11 @@
         "수집·감정·중개처럼 '보관과 교환'이 핵심인 일"
       ],
       "love": "천천히 깊어지는 인연을 선호해요. 한 번 마음을 열면 든든하게 오래 가요.",
-      "advice": "창고는 '열어야' 빛나요. 재능을 한 분야로 모아 집중하세요. 형충 운에서 기회가 크게 열리니 그때 과감하게 움직이는 게 좋아요."
+      "advice": "창고는 '열어야' 빛나요. 재능을 한 분야로 모아 집중하세요. 큰 변화와 충격의 시기에 기회가 크게 열리니, 그때 과감하게 움직이는 게 좋아요."
     },
     "en": {
-      "tagline": "The four-storehouse vault — a cabinet of many talents",
-      "personality": "You are a 'Japgi' (Mixed-Qi) chart. Born in an Earth month of the four storehouses (辰戌丑未), your chart blends several energies together like a vault. With no single dominant Qi clearly revealed, you are versatile but can lose focus. Your buried talents and wealth surface only when the storehouse is 'opened' by clash or punishment.",
+      "tagline": "A cabinet of many talents",
+      "personality": "Your chart blends several energies together like a vault. With no single one clearly standing out, you are versatile but can lose focus. Your buried talents and wealth surface only when that vault is 'opened' by a big change or jolt.",
       "strength": [
         "Versatility across many fields",
         "Deep, substantial potential beneath the surface",
@@ -1037,7 +1031,7 @@
         "Work centered on storing and exchanging — collecting, appraisal, brokerage"
       ],
       "love": "You prefer bonds that deepen slowly. Once you open your heart, you stay steady for the long run.",
-      "advice": "A storehouse shines only when opened. Gather your talents into one field and focus. Opportunity opens wide in clash and punishment years — move boldly when it does."
+      "advice": "A storehouse shines only when opened. Gather your talents into one field and focus. Opportunity opens wide in seasons of big change and upheaval — move boldly when it does."
     }
   }
 }

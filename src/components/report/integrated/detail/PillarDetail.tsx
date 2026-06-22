@@ -38,15 +38,15 @@ const ORDER: Array<'hour' | 'day' | 'month' | 'year'> = ['hour', 'day', 'month',
 
 const TX = {
   summary: {
-    ko: '기둥별 글자 풀이 — 한자·지장간·12운성',
+    ko: '기둥별 글자 풀이 — 위·아래 글자, 숨은 기운, 생애 단계',
     en: 'Each pillar, character by character',
   },
-  stem: { ko: '천간', en: 'Heavenly Stem' },
-  branch: { ko: '지지', en: 'Earthly Branch' },
-  hidden: { ko: '지장간', en: 'Hidden Stems' },
-  sibsin: { ko: '십신', en: 'Ten Gods' },
-  stage: { ko: '12운성', en: 'Twelve Stages' },
-  dayMaster: { ko: '나(일간)', en: 'You (Day Master)' },
+  stem: { ko: '위 글자', en: 'Top symbol' },
+  branch: { ko: '아래 글자', en: 'Bottom symbol' },
+  hidden: { ko: '숨은 기운', en: 'Hidden energy' },
+  sibsin: { ko: '역할', en: 'Role' },
+  stage: { ko: '생애 단계', en: 'Life stage' },
+  dayMaster: { ko: '나(태어난 날의 나)', en: 'You (your character)' },
 }
 
 function tx(key: keyof typeof TX, lang: Lang): string {
