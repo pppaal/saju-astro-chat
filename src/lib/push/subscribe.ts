@@ -51,9 +51,19 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
 
 async function getRegistration(): Promise<ServiceWorkerRegistration | null> {
   try {
-    // next-pwa 가 등록한 SW. dev 모드(PWA disable)에선 없을 수 있다.
-    const registration = await navigator.serviceWorker.getRegistration()
-    return registration ?? null
+    // next-pwa 가 등록한 SW 우선. 아직 등록 전이거나(첫 방문/이 페이지에서 누락)
+    // 사용자가 SW 를 지운 경우엔 직접 등록한다 — getRegistration 만 믿으면
+    // "지원 안 함"으로 오인된다(데스크톱 크롬에서도 빈 값 가능).
+    let registration = await navigator.serviceWorker.getRegistration()
+    if (!registration) {
+      registration = await navigator.serviceWorker.register('/sw.js', { scope: '/' })
+    }
+    // 등록 직후엔 active 가 아직 null 일 수 있다 — 활성화까지 대기(최대 10초).
+    await Promise.race([
+      navigator.serviceWorker.ready,
+      new Promise((resolve) => setTimeout(resolve, 10_000)),
+    ])
+    return registration ?? (await navigator.serviceWorker.getRegistration()) ?? null
   } catch {
     return null
   }
@@ -87,7 +97,9 @@ export async function subscribeToDailyFortunePush(
   if (permission !== 'granted') return { status: 'denied' }
 
   const registration = await getRegistration()
-  if (!registration) return { status: 'unsupported' }
+  // 여기까지 왔으면 브라우저는 푸시를 지원한다(isPushSupported 통과). 등록 실패는
+  // "지원 안 함"이 아니라 일시적 오류 — 새로고침 후 재시도가 맞다.
+  if (!registration) return { status: 'error' }
 
   try {
     const subscription =

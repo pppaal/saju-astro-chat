@@ -67,9 +67,10 @@ export default function PushClient() {
       const map: Record<string, string> = {
         subscribed: '이 브라우저에서 알림을 켰어요. 이제 테스트를 보내보세요.',
         denied: '브라우저가 알림을 차단했어요. 사이트 권한에서 알림을 허용해주세요.',
-        unsupported: '이 브라우저는 웹푸시를 지원하지 않아요.',
+        unsupported:
+          '이 브라우저는 웹푸시를 지원하지 않아요. (iOS는 홈 화면에 설치한 PWA에서만 가능)',
         not_configured: 'VAPID 키가 설정되지 않았어요(서버 환경변수 확인).',
-        error: '구독 중 오류가 발생했어요.',
+        error: '서비스워커 준비가 안 됐어요. 페이지를 새로고침한 뒤 다시 눌러주세요.',
       }
       setMsg(map[result.status] ?? result.status)
       await load()
