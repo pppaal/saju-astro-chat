@@ -47,14 +47,20 @@ export type LifeStageId = 'early' | 'youth' | 'middle' | 'late'
 export interface DestinyLifeStageDetail {
   /** 대운 진행 한 줄 — '丙子(병자) 2006–16 → 乙亥(을해) 2016–26 → ...'. */
   daewoonText: string
-  /** 본문 paragraphs (각 한 문단). */
+  /** 본문 paragraphs (각 한 문단, KO). */
   body: string[]
+  /** 본문 paragraphs 영문 — 클라이언트 언어 토글용. 비면 body 폴백. */
+  bodyEn: string[]
   /** 외행성 회귀 / outer transit 마일스톤. */
   outer: Array<{
     label: string
+    /** label 영문 — 클라이언트 토글용. 미지정 시 label 폴백. */
+    labelEn?: string
     /** 'YYYY.MM' 표기. */
     date: string
     body: string
+    /** body 영문 — 클라이언트 토글용. 미지정 시 body 폴백. */
+    bodyEn?: string
     /** 색상·아이콘 키 — 'jupiter' / 'saturn' / 'neptune' 등. */
     kind: string
   }>
@@ -70,6 +76,8 @@ export interface DestinyLifeStage {
   id: LifeStageId
   /** 한국어 라벨 — '초년기'/'청년기'/'중년기'/'장년기'. */
   name: string
+  /** 영문 라벨 — 'Early years' 등. 클라이언트 토글용. 미지정 시 name 폴백. */
+  nameEn?: string
   /** 만 나이 from. */
   ageFrom: number
   /** 만 나이 to (inclusive). */
@@ -82,6 +90,8 @@ export interface DestinyLifeStage {
   now: boolean
   /** 한 줄 무드 — '편재 — 현실 성취의 무대'. */
   tone: string
+  /** 한 줄 무드 영문 — 클라이언트 토글용. 미지정 시 tone 폴백. */
+  toneEn?: string
   /** 현재 진행 stage 만 detail 채움. 나머지는 null. */
   detail: DestinyLifeStageDetail | null
 }
@@ -107,8 +117,14 @@ export interface DestinyMilestone {
   year: number
   /** 만 나이. */
   age: number
-  /** 한 줄 라벨 — '첫 토성 회귀 — 진짜 어른됨의 통과의례'. */
+  /** 한 줄 라벨(KO) — '첫 토성 회귀 — 진짜 어른됨의 통과의례'. */
   label: string
+  /** 한 줄 라벨 영문 — 클라이언트 언어 토글용. 미지정 시 label 폴백. */
+  labelEn?: string
+  /** 한 줄 의미(KO) — 마일스톤 해석. 라벨과 별개의 풍부한 한 줄. */
+  meaning?: string
+  /** 한 줄 의미 영문 — 클라이언트 토글용. 미지정 시 meaning 폴백. */
+  meaningEn?: string
   /** 시각화 카테고리 — 색상·아이콘 분기 키. */
   kind: DestinyMilestoneKind
   /** 현재 시점에 가장 가까운 마일스톤 표시. */

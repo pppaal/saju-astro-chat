@@ -92,13 +92,16 @@ function makeYear(over: Partial<DestinyYear> = {}): DestinyYear {
   return {
     year: 2026,
     headline: '올해의 무게중심은 8번째 영역으로 기울어요.',
+    headlineEn: 'This year leans toward your 8th house.',
     sewoon: { gz: makeGanji(), sibsin: '정관', score: 60 },
     sewoonGz: makeGanji(),
     sewoonSibsin: '정관',
     profection: over.profection === null ? (null as never) : (over.profection ?? makeProfection()),
     profectionWheel: over.profectionWheel ?? [],
     sajuNote: '세운 십신 + 용신 흐름 한 줄.',
+    sajuNoteEn: 'Annual pillar note in English.',
     astroNote: '프로펙션 룰러 본명 위치 한 줄.',
+    astroNoteEn: 'Profection ruler natal position in English.',
     zrSpiritChapters: over.zrSpiritChapters ?? [],
     zrFortuneChapters: over.zrFortuneChapters ?? [],
     monthlyScores: over.monthlyScores,
@@ -121,17 +124,35 @@ describe('YearTier', () => {
       expect(screen.getByText('올해의 무게중심은 8번째 영역으로 기울어요.')).toBeInTheDocument()
     })
 
-    it('renders English heading + profection-derived one-liner', () => {
+    it('renders the custom English headline (headlineEn) when present', () => {
       mockLocale = 'en'
       render(
         <YearTier
           user={makeUser()}
-          year={makeYear({ profection: makeProfection({ themeEn: 'Depth' }) })}
+          year={makeYear({ headlineEn: 'This year leans toward your 8th house.' })}
           onDive={noop}
           onRise={noop}
         />
       )
       expect(screen.getByText('This year')).toBeInTheDocument()
+      const headline = screen.getByText('This year leans toward your 8th house.')
+      expect(headline).toBeInTheDocument()
+      expect(headline.textContent).not.toMatch(/[가-힣]/)
+    })
+
+    it('falls back to profection-derived English one-liner when headlineEn absent', () => {
+      mockLocale = 'en'
+      render(
+        <YearTier
+          user={makeUser()}
+          year={makeYear({
+            headlineEn: undefined,
+            profection: makeProfection({ themeEn: 'Depth' }),
+          })}
+          onDive={noop}
+          onRise={noop}
+        />
+      )
       expect(screen.getByText(/This year leans toward your house 8/)).toBeInTheDocument()
     })
   })
@@ -198,6 +219,39 @@ describe('YearTier', () => {
       expect(screen.getByText('수성')).toBeInTheDocument()
     })
 
+    it('EN locale: profection readout shows English only (no Hangul leak)', () => {
+      mockLocale = 'en'
+      render(
+        <YearTier
+          user={makeUser()}
+          year={makeYear({
+            profection: makeProfection({
+              theme: '변환 · 깊이 · 재구성',
+              themeEn: 'Transformation · Depth',
+              cusp: '처녀자리',
+              cuspEn: 'Virgo',
+              ruler: '수성',
+              rulerEn: 'Mercury',
+              rulerNatal: '1궁 (물병자리)',
+              rulerNatalEn: '1st house · Aquarius',
+            }),
+          })}
+          onDive={noop}
+          onRise={noop}
+        />
+      )
+      // theme + cusp + ruler (natal) all in English
+      expect(screen.getByText('Transformation · Depth')).toBeInTheDocument()
+      expect(screen.getByText('Virgo')).toBeInTheDocument()
+      expect(screen.getByText('1st house · Aquarius')).toBeInTheDocument()
+      // primary KO terms must NOT render
+      expect(screen.queryByText('변환 · 깊이 · 재구성')).not.toBeInTheDocument()
+      expect(screen.queryByText('처녀자리')).not.toBeInTheDocument()
+      // Mercury (ruler) appears (ruler row + Lord of Year), KO '수성' must not
+      expect(screen.getAllByText('Mercury').length).toBeGreaterThan(0)
+      expect(screen.queryByText('수성')).not.toBeInTheDocument()
+    })
+
     it('renders the house-TBD readout when profection is absent', () => {
       render(
         <YearTier
@@ -238,6 +292,33 @@ describe('YearTier', () => {
       render(<YearTier user={makeUser()} year={makeYear()} onDive={noop} onRise={noop} />)
       expect(screen.getByText(/세운 2026 · 정관/)).toBeInTheDocument()
       expect(screen.getByText('세운 십신 + 용신 흐름 한 줄.')).toBeInTheDocument()
+    })
+
+    it('EN locale: sajuNote/astroNote show English only (no Hangul leak)', () => {
+      mockLocale = 'en'
+      render(
+        <YearTier
+          user={makeUser()}
+          year={makeYear({
+            sajuNote: '세운 십신 + 용신 흐름 한 줄.',
+            sajuNoteEn: 'Annual pillar note in English.',
+            astroNote: '프로펙션 룰러 본명 위치 한 줄.',
+            astroNoteEn: 'Profection ruler natal position in English.',
+          })}
+          onDive={noop}
+          onRise={noop}
+        />
+      )
+      const saju = screen.getByText('Annual pillar note in English.')
+      expect(saju).toBeInTheDocument()
+      expect(saju.textContent).not.toMatch(/[가-힣]/)
+      expect(screen.queryByText('세운 십신 + 용신 흐름 한 줄.')).not.toBeInTheDocument()
+      const astro = screen.getByText('Profection ruler natal position in English.')
+      expect(astro).toBeInTheDocument()
+      expect(astro.textContent).not.toMatch(/[가-힣]/)
+      expect(screen.queryByText('프로펙션 룰러 본명 위치 한 줄.')).not.toBeInTheDocument()
+      // Annual sewoon label uses English prefix in EN
+      expect(screen.getByText(/Annual 2026 · 정관/)).toBeInTheDocument()
     })
   })
 

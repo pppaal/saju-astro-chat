@@ -94,4 +94,29 @@ describe('lifecycle now-injection 결정성', () => {
     const pastC = c.pivots.filter((p) => p.phase === 'past').length
     expect(pastC).toBeGreaterThan(pastA)
   })
+
+  it('deriveLifetimePivots: 각 pivot 이 ko/en 라벨을 모두 baked — 클라이언트 언어 토글이 서버 언어에 안 묶임', async () => {
+    const saju = calculateSajuData(P.birthDate, P.birthTime, P.gender, 'solar', P.timeZone)
+    const natal = await buildNatalContext(P, { saju })
+
+    // 서버 render lang 과 무관하게 동일한 양방향 라벨이 나와야 한다.
+    const ko = deriveLifetimePivots(natal, 'ko', undefined, new Date('2020-06-15T12:00:00Z'))
+    const en = deriveLifetimePivots(natal, 'en', undefined, new Date('2020-06-15T12:00:00Z'))
+    expect(en.pivots).toEqual(ko.pivots)
+
+    // 모든 pivot 은 label(ko) 과 labelEn(en) 을 항상 들고 있다.
+    for (const p of ko.pivots) {
+      expect(typeof p.label).toBe('string')
+      expect(p.label.length).toBeGreaterThan(0)
+      expect(typeof p.labelEn).toBe('string')
+      expect(p.labelEn.length).toBeGreaterThan(0)
+    }
+
+    // 점성 마일스톤(예: 토성 회귀)은 ko/en 라벨이 실제로 다르고, 한글/영문 누수가 없다.
+    const saturn = ko.pivots.find((p) => /토성/.test(p.astro ?? ''))
+    expect(saturn).toBeDefined()
+    expect(saturn!.label).toMatch(/토성/) // ko 라벨엔 한글
+    expect(saturn!.labelEn).toMatch(/Saturn/) // en 라벨엔 영문
+    expect(saturn!.labelEn).not.toMatch(/[가-힣]/) // en 라벨에 한글 누수 없음
+  })
 })

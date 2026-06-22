@@ -80,32 +80,6 @@ const TWELVE_STAGE_PLAIN: Record<string, string> = {
   양: '조용히 길러지는 때',
 }
 
-/** 관계(합충형파) → 쉬운 한 줄. */
-const RELATION_PLAIN: Record<string, string> = {
-  육합: '서로 잘 맞물려요',
-  삼합: '여럿이 한 방향으로 뭉쳐요',
-  방합: '같은 계절끼리 모여요',
-  충: '부딪혀 흔들려요',
-  형: '갈등·조정이 생겨요',
-  파: '깨지거나 어긋나요',
-  해: '자잘하게 거슬려요',
-  원진: '은근히 안 맞아요',
-  공망: '비어서 힘이 덜 실려요',
-}
-
-/** 시간 축 용어 → 쉬운 정의 (툴팁용). */
-export const SCALE_TERM_PLAIN: Record<string, string> = {
-  대운: '10년 단위로 바뀌는 큰 흐름',
-  세운: '그 해의 운',
-  월운: '그 달의 운',
-  일진: '그날의 기운',
-  프로펙션: '해마다 한 영역씩 켜지는 점성 주기',
-  ZR: '인생을 장(章)으로 나누는 점성 흐름',
-  격국: '타고난 기본 성향·구조',
-  용신: '나에게 보약이 되는 기운',
-  기신: '나에게 부담이 되는 기운',
-}
-
 /** 십신명 → 생활영역 단어. 못 찾으면 원어. */
 export function sibsinArea(name: string | undefined): string {
   if (!name) return ''
@@ -129,6 +103,33 @@ export function planetPlain(name: string | undefined, ko: boolean): string {
   const key = PLANET_PLAIN[name] ? name : (KO_PLANET_TO_EN[name] ?? name)
   const entry = PLANET_PLAIN[key]
   return entry ? (ko ? entry.ko : entry.en) : name
+}
+
+/**
+ * "편관 × 화성" 같은 교차 페어 이름을 토큰 분해 → { saju, astro }.
+ * '×' 가 정확히 하나가 아니면(= 페어가 아니면) null.
+ */
+export function splitPairName(name: string | undefined): { saju: string; astro: string } | null {
+  if (!name || !name.includes('×')) return null
+  const parts = name.split('×')
+  if (parts.length !== 2) return null
+  const saju = parts[0].trim()
+  const astro = parts[1].trim()
+  if (!saju || !astro) return null
+  return { saju, astro }
+}
+
+/**
+ * 교차 페어 이름을 *쉬운말*로 — "편관 × 화성" → "일·도전 × 추진·마찰"
+ * / "challenge & pressure × drive & friction". 십신·신살은 생활영역(sibsinArea),
+ * 행성은 일상 개념어(planetPlain)로. 페어가 아니면(분해 실패) 원문 그대로.
+ */
+export function plainPairName(name: string | undefined, ko: boolean): string {
+  const sp = splitPairName(name)
+  if (!sp) return name ?? ''
+  const left = (ko ? sibsinArea(sp.saju) : sibsinAreaEn(sp.saju)) || sp.saju
+  const right = planetPlain(sp.astro, ko) || sp.astro
+  return `${left} × ${right}`
 }
 
 /** 한자 지지 → 한글 (사유 문자열의 '午月' 같은 한자月 표기 풀이용). */
@@ -163,13 +164,4 @@ export function plainReason(text: string | undefined, ko: boolean): string {
     t = t.replace(/([子丑寅卯辰巳午未申酉戌亥])月/g, (_, b: string) => `${BRANCH_HANJA_TO_KO[b]}월`)
   }
   return t.replace(/\s{2,}/g, ' ').trim()
-}
-
-/** 관계명(…육합/충 등)에서 종류를 뽑아 쉬운 한 줄. */
-export function relationPlain(label: string | undefined): string {
-  if (!label) return ''
-  for (const key of Object.keys(RELATION_PLAIN)) {
-    if (label.includes(key)) return RELATION_PLAIN[key]
-  }
-  return ''
 }

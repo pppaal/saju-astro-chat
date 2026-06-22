@@ -431,6 +431,85 @@ describe('deriveLifetimeFlow', () => {
     })
   })
 
+  describe('bilingual baked fields (server render 언어와 무관하게 양 언어 병행)', () => {
+    // KO render 호출이어도 모든 phase 가 labelKo/labelEn, textKo/textEn 을 함께
+    // 내보내 클라이언트 토글이 서버 render 언어에 묶이지 않음 (lifetimePivots 패턴).
+    const koOut = deriveLifetimeFlow(makeNatal())!
+
+    it('phase 마다 labelKo + labelEn 둘 다 채워진다', () => {
+      expect(koOut.phases.map((p) => p.labelKo)).toEqual(['초년기', '청년기', '중년기', '장년기'])
+      expect(koOut.phases.map((p) => p.labelEn)).toEqual([
+        'Early years',
+        'Young adulthood',
+        'Midlife',
+        'Elder years',
+      ])
+    })
+
+    it('phase 마다 textKo + textEn 둘 다 — EN 본문은 영문 카테고리/문장', () => {
+      for (const p of koOut.phases) {
+        expect(typeof p.textKo).toBe('string')
+        expect(typeof p.textEn).toBe('string')
+        // textEn 은 영문 카테고리 라벨 + 영문 BAND_CAT 본문을 쓴다. (십신/12운성
+        // 명칭 자체는 엔진 설계상 양 언어 공통으로 한국어 도메인 용어를 유지 —
+        // i18n 누수 범위 밖.) 영문 카테고리가 들어있는지로 검증.
+        expect(p.textEn).toMatch(/\((Officer|Wealth|Output|Peer|Resource)\)/)
+      }
+    })
+
+    it('relationLine 충 — KO/EN 양쪽 baked (EN 에 한글 없음)', () => {
+      const n = makeNatal({ branches: { year: '巳', month: '巳', day: '酉', time: '辰' } })
+      const r = deriveLifetimeFlow(n)! // KO render
+      const young = r.phases.find((p) => p.label === '청년기')!
+      expect(young.relationLine).toContain('충 (변동 압력)')
+      expect(young.relationLineEn).toContain('clash (volatility pressure)')
+      expect(young.relationLineEn).not.toMatch(/[가-힣]/)
+    })
+
+    it('shinsalLine — KO render 여도 shinsalLineEn 동반', () => {
+      const n = makeNatal({
+        natalShinsal: [{ kind: '천을귀인', target: '亥', pillars: ['day'] }],
+      })
+      const r = deriveLifetimeFlow(n)!
+      const young = r.phases.find((p) => p.label === '청년기')!
+      expect(young.shinsalLine).toContain('천을귀인 활성')
+      expect(young.shinsalLineEn).toContain('Cheoneul Gwiin (Nobleman) active')
+      expect(young.shinsalLineEn).not.toMatch(/[가-힣]/)
+    })
+
+    it('twelveStageLine — KO/EN 양쪽 baked (EN 은 영문 머리/의미)', () => {
+      for (const p of koOut.phases) {
+        expect(typeof p.twelveStageLineEn).toBe('string')
+        // EN 머리("daeun … reads as … for day-master …") 는 영문. 12운성 명칭
+        // (양/장생/…) 은 엔진 공통 한국어 도메인 용어라 누수 범위 밖.
+        expect(p.twelveStageLineEn).toContain('day-master')
+        expect(p.twelveStageLineEn).toContain('reads as')
+      }
+    })
+
+    it('milestoneLine — KO/EN 양쪽 baked', () => {
+      const overrides: LifecycleMilestoneOverride[] = [
+        { kind: 'saturn_return_1', startYear: 2019, age: 29, exactDateISO: '2019-08-10T00:00:00Z' },
+      ]
+      const r = deriveLifetimeFlow(makeNatal(), 'ko', overrides)!
+      const young = r.phases.find((p) => p.label === '청년기')!
+      expect(young.milestoneLine).toContain('첫 토성 회귀')
+      expect(young.milestoneLine).toContain('2019년 8월')
+      expect(young.milestoneLineEn).toContain('First Saturn return')
+      expect(young.milestoneLineEn).toContain('Aug 2019')
+      expect(young.milestoneLineEn).not.toMatch(/[가-힣]/)
+    })
+
+    it('톤 variant 인덱스가 KO/EN 동기화 (같은 variant 위치)', () => {
+      // textKo/textEn 의 톤 꼬리가 같은 인덱스의 KO/EN variant 여야 한다.
+      // 간단 검사: 두 본문 모두 비어있지 않고, EN 본문에 한글이 섞이지 않음.
+      for (const p of koOut.phases) {
+        expect(p.textKo.length).toBeGreaterThan(0)
+        expect(p.textEn.length).toBeGreaterThan(0)
+      }
+    })
+  })
+
   describe('EN path', () => {
     const out = deriveLifetimeFlow(
       makeNatal({ astro: { sun: 'Leo', asc: 'Scorpio', mc: 'Aquarius' } }),

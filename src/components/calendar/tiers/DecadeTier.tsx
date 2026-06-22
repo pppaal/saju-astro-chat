@@ -26,7 +26,7 @@ import type { DestinyDecade, DestinyUserSummary } from '@/types/calendar'
 
 import { Ganji } from '../atoms/Ganji'
 import { LayerTag } from '../atoms/LayerTag'
-import { sibsinArea } from '@/lib/calendar-engine/derivers/plainLanguage'
+import { sibsinArea, sibsinAreaEn } from '@/lib/calendar-engine/derivers/plainLanguage'
 import styles from './DecadeTier.module.css'
 import { CrossingList } from '@/components/calendar/atoms/CrossingList'
 import summaryStyles from '@/components/calendar/atoms/TierSummary.module.css'
@@ -51,10 +51,18 @@ export interface DecadeTierProps {
     crossActivations?: Array<{
       signalId: string
       name: string
+      /** 영문 이름 — 영문 로케일에서 사용. 미지정 시 name 으로 폴백. */
+      nameEn?: string
       sajuLine?: string
+      /** 영문 사주 라인 — 영문 로케일에서 사용. 미지정 시 sajuLine 으로 폴백. */
+      sajuLineEn?: string
       astroLine?: string
+      /** 영문 점성 라인 — 영문 로케일에서 사용. 미지정 시 astroLine 으로 폴백. */
+      astroLineEn?: string
       polarity: number
       meaning?: string
+      /** 영문 한 줄 의미 — 영문 로케일에서 사용. 미지정 시 meaning 으로 폴백. */
+      meaningEn?: string
     }>
     /** Phase 3 — 격국 status (대운 — 보통 본명과 같으나 화기/잡기 변동 가능). */
     geokgukStatus?: string
@@ -257,9 +265,12 @@ export function DecadeTier({ user, decade, onDive, onRise }: DecadeTierProps) {
           : ko
             ? '중립'
             : 'neutral',
-    title: c.name,
-    detail: c.meaning,
+    title: ko ? c.name : (c.nameEn ?? c.name),
+    detail: ko ? c.meaning : (c.meaningEn ?? c.meaning),
   }))
+
+  // body paragraphs — 영문 로케일이면 bodyEn 우선(없으면 KO body 폴백).
+  const bodyParas = ko ? decade.body : (decade.bodyEn ?? decade.body)
 
   return (
     <div className={styles.tier} data-screen-label={`10년 ${decade.start}-${decade.end}`}>
@@ -365,10 +376,20 @@ export function DecadeTier({ user, decade, onDive, onRise }: DecadeTierProps) {
                   </span>
                 </div>
                 <div className={styles.pillarHanja}>{decade.pillar.cheongan.hanja}</div>
-                <div className={styles.pillarSibsin}>{decade.pillar.cheongan.sibsin}</div>
+                <div className={styles.pillarSibsin}>
+                  {ko
+                    ? decade.pillar.cheongan.sibsin
+                    : (SIBSIN_EN[decade.pillar.cheongan.sibsin] ?? decade.pillar.cheongan.sibsin)}
+                </div>
                 <div className={styles.pillarEl}>{decade.pillar.cheongan.el}</div>
-                {decade.pillar.cheongan.note && (
-                  <p className={styles.pillarNote}>{decade.pillar.cheongan.note}</p>
+                {(ko
+                  ? decade.pillar.cheongan.note
+                  : (decade.pillar.cheongan.noteEn ?? decade.pillar.cheongan.note)) && (
+                  <p className={styles.pillarNote}>
+                    {ko
+                      ? decade.pillar.cheongan.note
+                      : (decade.pillar.cheongan.noteEn ?? decade.pillar.cheongan.note)}
+                  </p>
                 )}
               </div>
 
@@ -385,10 +406,20 @@ export function DecadeTier({ user, decade, onDive, onRise }: DecadeTierProps) {
                   </span>
                 </div>
                 <div className={styles.pillarHanja}>{decade.pillar.jiji.hanja}</div>
-                <div className={styles.pillarSibsin}>{decade.pillar.jiji.sibsin}</div>
+                <div className={styles.pillarSibsin}>
+                  {ko
+                    ? decade.pillar.jiji.sibsin
+                    : (SIBSIN_EN[decade.pillar.jiji.sibsin] ?? decade.pillar.jiji.sibsin)}
+                </div>
                 <div className={styles.pillarEl}>{decade.pillar.jiji.el}</div>
-                {decade.pillar.jiji.note && (
-                  <p className={styles.pillarNote}>{decade.pillar.jiji.note}</p>
+                {(ko
+                  ? decade.pillar.jiji.note
+                  : (decade.pillar.jiji.noteEn ?? decade.pillar.jiji.note)) && (
+                  <p className={styles.pillarNote}>
+                    {ko
+                      ? decade.pillar.jiji.note
+                      : (decade.pillar.jiji.noteEn ?? decade.pillar.jiji.note)}
+                  </p>
                 )}
               </div>
             </div>
@@ -400,12 +431,9 @@ export function DecadeTier({ user, decade, onDive, onRise }: DecadeTierProps) {
             <div className={styles.bigTitle}>
               {ko
                 ? `${decade.sibsin} · ${sibsinArea(decade.sibsin)}의 10년`
-                : `${decade.sibsin} · ${sibsinArea(decade.sibsin)} decade`}
+                : `${SIBSIN_EN[decade.sibsin] ?? decade.sibsin} · ${sibsinAreaEn(decade.sibsin)} decade`}
             </div>
-            <p className={styles.themeLine}>
-              {decade.theme}
-              <span className={styles.muted}> · {decade.themeEn}</span>
-            </p>
+            <p className={styles.themeLine}>{ko ? decade.theme : decade.themeEn}</p>
 
             <dl className={styles.kv}>
               <dt>{ko ? '기간' : 'Period'}</dt>
@@ -422,18 +450,23 @@ export function DecadeTier({ user, decade, onDive, onRise }: DecadeTierProps) {
               </dd>
               <dt>{ko ? '대운 십신' : 'Decade ten-god'}</dt>
               <dd>
-                <b>{decade.sibsin}</b>
+                <b>{ko ? decade.sibsin : (SIBSIN_EN[decade.sibsin] ?? decade.sibsin)}</b>
               </dd>
               <dt>{ko ? '천간' : 'Stem'}</dt>
               <dd>
                 <span className={styles.han}>{decade.pillar.cheongan.hanja}</span>{' '}
-                {decade.pillar.cheongan.sibsin}{' '}
+                {ko
+                  ? decade.pillar.cheongan.sibsin
+                  : (SIBSIN_EN[decade.pillar.cheongan.sibsin] ??
+                    decade.pillar.cheongan.sibsin)}{' '}
                 <span className={styles.muted}>· {decade.pillar.cheongan.el}</span>
               </dd>
               <dt>{ko ? '지지' : 'Branch'}</dt>
               <dd>
                 <span className={styles.han}>{decade.pillar.jiji.hanja}</span>{' '}
-                {decade.pillar.jiji.sibsin}{' '}
+                {ko
+                  ? decade.pillar.jiji.sibsin
+                  : (SIBSIN_EN[decade.pillar.jiji.sibsin] ?? decade.pillar.jiji.sibsin)}{' '}
                 <span className={styles.muted}>· {decade.pillar.jiji.el}</span>
               </dd>
               {sewoonNow && (
@@ -442,7 +475,9 @@ export function DecadeTier({ user, decade, onDive, onRise }: DecadeTierProps) {
                   <dd>
                     <span className={styles.han}>{sewoonNow.gz.hanja}</span>{' '}
                     <span className={styles.muted}>{sewoonNow.gz.kr}</span> ·{' '}
-                    <b>{sewoonNow.sibsin}</b>
+                    <b>
+                      {ko ? sewoonNow.sibsin : (SIBSIN_EN[sewoonNow.sibsin] ?? sewoonNow.sibsin)}
+                    </b>
                   </dd>
                 </>
               )}
@@ -453,9 +488,9 @@ export function DecadeTier({ user, decade, onDive, onRise }: DecadeTierProps) {
         {/* ============================================================
           body paragraphs
       ============================================================ */}
-        {decade.body && decade.body.length > 0 && (
+        {bodyParas && bodyParas.length > 0 && (
           <div className={styles.bodyBlock}>
-            {decade.body.map((p, i) => (
+            {bodyParas.map((p, i) => (
               <p key={i} className={styles.lead}>
                 {p}
               </p>
@@ -478,7 +513,7 @@ export function DecadeTier({ user, decade, onDive, onRise }: DecadeTierProps) {
               {decade.narrative.map((n, i) => (
                 <div key={i} className={styles.narrativeCard}>
                   <div className={styles.narrativeTag}>{n.tag}</div>
-                  <p className={styles.narrativeBody}>{n.body}</p>
+                  <p className={styles.narrativeBody}>{ko ? n.body : (n.bodyEn ?? n.body)}</p>
                 </div>
               ))}
             </div>
@@ -504,11 +539,17 @@ export function DecadeTier({ user, decade, onDive, onRise }: DecadeTierProps) {
                     <span className={`${styles.glyphMini} ${styles.glyphEmber}`}>⚡</span>
                     {ko ? '합충 · HAPCHUNG' : 'Harmony & clash · HAPCHUNG'}
                   </div>
-                  <div className={styles.dcardTitle}>{decade.hapchung.title}</div>
+                  <div className={styles.dcardTitle}>
+                    {ko
+                      ? decade.hapchung.title
+                      : (decade.hapchung.titleEn ?? decade.hapchung.title)}
+                  </div>
                   {decade.hapchung.romaji && (
                     <div className={styles.dcardRomaji}>{decade.hapchung.romaji}</div>
                   )}
-                  <p className={styles.dcardBody}>{decade.hapchung.body}</p>
+                  <p className={styles.dcardBody}>
+                    {ko ? decade.hapchung.body : (decade.hapchung.bodyEn ?? decade.hapchung.body)}
+                  </p>
                 </div>
               )}
               {decade.unseong && (
@@ -517,11 +558,15 @@ export function DecadeTier({ user, decade, onDive, onRise }: DecadeTierProps) {
                     <span className={`${styles.glyphMini} ${styles.glyphViolet}`}>◯</span>
                     {ko ? '12운성 · UNSEONG' : 'Twelve stages · UNSEONG'}
                   </div>
-                  <div className={styles.dcardTitle}>{decade.unseong.title}</div>
+                  <div className={styles.dcardTitle}>
+                    {ko ? decade.unseong.title : (decade.unseong.titleEn ?? decade.unseong.title)}
+                  </div>
                   {decade.unseong.romaji && (
                     <div className={styles.dcardRomaji}>{decade.unseong.romaji}</div>
                   )}
-                  <p className={styles.dcardBody}>{decade.unseong.body}</p>
+                  <p className={styles.dcardBody}>
+                    {ko ? decade.unseong.body : (decade.unseong.bodyEn ?? decade.unseong.body)}
+                  </p>
                 </div>
               )}
             </div>
@@ -625,19 +670,31 @@ export function DecadeTier({ user, decade, onDive, onRise }: DecadeTierProps) {
                       : styles.crossNeu
                 return (
                   <div key={c.signalId || i} className={`${styles.crossBadge} ${tone}`}>
-                    <div className={styles.crossBadgeName}>{c.name}</div>
+                    <div className={styles.crossBadgeName}>
+                      {ko ? c.name : (c.nameEn ?? c.name)}
+                    </div>
                     {(c.sajuLine || c.astroLine) && (
                       <div className={styles.crossBadgeLines}>
-                        {c.sajuLine && <span className={styles.crossBadgeSaju}>{c.sajuLine}</span>}
+                        {c.sajuLine && (
+                          <span className={styles.crossBadgeSaju}>
+                            {ko ? c.sajuLine : (c.sajuLineEn ?? c.sajuLine)}
+                          </span>
+                        )}
                         {c.sajuLine && c.astroLine && (
                           <span className={styles.crossBadgeArrow}>↔</span>
                         )}
                         {c.astroLine && (
-                          <span className={styles.crossBadgeAstro}>{c.astroLine}</span>
+                          <span className={styles.crossBadgeAstro}>
+                            {ko ? c.astroLine : (c.astroLineEn ?? c.astroLine)}
+                          </span>
                         )}
                       </div>
                     )}
-                    {c.meaning && <p className={styles.crossBadgeMeaning}>{c.meaning}</p>}
+                    {(ko ? c.meaning : (c.meaningEn ?? c.meaning)) && (
+                      <p className={styles.crossBadgeMeaning}>
+                        {ko ? c.meaning : (c.meaningEn ?? c.meaning)}
+                      </p>
+                    )}
                   </div>
                 )
               })}
@@ -692,4 +749,3 @@ function UnseongMatrix({ ilganHanja, decadeBranch }: { ilganHanja: string; decad
     </div>
   )
 }
-

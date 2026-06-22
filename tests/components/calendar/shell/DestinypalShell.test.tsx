@@ -214,6 +214,48 @@ describe('DestinypalShell', () => {
     expect(window.localStorage.getItem('dp_tier')).toBe('1')
   })
 
+  it('renders an explicit tier subset (life view: life·decade·year) via tierIds', () => {
+    const renderLife = vi.fn(() => <div data-testid="life-layer">life</div>)
+    const renderDecade = vi.fn(() => <div data-testid="decade-layer">decade</div>)
+    const renderYear = vi.fn(() => <div data-testid="year-layer">year</div>)
+    render(
+      <DestinypalShell
+        topbar={topbar}
+        tierIds={['life', 'decade', 'year']}
+        storageKey="dp_tier_life"
+        renderLife={renderLife}
+        renderDecade={renderDecade}
+        renderYear={renderYear}
+      />
+    )
+    // only the three life-scale stops are exposed (no month/day)
+    expect(screen.getByTestId('rail-life')).toBeInTheDocument()
+    expect(screen.getByTestId('rail-decade')).toBeInTheDocument()
+    expect(screen.getByTestId('rail-year')).toBeInTheDocument()
+    expect(screen.queryByTestId('rail-month')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('rail-day')).not.toBeInTheDocument()
+    expect(renderLife).toHaveBeenCalled()
+  })
+
+  it('persists the subset shell under its own storageKey (no clobbering the calendar)', () => {
+    render(
+      <DestinypalShell
+        topbar={topbar}
+        tierIds={['life', 'decade', 'year']}
+        storageKey="dp_tier_life"
+        renderLife={() => <div>life</div>}
+        renderDecade={() => <div>decade</div>}
+        renderYear={() => <div>year</div>}
+      />
+    )
+    act(() => {
+      fireEvent.click(screen.getByTestId('rail-year'))
+    })
+    // year is index 2 in this subset; written under the life-scoped key only.
+    expect(window.localStorage.getItem('dp_tier_life')).toBe('2')
+    expect(window.localStorage.getItem('dp_tier')).toBeNull()
+  })
+
   it('applies a custom className to the root element', () => {
     const { container } = render(<DestinypalShell {...makeProps({ className: 'my-root' })} />)
     expect(container.querySelector('.my-root')).toBeInTheDocument()
