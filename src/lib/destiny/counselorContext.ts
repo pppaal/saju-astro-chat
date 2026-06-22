@@ -350,9 +350,20 @@ function buildInstructions(
         '- astro symbols: ☌conjunction ⚹sextile □square △trine ☍opposition / R retrograde / (t)current transit / P-Sun, P-Moon = secondary progression / [detriment]=weak [domicile]=strong'
       )
     }
-    lines.push(
-      "- ★ Age anchor: use the [Age today] X line as the *current age*. The [daeun] entries like '31~40 甲戌' are the *start~end range* of that 10-yr cycle, NOT the current age. All ages (daeun, profection, current) are *international age* — the saju/astro stack uses one convention everywhere."
-    )
+    // 나이 anchor — 선택된 시스템의 나이 개념만 언급(없는 시스템 참조 방지).
+    if (sources.saju && sources.astro) {
+      lines.push(
+        "- ★ Age anchor: use the [Age today] X line as the *current age*. The [daeun] entries like '31~40 甲戌' are the *start~end range* of that 10-yr cycle, NOT the current age. All ages (daeun, profection, current) are *international age* — the saju/astro stack uses one convention everywhere."
+      )
+    } else if (sources.saju) {
+      lines.push(
+        "- ★ Age anchor: use the [Age today] X line as the *current age*. The [daeun] entries like '31~40 甲戌' are the *start~end range* of that 10-yr cycle, NOT the current age. All ages are *international age*."
+      )
+    } else {
+      lines.push(
+        '- ★ Age anchor: use the [Age today] X line as the *current age*. Profection age is reckoned in *international age*.'
+      )
+    }
     if (sources.saju) {
       lines.push(
         `- ★ Ten-gods anchor: every (X/Y) parens in [Timing] (daeun \`32~41 甲戌(now Direct Wealth/Direct Resource)\`, year/month-luck & iljin trailing (X/Y), each row of the daily block) are *ten-gods relative to user's day master ${dayMasterName ?? '?'}* (stem/branch).`
@@ -366,9 +377,20 @@ function buildInstructions(
       '- 점성 표기: 관계어는 [결합]/[협력]/[긴장]/[조화]/[대립] 그대로 / R역행 / (t)현재트랜짓 / 진행 태양·진행 달=2차진행 / [detriment]약 [domicile]강'
     )
   }
-  lines.push(
-    '- ★ 나이 anchor: [오늘 기준 만나이] 만 X세 를 현재 나이로 사용. [대운] 의 "31~40세 갑술" 은 그 cycle 의 시작~끝 나이지 현재 나이가 아니다. 사주·점성 화면의 모든 나이(대운·프로펙션·현재)는 만 나이로 통일.'
-  )
+  // 나이 anchor — 선택된 시스템의 나이 개념만 언급(없는 시스템 참조 방지).
+  if (sources.saju && sources.astro) {
+    lines.push(
+      '- ★ 나이 anchor: [오늘 기준 만나이] 만 X세 를 현재 나이로 사용. [대운] 의 "31~40세 갑술" 은 그 cycle 의 시작~끝 나이지 현재 나이가 아니다. 사주·점성 화면의 모든 나이(대운·프로펙션·현재)는 만 나이로 통일.'
+    )
+  } else if (sources.saju) {
+    lines.push(
+      '- ★ 나이 anchor: [오늘 기준 만나이] 만 X세 를 현재 나이로 사용. [대운] 의 "31~40세 갑술" 은 그 cycle 의 시작~끝 나이지 현재 나이가 아니다. 모든 나이(대운·현재)는 만 나이로 통일.'
+    )
+  } else {
+    lines.push(
+      '- ★ 나이 anchor: [오늘 기준 만나이] 만 X세 를 현재 나이로 사용. 프로펙션 나이도 만 나이 기준이다.'
+    )
+  }
   if (sources.saju) {
     lines.push(
       `- ★ 십성 anchor: [타이밍] 의 모든 (X/Y) 괄호 (대운의 \`32~41세 甲戌(현재 정재/정인)\`, 세운/월운 끝 (X/Y), 일진 블록 각 줄 (X/Y)) 는 *본인 일간 ${dayMasterName ?? '?'} 기준 천간/지지 십성*.`
