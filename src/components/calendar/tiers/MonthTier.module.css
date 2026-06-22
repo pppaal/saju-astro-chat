@@ -190,6 +190,15 @@
   align-items: flex-start;
   justify-content: flex-end;
   padding: 8px 9px;
+  transition:
+    transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow 0.3s ease,
+    border-color 0.3s ease;
+}
+.cell:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 22px -14px rgba(40, 33, 15, 0.4);
+  border-color: var(--line-2);
 }
 .cell:focus-visible {
   outline: 2px solid var(--blue);
@@ -229,6 +238,7 @@
   bottom: 7px;
   color: var(--gold);
   font-size: 13px;
+  animation: mtTwinkle 3.4s ease-in-out infinite;
 }
 .cellCaution {
   background: var(--surface-3);
@@ -280,6 +290,7 @@
   height: 6px;
   border-radius: 50%;
   background: var(--blue);
+  animation: mtPulse 2.6s ease-in-out infinite;
 }
 .cellSel {
   outline: 1px solid var(--line-2);
@@ -502,6 +513,12 @@
   padding: 17px 20px;
   margin-bottom: 12px;
   background: var(--surface);
+  transition:
+    box-shadow 0.3s ease,
+    border-color 0.3s ease;
+}
+.cross:hover {
+  box-shadow: 0 10px 26px -16px rgba(40, 33, 15, 0.45);
 }
 .crossHero {
   border: 2px solid var(--blue);
@@ -614,5 +631,37 @@
   }
   .num {
     font-size: 13px;
+  }
+}
+
+/* ── motion: 큰 날 반짝임 · 오늘 점멸 (reduced-motion 에서 해제) ── */
+@keyframes mtTwinkle {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+@keyframes mtPulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.35;
+    transform: scale(0.7);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cell,
+  .cross {
+    transition: none;
+  }
+  .star,
+  .cellToday::before {
+    animation: none;
   }
 }
