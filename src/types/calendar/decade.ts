@@ -24,6 +24,18 @@ export interface DestinyDecadePillar {
   element: FiveElement
   /** 본문 한 줄. */
   note: string
+  /** 본문 한 줄 영문 — 영문 로케일에서 사용. 미지정 시 note 로 폴백. */
+  noteEn?: string
+}
+
+// ============================================================================
+// 대운 관계 칩 — hapchung(합·충) / unseong(12운성). NarrativeChip + titleEn.
+// title 이 한글 섞인 라벨('子午충' / '제왕')이라 영문 로케일용 titleEn 을 둔다.
+// ============================================================================
+
+export interface DecadeRelationChip extends NarrativeChip {
+  /** 영문 타이틀 — '제왕'→'Peak', '子午충'→'ja–o clash'. 미지정 시 title 폴백. */
+  titleEn?: string
 }
 
 // ============================================================================
@@ -129,9 +141,9 @@ export interface DestinyDecade {
   /** 본문 paragraphs (영문) — 영문 로케일에서 사용. 미지정 시 body 로 폴백. */
   bodyEn?: string[]
   /** 본명 × 대운 합·충 칩. */
-  hapchung: NarrativeChip
+  hapchung: DecadeRelationChip
   /** 12운성 칩. */
-  unseong: NarrativeChip
+  unseong: DecadeRelationChip
   /** 대운 안 외행성 회귀·사각 등 점성 마일스톤. */
   astro: Array<{
     label: string

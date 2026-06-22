@@ -18,7 +18,7 @@ import type {
 } from '@/types/calendar'
 import { Ganji } from '../atoms/Ganji'
 import { LayerTag } from '../atoms/LayerTag'
-import { sibsinArea } from '@/lib/calendar-engine/derivers/plainLanguage'
+import { sibsinArea, sibsinAreaEn } from '@/lib/calendar-engine/derivers/plainLanguage'
 import { ordinalEn } from '@/lib/calendar-engine/ordinal'
 import styles from './YearTier.module.css'
 import { CrossingList } from '@/components/calendar/atoms/CrossingList'
@@ -327,9 +327,10 @@ export function YearTier({ user, year, onDive, onRise }: YearTierProps) {
       <p className={styles.oneline}>
         {ko
           ? year.headline
-          : year.profection
-            ? `This year leans toward your house ${year.profection.house}${year.profection.themeEn ? ` — ${year.profection.themeEn.toLowerCase()}` : ''}.`
-            : `${year.year} — a year the flow gets re-drawn.`}
+          : (year.headlineEn ??
+            (year.profection
+              ? `This year leans toward your house ${year.profection.house}${year.profection.themeEn ? ` — ${year.profection.themeEn.toLowerCase()}` : ''}.`
+              : `${year.year} — a year the flow gets re-drawn.`))}
       </p>
 
       {yearCrossItems.length > 0 ? (
@@ -498,7 +499,7 @@ export function YearTier({ user, year, onDive, onRise }: YearTierProps) {
               </div>
               {p && (
                 <p className={styles.lead} style={{ fontSize: 14 }}>
-                  {p.theme} <span className={styles.muted}>· {p.themeEn}</span>
+                  {ko ? p.theme : p.themeEn}
                 </p>
               )}
               {p && (
@@ -512,23 +513,13 @@ export function YearTier({ user, year, onDive, onRise }: YearTierProps) {
                     {ko ? '활성' : 'active'}
                   </dd>
                   <dt>cusp</dt>
-                  <dd>
-                    {p.cusp} <span className={styles.muted}>{p.cuspEn}</span>
-                  </dd>
+                  <dd>{ko ? p.cusp : p.cuspEn}</dd>
                   <dt>ruler</dt>
                   <dd>
-                    <b>{p.ruler}</b> <span className={styles.muted}>{p.rulerEn}</span>
+                    <b>{ko ? p.ruler : p.rulerEn}</b>
                   </dd>
                   <dt>{ko ? 'ruler 본명' : 'ruler (natal)'}</dt>
-                  <dd>
-                    {p.rulerNatal}
-                    {p.rulerNatalEn && (
-                      <span className={styles.muted}>
-                        {' · '}
-                        {p.rulerNatalEn}
-                      </span>
-                    )}
-                  </dd>
+                  <dd>{ko ? p.rulerNatal : p.rulerNatalEn}</dd>
                 </dl>
               )}
 
@@ -549,12 +540,12 @@ export function YearTier({ user, year, onDive, onRise }: YearTierProps) {
               </div>
               {lordReadout && p && (
                 <p className={styles.lordOfYear}>
-                  <b>Lord of Year</b> {p.ruler} <span className={styles.muted}>({p.rulerEn})</span>{' '}
-                  — <span className={styles[lordReadout.tone]}>{lordReadout.text}</span>
+                  <b>Lord of Year</b> {ko ? p.ruler : p.rulerEn} —{' '}
+                  <span className={styles[lordReadout.tone]}>{lordReadout.text}</span>
                 </p>
               )}
 
-              {year.astroNote && (
+              {(ko ? year.astroNote : (year.astroNoteEn ?? year.astroNote)) && (
                 <p
                   className={styles.lead}
                   style={{
@@ -563,7 +554,7 @@ export function YearTier({ user, year, onDive, onRise }: YearTierProps) {
                     color: 'var(--dp-ink-mute)',
                   }}
                 >
-                  {year.astroNote}
+                  {ko ? year.astroNote : (year.astroNoteEn ?? year.astroNote)}
                 </p>
               )}
             </div>
@@ -579,11 +570,16 @@ export function YearTier({ user, year, onDive, onRise }: YearTierProps) {
                 <div className={styles.ganjiMeta}>
                   {ko ? '세운 ' : 'Annual '}
                   {year.year} · {year.sewoonSibsin}
-                  {sibsinArea(year.sewoonSibsin) !== year.sewoonSibsin
-                    ? ` (${sibsinArea(year.sewoonSibsin)})`
-                    : ''}
+                  {(() => {
+                    const area = ko
+                      ? sibsinArea(year.sewoonSibsin)
+                      : sibsinAreaEn(year.sewoonSibsin)
+                    return area !== year.sewoonSibsin ? ` (${area})` : ''
+                  })()}
                 </div>
-                <p className={styles.sajuNote}>{year.sajuNote}</p>
+                <p className={styles.sajuNote}>
+                  {ko ? year.sajuNote : (year.sajuNoteEn ?? year.sajuNote)}
+                </p>
               </div>
             </div>
           </div>

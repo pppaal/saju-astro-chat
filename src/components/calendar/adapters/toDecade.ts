@@ -59,8 +59,8 @@ function crossLineToEn(line: string): string {
 }
 
 export interface DestinypalDecadePillar {
-  cheongan: { hanja: string; sibsin: string; el: string; note?: string }
-  jiji: { hanja: string; sibsin: string; el: string; note?: string }
+  cheongan: { hanja: string; sibsin: string; el: string; note?: string; noteEn?: string }
+  jiji: { hanja: string; sibsin: string; el: string; note?: string; noteEn?: string }
 }
 
 export interface DestinypalDecadeYear {
@@ -88,6 +88,8 @@ export interface DestinypalDecadeAstroMark {
 
 export interface DestinypalDecadeRelation {
   title: string
+  /** 영문 제목 — 12운성 단계명/충·합 라벨처럼 한글이 섞인 title 을 영문으로. 미지정 시 title 폴백. */
+  titleEn?: string
   romaji?: string
   body: string
   /** 영문 본문 — 영문 로케일에서 사용. 미지정 시 클라이언트가 body 로 폴백. */
@@ -103,7 +105,10 @@ export interface DestinypalDecadeCrossActivation {
   sajuLine?: string
   /** 사주 신호 한 줄 영문 — 십신을 영문으로. 미지정 시 sajuLine 폴백. */
   sajuLineEn?: string
+  /** 점성 신호 한 줄 — 한글 행성('화성'). KO 로케일용. */
   astroLine?: string
+  /** 점성 신호 한 줄 영문 — 영문 행성 키('Mars'). 미지정 시 astroLine 폴백. */
+  astroLineEn?: string
   polarity: number
   /** 이 cross 활성이 가리키는 한 줄 의미 (있으면) */
   meaning?: string
@@ -255,7 +260,7 @@ function buildDecadeHapchung(natal: NatalContext, decadeBranch: string): Destiny
   const ko = (b: string) => BRANCH_KO[b] ?? b
   const rom = (b: string) => BRANCH_ROMAJI[b] ?? b
   const db = decadeBranch
-  const hits: Array<{ title: string; body: string; bodyEn: string }> = []
+  const hits: Array<{ title: string; titleEn: string; body: string; bodyEn: string }> = []
   for (const key of ['day', 'time', 'month', 'year']) {
     const nb = pillars[key]?.earthlyBranch?.name
     if (!nb) continue
@@ -264,12 +269,14 @@ function buildDecadeHapchung(natal: NatalContext, decadeBranch: string): Destiny
     if (CHUNG[db] === nb) {
       hits.push({
         title: `${nb}${db}충`,
+        titleEn: `${rom(nb)}–${rom(db)} clash`,
         body: `본명 ${pos}지 ${nb}(${ko(nb)}) × 대운 ${db}(${ko(db)}) → ${nb}${db}충 — 이 영역에 변동·이동 압력이 실려요.`,
         bodyEn: `Natal ${posEn} branch ${nb} (${rom(nb)}) × decade ${db} (${rom(db)}) → ${nb}${db} clash — this area carries pressure to shift and move.`,
       })
     } else if (YUKHAP[db] === nb) {
       hits.push({
         title: `${nb}${db}육합`,
+        titleEn: `${rom(nb)}–${rom(db)} harmony`,
         body: `본명 ${pos}지 ${nb}(${ko(nb)}) × 대운 ${db}(${ko(db)}) → ${nb}${db}육합 — 환경이 손발을 맞춰줘요.`,
         bodyEn: `Natal ${posEn} branch ${nb} (${rom(nb)}) × decade ${db} (${rom(db)}) → ${nb}${db} harmony — your surroundings fall into step with you.`,
       })
@@ -278,6 +285,7 @@ function buildDecadeHapchung(natal: NatalContext, decadeBranch: string): Destiny
   if (hits.length === 0) {
     return {
       title: '—',
+      titleEn: '—',
       body: `본명 지지와 대운 ${db}(${ko(db)}) 사이 뚜렷한 충·합은 없어요 — 무난히 흘러가요.`,
       bodyEn: `No clear clash or harmony between your natal branches and the decade ${db} (${rom(db)}) — it flows along smoothly.`,
     }
@@ -285,6 +293,7 @@ function buildDecadeHapchung(natal: NatalContext, decadeBranch: string): Destiny
   // 가장 가까운(일/시지) 관계를 title 로, 나머지는 본문에 이어 붙임.
   return {
     title: hits[0].title,
+    titleEn: hits[0].titleEn,
     body: hits.map((h) => h.body).join(' '),
     bodyEn: hits.map((h) => h.bodyEn).join(' '),
   }
@@ -323,6 +332,8 @@ function buildDecadeUnseong(dm: string, decadeBranch: string): DestinypalDecadeR
   const en = TWELVE_STAGE_EN[stage]
   return {
     title: stage,
+    // 단계명(stage)은 한글 — EN 로케일엔 영문 라벨('Peak' 등)을 쓴다(한글 누수 방지).
+    titleEn: en?.label ?? stage,
     body: desc
       ? `대운 자리(${decadeBranch}·${ko})는 ${stage} — ${desc}`
       : `대운 자리(${decadeBranch}·${ko})는 ${stage}예요.`,
@@ -428,6 +439,7 @@ export function toDecade(natal: NatalContext, opts: ToDecadeOptions = {}): Desti
       continue
     }
     const sajuLine = extractEvidenceField(s, 'sajuKey')
+    const astroKey = extractEvidenceField(s, 'astroKey')
     crossSeen.set(s.name, {
       signalId: s.id,
       // 이름은 쉬운말 — '편관 × 화성' → '일·도전 × 추진·마찰' (십신=생활영역, 행성=일상어).
@@ -436,7 +448,9 @@ export function toDecade(natal: NatalContext, opts: ToDecadeOptions = {}): Desti
       sajuLine,
       // 사주 라인 영문 — 십신/꼬리 토큰 영문화.
       sajuLineEn: sajuLine ? crossLineToEn(sajuLine) : undefined,
-      astroLine: extractEvidenceField(s, 'astroKey'),
+      // astroKey 는 영문 행성 키('Mars'). KO 로케일엔 한글 행성('화성'), EN 엔 원본 키.
+      astroLine: astroKey ? (PLANET_KO[astroKey] ?? astroKey) : undefined,
+      astroLineEn: astroKey,
       polarity: s.polarity,
       meaning: s.korean ?? extractEvidenceField(s, 'meaning'),
       // 영문 의미 — 신호의 english(없으면 evidence.meaning, 그래도 없으면 korean 폴백).
@@ -470,12 +484,14 @@ export function toDecade(natal: NatalContext, opts: ToDecadeOptions = {}): Desti
       sibsin: sibsinStem,
       el: `${stemElement}(${ELEMENT_HAN[stemElement] ?? ''})`,
       note: PILLAR_STEM_NOTE[sibsinStem],
+      noteEn: PILLAR_STEM_NOTE_EN[sibsinStem],
     },
     jiji: {
       hanja: branchHan,
       sibsin: sibsinBranch,
       el: `${branchElement}(${ELEMENT_HAN[branchElement] ?? ''})`,
       note: PILLAR_BRANCH_NOTE[sibsinBranch],
+      noteEn: PILLAR_BRANCH_NOTE_EN[sibsinBranch],
     },
   }
 
@@ -529,6 +545,32 @@ const PILLAR_BRANCH_NOTE: Record<string, string> = {
   정관: '관성 지지 — 사회적 자리의 뿌리',
   편인: '인성 지지 — 독자적 학습의 토양',
   정인: '인성 지지 — 배움·지원·안정의 뿌리',
+}
+
+// PILLAR_STEM_NOTE / PILLAR_BRANCH_NOTE 의 영문 병행 — EN 로케일에서 사용.
+const PILLAR_STEM_NOTE_EN: Record<string, string> = {
+  비견: 'Self stem — peers and rivals of the same grain',
+  겁재: 'Rivalry stem — allies, but risk of shared loss',
+  식신: 'Expression stem — flair and creative drive',
+  상관: 'Talent stem — free, unbridled expression',
+  편재: 'Wealth stem — drive for the outer world, money, romance',
+  정재: 'Wealth stem — steady accumulation',
+  편관: 'Officer stem — strong push and challenge',
+  정관: 'Officer stem — duty and standing',
+  편인: 'Resource stem — independent thinking',
+  정인: 'Resource stem — learning and support',
+}
+const PILLAR_BRANCH_NOTE_EN: Record<string, string> = {
+  비견: 'Peer branch — a stage for your own grain',
+  겁재: 'Rivalry branch — shared loss possible',
+  식신: 'Expression branch — creativity takes root',
+  상관: 'Talent branch — unfolds freely',
+  편재: 'Wealth branch — soil rich in activity',
+  정재: 'Wealth branch — roots of steady accumulation',
+  편관: 'Officer branch — foundation of strong pressure',
+  정관: 'Officer branch — roots of social standing',
+  편인: 'Resource branch — soil for independent study',
+  정인: 'Resource branch — roots of learning, support, stability',
 }
 
 const ELEMENT_HAN: Record<string, string> = {

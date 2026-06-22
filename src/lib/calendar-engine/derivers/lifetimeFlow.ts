@@ -44,10 +44,20 @@ import type { LifecycleMilestoneOverride } from '@/lib/calendar-engine/lifecycle
 import { currentManAge } from '@/lib/datetime/currentAge'
 
 export interface LifePhase {
-  label: string // 초년기 …
+  label: string // 초년기 … (rendered locale — kept for backward compat)
+  /**
+   * 단계 라벨을 양 언어로 병행 baked — 클라이언트 토글이 서버 render 언어에
+   * 묶이지 않게. lifetimePivots 가 label+labelEn 을 항상 함께 내보내는 패턴과 동일.
+   */
+  labelKo: string // 초년기/청년기/중년기/장년기
+  labelEn: string // Early years / Young adulthood / …
   ageRange: string // '0~19세 · 1995~2014'
   /** 십신 + 단계 본문 + 톤 (필수). 옛 단일 text 와 호환되도록 같이 유지. */
   text: string
+  /** 본문 한국어 — 클라이언트 토글용. */
+  textKo: string
+  /** 본문 영문 — 클라이언트 토글용. */
+  textEn: string
   /**
    * 이 단계에 걸친 대운 흐름 한 줄. 예: "丁丑(정축) 대운 1996-2006 → 丙子(병자)
    * 대운 2006-2016". UI 가 본문(text) 위에 작게 표시.
@@ -58,24 +68,32 @@ export interface LifePhase {
    * 시간순 정렬, 최대 3개, 더 있으면 "외 N" 으로 압축. UI 가 본문 아래에 표시.
    */
   milestoneLine?: string
+  /** milestoneLine 영문 — 클라이언트 토글용. */
+  milestoneLineEn?: string
   /**
    * 본명 지지 ↔ 이 단계 대운 지지의 충·합 한 줄. 예: "본명 巳(사) × 대운
    * 亥(해) → 巳亥충 (변동 압력)". 있으면 UI 가 본문 아래 (milestoneLine 과 별도)
    * 에 작게 표시. v3 신규.
    */
   relationLine?: string
+  /** relationLine 영문 — 클라이언트 토글용. */
+  relationLineEn?: string
   /**
    * 본명 신살 중 이 단계 대운 지지(또는 천간)와 anchor 가 일치해 활성화되는
    * 첫 번째 신살 한 줄. 예: "신살: 천을귀인 활성 (대운 丑 ↔ 본명 일지) —
    * 도움·우호적 지원 시기". 없으면 undefined. v3 신규.
    */
   shinsalLine?: string
+  /** shinsalLine 영문 — 클라이언트 토글용. */
+  shinsalLineEn?: string
   /**
    * 일간 기준 이 단계 대운 지지의 12운성 한 줄. 예: "12운성: 대운 丑이
    * 일간 辛 기준 衰(쇠) — 천천히 힘이 빠지는 시기". advancedAnalysis 의
    * twelveStages interpretation (meaning) 을 한 줄로 압축. v4 신규.
    */
   twelveStageLine?: string
+  /** twelveStageLine 영문 — 클라이언트 토글용. */
+  twelveStageLineEn?: string
   current: boolean
 }
 export interface LifetimeFlow {
@@ -632,12 +650,11 @@ export function deriveLifetimeFlow(
   if (!birthYear || daeun.length === 0 || !dm) return undefined
 
   // ── lang dispatch helpers ──
+  // intro 합성 + daeunLine 은 render 언어를 그대로 쓰고, phase 의 사용자 토글
+  // 대상 라인(text/relation/shinsal/twelveStage/milestone)은 KO/EN 양쪽을 baked.
   const isEn = lang === 'en'
   const SIGN = isEn ? SIGN_EN : SIGN_KO
-  const MILESTONE_SHORT = isEn ? MILESTONE_SHORT_EN : MILESTONE_SHORT_KO
-  const TONE_VARIANTS = isEn ? TONE_VARIANTS_EN : TONE_VARIANTS_KO
   const BAND_CAT = isEn ? BAND_CAT_EN : BAND_CAT_KO
-  const shortDate = isEn ? shortDateEn : shortDateKo
   const ganjiFmt = isEn ? ganjiEn : ganjiKo
 
   // ── strength / yongsin ──
@@ -911,42 +928,51 @@ export function deriveLifetimeFlow(
   })
 
   // ── 외행성 마디 사실 — kind 별로 (라벨, 정확 일시) 맵. 없거나 null 은 무시. ──
-  const milestoneFacts: Array<{ kind: string; age: number; dateStr: string }> = []
+  // bilingual: 날짜 문자열을 KO/EN 양쪽으로 baked (kind 매핑 존재 판정은 KO 테이블
+  // 기준 — 두 테이블 키가 동일).
+  const milestoneFacts: Array<{ kind: string; age: number; dateStrKo: string; dateStrEn: string }> =
+    []
   for (const o of astroMilestoneOverrides ?? []) {
     if (o.age == null) continue
-    const short = MILESTONE_SHORT[o.kind]
+    const short = MILESTONE_SHORT_KO[o.kind]
     if (!short) continue
-    const dateStr = o.exactDateISO
-      ? shortDate(o.exactDateISO)
+    const dateStrKo = o.exactDateISO
+      ? shortDateKo(o.exactDateISO)
       : o.startYear != null
-        ? isEn
-          ? `${o.startYear}`
-          : `${o.startYear}년`
+        ? `${o.startYear}년`
         : ''
-    if (!dateStr) continue
-    milestoneFacts.push({ kind: o.kind, age: o.age, dateStr })
+    const dateStrEn = o.exactDateISO
+      ? shortDateEn(o.exactDateISO)
+      : o.startYear != null
+        ? `${o.startYear}`
+        : ''
+    if (!dateStrKo && !dateStrEn) continue
+    milestoneFacts.push({ kind: o.kind, age: o.age, dateStrKo, dateStrEn })
   }
 
-  // ── 본명 4지지 (지지충/육합 판정용) ──
+  // ── 본명 4지지 (지지충/육합 판정용) — 위치 라벨을 KO/EN 양쪽 baked. ──
   const pillars = natal.saju.pillars
-  const natalBranches: Array<{ name: string; pos: string }> = []
+  const natalBranches: Array<{ name: string; posKo: string; posEn: string }> = []
   if (pillars) {
     const yr = pillars.year?.earthlyBranch?.name
     const mo = pillars.month?.earthlyBranch?.name
     const dy = pillars.day?.earthlyBranch?.name
     const ti = pillars.time?.earthlyBranch?.name
-    if (yr) natalBranches.push({ name: yr, pos: isEn ? 'year' : '연' })
-    if (mo) natalBranches.push({ name: mo, pos: isEn ? 'month' : '월' })
-    if (dy) natalBranches.push({ name: dy, pos: isEn ? 'day' : '일' })
-    if (ti) natalBranches.push({ name: ti, pos: isEn ? 'hour' : '시' })
+    if (yr) natalBranches.push({ name: yr, posKo: '연', posEn: 'year' })
+    if (mo) natalBranches.push({ name: mo, posKo: '월', posEn: 'month' })
+    if (dy) natalBranches.push({ name: dy, posKo: '일', posEn: 'day' })
+    if (ti) natalBranches.push({ name: ti, posKo: '시', posEn: 'hour' })
   }
 
   // ── 톤 variant 회전 — 직전 단계와 같은 톤이면 다음 인덱스로 ──
+  // bilingual: 인덱스를 한 번만 advance 하고 KO/EN 두 테이블에서 같은 인덱스로
+  // 뽑아 두 언어가 desync 되지 않게 (옛 nextToneText 는 호출마다 advance 라
+  // KO·EN 따로 부르면 인덱스가 어긋났음).
   const lastToneIdx: Record<'good' | 'hard' | 'mid', number> = { good: -1, hard: -1, mid: -1 }
-  const nextToneText = (fav: 'good' | 'hard' | 'mid'): string => {
-    const variants = TONE_VARIANTS[fav]
+  const nextToneIdx = (fav: 'good' | 'hard' | 'mid'): number => {
+    const variants = TONE_VARIANTS_KO[fav]
     lastToneIdx[fav] = (lastToneIdx[fav] + 1) % variants.length
-    return variants[lastToneIdx[fav]]
+    return lastToneIdx[fav]
   }
 
   const phases: LifePhase[] = []
@@ -1002,60 +1028,54 @@ export function deriveLifetimeFlow(
         )
         .join(' → ') + (daeunMore > 0 ? ' →…' : '')
 
-    // 사실 2: 이 단계(age lo~hi)에 떨어지는 외행성 마디.
+    // 사실 2: 이 단계(age lo~hi)에 떨어지는 외행성 마디. KO/EN 양쪽 한 줄.
     const phaseMilestones = milestoneFacts
       .filter((m) => m.age >= lo && m.age <= hi)
       .slice()
-      .sort((a, b) => (a.dateStr < b.dateStr ? -1 : a.dateStr > b.dateStr ? 1 : 0))
+      .sort((a, b) => (a.dateStrEn < b.dateStrEn ? -1 : a.dateStrEn > b.dateStrEn ? 1 : 0))
     const TOP_N = 3
     const top = phaseMilestones.slice(0, TOP_N)
     const moreCount = phaseMilestones.length - top.length
-    const milestoneStr = top.map((m) => `${MILESTONE_SHORT[m.kind]} ${m.dateStr}`).join(', ')
-    const milestoneLine = top.length
-      ? `${milestoneStr}${moreCount > 0 ? (isEn ? ` (+${moreCount} more)` : ` 외 ${moreCount}`) : ''}`
-      : undefined
+    const buildMilestoneLine = (en: boolean): string | undefined => {
+      if (top.length === 0) return undefined
+      const short = en ? MILESTONE_SHORT_EN : MILESTONE_SHORT_KO
+      const str = top.map((m) => `${short[m.kind]} ${en ? m.dateStrEn : m.dateStrKo}`).join(', ')
+      const more = moreCount > 0 ? (en ? ` (+${moreCount} more)` : ` 외 ${moreCount}`) : ''
+      return `${str}${more}`
+    }
+    const milestoneLineKo = buildMilestoneLine(false)
+    const milestoneLineEn = buildMilestoneLine(true)
 
     // 사실 3: 본명 4지지 ↔ 이 단계 대운 지지의 충·합. 단계에 대운이 여러
     // 개 있어도 primary 한 개만 검사 (단계 카드에 한 줄 더 박을 공간이 좁다).
-    let relationLine: string | undefined
-    if (natalBranches.length > 0) {
+    // KO/EN 양쪽 산출 — 같은 지지 hit (year→…→hour 순 첫 매칭) 을 두 언어로 표현.
+    const buildRelationLine = (en: boolean): string | undefined => {
+      if (natalBranches.length === 0) return undefined
       const daeunBranch = primary.branch
-      const hits: string[] = []
       for (const nb of natalBranches) {
         if (BRANCH_CHUNG[nb.name] === daeunBranch) {
-          if (isEn) {
-            hits.push(
-              `Natal ${nb.pos} ${nb.name} (${BRANCH_ROM[nb.name] ?? ''}) × daeun ${daeunBranch} (${BRANCH_ROM[daeunBranch] ?? ''}) — clash (volatility pressure)`
-            )
-          } else {
-            hits.push(
-              `본명 ${nb.pos}지 ${nb.name}(${BRANCH_KO[nb.name] ?? ''}) × 대운 ${daeunBranch}(${BRANCH_KO[daeunBranch] ?? ''}) → ${nb.name}${daeunBranch}충 (변동 압력)`
-            )
-          }
-          break // 한 줄에 1개만 — 여러 개 잡혀도 가장 가까운 것 (year→month→day→hour 순)
+          return en
+            ? `Natal ${nb.posEn} ${nb.name} (${BRANCH_ROM[nb.name] ?? ''}) × daeun ${daeunBranch} (${BRANCH_ROM[daeunBranch] ?? ''}) — clash (volatility pressure)`
+            : `본명 ${nb.posKo}지 ${nb.name}(${BRANCH_KO[nb.name] ?? ''}) × 대운 ${daeunBranch}(${BRANCH_KO[daeunBranch] ?? ''}) → ${nb.name}${daeunBranch}충 (변동 압력)`
         }
         if (BRANCH_YUKHAP[nb.name] === daeunBranch) {
-          if (isEn) {
-            hits.push(
-              `Natal ${nb.pos} ${nb.name} (${BRANCH_ROM[nb.name] ?? ''}) × daeun ${daeunBranch} (${BRANCH_ROM[daeunBranch] ?? ''}) — harmony (environment in step)`
-            )
-          } else {
-            hits.push(
-              `본명 ${nb.pos}지 ${nb.name}(${BRANCH_KO[nb.name] ?? ''}) × 대운 ${daeunBranch}(${BRANCH_KO[daeunBranch] ?? ''}) → ${nb.name}${daeunBranch}육합 (환경이 손발 맞춤)`
-            )
-          }
-          break
+          return en
+            ? `Natal ${nb.posEn} ${nb.name} (${BRANCH_ROM[nb.name] ?? ''}) × daeun ${daeunBranch} (${BRANCH_ROM[daeunBranch] ?? ''}) — harmony (environment in step)`
+            : `본명 ${nb.posKo}지 ${nb.name}(${BRANCH_KO[nb.name] ?? ''}) × 대운 ${daeunBranch}(${BRANCH_KO[daeunBranch] ?? ''}) → ${nb.name}${daeunBranch}육합 (환경이 손발 맞춤)`
         }
       }
-      if (hits.length > 0) relationLine = hits[0]
+      return undefined
     }
+    const relationLineKo = buildRelationLine(false)
+    const relationLineEn = buildRelationLine(true)
 
     // 사실 4: 본명 신살 활성 — 이 단계 대운 지지/천간이 본명 신살의 anchor
     // (= ShinsalHit.target, 신살이 앉아있는 본명 간지 글자) 와 일치하면 그
     // 신살이 이 단계에 '활성' 된다고 본다. 단계에 대운이 여러 개 있어도
     // 카드 공간 제약 + "한 단계 한 신살" 원칙으로 primary 대운만 검사.
-    // natalShinsal 이 없거나 매칭이 없으면 silently skip.
-    let shinsalLine: string | undefined
+    // natalShinsal 이 없거나 매칭이 없으면 silently skip. KO/EN 양쪽 baked.
+    let shinsalLineKo: string | undefined
+    let shinsalLineEn: string | undefined
     const natalShinsal = natal.saju.natalShinsal
     if (natalShinsal && natalShinsal.length > 0) {
       const daeunBranch = primary.branch
@@ -1071,7 +1091,8 @@ export function deriveLifetimeFlow(
         // 없는 경우엔 그냥 "본명" 만 쓴다.
         const pillarKey = sh.pillars?.[0]
         const kind = sh.kind
-        if (isEn) {
+        // EN
+        {
           const meta = SHINSAL_SHORT_EN[kind] ?? { name: kind, short: `${kind} activated` }
           const posLabel = pillarKey
             ? isBranch
@@ -1085,8 +1106,10 @@ export function deriveLifetimeFlow(
             ? `${daeunBranch} (${BRANCH_ROM[daeunBranch] ?? ''})`
             : `${daeunStem} (${STEM_ROM[daeunStem] ?? ''})`
           const anchorPart = posLabel ? `natal ${posLabel} ${anchorRom}` : `natal ${anchorRom}`
-          shinsalLine = `${meta.name} active (daeun ${daeunRom} ↔ ${anchorPart}) — ${meta.short}`
-        } else {
+          shinsalLineEn = `${meta.name} active (daeun ${daeunRom} ↔ ${anchorPart}) — ${meta.short}`
+        }
+        // KO
+        {
           const short = SHINSAL_SHORT_KO[kind] ?? `${kind} 발현`
           const posLabel = pillarKey
             ? isBranch
@@ -1100,7 +1123,7 @@ export function deriveLifetimeFlow(
             ? `${daeunBranch}(${BRANCH_KO[daeunBranch] ?? ''})`
             : `${daeunStem}(${STEM_KO[daeunStem] ?? ''})`
           const anchorPart = posLabel ? `본명 ${posLabel} ${anchorKo}` : `본명 ${anchorKo}`
-          shinsalLine = `${kind} 활성 (대운 ${daeunKo} ↔ ${anchorPart}) — ${short}`
+          shinsalLineKo = `${kind} 활성 (대운 ${daeunKo} ↔ ${anchorPart}) — ${short}`
         }
         break // 첫 매칭 한 개만
       }
@@ -1109,8 +1132,9 @@ export function deriveLifetimeFlow(
     // 사실 5: 일간 기준 이 단계 대운 지지의 12운성. 옛 advanced.interpretations
     // 캐시 사용했지만 raw 응답에서 제거됐기 때문에 (2026-06-06) 직접 호출.
     // getTwelveStage + getTwelveStageInterpretation 둘 다 pure-table lookup 이라
-    // cost 무시.
-    let twelveStageLine: string | undefined
+    // cost 무시. KO/EN 양쪽 baked.
+    let twelveStageLineKo: string | undefined
+    let twelveStageLineEn: string | undefined
     try {
       const stage = getTwelveStage(dm, primary.branch)
       let meaningKo = ''
@@ -1124,31 +1148,31 @@ export function deriveLifetimeFlow(
       }
       if (stage) {
         const daeunBranch = primary.branch
-        if (isEn) {
-          const branchRom = BRANCH_ROM[daeunBranch] ?? ''
-          const branchStr = branchRom ? `${daeunBranch} (${branchRom})` : daeunBranch
-          const stageHead = `daeun ${branchStr} reads as ${stage} for day-master ${dm}`
-          twelveStageLine = meaningEn ? `${stageHead} — ${meaningEn}` : stageHead
-        } else {
-          const branchKo = BRANCH_KO[daeunBranch] ?? ''
-          const branchStr = branchKo ? `${daeunBranch}(${branchKo})` : daeunBranch
-          const stageHead = `대운 ${branchStr}이 일간 ${dm} 기준 ${stage}`
-          twelveStageLine = meaningKo ? `${stageHead} — ${meaningKo}` : stageHead
-        }
+        const branchRom = BRANCH_ROM[daeunBranch] ?? ''
+        const branchStrEn = branchRom ? `${daeunBranch} (${branchRom})` : daeunBranch
+        const stageHeadEn = `daeun ${branchStrEn} reads as ${stage} for day-master ${dm}`
+        twelveStageLineEn = meaningEn ? `${stageHeadEn} — ${meaningEn}` : stageHeadEn
+        const branchKo = BRANCH_KO[daeunBranch] ?? ''
+        const branchStrKo = branchKo ? `${daeunBranch}(${branchKo})` : daeunBranch
+        const stageHeadKo = `대운 ${branchStrKo}이 일간 ${dm} 기준 ${stage}`
+        twelveStageLineKo = meaningKo ? `${stageHeadKo} — ${meaningKo}` : stageHeadKo
       }
     } catch {
       // stage 계산 실패 시 silently skip
     }
 
     // 본문 — 십신(정확명) + cat + body + 톤. 초년은 "년주(부모·뿌리) 기준" 명시.
-    const childPrefix = isChildhood
-      ? isEn
-        ? 'From the year pillar (parents·roots) — '
-        : '초년은 년주(부모·뿌리) 기준 — '
-      : ''
-    const text = isEn
-      ? `${childPrefix}${sibsinName} (${CAT_EN[cat]}) flow — ${body}. ${nextToneText(toneFav)}`
-      : `${childPrefix}${sibsinName}(${cat}) 흐름 — ${body}. ${nextToneText(toneFav)}`
+    // KO/EN 양쪽 산출. 톤 variant 는 인덱스를 한 번만 뽑아 두 언어 동기화.
+    const toneIdx = nextToneIdx(toneFav)
+    const toneKo = TONE_VARIANTS_KO[toneFav][toneIdx]
+    const toneEn = TONE_VARIANTS_EN[toneFav][toneIdx]
+    const bodyKo = BAND_CAT_KO[label]?.[cat] ?? body
+    const bodyEn = BAND_CAT_EN[label]?.[cat] ?? body
+    const childPrefixKo = isChildhood ? '초년은 년주(부모·뿌리) 기준 — ' : ''
+    const childPrefixEn = isChildhood ? 'From the year pillar (parents·roots) — ' : ''
+    const textKo = `${childPrefixKo}${sibsinName}(${cat}) 흐름 — ${bodyKo}. ${toneKo}`
+    const textEn = `${childPrefixEn}${sibsinName} (${CAT_EN[cat]}) flow — ${bodyEn}. ${toneEn}`
+    const text = isEn ? textEn : textKo
 
     const ageRange = isEn
       ? `age ${lo}-${hi} · ${birthYear + lo}-${birthYear + hi}`
@@ -1156,13 +1180,21 @@ export function deriveLifetimeFlow(
 
     phases.push({
       label: labelOut,
+      labelKo: label,
+      labelEn: BAND_LABEL_EN[label] ?? label,
       ageRange,
       text,
+      textKo,
+      textEn,
       daeunLine,
-      milestoneLine,
-      relationLine,
-      shinsalLine,
-      twelveStageLine,
+      milestoneLine: isEn ? milestoneLineEn : milestoneLineKo,
+      milestoneLineEn,
+      relationLine: isEn ? relationLineEn : relationLineKo,
+      relationLineEn,
+      shinsalLine: isEn ? shinsalLineEn : shinsalLineKo,
+      shinsalLineEn,
+      twelveStageLine: isEn ? twelveStageLineEn : twelveStageLineKo,
+      twelveStageLineEn,
       current: currentAge >= lo && currentAge <= hi,
     })
   }

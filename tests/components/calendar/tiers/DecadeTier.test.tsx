@@ -63,8 +63,22 @@ function makeDecade(over: Partial<DecadeTierProps['decade']> = {}): DecadeTierPr
     headline: '재물과 성취의 10년',
     headlineEn: 'A decade of wealth and achievement',
     pillar: {
-      cheongan: { hanja: '甲', sibsin: '편재', el: '목(木)', element: '목', note: '천간 노트' },
-      jiji: { hanja: '戌', sibsin: '편관', el: '토(土)', element: '토', note: '지지 노트' },
+      cheongan: {
+        hanja: '甲',
+        sibsin: '편재',
+        el: '목(木)',
+        element: '목',
+        note: '천간 노트',
+        noteEn: 'Stem note in English',
+      },
+      jiji: {
+        hanja: '戌',
+        sibsin: '편관',
+        el: '토(土)',
+        element: '토',
+        note: '지지 노트',
+        noteEn: 'Branch note in English',
+      },
     },
     sewoonNow: { gz: gz('甲辰', '갑진', 'gapjin'), sibsin: '편재', year: 2024 },
     years: [
@@ -83,12 +97,14 @@ function makeDecade(over: Partial<DecadeTierProps['decade']> = {}): DecadeTierPr
     bodyEn: ['First body paragraph.', 'Second body paragraph.'],
     hapchung: {
       title: '寅亥 육합',
+      titleEn: 'in–hae harmony',
       romaji: 'in-hae yukhap',
       body: '합의 본문',
       bodyEn: 'Harmony body in English',
     },
     unseong: {
       title: '관대',
+      titleEn: 'Coming-of-age',
       romaji: 'gwandae',
       body: '12운성 본문',
       bodyEn: 'Twelve-stage body EN',
@@ -109,7 +125,8 @@ function makeDecade(over: Partial<DecadeTierProps['decade']> = {}): DecadeTierPr
         signalId: 'x1',
         name: '편재 ↔ Jupiter',
         sajuLine: '편재 대운',
-        astroLine: 'Jupiter Return',
+        astroLine: '목성',
+        astroLineEn: 'Jupiter',
         polarity: 2,
         meaning: '확장과 기회',
         meaningEn: 'Expansion and opportunity',
@@ -118,7 +135,8 @@ function makeDecade(over: Partial<DecadeTierProps['decade']> = {}): DecadeTierPr
         signalId: 'x2',
         name: '편관 ↔ Saturn',
         sajuLine: '편관 지지',
-        astroLine: 'Saturn Square',
+        astroLine: '토성',
+        astroLineEn: 'Saturn',
         polarity: -2,
         meaning: '구조적 압박',
         meaningEn: 'Structural pressure',
@@ -370,6 +388,42 @@ describe('DecadeTier', () => {
       // sewoonNow.sibsin '편재' → 'Indirect Wealth' in the annual KV row.
       expect(screen.getByText(/Annual 2024/)).toBeInTheDocument()
       expect(screen.getAllByText('Indirect Wealth').length).toBeGreaterThan(0)
+    })
+
+    it('renders pillar ten-gods in English (no raw Korean sibsin in pillar/KV)', () => {
+      setup()
+      // 편재 → Indirect Wealth, 편관 → Seven Killings — appear in split panel + KV.
+      expect(screen.getAllByText(/Indirect Wealth/).length).toBeGreaterThan(0)
+      expect(screen.getAllByText(/Seven Killings/).length).toBeGreaterThan(0)
+      // raw Korean pillar sibsin must not leak.
+      expect(screen.queryByText('편재', { exact: true })).not.toBeInTheDocument()
+      expect(screen.queryByText('편관', { exact: true })).not.toBeInTheDocument()
+    })
+
+    it('renders pillar notes in English (noteEn), not the Korean note', () => {
+      setup()
+      expect(screen.getByText('Stem note in English')).toBeInTheDocument()
+      expect(screen.getByText('Branch note in English')).toBeInTheDocument()
+      expect(screen.queryByText('천간 노트')).not.toBeInTheDocument()
+      expect(screen.queryByText('지지 노트')).not.toBeInTheDocument()
+    })
+
+    it('renders unseong + hapchung titles in English (titleEn), no Korean 12-stage/clash label', () => {
+      setup()
+      expect(screen.getByText('Coming-of-age')).toBeInTheDocument()
+      expect(screen.getByText('in–hae harmony')).toBeInTheDocument()
+      // raw Korean 12운성 단계명 / 충·합 라벨 must not leak.
+      expect(screen.queryByText('관대')).not.toBeInTheDocument()
+      expect(screen.queryByText('寅亥 육합')).not.toBeInTheDocument()
+    })
+
+    it('renders cross-activation astro line in English (astroLineEn), not Korean planet', () => {
+      setup()
+      // KO planet '목성'/'토성' must not leak in EN; English keys shown.
+      expect(screen.getAllByText('Jupiter').length).toBeGreaterThan(0)
+      expect(screen.getAllByText('Saturn').length).toBeGreaterThan(0)
+      expect(screen.queryByText('목성')).not.toBeInTheDocument()
+      expect(screen.queryByText('토성')).not.toBeInTheDocument()
     })
 
     it('renders cross-activation pair titles and badges in English (no Korean name/sajuLine)', () => {

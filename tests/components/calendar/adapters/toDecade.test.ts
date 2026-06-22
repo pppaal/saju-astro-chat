@@ -144,6 +144,18 @@ describe('toDecade — 현재 대운 → destinypal decade', () => {
       // jiji sibsin: 일간 甲(목) vs 寅(목) 같은 오행 → 비견
       expect(d.pillar.jiji.sibsin).toBe('비견')
     })
+
+    it('pillar note 는 KO + 영문 병행(noteEn) — 한글 누수 없음', () => {
+      const d = toDecade(natalWithDaeun(), { currentAge: 5 })! // 丙寅 — 천간 식신 / 지지 비견
+      // KO note 존재.
+      expect(d.pillar.cheongan.note).toBeTruthy()
+      expect(d.pillar.jiji.note).toBeTruthy()
+      // EN note — 한글 누수 없이 영문.
+      expect(d.pillar.cheongan.noteEn).toBeTruthy()
+      expect(d.pillar.cheongan.noteEn).not.toMatch(/[가-힣]/)
+      expect(d.pillar.jiji.noteEn).toBeTruthy()
+      expect(d.pillar.jiji.noteEn).not.toMatch(/[가-힣]/)
+    })
   })
 
   describe('hapchung / unseong (auto-derive)', () => {
@@ -164,6 +176,9 @@ describe('toDecade — 현재 대운 → destinypal decade', () => {
       // EN 병행 — clash 라인이 한글 누수 없이 영문으로.
       expect(d.hapchung.bodyEn).toContain('clash')
       expect(d.hapchung.bodyEn).not.toMatch(/[가-힣]/)
+      // titleEn — '午子충' → 로마자 clash, 한글 누수 없음.
+      expect(d.hapchung.titleEn).toContain('clash')
+      expect(d.hapchung.titleEn).not.toMatch(/[가-힣]/)
     })
 
     it('hapchung 중립 라인도 영문 병행', () => {
@@ -180,6 +195,9 @@ describe('toDecade — 현재 대운 → destinypal decade', () => {
       // EN 병행 — "decade seat" 한글 누수 없이.
       expect(d.unseong.bodyEn).toContain('decade seat')
       expect(d.unseong.bodyEn).not.toMatch(/[가-힣]/)
+      // titleEn — 12운성 단계명을 영문 라벨로(한글 누수 없음).
+      expect(d.unseong.titleEn).toBeTruthy()
+      expect(d.unseong.titleEn).not.toMatch(/[가-힣]/)
     })
 
     it('opts.hapchung / opts.unseong 직주입이 auto 보다 우선', () => {
@@ -233,7 +251,9 @@ describe('toDecade — 현재 대운 → destinypal decade', () => {
       expect(d.crossActivations[0].meaning).toBe('압박 페어')
       expect(d.crossActivations[1].name).toBe('돈·안정 × 사랑·돈')
       expect(d.crossActivations[1].sajuLine).toBe('정재')
-      expect(d.crossActivations[1].astroLine).toBe('Venus')
+      // astroLine 은 한글 행성(KO 로케일용), astroLineEn 은 원본 영문 키.
+      expect(d.crossActivations[1].astroLine).toBe('금성')
+      expect(d.crossActivations[1].astroLineEn).toBe('Venus')
       expect(d.crossActivations[1].meaning).toBe('재물 페어') // korean 우선
       expect(d.crossActivations[1].meaningEn).toBe('a wealth pair') // english 우선
       // english 없는 신호(편관 × 토성)는 evidence.meaning 폴백.

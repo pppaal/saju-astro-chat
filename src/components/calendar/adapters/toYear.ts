@@ -2,9 +2,9 @@
  * Profection + ZR + SR + 세운 → destinypal `year` 객체 adapter.
  *
  * destinypal year:
- *   { year, sewoon, sewoonSibsin, headline,
+ *   { year, sewoon, sewoonSibsin, headline, headlineEn,
  *     profection: { house, theme, themeEn, cusp, cuspEn, ruler, rulerEn, rulerNatal, rulerNatalEn },
- *     sajuNote, astroNote }
+ *     sajuNote, sajuNoteEn, astroNote, astroNoteEn }
  *
  * 입력:
  *   - NatalContext (대운 + 일간 → 세운 십신)
@@ -78,6 +78,7 @@ export interface DestinypalYear {
   sewoonGz: Ganji
   sewoonSibsin: string // 세운 천간 vs 일간 십신
   headline: string
+  headlineEn: string
   profection?: DestinypalYearProfection
   /**
    * 12-슬롯 profection wheel — Asc sign 부터 whole-sign 순서로 1..12궁 cusp + ruler.
@@ -89,7 +90,9 @@ export interface DestinypalYear {
   /** Solar Return Asc sign — Phase 3 신규 */
   solarReturnAsc?: { sign: string; signEn: string }
   sajuNote: string
+  sajuNoteEn: string
   astroNote: string
+  astroNoteEn: string
   /** 12개월 점수 스파인 (선택 — cells 또는 monthlyScores 옵션이 들어오면). */
   monthlyScores?: Array<{ month: number; score: number; bestDay?: string }>
   /** 올해 활성 사주 × 점성 교차 — 월 구간 해석 (cells 가 들어오면 자동 산출). */
@@ -183,9 +186,13 @@ export interface ToYearOptions {
   yearlySignals?: ActiveSignal[]
   /** 헤드라인 한 줄 (선택). */
   headline?: string
+  /** 헤드라인 영문 한 줄 (선택). */
+  headlineEn?: string
   /** 사주 / 점성 노트 한 줄 (선택). */
   sajuNote?: string
+  sajuNoteEn?: string
   astroNote?: string
+  astroNoteEn?: string
   /**
    * 한 해 12 달 cells 전체 (또는 일부) — adapter 가 datetime prefix 로 month
    * grouping 해 monthlyScores 12 슬롯 평균을 자동으로 빌드.
@@ -250,6 +257,11 @@ export function toYear(natal: NatalContext, opts: ToYearOptions): DestinypalYear
       (profection
         ? `올해의 무게중심은 ${profection.house}번째 영역으로 기울어요.`
         : `${opts.year}년 — 흐름이 새로 짜이는 해.`),
+    headlineEn:
+      opts.headlineEn ??
+      (profection
+        ? `This year leans toward your ${ordinalEn(profection.house)} house.`
+        : `${opts.year} — a year the flow gets re-drawn.`),
     profection,
     profectionWheel,
     zr,
@@ -257,10 +269,18 @@ export function toYear(natal: NatalContext, opts: ToYearOptions): DestinypalYear
     sajuNote:
       opts.sajuNote ??
       `세운 ${sewoonRaw.stem}${sewoonRaw.branch} — 일간 ${dm} 기준 ${sewoonSibsin}.`,
+    sajuNoteEn:
+      opts.sajuNoteEn ??
+      `Annual pillar ${sewoonRaw.stem}${sewoonRaw.branch} — ${sewoonSibsin} to day master ${dm}.`,
     astroNote:
       opts.astroNote ??
       (profection
         ? `Profection이 ${profection.house}하우스를 점등 — 룰러 ${profection.ruler}가 본명 ${profection.rulerNatal}.`
+        : ''),
+    astroNoteEn:
+      opts.astroNoteEn ??
+      (profection
+        ? `Profection lights up house ${profection.house} — its ruler ${profection.rulerEn} sits in your natal ${profection.rulerNatalEn}.`
         : ''),
     monthlyScores,
     crossings: buildYearCrossings(opts.cells ?? [], opts.year),
