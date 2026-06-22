@@ -124,9 +124,32 @@ describe('Saju Constants', () => {
         })
       })
     })
+
+    // 값-골든: 여기·중기·정기 전체(12지지). 기존엔 정기만 잠겼고 여기/중기는
+    // value-blind 라 한 칸이 틀려도 통과했다. 여기/중기는 통근·암합 신호를 좌우하므로
+    // 정통 도식(子·卯·酉 정기만; 午=丙己丁, 亥=戊甲壬 등)을 직접 고정한다.
+    it('matches 지장간 doctrine for all 12 branches (여기/중기/정기)', () => {
+      const GOLDEN: Record<string, Record<string, string>> = {
+        子: { 정기: '癸' },
+        丑: { 여기: '癸', 중기: '辛', 정기: '己' },
+        寅: { 여기: '戊', 중기: '丙', 정기: '甲' },
+        卯: { 정기: '乙' },
+        辰: { 여기: '乙', 중기: '癸', 정기: '戊' },
+        巳: { 여기: '戊', 중기: '庚', 정기: '丙' },
+        午: { 여기: '丙', 중기: '己', 정기: '丁' },
+        未: { 여기: '丁', 중기: '乙', 정기: '己' },
+        申: { 여기: '戊', 중기: '壬', 정기: '庚' },
+        酉: { 정기: '辛' },
+        戌: { 여기: '辛', 중기: '丁', 정기: '戊' },
+        亥: { 여기: '戊', 중기: '甲', 정기: '壬' },
+      }
+      for (const [branch, layers] of Object.entries(GOLDEN)) {
+        expect(JIJANGGAN[branch], `${branch} 지장간`).toEqual(layers)
+      }
+    })
   })
 
-  describe('MONTH_STEM_LOOKUP', () => {
+  describe('MONTH_STEM_LOOKUP (월두법 / 五虎遁)', () => {
     it('maps all 10 stems', () => {
       expect(Object.keys(MONTH_STEM_LOOKUP)).toHaveLength(10)
     })
@@ -136,9 +159,31 @@ describe('Saju Constants', () => {
         expect(STEM_NAMES).toContain(stem)
       })
     })
+
+    // 값-골든: 五虎遁 — 연간(年干) → 寅월(첫 절기달) 천간.
+    // 甲己年 丙寅頭 / 乙庚年 戊寅頭 / 丙辛年 庚寅頭 / 丁壬年 壬寅頭 / 戊癸年 甲寅頭.
+    // 한 칸이라도 틀리면 그 연주 그룹(전체의 1/5)의 월주 천간이 통째로 어긋난다.
+    // ("maps to valid stems" 만으로는 못 잡으므로 정통 도식 값을 직접 고정한다.)
+    it('matches 五虎遁 doctrine for every year stem', () => {
+      const FIVE_TIGER: Record<string, string> = {
+        甲: '丙',
+        己: '丙',
+        乙: '戊',
+        庚: '戊',
+        丙: '庚',
+        辛: '庚',
+        丁: '壬',
+        壬: '壬',
+        戊: '甲',
+        癸: '甲',
+      }
+      for (const [yearStem, expected] of Object.entries(FIVE_TIGER)) {
+        expect(MONTH_STEM_LOOKUP[yearStem], `${yearStem}年 → 寅월 천간`).toBe(expected)
+      }
+    })
   })
 
-  describe('TIME_STEM_LOOKUP', () => {
+  describe('TIME_STEM_LOOKUP (시두법 / 五鼠遁)', () => {
     it('maps all 10 stems', () => {
       expect(Object.keys(TIME_STEM_LOOKUP)).toHaveLength(10)
     })
@@ -147,6 +192,27 @@ describe('Saju Constants', () => {
       Object.values(TIME_STEM_LOOKUP).forEach((stem) => {
         expect(STEM_NAMES).toContain(stem)
       })
+    })
+
+    // 값-골든: 五鼠遁 — 일간(日干) → 子시 천간.
+    // 甲己日 甲子時 / 乙庚日 丙子時 / 丙辛日 戊子時 / 丁壬日 庚子時 / 戊癸日 壬子時.
+    // 틀리면 그 일간 그룹의 시주 천간이 통째로 어긋난다(→ 십신·신살 연쇄 오류).
+    it('matches 五鼠遁 doctrine for every day stem', () => {
+      const FIVE_RAT: Record<string, string> = {
+        甲: '甲',
+        己: '甲',
+        乙: '丙',
+        庚: '丙',
+        丙: '戊',
+        辛: '戊',
+        丁: '庚',
+        壬: '庚',
+        戊: '壬',
+        癸: '壬',
+      }
+      for (const [dayStem, expected] of Object.entries(FIVE_RAT)) {
+        expect(TIME_STEM_LOOKUP[dayStem], `${dayStem}日 → 子시 천간`).toBe(expected)
+      }
     })
   })
 

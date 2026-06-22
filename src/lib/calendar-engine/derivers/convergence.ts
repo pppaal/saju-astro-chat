@@ -259,12 +259,28 @@ export function deriveConvergence(
       astro,
       saju,
       bothSystems,
-      meaning: composeMeaning(netPol, sumImp, lang, c.datetime.slice(0, 10), astroPolNet, sajuPolNet),
+      meaning: composeMeaning(
+        netPol,
+        sumImp,
+        lang,
+        c.datetime.slice(0, 10),
+        astroPolNet,
+        sajuPolNet
+      ),
       window: aggregateWindow(heavySignals, c.datetime),
       confidence: convergenceConfidence(heavySignals, bothSystems, astroPolNet, sajuPolNet),
     })
   }
-  scored.sort((a, b) => b.score - a.score)
+  // 정렬 — 진짜 수렴(bothSystems: 사주+점성 둘 다 무거움)을 단일 체계 날보다
+  // *먼저* 배치한다. 그렇지 않으면 한 달 내내 깔린 느린 외행성 transit 하나가
+  // astro-only 큰 날을 만들어 "사주 × 점성 수렴" 헤딩 아래에서 진짜 수렴일을
+  // top-N 밖으로 밀어낼 수 있다. 그룹(both vs single) 내에서는 score 내림차순.
+  scored.sort((a, b) => {
+    const ab = a.bothSystems ? 1 : 0
+    const bb = b.bothSystems ? 1 : 0
+    if (ab !== bb) return bb - ab
+    return b.score - a.score
+  })
   const picked: ConvergenceDay[] = []
   const tooClose = (d: ConvergenceDay) =>
     picked.some(

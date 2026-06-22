@@ -406,10 +406,12 @@ describe('toDay — CalendarCell → destinypal day', () => {
       expect(d.oneLine).toBe('흐름이 우호적인 하루.')
     })
 
-    it('caution 톤 폴백 (영문)', () => {
+    it('caution 톤 폴백 — oneLine(ko) + oneLineEn(en) 둘 다 산출', () => {
       const cell = makeCell({ datetime: '2026-06-15T00:00:00.000Z', derivedScore: 10 })
+      // 토글 안전을 위해 toDay 는 양쪽 로케일을 항상 채운다(lang 무관).
       const d = toDay({ cell, natal: natal(), lang: 'en' })
-      expect(d.oneLine).toBe('A day better for upkeep than pushing.')
+      expect(d.oneLine).toBe('추진보다 정비가 어울리는 하루.')
+      expect(d.oneLineEn).toBe('A day better for upkeep than pushing.')
     })
 
     it('opts.oneLine 직주입이 derive 보다 우선', () => {
@@ -432,17 +434,21 @@ describe('toDay — CalendarCell → destinypal day', () => {
       expect(d.cautions[0]).toBe('↓ 오늘 · 지지충 申↔寅 (월주)')
     })
 
-    it('lang=en 이면 *En 필드를 사용', () => {
+    it('양쪽 로케일을 항상 채운다 — topReasons(ko) + topReasonsEn(en)', () => {
       const cell = makeCell({
         datetime: '2026-06-15T00:00:00.000Z',
         derivedScore: 80,
         topReasons: ['ko-only'],
         topReasonsEn: ['en reason'],
+        cautions: ['ko 주의'],
         cautionsEn: ['en caution'],
       })
+      // lang 과 무관하게 양쪽 보관 — DayTier 가 클라이언트 로케일로 고른다.
       const d = toDay({ cell, natal: natal(), lang: 'en' })
-      // en 분기는 topReasonsEn 사용 → 'ko-only' 가 아님
-      expect(d.topReasons).not.toContain('ko-only')
+      expect(d.topReasons).toContain('ko-only')
+      expect(d.topReasonsEn).toContain('en reason')
+      expect(d.cautions).toContain('ko 주의')
+      expect(d.cautionsEn).toContain('en caution')
     })
 
     it('사유가 전혀 없으면 빈 배열', () => {

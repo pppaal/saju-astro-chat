@@ -19,7 +19,8 @@ const base: MonthSummaryInput = {
 describe('deriveMonthSummary — 전반 톤(bright/mixed/careful)', () => {
   it('good >= caution*2 면 bright 톤(순한 흐름)', () => {
     const s = deriveMonthSummary({ ...base, goodDays: 10, cautionDays: 4 })
-    expect(s).toContain('순하게 풀리는')
+    // bright 변형은 모두 "순하게" 흐름을 묘사한다(어떤 시드든).
+    expect(s).toContain('순하게')
   })
 
   it('caution > good 이면 careful 톤(조심스러운 결)', () => {
@@ -48,7 +49,8 @@ describe('deriveMonthSummary — 전반 톤(bright/mixed/careful)', () => {
 describe('deriveMonthSummary — 날수/우룬 문구', () => {
   it('total>0 이면 날수 문구가 한글로 섞인다', () => {
     const s = deriveMonthSummary({ ...base, totalDays: 30, goodDays: 12, cautionDays: 6 })
-    expect(s).toContain('전체 30일')
+    // 동적 날수 슬롯은 어떤 변형에서도 그대로 들어간다.
+    expect(s).toContain('30일')
     expect(s).toContain('12일')
     expect(s).toContain('6일')
   })
@@ -66,7 +68,7 @@ describe('deriveMonthSummary — 날수/우룬 문구', () => {
       goodDays: 14,
       cautionDays: 6,
     })
-    expect(s).toContain('Of its 28 days')
+    expect(s).toContain('28 days')
   })
 
   it('woolunKr 가 있으면 한글 도입에 "OO월은" 으로 들어간다', () => {
@@ -92,7 +94,8 @@ describe('deriveMonthSummary — 지배 테마(themePhrase)', () => {
       ...base,
       topReasons: ['목성 좋은 자리(고양) (게자리)', '토성 압박', '추가 신호'],
     })
-    expect(s).toContain('무엇보다')
+    // 연결어(무엇보다/그 중심에는…)는 시드별로 달라지지만 '이 달의 결'은 모든 변형 공통.
+    expect(s).toContain('이 달의 결')
     expect(s).toContain('목성 좋은 자리')
     // 괄호 그룹(글로스/별자리)은 제거된다.
     expect(s).not.toContain('(고양)')
@@ -123,7 +126,7 @@ describe('deriveMonthSummary — 지배 테마(themePhrase)', () => {
 
   it('영문 테마는 and 로 연결된다', () => {
     const s = deriveMonthSummary({ ...base, lang: 'en', topReasons: ['Jupiter', 'Saturn'] })
-    expect(s).toContain('Above all')
+    // 영문 테마는 'and' 로 연결된다(연결어 자체는 시드별로 달라짐).
     expect(s).toContain('Jupiter and Saturn')
   })
 })
@@ -132,7 +135,8 @@ describe('deriveMonthSummary — 가장 좋은 날', () => {
   it('bestDay 가 있으면 날짜가 한글 포맷으로 들어간다', () => {
     const s = deriveMonthSummary({ ...base, bestDay: '03-15' })
     expect(s).toContain('3월 15일')
-    expect(s).toContain('미뤄둔 일')
+    // 모든 좋은-날 변형은 '무게가 실리는/실려요' 로 가장 좋은 날을 묘사한다.
+    expect(s).toContain('무게')
   })
 
   it('bestDayReason 이 있으면 이유가 — 로 덧붙는다', () => {
@@ -180,14 +184,17 @@ describe('deriveMonthSummary — 조심할 날 / 수렴일', () => {
       convergeDate: '03-25',
     })
     expect(s).toContain('That said')
-    expect(s).toContain('pivot where Saju and astrology converge')
+    // 모든 수렴일 변형은 Saju×astrology 'pivot' 으로 표현된다(연결 문구는 시드별 차이).
+    expect(s).toContain('pivot')
+    expect(s).toContain('Saju and astrology')
   })
 })
 
 describe('deriveMonthSummary — 마무리 문장(톤별)', () => {
+  // 마무리 변형은 톤별 풀에서 시드로 회전한다. 모든 변형 공통 키워드로 확인.
   it('bright 톤 마무리', () => {
     const s = deriveMonthSummary({ ...base, goodDays: 10, cautionDays: 2 })
-    expect(s).toContain('밀어붙여 보세요')
+    expect(s).toContain('달이니')
   })
 
   it('careful 톤 마무리', () => {
@@ -197,15 +204,15 @@ describe('deriveMonthSummary — 마무리 문장(톤별)', () => {
 
   it('mixed 톤 마무리', () => {
     const s = deriveMonthSummary({ ...base, goodDays: 5, cautionDays: 5 })
-    expect(s).toContain('리듬만 지키면')
+    expect(s).toContain('리듬')
   })
 
   it('영문 마무리 3종', () => {
     expect(deriveMonthSummary({ ...base, lang: 'en', goodDays: 10, cautionDays: 2 })).toContain(
-      'this is the time to push'
+      'time to push'
     )
     expect(deriveMonthSummary({ ...base, lang: 'en', goodDays: 2, cautionDays: 9 })).toContain(
-      'it passes smoothly'
+      'passes smoothly'
     )
     expect(deriveMonthSummary({ ...base, lang: 'en', goodDays: 5, cautionDays: 5 })).toContain(
       'the rhythm carries you through'
@@ -228,12 +235,84 @@ describe('deriveMonthSummary — 통합 출력', () => {
       lang: 'ko',
     })
     expect(s).toContain('갑오월은')
-    expect(s).toContain('무엇보다')
+    expect(s).toContain('이 달의 결')
     expect(s).toContain('3월 15일')
     expect(s).toContain('다만')
-    expect(s).toContain('또')
+    expect(s).toContain('분기점') // 수렴일(연결어 또/더불어… 는 시드별로 달라짐)
     // 줄바꿈 없이 한 문단.
     expect(s).not.toContain('\n')
     expect(s.length).toBeGreaterThan(50)
+  })
+})
+
+describe('deriveMonthSummary — 개인화 시드(seed)', () => {
+  const rich: MonthSummaryInput = {
+    woolunKr: '갑오',
+    goodDays: 12,
+    cautionDays: 4,
+    totalDays: 30,
+    topReasons: ['목성 확장', '재성 강세'],
+    bestDay: '03-15',
+    bestDayReason: '절정',
+    cautionDay: '03-20',
+    convergeDate: '03-25',
+    lang: 'ko',
+  }
+
+  it('다른 시드는 동일 입력에서도 다른 문구를 만든다', () => {
+    const a = deriveMonthSummary({ ...rich, seed: 1 })
+    const b = deriveMonthSummary({ ...rich, seed: 2 })
+    expect(a).not.toEqual(b)
+  })
+
+  it('seed 없으면 seed=0 과 동일(기본값 안정)', () => {
+    expect(deriveMonthSummary(rich)).toEqual(deriveMonthSummary({ ...rich, seed: 0 }))
+  })
+
+  it('같은 시드+입력은 재현 가능(결정론적)', () => {
+    expect(deriveMonthSummary({ ...rich, seed: 42 })).toEqual(
+      deriveMonthSummary({ ...rich, seed: 42 })
+    )
+  })
+
+  it('큰/음수 시드도 빈 풀 에러 없이 한 변형을 고른다', () => {
+    expect(deriveMonthSummary({ ...rich, seed: 2 ** 31 }).length).toBeGreaterThan(50)
+    expect(deriveMonthSummary({ ...rich, seed: -7 }).length).toBeGreaterThan(50)
+  })
+
+  it('시드가 달라도 판단(날수·날짜·근거)은 그대로 유지된다', () => {
+    for (const seed of [0, 1, 7, 99, 12345]) {
+      const s = deriveMonthSummary({ ...rich, seed })
+      expect(s).toContain('30일')
+      expect(s).toContain('12일')
+      expect(s).toContain('4일')
+      expect(s).toContain('3월 15일') // bestDay
+      expect(s).toContain('3월 20일') // cautionDay
+      expect(s).toContain('3월 25일') // convergeDate
+      expect(s).toContain('절정') // bestDayReason
+      expect(s).toContain('갑오월은')
+      expect(s).toContain('목성 확장')
+      expect(s).not.toContain('\n')
+    }
+  })
+
+  it('영문도 시드별로 변형되며 동적 슬롯은 유지된다', () => {
+    const en = { ...rich, lang: 'en' as const }
+    const a = deriveMonthSummary({ ...en, seed: 1 })
+    const b = deriveMonthSummary({ ...en, seed: 2 })
+    expect(a).not.toEqual(b)
+    for (const seed of [0, 1, 2, 3]) {
+      const s = deriveMonthSummary({ ...en, seed })
+      expect(s.length).toBeGreaterThan(50)
+      expect(s).toContain('30 days')
+      expect(s).toContain('3/15')
+      expect(s).toContain('3/20')
+      expect(s).toContain('3/25')
+    }
+  })
+
+  it('ko/en 모두 비어있지 않은 문단을 만든다', () => {
+    expect(deriveMonthSummary({ ...rich, lang: 'ko', seed: 5 }).trim().length).toBeGreaterThan(0)
+    expect(deriveMonthSummary({ ...rich, lang: 'en', seed: 5 }).trim().length).toBeGreaterThan(0)
   })
 })

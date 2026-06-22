@@ -1,5 +1,5 @@
 // src/lib/Saju/shinsal.ts
-import { BRANCHES, STEMS, JIJANGGAN, CHEONEUL_GWIIN_MAP } from './constants'
+import { BRANCHES, STEMS, BRANCH_NAMES, JIJANGGAN, CHEONEUL_GWIIN_MAP } from './constants'
 import type { FiveElement, YinYang, PillarKind, TwelveStage } from './types'
 import { RESENTMENT_PAIRS, SIX_HARMONY, toBidiRecord } from './relationTables'
 import { getGongmang as getGongmangByPillar } from './pillarLookup'
@@ -177,20 +177,8 @@ const DAYMASTER_BIRTH_BRANCH: Record<string, string> = {
 /* 음간 일간 — 12운성은 음간일 때 역행으로 계산 */
 const YIN_DAY_MASTERS = new Set(['乙', '丁', '己', '辛', '癸'])
 
-const BRANCH_ORDER = [
-  '子',
-  '丑',
-  '寅',
-  '卯',
-  '辰',
-  '巳',
-  '午',
-  '未',
-  '申',
-  '酉',
-  '戌',
-  '亥',
-] as const
+// 지지 순서 배열은 constants SSOT(BRANCH_NAMES)에서 파생 — 복사 금지.
+const BRANCH_ORDER = BRANCH_NAMES
 
 export function getTwelveStage(dayStemNameRaw: string, branchNameRaw: string): TwelveStage {
   const dayStemName = normalizeStemName(dayStemNameRaw)

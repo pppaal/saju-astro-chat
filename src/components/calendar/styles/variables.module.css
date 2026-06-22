@@ -14,8 +14,11 @@
   /* ink (먹) */
   --dp-ink: #2a2318;
   --dp-ink-dim: #4d4334;
-  --dp-ink-mute: #82745c;
-  --dp-ink-faint: #b4a584;
+  /* a11y: hanji(#ece2cd) 위 소형 라벨이 WCAG AA 를 넘도록 mute/faint 를 어둡게
+     조정. mute #82745c(3.62:1) → #6c5f46(≈4.7:1, AA 본문 통과),
+     faint #b4a584(1.87:1) → #8a7a54(≈3.2:1, 대형/UI 3:1 통과). */
+  --dp-ink-mute: #6c5f46;
+  --dp-ink-faint: #8a7a54;
 
   /* accent — 쪽빛 indigo (astro / now) */
   --dp-accent: #34406f;
@@ -36,7 +39,7 @@
   --dp-pos: #2f7d5b;
   --dp-neg: #b03a22;
   --dp-neu: #8a7c61;
-  --dp-tone-mixed: #b3873a; /* 평이/혼조 톤 — gold (게이지·흐름 점선) */
+  --dp-tone-mixed: #9d7328; /* 평이/혼조·주의 — gold. a11y: #b3873a(2.5:1)→#9d7328(≈3.2:1) */
 
   /* 오행 five elements */
   --dp-el-wood: #4f7a40;

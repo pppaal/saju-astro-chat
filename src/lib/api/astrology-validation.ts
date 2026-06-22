@@ -4,25 +4,41 @@
  */
 
 import { z } from 'zod'
+import { dateSchema, timezoneSchema, latitudeSchema, longitudeSchema } from './zodValidation/common'
+
+// 출생 시각 — 점성 엔진은 엄격한 HH:MM 만 파싱한다(AM/PM·한자리 시 불가).
+const strictTimeSchema = z.string().regex(/^\d{2}:\d{2}$/, 'Time must be in HH:MM format')
+
+// 트랜짓/프로그레션 타깃 날짜용 — 실제 달력일(2024-13-40 같은 불가능 날짜 거부)
+// 이되 출생일과 달리 *미래*를 허용한다(트랜짓 시점은 앞날일 수 있다). 맨 정규식은
+// 0000~9999 와 13월/40일을 그대로 통과시켜 Swiss Ephemeris 에 쓰레기를 흘렸다.
+const futureOkCalendarDateSchema = z
+  .string()
+  .regex(/^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/, 'Date must be in YYYY-MM-DD format')
+  .refine((date) => {
+    const [y, m, d] = date.split('-').map(Number)
+    const parsed = new Date(y, m - 1, d)
+    return parsed.getFullYear() === y && parsed.getMonth() === m - 1 && parsed.getDate() === d
+  }, 'Invalid date')
+  .refine((date) => {
+    const y = Number(date.slice(0, 4))
+    return y >= 1900 && y <= 2200
+  }, 'Date out of supported range (1900–2200)')
 
 /**
  * Base schema for astrology calculations
- * Validates birth data with proper coordinate bounds
+ * Validates birth data with proper coordinate bounds.
+ *
+ * date/timeZone/lat/long 은 saju 와 공유하는 canonical 검증기(zodValidation/common)
+ * 를 재사용한다 — 라우트마다 맨 정규식을 복붙하던 탓에 13월/연도 0000 같은 쓰레기가
+ * 통과해 엔진까지 흘렀다(검증 경계가 6벌로 갈라진 게 근본 원인).
  */
 const AstrologyBirthDataSchema = z.object({
-  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be in YYYY-MM-DD format'),
-  time: z.string().regex(/^\d{2}:\d{2}$/, 'Time must be in HH:MM format'),
-  latitude: z
-    .number()
-    .min(-90, 'Latitude must be >= -90')
-    .max(90, 'Latitude must be <= 90')
-    .refine((val) => !isNaN(val), 'Latitude must be a valid number'),
-  longitude: z
-    .number()
-    .min(-180, 'Longitude must be >= -180')
-    .max(180, 'Longitude must be <= 180')
-    .refine((val) => !isNaN(val), 'Longitude must be a valid number'),
-  timeZone: z.string().min(1, 'Timezone is required'),
+  date: dateSchema,
+  time: strictTimeSchema,
+  latitude: latitudeSchema,
+  longitude: longitudeSchema,
+  timeZone: timezoneSchema,
 })
 
 export type AstrologyBirthData = z.infer<typeof AstrologyBirthDataSchema>
@@ -40,11 +56,8 @@ export type AdvancedAstrologyRequest = z.infer<typeof AdvancedAstrologyRequestSc
  * Schema for transit calculations
  */
 const TransitRequestSchema = AstrologyBirthDataSchema.extend({
-  transitDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Transit date must be in YYYY-MM-DD format'),
-  transitTime: z
-    .string()
-    .regex(/^\d{2}:\d{2}$/, 'Transit time must be in HH:MM format')
-    .optional(),
+  transitDate: futureOkCalendarDateSchema,
+  transitTime: strictTimeSchema.optional(),
 })
 
 export type TransitRequest = z.infer<typeof TransitRequestSchema>
@@ -111,20 +124,20 @@ const CoordinateValidation = {
 
 /** Asteroids request schema */
 export const AsteroidsRequestSchema = z.object({
-  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be in YYYY-MM-DD format'),
-  time: z.string().regex(/^\d{2}:\d{2}$/, 'Time must be in HH:MM format'),
-  latitude: z.number().min(-90, 'Latitude must be >= -90').max(90, 'Latitude must be <= 90'),
-  longitude: z.number().min(-180, 'Longitude must be >= -180').max(180, 'Longitude must be <= 180'),
-  timeZone: z.string().min(1, 'Timezone is required'),
+  date: dateSchema,
+  time: strictTimeSchema,
+  latitude: latitudeSchema,
+  longitude: longitudeSchema,
+  timeZone: timezoneSchema,
   includeAspects: z.boolean().optional().default(true),
 })
 
 /** Rectification request schema */
 const RectificationRequestSchema = z.object({
-  birthDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Birth date must be in YYYY-MM-DD format'),
-  latitude: z.number().min(-90).max(90),
-  longitude: z.number().min(-180).max(180),
-  timeZone: z.string().min(1),
+  birthDate: dateSchema,
+  latitude: latitudeSchema,
+  longitude: longitudeSchema,
+  timeZone: timezoneSchema,
   events: z
     .array(
       z.object({
@@ -192,8 +205,5 @@ export const DraconicRequestSchema = AdvancedAstrologyRequestSchema.extend({
 
 /** Progressions request schema */
 export const ProgressionsRequestSchema = AdvancedAstrologyRequestSchema.extend({
-  targetDate: z
-    .string()
-    .regex(/^\d{4}-\d{2}-\d{2}$/)
-    .optional(),
+  targetDate: futureOkCalendarDateSchema.optional(),
 })

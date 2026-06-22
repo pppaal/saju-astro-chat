@@ -19,6 +19,7 @@ import type {
   DestinyArabicLot,
   DestinyLifeStage,
   DestinyLifetime,
+  DestinyMilestone,
   DestinyUserSummary,
   DestinyZRChapter,
   ElementCounts,
@@ -339,7 +340,7 @@ function LifeTimeline({ lifetime }: { lifetime: DestinyLifetime }) {
               pct(c.calendarStartYear - by),
               pct(c.calendarEndYear - c.calendarStartYear || 1),
               !!c.now,
-              zodiacKo(c.sign),
+              ko ? zodiacKo(c.sign) : c.sign,
               undefined,
               `zr-${c.calendarStartYear}-${i}`
             )
@@ -452,6 +453,8 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
   }
 
   // ── 교차 리스트 — "언제 · 무엇이 교차 · 근거" 한 줄씩. 캘린더의 본질. ──
+  // 라벨은 로케일에 맞춰 고른다(서버 baked 언어에 묶이지 않게 — labelEn 폴백 label).
+  const mLabel = (m: DestinyMilestone) => (ko ? m.label : (m.labelEn ?? m.label))
   const evHead = (label: string) => (label.includes('—') ? label.split('—')[0].trim() : label)
   const evWhy = (label: string) =>
     label.includes('—') ? label.split('—').slice(1).join('—').trim() : ''
@@ -480,10 +483,10 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
       sort: c.startYear,
       when: c.startYear === c.endYear ? `${c.startYear}` : `${c.startYear}–${c.endYear}`,
       title: all
-        .map((m) => evHead(m.label))
+        .map((m) => evHead(mLabel(m)))
         .slice(0, 3)
         .join(bothSystems ? ' × ' : ' · '),
-      detail: all.map((m) => evWhy(m.label)).find(Boolean),
+      detail: all.map((m) => evWhy(mLabel(m))).find(Boolean),
       past: c.endYear < lifetime.currentYear,
     })
   }
@@ -563,7 +566,11 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
             <div className={styles.idCardRow}>
               <span className={styles.idCardHan}>{user.ilgan.hanja}</span>
               <div className={styles.idCardMeta}>
-                <div className={styles.idCardType}>{lifetime.lifePattern.ko}</div>
+                <div className={styles.idCardType}>
+                  {ko
+                    ? lifetime.lifePattern.ko
+                    : (lifetime.lifePattern.en ?? lifetime.lifePattern.ko)}
+                </div>
                 <div className={styles.idCardSub}>
                   {ko
                     ? `${user.ilgan.kr} 일간 · ${user.gyeokguk}`
@@ -572,7 +579,11 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
                 </div>
               </div>
             </div>
-            <p className={styles.idCardLine}>{lifetime.lifePattern.line}</p>
+            <p className={styles.idCardLine}>
+              {ko
+                ? lifetime.lifePattern.line
+                : (lifetime.lifePattern.lineEn ?? lifetime.lifePattern.line)}
+            </p>
           </div>
         )}
 
@@ -642,7 +653,11 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
                 {ko ? '신강약 기준 대운 흐름' : 'Decade flow by day-master strength'}
               </span>
             </div>
-            <p className={styles.lead}>{lifetime.lifePattern.line}</p>
+            <p className={styles.lead}>
+              {ko
+                ? lifetime.lifePattern.line
+                : (lifetime.lifePattern.lineEn ?? lifetime.lifePattern.line)}
+            </p>
             <div className={styles.daewoonRow}>
               {lifetime.lifePattern.daeun.map((d, i) => (
                 <span className={styles.daewoonCell} key={`${d.startAge}-${i}`}>
@@ -734,13 +749,13 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
                 }
               >
                 {s.now && <span className={styles.nowtag}>{ko ? '지금 · NOW' : 'now · NOW'}</span>}
-                <div className={styles.nm}>{s.name}</div>
+                <div className={styles.nm}>{ko ? s.name : (s.nameEn ?? s.name)}</div>
                 <div className={styles.age}>
                   {ko
                     ? `${s.ageFrom}–${s.ageTo}세 · ${s.yearFrom}–${s.yearTo}`
                     : `${s.ageFrom}–${s.ageTo} yrs · ${s.yearFrom}–${s.yearTo}`}
                 </div>
-                <div className={styles.tone}>{s.tone}</div>
+                <div className={styles.tone}>{ko ? s.tone : (s.toneEn ?? s.tone)}</div>
                 {s.now && (
                   <div className={styles.diveHint}>
                     {ko ? '탭하면 올해로 줌인 ↘' : 'Tap to zoom into this year ↘'}
@@ -808,8 +823,11 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
                 {win.map((m, idx) => {
                   const past = m.year < nowYear
                   const highlight = idx === hi
-                  const [titleRaw, ...rest] = m.label.split('—')
-                  const meaning = rest.join('—').trim()
+                  const [titleRaw, ...rest] = mLabel(m).split('—')
+                  // 의미는 baked meaning(EN 포함)을 우선 — labelEn 엔 '—' 절이 없어
+                  // split 만으론 EN 의미가 비기 때문. 없으면 라벨 뒤 절로 폴백.
+                  const meaning =
+                    (ko ? m.meaning : (m.meaningEn ?? m.meaning)) || rest.join('—').trim()
                   return (
                     <div
                       key={`pv-${m.year}-${idx}`}
@@ -875,7 +893,7 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
                   </small>
                 </span>
                 <span className={styles.lab}>
-                  {m.label}
+                  {mLabel(m)}
                   {m.now && <span className={styles.nowMark}>{ko ? '← 지금' : '← now'}</span>}
                 </span>
               </div>
@@ -934,7 +952,7 @@ function StageDetailBlock({
     <div className={styles.stageDetail}>
       <div className={styles.sectionHead}>
         <h2 className={styles.sectionTitle}>
-          {stage.name} — {headerNote}
+          {ko ? stage.name : (stage.nameEn ?? stage.name)} — {headerNote}
         </h2>
         <span className={styles.tiny}>
           {stage.ageFrom}–{stage.ageTo}
@@ -961,11 +979,14 @@ function StageDetailBlock({
         </div>
       </div>
 
-      {detail.body.length > 0 && (
-        <p className={styles.lead} style={{ marginTop: 16 }}>
-          {detail.body.join(' ')}
-        </p>
-      )}
+      {(() => {
+        const bodyLines = ko ? detail.body : detail.bodyEn?.length ? detail.bodyEn : detail.body
+        return bodyLines.length > 0 ? (
+          <p className={styles.lead} style={{ marginTop: 16 }}>
+            {bodyLines.join(' ')}
+          </p>
+        ) : null
+      })()}
 
       <div className={styles.detailGrid}>
         {detail.hapchung && (
@@ -987,7 +1008,16 @@ function StageDetailBlock({
                 {ko ? '신살' : 'Shinsal'} · SHINSAL
               </>
             }
-            chip={detail.shinsal}
+            chip={{
+              // shinsal 칩의 generic title('신살 활성')은 kind 마커로 로케일 라벨 선택.
+              ...detail.shinsal,
+              title:
+                detail.shinsal.kind === 'shinsal'
+                  ? ko
+                    ? '신살 활성'
+                    : 'Shinsal active'
+                  : detail.shinsal.title,
+            }}
           />
         )}
         {detail.unseong && (
@@ -1015,13 +1045,15 @@ function StageDetailBlock({
               const kind = o.kind ?? 'jupiter'
               const cls = OUTER_CLASS[kind] ?? styles.jupiter
               const glyph = OUTER_GLYPH[kind] ?? '★'
+              const label = ko ? o.label : (o.labelEn ?? o.label)
+              const body = ko ? o.body : (o.bodyEn ?? o.body)
               return (
                 <div key={`${o.label}-${i}`} className={`${styles.outerChip} ${cls}`}>
                   <span className={styles.ic}>{glyph}</span>
                   <div className={styles.ot}>
-                    <div className={styles.l}>{o.label}</div>
+                    <div className={styles.l}>{label}</div>
                     <div className={styles.d}>
-                      {o.date} · {o.body}
+                      {o.date} · {body}
                     </div>
                   </div>
                 </div>
@@ -1039,14 +1071,16 @@ function DetailCard({
   chip,
 }: {
   heading: ReactNode
-  chip: { title: string; romaji?: string; body: string }
+  chip: { title: string; romaji?: string; body: string; bodyEn?: string }
 }) {
+  const { locale } = useI18n()
+  const ko = locale === 'ko'
   return (
     <div className={styles.dcard}>
       <div className={styles.h}>{heading}</div>
       <div className={styles.t}>{chip.title}</div>
       {chip.romaji && <div className={styles.r}>{chip.romaji}</div>}
-      <div className={styles.b}>{chip.body}</div>
+      <div className={styles.b}>{ko ? chip.body : (chip.bodyEn ?? chip.body)}</div>
     </div>
   )
 }
@@ -1073,7 +1107,7 @@ function NatalLotsRow({ lots }: { lots: DestinyArabicLot[] }) {
       <div className={styles.lotsGrid}>
         {lots.map((lot) => {
           const mark = LOT_MARK[lot.name] ?? lot.name.charAt(0)
-          const sign = zodiacKo(lot.sign)
+          const sign = ko ? zodiacKo(lot.sign) : lot.sign
           return (
             <div key={lot.name} className={styles.lotChip}>
               <span className={styles.ic}>{mark}</span>
@@ -1150,6 +1184,8 @@ function ZRLane({
   kindClass: string
   chapters: DestinyZRChapter[]
 }) {
+  const { locale } = useI18n()
+  const ko = locale === 'ko'
   return (
     <div className={styles.zrLane}>
       <div className={styles.laneHead}>
@@ -1158,7 +1194,7 @@ function ZRLane({
       </div>
       <div className={styles.zrTrack}>
         {chapters.map((c, i) => {
-          const sign = zodiacKo(c.sign)
+          const sign = ko ? zodiacKo(c.sign) : c.sign
           const cellStyle: CSSProperties | undefined = c.now ? undefined : undefined
           return (
             <div
@@ -1178,4 +1214,3 @@ function ZRLane({
     </div>
   )
 }
-

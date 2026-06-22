@@ -23,6 +23,9 @@ import { SIBSIN_EN as SIBSIN_EN_BASE } from '@/lib/saju/sibsinLabels'
 import { PLANET_KO as PLANET_KO_BASE } from '@/lib/calendar-engine/data/planetNames'
 import { koStructuralLabels } from '@/lib/llm/koStructuralLabels'
 import { SIGN_KO } from '@/lib/astrology/signLabels'
+import type { DestinySources } from '@/lib/destiny/counselorRequest'
+
+const ALL_SOURCES: DestinySources = { saju: true, astro: true }
 
 const HOUSE_THEME_KO: Record<number, string> = {
   1: '자아·몸',
@@ -330,24 +333,70 @@ export interface CurrentPeriod {
   }>
 }
 
-function buildInstructions(locale: Locale, dayMasterName?: string): string {
+function buildInstructions(
+  locale: Locale,
+  sources: DestinySources,
+  dayMasterName?: string
+): string {
   // 데이터 옆에 둬야 의미가 있는 *legend / anchor* 만 둠. 행동 규칙
   // (jargon ban, tone, fuse rule, safety) 은 SYSTEM_PROMPT 에서 이미 다루므로
   // 여기 중복 X — cached prefix 크기/모순 줄이기.
+  // 선택 안 된 시스템의 범례 줄은 빼서 cached prefix 에 죽은(참조 대상 없는)
+  // 라벨이 남지 않게 한다.
   if (locale === 'en') {
-    return [
-      '## LEGEND',
-      '- astro symbols: ☌conjunction ⚹sextile □square △trine ☍opposition / R retrograde / (t)current transit / P-Sun, P-Moon = secondary progression / [detriment]=weak [domicile]=strong',
-      "- ★ Age anchor: use the [Age today] X line as the *current age*. The [daeun] entries like '31~40 甲戌' are the *start~end range* of that 10-yr cycle, NOT the current age. All ages (daeun, profection, current) are *international age* — the saju/astro stack uses one convention everywhere.",
-      `- ★ Ten-gods anchor: every (X/Y) parens in [Timing] (daeun \`32~41 甲戌(now Direct Wealth/Direct Resource)\`, year/month-luck & iljin trailing (X/Y), each row of the daily block) are *ten-gods relative to user's day master ${dayMasterName ?? '?'}* (stem/branch).`,
-    ].join('\n')
+    const lines = ['## LEGEND']
+    if (sources.astro) {
+      lines.push(
+        '- astro symbols: ☌conjunction ⚹sextile □square △trine ☍opposition / R retrograde / (t)current transit / P-Sun, P-Moon = secondary progression / [detriment]=weak [domicile]=strong'
+      )
+    }
+    // 나이 anchor — 선택된 시스템의 나이 개념만 언급(없는 시스템 참조 방지).
+    if (sources.saju && sources.astro) {
+      lines.push(
+        "- ★ Age anchor: use the [Age today] X line as the *current age*. The [daeun] entries like '31~40 甲戌' are the *start~end range* of that 10-yr cycle, NOT the current age. All ages (daeun, profection, current) are *international age* — the saju/astro stack uses one convention everywhere."
+      )
+    } else if (sources.saju) {
+      lines.push(
+        "- ★ Age anchor: use the [Age today] X line as the *current age*. The [daeun] entries like '31~40 甲戌' are the *start~end range* of that 10-yr cycle, NOT the current age. All ages are *international age*."
+      )
+    } else {
+      lines.push(
+        '- ★ Age anchor: use the [Age today] X line as the *current age*. Profection age is reckoned in *international age*.'
+      )
+    }
+    if (sources.saju) {
+      lines.push(
+        `- ★ Ten-gods anchor: every (X/Y) parens in [Timing] (daeun \`32~41 甲戌(now Direct Wealth/Direct Resource)\`, year/month-luck & iljin trailing (X/Y), each row of the daily block) are *ten-gods relative to user's day master ${dayMasterName ?? '?'}* (stem/branch).`
+      )
+    }
+    return lines.join('\n')
   }
-  return [
-    '## 데이터 범례',
-    '- 점성 표기: 관계어는 [결합]/[협력]/[긴장]/[조화]/[대립] 그대로 / R역행 / (t)현재트랜짓 / 진행 태양·진행 달=2차진행 / [detriment]약 [domicile]강',
-    '- ★ 나이 anchor: [오늘 기준 만나이] 만 X세 를 현재 나이로 사용. [대운] 의 "31~40세 갑술" 은 그 cycle 의 시작~끝 나이지 현재 나이가 아니다. 사주·점성 화면의 모든 나이(대운·프로펙션·현재)는 만 나이로 통일.',
-    `- ★ 십성 anchor: [타이밍] 의 모든 (X/Y) 괄호 (대운의 \`32~41세 甲戌(현재 정재/정인)\`, 세운/월운 끝 (X/Y), 일진 블록 각 줄 (X/Y)) 는 *본인 일간 ${dayMasterName ?? '?'} 기준 천간/지지 십성*.`,
-  ].join('\n')
+  const lines = ['## 데이터 범례']
+  if (sources.astro) {
+    lines.push(
+      '- 점성 표기: 관계어는 [결합]/[협력]/[긴장]/[조화]/[대립] 그대로 / R역행 / (t)현재트랜짓 / 진행 태양·진행 달=2차진행 / [detriment]약 [domicile]강'
+    )
+  }
+  // 나이 anchor — 선택된 시스템의 나이 개념만 언급(없는 시스템 참조 방지).
+  if (sources.saju && sources.astro) {
+    lines.push(
+      '- ★ 나이 anchor: [오늘 기준 만나이] 만 X세 를 현재 나이로 사용. [대운] 의 "31~40세 갑술" 은 그 cycle 의 시작~끝 나이지 현재 나이가 아니다. 사주·점성 화면의 모든 나이(대운·프로펙션·현재)는 만 나이로 통일.'
+    )
+  } else if (sources.saju) {
+    lines.push(
+      '- ★ 나이 anchor: [오늘 기준 만나이] 만 X세 를 현재 나이로 사용. [대운] 의 "31~40세 갑술" 은 그 cycle 의 시작~끝 나이지 현재 나이가 아니다. 모든 나이(대운·현재)는 만 나이로 통일.'
+    )
+  } else {
+    lines.push(
+      '- ★ 나이 anchor: [오늘 기준 만나이] 만 X세 를 현재 나이로 사용. 프로펙션 나이도 만 나이 기준이다.'
+    )
+  }
+  if (sources.saju) {
+    lines.push(
+      `- ★ 십성 anchor: [타이밍] 의 모든 (X/Y) 괄호 (대운의 \`32~41세 甲戌(현재 정재/정인)\`, 세운/월운 끝 (X/Y), 일진 블록 각 줄 (X/Y)) 는 *본인 일간 ${dayMasterName ?? '?'} 기준 천간/지지 십성*.`
+    )
+  }
+  return lines.join('\n')
 }
 
 /**
@@ -377,7 +426,10 @@ export async function buildDestinyContext(
   locale: Locale = 'ko',
   // displayTz 는 더 이상 사용 안 함 — "오늘"은 주입된 now 에서 직접 뽑는다(아래
   // localNow). 호출부 호환을 위해 시그니처에는 남겨 둔다.
-  _displayTz?: string
+  _displayTz?: string,
+  // 이번 답변에 넣을 데이터 소스(사주만/점성만/둘 다). 선택 안 된 시스템은
+  // 통째로 빠진다 — astro 는 무거운 천체력 계산까지 스킵해 토큰·지연 절약.
+  sources: DestinySources = ALL_SOURCES
 ): Promise<DestinyContextSplit> {
   const L = (ko: string, en: string) => (locale === 'ko' ? ko : en)
   // "오늘"은 주입된 now 에서 직접 뽑는다. now 는 ensureCounselorContext 가 사용자
@@ -387,7 +439,8 @@ export async function buildDestinyContext(
   // 결정론 누수(테스트로 now 고정 불가)가 있었다. now 단일 기준으로 통일.
   const localNow = { year: now.getFullYear(), month: now.getMonth() + 1, day: now.getDate() }
   const year = localNow.year
-  const saju = buildSajuSection(birth, locale, year, localNow, now)
+  // 사주 미선택이면 아예 빌드하지 않는다(원국·타이밍·일진 전부 스킵).
+  const saju = sources.saju ? buildSajuSection(birth, locale, year, localNow, now) : null
 
   // birth identity header 는 [Meta] 와 중복이라 제거 (route.ts 에서 [Meta]
   // 가 birthDate/birthTime/gender/location/tz/flags 단일 source 로 출력).
@@ -400,130 +453,134 @@ export async function buildDestinyContext(
 
   let astroNatal = '' // ## 점성 (static natal chart)
   let astroTiming = '' // moves under ## 타이밍 (transits/eclipses/SR/progression/profection)
-  try {
-    const [Y, M, D] = birth.birthDate.split('-').map(Number)
-    const [h, mi] = (birth.birthTime || '00:00').split(':').map(Number)
-    // ── 재료 준비실 ──
-    // 옛 코드는 raw 호출(calculateNatalChart/findNatalAspects/dignityOf/
-    // calculateProfection) + 어스펙트 분류 + 포매팅을 한 try 블록에서 다 했음.
-    // 2026-06-06 분리:
-    //   - collectAstroFacts → 순수 데이터 객체 (planets/aspects/profection)
-    //   - 아래 코드는 그 facts 를 텍스트로 포매팅
-    const aFacts = await collectAstroFacts(
-      {
-        birthDate: birth.birthDate,
-        birthTime: birth.birthTime,
-        latitude: lat,
-        longitude: lon,
-        timezone: tz,
-        birthTimeUnknown: birth.birthTimeUnknown,
-        birthCityUnknown: birth.birthCityUnknown,
-      },
-      now
-    )
-    if (!aFacts) throw new Error('astro facts unavailable')
-
-    // chart / natal raw 는 facts 의 escape hatch 에서 받음 — 별도 raw 재호출 없음.
-    // formatAstroSelf 가 옛 chart 인스턴스를 요구해서 _chart 로 그대로 넘긴다.
-    const chart = aFacts._chart
-    const sgn = (s: string) => (locale === 'ko' ? (SIGN_KO_A[s] ?? s).replace(/자리$/, '') : s)
-    const pl = (n: string) =>
-      n === 'Ascendant'
-        ? locale === 'ko'
-          ? '상승점'
-          : 'ASC'
-        : n === 'MC'
-          ? locale === 'ko'
-            ? '중천점'
-            : 'MC'
-          : pkA(n, locale)
-
-    const placeUnreliable = aFacts.natal.placeUnreliable
-    const posLines: string[] = []
-    for (const p of aFacts.natal.planets) {
-      // ko 면 dignity 도 한국어로 (모델이 영어 enum 을 못 보게). EN 은 raw 유지.
-      const dgTag =
-        p.dignity !== 'peregrine'
-          ? ` [${locale === 'ko' ? (DIGNITY_KO[p.dignity] ?? p.dignity) : p.dignity}]`
-          : ''
-      const houseTag = placeUnreliable ? '' : ` H${p.house}`
-      posLines.push(`  ${pl(p.name)} ${sgn(p.sign)}${houseTag}${p.retrograde ? ' R' : ''}${dgTag}`)
-    }
-    if (!placeUnreliable && aFacts.natal.ascendant && aFacts.natal.mc) {
-      posLines.push(
-        `  ${pl('Ascendant')} ${sgn(aFacts.natal.ascendant.sign)}`,
-        `  ${pl('MC')} ${sgn(aFacts.natal.mc.sign)}`
+  // 점성 미선택이면 천체력 계산(무거움) 자체를 스킵.
+  if (sources.astro)
+    try {
+      const [Y, M, D] = birth.birthDate.split('-').map(Number)
+      const [h, mi] = (birth.birthTime || '00:00').split(':').map(Number)
+      // ── 재료 준비실 ──
+      // 옛 코드는 raw 호출(calculateNatalChart/findNatalAspects/dignityOf/
+      // calculateProfection) + 어스펙트 분류 + 포매팅을 한 try 블록에서 다 했음.
+      // 2026-06-06 분리:
+      //   - collectAstroFacts → 순수 데이터 객체 (planets/aspects/profection)
+      //   - 아래 코드는 그 facts 를 텍스트로 포매팅
+      const aFacts = await collectAstroFacts(
+        {
+          birthDate: birth.birthDate,
+          birthTime: birth.birthTime,
+          latitude: lat,
+          longitude: lon,
+          timezone: tz,
+          birthTimeUnknown: birth.birthTimeUnknown,
+          birthCityUnknown: birth.birthCityUnknown,
+        },
+        now
       )
-    }
+      if (!aFacts) throw new Error('astro facts unavailable')
 
-    const aspMap = locale === 'en' ? ASP_EN : ASP_SYM
-    const fmtAsp = (a: { from: string; to: string; type: string; orb: number }) =>
-      `  ${pl(a.from)} ${aspMap[a.type] ?? a.type} ${pl(a.to)} ${a.orb.toFixed(1)}°`
-    const strong = aFacts.aspects.strong.map(fmtAsp)
-    const mid = aFacts.aspects.mid.map(fmtAsp)
+      // chart / natal raw 는 facts 의 escape hatch 에서 받음 — 별도 raw 재호출 없음.
+      // formatAstroSelf 가 옛 chart 인스턴스를 요구해서 _chart 로 그대로 넘긴다.
+      const chart = aFacts._chart
+      const sgn = (s: string) => (locale === 'ko' ? (SIGN_KO_A[s] ?? s).replace(/자리$/, '') : s)
+      const pl = (n: string) =>
+        n === 'Ascendant'
+          ? locale === 'ko'
+            ? '상승점'
+            : 'ASC'
+          : n === 'MC'
+            ? locale === 'ko'
+              ? '중천점'
+              : 'MC'
+            : pkA(n, locale)
 
-    // current (transits / eclipses / solar return / progression) via astroSlim v2
-    const block = await formatAstroSelf({
-      chart,
-      latitude: lat,
-      longitude: lon,
-      timeZone: tz,
-      now,
-      natalInput: {
-        year: Y,
-        month: M,
-        date: D,
-        hour: h,
-        minute: mi,
+      const placeUnreliable = aFacts.natal.placeUnreliable
+      const posLines: string[] = []
+      for (const p of aFacts.natal.planets) {
+        // ko 면 dignity 도 한국어로 (모델이 영어 enum 을 못 보게). EN 은 raw 유지.
+        const dgTag =
+          p.dignity !== 'peregrine'
+            ? ` [${locale === 'ko' ? (DIGNITY_KO[p.dignity] ?? p.dignity) : p.dignity}]`
+            : ''
+        const houseTag = placeUnreliable ? '' : ` H${p.house}`
+        posLines.push(
+          `  ${pl(p.name)} ${sgn(p.sign)}${houseTag}${p.retrograde ? ' R' : ''}${dgTag}`
+        )
+      }
+      if (!placeUnreliable && aFacts.natal.ascendant && aFacts.natal.mc) {
+        posLines.push(
+          `  ${pl('Ascendant')} ${sgn(aFacts.natal.ascendant.sign)}`,
+          `  ${pl('MC')} ${sgn(aFacts.natal.mc.sign)}`
+        )
+      }
+
+      const aspMap = locale === 'en' ? ASP_EN : ASP_SYM
+      const fmtAsp = (a: { from: string; to: string; type: string; orb: number }) =>
+        `  ${pl(a.from)} ${aspMap[a.type] ?? a.type} ${pl(a.to)} ${a.orb.toFixed(1)}°`
+      const strong = aFacts.aspects.strong.map(fmtAsp)
+      const mid = aFacts.aspects.mid.map(fmtAsp)
+
+      // current (transits / eclipses / solar return / progression) via astroSlim v2
+      const block = await formatAstroSelf({
+        chart,
         latitude: lat,
         longitude: lon,
         timeZone: tz,
-      },
-      // ASC/MC/하우스는 정확한 출생시각 *과* 출생지 둘 다 필요 → 둘 중 하나라도
-      // 미상이면 각을 건너뛴다. 이전엔 birthCityUnknown 만 봤어서, 출생지는
-      // 알고 시간만 모르는 경우 midnight 폴백 ASC 기반 하우스/각이 새어나갔다.
-      skipAngles: placeUnreliable,
-    })
-    const cur = slimAstroSelf(block, { locale, year }).trim()
+        now,
+        natalInput: {
+          year: Y,
+          month: M,
+          date: D,
+          hour: h,
+          minute: mi,
+          latitude: lat,
+          longitude: lon,
+          timeZone: tz,
+        },
+        // ASC/MC/하우스는 정확한 출생시각 *과* 출생지 둘 다 필요 → 둘 중 하나라도
+        // 미상이면 각을 건너뛴다. 이전엔 birthCityUnknown 만 봤어서, 출생지는
+        // 알고 시간만 모르는 경우 midnight 폴백 ASC 기반 하우스/각이 새어나갔다.
+        skipAngles: placeUnreliable,
+      })
+      const cur = slimAstroSelf(block, { locale, year }).trim()
 
-    // Profection — facts.profection 에서 raw 값 받아 포매팅만.
-    const prof = aFacts.profection
-    let profLine = ''
-    if (prof) {
-      const lp = prof.lordPlacement
-      const lordRes = lp?.sign ? ` (${sgn(lp.sign)}${lp.house ? ` H${lp.house}` : ''})` : ''
-      const lordKo = placeUnreliable ? '' : `, Lord ${pkA(prof.lordOfYear, 'ko')}${lordRes}`
-      const lordEn = placeUnreliable ? '' : `, Lord ${prof.lordOfYear}${lordRes}`
-      profLine = L(
-        `프로펙션 (만 ${prof.age}세 기준): H${prof.activatedHouse} 활성 (${HOUSE_THEME_KO[prof.activatedHouse]})${lordKo}`,
-        `Profection (age ${prof.age} basis): H${prof.activatedHouse} active (${HOUSE_THEME_EN[prof.activatedHouse]})${lordEn}`
-      )
+      // Profection — facts.profection 에서 raw 값 받아 포매팅만.
+      const prof = aFacts.profection
+      let profLine = ''
+      if (prof) {
+        const lp = prof.lordPlacement
+        const lordRes = lp?.sign ? ` (${sgn(lp.sign)}${lp.house ? ` H${lp.house}` : ''})` : ''
+        const lordKo = placeUnreliable ? '' : `, Lord ${pkA(prof.lordOfYear, 'ko')}${lordRes}`
+        const lordEn = placeUnreliable ? '' : `, Lord ${prof.lordOfYear}${lordRes}`
+        profLine = L(
+          `프로펙션 (만 ${prof.age}세 기준): H${prof.activatedHouse} 활성 (${HOUSE_THEME_KO[prof.activatedHouse]})${lordKo}`,
+          `Profection (age ${prof.age} basis): H${prof.activatedHouse} active (${HOUSE_THEME_EN[prof.activatedHouse]})${lordEn}`
+        )
+      }
+
+      astroNatal = [
+        L('## 점성', '## ASTRO'),
+        '',
+        L('행성 (사인·하우스·디그니티):', 'planets (sign·house·dignity):'),
+        ...posLines,
+        '',
+        ...(strong.length ? [L('본명 강한각 (0-2°):', 'natal strong (0-2°):'), ...strong] : []),
+        ...(mid.length ? [L('본명 중간각 (2-5°):', 'natal mid (2-5°):'), ...mid] : []),
+      ].join('\n')
+      astroTiming = [cur, profLine].filter(Boolean).join('\n')
+    } catch (err) {
+      // 점성 실패 시 silent fallback 이면 운영에서 사용자가 "사주만" 답변을
+      // 받아도 아무도 모름. 최소한 warn 으로 남겨 모니터링 가능하게.
+      // (console.* 금지 — CLAUDE.md 컨벤션에 맞춰 @/lib/logger 사용.)
+      logger.warn('[buildDestinyContext] astro section build failed', {
+        err: err instanceof Error ? err.message : String(err),
+      })
     }
-
-    astroNatal = [
-      L('## 점성', '## ASTRO'),
-      '',
-      L('행성 (사인·하우스·디그니티):', 'planets (sign·house·dignity):'),
-      ...posLines,
-      '',
-      ...(strong.length ? [L('본명 강한각 (0-2°):', 'natal strong (0-2°):'), ...strong] : []),
-      ...(mid.length ? [L('본명 중간각 (2-5°):', 'natal mid (2-5°):'), ...mid] : []),
-    ].join('\n')
-    astroTiming = [cur, profLine].filter(Boolean).join('\n')
-  } catch (err) {
-    // 점성 실패 시 silent fallback 이면 운영에서 사용자가 "사주만" 답변을
-    // 받아도 아무도 모름. 최소한 warn 으로 남겨 모니터링 가능하게.
-    // (console.* 금지 — CLAUDE.md 컨벤션에 맞춰 @/lib/logger 사용.)
-    logger.warn('[buildDestinyContext] astro section build failed', {
-      err: err instanceof Error ? err.message : String(err),
-    })
-  }
 
   // === STABLE (cached prefix) ===
   // 출생 메타 + 본명 사주 + 본명 점성 + 규칙. 사용자가 birth profile 을
   // 바꾸지 않는 한 동일한 바이트 → Anthropic prompt cache 가 평생 hit.
   const stable =
-    [saju.natal, astroNatal, buildInstructions(locale, saju.dayMasterName)]
+    [saju?.natal, astroNatal, buildInstructions(locale, sources, saju?.dayMasterName)]
       .filter(Boolean)
       .join('\n\n')
       .trim() + '\n'
@@ -532,12 +589,12 @@ export async function buildDestinyContext(
   // ## 타이밍(대운/세운/트랜짓/프로펙션) + ## 일진 윈도우 + today 앵커.
   // 매일(또는 트랜짓 정밀도에 따라 sub-daily) 변하므로 cached prefix 에
   // 두면 안 됨. 매 턴 새로 만들어 userPrompt 앞에 붙인다.
-  const timingBody = [saju.timing, astroTiming].filter(Boolean).join('\n')
+  const timingBody = [saju?.timing, astroTiming].filter(Boolean).join('\n')
   // 타이밍 헤더에 날짜 반복 X — 바로 위 `# 오늘: YYYY-MM-DD` 가 이미 동일
   // 날짜 anchor 제공. 두 곳에 똑같이 출력하면 dup.
   const timing = timingBody ? `${L('## 타이밍', '## TIMING')}\n\n${timingBody}` : ''
   const dailyAnchor = L(`# 오늘: ${today}`, `# Today: ${today}`)
-  const daily = [dailyAnchor, timing, saju.iljinWindow].filter(Boolean).join('\n\n').trim() + '\n'
+  const daily = [dailyAnchor, timing, saju?.iljinWindow].filter(Boolean).join('\n\n').trim() + '\n'
 
   // KO: 남은 영어 구조 태그/전문용어(cross/[CRITICAL]/SR/Lord/orb 등)를 한글로.
   // 한국어 사용자에겐 한국어 데이터만 — EN 경로는 손대지 않아 영어 유지.

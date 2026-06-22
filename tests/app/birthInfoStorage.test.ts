@@ -301,6 +301,42 @@ describe('birthInfoStorage', () => {
       expect(p.get('lon')).toBeNull()
       expect(p.get('timeZone')).toBeNull()
     })
+
+    // 메인에서 고른 데이터 소스(사주/점성)를 상담사로 전달. 기본 둘 다일 땐
+    // 파라미터를 생략(하위호환), 한쪽만 끄면 saju=0/astro=0 으로 싣는다.
+    it('omits saju/astro params when sources omitted (backward compat)', () => {
+      const info: StoredBirthInfo = { ...base(), savedAt: '2020-01-01T00:00:00.000Z' }
+      const p = new URLSearchParams(buildCounselorHref(info, 'q', 'ko').split('?')[1])
+      expect(p.get('saju')).toBeNull()
+      expect(p.get('astro')).toBeNull()
+    })
+
+    it('omits both params when both sources are on (default)', () => {
+      const info: StoredBirthInfo = { ...base(), savedAt: '2020-01-01T00:00:00.000Z' }
+      const p = new URLSearchParams(
+        buildCounselorHref(info, 'q', 'ko', { saju: true, astro: true }).split('?')[1]
+      )
+      expect(p.get('saju')).toBeNull()
+      expect(p.get('astro')).toBeNull()
+    })
+
+    it('emits astro=0 for saju-only selection', () => {
+      const info: StoredBirthInfo = { ...base(), savedAt: '2020-01-01T00:00:00.000Z' }
+      const p = new URLSearchParams(
+        buildCounselorHref(info, 'q', 'ko', { saju: true, astro: false }).split('?')[1]
+      )
+      expect(p.get('saju')).toBeNull() // on → omitted
+      expect(p.get('astro')).toBe('0') // off → explicit 0
+    })
+
+    it('emits saju=0 for astro-only selection', () => {
+      const info: StoredBirthInfo = { ...base(), savedAt: '2020-01-01T00:00:00.000Z' }
+      const p = new URLSearchParams(
+        buildCounselorHref(info, 'q', 'ko', { saju: false, astro: true }).split('?')[1]
+      )
+      expect(p.get('saju')).toBe('0')
+      expect(p.get('astro')).toBeNull()
+    })
   })
 
   describe('normGender', () => {

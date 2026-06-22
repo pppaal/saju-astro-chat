@@ -1,5 +1,5 @@
 /**
- * deriveLayeredScores — 층별(일/월/세운/대운) signed-surprise 점수 단위 테스트.
+ * deriveLayeredScores — 층별(일/월) signed-surprise 점수 단위 테스트.
  *
  * 순수 함수 (입력 CalendarCell[] → LayeredScores). 네트워크/DB 무사용.
  * surprise.ts 의 base-rate · importance 수식을 손으로 따라 기대값을 계산해 단언한다.
@@ -7,7 +7,6 @@
  *   importance = (−log P) × |polarity| × weight   (단, 정적 본명 kind 또는 P≥1 → 0)
  *   signedSurprise = top-k 의 sign(pol)·importance 합
  *   linearMapper: 0~100 = round(50 + z·K),  K = clamp(min24/zmax, min24/-zmin, [16,40])
- *   toneOf: signed>4 → favorable, <−4 → caution, else neutral
  */
 import { describe, it, expect } from 'vitest'
 import { deriveLayeredScores } from '@/lib/calendar-engine/derivers/layeredScore'
@@ -71,13 +70,11 @@ function dayISO(month: number, day: number): string {
 
 describe('deriveLayeredScores', () => {
   describe('기본 구조', () => {
-    it('빈 cells 입력 — daily/monthly 비었고 yearly/decadal 은 중립 0', () => {
+    it('빈 cells 입력 — daily 비었고 monthly 는 12 슬롯', () => {
       const out = deriveLayeredScores([])
       expect(out.daily.size).toBe(0)
       // monthly 는 1~12 항상 채워진다 (cells 가 없어도 12 슬롯 생성).
       expect(out.monthly.size).toBe(12)
-      expect(out.yearly).toEqual({ signed: 0, tone: 'neutral' })
-      expect(out.decadal).toEqual({ signed: 0, tone: 'neutral' })
     })
 
     it('빈 cells 일 때 monthly 12개월 모두 signed 0 · score 50 · grade 2', () => {
@@ -276,89 +273,6 @@ describe('deriveLayeredScores', () => {
       const out = deriveLayeredScores(cells)
       expect(out.monthly.get(1)!.signed).toBeGreaterThan(0)
       expect(out.monthly.get(2)!.signed).toBeLessThan(0)
-    })
-  })
-
-  describe('yearly / decadal — 단일 톤', () => {
-    it('세운 +신호가 충분히 크면 favorable', () => {
-      // signed>4 가 나오도록 드문 강신호 여러 개 + 채움 셀.
-      const cells: CalendarCell[] = []
-      cells.push(
-        cell(dayISO(1, 1), [
-          sig({ id: 'y1', name: '세운길1', layer: 'yearly', polarity: 3, weight: 1 }),
-          sig({ id: 'y2', name: '세운길2', layer: 'yearly', polarity: 3, weight: 1 }),
-        ])
-      )
-      for (let d = 2; d <= 60; d++) cells.push(cell(dayISO(1, (d % 28) + 1), []))
-      const out = deriveLayeredScores(cells)
-      expect(out.yearly.signed).toBeGreaterThan(4)
-      expect(out.yearly.tone).toBe('favorable')
-    })
-
-    it('대운 −신호가 충분히 크면 caution', () => {
-      const cells: CalendarCell[] = []
-      cells.push(
-        cell(dayISO(1, 1), [
-          sig({ id: 'd1', name: '대운흉1', layer: 'decadal', polarity: -3, weight: 1 }),
-          sig({ id: 'd2', name: '대운흉2', layer: 'decadal', polarity: -3, weight: 1 }),
-        ])
-      )
-      for (let d = 2; d <= 60; d++) cells.push(cell(dayISO(1, (d % 28) + 1), []))
-      const out = deriveLayeredScores(cells)
-      expect(out.decadal.signed).toBeLessThan(-4)
-      expect(out.decadal.tone).toBe('caution')
-    })
-
-    it('0 부근 약신호는 neutral 톤', () => {
-      // 단일 약신호 — signed 가 ±4 안.
-      const cells: CalendarCell[] = []
-      cells.push(
-        cell(dayISO(1, 1), [sig({ name: '세운약', layer: 'yearly', polarity: 1, weight: 0.2 })])
-      )
-      for (let d = 2; d <= 4; d++) cells.push(cell(dayISO(1, d), []))
-      const out = deriveLayeredScores(cells)
-      expect(Math.abs(out.yearly.signed)).toBeLessThanOrEqual(4)
-      expect(out.yearly.tone).toBe('neutral')
-    })
-
-    it('yearly/decadal 도 같은 id 는 dedup 한다', () => {
-      const id = 'yr-dup'
-      const cells: CalendarCell[] = []
-      cells.push(cell(dayISO(1, 1), [sig({ id, name: '세운', layer: 'yearly', polarity: 2 })]))
-      cells.push(cell(dayISO(1, 2), [sig({ id, name: '세운', layer: 'yearly', polarity: 2 })]))
-      for (let d = 3; d <= 10; d++) cells.push(cell(dayISO(1, d), []))
-      const out = deriveLayeredScores(cells)
-      const rates = computeBaseRates(cells)
-      const single = signalImportance(
-        sig({ id, name: '세운', layer: 'yearly', polarity: 2 }),
-        rates
-      )
-      expect(out.yearly.signed).toBeCloseTo(single, 8)
-    })
-
-    it('해당 층 신호가 전혀 없으면 signed 0 · neutral', () => {
-      const cells = [
-        cell(dayISO(1, 1), [sig({ name: '일진만', layer: 'daily', polarity: 2 })]),
-        cell(dayISO(1, 2), []),
-      ]
-      const out = deriveLayeredScores(cells)
-      expect(out.yearly).toEqual({ signed: 0, tone: 'neutral' })
-      expect(out.decadal).toEqual({ signed: 0, tone: 'neutral' })
-    })
-  })
-
-  describe('toneOf 경계값', () => {
-    // toneOf 는 비공개이지만 yearly 톤으로 간접 검증한다.
-    // 경계 정확히 4 / −4 는 neutral (> / < 엄격 비교).
-    function yearlyToneForSigned(targetSigned: number): string {
-      // polarity·weight 로 정확한 signed 를 만들기 어렵다 → 큰/작은 케이스로 양끝만.
-      return targetSigned > 4 ? 'favorable' : targetSigned < -4 ? 'caution' : 'neutral'
-    }
-    it('경계 규칙 self-check (문서화)', () => {
-      expect(yearlyToneForSigned(4)).toBe('neutral')
-      expect(yearlyToneForSigned(-4)).toBe('neutral')
-      expect(yearlyToneForSigned(4.1)).toBe('favorable')
-      expect(yearlyToneForSigned(-4.1)).toBe('caution')
     })
   })
 

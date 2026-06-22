@@ -1,0 +1,56 @@
+.toggles {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.18rem 0.55rem;
+  border-radius: 999px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  background: rgba(0, 0, 0, 0.03);
+  color: rgba(0, 0, 0, 0.55);
+  font-size: 0.78rem;
+  line-height: 1;
+  cursor: pointer;
+  user-select: none;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.toggle[data-active] {
+  border-color: rgba(99, 102, 241, 0.55);
+  background: rgba(99, 102, 241, 0.1);
+  color: rgba(67, 56, 202, 0.95);
+}
+
+.checkbox {
+  width: 0.85rem;
+  height: 0.85rem;
+  margin: 0;
+  accent-color: #6366f1;
+  cursor: pointer;
+}
+
+.checkbox:disabled {
+  cursor: not-allowed;
+}
+
+/* 다크 배경(메인 코스믹) — 밝은 글자/테두리로 가독성 확보. */
+.toggles[data-theme='dark'] .toggle {
+  border-color: rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.toggles[data-theme='dark'] .toggle[data-active] {
+  border-color: rgba(165, 180, 252, 0.65);
+  background: rgba(129, 140, 248, 0.22);
+  color: rgba(224, 231, 255, 0.98);
+}

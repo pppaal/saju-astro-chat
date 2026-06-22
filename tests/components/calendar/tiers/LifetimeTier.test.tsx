@@ -42,12 +42,14 @@ function makeStage(over: Partial<DestinyLifeStage> = {}): DestinyLifeStage {
   return {
     id: over.id ?? 'early',
     name: over.name ?? '초년기',
+    nameEn: over.nameEn ?? 'Early years',
     ageFrom: over.ageFrom ?? 0,
     ageTo: over.ageTo ?? 20,
     yearFrom: over.yearFrom ?? 1990,
     yearTo: over.yearTo ?? 2010,
     now: over.now ?? false,
     tone: over.tone ?? '편재 — 현실 성취의 무대',
+    toneEn: over.toneEn ?? 'Wealth — the stage of real-world results',
     detail: over.detail ?? null,
   }
 }
@@ -297,6 +299,7 @@ describe('LifetimeTier', () => {
             detail: {
               daewoonText: '乙亥(을해) 2016–26',
               body: ['청년기 본문 한 단락.'],
+              bodyEn: ['Young-adult body paragraph.'],
               outer: [{ label: '토성 회귀', date: '2024.06', body: '책임의 시기', kind: 'saturn' }],
               hapchung: { title: '寅亥 육합', romaji: 'in-hae', body: '합 설명' },
               shinsal: { title: '겁살', body: '신살 설명' },
@@ -380,6 +383,162 @@ describe('LifetimeTier', () => {
       mockLocale = 'en'
       render(<LifetimeTier user={makeUser()} lifetime={makeLifetime()} onDive={noop} />)
       expect(screen.getByRole('button', { name: /Zoom in to 2026/ })).toBeInTheDocument()
+    })
+  })
+
+  // ── i18n leak guards — EN locale must NOT render KO-baked data fields ──
+  describe('i18n (EN locale picks English data fields, no Korean leaks)', () => {
+    const HANGUL = /[가-힣]/
+
+    it('stage cards render nameEn / toneEn in EN (no Hangul)', () => {
+      mockLocale = 'en'
+      const lifetime = makeLifetime({
+        lifeStages: [
+          makeStage({
+            id: 'early',
+            name: '초년기',
+            nameEn: 'Early years',
+            tone: '비겁 — 또래 속 주체성',
+            toneEn: 'Peer — agency among peers',
+          }),
+          makeStage({
+            id: 'youth',
+            name: '청년기',
+            nameEn: 'Young adulthood',
+            now: true,
+            ageFrom: 20,
+            ageTo: 40,
+            tone: '편재 — 현실 성취의 무대',
+            toneEn: 'Wealth — the stage of real-world results',
+          }),
+        ],
+      })
+      render(<LifetimeTier user={makeUser()} lifetime={lifetime} onDive={noop} />)
+      // English stage names present.
+      expect(screen.getByText('Early years')).toBeInTheDocument()
+      expect(screen.getByText('Young adulthood')).toBeInTheDocument()
+      // Korean stage names absent.
+      expect(screen.queryByText('초년기')).not.toBeInTheDocument()
+      expect(screen.queryByText('청년기')).not.toBeInTheDocument()
+      // EN tone present, KO tone absent (each stage has a distinct tone here).
+      expect(screen.getByText('Wealth — the stage of real-world results')).toBeInTheDocument()
+      expect(screen.getByText('Peer — agency among peers')).toBeInTheDocument()
+      expect(screen.queryByText('편재 — 현실 성취의 무대')).not.toBeInTheDocument()
+      expect(screen.queryByText('비겁 — 또래 속 주체성')).not.toBeInTheDocument()
+    })
+
+    it('lifePattern id-card + life-type heading render English (no KO leak)', () => {
+      mockLocale = 'en'
+      const lifetime = makeLifetime({
+        lifePattern: {
+          key: 'late-bloom',
+          ko: '대기만성형',
+          en: 'Late bloomer',
+          line: '천천히 무르익는 흐름.',
+          lineEn: 'A slowly ripening flow.',
+          daeun: [
+            { startAge: 10, gz: '甲子', favor: 1 },
+            { startAge: 30, gz: '丙寅', favor: 2 },
+          ],
+        },
+      })
+      render(<LifetimeTier user={makeUser()} lifetime={lifetime} onDive={noop} />)
+      // life-type heading uses en.
+      expect(screen.getByText('Life type · Late bloomer')).toBeInTheDocument()
+      // id-card type (Late bloomer) + lineEn rendered; KO variants absent.
+      expect(screen.getAllByText('Late bloomer').length).toBeGreaterThan(0)
+      expect(screen.getAllByText('A slowly ripening flow.').length).toBeGreaterThan(0)
+      expect(screen.queryByText('대기만성형')).not.toBeInTheDocument()
+      expect(screen.queryByText('천천히 무르익는 흐름.')).not.toBeInTheDocument()
+    })
+
+    it('ZR chapter sign renders English zodiac name in EN (not Korean 자리)', () => {
+      mockLocale = 'en'
+      const ch = {
+        sign: 'Sagittarius',
+        ruler: 'Jupiter',
+        calendarStartYear: 2010,
+        calendarEndYear: 2022,
+        durationYears: 12,
+        now: true,
+        startLot: 'spirit',
+        level: 1,
+        index: 0,
+      }
+      const lifetime = makeLifetime({
+        zrSpiritChapters: [ch as never],
+        zrFortuneChapters: [{ ...ch, startLot: 'fortune', sign: 'Cancer', ruler: 'Moon' } as never],
+      })
+      render(<LifetimeTier user={makeUser()} lifetime={lifetime} onDive={noop} />)
+      // English sign names appear (in ZR carousel cells).
+      expect(screen.getAllByText('Sagittarius').length).toBeGreaterThan(0)
+      expect(screen.getAllByText('Cancer').length).toBeGreaterThan(0)
+      // Korean zodiac labels (사수자리/궁수자리, 게자리) must not appear.
+      expect(screen.queryByText('사수자리')).not.toBeInTheDocument()
+      expect(screen.queryByText('궁수자리')).not.toBeInTheDocument()
+      expect(screen.queryByText('게자리')).not.toBeInTheDocument()
+    })
+
+    it('natal lots row renders English sign in EN', () => {
+      mockLocale = 'en'
+      const user = makeUser({
+        lots: [
+          { name: 'Fortune', sign: 'Leo', degree: 12.4, house: 5, sect: 'day', korean: '복점' },
+        ] as never,
+      })
+      render(<LifetimeTier user={user} lifetime={makeLifetime()} onDive={noop} />)
+      // sign text "Leo 12° · 5H" — English sign, not 사자자리.
+      expect(screen.getByText(/Leo 12° · 5H/)).toBeInTheDocument()
+      expect(screen.queryByText(/사자자리/)).not.toBeInTheDocument()
+    })
+
+    it('stage detail body renders bodyEn in EN; outer + shinsal toggle to EN', () => {
+      mockLocale = 'en'
+      const lifetime = makeLifetime({
+        lifeStages: [
+          makeStage({
+            id: 'youth',
+            name: '청년기',
+            nameEn: 'Young adulthood',
+            now: true,
+            detail: {
+              daewoonText: '乙亥(을해) 2016–26',
+              body: ['청년기 한국어 본문.'],
+              bodyEn: ['Young-adult English body line.'],
+              outer: [
+                {
+                  label: '토성 회귀',
+                  labelEn: 'Saturn return',
+                  date: '2024.06',
+                  body: '책임의 시기',
+                  bodyEn: 'a season of responsibility',
+                  kind: 'saturn',
+                },
+              ],
+              shinsal: {
+                title: '신살 활성',
+                kind: 'shinsal',
+                body: '겁살 활성 — 재물·신뢰 도전',
+                bodyEn: 'Geopsal active — trials around wealth and trust',
+              },
+            },
+          }),
+        ],
+      })
+      render(<LifetimeTier user={makeUser()} lifetime={lifetime} onDive={noop} />)
+      // body picks bodyEn.
+      expect(screen.getByText('Young-adult English body line.')).toBeInTheDocument()
+      expect(screen.queryByText('청년기 한국어 본문.')).not.toBeInTheDocument()
+      // outer chip picks labelEn / bodyEn.
+      expect(screen.getByText('Saturn return')).toBeInTheDocument()
+      expect(screen.queryByText('토성 회귀')).not.toBeInTheDocument()
+      // shinsal title localized + bodyEn rendered.
+      expect(screen.getByText('Shinsal active')).toBeInTheDocument()
+      expect(
+        screen.getByText('Geopsal active — trials around wealth and trust')
+      ).toBeInTheDocument()
+      expect(screen.queryByText('신살 활성')).not.toBeInTheDocument()
+      expect(screen.queryByText('겁살 활성 — 재물·신뢰 도전')).not.toBeInTheDocument()
     })
   })
 })

@@ -7,6 +7,7 @@
  */
 
 import { SIBSIN_EN } from '@/lib/saju/sibsinLabels'
+import { translateSignalLabel } from '@/lib/calendar-engine/derivers/signalI18n'
 
 // 12별자리 EN → KO.
 const SIGN_KO: Record<string, string> = {
@@ -61,6 +62,10 @@ export function localizeLabel(label: string, ko: boolean): string {
       }
       en = en.replace(/\s*시진/g, ' hour').replace(/격(?![가-힣])/g, ' frame')
     }
+    // 폴백: 위 specific 맵이 못 잡은 엔진 KO 토큰(관계 충/합/형, 신살,
+    // 집계 star 관성/재성, ZR/격국 상태어 등)을 signalI18n 의 넓은 표로 영문화.
+    // 매칭 안 되는 토큰은 그대로 통과(graceful) → 미상 라벨엔 영향 없음.
+    en = translateSignalLabel(en, 'en')
     return en
   }
   let out = label

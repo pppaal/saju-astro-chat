@@ -144,6 +144,18 @@ describe('toDecade — 현재 대운 → destinypal decade', () => {
       // jiji sibsin: 일간 甲(목) vs 寅(목) 같은 오행 → 비견
       expect(d.pillar.jiji.sibsin).toBe('비견')
     })
+
+    it('pillar note 는 KO + 영문 병행(noteEn) — 한글 누수 없음', () => {
+      const d = toDecade(natalWithDaeun(), { currentAge: 5 })! // 丙寅 — 천간 식신 / 지지 비견
+      // KO note 존재.
+      expect(d.pillar.cheongan.note).toBeTruthy()
+      expect(d.pillar.jiji.note).toBeTruthy()
+      // EN note — 한글 누수 없이 영문.
+      expect(d.pillar.cheongan.noteEn).toBeTruthy()
+      expect(d.pillar.cheongan.noteEn).not.toMatch(/[가-힣]/)
+      expect(d.pillar.jiji.noteEn).toBeTruthy()
+      expect(d.pillar.jiji.noteEn).not.toMatch(/[가-힣]/)
+    })
   })
 
   describe('hapchung / unseong (auto-derive)', () => {
@@ -161,12 +173,31 @@ describe('toDecade — 현재 대운 → destinypal decade', () => {
         { currentAge: 5 }
       )!
       expect(d.hapchung.title).toContain('충')
+      // EN 병행 — clash 라인이 한글 누수 없이 영문으로.
+      expect(d.hapchung.bodyEn).toContain('clash')
+      expect(d.hapchung.bodyEn).not.toMatch(/[가-힣]/)
+      // titleEn — '午子충' → 로마자 clash, 한글 누수 없음.
+      expect(d.hapchung.titleEn).toContain('clash')
+      expect(d.hapchung.titleEn).not.toMatch(/[가-힣]/)
+    })
+
+    it('hapchung 중립 라인도 영문 병행', () => {
+      // 충/합 없는 대운(辰 2024) — 중립 라인.
+      const d = toDecade(natalWithDaeun(), { currentAge: 34 })!
+      expect(d.hapchung.bodyEn).toBeTruthy()
+      expect(d.hapchung.bodyEn).not.toMatch(/[가-힣]/)
     })
 
     it('unseong 은 12운성 단계 + 본문', () => {
       const d = toDecade(natalWithDaeun(), { currentAge: 5 })!
       expect(d.unseong.title).toBeTruthy()
       expect(d.unseong.body).toContain('대운 자리')
+      // EN 병행 — "decade seat" 한글 누수 없이.
+      expect(d.unseong.bodyEn).toContain('decade seat')
+      expect(d.unseong.bodyEn).not.toMatch(/[가-힣]/)
+      // titleEn — 12운성 단계명을 영문 라벨로(한글 누수 없음).
+      expect(d.unseong.titleEn).toBeTruthy()
+      expect(d.unseong.titleEn).not.toMatch(/[가-힣]/)
     })
 
     it('opts.hapchung / opts.unseong 직주입이 auto 보다 우선', () => {
@@ -190,6 +221,7 @@ describe('toDecade — 현재 대운 → destinypal decade', () => {
           id: 'c1',
           polarity: 1,
           korean: '재물 페어',
+          english: 'a wealth pair',
           evidence: { module: 'x', detail: { sajuKey: '정재', astroKey: 'Venus' } },
         }),
         makeSignal({
@@ -213,14 +245,19 @@ describe('toDecade — 현재 대운 → destinypal decade', () => {
       ]
       const d = toDecade(natalWithDaeun(), { currentAge: 5, decadalSignals: signals })!
       expect(d.crossActivations).toHaveLength(2)
-      // 정렬: |−3| > |1|
-      expect(d.crossActivations[0].name).toBe('편관 × 토성')
+      // 정렬: |−3| > |1| · 이름은 쉬운말(생활영역 × 일상어)
+      expect(d.crossActivations[0].name).toBe('일·도전 × 책임·인내')
       expect(d.crossActivations[0].polarity).toBe(-3)
       expect(d.crossActivations[0].meaning).toBe('압박 페어')
-      expect(d.crossActivations[1].name).toBe('정재 × 금성')
+      expect(d.crossActivations[1].name).toBe('돈·안정 × 사랑·돈')
       expect(d.crossActivations[1].sajuLine).toBe('정재')
-      expect(d.crossActivations[1].astroLine).toBe('Venus')
+      // astroLine 은 한글 행성(KO 로케일용), astroLineEn 은 원본 영문 키.
+      expect(d.crossActivations[1].astroLine).toBe('금성')
+      expect(d.crossActivations[1].astroLineEn).toBe('Venus')
       expect(d.crossActivations[1].meaning).toBe('재물 페어') // korean 우선
+      expect(d.crossActivations[1].meaningEn).toBe('a wealth pair') // english 우선
+      // english 없는 신호(편관 × 토성)는 evidence.meaning 폴백.
+      expect(d.crossActivations[0].meaningEn).toBe('압박 페어')
     })
 
     it('같은 이름 dedup — 더 강한 polarity 를 대표로', () => {
@@ -251,22 +288,105 @@ describe('toDecade — 현재 대운 → destinypal decade', () => {
       const d = toDecade(natalWithDaeun(), { currentAge: 5 })!
       expect(d.crossActivations).toEqual([])
     })
+
+    it('name/nameEn — 쉬운말 페어 + sajuLineEn 영문화 (한글 누수 없음)', () => {
+      const signals = [
+        makeSignal({
+          kind: 'cross-activation',
+          layer: 'decadal',
+          name: '편관 × 화성',
+          id: 'c1',
+          polarity: -2,
+          korean: '압박 페어',
+          english: 'a pressure pair',
+          evidence: { module: 'x', detail: { sajuKey: '편재 대운', astroKey: 'Mars' } },
+        }),
+      ]
+      const d = toDecade(natalWithDaeun(), { currentAge: 5, decadalSignals: signals })!
+      const c = d.crossActivations[0]
+      // '편관 × 화성' → 생활영역 × 일상어 (한글 누수 없음).
+      expect(c.nameEn).toBe('challenge & pressure × drive & friction')
+      expect(c.nameEn).not.toMatch(/[가-힣]/)
+      // '편재 대운' → Indirect Wealth decade (기술 참조 라인은 그대로 영문화).
+      expect(c.sajuLineEn).toBe('Indirect Wealth decade')
+      expect(c.sajuLineEn).not.toMatch(/[가-힣]/)
+      // KO 이름도 쉬운말 · sajuLine 원본 보존 (작은 참조용).
+      expect(c.name).toBe('일·도전 × 추진·마찰')
+      expect(c.sajuLine).toBe('편재 대운')
+    })
+
+    it('nameEn — KO/EN 행성 혼용도 쉬운말로 (정재 × Venus)', () => {
+      const signals = [
+        makeSignal({
+          kind: 'cross-activation',
+          layer: 'decadal',
+          name: '정재 × Venus',
+          id: 'c1',
+          polarity: 1,
+        }),
+      ]
+      const d = toDecade(natalWithDaeun(), { currentAge: 5, decadalSignals: signals })!
+      expect(d.crossActivations[0].nameEn).toBe('steady wealth × love & money')
+      expect(d.crossActivations[0].name).toBe('돈·안정 × 사랑·돈')
+    })
+
+    it('evidence.detail 비어도 페어 name 에서 사주/행성 라인 폴백 (연 cells strip 대응)', () => {
+      // /destiny(연 cells)는 includeEvidence:false 라 detail 이 비는데, 살아남는
+      // s.name 에서 사주/행성 토큰을 파싱해 서브라인이 사라지지 않게 한다.
+      const signals = [
+        makeSignal({
+          kind: 'cross-activation',
+          layer: 'decadal',
+          name: '편재 × 목성',
+          id: 'c1',
+          polarity: 1,
+        }),
+      ]
+      const d = toDecade(natalWithDaeun(), { currentAge: 5, decadalSignals: signals })!
+      const c = d.crossActivations[0]
+      expect(c.sajuLine).toBe('편재')
+      expect(c.sajuLineEn).toBe('Indirect Wealth')
+      expect(c.astroLine).toBe('목성') // KO 행성
+      expect(c.astroLineEn).toBe('Jupiter') // EN 행성, 한글 누수 없음
+      expect(c.astroLineEn).not.toMatch(/[가-힣]/)
+    })
+
+    it('페어가 아닌 name 은 사주/행성 라인 undefined', () => {
+      const signals = [
+        makeSignal({
+          kind: 'cross-activation',
+          layer: 'decadal',
+          name: '단일신호',
+          id: 'c1',
+          polarity: 1,
+        }),
+      ]
+      const d = toDecade(natalWithDaeun(), { currentAge: 5, decadalSignals: signals })!
+      expect(d.crossActivations[0].sajuLine).toBeUndefined()
+      expect(d.crossActivations[0].sajuLineEn).toBeUndefined()
+      expect(d.crossActivations[0].astroLine).toBeUndefined()
+    })
   })
 
   describe('body / narrative / astro / geokguk', () => {
-    it('body 기본값은 [headline]', () => {
+    it('body 기본값은 [headline] · bodyEn 기본값은 [headlineEn]', () => {
       const d = toDecade(natalWithDaeun(), { currentAge: 5 })!
       expect(d.body).toEqual([d.headline])
+      expect(d.bodyEn).toEqual([d.headlineEn])
+      // 영문 본문에 한글 누수 없음.
+      expect(d.bodyEn.join(' ')).not.toMatch(/[가-힣]/)
     })
-    it('opts.body / narrative / astroMarks 통과', () => {
+    it('opts.body / bodyEn / narrative / astroMarks 통과', () => {
       const d = toDecade(natalWithDaeun(), {
         currentAge: 5,
         body: ['b1', 'b2'],
-        narrative: [{ tag: 't', body: 'n' }],
+        bodyEn: ['e1', 'e2'],
+        narrative: [{ tag: 't', body: 'n', bodyEn: 'nEn' }],
         astroMarks: [{ label: 'Jupiter', date: '2030', body: 'return' }],
       })!
       expect(d.body).toEqual(['b1', 'b2'])
-      expect(d.narrative).toEqual([{ tag: 't', body: 'n' }])
+      expect(d.bodyEn).toEqual(['e1', 'e2'])
+      expect(d.narrative).toEqual([{ tag: 't', body: 'n', bodyEn: 'nEn' }])
       expect(d.astro).toEqual([{ label: 'Jupiter', date: '2030', body: 'return' }])
     })
     it('astro / narrative 기본 빈 배열', () => {
