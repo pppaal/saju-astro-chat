@@ -72,7 +72,8 @@ const EL_KO_EN: Record<string, string> = {
   금: 'metal',
   수: 'water',
 }
-const elEn = (x: string | undefined) => (x ? (EL_KO_EN[x] ?? x.toLowerCase()) : 'wood')
+// 한글 오행 → 영문 키. 값이 없으면 가짜('wood')를 넣지 말고 null 을 흘린다.
+const elEn = (x: string | undefined | null) => (x ? (EL_KO_EN[x] ?? x.toLowerCase()) : null)
 
 const PLANET_GLYPH: Record<string, string> = {
   Sun: '☉',
@@ -403,8 +404,10 @@ export function natalToReportData(
       geokguk: adv.geokguk?.primary ?? S.geokguk ?? '미정',
       yongsin: {
         primary: elEn(S.yongsin?.primary),
-        secondary: S.yongsin?.secondary ? elEn(S.yongsin.secondary) : undefined,
-        avoid: (S.yongsin?.avoid ?? []).map(elEn),
+        secondary: (S.yongsin?.secondary ? elEn(S.yongsin.secondary) : undefined) ?? undefined,
+        avoid: (S.yongsin?.avoid ?? [])
+          .map((e: string | undefined | null) => elEn(e))
+          .filter((x: string | null): x is string => !!x),
       },
       pillars: {
         hour: mapPillar(pillars.time, stages, 'time'),
@@ -419,21 +422,27 @@ export function natalToReportData(
       // 회색 3 셀 해소 (RAW_DISTRIBUTION v5.4 — buildReportContext 가 흘려줌).
       rooted: typeof S.rooted === 'boolean' ? S.rooted : undefined,
       gongmang: Array.isArray(S.gongmang) ? S.gongmang : undefined,
-      johuYongsin: S.johuYongsin
-        ? { primary: elEn(S.johuYongsin.primaryYongsin), rating: S.johuYongsin.rating ?? 0 }
-        : null,
+      johuYongsin:
+        S.johuYongsin && elEn(S.johuYongsin.primaryYongsin)
+          ? {
+              primary: elEn(S.johuYongsin.primaryYongsin) as string,
+              rating: S.johuYongsin.rating ?? 0,
+            }
+          : null,
     },
     astro: {
       sect: A.sect ?? 'day',
       houseSystem: A.houseSystem ?? 'Placidus',
+      // placeUnreliable(출생시각/출생지 미상) 면 facts 가 ascendant/mc 를 null 로 비워 보낸다
+      // → 자정 폴백 각을 'Virgo'/'Gemini'/lon 0 으로 가짜로 채우지 않고 그대로 null 을 보존한다.
       ascendant: {
-        lon: asc.longitude ?? asc.lon ?? 0,
-        sign: SIGN_KO_FULL[asc.sign] ?? asc.sign ?? 'Virgo',
+        lon: asc.longitude ?? asc.lon ?? null,
+        sign: asc.sign ? (SIGN_KO_FULL[asc.sign] ?? asc.sign) : null,
         deg: fmtDeg(asc.longitude ?? asc.lon),
       },
       mc: {
-        lon: mc.longitude ?? mc.lon ?? 0,
-        sign: SIGN_KO_FULL[mc.sign] ?? mc.sign ?? 'Gemini',
+        lon: mc.longitude ?? mc.lon ?? null,
+        sign: mc.sign ? (SIGN_KO_FULL[mc.sign] ?? mc.sign) : null,
         deg: fmtDeg(mc.longitude ?? mc.lon),
       },
       planets,

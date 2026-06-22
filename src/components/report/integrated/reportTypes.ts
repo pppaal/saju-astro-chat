@@ -32,7 +32,8 @@ export interface ReportData {
     dayMaster: string
     strength: string
     geokguk: string
-    yongsin: { primary: string; secondary?: string; avoid: string[] }
+    // 용신 계산 실패(YongsinResult=null) 시 primary 는 null — 가짜 원소를 넣지 않는다.
+    yongsin: { primary: string | null; secondary?: string; avoid: string[] }
     pillars: { hour: ReportPillar; day: ReportPillar; month: ReportPillar; year: ReportPillar }
     fiveElements: { wood: number; fire: number; earth: number; metal: number; water: number }
     natalShinsal: Array<{
@@ -60,8 +61,10 @@ export interface ReportData {
   astro: {
     sect: string
     houseSystem: string
-    ascendant: { lon: number; sign: string; deg: string }
-    mc: { lon: number; sign: string; deg: string }
+    // 출생시각/출생지 미상(placeUnreliable) 시 ASC·MC 는 산출 불가 → null.
+    // 자정 폴백 각을 가짜로 채우지 않는다(astroFacts 의 의도적 null-out 을 그대로 보존).
+    ascendant: { lon: number | null; sign: string | null; deg: string }
+    mc: { lon: number | null; sign: string | null; deg: string }
     planets: Array<{
       name: string
       ko: string
