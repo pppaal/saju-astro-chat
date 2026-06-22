@@ -4,6 +4,13 @@
 import type { LangKey } from './chat-i18n'
 import type { Message, UserContext } from './chat-constants'
 
+// 운명상담사 데이터 소스 토글 — 사용자가 체크박스로 사주/점성 중 무엇을 이번
+// 답변에 넣을지 고른다. 최소 하나는 항상 켜져 있어야 한다(UI 가 보장).
+export interface DestinySources {
+  saju: boolean
+  astro: boolean
+}
+
 // Profile type for chat component
 export interface ChatProfile {
   name?: string
@@ -199,6 +206,8 @@ export interface ChatPayload {
   lang: LangKey
   messages: Message[]
   cvText?: string
+  /** 이번 답변에 넣을 데이터 소스(체크박스). 누락 시 서버가 둘 다로 폴백. */
+  sources?: DestinySources
   saju?: SajuData
   astro?: AstroData
   advancedAstro?: AdvancedAstroData

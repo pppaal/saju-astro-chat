@@ -10,13 +10,13 @@ import styles from './Chat.module.css'
 import { type TarotResultSummary } from './InlineTarotModal'
 import { CHAT_I18N } from './chat-i18n'
 import { generateMessageId } from './chat-utils'
-import type { ChatProps } from './chat-types'
+import type { ChatProps, DestinySources } from './chat-types'
 import { loadPendingChat } from '@/lib/chat/pendingChat'
 import { useChatSession } from './hooks/useChatSession'
 import { useFileUpload } from './hooks/useFileUpload'
 import { useChatApi } from './hooks/useChatApi'
 import { useSeedEvent } from '@/components/chat'
-import { MessagesPanel, ChatInputArea } from './chat-panels'
+import { MessagesPanel, ChatInputArea, DataSourceToggles } from './chat-panels'
 import { useI18n } from '@/i18n/I18nProvider'
 import { useClarifierCard } from '@/hooks/useClarifierCard'
 import { useChatAutoScroll } from '@/hooks/useChatAutoScroll'
@@ -74,6 +74,8 @@ const Chat = memo(function Chat({
 
   const [input, setInput] = React.useState('')
   const [notice, setNotice] = React.useState<string | null>(null)
+  // 이번 상담에 넣을 데이터 소스(사주/점성). 기본 둘 다. 체크박스로 언제든 전환.
+  const [sources, setSources] = React.useState<DestinySources>({ saju: true, astro: true })
   const [showTarotModal, setShowTarotModal] = React.useState(false)
   const [activeSessionId, setActiveSessionId] = React.useState<string | null>(null)
 
@@ -111,6 +113,7 @@ const Chat = memo(function Chat({
     advancedAstro,
     predictionContext,
     userContext,
+    sources,
     cvText,
     ragSessionId,
     autoScroll,
@@ -651,6 +654,14 @@ ${result.overallMessage}${result.guidance ? `\n\n**\uC870\uC5B8:** ${result.guid
               autoFocus={autoFocus}
               theme="light"
               viewTransitionName={inputViewTransitionName}
+              topSlot={
+                <DataSourceToggles
+                  sources={sources}
+                  onChange={setSources}
+                  lang={effectiveLang}
+                  disabled={loading}
+                />
+              }
             />
           </div>
         </section>
