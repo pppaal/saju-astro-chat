@@ -29,6 +29,7 @@ function makeDay(over: Partial<DestinyDay> = {}): DestinyDay {
     dateKo: '2024년 6월 15일',
     iljin: { hanja: '甲子', kr: '갑자', en: 'gapja' },
     iljinSibsin: '편재',
+    dayMaster: { hanja: '辛', kr: '신금', en: 'Sin · Yin Metal' },
     score: 72,
     oneLine: '오늘은 재물의 기운이 흐르는 날',
     totalSignals: 5,
@@ -142,15 +143,119 @@ describe('DayTier', () => {
       expect(screen.getByText('2024년 6월 15일')).toBeInTheDocument()
     })
 
-    it('renders the iljin hanja and korean reading', () => {
+    it('renders the iljin hanja and a PLAIN-language lead (meaning before jargon)', () => {
       setup()
       expect(screen.getByText('甲子')).toBeInTheDocument()
-      expect(screen.getByText('갑자')).toBeInTheDocument()
+      // 쉬운말 우선: 뜻("돈·현실")을 앞세우고, 갑자/편재 용어는 작은 참고로.
+      expect(screen.getByText('오늘은 ‘돈·현실’의 기운')).toBeInTheDocument()
+      expect(screen.getByText(/오늘의 기운 갑자/)).toBeInTheDocument()
+    })
+
+    it('shows the natal day master plainly as "나의 타고난 기운" (ko)', () => {
+      setup()
+      expect(screen.getByText('辛')).toBeInTheDocument()
+      expect(screen.getByText(/나의 타고난 기운 · 신금/)).toBeInTheDocument()
+    })
+
+    it('shows the day master reference in plain English', () => {
+      mockLocale = 'en'
+      setup()
+      expect(screen.getByText(/your core nature · Sin · Yin Metal/)).toBeInTheDocument()
     })
 
     it('renders the one-line summary', () => {
       setup()
       expect(screen.getByText('오늘은 재물의 기운이 흐르는 날')).toBeInTheDocument()
+    })
+  })
+
+  describe('today in depth (deep read)', () => {
+    it('renders the synthesis paragraph grounded in the iljin life-area (ko)', () => {
+      setup()
+      expect(screen.getByText('오늘 깊이 읽기')).toBeInTheDocument()
+      // the woven shinsal list (천을귀인 · 도화) is contiguous only inside the
+      // deep-read body — the chips render each star as a separate node.
+      const para = screen.getByText(/천을귀인 · 도화/)
+      expect(para).toBeInTheDocument()
+      // opener leads with the iljin's plain life-area, not the raw ganji term.
+      expect(para.textContent).toContain('돈·현실')
+    })
+
+    it('renders the deep-read paragraph with plain life-areas in English', () => {
+      mockLocale = 'en'
+      setup()
+      expect(screen.getByText('Today in depth')).toBeInTheDocument()
+      // opener leads with the plain life-area ('opportunity & money'), no ganji.
+      expect(screen.getAllByText(/opportunity & money/).length).toBeGreaterThan(0)
+    })
+  })
+
+  describe('saju × astrology cross card', () => {
+    const crossDay = {
+      crossActivations: [
+        {
+          id: 'x1',
+          sajuSide: '정재',
+          astroSide: '금성',
+          sajuKo: '정재',
+          astroKo: '금성',
+          meaning: '안정된 가치·관계가 살아남',
+          meaningEn: 'stable value and ties light up',
+          polarity: 2 as const,
+          weight: 0.8,
+        },
+      ],
+    }
+
+    it('renders the cross meaning in Korean', () => {
+      setup({ day: crossDay })
+      expect(screen.getByText('안정된 가치·관계가 살아남')).toBeInTheDocument()
+    })
+
+    it('picks meaningEn in English (no server-locale baking)', () => {
+      mockLocale = 'en'
+      setup({ day: crossDay })
+      expect(screen.getByText('stable value and ties light up')).toBeInTheDocument()
+      expect(screen.queryByText('안정된 가치·관계가 살아남')).not.toBeInTheDocument()
+    })
+  })
+
+  describe('natal detail fold (hidden signals)', () => {
+    it('renders the collapsible natal detail with PLAIN labels + hidden stems (ko)', () => {
+      setup()
+      expect(screen.getByText(/오늘 더 자세히/)).toBeInTheDocument()
+      expect(screen.getByText(/숨은 기운/)).toBeInTheDocument()
+      // 癸 hidden-stem (jeonggi) chip from the fixture jijanggan.
+      expect(screen.getByText('癸')).toBeInTheDocument()
+    })
+
+    it('translates the natal detail labels to plain English', () => {
+      mockLocale = 'en'
+      setup()
+      expect(screen.getByText(/More detail/)).toBeInTheDocument()
+      expect(screen.getByText(/Hidden energies within/)).toBeInTheDocument()
+    })
+
+    it('shows applied patterns with an English gloss (no Korean leak)', () => {
+      mockLocale = 'en'
+      setup({
+        day: {
+          appliedPatterns: [
+            {
+              id: 'jaesaeng-gwan',
+              korean: '재생관',
+              name: '財生官',
+              polarity: 2,
+              weight: 0.8,
+              activeAxes: ['일진'],
+              rule: '본명 재 + 시기 관 → 관 강화',
+            },
+          ],
+        },
+      })
+      expect(screen.getByText(/Wealth generates Officer/)).toBeInTheDocument()
+      // the Korean rule must NOT leak in EN mode
+      expect(screen.queryByText(/본명 재/)).not.toBeInTheDocument()
     })
   })
 
@@ -184,9 +289,9 @@ describe('DayTier', () => {
     // current head-status surface is the iljin sibsin (일진 십신) line. Assert that
     // the day-pillar status renders AND the removed geokguk text does NOT.
     it('renders the iljin sibsin status in the head and drops the geokguk chip (ko)', () => {
-      setup()
-      // 일진 십신 status line ("일진 · 일간 기준 편재 (재물)") replaces the old geokguk chip.
-      expect(screen.getByText(/일진 · 일간 기준/)).toBeInTheDocument()
+      const { container } = setup()
+      // 쉬운말 hero: 뜻("오늘의 기운") + sibsin 용어(편재)가 참고로 함께.
+      expect(container.textContent).toContain('오늘의 기운')
       expect(screen.getAllByText(/편재/).length).toBeGreaterThan(0)
       // geokguk name / status / description are no longer rendered on the day tier.
       expect(screen.queryByText('편재격')).not.toBeInTheDocument()
@@ -225,6 +330,23 @@ describe('DayTier', () => {
       setup()
       expect(screen.getByText('재성 우호 트랜짓')).toBeInTheDocument()
       expect(screen.getByText('관성 충돌 주의')).toBeInTheDocument()
+    })
+
+    it('translates aggregate-star + relation tokens in reasons/cautions (en)', () => {
+      mockLocale = 'en'
+      setup({
+        day: {
+          topReasons: ['재성 우호 트랜짓'],
+          cautions: ['관성 충 주의'],
+        },
+      })
+      // localizeLabel now falls back to translateSignalLabel, so the aggregate
+      // stars (재성/관성) and the relation token (충) no longer leak as Hangul.
+      expect(screen.queryByText(/재성/)).not.toBeInTheDocument()
+      expect(screen.queryByText(/관성/)).not.toBeInTheDocument()
+      expect(screen.getByText(/Wealth star/)).toBeInTheDocument()
+      expect(screen.getByText(/Officer star/)).toBeInTheDocument()
+      expect(screen.getByText(/clash/)).toBeInTheDocument()
     })
 
     it('renders the muted "steady day" line when no reasons and no cautions', () => {

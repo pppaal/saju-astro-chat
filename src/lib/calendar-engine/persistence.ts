@@ -30,7 +30,10 @@ import type { CalendarCell, CalendarBuildOptions, CalendarRange } from './types'
  * 사주/점성 엔진 버전 시그니처. extractor·deriver 산식이 출력에 영향 주게
  * 바뀌면 bump → birthKey 가 달라져 모든 캐시가 무효화된다.
  */
-const CALENDAR_ENGINE_VERSION = 'v2'
+// v3: cross-activation 산식 변경(profection/zodiacal-releasing 상징 지배성 교차
+//     제외, 도화살/역마살 죽은 매핑 제거). 이 로직은 buildCalendar 안에서 돌아
+//     캐시 blob 에 구워지므로, 웜 캐시가 옛 교차 신호를 계속 내보내지 않도록 bump.
+const CALENDAR_ENGINE_VERSION = 'v3'
 
 /**
  * 본명 입력 → 안정적 캐시 키. 위치는 4자리(≈11m)로 라운딩해 부동소수 잡음으로

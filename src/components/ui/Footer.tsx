@@ -14,6 +14,7 @@ const HIDE_FOOTER_PREFIXES = [
   '/destiny-counselor',
   '/tarot',
   '/calendar', // canonical 캘린더(운흐름) route
+  '/destiny', // 인생 흐름(인생·대운·년) full-screen 줌 셸 (·-counselor·pal 도 포함)
   '/destinypal', // legacy alias → /calendar (308 at edge)
   '/compatibility',
   '/report',

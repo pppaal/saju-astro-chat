@@ -2,9 +2,9 @@
  * Profection + ZR + SR + 세운 → destinypal `year` 객체 adapter.
  *
  * destinypal year:
- *   { year, sewoon, sewoonSibsin, headline,
+ *   { year, sewoon, sewoonSibsin, headline, headlineEn,
  *     profection: { house, theme, themeEn, cusp, cuspEn, ruler, rulerEn, rulerNatal, rulerNatalEn },
- *     sajuNote, astroNote }
+ *     sajuNote, sajuNoteEn, astroNote, astroNoteEn }
  *
  * 입력:
  *   - NatalContext (대운 + 일간 → 세운 십신)
@@ -16,7 +16,7 @@ import type { NatalContext } from '@/lib/calendar-engine/context/types'
 import type { ActiveSignal, CalendarCell } from '@/lib/calendar-engine/types'
 import { toGanji, type Ganji, SIGN_KO, PLANET_KO, computeSewoonGanji } from './shared'
 import { getSibsinKo } from '@/lib/saju/cycleRelations'
-import { SIBSIN_EN } from '@/lib/saju/sibsinLabels'
+import { plainPairName } from '@/lib/calendar-engine/derivers/plainLanguage'
 import { ordinalEn } from '@/lib/calendar-engine/ordinal'
 import type { ZodiacKo } from '@/lib/astrology/foundation/types'
 import type { AstroPlanetName } from '@/lib/astrology/interpretations'
@@ -78,6 +78,7 @@ export interface DestinypalYear {
   sewoonGz: Ganji
   sewoonSibsin: string // 세운 천간 vs 일간 십신
   headline: string
+  headlineEn: string
   profection?: DestinypalYearProfection
   /**
    * 12-슬롯 profection wheel — Asc sign 부터 whole-sign 순서로 1..12궁 cusp + ruler.
@@ -89,7 +90,9 @@ export interface DestinypalYear {
   /** Solar Return Asc sign — Phase 3 신규 */
   solarReturnAsc?: { sign: string; signEn: string }
   sajuNote: string
+  sajuNoteEn: string
   astroNote: string
+  astroNoteEn: string
   /** 12개월 점수 스파인 (선택 — cells 또는 monthlyScores 옵션이 들어오면). */
   monthlyScores?: Array<{ month: number; score: number; bestDay?: string }>
   /** 올해 활성 사주 × 점성 교차 — 월 구간 해석 (cells 가 들어오면 자동 산출). */
@@ -183,9 +186,13 @@ export interface ToYearOptions {
   yearlySignals?: ActiveSignal[]
   /** 헤드라인 한 줄 (선택). */
   headline?: string
+  /** 헤드라인 영문 한 줄 (선택). */
+  headlineEn?: string
   /** 사주 / 점성 노트 한 줄 (선택). */
   sajuNote?: string
+  sajuNoteEn?: string
   astroNote?: string
+  astroNoteEn?: string
   /**
    * 한 해 12 달 cells 전체 (또는 일부) — adapter 가 datetime prefix 로 month
    * grouping 해 monthlyScores 12 슬롯 평균을 자동으로 빌드.
@@ -250,6 +257,11 @@ export function toYear(natal: NatalContext, opts: ToYearOptions): DestinypalYear
       (profection
         ? `올해의 무게중심은 ${profection.house}번째 영역으로 기울어요.`
         : `${opts.year}년 — 흐름이 새로 짜이는 해.`),
+    headlineEn:
+      opts.headlineEn ??
+      (profection
+        ? `This year leans toward your ${ordinalEn(profection.house)} house.`
+        : `${opts.year} — a year the flow gets re-drawn.`),
     profection,
     profectionWheel,
     zr,
@@ -257,10 +269,18 @@ export function toYear(natal: NatalContext, opts: ToYearOptions): DestinypalYear
     sajuNote:
       opts.sajuNote ??
       `세운 ${sewoonRaw.stem}${sewoonRaw.branch} — 일간 ${dm} 기준 ${sewoonSibsin}.`,
+    sajuNoteEn:
+      opts.sajuNoteEn ??
+      `Annual pillar ${sewoonRaw.stem}${sewoonRaw.branch} — ${sewoonSibsin} to day master ${dm}.`,
     astroNote:
       opts.astroNote ??
       (profection
         ? `Profection이 ${profection.house}하우스를 점등 — 룰러 ${profection.ruler}가 본명 ${profection.rulerNatal}.`
+        : ''),
+    astroNoteEn:
+      opts.astroNoteEn ??
+      (profection
+        ? `Profection lights up house ${profection.house} — its ruler ${profection.rulerEn} sits in your natal ${profection.rulerNatalEn}.`
         : ''),
     monthlyScores,
     crossings: buildYearCrossings(opts.cells ?? [], opts.year),
@@ -281,8 +301,8 @@ function buildYearCrossings(cells: CalendarCell[], year: number): DestinypalCros
   const agg = new Map<
     string,
     {
-      name: string
-      nameEn: string
+      title: string
+      titleEn: string
       korean?: string
       english?: string
       polarity: number
@@ -299,24 +319,10 @@ function buildYearCrossings(cells: CalendarCell[], year: number): DestinypalCros
       if (Number.isNaN(st) || Number.isNaN(en)) continue
       const cur = agg.get(s.name)
       if (!cur) {
-        // 영문 이름 — evidence 의 십신키(한글)·행성키(영문)로 'Right Officer × Saturn'.
-        // 신살(도화·역마·양인·건록)은 SIBSIN_EN 에 없어 별도 폴백.
-        const SHINSAL_EN: Record<string, string> = {
-          도화: 'Peach Blossom',
-          도화살: 'Peach Blossom',
-          역마: 'Traveling Horse',
-          역마살: 'Traveling Horse',
-          양인: 'Yang Blade',
-          건록: 'Established Stipend',
-        }
-        const det = (s.evidence?.detail ?? {}) as { sajuKey?: string; astroKey?: string }
-        const sajuEn = det.sajuKey
-          ? (SIBSIN_EN[det.sajuKey] ?? SHINSAL_EN[det.sajuKey] ?? det.sajuKey)
-          : ''
-        const nameEn = sajuEn && det.astroKey ? `${sajuEn} × ${det.astroKey}` : s.name
+        // 제목은 쉬운말 — "정관 × 토성" → "일·책임 × 책임·인내" (페어가 아니면 원문).
         agg.set(s.name, {
-          name: s.name,
-          nameEn,
+          title: plainPairName(s.name, true),
+          titleEn: plainPairName(s.name, false),
           korean: s.korean,
           english: s.english,
           polarity: s.polarity,
@@ -355,8 +361,8 @@ function buildYearCrossings(cells: CalendarCell[], year: number): DestinypalCros
     return {
       when,
       whenEn: whenLabelEn(v.start, v.end),
-      title: v.name,
-      titleEn: v.nameEn,
+      title: v.title,
+      titleEn: v.titleEn,
       detail: v.korean,
       detailEn: v.english,
       tone: (v.polarity > 0 ? 'good' : v.polarity < 0 ? 'caution' : 'neutral') as

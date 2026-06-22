@@ -27,17 +27,17 @@ const ALL_TIERS: ReadonlyArray<RailTier> = [
   { id: 'day', ko: '1일', en: 'DAILY', scale: '24시' },
 ] as const
 
-// 숨기는 티어 — tierConfig.SHOW_FULL_TIERS 단일 스위치로 제어.
+// 기본(캘린더) 가시 티어 — tierConfig.SHOW_FULL_TIERS 단일 스위치로 제어.
 // false: 인생·10년·1년 숨김 → 월·일만. true: 5티어 전부. (코드는 모두 보존)
-const HIDDEN_TIERS = SHOW_FULL_TIERS
-  ? new Set<string>()
-  : new Set<string>(['life', 'decade', 'year'])
-const TIERS: ReadonlyArray<RailTier> = ALL_TIERS.filter((t) => !HIDDEN_TIERS.has(t.id))
+// `tierIds` prop 을 주면 이 기본을 무시하고 그 부분집합만 — 인생 뷰(/destiny)가
+// ['life','decade','year'] 로 같은 셸을 재사용한다.
+const DEFAULT_TIER_IDS: ReadonlyArray<string> = SHOW_FULL_TIERS
+  ? ALL_TIERS.map((t) => t.id)
+  : ['month', 'day']
 
-const MAX_TIER = TIERS.length - 1
 const BASE = 5
 const DUR = 680
-const STORAGE_KEY = 'dp_tier'
+const DEFAULT_STORAGE_KEY = 'dp_tier'
 
 const easeInOut = (t: number): number => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2)
 
@@ -59,12 +59,17 @@ export interface DestinypalTierRenderArgs {
 
 export interface DestinypalShellProps {
   topbar: DestinypalShellTopbar
-  // 숨김 티어(인생·10년·1년)는 렌더러를 안 줄 수 있다 → 해당 레이어는 안 그림.
+  // 가시 티어를 명시(부분집합·순서 보존). 미지정 시 DEFAULT_TIER_IDS(캘린더=월/일).
+  tierIds?: ReadonlyArray<string>
+  // 마지막 티어 복원 키 — surface 마다 분리(캘린더 'dp_tier', 인생 'dp_tier_life')
+  // 해 서로 덮어쓰지 않게 한다. 미지정 시 'dp_tier'.
+  storageKey?: string
+  // 가시 티어가 아닌 렌더러는 안 줘도 된다 → 해당 레이어는 안 그림.
   renderLife?: (args: DestinypalTierRenderArgs) => ReactNode
   renderDecade?: (args: DestinypalTierRenderArgs) => ReactNode
   renderYear?: (args: DestinypalTierRenderArgs) => ReactNode
-  renderMonth: (args: DestinypalTierRenderArgs & { onFocusDay: () => void }) => ReactNode
-  renderDay: (args: DestinypalTierRenderArgs) => ReactNode
+  renderMonth?: (args: DestinypalTierRenderArgs & { onFocusDay: () => void }) => ReactNode
+  renderDay?: (args: DestinypalTierRenderArgs) => ReactNode
   initialTier?: number
   className?: string
 }
@@ -75,6 +80,8 @@ interface AnimState {
 
 export function DestinypalShell({
   topbar,
+  tierIds,
+  storageKey = DEFAULT_STORAGE_KEY,
   renderLife,
   renderDecade,
   renderYear,
@@ -83,6 +90,11 @@ export function DestinypalShell({
   initialTier = 0,
   className,
 }: DestinypalShellProps) {
+  // 이 셸이 보여줄 티어(부분집합) — ALL_TIERS 순서 보존. tierIds 미지정 시 기본.
+  const visibleIds = tierIds && tierIds.length > 0 ? tierIds : DEFAULT_TIER_IDS
+  const TIERS: ReadonlyArray<RailTier> = ALL_TIERS.filter((t) => visibleIds.includes(t.id))
+  const MAX_TIER = TIERS.length - 1
+
   const clampTier = (n: number) => Math.max(0, Math.min(MAX_TIER, n))
   const initial = clampTier(initialTier)
 
@@ -105,7 +117,7 @@ export function DestinypalShell({
   useEffect(() => {
     if (typeof window === 'undefined') return
     try {
-      const raw = window.localStorage.getItem(STORAGE_KEY)
+      const raw = window.localStorage.getItem(storageKey)
       const parsed = parseInt(raw || '', 10)
       if (!Number.isNaN(parsed)) {
         const t = clampTier(parsed)
@@ -116,6 +128,8 @@ export function DestinypalShell({
     } catch {
       /* localStorage unavailable — ignore */
     }
+    // mount 후 한 번 — storageKey 는 surface 당 고정이라 재실행 불필요.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   // parallax depth sync.
@@ -138,7 +152,7 @@ export function DestinypalShell({
 
     setTier(target)
     try {
-      window.localStorage.setItem(STORAGE_KEY, String(target))
+      window.localStorage.setItem(storageKey, String(target))
     } catch {
       /* ignore */
     }
@@ -310,9 +324,11 @@ export function DestinypalShell({
       case 'year':
         return renderYear ? renderYear(args) : null
       case 'month':
-        return renderMonth({ ...args, onFocusDay: () => goTo(dayIndex >= 0 ? dayIndex : idx) })
+        return renderMonth
+          ? renderMonth({ ...args, onFocusDay: () => goTo(dayIndex >= 0 ? dayIndex : idx) })
+          : null
       case 'day':
-        return renderDay(args)
+        return renderDay ? renderDay(args) : null
       default:
         return null
     }
@@ -346,4 +362,3 @@ export function DestinypalShell({
     </div>
   )
 }
-

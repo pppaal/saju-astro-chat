@@ -1,37 +1,27 @@
 /* ============================================================
-   DayTier (1일 24시) — destinypal 5-tier 최하단
-   day.jsx 88줄 포팅 + Phase 3 5신호 시각화 + HourBreakdown
-   ink build (베이지 hanji + 朱 ember + 藍 accent).
+   destinypal · DayTier — "정갈" Editorial Letterpress 만세력
+   ────────────────────────────────────────────────────────────
+   토큰은 styles/variables.module.css(.dpRoot)의 --dp-* 를 상속해 소비.
+   원칙: 여백·헤어라인·먹선. 페이지프레임/글로우/반원게이지 없음.
+   주사(ember)는 일진 인장 + 사주 신호에만 — 섹션마다 찍던 점은 제거.
    ============================================================ */
 
 .tierInner {
   position: relative;
-  width: min(1120px, 100%);
+  width: min(680px, 100%);
   margin: 0 auto;
-  padding: clamp(80px, 9vh, 120px) clamp(30px, 5vw, 64px) 170px;
+  padding: clamp(64px, 8vh, 104px) clamp(20px, 5vw, 40px) 132px;
   color: var(--dp-ink);
-  font-family: var(--dp-sans);
-}
-.tierInner::before {
-  content: '';
-  position: absolute;
-  left: clamp(12px, 2.2vw, 30px);
-  right: clamp(12px, 2.2vw, 30px);
-  top: clamp(54px, 6vh, 80px);
-  bottom: 92px;
-  border: 1px solid var(--dp-line);
-  box-shadow:
-    inset 0 0 0 3px var(--dp-bg),
-    inset 0 0 0 4px var(--dp-line-soft);
-  pointer-events: none;
-  z-index: -1;
+  font-family: var(--dp-serif-ko);
+  word-break: keep-all;
+  line-break: strict;
 }
 
-/* ---------- rise button ---------- */
+/* ---------- rise (zoom-out) ---------- */
 .rise {
   display: inline-flex;
   align-items: center;
-  gap: 9px;
+  gap: 8px;
   background: none;
   border: 0;
   color: var(--dp-ink-mute);
@@ -40,9 +30,9 @@
   font-size: 11px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  padding: 6px 4px;
-  transition: color 0.25s;
-  margin-bottom: 6px;
+  padding: 6px 2px;
+  margin-bottom: 8px;
+  transition: color 0.2s;
 }
 .rise:hover {
   color: var(--dp-ember);
@@ -60,376 +50,360 @@
 .eyebrow {
   font-family: var(--dp-mono);
   font-size: 11px;
-  letter-spacing: 0.22em;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--dp-ink-mute);
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 16px;
-}
-.eyebrow::before {
-  content: '';
-  width: 18px;
-  height: 1px;
-  background: var(--dp-ink-dim);
-}
-.eyebrowEmber {
-  color: var(--dp-ember);
-}
-.eyebrowEmber::before {
-  background: var(--dp-ember);
-}
-.eyebrowViolet::before {
-  background: var(--dp-violet);
+  margin-bottom: 6px;
 }
 
-/* ---------- head chips (보강) ---------- */
-.headChips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 14px;
+/* ---------- day hero (정갈) ---------- */
+.dayHead {
+  margin-top: 4px;
 }
-.statusChip {
+/* 기준선 — 본명 일간(日干). 그날 해석의 기준점을 맨 위에 둔다. */
+.dmRef {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+  margin-bottom: 12px;
+  padding-bottom: 11px;
+  border-bottom: 1px solid var(--dp-line-soft);
+}
+.dmHan {
+  font-family: var(--dp-serif);
+  font-size: 22px;
+  line-height: 1;
+  letter-spacing: 0.04em;
+  color: var(--dp-ink-dim);
+}
+.dmMeaning {
+  font-family: var(--dp-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--dp-ink-mute);
+}
+.iljinBig {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  margin: 6px 0 0;
+}
+.iljinBig .han {
+  flex: 0 0 auto;
+  font-family: var(--dp-serif);
+  font-weight: 500;
+  font-size: clamp(46px, 12vw, 56px);
+  line-height: 0.92;
+  letter-spacing: 0.02em;
+  color: var(--dp-ember);
+}
+.iljinBig .meta {
+  padding-top: 4px;
+  min-width: 0;
+}
+.iljinBig .meta .kr {
+  font-size: 16px;
+  color: var(--dp-ink);
+  letter-spacing: 0.03em;
+  margin-bottom: 4px;
+}
+.iljinBig .meta .ss {
+  font-family: var(--dp-mono);
+  font-size: 11.5px;
+  letter-spacing: 0.06em;
+  color: var(--dp-ink-mute);
+  margin-bottom: 10px;
+}
+.iljinBig .meta .tone {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 6px 12px;
-  border-radius: 3px;
-  background: var(--dp-panel-2);
-  border: 1px solid var(--dp-line);
-  font-family: var(--dp-serif-ko);
-  font-size: 12px;
-  color: var(--dp-ink);
+  gap: 7px;
+  font-size: 13.5px;
+  color: var(--dp-tone-mixed);
 }
-.statusChip .kHan {
-  font-family: var(--dp-serif-ko);
-  font-weight: 700;
-  color: var(--dp-ember);
+.iljinBig .meta .tone::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
 }
-.statusChip .kStatus {
-  font-family: var(--dp-mono);
-  font-size: 10px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-}
-.statusChip .kStatusOk {
+.iljinBig .meta .tone[data-tone='positive'] {
   color: var(--dp-pos);
 }
-.statusChip .kStatusBad {
-  color: var(--dp-neg);
-}
-.statusChip .kStatusMid {
+.iljinBig .meta .tone[data-tone='caution'] {
   color: var(--dp-ember);
 }
+.iljinBig .score {
+  margin-left: auto;
+  text-align: right;
+  padding-top: 6px;
+  flex: 0 0 auto;
+}
+.iljinBig .score .n {
+  font-family: var(--dp-serif);
+  font-weight: 600;
+  font-size: 27px;
+  line-height: 1;
+  color: var(--dp-ink);
+}
+.iljinBig .score .cap {
+  font-family: var(--dp-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  color: var(--dp-ink-mute);
+  margin-top: 4px;
+}
 
-.gongmangBanner {
-  margin-top: 12px;
-  padding: 9px 14px;
-  border-radius: 3px;
-  border: 1px solid rgba(108, 74, 115, 0.32);
-  background: rgba(108, 74, 115, 0.07);
+.oneline {
+  font-family: var(--dp-serif-ko);
+  font-size: 14.5px;
+  line-height: 1.7;
+  color: var(--dp-ink-dim);
+  margin: 16px 0 0;
+  padding-top: 16px;
+  border-top: 1px solid var(--dp-line-soft);
+  text-wrap: pretty;
+}
+
+/* ---------- 오늘 깊이 읽기 (합성 해석 문단) ---------- */
+.deepRead {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--dp-line-soft);
+}
+.deepReadLabel {
+  font-family: var(--dp-mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--dp-ink-mute);
+  margin-bottom: 8px;
+}
+.deepReadBody {
+  font-family: var(--dp-serif-ko);
+  font-size: 14.5px;
+  line-height: 1.78;
+  color: var(--dp-ink-dim);
+  text-wrap: pretty;
+}
+
+/* ---------- 본명 상세 (접힘) — 격국·지장간·12운성 ---------- */
+.natal {
+  margin-top: var(--dp-section);
+  border-top: 1px solid var(--dp-line-soft);
+  padding-top: 14px;
+}
+.natalSummary {
+  cursor: pointer;
+  font-family: var(--dp-mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--dp-ink-mute);
+  list-style: none;
+  user-select: none;
+  padding: 2px 0;
+}
+.natalSummary::-webkit-details-marker {
+  display: none;
+}
+.natalSummary::before {
+  content: '▸ ';
+  color: var(--dp-ink-faint);
+}
+.natal[open] .natalSummary::before {
+  content: '▾ ';
+}
+.natalBody {
   display: flex;
-  align-items: center;
-  gap: 12px;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 14px;
+}
+.natalBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.natalLabel {
+  font-family: var(--dp-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--dp-ink-faint);
+}
+.natalRow {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--dp-line-soft);
+}
+.natalRow:last-child {
+  border-bottom: 0;
+}
+.natalPos,
+.natalNeg {
+  font-family: var(--dp-serif-ko);
+  font-size: 13.5px;
+  color: var(--dp-ink);
+}
+.natalPos {
+  border-left: 2px solid var(--dp-pos);
+  padding-left: 9px;
+}
+.natalNeg {
+  border-left: 2px solid var(--dp-ember);
+  padding-left: 9px;
+}
+.natalHan {
+  font-family: var(--dp-serif);
+  color: var(--dp-ink-mute);
+  font-size: 12px;
+}
+.natalDesc {
+  font-family: var(--dp-serif-ko);
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--dp-ink-mute);
+  padding-left: 11px;
+}
+.natalChips {
+  display: flex;
   flex-wrap: wrap;
+  gap: 7px;
+}
+.natalChip {
   font-family: var(--dp-serif-ko);
   font-size: 12px;
-  color: var(--dp-violet);
+  color: var(--dp-ink-dim);
+  border: 1px solid var(--dp-line);
+  border-radius: 4px;
+  padding: 4px 10px;
+  background: var(--dp-panel);
+}
+
+/* ---------- 이렇게 / 조심 칩 ---------- */
+.doRow {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 18px;
+}
+.doChip,
+.dontChip {
+  flex: 1 1 0;
+  min-width: 140px;
+  font-family: var(--dp-sans);
+  font-size: 13px;
+  line-height: 1.4;
+  border: 1px solid var(--dp-line);
+  border-radius: var(--dp-r);
+  padding: 11px 13px;
+  background: var(--dp-panel);
+}
+.doChip {
+  border-top: 2px solid var(--dp-pos);
+}
+.dontChip {
+  border-top: 2px solid var(--dp-tone-mixed);
+}
+
+/* ---------- gongmang / voc banners ---------- */
+.gongmangBanner {
+  margin-top: 16px;
+  padding: 10px 14px;
+  border: 1px solid rgba(108, 74, 115, 0.3);
+  border-left: 3px solid var(--dp-violet);
+  border-radius: var(--dp-r);
+  background: rgba(108, 74, 115, 0.05);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  font-family: var(--dp-serif-ko);
+  font-size: 12.5px;
+  color: var(--dp-ink-dim);
 }
 .gongmangBanner .gmHead {
   font-family: var(--dp-mono);
-  font-size: 9.5px;
+  font-size: 10px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--dp-violet);
 }
 .gongmangBanner .gmBranch {
   font-family: var(--dp-serif-ko);
-  font-weight: 700;
+  font-weight: 600;
   font-size: 14px;
   color: var(--dp-violet);
-  padding: 2px 8px;
-  border: 1px solid rgba(108, 74, 115, 0.4);
-  border-radius: 2px;
+  padding: 1px 8px;
+  border: 1px solid rgba(108, 74, 115, 0.36);
+  border-radius: 3px;
 }
 .gongmangBanner .gmNote {
-  color: var(--dp-ink-dim);
+  color: var(--dp-ink-mute);
 }
 
 .vocBanner {
-  margin-top: 10px;
-  padding: 8px 14px;
-  border-radius: 3px;
+  margin-top: 12px;
+  padding: 10px 14px;
   border: 1px solid var(--dp-line);
-  background: rgba(130, 116, 92, 0.08);
+  border-left: 3px solid var(--dp-ink-faint);
+  border-radius: var(--dp-r);
+  background: var(--dp-panel);
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   flex-wrap: wrap;
-  font-family: var(--dp-mono);
-  font-size: 11px;
+  font-family: var(--dp-sans);
+  font-size: 12px;
   color: var(--dp-ink-mute);
-  letter-spacing: 0.04em;
 }
 .vocBanner .vocLabel {
   font-family: var(--dp-mono);
-  font-size: 9.5px;
-  letter-spacing: 0.16em;
+  font-size: 10px;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--dp-ink-dim);
 }
 .vocBanner .vocTime {
-  color: var(--dp-ink);
-}
-
-/* ---------- day head — 단일 중앙 컬럼 (게이지 → 인장 → 한 줄) ---------- */
-.dayHead {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  gap: 14px;
-  margin-top: 10px;
-}
-.iljinBig {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-}
-.iljinBig .han {
-  font-family: var(--dp-serif-ko);
-  font-weight: 700;
-  font-size: 52px;
-  line-height: 0.9;
-  color: #f6ecd9;
-  background: var(--dp-ember);
-  padding: 8px 16px;
-  border-radius: 4px;
-  box-shadow: 0 6px 18px -12px rgba(176, 58, 34, 0.55);
-}
-.iljinBig .meta {
-  text-align: center;
-}
-.iljinBig .meta .kr {
   font-family: var(--dp-mono);
-  font-size: 14px;
   color: var(--dp-ink);
-  letter-spacing: 0.08em;
-}
-.iljinBig .meta .en {
-  font-family: var(--dp-mono);
-  font-size: 11px;
-  color: var(--dp-ink-faint);
-  font-style: italic;
-}
-.iljinBig .meta .ss {
-  display: inline-block;
-  margin-top: 8px;
-  font-family: var(--dp-serif-ko);
-  font-size: 11px;
-  color: var(--dp-ink-dim);
-  border: 1px solid var(--dp-line);
-  border-radius: 3px;
-  padding: 3px 10px;
 }
 
-.oneline {
-  font-family: var(--dp-serif-ko);
-  font-style: italic;
-  font-size: clamp(18px, 2.6vw, 23px);
-  line-height: 1.5;
-  color: var(--dp-ink);
-  max-width: 30em;
-  text-wrap: pretty;
-}
-
-/* ---------- split panel ---------- */
-.split {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 18px;
-  margin-top: 30px;
-}
-@media (max-width: 760px) {
-  .split {
-    grid-template-columns: 1fr;
-  }
-}
-/* 최상위 섹션 간격 — 일관 리듬 */
+/* ---------- section + panel ---------- */
 .section {
   margin-top: var(--dp-section);
 }
 .panel {
-  background: var(--dp-panel);
+  padding: 18px 18px 19px;
   border: 1px solid var(--dp-line);
-  border-radius: var(--dp-r-lg);
-  padding: 20px;
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.4) inset;
-}
-.panel.saju {
-  border-left: 3px solid var(--dp-ember);
-}
-.panel.astro {
-  border-left: 3px solid var(--dp-accent);
-}
-
-/* ---------- theme bars ---------- */
-.themebars {
-  display: flex;
-  flex-direction: column;
-  gap: 9px;
-}
-.tbRow {
-  display: grid;
-  grid-template-columns: 64px 1fr 30px;
-  align-items: center;
-  gap: 11px;
-}
-.tbRow .tbLbl {
-  font-family: var(--dp-mono);
-  font-size: 11px;
-  color: var(--dp-ink-dim);
-  letter-spacing: 0.03em;
-}
-.tbTrack {
-  height: 5px;
-  border-radius: 0;
-  background: rgba(58, 46, 28, 0.12);
-  overflow: hidden;
-  position: relative;
-}
-.tbFill {
-  height: 100%;
-  border-radius: 0;
-}
-.tbFillWarm {
-  background: linear-gradient(90deg, rgba(217, 168, 74, 0.5), var(--dp-ember));
-  box-shadow: 0 0 10px var(--dp-ember-glow);
-}
-.tbFillCool {
-  background: linear-gradient(90deg, var(--dp-accent-deep), var(--dp-accent));
-  box-shadow: 0 0 10px var(--dp-accent-glow);
-}
-.tbRow .tbVal {
-  font-family: var(--dp-mono);
-  font-size: 11px;
-  color: var(--dp-ink-mute);
-  text-align: right;
-}
-
-/* ---------- transit row ---------- */
-.transitRow {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  margin-top: 0;
-}
-.transit {
-  display: flex;
-  align-items: center;
-  gap: 11px;
-  padding: 11px 14px;
-  border-radius: 4px;
+  border-radius: var(--dp-r);
   background: var(--dp-panel);
-  border: 1px solid var(--dp-line);
 }
-.transit.outer {
-  border-color: rgba(108, 74, 115, 0.32);
-  background: rgba(108, 74, 115, 0.06);
-}
-.transit .g {
-  font-size: 20px;
-  color: var(--dp-accent);
-  width: 26px;
-  text-align: center;
-}
-.transit.outer .g {
-  color: var(--dp-violet);
-}
-.transit .tt .a {
-  font-family: var(--dp-serif-ko);
-  font-size: 12.5px;
-  color: var(--dp-ink);
-  line-height: 1.4;
-}
-.transit .tt .aTarget {
-  color: var(--dp-ink-mute);
-}
-.transit .tt .s {
-  font-family: var(--dp-mono);
-  font-size: 10px;
-  color: var(--dp-ink-mute);
-  margin-top: 3px;
+.astro {
+  /* core panel — no heavy colored bar; restraint */
 }
 
-/* ---------- hr ---------- */
-.hr {
-  height: 1px;
-  background: var(--dp-line-soft);
-  border: 0;
-  margin: 18px 0;
-}
-
-/* ---------- shinsal pills ---------- */
-.shinsalRow {
-  display: flex;
-  gap: 9px;
-  flex-wrap: wrap;
-  margin-top: 0;
-}
-.ssPill {
-  font-family: var(--dp-serif-ko);
-  font-size: 12px;
-  color: var(--dp-violet);
-  border: 1px solid rgba(108, 74, 115, 0.4);
-  background: rgba(108, 74, 115, 0.07);
-  border-radius: 3px;
-  padding: 5px 13px;
-}
-
-.layerTag {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  font-family: var(--dp-mono);
-  font-size: 10px;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--dp-ink-mute);
-  margin-bottom: 8px;
-}
-
-/* ---------- section header — 전 섹션 공통 1패턴 (serif + 작은 朱 점) ---------- */
 .secHead {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  gap: 14px;
+  gap: 12px;
   flex-wrap: wrap;
   margin-bottom: 12px;
 }
 .secTitle {
-  font-family: var(--dp-serif-ko);
-  font-weight: 700;
-  font-size: clamp(16px, 2.3vw, 19px);
-  color: var(--dp-ink);
+  font-family: var(--dp-mono);
+  font-weight: 400;
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--dp-ink-mute);
   margin: 0;
-  letter-spacing: -0.01em;
-  display: inline-flex;
-  align-items: baseline;
-}
-.secTitle::before {
-  content: '';
-  flex: none;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--dp-ember);
-  margin-right: 9px;
-  transform: translateY(-2px);
 }
 .secNote {
   font-family: var(--dp-sans);
@@ -437,654 +411,41 @@
   color: var(--dp-ink-mute);
   letter-spacing: 0.01em;
 }
-.tiny {
-  font-family: var(--dp-mono);
-  font-size: 10.5px;
-  letter-spacing: 0.04em;
-  color: var(--dp-ink-faint);
-}
 
-/* ---------- signal stream ---------- */
-.signalStream {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-  margin-top: 10px;
-}
-.sig {
-  display: grid;
-  grid-template-columns: 132px 1fr auto;
-  align-items: center;
-  gap: 14px;
-  padding: 11px 4px;
-  border-bottom: 1px solid var(--dp-line-soft);
-}
-.sig .cat {
-  font-family: var(--dp-mono);
-  font-size: 9.5px;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-.catSaju {
-  color: var(--dp-ember-2);
-}
-.catAstro {
-  color: var(--dp-accent-2);
-}
-.catCross {
-  color: var(--dp-violet-2);
-}
-.catNeutral {
-  color: var(--dp-ink-faint);
-}
-
-.sig .body .lb {
-  font-family: var(--dp-serif-ko);
-  font-size: 13.5px;
-  color: var(--dp-ink);
-}
-.sig .body .rm {
-  font-family: var(--dp-mono);
-  font-size: 10px;
-  color: var(--dp-ink-faint);
-  font-style: italic;
-}
-.sigMore {
-  font-family: var(--dp-mono);
-  font-size: 11px;
-  color: var(--dp-ink-mute);
-  text-align: center;
-  padding: 14px;
-  letter-spacing: 0.05em;
-}
-
-/* ---------- polarity chip ---------- */
-.pol {
-  font-family: var(--dp-mono);
-  font-size: 10px;
-  letter-spacing: 0.04em;
-  padding: 2px 7px;
-  border-radius: 2px;
-  border: 1px solid;
-}
-.polPos {
-  color: var(--dp-pos);
-  border-color: rgba(47, 125, 91, 0.45);
-  background: rgba(47, 125, 91, 0.08);
-}
-.polNeg {
-  color: var(--dp-neg);
-  border-color: rgba(176, 58, 34, 0.4);
-  background: rgba(176, 58, 34, 0.07);
-}
-.polNeu {
-  color: var(--dp-neu);
-  border-color: var(--dp-line);
-}
-
-/* ---------- score dial ---------- */
-.scoreDial {
-  position: relative;
-  width: 150px;
-  max-width: 100%;
-  flex: none;
-  line-height: 0;
-}
-.scoreDial .sdNum {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-}
-.scoreDial .sdNum b {
-  font-family: var(--dp-serif-ko);
-  font-weight: 700;
-  font-size: 30px;
-  color: var(--dp-ink);
-  line-height: 1;
-}
-.scoreDial .sdNum span {
-  font-family: var(--dp-mono);
-  font-size: 8.5px;
-  letter-spacing: 0.16em;
-  color: var(--dp-ink-mute);
-  margin-top: 3px;
-}
-
-/* ============================================================
-   Phase 3 — CrossActivationCard
-   ============================================================ */
-.crossGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 12px;
-  margin-top: 12px;
-}
-.crossCard {
-  padding: 14px 16px;
-  border-radius: 4px;
-  background: var(--dp-panel);
-  border: 1px solid var(--dp-line);
-  border-left: 3px solid var(--dp-violet);
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-.crossPair {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-  font-family: var(--dp-serif-ko);
-  font-size: 12.5px;
-  color: var(--dp-ink);
-}
-.crossPair .pSaju {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 4px;
-}
-.crossPair .pSaju::before {
-  content: '◆';
-  font-size: 8px;
-  color: var(--dp-ember);
-  margin-right: 2px;
-}
-.crossPair .pAstro {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 4px;
-}
-.crossPair .pAstro::before {
-  content: '✦';
-  font-size: 9px;
-  color: var(--dp-accent);
-  margin-right: 2px;
-}
-.crossPair .pArrow {
-  color: var(--dp-ink-faint);
-  font-family: var(--dp-mono);
-  font-size: 11px;
-}
-.crossMeaning {
-  font-family: var(--dp-serif-ko);
-  font-size: 12.5px;
-  color: var(--dp-ink-dim);
-  line-height: 1.55;
-}
-.crossFoot {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  justify-content: space-between;
-  margin-top: 2px;
-}
-.crossWeight {
-  font-family: var(--dp-mono);
-  font-size: 9.5px;
-  color: var(--dp-ink-mute);
-  letter-spacing: 0.06em;
-}
-
-/* ============================================================
-   Phase 3 — AppliedPatternBadge
-   ============================================================ */
-.appliedRow {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 12px;
-}
-.appliedBadge {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  padding: 9px 14px;
-  border-radius: 3px;
-  background: var(--dp-panel);
-  border: 1px solid var(--dp-line);
-  font-family: var(--dp-serif-ko);
-}
-.appliedBadge.polPosBg {
-  border-color: rgba(47, 125, 91, 0.36);
-  background: rgba(47, 125, 91, 0.06);
-}
-.appliedBadge.polNegBg {
-  border-color: rgba(176, 58, 34, 0.36);
-  background: rgba(176, 58, 34, 0.05);
-}
-.appliedHan {
-  font-family: var(--dp-serif-ko);
-  font-weight: 700;
-  font-size: 16px;
-  color: var(--dp-ember);
-  letter-spacing: 0.02em;
-}
-.appliedKo {
-  font-family: var(--dp-serif-ko);
-  font-size: 12px;
-  color: var(--dp-ink);
-}
-.appliedBody {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-/* ============================================================
-   Phase 3 — JijangganChips (3층)
-   ============================================================ */
-.jijangganRow {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin-top: 10px;
-}
-.jjChip {
-  display: inline-flex;
-  align-items: center;
-  gap: 9px;
-  padding: 8px 12px;
-  border-radius: 3px;
-  background: var(--dp-panel);
-  border: 1px solid var(--dp-line);
-}
-.jjChip.jjMain {
-  border-color: rgba(176, 58, 34, 0.45);
-  background: rgba(176, 58, 34, 0.06);
-  box-shadow: 0 4px 12px -8px rgba(176, 58, 34, 0.45);
-}
-.jjLayer {
-  font-family: var(--dp-mono);
-  font-size: 9.5px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--dp-ink-mute);
-  padding: 2px 6px;
-  border-radius: 2px;
-  border: 1px solid var(--dp-line);
-}
-.jjChip.jjMain .jjLayer {
-  color: var(--dp-ember);
-  border-color: rgba(176, 58, 34, 0.4);
-}
-.jjStem {
-  font-family: var(--dp-serif-ko);
-  font-weight: 700;
-  font-size: 18px;
-  color: var(--dp-ember-2);
-}
-.jjMeta {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-}
-.jjSibsin {
-  font-family: var(--dp-serif-ko);
-  font-size: 12px;
-  color: var(--dp-ink);
-}
-.jjEl {
-  font-family: var(--dp-mono);
-  font-size: 9.5px;
-  color: var(--dp-ink-mute);
-  letter-spacing: 0.04em;
-}
-
-/* ============================================================
-   Phase 3 — TwelveStageMatrix (본명 4기둥 × 일진 지지)
-   ============================================================ */
-.tsMatrix {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
-  margin-top: 10px;
-}
-@media (max-width: 560px) {
-  .tsMatrix {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-.tsCell {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  padding: 10px 8px;
-  border-radius: 3px;
-  background: var(--dp-panel);
-  border: 1px solid var(--dp-line);
-}
-.tsPillar {
-  font-family: var(--dp-mono);
-  font-size: 9.5px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--dp-ink-mute);
-}
-.tsStage {
-  font-family: var(--dp-serif-ko);
-  font-weight: 700;
-  font-size: 15px;
-  color: var(--dp-ink);
-}
-.tsBranch {
-  font-family: var(--dp-mono);
-  font-size: 10px;
-  color: var(--dp-ink-faint);
-}
-
-/* ============================================================
-   Phase 3 — FixedStarRow / ArabicLotRow
-   ============================================================ */
-.starRow {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 8px;
-}
-.starChip {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  padding: 6px 11px;
-  border-radius: 3px;
-  border: 1px solid var(--dp-line);
-  background: var(--dp-panel);
-  font-family: var(--dp-serif-ko);
-  font-size: 12px;
-  color: var(--dp-ink);
-}
-.starChip.fixed {
-  border-color: rgba(217, 168, 74, 0.4);
-  background: rgba(217, 168, 74, 0.07);
-}
-.starChip.lot {
-  border-color: rgba(79, 93, 150, 0.4);
-  background: rgba(79, 93, 150, 0.07);
-}
-.starGlyph {
-  font-size: 13px;
-}
-.starChip.fixed .starGlyph {
-  color: var(--dp-ember);
-}
-.starChip.lot .starGlyph {
-  color: var(--dp-accent-2);
-}
-
-/* ============================================================
-   HourBreakdown — 24시 (子~亥)
-   ============================================================ */
-.hourGrid {
-  display: grid;
-  grid-template-columns: repeat(12, 1fr);
-  gap: 5px;
-  margin-top: 12px;
-}
-@media (max-width: 760px) {
-  .hourGrid {
-    grid-template-columns: repeat(6, 1fr);
-  }
-}
-.hourCell {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 9px 4px 10px;
-  border-radius: 3px;
-  border: 1px solid var(--dp-line-soft);
-  background: var(--dp-panel);
-  min-height: 64px;
-  overflow: hidden;
-}
-.hourCell .hourGlow {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  border-radius: 3px;
-}
-.hourCell .hourBranch {
-  font-family: var(--dp-serif-ko);
-  font-weight: 700;
-  font-size: 15px;
-  color: var(--dp-ink);
-  position: relative;
-  z-index: 2;
-}
-.hourCell .hourLabel {
-  font-family: var(--dp-mono);
-  font-size: 9px;
-  color: var(--dp-ink-mute);
-  letter-spacing: 0.04em;
-  margin-top: 2px;
-  position: relative;
-  z-index: 2;
-}
-.hourCell .hourScore {
-  font-family: var(--dp-mono);
-  font-size: 10px;
-  color: var(--dp-ink-dim);
-  margin-top: 3px;
-  position: relative;
-  z-index: 2;
-}
-.hourCell .hourDomain {
-  font-family: var(--dp-serif-ko);
-  font-size: 10px;
-  color: var(--dp-ink-mute);
-  margin-top: 2px;
-  position: relative;
-  z-index: 2;
-  text-align: center;
-}
-.hourCell.hourBest {
-  border-color: rgba(47, 125, 91, 0.42);
-}
-.hourCell.hourBest .hourGlow {
-  background: radial-gradient(circle at 50% 60%, rgba(47, 125, 91, 0.18), transparent 70%);
-}
-.hourCell.hourBest .hourScore {
-  color: var(--dp-pos);
-}
-.hourCell.hourAvoid {
-  border-color: rgba(176, 58, 34, 0.42);
-}
-.hourCell.hourAvoid .hourGlow {
-  background: radial-gradient(circle at 50% 60%, rgba(176, 58, 34, 0.16), transparent 70%);
-}
-.hourCell.hourAvoid .hourScore {
-  color: var(--dp-neg);
-}
-.hourCell.hourMid .hourGlow {
-  background: radial-gradient(circle at 50% 60%, rgba(217, 168, 74, 0.12), transparent 70%);
-}
-.hourCell.hourMid .hourScore {
-  color: var(--dp-ember);
-}
-
-/* ============================================================
-   Mobile breakpoints — 640px / 480px
-   ============================================================ */
-
-@media (max-width: 640px) {
-  .tierInner {
-    padding: clamp(56px, 10vh, 86px) 16px calc(140px + env(safe-area-inset-bottom, 0px));
-  }
-  .tierInner::before {
-    left: 6px;
-    right: 6px;
-    top: clamp(40px, 6vh, 60px);
-    bottom: calc(110px + env(safe-area-inset-bottom, 0px));
-  }
-  .iljinBig .han {
-    font-size: 56px;
-    padding: 8px 12px;
-  }
-  .iljinBig .meta .kr {
-    font-size: 12.5px;
-  }
-  .iljinBig .meta .en {
-    font-size: 10px;
-  }
-  .oneline {
-    font-size: clamp(14px, 4vw, 17px);
-  }
-  .secTitle {
-    font-size: clamp(17px, 4.6vw, 22px);
-  }
-  .block {
-    margin-top: 30px;
-  }
-  .blockSm {
-    margin-top: 20px;
-  }
-  .panel {
-    padding: 16px;
-  }
-  .split {
-    gap: 12px;
-    margin-top: 22px;
-  }
-  /* signal stream — collapse the leading 132px category col to compact width */
-  .sig {
-    grid-template-columns: 78px 1fr auto;
-    gap: 10px;
-    padding: 10px 2px;
-  }
-  .sig .cat {
-    font-size: 9px;
-  }
-  .sig .body .lb {
-    font-size: 12.5px;
-  }
-  .scoreDial {
-    width: 138px;
-  }
-  /* 24h grid: 12 → 4 columns */
-  .hourGrid {
-    grid-template-columns: repeat(4, 1fr);
-    gap: 4px;
-  }
-  .hourCell {
-    min-height: 56px;
-    padding: 7px 3px 8px;
-  }
-  .hourCell .hourBranch {
-    font-size: 14px;
-  }
-  .hourCell .hourLabel {
-    font-size: 8.5px;
-  }
-  .hourCell .hourScore {
-    font-size: 9.5px;
-  }
-  .hourCell .hourDomain {
-    font-size: 9px;
-  }
-  /* matrices */
-  .tsMatrix {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  .crossGrid {
-    grid-template-columns: 1fr;
-    gap: 10px;
-  }
-  .crossCard {
-    padding: 12px 14px;
-  }
-  .appliedBadge {
-    padding: 8px 12px;
-  }
-  .appliedHan {
-    font-size: 14px;
-  }
-  .jjChip {
-    padding: 7px 10px;
-  }
-  .jjStem {
-    font-size: 16px;
-  }
-  .statusChip {
-    font-size: 11.5px;
-    padding: 5px 10px;
-  }
-  .gongmangBanner,
-  .vocBanner {
-    padding: 8px 12px;
-    font-size: 11.5px;
-  }
-  .transit {
-    padding: 9px 11px;
-  }
-  .ssPill {
-    font-size: 11.5px;
-    padding: 4px 11px;
-  }
-  .riseCenter {
-    margin-top: 28px;
-  }
-}
-
-@media (max-width: 480px) {
-  .tierInner {
-    padding: clamp(50px, 9vh, 78px) 12px calc(130px + env(safe-area-inset-bottom, 0px));
-  }
-  .iljinBig .han {
-    font-size: 48px;
-    padding: 6px 10px;
-  }
-  /* signal stream — stack score under body to give label more room */
-  .sig {
-    grid-template-columns: 64px 1fr auto;
-    gap: 8px;
-  }
-  .hourGrid {
-    grid-template-columns: repeat(4, 1fr);
-    gap: 3px;
-  }
-  .hourCell {
-    min-height: 50px;
-    padding: 6px 2px 7px;
-  }
-  .hourCell .hourBranch {
-    font-size: 13px;
-  }
-}
-
-/* ── "이렇게 읽은 이유" (날것 트랜짓 덤프 대체) — 만세력 스킨 유지 ── */
+/* ---------- 오늘의 핵심 (why list) ---------- */
 .whyList {
   list-style: none;
-  margin: 0;
+  margin: 2px 0 0;
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 7px;
 }
 .whyList li {
-  font-family: var(--dp-serif-ko);
-  font-size: 14px;
-  line-height: 1.5;
-  color: var(--dp-ink-dim);
-  padding-left: 2px;
   display: flex;
-  gap: 7px;
-  align-items: baseline;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--dp-line-soft);
+  font-family: var(--dp-serif-ko);
+  font-size: 13.5px;
+  line-height: 1.45;
+  color: var(--dp-ink-dim);
+}
+.whyList li:last-child {
+  border-bottom: 0;
 }
 .whyArrow {
-  font-weight: 700;
-  font-size: 13px;
   flex-shrink: 0;
+  width: 14px;
+  font-family: var(--dp-mono);
+  font-size: 13px;
+  line-height: 1.35;
 }
 .whyPos .whyArrow {
-  color: var(--dp-pos);
+  color: var(--dp-accent);
 }
 .whyNeg .whyArrow {
-  color: var(--dp-neg);
+  color: var(--dp-ember);
 }
 .whyMuted {
   font-family: var(--dp-serif-ko);
@@ -1093,6 +454,25 @@
   line-height: 1.5;
   margin: 2px 0 0;
 }
+
+/* ---------- shinsal pills ---------- */
+.shinsalRow {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
+.ssPill {
+  font-family: var(--dp-mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--dp-violet);
+  border: 1px solid rgba(108, 74, 115, 0.4);
+  border-radius: 14px;
+  padding: 4px 10px;
+}
+
+/* ---------- evidence (자세히) ---------- */
 .evidence {
   margin-top: 14px;
   border-top: 1px solid var(--dp-line-soft);
@@ -1100,9 +480,10 @@
 }
 .evidenceSummary {
   cursor: pointer;
-  font-family: var(--dp-sans);
-  font-size: 11.5px;
-  letter-spacing: 0.04em;
+  font-family: var(--dp-mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   color: var(--dp-ink-mute);
   list-style: none;
   user-select: none;
@@ -1118,11 +499,174 @@
 .evidence[open] .evidenceSummary::before {
   content: '▾ ';
 }
-.evidence .transitRow {
+.evList {
+  display: flex;
+  flex-direction: column;
   margin-top: 8px;
 }
+.evRow {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--dp-line-soft);
+  font-family: var(--dp-sans);
+  font-size: 12.5px;
+}
+.evSrc {
+  flex: 0 0 auto;
+  font-family: var(--dp-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.06em;
+  color: var(--dp-ink-mute);
+  border: 1px solid var(--dp-line);
+  border-radius: 3px;
+  padding: 1px 6px;
+}
+.evLabel {
+  flex: 1;
+  color: var(--dp-ink-dim);
+  word-break: keep-all;
+}
+.evAspect {
+  color: var(--dp-ink-mute);
+}
+.evStrength {
+  flex: 0 0 auto;
+  font-family: var(--dp-mono);
+  font-size: 10px;
+  color: var(--dp-ink-mute);
+}
 
-/* ── HourRhythm — 시진 길/주의 리듬 ── */
+/* ---------- polarity chip ---------- */
+.pol {
+  font-family: var(--dp-mono);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  padding: 2px 7px;
+  border-radius: 2px;
+  border: 1px solid;
+}
+.polPos {
+  color: var(--dp-pos);
+  border-color: rgba(47, 125, 91, 0.45);
+}
+.polNeg {
+  color: var(--dp-neg);
+  border-color: rgba(176, 58, 34, 0.4);
+}
+.polNeu {
+  color: var(--dp-neu);
+  border-color: var(--dp-line);
+}
+
+/* ---------- 사주 × 별자리 교차 카드 ---------- */
+.crossCard {
+  margin-top: var(--dp-section);
+}
+.crossRow {
+  padding: 13px 0;
+  border-bottom: 1px solid var(--dp-line-soft);
+}
+.crossRow:last-of-type {
+  border-bottom: 0;
+}
+.crossPair {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 6px;
+  flex-wrap: wrap;
+}
+.crossSaju {
+  font-family: var(--dp-serif-ko);
+  font-size: 13px;
+  color: var(--dp-ember-2);
+  background: rgba(176, 58, 34, 0.08);
+  border-radius: 4px;
+  padding: 3px 9px;
+}
+.crossAstro {
+  font-family: var(--dp-serif-ko);
+  font-size: 13px;
+  color: var(--dp-accent);
+  background: rgba(52, 64, 111, 0.08);
+  border-radius: 4px;
+  padding: 3px 9px;
+}
+.crossArrowPos {
+  color: var(--dp-pos);
+  font-weight: 700;
+}
+.crossArrowNeg {
+  color: var(--dp-ember);
+  font-weight: 700;
+}
+.crossMeaning {
+  font-family: var(--dp-serif-ko);
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--dp-ink-dim);
+}
+.crossFoot {
+  font-family: var(--dp-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.03em;
+  color: var(--dp-ink-faint);
+  margin-top: 12px;
+}
+
+/* ---------- 타이밍 (이달 흐름 + 다가오는 며칠) ---------- */
+.flowWrap {
+  margin-top: var(--dp-section);
+}
+.flowSubHead {
+  font-family: var(--dp-mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--dp-ink-mute);
+  margin-bottom: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+.flowDivider {
+  height: 1px;
+  background: var(--dp-line-soft);
+  border: 0;
+  margin: 16px 0;
+}
+.upRow {
+  display: flex;
+  gap: 8px;
+  border-top: 1px solid var(--dp-line-soft);
+  padding-top: 12px;
+}
+.upCell {
+  flex: 1;
+  text-align: center;
+}
+.upBox {
+  aspect-ratio: 1;
+  border: 1px solid var(--dp-line);
+  border-radius: var(--dp-r);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--dp-serif);
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--dp-ink-dim);
+}
+.upWd {
+  display: block;
+  margin-top: 4px;
+  font-family: var(--dp-mono);
+  font-size: 10px;
+  color: var(--dp-ink-faint);
+}
+
+/* ---------- 시진 리듬 ---------- */
 .rhythmWrap {
   margin: var(--dp-section) 0 4px;
 }
@@ -1137,7 +681,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
 }
 .rhythmTrack {
   position: relative;
@@ -1157,40 +701,40 @@
   left: 50%;
   transform: translateX(-50%);
   width: 60%;
-  max-width: 16px;
-  border-radius: 3px;
+  max-width: 14px;
+  border-radius: 2px;
 }
 .rhythmTime {
   font-family: var(--dp-mono);
-  font-size: 8px;
-  color: var(--dp-ink-dim);
+  font-size: 10px;
+  color: var(--dp-ink-mute);
   white-space: nowrap;
 }
-/* ---------- 분야별 오늘 조언 (연애·돈·직업·관계·공부·건강) ---------- */
+
+/* ---------- 분야별 오늘 조언 ---------- */
 .domainBlock {
   margin-top: var(--dp-section);
 }
 .domainGrid {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  margin-top: 10px;
+  margin-top: 6px;
 }
 .domainRow {
   display: flex;
   align-items: flex-start;
   gap: 12px;
-  padding: 12px 14px;
-  border: 1px solid var(--dp-line);
-  border-radius: var(--dp-r-lg);
-  background: var(--dp-panel-2);
+  padding: 13px 0;
+  border-bottom: 1px solid var(--dp-line-soft);
 }
-.domainActive {
-  border-color: var(--dp-accent);
-  background: color-mix(in srgb, var(--dp-accent) 8%, var(--dp-panel-2));
+.domainRow:last-child {
+  border-bottom: 0;
+}
+.domainActive .domainLabel {
+  color: var(--dp-accent);
 }
 .domainIcon {
-  font-size: 18px;
+  font-size: 17px;
   line-height: 1.5;
   flex: 0 0 auto;
 }
@@ -1205,14 +749,14 @@
   align-items: center;
   gap: 8px;
   font-family: var(--dp-serif-ko);
-  font-weight: 700;
-  font-size: 15px;
+  font-weight: 600;
+  font-size: 14.5px;
   color: var(--dp-ink);
 }
 .domainOn {
   font-family: var(--dp-mono);
-  font-size: 9.5px;
-  letter-spacing: 0.04em;
+  font-size: 9px;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--dp-accent);
   border: 1px solid var(--dp-accent);
@@ -1222,11 +766,9 @@
 .domainBody {
   font-family: var(--dp-serif-ko);
   font-size: 13.5px;
-  line-height: 1.62;
+  line-height: 1.6;
   color: var(--dp-ink-mute);
 }
-
-/* 분야 근거 칩 — 그날 실제 신호(트랜짓 ✦ · 신살 ◆ · 교차 ⇄) */
 .domainEvidence {
   display: flex;
   align-items: center;
@@ -1270,243 +812,37 @@
   color: var(--dp-ink-mute);
 }
 
-/* ---------- 시(時)별 달 정밀 ---------- */
-.moonBlock {
-  margin-top: 24px;
-}
-.moonList {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  margin-top: 10px;
-}
-.moonRow {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: 9px 13px;
-  border: 1px solid var(--dp-line);
-  border-radius: 10px;
-  background: var(--dp-panel-2);
-}
-.moonHead {
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-.moonMeaning {
-  font-family: var(--dp-serif-ko);
-  font-size: 12.5px;
-  line-height: 1.55;
-  color: var(--dp-ink-faint);
-}
-.moonGood {
-  border-left: 3px solid var(--dp-pos);
-}
-.moonCaution {
-  border-left: 3px solid var(--dp-neg);
-}
-.moonWhen {
-  font-family: var(--dp-mono);
-  font-size: 11px;
-  letter-spacing: 0.02em;
-  color: var(--dp-ink);
-  flex: 0 0 auto;
-}
-.moonBody {
-  font-family: var(--dp-serif-ko);
-  font-size: 13.5px;
-  color: var(--dp-ink-mute);
-  flex: 1 1 auto;
-  min-width: 0;
-}
-.moonTone {
-  font-family: var(--dp-mono);
-  font-size: 9.5px;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--dp-ink-faint);
-  flex: 0 0 auto;
+/* ============================================================
+   Mobile
+   ============================================================ */
+@media (max-width: 640px) {
+  .tierInner {
+    padding: clamp(48px, 8vh, 72px) 16px calc(120px + env(safe-area-inset-bottom, 0px));
+  }
+  .iljinBig .han {
+    font-size: 46px;
+  }
+  .doChip,
+  .dontChip {
+    min-width: 0;
+  }
+  .riseCenter {
+    margin-top: 30px;
+  }
 }
 
-/* ---------- 사주 × 별자리 교차 카드 ---------- */
-.crossCard {
-  margin-top: var(--dp-section);
-  padding: 16px;
-  border: 1px solid var(--dp-line);
-  border-radius: var(--dp-r-lg);
-  background: var(--dp-panel);
-}
-.crossRow {
-  border-top: 1px solid var(--dp-line);
-  padding-top: 10px;
-  margin-top: 10px;
-}
-.crossRow:first-of-type {
-  border-top: 0;
-  padding-top: 0;
-  margin-top: 2px;
-}
-.crossPair {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 5px;
-  flex-wrap: wrap;
-}
-.crossSaju {
-  font-size: 13px;
-  color: var(--dp-ember-2);
-  background: rgba(176, 58, 34, 0.09);
-  border-radius: 5px;
-  padding: 3px 9px;
-}
-.crossAstro {
-  font-size: 13px;
-  color: var(--dp-accent);
-  background: rgba(52, 64, 111, 0.09);
-  border-radius: 5px;
-  padding: 3px 9px;
-}
-.crossArrowPos {
-  color: var(--dp-pos);
-  font-weight: 700;
-}
-.crossArrowNeg {
-  color: var(--dp-neg);
-  font-weight: 700;
-}
-.crossMeaning {
-  font-size: 14px;
-  line-height: 1.5;
-  color: var(--dp-ink-dim);
-}
-.crossFoot {
-  font-size: 11px;
-  color: var(--dp-ink-faint);
-  margin-top: 11px;
-}
-
-/* ---------- 타이밍 추이 (이달 흐름 + 다가오는 며칠 — 한 카드) ---------- */
-.flowWrap {
-  margin-top: var(--dp-section);
-  padding: 16px;
-  border: 1px solid var(--dp-line);
-  border-radius: var(--dp-r-lg);
-  background: var(--dp-panel);
-}
-.flowSub {
-  font-weight: 400;
-  font-size: 11px;
-  color: var(--dp-ink-mute);
-}
-.flowDivider {
-  height: 1px;
-  background: var(--dp-line-soft);
-  border: 0;
-  margin: 14px 0;
-}
-.flowSubHead {
-  font-family: var(--dp-sans);
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--dp-ink-dim);
-  margin-bottom: 8px;
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-}
-.upRow {
-  display: flex;
-  gap: 6px;
-}
-.upCell {
-  flex: 1;
-  text-align: center;
-}
-.upBox {
-  aspect-ratio: 1;
-  border: 1px solid var(--dp-line);
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: var(--dp-sans);
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--dp-ink);
-}
-.upWd {
-  display: block;
-  margin-top: 3px;
-  font-family: var(--dp-sans);
-  font-size: 9px;
-  color: var(--dp-ink-faint);
-}
-
-/* ---------- 근거 자세히 (EvidenceDetails) ---------- */
-.evList {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  margin-top: 8px;
-}
-.evRow {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 0;
-  border-bottom: 1px solid var(--dp-line);
-  font-family: var(--dp-sans);
-  font-size: 12.5px;
-}
-.evSrc {
-  flex: 0 0 auto;
-  font-family: var(--dp-mono);
-  font-size: 9.5px;
-  letter-spacing: 0.06em;
-  color: var(--dp-ink-mute);
-  border: 1px solid var(--dp-line);
-  border-radius: 3px;
-  padding: 1px 5px;
-}
-.evLabel {
-  flex: 1;
-  color: var(--dp-ink);
-  word-break: keep-all;
-}
-.evAspect {
-  color: var(--dp-ink-mute);
-}
-.evStrength {
-  flex: 0 0 auto;
-  font-family: var(--dp-mono);
-  font-size: 10px;
-  color: var(--dp-ink-faint);
-}
-
-/* ---------- 이렇게 / 조심 칩 (시안) ---------- */
-.doRow {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  justify-content: center;
-  margin-top: 14px;
-}
-.doChip,
-.dontChip {
-  font-family: var(--dp-sans);
-  font-size: 13px;
-  border-radius: 6px;
-  padding: 5px 12px;
-  border: 1px solid;
-}
-.doChip {
-  color: var(--dp-pos);
-  border-color: var(--dp-pos);
-}
-.dontChip {
-  color: var(--dp-neg);
-  border-color: var(--dp-neg);
+@media (max-width: 380px) {
+  .tierInner {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+  .iljinBig {
+    gap: 12px;
+  }
+  .iljinBig .han {
+    font-size: 42px;
+  }
+  .rhythmTime {
+    font-size: 9px;
+  }
 }

@@ -37,16 +37,34 @@ describe('toYear — yearly signals → destinypal year', () => {
       expect(y.sajuNote).toContain('세운 丙午')
     })
 
-    it('headline / sajuNote / astroNote 옵션 직주입', () => {
+    it('영문 노트/헤드라인이 채워지고 한글 누수가 없다 (no Hangul)', () => {
+      const y = toYear(natal(), { year: 2026 })
+      // 헤드라인 영문 — 한글 없음
+      expect(y.headlineEn).toBe('2026 — a year the flow gets re-drawn.')
+      expect(y.headlineEn).not.toMatch(/[가-힣]/)
+      // 사주 노트 영문 — 프레이즈는 영어. (십신명 '식신'은 영문 사전 없는 term of art 라 그대로 둠)
+      expect(y.sajuNoteEn).toContain('Annual pillar 丙午')
+      expect(y.sajuNoteEn).toContain('to day master 甲')
+      // profection 없으면 astroNoteEn 빈 문자열
+      expect(y.astroNoteEn).toBe('')
+    })
+
+    it('headline / sajuNote / astroNote (+En) 옵션 직주입', () => {
       const y = toYear(natal(), {
         year: 2026,
         headline: 'H',
+        headlineEn: 'HE',
         sajuNote: 'S',
+        sajuNoteEn: 'SE',
         astroNote: 'A',
+        astroNoteEn: 'AE',
       })
       expect(y.headline).toBe('H')
+      expect(y.headlineEn).toBe('HE')
       expect(y.sajuNote).toBe('S')
+      expect(y.sajuNoteEn).toBe('SE')
       expect(y.astroNote).toBe('A')
+      expect(y.astroNoteEn).toBe('AE')
     })
   })
 
@@ -89,6 +107,17 @@ describe('toYear — yearly signals → destinypal year', () => {
       const y = toYear(natal(), { year: 2026, yearlySignals: [profSignal()] })
       expect(y.headline).toContain('7번째 영역')
       expect(y.astroNote).toContain('7하우스')
+    })
+
+    it('profection 있으면 영문 헤드라인/astroNote 도 house 반영 + 한글 누수 없음', () => {
+      const y = toYear(natal(), { year: 2026, yearlySignals: [profSignal()] })
+      expect(y.headlineEn).toBe('This year leans toward your 7th house.')
+      expect(y.headlineEn).not.toMatch(/[가-힣]/)
+      // ruler Venus / 본명 2nd house · Taurus 가 영문으로
+      expect(y.astroNoteEn).toContain('house 7')
+      expect(y.astroNoteEn).toContain('Venus')
+      expect(y.astroNoteEn).toContain('2nd house · Taurus')
+      expect(y.astroNoteEn).not.toMatch(/[가-힣]/)
     })
 
     it('house 정보가 전혀 없으면 profection undefined', () => {
@@ -307,13 +336,15 @@ describe('toYear — yearly signals → destinypal year', () => {
       const y = toYear(natal(), { year: 2026, cells: [cell] })
       expect(y.crossings).toHaveLength(1)
       const c = y.crossings[0]
-      expect(c.title).toBe('정관 × 토성')
+      // 제목은 쉬운말 — '정관 × 토성' → '일·책임 × 책임·인내'
+      expect(c.title).toBe('일·책임 × 책임·인내')
       expect(c.when).toBe('3–5월')
       expect(c.whenEn).toBe('Mar–May')
       expect(c.tone).toBe('good')
       expect(c.detail).toBe('책임 페어')
-      // 영문 이름 — SIBSIN_EN[정관] × Saturn
-      expect(c.titleEn).toContain('Saturn')
+      // 영문 제목도 쉬운말 (한글 누수 없음)
+      expect(c.titleEn).toBe('duty & standing × duty & limits')
+      expect(c.titleEn).not.toMatch(/[가-힣]/)
     })
 
     it('polarity 부호 → tone (good/caution/neutral)', () => {

@@ -164,12 +164,16 @@ describe('assembleTiers — month tier', () => {
     }
   })
 
-  it('uses English month-summary tag in en mode', async () => {
+  it('keeps the canonical 이달 총평 tag and carries bodyEn in en mode', async () => {
+    // The summary now uses a locale-independent tag ('이달 총평') so the client
+    // locale toggle can find it; localization is via body(ko)/bodyEn(en), with
+    // MonthTier rendering a localized label. So even in en mode the tag stays
+    // canonical and the English text rides on bodyEn.
     const out = await assembleTiers(baseInput({ lang: 'en' }))
-    if (out.month.narrative[0]) {
-      expect(['This month', 'Innate grain', "This month's grain"]).toContain(
-        out.month.narrative[0].tag
-      )
+    const summary = out.month.narrative.find((n) => n.tag === '이달 총평')
+    if (summary) {
+      expect(summary.tag).toBe('이달 총평')
+      expect(typeof summary.bodyEn).toBe('string')
     }
   })
 })

@@ -1,9 +1,9 @@
 /**
  * 층별 점수 — "각 시간대를 자기 층 신호로만" 판단한다.
  *
- * 10년은 대운(decadal) 신호로, 년은 세운(yearly), 월은 월운(monthly), 일/시는
- * 일진(daily)+시진(hourly) 신호로. 전층을 섞어 평균내면(옛 derivedScore) 일 신호가
- * 수적으로 지배해 월·년 점수가 사실상 일 평균이 됐다 — 시간대 고유 에너지가 묻힘.
+ * 월은 월운(monthly), 일/시는 일진(daily)+시진(hourly) 신호로. 전층을 섞어
+ * 평균내면(옛 derivedScore) 일 신호가 수적으로 지배해 월 점수가 사실상 일
+ * 평균이 됐다 — 시간대 고유 에너지가 묻힘.
  *
  * 점수 함수는 하나: signed-surprise = 지배 top-k 신호의 (희소도×중요도)에 *부호*를
  * 실어 합산. 큰(드문·강한) 길신호는 +로, 흉신호는 −로 크게 기여하고, 늘 켜진 배경은
@@ -12,22 +12,15 @@
  * 표시:
  *  - 다(多)기간 층(일 365·월 12): 그 층 분포로 0~100 정규화 + grade (분포를 *맞추지*
  *    않음 — 평균/표준편차 선형 매핑이라 모양은 신호가 정함).
- *  - 단(單)기간 층(대운·세운): 단일값이라 가짜 0~100 대신 부호·크기로 톤 라벨.
  */
 import type { CalendarCell, ActiveSignal, SignalLayer } from '../types'
 import { computeBaseRates, signalImportance, type BaseRateTable } from './surprise'
 import { scoreToGrade, type CalendarGrade } from './grade'
 
-export type LayerTone = 'favorable' | 'neutral' | 'caution'
-
 export interface LayerCellScore {
   score: number // 0~100
   grade: CalendarGrade
   signed: number // 원 signed-surprise (디버그)
-}
-export interface LayerToneScore {
-  signed: number
-  tone: LayerTone
 }
 
 export interface LayeredScores {
@@ -35,10 +28,6 @@ export interface LayeredScores {
   daily: Map<string, LayerCellScore>
   /** 월운 신호 → 월별. key: 1~12 */
   monthly: Map<number, LayerCellScore>
-  /** 세운 신호 → 올해 한 값. */
-  yearly: LayerToneScore
-  /** 대운 신호 → 이 10년 한 값. */
-  decadal: LayerToneScore
 }
 
 const DAY_LAYERS: ReadonlySet<SignalLayer> = new Set(['daily', 'hourly', 'instant'])
@@ -68,13 +57,6 @@ function linearMapper(values: number[]): (v: number) => number {
   const zMin = Math.min(-0.5, ...zs)
   const K = Math.min(40, Math.max(16, 24 / zMax, 24 / -zMin))
   return (v) => Math.max(0, Math.min(100, Math.round(50 + ((v - mean) / sd) * K)))
-}
-
-/** 단일 signed → 톤. 0 부근 중립, 뚜렷한 +/− 면 순조/주의. */
-function toneOf(signed: number): LayerTone {
-  if (signed > 4) return 'favorable'
-  if (signed < -4) return 'caution'
-  return 'neutral'
 }
 
 /** 같은 id 신호 dedup (연중 같은 배경이 매일 반복 등장하므로). */
@@ -119,20 +101,8 @@ export function deriveLayeredScores(cells: CalendarCell[]): LayeredScores {
     monthly.set(m.month, { score, grade: scoreToGrade(score), signed: m.signed })
   }
 
-  // ── 세운(yearly) / 대운(decadal): 단일값 톤 ──
-  const yearlySigned = signedSurprise(
-    dedupById(cells.flatMap((c) => c.signals.filter((s) => s.layer === 'yearly'))),
-    rates
-  )
-  const decadalSigned = signedSurprise(
-    dedupById(cells.flatMap((c) => c.signals.filter((s) => s.layer === 'decadal'))),
-    rates
-  )
-
   return {
     daily,
     monthly,
-    yearly: { signed: yearlySigned, tone: toneOf(yearlySigned) },
-    decadal: { signed: decadalSigned, tone: toneOf(decadalSigned) },
   }
 }

@@ -24,6 +24,8 @@ export interface DestinypalMilestone {
   year: number
   age: number
   label: string
+  /** 라벨 영문 — 클라이언트 언어 토글용. 미지정 시 label 폴백. */
+  labelEn?: string
   kind:
     | 'jupiter'
     | 'saturn'
@@ -39,6 +41,8 @@ export interface DestinypalMilestone {
   bothSystems?: boolean
   /** 한 줄 의미 (astro 마디 한 줄) — 옵션 */
   meaning?: string
+  /** 한 줄 의미 영문 — 클라이언트 언어 토글용. 미지정 시 meaning 폴백. */
+  meaningEn?: string
 }
 
 function deriveKind(p: LifePivot): DestinypalMilestone['kind'] {
@@ -65,9 +69,11 @@ export function toMilestones(pivots: LifetimePivots | undefined): DestinypalMile
     year: p.year,
     age: p.age,
     label: p.label,
+    labelEn: p.labelEn,
     kind: deriveKind(p),
     now: p.phase === 'current' ? true : undefined,
     bothSystems: p.bothSystems || undefined,
     meaning: p.meaning,
+    meaningEn: p.meaningEn,
   }))
 }

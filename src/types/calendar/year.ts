@@ -78,6 +78,8 @@ export interface DestinyYear {
   year: number
   /** 헤드라인 한 줄 — '올해의 무게중심은 8번째 영역으로 기울어요.'. */
   headline: string
+  /** 헤드라인 영문 한 줄 — 'This year leans toward your 8th house.'. */
+  headlineEn?: string
   /** 세운. */
   sewoon: DestinySewoon
   /** 호환용 — 세운 간지 직접 노출. data.js year.sewoon. */
@@ -90,8 +92,12 @@ export interface DestinyYear {
   profectionWheel: DestinyProfectionWheelSlice[]
   /** 사주 본문 한 줄 — 세운 십신 + 용신 흐름. */
   sajuNote: string
+  /** 사주 본문 영문 한 줄. */
+  sajuNoteEn?: string
   /** 점성 본문 한 줄 — Profection 룰러 본명 위치. */
   astroNote: string
+  /** 점성 본문 영문 한 줄. */
+  astroNoteEn?: string
   /** 이번 해 진입한/지나는 ZR Spirit 챕터들. */
   zrSpiritChapters: DestinyDecadeZRChapter[]
   /** 이번 해 진입한/지나는 ZR Fortune 챕터들. */

@@ -28,14 +28,22 @@ import {
   sibsinAreaEn,
   planetPlain,
   plainReason,
+  twelveStagePlain,
 } from '@/lib/calendar-engine/derivers/plainLanguage'
 import { deriveDayDomains } from '@/lib/calendar-engine/derivers/dayDomains'
+import { deriveDayDeepRead } from '@/lib/calendar-engine/derivers/dayDeepRead'
 import { reconcileDayTone, type DayVerdict } from '@/lib/calendar-engine/derivers/reconcile'
 import styles from './DayTier.module.css'
 import { useI18n } from '@/i18n/I18nProvider'
 import { CrossingList } from '@/components/calendar/atoms/CrossingList'
 import { localizeLabel } from '@/components/calendar/adapters/localizeLabel'
-import { shinsalEn } from '@/components/calendar/adapters/dayTierEnMaps'
+import {
+  shinsalEn,
+  elementEn,
+  jijangganLayerEn,
+  twelveStageEn,
+  appliedPatternEn,
+} from '@/components/calendar/adapters/dayTierEnMaps'
 import { ShareDayButton } from '@/components/calendar/share/ShareDayButton'
 import type { DayShareData } from '@/components/calendar/share/DayShareCard'
 
@@ -84,76 +92,6 @@ function PolChip({ v }: { v: Polarity | number }) {
   const cls = v > 0 ? styles.polPos : v < 0 ? styles.polNeg : styles.polNeu
   const txt = v > 0 ? `+${v}` : v < 0 ? String(v) : '0'
   return <span className={`${styles.pol} ${cls}`}>{txt}</span>
-}
-
-// ============================================================================
-// ToneDial — 단일 verdict 톤만 반영하는 다이얼. (옇 ScoreDial: raw 점수 60/35로
-// 색·글자를 *따로* 계산해 헤드라인/톤과 어긋났다. 점수 숫자는 노출하지 않으며,
-// 호(arc)는 톤별 고정 비율의 장식일 뿐 — 점수 누출 없음. 단일 출처 = verdict.tone.)
-// ============================================================================
-
-function ToneDial({ tone, label }: { tone: DayVerdict['tone']; label?: string }) {
-  const { locale } = useI18n()
-  const ko = locale === 'ko'
-  const dialLabel = label ?? (ko ? '오늘' : 'Today')
-  const frac = tone === 'positive' ? 1 : tone === 'mixed' ? 0.55 : 0.3
-  const col =
-    tone === 'positive'
-      ? 'var(--dp-pos)'
-      : tone === 'caution'
-        ? 'var(--dp-neg)'
-        : 'var(--dp-tone-mixed)'
-  const word = ko
-    ? tone === 'positive'
-      ? '순풍'
-      : tone === 'caution'
-        ? '역풍'
-        : '평이'
-    : tone === 'positive'
-      ? 'Tailwind'
-      : tone === 'caution'
-        ? 'Headwind'
-        : 'Steady'
-  // 반원 게이지 — 시안과 동일. 점수 숫자 비노출(톤 단어만), 호는 톤별 고정 비율.
-  const W = 150,
-    H = 88,
-    cx = 75,
-    cy = 78,
-    R = 58
-  const pt = (a: number) => `${cx + R * Math.cos(a)},${cy - R * Math.sin(a)}`
-  const arc = (s: number, e: number, c2: string, w: number) => (
-    <path
-      d={`M ${pt(s)} A ${R} ${R} 0 0 1 ${pt(e)}`}
-      fill="none"
-      stroke={c2}
-      strokeWidth={w}
-      strokeLinecap="round"
-    />
-  )
-  return (
-    <div className={styles.scoreDial}>
-      <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`}>
-        {arc(Math.PI, 0, 'rgba(58,46,28,0.12)', 8)}
-        {arc(Math.PI, Math.PI * (1 - frac), col, 8)}
-        <text
-          x={cx}
-          y={cy - 16}
-          textAnchor="middle"
-          style={{ font: '700 30px var(--dp-serif-ko)', fill: 'var(--dp-ink)' }}
-        >
-          {word}
-        </text>
-        <text
-          x={cx}
-          y={cy + 2}
-          textAnchor="middle"
-          style={{ font: '11px var(--dp-sans)', fill: 'var(--dp-ink-mute)' }}
-        >
-          {dialLabel}
-        </text>
-      </svg>
-    </div>
-  )
 }
 
 // ============================================================================
@@ -303,6 +241,8 @@ function CrossActivationCard({
           : sibsinAreaEn(c.sajuKo ?? c.sajuSide)
         const astroPlain = planetPlain(c.astroKo ?? c.astroSide, ko)
         const good = c.polarity >= 0
+        // 의미는 로케일로 선택(서버언어 고정 방지) — meaningEn 없으면 KO 폴백.
+        const meaning = ko ? c.meaning : (c.meaningEn ?? c.meaning)
         return (
           <div key={c.id ?? i} className={styles.crossRow}>
             <div className={styles.crossPair}>
@@ -310,7 +250,7 @@ function CrossActivationCard({
               <span className={good ? styles.crossArrowPos : styles.crossArrowNeg}>⇄</span>
               <span className={styles.crossAstro}>{astroPlain}</span>
             </div>
-            {c.meaning && <div className={styles.crossMeaning}>{c.meaning}</div>}
+            {meaning && <div className={styles.crossMeaning}>{meaning}</div>}
           </div>
         )
       })}
@@ -488,6 +428,108 @@ function EvidenceDetails({ day, ko }: { day: DestinyDay; ko: boolean }) {
   )
 }
 
+// ============================================================================
+// NatalDetails — '본명 상세' 접힘. 엔진이 매번 계산하지만 정갈 화면을 위해 평소엔
+// 숨겨둔 신호: 응용격국(동적)·지장간(일지 3층)·일진 12운성(본명 기둥별). 펼치면
+// 노출. EN 은 dayTierEnMaps 고정 치환(한글 누출 방지).
+// ============================================================================
+// 오행/지장간 층 쉬운말(ko) — 용어 대신 풀이를 앞에 둔다.
+const ELEM_PLAIN_KO: Record<string, string> = {
+  목: '나무(木)',
+  화: '불(火)',
+  토: '흙(土)',
+  금: '쇠(金)',
+  수: '물(水)',
+}
+const LAYER_PLAIN_KO: Record<string, string> = {
+  정기: '주된 기운',
+  중기: '중간 기운',
+  여기: '남은 기운',
+}
+// 본명 기둥(연/월/일/시) 쉬운말 — 年월일시 한자 대신.
+const PILLAR_PLAIN: Record<string, { ko: string; en: string }> = {
+  年: { ko: '태어난 해', en: 'birth year' },
+  月: { ko: '태어난 달', en: 'birth month' },
+  日: { ko: '나 자신', en: 'self (day)' },
+  時: { ko: '태어난 시', en: 'birth hour' },
+}
+
+function NatalDetails({ day, ko }: { day: DestinyDay; ko: boolean }) {
+  const patterns = day.appliedPatterns ?? []
+  const jj = day.jijanggan
+  const jjLayers = [jj?.jeonggi, jj?.junggi, jj?.yeogi].filter(
+    (l): l is NonNullable<typeof l> => !!l
+  )
+  const stages = day.twelveStageMatrix ?? []
+  if (patterns.length === 0 && jjLayers.length === 0 && stages.length === 0) return null
+  return (
+    <details className={styles.natal}>
+      <summary className={styles.natalSummary}>
+        {ko ? '오늘 더 자세히 — 타고난 기운 풀이' : 'More detail · your chart, explained'}
+      </summary>
+      <div className={styles.natalBody}>
+        {patterns.length > 0 && (
+          <div className={styles.natalBlock}>
+            <div className={styles.natalLabel}>
+              {ko ? '오늘 만들어진 기운 조합' : 'Combinations forming today'}
+            </div>
+            {patterns.map((p, i) => {
+              const en = appliedPatternEn(String(p.id))
+              const good = p.polarity >= 0
+              return (
+                <div className={styles.natalRow} key={p.id ?? i}>
+                  {/* 풀이를 앞에(크게), 용어는 작은 참고로. */}
+                  <span className={good ? styles.natalPos : styles.natalNeg}>
+                    {ko ? p.rule : (en?.gloss ?? '')}
+                  </span>
+                  <span className={styles.natalDesc}>
+                    {ko ? p.korean : (en?.name ?? p.korean)}{' '}
+                    <span className={styles.natalHan}>{p.name}</span>
+                  </span>
+                </div>
+              )
+            })}
+          </div>
+        )}
+        {jjLayers.length > 0 && (
+          <div className={styles.natalBlock}>
+            <div className={styles.natalLabel}>
+              {ko ? '내 안에 숨은 기운 (일지 속)' : 'Hidden energies within'}
+            </div>
+            <div className={styles.natalChips}>
+              {jjLayers.map((L, i) => (
+                <span className={styles.natalChip} key={i}>
+                  {ko
+                    ? `${ELEM_PLAIN_KO[L.element] ?? L.element} · ${sibsinArea(String(L.sibsin))} · ${LAYER_PLAIN_KO[L.layer] ?? L.layer}`
+                    : `${elementEn(L.element)} · ${sibsinAreaEn(String(L.sibsin))} · ${jijangganLayerEn(L.layer)}`}{' '}
+                  <span className={styles.natalHan}>{L.stem}</span>
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+        {stages.length > 0 && (
+          <div className={styles.natalBlock}>
+            <div className={styles.natalLabel}>
+              {ko ? '기둥별 기운의 세기' : 'Energy strength by pillar'}
+            </div>
+            <div className={styles.natalChips}>
+              {stages.map((s, i) => (
+                <span className={styles.natalChip} key={i}>
+                  {ko
+                    ? `${PILLAR_PLAIN[s.pillar]?.ko ?? s.pillar} · ${twelveStagePlain(s.stage)}`
+                    : `${PILLAR_PLAIN[s.pillar]?.en ?? s.pillar} · ${twelveStageEn(s.stage)}`}{' '}
+                  <span className={styles.natalHan}>{s.stage}</span>
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    </details>
+  )
+}
+
 export function DayTier({ day, voc, onRise, sex = '남' }: DayTierProps) {
   const { locale } = useI18n()
   const ko = locale === 'ko'
@@ -509,7 +551,58 @@ export function DayTier({ day, voc, onRise, sex = '남' }: DayTierProps) {
       hasGoodReason: (day.topReasons ?? []).length > 0,
       hasCautionReason: (day.cautions ?? []).length > 0,
     })
-  const dayBand = verdict.band
+  // 행동 칩·분야별 조언은 *화해된 톤*(verdict.tone)을 따른다 — 헤드라인과 같은
+  // 단일 권위. 옛 코드는 원점수 밴드(verdict.band)를 써서 tense/bright 날
+  // (점수밴드 ↔ 신호톤이 어긋난 날) 헤드라인과 섹션 문구가 모순됐다.
+  const dayBand: DayVerdict['band'] =
+    verdict.tone === 'positive' ? 'good' : verdict.tone === 'caution' ? 'low' : 'mid'
+
+  // oneLine·핵심사유는 양쪽 로케일이 저장돼 있다 — 클라이언트 로케일로 고른다
+  // (서버언어로 굳어 토글 시 한/영이 섞이던 문제 해소).
+  const dayOneLine = ko ? day.oneLine : (day.oneLineEn ?? day.oneLine)
+  const dayReasons = ko ? (day.topReasons ?? []) : (day.topReasonsEn ?? day.topReasons ?? [])
+  const dayCautions = ko ? (day.cautions ?? []) : (day.cautionsEn ?? day.cautions ?? [])
+
+  // hero 톤 단어 — 단일 verdict.tone 출처 (순풍/평이/역풍).
+  const heroToneWord = ko
+    ? verdict.tone === 'positive'
+      ? '순풍'
+      : verdict.tone === 'caution'
+        ? '역풍'
+        : '평이'
+    : verdict.tone === 'positive'
+      ? 'Tailwind'
+      : verdict.tone === 'caution'
+        ? 'Headwind'
+        : 'Steady'
+
+  // ── 오늘 깊이 읽기 — 일진 십신 + 사주×점성 교차 페어 + 화해 톤을 이어 붙인
+  //    합성 해석 문단(결정론·근거 기반, 지어내지 않음). ──
+  // 그날 가장 센 시진(時) — 사전 매칭 우선, 그다음 강도. 깊이읽기 타이밍 한 줄용.
+  const peakHourSrc = [...(day.hourCrossings ?? [])].sort(
+    (a, b) => Number(b.matched) - Number(a.matched) || b.strength - a.strength
+  )[0]
+  const deepRead = deriveDayDeepRead({
+    iljinKr: day.iljin.kr,
+    iljinSibsin: String(day.iljinSibsin),
+    tone: verdict.tone,
+    crosses: (day.crossActivations ?? [])
+      .filter((c) => c.sajuKo && c.astroKo)
+      .map((c) => ({
+        sajuKo: c.sajuKo as string,
+        astroKo: c.astroKo as string,
+        polarity: c.polarity,
+      })),
+    shinsal: (day.shinsalActive ?? []).slice(0, 2).map((s) => ({ ko: s, en: shinsalEn(s) })),
+    peakHour: peakHourSrc
+      ? {
+          whenKo: peakHourSrc.when.replace(/\s*\(.*\)/, '').trim(),
+          whenEn: peakHourSrc.whenEn.replace(/\s*\(.*\)/, '').trim(),
+          tone: peakHourSrc.tone === 'good' ? 'good' : 'caution',
+        }
+      : null,
+    seed: day.seed ?? 0,
+  })
 
   // ── 시간별 사주 × 점성 교차 — 켜지는 시진(십신) × 그 시각 상승궁. ──
   // 메인엔 가장 센 시진 3개만(사전 매칭된 진짜 교차 우선), 나머진 '자세히 보기'.
@@ -565,6 +658,7 @@ export function DayTier({ day, voc, onRise, sex = '남' }: DayTierProps) {
     sex,
     scoreBand: dayBand,
     ko,
+    seed: day.seed ?? 0,
     evidence: {
       transits: day.transits.map((t) => ({
         body: (t as { body?: string }).body,
@@ -617,9 +711,9 @@ export function DayTier({ day, voc, onRise, sex = '남' }: DayTierProps) {
     sibsinLabel: shareSibsinLabel,
     toneWord: shareToneWord,
     tone: verdict.tone,
-    oneLine: localizeLabel(day.oneLine, ko),
-    goods: (day.topReasons ?? []).slice(0, 3).map((r) => localizeLabel(plainReason(r, ko), ko)),
-    cautions: (day.cautions ?? []).slice(0, 3).map((c) => localizeLabel(plainReason(c, ko), ko)),
+    oneLine: localizeLabel(dayOneLine, ko),
+    goods: dayReasons.slice(0, 3).map((r) => localizeLabel(plainReason(r, ko), ko)),
+    cautions: dayCautions.slice(0, 3).map((c) => localizeLabel(plainReason(c, ko), ko)),
   }
 
   return (
@@ -633,31 +727,53 @@ export function DayTier({ day, voc, onRise, sex = '남' }: DayTierProps) {
         {ko && day.dateKo && <span style={{ marginLeft: 8 }}>{day.dateKo}</span>}
       </div>
 
-      {/* ── 핵심 hero: 단일 중앙 컬럼 — 톤 게이지 → 일진 인장 → 한 줄 결론.
-          결론=oneLine · 행동=이렇게/조심 칩 · 근거='오늘의 핵심' ↑/↓ 리스트로
-          역할을 나눈다(겹치는 총평/서브 문단 제거). ── */}
+      {/* ── 핵심 hero (정갈): 일진 인장(주사) — 읽기·십신·톤 — 조용한 점수 가로 배치.
+          그 아래 한 줄 결론. 결론=oneLine · 행동=이렇게/조심 칩 · 근거='오늘의 핵심'
+          ↑/↓ 리스트로 역할을 나눈다. (옛 반원 게이지는 톤별 고정 비율의 장식이라
+          제거 — 점수는 정직한 숫자 한 줄로.) ── */}
       <div className={styles.dayHead}>
-        {/* 점수 숫자 비노출 — 다이얼은 헤드라인·칩과 같은 단일 verdict 톤만 보여준다. */}
-        <ToneDial tone={verdict.tone} label={ko ? '오늘' : 'Today'} />
+        {/* 기준선 — 본명 일간(日干). 그날 십신이 이 일간 기준으로 매겨지므로 "누구
+            기준인지"를 맨 위에 둔다(한자엔 음양오행 뜻을 붙여 읽힌다). */}
+        {day.dayMaster && (
+          <div className={styles.dmRef}>
+            <span className={styles.dmHan}>{day.dayMaster.hanja}</span>
+            <span className={styles.dmMeaning}>
+              {ko
+                ? `나의 타고난 기운 · ${day.dayMaster.kr}`
+                : `your core nature · ${day.dayMaster.en}`}
+            </span>
+          </div>
+        )}
         <div className={styles.iljinBig}>
           <span className="han">{day.iljin.hanja}</span>
           <div className="meta">
-            <div className="kr">{day.iljin.kr}</div>
-            <div className="ss">
-              {ko ? (
-                <>
-                  {'일진 · 일간 기준'} {String(day.iljinSibsin)}
-                  {sibsinArea(String(day.iljinSibsin)) !== String(day.iljinSibsin)
-                    ? ` (${sibsinArea(String(day.iljinSibsin))})`
-                    : ''}
-                </>
-              ) : (
-                `daily pillar · vs day master ${sibsinAreaEn(String(day.iljinSibsin))}`
-              )}
+            {/* 뜻 먼저(크게) — 용어(일진·십신)는 아래 작은 참고로. */}
+            <div className="kr">
+              {ko
+                ? `오늘은 ‘${sibsinArea(String(day.iljinSibsin))}’의 기운`
+                : `today leans toward ${sibsinAreaEn(String(day.iljinSibsin))}`}
             </div>
+            <div className="ss">
+              {ko
+                ? `오늘의 기운 ${day.iljin.kr}(${day.iljin.hanja}) · 십신 ${String(day.iljinSibsin)}`
+                : `today's pillar ${day.iljin.en} · ${day.iljin.hanja}`}
+            </div>
+            <span className="tone" data-tone={verdict.tone}>
+              {heroToneWord}
+            </span>
+          </div>
+          <div className="score">
+            <div className="n">{Math.round(day.score)}</div>
+            <div className="cap">SCORE</div>
           </div>
         </div>
-        <p className={styles.oneline}>{localizeLabel(day.oneLine, ko)}</p>
+        <p className={styles.oneline}>{localizeLabel(dayOneLine, ko)}</p>
+      </div>
+
+      {/* ── 오늘 깊이 읽기 — 합성 해석 문단(일진 십신 + 교차 + 톤). ── */}
+      <div className={styles.deepRead}>
+        <div className={styles.deepReadLabel}>{ko ? '오늘 깊이 읽기' : 'Today in depth'}</div>
+        <p className={styles.deepReadBody}>{ko ? deepRead.ko : deepRead.en}</p>
       </div>
 
       {/* 총평 문단 제거 — oneLine(결론) + 아래 '오늘의 핵심' ↑/↓ 사유 리스트와
@@ -709,7 +825,7 @@ export function DayTier({ day, voc, onRise, sex = '남' }: DayTierProps) {
             note={ko ? '왜 이런 하루?' : 'why this day?'}
           />
 
-          {(day.topReasons ?? []).length === 0 && (day.cautions ?? []).length === 0 ? (
+          {dayReasons.length === 0 && dayCautions.length === 0 ? (
             <p className={styles.whyMuted}>
               {ko
                 ? '오늘은 두드러진 신호 없이 무난한 흐름이에요.'
@@ -717,12 +833,12 @@ export function DayTier({ day, voc, onRise, sex = '남' }: DayTierProps) {
             </p>
           ) : (
             <ul className={styles.whyList}>
-              {(day.topReasons ?? []).map((r, i) => (
+              {dayReasons.map((r, i) => (
                 <li className={styles.whyPos} key={`wp-${i}`}>
                   <span className={styles.whyArrow}>↑</span> {localizeLabel(plainReason(r, ko), ko)}
                 </li>
               ))}
-              {(day.cautions ?? []).map((c, i) => (
+              {dayCautions.map((c, i) => (
                 <li className={styles.whyNeg} key={`wn-${i}`}>
                   <span className={styles.whyArrow}>↓</span> {localizeLabel(plainReason(c, ko), ko)}
                 </li>
@@ -816,6 +932,9 @@ export function DayTier({ day, voc, onRise, sex = '남' }: DayTierProps) {
           </div>
         </div>
       )}
+
+      {/* ── 본명 상세 — 격국·지장간·12운성 (평소 접힘, 정갈 유지). ── */}
+      <NatalDetails day={day} ko={ko} />
 
       <div className={styles.riseCenter}>
         <button className={`${styles.rise} ${styles.riseSmall}`} onClick={onRise}>

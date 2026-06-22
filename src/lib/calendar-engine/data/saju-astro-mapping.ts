@@ -12,8 +12,11 @@
  *
  * 본 파일은 데이터만 보관 — 매칭 로직은 cross-activation extractor 에 분리.
  *
- * 페어 polarity 합산 모델 (extractor):
- *   pair.polarity = sign(saju.polarity × astro.polarity) × |mapping.polarity|
+ * 페어 polarity 합산 모델 (extractor combinePolarity):
+ *   - 두 부모 부호가 같은 방향(++ 또는 --) → mapping.polarity 를 **부호 그대로** 사용
+ *     (예: 편관×Mars −2 는 둘 다 압력이면 −2 유지 — 흉을 더 키움. sign 곱이 아님).
+ *   - 부호가 반대(+− / −+) → 0 (의미 충돌 — 톤 무력화).
+ *   - 한쪽 polarity = 0 → mapping.polarity 그대로 (부호 정보 부재 시 매핑이 결정).
  * pair.weight  = saju.weight × astro.weight × 0.6 (cross 신호 noise 방지)
  */
 
@@ -32,9 +35,7 @@ export type SajuMatchKey =
   | '편인'
   | '정인'
   | '도화'
-  | '도화살'
   | '역마'
-  | '역마살'
   | '건록'
   | '양인'
 
@@ -66,8 +67,9 @@ export interface CrossMapping {
    *  -: 두 신호가 같은 방향으로 압력 가중 (예: 편관 × Mars — 압박·돌발).
    *   0: 중립적 자원형 (도화 × Venus — 매력·관계).
    *
-   * 최종 페어 polarity 는 extractor 가 두 부모 신호 polarity 의 곱셈
-   * 부호와 합산해 산출 — 본 값은 의미 톤의 *방향* 만 결정.
+   * 최종 페어 polarity 는 extractor combinePolarity 가 산출:
+   * 두 부모 부호가 같은 방향이면 이 값을 **부호 그대로** 채택(편관×Mars −2 → −2),
+   * 부호가 반대면 0, 한쪽이 0 이면 이 값을 그대로 — 본 값은 의미 톤의 *방향* 을 결정.
    */
   polarity: Polarity
   grade: CrossMappingGrade
@@ -226,17 +228,6 @@ export const SAJU_ASTRO_MAPPINGS: readonly CrossMapping[] = [
     note: '도화(인연·끌림) ↔ Venus(attraction·beauty). 매칭 완전 일치.',
   },
   {
-    saju: '도화살',
-    astro: 'Venus',
-    meaning: {
-      ko: '도화살 × 금성 — 관계·매력·인기 결이 동시에 살아남. 사교·연애·미적 활동에 우호.',
-      en: 'Peach Blossom × Venus — connection, charm, and popularity light up together. Favours socializing, romance, and aesthetic work.',
-    },
-    polarity: 2,
-    grade: 'A',
-    note: '도화살 = 도화의 이명. 동일 매핑.',
-  },
-  {
     saju: '역마',
     astro: 'Mercury',
     meaning: {
@@ -246,17 +237,6 @@ export const SAJU_ASTRO_MAPPINGS: readonly CrossMapping[] = [
     polarity: 1,
     grade: 'A',
     note: '역마(이동) ↔ Mercury(travel·message). 동·서 모두 이동축.',
-  },
-  {
-    saju: '역마살',
-    astro: 'Mercury',
-    meaning: {
-      ko: '역마살 × 수성 — 이동·소통·정보 결이 두 배. 출장·교섭·매체 활용에 우호.',
-      en: 'Travelling Horse × Mercury — movement, messages, and information all run twice as strong. Favours travel, negotiation, and media work.',
-    },
-    polarity: 1,
-    grade: 'A',
-    note: '역마살 = 역마의 이명. 동일 매핑.',
   },
   {
     saju: '양인',
@@ -317,6 +297,56 @@ export const SAJU_ASTRO_MAPPINGS: readonly CrossMapping[] = [
     polarity: 0,
     grade: 'B',
     note: '상관(예봉·반관·천재성) ↔ Uranus(돌발·혁명·천재성). decadal 전용(밴드).',
+  },
+
+  // ─── 대운 커버리지 확장 (B등급) — 장주기 십신×사회/외행성 ───
+  // 대운 십신 중 정재·식신·비견·겁재는 외행성/사회행성 대응이 없어, 외행성
+  // 트랜짓이 활성이어도 그 대운엔 교차가 못 떴다(커버리지 공백). 신호를 지어내지
+  // 않고, 천문학적으로 타당한 대응만 추가해 트랜짓이 실제 활성일 때 발화하게 한다.
+  // 토성/목성은 밴드상 yearly 에서도 발화(세운 교차도 함께 넓어짐), 명왕성은 decadal 전용.
+  {
+    saju: '정재',
+    astro: 'Saturn',
+    meaning: {
+      ko: '정재 × 토성 — 꾸준한 가치·약속·자산이 시간을 들여 단단해지는 결. 서두르지 않고 쌓을수록 오래 갑니다.',
+      en: 'Direct Wealth × Saturn — steady value, commitments, and assets harden with time. The less you rush, the longer it lasts.',
+    },
+    polarity: 1,
+    grade: 'B',
+    note: '정재(안정 재물·정처·신의) ↔ Saturn(structure·durability·time). 지속·구조축. yearly/decadal 밴드.',
+  },
+  {
+    saju: '식신',
+    astro: 'Jupiter',
+    meaning: {
+      ko: '식신 × 목성 — 만들어 내놓는 결과 풍요·확장이 같은 방향으로 흘러요. 즐기며 꾸준히 내놓을수록 불어납니다.',
+      en: 'Eating God × Jupiter — your output and abundance pull the same way; the more you create with ease, the more it grows.',
+    },
+    polarity: 1,
+    grade: 'B',
+    note: '식신(생산·향유·복록) ↔ Jupiter(abundance·growth). 복록·확장축. monthly/yearly/decadal 밴드.',
+  },
+  {
+    saju: '비견',
+    astro: 'Saturn',
+    meaning: {
+      ko: '비견 × 토성 — 홀로 서는 힘과 책임이 단단해지는 결. 남에게 기대기보다 제 자리를 시간 들여 다지게 돼요.',
+      en: 'Companion × Saturn — self-reliance and responsibility harden. Rather than leaning on others, you build your own footing over time.',
+    },
+    polarity: 0,
+    grade: 'B',
+    note: '비견(자립·주체) ↔ Saturn(self-reliance·maturation). 자립↑. yearly/decadal 밴드.',
+  },
+  {
+    saju: '겁재',
+    astro: 'Pluto',
+    meaning: {
+      ko: '겁재 × 명왕성 — 이 대운은 경쟁·분배·권력 다툼이 근본에서 뒤집히는 결. 빼앗고 빼앗기는 자리라 큰 욕심보다 재구성에 맡기기.',
+      en: 'Rob Wealth × Pluto — this decade overturns rivalry, redistribution, and power struggles at the root. A seat of taking and being taken from; surrender to restructuring rather than overreaching.',
+    },
+    polarity: -1,
+    grade: 'B',
+    note: '겁재(분탈·경쟁·공유 자원) ↔ Pluto(power·elimination·shared resources). decadal 전용(밴드).',
   },
 ]
 

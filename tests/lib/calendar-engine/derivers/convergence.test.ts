@@ -248,6 +248,26 @@ describe('deriveConvergence — 정렬·다양성·topN', () => {
     expect(keyDays[0].score).toBeGreaterThanOrEqual(keyDays[1].score)
   })
 
+  it('진짜 수렴(bothSystems)일이 astro-only 배경 피크보다 top-N에서 우선한다', () => {
+    // astro-only(점성만 무거움)는 score 가 더 높아도 사주+점성 수렴일에 밀려야 한다 —
+    // "사주 × 점성 수렴" 헤딩 아래에서 진짜 수렴일이 표시되도록.
+    const astroOnlyStrong = cell('2026-07-05T12:00:00Z', [
+      sig({
+        source: 'astro',
+        kind: 'lifecycle',
+        polarity: 3,
+        weight: 1,
+        active: win('2026-07-03T00:00:00Z', '2026-07-05T00:00:00Z', '2026-07-07T00:00:00Z'),
+      }),
+    ])
+    const bothWeaker = heavyPair('2026-07-20', 1) // 낮은 polarity → score 더 낮음
+    const { keyDays } = deriveConvergence([astroOnlyStrong, bothWeaker], 1, 'ko')
+    expect(keyDays.length).toBe(1)
+    // score 만 보면 astro-only(7/5)가 이기지만, bothSystems 우선이라 7/20 이 선택.
+    expect(keyDays[0].date).toBe('2026-07-20')
+    expect(keyDays[0].bothSystems).toBe(true)
+  })
+
   it('3일 이내 근접일은 dedup (큰 날 도배 방지)', () => {
     const cells = [
       heavyPair('2026-06-10', 3),
