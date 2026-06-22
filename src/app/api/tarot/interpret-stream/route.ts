@@ -17,7 +17,8 @@ import { logger } from '@/lib/logger'
 import { recordExternalCall } from '@/lib/metrics/index'
 import { tarotInterpretStreamSchema, createValidationErrorResponse } from '@/lib/api/zodValidation'
 import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
-import { isClaudeAvailable, PREMIUM_CLAUDE_MODEL } from '@/lib/llm/claude'
+import { isClaudeAvailable } from '@/lib/llm/claude'
+import { resolveLlmPolicy } from '@/lib/config/llm-policy'
 import { sanitizeForXmlTagBoundary } from '@/lib/llm/promptSafety'
 import { streamClaudeWithContinuation } from '@/lib/llm/claudeWithContinuation'
 import {
@@ -39,6 +40,9 @@ import { createHash } from 'crypto'
 // 단일 Claude 호출의 최대 wall-clock — Sonnet 4.5 + 7장 streaming 기준
 // Haiku 보다 응답 길어 통상 15-30s. 여유 있게 60s.
 const CLAUDE_TIMEOUT_MS = 60000
+
+// 모델은 비용 정책(SSOT)이 정한다. 메트릭/로그 태그에 쓸 모델명만 여기서 해석.
+const TAROT_INTERPRET_MODEL = resolveLlmPolicy('tarot.interpret').model
 
 // 끊긴 턴의 완성 리딩(raw JSON 문자열)을 잠깐 보관하는 캐시 키 — result
 // 엔드포인트가 같은 키로 읽음. userId 를 키에 포함해 ownership 검증 (다른
@@ -473,14 +477,14 @@ export async function POST(req: NextRequest) {
         abortSignal: upstreamSignal,
         systemPrompt,
         userPrompt,
-        model: PREMIUM_CLAUDE_MODEL,
+        feature: 'tarot.interpret',
         maxTokens,
         temperature: 0.7,
         timeoutMs: CLAUDE_TIMEOUT_MS,
         label: 'tarot-stream',
       })
     } catch (claudeErr) {
-      recordExternalCall('anthropic', PREMIUM_CLAUDE_MODEL, 'error', Date.now() - claudeStartTime)
+      recordExternalCall('anthropic', TAROT_INTERPRET_MODEL, 'error', Date.now() - claudeStartTime)
       logger.error('[tarot-stream] Claude initial call failed', {
         error: claudeErr instanceof Error ? claudeErr.message : String(claudeErr),
       })
@@ -563,7 +567,7 @@ export async function POST(req: NextRequest) {
           }
           recordExternalCall(
             'anthropic',
-            PREMIUM_CLAUDE_MODEL,
+            TAROT_INTERPRET_MODEL,
             'success',
             Date.now() - claudeStartTime
           )
@@ -618,7 +622,7 @@ export async function POST(req: NextRequest) {
         } catch (streamErr) {
           recordExternalCall(
             'anthropic',
-            PREMIUM_CLAUDE_MODEL,
+            TAROT_INTERPRET_MODEL,
             'error',
             Date.now() - claudeStartTime
           )
