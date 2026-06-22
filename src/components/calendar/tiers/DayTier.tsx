@@ -53,6 +53,8 @@ import {
   TierHero,
   Band,
   MoreFold,
+  WhyList,
+  type WhyItem,
   type ToneKind,
 } from '@/components/calendar/layout/TierFrame'
 
@@ -582,10 +584,12 @@ function SignalFold({
   day,
   ko,
   hourRows,
+  why,
 }: {
   day: DestinyDay
   ko: boolean
   hourRows: NonNullable<DestinyDay['hourCrossings']>
+  why: WhyItem[]
 }) {
   return (
     <details className={styles.fold}>
@@ -593,6 +597,8 @@ function SignalFold({
         {ko ? '자세한 신호 보기' : 'See the raw signals'}
       </summary>
       <div className={styles.foldBody}>
+        {/* 왜 이렇게 보나 — 실제 용어 신호 → 쉬운 결론(근거). 표면 쉬운말의 출처. */}
+        <WhyList title={ko ? '왜 이렇게 보나' : 'Why it reads this way'} items={why} />
         <ChartBlock day={day} ko={ko} />
         <EvidenceBlock day={day} ko={ko} />
         <NatalBlock day={day} ko={ko} />
@@ -771,6 +777,52 @@ export function DayTier({ day, voc, onRise, sex = '남' }: DayTierProps) {
   const heroToneKind: ToneKind =
     verdict.tone === 'positive' ? 'positive' : verdict.tone === 'caution' ? 'caution' : 'neutral'
 
+  // ── 왜 이렇게 보나 (근거) — 실제 전문용어 신호 → 쉬운 결론. fold 전용. ──
+  // 새 계산 없음: 이미 그날 props 에 있는 일진·교차·신살·시진을 용어 그대로 묶는다.
+  const whyItems: WhyItem[] = []
+  whyItems.push({
+    term: ko
+      ? `일진 ${day.iljin.kr} ${day.iljin.hanja} · ${String(day.iljinSibsin)}`
+      : `Day pillar ${day.iljin.kr} ${day.iljin.hanja} · ${String(day.iljinSibsin)}`,
+    because: ko
+      ? `‘${sibsinArea(String(day.iljinSibsin))}’ 기운이 하루의 바탕을 이룹니다.`
+      : `${sibsinAreaEn(String(day.iljinSibsin))} sets the base of the day.`,
+    tone: 'neutral',
+  })
+  for (const c of [...(day.crossActivations ?? [])]
+    .filter((c) => (ko ? c.meaning : (c.meaningEn ?? c.meaning)))
+    .sort((a, b) => Math.abs(b.polarity) - Math.abs(a.polarity))
+    .slice(0, 3)) {
+    const sign = c.polarity > 0 ? '＋' : c.polarity < 0 ? '－' : ''
+    whyItems.push({
+      term: `${c.sajuKo ?? c.sajuSide} × ${c.astroKo ?? c.astroSide}${sign ? ` (${sign})` : ''}`,
+      because: ko ? (c.meaning ?? '') : (c.meaningEn ?? c.meaning ?? ''),
+      tone: c.polarity > 0 ? 'positive' : c.polarity < 0 ? 'caution' : 'neutral',
+    })
+  }
+  for (const s of (day.shinsalActive ?? []).slice(0, 2)) {
+    whyItems.push({
+      term: ko ? `신살 ${s}` : `Star ${shinsalEn(s)}`,
+      because: ko ? '오늘 함께 도는 기운입니다.' : 'a natal star in play today.',
+      tone: 'neutral',
+    })
+  }
+  if (peakHourSrc) {
+    const when = (ko ? peakHourSrc.when : peakHourSrc.whenEn).replace(/\s*\(.*\)/, '').trim()
+    whyItems.push({
+      term: ko ? `시진 ${when}` : `Hour ${when}`,
+      because:
+        peakHourSrc.tone === 'good'
+          ? ko
+            ? '이 시간대에 결이 가장 또렷합니다.'
+            : 'the grain reads clearest in this window.'
+          : ko
+            ? '이 시간대는 한 박자 조심하세요.'
+            : 'ease off a beat in this window.',
+      tone: peakHourSrc.tone === 'good' ? 'positive' : 'caution',
+    })
+  }
+
   return (
     <TierFrame screenLabel={`1일 ${day.date}`}>
       <RiseButton label={ko ? '이번 달로 줌아웃' : 'Zoom out to month'} onClick={onRise} />
@@ -917,8 +969,8 @@ export function DayTier({ day, voc, onRise, sex = '남' }: DayTierProps) {
         {hourCrossItems.length > 0 && <CrossingList heading={hourHeading} items={hourCrossItems} />}
       </MoreFold>
 
-      {/* ── 자세한 신호 보기 — 흩어진 모든 용어를 담은 단 하나의 fold. ── */}
-      <SignalFold day={day} ko={ko} hourRows={hourAll} />
+      {/* ── 자세한 신호 보기 — 근거(왜 이렇게 보나) + 흩어진 모든 용어. ── */}
+      <SignalFold day={day} ko={ko} hourRows={hourAll} why={whyItems} />
 
       <div className={styles.riseCenter}>
         <button className={`${styles.rise} ${styles.riseSmall}`} onClick={onRise}>
