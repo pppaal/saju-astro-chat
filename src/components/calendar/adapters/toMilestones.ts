@@ -26,16 +26,7 @@ export interface DestinypalMilestone {
   label: string
   /** 라벨 영문 — 클라이언트 언어 토글용. 미지정 시 label 폴백. */
   labelEn?: string
-  kind:
-    | 'jupiter'
-    | 'saturn'
-    | 'uranus'
-    | 'neptune'
-    | 'pluto'
-    | 'chiron'
-    | 'daewoon'
-    | 'saju'
-    | 'astro'
+  kind: 'jupiter' | 'saturn' | 'uranus' | 'neptune' | 'pluto' | 'daewoon' | 'saju'
   now?: boolean
   /** 추가 컨텍스트: bothSystems flag — 사주·점성 동시 가리킬 때 강조 */
   bothSystems?: boolean
@@ -52,9 +43,8 @@ function deriveKind(p: LifePivot): DestinypalMilestone['kind'] {
   if (/천왕성|Uranus/i.test(a)) return 'uranus'
   if (/해왕성|Neptune/i.test(a)) return 'neptune'
   if (/명왕성|Pluto/i.test(a)) return 'pluto'
-  if (/카이런|Chiron/i.test(a)) return 'chiron'
   if (p.saju && !p.astro) return 'daewoon'
-  if (p.astro) return 'astro'
+  // 카이런·기타 점성 마디는 별도 색 구분 없이 'saju' 로 — 다운스트림이 어차피 합쳤음.
   return 'saju'
 }
 
