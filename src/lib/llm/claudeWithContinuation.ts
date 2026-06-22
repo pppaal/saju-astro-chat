@@ -25,6 +25,7 @@
 
 import { callClaudeStream, type CallClaudeOptions } from '@/lib/llm/claude'
 import { logger } from '@/lib/logger'
+import { resolveLlmPolicy } from '@/lib/config/llm-policy'
 
 export interface ContinuationOptions extends CallClaudeOptions {
   /** 최대 자동 이어쓰기 횟수 (기본 2 — 즉 총 최대 3 회차). */
@@ -37,12 +38,18 @@ export async function streamClaudeWithContinuation(
   opts: ContinuationOptions
 ): Promise<ReadableStream<string>> {
   const {
-    maxContinuations = 2,
-    maxTotalOutputChars = 24000,
+    maxContinuations: explicitMaxContinuations,
+    maxTotalOutputChars: explicitMaxTotalOutputChars,
     label = 'claude-stream',
     abortSignal,
     ...baseOpts
   } = opts
+
+  // 이어쓰기 횟수·누적 cap 도 비용 정책(SSOT)이 기본값을 정한다. 명시값이 있으면
+  // 우선(호환), 없으면 feature 의 정책. feature 미지정이면 기본 정책(2회/24000자).
+  const policy = resolveLlmPolicy(baseOpts.feature)
+  const maxContinuations = explicitMaxContinuations ?? policy.maxContinuations
+  const maxTotalOutputChars = explicitMaxTotalOutputChars ?? policy.maxTotalOutputChars
 
   return new ReadableStream<string>({
     async start(controller) {

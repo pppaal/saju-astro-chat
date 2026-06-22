@@ -583,6 +583,15 @@ const counselorBirthGeoFields = {
   longitude: longitudeSchema.optional(),
 }
 
+// 운명상담사 데이터 소스 토글 — 사주만/점성만/둘 다(체크박스). 누락 시 라우트가
+// resolveCounselorSources 로 둘 다로 폴백하므로 optional.
+const counselorSourcesSchema = z
+  .object({
+    saju: z.boolean().optional(),
+    astro: z.boolean().optional(),
+  })
+  .optional()
+
 export const counselorRealtimeRequestSchema = z
   .object({
     messages: z.array(realtimeCounselorTurnSchema).min(1),
@@ -594,6 +603,7 @@ export const counselorRealtimeRequestSchema = z
     turnId: z.string().max(200).optional(),
     // 첨부 파일 텍스트 — 라우트가 12,000자로 자르므로 여기선 폭주만 차단.
     cvText: z.string().max(200_000).optional(),
+    sources: counselorSourcesSchema,
     ...counselorBirthGeoFields,
   })
   .passthrough()
@@ -605,6 +615,7 @@ export type CounselorRealtimeRequestValidated = z.infer<typeof counselorRealtime
 export const counselorWarmRequestSchema = z
   .object({
     birthDate: z.string().min(1).max(64),
+    sources: counselorSourcesSchema,
     ...counselorBirthGeoFields,
   })
   .passthrough()

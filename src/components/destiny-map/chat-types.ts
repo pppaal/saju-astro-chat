@@ -4,6 +4,13 @@
 import type { LangKey } from './chat-i18n'
 import type { Message, UserContext } from './chat-constants'
 
+// 운명상담사 데이터 소스 토글 — 사용자가 체크박스로 사주/점성 중 무엇을 이번
+// 답변에 넣을지 고른다. 최소 하나는 항상 켜져 있어야 한다(UI 가 보장).
+export interface DestinySources {
+  saju: boolean
+  astro: boolean
+}
+
 // Profile type for chat component
 export interface ChatProfile {
   name?: string
@@ -170,6 +177,9 @@ export interface ChatProps {
   // modal. Used by the destiny counselor page to honor `?session=…` in
   // the URL (e.g. when navigating from the sidebar's past-chats list).
   initialSessionId?: string
+  // 마운트 시 데이터 소스 토글 초기값(메인에서 고른 사주/점성). 미지정 시 둘 다.
+  // 이후엔 사용자가 입력창 토글로 자유롭게 바꾼다.
+  initialSources?: DestinySources
   // 페이지 헤더가 현재 채팅의 제목 + ⋮ 메뉴(Rename/Delete) 를 표시할 수
   // 있도록 활성 세션 정보를 노출. id 는 항상 있고, title 은 저장 전이거나
   // 아직 로드 안 됐을 때 null.
@@ -199,6 +209,8 @@ export interface ChatPayload {
   lang: LangKey
   messages: Message[]
   cvText?: string
+  /** 이번 답변에 넣을 데이터 소스(체크박스). 누락 시 서버가 둘 다로 폴백. */
+  sources?: DestinySources
   saju?: SajuData
   astro?: AstroData
   advancedAstro?: AdvancedAstroData

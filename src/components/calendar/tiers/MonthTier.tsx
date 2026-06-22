@@ -35,6 +35,7 @@ import {
   WhyList,
   type WhyItem,
 } from '@/components/calendar/layout/TierFrame'
+import { ShareCalendarButton } from '@/components/calendar/ShareCalendarButton'
 
 const MONTH_EN = [
   'January',
@@ -474,6 +475,25 @@ export function MonthTier({ month, onDive, onRise, showRise = true }: MonthTierP
           </div>
         </details>
       )}
+
+      {/* ── 이달 흐름 공유 — 한 줄 총평 + 큰 날 몇 개를 공개 링크(/r)로. ── */}
+      {(() => {
+        const periodLabel = ko
+          ? month.label
+          : `${MONTH_EN[(ymM ?? 1) - 1] ?? ''} ${month.ym.split('-')[0] ?? ''}`.trim()
+        const summaryText = ko ? summaryCard?.body : (summaryCard?.bodyEn ?? summaryCard?.body)
+        const headline = (summaryText || flowTitle).slice(0, 260)
+        const highlights = bigDays
+          .slice(0, 4)
+          .map((i) =>
+            ko ? `${Number(i.when.slice(-2))}일 · ${i.title}` : `${i.when} · ${i.title}`
+          )
+        return (
+          <div style={{ marginTop: 28, display: 'flex', justifyContent: 'center' }}>
+            <ShareCalendarButton data={{ isKo: ko, periodLabel, headline, highlights }} />
+          </div>
+        )
+      })()}
 
       {/* ===== dive (줌인) ===== */}
       <button className={styles.dive} onClick={() => onDive(focusDay)} type="button">

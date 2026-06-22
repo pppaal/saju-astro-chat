@@ -33,3 +33,31 @@ export function resolveCounselorLang(
 export function resolveUserTz(body: { userTimezone?: string; timezone?: string }): string {
   return body.userTimezone || body.timezone || 'Asia/Seoul'
 }
+
+/**
+ * 운명상담사가 이번 답변에 사용할 데이터 소스 — 사용자가 체크박스로
+ * 사주만/점성만/둘 다를 고를 수 있다. 선택 안 된 시스템은 컨텍스트 빌드에서
+ * 통째로 빠지고(토큰·연산 절약), 시스템 프롬프트도 "그 시스템은 언급·창작
+ * 금지"로 바뀐다. realtime · warm 이 *반드시* 이 함수를 거쳐야 캐시 키가 일치한다.
+ */
+export interface DestinySources {
+  saju: boolean
+  astro: boolean
+}
+
+/**
+ * 요청 body 의 sources 를 정규화. 누락/구버전 클라 → 둘 다(기존 동작). 명시적
+ * false 만 해당 소스를 끈다. 둘 다 false 면 빈 컨텍스트가 되므로 둘 다로 폴백.
+ */
+export function resolveCounselorSources(
+  body: { sources?: unknown } | null | undefined
+): DestinySources {
+  const raw = (body?.sources ?? null) as { saju?: unknown; astro?: unknown } | null
+  if (raw && typeof raw === 'object') {
+    const saju = raw.saju !== false
+    const astro = raw.astro !== false
+    if (!saju && !astro) return { saju: true, astro: true }
+    return { saju, astro }
+  }
+  return { saju: true, astro: true }
+}
