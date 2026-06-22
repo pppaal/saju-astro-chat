@@ -8,7 +8,7 @@
  * critical path 에서 돈다 → 진입 시 미리 워밍해 첫 답변을 빠르게.
  */
 import { buildDestinyContext } from './counselorContext'
-import { resolveUserTz } from './counselorRequest'
+import { resolveUserTz, type DestinySources } from './counselorRequest'
 import { getNowInTimezone } from '@/lib/datetime'
 import { normalizeGender } from '@/lib/utils/gender'
 import { cacheGet, cacheSet, CACHE_TTL } from '@/lib/cache/redis-cache'
@@ -44,7 +44,10 @@ function birthFingerprint(b: CounselorBirthInput): string {
 export async function ensureCounselorContext(
   body: CounselorBirthInput,
   userId: string,
-  lang: 'ko' | 'en'
+  lang: 'ko' | 'en',
+  // 이번 답변 데이터 소스(사주만/점성만/둘 다). 캐시 키에 포함해야 소스를
+  // 바꾼 요청이 옛 소스로 빌드된 컨텍스트를 잘못 hit 하지 않는다.
+  sources: DestinySources = { saju: true, astro: true }
 ): Promise<{ stableContext: string; dailyContext: string }> {
   const hourUnknown = !!body.birthTimeUnknown || !body.birthTime
   const cityUnknown =
@@ -56,8 +59,11 @@ export async function ensureCounselorContext(
   // lang 을 키에 포함 — 빌드된 컨텍스트는 언어별로 다르다(한/영 라벨). 예전엔
   // 키에 lang 이 없어, ko 로 워밍/빌드한 캐시가 en 요청(쿠키/토글 전환)에 그대로
   // 서빙돼 "영문 시스템 프롬프트 + 한글 데이터" 혼용이 났다. v12→v13 으로 무효화.
-  const stableCtxKey = `counselor:ctx:stable:v13:${lang}:${userId}:${birthFingerprint(body)}:${hourUnknown ? 'tU' : 'tK'}:${cityUnknown ? 'cU' : 'cK'}:${userTz}`
-  const dailyCtxKey = `counselor:ctx:daily:v13:${lang}:${userId}:${birthFingerprint(body)}:${hourUnknown ? 'tU' : 'tK'}:${cityUnknown ? 'cU' : 'cK'}:${userTz}:${localDateKey}`
+  // sources(사주만/점성만/둘 다)도 키에 포함 — 소스 토글마다 컨텍스트 바이트가
+  // 달라, 안 넣으면 "사주만"으로 빌드된 캐시가 "둘 다" 요청에 잘못 hit 한다.
+  const srcTag = `s${sources.saju ? 1 : 0}${sources.astro ? 1 : 0}`
+  const stableCtxKey = `counselor:ctx:stable:v13:${lang}:${srcTag}:${userId}:${birthFingerprint(body)}:${hourUnknown ? 'tU' : 'tK'}:${cityUnknown ? 'cU' : 'cK'}:${userTz}`
+  const dailyCtxKey = `counselor:ctx:daily:v13:${lang}:${srcTag}:${userId}:${birthFingerprint(body)}:${hourUnknown ? 'tU' : 'tK'}:${cityUnknown ? 'cU' : 'cK'}:${userTz}:${localDateKey}`
 
   // 두 키는 독립 — Redis 왕복을 병렬로 (직렬 대비 ~5ms, 매 상담 메시지 hot path).
   const [cachedStable, cachedDaily] = await Promise.all([
@@ -123,7 +129,8 @@ export async function ensureCounselorContext(
       },
       queryDate,
       lang,
-      userTz
+      userTz,
+      sources
     )
     stableCtxBody = split.stable
     dailyCtxBody = split.daily

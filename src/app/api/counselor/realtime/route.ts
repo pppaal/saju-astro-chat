@@ -34,7 +34,7 @@ import { ensureCounselorSessionRecord } from '@/lib/counselor/ensureSessionRecor
 import { cacheSet } from '@/lib/cache/redis-cache'
 import { getUserDisplayName, sanitizeDisplayName } from '@/lib/user/displayName'
 import { currentManAge } from '@/lib/datetime/currentAge'
-import { resolveCounselorLang } from '@/lib/destiny/counselorRequest'
+import { resolveCounselorLang, resolveCounselorSources } from '@/lib/destiny/counselorRequest'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -70,6 +70,8 @@ interface RealtimeBody {
   /** 이 턴의 고유 id(클라 생성). 연결이 끊겨도 서버가 끝까지 생성한 답을 이
    *  키로 캐시에 저장해 두면, 사용자가 돌아왔을 때 result 엔드포인트로 복원한다. */
   turnId?: string
+  /** 이번 답변에 넣을 데이터 소스(체크박스). 누락/구버전 클라 → 둘 다. */
+  sources?: { saju?: boolean; astro?: boolean }
 }
 
 // 끊긴 턴의 완성 답안을 잠깐 보관하는 캐시 키 — result 엔드포인트가 같은 키로 읽음.
@@ -180,6 +182,9 @@ export async function POST(req: NextRequest) {
   // 답변 언어 — 단일 출처(resolveCounselorLang)로 도출. realtime · warm 이 같은
   // 규칙(body.lang → locale 쿠키 → ko)을 공유해야 캐시 키가 일치한다.
   const lang: 'ko' | 'en' = resolveCounselorLang(body, req)
+  // 데이터 소스(사주만/점성만/둘 다) — 컨텍스트 빌드·캐시 키·시스템 프롬프트가
+  // 모두 같은 값을 공유해야 한쪽만 선택한 답변이 일관된다.
+  const sources = resolveCounselorSources(body)
   if (!userMessage.trim()) {
     return NextResponse.json({ error: 'empty_message' }, { status: 400 })
   }
@@ -222,7 +227,7 @@ export async function POST(req: NextRequest) {
   let stableContext: string
   let dailyContext: string
   try {
-    const ctx = await ensureCounselorContext(body, userId, lang)
+    const ctx = await ensureCounselorContext(body, userId, lang, sources)
     stableContext = ctx.stableContext
     dailyContext = ctx.dailyContext
   } catch (err) {
@@ -323,7 +328,7 @@ export async function POST(req: NextRequest) {
     // string으로 박아서 직전 답 톤이 다음 답에 묻어 나왔음.
     // role 필터: Anthropic Messages API는 user/assistant만 받음. 클라가
     // 'system'을 messages 배열에 넣어 보내면 400 invalid_request_error.
-    const systemPrompt = buildDestinyCounselorPrompt(lang === 'en' ? 'en' : 'ko')
+    const systemPrompt = buildDestinyCounselorPrompt(lang === 'en' ? 'en' : 'ko', sources)
     const cachedUserContext = stableContext
     const dialogTurns = body.messages.filter(
       (m): m is ChatMessage => m.role === 'user' || m.role === 'assistant'
