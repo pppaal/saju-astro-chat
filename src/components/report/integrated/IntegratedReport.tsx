@@ -968,15 +968,14 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
               약화하고 안내 줄을 덧붙여 확정 정격으로 단정하지 않는다(C2). */}
           {geok && (
             <div className={`${s.card} ${s.cardPad}`} style={{ marginTop: 16 }}>
-              <div className={s.subcap}>
+              <div className={s.subcap} title={lang === 'ko' ? S.geokguk : undefined}>
                 {geokTentative
                   ? lang === 'en'
-                    ? 'Tentative Structure · 格局'
-                    : '추정 격국 · 格局'
+                    ? 'Tentative structure'
+                    : '추정 큰 틀'
                   : t('geokgukCap')}
               </div>
               <div className={s.gaugeHead}>
-                {lang === 'ko' && <span className={s.mono}>{S.geokguk}</span>}
                 <b>{geok.tagline}</b>
               </div>
               {geokTentative && (
