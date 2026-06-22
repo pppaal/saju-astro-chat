@@ -55,11 +55,31 @@ export interface CompatShareLinkPayload {
   headline?: string
 }
 
-export type ShareLinkPayload = TarotShareLinkPayload | CompatShareLinkPayload
+/** 운흐름 캘린더 공유 — 기간 한 줄 총평을 OG/공개 페이지 주인공으로. */
+export interface CalendarShareLinkPayload {
+  v: 1
+  kind: 'calendar'
+  isKo: boolean
+  /** 기간 라벨 — 예: "2026년 6월" / "June 2026". */
+  periodLabel: string
+  /** 이달의 흐름 한 줄(공개 페이지/OG 주인공). */
+  headline: string
+  /** 큰 날/포인트 몇 개(선택) — 더 읽을거리. */
+  highlights?: string[]
+}
+
+export type ShareLinkPayload =
+  | TarotShareLinkPayload
+  | CompatShareLinkPayload
+  | CalendarShareLinkPayload
 
 /** 타입 가드 — 공유 종류 분기(렌더/OG). 레거시(미지정)는 tarot. */
 export function isCompatShare(p: ShareLinkPayload): p is CompatShareLinkPayload {
   return p.kind === 'compatibility'
+}
+
+export function isCalendarShare(p: ShareLinkPayload): p is CalendarShareLinkPayload {
+  return p.kind === 'calendar'
 }
 
 const shareKey = (token: string) => `tarot:share:${token}`
@@ -91,8 +111,8 @@ export async function getShareLink(token: string): Promise<ShareLinkPayload | nu
   try {
     const payload = await cacheGet<ShareLinkPayload>(shareKey(clean))
     if (!payload || payload.v !== 1) return null
-    // 궁합 공유는 cards 가 없고, 타로(레거시 포함)는 cards 배열을 가진다.
-    if (payload.kind === 'compatibility') return payload
+    // 궁합·캘린더 공유는 cards 가 없고, 타로(레거시 포함)는 cards 배열을 가진다.
+    if (payload.kind === 'compatibility' || payload.kind === 'calendar') return payload
     if (!Array.isArray((payload as TarotShareLinkPayload).cards)) return null
     return payload
   } catch (error) {

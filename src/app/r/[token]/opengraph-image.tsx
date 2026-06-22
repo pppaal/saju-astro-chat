@@ -5,7 +5,7 @@
 // 부르게 한다. Redis 조회가 필요하므로 nodejs 런타임.
 
 import { ImageResponse } from 'next/og'
-import { getShareLink, isCompatShare, siteBaseUrl } from '@/lib/tarot/shareLink'
+import { getShareLink, isCompatShare, isCalendarShare, siteBaseUrl } from '@/lib/tarot/shareLink'
 
 export const runtime = 'nodejs'
 export const size = { width: 1200, height: 630 }
@@ -37,6 +37,11 @@ export default async function Image({ params }: { params: Promise<{ token: strin
     cta = isKo
       ? `우리 궁합도 무료로 · ${displayDomain}`
       : `Check your match free · ${displayDomain}`
+  } else if (reading && isCalendarShare(reading)) {
+    eyebrow = clamp(reading.periodLabel, 40)
+    headline = clamp(reading.headline, 72)
+    context = reading.highlights?.length ? clamp(reading.highlights[0], 70) : ''
+    cta = isKo ? `내 운흐름도 무료로 · ${displayDomain}` : `See your timing free · ${displayDomain}`
   } else {
     eyebrow = isKo ? '타로 리딩' : 'TAROT READING'
     headline = reading?.keyMessage

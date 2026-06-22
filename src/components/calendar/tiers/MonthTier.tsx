@@ -35,6 +35,7 @@ import { useI18n } from '@/i18n/I18nProvider'
 import { SIBSIN_EN } from '@/lib/saju/sibsinLabels'
 import { localizeLabel } from '@/components/calendar/adapters/localizeLabel'
 import { toneMeaningFor, type MeaningTone } from '@/lib/calendar-engine/derivers/toneMeaning'
+import { ShareCalendarButton } from '@/components/calendar/ShareCalendarButton'
 
 const MONTH_EN = [
   'January',
@@ -503,6 +504,25 @@ export function MonthTier({ month, onDive, onRise, showRise = true }: MonthTierP
         ) : null
       })()}
 
+      {/* ── 이달 흐름 공유 — 한 줄 총평 + 큰 날 몇 개를 공개 링크(/r)로. ── */}
+      {(() => {
+        const summaryTag = ko ? '이달 총평' : 'This month'
+        const s = (month.narrative ?? []).find((n) => n.tag === summaryTag)
+        const periodLabel = ko
+          ? month.label
+          : `${MONTH_EN[(ymM ?? 1) - 1] ?? ''} ${ymY ?? ''}`.trim()
+        const headline = ((s ? localizeLabel(s.body, ko) : '') || flowTitle).slice(0, 260)
+        const highlights = monthCrossItems.slice(0, 4).map((i) => {
+          const dd = i.when.length >= 5 ? i.when.slice(-2) : i.when
+          return ko ? `${dd}일 · ${i.title}` : `${i.when} · ${i.title}`
+        })
+        return (
+          <div style={{ marginTop: 28, display: 'flex', justifyContent: 'center' }}>
+            <ShareCalendarButton data={{ isKo: ko, periodLabel, headline, highlights }} />
+          </div>
+        )
+      })()}
+
       {/* ===== dive ===== */}
       <div className={styles.diveWrap} style={{ marginTop: 40 }}>
         <button className={styles.dive} onClick={() => onDive(focusDay)} type="button">
@@ -515,4 +535,3 @@ export function MonthTier({ month, onDive, onRise, showRise = true }: MonthTierP
     </div>
   )
 }
-
