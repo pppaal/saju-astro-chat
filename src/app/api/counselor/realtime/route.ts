@@ -42,6 +42,8 @@ export const maxDuration = 120
 interface ChatMessage {
   role: 'user' | 'assistant'
   content: string
+  /** 이 턴 생성 시 켜져 있던 소스. 스코프 전환 후 off-scope 과거 턴을 재생에서 빼는 데 쓴다. */
+  sources?: { saju?: boolean; astro?: boolean }
 }
 
 interface RealtimeBody {
@@ -336,7 +338,23 @@ export async function POST(req: NextRequest) {
     // role: 'system' turn, caps each content at 8KB, and replaces `<`/`>`
     // with full-width chars so a replayed turn can't smuggle a tag-close
     // (e.g. fake </birth_data>) into the prompt window. See promptSafety.ts.
-    const priorTurns = sanitizePriorTurns(dialogTurns.slice(0, -1))
+    // 완벽 차단(hard): 단일 소스면, *지금 꺼진 소스를 쓰던* 과거 턴을 모델에 아예
+    // 재생하지 않는다(프롬프트로 "무시해"는 soft — 모델이 보면 새어나옴). 턴마다 박힌
+    // sources 태그로 호환 여부 판정. 시간순이라 스코프 전환점 이전(off-scope)은 prefix →
+    // 뒤에서부터 호환 턴만 이어 붙여(연속성 유지 + user 로 시작하도록 정렬).
+    const prior = dialogTurns.slice(0, -1)
+    const turnInScope = (m: ChatMessage): boolean => {
+      const s = m.sources
+      const usedSaju = s ? s.saju !== false : true // 태그 없으면 '둘 다'로 간주(보수적)
+      const usedAstro = s ? s.astro !== false : true
+      return (sources.saju || !usedSaju) && (sources.astro || !usedAstro)
+    }
+    let cut = prior.length
+    while (cut > 0 && turnInScope(prior[cut - 1])) cut--
+    let inScope = prior.slice(cut)
+    // Anthropic 은 첫 메시지가 user 여야 한다 — suffix 가 assistant 로 시작하면 한 칸 민다.
+    if (inScope.length > 0 && inScope[0].role === 'assistant') inScope = inScope.slice(1)
+    const priorTurns = sanitizePriorTurns(inScope)
     const rawUserPromptRaw = dialogTurns[dialogTurns.length - 1]?.content ?? ''
     if (!rawUserPromptRaw.trim()) {
       return NextResponse.json({ error: 'empty_message' }, { status: 400 })
@@ -406,7 +424,20 @@ export async function POST(req: NextRequest) {
     const userPromptBody = attachmentText
       ? `<attached_file>\n${attachmentText}\n</attached_file>\n\n${rawUserPrompt}`
       : rawUserPrompt
-    const userPrompt = `${dailyBlock}${metaLine}${userPromptBody}`
+    // 단일 소스(사주만/점성만)면 현재 턴 맨앞에 범위를 다시 못박는다. 시스템 프롬프트에도
+    // scope guard 가 있지만, priorTurns 로 *직전 사주/점성 답변이 그대로 재생*되면 모델이
+    // 그걸 이어가기 쉽다(도중 토글 전환 시). 가장 가중치 높은 현재 user 턴에서 재차단.
+    const singleSource = sources.saju !== sources.astro
+    const scopeLine = !singleSource
+      ? ''
+      : sources.astro
+        ? lang === 'en'
+          ? `[Scope for THIS answer] Astrology only. Even if Saju (day master, five elements, ten gods, daeun) appeared earlier in this chat, do NOT continue it — answer using astrology (planets, signs, houses, aspects, transits) only, and don't use Saju terms.\n\n`
+          : `[이번 답변 범위] 점성만 사용. 이전 대화에 사주(일간·오행·십성·대운)가 나왔더라도 지금은 이어가지 말고, 점성(행성·별자리·하우스·각·트랜짓)만으로 답해. 사주 용어를 꺼내지 마.\n\n`
+        : lang === 'en'
+          ? `[Scope for THIS answer] Saju only. Even if astrology (planets, signs, houses) appeared earlier in this chat, do NOT continue it — answer using Saju (day master, five elements, ten gods, daeun, sewoon, iljin) only, and don't use astrology terms.\n\n`
+          : `[이번 답변 범위] 사주만 사용. 이전 대화에 점성(행성·별자리·하우스)이 나왔더라도 지금은 이어가지 말고, 사주(일간·오행·십성·대운·세운·일진)만으로 답해. 점성 용어를 꺼내지 마.\n\n`
+    const userPrompt = `${dailyBlock}${metaLine}${scopeLine}${userPromptBody}`
 
     // If we charged for a new session but the stream delivers nothing (backend
     // error or empty completion), refund the credit so the user isn't billed for

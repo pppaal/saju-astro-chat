@@ -4,6 +4,7 @@
 import { FiveElement, YinYang, SajuPillars, PillarData, SajuPillarsInput } from './types'
 import { STEMS, BRANCHES, JIJANGGAN, FIVE_ELEMENT_RELATIONS } from './constants'
 import { computeStrengthScore, toStrengthCoreInput } from './strengthScore'
+import { JOHU_YONGSIN_DB } from './johuYongsinData'
 
 /**
  * 용신 유형
@@ -76,28 +77,6 @@ function getElement(char: string): FiveElement | null {
 function getYinYang(stem: string): YinYang | null {
   const found = STEMS.find((s) => s.name === stem)
   return found ? found.yin_yang : null
-}
-
-/**
- * 월지에서 계절 파악
- */
-function getSeasonFromMonthBranch(monthBranch: string): SeasonClimate {
-  // 寅卯辰(봄), 巳午未(여름), 申酉戌(가을), 亥子丑(겨울)
-  const spring = ['寅', '卯', '辰']
-  const summer = ['巳', '午', '未']
-  const autumn = ['申', '酉', '戌']
-  const winter = ['亥', '子', '丑']
-
-  if (winter.includes(monthBranch) || spring.includes(monthBranch)) {
-    // 겨울, 초봄은 한습
-    if (winter.includes(monthBranch) || monthBranch === '寅') {
-      return '한습'
-    }
-  }
-  if (summer.includes(monthBranch)) {
-    return '조열'
-  }
-  return '온화'
 }
 
 /**
@@ -223,24 +202,19 @@ function selectJohuYongsin(
   monthBranch: string,
   daymaster: string
 ): { yongsin: FiveElement; reasoning: string } | null {
-  const climate = getSeasonFromMonthBranch(monthBranch)
-  const daymasterElement = getElement(daymaster)
-
-  if (climate === '한습') {
-    // 한습: 화(火)로 따뜻하게, 목(木)으로 보조
-    return {
-      yongsin: '화',
-      reasoning: `${monthBranch}월 출생으로 한습하여 화(火)가 조후용신`,
-    }
-  } else if (climate === '조열') {
-    // 조열: 수(水)로 식히고, 금(金)으로 보조
-    return {
-      yongsin: '수',
-      reasoning: `${monthBranch}월 출생으로 조열하여 수(水)가 조후용신`,
-    }
+  // 궁통보감(窮通寶鑑) 120케이스 DB(일간×월지)에서 정확한 조후용신을 찾는다.
+  // 예전 getSeasonFromMonthBranch 는 한습/조열/온화 2.5버킷 휴리스틱이라
+  //   ① 戌(조한)·辰(습)·申酉(가을 건조) 등을 '온화'로 흘려 가을·환절기 조후를 놓쳤고
+  //   ② 巳(열)과 午(조열)을 똑같이 '수'로 처리했다 (ENGINE-AUDIT).
+  // 이제 일간별 정확한 용신을 DB 에서 가져오되, 조후를 '우선(primary) 용신'으로
+  // 올리는 건 조후 필요도(rating)가 높을 때(>=4)만 — 온화·미온한 달까지 매번
+  // 억부를 덮어쓰지 않도록 한다(과적용 방지).
+  const info = JOHU_YONGSIN_DB.find((d) => d.daymaster === daymaster && d.month === monthBranch)
+  if (!info || info.rating < 4) return null
+  return {
+    yongsin: info.primaryYongsin,
+    reasoning: `${monthBranch}월(${info.climate}) 출생 — ${info.reasoning}`,
   }
-
-  return null // 온화한 계절은 조후용신 불필요
 }
 
 /**

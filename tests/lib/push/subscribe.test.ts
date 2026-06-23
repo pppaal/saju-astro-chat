@@ -35,10 +35,18 @@ function installPushCapableEnv(opts: {
     getSubscription: opts.getSubscription ?? vi.fn(async () => null),
     subscribe: opts.subscribe ?? vi.fn(async () => makeSubscription()),
   }
-  const registration = opts.registration === undefined ? { pushManager } : opts.registration
+  // 기본 registration 은 우리 푸시 SW(/push-sw.js)가 이미 활성화된 상태를 흉내낸다.
+  // subscribe.ts 의 getRegistration() 은 active.scriptURL 이 /push-sw.js 로 끝나면
+  // register() 를 건너뛰고 재사용한다.
+  const registration =
+    opts.registration === undefined
+      ? { pushManager, active: { scriptURL: 'https://app.test/push-sw.js' } }
+      : opts.registration
 
   const serviceWorker = {
     getRegistration: vi.fn(async () => registration),
+    register: vi.fn(async () => registration),
+    ready: Promise.resolve(registration),
   }
 
   // navigator.serviceWorker
@@ -169,11 +177,11 @@ describe('subscribe.ts (web push client)', () => {
       expect(result.status).toBe('error')
     })
 
-    it("registration 이 없으면 'unsupported'", async () => {
+    it("registration 등록이 실패하면 'error' (지원은 하므로 일시 오류)", async () => {
       installPushCapableEnv({ permission: 'granted', registration: null })
       const mod = await loadModule('key')
       const result = await mod.subscribeToDailyFortunePush('ko')
-      expect(result.status).toBe('unsupported')
+      expect(result.status).toBe('error')
     })
 
     it("새로 구독 후 서버 저장이 성공하면 'subscribed'", async () => {

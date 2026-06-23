@@ -76,8 +76,15 @@ function pickWolun(queryDate: Date): StemBranch | null {
 
 function pickIljin(raw: CalculateSajuDataResult, queryDate: Date): StemBranch | null {
   try {
-    const cal = getIljinCalendar(queryDate.getFullYear(), queryDate.getMonth() + 1, raw.dayMaster)
-    const found = cal.find((d) => d.day === queryDate.getDate())
+    // queryDate 는 유저-tz 날짜의 UTC 정오(counselorContext) → getUTC* 로 읽어야
+    // seun/wolun(getTime)과 같은 프레임이 된다. 예전엔 getFullYear/Month/Date(로컬)라
+    // 서버 TZ 에 따라 일진이 하루 어긋날 수 있었다(ENGINE-AUDIT).
+    const cal = getIljinCalendar(
+      queryDate.getUTCFullYear(),
+      queryDate.getUTCMonth() + 1,
+      raw.dayMaster
+    )
+    const found = cal.find((d) => d.day === queryDate.getUTCDate())
     return found ? { stem: found.heavenlyStem, branch: found.earthlyBranch } : null
   } catch {
     return null

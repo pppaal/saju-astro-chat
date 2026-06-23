@@ -73,6 +73,14 @@ export interface CrossMapping {
    */
   polarity: Polarity
   grade: CrossMappingGrade
+  /**
+   * true 면 *캘린더 cross-activation 커버리지 전용* 보조 매핑 — 같은 십신의
+   * 1차(정통 등치) 매핑에 결을 더하는 2차 nuance 다. 캘린더(extractCrossActivations)
+   * 는 전체 목록을 순회하므로 그대로 활성화되지만, 리포트의 십신→대표행성 단일화
+   * (natalCrossShared SAJU_TO_MAPPING)는 이 항목을 제외해 정통 1차 등치(예: 정관→토성)를
+   * 대표로 유지한다 — 보조 매핑이 polarity 로 대표를 가로채지 않게.
+   */
+  crossOnly?: boolean
   /** 작성자 메모 — 명리/점성 검수용. */
   note?: string
 }
@@ -105,6 +113,7 @@ export const SAJU_ASTRO_MAPPINGS: readonly CrossMapping[] = [
     },
     polarity: 2,
     grade: 'A',
+    crossOnly: true,
     note: '정관(직위·공인된 권위·명예) ↔ Sun(authority·legitimacy·자리). Saturn(책임·구조)과 결 분리: Sun=정당성·인정. 둘 다 +방향.',
   },
   {
@@ -116,6 +125,7 @@ export const SAJU_ASTRO_MAPPINGS: readonly CrossMapping[] = [
     },
     polarity: 2,
     grade: 'A',
+    crossOnly: true,
     note: '정관(규범·자격·법) ↔ Jupiter(법·정당성·확장). Saturn=책임의 무게, Jupiter=인정의 확장으로 결 분리. monthly/yearly/decadal 밴드.',
   },
   {
@@ -162,6 +172,7 @@ export const SAJU_ASTRO_MAPPINGS: readonly CrossMapping[] = [
     },
     polarity: 1,
     grade: 'A',
+    crossOnly: true,
     note: '편재(유통·기회 재물·수완) ↔ Mercury(거래·중개·정보). Jupiter=큰 확장, Mercury=실무 회전으로 결 분리.',
   },
   {
@@ -173,6 +184,7 @@ export const SAJU_ASTRO_MAPPINGS: readonly CrossMapping[] = [
     },
     polarity: 1,
     grade: 'A',
+    crossOnly: true,
     note: '편재(향유·교제 재물) ↔ Venus(pleasure·social·value). 정재×Venus(안정 결합)와 톤 분리: 편재=유동·향유. +방향이나 과소비 경계로 +1.',
   },
 
@@ -197,6 +209,7 @@ export const SAJU_ASTRO_MAPPINGS: readonly CrossMapping[] = [
     },
     polarity: 2,
     grade: 'A',
+    crossOnly: true,
     note: '식신(향유·산출·복록) ↔ Venus(pleasure·craft·beauty). Mercury×식신(손기술)과 결 분리: Venus=미감·향유. 둘 다 +방향.',
   },
   {
@@ -243,6 +256,7 @@ export const SAJU_ASTRO_MAPPINGS: readonly CrossMapping[] = [
     },
     polarity: 1,
     grade: 'A',
+    crossOnly: true,
     note: '정인(정통 학문·인장) ↔ Saturn(discipline·persistence·구조). Jupiter×정인(확장·해외)과 결 분리: Saturn=끈기·체계. 둘 다 +방향.',
   },
   {
@@ -254,6 +268,7 @@ export const SAJU_ASTRO_MAPPINGS: readonly CrossMapping[] = [
     },
     polarity: 0,
     grade: 'A',
+    crossOnly: true,
     note: '편인(이면·재해석·비주류 흡수) ↔ Mercury(정보·분석). 자원형 중립(+/− 양가) → 0.',
   },
   {
@@ -300,6 +315,7 @@ export const SAJU_ASTRO_MAPPINGS: readonly CrossMapping[] = [
     },
     polarity: -1,
     grade: 'A',
+    crossOnly: true,
     note: '겁재(분탈·공유 자원 다툼) ↔ Venus(돈·관계). 가치축이 경쟁에 노출 → 압력 −1.',
   },
 
@@ -324,6 +340,7 @@ export const SAJU_ASTRO_MAPPINGS: readonly CrossMapping[] = [
     },
     polarity: 1,
     grade: 'A',
+    crossOnly: true,
     note: '도화(인기·끌림) ↔ Moon(정서·대중·공감). Venus×도화(미·연애)와 결 분리: Moon=정서·대중성.',
   },
   {
@@ -335,6 +352,7 @@ export const SAJU_ASTRO_MAPPINGS: readonly CrossMapping[] = [
     },
     polarity: 0,
     grade: 'A',
+    crossOnly: true,
     note: '역마(이동) ↔ Mars(drive·속도). Mercury×역마(소통·정보)와 결 분리: Mars=추진·이동의 충동. 동력+과속경계 양가 → 0.',
   },
   {

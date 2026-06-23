@@ -229,7 +229,9 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
   } = args
 
   // ─── lifetimeFlow / lifetimePivots derivers ─────────────────────────────
-  const lifetimeFlow = deriveLifetimeFlow(natal, lang)
+  // 두 deriver 에 동일한 now 를 주입 — "현재 단계"와 "현재 pivot"이 같은 날짜를
+  // 가리키도록(예전엔 flow 가 now 미주입으로 서버 시계를 읽어 둘이 어긋났다).
+  const lifetimeFlow = deriveLifetimeFlow(natal, lang, undefined, now)
   const lifetimePivots = deriveLifetimePivots(natal, lang, undefined, now)
 
   // ─── yearly / month / day 슬라이스 ───────────────────────────────────────

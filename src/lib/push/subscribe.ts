@@ -49,11 +49,28 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
   return outputArray
 }
 
+// 웹 푸시 전용 정적 SW 경로 — next-pwa(/sw.js)는 Turbopack 빌드에서 생성되지
+// 않아 우리가 직접 서빙·등록한다(public/push-sw.js). 푸시 핸들러만 들어있다.
+const PUSH_SW_URL = '/push-sw.js'
+
+function scriptUrlOf(reg: ServiceWorkerRegistration | undefined): string {
+  const w = reg?.active || reg?.waiting || reg?.installing
+  return w?.scriptURL ?? ''
+}
+
 async function getRegistration(): Promise<ServiceWorkerRegistration | null> {
   try {
-    // next-pwa 가 등록한 SW. dev 모드(PWA disable)에선 없을 수 있다.
-    const registration = await navigator.serviceWorker.getRegistration()
-    return registration ?? null
+    // 우리 푸시 SW(scope '/')가 이미 떠 있으면 재사용, 아니면 등록한다.
+    let registration = await navigator.serviceWorker.getRegistration()
+    if (!registration || !scriptUrlOf(registration).endsWith(PUSH_SW_URL)) {
+      registration = await navigator.serviceWorker.register(PUSH_SW_URL, { scope: '/' })
+    }
+    // 등록 직후엔 active 가 아직 null 일 수 있다 — 활성화까지 대기(최대 10초).
+    await Promise.race([
+      navigator.serviceWorker.ready,
+      new Promise((resolve) => setTimeout(resolve, 10_000)),
+    ])
+    return registration ?? (await navigator.serviceWorker.getRegistration()) ?? null
   } catch {
     return null
   }
@@ -87,7 +104,9 @@ export async function subscribeToDailyFortunePush(
   if (permission !== 'granted') return { status: 'denied' }
 
   const registration = await getRegistration()
-  if (!registration) return { status: 'unsupported' }
+  // 여기까지 왔으면 브라우저는 푸시를 지원한다(isPushSupported 통과). 등록 실패는
+  // "지원 안 함"이 아니라 일시적 오류 — 새로고침 후 재시도가 맞다.
+  if (!registration) return { status: 'error' }
 
   try {
     const subscription =

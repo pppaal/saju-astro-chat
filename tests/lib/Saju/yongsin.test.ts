@@ -86,7 +86,8 @@ describe('yongsin - 용신 선정 모듈', () => {
 
       expect(result.yongsinType).toBe('조후용신')
       expect(result.primaryYongsin).toBe('화')
-      expect(result.reasoning).toContain('한습')
+      // reasoning 은 이제 궁통보감 DB 근거(월지 + 정통 설명) — 월지가 들어간다.
+      expect(result.reasoning).toContain('子월')
     })
 
     it('selects 화 for early spring birth (寅월)', () => {
@@ -117,7 +118,23 @@ describe('yongsin - 용신 선정 모듈', () => {
 
       expect(result.yongsinType).toBe('조후용신')
       expect(result.primaryYongsin).toBe('수')
-      expect(result.reasoning).toContain('조열')
+      expect(result.reasoning).toContain('午월')
+    })
+
+    it('가을(酉월) 庚 일간도 조후용신을 놓치지 않는다 (ENGINE-AUDIT 가을 누락 수정)', () => {
+      // 예전 2버킷 휴리스틱은 酉(가을)를 '온화'로 흘려 조후를 건너뛰었다.
+      // 궁통보감 DB: 庚 + 酉월 → 화(火) 조후, rating 4(긴급) → 우선 용신으로 발현.
+      const pillars = createPillars(
+        ['甲', '子'],
+        ['乙', '酉'], // 酉월 = 가을
+        ['庚', '辰'], // 일간 庚
+        ['丙', '午']
+      )
+      const result = determineYongsin(pillars)
+
+      expect(result.yongsinType).toBe('조후용신')
+      expect(result.primaryYongsin).toBe('화')
+      expect(result.reasoning).toContain('酉월')
     })
 
     it('selects 수 for 巳월 (early summer)', () => {
