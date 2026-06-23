@@ -42,6 +42,8 @@ export const maxDuration = 120
 interface ChatMessage {
   role: 'user' | 'assistant'
   content: string
+  /** 이 턴 생성 시 켜져 있던 소스. 스코프 전환 후 off-scope 과거 턴을 재생에서 빼는 데 쓴다. */
+  sources?: { saju?: boolean; astro?: boolean }
 }
 
 interface RealtimeBody {
@@ -336,7 +338,23 @@ export async function POST(req: NextRequest) {
     // role: 'system' turn, caps each content at 8KB, and replaces `<`/`>`
     // with full-width chars so a replayed turn can't smuggle a tag-close
     // (e.g. fake </birth_data>) into the prompt window. See promptSafety.ts.
-    const priorTurns = sanitizePriorTurns(dialogTurns.slice(0, -1))
+    // 완벽 차단(hard): 단일 소스면, *지금 꺼진 소스를 쓰던* 과거 턴을 모델에 아예
+    // 재생하지 않는다(프롬프트로 "무시해"는 soft — 모델이 보면 새어나옴). 턴마다 박힌
+    // sources 태그로 호환 여부 판정. 시간순이라 스코프 전환점 이전(off-scope)은 prefix →
+    // 뒤에서부터 호환 턴만 이어 붙여(연속성 유지 + user 로 시작하도록 정렬).
+    const prior = dialogTurns.slice(0, -1)
+    const turnInScope = (m: ChatMessage): boolean => {
+      const s = m.sources
+      const usedSaju = s ? s.saju !== false : true // 태그 없으면 '둘 다'로 간주(보수적)
+      const usedAstro = s ? s.astro !== false : true
+      return (sources.saju || !usedSaju) && (sources.astro || !usedAstro)
+    }
+    let cut = prior.length
+    while (cut > 0 && turnInScope(prior[cut - 1])) cut--
+    let inScope = prior.slice(cut)
+    // Anthropic 은 첫 메시지가 user 여야 한다 — suffix 가 assistant 로 시작하면 한 칸 민다.
+    if (inScope.length > 0 && inScope[0].role === 'assistant') inScope = inScope.slice(1)
+    const priorTurns = sanitizePriorTurns(inScope)
     const rawUserPromptRaw = dialogTurns[dialogTurns.length - 1]?.content ?? ''
     if (!rawUserPromptRaw.trim()) {
       return NextResponse.json({ error: 'empty_message' }, { status: 400 })
