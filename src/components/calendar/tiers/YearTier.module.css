@@ -369,9 +369,23 @@
 }
 .stageTheme {
   font-family: var(--m-serif);
-  font-size: 15px;
+  font-size: clamp(20px, 5vw, 25px);
+  font-weight: 500;
+  color: var(--t0);
+  margin: 0 0 6px;
+  line-height: 1.3;
+}
+.stageLead {
+  font-size: 14px;
   color: var(--t1);
-  margin: 10px 0 16px;
+  margin: 0 0 16px;
+  line-height: 1.6;
+}
+.stageTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-bottom: 16px;
 }
 .dl {
   display: grid;

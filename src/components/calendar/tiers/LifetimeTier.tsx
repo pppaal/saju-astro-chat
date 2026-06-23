@@ -17,6 +17,7 @@
 
 import type { CSSProperties } from 'react'
 import { SIGN_KO } from '@/lib/astrology/signLabels'
+import { sibsinArea, sibsinAreaEn, planetPlain } from '@/lib/calendar-engine/derivers/plainLanguage'
 import type {
   DestinyLifetime,
   DestinyUserSummary,
@@ -272,6 +273,7 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
               .filter(Boolean)
               .join(' ')
             const sibsin = d.sibsin && d.sibsin !== '—' ? String(d.sibsin) : ''
+            const sibsinGloss = sibsin ? (ko ? sibsinArea(sibsin) : sibsinAreaEn(sibsin)) : ''
             return (
               <div className={cls} key={`dw-${d.startAge}-${i}`}>
                 {d.now && (
@@ -285,6 +287,8 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
                 <span className={styles.dwYear}>
                   {d.start}–{d.end}
                 </span>
+                {/* 현재 대운엔 십신을 쉬운 생활영역 한 줄로, 십신명은 작은 태그로. */}
+                {d.now && sibsinGloss && <span className={styles.dwGloss}>{sibsinGloss}</span>}
                 {sibsin && <span className={styles.dwSibsin}>{sibsin}</span>}
               </div>
             )
@@ -412,12 +416,12 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
           {[
             {
               chapters: zrSpiritChapters ?? [],
-              label: ko ? 'Spirit · 진로' : 'Spirit · path',
+              label: ko ? '진로·방향' : 'Spirit · path',
               cls: styles.zrSpirit,
             },
             {
               chapters: zrFortuneChapters ?? [],
-              label: ko ? 'Fortune · 체질' : 'Fortune · body',
+              label: ko ? '현실·체질' : 'Fortune · body',
               cls: styles.zrFortune,
             },
           ].map((lane) =>
@@ -428,16 +432,19 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
                   {lane.chapters.map((c, i) => {
                     const left = zrPct(c.calendarStartYear)
                     const width = Math.max(4, zrPct(c.calendarEndYear) - zrPct(c.calendarStartYear))
+                    // KO: 영어 별자리·룰러 금지 → 한글 별자리 + 룰러 일상 별명.
+                    const sign = ko ? zodiacKo(c.sign) : c.sign
+                    const ruler = ko ? planetPlain(c.ruler, true) : c.ruler
                     return (
                       <div
                         className={`${styles.zrChapter} ${c.now ? styles.zrNow : ''}`.trim()}
                         key={`${lane.label}-${c.calendarStartYear}-${i}`}
                         style={{ left: `${left}%`, width: `${width}%` }}
-                        title={`${zodiacKo(c.sign)} · ${c.ruler} · ${c.calendarStartYear}–${c.calendarEndYear}`}
+                        title={`${sign} · ${ruler} · ${c.calendarStartYear}–${c.calendarEndYear}`}
                       >
-                        <span className={styles.zrSign}>{ko ? zodiacKo(c.sign) : c.sign}</span>
+                        <span className={styles.zrSign}>{sign}</span>
                         <span className={styles.zrMeta}>
-                          {c.ruler} · {c.durationYears}
+                          {ruler} · {c.durationYears}
                           {ko ? '년' : 'y'}
                         </span>
                       </div>

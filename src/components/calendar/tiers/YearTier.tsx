@@ -17,7 +17,14 @@
 import type { DestinyUserSummary, DestinyYear, DestinyDignityEntry } from '@/types/calendar'
 import styles from './YearTier.module.css'
 import { useI18n } from '@/i18n/I18nProvider'
-import { sibsinArea, sibsinAreaEn } from '@/lib/calendar-engine/derivers/plainLanguage'
+import {
+  sibsinArea,
+  sibsinAreaEn,
+  planetPlain,
+  plainPairName,
+  plainReason,
+} from '@/lib/calendar-engine/derivers/plainLanguage'
+import { SIGN_KO } from '@/lib/astrology/signLabels'
 import { ordinalEn } from '@/lib/calendar-engine/ordinal'
 
 const MONTH_ABBR = [
@@ -81,6 +88,16 @@ function formatDignity(d: DestinyDignityEntry): {
   const tone: 'pos' | 'neg' | 'neu' = score > 0 ? 'pos' : score < 0 ? 'neg' : 'neu'
   const flagText = flags.length > 0 ? flags.join(' · ') : 'peregrine'
   return { text: flagText, tone }
+}
+
+// ── ZR 표기: 영문 별자리 → 한글, 룰러 → 일상 별명(ko). 의미는 새로 짓지 않음. ──
+function zrSignKo(sign: string | undefined, ko: boolean): string {
+  if (!sign) return ''
+  return ko ? (SIGN_KO[sign] ?? sign) : sign
+}
+function zrRulerKo(ruler: string | undefined, ko: boolean): string {
+  if (!ruler) return ''
+  return ko ? planetPlain(ruler, true) : ruler
 }
 
 // ── 12달 색 띠 (월 달력처럼) — monthlyScores 톤으로 밴드. 숫자 없음. ──
@@ -153,7 +170,7 @@ export function YearTier({ user, year, onDive, onRise }: YearTierProps) {
   if (p) {
     yearReadingParts.push(
       ko
-        ? `무게중심은 ${p.house}번째 영역(${p.theme})으로 기울어, 그쪽 일이 가장 또렷하게 움직입니다.`
+        ? `무게중심은 ‘${p.theme}’ 쪽으로 기울어, 그 결의 일이 가장 또렷하게 움직여요.`
         : `The weight tilts toward your ${ordinalEn(p.house)} house (${p.themeEn.toLowerCase()}) — that’s where things move most clearly.`
     )
   }
@@ -232,14 +249,21 @@ export function YearTier({ user, year, onDive, onRise }: YearTierProps) {
         </div>
         {(sewoonSibsin || sewoonAreaPlain) && (
           <div className={styles.counts}>
-            <span className={styles.cSibsin}>
-              {ko ? '세운 십신' : 'Annual'}
-              <b>{sewoonSibsin}</b>
-            </span>
-            {sewoonAreaPlain && sewoonAreaPlain !== sewoonSibsin && (
+            {sewoonAreaPlain ? (
               <span className={styles.cArea}>
-                {ko ? '분야' : 'area'}
+                {ko ? '올해의 결' : 'Annual'}
                 <b>{sewoonAreaPlain}</b>
+              </span>
+            ) : (
+              <span className={styles.cSibsin}>
+                {ko ? '세운 십신' : 'Annual'}
+                <b>{sewoonSibsin}</b>
+              </span>
+            )}
+            {sewoonAreaPlain && sewoonSibsin && (
+              <span className={styles.cSibsin}>
+                {ko ? '십신' : 'sibsin'}
+                <b>{sewoonSibsin}</b>
               </span>
             )}
             {p && (
@@ -349,21 +373,23 @@ export function YearTier({ user, year, onDive, onRise }: YearTierProps) {
             <span className={styles.secLat}>Profection</span>
           </div>
           <div className={styles.stage}>
-            <div className={styles.stageHouse}>
-              <span className={styles.stageNum}>{p.house}</span>
-              <span className={styles.stageLbl}>
-                {ko ? '번째 영역이 무대' : `${ordinalEn(p.house)} house on stage`}
+            <p className={styles.stageTheme}>{ko ? p.theme : p.themeEn}</p>
+            <p className={styles.stageLead}>
+              {ko
+                ? '올해는 이 결이 한 해의 중심 무대가 돼요.'
+                : `This is the year’s ${ordinalEn(p.house)}-house stage.`}
+            </p>
+            <div className={styles.stageTags}>
+              <span className={styles.termTag}>
+                {ko ? `${p.house}번째 영역` : `${ordinalEn(p.house)} house`}
+              </span>
+              <span className={styles.termTag}>{ko ? `자리 ${p.cusp}` : `cusp ${p.cuspEn}`}</span>
+              <span className={styles.termTag}>
+                {ko ? `주관 별 ${p.ruler}` : `ruler ${p.rulerEn}`}
               </span>
             </div>
-            <p className={styles.stageTheme}>{ko ? p.theme : p.themeEn}</p>
             <dl className={styles.dl}>
-              <dt>cusp</dt>
-              <dd>{ko ? p.cusp : p.cuspEn}</dd>
-              <dt>ruler</dt>
-              <dd>
-                <b>{ko ? p.ruler : p.rulerEn}</b>
-              </dd>
-              <dt>{ko ? '룰러 본명' : 'ruler (natal)'}</dt>
+              <dt>{ko ? '주관 별의 본명 자리' : 'ruler (natal)'}</dt>
               <dd>{ko ? p.rulerNatal : p.rulerNatalEn}</dd>
               {activePlanets.length > 0 && (
                 <>
@@ -389,7 +415,7 @@ export function YearTier({ user, year, onDive, onRise }: YearTierProps) {
             </div>
             {lordReadout && (
               <p className={styles.lordOfYear}>
-                <b>Lord of Year</b> {ko ? p.ruler : p.rulerEn} —{' '}
+                <b>{ko ? '올해의 주관 별' : 'Lord of Year'}</b> {ko ? p.ruler : p.rulerEn} —{' '}
                 <span className={styles[lordReadout.tone]}>{lordReadout.text}</span>
               </p>
             )}
@@ -413,8 +439,8 @@ export function YearTier({ user, year, onDive, onRise }: YearTierProps) {
           {yearCross.map((c, i) => {
             const isHero = topCross != null && c === topCross
             const when = ko ? c.when : (c.whenEn ?? c.when)
-            const head = ko ? c.title : (c.titleEn ?? c.title)
-            const body = ko ? c.detail : (c.detailEn ?? c.detail)
+            const head = plainPairName(ko ? c.title : (c.titleEn ?? c.title), ko)
+            const body = plainReason(ko ? c.detail : (c.detailEn ?? c.detail), ko)
             return (
               <div className={`${styles.cross} ${isHero ? styles.crossHero : ''}`.trim()} key={i}>
                 <div className={styles.crossTop}>
@@ -436,7 +462,7 @@ export function YearTier({ user, year, onDive, onRise }: YearTierProps) {
           {repeatedWhen && allCross[0]?.when && (
             <p className={styles.crossWhen}>
               {ko
-                ? `이 흐름들은 ${ko ? allCross[0].when : (allCross[0].whenEn ?? allCross[0].when)}에 집중됩니다.`
+                ? `이 흐름들은 ${allCross[0].when}에 한꺼번에 겹쳐요.`
                 : `These concentrate around ${allCross[0].whenEn ?? allCross[0].when}.`}
             </p>
           )}
@@ -477,14 +503,14 @@ export function YearTier({ user, year, onDive, onRise }: YearTierProps) {
           <div className={styles.zrCard}>
             <div className={`${styles.zrPane} ${styles.zrPaneSpirit}`}>
               <div className={styles.zrPaneHead}>
-                {ko ? 'Spirit · 영혼 · 진로' : 'Spirit · soul · path'}
+                {ko ? '진로·방향 (영점)' : 'Spirit · soul · path'}
               </div>
               {zrSpiritNow ? (
                 <>
                   <div className={styles.zrLine}>
                     <span className={styles.zrLevel}>L1</span>
-                    <span className={styles.zrSign}>{zrSpiritNow.sign}</span>
-                    <span className={styles.zrRuler}>{zrSpiritNow.ruler}</span>
+                    <span className={styles.zrSign}>{zrSignKo(zrSpiritNow.sign, ko)}</span>
+                    <span className={styles.zrRuler}>{zrRulerKo(zrSpiritNow.ruler, ko)}</span>
                   </div>
                   <div className={styles.zrMeta}>
                     <span>
@@ -498,21 +524,21 @@ export function YearTier({ user, year, onDive, onRise }: YearTierProps) {
                 </>
               ) : (
                 <div className={styles.zrEmpty}>
-                  {ko ? '현재 활성 Spirit 챕터 없음' : 'No active Spirit chapter'}
+                  {ko ? '지금 진행 중인 진로·방향 장이 없어요' : 'No active Spirit chapter'}
                 </div>
               )}
             </div>
 
             <div className={`${styles.zrPane} ${styles.zrPaneFortune}`}>
               <div className={styles.zrPaneHead}>
-                {ko ? 'Fortune · 몸 · 물질' : 'Fortune · body · matter'}
+                {ko ? '현실·체질 (복점)' : 'Fortune · body · matter'}
               </div>
               {zrFortuneNow ? (
                 <>
                   <div className={styles.zrLine}>
                     <span className={styles.zrLevel}>L1</span>
-                    <span className={styles.zrSign}>{zrFortuneNow.sign}</span>
-                    <span className={styles.zrRuler}>{zrFortuneNow.ruler}</span>
+                    <span className={styles.zrSign}>{zrSignKo(zrFortuneNow.sign, ko)}</span>
+                    <span className={styles.zrRuler}>{zrRulerKo(zrFortuneNow.ruler, ko)}</span>
                   </div>
                   <div className={styles.zrMeta}>
                     <span>
@@ -526,7 +552,7 @@ export function YearTier({ user, year, onDive, onRise }: YearTierProps) {
                 </>
               ) : (
                 <div className={styles.zrEmpty}>
-                  {ko ? '현재 활성 Fortune 챕터 없음' : 'No active Fortune chapter'}
+                  {ko ? '지금 진행 중인 현실·체질 장이 없어요' : 'No active Fortune chapter'}
                 </div>
               )}
             </div>

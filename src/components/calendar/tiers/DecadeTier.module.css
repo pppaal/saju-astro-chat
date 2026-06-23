@@ -372,6 +372,33 @@
   line-height: 1.65;
 }
 
+/* 글로스: 한자 제목(卯戌육합·관대)을 작은 태그로 내리고 평이 본문을 主로. */
+.relTermTag {
+  font-family: var(--m-serif);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  color: var(--t2);
+  border: 1px solid var(--line-2);
+  border-radius: 14px;
+  padding: 2px 10px;
+}
+.relTitleBody {
+  font-family: var(--m-serif);
+  font-size: 16px;
+  font-weight: 400;
+  color: var(--t0);
+  line-height: 1.65;
+}
+.relHarmony .relTitleBody {
+  color: var(--gold-deep);
+}
+.relClash .relTitleBody {
+  color: var(--crimson);
+}
+.relStage .relTitleBody {
+  color: var(--indigo);
+}
+
 /* ── 12운성 matrix ── */
 .matrix {
   display: flex;
@@ -397,6 +424,10 @@
 }
 .matrixX {
   color: var(--t2);
+}
+.matrixGloss {
+  font-size: 12px;
+  color: var(--t1);
 }
 
 /* ── astro milestones ── */

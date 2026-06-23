@@ -145,15 +145,19 @@
   border-radius: 20px;
   padding: 4px 14px;
 }
+.sibsinPlain {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--t1);
+}
 .sibsinRaw {
   font-family: var(--m-serif);
-  font-size: 15px;
-  font-weight: 500;
+  font-size: 11px;
+  letter-spacing: 0.08em;
   color: var(--gold-deep);
-}
-.sibsinPlain {
-  font-size: 12px;
-  color: var(--t1);
+  border: 1px solid var(--gold-line);
+  border-radius: 12px;
+  padding: 1px 8px;
 }
 .master {
   margin-top: 12px;

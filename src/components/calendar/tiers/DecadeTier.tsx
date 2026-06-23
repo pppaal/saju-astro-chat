@@ -21,7 +21,11 @@
 import type { DestinyDecade, DestinyUserSummary } from '@/types/calendar'
 import styles from './DecadeTier.module.css'
 import { useI18n } from '@/i18n/I18nProvider'
-import { sibsinArea, sibsinAreaEn } from '@/lib/calendar-engine/derivers/plainLanguage'
+import {
+  sibsinArea,
+  sibsinAreaEn,
+  twelveStagePlain,
+} from '@/lib/calendar-engine/derivers/plainLanguage'
 import { SIBSIN_EN } from '@/lib/saju/sibsinLabels'
 
 // ============================================================================
@@ -197,14 +201,21 @@ export function DecadeTier({ user, decade, onDive, onRise }: DecadeTierProps) {
     ? `이 10년 안에서는 ${peakYear}년 무렵이 가장 무르익는 해예요.`
     : `Within this decade, around ${peakYear} is when things ripen most.`
 
-  // ── 합충 / 12운성 (이미 평문). titleEn 부재 → ?? ko. romaji 부재 가드. ──
+  // ── 합충 / 12운성 — 평이 본문을 主로, 한자/이름은 작은 태그로. ──
+  //    titleEn 부재 → ?? ko. romaji 부재 가드.
   const hap = decade.hapchung
-  const hapTitle = hap ? (ko ? hap.title : (hap.titleEn ?? hap.title)) : ''
+  // 한자 제목(卯戌육합)은 작은 태그로만 — 본문은 평이 문장.
+  const hapTag = hap ? hap.title : ''
   const hapBody = hap ? (ko ? hap.body : (hap.bodyEn ?? hap.body)) : ''
   const hapTone = hap && (hap.title?.includes('충') || /clash/i.test(hap.title ?? ''))
   const un = decade.unseong
-  const unTitle = un ? (ko ? un.title : (un.titleEn ?? un.title)) : ''
-  const unBody = un ? (ko ? un.body : (un.bodyEn ?? un.body)) : ''
+  // 12운성 단계 이름(관대 등)은 작은 태그 — 본문 主는 쉬운 한 줄.
+  const unTag = un ? un.title : ''
+  // ko: twelveStagePlain 한 줄을 주(主)로. en: bodyEn 폴백(평이 영문).
+  const unStagePlain = un ? twelveStagePlain(un.title) : ''
+  const unLead = ko ? unStagePlain || un?.body || '' : (un?.bodyEn ?? un?.body ?? '')
+  // 대운 지지의 12운성 단계 쉬운 한 줄 — 매트릭스 캡션.
+  const matrixStagePlain = unStagePlain
 
   // ── 외행성 마디 (ko-only — *En 없음). ──
   const astro = decade.astro ?? []
@@ -305,21 +316,23 @@ export function DecadeTier({ user, decade, onDive, onRise }: DecadeTierProps) {
             <div className={`${styles.relCard} ${hapTone ? styles.relClash : styles.relHarmony}`}>
               <div className={styles.relTop}>
                 <span className={styles.relKind}>{ko ? '합·충' : 'Harmony / clash'}</span>
-                <span className={styles.relTitle}>{hapTitle}</span>
+                {/* 한자 제목(卯戌육합)은 작은 태그 — 본문이 主. */}
+                {hapTag && <span className={styles.relTermTag}>{hapTag}</span>}
               </div>
-              {hapBody && <p className={styles.relBody}>{hapBody}</p>}
+              {hapBody && <p className={styles.relTitleBody}>{hapBody}</p>}
             </div>
           )}
           {un && (
             <div className={`${styles.relCard} ${styles.relStage}`}>
               <div className={styles.relTop}>
                 <span className={styles.relKind}>{ko ? '12운성' : 'Twelve stages'}</span>
-                <span className={styles.relTitle}>{unTitle}</span>
+                {/* 단계 이름(관대)은 작은 태그 — 쉬운 한 줄이 主. */}
+                {unTag && <span className={styles.relTermTag}>{unTag}</span>}
               </div>
-              {unBody && <p className={styles.relBody}>{unBody}</p>}
+              {unLead && <p className={styles.relTitleBody}>{unLead}</p>}
             </div>
           )}
-          {/* 12운성 매트릭스 — 본명 일간 × 대운 지지. */}
+          {/* 12운성 매트릭스 — 본명 일간 × 대운 지지. 한자는 보조, 쉬운 한 줄을 곁들임. */}
           <div className={styles.matrix}>
             <span className={styles.matrixChip}>
               <span className={styles.matrixHan}>{user.ilgan.hanja}</span>
@@ -330,6 +343,9 @@ export function DecadeTier({ user, decade, onDive, onRise }: DecadeTierProps) {
               <span className={styles.matrixHan}>{decade.pillar.jiji.hanja}</span>
               {ko ? '대운 지지' : 'decade branch'}
             </span>
+            {ko && matrixStagePlain && (
+              <span className={styles.matrixGloss}>→ {matrixStagePlain}</span>
+            )}
           </div>
         </section>
       )}
@@ -377,7 +393,11 @@ export function DecadeTier({ user, decade, onDive, onRise }: DecadeTierProps) {
             const sajuNm = ko ? c.sajuLine : (c.sajuLineEn ?? c.sajuLine)
             const astroNm = ko ? c.astroLine : (c.astroLineEn ?? c.astroLine)
             const head = ko ? c.name : (c.nameEn ?? c.name)
-            const body = ko ? c.meaning : (c.meaningEn ?? c.meaning)
+            // 본문 앞 raw "정관 × 토성 — " 접두는 위 SAJU/ASTRO 태그·평이 head 와 중복 →
+            //   ko 화면에서만 떼어내 자연스럽게. 사실/문장 내용은 그대로.
+            const rawBody = ko ? c.meaning : (c.meaningEn ?? c.meaning)
+            const body =
+              ko && rawBody ? rawBody.replace(/^[^—]*×[^—]*—\s*/, '').trim() || rawBody : rawBody
             return (
               <div
                 className={`${styles.cross} ${isHero ? styles.crossHero : ''}`.trim()}

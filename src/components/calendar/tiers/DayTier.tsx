@@ -182,7 +182,7 @@ export function DayTier({ day, onRise, sex = '남' }: DayTierProps) {
 
   const happeningLines = [
     ...dayReasons.slice(0, 2).map((r) => localizeLabel(plainReason(stripMarker(r), ko), ko)),
-    ...(strongestCrossMeaning ? [strongestCrossMeaning] : []),
+    ...(strongestCrossMeaning ? [localizeLabel(plainReason(strongestCrossMeaning, ko), ko)] : []),
   ].slice(0, 3)
   const cautionLines = dayCautions
     .slice(0, 2)
@@ -362,8 +362,8 @@ export function DayTier({ day, onRise, sex = '남' }: DayTierProps) {
           <span className={styles.titleKo}>{ko ? '오늘의 일진' : "Today's pillar"}</span>
         </div>
         <div className={styles.sibsinTag}>
-          <span className={styles.sibsinRaw}>{sibsinRaw}</span>
           <span className={styles.sibsinPlain}>{sibsinPlain}</span>
+          <span className={styles.sibsinRaw}>{sibsinRaw}</span>
         </div>
         {day.dayMaster && (
           <div className={styles.master}>
@@ -631,8 +631,8 @@ export function DayTier({ day, onRise, sex = '남' }: DayTierProps) {
               <span className={styles.chartHan}>{day.iljin.hanja}</span>
               <span className={styles.chartDesc}>
                 {ko
-                  ? `오늘의 기운 ${day.iljin.kr} · 십신 ${sibsinRaw}`
-                  : `today's pillar ${day.iljin.en} · ${sibsinRaw}`}
+                  ? `오늘의 기운 ${day.iljin.kr} · ${sibsinPlain} (${sibsinRaw})`
+                  : `today's pillar ${day.iljin.en} · ${sibsinPlain} (${sibsinRaw})`}
               </span>
             </div>
             {day.dayMaster && (
