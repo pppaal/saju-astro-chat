@@ -437,15 +437,18 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
             const sibsinGloss = sibsin ? (ko ? sibsinArea(sibsin) : sibsinAreaEn(sibsin)) : ''
             const gzKr = d.gz.kr // 한국어 음(갑술) — secondary 표기.
             return (
-              <div className={cls} key={`dw-${d.startAge}-${i}`}>
+              <div
+                className={cls}
+                key={`dw-${d.startAge}-${i}`}
+                title={gzKr ? `${gzKr} (${d.gz.hanja})` : d.gz.hanja}
+              >
                 {d.now && (
                   <span className={styles.dwNowTag}>{ko ? '지금 여기' : 'you are here'}</span>
                 )}
-                {/* 감사 #1: 평이 영역(생활영역)이 헤드라인 — bare 한자로 시작하지 않음. */}
+                {/* 감사: 평이 영역(생활영역)이 헤드라인 — bare 한자로 시작하지 않음. */}
                 {sibsinGloss && <span className={styles.dwGloss}>{sibsinGloss}</span>}
-                {/* 간지 한자는 작게 강등 + 한국어 음(갑술)을 secondary 로. raw 십신은
-                    기본뷰에서 제거(전문 폴드 정체성 read 로 흡수). */}
-                <span className={styles.dwGz}>{d.gz.hanja}</span>
+                {/* 기본뷰는 읽을 수 있는 한글 음(갑술)만 — raw 간지 한자(甲戌)는 hover
+                    title 로만 보존(0지식 유저에겐 외계문자 노이즈라 표면에서 뺀다). */}
                 {gzKr && <span className={styles.dwKr}>{gzKr}</span>}
                 <span className={styles.dwAge}>
                   {d.startAge}–{d.endAge}
@@ -531,6 +534,7 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
                 className={`${styles.turnItem} ${t.now ? styles.turnNow : ''} ${
                   t.past ? styles.turnPast : ''
                 }`.trim()}
+                title={t.tag || undefined}
               >
                 <span className={styles.turnStar} aria-hidden>
                   ✦
@@ -538,11 +542,11 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
                 <span className={styles.turnWhen}>{t.when}</span>
                 <div className={styles.turnBody}>
                   <div className={styles.turnTitle}>
-                    {/* 감사 #2: 제목 = 평이 의미. 간지·astro 원명은 작은 secondary 태그. */}
+                    {/* 제목 = 평이 의미만. 간지·astro 원명(甲戌 대운·명왕성 사각)은
+                        0지식 유저에겐 노이즈라 표면에서 빼고 hover title 로만 보존. */}
                     {t.title}
                     {t.now && <span className={styles.turnNowPill}>{ko ? '지금' : 'now'}</span>}
                   </div>
-                  {t.tag && <div className={styles.turnTag}>{t.tag}</div>}
                 </div>
               </li>
             ))}

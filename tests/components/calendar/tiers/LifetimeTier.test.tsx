@@ -61,9 +61,12 @@ describe('LifetimeTier (인생 전체 · LIGHT)', () => {
     expect(screen.getAllByText('굴곡형').length).toBeGreaterThan(0)
   })
 
-  it('renders the current decade ganzhi 甲戌 in the timeline', () => {
+  it('shows the current decade as a readable 갑술 label, 甲戌 only on hover', () => {
     renderTier()
-    expect(screen.getByText('甲戌')).toBeInTheDocument()
+    // novice 기본뷰: 읽을 수 있는 한글 음만 보인다(raw 한자 0).
+    expect(screen.getByText('갑술')).toBeInTheDocument()
+    // raw 간지 한자(甲戌)는 hover title 로 보존.
+    expect(screen.getByTitle('갑술 (甲戌)')).toBeInTheDocument()
   })
 
   it('flags the current decade with the "지금 여기" treatment', () => {
@@ -124,12 +127,14 @@ describe('LifetimeTier (인생 전체 · LIGHT)', () => {
     ).toBeInTheDocument()
   })
 
-  it('renders English identity when locale=en (pattern in EN, hanja still raw)', () => {
+  it('renders English identity when locale=en (pattern in EN; 干支 hanja folded/hover only)', () => {
     mockLocale = 'en'
     renderTier()
     // novice hero in EN: '{pattern} type'. Real dump = Ups and downs.
     expect(screen.getByText('Ups and downs type')).toBeInTheDocument()
+    // 일간 辛 lives inside the (DOM-present) identity fold.
     expect(screen.getAllByText('辛').length).toBeGreaterThan(0)
-    expect(screen.getByText('甲戌')).toBeInTheDocument()
+    // timeline shows the readable 갑술 label; raw 甲戌 only on hover title.
+    expect(screen.getByText('갑술')).toBeInTheDocument()
   })
 })
