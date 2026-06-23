@@ -23,10 +23,15 @@ const MERGE_YEARS = 2
 export interface LifePivot {
   age: number
   year: number
+  /** 라벨 — 한국어(고정). 표시 로케일은 클라이언트가 label/labelEn 중 고른다. */
   label: string
-  astro?: string // 점성 마일스톤 이름
-  saju?: string // 대운 전환 이름
-  meaning?: string // 점성 마일스톤 한 줄 의미
+  /** 라벨 영문(고정) — 클라이언트 언어 토글이 서버 baked 언어에 묶이지 않게 병행. */
+  labelEn: string
+  astro?: string // 점성 마일스톤 이름(KO — kind 판별·내부용)
+  saju?: string // 대운 전환 이름(KO)
+  meaning?: string // 점성 마일스톤 한 줄 의미(KO)
+  /** 한 줄 의미 영문 — 미지정 시 클라이언트가 meaning 으로 폴백. */
+  meaningEn?: string
   bothSystems: boolean // 점성·사주가 같은 시기 (진짜 큰 전환)
   phase: 'past' | 'current' | 'upcoming'
 }
@@ -37,7 +42,12 @@ export interface LifetimePivots {
 
 export function deriveLifetimePivots(
   natal: NatalContext,
-  lang: 'ko' | 'en' = 'ko',
+  /**
+   * Deprecated for label language — each pivot now carries BOTH ko(`label`)
+   * and en(`labelEn`) so the client toggle isn't bound to the server's render
+   * language. Kept for signature/positional compatibility.
+   */
+  _lang: 'ko' | 'en' = 'ko',
   /**
    * Optional — calculateOuterPlanetMilestones 결과를 그대로 넘기면 토성/목성/
    * 천왕성 등 외행성 마일스톤 연도가 실제 transit 기반으로 교체된다. 미지정
@@ -62,8 +72,6 @@ export function deriveLifetimePivots(
     birthTimeZone: natal.input.timeZone,
     now,
   })
-  const isKo = lang === 'ko'
-
   const phaseOf = (age: number): LifePivot['phase'] =>
     age < currentAge - MERGE_YEARS
       ? 'past'
@@ -72,24 +80,36 @@ export function deriveLifetimePivots(
         : 'current'
 
   // 점성 라이프사이클 마일스톤 (출생~90세) — 이름 있는 핵심 전환들, 절대 누락 금지.
-  const astroEvents = buildLifecycleTiming(
+  // ko/en 두 번 산출해 병행 baked(같은 TABLE 순서라 인덱스로 1:1 zip).
+  const astroKoEvents = buildLifecycleTiming(
     birthYear,
     birthYear + 90,
-    isKo,
+    true,
     astroMilestoneOverrides,
     now
-  ).events.map((e) => ({
+  ).events
+  const astroEnEvents = buildLifecycleTiming(
+    birthYear,
+    birthYear + 90,
+    false,
+    astroMilestoneOverrides,
+    now
+  ).events
+  const astroEvents = astroKoEvents.map((e, i) => ({
     age: e.startYear - birthYear,
     year: e.startYear,
-    label: e.label,
-    meaning: e.meaning,
+    label: e.label, // ko
+    labelEn: astroEnEvents[i]?.label ?? e.label,
+    meaning: e.meaning, // ko
+    meaningEn: astroEnEvents[i]?.meaning,
   }))
 
-  // 사주 대운 전환점
+  // 사주 대운 전환점 — ko/en 라벨 모두 baked.
   const daeun = (natal.saju?.daeun ?? []).map((d) => ({
     age: d.startAge,
     year: d.startYear,
-    label: isKo ? `${d.stem}${d.branch} 대운` : `${d.stem}${d.branch} luck cycle`,
+    label: `${d.stem}${d.branch} 대운`,
+    labelEn: `${d.stem}${d.branch} luck cycle`,
   }))
 
   // astro 이벤트를 앵커로 두고 ±MERGE_YEARS 안의 가장 가까운 대운을 1:1로 붙인다.
@@ -112,9 +132,11 @@ export function deriveLifetimePivots(
       age: a.age,
       year: a.year,
       label: a.label,
+      labelEn: a.labelEn,
       astro: a.label,
       saju: matched?.label,
       meaning: a.meaning,
+      meaningEn: a.meaningEn,
       bothSystems: Boolean(matched),
       phase: phaseOf(a.age),
     }
@@ -127,6 +149,7 @@ export function deriveLifetimePivots(
       age: d.age,
       year: d.year,
       label: d.label,
+      labelEn: d.labelEn,
       saju: d.label,
       bothSystems: false,
       phase: phaseOf(d.age),

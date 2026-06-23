@@ -28,6 +28,25 @@
   --serif: 'Noto Serif KR', serif;
   --sym: 'Noto Sans Symbols 2', 'Noto Sans Symbols', sans-serif;
 
+  /* 미스틱 프리미엄 라이트 — 플럼/골드 셀레셜 토큰 (스펙 §1). .report 에 선언해
+     DOM cascade 로 모든 자식(디테일 패널)에서 var(--plum) 등으로 바로 쓴다. */
+  --plum: #5b4a73; /* 미스틱 플럼 — 보조 구조색(이브로우/EN라벨/글로서리헤더) */
+  --plum-soft: #8a76a8;
+  --plum-wash: rgba(91, 74, 115, 0.06); /* 플럼 틴트 배경 */
+  --gold-soft: #c9a85f;
+  --gold-wash: rgba(169, 131, 59, 0.08); /* 골드 틴트 배경 */
+  --gold-line: rgba(169, 131, 59, 0.35); /* 골드 헤어라인 */
+  --celeste: linear-gradient(135deg, rgba(91, 74, 115, 0.05), rgba(169, 131, 59, 0.05));
+  --shadow-soft: 0 2px 14px -6px rgba(60, 48, 40, 0.16), 0 1px 3px rgba(60, 48, 40, 0.05);
+  --shadow-card: 0 10px 34px -16px rgba(60, 48, 40, 0.22);
+  --radius-sm: 10px;
+  --radius: 14px;
+  --radius-lg: 20px;
+  --star-dots:
+    radial-gradient(1px 1px at 20% 30%, rgba(91, 74, 115, 0.18), transparent),
+    radial-gradient(1px 1px at 75% 60%, rgba(169, 131, 59, 0.18), transparent),
+    radial-gradient(1px 1px at 50% 85%, rgba(91, 74, 115, 0.14), transparent);
+
   font-family: 'Pretendard', 'Noto Sans KR', sans-serif;
   background: var(--paper);
   color: var(--ink);
@@ -38,8 +57,14 @@
   word-break: keep-all;
   overflow-wrap: anywhere;
   -webkit-font-smoothing: antialiased;
-  background-image: radial-gradient(circle at 1px 1px, rgba(120, 110, 90, 0.04) 1px, transparent 0);
-  background-size: 22px 22px;
+  /* 종이 그레인 + 아주 옅은 별점 레이어(--star-dots, 낮은 opacity). */
+  background-image:
+    var(--star-dots),
+    radial-gradient(circle at 1px 1px, rgba(120, 110, 90, 0.04) 1px, transparent 0);
+  background-size:
+    auto,
+    22px 22px;
+  background-attachment: fixed, scroll;
 }
 .report * {
   box-sizing: border-box;
@@ -68,6 +93,7 @@
   max-width: 1180px;
   margin: 0 auto;
   padding: 48px 36px 80px;
+  position: relative;
 }
 
 /* 헤더 */
@@ -77,16 +103,39 @@
   align-items: flex-end;
   gap: 40px;
   padding-bottom: 22px;
-  border-bottom: 1.5px solid var(--ink);
+  /* 묵직한 잉크선 대신 우아한 골드 헤어라인. */
+  border-bottom: 1px solid var(--gold-line);
   margin-bottom: 8px;
+  position: relative;
+}
+/* 헤더 끝 ✦ 오너먼트 — 골드 라인 가운데 살짝. */
+.reportHead::after {
+  content: '✦';
+  position: absolute;
+  left: 50%;
+  bottom: -8px;
+  transform: translateX(-50%);
+  font-size: 11px;
+  color: var(--gold);
+  background: var(--paper);
+  padding: 0 8px;
+  line-height: 1;
 }
 .eyebrow {
   font-size: 11.5px;
   letter-spacing: 0.32em;
   text-transform: uppercase;
-  color: var(--ink-3);
+  color: var(--plum);
   font-weight: 600;
   margin-bottom: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.eyebrow::before {
+  content: '✦';
+  color: var(--gold);
+  font-size: 10px;
 }
 .rhLeft h1 {
   font-family: var(--serif);
@@ -104,10 +153,10 @@
   gap: 4px;
   margin: 0 0 40px;
   padding: 13px 16px;
-  border: 1px solid var(--gold);
-  border-left-width: 3px;
-  border-radius: 3px;
-  background: var(--card);
+  border: 1px solid var(--gold-line);
+  border-left: 3px solid var(--gold);
+  border-radius: var(--radius-sm);
+  background: var(--gold-wash);
   font-size: 12.5px;
   line-height: 1.55;
   color: var(--ink-2);
@@ -141,8 +190,9 @@
   gap: 0;
   margin: 0 0 54px;
   border: 1px solid var(--line);
-  border-radius: 3px;
+  border-radius: var(--radius-sm);
   background: var(--card);
+  box-shadow: var(--shadow-soft);
   overflow: hidden;
 }
 .metaCell {
@@ -159,7 +209,7 @@
   font-size: 10.5px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--ink-3);
+  color: var(--plum);
   font-weight: 600;
 }
 .metaV {
@@ -168,26 +218,55 @@
   font-weight: 500;
   font-family: var(--mono);
   letter-spacing: -0.01em;
+  /* 좌표/UTC 같은 모노 값이 글자 중간(37.5│6°N)에서 끊기지 않게 — 전역
+     overflow-wrap:anywhere 를 이 셀에서만 토큰 경계 줄바꿈으로 되돌린다. */
+  overflow-wrap: break-word;
+  word-break: keep-all;
 }
 
 /* 섹션 */
 .section {
   margin-bottom: 58px;
 }
+/* 섹션 헤더 레시피(스펙 §2): ✦ 골드 글리프 + serif 골드 numeral + serif 타이틀
+   + (옵션)EN 플럼 이브로우 + 가로 골드 헤어라인 rule(끝에 ✦ 오너먼트). */
 .secHead {
   display: flex;
   align-items: baseline;
-  gap: 16px;
+  gap: 14px;
   margin-bottom: 24px;
-  padding-bottom: 13px;
-  border-bottom: 1px solid var(--line);
+  padding-bottom: 14px;
+  position: relative;
+  border-bottom: 1px solid var(--gold-line);
+}
+/* 골드 라인 끝의 ✦ 오너먼트. */
+.secHead::after {
+  content: '✦';
+  position: absolute;
+  right: 0;
+  bottom: -7px;
+  font-size: 10px;
+  color: var(--gold);
+  background: var(--paper);
+  padding: 0 6px;
+  line-height: 1;
 }
 .secNum {
-  font-family: var(--mono);
-  font-size: 12px;
+  font-family: var(--serif);
+  font-size: 26px;
   color: var(--gold);
-  font-weight: 500;
-  letter-spacing: 0.05em;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  line-height: 1;
+  /* numeral 앞 ✦ 글리프. */
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.secNum::before {
+  content: '✦';
+  font-size: 13px;
+  color: var(--gold-soft);
 }
 .secTitle {
   font-family: var(--serif);
@@ -196,7 +275,7 @@
   letter-spacing: -0.01em;
 }
 .han {
-  color: var(--ink-3);
+  color: var(--plum-soft);
   font-weight: 400;
   font-size: 17px;
   margin-left: 8px;
@@ -206,14 +285,15 @@
   font-size: 11px;
   letter-spacing: 0.26em;
   text-transform: uppercase;
-  color: var(--ink-3);
+  color: var(--plum);
   font-weight: 600;
 }
 
 .card {
   background: var(--card);
   border: 1px solid var(--line);
-  border-radius: 5px;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-soft);
 }
 .cardPad {
   padding: 22px;
@@ -222,9 +302,18 @@
   font-size: 11px;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--ink-3);
+  color: var(--plum);
   font-weight: 700;
   margin-bottom: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+.subcap::before {
+  content: '✦';
+  color: var(--gold);
+  font-size: 9px;
+  font-weight: 400;
 }
 
 /* 01 4기둥 */
@@ -234,7 +323,8 @@
   gap: 0;
   background: var(--card);
   border: 1px solid var(--line);
-  border-radius: 5px;
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-soft);
   overflow: hidden;
 }
 .pillar {
@@ -417,7 +507,8 @@
   grid-template-columns: repeat(6, 1fr);
   gap: 0;
   border: 1px solid var(--line);
-  border-radius: 5px;
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-soft);
   overflow: hidden;
   margin-top: 12px;
   background: var(--card);
@@ -489,9 +580,14 @@
   display: flex;
   justify-content: space-between;
   align-items: baseline;
+  gap: 10px;
   font-size: 12.5px;
   color: var(--ink-2);
   margin-bottom: 9px;
+}
+/* 왼쪽 라벨(일간 · 격국 등)이 길어지면 줄어들되, 오른쪽 값(<b>)은 그대로. */
+.gaugeHead > span:first-child {
+  min-width: 0;
 }
 .gaugeHead b {
   font-size: 15px;
@@ -518,15 +614,25 @@
 .gaugeScale {
   display: flex;
   justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 4px 8px;
   font-size: 10px;
   color: var(--ink-3);
   margin-top: 5px;
   font-weight: 500;
 }
+/* 여러 항목(통근/공망/조후 · 오행 카운트)을 담는 행 — space-between 대신
+   왼쪽 정렬로 모아 좁은 폭에서 들쭉날쭉/겹침 방지. */
+.gaugeScaleRow {
+  justify-content: flex-start;
+  margin-top: 6px;
+}
 .yongRow {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 10px;
+  row-gap: 8px;
   padding: 7px 0;
   border-bottom: 1px solid var(--line-2);
 }
@@ -669,7 +775,7 @@
   gap: 0;
   margin-top: 14px;
   border: 1px solid var(--line);
-  border-radius: 5px;
+  border-radius: var(--radius-sm);
   overflow: hidden;
   background: var(--card);
 }
@@ -825,8 +931,9 @@
 .theme {
   border: 1px solid var(--line);
   border-left: 3px solid var(--tc);
-  border-radius: 5px;
+  border-radius: var(--radius-sm);
   background: var(--card);
+  box-shadow: var(--shadow-soft);
   padding: 16px 18px;
 }
 .themeHead {
@@ -851,6 +958,23 @@
   font-size: 15.5px;
   font-weight: 700;
   font-family: var(--serif);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 8px;
+  min-width: 0;
+}
+/* 카테고리 라벨 옆 평어 한 줄 — 라벨만으론 막막하니 쉬운 뜻을 곁들인다. */
+.themeGloss {
+  font-family: 'Pretendard', 'Noto Sans KR', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ink-2);
+  letter-spacing: 0;
+}
+.themeGloss::before {
+  content: '— ';
+  color: var(--ink-3);
 }
 .themeBadge {
   margin-left: auto;
@@ -866,12 +990,14 @@
 }
 .themeCross {
   display: flex;
+  flex-wrap: wrap;
   gap: 10px;
   margin-top: 10px;
   font-size: 12px;
 }
 .themeSide {
-  flex: 1;
+  flex: 1 1 140px;
+  min-width: 0;
 }
 .themeSideK {
   font-size: 10px;
@@ -886,9 +1012,10 @@
 }
 
 .synthBanner {
-  border: 1px solid var(--gold);
-  border-radius: 6px;
-  background: rgba(169, 131, 59, 0.07);
+  border: 1px solid var(--gold-line);
+  border-radius: var(--radius-sm);
+  background: var(--gold-wash);
+  box-shadow: var(--shadow-soft);
   padding: 14px 18px;
   margin-bottom: 18px;
 }
@@ -907,14 +1034,30 @@
 }
 
 .foot {
-  margin-top: 30px;
-  padding-top: 18px;
-  border-top: 1px solid var(--line);
+  position: relative;
+  margin-top: 36px;
+  padding-top: 22px;
+  border-top: 1px solid var(--gold-line);
   display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
   justify-content: space-between;
   font-size: 11px;
   color: var(--ink-3);
   letter-spacing: 0.02em;
+}
+/* 푸터 골드 라인 가운데 ✦ 오너먼트. */
+.foot::before {
+  content: '✦';
+  position: absolute;
+  left: 50%;
+  top: -7px;
+  transform: translateX(-50%);
+  font-size: 10px;
+  color: var(--gold);
+  background: var(--paper);
+  padding: 0 8px;
+  line-height: 1;
 }
 
 @media (max-width: 980px) {
@@ -983,6 +1126,52 @@
   .planetTable td {
     padding: 6px 4px;
   }
+  /* 행성 이름 칸 — 좁은 폰에서 한글명+로마자가 한 줄(nowrap)로 넘쳐 표 전체가
+     가로로 삐져나가던 문제. 줄바꿈 허용(어절 단위 keep-all 유지). */
+  .plN {
+    white-space: normal;
+  }
+  /* 어스펙트 그리드 — 10행성이면 36px×10=360px 라 폰 폭을 넘는다. 셀 축소. */
+  .aspgrid td,
+  .aspgrid th {
+    width: 30px;
+    height: 30px;
+  }
+  .agGly {
+    font-size: 12px;
+  }
+  .agOrb {
+    font-size: 7px;
+  }
+  /* 헤더/섹션 — 좁은 폰에서 타이틀·EN이브로우가 한 줄에 안 들어가 겹치던 문제.
+     EN 이브로우를 줄바꿈 허용하고 큰 serif numeral 만 살짝 축소. */
+  .reportHead {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+  }
+  .rhRight {
+    text-align: left;
+  }
+  .secHead {
+    flex-wrap: wrap;
+    gap: 8px 12px;
+  }
+  .secNum {
+    font-size: 22px;
+  }
+  .secEn {
+    margin-left: 0;
+    flex-basis: 100%;
+  }
+  .hero {
+    padding: 20px 18px;
+  }
+  .hero::after {
+    top: 12px;
+    right: 14px;
+    font-size: 15px;
+  }
 }
 
 /* 일간 한 줄 풀이 (hover→가시화) · 용신 이유 — Stage 2 이해도 보강 */
@@ -1013,8 +1202,9 @@
   flex-direction: column;
   gap: 2px;
   border: 1px solid var(--line);
-  border-radius: 5px;
+  border-radius: var(--radius-sm);
   background: var(--card);
+  box-shadow: var(--shadow-soft);
   padding: 10px 14px;
 }
 .plainRow {
@@ -1056,8 +1246,9 @@
 }
 .bigCard {
   border: 1px solid var(--line);
-  border-radius: 5px;
+  border-radius: var(--radius-sm);
   background: var(--card);
+  box-shadow: var(--shadow-soft);
   padding: 14px 16px;
 }
 .bigHead {
@@ -1133,11 +1324,21 @@
 
 /* 일간(나) 카드 — hanja-rich 본문 가시화 */
 .dmCard {
-  border: 1px solid var(--line);
-  border-radius: 5px;
-  background: var(--card);
-  padding: 14px 16px;
+  position: relative;
+  border: 1px solid var(--gold-line);
+  border-radius: var(--radius);
+  background: var(--celeste), var(--card);
+  box-shadow: var(--shadow-soft);
+  padding: 16px 18px;
   margin-bottom: 14px;
+}
+.dmCard::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 2px;
+  border-radius: var(--radius) var(--radius) 0 0;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
 }
 .dmHead {
   display: flex;
@@ -1191,14 +1392,36 @@
   word-break: keep-all;
 }
 
-/* 한눈에 — 결론 먼저 (별명 + 종합 교차 + 필요한 기운) */
+/* 한눈에 — 결론 먼저 (별명 + 종합 교차 + 필요한 기운).
+   플럼-골드 소프트 셀레셜 카드: 상단 골드 라인 + --celeste 워시 + 코너 ✦. */
 .hero {
+  position: relative;
   margin: 0 0 44px;
-  padding: 22px 24px;
-  border: 1px solid var(--line);
-  border-left: 3px solid var(--gold);
-  border-radius: 6px;
-  background: linear-gradient(180deg, rgba(169, 131, 59, 0.05), rgba(169, 131, 59, 0.01));
+  padding: 24px 26px;
+  border: 1px solid var(--gold-line);
+  border-radius: var(--radius);
+  background: var(--celeste), linear-gradient(180deg, var(--card), var(--card-2));
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+}
+/* 상단 1px 골드 라인. */
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+}
+/* 코너에 은은한 ✦ 오너먼트(데이터 가독 방해 없는 워시 톤). */
+.hero::after {
+  content: '✦';
+  position: absolute;
+  top: 14px;
+  right: 18px;
+  font-size: 18px;
+  color: var(--gold);
+  opacity: 0.32;
+  pointer-events: none;
 }
 .heroTag {
   font-family: var(--serif);
@@ -1207,20 +1430,27 @@
   letter-spacing: -0.01em;
   color: var(--ink);
   margin-bottom: 10px;
+  /* 헤드라인이라 어절·괄호 경계에서만 줄바꿈 — 괄호 안(예: "물의 기운")이
+     글자 중간에서 끊기지 않게. */
+  overflow-wrap: break-word;
 }
 .heroSummary {
-  font-size: 14px;
-  line-height: 1.65;
-  color: var(--ink-2);
+  font-size: 14.5px;
+  line-height: 1.7;
+  color: var(--ink);
   margin: 0 0 12px;
+  position: relative;
 }
 .heroRemedy {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
   gap: 6px 12px;
-  padding-top: 12px;
-  border-top: 1px solid var(--line-2);
+  margin-top: 14px;
+  padding: 12px 14px;
+  border: 1px solid var(--gold-line);
+  border-radius: var(--radius-sm);
+  background: var(--gold-wash);
   font-size: 13px;
 }
 .heroRemedy b {
@@ -1236,27 +1466,40 @@
   flex-direction: column;
   gap: 4px;
   margin-bottom: 12px;
+  padding: 10px 14px;
+  border-left: 2px solid var(--plum-soft);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  background: var(--plum-wash);
   font-size: 13px;
-  line-height: 1.5;
+  line-height: 1.55;
   color: var(--ink-2);
 }
 .heroSW b {
-  color: var(--gold);
+  color: var(--plum);
   font-weight: 600;
   margin-right: 6px;
 }
 
 /* 교차 — 실천 처방 블록 */
 .crossAdvice {
+  position: relative;
   margin-top: 20px;
-  padding: 16px 18px;
-  border: 1px solid var(--gold-line, var(--line));
-  border-left: 3px solid var(--gold);
-  border-radius: 6px;
-  background: rgba(169, 131, 59, 0.04);
+  padding: 18px 20px;
+  border: 1px solid var(--gold-line);
+  border-radius: var(--radius);
+  background: var(--celeste), var(--gold-wash);
+  box-shadow: var(--shadow-soft);
+}
+.crossAdvice::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 2px;
+  border-radius: var(--radius) var(--radius) 0 0;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
 }
 .crossAdviceHead {
-  font-size: 13px;
+  font-size: 13.5px;
   font-weight: 700;
   color: var(--ink);
   margin-bottom: 10px;
@@ -1277,4 +1520,143 @@
 .crossAdviceList b {
   color: var(--gold);
   font-weight: 600;
+}
+/* 합의 주제별 평어 한 줄 목록 — '정체성 코어' 항목 안에 들여써서 라벨별 뜻을 보탠다. */
+.crossGlossList {
+  margin: 8px 0 0;
+  padding-left: 14px;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.crossGlossList li {
+  position: relative;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+.crossGlossList li::before {
+  content: '✦';
+  position: absolute;
+  left: -14px;
+  color: var(--gold);
+  font-size: 8px;
+  top: 3px;
+}
+.crossGlossList b {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+/* 더보기 — 전문(Level 2) 자료 접기. 네이티브 <details>/<summary> 라 JS·상태
+   없이 모바일/터치/접근성 모두 동작. '쉬운 풀이(Level 1)'는 항상 보이고,
+   한자 명식·어스펙트 격자·디그니티 같은 원자료는 한 탭 뒤로 숨긴다. */
+.l2 {
+  margin-top: 14px;
+  border-top: 1px solid var(--line);
+}
+.l2 > summary {
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 11px 2px 3px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--ink-3);
+}
+.l2 > summary::-webkit-details-marker {
+  display: none;
+}
+.l2 > summary::before {
+  content: '▸';
+  font-size: 10px;
+  color: var(--gold);
+  transition: transform 0.15s ease;
+}
+.l2[open] > summary::before {
+  transform: rotate(90deg);
+}
+.l2 > summary:hover {
+  color: var(--plum);
+}
+.l2Body {
+  margin-top: 12px;
+}
+
+/* 초보자용 "쉽게 풀이" 더보기 — 섹션 헤더 아래. 골드 톤 박스로 본문과 구분.
+   기본 접힘, 펼치면 용어 한 줄 풀이 목록. */
+.explain {
+  margin: -8px 0 18px;
+  border: 1px solid var(--plum-wash);
+  border-radius: var(--radius-sm);
+  background: var(--plum-wash);
+}
+.explain > summary {
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+  padding: 10px 14px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--plum);
+  letter-spacing: 0.01em;
+}
+.explain > summary::-webkit-details-marker {
+  display: none;
+}
+.explain > summary::before {
+  content: '▸';
+  display: inline-block;
+  margin-right: 6px;
+  font-size: 10px;
+  transition: transform 0.15s ease;
+}
+.explain[open] > summary::before {
+  transform: rotate(90deg);
+}
+.explain[open] > summary {
+  border-bottom: 1px solid rgba(91, 74, 115, 0.12);
+}
+.explainBody {
+  margin: 0;
+  padding: 10px 14px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.explainRow {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.explainTerm {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--plum);
+  font-family: var(--serif);
+}
+.explainDef {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--ink-2);
+}
+
+/* 작은 범례 — 본문에 노출하기 애매한 기호(℞ 역행 등)를 표 아래 한 줄로. */
+.miniLegend {
+  margin-top: 8px;
+  font-size: 11px;
+  color: var(--ink-3);
+  line-height: 1.5;
+}
+.miniLegend b {
+  font-family: var(--sym);
+  color: var(--el-fire);
+  font-weight: 600;
+  margin-right: 3px;
 }

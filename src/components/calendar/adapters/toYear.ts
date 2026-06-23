@@ -2,9 +2,9 @@
  * Profection + ZR + SR + 세운 → destinypal `year` 객체 adapter.
  *
  * destinypal year:
- *   { year, sewoon, sewoonSibsin, headline,
+ *   { year, sewoon, sewoonSibsin, headline, headlineEn,
  *     profection: { house, theme, themeEn, cusp, cuspEn, ruler, rulerEn, rulerNatal, rulerNatalEn },
- *     sajuNote, astroNote }
+ *     sajuNote, sajuNoteEn, astroNote, astroNoteEn }
  *
  * 입력:
  *   - NatalContext (대운 + 일간 → 세운 십신)
@@ -16,7 +16,7 @@ import type { NatalContext } from '@/lib/calendar-engine/context/types'
 import type { ActiveSignal, CalendarCell } from '@/lib/calendar-engine/types'
 import { toGanji, type Ganji, SIGN_KO, PLANET_KO, computeSewoonGanji } from './shared'
 import { getSibsinKo } from '@/lib/saju/cycleRelations'
-import { SIBSIN_EN } from '@/lib/saju/sibsinLabels'
+import { plainPairName } from '@/lib/calendar-engine/derivers/plainLanguage'
 import { ordinalEn } from '@/lib/calendar-engine/ordinal'
 import type { ZodiacKo } from '@/lib/astrology/foundation/types'
 import type { AstroPlanetName } from '@/lib/astrology/interpretations'
@@ -37,15 +37,6 @@ export interface DestinypalYearProfection {
   rulerNatalHouse: number
   /** 본명 룰러 sign. */
   rulerNatalSign: ZodiacKo
-}
-
-export interface DestinypalYearZRChapter {
-  level: 'L1' | 'L2'
-  sign: string // 한글
-  signEn: string
-  ruler: string // 한글
-  rulerEn: string
-  duration: string // "~10년 1개월" 등
 }
 
 export interface DestinypalYearSewoon {
@@ -78,18 +69,17 @@ export interface DestinypalYear {
   sewoonGz: Ganji
   sewoonSibsin: string // 세운 천간 vs 일간 십신
   headline: string
+  headlineEn: string
   profection?: DestinypalYearProfection
   /**
    * 12-슬롯 profection wheel — Asc sign 부터 whole-sign 순서로 1..12궁 cusp + ruler.
    * profection 활성 하우스만 `active=true`.
    */
   profectionWheel: DestinyProfectionWheelSlice[]
-  /** ZR 챕터 (L1 + L2) Phase 3 신규 */
-  zr?: { l1?: DestinypalYearZRChapter; l2?: DestinypalYearZRChapter }
-  /** Solar Return Asc sign — Phase 3 신규 */
-  solarReturnAsc?: { sign: string; signEn: string }
   sajuNote: string
+  sajuNoteEn: string
   astroNote: string
+  astroNoteEn: string
   /** 12개월 점수 스파인 (선택 — cells 또는 monthlyScores 옵션이 들어오면). */
   monthlyScores?: Array<{ month: number; score: number; bestDay?: string }>
   /** 올해 활성 사주 × 점성 교차 — 월 구간 해석 (cells 가 들어오면 자동 산출). */
@@ -113,21 +103,6 @@ const PROFECTION_THEMES: Record<number, { theme: string; themeEn: string }> = {
   10: { theme: '소명 · 사회적 자리', themeEn: 'Vocation · Status' },
   11: { theme: '집단 · 친구', themeEn: 'Community · Friends' },
   12: { theme: '뒤편 · 정리', themeEn: 'Hidden things · Release' },
-}
-
-const ZR_RULERS: Record<ZodiacKo, string> = {
-  Aries: 'Mars',
-  Taurus: 'Venus',
-  Gemini: 'Mercury',
-  Cancer: 'Moon',
-  Leo: 'Sun',
-  Virgo: 'Mercury',
-  Libra: 'Venus',
-  Scorpio: 'Mars',
-  Sagittarius: 'Jupiter',
-  Capricorn: 'Saturn',
-  Aquarius: 'Saturn',
-  Pisces: 'Jupiter',
 }
 
 // Hellenistic 정통 sign ruler — profection wheel 12 슬롯의 cusp ruler 룩업.
@@ -160,21 +135,6 @@ const ZODIAC_ORDER: ZodiacKo[] = [
   'Aquarius',
   'Pisces',
 ]
-const ZR_DURATION_KO: Record<ZodiacKo, string> = {
-  // Spirit/Fortune 공통 — sign-walk 기본 연수
-  Cancer: '25년',
-  Leo: '19년',
-  Virgo: '20년',
-  Libra: '8년',
-  Scorpio: '15년',
-  Sagittarius: '12년',
-  Capricorn: '27년',
-  Aquarius: '30년',
-  Pisces: '12년',
-  Aries: '15년',
-  Taurus: '8년',
-  Gemini: '20년',
-}
 
 export interface ToYearOptions {
   /** 대상 연도 (보통 currentYear). */
@@ -183,9 +143,13 @@ export interface ToYearOptions {
   yearlySignals?: ActiveSignal[]
   /** 헤드라인 한 줄 (선택). */
   headline?: string
+  /** 헤드라인 영문 한 줄 (선택). */
+  headlineEn?: string
   /** 사주 / 점성 노트 한 줄 (선택). */
   sajuNote?: string
+  sajuNoteEn?: string
   astroNote?: string
+  astroNoteEn?: string
   /**
    * 한 해 12 달 cells 전체 (또는 일부) — adapter 가 datetime prefix 로 month
    * grouping 해 monthlyScores 12 슬롯 평균을 자동으로 빌드.
@@ -210,14 +174,6 @@ export function toYear(natal: NatalContext, opts: ToYearOptions): DestinypalYear
   // Profection signal → house + ruler 추출
   const profSignal = (opts.yearlySignals ?? []).find((s) => s.kind === 'profection')
   const profection = profSignal ? extractProfection(profSignal, natal) : undefined
-
-  // ZR signal → L1 / L2
-  const zrSignals = (opts.yearlySignals ?? []).filter((s) => s.kind === 'zodiacal-releasing')
-  const zr = extractZR(zrSignals)
-
-  // Solar Return signal → SR Asc sign
-  const srSignal = (opts.yearlySignals ?? []).find((s) => s.kind === 'solar-return')
-  const solarReturnAsc = srSignal ? extractSRAsc(srSignal) : undefined
 
   // ── Profection wheel: 12 슬롯 (Asc sign 부터 whole-sign 순서) ──
   const profectionWheel = buildProfectionWheel(natal, profection?.house)
@@ -250,17 +206,28 @@ export function toYear(natal: NatalContext, opts: ToYearOptions): DestinypalYear
       (profection
         ? `올해의 무게중심은 ${profection.house}번째 영역으로 기울어요.`
         : `${opts.year}년 — 흐름이 새로 짜이는 해.`),
+    headlineEn:
+      opts.headlineEn ??
+      (profection
+        ? `This year leans toward your ${ordinalEn(profection.house)} house.`
+        : `${opts.year} — a year the flow gets re-drawn.`),
     profection,
     profectionWheel,
-    zr,
-    solarReturnAsc,
     sajuNote:
       opts.sajuNote ??
       `세운 ${sewoonRaw.stem}${sewoonRaw.branch} — 일간 ${dm} 기준 ${sewoonSibsin}.`,
+    sajuNoteEn:
+      opts.sajuNoteEn ??
+      `Annual pillar ${sewoonRaw.stem}${sewoonRaw.branch} — ${sewoonSibsin} to day master ${dm}.`,
     astroNote:
       opts.astroNote ??
       (profection
         ? `Profection이 ${profection.house}하우스를 점등 — 룰러 ${profection.ruler}가 본명 ${profection.rulerNatal}.`
+        : ''),
+    astroNoteEn:
+      opts.astroNoteEn ??
+      (profection
+        ? `Profection lights up house ${profection.house} — its ruler ${profection.rulerEn} sits in your natal ${profection.rulerNatalEn}.`
         : ''),
     monthlyScores,
     crossings: buildYearCrossings(opts.cells ?? [], opts.year),
@@ -281,8 +248,8 @@ function buildYearCrossings(cells: CalendarCell[], year: number): DestinypalCros
   const agg = new Map<
     string,
     {
-      name: string
-      nameEn: string
+      title: string
+      titleEn: string
       korean?: string
       english?: string
       polarity: number
@@ -299,24 +266,10 @@ function buildYearCrossings(cells: CalendarCell[], year: number): DestinypalCros
       if (Number.isNaN(st) || Number.isNaN(en)) continue
       const cur = agg.get(s.name)
       if (!cur) {
-        // 영문 이름 — evidence 의 십신키(한글)·행성키(영문)로 'Right Officer × Saturn'.
-        // 신살(도화·역마·양인·건록)은 SIBSIN_EN 에 없어 별도 폴백.
-        const SHINSAL_EN: Record<string, string> = {
-          도화: 'Peach Blossom',
-          도화살: 'Peach Blossom',
-          역마: 'Traveling Horse',
-          역마살: 'Traveling Horse',
-          양인: 'Yang Blade',
-          건록: 'Established Stipend',
-        }
-        const det = (s.evidence?.detail ?? {}) as { sajuKey?: string; astroKey?: string }
-        const sajuEn = det.sajuKey
-          ? (SIBSIN_EN[det.sajuKey] ?? SHINSAL_EN[det.sajuKey] ?? det.sajuKey)
-          : ''
-        const nameEn = sajuEn && det.astroKey ? `${sajuEn} × ${det.astroKey}` : s.name
+        // 제목은 쉬운말 — "정관 × 토성" → "일·책임 × 책임·인내" (페어가 아니면 원문).
         agg.set(s.name, {
-          name: s.name,
-          nameEn,
+          title: plainPairName(s.name, true),
+          titleEn: plainPairName(s.name, false),
           korean: s.korean,
           english: s.english,
           polarity: s.polarity,
@@ -355,8 +308,8 @@ function buildYearCrossings(cells: CalendarCell[], year: number): DestinypalCros
     return {
       when,
       whenEn: whenLabelEn(v.start, v.end),
-      title: v.name,
-      titleEn: v.nameEn,
+      title: v.title,
+      titleEn: v.titleEn,
       detail: v.korean,
       detailEn: v.english,
       tone: (v.polarity > 0 ? 'good' : v.polarity < 0 ? 'caution' : 'neutral') as
@@ -557,38 +510,4 @@ function extractProfection(
     rulerNatalHouse: rulerPlanet?.house ?? 0,
     rulerNatalSign: (rulerPlanet?.sign ?? 'Aries') as ZodiacKo,
   }
-}
-
-function extractZR(signals: ActiveSignal[]): DestinypalYear['zr'] {
-  if (signals.length === 0) return undefined
-  // ZR signal name 형식은 extractor 마다 다를 수 있으나 evidence.detail.level 가 보통 'L1'/'L2'.
-  const result: { l1?: DestinypalYearZRChapter; l2?: DestinypalYearZRChapter } = {}
-  for (const s of signals) {
-    const detail = s.evidence?.detail ?? {}
-    const level = (detail.level as 'L1' | 'L2' | undefined) ?? 'L1'
-    const signEn =
-      (detail.sign as ZodiacKo | undefined) ?? (s.evidence?.planets?.[0] as ZodiacKo | undefined)
-    if (!signEn) continue
-    const ruler = ZR_RULERS[signEn]
-    const duration = ZR_DURATION_KO[signEn] ?? ''
-    const chapter: DestinypalYearZRChapter = {
-      level,
-      sign: SIGN_KO[signEn] ?? signEn,
-      signEn,
-      ruler: PLANET_KO[ruler] ?? ruler,
-      rulerEn: ruler,
-      duration,
-    }
-    if (level === 'L1') result.l1 = chapter
-    else result.l2 = chapter
-  }
-  return Object.keys(result).length > 0 ? result : undefined
-}
-
-function extractSRAsc(s: ActiveSignal): DestinypalYear['solarReturnAsc'] {
-  const detail = s.evidence?.detail ?? {}
-  const sign =
-    (detail.ascendantSign as ZodiacKo | undefined) ?? (detail.asc as ZodiacKo | undefined)
-  if (!sign) return undefined
-  return { sign: SIGN_KO[sign] ?? sign, signEn: sign }
 }

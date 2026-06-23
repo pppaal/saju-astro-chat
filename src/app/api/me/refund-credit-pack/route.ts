@@ -10,7 +10,10 @@ import {
 } from '@/lib/api/middleware'
 import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/logger'
-import { revokeBonusCreditPurchase } from '@/lib/credits/creditService'
+import {
+  claimBonusPurchaseForRefund,
+  rollbackBonusPurchaseRefundClaim,
+} from '@/lib/credits/creditService'
 import { getStripeOrNull } from '@/lib/stripe/client'
 
 export const dynamic = 'force-dynamic'
@@ -47,6 +50,7 @@ export const POST = withApiMiddleware(
         amount: true,
         remaining: true,
         expired: true,
+        expiresAt: true,
         source: true,
         createdAt: true,
         stripePaymentId: true,
@@ -116,12 +120,51 @@ export const POST = withApiMiddleware(
       return apiError(ErrorCodes.BAD_REQUEST, 'refund_amount_zero')
     }
 
-    // 3) Stripe partial refund (수수료 차감)
+    // 3) 원자적 claim + 회수 — Stripe 환불 *전에* 수행한다. 직전엔 위 자격검사
+    // (remaining===amount) 가 stale read 였고, Stripe 왕복(수초) 동안 사용자가
+    // 다른 탭에서 보너스 크레딧을 쓰면 remaining 이 줄어든 채로 L150 revoke 가
+    // "회수시점 remaining" 만 거둬, 현금은 전액 환불 + 크레딧 일부는 그대로
+    // 남는 누수(TOCTOU)가 있었다. 여기서 조건부 updateMany 로 "아직 완전 미사용"
+    // 일 때만 원자적으로 pack 을 만료(expired) 처리해 이후 소비 FIFO 가 이 pack
+    // 을 못 고르게 막고, 같은 트랜잭션에서 잔액(bonusCredits)에서 전량 회수한다.
+    // count!==1 이면 그 사이 누가 썼거나 이미 환불된 것 → 현금 한 푼 안 움직이고
+    // 거부.
+    // claim+reclaim/rollback 은 admin/refund-credit-pack 과 공유하는 단일 출처
+    // (creditService). me/ 는 "완전 미사용"만 환불하므로 expectedRemaining=amount,
+    // source='purchase' 가드.
+    const amount = purchase.amount
+    const stripePaymentId = purchase.stripePaymentId
+    let claimed = false
+    try {
+      const res = await claimBonusPurchaseForRefund({
+        purchaseId: purchase.id,
+        ownerUserId: context.userId!,
+        amount,
+        expectedRemaining: amount,
+        reason: 'self_refund',
+        initiatedBy: 'self',
+        sourceRef: stripePaymentId,
+        requireSourcePurchase: true,
+      })
+      claimed = res.claimed
+    } catch (err) {
+      logger.error('[me/refund-credit-pack] claim+reclaim failed', { purchaseId, err })
+      return apiError(ErrorCodes.INTERNAL_ERROR, 'refund_claim_failed')
+    }
+    if (!claimed) {
+      // 그 사이 일부 사용됐거나 이미 환불됨 — 현금 미이동.
+      return apiError(ErrorCodes.BAD_REQUEST, 'partially_used_or_already_refunded')
+    }
+
+    // 4) Stripe partial refund (수수료 차감). 이 시점엔 크레딧을 이미 원자적으로
+    // 회수했으므로 환불액과 회수량이 항상 일치한다(누수 없음). 환불이 실패하면
+    // 사용자가 "크레딧만 뺏기고 현금은 못 받는" 상태가 되지 않도록 위 claim 을
+    // 되돌린다(pack 복원 + 잔액 재지급).
     let stripeRefundId = ''
     try {
       const refund = await stripe.refunds.create(
         {
-          payment_intent: purchase.stripePaymentId,
+          payment_intent: stripePaymentId,
           amount: refundAmount,
           reason: 'requested_by_customer',
           metadata: {
@@ -139,15 +182,34 @@ export const POST = withApiMiddleware(
       )
       stripeRefundId = refund.id
     } catch (err) {
-      logger.error('[me/refund-credit-pack] stripe refund failed', {
+      logger.error('[me/refund-credit-pack] stripe refund failed — rolling back claim', {
         purchaseId,
         err,
       })
+      try {
+        await rollbackBonusPurchaseRefundClaim({
+          purchaseId: purchase.id,
+          ownerUserId: context.userId!,
+          reclaimed: amount,
+          restoreRemaining: amount,
+          restoreExpiresAt: purchase.expiresAt,
+          reason: 'self_refund_rollback',
+          initiatedBy: 'self',
+          sourceRef: stripePaymentId,
+        })
+      } catch (rollbackErr) {
+        // 롤백까지 실패 — 드문 이중 DB 장애. 수동 정합성 복구가 필요하므로
+        // 강한 로그를 남긴다(현금은 환불 안 됨, 크레딧은 회수된 상태).
+        logger.error('[me/refund-credit-pack] CRITICAL: claim rollback failed', {
+          purchaseId,
+          userId: context.userId,
+          amount,
+          stripePaymentId,
+          rollbackErr,
+        })
+      }
       return apiError(ErrorCodes.INTERNAL_ERROR, 'stripe_refund_failed')
     }
-
-    // 4) 크레딧 회수 (webhook 도 같이 처리하지만 멱등)
-    const revoke = await revokeBonusCreditPurchase(purchase.stripePaymentId)
 
     logger.info('[me/refund-credit-pack] self-service refund success', {
       purchaseId,
@@ -164,7 +226,7 @@ export const POST = withApiMiddleware(
       feeWithheld,
       originalAmount,
       stripeRefundId,
-      creditsRevoked: revoke.reclaimed,
+      creditsRevoked: amount,
     })
   },
   createAuthenticatedGuard({

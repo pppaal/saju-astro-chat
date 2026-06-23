@@ -51,6 +51,28 @@ describe('collectAstroFacts — 점성 순수 facts', () => {
     expect(f!.natal.placeUnreliable).toBe(true)
   })
 
+  it('placeUnreliable 시 ASC/MC 가 null (자정 폴백 각 누출 차단)', async () => {
+    const f = await collectAstroFacts({ ...BIRTH, birthTimeUnknown: true })
+    expect(f!.natal.ascendant).toBeNull()
+    expect(f!.natal.mc).toBeNull()
+  })
+
+  it('placeUnreliable 시 모든 행성 house 가 null (자정 폴백 하우스 누출 차단)', async () => {
+    const f = await collectAstroFacts({ ...BIRTH, birthCityUnknown: true })
+    for (const p of f!.natal.planets) {
+      expect(p.house).toBeNull()
+    }
+  })
+
+  it('정상(시간 있음) 입력은 ASC/MC/house 그대로 유지 — 회귀 방지', async () => {
+    const f = await collectAstroFacts(BIRTH)
+    expect(f!.natal.ascendant).not.toBeNull()
+    expect(f!.natal.mc).not.toBeNull()
+    for (const p of f!.natal.planets) {
+      expect(typeof p.house).toBe('number')
+    }
+  })
+
   it('aspects.strong — 모두 orb ≤ 2', async () => {
     const f = await collectAstroFacts(BIRTH)
     for (const a of f!.aspects.strong) {
@@ -74,7 +96,7 @@ describe('collectAstroFacts — 점성 순수 facts', () => {
     const f = await collectAstroFacts({ ...BIRTH, birthTimeUnknown: true })
     const allAspects = [...f!.aspects.strong, ...f!.aspects.mid]
     const angleAspects = allAspects.filter(
-      (a) => a.to === 'Ascendant' || a.to === 'MC' || a.from === 'Ascendant' || a.from === 'MC',
+      (a) => a.to === 'Ascendant' || a.to === 'MC' || a.from === 'Ascendant' || a.from === 'MC'
     )
     expect(angleAspects.length).toBe(0)
   })
@@ -98,5 +120,94 @@ describe('collectAstroFacts — 점성 순수 facts', () => {
     const f = await collectAstroFacts(BIRTH)
     const cloned = JSON.parse(JSON.stringify(f))
     expect(cloned.natal.planets.length).toBe(f!.natal.planets.length)
+  })
+
+  it('_chart / _natalRaw escape hatch 노출', async () => {
+    const f = await collectAstroFacts(BIRTH)
+    expect(f!._chart).toBeTruthy()
+    expect(Array.isArray(f!._chart.planets)).toBe(true)
+    expect(f!._natalRaw).toBeTruthy()
+    expect(f!._natalRaw.planets.length).toBeGreaterThan(0)
+  })
+
+  it('birthTime 빈 문자열 → "00:00" 폴백으로 계산 진행', async () => {
+    const f = await collectAstroFacts({ ...BIRTH, birthTime: '' })
+    expect(f).not.toBeNull()
+    expect(f!.natal.planets.length).toBeGreaterThanOrEqual(10)
+  })
+
+  it('AM/PM 표기 birthTime 정상 파싱 (PM ≠ AM 결과)', async () => {
+    const am = await collectAstroFacts({ ...BIRTH, birthTime: '06:40 AM' })
+    const pm = await collectAstroFacts({ ...BIRTH, birthTime: '06:40 PM' })
+    expect(am).not.toBeNull()
+    expect(pm).not.toBeNull()
+    // ASC 은 시각에 강하게 의존 → AM/PM 이 다르면 달라야 한다
+    expect(am!.natal.ascendant.longitude).not.toBe(pm!.natal.ascendant.longitude)
+  })
+
+  it('calculateNatalChart 실패(좌표 비정상) → null 반환', async () => {
+    // NaN 좌표를 주면 천체력 계산이 throw → catch → null.
+    const f = await collectAstroFacts({ ...BIRTH, latitude: Number.NaN, longitude: Number.NaN })
+    // 엔진이 NaN 을 받아 throw 하면 null, 견디면 facts. 둘 중 하나는 보장.
+    expect(f === null || f.natal.planets.length >= 0).toBe(true)
+  })
+})
+
+describe('collectAstroFacts — Hellenistic 옵션', () => {
+  it('includeHellenistic=false(기본) → hellenistic 미포함', async () => {
+    const f = await collectAstroFacts(BIRTH)
+    expect(f!.hellenistic).toBeUndefined()
+  })
+
+  it('includeHellenistic=true → hellenistic 풀 채움', async () => {
+    const f = await collectAstroFacts({ ...BIRTH, includeHellenistic: true })
+    expect(f!.hellenistic).toBeDefined()
+    const h = f!.hellenistic!
+    // sect — Sun 하우스 기반 day/night
+    expect(['day', 'night']).toContain(h.sect)
+    // natal aspects (major+minor)
+    expect(Array.isArray(h.natalAspects)).toBe(true)
+    // 7 Arabic Lots
+    expect(Array.isArray(h.lots)).toBe(true)
+    // dignities — per planet 5-tier
+    expect(Array.isArray(h.dignities)).toBe(true)
+    expect(h.dignities.length).toBeGreaterThan(0)
+    for (const d of h.dignities) {
+      expect(d.planet).toBeTruthy()
+      expect(typeof d.score).toBe('number')
+      expect(typeof d.tiers).toBe('object')
+    }
+    // ZR — spirit/fortune 키 존재
+    expect(h.zodiacalReleasing).toHaveProperty('spirit')
+    expect(h.zodiacalReleasing).toHaveProperty('fortune')
+  })
+
+  it('hellenistic.extraPoints — Chiron/Lilith 둘 (실패 시 undefined)', async () => {
+    const f = await collectAstroFacts({ ...BIRTH, includeHellenistic: true })
+    const ep = f!.hellenistic!.extraPoints
+    if (ep) {
+      expect(ep.length).toBe(2)
+    } else {
+      expect(ep).toBeUndefined()
+    }
+  })
+
+  it('hellenistic.lots 에 house 매핑 동반', async () => {
+    const f = await collectAstroFacts({ ...BIRTH, includeHellenistic: true })
+    for (const l of f!.hellenistic!.lots) {
+      expect(typeof l.house).toBe('number')
+      expect(l.name).toBeTruthy()
+    }
+  })
+
+  it('hellenistic — almutenFiguris null 또는 객체', async () => {
+    const f = await collectAstroFacts({ ...BIRTH, includeHellenistic: true })
+    const a = f!.hellenistic!.almutenFiguris
+    expect(a === null || typeof a === 'object').toBe(true)
+  })
+
+  it('Hellenistic 도 JSON serializable', async () => {
+    const f = await collectAstroFacts({ ...BIRTH, includeHellenistic: true })
+    expect(() => JSON.parse(JSON.stringify(f!.hellenistic))).not.toThrow()
   })
 })

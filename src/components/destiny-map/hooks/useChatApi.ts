@@ -16,7 +16,7 @@ import { useCreditModal } from '@/contexts/CreditModalContext'
 import { CHAT_I18N, detectCrisis, type LangKey } from '../chat-i18n'
 import { CHAT_TIMINGS, CHAT_LIMITS, type Message, type ConnectionStatus } from '../chat-constants'
 import { generateMessageId, getConnectionStatus, getErrorMessage } from '../chat-utils'
-import type { ChatProps, ChatPayload } from '../chat-types'
+import type { ChatProps, ChatPayload, DestinySources } from '../chat-types'
 import { normalizeCounselorResponse } from '@/lib/counselor/responseContract'
 import {
   useCounselorChat,
@@ -36,6 +36,8 @@ interface UseChatApiOptions {
   advancedAstro?: ChatProps['advancedAstro']
   predictionContext?: ChatProps['predictionContext']
   userContext?: ChatProps['userContext']
+  /** 이번 답변에 넣을 데이터 소스(사주만/점성만/둘 다). 기본 둘 다. */
+  sources?: DestinySources
   cvText: string
   ragSessionId?: string
   autoScroll: boolean
@@ -80,6 +82,7 @@ export function useChatApi({
   advancedAstro,
   predictionContext,
   userContext,
+  sources,
   cvText,
   ragSessionId,
   autoScroll,
@@ -88,6 +91,12 @@ export function useChatApi({
   setNotice,
   chatSessionId,
 }: UseChatApiOptions): UseChatApiReturn {
+  // 기본값 — 둘 다(기존 동작). 최소 하나 보장은 토글 UI 쪽 책임. useMemo 로
+  // 참조 안정화 — 워밍 effect 의 deps 가 매 렌더 새 객체로 재실행되지 않게.
+  const effectiveSources: DestinySources = React.useMemo(
+    () => sources ?? { saju: true, astro: true },
+    [sources]
+  )
   const effectiveLang = lang === 'ko' ? 'ko' : 'en'
   const tr = CHAT_I18N[effectiveLang]
   const { showDepleted } = useCreditModal()
@@ -141,6 +150,7 @@ export function useChatApi({
     const userTimezone =
       typeof Intl !== 'undefined' ? Intl.DateTimeFormat().resolvedOptions().timeZone : undefined
     // 같은 입력이면 한 번만 워밍 (locale 토글·리렌더로 중복 호출 방지).
+    // sources 도 포함 — 소스 토글이 바뀌면 그 조합으로 다시 워밍해야 답변이 hit.
     const fp = [
       profile.birthDate,
       profile.birthTime ?? '',
@@ -149,6 +159,7 @@ export function useChatApi({
       normalizedLongitude ?? '',
       userTimezone ?? '',
       lang,
+      `s${effectiveSources.saju ? 1 : 0}${effectiveSources.astro ? 1 : 0}`,
     ].join('|')
     if (warmedFingerprintRef.current === fp) return
     warmedFingerprintRef.current = fp
@@ -167,6 +178,7 @@ export function useChatApi({
         city: profile.city,
         userTimezone,
         lang,
+        sources: effectiveSources,
       }),
       signal: controller.signal,
       // 401(비로그인) 시 전역 로그인 모달을 띄우지 않게 — 워밍은 조용한 부수작업.
@@ -184,6 +196,7 @@ export function useChatApi({
     profile?.longitude,
     profile?.city,
     lang,
+    effectiveSources,
   ])
 
   const flushMessageUpdate = React.useCallback(() => {
@@ -257,12 +270,18 @@ export function useChatApi({
         setShowCrisisModal(true)
       }
     },
-    makeUserMessage: (text) => ({ role: 'user', content: text, id: generateMessageId('user') }),
+    makeUserMessage: (text) => ({
+      role: 'user',
+      content: text,
+      id: generateMessageId('user'),
+      sources: effectiveSources,
+    }),
     makeAssistantMessage: () => ({
       role: 'assistant',
       content: '',
       id: generateMessageId('assistant'),
       streaming: true,
+      sources: effectiveSources,
     }),
     // 기존 useChatApi 의 value-set(함수형 아님) 유지 — retry 직전 pop 과의
     // 상호작용(직전 렌더 히스토리 기준 덮어쓰기)까지 현행 동작 보존.
@@ -312,6 +331,7 @@ export function useChatApi({
         // 실제로 LLM 이 10쌍 너머 옛 turn 을 reference 하는 경우가 드물었음.
         messages: history.slice(-20),
         cvText,
+        sources: effectiveSources,
         saju,
         astro,
         advancedAstro,

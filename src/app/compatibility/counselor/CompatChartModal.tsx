@@ -11,6 +11,13 @@ import { CompatRadarOverlay } from './CompatRadarOverlay'
 import type { SynastryTone } from '@/lib/compatibility/synastryView'
 import type { SajuPillarInput } from '@/lib/compatibility/sajuSynastryFormatter'
 import type { CompatReport } from '@/lib/compatibility/compatReport'
+import {
+  elLabel,
+  tagLabel,
+  sibsinLabel,
+  dayMasterRelationText,
+  spouseFeeling,
+} from '@/lib/compatibility/compatChartLabels'
 import { useFocusTrap } from '@/hooks/useFocusTrap'
 
 /**
@@ -32,6 +39,9 @@ interface CompatChartModalProps {
   person2Saju?: Record<string, unknown> | null
   person1Astro?: Record<string, unknown> | null
   person2Astro?: Record<string, unknown> | null
+  /** 출생 시각 미상 — true 면 그 사람 시주(時)를 차트 cross 에서 제외(상담사와 동일). */
+  timeUnknownA?: boolean
+  timeUnknownB?: boolean
   nameA?: string
   nameB?: string
   lang?: 'ko' | 'en'
@@ -257,6 +267,8 @@ export function CompatChartModal({
   person2Saju,
   person1Astro,
   person2Astro,
+  timeUnknownA = false,
+  timeUnknownB = false,
   nameA = '',
   nameB = '',
   lang = 'ko',
@@ -287,6 +299,8 @@ export function CompatChartModal({
       astroB: unwrapAstro(person2Astro) ?? null,
       pillarsA: sajuToPillars(unwrapSaju(person1Saju)),
       pillarsB: sajuToPillars(unwrapSaju(person2Saju)),
+      timeUnknownA,
+      timeUnknownB,
       lang,
     }
     fetch('/api/compatibility/report', {
@@ -310,7 +324,7 @@ export function CompatChartModal({
     return () => {
       cancelled = true
     }
-  }, [open, person1Saju, person2Saju, person1Astro, person2Astro, lang])
+  }, [open, person1Saju, person2Saju, person1Astro, person2Astro, timeUnknownA, timeUnknownB, lang])
 
   if (!open) return null
 
@@ -335,7 +349,7 @@ export function CompatChartModal({
   const headlineReason: string | null = (() => {
     const sp = spouseTop[0]
     if (sp?.isDayPillar) {
-      const feeling = sp.role.match(/\(([^)]+)\)/)?.[1] ?? sp.role
+      const feeling = spouseFeeling(sp.sibsin, sp.role, isKo)
       const who = sp.from === 'A' ? labelA : labelB
       const other = sp.from === 'A' ? labelB : labelA
       return isKo
@@ -540,7 +554,7 @@ export function CompatChartModal({
                               </>
                             )}{' '}
                             <span style={{ color: meta.color, fontWeight: 600 }}>
-                              {r.tags.join('·')}
+                              {r.tags.map((t) => tagLabel(t, isKo)).join('·')}
                             </span>
                           </span>
                         </div>
@@ -591,13 +605,14 @@ export function CompatChartModal({
                   className="px-1 text-[13px] leading-relaxed"
                   style={{ color: 'var(--ds-light-text)' }}
                 >
-                  {labelA} <b>{dayMaster.aStem}</b>({dayMaster.aEl}) ↔ {labelB}{' '}
-                  <b>{dayMaster.bStem}</b>({dayMaster.bEl}) — {dayMaster.relationLabel}
+                  {labelA} <b>{dayMaster.aStem}</b>({elLabel(dayMaster.aEl, isKo)}) ↔ {labelB}{' '}
+                  <b>{dayMaster.bStem}</b>({elLabel(dayMaster.bEl, isKo)}) —{' '}
+                  {dayMasterRelationText(dayMaster.relation, dayMaster.aEl, dayMaster.bEl, isKo)}
                 </p>
                 {spouseTop.length > 0 && (
                   <ul className="mt-2 space-y-1.5">
                     {spouseTop.map((s) => {
-                      const feeling = s.role.match(/\(([^)]+)\)/)?.[1] ?? s.role
+                      const feeling = spouseFeeling(s.sibsin, s.role, isKo)
                       const who = s.from === 'A' ? labelA : labelB
                       const other = s.from === 'A' ? labelB : labelA
                       return (
@@ -628,7 +643,7 @@ export function CompatChartModal({
                               className="ml-1 text-[11px]"
                               style={{ color: 'var(--ds-light-text-muted)' }}
                             >
-                              ({s.sibsin})
+                              ({sibsinLabel(s.sibsin, isKo)})
                             </span>
                           </span>
                         </li>

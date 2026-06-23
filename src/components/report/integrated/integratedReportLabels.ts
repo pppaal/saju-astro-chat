@@ -26,16 +26,18 @@ export interface CrossRow {
   reason: string
   left?: string
   right?: string
+  /** 공망/카르마(결핍 축) — resonant 톤이라도 '잘 맞아요' 집계에서 제외하기 위한 표식. */
+  karmaAxis?: boolean
 }
 
 export const UI: Record<string, BiLabel> = {
-  eyebrow: { ko: '四柱 × 占星 · Integrated Reading', en: '四柱 × 占星 · Integrated Reading' },
-  titlePre: { ko: '통합', en: 'Integrated' },
-  titleAccent: { ko: '명식', en: 'Chart' },
-  titlePost: { ko: '리포트', en: 'Report' },
+  eyebrow: { ko: '동양 사주 + 서양 별자리', en: 'Saju + Astrology' },
+  titlePre: { ko: '통합', en: 'Your' },
+  titleAccent: { ko: '리포트', en: 'Report' },
+  titlePost: { ko: '', en: '' },
   subtitle: {
-    ko: '사주 명식과 출생 천궁도를 하나의 평면에서 교차 분석',
-    en: 'Four Pillars and natal chart cross-read on a single plane',
+    ko: '사주와 별자리를 한 화면에서 함께 봐요',
+    en: 'Your Saju and birth chart, read together on one page',
   },
   male: { ko: '남', en: 'M' },
   female: { ko: '여', en: 'F' },
@@ -43,10 +45,10 @@ export const UI: Record<string, BiLabel> = {
   metaPlace: { ko: '장소', en: 'Place' },
   metaCoord: { ko: '좌표', en: 'Coords' },
   metaTz: { ko: '표준시', en: 'Time zone' },
-  metaHouse: { ko: '하우스', en: 'Houses' },
+  metaHouse: { ko: '삶의 영역(하우스)', en: 'Life areas (houses)' },
   timeUnknownTitle: { ko: '출생시각 미상', en: 'Birth time unknown' },
   timeUnknownBody: {
-    ko: '출생시각이 입력되지 않아 정오 기준으로 계산했습니다. 상승궁(ASC)·중천(MC)·하우스에 의존하는 해석(사회적 역할, 첫인상, 영역별 강조)은 근사치이니 참고용으로만 보세요. 사주와 행성 배치 해석은 영향이 적습니다.',
+    ko: '출생시각이 입력되지 않아 정오를 기준으로 계산했어요. 상승궁·중천·하우스에 기대는 해석(사회적 역할, 첫인상, 영역별 강조)은 근사치이니 참고용으로만 봐 주세요. 사주와 행성 배치 해석은 영향을 거의 받지 않아요.',
     en: 'No birth time was provided, so the chart is computed for noon. Readings that depend on the Ascendant, Midheaven, or houses (social role, first impression, life-area emphasis) are approximate — treat them as indicative only. Saju and planet-placement readings are largely unaffected.',
   },
   day: { ko: '주간', en: 'diurnal' },
@@ -56,68 +58,71 @@ export const UI: Record<string, BiLabel> = {
   pMonth: { ko: '월', en: 'Mo' },
   pYear: { ko: '년', en: 'Yr' },
   dayBranchLabel: { ko: '日干', en: 'Day Master' },
-  shinsalCap: { ko: '신살 · 神煞', en: 'Spirits · 神煞' },
-  relCap: { ko: '본명 합충형파', en: 'Natal Interactions' },
-  iljuCap: { ko: '일주 원형 · 日柱', en: 'Day-Pillar Archetype · 日柱' },
-  sec02Title: { ko: '오행과 용신', en: 'Elements & Balance' },
-  sec02Han: { ko: '五行·用神', en: '五行·用神' },
+  shinsalCap: { ko: '타고난 색깔 (신살)', en: 'Your innate colors (Sinsal)' },
+  relCap: { ko: '글자끼리의 작용', en: 'How the characters interact' },
+  iljuCap: { ko: '태어난 날의 원형', en: 'Day-Pillar Archetype' },
+  sec02Title: { ko: '기운 균형', en: 'Energy balance' },
+  sec02Han: { ko: '', en: '' },
   elemDist: { ko: '오행 분포', en: 'Element Spread' },
-  strongWeak: { ko: '신강 · 신약', en: 'Strong · Weak' },
-  dayMasterLab: { ko: '일간', en: 'Day Master' },
-  strong: { ko: '신강', en: 'Strong' },
-  weak: { ko: '신약', en: 'Weak' },
-  balanced: { ko: '중화', en: 'Balanced' },
+  strongWeak: { ko: '내 힘의 세기', en: 'Your strength level' },
+  dayMasterLab: { ko: '나', en: 'You' },
+  strong: { ko: '힘이 센 편', en: 'Strong' },
+  weak: { ko: '힘이 여린 편', en: 'Weak' },
+  balanced: { ko: '균형', en: 'Balanced' },
   rootedYes: { ko: '뿌리 ✓', en: 'Rooted ✓' },
   rootedNo: { ko: '뿌리 ✗', en: 'Rooted ✗' },
   rootedYesTip: {
-    ko: '통근 — 일간의 오행이 지지 지장간에 박혀있음. 일간 강도 보강.',
+    ko: '통근 — 일간의 오행이 지지 속 지장간에 뿌리내려 있어요. 일간의 힘을 받쳐 줘요.',
     en: 'Rooted — the Day Master element is lodged in the hidden stems, reinforcing its strength.',
   },
   rootedNoTip: {
-    ko: '무근 — 일간 오행이 지지에 박혀있지 않음. 강도 약화 요인.',
+    ko: '무근 — 일간의 오행이 지지에 뿌리내리지 못했어요. 그만큼 힘이 약해지는 요인이에요.',
     en: 'Unrooted — the Day Master element is not lodged in the branches, weakening its strength.',
   },
-  gongmangLab: { ko: '공망', en: 'Void' },
+  gongmangLab: { ko: '빈 자리', en: 'Empty seat' },
   gongmangTip: {
-    ko: '공망 — 일주 60갑자 그룹에서 비어있는 지지 2개. 해당 지지의 작용이 약함.',
+    ko: '공망 — 일주가 속한 60갑자 그룹에서 비어 있는 지지 2개예요. 그 지지의 작용이 약해져요.',
     en: 'Void branches — the two empty branches of the day-pillar sexagenary group; their influence is muted.',
   },
-  johuLab: { ko: '조후', en: 'Climate' },
+  johuLab: { ko: '온도', en: 'Temperature' },
   johuTip: {
     ko: '조후용신 — 계절 균형 관점의 보조 용신. 긴급도',
     en: 'Climatic useful god — a secondary balancer from the seasonal-climate view. Urgency',
   },
-  yongLab: { ko: '용신', en: 'Useful' },
-  giLab: { ko: '기신', en: 'Adverse' },
-  yongTitle: { ko: '용신 · 희신 · 기신', en: 'Useful · Helpful · Adverse' },
-  geokgukCap: { ko: '격국 풀이 · 格局', en: 'Structure · 格局' },
+  yongLab: { ko: '채우면 좋아요', en: 'Fill up' },
+  giLab: { ko: '부담돼요', en: 'Burden' },
+  yongTitle: {
+    ko: '채우면 좋은 것 · 도와주는 것 · 부담되는 것',
+    en: 'Fill up · Helps · Burden',
+  },
+  geokgukCap: { ko: '나의 큰 틀 (격국)', en: 'Your operating style (Gyeokguk)' },
   geokPersonality: { ko: '성향', en: 'Personality' },
   geokStrength: { ko: '강점', en: 'Strengths' },
   geokWeakness: { ko: '약점', en: 'Watch-outs' },
   geokCareer: { ko: '직업', en: 'Careers' },
   geokLove: { ko: '연애', en: 'Love' },
   geokAdvice: { ko: '조언', en: 'Advice' },
-  sibsinCap: { ko: '주도 십성 · 十星', en: 'Dominant Ten God · 十星' },
+  sibsinCap: { ko: '주도 십성', en: 'Dominant Ten God' },
   sec03Title: { ko: '출생 천궁도', en: 'Natal Chart' },
-  sec03Han: { ko: '本命 天宮圖', en: '本命 天宮圖' },
-  planetsCap: { ko: '행성 위치 · Planets', en: 'Planet Positions · Planets' },
-  sectLab: { ko: 'Sect', en: 'Sect' },
-  houseLab: { ko: 'House', en: 'House' },
+  sec03Han: { ko: '', en: '' },
+  planetsCap: { ko: '행성 위치', en: 'Planet Positions · Planets' },
+  sectLab: { ko: '주야', en: 'Sect' },
+  houseLab: { ko: '하우스', en: 'House' },
   sectDay: { ko: '주간 (晝)', en: 'Diurnal (晝)' },
   sectNight: { ko: '야간 (夜)', en: 'Nocturnal (夜)' },
   signSuffix: { ko: '자리', en: '' },
   sec04Title: { ko: '어스펙트', en: 'Aspects' },
-  sec04Han: { ko: '行星 角度', en: '行星 角度' },
+  sec04Han: { ko: '', en: '' },
   legSoft: { ko: '잘 흘러요·도와줘요', en: 'Flows · helps' },
   legHard: { ko: '부딪혀요·맞서요', en: 'Clashes · opposes' },
   legNeutral: { ko: '같이 있어요', en: 'Together' },
   dignityCap: { ko: '위계 · Dignities', en: 'Dignities' },
   noDignity: {
-    ko: '뚜렷한 위계 없음 — 행성이 모두 중립(peregrine) 자리예요.',
+    ko: '뚜렷한 위계 없음 — 행성이 모두 중립 자리예요.',
     en: 'No notable dignity — every planet sits in a neutral (peregrine) position.',
   },
   sec05Title: { ko: '통합 교차', en: 'Cross-System' },
-  sec05Han: { ko: '交叉 統合', en: '交叉 統合' },
+  sec05Han: { ko: '', en: '' },
   synthLabel: { ko: '🧬 종합 정체성', en: '🧬 Synthesis' },
   sajuSide: { ko: '사주', en: 'Saju' },
   astroSide: { ko: '점성', en: 'Astro' },
@@ -125,22 +130,38 @@ export const UI: Record<string, BiLabel> = {
     ko: '동·서양 통합 분석 엔진',
     en: 'East–West integrated analysis',
   },
-  orb: { ko: 'orb', en: 'orb' },
+  orb: { ko: '오차', en: 'orb' },
+  // '더보기'(접기) 요약 라벨 — 전문(Level 2) 자료를 한 탭 뒤로 숨길 때.
+  l2Pillars: {
+    ko: '자세히 보기 — 한자 · 숨은 기운 · 생애 단계',
+    en: 'See details — characters, hidden energies, life stages',
+  },
+  l2Sub: {
+    ko: '자세히 보기 — 뿌리 · 빈 자리 · 온도',
+    en: 'See details — rooting, empty seats, temperature',
+  },
+  l2Planets: { ko: '자세히 보기 — 행성 위치표', en: 'See details — planet positions' },
+  l2Aspects: { ko: '자세히 보기 — 기운들의 관계', en: 'See details — how forces interact' },
+  l2Dignity: { ko: '자세히 보기 — 행성 컨디션', en: 'See details — planet condition' },
+  retroLegend: {
+    ko: '역행 — 그 행성의 힘이 밖으로 내뻗기보다 안으로·되짚는 쪽으로 작동해요.',
+    en: 'retrograde — that planet works inward and in review rather than pushing outward.',
+  },
 }
 
 // 관계 kind → 이중언어 라벨. EN 한글 누수 차단.
 const RELATION_TYPE_LABEL: Record<string, BiLabel> = {
-  천간합: { ko: '천간합', en: 'Stem Combine' },
-  천간충: { ko: '천간충', en: 'Stem Clash' },
-  지지육합: { ko: '지지육합', en: 'Six Harmony' },
-  지지삼합: { ko: '지지삼합', en: 'Triple Harmony' },
-  지지방합: { ko: '지지방합', en: 'Directional Harmony' },
-  지지충: { ko: '지지충', en: 'Branch Clash' },
-  지지형: { ko: '지지형', en: 'Punishment' },
-  지지파: { ko: '지지파', en: 'Destruction' },
-  지지해: { ko: '지지해', en: 'Harm' },
-  원진: { ko: '원진', en: 'Resentment' },
-  공망: { ko: '공망', en: 'Void' },
+  천간합: { ko: '위 글자끼리 손잡음', en: 'Stem Combine' },
+  천간충: { ko: '위 글자끼리 부딪힘', en: 'Stem Clash' },
+  지지육합: { ko: '아래 글자 둘이 짝', en: 'Six Harmony' },
+  지지삼합: { ko: '아래 글자 셋이 한 팀', en: 'Triple Harmony' },
+  지지방합: { ko: '같은 계절끼리 뭉침', en: 'Directional Harmony' },
+  지지충: { ko: '아래 글자끼리 정면충돌', en: 'Branch Clash' },
+  지지형: { ko: '서로 깎고 긁힘', en: 'Punishment' },
+  지지파: { ko: '깨고 흩뜨림', en: 'Destruction' },
+  지지해: { ko: '은근히 해침', en: 'Harm' },
+  원진: { ko: '미묘하게 거슬림', en: 'Resentment' },
+  공망: { ko: '비어 힘 안 실림', en: 'Void' },
 }
 export const relationTypeLabel = (kind: string, lang: Lang): string =>
   RELATION_TYPE_LABEL[kind]?.[lang] ?? kind
@@ -157,7 +178,7 @@ export const SIGN_TRAIT: Record<string, BiLabel> = {
   Lib: { ko: '조화를 맞추고 어울리는', en: 'balanced and relational' },
   Sco: { ko: '깊고 강렬하게 파고드는', en: 'deep and intense' },
   Sag: { ko: '자유롭게 멀리 뻗는', en: 'free and far-reaching' },
-  Cap: { ko: '현실적으로 끝까지 성취하는', en: 'grounded and ambitious' },
+  Cap: { ko: '현실적으로 끝까지 성취하는', en: 'disciplined and ambitious' },
   Aqu: { ko: '독창적이고 틀을 깨는', en: 'original and unconventional' },
   Pis: { ko: '섬세하고 상상력 넘치는', en: 'sensitive and imaginative' },
 }
@@ -279,8 +300,12 @@ export const elementLabel = (key: string, lang: Lang): string => {
   if (!e) return key
   return lang === 'en' ? key.charAt(0).toUpperCase() + key.slice(1) : e.ko
 }
+// 약어(3자) → 영어 풀네임 역방향 표. EN 에서 "Sco" 대신 "Scorpio" 로 읽히게.
+const ABBR_TO_SIGN_EN: Record<string, string> = Object.fromEntries(
+  Object.entries(SIGN_ABBR).map(([full, ab]) => [ab, full])
+)
 export const signLabel = (abbrKey: string, lang: Lang): string => {
   const m = SIGN_META[abbrKey]
   if (!m) return abbrKey
-  return lang === 'en' ? abbrKey : m.ko
+  return lang === 'en' ? (ABBR_TO_SIGN_EN[abbrKey] ?? abbrKey) : m.ko
 }

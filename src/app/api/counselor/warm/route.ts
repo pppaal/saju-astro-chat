@@ -18,7 +18,7 @@ import {
   ensureCounselorContext,
   type CounselorBirthInput,
 } from '@/lib/destiny/counselorContextCache'
-import { resolveCounselorLang } from '@/lib/destiny/counselorRequest'
+import { resolveCounselorLang, resolveCounselorSources } from '@/lib/destiny/counselorRequest'
 import { counselorWarmRequestSchema } from '@/lib/api/zodValidation'
 
 export const dynamic = 'force-dynamic'
@@ -38,9 +38,13 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: false, rateLimited: true }, { status: 429, headers: rl.headers })
   }
 
-  let body: (CounselorBirthInput & { lang?: string }) | null
+  type WarmBody = CounselorBirthInput & {
+    lang?: string
+    sources?: { saju?: boolean; astro?: boolean }
+  }
+  let body: WarmBody | null
   try {
-    body = (await req.json()) as CounselorBirthInput & { lang?: string }
+    body = (await req.json()) as WarmBody
   } catch {
     return NextResponse.json({ ok: false }, { status: 400 })
   }
@@ -54,8 +58,11 @@ export async function POST(req: NextRequest) {
 
   // lang 도출은 realtime 과 *반드시* 같은 단일 출처를 거쳐야 캐시 키가 일치한다.
   const lang: 'ko' | 'en' = resolveCounselorLang(body, req)
+  // 워밍도 realtime 과 같은 소스로 빌드해야 같은 캐시 키를 채운다 — 안 그러면
+  // 워밍은 "둘 다"로 채우고 실제 답변은 "사주만"으로 miss 한다.
+  const sources = resolveCounselorSources(body)
   try {
-    await ensureCounselorContext(body, userId, lang)
+    await ensureCounselorContext(body, userId, lang, sources)
     return NextResponse.json({ ok: true })
   } catch (err) {
     logger.warn('[counselor/warm] failed', {

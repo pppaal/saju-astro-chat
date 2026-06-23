@@ -6,16 +6,7 @@
  */
 
 export { toUser } from './toUser'
-export type {
-  DestinypalUser,
-  DestinypalUserElements,
-  DestinypalUserAstro,
-  DestinypalUserSect,
-  DestinypalUserAlmuten,
-  DestinypalUserLot,
-  ToUserOptions,
-} from './toUser'
-
+export type { DestinypalUser, DestinypalUserElements, ToUserOptions } from './toUser'
 
 export type {
   DestinypalLifeStage,
@@ -26,9 +17,7 @@ export type {
 export { toLifetime } from './toLifetime'
 export type { ToLifetimeOptions } from './toLifetime'
 
-
 export type { DestinypalDaewoonEntry, ToDaewoonOptions } from './toDaewoon'
-
 
 export type { DestinypalMilestone } from './toMilestones'
 
@@ -45,12 +34,7 @@ export type {
 } from './toDecade'
 
 export { toYear } from './toYear'
-export type {
-  DestinypalYear,
-  DestinypalYearProfection,
-  DestinypalYearZRChapter,
-  ToYearOptions,
-} from './toYear'
+export type { DestinypalYear, DestinypalYearProfection, ToYearOptions } from './toYear'
 
 export { toMonth } from './toMonth'
 export type {

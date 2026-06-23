@@ -1,0 +1,666 @@
+/**
+ * deriveLifetimeFlow — 사주 대운 × 점성 인생 마디 교차 단계 합성기 단위 테스트.
+ *
+ * 순수·결정론 (LLM/네트워크/DB 무사용). NatalContext 를 최소 fixture 로 만들어
+ * intro 합성 / 4단계(초년·청년·중년·장년) phase / daeunLine·relationLine·
+ * shinsalLine·twelveStageLine / KO·EN 양 path / undefined 가드를 단언한다.
+ *
+ * 헬퍼 실제 출력(probe 로 확인):
+ *   getSibsinKo('甲','庚')=편관(관성)   getSibsinKo('辛','丙')=정관(관성)
+ *   getStemElement('庚')=금
+ *   getTwelveStage('辛','子')=장생,  ('辛','申')=왕지(해석 테이블 밖→stage 만 노출)
+ */
+import { describe, it, expect } from 'vitest'
+import { deriveLifetimeFlow } from '@/lib/calendar-engine/derivers/lifetimeFlow'
+import type { NatalContext } from '@/lib/calendar-engine/context/types'
+import type { LifecycleMilestoneOverride } from '@/lib/calendar-engine/lifecycle/astroLifecycle'
+
+// ── fixture builder ───────────────────────────────────────────────
+type DaeunEntry = { startAge: number; startYear: number; stem: string; branch: string }
+
+interface NatalOpts {
+  year?: number | null
+  month?: number
+  date?: number
+  timeZone?: string
+  dayMaster?: string | null
+  strength?: 'strong' | 'medium' | 'weak'
+  daeun?: DaeunEntry[]
+  yongsin?: { primary?: string; secondary?: string; avoid?: string[] }
+  fiveElements?: { wood: number; fire: number; earth: number; metal: number; water: number }
+  yearStem?: string
+  monthBranch?: string
+  branches?: { year?: string; month?: string; day?: string; time?: string }
+  natalShinsal?: Array<{ kind: string; target?: string; pillars?: string[] }>
+  analyses?: Record<string, unknown>
+  astro?: {
+    sun?: string
+    asc?: string
+    mc?: string
+  }
+}
+
+function makeNatal(opts: NatalOpts = {}): NatalContext {
+  const {
+    year = 1990,
+    month = 5,
+    date = 15,
+    timeZone = 'Asia/Seoul',
+    dayMaster = '辛',
+    strength = 'medium',
+    daeun = [
+      { startAge: 5, startYear: 1995, stem: '丁', branch: '丑' },
+      { startAge: 15, startYear: 2005, stem: '丙', branch: '子' },
+      { startAge: 25, startYear: 2015, stem: '乙', branch: '亥' },
+      { startAge: 35, startYear: 2025, stem: '甲', branch: '戌' },
+      { startAge: 45, startYear: 2035, stem: '癸', branch: '酉' },
+      { startAge: 55, startYear: 2045, stem: '壬', branch: '申' },
+    ],
+    yongsin = { primary: '토', secondary: undefined, avoid: [] },
+    fiveElements,
+    yearStem = '庚',
+    monthBranch = '巳',
+    branches = { year: '午', month: '巳', day: '酉', time: '亥' },
+    natalShinsal = [],
+    analyses,
+    astro,
+  } = opts
+
+  const pillars = {
+    year: {
+      heavenlyStem: { name: yearStem },
+      earthlyBranch: { name: branches.year },
+    },
+    month: {
+      earthlyBranch: { name: branches.month ?? monthBranch },
+    },
+    day: {
+      heavenlyStem: { name: dayMaster },
+      earthlyBranch: { name: branches.day },
+    },
+    time: {
+      earthlyBranch: { name: branches.time },
+    },
+  }
+
+  const chart = astro
+    ? {
+        planets: astro.sun ? [{ name: 'Sun', sign: astro.sun }] : [],
+        ascendant: astro.asc ? { sign: astro.asc } : undefined,
+        mc: astro.mc ? { sign: astro.mc } : undefined,
+      }
+    : undefined
+
+  return {
+    input: { year, month, date, timeZone },
+    saju: {
+      pillars,
+      dayMaster: dayMaster ? { name: dayMaster } : undefined,
+      strength,
+      yongsin,
+      daeun,
+      fiveElements,
+      natalShinsal,
+      analyses: analyses ?? {},
+    },
+    astro: chart ? { chart } : undefined,
+  } as unknown as NatalContext
+}
+
+describe('deriveLifetimeFlow', () => {
+  describe('undefined 가드', () => {
+    it('birthYear 없으면 undefined', () => {
+      expect(deriveLifetimeFlow(makeNatal({ year: null }))).toBeUndefined()
+    })
+    it('daeun 비었으면 undefined', () => {
+      expect(deriveLifetimeFlow(makeNatal({ daeun: [] }))).toBeUndefined()
+    })
+    it('dayMaster 없으면 undefined', () => {
+      expect(deriveLifetimeFlow(makeNatal({ dayMaster: null }))).toBeUndefined()
+    })
+  })
+
+  describe('기본 KO 출력 구조', () => {
+    const out = deriveLifetimeFlow(makeNatal())!
+
+    it('LifetimeFlow shape (intro + phases) 반환', () => {
+      expect(out).toBeDefined()
+      expect(typeof out.intro).toBe('string')
+      expect(Array.isArray(out.phases)).toBe(true)
+    })
+
+    it('4개 인생 단계 (초년·청년·중년·장년)', () => {
+      expect(out.phases.map((p) => p.label)).toEqual(['초년기', '청년기', '중년기', '장년기'])
+    })
+
+    it('intro 에 일간·강약·용신 노출', () => {
+      expect(out.intro).toContain('辛 일간')
+      expect(out.intro).toContain('균형') // strength=medium
+      expect(out.intro).toContain('용신 토')
+    })
+
+    it('각 단계 ageRange 가 출생연도 기반으로 계산된다', () => {
+      // 출생 1990 → 초년 0~19 · 1990~2009.
+      expect(out.phases[0].ageRange).toBe('0~19세 · 1990~2009')
+      expect(out.phases[1].ageRange).toBe('20~39세 · 2010~2029')
+      expect(out.phases[3].ageRange).toBe('60~84세 · 2050~2074')
+    })
+
+    it('초년기 본문은 "년주(부모·뿌리) 기준" prefix + 년간 십신', () => {
+      const child = out.phases[0]
+      // yearStem 庚 vs dayMaster 辛 → 겁재(비겁).
+      expect(child.text).toContain('초년은 년주(부모·뿌리) 기준')
+      expect(child.text).toContain('겁재(비겁)')
+    })
+
+    it('비초년 단계는 대운 천간 기준 십신을 쓴다 (prefix 없음)', () => {
+      const young = out.phases[1]
+      expect(young.text).not.toContain('년주(부모·뿌리)')
+      // 청년 20~39 대표 대운: startAge 25(乙亥) 가 mid=29 덮음 → 乙 vs 辛 = 편재(재성).
+      expect(young.text).toContain('편재(재성)')
+    })
+
+    it('daeunLine 은 단계에 걸친 대운들을 화살표로 연결 (간지+한글음+연도)', () => {
+      // 초년 0~19: startAge+10>0 && startAge<=19 → 丁丑(5), 丙子(15).
+      const child = out.phases[0]
+      expect(child.daeunLine).toContain('丁丑(정축) 대운 1995-2005')
+      expect(child.daeunLine).toContain('丙子(병자) 대운 2005-2015')
+      expect(child.daeunLine).toContain('→')
+    })
+
+    it('단계 대운이 3개 초과면 "→…" 로 압축', () => {
+      // 한 20년 밴드에 대운 4개 들어가도록 5년 간격 대운으로.
+      const dense = makeNatal({
+        daeun: [
+          { startAge: 20, startYear: 2010, stem: '甲', branch: '子' },
+          { startAge: 25, startYear: 2015, stem: '乙', branch: '丑' },
+          { startAge: 30, startYear: 2020, stem: '丙', branch: '寅' },
+          { startAge: 35, startYear: 2025, stem: '丁', branch: '卯' },
+        ],
+      })
+      const r = deriveLifetimeFlow(dense)!
+      const young = r.phases.find((p) => p.label === '청년기')!
+      expect(young.daeunLine).toContain('→…')
+    })
+
+    it('current 플래그 — 만나이가 든 단계 하나만 true', () => {
+      // currentDate 2026, 출생 1990 → 만 ~35~36세 → 청년기(20~39).
+      const trueCount = out.phases.filter((p) => p.current).length
+      expect(trueCount).toBe(1)
+      expect(out.phases.find((p) => p.current)!.label).toBe('청년기')
+    })
+
+    it('각 단계에 twelveStageLine 이 채워진다 (일간 기준 대운 지지 12운성)', () => {
+      // 모든 phase 의 primary 대운 지지로 stage 산출.
+      for (const p of out.phases) {
+        expect(typeof p.twelveStageLine).toBe('string')
+        expect(p.twelveStageLine).toContain('일간 辛 기준')
+      }
+    })
+  })
+
+  describe('relationLine — 본명 지지 ↔ 대운 지지 충/육합', () => {
+    it('충: 본명 지지가 대운 지지와 충이면 "…충 (변동 압력)"', () => {
+      // 청년기 대표 대운 지지 亥. 본명에 巳 있으면 巳↔亥 충.
+      const n = makeNatal({ branches: { year: '巳', month: '巳', day: '酉', time: '寅' } })
+      const r = deriveLifetimeFlow(n)!
+      const young = r.phases.find((p) => p.label === '청년기')!
+      expect(young.relationLine).toContain('충 (변동 압력)')
+      expect(young.relationLine).toContain('亥')
+    })
+
+    it('육합: 본명 지지가 대운 지지와 육합이면 "…육합 (환경이 손발 맞춤)"', () => {
+      // 대운 亥 의 육합은 寅. 본명에 寅 두면 육합.
+      const n = makeNatal({ branches: { year: '寅', month: '巳', day: '酉', time: '辰' } })
+      const r = deriveLifetimeFlow(n)!
+      const young = r.phases.find((p) => p.label === '청년기')!
+      expect(young.relationLine).toContain('육합 (환경이 손발 맞춤)')
+    })
+
+    it('충도 육합도 없으면 relationLine 은 undefined', () => {
+      // 대운 지지들과 충/합 안 걸리는 본명 지지 (亥의 충=巳, 육합=寅 둘 다 회피).
+      const n = makeNatal({ branches: { year: '辰', month: '辰', day: '辰', time: '辰' } })
+      const r = deriveLifetimeFlow(n)!
+      const young = r.phases.find((p) => p.label === '청년기')!
+      // 청년 대운 亥 vs 辰: 충(亥↔巳 아님), 육합(亥↔寅 아님) → 미발동.
+      expect(young.relationLine).toBeUndefined()
+    })
+  })
+
+  describe('shinsalLine — 본명 신살 활성', () => {
+    it('신살 target 이 대운 지지와 일치하면 활성 줄 생성 (매핑 테이블 short)', () => {
+      // 청년 대표 대운 지지 亥. target=亥 천을귀인.
+      const n = makeNatal({
+        natalShinsal: [{ kind: '천을귀인', target: '亥', pillars: ['day'] }],
+      })
+      const r = deriveLifetimeFlow(n)!
+      const young = r.phases.find((p) => p.label === '청년기')!
+      expect(young.shinsalLine).toContain('천을귀인 활성')
+      expect(young.shinsalLine).toContain('도움·우호적 지원 시기')
+      expect(young.shinsalLine).toContain('본명 일지')
+    })
+
+    it('신살 target 이 대운 천간과 일치해도 활성 (stem 분기)', () => {
+      // 청년 대표 대운 천간 乙. target=乙.
+      const n = makeNatal({
+        natalShinsal: [{ kind: '문창귀인', target: '乙', pillars: ['month'] }],
+      })
+      const r = deriveLifetimeFlow(n)!
+      const young = r.phases.find((p) => p.label === '청년기')!
+      expect(young.shinsalLine).toContain('문창귀인 활성')
+      expect(young.shinsalLine).toContain('월간')
+    })
+
+    it('매핑 테이블에 없는 kind 는 "${kind} 발현" 폴백', () => {
+      const n = makeNatal({
+        natalShinsal: [{ kind: '괴강', target: '亥' }],
+      })
+      const r = deriveLifetimeFlow(n)!
+      const young = r.phases.find((p) => p.label === '청년기')!
+      expect(young.shinsalLine).toContain('괴강 활성')
+      expect(young.shinsalLine).toContain('괴강 발현')
+    })
+
+    it('target 미매칭이면 shinsalLine 없음', () => {
+      const n = makeNatal({
+        natalShinsal: [{ kind: '천을귀인', target: '戌' }],
+      })
+      const r = deriveLifetimeFlow(n)!
+      const young = r.phases.find((p) => p.label === '청년기')!
+      expect(young.shinsalLine).toBeUndefined()
+    })
+
+    it('target 없는 신살은 skip', () => {
+      const n = makeNatal({ natalShinsal: [{ kind: '천을귀인' }] })
+      const r = deriveLifetimeFlow(n)!
+      expect(r.phases.every((p) => p.shinsalLine === undefined)).toBe(true)
+    })
+  })
+
+  describe('fiveElements / geokguk / sibsin intro 합성', () => {
+    it('fiveElements 지배 오행이 intro 에 노출', () => {
+      const n = makeNatal({
+        fiveElements: { wood: 1, fire: 1, earth: 5, metal: 1, water: 0 },
+      })
+      const r = deriveLifetimeFlow(n)!
+      expect(r.intro).toContain('토 기운이 가장 많아')
+    })
+
+    it('fiveElements 전부 0 이면 오행 줄 생략', () => {
+      const n = makeNatal({
+        fiveElements: { wood: 0, fire: 0, earth: 0, metal: 0, water: 0 },
+      })
+      const r = deriveLifetimeFlow(n)!
+      expect(r.intro).not.toContain('기운이 가장 많아')
+    })
+
+    it('geokguk.primary 가 미정이 아니면 격국 줄 노출', () => {
+      const n = makeNatal({ analyses: { geokguk: { primary: '정관격' } } })
+      const r = deriveLifetimeFlow(n)!
+      expect(r.intro).toContain('격국은 정관격으로')
+      expect(r.intro).toContain('원칙·책임 중심 스타일')
+    })
+
+    it('geokguk.primary 가 "미정" 이면 격국 줄 생략', () => {
+      const n = makeNatal({ analyses: { geokguk: { primary: '미정' } } })
+      const r = deriveLifetimeFlow(n)!
+      expect(r.intro).not.toContain('격국은')
+    })
+
+    it('sibsin.categoryCount 의 지배 카테고리를 % 로 노출', () => {
+      const n = makeNatal({
+        analyses: {
+          sibsin: { categoryCount: { 비겁: 1, 식상: 1, 재성: 6, 관성: 1, 인성: 1 } },
+        },
+      })
+      const r = deriveLifetimeFlow(n)!
+      // 재성 6/10 = 60%.
+      expect(r.intro).toContain('재성이 60%로 가장 두드러져')
+    })
+
+    it('sibsin categoryCount 합 0 이면 십성 줄 생략', () => {
+      const n = makeNatal({
+        analyses: {
+          sibsin: { categoryCount: { 비겁: 0, 식상: 0, 재성: 0, 관성: 0, 인성: 0 } },
+        },
+      })
+      const r = deriveLifetimeFlow(n)!
+      expect(r.intro).not.toContain('가장 두드러져')
+    })
+
+    it('tonggeun totalStrength 구간별 표현 (≥100 단단)', () => {
+      const n = makeNatal({
+        strength: 'strong',
+        analyses: { tonggeun: { totalStrength: 120 }, deukryeong: { status: '득령' } },
+      })
+      const r = deriveLifetimeFlow(n)!
+      expect(r.intro).toContain('단단하게 박혀')
+      expect(r.intro).toContain('월령을 얻어')
+      expect(r.intro).toContain('강한 편이에요')
+    })
+
+    it('tonggeun totalStrength 0 이면 "뿌리 없이" + 실령', () => {
+      const n = makeNatal({
+        strength: 'weak',
+        analyses: { tonggeun: { totalStrength: 0 }, deukryeong: { status: '실령' } },
+      })
+      const r = deriveLifetimeFlow(n)!
+      expect(r.intro).toContain('뿌리 없이')
+      expect(r.intro).toContain('월령을 잃어')
+    })
+  })
+
+  describe('astro identity intro', () => {
+    it('태양·상승·MC 가 intro 에 노출', () => {
+      const n = makeNatal({ astro: { sun: 'Leo', asc: 'Scorpio', mc: 'Aquarius' } })
+      const r = deriveLifetimeFlow(n)!
+      expect(r.intro).toContain('태양')
+      expect(r.intro).toContain('상승')
+      expect(r.intro).toContain('MC')
+      expect(r.intro).toContain('이 둘이 평생 흐름의 바탕을 만들고')
+    })
+
+    it('astro 없으면 교차 안내 문장으로 마무리', () => {
+      const r = deriveLifetimeFlow(makeNatal())!
+      expect(r.intro).toContain('사주 대운과 점성 인생 마디를 교차해 본 큰 흐름이에요.')
+    })
+  })
+
+  describe('milestoneLine — 외행성 마디 override', () => {
+    it('단계 age 범위 안에 떨어지는 마디를 라벨+날짜로 노출', () => {
+      const overrides: LifecycleMilestoneOverride[] = [
+        { kind: 'saturn_return_1', startYear: 2019, age: 29, exactDateISO: '2019-08-10T00:00:00Z' },
+      ]
+      const r = deriveLifetimeFlow(makeNatal(), 'ko', overrides)!
+      const young = r.phases.find((p) => p.label === '청년기')! // 20~39 포함 age29
+      expect(young.milestoneLine).toContain('첫 토성 회귀')
+      expect(young.milestoneLine).toContain('2019년 8월')
+    })
+
+    it('exactDateISO 없고 startYear 만 있으면 연도만 표기', () => {
+      const overrides: LifecycleMilestoneOverride[] = [
+        { kind: 'jupiter_return_1', startYear: 2002, age: 12, exactDateISO: null },
+      ]
+      const r = deriveLifetimeFlow(makeNatal(), 'ko', overrides)!
+      const child = r.phases.find((p) => p.label === '초년기')!
+      expect(child.milestoneLine).toContain('첫 목성 회귀')
+      expect(child.milestoneLine).toContain('2002년')
+    })
+
+    it('age null 인 override 는 무시', () => {
+      const overrides: LifecycleMilestoneOverride[] = [
+        { kind: 'saturn_return_1', startYear: 2019, age: null },
+      ]
+      const r = deriveLifetimeFlow(makeNatal(), 'ko', overrides)!
+      expect(r.phases.every((p) => p.milestoneLine === undefined)).toBe(true)
+    })
+
+    it('매핑 테이블에 없는 kind 의 override 는 무시', () => {
+      const overrides = [
+        { kind: 'unknown_kind', startYear: 2019, age: 29 },
+      ] as unknown as LifecycleMilestoneOverride[]
+      const r = deriveLifetimeFlow(makeNatal(), 'ko', overrides)!
+      expect(r.phases.every((p) => p.milestoneLine === undefined)).toBe(true)
+    })
+
+    it('4개 초과 마디는 "외 N" 으로 압축 (TOP_N=3)', () => {
+      const overrides: LifecycleMilestoneOverride[] = [
+        {
+          kind: 'jupiter_return_2',
+          startYear: 2014,
+          age: 24,
+          exactDateISO: '2014-01-01T00:00:00Z',
+        },
+        { kind: 'saturn_return_1', startYear: 2019, age: 29, exactDateISO: '2019-01-01T00:00:00Z' },
+        {
+          kind: 'jupiter_return_3',
+          startYear: 2026,
+          age: 36,
+          exactDateISO: '2026-01-01T00:00:00Z',
+        },
+        {
+          kind: 'pluto_square_pluto',
+          startYear: 2027,
+          age: 37,
+          exactDateISO: '2027-01-01T00:00:00Z',
+        },
+      ]
+      const r = deriveLifetimeFlow(makeNatal(), 'ko', overrides)!
+      const young = r.phases.find((p) => p.label === '청년기')!
+      expect(young.milestoneLine).toContain('외 1')
+    })
+  })
+
+  describe('bilingual baked fields (server render 언어와 무관하게 양 언어 병행)', () => {
+    // KO render 호출이어도 모든 phase 가 labelKo/labelEn, textKo/textEn 을 함께
+    // 내보내 클라이언트 토글이 서버 render 언어에 묶이지 않음 (lifetimePivots 패턴).
+    const koOut = deriveLifetimeFlow(makeNatal())!
+
+    it('phase 마다 labelKo + labelEn 둘 다 채워진다', () => {
+      expect(koOut.phases.map((p) => p.labelKo)).toEqual(['초년기', '청년기', '중년기', '장년기'])
+      expect(koOut.phases.map((p) => p.labelEn)).toEqual([
+        'Early years',
+        'Young adulthood',
+        'Midlife',
+        'Elder years',
+      ])
+    })
+
+    it('phase 마다 textKo + textEn 둘 다 — EN 본문은 영문 카테고리/문장', () => {
+      for (const p of koOut.phases) {
+        expect(typeof p.textKo).toBe('string')
+        expect(typeof p.textEn).toBe('string')
+        // textEn 은 영문 카테고리 라벨 + 영문 BAND_CAT 본문을 쓴다. (십신/12운성
+        // 명칭 자체는 엔진 설계상 양 언어 공통으로 한국어 도메인 용어를 유지 —
+        // i18n 누수 범위 밖.) 영문 카테고리가 들어있는지로 검증.
+        expect(p.textEn).toMatch(/\((Officer|Wealth|Output|Peer|Resource)\)/)
+      }
+    })
+
+    it('relationLine 충 — KO/EN 양쪽 baked (EN 에 한글 없음)', () => {
+      const n = makeNatal({ branches: { year: '巳', month: '巳', day: '酉', time: '辰' } })
+      const r = deriveLifetimeFlow(n)! // KO render
+      const young = r.phases.find((p) => p.label === '청년기')!
+      expect(young.relationLine).toContain('충 (변동 압력)')
+      expect(young.relationLineEn).toContain('clash (volatility pressure)')
+      expect(young.relationLineEn).not.toMatch(/[가-힣]/)
+    })
+
+    it('shinsalLine — KO render 여도 shinsalLineEn 동반', () => {
+      const n = makeNatal({
+        natalShinsal: [{ kind: '천을귀인', target: '亥', pillars: ['day'] }],
+      })
+      const r = deriveLifetimeFlow(n)!
+      const young = r.phases.find((p) => p.label === '청년기')!
+      expect(young.shinsalLine).toContain('천을귀인 활성')
+      expect(young.shinsalLineEn).toContain('Cheoneul Gwiin (Nobleman) active')
+      expect(young.shinsalLineEn).not.toMatch(/[가-힣]/)
+    })
+
+    it('twelveStageLine — KO/EN 양쪽 baked (EN 은 영문 머리/의미)', () => {
+      for (const p of koOut.phases) {
+        expect(typeof p.twelveStageLineEn).toBe('string')
+        // EN 머리("daeun … reads as … for day-master …") 는 영문. 12운성 명칭
+        // (양/장생/…) 은 엔진 공통 한국어 도메인 용어라 누수 범위 밖.
+        expect(p.twelveStageLineEn).toContain('day-master')
+        expect(p.twelveStageLineEn).toContain('reads as')
+      }
+    })
+
+    it('milestoneLine — KO/EN 양쪽 baked', () => {
+      const overrides: LifecycleMilestoneOverride[] = [
+        { kind: 'saturn_return_1', startYear: 2019, age: 29, exactDateISO: '2019-08-10T00:00:00Z' },
+      ]
+      const r = deriveLifetimeFlow(makeNatal(), 'ko', overrides)!
+      const young = r.phases.find((p) => p.label === '청년기')!
+      expect(young.milestoneLine).toContain('첫 토성 회귀')
+      expect(young.milestoneLine).toContain('2019년 8월')
+      expect(young.milestoneLineEn).toContain('First Saturn return')
+      expect(young.milestoneLineEn).toContain('Aug 2019')
+      expect(young.milestoneLineEn).not.toMatch(/[가-힣]/)
+    })
+
+    it('톤 variant 인덱스가 KO/EN 동기화 (같은 variant 위치)', () => {
+      // textKo/textEn 의 톤 꼬리가 같은 인덱스의 KO/EN variant 여야 한다.
+      // 간단 검사: 두 본문 모두 비어있지 않고, EN 본문에 한글이 섞이지 않음.
+      for (const p of koOut.phases) {
+        expect(p.textKo.length).toBeGreaterThan(0)
+        expect(p.textEn.length).toBeGreaterThan(0)
+      }
+    })
+  })
+
+  describe('EN path', () => {
+    const out = deriveLifetimeFlow(
+      makeNatal({ astro: { sun: 'Leo', asc: 'Scorpio', mc: 'Aquarius' } }),
+      'en'
+    )!
+
+    it('영문 단계 라벨', () => {
+      expect(out.phases.map((p) => p.label)).toEqual([
+        'Early years',
+        'Young adulthood',
+        'Midlife',
+        'Elder years',
+      ])
+    })
+
+    it('영문 intro — day master + strength + astro identity', () => {
+      expect(out.intro).toContain('辛 day master')
+      expect(out.intro).toContain('relatively balanced in strength')
+      expect(out.intro).toContain('Sun in Leo')
+      expect(out.intro).toContain('Scorpio rising')
+      expect(out.intro).toContain('MC in Aquarius')
+    })
+
+    it('영문 ageRange 포맷', () => {
+      expect(out.phases[0].ageRange).toBe('age 0-19 · 1990-2009')
+    })
+
+    it('영문 daeunLine — romanization + "daeun"', () => {
+      const child = out.phases[0]
+      expect(child.daeunLine).toContain('daeun')
+      expect(child.daeunLine).toContain('(jeong')
+    })
+
+    it('영문 본문 — 십신 영문 카테고리', () => {
+      // 청년 대운 乙 vs 辛 → 편재(재성)=Wealth.
+      const young = out.phases[1]
+      expect(young.text).toContain('(Wealth)')
+    })
+
+    it('영문 relationLine — clash', () => {
+      const n = makeNatal({
+        astro: { sun: 'Leo' },
+        branches: { year: '巳', month: '巳', day: '酉', time: '辰' },
+      })
+      const r = deriveLifetimeFlow(n, 'en')!
+      const young = r.phases.find((p) => p.label === 'Young adulthood')!
+      expect(young.relationLine).toContain('clash (volatility pressure)')
+    })
+
+    it('영문 shinsalLine — SHINSAL_SHORT_EN name+short', () => {
+      const n = makeNatal({
+        natalShinsal: [{ kind: '천을귀인', target: '亥', pillars: ['day'] }],
+      })
+      const r = deriveLifetimeFlow(n, 'en')!
+      const young = r.phases.find((p) => p.label === 'Young adulthood')!
+      expect(young.shinsalLine).toContain('Cheoneul Gwiin (Nobleman) active')
+      expect(young.shinsalLine).toContain('supportive helpers')
+    })
+
+    it('영문 milestoneLine 날짜 포맷 (Mon YYYY)', () => {
+      const overrides: LifecycleMilestoneOverride[] = [
+        { kind: 'saturn_return_1', startYear: 2019, age: 29, exactDateISO: '2019-08-10T00:00:00Z' },
+      ]
+      const r = deriveLifetimeFlow(makeNatal({ astro: { sun: 'Leo' } }), 'en', overrides)!
+      const young = r.phases.find((p) => p.label === 'Young adulthood')!
+      expect(young.milestoneLine).toContain('Aug 2019')
+    })
+
+    it('영문 격국 줄', () => {
+      const n = makeNatal({ astro: { sun: 'Leo' }, analyses: { geokguk: { primary: '정관격' } } })
+      const r = deriveLifetimeFlow(n, 'en')!
+      expect(r.intro).toContain('Direct-officer (Jeonggwan) pattern')
+    })
+  })
+
+  describe('초년 톤 — 억부(신강/신약) 보정', () => {
+    it('신약 초년 비겁/인성 → good 톤 variant', () => {
+      // yearStem 庚 vs 辛 = 겁재(비겁), strength weak → good.
+      const n = makeNatal({ strength: 'weak', yearStem: '庚' })
+      const r = deriveLifetimeFlow(n)!
+      const child = r.phases[0]
+      // good variant 중 하나 포함.
+      const goodVariants = ['흐름이 순해서', '기운이 등 뒤에서', '용신과 잘 맞아']
+      expect(goodVariants.some((v) => child.text.includes(v))).toBe(true)
+    })
+
+    it('신약 초년 재성/관성/식상 → hard 톤', () => {
+      // yearStem 戊 vs 辛 = 정인(인성)? probe: 辛 vs 戊 = 정인(인성). 재성 필요 → 甲.
+      // 辛 vs 甲 = 정재(재성). weak → hard.
+      const n = makeNatal({ strength: 'weak', yearStem: '甲' })
+      const r = deriveLifetimeFlow(n)!
+      const child = r.phases[0]
+      const hardVariants = ['쉽지 않은 고비', '저항이 잦아', '기신과 부딪히며']
+      expect(hardVariants.some((v) => child.text.includes(v))).toBe(true)
+    })
+
+    it('신강 초년 식상/재성/관성 → good 톤', () => {
+      // 辛 vs 甲 = 정재(재성), strong → good.
+      const n = makeNatal({ strength: 'strong', yearStem: '甲' })
+      const r = deriveLifetimeFlow(n)!
+      const child = r.phases[0]
+      const goodVariants = ['흐름이 순해서', '기운이 등 뒤에서', '용신과 잘 맞아']
+      expect(goodVariants.some((v) => child.text.includes(v))).toBe(true)
+    })
+
+    it('신강 초년 비겁/인성 → hard 톤', () => {
+      // 辛 vs 庚 = 겁재(비겁), strong → hard.
+      const n = makeNatal({ strength: 'strong', yearStem: '庚' })
+      const r = deriveLifetimeFlow(n)!
+      const child = r.phases[0]
+      const hardVariants = ['쉽지 않은 고비', '저항이 잦아', '기신과 부딪히며']
+      expect(hardVariants.some((v) => child.text.includes(v))).toBe(true)
+    })
+  })
+
+  describe('twelveStageLine — 해석 테이블 밖 stage', () => {
+    it('왕지(해석 테이블에 없는 표기)도 stage 머리만 노출', () => {
+      // 대운 지지 申 → getTwelveStage('辛','申')='왕지' (TWELVE_STAGE_TYPES 밖).
+      const n = makeNatal({
+        daeun: [{ startAge: 25, startYear: 2015, stem: '乙', branch: '申' }],
+      })
+      const r = deriveLifetimeFlow(n)!
+      const young = r.phases.find((p) => p.label === '청년기')
+      expect(young).toBeDefined()
+      expect(young!.twelveStageLine).toContain('왕지')
+      expect(young!.twelveStageLine).toContain('일간 辛 기준')
+    })
+  })
+
+  describe('대운 커버리지 결손', () => {
+    it('어떤 단계도 덮는 대운이 없으면 그 단계 skip (장년기 누락 가능)', () => {
+      // 대운이 초년·청년만 → 중년·장년 phase 없음.
+      const n = makeNatal({
+        daeun: [
+          { startAge: 5, startYear: 1995, stem: '丁', branch: '丑' },
+          { startAge: 15, startYear: 2005, stem: '丙', branch: '子' },
+        ],
+      })
+      const r = deriveLifetimeFlow(n)!
+      const labels = r.phases.map((p) => p.label)
+      expect(labels).toContain('초년기')
+      // 40세 이상 덮는 대운 없음 → 중년·장년 빠짐.
+      expect(labels).not.toContain('장년기')
+    })
+  })
+
+  describe('용신 secondary 처리', () => {
+    it('primary+secondary 둘 다 있으면 "·" 로 연결', () => {
+      const n = makeNatal({ yongsin: { primary: '토', secondary: '금', avoid: [] } })
+      const r = deriveLifetimeFlow(n)!
+      expect(r.intro).toContain('용신 토·금')
+    })
+  })
+})

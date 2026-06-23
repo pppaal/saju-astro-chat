@@ -3,6 +3,7 @@ import {
   getUserTimezone,
   getOffsetMinutes,
   formatOffset,
+  solarTimeCorrectionMinutes,
 } from '@/lib/saju/timezone'
 
 describe('Saju Timezone Utils', () => {
@@ -125,6 +126,52 @@ describe('Saju Timezone Utils', () => {
     it('pads single digit hours and minutes', () => {
       expect(formatOffset(90)).toBe('UTC+01:30')
       expect(formatOffset(9)).toBe('UTC+00:09')
+    })
+  })
+
+  // ============ 추가: 미커버 분기 ============
+
+  describe('getOffsetMinutes - 추가 분기', () => {
+    it('reuses cached DateTimeFormat for repeated timezone calls', () => {
+      const d1 = new Date(Date.UTC(2024, 0, 1, 12, 0, 0))
+      const d2 = new Date(Date.UTC(2024, 5, 1, 12, 0, 0))
+      // 첫 호출이 캐시 채움, 두 번째 호출이 캐시 hit 분기 사용
+      expect(getOffsetMinutes(d1, 'Asia/Tokyo')).toBe(540)
+      expect(getOffsetMinutes(d2, 'Asia/Tokyo')).toBe(540)
+    })
+
+    it('returns negative offset west of UTC at midnight (24->0 normalize path)', () => {
+      // 자정 근처 UTC에서 서쪽 타임존은 전날로 넘어감 → 음수 offset
+      const instant = new Date(Date.UTC(2024, 0, 1, 0, 0, 0))
+      const off = getOffsetMinutes(instant, 'America/Los_Angeles')
+      expect(off).toBeLessThan(0)
+      expect(off).toBe(-480) // PST = UTC-8 (1월)
+    })
+
+    it('handles half-hour timezone (Australia/Adelaide)', () => {
+      // 남반구 1월 = 일광절약(ACDT = UTC+10:30)
+      const summer = new Date(Date.UTC(2024, 0, 15, 2, 0, 0))
+      const off = getOffsetMinutes(summer, 'Australia/Adelaide')
+      expect([570, 630]).toContain(off) // ACST 570 or ACDT 630
+    })
+  })
+
+  describe('solarTimeCorrectionMinutes - 추가 분기 (timezone.test)', () => {
+    it('invalid timezone → standardMeridian 0 → correction = round(lon*4)', () => {
+      const instant = new Date(Date.UTC(2024, 0, 1, 12, 0, 0))
+      // getOffsetMinutes가 0 반환 → standardMeridian 0 → round(120 * 4)
+      expect(solarTimeCorrectionMinutes(instant, 120, 'Invalid/Zone')).toBe(480)
+    })
+
+    it('returns 0 for non-finite longitude', () => {
+      const instant = new Date(Date.UTC(2024, 0, 1, 12, 0, 0))
+      expect(solarTimeCorrectionMinutes(instant, Number.POSITIVE_INFINITY, 'UTC')).toBe(0)
+    })
+
+    it('UTC zone: correction = round(longitude * 4)', () => {
+      const instant = new Date(Date.UTC(2024, 0, 1, 12, 0, 0))
+      // UTC offset 0 → standardMeridian 0 → round(15 * 4) = 60
+      expect(solarTimeCorrectionMinutes(instant, 15, 'UTC')).toBe(60)
     })
   })
 })

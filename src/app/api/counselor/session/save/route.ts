@@ -14,6 +14,8 @@ import {
 } from '@/lib/api/zodValidation'
 import { logger } from '@/lib/logger'
 import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
+import { isCounselorSessionDeleted } from '@/lib/counselor/sessionTombstone'
+import { deriveChatTitleFromMessages } from '@/lib/counselor/chatTitle'
 
 export const dynamic = 'force-dynamic'
 
@@ -69,7 +71,33 @@ export const POST = withApiMiddleware(
       })
     }
 
-    const { sessionId, messages, locale = 'ko' } = validationResult.data
+    const { sessionId, messages, locale = 'ko', subject } = validationResult.data
+
+    // 세션을 "사람"에 묶는다 — 사이드바 부제(누구 채팅인지)와 후속 재개의 기준.
+    // 생성 시 한 번만 저장한다(대화 도중 대상자는 안 바뀜). name/birth 가 전혀
+    // 없으면 meta 를 만들지 않는다. profile.name 은 사이드바가 읽는 위치라 같이 둔다.
+    const subjectName = subject?.name?.trim() || ''
+    const hasSubject = Boolean(
+      subjectName || subject?.birthDate?.trim() || subject?.birthTime?.trim()
+    )
+    const sessionMeta = hasSubject
+      ? {
+          ...(subjectName ? { profile: { name: subjectName } } : {}),
+          subject: {
+            ...(subjectName ? { name: subjectName } : {}),
+            ...(subject?.birthDate?.trim() ? { birthDate: subject.birthDate.trim() } : {}),
+            ...(subject?.birthTime?.trim() ? { birthTime: subject.birthTime.trim() } : {}),
+            ...(typeof subject?.birthTimeUnknown === 'boolean'
+              ? { birthTimeUnknown: subject.birthTimeUnknown }
+              : {}),
+            ...(subject?.gender?.trim() ? { gender: subject.gender.trim() } : {}),
+            ...(typeof subject?.latitude === 'number' ? { latitude: subject.latitude } : {}),
+            ...(typeof subject?.longitude === 'number' ? { longitude: subject.longitude } : {}),
+            ...(subject?.city?.trim() ? { city: subject.city.trim() } : {}),
+            ...(subject?.timeZone?.trim() ? { timeZone: subject.timeZone.trim() } : {}),
+          },
+        }
+      : undefined
 
     if (!sessionId || !messages.length) {
       return createErrorResponse({
@@ -82,8 +110,13 @@ export const POST = withApiMiddleware(
 
     const existing = await prisma.counselorChatSession.findUnique({
       where: { id: sessionId },
-      select: { userId: true },
+      select: { userId: true, meta: true, title: true },
     })
+
+    // 사이드바 제목 — 생성 시 박아 둔다. 안 그러면 자동저장이 안전망보다 먼저
+    // 행을 만들 때 title 이 NULL 로 남아 목록이 매번 fallback 쿼리로 제목을
+    // 다시 뽑는다(auto-titler PR #193 회귀). update 경로는 비어 있을 때만 backfill.
+    const derivedTitle = deriveChatTitleFromMessages(messages)
 
     if (existing && existing.userId !== userId) {
       return createErrorResponse({
@@ -103,9 +136,21 @@ export const POST = withApiMiddleware(
           messages: messages as never,
           messageCount: messages.length,
           lastMessageAt: new Date(),
+          // 서버 안전망(ensureCounselorSessionRecord)이 답변 완료 시점에 meta
+          // 없이 행을 먼저 만들면, 이 클라 저장이 update 로 떨어진다. 예전엔
+          // update 가 meta 를 안 건드려 대상자(subject)가 영영 저장되지 않았다
+          // (사이드바 이름·재개 복원이 깨짐). 행에 meta 가 아직 없을 때만
+          // backfill — 이미 있으면 덮어쓰지 않는다(클라가 갱신 권한 보유).
+          ...(!existing.meta && sessionMeta ? { meta: sessionMeta } : {}),
+          ...(!existing.title && derivedTitle ? { title: derivedTitle } : {}),
         },
       })
       saveMode = 'update'
+    } else if (await isCounselorSessionDeleted(sessionId)) {
+      // 스트리밍/디바운스 도중 사용자가 이 채팅을 삭제했다면, 지연 도착한 이
+      // 자동저장이 세션을 되살리면 안 된다 — 생성 스킵하고 조용히 성공 반환
+      // (클라는 이미 목록에서 지웠으므로 에러로 만들 필요 없음).
+      return NextResponse.json({ success: true, sessionId, skipped: 'deleted' })
     } else {
       try {
         chatSession = await prisma.counselorChatSession.create({
@@ -116,6 +161,8 @@ export const POST = withApiMiddleware(
             messages,
             messageCount: messages.length,
             lastMessageAt: new Date(),
+            ...(sessionMeta ? { meta: sessionMeta } : {}),
+            ...(derivedTitle ? { title: derivedTitle } : {}),
           },
         })
         saveMode = 'create'
@@ -131,7 +178,7 @@ export const POST = withApiMiddleware(
 
         const collided = await prisma.counselorChatSession.findUnique({
           where: { id: sessionId },
-          select: { userId: true },
+          select: { userId: true, meta: true, title: true },
         })
 
         if (collided && collided.userId !== userId) {
@@ -153,6 +200,9 @@ export const POST = withApiMiddleware(
             messages: messages as never,
             messageCount: messages.length,
             lastMessageAt: new Date(),
+            // 동시 생성자가 안전망(meta 없음)이었을 수 있으니 여기서도 backfill.
+            ...(!collided?.meta && sessionMeta ? { meta: sessionMeta } : {}),
+            ...(!collided?.title && derivedTitle ? { title: derivedTitle } : {}),
           },
         })
         saveMode = 'create-race-recovery'

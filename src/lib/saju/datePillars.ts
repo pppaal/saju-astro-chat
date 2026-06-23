@@ -9,10 +9,12 @@
 // just (date) → pillar values. The caller can layer profile-specific
 // computations (sibsin, sinsals, johu, yongsin alignment) on top.
 
-import { getSolarTermKST, MONTH_STEM_LOOKUP } from './constants'
+import { getSolarTermKST, MONTH_STEM_LOOKUP, STEM_NAMES, BRANCH_NAMES } from './constants'
 
-const STEMS = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸']
-const BRANCHES = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥']
+// 천간/지지 이름 배열은 constants SSOT 에서 파생(복사 금지) — 예전엔 여기·cycleRelations·
+// shinsal 이 같은 배열을 따로 들고 있어 한쪽만 바뀌면 조용히 어긋났다.
+const STEMS = STEM_NAMES
+const BRANCHES = BRANCH_NAMES
 
 // Solar-term index 1=소한, 2=입춘, 3=경칩, 4=청명, 5=입하, 6=망종, 7=소서,
 // 8=입추, 9=백로, 10=한로, 11=입동, 12=대설.
@@ -48,7 +50,10 @@ export interface SajuMonthRef {
  * engine uses in saju.ts (`ipchunUTC` boundary + `sajuMonth` adjust).
  */
 function getMonthRefForDate(date: Date): SajuMonthRef {
-  const y = date.getFullYear()
+  // 후보 연도 seed 는 UTC 기준. getSolarTermKST 는 절대 instant(UTC)를 돌려주고
+  // 비교도 getTime() 절대값이라, seed 도 서버 tz 에 의존하면 안 된다(로컬 tz 서버
+  // 에서 연말연초 경계가 흔들림). getUTCFullYear 로 서버-tz 독립·결정적.
+  const y = date.getUTCFullYear()
   for (const candidateYear of [y, y - 1]) {
     for (let term = 12; term >= 1; term--) {
       const t = getSolarTermKST(candidateYear, term)
@@ -69,13 +74,24 @@ function getMonthRefForDate(date: Date): SajuMonthRef {
   // Out of KASI table range. Fall back to a Gregorian approximation so
   // callers don't crash; they'll get slightly off boundaries but not
   // wildly wrong values.
-  const fallbackBranch = BRANCHES[(date.getMonth() + 2) % 12]
+  const m = date.getUTCMonth()
+  const fallbackBranch = BRANCHES[(m + 2) % 12]
   return {
     branch: fallbackBranch,
-    sajuYear: date.getFullYear(),
-    sajuMonthIndex: ((date.getMonth() + 12) % 12) + 1,
-    termIndex: ((date.getMonth() + 11) % 12) + 1,
+    sajuYear: date.getUTCFullYear(),
+    sajuMonthIndex: ((m + 12) % 12) + 1,
+    termIndex: ((m + 11) % 12) + 1,
   }
+}
+
+/**
+ * The saju *year number* `date` falls in. Flips at 입춘 (term 2), not 1/1 —
+ * 1/1 ~ 입춘 still belongs to the previous saju year. Use this anywhere a
+ * 세운 ganji is labelled with a year, so the number and the ganji agree
+ * (Gregorian getFullYear would disagree across the 입춘 boundary).
+ */
+export function getSajuYearForDate(date: Date): number {
+  return getMonthRefForDate(date).sajuYear
 }
 
 /**

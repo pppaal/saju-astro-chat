@@ -10,13 +10,13 @@ import styles from './Chat.module.css'
 import { type TarotResultSummary } from './InlineTarotModal'
 import { CHAT_I18N } from './chat-i18n'
 import { generateMessageId } from './chat-utils'
-import type { ChatProps } from './chat-types'
+import type { ChatProps, DestinySources } from './chat-types'
 import { loadPendingChat } from '@/lib/chat/pendingChat'
 import { useChatSession } from './hooks/useChatSession'
 import { useFileUpload } from './hooks/useFileUpload'
 import { useChatApi } from './hooks/useChatApi'
 import { useSeedEvent } from '@/components/chat'
-import { MessagesPanel, ChatInputArea } from './chat-panels'
+import { MessagesPanel, ChatInputArea, DataSourceToggles } from './chat-panels'
 import { useI18n } from '@/i18n/I18nProvider'
 import { useClarifierCard } from '@/hooks/useClarifierCard'
 import { useChatAutoScroll } from '@/hooks/useChatAutoScroll'
@@ -45,6 +45,7 @@ const Chat = memo(function Chat({
   autoSendSeed = false,
   autoFocus = false,
   initialSessionId,
+  initialSources,
   onSessionChange,
   onSendBlocked,
   inputViewTransitionName,
@@ -74,6 +75,12 @@ const Chat = memo(function Chat({
 
   const [input, setInput] = React.useState('')
   const [notice, setNotice] = React.useState<string | null>(null)
+  // 이번 상담에 넣을 데이터 소스(사주/점성). 메인에서 고른 값(initialSources)으로
+  // 시작하고, 없으면 둘 다. 이후 입력창 체크박스로 언제든 전환. (사람 전환 시
+  // Chat 이 key 로 remount 되므로 그때 다시 initialSources 가 적용된다.)
+  const [sources, setSources] = React.useState<DestinySources>(
+    initialSources ?? { saju: true, astro: true }
+  )
   const [showTarotModal, setShowTarotModal] = React.useState(false)
   const [activeSessionId, setActiveSessionId] = React.useState<string | null>(null)
 
@@ -111,6 +118,7 @@ const Chat = memo(function Chat({
     advancedAstro,
     predictionContext,
     userContext,
+    sources,
     cvText,
     ragSessionId,
     autoScroll,
@@ -214,6 +222,40 @@ const Chat = memo(function Chat({
   }, [activeSessionId, sessionHistory, onSessionChange])
 
   // 자동 저장 — 공통 hook (debounce + beforeunload sendBeacon).
+  // 이 채팅이 "누구 사주"인지를 저장 payload 에 실어, 세션 생성 시 서버가 meta 로
+  // 박게 한다. 사이드바가 과거 채팅마다 그 사람 이름을 보여주고(현재 사람으로
+  // 도배되지 않게), 후속으로 재개 시 그 사람 컨텍스트를 복원하는 기반이 된다.
+  // useMemo 로 참조 안정화 — autosave effect 가 매 렌더 재실행되지 않게.
+  // 출생 식별 전체(좌표·시간대 포함)를 저장 — 재개 시 useCounselorData 가
+  // 이걸로 그 사람 사주를 정확히 다시 계산한다. 일부만 저장하면 시주/하우스가
+  // 현재 사용자 기준으로 어긋난다.
+  const autoSaveExtra = React.useMemo(
+    () => ({
+      subject: {
+        name: profile?.name,
+        birthDate: profile?.birthDate,
+        birthTime: profile?.birthTime,
+        birthTimeUnknown: profile?.birthTimeUnknown,
+        gender: profile?.gender,
+        latitude: profile?.latitude,
+        longitude: profile?.longitude,
+        city: profile?.city,
+        timeZone: profile?.timeZone,
+      },
+    }),
+    [
+      profile?.name,
+      profile?.birthDate,
+      profile?.birthTime,
+      profile?.birthTimeUnknown,
+      profile?.gender,
+      profile?.latitude,
+      profile?.longitude,
+      profile?.city,
+      profile?.timeZone,
+    ]
+  )
+
   // sessionIdRef 를 그대로 넘기면 새 채팅 시작(startNewChat) 시 ref 가 바뀌어도
   // 다음 저장에 새 id 가 사용된다 (current 평가는 effect 안).
   useChatAutoSave({
@@ -221,6 +263,7 @@ const Chat = memo(function Chat({
     sessionId: sessionIdRef,
     locale: lang || 'ko',
     messages,
+    extra: autoSaveExtra,
   })
 
   useSeedEvent({
@@ -616,6 +659,14 @@ ${result.overallMessage}${result.guidance ? `\n\n**\uC870\uC5B8:** ${result.guid
               autoFocus={autoFocus}
               theme="light"
               viewTransitionName={inputViewTransitionName}
+              topSlot={
+                <DataSourceToggles
+                  sources={sources}
+                  onChange={setSources}
+                  lang={effectiveLang}
+                  disabled={loading}
+                />
+              }
             />
           </div>
         </section>

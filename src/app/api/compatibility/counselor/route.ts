@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import { initializeApiContext, createAuthenticatedGuard } from '@/lib/api/middleware'
 import { createFallbackSSEStream } from '@/lib/streaming'
 import { streamClaudeAsSSE } from '@/lib/llm/claudeSSE'
-import { PREMIUM_CLAUDE_MODEL } from '@/lib/llm/claude'
 import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
 import { guardText, containsForbidden, safetyMessage } from '@/lib/textGuards'
 import { isSelfHarm, crisisMessage } from '@/lib/safety/crisis'
@@ -250,7 +249,15 @@ export async function POST(req: NextRequest) {
           userId: context.userId,
         })
       } else {
-        const res = await consumeCredits(context.userId, 'compatibility', 1)
+        // 과금↔활동 링크 — persistSessionId(위에서 산출, 로그인 사용자면 항상
+        // 비어있지 않음)는 onComplete 의 ensureCounselorSessionRecord 가 행을
+        // 보장하는 바로 그 id. CONSUME 감사행에 박아 사후 reconciliation 이
+        // "차감됐는데 세션 행 없음"을 정확히 잡게 한다.
+        const res = await consumeCredits(context.userId, 'compatibility', 1, {
+          apiRoute: 'compatibility/counselor',
+          activityType: 'compat_session',
+          activityRef: persistSessionId || undefined,
+        })
         if (!res.success) {
           // 차감 실패 → 선점 해제 후 결제 요구 응답(재시도가 다시 차감 가능).
           if (scopedIdemKey) await idemStore.release(scopedIdemKey)
@@ -301,6 +308,15 @@ export async function POST(req: NextRequest) {
     // better itself.
     const person1Seed = buildPersonSeed((persons?.[0] as Record<string, unknown>) || null)
     const person2Seed = buildPersonSeed((persons?.[1] as Record<string, unknown>) || null)
+
+    // 출생 시각 미상 — 시주/ASC/MC/하우스 cross 가 날조되지 않게 formatter 에 전달.
+    // 명시 플래그 OR 시각 누락 OR 자정(00:00) 기본값 = 미상으로 간주(seed 도 00:00 폴백).
+    const isTimeUnknown = (idx: number): boolean => {
+      const raw = persons?.[idx] as { time?: string; birthTimeUnknown?: boolean } | undefined
+      return !!raw?.birthTimeUnknown || !raw?.time || raw.time === '00:00'
+    }
+    const timeUnknownA = isTimeUnknown(0)
+    const timeUnknownB = isTimeUnknown(1)
 
     // Phase E (2026-06-06): stale 모니터링 정리.
     // Phase A/B 후 사주/점성 시나스트리 블록은 compatSajuFacts /
@@ -393,7 +409,11 @@ export async function POST(req: NextRequest) {
           // 32세 대운 시작 vs 만 35세 현재) in earlier production
           // turns. Korean age = ageYears + 1 (one for the year of
           // birth, conventional 만 vs 한국나이 offset).
-          const age = p.date ? getAgeFromBirthDate(p.date) : null
+          // 만나이는 그 사람의 출생 시간대 기준으로 — 앞 두 사람은 seed 의 tz 를
+          // 넘긴다(3명+는 seed 가 없어 기본 tz). getAgeFromBirthDate 가 SSOT 위임.
+          const personTz =
+            i === 0 ? person1Seed?.timeZone : i === 1 ? person2Seed?.timeZone : undefined
+          const age = p.date ? getAgeFromBirthDate(p.date, personTz) : null
           const ageNote =
             age != null ? (normalizedLang === 'ko' ? ` (만 ${age}세)` : ` (age ${age})`) : ''
           // Person 1 is always the anchor — no relation suffix. For
@@ -492,6 +512,8 @@ export async function POST(req: NextRequest) {
           currentDaeunB: compatSaju.b.currentDaeun,
           nameA: (persons?.[0] as { name?: string } | undefined)?.name ?? null,
           nameB: (persons?.[1] as { name?: string } | undefined)?.name ?? null,
+          timeUnknownA,
+          timeUnknownB,
           lang,
         })
       }
@@ -536,6 +558,8 @@ export async function POST(req: NextRequest) {
           lonB: compatAstro.b.longitude,
           nameA: nA,
           nameB: nB,
+          timeUnknownA,
+          timeUnknownB,
           lang,
         })
         // Composite chart — 두 차트의 entity 톤 (관계 자체). synastry 가
@@ -546,6 +570,8 @@ export async function POST(req: NextRequest) {
           chartB: compatAstro.b.chart,
           nameA: nA,
           nameB: nB,
+          timeUnknownA,
+          timeUnknownB,
         })
       } catch (err) {
         logger.warn('[compat counselor] astro synastry failed', {
@@ -561,8 +587,7 @@ export async function POST(req: NextRequest) {
     ;[person1Seed, person2Seed].forEach((seed, i) => {
       if (!seed) return
       const label = i === 0 ? 'A' : 'B'
-      const raw = persons?.[i] as { time?: string; birthTimeUnknown?: boolean } | undefined
-      const timeUnknown = !!raw?.birthTimeUnknown || !raw?.time || raw.time === '00:00'
+      const timeUnknown = i === 0 ? timeUnknownA : timeUnknownB
       const cityUnknown = !!seed.source?.usedDefaultLocation
       // location/timezone 은 LLM 한테 직접 의미 없음 (이미 사주/점성 계산이
       // 적용된 결과만 전달). unknown 플래그만 가드 룰 위해 명시.
@@ -680,9 +705,9 @@ export async function POST(req: NextRequest) {
         cachedUserContext,
         userPrompt,
         priorTurns,
-        // Haiku → Sonnet 4.5 통일. 운명 상담사와 같은 깊이·톤. 캐싱(1h)
-        // 으로 cachedUserContext 비용 회수.
-        model: PREMIUM_CLAUDE_MODEL,
+        // 모델은 비용 정책(SSOT, llm-policy)이 정한다 — compatibility.counselor =
+        // Sonnet 4.5. 운명 상담사와 같은 깊이·톤. 캐싱(1h)으로 컨텍스트 비용 회수.
+        feature: 'compatibility.counselor',
         // maxTokens 5000 + continuation hook — 5000 도달해도 자동으로 이어
         // 써서 답이 절대 중간에 안 잘림 (최대 2회 continuation, 누적 24000
         // chars 절대 cap). claudeWithContinuation 참고.

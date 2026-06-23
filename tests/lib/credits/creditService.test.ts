@@ -206,7 +206,7 @@ describe('Credit Service Functions with Mocked Prisma', () => {
       expect(balance.monthlyCredits).toBe(80)
       expect(balance.usedCredits).toBe(30)
       expect(balance.bonusCredits).toBe(20)
-      expect(balance.remainingCredits).toBe(70) // 80 - 30 + 20
+      expect(balance.remainingCredits).toBe(20) // bonus-only — frozen monthly(80)/used(30) 무시
     })
 
     it('returns 0 when credits are exhausted', async () => {
@@ -242,9 +242,9 @@ describe('Credit Service Functions with Mocked Prisma', () => {
       const mockCredits = {
         userId: 'can-use-user',
         plan: 'free',
-        monthlyCredits: 80,
-        usedCredits: 10,
-        bonusCredits: 0,
+        monthlyCredits: 0,
+        usedCredits: 0,
+        bonusCredits: 70,
         compatibilityUsed: 0,
         followUpUsed: 0,
         compatibilityLimit: 0,

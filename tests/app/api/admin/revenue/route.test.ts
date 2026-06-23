@@ -106,6 +106,12 @@ describe('GET /api/admin/revenue', () => {
     expect(data.revenue.byPack[0]).toMatchObject({ credits: 240, count: 1, krw: 19900 })
     // daily array has one entry per day
     expect(data.revenue.daily).toHaveLength(30)
+    // R1 회귀: 마지막 버킷은 *오늘* 이어야 하고 오늘 매출이 거기 담겨야 한다.
+    // (직전엔 버킷이 어제에서 끝나 오늘 매출이 차트에서 통째로 누락됐다.)
+    const todayKey = new Date().toISOString().slice(0, 10)
+    const last = data.revenue.daily[data.revenue.daily.length - 1]
+    expect(last.date).toBe(todayKey)
+    expect(last.krw).toBe(9900)
     // 환불 없음 → 순매출 = 총매출, 환불액 0
     expect(data.revenue.netKrw).toBe(9900 + 19900)
     expect(data.revenue.refundedKrw).toBe(0)

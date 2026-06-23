@@ -245,9 +245,6 @@ type I18nContextType = {
   hydrated: boolean
 }
 
-// Export for backward compatibility (will be empty initially, populated on demand)
-export const DICTS = dictsCache
-
 const I18nContext = createContext<I18nContextType | null>(null)
 
 // Only support en/ko

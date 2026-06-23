@@ -121,10 +121,14 @@ export const GET = withApiMiddleware(
       const refundedKrw = refundedPurchases.reduce((s, p) => s + creditsToKrw(p.amount), 0)
       const creditsRefunded = windowRefundTx.reduce((s, t) => s + Math.abs(t.amount), 0)
 
-      // 일별 매출 (빈 날도 0 으로 채움)
+      // 일별 매출 (빈 날도 0 으로 채움). 오늘을 마지막 버킷으로 days 일치 채운다.
+      // since(롤링 타임스탬프)에서 +i 로 채우면 마지막 버킷이 "어제"에서 끝나
+      // 오늘(dayKey(now)) 버킷이 아예 없어 오늘 매출이 차트에서 통째로 누락됐다 —
+      // todayKrw/windowKrw 합계와 차트가 어긋나 보이던 원인. now 를 끝점으로
+      // 거꾸로 채워 오늘을 반드시 포함시킨다.
       const dailyMap = new Map<string, { krw: number; count: number }>()
-      for (let i = 0; i < days; i++) {
-        const d = new Date(since.getTime() + i * 24 * 60 * 60 * 1000)
+      for (let i = days - 1; i >= 0; i--) {
+        const d = new Date(now.getTime() - i * 24 * 60 * 60 * 1000)
         dailyMap.set(dayKey(d), { krw: 0, count: 0 })
       }
       const packMap = new Map<number, { count: number; krw: number }>()

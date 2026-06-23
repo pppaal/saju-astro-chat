@@ -10,6 +10,7 @@ import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
 import { tarotThemes, tarotCreditCostFor } from '@/lib/tarot/tarot-spreads-data'
 import { Card, DrawnCard } from '@/lib/tarot/tarot.types'
 import { tarotDeck } from '@/lib/tarot/data'
+import { TAROT_REVERSED_PROBABILITY } from '@/lib/tarot/reversedProbability'
 import { checkCreditsOnly, creditErrorResponse } from '@/lib/credits/withCredits'
 import { createDrawNonceStore, drawNonceOwnerKey } from '@/lib/api/idempotency'
 import { storeDrawCards, type StoredDrawCard } from '@/lib/tarot/drawCardsCache'
@@ -39,9 +40,8 @@ function drawCards(count: number): DrawnCard[] {
   }
   return deck.slice(0, n).map((card: Card) => ({
     card,
-    // 역방향 30% — 50% 는 부정적 카드가 너무 자주 나와 부담된다는
-    // 피드백 반영. 정통 셔플도 물리 셔플 패턴상 ~25-30% 가 일반적.
-    isReversed: Math.random() < 0.3,
+    // 역방향 확률 SSOT — 클래리파이어·데일리와 동일 값(reversedProbability.ts).
+    isReversed: Math.random() < TAROT_REVERSED_PROBABILITY,
   }))
 }
 

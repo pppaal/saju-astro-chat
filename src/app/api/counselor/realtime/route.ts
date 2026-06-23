@@ -12,7 +12,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from '@/lib/auth/session'
 import { ensureCounselorContext } from '@/lib/destiny/counselorContextCache'
 import { streamClaudeAsSSE } from '@/lib/llm/claudeSSE'
-import { PREMIUM_CLAUDE_MODEL } from '@/lib/llm/claude'
 import { sanitizeForXmlTagBoundary, sanitizePriorTurns } from '@/lib/llm/promptSafety'
 import { logger } from '@/lib/logger'
 import { containsForbidden, safetyMessage } from '@/lib/textGuards'
@@ -32,9 +31,9 @@ const idemStore = createIdempotencyStore('counselor-realtime')
 import { refundCreditsOnce } from '@/lib/credits/refundOnce'
 import { ensureCounselorSessionRecord } from '@/lib/counselor/ensureSessionRecord'
 import { cacheSet } from '@/lib/cache/redis-cache'
-import { getUserDisplayName } from '@/lib/user/displayName'
+import { getUserDisplayName, sanitizeDisplayName } from '@/lib/user/displayName'
 import { currentManAge } from '@/lib/datetime/currentAge'
-import { resolveCounselorLang } from '@/lib/destiny/counselorRequest'
+import { resolveCounselorLang, resolveCounselorSources } from '@/lib/destiny/counselorRequest'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -43,11 +42,16 @@ export const maxDuration = 120
 interface ChatMessage {
   role: 'user' | 'assistant'
   content: string
+  /** 이 턴 생성 시 켜져 있던 소스. 스코프 전환 후 off-scope 과거 턴을 재생에서 빼는 데 쓴다. */
+  sources?: { saju?: boolean; astro?: boolean }
 }
 
 interface RealtimeBody {
   messages: ChatMessage[]
   lang?: 'ko' | 'en'
+  /** 상담 대상의 표시 이름. '다른 사람으로 보기' 시 그 사람 이름이 들어온다.
+   *  비어 있으면(구버전 클라/미지정) 로그인 사용자 이름으로 폴백한다. */
+  name?: string
   birthDate?: string
   birthTime?: string
   /** true when the user did not know their birth hour. */
@@ -67,6 +71,8 @@ interface RealtimeBody {
   /** 이 턴의 고유 id(클라 생성). 연결이 끊겨도 서버가 끝까지 생성한 답을 이
    *  키로 캐시에 저장해 두면, 사용자가 돌아왔을 때 result 엔드포인트로 복원한다. */
   turnId?: string
+  /** 이번 답변에 넣을 데이터 소스(체크박스). 누락/구버전 클라 → 둘 다. */
+  sources?: { saju?: boolean; astro?: boolean }
 }
 
 // 끊긴 턴의 완성 답안을 잠깐 보관하는 캐시 키 — result 엔드포인트가 같은 키로 읽음.
@@ -177,6 +183,9 @@ export async function POST(req: NextRequest) {
   // 답변 언어 — 단일 출처(resolveCounselorLang)로 도출. realtime · warm 이 같은
   // 규칙(body.lang → locale 쿠키 → ko)을 공유해야 캐시 키가 일치한다.
   const lang: 'ko' | 'en' = resolveCounselorLang(body, req)
+  // 데이터 소스(사주만/점성만/둘 다) — 컨텍스트 빌드·캐시 키·시스템 프롬프트가
+  // 모두 같은 값을 공유해야 한쪽만 선택한 답변이 일관된다.
+  const sources = resolveCounselorSources(body)
   if (!userMessage.trim()) {
     return NextResponse.json({ error: 'empty_message' }, { status: 400 })
   }
@@ -219,7 +228,7 @@ export async function POST(req: NextRequest) {
   let stableContext: string
   let dailyContext: string
   try {
-    const ctx = await ensureCounselorContext(body, userId, lang)
+    const ctx = await ensureCounselorContext(body, userId, lang, sources)
     stableContext = ctx.stableContext
     dailyContext = ctx.dailyContext
   } catch (err) {
@@ -245,7 +254,16 @@ export async function POST(req: NextRequest) {
     } else {
       let consumed: { success: boolean }
       try {
-        consumed = await consumeCredits(userId, 'reading', 1)
+        // 과금↔활동 링크 — 클라가 정본 세션 id 를 x-session-id 로 보내고, onComplete
+        // 의 ensureCounselorSessionRecord 가 같은 id 로 행을 보장한다. 과금 시점에
+        // 이미 아는 이 id 를 CONSUME 감사행에 박아 사후 reconciliation 이 "차감됐는데
+        // 세션 행 없음"을 정확히 잡게 한다(헤더 없으면 링크 생략).
+        const sidForLink = (req.headers.get('x-session-id') ?? '').trim() || undefined
+        consumed = await consumeCredits(userId, 'reading', 1, {
+          apiRoute: 'counselor/realtime',
+          activityType: 'counselor_session',
+          activityRef: sidForLink,
+        })
       } catch (err) {
         // 차감 중 예외(DB 등) — 선점 해제 후 503 으로 막는다. 예전엔 여기서 그대로
         // 스트림으로 떨어져 프리미엄 답변이 무료로 나갔다. 절대 무료 스트림 금지.
@@ -311,7 +329,7 @@ export async function POST(req: NextRequest) {
     // string으로 박아서 직전 답 톤이 다음 답에 묻어 나왔음.
     // role 필터: Anthropic Messages API는 user/assistant만 받음. 클라가
     // 'system'을 messages 배열에 넣어 보내면 400 invalid_request_error.
-    const systemPrompt = buildDestinyCounselorPrompt(lang === 'en' ? 'en' : 'ko')
+    const systemPrompt = buildDestinyCounselorPrompt(lang === 'en' ? 'en' : 'ko', sources)
     const cachedUserContext = stableContext
     const dialogTurns = body.messages.filter(
       (m): m is ChatMessage => m.role === 'user' || m.role === 'assistant'
@@ -320,7 +338,23 @@ export async function POST(req: NextRequest) {
     // role: 'system' turn, caps each content at 8KB, and replaces `<`/`>`
     // with full-width chars so a replayed turn can't smuggle a tag-close
     // (e.g. fake </birth_data>) into the prompt window. See promptSafety.ts.
-    const priorTurns = sanitizePriorTurns(dialogTurns.slice(0, -1))
+    // 완벽 차단(hard): 단일 소스면, *지금 꺼진 소스를 쓰던* 과거 턴을 모델에 아예
+    // 재생하지 않는다(프롬프트로 "무시해"는 soft — 모델이 보면 새어나옴). 턴마다 박힌
+    // sources 태그로 호환 여부 판정. 시간순이라 스코프 전환점 이전(off-scope)은 prefix →
+    // 뒤에서부터 호환 턴만 이어 붙여(연속성 유지 + user 로 시작하도록 정렬).
+    const prior = dialogTurns.slice(0, -1)
+    const turnInScope = (m: ChatMessage): boolean => {
+      const s = m.sources
+      const usedSaju = s ? s.saju !== false : true // 태그 없으면 '둘 다'로 간주(보수적)
+      const usedAstro = s ? s.astro !== false : true
+      return (sources.saju || !usedSaju) && (sources.astro || !usedAstro)
+    }
+    let cut = prior.length
+    while (cut > 0 && turnInScope(prior[cut - 1])) cut--
+    let inScope = prior.slice(cut)
+    // Anthropic 은 첫 메시지가 user 여야 한다 — suffix 가 assistant 로 시작하면 한 칸 민다.
+    if (inScope.length > 0 && inScope[0].role === 'assistant') inScope = inScope.slice(1)
+    const priorTurns = sanitizePriorTurns(inScope)
     const rawUserPromptRaw = dialogTurns[dialogTurns.length - 1]?.content ?? ''
     if (!rawUserPromptRaw.trim()) {
       return NextResponse.json({ error: 'empty_message' }, { status: 400 })
@@ -345,7 +379,12 @@ export async function POST(req: NextRequest) {
     // 메타라 cache prefix 에 들어가면 prompt-cache 무효화 (이름 변경 / 생일
     // 통과 시). 매 턴 userPrompt prefix 로 붙여 chart 데이터만으로 prefix
     // 안정.
-    const userName = await getUserDisplayName(userId)
+    // 상담 대상의 이름. '다른 사람으로 보기'면 클라가 그 사람 이름을 body.name
+    // 으로 보낸다 — 차트(birthDate 등)는 이미 그 사람 기준으로 계산되므로 호명도
+    // 같은 사람으로 맞춰야 한다. body.name 은 사용자 입력이라 sanitizeDisplayName
+    // 으로 개행/제어문자/길이를 정규화한 뒤 프롬프트에 박는다. 비어 있으면(구버전
+    // 클라 / 미지정) 로그인 사용자의 DB 이름으로 폴백.
+    const userName = sanitizeDisplayName(body.name) ?? (await getUserDisplayName(userId))
     // 만나이 앵커 — 출생 시간대 기준(currentManAge)으로 도출해 profection 나이와
     // 동일 기준을 쓴다. 예전 computeAgeYears 는 서버 로컬 시계로 계산해, 생일
     // 경계에서 이 앵커와 대운/프로펙션 나이가 1년 어긋날 수 있었다.
@@ -385,7 +424,20 @@ export async function POST(req: NextRequest) {
     const userPromptBody = attachmentText
       ? `<attached_file>\n${attachmentText}\n</attached_file>\n\n${rawUserPrompt}`
       : rawUserPrompt
-    const userPrompt = `${dailyBlock}${metaLine}${userPromptBody}`
+    // 단일 소스(사주만/점성만)면 현재 턴 맨앞에 범위를 다시 못박는다. 시스템 프롬프트에도
+    // scope guard 가 있지만, priorTurns 로 *직전 사주/점성 답변이 그대로 재생*되면 모델이
+    // 그걸 이어가기 쉽다(도중 토글 전환 시). 가장 가중치 높은 현재 user 턴에서 재차단.
+    const singleSource = sources.saju !== sources.astro
+    const scopeLine = !singleSource
+      ? ''
+      : sources.astro
+        ? lang === 'en'
+          ? `[Scope for THIS answer] Astrology only. Even if Saju (day master, five elements, ten gods, daeun) appeared earlier in this chat, do NOT continue it — answer using astrology (planets, signs, houses, aspects, transits) only, and don't use Saju terms.\n\n`
+          : `[이번 답변 범위] 점성만 사용. 이전 대화에 사주(일간·오행·십성·대운)가 나왔더라도 지금은 이어가지 말고, 점성(행성·별자리·하우스·각·트랜짓)만으로 답해. 사주 용어를 꺼내지 마.\n\n`
+        : lang === 'en'
+          ? `[Scope for THIS answer] Saju only. Even if astrology (planets, signs, houses) appeared earlier in this chat, do NOT continue it — answer using Saju (day master, five elements, ten gods, daeun, sewoon, iljin) only, and don't use astrology terms.\n\n`
+          : `[이번 답변 범위] 사주만 사용. 이전 대화에 점성(행성·별자리·하우스)이 나왔더라도 지금은 이어가지 말고, 사주(일간·오행·십성·대운·세운·일진)만으로 답해. 점성 용어를 꺼내지 마.\n\n`
+    const userPrompt = `${dailyBlock}${metaLine}${scopeLine}${userPromptBody}`
 
     // If we charged for a new session but the stream delivers nothing (backend
     // error or empty completion), refund the credit so the user isn't billed for
@@ -437,11 +489,10 @@ export async function POST(req: NextRequest) {
       userPrompt,
       cachedUserContext,
       priorTurns,
-      // 운명상담사는 사주+점성 통합 reasoning 과 자연스러운 한국어 톤이
-      // 핵심이라 Haiku 4.5 → Sonnet 4.5 승격. 다른 라우트(타로 interpret-
-      // stream 등)는 Haiku 그대로. maxTokens 2500 이면 Sonnet 30~40s 안에
-      // 완료 — 기존 120s timeout 안에 여유.
-      model: PREMIUM_CLAUDE_MODEL,
+      // 모델은 비용 정책(SSOT, llm-policy)이 정한다 — counselor.realtime =
+      // Sonnet 4.5. 사주+점성 통합 reasoning 과 자연스러운 한국어 톤이 핵심.
+      // maxTokens 2500 이면 Sonnet 30~40s 안에 완료 — 기존 120s timeout 안에 여유.
+      feature: 'counselor.realtime',
       maxTokens: 2500,
       // maxTokens 도달해도 자동 이어쓰기 — 답이 중간에 안 잘림.
       // 운명상담사도 본문 깊게 답할 때 가끔 2500 cap 도달.

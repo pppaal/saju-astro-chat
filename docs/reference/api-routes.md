@@ -15,22 +15,29 @@ status: auto-generated
 <!-- gen:api-routes -->
 <!-- 이 표는 자동 생성됩니다. 직접 수정하지 마세요 — `npm run docs:sync`. -->
 
-**총 78개 라우트** (원천: `src/app/api/**/route.ts`)
+**총 93개 라우트** (원천: `src/app/api/**/route.ts`)
 
 | 라우트                                  | 메서드             |
 | --------------------------------------- | ------------------ |
 | `/api/admin/active-users`               | GET                |
 | `/api/admin/anomalies`                  | GET                |
 | `/api/admin/audit-log`                  | GET                |
+| `/api/admin/automation-status`          | GET                |
 | `/api/admin/funnel`                     | GET                |
 | `/api/admin/grant-credits`              | POST               |
 | `/api/admin/metrics`                    | GET                |
 | `/api/admin/metrics/funnel`             | GET                |
 | `/api/admin/overview`                   | GET                |
 | `/api/admin/purchases`                  | GET                |
+| `/api/admin/push`                       | GET, POST          |
+| `/api/admin/reconcile-activity`         | GET                |
 | `/api/admin/reconcile-purchase`         | POST               |
 | `/api/admin/refund-credit-pack`         | POST               |
 | `/api/admin/revenue`                    | GET                |
+| `/api/admin/social/drafts`              | GET                |
+| `/api/admin/social/drafts/[id]`         | PATCH              |
+| `/api/admin/social/generate`            | POST               |
+| `/api/admin/social/publish/[id]`        | POST               |
 | `/api/admin/usage`                      | GET                |
 | `/api/admin/users`                      | GET                |
 | `/api/admin/users-by`                   | GET                |
@@ -49,11 +56,13 @@ status: auto-generated
 | `/api/astrology/advanced/solar-return`  | POST               |
 | `/api/auth/[...nextauth]`               | GET, POST          |
 | `/api/auth/revoke`                      | POST               |
+| `/api/calendar/share`                   | POST               |
 | `/api/checkout`                         | POST               |
 | `/api/cities`                           | GET                |
 | `/api/compatibility/counselor`          | POST               |
 | `/api/compatibility/counselor/result`   | GET                |
 | `/api/compatibility/report`             | POST               |
+| `/api/compatibility/share`              | POST               |
 | `/api/counselor/chat-history`           | GET, POST, PATCH   |
 | `/api/counselor/realtime`               | POST               |
 | `/api/counselor/realtime/result`        | GET                |
@@ -61,8 +70,13 @@ status: auto-generated
 | `/api/counselor/session/load`           | GET                |
 | `/api/counselor/session/save`           | POST               |
 | `/api/counselor/warm`                   | POST               |
+| `/api/cron/anomaly-check`               | GET, POST          |
 | `/api/cron/daily-fortune`               | GET, POST          |
+| `/api/cron/keyday-push`                 | GET, POST          |
+| `/api/cron/reconcile-activity`          | GET, POST          |
 | `/api/cron/reset-credits`               | GET, POST          |
+| `/api/cron/social-drafts`               | GET, POST          |
+| `/api/cron/winback-push`                | GET, POST          |
 | `/api/csp-report`                       | GET, POST          |
 | `/api/db-ping`                          | GET                |
 | `/api/me`                               | GET                |
@@ -96,6 +110,7 @@ status: auto-generated
 | `/api/tarot/save/[id]`                  | GET, PATCH, DELETE |
 | `/api/tarot/share`                      | POST               |
 | `/api/track/visit`                      | POST               |
+| `/api/webhook/sentry`                   | POST               |
 | `/api/webhook/stripe`                   | POST               |
 
 <!-- /gen:api-routes -->

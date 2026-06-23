@@ -17,7 +17,8 @@ import { logger } from '@/lib/logger'
 import { recordExternalCall } from '@/lib/metrics/index'
 import { tarotInterpretStreamSchema, createValidationErrorResponse } from '@/lib/api/zodValidation'
 import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
-import { isClaudeAvailable, PREMIUM_CLAUDE_MODEL } from '@/lib/llm/claude'
+import { isClaudeAvailable } from '@/lib/llm/claude'
+import { resolveLlmPolicy } from '@/lib/config/llm-policy'
 import { sanitizeForXmlTagBoundary } from '@/lib/llm/promptSafety'
 import { streamClaudeWithContinuation } from '@/lib/llm/claudeWithContinuation'
 import {
@@ -39,6 +40,9 @@ import { createHash } from 'crypto'
 // 단일 Claude 호출의 최대 wall-clock — Sonnet 4.5 + 7장 streaming 기준
 // Haiku 보다 응답 길어 통상 15-30s. 여유 있게 60s.
 const CLAUDE_TIMEOUT_MS = 60000
+
+// 모델은 비용 정책(SSOT)이 정한다. 메트릭/로그 태그에 쓸 모델명만 여기서 해석.
+const TAROT_INTERPRET_MODEL = resolveLlmPolicy('tarot.interpret').model
 
 // 끊긴 턴의 완성 리딩(raw JSON 문자열)을 잠깐 보관하는 캐시 키 — result
 // 엔드포인트가 같은 키로 읽음. userId 를 키에 포함해 ownership 검증 (다른
@@ -250,6 +254,21 @@ export async function POST(req: NextRequest) {
     const ownerKey = drawNonceOwnerKey(req, context.userId)
     const drawNonce = (body.drawNonce || req.headers.get('x-draw-nonce') || '').trim()
 
+    // 차감-기록 불일치 방지: 로그인 사용자면 안정적 readingId 를 서버가 정하고
+    // 응답 헤더(x-reading-id)로 돌려준다. 정상 완료(과금 확정) 시 이 id 로
+    // TarotReading 존재 행을 보장 생성하고, 클라 tarot/save 가 같은 id 로 upsert
+    // 하며 해석을 채운다 — 행이 갈라지거나 중복되지 않게. id 는 draw nonce 에서
+    // 파생해 새로고침/뒤로가기(replay) 가 같은 리딩을 같은 id 로 가리키게 한다
+    // (replay 는 차감을 환불하므로 행은 첫 요청에서만 생성됨). nonce 가 없으면
+    // (레거시/인라인) 무작위 — 이 경우 replay 보호는 없지만 단발 저장엔 충분.
+    // *차감 전에* 산출해, 같은 id 를 CONSUME 감사행의 활동 링크로도 박는다
+    // (과금↔활동 reconciliation). 무작위 분기는 한 번만 평가되도록 여기서 고정.
+    const persistReadingId = context.userId
+      ? drawNonce
+        ? `tr_${createHash('sha256').update(`${ownerKey}:${drawNonce}`).digest('hex').slice(0, 24)}`
+        : `tr_${createHash('sha256').update(`${context.userId}:${Date.now()}:${Math.random()}`).digest('hex').slice(0, 24)}`
+      : ''
+
     // 권위 있는 카드: draw 가 nonce 로 저장해 둔 서버 보관 카드를 *차감 전에*
     // peek(consume 아님)한다. 캐시에 있으면 그게 draw 가 실제로 뽑은 카드 —
     // 클라이언트가 올려보낸 cards 대신 이걸 써서 "뽑힌 카드 = 해석된 카드"
@@ -288,7 +307,14 @@ export async function POST(req: NextRequest) {
 
     // 1) credit 먼저 — nonce 는 peek 만 (consume 안 함).
     // peek 가 없으면 보수적으로: credit 확인 후 consume.
-    creditResult = await checkAndConsumeCredits('reading', creditCost)
+    creditResult = await checkAndConsumeCredits('reading', creditCost, {
+      apiRoute: 'tarot/interpret-stream',
+      activityType: 'tarot_reading',
+      // 위에서 차감 전에 산출한 안정적 readingId. onComplete 의
+      // ensureTarotReadingRecord 가 같은 id 로 행을 보장 → reconciliation 이
+      // "차감됐는데 리딩 행 없음"을 정확히 잡는다(게스트는 빈 값이라 링크 생략).
+      activityRef: persistReadingId || undefined,
+    })
     if (!creditResult.allowed) {
       // nonce 아직 burn 안 됨. 사용자가 충전 후 재시도 가능.
       return creditErrorResponse(creditResult)
@@ -365,18 +391,8 @@ export async function POST(req: NextRequest) {
     const recoverableUserId = context.userId || ''
     const isRecoverable = Boolean(turnId && recoverableUserId)
 
-    // 차감-기록 불일치 방지: 로그인 사용자면 안정적 readingId 를 서버가 정하고
-    // 응답 헤더(x-reading-id)로 돌려준다. 정상 완료(과금 확정) 시 이 id 로
-    // TarotReading 존재 행을 보장 생성하고, 클라 tarot/save 가 같은 id 로 upsert
-    // 하며 해석을 채운다 — 행이 갈라지거나 중복되지 않게. id 는 draw nonce 에서
-    // 파생해 새로고침/뒤로가기(replay) 가 같은 리딩을 같은 id 로 가리키게 한다
-    // (replay 는 차감을 환불하므로 행은 첫 요청에서만 생성됨). nonce 가 없으면
-    // (레거시/인라인) 무작위 — 이 경우 replay 보호는 없지만 단발 저장엔 충분.
-    const persistReadingId = recoverableUserId
-      ? drawNonce
-        ? `tr_${createHash('sha256').update(`${ownerKey}:${drawNonce}`).digest('hex').slice(0, 24)}`
-        : `tr_${createHash('sha256').update(`${recoverableUserId}:${Date.now()}:${Math.random()}`).digest('hex').slice(0, 24)}`
-      : ''
+    // persistReadingId 는 위(차감 전)에서 산출됨 — 같은 id 가 CONSUME 활동 링크와
+    // x-reading-id 응답, ensureTarotReadingRecord 에 일관되게 쓰인다.
     // Per-turn key so every refund path (fallback / claude error / stream error
     // / outer catch) refunds this turn at most once. (declared at fn scope above)
     // turnId 가 없으면 draw nonce(서버 발급, draw 마다 고유)로 대체 — 둘 다
@@ -461,14 +477,14 @@ export async function POST(req: NextRequest) {
         abortSignal: upstreamSignal,
         systemPrompt,
         userPrompt,
-        model: PREMIUM_CLAUDE_MODEL,
+        feature: 'tarot.interpret',
         maxTokens,
         temperature: 0.7,
         timeoutMs: CLAUDE_TIMEOUT_MS,
         label: 'tarot-stream',
       })
     } catch (claudeErr) {
-      recordExternalCall('anthropic', PREMIUM_CLAUDE_MODEL, 'error', Date.now() - claudeStartTime)
+      recordExternalCall('anthropic', TAROT_INTERPRET_MODEL, 'error', Date.now() - claudeStartTime)
       logger.error('[tarot-stream] Claude initial call failed', {
         error: claudeErr instanceof Error ? claudeErr.message : String(claudeErr),
       })
@@ -551,7 +567,7 @@ export async function POST(req: NextRequest) {
           }
           recordExternalCall(
             'anthropic',
-            PREMIUM_CLAUDE_MODEL,
+            TAROT_INTERPRET_MODEL,
             'success',
             Date.now() - claudeStartTime
           )
@@ -606,7 +622,7 @@ export async function POST(req: NextRequest) {
         } catch (streamErr) {
           recordExternalCall(
             'anthropic',
-            PREMIUM_CLAUDE_MODEL,
+            TAROT_INTERPRET_MODEL,
             'error',
             Date.now() - claudeStartTime
           )

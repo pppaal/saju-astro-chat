@@ -78,6 +78,17 @@ export default function CounselorPage() {
   // the floor, hence "눌러도 안 불러와져").
   const initialSessionId = (Array.isArray(sp.session) ? sp.session[0] : sp.session) ?? undefined
 
+  // 메인에서 고른 데이터 소스(사주/점성). saju=0/astro=0 이 오면 그 소스를 끄고
+  // 시작한다(기본 둘 다). 둘 다 0 이면 빈 컨텍스트 방지로 둘 다로 폴백. Chat 의
+  // 초기 토글 상태로만 쓰이고, 이후 사용자가 입력창에서 자유롭게 바꿀 수 있다.
+  const initialSources = useMemo(() => {
+    const get = (k: string) => (Array.isArray(sp[k]) ? sp[k][0] : sp[k])
+    const saju = get('saju') !== '0'
+    const astro = get('astro') !== '0'
+    if (!saju && !astro) return { saju: true, astro: true }
+    return { saju, astro }
+  }, [sp])
+
   const { chartData, userContext, parsedParams, profileLoading } =
     useCounselorData(counselorSearchParams)
 
@@ -92,6 +103,7 @@ export default function CounselorPage() {
     initialQuestion,
     latitude,
     longitude,
+    timeZone,
   } = parsedParams
 
   // handleLogin removed alongside the guest banner. If we reintroduce
@@ -296,7 +308,6 @@ export default function CounselorPage() {
         onNewChat={handleChatReset}
         lightTheme
         enableGrouping
-        fallbackName={name}
         activeSessionId={activeSession.sessionId}
         activeSessionTitle={activeSession.title}
         onActionError={({ kind, status }) => showActionFailureToast(kind, status)}
@@ -429,6 +440,7 @@ export default function CounselorPage() {
               gender,
               latitude,
               longitude,
+              timeZone,
             }}
             lang={lang}
             initialContext={initialQuestion ? `User's initial question: ${initialQuestion}` : ''}
@@ -441,6 +453,7 @@ export default function CounselorPage() {
             autoSendSeed
             autoFocus
             initialSessionId={initialSessionId}
+            initialSources={initialSources}
             onSessionChange={setActiveSession}
             // inputViewTransitionName 제거 — morph 비활성화. root 크로스페이드만
             // 으로 두 페이지를 잇는다(메인 ↔ 운명상담사 입력창 폭 차이로 인한

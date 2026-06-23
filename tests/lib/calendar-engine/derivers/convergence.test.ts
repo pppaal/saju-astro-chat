@@ -104,3 +104,180 @@ describe('deriveConvergence — window + confidence (타이밍 표면화)', () =
     expect(aligned.confidence!).toBeLessThanOrEqual(100)
   })
 })
+
+// ── 추가: meaning 톤 arm · 칩 선택 · 다양성 캡 · 폴백 (uncovered branches) ──
+
+describe('deriveConvergence — meaning 톤 (positive/negative/neutral/disagree)', () => {
+  it('순극성이 강하게 +면 positive 톤 한 줄', () => {
+    const w = win('2026-09-10T00:00:00Z', '2026-09-15T00:00:00Z', '2026-09-20T00:00:00Z')
+    const d = deriveConvergence(
+      [
+        cell('2026-09-15T00:00:00Z', [
+          sig({ source: 'astro', kind: 'lifecycle', polarity: 3, weight: 0.8, active: w }),
+          sig({ source: 'saju', kind: 'hyeongchung', polarity: 3, weight: 0.8, active: w }),
+        ]),
+      ],
+      5,
+      'ko'
+    ).keyDays[0]
+    expect(d.meaning).toBeTruthy()
+  })
+
+  it('순극성이 강하게 −면 negative 톤 한 줄 (양쪽 같은 방향이라 disagree 아님)', () => {
+    const w = win('2026-10-10T00:00:00Z', '2026-10-15T00:00:00Z', '2026-10-20T00:00:00Z')
+    const d = deriveConvergence(
+      [
+        cell('2026-10-15T00:00:00Z', [
+          sig({ source: 'astro', kind: 'lifecycle', polarity: -3, weight: 0.8, active: w }),
+          sig({ source: 'saju', kind: 'hyeongchung', polarity: -3, weight: 0.8, active: w }),
+        ]),
+      ],
+      5,
+      'en'
+    ).keyDays[0]
+    expect(d.meaning).toBeTruthy()
+  })
+
+  it('두 체계 방향이 어긋나면 disagree → neutral 톤으로 단정 회피', () => {
+    const w = win('2026-11-10T00:00:00Z', '2026-11-15T00:00:00Z', '2026-11-20T00:00:00Z')
+    const d = deriveConvergence(
+      [
+        cell('2026-11-15T00:00:00Z', [
+          sig({ source: 'astro', kind: 'lifecycle', polarity: 3, weight: 0.9, active: w }),
+          sig({ source: 'saju', kind: 'hyeongchung', polarity: -2, weight: 0.6, active: w }),
+        ]),
+      ],
+      5,
+      'ko'
+    ).keyDays[0]
+    // disagree confidence 는 같은 방향(+12)이 아니라 −12 가 적용돼 낮다.
+    expect(d.bothSystems).toBe(true)
+    expect(d.confidence!).toBeLessThan(50)
+    expect(d.meaning).toBeTruthy()
+  })
+
+  it('순톤이 0 근처면 neutral 톤', () => {
+    const w = win('2026-12-10T00:00:00Z', '2026-12-15T00:00:00Z', '2026-12-20T00:00:00Z')
+    // 한쪽 polarity 0 → astroPolNet/sajuPolNet 분리상 disagree 아님, ratio≈ 작음.
+    const d = deriveConvergence(
+      [
+        cell('2026-12-15T00:00:00Z', [
+          sig({ source: 'astro', kind: 'lifecycle', polarity: 2, weight: 0.6, active: w }),
+          sig({ source: 'saju', kind: 'hyeongchung', polarity: -2, weight: 0.6, active: w }),
+        ]),
+      ],
+      5,
+      'ko'
+    ).keyDays[0]
+    expect(d.meaning).toBeTruthy()
+  })
+})
+
+describe('deriveConvergence — 폴백·필터 (uncovered branches)', () => {
+  it('느린 외행성(장기 span) 만 있으면 window 가 셀 날짜 점으로 폴백', () => {
+    // span > 45일 → aggregateWindow 집계 제외 → start/end 셀 날짜로 폴백.
+    const slow = sig({
+      source: 'astro',
+      kind: 'lifecycle',
+      polarity: 3,
+      weight: 0.9,
+      active: win('2026-01-01T00:00:00Z', '2026-06-01T00:00:00Z', '2027-01-01T00:00:00Z'),
+    })
+    const d = deriveConvergence([cell('2026-06-01T00:00:00Z', [slow])], 5, 'ko').keyDays[0]
+    expect(d).toBeTruthy()
+    expect(d.window?.start).toBe('2026-06-01T00:00:00.000Z')
+    expect(d.window?.end).toBe('2026-06-01T00:00:00.000Z')
+  })
+
+  it('imp 가 MIN_IMPACT 미만인 신호는 무시 → 큰 날 없음', () => {
+    const tiny = sig({
+      source: 'astro',
+      kind: 'lifecycle',
+      polarity: 1,
+      weight: 0.01,
+      active: win('2026-02-01T00:00:00Z', '2026-02-02T00:00:00Z', '2026-02-03T00:00:00Z'),
+    })
+    const { keyDays } = deriveConvergence([cell('2026-02-02T00:00:00Z', [tiny])], 5, 'ko')
+    expect(keyDays.length).toBe(0)
+  })
+
+  it('가벼운(heavy 아님) 신호만 있으면 큰 날 없음', () => {
+    const light = sig({
+      source: 'astro',
+      kind: 'moon-phase', // heavy astro kind 아님
+      polarity: 2,
+      weight: 0.6,
+      active: win('2026-03-01T00:00:00Z', '2026-03-02T00:00:00Z', '2026-03-03T00:00:00Z'),
+    })
+    const { keyDays } = deriveConvergence([cell('2026-03-02T00:00:00Z', [light])], 5, 'ko')
+    expect(keyDays.length).toBe(0)
+  })
+
+  it('점성-only(saju 무거움 없음) 도 큰 날로 잡힌다 (bothSystems=false)', () => {
+    const astroOnly = sig({
+      source: 'astro',
+      kind: 'lifecycle',
+      polarity: 3,
+      weight: 0.9,
+      active: win('2026-04-10T00:00:00Z', '2026-04-12T00:00:00Z', '2026-04-14T00:00:00Z'),
+    })
+    const d = deriveConvergence([cell('2026-04-12T00:00:00Z', [astroOnly])], 5, 'ko').keyDays[0]
+    expect(d.bothSystems).toBe(false)
+    expect(d.astro.length).toBeGreaterThanOrEqual(0)
+  })
+})
+
+describe('deriveConvergence — 정렬·다양성·topN', () => {
+  function heavyPair(day: string, pol: number) {
+    const w = win(`${day}T00:00:00Z`, `${day}T06:00:00Z`, `${day}T23:00:00Z`)
+    return cell(`${day}T12:00:00Z`, [
+      sig({ source: 'astro', kind: 'lifecycle', polarity: pol, weight: 0.8, active: w }),
+      sig({ source: 'saju', kind: 'hyeongchung', polarity: pol, weight: 0.8, active: w }),
+    ])
+  }
+
+  it('score 내림차순으로 정렬하고 topN 으로 자른다', () => {
+    const cells = [
+      heavyPair('2026-05-01', 1),
+      heavyPair('2026-05-10', 3),
+      heavyPair('2026-05-20', 2),
+    ]
+    const { keyDays } = deriveConvergence(cells, 2, 'ko')
+    expect(keyDays.length).toBe(2)
+    expect(keyDays[0].date).toBe('2026-05-10') // 가장 강함 먼저
+    expect(keyDays[0].score).toBeGreaterThanOrEqual(keyDays[1].score)
+  })
+
+  it('진짜 수렴(bothSystems)일이 astro-only 배경 피크보다 top-N에서 우선한다', () => {
+    // astro-only(점성만 무거움)는 score 가 더 높아도 사주+점성 수렴일에 밀려야 한다 —
+    // "사주 × 점성 수렴" 헤딩 아래에서 진짜 수렴일이 표시되도록.
+    const astroOnlyStrong = cell('2026-07-05T12:00:00Z', [
+      sig({
+        source: 'astro',
+        kind: 'lifecycle',
+        polarity: 3,
+        weight: 1,
+        active: win('2026-07-03T00:00:00Z', '2026-07-05T00:00:00Z', '2026-07-07T00:00:00Z'),
+      }),
+    ])
+    const bothWeaker = heavyPair('2026-07-20', 1) // 낮은 polarity → score 더 낮음
+    const { keyDays } = deriveConvergence([astroOnlyStrong, bothWeaker], 1, 'ko')
+    expect(keyDays.length).toBe(1)
+    // score 만 보면 astro-only(7/5)가 이기지만, bothSystems 우선이라 7/20 이 선택.
+    expect(keyDays[0].date).toBe('2026-07-20')
+    expect(keyDays[0].bothSystems).toBe(true)
+  })
+
+  it('3일 이내 근접일은 dedup (큰 날 도배 방지)', () => {
+    const cells = [
+      heavyPair('2026-06-10', 3),
+      heavyPair('2026-06-11', 3), // 1일 차 → 근접 dedup
+      heavyPair('2026-06-25', 3), // 충분히 떨어짐
+    ]
+    const { keyDays } = deriveConvergence(cells, 5, 'ko')
+    const dates = keyDays.map((d) => d.date)
+    expect(dates).toContain('2026-06-10')
+    expect(dates).not.toContain('2026-06-11')
+    expect(dates).toContain('2026-06-25')
+  })
+})

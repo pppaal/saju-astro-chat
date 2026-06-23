@@ -3,8 +3,6 @@
 // SIZE 260)가 똑같이 들고 있던 황도/행성 글리프·순서와 SIZE 무관 헬퍼만
 // 모았다. SIZE·CX·CY·pt 는 차트마다 달라(240 vs 260) 각 파일에 남긴다.
 
-import { PLANET_KO as PLANET_KO_BASE } from '@/lib/calendar-engine/data/planetNames'
-
 export const ZODIAC_GLYPHS = [
   '♈',
   '♉',
@@ -34,19 +32,6 @@ export const SIGN_KO = [
   '물병',
   '물고기',
 ] as const
-
-/** 행성 이름 → 한국어. 차트 범례에서 glyph(☉/☽…) 옆에 한국어 이름을 같이
-    노출해서 비전공자가 기호를 외우지 않아도 즉시 이해 가능. */
-export const PLANET_KO: Record<string, string> = {
-  ...PLANET_KO_BASE,
-  // 차트 범례는 glyph 옆 공간이 좁아 외행성은 축약 표기로 덮어쓴다.
-  Uranus: '천왕',
-  Neptune: '해왕',
-  Pluto: '명왕',
-  Node: '북교점',
-  'True Node': '북교점',
-  'North Node': '북교점',
-}
 
 export const PLANET_GLYPHS: Record<string, string> = {
   Sun: '☉',

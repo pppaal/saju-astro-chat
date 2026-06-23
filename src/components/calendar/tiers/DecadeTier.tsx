@@ -2,36 +2,38 @@
 
 /* ============================================================
    destinypal · DecadeTier — ② 10년 (DECADE · 대운)
-   Phase C 신규 — 5-tier 확장 (Lifetime → Decade → Year → Month → Day)
 
-   data.js 의 decade 객체(137-174줄) shape 을 기반으로,
-   LifetimeTier(ink-on-hanji) / YearTier 톤에 맞춰 신규 작성.
-
-   화면 구성:
-     · header (eyebrow · display · oneline)
-     · 좌 — 사주 SAJU panel (Ganji + pillar 분리 cheongan/jiji)
-     · 우 — 대운 십신의 10년 readout + KV (기간/십신/천간/지지/세운)
-     · body paragraphs
-     · 이 대운의 결 narrative 4개
-     · hapchung · unseong 카드 (合·沖 / 12운성)
-     · astro outer-row (Jupiter Return ③ / Neptune Square 등)
-     · years[10] mini-graph chip row (각 연도 score)
-     · Phase 3 정통 보완:
-       - 격국 성패 frame chip (user.gyeokgukStatus) — 헤더 옆
-       - 12운성 매트릭스 (본명 4기둥 × 대운 지지) — 1줄 chip row
-       - cross-activation badge — decadal aggregate
+   시안 리디자인 (2026-06): 메인 표면은 *인생의 계절* 로 — 전문용어 0.
+     · headline — 쉬운 "X의 10년" 테마 + 계절 태그(봄/여름/가을/겨울) + 나이대
+     · 이 시기에 일어나는 일 — 테마 + 가장 센 교차 의미 + 합충/12운성 쉬운 본문
+     · 이렇게 보내면 좋아요 — 테마/톤에서 끌어낸 2–3줄 가이드
+     · 이 10년 중 큰 해 — years[10] score 막대 띠 + 최고점 해 한 줄 (간지 없음)
+     · 교차(있으면) — 쉬운 이름(area × planet) + 의미만
+   모든 전문용어(大運 한자, 격국 frame, 기둥 천간/지지 한자+십신, 합충/12운성
+   한자 카드, 외행성 glyph, 연도별 간지, 교차 raw 라인)는 하나의
+   "자세한 신호 보기" <details> 안으로 — presentation only, 엔진 math/shape 불변.
    ============================================================ */
 
 import type { DestinyDecade, DestinyUserSummary } from '@/types/calendar'
 
 import { Ganji } from '../atoms/Ganji'
 import { LayerTag } from '../atoms/LayerTag'
-import { sibsinArea } from '@/lib/calendar-engine/derivers/plainLanguage'
+import { sibsinArea, sibsinAreaEn } from '@/lib/calendar-engine/derivers/plainLanguage'
 import styles from './DecadeTier.module.css'
-import { CrossingList } from '@/components/calendar/atoms/CrossingList'
 import summaryStyles from '@/components/calendar/atoms/TierSummary.module.css'
 import { useI18n } from '@/i18n/I18nProvider'
 import { SIBSIN_EN } from '@/lib/saju/sibsinLabels'
+import {
+  TierFrame,
+  RiseButton,
+  Eyebrow,
+  TierHero,
+  Band,
+  MoreFold,
+  WhyList,
+  type WhyItem,
+  type ToneKind,
+} from '@/components/calendar/layout/TierFrame'
 
 // ----------------------------------------------------------------
 // Props
@@ -51,10 +53,18 @@ export interface DecadeTierProps {
     crossActivations?: Array<{
       signalId: string
       name: string
+      /** 영문 이름 — 영문 로케일에서 사용. 미지정 시 name 으로 폴백. */
+      nameEn?: string
       sajuLine?: string
+      /** 영문 사주 라인 — 영문 로케일에서 사용. 미지정 시 sajuLine 으로 폴백. */
+      sajuLineEn?: string
       astroLine?: string
+      /** 영문 점성 라인 — 영문 로케일에서 사용. 미지정 시 astroLine 으로 폴백. */
+      astroLineEn?: string
       polarity: number
       meaning?: string
+      /** 영문 한 줄 의미 — 영문 로케일에서 사용. 미지정 시 meaning 으로 폴백. */
+      meaningEn?: string
     }>
     /** Phase 3 — 격국 status (대운 — 보통 본명과 같으나 화기/잡기 변동 가능). */
     geokgukStatus?: string
@@ -69,7 +79,7 @@ export interface DecadeTierProps {
 // Helpers
 // ----------------------------------------------------------------
 
-/** 외행성 glyph 매핑 — Phase 3 보강: 7가지 kind 모두. */
+/** 외행성 glyph 매핑 — 상세 fold 전용. */
 const OUTER_GLYPH: Record<string, string> = {
   jupiter: '♃',
   saturn: '♄',
@@ -109,64 +119,164 @@ const BRANCH_KO: Record<string, string> = {
 }
 
 // ----------------------------------------------------------------
-// SibsinStrip — 10년 세운 십신 흐름 띠. 십신 가족별 색.
-// 비겁=쪽빛 / 식상=청록 / 재성=금 / 관성=적 / 인성=보라.
+// 십신 가족 → 인생의 계절. 메인 표면은 전문용어 대신 이 계절로 프레임.
+//   비겁·식상 = 봄·여름 (자라고 펼치는 때)
+//   재성·관성 = 가을 (거두고 자리잡는 때)
+//   인성     = 겨울 (안으로 갈무리·배우는 때)
+// 한 단어 계절 + 쉬운 부제. ko/en 짝.
 // ----------------------------------------------------------------
-// 십신 가족 — *카테고리* 색. 길흉 valence 색(좋음=쪽빛/주의=주황/피함=적/
-// 수렴=금)과 겹치지 않는 별도 팔레트로 충돌 방지 (특히 관성을 적색에서 뺌).
-const SIBSIN_FAMILY_COLOR: Record<string, string> = {
-  비견: '#6c8aa6', // 비겁 — 스틸 블루
-  겁재: '#6c8aa6',
-  식신: '#4a9d8e', // 식상 — 청록
-  상관: '#4a9d8e',
-  편재: '#7d9d4a', // 재성 — 올리브 그린 (금색 회피)
-  정재: '#7d9d4a',
-  편관: '#9d6a8a', // 관성 — 모브 (적색 회피)
-  정관: '#9d6a8a',
-  편인: '#7a6aa6', // 인성 — 보라
-  정인: '#7a6aa6',
+type Season = 'spring' | 'summer' | 'autumn' | 'winter'
+
+const SIBSIN_SEASON: Record<string, Season> = {
+  비견: 'spring',
+  겁재: 'spring',
+  비겁: 'spring',
+  식신: 'summer',
+  상관: 'summer',
+  식상: 'summer',
+  편재: 'autumn',
+  정재: 'autumn',
+  재성: 'autumn',
+  편관: 'autumn',
+  정관: 'autumn',
+  관성: 'autumn',
+  편인: 'winter',
+  정인: 'winter',
+  인성: 'winter',
 }
-function SibsinStrip({
+
+const SEASON_LABEL: Record<Season, { ko: string; en: string; sub: string; subEn: string }> = {
+  spring: { ko: '봄', en: 'Spring', sub: '자라나는 때', subEn: 'a season of growth' },
+  summer: { ko: '여름', en: 'Summer', sub: '펼치는 때', subEn: 'a season of expression' },
+  autumn: { ko: '가을', en: 'Autumn', sub: '거두는 때', subEn: 'a season of harvest' },
+  winter: { ko: '겨울', en: 'Winter', sub: '갈무리하는 때', subEn: 'a season of gathering in' },
+}
+
+const SEASON_CLASS: Record<Season, string> = {
+  spring: styles.seasonSpring,
+  summer: styles.seasonSummer,
+  autumn: styles.seasonAutumn,
+  winter: styles.seasonWinter,
+}
+
+function seasonOf(sibsin: string | undefined): Season {
+  return (sibsin && SIBSIN_SEASON[sibsin]) || 'autumn'
+}
+
+// ----------------------------------------------------------------
+// 근거(WhyList) 톤 휴리스틱 — fold 전용. 새 계산 없이 라벨 텍스트로 극성 추정.
+//   합 = 순(順), 충 = 거스름(逆). benefic(목성) = 순, malefic(토성·천왕성 등) = 주의.
+// ----------------------------------------------------------------
+type WhyTone = 'positive' | 'caution' | 'neutral'
+
+/** 합·충 칩 제목으로 톤 추정 — '합'이면 positive, '충'이면 caution, 아니면 neutral. */
+function hapchungTone(title: string | undefined): WhyTone {
+  if (!title) return 'neutral'
+  if (title.includes('충') || /clash/i.test(title)) return 'caution'
+  if (title.includes('합') || /harmon/i.test(title)) return 'positive'
+  return 'neutral'
+}
+
+/** 외행성 마디 톤 — benefic(목성)=positive, malefic(토성/천왕성/해왕성/명왕성)=caution. */
+const OUTER_BENEFIC = new Set(['jupiter'])
+const OUTER_MALEFIC = new Set(['saturn', 'uranus', 'neptune', 'pluto'])
+function outerTone(kind: string | undefined): WhyTone {
+  if (!kind) return 'neutral'
+  if (OUTER_BENEFIC.has(kind)) return 'positive'
+  if (OUTER_MALEFIC.has(kind)) return 'caution'
+  return 'neutral'
+}
+
+/** 외행성 마디 한글 라벨 — fold 근거 행 표시용. 미지정 시 kind 그대로. */
+const OUTER_KO: Record<string, string> = {
+  jupiter: '목성',
+  saturn: '토성',
+  uranus: '천왕성',
+  neptune: '해왕성',
+  pluto: '명왕성',
+  chiron: '카이론',
+  progressed_moon: '진행 달',
+  progressedMoon: '진행 달',
+}
+
+/** 계절별 "이렇게 보내면 좋아요" 가이드 2줄 — 쉬운 말, 전문용어 0. */
+const SEASON_GUIDE: Record<Season, { ko: string[]; en: string[] }> = {
+  spring: {
+    ko: ['새로 시작하는 일에 힘을 실어도 좋은 때예요.', '내 편이 될 사람들과 발을 맞춰 보세요.'],
+    en: [
+      'A good time to put weight behind new beginnings.',
+      'Move in step with the people on your side.',
+    ],
+  },
+  summer: {
+    ko: [
+      '하고 싶은 표현·만들기를 미루지 말고 펼쳐 보세요.',
+      '재능을 드러낼수록 기회가 따라옵니다.',
+    ],
+    en: [
+      "Don't hold back what you want to make or express.",
+      'The more you show your talent, the more chances follow.',
+    ],
+  },
+  autumn: {
+    ko: [
+      '뿌려 둔 것을 거두는 때 — 마무리와 결실에 집중하세요.',
+      '욕심내 벌이기보다 가진 것을 단단히 다지는 게 좋아요.',
+    ],
+    en: [
+      'A time to reap what you sowed — focus on finishing and results.',
+      'Better to firm up what you have than to overreach.',
+    ],
+  },
+  winter: {
+    ko: [
+      '안으로 배우고 채우는 때 — 조급해하지 않아도 됩니다.',
+      '쉼과 공부가 다음 봄의 밑천이 돼요.',
+    ],
+    en: [
+      'A time to learn and refill inward — no need to rush.',
+      'Rest and study become the seed money for the next spring.',
+    ],
+  },
+}
+
+// ----------------------------------------------------------------
+// BigYearStrip — 이 10년 중 큰 해. years[10] score 막대 띠. 간지 없음.
+// 최고점 해를 강조. 메인 표면 전용 (전문용어 0).
+// ----------------------------------------------------------------
+function BigYearStrip({
   years,
   ko,
-  label,
+  peakYear,
 }: {
-  years: Array<{ year: number; sibsin?: string; now?: boolean; gz: { hanja: string } }>
+  years: Array<{ year: number; score: number; now?: boolean }>
   ko: boolean
-  label: string
+  peakYear: number
 }) {
+  const scores = years.map((y) => y.score)
+  const maxScore = Math.max(...scores, 1)
+  const minScore = Math.min(...scores, 0)
+  const range = Math.max(maxScore - minScore, 1)
   return (
-    <div className={styles.stripWrap}>
-      <div className={styles.stripLabel}>{label}</div>
-      <div className={styles.strip}>
-        {years.map((y) => (
+    <div className={styles.bigYearStrip}>
+      {years.map((y) => {
+        const norm = (y.score - minScore) / range
+        const barH = 18 + norm * 44
+        const peak = y.year === peakYear
+        return (
           <div
-            className={`${styles.stripCell} ${y.now ? styles.stripCellNow : ''}`}
             key={y.year}
-            title={`${y.year} · ${y.gz.hanja}${y.sibsin ? ` · ${y.sibsin}` : ''}`}
-            style={{ background: (y.sibsin && SIBSIN_FAMILY_COLOR[y.sibsin]) || '#9aa0b4' }}
+            className={`${styles.byCell} ${y.now ? styles.byCellNow : ''} ${peak ? styles.byCellPeak : ''}`}
+            title={`${y.year}`}
           >
-            <span className={styles.stripHan}>{y.gz.hanja[0]}</span>
-            <span className={styles.stripYr}>{`'${String(y.year).slice(2)}`}</span>
+            <div className={styles.byBar} style={{ height: `${barH}px` }} />
+            <div className={styles.byYr}>
+              {String(y.year).slice(2)}
+              {y.now && <span className={styles.byNow}>{ko ? '지금' : 'now'}</span>}
+            </div>
           </div>
-        ))}
-      </div>
-      <div className={styles.stripLegend}>
-        {(
-          [
-            [ko ? '비겁' : 'Self', '#6c8aa6'],
-            [ko ? '식상' : 'Output', '#4a9d8e'],
-            [ko ? '재성' : 'Wealth', '#7d9d4a'],
-            [ko ? '관성' : 'Officer', '#9d6a8a'],
-            [ko ? '인성' : 'Resource', '#7a6aa6'],
-          ] as Array<[string, string]>
-        ).map(([t, c]) => (
-          <span className={styles.stripLegItem} key={t}>
-            <span className={styles.stripSw} style={{ background: c }} />
-            {t}
-          </span>
-        ))}
-      </div>
+        )
+      })}
     </div>
   )
 }
@@ -178,495 +288,688 @@ function SibsinStrip({
 export function DecadeTier({ user, decade, onDive, onRise }: DecadeTierProps) {
   const { locale } = useI18n()
   const ko = locale === 'ko'
-  // years[10] mini graph — max/min 으로 scale.
-  const scores = decade.years.map((y) => y.score)
-  const maxScore = Math.max(...scores, 1)
-  const minScore = Math.min(...scores, 0)
-  const range = Math.max(maxScore - minScore, 1)
 
-  // sewoonNow — 현재 연도 readout.
-  const sewoonNow = decade.sewoonNow
+  // ── 계절 프레임 — 대운 십신 가족 → 봄/여름/가을/겨울. ──
+  const season = seasonOf(decade.sibsin)
+  const seasonInfo = SEASON_LABEL[season]
+
+  // ── 쉬운 테마 타이틀 — "X의 10년" (전문용어 없는 area 단어). ──
+  const areaTitle = ko ? sibsinArea(decade.sibsin) : sibsinAreaEn(decade.sibsin)
+  const themeTitle = ko ? `${areaTitle}의 10년` : `A decade of ${areaTitle}`
+
+  // sewoonNow / focus.
   const focusYearLabel = decade.focusYear ?? decade.start
 
   // cross-activation (Phase 3) — decadal aggregate.
   const crossActs = decade.crossActivations ?? []
 
-  // 격국 status — 본명 user.gyeokgukStatus 우선, 없으면 decade.geokgukStatus.
+  // 가장 센 교차(절대값 polarity) — '이 시기 일어나는 일' 한 줄에 차용.
+  const strongestCross = crossActs.reduce<(typeof crossActs)[number] | null>((best, c) => {
+    if (!best) return c
+    return Math.abs(c.polarity) > Math.abs(best.polarity) ? c : best
+  }, null)
+  const strongestMeaning = strongestCross
+    ? ko
+      ? strongestCross.meaning
+      : (strongestCross.meaningEn ?? strongestCross.meaning)
+    : undefined
+
+  // 합충/12운성 쉬운 본문 (이미 평문) — '일어나는 일' 줄에 차용.
+  const hapBody = decade.hapchung
+    ? ko
+      ? decade.hapchung.body
+      : (decade.hapchung.bodyEn ?? decade.hapchung.body)
+    : undefined
+  const unBody = decade.unseong
+    ? ko
+      ? decade.unseong.body
+      : (decade.unseong.bodyEn ?? decade.unseong.body)
+    : undefined
+
+  // 테마 본문 (이미 평문).
+  const themeBody = ko ? decade.theme : (decade.themeEn ?? decade.theme)
+
+  // ── 이 시기에 일어나는 일 — 2–3 평문 줄. ──
+  const happenLines = [themeBody, strongestMeaning, hapBody ?? unBody].filter(
+    (s): s is string => !!s && s.trim().length > 0
+  )
+
+  // ── 이렇게 보내면 좋아요 — 계절 가이드 2–3줄. ──
+  const guideLines = SEASON_GUIDE[season][ko ? 'ko' : 'en']
+
+  // ── 이 10년 중 큰 해 — years[10] 최고점. ──
+  const years = decade.years ?? []
+  const peakYearObj = years.reduce<(typeof years)[number] | null>((best, y) => {
+    if (!best) return y
+    return y.score > best.score ? y : best
+  }, null)
+  const peakYear = peakYearObj?.year ?? decade.start
+  const turningLine = ko
+    ? `이 10년 안에서는 ${peakYear}년 무렵이 가장 무르익는 해예요.`
+    : `Within this decade, around ${peakYear} is when things ripen most.`
+
+  // ── 메인 교차 (있으면) — 쉬운 이름 + 의미만. ──
+  const plainCross = crossActs
+    .map((c) => ({
+      key: c.signalId || c.name,
+      name: ko ? c.name : (c.nameEn ?? c.name),
+      meaning: ko ? c.meaning : (c.meaningEn ?? c.meaning),
+      polarity: c.polarity,
+    }))
+    .slice(0, 4)
+
+  // ── (상세) 외행성/격국/기둥 — fold 전용. ──
   const gyeokgukLine = decade.geokgukStatus ?? user.gyeokgukStatus ?? user.gyeokguk
+  const minScore = Math.min(...years.map((y) => y.score), 0)
+  const range = Math.max(Math.max(...years.map((y) => y.score), 1) - minScore, 1)
 
-  // ── 이 대운의 사주 × 점성 교차 '구간' — 메인. ──
-  // 사주 측은 이 대운(예: 甲戌)이라는 10년 프레임이 상수, 점성 측은 이 10년 안에
-  // 떨어지는 외행성 회귀·사각·ZR 전환(decade.astro). 그 두 개가 만나는 해가
-  // 곧 '교차되는 구간'. 가짜 세운 점수 나열 대신 이것만 메인에 보여준다.
-  const dgz = decade.gz.hanja
-  const cy = decade.focusYear ?? decade.start
-  const astroMarks = decade.astro ?? []
-  // 제목엔 변하는 쪽(점성 마디)만. 대운(甲戌)은 heading 에 이미 있어 매 줄 반복은
-  // 정보량 0 → 접두사 제거. 사주 측(대운)은 heading 이 담당.
-  const decadeSpanItems = [
-    {
-      // 시작 앵커 — headline 은 바로 위 oneline 에 이미 있어 중복 표기하지 않음.
-      when: `${decade.start}`,
-      title: ko ? `${dgz} 대운 진입` : `Entering the ${dgz} cycle`,
-      now: cy <= decade.start,
-      past: false,
-    },
-    ...astroMarks.map((a) => ({
-      when: a.date,
-      title: a.label,
-      detail: a.body || undefined,
-      now: a.date === `${cy}`,
-      past: Number(a.date) < cy,
-    })),
-  ]
+  // body paragraphs — fold.
+  const bodyParas = ko ? decade.body : (decade.bodyEn ?? decade.body)
 
-  // ── (상세) 10년 세운 결 — 연도별 세운 십신. 교차는 아니라 상세로 내림. ──
-  const SIBSIN_YEAR_THEME: Record<string, { ko: string; en: string }> = {
-    비견: { ko: '주체·동료의 해', en: 'Self & peers' },
-    겁재: { ko: '경쟁·분탈의 해', en: 'Rivalry & loss' },
-    식신: { ko: '표현·창작의 해', en: 'Expression & making' },
-    상관: { ko: '재능·자유의 해', en: 'Talent & freedom' },
-    편재: { ko: '재물·기회의 해', en: 'Wealth & opportunity' },
-    정재: { ko: '꾸준한 축적의 해', en: 'Steady building' },
-    편관: { ko: '도전·추진의 해', en: 'Challenge & drive' },
-    정관: { ko: '책임·자리의 해', en: 'Duty & position' },
-    편인: { ko: '독학·사유의 해', en: 'Study & reflection' },
-    정인: { ko: '배움·지원의 해', en: 'Learning & support' },
+  // 히어로 톤 — 계절 태그는 길흉이 아니므로 중립 처리.
+  const heroToneKind: ToneKind = 'neutral'
+
+  // ── 이 10년 풀이 — 표면(term-free) 합성 해석 2–3문장. ──
+  // 대운 십신 area(계절) + 가장 무르익는 해 + (있으면) 가장 센 교차 의미를 묶는다.
+  // 새 계산 없음: 이미 가진 areaTitle·seasonInfo·peakYear·strongestMeaning 재사용.
+  const interpretSentences = ko
+    ? [
+        `이 10년은 ‘${areaTitle}’이(가) 삶의 중심에 놓이는 ${seasonInfo.ko}—${seasonInfo.sub}예요.`,
+        `그 가운데 ${peakYear}년 무렵이 가장 무르익어, 그동안 쌓아 온 것이 모양을 갖춥니다.`,
+        strongestMeaning ? `특히 ${strongestMeaning}이(가) 이 시기를 또렷하게 합니다.` : '',
+      ]
+    : [
+        `Across this decade, ${areaTitle} sits at the center of life — ${seasonInfo.subEn}.`,
+        `Around ${peakYear} things ripen most, and what you have built starts to take shape.`,
+        strongestMeaning
+          ? `In particular, ${strongestMeaning} gives this stretch its sharpest edge.`
+          : '',
+      ]
+  const interpretText = interpretSentences.filter((s) => s && s.trim().length > 0).join(' ')
+
+  // ── 왜 이렇게 보나 (근거) — 실제 전문용어 신호 → 쉬운 결론. fold 전용. ──
+  // 새 계산 없음: 이미 fold 안에 있는 大運 간지·십신, 격국, 합충, 12운성, 외행성,
+  // 가장 센 연도 십신을 용어 그대로 묶어 4–6개만 고른다.
+  const whyItems: WhyItem[] = []
+
+  // 1) 大運 간지 + 십신 — 이 10년의 바탕.
+  whyItems.push({
+    term: ko
+      ? `대운 ${decade.gz.hanja} · ${decade.sibsin}`
+      : `Decade ${decade.gz.hanja} · ${SIBSIN_EN[decade.sibsin] ?? decade.sibsin}`,
+    because: ko
+      ? `‘${areaTitle}’ 기운이 10년의 바탕을 이룹니다.`
+      : `${areaTitle} sets the base of the decade.`,
+    tone: 'neutral',
+  })
+
+  // 2) 격국 frame ↔ 대운 관계 — gyeokgukLine 이 있으면.
+  if (gyeokgukLine) {
+    whyItems.push({
+      term: ko ? `격국 ${gyeokgukLine}` : `Frame ${gyeokgukLine}`,
+      because: ko
+        ? '타고난 격국이 이 대운을 어떻게 받는지가 큰 줄기를 정합니다.'
+        : 'how your natal frame receives this decade sets the main grain.',
+      tone: 'neutral',
+    })
   }
-  const decadeItems = decade.years.map((y) => ({
-    when: `${y.year}`,
-    title:
-      (y.sibsin && SIBSIN_YEAR_THEME[y.sibsin]?.[ko ? 'ko' : 'en']) ||
-      (ko ? '한 해의 흐름' : 'The year ahead'),
-    detail: `${y.gz.hanja}${y.gz.kr ? ` (${y.gz.kr})` : ''}${y.sibsin ? ` · ${ko ? '세운' : 'annual'} ${ko ? y.sibsin : (SIBSIN_EN[y.sibsin] ?? y.sibsin)}` : ''}`,
-    now: !!y.now,
-    past: y.year < (decade.focusYear ?? decade.start),
-  }))
 
-  // ── (상세) 이 대운에 켜진 사주 × 점성 교차 페어 — 톤(길/주의/중립). ──
-  const decadeCrossItems = crossActs.map((c) => ({
-    when:
-      c.polarity > 0
-        ? ko
-          ? '길'
-          : 'good'
-        : c.polarity < 0
-          ? ko
-            ? '주의'
-            : 'caution'
-          : ko
-            ? '중립'
-            : 'neutral',
-    title: c.name,
-    detail: c.meaning,
-  }))
+  // 3) 합·충 — 본명 × 대운 관계. 합=순, 충=주의.
+  if (decade.hapchung) {
+    const t = hapchungTone(decade.hapchung.title)
+    whyItems.push({
+      term: ko
+        ? `합충 ${decade.hapchung.title}`
+        : `Harmony/clash ${decade.hapchung.titleEn ?? decade.hapchung.title}`,
+      because: ko
+        ? t === 'caution'
+          ? '본명의 한 자리가 흔들려 변화·이동이 도드라집니다.'
+          : t === 'positive'
+            ? '본명과 결이 맞아 일이 수월하게 풀립니다.'
+            : '본명과 대운이 맞물리는 자리입니다.'
+        : t === 'caution'
+          ? 'a natal spot gets shaken — change and movement stand out.'
+          : t === 'positive'
+            ? 'it meshes with your chart, so things flow more easily.'
+            : 'where the decade locks into your natal chart.',
+      tone: t,
+    })
+  }
+
+  // 4) 12운성 — 대운 지지의 생장 단계.
+  if (decade.unseong) {
+    whyItems.push({
+      term: ko
+        ? `12운성 ${decade.unseong.title}`
+        : `Twelve stages ${decade.unseong.titleEn ?? decade.unseong.title}`,
+      because: ko
+        ? '대운의 기운이 어느 생장 단계에 있는지를 보여 줍니다.'
+        : 'shows which growth stage the decade energy is in.',
+      tone: 'neutral',
+    })
+  }
+
+  // 5) 가장 센 외행성 마디 — benefic=순, malefic=주의.
+  const strongestAstro = (decade.astro ?? [])[0]
+  if (strongestAstro) {
+    const t = outerTone(strongestAstro.kind)
+    const planetKo = OUTER_KO[strongestAstro.kind] ?? strongestAstro.label
+    whyItems.push({
+      term: ko
+        ? `${planetKo} · ${strongestAstro.label}`
+        : `${strongestAstro.body || strongestAstro.label}`,
+      because: ko
+        ? t === 'positive'
+          ? '확장과 기회의 하늘 마디가 이 10년에 걸립니다.'
+          : t === 'caution'
+            ? '다지고 시험하는 하늘 마디가 이 10년에 걸립니다.'
+            : '바깥 하늘의 큰 마디가 이 10년에 걸립니다.'
+        : t === 'positive'
+          ? 'an expansive sky-node falls within this decade.'
+          : t === 'caution'
+            ? 'a testing, consolidating sky-node falls within this decade.'
+            : 'a major outer-sky node falls within this decade.',
+      tone: t,
+    })
+  }
+
+  // 6) 이 10년 가장 무르익는 해 + 그 해 세운 십신 — 큰 해의 동인.
+  if (peakYearObj) {
+    const peakSib = peakYearObj.sibsin
+    whyItems.push({
+      term: ko
+        ? `${peakYearObj.year} ${peakYearObj.gz.hanja}${peakSib ? ` · ${peakSib}` : ''}`
+        : `${peakYearObj.year} ${peakYearObj.gz.hanja}${peakSib ? ` · ${SIBSIN_EN[peakSib] ?? peakSib}` : ''}`,
+      because: ko
+        ? `이 10년에서 점수가 가장 높은 해 — ${peakSib ? `‘${sibsinArea(peakSib)}’ ` : ''}일이 무르익습니다.`
+        : `the highest-scoring year of the decade — ${peakSib ? `${sibsinAreaEn(peakSib)} ` : ''}matters ripen.`,
+      tone: 'positive',
+    })
+  }
+
+  // 강한 신호 4–6개만 — 위 순서가 곧 강도 우선순위.
+  const whyItemsTop = whyItems.slice(0, 6)
 
   return (
-    <div className={styles.tier} data-screen-label={`10년 ${decade.start}-${decade.end}`}>
-      <button className={styles.rise} onClick={onRise} type="button">
-        ↑ {ko ? '인생으로 줌아웃' : 'Zoom out to lifetime'}
-      </button>
+    <TierFrame screenLabel={`10년 ${decade.start}-${decade.end}`}>
+      <div className={styles.tokens}>
+        <RiseButton label={ko ? '인생으로 줌아웃' : 'Zoom out to lifetime'} onClick={onRise} />
 
-      {/* ============================================================
-          header — eyebrow / display / oneline
-      ============================================================ */}
-      <div
-        className={styles.eyebrow}
-        title={
-          ko ? '대운 — 10년 단위로 바뀌는 인생의 큰 흐름' : "Decade — life's big 10-year currents"
-        }
-      >
-        {ko ? '10년 · DECADE · 대운' : '10 YEARS · DECADE'} {decade.start}-{decade.end}
-        {decade.ageFrom != null && decade.ageTo != null && (
-          <span className={styles.ageRange}>
-            · {decade.ageFrom}–{decade.ageTo}
-            {ko ? '세' : ' yrs'}
-          </span>
-        )}
-      </div>
-      <div className={styles.headerRow}>
-        <h1 className={styles.display}>
-          {ko ? '지금의 대운, ' : 'Current cycle, '}
-          <span className={styles.han}>{decade.gz.hanja}</span>
-        </h1>
-        {/* Phase 3 보강 #1 — 격국 성패 frame chip (헤더 옆). 격국 status 문구가
-            한국어 전용 전문용어라, 영문 모드에선 숨긴다(자세히 보기에서 다룸). */}
-        {ko && gyeokgukLine && (
-          <span className={styles.frameChip}>
-            <span className={styles.frameChipLabel}>격국 frame</span>
-            <span className={styles.frameChipValue}>{gyeokgukLine}</span>
-          </span>
-        )}
-      </div>
-      <p className={styles.oneline}>
-        {ko ? decade.headline : (decade.headlineEn ?? decade.headline)}
-      </p>
+        {/* ============================================================
+            eyebrow + hero — 계절 프레임. 전문용어 0.
+        ============================================================ */}
+        <Eyebrow>
+          {ko ? '지금의 계절 · 10년' : 'This season · 10 years'} {decade.start}-{decade.end}
+          {decade.ageFrom != null && decade.ageTo != null && (
+            <span className={styles.ageRange}>
+              · {decade.ageFrom}–{decade.ageTo}
+              {ko ? '세' : ' yrs'}
+            </span>
+          )}
+        </Eyebrow>
 
-      {/* 메인 — 이 대운 안에서 사주(대운) × 점성(외행성 마디)이 교차되는 구간만. */}
-      <CrossingList
-        heading={
-          ko
-            ? `이 대운의 사주 × 점성 교차 · ${decade.start}–${decade.end}`
-            : `Saju × Astrology in this cycle · ${decade.start}–${decade.end}`
-        }
-        items={decadeSpanItems}
-      />
-
-      {decade.years && decade.years.length > 0 && (
-        <SibsinStrip years={decade.years} ko={ko} label={ko ? '10년 세운 흐름' : '10-year flow'} />
-      )}
-
-      {/* ── 전문가용 상세 — 세운 흐름·교차 페어·사주 기둥 전부 접어 둠 ── */}
-      <details className={summaryStyles.details}>
-        <summary className={summaryStyles.detailsSummary}>
-          {ko ? '자세히 보기 · 사주·점성 근거' : 'Details · Saju & Astrology'}
-        </summary>
-
-        {/* 10년 세운 결 — 연도별 세운 십신 (교차는 아님). */}
-        <CrossingList
-          heading={
-            ko
-              ? `10년 세운 흐름 · ${decade.start}–${decade.end}`
-              : `Year-by-year · ${decade.start}–${decade.end}`
+        {/* ── Hero — 계절 프레임 제목(lead) + 헤드라인(sub) + 계절 태그(tone). ── */}
+        <TierHero
+          lead={themeTitle}
+          tone={
+            <span className={`${styles.seasonTag} ${SEASON_CLASS[season]}`}>
+              <span className={styles.seasonTagName}>{ko ? seasonInfo.ko : seasonInfo.en}</span>
+              <span className={styles.seasonTagSub}>{ko ? seasonInfo.sub : seasonInfo.subEn}</span>
+            </span>
           }
-          items={decadeItems}
+          toneKind={heroToneKind}
+          sub={ko ? decade.headline : (decade.headlineEn ?? decade.headline)}
         />
 
-        {/* 이 대운에 켜진 사주 × 점성 교차 페어 (톤). */}
-        {decadeCrossItems.length > 0 && (
-          <CrossingList
-            heading={
-              ko ? '이 대운에 작동하는 사주 × 점성 교차 페어' : 'Active Saju × Astrology pairs'
-            }
-            items={decadeCrossItems}
-          />
+        {/* ── 핵심 1 — 이 시기에 일어나는 일 (+ 이 10년 풀이 합성 해석) ── */}
+        {(happenLines.length > 0 || interpretText) && (
+          <Band title={ko ? '이 시기에 일어나는 일' : 'What this season brings'}>
+            {happenLines.length > 0 && (
+              <ul className={styles.plainList}>
+                {happenLines.slice(0, 3).map((line, i) => (
+                  <li key={i} className={styles.plainItem}>
+                    {line}
+                  </li>
+                ))}
+              </ul>
+            )}
+            {interpretText && <p className={styles.interpretLine}>{interpretText}</p>}
+          </Band>
         )}
 
-        {/* ============================================================
-          main grid — 좌(사주 SAJU pillar) / 우(십신 readout + KV)
-      ============================================================ */}
-        <div className={styles.mainGrid}>
-          {/* ── 좌: 사주 panel ── */}
-          <div className={styles.sajuPanel}>
-            <LayerTag kind="saju" />
-            <div className={styles.ganjiBig}>
-              <Ganji data={decade.gz} size={62} />
-            </div>
-
-            <div className={styles.pillarSplit}>
-              {/* 천간 — 전반 5년 */}
-              <div className={styles.pillarCol}>
-                <div className={styles.pillarHead}>
-                  <span className={styles.pillarTag}>
-                    {ko ? '천간 · 전반 5년' : 'stems · first 5 yrs'}
-                  </span>
-                  <span className={styles.pillarYears}>
-                    {decade.start}–{decade.start + 4}
-                  </span>
-                </div>
-                <div className={styles.pillarHanja}>{decade.pillar.cheongan.hanja}</div>
-                <div className={styles.pillarSibsin}>{decade.pillar.cheongan.sibsin}</div>
-                <div className={styles.pillarEl}>{decade.pillar.cheongan.el}</div>
-                {decade.pillar.cheongan.note && (
-                  <p className={styles.pillarNote}>{decade.pillar.cheongan.note}</p>
-                )}
-              </div>
-
-              <div className={styles.pillarDivider} />
-
-              {/* 지지 — 후반 5년 */}
-              <div className={styles.pillarCol}>
-                <div className={styles.pillarHead}>
-                  <span className={styles.pillarTag}>
-                    {ko ? '지지 · 후반 5년' : 'branches · last 5 yrs'}
-                  </span>
-                  <span className={styles.pillarYears}>
-                    {decade.start + 5}–{decade.end - 1}
-                  </span>
-                </div>
-                <div className={styles.pillarHanja}>{decade.pillar.jiji.hanja}</div>
-                <div className={styles.pillarSibsin}>{decade.pillar.jiji.sibsin}</div>
-                <div className={styles.pillarEl}>{decade.pillar.jiji.el}</div>
-                {decade.pillar.jiji.note && (
-                  <p className={styles.pillarNote}>{decade.pillar.jiji.note}</p>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* ── 우: 대운 십신 readout + KV ── */}
-          <div className={styles.readoutPanel}>
-            <LayerTag kind="saju" />
-            <div className={styles.bigTitle}>
-              {ko
-                ? `${decade.sibsin} · ${sibsinArea(decade.sibsin)}의 10년`
-                : `${decade.sibsin} · ${sibsinArea(decade.sibsin)} decade`}
-            </div>
-            <p className={styles.themeLine}>
-              {decade.theme}
-              <span className={styles.muted}> · {decade.themeEn}</span>
-            </p>
-
-            <dl className={styles.kv}>
-              <dt>{ko ? '기간' : 'Period'}</dt>
-              <dd>
-                <b>
-                  {decade.start}–{decade.end}
-                </b>
-                <span className={styles.muted}>
-                  {' '}
-                  {ko
-                    ? `· ${decade.ageFrom}–${decade.ageTo}세`
-                    : `· ages ${decade.ageFrom}–${decade.ageTo}`}
-                </span>
-              </dd>
-              <dt>{ko ? '대운 십신' : 'Decade ten-god'}</dt>
-              <dd>
-                <b>{decade.sibsin}</b>
-              </dd>
-              <dt>{ko ? '천간' : 'Stem'}</dt>
-              <dd>
-                <span className={styles.han}>{decade.pillar.cheongan.hanja}</span>{' '}
-                {decade.pillar.cheongan.sibsin}{' '}
-                <span className={styles.muted}>· {decade.pillar.cheongan.el}</span>
-              </dd>
-              <dt>{ko ? '지지' : 'Branch'}</dt>
-              <dd>
-                <span className={styles.han}>{decade.pillar.jiji.hanja}</span>{' '}
-                {decade.pillar.jiji.sibsin}{' '}
-                <span className={styles.muted}>· {decade.pillar.jiji.el}</span>
-              </dd>
-              {sewoonNow && (
-                <>
-                  <dt>{ko ? `세운 ${focusYearLabel}` : `Annual ${focusYearLabel}`}</dt>
-                  <dd>
-                    <span className={styles.han}>{sewoonNow.gz.hanja}</span>{' '}
-                    <span className={styles.muted}>{sewoonNow.gz.kr}</span> ·{' '}
-                    <b>{sewoonNow.sibsin}</b>
-                  </dd>
-                </>
-              )}
-            </dl>
-          </div>
-        </div>
-
-        {/* ============================================================
-          body paragraphs
-      ============================================================ */}
-        {decade.body && decade.body.length > 0 && (
-          <div className={styles.bodyBlock}>
-            {decade.body.map((p, i) => (
-              <p key={i} className={styles.lead}>
-                {p}
-              </p>
+        {/* ── 핵심 2 — 이렇게 보내면 좋아요 ── */}
+        <Band title={ko ? '이렇게 보내면 좋아요' : 'How to spend it well'}>
+          <ul className={`${styles.plainList} ${styles.guideList}`}>
+            {guideLines.slice(0, 3).map((line, i) => (
+              <li key={i} className={styles.plainItem}>
+                {line}
+              </li>
             ))}
-          </div>
+          </ul>
+        </Band>
+
+        {/* ── 핵심 3 — 이 10년 중 큰 해 ── */}
+        {years.length > 0 && (
+          <Band title={ko ? '이 10년 중 큰 해' : 'The big years in this decade'}>
+            <BigYearStrip years={years} ko={ko} peakYear={peakYear} />
+            <p className={styles.turningLine}>{turningLine}</p>
+          </Band>
+        )}
+
+        {/* ── 더 보기 — 쉬운말 보조(겹쳐서 도드라지는 신호)를 접어서 demote. ── */}
+        {plainCross.length > 0 && (
+          <MoreFold label={ko ? '10년 더 자세히' : 'More about this decade'}>
+            <section className={styles.plainBlock}>
+              <h2 className={styles.plainHead}>
+                {ko ? '겹쳐서 도드라지는 신호' : 'Signals that stand out together'}
+              </h2>
+              <div className={styles.crossPlainRow}>
+                {plainCross.map((c) => {
+                  const tone =
+                    c.polarity > 0
+                      ? styles.crossPos
+                      : c.polarity < 0
+                        ? styles.crossNeg
+                        : styles.crossNeu
+                  return (
+                    <div key={c.key} className={`${styles.crossPlainCard} ${tone}`}>
+                      <div className={styles.crossPlainName}>{c.name}</div>
+                      {c.meaning && <p className={styles.crossPlainMeaning}>{c.meaning}</p>}
+                    </div>
+                  )
+                })}
+              </div>
+            </section>
+          </MoreFold>
         )}
 
         {/* ============================================================
-          이 대운의 결 — narrative 4개 (대운 결 / 용신 흐름 / 주의 / 정점)
-      ============================================================ */}
-        {decade.narrative && decade.narrative.length > 0 && (
-          <section className={styles.block}>
-            <div className={styles.sectionHead}>
-              <h2 className={styles.sectionTitle}>
-                {ko ? '이 대운의 결' : 'The grain of this cycle'}
-              </h2>
-              <span className={styles.tiny}>narrative · {decade.narrative.length}</span>
-            </div>
-            <div className={styles.narrativeGrid}>
-              {decade.narrative.map((n, i) => (
-                <div key={i} className={styles.narrativeCard}>
-                  <div className={styles.narrativeTag}>{n.tag}</div>
-                  <p className={styles.narrativeBody}>{n.body}</p>
+            자세한 신호 보기 — 모든 전문용어를 이 fold 안으로.
+        ============================================================ */}
+        <details className={summaryStyles.details}>
+          <summary className={summaryStyles.detailsSummary}>
+            {ko
+              ? '자세한 신호 보기 · 사주·점성 근거'
+              : 'See the detailed signals · Saju & Astrology'}
+          </summary>
+
+          {/* 왜 이렇게 보나 — 실제 용어 신호 → 쉬운 결론(근거). 표면 쉬운말의 출처. */}
+          <WhyList title={ko ? '왜 이렇게 보나' : 'Why it reads this way'} items={whyItemsTop} />
+
+          {/* 격국 frame + 대운 한자 — 전문용어. */}
+          <div className={styles.foldHeadRow}>
+            <span className={styles.foldGanji}>
+              {ko ? '대운' : 'Decade pillar'} <span className={styles.han}>{decade.gz.hanja}</span>
+            </span>
+            {gyeokgukLine && (
+              <span className={styles.frameChip}>
+                <span className={styles.frameChipLabel}>
+                  {ko ? '격국 frame' : 'gyeokguk frame'}
+                </span>
+                <span className={styles.frameChipValue}>{gyeokgukLine}</span>
+              </span>
+            )}
+          </div>
+
+          {/* main grid — 좌(사주 SAJU pillar) / 우(십신 readout + KV) */}
+          <div className={styles.mainGrid}>
+            {/* ── 좌: 사주 panel ── */}
+            <div className={styles.sajuPanel}>
+              <LayerTag kind="saju" />
+              <div className={styles.ganjiBig}>
+                <Ganji data={decade.gz} size={62} />
+              </div>
+
+              <div className={styles.pillarSplit}>
+                {/* 천간 — 전반 5년 */}
+                <div className={styles.pillarCol}>
+                  <div className={styles.pillarHead}>
+                    <span className={styles.pillarTag}>
+                      {ko ? '천간 · 전반 5년' : 'stems · first 5 yrs'}
+                    </span>
+                    <span className={styles.pillarYears}>
+                      {decade.start}–{decade.start + 4}
+                    </span>
+                  </div>
+                  <div className={styles.pillarHanja}>{decade.pillar.cheongan.hanja}</div>
+                  <div className={styles.pillarSibsin}>
+                    {ko
+                      ? decade.pillar.cheongan.sibsin
+                      : (SIBSIN_EN[decade.pillar.cheongan.sibsin] ?? decade.pillar.cheongan.sibsin)}
+                  </div>
+                  <div className={styles.pillarEl}>{decade.pillar.cheongan.el}</div>
+                  {(ko
+                    ? decade.pillar.cheongan.note
+                    : (decade.pillar.cheongan.noteEn ?? decade.pillar.cheongan.note)) && (
+                    <p className={styles.pillarNote}>
+                      {ko
+                        ? decade.pillar.cheongan.note
+                        : (decade.pillar.cheongan.noteEn ?? decade.pillar.cheongan.note)}
+                    </p>
+                  )}
                 </div>
+
+                <div className={styles.pillarDivider} />
+
+                {/* 지지 — 후반 5년 */}
+                <div className={styles.pillarCol}>
+                  <div className={styles.pillarHead}>
+                    <span className={styles.pillarTag}>
+                      {ko ? '지지 · 후반 5년' : 'branches · last 5 yrs'}
+                    </span>
+                    <span className={styles.pillarYears}>
+                      {decade.start + 5}–{decade.end - 1}
+                    </span>
+                  </div>
+                  <div className={styles.pillarHanja}>{decade.pillar.jiji.hanja}</div>
+                  <div className={styles.pillarSibsin}>
+                    {ko
+                      ? decade.pillar.jiji.sibsin
+                      : (SIBSIN_EN[decade.pillar.jiji.sibsin] ?? decade.pillar.jiji.sibsin)}
+                  </div>
+                  <div className={styles.pillarEl}>{decade.pillar.jiji.el}</div>
+                  {(ko
+                    ? decade.pillar.jiji.note
+                    : (decade.pillar.jiji.noteEn ?? decade.pillar.jiji.note)) && (
+                    <p className={styles.pillarNote}>
+                      {ko
+                        ? decade.pillar.jiji.note
+                        : (decade.pillar.jiji.noteEn ?? decade.pillar.jiji.note)}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* ── 우: 대운 십신 readout + KV ── */}
+            <div className={styles.readoutPanel}>
+              <LayerTag kind="saju" />
+              <div className={styles.bigTitle}>
+                {ko
+                  ? `${decade.sibsin} · ${sibsinArea(decade.sibsin)}의 10년`
+                  : `${SIBSIN_EN[decade.sibsin] ?? decade.sibsin} · ${sibsinAreaEn(decade.sibsin)} decade`}
+              </div>
+              <p className={styles.themeLine}>{ko ? decade.theme : decade.themeEn}</p>
+
+              <dl className={styles.kv}>
+                <dt>{ko ? '기간' : 'Period'}</dt>
+                <dd>
+                  <b>
+                    {decade.start}–{decade.end}
+                  </b>
+                  <span className={styles.muted}>
+                    {' '}
+                    {ko
+                      ? `· ${decade.ageFrom}–${decade.ageTo}세`
+                      : `· ages ${decade.ageFrom}–${decade.ageTo}`}
+                  </span>
+                </dd>
+                <dt>{ko ? '대운 십신' : 'Decade ten-god'}</dt>
+                <dd>
+                  <b>{ko ? decade.sibsin : (SIBSIN_EN[decade.sibsin] ?? decade.sibsin)}</b>
+                </dd>
+                <dt>{ko ? '천간' : 'Stem'}</dt>
+                <dd>
+                  <span className={styles.han}>{decade.pillar.cheongan.hanja}</span>{' '}
+                  {ko
+                    ? decade.pillar.cheongan.sibsin
+                    : (SIBSIN_EN[decade.pillar.cheongan.sibsin] ??
+                      decade.pillar.cheongan.sibsin)}{' '}
+                  <span className={styles.muted}>· {decade.pillar.cheongan.el}</span>
+                </dd>
+                <dt>{ko ? '지지' : 'Branch'}</dt>
+                <dd>
+                  <span className={styles.han}>{decade.pillar.jiji.hanja}</span>{' '}
+                  {ko
+                    ? decade.pillar.jiji.sibsin
+                    : (SIBSIN_EN[decade.pillar.jiji.sibsin] ?? decade.pillar.jiji.sibsin)}{' '}
+                  <span className={styles.muted}>· {decade.pillar.jiji.el}</span>
+                </dd>
+                {decade.sewoonNow && (
+                  <>
+                    <dt>{ko ? `세운 ${focusYearLabel}` : `Annual ${focusYearLabel}`}</dt>
+                    <dd>
+                      <span className={styles.han}>{decade.sewoonNow.gz.hanja}</span>{' '}
+                      <span className={styles.muted}>{decade.sewoonNow.gz.kr}</span> ·{' '}
+                      <b>
+                        {ko
+                          ? decade.sewoonNow.sibsin
+                          : (SIBSIN_EN[decade.sewoonNow.sibsin] ?? decade.sewoonNow.sibsin)}
+                      </b>
+                    </dd>
+                  </>
+                )}
+              </dl>
+            </div>
+          </div>
+
+          {/* body paragraphs */}
+          {bodyParas && bodyParas.length > 0 && (
+            <div className={styles.bodyBlock}>
+              {bodyParas.map((p, i) => (
+                <p key={i} className={styles.lead}>
+                  {p}
+                </p>
               ))}
             </div>
-          </section>
-        )}
+          )}
 
-        {/* ============================================================
-          합·충 (hapchung) + 12운성 (unseong) 카드 그리드
-      ============================================================ */}
-        {(decade.hapchung || decade.unseong) && (
-          <section className={styles.block}>
-            <div className={styles.sectionHead}>
-              <h2 className={styles.sectionTitle}>{ko ? '본명 × 대운' : 'Natal × Decade'}</h2>
-              <span className={styles.tiny}>
-                {ko ? '합·충 · 12운성' : 'harmony & clash · twelve stages'}
-              </span>
-            </div>
-            <LayerTag kind="saju" />
-            <div className={styles.relationGrid}>
-              {decade.hapchung && (
-                <div className={`${styles.dcard} ${styles.dcardEmber}`}>
-                  <div className={styles.dcardHead}>
-                    <span className={`${styles.glyphMini} ${styles.glyphEmber}`}>⚡</span>
-                    {ko ? '합충 · HAPCHUNG' : 'Harmony & clash · HAPCHUNG'}
+          {/* 이 대운의 결 — narrative */}
+          {decade.narrative && decade.narrative.length > 0 && (
+            <section className={styles.block}>
+              <div className={styles.sectionHead}>
+                <h2 className={styles.sectionTitle}>
+                  {ko ? '이 대운의 결' : 'The grain of this cycle'}
+                </h2>
+                <span className={styles.tiny}>narrative · {decade.narrative.length}</span>
+              </div>
+              <div className={styles.narrativeGrid}>
+                {decade.narrative.map((n, i) => (
+                  <div key={i} className={styles.narrativeCard}>
+                    <div className={styles.narrativeTag}>{n.tag}</div>
+                    <p className={styles.narrativeBody}>{ko ? n.body : (n.bodyEn ?? n.body)}</p>
                   </div>
-                  <div className={styles.dcardTitle}>{decade.hapchung.title}</div>
-                  {decade.hapchung.romaji && (
-                    <div className={styles.dcardRomaji}>{decade.hapchung.romaji}</div>
-                  )}
-                  <p className={styles.dcardBody}>{decade.hapchung.body}</p>
-                </div>
-              )}
-              {decade.unseong && (
-                <div className={`${styles.dcard} ${styles.dcardViolet}`}>
-                  <div className={styles.dcardHead}>
-                    <span className={`${styles.glyphMini} ${styles.glyphViolet}`}>◯</span>
-                    {ko ? '12운성 · UNSEONG' : 'Twelve stages · UNSEONG'}
-                  </div>
-                  <div className={styles.dcardTitle}>{decade.unseong.title}</div>
-                  {decade.unseong.romaji && (
-                    <div className={styles.dcardRomaji}>{decade.unseong.romaji}</div>
-                  )}
-                  <p className={styles.dcardBody}>{decade.unseong.body}</p>
-                </div>
-              )}
-            </div>
+                ))}
+              </div>
+            </section>
+          )}
 
-            {/* Phase 3 보강 #2 — 12운성 매트릭스 (본명 4기둥 × 대운 지지) 1줄 chip row.
-              data.js 에 명시 없는 신규 — 단순화: 본명 일간/시지/일지/월지 4개. */}
-            <UnseongMatrix ilganHanja={user.ilgan.hanja} decadeBranch={decade.pillar.jiji.hanja} />
-          </section>
-        )}
-
-        {/* ============================================================
-          외행성 마디 (astro outer-row)
-      ============================================================ */}
-        {decade.astro && decade.astro.length > 0 && (
-          <section className={styles.block}>
-            <div className={styles.sectionHead}>
-              <h2 className={styles.sectionTitle}>{ko ? '외행성 마디' : 'Outer-planet returns'}</h2>
-              <span className={styles.tiny}>Outer-planet returns</span>
-            </div>
-            <LayerTag kind="astro" />
-            <div className={styles.outerRow}>
-              {decade.astro.map((o, i) => {
-                const kind = o.kind ?? 'jupiter'
-                const cls = OUTER_CLASS[kind] ?? styles.jupiter
-                const glyph = OUTER_GLYPH[kind] ?? '★'
-                return (
-                  <div key={`${o.label}-${i}`} className={`${styles.outerChip} ${cls}`}>
-                    <span className={styles.ic}>{glyph}</span>
-                    <div className={styles.ot}>
-                      <div className={styles.l}>{o.label}</div>
-                      <div className={styles.d}>
-                        {o.date} · {o.body}
-                      </div>
+          {/* 합·충 (hapchung) + 12운성 (unseong) 카드 그리드 */}
+          {(decade.hapchung || decade.unseong) && (
+            <section className={styles.block}>
+              <div className={styles.sectionHead}>
+                <h2 className={styles.sectionTitle}>{ko ? '본명 × 대운' : 'Natal × Decade'}</h2>
+                <span className={styles.tiny}>
+                  {ko ? '합·충 · 12운성' : 'harmony & clash · twelve stages'}
+                </span>
+              </div>
+              <LayerTag kind="saju" />
+              <div className={styles.relationGrid}>
+                {decade.hapchung && (
+                  <div className={`${styles.dcard} ${styles.dcardEmber}`}>
+                    <div className={styles.dcardHead}>
+                      <span className={`${styles.glyphMini} ${styles.glyphEmber}`}>⚡</span>
+                      {ko ? '합충 · HAPCHUNG' : 'Harmony & clash · HAPCHUNG'}
                     </div>
-                  </div>
-                )
-              })}
-            </div>
-          </section>
-        )}
-
-        {/* ============================================================
-          years[10] mini-graph — 10년 세운 score chip row
-      ============================================================ */}
-        {decade.years && decade.years.length > 0 && (
-          <section className={styles.block}>
-            <div className={styles.sectionHead}>
-              <h2 className={styles.sectionTitle}>{ko ? '10년 흐름' : '10-year flow'}</h2>
-              <span className={styles.tiny}>
-                {ko
-                  ? `연도별 score · ${decade.years.length}년`
-                  : `yearly score · ${decade.years.length} yrs`}
-              </span>
-            </div>
-            <div className={styles.yearTrack}>
-              {decade.years.map((y, i) => {
-                const norm = (y.score - minScore) / range
-                const barH = 14 + norm * 46
-                return (
-                  <div
-                    key={`${y.year}-${i}`}
-                    className={`${styles.yearCell} ${y.now ? styles.yearCellNow : ''}`}
-                  >
-                    <div className={styles.yearBar} style={{ height: `${barH}px` }} />
-                    <div className={styles.yearGanji}>
-                      <span className={styles.yearHan}>{y.gz.hanja}</span>
+                    <div className={styles.dcardTitle}>
+                      {ko
+                        ? decade.hapchung.title
+                        : (decade.hapchung.titleEn ?? decade.hapchung.title)}
                     </div>
-                    <div className={styles.yearLabel}>
-                      {y.year}
-                      {y.now && <span className={styles.yearNowMark}>{ko ? '지금' : 'now'}</span>}
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          </section>
-        )}
-
-        {/* ============================================================
-          Phase 3 보강 #3 — cross-activation badge (decadal aggregate)
-      ============================================================ */}
-        {crossActs.length > 0 && (
-          <section className={styles.block}>
-            <div className={styles.sectionHead}>
-              <h2 className={styles.sectionTitle}>
-                {ko ? '사주 ↔ 점성 동시 활성' : 'Saju ↔ Astrology co-activation'}
-              </h2>
-              <span className={styles.tiny}>
-                {ko
-                  ? `Cross-activation · 10년 누적 ${crossActs.length}건`
-                  : `Cross-activation · ${crossActs.length} over 10 yrs`}
-              </span>
-            </div>
-            <div className={styles.crossBadgeRow}>
-              {crossActs.slice(0, 6).map((c, i) => {
-                const tone =
-                  c.polarity > 0
-                    ? styles.crossPos
-                    : c.polarity < 0
-                      ? styles.crossNeg
-                      : styles.crossNeu
-                return (
-                  <div key={c.signalId || i} className={`${styles.crossBadge} ${tone}`}>
-                    <div className={styles.crossBadgeName}>{c.name}</div>
-                    {(c.sajuLine || c.astroLine) && (
-                      <div className={styles.crossBadgeLines}>
-                        {c.sajuLine && <span className={styles.crossBadgeSaju}>{c.sajuLine}</span>}
-                        {c.sajuLine && c.astroLine && (
-                          <span className={styles.crossBadgeArrow}>↔</span>
-                        )}
-                        {c.astroLine && (
-                          <span className={styles.crossBadgeAstro}>{c.astroLine}</span>
-                        )}
-                      </div>
+                    {decade.hapchung.romaji && (
+                      <div className={styles.dcardRomaji}>{decade.hapchung.romaji}</div>
                     )}
-                    {c.meaning && <p className={styles.crossBadgeMeaning}>{c.meaning}</p>}
+                    <p className={styles.dcardBody}>
+                      {ko ? decade.hapchung.body : (decade.hapchung.bodyEn ?? decade.hapchung.body)}
+                    </p>
                   </div>
-                )
-              })}
-            </div>
-          </section>
-        )}
-      </details>
+                )}
+                {decade.unseong && (
+                  <div className={`${styles.dcard} ${styles.dcardViolet}`}>
+                    <div className={styles.dcardHead}>
+                      <span className={`${styles.glyphMini} ${styles.glyphViolet}`}>◯</span>
+                      {ko ? '12운성 · UNSEONG' : 'Twelve stages · UNSEONG'}
+                    </div>
+                    <div className={styles.dcardTitle}>
+                      {ko ? decade.unseong.title : (decade.unseong.titleEn ?? decade.unseong.title)}
+                    </div>
+                    {decade.unseong.romaji && (
+                      <div className={styles.dcardRomaji}>{decade.unseong.romaji}</div>
+                    )}
+                    <p className={styles.dcardBody}>
+                      {ko ? decade.unseong.body : (decade.unseong.bodyEn ?? decade.unseong.body)}
+                    </p>
+                  </div>
+                )}
+              </div>
 
-      {/* ============================================================
-          dive 버튼 — Year tier
-      ============================================================ */}
-      <div className={styles.diveWrap}>
-        <button className={styles.dive} onClick={onDive} type="button">
-          {ko ? `${focusYearLabel}년으로 줌인` : `Zoom in to ${focusYearLabel}`}{' '}
-          <span className={styles.arrow}>↓</span>
-        </button>
+              {/* 12운성 매트릭스 (본명 일간 × 대운 지지). */}
+              <UnseongMatrix
+                ilganHanja={user.ilgan.hanja}
+                decadeBranch={decade.pillar.jiji.hanja}
+              />
+            </section>
+          )}
+
+          {/* 외행성 마디 (astro outer-row) */}
+          {decade.astro && decade.astro.length > 0 && (
+            <section className={styles.block}>
+              <div className={styles.sectionHead}>
+                <h2 className={styles.sectionTitle}>
+                  {ko ? '외행성 마디' : 'Outer-planet returns'}
+                </h2>
+                <span className={styles.tiny}>Outer-planet returns</span>
+              </div>
+              <LayerTag kind="astro" />
+              <div className={styles.outerRow}>
+                {decade.astro.map((o, i) => {
+                  const kind = o.kind ?? 'jupiter'
+                  const cls = OUTER_CLASS[kind] ?? styles.jupiter
+                  const glyph = OUTER_GLYPH[kind] ?? '★'
+                  return (
+                    <div key={`${o.label}-${i}`} className={`${styles.outerChip} ${cls}`}>
+                      <span className={styles.ic}>{glyph}</span>
+                      <div className={styles.ot}>
+                        <div className={styles.l}>{o.label}</div>
+                        <div className={styles.d}>
+                          {o.date} · {o.body}
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </section>
+          )}
+
+          {/* years[10] mini-graph — 연도별 간지 + score chip row */}
+          {years.length > 0 && (
+            <section className={styles.block}>
+              <div className={styles.sectionHead}>
+                <h2 className={styles.sectionTitle}>
+                  {ko ? '10년 흐름 · 연도별 간지' : '10-year flow · yearly ganji'}
+                </h2>
+                <span className={styles.tiny}>
+                  {ko ? `연도별 score · ${years.length}년` : `yearly score · ${years.length} yrs`}
+                </span>
+              </div>
+              <div className={styles.yearTrack}>
+                {years.map((y, i) => {
+                  const norm = (y.score - minScore) / range
+                  const barH = 14 + norm * 46
+                  return (
+                    <div
+                      key={`${y.year}-${i}`}
+                      className={`${styles.yearCell} ${y.now ? styles.yearCellNow : ''}`}
+                    >
+                      <div className={styles.yearBar} style={{ height: `${barH}px` }} />
+                      <div className={styles.yearGanji}>
+                        <span className={styles.yearHan}>{y.gz.hanja}</span>
+                      </div>
+                      <div className={styles.yearLabel}>
+                        {y.year}
+                        {y.now && <span className={styles.yearNowMark}>{ko ? '지금' : 'now'}</span>}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </section>
+          )}
+
+          {/* cross-activation badge (decadal aggregate) — raw saju/astro 라인 포함. */}
+          {crossActs.length > 0 && (
+            <section className={styles.block}>
+              <div className={styles.sectionHead}>
+                <h2 className={styles.sectionTitle}>
+                  {ko ? '사주 ↔ 점성 동시 활성' : 'Saju ↔ Astrology co-activation'}
+                </h2>
+                <span className={styles.tiny}>
+                  {ko
+                    ? `Cross-activation · 10년 누적 ${crossActs.length}건`
+                    : `Cross-activation · ${crossActs.length} over 10 yrs`}
+                </span>
+              </div>
+              <div className={styles.crossBadgeRow}>
+                {crossActs.slice(0, 6).map((c, i) => {
+                  const tone =
+                    c.polarity > 0
+                      ? styles.crossPos
+                      : c.polarity < 0
+                        ? styles.crossNeg
+                        : styles.crossNeu
+                  return (
+                    <div key={c.signalId || i} className={`${styles.crossBadge} ${tone}`}>
+                      <div className={styles.crossBadgeName}>
+                        {ko ? c.name : (c.nameEn ?? c.name)}
+                      </div>
+                      {(c.sajuLine || c.astroLine) && (
+                        <div className={styles.crossBadgeLines}>
+                          {c.sajuLine && (
+                            <span className={styles.crossBadgeSaju}>
+                              {ko ? c.sajuLine : (c.sajuLineEn ?? c.sajuLine)}
+                            </span>
+                          )}
+                          {c.sajuLine && c.astroLine && (
+                            <span className={styles.crossBadgeArrow}>↔</span>
+                          )}
+                          {c.astroLine && (
+                            <span className={styles.crossBadgeAstro}>
+                              {ko ? c.astroLine : (c.astroLineEn ?? c.astroLine)}
+                            </span>
+                          )}
+                        </div>
+                      )}
+                      {(ko ? c.meaning : (c.meaningEn ?? c.meaning)) && (
+                        <p className={styles.crossBadgeMeaning}>
+                          {ko ? c.meaning : (c.meaningEn ?? c.meaning)}
+                        </p>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            </section>
+          )}
+        </details>
+
+        {/* ============================================================
+            dive 버튼 — Year tier
+        ============================================================ */}
+        <div className={styles.diveWrap}>
+          <button className={styles.dive} onClick={onDive} type="button">
+            {ko ? `${focusYearLabel}년으로 줌인` : `Zoom in to ${focusYearLabel}`}{' '}
+            <span className={styles.arrow}>↓</span>
+          </button>
+        </div>
       </div>
-    </div>
+    </TierFrame>
   )
 }
 
 // ============================================================
-// Phase 3 보강 #2 — 12운성 매트릭스 (본명 일간 × 대운 지지 단순 chip row)
+// 12운성 매트릭스 (본명 일간 × 대운 지지 단순 chip row) — fold 전용.
 // ============================================================
-//
-// 본명 4기둥 × 대운 지지 의 12운성 매트릭스는 정통 사주 응용 — adapter
-// 가 정보 채워야 정확. 디자인 단계에서는 일간 × 대운 지지 1쌍만 시각적
-// 표현 (관대/태/장생 등 일반 명칭은 derive 함수가 제공할 때 enrich).
-
 function UnseongMatrix({ ilganHanja, decadeBranch }: { ilganHanja: string; decadeBranch: string }) {
   const { locale } = useI18n()
   const ko = locale === 'ko'
@@ -692,4 +995,3 @@ function UnseongMatrix({ ilganHanja, decadeBranch }: { ilganHanja: string; decad
     </div>
   )
 }
-

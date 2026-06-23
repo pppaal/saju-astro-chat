@@ -5,7 +5,7 @@
 // 부르게 한다. Redis 조회가 필요하므로 nodejs 런타임.
 
 import { ImageResponse } from 'next/og'
-import { getShareLink, siteBaseUrl } from '@/lib/tarot/shareLink'
+import { getShareLink, isCompatShare, isCalendarShare, siteBaseUrl } from '@/lib/tarot/shareLink'
 
 export const runtime = 'nodejs'
 export const size = { width: 1200, height: 630 }
@@ -21,17 +21,39 @@ export default async function Image({ params }: { params: Promise<{ token: strin
   const { token } = await params
   const reading = await getShareLink(token)
   const isKo = reading?.isKo ?? true
-  const headline = reading?.keyMessage
-    ? clamp(reading.keyMessage, 64)
-    : reading
-      ? clamp(reading.question, 64)
-      : isKo
-        ? '타로 리딩'
-        : 'Tarot Reading'
-  const context = reading?.keyMessage ? clamp(reading.question, 70) : ''
   const displayDomain = siteBaseUrl()
     .replace(/^https?:\/\//, '')
     .replace(/\/$/, '')
+
+  // 궁합 공유 — 두 사람 이름 + verdict 한 줄을 주인공으로, CTA 도 궁합용.
+  let eyebrow: string
+  let headline: string
+  let context: string
+  let cta: string
+  if (reading && isCompatShare(reading)) {
+    eyebrow = `${reading.nameA}  ♥  ${reading.nameB}`
+    headline = clamp(reading.verdict, 80)
+    context = reading.headline ? clamp(reading.headline, 70) : ''
+    cta = isKo
+      ? `우리 궁합도 무료로 · ${displayDomain}`
+      : `Check your match free · ${displayDomain}`
+  } else if (reading && isCalendarShare(reading)) {
+    eyebrow = clamp(reading.periodLabel, 40)
+    headline = clamp(reading.headline, 72)
+    context = reading.highlights?.length ? clamp(reading.highlights[0], 70) : ''
+    cta = isKo ? `내 운흐름도 무료로 · ${displayDomain}` : `See your timing free · ${displayDomain}`
+  } else {
+    eyebrow = isKo ? '타로 리딩' : 'TAROT READING'
+    headline = reading?.keyMessage
+      ? clamp(reading.keyMessage, 64)
+      : reading
+        ? clamp(reading.question, 64)
+        : isKo
+          ? '타로 리딩'
+          : 'Tarot Reading'
+    context = reading?.keyMessage ? clamp(reading.question, 70) : ''
+    cta = isKo ? `나도 카드 뽑아보기 · ${displayDomain}` : `Pull your own cards · ${displayDomain}`
+  }
 
   return new ImageResponse(
     <div
@@ -64,7 +86,7 @@ export default async function Image({ params }: { params: Promise<{ token: strin
         <div
           style={{ fontSize: 26, letterSpacing: 6, textTransform: 'uppercase', color: '#d4b572' }}
         >
-          {isKo ? '타로 리딩' : 'TAROT READING'}
+          {eyebrow}
         </div>
         <div style={{ fontSize: 66, fontWeight: 800, lineHeight: 1.18, color: '#e8cc8a' }}>
           {headline}
@@ -74,9 +96,7 @@ export default async function Image({ params }: { params: Promise<{ token: strin
         ) : null}
       </div>
 
-      <div style={{ fontSize: 28, color: '#9aa3b8' }}>
-        {isKo ? `나도 카드 뽑아보기 · ${displayDomain}` : `Pull your own cards · ${displayDomain}`}
-      </div>
+      <div style={{ fontSize: 28, color: '#9aa3b8' }}>{cta}</div>
     </div>,
     { ...size }
   )

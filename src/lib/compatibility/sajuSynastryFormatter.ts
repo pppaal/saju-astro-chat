@@ -80,8 +80,11 @@ const TWELVE_SINSAL_EN: Record<string, string> = {
 
 export function formatSajuSynastry(input: SajuSynastryInput): string {
   if (input.pillarsA.length < 4 || input.pillarsB.length < 4) return ''
-  const A = input.pillarsA
-  const B = input.pillarsB
+  // 시각 미상이면 시주(時, index 3)는 子시 가정의 날조값 → cross 대상에서 제외.
+  // 아래 모든 pillar 루프는 A.length / B.length 로 도므로, 잘라내면 자동으로
+  // 시주가 빠진다(일주=index 2 는 항상 유지). i 는 항상 A, j 는 항상 B 를 인덱싱.
+  const A = input.timeUnknownA ? input.pillarsA.slice(0, 3) : input.pillarsA
+  const B = input.timeUnknownB ? input.pillarsB.slice(0, 3) : input.pillarsB
   const aDay = A[2]
   const bDay = B[2]
   if (!aDay.stem || !bDay.stem) return ''
@@ -158,8 +161,8 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
   }
 
   // 2. 천간합(끌림)=CRITICAL, 천간충=IMPORTANT
-  for (let i = 0; i < 4; i++) {
-    for (let j = 0; j < 4; j++) {
+  for (let i = 0; i < A.length; i++) {
+    for (let j = 0; j < B.length; j++) {
       const aS = A[i].stem,
         bS = B[j].stem
       if (!aS || !bS) continue
@@ -192,8 +195,8 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
     if (!cur.tags.includes(tag)) cur.tags.push(tag)
     pairMap.set(key, cur)
   }
-  for (let i = 0; i < 4; i++) {
-    for (let j = 0; j < 4; j++) {
+  for (let i = 0; i < A.length; i++) {
+    for (let j = 0; j < B.length; j++) {
       const aBr = A[i].branch,
         bBr = B[j].branch
       if (!aBr || !bBr) continue
@@ -274,7 +277,7 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
   // 4. 천을귀인 → IMPORTANT
   const aCheonul = CHEONULGWIIN[aDay.stem] ?? []
   const bCheonul = CHEONULGWIIN[bDay.stem] ?? []
-  for (let j = 0; j < 4; j++) {
+  for (let j = 0; j < B.length; j++) {
     if (aCheonul.includes(B[j].branch)) {
       important.push(
         L(
@@ -284,7 +287,7 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
       )
     }
   }
-  for (let i = 0; i < 4; i++) {
+  for (let i = 0; i < A.length; i++) {
     if (bCheonul.includes(A[i].branch)) {
       important.push(
         L(
@@ -301,7 +304,7 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
   // 구분 안 돼 LLM 이 잘못 파싱. = 로 명확히 분리.
   if (aDay.branch) {
     const items: string[] = []
-    for (let j = 0; j < 4; j++) {
+    for (let j = 0; j < B.length; j++) {
       if (!B[j].branch) continue
       const lbl = twelveShinsalLabel(aDay.branch, B[j].branch)
       if (lbl) items.push(`${PL[j]}${L('지', '-branch')} ${B[j].branch}=${twD(lbl)}`)
@@ -316,7 +319,7 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
   }
   if (bDay.branch) {
     const items: string[] = []
-    for (let i = 0; i < 4; i++) {
+    for (let i = 0; i < A.length; i++) {
       if (!A[i].branch) continue
       const lbl = twelveShinsalLabel(bDay.branch, A[i].branch)
       if (lbl) items.push(`${PL[i]}${L('지', '-branch')} ${A[i].branch}=${twD(lbl)}`)
@@ -494,7 +497,7 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
     const bGong = gongmangOf(bDay.stem, bDay.branch)
     const hits: string[] = []
     const dayStrong = (k: number) => (k === 2 ? L('(일지·강)', '(day-branch·strong)') : '')
-    for (let j = 0; j < 4; j++) {
+    for (let j = 0; j < B.length; j++) {
       if (B[j].branch && aGong.includes(B[j].branch)) {
         hits.push(
           L(
@@ -504,7 +507,7 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
         )
       }
     }
-    for (let i = 0; i < 4; i++) {
+    for (let i = 0; i < A.length; i++) {
       if (A[i].branch && bGong.includes(A[i].branch)) {
         hits.push(
           L(
@@ -618,7 +621,7 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
   }
   const HONGYEOM: Record<string, string> = {
     甲: '午',
-    乙: '申',
+    乙: '午',
     丙: '寅',
     丁: '未',
     戊: '辰',
@@ -750,12 +753,12 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
     卯: ['乙'],
     辰: ['乙', '癸', '戊'],
     巳: ['戊', '庚', '丙'],
-    午: ['己', '丁'],
+    午: ['丙', '己', '丁'],
     未: ['丁', '乙', '己'],
     申: ['戊', '壬', '庚'],
     酉: ['辛'],
     戌: ['辛', '丁', '戊'],
-    亥: ['戊', '壬'],
+    亥: ['戊', '甲', '壬'],
   }
   const jijangganCrossLines: string[] = []
   // (1) A 일간이 B 일지 지장간 안에 — 숨은 매혹/통제 결정.

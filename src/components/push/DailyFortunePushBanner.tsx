@@ -89,17 +89,17 @@ export default function DailyFortunePushBanner({ locale }: { locale: 'ko' | 'en'
     <div
       role="dialog"
       aria-label={t('push.dailyFortuneAriaLabel', 'Daily fortune notifications')}
-      className="fixed bottom-[max(1rem,env(safe-area-inset-bottom)+0.5rem)] left-[max(1rem,env(safe-area-inset-left))] right-[max(1rem,env(safe-area-inset-right))] z-[var(--z-notification)] mx-auto max-w-md rounded-2xl border border-[#e7e5e4] bg-white p-4 shadow-[0_24px_48px_rgba(28,25,23,0.15)]"
+      className="fixed bottom-[max(0.75rem,env(safe-area-inset-bottom)+0.375rem)] left-[max(0.75rem,env(safe-area-inset-left))] right-[max(0.75rem,env(safe-area-inset-right))] z-[var(--z-notification)] mx-auto max-w-sm rounded-xl border border-[#e7e5e4] bg-white p-2.5 shadow-[0_16px_36px_rgba(28,25,23,0.14)]"
     >
-      <div className="flex items-start gap-3">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[rgba(212,181,114,0.15)] text-xl">
+      <div className="flex items-start gap-2">
+        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[rgba(212,181,114,0.15)] text-base">
           🌅
         </div>
         <div className="flex-1">
-          <h3 className="text-[14px] font-semibold text-[#1c1917]">
+          <h3 className="text-[12.5px] font-semibold text-[#1c1917]">
             {t('push.dailyFortuneTitle', 'Get your daily fortune every morning')}
           </h3>
-          <p className="mt-1 text-[12.5px] leading-relaxed text-[#57534e]">
+          <p className="mt-0.5 text-[11px] leading-snug text-[#57534e]">
             {state === 'denied'
               ? t(
                   'push.permissionDenied',
@@ -112,13 +112,13 @@ export default function DailyFortunePushBanner({ locale }: { locale: 'ko' | 'en'
                     'One line of fortune for your day, delivered each morning.'
                   )}
           </p>
-          <div className="mt-3 flex items-center gap-2">
+          <div className="mt-2 flex items-center gap-2">
             {state === 'optin' && (
               <button
                 type="button"
                 disabled={busy}
                 onClick={handleSubscribe}
-                className="inline-flex items-center rounded-full bg-[#1c1917] px-4 py-1.5 text-[12.5px] font-medium text-white hover:bg-[#3a3530] disabled:opacity-60"
+                className="inline-flex items-center rounded-full bg-[#1c1917] px-3 py-1 text-[11px] font-medium text-white hover:bg-[#3a3530] disabled:opacity-60"
               >
                 {t('push.enableButton', 'Turn on')}
               </button>
@@ -128,7 +128,7 @@ export default function DailyFortunePushBanner({ locale }: { locale: 'ko' | 'en'
                 type="button"
                 disabled={busy}
                 onClick={handleUnsubscribe}
-                className="inline-flex items-center rounded-full border border-[#d6d3d1] px-4 py-1.5 text-[12.5px] font-medium text-[#1c1917] hover:bg-[#f5f4f1] disabled:opacity-60"
+                className="inline-flex items-center rounded-full border border-[#d6d3d1] px-3 py-1 text-[11px] font-medium text-[#1c1917] hover:bg-[#f5f4f1] disabled:opacity-60"
               >
                 {t('push.disableButton', 'Turn off')}
               </button>
@@ -136,7 +136,7 @@ export default function DailyFortunePushBanner({ locale }: { locale: 'ko' | 'en'
             <button
               type="button"
               onClick={dismiss}
-              className="text-[12.5px] font-medium text-[#a8a29e] hover:text-[#1c1917]"
+              className="text-[11px] font-medium text-[#a8a29e] hover:text-[#1c1917]"
             >
               {t('common.later', 'Later')}
             </button>
@@ -146,7 +146,7 @@ export default function DailyFortunePushBanner({ locale }: { locale: 'ko' | 'en'
           type="button"
           onClick={dismiss}
           aria-label={t('common.close', 'Close')}
-          className="inline-flex h-7 w-7 items-center justify-center rounded-full text-[#a8a29e] transition hover:bg-[#f5f4f1] hover:text-[#1c1917]"
+          className="inline-flex h-6 w-6 items-center justify-center rounded-full text-[#a8a29e] transition hover:bg-[#f5f4f1] hover:text-[#1c1917]"
         >
           ✕
         </button>

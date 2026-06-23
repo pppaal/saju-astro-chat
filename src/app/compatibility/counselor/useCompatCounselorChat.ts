@@ -255,45 +255,54 @@ export function useCompatCounselorChat(
         const sid = serverSessionId || chatSessionId || undefined
         // 다음 턴이 같은 id 를 echo 하고 ⋮ 메뉴/사이드바가 이 세션을 가리키도록
         // 동기화(존재 보장 행이 서버에 이미 있으므로 메뉴가 빈 세션을 가리킬
-        // 위험 없음).
+        // 위험 없음). truncated 턴이어도 id 동기화는 항상 해, 아래 복원 저장
+        // (applyRecovered)이 같은(서버 존재 보장) 행에 append 하게 한다.
         if (sid && sid !== chatSessionId) setChatSessionId(sid)
-        // meta(커플 차트 스냅샷)는 아직 못 실었을 때만 첨부 — 서버 존재 보장
-        // 행은 meta 없이 생성되므로 클라 첫 저장이 차트 컨텍스트를 채운다.
-        const includeMeta = !metaSentRef.current && persons.length >= 2
-        const body: Record<string, unknown> = {
-          sessionId: sid,
-          locale: lang,
-          userMessage: turn.text,
-          assistantMessage: finalContent,
-          type: 'compat',
-          create: true,
-        }
-        if (includeMeta) {
-          body.meta = {
-            persons,
-            person1Saju,
-            person2Saju,
-            person1Astro,
-            person2Astro,
+        // truncated 턴은 여기서 저장하지 않는다 — 부분 답을 append 하면, 복원
+        // 성공 시 applyRecovered 가 완성본을 또 append 해 같은 턴이 두 번(부분+
+        // 완성, user 줄까지 중복) 저장되는 중복 버그가 난다(chat-history append 는
+        // dedupe 없음). 복원 경로(applyRecovered)를 truncated 턴의 단독 저장자로 둔다.
+        if (!wasTruncated) {
+          // meta(커플 차트 스냅샷)는 아직 못 실었을 때만 첨부 — 서버 존재 보장
+          // 행은 meta 없이 생성되므로 클라 첫 저장이 차트 컨텍스트를 채운다.
+          const includeMeta = !metaSentRef.current && persons.length >= 2
+          const body: Record<string, unknown> = {
+            sessionId: sid,
+            locale: lang,
+            userMessage: turn.text,
+            assistantMessage: finalContent,
+            type: 'compat',
+            create: true,
           }
-        }
-        // apiFetch — 세션 쿠키를 항상 실어 모바일 인앱 브라우저에서도 저장이
-        // 성공하도록. 저장이 실패하면 이어 띄울 "최신 채팅"이 없어 매번 폼이
-        // 떴다(#1037 와 동일한 native-fetch 쿠키 누락 이슈).
-        apiFetch('/api/counselor/chat-history', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body),
-        })
-          .then((r) => (r.ok ? r.json() : null))
-          .then((data: { success?: boolean; session?: { id: string } } | null) => {
-            if (!mountedRef.current) return
-            if (data?.success) {
-              if (includeMeta) metaSentRef.current = true
-              if (data.session?.id && !chatSessionId) setChatSessionId(data.session.id)
+          if (includeMeta) {
+            body.meta = {
+              persons,
+              person1Saju,
+              person2Saju,
+              person1Astro,
+              person2Astro,
             }
+          }
+          // apiFetch — 세션 쿠키를 항상 실어 모바일 인앱 브라우저에서도 저장이
+          // 성공하도록. 저장이 실패하면 이어 띄울 "최신 채팅"이 없어 매번 폼이
+          // 떴다(#1037 와 동일한 native-fetch 쿠키 누락 이슈).
+          apiFetch('/api/counselor/chat-history', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body),
           })
-          .catch((err) => logger.warn('[CompatCounselor] chat-history save failed', { error: err }))
+            .then((r) => (r.ok ? r.json() : null))
+            .then((data: { success?: boolean; session?: { id: string } } | null) => {
+              if (!mountedRef.current) return
+              if (data?.success) {
+                if (includeMeta) metaSentRef.current = true
+                if (data.session?.id && !chatSessionId) setChatSessionId(data.session.id)
+              }
+            })
+            .catch((err) =>
+              logger.warn('[CompatCounselor] chat-history save failed', { error: err })
+            )
+        }
       }
     },
     onSendFailure: (e) => {
@@ -350,6 +359,10 @@ export function useCompatCounselorChat(
       // 복원 답안도 정상 경로와 동일하게 past-chats 사이드바에 저장. chatSessionId
       // 는 원래 턴의 completeTurn 에서 서버 헤더로 이미 맞춰져 있다(존재 보장 행과
       // 동일 id). create:true — 혹시 행이 아직 없으면 그 id 로 생성.
+      // truncated 턴은 completeTurn 이 저장을 건너뛰므로(중복 방지) 여기가 단독
+      // 저장자다. 따라서 아직 안 실린 meta(커플 차트 스냅샷)도 여기서 첨부해야
+      // 첫 턴이 끊겨도 차트 컨텍스트가 세션에 남는다.
+      const includeMeta = !metaSentRef.current && persons.length >= 2
       const body: Record<string, unknown> = {
         sessionId: chatSessionId,
         locale: lang,
@@ -357,6 +370,9 @@ export function useCompatCounselorChat(
         assistantMessage: cleanContent,
         type: 'compat',
         create: true,
+      }
+      if (includeMeta) {
+        body.meta = { persons, person1Saju, person2Saju, person1Astro, person2Astro }
       }
       apiFetch('/api/counselor/chat-history', {
         method: 'POST',
@@ -366,8 +382,9 @@ export function useCompatCounselorChat(
         .then((r) => (r.ok ? r.json() : null))
         .then((d: { success?: boolean; session?: { id: string } } | null) => {
           if (!mountedRef.current) return
-          if (d?.success && d.session?.id && !chatSessionId) {
-            setChatSessionId(d.session.id)
+          if (d?.success) {
+            if (includeMeta) metaSentRef.current = true
+            if (d.session?.id && !chatSessionId) setChatSessionId(d.session.id)
           }
         })
         .catch((err) =>

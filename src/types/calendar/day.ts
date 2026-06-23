@@ -134,8 +134,10 @@ export interface DestinyCrossActivation {
   sajuKo?: string
   /** 점성측 행성 raw(KO) — 분야 라우팅용. */
   astroKo?: string
-  /** A등급 매핑 의미 — '정관 ↔ Saturn (책임·구조)'. */
+  /** A등급 매핑 의미(KO) — '정관 ↔ Saturn (책임·구조)'. */
   meaning: string
+  /** 의미 영문 — 클라이언트 로케일 토글 시 서버언어 고정 방지(양쪽 보관). */
+  meaningEn?: string
   /** 합성 polarity. */
   polarity: Polarity
   /** 합성 weight. */
@@ -159,6 +161,8 @@ export interface DestinyIljinHeader {
   score: number
   /** 한 줄 요약 — '오늘은 같은 금(金) 기운이 겹쳐...'. */
   oneLine: string
+  /** 한 줄 요약 영문 — 클라이언트 로케일 토글용(서버언어 고정 방지). */
+  oneLineEn?: string
   /** 활성 신호 총 개수. */
   totalSignals: number
 }
@@ -192,15 +196,35 @@ export interface DestinyDay extends DestinyIljinHeader {
   /** 본명 4기둥(천간) × 일진 지지 12운성 (기둥별 실제값). */
   twelveStageMatrix: Array<{ pillar: string; stem: string; branch: string; stage: string }>
 
+  /**
+   * 본명 일간(日干, day master) — 그날 해석의 *기준*. 일진(오늘 간지)은 이 일간을
+   * 기준으로 십신이 매겨지므로, 화면 맨 위에 "누구 기준인지"를 보여준다.
+   * (assembleTiers 가 user.ilgan 에서 채움.)
+   */
+  dayMaster?: { hanja: string; kr: string; en: string }
+
+  /** 개인 시드(본명 고정) — 템플릿 문구를 사람마다 다르게 고르는 데 쓴다. */
+  seed?: number
+
+  // ── 타이밍 컨텍스트 (캘린더용 — assembleTiers 가 주변 날짜에서 채움) ──
+  /** 이달 일별 점수 — 흐름 추이선용. day=1..31, score=0..100, today 표시. */
+  monthScores?: Array<{ day: number; score: number; today: boolean }>
+  /** 다가오는 며칠(오늘 다음날~) — 미리보기용. date='YYYY-MM-DD', score=0..100. */
+  upcoming?: Array<{ date: string; score: number }>
+
   // ── 부속 (기존 destinypal data.js) ──
   /** 활성 신살 한글 이름들 — ['천을귀인','도화','역마']. */
   shinsalActive: string[]
   /** narrative chip 묶음 (옵션). */
   narrative?: TaggedNarrative[]
-  /** 상위 우호 사유 3..5 (백엔드 CalendarCell.topReasons). */
+  /** 상위 우호 사유 3..5 (백엔드 CalendarCell.topReasons). KO. */
   topReasons?: string[]
-  /** 상위 주의 사유 3..5 (백엔드 CalendarCell.cautions). */
+  /** 상위 우호 사유 영문 — 토글용. */
+  topReasonsEn?: string[]
+  /** 상위 주의 사유 3..5 (백엔드 CalendarCell.cautions). KO. */
   cautions?: string[]
+  /** 상위 주의 사유 영문 — 토글용. */
+  cautionsEn?: string[]
   /**
    * 출력 화해 verdict — 점수 밴드 ↔ 신호/사유 톤을 묶은 단일 권위.
    * 헤드라인·한줄·칩이 같은 톤(positive/mixed/caution)을 말하도록 adapter 가

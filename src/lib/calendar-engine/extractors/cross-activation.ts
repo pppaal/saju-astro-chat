@@ -15,12 +15,13 @@
  * 겹친 구간이 짧으면 (1~2일) 페어 신호도 짧음. 겹친 구간이 길면 (10일+)
  * 그만큼 길게 유지. 정점(peak)은 두 부모 peak 의 중간점.
  *
- * ── 페어 polarity ──
- * sign(saju.polarity × astro.polarity) × |mapping.polarity| 형태.
- *  - 둘 다 우호(++) 면 +|m.p|
- *  - 둘 다 흉(--) 면 +|m.p|  (둘 다 압력으로 흐름 같음 — 매핑 polarity 자체로 톤 결정)
- *  - 부호 다르면 (-+ 또는 +-) → 0
- *  - 한쪽이 polarity=0 이면 mapping polarity 그대로 사용 (부호 정보 부재 시 매핑이 결정).
+ * ── 페어 polarity ── (combinePolarity 구현과 일치하게 기술)
+ *  - 두 부모 부호가 *같은 방향*(++ 또는 --) → mapping.polarity 를 **부호 그대로** 사용.
+ *      · 둘 다 우호: 매핑이 + 면 +, - 면 -.
+ *      · 둘 다 흉: 매핑 부호 그대로(예: 편관×화성 -2 → 압박 가중 -2). ※ sign 곱(−×−=+)이
+ *        아니다 — 둘 다 압력이면 흉을 더 키우는 게 맞으므로 매핑 부호를 보존한다.
+ *  - 부호 다르면 (+- 또는 -+) → 0 (의미 충돌 — 톤 무력화).
+ *  - 한쪽이 polarity=0 이면 mapping.polarity 그대로 (부호 정보 부재 시 매핑이 결정).
  *
  * ── 페어 weight ──
  * saju.weight × astro.weight × 0.6 (cross 신호 noise 방지 목적의 보수 계수).
@@ -32,7 +33,6 @@
 import type { ActiveSignal, ActiveWindow, Polarity, SignalEvidence } from '../types'
 import {
   SAJU_ASTRO_MAPPINGS,
-  lookupCrossMapping,
   crossLayerAllowed,
   type CrossMapping,
 } from '../data/saju-astro-mapping'
@@ -55,11 +55,27 @@ function extractSajuKey(s: ActiveSignal): string | undefined {
 
 /**
  * Astro 신호에서 매칭 키 (단일 행성명) 를 추출.
- * 대부분의 astro extractor 가 evidence.planets[0] 에 트랜짓 행성을 박음
+ * 대부분의 astro extractor 가 evidence.planets[0] 에 *트랜짓(활성) 행성* 을 박음
  * (transit, dignity, house-transit, return, fixed-star 등).
+ *
+ * 단, eclipse 는 planets[0] 에 *본명 피영향점*(affectedPoint, 예: 본명 금성)을
+ * 넣는다 — 활성 주체(식의 광체)가 아니다. 그대로 키로 쓰면 "토성 식이 본명 금성을
+ * 때릴 때" astroKey='금성' 이 돼 정재×금성·도화×금성 교차가 *엉뚱한 인과*로
+ * 오발화한다(감사 지적). 식은 교차의 활성 행성 키로 부적합하므로 제외한다.
+ *
+ * 같은 이유로 profection·zodiacal-releasing 도 제외한다. 둘 다 planets[0] 에
+ * *상징적 룰러*(연주술 lordOfYear / ZR period.ruler)를 박는데, 이는 하늘에서
+ * 실제로 트랜짓하는 활성 행성이 아니라 *지정(designation)* 일 뿐이다. 교차의
+ * "planets[0] = 트랜짓(활성) 행성" 불변식과 어긋나, 실제 천문 활성 없이 명칭만으로
+ * 교차 신호를 발화시킨다 — eclipse 제외와 같은 선례. (그 룰러가 실제로 트랜짓하면
+ * transit/dignity 추출기가 별도로 활성 신호를 내고, 그게 교차의 정당한 키가 된다.)
  */
 function extractAstroKey(s: ActiveSignal): string | undefined {
   if (s.source !== 'astro') return undefined
+  // affectedPoint(본명점) 또는 상징적 룰러라 활성 주체 아님 — 교차 제외.
+  if (s.kind === 'eclipse' || s.kind === 'profection' || s.kind === 'zodiacal-releasing') {
+    return undefined
+  }
   const planets = s.evidence?.planets ?? []
   return planets[0]
 }
@@ -241,29 +257,3 @@ export function extractCrossActivations(signals: readonly ActiveSignal[]): Activ
 
   return Array.from(bestByDay.values()).map((x) => x.sig)
 }
-
-/**
- * Cross-activation 의 부수 정보 — 디버그·테스트용.
- */
-function debugCrossActivations(signals: readonly ActiveSignal[]): {
-  totalPairsConsidered: number
-  emitted: number
-  byMapping: Record<string, number>
-} {
-  const out = extractCrossActivations(signals)
-  const byMapping: Record<string, number> = {}
-  for (const s of out) {
-    const k = s.name
-    byMapping[k] = (byMapping[k] ?? 0) + 1
-  }
-  // "considered" = (saju 활성 페어 수) × (astro 활성 페어 수) coarse estimate.
-  const sajuCount = signals.filter((s) => s.source === 'saju' && extractSajuKey(s)).length
-  const astroCount = signals.filter((s) => s.source === 'astro' && extractAstroKey(s)).length
-  return {
-    totalPairsConsidered: sajuCount * astroCount,
-    emitted: out.length,
-    byMapping,
-  }
-}
-
-

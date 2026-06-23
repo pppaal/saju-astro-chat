@@ -1,16 +1,27 @@
 import { getJohuYongsin } from '@/lib/saju/johuYongsin'
 import { iga } from '@/lib/i18n/koParticle'
-import { STEMS } from '@/lib/saju/constants'
+import { STEMS, ELEMENT_KO_TO_EN } from '@/lib/saju/constants'
 import { getMonthPillarForDate } from '@/lib/saju/datePillars'
 import type { ActiveSignal, ExtractorContext, SignalExtractor, Polarity } from '../types'
 import type { FiveElement } from '@/lib/saju/types'
 
-const ELEMENT_EN_JOHU: Record<string, string> = {
-  목: 'Wood',
-  화: 'Fire',
-  토: 'Earth',
-  금: 'Metal',
-  수: 'Water',
+// 오행 KO→EN — 공용 SSOT(constants.ELEMENT_KO_TO_EN)에서 파생(복붙 금지).
+const ELEMENT_EN_JOHU = ELEMENT_KO_TO_EN
+// 월지 pinyin — EN 출력에 생 한자(午-month)가 새지 않게. 표시용 romanization
+// (도그마 아님, 안정적). 정통 12지지 표준 병음.
+const BRANCH_PINYIN: Record<string, string> = {
+  子: 'Zi',
+  丑: 'Chou',
+  寅: 'Yin',
+  卯: 'Mao',
+  辰: 'Chen',
+  巳: 'Si',
+  午: 'Wu',
+  未: 'Wei',
+  申: 'Shen',
+  酉: 'You',
+  戌: 'Xu',
+  亥: 'Hai',
 }
 
 /**
@@ -70,7 +81,7 @@ const sajuJohuYongsinExtractor: SignalExtractor = {
             kind: 'pillar-sibsin',
             name: `조후용신 ${info.primaryYongsin} 활성`,
             korean: `${monthPillar.branch}月 조후 — ${info.primaryYongsin}${iga(info.primaryYongsin)} ${info.climate} 균형에 필요`,
-            english: `${monthPillar.branch}-month climate balance — ${ELEMENT_EN_JOHU[info.primaryYongsin] ?? info.primaryYongsin} is needed to temper the season`,
+            english: `${BRANCH_PINYIN[monthPillar.branch] ?? monthPillar.branch}-month climate balance — ${ELEMENT_EN_JOHU[info.primaryYongsin] ?? info.primaryYongsin} is needed to temper the season`,
             polarity,
             layer: 'monthly',
             active: { start: monthStart, peak: monthPeak, end: monthEnd },

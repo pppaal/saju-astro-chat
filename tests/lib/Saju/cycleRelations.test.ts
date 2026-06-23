@@ -8,7 +8,6 @@
 
 import {
   getSibsinKo,
-  pickDaeunForDate,
   sewoonForYear,
   wolwoonFromPillar,
   buildCycleInteractions,
@@ -54,38 +53,6 @@ describe('wolwoonFromPillar (월운)', () => {
     const w = wolwoonFromPillar('丙', '寅', '甲')
     expect(w.ganji).toBe('丙寅')
     expect(w.sibsinStem).toBe('식신') // 甲 vs 丙
-  })
-})
-
-describe('pickDaeunForDate (대운 선택)', () => {
-  const cycles = [
-    { age: 3, heavenlyStem: '乙', earthlyBranch: '丑' },
-    { age: 13, heavenlyStem: '丙', earthlyBranch: '寅' },
-    { age: 23, heavenlyStem: '丁', earthlyBranch: '卯' },
-  ]
-
-  it('selects the active 10-year pillar for a given date', () => {
-    const ctx = pickDaeunForDate(cycles, 1990, '甲', new Date(2020, 5, 1))
-    expect(ctx).not.toBeNull()
-    expect(ctx?.ganji).toBe('丁卯') // age ~30 → third cycle (start 23)
-    expect(ctx?.ageStart).toBe(23)
-    expect(ctx?.ageEnd).toBe(33)
-    expect(ctx?.sibsinStem).toBe('상관') // 甲 vs 丁
-  })
-
-  it('flags an imminent transition when the next pillar is <1yr away', () => {
-    // birth 1990, date mid-2002 → age ≈ 12.4, next cycle starts at 13
-    const ctx = pickDaeunForDate(cycles, 1990, '甲', new Date(2002, 5, 1))
-    expect(ctx?.ageStart).toBe(3) // still in the first cycle
-    expect(ctx?.transitionImminent).toBe(true)
-    expect(ctx?.nextGanji).toBe('丙寅')
-    expect(ctx?.nextSibsinStem).toBe('식신')
-  })
-
-  it('returns null when cycles or birth year are missing', () => {
-    expect(pickDaeunForDate(undefined, 1990, '甲', new Date())).toBeNull()
-    expect(pickDaeunForDate(cycles, null, '甲', new Date())).toBeNull()
-    expect(pickDaeunForDate([], 1990, '甲', new Date())).toBeNull()
   })
 })
 

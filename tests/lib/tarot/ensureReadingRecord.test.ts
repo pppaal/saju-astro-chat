@@ -9,6 +9,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 
 const mockFindUnique = vi.fn()
 const mockCreate = vi.fn()
+const mockExecuteRaw = vi.fn()
 
 vi.mock('@/lib/db/prisma', () => ({
   prisma: {
@@ -16,6 +17,7 @@ vi.mock('@/lib/db/prisma', () => ({
       findUnique: (...args: unknown[]) => mockFindUnique(...args),
       create: (...args: unknown[]) => mockCreate(...args),
     },
+    $executeRaw: (...args: unknown[]) => mockExecuteRaw(...args),
   },
 }))
 
@@ -23,7 +25,7 @@ vi.mock('@/lib/logger', () => ({
   logger: { info: vi.fn(), warn: vi.fn(), error: vi.fn(), debug: vi.fn() },
 }))
 
-import { ensureTarotReadingRecord } from '@/lib/tarot/ensureReadingRecord'
+import { ensureTarotReadingRecord, appendTarotFollowupTurns } from '@/lib/tarot/ensureReadingRecord'
 
 const baseArgs = () => ({
   readingId: 'tr_abcdef0123456789abcdef01',
@@ -87,5 +89,50 @@ describe('ensureTarotReadingRecord', () => {
     const result = await ensureTarotReadingRecord({ ...baseArgs(), readingId: 'x'.repeat(200) })
     expect(result).toBe('skipped')
     expect(mockFindUnique).not.toHaveBeenCalled()
+  })
+})
+
+describe('appendTarotFollowupTurns', () => {
+  const turns = [
+    { role: 'user' as const, content: '이 카드 더 설명해줘' },
+    { role: 'assistant' as const, content: '바보 카드는 새 시작을 뜻해요.' },
+  ]
+
+  beforeEach(() => {
+    vi.clearAllMocks()
+    mockExecuteRaw.mockResolvedValue(1)
+  })
+
+  it('원자적 jsonb concat 으로 새 turn 을 이어 붙인다 (lost-update 경쟁 제거)', async () => {
+    await appendTarotFollowupTurns('tr_abcdef0123456789abcdef01', 'user-1', turns)
+
+    // $executeRaw 는 tagged template — (strings, ...values) 로 호출된다. 단일
+    // UPDATE(read-modify-write 없음)이고 값 순서는 turnsJson, readingId, userId.
+    expect(mockExecuteRaw).toHaveBeenCalledTimes(1)
+    const values = mockExecuteRaw.mock.calls[0].slice(1)
+    expect(values).toEqual([JSON.stringify(turns), 'tr_abcdef0123456789abcdef01', 'user-1'])
+  })
+
+  it('소유권은 WHERE "userId" 로 강제된다 (쿼리 파라미터에 userId 포함)', async () => {
+    await appendTarotFollowupTurns('tr_x', 'user-1', turns)
+    const values = mockExecuteRaw.mock.calls[0].slice(1)
+    expect(values).toContain('user-1')
+  })
+
+  it('빈 turn 배열 / readingId·userId 없음은 쿼리조차 안 친다', async () => {
+    await appendTarotFollowupTurns('tr_x', 'user-1', [])
+    await appendTarotFollowupTurns('', 'user-1', turns)
+    await appendTarotFollowupTurns('tr_x', '', turns)
+    expect(mockExecuteRaw).not.toHaveBeenCalled()
+  })
+
+  it('비정상적으로 긴 readingId 는 거부한다', async () => {
+    await appendTarotFollowupTurns('x'.repeat(200), 'user-1', turns)
+    expect(mockExecuteRaw).not.toHaveBeenCalled()
+  })
+
+  it('DB 오류(컬럼 누락 등)는 삼킨다 — 답변 응답 경로를 깨지 않는다', async () => {
+    mockExecuteRaw.mockRejectedValue({ code: 'P2022' })
+    await expect(appendTarotFollowupTurns('tr_x', 'user-1', turns)).resolves.toBeUndefined()
   })
 })

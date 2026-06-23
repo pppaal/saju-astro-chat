@@ -53,6 +53,10 @@ export function parseResultSections(text: string): ParsedSection[] {
       }
     }
 
+    // A matched section header starts a fresh section; the header line itself
+    // is not part of the body (mirrors the generic-heading branch below).
+    if (foundSection) continue
+
     if (!foundSection && normalizedLine.match(/^#{1,3}\s+.+/)) {
       // Generic heading
       if (currentSection && currentSection.content.length > 0) {

@@ -26,7 +26,9 @@ const SAJU_REL_EN: Record<string, string> = {
   형: 'punish',
   해: 'harm',
   파: 'break',
+  회: 'gather',
   공망: 'void',
+  원진: 'resentment',
   지지합: 'branch combine',
   천간합: 'stem combine',
   지지충: 'branch clash',
@@ -39,6 +41,7 @@ const SAJU_REL_EN: Record<string, string> = {
   육합: 'six-combine',
   삼합: 'three-combine',
   방합: 'directional combine',
+  회국: 'gathering combination',
   월지: 'month branch',
   년지: 'year branch',
   일지: 'day branch',
@@ -75,17 +78,18 @@ const ASTRO_EN: Record<string, string> = {
   본명: 'natal',
 }
 
-// shinsal (date-detail 에 이미 있지만 themeBreakdown 도 자주 나옴)
+// shinsal (date-detail 에 이미 있지만 themeBreakdown 도 자주 나옴).
+// 영문은 interpretations.json name_en(정본)에 맞춰 dayTierEnMaps 와 동일하게 유지.
 const SHINSAL_EN: Record<string, string> = {
-  도화: 'romance star',
-  천을귀인: 'heavenly noble',
-  역마: 'wanderer',
-  화개: 'solitary',
-  양인: 'yang blade',
-  백호: 'white tiger',
-  괴강: 'magnetic axis',
-  천덕귀인: 'heavenly virtue',
-  월덕귀인: 'lunar virtue',
+  도화: 'Peach Blossom',
+  천을귀인: 'Heavenly Benefactor',
+  역마: 'Traveling Horse',
+  화개: 'Floral Canopy',
+  양인: 'Blade Edge',
+  백호: 'White Tiger',
+  괴강: 'Strong-Willed Star',
+  천덕귀인: 'Heavenly Virtue',
+  월덕귀인: 'Monthly Virtue',
   흉살: 'malefic',
   길성: 'lucky star',
 }

@@ -137,12 +137,27 @@ describe('natalCross — 핵심 각 (가장 센 행성 각)', () => {
     { from: { name: 'Sun' }, to: { name: 'Saturn' }, type: 'square', orb: 1.2 },
     { from: { name: 'Moon' }, to: { name: 'Venus' }, type: 'trine', orb: 4.5 },
   ]
-  it('가장 orb 작은 각을 고르고 사주 그룹 일치 시 동조', () => {
-    // 태양·토성(관성) 이 orb 1.2 로 최강 → 사주 우세 관성이면 동조
-    expect(evalKeyAspect(aspects, '관성')?.tone).toBe('resonant')
+  it('하드각(스퀘어)은 사주 그룹이 일치해도 강점 단정 대신 긴장(단련)', () => {
+    // 태양·토성(관성) square 가 orb 1.2 로 최강. 하드각이라 일치해도 resonant 가
+    // 아니라 tension(마찰을 통해 단련) — C8a: 각 성질을 톤에 반영.
+    const v = evalKeyAspect(aspects, '관성')!
+    expect(v.tone).toBe('tension')
+    expect(v.reason.ko).toContain('마찰을 통해 단련')
+    expect(v.reason.en).toContain('forged through friction')
   })
-  it('그룹 불일치 → 보완', () => {
-    expect(evalKeyAspect(aspects, '재성')?.tone).toBe('complement')
+  it('하드각(스퀘어)은 그룹 불일치여도 긴장', () => {
+    expect(evalKeyAspect(aspects, '재성')?.tone).toBe('tension')
+  })
+  it('소프트각(트라인)은 그룹 일치 시 동조(자연스러운 흐름)', () => {
+    const soft = [{ from: { name: 'Venus' }, to: { name: 'Mars' }, type: 'trine', orb: 1 }]
+    const v = evalKeyAspect(soft, '재성')! // Mars|Venus 그룹=재성 → 일치
+    expect(v.tone).toBe('resonant')
+    expect(v.reason.ko).toContain('자연스럽게 흐르는')
+    expect(v.reason.en).toContain('flows naturally')
+  })
+  it('소프트각(트라인) 그룹 불일치 → 보완', () => {
+    const soft = [{ from: { name: 'Venus' }, to: { name: 'Mars' }, type: 'trine', orb: 1 }]
+    expect(evalKeyAspect(soft, '관성')?.tone).toBe('complement')
   })
   it('매핑된 각 없으면 null', () => {
     expect(

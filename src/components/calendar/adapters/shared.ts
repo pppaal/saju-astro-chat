@@ -204,9 +204,6 @@ export function rootLine(
 export function ymdFromIso(iso: string): { y: number; m: number; d: number } {
   return { y: +iso.slice(0, 4), m: +iso.slice(5, 7), d: +iso.slice(8, 10) }
 }
-export function isoToYmd(iso: string): string {
-  return iso.slice(0, 10)
-}
 export function pad2(n: number): string {
   return String(n).padStart(2, '0')
 }

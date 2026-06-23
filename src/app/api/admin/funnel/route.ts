@@ -19,13 +19,12 @@ import {
 import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/logger'
 import { adminDaysQuerySchema, formatZodErrors } from '@/lib/api/zodValidation'
-import type { Prisma } from '@prisma/client'
+// realUserWhere 는 @/lib/admin/realUser 의 단일 출처를 쓴다. 직전엔 이 파일이
+// 같은 정의를 인라인 복붙해, overview·users-by 와 "회원" 정의가 드리프트할
+// 위험이 있었다(셀프 환불 TOCTOU 가 복붙으로 두 군데 났던 것과 같은 부류).
+import { realUserWhere } from '@/lib/admin/realUser'
 
 export const dynamic = 'force-dynamic'
-
-const realUserWhere: Prisma.UserWhereInput = {
-  OR: [{ accounts: { some: {} } }, { passwordHash: { not: null } }],
-}
 
 export const GET = withApiMiddleware(
   async (req: NextRequest, _context: ApiContext) => {
@@ -58,15 +57,22 @@ export const GET = withApiMiddleware(
       let returned = 0
       if (ids.length > 0) {
         const inIds = { userId: { in: ids } }
-        // Reading 모델 제거 (2026-06-06) — 옛 일반 리딩 archive.
-        // 활성 판정은 tarotReading + counselorChatSession 만으로.
-        // 재방문(리텐션): 가입 후 24h 이상 지나 다시 활동한 코호트 사용자.
-        // → 활동 timestamp 가 필요하므로 distinct 대신 (userId, createdAt) 로 조회.
-        const [tarotRows, counselorRows, buyerUsers] = await Promise.all([
-          prisma.tarotReading.findMany({ where: inIds, select: { userId: true, createdAt: true } }),
-          prisma.counselorChatSession.findMany({
+        // Reading 모델 제거 (2026-06-06) — 활성 판정은 tarotReading +
+        // counselorChatSession 만. 직전엔 코호트의 *모든* 활동 행을 메모리로
+        // 로드했는데(대형 코호트·장기 윈도에서 OOM 위험), 활성/재방문 판정엔
+        // 사용자별 *마지막* 활동 시각만 있으면 된다 → groupBy(userId) + _max 로
+        // DB 집계해 테이블당 사용자 수만큼만 들고 온다. 재방문(리텐션): 가입 후
+        // 24h 이상 지나 다시 활동한 코호트 사용자(= 마지막 활동이 가입+24h 이후).
+        const [tarotAgg, counselorAgg, buyerUsers] = await Promise.all([
+          prisma.tarotReading.groupBy({
+            by: ['userId'],
             where: inIds,
-            select: { userId: true, createdAt: true },
+            _max: { createdAt: true },
+          }),
+          prisma.counselorChatSession.groupBy({
+            by: ['userId'],
+            where: inIds,
+            _max: { createdAt: true },
           }),
           prisma.bonusCreditPurchase.findMany({
             // 실결제 표식(stripePaymentId)이 있는 행만 — source='purchase' 는
@@ -78,12 +84,20 @@ export const GET = withApiMiddleware(
         ])
         const RETURN_THRESHOLD_MS = 24 * 60 * 60 * 1000
         const activeSet = new Set<string>()
+        // 사용자별 가장 늦은 활동 시각(두 테이블의 _max 중 더 큰 값).
+        const lastActiveAt = new Map<string, number>()
+        for (const g of [...tarotAgg, ...counselorAgg]) {
+          activeSet.add(g.userId)
+          const t = g._max.createdAt?.getTime()
+          if (t === undefined) continue
+          const prev = lastActiveAt.get(g.userId)
+          if (prev === undefined || t > prev) lastActiveAt.set(g.userId, t)
+        }
         const returnedSet = new Set<string>()
-        for (const r of [...tarotRows, ...counselorRows]) {
-          activeSet.add(r.userId)
-          const signed = signupAt.get(r.userId)
-          if (signed && r.createdAt.getTime() - signed.getTime() >= RETURN_THRESHOLD_MS) {
-            returnedSet.add(r.userId)
+        for (const [uid, t] of lastActiveAt) {
+          const signed = signupAt.get(uid)
+          if (signed && t - signed.getTime() >= RETURN_THRESHOLD_MS) {
+            returnedSet.add(uid)
           }
         }
         activated = activeSet.size
@@ -92,7 +106,13 @@ export const GET = withApiMiddleware(
       }
 
       const signups = ids.length
-      const pct = (n: number, base: number) => (base > 0 ? Math.round((n / base) * 1000) / 10 : 0)
+      // 100 으로 clamp — 퍼널 각 단계는 직전 단계의 부분집합이어야 하지만, '첫
+      // 결제'는 '첫 리딩'의 엄밀한 부분집합이 아니다(리딩 없이 크레딧만 사거나,
+      // 활성으로 안 잡히는 경로로 산 사용자). 그 경우 paid/activated 가 100%를
+      // 넘어 "직전 단계 대비 >100%" 라는 깨진 막대로 보였다. 비율 자체는 의미가
+      // 없으니 표시상 100%로 막는다.
+      const pct = (n: number, base: number) =>
+        base > 0 ? Math.min(100, Math.round((n / base) * 1000) / 10) : 0
 
       return apiSuccess({
         rangeDays: days,

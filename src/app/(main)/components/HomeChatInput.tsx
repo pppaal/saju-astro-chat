@@ -6,7 +6,8 @@ import { motion, useReducedMotion } from 'framer-motion'
 import styles from '../main-page.module.css'
 import type { StoredBirthInfo } from '../birthInfoStorage'
 import { buildCounselorHref } from '../birthInfoStorage'
-import { ChatInputArea } from '@/components/destiny-map/chat-panels'
+import { ChatInputArea, DataSourceToggles } from '@/components/destiny-map/chat-panels'
+import type { DestinySources } from '@/components/destiny-map/chat-types'
 
 interface HomeChatInputProps {
   birthInfo: StoredBirthInfo | null
@@ -49,6 +50,9 @@ export default function HomeChatInput({
 }: HomeChatInputProps) {
   const router = useRouter()
   const [text, setText] = useState('')
+  // 메인에서 미리 고르는 데이터 소스(사주/점성) — 상담사로 그대로 전달된다.
+  // 기본 둘 다. 최소 하나는 항상 체크(DataSourceToggles 가 보장).
+  const [sources, setSources] = useState<DestinySources>({ saju: true, astro: true })
   // 운명상담사로 넘어가기 직전, 입력창에 "떠오르는" 모션을 살짝 주기 위한 상태.
   // 시각적 시작과 View Transition morph 가 겹치면서 morph 가 사용자에게 "툭
   // 늘어나는 순간"이 아니라 "입력창이 흐름을 타고 다음 페이지로 흘러간" 한
@@ -72,7 +76,7 @@ export default function HomeChatInput({
     // 크로스페이드만으로 충분히 부드럽다 — Framer 모션은 "눌렀다"는 시각
     // 피드백용으로 짧게 켜고, 라우터는 같은 프레임에 바로 넘긴다(딜레이 0).
     if (!reduceMotion) setSubmitting(true)
-    router.push(buildCounselorHref(birthInfo, trimmed, locale))
+    router.push(buildCounselorHref(birthInfo, trimmed, locale, sources))
   }
 
   // 엔터(Shift 제외)로 바로 운명 상담사에게 전송. Shift+Enter 는 줄바꿈.
@@ -98,7 +102,7 @@ export default function HomeChatInput({
           <span aria-hidden="true">🗺️</span> {isKo ? 'AI 운명 상담사' : 'AI Destiny Counselor'}
           <span className={styles.homeCounselorNow}>
             <span className={styles.homeCounselorNowDot} aria-hidden="true" />
-            {isKo ? '현재 서비스' : 'Current'}
+            {isKo ? '현재 서비스' : 'Current service'}
           </span>
         </p>
         {/* 운명/궁합 상담사와 동일한 공용 입력창. 메인은 첨부/타로/차트 도구가
@@ -123,6 +127,17 @@ export default function HomeChatInput({
           placeholderPrompts={isKo ? TYPEWRITER_PROMPTS_KO : TYPEWRITER_PROMPTS_EN}
           loopPlaceholder
           theme={lightMode ? 'light' : 'dark'}
+          // 메인에서 사주/점성 데이터 소스를 미리 고른다 — 상담사로 그대로
+          // 넘어가 첫 답변부터 적용된다. 입력박스 안 좌상단(생일 칩은 별도 상단 바).
+          topSlot={
+            <DataSourceToggles
+              sources={sources}
+              onChange={setSources}
+              lang={isKo ? 'ko' : 'en'}
+              theme={lightMode ? 'light' : 'dark'}
+              showInfo
+            />
+          }
           // viewTransitionName 제거 — morph 가 폭이 다른 두 입력창 사이에서
           // "툭 늘어나는" 인상을 줘서, root 크로스페이드만으로 잇기로 한다.
           // 두 페이지 입력창은 각자 자기 페이지의 일부로 자연스럽게 사라지고

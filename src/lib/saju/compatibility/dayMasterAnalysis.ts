@@ -4,6 +4,7 @@
 import { SajuPillars, SibsinKind } from '../types'
 import { FIVE_ELEMENT_RELATIONS } from '../constants'
 import { getStemElement, getStemYinYang } from '../stemBranchUtils'
+import { getSibseong } from '../core/sibsin'
 import { DAY_MASTER_RELATION_SCORES } from './constants'
 import type { DayMasterRelation } from './types'
 
@@ -36,30 +37,23 @@ export function analyzeDayMasterRelation(
   const yinYang1 = getStemYinYang(dm1)
   const yinYang2 = getStemYinYang(dm2)
 
-  let relation: string
-  let sibsin: SibsinKind
-  let reverseSibsin: SibsinKind
+  // 십신은 SSOT(core/sibsin.getSibseong) 정·역방향으로. relation 라벨만 오행 관계로 도출.
+  const dm1Info = { element: element1, yin_yang: yinYang1 }
+  const dm2Info = { element: element2, yin_yang: yinYang2 }
+  const sibsin = getSibseong(dm1Info, dm2Info) as SibsinKind
+  const reverseSibsin = getSibseong(dm2Info, dm1Info) as SibsinKind
 
+  let relation: string
   if (element1 === element2) {
     relation = '비화'
-    sibsin = yinYang1 === yinYang2 ? '비견' : '겁재'
-    reverseSibsin = sibsin
   } else if (FIVE_ELEMENT_RELATIONS['생하는관계'][element1] === element2) {
     relation = '설기'
-    sibsin = yinYang1 === yinYang2 ? '식신' : '상관'
-    reverseSibsin = yinYang1 === yinYang2 ? '편인' : '정인'
   } else if (FIVE_ELEMENT_RELATIONS['생받는관계'][element1] === element2) {
     relation = '생조'
-    sibsin = yinYang1 === yinYang2 ? '편인' : '정인'
-    reverseSibsin = yinYang1 === yinYang2 ? '식신' : '상관'
   } else if (FIVE_ELEMENT_RELATIONS['극하는관계'][element1] === element2) {
     relation = '극출'
-    sibsin = yinYang1 === yinYang2 ? '편재' : '정재'
-    reverseSibsin = yinYang1 === yinYang2 ? '편관' : '정관'
   } else {
     relation = '극입'
-    sibsin = yinYang1 === yinYang2 ? '편관' : '정관'
-    reverseSibsin = yinYang1 === yinYang2 ? '편재' : '정재'
   }
 
   const dynamics = generateDynamicsDescription(relation)

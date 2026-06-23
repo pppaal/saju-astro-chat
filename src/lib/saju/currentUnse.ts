@@ -8,24 +8,30 @@
 // 적용된 동일 기준이라, 현재 운도 본명과 같은 평균태양시 위에서 나온다.
 
 import { getIljinCalendar } from './unse'
+import { getMonthPillarForDate, getYearPillarForDate } from './datePillars'
+import {
+  BRANCH_CLASH,
+  SIX_HARMONY,
+  STEM_CLASH_4,
+  STEM_COMBINE,
+  toPairKeySet,
+} from './relationTables'
 import type { CalculateSajuDataResult, RelationHit, SajuPillars, PillarKind } from './types'
 
-const BRANCH_CHUNG = new Set([
-  '子-午', '午-子', '丑-未', '未-丑', '寅-申', '申-寅',
-  '卯-酉', '酉-卯', '辰-戌', '戌-辰', '巳-亥', '亥-巳',
-])
-const BRANCH_YUKHAP = new Set([
-  '子-丑', '丑-子', '寅-亥', '亥-寅', '卯-戌', '戌-卯',
-  '辰-酉', '酉-辰', '巳-申', '申-巳', '午-未', '未-午',
-])
-const STEM_CHUNG = new Set(['甲-庚', '庚-甲', '乙-辛', '辛-乙', '丙-壬', '壬-丙', '丁-癸', '癸-丁'])
-const STEM_HAP = new Set([
-  '甲-己', '己-甲', '乙-庚', '庚-乙', '丙-辛', '辛-丙', '丁-壬', '壬-丁', '戊-癸', '癸-戊',
-])
+// 충/합 키셋 — relationTables(SSOT)에서 파생. 로컬 하드코딩 복제 금지(드리프트
+// 방지). toPairKeySet 이 'a-b'/'b-a' 양방향 키를 만들어 .has 가 방향 무관.
+const BRANCH_CHUNG = toPairKeySet(BRANCH_CLASH)
+const BRANCH_YUKHAP = toPairKeySet(SIX_HARMONY.map((h) => h.pair))
+const STEM_CHUNG = toPairKeySet(STEM_CLASH_4)
+const STEM_HAP = toPairKeySet(STEM_COMBINE.map((s) => s.pair))
 const PILLAR_NAMES: PillarKind[] = ['year', 'month', 'day', 'time']
 
 /** 운(運)의 천간·지지가 본명 네 기둥과 이루는 충/합. */
-function detectUnseRelations(pillars: SajuPillars, unseStem: string, unseBranch: string): RelationHit[] {
+export function detectUnseRelations(
+  pillars: SajuPillars,
+  unseStem: string,
+  unseBranch: string
+): RelationHit[] {
   const out: RelationHit[] = []
   for (const name of PILLAR_NAMES) {
     const p = pillars[name]
@@ -48,29 +54,37 @@ interface StemBranch {
   branch: string
 }
 
-function splitGanji(found: { heavenlyStem?: string; earthlyBranch?: string; ganji?: string }): StemBranch | null {
-  const stem = found.heavenlyStem ?? (found.ganji ? found.ganji.slice(0, 1) : '')
-  const branch = found.earthlyBranch ?? (found.ganji ? found.ganji.slice(1) : '')
+function pickSeun(queryDate: Date): StemBranch | null {
+  // 세운(年運) = 절기 기준 현재 사주 연주. 세운은 1/1 이 아니라 *입춘*에 바뀐다.
+  // 직전엔 raw.unse.annual 을 queryDate.getFullYear()(=1/1 경계)로 lookup 해서,
+  // 1/1 ~ 입춘(~2/4) 구간이 다음 해 세운으로 잘못 떴다(예: 1/15 에 이미 다음 해
+  // 간지). datePillars(입춘-aware getYearPillarForDate)로 직접 산출해 바로잡는다 —
+  // 월운·일진·생일 차트와 동일 convention.
+  const { stem, branch } = getYearPillarForDate(queryDate)
   return stem && branch ? { stem, branch } : null
 }
 
-function pickSeun(raw: CalculateSajuDataResult, queryDate: Date): StemBranch | null {
-  const yr = queryDate.getFullYear()
-  const found = (raw.unse?.annual ?? []).find((a) => a.year === yr)
-  return found ? splitGanji(found) : null
-}
-
-function pickWolun(raw: CalculateSajuDataResult, queryDate: Date): StemBranch | null {
-  const yr = queryDate.getFullYear()
-  const mo = queryDate.getMonth() + 1
-  const found = (raw.unse?.monthly ?? []).find((m) => m.year === yr && m.month === mo)
-  return found ? splitGanji(found) : null
+function pickWolun(queryDate: Date): StemBranch | null {
+  // 월운(月運) = 절기 기준 현재 사주월. 생일 차트·운흐름 캘린더·일진과 동일한
+  // 절기(태양 황경) convention 으로 통일한다. 직전엔 raw.unse.monthly
+  // (getSajuMonthlyCycles, 寅-first 달력 산술 배열)에서 (연,달력월) 로 lookup 했는데,
+  // 그 배열은 "달력월 = 사주월 번호"로 퉁쳐 현재 달이 항상 한 칸 밀렸다(예: 달력
+  // 6월에 未월 → 정답은 午월). datePillars(절기)로 직접 산출해 바로잡는다.
+  const { stem, branch } = getMonthPillarForDate(queryDate)
+  return stem && branch ? { stem, branch } : null
 }
 
 function pickIljin(raw: CalculateSajuDataResult, queryDate: Date): StemBranch | null {
   try {
-    const cal = getIljinCalendar(queryDate.getFullYear(), queryDate.getMonth() + 1, raw.dayMaster)
-    const found = cal.find((d) => d.day === queryDate.getDate())
+    // queryDate 는 유저-tz 날짜의 UTC 정오(counselorContext) → getUTC* 로 읽어야
+    // seun/wolun(getTime)과 같은 프레임이 된다. 예전엔 getFullYear/Month/Date(로컬)라
+    // 서버 TZ 에 따라 일진이 하루 어긋날 수 있었다(ENGINE-AUDIT).
+    const cal = getIljinCalendar(
+      queryDate.getUTCFullYear(),
+      queryDate.getUTCMonth() + 1,
+      raw.dayMaster
+    )
+    const found = cal.find((d) => d.day === queryDate.getUTCDate())
     return found ? { stem: found.heavenlyStem, branch: found.earthlyBranch } : null
   } catch {
     return null
@@ -89,8 +103,8 @@ export interface CurrentUnse {
  * raw 는 진경도 보정이 적용된 calculateSajuData 결과(collectSajuFacts._raw).
  */
 export function computeCurrentUnse(raw: CalculateSajuDataResult, queryDate: Date): CurrentUnse {
-  const seun = pickSeun(raw, queryDate)
-  const wolun = pickWolun(raw, queryDate)
+  const seun = pickSeun(queryDate)
+  const wolun = pickWolun(queryDate)
   const iljin = pickIljin(raw, queryDate)
   const relations: CurrentUnse['relations'] = []
   for (const [sb, source] of [

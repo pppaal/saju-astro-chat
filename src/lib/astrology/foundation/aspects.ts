@@ -1,6 +1,6 @@
 // src/lib/astrology/foundation/aspects.ts
 
-import { AspectHit, AspectRules, AspectType, Chart } from './types'
+import { ASPECT_ANGLES, AspectHit, AspectRules, AspectType, Chart } from './types'
 import { shortestAngle } from './utils'
 import { clamp } from '@/lib/utils/math'
 import { evaluateAspect, AspectEngineConfig } from './aspectCore'
@@ -9,9 +9,18 @@ import { evaluateAspect, AspectEngineConfig } from './aspectCore'
 // 사인 0=Aries..11=Pisces. 두 점이 같은 사인 = 0, 6번째 차이 = opposition 등.
 // (영문 사인 이름만 인덱스가 살아있으면 OK. ZodiacKo 도 영문 12개.)
 const SIGN_IDX: Record<string, number> = {
-  Aries: 0, Taurus: 1, Gemini: 2, Cancer: 3,
-  Leo: 4, Virgo: 5, Libra: 6, Scorpio: 7,
-  Sagittarius: 8, Capricorn: 9, Aquarius: 10, Pisces: 11,
+  Aries: 0,
+  Taurus: 1,
+  Gemini: 2,
+  Cancer: 3,
+  Leo: 4,
+  Virgo: 5,
+  Libra: 6,
+  Scorpio: 7,
+  Sagittarius: 8,
+  Capricorn: 9,
+  Aquarius: 10,
+  Pisces: 11,
 }
 function lonToSignIdx(lon: number): number {
   const norm = ((lon % 360) + 360) % 360
@@ -41,9 +50,7 @@ function isWholeSignRegard(lonA: number, lonB: number, aspect: AspectType): bool
 
 const MAJOR_ASPECTS: AspectType[] = ['conjunction', 'sextile', 'square', 'trine', 'opposition']
 // Hellenistic 정통화 (Phase 2): minor aspect 5종은 비정통 (Kepler/Lilly 이후 modern 영역).
-// 타입은 backward compat 위해 보존하지만 런타임에서는 빈 배열 → 어디서도 emit 안 됨.
 // 외부 호출자가 rules.aspects 에 명시적으로 넣어도 resolveAspectList 에서 필터링.
-const MINOR_ASPECTS: AspectType[] = []
 const BLOCKED_MINOR = new Set<AspectType>([
   'semisextile',
   'quincunx',
@@ -52,18 +59,8 @@ const BLOCKED_MINOR = new Set<AspectType>([
   'sesquiquadrate',
 ])
 
-const DESIRED_ANGLES: Record<AspectType, number> = {
-  conjunction: 0,
-  sextile: 60,
-  square: 90,
-  trine: 120,
-  opposition: 180,
-  semisextile: 30,
-  quincunx: 150,
-  quintile: 72,
-  biquintile: 144,
-  sesquiquadrate: 135,
-}
+// 어스펙트 각도는 공용 SSOT(ASPECT_ANGLES, foundation/types) 사용.
+const DESIRED_ANGLES = ASPECT_ANGLES
 
 function baseAspectWeight(a: AspectType) {
   switch (a) {
@@ -290,7 +287,9 @@ export function findAspects(natal: Chart, transit: Chart, rules: AspectRules = {
       const aspectWeight = baseAspectWeight(aspect)
       const speedWeight = clamp(Math.abs(relSpeed) / 1.2, 0.6, 1.2) // 상대속도 클수록 약간 가중
       return (
-        wOrb * orbWeight + wAsp * aspectWeight + wSpd * (applying ? speedWeight : speedWeight * 0.95)
+        wOrb * orbWeight +
+        wAsp * aspectWeight +
+        wSpd * (applying ? speedWeight : speedWeight * 0.95)
       )
     },
   }
@@ -305,8 +304,7 @@ export function findAspects(natal: Chart, transit: Chart, rules: AspectRules = {
         if (useWholeSign) {
           if (!isWholeSignRegard(t.longitude, n.longitude, a)) continue
           // applying/score 는 degree-based 와 호환되게 합리적 디폴트.
-          const applying =
-            applyingFlagByTarget(t.longitude, n.longitude, relSpeed, desiredAngle(a))
+          const applying = applyingFlagByTarget(t.longitude, n.longitude, relSpeed, desiredAngle(a))
           const score = 0.6 + 0.3 * baseAspectWeight(a) // whole-sign 은 항상 같은 base score
           hits.push({
             from: {
@@ -421,8 +419,12 @@ export function findNatalAspects(natal: Chart, rules: AspectRules = {}): AspectH
       for (const t of aspects) {
         if (useWholeSign) {
           if (!isWholeSignRegard(A.longitude, B.longitude, t)) continue
-          const applying =
-            applyingFlagByTarget(A.longitude, B.longitude, relSpeed, DESIRED_ANGLES[t])
+          const applying = applyingFlagByTarget(
+            A.longitude,
+            B.longitude,
+            relSpeed,
+            DESIRED_ANGLES[t]
+          )
           const score = 0.6 + 0.35 * baseAspectWeight(t)
           hits.push({
             from: {

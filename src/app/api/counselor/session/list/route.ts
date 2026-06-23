@@ -7,6 +7,7 @@ import {
 } from '@/lib/api/middleware'
 import { prisma } from '@/lib/db/prisma'
 import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
+import { markCounselorSessionDeleted } from '@/lib/counselor/sessionTombstone'
 import {
   counselorSessionListQuerySchema,
   counselorSessionDeleteQuerySchema,
@@ -15,6 +16,28 @@ import {
 } from '@/lib/api/zodValidation'
 
 export const dynamic = 'force-dynamic'
+
+// 사이드바 목록은 부제로 '인물 이름'만 쓴다(destiny: profile.name / compat:
+// persons[].name). 그런데 세션 meta 에는 궁합의 경우 두 사람의 전체 사주+점성
+// 차트(person1Saju/2Saju/1Astro/2Astro)가 통째로 들어있어, 그대로 내려주면
+// 목록 한 번 로드에 수십~수백 KB 가 낭비된다(재개는 session/load 가 풀 meta 를
+// 따로 준다). 목록 응답에선 이름만 남기고 무거운 필드를 버린다.
+function slimSidebarMeta(
+  meta: unknown
+): { profile?: { name?: string }; persons?: Array<{ name?: string }> } | null {
+  if (!meta || typeof meta !== 'object') return null
+  const m = meta as Record<string, unknown>
+  const out: { profile?: { name?: string }; persons?: Array<{ name?: string }> } = {}
+  const profileName = (m.profile as { name?: unknown } | undefined)?.name
+  if (typeof profileName === 'string') out.profile = { name: profileName }
+  if (Array.isArray(m.persons)) {
+    out.persons = m.persons.map((p) => {
+      const name = (p as { name?: unknown } | null)?.name
+      return { name: typeof name === 'string' ? name : undefined }
+    })
+  }
+  return out.profile || out.persons ? out : null
+}
 
 // GET: List all chat sessions for a user
 export const GET = withApiMiddleware(
@@ -43,8 +66,8 @@ export const GET = withApiMiddleware(
     // before sending and only keep the derived 30-char title.
     // 사이드바 리스트는 메타데이터만 필요 — messages JSON (수십 KB ~ MB) 은
     // 제외. 이전엔 title fallback 용으로 전체 messages 를 들고와서 1000명 ×
-    // 30 세션 × 평균 50KB = 약 1.5GB egress / 페이지 진입 회당. 사이드바 부제 +
-    // 인물 이름만 필요한 meta 는 작아서 유지.
+    // 30 세션 × 평균 50KB = 약 1.5GB egress / 페이지 진입 회당. meta 는 fetch 하되
+    // 응답에선 slimSidebarMeta 로 인물 이름만 남긴다(궁합 meta 의 차트 블롭 제외).
     const rows = await prisma.counselorChatSession.findMany({
       where: {
         userId,
@@ -94,6 +117,7 @@ export const GET = withApiMiddleware(
     const sessions = rows.map((row) => ({
       ...row,
       title: row.title || titleFallbacks[row.id] || row.title,
+      meta: slimSidebarMeta(row.meta),
     }))
 
     return NextResponse.json({ sessions })
@@ -122,15 +146,17 @@ export const DELETE = withApiMiddleware(
     }
     const { sessionId } = deleteValidation.data
 
-    // Verify ownership and delete
-    const chatSession = await prisma.counselorChatSession.findFirst({
-      where: {
-        id: sessionId,
-        userId,
-      },
+    // 원자적 소유권 검사 + 삭제. 예전엔 findFirst 후 delete(by id) 였는데,
+    //  (1) find-then-delete TOCTOU 가 있었고
+    //  (2) 같은 행을 두 번 삭제(더블탭/이미 삭제)하면 delete 가 Prisma P2025 를
+    //      던져 미들웨어가 500 으로 바꿨다(사용자에겐 멀쩡히 삭제됐는데 에러).
+    // deleteMany 는 0건이어도 throw 하지 않고 count 만 돌려주므로 멱등하다.
+    // userId 를 where 에 같이 넣어 타인 세션은 count 0 → 404 로 떨어진다.
+    const { count } = await prisma.counselorChatSession.deleteMany({
+      where: { id: sessionId, userId },
     })
 
-    if (!chatSession) {
+    if (count === 0) {
       return createErrorResponse({
         code: ErrorCodes.NOT_FOUND,
         message: 'Session not found',
@@ -139,9 +165,9 @@ export const DELETE = withApiMiddleware(
       })
     }
 
-    await prisma.counselorChatSession.delete({
-      where: { id: sessionId },
-    })
+    // 진행 중이던 답변의 안전망/지연된 자동저장이 방금 지운 세션을 되살리지
+    // 못하도록 묘비를 남긴다(짧은 TTL). 두 생성 경로가 생성 직전 이걸 확인한다.
+    await markCounselorSessionDeleted(sessionId)
 
     return NextResponse.json({ success: true })
   },

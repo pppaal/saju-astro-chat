@@ -143,11 +143,18 @@ export async function getUserCredits(userId: string) {
 // 크레딧 잔여량 조회
 export async function getCreditBalance(userId: string) {
   const credits = await getUserCredits(userId)
-  const remaining = credits.monthlyCredits - credits.usedCredits + credits.bonusCredits
+  // bonusCredits 가 실제 잔액의 단일 진실원천(SSOT). monthlyCredits/usedCredits 는
+  // 폐기된 월간충전 모델의 frozen 컬럼이라 잔액에서 제외한다. 직전엔
+  // remaining = monthly - used + bonus 였는데, monthly @default(1) 인 행에서
+  // remaining 이 +1 부풀려져 canUseCredits 는 "쓸 수 있다"는데 consumeCredits 는
+  // (bonus 만 차감) 못 빼는 유령 크레딧 불일치가 났다. bonus-only 로 통일해
+  // 게이팅(canUseCredits)과 실제 차감을 정확히 맞춘다. monthly/used 필드 자체는
+  // 호환을 위해 그대로 반환만 한다(잔액 계산엔 안 씀).
+  const remaining = credits.bonusCredits
   // totalBonusReceived가 없는 기존 유저는 현재 bonusCredits를 사용
   const totalBonus =
     (credits as { totalBonusReceived?: number }).totalBonusReceived ?? credits.bonusCredits
-  const totalCredits = credits.monthlyCredits + totalBonus
+  const totalCredits = totalBonus
 
   return {
     plan: credits.plan,
@@ -208,7 +215,10 @@ class CreditBusinessError extends Error {
 export async function consumeCredits(
   userId: string,
   type: 'reading' | 'compatibility' | 'followUp' = 'reading',
-  amount: number = 1
+  amount: number = 1,
+  // 선택적 활동 링크 — 과금↔활동 reconciliation 용. 호출 라우트가 과금 시점에
+  // 이미 아는 sessionId/readingId 를 실으면 CONSUME 감사행에 박힌다.
+  activity?: ChargeActivityLink
 ): Promise<{
   success: boolean
   error?: string
@@ -244,6 +254,7 @@ export async function consumeCredits(
       const actualConsumed = await consumeBonusCreditsFromPurchasesInTx(tx, userId, amount, {
         reason: 'consume_reading',
         emitAudit: true,
+        activity,
       })
 
       // 실제 차감량이 모자라면 purchase 가 만료됐거나 동시 차감 race —
@@ -278,11 +289,20 @@ export async function consumeCredits(
 // `opts.emitAudit` 가 true 면 차감한 purchase 행마다 CreditTransaction
 // (CONSUME / BONUS) 을 한 줄씩 남긴다. consumeCredits 가 부르는 경로는 항상
 // 켜고, 백필이나 fallback 경로에서는 호출자가 직접 audit 을 통제하도록 끈다.
+export interface ChargeActivityLink {
+  /** 과금을 일으킨 API 경로 (예: 'counselor/realtime'). 귀속/그루핑용. */
+  apiRoute?: string
+  /** 활동 종류 — reconciliation 이 어느 테이블을 조회할지 결정. */
+  activityType?: 'counselor_session' | 'compat_session' | 'tarot_reading' | 'tarot_followup'
+  /** 활동 레코드 식별자(sessionId/readingId 등). 과금 시점에 이미 알려진 값. */
+  activityRef?: string
+}
+
 export async function consumeBonusCreditsFromPurchasesInTx(
   tx: Prisma.TransactionClient,
   userId: string,
   amountToConsume: number,
-  opts: { reason?: string; emitAudit?: boolean } = {}
+  opts: { reason?: string; emitAudit?: boolean; activity?: ChargeActivityLink } = {}
 ): Promise<number> {
   const now = new Date()
   // select 명시 — 신규 컬럼(acknowledgedAt) prod 미적용 환경에서 P2022
@@ -330,6 +350,7 @@ export async function consumeBonusCreditsFromPurchasesInTx(
     totalConsumed += toConsume
 
     if (opts.emitAudit) {
+      const act = opts.activity
       await tx.creditTransaction.create({
         data: {
           userId,
@@ -338,7 +359,16 @@ export async function consumeBonusCreditsFromPurchasesInTx(
           amount: -toConsume,
           reason,
           sourceRef: purchase.id,
-          metadata: { purchaseId: purchase.id, drained: toConsume },
+          // 활동 링크(apiRoute/activityType/activityRef)를 메타에 박아, 사후
+          // reconciliation 이 "과금됐는데 그 활동 레코드가 없음"을 정확히 잡는다.
+          // 과금 시점에 이미 알려진 값만 싣고, 없으면 종전과 동일.
+          metadata: {
+            purchaseId: purchase.id,
+            drained: toConsume,
+            ...(act?.apiRoute ? { apiRoute: act.apiRoute } : {}),
+            ...(act?.activityType ? { activityType: act.activityType } : {}),
+            ...(act?.activityRef ? { activityRef: act.activityRef } : {}),
+          },
         },
       })
     }
@@ -759,4 +789,172 @@ export async function revokeBonusCreditPurchase(
     logger.error('[revokeBonusCreditPurchase] error', { stripePaymentId, error })
     return { revoked: false, reclaimed: 0, alreadyUsed: 0, error: true }
   }
+}
+
+/* ===================== 셀프/어드민 환불 공유 원시함수 ===================== */
+//
+// me/refund-credit-pack 과 admin/refund-credit-pack 은 동일한 "현금 환불 전에
+// 크레딧을 원자적으로 회수" 로직을 각자 복붙해 갖고 있었다 → 한 쪽만 고치면
+// 나머지에 같은 TOCTOU 가 남는 두더지잡기. 두 라우트가 공유하는 단일 출처로
+// 흡수한다. 핵심 불변식:
+//   1) claim 은 Stripe 환불 *전에* 실행. 조건부 updateMany(remaining===expected
+//      && !expired)로 그 사이 소비/이중환불이 일어났으면 count!==1 → 거부(현금
+//      미이동). 같은 트랜잭션에서 잔액을 회수하고 REVOKE 원장을 남긴다.
+//   2) Stripe 환불 실패 시 호출자는 rollback 으로 pack/잔액을 원복(GRANT 원장).
+
+export interface RefundClaimParams {
+  /** 대상 구매(pack) PK. */
+  purchaseId: string
+  /** pack 소유자 userId — 잔액 회수 + 원장 기록 대상. */
+  ownerUserId: string
+  /** pack 총 발급량(alreadyUsed 계산/메타용). */
+  amount: number
+  /**
+   * 낙관적 가드 — 현재 remaining 이 정확히 이 값일 때만 claim 한다. me/(완전
+   * 미사용)는 amount, admin force(부분 사용 허용)는 현재 remaining 을 넘긴다.
+   * 회수량(reclaim)도 이 값이다.
+   */
+  expectedRemaining: number
+  /** REVOKE 원장 reason ('self_refund' | 'admin_refund'). */
+  reason: string
+  initiatedBy: 'self' | 'admin'
+  /** stripePaymentId — 원장 sourceRef. */
+  sourceRef: string
+  /** me/ 는 source='purchase' 가드 추가(프로모/추천분 환불 차단). admin 은 생략. */
+  requireSourcePurchase?: boolean
+  /** admin 호출 시 감사 메타에 남길 admin userId. */
+  actorUserId?: string
+}
+
+/**
+ * 환불용 원자적 claim + 회수. 성공 시 pack 은 만료(expired, remaining 0)되고
+ * 잔액에서 reclaim(=expectedRemaining)만큼 회수된다. 그 사이 remaining 이
+ * 달라졌거나 이미 만료됐으면 claimed:false (현금 미이동으로 거부해야 함).
+ * 절대 throw 하지 않도록 호출자가 try 로 감싸되, 여기선 트랜잭션만 수행한다.
+ */
+export async function claimBonusPurchaseForRefund(
+  params: RefundClaimParams
+): Promise<{ claimed: boolean; reclaimed: number; alreadyUsed: number }> {
+  const {
+    purchaseId,
+    ownerUserId,
+    amount,
+    expectedRemaining,
+    reason,
+    initiatedBy,
+    sourceRef,
+    requireSourcePurchase,
+    actorUserId,
+  } = params
+  const reclaimed = expectedRemaining
+  const alreadyUsed = amount - expectedRemaining
+
+  const claimed = await prisma.$transaction(async (tx) => {
+    const lock = await tx.bonusCreditPurchase.updateMany({
+      where: {
+        id: purchaseId,
+        userId: ownerUserId,
+        expired: false,
+        remaining: expectedRemaining,
+        ...(requireSourcePurchase ? { source: 'purchase' } : {}),
+      },
+      data: { remaining: 0, expired: true, expiresAt: new Date() },
+    })
+    if (lock.count !== 1) return false
+    if (reclaimed > 0) {
+      await tx.$executeRaw`
+        UPDATE "UserCredits"
+        SET "bonusCredits" = GREATEST(0, "bonusCredits" - ${reclaimed})
+        WHERE "userId" = ${ownerUserId}
+      `
+      await tx.creditTransaction.create({
+        data: {
+          userId: ownerUserId,
+          type: 'REVOKE',
+          pool: 'BONUS',
+          amount: -reclaimed,
+          reason,
+          sourceRef,
+          metadata: {
+            purchaseId,
+            stripePaymentId: sourceRef,
+            reclaimed,
+            alreadyUsed,
+            initiatedBy,
+            ...(actorUserId ? { adminUserId: actorUserId } : {}),
+          },
+        },
+      })
+    }
+    return true
+  })
+
+  return { claimed, reclaimed, alreadyUsed }
+}
+
+export interface RefundRollbackParams {
+  purchaseId: string
+  ownerUserId: string
+  /** claim 에서 회수했던 양 — 그대로 재지급. 0 이면 잔액/원장 건드리지 않음. */
+  reclaimed: number
+  /** 복원할 remaining(=claim 의 expectedRemaining). */
+  restoreRemaining: number
+  /** 복원할 원래 만료시각(claim 이 now 로 덮었으므로 원복). */
+  restoreExpiresAt: Date
+  reason: string
+  initiatedBy: 'self' | 'admin'
+  sourceRef: string
+  actorUserId?: string
+}
+
+/**
+ * claim 을 되돌린다 — Stripe 환불이 실패했을 때 "크레딧만 뺏기고 현금은 못
+ * 받는" 상태를 막기 위해 pack(remaining/expired/expiresAt)과 잔액을 원복하고
+ * 보상 GRANT 원장을 남긴다. 호출자가 try 로 감싸 롤백 실패도 삼키고 CRITICAL
+ * 로그를 남기도록 한다(throw 가능).
+ */
+export async function rollbackBonusPurchaseRefundClaim(
+  params: RefundRollbackParams
+): Promise<void> {
+  const {
+    purchaseId,
+    ownerUserId,
+    reclaimed,
+    restoreRemaining,
+    restoreExpiresAt,
+    reason,
+    initiatedBy,
+    sourceRef,
+    actorUserId,
+  } = params
+  await prisma.$transaction(async (tx) => {
+    await tx.bonusCreditPurchase.update({
+      where: { id: purchaseId },
+      data: { remaining: restoreRemaining, expired: false, expiresAt: restoreExpiresAt },
+    })
+    if (reclaimed > 0) {
+      await tx.$executeRaw`
+        UPDATE "UserCredits"
+        SET "bonusCredits" = "bonusCredits" + ${reclaimed}
+        WHERE "userId" = ${ownerUserId}
+      `
+      await tx.creditTransaction.create({
+        data: {
+          userId: ownerUserId,
+          type: 'GRANT',
+          pool: 'BONUS',
+          amount: reclaimed,
+          reason,
+          sourceRef,
+          metadata: {
+            purchaseId,
+            stripePaymentId: sourceRef,
+            restored: reclaimed,
+            initiatedBy,
+            ...(actorUserId ? { adminUserId: actorUserId } : {}),
+          },
+        },
+      })
+    }
+  })
 }

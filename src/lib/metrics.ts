@@ -16,9 +16,28 @@ type GaugeSample = { name: string; labels?: Labels; value: number }
 // Maximum samples to keep for percentile calculations
 const MAX_SAMPLES = 1000
 
+// Hard cap on distinct time-series (name|labels) PER metric type. A backstop:
+// a high-cardinality label (per-user/IP/email) would otherwise grow these
+// module-level maps without bound on a long-lived instance — an external actor
+// could drive it. Existing series keep updating; only NEW series past the cap
+// are dropped (O(1), no Object.keys scan on the hot path). Tune via env for ops.
+const MAX_SERIES = Math.max(100, Number(process.env.METRICS_MAX_SERIES) || 5000)
+
 const counters: Record<string, CounterSample> = {}
 const timings: Record<string, TimingSample> = {}
 const gauges: Record<string, GaugeSample> = {}
+
+// O(1) series counters so the cap check never scans the maps.
+let counterSeries = 0
+let timingSeries = 0
+let gaugeSeries = 0
+let seriesCapWarned = false
+
+function warnSeriesCapOnce(name: string) {
+  if (seriesCapWarned) return
+  seriesCapWarned = true
+  logger.warn(`[metrics] series cap (${MAX_SERIES}) reached — dropping new series`, { name })
+}
 
 // Cache for label string computation to avoid repeated sort+join on hot paths
 const labelKeyCache = new WeakMap<object, string>()
@@ -41,7 +60,12 @@ function makeKey(name: string, labels?: Labels) {
 
 export function recordCounter(name: string, value = 1, labels?: Labels) {
   const key = makeKey(name, labels)
-  const sample = (counters[key] = counters[key] || { name, labels, value: 0 })
+  let sample = counters[key]
+  if (!sample) {
+    if (counterSeries >= MAX_SERIES) return warnSeriesCapOnce(name)
+    sample = counters[key] = { name, labels, value: 0 }
+    counterSeries++
+  }
   sample.value += value
   if (process.env.NODE_ENV !== 'production') {
     logger.debug(`[metric] counter ${name}=${sample.value}`, labels ?? {})
@@ -50,14 +74,12 @@ export function recordCounter(name: string, value = 1, labels?: Labels) {
 
 export function recordTiming(name: string, ms: number, labels?: Labels) {
   const key = makeKey(name, labels)
-  const bucket = (timings[key] = timings[key] || {
-    name,
-    labels,
-    count: 0,
-    sum: 0,
-    max: 0,
-    samples: [],
-  })
+  let bucket = timings[key]
+  if (!bucket) {
+    if (timingSeries >= MAX_SERIES) return warnSeriesCapOnce(name)
+    bucket = timings[key] = { name, labels, count: 0, sum: 0, max: 0, samples: [] }
+    timingSeries++
+  }
   bucket.count += 1
   bucket.sum += ms
   bucket.max = Math.max(bucket.max, ms)
@@ -78,6 +100,10 @@ export function recordTiming(name: string, ms: number, labels?: Labels) {
 // Gauges represent the latest value (not cumulative)
 export function recordGauge(name: string, value: number, labels?: Labels) {
   const key = makeKey(name, labels)
+  if (!gauges[key]) {
+    if (gaugeSeries >= MAX_SERIES) return warnSeriesCapOnce(name)
+    gaugeSeries++
+  }
   gauges[key] = { name, labels, value }
   if (process.env.NODE_ENV !== 'production') {
     logger.debug(`[metric] gauge ${name}=${value}`, labels ?? {})
@@ -120,6 +146,10 @@ export function resetMetrics() {
   Object.keys(counters).forEach((k) => delete counters[k])
   Object.keys(timings).forEach((k) => delete timings[k])
   Object.keys(gauges).forEach((k) => delete gauges[k])
+  counterSeries = 0
+  timingSeries = 0
+  gaugeSeries = 0
+  seriesCapWarned = false
 }
 
 export function toPrometheus() {

@@ -41,6 +41,9 @@ export interface ReportContextInput {
   timeZone: string
   /** 출생시각 미상 — astroFacts 가 ASC/MC 애스펙트·profection 군주를 신뢰불가로 처리. */
   birthTimeUnknown?: boolean
+  /** 출생지 미상 — 기본 좌표(서울)로 계산되므로 ASC/MC/하우스·profection 군주를
+   *  신뢰불가로 처리(시각만 알아도 위치 모르면 앵글/하우스가 날조됨). */
+  birthCityUnknown?: boolean
 }
 
 export async function buildReportContext(input: ReportContextInput): Promise<NatalContext> {
@@ -58,8 +61,9 @@ export async function buildReportContext(input: ReportContextInput): Promise<Nat
     latitude: input.latitude,
     longitude: input.longitude,
     timezone: input.timeZone,
-    // 출생시각 미상 → placeUnreliable: ASC/MC 애스펙트 skip, profection 군주 null.
+    // 출생시각/출생지 미상 → placeUnreliable: ASC/MC 애스펙트 skip, profection 군주 null.
     birthTimeUnknown: input.birthTimeUnknown,
+    birthCityUnknown: input.birthCityUnknown,
     // Phase A: 정통 점성 정적 분석 일체 받기 (Almuten/Lots/dignity 5-tier/
     // Chiron·Lilith/aspects major+minor/sect). facts 가 다 만들어 줘서
     // page 가 직접 호출할 필요 없음. 시간 흐름(Profection/Transit/SR/LR/
@@ -182,6 +186,9 @@ export async function buildReportContext(input: ReportContextInput): Promise<Nat
     } as unknown as NatalContext['saju'],
     astro: {
       chart,
+      // 출생시각/출생지 미상 — adapter 가 _chart 의 자정/서울 폴백 ASC·MC·하우스를
+      // 리포트로 흘리지 않도록 가리는 플래그(ENGINE-AUDIT: _chart 우회로 누출 차단).
+      placeUnreliable: astroFacts.natal.placeUnreliable,
       extraPoints: hellenistic.extraPoints,
       sect: hellenistic.sect,
       location: {

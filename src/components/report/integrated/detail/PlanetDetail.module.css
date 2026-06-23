@@ -1,0 +1,143 @@
+/* PlanetDetail — '모든 행성 읽기' 접고펼침 블록.
+   미스틱 프리미엄 라이트: 크림 카드 + 플럼/골드 + 셀레셜(✦).
+   토큰(--card/--plum/--gold/--el-* 등)은 상위 .report 스코프에서 상속받는다(테마
+   단일 소스 유지 — 컴포넌트가 자체 재선언으로 테마를 덮어쓰지 않게). 한글 줄바꿈은
+   word-break:keep-all. */
+.box {
+  position: relative;
+  margin: 14px 0 0;
+  border: 1px solid var(--line);
+  border-left: 2px solid var(--gold);
+  border-radius: var(--radius);
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+  overflow: hidden;
+}
+.box > summary {
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+  padding: 12px 16px;
+  font-family: var(--serif);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--gold);
+}
+.box > summary::-webkit-details-marker {
+  display: none;
+}
+.box[open] {
+  background: var(--celeste, var(--card));
+}
+.box[open] > summary {
+  border-bottom: 1px solid var(--gold-line);
+  color: var(--gold);
+}
+.body {
+  position: relative;
+  padding: 14px 16px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  background: var(--star-dots, none), var(--card);
+}
+
+/* 한 행성 카드 */
+.row {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 12px 14px;
+  border: 1px solid var(--line-2);
+  border-radius: var(--radius-sm);
+  background: var(--card);
+}
+.row:last-child {
+  margin-bottom: 0;
+}
+.head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.head b {
+  font-family: var(--serif);
+  font-size: 14.5px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  word-break: keep-all;
+}
+.coord {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 2px;
+  font-style: normal;
+  border-radius: 999px;
+  background: rgba(169, 131, 59, 0.13);
+  border: 1px solid var(--gold);
+  padding: 3px 10px;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-2);
+  word-break: keep-all;
+}
+.glyph {
+  font-family: var(--sym);
+  font-size: 1.08em;
+}
+.retro {
+  font-family: var(--sym);
+  color: var(--gold);
+}
+.prin {
+  font-family: var(--serif);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  word-break: keep-all;
+}
+.read {
+  font-size: 12.5px;
+  color: var(--ink-2);
+  line-height: 1.65;
+  word-break: keep-all;
+}
+.mean {
+  font-size: 12px;
+  color: var(--ink-3);
+  line-height: 1.6;
+  word-break: keep-all;
+}
+
+/* 펼침 표시 캐럿 — 접힘 상태에서도 "열 수 있음"이 보이도록(.l2 와 일관). */
+.box > summary::before {
+  content: '✦';
+  display: inline-block;
+  margin-right: 8px;
+  font-size: 10px;
+  color: var(--gold);
+  transition: transform 0.18s ease;
+}
+.box[open] > summary::before {
+  transform: rotate(90deg);
+}
+
+@media (max-width: 600px) {
+  .box {
+    border-radius: var(--radius-sm);
+  }
+  .body {
+    padding: 12px 12px 14px;
+    gap: 12px;
+  }
+  .row {
+    padding: 11px 12px;
+  }
+  .head b {
+    font-size: 14px;
+  }
+}

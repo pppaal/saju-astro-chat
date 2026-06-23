@@ -1,0 +1,193 @@
+/* ViralTopCard — 리포트 최상단 임팩트 카드. "미스틱 프리미엄 라이트":
+   크림 카드 + 플럼/골드 + 셀레셜(별점/✦). 다크 공유카드(1080)와는 다른 본문용 톤.
+   토큰은 부모 .report 에서 cascade 되는 var(--*) 사용. */
+
+.card {
+  position: relative;
+  margin: 4px 0 30px;
+  padding: 30px 26px 26px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--gold-line);
+  background:
+    radial-gradient(120% 70% at 50% -10%, rgba(169, 131, 59, 0.1), transparent 60%), var(--celeste),
+    var(--card);
+  box-shadow: var(--shadow-card);
+  text-align: center;
+  word-break: keep-all;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+/* 상단 골드 헤어라인 — 강조 카드 시그니처 */
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  opacity: 0.7;
+}
+
+.inner {
+  position: relative;
+  z-index: 1;
+}
+
+/* 은은한 별점 — 라이트, 절제된 셀레셜 모티프 */
+.aura {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: var(--radius-lg);
+  pointer-events: none;
+  background-image: var(--star-dots);
+  opacity: 0.5;
+}
+
+.eyebrow {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--plum);
+}
+.eyebrow::before,
+.eyebrow::after {
+  content: '✦';
+  margin: 0 0.5em;
+  color: var(--gold);
+  opacity: 0.65;
+}
+
+.medallion {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 78px;
+  height: 78px;
+  margin: 16px auto 0;
+  border-radius: 50%;
+  border: 2px solid var(--gold);
+  background:
+    radial-gradient(circle at 50% 40%, rgba(169, 131, 59, 0.16), transparent 72%), var(--card);
+  box-shadow:
+    var(--shadow-soft),
+    inset 0 0 0 4px var(--card),
+    inset 0 0 0 5px var(--gold-line);
+}
+.emoji {
+  font-size: 40px;
+  line-height: 1;
+}
+
+.name {
+  margin: 16px 0 0;
+  font-family: var(--serif);
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.18;
+  color: var(--ink);
+}
+
+.oneLiner {
+  margin: 12px auto 0;
+  max-width: 30em;
+  font-size: 15.5px;
+  line-height: 1.65;
+  color: var(--ink-2);
+}
+
+.outer {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 16px 0 0;
+  padding: 5px 13px;
+  border-radius: 999px;
+  border: 1px solid var(--gold);
+  background: rgba(169, 131, 59, 0.12);
+  font-size: 12.5px;
+  color: var(--ink-2);
+}
+.outerKey {
+  font-weight: 700;
+  color: var(--plum);
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 9px;
+  margin-top: 16px;
+}
+.tag {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--gold);
+  background: rgba(169, 131, 59, 0.14);
+  border: 1px solid var(--gold);
+  border-radius: 999px;
+  padding: 4px 13px;
+}
+
+.facts {
+  margin: 22px auto 0;
+  max-width: 34em;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  background: var(--plum-wash);
+}
+.fact {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  text-align: left;
+}
+.fact p {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--ink-2);
+}
+.fact b {
+  color: var(--ink);
+  font-weight: 700;
+}
+.factIcon {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  font-size: 15px;
+  background: rgba(169, 131, 59, 0.14);
+  border: 1px solid var(--gold);
+}
+
+.action {
+  margin-top: 22px;
+  display: flex;
+  justify-content: center;
+}
+
+@media (max-width: 600px) {
+  .card {
+    padding: 26px 18px 22px;
+  }
+  .name {
+    font-size: 25px;
+  }
+  .oneLiner {
+    font-size: 14px;
+  }
+}

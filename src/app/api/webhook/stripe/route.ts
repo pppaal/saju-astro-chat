@@ -86,20 +86,17 @@ export const POST = withApiMiddleware(
       })
     }
 
-    // 🔒 타임스탬프 검증: 5분 이상 오래된 이벤트는 거부 (Replay Attack 방지)
-    const eventAgeSeconds = Math.floor(Date.now() / 1000) - event.created
-    if (eventAgeSeconds > 300) {
-      logger.warn(`[Stripe Webhook] Stale event rejected (age: ${eventAgeSeconds}s)`, {
-        eventId: event.id,
-        type: event.type,
-      })
-      recordCounter('stripe_webhook_stale_event', 1, { event: event.type })
-      return createErrorResponse({
-        code: ErrorCodes.BAD_REQUEST,
-        message: 'Event too old',
-        route: 'webhook/stripe',
-      })
-    }
+    // Replay 방어는 constructEvent 의 *서명 타임스탬프*(Stripe-Signature 의 t=,
+    // 기본 tolerance 300s) + 아래 eventId 멱등 dedupe 가 담당한다. Stripe 는 매
+    // 재배달마다 t= 를 새로 스탬프하므로 정상 재시도는 통과하고, 캡처된 옛
+    // 페이로드 replay 는 (a) 서명 tolerance 초과로 constructEvent 가 throw 하거나
+    // (b) 같은 eventId 라 StripeEventLog unique 로 deduped 된다.
+    //
+    // 이전엔 여기서 event.created(불변)가 300s 보다 오래되면 거부했는데, Stripe
+    // 재시도는 *원본 event.created* 를 그대로 들고 수 분~수 시간 뒤 오므로 항상
+    // "stale" 로 거부됐다 → "transient DB 에러 → throw → Stripe 재시도" 설계와
+    // 아래 B1 재처리 분기가 무력화돼, 일시 실패한 charge.refunded 의 크레딧 회수가
+    // 영구 소실됐다(고객이 환불도 받고 크레딧도 유지). 그래서 제거한다.
 
     // 🔒 멱등성 체크: 원자적으로 처리 시도 (Race Condition 방지)
     try {

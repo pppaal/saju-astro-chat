@@ -15,6 +15,7 @@ import { deriveConvergence } from '@/lib/calendar-engine/derivers/convergence'
 import { deriveLifetimeFlow } from '@/lib/calendar-engine/derivers/lifetimeFlow'
 import { deriveLifetimePivots } from '@/lib/calendar-engine/derivers/lifetimePivots'
 import { deriveMonthSummary } from '@/lib/calendar-engine/derivers/monthSummary'
+import { personSeed } from '@/lib/calendar-engine/derivers/personSeed'
 import { deriveLayeredScores } from '@/lib/calendar-engine/derivers/layeredScore'
 import { computeDayPillarIndices } from '@/lib/saju/dayPillar'
 import { getMonthPillarForDate } from '@/lib/saju/datePillars'
@@ -186,6 +187,21 @@ function parseCrossName(name: string | undefined): { sajuKo: string; astroKo: st
   const parts = (name ?? '').split('×').map((x) => x.trim())
   return { sajuKo: parts[0] ?? '', astroKo: parts[1] ?? '' }
 }
+// 교차 페어 키 — 구조화 evidence.detail(sajuKey=KO 십신/신살, astroKey=영문 행성)이
+// 있으면 그걸 쓰고, 없으면(연 셀은 detail 을 비움) 표시 name 파싱으로 폴백. detail
+// 우선이 견고하다 — name 의 '×' 글리프/구분자/로케일 포맷 변경에 안 흔들린다.
+function crossKeys(s: {
+  name?: string
+  evidence?: { detail?: Record<string, unknown> | null } | null
+}): { sajuKo: string; astroKo: string } {
+  const d = s.evidence?.detail
+  const sajuKey = typeof d?.sajuKey === 'string' ? d.sajuKey : ''
+  const astroKey = typeof d?.astroKey === 'string' ? d.astroKey : ''
+  if (sajuKey && astroKey) {
+    return { sajuKo: sajuKey, astroKo: PLANET_KO[astroKey] ?? astroKey }
+  }
+  return parseCrossName(s.name)
+}
 // 매핑 의미문은 "편관 × 화성 — …" 로 시작 — 카드가 페어를 따로 보여주므로 머리 제거.
 function stripCrossPair(t: string): string {
   return t.replace(/^[^—]*×[^—]*—\s*/, '')
@@ -210,7 +226,9 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
   } = args
 
   // ─── lifetimeFlow / lifetimePivots derivers ─────────────────────────────
-  const lifetimeFlow = deriveLifetimeFlow(natal, lang)
+  // 두 deriver 에 동일한 now 를 주입 — "현재 단계"와 "현재 pivot"이 같은 날짜를
+  // 가리키도록(예전엔 flow 가 now 미주입으로 서버 시계를 읽어 둘이 어긋났다).
+  const lifetimeFlow = deriveLifetimeFlow(natal, lang, undefined, now)
   const lifetimePivots = deriveLifetimePivots(natal, lang, undefined, now)
 
   // ─── yearly / month / day 슬라이스 ───────────────────────────────────────
@@ -230,9 +248,11 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
   const dayIdx = computeDayPillarIndices(focusY, focusM, focusD)
   const iljinStem = STEM_NAMES[dayIdx.stemIndex]
   const iljinBranch = BRANCH_NAMES[dayIdx.branchIndex]
-  const woolunRef = getMonthPillarForDate(
-    new Date(`${TARGET_YEAR}-${String(TARGET_MONTH).padStart(2, '0')}-15T00:00:00`)
-  )
+  // 월운 기준 인스턴트는 *UTC* 로 만든다. tz-less `new Date('YYYY-MM-15T00:00:00')`
+  // 는 서버 로컬로 해석돼 절입(節入) 근처에서 서버 시간대별로 60갑자가 갈렸다
+  // (Honolulu↔Seoul ~19h 차). 15일이라 실제 플립은 드물지만 결정성 위반이라 고정.
+  // (extractor 경로 saju-pillar.ts 는 이미 UTC — 이 표시 경로만 회귀였다.)
+  const woolunRef = getMonthPillarForDate(new Date(Date.UTC(TARGET_YEAR, TARGET_MONTH - 1, 15)))
   const woolunStem = woolunRef.stem
   const woolunBranch = woolunRef.branch
 
@@ -241,7 +261,6 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
     birthDisplay,
     place,
     sex,
-    lots: natal.astro.lots,
     intro: lifetimeFlow?.intro,
   })
   const user: DestinyUserSummary & {
@@ -295,6 +314,16 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
     gyeokgukStatus: userBase.geokgukStatus,
     rootStatus: userBase.rootStatus,
   }
+
+  // 개인 시드 — 본명 고정 값(일간·용신·격국·신강약)에서 한 번 산출. 템플릿 문구를
+  // 사람마다 다르게 고르는 데 쓴다(month.seed·day.seed 로 전달). 날짜 무관.
+  const seed = personSeed([
+    user.ilgan.hanja,
+    user.ilgan.kr,
+    user.yongsin.hanja,
+    user.gyeokguk,
+    user.gangyak,
+  ])
 
   const lifetime = toLifetime(natal, {
     birthYear: BIRTH_YEAR,
@@ -374,15 +403,18 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
         },
     years: decadeAdapter.years,
     body: decadeAdapter.body,
+    bodyEn: decadeAdapter.bodyEn,
     hapchung: {
       title: decadeAdapter.hapchung.title,
       romaji: decadeAdapter.hapchung.romaji,
       body: decadeAdapter.hapchung.body,
+      bodyEn: decadeAdapter.hapchung.bodyEn,
     },
     unseong: {
       title: decadeAdapter.unseong.title,
       romaji: decadeAdapter.unseong.romaji,
       body: decadeAdapter.unseong.body,
+      bodyEn: decadeAdapter.unseong.bodyEn,
     },
     astro: decadeAstroMarks.map((a) => ({
       label: a.label,
@@ -509,28 +541,55 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
         },
     focusDay: monthAdapter.focusDay,
     calendar,
+    seed,
   }
 
   // 이달 총평 — 타이밍·톤·지배 테마를 이어지는 한 문단으로 합성(deriveMonthSummary).
   // 기존 narrative(인트로+토막)가 안 녹이던 best/caution/converge 날짜·분포를 글로.
   // narrative 맨 앞에 '이달 총평' 태그로 넣어 카드 선두에 노출.
-  const monthSummaryText = deriveMonthSummary({
+  // 양쪽 로케일 요약을 함께 만들어 보관 — 클라이언트 로케일 토글 시 서버언어로
+  // 굳어 한글/영문이 어긋나던 문제(감사 #1 가시성) 해소. 정본 태그 '이달 총평'으로
+  // 찾고, body=ko / bodyEn=en 를 MonthTier 가 로케일로 고른다.
+  const monthReasonsBy = (en: boolean): string[] =>
+    dedupeByBody(
+      monthCells
+        .flatMap((c) =>
+          ((en ? c.topReasonsEn : c.topReasons) ?? []).map((r) => ({
+            score: c.derivedScore,
+            body: r,
+          }))
+        )
+        .sort((a, b) => b.score - a.score)
+    )
+      .slice(0, 4)
+      .map((r) => r.body)
+  const summaryCommon = {
     woolunKr: month.woolun?.kr && month.woolun.kr !== '—' ? month.woolun.kr : undefined,
     goodDays: month.goodDays.length,
     cautionDays: month.cautionDays.length,
     totalDays: monthCells.length,
-    topReasons: monthTopReasons.map((r) => r.body),
     bestDay: month.bestDay?.date || undefined,
-    bestDayReason: monthKeyDays.find((k) => k.date === month.bestDay?.date)?.meaning,
     cautionDay: month.cautionDays[0],
     convergeDate: month.converge?.date || undefined,
-    lang,
+  }
+  // bestDayReason(keyDays meaning)은 서버 lang 으로만 산출돼 있어 그 로케일 요약에만 싣는다.
+  const bestDayReason = monthKeyDays.find((k) => k.date === month.bestDay?.date)?.meaning
+  const summaryKo = deriveMonthSummary({
+    ...summaryCommon,
+    topReasons: monthReasonsBy(false),
+    bestDayReason: lang === 'ko' ? bestDayReason : undefined,
+    lang: 'ko',
+    seed,
   })
-  if (monthSummaryText) {
-    month.narrative = [
-      { tag: lang === 'ko' ? '이달 총평' : 'This month', body: monthSummaryText },
-      ...month.narrative,
-    ]
+  const summaryEn = deriveMonthSummary({
+    ...summaryCommon,
+    topReasons: monthReasonsBy(true),
+    bestDayReason: lang === 'en' ? bestDayReason : undefined,
+    lang: 'en',
+    seed,
+  })
+  if (summaryKo || summaryEn) {
+    month.narrative = [{ tag: '이달 총평', body: summaryKo, bodyEn: summaryEn }, ...month.narrative]
   }
 
   // 이 달의 사주×점성 교차 — monthly 층 cross-activation 페어를 모아 카드 원료로.
@@ -541,8 +600,8 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
   for (const c of monthCells) {
     for (const s of c.signals) {
       if (s.kind !== 'cross-activation' || s.layer !== 'monthly') continue
-      // name("편관 × 화성")에서 파싱 — 연 셀은 evidence.detail 이 비어 있다.
-      const { sajuKo, astroKo } = parseCrossName(s.name)
+      // 구조화 detail 우선(연 셀은 비어 name 파싱으로 폴백).
+      const { sajuKo, astroKo } = crossKeys(s)
       if (!sajuKo || !astroKo) continue
       const pairKey = `${sajuKo}|${astroKo}`
       const prev = monthCrossByPair.get(pairKey)
@@ -570,6 +629,26 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
     favorScore: layered.daily.get(dayCell.datetime.slice(0, 10))?.score,
     lang,
   })
+
+  // ── 포커스(오늘) 셀 톤 정합 ──
+  // 월 grid 의 셀 색은 *원점수 밴드*(60/35)인데, 일 카드 헤드라인은 toDay 가 화해한
+  // verdict(tense/bright)다. 밴드↔신호 톤이 어긋난 날(tense: 좋은밴드인데 흉신 우세 /
+  // bright: 낮은밴드인데 살릴 구석)은 같은 날 월=초록"좋음" vs 일=평이 로 모순됐다.
+  // 포커스일(양쪽에 동시에 보이는 유일한 날)만 화해와 어긋나는 밴드 바를 중립화해
+  // (mark→'focus': 바 없음, 오늘 링만) 두 화면의 톤을 일치시킨다. 비포커스일은
+  // evidence 가 없어 화해 불가 — 그날로 다이브하면 그 셀이 포커스가 되어 동일 처리.
+  if (dayAdapter.dayTone?.tense || dayAdapter.dayTone?.bright) {
+    const focusCell = month.calendar.find((c) => c.focus)
+    if (
+      focusCell &&
+      focusCell.mark &&
+      focusCell.mark !== 'focus' &&
+      focusCell.mark !== 'converge'
+    ) {
+      focusCell.mark = 'focus'
+    }
+  }
+
   const advanced = natal.saju.analyses
   const statusResult = advanced?.geokguk?.statusResult
   const geokgukName = advanced?.geokguk?.primary ?? '미정'
@@ -632,7 +711,8 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
   const dayCrossByPair = new Map<string, DestinyDay['crossActivations'][number]>()
   for (const s of dayCell.signals) {
     if (s.kind !== 'cross-activation') continue
-    const { sajuKo, astroKo } = parseCrossName(s.name)
+    // 포커스일 셀은 evidence.detail 이 살아 있어 구조화 키를 직접 쓴다(견고).
+    const { sajuKo, astroKo } = crossKeys(s)
     if (!sajuKo || !astroKo) continue
     const key = `${sajuKo}|${astroKo}`
     const prev = dayCrossByPair.get(key)
@@ -644,7 +724,9 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
       astroSide: ko ? astroKo : (PLANET_EN_FROM_KO[astroKo] ?? astroKo),
       sajuKo, // raw — 분야 라우팅이 로케일에 흔들리지 않게(EN 에선 영문이라 키워드 매칭 실패).
       astroKo,
-      meaning: stripCrossPair((ko ? s.korean : s.english) ?? ''),
+      // 양쪽 로케일 보관 — DayTier 가 클라이언트 로케일로 고른다(토글 불일치 방지).
+      meaning: stripCrossPair(s.korean ?? ''),
+      meaningEn: stripCrossPair(s.english ?? ''),
       polarity: s.polarity,
       weight: s.weight,
     })
@@ -652,13 +734,38 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
   const dayCrossActivations: DestinyDay['crossActivations'] = [...dayCrossByPair.values()].sort(
     (a, b) => Math.abs(b.polarity) - Math.abs(a.polarity)
   )
+  // ── 타이밍 컨텍스트 (이달 흐름 추이 + 다가오는 7일) ──
+  // 이달 일별 점수(추이선) — monthCells 순서대로, layered.daily 의 정규화 점수.
+  const dayMonthScores = monthCells.map((c) => {
+    const iso = c.datetime.slice(0, 10)
+    return {
+      day: Number(iso.slice(8, 10)),
+      score: Math.round(layered.daily.get(iso)?.score ?? 50),
+      today: iso === targetDayIso,
+    }
+  })
+  // 다가오는 7일 — 오늘 다음날부터. cells 범위 밖(월말 등)은 자연히 짧아진다.
+  const cellByIso = new Map(cells.map((c) => [c.datetime.slice(0, 10), c]))
+  const upcoming: Array<{ date: string; score: number }> = []
+  for (let i = 1; i <= 7; i++) {
+    const d = new Date(`${targetDayIso}T00:00:00Z`)
+    d.setUTCDate(d.getUTCDate() + i)
+    const iso = d.toISOString().slice(0, 10)
+    if (!cellByIso.has(iso)) continue
+    upcoming.push({ date: iso, score: Math.round(layered.daily.get(iso)?.score ?? 50) })
+  }
+
   const day: DestinyDay = {
     date: dayAdapter.date,
     dateKo: dayAdapter.dateKo,
     iljin: dayAdapter.iljin,
     iljinSibsin: dayAdapter.iljinSibsin,
+    // 본명 일간 — 그날 십신의 기준점. 화면 맨 위 기준선에 노출.
+    dayMaster: { hanja: user.ilgan.hanja, kr: user.ilgan.kr, en: user.ilgan.en },
+    seed,
     score: dayAdapter.score,
     oneLine: dayAdapter.oneLine,
+    oneLineEn: dayAdapter.oneLineEn,
     totalSignals: dayAdapter.totalSignals,
     signals: daySajuSignals,
     transits: dayTransits,
@@ -682,11 +789,15 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
     shinsalActive: dayAdapter.shinsalActive,
     narrative: dayAdapter.narrative,
     topReasons: dayAdapter.topReasons,
+    topReasonsEn: dayAdapter.topReasonsEn,
     cautions: dayAdapter.cautions,
+    cautionsEn: dayAdapter.cautionsEn,
     // 출력 화해 verdict — toDay 가 산출한 단일 권위. 빠뜨리면 DayTier 가 중립
     // fallback 으로 떨어져 tense/bright 화해가 프로덕션에서 죽는다(반드시 전달).
     dayTone: dayAdapter.dayTone,
     twelveStageMatrix: dayAdapter.twelveStageMatrix,
+    monthScores: dayMonthScores,
+    upcoming,
     hourCrossings: buildHourCrossings(dayCell, targetDayIso, natal.astro.location),
     // 시(時)별 달 정밀 — 그날 12 시진 달을 재계산해 달×본명 어스펙트 절정 시각.
     hourMoon: await buildHourMoon(targetDayIso, natal),

@@ -45,8 +45,13 @@ export default async function IntegratedReportPage({
   const rawTime = one(sp.time)
   const birthTimeUnknown = !rawTime
   const birthTime = rawTime ?? '12:00'
-  const latitude = Number(one(sp.lat) ?? 37.5665)
-  const longitude = Number(one(sp.lng) ?? 126.978)
+  // 출생지 미상 — 좌표가 없으면 기본(서울)로 계산되므로 ASC/MC/하우스·profection
+  // 군주를 신뢰불가로 처리해야 한다(시각만 알아도 위치 모르면 앵글/하우스 날조).
+  const rawLat = one(sp.lat)
+  const rawLng = one(sp.lng)
+  const birthCityUnknown = !rawLat || !rawLng
+  const latitude = Number(rawLat ?? 37.5665)
+  const longitude = Number(rawLng ?? 126.978)
   const timeZone = one(sp.tz) ?? 'Asia/Seoul'
   const gender = one(sp.gender) === 'female' ? 'female' : 'male'
 
@@ -58,12 +63,14 @@ export default async function IntegratedReportPage({
     longitude,
     timeZone,
     birthTimeUnknown,
+    birthCityUnknown,
   })) as unknown as Record<string, unknown>
 
   // 사용자 입력 메타 (이름·장소 등 raw 엔진이 안 알아채는 표시 전용 필드).
   ctx.input = {
     ...(ctx.input as object),
     birthTimeUnknown,
+    birthCityUnknown,
     name: one(sp.name) ?? (lang === 'en' ? 'Client' : '내담자'),
     gender,
     place: one(sp.place) ?? (lang === 'en' ? 'Seoul, Republic of Korea' : '대한민국 서울'),

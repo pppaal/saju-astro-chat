@@ -19,16 +19,18 @@ import { createHash } from 'crypto'
 import { NextRequest } from 'next/server'
 import {
   withApiMiddleware,
-  createAuthenticatedGuard,
+  createPublicStreamGuard,
   apiSuccess,
   apiError,
   ErrorCodes,
   type ApiContext,
 } from '@/lib/api/middleware'
 import { tarotDeck } from '@/lib/tarot/data'
+import { TAROT_REVERSED_BYTE_THRESHOLD } from '@/lib/tarot/reversedProbability'
 import type { Card } from '@/lib/tarot/tarot.types'
 import { callClaude, extractJsonObject, isClaudeAvailable } from '@/lib/llm/claude'
 import { cacheGet, cacheSet } from '@/lib/cache/redis-cache'
+import { recordCounter } from '@/lib/metrics/index'
 import { logger } from '@/lib/logger'
 
 export const dynamic = 'force-dynamic'
@@ -51,11 +53,28 @@ function secondsUntilKstMidnight(now: Date = new Date()): number {
 
 // 캐시 스키마/프롬프트가 바뀌면 이 버전을 올린다 — 당일 자정 전에도 오래된
 // 캐시(예: 짧은 본문)를 우회해 새 결과가 즉시 나오게 한다.
-const DAILY_CACHE_VERSION = 'v2'
-const dailyKey = (userId: string, date: string) =>
-  `tarot:daily:${DAILY_CACHE_VERSION}:${userId}:${date}`
-const dailyLockKey = (userId: string, date: string) =>
-  `tarot:daily:lock:${DAILY_CACHE_VERSION}:${userId}:${date}`
+const DAILY_CACHE_VERSION = 'v4'
+const dailyKey = (id: string, date: string) => `tarot:daily:${DAILY_CACHE_VERSION}:${id}:${date}`
+const dailyLockKey = (id: string, date: string) =>
+  `tarot:daily:lock:${DAILY_CACHE_VERSION}:${id}:${date}`
+
+// 로그인 없이도 "오늘의 카드" 1장은 맛보게 한다(바이럴 유입 — 받은 사람이
+// 가입 없이 결과부터 본다). 게스트 식별:
+//  1) 로그인 → u:{userId}
+//  2) 클라가 보낸 안정적 게스트 id(localStorage) → g:{id}
+//  3) 둘 다 없으면 IP+UA 지문 → 쿠키 없이도 같은 기기는 같은 카드(당일 캐시·
+//     결정적 추첨·1일 1장이 흔들리지 않게). 비용은 라우트 IP 레이트리밋이 가둠.
+function clientFingerprint(req: NextRequest): string {
+  const ip = (req.headers.get('x-forwarded-for') || '').split(',')[0].trim() || 'noip'
+  const ua = req.headers.get('user-agent') || 'noua'
+  return createHash('sha256').update(`${ip}|${ua}`).digest('base64url').slice(0, 16)
+}
+function resolveDailyId(req: NextRequest, userId: string | null | undefined): string {
+  if (userId) return `u:${userId}`
+  const raw = (req.headers.get('x-dp-guest') || '').trim()
+  if (/^[A-Za-z0-9_-]{8,64}$/.test(raw)) return `g:${raw}`
+  return `g:${clientFingerprint(req)}`
+}
 
 interface DailyReading {
   date: string
@@ -72,7 +91,8 @@ interface DailyReading {
 function drawDaily(userId: string, date: string): { card: Card; isReversed: boolean } {
   const h = createHash('sha256').update(`${userId}:${date}`).digest()
   const idx = h.readUInt32BE(0) % tarotDeck.length
-  const reversed = h[4] < 77 // 77/256 ≈ 0.30 → 약 30% 역방향(결정적)
+  // 역방향 확률 SSOT 를 바이트 임계값으로 환산(byte<threshold). 38/256 ≈ 0.15.
+  const reversed = h[4] < TAROT_REVERSED_BYTE_THRESHOLD
   return { card: tarotDeck[idx], isReversed: reversed }
 }
 
@@ -98,14 +118,15 @@ function buildDailyTeaserPrompt(
       systemPrompt: [
         '너는 따뜻하고 통찰력 있는 타로 리더다. "오늘의 한 장" 무료 리딩을 준다.',
         '규칙:',
+        '- 말투: 마주 앉아 카드를 펴주며 말해주듯 따뜻한 *해요체 존댓말*("~해요/~예요/~보세요"). 반말("~해/~할 거야/~네") 절대 금지.',
         '- 따뜻하고 구체적으로, 충분히 읽을거리가 되게 쓴다. 단, 한 장짜리라 "오늘 하루"에 집중한다.',
         '- 마크다운(*, _, #, `), 해시태그(#), 따옴표로 문장 전체 감싸기 금지.',
         '- 저주·불행·공포 조장 금지. 양면이 있되 희망의 여지를 남긴다.',
         '- 막연한 덕담 금지. 카드 키워드를 오늘의 상황·감정·행동으로 풀어 구체적으로.',
         '반드시 아래 JSON 만 출력:',
         '{"hook": "한 줄 후크", "message": "본문(4~6문장)"}',
-        'hook 규칙: 28자 이내. 2인칭("당신/너")으로 단언하고, 구체적인 디테일 1개를 넣고, 살짝 양면의 트위스트로 여운을 남긴다.',
-        'message 규칙: 4~6문장. ①오늘의 큰 흐름 ②카드가 비추는 마음/관계/일의 한 면 ③오늘 해보면 좋은 구체적 행동 1가지 ④따뜻한 마무리 한 줄. 줄바꿈으로 문단을 나눠도 좋다.',
+        'hook 규칙: 28자 이내. 2인칭("당신")으로 단언하되 *해요체 존댓말*, 구체적인 디테일 1개를 넣고, 살짝 양면의 트위스트로 여운을 남긴다. 반말 금지.',
+        'message 규칙: 4~6문장 *해요체 존댓말*. ①오늘의 큰 흐름 ②카드가 비추는 마음/관계/일의 한 면 ③오늘 해보면 좋은 구체적 행동 1가지 ④따뜻한 마무리 한 줄. *한 문단으로 자연스럽게 이어 쓰고, 중간에 줄바꿈(빈 줄)은 넣지 마라.*',
       ].join('\n'),
       userPrompt: [
         `오늘의 카드: ${cardName} (${orientation})`,
@@ -128,7 +149,7 @@ function buildDailyTeaserPrompt(
       'Output ONLY this JSON:',
       '{"hook": "one-line hook", "message": "body (4-6 sentences)"}',
       'hook rules: max 12 words. Speak in second person ("you"), make a confident claim, include one concrete detail, end with a slight two-sided twist.',
-      'message rules: 4-6 sentences. (1) the overall flow of today (2) one facet the card highlights in your heart/relationships/work (3) one concrete thing worth doing today (4) a warm closing line. Paragraph breaks are fine.',
+      'message rules: 4-6 sentences. (1) the overall flow of today (2) one facet the card highlights in your heart/relationships/work (3) one concrete thing worth doing today (4) a warm closing line. Write it as ONE flowing paragraph — do not insert line breaks or blank lines.',
     ].join('\n'),
     userPrompt: [
       `Card of the day: ${cardName} (${orientation})`,
@@ -141,20 +162,21 @@ function buildDailyTeaserPrompt(
 }
 
 export const GET = withApiMiddleware(
-  async (_req: NextRequest, context: ApiContext) => {
+  async (req: NextRequest, context: ApiContext) => {
+    const id = resolveDailyId(req, context.userId)
     const date = todayKeyKST()
-    const cached = await cacheGet<DailyReading>(dailyKey(context.userId!, date))
+    const cached = await cacheGet<DailyReading>(dailyKey(id, date))
     if (cached) return apiSuccess({ ready: true, reading: cached })
     return apiSuccess({ ready: false })
   },
-  createAuthenticatedGuard({ route: '/api/tarot/daily', limit: 30, windowSeconds: 60 })
+  createPublicStreamGuard({ route: '/api/tarot/daily', limit: 30, windowSeconds: 60 })
 )
 
 export const POST = withApiMiddleware(
-  async (_req: NextRequest, context: ApiContext) => {
-    const userId = context.userId!
+  async (req: NextRequest, context: ApiContext) => {
+    const id = resolveDailyId(req, context.userId)
     const date = todayKeyKST()
-    const key = dailyKey(userId, date)
+    const key = dailyKey(id, date)
 
     // 이미 오늘 뽑았으면 그대로 (무료·동일 카드).
     const existing = await cacheGet<DailyReading>(key)
@@ -166,7 +188,7 @@ export const POST = withApiMiddleware(
 
     // in-flight 락 — 같은 사용자의 동시 POST 가 LLM 을 두 번 부르지 않게 베스트
     // 에포트로 막는다(원자적이진 않지만 결과 캐시가 곧 채워져 수렴).
-    const lockKey = dailyLockKey(userId, date)
+    const lockKey = dailyLockKey(id, date)
     if (await cacheGet<string>(lockKey)) {
       return apiError(ErrorCodes.RATE_LIMITED, 'daily_in_progress')
     }
@@ -174,7 +196,7 @@ export const POST = withApiMiddleware(
 
     try {
       const locale = context.locale === 'en' ? 'en' : 'ko'
-      const { card, isReversed } = drawDaily(userId, date)
+      const { card, isReversed } = drawDaily(id, date)
       const meaning = isReversed ? card.reversed : card.upright
       const keywords =
         locale === 'ko' ? meaning.keywordsKo || meaning.keywords || [] : meaning.keywords || []
@@ -191,7 +213,7 @@ export const POST = withApiMiddleware(
       const { text } = await callClaude({
         systemPrompt,
         userPrompt,
-        maxTokens: 900,
+        maxTokens: 550,
         temperature: 0.85,
         timeoutMs: 25000,
         label: 'tarot-daily',
@@ -221,6 +243,8 @@ export const POST = withApiMiddleware(
       }
 
       await cacheSet(key, reading, secondsUntilKstMidnight())
+      // 퍼널 측정 — 신규 데일리 1장(게스트/유저 구분). 시딩 효과를 숫자로 본다.
+      recordCounter('tarot.daily.drawn', 1, { source: context.userId ? 'user' : 'guest' })
       return apiSuccess({ reading, fresh: true })
     } catch (error) {
       logger.error('[tarot-daily] generation error', error)
@@ -229,5 +253,5 @@ export const POST = withApiMiddleware(
       await cacheSet(lockKey, '', 1).catch(() => {})
     }
   },
-  createAuthenticatedGuard({ route: '/api/tarot/daily', limit: 20, windowSeconds: 60 })
+  createPublicStreamGuard({ route: '/api/tarot/daily', limit: 20, windowSeconds: 60 })
 )

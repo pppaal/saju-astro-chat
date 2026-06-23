@@ -138,6 +138,8 @@ export interface DestinypalDay {
   score: number
   totalSignals: number
   oneLine: string
+  /** 한 줄 요약 영문 — 클라이언트 로케일 토글용(서버언어 고정 방지). */
+  oneLineEn: string
   signals: DestinypalDaySignal[]
   transits: DestinypalDayTransit[]
   shinsalActive: string[]
@@ -164,10 +166,14 @@ export interface DestinypalDay {
   allSignals: DestinypalDaySignal[]
   /** narrative chip 묶음 — DayTier 가 .map. */
   narrative: Array<{ tag: string; body: string }>
-  /** 상위 우호 사유 — CalendarCell.topReasons 그대로. */
+  /** 상위 우호 사유(KO). */
   topReasons: string[]
-  /** 상위 주의 사유 — CalendarCell.cautions 그대로. */
+  /** 상위 우호 사유(EN) — 토글용. */
+  topReasonsEn: string[]
+  /** 상위 주의 사유(KO). */
   cautions: string[]
+  /** 상위 주의 사유(EN) — 토글용. */
+  cautionsEn: string[]
   /** 본명 4기둥(천간) × 일진 지지 12운성 — getTwelveStage 정통 계산(기둥별 실제값). */
   twelveStageMatrix: TwelveStageCell[]
   /** 출력 화해 verdict — 헤드라인·한줄·칩 톤 단일 권위 (reconcile.ts). */
@@ -422,12 +428,12 @@ export function toDay(opts: ToDayOptions): DestinypalDay {
 
   // 상대 우호도 우선(그 사람 분포 백분위) — 없으면 절대 derivedScore 폴백.
   const shownScore = Math.round(opts.favorScore ?? cell.derivedScore)
-  const topReasons = ((opts.lang === 'en' ? cell.topReasonsEn : cell.topReasons) ?? []).map((r) =>
-    humanizeReason(r, opts.lang)
-  )
-  const cautions = ((opts.lang === 'en' ? cell.cautionsEn : cell.cautions) ?? []).map((r) =>
-    humanizeReason(r, opts.lang)
-  )
+  // 양쪽 로케일을 함께 산출 — DayTier 가 클라이언트 로케일로 고른다(서버언어로
+  // 굳어 토글 시 한/영이 섞이던 문제 해소). 길이는 동일하므로 reconcile 에 무해.
+  const topReasons = (cell.topReasons ?? []).map((r) => humanizeReason(r, 'ko'))
+  const topReasonsEn = (cell.topReasonsEn ?? []).map((r) => humanizeReason(r, 'en'))
+  const cautions = (cell.cautions ?? []).map((r) => humanizeReason(r, 'ko'))
+  const cautionsEn = (cell.cautionsEn ?? []).map((r) => humanizeReason(r, 'en'))
 
   // ── 출력 화해 — 점수 밴드 ↔ 사유 net 톤을 한 verdict 로 묶는다(단일 권위). ──
   const dayTone = reconcileDayTone({
@@ -444,7 +450,8 @@ export function toDay(opts: ToDayOptions): DestinypalDay {
     iljinSibsin,
     score: shownScore,
     totalSignals: cell.signals.length,
-    oneLine: opts.oneLine ?? deriveOneLine(dayTone, topReasons, cautions, opts.lang),
+    oneLine: opts.oneLine ?? deriveOneLine(dayTone, topReasons, cautions, 'ko'),
+    oneLineEn: opts.oneLine ?? deriveOneLine(dayTone, topReasonsEn, cautionsEn, 'en'),
     signals,
     transits,
     shinsalActive: Array.from(shinsalActiveSet),
@@ -458,7 +465,9 @@ export function toDay(opts: ToDayOptions): DestinypalDay {
     allSignals: signals,
     narrative: [],
     topReasons,
+    topReasonsEn,
     cautions,
+    cautionsEn,
     twelveStageMatrix,
     dayTone,
   }

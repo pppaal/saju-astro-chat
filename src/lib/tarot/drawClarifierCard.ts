@@ -6,10 +6,11 @@
 // 결과를 user 메시지(또는 systemHint)로 기존 채팅에 흘려보내는 방식이라
 // 인프라 변경 없이 동작.
 //
-// 역방향 확률은 30% — 다른 타로 흐름과 동일 (50% 는 부정적 카드 비중
-// 과해 부담된다는 피드백 반영, /api/tarot/route.ts 등과 통일).
+// 역방향 확률은 SSOT(TAROT_REVERSED_PROBABILITY)에서 가져온다 — 일반 뽑기·
+// 데일리와 같은 비율을 한 곳에서 보장(흐름마다 비율 어긋나는 회귀 방지).
 
 import tarotDeck from '@/lib/tarot/data'
+import { TAROT_REVERSED_PROBABILITY } from '@/lib/tarot/reversedProbability'
 
 export interface ClarifierCard {
   name: string
@@ -18,8 +19,6 @@ export interface ClarifierCard {
   isReversed: boolean
 }
 
-const REVERSED_PROBABILITY = 0.3
-
 export function drawClarifierCard(): ClarifierCard {
   const idx = Math.floor(Math.random() * tarotDeck.length)
   const card = tarotDeck[idx]
@@ -27,7 +26,7 @@ export function drawClarifierCard(): ClarifierCard {
     name: card.name,
     nameKo: card.nameKo,
     image: card.image,
-    isReversed: Math.random() < REVERSED_PROBABILITY,
+    isReversed: Math.random() < TAROT_REVERSED_PROBABILITY,
   }
 }
 

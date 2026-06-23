@@ -320,6 +320,9 @@ export function FollowupChat({
           'x-idempotency-key': idempotencyKey,
         },
         body: JSON.stringify({
+          // 서버가 같은 행에 followup turn 을 직접 append 하도록 readingId 전달.
+          // 클라 PATCH(replace)가 유실돼도 유료 후속 대화가 기록에 남는 안전망.
+          ...(readingId ? { readingId } : {}),
           spreadTitle: readingResult.spread.title,
           originalQuestion: userTopic,
           overallMessage: interpretation?.overall_message,
@@ -357,7 +360,6 @@ export function FollowupChat({
       const data = (await response.json()) as { answer?: string }
       if (!mountedRef.current) return
       const answer = data.answer?.trim() || ''
-      let finalHistory: Turn[] = []
       setHistory((prev) => {
         const copy = [...prev]
         const lastIdx = copy.length - 1
@@ -369,12 +371,14 @@ export function FollowupChat({
               (isKo ? '죄송해요, 다시 한 번 물어봐 주실래요?' : 'Sorry, could you ask that again?'),
           }
         }
-        finalHistory = copy
         return copy
       })
-      // 한 turn 응답 받은 직후 자동 저장 — 저장된 리딩이면 (readingId 있음)
-      // 같은 row 의 followupTurns 컬럼 갱신. 게스트는 readingId 없어 skip.
-      void patchSavedReading({ followupTurns: finalHistory })
+      // followupTurns 영속화는 서버(/api/tarot/followup)가 readingId 로 원자적
+      // append(appendTarotFollowupTurns) 해 둔다 — 단일 writer(SSOT). 예전엔 여기서
+      // 클라가 전체 history 를 PATCH-replace 로 또 썼는데, 서버 concat 과 동시에
+      // 같은 행을 덮어써 멀티탭/기기에서 lost-update(한쪽 유료 turn 소실)가 났다.
+      // 클라 replace 를 제거해 두 writer 가 다투지 않게 한다. (sessionStorage 복원은
+      // 아래 updateRestorePayloadFollowup effect 가 별도로 유지.)
     } catch (err) {
       // Aborted via unmount — silently bail out. No setState, no logger
       // noise; the component is gone.
@@ -509,10 +513,7 @@ export function FollowupChat({
     >
       <div className="flex items-center gap-2">
         <MessageCircle className="w-4 h-4" style={{ color: pal.accent }} />
-        <h2
-          className="text-sm font-medium tracking-wider uppercase"
-          style={{ color: pal.accent }}
-        >
+        <h2 className="text-sm font-medium tracking-wider uppercase" style={{ color: pal.accent }}>
           {isKo ? '이 리딩에 대해 더 묻기' : 'Ask about this reading'}
         </h2>
       </div>

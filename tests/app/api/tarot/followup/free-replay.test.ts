@@ -10,8 +10,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { NextRequest } from 'next/server'
 
+// requireAuth: true 라 핸들러는 항상 인증 context 를 받는다. 테스트에선
+// x-test-user 헤더로 userId 를 주입(기본 user-1) — 멱등 키가 userId 로 스코프되는지
+// (교차사용자 free-replay 차단) 검증하기 위함.
 vi.mock('@/lib/api/middleware', () => ({
-  withApiMiddleware: (handler: (req: NextRequest) => unknown) => handler,
+  withApiMiddleware:
+    (handler: (req: NextRequest, ctx: { userId: string }) => unknown) => (req: NextRequest) =>
+      handler(req, { userId: req.headers.get('x-test-user') || 'user-1' }),
   createPublicStreamGuard: (opts: unknown) => opts,
 }))
 vi.mock('@/lib/telemetry', () => ({ captureServerError: vi.fn() }))
@@ -73,11 +78,16 @@ import { POST } from '@/app/api/tarot/followup/route'
 
 const CARDS = [{ position: 'past', name: 'The Fool', isReversed: false }]
 
-function makeReq(body: object, idemKey: string): NextRequest {
+function makeReq(body: object, idemKey: string, userId?: string): NextRequest {
+  const headers: Record<string, string> = {
+    'content-type': 'application/json',
+    'x-idempotency-key': idemKey,
+  }
+  if (userId) headers['x-test-user'] = userId
   return new NextRequest('http://localhost/api/tarot/followup', {
     method: 'POST',
     body: JSON.stringify(body),
-    headers: { 'content-type': 'application/json', 'x-idempotency-key': idemKey },
+    headers,
   })
 }
 
@@ -112,6 +122,15 @@ describe('followup — free-replay hardening (Fix B)', () => {
     expect(mockCheckAndConsumeCredits).toHaveBeenCalledTimes(3)
   })
 
+  it('different users, same key + identical content, are EACH charged (no cross-user free replay)', async () => {
+    // 같은 NAT 뒤 두 사용자가 동일 idem-key + 동일 질문/카드로 호출 — owner 가
+    // userId 로 스코프되므로 scopedKey 가 갈려 둘 다 과금된다(2번째가 1번째의
+    // 캐시 답변을 공짜로 받던 교차사용자 free-replay 차단).
+    await POST(makeReq({ ...BASE, question: 'Q1' }, 'shared-key', 'user-A'))
+    await POST(makeReq({ ...BASE, question: 'Q1' }, 'shared-key', 'user-B'))
+    expect(mockCheckAndConsumeCredits).toHaveBeenCalledTimes(2)
+  })
+
   it('clarifier-style distinct draws (same key, different cards) each charge 1 credit', async () => {
     // 클래리파이어가 매번 다른 카드를 뽑아 보내는 상황 — 키를 재사용해도
     // 카드 구성이 달라 content tag 가 달라지므로 매 호출 과금.
@@ -136,6 +155,10 @@ describe('followup — free-replay hardening (Fix B)', () => {
       )
     )
     expect(mockCheckAndConsumeCredits).toHaveBeenCalledTimes(2)
-    expect(mockCheckAndConsumeCredits).toHaveBeenCalledWith('reading', 1)
+    expect(mockCheckAndConsumeCredits).toHaveBeenCalledWith(
+      'reading',
+      1,
+      expect.objectContaining({ apiRoute: 'tarot/followup', activityType: 'tarot_followup' })
+    )
   })
 })

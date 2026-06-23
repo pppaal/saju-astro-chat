@@ -115,22 +115,30 @@ export function toLifetime(natal: NatalContext, opts: ToLifetimeOptions): Destin
       return {
         id: s.id,
         name: s.name,
+        nameEn: s.nameEn,
         ageFrom: s.ageFrom,
         ageTo: s.ageTo,
         yearFrom: s.yearFrom,
         yearTo: s.yearTo,
         now: s.now,
         tone: s.tone,
+        toneEn: s.toneEn,
         detail: null,
       }
     }
     const detail: DestinyLifeStageDetail = {
       daewoonText: s.detail.daeunText ?? '',
       body: s.detail.body,
+      bodyEn: s.detail.bodyEn,
       outer: s.detail.outer.map((o) => ({
-        label: o.label,
+        // toLifeStages 는 outer.label = EN 마디줄, outer.body = KO 마디줄로 채운다
+        // (둘 다 같은 외행성 마디). 공개 타입은 KO 를 기본(label/body), EN 을
+        // labelEn/bodyEn 으로 둬 클라이언트 토글이 고르게 한다.
+        label: o.body || o.label,
+        labelEn: o.label || o.body,
         date: o.date,
-        body: o.body,
+        body: o.body || o.label,
+        bodyEn: o.label || o.body,
         kind: o.kind ?? 'astro',
       })),
       hapchung: s.detail.hapchung,
@@ -140,12 +148,14 @@ export function toLifetime(natal: NatalContext, opts: ToLifetimeOptions): Destin
     return {
       id: s.id,
       name: s.name,
+      nameEn: s.nameEn,
       ageFrom: s.ageFrom,
       ageTo: s.ageTo,
       yearFrom: s.yearFrom,
       yearTo: s.yearTo,
       now: s.now,
       tone: s.tone,
+      toneEn: s.toneEn,
       detail,
     }
   })
@@ -154,8 +164,10 @@ export function toLifetime(natal: NatalContext, opts: ToLifetimeOptions): Destin
     year: m.year,
     age: m.age,
     label: m.label,
-    // toMilestones 는 'chiron' / 'astro' 도 반환 — DestinyMilestoneKind 와 정합.
-    kind: (m.kind === 'chiron' || m.kind === 'astro' ? 'saju' : m.kind) as DestinyMilestone['kind'],
+    labelEn: m.labelEn,
+    meaning: m.meaning,
+    meaningEn: m.meaningEn,
+    kind: m.kind,
     now: m.now,
   }))
 

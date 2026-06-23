@@ -33,16 +33,18 @@ export async function calculateSecondaryProgressions(
     | { natal?: Partial<NatalInput>; targetDate?: string }
     | Chart
     | undefined
-    | null
+    | null,
+  // 주입형 "현재 시각"(SSOT 규약) — targetDate 미지정 시 폴백 날짜에만 쓰인다.
+  // 기본값은 호출 시점이지만, 테스트·결정적 스냅샷은 이 인자로 시계를 고정한다
+  // (예전엔 함수 안에서 new Date() 를 직접 읽어 비결정적이었다 — ENGINE-AUDIT).
+  now: Date = new Date()
 ): Promise<ProgressedChart> {
   const swisseph = getSwisseph()
   const PLANET_LIST = getPlanetList()
   const SW_FLAGS = getSwissEphFlags()
   const inputObj = input as { targetDate?: string; natal?: unknown } | null | undefined
   const fallbackDate =
-    typeof inputObj?.targetDate === 'string'
-      ? inputObj.targetDate
-      : new Date().toISOString().slice(0, 10)
+    typeof inputObj?.targetDate === 'string' ? inputObj.targetDate : now.toISOString().slice(0, 10)
 
   if (
     !input ||

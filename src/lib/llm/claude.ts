@@ -10,6 +10,7 @@ import { fetchWithRetry } from '@/lib/http'
 import { logger } from '@/lib/logger'
 import { recordCounter, recordExternalCall } from '@/lib/metrics/index'
 import { sanitizeForXmlTagBoundary } from '@/lib/llm/promptSafety'
+import { resolveLlmPolicy, type LlmFeature } from '@/lib/config/llm-policy'
 
 // Claude pricing (per 1M tokens, USD) — Haiku 4.5 기준
 // Sonnet 4.5: input $3 / output $15 / cache_read $0.30
@@ -34,7 +35,9 @@ function calculateUsdCost(
 
 export type ClaudeModel = 'claude-haiku-4-5-20251001' | 'claude-sonnet-4-5-20250929'
 
-const DEFAULT_CLAUDE_MODEL: ClaudeModel = 'claude-haiku-4-5-20251001'
+// 모델 선택의 진실 공급원은 src/lib/config/llm-policy.ts. 아래는 정책 표가
+// 참조하는 상수 + 직접 import 하던 기존 호출처 호환용. 신규 코드는 model 을
+// 직접 쓰지 말고 feature 라벨을 넘긴다.
 export const PREMIUM_CLAUDE_MODEL: ClaudeModel = 'claude-sonnet-4-5-20250929'
 
 export interface CallClaudeOptions {
@@ -63,7 +66,16 @@ export interface CallClaudeOptions {
   temperature?: number
   /** 기본 40000ms. */
   timeoutMs?: number
-  /** 기본 Haiku 4.5. */
+  /**
+   * 비용 정책 라벨. 지정하면 `src/lib/config/llm-policy.ts` 의 표가 모델·출력
+   * cap·이어쓰기 횟수를 결정한다. 신규 호출처는 `model` 대신 이것을 쓴다.
+   */
+  feature?: LlmFeature
+  /**
+   * @deprecated 모델은 `feature` + llm-policy 로 결정한다. 직접 지정하면
+   * feature 보다 우선하지만, 새 코드에선 쓰지 말 것 (비용 결정 분산 방지).
+   * 미지정 + feature 미지정이면 기본 Haiku 4.5.
+   */
   model?: ClaudeModel
   /** 호출 식별용 (메트릭/로그 태그). */
   label?: string
@@ -229,12 +241,19 @@ export async function callClaude(opts: CallClaudeOptions): Promise<CallClaudeRes
     userPrompt,
     cachedUserContext,
     priorTurns,
-    maxTokens = 1500,
+    maxTokens: explicitMaxTokens = 1500,
     temperature = 0.7,
     timeoutMs = 40000,
-    model = DEFAULT_CLAUDE_MODEL,
+    model: explicitModel,
+    feature,
     label = 'claude',
   } = opts
+
+  // 비용 정책(SSOT) 적용: 모델·출력 cap 은 라우트가 아니라 llm-policy 가 정한다.
+  // 명시적 model 은 (deprecated) 호환을 위해 우선하되, 출력은 항상 정책 cap 으로 clamp.
+  const policy = resolveLlmPolicy(feature)
+  const model = explicitModel ?? policy.model
+  const maxTokens = Math.min(explicitMaxTokens, policy.maxOutputTokens)
 
   const response = await fetchWithRetry(
     ANTHROPIC_ENDPOINT,
@@ -397,15 +416,21 @@ export async function callClaudeStream(opts: CallClaudeOptions): Promise<Readabl
     userPrompt,
     cachedUserContext,
     priorTurns,
-    maxTokens = 2000,
+    maxTokens: explicitMaxTokens = 2000,
     temperature = 0.7,
     timeoutMs = 60000,
-    model = DEFAULT_CLAUDE_MODEL,
+    model: explicitModel,
+    feature,
     label = 'claude-stream',
     prefillAssistant,
     onStreamComplete,
     abortSignal,
   } = opts
+
+  // 비용 정책(SSOT) 적용 — callClaude 와 동일. 모델·출력 cap 은 llm-policy 가 정한다.
+  const policy = resolveLlmPolicy(feature)
+  const model = explicitModel ?? policy.model
+  const maxTokens = Math.min(explicitMaxTokens, policy.maxOutputTokens)
 
   const controller = new AbortController()
   // 옛 코드: setTimeout(..., timeoutMs) 가 stream 전체 시간을 제한 → 긴 답변

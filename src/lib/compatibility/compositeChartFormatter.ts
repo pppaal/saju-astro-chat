@@ -77,6 +77,12 @@ interface CompositeInput {
   chartB: Chart
   nameA?: string | null
   nameB?: string | null
+  /**
+   * 출생 시각 미상 플래그. 어느 한 쪽이라도 미상이면 그 사람 ASC/MC 가 자정 기준
+   * 날조값이라, 두 ASC/MC 의 midpoint(=composite ASC/MC)도 무의미 → 제외한다.
+   */
+  timeUnknownA?: boolean
+  timeUnknownB?: boolean
   /** 출력 언어. 'en' 이면 한국어 라벨이 영어 응답에 새지 않게 영어로 렌더. 기본 'ko'. */
   lang?: 'ko' | 'en'
 }
@@ -117,8 +123,11 @@ export function formatCompositeChart(input: CompositeInput): string {
   const byNameA = new Map(chartA.planets.map((p) => [p.name, p]))
   const byNameB = new Map(chartB.planets.map((p) => [p.name, p]))
 
+  // 한 쪽이라도 시각 미상이면 ASC/MC midpoint 는 날조 → composite 에서 제외.
+  const angleUnknown = !!input.timeUnknownA || !!input.timeUnknownB
   const compPlanets: PlanetBase[] = []
   for (const name of COMPOSITE_POINTS) {
+    if (angleUnknown && (name === 'Ascendant' || name === 'MC')) continue
     let aPt: PlanetBase | undefined
     let bPt: PlanetBase | undefined
     if (name === 'Ascendant') {

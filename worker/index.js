@@ -27,7 +27,10 @@ self.addEventListener('push', (event) => {
     body: payload.body || '',
     icon: '/icons/icon-192x192.png',
     badge: '/icons/icon-96x96.png',
-    tag: 'daily-fortune', // 같은 태그 알림은 교체 — 하루 1개만 유지
+    // 알림 종류별 tag — 같은 tag 만 서로 교체된다. payload.tag 가 없으면
+    // (레거시 데일리 운세) 'daily-fortune' 으로 본다. 큰날/윈백/테스트가
+    // 데일리 운세를 덮어쓰지 않도록 종류별로 분리.
+    tag: payload.tag || 'daily-fortune',
     data: { url: payload.url || DEFAULT_NOTIFICATION_URL },
   }
 

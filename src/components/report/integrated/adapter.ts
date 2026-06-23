@@ -72,7 +72,8 @@ const EL_KO_EN: Record<string, string> = {
   금: 'metal',
   수: 'water',
 }
-const elEn = (x: string | undefined) => (x ? (EL_KO_EN[x] ?? x.toLowerCase()) : 'wood')
+// 한글 오행 → 영문 키. 값이 없으면 가짜('wood')를 넣지 말고 null 을 흘린다.
+const elEn = (x: string | undefined | null) => (x ? (EL_KO_EN[x] ?? x.toLowerCase()) : null)
 
 const PLANET_GLYPH: Record<string, string> = {
   Sun: '☉',
@@ -93,6 +94,9 @@ const PLANET_GLYPH: Record<string, string> = {
 const PLANET_KO: Record<string, string> = {
   ...PLANET_KO_BASE,
   'North Node': '북교점',
+  'True Node': '북교점',
+  'Mean Node': '북교점',
+  'South Node': '남교점',
   Node: '북교점',
   Chiron: '카이런',
   Lilith: '릴리스',
@@ -144,6 +148,19 @@ interface AnyCtx {
   astro?: any
 }
 
+// 격국 신뢰도 메타 — reportTypes.ReportData 에는 없는 보조 정보라 어댑터에서
+// 별도 채널로 흘려 §02 카드가 fallback/medium 일 때 헤딩을 약화하도록 한다.
+export interface ReportGeokgukMeta {
+  confidence?: 'high' | 'medium' | 'low'
+  fallback: boolean
+}
+// ReportData 에 얹는 어댑터 전용 확장 필드(타입은 reportTypes 가 SSOT 라 손대지
+// 않고 옵셔널로만 덧붙임). IntegratedReport 가 옵셔널로 읽는다.
+export interface ReportDataExtras {
+  geokgukMeta?: ReportGeokgukMeta
+  sibsinCategoryCount?: Record<string, number>
+}
+
 // 관계 detail 문자열에서 천간·지지 한자만 추출. 예: "亥-寅 육합" → "亥寅",
 // "亥·卯·未 삼합(목)" → "亥卯未". 카테고리 한글어(육합/삼합/충…)는 한자가
 // 아니므로 자동 제외됨.
@@ -192,11 +209,34 @@ const RELATION_CATEGORIES = new Set<string>([
 ])
 
 /** NatalContext → ReportData (chart.zip 뷰모델). */
-export function natalToReportData(ctx: AnyCtx, lang: 'ko' | 'en' = 'ko'): ReportData {
+export function natalToReportData(
+  ctx: AnyCtx,
+  lang: 'ko' | 'en' = 'ko'
+): ReportData & ReportDataExtras {
   const S = ctx.saju ?? {}
   const A = ctx.astro ?? {}
   const inp = ctx.input ?? {}
   const adv = S.analyses ?? {}
+
+  // 격국 신뢰도/폴백 플래그 — §02 카드가 "확정 정격"으로 단정하지 않도록 전달.
+  // adv.geokguk(determineGeokgukAdvanced) 가 SSOT. 월령 본기 추정(fallback:true,
+  // confidence:medium)은 카드에서 "추정 격국"으로 약화해 표시한다(CONVENTIONS §9).
+  const geokgukMeta: ReportGeokgukMeta | undefined = adv.geokguk
+    ? {
+        confidence:
+          adv.geokguk.confidence === 'high' ||
+          adv.geokguk.confidence === 'medium' ||
+          adv.geokguk.confidence === 'low'
+            ? adv.geokguk.confidence
+            : undefined,
+        fallback: !!adv.geokguk.fallback,
+      }
+    : undefined
+  // 십신 카테고리 카운트(비겁/식상/재성/관성/인성) — "주도 십성" 카드의 우세/부족
+  // 상태를 일간 강약(S.strength)이 아니라 실제 카테고리 개수로 산출하기 위해 전달.
+  const sibsinCategoryCount: Record<string, number> | undefined = adv.sibsin?.categoryCount
+    ? { ...adv.sibsin.categoryCount }
+    : undefined
 
   const date = `${String(inp.year).padStart(4, '0')}-${String(inp.month).padStart(2, '0')}-${String(inp.date).padStart(2, '0')}`
   const birthTimeUnknown = !!inp.birthTimeUnknown
@@ -213,15 +253,20 @@ export function natalToReportData(ctx: AnyCtx, lang: 'ko' | 'en' = 'ko'): Report
     isDay = false
   ): ReportPillar => {
     const jj = p?.jijanggan ?? {}
-    const slots = [jj.chogi, jj.junggi, jj.jeonggi].filter(Boolean)
+    // 본기(정기)·중기·여기(초기) 순. 깨진 분일수(days) 대신 '층'을 의미값으로 노출.
+    const slots = [
+      jj.jeonggi ? { sl: jj.jeonggi, layer: 'main' as const } : null,
+      jj.junggi ? { sl: jj.junggi, layer: 'mid' as const } : null,
+      jj.chogi ? { sl: jj.chogi, layer: 'sub' as const } : null,
+    ].filter((x): x is { sl: any; layer: 'main' | 'mid' | 'sub' } => !!x)
     return {
       stem: p?.heavenlyStem?.name ?? '',
       branch: p?.earthlyBranch?.name ?? '',
       sibsinStem: isDay ? '日干' : (p?.heavenlyStem?.sibsin ?? ''),
       sibsinBranch: p?.earthlyBranch?.sibsin ?? '',
-      jijanggan: slots.map((sl: any) => ({
+      jijanggan: slots.map(({ sl, layer }) => ({
         g: sl.name ?? sl.stem ?? sl.g ?? '',
-        d: sl.days ?? sl.weight ?? sl.d ?? 0,
+        layer,
       })),
       twelveStage: stages?.[key] ?? '',
       isDay,
@@ -263,6 +308,9 @@ export function natalToReportData(ctx: AnyCtx, lang: 'ko' | 'en' = 'ko'): Report
     current: !!d.current,
   }))
 
+  // 출생시각/출생지 미상 → 하우스·ASC·MC 는 자정/서울 폴백이라 신뢰 불가. _chart 에
+  // 값이 있어도 리포트로 내보내지 않는다(0/null 로 비움). 행성 sign 은 유지(시각 의존 미미).
+  const placeUnreliable = !!A.placeUnreliable
   // 점성 행성
   const planets = (A.chart?.planets ?? A.planets ?? []).map((p: any) => ({
     name: p.name,
@@ -271,7 +319,7 @@ export function natalToReportData(ctx: AnyCtx, lang: 'ko' | 'en' = 'ko'): Report
     lon: p.longitude ?? p.lon ?? 0,
     sign: toAbbr(p.sign),
     deg: fmtDeg(p.longitude ?? p.lon),
-    house: p.house ?? 0,
+    house: placeUnreliable ? 0 : (p.house ?? 0),
     retro: typeof p.speed === 'number' ? p.speed < 0 : !!p.retrograde,
     speed: p.speed ?? 0,
   }))
@@ -284,11 +332,13 @@ export function natalToReportData(ctx: AnyCtx, lang: 'ko' | 'en' = 'ko'): Report
     deg: fmtDeg(p.longitude ?? p.lon),
     house: p.house ?? 0,
   }))
-  const houses = (A.chart?.houses ?? A.houses ?? []).map((h: any, i: number) => ({
-    i: h.index ?? h.i ?? i + 1,
-    cusp: h.cusp ?? 0,
-    sign: toAbbr(h.sign),
-  }))
+  const houses = placeUnreliable
+    ? []
+    : (A.chart?.houses ?? A.houses ?? []).map((h: any, i: number) => ({
+        i: h.index ?? h.i ?? i + 1,
+        cusp: h.cusp ?? 0,
+        sign: toAbbr(h.sign),
+      }))
   // 본명 aspects — facts.hellenistic 가 major+minor 다 줌 (~30+ hits). 14 cap
   // 풀어 24 로 (UI 가 슬라이더/접고 펼침으로 처리). orb 작은 순.
   const aspects = (A.natalAspects ?? A.aspects ?? [])
@@ -336,8 +386,9 @@ export function natalToReportData(ctx: AnyCtx, lang: 'ko' | 'en' = 'ko'): Report
       }
     : null
 
-  const asc = A.chart?.ascendant ?? A.ascendant ?? {}
-  const mc = A.chart?.mc ?? A.mc ?? {}
+  // placeUnreliable 면 _chart 의 폴백 ASC/MC 를 무시하고 빈 값 → 아래에서 null 로.
+  const asc = placeUnreliable ? {} : (A.chart?.ascendant ?? A.ascendant ?? {})
+  const mc = placeUnreliable ? {} : (A.chart?.mc ?? A.mc ?? {})
 
   return {
     input: {
@@ -359,8 +410,10 @@ export function natalToReportData(ctx: AnyCtx, lang: 'ko' | 'en' = 'ko'): Report
       geokguk: adv.geokguk?.primary ?? S.geokguk ?? '미정',
       yongsin: {
         primary: elEn(S.yongsin?.primary),
-        secondary: S.yongsin?.secondary ? elEn(S.yongsin.secondary) : undefined,
-        avoid: (S.yongsin?.avoid ?? []).map(elEn),
+        secondary: (S.yongsin?.secondary ? elEn(S.yongsin.secondary) : undefined) ?? undefined,
+        avoid: (S.yongsin?.avoid ?? [])
+          .map((e: string | undefined | null) => elEn(e))
+          .filter((x: string | null): x is string => !!x),
       },
       pillars: {
         hour: mapPillar(pillars.time, stages, 'time'),
@@ -375,21 +428,27 @@ export function natalToReportData(ctx: AnyCtx, lang: 'ko' | 'en' = 'ko'): Report
       // 회색 3 셀 해소 (RAW_DISTRIBUTION v5.4 — buildReportContext 가 흘려줌).
       rooted: typeof S.rooted === 'boolean' ? S.rooted : undefined,
       gongmang: Array.isArray(S.gongmang) ? S.gongmang : undefined,
-      johuYongsin: S.johuYongsin
-        ? { primary: elEn(S.johuYongsin.primaryYongsin), rating: S.johuYongsin.rating ?? 0 }
-        : null,
+      johuYongsin:
+        S.johuYongsin && elEn(S.johuYongsin.primaryYongsin)
+          ? {
+              primary: elEn(S.johuYongsin.primaryYongsin) as string,
+              rating: S.johuYongsin.rating ?? 0,
+            }
+          : null,
     },
     astro: {
       sect: A.sect ?? 'day',
       houseSystem: A.houseSystem ?? 'Placidus',
+      // placeUnreliable(출생시각/출생지 미상) 면 facts 가 ascendant/mc 를 null 로 비워 보낸다
+      // → 자정 폴백 각을 'Virgo'/'Gemini'/lon 0 으로 가짜로 채우지 않고 그대로 null 을 보존한다.
       ascendant: {
-        lon: asc.longitude ?? asc.lon ?? 0,
-        sign: SIGN_KO_FULL[asc.sign] ?? asc.sign ?? 'Virgo',
+        lon: asc.longitude ?? asc.lon ?? null,
+        sign: asc.sign ? (SIGN_KO_FULL[asc.sign] ?? asc.sign) : null,
         deg: fmtDeg(asc.longitude ?? asc.lon),
       },
       mc: {
-        lon: mc.longitude ?? mc.lon ?? 0,
-        sign: SIGN_KO_FULL[mc.sign] ?? mc.sign ?? 'Gemini',
+        lon: mc.longitude ?? mc.lon ?? null,
+        sign: mc.sign ? (SIGN_KO_FULL[mc.sign] ?? mc.sign) : null,
         deg: fmtDeg(mc.longitude ?? mc.lon),
       },
       planets,
@@ -400,6 +459,8 @@ export function natalToReportData(ctx: AnyCtx, lang: 'ko' | 'en' = 'ko'): Report
       lots,
       almuten,
     },
+    geokgukMeta,
+    sibsinCategoryCount,
   }
 }
 
@@ -418,6 +479,8 @@ export interface CrossRowOut {
   reason: string
   left?: string
   right?: string
+  /** 공망/카르마(결핍 축) — resonant 톤이라도 '잘 맞아요' 집계에서 제외하기 위한 표식. */
+  karmaAxis?: boolean
 }
 export function buildCrossRows(
   ctx: AnyCtx,
@@ -429,10 +492,13 @@ export function buildCrossRows(
   const planets = A.chart?.planets ?? A.planets ?? []
   const find = (n: string) => planets.find((p: any) => p.name === n)
   const dmEl = S.dayMaster?.element
+  // placeUnreliable(출생시각/출생지 미상) 면 ASC/MC/하우스 의존 신호를 전부 차단 —
+  // 자정/서울 폴백으로 만든 "그럴듯하지만 틀린" 사회역할·각도·angularity 누출 방지.
+  const placeUnreliable = !!A.placeUnreliable
   const sunSign = find('Sun')?.sign
   const moonSign = find('Moon')?.sign
-  const ascSign = (A.chart?.ascendant ?? A.ascendant)?.sign
-  const mcSign = (A.chart?.mc ?? A.mc)?.sign
+  const ascSign = placeUnreliable ? undefined : (A.chart?.ascendant ?? A.ascendant)?.sign
+  const mcSign = placeUnreliable ? undefined : (A.chart?.mc ?? A.mc)?.sign
   const details = adv.sibsin?.categoryCount
   const crossGender: 'male' | 'female' =
     (ctx.input as { gender?: string } | undefined)?.gender === 'female' ? 'female' : 'male'
@@ -452,7 +518,9 @@ export function buildCrossRows(
   }
   for (const p of planets) {
     if (!p?.name) continue
-    if (typeof p.house === 'number' && ANGLES.has(p.house)) emphasized.add(p.name)
+    // angularity(1/4/7/10 하우스) emphasis 는 하우스가 신뢰 가능할 때만 — 미상이면 skip.
+    if (!placeUnreliable && typeof p.house === 'number' && ANGLES.has(p.house))
+      emphasized.add(p.name)
     const dg = dignityIdx[p.name]
     if (dg?.domicile || dg?.exaltation) {
       emphasized.add(p.name)
@@ -660,6 +728,7 @@ export function buildCrossRows(
       reason: v.reason[lang],
       left: v.left?.[lang],
       right: v.right?.[lang],
+      karmaAxis: v.karmaAxis,
     }))
   return { synthesis: synth?.text[lang], rows }
 }

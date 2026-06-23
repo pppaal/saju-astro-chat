@@ -84,8 +84,23 @@ export const astrologyOptionsSchema = z.object({
 export const astrologyRequestSchema = z.object({
   date: dateSchema,
   time: timeSchema,
-  latitude: z.union([latitudeSchema, z.string().transform((val) => parseFloat(val))]),
-  longitude: z.union([longitudeSchema, z.string().transform((val) => parseFloat(val))]),
+  // 문자열로 와도 parseFloat 후 *반드시* 경계 스키마로 재검증(.pipe) — 직전엔
+  // 문자열 분기가 .min/.max·NaN 검사 없이 통과해 "99999"/"abc"(NaN) 좌표가
+  // Swiss Ephemeris 까지 흘러갔다.
+  latitude: z.union([
+    latitudeSchema,
+    z
+      .string()
+      .transform((val) => parseFloat(val))
+      .pipe(latitudeSchema),
+  ]),
+  longitude: z.union([
+    longitudeSchema,
+    z
+      .string()
+      .transform((val) => parseFloat(val))
+      .pipe(longitudeSchema),
+  ]),
   timeZone: timezoneSchema,
   locale: localeSchema.optional(),
   options: astrologyOptionsSchema.optional(),
@@ -553,24 +568,55 @@ const realtimeCounselorTurnSchema = z
   })
   .passthrough()
 
+// 출생/지오 필드는 사주·점성 엔진에 그대로 흘러가므로 *경계*를 잠근다 — 직전엔
+// passthrough 로 latitude:9999 / longitude:"x" / timezone:"garbage" 가 무검증으로
+// ensureCounselorContext 까지 갔다(이 라우트는 1 크레딧 과금 경로). 알 수 없는
+// 컨텍스트 필드는 계속 passthrough.
+// gender 는 라우트가 normalizeGender 로 관대히 처리(불명 → male 폴백)하므로 여기서
+// 잠그지 않고 passthrough — 잘못된 gender 는 엔진에 garbage 가 아니라 기본값으로
+// 간다. 실제 garbage-into-engine 위험인 좌표/tz/시각만 경계를 강제한다.
+const counselorBirthGeoFields = {
+  birthTime: timeSchema.optional(),
+  timezone: timezoneSchema.optional(),
+  userTimezone: timezoneSchema.optional(),
+  latitude: latitudeSchema.optional(),
+  longitude: longitudeSchema.optional(),
+}
+
+// 운명상담사 데이터 소스 토글 — 사주만/점성만/둘 다(체크박스). 누락 시 라우트가
+// resolveCounselorSources 로 둘 다로 폴백하므로 optional.
+const counselorSourcesSchema = z
+  .object({
+    saju: z.boolean().optional(),
+    astro: z.boolean().optional(),
+  })
+  .optional()
+
 export const counselorRealtimeRequestSchema = z
   .object({
     messages: z.array(realtimeCounselorTurnSchema).min(1),
     birthDate: z.string().min(1).max(64),
+    // 상담 대상 이름('다른 사람으로 보기' 시 그 사람 이름). 라우트가
+    // sanitizeDisplayName 으로 50자 cap + 정규화하므로 여기선 폭주만 차단.
+    name: z.string().max(200).optional(),
     // 라우트는 80자로 자르지만 입력은 여유 있게 — 길이만 abuse 방지 캡.
     turnId: z.string().max(200).optional(),
     // 첨부 파일 텍스트 — 라우트가 12,000자로 자르므로 여기선 폭주만 차단.
     cvText: z.string().max(200_000).optional(),
+    sources: counselorSourcesSchema,
+    ...counselorBirthGeoFields,
   })
   .passthrough()
 
 export type CounselorRealtimeRequestValidated = z.infer<typeof counselorRealtimeRequestSchema>
 
 // 워밍 라우트(/api/counselor/warm) — realtime 과 동일한 CounselorBirthInput
-// 을 받지만 LLM 호출·과금이 없어 잠그는 코어는 birthDate 타입뿐.
+// 을 받지만 LLM 호출·과금이 없어 잠그는 코어는 birthDate + 지오 경계.
 export const counselorWarmRequestSchema = z
   .object({
     birthDate: z.string().min(1).max(64),
+    sources: counselorSourcesSchema,
+    ...counselorBirthGeoFields,
   })
   .passthrough()
 

@@ -1,37 +1,27 @@
 /* ============================================================
-   DayTier (1일 24시) — destinypal 5-tier 최하단
-   day.jsx 88줄 포팅 + Phase 3 5신호 시각화 + HourBreakdown
-   ink build (베이지 hanji + 朱 ember + 藍 accent).
+   destinypal · DayTier — "정갈" Editorial Letterpress 만세력
+   ────────────────────────────────────────────────────────────
+   토큰은 styles/variables.module.css(.dpRoot)의 --dp-* 를 상속해 소비.
+   원칙: 여백·헤어라인·먹선. 페이지프레임/글로우/반원게이지 없음.
+   주사(ember)는 일진 인장 + 사주 신호에만 — 섹션마다 찍던 점은 제거.
    ============================================================ */
 
 .tierInner {
   position: relative;
-  width: min(1120px, 100%);
+  width: min(680px, 100%);
   margin: 0 auto;
-  padding: clamp(80px, 9vh, 120px) clamp(30px, 5vw, 64px) 170px;
+  padding: clamp(64px, 8vh, 104px) clamp(20px, 5vw, 40px) 132px;
   color: var(--dp-ink);
-  font-family: var(--dp-sans);
-}
-.tierInner::before {
-  content: '';
-  position: absolute;
-  left: clamp(12px, 2.2vw, 30px);
-  right: clamp(12px, 2.2vw, 30px);
-  top: clamp(54px, 6vh, 80px);
-  bottom: 92px;
-  border: 1px solid var(--dp-line);
-  box-shadow:
-    inset 0 0 0 3px var(--dp-bg),
-    inset 0 0 0 4px var(--dp-line-soft);
-  pointer-events: none;
-  z-index: -1;
+  font-family: var(--dp-serif-ko);
+  word-break: keep-all;
+  line-break: strict;
 }
 
-/* ---------- rise button ---------- */
+/* ---------- rise (zoom-out) ---------- */
 .rise {
   display: inline-flex;
   align-items: center;
-  gap: 9px;
+  gap: 8px;
   background: none;
   border: 0;
   color: var(--dp-ink-mute);
@@ -40,9 +30,9 @@
   font-size: 11px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  padding: 6px 4px;
-  transition: color 0.25s;
-  margin-bottom: 6px;
+  padding: 6px 2px;
+  margin-bottom: 8px;
+  transition: color 0.2s;
 }
 .rise:hover {
   color: var(--dp-ember);
@@ -60,432 +50,538 @@
 .eyebrow {
   font-family: var(--dp-mono);
   font-size: 11px;
-  letter-spacing: 0.22em;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--dp-ink-mute);
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 16px;
-}
-.eyebrow::before {
-  content: '';
-  width: 18px;
-  height: 1px;
-  background: var(--dp-ink-dim);
-}
-.eyebrowEmber {
-  color: var(--dp-ember);
-}
-.eyebrowEmber::before {
-  background: var(--dp-ember);
-}
-.eyebrowViolet::before {
-  background: var(--dp-violet);
+  margin-bottom: 6px;
 }
 
-/* ---------- head chips (보강) ---------- */
-.headChips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 14px;
+/* ---------- day hero (마음의 날씨) ---------- */
+.dayHead {
+  margin-top: 4px;
 }
-.statusChip {
+.heroRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+.heroMeta {
+  min-width: 0;
+  padding-top: 4px;
+}
+.heroLead {
+  font-size: 17px;
+  color: var(--dp-ink);
+  letter-spacing: 0.03em;
+  margin-bottom: 8px;
+  text-wrap: pretty;
+}
+.heroTone {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 6px 12px;
-  border-radius: 3px;
-  background: var(--dp-panel-2);
-  border: 1px solid var(--dp-line);
-  font-family: var(--dp-serif-ko);
-  font-size: 12px;
-  color: var(--dp-ink);
+  gap: 7px;
+  font-size: 13.5px;
+  color: var(--dp-tone-mixed);
 }
-.statusChip .kHan {
-  font-family: var(--dp-serif-ko);
-  font-weight: 700;
-  color: var(--dp-ember);
+.heroTone::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
 }
-.statusChip .kStatus {
-  font-family: var(--dp-mono);
-  font-size: 10px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-}
-.statusChip .kStatusOk {
+.heroTone[data-tone='positive'] {
   color: var(--dp-pos);
 }
-.statusChip .kStatusBad {
-  color: var(--dp-neg);
-}
-.statusChip .kStatusMid {
+.heroTone[data-tone='caution'] {
   color: var(--dp-ember);
 }
+/* 마음의 날씨 글리프 — 히어로 앞 톤 한눈에. */
+.weatherGlyph {
+  font-size: 40px;
+  line-height: 1;
+  flex: 0 0 auto;
+  margin-right: 2px;
+}
 
-.gongmangBanner {
-  margin-top: 12px;
-  padding: 9px 14px;
-  border-radius: 3px;
-  border: 1px solid rgba(108, 74, 115, 0.32);
-  background: rgba(108, 74, 115, 0.07);
+/* 세기 미터 — 숫자 점수 대신 막대 + 고정 단어(시안). */
+.strength {
+  margin-left: auto;
+  text-align: right;
+  padding-top: 8px;
+  flex: 0 0 auto;
+}
+.strengthBars {
   display: flex;
-  align-items: center;
-  gap: 12px;
+  gap: 3px;
+  justify-content: flex-end;
+}
+.strengthBar {
+  width: 6px;
+  height: 16px;
+  border-radius: 3px;
+  background: var(--dp-line);
+}
+.strengthOn {
+  background: var(--dp-pos);
+}
+.strengthWord {
+  font-family: var(--dp-serif-ko);
+  font-size: 11px;
+  color: var(--dp-ink-mute);
+  margin-top: 5px;
+}
+
+.oneline {
+  font-family: var(--dp-serif-ko);
+  font-size: 14.5px;
+  line-height: 1.7;
+  color: var(--dp-ink-dim);
+  margin: 16px 0 0;
+  padding-top: 16px;
+  border-top: 1px solid var(--dp-line-soft);
+  text-wrap: pretty;
+}
+
+/* ---------- 오늘 깊이 읽기 (합성 해석 문단) ---------- */
+.deepRead {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--dp-line-soft);
+}
+.deepReadLabel {
+  font-family: var(--dp-mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--dp-ink-mute);
+  margin-bottom: 8px;
+}
+.deepReadBody {
+  font-family: var(--dp-serif-ko);
+  font-size: 14.5px;
+  line-height: 1.78;
+  color: var(--dp-ink-dim);
+  text-wrap: pretty;
+}
+
+/* ---------- 자세한 신호 보기 (단 하나의 fold) ---------- */
+.fold {
+  margin-top: var(--dp-section);
+  border-top: 1px solid var(--dp-line-soft);
+  padding-top: 14px;
+}
+.foldSummary {
+  cursor: pointer;
+  font-family: var(--dp-mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--dp-ink-mute);
+  list-style: none;
+  user-select: none;
+  padding: 2px 0;
+}
+.foldSummary::-webkit-details-marker {
+  display: none;
+}
+.foldSummary::before {
+  content: '▸ ';
+  color: var(--dp-ink-faint);
+}
+.fold[open] .foldSummary::before {
+  content: '▾ ';
+}
+.foldBody {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin-top: 16px;
+}
+.foldBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.foldLabel {
+  font-family: var(--dp-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--dp-ink-faint);
+}
+/* 오늘의 기둥 — 한자 원자료 (fold 전용). */
+.chartRow {
+  display: flex;
+  align-items: baseline;
+  gap: 11px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--dp-line-soft);
+}
+.chartRow:last-child {
+  border-bottom: 0;
+}
+.chartHan {
+  flex: 0 0 auto;
+  font-family: var(--dp-serif);
+  font-weight: 500;
+  font-size: 24px;
+  line-height: 1;
+  color: var(--dp-ember);
+}
+.chartDesc {
+  font-family: var(--dp-serif-ko);
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--dp-ink-mute);
+}
+/* 시간대 하늘 — 상승궁/지배성 원자료 (fold 전용). */
+.skyList {
+  display: flex;
+  flex-direction: column;
+}
+.skyRow {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--dp-line-soft);
+}
+.skyRow:last-child {
+  border-bottom: 0;
+}
+.skyWhen {
+  flex: 0 0 auto;
+  font-family: var(--dp-mono);
+  font-size: 11px;
+  color: var(--dp-ink-mute);
+}
+.skyBody {
+  font-family: var(--dp-serif-ko);
+  font-size: 12.5px;
+  color: var(--dp-ink-dim);
+}
+.natalBody {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.natalBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.natalRow {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--dp-line-soft);
+}
+.natalRow:last-child {
+  border-bottom: 0;
+}
+.natalPos,
+.natalNeg {
+  font-family: var(--dp-serif-ko);
+  font-size: 13.5px;
+  color: var(--dp-ink);
+}
+.natalPos {
+  border-left: 2px solid var(--dp-pos);
+  padding-left: 9px;
+}
+.natalNeg {
+  border-left: 2px solid var(--dp-ember);
+  padding-left: 9px;
+}
+.natalHan {
+  font-family: var(--dp-serif);
+  color: var(--dp-ink-mute);
+  font-size: 12px;
+}
+.natalDesc {
+  font-family: var(--dp-serif-ko);
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--dp-ink-mute);
+  padding-left: 11px;
+}
+.natalChips {
+  display: flex;
   flex-wrap: wrap;
+  gap: 7px;
+}
+.natalChip {
   font-family: var(--dp-serif-ko);
   font-size: 12px;
-  color: var(--dp-violet);
+  color: var(--dp-ink-dim);
+  border: 1px solid var(--dp-line);
+  border-radius: 4px;
+  padding: 4px 10px;
+  background: var(--dp-panel);
+}
+
+/* ---------- 지금 일어나는 일 ---------- */
+.happening {
+  margin-top: var(--dp-section);
+}
+.happeningList {
+  list-style: none;
+  margin: 2px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+.happeningItem {
+  padding: 10px 0;
+  border-bottom: 1px solid var(--dp-line-soft);
+  font-family: var(--dp-serif-ko);
+  font-size: 14.5px;
+  line-height: 1.55;
+  color: var(--dp-ink-dim);
+  text-wrap: pretty;
+}
+.happeningItem:last-child {
+  border-bottom: 0;
+}
+
+/* ---------- 이렇게 해보세요 (DO / 살살 칩) ---------- */
+.doSection {
+  margin-top: var(--dp-section);
+}
+.doRow {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 2px;
+}
+.doChip,
+.dontChip {
+  flex: 1 1 0;
+  min-width: 140px;
+  font-family: var(--dp-sans);
+  font-size: 13px;
+  line-height: 1.4;
+  border: 1px solid var(--dp-line);
+  border-radius: var(--dp-r);
+  padding: 11px 13px;
+  background: var(--dp-panel);
+}
+.doChip {
+  border-top: 2px solid var(--dp-pos);
+}
+.dontChip {
+  border-top: 2px solid var(--dp-tone-mixed);
+}
+
+/* ---------- 이렇게 해보세요 — do/avoid/tip 행동 처방 ---------- */
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.actionGroup {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  border: 1px solid var(--dp-line);
+  border-radius: var(--dp-r-lg);
+  padding: 12px 13px;
+  background: var(--dp-panel);
+}
+.actionTag {
+  flex-shrink: 0;
+  font-family: var(--dp-sans);
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  margin-top: 1px;
+}
+.actionDo {
+  color: #fff;
+  background: var(--dp-pos);
+}
+.actionAvoid {
+  color: #fff;
+  background: var(--dp-tone-mixed);
+}
+.actionList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+}
+.actionItem {
+  position: relative;
+  font-family: var(--dp-serif);
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--dp-ink);
+  padding-left: 13px;
+  word-break: keep-all;
+}
+.actionItem::before {
+  content: '·';
+  position: absolute;
+  left: 2px;
+  color: var(--dp-ink-faint);
+}
+.actionTip {
+  display: flex;
+  gap: 7px;
+  align-items: baseline;
+  margin: 0;
+  padding: 2px 2px 0;
+  font-family: var(--dp-serif);
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--dp-ink-mute);
+  word-break: keep-all;
+}
+.actionTipMark {
+  flex-shrink: 0;
+}
+
+/* ---------- gongmang / voc banners ---------- */
+.gongmangBanner {
+  margin-top: 16px;
+  padding: 10px 14px;
+  border: 1px solid rgba(108, 74, 115, 0.3);
+  border-left: 3px solid var(--dp-violet);
+  border-radius: var(--dp-r);
+  background: rgba(108, 74, 115, 0.05);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  font-family: var(--dp-serif-ko);
+  font-size: 12.5px;
+  color: var(--dp-ink-dim);
 }
 .gongmangBanner .gmHead {
   font-family: var(--dp-mono);
-  font-size: 9.5px;
+  font-size: 10px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--dp-violet);
 }
 .gongmangBanner .gmBranch {
   font-family: var(--dp-serif-ko);
-  font-weight: 700;
+  font-weight: 600;
   font-size: 14px;
   color: var(--dp-violet);
-  padding: 2px 8px;
-  border: 1px solid rgba(108, 74, 115, 0.4);
-  border-radius: 2px;
+  padding: 1px 8px;
+  border: 1px solid rgba(108, 74, 115, 0.36);
+  border-radius: 3px;
 }
 .gongmangBanner .gmNote {
-  color: var(--dp-ink-dim);
+  color: var(--dp-ink-mute);
 }
 
 .vocBanner {
-  margin-top: 10px;
-  padding: 8px 14px;
-  border-radius: 3px;
+  margin-top: 12px;
+  padding: 10px 14px;
   border: 1px solid var(--dp-line);
-  background: rgba(130, 116, 92, 0.08);
+  border-left: 3px solid var(--dp-ink-faint);
+  border-radius: var(--dp-r);
+  background: var(--dp-panel);
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   flex-wrap: wrap;
-  font-family: var(--dp-mono);
-  font-size: 11px;
+  font-family: var(--dp-sans);
+  font-size: 12px;
   color: var(--dp-ink-mute);
-  letter-spacing: 0.04em;
 }
 .vocBanner .vocLabel {
   font-family: var(--dp-mono);
-  font-size: 9.5px;
-  letter-spacing: 0.16em;
+  font-size: 10px;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--dp-ink-dim);
 }
 .vocBanner .vocTime {
+  font-family: var(--dp-mono);
   color: var(--dp-ink);
 }
 
-/* ---------- day head ---------- */
-.dayHead {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 28px;
-  align-items: center;
-  margin-top: 16px;
-}
-@media (max-width: 680px) {
-  .dayHead {
-    grid-template-columns: 1fr;
-    gap: 18px;
-  }
-}
-.iljinBig {
-  display: flex;
-  align-items: center;
-  gap: 18px;
-}
-.iljinBig .han {
-  font-family: var(--dp-serif-ko);
-  font-weight: 700;
-  font-size: 72px;
-  line-height: 0.9;
-  color: #f6ecd9;
-  background: var(--dp-ember);
-  padding: 10px 16px;
-  border-radius: 4px;
-  box-shadow: 0 10px 26px -14px rgba(176, 58, 34, 0.7);
-}
-.iljinBig .meta .kr {
-  font-family: var(--dp-mono);
-  font-size: 14px;
-  color: var(--dp-ink);
-  letter-spacing: 0.08em;
-}
-.iljinBig .meta .en {
-  font-family: var(--dp-mono);
-  font-size: 11px;
-  color: var(--dp-ink-faint);
-  font-style: italic;
-}
-.iljinBig .meta .ss {
-  display: inline-block;
-  margin-top: 8px;
-  font-family: var(--dp-serif-ko);
-  font-size: 11px;
-  color: var(--dp-ink-dim);
-  border: 1px solid var(--dp-line);
-  border-radius: 3px;
-  padding: 3px 10px;
-}
-
-.dayScore {
-  display: flex;
-  align-items: center;
-  gap: 18px;
-}
-.oneline {
-  font-family: var(--dp-serif-ko);
-  font-style: italic;
-  font-size: clamp(16px, 2.4vw, 21px);
-  line-height: 1.5;
-  color: var(--dp-ink);
-  flex: 1;
-  text-wrap: pretty;
-}
-
-/* ---------- split panel ---------- */
-.split {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 18px;
-  margin-top: 30px;
-}
-@media (max-width: 760px) {
-  .split {
-    grid-template-columns: 1fr;
-  }
-}
-.panel {
-  background: var(--dp-panel);
-  border: 1px solid var(--dp-line);
-  border-radius: var(--dp-r);
-  padding: 20px;
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.4) inset;
-}
-.panel.saju {
-  border-left: 3px solid var(--dp-ember);
-}
-.panel.astro {
-  border-left: 3px solid var(--dp-accent);
-}
-
-/* ---------- theme bars ---------- */
-.themebars {
-  display: flex;
-  flex-direction: column;
-  gap: 9px;
-}
-.tbRow {
-  display: grid;
-  grid-template-columns: 64px 1fr 30px;
-  align-items: center;
-  gap: 11px;
-}
-.tbRow .tbLbl {
-  font-family: var(--dp-mono);
-  font-size: 11px;
-  color: var(--dp-ink-dim);
-  letter-spacing: 0.03em;
-}
-.tbTrack {
-  height: 5px;
-  border-radius: 0;
-  background: rgba(58, 46, 28, 0.12);
-  overflow: hidden;
-  position: relative;
-}
-.tbFill {
-  height: 100%;
-  border-radius: 0;
-}
-.tbFillWarm {
-  background: linear-gradient(90deg, rgba(217, 168, 74, 0.5), var(--dp-ember));
-  box-shadow: 0 0 10px var(--dp-ember-glow);
-}
-.tbFillCool {
-  background: linear-gradient(90deg, var(--dp-accent-deep), var(--dp-accent));
-  box-shadow: 0 0 10px var(--dp-accent-glow);
-}
-.tbRow .tbVal {
-  font-family: var(--dp-mono);
-  font-size: 11px;
-  color: var(--dp-ink-mute);
-  text-align: right;
-}
-
-/* ---------- transit row ---------- */
-.transitRow {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  margin-top: 0;
-}
-.transit {
-  display: flex;
-  align-items: center;
-  gap: 11px;
-  padding: 11px 14px;
-  border-radius: 4px;
-  background: var(--dp-panel);
-  border: 1px solid var(--dp-line);
-}
-.transit.outer {
-  border-color: rgba(108, 74, 115, 0.32);
-  background: rgba(108, 74, 115, 0.06);
-}
-.transit .g {
-  font-size: 20px;
-  color: var(--dp-accent);
-  width: 26px;
-  text-align: center;
-}
-.transit.outer .g {
-  color: var(--dp-violet);
-}
-.transit .tt .a {
-  font-family: var(--dp-serif-ko);
-  font-size: 12.5px;
-  color: var(--dp-ink);
-  line-height: 1.4;
-}
-.transit .tt .aTarget {
-  color: var(--dp-ink-mute);
-}
-.transit .tt .s {
-  font-family: var(--dp-mono);
-  font-size: 10px;
-  color: var(--dp-ink-mute);
-  margin-top: 3px;
-}
-
-/* ---------- hr ---------- */
-.hr {
-  height: 1px;
-  background: var(--dp-line-soft);
-  border: 0;
-  margin: 18px 0;
-}
-
-/* ---------- shinsal pills ---------- */
-.shinsalRow {
-  display: flex;
-  gap: 9px;
-  flex-wrap: wrap;
-  margin-top: 0;
-}
-.ssPill {
-  font-family: var(--dp-serif-ko);
-  font-size: 12px;
-  color: var(--dp-violet);
-  border: 1px solid rgba(108, 74, 115, 0.4);
-  background: rgba(108, 74, 115, 0.07);
-  border-radius: 3px;
-  padding: 5px 13px;
-}
-
-.layerTag {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  font-family: var(--dp-mono);
-  font-size: 10px;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--dp-ink-mute);
-  margin-bottom: 8px;
-}
-
-/* ---------- section ---------- */
-.block {
-  margin-top: 40px;
-}
-.blockSm {
-  margin-top: 26px;
-}
 .secHead {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  gap: 14px;
+  gap: 12px;
   flex-wrap: wrap;
-  margin-bottom: 4px;
+  margin-bottom: 12px;
 }
 .secTitle {
-  font-family: var(--dp-serif-ko);
-  font-weight: 700;
-  font-size: clamp(20px, 3vw, 27px);
-  color: var(--dp-ink);
-  margin: 0;
-  letter-spacing: -0.01em;
-}
-.tiny {
   font-family: var(--dp-mono);
-  font-size: 10.5px;
-  letter-spacing: 0.04em;
-  color: var(--dp-ink-faint);
-}
-
-/* ---------- signal stream ---------- */
-.signalStream {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-  margin-top: 10px;
-}
-.sig {
-  display: grid;
-  grid-template-columns: 132px 1fr auto;
-  align-items: center;
-  gap: 14px;
-  padding: 11px 4px;
-  border-bottom: 1px solid var(--dp-line-soft);
-}
-.sig .cat {
-  font-family: var(--dp-mono);
-  font-size: 9.5px;
-  letter-spacing: 0.04em;
+  font-weight: 400;
+  font-size: 11px;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
+  color: var(--dp-ink-mute);
+  margin: 0;
 }
-.catSaju {
-  color: var(--dp-ember-2);
-}
-.catAstro {
-  color: var(--dp-accent-2);
-}
-.catCross {
-  color: var(--dp-violet-2);
-}
-.catNeutral {
-  color: var(--dp-ink-faint);
+.secNote {
+  font-family: var(--dp-sans);
+  font-size: 11.5px;
+  color: var(--dp-ink-mute);
+  letter-spacing: 0.01em;
 }
 
-.sig .body .lb {
+/* ---------- 무난한 날 안내 (지금 일어나는 일 비었을 때) ---------- */
+.whyMuted {
   font-family: var(--dp-serif-ko);
   font-size: 13.5px;
-  color: var(--dp-ink);
+  color: var(--dp-ink-mute);
+  line-height: 1.5;
+  margin: 2px 0 0;
 }
-.sig .body .rm {
+
+/* ---------- evidence rows (fold 안 신호 근거) ---------- */
+.evList {
+  display: flex;
+  flex-direction: column;
+  margin-top: 8px;
+}
+.evRow {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--dp-line-soft);
+  font-family: var(--dp-sans);
+  font-size: 12.5px;
+}
+.evSrc {
+  flex: 0 0 auto;
+  font-family: var(--dp-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.06em;
+  color: var(--dp-ink-mute);
+  border: 1px solid var(--dp-line);
+  border-radius: 3px;
+  padding: 1px 6px;
+}
+.evLabel {
+  flex: 1;
+  color: var(--dp-ink-dim);
+  word-break: keep-all;
+}
+.evAspect {
+  color: var(--dp-ink-mute);
+}
+.evStrength {
+  flex: 0 0 auto;
   font-family: var(--dp-mono);
   font-size: 10px;
-  color: var(--dp-ink-faint);
-  font-style: italic;
-}
-.sigMore {
-  font-family: var(--dp-mono);
-  font-size: 11px;
   color: var(--dp-ink-mute);
-  text-align: center;
-  padding: 14px;
-  letter-spacing: 0.05em;
 }
 
 /* ---------- polarity chip ---------- */
@@ -500,639 +596,125 @@
 .polPos {
   color: var(--dp-pos);
   border-color: rgba(47, 125, 91, 0.45);
-  background: rgba(47, 125, 91, 0.08);
 }
 .polNeg {
   color: var(--dp-neg);
   border-color: rgba(176, 58, 34, 0.4);
-  background: rgba(176, 58, 34, 0.07);
 }
 .polNeu {
   color: var(--dp-neu);
   border-color: var(--dp-line);
 }
 
-/* ---------- score dial ---------- */
-.scoreDial {
-  position: relative;
-  width: 96px;
-  height: 96px;
-  flex: none;
-}
-.scoreDial .sdNum {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-}
-.scoreDial .sdNum b {
-  font-family: var(--dp-serif-ko);
-  font-weight: 700;
-  font-size: 30px;
-  color: var(--dp-ink);
-  line-height: 1;
-}
-.scoreDial .sdNum span {
-  font-family: var(--dp-mono);
-  font-size: 8.5px;
-  letter-spacing: 0.16em;
-  color: var(--dp-ink-mute);
-  margin-top: 3px;
-}
-
-/* ============================================================
-   Phase 3 — CrossActivationCard
-   ============================================================ */
-.crossGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 12px;
-  margin-top: 12px;
-}
+/* ---------- 사주 × 별자리 교차 카드 ---------- */
 .crossCard {
-  padding: 14px 16px;
-  border-radius: 4px;
-  background: var(--dp-panel);
-  border: 1px solid var(--dp-line);
-  border-left: 3px solid var(--dp-violet);
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+  margin-top: var(--dp-section);
+}
+.crossRow {
+  padding: 13px 0;
+  border-bottom: 1px solid var(--dp-line-soft);
+}
+.crossRow:last-of-type {
+  border-bottom: 0;
 }
 .crossPair {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 9px;
+  margin-bottom: 6px;
   flex-wrap: wrap;
+}
+.crossSaju {
   font-family: var(--dp-serif-ko);
-  font-size: 12.5px;
-  color: var(--dp-ink);
+  font-size: 13px;
+  color: var(--dp-ember-2);
+  background: rgba(176, 58, 34, 0.08);
+  border-radius: 4px;
+  padding: 3px 9px;
 }
-.crossPair .pSaju {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 4px;
-}
-.crossPair .pSaju::before {
-  content: '◆';
-  font-size: 8px;
-  color: var(--dp-ember);
-  margin-right: 2px;
-}
-.crossPair .pAstro {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 4px;
-}
-.crossPair .pAstro::before {
-  content: '✦';
-  font-size: 9px;
+.crossAstro {
+  font-family: var(--dp-serif-ko);
+  font-size: 13px;
   color: var(--dp-accent);
-  margin-right: 2px;
+  background: rgba(52, 64, 111, 0.08);
+  border-radius: 4px;
+  padding: 3px 9px;
 }
-.crossPair .pArrow {
-  color: var(--dp-ink-faint);
-  font-family: var(--dp-mono);
-  font-size: 11px;
+.crossArrowPos {
+  color: var(--dp-pos);
+  font-weight: 700;
+}
+.crossArrowNeg {
+  color: var(--dp-ember);
+  font-weight: 700;
 }
 .crossMeaning {
   font-family: var(--dp-serif-ko);
-  font-size: 12.5px;
+  font-size: 13.5px;
+  line-height: 1.5;
   color: var(--dp-ink-dim);
-  line-height: 1.55;
 }
 .crossFoot {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  justify-content: space-between;
-  margin-top: 2px;
-}
-.crossWeight {
   font-family: var(--dp-mono);
-  font-size: 9.5px;
-  color: var(--dp-ink-mute);
-  letter-spacing: 0.06em;
-}
-
-/* ============================================================
-   Phase 3 — AppliedPatternBadge
-   ============================================================ */
-.appliedRow {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 12px;
-}
-.appliedBadge {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  padding: 9px 14px;
-  border-radius: 3px;
-  background: var(--dp-panel);
-  border: 1px solid var(--dp-line);
-  font-family: var(--dp-serif-ko);
-}
-.appliedBadge.polPosBg {
-  border-color: rgba(47, 125, 91, 0.36);
-  background: rgba(47, 125, 91, 0.06);
-}
-.appliedBadge.polNegBg {
-  border-color: rgba(176, 58, 34, 0.36);
-  background: rgba(176, 58, 34, 0.05);
-}
-.appliedHan {
-  font-family: var(--dp-serif-ko);
-  font-weight: 700;
-  font-size: 16px;
-  color: var(--dp-ember);
-  letter-spacing: 0.02em;
-}
-.appliedKo {
-  font-family: var(--dp-serif-ko);
-  font-size: 12px;
-  color: var(--dp-ink);
-}
-.appliedBody {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-/* ============================================================
-   Phase 3 — JijangganChips (3층)
-   ============================================================ */
-.jijangganRow {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin-top: 10px;
-}
-.jjChip {
-  display: inline-flex;
-  align-items: center;
-  gap: 9px;
-  padding: 8px 12px;
-  border-radius: 3px;
-  background: var(--dp-panel);
-  border: 1px solid var(--dp-line);
-}
-.jjChip.jjMain {
-  border-color: rgba(176, 58, 34, 0.45);
-  background: rgba(176, 58, 34, 0.06);
-  box-shadow: 0 4px 12px -8px rgba(176, 58, 34, 0.45);
-}
-.jjLayer {
-  font-family: var(--dp-mono);
-  font-size: 9.5px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--dp-ink-mute);
-  padding: 2px 6px;
-  border-radius: 2px;
-  border: 1px solid var(--dp-line);
-}
-.jjChip.jjMain .jjLayer {
-  color: var(--dp-ember);
-  border-color: rgba(176, 58, 34, 0.4);
-}
-.jjStem {
-  font-family: var(--dp-serif-ko);
-  font-weight: 700;
-  font-size: 18px;
-  color: var(--dp-ember-2);
-}
-.jjMeta {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-}
-.jjSibsin {
-  font-family: var(--dp-serif-ko);
-  font-size: 12px;
-  color: var(--dp-ink);
-}
-.jjEl {
-  font-family: var(--dp-mono);
-  font-size: 9.5px;
-  color: var(--dp-ink-mute);
-  letter-spacing: 0.04em;
-}
-
-/* ============================================================
-   Phase 3 — TwelveStageMatrix (본명 4기둥 × 일진 지지)
-   ============================================================ */
-.tsMatrix {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
-  margin-top: 10px;
-}
-@media (max-width: 560px) {
-  .tsMatrix {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-.tsCell {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  padding: 10px 8px;
-  border-radius: 3px;
-  background: var(--dp-panel);
-  border: 1px solid var(--dp-line);
-}
-.tsPillar {
-  font-family: var(--dp-mono);
-  font-size: 9.5px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--dp-ink-mute);
-}
-.tsStage {
-  font-family: var(--dp-serif-ko);
-  font-weight: 700;
-  font-size: 15px;
-  color: var(--dp-ink);
-}
-.tsBranch {
-  font-family: var(--dp-mono);
-  font-size: 10px;
+  font-size: 10.5px;
+  letter-spacing: 0.03em;
   color: var(--dp-ink-faint);
-}
-
-/* ============================================================
-   Phase 3 — FixedStarRow / ArabicLotRow
-   ============================================================ */
-.starRow {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 8px;
-}
-.starChip {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  padding: 6px 11px;
-  border-radius: 3px;
-  border: 1px solid var(--dp-line);
-  background: var(--dp-panel);
-  font-family: var(--dp-serif-ko);
-  font-size: 12px;
-  color: var(--dp-ink);
-}
-.starChip.fixed {
-  border-color: rgba(217, 168, 74, 0.4);
-  background: rgba(217, 168, 74, 0.07);
-}
-.starChip.lot {
-  border-color: rgba(79, 93, 150, 0.4);
-  background: rgba(79, 93, 150, 0.07);
-}
-.starGlyph {
-  font-size: 13px;
-}
-.starChip.fixed .starGlyph {
-  color: var(--dp-ember);
-}
-.starChip.lot .starGlyph {
-  color: var(--dp-accent-2);
-}
-
-/* ============================================================
-   HourBreakdown — 24시 (子~亥)
-   ============================================================ */
-.hourGrid {
-  display: grid;
-  grid-template-columns: repeat(12, 1fr);
-  gap: 5px;
   margin-top: 12px;
 }
-@media (max-width: 760px) {
-  .hourGrid {
-    grid-template-columns: repeat(6, 1fr);
-  }
+
+/* ---------- 타이밍 (이달 흐름 + 다가오는 며칠) ---------- */
+.flowWrap {
+  margin-top: var(--dp-section);
 }
-.hourCell {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 9px 4px 10px;
-  border-radius: 3px;
-  border: 1px solid var(--dp-line-soft);
-  background: var(--dp-panel);
-  min-height: 64px;
-  overflow: hidden;
-}
-.hourCell .hourGlow {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  border-radius: 3px;
-}
-.hourCell .hourBranch {
-  font-family: var(--dp-serif-ko);
-  font-weight: 700;
-  font-size: 15px;
-  color: var(--dp-ink);
-  position: relative;
-  z-index: 2;
-}
-.hourCell .hourLabel {
+.flowSubHead {
   font-family: var(--dp-mono);
-  font-size: 9px;
+  font-size: 11px;
+  letter-spacing: 0.06em;
   color: var(--dp-ink-mute);
-  letter-spacing: 0.04em;
-  margin-top: 2px;
-  position: relative;
-  z-index: 2;
-}
-.hourCell .hourScore {
-  font-family: var(--dp-mono);
-  font-size: 10px;
-  color: var(--dp-ink-dim);
-  margin-top: 3px;
-  position: relative;
-  z-index: 2;
-}
-.hourCell .hourDomain {
-  font-family: var(--dp-serif-ko);
-  font-size: 10px;
-  color: var(--dp-ink-mute);
-  margin-top: 2px;
-  position: relative;
-  z-index: 2;
-  text-align: center;
-}
-.hourCell.hourBest {
-  border-color: rgba(47, 125, 91, 0.42);
-}
-.hourCell.hourBest .hourGlow {
-  background: radial-gradient(circle at 50% 60%, rgba(47, 125, 91, 0.18), transparent 70%);
-}
-.hourCell.hourBest .hourScore {
-  color: var(--dp-pos);
-}
-.hourCell.hourAvoid {
-  border-color: rgba(176, 58, 34, 0.42);
-}
-.hourCell.hourAvoid .hourGlow {
-  background: radial-gradient(circle at 50% 60%, rgba(176, 58, 34, 0.16), transparent 70%);
-}
-.hourCell.hourAvoid .hourScore {
-  color: var(--dp-neg);
-}
-.hourCell.hourMid .hourGlow {
-  background: radial-gradient(circle at 50% 60%, rgba(217, 168, 74, 0.12), transparent 70%);
-}
-.hourCell.hourMid .hourScore {
-  color: var(--dp-ember);
-}
-
-/* ============================================================
-   Mobile breakpoints — 640px / 480px
-   ============================================================ */
-
-@media (max-width: 640px) {
-  .tierInner {
-    padding: clamp(56px, 10vh, 86px) 16px calc(140px + env(safe-area-inset-bottom, 0px));
-  }
-  .tierInner::before {
-    left: 6px;
-    right: 6px;
-    top: clamp(40px, 6vh, 60px);
-    bottom: calc(110px + env(safe-area-inset-bottom, 0px));
-  }
-  .iljinBig .han {
-    font-size: 56px;
-    padding: 8px 12px;
-  }
-  .iljinBig .meta .kr {
-    font-size: 12.5px;
-  }
-  .iljinBig .meta .en {
-    font-size: 10px;
-  }
-  .oneline {
-    font-size: clamp(14px, 4vw, 17px);
-  }
-  .secTitle {
-    font-size: clamp(17px, 4.6vw, 22px);
-  }
-  .block {
-    margin-top: 30px;
-  }
-  .blockSm {
-    margin-top: 20px;
-  }
-  .panel {
-    padding: 16px;
-  }
-  .split {
-    gap: 12px;
-    margin-top: 22px;
-  }
-  /* signal stream — collapse the leading 132px category col to compact width */
-  .sig {
-    grid-template-columns: 78px 1fr auto;
-    gap: 10px;
-    padding: 10px 2px;
-  }
-  .sig .cat {
-    font-size: 9px;
-  }
-  .sig .body .lb {
-    font-size: 12.5px;
-  }
-  .scoreDial {
-    width: 80px;
-    height: 80px;
-  }
-  .scoreDial .sdNum b {
-    font-size: 26px;
-  }
-  /* 24h grid: 12 → 4 columns */
-  .hourGrid {
-    grid-template-columns: repeat(4, 1fr);
-    gap: 4px;
-  }
-  .hourCell {
-    min-height: 56px;
-    padding: 7px 3px 8px;
-  }
-  .hourCell .hourBranch {
-    font-size: 14px;
-  }
-  .hourCell .hourLabel {
-    font-size: 8.5px;
-  }
-  .hourCell .hourScore {
-    font-size: 9.5px;
-  }
-  .hourCell .hourDomain {
-    font-size: 9px;
-  }
-  /* matrices */
-  .tsMatrix {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  .crossGrid {
-    grid-template-columns: 1fr;
-    gap: 10px;
-  }
-  .crossCard {
-    padding: 12px 14px;
-  }
-  .appliedBadge {
-    padding: 8px 12px;
-  }
-  .appliedHan {
-    font-size: 14px;
-  }
-  .jjChip {
-    padding: 7px 10px;
-  }
-  .jjStem {
-    font-size: 16px;
-  }
-  .statusChip {
-    font-size: 11.5px;
-    padding: 5px 10px;
-  }
-  .gongmangBanner,
-  .vocBanner {
-    padding: 8px 12px;
-    font-size: 11.5px;
-  }
-  .transit {
-    padding: 9px 11px;
-  }
-  .ssPill {
-    font-size: 11.5px;
-    padding: 4px 11px;
-  }
-  .riseCenter {
-    margin-top: 28px;
-  }
-}
-
-@media (max-width: 480px) {
-  .tierInner {
-    padding: clamp(50px, 9vh, 78px) 12px calc(130px + env(safe-area-inset-bottom, 0px));
-  }
-  .iljinBig .han {
-    font-size: 48px;
-    padding: 6px 10px;
-  }
-  /* signal stream — stack score under body to give label more room */
-  .sig {
-    grid-template-columns: 64px 1fr auto;
-    gap: 8px;
-  }
-  .hourGrid {
-    grid-template-columns: repeat(4, 1fr);
-    gap: 3px;
-  }
-  .hourCell {
-    min-height: 50px;
-    padding: 6px 2px 7px;
-  }
-  .hourCell .hourBranch {
-    font-size: 13px;
-  }
-}
-
-/* ── "이렇게 읽은 이유" (날것 트랜짓 덤프 대체) — 만세력 스킨 유지 ── */
-.whyList {
-  list-style: none;
-  margin: 0;
-  padding: 0;
+  margin-bottom: 8px;
   display: flex;
-  flex-direction: column;
-  gap: 7px;
-}
-.whyList li {
-  font-family: var(--dp-serif-ko);
-  font-size: 14px;
-  line-height: 1.5;
-  color: var(--dp-ink-dim);
-  padding-left: 2px;
-  display: flex;
-  gap: 7px;
+  justify-content: space-between;
   align-items: baseline;
 }
-.whyArrow {
-  font-weight: 700;
-  font-size: 13px;
-  flex-shrink: 0;
+.flowDivider {
+  height: 1px;
+  background: var(--dp-line-soft);
+  border: 0;
+  margin: 16px 0;
 }
-.whyPos .whyArrow {
-  color: var(--dp-pos);
-}
-.whyNeg .whyArrow {
-  color: var(--dp-neg);
-}
-.whyMuted {
-  font-family: var(--dp-serif-ko);
-  font-size: 13.5px;
-  color: var(--dp-ink-mute);
-  line-height: 1.5;
-  margin: 2px 0 0;
-}
-/* 히어로 한 줄 결론 아래 행동 조언(daySub) — 차분한 본문 톤. */
-.heroSub {
-  font-family: var(--dp-sans);
-  font-size: 13px;
-  color: var(--dp-ink-dim);
-  line-height: 1.55;
-  margin: 8px 0 0;
-}
-.evidence {
-  margin-top: 14px;
+.upRow {
+  display: flex;
+  gap: 8px;
   border-top: 1px solid var(--dp-line-soft);
-  padding-top: 10px;
+  padding-top: 12px;
 }
-.evidenceSummary {
-  cursor: pointer;
-  font-family: var(--dp-sans);
-  font-size: 11.5px;
-  letter-spacing: 0.04em;
-  color: var(--dp-ink-mute);
-  list-style: none;
-  user-select: none;
-  padding: 2px 0;
+.upCell {
+  flex: 1;
+  text-align: center;
 }
-.evidenceSummary::-webkit-details-marker {
-  display: none;
+.upBox {
+  aspect-ratio: 1;
+  border: 1px solid var(--dp-line);
+  border-radius: var(--dp-r);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--dp-serif);
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--dp-ink-dim);
 }
-.evidenceSummary::before {
-  content: '▸ ';
+.upWd {
+  display: block;
+  margin-top: 4px;
+  font-family: var(--dp-mono);
+  font-size: 10px;
   color: var(--dp-ink-faint);
 }
-.evidence[open] .evidenceSummary::before {
-  content: '▾ ';
-}
-.evidence .transitRow {
-  margin-top: 8px;
-}
 
-/* ── HourRhythm — 시진 길/주의 리듬 ── */
+/* ---------- 시진 리듬 ---------- */
 .rhythmWrap {
-  margin: 16px 0 4px;
-}
-.rhythmLabel {
-  font-family: var(--sans);
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--ink);
-  margin-bottom: 10px;
+  margin: var(--dp-section) 0 4px;
 }
 .rhythmRow {
   display: flex;
@@ -1145,7 +727,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
 }
 .rhythmTrack {
   position: relative;
@@ -1158,47 +740,47 @@
   right: 0;
   top: 50%;
   height: 1px;
-  background: var(--line);
+  background: var(--dp-line);
 }
 .rhythmBar {
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
   width: 60%;
-  max-width: 16px;
-  border-radius: 3px;
+  max-width: 14px;
+  border-radius: 2px;
 }
 .rhythmTime {
-  font-family: var(--mono);
-  font-size: 8px;
-  color: var(--ink-dim);
+  font-family: var(--dp-mono);
+  font-size: 10px;
+  color: var(--dp-ink-mute);
   white-space: nowrap;
 }
-/* ---------- 분야별 오늘 조언 (연애·돈·직업·관계·공부·건강) ---------- */
+
+/* ---------- 분야별 오늘 조언 ---------- */
 .domainBlock {
-  margin-top: 24px;
+  margin-top: var(--dp-section);
 }
 .domainGrid {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  margin-top: 10px;
+  margin-top: 6px;
 }
 .domainRow {
   display: flex;
   align-items: flex-start;
   gap: 12px;
-  padding: 12px 14px;
-  border: 1px solid var(--dp-line);
-  border-radius: 12px;
-  background: var(--dp-panel-2);
+  padding: 13px 0;
+  border-bottom: 1px solid var(--dp-line-soft);
 }
-.domainActive {
-  border-color: var(--dp-ember);
-  background: color-mix(in srgb, var(--dp-ember) 8%, var(--dp-panel-2));
+.domainRow:last-child {
+  border-bottom: 0;
+}
+.domainActive .domainLabel {
+  color: var(--dp-accent);
 }
 .domainIcon {
-  font-size: 18px;
+  font-size: 17px;
   line-height: 1.5;
   flex: 0 0 auto;
 }
@@ -1213,127 +795,58 @@
   align-items: center;
   gap: 8px;
   font-family: var(--dp-serif-ko);
-  font-weight: 700;
-  font-size: 15px;
+  font-weight: 600;
+  font-size: 14.5px;
   color: var(--dp-ink);
 }
 .domainOn {
   font-family: var(--dp-mono);
-  font-size: 9.5px;
-  letter-spacing: 0.04em;
+  font-size: 9px;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--dp-ember);
-  border: 1px solid var(--dp-ember);
+  color: var(--dp-accent);
+  border: 1px solid var(--dp-accent);
   border-radius: 999px;
   padding: 1px 7px;
 }
 .domainBody {
   font-family: var(--dp-serif-ko);
   font-size: 13.5px;
-  line-height: 1.62;
+  line-height: 1.6;
   color: var(--dp-ink-mute);
 }
 
-/* 분야 근거 칩 — 그날 실제 신호(트랜짓 ✦ · 신살 ◆ · 교차 ⇄) */
-.domainEvidence {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 5px;
-  margin-top: 5px;
-}
-.domainEvLabel {
-  font-family: var(--dp-mono);
-  font-size: 9px;
-  letter-spacing: 0.06em;
-  color: var(--dp-ink-faint);
-  margin-right: 2px;
-}
-.evChip {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  font-family: var(--dp-mono);
-  font-size: 10.5px;
-  padding: 1px 7px;
-  border-radius: 999px;
-  border: 1px solid var(--dp-line);
-  background: var(--dp-bg);
-  color: var(--dp-ink-mute);
-  white-space: nowrap;
-}
-.evMark {
-  font-size: 9px;
-  opacity: 0.85;
-}
-.evPos {
-  border-color: color-mix(in srgb, var(--dp-pos) 45%, var(--dp-line));
-  color: var(--dp-pos);
-}
-.evNeg {
-  border-color: color-mix(in srgb, var(--dp-neg) 45%, var(--dp-line));
-  color: var(--dp-neg);
-}
-.evNeu {
-  color: var(--dp-ink-mute);
+/* ============================================================
+   Mobile
+   ============================================================ */
+@media (max-width: 640px) {
+  .tierInner {
+    padding: clamp(48px, 8vh, 72px) 16px calc(120px + env(safe-area-inset-bottom, 0px));
+  }
+  .iljinBig .han {
+    font-size: 46px;
+  }
+  .doChip,
+  .dontChip {
+    min-width: 0;
+  }
+  .riseCenter {
+    margin-top: 30px;
+  }
 }
 
-/* ---------- 시(時)별 달 정밀 ---------- */
-.moonBlock {
-  margin-top: 24px;
-}
-.moonList {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  margin-top: 10px;
-}
-.moonRow {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: 9px 13px;
-  border: 1px solid var(--dp-line);
-  border-radius: 10px;
-  background: var(--dp-panel-2);
-}
-.moonHead {
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-.moonMeaning {
-  font-family: var(--dp-serif-ko);
-  font-size: 12.5px;
-  line-height: 1.55;
-  color: var(--dp-ink-faint);
-}
-.moonGood {
-  border-left: 3px solid var(--dp-pos);
-}
-.moonCaution {
-  border-left: 3px solid var(--dp-neg);
-}
-.moonWhen {
-  font-family: var(--dp-mono);
-  font-size: 11px;
-  letter-spacing: 0.02em;
-  color: var(--dp-ink);
-  flex: 0 0 auto;
-}
-.moonBody {
-  font-family: var(--dp-serif-ko);
-  font-size: 13.5px;
-  color: var(--dp-ink-mute);
-  flex: 1 1 auto;
-  min-width: 0;
-}
-.moonTone {
-  font-family: var(--dp-mono);
-  font-size: 9.5px;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--dp-ink-faint);
-  flex: 0 0 auto;
+@media (max-width: 380px) {
+  .tierInner {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+  .iljinBig {
+    gap: 12px;
+  }
+  .iljinBig .han {
+    font-size: 42px;
+  }
+  .rhythmTime {
+    font-size: 9px;
+  }
 }

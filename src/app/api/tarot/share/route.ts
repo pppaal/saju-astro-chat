@@ -3,14 +3,15 @@
 // 공유 링크 생성 — 결과(라이브/데일리/히스토리)의 공유 카드 데이터를 받아
 // 추측 불가 토큰으로 Redis 에 저장하고 공개 URL(/r/{token})을 돌려준다.
 //
-// 생성은 로그인 필요(남용 방지 + 레이트리밋). 조회(/r/[token])는 공개.
-// 외부 이미지/장문 주입을 막으려 길이·개수·이미지 경로(same-origin)를 검증한다.
+// 생성·조회 모두 로그인 불필요(게스트가 무료 카드를 다시 공유 → 바이럴 루프
+// 자가증식). 남용은 IP 레이트리밋 + zod 검증(길이·개수·same-origin 이미지)로
+// 가둔다. 로그인 사용자면 본문에서 계정 실명을 redact 한다.
 
 import { NextRequest } from 'next/server'
 import { z } from 'zod'
 import {
   withApiMiddleware,
-  createAuthenticatedGuard,
+  createPublicStreamGuard,
   apiSuccess,
   apiError,
   ErrorCodes,
@@ -18,6 +19,7 @@ import {
 } from '@/lib/api/middleware'
 import { createShareLink, siteBaseUrl, type ShareLinkPayload } from '@/lib/tarot/shareLink'
 import { getUserDisplayName } from '@/lib/user/displayName'
+import { recordCounter } from '@/lib/metrics/index'
 import { logger } from '@/lib/logger'
 
 export const dynamic = 'force-dynamic'
@@ -95,8 +97,14 @@ export const POST = withApiMiddleware(
       return apiError(ErrorCodes.INTERNAL_ERROR, 'share_create_failed')
     }
 
+    // 퍼널 측정 — 공유 링크 생성(게스트/유저 구분). 자가증식 여부의 핵심 지표.
+    recordCounter('tarot.share.created', 1, { source: context.userId ? 'user' : 'guest' })
+
     const path = `/r/${token}`
     return apiSuccess({ token, path, url: `${siteBaseUrl()}${path}` })
   },
-  createAuthenticatedGuard({ route: '/api/tarot/share', limit: 20, windowSeconds: 60 })
+  // 게스트도 공유 링크를 만들 수 있어야 바이럴 루프가 자가증식한다(받은 사람이
+  // 무료 카드 뽑고 다시 공유). 로그인 사용자는 실명 redact 그대로. 남용은 IP
+  // 레이트리밋(12/분)이 가둠 — 토큰은 작고 noindex·추측 불가.
+  createPublicStreamGuard({ route: '/api/tarot/share', limit: 12, windowSeconds: 60 })
 )

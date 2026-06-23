@@ -27,10 +27,15 @@ vi.mock('@/lib/db/prisma', () => ({
   prisma: {
     user: { findUnique: vi.fn() },
     userCredits: { findUnique: vi.fn() },
-    bonusCreditPurchase: { count: vi.fn(), findMany: vi.fn() },
+    bonusCreditPurchase: {
+      count: vi.fn(),
+      findMany: vi.fn(),
+      aggregate: vi.fn(),
+      findFirst: vi.fn(),
+    },
     tarotReading: { count: vi.fn(), findMany: vi.fn() },
     counselorChatSession: { count: vi.fn(), findMany: vi.fn() },
-    creditTransaction: { findMany: vi.fn() },
+    creditTransaction: { findMany: vi.fn(), aggregate: vi.fn() },
   },
 }))
 vi.mock('@/lib/auth/admin', () => ({ isAdminUser: vi.fn() }))
@@ -98,6 +103,16 @@ function setupHappyPath() {
       type: 'CONSUME',
     },
   ] as any)
+  // 신규: 구매·소비 집계 + 첫 결제 시각.
+  vi.mocked(prisma.bonusCreditPurchase.aggregate).mockResolvedValue({
+    _sum: { amount: 100 },
+  } as any)
+  vi.mocked(prisma.creditTransaction.aggregate).mockResolvedValue({
+    _sum: { amount: -7 },
+  } as any)
+  vi.mocked(prisma.bonusCreditPurchase.findFirst).mockResolvedValue({
+    createdAt: new Date('2026-05-01T00:00:00Z'),
+  } as any)
 }
 
 describe('GET /api/admin/users/[id]', () => {
@@ -143,7 +158,7 @@ describe('GET /api/admin/users/[id]', () => {
       providers: ['google'],
     })
     expect(data.credits).toMatchObject({
-      usable: 126, // monthly 10 - used 4 + bonus 120
+      usable: 120, // bonus-only — frozen monthly(10)/used(4) 무시
       bonusCredits: 120,
       totalBonusReceived: 200,
     })
