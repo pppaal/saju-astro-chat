@@ -216,16 +216,19 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
   const nextMilestone = [...milestones]
     .sort((a, b) => a.year - b.year)
     .find((m) => m.year > currentYear)
-  const youAreHere =
-    nowAge > 0 && nowStageName
-      ? ko
-        ? nextMilestone
-          ? `지금 ${nowAge}세, ‘${nowStageName}’를 살고 있어요. 다음 큰 마디는 ${nextMilestone.age}세예요.`
-          : `지금 ${nowAge}세, ‘${nowStageName}’를 살고 있어요.`
-        : nextMilestone
-          ? `You're ${nowAge} now, living your '${nowStageName}'. The next major turn is at age ${nextMilestone.age}.`
-          : `You're ${nowAge} now, living your '${nowStageName}'.`
-      : ''
+  // 계절명이 없어도(어떤 단계도 now 가 아니면) "지금 N세" + 다음 마디는 항상 보인다
+  // — 예전엔 nowStageName 이 비면 이 연결 한 줄이 통째로 사라졌다(감사 H3).
+  const youAreHere = (() => {
+    if (nowAge <= 0) return ''
+    const nextKo = nextMilestone ? ` 다음 큰 마디는 ${nextMilestone.age}세예요.` : ''
+    const nextEn = nextMilestone ? ` The next major turn is at age ${nextMilestone.age}.` : ''
+    if (nowStageName) {
+      return ko
+        ? `지금 ${nowAge}세, ‘${nowStageName}’를 살고 있어요.${nextKo}`
+        : `You're ${nowAge} now, living your '${nowStageName}'.${nextEn}`
+    }
+    return ko ? `지금 ${nowAge}세를 지나고 있어요.${nextKo}` : `You're ${nowAge} now.${nextEn}`
+  })()
 
   // ── 감사 #5: 리포트 전용 DB 3종을 정체성 폴드로 끌어옴(가드+폴백). ──
   const lang = ko ? 'ko' : 'en'
