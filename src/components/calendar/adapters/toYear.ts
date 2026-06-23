@@ -222,7 +222,9 @@ export function toYear(natal: NatalContext, opts: ToYearOptions): DestinypalYear
     astroNote:
       opts.astroNote ??
       (profection
-        ? `Profection이 ${profection.house}하우스를 점등 — 룰러 ${profection.ruler}가 본명 ${profection.rulerNatal}.`
+        ? profection.rulerNatal
+          ? `올해의 무대인 ${profection.house}하우스를 이끄는 별은 ${profection.ruler} — 본명에서는 ${profection.rulerNatal}에 자리해요.`
+          : `올해의 무대인 ${profection.house}하우스를 이끄는 별은 ${profection.ruler}이에요.`
         : ''),
     astroNoteEn:
       opts.astroNoteEn ??
