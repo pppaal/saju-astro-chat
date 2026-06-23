@@ -519,13 +519,20 @@ function getChartElectionalFacts(chart: Chart) {
   if (cached) return cached
   const sun = chart.planets.find((p) => p.name === 'Sun')!
   const moon = chart.planets.find((p) => p.name === 'Moon')!
-  const facts = {
+  const { benefic, malefic } = classifyAspects(chart)
+  const voidOfCourse = checkVoidOfCourse(chart)
+  const retrogradePlanets = getRetrogradePlanets(chart)
+  // 이 facts 는 같은 날 6개 이벤트의 analyzeElection 반환값에 *참조 공유* 된다.
+  // 현재 어떤 caller 도 mutate 하지 않지만, 미래의 caller 가 analysis.beneficAspects
+  // 등을 건드려 다른 이벤트 결과를 오염시키지 못하도록 방어적으로 freeze 한다.
+  const facts = Object.freeze({
     moonPhase: getMoonPhase(sun.longitude, moon.longitude),
     moonSign: moon.sign,
-    voidOfCourse: checkVoidOfCourse(chart),
-    retrogradePlanets: getRetrogradePlanets(chart),
-    ...classifyAspects(chart),
-  }
+    voidOfCourse: Object.freeze(voidOfCourse),
+    retrogradePlanets: Object.freeze(retrogradePlanets) as string[],
+    benefic: Object.freeze(benefic) as string[],
+    malefic: Object.freeze(malefic) as string[],
+  })
   electionalChartFactsCache.set(chart, facts)
   return facts
 }
