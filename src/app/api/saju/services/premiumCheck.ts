@@ -1,7 +1,7 @@
 // src/app/api/saju/services/premiumCheck.ts
 // Premium status checking via Stripe
 
-import Stripe from 'stripe';
+import { getStripeOrNull } from '@/lib/stripe/client';
 import { rateLimit } from '@/lib/rateLimit';
 import { logger } from '@/lib/logger';
 import type { PremiumCacheEntry } from '@/types/saju-api';
@@ -9,7 +9,6 @@ import type { PremiumCacheEntry } from '@/types/saju-api';
 // Simple in-memory cache to reduce repeated Stripe lookups per runtime
 const premiumCache = new Map<string, PremiumCacheEntry>();
 const PREMIUM_TTL_MS = 5 * 60 * 1000;
-const STRIPE_API_VERSION: Stripe.LatestApiVersion = '2025-10-29.clover';
 
 // Email validation regex (RFC 5322 simplified)
 const EMAIL_REGEX = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
@@ -45,7 +44,9 @@ export async function checkPremiumStatus(email?: string, ip?: string): Promise<b
       return false;
     }
 
-    const stripe = new Stripe(key, { apiVersion: STRIPE_API_VERSION });
+    // Shared SDK accessor — single pinned apiVersion across the codebase.
+    const stripe = getStripeOrNull();
+    if (!stripe) {return false;}
 
     // Use parameterized API to prevent query injection
     const customers = await stripe.customers.list({

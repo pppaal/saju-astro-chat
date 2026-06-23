@@ -5,9 +5,9 @@ type CreditPackEntry = {
   pack: CreditPackKey
 }
 
-// Credit pack entries (one-time purchases)
-// Pack details: mini(5), standard(20), plus(50), mega(120), ultimate(220)
-// (실제 수량은 src/lib/config/pricing.ts CREDIT_PACKS 가 단일 출처)
+// Credit pack entries (one-time purchases) — pack→Stripe price-id mapping only.
+// Credit quantities live solely in src/lib/config/pricing.ts CREDIT_PACKS (SSOT);
+// do not restate them here to avoid drift.
 const creditPackEntries = [
   {
     id: process.env.STRIPE_PRICE_CREDIT_MINI || '',

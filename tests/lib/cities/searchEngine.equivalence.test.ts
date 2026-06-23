@@ -273,8 +273,9 @@ describe('CitySearchIndex — 성능 스모크', () => {
       for (const p of prefixes) engine.search(p, 10, null)
     }
     const elapsed = performance.now() - t0
-    // 느슨한 상한 — CI 머신 편차 흡수. 회귀(선형 스캔 복귀)는 10초 이상
-    // 걸리므로 확실히 잡힌다.
-    expect(elapsed).toBeLessThan(1000)
+    // 느슨한 상한 — CI 머신 편차 + *전체 스위트 동시 실행*의 CPU 경합을 흡수한다.
+    // (1초 상한은 풀 스위트 부하에서 간헐적으로 터졌다 — 단독 실행은 ~100ms.)
+    // 회귀(선형 스캔 복귀)는 200회에 10초+ 걸리므로 6초 상한으로도 확실히 잡힌다.
+    expect(elapsed).toBeLessThan(6000)
   })
 })
