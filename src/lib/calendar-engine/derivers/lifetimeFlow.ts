@@ -136,6 +136,22 @@ const BAND_CAT_KO: Record<string, Record<Cat, string>> = {
   },
 }
 
+// 편관(칠살) 전용 본문 — 관성으로 묶이지만 정관(질서·책임)과 달리 칠살은 *압박·
+// 도전*의 결이다. BAND_CAT 의 부드러운 관성 문구("자리를 정리")가 편관에 붙으면
+// 톤이 어긋나, 편관일 때만 압박을 인정하는 문구로 교체한다(감사 M7).
+const PYEONGWAN_BODY_KO: Record<string, string> = {
+  초년기: '센 압박이나 강한 어른·환경을 일찍 겪는 편이에요. 눌리기보다 부딪히며 단단해져요',
+  청년기: '강하게 밀어붙이는 도전이 많은 시기예요. 책임과 압박을 정면으로 돌파해요',
+  중년기: '큰 책임과 외부 압박이 정점에 올라요. 칼날 위에서 균형을 잡는 시기예요',
+  장년기: '오래 짊어진 압박을 마무리하는 시기예요. 무리한 승부보다 정리가 나아요',
+}
+const PYEONGWAN_BODY_EN: Record<string, string> = {
+  초년기: 'You meet strong pressure or forceful adults early — you toughen by pushing back rather than caving',
+  청년기: 'A season of hard, driving challenges — you take responsibility and pressure head-on',
+  중년기: 'Big responsibility and outside pressure peak — a season of balancing on a knife-edge',
+  장년기: 'A season of winding down long-carried pressure — tidying up beats forcing one more contest',
+}
+
 // ════════════════════════════ EN copy ════════════════════════════
 // EN band labels for output (BAND_CAT_EN keys mirror Korean band names so we
 // can pick by Korean band label). Phase output uses BAND_LABEL_EN for the
@@ -1180,8 +1196,12 @@ export function deriveLifetimeFlow(
     const toneIdx = nextToneIdx(toneFav)
     const toneKo = TONE_VARIANTS_KO[toneFav][toneIdx]
     const toneEn = TONE_VARIANTS_EN[toneFav][toneIdx]
-    const bodyKo = BAND_CAT_KO[label]?.[cat] ?? body
-    const bodyEn = BAND_CAT_EN[label]?.[cat] ?? body
+    // 편관(칠살)은 같은 관성이라도 압박·도전의 결 — 전용 문구로 교체.
+    const isPyeongwan = sibsinName === '편관'
+    const bodyKo =
+      (isPyeongwan ? PYEONGWAN_BODY_KO[label] : undefined) ?? BAND_CAT_KO[label]?.[cat] ?? body
+    const bodyEn =
+      (isPyeongwan ? PYEONGWAN_BODY_EN[label] : undefined) ?? BAND_CAT_EN[label]?.[cat] ?? body
     const childPrefixKo = isChildhood ? '초년은 부모·뿌리의 영향을 받는 시기예요 — ' : ''
     const childPrefixEn = isChildhood ? "Shaped by family and roots early on — " : ''
     // 평이 우선: 십신 원명("편재(재성) 흐름 — ")을 surface 에서 빼고 그 의미를 풀어쓴

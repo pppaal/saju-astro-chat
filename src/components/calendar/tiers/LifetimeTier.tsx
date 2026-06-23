@@ -478,10 +478,12 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
           {lifeStages.map((s, i) => {
             const favor = stageFavor(s.ageFrom, s.ageTo)
             const future = stageNowIndex >= 0 && i > stageNowIndex
+            const past = stageNowIndex >= 0 && i < stageNowIndex
             const cls = [
               styles.seasonCard,
               s.now && styles.seasonNow,
               future && styles.seasonFuture,
+              past && styles.seasonPast,
             ]
               .filter(Boolean)
               .join(' ')
@@ -506,6 +508,7 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
                 }
               >
                 {s.now && <span className={styles.seasonNowTag}>{ko ? '지금' : 'now'}</span>}
+                {past && <span className={styles.seasonPastTag}>{ko ? '지나온' : 'past'}</span>}
                 <span className={styles.seasonName}>{ko ? s.name : (s.nameEn ?? s.name)}</span>
                 <span className={styles.seasonAge}>
                   {s.ageFrom}–{s.ageTo}
