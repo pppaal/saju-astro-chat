@@ -406,7 +406,20 @@ export async function POST(req: NextRequest) {
     const userPromptBody = attachmentText
       ? `<attached_file>\n${attachmentText}\n</attached_file>\n\n${rawUserPrompt}`
       : rawUserPrompt
-    const userPrompt = `${dailyBlock}${metaLine}${userPromptBody}`
+    // 단일 소스(사주만/점성만)면 현재 턴 맨앞에 범위를 다시 못박는다. 시스템 프롬프트에도
+    // scope guard 가 있지만, priorTurns 로 *직전 사주/점성 답변이 그대로 재생*되면 모델이
+    // 그걸 이어가기 쉽다(도중 토글 전환 시). 가장 가중치 높은 현재 user 턴에서 재차단.
+    const singleSource = sources.saju !== sources.astro
+    const scopeLine = !singleSource
+      ? ''
+      : sources.astro
+        ? lang === 'en'
+          ? `[Scope for THIS answer] Astrology only. Even if Saju (day master, five elements, ten gods, daeun) appeared earlier in this chat, do NOT continue it — answer using astrology (planets, signs, houses, aspects, transits) only, and don't use Saju terms.\n\n`
+          : `[이번 답변 범위] 점성만 사용. 이전 대화에 사주(일간·오행·십성·대운)가 나왔더라도 지금은 이어가지 말고, 점성(행성·별자리·하우스·각·트랜짓)만으로 답해. 사주 용어를 꺼내지 마.\n\n`
+        : lang === 'en'
+          ? `[Scope for THIS answer] Saju only. Even if astrology (planets, signs, houses) appeared earlier in this chat, do NOT continue it — answer using Saju (day master, five elements, ten gods, daeun, sewoon, iljin) only, and don't use astrology terms.\n\n`
+          : `[이번 답변 범위] 사주만 사용. 이전 대화에 점성(행성·별자리·하우스)이 나왔더라도 지금은 이어가지 말고, 사주(일간·오행·십성·대운·세운·일진)만으로 답해. 점성 용어를 꺼내지 마.\n\n`
+    const userPrompt = `${dailyBlock}${metaLine}${scopeLine}${userPromptBody}`
 
     // If we charged for a new session but the stream delivers nothing (backend
     // error or empty completion), refund the credit so the user isn't billed for
