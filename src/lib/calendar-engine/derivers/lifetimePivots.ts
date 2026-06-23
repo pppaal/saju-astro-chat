@@ -4,6 +4,76 @@ import {
 } from '@/lib/calendar-engine/lifecycle/astroLifecycle'
 import type { NatalContext } from '../context/types'
 import { currentManAge } from '@/lib/datetime/currentAge'
+import { STEMS } from '@/lib/saju/constants'
+import { getSibseong } from '@/lib/saju/core/sibsin'
+
+/**
+ * 십신(十神) → 대운 한 줄 의미(ko/en). 점성 마일스톤이 meaning 을 들고 오듯,
+ * 대운 전환점도 그 10년의 십신을 *쉬운말 한 줄*로 풀어 빈 라벨이 안 나오게 한다.
+ * 결정론적 정적 사전 — astrology 를 지어내지 않고 십신 의미만 다시 말한다.
+ */
+const DAEUN_SIBSIN_MEANING: Record<string, { ko: string; en: string }> = {
+  비견: {
+    ko: '비견 대운이 열려요 — 내 힘으로 홀로서기 하는 10년',
+    en: 'Friend (Bijian) decade opens — a decade of standing on your own',
+  },
+  겁재: {
+    ko: '겁재 대운이 열려요 — 경쟁과 협력이 같이 오는 10년',
+    en: 'Rob-Wealth (Geopjae) decade opens — a decade of rivalry and partnership',
+  },
+  식신: {
+    ko: '식신 대운이 열려요 — 꾸준히 만들고 표현하는 10년',
+    en: 'Eating-God (Siksin) decade opens — a decade of steady creating and expression',
+  },
+  상관: {
+    ko: '상관 대운이 열려요 — 재능이 톡톡 튀는 10년',
+    en: 'Hurting-Officer (Sanggwan) decade opens — a decade of standout talent',
+  },
+  편재: {
+    ko: '편재 대운이 열려요 — 활동적으로 기회·돈을 잡는 10년',
+    en: 'Indirect-Wealth (Pyeonjae) decade opens — a decade of active opportunity and money',
+  },
+  정재: {
+    ko: '정재 대운이 열려요 — 차근차근 쌓는 안정의 10년',
+    en: 'Direct-Wealth (Jeongjae) decade opens — a decade of steady building',
+  },
+  편관: {
+    ko: '편관 대운이 열려요 — 강하게 밀어붙이는 도전의 10년',
+    en: 'Indirect-Officer (Pyeongwan) decade opens — a decade of challenge and pressure',
+  },
+  정관: {
+    ko: '정관 대운이 열려요 — 자리·책임이 단단해지는 10년',
+    en: 'Direct-Officer (Jeonggwan) decade opens — a decade of duty and standing',
+  },
+  편인: {
+    ko: '편인 대운이 열려요 — 독자적으로 배우고 사유하는 10년',
+    en: 'Indirect-Resource (Pyeonin) decade opens — a decade of independent study and depth',
+  },
+  정인: {
+    ko: '정인 대운이 열려요 — 배움과 받쳐주는 도움이 드는 10년',
+    en: 'Direct-Resource (Jeongin) decade opens — a decade of learning and support',
+  },
+}
+
+/**
+ * 대운 천간(干支의 천간) → 일간 기준 십신 한 줄 의미. 못 푸는 글자/십신은
+ * undefined 반환(라벨만 남고 폴백) — 빈 문자열을 억지로 채우지 않는다.
+ */
+function daeunMeaning(
+  dayMaster: NatalContext['saju']['dayMaster'],
+  stem: string
+): { ko: string; en: string } | undefined {
+  const stemInfo = STEMS.find((s) => s.name === stem)
+  if (!stemInfo) return undefined
+  // dayMaster 가 element/yin_yang 을 안 들고 와도(최소 fixture) name 으로 보강.
+  const dm =
+    dayMaster?.element && dayMaster?.yin_yang
+      ? dayMaster
+      : STEMS.find((s) => s.name === dayMaster?.name)
+  if (!dm) return undefined
+  const sibsin = getSibseong(dm, stemInfo)
+  return DAEUN_SIBSIN_MEANING[sibsin]
+}
 
 /**
  * 인생 분기점(lifetime pivots) 디라이버 — 월 단위 convergence 와 달리 "인생 스케일"
@@ -104,13 +174,19 @@ export function deriveLifetimePivots(
     meaningEn: astroEnEvents[i]?.meaning,
   }))
 
-  // 사주 대운 전환점 — ko/en 라벨 모두 baked.
-  const daeun = (natal.saju?.daeun ?? []).map((d) => ({
-    age: d.startAge,
-    year: d.startYear,
-    label: `${d.stem}${d.branch} 대운`,
-    labelEn: `${d.stem}${d.branch} luck cycle`,
-  }))
+  // 사주 대운 전환점 — ko/en 라벨 + 십신 한 줄 의미 모두 baked.
+  const dayMaster = natal.saju?.dayMaster
+  const daeun = (natal.saju?.daeun ?? []).map((d) => {
+    const m = dayMaster ? daeunMeaning(dayMaster, d.stem) : undefined
+    return {
+      age: d.startAge,
+      year: d.startYear,
+      label: `${d.stem}${d.branch} 대운`,
+      labelEn: `${d.stem}${d.branch} luck cycle`,
+      meaning: m?.ko,
+      meaningEn: m?.en,
+    }
+  })
 
   // astro 이벤트를 앵커로 두고 ±MERGE_YEARS 안의 가장 가까운 대운을 1:1로 붙인다.
   // (astro 끼리는 병합하지 않으므로 토성 리턴 같은 핵심 전환이 절대 삼켜지지 않음)
@@ -151,6 +227,8 @@ export function deriveLifetimePivots(
       label: d.label,
       labelEn: d.labelEn,
       saju: d.label,
+      meaning: d.meaning, // 십신 한 줄 의미 — 빈 라벨 방지
+      meaningEn: d.meaningEn,
       bothSystems: false,
       phase: phaseOf(d.age),
     })

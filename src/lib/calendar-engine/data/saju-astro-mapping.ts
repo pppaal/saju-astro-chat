@@ -97,6 +97,28 @@ export const SAJU_ASTRO_MAPPINGS: readonly CrossMapping[] = [
     note: '정관(책임·규범) ↔ Saturn(structure·discipline) 직접 등치. 동·서 모두 +방향.',
   },
   {
+    saju: '정관',
+    astro: 'Sun',
+    meaning: {
+      ko: '정관 × 태양 — 정당한 권위·직위·공인의 결이 한 방향으로 살아남. 윗선의 인정·승진·공식 무대에 우호.',
+      en: 'Direct Officer × Sun — legitimate authority, office, and public standing line up the same way. Favours recognition from above, promotion, and the formal stage.',
+    },
+    polarity: 2,
+    grade: 'A',
+    note: '정관(직위·공인된 권위·명예) ↔ Sun(authority·legitimacy·자리). Saturn(책임·구조)과 결 분리: Sun=정당성·인정. 둘 다 +방향.',
+  },
+  {
+    saju: '정관',
+    astro: 'Jupiter',
+    meaning: {
+      ko: '정관 × 목성 — 규범·자격이 사회적 신뢰로 넓어지는 결. 자격·면허·공직·법적 정당화에 우호.',
+      en: 'Direct Officer × Jupiter — rules and credentials broaden into social trust. Favours licences, public office, and legal legitimacy.',
+    },
+    polarity: 2,
+    grade: 'A',
+    note: '정관(규범·자격·법) ↔ Jupiter(법·정당성·확장). Saturn=책임의 무게, Jupiter=인정의 확장으로 결 분리. monthly/yearly/decadal 밴드.',
+  },
+  {
     saju: '편관',
     astro: 'Mars',
     meaning: {
@@ -131,6 +153,28 @@ export const SAJU_ASTRO_MAPPINGS: readonly CrossMapping[] = [
     grade: 'A',
     note: '편재(큰 재물·기회·투기) ↔ Jupiter(expansion·fortune). 정재=Venus(안정 축적)와 축 분리. Mercury 과부하(식신·상관·역마와 중복 발화) 해소 목적의 재배선.',
   },
+  {
+    saju: '편재',
+    astro: 'Mercury',
+    meaning: {
+      ko: '편재 × 수성 — 거래·중개·정보로 돈을 굴리는 결. 영업·딜·협상·매매 회전에 우호, 잔머리 과욕은 절제.',
+      en: 'Indirect Wealth × Mercury — money moves through deals, brokering, and information. Favours sales, negotiation, and fast turnover; rein in over-clever greed.',
+    },
+    polarity: 1,
+    grade: 'A',
+    note: '편재(유통·기회 재물·수완) ↔ Mercury(거래·중개·정보). Jupiter=큰 확장, Mercury=실무 회전으로 결 분리.',
+  },
+  {
+    saju: '편재',
+    astro: 'Venus',
+    meaning: {
+      ko: '편재 × 금성 — 즐기며 버는 결, 사교·접대·취향이 돈으로 이어지는 흐름. 씀씀이가 커지니 균형은 챙기기.',
+      en: 'Indirect Wealth × Venus — earning through pleasure, where socializing, hospitality, and taste turn into money. Spending swells too, so keep the balance.',
+    },
+    polarity: 1,
+    grade: 'A',
+    note: '편재(향유·교제 재물) ↔ Venus(pleasure·social·value). 정재×Venus(안정 결합)와 톤 분리: 편재=유동·향유. +방향이나 과소비 경계로 +1.',
+  },
 
   // ─── 십신 × 행성 (식상 — 표현·창의) ───
   {
@@ -143,6 +187,17 @@ export const SAJU_ASTRO_MAPPINGS: readonly CrossMapping[] = [
     polarity: 2,
     grade: 'A',
     note: '식신(생산·산출) ↔ Mercury(craft). 상관×수성(말·비판)과 결 분리: 식신=만들기, 상관=말하기.',
+  },
+  {
+    saju: '식신',
+    astro: 'Venus',
+    meaning: {
+      ko: '식신 × 금성 — 누리고 빚는 결. 미식·예술·공예처럼 솜씨를 즐기며 내놓는 일에 우호.',
+      en: 'Eating God × Venus — a streak for enjoying and crafting. Favours food, art, and craft where you take pleasure in the making.',
+    },
+    polarity: 2,
+    grade: 'A',
+    note: '식신(향유·산출·복록) ↔ Venus(pleasure·craft·beauty). Mercury×식신(손기술)과 결 분리: Venus=미감·향유. 둘 다 +방향.',
   },
   {
     saju: '상관',
@@ -180,6 +235,28 @@ export const SAJU_ASTRO_MAPPINGS: readonly CrossMapping[] = [
     note: '정인(母·수용) ↔ Moon(mother·nurture). 양쪽 모두 받아들임축.',
   },
   {
+    saju: '정인',
+    astro: 'Saturn',
+    meaning: {
+      ko: '정인 × 토성 — 정통 학문을 끈기 있게 다지는 결. 자격 시험·장기 연구·체계적 공부에 우호.',
+      en: 'Direct Resource × Saturn — disciplined, patient mastery of orthodox study. Favours certification exams, long research, and systematic learning.',
+    },
+    polarity: 1,
+    grade: 'A',
+    note: '정인(정통 학문·인장) ↔ Saturn(discipline·persistence·구조). Jupiter×정인(확장·해외)과 결 분리: Saturn=끈기·체계. 둘 다 +방향.',
+  },
+  {
+    saju: '편인',
+    astro: 'Mercury',
+    meaning: {
+      ko: '편인 × 수성 — 비주류 정보·이면을 캐는 결. 자료 조사·재해석·편집에 우호, 의심이 과하면 결론을 미루게 됨.',
+      en: 'Indirect Resource × Mercury — digging into unconventional information and hidden angles. Favours research, reinterpretation, and editing; excess suspicion can stall conclusions.',
+    },
+    polarity: 0,
+    grade: 'A',
+    note: '편인(이면·재해석·비주류 흡수) ↔ Mercury(정보·분석). 자원형 중립(+/− 양가) → 0.',
+  },
+  {
     saju: '편인',
     astro: 'Saturn',
     meaning: {
@@ -214,6 +291,17 @@ export const SAJU_ASTRO_MAPPINGS: readonly CrossMapping[] = [
     grade: 'A',
     note: '겁재(경쟁·분탈) ↔ Mars(competition·heat). 양쪽 모두 충돌축.',
   },
+  {
+    saju: '겁재',
+    astro: 'Venus',
+    meaning: {
+      ko: '겁재 × 금성 — 돈·관계를 두고 빼앗고 빼앗기는 결. 공동 지출·보증·삼각관계는 한 박자 늦추기.',
+      en: 'Rob Wealth × Venus — money and relationships become a tug-of-war of taking and being taken from. Sleep on joint spending, guarantees, and love triangles.',
+    },
+    polarity: -1,
+    grade: 'A',
+    note: '겁재(분탈·공유 자원 다툼) ↔ Venus(돈·관계). 가치축이 경쟁에 노출 → 압력 −1.',
+  },
 
   // ─── 신살 × 행성 ───
   {
@@ -226,6 +314,28 @@ export const SAJU_ASTRO_MAPPINGS: readonly CrossMapping[] = [
     polarity: 2,
     grade: 'A',
     note: '도화(인연·끌림) ↔ Venus(attraction·beauty). 매칭 완전 일치.',
+  },
+  {
+    saju: '도화',
+    astro: 'Moon',
+    meaning: {
+      ko: '도화살 × 달 — 정서적 끌림·인기·대중성이 살아나는 결. 감성 콘텐츠·공감·사람 모으는 일에 우호.',
+      en: 'Peach Blossom × Moon — emotional pull, popularity, and mass appeal come alive. Favours heartfelt content, empathy, and drawing a crowd.',
+    },
+    polarity: 1,
+    grade: 'A',
+    note: '도화(인기·끌림) ↔ Moon(정서·대중·공감). Venus×도화(미·연애)와 결 분리: Moon=정서·대중성.',
+  },
+  {
+    saju: '역마',
+    astro: 'Mars',
+    meaning: {
+      ko: '역마살 × 화성 — 떠나려는 충동·추진이 두 배. 출장·이주·도전엔 동력, 다만 서두른 운전·일정은 한 박자 늦추기.',
+      en: 'Travelling Horse × Mars — the urge to move and push runs twice as hard. Drive for trips, relocation, and bold moves; just slow rushed driving and schedules by a beat.',
+    },
+    polarity: 0,
+    grade: 'A',
+    note: '역마(이동) ↔ Mars(drive·속도). Mercury×역마(소통·정보)와 결 분리: Mars=추진·이동의 충동. 동력+과속경계 양가 → 0.',
   },
   {
     saju: '역마',
