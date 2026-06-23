@@ -261,8 +261,8 @@ function personalize(
   const whenKo = yr ? `${yr}년(${peak.startAge}세) 무렵부터` : `${ageBand}(${peak.startAge}세 무렵)`
   const whenEn = yr ? `around ${yr} (age ${peak.startAge})` : `around age ${peak.startAge}`
 
-  const detailKo = `특히 ${whenKo} 들어오는 ${peak.gz} 대운이 ${CAT_KO[cat]} 쪽으로 가장 크게 힘을 실어줘요.`
-  const detailEn = `Your strongest stretch is the ${peak.gz} decade ${whenEn}, leaning toward ${CAT_EN[cat]}.`
+  const detailKo = `특히 ${whenKo} ${CAT_KO[cat]} 쪽으로 가장 크게 힘을 실어줘요.`
+  const detailEn = `Your strongest stretch is ${whenEn}, leaning toward ${CAT_EN[cat]}.`
 
   return {
     line: `${base.line} ${detailKo}`,
