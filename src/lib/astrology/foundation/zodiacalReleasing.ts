@@ -133,6 +133,29 @@ const SIGN_CHAPTER_THEME: Record<ZodiacKo, string> = {
   Pisces:      '용해·연민·해체의 챕터',
 }
 
+const SIGN_CHAPTER_THEME_EN: Record<ZodiacKo, string> = {
+  Aries:       'a chapter of beginnings, initiative, and self-discovery',
+  Taurus:      'a chapter of stability, building, and putting down roots',
+  Gemini:      'a chapter of connection, learning, and communication',
+  Cancer:      'a chapter of home, feeling, and care',
+  Leo:         'a chapter of self-expression, creativity, and shining',
+  Virgo:       'a chapter of precision, craft, and refinement',
+  Libra:       'a chapter of relationship, balance, and harmony',
+  Scorpio:     'a chapter of deep change and passing through crisis',
+  Sagittarius: 'a chapter of expansion, meaning, and the long road',
+  Capricorn:   'a chapter of structure, responsibility, and achievement',
+  Aquarius:    'a chapter of innovation, community, and new order',
+  Pisces:      'a chapter of dissolving, compassion, and letting go',
+}
+
+/**
+ * ZR 챕터의 *평이* 테마 한 줄 — novice 표면용(별자리 라틴어 없이 의미만).
+ * 예: Cancer → '가정·정서·돌봄의 챕터' / 'a chapter of home, feeling, and care'.
+ */
+export function getZRChapterTheme(sign: ZodiacKo, lang: 'ko' | 'en' = 'ko'): string {
+  return (lang === 'en' ? SIGN_CHAPTER_THEME_EN[sign] : SIGN_CHAPTER_THEME[sign]) ?? ''
+}
+
 /**
  * ZR period 해석 — 사주 대운(decadal)과 cross 가능한 시기 의미.
  */

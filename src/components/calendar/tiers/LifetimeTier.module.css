@@ -498,6 +498,12 @@
 .zrFortune {
   color: var(--gold-deep);
 }
+.zrNowTheme {
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--t2);
+  margin: 0 0 8px;
+}
 .zrTrack {
   position: relative;
   height: 52px;

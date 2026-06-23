@@ -22,6 +22,7 @@
 import type { CSSProperties } from 'react'
 import { SIGN_KO } from '@/lib/astrology/signLabels'
 import { sibsinArea, sibsinAreaEn, planetPlain } from '@/lib/calendar-engine/derivers/plainLanguage'
+import { getZRChapterTheme } from '@/lib/astrology/foundation/zodiacalReleasing'
 import {
   getGeokgukRich,
   getSibsinCategory,
@@ -605,6 +606,18 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
                 lane.chapters.length > 0 ? (
                   <div className={styles.zrLane} key={lane.label}>
                     <div className={`${styles.zrLaneLabel} ${lane.cls}`}>{lane.label}</div>
+                    {(() => {
+                      // 지금 챕터의 *평이 테마* 한 줄 — raw 라틴어 별자리 대신 의미를 보인다.
+                      const nowChapter = lane.chapters.find((c) => c.now)
+                      if (!nowChapter) return null
+                      const theme = getZRChapterTheme(nowChapter.sign, ko ? 'ko' : 'en')
+                      if (!theme) return null
+                      return (
+                        <div className={styles.zrNowTheme}>
+                          {ko ? `지금은 ${theme}예요.` : `Right now: ${theme}.`}
+                        </div>
+                      )
+                    })()}
                     <div className={styles.zrTrack}>
                       {lane.chapters.map((c, i) => {
                         const left = zrPct(c.calendarStartYear)
@@ -620,7 +633,11 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
                             className={`${styles.zrChapter} ${c.now ? styles.zrNow : ''}`.trim()}
                             key={`${lane.label}-${c.calendarStartYear}-${i}`}
                             style={{ left: `${left}%`, width: `${width}%` }}
-                            title={`${sign} · ${ruler} · ${c.calendarStartYear}–${c.calendarEndYear}`}
+                            title={`${sign} · ${ruler} · ${c.calendarStartYear}–${c.calendarEndYear}${
+                              getZRChapterTheme(c.sign, ko ? 'ko' : 'en')
+                                ? ` · ${getZRChapterTheme(c.sign, ko ? 'ko' : 'en')}`
+                                : ''
+                            }`}
                           >
                             <span className={styles.zrSign}>{sign}</span>
                             <span className={styles.zrMeta}>
