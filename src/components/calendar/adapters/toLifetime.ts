@@ -195,7 +195,8 @@ export function toLifetime(natal: NatalContext, opts: ToLifetimeOptions): Destin
     : []
 
   // 인생 유형 — 신강약 기준 대운 흐름(대기만성/초년발복/…).
-  const lp = deriveLifePattern(natal.saju as never)
+  // 현재 나이를 넘겨 "정점" 서술이 지금~앞으로를 가리키게(과거/유아기 정점 방지).
+  const lp = deriveLifePattern(natal.saju as never, opts.currentYear - opts.birthYear)
   const lifePattern = lp
     ? {
         key: lp.key,
