@@ -90,6 +90,9 @@ export async function loadTierData(scope: TierScope): Promise<LoadTierResult> {
   const BIRTH_YEAR = Number(profile.birthDate!.split('-')[0])
 
   // '오늘' — 사용자 출생 타임존 기준(서버 UTC 와 무관하게 날짜 일관).
+  // now 단일 기준: 같은 인스턴트를 deriver(currentManAge)까지 흘려 "현재 단계"가
+  // TARGET_* 와 같은 날짜를 보게 한다(currentManAge 가 birthTimeZone 으로 포맷).
+  const now = new Date()
   const today = getNowInTimezone(BIRTH.timeZone)
   const TARGET_YEAR = today.year
   const TARGET_MONTH = today.month
@@ -122,6 +125,7 @@ export async function loadTierData(scope: TierScope): Promise<LoadTierResult> {
     whoBirthLine: birthDisplay,
     place,
     focusDayCell,
+    now,
   })
 
   return { kind: 'ok', lang, ...assembled }

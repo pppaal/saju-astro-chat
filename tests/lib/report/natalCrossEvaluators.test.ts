@@ -101,9 +101,8 @@ describe('evalSocialRole — peregrine 보완', () => {
     expect(v!.reason.ko).toContain('다른 방식으로 넓혀줘요')
     expect(HANGUL.test(v!.reason.en)).toBe(false)
   })
-  it('mcSign 매핑 안 되면 peregrine 처리(여전히 verdict)', () => {
-    const v = evalSocialRole('정관격', '???')
-    expect(v).not.toBeNull()
+  it('mcSign 인식 불가면 peregrine 단정 대신 행 생략(null) — ENGINE-AUDIT', () => {
+    expect(evalSocialRole('정관격', '???')).toBeNull()
   })
   it('빈 입력 null', () => {
     expect(evalSocialRole(undefined, 'Capricorn')).toBeNull()
@@ -192,6 +191,17 @@ describe('evalTemperament — 분포 우세 교차', () => {
     expect(evalTemperament({}, ['Leo'])).toBeNull()
     expect(evalTemperament({ fire: 1 }, [])).toBeNull()
   })
+  it('점성 공기 우세 → 木 라벨이 새지 않고 공기로 표기 + 근사 헤지', () => {
+    // 사주 목(wood) + 점성 공기 우세(쌍둥이·천칭·물병). air→wood 근사라 관계상
+    // same(목↔목)이 나오지만, 표시는 '공기'여야 하고 거짓 수렴 헤지가 붙어야 한다.
+    const v = evalTemperament({ wood: 3 }, ['Gemini', 'Libra', 'Aquarius'])!
+    expect(v.right?.ko).toContain('공기')
+    expect(v.right?.ko).not.toContain('木')
+    expect(v.right?.en).toContain('Air')
+    // airApprox 헤지 문구(어림잡아/approximately)가 same 분기에 포함된다.
+    expect(v.reason.ko).toContain('어림잡아')
+    expect(v.reason.en.toLowerCase()).toContain('approximat')
+  })
 })
 
 // ── evalEnergyDirection — complement arm + EN ──────────────────────────────
@@ -237,14 +247,20 @@ describe('evalKeyAspect — 필터·매칭', () => {
     expect(v.tone).toBe('resonant')
     expect(v.reason.ko).toContain('같은 결')
   })
-  it('orb 없는 각도 처리(99 fallback) — 하드각이라 긴장', () => {
+  it('orb 가 숫자 아니면 99 센티넬로 끼우지 않고 건너뛴다 — ENGINE-AUDIT', () => {
+    // 유일한 후보의 orb 가 없으면 임의의 '핵심각'을 내지 말고 null.
+    expect(
+      evalKeyAspect([{ from: { name: 'Sun' }, to: { name: 'Mars' }, type: 'square' }], '인성')
+    ).toBeNull()
+    // 멀쩡한 orb 를 가진 각이 따로 있으면 그쪽이 채택된다(orb 없는 각은 무시).
     const v = evalKeyAspect(
-      [{ from: { name: 'Sun' }, to: { name: 'Mars' }, type: 'square' }],
-      '인성'
+      [
+        { from: { name: 'Sun' }, to: { name: 'Mars' }, type: 'square' }, // orb 없음 → 무시
+        { from: { name: 'Venus' }, to: { name: 'Mars' }, type: 'trine', orb: 2 }, // 채택
+      ],
+      '재성'
     )!
-    // Mars|Sun=비겁 != 인성. square 는 하드각이라 일치 여부와 무관하게 tension(C8a).
-    expect(v.tone).toBe('tension')
-    expect(v.reason.ko).toContain('마찰을 통해 단련')
+    expect(v.tone).toBe('resonant')
   })
 })
 
@@ -443,6 +459,12 @@ describe('분포 추출 헬퍼 edge', () => {
   it('dominantAstroElement: 미매핑 sign 무시 + undefined', () => {
     expect(dominantAstroElement(undefined)).toBeUndefined()
     expect(dominantAstroElement(['???'])).toBeUndefined()
+  })
+  it('dominantAstroElement: 동률이면 무손실 원소가 air-근사(wood)를 이긴다', () => {
+    // 공기 2(쌍둥이·천칭) vs 물 2(게·전갈) 동률 → air-근사 wood 가 아니라 water.
+    expect(dominantAstroElement(['Gemini', 'Libra', 'Cancer', 'Scorpio'])).toBe('water')
+    // 공기가 *엄격히* 더 많으면 그때만 wood(=air).
+    expect(dominantAstroElement(['Gemini', 'Libra', 'Aquarius', 'Cancer'])).toBe('wood')
   })
   it('dominantSibsinGroup: undefined / 모두 0', () => {
     expect(dominantSibsinGroup(undefined)).toBeUndefined()

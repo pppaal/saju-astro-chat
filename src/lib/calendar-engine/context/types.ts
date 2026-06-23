@@ -139,6 +139,9 @@ export interface NatalSajuContext {
 
 export interface NatalAstroContext {
   chart: Chart
+  /** 출생시각/출생지 미상 — true 면 소비자(adapter)가 ASC/MC/하우스(자정·서울 폴백)를
+   *  내보내지 않아야 한다. chart(_chart)는 항상 폴백 값이 차 있어 별도 플래그로 가린다. */
+  placeUnreliable?: boolean
   /** 본명 추가 천체(카이런·릴리스 등) — 트랜짓이 본명 점으로 참조. 차트 planets를
    *  오염시키지 않으려 별도 보관(dignity 등 다른 extractor엔 안 들어감). */
   extraPoints?: PlanetBase[]

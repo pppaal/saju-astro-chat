@@ -270,12 +270,18 @@ export function useChatApi({
         setShowCrisisModal(true)
       }
     },
-    makeUserMessage: (text) => ({ role: 'user', content: text, id: generateMessageId('user') }),
+    makeUserMessage: (text) => ({
+      role: 'user',
+      content: text,
+      id: generateMessageId('user'),
+      sources: effectiveSources,
+    }),
     makeAssistantMessage: () => ({
       role: 'assistant',
       content: '',
       id: generateMessageId('assistant'),
       streaming: true,
+      sources: effectiveSources,
     }),
     // 기존 useChatApi 의 value-set(함수형 아님) 유지 — retry 직전 pop 과의
     // 상호작용(직전 렌더 히스토리 기준 덮어쓰기)까지 현행 동작 보존.
