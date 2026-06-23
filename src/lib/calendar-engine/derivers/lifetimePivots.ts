@@ -253,5 +253,21 @@ export function deriveLifetimePivots(
   })
 
   pivots.sort((a, b) => a.age - b.age)
+
+  // "지금" 마디는 정확히 하나 — phaseOf 의 ±2년 창은 여러 마디를 한꺼번에 'current'
+  // 로 찍고(렌더에 "지금" 핀 중복), 2년 *미래* 마디까지 'current' 로 잡았다(감사 H2).
+  // 현재 나이에 가장 가까운 한 개만 'current' 로 남기되 동률이면 이미 지난(≤현재
+  // 나이) 쪽을 우선한다. 나머지 옛 'current' 는 위치에 따라 past/upcoming 으로 환원.
+  const currents = pivots.filter((p) => p.phase === 'current')
+  if (currents.length > 1) {
+    const score = (p: LifePivot) => Math.abs(p.age - currentAge) * 2 + (p.age > currentAge ? 1 : 0)
+    let anchor = currents[0]
+    for (const p of currents) if (score(p) < score(anchor)) anchor = p
+    for (const p of currents) {
+      if (p === anchor) continue
+      p.phase = p.age < currentAge ? 'past' : 'upcoming'
+    }
+  }
+
   return { pivots }
 }
