@@ -82,7 +82,7 @@ const DOMAIN_META: Array<{ key: string; icon: string; ko: string; en: string }> 
   { key: 'love', icon: '❤️', ko: '연애', en: 'Love' },
   { key: 'money', icon: '💰', ko: '재물·돈', en: 'Money' },
   { key: 'career', icon: '💼', ko: '직업·일', en: 'Career' },
-  { key: 'people', icon: '🤝', ko: '인간관계·귀인', en: 'People & allies' },
+  { key: 'people', icon: '🤝', ko: '인간관계·도와줄 사람', en: 'People & allies' },
   { key: 'study', icon: '📚', ko: '공부·문서', en: 'Study & papers' },
   { key: 'health', icon: '🌿', ko: '건강', en: 'Health' },
 ]
@@ -106,8 +106,8 @@ const ADVICE: Record<SibsinCategory, Record<string, readonly Pair[]>> = {
         en: 'Pay for your own effort comes in cleanly; just shelve money tangled with others — guarantees, partnerships, loans slip away.',
       },
       {
-        ko: '비겁이 재성을 치는 날 — 내 일로 번 돈만 챙기고, 친구·형제가 끌어들이는 투자나 한턱은 오늘만 거절하세요.',
-        en: 'A day peers nibble at your wallet — keep what your own work earns and decline today’s investment pitch or treat from friends and siblings.',
+        ko: '남과 얽힌 돈이 새기 쉬운 날 — 내 일로 번 돈만 챙기고, 친구·형제가 끌어들이는 투자나 한턱은 오늘만 거절하세요.',
+        en: 'A day money tangled with others slips away — keep what your own work earns and decline today’s investment pitch or treat from friends and siblings.',
       },
       {
         ko: '지갑은 내 손에 쥐고 가는 날. 더치페이로 깔끔히 나누고, 빌려주거나 떠안는 돈은 오늘 만들지 마세요.',
@@ -158,7 +158,7 @@ const ADVICE: Record<SibsinCategory, Record<string, readonly Pair[]>> = {
         en: 'A day of ties with peers — drop the rivalry, go together, and they become your side.',
       },
       {
-        ko: '비견·겁재가 도는 날 — 형제·동기·옛 친구에게 먼저 연락하면 반갑게 닿아요. 다만 돈·자존심 겨루기는 갈등을 키웁니다.',
+        ko: '또래·동기 기운이 도는 날 — 형제·동기·옛 친구에게 먼저 연락하면 반갑게 닿아요. 다만 돈·자존심 겨루기는 갈등을 키웁니다.',
         en: 'Siblings, classmates and old friends respond warmly if you reach out first — just keep money and ego contests off the table, they only escalate.',
       },
       {
@@ -206,19 +206,19 @@ const ADVICE: Record<SibsinCategory, Record<string, readonly Pair[]>> = {
         en: 'Energy to spare — perfect to start the workout you’ve put off; just dial back on heavy lifts and competitive play that lead to injury.',
       },
       {
-        ko: '몸 쓰기 좋은 날이지만 비겁의 힘은 무리수로 새기 쉬워요. 준비운동을 챙기고 끝까지 다 쏟지는 마세요.',
-        en: 'A good day to move, but this self-energy leaks into overdoing it — warm up properly and don’t empty the tank to the last drop.',
+        ko: '몸 쓰기 좋은 날이지만 그 힘이 무리수로 새기 쉬워요. 준비운동을 챙기고 끝까지 다 쏟지는 마세요.',
+        en: 'A good day to move, but that energy leaks into overdoing it — warm up properly and don’t empty the tank to the last drop.',
       },
     ],
   },
   output: {
     money: [
       {
-        ko: '아이디어가 돈이 되는 날(식상생재). 콘텐츠·영업·판매·부업에 유리해요.',
+        ko: '아이디어가 돈이 되는 날. 콘텐츠·영업·판매·부업에 유리해요.',
         en: 'Ideas turn into income today — favorable for content, sales and side work.',
       },
       {
-        ko: '재주가 수입으로 이어지는 날(식상생재) — 콘텐츠·세일즈·판매·부업에 힘이 실려요.',
+        ko: '재주가 수입으로 이어지는 날 — 콘텐츠·세일즈·판매·부업에 힘이 실려요.',
         en: 'Your talents convert to income today — content, sales, selling and side gigs all get a lift.',
       },
       {
@@ -226,8 +226,8 @@ const ADVICE: Record<SibsinCategory, Record<string, readonly Pair[]>> = {
         en: 'Making and selling pulls money in today — content, sales, selling and side work especially favored.',
       },
       {
-        ko: '식상생재가 도는 날 — 만들어 둔 결과물에 값을 매겨 내놓기 좋아요. 견적·제안·판매글을 오늘 띄우세요.',
-        en: 'Output feeds wealth today — price what you’ve made and put it out; send the quote, pitch or sales post now.',
+        ko: '만든 게 곧 돈이 되는 날 — 만들어 둔 결과물에 값을 매겨 내놓기 좋아요. 견적·제안·판매글을 오늘 띄우세요.',
+        en: 'What you make turns into money today — price what you’ve made and put it out; send the quote, pitch or sales post now.',
       },
       {
         ko: '내 솜씨가 곧 매출이 되는 날. 부업·외주·중고 판매처럼 직접 팔아 버는 일에 손을 대 보세요.',
@@ -252,12 +252,12 @@ const ADVICE: Record<SibsinCategory, Record<string, readonly Pair[]>> = {
         en: 'Great for unfolding and presenting ideas — just polish words aimed at superiors twice; loose talk bites today.',
       },
       {
-        ko: '기획안·발표·시연이 통하는 날 — 미뤄둔 제안서를 마무리해 올리세요. 다만 상관의 날카로운 입은 회의에서 적을 만드니 톤을 누르세요.',
+        ko: '기획안·발표·시연이 통하는 날 — 미뤄둔 제안서를 마무리해 올리세요. 다만 날카로운 말은 회의에서 적을 만드니 톤을 누르세요.',
         en: 'Proposals, presentations and demos land today — finish and submit the pitch you’ve put off; just soften your tone, a sharp word in a meeting makes enemies.',
       },
       {
-        ko: '창의력이 솟는 날. 새 기획·콘텐츠를 던지기 좋지만, 규칙·상사에게 정면으로 토 달면 식상이 관성을 쳐서 손해입니다.',
-        en: 'Creativity surges — good to float new plans and content, but openly defying rules or the boss backfires as output strikes authority.',
+        ko: '창의력이 솟는 날. 새 기획·콘텐츠를 던지기 좋지만, 규칙·상사에게 정면으로 토 달면 도로 손해입니다.',
+        en: 'Creativity surges — good to float new plans and content, but openly defying rules or the boss backfires on you.',
       },
       {
         ko: '말과 글로 성과를 보여 주기 좋은 날 — 회의·피칭·데모에 강해요. 비판은 대안과 함께 부드럽게 꺼내세요.',
@@ -322,7 +322,7 @@ const ADVICE: Record<SibsinCategory, Record<string, readonly Pair[]>> = {
         en: 'Eat properly and rest fully and the body bounces back fast — just dodge strain and overdrinking.',
       },
       {
-        ko: '식신은 먹고 누리는 기운 — 잘 챙겨 먹으면 회복이 빨라요. 다만 기운을 쏟아내듯 쓰는 날이라 폭식·과음·과로는 도로 탈이 납니다.',
+        ko: '먹고 누리는 기운이 도는 날 — 잘 챙겨 먹으면 회복이 빨라요. 다만 기운을 쏟아내듯 쓰는 날이라 폭식·과음·과로는 도로 탈이 납니다.',
         en: 'This is the energy of eating and enjoying — eat well and you bounce back; just don’t binge, overdrink or overwork, you’re spending energy out fast.',
       },
       {
@@ -346,8 +346,8 @@ const ADVICE: Record<SibsinCategory, Record<string, readonly Pair[]>> = {
         en: 'Money energy is switched on — bargaining, contracts, collecting and sensible spending land well; shelve the get-rich-quick urge.',
       },
       {
-        ko: '재성이 켜진 날 — 받을 돈을 받고, 미룬 계약·정산을 매듭짓기 좋아요. 다만 코인·도박 같은 한탕(편재)은 욕심이 화를 부릅니다.',
-        en: 'Wealth is switched on — collect what you’re owed and close pending contracts and settlements; just keep gambles like crypto or betting at bay, that greed bites.',
+        ko: '돈 기운이 켜진 날 — 받을 돈을 받고, 미룬 계약·정산을 매듭짓기 좋아요. 다만 코인·도박 같은 한탕은 욕심이 화를 부릅니다.',
+        en: 'Money energy is switched on — collect what you’re owed and close pending contracts and settlements; just keep gambles like crypto or betting at bay, that greed bites.',
       },
       {
         ko: '돈 감각이 또렷한 날. 가계부를 정리하고 큰 지출은 견적 두세 곳 비교 후에 결정하면 손해가 없어요.',
@@ -372,8 +372,8 @@ const ADVICE: Record<SibsinCategory, Record<string, readonly Pair[]>> = {
         en: 'A day to let results speak — favorable for sales, negotiation and closing deals where outcomes stick.',
       },
       {
-        ko: '재성은 결과의 별 — 매출·견적·KPI처럼 숫자로 남는 일에 강해요. 협상은 끌지 말고 오늘 클로징을 시도하세요.',
-        en: 'Wealth is the star of results — strong on anything that shows up as numbers like sales, quotes or KPIs; don’t drag the negotiation, try to close today.',
+        ko: '결과로 말하는 날 — 매출·견적·KPI처럼 숫자로 남는 일에 강해요. 협상은 끌지 말고 오늘 클로징을 시도하세요.',
+        en: 'A day results speak — strong on anything that shows up as numbers like sales, quotes or KPIs; don’t drag the negotiation, try to close today.',
       },
       {
         ko: '실용적 손익 감각이 살아나는 날. 비용 대비 효과가 분명한 일부터 처리하고, 거래처와 단가·납기를 매듭지으세요.',
@@ -416,8 +416,8 @@ const ADVICE: Record<SibsinCategory, Record<string, readonly Pair[]>> = {
         en: 'Desk focus drifts today — favor problem-solving and hands-on practice over memorizing concepts.',
       },
       {
-        ko: '재성은 인성(공부 기운)을 치는 날이라 책상 집중이 흩어져요 — 추상 이론은 미루고, 기출·실전 문제처럼 손이 가는 공부로 가세요.',
-        en: 'Wealth presses on the study energy today, so desk focus scatters — shelve abstract theory and go for hands-on work like past papers and practice problems.',
+        ko: '돈 기운에 책상 집중이 흩어지는 날 — 추상 이론은 미루고, 기출·실전 문제처럼 손이 가는 공부로 가세요.',
+        en: 'Money energy pulls desk focus apart today — shelve abstract theory and go for hands-on work like past papers and practice problems.',
       },
       {
         ko: '오래 앉아 외우기보다 바로 써먹을 실용 지식이 잘 붙는 날. 자격증 실기·실습·현장 적용 위주로 가볍게 가세요.',
@@ -462,16 +462,16 @@ const ADVICE: Record<SibsinCategory, Record<string, readonly Pair[]>> = {
         en: 'Good day to be recognized and cement your position — meet your duties and keep the rules, and it pays back in standing.',
       },
       {
-        ko: '관성이 도는 날 — 보고·결재·평가처럼 공식 절차에서 점수가 나요. 맡은 책임을 먼저 끝내 보여 주고, 마감과 약속은 칼같이 지키세요.',
-        en: 'The officer star is on — points come from formal steps like reports, sign-offs and reviews; finish and show what you owe first, and hold deadlines and promises to the letter.',
+        ko: '인정·자리 기운이 도는 날 — 보고·결재·평가처럼 공식 절차에서 점수가 나요. 맡은 책임을 먼저 끝내 보여 주고, 마감과 약속은 칼같이 지키세요.',
+        en: 'Recognition energy is on — points come from formal steps like reports, sign-offs and reviews; finish and show what you owe first, and hold deadlines and promises to the letter.',
       },
       {
         ko: '윗선의 시선이 닿는 날. 자청해서 책임을 맡고 규정대로 처리하면 승진·인정으로 돌아오니, 튀는 행동보다 신뢰를 쌓으세요.',
         en: 'Eyes from above are on you — volunteer for responsibility and go by the book and it returns as recognition; build trust rather than stand out loudly.',
       },
       {
-        ko: '편관(칠살)의 압박이 일을 밀어붙이는 날 — 큰 책임도 정면으로 받으면 평가가 오르지만, 무리수와 충돌은 사고로 번지니 절차를 지키세요.',
-        en: 'The pressure of the seven-killings drives the work — take big responsibility head-on and your standing rises, but reckless moves and clashes spill into trouble, so follow procedure.',
+        ko: '강한 압박이 일을 밀어붙이는 날 — 큰 책임도 정면으로 받으면 평가가 오르지만, 무리수와 충돌은 사고로 번지니 절차를 지키세요.',
+        en: 'Strong pressure drives the work — take big responsibility head-on and your standing rises, but reckless moves and clashes spill into trouble, so follow procedure.',
       },
     ],
     money: [
@@ -492,8 +492,8 @@ const ADVICE: Record<SibsinCategory, Record<string, readonly Pair[]>> = {
         en: 'A day to guard money by discipline — clear overdue payments like taxes, utilities and card bills, and don’t start new investments or debts.',
       },
       {
-        ko: '관성은 통제의 별이라 충동 지출을 다잡기 좋아요. 자동이체·예산 한도를 점검하고, 규칙적인 운용으로 새는 돈을 막으세요.',
-        en: 'The officer star is control, so it’s good for reining in impulse spending — check auto-payments and budget caps, and plug leaks with steady handling.',
+        ko: '절제의 기운이 도는 날이라 충동 지출을 다잡기 좋아요. 자동이체·예산 한도를 점검하고, 규칙적인 운용으로 새는 돈을 막으세요.',
+        en: 'Self-control runs high, so it’s good for reining in impulse spending — check auto-payments and budget caps, and plug leaks with steady handling.',
       },
     ],
     people: [
@@ -532,8 +532,8 @@ const ADVICE: Record<SibsinCategory, Record<string, readonly Pair[]>> = {
         en: 'Disciplined study pays today — for exams and credentials, the more you keep the schedule the better it goes.',
       },
       {
-        ko: '관성은 규율의 별 — 정해진 분량을 시간표대로 끝내기 좋아요. 시험·고시·승진 시험처럼 인내가 필요한 공부에 특히 강합니다.',
-        en: 'The officer star is discipline — good for finishing a set quota on schedule; especially strong for endurance study like exams, licensing and promotion tests.',
+        ko: '규율이 받쳐 주는 날 — 정해진 분량을 시간표대로 끝내기 좋아요. 시험·고시·승진 시험처럼 인내가 필요한 공부에 특히 강합니다.',
+        en: 'Discipline backs you — good for finishing a set quota on schedule; especially strong for endurance study like exams, licensing and promotion tests.',
       },
       {
         ko: '엉덩이로 버티는 공부가 통하는 날. 미룬 진도를 데드라인을 박아 밀어붙이고, 모의고사로 실전 감각을 점검하세요.',
@@ -554,8 +554,8 @@ const ADVICE: Record<SibsinCategory, Record<string, readonly Pair[]>> = {
         en: 'Stress builds up in the body today — avoid overwork and careless accidents, and rest in between.',
       },
       {
-        ko: '관성의 압박이 어깨·목·위장으로 오기 쉬운 날 — 책임을 짊어지더라도 점심엔 잠깐 걷고, 자기 전 긴장을 풀어 주세요.',
-        en: 'Officer pressure tends to land on the shoulders, neck and stomach — carry the load but walk a bit at lunch and unwind the tension before bed.',
+        ko: '책임의 압박이 어깨·목·위장으로 오기 쉬운 날 — 책임을 짊어지더라도 점심엔 잠깐 걷고, 자기 전 긴장을 풀어 주세요.',
+        en: 'The pressure of duty tends to land on the shoulders, neck and stomach — carry the load but walk a bit at lunch and unwind the tension before bed.',
       },
       {
         ko: '스트레스가 몸을 누르는 날이라 무리하면 사고로 번져요. 마감에 쫓겨도 무리한 운전·기계 작업·과로는 한 박자 늦추세요.',
@@ -578,8 +578,8 @@ const ADVICE: Record<SibsinCategory, Record<string, readonly Pair[]>> = {
         en: 'A top day for study, exams and credentials — a clear head makes focus easy and learning endures.',
       },
       {
-        ko: '인성이 도는 날 — 흡수력이 좋아 어려운 개념도 머리에 잘 들어와요. 시험·자격증·논문처럼 깊이 파는 공부에 오늘을 쓰세요.',
-        en: 'The resource star is on — absorption runs high and hard concepts go in easily; spend today on deep study like exams, certifications and papers.',
+        ko: '배움의 기운이 도는 날 — 흡수력이 좋아 어려운 개념도 머리에 잘 들어와요. 시험·자격증·논문처럼 깊이 파는 공부에 오늘을 쓰세요.',
+        en: 'Learning energy is on — absorption runs high and hard concepts go in easily; spend today on deep study like exams, certifications and papers.',
       },
       {
         ko: '머리가 맑은 날. 새 단원을 처음 배우거나 두꺼운 책을 잡기 좋고, 멘토·강의에서 배운 게 그대로 쌓입니다.',
@@ -604,8 +604,8 @@ const ADVICE: Record<SibsinCategory, Record<string, readonly Pair[]>> = {
         en: 'Paperwork, contracts and property go smoothly today — weigh it once more rather than buying on impulse.',
       },
       {
-        ko: '인성은 문서의 별 — 계약서·등기·보험·대출 서류를 검토하고 매듭짓기 좋아요. 조건을 끝까지 읽고 사인은 신중히.',
-        en: 'The resource star is documents — good to review and finalize contracts, deeds, insurance and loan papers; read every clause and sign with care.',
+        ko: '문서 기운이 도는 날 — 계약서·등기·보험·대출 서류를 검토하고 매듭짓기 좋아요. 조건을 끝까지 읽고 사인은 신중히.',
+        en: 'A day for paperwork — good to review and finalize contracts, deeds, insurance and loan papers; read every clause and sign with care.',
       },
       {
         ko: '돈은 벌기보다 정돈하는 날. 보증·임대·자격 관련 서류를 챙기고, 즉흥 지출보다 장기 계획을 세우세요.',
@@ -626,8 +626,8 @@ const ADVICE: Record<SibsinCategory, Record<string, readonly Pair[]>> = {
         en: 'A good day for approvals, documents and support to land — spend it on planning, research and prep rather than launching.',
       },
       {
-        ko: '인성이 받쳐 주는 날 — 자료 조사·기획서·매뉴얼처럼 밑작업이 잘 돼요. 실행을 서두르기보다 탄탄한 준비로 토대를 깔아 두세요.',
-        en: 'The resource star backs you — groundwork like research, proposals and manuals goes well; lay a solid base with prep rather than rushing to execute.',
+        ko: '배움·문서 기운이 받쳐 주는 날 — 자료 조사·기획서·매뉴얼처럼 밑작업이 잘 돼요. 실행을 서두르기보다 탄탄한 준비로 토대를 깔아 두세요.',
+        en: 'Learning and paperwork back you — groundwork like research, proposals and manuals goes well; lay a solid base with prep rather than rushing to execute.',
       },
       {
         ko: '윗사람·멘토의 후원과 결재가 닿기 좋은 날. 혼자 밀어붙이기보다 검토를 받고 문서로 남겨 두면 일이 단단해집니다.',
@@ -636,11 +636,11 @@ const ADVICE: Record<SibsinCategory, Record<string, readonly Pair[]>> = {
     ],
     people: [
       {
-        ko: '귀인·스승·윗사람의 도움이 오는 날 — 막히면 먼저 조언을 구해보세요.',
+        ko: '스승·윗사람의 도움이 오는 날 — 막히면 먼저 조언을 구해보세요.',
         en: 'Help from mentors and elders arrives — when stuck, ask for advice first.',
       },
       {
-        ko: '귀인·스승·윗사람의 손길이 닿는 날 — 막히는 데가 있으면 먼저 조언을 청하세요.',
+        ko: '스승·윗사람의 손길이 닿는 날 — 막히는 데가 있으면 먼저 조언을 청하세요.',
         en: 'A mentor or elder’s hand reaches you today — when you hit a wall, ask for advice first.',
       },
       {
@@ -648,8 +648,8 @@ const ADVICE: Record<SibsinCategory, Record<string, readonly Pair[]>> = {
         en: 'A good day for help from elders and mentors — asking for advice beats struggling alone.',
       },
       {
-        ko: '인성은 귀인의 별 — 스승·선배·어머니 같은 윗사람에게 먼저 연락해 보세요. 도움을 청하면 막힌 데가 풀립니다.',
-        en: 'The resource star is the benefactor — reach out first to elders like a teacher, senior or your mother; ask for help and the blockage clears.',
+        ko: '도와줄 사람이 닿는 날 — 스승·선배·어머니 같은 윗사람에게 먼저 연락해 보세요. 도움을 청하면 막힌 데가 풀립니다.',
+        en: 'A day help reaches you — reach out first to elders like a teacher, senior or your mother; ask for help and the blockage clears.',
       },
       {
         ko: '도움을 받기 좋은 날. 혼자 끌어안은 문제를 믿을 만한 어른·전문가에게 털어놓으면 길이 보입니다.',
@@ -670,8 +670,8 @@ const ADVICE: Record<SibsinCategory, Record<string, readonly Pair[]>> = {
         en: 'A good day to tend the body and recover — top your energy back up with sleep and rest.',
       },
       {
-        ko: '인성은 받아 채우는 기운 — 충전이 잘 되는 날이에요. 일정을 비우고 푹 자거나, 몸을 데우는 음식·반신욕으로 회복에 집중하세요.',
-        en: 'The resource star is energy taken in — recharge runs well today; clear the schedule for deep sleep, or focus on recovery with warming food and a warm soak.',
+        ko: '받아 채우는 기운이 도는 날 — 충전이 잘 되는 날이에요. 일정을 비우고 푹 자거나, 몸을 데우는 음식·반신욕으로 회복에 집중하세요.',
+        en: 'A day for taking energy back in — recharge runs well today; clear the schedule for deep sleep, or focus on recovery with warming food and a warm soak.',
       },
       {
         ko: '쉴수록 이득인 날. 무리한 운동보다 산책·스트레칭처럼 부드러운 활동과 충분한 수면으로 몸을 채워 두세요.',
@@ -705,8 +705,8 @@ const LOVE_POOLS: Record<string, readonly Pair[]> = {
       en: 'For men, romantic connections land well today — going after it is fine; just don’t confuse a light spark with real feeling.',
     },
     {
-      ko: '재성이 배우자성인 남성에겐 이성운이 또렷한 날 — 마음 가는 상대에게 먼저 연락하거나 데이트를 청해 보세요. 충동적 끌림만 한 번 거르면 됩니다.',
-      en: 'For men, whose partner star is wealth, romance runs clear today — message the one on your mind or ask for a date; just filter the impulsive spark once.',
+      ko: '남성에겐 이성운이 또렷한 날 — 마음 가는 상대에게 먼저 연락하거나 데이트를 청해 보세요. 충동적 끌림만 한 번 거르면 됩니다.',
+      en: 'For men, romance runs clear today — message the one on your mind or ask for a date; just filter the impulsive spark once.',
     },
     {
       ko: '남성에게 데이트·소개가 잘 풀리는 날. 실질적인 호의(밥·선물·시간)로 다가가면 닿아요. 다만 여러 끌림에 한꺼번에 흔들리진 마세요.',
@@ -731,8 +731,8 @@ const LOVE_POOLS: Record<string, readonly Pair[]> = {
       en: 'Practical warmth works today — show your heart through concrete acts like a gift or a date rather than words.',
     },
     {
-      ko: '재성이 도는 여성에겐 손에 잡히는 다정함이 통하는 날 — 작은 선물·맛있는 식사·함께한 시간으로 마음을 전하면 관계가 단단해져요.',
-      en: 'For women under the wealth star, tangible warmth works today — a small gift, a good meal or shared time firms up the bond.',
+      ko: '여성에겐 손에 잡히는 다정함이 통하는 날 — 작은 선물·맛있는 식사·함께한 시간으로 마음을 전하면 관계가 단단해져요.',
+      en: 'For women, tangible warmth works today — a small gift, a good meal or shared time firms up the bond.',
     },
     {
       ko: '말보다 행동으로 챙기기 좋은 날. 상대가 필요로 하는 걸 실제로 해 주면 마음이 빠르게 가까워집니다.',
@@ -753,8 +753,8 @@ const LOVE_POOLS: Record<string, readonly Pair[]> = {
       en: 'For women, partner luck ripens today — favorable for serious bonds over casual ones.',
     },
     {
-      ko: '관성이 배우자성인 여성에겐 좋은 인연이 닿는 날 — 진지한 만남·소개·맞선처럼 미래를 보는 자리에 특히 유리합니다.',
-      en: 'For women, whose partner star is the officer, a good match draws near — especially favorable for serious meetings and intros that look to the future.',
+      ko: '여성에겐 좋은 인연이 닿는 날 — 진지한 만남·소개·맞선처럼 미래를 보는 자리에 특히 유리합니다.',
+      en: 'For women, a good match draws near — especially favorable for serious meetings and intros that look to the future.',
     },
     {
       ko: '여성에게 배우자운이 켜진 날 — 책임감 있고 듬직한 상대가 눈에 들어와요. 가벼운 썸보다 진중한 관계로 갈 기운입니다.',
@@ -797,8 +797,8 @@ const LOVE_POOLS: Record<string, readonly Pair[]> = {
       en: 'Attraction and expressiveness shine — favorable for making the first move, confessing or a date; just watch overtalking.',
     },
     {
-      ko: '식상이 도화처럼 매력을 끌어올리는 날 — 먼저 연락하고 마음을 표현하기 좋아요. 다만 농담·말이 선을 넘으면 역효과니 한 박자 거르세요.',
-      en: 'Output lifts your charm like a peach-blossom day — good to reach out first and voice your feelings; just filter once, jokes or words crossing the line backfire.',
+      ko: '매력이 한껏 끌어올라오는 날 — 먼저 연락하고 마음을 표현하기 좋아요. 다만 농담·말이 선을 넘으면 역효과니 한 박자 거르세요.',
+      en: 'Your charm runs high today — good to reach out first and voice your feelings; just filter once, jokes or words crossing the line backfire.',
     },
     {
       ko: '표현력이 빛나 호감을 사기 쉬운 날. 재치 있는 한마디·다정한 메시지로 분위기를 열되, 진심 없는 빈말은 금세 들통납니다.',
@@ -819,8 +819,8 @@ const LOVE_POOLS: Record<string, readonly Pair[]> = {
       en: 'Self-assertion runs high — give the other person’s words one more listen instead of pushing.',
     },
     {
-      ko: '비겁이 도화 자리를 쳐서 내 주관이 앞서는 날 — 내 방식만 고집하면 부딪치기 쉬워요. 이기려 들기보다 한 발 양보하면 관계가 부드러워집니다.',
-      en: 'Self-energy presses on the romance seat, so your will runs ahead — insisting on your way invites friction; yield a step rather than win and the bond softens.',
+      ko: '내 주관이 앞서기 쉬운 날 — 내 방식만 고집하면 부딪치기 쉬워요. 이기려 들기보다 한 발 양보하면 관계가 부드러워집니다.',
+      en: 'Your will runs ahead today — insisting on your way invites friction; yield a step rather than win and the bond softens.',
     },
     {
       ko: '독립심이 세져 거리감이 생기기 쉬운 날. 상대를 통제하려 하기보다 먼저 안부를 묻고 들어 주면 마음이 닿습니다.',
@@ -841,8 +841,8 @@ const LOVE_POOLS: Record<string, readonly Pair[]> = {
       en: 'A good day to share feelings — build closeness through calm conversation rather than rushing the pace.',
     },
     {
-      ko: '인성이 정서를 감싸는 날 — 손잡고 산책하거나 차 한 잔 두고 속 이야기를 나누기 좋아요. 진도보다 마음의 거리를 좁히세요.',
-      en: 'The resource star wraps the feelings today — good for a hand-held walk or heart talk over a cup of tea; close the emotional distance over the pace.',
+      ko: '따뜻한 기운이 마음을 감싸는 날 — 손잡고 산책하거나 차 한 잔 두고 속 이야기를 나누기 좋아요. 진도보다 마음의 거리를 좁히세요.',
+      en: 'A warm, settling energy holds the feelings today — good for a hand-held walk or heart talk over a cup of tea; close the emotional distance over the pace.',
     },
     {
       ko: '편안한 안정감으로 가까워지는 날. 화려한 이벤트보다 곁에서 들어 주고 보살피는 다정함이 더 오래 남습니다.',

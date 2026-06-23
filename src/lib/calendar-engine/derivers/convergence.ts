@@ -116,6 +116,25 @@ function convergenceConfidence(
 
 // "2층 의미" 한 줄 — 그날 무거운 신호들의 순극성(톤)으로 구성.
 // 특정 점성 산문을 지어내지 않고 엔진이 이미 매긴 polarity 만 쓴다.
+// 톤 판정은 convergenceTone 으로 분리 — 큰 날 라벨 prefix 가 *같은 톤* 을 쓰게
+// (MonthTier 가 meaning 과 다른 소스로 prefix 를 붙여 "잔잔한 날 · 부딪힘을
+//  조심할 날" 식 모순이 났다 → keyDay.tone 으로 prefix 도 이 톤에 맞춘다).
+function convergenceTone(
+  netPol: number,
+  sumImp: number,
+  astroPolNet: number,
+  sajuPolNet: number
+): MeaningTone {
+  if (sumImp <= 0) return 'neutral'
+  // 두 체계가 *방향이 어긋나면*(점성+ / 사주− 등) 순극성이 한쪽으로 쏠려도
+  // '기회/주의'로 단정하지 않고 중립(혼재) 톤으로 — 라벨이 한쪽 근거만 대변해
+  // 표시되는 다른 쪽 토큰(예: 충/형/파)과 어긋나는 모순을 막는다.
+  const disagree =
+    astroPolNet !== 0 && sajuPolNet !== 0 && Math.sign(astroPolNet) !== Math.sign(sajuPolNet)
+  const ratio = netPol / sumImp
+  return disagree ? 'neutral' : ratio > 0.15 ? 'positive' : ratio < -0.15 ? 'negative' : 'neutral'
+}
+
 function composeMeaning(
   netPol: number,
   sumImp: number,
@@ -125,19 +144,7 @@ function composeMeaning(
   sajuPolNet: number
 ): string | undefined {
   if (sumImp <= 0) return undefined
-  // 두 체계가 *방향이 어긋나면*(점성+ / 사주− 등) 순극성이 한쪽으로 쏠려도
-  // '기회/주의'로 단정하지 않고 중립(혼재) 톤으로 — 라벨이 한쪽 근거만 대변해
-  // 표시되는 다른 쪽 토큰(예: 충/형/파)과 어긋나는 모순을 막는다.
-  const disagree =
-    astroPolNet !== 0 && sajuPolNet !== 0 && Math.sign(astroPolNet) !== Math.sign(sajuPolNet)
-  const ratio = netPol / sumImp
-  const toneKey: MeaningTone = disagree
-    ? 'neutral'
-    : ratio > 0.15
-      ? 'positive'
-      : ratio < -0.15
-        ? 'negative'
-        : 'neutral'
+  const toneKey = convergenceTone(netPol, sumImp, astroPolNet, sajuPolNet)
   // 날짜로 톤 문구를 회전 선택 — 큰 날 목록이 같은 문장으로 도배되지 않게.
   const dayNum = dateStr ? Math.abs(parseInt(dateStr.slice(-2), 10)) : 0
   return toneMeaningFor(toneKey, dayNum, lang)
@@ -186,6 +193,7 @@ export interface ConvergenceDay {
   saju: string[] // 그날 무거운 사주 이벤트
   bothSystems: boolean // 점성·사주 둘 다 무거운 게 있었나 (진짜 수렴)
   meaning?: string // 톤(polarity) 한 줄 의미
+  tone?: MeaningTone // meaning 과 같은 톤 — 라벨 prefix 정합용
   /**
    * 그 큰 날의 *활성 구간* — 구성 무거운 신호들의 active window 집계.
    * start=가장 이른 시작, end=가장 늦은 끝, peak=가장 강한 신호의 정점.
@@ -216,6 +224,9 @@ export function deriveConvergence(
     let sajuHeavy = 0
     const astroCand: ChipCand[] = []
     const sajuCand: ChipCand[] = []
+    // 칩에서 숨기는 느린 배경(외행성)·장기 astro 신호 — bothSystems 인데 표시
+    // astro 칩이 0개일 때 폴백으로 쓴다(아래 참조).
+    const bgAstroCand: ChipCand[] = []
     let netPol = 0
     let sumImp = 0
     // 윈도우 집계·confidence 용: 그날 무거운 신호와 source 별 방향(polarity×imp) 합.
@@ -235,8 +246,12 @@ export function deriveConvergence(
         // 늘 켜진 최외곽 배경(천왕·해왕·명왕)과 월~년 스케일 장기 신호(lifecycle 등)는
         // 칩에서 숨긴다 — 무거움 합산엔 반영하되 표시는 그날 *구별되는* 점성 신호만.
         const n = cleanName(s, lang)
-        if (n && !isSlowBackgroundAstro(s) && !isLongSpan(s))
-          astroCand.push({ name: n, pol: s.polarity, imp })
+        if (n) {
+          if (!isSlowBackgroundAstro(s) && !isLongSpan(s))
+            astroCand.push({ name: n, pol: s.polarity, imp })
+          // 숨기는 신호라도 그날 astro 무게의 유일한 출처일 수 있다 → 폴백용 보관.
+          else bgAstroCand.push({ name: n, pol: s.polarity, imp })
+        }
       } else {
         sajuHeavy += imp
         sajuPolNet += s.polarity * imp
@@ -251,7 +266,14 @@ export function deriveConvergence(
     const bothSystems = astroHeavy > 0 && sajuHeavy > 0
     const score = astroHeavy + sajuHeavy + (bothSystems ? Math.min(astroHeavy, sajuHeavy) * 1.5 : 0)
     // 칩은 순톤과 같은 방향 토큰을 우선해 라벨(meaning)과 어긋나지 않게 정렬.
-    const astro = pickToneChips(astroCand, netPol)
+    // bothSystems(=astro+saju 둘 다 무거움)인데 표시 astro 칩이 비면, '큰 날'이
+    // 한쪽(saju)만 보여 "사주×점성 수렴" 의미와 모순된다. 그날 astro 무게가 전부
+    // 느린 배경/장기 신호여서 칩이 걸러진 경우다 → 배경 신호로 채워 모순을 없앤다.
+    // 점수·정렬·bothSystems 판정엔 영향 없음(astroHeavy/sajuHeavy 그대로).
+    let astro = pickToneChips(astroCand, netPol)
+    if (astro.length === 0 && astroHeavy > 0 && bgAstroCand.length > 0) {
+      astro = pickToneChips(bgAstroCand, netPol)
+    }
     const saju = pickToneChips(sajuCand, netPol)
     scored.push({
       date: c.datetime.slice(0, 10),
@@ -267,6 +289,8 @@ export function deriveConvergence(
         astroPolNet,
         sajuPolNet
       ),
+      // meaning 과 동일한 톤 — MonthTier 의 라벨 prefix 가 이 톤을 따라가 모순 제거.
+      tone: convergenceTone(netPol, sumImp, astroPolNet, sajuPolNet),
       window: aggregateWindow(heavySignals, c.datetime),
       confidence: convergenceConfidence(heavySignals, bothSystems, astroPolNet, sajuPolNet),
     })

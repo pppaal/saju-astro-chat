@@ -59,10 +59,34 @@ function linearMapper(values: number[]): (v: number) => number {
   return (v) => Math.max(0, Math.min(100, Math.round(50 + ((v - mean) / sd) * K)))
 }
 
-/** 같은 id 신호 dedup (연중 같은 배경이 매일 반복 등장하므로). */
+/** 같은 id 신호 dedup (연중 같은 배경이 매일 반복 등장하므로).
+ *
+ * cross-activation 만 예외 — id 가 `cross.<십신>-x-<행성>.<날짜>` 라 같은 *페어* 가
+ * 한 달 안에서도 날짜마다 다른 id 로 살아남아 월 signedSurprise 에 중복 합산됐다
+ * (topK=8 로 상한은 있으나 실재 중복). 그래서 cross 는 날짜 접미사를 뗀 페어 키로
+ * 묶고, 충돌 시 더 강한(|polarity|×weight) 인스턴스를 남긴다(동률은 id 사전순 —
+ * 결정성 유지). 그 외 신호는 기존대로 id 우선(first-wins) — 동작 불변. */
+function crossPairKey(id: string): string {
+  const i = id.lastIndexOf('.')
+  return i > 0 ? id.slice(0, i) : id
+}
 function dedupById(signals: ActiveSignal[]): ActiveSignal[] {
   const seen = new Map<string, ActiveSignal>()
-  for (const s of signals) if (!seen.has(s.id)) seen.set(s.id, s)
+  for (const s of signals) {
+    if (s.kind === 'cross-activation') {
+      const k = crossPairKey(s.id)
+      const prev = seen.get(k)
+      if (!prev) {
+        seen.set(k, s)
+      } else {
+        const impS = Math.abs(s.polarity) * s.weight
+        const impP = Math.abs(prev.polarity) * prev.weight
+        if (impS > impP || (impS === impP && s.id < prev.id)) seen.set(k, s)
+      }
+    } else if (!seen.has(s.id)) {
+      seen.set(s.id, s)
+    }
+  }
   return [...seen.values()]
 }
 

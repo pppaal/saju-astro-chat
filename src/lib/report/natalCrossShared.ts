@@ -155,6 +155,11 @@ function preferMapping(a: CrossMapping, b: CrossMapping): CrossMapping {
 }
 const SAJU_TO_MAPPING = new Map<string, CrossMapping>()
 for (const m of SAJU_ASTRO_MAPPINGS) {
+  // crossOnly 보조 매핑은 캘린더 cross-activation 커버리지 전용 — 리포트의 대표
+  // 행성 단일화에선 제외한다. 그래야 정통 1차 등치(정관→토성 등)가 대표로 남고,
+  // 캘린더 풍부화를 위해 더한 2차 nuance(정관→태양 등, polarity 가 더 큼)가
+  // preferMapping 의 |polarity| 우선순위로 대표를 가로채지 않는다.
+  if (m.crossOnly) continue
   const cur = SAJU_TO_MAPPING.get(m.saju)
   SAJU_TO_MAPPING.set(m.saju, cur ? preferMapping(cur, m) : m)
 }

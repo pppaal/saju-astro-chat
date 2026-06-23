@@ -18,6 +18,7 @@ import { toGanji, type Ganji, SIGN_KO, PLANET_KO, computeSewoonGanji } from './s
 import { getSibsinKo } from '@/lib/saju/cycleRelations'
 import { plainPairName } from '@/lib/calendar-engine/derivers/plainLanguage'
 import { ordinalEn } from '@/lib/calendar-engine/ordinal'
+import { getHouseRich, type HouseNumber } from '@/lib/chart-dictionary'
 import type { ZodiacKo } from '@/lib/astrology/foundation/types'
 import type { AstroPlanetName } from '@/lib/astrology/interpretations'
 import type { DestinyProfectionWheelSlice, DestinyDecadeZRChapter } from '@/types/calendar'
@@ -37,6 +38,13 @@ export interface DestinypalYearProfection {
   rulerNatalHouse: number
   /** 본명 룰러 sign. */
   rulerNatalSign: ZodiacKo
+  /**
+   * 활성 하우스의 평이한 풀이 한 문단 — astro-house-rich.json `meaning` 에서.
+   * 2단어 암호 테마(theme) 를 novice 가 읽히는 진짜 설명으로 풀어 주는 hero 보조줄.
+   * 누락/null 이면 빈 문자열 → 컴포넌트는 theme 로 폴백.
+   */
+  houseMeaning: string
+  houseMeaningEn: string
 }
 
 export interface DestinypalYearSewoon {
@@ -90,7 +98,7 @@ export interface DestinypalYear {
   zrFortuneChapters: DestinyDecadeZRChapter[]
 }
 
-const PROFECTION_THEMES: Record<number, { theme: string; themeEn: string }> = {
+export const PROFECTION_THEMES: Record<number, { theme: string; themeEn: string }> = {
   1: { theme: '자기상 · 시작', themeEn: 'Self · Beginnings' },
   2: { theme: '재산 · 가치', themeEn: 'Resources · Values' },
   3: { theme: '소통 · 단거리 이동', themeEn: 'Communication · Short trips' },
@@ -222,7 +230,9 @@ export function toYear(natal: NatalContext, opts: ToYearOptions): DestinypalYear
     astroNote:
       opts.astroNote ??
       (profection
-        ? `Profection이 ${profection.house}하우스를 점등 — 룰러 ${profection.ruler}가 본명 ${profection.rulerNatal}.`
+        ? profection.rulerNatal
+          ? `올해의 무대인 ${profection.house}하우스를 이끄는 별은 ${profection.ruler} — 본명에서는 ${profection.rulerNatal}에 자리해요.`
+          : `올해의 무대인 ${profection.house}하우스를 이끄는 별은 ${profection.ruler}이에요.`
         : ''),
     astroNoteEn:
       opts.astroNoteEn ??
@@ -488,6 +498,12 @@ function extractProfection(
 
   const theme = PROFECTION_THEMES[house] ?? { theme: '', themeEn: '' }
 
+  // 활성 하우스의 평이한 풀이 한 문단 (리포트 전용 DB → 캘린더 hero 로 surface).
+  // house 는 1..12 정수. getHouseRich 키는 "1".."12". 범위 밖이면 가드로 빈 문자열.
+  const inRange = house >= 1 && house <= 12
+  const houseMeaning = inRange ? (getHouseRich(house as HouseNumber, 'ko')?.meaning ?? '') : ''
+  const houseMeaningEn = inRange ? (getHouseRich(house as HouseNumber, 'en')?.meaning ?? '') : ''
+
   // ruler natal — 본명에서 ruler 행성이 어느 하우스/사인에 있는지
   const rulerPlanet = natal.astro.chart.planets.find((p) => p.name === ruler)
   const rulerNatal = rulerPlanet
@@ -509,5 +525,7 @@ function extractProfection(
     rulerNatalEn,
     rulerNatalHouse: rulerPlanet?.house ?? 0,
     rulerNatalSign: (rulerPlanet?.sign ?? 'Aries') as ZodiacKo,
+    houseMeaning,
+    houseMeaningEn,
   }
 }

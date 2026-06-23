@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { toDay } from '@/components/calendar/adapters/toDay'
+import { toDay, ONE_LINE_POOL } from '@/components/calendar/adapters/toDay'
 import { makeNatal, makeCell, makeSignal } from './_fixtures'
 
 // 본명 — 일간 甲, 일주 甲子 (공망 戌/亥), 지장간 미(己/乙/丁) 등.
@@ -390,28 +390,32 @@ describe('toDay — CalendarCell → destinypal day', () => {
       expect(d.dayTone.band).toBe('low')
     })
 
-    it('positive 톤 + topReasons → oneLine 은 첫 우호 사유', () => {
+    it('positive 톤 → oneLine 은 긍정 풀의 한 문장 (칩 라벨 누수 없음)', () => {
       const cell = makeCell({
         datetime: '2026-06-15T00:00:00.000Z',
         derivedScore: 80,
-        topReasons: ['좋은 흐름이에요'],
+        topReasons: ['↑ [이달] 좋은 흐름이에요 (게자리)'],
       })
       const d = toDay({ cell, natal: natal() })
-      expect(d.oneLine).toBe('좋은 흐름이에요')
+      // 풀에서 뽑은 깨끗한 verdict — 칩 라벨/마커를 그대로 노출하지 않는다(누수 회귀 방지).
+      expect(ONE_LINE_POOL.positive.ko).toContain(d.oneLine)
+      expect(d.oneLine).not.toContain('↑')
+      expect(d.oneLine).not.toContain('[')
+      expect(d.oneLine).not.toContain('좋은 흐름이에요')
     })
 
-    it('positive 톤인데 topReasons 비면 폴백 문장', () => {
+    it('positive 톤 폴백 — 풀 문장', () => {
       const cell = makeCell({ datetime: '2026-06-15T00:00:00.000Z', derivedScore: 80 })
       const d = toDay({ cell, natal: natal() })
-      expect(d.oneLine).toBe('흐름이 우호적인 하루.')
+      expect(ONE_LINE_POOL.positive.ko).toContain(d.oneLine)
     })
 
-    it('caution 톤 폴백 — oneLine(ko) + oneLineEn(en) 둘 다 산출', () => {
+    it('caution 톤 — oneLine(ko) + oneLineEn(en) 둘 다 각 풀에서 산출', () => {
       const cell = makeCell({ datetime: '2026-06-15T00:00:00.000Z', derivedScore: 10 })
       // 토글 안전을 위해 toDay 는 양쪽 로케일을 항상 채운다(lang 무관).
       const d = toDay({ cell, natal: natal(), lang: 'en' })
-      expect(d.oneLine).toBe('추진보다 정비가 어울리는 하루.')
-      expect(d.oneLineEn).toBe('A day better for upkeep than pushing.')
+      expect(ONE_LINE_POOL.caution.ko).toContain(d.oneLine)
+      expect(ONE_LINE_POOL.caution.en).toContain(d.oneLineEn)
     })
 
     it('opts.oneLine 직주입이 derive 보다 우선', () => {

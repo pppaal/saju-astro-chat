@@ -1,1222 +1,793 @@
 /* ============================================================
-   destinypal · LifetimeTier — ink-on-hanji
-   (ported from destinypal-extracted/css-ink/{base,tiers}.css —
-    lifetime section only, scoped via CSS Modules)
+   destinypal · LifetimeTier — LIGHT "인생의 모양" 만세력
+   ────────────────────────────────────────────────────────────
+   self-contained LIGHT design. 앱 셸은 다크이므로 이 티어는 .lifeRoot 가
+   라이트 팔레트(--bg/--surface/--gold…)를 *직접* 정의해 그 안에서만 소비한다.
+   월(Month) 티어와 동일 토큰 블록을 그대로 복사 — 한 가족처럼.
+
+   pre-commit 의 raw-hex 검사를 통과하려면 모든 라이트 hex 는 아래 단 하나의
+   `.lifeRoot { --… }` 토큰 블록 안에만 둔다 — 나머지는 전부 var() 참조.
+   오행 액센트 색도 이 블록 안에 둔다.
    ============================================================ */
 
-/* ---------- local tokens (mirror css-ink/base.css :root) ----- */
-.tier {
-  --bg: #ece2cd;
-  --bg-2: #e6dac1;
-  --bg-3: #ddcfb1;
-  --void: #f3ecdc;
+.lifeRoot {
+  /* ── 라이트 팔레트 토큰 (유일한 raw-hex 블록) ── */
+  --bg: #f6f4ee;
+  --surface: #ffffff;
+  --surface-2: #f1efe7;
+  --surface-3: #e9e6dc;
+  --line: #e5e2d8;
+  --line-2: #d7d4c8;
+  --t0: #211f1b;
+  --t1: #5c5a53;
+  --t2: #908e83;
+  --gold: #a86a12;
+  --gold-deep: #8a5a0e;
+  --gold-bg: #fbe9c4;
+  --gold-line: #e9cb8c;
+  --indigo: #4a4fb0;
+  --blue: #2f7fcf;
+  --green: #4c7a14;
+  --slate: #75746c;
+  --crimson: #a53636;
+  --crimson-bg: #fbe3e1;
+  --crimson-line: #eec6c2;
+  --sun: #b06a6a;
 
-  --ink: #2a2318;
-  --ink-dim: #4d4334;
-  --ink-mute: #82745c;
-  --ink-faint: #b4a584;
-
-  --accent: #34406f;
-  --accent-2: #4f5d96;
-  --accent-deep: #222a4e;
-  --accent-glow: rgba(52, 64, 111, 0.28);
-
-  --ember: #b03a22;
-  --ember-2: #c8492c;
-  --ember-glow: rgba(176, 58, 34, 0.26);
-
-  --violet: #6c4a73;
-  --violet-2: #855a8d;
-
-  --pos: #2f7d5b;
-  --neg: #b03a22;
-  --neu: #8a7c61;
-
-  --el-wood: #4f7a40;
-  --el-fire: #bd472b;
-  --el-earth: #b3873a;
-  --el-metal: #6f7689;
-  --el-water: #345a86;
-
-  --panel: rgba(255, 251, 242, 0.46);
-  --panel-2: rgba(255, 251, 242, 0.74);
-  --line: rgba(58, 46, 28, 0.18);
-  --line-soft: rgba(58, 46, 28, 0.1);
-  --now-ring: rgba(52, 64, 111, 0.85);
-
-  --serif: 'Newsreader', 'Gowun Batang', 'Noto Serif KR', serif;
-  --serif-ko: 'Gowun Batang', 'Noto Serif KR', serif;
-  --sans: 'Gowun Dodum', 'Noto Sans KR', system-ui, sans-serif;
-  --mono: 'IBM Plex Mono', 'Noto Sans KR', monospace;
-
-  --r: 6px;
-  --r-lg: 10px;
+  /* 폰트 — 앱 토큰 재사용. "disp" 누멀럴은 Cinzel(자체호스팅) + tabular-nums. */
+  --m-serif: var(--dp-serif-ko);
+  --m-sans: var(--dp-sans);
+  --m-disp: var(--font-cinzel), var(--dp-serif);
 
   position: relative;
-  width: min(1120px, 100%);
+  max-width: 740px;
   margin: 0 auto;
-  padding: clamp(80px, 9vh, 120px) clamp(30px, 5vw, 64px) 170px;
-  color: var(--ink);
-  font-family: var(--sans);
+  /* 셸의 absolute 탑바를 비워야 한다 — 상단 패딩을 넉넉히. */
+  padding: clamp(76px, 8vh, 104px) 22px 88px;
+  font-family: var(--m-sans);
+  color: var(--t0);
+  background: var(--bg);
+  background-image: radial-gradient(120% 70% at 50% -8%, var(--surface) 0%, var(--bg) 55%);
+  line-height: 1.65;
   word-break: keep-all;
-  line-break: strict;
-}
-.tier::before {
-  content: '';
-  position: absolute;
-  left: clamp(12px, 2.2vw, 30px);
-  right: clamp(12px, 2.2vw, 30px);
-  top: clamp(54px, 6vh, 80px);
-  bottom: 92px;
-  border: 1px solid var(--line);
-  box-shadow:
-    inset 0 0 0 3px var(--bg),
-    inset 0 0 0 4px var(--line-soft);
-  pointer-events: none;
-  z-index: -1;
 }
 
-/* ---------- generic bits ----------- */
+/* ── eyebrow ── */
 .eyebrow {
-  font-family: var(--mono);
-  font-size: 15.2px;
-  letter-spacing: 0.22em;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--ink-mute);
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-.eyebrow::before {
-  content: '';
-  width: 18px;
-  height: 1px;
-  background: var(--ink-dim);
+  color: var(--t2);
+  margin-bottom: 30px;
 }
 
-.display {
-  font-family: var(--serif-ko);
-  font-weight: 700;
-  line-height: 1.12;
-  letter-spacing: -0.01em;
-  font-size: clamp(41.4px, 5vw, 71.8px);
-  margin: 14px 0 6px;
+/* ── 정체성 헤더 ── */
+.header {
+  text-align: center;
+  margin-bottom: 40px;
 }
-
-.tiny {
-  font-family: var(--mono);
-  font-size: 14.5px;
-  letter-spacing: 0.04em;
-  color: var(--ink-faint);
-}
-
-.lead {
-  font-family: var(--serif-ko);
-  font-size: clamp(20px, 1.7vw, 22.8px);
-  line-height: 1.85;
-  color: var(--ink-dim);
-  text-wrap: pretty;
-}
-.leadEn {
-  font-size: 17.9px;
-  color: var(--ink-mute);
-  margin-top: 12px;
-  font-style: italic;
-  font-family: var(--serif);
-}
-
-.headerMeta {
-  margin-bottom: 26px;
-}
-.headerMeta .pipe {
-  margin: 0 8px;
-  color: var(--ink-faint);
-}
-
-/* ---------- layer tag ---------- */
-.layerTag {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  font-family: var(--mono);
-  font-size: 13.8px;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--ink-mute);
-}
-.layerTag .pip {
-  width: 8px;
-  height: 8px;
-  border-radius: 1px;
-  transform: rotate(45deg);
-}
-.layerTag.saju .pip {
-  background: var(--ember);
-}
-.layerTag.astro .pip {
-  background: var(--accent);
-}
-
-/* ---------- panel ---------- */
-.panel {
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: var(--r);
-  padding: 20px;
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.4) inset;
-}
-
-/* ---------- ganji ---------- */
-.ganji {
-  display: inline-flex;
-  flex-direction: column;
-  line-height: 1;
-  align-items: center;
-}
-.ganji .hanja {
-  font-family: var(--serif-ko);
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  color: var(--ember-2);
-}
-.ganji .kr {
-  font-family: var(--mono);
-  color: var(--ink-mute);
-  letter-spacing: 0.04em;
-  margin-top: 5px;
-}
-.ganji .en {
-  font-family: var(--mono);
-  color: var(--ink-faint);
-  font-style: italic;
-  letter-spacing: 0.02em;
-  margin-top: 2px;
-}
-
-/* ---------- intro grid ---------- */
-.introGrid {
-  display: grid;
-  grid-template-columns: 1.35fr 1fr;
-  gap: 32px;
-  align-items: start;
-}
-@media (max-width: 860px) {
-  .introGrid {
-    grid-template-columns: 1fr;
-    gap: 22px;
-  }
-}
-
-.introPanel {
-  display: flex;
-  gap: 20px;
-  align-items: center;
-  flex-wrap: wrap;
-}
-.introPanelSide {
-  flex: 1;
-  min-width: 150px;
-}
-
-.idChips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 4px;
-}
-.chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  padding: 7px 11px;
-  border-radius: 3px;
-  background: var(--panel);
-  border: 1px solid var(--line);
-  font-size: 16.6px;
-  color: var(--ink-dim);
-  font-family: var(--serif-ko);
-}
-.chip .k {
-  font-family: var(--mono);
-  font-size: 13.1px;
+.ganzhi {
+  font-family: var(--m-serif);
+  font-weight: 500;
+  font-size: clamp(46px, 11vw, 58px);
   letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--ink-faint);
+  color: var(--gold-deep);
+  line-height: 1;
 }
-.chip .v {
-  color: var(--ink);
+.ganzhiRead {
+  font-size: 13px;
+  letter-spacing: 0.5em;
+  color: var(--t2);
+  margin-top: 12px;
+  text-indent: 0.5em;
 }
-.chip .han {
-  font-family: var(--serif-ko);
-  font-weight: 700;
-  font-size: 20.7px;
-  color: var(--ember);
-}
-
-.elementsWrap {
+.title {
+  font-family: var(--m-disp);
+  font-weight: 500;
+  font-size: 15px;
+  letter-spacing: 0.22em;
+  color: var(--t1);
   margin-top: 26px;
 }
-.elementsLabel {
-  margin-bottom: 4px;
-}
-
-.elementRow {
-  display: flex;
-  gap: 6px;
-  align-items: flex-end;
-  height: 46px;
-  margin-top: 6px;
-}
-.elBar {
-  flex: 1;
-  border-radius: 1px;
-  position: relative;
-  min-height: 6px;
-  opacity: 0.92;
-}
-.elBar span {
-  position: absolute;
-  top: -17px;
-  left: 50%;
-  transform: translateX(-50%);
-  font-family: var(--serif-ko);
-  font-size: 17.9px;
-}
-.elBar small {
-  position: absolute;
-  bottom: -16px;
-  left: 50%;
-  transform: translateX(-50%);
-  font-family: var(--mono);
-  font-size: 12.4px;
-  color: var(--ink-faint);
-}
-
-/* ---------- section heading ---------- */
-.sectionTitle {
-  font-family: var(--serif-ko);
-  font-weight: 700;
-  font-size: clamp(27.6px, 3vw, 37.3px);
-  color: var(--ink);
-  margin: 0;
-  letter-spacing: -0.01em;
-}
-.sectionHead {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 14px;
-  flex-wrap: wrap;
-  margin-bottom: 4px;
-}
-.block {
-  margin-top: 40px;
-}
-
-/* ---------- pattern hero (plain 인생 유형 한 줄) ---------- */
-.patternHero {
-  margin: 18px 0 10px;
-}
-.patternHeadline {
-  font-family: var(--serif-ko);
-  font-weight: 700;
-  font-size: clamp(24px, 3vw, 32px);
-  line-height: 1.3;
-  color: var(--ink);
-  margin: 0 0 8px;
-  letter-spacing: -0.01em;
-}
-.patternLine {
-  font-family: var(--serif-ko);
-  font-size: clamp(17px, 1.6vw, 19.5px);
-  line-height: 1.75;
-  color: var(--ink-mute);
-  margin: 0;
-  max-width: 660px;
-  text-wrap: pretty;
-}
-
-/* ---------- 인생 풀이 (plain interpretation, surface) ---------- */
-.lifeRead {
-  margin: 10px 0 18px;
-  max-width: 720px;
-  font-family: var(--serif-ko);
-  font-size: clamp(17px, 1.6vw, 19.5px);
-  line-height: 1.8;
-  color: var(--ink-dim);
-  text-wrap: pretty;
-}
-
-/* ---------- seasons path (메인 hero) ---------- */
-.seasons {
-  position: relative;
-  margin: 22px 0 8px;
-}
-.seasonsRibbon {
-  position: absolute;
-  inset: 0 0 auto;
-  top: 0;
-  display: flex;
-  height: 100%;
-  border-radius: var(--r);
-  overflow: hidden;
-  z-index: 0;
-  pointer-events: none;
-}
-.seasonZone {
-  flex: 1;
-}
-.seasonFuture {
-  opacity: 0.4;
-}
-.seasonsSvg {
-  position: relative;
-  width: 100%;
-  height: 90px;
+.titleKo {
+  font-family: var(--m-serif);
   display: block;
-  z-index: 1;
+  font-size: clamp(18px, 4.4vw, 22px);
+  letter-spacing: 0.02em;
+  color: var(--t0);
+  margin-top: 10px;
+  font-weight: 300;
+  line-height: 1.55;
 }
-.seasonCards {
+.counts {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 22px;
+  font-size: 13px;
+  color: var(--t1);
+}
+.counts span {
+  padding: 0 14px;
   position: relative;
-  z-index: 1;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 5px;
+}
+.counts span + span::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 3px;
+  bottom: 3px;
+  width: 1px;
+  background: var(--line-2);
+}
+.counts b {
+  font-weight: 500;
+  font-family: var(--m-disp);
+  font-size: 16px;
+  font-variant-numeric: tabular-nums;
+}
+.counts b.cText {
+  font-family: var(--m-serif);
+  font-size: 14px;
+}
+.cIlgan b {
+  color: var(--gold-deep);
+}
+.cYongsin b {
+  color: var(--green);
+}
+.headTags {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 16px;
+}
+
+/* ── sections ── */
+.sec {
+  margin-top: 54px;
+}
+.secH {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 20px;
+}
+.secLbl {
+  font-family: var(--m-serif);
+  font-size: 17px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.secLn {
+  height: 1px;
+  flex: 1;
+  background: var(--line);
+}
+.secLat {
+  font-family: var(--m-disp);
+  font-size: 10px;
+  letter-spacing: 0.3em;
+  color: var(--t2);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* ── term tag ── */
+.termTag {
+  font-family: var(--m-serif);
+  font-size: 11px;
+  color: var(--t2);
+  letter-spacing: 0.06em;
+  border: 1px solid var(--line-2);
+  border-radius: 14px;
+  padding: 3px 11px;
+}
+
+/* ── C. 大運 가로 타임라인 (SIGNATURE) ── */
+.dwLegend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  font-size: 11px;
+  color: var(--t2);
+  margin-bottom: 16px;
+}
+.dwLegend span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.dwLegend i {
+  width: 11px;
+  height: 11px;
+  border-radius: 4px;
+  display: inline-block;
+}
+.dwLegBoon i {
+  background: var(--gold-bg);
+  border: 1px solid var(--gold-line);
+}
+.dwLegLift i {
+  background: var(--surface-2);
+  border: 1px solid var(--gold-line);
+}
+.dwLegNeutral i {
+  background: var(--surface-3);
+  border: 1px solid var(--line-2);
+}
+.dwLegNow i {
+  background: none;
+  border: 2px solid var(--blue);
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+}
+.dwRow {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
-  margin-top: 6px;
+  grid-template-columns: repeat(10, minmax(0, 1fr));
+  gap: 6px;
 }
-@media (max-width: 860px) {
-  .seasonCards {
-    grid-template-columns: 1fr 1fr;
-  }
+.dwCell {
+  position: relative;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  padding: 12px 4px 11px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  text-align: center;
+  min-width: 0;
+  transition:
+    transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow 0.3s ease,
+    border-color 0.3s ease;
 }
-@media (max-width: 520px) {
-  .seasonCards {
-    grid-template-columns: 1fr;
-  }
+.dwCell:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 22px -14px rgba(40, 33, 15, 0.4);
+  border-color: var(--line-2);
+}
+.dwNeutral {
+  background: var(--surface-3);
+  border-color: var(--line-2);
+}
+.dwLift {
+  background: linear-gradient(180deg, var(--surface-2), var(--surface));
+  border-color: var(--gold-line);
+}
+.dwBoon {
+  background: var(--gold-bg);
+  border-color: var(--gold-line);
+}
+.dwNow {
+  border: 2px solid var(--blue);
+  box-shadow: 0 0 0 3px rgba(47, 127, 207, 0.12);
+}
+.dwNowTag {
+  position: absolute;
+  top: -9px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 9px;
+  letter-spacing: 0.04em;
+  color: var(--surface);
+  background: var(--blue);
+  border-radius: 10px;
+  padding: 2px 7px;
+  white-space: nowrap;
+  z-index: 2;
+}
+.dwGz {
+  font-family: var(--m-serif);
+  font-weight: 500;
+  font-size: clamp(11px, 2.6vw, 13px);
+  color: var(--t2);
+  line-height: 1.05;
+  letter-spacing: 0.04em;
+  margin-top: 3px;
+}
+.dwNow .dwGz {
+  color: var(--blue);
+}
+.dwAge {
+  font-family: var(--m-disp);
+  font-size: 10px;
+  color: var(--t1);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+.dwYear {
+  font-family: var(--m-disp);
+  font-size: 9px;
+  color: var(--t2);
+  font-variant-numeric: tabular-nums;
+}
+.dwGloss {
+  font-family: var(--m-serif);
+  font-weight: 500;
+  font-size: clamp(11.5px, 2.9vw, 13.5px);
+  color: var(--t0);
+  line-height: 1.28;
+  word-break: keep-all;
+}
+.dwNow .dwGloss {
+  color: var(--blue);
+}
+
+/* ── D. 계절 4 stages ── */
+.seasonRow {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
 }
 .seasonCard {
   position: relative;
+  border-radius: 16px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  padding: 16px 13px;
   display: flex;
   flex-direction: column;
-  gap: 3px;
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-top: 3px solid var(--season-c, var(--ink-faint));
-  border-radius: var(--r);
-  padding: 14px 15px;
-  transition: all 0.3s;
-}
-.seasonCardFuture {
-  opacity: 0.55;
+  gap: 5px;
+  min-width: 0;
+  transition:
+    transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow 0.3s ease,
+    border-color 0.3s ease;
 }
 .seasonNow {
-  background: linear-gradient(165deg, rgba(176, 58, 34, 0.1), rgba(255, 251, 242, 0.5));
-  border-color: rgba(176, 58, 34, 0.5);
-  box-shadow: 0 14px 36px -22px rgba(176, 58, 34, 0.6);
+  border: 2px solid var(--blue);
   cursor: pointer;
 }
+.seasonNow:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 26px -16px rgba(40, 33, 15, 0.45);
+}
+.seasonNow:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 2px;
+}
+.seasonFuture {
+  opacity: 0.62;
+}
 .seasonNowTag {
-  position: absolute;
-  top: 11px;
-  right: 11px;
-  font-family: var(--mono);
-  font-size: 12.4px;
-  letter-spacing: 0.14em;
-  color: #f6ecd9;
-  padding: 3px 8px;
-  background: var(--ember);
-  border-radius: 2px;
+  align-self: flex-start;
+  font-size: 9px;
+  letter-spacing: 0.04em;
+  color: var(--surface);
+  background: var(--blue);
+  border-radius: 10px;
+  padding: 2px 8px;
 }
-.seasonGlyph {
-  font-family: var(--serif-ko);
-  font-weight: 700;
-  font-size: 24px;
-  line-height: 1.1;
-}
-.seasonTheme {
-  font-family: var(--serif-ko);
-  font-weight: 700;
-  font-size: 18.5px;
-  color: var(--ink);
-}
-.seasonStageName {
-  font-family: var(--mono);
-  font-size: 13.1px;
-  letter-spacing: 0.06em;
-  color: var(--ink-mute);
+.seasonName {
+  font-family: var(--m-serif);
+  font-weight: 500;
+  font-size: 15px;
 }
 .seasonAge {
-  font-family: var(--mono);
-  font-size: 13.1px;
-  letter-spacing: 0.04em;
-  color: var(--ink-faint);
+  font-family: var(--m-disp);
+  font-size: 11px;
+  color: var(--gold-deep);
+  font-variant-numeric: tabular-nums;
 }
 .seasonTone {
-  font-family: var(--serif-ko);
-  font-size: 15.6px;
+  font-size: 12px;
+  color: var(--t1);
   line-height: 1.5;
-  color: var(--ink-dim);
-  margin-top: 6px;
 }
-.seasonDiveHint {
-  margin-top: 8px;
-  color: var(--ember);
-  font-family: var(--mono);
-  font-size: 13.8px;
-  letter-spacing: 0.04em;
-}
-
-/* ---------- 인생의 큰 마디 (turning points, plain) ---------- */
-.turning {
-  margin-top: 36px;
-}
-.turnList {
-  list-style: none;
-  margin: 16px 0 0;
-  padding: 0;
-}
-.turnItem {
-  display: grid;
-  grid-template-columns: 116px 14px 1fr;
-  align-items: start;
-  gap: 12px;
-  padding: 10px 0;
-  position: relative;
-}
-.turnPast {
-  opacity: 0.52;
-}
-.turnFuture {
-  opacity: 0.66;
-}
-.turnWhen {
-  font-family: var(--mono);
-  font-size: 14.5px;
-  color: var(--ink-mute);
-  letter-spacing: 0.02em;
-  white-space: nowrap;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-.turnWhen em {
-  font-style: normal;
-  font-size: 11.5px;
-  font-weight: 700;
-  color: #f6ecd9;
-  background: var(--ember);
-  padding: 1px 7px;
-  border-radius: 999px;
-  width: fit-content;
-}
-.turnDot {
-  width: 11px;
-  height: 11px;
-  border-radius: 50%;
-  margin-top: 5px;
-  background: var(--void);
-  border: 1.5px solid var(--ink-faint);
-}
-.turnNow .turnDot {
-  border-color: var(--ember);
-  background: var(--ember);
-  box-shadow: 0 0 0 4px rgba(176, 58, 34, 0.16);
-}
-.turnBody {
-  min-width: 0;
-}
-.turnTitle {
-  font-family: var(--serif-ko);
-  font-size: 19.3px;
-  line-height: 1.4;
-  color: var(--ink-dim);
-}
-.turnNow .turnTitle {
-  color: var(--ink);
-  font-weight: 700;
-}
-.turnMeaning {
-  font-family: var(--serif-ko);
-  font-size: 15.6px;
-  line-height: 1.55;
-  color: var(--ink-faint);
+.seasonHint {
+  font-size: 11px;
+  color: var(--blue);
   margin-top: 2px;
 }
 
-/* ---------- anti-fatalism forecast footer ---------- */
-.forecast {
-  margin: 26px 0 4px;
-  padding: 14px 18px;
-  border-left: 3px solid var(--accent-2);
-  background: var(--panel);
-  border-radius: 0 var(--r) var(--r) 0;
-  font-family: var(--serif-ko);
-  font-size: 16.6px;
-  line-height: 1.7;
-  color: var(--ink-mute);
-  text-wrap: pretty;
+/* ── E. 인생의 큰 마디 ── */
+.turnList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
 }
-
-/* ---------- stage detail ---------- */
-.stageDetail {
-  margin-top: 40px;
-}
-
-.daewoonSpine {
-  margin-top: 16px;
+.turnItem {
   display: flex;
-  align-items: center;
-  gap: 18px;
-  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 13px 4px;
+  border-bottom: 1px solid var(--line);
 }
-.daewoonRow {
-  display: flex;
-  align-items: flex-end;
-  gap: 26px;
-  flex-wrap: wrap;
+.turnItem:last-child {
+  border-bottom: none;
 }
-.daewoonCell {
-  display: flex;
-  align-items: flex-end;
-  gap: 26px;
+.turnPast {
+  opacity: 0.55;
 }
-.daewoonCellInner {
-  text-align: center;
+.turnNow {
+  background: var(--gold-bg);
+  border: 1px solid var(--gold-line);
+  border-radius: 14px;
+  padding: 13px 14px;
+  margin: 6px 0;
 }
-.daewoonRange {
-  font-family: var(--mono);
-  font-size: 14.5px;
-  color: var(--ink-faint);
-  margin-top: 8px;
-  letter-spacing: 0.04em;
-}
-.daewoonSibsin {
-  font-size: 15.2px;
-  color: var(--ember-2);
+.turnStar {
+  color: var(--gold);
+  font-size: 12px;
   margin-top: 3px;
 }
-.daewoonArrow {
-  color: var(--ink-faint);
-  font-size: 24.8px;
-  padding-bottom: 22px;
+.turnWhen {
+  font-family: var(--m-disp);
+  font-size: 13px;
+  color: var(--gold-deep);
+  font-variant-numeric: tabular-nums;
+  min-width: 92px;
+  white-space: nowrap;
+  margin-top: 1px;
 }
-
-.detailGrid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
-  margin-top: 16px;
+.turnBody {
+  flex: 1;
+  min-width: 0;
 }
-@media (max-width: 760px) {
-  .detailGrid {
-    grid-template-columns: 1fr;
-  }
-}
-.dcard {
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: 4px;
-  padding: 14px 15px;
-}
-.dcard .h {
+.turnTitle {
+  font-family: var(--m-serif);
+  font-size: 15px;
+  font-weight: 500;
   display: flex;
   align-items: center;
   gap: 8px;
-  font-family: var(--mono);
-  font-size: 13.8px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--ink-mute);
-  margin-bottom: 9px;
+  flex-wrap: wrap;
 }
-.dcard .t {
-  font-family: var(--serif-ko);
-  font-weight: 700;
-  font-size: 23.5px;
-  color: var(--ink);
+.turnNowPill {
+  font-size: 10px;
+  color: var(--blue);
+  border: 1px solid var(--blue);
+  border-radius: 10px;
+  padding: 1px 8px;
 }
-.dcard .r {
-  font-family: var(--mono);
-  font-size: 13.8px;
-  color: var(--ink-faint);
-  font-style: italic;
-  margin: 2px 0 8px;
-}
-.dcard .b {
-  font-family: var(--serif-ko);
-  font-size: 17.3px;
+.turnMeaning {
+  font-size: 13px;
+  color: var(--t1);
+  margin-top: 3px;
   line-height: 1.6;
-  color: var(--ink-dim);
-}
-.glyphMini {
-  font-size: 17.9px;
-}
-.glyphEmber {
-  color: var(--ember-2);
-}
-.glyphViolet {
-  color: var(--violet-2);
-}
-.glyphDim {
-  color: var(--ink-dim);
 }
 
-/* ---------- outer planets ---------- */
-.outerWrap {
-  margin-top: 22px;
+/* ── F. 한 줄 총평 ── */
+.verdict {
+  font-family: var(--m-serif);
+  font-weight: 300;
+  font-size: clamp(19px, 4.6vw, 23px);
+  line-height: 1.7;
 }
-.outerLabel {
-  display: inline-block;
-  margin-left: 12px;
-}
-.outerRow {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
+.verdictRead {
+  font-size: 14px;
+  color: var(--t1);
   margin-top: 14px;
+  line-height: 1.7;
 }
-.outerChip {
+.verdictSub {
+  margin-top: 16px;
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 10px 14px;
-  border-radius: 4px;
-  background: var(--panel);
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+/* ── G. ZR 두 레인 ── */
+.zrLane {
+  margin-bottom: 18px;
+}
+.zrLaneLabel {
+  font-family: var(--m-serif);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  margin-bottom: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.zrSpirit {
+  color: var(--indigo);
+}
+.zrFortune {
+  color: var(--gold-deep);
+}
+.zrTrack {
+  position: relative;
+  height: 52px;
+  border-radius: 12px;
+  background: var(--surface-2);
   border: 1px solid var(--line);
 }
-.outerChip .ic {
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  font-size: 20.7px;
-  flex: none;
+.zrChapter {
+  position: absolute;
+  top: 5px;
+  bottom: 5px;
+  border-radius: 9px;
+  background: var(--surface);
+  border: 1px solid var(--line-2);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 4px 7px;
+  overflow: hidden;
+  min-width: 0;
 }
-.outerChip .ot .l {
-  font-family: var(--serif-ko);
-  font-size: 16.6px;
-  color: var(--ink);
+.zrNow {
+  border: 2px solid var(--blue);
+  background: var(--gold-bg);
+  z-index: 2;
 }
-.outerChip .ot .d {
-  font-family: var(--mono);
-  font-size: 13.8px;
-  color: var(--ink-mute);
+.zrSign {
+  font-family: var(--m-serif);
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
-
-.outerChip.jupiter .ic {
-  background: rgba(179, 135, 58, 0.16);
-  color: var(--el-earth);
-  border: 1px solid rgba(179, 135, 58, 0.45);
-}
-.outerChip.saturn .ic {
-  background: rgba(108, 74, 115, 0.16);
-  color: var(--violet);
-  border: 1px solid rgba(108, 74, 115, 0.4);
-}
-.outerChip.uranus .ic {
-  background: rgba(52, 90, 134, 0.16);
-  color: var(--el-water);
-  border: 1px solid rgba(52, 90, 134, 0.4);
-}
-.outerChip.neptune .ic {
-  background: rgba(85, 113, 160, 0.16);
-  color: var(--accent);
-  border: 1px solid rgba(85, 113, 160, 0.4);
-}
-.outerChip.pluto .ic {
-  background: rgba(42, 35, 24, 0.14);
-  color: var(--ink);
-  border: 1px solid rgba(42, 35, 24, 0.3);
-}
-.outerChip.chiron .ic {
-  background: rgba(189, 71, 43, 0.14);
-  color: var(--ember);
-  border: 1px solid rgba(189, 71, 43, 0.36);
-}
-.outerChip.progressedMoon .ic {
-  background: rgba(180, 165, 132, 0.18);
-  color: var(--ink-dim);
-  border: 1px solid rgba(180, 165, 132, 0.45);
+.zrMeta {
+  font-family: var(--m-disp);
+  font-size: 9px;
+  color: var(--t2);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-/* ---------- natal lots row ---------- */
-.lotsWrap {
-  margin-top: 22px;
-}
-.lotsLabel {
-  display: inline-block;
-  margin-left: 12px;
-}
+/* ── H. 본명 점(Lots) ── */
 .lotsGrid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 10px;
-  margin-top: 14px;
+  gap: 9px;
 }
 .lotChip {
   display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
-  background: var(--panel);
-  border: 1px solid rgba(179, 135, 58, 0.4);
-  border-left: 3px solid var(--el-earth);
-  border-radius: 4px;
-}
-.lotChip .ic {
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  flex: none;
-  font-family: var(--serif-ko);
-  font-weight: 700;
-  font-size: 17.9px;
-  color: var(--el-earth);
-  background: rgba(179, 135, 58, 0.16);
-  border: 1px solid rgba(179, 135, 58, 0.45);
-}
-.lotChip .meta {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-.lotChip .meta .nm {
-  font-family: var(--serif-ko);
-  font-weight: 700;
-  font-size: 17.3px;
-  color: var(--ink);
-}
-.lotChip .meta .pos {
-  font-family: var(--mono);
-  font-size: 13.8px;
-  color: var(--ink-mute);
-  letter-spacing: 0.04em;
-}
-
-/* ---------- ZR L1 carousel ---------- */
-.zrWrap {
-  margin-top: 32px;
-}
-.zrLanes {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-  margin-top: 16px;
-}
-@media (max-width: 760px) {
-  .zrLanes {
-    grid-template-columns: 1fr;
-  }
-}
-.zrLane {
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: var(--r);
-  padding: 16px;
-}
-.zrLane .laneHead {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 10px;
-  flex-wrap: wrap;
-  margin-bottom: 10px;
-}
-.zrLane .laneTitle {
-  font-family: var(--serif-ko);
-  font-weight: 700;
-  font-size: 19.3px;
-  color: var(--ink);
-  letter-spacing: 0.02em;
-}
-.zrLane .laneKind {
-  font-family: var(--mono);
-  font-size: 13.1px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-.zrLane .laneKind.spirit {
-  color: var(--accent);
-}
-.zrLane .laneKind.fortune {
-  color: var(--ember);
-}
-
-.zrTrack {
-  display: flex;
-  gap: 8px;
-  overflow-x: auto;
-  padding-bottom: 6px;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(58, 46, 28, 0.28) transparent;
-}
-.zrTrack::-webkit-scrollbar {
-  height: 6px;
-}
-.zrTrack::-webkit-scrollbar-thumb {
-  background: rgba(58, 46, 28, 0.24);
-  border-radius: 6px;
-}
-
-.zrChapter {
-  flex: 0 0 auto;
-  min-width: 110px;
-  padding: 10px 12px;
-  background: var(--panel-2);
-  border: 1px solid var(--line);
-  border-radius: 4px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-.zrChapter.now {
-  border-color: var(--ember);
-  box-shadow: 0 0 0 1px var(--ember-glow);
-}
-.zrChapter .sign {
-  font-family: var(--serif-ko);
-  font-weight: 700;
-  font-size: 17.9px;
-  color: var(--ink);
-}
-.zrChapter.now .sign {
-  color: var(--ember);
-}
-.zrChapter .ruler {
-  font-family: var(--mono);
-  font-size: 13.8px;
-  color: var(--ink-mute);
-  letter-spacing: 0.03em;
-}
-.zrChapter .years {
-  font-family: var(--mono);
-  font-size: 13.1px;
-  color: var(--ink-faint);
-  letter-spacing: 0.04em;
-}
-
-/* ---------- milestone timeline ---------- */
-.miles {
-  margin-top: 34px;
-}
-.mileTrack {
-  position: relative;
-  margin-top: 18px;
-  padding-left: 4px;
-}
-.mileTrack::before {
-  content: '';
-  position: absolute;
-  left: 7px;
-  top: 6px;
-  bottom: 6px;
-  width: 1.5px;
-  background: linear-gradient(180deg, var(--line), var(--ember), var(--line));
-}
-.mile {
-  display: grid;
-  grid-template-columns: 30px 64px 1fr;
-  align-items: baseline;
-  gap: 12px;
-  padding: 9px 0;
-  position: relative;
-}
-.mile .node {
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  background: var(--void);
-  border: 1.5px solid var(--ink-faint);
-  margin-left: 0;
-}
-.mile.now .node {
-  border-color: var(--ember);
-  background: var(--ember);
-  box-shadow: 0 0 0 4px rgba(176, 58, 34, 0.16);
-}
-.mile .yr {
-  font-family: var(--mono);
-  font-size: 17.9px;
-  color: var(--ink);
-}
-.mile .yr small {
-  color: var(--ink-mute);
-  font-size: 13.8px;
-  display: block;
-}
-.mile .lab {
-  font-family: var(--serif-ko);
-  font-size: 17.9px;
-  color: var(--ink-dim);
-  line-height: 1.45;
-}
-.mile.now .lab {
-  color: var(--ember);
-}
-.mile .nowMark {
-  color: var(--ember);
-  font-family: var(--mono);
-  font-size: 13.8px;
-  margin-left: 8px;
-}
-
-/* ---------- dive ---------- */
-.diveWrap {
-  display: flex;
-  justify-content: center;
-}
-.dive {
-  display: inline-flex;
-  align-items: center;
-  gap: 12px;
-  margin: 30px auto 0;
-  padding: 12px 24px;
-  background: var(--ember);
-  border: 1px solid var(--ember);
-  border-radius: 3px;
-  color: #f6ecd9;
-  cursor: pointer;
-  font-family: var(--mono);
-  font-size: 16.6px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  transition: all 0.25s;
-  position: relative;
-  box-shadow: 0 6px 18px -10px rgba(176, 58, 34, 0.7);
-}
-.dive:hover {
-  background: var(--ember-2);
-  box-shadow: 0 10px 26px -10px rgba(176, 58, 34, 0.85);
-  transform: translateY(-1px);
-}
-.dive .arrow {
-  font-size: 20.7px;
-  animation: bob 2.4s ease-in-out infinite;
-}
-@keyframes bob {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(3px);
-  }
-}
-
-/* ============================================================
-   Mobile breakpoints — 640px / 480px
-   ============================================================ */
-
-@media (max-width: 640px) {
-  .tier {
-    padding: clamp(56px, 10vh, 86px) 16px calc(140px + env(safe-area-inset-bottom, 0px));
-  }
-  .tier::before {
-    left: 6px;
-    right: 6px;
-    top: clamp(40px, 6vh, 60px);
-    bottom: calc(110px + env(safe-area-inset-bottom, 0px));
-  }
-  .display {
-    font-size: clamp(33.1px, 7.2vw, 46.9px);
-  }
-  .lead {
-    font-size: 18.6px;
-    line-height: 1.75;
-  }
-  .leadEn {
-    font-size: 16.6px;
-  }
-  .sectionTitle {
-    font-size: clamp(24.8px, 5vw, 30.4px);
-  }
-  .block {
-    margin-top: 32px;
-  }
-  .introPanel {
-    gap: 14px;
-  }
-  .seasonsSvg {
-    height: 72px;
-  }
-  .seasonTheme {
-    font-size: 17px;
-  }
-  .seasonTone {
-    font-size: 15px;
-  }
-  .turnItem {
-    grid-template-columns: 92px 12px 1fr;
-    gap: 9px;
-  }
-  .turnTitle {
-    font-size: 17.3px;
-  }
-  .daewoonRow,
-  .daewoonCell {
-    gap: 16px;
-  }
-  .daewoonArrow {
-    font-size: 20.7px;
-    padding-bottom: 18px;
-  }
-  .mile {
-    grid-template-columns: 26px 56px 1fr;
-    gap: 9px;
-    padding: 8px 0;
-  }
-  .mile .yr {
-    font-size: 16.6px;
-  }
-  .mile .lab {
-    font-size: 16.6px;
-    line-height: 1.4;
-  }
-  .outerChip,
-  .lotChip {
-    padding: 8px 11px;
-    font-size: 15.9px;
-  }
-  .outerChip .ic {
-    width: 26px;
-    height: 26px;
-    font-size: 17.9px;
-  }
-  .dive {
-    padding: 11px 20px;
-    font-size: 15.2px;
-    letter-spacing: 0.1em;
-    margin: 22px auto 0;
-  }
-}
-
-@media (max-width: 480px) {
-  .tier {
-    padding: clamp(50px, 9vh, 78px) 12px calc(130px + env(safe-area-inset-bottom, 0px));
-  }
-  .display {
-    font-size: clamp(30.4px, 7.6vw, 41.4px);
-  }
-  .lead {
-    font-size: 17.9px;
-    line-height: 1.7;
-  }
-  .headerMeta {
-    margin-bottom: 18px;
-  }
-  .chip {
-    font-size: 15.2px;
-    padding: 6px 9px;
-  }
-  .seasonCards {
-    gap: 10px;
-  }
-  .seasonCard {
-    padding: 13px;
-  }
-  .lotsGrid {
-    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-    gap: 8px;
-  }
-}
-
-/* ── 인생 타임라인 (대운 × 점성 ZR 평행) ─────────────────────────── */
-.tlWrap {
-  margin-top: 10px;
-}
-.tlRowLabel {
-  font-family: var(--mono);
-  font-size: 10px;
-  color: var(--ink-faint);
-  margin: 6px 0 2px;
-  letter-spacing: 0.5px;
-}
-.tlTrack {
-  height: 40px;
-  background: var(--panel-2);
-  border: 1px solid var(--line);
-  border-radius: var(--r);
-}
-.tlSeg {
-  top: 3px;
-  bottom: 3px;
-  height: 34px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 1px;
-  padding: 2px 3px;
-  box-sizing: border-box;
-  border-right: 1px solid var(--line);
-  background: var(--panel);
-  overflow: hidden;
-  white-space: nowrap;
-}
-.tlHead {
-  font-family: var(--serif-ko);
-  font-size: 13px;
-  color: var(--ink);
-  line-height: 1;
-}
-.tlSub {
-  font-size: 9px;
-  color: var(--ink-dim);
-  line-height: 1;
-}
-.tlNow {
-  width: 2px;
-  background: var(--accent);
-  z-index: 3;
-}
-.tlAxis {
-  position: relative;
-  height: 16px;
-  margin-top: 4px;
-  font-size: 9px;
-  color: var(--ink-faint);
-}
-
-/* ── 공유용 정체성 카드 (③) ─────────────────────────────────── */
-.idCard {
-  margin: 14px 0 6px;
-  padding: 16px 18px;
-  border: 1px solid var(--line);
-  border-radius: var(--r);
-  background: linear-gradient(135deg, var(--panel), var(--panel-2));
-}
-.idCardRow {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
-.idCardHan {
-  font-family: var(--serif-ko);
-  font-size: 40px;
-  line-height: 1;
-  color: var(--ink);
-}
-.idCardMeta {
-  display: flex;
   flex-direction: column;
   gap: 3px;
+  border: 1px solid var(--gold-line);
+  background: var(--gold-bg);
+  border-radius: 13px;
+  padding: 11px 13px;
 }
-.idCardType {
-  font-family: var(--serif-ko);
-  font-size: 20px;
-  font-weight: 700;
-  color: var(--accent);
-}
-.idCardSub {
-  font-size: 12px;
-  color: var(--ink-dim);
-}
-.idCardLine {
-  margin: 10px 0 0;
+.lotName {
+  font-family: var(--m-serif);
   font-size: 13px;
+  font-weight: 500;
+  color: var(--gold-deep);
+}
+.lotPos {
+  font-family: var(--m-disp);
+  font-size: 11px;
+  color: var(--t1);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── I. footer + CTA ── */
+.forecast {
+  margin-top: 44px;
+  font-size: 13px;
+  color: var(--t2);
+  line-height: 1.7;
+  text-align: center;
+}
+.cta {
+  display: block;
+  width: 100%;
+  margin-top: 24px;
+  padding: 16px;
+  text-align: center;
+  font-size: 14px;
+  color: var(--t0);
+  background: var(--surface);
+  border: 1px solid var(--line-2);
+  border-radius: 16px;
+  cursor: pointer;
+  font-family: var(--m-sans);
+  font-variant-numeric: tabular-nums;
+}
+.cta:hover {
+  background: var(--surface-2);
+}
+
+@media (max-width: 560px) {
+  .lifeRoot {
+    padding: clamp(72px, 8vh, 92px) 16px 70px;
+  }
+  .dwRow {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+  .seasonRow {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .counts {
+    font-size: 12px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dwCell,
+  .seasonNow {
+    transition: none;
+  }
+}
+
+/* ── novice 기본 (한자·용어 없는 일상어 결론) — DayTier 블록 그대로 복사 ── */
+.novice {
+  text-align: center;
+  margin: 6px 0 24px;
+}
+.novToneWord {
+  font-family: var(--m-serif);
+  font-size: clamp(30px, 8.4vw, 40px);
+  font-weight: 300;
+  letter-spacing: 0.02em;
+  color: var(--t0);
+  line-height: 1.1;
+}
+.novGood {
+  color: var(--gold-deep);
+}
+.novCare {
+  color: var(--crimson);
+}
+.novLine {
+  font-family: var(--m-serif);
+  font-weight: 300;
+  font-size: clamp(16px, 4.4vw, 19px);
+  line-height: 1.62;
+  color: var(--t1);
+  max-width: 30ch;
+  margin: 13px auto 0;
+  word-break: keep-all;
+}
+
+/* ── 폴드 도입부 lede ("쉽게 말하면 …") ── */
+.foldLede {
+  font-size: 13px;
+  color: var(--t1);
+  margin: 2px 0 14px;
+  line-height: 1.62;
+  word-break: keep-all;
+}
+
+/* ── "지금 여기 / 다음 마디" 한 줄 (hero→timeline→milestones 연결) ── */
+.youAreHere {
+  max-width: 34ch;
+  margin: 18px auto 4px;
+  text-align: center;
+  font-size: 14px;
+  color: var(--t1);
+  line-height: 1.62;
+  word-break: keep-all;
+}
+.youAreHere b {
+  color: var(--gold-deep);
+  font-weight: 500;
+}
+
+/* ── 섹션 개념 안내 한 줄 (예: 10년 날씨) ── */
+.conceptNote {
+  font-size: 13px;
+  color: var(--t1);
   line-height: 1.6;
-  color: var(--ink);
+  margin: -6px 0 16px;
+  word-break: keep-all;
+}
+
+/* ── timeline 셀 — 한국어 음(갑술) 작은 secondary ── */
+.dwKr {
+  font-family: var(--m-serif);
+  font-size: 10px;
+  color: var(--t2);
+  line-height: 1.1;
+  letter-spacing: 0.02em;
+}
+.dwNow .dwKr {
+  color: var(--blue);
+}
+
+/* ── milestone secondary 태그 (간지·astro 원명을 작게) ── */
+.turnTag {
+  display: inline-block;
+  font-family: var(--m-serif);
+  font-size: 10.5px;
+  color: var(--t2);
+  border: 1px solid var(--line-2);
+  border-radius: 10px;
+  padding: 1px 8px;
+  margin-top: 5px;
+  white-space: nowrap;
+}
+
+/* ── 정체성 DB 블록 (격국/십신/일주 평이 read) ── */
+.dbWrap {
+  margin: 4px 0 18px;
+}
+.dbBlock {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+.dbBlock:first-of-type {
+  border-top: none;
+  padding-top: 0;
+}
+.dbTitle {
+  font-family: var(--m-serif);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--t0);
+  margin-bottom: 6px;
+}
+.dbBody {
+  font-size: 13px;
+  color: var(--t1);
+  line-height: 1.7;
+  margin: 0 0 6px;
+  word-break: keep-all;
+}
+.dbCare {
+  color: var(--crimson);
+}
+.dbPair {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 18px;
+  font-size: 12.5px;
+  color: var(--t1);
+  margin-top: 4px;
+}
+.dbPair span b {
+  font-weight: 500;
+  color: var(--t0);
+}
+
+/* ── 자세히 폴드 (전문층 — 사주를 아는 사람만 펼침) — DayTier 블록 그대로 복사 ── */
+.expertWrap {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface);
+  margin: 14px 0;
+  padding: 0 16px;
+}
+.expertSummary {
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 13px 2px;
+  font-family: var(--m-mono, var(--dp-mono));
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--t2);
+}
+.expertSummary::-webkit-details-marker {
+  display: none;
+}
+.expertSummary::before {
+  content: '▸';
+  color: var(--gold);
+  transition: transform 0.2s ease;
+}
+.expertWrap[open] > .expertSummary::before {
+  transform: rotate(90deg);
+}
+.expertWrap[open] > .expertSummary {
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 6px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .expertSummary::before {
+    transition: none;
+  }
 }

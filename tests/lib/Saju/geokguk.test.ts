@@ -323,11 +323,13 @@ describe('Geokguk Module', () => {
       expect(r.yongsin).toBe('비겁/인성')
     })
 
-    it('화기 흐름 — checkJonggyeok 내부 化氣 흐름(갑기화토)이 종격으로 분류', () => {
-      // 일간 甲 + 인접 월간 己 천간합, 화한 토가 우세, 파합(목) ≤1 → 화기 흐름
+    it('종재격 — 일간 甲 무근 + 土 재성 도배 → 강한 오행(土) 따름', () => {
+      // 강약 SSOT 재균형(2026) 후: 甲 무근에 土(재성)가 도배되면 극신약→종격이
+      // 화기(갑기화토)보다 우선 잡혀 종재격(적천수 從財 흐름). 이전엔 강약 편향으로
+      // 극단까지 못 내려가 화기격으로 빠졌다.
       const p = createPillars('戊', '戌', '己', '戌', '甲', '戌', '己', '戌')
       const r = determineGeokguk(p)
-      expect(r.primary).toBe('갑기화토격')
+      expect(r.primary).toBe('종재격')
       expect(r.category).toBe('종격')
     })
   })
@@ -389,7 +391,9 @@ describe('Geokguk Module', () => {
     })
 
     it('정격 신약 — 용신 인성/비겁, 기신 재성/관성/식상', () => {
-      const p = createPillars('庚', '申', '辛', '酉', '甲', '申', '庚', '戌')
+      // 甲 일간이 金 관살에 눌려 신약이되, 壬子(수 인성)로 한 뿌리는 있어 극신약
+      // (종격)까지는 안 가는 *적당히* 신약한 정격(정관격). 강약 재균형 후에도 정격 유지.
+      const p = createPillars('庚', '申', '辛', '酉', '甲', '申', '壬', '子')
       const r = determineGeokguk(p)
       expect(r.category).toBe('정격')
       expect(getStrengthScore(p)).toBeLessThan(40)
@@ -424,7 +428,8 @@ describe('Geokguk Module', () => {
     it('월령 용사 — 투출 없으면 월지 본기로 정격을 잡고 fallback 표시', () => {
       // CONVENTIONS §9: 투출이 없어도 월지 본기 십신으로 격을 정한다(월령 용사).
       // 월지 申 본기 庚 = (甲 일간 기준) 편관 → 편관격. 표시용 폴백(타이밍 신호 제외).
-      const p = createPillars('丙', '午', '丙', '申', '甲', '午', '丁', '午')
+      // 庚 미투출 + 중화권(극단 아님)이라 강약 재균형 후에도 종격으로 빠지지 않는다.
+      const p = createPillars('乙', '卯', '丙', '申', '甲', '午', '乙', '丑')
       const r = determineGeokguk(p)
       expect(r.primary).toBe('편관격')
       expect(r.category).toBe('정격')

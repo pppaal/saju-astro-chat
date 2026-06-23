@@ -1,41 +1,31 @@
 'use client'
 
 /* ============================================================
-   destinypal · YearTier — ② 1년 (YEARLY) · "올해의 모양"
+   destinypal · YearTier — 1년(歲運) "올해의 모양" · LIGHT 만세력
+   ────────────────────────────────────────────────────────────
+   디자인 방향(시안 · LIGHT, MonthTier 가족):
+     · 앱 셸은 다크 — 이 티어는 .yearRoot 가 라이트 팔레트를 직접 들고
+       독립 레이아웃을 쓴다(TierFrame 미사용).
+     · 세운 간지(丙午)·세운 십신(정관)을 *표면에* 드러낸다(월의 甲午처럼).
+     · 색 띠 12달 스트립(좋음/평이/조심) — 숫자 없음, monthlyScores 파생.
+     · 올해의 무대(프로펙션 하우스/테마/룰러) + 황도분기 ZR L1.
+     · 사주×점성 ▲/▼ 교차 카드(월의 .cross 패턴 재사용).
 
-   메인 표면은 jargon-free:
-     · "N년의 모양" 헤드라인 + 평문 한 줄
-     · "열두 달의 흐름" — monthlyScores 를 톤으로 색칠한 12막대.
-       큰 달은 봉인(ring/seal), 조심할 달은 표시. 숫자는 없음.
-     · "큰 달 / 조심" 한 줄 (monthlyScores 에서 파생)
-     · 평문 crossings 리스트 (영역 × 행성 + 톤) — 있으면.
-   전문가용(하우스 휠·글리프·프로펙션·sect·dignity·Lord-of-Year·ZR·세운 간지·raw note)은
-   전부 "자세한 신호 보기" <details> 하나로 접어 둠.
+   PRESENTATION ONLY — 엔진/derivers/타입 미변경. props 시그니처 불변.
    ============================================================ */
 
-import type {
-  DestinyUserSummary,
-  DestinyYear,
-  DestinyDignityEntry,
-  DestinyDecadeZRChapter,
-} from '@/types/calendar'
-import { Ganji } from '../atoms/Ganji'
-import { LayerTag } from '../atoms/LayerTag'
-import { sibsinArea, sibsinAreaEn } from '@/lib/calendar-engine/derivers/plainLanguage'
-import { ordinalEn } from '@/lib/calendar-engine/ordinal'
+import type { DestinyUserSummary, DestinyYear, DestinyDignityEntry } from '@/types/calendar'
 import styles from './YearTier.module.css'
-import { CrossingList } from '@/components/calendar/atoms/CrossingList'
-import summaryStyles from '@/components/calendar/atoms/TierSummary.module.css'
 import { useI18n } from '@/i18n/I18nProvider'
 import {
-  TierFrame,
-  RiseButton,
-  Eyebrow,
-  TierHero,
-  Band,
-  WhyList,
-  type WhyItem,
-} from '@/components/calendar/layout/TierFrame'
+  sibsinArea,
+  sibsinAreaEn,
+  planetPlain,
+  plainPairName,
+  plainReason,
+} from '@/lib/calendar-engine/derivers/plainLanguage'
+import { SIGN_KO } from '@/lib/astrology/signLabels'
+import { ordinalEn } from '@/lib/calendar-engine/ordinal'
 
 const MONTH_ABBR = [
   'Jan',
@@ -52,14 +42,14 @@ const MONTH_ABBR = [
   'Dec',
 ] as const
 
-// ----------------------------------------------------------------
-// Props
-// ----------------------------------------------------------------
+// ============================================================================
+// Props (계약 불변 — 셸 줌 네비게이션이 onDive/onRise 를 호출. showRise 없음)
+// ============================================================================
 
 export interface YearTierProps {
-  /** 본명 — 자세히 보기 안의 하우스 휠 도트 + 룰러 dignity 검색에 사용. */
+  /** 본명 — 선택적 Lord-of-Year dignity 검색에 사용. */
   user: DestinyUserSummary
-  /** 세운 + Profection wheel. */
+  /** 세운 + Profection. */
   year: DestinyYear
   /** 월(month) tier 로 다이브. */
   onDive: () => void
@@ -67,49 +57,20 @@ export interface YearTierProps {
   onRise: () => void
 }
 
-// ----------------------------------------------------------------
-// Helpers (자세히 보기 — 전문가용 휠/도트/dignity)
-// ----------------------------------------------------------------
+// ============================================================================
+// helpers (전문가용 dignity — 엔진 표면 아님, 표기용)
+// ============================================================================
 
-/** 영문 zodiac → 1..12 인덱스 (Aries=1) — 본명 ASC 기준 whole-sign house 매핑용. */
-const SIGN_ORDER = [
-  'Aries',
-  'Taurus',
-  'Gemini',
-  'Cancer',
-  'Leo',
-  'Virgo',
-  'Libra',
-  'Scorpio',
-  'Sagittarius',
-  'Capricorn',
-  'Aquarius',
-  'Pisces',
-] as const
-
-/** 행성 영문 → 한자 glyph (wheel dot 표기). */
-const PLANET_GLYPH: Record<string, string> = {
-  Sun: '☉',
-  Moon: '☽',
-  Mercury: '☿',
-  Venus: '♀',
-  Mars: '♂',
-  Jupiter: '♃',
-  Saturn: '♄',
-  Uranus: '♅',
-  Neptune: '♆',
-  Pluto: '♇',
+/** 본명 dignities 에서 행성 검색 (룰러 영문명). */
+function findDignity(
+  dignities: DestinyDignityEntry[] | undefined,
+  planetName: string
+): DestinyDignityEntry | undefined {
+  if (!dignities) return undefined
+  return dignities.find((d) => d.planet === planetName)
 }
 
-/** 본명 ASC 기준 whole-sign house 계산 — 행성 sign → house 1..12. */
-function signToHouse(planetSign: string, ascSign: string): number {
-  const ai = SIGN_ORDER.indexOf(ascSign as (typeof SIGN_ORDER)[number])
-  const pi = SIGN_ORDER.indexOf(planetSign as (typeof SIGN_ORDER)[number])
-  if (ai < 0 || pi < 0) return 1
-  return ((pi - ai + 12) % 12) + 1
-}
-
-/** dignity entry → 한 줄 표기 ('domicile · +5' 등) + polarity tone. */
+/** dignity entry → 한 줄 표기 ('domicile' 등) + polarity tone. */
 function formatDignity(d: DestinyDignityEntry): {
   text: string
   tone: 'pos' | 'neg' | 'neu'
@@ -129,866 +90,535 @@ function formatDignity(d: DestinyDignityEntry): {
   return { text: flagText, tone }
 }
 
-/** 본명 dignities 에서 행성 검색 (룰러 영문명). */
-function findDignity(
-  dignities: DestinyDignityEntry[] | undefined,
-  planetName: string
-): DestinyDignityEntry | undefined {
-  if (!dignities) return undefined
-  return dignities.find((d) => d.planet === planetName)
+// ── ZR 표기: 영문 별자리 → 한글, 룰러 → 일상 별명(ko). 의미는 새로 짓지 않음. ──
+function zrSignKo(sign: string | undefined, ko: boolean): string {
+  if (!sign) return ''
+  return ko ? (SIGN_KO[sign] ?? sign) : sign
+}
+function zrRulerKo(ruler: string | undefined, ko: boolean): string {
+  if (!ruler) return ''
+  return ko ? planetPlain(ruler, true) : ruler
 }
 
-/** 본명 행성 도트 — user.dignities → { house, planet, glyph }. */
-interface NatalDot {
-  house: number
-  planet: string
-  glyph: string
-}
-function buildNatalDots(user: DestinyUserSummary): NatalDot[] {
-  const asc = user.astro?.ascEn ?? 'Aries'
-  const dignities = user.dignities ?? []
-  return dignities.map((d) => ({
-    house: signToHouse(d.sign, asc),
-    planet: String(d.planet),
-    glyph: PLANET_GLYPH[String(d.planet)] ?? '·',
-  }))
-}
-
-/** 외행성 transit 도트 — 본명 ASC 기준 (외행성: Jupiter / Saturn / Uranus / Neptune / Pluto). */
-function buildTransitDots(user: DestinyUserSummary): NatalDot[] {
-  const OUTERS = ['Jupiter', 'Saturn', 'Uranus', 'Neptune', 'Pluto']
-  const asc = user.astro?.ascEn ?? 'Aries'
-  const dignities = user.dignities ?? []
-  return dignities
-    .filter((d) => OUTERS.includes(String(d.planet)))
-    .map((d) => ({
-      house: signToHouse(d.sign, asc),
-      planet: String(d.planet),
-      glyph: PLANET_GLYPH[String(d.planet)] ?? '·',
-    }))
-}
-
-/** 행성 영문 → benefic/malefic 극성 (whyItems 톤용). 모르면 neutral. */
-const BENEFIC = new Set(['Venus', 'Jupiter', 'Moon'])
-const MALEFIC = new Set(['Mars', 'Saturn'])
-function planetTone(planetEn: string): 'positive' | 'caution' | 'neutral' {
-  if (BENEFIC.has(planetEn)) return 'positive'
-  if (MALEFIC.has(planetEn)) return 'caution'
-  return 'neutral'
-}
-
-/** house 1..12 → wheel mid angle (radians). */
-function houseAngle(house: number): number {
-  const i = house - 1
-  return ((i + 0.5) / 12) * Math.PI * 2 - Math.PI / 2
-}
-
-/** ZR chapter pivotal 표기 (LoB / Peak). */
-function zrPivotalTag(c: DestinyDecadeZRChapter, ko: boolean): string | null {
-  const sub = c.subPeriods?.find((s) => s.isLoosingOfTheBond || s.isPeak)
-  if (sub?.isLoosingOfTheBond) return ko ? 'LoB · 풀린 매듭' : 'LoB · loosed bond'
-  if (sub?.isPeak) return ko ? 'Peak · 정점' : 'Peak'
-  return null
-}
-
-/** wheel 좌상단 pivotal 배지 — 올해에 ZR LoB/Peak 가 걸려있나. */
-function readWheelPivotal(year: DestinyYear): {
-  kind: 'lob' | 'peak'
-  label: string
-  han: string
-} | null {
-  const all = [...(year.zrSpiritChapters ?? []), ...(year.zrFortuneChapters ?? [])]
-  for (const c of all) {
-    const sub = c.subPeriods?.find((s) => s.isLoosingOfTheBond)
-    if (sub) return { kind: 'lob', label: 'Loosing of the Bond', han: '解' }
-  }
-  for (const c of all) {
-    const sub = c.subPeriods?.find((s) => s.isPeak)
-    if (sub) return { kind: 'peak', label: 'Peak Period', han: '頂' }
-  }
-  return null
-}
-
-// ----------------------------------------------------------------
-// 메인 표면 — "열두 달의 흐름" 막대 (jargon-free, 숫자 없음).
-//   톤: 큰 달(좋음) / 평이 / 조심할 달. 큰 달은 봉인 링, 조심은 점.
-// ----------------------------------------------------------------
-
-type MonthTone = 'big' | 'steady' | 'caution'
+// ── 12달 색 띠 (월 달력처럼) — monthlyScores 톤으로 밴드. 숫자 없음. ──
+type MonthTone = 'good' | 'steady' | 'caution'
 
 function monthTone(score: number): MonthTone {
-  if (score >= 60) return 'big'
+  // score 0 = 미스코어/현재 달(점수 미산출). caution-red 로 칠하면 novice 가
+  // "위험한 달"로 오해 → 평범(steady, gray) 으로 본다. 실제 낮은 점수만 caution.
+  if (score <= 0) return 'steady'
+  if (score >= 60) return 'good'
   if (score >= 40) return 'steady'
   return 'caution'
 }
 
-interface MonthShapeItem {
-  month: number // 1..12
-  score: number
-  tone: MonthTone
-  isPeak: boolean // 큰 달 중에서도 최고점들 — 봉인
-}
-
-/** monthlyScores → 12달 모양 + 큰 달/조심 파생. 결정론적. */
-function buildMonthShape(scores: Array<{ month: number; score: number; bestDay?: string }>): {
-  items: MonthShapeItem[]
-  bigMonths: number[] // 봉인할 최고 달
-  cautionMonths: number[] // 조심할 최저 달
-} {
-  const byMonth = new Map(scores.map((s) => [s.month, s.score]))
-  const items: MonthShapeItem[] = Array.from({ length: 12 }, (_, i) => {
-    const month = i + 1
-    const score = byMonth.get(month) ?? 0
-    return { month, score, tone: monthTone(score), isPeak: false }
-  })
-
-  // 큰 달 — 최고점 상위 (최대 3, 동점 포함, 좋음 밴드만).
-  const bigCandidates = items.filter((it) => it.tone === 'big')
-  const sortedDesc = [...bigCandidates].sort((a, b) => b.score - a.score)
-  const peakScore = sortedDesc.length > 0 ? sortedDesc[0].score : Infinity
-  const bigMonths = sortedDesc
-    .filter((it) => it.score === peakScore)
-    .slice(0, 3)
-    .map((it) => it.month)
-    .sort((a, b) => a - b)
-  for (const it of items) if (bigMonths.includes(it.month)) it.isPeak = true
-
-  // 조심할 달 — 최저점 (caution 밴드만, 최대 3, 최저 동점 포함).
-  const cautionCandidates = items.filter((it) => it.tone === 'caution')
-  const sortedAsc = [...cautionCandidates].sort((a, b) => a.score - b.score)
-  const lowScore = sortedAsc.length > 0 ? sortedAsc[0].score : -Infinity
-  const cautionMonths = sortedAsc
-    .filter((it) => it.score === lowScore)
-    .slice(0, 3)
-    .map((it) => it.month)
-    .sort((a, b) => a - b)
-
-  return { items, bigMonths, cautionMonths }
-}
-
-function monthLabel(month: number, ko: boolean): string {
-  return ko ? `${month}월` : MONTH_ABBR[month - 1]
-}
-
-function joinMonths(months: number[], ko: boolean): string {
-  return months.map((m) => monthLabel(m, ko)).join(', ')
-}
-
-/** "열두 달의 흐름" 범례 — 큰 달 / 조심할 달 (Band aside 슬롯). */
-function MonthShapeLegend({ ko }: { ko: boolean }) {
-  return (
-    <span className={styles.shapeLegend}>
-      <span className={styles.legBig}>
-        <i className={styles.legDotBig} />
-        {ko ? '큰 달' : 'Big months'}
-      </span>
-      <span className={styles.legCaution}>
-        <i className={styles.legDotCaution} />
-        {ko ? '조심할 달' : 'Careful months'}
-      </span>
-    </span>
-  )
-}
-
-/** "열두 달의 흐름" — 톤으로 색칠한 12막대. 숫자 없음, 큰 달 봉인·조심 표시. */
-function MonthShape({ shape, ko }: { shape: ReturnType<typeof buildMonthShape>; ko: boolean }) {
-  const { items } = shape
-  // 막대 높이는 점수에 비례하되 라벨/숫자는 노출하지 않음 (모양만).
-  const heightFor = (it: MonthShapeItem) => {
-    if (it.tone === 'big') return 100
-    if (it.tone === 'steady') return 64
-    return 36
-  }
-  const toneClass = (t: MonthTone) =>
-    t === 'big' ? styles.shapeBig : t === 'caution' ? styles.shapeCaution : styles.shapeSteady
-
-  return (
-    <div className={styles.shapeWrap}>
-      <div className={styles.shapeBars}>
-        {items.map((it) => (
-          <div className={styles.shapeCol} key={it.month}>
-            <div className={styles.shapeTrack}>
-              <div
-                className={`${styles.shapeFill} ${toneClass(it.tone)}`}
-                style={{ height: `${heightFor(it)}%` }}
-              />
-              {it.isPeak && <span className={styles.shapeSeal} aria-hidden="true" />}
-              {it.tone === 'caution' && shape.cautionMonths.includes(it.month) && (
-                <span className={styles.shapeMark} aria-hidden="true" />
-              )}
-            </div>
-            <span className={styles.shapeLbl}>{ko ? it.month : MONTH_ABBR[it.month - 1][0]}</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-}
-
-// ----------------------------------------------------------------
-// Component
-// ----------------------------------------------------------------
+// ============================================================================
+// 컴포넌트
+// ============================================================================
 
 export function YearTier({ user, year, onDive, onRise }: YearTierProps) {
   const { locale } = useI18n()
   const ko = locale === 'ko'
   const p = year.profection
 
-  // 12-house wheel (자세히 보기 안에서만).
-  const R = 150
-  const cx = 180
-  const cy = 180
-  const houses = Array.from({ length: 12 }, (_, i) => i + 1)
+  // ── 세운 간지(표면 노출, 월의 甲午처럼). ──
+  const gz = year.sewoonGz ?? year.sewoon?.gz
+  const ganjiHanja = gz?.hanja ?? ''
+  const ganjiRead = ko ? (gz?.kr ?? '') : (gz?.en ?? gz?.kr ?? '')
+  const sewoonSibsin = year.sewoonSibsin ? String(year.sewoonSibsin) : ''
+  const sewoonAreaPlain = sewoonSibsin
+    ? ko
+      ? sibsinArea(sewoonSibsin)
+      : sibsinAreaEn(sewoonSibsin)
+    : ''
 
-  const natalDots = buildNatalDots(user)
-  const transitDots = buildTransitDots(user)
+  // ── 헤드라인(En 신뢰 금지 → ?? ko, 없으면 프로펙션에서 합성). ──
+  const headlineText = ko
+    ? year.headline
+    : (year.headlineEn ??
+      (p
+        ? `This year leans toward your ${ordinalEn(p.house)} house${p.themeEn ? ` — ${p.themeEn.toLowerCase()}` : ''}.`
+        : year.headline))
 
-  const sect = user.sect ?? 'day'
-  const lordOfYearName = p?.rulerEn ?? ''
-  const lordDignity = findDignity(user.dignities, lordOfYearName)
-  const lordReadout = lordDignity ? formatDignity(lordDignity) : null
-
-  const zrSpiritNow = (year.zrSpiritChapters ?? []).find((c) => c.now)
-  const zrFortuneNow = (year.zrFortuneChapters ?? []).find((c) => c.now)
-
-  const wheelPivotal = readWheelPivotal(year)
-
-  // ── 메인: 평문 crossings (영역 × 행성 + 톤). ──
-  const toneTag = (t: 'good' | 'caution' | 'neutral') =>
-    ko
-      ? t === 'good'
-        ? '길'
-        : t === 'caution'
-          ? '주의'
-          : '중립'
-      : t === 'good'
-        ? 'good'
-        : t === 'caution'
-          ? 'caution'
-          : 'neutral'
-  const yearCrossItems = (year.crossings ?? []).map((c) => ({
-    when: ko ? c.when : c.whenEn,
-    title: `${ko ? c.title : c.titleEn} · ${toneTag(c.tone)}`,
-    detail: ko ? c.detail : (c.detailEn ?? c.detail),
-  }))
-  const crossHeading = ko
-    ? `올해 무엇이 겹치나 · ${year.year}`
-    : `What overlaps this year · ${year.year}`
-
-  // ── 메인: "열두 달의 흐름" 모양 + 큰 달/조심 한 줄. ──
+  // ── 12달 색 띠 — monthlyScores → 톤. ──
+  const byMonth = new Map((year.monthlyScores ?? []).map((m) => [m.month, m]))
+  const stripItems = Array.from({ length: 12 }, (_, i) => {
+    const month = i + 1
+    const m = byMonth.get(month)
+    const score = m?.score ?? 0
+    return { month, tone: monthTone(score), bestDay: m?.bestDay }
+  })
   const hasMonths = (year.monthlyScores?.length ?? 0) > 0
-  const monthShape = buildMonthShape(year.monthlyScores ?? [])
+  // near-uniform 가드 — 한 달만 톤이 다르면(현재 달 score 0 등) "큰 달/조심" 문구를 억제.
+  const distinctTones = new Set(stripItems.map((s) => s.tone)).size
+  const goodMonths = stripItems.filter((s) => s.tone === 'good').map((s) => s.month)
+  const cautionMonths = stripItems.filter((s) => s.tone === 'caution').map((s) => s.month)
+  // good/caution 중 더 적은 쪽만 신호로 본다(11×good + 1×caution → caution 한 달이 신호).
+  const minorityCaution = cautionMonths.length > 0 && cautionMonths.length <= 3 ? cautionMonths : []
+  const minorityGood = goodMonths.length > 0 && goodMonths.length <= 3 ? goodMonths : []
+  const showBandPhrase =
+    distinctTones > 1 && (minorityCaution.length > 0 || minorityGood.length > 0)
+  const monthLbl = (m: number) => (ko ? `${m}월` : MONTH_ABBR[m - 1])
+  const joinMonths = (ms: number[]) => ms.map(monthLbl).join(', ')
 
-  // ── 자세히 보기 안: 12달 점수 리스트 (밴드 라벨). ──
-  const yearBand = (s: number) =>
-    s >= 60
-      ? ko
-        ? '좋은 달'
-        : 'Good month'
-      : s >= 40
-        ? ko
-          ? '평이한 달'
-          : 'Steady month'
-        : ko
-          ? '조심할 달'
-          : 'Cautious month'
-  const flowHeading = ko ? `올해 12달 흐름 · ${year.year}` : `12-month flow · ${year.year}`
-  const yearItems = (year.monthlyScores ?? []).map((m) => ({
-    when: ko ? `${m.month}월` : MONTH_ABBR[m.month - 1],
-    title: yearBand(m.score),
-    detail: m.bestDay
-      ? ko
-        ? `좋은 날 ${m.bestDay} · ${m.score}점`
-        : `Best day ${m.bestDay} · ${m.score}`
-      : ko
-        ? `${m.score}점`
-        : `${m.score}`,
-  }))
-
-  // ── 왜 이렇게 보나 (근거) — 실제 용어 신호 → 쉬운 결론. fold 전용. ──
-  // 새 계산 없음: 이미 year 폴드에 렌더되는 세운·프로펙션·sect·dignity·ZR·교차를
-  // 용어 그대로 묶어 4~6개만 노출.
-  const whyItems: WhyItem[] = []
-
-  // ① 세운 간지 + 십신 — 한 해의 사주 바탕.
-  {
-    const gz = year.sewoonGz?.hanja ?? year.sewoon?.gz?.hanja ?? ''
-    const area = ko ? sibsinArea(year.sewoonSibsin) : sibsinAreaEn(year.sewoonSibsin)
-    whyItems.push({
-      term: ko
-        ? `세운 ${gz} · ${String(year.sewoonSibsin)}`
-        : `Annual ${gz} · ${String(year.sewoonSibsin)}`,
-      because: ko
-        ? `‘${area}’ 기운이 올 한 해의 바탕을 이룹니다.`
-        : `${area} sets the base theme of the year.`,
-      tone: 'neutral',
-    })
-  }
-
-  // ② 연간 프로펙션 하우스 + 룰러(Lord of Year).
-  if (p) {
-    whyItems.push({
-      term: ko
-        ? `프로펙션 ${p.house}실 · ${p.ruler}`
-        : `Profection ${ordinalEn(p.house)} · ${p.rulerEn}`,
-      because: ko
-        ? `${p.house}번째 영역(${p.theme})이 무대로 올라오고, ${p.ruler}이(가) 올해의 주인공입니다.`
-        : `Your ${ordinalEn(p.house)} house (${p.themeEn.toLowerCase()}) takes the stage, with ${p.rulerEn} as this year's lead.`,
-      tone: planetTone(p.rulerEn),
-    })
-  }
-
-  // ③ Sect (낮/밤) + Lord 의 길흉 — 주간생이면 길성, 야간생이면 흉성이 힘을 받음.
-  {
-    const sectKo = sect === 'day' ? '주간생(日)' : '야간생(夜)'
-    const sectEn = sect === 'day' ? 'Diurnal (day)' : 'Nocturnal (night)'
-    const lordTone = lordOfYearName ? planetTone(lordOfYearName) : 'neutral'
-    const lordWord =
-      lordTone === 'positive'
-        ? ko
-          ? '길성'
-          : 'benefic'
-        : lordTone === 'caution'
-          ? ko
-            ? '흉성'
-            : 'malefic'
-          : ko
-            ? '중립성'
-            : 'neutral'
-    const lordLabel = ko ? p?.ruler : p?.rulerEn
-    whyItems.push({
-      term: ko
-        ? `${sectKo}${lordLabel ? ` · ${lordWord} ${lordLabel}` : ''}`
-        : `${sectEn}${lordLabel ? ` · ${lordWord} ${lordLabel}` : ''}`,
-      because: ko
-        ? sect === 'day'
-          ? '낮 출생이라 길성이 더 또렷이 힘을 받습니다.'
-          : '밤 출생이라 흉성을 다스리는 결이 한 해를 좌우합니다.'
-        : sect === 'day'
-          ? 'A day birth lets benefics carry more weight this year.'
-          : 'A night birth makes handling malefics the year’s pivot.',
-      tone: lordTone,
-    })
-  }
-
-  // ④ Lord of Year 의 본명 dignity — 룰러가 강한 자리인가 약한 자리인가.
-  if (lordReadout && lordOfYearName) {
-    const dignTone =
-      lordReadout.tone === 'pos' ? 'positive' : lordReadout.tone === 'neg' ? 'caution' : 'neutral'
-    whyItems.push({
-      term: ko
-        ? `${p?.ruler ?? lordOfYearName} 위계 · ${lordReadout.text}`
-        : `${p?.rulerEn ?? lordOfYearName} dignity · ${lordReadout.text}`,
-      because:
-        lordReadout.tone === 'pos'
-          ? ko
-            ? '올해의 주인공이 본명에서 강한 자리에 있어 추진력이 좋습니다.'
-            : 'The year’s lead sits strong in your chart — good drive behind it.'
-          : lordReadout.tone === 'neg'
-            ? ko
-              ? '올해의 주인공이 약한 자리에 있어 한 박자 조심이 필요합니다.'
-              : 'The year’s lead sits weak — pace it with care.'
-            : ko
-              ? '주인공의 자리가 중립이라 결과는 노력에 달려 있습니다.'
-              : 'The lead is neutral — outcomes track your effort.',
-      tone: dignTone,
-    })
-  }
-
-  // ⑤ 가장 센 Zodiacal Releasing 챕터/사인 (Spirit 우선, 없으면 Fortune).
-  {
-    const zrPick = zrSpiritNow ?? zrFortuneNow
-    if (zrPick) {
-      const isSpirit = !!zrSpiritNow
-      whyItems.push({
-        term: ko ? `ZR ${zrPick.sign}` : `ZR ${zrPick.sign}`,
-        because: ko
-          ? isSpirit
-            ? `진로·영혼의 큰 장이 ${zrPick.sign} 구간에 있어요.`
-            : `몸·물질의 큰 장이 ${zrPick.sign} 구간에 있어요.`
-          : isSpirit
-            ? `Your path/soul chapter runs through ${zrPick.sign}.`
-            : `Your body/matter chapter runs through ${zrPick.sign}.`,
-        tone: 'neutral',
-      })
-    }
-  }
-
-  // ⑥ 가장 센 사주 × 점성 월 교차.
-  {
-    const strongest = [...(year.crossings ?? [])].sort((a, b) => {
-      const w = (t: 'good' | 'caution' | 'neutral') => (t === 'neutral' ? 0 : 1)
-      return w(b.tone) - w(a.tone)
-    })[0]
-    if (strongest) {
-      whyItems.push({
-        term: ko
-          ? `${strongest.title} · ${strongest.when}`
-          : `${strongest.titleEn} · ${strongest.whenEn}`,
-        because: ko
-          ? (strongest.detail ?? '사주와 별이 함께 가리키는 구간입니다.')
-          : (strongest.detailEn ??
-            strongest.detail ??
-            'A window where Saju and the sky point the same way.'),
-        tone:
-          strongest.tone === 'good'
-            ? 'positive'
-            : strongest.tone === 'caution'
-              ? 'caution'
-              : 'neutral',
-      })
-    }
-  }
-
-  // 4~6개만 — 강한 순(중립이 아닌 것 우선)으로 자르되 ①(세운)·②(프로펙션)는 항상 앞에.
-  const headWhy = whyItems.slice(0, 2)
-  const tailWhy = whyItems
-    .slice(2)
-    .sort(
-      (a, b) =>
-        Number((b.tone ?? 'neutral') !== 'neutral') - Number((a.tone ?? 'neutral') !== 'neutral')
-    )
-  const whyFinal = [...headWhy, ...tailWhy].slice(0, 6)
-
-  // ── 올해 풀이 — 세운 십신 영역 + 프로펙션 하우스 테마 + 가장 큰 달을 엮은 2~3문장. ──
-  const sewoonAreaPlain = ko ? sibsinArea(year.sewoonSibsin) : sibsinAreaEn(year.sewoonSibsin)
-  const biggestMonth = monthShape.bigMonths.length > 0 ? monthShape.bigMonths[0] : null
-  const cautionMonth = monthShape.cautionMonths.length > 0 ? monthShape.cautionMonths[0] : null
+  // ── 올해 풀이 — 세운 영역 + 프로펙션 테마 합성(평문 2~3줄). ──
   const yearReadingParts: string[] = []
-  yearReadingParts.push(
-    ko
-      ? `올해는 ‘${sewoonAreaPlain}’의 결이 한 해의 바탕을 이뤄요.`
-      : `This year, ${sewoonAreaPlain} forms the underlying grain.`
-  )
+  if (sewoonAreaPlain) {
+    yearReadingParts.push(
+      ko
+        ? `올해는 ‘${sewoonAreaPlain}’ 쪽 일이 한 해의 바탕을 이뤄요.`
+        : `This year, ${sewoonAreaPlain} forms the underlying tone.`
+    )
+  }
   if (p) {
     yearReadingParts.push(
       ko
-        ? `무게중심은 ${p.house}번째 영역(${p.theme})으로 기울어, 그쪽 일이 가장 또렷하게 움직입니다.`
+        ? `무게중심은 ‘${p.theme}’ 쪽으로 기울어, 이쪽 일이 가장 또렷하게 움직여요.`
         : `The weight tilts toward your ${ordinalEn(p.house)} house (${p.themeEn.toLowerCase()}) — that’s where things move most clearly.`
     )
   }
-  if (biggestMonth) {
+  if (showBandPhrase && minorityCaution.length > 0) {
     yearReadingParts.push(
       ko
-        ? cautionMonth
-          ? `${biggestMonth}월에 가장 크게 열리고, ${cautionMonth}월은 한 박자 쉬어 가세요.`
-          : `${biggestMonth}월에 흐름이 가장 크게 열립니다.`
-        : cautionMonth
-          ? `It opens up most around ${monthLabel(biggestMonth, false)}; ease off near ${monthLabel(cautionMonth, false)}.`
-          : `It opens up most around ${monthLabel(biggestMonth, false)}.`
+        ? `다만 ${joinMonths(minorityCaution)}은 한 박자 쉬어 가세요.`
+        : `That said, ease off around ${joinMonths(minorityCaution)}.`
     )
   }
   const yearReading = yearReadingParts.slice(0, 3).join(' ')
 
+  // ── 올해의 무대 (프로펙션). ──
+  const sect = user.sect ?? 'day'
+  const lordOfYearName = p?.rulerEn ?? ''
+  const lordDignity = findDignity(user.dignities, lordOfYearName)
+  const lordReadout = lordDignity ? formatDignity(lordDignity) : null
+  const astroNoteText = ko ? year.astroNote : (year.astroNoteEn ?? year.astroNote)
+
+  // profectionWheel — 활성 하우스 슬라이스(natalPlanets 가드).
+  const activeSlice = (year.profectionWheel ?? []).find((s) => s.active)
+  const activePlanets = activeSlice?.natalPlanets ?? []
+
+  // ── 겹치는 흐름 (crossings) — tone good→▲ / caution→▼ / neutral→· ──
+  //    when 이 전부 같으면(전부 "6월") 반복이라 de-emphasize. non-neutral 우선 정렬 후 CAP 6.
+  const allCross = year.crossings ?? []
+  const sortedCross = [...allCross].sort((a, b) => {
+    const w = (t: 'good' | 'caution' | 'neutral') => (t === 'neutral' ? 0 : 1)
+    return w(b.tone) - w(a.tone)
+  })
+  const yearCross = sortedCross.slice(0, 6)
+  const topCross = yearCross.find((c) => c.tone !== 'neutral') ?? null
+  const distinctWhen = new Set(allCross.map((c) => c.when)).size
+  const repeatedWhen = distinctWhen <= 1 // 전부 같은 when 이면 칩 숨김
+
+  // ── 사주 한 줄. ──
+  const sajuNoteText = ko ? year.sajuNote : (year.sajuNoteEn ?? year.sajuNote)
+
+  // ── 황도분기 ZR — 현재 활성(now) 챕터. L2/LoB/Peak 없음(subPeriods 미신뢰). ──
+  const zrSpiritNow = (year.zrSpiritChapters ?? []).find((c) => c.now)
+  const zrFortuneNow = (year.zrFortuneChapters ?? []).find((c) => c.now)
+
+  const toneSym = (t: 'good' | 'caution' | 'neutral') =>
+    t === 'good' ? '▲' : t === 'caution' ? '▼' : '·'
+  const toneCls = (t: 'good' | 'caution' | 'neutral') =>
+    t === 'good' ? styles.poleUp : t === 'caution' ? styles.poleDn : ''
+  const toneTag = (t: 'good' | 'caution' | 'neutral') =>
+    ko ? (t === 'good' ? '길' : t === 'caution' ? '주의' : '중립') : t
+
+  // ── novice hero — 작은 테마 태그 + 리치 하우스 DB 풀이를 보조줄로(암호 태그 해소). ──
+  //    houseMeaning 은 adapter 가 astro-house-rich.json `meaning` 에서 surface(가드+폴백).
+  const profThemePlain = p ? (ko ? p.theme : p.themeEn) : ''
+  const heroTheme = profThemePlain || (ko ? '올해의 흐름' : 'this year’s flow')
+  const houseMeaningRich = p
+    ? ko
+      ? ((p as { houseMeaning?: string }).houseMeaning ?? '')
+      : ((p as { houseMeaningEn?: string }).houseMeaningEn ?? '')
+    : ''
+  const novHeadline = ko
+    ? `${year.year}년, 한 해의 무게가 이쪽으로 기울어요`
+    : `In ${year.year}, the weight of the year tilts here`
+  // 보조줄 = 리치 하우스 풀이(평이 문단). 없으면 2단어 테마 폴백.
+  const novSupport =
+    houseMeaningRich ||
+    (ko
+      ? `올해는 ‘${heroTheme}’이 한 해의 중심이 되는 시기예요.`
+      : `This year, ‘${heroTheme}’ is at the centre.`)
+
   return (
-    <TierFrame screenLabel={`1년 ${year.year}`}>
-      <RiseButton label={ko ? '인생으로 줌아웃' : 'Zoom out to lifetime'} onClick={onRise} />
+    <div className={styles.yearRoot}>
+      {/* ── zoom-out (rise → lifetime) ── */}
+      <button type="button" className={styles.rise} onClick={onRise}>
+        ↑ {ko ? '인생으로 줌아웃' : 'Zoom out to lifetime'}
+      </button>
 
-      <Eyebrow>
-        {ko ? '1년' : '1 YEAR'} · YEARLY · {year.year}
-      </Eyebrow>
+      {/* ── eyebrow ── */}
+      <div className={styles.eyebrow}>
+        <span>
+          {ko ? '1년' : '1 Year'} · YEARLY · {year.year}
+        </span>
+        <span aria-hidden />
+      </div>
 
-      {/* ── Hero — "N년의 모양" + 평문 한 줄. ── */}
-      <TierHero
-        lead={ko ? `${year.year}년의 모양` : `The shape of ${year.year}`}
-        sub={
-          ko
-            ? year.headline
-            : (year.headlineEn ??
-              (year.profection
-                ? `This year leans toward your house ${year.profection.house}${year.profection.themeEn ? ` — ${year.profection.themeEn.toLowerCase()}` : ''}.`
-                : `${year.year} — a year the flow gets re-drawn.`))
-        }
-      />
+      {/* ── novice 기본: 한자·용어 없는 일상어 결론 ── */}
+      <header className={styles.novice}>
+        <div className={styles.novToneWord}>{novHeadline}</div>
+        {heroTheme && <span className={styles.novTag}>{heroTheme}</span>}
+        <p className={styles.novLine}>{novSupport}</p>
+      </header>
 
-      {/* ── 핵심 ①: 열두 달의 흐름 (모양 + 큰 달/조심) ── */}
-      {hasMonths && (
-        <Band
-          title={ko ? '열두 달의 흐름' : 'Shape of the twelve months'}
-          aside={<MonthShapeLegend ko={ko} />}
-        >
-          <MonthShape shape={monthShape} ko={ko} />
-          <p className={styles.bigCaution}>
-            {monthShape.bigMonths.length > 0 && (
-              <span className={styles.bigPhrase}>
-                <b>{ko ? '큰 달' : 'Big months'}</b> {joinMonths(monthShape.bigMonths, ko)}
-              </span>
-            )}
-            {monthShape.bigMonths.length > 0 && monthShape.cautionMonths.length > 0 && (
-              <span className={styles.bcSep}> · </span>
-            )}
-            {monthShape.cautionMonths.length > 0 && (
-              <span className={styles.cautionPhrase}>
-                <b>{ko ? '조심' : 'Careful'}</b> {joinMonths(monthShape.cautionMonths, ko)}
-              </span>
-            )}
-          </p>
-        </Band>
-      )}
-
-      {/* ── 올해 풀이 — 세운 영역 + 프로펙션 테마 + 큰 달을 엮은 평문 해석. ── */}
-      {yearReading && (
-        <Band title={ko ? '올해 풀이' : 'Reading the year'}>
-          <p className={styles.yearReading}>{yearReading}</p>
-        </Band>
-      )}
-
-      {/* ── 핵심 ②: 올해 무엇이 겹치나 (평문 교차) ── */}
-      {yearCrossItems.length > 0 && (
-        <Band title={crossHeading}>
-          <CrossingList items={yearCrossItems} />
-        </Band>
-      )}
-
-      {/* ── 자세한 신호 보기 — 휠·글리프·프로펙션·sect·dignity·ZR·세운 간지 전부 접음 ── */}
-      <details className={summaryStyles.details}>
-        <summary className={summaryStyles.detailsSummary}>
-          {ko ? '자세한 신호 보기' : 'See the detailed signals'}
+      {/* ── 자세히 ① 세운 간지·사주 한 줄 (사주를 아는 사람용) ── */}
+      <details className={styles.expertWrap}>
+        <summary className={styles.expertSummary}>
+          {ko ? '올해의 간지와 사주 보기' : 'This year’s pillar & saju'}
         </summary>
 
-        {/* 왜 이렇게 보나 — 실제 용어 신호 → 쉬운 결론(근거). 표면 풀이의 출처. */}
-        <WhyList title={ko ? '왜 이렇게 보나' : 'Why it reads this way'} items={whyFinal} />
+        <p className={styles.foldLede}>
+          {ko
+            ? '쉽게 말하면, 올 한 해에 깔린 기운을 사주의 ‘세운 간지’로 풀어 보여드려요.'
+            : 'In plain words: the energy underlying this year, read through your saju’s annual pillar.'}
+        </p>
 
-        {/* 12달 점수 리스트 (밴드 라벨) — 상세. */}
-        {hasMonths && <CrossingList heading={flowHeading} items={yearItems} />}
-
-        <div className={styles.yearWrap}>
-          {/* ── house wheel ── */}
-          <div className={styles.wheelBox}>
-            {wheelPivotal && (
-              <div className={styles.pivotalBadge} aria-label={wheelPivotal.label}>
-                <span className="han">{wheelPivotal.han}</span>
-                {wheelPivotal.label}
-              </div>
-            )}
-
-            <svg className={styles.wheel} viewBox="0 0 360 360">
-              <defs>
-                <radialGradient id="wheelglow-year" cx="0.5" cy="0.5" r="0.5">
-                  <stop offset="0" stopColor="rgba(91,141,239,0.12)" />
-                  <stop offset="1" stopColor="transparent" />
-                </radialGradient>
-              </defs>
-              <circle cx={cx} cy={cy} r={R} fill="url(#wheelglow-year)" />
-              <circle cx={cx} cy={cy} r={R} fill="none" stroke="var(--dp-line)" strokeWidth={1} />
-              <circle
-                cx={cx}
-                cy={cy}
-                r={R - 44}
-                fill="none"
-                stroke="var(--dp-line-soft)"
-                strokeWidth={1}
-              />
-
-              {houses.map((h) => {
-                const a0 = ((h - 1) / 12) * Math.PI * 2 - Math.PI / 2
-                const a1 = (h / 12) * Math.PI * 2 - Math.PI / 2
-                const mid = (a0 + a1) / 2
-                const active = h === p?.house
-                const lx = cx + Math.cos(mid) * (R - 22)
-                const ly = cy + Math.sin(mid) * (R - 22)
-                const sx = cx + Math.cos(a0) * R
-                const sy = cy + Math.sin(a0) * R
-                return (
-                  <g key={h}>
-                    <line
-                      x1={cx}
-                      y1={cy}
-                      x2={sx}
-                      y2={sy}
-                      stroke="var(--dp-line-soft)"
-                      strokeWidth={0.7}
-                    />
-                    {active &&
-                      (() => {
-                        const steps = 18
-                        const pts: Array<[number, number]> = [[cx, cy]]
-                        for (let s = 0; s <= steps; s++) {
-                          const a = a0 + (a1 - a0) * (s / steps)
-                          pts.push([cx + Math.cos(a) * R, cy + Math.sin(a) * R])
-                        }
-                        return (
-                          <polygon
-                            points={pts.map((pt) => pt.join(',')).join(' ')}
-                            fill="rgba(176,58,34,0.18)"
-                            stroke="var(--dp-ember)"
-                            strokeWidth={1}
-                          />
-                        )
-                      })()}
-                    <text
-                      x={lx}
-                      y={ly}
-                      className={
-                        active ? `${styles.houseNum} ${styles.houseNumActive}` : styles.houseNum
-                      }
-                      textAnchor="middle"
-                      dominantBaseline="central"
-                    >
-                      {h}
-                    </text>
-                  </g>
-                )
-              })}
-
-              {/* 본명 행성 도트 (안쪽 링). */}
-              {natalDots.map((d, i) => {
-                const ang = houseAngle(d.house)
-                const sameHouseBefore = natalDots
-                  .slice(0, i)
-                  .filter((x) => x.house === d.house).length
-                const rOff = R - 60 - sameHouseBefore * 10
-                const x = cx + Math.cos(ang) * rOff
-                const y = cy + Math.sin(ang) * rOff
-                return (
-                  <g key={`n-${d.planet}-${i}`}>
-                    <circle cx={x} cy={y} r={3.2} className={styles.natalDot} />
-                    <text x={x + 7} y={y + 3} className={styles.natalGlyph}>
-                      {d.glyph}
-                    </text>
-                  </g>
-                )
-              })}
-
-              {/* 외행성 트랜짓 도트 (바깥쪽 링). */}
-              {transitDots.map((d, i) => {
-                const ang = houseAngle(d.house)
-                const sameHouseBefore = transitDots
-                  .slice(0, i)
-                  .filter((x) => x.house === d.house).length
-                const rOff = R + 14 + sameHouseBefore * 12
-                const x = cx + Math.cos(ang) * rOff
-                const y = cy + Math.sin(ang) * rOff
-                return (
-                  <g key={`t-${d.planet}-${i}`}>
-                    <circle cx={x} cy={y} r={3.6} className={styles.transitDot} />
-                    <text x={x + 7} y={y + 3} className={styles.transitGlyph}>
-                      {d.glyph}
-                    </text>
-                  </g>
-                )
-              })}
-
-              <text x={cx} y={cy - 6} textAnchor="middle" className={styles.wheelCenterTop}>
-                house
-              </text>
-              <text x={cx} y={cy + 18} textAnchor="middle" className={styles.wheelCenterHouse}>
-                {p?.house ?? ''}
-              </text>
-            </svg>
+        {/* ── 세운 간지 header ── */}
+        <header className={styles.header}>
+          <div className={styles.ganzhi}>{ganjiHanja}</div>
+          {ganjiRead && (
+            <div className={styles.ganzhiRead}>{ko ? `${ganjiRead} 세운` : ganjiRead}</div>
+          )}
+          <div className={styles.title}>
+            {year.year}
+            <span className={styles.titleKo}>
+              {ko ? `${year.year}년의 모양` : `The shape of ${year.year}`}
+            </span>
           </div>
+          {(sewoonSibsin || sewoonAreaPlain) && (
+            <div className={styles.counts}>
+              {sewoonAreaPlain ? (
+                <span className={styles.cArea}>
+                  {ko ? '올해의 무대' : 'Annual'}
+                  <b>{sewoonAreaPlain}</b>
+                </span>
+              ) : (
+                <span className={styles.cSibsin}>
+                  {ko ? '세운 십신' : 'Annual'}
+                  <b>{sewoonSibsin}</b>
+                </span>
+              )}
+              {sewoonAreaPlain && sewoonSibsin && (
+                <span className={styles.cSibsin}>
+                  {ko ? '십신' : 'sibsin'}
+                  <b>{sewoonSibsin}</b>
+                </span>
+              )}
+              {p && (
+                <span className={styles.cHouse}>
+                  {ko ? '무대' : 'house'}
+                  <b>{p.house}</b>
+                </span>
+              )}
+            </div>
+          )}
+        </header>
 
-          {/* ── readout (astro + saju) ── */}
-          <div>
-            <LayerTag kind="astro" />
-            <div className={styles.yearReadout}>
-              <div className={styles.big}>
-                {p
-                  ? ko
-                    ? `${p.house}번째 영역이 무대`
-                    : `${ordinalEn(p.house)} house on stage`
-                  : ko
-                    ? '활성 영역 미정'
-                    : 'house TBD'}
+        {/* ── headline ── */}
+        {headlineText && <p className={styles.headline}>{headlineText}</p>}
+
+        {/* ── 사주 한 줄 ── */}
+        {(sajuNoteText || ganjiHanja) && (
+          <section className={styles.sec}>
+            <div className={styles.secH}>
+              <span className={styles.secLbl}>{ko ? '사주 한 줄' : 'Saju in a line'}</span>
+              <span className={styles.secLn} />
+              <span className={styles.secLat}>Saju</span>
+            </div>
+            <div className={styles.sajuRow}>
+              <span className={styles.sajuGz}>{ganjiHanja}</span>
+              <div className={styles.sajuText}>
+                <div className={styles.sajuMeta}>
+                  {ko ? '세운 ' : 'Annual '}
+                  {year.year}
+                  {sewoonSibsin ? ` · ${sewoonSibsin}` : ''}
+                  {sewoonAreaPlain && sewoonAreaPlain !== sewoonSibsin
+                    ? ` (${sewoonAreaPlain})`
+                    : ''}
+                </div>
+                {sajuNoteText && <p className={styles.sajuNote}>{sajuNoteText}</p>}
               </div>
-              {p && (
-                <p className={styles.lead} style={{ fontSize: 14 }}>
-                  {ko ? p.theme : p.themeEn}
-                </p>
-              )}
-              {p && (
-                <dl className={styles.kv}>
-                  <dt>profection</dt>
-                  <dd>
-                    <b>
-                      {p.house}
-                      {ko ? '하우스' : 'House'}
-                    </b>{' '}
-                    {ko ? '활성' : 'active'}
-                  </dd>
-                  <dt>cusp</dt>
-                  <dd>{ko ? p.cusp : p.cuspEn}</dd>
-                  <dt>ruler</dt>
-                  <dd>
-                    <b>{ko ? p.ruler : p.rulerEn}</b>
-                  </dd>
-                  <dt>{ko ? 'ruler 본명' : 'ruler (natal)'}</dt>
-                  <dd>{ko ? p.rulerNatal : p.rulerNatalEn}</dd>
-                </dl>
-              )}
+            </div>
+          </section>
+        )}
+      </details>
 
+      {/* ── 열두 달 색 띠 (숫자 없음) ── */}
+      {hasMonths && (
+        <section className={styles.sec}>
+          <div className={styles.secH}>
+            <span className={styles.secLbl}>{ko ? '열두 달의 흐름' : 'Twelve months'}</span>
+            <span className={styles.secLn} />
+            <span className={styles.secLat}>12 months</span>
+          </div>
+          <div className={styles.strip}>
+            {stripItems.map((it) => {
+              const cls = [
+                styles.stripCell,
+                it.tone === 'good' && styles.cellGood,
+                it.tone === 'caution' && styles.cellCaution,
+              ]
+                .filter(Boolean)
+                .join(' ')
+              return (
+                <div className={cls} key={it.month}>
+                  <span className={styles.stripNum}>{it.month}</span>
+                  {it.tone === 'good' && (
+                    <span className={styles.star} aria-hidden>
+                      ✦
+                    </span>
+                  )}
+                  {it.bestDay && (
+                    <span className={styles.stripBest} aria-hidden title={it.bestDay} />
+                  )}
+                </div>
+              )
+            })}
+          </div>
+          <p className={styles.stripHint}>
+            {ko
+              ? '색이 진할수록 일을 크게 벌이기 좋은 달, 회색은 평범한 달이에요.'
+              : 'The deeper the colour, the better the month for making big moves; grey months are ordinary.'}
+          </p>
+          <div className={styles.legend}>
+            <span className={`${styles.lg} ${styles.lgGood}`}>
+              <i />
+              {ko ? '좋은 달' : 'Good'}
+            </span>
+            <span className={`${styles.lg} ${styles.lgCare}`}>
+              <i />
+              {ko ? '평이한 달' : 'Steady'}
+            </span>
+            <span className={`${styles.lg} ${styles.lgAvoid}`}>
+              <i />
+              {ko ? '조심할 달' : 'Careful'}
+            </span>
+          </div>
+          {showBandPhrase && (
+            <p className={styles.bandPhrase}>
+              {minorityGood.length > 0 && (
+                <span className={styles.bpGood}>
+                  <b>{ko ? '좋은 달' : 'Good'}</b> {joinMonths(minorityGood)}
+                </span>
+              )}
+              {minorityGood.length > 0 && minorityCaution.length > 0 && (
+                <span className={styles.bpSep}> · </span>
+              )}
+              {minorityCaution.length > 0 && (
+                <span className={styles.bpCare}>
+                  <b>{ko ? '조심' : 'Careful'}</b> {joinMonths(minorityCaution)}
+                </span>
+              )}
+            </p>
+          )}
+        </section>
+      )}
+
+      {/* ── 올해 풀이 (verdict) ── */}
+      {yearReading && (
+        <section className={styles.sec}>
+          <div className={styles.secH}>
+            <span className={styles.secLbl}>{ko ? '올해 풀이' : 'Reading the year'}</span>
+            <span className={styles.secLn} />
+            <span className={styles.secLat}>In a line</span>
+          </div>
+          <p className={styles.verdict}>{yearReading}</p>
+        </section>
+      )}
+
+      {/* ── 자세히 ② 무대·교차·황도분기 (사주·점성을 아는 사람용) ── */}
+      <details className={styles.expertWrap}>
+        <summary className={styles.expertSummary}>
+          {ko ? '왜 이런가요? · 무대 · 교차 · 황도분기' : 'Why? · stage · crossings · ZR'}
+        </summary>
+
+        <p className={styles.foldLede}>
+          {ko
+            ? '쉽게 말하면, 점성술이 보는 ‘올해의 무대(어떤 삶의 영역이 켜지는지)’와 그걸 이끄는 별, 인생의 큰 장이 지금 어디쯤인지를 보여드려요.'
+            : 'In plain words: the “stage” astrology lights up this year (which area of life switches on), the star that leads it, and where you are in the larger chapters of your life.'}
+        </p>
+
+        {/* ── 올해의 무대 (프로펙션) ── */}
+        {p && (
+          <section className={styles.sec}>
+            <div className={styles.secH}>
+              <span className={styles.secLbl}>{ko ? '올해의 무대' : 'This year’s stage'}</span>
+              <span className={styles.secLn} />
+              <span className={styles.secLat}>Profection</span>
+            </div>
+            <div className={styles.stage}>
+              <p className={styles.stageTheme}>{ko ? p.theme : p.themeEn}</p>
+              <p className={styles.stageLead}>
+                {ko
+                  ? '올해는 이 영역이 한 해의 중심 무대가 돼요.'
+                  : `This is the year’s ${ordinalEn(p.house)}-house stage.`}
+              </p>
+              <div className={styles.stageTags}>
+                <span className={styles.termTag}>
+                  {ko ? `${p.house}번째 영역` : `${ordinalEn(p.house)} house`}
+                </span>
+                <span className={styles.termTag}>{ko ? `자리 ${p.cusp}` : `cusp ${p.cuspEn}`}</span>
+                <span className={styles.termTag}>
+                  {ko ? `주관 별 ${p.ruler}` : `ruler ${p.rulerEn}`}
+                </span>
+              </div>
+              <dl className={styles.dl}>
+                <dt>{ko ? '주관 별의 본명 자리' : 'ruler (natal)'}</dt>
+                <dd>{ko ? p.rulerNatal : p.rulerNatalEn}</dd>
+                {activePlanets.length > 0 && (
+                  <>
+                    <dt>{ko ? '본명 행성' : 'natal here'}</dt>
+                    <dd>{activePlanets.join(' · ')}</dd>
+                  </>
+                )}
+              </dl>
               <div
                 className={
                   sect === 'day'
-                    ? `${styles.sectLine} ${styles.sectLineDay}`
-                    : `${styles.sectLine} ${styles.sectLineNight}`
+                    ? `${styles.sectPill} ${styles.sectDay}`
+                    : `${styles.sectPill} ${styles.sectNight}`
                 }
               >
-                <span className="pip" />
-                <span className="han">
-                  {ko ? (sect === 'day' ? '낮' : '밤') : sect === 'day' ? 'Day' : 'Night'}
-                </span>
-                Sect · {sect === 'day' ? 'Diurnal' : 'Nocturnal'}
-                {ko ? ' 출생' : ' birth'}
+                {ko
+                  ? sect === 'day'
+                    ? '낮 출생 · Diurnal'
+                    : '밤 출생 · Nocturnal'
+                  : sect === 'day'
+                    ? 'Diurnal · day birth'
+                    : 'Nocturnal · night birth'}
               </div>
-              {lordReadout && p && (
+              {lordReadout && (
                 <p className={styles.lordOfYear}>
-                  <b>Lord of Year</b> {ko ? p.ruler : p.rulerEn} —{' '}
+                  <b>{ko ? '올해의 주관 별' : 'Lord of Year'}</b> {ko ? p.ruler : p.rulerEn} —{' '}
                   <span className={styles[lordReadout.tone]}>{lordReadout.text}</span>
                 </p>
               )}
-
-              {(ko ? year.astroNote : (year.astroNoteEn ?? year.astroNote)) && (
-                <p
-                  className={styles.lead}
-                  style={{
-                    fontSize: 13,
-                    marginTop: 14,
-                    color: 'var(--dp-ink-mute)',
-                  }}
-                >
-                  {ko ? year.astroNote : (year.astroNoteEn ?? year.astroNote)}
-                </p>
-              )}
+              {astroNoteText && <p className={styles.stageNote}>{astroNoteText}</p>}
             </div>
+          </section>
+        )}
 
-            <hr className={styles.hr} />
-
-            <LayerTag kind="saju" />
-            <div className={styles.sewoonRow}>
-              <div className={styles.ganjiBox}>
-                <Ganji data={year.sewoon?.gz ?? year.sewoonGz} size={42} />
-              </div>
-              <div>
-                <div className={styles.ganjiMeta}>
-                  {ko ? '세운 ' : 'Annual '}
-                  {year.year} · {year.sewoonSibsin}
-                  {(() => {
-                    const area = ko
-                      ? sibsinArea(year.sewoonSibsin)
-                      : sibsinAreaEn(year.sewoonSibsin)
-                    return area !== year.sewoonSibsin ? ` (${area})` : ''
-                  })()}
-                </div>
-                <p className={styles.sajuNote}>
-                  {ko ? year.sajuNote : (year.sajuNoteEn ?? year.sajuNote)}
-                </p>
-              </div>
+        {/* ── 올해 무엇이 겹치나 (crossings) — ▲/▼ 패턴 ── */}
+        {yearCross.length > 0 && (
+          <section className={styles.sec}>
+            <div className={styles.secH}>
+              <span className={styles.secLbl}>{ko ? '올해 무엇이 겹치나' : 'What overlaps'}</span>
+              <span className={styles.secLn} />
+              <span className={styles.secLat}>Crossings</span>
             </div>
-          </div>
-        </div>
-
-        {/* ── ZR 카드 (Spirit / Fortune) ── */}
-        <section className={styles.block}>
-          <div className={styles.secHead}>
-            <h2
-              className={styles.secTitle}
-              title={
-                ko
-                  ? '인생을 장(章)으로 나누는 점성 흐름 — 시기마다 무엇이 무대에 오르는지'
-                  : 'An astrological flow that divides life into chapters — what takes the stage in each period'
-              }
-            >
-              {ko ? '황도분기 · Zodiacal Releasing' : 'Zodiacal Releasing'}
-            </h2>
-            <span className={styles.secTag}>
-              {ko ? 'L1 / L2 — 챕터 진행' : 'L1 / L2 — chapter progress'}
-            </span>
-          </div>
-          <div className={styles.zrCard}>
-            <div className={`${styles.zrPane} ${styles.zrPaneSpirit}`}>
-              <div className={styles.zrPaneHead}>
-                {ko ? 'Spirit · 영혼 · 진로' : 'Spirit · soul · path'}
-              </div>
-              {zrSpiritNow ? (
-                <>
-                  <div>
-                    <span className={styles.zrLevel}>L1</span>
-                    <span className={styles.zrSign}>{zrSpiritNow.sign}</span>
-                    <span className={styles.zrSignEn}>{zrSpiritNow.ruler}</span>
-                  </div>
-                  <div className={styles.zrMeta}>
-                    <span>
-                      {zrSpiritNow.calendarStartYear}–{zrSpiritNow.calendarEndYear}
+            <div className={styles.crossLegend}>
+              <span className={styles.clUp}>▲ {ko ? '도움이 되는 흐름' : 'Supporting flow'}</span>
+              <span className={styles.clDn}>▼ {ko ? '부딪히는 흐름' : 'Clashing flow'}</span>
+            </div>
+            {yearCross.map((c, i) => {
+              const isHero = topCross != null && c === topCross
+              const when = ko ? c.when : (c.whenEn ?? c.when)
+              const head = plainPairName(ko ? c.title : (c.titleEn ?? c.title), ko)
+              const body = plainReason(ko ? c.detail : (c.detailEn ?? c.detail), ko)
+              return (
+                <div className={`${styles.cross} ${isHero ? styles.crossHero : ''}`.trim()} key={i}>
+                  <div className={styles.crossTop}>
+                    <span className={`${styles.pole} ${toneCls(c.tone)}`.trim()} aria-hidden>
+                      {toneSym(c.tone)}
                     </span>
-                    <span>
-                      {zrSpiritNow.durationYears}
-                      {ko ? '년' : 'y'}
-                    </span>
-                    {zrPivotalTag(zrSpiritNow, ko) && (
-                      <span className={styles.pivot}>{zrPivotalTag(zrSpiritNow, ko)}</span>
+                    <span className={styles.crossHead}>{head}</span>
+                    {!repeatedWhen && when && <span className={styles.whenPill}>{when}</span>}
+                    {isHero && (
+                      <span className={styles.crossFlag}>
+                        {ko ? `${toneTag(c.tone)} · 핵심` : `${toneTag(c.tone)} · key`}
+                      </span>
                     )}
                   </div>
-                  {zrSpiritNow.subPeriods && zrSpiritNow.subPeriods.length > 0 && (
-                    <div className={styles.zrMeta}>
-                      <span className={styles.zrLevel}>L2</span>
-                      {zrSpiritNow.subPeriods.slice(0, 1).map((sub, i) => (
-                        <span key={i}>
-                          {sub.sign} · {sub.ruler} · {sub.durationMonths}
-                          {ko ? '개월' : 'mo'}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                </>
-              ) : (
-                <div className={styles.zrEmpty}>
-                  {ko ? '현재 활성 Spirit 챕터 없음' : 'No active Spirit chapter'}
+                  {body && <div className={styles.crossBody}>{body}</div>}
                 </div>
-              )}
-            </div>
+              )
+            })}
+            {repeatedWhen && allCross[0]?.when && (
+              <p className={styles.crossWhen}>
+                {ko
+                  ? `이 흐름들은 ${allCross[0].when}에 한꺼번에 겹쳐요.`
+                  : `These concentrate around ${allCross[0].whenEn ?? allCross[0].when}.`}
+              </p>
+            )}
+          </section>
+        )}
 
-            <div className={`${styles.zrPane} ${styles.zrPaneFortune}`}>
-              <div className={styles.zrPaneHead}>
-                {ko ? 'Fortune · 몸 · 물질' : 'Fortune · body · matter'}
-              </div>
-              {zrFortuneNow ? (
-                <>
-                  <div>
-                    <span className={styles.zrLevel}>L1</span>
-                    <span className={styles.zrSign}>{zrFortuneNow.sign}</span>
-                    <span className={styles.zrSignEn}>{zrFortuneNow.ruler}</span>
-                  </div>
-                  <div className={styles.zrMeta}>
-                    <span>
-                      {zrFortuneNow.calendarStartYear}–{zrFortuneNow.calendarEndYear}
-                    </span>
-                    <span>
-                      {zrFortuneNow.durationYears}
-                      {ko ? '년' : 'y'}
-                    </span>
-                    {zrPivotalTag(zrFortuneNow, ko) && (
-                      <span className={styles.pivot}>{zrPivotalTag(zrFortuneNow, ko)}</span>
-                    )}
-                  </div>
-                  {zrFortuneNow.subPeriods && zrFortuneNow.subPeriods.length > 0 && (
-                    <div className={styles.zrMeta}>
-                      <span className={styles.zrLevel}>L2</span>
-                      {zrFortuneNow.subPeriods.slice(0, 1).map((sub, i) => (
-                        <span key={i}>
-                          {sub.sign} · {sub.ruler} · {sub.durationMonths}
-                          {ko ? '개월' : 'mo'}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                </>
-              ) : (
-                <div className={styles.zrEmpty}>
-                  {ko ? '현재 활성 Fortune 챕터 없음' : 'No active Fortune chapter'}
-                </div>
-              )}
+        {/* ── 황도분기 ZR (L1 — 현재 챕터) ── */}
+        {(zrSpiritNow || zrFortuneNow) && (
+          <section className={styles.sec}>
+            <div className={styles.secH}>
+              <span className={styles.secLbl}>{ko ? '황도분기' : 'Zodiacal Releasing'}</span>
+              <span className={styles.secLn} />
+              <span className={styles.secLat}>ZR · L1</span>
             </div>
-          </div>
-        </section>
+            <div className={styles.zrCard}>
+              <div className={`${styles.zrPane} ${styles.zrPaneSpirit}`}>
+                <div className={styles.zrPaneHead}>
+                  {ko ? '진로·방향 (영점)' : 'Spirit · soul · path'}
+                </div>
+                {zrSpiritNow ? (
+                  <>
+                    <div className={styles.zrLine}>
+                      <span className={styles.zrLevel}>L1</span>
+                      <span className={styles.zrSign}>{zrSignKo(zrSpiritNow.sign, ko)}</span>
+                      <span className={styles.zrRuler}>{zrRulerKo(zrSpiritNow.ruler, ko)}</span>
+                    </div>
+                    <div className={styles.zrMeta}>
+                      <span>
+                        {zrSpiritNow.calendarStartYear}–{zrSpiritNow.calendarEndYear}
+                      </span>
+                      <span>
+                        {zrSpiritNow.durationYears}
+                        {ko ? '년' : 'y'}
+                      </span>
+                    </div>
+                  </>
+                ) : (
+                  <div className={styles.zrEmpty}>
+                    {ko ? '지금 진행 중인 진로·방향 장이 없어요' : 'No active Spirit chapter'}
+                  </div>
+                )}
+              </div>
+
+              <div className={`${styles.zrPane} ${styles.zrPaneFortune}`}>
+                <div className={styles.zrPaneHead}>
+                  {ko ? '현실·체질 (복점)' : 'Fortune · body · matter'}
+                </div>
+                {zrFortuneNow ? (
+                  <>
+                    <div className={styles.zrLine}>
+                      <span className={styles.zrLevel}>L1</span>
+                      <span className={styles.zrSign}>{zrSignKo(zrFortuneNow.sign, ko)}</span>
+                      <span className={styles.zrRuler}>{zrRulerKo(zrFortuneNow.ruler, ko)}</span>
+                    </div>
+                    <div className={styles.zrMeta}>
+                      <span>
+                        {zrFortuneNow.calendarStartYear}–{zrFortuneNow.calendarEndYear}
+                      </span>
+                      <span>
+                        {zrFortuneNow.durationYears}
+                        {ko ? '년' : 'y'}
+                      </span>
+                    </div>
+                  </>
+                ) : (
+                  <div className={styles.zrEmpty}>
+                    {ko ? '지금 진행 중인 현실·체질 장이 없어요' : 'No active Fortune chapter'}
+                  </div>
+                )}
+              </div>
+            </div>
+          </section>
+        )}
       </details>
 
-      {/* ── dive 버튼 ── */}
-      <div className={styles.diveWrap}>
-        <button className={styles.dive} onClick={onDive}>
-          {ko ? '이번 달로 줌인' : 'Zoom in to this month'} <span className={styles.arrow}>↓</span>
-        </button>
-      </div>
-    </TierFrame>
+      {/* ── CTA (zoom-in → month) ── */}
+      <button className={styles.cta} onClick={onDive} type="button">
+        {ko ? '이번 달로 줌인 →' : 'Zoom in to this month →'}
+      </button>
+    </div>
   )
 }

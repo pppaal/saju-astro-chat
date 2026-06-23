@@ -15,6 +15,12 @@ import type {
   SignalLayer,
 } from '../types'
 import { getCachedTransitChart } from '../ephe-cache'
+import { PLANET_KO } from '../data/planetNames'
+import { SIGN_KO } from '@/lib/astrology/signLabels'
+
+/** 영문 행성/별자리 → 한글 (없으면 원문). ko 라벨에 영어가 새지 않게. */
+const koPlanet = (p: string): string => PLANET_KO[p] ?? p
+const koSign = (s: string): string => SIGN_KO[s] ?? s
 
 /**
  * 행성 품위 (Essential Dignity) 추출기 — 5-tier (Hellenistic).
@@ -197,7 +203,7 @@ const astroDignityExtractor: SignalExtractor = {
           source: 'astro',
           kind: 'transit',
           name: `${sample.planet} ${DIGNITY_LABEL[sample.dignity]} in ${sample.sign}`,
-          korean: `${sample.planet} ${DIGNITY_LABEL[sample.dignity]} (${sample.sign})`,
+          korean: `${koPlanet(sample.planet)} ${DIGNITY_LABEL[sample.dignity]} (${koSign(sample.sign)})`,
           english: `${sample.planet} in ${DIGNITY_LABEL_EN[sample.dignity] ?? sample.dignity} (${sample.sign}) — ${DIGNITY_FLOW_EN[sample.dignity] ?? ''}`,
           polarity,
           layer: planetLayer(sample.planet),
@@ -268,7 +274,7 @@ const astroDignityExtractor: SignalExtractor = {
             source: 'astro',
             kind: 'transit',
             name: `${sample.planet} ${label} in ${sample.sign}`,
-            korean: `${sample.planet} ${label} (${sample.sign})`,
+            korean: `${koPlanet(sample.planet)} ${label} (${koSign(sample.sign)})`,
             english: `${sample.planet} in minor dignity ${labelEn} (${sample.sign}) — a mild supportive placement`,
             polarity,
             layer: planetLayer(sample.planet),
@@ -314,7 +320,7 @@ const astroDignityExtractor: SignalExtractor = {
         source: 'astro',
         kind: 'transit',
         name: `Natal ${p.name} ${matchedMinor.join('+')} in ${p.sign}`,
-        korean: `본명 ${p.name} 5-tier 디그니티 (${p.sign})`,
+        korean: `본명 ${koPlanet(p.name)} 5-tier 디그니티 (${koSign(p.sign)})`,
         polarity,
         layer: 'yearly',
         active: { start: range.start, peak: range.start, end: range.end },

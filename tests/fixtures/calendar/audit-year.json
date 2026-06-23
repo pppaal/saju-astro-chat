@@ -1,0 +1,348 @@
+{
+  "year": 2026,
+  "headline": "올해의 무게중심은 8번째 영역으로 기울어요.",
+  "sewoon": {
+    "gz": {
+      "hanja": "丙午",
+      "kr": "병오",
+      "en": "byeongo"
+    },
+    "sibsin": "정관"
+  },
+  "sewoonGz": {
+    "hanja": "丙午",
+    "kr": "병오",
+    "en": "byeongo"
+  },
+  "sewoonSibsin": "정관",
+  "profection": {
+    "house": 8,
+    "theme": "변환 · 깊이 · 재구성",
+    "themeEn": "Transformation · Depth · Rebuild",
+    "cusp": "처녀자리",
+    "cuspEn": "Virgo",
+    "ruler": "수성",
+    "rulerEn": "Mercury",
+    "rulerNatal": "1궁 (물병자리)",
+    "rulerNatalEn": "1st house · Aquarius",
+    "rulerNatalHouse": 1,
+    "rulerNatalSign": "Aquarius",
+    "houseMeaning": "표면 아래로 내려가는 영역이에요. 둘이 합치는 자원(공동 재산, 배우자의 돈, 빚·세금·유산, 투자), 깊은 친밀감과 성, 마음속 어두운 부분과 그것을 통과하며 일어나는 변화, 그리고 끝과 새로운 시작이 여기 살아요. 가볍게 다루긴 어렵지만 인생을 한 단계 더 깊게 만드는 자리예요. 강하게 집중하는 힘이 있어요.",
+    "houseMeaningEn": "The house that takes you under the surface. Resources you merge with others (joint accounts, a partner's money, debt, taxes, inheritance, investments), deep intimacy and sexuality, the darker rooms of the mind, and the deep changes that come from passing through them — endings and new beginnings — all live here. Heavy material, but it deepens a life. It concentrates with real intensity."
+  },
+  "profectionWheel": [
+    {
+      "house": 1,
+      "cuspSign": "Aquarius",
+      "cuspRuler": "Saturn",
+      "natalPlanets": ["Sun", "Mercury"],
+      "active": false
+    },
+    {
+      "house": 2,
+      "cuspSign": "Pisces",
+      "cuspRuler": "Jupiter",
+      "natalPlanets": ["Saturn"],
+      "active": false
+    },
+    {
+      "house": 3,
+      "cuspSign": "Aries",
+      "cuspRuler": "Mars",
+      "natalPlanets": [],
+      "active": false
+    },
+    {
+      "house": 4,
+      "cuspSign": "Taurus",
+      "cuspRuler": "Venus",
+      "natalPlanets": [],
+      "active": false
+    },
+    {
+      "house": 5,
+      "cuspSign": "Gemini",
+      "cuspRuler": "Mercury",
+      "natalPlanets": ["Moon"],
+      "active": false
+    },
+    {
+      "house": 6,
+      "cuspSign": "Cancer",
+      "cuspRuler": "Moon",
+      "natalPlanets": [],
+      "active": false
+    },
+    {
+      "house": 7,
+      "cuspSign": "Leo",
+      "cuspRuler": "Sun",
+      "natalPlanets": ["Mars"],
+      "active": false
+    },
+    {
+      "house": 8,
+      "cuspSign": "Virgo",
+      "cuspRuler": "Mercury",
+      "natalPlanets": [],
+      "active": true
+    },
+    {
+      "house": 9,
+      "cuspSign": "Libra",
+      "cuspRuler": "Venus",
+      "natalPlanets": [],
+      "active": false
+    },
+    {
+      "house": 10,
+      "cuspSign": "Scorpio",
+      "cuspRuler": "Mars",
+      "natalPlanets": ["True Node"],
+      "active": false
+    },
+    {
+      "house": 11,
+      "cuspSign": "Sagittarius",
+      "cuspRuler": "Jupiter",
+      "natalPlanets": ["Jupiter", "Pluto"],
+      "active": false
+    },
+    {
+      "house": 12,
+      "cuspSign": "Capricorn",
+      "cuspRuler": "Saturn",
+      "natalPlanets": ["Venus", "Uranus", "Neptune"],
+      "active": false
+    }
+  ],
+  "sajuNote": "세운 丙午 — 일간 辛 기준 정관.",
+  "astroNote": "올해의 무대인 8하우스를 이끄는 별은 수성 — 본명에서는 1궁 (물병자리)에 자리해요.",
+  "zrSpiritChapters": [
+    {
+      "level": 1,
+      "index": 2,
+      "sign": "Cancer",
+      "ruler": "Moon",
+      "startYear": 28,
+      "endYear": 53,
+      "durationYears": 25,
+      "startLot": "Spirit",
+      "calendarStartYear": 2023,
+      "calendarEndYear": 2048,
+      "now": true
+    }
+  ],
+  "zrFortuneChapters": [
+    {
+      "level": 1,
+      "index": 2,
+      "sign": "Sagittarius",
+      "ruler": "Jupiter",
+      "startYear": 23,
+      "endYear": 35,
+      "durationYears": 12,
+      "startLot": "Fortune",
+      "calendarStartYear": 2018,
+      "calendarEndYear": 2030,
+      "now": true
+    }
+  ],
+  "monthlyScores": [
+    {
+      "month": 1,
+      "score": 62
+    },
+    {
+      "month": 2,
+      "score": 62
+    },
+    {
+      "month": 3,
+      "score": 62
+    },
+    {
+      "month": 4,
+      "score": 62
+    },
+    {
+      "month": 5,
+      "score": 62
+    },
+    {
+      "month": 6,
+      "score": 0,
+      "bestDay": "2026-06-13"
+    },
+    {
+      "month": 7,
+      "score": 62
+    },
+    {
+      "month": 8,
+      "score": 62
+    },
+    {
+      "month": 9,
+      "score": 62
+    },
+    {
+      "month": 10,
+      "score": 62
+    },
+    {
+      "month": 11,
+      "score": 62
+    },
+    {
+      "month": 12,
+      "score": 62
+    }
+  ],
+  "crossings": [
+    {
+      "when": "6월",
+      "whenEn": "Jun",
+      "title": "표현·재능 × 사랑·돈",
+      "titleEn": "expression × love & money",
+      "detail": "식신 × 금성 — 누리고 빚는 결. 미식·예술·공예처럼 솜씨를 즐기며 내놓는 일에 우호.",
+      "detailEn": "Eating God × Venus — a streak for enjoying and crafting. Favours food, art, and craft where you take pleasure in the making.",
+      "tone": "good"
+    },
+    {
+      "when": "6월",
+      "whenEn": "Jun",
+      "title": "일·책임 × 기회·확장",
+      "titleEn": "duty & standing × luck & growth",
+      "detail": "정관 × 목성 — 규범·자격이 사회적 신뢰로 넓어지는 결. 자격·면허·공직·법적 정당화에 우호.",
+      "detailEn": "Direct Officer × Jupiter — rules and credentials broaden into social trust. Favours licences, public office, and legal legitimacy.",
+      "tone": "good"
+    },
+    {
+      "when": "6월",
+      "whenEn": "Jun",
+      "title": "표현·재능 × 말·소통",
+      "titleEn": "expression × talk & ideas",
+      "detail": "식신 × 수성 — 만들어 내놓는 결. 초안·시제품·요리·콘텐츠처럼 손으로 빚는 산출에 최적.",
+      "detailEn": "Eating God × Mercury — a streak for making things. Best for drafts, prototypes, cooking, and hands-on creative work.",
+      "tone": "good"
+    },
+    {
+      "when": "6월",
+      "whenEn": "Jun",
+      "title": "표현·재능 × 기회·확장",
+      "titleEn": "expression × luck & growth",
+      "detail": "식신 × 목성 — 만들어 내놓는 결과 풍요·확장이 같은 방향으로 흘러요. 즐기며 꾸준히 내놓을수록 불어납니다.",
+      "detailEn": "Eating God × Jupiter — your output and abundance pull the same way; the more you create with ease, the more it grows.",
+      "tone": "good"
+    },
+    {
+      "when": "6월",
+      "whenEn": "Jun",
+      "title": "일·도전 × 추진·마찰",
+      "titleEn": "challenge & pressure × drive & friction",
+      "detail": "편관 × 화성 — 강제·압박·돌발 사건의 결이 두 배. 결단은 빠르게, 충돌은 한 박자 늦추기.",
+      "detailEn": "Seven Killings × Mars — pressure, force, and sudden events hit twice as hard. Decide fast, but slow any clash by a beat.",
+      "tone": "caution"
+    },
+    {
+      "when": "6월",
+      "whenEn": "Jun",
+      "title": "공부·지원 × 기회·확장",
+      "titleEn": "learning & support × luck & growth",
+      "detail": "정인 × 목성 — 학습·확장·정통의 기운이 한 방향으로 흘러요. 자격·학위·해외 우호.",
+      "detailEn": "Direct Resource × Jupiter — learning, expansion, and tradition all pull the same way. Favours credentials, degrees, and overseas moves.",
+      "tone": "good"
+    },
+    {
+      "when": "6월",
+      "whenEn": "Jun",
+      "title": "공부·지원 × 책임·인내",
+      "titleEn": "learning & support × duty & limits",
+      "detail": "정인 × 토성 — 정통 학문을 끈기 있게 다지는 결. 자격 시험·장기 연구·체계적 공부에 우호.",
+      "detailEn": "Direct Resource × Saturn — disciplined, patient mastery of orthodox study. Favours certification exams, long research, and systematic learning.",
+      "tone": "good"
+    },
+    {
+      "when": "6월",
+      "whenEn": "Jun",
+      "title": "일·책임 × 책임·인내",
+      "titleEn": "duty & standing × duty & limits",
+      "detail": "정관 × 토성 — 책임·법·구조가 강화되는 시기. 공식 절차·약속을 다지기 좋음.",
+      "detailEn": "Direct Officer × Saturn — responsibility, law, and structure all firm up; a window to lock in formal commitments.",
+      "tone": "good"
+    },
+    {
+      "when": "6월",
+      "whenEn": "Jun",
+      "title": "공부·사유 × 책임·인내",
+      "titleEn": "study & depth × duty & limits",
+      "detail": "편인 × 토성 — 고립된 사고·종교·연구의 결이 깊어지는 시기. 혼자 파고드는 일에 우호.",
+      "detailEn": "Indirect Resource × Saturn — solitary thought, faith, and deep research run deeper. Favours single-minded study.",
+      "tone": "neutral"
+    },
+    {
+      "when": "6월",
+      "whenEn": "Jun",
+      "title": "경쟁·사람 × 추진·마찰",
+      "titleEn": "rivalry & drive × drive & friction",
+      "detail": "겁재 × 화성 — 경쟁·분탈·충동 결이 두 배. 큰 돈·관계 결정은 한 박자 늦추기.",
+      "detailEn": "Rob Wealth × Mars — competition, rivalry, and impulse run twice as hot. Sleep on any big money or relationship call.",
+      "tone": "caution"
+    },
+    {
+      "when": "6월",
+      "whenEn": "Jun",
+      "title": "실력·자리 × 기회·확장",
+      "titleEn": "skill & standing × luck & growth",
+      "detail": "건록 × 목성 — 실력·인정·확장 결이 한 방향으로 흘러요. 자기 자리 잡기에 최적.",
+      "detailEn": "Established Stipend × Jupiter — skill, recognition, and expansion run together. The best window for claiming your own seat.",
+      "tone": "good"
+    },
+    {
+      "when": "6월",
+      "whenEn": "Jun",
+      "title": "사람·자립 × 책임·인내",
+      "titleEn": "self & peers × duty & limits",
+      "detail": "비견 × 토성 — 홀로 서는 힘과 책임이 단단해지는 결. 남에게 기대기보다 제 자리를 시간 들여 다지게 돼요.",
+      "detailEn": "Companion × Saturn — self-reliance and responsibility harden. Rather than leaning on others, you build your own footing over time.",
+      "tone": "neutral"
+    },
+    {
+      "when": "6월",
+      "whenEn": "Jun",
+      "title": "돈·안정 × 사랑·돈",
+      "titleEn": "steady wealth × love & money",
+      "detail": "정재 × 금성 — 안정된 가치·관계·자산의 결이 동시에 살아남. 결혼·계약·구매에 우호.",
+      "detailEn": "Direct Wealth × Venus — stable value, relationships, and assets light up together. Favours marriage, contracts, and purchases.",
+      "tone": "good"
+    },
+    {
+      "when": "6월",
+      "whenEn": "Jun",
+      "title": "돈·현실 × 기회·확장",
+      "titleEn": "opportunity & money × luck & growth",
+      "detail": "편재 × 목성 — 큰물의 기회·확장 재물 결이 한 방향으로. 신사업·투자 검토에 우호.",
+      "detailEn": "Indirect Wealth × Jupiter — big opportunities and expansive wealth line up the same way. Favours new ventures and weighing investments.",
+      "tone": "good"
+    },
+    {
+      "when": "6월",
+      "whenEn": "Jun",
+      "title": "이동·변화 × 추진·마찰",
+      "titleEn": "movement × drive & friction",
+      "detail": "역마살 × 화성 — 떠나려는 충동·추진이 두 배. 출장·이주·도전엔 동력, 다만 서두른 운전·일정은 한 박자 늦추기.",
+      "detailEn": "Travelling Horse × Mars — the urge to move and push runs twice as hard. Drive for trips, relocation, and bold moves; just slow rushed driving and schedules by a beat.",
+      "tone": "neutral"
+    },
+    {
+      "when": "6월",
+      "whenEn": "Jun",
+      "title": "공부·사유 × 말·소통",
+      "titleEn": "study & depth × talk & ideas",
+      "detail": "편인 × 수성 — 비주류 정보·이면을 캐는 결. 자료 조사·재해석·편집에 우호, 의심이 과하면 결론을 미루게 됨.",
+      "detailEn": "Indirect Resource × Mercury — digging into unconventional information and hidden angles. Favours research, reinterpretation, and editing; excess suspicion can stall conclusions.",
+      "tone": "neutral"
+    }
+  ]
+}

@@ -79,7 +79,7 @@ interface SajuLike {
   dayMaster?: { name?: string }
   strength?: string
   yongsin?: { primary?: string; secondary?: string; avoid?: string[] }
-  daeun?: Array<{ stem: string; branch: string; startAge: number }>
+  daeun?: Array<{ stem: string; branch: string; startAge: number; startYear?: number }>
 }
 
 const PATTERN_KO: Record<LifePatternKey, { ko: string; en: string; line: string; lineEn: string }> =
@@ -139,6 +139,7 @@ export function deriveLifePattern(saju: SajuLike): LifePattern | null {
   )
   const avoid = new Set(saju.yongsin?.avoid ?? [])
 
+  const startYears = new Map<number, number>()
   const seq: DaeunFavor[] = daeun.map((d) => {
     const se = getStemElement(d.stem)
     const be = getBranchElement(d.branch)
@@ -146,6 +147,7 @@ export function deriveLifePattern(saju: SajuLike): LifePattern | null {
     const branchCat = categoryOf(dmEl, be)
     const favor =
       favorOf(stemCat, se, strength, yong, avoid) + favorOf(branchCat, be, strength, yong, avoid)
+    if (typeof d.startYear === 'number') startYears.set(d.startAge, d.startYear)
     return { startAge: d.startAge, gz: `${d.stem}${d.branch}`, stemCat, branchCat, favor }
   })
 
@@ -157,16 +159,113 @@ export function deriveLifePattern(saju: SajuLike): LifePattern | null {
   const early = seg(15, 40)
   const mid = seg(40, 60)
   const late = seg(60, 90)
-  const M = 0.5
+  const mean = (early + mid + late) / 3
+  const maxSeg = Math.max(early, mid, late)
+  const D = 0.5 // 의미 있는 구간 단차(±2 스케일에서 한 글자 차이의 절반).
 
+  // 분류 순서가 핵심: "형태가 뚜렷한" 시나리오(고전·굴곡·중년절정·반전)를 먼저 잡고,
+  // 그다음 단조 흐름(초년발복·점진상승), 마지막에 무난(순탄)으로 떨어뜨린다.
+  // 이렇게 해야 steady-rise/hard/undulating 이 위 버킷에 다 흡수되지 않고 실제로 발화한다.
   let key: LifePatternKey
-  if (late > early + M && late >= mid - 0.1) key = 'late-bloomer'
-  else if (early > late + M && early >= mid - 0.1) key = 'early-peak'
-  else if (mid > early + M && mid > late + M) key = 'midlife-peak'
-  else if (late > mid && mid > early) key = 'steady-rise'
-  else if (early > 0.3 && mid > 0.3 && late > 0.3) key = 'smooth'
-  else if (early < -0.3 && mid < -0.3 && late < -0.3) key = 'hard'
-  else key = 'undulating'
+  if (mean <= -0.4 && maxSeg < 0.5) {
+    // 전반적 고전 — 어느 구간도 뚜렷이 풀리지 않고 평균이 음수.
+    key = 'hard'
+  } else if (early - mid >= D && late - mid >= D) {
+    // 굴곡형 — 중년이 양옆보다 분명히 꺼진 V자 골.
+    key = 'undulating'
+  } else if (mid - early >= D && mid - late >= D) {
+    // 중년 절정 — 중년이 양옆보다 분명히 솟음.
+    key = 'midlife-peak'
+  } else if (late >= maxSeg - 1e-9 && late - early >= D && early <= 0.1) {
+    // 대기만성 — 초년이 부진(≤0)했다가 말년이 가장 높은 분명한 반전.
+    key = 'late-bloomer'
+  } else if (early >= maxSeg - 1e-9 && early - late >= D) {
+    // 초년발복 — 초년이 정점이고 말년이 분명히 하강.
+    key = 'early-peak'
+  } else if (late - early >= D && mid >= early - 0.34 && late >= mid - 0.34) {
+    // 점진상승 — 단조 비감소 상승(말>초)이되 급반전(대기만성)엔 못 미침.
+    key = 'steady-rise'
+  } else {
+    // 그 외 — 큰 굴곡 없이 흐름.
+    key = 'smooth'
+  }
 
-  return { key, ...PATTERN_KO[key], daeun: seq }
+  const { line, lineEn } = personalize(key, seq, startYears)
+  return { key, ...PATTERN_KO[key], line, lineEn, daeun: seq }
+}
+
+/** 십신 카테고리의 짧은 라벨(ko/en) — 우호 운의 성격을 한 단어로. */
+const CAT_KO: Record<SibsinCategory, string> = {
+  비겁: '경쟁·동료',
+  식상: '표현·재능',
+  재성: '재물·실리',
+  관성: '직위·책임',
+  인성: '학문·후원',
+}
+const CAT_EN: Record<SibsinCategory, string> = {
+  비겁: 'peers and rivalry',
+  식상: 'expression and talent',
+  재성: 'money and results',
+  관성: 'status and duty',
+  인성: 'learning and support',
+}
+
+/** 나이대를 한국어 구어로(마흔 줄/쉰 줄 …). */
+function ageBandKo(age: number): string {
+  const bands: Array<[number, string]> = [
+    [20, '스무 살 무렵'],
+    [30, '서른 줄'],
+    [40, '마흔 줄'],
+    [50, '쉰 줄'],
+    [60, '예순 줄'],
+    [70, '일흔 줄'],
+  ]
+  let best = bands[0]
+  for (const b of bands) if (age >= b[0]) best = b
+  return best[1]
+}
+
+/**
+ * 한 줄 서사를 생애 곡선의 *정점 대운* 으로 개인화한다. 같은 유형 키라도 정점이
+ * 오는 나이·연도·우호 십신이 사람마다 달라 문장이 갈린다(제너릭 폴백 제거).
+ */
+function personalize(
+  key: LifePatternKey,
+  seq: DaeunFavor[],
+  startYears: Map<number, number>
+): { line: string; lineEn: string } {
+  const base = PATTERN_KO[key]
+  if (seq.length === 0) return { line: base.line, lineEn: base.lineEn }
+
+  // 정점 대운을 *유형 서사가 가리키는 구간* 안에서 고른다 — 그래야 "대기만성인데
+  // 정점이 한 살" 같은 자기모순이 안 난다. 같은 키라도 그 구간 안 최고 favor 대운의
+  // 나이·연도·십신이 사람마다 달라 문장이 갈린다.
+  //   late-bloomer/steady-rise → 후반(40세~), early-peak → 전반(~40세),
+  //   midlife-peak → 중년(35~60), undulating/smooth/hard → 활동기 전체(~75세).
+  const inWindow = (c: DaeunFavor): boolean => {
+    if (key === 'late-bloomer' || key === 'steady-rise') return c.startAge >= 40
+    if (key === 'early-peak') return c.startAge < 40
+    if (key === 'midlife-peak') return c.startAge >= 35 && c.startAge < 60
+    return c.startAge < 75 // undulating / smooth / hard
+  }
+  const windowed = seq.filter(inWindow)
+  const pool = windowed.length ? windowed : seq
+  // favor 동률이면 더 빠른(먼저 오는) 대운을 정점으로 — reduce 가 첫 최대를 유지.
+  const peak = pool.reduce((best, c) => (c.favor > best.favor ? c : best), pool[0])
+  // 그 대운에서 우호 방향을 끄는 십신(둘 다 같으면 stem, 다르면 stem 우선).
+  const cat = peak.stemCat
+  const yr = startYears.get(peak.startAge)
+  const ageBand = ageBandKo(peak.startAge)
+
+  // 정점 시점 디테일(연도 범위가 있으면 더 구체적으로).
+  const whenKo = yr ? `${yr}년(${peak.startAge}세) 무렵부터` : `${ageBand}(${peak.startAge}세 무렵)`
+  const whenEn = yr ? `around ${yr} (age ${peak.startAge})` : `around age ${peak.startAge}`
+
+  const detailKo = `특히 ${whenKo} ${CAT_KO[cat]} 쪽으로 가장 크게 힘을 실어줘요.`
+  const detailEn = `Your strongest stretch is ${whenEn}, leaning toward ${CAT_EN[cat]}.`
+
+  return {
+    line: `${base.line} ${detailKo}`,
+    lineEn: `${base.lineEn} ${detailEn}`,
+  }
 }

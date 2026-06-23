@@ -20,6 +20,7 @@ import { deriveLayeredScores } from '@/lib/calendar-engine/derivers/layeredScore
 import { computeDayPillarIndices } from '@/lib/saju/dayPillar'
 import { getMonthPillarForDate } from '@/lib/saju/datePillars'
 import { STEM_NAMES, BRANCH_NAMES } from '@/lib/saju/constants'
+import { getSibsinKo } from '@/lib/saju/cycleRelations'
 
 import {
   toUser,
@@ -34,6 +35,8 @@ import { buildHourMoon } from '@/components/calendar/adapters/toHourMoon'
 import { SIBSIN_EN } from '@/lib/saju/sibsinLabels'
 import { translateSignalLabel } from '@/lib/calendar-engine/derivers/signalI18n'
 import { PLANET_KO } from '@/components/calendar/adapters/shared'
+import { PROFECTION_THEMES } from '@/components/calendar/adapters/toYear'
+import { SIGN_KO } from '@/lib/astrology/signLabels'
 
 import type { NatalContext } from '@/lib/calendar-engine/context/types'
 import type { CalendarCell } from '@/lib/calendar-engine/types'
@@ -313,6 +316,7 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
     introEn: userBase.introEn,
     gyeokgukStatus: userBase.geokgukStatus,
     rootStatus: userBase.rootStatus,
+    iljuArchetype: userBase.iljuArchetype,
   }
 
   // 개인 시드 — 본명 고정 값(일간·용신·격국·신강약)에서 한 번 산출. 템플릿 문구를
@@ -445,20 +449,26 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
     sewoon: yearAdapter.sewoon,
     sewoonGz: yearAdapter.sewoonGz,
     sewoonSibsin: yearAdapter.sewoonSibsin,
+    // evidence 없는 (캐시) cells 또는 7~12월생(신호창 미겹침)이면 yearAdapter.profection
+    // 이 undefined → 여기 fallback. house 는 나이로 정확히 복원되므로, theme 는 정본
+    // PROFECTION_THEMES 에서 채우고 cusp/ruler 도 한글화한다(영어 누수·빈 theme 방지).
     profection: yearAdapter.profection ?? {
       house: fallbackHouse,
-      theme: '',
-      themeEn: '',
-      cusp: wheelSlot ? (wheelSlot.cuspSign as string) : '',
+      theme: PROFECTION_THEMES[fallbackHouse]?.theme ?? '',
+      themeEn: PROFECTION_THEMES[fallbackHouse]?.themeEn ?? '',
+      cusp: wheelSlot ? (SIGN_KO[wheelSlot.cuspSign] ?? (wheelSlot.cuspSign as string)) : '',
       cuspEn: wheelSlot?.cuspSign ?? 'Aries',
-      ruler: wheelSlot ? (wheelSlot.cuspRuler as string) : '',
+      ruler: wheelSlot ? (PLANET_KO[wheelSlot.cuspRuler] ?? (wheelSlot.cuspRuler as string)) : '',
       rulerEn: wheelSlot?.cuspRuler ?? 'Sun',
       rulerNatal: '',
       rulerNatalEn: '',
       rulerNatalHouse: 0,
       rulerNatalSign: 'Aries',
     },
-    profectionWheel: yearAdapter.profectionWheel,
+    // fallback 일 때 휠의 active 슬롯이 비어 "현재 하우스" 강조가 사라지므로 채워준다.
+    profectionWheel: yearAdapter.profection
+      ? yearAdapter.profectionWheel
+      : yearAdapter.profectionWheel.map((w) => ({ ...w, active: w.house === fallbackHouse })),
     sajuNote: yearAdapter.sajuNote,
     astroNote: yearAdapter.astroNote,
     zrSpiritChapters: yearAdapter.zrSpiritChapters,
@@ -506,16 +516,24 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
   const monthKeyDays = deriveConvergence(monthCells, 5, lang).keyDays.map((k) => ({
     date: k.date.slice(5),
     meaning: k.meaning,
+    tone: k.tone,
     astro: k.astro,
     saju: k.saju,
     bothSystems: k.bothSystems,
     window: k.window,
     confidence: k.confidence,
   }))
+  // 월운 천간 십신 — 본명 일간 기준 상대 십신. MonthTier 의 '한 줄 총평' 리드 문장
+  // ("이달은 '○○' 쪽으로 결이 기울어요") + 용어 태그(甲午 · 편재)가 이 값을 쓴다.
+  // 이전엔 어디서도 할당하지 않아 항상 undefined → 리드 문장 누락 + 태그에 십신 빠짐.
+  const woolunStemSibsin = getSibsinKo(user.ilgan.hanja, woolunStem) || undefined
+
   const month: DestinyMonth = {
     label: monthAdapter.label,
     ym: monthAdapter.ym,
     woolun: monthAdapter.woolun ?? { hanja: '—', kr: '—', en: '—' },
+    woolunSibsin: woolunStemSibsin,
+    woolunStemSibsin,
     cautionDays: monthAdapter.cautionDays,
     goodDays: monthAdapter.goodDays,
     bestDay: monthAdapter.bestDay ?? { date: '', score: 0 },
@@ -646,6 +664,13 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
       focusCell.mark !== 'converge'
     ) {
       focusCell.mark = 'focus'
+      // 밴드 바를 중립화한 날은 good/caution/avoid 버킷에서도 빼야 한다 —
+      // 안 그러면 헤더·총평의 카운트(goodN/cautionN/avoidN)가 그리드의 실제
+      // 색 셀보다 1 많아진다(off-by-one). MM-DD 키로 세 버킷에서 제거.
+      const focusDs = focusCell.ds
+      month.cautionDays = month.cautionDays.filter((d) => d !== focusDs)
+      month.goodDays = month.goodDays.filter((d) => d !== focusDs)
+      month.avoidDays = month.avoidDays.filter((d) => d !== focusDs)
     }
   }
 
