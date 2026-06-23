@@ -633,10 +633,14 @@ function buildSajuSection(
   // 직접 계산. _raw 는 longitude 진경도 보정이 적용된 결과라, 현재 운도 본명과
   // 같은 평균태양시 기준이 된다. (예전엔 route 가 fusion saju adapter 로 만들어
   // 주입했고, 그건 longitude 를 안 넘겨 KST LMT 로 떨어지던 불일치가 있었다.)
+  // 세운/월운/일진의 절기 경계 판정 인스턴트는 서버 TZ 와 무관해야 한다 — 예전엔
+  // 서버-로컬 정오(new Date(y,m,d,12))라, UTC 서버와 KST 서버가 절입 경계 근처에서
+  // 다른 간지를 냈다(ENGINE-AUDIT). 유저-tz 날짜의 UTC 정오로 고정(절기 비교는
+  // getTime, 일진은 getUTC* 로 통일 — currentUnse).
   const current: CurrentUnse | null = localNow
     ? computeCurrentUnse(
         facts._raw,
-        new Date(localNow.year, localNow.month - 1, localNow.day, 12, 0, 0)
+        new Date(Date.UTC(localNow.year, localNow.month - 1, localNow.day, 12, 0, 0))
       )
     : null
   // 옛 코드는 calculateSajuData 를 sajuFacts 안에서 한 번 + 여기서 daeWoon/
