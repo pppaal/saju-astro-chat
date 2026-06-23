@@ -216,6 +216,9 @@ export function deriveConvergence(
     let sajuHeavy = 0
     const astroCand: ChipCand[] = []
     const sajuCand: ChipCand[] = []
+    // 칩에서 숨기는 느린 배경(외행성)·장기 astro 신호 — bothSystems 인데 표시
+    // astro 칩이 0개일 때 폴백으로 쓴다(아래 참조).
+    const bgAstroCand: ChipCand[] = []
     let netPol = 0
     let sumImp = 0
     // 윈도우 집계·confidence 용: 그날 무거운 신호와 source 별 방향(polarity×imp) 합.
@@ -235,8 +238,12 @@ export function deriveConvergence(
         // 늘 켜진 최외곽 배경(천왕·해왕·명왕)과 월~년 스케일 장기 신호(lifecycle 등)는
         // 칩에서 숨긴다 — 무거움 합산엔 반영하되 표시는 그날 *구별되는* 점성 신호만.
         const n = cleanName(s, lang)
-        if (n && !isSlowBackgroundAstro(s) && !isLongSpan(s))
-          astroCand.push({ name: n, pol: s.polarity, imp })
+        if (n) {
+          if (!isSlowBackgroundAstro(s) && !isLongSpan(s))
+            astroCand.push({ name: n, pol: s.polarity, imp })
+          // 숨기는 신호라도 그날 astro 무게의 유일한 출처일 수 있다 → 폴백용 보관.
+          else bgAstroCand.push({ name: n, pol: s.polarity, imp })
+        }
       } else {
         sajuHeavy += imp
         sajuPolNet += s.polarity * imp
@@ -251,7 +258,14 @@ export function deriveConvergence(
     const bothSystems = astroHeavy > 0 && sajuHeavy > 0
     const score = astroHeavy + sajuHeavy + (bothSystems ? Math.min(astroHeavy, sajuHeavy) * 1.5 : 0)
     // 칩은 순톤과 같은 방향 토큰을 우선해 라벨(meaning)과 어긋나지 않게 정렬.
-    const astro = pickToneChips(astroCand, netPol)
+    // bothSystems(=astro+saju 둘 다 무거움)인데 표시 astro 칩이 비면, '큰 날'이
+    // 한쪽(saju)만 보여 "사주×점성 수렴" 의미와 모순된다. 그날 astro 무게가 전부
+    // 느린 배경/장기 신호여서 칩이 걸러진 경우다 → 배경 신호로 채워 모순을 없앤다.
+    // 점수·정렬·bothSystems 판정엔 영향 없음(astroHeavy/sajuHeavy 그대로).
+    let astro = pickToneChips(astroCand, netPol)
+    if (astro.length === 0 && astroHeavy > 0 && bgAstroCand.length > 0) {
+      astro = pickToneChips(bgAstroCand, netPol)
+    }
     const saju = pickToneChips(sajuCand, netPol)
     scored.push({
       date: c.datetime.slice(0, 10),

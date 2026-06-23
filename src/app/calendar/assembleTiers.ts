@@ -20,6 +20,7 @@ import { deriveLayeredScores } from '@/lib/calendar-engine/derivers/layeredScore
 import { computeDayPillarIndices } from '@/lib/saju/dayPillar'
 import { getMonthPillarForDate } from '@/lib/saju/datePillars'
 import { STEM_NAMES, BRANCH_NAMES } from '@/lib/saju/constants'
+import { getSibsinKo } from '@/lib/saju/cycleRelations'
 
 import {
   toUser,
@@ -510,10 +511,17 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
     window: k.window,
     confidence: k.confidence,
   }))
+  // 월운 천간 십신 — 본명 일간 기준 상대 십신. MonthTier 의 '한 줄 총평' 리드 문장
+  // ("이달은 '○○' 쪽으로 결이 기울어요") + 용어 태그(甲午 · 편재)가 이 값을 쓴다.
+  // 이전엔 어디서도 할당하지 않아 항상 undefined → 리드 문장 누락 + 태그에 십신 빠짐.
+  const woolunStemSibsin = getSibsinKo(user.ilgan.hanja, woolunStem) || undefined
+
   const month: DestinyMonth = {
     label: monthAdapter.label,
     ym: monthAdapter.ym,
     woolun: monthAdapter.woolun ?? { hanja: '—', kr: '—', en: '—' },
+    woolunSibsin: woolunStemSibsin,
+    woolunStemSibsin,
     cautionDays: monthAdapter.cautionDays,
     goodDays: monthAdapter.goodDays,
     bestDay: monthAdapter.bestDay ?? { date: '', score: 0 },
@@ -644,6 +652,13 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
       focusCell.mark !== 'converge'
     ) {
       focusCell.mark = 'focus'
+      // 밴드 바를 중립화한 날은 good/caution/avoid 버킷에서도 빼야 한다 —
+      // 안 그러면 헤더·총평의 카운트(goodN/cautionN/avoidN)가 그리드의 실제
+      // 색 셀보다 1 많아진다(off-by-one). MM-DD 키로 세 버킷에서 제거.
+      const focusDs = focusCell.ds
+      month.cautionDays = month.cautionDays.filter((d) => d !== focusDs)
+      month.goodDays = month.goodDays.filter((d) => d !== focusDs)
+      month.avoidDays = month.avoidDays.filter((d) => d !== focusDs)
     }
   }
 
