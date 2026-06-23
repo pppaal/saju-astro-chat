@@ -41,6 +41,7 @@ const TWELVE_STAGE_TYPES: ReadonlySet<TwelveStageType> = new Set([
 ])
 import { SIBSIN_CAT, favorOf, type SibsinCat } from './cycleTone'
 import type { LifecycleMilestoneOverride } from '@/lib/calendar-engine/lifecycle/astroLifecycle'
+import { buildLifecycleTiming } from '@/lib/calendar-engine/lifecycle/astroLifecycle'
 import { currentManAge } from '@/lib/datetime/currentAge'
 
 export interface LifePhase {
@@ -937,25 +938,23 @@ export function deriveLifetimeFlow(
   // ── 외행성 마디 사실 — kind 별로 (라벨, 정확 일시) 맵. 없거나 null 은 무시. ──
   // bilingual: 날짜 문자열을 KO/EN 양쪽으로 baked (kind 매핑 존재 판정은 KO 테이블
   // 기준 — 두 테이블 키가 동일).
+  // 외행성 마디(토성/목성 회귀·천왕성 대립 등)를 단계 카드의 `outer` 로 채운다.
+  // 예전엔 astroMilestoneOverrides 만 직접 읽어, 그게 미지정(현재 전 경로)이면
+  // milestoneFacts 가 비어 `outer` 가 *항상 []* 였다(감사 CRITICAL — lifeStages 에서
+  // 외행성 마디 전체 누락). lifetimePivots 와 동일하게 buildLifecycleTiming 을 거쳐
+  // (override 있으면 실제 transit, 없으면 평균 테이블) 일관되게 채운다.
+  const overrideByKind = new Map<string, LifecycleMilestoneOverride>()
+  for (const o of astroMilestoneOverrides ?? []) overrideByKind.set(o.kind, o)
   const milestoneFacts: Array<{ kind: string; age: number; dateStrKo: string; dateStrEn: string }> =
-    []
-  for (const o of astroMilestoneOverrides ?? []) {
-    if (o.age == null) continue
-    const short = MILESTONE_SHORT_KO[o.kind]
-    if (!short) continue
-    const dateStrKo = o.exactDateISO
-      ? shortDateKo(o.exactDateISO)
-      : o.startYear != null
-        ? `${o.startYear}년`
-        : ''
-    const dateStrEn = o.exactDateISO
-      ? shortDateEn(o.exactDateISO)
-      : o.startYear != null
-        ? `${o.startYear}`
-        : ''
-    if (!dateStrKo && !dateStrEn) continue
-    milestoneFacts.push({ kind: o.kind, age: o.age, dateStrKo, dateStrEn })
-  }
+    buildLifecycleTiming(birthYear, birthYear + 90, true, astroMilestoneOverrides, now).events
+      .filter((e) => MILESTONE_SHORT_KO[e.event])
+      .map((e) => {
+        const ov = overrideByKind.get(e.event)
+        // override 의 정확 일시가 있으면 "2024년 3월"까지, 없으면 연도만.
+        const dateStrKo = ov?.exactDateISO ? shortDateKo(ov.exactDateISO) : `${e.startYear}년`
+        const dateStrEn = ov?.exactDateISO ? shortDateEn(ov.exactDateISO) : `${e.startYear}`
+        return { kind: e.event, age: e.startYear - birthYear, dateStrKo, dateStrEn }
+      })
 
   // ── 본명 4지지 (지지충/육합 판정용) — 위치 라벨을 KO/EN 양쪽 baked. ──
   const pillars = natal.saju.pillars
@@ -1039,7 +1038,9 @@ export function deriveLifetimeFlow(
     const phaseMilestones = milestoneFacts
       .filter((m) => m.age >= lo && m.age <= hi)
       .slice()
-      .sort((a, b) => (a.dateStrEn < b.dateStrEn ? -1 : a.dateStrEn > b.dateStrEn ? 1 : 0))
+      // 나이(숫자)로 정렬 — dateStr 문자열 정렬은 "2025" 와 "Aug 2019"(override 월표기)가
+      // 섞이면 "A"<"2" 가 거짓이라 시간순이 깨졌다(테이블+override 혼합 시).
+      .sort((a, b) => a.age - b.age)
     const TOP_N = 3
     const top = phaseMilestones.slice(0, TOP_N)
     const moreCount = phaseMilestones.length - top.length

@@ -395,20 +395,21 @@ describe('deriveLifetimeFlow', () => {
       expect(child.milestoneLine).toContain('2002년')
     })
 
-    it('age null 인 override 는 무시', () => {
-      const overrides: LifecycleMilestoneOverride[] = [
-        { kind: 'saturn_return_1', startYear: 2019, age: null },
-      ]
-      const r = deriveLifetimeFlow(makeNatal(), 'ko', overrides)!
-      expect(r.phases.every((p) => p.milestoneLine === undefined)).toBe(true)
+    it('override 없이도 lifecycle 테이블로 외행성 마디가 채워진다 (outer 항상 채움)', () => {
+      // 회귀: 예전엔 override 미지정 시 milestoneLine 이 전부 undefined → outer 빈 []
+      // (lifeStages 외행성 마디 전체 누락). 이제 테이블로 항상 채운다.
+      const r = deriveLifetimeFlow(makeNatal(), 'ko')!
+      expect(r.phases.some((p) => !!p.milestoneLine)).toBe(true)
     })
 
-    it('매핑 테이블에 없는 kind 의 override 는 무시', () => {
+    it('매핑 테이블에 없는 kind 의 override 는 무시(테이블 마디는 그대로 노출)', () => {
       const overrides = [
         { kind: 'unknown_kind', startYear: 2019, age: 29 },
       ] as unknown as LifecycleMilestoneOverride[]
       const r = deriveLifetimeFlow(makeNatal(), 'ko', overrides)!
-      expect(r.phases.every((p) => p.milestoneLine === undefined)).toBe(true)
+      // unknown override 는 무시되지만 lifecycle 테이블 마디는 여전히 채워진다.
+      expect(r.phases.some((p) => !!p.milestoneLine)).toBe(true)
+      expect(r.phases.map((p) => p.milestoneLine ?? '').join(' ')).not.toContain('unknown_kind')
     })
 
     it('4개 초과 마디는 "외 N" 으로 압축 (TOP_N=3)', () => {
@@ -435,7 +436,8 @@ describe('deriveLifetimeFlow', () => {
       ]
       const r = deriveLifetimeFlow(makeNatal(), 'ko', overrides)!
       const young = r.phases.find((p) => p.label === '청년기')!
-      expect(young.milestoneLine).toContain('외 1')
+      // 청년기(20~39)엔 테이블 마디가 4개 초과로 떨어져 "외 N" 으로 압축된다.
+      expect(young.milestoneLine).toMatch(/외 \d+/)
     })
   })
 
