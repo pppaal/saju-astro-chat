@@ -1061,14 +1061,15 @@ export function deriveLifetimeFlow(
       const daeunBranch = primary.branch
       for (const nb of natalBranches) {
         if (BRANCH_CHUNG[nb.name] === daeunBranch) {
+          // 평이 우선 — 일지/×/충/간지 원명을 surface 에서 빼고 의미만 한 문장으로.
           return en
-            ? `Natal ${nb.posEn} ${nb.name} (${BRANCH_ROM[nb.name] ?? ''}) × daeun ${daeunBranch} (${BRANCH_ROM[daeunBranch] ?? ''}) — clash (volatility pressure)`
-            : `본명 ${nb.posKo}지 ${nb.name}(${BRANCH_KO[nb.name] ?? ''}) × 대운 ${daeunBranch}(${BRANCH_KO[daeunBranch] ?? ''}) → ${nb.name}${daeunBranch}충 (변동 압력)`
+            ? 'This stretch tends to shake your footing a little — expect more change and friction.'
+            : '이 시기엔 환경이 타고난 자리를 흔드는 편이라, 변동과 마찰이 잦아요.'
         }
         if (BRANCH_YUKHAP[nb.name] === daeunBranch) {
           return en
-            ? `Natal ${nb.posEn} ${nb.name} (${BRANCH_ROM[nb.name] ?? ''}) × daeun ${daeunBranch} (${BRANCH_ROM[daeunBranch] ?? ''}) — harmony (environment in step)`
-            : `본명 ${nb.posKo}지 ${nb.name}(${BRANCH_KO[nb.name] ?? ''}) × 대운 ${daeunBranch}(${BRANCH_KO[daeunBranch] ?? ''}) → ${nb.name}${daeunBranch}육합 (환경이 손발 맞춤)`
+            ? 'This stretch clicks with your natural grain — things tend to fall into step.'
+            : '이 시기엔 환경이 타고난 흐름과 잘 맞아, 손발이 척척 맞는 편이에요.'
         }
       }
       return undefined
@@ -1158,16 +1159,16 @@ export function deriveLifetimeFlow(
           meaningEn = interp.meaning_en ?? ''
         }
       }
-      if (stage) {
-        const daeunBranch = primary.branch
-        const branchRom = BRANCH_ROM[daeunBranch] ?? ''
-        const branchStrEn = branchRom ? `${daeunBranch} (${branchRom})` : daeunBranch
-        const stageHeadEn = `daeun ${branchStrEn} reads as ${stage} for day-master ${dm}`
-        twelveStageLineEn = meaningEn ? `${stageHeadEn} — ${meaningEn}` : stageHeadEn
-        const branchKo = BRANCH_KO[daeunBranch] ?? ''
-        const branchStrKo = branchKo ? `${daeunBranch}(${branchKo})` : daeunBranch
-        const stageHeadKo = `대운 ${branchStrKo}이 일간 ${dm} 기준 ${stage}`
-        twelveStageLineKo = meaningKo ? `${stageHeadKo} — ${meaningKo}` : stageHeadKo
+      // 평이 우선 — "대운 申(신)이 일간 辛 기준 왕지" 같은 간지/일간/운성 원명을
+      // surface 에서 빼고, 12운성의 *평이 의미*만 한 줄로 쓴다(예: "권력의 정점").
+      // 아동기엔 운성 해석이 전부 성인 기준("성인이 되어 관을 쓰는 시기")이라
+      // 유아에게 붙으면 어색하므로 생략한다(감사 지적). 의미가 비면(이론상 없음)
+      // raw 운성명을 노출하지 않고 그냥 줄을 안 만든다.
+      if (!isChildhood && meaningKo) {
+        twelveStageLineKo = `기운의 흐름으로 보면, ${meaningKo}.`
+        twelveStageLineEn = meaningEn
+          ? `In terms of your life-energy cycle, ${meaningEn.charAt(0).toLowerCase()}${meaningEn.slice(1)}.`
+          : undefined
       }
     } catch {
       // stage 계산 실패 시 silently skip
