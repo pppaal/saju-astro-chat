@@ -308,6 +308,9 @@ export function natalToReportData(
     current: !!d.current,
   }))
 
+  // 출생시각/출생지 미상 → 하우스·ASC·MC 는 자정/서울 폴백이라 신뢰 불가. _chart 에
+  // 값이 있어도 리포트로 내보내지 않는다(0/null 로 비움). 행성 sign 은 유지(시각 의존 미미).
+  const placeUnreliable = !!A.placeUnreliable
   // 점성 행성
   const planets = (A.chart?.planets ?? A.planets ?? []).map((p: any) => ({
     name: p.name,
@@ -316,7 +319,7 @@ export function natalToReportData(
     lon: p.longitude ?? p.lon ?? 0,
     sign: toAbbr(p.sign),
     deg: fmtDeg(p.longitude ?? p.lon),
-    house: p.house ?? 0,
+    house: placeUnreliable ? 0 : (p.house ?? 0),
     retro: typeof p.speed === 'number' ? p.speed < 0 : !!p.retrograde,
     speed: p.speed ?? 0,
   }))
@@ -329,11 +332,13 @@ export function natalToReportData(
     deg: fmtDeg(p.longitude ?? p.lon),
     house: p.house ?? 0,
   }))
-  const houses = (A.chart?.houses ?? A.houses ?? []).map((h: any, i: number) => ({
-    i: h.index ?? h.i ?? i + 1,
-    cusp: h.cusp ?? 0,
-    sign: toAbbr(h.sign),
-  }))
+  const houses = placeUnreliable
+    ? []
+    : (A.chart?.houses ?? A.houses ?? []).map((h: any, i: number) => ({
+        i: h.index ?? h.i ?? i + 1,
+        cusp: h.cusp ?? 0,
+        sign: toAbbr(h.sign),
+      }))
   // 본명 aspects — facts.hellenistic 가 major+minor 다 줌 (~30+ hits). 14 cap
   // 풀어 24 로 (UI 가 슬라이더/접고 펼침으로 처리). orb 작은 순.
   const aspects = (A.natalAspects ?? A.aspects ?? [])
@@ -381,8 +386,9 @@ export function natalToReportData(
       }
     : null
 
-  const asc = A.chart?.ascendant ?? A.ascendant ?? {}
-  const mc = A.chart?.mc ?? A.mc ?? {}
+  // placeUnreliable 면 _chart 의 폴백 ASC/MC 를 무시하고 빈 값 → 아래에서 null 로.
+  const asc = placeUnreliable ? {} : (A.chart?.ascendant ?? A.ascendant ?? {})
+  const mc = placeUnreliable ? {} : (A.chart?.mc ?? A.mc ?? {})
 
   return {
     input: {
@@ -486,10 +492,13 @@ export function buildCrossRows(
   const planets = A.chart?.planets ?? A.planets ?? []
   const find = (n: string) => planets.find((p: any) => p.name === n)
   const dmEl = S.dayMaster?.element
+  // placeUnreliable(출생시각/출생지 미상) 면 ASC/MC/하우스 의존 신호를 전부 차단 —
+  // 자정/서울 폴백으로 만든 "그럴듯하지만 틀린" 사회역할·각도·angularity 누출 방지.
+  const placeUnreliable = !!A.placeUnreliable
   const sunSign = find('Sun')?.sign
   const moonSign = find('Moon')?.sign
-  const ascSign = (A.chart?.ascendant ?? A.ascendant)?.sign
-  const mcSign = (A.chart?.mc ?? A.mc)?.sign
+  const ascSign = placeUnreliable ? undefined : (A.chart?.ascendant ?? A.ascendant)?.sign
+  const mcSign = placeUnreliable ? undefined : (A.chart?.mc ?? A.mc)?.sign
   const details = adv.sibsin?.categoryCount
   const crossGender: 'male' | 'female' =
     (ctx.input as { gender?: string } | undefined)?.gender === 'female' ? 'female' : 'male'
@@ -509,7 +518,9 @@ export function buildCrossRows(
   }
   for (const p of planets) {
     if (!p?.name) continue
-    if (typeof p.house === 'number' && ANGLES.has(p.house)) emphasized.add(p.name)
+    // angularity(1/4/7/10 하우스) emphasis 는 하우스가 신뢰 가능할 때만 — 미상이면 skip.
+    if (!placeUnreliable && typeof p.house === 'number' && ANGLES.has(p.house))
+      emphasized.add(p.name)
     const dg = dignityIdx[p.name]
     if (dg?.domicile || dg?.exaltation) {
       emphasized.add(p.name)
