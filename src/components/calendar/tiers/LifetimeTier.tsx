@@ -266,7 +266,15 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
 
       {/* ── novice 기본: 한자·용어 없는 일상어 결론 ── */}
       <header className={styles.novice}>
-        <div className={styles.novToneWord}>{ko ? `${patternKo} 타입` : `${patternKo} type`}</div>
+        {/* lifePattern 이 없으면(드문 결손 케이스) "내 인생 흐름 타입" 플레이스홀더
+            대신 격국 라벨을 히어로로 — 일주 character 줄이 본문을 받친다. */}
+        <div className={styles.novToneWord}>
+          {lifePattern
+            ? ko
+              ? `${patternKo} 타입`
+              : `${patternKo} type`
+            : gyeokgukLabel || (ko ? patternKo : patternKo)}
+        </div>
         {patternLine && <p className={styles.novLine}>{patternLine}</p>}
         {/* 일주 아키타입 character — novice-grade 평이 프로즈(있으면). */}
         {iljuRich?.character && <p className={styles.novLine}>{iljuRich.character}</p>}
