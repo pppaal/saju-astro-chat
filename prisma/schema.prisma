@@ -701,3 +701,16 @@ model SocialPostLog {
   @@unique([platform, ref])
   @@index([platform, createdAt])
 }
+
+// 🔑 Social Credential — 플랫폼별 장기 토큰(암호화)과 만료시각.
+// Threads 장기 토큰은 ~60일 만료라 cron(threads-token-refresh)이 주기적으로
+// 갱신해 DB 에 다시 저장한다. accessToken 은 tokenCrypto(AES-256-GCM) 암호문.
+// env(THREADS_ACCESS_TOKEN)는 최초 시드용 — DB 값이 있으면 DB 가 우선.
+model SocialCredential {
+  id          String    @id @default(cuid())
+  platform    String    @unique // 'threads' 등
+  accessToken String // 암호화된 토큰 (tokenCrypto)
+  expiresAt   DateTime? // 토큰 만료 예정 시각 (갱신 판단용)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}

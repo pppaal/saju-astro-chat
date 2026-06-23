@@ -38,6 +38,10 @@ const NAV_GROUPS: NavGroup[] = [
       { href: '/admin/audit', label: '감사로그' },
     ],
   },
+  {
+    label: '홍보',
+    items: [{ href: '/admin/social', label: 'Threads 자동게시' }],
+  },
 ]
 
 export default function AdminNav() {

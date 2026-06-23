@@ -1,13 +1,11 @@
 /**
- * /api/cron/social-autopost — 새 블로그 글을 Threads 에 자동 홍보.
+ * /api/cron/threads-token-refresh — Threads 장기 토큰(~60일 만료) 자동 갱신.
  *
  * 보안은 다른 cron 과 동일: IP 레이트리밋(5/min) → timing-safe CRON_SECRET.
- * 핵심 게시 로직은 runBlogThreadsAutopost (어드민 수동 트리거와 공유).
+ * 주기적으로(주 1회) 호출되어 토큰을 다시 ~60일 연장 → DB 에 재저장한다.
+ * 토큰이 없거나(미설정) 메타가 갱신을 거부하면 throw 없이 skipped 반환.
  *
- * Threads 미설정이면 throw 없이 not_configured — 글을 "올린 것으로 기록하지
- * 않아" 토큰 설정 후 다음 실행에서 게시된다.
- *
- * Vercel cron: vercel.json — 매일 1회 (하루 한 글씩 소진).
+ * Vercel cron: vercel.json — 매주 1회 (만료 60일보다 훨씬 짧은 주기).
  */
 
 import { NextResponse } from 'next/server'
@@ -17,7 +15,7 @@ import { extractLocale } from '@/lib/api/middleware'
 import { rateLimit } from '@/lib/rateLimit'
 import { getClientIp } from '@/lib/request-ip'
 import { timingSafeCompare } from '@/lib/security/timingSafe'
-import { runBlogThreadsAutopost } from '@/lib/social/autopost'
+import { refreshThreadsTokenAndStore } from '@/lib/social/threadsToken'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -26,7 +24,7 @@ function validateCronSecret(request: Request): boolean {
   const authHeader = request.headers.get('authorization')
   const cronSecret = process.env.CRON_SECRET
   if (!cronSecret) {
-    logger.error('[Cron social-autopost] CRON_SECRET not set - rejecting request')
+    logger.error('[Cron threads-token-refresh] CRON_SECRET not set - rejecting request')
     return false
   }
   return timingSafeCompare(authHeader ?? '', `Bearer ${cronSecret}`)
@@ -35,12 +33,12 @@ function validateCronSecret(request: Request): boolean {
 export async function GET(request: Request) {
   try {
     const ip = getClientIp(request.headers)
-    const rl = await rateLimit(`cron:social-autopost:${ip}`, { limit: 5, windowSeconds: 60 })
+    const rl = await rateLimit(`cron:threads-token-refresh:${ip}`, { limit: 5, windowSeconds: 60 })
     if (!rl.allowed) {
       return createErrorResponse({
         code: ErrorCodes.RATE_LIMITED,
         locale: extractLocale(request),
-        route: 'cron/social-autopost',
+        route: 'cron/threads-token-refresh',
       })
     }
 
@@ -48,17 +46,17 @@ export async function GET(request: Request) {
       return createErrorResponse({
         code: ErrorCodes.UNAUTHORIZED,
         locale: extractLocale(request),
-        route: 'cron/social-autopost',
+        route: 'cron/threads-token-refresh',
       })
     }
 
-    const result = await runBlogThreadsAutopost()
-    return NextResponse.json({ success: result.posted, ...result })
+    const outcome = await refreshThreadsTokenAndStore()
+    return NextResponse.json({ success: outcome.status === 'refreshed', ...outcome })
   } catch (err: unknown) {
-    logger.error('[Cron social-autopost error]', err)
+    logger.error('[Cron threads-token-refresh error]', err)
     return createErrorResponse({
       code: ErrorCodes.INTERNAL_ERROR,
-      route: 'cron/social-autopost',
+      route: 'cron/threads-token-refresh',
       originalError: err instanceof Error ? err : new Error(String(err)),
     })
   }
