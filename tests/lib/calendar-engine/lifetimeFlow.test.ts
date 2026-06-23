@@ -146,18 +146,18 @@ describe('deriveLifetimeFlow', () => {
       expect(out.phases[3].ageRange).toBe('60~84세 · 2050~2074')
     })
 
-    it('초년기 본문은 "년주(부모·뿌리) 기준" prefix + 년간 십신', () => {
+    it('초년기 본문은 평이 부모·뿌리 도입부로 시작 (raw 십신 노출 없음)', () => {
       const child = out.phases[0]
-      // yearStem 庚 vs dayMaster 辛 → 겁재(비겁).
-      expect(child.text).toContain('초년은 년주(부모·뿌리) 기준')
-      expect(child.text).toContain('겁재(비겁)')
+      // 평이 우선: 십신 원명("겁재(비겁) 흐름")을 surface 에서 빼고 부모·뿌리 도입부 + 평이 본문.
+      expect(child.text).toContain('초년은 부모·뿌리의 영향을 받는 시기예요')
+      expect(child.text).not.toContain('겁재(비겁)')
     })
 
-    it('비초년 단계는 대운 천간 기준 십신을 쓴다 (prefix 없음)', () => {
+    it('비초년 단계는 평이 본문으로 시작 (raw 십신/년주 prefix 없음)', () => {
       const young = out.phases[1]
       expect(young.text).not.toContain('년주(부모·뿌리)')
-      // 청년 20~39 대표 대운: startAge 25(乙亥) 가 mid=29 덮음 → 乙 vs 辛 = 편재(재성).
-      expect(young.text).toContain('편재(재성)')
+      // 십신 원명을 surface 에 노출하지 않는다(평이 본문에 의미만 녹음).
+      expect(young.text).not.toContain('편재(재성)')
     })
 
     it('daeunLine 은 단계에 걸친 대운들을 화살표로 연결 (간지+한글음+연도)', () => {
@@ -450,10 +450,9 @@ describe('deriveLifetimeFlow', () => {
       for (const p of koOut.phases) {
         expect(typeof p.textKo).toBe('string')
         expect(typeof p.textEn).toBe('string')
-        // textEn 은 영문 카테고리 라벨 + 영문 BAND_CAT 본문을 쓴다. (십신/12운성
-        // 명칭 자체는 엔진 설계상 양 언어 공통으로 한국어 도메인 용어를 유지 —
-        // i18n 누수 범위 밖.) 영문 카테고리가 들어있는지로 검증.
-        expect(p.textEn).toMatch(/\((Officer|Wealth|Output|Peer|Resource)\)/)
+        // textEn 은 평이 영문 본문(BAND_CAT_EN + 톤). raw 십신/카테고리 라벨을
+        // surface 에 노출하지 않으므로, 한글이 새지 않는지로 검증(영문 순수).
+        expect(p.textEn).not.toMatch(/[가-힣]/)
       }
     })
 
@@ -543,10 +542,10 @@ describe('deriveLifetimeFlow', () => {
       expect(child.daeunLine).toContain('(jeong')
     })
 
-    it('영문 본문 — 십신 영문 카테고리', () => {
-      // 청년 대운 乙 vs 辛 → 편재(재성)=Wealth.
+    it('영문 본문 — 평이 영문(한글 없음, raw 십신 라벨 노출 없음)', () => {
       const young = out.phases[1]
-      expect(young.text).toContain('(Wealth)')
+      expect(young.text).not.toMatch(/[가-힣]/)
+      expect(young.text).not.toContain('(Wealth)')
     })
 
     it('영문 relationLine — clash', () => {

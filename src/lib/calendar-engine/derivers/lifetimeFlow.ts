@@ -40,7 +40,6 @@ const TWELVE_STAGE_TYPES: ReadonlySet<TwelveStageType> = new Set([
   '양',
 ])
 import { SIBSIN_CAT, favorOf, type SibsinCat } from './cycleTone'
-import { SIBSIN_EN } from '@/lib/saju/sibsinLabels'
 import type { LifecycleMilestoneOverride } from '@/lib/calendar-engine/lifecycle/astroLifecycle'
 import { currentManAge } from '@/lib/datetime/currentAge'
 
@@ -1181,14 +1180,13 @@ export function deriveLifetimeFlow(
     const toneEn = TONE_VARIANTS_EN[toneFav][toneIdx]
     const bodyKo = BAND_CAT_KO[label]?.[cat] ?? body
     const bodyEn = BAND_CAT_EN[label]?.[cat] ?? body
-    const childPrefixKo = isChildhood ? '초년은 년주(부모·뿌리) 기준 — ' : ''
-    const childPrefixEn = isChildhood ? 'From the year pillar (parents·roots) — ' : ''
-    const textKo = `${childPrefixKo}${sibsinName}(${cat}) 흐름 — ${bodyKo}. ${toneKo}`
-    // EN head uses the English ten-god label (not the Korean sibsinName) so the
-    // EN body — and the tone head that deriveToneFromText slices off it — stay
-    // English (was leaking '편재' into EN stage cards).
-    const sibsinNameEn = SIBSIN_EN[sibsinName] ?? CAT_EN[cat]
-    const textEn = `${childPrefixEn}${sibsinNameEn} (${CAT_EN[cat]}) flow — ${bodyEn}. ${toneEn}`
+    const childPrefixKo = isChildhood ? '초년은 부모·뿌리의 영향을 받는 시기예요 — ' : ''
+    const childPrefixEn = isChildhood ? "Shaped by family and roots early on — " : ''
+    // 평이 우선: 십신 원명("편재(재성) 흐름 — ")을 surface 에서 빼고 그 의미를 풀어쓴
+    // bodyKo/En 로 시작한다. 십신 라벨은 어차피 bodyKo 안에 평이하게 녹아 있어
+    // 중복 노이즈였고, novice 표면에 raw 십신을 노출하던 주범이었다(감사 지적).
+    const textKo = `${childPrefixKo}${bodyKo}. ${toneKo}`
+    const textEn = `${childPrefixEn}${bodyEn}. ${toneEn}`
     const text = isEn ? textEn : textKo
 
     const ageRange = isEn
