@@ -1,738 +1,570 @@
 /* ============================================================
-   destinypal · DayTier — "정갈" Editorial Letterpress 만세력
+   destinypal · DayTier — LIGHT "오늘의 일진" 만세력
    ────────────────────────────────────────────────────────────
-   토큰은 styles/variables.module.css(.dpRoot)의 --dp-* 를 상속해 소비.
-   원칙: 여백·헤어라인·먹선. 페이지프레임/글로우/반원게이지 없음.
-   주사(ember)는 일진 인장 + 사주 신호에만 — 섹션마다 찍던 점은 제거.
+   self-contained LIGHT design. 앱 셸은 다크이므로 이 티어는 .dayRoot 가
+   라이트 팔레트(--bg/--surface/--gold…)를 *직접* 정의해 그 안에서만 소비한다.
+
+   pre-commit 의 raw-hex 검사를 통과하려면 모든 라이트 hex 는 아래 단 하나의
+   `.dayRoot { --… }` 토큰 블록 안에만 둔다 — 나머지는 전부 var() 참조.
+   폰트는 앱의 기존 --dp-serif-ko/--dp-sans/--dp-mono 를 그대로 쓴다(구글 폰트 X).
    ============================================================ */
 
-.tierInner {
+.dayRoot {
+  /* ── 라이트 팔레트 토큰 (유일한 raw-hex 블록) ── */
+  --bg: #f6f4ee;
+  --surface: #ffffff;
+  --surface-2: #f1efe7;
+  --surface-3: #e9e6dc;
+  --line: #e5e2d8;
+  --line-2: #d7d4c8;
+  --t0: #211f1b;
+  --t1: #5c5a53;
+  --t2: #908e83;
+  --gold: #a86a12;
+  --gold-deep: #8a5a0e;
+  --gold-bg: #fbe9c4;
+  --gold-line: #e9cb8c;
+  --indigo: #4a4fb0;
+  --blue: #2f7fcf;
+  --green: #4c7a14;
+  --slate: #75746c;
+  --crimson: #a53636;
+  --crimson-bg: #fbe3e1;
+  --crimson-line: #eec6c2;
+  --sun: #b06a6a;
+  /* day 추가 — 좋음 밴드 연한 배경(흐름선 fill·다가오는 며칠 셀). */
+  --good-bg: #e4eed6;
+
+  /* 폰트 — 앱 토큰 재사용. "disp" 누멀럴은 Cinzel(자체호스팅) + tabular-nums. */
+  --m-serif: var(--dp-serif-ko);
+  --m-sans: var(--dp-sans);
+  --m-disp: var(--font-cinzel), var(--dp-serif);
+
   position: relative;
-  width: min(680px, 100%);
+  max-width: 740px;
   margin: 0 auto;
-  padding: clamp(64px, 8vh, 104px) clamp(20px, 5vw, 40px) 132px;
-  color: var(--dp-ink);
-  font-family: var(--dp-serif-ko);
+  padding: clamp(76px, 8vh, 104px) 22px 88px;
+  font-family: var(--m-sans);
+  color: var(--t0);
+  background: var(--bg);
+  background-image: radial-gradient(120% 70% at 50% -8%, var(--surface) 0%, var(--bg) 55%);
+  line-height: 1.65;
   word-break: keep-all;
-  line-break: strict;
 }
 
-/* ---------- rise (zoom-out) ---------- */
+/* ── zoom-out (rise) ── */
 .rise {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
   background: none;
   border: 0;
-  color: var(--dp-ink-mute);
+  color: var(--t2);
   cursor: pointer;
-  font-family: var(--dp-mono);
+  font-family: var(--m-mono, var(--dp-mono));
   font-size: 11px;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  padding: 6px 2px;
-  margin-bottom: 8px;
-  transition: color 0.2s;
+  padding: 4px 2px;
+  margin-bottom: 16px;
 }
 .rise:hover {
-  color: var(--dp-ember);
-}
-.riseSmall {
-  font-size: 12px;
+  color: var(--gold);
 }
 .riseCenter {
   display: flex;
   justify-content: center;
   margin-top: 40px;
 }
+.riseSmall {
+  margin-bottom: 0;
+}
 
-/* ---------- eyebrow ---------- */
+/* ── eyebrow ── */
 .eyebrow {
-  font-family: var(--dp-mono);
-  font-size: 11px;
-  letter-spacing: 0.18em;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--dp-ink-mute);
-  margin-bottom: 6px;
+  color: var(--t2);
+  margin-bottom: 30px;
+}
+.eyebrowKo {
+  font-family: var(--m-disp);
+  letter-spacing: 0.08em;
+  font-variant-numeric: tabular-nums;
 }
 
-/* ---------- day hero (마음의 날씨) ---------- */
-.dayHead {
-  margin-top: 4px;
+/* ── ganzhi header ── */
+.header {
+  text-align: center;
+  margin-bottom: 40px;
 }
-.heroRow {
-  display: flex;
-  align-items: flex-start;
-  gap: 14px;
+.ganzhi {
+  font-family: var(--m-serif);
+  font-weight: 500;
+  font-size: clamp(46px, 11vw, 58px);
+  letter-spacing: 0.12em;
+  color: var(--gold-deep);
+  line-height: 1;
 }
-.heroMeta {
-  min-width: 0;
-  padding-top: 4px;
+.ganzhiRead {
+  font-size: 13px;
+  letter-spacing: 0.5em;
+  color: var(--t2);
+  margin-top: 12px;
+  text-indent: 0.5em;
 }
-.heroLead {
-  font-size: 17px;
-  color: var(--dp-ink);
-  letter-spacing: 0.03em;
-  margin-bottom: 8px;
-  text-wrap: pretty;
+.title {
+  font-family: var(--m-disp);
+  font-weight: 500;
+  font-size: 14px;
+  letter-spacing: 0.42em;
+  color: var(--t1);
+  margin-top: 26px;
+  font-variant-numeric: tabular-nums;
 }
-.heroTone {
+.titleKo {
+  font-family: var(--m-serif);
+  display: block;
+  font-size: clamp(24px, 6vw, 29px);
+  letter-spacing: 0.04em;
+  color: var(--t0);
+  margin-top: 6px;
+  font-weight: 300;
+}
+.sibsinTag {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
-  font-size: 13.5px;
-  color: var(--dp-tone-mixed);
-}
-.heroTone::before {
-  content: '';
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: currentColor;
-}
-.heroTone[data-tone='positive'] {
-  color: var(--dp-pos);
-}
-.heroTone[data-tone='caution'] {
-  color: var(--dp-ember);
-}
-/* 마음의 날씨 글리프 — 히어로 앞 톤 한눈에. */
-.weatherGlyph {
-  font-size: 40px;
-  line-height: 1;
-  flex: 0 0 auto;
-  margin-right: 2px;
-}
-
-/* 세기 미터 — 숫자 점수 대신 막대 + 고정 단어(시안). */
-.strength {
-  margin-left: auto;
-  text-align: right;
-  padding-top: 8px;
-  flex: 0 0 auto;
-}
-.strengthBars {
-  display: flex;
-  gap: 3px;
-  justify-content: flex-end;
-}
-.strengthBar {
-  width: 6px;
-  height: 16px;
-  border-radius: 3px;
-  background: var(--dp-line);
-}
-.strengthOn {
-  background: var(--dp-pos);
-}
-.strengthWord {
-  font-family: var(--dp-serif-ko);
-  font-size: 11px;
-  color: var(--dp-ink-mute);
-  margin-top: 5px;
-}
-
-.oneline {
-  font-family: var(--dp-serif-ko);
-  font-size: 14.5px;
-  line-height: 1.7;
-  color: var(--dp-ink-dim);
-  margin: 16px 0 0;
-  padding-top: 16px;
-  border-top: 1px solid var(--dp-line-soft);
-  text-wrap: pretty;
-}
-
-/* ---------- 오늘 깊이 읽기 (합성 해석 문단) ---------- */
-.deepRead {
-  margin-top: 18px;
-  padding-top: 16px;
-  border-top: 1px solid var(--dp-line-soft);
-}
-.deepReadLabel {
-  font-family: var(--dp-mono);
-  font-size: 11px;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--dp-ink-mute);
-  margin-bottom: 8px;
-}
-.deepReadBody {
-  font-family: var(--dp-serif-ko);
-  font-size: 14.5px;
-  line-height: 1.78;
-  color: var(--dp-ink-dim);
-  text-wrap: pretty;
-}
-
-/* ---------- 자세한 신호 보기 (단 하나의 fold) ---------- */
-.fold {
-  margin-top: var(--dp-section);
-  border-top: 1px solid var(--dp-line-soft);
-  padding-top: 14px;
-}
-.foldSummary {
-  cursor: pointer;
-  font-family: var(--dp-mono);
-  font-size: 11px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--dp-ink-mute);
-  list-style: none;
-  user-select: none;
-  padding: 2px 0;
-}
-.foldSummary::-webkit-details-marker {
-  display: none;
-}
-.foldSummary::before {
-  content: '▸ ';
-  color: var(--dp-ink-faint);
-}
-.fold[open] .foldSummary::before {
-  content: '▾ ';
-}
-.foldBody {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  margin-top: 16px;
-}
-.foldBlock {
-  display: flex;
-  flex-direction: column;
   gap: 8px;
+  margin-top: 18px;
+  border: 1px solid var(--gold-line);
+  background: var(--gold-bg);
+  border-radius: 20px;
+  padding: 4px 14px;
 }
-.foldLabel {
-  font-family: var(--dp-mono);
-  font-size: 10px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--dp-ink-faint);
-}
-/* 오늘의 기둥 — 한자 원자료 (fold 전용). */
-.chartRow {
-  display: flex;
-  align-items: baseline;
-  gap: 11px;
-  padding: 6px 0;
-  border-bottom: 1px solid var(--dp-line-soft);
-}
-.chartRow:last-child {
-  border-bottom: 0;
-}
-.chartHan {
-  flex: 0 0 auto;
-  font-family: var(--dp-serif);
+.sibsinRaw {
+  font-family: var(--m-serif);
+  font-size: 15px;
   font-weight: 500;
-  font-size: 24px;
-  line-height: 1;
-  color: var(--dp-ember);
+  color: var(--gold-deep);
 }
-.chartDesc {
-  font-family: var(--dp-serif-ko);
-  font-size: 12.5px;
-  line-height: 1.5;
-  color: var(--dp-ink-mute);
+.sibsinPlain {
+  font-size: 12px;
+  color: var(--t1);
 }
-/* 시간대 하늘 — 상승궁/지배성 원자료 (fold 전용). */
-.skyList {
+.master {
+  margin-top: 12px;
+  font-size: 12px;
+  color: var(--t2);
+  letter-spacing: 0.04em;
+}
+.counts {
   display: flex;
-  flex-direction: column;
+  justify-content: center;
+  margin-top: 20px;
+  font-size: 13px;
+  color: var(--t1);
 }
-.skyRow {
+.counts span {
+  padding: 0 16px;
+  position: relative;
+}
+.counts span + span::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 3px;
+  bottom: 3px;
+  width: 1px;
+  background: var(--line-2);
+}
+.counts b {
+  font-weight: 500;
+  font-family: var(--m-disp);
+  font-size: 15px;
+  margin-left: 5px;
+  font-variant-numeric: tabular-nums;
+}
+.cScore b {
+  color: var(--gold-deep);
+}
+.cToneWord,
+.cStrengthWord {
+  font-family: var(--m-serif);
+}
+
+/* ── sections (월의 .secH 1패턴 그대로) ── */
+.sec {
+  margin-top: 54px;
+}
+.secH {
   display: flex;
-  gap: 10px;
-  align-items: baseline;
-  padding: 6px 0;
-  border-bottom: 1px solid var(--dp-line-soft);
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 20px;
 }
-.skyRow:last-child {
-  border-bottom: 0;
+.secLbl {
+  font-family: var(--m-serif);
+  font-size: 17px;
+  font-weight: 500;
+  white-space: nowrap;
 }
-.skyWhen {
-  flex: 0 0 auto;
-  font-family: var(--dp-mono);
+.secLn {
+  height: 1px;
+  flex: 1;
+  background: var(--line);
+}
+.secLat {
+  font-family: var(--m-disp);
+  font-size: 10px;
+  letter-spacing: 0.3em;
+  color: var(--t2);
+  text-transform: uppercase;
+}
+
+/* ── verdict ── */
+.verdict {
+  font-family: var(--m-serif);
+  font-weight: 300;
+  font-size: clamp(19px, 4.6vw, 23px);
+  line-height: 1.7;
+}
+.verdictSub {
+  font-size: 13px;
+  color: var(--t2);
+  margin-top: 14px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.termTag {
+  font-family: var(--m-serif);
   font-size: 11px;
-  color: var(--dp-ink-mute);
+  color: var(--t2);
+  letter-spacing: 0.1em;
+  border: 1px solid var(--line-2);
+  border-radius: 14px;
+  padding: 2px 9px;
 }
-.skyBody {
-  font-family: var(--dp-serif-ko);
-  font-size: 12.5px;
-  color: var(--dp-ink-dim);
+
+/* ── 지금 일어나는 일 ── */
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
 }
-.natalBody {
+.listItem {
+  position: relative;
+  padding: 10px 0 10px 20px;
+  font-size: 15px;
+  color: var(--t0);
+  border-bottom: 1px solid var(--line);
+}
+.listItem:last-child {
+  border-bottom: none;
+}
+.listItem::before {
+  content: '';
+  position: absolute;
+  left: 2px;
+  top: 18px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--gold);
+}
+.listCaution {
+  margin-top: 6px;
+}
+.listCaution .listItem::before {
+  background: var(--crimson);
+}
+.muted {
+  color: var(--t1);
+  font-size: 15px;
+}
+
+/* ── 이렇게 해보세요 ── */
+.actions {
   display: flex;
   flex-direction: column;
   gap: 16px;
 }
-.natalBlock {
+.actionGroup {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+.chip {
+  flex: none;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  padding: 4px 11px;
+  border-radius: 20px;
+  margin-top: 2px;
+}
+.chipDo {
+  color: var(--green);
+  background: var(--good-bg);
+  border: 1px solid var(--gold-line);
+}
+.chipEase {
+  color: var(--slate);
+  background: var(--surface-3);
+  border: 1px solid var(--line-2);
+}
+.chipList {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 14px;
+  color: var(--t1);
+  line-height: 1.6;
+}
+.chipList li {
+  margin: 2px 0;
+}
+.tip {
+  font-size: 13px;
+  color: var(--t1);
+  background: var(--surface-2);
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin: 0;
+}
+
+/* ── 분야별 오늘 ── */
+.domainNote {
+  font-size: 13px;
+  color: var(--t2);
+  margin-bottom: 16px;
+}
+.domainGrid {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
-.natalRow {
+.domain {
+  display: flex;
+  gap: 13px;
+  align-items: flex-start;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 13px 15px;
+  background: var(--surface);
+  transition:
+    box-shadow 0.3s ease,
+    border-color 0.3s ease;
+}
+.domain:hover {
+  box-shadow: 0 10px 22px -16px rgba(40, 33, 15, 0.4);
+}
+.domainActive {
+  border-color: var(--gold-line);
+  background: var(--gold-bg);
+}
+.domainIcon {
+  font-size: 18px;
+  line-height: 1.4;
+}
+.domainText {
   display: flex;
   flex-direction: column;
   gap: 3px;
-  padding: 8px 0;
-  border-bottom: 1px solid var(--dp-line-soft);
 }
-.natalRow:last-child {
-  border-bottom: 0;
-}
-.natalPos,
-.natalNeg {
-  font-family: var(--dp-serif-ko);
-  font-size: 13.5px;
-  color: var(--dp-ink);
-}
-.natalPos {
-  border-left: 2px solid var(--dp-pos);
-  padding-left: 9px;
-}
-.natalNeg {
-  border-left: 2px solid var(--dp-ember);
-  padding-left: 9px;
-}
-.natalHan {
-  font-family: var(--dp-serif);
-  color: var(--dp-ink-mute);
-  font-size: 12px;
-}
-.natalDesc {
-  font-family: var(--dp-serif-ko);
-  font-size: 12.5px;
-  line-height: 1.5;
-  color: var(--dp-ink-mute);
-  padding-left: 11px;
-}
-.natalChips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 7px;
-}
-.natalChip {
-  font-family: var(--dp-serif-ko);
-  font-size: 12px;
-  color: var(--dp-ink-dim);
-  border: 1px solid var(--dp-line);
-  border-radius: 4px;
-  padding: 4px 10px;
-  background: var(--dp-panel);
-}
-
-/* ---------- 지금 일어나는 일 ---------- */
-.happening {
-  margin-top: var(--dp-section);
-}
-.happeningList {
-  list-style: none;
-  margin: 2px 0 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-}
-.happeningItem {
-  padding: 10px 0;
-  border-bottom: 1px solid var(--dp-line-soft);
-  font-family: var(--dp-serif-ko);
-  font-size: 14.5px;
-  line-height: 1.55;
-  color: var(--dp-ink-dim);
-  text-wrap: pretty;
-}
-.happeningItem:last-child {
-  border-bottom: 0;
-}
-
-/* ---------- 이렇게 해보세요 (DO / 살살 칩) ---------- */
-.doSection {
-  margin-top: var(--dp-section);
-}
-.doRow {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  margin-top: 2px;
-}
-.doChip,
-.dontChip {
-  flex: 1 1 0;
-  min-width: 140px;
-  font-family: var(--dp-sans);
-  font-size: 13px;
-  line-height: 1.4;
-  border: 1px solid var(--dp-line);
-  border-radius: var(--dp-r);
-  padding: 11px 13px;
-  background: var(--dp-panel);
-}
-.doChip {
-  border-top: 2px solid var(--dp-pos);
-}
-.dontChip {
-  border-top: 2px solid var(--dp-tone-mixed);
-}
-
-/* ---------- 이렇게 해보세요 — do/avoid/tip 행동 처방 ---------- */
-.actions {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-.actionGroup {
-  display: flex;
-  gap: 10px;
-  align-items: flex-start;
-  border: 1px solid var(--dp-line);
-  border-radius: var(--dp-r-lg);
-  padding: 12px 13px;
-  background: var(--dp-panel);
-}
-.actionTag {
-  flex-shrink: 0;
-  font-family: var(--dp-sans);
-  font-size: 11.5px;
-  font-weight: 700;
-  letter-spacing: 0.3px;
-  padding: 3px 9px;
-  border-radius: 999px;
-  margin-top: 1px;
-}
-.actionDo {
-  color: #fff;
-  background: var(--dp-pos);
-}
-.actionAvoid {
-  color: #fff;
-  background: var(--dp-tone-mixed);
-}
-.actionList {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  flex: 1;
-}
-.actionItem {
-  position: relative;
-  font-family: var(--dp-serif);
-  font-size: 14px;
-  line-height: 1.5;
-  color: var(--dp-ink);
-  padding-left: 13px;
-  word-break: keep-all;
-}
-.actionItem::before {
-  content: '·';
-  position: absolute;
-  left: 2px;
-  color: var(--dp-ink-faint);
-}
-.actionTip {
-  display: flex;
-  gap: 7px;
-  align-items: baseline;
-  margin: 0;
-  padding: 2px 2px 0;
-  font-family: var(--dp-serif);
-  font-size: 13.5px;
-  line-height: 1.55;
-  color: var(--dp-ink-mute);
-  word-break: keep-all;
-}
-.actionTipMark {
-  flex-shrink: 0;
-}
-
-/* ---------- gongmang / voc banners ---------- */
-.gongmangBanner {
-  margin-top: 16px;
-  padding: 10px 14px;
-  border: 1px solid rgba(108, 74, 115, 0.3);
-  border-left: 3px solid var(--dp-violet);
-  border-radius: var(--dp-r);
-  background: rgba(108, 74, 115, 0.05);
+.domainLabel {
+  font-family: var(--m-serif);
+  font-size: 15px;
+  font-weight: 500;
   display: flex;
   align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-  font-family: var(--dp-serif-ko);
-  font-size: 12.5px;
-  color: var(--dp-ink-dim);
+  gap: 8px;
 }
-.gongmangBanner .gmHead {
-  font-family: var(--dp-mono);
+.domainOn {
   font-size: 10px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--dp-violet);
-}
-.gongmangBanner .gmBranch {
-  font-family: var(--dp-serif-ko);
-  font-weight: 600;
-  font-size: 14px;
-  color: var(--dp-violet);
+  letter-spacing: 0.06em;
+  color: var(--gold-deep);
+  border: 1px solid var(--gold-line);
+  border-radius: 12px;
   padding: 1px 8px;
-  border: 1px solid rgba(108, 74, 115, 0.36);
-  border-radius: 3px;
 }
-.gongmangBanner .gmNote {
-  color: var(--dp-ink-mute);
+.domainBody {
+  font-size: 13px;
+  color: var(--t1);
+  line-height: 1.6;
 }
 
-.vocBanner {
-  margin-top: 12px;
-  padding: 10px 14px;
-  border: 1px solid var(--dp-line);
-  border-left: 3px solid var(--dp-ink-faint);
-  border-radius: var(--dp-r);
-  background: var(--dp-panel);
+/* ── 사주 × 별자리 교차 (월 .cross 그대로) ── */
+.crossLegend {
+  display: flex;
+  gap: 18px;
+  font-size: 11px;
+  color: var(--t2);
+  margin-bottom: 16px;
+}
+.clUp {
+  color: var(--green);
+}
+.clDn {
+  color: var(--crimson);
+}
+.cross {
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 17px 20px;
+  margin-bottom: 12px;
+  background: var(--surface);
+  transition:
+    box-shadow 0.3s ease,
+    border-color 0.3s ease;
+}
+.cross:hover {
+  box-shadow: 0 10px 26px -16px rgba(40, 33, 15, 0.45);
+}
+.crossHero {
+  border: 2px solid var(--blue);
+}
+.crossTop {
   display: flex;
   align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-  font-family: var(--dp-sans);
-  font-size: 12px;
-  color: var(--dp-ink-mute);
+  gap: 13px;
+  margin-bottom: 9px;
 }
-.vocBanner .vocLabel {
-  font-family: var(--dp-mono);
-  font-size: 10px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--dp-ink-dim);
+.pole {
+  font-size: 14px;
+  width: 18px;
+  text-align: center;
+  color: var(--t2);
 }
-.vocBanner .vocTime {
-  font-family: var(--dp-mono);
-  color: var(--dp-ink);
+.poleUp {
+  color: var(--green);
 }
-
-.secHead {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
-  flex-wrap: wrap;
-  margin-bottom: 12px;
+.poleDn {
+  color: var(--crimson);
 }
-.secTitle {
-  font-family: var(--dp-mono);
-  font-weight: 400;
-  font-size: 11px;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--dp-ink-mute);
-  margin: 0;
-}
-.secNote {
-  font-family: var(--dp-sans);
-  font-size: 11.5px;
-  color: var(--dp-ink-mute);
-  letter-spacing: 0.01em;
-}
-
-/* ---------- 무난한 날 안내 (지금 일어나는 일 비었을 때) ---------- */
-.whyMuted {
-  font-family: var(--dp-serif-ko);
-  font-size: 13.5px;
-  color: var(--dp-ink-mute);
-  line-height: 1.5;
-  margin: 2px 0 0;
-}
-
-/* ---------- evidence rows (fold 안 신호 근거) ---------- */
-.evList {
+.term {
   display: flex;
   flex-direction: column;
-  margin-top: 8px;
-}
-.evRow {
-  display: flex;
   align-items: center;
-  gap: 9px;
-  padding: 7px 0;
-  border-bottom: 1px solid var(--dp-line-soft);
-  font-family: var(--dp-sans);
-  font-size: 12.5px;
+  gap: 2px;
 }
-.evSrc {
-  flex: 0 0 auto;
-  font-family: var(--dp-mono);
-  font-size: 9.5px;
-  letter-spacing: 0.06em;
-  color: var(--dp-ink-mute);
-  border: 1px solid var(--dp-line);
-  border-radius: 3px;
-  padding: 1px 6px;
+.termSys {
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
 }
-.evLabel {
-  flex: 1;
-  color: var(--dp-ink-dim);
-  word-break: keep-all;
+.termNm {
+  font-family: var(--m-serif);
+  font-size: 17px;
+  font-weight: 500;
 }
-.evAspect {
-  color: var(--dp-ink-mute);
+.termSaju .termSys {
+  color: var(--gold);
 }
-.evStrength {
-  flex: 0 0 auto;
-  font-family: var(--dp-mono);
-  font-size: 10px;
-  color: var(--dp-ink-mute);
+.termSaju .termNm {
+  color: var(--gold-deep);
 }
-
-/* ---------- polarity chip ---------- */
-.pol {
-  font-family: var(--dp-mono);
-  font-size: 10px;
-  letter-spacing: 0.04em;
-  padding: 2px 7px;
-  border-radius: 2px;
-  border: 1px solid;
+.termAstro .termSys {
+  color: var(--indigo);
 }
-.polPos {
-  color: var(--dp-pos);
-  border-color: rgba(47, 125, 91, 0.45);
+.termAstro .termNm {
+  color: var(--indigo);
 }
-.polNeg {
-  color: var(--dp-neg);
-  border-color: rgba(176, 58, 34, 0.4);
-}
-.polNeu {
-  color: var(--dp-neu);
-  border-color: var(--dp-line);
-}
-
-/* ---------- 사주 × 별자리 교차 카드 ---------- */
-.crossCard {
-  margin-top: var(--dp-section);
-}
-.crossRow {
-  padding: 13px 0;
-  border-bottom: 1px solid var(--dp-line-soft);
-}
-.crossRow:last-of-type {
-  border-bottom: 0;
-}
-.crossPair {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  margin-bottom: 6px;
-  flex-wrap: wrap;
-}
-.crossSaju {
-  font-family: var(--dp-serif-ko);
+.crossX {
+  color: var(--t2);
   font-size: 13px;
-  color: var(--dp-ember-2);
-  background: rgba(176, 58, 34, 0.08);
-  border-radius: 4px;
-  padding: 3px 9px;
 }
-.crossAstro {
-  font-family: var(--dp-serif-ko);
-  font-size: 13px;
-  color: var(--dp-accent);
-  background: rgba(52, 64, 111, 0.08);
-  border-radius: 4px;
-  padding: 3px 9px;
-}
-.crossArrowPos {
-  color: var(--dp-pos);
-  font-weight: 700;
-}
-.crossArrowNeg {
-  color: var(--dp-ember);
-  font-weight: 700;
-}
-.crossMeaning {
-  font-family: var(--dp-serif-ko);
-  font-size: 13.5px;
-  line-height: 1.5;
-  color: var(--dp-ink-dim);
-}
-.crossFoot {
-  font-family: var(--dp-mono);
-  font-size: 10.5px;
-  letter-spacing: 0.03em;
-  color: var(--dp-ink-faint);
-  margin-top: 12px;
-}
-
-/* ---------- 타이밍 (이달 흐름 + 다가오는 며칠) ---------- */
-.flowWrap {
-  margin-top: var(--dp-section);
-}
-.flowSubHead {
-  font-family: var(--dp-mono);
+.crossFlag {
+  margin-left: auto;
   font-size: 11px;
-  letter-spacing: 0.06em;
-  color: var(--dp-ink-mute);
-  margin-bottom: 8px;
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
+  color: var(--blue);
+  border: 1px solid var(--blue);
+  padding: 3px 10px;
+  border-radius: 20px;
+  white-space: nowrap;
 }
-.flowDivider {
-  height: 1px;
-  background: var(--dp-line-soft);
-  border: 0;
-  margin: 16px 0;
+.crossHead {
+  font-family: var(--m-serif);
+  font-size: 18px;
+  font-weight: 500;
+  margin: 2px 0 6px;
+}
+.crossBody {
+  font-size: 14px;
+  color: var(--t1);
+  line-height: 1.65;
+}
+
+/* ── 타이밍 ── */
+.flowSub {
+  font-size: 12px;
+  color: var(--t2);
+  margin: 8px 0 6px;
+}
+.flowSvg {
+  display: block;
+}
+.flowToday {
+  font: 600 9px var(--m-sans);
+  fill: var(--blue);
 }
 .upRow {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
   gap: 8px;
-  border-top: 1px solid var(--dp-line-soft);
-  padding-top: 12px;
 }
 .upCell {
-  flex: 1;
-  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
 }
 .upBox {
-  aspect-ratio: 1;
-  border: 1px solid var(--dp-line);
-  border-radius: var(--dp-r);
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: 12px;
+  border: 1px solid var(--line);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: var(--dp-serif);
+  font-family: var(--m-disp);
   font-size: 15px;
-  font-weight: 500;
-  color: var(--dp-ink-dim);
+  color: var(--t1);
+  font-variant-numeric: tabular-nums;
 }
 .upWd {
-  display: block;
-  margin-top: 4px;
-  font-family: var(--dp-mono);
   font-size: 10px;
-  color: var(--dp-ink-faint);
+  color: var(--t2);
 }
 
-/* ---------- 시진 리듬 ---------- */
-.rhythmWrap {
-  margin: var(--dp-section) 0 4px;
+/* ── 하루 리듬 ── */
+.rhythmNote {
+  font-size: 11px;
+  color: var(--t2);
+  margin-bottom: 14px;
 }
 .rhythmRow {
-  display: flex;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
   gap: 6px;
-  align-items: stretch;
+  align-items: end;
 }
 .rhythmCol {
-  flex: 1;
-  min-width: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
 }
 .rhythmTrack {
   position: relative;
   width: 100%;
-  height: 52px;
+  height: 56px;
+  border-radius: 8px;
+  background: var(--surface-2);
 }
 .rhythmMid {
   position: absolute;
@@ -740,113 +572,229 @@
   right: 0;
   top: 50%;
   height: 1px;
-  background: var(--dp-line);
+  background: var(--line-2);
 }
 .rhythmBar {
   position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 60%;
-  max-width: 14px;
-  border-radius: 2px;
+  left: 25%;
+  right: 25%;
+  border-radius: 4px;
+}
+.rhythmUp {
+  background: var(--indigo);
+}
+.rhythmDn {
+  background: var(--gold);
 }
 .rhythmTime {
-  font-family: var(--dp-mono);
+  font-family: var(--m-disp);
   font-size: 10px;
-  color: var(--dp-ink-mute);
+  color: var(--t2);
+  font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
 
-/* ---------- 분야별 오늘 조언 ---------- */
-.domainBlock {
-  margin-top: var(--dp-section);
+/* ── 자세한 신호 보기 (fold) ── */
+.fold {
+  margin-top: 40px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface);
+  overflow: hidden;
 }
-.domainGrid {
+.foldSummary {
+  list-style: none;
+  cursor: pointer;
+  padding: 16px 20px;
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  color: var(--t1);
+  font-family: var(--m-serif);
+}
+.foldSummary::-webkit-details-marker {
+  display: none;
+}
+.foldSummary::after {
+  content: '＋';
+  float: right;
+  color: var(--t2);
+}
+.fold[open] .foldSummary::after {
+  content: '－';
+}
+.foldBody {
+  padding: 4px 20px 22px;
   display: flex;
   flex-direction: column;
-  margin-top: 6px;
+  gap: 22px;
 }
-.domainRow {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  padding: 13px 0;
-  border-bottom: 1px solid var(--dp-line-soft);
+.foldBlock {
+  border-top: 1px solid var(--line);
+  padding-top: 18px;
 }
-.domainRow:last-child {
-  border-bottom: 0;
+.foldLabel {
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--t2);
+  margin-bottom: 12px;
 }
-.domainActive .domainLabel {
-  color: var(--dp-accent);
+.deepRead {
+  font-size: 14px;
+  color: var(--t1);
+  line-height: 1.7;
+  margin: 0;
 }
-.domainIcon {
-  font-size: 17px;
-  line-height: 1.5;
-  flex: 0 0 auto;
-}
-.domainText {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  min-width: 0;
-}
-.domainLabel {
+.chartRow {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-family: var(--dp-serif-ko);
-  font-weight: 600;
-  font-size: 14.5px;
-  color: var(--dp-ink);
+  gap: 14px;
+  padding: 6px 0;
 }
-.domainOn {
-  font-family: var(--dp-mono);
-  font-size: 9px;
+.chartHan {
+  font-family: var(--m-serif);
+  font-size: 26px;
+  color: var(--gold-deep);
+  min-width: 36px;
+  text-align: center;
+}
+.chartDesc {
+  font-size: 13px;
+  color: var(--t1);
+}
+.evList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.evRow {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 13px;
+}
+.evSrc {
+  flex: none;
+  font-size: 10px;
   letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--dp-accent);
-  border: 1px solid var(--dp-accent);
-  border-radius: 999px;
+  color: var(--t2);
+  border: 1px solid var(--line-2);
+  border-radius: 10px;
   padding: 1px 7px;
 }
-.domainBody {
-  font-family: var(--dp-serif-ko);
-  font-size: 13.5px;
-  line-height: 1.6;
-  color: var(--dp-ink-mute);
+.evLabel {
+  flex: 1;
+  color: var(--t1);
+}
+.evStrength {
+  flex: none;
+  font-size: 11px;
+  color: var(--t2);
+}
+.pol {
+  flex: none;
+  font-family: var(--m-disp);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  border-radius: 8px;
+  padding: 1px 6px;
+  min-width: 24px;
+  text-align: center;
+}
+.polPos {
+  color: var(--green);
+  background: var(--good-bg);
+}
+.polNeg {
+  color: var(--crimson);
+  background: var(--crimson-bg);
+}
+.polNeu {
+  color: var(--t2);
+  background: var(--surface-2);
+}
+.natalSub {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.natalRow {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.natalPos {
+  font-size: 13px;
+  color: var(--green);
+}
+.natalNeg {
+  font-size: 13px;
+  color: var(--crimson);
+}
+.natalDesc {
+  font-size: 13px;
+  color: var(--t1);
+}
+.natalHan {
+  font-family: var(--m-serif);
+  color: var(--t2);
+}
+.natalChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.natalChip {
+  font-size: 12px;
+  color: var(--t1);
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 4px 10px;
+}
+.natalGeok {
+  font-size: 13px;
+  color: var(--t1);
+  margin-top: 6px;
+}
+.skyList {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.skyRow {
+  display: flex;
+  gap: 12px;
+  font-size: 13px;
+}
+.skyWhen {
+  font-family: var(--m-disp);
+  font-size: 12px;
+  color: var(--gold-deep);
+  min-width: 60px;
+  font-variant-numeric: tabular-nums;
+}
+.skyBody {
+  color: var(--t1);
 }
 
-/* ============================================================
-   Mobile
-   ============================================================ */
-@media (max-width: 640px) {
-  .tierInner {
-    padding: clamp(48px, 8vh, 72px) 16px calc(120px + env(safe-area-inset-bottom, 0px));
+@media (max-width: 560px) {
+  .dayRoot {
+    padding: clamp(72px, 8vh, 92px) 16px 70px;
   }
-  .iljinBig .han {
-    font-size: 46px;
-  }
-  .doChip,
-  .dontChip {
-    min-width: 0;
-  }
-  .riseCenter {
-    margin-top: 30px;
-  }
-}
-
-@media (max-width: 380px) {
-  .tierInner {
-    padding-left: 12px;
-    padding-right: 12px;
-  }
-  .iljinBig {
-    gap: 12px;
-  }
-  .iljinBig .han {
-    font-size: 42px;
+  .rhythmRow {
+    gap: 4px;
   }
   .rhythmTime {
     font-size: 9px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cross,
+  .domain {
+    transition: none;
   }
 }

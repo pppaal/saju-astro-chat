@@ -1,727 +1,681 @@
 /* ============================================================
-   destinypal · YearTier — Profection wheel + 세운 readout.
-   Ports `.year-*` rules from css-ink/tiers.css verbatim, plus
-   5-tier 보강:
-     · natal/transit planet dots on the wheel
-     · pivotal badge (LoB / Peak)
-     · profection sect / Lord-of-Year readout
-     · ZR (Spirit + Fortune) card
-     · SR (Solar Return) card
-     · applied-pattern chip row
-     · cross-activation pair list
+   destinypal · YearTier — LIGHT "올해의 모양" 만세력
+   ────────────────────────────────────────────────────────────
+   self-contained LIGHT design (MonthTier 가족). 앱 셸은 다크이므로
+   이 티어는 .yearRoot 가 라이트 팔레트를 *직접* 정의해 그 안에서만 소비한다.
+
+   pre-commit 의 raw-hex 검사를 통과하려면 모든 라이트 hex 는 아래 단 하나의
+   `.yearRoot { --… }` 토큰 블록 안에만 둔다 — 나머지는 전부 var() 참조.
    ============================================================ */
 
-/* ---- ported: year — house wheel ---- */
-.tierInner {
+.yearRoot {
+  /* ── 라이트 팔레트 토큰 (유일한 raw-hex 블록 — MonthTier 와 동일) ── */
+  --bg: #f6f4ee;
+  --surface: #ffffff;
+  --surface-2: #f1efe7;
+  --surface-3: #e9e6dc;
+  --line: #e5e2d8;
+  --line-2: #d7d4c8;
+  --t0: #211f1b;
+  --t1: #5c5a53;
+  --t2: #908e83;
+  --gold: #a86a12;
+  --gold-deep: #8a5a0e;
+  --gold-bg: #fbe9c4;
+  --gold-line: #e9cb8c;
+  --indigo: #4a4fb0;
+  --blue: #2f7fcf;
+  --green: #4c7a14;
+  --slate: #75746c;
+  --crimson: #a53636;
+  --crimson-bg: #fbe3e1;
+  --crimson-line: #eec6c2;
+  --sun: #b06a6a;
+
+  /* 폰트 — 앱 토큰 재사용. "disp" 누멀럴은 Cinzel(자체호스팅) + tabular-nums. */
+  --m-serif: var(--dp-serif-ko);
+  --m-sans: var(--dp-sans);
+  --m-disp: var(--font-cinzel), var(--dp-serif);
+
   position: relative;
-  width: min(1120px, 100%);
+  max-width: 740px;
   margin: 0 auto;
-  padding: clamp(80px, 9vh, 120px) clamp(30px, 5vw, 64px) 170px;
-}
-.tierInner::before {
-  content: '';
-  position: absolute;
-  left: clamp(12px, 2.2vw, 30px);
-  right: clamp(12px, 2.2vw, 30px);
-  top: clamp(54px, 6vh, 80px);
-  bottom: 92px;
-  border: 1px solid var(--dp-line);
-  box-shadow:
-    inset 0 0 0 3px var(--dp-bg),
-    inset 0 0 0 4px var(--dp-line-soft);
-  pointer-events: none;
-  z-index: -1;
+  /* 셸의 absolute 탑바를 비워야 한다 — 상단 패딩을 넉넉히. */
+  padding: clamp(76px, 8vh, 104px) 22px 88px;
+  font-family: var(--m-sans);
+  color: var(--t0);
+  background: var(--bg);
+  background-image: radial-gradient(120% 70% at 50% -8%, var(--surface) 0%, var(--bg) 55%);
+  line-height: 1.65;
+  word-break: keep-all;
 }
 
-.eyebrow {
-  font-family: var(--dp-mono);
-  font-size: 11px;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: var(--dp-ink-mute);
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-.eyebrow::before {
-  content: '';
-  width: 18px;
-  height: 1px;
-  background: var(--dp-ink-dim);
-}
-
-.display {
-  font-family: var(--dp-serif-ko);
-  font-weight: 700;
-  line-height: 1.12;
-  letter-spacing: -0.01em;
-  font-size: clamp(28px, 4.5vw, 46px);
-  margin: 12px 0 8px;
-}
-
-.oneline {
-  font-family: var(--dp-serif-ko);
-  font-style: italic;
-  font-size: clamp(16px, 2.4vw, 21px);
-  line-height: 1.5;
-  color: var(--dp-ink);
-  max-width: 620px;
-  margin: 0;
-}
-
-.lead {
-  font-family: var(--dp-serif-ko);
-  font-size: clamp(14.5px, 1.7vw, 16.5px);
-  line-height: 1.85;
-  color: var(--dp-ink-dim);
-  text-wrap: pretty;
-}
-.muted {
-  color: var(--dp-ink-mute);
-}
-
+/* ── zoom-out (rise) ── */
 .rise {
   display: inline-flex;
   align-items: center;
-  gap: 9px;
+  gap: 7px;
   background: none;
   border: 0;
-  color: var(--dp-ink-mute);
+  color: var(--t2);
   cursor: pointer;
-  font-family: var(--dp-mono);
+  font-family: var(--m-mono, var(--dp-mono));
   font-size: 11px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  padding: 6px 4px;
-  transition: color 0.25s;
-  margin-bottom: 6px;
-}
-.rise:hover {
-  color: var(--dp-ember);
-}
-
-/* ---- wheel grid ---- */
-.yearWrap {
-  display: grid;
-  grid-template-columns: 1fr 0.95fr;
-  gap: 36px;
-  align-items: center;
-  margin-top: 34px;
-}
-@media (max-width: 860px) {
-  .yearWrap {
-    grid-template-columns: 1fr;
-    gap: 20px;
-  }
-}
-
-.wheelBox {
-  display: grid;
-  place-items: center;
-  position: relative;
-}
-.wheel {
-  width: min(360px, 80vw);
-  height: min(360px, 80vw);
-}
-.houseNum {
-  font-family: var(--dp-mono);
-  font-size: 11px;
-  fill: var(--dp-ink-mute);
-}
-.houseNumActive {
-  fill: var(--dp-ember);
-  font-size: 14px;
-}
-.wheelCenterTop {
-  font-family: var(--dp-serif-ko);
-  font-size: 13px;
-  fill: var(--dp-ink-mute);
-}
-.wheelCenterHouse {
-  font-family: var(--dp-serif-ko);
-  font-size: 34px;
-  fill: var(--dp-accent-2);
-}
-
-/* natal planet dot — small black ink dot with hover glyph */
-.natalDot {
-  fill: var(--dp-ink);
-  stroke: var(--dp-void);
-  stroke-width: 0.6;
-}
-.natalGlyph {
-  font-family: var(--dp-serif);
-  font-size: 9.5px;
-  fill: var(--dp-ink-dim);
-  letter-spacing: 0;
-}
-/* outer/transit dot — indigo accent ring */
-.transitDot {
-  fill: var(--dp-accent);
-  stroke: var(--dp-void);
-  stroke-width: 0.8;
-  opacity: 0.92;
-}
-.transitGlyph {
-  font-family: var(--dp-serif);
-  font-size: 10px;
-  fill: var(--dp-accent-2);
-}
-
-/* pivotal badge (LoB / Peak) — top-left of wheel-box */
-.pivotalBadge {
-  position: absolute;
-  top: 4px;
-  left: 4px;
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  padding: 5px 9px 5px 7px;
-  background: var(--dp-panel-2);
-  border: 1px solid rgba(176, 58, 34, 0.35);
-  border-radius: 3px;
-  font-family: var(--dp-mono);
-  font-size: 9.5px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--dp-ember);
-  box-shadow: 0 4px 14px -10px rgba(176, 58, 34, 0.6);
-}
-.pivotalBadge .han {
-  font-family: var(--dp-serif-ko);
-  font-size: 13px;
-  color: var(--dp-ember-2);
-  letter-spacing: 0;
-}
-
-/* ---- readout right column ---- */
-.yearReadout .big {
-  font-family: var(--dp-serif-ko);
-  font-weight: 700;
-  font-size: clamp(26px, 4vw, 38px);
-  line-height: 1.15;
-  color: var(--dp-ink);
-  margin: 6px 0 4px;
-}
-.kv {
-  display: grid;
-  grid-template-columns: 92px 1fr;
-  gap: 6px 14px;
-  margin-top: 16px;
-}
-.kv dt {
-  font-family: var(--dp-mono);
-  font-size: 10px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--dp-ink-faint);
-  padding-top: 3px;
-  margin: 0;
+  padding: 4px 2px;
+  margin-bottom: 16px;
 }
-.kv dd {
-  margin: 0;
-  color: var(--dp-ink-dim);
-  font-family: var(--dp-serif-ko);
-  font-size: 14px;
-  line-height: 1.45;
-}
-.kv dd b {
-  color: var(--dp-ink);
-  font-weight: 700;
-}
-.kv dd .han {
-  font-family: var(--dp-serif-ko);
-  color: var(--dp-ember);
-  margin-right: 4px;
+.rise:hover {
+  color: var(--gold);
 }
 
-.hr {
-  height: 1px;
-  background: var(--dp-line-soft);
-  border: 0;
-  margin: 18px 0;
-}
-
-/* sect line — augmentation #2 */
-.sectLine {
-  display: inline-flex;
+/* ── eyebrow ── */
+.eyebrow {
+  display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 8px;
-  margin-top: 10px;
-  font-family: var(--dp-mono);
-  font-size: 10.5px;
-  letter-spacing: 0.08em;
-  color: var(--dp-ink-mute);
+  font-size: 12px;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-}
-.sectLine .pip {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-}
-.sectLineDay .pip {
-  background: var(--dp-el-fire);
-  box-shadow: 0 0 6px var(--dp-ember-glow);
-}
-.sectLineNight .pip {
-  background: var(--dp-accent);
-  box-shadow: 0 0 6px var(--dp-accent-glow);
-}
-.sectLine .han {
-  font-family: var(--dp-serif-ko);
-  font-size: 13px;
-  color: var(--dp-ink);
-  letter-spacing: 0;
+  color: var(--t2);
+  margin-bottom: 30px;
 }
 
-/* lord-of-year dignity readout — augmentation #2 */
-.lordOfYear {
+/* ── 세운 간지 header ── */
+.header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+.ganzhi {
+  font-family: var(--m-serif);
+  font-weight: 500;
+  font-size: clamp(46px, 11vw, 58px);
+  letter-spacing: 0.12em;
+  color: var(--gold-deep);
+  line-height: 1;
+}
+.ganzhiRead {
+  font-size: 13px;
+  letter-spacing: 0.5em;
+  color: var(--t2);
+  margin-top: 12px;
+  text-indent: 0.5em;
+}
+.title {
+  font-family: var(--m-disp);
+  font-weight: 500;
+  font-size: 14px;
+  letter-spacing: 0.42em;
+  color: var(--t1);
+  margin-top: 26px;
+  font-variant-numeric: tabular-nums;
+}
+.titleKo {
+  font-family: var(--m-serif);
+  display: block;
+  font-size: clamp(24px, 6vw, 29px);
+  letter-spacing: 0.04em;
+  color: var(--t0);
   margin-top: 6px;
-  font-family: var(--dp-serif-ko);
+  font-weight: 300;
+}
+.counts {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 20px;
   font-size: 13px;
-  line-height: 1.6;
-  color: var(--dp-ink-dim);
+  color: var(--t1);
 }
-.lordOfYear b {
-  color: var(--dp-ink);
+.counts span {
+  padding: 0 16px;
+  position: relative;
 }
-.lordOfYear .pos {
-  color: var(--dp-pos);
+.counts span + span::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 3px;
+  bottom: 3px;
+  width: 1px;
+  background: var(--line-2);
 }
-.lordOfYear .neg {
-  color: var(--dp-neg);
+.counts b {
+  font-weight: 500;
+  font-family: var(--m-serif);
+  font-size: 15px;
+  margin-left: 6px;
+  color: var(--t0);
 }
-.lordOfYear .neu {
-  color: var(--dp-neu);
+.cHouse b {
+  font-family: var(--m-disp);
+  color: var(--gold);
+  font-variant-numeric: tabular-nums;
+}
+.cSibsin b {
+  color: var(--gold-deep);
+}
+.cArea b {
+  color: var(--indigo);
 }
 
-/* ---- sewoon ganji row ---- */
-.sewoonRow {
+/* ── headline ── */
+.headline {
+  text-align: center;
+  font-family: var(--m-serif);
+  font-weight: 300;
+  font-size: clamp(17px, 4vw, 20px);
+  color: var(--t1);
+  margin: 0 auto 8px;
+  max-width: 32em;
+}
+
+/* ── sections ── */
+.sec {
+  margin-top: 54px;
+}
+.secH {
   display: flex;
   align-items: center;
-  gap: 20px;
-  margin-top: 12px;
-  flex-wrap: wrap;
+  gap: 14px;
+  margin-bottom: 20px;
 }
-.sewoonRow .ganjiBox {
+.secLbl {
+  font-family: var(--m-serif);
+  font-size: 17px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.secLn {
+  height: 1px;
+  flex: 1;
+  background: var(--line);
+}
+.secLat {
+  font-family: var(--m-disp);
+  font-size: 10px;
+  letter-spacing: 0.3em;
+  color: var(--t2);
+  text-transform: uppercase;
+}
+
+/* ── 열두 달 색 띠 ── */
+.strip {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 6px;
+}
+.stripCell {
+  position: relative;
+  aspect-ratio: 3 / 4;
+  border-radius: 10px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 6px 0;
+  transition:
+    transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow 0.3s ease,
+    border-color 0.3s ease;
+}
+.stripCell:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 22px -14px rgba(40, 33, 15, 0.4);
+  border-color: var(--line-2);
+}
+.stripNum {
+  font-family: var(--m-disp);
+  font-weight: 500;
+  font-size: 13px;
+  color: var(--t1);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.cellGood {
+  background: var(--gold-bg);
+  border-color: var(--gold-line);
+}
+.cellGood .stripNum {
+  color: var(--gold-deep);
+}
+.cellCaution {
+  background: var(--crimson-bg);
+  border-color: var(--crimson-line);
+}
+.cellCaution .stripNum {
+  color: var(--crimson);
+}
+.star {
+  position: absolute;
+  bottom: 6px;
+  color: var(--gold);
+  font-size: 11px;
+  animation: ytTwinkle 3.4s ease-in-out infinite;
+}
+.stripBest {
+  position: absolute;
+  bottom: 7px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--blue);
+}
+
+/* ── legend ── */
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+  justify-content: center;
+  margin-top: 18px;
+  font-size: 12px;
+  color: var(--t2);
+}
+.legend span.lg {
+  display: flex;
+  align-items: center;
+}
+.legend i {
+  display: inline-block;
+  width: 11px;
+  height: 11px;
+  border-radius: 4px;
+  margin-right: 7px;
+}
+.lgGood i {
+  background: var(--gold-bg);
+  border: 1px solid var(--gold-line);
+}
+.lgCare i {
+  background: var(--surface);
+  border: 1px solid var(--line-2);
+}
+.lgAvoid i {
+  background: var(--crimson-bg);
+  border: 1px solid var(--crimson-line);
+}
+
+/* ── band phrase (큰/조심 달) ── */
+.bandPhrase {
+  margin-top: 16px;
+  font-size: 14px;
+  color: var(--t1);
   text-align: center;
 }
-.sewoonRow .ganjiMeta {
-  font-size: 13px;
-  color: var(--dp-ember-2);
-  font-family: var(--dp-mono);
-  letter-spacing: 0.06em;
+.bpGood b {
+  color: var(--gold-deep);
 }
-.sewoonRow .sajuNote {
-  font-size: 13px;
-  margin-top: 8px;
-  max-width: 360px;
-  font-family: var(--dp-serif-ko);
+.bpCare b {
+  color: var(--crimson);
+}
+.bpSep {
+  color: var(--t2);
+}
+
+/* ── 올해 풀이 (verdict) ── */
+.verdict {
+  font-family: var(--m-serif);
+  font-weight: 300;
+  font-size: clamp(19px, 4.6vw, 23px);
   line-height: 1.7;
-  color: var(--dp-ink-dim);
+}
+.verdictSub {
+  font-size: 13px;
+  color: var(--t2);
+  margin-top: 14px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.termTag {
+  font-family: var(--m-serif);
+  font-size: 11px;
+  color: var(--t2);
+  letter-spacing: 0.1em;
+  border: 1px solid var(--line-2);
+  border-radius: 14px;
+  padding: 2px 9px;
 }
 
-/* ============================================================
-   Augmentation cards — ZR / SR / patterns / cross
-   ============================================================ */
-
-.block {
-  margin-top: 40px;
+/* ── 올해의 무대 (프로펙션) ── */
+.stage {
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 22px 24px;
+  background: var(--surface);
 }
-.blockSm {
-  margin-top: 26px;
-}
-
-.secHead {
+.stageHouse {
   display: flex;
   align-items: baseline;
-  justify-content: space-between;
-  gap: 14px;
-  flex-wrap: wrap;
-  margin-bottom: 8px;
+  gap: 12px;
 }
-.secTitle {
-  font-family: var(--dp-serif-ko);
-  font-weight: 700;
-  font-size: clamp(18px, 2.4vw, 22px);
-  color: var(--dp-ink);
+.stageNum {
+  font-family: var(--m-disp);
+  font-size: 40px;
+  color: var(--gold-deep);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.stageLbl {
+  font-family: var(--m-serif);
+  font-size: 16px;
+  font-weight: 500;
+}
+.stageTheme {
+  font-family: var(--m-serif);
+  font-size: 15px;
+  color: var(--t1);
+  margin: 10px 0 16px;
+}
+.dl {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 6px 16px;
+  font-size: 14px;
   margin: 0;
-  letter-spacing: -0.01em;
 }
-.secTag {
-  font-family: var(--dp-mono);
-  font-size: 9.5px;
-  letter-spacing: 0.18em;
+.dl dt {
+  color: var(--t2);
+  font-family: var(--m-disp);
+  font-size: 11px;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--dp-ink-faint);
+  align-self: center;
+}
+.dl dd {
+  margin: 0;
+  color: var(--t1);
+}
+.dl dd b {
+  color: var(--gold-deep);
+  font-weight: 500;
+}
+.sectPill {
+  display: inline-block;
+  margin-top: 18px;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  padding: 4px 12px;
+  border-radius: 20px;
+  border: 1px solid var(--line-2);
+}
+.sectDay {
+  color: var(--gold-deep);
+  border-color: var(--gold-line);
+  background: var(--gold-bg);
+}
+.sectNight {
+  color: var(--indigo);
+  border-color: var(--line-2);
+  background: var(--surface-2);
+}
+.lordOfYear {
+  margin-top: 14px;
+  font-size: 13px;
+  color: var(--t1);
+}
+.lordOfYear b {
+  font-family: var(--m-disp);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--t2);
+  margin-right: 8px;
+}
+.pos {
+  color: var(--green);
+}
+.neg {
+  color: var(--crimson);
+}
+.neu {
+  color: var(--slate);
+}
+.stageNote {
+  margin-top: 14px;
+  font-size: 13px;
+  color: var(--t2);
+  line-height: 1.6;
 }
 
-/* ZR card — Spirit + Fortune side-by-side */
+/* ── 겹치는 흐름 (crossings) ── */
+.crossLegend {
+  display: flex;
+  gap: 18px;
+  font-size: 11px;
+  color: var(--t2);
+  margin-bottom: 16px;
+}
+.clUp {
+  color: var(--green);
+}
+.clDn {
+  color: var(--crimson);
+}
+.cross {
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 17px 20px;
+  margin-bottom: 12px;
+  background: var(--surface);
+  transition:
+    box-shadow 0.3s ease,
+    border-color 0.3s ease;
+}
+.cross:hover {
+  box-shadow: 0 10px 26px -16px rgba(40, 33, 15, 0.45);
+}
+.crossHero {
+  border: 2px solid var(--blue);
+}
+.crossTop {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+.pole {
+  font-size: 14px;
+  width: 18px;
+  text-align: center;
+  color: var(--t2);
+  flex: none;
+}
+.poleUp {
+  color: var(--green);
+}
+.poleDn {
+  color: var(--crimson);
+}
+.crossHead {
+  font-family: var(--m-serif);
+  font-size: 17px;
+  font-weight: 500;
+  flex: 1;
+}
+.whenPill {
+  font-size: 11px;
+  color: var(--t2);
+  border: 1px solid var(--line-2);
+  border-radius: 20px;
+  padding: 2px 10px;
+  white-space: nowrap;
+  font-family: var(--m-disp);
+  font-variant-numeric: tabular-nums;
+}
+.crossFlag {
+  font-size: 11px;
+  color: var(--blue);
+  border: 1px solid var(--blue);
+  padding: 3px 10px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+.crossBody {
+  font-size: 14px;
+  color: var(--t1);
+  line-height: 1.65;
+}
+.crossWhen {
+  font-size: 12px;
+  color: var(--t2);
+  margin-top: 4px;
+}
+
+/* ── 사주 한 줄 ── */
+.sajuRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 18px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 18px 20px;
+  background: var(--surface);
+}
+.sajuGz {
+  font-family: var(--m-serif);
+  font-size: 40px;
+  font-weight: 500;
+  color: var(--gold-deep);
+  line-height: 1;
+  letter-spacing: 0.06em;
+  flex: none;
+}
+.sajuText {
+  flex: 1;
+}
+.sajuMeta {
+  font-family: var(--m-disp);
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  color: var(--t2);
+  font-variant-numeric: tabular-nums;
+}
+.sajuNote {
+  font-size: 14px;
+  color: var(--t1);
+  margin-top: 6px;
+  line-height: 1.65;
+}
+
+/* ── ZR 카드 ── */
 .zrCard {
   display: grid;
   grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.zrPane {
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 16px 18px;
+  background: var(--surface);
+}
+.zrPaneSpirit {
+  border-left: 3px solid var(--indigo);
+}
+.zrPaneFortune {
+  border-left: 3px solid var(--gold);
+}
+.zrPaneHead {
+  font-size: 12px;
+  color: var(--t2);
+  letter-spacing: 0.04em;
+  margin-bottom: 12px;
+}
+.zrLine {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+.zrLevel {
+  font-family: var(--m-disp);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  color: var(--t2);
+  border: 1px solid var(--line-2);
+  border-radius: 6px;
+  padding: 1px 6px;
+}
+.zrSign {
+  font-family: var(--m-serif);
+  font-size: 19px;
+  font-weight: 500;
+  color: var(--t0);
+}
+.zrRuler {
+  font-size: 13px;
+  color: var(--t2);
+}
+.zrMeta {
+  display: flex;
   gap: 14px;
   margin-top: 10px;
+  font-size: 12px;
+  color: var(--t1);
+  font-family: var(--m-disp);
+  font-variant-numeric: tabular-nums;
 }
-@media (max-width: 720px) {
+.zrEmpty {
+  font-size: 13px;
+  color: var(--t2);
+}
+
+/* ── CTA (zoom-in) ── */
+.cta {
+  display: block;
+  width: 100%;
+  margin-top: 54px;
+  padding: 16px;
+  text-align: center;
+  font-size: 14px;
+  color: var(--t0);
+  background: var(--surface);
+  border: 1px solid var(--line-2);
+  border-radius: 16px;
+  cursor: pointer;
+  font-family: var(--m-sans);
+}
+.cta:hover {
+  background: var(--surface-2);
+}
+
+@media (max-width: 560px) {
+  .yearRoot {
+    padding: clamp(72px, 8vh, 92px) 16px 70px;
+  }
+  .strip {
+    gap: 4px;
+  }
+  .stripCell {
+    border-radius: 8px;
+  }
   .zrCard {
     grid-template-columns: 1fr;
   }
 }
-.zrPane {
-  background: var(--dp-panel);
-  border: 1px solid var(--dp-line);
-  border-radius: var(--dp-r);
-  padding: 16px 18px;
-  position: relative;
-}
-.zrPaneSpirit {
-  border-left: 3px solid var(--dp-accent);
-}
-.zrPaneFortune {
-  border-left: 3px solid var(--dp-ember);
-}
-.zrPaneHead {
-  font-family: var(--dp-mono);
-  font-size: 10px;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--dp-ink-mute);
-  margin-bottom: 8px;
-}
-.zrPaneSpirit .zrPaneHead {
-  color: var(--dp-accent);
-}
-.zrPaneFortune .zrPaneHead {
-  color: var(--dp-ember);
-}
-.zrLevel {
-  font-family: var(--dp-mono);
-  font-size: 9.5px;
-  letter-spacing: 0.12em;
-  color: var(--dp-ink-faint);
-  margin-right: 6px;
-}
-.zrSign {
-  font-family: var(--dp-serif-ko);
-  font-weight: 700;
-  font-size: 18px;
-  color: var(--dp-ink);
-}
-.zrSignEn {
-  font-family: var(--dp-mono);
-  font-size: 11px;
-  color: var(--dp-ink-mute);
-  margin-left: 6px;
-  font-style: italic;
-}
-.zrMeta {
-  font-family: var(--dp-mono);
-  font-size: 11px;
-  color: var(--dp-ink-mute);
-  margin-top: 6px;
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-.zrMeta .pivot {
-  color: var(--dp-ember);
-  font-family: var(--dp-serif-ko);
-  font-size: 12px;
-}
-.zrEmpty {
-  font-family: var(--dp-mono);
-  font-size: 11px;
-  color: var(--dp-ink-faint);
-  font-style: italic;
-}
 
-/* ---- dive button (ported) ---- */
-.diveWrap {
-  display: flex;
-  justify-content: center;
-  margin-top: 44px;
-}
-.dive {
-  display: inline-flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 24px;
-  background: var(--dp-ember);
-  border: 1px solid var(--dp-ember);
-  border-radius: 3px;
-  color: #f6ecd9;
-  cursor: pointer;
-  font-family: var(--dp-mono);
-  font-size: 12px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  transition: all 0.25s;
-  position: relative;
-  box-shadow: 0 6px 18px -10px rgba(176, 58, 34, 0.7);
-}
-.dive:hover {
-  background: var(--dp-ember-2);
-  box-shadow: 0 10px 26px -10px rgba(176, 58, 34, 0.85);
-  transform: translateY(-1px);
-}
-.dive .arrow {
-  font-size: 15px;
-  animation: bob 2.4s ease-in-out infinite;
-}
-@keyframes bob {
+/* ── motion (reduced-motion 에서 해제) ── */
+@keyframes ytTwinkle {
   0%,
   100% {
-    transform: translateY(0);
+    opacity: 1;
   }
   50% {
-    transform: translateY(3px);
+    opacity: 0.4;
   }
 }
-
-/* ============================================================
-   Mobile breakpoints — 640px / 480px
-   ============================================================ */
-
-@media (max-width: 640px) {
-  .tierInner {
-    padding: clamp(56px, 10vh, 86px) 16px calc(140px + env(safe-area-inset-bottom, 0px));
+@media (prefers-reduced-motion: reduce) {
+  .stripCell,
+  .cross {
+    transition: none;
   }
-  .tierInner::before {
-    left: 6px;
-    right: 6px;
-    top: clamp(40px, 6vh, 60px);
-    bottom: calc(110px + env(safe-area-inset-bottom, 0px));
-  }
-  .display {
-    font-size: clamp(22px, 7vw, 30px);
-  }
-  .oneline {
-    font-size: clamp(14px, 4vw, 17px);
-  }
-  .lead {
-    font-size: 13.5px;
-    line-height: 1.75;
-  }
-  .secTitle {
-    font-size: clamp(17px, 4.6vw, 20px);
-  }
-  .yearWrap {
-    gap: 14px;
-    margin-top: 22px;
-  }
-  .wheel {
-    width: min(300px, 86vw);
-    height: min(300px, 86vw);
-  }
-  .wheelCenterHouse {
-    font-size: 30px;
-  }
-  .yearReadout .big {
-    font-size: clamp(22px, 6.2vw, 28px);
-  }
-  .kv {
-    grid-template-columns: 80px 1fr;
-    gap: 5px 10px;
-  }
-  .kv dt {
-    font-size: 9.5px;
-  }
-  .kv dd {
-    font-size: 13px;
-  }
-  .zrPane {
-    padding: 14px 14px;
-  }
-  .zrSign {
-    font-size: 16px;
-  }
-  .block {
-    margin-top: 32px;
-  }
-  .dive {
-    padding: 11px 20px;
-    font-size: 11px;
-  }
-  .diveWrap {
-    margin-top: 36px;
-  }
-}
-
-@media (max-width: 480px) {
-  .tierInner {
-    padding: clamp(50px, 9vh, 78px) 12px calc(130px + env(safe-area-inset-bottom, 0px));
-  }
-  .display {
-    font-size: clamp(20px, 7.4vw, 26px);
-  }
-  .wheel {
-    width: min(280px, 90vw);
-    height: min(280px, 90vw);
-  }
-  .pivotalBadge {
-    font-size: 9px;
-    padding: 4px 8px 4px 6px;
-  }
-}
-
-/* ============================================================
-   메인 표면 — "열두 달의 흐름" 모양 (jargon-free, 숫자 없음)
-   ============================================================ */
-.shapeWrap {
-  margin: 26px 0 10px;
-  max-width: 620px;
-}
-.shapeHead {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
-  flex-wrap: wrap;
-  margin-bottom: 12px;
-}
-.shapeTitle {
-  font-family: var(--dp-serif-ko);
-  font-weight: 700;
-  font-size: clamp(16px, 2.2vw, 19px);
-  color: var(--dp-ink);
-  letter-spacing: -0.01em;
-}
-.shapeLegend {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  font-family: var(--dp-sans);
-  font-size: 11.5px;
-  color: var(--dp-ink-mute);
-}
-.legBig,
-.legCaution {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-}
-.legDotBig {
-  width: 9px;
-  height: 9px;
-  border-radius: 999px;
-  background: var(--dp-accent-2);
-}
-.legDotCaution {
-  width: 9px;
-  height: 9px;
-  border-radius: 999px;
-  background: var(--dp-ember);
-}
-
-.shapeBars {
-  display: flex;
-  align-items: flex-end;
-  gap: 7px;
-  height: 96px;
-}
-.shapeCol {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-  height: 100%;
-}
-.shapeTrack {
-  position: relative;
-  flex: 1;
-  width: 100%;
-  display: flex;
-  align-items: flex-end;
-  border-radius: 4px;
-  background: rgba(120, 128, 150, 0.07);
-}
-.shapeFill {
-  width: 100%;
-  border-radius: 4px 4px 2px 2px;
-  min-height: 5px;
-  transition: height 0.3s ease;
-}
-.shapeBig {
-  background: var(--dp-accent-2);
-}
-.shapeSteady {
-  background: var(--dp-ink-faint);
-  opacity: 0.55;
-}
-.shapeCaution {
-  background: var(--dp-ember);
-  opacity: 0.85;
-}
-/* 큰 달 봉인 — 막대 위 링/씰 */
-.shapeSeal {
-  position: absolute;
-  top: -7px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 9px;
-  height: 9px;
-  border-radius: 999px;
-  background: var(--dp-bg);
-  border: 2px solid var(--dp-accent-2);
-  box-shadow: 0 0 6px var(--dp-accent-glow);
-}
-/* 조심할 달 표시 — 막대 위 작은 점 */
-.shapeMark {
-  position: absolute;
-  top: -6px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 6px;
-  height: 6px;
-  border-radius: 999px;
-  background: var(--dp-ember);
-}
-.shapeLbl {
-  font-family: var(--dp-mono);
-  font-size: 9px;
-  color: var(--dp-ink-mute);
-}
-
-/* "올해 풀이" — 세운 영역 + 프로펙션 테마 + 큰 달을 엮은 평문 해석 (표면). */
-.yearReading {
-  margin: 0;
-  font-family: var(--dp-serif-ko);
-  font-size: clamp(14.5px, 1.9vw, 16px);
-  line-height: 1.85;
-  color: var(--dp-ink-dim);
-  text-wrap: pretty;
-  max-width: 620px;
-}
-
-/* "큰 달 / 조심" 한 줄 */
-.bigCaution {
-  margin: 12px 0 4px;
-  font-family: var(--dp-serif-ko);
-  font-size: clamp(14px, 1.8vw, 15.5px);
-  line-height: 1.6;
-  color: var(--dp-ink-dim);
-}
-.bigPhrase b {
-  color: var(--dp-accent-2);
-  font-weight: 700;
-}
-.cautionPhrase b {
-  color: var(--dp-ember);
-  font-weight: 700;
-}
-.bcSep {
-  color: var(--dp-ink-faint);
-}
-
-@media (max-width: 640px) {
-  .shapeBars {
-    height: 84px;
-    gap: 5px;
-  }
-  .shapeTitle {
-    font-size: clamp(15px, 4.4vw, 18px);
+  .star {
+    animation: none;
   }
 }
