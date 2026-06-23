@@ -6,11 +6,11 @@ import { normalizeGender } from '@/lib/utils/gender'
 import { cacheOrCalculate, CacheKeys, CACHE_TTL } from '@/lib/cache/redis-cache'
 import { getCreditBalance } from '@/lib/credits/creditService'
 import { getNowInTimezone } from '@/lib/datetime'
-// 대운(daeun)은 더 이상 unse.getDaeunCycles 로 재계산하지 않는다 — single
-// source 는 calculateSajuData 가 LMT/진경도 보정된 출생 instant 로 산출한
-// sajuResult.daeWoon (determinism-golden 으로 잠긴 정답). 옛 코드는 raw(보정
-// 전) instant 를 unse.getDaeunCycles 에 넘겨 절기 경계 출생자의 대운수가 ±1
-// 어긋나고, 음력 출생은 solar 변환 전 날짜로 계산되는 divergence 가 있었다.
+// 대운(daeun) single source 는 calculateSajuData 가 LMT/진경도 보정된 출생
+// instant 로 산출한 sajuResult.daeWoon (determinism-golden 으로 잠긴 정답).
+// 옛 코드는 raw(보정 전) instant 를 unse.getDaeunCycles 에 넘겨 절기 경계
+// 출생자의 대운수가 ±1 어긋나고, 음력 출생은 solar 변환 전 날짜로 계산되는
+// divergence 가 있었다 — 그 raw 경로(getDaeunCycles)는 2026-06 제거.
 import { getAnnualCycles, getMonthlyCycles, getIljinCalendar } from '@/lib/saju/unse'
 import type { SajuPillars } from '@/lib/saju/types'
 import {
@@ -155,8 +155,8 @@ export const POST = withApiMiddleware(async (req: NextRequest, context: ApiConte
   // 5. Calculate fortune cycles (운세)
   // 대운: single source = sajuResult.daeWoon. calculateSajuData 안에서
   // LMT/진경도 보정된 출생 instant + 절기-연도 롤백 로직으로 산출되어
-  // determinism-golden 테스트로 잠긴 정답이다. 옛 코드는 여기서
-  // unse.getDaeunCycles 를 raw(보정 전) instant 로 다시 호출해 같은 사람에게
+  // determinism-golden 테스트로 잠긴 정답이다. 옛 코드는 여기서 별도 raw(보정
+  // 전) instant 경로(제거된 unse.getDaeunCycles)로 다시 호출해 같은 사람에게
   // 두 개의 대운수가 존재했고(절기 경계 ±1, 음력 solar 변환 누락), 서빙되는
   // 값은 보정 안 된 쪽이었다. 이제 보정된 daeWoon 하나만 서빙한다.
   //

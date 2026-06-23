@@ -52,7 +52,7 @@ describe('Saju Core Integration', () => {
       assertNamedExports('lib/saju/relations', ['analyzeRelations', 'toAnalyzeInputFromSaju'])
       assertNamedExports('lib/saju/strengthScore', ['calculateStrengthScore'])
       assertNamedExports('lib/saju/sibsinAnalysis', ['analyzeSibsinComprehensive'])
-      assertNamedExports('lib/saju/unse', ['getDaeunCycles', 'getAnnualCycles', 'getMonthlyCycles'])
+      assertNamedExports('lib/saju/unse', ['getAnnualCycles', 'getMonthlyCycles'])
     })
 
     it('should expose pillar lookup utilities', () => {
