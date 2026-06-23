@@ -60,15 +60,17 @@ const DEFAULT_POLICY: LlmPolicy = {
  */
 export const LLM_POLICY: Record<Exclude<LlmFeature, 'default'>, LlmPolicy> = {
   // 유료 타로 해석. 카드 수에 따라 1200+cards*500 (최대 6000) 토큰 요청.
+  // 비용 절감: Sonnet→Haiku 다운그레이드 (운명 실시간 상담만 Sonnet 유지).
+  // 품질 별로면 model 만 SONNET 으로 한 줄 롤백.
   'tarot.interpret': {
-    model: SONNET,
+    model: HAIKU,
     maxOutputTokens: 6000,
     maxContinuations: 2,
     maxTotalOutputChars: 24000,
   },
-  // 타로 후속 질문 — 단일 호출(이어쓰기 없음), 짧은 답.
+  // 타로 후속 질문 — 단일 호출(이어쓰기 없음), 짧은 답. Haiku 로 다운그레이드.
   'tarot.followup': {
-    model: SONNET,
+    model: HAIKU,
     maxOutputTokens: 700,
     maxContinuations: 0,
     maxTotalOutputChars: 8000,
@@ -80,14 +82,14 @@ export const LLM_POLICY: Record<Exclude<LlmFeature, 'default'>, LlmPolicy> = {
     maxContinuations: 0,
     maxTotalOutputChars: 8000,
   },
-  // 궁합 상담사 — 운명 상담사와 같은 깊이/톤.
+  // 궁합 상담사 — 비용 절감으로 Haiku 다운그레이드. 품질 별로면 SONNET 으로 롤백.
   'compatibility.counselor': {
-    model: SONNET,
+    model: HAIKU,
     maxOutputTokens: 5000,
     maxContinuations: 2,
     maxTotalOutputChars: 24000,
   },
-  // 운명 실시간 상담사.
+  // 운명 실시간 상담사 — 사주+점성 통합 추론이 핵심인 간판 채널. Sonnet 유지.
   'counselor.realtime': {
     model: SONNET,
     maxOutputTokens: 2500,

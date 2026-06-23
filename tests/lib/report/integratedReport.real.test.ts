@@ -58,4 +58,40 @@ describe('통합 리포트 — 실데이터 파이프라인', () => {
     for (const r of cross.rows) out.push(`  ${r.category} · ${r.tone} — ${r.reason}`)
     console.info(out.join('\n'))
   }, 30000)
+
+  it('placeUnreliable: _chart 폴백 ASC/MC/하우스가 리포트로 새지 않는다 (ENGINE-AUDIT B)', async () => {
+    const ctx = (await buildNatalContext({
+      birthDate: '1992-03-15',
+      birthTime: '09:20',
+      gender: 'female',
+      latitude: 37.5665,
+      longitude: 126.978,
+      timeZone: 'Asia/Seoul',
+    })) as Record<string, unknown>
+    const saju = ctx.saju as Record<string, unknown>
+    saju.twelveStages = getTwelveStagesForPillars(saju.pillars as never)
+    ;(ctx as Record<string, unknown>).input = {
+      ...(ctx.input as object),
+      gender: 'female',
+      timeZone: 'Asia/Seoul',
+    }
+    // 출생시각/출생지 미상 시뮬레이션: _chart 에는 폴백 각/하우스가 차 있어도 가려야 한다.
+    ;(ctx.astro as Record<string, unknown>).placeUnreliable = true
+
+    const rd = natalToReportData(ctx)
+    const cross = buildCrossRows(ctx)
+
+    // ASC/MC/하우스는 전부 비워짐 (가짜 폴백 비노출)
+    expect(rd.astro.ascendant.sign).toBeNull()
+    expect(rd.astro.ascendant.lon).toBeNull()
+    expect(rd.astro.mc.sign).toBeNull()
+    expect(rd.astro.houses).toEqual([])
+    // 행성 sign 은 유지되지만 house 는 전부 0(UNKNOWN)
+    expect(rd.astro.planets.length).toBeGreaterThanOrEqual(8)
+    expect(rd.astro.planets.every((p) => p.house === 0)).toBe(true)
+    // MC 의존 사회역할 행은 생략됨
+    expect(cross.rows.some((r) => r.category.includes('사회') || /role/i.test(r.category))).toBe(
+      false
+    )
+  }, 30000)
 })

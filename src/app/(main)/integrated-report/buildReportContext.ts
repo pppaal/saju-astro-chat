@@ -186,6 +186,9 @@ export async function buildReportContext(input: ReportContextInput): Promise<Nat
     } as unknown as NatalContext['saju'],
     astro: {
       chart,
+      // 출생시각/출생지 미상 — adapter 가 _chart 의 자정/서울 폴백 ASC·MC·하우스를
+      // 리포트로 흘리지 않도록 가리는 플래그(ENGINE-AUDIT: _chart 우회로 누출 차단).
+      placeUnreliable: astroFacts.natal.placeUnreliable,
       extraPoints: hellenistic.extraPoints,
       sect: hellenistic.sect,
       location: {

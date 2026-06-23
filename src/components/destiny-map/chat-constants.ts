@@ -46,6 +46,11 @@ export type Message = {
    * user can re-send the previous question without retyping.
    */
   incomplete?: boolean
+  /**
+   * 이 턴이 생성될 때 켜져 있던 데이터 소스(사주/점성). 서버가 스코프 전환 후
+   * off-scope 과거 턴을 모델에 재생하지 않도록(완벽 차단) 턴마다 기록한다.
+   */
+  sources?: { saju: boolean; astro: boolean }
 }
 
 // Feedback types

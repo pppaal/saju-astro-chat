@@ -253,7 +253,9 @@ function Wheel({ astro, lang }: { astro: ReportData['astro']; lang: Lang }) {
     rSign = 150,
     rInner = 120,
     rPlanet = 100
-  const ascLon = astro.ascendant.lon
+  // ASC 가 null(출생시각 미상)이면 차트를 ASC 기준으로 돌릴 수 없으니 0°(양자리 좌측
+  // 고정)로 그리고 ASC/MC 축은 생략한다 — 가짜 상승점을 그리지 않는다.
+  const ascLon = astro.ascendant.lon ?? 0
   // 황경 → 화면각: ASC 를 왼쪽(180°)에 고정, 반시계.
   const screen = (lon: number) => 180 + (lon - ascLon)
   const SIGN_ORDER = [
@@ -299,28 +301,32 @@ function Wheel({ astro, lang }: { astro: ReportData['astro']; lang: Lang }) {
           </g>
         )
       })}
-      {/* ASC / MC 축 */}
-      {[
-        [lang === 'en' ? 'First impression' : '첫인상', ascLon],
-        [lang === 'en' ? 'Public face' : '사회적 위치', astro.mc.lon],
-      ].map(([lab, lon]) => {
-        const [x1, y1] = polar(cx, cy, rInner, screen(lon as number))
-        const [x2, y2] = polar(cx, cy, rOuter + 6, screen(lon as number))
-        return (
-          <g key={lab as string}>
-            <line x1={x1} y1={y1} x2={x2} y2={y2} stroke="var(--ink-2)" strokeWidth={1.3} />
-            <text
-              x={x2}
-              y={y2}
-              textAnchor="middle"
-              className={s.mono}
-              style={{ fontSize: 10, fill: 'var(--ink-2)', fontWeight: 600 }}
-            >
-              {lab as string}
-            </text>
-          </g>
-        )
-      })}
+      {/* ASC / MC 축 — lon 이 null(출생시각 미상)인 축은 생략(가짜 각 안 그림) */}
+      {(
+        [
+          [lang === 'en' ? 'First impression' : '첫인상', astro.ascendant.lon],
+          [lang === 'en' ? 'Public face' : '사회적 위치', astro.mc.lon],
+        ] as Array<[string, number | null]>
+      )
+        .filter((e): e is [string, number] => e[1] != null)
+        .map(([lab, lon]) => {
+          const [x1, y1] = polar(cx, cy, rInner, screen(lon as number))
+          const [x2, y2] = polar(cx, cy, rOuter + 6, screen(lon as number))
+          return (
+            <g key={lab as string}>
+              <line x1={x1} y1={y1} x2={x2} y2={y2} stroke="var(--ink-2)" strokeWidth={1.3} />
+              <text
+                x={x2}
+                y={y2}
+                textAnchor="middle"
+                className={s.mono}
+                style={{ fontSize: 10, fill: 'var(--ink-2)', fontWeight: 600 }}
+              >
+                {lab as string}
+              </text>
+            </g>
+          )
+        })}
       {/* 어스펙트 선 */}
       {astro.aspects.map((a, i) => {
         const pa = astro.planets.find((p) => p.name === a.a)
@@ -518,7 +524,7 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
   })()
   const viral = buildViralSummary({
     dayMaster: S.dayMaster,
-    ascTrait: A.ascendant ? (SIGN_TRAIT[abbr(A.ascendant.sign)]?.[lang] ?? null) : null,
+    ascTrait: A.ascendant.sign ? (SIGN_TRAIT[abbr(A.ascendant.sign)]?.[lang] ?? null) : null,
     strengths: viralStrengths,
     resonant: (cross?.rows ?? [])
       .filter((r) => r.tone === 'resonant' && !r.karmaAxis)
@@ -627,14 +633,16 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
             )
           })()}
           {(() => {
-            const yk = ELEMENTS[S.yongsin.primary]?.ko
+            const yp = S.yongsin.primary
+            if (!yp) return null // 용신 미산출 시 가짜 처방을 만들지 않는다
+            const yk = ELEMENTS[yp]?.ko
             const rem = yk ? ELEMENT_REMEDY[yk] : undefined
             if (!rem) return null
             return (
               <div className={s.heroRemedy}>
-                <b className={elClass[S.yongsin.primary]}>
-                  {lang === 'en' ? 'What you need most' : '가장 필요한 기운'}:{' '}
-                  {ELEMENTS[S.yongsin.primary]?.han} {elementLabel(S.yongsin.primary, lang)}
+                <b className={elClass[yp]}>
+                  {lang === 'en' ? 'What you need most' : '가장 필요한 기운'}: {ELEMENTS[yp]?.han}{' '}
+                  {elementLabel(yp, lang)}
                 </b>
                 <span>
                   🎨 {rem.color[lang]} · 🧭 {rem.direction[lang]} · ✨ {rem.activity[lang]}
@@ -917,10 +925,14 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
                 <div className={s.subcap}>{t('yongTitle')}</div>
                 <div className={s.yongRow}>
                   <span className={s.yongLab}>{t('yongLab')}</span>
-                  <span className={`${s.yong} ${s.yongPri} ${elClass[S.yongsin.primary]}`}>
-                    {ELEMENTS[S.yongsin.primary]?.han}
-                    <i>{elementLabel(S.yongsin.primary, lang)}</i>
-                  </span>
+                  {S.yongsin.primary ? (
+                    <span className={`${s.yong} ${s.yongPri} ${elClass[S.yongsin.primary]}`}>
+                      {ELEMENTS[S.yongsin.primary]?.han}
+                      <i>{elementLabel(S.yongsin.primary, lang)}</i>
+                    </span>
+                  ) : (
+                    <span className={s.yong}>{lang === 'en' ? 'N/A' : '미산출'}</span>
+                  )}
                   {S.yongsin.secondary && (
                     <span className={`${s.yong} ${s.yongSec} ${elClass[S.yongsin.secondary]}`}>
                       {ELEMENTS[S.yongsin.secondary]?.han}
@@ -940,7 +952,7 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
                 {/* 오행 카운트는 펜타곤 꼭짓점에 이미 표시되므로 텍스트 반복 제거(중복 제거). */}
                 {/* 용신 '왜 필요한가' — fiveElements 사전에서 성질+부족시 증상 연결. */}
                 {(() => {
-                  const yk = ELEMENTS[S.yongsin.primary]?.ko
+                  const yk = S.yongsin.primary ? ELEMENTS[S.yongsin.primary]?.ko : undefined
                   const yi = yk
                     ? (getElementInterpretation(yk as never) as {
                         nature?: string

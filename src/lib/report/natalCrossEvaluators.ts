@@ -5,12 +5,7 @@
  * CrossVerdict 를 돌려준다 — DB·네트워크 의존 없음.
  */
 
-import {
-  GENERATES,
-  CONTROLS,
-  SIGN_TO_ASTRO_ELEMENT,
-  type SajuElement,
-} from '@/lib/saju/elementBridge'
+import { GENERATES, CONTROLS, type SajuElement } from '@/lib/saju/elementBridge'
 import { type CrossMapping } from '@/lib/calendar-engine/data/saju-astro-mapping'
 import { dignityOf } from '@/lib/astrology/foundation/dignities'
 import { PLANET_LABEL } from './chartLabels'
@@ -26,9 +21,62 @@ import {
   signElementLabel,
   isAirSign,
   planetTheme,
+  AIR_TRAIT_OVERRIDE,
+  AIR_ELEMENT_LABEL,
   type CrossVerdict,
 } from './natalCrossShared'
 import { elementVerdict, ELEMENT_TRAIT, type DomainCtx } from './natalCrossVerdict'
+
+// ── 판정 헤지(경고 꼬리표) ──────────────────────────────────────────────────
+// 엔진이 단정조로 말하면 안 되는 두 경우에 reason 끝에 한 줄 덧붙인다:
+//   ① air 근사 — 공기(별자리)는 사주 5행에 무손실 대응이 없어 木으로 근사한 값이라,
+//      거기서 나온 '같은 결' 판정은 느슨하게 받아들여야 한다.
+//   ② 동률 — 분포 우세/결핍이 다른 것과 개수가 비등하면 '단정'이 아니라 '약간 앞섬'이다.
+// (톤은 그대로 두고 문구만 보정 — 기존 air 라벨 헤지와 같은 철학.)
+const AIR_JUDGE_HEDGE = {
+  ko: ` (참고 — 별자리의 공기 기운은 사주 오행에 딱 맞는 짝이 없어 木으로 근사해 본 거라, 이 "같은 결" 판정은 글자 그대로보다 느슨하게 봐주세요.)`,
+  en: ` (Note — the chart's air energy has no exact Saju-element match and is approximated as Wood, so read this "same grain" call loosely rather than literally.)`,
+}
+const DOM_TIE_HEDGE = {
+  ko: ` 다만 이 기운이 다른 기운들과 개수가 비등해서, 절대적 우세라기보다 "약간 앞서는" 정도로 봐주세요.`,
+  en: ` That said, this energy is nearly tied with others in count, so read it as "slightly ahead" rather than absolutely dominant.`,
+}
+const SIBSIN_TIE_HEDGE = {
+  ko: ` 다만 비중이 가장 큰 기질이 다른 기질과 비등해서, 이 한 축만으로 단정하긴 일러요.`,
+  en: ` That said, your top trait is nearly tied with another, so it's early to pin everything on this one axis.`,
+}
+const WEAK_TIE_HEDGE = {
+  ko: ` 다만 부족한 기운이 여러 개 비슷해서, 이 방향 하나로 못 박기보다 결핍된 쪽들을 두루 채운다는 마음이면 돼요.`,
+  en: ` That said, several elements are similarly lacking, so treat this as one of a few directions to fill rather than the only one.`,
+}
+function withHedge(v: CrossVerdict, hedge: { ko: string; en: string }): CrossVerdict {
+  return { ...v, reason: { ko: v.reason.ko + hedge.ko, en: v.reason.en + hedge.en } }
+}
+
+/**
+ * order 순서로 최댓/최솟값 키를 고르되, 그 값이 다른 키와 비등한지(tied)도 함께 반환.
+ * 기존엔 strict `>`/`<` 라 동률일 때 항상 '먼저 선언된' 키가 이겨 wood/비겁 으로 쏠렸다
+ * (ENGINE-AUDIT). 선택값은 결정론적으로 유지하되, 동률이면 호출부가 헤지를 붙이게 한다.
+ */
+function pickExtreme<T extends string>(
+  agg: Record<T, number>,
+  order: readonly T[],
+  mode: 'max' | 'min'
+): { key: T; value: number; tied: boolean } | undefined {
+  let key: T | undefined
+  let value = mode === 'max' ? -Infinity : Infinity
+  for (const k of order) {
+    const n = agg[k]
+    if (mode === 'max' ? n > value : n < value) {
+      value = n
+      key = k
+    }
+  }
+  if (key === undefined) return undefined
+  // 선택값과 같은 값을 가진 키가 2개 이상이면 동률.
+  const tiedCount = order.reduce((c, k) => (agg[k] === value ? c + 1 : c), 0)
+  return { key, value, tied: tiedCount > 1 }
+}
 
 // ── 도메인 평가기 (단일 포인트) ────────────────────────────────────────────
 
@@ -69,10 +117,13 @@ export function evalIdentity(
     almutenKo = ` 그리고 이 전부를 끌고 가는 차트의 주인 행성은 '${planetTheme(almutenPlanet, 'ko')}' 쪽 — 인생 전반의 키예요.`
     almutenEn = ` And the planet that rules your whole chart leans ${planetTheme(almutenPlanet, 'en')} — the key to your life as a whole.`
   }
-  return {
+  const out: CrossVerdict = {
     ...base,
     reason: { ko: base.reason.ko + tailKo + almutenKo, en: base.reason.en + tailEn + almutenEn },
   }
+  // ASC 가 공기 별자리면 c 는 wood 근사값이라 ascSame(첫인상 일치) 판정이 근사에서
+  // 나온 거짓 수렴일 수 있다 → 헤지. (태양 쪽 근사는 base 의 airApprox 가 이미 처리.)
+  return isAirSign(ascSign) ? withHedge(out, AIR_JUDGE_HEDGE) : out
 }
 
 /** 필요·욕망: 용신 오행 ↔ 달 별자리. */
@@ -143,9 +194,12 @@ export function evalNeeds(
     sufKo += ` 계절로 보면 ${climateKo} 달에 태어나 ${EL_KO[johuEl]} 기운이 특히 절실해요 — 그게 활기의 스위치예요.`
     sufEn += ` By season, born in a ${johu?.climateEn ?? ''} month, you especially need ${EL_EN[johuEl]} — it's your switch for vitality.`
   }
-  return sufKo
+  const out = sufKo
     ? { ...base, reason: { ko: base.reason.ko + sufKo, en: base.reason.en + sufEn } }
     : base
+  // 달이 공기 별자리면 moon 은 wood 근사값이라, '필요와 끌림이 같은 결' 판정이
+  // air→木 근사에서 나온 거짓 수렴일 수 있다 → 헤지(ENGINE-AUDIT).
+  return isAirSign(moonSign) ? withHedge(out, AIR_JUDGE_HEDGE) : out
 }
 
 /** 사회 역할: 격국 ↔ MC. 격국 대표 십신을 행성으로 환원해 MC 위신으로 판정. */
@@ -158,8 +212,10 @@ export function evalSocialRole(
   const mapping = sajuKeyMapping(sibsin)
   const planet = mapping?.astro
   if (!planet) return null
+  // MC sign 이 인식 불가면 peregrine 으로 단정하지 말고 행 생략(거짓 판정 방지, ENGINE-AUDIT).
   const en = toEnSign(mcSign)
-  const dig = en ? dignityOf(planet, en) : 'peregrine'
+  if (!en) return null
+  const dig = dignityOf(planet, en)
   const tk = planetTheme(planet, 'ko')
   const te = planetTheme(planet, 'en')
   if (dig === 'domicile' || dig === 'exaltation')
@@ -199,19 +255,48 @@ export function evalFortune(
   emphasizedPlanets: Set<string> = new Set()
 ): CrossVerdict | null {
   if (!shinsal || shinsal.length === 0) return null
+  // 예전엔 '첫 번째로 매핑되는 신살'을 채택해 — 신살 배열 순서만으로 길흉(복↔압력)이
+  // 뒤집혔다(ENGINE-AUDIT). 이제 매핑된 신살 중 *신호가 가장 결정적인* 것을 고른다:
+  // |polarity| 큰 쪽 → 동률이면 등급(A>B>C) 높은 쪽. 순서 의존 제거.
+  const GRADE_RANK: Record<string, number> = { A: 3, B: 2, C: 1 }
   let mapping: CrossMapping | undefined
   for (const s of shinsal) {
     const m = sajuKeyMapping(s)
-    if (m) {
+    if (!m) continue
+    if (!mapping) {
       mapping = m
-      break
+      continue
     }
+    const better =
+      Math.abs(m.polarity) !== Math.abs(mapping.polarity)
+        ? Math.abs(m.polarity) > Math.abs(mapping.polarity)
+        : (GRADE_RANK[m.grade] ?? 0) > (GRADE_RANK[mapping.grade] ?? 0)
+    if (better) mapping = m
   }
   if (!mapping) return null
   const planetEmphasized = emphasizedPlanets.has(mapping.astro)
   const tk = planetTheme(mapping.astro, 'ko')
   const te = planetTheme(mapping.astro, 'en')
-  const benefic = mapping.polarity >= 0
+  // polarity 0 은 길도 흉도 아닌 '중립 자원'(도화×Venus 매력, 비견×Saturn 자립 등)이다.
+  // 예전엔 polarity>=0 으로 0 을 '복'에 묶어 거짓 긍정을 냈다(ENGINE-AUDIT) → 별도 분기.
+  if (mapping.polarity === 0) {
+    return planetEmphasized
+      ? {
+          tone: 'complement',
+          reason: {
+            ko: `타고난 ${tk} 자원이 별자리에서도 또렷한 자리에 놓여요 — 길흉으로 가를 일이 아니라, 잘 쓰면 강점이 되는 '중립 자원'(매력·자립·전문성 같은)이에요. 좋고 나쁨을 따지기보다 이 기운을 어디에 쓸지 방향만 정하면 그대로 무기가 돼요.`,
+            en: `Your innate ${te} resource also sits in a clear spot in your chart — not a matter of good or bad luck but a "neutral resource" (charm, self-reliance, expertise) that becomes a strength when used well. Rather than weighing it as fortune, just decide where to point it and it turns into a tool.`,
+          },
+        }
+      : {
+          tone: 'neutral',
+          reason: {
+            ko: `사주엔 ${tk} 자원이 있는데 별자리에선 그 자리가 잔잔해요 — 길흉의 문제가 아니라 아직 깨우지 않은 중립 자원이에요. 의식적으로 꺼내 쓸 자리에 데려다 놓으면 그제야 제 몫을 해요.`,
+            en: `Your Saju carries a ${te} resource while that spot is quiet in your chart — not a fortune question but a neutral resource not yet awakened. Bring it deliberately into places where it gets used and it starts to pull its weight.`,
+          },
+        }
+  }
+  const benefic = mapping.polarity > 0
   if (benefic) {
     return planetEmphasized
       ? {
@@ -385,28 +470,36 @@ export function evalStrength(
 
 // ── 분포·전체급 교차 (차트의 모든 글자/행성을 집계) ────────────────────────
 
-/** 오행 카운트(한/영 키 혼용)에서 가장 강한 원소. */
-export function dominantSajuElement(
+/** 오행 카운트(한/영 키 혼용) → 우세 원소 + 동률 여부. */
+function dominantSajuElementTied(
   counts: Record<string, number> | undefined
-): SajuElement | undefined {
+): { key: SajuElement; tied: boolean } | undefined {
   if (!counts) return undefined
   const agg: Record<SajuElement, number> = { wood: 0, fire: 0, earth: 0, metal: 0, water: 0 }
   for (const [k, v] of Object.entries(counts)) {
     const el = normSajuElement(k)
     if (el && typeof v === 'number') agg[el] += v
   }
-  let best: SajuElement | undefined
-  let bestN = -1
-  for (const el of SAJU_ELS) {
-    if (agg[el] > bestN) {
-      bestN = agg[el]
-      best = el
-    }
-  }
-  return bestN > 0 ? best : undefined
+  const top = pickExtreme(agg, SAJU_ELS, 'max')
+  return top && top.value > 0 ? { key: top.key, tied: top.tied } : undefined
 }
 
-/** 점성 sign 배열에서 가장 강한 원소(5원소 공간). */
+/** 오행 카운트(한/영 키 혼용)에서 가장 강한 원소. */
+export function dominantSajuElement(
+  counts: Record<string, number> | undefined
+): SajuElement | undefined {
+  return dominantSajuElementTied(counts)?.key
+}
+
+/**
+ * 점성 sign 배열에서 가장 강한 원소.
+ *
+ * 주의: signToSajuElement 는 fire→fire / earth→earth / water→water / air→wood 라,
+ * 여기서 'wood' 는 *오직 공기(air) 별자리에서만* 나오고 'metal' 은 절대 안 나온다.
+ * air→wood 는 4원소를 5행에 끼워 맞춘 *무손실 아님*(근사)이므로, 동률일 때
+ * 근사값(wood=air)이 무손실 원소(fire/earth/water)를 이기지 않게 한다 — 이전엔
+ * SAJU_ELS 순서상 wood 가 맨 앞이라 동률에서 air 가 과대 선택됐다(ENGINE-AUDIT).
+ */
 export function dominantAstroElement(signs: string[] | undefined): SajuElement | undefined {
   if (!signs || signs.length === 0) return undefined
   const agg: Record<SajuElement, number> = { wood: 0, fire: 0, earth: 0, metal: 0, water: 0 }
@@ -414,13 +507,19 @@ export function dominantAstroElement(signs: string[] | undefined): SajuElement |
     const el = signToSajuElement(s)
     if (el) agg[el] += 1
   }
+  // 무손실 원소(불·흙·물) 중 최댓값을 먼저 고른다.
   let best: SajuElement | undefined
   let bestN = -1
-  for (const el of SAJU_ELS) {
+  for (const el of ['fire', 'earth', 'water'] as SajuElement[]) {
     if (agg[el] > bestN) {
       bestN = agg[el]
       best = el
     }
+  }
+  // 근사값 wood(=air)는 무손실 원소를 *엄격히 초과*할 때만 우세로 인정(동률은 무손실 우선).
+  if (agg.wood > bestN) {
+    best = 'wood'
+    bestN = agg.wood
   }
   return bestN > 0 ? best : undefined
 }
@@ -430,15 +529,26 @@ export function evalTemperament(
   sajuCounts: Record<string, number> | undefined,
   astroSigns: string[] | undefined
 ): CrossVerdict | null {
-  const a = dominantSajuElement(sajuCounts)
+  const aTop = dominantSajuElementTied(sajuCounts)
+  const a = aTop?.key
   const b = dominantAstroElement(astroSigns)
   if (!a || !b) return null
-  return elementVerdict(a, b, {
+  // dominantAstroElement 의 'wood' 는 *항상 공기(air) 별자리 유래*다(다른 사인은
+  // 무손실로 5행에 들어가고 air 만 wood 로 근사). 그래서 b==='wood' 면 evalIdentity
+  // 와 동일하게 공기 헤지(원소명 '공기' 표기 + 근사 경고)를 적용해, 분포 우세
+  // 평가에서 木 라벨이 새거나 '같은 결' 거짓 수렴이 단정되지 않게 한다(ENGINE-AUDIT).
+  const airDom = b === 'wood'
+  const v = elementVerdict(a, b, {
     aKo: '사주가 본 성향',
     aEn: 'Saju-read side',
     bKo: '별자리가 본 성향',
     bEn: 'astrology-read side',
+    bTrait: airDom ? AIR_TRAIT_OVERRIDE : undefined,
+    bLabel: airDom ? AIR_ELEMENT_LABEL : undefined,
+    airApprox: airDom,
   })
+  // 사주 우세 원소가 동률이면(예: 木·火 둘 다 3개) 단정조 대신 '약간 앞섬' 헤지.
+  return aTop?.tied ? withHedge(v, DOM_TIE_HEDGE) : v
 }
 
 // 십신 5그룹 → 대표 행성 (A급 매핑 방향과 일치).
@@ -459,21 +569,22 @@ const SIBSIN_GROUP_THEME: Record<string, { ko: string; en: string }> = {
 }
 const SIBSIN_GROUPS = ['비겁', '식상', '재성', '관성', '인성']
 
+/** 십신 그룹 카운트 → 우세 그룹 + 동률 여부. */
+function dominantSibsinGroupTied(
+  details: Record<string, number> | undefined
+): { key: string; tied: boolean } | undefined {
+  if (!details) return undefined
+  const agg: Record<string, number> = {}
+  for (const g of SIBSIN_GROUPS) agg[g] = details[g] ?? 0
+  const top = pickExtreme(agg, SIBSIN_GROUPS, 'max')
+  return top && top.value > 0 ? { key: top.key, tied: top.tied } : undefined
+}
+
 /** 십신 그룹 카운트에서 가장 강한 그룹. */
 export function dominantSibsinGroup(
   details: Record<string, number> | undefined
 ): string | undefined {
-  if (!details) return undefined
-  let best: string | undefined
-  let bestN = -1
-  for (const g of SIBSIN_GROUPS) {
-    const n = details[g] ?? 0
-    if (n > bestN) {
-      bestN = n
-      best = g
-    }
-  }
-  return bestN > 0 ? best : undefined
+  return dominantSibsinGroupTied(details)?.key
 }
 
 /** 에너지 방향: 십신 우세 그룹 ↔ 그 그룹의 대표 행성이 차트에서 강조됐는가. */
@@ -481,26 +592,30 @@ export function evalEnergyDirection(
   details: Record<string, number> | undefined,
   emphasizedPlanets: Set<string>
 ): CrossVerdict | null {
-  const group = dominantSibsinGroup(details)
-  if (!group) return null
+  const top = dominantSibsinGroupTied(details)
+  if (!top) return null
+  const group = top.key
   const planets = SIBSIN_GROUP_PLANETS[group] ?? []
   const theme = SIBSIN_GROUP_THEME[group]
   const matched = planets.filter((p) => emphasizedPlanets.has(p))
-  if (matched.length > 0)
-    return {
-      tone: 'resonant',
-      reason: {
-        ko: `타고난 기질에서 가장 큰 비중이 '${theme.ko}'인데, 그 대표 행성도 별자리에서 강조돼 있어요 — 동·서양이 똑같이 이 쪽으로 에너지가 모인다고 봐요. 한눈팔지 않고 ${theme.ko} 한 방향으로 밀어붙일 때 가장 효율이 나는 사람이라, 진로·시간 배분도 이 축에 맞추면 덜 흔들려요. 힘이 모인 만큼 다른 영역이 비기 쉬우니, 가끔 반대편도 의식해 채워두면 균형이 좋아져요.`,
-        en: `What you value most is ${theme.en}, and its signature planet is emphasized in your chart too — both systems agree your energy gathers here. You run most efficiently pushing ${theme.en} in one undivided direction, so aligning your path and time to this axis keeps you steady. With force this concentrated, other areas can run thin, so consciously topping up the opposite side now and then keeps you balanced.`,
-      },
-    }
-  return {
-    tone: 'complement',
-    reason: {
-      ko: `타고난 기질에서 '${theme.ko}' 쪽이 강한데, 별자리는 그 힘을 다른 통로로 풀어줘요 — 같은 에너지를 여러 방식으로 쓰는, 응용 범위가 넓은 타입이에요. 한 우물만 파야 한다는 부담 없이, ${theme.ko} 힘을 여러 분야에 옮겨 쓰는 게 오히려 강점이 돼요. 본질(${theme.ko})은 같으니, 겉으로 하는 일이 달라져도 자기 결을 잃지 않아요.`,
-      en: `Your ${theme.en} side is strong, while your chart channels that force through other routes — a wide-range type who uses the same energy in many ways. Without the pressure to dig only one well, transferring your ${theme.en} power across fields is actually your strength. The essence (${theme.en}) stays the same, so even as the outward work changes, you never lose your own grain.`,
-    },
-  }
+  const v: CrossVerdict =
+    matched.length > 0
+      ? {
+          tone: 'resonant',
+          reason: {
+            ko: `타고난 기질에서 가장 큰 비중이 '${theme.ko}'인데, 그 대표 행성도 별자리에서 강조돼 있어요 — 동·서양이 똑같이 이 쪽으로 에너지가 모인다고 봐요. 한눈팔지 않고 ${theme.ko} 한 방향으로 밀어붙일 때 가장 효율이 나는 사람이라, 진로·시간 배분도 이 축에 맞추면 덜 흔들려요. 힘이 모인 만큼 다른 영역이 비기 쉬우니, 가끔 반대편도 의식해 채워두면 균형이 좋아져요.`,
+            en: `What you value most is ${theme.en}, and its signature planet is emphasized in your chart too — both systems agree your energy gathers here. You run most efficiently pushing ${theme.en} in one undivided direction, so aligning your path and time to this axis keeps you steady. With force this concentrated, other areas can run thin, so consciously topping up the opposite side now and then keeps you balanced.`,
+          },
+        }
+      : {
+          tone: 'complement',
+          reason: {
+            ko: `타고난 기질에서 '${theme.ko}' 쪽이 강한데, 별자리는 그 힘을 다른 통로로 풀어줘요 — 같은 에너지를 여러 방식으로 쓰는, 응용 범위가 넓은 타입이에요. 한 우물만 파야 한다는 부담 없이, ${theme.ko} 힘을 여러 분야에 옮겨 쓰는 게 오히려 강점이 돼요. 본질(${theme.ko})은 같으니, 겉으로 하는 일이 달라져도 자기 결을 잃지 않아요.`,
+            en: `Your ${theme.en} side is strong, while your chart channels that force through other routes — a wide-range type who uses the same energy in many ways. Without the pressure to dig only one well, transferring your ${theme.en} power across fields is actually your strength. The essence (${theme.en}) stays the same, so even as the outward work changes, you never lose your own grain.`,
+          },
+        }
+  // 우세 십신 그룹이 동률이면 단정 대신 헤지.
+  return top.tied ? withHedge(v, SIBSIN_TIE_HEDGE) : v
 }
 
 /** 드러나는 나: 일간(본질) ↔ ASC(첫인상·외적 자아). */
@@ -724,7 +839,10 @@ export function evalKeyAspect(
     if (!MAJOR_ASPECTS.has(type)) continue
     const key = [p1, p2].sort().join('|')
     if (!ASPECT_PAIR_THEME[key]) continue
-    const orb = typeof a.orb === 'number' ? Math.abs(a.orb) : 99
+    // orb 가 숫자가 아니거나 NaN 이면 99 센티넬로 끼워넣지 말고 건너뛴다 — 예전엔
+    // 망가진 orb 가 99 로 둔갑해, 멀쩡한 각이 없을 때 임의의 '핵심각'을 냈다(ENGINE-AUDIT).
+    if (typeof a.orb !== 'number' || Number.isNaN(a.orb)) continue
+    const orb = Math.abs(a.orb)
     if (!best || orb < best.orb) {
       const pairKo = `${PLANET_LABEL[p1]?.ko ?? p1}·${PLANET_LABEL[p2]?.ko ?? p2}`
       const pairEn = `${PLANET_LABEL[p1]?.en ?? p1}–${PLANET_LABEL[p2]?.en ?? p2}`
@@ -802,23 +920,12 @@ export function evalVoid(
 
   const branches = gongmangBranches.slice(0, 2).join('·')
   const branchEl = BRANCH_TO_ELEMENT[gongmangBranches[0]]
-  const enSign = toEnSign(southNodeSign) ?? southNodeSign
-  const astroEl = SIGN_TO_ASTRO_ELEMENT[enSign]
-  // air→오행 근사 계약(SSOT): air 는 사주 5원소에 무손실 대응이 없어 木으로 근사한다
-  // — signToSajuElement(air→'wood') 와 동일한 단일값 계약을 따라 평가기 간 판정을
-  // 일관되게 맞춘다. (이전엔 여기서만 wood+metal 을 인정해 같은 공기 별자리가 평가기마다
-  // 다른 판정을 냈다 — ENGINE-AUDIT E7.)
-  const sajuFromAstro: SajuElement | undefined =
-    astroEl === 'fire'
-      ? 'fire'
-      : astroEl === 'earth'
-        ? 'earth'
-        : astroEl === 'water'
-          ? 'water'
-          : astroEl === 'air'
-            ? 'wood'
-            : undefined
-  const matches = !!branchEl && sajuFromAstro === branchEl
+  // air→木 근사 포함, 모든 sign→오행 변환은 단일 경로(signToSajuElement)로 통일한다 —
+  // 예전엔 여기서 변환을 손으로 복제(third path)해 계약이 엇나갈 위험이 있었다(ENGINE-AUDIT E7).
+  const sajuFromAstro = signToSajuElement(toEnSign(southNodeSign) ?? southNodeSign)
+  // 지지/사우스노드 sign 중 하나라도 오행으로 못 풀면 거짓 neutral 을 내지 말고 행 생략.
+  if (!branchEl || !sajuFromAstro) return null
+  const matches = sajuFromAstro === branchEl
 
   if (matches) {
     // 둘 다 같은 자리를 가리키므로 두 시스템은 '합의'한다(resonant). 내용이 어렵다는
@@ -843,23 +950,20 @@ export function evalVoid(
   }
 }
 
-/** 오행 카운트에서 가장 부족한(결핍) 원소 — 이번 생에 키워야 할 결. */
-function weakestSajuElement(counts: Record<string, number> | undefined): SajuElement | undefined {
+/** 오행 카운트에서 가장 부족한(결핍) 원소 + 동률 여부 — 이번 생에 키워야 할 결.
+ * 결핍은 0개짜리가 여럿인 게 흔해 동률이 잦다 → 동률 시 호출부가 헤지를 붙인다
+ * (예전엔 strict `<` 라 동률이면 항상 SAJU_ELS 첫 원소 wood 로 쏠렸다 — ENGINE-AUDIT). */
+function weakestSajuElementTied(
+  counts: Record<string, number> | undefined
+): { key: SajuElement; tied: boolean } | undefined {
   if (!counts) return undefined
   const agg: Record<SajuElement, number> = { wood: 0, fire: 0, earth: 0, metal: 0, water: 0 }
   for (const [k, v] of Object.entries(counts)) {
     const el = normSajuElement(k)
     if (el && typeof v === 'number') agg[el] += v
   }
-  let best: SajuElement | undefined
-  let min = Infinity
-  for (const el of SAJU_ELS) {
-    if (agg[el] < min) {
-      min = agg[el]
-      best = el
-    }
-  }
-  return best
+  const bottom = pickExtreme(agg, SAJU_ELS, 'min')
+  return bottom ? { key: bottom.key, tied: bottom.tied } : undefined
 }
 
 /**
@@ -872,38 +976,46 @@ export function evalNorthNode(
   sajuCounts: Record<string, number> | undefined,
   northNodeSign: string | undefined
 ): CrossVerdict | null {
-  const weak = weakestSajuElement(sajuCounts)
+  const weakTop = weakestSajuElementTied(sajuCounts)
+  const weak = weakTop?.key
   const nn = signToSajuElement(northNodeSign)
   if (!weak || !nn || !northNodeSign) return null
   const tw = ELEMENT_TRAIT[weak]
   const tn = signTraitOverride(northNodeSign) ?? ELEMENT_TRAIT[nn]
-  if (nn === weak)
-    return {
-      tone: 'resonant',
-      // 결핍 수렴(가장 약한 오행 = 노스노드 방향)은 evalVoid 와 같은 부류의 '결핍 축'이다.
-      // 두 시스템이 같은 '채워야 할 빈자리'를 짚는 합의(resonant)이지만 강점 수렴이 아니라
-      // 평생 성장 숙제라, evalVoid 처럼 karmaAxis 로 '잘 맞아요' 집계에서만 분리한다.
-      karmaAxis: true,
-      reason: {
-        ko: `이번 생 키워야 할 방향을 동·서양이 둘 다 ${tw.ko} 쪽으로 짚어요 — 타고난 가장 약한 결과 별자리가 보는 성장 방향이 같은 곳을 가리키는, 보기 드물게 또렷한 성장 신호예요. 처음엔 어색하고 불편한 영역이라 자꾸 피하게 되지만, 바로 그 불편함을 통과하는 게 이번 생의 핵심 성장이에요. 잘하는 것만 반복하지 말고 이 ${tw.ko} 쪽에 의식적으로 시간을 들이면, 인생이 한 단계 열려요.`,
-        en: `Both systems point your growth the same way — toward the ${tw.en} — your weakest Saju element and your growth direction landing on the same spot, an unusually clear growth signal. It feels awkward and uncomfortable at first, so you keep avoiding it, but passing through exactly that discomfort is this life's core growth. Don't just repeat what you're good at — invest deliberate time in the ${tw.en} side and life opens to a new level.`,
-      },
-    }
-  if (GENERATES[weak] === nn || GENERATES[nn] === weak)
-    return {
-      tone: 'complement',
-      reason: {
-        ko: `사주가 채우라는 ${tw.ko} 결과 별자리가 가리키는 ${tn.ko} 방향이 서로 이어져요 — 두 성장 축이 생(生)으로 맞물려, 한쪽을 키우면 다른 쪽도 따라 자라요. 둘을 따로 떼어 부담스럽게 볼 필요 없이, ${tn.ko} 쪽을 입구 삼아 들어가면 ${tw.ko} 쪽도 자연스럽게 채워져요. 성장이 선순환으로 굴러가는, 비교적 수월한 배치예요.`,
-        en: `The ${tw.en} energy your Saju asks you to fill and the ${tn.en} direction your chart points to feed each other — the two growth axes mesh as a generating cycle, so grow one and the other follows. No need to face them as two separate burdens; enter through the ${tn.en} door and the ${tw.en} side fills in naturally. A relatively easy layout where growth runs as a virtuous loop.`,
-      },
-    }
-  return {
-    tone: 'complement',
-    reason: {
-      ko: `사주는 ${tw.ko} 기운을 채우라 하고, 별자리는 ${tn.ko} 방향을 가리켜요 — 성장 축이 서로 다른 두 갈래라 한 번에 둘 다 잡으려면 벅찰 수 있어요. 시기를 나눠 번갈아 키우는 게 핵심 — 한동안 ${tw.ko} 쪽에 집중했다가, 또 한동안 ${tn.ko} 쪽에 집중하는 식이면 둘 다 놓치지 않아요. 욕심내 동시에 밀어붙이기보다 리듬을 두는 게 멀리 가는 길이에요.`,
-      en: `Saju asks you to build ${tw.en} energy while your chart's growth direction points to ${tn.en} — two separate growth directions, so chasing both at once can overwhelm. The key is to alternate by season: focus on ${tw.en} for a while, then on ${tn.en}, and you drop neither. Setting a rhythm rather than forcing both at once is how you go the distance.`,
-    },
-  }
+  const v: CrossVerdict =
+    nn === weak
+      ? {
+          tone: 'resonant',
+          // 결핍 수렴(가장 약한 오행 = 노스노드 방향)은 evalVoid 와 같은 부류의 '결핍 축'이다.
+          // 두 시스템이 같은 '채워야 할 빈자리'를 짚는 합의(resonant)이지만 강점 수렴이 아니라
+          // 평생 성장 숙제라, evalVoid 처럼 karmaAxis 로 '잘 맞아요' 집계에서만 분리한다.
+          karmaAxis: true,
+          reason: {
+            ko: `이번 생 키워야 할 방향을 동·서양이 둘 다 ${tw.ko} 쪽으로 짚어요 — 타고난 가장 약한 결과 별자리가 보는 성장 방향이 같은 곳을 가리키는, 보기 드물게 또렷한 성장 신호예요. 처음엔 어색하고 불편한 영역이라 자꾸 피하게 되지만, 바로 그 불편함을 통과하는 게 이번 생의 핵심 성장이에요. 잘하는 것만 반복하지 말고 이 ${tw.ko} 쪽에 의식적으로 시간을 들이면, 인생이 한 단계 열려요.`,
+            en: `Both systems point your growth the same way — toward the ${tw.en} — your weakest Saju element and your growth direction landing on the same spot, an unusually clear growth signal. It feels awkward and uncomfortable at first, so you keep avoiding it, but passing through exactly that discomfort is this life's core growth. Don't just repeat what you're good at — invest deliberate time in the ${tw.en} side and life opens to a new level.`,
+          },
+        }
+      : GENERATES[weak] === nn || GENERATES[nn] === weak
+        ? {
+            tone: 'complement',
+            reason: {
+              ko: `사주가 채우라는 ${tw.ko} 결과 별자리가 가리키는 ${tn.ko} 방향이 서로 이어져요 — 두 성장 축이 생(生)으로 맞물려, 한쪽을 키우면 다른 쪽도 따라 자라요. 둘을 따로 떼어 부담스럽게 볼 필요 없이, ${tn.ko} 쪽을 입구 삼아 들어가면 ${tw.ko} 쪽도 자연스럽게 채워져요. 성장이 선순환으로 굴러가는, 비교적 수월한 배치예요.`,
+              en: `The ${tw.en} energy your Saju asks you to fill and the ${tn.en} direction your chart points to feed each other — the two growth axes mesh as a generating cycle, so grow one and the other follows. No need to face them as two separate burdens; enter through the ${tn.en} door and the ${tw.en} side fills in naturally. A relatively easy layout where growth runs as a virtuous loop.`,
+            },
+          }
+        : {
+            tone: 'complement',
+            reason: {
+              ko: `사주는 ${tw.ko} 기운을 채우라 하고, 별자리는 ${tn.ko} 방향을 가리켜요 — 성장 축이 서로 다른 두 갈래라 한 번에 둘 다 잡으려면 벅찰 수 있어요. 시기를 나눠 번갈아 키우는 게 핵심 — 한동안 ${tw.ko} 쪽에 집중했다가, 또 한동안 ${tn.ko} 쪽에 집중하는 식이면 둘 다 놓치지 않아요. 욕심내 동시에 밀어붙이기보다 리듬을 두는 게 멀리 가는 길이에요.`,
+              en: `Saju asks you to build ${tw.en} energy while your chart's growth direction points to ${tn.en} — two separate growth directions, so chasing both at once can overwhelm. The key is to alternate by season: focus on ${tw.en} for a while, then on ${tn.en}, and you drop neither. Setting a rhythm rather than forcing both at once is how you go the distance.`,
+            },
+          }
+  // 헤지: ① 노스노드가 공기 별자리면 nn 은 wood 근사값이라 '같은 결' 단정을 느슨하게.
+  //       ② 결핍 오행이 동률이면(0개가 여럿 — 흔함) 한 방향 단정 대신 두루 채우기 권유.
+  let out = v
+  if (isAirSign(northNodeSign)) out = withHedge(out, AIR_JUDGE_HEDGE)
+  if (weakTop?.tied) out = withHedge(out, WEAK_TIE_HEDGE)
+  return out
 }
 
 // ── 생활 영역 교차 (사주의 신살·십신 ↔ 점성의 하우스·행성) ──────────────────

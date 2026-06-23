@@ -643,7 +643,13 @@ export function deriveLifetimeFlow(
    * 외행성 마디(토성 회귀, 천왕성 대립 등) 의 정확 일시를 사실로 노출한다.
    * 미지정 시 옛 동작(대운 사실 + 십신 설명만) 유지.
    */
-  astroMilestoneOverrides?: readonly LifecycleMilestoneOverride[]
+  astroMilestoneOverrides?: readonly LifecycleMilestoneOverride[],
+  /**
+   * 주입형 "현재 시각" (SSOT 규약). 미지정 시 호출 시점. lifetimePivots 와 동일한
+   * now 를 받아야 "현재 단계(you are here)"와 "현재 pivot"이 같은 날짜를 가리킨다 —
+   * 예전엔 이 인자가 없어 currentManAge 가 서버 시계로 떨어져 비결정적이었다(ENGINE-AUDIT).
+   */
+  now?: Date
 ): LifetimeFlow | undefined {
   const birthYear = natal.input?.year
   const daeun = natal.saju?.daeun ?? []
@@ -926,6 +932,7 @@ export function deriveLifetimeFlow(
     birthMonth: natal.input.month,
     birthDate: natal.input.date,
     birthTimeZone: natal.input.timeZone,
+    now,
   })
 
   // ── 외행성 마디 사실 — kind 별로 (라벨, 정확 일시) 맵. 없거나 null 은 무시. ──
