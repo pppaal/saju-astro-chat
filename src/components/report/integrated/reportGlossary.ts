@@ -41,8 +41,8 @@ export const GLOSSARY: Record<GlossarySection, GlossaryEntry[]> = {
     {
       term: { ko: '사주 명식(4기둥)', en: 'Four Pillars chart' },
       body: {
-        ko: '여덟 글자를 연·월·일·시 네 기둥으로 세운 표예요. 각 기둥은 위(천간)·아래(지지) 두 글자로 되어 있어요.',
-        en: 'The eight characters arranged into four pillars (year, month, day, hour). Each pillar has a top symbol (stem) and a bottom symbol (branch).',
+        ko: '태어난 연·월·일·시를 여덟 글자로 세운 게 사주예요. 각 기둥은 위(천간)·아래(지지) 두 글자로 되어 있고, 그중 "태어난 날"의 위 글자가 바로 나 자신이에요. 아래에서 가장 먼저 보여드려요.',
+        en: 'Your birth year, month, day, and hour become eight symbols — that is your Saju. Each pillar has a top symbol (stem) and a bottom one (branch); the top symbol of your birth-day pillar is you, shown first below.',
       },
     },
     {
@@ -62,8 +62,8 @@ export const GLOSSARY: Record<GlossarySection, GlossaryEntry[]> = {
     {
       term: { ko: '십신 (정관·식신·재성 등)', en: 'Ten Gods' },
       body: {
-        ko: '나(일간)를 기준으로 다른 글자가 어떤 관계인지 붙인 이름이에요. 일·돈·관계처럼 삶의 역할을 나타내요.',
-        en: 'Labels for how each other character relates to you (Direct Officer, Eating God, Wealth…). They map to life roles like work, money, and relationships.',
+        ko: '나(일간)를 기준으로 다른 글자가 어떤 관계인지 붙인 이름이에요. 일·돈·관계처럼 삶의 역할을 나타내요. 이름이 무섭게 들려도(예: 편관=칠살, 상관) 좋고 나쁨이 아니라 역할의 종류일 뿐이에요.',
+        en: 'Labels for how each other character relates to you (Direct Officer, Eating God, Wealth…). They map to life roles like work, money, and relationships. Some names sound scary (e.g. "Seven Killings") but they mark a type of role, not good or bad.',
       },
     },
     {
@@ -76,8 +76,8 @@ export const GLOSSARY: Record<GlossarySection, GlossaryEntry[]> = {
     {
       term: { ko: '지장간 (글자 속 숨은 기운)', en: 'Hidden stems (energy inside a branch)' },
       body: {
-        ko: '지지(아래 글자) 속에 숨어 있는 천간이에요. 겉으로 안 보여도 속에서 작용하는 기운을 보여줘요.',
-        en: 'Stems tucked inside each branch — energies that work beneath the surface even when not visible.',
+        ko: '지지(아래 글자) 속에 숨어 있는 천간이에요. 겉으로 안 보여도 속에서 작용하는 기운을 보여줘요. 여러 개면 본(가장 센 기운)·중(중간)·여(옅게 남은 기운) 순서예요.',
+        en: 'Stems tucked inside each branch — energies that work beneath the surface even when not visible. When there are several, they rank Main (strongest) · Mid · Sub (a faint trace).',
       },
     },
     {
@@ -90,8 +90,8 @@ export const GLOSSARY: Record<GlossarySection, GlossaryEntry[]> = {
     {
       term: { ko: '신살 (역마살·도화살 등)', en: 'Symbolic stars (sinsal)' },
       body: {
-        ko: '특정 글자 조합에서 나오는 별칭 같은 기운이에요(역마살=이동·여행, 도화살=매력·인기 같은 식). 재능이나 주의할 점에 색을 더해 주는 참고 신호일 뿐, 이것만으로 단정하지는 않아요.',
-        en: 'Nicknamed energies from certain character combos (Traveling Horse = travel/change, Peach Blossom = charm/appeal…). They add color to your talents or things to watch for — a hint, not a verdict on their own.',
+        ko: '특정 글자 조합에서 나오는 별칭 같은 기운이에요(역마살=이동·여행, 도화살=매력·인기, 귀인=나를 돕는 사람·행운 같은 식). 재능이나 주의할 점에 색을 더해 주는 참고 신호일 뿐, 이것만으로 단정하지는 않아요.',
+        en: 'Nicknamed energies from certain character combos (Traveling Horse = travel/change, Peach Blossom = charm/appeal, Noble Helper = a helpful person or luck…). They add color to your talents or things to watch for — a hint, not a verdict on their own.',
       },
     },
     {
@@ -182,6 +182,20 @@ export const GLOSSARY: Record<GlossarySection, GlossaryEntry[]> = {
         en: 'Whether you were born with the Sun above the horizon (day) or below it (night) sorts the chart into day or night. In a day chart the Sun-side planets work more comfortably; in a night chart the Moon-side ones do.',
       },
     },
+    {
+      term: { ko: '도·분 (별자리 안 위치)', en: 'Degrees (position within a sign)' },
+      body: {
+        ko: '별자리 한 칸은 30°예요. 02°30′ 처럼 적힌 숫자는 그 별자리 안에서 행성이 정확히 어디쯤 있는지 알려주는 좌표일 뿐, 외우지 않아도 돼요.',
+        en: 'Each sign spans 30°. A number like 02°30′ is just the planet’s exact spot inside that sign — a coordinate; you don’t need to memorize it.',
+      },
+    },
+    {
+      term: { ko: '교점 (노스·사우스 노드)', en: 'Lunar nodes (North · South Node)' },
+      body: {
+        ko: '달의 길과 해의 길이 만나는 두 지점이에요. 노스 노드(남교점의 반대)는 이번 생에 자라나면 좋은 방향, 사우스 노드(남교점)는 이미 익숙해서 편하게 머물기 쉬운 자리를 뜻해요.',
+        en: 'The two points where the Moon’s path crosses the Sun’s. The North Node points to the direction worth growing toward this life; the South Node is the familiar place you can too easily stay in.',
+      },
+    },
   ],
   s04: [
     {
@@ -227,8 +241,8 @@ export const GLOSSARY: Record<GlossarySection, GlossaryEntry[]> = {
     {
       term: { ko: '통합 교차란?', en: 'What is the cross-reading?' },
       body: {
-        ko: '같은 주제(자아·돈·관계 등)를 사주와 점성이 각각 뭐라 하는지 나란히 놓고, 둘이 같은지 다른지 표시해요. 둘 다 같으면 가장 단단한 특징이에요.',
-        en: 'For each theme (self, money, relationships…) it places what Saju and astrology each say side by side and marks agreement or difference. When both agree, that’s your most solid trait.',
+        ko: '둘이 똑같이 말하는 지점 = 당신의 가장 단단한 특징이에요. 같은 주제(자아·돈·관계 등)를 사주와 점성이 각각 뭐라 하는지 나란히 놓고, 같으면 ✓, 다르면 표시해 둬요.',
+        en: 'Where both say the same thing = your most solid trait. For each theme (self, money, relationships…) we place what Saju and astrology each say side by side, and mark where they agree or differ.',
       },
     },
   ],
