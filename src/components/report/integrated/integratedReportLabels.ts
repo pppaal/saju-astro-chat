@@ -61,10 +61,48 @@ export const UI: Record<string, BiLabel> = {
     ko: '읽는 순서: ① 타고난 나 → ② 기운 균형 → ③ 태어난 하늘 → ④ 기운들의 대화 → ⑤ 동·서양이 똑같이 말하는 부분',
     en: 'Your path: ① Who you are → ② Energy balance → ③ Your birth sky → ④ How your forces talk → ⑤ Where both systems agree',
   },
-  timeUnknownTitle: { ko: '출생시각 미상', en: 'Birth time unknown' },
+  // 섹션 챕터 오프너 — 헤딩 아래 따뜻한 한 문장(이야기책처럼 다음 장으로 끌어당김).
+  sec01Lead: {
+    ko: '이제 너라는 사람의 첫 페이지를 펼쳐볼 거예요. 타고날 때부터 마음속에 담겨 있던 너만의 색깔을 함께 살펴봐요.',
+    en: "Let's turn to the very first page of you, and discover the special colors you've carried inside since the day you were born.",
+  },
+  sec02Lead: {
+    ko: '누구나 마음속엔 여러 가지 기운이 살고 있어요. 너에겐 어떤 기운이 가득하고 어떤 기운이 살짝 부족한지, 가만히 들여다봐요.',
+    en: "Everyone has different kinds of energy living inside them, so let's peek at which ones fill you up and which ones are a little shy in you.",
+  },
+  sec03Lead: {
+    ko: '네가 태어나던 날, 하늘은 너를 어떻게 바라보고 있었을까요? 별들이 들려주는 너의 이야기를 들어봐요.',
+    en: "On the day you were born, how was the sky watching over you? Let's listen to the story the stars tell about you.",
+  },
+  sec04Lead: {
+    ko: '네 안의 여러 기운들은 서로 손을 잡기도 하고 가끔 티격태격하기도 해요. 그 친구들이 어떻게 어울려 지내는지 살펴봐요.',
+    en: "The different forces inside you sometimes hold hands and sometimes bump heads, so let's see how they all get along together.",
+  },
+  sec05Lead: {
+    ko: '동양의 사주와 서양의 별자리가 똑같이 고개를 끄덕이는 부분이 있어요. 두 이야기가 한목소리로 말하는 너의 진짜 모습을 만나봐요.',
+    en: "There are places where the Eastern and Western stories nod in agreement, so let's meet the real you that both tell in one voice.",
+  },
+  // §01 도입 — 네 줄을 "태어난 순간 카드" 이야기로 묶어 주는 문장.
+  plainPillarsLead: {
+    ko: '아래 네 줄은 당신이 태어난 순간을 찍은 네 장의 카드예요 — 시(時)·일(日)·월(月)·년(年). 가운데 일(日) 줄이 바로 "나 자신"이고, 각 줄의 글자는 그 카드가 맡은 삶의 역할이에요.',
+    en: 'The four rows below are four cards snapped at the moment you were born — Hour, Day, Month, and Year. The Day row is "you," and the words in each row are the life-roles that card carries.',
+  },
+  // §01 신살/합충 도입 — 칩이 나오기 전에 무엇인지 한 줄로.
+  shinsalLead: {
+    ko: '내 재능에 색을 입히는 숨은 별빛이에요. 옆의 작은 글자(年·月·日·時)는 그 별이 어느 생일 카드에 앉아 있는지 알려줘요.',
+    en: 'Hidden star-powers that color your talents — the little mark (Yr·Mo·Day·Hr) tells you which birth-card each one sits on.',
+  },
+  relationsLead: {
+    ko: '내 생일 글자들이 서로 손을 잡거나(합) 부딪히는(충) 방식이에요.',
+    en: 'How your birth-letters team up or bump into each other.',
+  },
+  timeUnknownTitle: {
+    ko: '결과는 그대로 또렷해요 (태어난 시각만 몰라요)',
+    en: "Your result is still clear (we just don't know your birth time)",
+  },
   timeUnknownBody: {
-    ko: '출생시각이 입력되지 않아 정오를 기준으로 계산했어요. 상승궁·중천·하우스에 기대는 해석(사회적 역할, 첫인상, 영역별 강조)은 근사치이니 참고용으로만 봐 주세요. 사주와 행성 배치 해석은 영향을 거의 받지 않아요.',
-    en: 'No birth time was provided, so the chart is computed for noon. Readings that depend on the Ascendant, Midheaven, or houses (social role, first impression, life-area emphasis) are approximate — treat them as indicative only. Saju and planet-placement readings are largely unaffected.',
+    ko: '태어난 시각을 몰라서 낮 12시를 기준으로 계산했는데, 이건 전혀 문제가 아니에요. "내가 어떤 사람인지"를 보여주는 큰 그림과 사주·별자리 풀이는 그대로 정확하고, 첫인상이나 분야별 강조처럼 아주 작은 부분만 살짝 흐릿할 뿐이에요.',
+    en: "We didn't know your birth time, so we used noon — and that's totally fine. The big picture of who you are, your Saju, and your star placements are all still accurate; only a few small things like your first impression or which life-areas stand out are a little fuzzy.",
   },
   day: { ko: '주간', en: 'diurnal' },
   night: { ko: '야간', en: 'nocturnal' },
@@ -142,8 +180,8 @@ export const UI: Record<string, BiLabel> = {
   sec05Title: { ko: '통합 교차', en: 'Cross-System' },
   sec05Han: { ko: '', en: '' },
   synthLabel: { ko: '🧬 종합 정체성', en: '🧬 Synthesis' },
-  sajuSide: { ko: '사주', en: 'Saju' },
-  astroSide: { ko: '점성', en: 'Astro' },
+  sajuSide: { ko: '사주가 보는 결', en: 'Your Saju side' },
+  astroSide: { ko: '점성이 보는 결', en: 'Your astrology side' },
   footBrain: {
     ko: '동·서양 통합 분석 엔진',
     en: 'East–West integrated analysis',

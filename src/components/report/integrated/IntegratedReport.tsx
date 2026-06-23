@@ -673,6 +673,7 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
             </span>
             {lang === 'en' && <span className={s.secEn}>Four Pillars</span>}
           </div>
+          <p className={s.chapterLead}>{t('sec01Lead')}</p>
           <Explain section="s01" lang={lang} />
           {/* 일간(나) 카드 — hanja-rich 의 일간성격·강점·약점·직업을 hover→본문으로. */}
           {(() => {
@@ -748,6 +749,7 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
           </details>
           {/* 쉬운 풀이 (Level 1) — 한자/십신을 평이한 한 줄로. 위 전문 그리드는 더보기 안. */}
           <div className={s.plainPillars}>
+            <p className={s.rowLead}>{t('plainPillarsLead')}</p>
             {pillarsArr.map(([head, p]) => {
               const stemG = p.isDay
                 ? lang === 'en'
@@ -773,6 +775,7 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
           <div className={s.row2}>
             <div>
               <div className={s.subcap}>{t('shinsalCap')}</div>
+              <p className={s.rowLead}>{t('shinsalLead')}</p>
               <div className={s.chips}>
                 {[...S.natalShinsal]
                   .sort((a, b) => (b.polarity ?? 0) - (a.polarity ?? 0))
@@ -805,6 +808,7 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
             </div>
             <div>
               <div className={s.subcap}>{t('relCap')}</div>
+              <p className={s.rowLead}>{t('relationsLead')}</p>
               <div className={s.relations}>
                 {S.natalRelations.map((r, i) => {
                   // 합충형파 의미 — relations-pairs 사전(category + 한자 pair). 없으면 detail 폴백.
@@ -870,6 +874,7 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
             <span className={s.secTitle}>{t('sec02Title')}</span>
             {lang === 'en' && <span className={s.secEn}>Elements & Balance</span>}
           </div>
+          <p className={s.chapterLead}>{t('sec02Lead')}</p>
           <Explain section="s02" lang={lang} />
           <div className={s.gridElem}>
             <div className={`${s.card} ${s.cardPad}`}>
@@ -1059,6 +1064,7 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
             <span className={s.secTitle}>{lang === 'en' ? 'Your birth sky' : '하늘이 본 나'}</span>
             {lang === 'en' && <span className={s.secEn}>Natal Chart</span>}
           </div>
+          <p className={s.chapterLead}>{t('sec03Lead')}</p>
           <Explain section="s03" lang={lang} />
           <div className={s.gridChart}>
             <div className={`${s.card} ${s.wheelCard}`}>
@@ -1247,6 +1253,7 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
             </span>
             {lang === 'en' && <span className={s.secEn}>Aspects</span>}
           </div>
+          <p className={s.chapterLead}>{t('sec04Lead')}</p>
           <Explain section="s04" lang={lang} />
           <div className={s.gridAsp}>
             <div>
@@ -1336,6 +1343,7 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
               </span>
               {lang === 'en' && <span className={s.secEn}>Cross-System</span>}
             </div>
+            <p className={s.chapterLead}>{t('sec05Lead')}</p>
             <Explain section="s05" lang={lang} />
             {/* 종합 문장은 상단 히어로로 이동(중복 제거). 여기선 톤 분포 막대만. */}
             {/* 교차 그림 — 톤 분포(잘맞음/채워줌/부딪힘) 한눈에. */}
@@ -1428,12 +1436,12 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
                   <ul className={s.crossAdviceList}>
                     {reson.length > 0 && (
                       <li>
-                        <b>{lang === 'en' ? 'Core' : '정체성 코어'}</b>{' '}
-                        {lang === 'en' ? 'East and West agree on ' : '동·서양이 똑같이 가리키는 '}
+                        <b>{lang === 'en' ? 'The real you' : '진짜 나다운 점'}</b>{' '}
+                        {lang === 'en' ? 'East and West agree on ' : '동양 사주와 서양 별자리가 똑같이 짚는 '}
                         <b>{reson.join(' · ')}</b>
                         {lang === 'en'
-                          ? ' — two systems converging suggests this is one of your steadiest cores, so you might consider leaning on it in your work and the way you show up.'
-                          : '은(는) 두 점술이 독립적으로 합의한 지점 — 비교적 흔들리지 않는 정체성 코어로 보여요. 일이나 자기표현에서 이 결을 살려 활용해 볼 만해요.'}
+                          ? ' — when both ways of reading you say the same thing, it is one of your steadiest, most "really you" parts, so lean on it in what you do and how you show up.'
+                          : '은(는) 따로따로 봤는데도 똑같이 나온 부분이라, 좀처럼 흔들리지 않는 가장 너다운 점이에요. 무언가 할 때나 나를 드러낼 때 이 점을 믿고 살리면 좋아요.'}
                         {/* 합의 주제별 평어 한 줄 — 라벨만으로 막막하지 않게 뜻을 곁들인다. */}
                         {reson.some((c) => categoryMeaning(c, lang)) && (
                           <ul className={s.crossGlossList}>

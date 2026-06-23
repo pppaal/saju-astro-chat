@@ -281,6 +281,24 @@
   line-height: 1.62;
   word-break: keep-all;
 }
+/* 섹션 챕터 오프너 — 헤딩 아래 따뜻한 이야기 한 문장. */
+.chapterLead {
+  margin: -10px 0 16px;
+  color: var(--ink-2);
+  font-size: 14px;
+  line-height: 1.74;
+  letter-spacing: 0.01em;
+  word-break: keep-all;
+}
+/* 행/칩 묶음 위 한 줄 도입(신살·합충·명식 4줄). */
+.rowLead {
+  margin: 2px 0 10px;
+  color: var(--ink-3);
+  font-size: 12px;
+  line-height: 1.58;
+  letter-spacing: 0.01em;
+  word-break: keep-all;
+}
 
 /* 섹션 */
 .section {
