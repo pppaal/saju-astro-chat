@@ -687,3 +687,17 @@ model CreditTransaction {
   @@index([lotId])
   @@index([expiresAt])
 }
+
+// 📣 Social Post Log — 자동 홍보 게시(Threads 등) 중복 방지 (멱등성).
+// 같은 블로그 글을 같은 플랫폼에 두 번 올리지 않도록 (platform, ref) 유니크.
+// cron(social-autopost)이 "아직 안 올린 최신 글"을 고를 때 이 로그를 기준 삼는다.
+model SocialPostLog {
+  id         String   @id @default(cuid())
+  platform   String // 'threads' 등
+  ref        String // 게시 대상 식별자 (블로그 slug)
+  externalId String? // 플랫폼이 돌려준 게시물 id (있으면)
+  createdAt  DateTime @default(now())
+
+  @@unique([platform, ref])
+  @@index([platform, createdAt])
+}
