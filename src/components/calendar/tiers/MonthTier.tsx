@@ -218,20 +218,43 @@ export function MonthTier({ month, onDive, onRise, showRise = true }: MonthTierP
   const noviceArea = woolunArea
   const noviceLine = ko
     ? noviceArea
-      ? `${ymM ?? ''}월은 ‘${noviceArea}’ 쪽으로 결이 ${noviceToneWord} 달이에요.`
-      : `${ymM ?? ''}월은 결이 ${noviceToneWord} 달이에요.`
+      ? `${ymM ?? ''}월은 ‘${noviceArea}’ 쪽으로 ${noviceToneWord} 흐름의 달이에요.`
+      : `${ymM ?? ''}월은 ${noviceToneWord} 흐름의 달이에요.`
     : noviceArea
       ? `${monthEn} leans a ${noviceToneWord} way, toward ${noviceArea}.`
       : `${monthEn} reads a ${noviceToneWord} month.`
   const noviceCounts = ko
-    ? `흐름이 트이는 날 ${goodN}개 · 조심할 날 ${careN}개`
-    : `${goodN} day${goodN === 1 ? '' : 's'} open up · ${careN} ask for care`
+    ? `일이 잘 풀리는 날 ${goodN}일 · 한 박자 쉬어갈 날 ${careN}일`
+    : `${goodN} day${goodN === 1 ? '' : 's'} flow · ${careN} to ease off`
 
   // 'MM-DD' → 'M/D' (큰 날 날짜 라벨)
   const mdLabel = (ds: string) => {
     const dd = ds.split('-').pop() ?? ds
     return `${ymM ?? ''}/${Number(dd)}`
   }
+  // ── 기본뷰 do/avoid 한 줄 — 그동안 share 카드에만 쓰이던 narrative[0] 의 행동 권유를
+  //    구조화 필드(bestDay/cautionDays/avoidDays)에서 평이하게 재구성해 표면에 노출. ──
+  const doDate = month.bestDay?.date || month.goodDays?.[0] || ''
+  const avoidDate = month.cautionDays?.[0] || month.avoidDays?.[0] || ''
+  const doAvoidLine: string = (() => {
+    if (!doDate && !avoidDate) return ''
+    const parts: string[] = []
+    if (doDate) {
+      parts.push(
+        ko
+          ? `${mdLabel(doDate)} 무렵 미뤄둔 일을 추진하고`
+          : `Push waiting tasks around ${mdLabel(doDate)}`
+      )
+    }
+    if (avoidDate) {
+      parts.push(
+        ko
+          ? `${mdLabel(avoidDate)} 무렵엔 큰 결정·이동을 미루세요.`
+          : `hold big decisions and moves near ${mdLabel(avoidDate)}.`
+      )
+    }
+    return parts.join(', ')
+  })()
 
   // ── readout — 선택된 날(기본=focusDay)의 셀 판정으로 라벨/문구를 결정. ──
   const [selectedDay, setSelectedDay] = useState<number>(focusDay)
@@ -252,6 +275,21 @@ export function MonthTier({ month, onDive, onRise, showRise = true }: MonthTierP
   const readoutText = selectedBigDay
     ? ''
     : toneMeaningFor(markToTone(selMark), selectedDay, ko ? 'ko' : 'en', seed)
+  // 행동 한 줄 — 그날의 mark 톤으로 평이하게(전문어 0). 좋은날=밀어붙이기, 조심날=미루기.
+  const readoutAdvice: string = (() => {
+    const tone = markToTone(selMark)
+    if (tone === 'negative') {
+      return ko
+        ? '큰 결정·계약·이사는 며칠 미루는 게 좋아요.'
+        : 'Best to push big decisions, contracts, and moves back a few days.'
+    }
+    if (tone === 'positive') {
+      return ko
+        ? '미뤄둔 일을 시작하거나 밀어붙이기 좋아요.'
+        : 'A good day to start what you put off, or push ahead.'
+    }
+    return ''
+  })()
   // 태그 칩 텍스트 — today 가 우선.
   const readoutTag = selToday
     ? ko
@@ -307,9 +345,7 @@ export function MonthTier({ month, onDive, onRise, showRise = true }: MonthTierP
 
       {/* ── eyebrow ── */}
       <div className={styles.eyebrow}>
-        <span>
-          {ko ? '1달' : '1 Month'} · MONTHLY · {month.ym}
-        </span>
+        <span>{ko ? `${year}년 ${ymM ?? ''}월` : `MONTHLY · ${monthEn} ${year}`.trim()}</span>
         <span aria-hidden />
       </div>
 
@@ -322,7 +358,7 @@ export function MonthTier({ month, onDive, onRise, showRise = true }: MonthTierP
         >
           {ko
             ? noviceTone === 'good'
-              ? '결이 좋은 달'
+              ? '잘 풀리는 달'
               : noviceTone === 'care'
                 ? '조심스러운 달'
                 : '순한 달'
@@ -334,6 +370,13 @@ export function MonthTier({ month, onDive, onRise, showRise = true }: MonthTierP
         </div>
         <p className={styles.novLine}>{noviceLine}</p>
         <p className={styles.novCounts}>{noviceCounts}</p>
+        {/* ── 이렇게 해보세요 — share 카드에만 쓰이던 행동 권유를 기본뷰로 surface ── */}
+        {doAvoidLine && (
+          <div className={styles.doBox}>
+            <span className={styles.doLbl}>{ko ? '이렇게 해보세요' : 'Try this'}</span>
+            <span className={styles.doText}>{doAvoidLine}</span>
+          </div>
+        )}
         {/* good/caution/avoid 카운트 — 기본에 유지(시각적 요약). */}
         <div className={styles.counts}>
           <span className={styles.cGood}>
@@ -356,6 +399,11 @@ export function MonthTier({ month, onDive, onRise, showRise = true }: MonthTierP
         <summary className={styles.expertSummary}>
           {ko ? '자세히 보기 · 간지와 월운' : 'Details · pillar & month'}
         </summary>
+        <p className={styles.foldLede}>
+          {ko
+            ? "쉽게 말하면, 이 달 전체에 흐르는 기운을 사주의 '간지'로 나타낸 거예요."
+            : "In plain terms, this is the month's overall energy written as its Saju pillar."}
+        </p>
         <header className={styles.header}>
           <div className={styles.ganzhi}>{ganjiHanja}</div>
           {ganjiRead && (
@@ -372,6 +420,11 @@ export function MonthTier({ month, onDive, onRise, showRise = true }: MonthTierP
           )}
         </header>
       </details>
+
+      {/* ── 인터랙션 힌트 — 날짜가 눌러진다는 걸 모르는 초보용 ── */}
+      <p className={styles.tapHint}>
+        {ko ? '👆 날짜를 누르면 그날 운을 볼 수 있어요.' : '👆 Tap a date to see that day.'}
+      </p>
 
       {/* ── weekday row ── */}
       <div className={styles.dows}>
@@ -437,6 +490,7 @@ export function MonthTier({ month, onDive, onRise, showRise = true }: MonthTierP
         </div>
         <div className={styles.rlabel}>{readoutLabel}</div>
         {readoutText && <div className={styles.rtext}>{readoutText}</div>}
+        {readoutAdvice && <div className={styles.rAdvice}>{readoutAdvice}</div>}
       </div>
 
       {/* ── legend ── */}
@@ -464,6 +518,11 @@ export function MonthTier({ month, onDive, onRise, showRise = true }: MonthTierP
           </span>
         )}
       </div>
+      <p className={styles.legendNote}>
+        {ko
+          ? '색이 진할수록 잘 풀리는 날, 붉은 날은 큰 결정을 미루기 좋은 날이에요.'
+          : 'Deeper color means a smoother day; red days are best for delaying big decisions.'}
+      </p>
 
       {/* ── 이달의 큰 날 ── */}
       {bigDays.length > 0 && (
@@ -494,6 +553,11 @@ export function MonthTier({ month, onDive, onRise, showRise = true }: MonthTierP
         <summary className={styles.expertSummary}>
           {ko ? '왜 이런가요? · 사주 × 별자리' : 'Why? · Saju × Astrology'}
         </summary>
+        <p className={styles.foldLede}>
+          {ko
+            ? '쉽게 말하면, 이 달의 색을 정하는 가장 또렷한 흐름이 사주와 별자리 어디서 겹치는지를 보여드려요.'
+            : "In plain terms, this shows where Saju and astrology overlap to set the month's strongest thread."}
+        </p>
 
         {/* ── 이달의 한 줄 (verdict) ── */}
         <section className={styles.sec}>

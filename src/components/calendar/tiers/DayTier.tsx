@@ -188,6 +188,39 @@ export function DayTier({ day, onRise, sex = '남' }: DayTierProps) {
     .slice(0, 2)
     .map((c) => localizeLabel(plainReason(stripMarker(c), ko), ko))
 
+  // ── novice hero: 톤 워드는 결론(oneLine)과 어긋나지 않게, 중립이면 '기복 있는 날'. ──
+  const novTone = day.dayTone?.tone
+  const novToneWord = ko
+    ? novTone === 'positive'
+      ? '좋은 날'
+      : novTone === 'caution'
+        ? '조심할 날'
+        : '기복 있는 날'
+    : novTone === 'positive'
+      ? 'A good day'
+      : novTone === 'caution'
+        ? 'A careful day'
+        : 'A mixed day'
+
+  // ── novice hero "왜?" 한 줄 — 기존 평이 근거(받쳐줌/부딪힘)에서만 합성, 용어 0. ──
+  const hasSupport = happeningLines.length > 0
+  const hasFriction = cautionLines.length > 0
+  const novWhy = ko
+    ? hasSupport && hasFriction
+      ? '부딪히는 기운이 좀 있지만 받쳐주는 흐름도 같이 와요.'
+      : hasFriction
+        ? '오늘은 살짝 거스르는 기운이 깔려 있어요.'
+        : hasSupport
+          ? '받쳐주는 흐름이 같이 와요.'
+          : ''
+    : hasSupport && hasFriction
+      ? 'A bit of friction, but a supporting flow comes with it.'
+      : hasFriction
+        ? "There's a slightly rough current underneath today."
+        : hasSupport
+          ? 'A supporting flow comes with it.'
+          : ''
+
   // ── 행동 처방. ──
   const dayActions = deriveDayActions({
     iljinSibsin: sibsinRaw,
@@ -343,13 +376,16 @@ export function DayTier({ day, onRise, sex = '남' }: DayTierProps) {
 
       {/* ── S1 eyebrow ── */}
       <div className={styles.eyebrow}>
-        <span>
-          {ko ? '1일' : '1 Day'} · DAILY · {day.date}
-        </span>
-        {ko && day.dateKo ? (
-          <span className={styles.eyebrowKo}>{day.dateKo}</span>
+        {ko ? (
+          <>
+            <span>오늘</span>
+            <span className={styles.eyebrowKo}>{day.dateKo ?? day.date}</span>
+          </>
         ) : (
-          <span aria-hidden />
+          <>
+            <span>Today · Daily</span>
+            <span className={styles.eyebrowKo}>{day.date}</span>
+          </>
         )}
       </div>
 
@@ -364,19 +400,10 @@ export function DayTier({ day, onRise, sex = '남' }: DayTierProps) {
                 : ''
           }`.trim()}
         >
-          {day.dayTone?.tone === 'positive'
-            ? ko
-              ? '좋은 날'
-              : 'A good day'
-            : day.dayTone?.tone === 'caution'
-              ? ko
-                ? '조심할 날'
-                : 'A careful day'
-              : ko
-                ? '잔잔한 날'
-                : 'A calm day'}
+          {novToneWord}
         </div>
         <p className={styles.novLine}>{localizeLabel(dayOneLine, ko)}</p>
+        {novWhy && <p className={styles.novWhy}>{novWhy}</p>}
       </header>
 
       {/* ── 자세히 ① 일진·근거 (사주를 아는 사람용) ── */}
@@ -384,6 +411,11 @@ export function DayTier({ day, onRise, sex = '남' }: DayTierProps) {
         <summary className={styles.expertSummary}>
           {ko ? '왜 이런가요? · 일진과 근거 보기' : 'Why? · pillar & reasons'}
         </summary>
+        <p className={styles.foldLede}>
+          {ko
+            ? '쉽게 말하면, 오늘 하루에 깔린 기운을 사주로 풀어 왜 좋은·조심할 날인지 근거를 보여드려요.'
+            : 'In plain terms: we read the energy under today through Saju to show why it’s a good or careful day.'}
+        </p>
 
         {/* ── S2 일진 간지 헤더 ── */}
         <header className={styles.header}>
@@ -524,6 +556,11 @@ export function DayTier({ day, onRise, sex = '남' }: DayTierProps) {
         <summary className={styles.expertSummary}>
           {ko ? '사주 × 별자리 · 타이밍 자세히' : 'Saju × Astro · timing'}
         </summary>
+        <p className={styles.foldLede}>
+          {ko
+            ? '쉽게 말하면, 사주의 기운과 별자리 흐름이 오늘 어디서 맞물리는지, 언제 가장 세지는지를 보여드려요.'
+            : 'In plain terms: where your Saju energy and the star flows meet today, and when it peaks.'}
+        </p>
 
         {/* ── S7 사주 × 별자리 교차 (▲/▼) ── */}
         {crossCards.length > 0 && (
@@ -656,6 +693,11 @@ export function DayTier({ day, onRise, sex = '남' }: DayTierProps) {
           <summary className={styles.foldSummary}>
             {ko ? '자세한 신호 보기' : 'See the raw signals'}
           </summary>
+          <p className={styles.foldLede}>
+            {ko
+              ? '쉽게 말하면, 위 결론을 만든 사주의 낱낱 재료를 가장 깊은 수준까지 펼쳐 둔 칸이에요.'
+              : 'In plain terms: this panel lays out the raw Saju ingredients behind the read, at the deepest level.'}
+          </p>
           <div className={styles.foldBody}>
             {/* 깊이 읽기 */}
             <div className={styles.foldBlock}>

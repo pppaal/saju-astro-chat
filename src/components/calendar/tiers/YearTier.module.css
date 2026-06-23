@@ -713,14 +713,45 @@
 .novCare {
   color: var(--crimson);
 }
+.novTag {
+  display: inline-block;
+  margin-top: 14px;
+  font-family: var(--m-serif);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  color: var(--indigo);
+  border: 1px solid var(--line-2);
+  border-radius: 16px;
+  padding: 3px 12px;
+}
 .novLine {
   font-family: var(--m-serif);
   font-weight: 300;
-  font-size: clamp(16px, 4.4vw, 19px);
-  line-height: 1.62;
+  font-size: clamp(15px, 4vw, 17px);
+  line-height: 1.7;
   color: var(--t1);
-  max-width: 30ch;
-  margin: 13px auto 0;
+  max-width: 42ch;
+  margin: 14px auto 0;
+  word-break: keep-all;
+}
+
+/* ── 12달 스트립 한 줄 설명(novice 가이드) ── */
+.stripHint {
+  margin: 14px auto 0;
+  max-width: 34ch;
+  text-align: center;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--t1);
+  word-break: keep-all;
+}
+
+/* ── 폴드 lede ("쉽게 말하면 …") — summary 직후, 첫 raw 헤더 전 ── */
+.foldLede {
+  font-size: 13px;
+  color: var(--t1);
+  line-height: 1.6;
+  margin: 2px 0 12px;
   word-break: keep-all;
 }
 

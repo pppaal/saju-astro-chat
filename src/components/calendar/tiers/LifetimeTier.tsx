@@ -22,6 +22,12 @@
 import type { CSSProperties } from 'react'
 import { SIGN_KO } from '@/lib/astrology/signLabels'
 import { sibsinArea, sibsinAreaEn, planetPlain } from '@/lib/calendar-engine/derivers/plainLanguage'
+import {
+  getGeokgukRich,
+  getSibsinCategory,
+  SIBSIN_NAME_TO_CATEGORY,
+  type SibsinCategory,
+} from '@/lib/chart-dictionary'
 import type {
   DestinyLifetime,
   DestinyUserSummary,
@@ -146,12 +152,16 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
   }
   const stageNowIndex = lifeStages.findIndex((s) => s.now)
 
-  // ── 인생의 큰 마디 — 연도순. meaning '' (대운 kind) 가드 → 라벨에서 — 뒤 폴백. ──
+  // ── 인생의 큰 마디 — 연도순.
+  //   감사 #2: 제목은 평이 meaning 이 주인공. astro/간지 원명(明王星·甲戌)은
+  //   작은 secondary 태그로 강등. novice 제목이 raw 한자/별자리 용어가 되면 안 됨.
   const mLabel = (m: DestinyMilestone) => (ko ? m.label : (m.labelEn ?? m.label))
-  const mHead = (m: DestinyMilestone) => {
+  // 원명 — label 의 — 앞쪽(甲戌 대운 / 명왕성 사각). 없으면 label 전체.
+  const mRawName = (m: DestinyMilestone) => {
     const l = mLabel(m)
     return l.includes('—') ? l.split('—')[0].trim() : l
   }
+  // 평이 의미 — meaning 우선, 없으면 label 의 — 뒤쪽 폴백.
   const mMeaning = (m: DestinyMilestone) => {
     const baked = ko ? m.meaning : (m.meaningEn ?? m.meaning)
     if (baked && baked.trim()) return baked
@@ -162,11 +172,17 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
     .sort((a, b) => a.year - b.year)
     .map((m) => {
       const past = m.year < currentYear
+      const meaning = mMeaning(m)
+      const rawName = mRawName(m)
+      // 제목 = 평이 의미(있으면). 없으면 원명으로 폴백(최후의 수단).
+      const title = meaning || rawName
+      // secondary 태그 = 원명. 단 제목으로 이미 쓴 경우(의미 결손) 중복 표기 안 함.
+      const tag = meaning && rawName && rawName !== title ? rawName : ''
       return {
         key: `${m.year}-${m.age}`,
         when: ko ? `${m.year} · ${m.age}세` : `${m.year} · age ${m.age}`,
-        title: mHead(m),
-        meaning: mMeaning(m),
+        title,
+        tag,
         now: !!m.now,
         past: past && !m.now,
       }
@@ -191,6 +207,40 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
   const zrPct = (year: number) =>
     Math.max(0, Math.min(100, ((year - birthYear) / Math.max(1, zrSpanYear - birthYear)) * 100))
 
+  // ── 감사 #3: "지금 여기 → 다음 마디" 한 줄(hero→timeline→milestones 연결). ──
+  //   현재 나이 = currentYear - birthYear. 현재 계절명 + 다음 큰 마디 나이/제목.
+  const nowAge = currentYear - birthYear
+  const nowStage = lifeStages.find((s) => s.now)
+  const nowStageName = nowStage ? (ko ? nowStage.name : (nowStage.nameEn ?? nowStage.name)) : ''
+  const nextMilestone = [...milestones]
+    .sort((a, b) => a.year - b.year)
+    .find((m) => m.year > currentYear)
+  const youAreHere =
+    nowAge > 0 && nowStageName
+      ? ko
+        ? nextMilestone
+          ? `지금 ${nowAge}세, ‘${nowStageName}’를 살고 있어요. 다음 큰 마디는 ${nextMilestone.age}세예요.`
+          : `지금 ${nowAge}세, ‘${nowStageName}’를 살고 있어요.`
+        : nextMilestone
+          ? `You're ${nowAge} now, living your '${nowStageName}'. The next major turn is at age ${nextMilestone.age}.`
+          : `You're ${nowAge} now, living your '${nowStageName}'.`
+      : ''
+
+  // ── 감사 #5: 리포트 전용 DB 3종을 정체성 폴드로 끌어옴(가드+폴백). ──
+  const lang = ko ? 'ko' : 'en'
+  // (a) geokguk-rich — 격국 평이 read (tagline · personality · advice).
+  const geokgukRich =
+    user.gyeokguk && user.gyeokguk !== '미정' ? getGeokgukRich(user.gyeokguk, lang) : null
+  // (b) sibsin-category — 가장 두드러진 십성(dominant) 평이 read (title · meaning · warning).
+  const sibsinCategory: SibsinCategory | null =
+    user.dominantSibsin?.name && user.dominantSibsin.pct > 0
+      ? ((SIBSIN_NAME_TO_CATEGORY[user.dominantSibsin.name] ??
+          (user.dominantSibsin.name as SibsinCategory)) as SibsinCategory)
+      : null
+  const sibsinRich = sibsinCategory ? getSibsinCategory(sibsinCategory, 'dominant', lang) : null
+  // (c) ilju-60 — 본명 일주 아키타입(어댑터가 채워줌, 없으면 생략).
+  const iljuRich = user.iljuArchetype ? (ko ? user.iljuArchetype.ko : user.iljuArchetype.en) : null
+
   // ── 인생 풀이 — 정의 신호 합성한 평이한 문장(폴드용). ──
   const lifeRead = ko
     ? `타고난 바탕은 ‘${user.ilgan.kr}’의 결이고, 삶에 가장 굵게 흐르는 기운은 ‘${
@@ -214,13 +264,94 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
       <header className={styles.novice}>
         <div className={styles.novToneWord}>{ko ? `${patternKo} 타입` : `${patternKo} type`}</div>
         {patternLine && <p className={styles.novLine}>{patternLine}</p>}
+        {/* 일주 아키타입 character — novice-grade 평이 프로즈(있으면). */}
+        {iljuRich?.character && <p className={styles.novLine}>{iljuRich.character}</p>}
       </header>
+
+      {/* ── 감사 #3: 지금 여기 → 다음 마디 한 줄(hero·timeline·milestones 연결) ── */}
+      {youAreHere && <p className={styles.youAreHere}>{youAreHere}</p>}
 
       {/* ── 자세히 ① 정체성 — 일간·격국·용신·강약 (사주를 아는 사람용) ── */}
       <details className={styles.expertWrap}>
         <summary className={styles.expertSummary}>
           {ko ? '왜 이런가요? · 본명 정체성 보기' : 'Why? · natal identity'}
         </summary>
+
+        {/* 감사: 폴드 ① lede */}
+        <p className={styles.foldLede}>
+          {ko
+            ? '쉽게 말하면, 타고난 ‘나의 바탕 기운(일간)’과 그 성격·균형을 사주 용어로 정리한 칸이에요.'
+            : 'In plain terms — this panel sums up your innate core energy (day master), its character and balance, in Saju terms.'}
+        </p>
+
+        {/* ── 감사 #5: 리치 DB read — "이게 당신이에요" ── */}
+        {(geokgukRich || sibsinRich || iljuRich) && (
+          <div className={styles.dbWrap}>
+            {/* (c) 일주 아키타입 — character 는 위 hero 에, 나머지는 여기에. */}
+            {iljuRich && (
+              <div className={styles.dbBlock}>
+                <div className={styles.dbTitle}>
+                  {ko ? '타고난 일주 결' : 'Your day-pillar grain'}
+                </div>
+                {/* character 는 novice 히어로에 이미 노출 — 폴드에는 나머지 4종만. */}
+                <div className={styles.dbPair}>
+                  {iljuRich.strength && (
+                    <span>
+                      <b>{ko ? '강점 ' : 'Strength '}</b>
+                      {iljuRich.strength}
+                    </span>
+                  )}
+                  {iljuRich.weakness && (
+                    <span>
+                      <b>{ko ? '약점 ' : 'Watch '}</b>
+                      {iljuRich.weakness}
+                    </span>
+                  )}
+                  {iljuRich.career && (
+                    <span>
+                      <b>{ko ? '일 ' : 'Work '}</b>
+                      {iljuRich.career}
+                    </span>
+                  )}
+                  {iljuRich.love && (
+                    <span>
+                      <b>{ko ? '사랑 ' : 'Love '}</b>
+                      {iljuRich.love}
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* (a) 격국 평이 read — tagline · personality · advice. */}
+            {geokgukRich && (
+              <div className={styles.dbBlock}>
+                <div className={styles.dbTitle}>
+                  {geokgukRich.tagline || (ko ? '격국 결' : 'Structure')}
+                </div>
+                {geokgukRich.personality && (
+                  <p className={styles.dbBody}>{geokgukRich.personality}</p>
+                )}
+                {geokgukRich.advice && (
+                  <p className={`${styles.dbBody} ${styles.dbCare}`}>{geokgukRich.advice}</p>
+                )}
+              </div>
+            )}
+
+            {/* (b) 십성 dominant 평이 read — title · meaning · warning. */}
+            {sibsinRich && (
+              <div className={styles.dbBlock}>
+                <div className={styles.dbTitle}>
+                  {sibsinRich.title || (ko ? '가장 두드러진 기운' : 'Strongest pull')}
+                </div>
+                {sibsinRich.meaning && <p className={styles.dbBody}>{sibsinRich.meaning}</p>}
+                {sibsinRich.warning && (
+                  <p className={`${styles.dbBody} ${styles.dbCare}`}>{sibsinRich.warning}</p>
+                )}
+              </div>
+            )}
+          </div>
+        )}
 
         <header className={styles.header}>
           <div className={styles.ganzhi}>{ilganHanja}</div>
@@ -270,8 +401,14 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
         <div className={styles.secH}>
           <span className={styles.secLbl}>{ko ? '대운 10년 흐름' : 'The decade timeline'}</span>
           <span className={styles.secLn} />
-          <span className={styles.secLat}>大運 · DECADES</span>
+          <span className={styles.secLat}>DECADES</span>
         </div>
+        {/* 감사 #4: 개념 primer — "10년마다 바뀌는 인생의 날씨". */}
+        <p className={styles.conceptNote}>
+          {ko
+            ? '10년마다 바뀌는 인생의 ‘날씨’ — 색이 진할수록 힘 실리는 시기예요.'
+            : "Life's 'weather' shifts every ten years — the deeper the colour, the more wind at your back."}
+        </p>
         <div className={styles.dwLegend}>
           <span className={styles.dwLegBoon}>
             <i />
@@ -298,12 +435,18 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
               .join(' ')
             const sibsin = d.sibsin && d.sibsin !== '—' ? String(d.sibsin) : ''
             const sibsinGloss = sibsin ? (ko ? sibsinArea(sibsin) : sibsinAreaEn(sibsin)) : ''
+            const gzKr = d.gz.kr // 한국어 음(갑술) — secondary 표기.
             return (
               <div className={cls} key={`dw-${d.startAge}-${i}`}>
                 {d.now && (
                   <span className={styles.dwNowTag}>{ko ? '지금 여기' : 'you are here'}</span>
                 )}
+                {/* 감사 #1: 평이 영역(생활영역)이 헤드라인 — bare 한자로 시작하지 않음. */}
+                {sibsinGloss && <span className={styles.dwGloss}>{sibsinGloss}</span>}
+                {/* 간지 한자는 작게 강등 + 한국어 음(갑술)을 secondary 로. raw 십신은
+                    기본뷰에서 제거(전문 폴드 정체성 read 로 흡수). */}
                 <span className={styles.dwGz}>{d.gz.hanja}</span>
+                {gzKr && <span className={styles.dwKr}>{gzKr}</span>}
                 <span className={styles.dwAge}>
                   {d.startAge}–{d.endAge}
                   {ko ? '세' : ''}
@@ -311,9 +454,6 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
                 <span className={styles.dwYear}>
                   {d.start}–{d.end}
                 </span>
-                {/* 십신은 쉬운 생활영역 한 줄로(모든 칸), raw 십신명은 작은 태그로. */}
-                {sibsinGloss && <span className={styles.dwGloss}>{sibsinGloss}</span>}
-                {sibsin && <span className={styles.dwSibsin}>{sibsin}</span>}
               </div>
             )
           })}
@@ -398,10 +538,11 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
                 <span className={styles.turnWhen}>{t.when}</span>
                 <div className={styles.turnBody}>
                   <div className={styles.turnTitle}>
+                    {/* 감사 #2: 제목 = 평이 의미. 간지·astro 원명은 작은 secondary 태그. */}
                     {t.title}
                     {t.now && <span className={styles.turnNowPill}>{ko ? '지금' : 'now'}</span>}
                   </div>
-                  {t.meaning && <div className={styles.turnMeaning}>{t.meaning}</div>}
+                  {t.tag && <div className={styles.turnTag}>{t.tag}</div>}
                 </div>
               </li>
             ))}
@@ -427,6 +568,13 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
           <summary className={styles.expertSummary}>
             {ko ? '점성 인생 장 · 본명 점 자세히' : 'Astrology chapters · natal Lots'}
           </summary>
+
+          {/* 감사: 폴드 ② lede */}
+          <p className={styles.foldLede}>
+            {ko
+              ? '쉽게 말하면, 점성술이 인생을 여러 ‘장’으로 나눠 본 큰 흐름과, 타고난 행운·인연의 자리를 보여드려요.'
+              : 'In plain terms — these are the big "chapters" astrology splits your life into, plus the seats of your innate fortune and bonds.'}
+          </p>
 
           {/* G. ZR 두 레인 (Spirit / Fortune) */}
           {((zrSpiritChapters?.length ?? 0) > 0 || (zrFortuneChapters?.length ?? 0) > 0) && (

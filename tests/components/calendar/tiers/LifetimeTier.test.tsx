@@ -18,8 +18,7 @@ import { LifetimeTier, type LifetimeTierProps } from '@/components/calendar/tier
 import type { DestinyLifetime } from '@/types/calendar'
 
 // ── real dumps ───────────────────────────────────────────────────────────────
-const SCRATCH =
-  '/tmp/claude-0/-home-user-saju-astro-chat/1d20fb2f-d849-5d3d-9e88-c2bd904a0a34/scratchpad'
+const SCRATCH = process.cwd() + '/tests/fixtures/calendar'
 
 const lifetime = JSON.parse(
   readFileSync(resolve(SCRATCH, 'audit-lifetime.json'), 'utf-8')
@@ -75,6 +74,54 @@ describe('LifetimeTier (인생 전체 · LIGHT)', () => {
   it('renders the decade-timeline section header', () => {
     renderTier()
     expect(screen.getByText('대운 10년 흐름')).toBeInTheDocument()
+  })
+
+  it('surfaces a "지금 여기 → 다음 마디" connecting one-liner', () => {
+    renderTier()
+    // nowAge = 2026 - 1995 = 31; current season = 청년기; next milestone age = 35.
+    expect(
+      screen.getByText(/지금 31세, ‘청년기’를 살고 있어요\. 다음 큰 마디는 35세예요\./)
+    ).toBeInTheDocument()
+  })
+
+  it('shows the decade "weather" concept primer (not a bare Latin tag)', () => {
+    renderTier()
+    expect(screen.getByText(/10년마다 바뀌는 인생의 ‘날씨’/)).toBeInTheDocument()
+  })
+
+  it('leads timeline cells with the plain life-area gloss + Korean reading 갑술', () => {
+    renderTier()
+    // 甲戌 = 정재 → sibsinArea gloss should be present as the cell headline,
+    // and the Korean reading 갑술 (gz.kr) is surfaced as a secondary.
+    expect(screen.getByText('갑술')).toBeInTheDocument()
+  })
+
+  it('wires geokguk-rich into the identity fold (personality prose)', () => {
+    renderTier()
+    // 정인격 personality from geokguk-rich.json.
+    expect(screen.getByText(/어머니의 품처럼 따뜻하고/)).toBeInTheDocument()
+    expect(screen.getByText('배움과 따뜻함으로 사람을 품는 사색가')).toBeInTheDocument()
+  })
+
+  it('wires sibsin-category (dominant 재성) into the identity fold', () => {
+    renderTier()
+    // 재성 dominant title from sibsin-category.json.
+    expect(screen.getByText('돈·사업·이성 면')).toBeInTheDocument()
+  })
+
+  it('wires the ilju-60 archetype character onto the novice surface', () => {
+    renderTier()
+    expect(screen.getByText(/양털 위 보석/)).toBeInTheDocument()
+  })
+
+  it('milestone titles lead with the plain meaning, not raw hanja/astro', () => {
+    renderTier()
+    // 甲戌 대운 milestone → plain meaning is the title; raw 간지 name is a tag.
+    expect(screen.getByText('정재 대운이 열려요 — 차근차근 쌓는 안정의 10년')).toBeInTheDocument()
+    // the Pluto milestone leads with plain meaning, not "명왕성 사각".
+    expect(
+      screen.getByText('정체성과 내면 깊은 곳이 강하게 재구성되는 시기예요.')
+    ).toBeInTheDocument()
   })
 
   it('renders English identity when locale=en (pattern in EN, hanja still raw)', () => {

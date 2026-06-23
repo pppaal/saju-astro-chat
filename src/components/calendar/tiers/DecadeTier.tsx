@@ -186,6 +186,11 @@ export function DecadeTier({ user, decade, onDive, onRise }: DecadeTierProps) {
     : `These 10 years (ages ${decade.ageFrom}–${decade.ageTo}) are a time for building ‘${areaTitle}’`
   const novTheme = ko ? decade.theme : (decade.themeEn ?? decade.theme)
 
+  // ── 개념 프라이머: 사주에서 인생이 10년 단위로 나뉜다는 점을 한 줄로 안내. ──
+  const conceptPrimer = ko
+    ? '사주에서 인생은 10년 단위 큰 흐름으로 나뉘어요. 지금 당신이 지나는 10년은 이런 결이에요.'
+    : 'In Saju, life unfolds in ten-year chapters. Here is the grain of the ten years you are passing through now.'
+
   // ── 계절 보조 태그. ──
   const season = seasonOf(sibsinRaw)
   const seasonInfo = SEASON_LABEL[season]
@@ -204,9 +209,17 @@ export function DecadeTier({ user, decade, onDive, onRise }: DecadeTierProps) {
     return y.score > best.score ? y : best
   }, null)
   const peakYear = peakYearObj?.year ?? decade.start
-  const turningLine = ko
-    ? `이 10년 안에서는 ${peakYear}년 무렵이 가장 무르익는 해예요.`
-    : `Within this decade, around ${peakYear} is when things ripen most.`
+  // ── 스코어가 거의 균일한지(평탄) — 막대가 다 같아 보이면 다른 카피로 안내. ──
+  const scoreVals = years.map((y) => y.score)
+  const scoreSpread = scoreVals.length ? Math.max(...scoreVals) - Math.min(...scoreVals) : 0
+  const flatScores = scoreSpread <= 3
+  const turningLine = flatScores
+    ? ko
+      ? '이 10년은 특정 해에 몰리기보다 전체적으로 고른 편이에요.'
+      : 'Across this decade the years run fairly even, rather than peaking in any one year.'
+    : ko
+      ? `이 10년 안에서는 ${peakYear}년 무렵이 가장 무르익는 해예요.`
+      : `Within this decade, around ${peakYear} is when things ripen most.`
 
   // ── 합충 / 12운성 — 평이 본문을 主로, 한자/이름은 작은 태그로. ──
   //    titleEn 부재 → ?? ko. romaji 부재 가드.
@@ -231,6 +244,17 @@ export function DecadeTier({ user, decade, onDive, onRise }: DecadeTierProps) {
   const crossActs = decade.crossActivations ?? []
   const topCross = [...crossActs].sort((a, b) => Math.abs(b.polarity) - Math.abs(a.polarity))[0]
 
+  // ── 묻혀 있던 "이렇게 해보세요" 한 줄을 기본뷰로 surface. ──
+  //    가장 또렷한 cross 의 평이 의미에서 "X × Y —" 접두를 떼어 일상어 행동 한 줄만.
+  const adviceSource = topCross
+    ? ko
+      ? topCross.meaning
+      : (topCross.meaningEn ?? topCross.meaning)
+    : undefined
+  const novAdvice = adviceSource
+    ? adviceSource.replace(/^[^—]*×[^—]*—\s*/, '').trim() || adviceSource
+    : ''
+
   // ── dive 연도. ──
   const diveYear = decade.focusYear ?? decade.start
 
@@ -254,8 +278,12 @@ export function DecadeTier({ user, decade, onDive, onRise }: DecadeTierProps) {
 
       {/* ── novice 기본: 한자·용어 없는 일상어 결론 ── */}
       <header className={styles.novice}>
+        {/* 개념 프라이머 — 10년 단위 인생 흐름 안내(히어로 위). */}
+        <p className={styles.conceptPrimer}>{conceptPrimer}</p>
         <div className={styles.novToneWord}>{novHero}</div>
         {novTheme && <p className={styles.novLine}>{novTheme}</p>}
+        {/* 묻혀 있던 "이렇게 해보세요" 한 줄을 기본뷰로 끌어올림. */}
+        {novAdvice && <p className={styles.novAdvice}>{novAdvice}</p>}
       </header>
 
       {/* ── 이 10년 중 큰 해 — 연도 스트립 (시각/평이 — 색=의미라 기본 유지) ── */}
@@ -268,7 +296,21 @@ export function DecadeTier({ user, decade, onDive, onRise }: DecadeTierProps) {
             <span className={styles.secLn} />
             <span className={styles.secLat}>Years</span>
           </div>
+          {/* 막대 읽는 법 — 한 줄 범례. */}
+          <p className={styles.stripLegend}>
+            {ko
+              ? '막대가 높을수록 기운이 강한 해예요.'
+              : 'The taller the bar, the stronger that year runs.'}
+          </p>
           <BigYearStrip years={years} ko={ko} peakYear={peakYear} />
+          {/* 평탄 데이터 폴백 — 막대가 다 비슷할 때 "왜 다 같지?" 오해 방지. */}
+          {flatScores && (
+            <p className={styles.stripFlatNote}>
+              {ko
+                ? '이 10년은 큰 기복 없이 꾸준한 흐름이에요.'
+                : 'This decade flows steadily, without big ups and downs.'}
+            </p>
+          )}
           <p className={styles.turningLine}>{turningLine}</p>
         </section>
       )}
@@ -278,6 +320,11 @@ export function DecadeTier({ user, decade, onDive, onRise }: DecadeTierProps) {
         <summary className={styles.expertSummary}>
           {ko ? '왜 이런가요? · 대운과 근거 보기' : 'Why? · the decade pillar & relations'}
         </summary>
+        <p className={styles.foldLede}>
+          {ko
+            ? '쉽게 말하면, 지금 10년에 깔린 기운을 사주의 ‘대운 간지’로 풀고, 그것이 타고난 본명과 어떻게 어울리는지를 보여드려요.'
+            : 'In plain terms: we read the energy under these ten years through your Saju “decade pillar,” and show how it meshes with the chart you were born with.'}
+        </p>
 
         {/* ── ganzhi header ── */}
         <header className={styles.header}>
@@ -376,6 +423,11 @@ export function DecadeTier({ user, decade, onDive, onRise }: DecadeTierProps) {
           <summary className={styles.expertSummary}>
             {ko ? '하늘의 마디 · 사주 × 별자리 교차' : 'Sky milestones · Saju × Astro'}
           </summary>
+          <p className={styles.foldLede}>
+            {ko
+              ? '쉽게 말하면, 이 10년 동안 하늘에서 일어나는 큰 사건과, 그게 사주와 겹치는 지점을 보여드려요.'
+              : 'In plain terms: we show the big events happening in the sky over these ten years, and where they overlap with your Saju.'}
+          </p>
 
           {/* ── 외행성 마디 (astro · ko-only) ── */}
           {astro.length > 0 && (

@@ -290,9 +290,11 @@
 .dwGz {
   font-family: var(--m-serif);
   font-weight: 500;
-  font-size: clamp(15px, 3.6vw, 19px);
-  color: var(--gold-deep);
+  font-size: clamp(11px, 2.6vw, 13px);
+  color: var(--t2);
   line-height: 1.05;
+  letter-spacing: 0.04em;
+  margin-top: 3px;
 }
 .dwNow .dwGz {
   color: var(--blue);
@@ -311,17 +313,15 @@
   font-variant-numeric: tabular-nums;
 }
 .dwGloss {
-  font-size: 9.5px;
-  color: var(--blue);
-  line-height: 1.3;
-  margin-top: 2px;
+  font-family: var(--m-serif);
+  font-weight: 500;
+  font-size: clamp(11.5px, 2.9vw, 13.5px);
+  color: var(--t0);
+  line-height: 1.28;
   word-break: keep-all;
 }
-.dwSibsin {
-  font-family: var(--m-serif);
-  font-size: 10px;
-  color: var(--t1);
-  margin-top: 1px;
+.dwNow .dwGloss {
+  color: var(--blue);
 }
 
 /* ── D. 계절 4 stages ── */
@@ -647,6 +647,107 @@
   max-width: 30ch;
   margin: 13px auto 0;
   word-break: keep-all;
+}
+
+/* ── 폴드 도입부 lede ("쉽게 말하면 …") ── */
+.foldLede {
+  font-size: 13px;
+  color: var(--t1);
+  margin: 2px 0 14px;
+  line-height: 1.62;
+  word-break: keep-all;
+}
+
+/* ── "지금 여기 / 다음 마디" 한 줄 (hero→timeline→milestones 연결) ── */
+.youAreHere {
+  max-width: 34ch;
+  margin: 18px auto 4px;
+  text-align: center;
+  font-size: 14px;
+  color: var(--t1);
+  line-height: 1.62;
+  word-break: keep-all;
+}
+.youAreHere b {
+  color: var(--gold-deep);
+  font-weight: 500;
+}
+
+/* ── 섹션 개념 안내 한 줄 (예: 10년 날씨) ── */
+.conceptNote {
+  font-size: 13px;
+  color: var(--t1);
+  line-height: 1.6;
+  margin: -6px 0 16px;
+  word-break: keep-all;
+}
+
+/* ── timeline 셀 — 한국어 음(갑술) 작은 secondary ── */
+.dwKr {
+  font-family: var(--m-serif);
+  font-size: 10px;
+  color: var(--t2);
+  line-height: 1.1;
+  letter-spacing: 0.02em;
+}
+.dwNow .dwKr {
+  color: var(--blue);
+}
+
+/* ── milestone secondary 태그 (간지·astro 원명을 작게) ── */
+.turnTag {
+  display: inline-block;
+  font-family: var(--m-serif);
+  font-size: 10.5px;
+  color: var(--t2);
+  border: 1px solid var(--line-2);
+  border-radius: 10px;
+  padding: 1px 8px;
+  margin-top: 5px;
+  white-space: nowrap;
+}
+
+/* ── 정체성 DB 블록 (격국/십신/일주 평이 read) ── */
+.dbWrap {
+  margin: 4px 0 18px;
+}
+.dbBlock {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+.dbBlock:first-of-type {
+  border-top: none;
+  padding-top: 0;
+}
+.dbTitle {
+  font-family: var(--m-serif);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--t0);
+  margin-bottom: 6px;
+}
+.dbBody {
+  font-size: 13px;
+  color: var(--t1);
+  line-height: 1.7;
+  margin: 0 0 6px;
+  word-break: keep-all;
+}
+.dbCare {
+  color: var(--crimson);
+}
+.dbPair {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 18px;
+  font-size: 12.5px;
+  color: var(--t1);
+  margin-top: 4px;
+}
+.dbPair span b {
+  font-weight: 500;
+  color: var(--t0);
 }
 
 /* ── 자세히 폴드 (전문층 — 사주를 아는 사람만 펼침) — DayTier 블록 그대로 복사 ── */

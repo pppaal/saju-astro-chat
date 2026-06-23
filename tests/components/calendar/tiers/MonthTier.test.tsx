@@ -87,7 +87,8 @@ describe('MonthTier (이 달의 모양 · LIGHT)', () => {
   describe('header', () => {
     it('renders the monthly eyebrow + ko "N월의 모양" title', () => {
       render(<MonthTier month={makeMonth()} onDive={noop} onRise={noop} />)
-      expect(screen.getByText('1달 · MONTHLY · 2026-06')).toBeInTheDocument()
+      expect(screen.getByText('2026년 6월')).toBeInTheDocument()
+      // ganzhi 폴드 안의 "6월의 모양" (자세히 보기)
       expect(screen.getByText('6월의 모양')).toBeInTheDocument()
     })
 
@@ -102,6 +103,51 @@ describe('MonthTier (이 달의 모양 · LIGHT)', () => {
       // 간지는 이제 표면에 노출된다(시안 의도) — 더 이상 폴드 안에 숨기지 않는다.
       expect(screen.getByText('甲午')).toBeInTheDocument()
       expect(screen.getByText('갑오월')).toBeInTheDocument()
+    })
+  })
+
+  describe('novice basic view (surfaced content)', () => {
+    it('surfaces the do/avoid action line from structured fields (ko)', () => {
+      // bestDay 06-06 → do, cautionDays[0] 06-20 → avoid
+      render(<MonthTier month={makeMonth()} onDive={noop} onRise={noop} />)
+      expect(screen.getByText('이렇게 해보세요')).toBeInTheDocument()
+      expect(screen.getByText(/6\/6 무렵 미뤄둔 일을 추진하고/)).toBeInTheDocument()
+      expect(screen.getByText(/6\/20 무렵엔 큰 결정·이동을 미루세요/)).toBeInTheDocument()
+    })
+
+    it('shows the "tap a date" hint near the grid (ko)', () => {
+      render(<MonthTier month={makeMonth()} onDive={noop} onRise={noop} />)
+      expect(screen.getByText(/날짜를 누르면 그날 운을 볼 수 있어요/)).toBeInTheDocument()
+    })
+
+    it('shows the legend explainer line (ko)', () => {
+      render(<MonthTier month={makeMonth()} onDive={noop} onRise={noop} />)
+      expect(
+        screen.getByText(/색이 진할수록 잘 풀리는 날, 붉은 날은 큰 결정을 미루기 좋은 날/)
+      ).toBeInTheDocument()
+    })
+
+    it('uses plain hero tone word "잘 풀리는 달" (no writer-speak 결)', () => {
+      // goodDays:2 > careN:2? equal → mild. Force a good month.
+      const month = makeMonth({
+        goodDays: ['06-05', '06-10', '06-11'],
+        cautionDays: ['06-20'],
+        avoidDays: [],
+      })
+      render(<MonthTier month={month} onDive={noop} onRise={noop} />)
+      expect(screen.getByText('잘 풀리는 달')).toBeInTheDocument()
+    })
+  })
+
+  describe('fold ledes (쉽게 말하면 …)', () => {
+    it('renders a plain-language lede after each fold summary (ko)', () => {
+      render(<MonthTier month={makeMonth()} onDive={noop} onRise={noop} />)
+      expect(
+        screen.getByText(/이 달 전체에 흐르는 기운을 사주의 '간지'로 나타낸 거예요/)
+      ).toBeInTheDocument()
+      expect(
+        screen.getByText(/가장 또렷한 흐름이 사주와 별자리 어디서 겹치는지/)
+      ).toBeInTheDocument()
     })
   })
 
@@ -174,6 +220,19 @@ describe('MonthTier (이 달의 모양 · LIGHT)', () => {
       // day 20 is marked caution → tag "조심할 날"
       expect((readout as HTMLElement).textContent).toContain('조심할 날')
       expect((readout as HTMLElement).textContent).toContain('20')
+      // actionable advice for a caution day
+      expect((readout as HTMLElement).textContent).toContain(
+        '큰 결정·계약·이사는 며칠 미루는 게 좋아요'
+      )
+    })
+
+    it('shows actionable advice for a good day in the readout (ko)', () => {
+      const { container } = render(<MonthTier month={makeMonth()} onDive={noop} onRise={noop} />)
+      fireEvent.click(screen.getByRole('button', { name: '5일 자세히 보기' }))
+      const readout = container.querySelector('[class*="readout"]')!
+      expect((readout as HTMLElement).textContent).toContain(
+        '미뤄둔 일을 시작하거나 밀어붙이기 좋아요'
+      )
     })
 
     it('shows the big-day title in the readout when the selected day is a key day', () => {

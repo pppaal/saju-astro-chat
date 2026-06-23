@@ -104,6 +104,9 @@ function zrRulerKo(ruler: string | undefined, ko: boolean): string {
 type MonthTone = 'good' | 'steady' | 'caution'
 
 function monthTone(score: number): MonthTone {
+  // score 0 = 미스코어/현재 달(점수 미산출). caution-red 로 칠하면 novice 가
+  // "위험한 달"로 오해 → 평범(steady, gray) 으로 본다. 실제 낮은 점수만 caution.
+  if (score <= 0) return 'steady'
   if (score >= 60) return 'good'
   if (score >= 40) return 'steady'
   return 'caution'
@@ -163,14 +166,14 @@ export function YearTier({ user, year, onDive, onRise }: YearTierProps) {
   if (sewoonAreaPlain) {
     yearReadingParts.push(
       ko
-        ? `올해는 ‘${sewoonAreaPlain}’의 결이 한 해의 바탕을 이뤄요.`
-        : `This year, ${sewoonAreaPlain} forms the underlying grain.`
+        ? `올해는 ‘${sewoonAreaPlain}’ 쪽 일이 한 해의 바탕을 이뤄요.`
+        : `This year, ${sewoonAreaPlain} forms the underlying tone.`
     )
   }
   if (p) {
     yearReadingParts.push(
       ko
-        ? `무게중심은 ‘${p.theme}’ 쪽으로 기울어, 그 결의 일이 가장 또렷하게 움직여요.`
+        ? `무게중심은 ‘${p.theme}’ 쪽으로 기울어, 이쪽 일이 가장 또렷하게 움직여요.`
         : `The weight tilts toward your ${ordinalEn(p.house)} house (${p.themeEn.toLowerCase()}) — that’s where things move most clearly.`
     )
   }
@@ -220,15 +223,24 @@ export function YearTier({ user, year, onDive, onRise }: YearTierProps) {
   const toneTag = (t: 'good' | 'caution' | 'neutral') =>
     ko ? (t === 'good' ? '길' : t === 'caution' ? '주의' : '중립') : t
 
-  // ── novice hero — profection.theme(이미 평이) 중심 일상어 결론. ──
+  // ── novice hero — 작은 테마 태그 + 리치 하우스 DB 풀이를 보조줄로(암호 태그 해소). ──
+  //    houseMeaning 은 adapter 가 astro-house-rich.json `meaning` 에서 surface(가드+폴백).
   const profThemePlain = p ? (ko ? p.theme : p.themeEn) : ''
-  const heroTheme = profThemePlain || (ko ? '한 해의 결' : 'this year’s grain')
+  const heroTheme = profThemePlain || (ko ? '올해의 흐름' : 'this year’s flow')
+  const houseMeaningRich = p
+    ? ko
+      ? ((p as { houseMeaning?: string }).houseMeaning ?? '')
+      : ((p as { houseMeaningEn?: string }).houseMeaningEn ?? '')
+    : ''
   const novHeadline = ko
-    ? `${year.year}년은 ‘${heroTheme}’이 중심이 되는 해`
-    : `${year.year} centres on ‘${heroTheme}’`
-  const novFraming = ko
-    ? '올해 한 해, 이 결의 일이 가장 또렷하게 움직여요. 아래에서 흐름을 펼쳐 보세요.'
-    : 'All year, this is where things move most clearly. Unfold the details below.'
+    ? `${year.year}년, 한 해의 무게가 이쪽으로 기울어요`
+    : `In ${year.year}, the weight of the year tilts here`
+  // 보조줄 = 리치 하우스 풀이(평이 문단). 없으면 2단어 테마 폴백.
+  const novSupport =
+    houseMeaningRich ||
+    (ko
+      ? `올해는 ‘${heroTheme}’이 한 해의 중심이 되는 시기예요.`
+      : `This year, ‘${heroTheme}’ is at the centre.`)
 
   return (
     <div className={styles.yearRoot}>
@@ -248,7 +260,8 @@ export function YearTier({ user, year, onDive, onRise }: YearTierProps) {
       {/* ── novice 기본: 한자·용어 없는 일상어 결론 ── */}
       <header className={styles.novice}>
         <div className={styles.novToneWord}>{novHeadline}</div>
-        <p className={styles.novLine}>{novFraming}</p>
+        {heroTheme && <span className={styles.novTag}>{heroTheme}</span>}
+        <p className={styles.novLine}>{novSupport}</p>
       </header>
 
       {/* ── 자세히 ① 세운 간지·사주 한 줄 (사주를 아는 사람용) ── */}
@@ -256,6 +269,12 @@ export function YearTier({ user, year, onDive, onRise }: YearTierProps) {
         <summary className={styles.expertSummary}>
           {ko ? '올해의 간지와 사주 보기' : 'This year’s pillar & saju'}
         </summary>
+
+        <p className={styles.foldLede}>
+          {ko
+            ? '쉽게 말하면, 올 한 해에 깔린 기운을 사주의 ‘세운 간지’로 풀어 보여드려요.'
+            : 'In plain words: the energy underlying this year, read through your saju’s annual pillar.'}
+        </p>
 
         {/* ── 세운 간지 header ── */}
         <header className={styles.header}>
@@ -273,7 +292,7 @@ export function YearTier({ user, year, onDive, onRise }: YearTierProps) {
             <div className={styles.counts}>
               {sewoonAreaPlain ? (
                 <span className={styles.cArea}>
-                  {ko ? '올해의 결' : 'Annual'}
+                  {ko ? '올해의 무대' : 'Annual'}
                   <b>{sewoonAreaPlain}</b>
                 </span>
               ) : (
@@ -359,6 +378,11 @@ export function YearTier({ user, year, onDive, onRise }: YearTierProps) {
               )
             })}
           </div>
+          <p className={styles.stripHint}>
+            {ko
+              ? '색이 진할수록 일을 크게 벌이기 좋은 달, 회색은 평범한 달이에요.'
+              : 'The deeper the colour, the better the month for making big moves; grey months are ordinary.'}
+          </p>
           <div className={styles.legend}>
             <span className={`${styles.lg} ${styles.lgGood}`}>
               <i />
@@ -411,6 +435,12 @@ export function YearTier({ user, year, onDive, onRise }: YearTierProps) {
           {ko ? '왜 이런가요? · 무대 · 교차 · 황도분기' : 'Why? · stage · crossings · ZR'}
         </summary>
 
+        <p className={styles.foldLede}>
+          {ko
+            ? '쉽게 말하면, 점성술이 보는 ‘올해의 무대(어떤 삶의 영역이 켜지는지)’와 그걸 이끄는 별, 인생의 큰 장이 지금 어디쯤인지를 보여드려요.'
+            : 'In plain words: the “stage” astrology lights up this year (which area of life switches on), the star that leads it, and where you are in the larger chapters of your life.'}
+        </p>
+
         {/* ── 올해의 무대 (프로펙션) ── */}
         {p && (
           <section className={styles.sec}>
@@ -423,7 +453,7 @@ export function YearTier({ user, year, onDive, onRise }: YearTierProps) {
               <p className={styles.stageTheme}>{ko ? p.theme : p.themeEn}</p>
               <p className={styles.stageLead}>
                 {ko
-                  ? '올해는 이 결이 한 해의 중심 무대가 돼요.'
+                  ? '올해는 이 영역이 한 해의 중심 무대가 돼요.'
                   : `This is the year’s ${ordinalEn(p.house)}-house stage.`}
               </p>
               <div className={styles.stageTags}>

@@ -12,9 +12,8 @@ vi.mock('@/i18n/I18nProvider', () => ({
 import { DayTier } from '@/components/calendar/tiers/DayTier'
 import type { DestinyDay } from '@/types/calendar'
 
-// 실 덤프 — scratchpad/audit-day.json 을 런타임에 읽어 캐스팅.
-const AUDIT_PATH =
-  '/tmp/claude-0/-home-user-saju-astro-chat/1d20fb2f-d849-5d3d-9e88-c2bd904a0a34/scratchpad/audit-day.json'
+// 실 덤프 — tests/fixtures/calendar/audit-day.json 을 런타임에 읽어 캐스팅.
+const AUDIT_PATH = process.cwd() + '/tests/fixtures/calendar/audit-day.json'
 const day = JSON.parse(fs.readFileSync(AUDIT_PATH, 'utf-8')) as unknown as DestinyDay
 
 const noop = () => {}

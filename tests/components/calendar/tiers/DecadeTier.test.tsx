@@ -242,6 +242,31 @@ describe('DecadeTier (이 10년 · LIGHT)', () => {
     expect(screen.getByText('가장 또렷한 흐름')).toBeInTheDocument()
   })
 
+  it('shows the 10-year concept primer above the hero (novice)', () => {
+    render(<DecadeTier user={user} decade={decade} onDive={noop} onRise={noop} />)
+    expect(screen.getByText(/사주에서 인생은 10년 단위 큰 흐름으로 나뉘어요/)).toBeInTheDocument()
+  })
+
+  it('surfaces a plain "what to do" advice line on the novice surface', () => {
+    render(<DecadeTier user={user} decade={decade} onDive={noop} onRise={noop} />)
+    // strongest cross (정관 × 토성) meaning, with the "X × Y —" prefix stripped.
+    // (also appears inside the fold cross card → assert ≥1.)
+    expect(screen.getAllByText(/공식 절차·약속을 다지기 좋음/).length).toBeGreaterThan(0)
+  })
+
+  it('renders the strip legend and a flat-data fallback note (all scores 50)', () => {
+    render(<DecadeTier user={user} decade={decade} onDive={noop} onRise={noop} />)
+    expect(screen.getByText(/막대가 높을수록 기운이 강한 해예요/)).toBeInTheDocument()
+    expect(screen.getByText(/큰 기복 없이 꾸준한 흐름이에요/)).toBeInTheDocument()
+    // flat-data turning line, not the peak-year wording.
+    expect(screen.getByText(/전체적으로 고른 편이에요/)).toBeInTheDocument()
+  })
+
+  it('renders "쉽게 말하면" fold ledes inside both expert folds', () => {
+    render(<DecadeTier user={user} decade={decade} onDive={noop} onRise={noop} />)
+    expect(screen.getAllByText(/쉽게 말하면/).length).toBeGreaterThanOrEqual(2)
+  })
+
   it('renders hapchung + unseong titles', () => {
     render(<DecadeTier user={user} decade={decade} onDive={noop} onRise={noop} />)
     expect(screen.getByText('卯戌육합')).toBeInTheDocument()

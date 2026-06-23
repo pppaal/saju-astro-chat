@@ -311,6 +311,18 @@
   color: var(--blue);
   white-space: nowrap;
 }
+/* 막대 읽는 법 범례 — 스트립 위 한 줄. */
+.stripLegend {
+  font-size: 12px;
+  color: var(--t2);
+  margin: 0 0 10px;
+}
+/* 평탄 데이터 폴백 — 막대가 다 비슷할 때 안내. */
+.stripFlatNote {
+  font-size: 13px;
+  color: var(--t1);
+  margin-top: 14px;
+}
 .turningLine {
   font-size: 14px;
   color: var(--t1);
@@ -611,6 +623,24 @@
   text-align: center;
   margin: 6px 0 24px;
 }
+/* 개념 프라이머 — 10년 단위 인생 흐름 안내(히어로 위, 작고 차분하게). */
+.conceptPrimer {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--t2);
+  max-width: 32ch;
+  margin: 0 auto 14px;
+  word-break: keep-all;
+}
+/* 묻혀 있던 "이렇게 해보세요" 한 줄 — 결론 아래, 따뜻하게 강조. */
+.novAdvice {
+  font-size: clamp(14px, 3.8vw, 16px);
+  line-height: 1.62;
+  color: var(--gold-deep);
+  max-width: 30ch;
+  margin: 12px auto 0;
+  word-break: keep-all;
+}
 .novToneWord {
   font-family: var(--m-serif);
   font-size: clamp(24px, 6.4vw, 32px);
@@ -662,6 +692,14 @@
 }
 .expertSummary::-webkit-details-marker {
   display: none;
+}
+/* 폴드 도입부 — "쉽게 말하면 …" 한 줄(summary 직후, 첫 raw 헤더 전). */
+.foldLede {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--t1);
+  margin: 2px 0 16px;
+  word-break: keep-all;
 }
 .expertSummary::before {
   content: '▸';

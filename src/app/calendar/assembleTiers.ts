@@ -314,6 +314,7 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
     introEn: userBase.introEn,
     gyeokgukStatus: userBase.geokgukStatus,
     rootStatus: userBase.rootStatus,
+    iljuArchetype: userBase.iljuArchetype,
   }
 
   // 개인 시드 — 본명 고정 값(일간·용신·격국·신강약)에서 한 번 산출. 템플릿 문구를
