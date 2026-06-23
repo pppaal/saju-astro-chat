@@ -311,6 +311,28 @@ const metricsTokenSchema = z.object({
 // "매일 아침 오늘의 운세" 웹 푸시 구독 — POST /api/me/push-subscription.
 // endpoint 는 푸시 서비스가 발급한 https URL (구독의 자연키, upsert 기준).
 
+// SSRF 방어 — endpoint 는 cron sender 가 서버에서 직접 POST 하는 URL 이므로,
+// 인증된 사용자가 임의 내부/사설 호스트를 심어 서버발 요청을 유발(blind SSRF)하지
+// 못하도록 *알려진 푸시 서비스 도메인* 으로 호스트를 제한한다. IP 리터럴(사설/링크
+// 로컬 포함)은 어느 suffix 와도 안 맞아 자동 거부된다.
+const ALLOWED_PUSH_HOST_SUFFIXES = [
+  '.googleapis.com', // FCM (Chrome/Android): fcm.googleapis.com
+  '.push.services.mozilla.com', // Firefox
+  '.notify.windows.com', // Edge/WNS
+  '.push.apple.com', // Safari web push: web.push.apple.com
+] as const
+
+function isAllowedPushEndpoint(raw: string): boolean {
+  let host: string
+  try {
+    host = new URL(raw).hostname.toLowerCase()
+  } catch {
+    return false
+  }
+  // 선행 '.' 로 lookalike 도메인(evil-googleapis.com) 차단.
+  return ALLOWED_PUSH_HOST_SUFFIXES.some((suffix) => host.endsWith(suffix))
+}
+
 export const pushSubscriptionUpsertSchema = z.object({
   endpoint: z
     .string()
@@ -318,6 +340,9 @@ export const pushSubscriptionUpsertSchema = z.object({
     .url()
     .refine((url) => url.startsWith('https://'), {
       message: 'Push endpoint must be https',
+    })
+    .refine(isAllowedPushEndpoint, {
+      message: 'Push endpoint host is not an allowed push service',
     }),
   keys: z.object({
     p256dh: z.string().min(1).max(512),

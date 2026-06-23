@@ -56,6 +56,15 @@ const DAEUN_SIBSIN_MEANING: Record<string, { ko: string; en: string }> = {
 }
 
 /**
+ * 십신을 못 푸는 대운의 평이 폴백 — novice 표면 제목이 raw 干支 라벨이 되지
+ * 않도록 하는 최후의 의미 한 줄. (干支 원명은 hover tag 로만 보존된다.)
+ */
+const GENERIC_DAEUN_MEANING = {
+  ko: '새로운 대운이 열려요 — 10년 흐름의 결이 바뀌는 시기',
+  en: 'A new luck cycle opens — the grain of the next decade shifts',
+}
+
+/**
  * 대운 천간(干支의 천간) → 일간 기준 십신 한 줄 의미. 못 푸는 글자/십신은
  * undefined 반환(라벨만 남고 폴백) — 빈 문자열을 억지로 채우지 않는다.
  */
@@ -183,8 +192,11 @@ export function deriveLifetimePivots(
       year: d.startYear,
       label: `${d.stem}${d.branch} 대운`,
       labelEn: `${d.stem}${d.branch} luck cycle`,
-      meaning: m?.ko,
-      meaningEn: m?.en,
+      // 십신을 못 풀어도(최소 fixture·미상 글자) novice 표면 제목이 raw 干支 라벨로
+      // 새지 않도록 평이 폴백을 보장한다 — 클라이언트는 meaning 이 비면 label(干支)을
+      // 제목으로 쓰기 때문(LifetimeTier mMeaning). 干支 원명은 hover tag 로만 남는다.
+      meaning: m?.ko ?? GENERIC_DAEUN_MEANING.ko,
+      meaningEn: m?.en ?? GENERIC_DAEUN_MEANING.en,
     }
   })
 

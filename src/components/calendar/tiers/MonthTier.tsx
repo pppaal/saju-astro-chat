@@ -604,14 +604,14 @@ export function MonthTier({ month, onDive, onRise, showRise = true }: MonthTierP
                     </span>
                     <span className={`${styles.term} ${styles.termSaju}`}>
                       <span className={styles.termSys}>Saju</span>
-                      <span className={styles.termNm}>{c.saju}</span>
+                      <span className={styles.termNm}>{ko ? c.saju : c.sajuEn}</span>
                     </span>
                     <span className={styles.crossX} aria-hidden>
                       ×
                     </span>
                     <span className={`${styles.term} ${styles.termAstro}`}>
                       <span className={styles.termSys}>Astro</span>
-                      <span className={styles.termNm}>{c.astro}</span>
+                      <span className={styles.termNm}>{ko ? c.astro : c.astroEn}</span>
                     </span>
                     {isHero && (
                       <span className={styles.crossFlag}>
