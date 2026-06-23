@@ -173,11 +173,18 @@ export function DecadeTier({ user, decade, onDive, onRise }: DecadeTierProps) {
   const ganjiHanja = decade.gz.hanja
   const ganjiRead = ko ? decade.gz.kr : (decade.gz.en ?? decade.gz.kr)
 
-  // ── 대운 십신 — 표면 노출 + 쉬운 area 테마. ──
+  // ── 대운 십신 — 폴드 노출 + 쉬운 area 테마. ──
   const sibsinRaw = String(decade.sibsin)
   const sibsinLabel = ko ? sibsinRaw : (SIBSIN_EN[sibsinRaw] ?? sibsinRaw)
   const areaTitle = ko ? sibsinArea(sibsinRaw) : sibsinAreaEn(sibsinRaw)
   const themeTitle = ko ? `${areaTitle}의 10년` : `A decade of ${areaTitle}`
+
+  // ── novice 기본: 한자·용어 없는 일상어 결론. ──
+  //    "지금 10년(31~41세)은 '돈·안정'을 쌓는 시기" + 평이 theme.
+  const novHero = ko
+    ? `지금 10년(${decade.ageFrom}~${decade.ageTo}세)은 ‘${areaTitle}’을 쌓는 시기`
+    : `These 10 years (ages ${decade.ageFrom}–${decade.ageTo}) are a time for building ‘${areaTitle}’`
+  const novTheme = ko ? decade.theme : (decade.themeEn ?? decade.theme)
 
   // ── 계절 보조 태그. ──
   const season = seasonOf(sibsinRaw)
@@ -245,51 +252,13 @@ export function DecadeTier({ user, decade, onDive, onRise }: DecadeTierProps) {
         </span>
       </div>
 
-      {/* ── ganzhi header ── */}
-      <header className={styles.header}>
-        <div className={styles.ganzhi}>{ganjiHanja}</div>
-        <div className={styles.ganzhiRead}>
-          {ganjiRead}
-          {ko ? ' 대운' : ' decade'}
-          <span className={styles.sibsinChip}>{sibsinLabel}</span>
-        </div>
-        <div className={styles.title}>
-          {decade.start} – {decade.end}
-          <span className={styles.titleKo}>{themeTitle}</span>
-        </div>
-        <div className={styles.counts}>
-          <span className={styles.cAge}>
-            {ko ? '나이' : 'age'}
-            <b>
-              {decade.ageFrom}–{decade.ageTo}
-            </b>
-          </span>
-          <span className={`${styles.seasonTag} ${SEASON_CLASS[season]}`}>
-            <span className={styles.seasonName}>{ko ? seasonInfo.ko : seasonInfo.en}</span>
-            <span className={styles.seasonSub}>{ko ? seasonInfo.sub : seasonInfo.subEn}</span>
-          </span>
-        </div>
+      {/* ── novice 기본: 한자·용어 없는 일상어 결론 ── */}
+      <header className={styles.novice}>
+        <div className={styles.novToneWord}>{novHero}</div>
+        {novTheme && <p className={styles.novLine}>{novTheme}</p>}
       </header>
 
-      {/* ── 한 줄 총평 (verdict) ── */}
-      <section className={styles.sec}>
-        <div className={styles.secH}>
-          <span className={styles.secLbl}>{ko ? '이 10년의 한 줄' : 'In a line'}</span>
-          <span className={styles.secLn} />
-          <span className={styles.secLat}>In a line</span>
-        </div>
-        <p className={styles.verdict}>{verdictText}</p>
-        {themeSub && <p className={styles.verdictSub2}>{themeSub}</p>}
-        <div className={styles.verdictSub}>
-          {[ganjiHanja, sibsinRaw, gyeokgukLine].filter(Boolean).map((t, i) => (
-            <span className={styles.termTag} key={i}>
-              {t}
-            </span>
-          ))}
-        </div>
-      </section>
-
-      {/* ── 이 10년 중 큰 해 — 연도 스트립 ── */}
+      {/* ── 이 10년 중 큰 해 — 연도 스트립 (시각/평이 — 색=의미라 기본 유지) ── */}
       {years.length > 0 && (
         <section className={styles.sec}>
           <div className={styles.secH}>
@@ -304,138 +273,200 @@ export function DecadeTier({ user, decade, onDive, onRise }: DecadeTierProps) {
         </section>
       )}
 
-      {/* ── 본명 × 대운 (합충 / 12운성) ── */}
-      {(hap || un) && (
+      {/* ── 자세히 ① 대운 干支·한 줄·본명×대운 (사주를 아는 사람용) ── */}
+      <details className={styles.expertWrap}>
+        <summary className={styles.expertSummary}>
+          {ko ? '왜 이런가요? · 대운과 근거 보기' : 'Why? · the decade pillar & relations'}
+        </summary>
+
+        {/* ── ganzhi header ── */}
+        <header className={styles.header}>
+          <div className={styles.ganzhi}>{ganjiHanja}</div>
+          <div className={styles.ganzhiRead}>
+            {ganjiRead}
+            {ko ? ' 대운' : ' decade'}
+            <span className={styles.sibsinChip}>{sibsinLabel}</span>
+          </div>
+          <div className={styles.title}>
+            {decade.start} – {decade.end}
+            <span className={styles.titleKo}>{themeTitle}</span>
+          </div>
+          <div className={styles.counts}>
+            <span className={styles.cAge}>
+              {ko ? '나이' : 'age'}
+              <b>
+                {decade.ageFrom}–{decade.ageTo}
+              </b>
+            </span>
+            <span className={`${styles.seasonTag} ${SEASON_CLASS[season]}`}>
+              <span className={styles.seasonName}>{ko ? seasonInfo.ko : seasonInfo.en}</span>
+              <span className={styles.seasonSub}>{ko ? seasonInfo.sub : seasonInfo.subEn}</span>
+            </span>
+          </div>
+        </header>
+
+        {/* ── 한 줄 총평 (verdict) ── */}
         <section className={styles.sec}>
           <div className={styles.secH}>
-            <span className={styles.secLbl}>{ko ? '본명 × 대운' : 'Natal × Decade'}</span>
+            <span className={styles.secLbl}>{ko ? '이 10년의 한 줄' : 'In a line'}</span>
             <span className={styles.secLn} />
-            <span className={styles.secLat}>Relations</span>
+            <span className={styles.secLat}>In a line</span>
           </div>
-          {hap && (
-            <div className={`${styles.relCard} ${hapTone ? styles.relClash : styles.relHarmony}`}>
-              <div className={styles.relTop}>
-                <span className={styles.relKind}>{ko ? '합·충' : 'Harmony / clash'}</span>
-                {/* 한자 제목(卯戌육합)은 작은 태그 — 본문이 主. */}
-                {hapTag && <span className={styles.relTermTag}>{hapTag}</span>}
-              </div>
-              {hapBody && <p className={styles.relTitleBody}>{hapBody}</p>}
-            </div>
-          )}
-          {un && (
-            <div className={`${styles.relCard} ${styles.relStage}`}>
-              <div className={styles.relTop}>
-                <span className={styles.relKind}>{ko ? '12운성' : 'Twelve stages'}</span>
-                {/* 단계 이름(관대)은 작은 태그 — 쉬운 한 줄이 主. */}
-                {unTag && <span className={styles.relTermTag}>{unTag}</span>}
-              </div>
-              {unLead && <p className={styles.relTitleBody}>{unLead}</p>}
-            </div>
-          )}
-          {/* 12운성 매트릭스 — 본명 일간 × 대운 지지. 한자는 보조, 쉬운 한 줄을 곁들임. */}
-          <div className={styles.matrix}>
-            <span className={styles.matrixChip}>
-              <span className={styles.matrixHan}>{user.ilgan.hanja}</span>
-              {ko ? '일간' : 'day master'}
-            </span>
-            <span className={styles.matrixX}>×</span>
-            <span className={styles.matrixChip}>
-              <span className={styles.matrixHan}>{decade.pillar.jiji.hanja}</span>
-              {ko ? '대운 지지' : 'decade branch'}
-            </span>
-            {ko && matrixStagePlain && (
-              <span className={styles.matrixGloss}>→ {matrixStagePlain}</span>
-            )}
+          <p className={styles.verdict}>{verdictText}</p>
+          {themeSub && <p className={styles.verdictSub2}>{themeSub}</p>}
+          <div className={styles.verdictSub}>
+            {[ganjiHanja, sibsinRaw, gyeokgukLine].filter(Boolean).map((t, i) => (
+              <span className={styles.termTag} key={i}>
+                {t}
+              </span>
+            ))}
           </div>
         </section>
-      )}
 
-      {/* ── 외행성 마디 (astro · ko-only) ── */}
-      {astro.length > 0 && (
-        <section className={styles.sec}>
-          <div className={styles.secH}>
-            <span className={styles.secLbl}>{ko ? '하늘의 큰 마디' : 'Sky milestones'}</span>
-            <span className={styles.secLn} />
-            <span className={styles.secLat}>Astro</span>
-          </div>
-          {astro.map((o, i) => {
-            const glyph = OUTER_GLYPH[o.kind] ?? '★'
-            return (
-              <div className={styles.astroRow} key={`${o.label}-${i}`}>
-                <span className={styles.astroGlyph} aria-hidden>
-                  {glyph}
-                </span>
-                <span className={styles.astroDate}>{o.date}</span>
-                <span className={styles.astroLabel}>{o.label}</span>
-                {o.body && <span className={styles.astroBody}>{o.body}</span>}
-              </div>
-            )
-          })}
-        </section>
-      )}
-
-      {/* ── 겹치는 흐름 (cross-activations) — DECADE 필드명 사용 ── */}
-      {crossActs.length > 0 && (
-        <section className={styles.sec}>
-          <div className={styles.secH}>
-            <span className={styles.secLbl}>{ko ? '겹치는 흐름' : 'Crossings'}</span>
-            <span className={styles.secLn} />
-            <span className={styles.secLat}>Crossings</span>
-          </div>
-          <div className={styles.crossLegend}>
-            <span className={styles.clUp}>▲ {ko ? '도움이 되는 흐름' : 'Supporting flow'}</span>
-            <span className={styles.clDn}>▼ {ko ? '부딪히는 흐름' : 'Clashing flow'}</span>
-          </div>
-          {crossActs.slice(0, 6).map((c) => {
-            const isHero = topCross != null && c === topCross
-            const poleSym = c.polarity > 0 ? '▲' : c.polarity < 0 ? '▼' : '·'
-            const poleCls = c.polarity > 0 ? styles.poleUp : c.polarity < 0 ? styles.poleDn : ''
-            const sajuNm = ko ? c.sajuLine : (c.sajuLineEn ?? c.sajuLine)
-            const astroNm = ko ? c.astroLine : (c.astroLineEn ?? c.astroLine)
-            const head = ko ? c.name : (c.nameEn ?? c.name)
-            // 본문 앞 raw "정관 × 토성 — " 접두는 위 SAJU/ASTRO 태그·평이 head 와 중복 →
-            //   ko 화면에서만 떼어내 자연스럽게. 사실/문장 내용은 그대로.
-            const rawBody = ko ? c.meaning : (c.meaningEn ?? c.meaning)
-            const body =
-              ko && rawBody ? rawBody.replace(/^[^—]*×[^—]*—\s*/, '').trim() || rawBody : rawBody
-            return (
-              <div
-                className={`${styles.cross} ${isHero ? styles.crossHero : ''}`.trim()}
-                key={c.signalId}
-              >
-                <div className={styles.crossTop}>
-                  <span className={`${styles.pole} ${poleCls}`.trim()} aria-hidden>
-                    {poleSym}
-                  </span>
-                  {sajuNm && (
-                    <span className={`${styles.term} ${styles.termSaju}`}>
-                      <span className={styles.termSys}>Saju</span>
-                      <span className={styles.termNm}>{sajuNm}</span>
-                    </span>
-                  )}
-                  {sajuNm && astroNm && (
-                    <span className={styles.crossX} aria-hidden>
-                      ×
-                    </span>
-                  )}
-                  {astroNm && (
-                    <span className={`${styles.term} ${styles.termAstro}`}>
-                      <span className={styles.termSys}>Astro</span>
-                      <span className={styles.termNm}>{astroNm}</span>
-                    </span>
-                  )}
-                  {isHero && (
-                    <span className={styles.crossFlag}>
-                      {ko ? '가장 또렷한 흐름' : 'Strongest'}
-                    </span>
-                  )}
+        {/* ── 본명 × 대운 (합충 / 12운성) ── */}
+        {(hap || un) && (
+          <section className={styles.sec}>
+            <div className={styles.secH}>
+              <span className={styles.secLbl}>{ko ? '본명 × 대운' : 'Natal × Decade'}</span>
+              <span className={styles.secLn} />
+              <span className={styles.secLat}>Relations</span>
+            </div>
+            {hap && (
+              <div className={`${styles.relCard} ${hapTone ? styles.relClash : styles.relHarmony}`}>
+                <div className={styles.relTop}>
+                  <span className={styles.relKind}>{ko ? '합·충' : 'Harmony / clash'}</span>
+                  {/* 한자 제목(卯戌육합)은 작은 태그 — 본문이 主. */}
+                  {hapTag && <span className={styles.relTermTag}>{hapTag}</span>}
                 </div>
-                {head && <div className={styles.crossHead}>{head}</div>}
-                {body && <div className={styles.crossBody}>{body}</div>}
+                {hapBody && <p className={styles.relTitleBody}>{hapBody}</p>}
               </div>
-            )
-          })}
-        </section>
+            )}
+            {un && (
+              <div className={`${styles.relCard} ${styles.relStage}`}>
+                <div className={styles.relTop}>
+                  <span className={styles.relKind}>{ko ? '12운성' : 'Twelve stages'}</span>
+                  {/* 단계 이름(관대)은 작은 태그 — 쉬운 한 줄이 主. */}
+                  {unTag && <span className={styles.relTermTag}>{unTag}</span>}
+                </div>
+                {unLead && <p className={styles.relTitleBody}>{unLead}</p>}
+              </div>
+            )}
+            {/* 12운성 매트릭스 — 본명 일간 × 대운 지지. 한자는 보조, 쉬운 한 줄을 곁들임. */}
+            <div className={styles.matrix}>
+              <span className={styles.matrixChip}>
+                <span className={styles.matrixHan}>{user.ilgan.hanja}</span>
+                {ko ? '일간' : 'day master'}
+              </span>
+              <span className={styles.matrixX}>×</span>
+              <span className={styles.matrixChip}>
+                <span className={styles.matrixHan}>{decade.pillar.jiji.hanja}</span>
+                {ko ? '대운 지지' : 'decade branch'}
+              </span>
+              {ko && matrixStagePlain && (
+                <span className={styles.matrixGloss}>→ {matrixStagePlain}</span>
+              )}
+            </div>
+          </section>
+        )}
+      </details>
+
+      {/* ── 자세히 ② 하늘의 마디·사주×별자리 교차 (사주를 아는 사람용) ── */}
+      {(astro.length > 0 || crossActs.length > 0) && (
+        <details className={styles.expertWrap}>
+          <summary className={styles.expertSummary}>
+            {ko ? '하늘의 마디 · 사주 × 별자리 교차' : 'Sky milestones · Saju × Astro'}
+          </summary>
+
+          {/* ── 외행성 마디 (astro · ko-only) ── */}
+          {astro.length > 0 && (
+            <section className={styles.sec}>
+              <div className={styles.secH}>
+                <span className={styles.secLbl}>{ko ? '하늘의 큰 마디' : 'Sky milestones'}</span>
+                <span className={styles.secLn} />
+                <span className={styles.secLat}>Astro</span>
+              </div>
+              {astro.map((o, i) => {
+                const glyph = OUTER_GLYPH[o.kind] ?? '★'
+                return (
+                  <div className={styles.astroRow} key={`${o.label}-${i}`}>
+                    <span className={styles.astroGlyph} aria-hidden>
+                      {glyph}
+                    </span>
+                    <span className={styles.astroDate}>{o.date}</span>
+                    <span className={styles.astroLabel}>{o.label}</span>
+                    {o.body && <span className={styles.astroBody}>{o.body}</span>}
+                  </div>
+                )
+              })}
+            </section>
+          )}
+
+          {/* ── 겹치는 흐름 (cross-activations) — DECADE 필드명 사용 ── */}
+          {crossActs.length > 0 && (
+            <section className={styles.sec}>
+              <div className={styles.secH}>
+                <span className={styles.secLbl}>{ko ? '겹치는 흐름' : 'Crossings'}</span>
+                <span className={styles.secLn} />
+                <span className={styles.secLat}>Crossings</span>
+              </div>
+              <div className={styles.crossLegend}>
+                <span className={styles.clUp}>▲ {ko ? '도움이 되는 흐름' : 'Supporting flow'}</span>
+                <span className={styles.clDn}>▼ {ko ? '부딪히는 흐름' : 'Clashing flow'}</span>
+              </div>
+              {crossActs.slice(0, 6).map((c) => {
+                const isHero = topCross != null && c === topCross
+                const poleSym = c.polarity > 0 ? '▲' : c.polarity < 0 ? '▼' : '·'
+                const poleCls = c.polarity > 0 ? styles.poleUp : c.polarity < 0 ? styles.poleDn : ''
+                const sajuNm = ko ? c.sajuLine : (c.sajuLineEn ?? c.sajuLine)
+                const astroNm = ko ? c.astroLine : (c.astroLineEn ?? c.astroLine)
+                const head = ko ? c.name : (c.nameEn ?? c.name)
+                // 본문 앞 raw "정관 × 토성 — " 접두는 위 SAJU/ASTRO 태그·평이 head 와 중복 →
+                //   ko 화면에서만 떼어내 자연스럽게. 사실/문장 내용은 그대로.
+                const rawBody = ko ? c.meaning : (c.meaningEn ?? c.meaning)
+                const body =
+                  ko && rawBody
+                    ? rawBody.replace(/^[^—]*×[^—]*—\s*/, '').trim() || rawBody
+                    : rawBody
+                return (
+                  <div
+                    className={`${styles.cross} ${isHero ? styles.crossHero : ''}`.trim()}
+                    key={c.signalId}
+                  >
+                    <div className={styles.crossTop}>
+                      <span className={`${styles.pole} ${poleCls}`.trim()} aria-hidden>
+                        {poleSym}
+                      </span>
+                      {sajuNm && (
+                        <span className={`${styles.term} ${styles.termSaju}`}>
+                          <span className={styles.termSys}>Saju</span>
+                          <span className={styles.termNm}>{sajuNm}</span>
+                        </span>
+                      )}
+                      {sajuNm && astroNm && (
+                        <span className={styles.crossX} aria-hidden>
+                          ×
+                        </span>
+                      )}
+                      {astroNm && (
+                        <span className={`${styles.term} ${styles.termAstro}`}>
+                          <span className={styles.termSys}>Astro</span>
+                          <span className={styles.termNm}>{astroNm}</span>
+                        </span>
+                      )}
+                      {isHero && (
+                        <span className={styles.crossFlag}>
+                          {ko ? '가장 또렷한 흐름' : 'Strongest'}
+                        </span>
+                      )}
+                    </div>
+                    {head && <div className={styles.crossHead}>{head}</div>}
+                    {body && <div className={styles.crossBody}>{body}</div>}
+                  </div>
+                )
+              })}
+            </section>
+          )}
+        </details>
       )}
 
       {/* ── CTA (zoom-in) ── */}

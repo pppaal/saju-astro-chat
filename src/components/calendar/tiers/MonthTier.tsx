@@ -87,6 +87,7 @@ export function MonthTier({ month, onDive, onRise, showRise = true }: MonthTierP
   const goodN = month.goodDays?.length ?? 0
   const cautionN = month.cautionDays?.length ?? 0
   const avoidN = month.avoidDays?.length ?? 0
+  const careN = cautionN + avoidN
   // 개인 시드 — 톤 문구를 사람마다 다르게 회전(같은 날·톤이라도 본명 다르면 다른 줄).
   const seed = month.seed ?? 0
 
@@ -198,6 +199,34 @@ export function MonthTier({ month, onDive, onRise, showRise = true }: MonthTierP
       ? `좋은 날 ${goodN}개, 조심할 날 ${cautionN + avoidN}개 — ${goodN >= cautionN + avoidN ? '순한 편의 달이에요.' : '기복이 있는 달이에요.'}`
       : `${goodN} good, ${cautionN + avoidN} for care — ${goodN >= cautionN + avoidN ? 'a fairly smooth month.' : 'an uneven month.'}`)
 
+  // ── novice hero — 한자·십신·교차 없는 일상어 결론 한 줄. ──
+  // 톤: 좋은날 > 조심날 → 좋은 / 조심날 > 좋은날 → 조심스러운 / else → 순한.
+  const noviceTone: 'good' | 'care' | 'mild' =
+    goodN > careN ? 'good' : careN > goodN ? 'care' : 'mild'
+  const noviceToneWord = ko
+    ? noviceTone === 'good'
+      ? '좋은'
+      : noviceTone === 'care'
+        ? '조심스러운'
+        : '순한'
+    : noviceTone === 'good'
+      ? 'favourable'
+      : noviceTone === 'care'
+        ? 'careful'
+        : 'gentle'
+  // 일상어 영역(예: "정재" → "재물·실속"). 없으면 결론 문장에서 영역 절을 생략.
+  const noviceArea = woolunArea
+  const noviceLine = ko
+    ? noviceArea
+      ? `${ymM ?? ''}월은 ‘${noviceArea}’ 쪽으로 결이 ${noviceToneWord} 달이에요.`
+      : `${ymM ?? ''}월은 결이 ${noviceToneWord} 달이에요.`
+    : noviceArea
+      ? `${monthEn} leans a ${noviceToneWord} way, toward ${noviceArea}.`
+      : `${monthEn} reads a ${noviceToneWord} month.`
+  const noviceCounts = ko
+    ? `흐름이 트이는 날 ${goodN}개 · 조심할 날 ${careN}개`
+    : `${goodN} day${goodN === 1 ? '' : 's'} open up · ${careN} ask for care`
+
   // 'MM-DD' → 'M/D' (큰 날 날짜 라벨)
   const mdLabel = (ds: string) => {
     const dd = ds.split('-').pop() ?? ds
@@ -284,14 +313,28 @@ export function MonthTier({ month, onDive, onRise, showRise = true }: MonthTierP
         <span aria-hidden />
       </div>
 
-      {/* ── ganzhi header ── */}
-      <header className={styles.header}>
-        <div className={styles.ganzhi}>{ganjiHanja}</div>
-        {ganjiRead && <div className={styles.ganzhiRead}>{ko ? `${ganjiRead}월` : ganjiRead}</div>}
-        <div className={styles.title}>
-          {`${monthEn} ${year}`.trim()}
-          <span className={styles.titleKo}>{flowTitle}</span>
+      {/* ── novice 기본: 한자·용어 없는 일상어 결론 ── */}
+      <header className={styles.novice}>
+        <div
+          className={`${styles.novToneWord} ${
+            noviceTone === 'good' ? styles.novGood : noviceTone === 'care' ? styles.novCare : ''
+          }`.trim()}
+        >
+          {ko
+            ? noviceTone === 'good'
+              ? '결이 좋은 달'
+              : noviceTone === 'care'
+                ? '조심스러운 달'
+                : '순한 달'
+            : noviceTone === 'good'
+              ? 'A favourable month'
+              : noviceTone === 'care'
+                ? 'A careful month'
+                : 'A gentle month'}
         </div>
+        <p className={styles.novLine}>{noviceLine}</p>
+        <p className={styles.novCounts}>{noviceCounts}</p>
+        {/* good/caution/avoid 카운트 — 기본에 유지(시각적 요약). */}
         <div className={styles.counts}>
           <span className={styles.cGood}>
             {ko ? '좋은 날' : 'good'}
@@ -307,6 +350,28 @@ export function MonthTier({ month, onDive, onRise, showRise = true }: MonthTierP
           </span>
         </div>
       </header>
+
+      {/* ── 자세히 ① 간지·월운 (사주를 아는 사람용) ── */}
+      <details className={styles.expertWrap}>
+        <summary className={styles.expertSummary}>
+          {ko ? '자세히 보기 · 간지와 월운' : 'Details · pillar & month'}
+        </summary>
+        <header className={styles.header}>
+          <div className={styles.ganzhi}>{ganjiHanja}</div>
+          {ganjiRead && (
+            <div className={styles.ganzhiRead}>{ko ? `${ganjiRead}월` : ganjiRead}</div>
+          )}
+          <div className={styles.title}>
+            {`${monthEn} ${year}`.trim()}
+            <span className={styles.titleKo}>{flowTitle}</span>
+          </div>
+          {woolunArea && (
+            <div className={styles.sibsinTag}>
+              <span className={styles.sibsinPlain}>{woolunArea}</span>
+            </div>
+          )}
+        </header>
+      </details>
 
       {/* ── weekday row ── */}
       <div className={styles.dows}>
@@ -424,71 +489,80 @@ export function MonthTier({ month, onDive, onRise, showRise = true }: MonthTierP
         </section>
       )}
 
-      {/* ── 이달의 한 줄 (verdict) ── */}
-      <section className={styles.sec}>
-        <div className={styles.secH}>
-          <span className={styles.secLbl}>{ko ? '이달의 한 줄' : 'In a line'}</span>
-          <span className={styles.secLn} />
-          <span className={styles.secLat}>In a line</span>
-        </div>
-        <p className={styles.verdict}>{verdictText}</p>
-        {(ganjiHanja || woolunSibsinRaw) && (
-          <div className={styles.verdictSub}>
-            <span className={styles.termTag}>
-              {[ganjiHanja, woolunSibsinRaw].filter(Boolean).join(' · ')}
-            </span>
-          </div>
-        )}
-      </section>
+      {/* ── 자세히 ② 한 줄·사주×별자리 (사주를 아는 사람용) ── */}
+      <details className={styles.expertWrap}>
+        <summary className={styles.expertSummary}>
+          {ko ? '왜 이런가요? · 사주 × 별자리' : 'Why? · Saju × Astrology'}
+        </summary>
 
-      {/* ── 겹치는 흐름 (crossings) ── */}
-      {monthCross.length > 0 && (
+        {/* ── 이달의 한 줄 (verdict) ── */}
         <section className={styles.sec}>
           <div className={styles.secH}>
-            <span className={styles.secLbl}>{ko ? '겹치는 흐름' : 'Crossings'}</span>
+            <span className={styles.secLbl}>{ko ? '이달의 한 줄' : 'In a line'}</span>
             <span className={styles.secLn} />
-            <span className={styles.secLat}>Crossings</span>
+            <span className={styles.secLat}>In a line</span>
           </div>
-          <div className={styles.crossLegend}>
-            <span className={styles.clUp}>▲ {ko ? '도움이 되는 흐름' : 'Supporting flow'}</span>
-            <span className={styles.clDn}>▼ {ko ? '부딪히는 흐름' : 'Clashing flow'}</span>
-          </div>
-          {monthCross.map((c, i) => {
-            const isHero = topCross != null && c === topCross
-            const poleSym = c.polarity > 0 ? '▲' : c.polarity < 0 ? '▼' : '·'
-            const poleCls = c.polarity > 0 ? styles.poleUp : c.polarity < 0 ? styles.poleDn : ''
-            const head = ko
-              ? `${sibsinArea(c.saju)} × ${planetPlain(c.astro, true)}`
-              : `${sibsinAreaEn(c.saju)} × ${planetPlain(c.astro, false)}`
-            const body = ko ? c.meaning : (c.meaningEn ?? c.meaning)
-            return (
-              <div className={`${styles.cross} ${isHero ? styles.crossHero : ''}`.trim()} key={i}>
-                <div className={styles.crossTop}>
-                  <span className={`${styles.pole} ${poleCls}`.trim()} aria-hidden>
-                    {poleSym}
-                  </span>
-                  <span className={`${styles.term} ${styles.termSaju}`}>
-                    <span className={styles.termSys}>Saju</span>
-                    <span className={styles.termNm}>{c.saju}</span>
-                  </span>
-                  <span className={styles.crossX} aria-hidden>
-                    ×
-                  </span>
-                  <span className={`${styles.term} ${styles.termAstro}`}>
-                    <span className={styles.termSys}>Astro</span>
-                    <span className={styles.termNm}>{c.astro}</span>
-                  </span>
-                  {isHero && (
-                    <span className={styles.crossFlag}>{ko ? '큰 날의 색' : 'Key-day color'}</span>
-                  )}
-                </div>
-                <div className={styles.crossHead}>{head}</div>
-                <div className={styles.crossBody}>{body}</div>
-              </div>
-            )
-          })}
+          <p className={styles.verdict}>{verdictText}</p>
+          {(ganjiHanja || woolunSibsinRaw) && (
+            <div className={styles.verdictSub}>
+              <span className={styles.termTag}>
+                {[ganjiHanja, woolunSibsinRaw].filter(Boolean).join(' · ')}
+              </span>
+            </div>
+          )}
         </section>
-      )}
+
+        {/* ── 겹치는 흐름 (crossings) ── */}
+        {monthCross.length > 0 && (
+          <section className={styles.sec}>
+            <div className={styles.secH}>
+              <span className={styles.secLbl}>{ko ? '겹치는 흐름' : 'Crossings'}</span>
+              <span className={styles.secLn} />
+              <span className={styles.secLat}>Crossings</span>
+            </div>
+            <div className={styles.crossLegend}>
+              <span className={styles.clUp}>▲ {ko ? '도움이 되는 흐름' : 'Supporting flow'}</span>
+              <span className={styles.clDn}>▼ {ko ? '부딪히는 흐름' : 'Clashing flow'}</span>
+            </div>
+            {monthCross.map((c, i) => {
+              const isHero = topCross != null && c === topCross
+              const poleSym = c.polarity > 0 ? '▲' : c.polarity < 0 ? '▼' : '·'
+              const poleCls = c.polarity > 0 ? styles.poleUp : c.polarity < 0 ? styles.poleDn : ''
+              const head = ko
+                ? `${sibsinArea(c.saju)} × ${planetPlain(c.astro, true)}`
+                : `${sibsinAreaEn(c.saju)} × ${planetPlain(c.astro, false)}`
+              const body = ko ? c.meaning : (c.meaningEn ?? c.meaning)
+              return (
+                <div className={`${styles.cross} ${isHero ? styles.crossHero : ''}`.trim()} key={i}>
+                  <div className={styles.crossTop}>
+                    <span className={`${styles.pole} ${poleCls}`.trim()} aria-hidden>
+                      {poleSym}
+                    </span>
+                    <span className={`${styles.term} ${styles.termSaju}`}>
+                      <span className={styles.termSys}>Saju</span>
+                      <span className={styles.termNm}>{c.saju}</span>
+                    </span>
+                    <span className={styles.crossX} aria-hidden>
+                      ×
+                    </span>
+                    <span className={`${styles.term} ${styles.termAstro}`}>
+                      <span className={styles.termSys}>Astro</span>
+                      <span className={styles.termNm}>{c.astro}</span>
+                    </span>
+                    {isHero && (
+                      <span className={styles.crossFlag}>
+                        {ko ? '큰 날의 색' : 'Key-day color'}
+                      </span>
+                    )}
+                  </div>
+                  <div className={styles.crossHead}>{head}</div>
+                  <div className={styles.crossBody}>{body}</div>
+                </div>
+              )
+            })}
+          </section>
+        )}
+      </details>
 
       {/* ── share (discreet) ── */}
       <div className={styles.shareRow}>

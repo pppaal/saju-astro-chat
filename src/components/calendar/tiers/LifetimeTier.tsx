@@ -3,13 +3,17 @@
 /* ============================================================
    destinypal · LifetimeTier — 인생 전체(84년) "인생의 모양" · LIGHT 만세력
    ────────────────────────────────────────────────────────────
-   디자인 방향(시안 · LIGHT) — 월(Month) 티어와 한 가족:
+   디자인 방향(시안 · LIGHT) — 월(Month) 티어와 한 가족, novice-default:
      · 앱 셸은 다크 — 이 티어는 .lifeRoot 가 라이트 팔레트를 직접 들고
        독립 레이아웃을 쓴다(TierFrame 미사용).
-     · 일간(辛)·격국·인생패턴(대기만성형)을 *표면에* 드러낸다(월의 甲午처럼).
-     · SIGNATURE: 大運 10개 가로 인생 타임라인 — favor 톤 밴드 + 현재 대운
-       '지금 여기' 블루 하이라이트.
-     · 계절 arc · 인생의 큰 마디 · 한 줄 총평 · ZR 두 레인 · 본명 점(Lots).
+     · 기본(접힌 상태)은 한자·격국·용신·강약 같은 전문용어 0 — lifePattern
+       타입/한 줄로 시작하는 일상어 결론만 크게.
+     · SIGNATURE 는 기본에 유지: 大運 10개 가로 인생 타임라인 — favor 톤 밴드 +
+       현재 대운 '지금 여기' 블루 하이라이트. 단 셀의 raw 십신은 sibsinArea
+       평이 한 줄로(raw 명은 작은 태그로).
+     · 계절 arc · 인생의 큰 마디는 기본 유지(평이).
+     · 일간(辛)·격국·용신·강약 칩 / ZR 두 레인 / 본명 점(Lots) 은 전부
+       `자세히` 폴드(.expertWrap) 안으로 — 사주를 아는 사람만 펼친다.
 
    PRESENTATION ONLY — 엔진/derivers/타입/어댑터 미변경. 살아있는 데이터만 사용.
    이 티어는 최상단 — onRise/showRise 없음(줌아웃 버튼 없음).
@@ -100,7 +104,7 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
   const currentYear = lifetime.currentYear
   const lifeSpanTo = birthYear + 84
 
-  // ── 정체성 헤더 — 일간 / 인생패턴(표면). ──
+  // ── 정체성 — 일간 / 인생패턴 (lifePattern 옵셔널 가드). ──
   const ilganHanja = user.ilgan.hanja
   const ilganRead = ko ? user.ilgan.kr : (user.ilgan.en ?? user.ilgan.kr)
   const patternKo = lifePattern
@@ -119,7 +123,7 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
   const yongsinLabel = ko ? user.yongsin.kr : (user.yongsin.en ?? user.yongsin.kr)
   const statusTag = user.gyeokgukStatus || user.rootStatus || ''
 
-  // ── 오행 — dominant(최다). 0 가능 → Math.max(...,1). ──
+  // ── 오행 — dominant(최다). 0 가능 → 빈배열 가드. ──
   const elementsEntries = Object.entries(user.elements || {}) as Array<
     [keyof ElementCounts, number]
   >
@@ -132,7 +136,7 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
     (lifePattern?.daeun ?? []).map((d) => [d.startAge, d.favor])
   )
 
-  // ── 계절 arc — lifeStages[4] favor 평균(없으면 0)으로 Y 굴곡. now=stage.now. ──
+  // ── 계절 arc — daeun favor 평균(없으면 0)으로 Y 굴곡. now=stage.now. ──
   const stageFavor = (ageFrom: number, ageTo: number): number => {
     const daeun = lifePattern?.daeun ?? []
     if (daeun.length === 0) return 0
@@ -178,7 +182,7 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
     dominantEl ? `${EL_HANJA[dominantEl] ?? dominantEl}${ko ? ' 왕' : ' dominant'}` : '',
   ].filter(Boolean) as string[]
 
-  // ── ZR 레인 axis — C 와 같은 나이축. birthYear 기준 calendar*Year. ──
+  // ── ZR 레인 axis — 같은 나이축. birthYear 기준 calendar*Year. ──
   const zrAllYears = [
     ...(zrSpiritChapters ?? []).map((c) => c.calendarEndYear),
     ...(zrFortuneChapters ?? []).map((c) => c.calendarEndYear),
@@ -187,7 +191,7 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
   const zrPct = (year: number) =>
     Math.max(0, Math.min(100, ((year - birthYear) / Math.max(1, zrSpanYear - birthYear)) * 100))
 
-  // ── 인생 풀이 — 정의 신호 합성한 평이한 문장(표면용). ──
+  // ── 인생 풀이 — 정의 신호 합성한 평이한 문장(폴드용). ──
   const lifeRead = ko
     ? `타고난 바탕은 ‘${user.ilgan.kr}’의 결이고, 삶에 가장 굵게 흐르는 기운은 ‘${
         dominantPlain?.ko ?? '균형'
@@ -206,42 +210,62 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
         <span aria-hidden />
       </div>
 
-      {/* ── B. 정체성 헤더 — 일간 + 인생패턴 ── */}
-      <header className={styles.header}>
-        <div className={styles.ganzhi}>{ilganHanja}</div>
-        <div className={styles.ganzhiRead}>
-          {ko ? `${ilganRead} 일간` : `${ilganRead} day master`}
-        </div>
-        <div className={styles.title}>
-          {patternKo}
-          {patternLine && <span className={styles.titleKo}>{patternLine}</span>}
-        </div>
-        <div className={styles.counts}>
-          <span className={styles.cIlgan}>
-            {ko ? '일간' : 'Day'}
-            <b>{ilganHanja}</b>
-          </span>
-          <span>
-            {ko ? '격국' : 'Structure'}
-            <b className={styles.cText}>{gyeokgukLabel}</b>
-          </span>
-          <span>
-            {ko ? '강약' : 'Strength'}
-            <b className={styles.cText}>{user.gangyak}</b>
-          </span>
-          <span className={styles.cYongsin}>
-            {ko ? '용신' : 'Yongsin'}
-            <b className={styles.cText}>{yongsinLabel}</b>
-          </span>
-        </div>
-        {statusTag && (
-          <div className={styles.headTags}>
-            <span className={styles.termTag}>{statusTag}</span>
-          </div>
-        )}
+      {/* ── novice 기본: 한자·용어 없는 일상어 결론 ── */}
+      <header className={styles.novice}>
+        <div className={styles.novToneWord}>{ko ? `${patternKo} 타입` : `${patternKo} type`}</div>
+        {patternLine && <p className={styles.novLine}>{patternLine}</p>}
       </header>
 
-      {/* ── C. 大運 10개 가로 인생 타임라인 (SIGNATURE) ── */}
+      {/* ── 자세히 ① 정체성 — 일간·격국·용신·강약 (사주를 아는 사람용) ── */}
+      <details className={styles.expertWrap}>
+        <summary className={styles.expertSummary}>
+          {ko ? '왜 이런가요? · 본명 정체성 보기' : 'Why? · natal identity'}
+        </summary>
+
+        <header className={styles.header}>
+          <div className={styles.ganzhi}>{ilganHanja}</div>
+          <div className={styles.ganzhiRead}>
+            {ko ? `${ilganRead} 일간` : `${ilganRead} day master`}
+          </div>
+          <div className={styles.counts}>
+            <span className={styles.cIlgan}>
+              {ko ? '일간' : 'Day'}
+              <b>{ilganHanja}</b>
+            </span>
+            <span>
+              {ko ? '격국' : 'Structure'}
+              <b className={styles.cText}>{gyeokgukLabel}</b>
+            </span>
+            <span>
+              {ko ? '강약' : 'Strength'}
+              <b className={styles.cText}>{user.gangyak}</b>
+            </span>
+            <span className={styles.cYongsin}>
+              {ko ? '용신' : 'Yongsin'}
+              <b className={styles.cText}>{yongsinLabel}</b>
+            </span>
+          </div>
+          {statusTag && (
+            <div className={styles.headTags}>
+              <span className={styles.termTag}>{statusTag}</span>
+            </div>
+          )}
+        </header>
+
+        {/* 인생 풀이 + 정의 태그 */}
+        <p className={styles.verdictRead}>{lifeRead}</p>
+        {verdictTags.length > 0 && (
+          <div className={styles.verdictSub}>
+            {verdictTags.map((tag) => (
+              <span className={styles.termTag} key={tag}>
+                {tag}
+              </span>
+            ))}
+          </div>
+        )}
+      </details>
+
+      {/* ── C. 大運 10개 가로 인생 타임라인 (SIGNATURE — 기본 유지) ── */}
       <section className={styles.sec}>
         <div className={styles.secH}>
           <span className={styles.secLbl}>{ko ? '대운 10년 흐름' : 'The decade timeline'}</span>
@@ -287,8 +311,8 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
                 <span className={styles.dwYear}>
                   {d.start}–{d.end}
                 </span>
-                {/* 현재 대운엔 십신을 쉬운 생활영역 한 줄로, 십신명은 작은 태그로. */}
-                {d.now && sibsinGloss && <span className={styles.dwGloss}>{sibsinGloss}</span>}
+                {/* 십신은 쉬운 생활영역 한 줄로(모든 칸), raw 십신명은 작은 태그로. */}
+                {sibsinGloss && <span className={styles.dwGloss}>{sibsinGloss}</span>}
                 {sibsin && <span className={styles.dwSibsin}>{sibsin}</span>}
               </div>
             )
@@ -296,7 +320,7 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
         </div>
       </section>
 
-      {/* ── D. 인생의 계절 (4 stages) ── */}
+      {/* ── D. 인생의 계절 (4 stages) — 기본 유지 ── */}
       <section className={styles.sec}>
         <div className={styles.secH}>
           <span className={styles.secLbl}>{ko ? '인생의 네 계절' : 'Four seasons of life'}</span>
@@ -352,7 +376,7 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
         </div>
       </section>
 
-      {/* ── E. 인생의 큰 마디 (milestones) ── */}
+      {/* ── E. 인생의 큰 마디 (milestones) — 기본 유지(평이) ── */}
       {turningItems.length > 0 && (
         <section className={styles.sec}>
           <div className={styles.secH}>
@@ -385,7 +409,7 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
         </section>
       )}
 
-      {/* ── F. 한 줄 총평 (verdict) ── */}
+      {/* ── F. 한 줄 총평 (verdict) — 평이, 기본 유지 ── */}
       <section className={styles.sec}>
         <div className={styles.secH}>
           <span className={styles.secLbl}>{ko ? '인생의 한 줄' : 'In a line'}</span>
@@ -393,89 +417,97 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
           <span className={styles.secLat}>In a line</span>
         </div>
         <p className={styles.verdict}>{verdictText}</p>
-        <p className={styles.verdictRead}>{lifeRead}</p>
-        {verdictTags.length > 0 && (
-          <div className={styles.verdictSub}>
-            {verdictTags.map((tag) => (
-              <span className={styles.termTag} key={tag}>
-                {tag}
-              </span>
-            ))}
-          </div>
-        )}
       </section>
 
-      {/* ── G. ZR 두 레인 (Spirit / Fortune) ── */}
-      {((zrSpiritChapters?.length ?? 0) > 0 || (zrFortuneChapters?.length ?? 0) > 0) && (
-        <section className={styles.sec}>
-          <div className={styles.secH}>
-            <span className={styles.secLbl}>{ko ? '점성 인생 장(章)' : 'Astrology chapters'}</span>
-            <span className={styles.secLn} />
-            <span className={styles.secLat}>ZR · ZODIACAL RELEASING</span>
-          </div>
-          {[
-            {
-              chapters: zrSpiritChapters ?? [],
-              label: ko ? '진로·방향' : 'Spirit · path',
-              cls: styles.zrSpirit,
-            },
-            {
-              chapters: zrFortuneChapters ?? [],
-              label: ko ? '현실·체질' : 'Fortune · body',
-              cls: styles.zrFortune,
-            },
-          ].map((lane) =>
-            lane.chapters.length > 0 ? (
-              <div className={styles.zrLane} key={lane.label}>
-                <div className={`${styles.zrLaneLabel} ${lane.cls}`}>{lane.label}</div>
-                <div className={styles.zrTrack}>
-                  {lane.chapters.map((c, i) => {
-                    const left = zrPct(c.calendarStartYear)
-                    const width = Math.max(4, zrPct(c.calendarEndYear) - zrPct(c.calendarStartYear))
-                    // KO: 영어 별자리·룰러 금지 → 한글 별자리 + 룰러 일상 별명.
-                    const sign = ko ? zodiacKo(c.sign) : c.sign
-                    const ruler = ko ? planetPlain(c.ruler, true) : c.ruler
-                    return (
-                      <div
-                        className={`${styles.zrChapter} ${c.now ? styles.zrNow : ''}`.trim()}
-                        key={`${lane.label}-${c.calendarStartYear}-${i}`}
-                        style={{ left: `${left}%`, width: `${width}%` }}
-                        title={`${sign} · ${ruler} · ${c.calendarStartYear}–${c.calendarEndYear}`}
-                      >
-                        <span className={styles.zrSign}>{sign}</span>
-                        <span className={styles.zrMeta}>
-                          {ruler} · {c.durationYears}
-                          {ko ? '년' : 'y'}
-                        </span>
-                      </div>
-                    )
-                  })}
-                </div>
-              </div>
-            ) : null
-          )}
-        </section>
-      )}
+      {/* ── 자세히 ② 점성 인생 장(ZR) · 본명 점(Lots) (사주·점성을 아는 사람용) ── */}
+      {((zrSpiritChapters?.length ?? 0) > 0 ||
+        (zrFortuneChapters?.length ?? 0) > 0 ||
+        (user.lots && user.lots.length > 0)) && (
+        <details className={styles.expertWrap}>
+          <summary className={styles.expertSummary}>
+            {ko ? '점성 인생 장 · 본명 점 자세히' : 'Astrology chapters · natal Lots'}
+          </summary>
 
-      {/* ── H. 본명 7대 점(Lots) ── */}
-      {user.lots && user.lots.length > 0 && (
-        <section className={styles.sec}>
-          <div className={styles.secH}>
-            <span className={styles.secLbl}>{ko ? '본명 7대 점' : 'Seven natal Lots'}</span>
-            <span className={styles.secLn} />
-            <span className={styles.secLat}>ARABIC LOTS</span>
-          </div>
-          <div className={styles.lotsGrid}>
-            {user.lots.map((lot) => (
-              <div className={styles.lotChip} key={lot.name}>
-                <span className={styles.lotName}>{ko ? (lot.korean ?? lot.name) : lot.name}</span>
-                <span className={styles.lotPos}>
-                  {ko ? zodiacKo(lot.sign) : lot.sign} {Math.floor(lot.degree)}° · {lot.house}H
+          {/* G. ZR 두 레인 (Spirit / Fortune) */}
+          {((zrSpiritChapters?.length ?? 0) > 0 || (zrFortuneChapters?.length ?? 0) > 0) && (
+            <section className={styles.sec}>
+              <div className={styles.secH}>
+                <span className={styles.secLbl}>
+                  {ko ? '점성 인생 장(章)' : 'Astrology chapters'}
                 </span>
+                <span className={styles.secLn} />
+                <span className={styles.secLat}>ZR · ZODIACAL RELEASING</span>
               </div>
-            ))}
-          </div>
-        </section>
+              {[
+                {
+                  chapters: zrSpiritChapters ?? [],
+                  label: ko ? '진로·방향' : 'Spirit · path',
+                  cls: styles.zrSpirit,
+                },
+                {
+                  chapters: zrFortuneChapters ?? [],
+                  label: ko ? '현실·체질' : 'Fortune · body',
+                  cls: styles.zrFortune,
+                },
+              ].map((lane) =>
+                lane.chapters.length > 0 ? (
+                  <div className={styles.zrLane} key={lane.label}>
+                    <div className={`${styles.zrLaneLabel} ${lane.cls}`}>{lane.label}</div>
+                    <div className={styles.zrTrack}>
+                      {lane.chapters.map((c, i) => {
+                        const left = zrPct(c.calendarStartYear)
+                        const width = Math.max(
+                          4,
+                          zrPct(c.calendarEndYear) - zrPct(c.calendarStartYear)
+                        )
+                        // KO: 영어 별자리·룰러 금지 → 한글 별자리 + 룰러 일상 별명.
+                        const sign = ko ? zodiacKo(c.sign) : c.sign
+                        const ruler = ko ? planetPlain(c.ruler, true) : c.ruler
+                        return (
+                          <div
+                            className={`${styles.zrChapter} ${c.now ? styles.zrNow : ''}`.trim()}
+                            key={`${lane.label}-${c.calendarStartYear}-${i}`}
+                            style={{ left: `${left}%`, width: `${width}%` }}
+                            title={`${sign} · ${ruler} · ${c.calendarStartYear}–${c.calendarEndYear}`}
+                          >
+                            <span className={styles.zrSign}>{sign}</span>
+                            <span className={styles.zrMeta}>
+                              {ruler} · {c.durationYears}
+                              {ko ? '년' : 'y'}
+                            </span>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                ) : null
+              )}
+            </section>
+          )}
+
+          {/* H. 본명 7대 점(Lots) */}
+          {user.lots && user.lots.length > 0 && (
+            <section className={styles.sec}>
+              <div className={styles.secH}>
+                <span className={styles.secLbl}>{ko ? '본명 7대 점' : 'Seven natal Lots'}</span>
+                <span className={styles.secLn} />
+                <span className={styles.secLat}>ARABIC LOTS</span>
+              </div>
+              <div className={styles.lotsGrid}>
+                {user.lots.map((lot) => (
+                  <div className={styles.lotChip} key={lot.name}>
+                    <span className={styles.lotName}>
+                      {ko ? (lot.korean ?? lot.name) : lot.name}
+                    </span>
+                    <span className={styles.lotPos}>
+                      {ko ? zodiacKo(lot.sign) : lot.sign} {Math.floor(lot.degree)}° · {lot.house}H
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+        </details>
       )}
 
       {/* ── I. anti-fatalism footer + CTA(zoom-in) ── */}

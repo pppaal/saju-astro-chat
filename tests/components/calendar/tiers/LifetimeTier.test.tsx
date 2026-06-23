@@ -48,15 +48,18 @@ describe('LifetimeTier (인생 전체 · LIGHT)', () => {
     expect(() => renderTier()).not.toThrow()
   })
 
-  it('surfaces the ilgan hanja 辛 in the identity header', () => {
+  it('keeps the ilgan hanja 辛 in the DOM (now inside the expert fold)', () => {
     renderTier()
+    // moved into the <details> expert fold, but still rendered in the DOM.
     expect(screen.getAllByText('辛').length).toBeGreaterThan(0)
   })
 
-  it('surfaces the lifePattern name 대기만성형', () => {
+  it('surfaces the lifePattern name as the novice hero "{pattern} 타입"', () => {
     renderTier()
-    // appears in the header title + the verdict term-tag.
-    expect(screen.getAllByText('대기만성형').length).toBeGreaterThan(0)
+    // novice-default hero: lifePattern.ko + ' 타입'. Real dump = 굴곡형.
+    expect(screen.getByText('굴곡형 타입')).toBeInTheDocument()
+    // raw pattern name also appears as the verdict term-tag.
+    expect(screen.getAllByText('굴곡형').length).toBeGreaterThan(0)
   })
 
   it('renders the current decade ganzhi 甲戌 in the timeline', () => {
@@ -77,7 +80,8 @@ describe('LifetimeTier (인생 전체 · LIGHT)', () => {
   it('renders English identity when locale=en (pattern in EN, hanja still raw)', () => {
     mockLocale = 'en'
     renderTier()
-    expect(screen.getAllByText('Late bloomer').length).toBeGreaterThan(0)
+    // novice hero in EN: '{pattern} type'. Real dump = Ups and downs.
+    expect(screen.getByText('Ups and downs type')).toBeInTheDocument()
     expect(screen.getAllByText('辛').length).toBeGreaterThan(0)
     expect(screen.getByText('甲戌')).toBeInTheDocument()
   })
