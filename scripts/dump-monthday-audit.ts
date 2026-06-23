@@ -3,9 +3,14 @@
  * preview/page.tsx 와 동일 경로(buildNatalContext → buildCalendar → assembleTiers)
  * 를 DB 없이 재현해 실제 DestinyMonth / DestinyDay + raw cell 점수를 JSON 으로 출력.
  *
- *   현우: 1995-02-09 06:40 男 서울 / target 2026-06 / focus 2026-06-15
+ *   기본: 현우 1995-02-09 06:40 男 서울 / target 2026-06 / focus 2026-06-15
  *
- * 실행: npx tsx scripts/dump-monthday-audit.ts
+ * 실행(기본): npx tsx scripts/dump-monthday-audit.ts
+ * 실행(다른 사람): 환경변수로 덮어쓴다 —
+ *   BIRTH_DATE=1988-11-22 BIRTH_TIME=14:30 GENDER=female \
+ *   LAT=35.1796 LON=129.0756 TZ=Asia/Seoul \
+ *   TY=2026 TM=9 FOCUS=2026-09-09 PLACE=부산 OUT_PREFIX=case2 \
+ *   npx tsx scripts/dump-monthday-audit.ts
  */
 import { writeFileSync } from 'node:fs'
 import { calculateSajuData } from '../src/lib/saju/saju'
@@ -13,17 +18,21 @@ import { buildNatalContext } from '../src/lib/calendar-engine/context/build'
 import { buildCalendar } from '../src/lib/calendar-engine'
 import { assembleTiers } from '../src/app/calendar/assembleTiers'
 
+const env = process.env
+const GENDER = (env.GENDER as 'male' | 'female') ?? 'male'
 const BIRTH = {
-  birthDate: '1995-02-09',
-  birthTime: '06:40',
-  gender: 'male' as const,
-  latitude: 37.5665,
-  longitude: 126.978,
-  timeZone: 'Asia/Seoul',
+  birthDate: env.BIRTH_DATE ?? '1995-02-09',
+  birthTime: env.BIRTH_TIME ?? '06:40',
+  gender: GENDER as 'male',
+  latitude: env.LAT ? Number(env.LAT) : 37.5665,
+  longitude: env.LON ? Number(env.LON) : 126.978,
+  timeZone: env.TZ ?? 'Asia/Seoul',
 }
-const TARGET_YEAR = 2026
-const TARGET_MONTH = 6
-const TARGET_DAY_ISO = '2026-06-15'
+const TARGET_YEAR = env.TY ? Number(env.TY) : 2026
+const TARGET_MONTH = env.TM ? Number(env.TM) : 6
+const TARGET_DAY_ISO = env.FOCUS ?? '2026-06-15'
+const PLACE = env.PLACE ?? '서울'
+const PREFIX = env.OUT_PREFIX ?? 'audit'
 const OUT =
   '/tmp/claude-0/-home-user-saju-astro-chat/1d20fb2f-d849-5d3d-9e88-c2bd904a0a34/scratchpad'
 
@@ -38,11 +47,13 @@ async function main() {
   const natal = await buildNatalContext(BIRTH, { saju })
 
   const mm = String(TARGET_MONTH).padStart(2, '0')
+  const lastDay = new Date(Date.UTC(TARGET_YEAR, TARGET_MONTH, 0)).getUTCDate()
+  const dd = String(lastDay).padStart(2, '0')
   const cells = await buildCalendar(
     natal,
     {
       start: `${TARGET_YEAR}-${mm}-01T00:00:00.000Z`,
-      end: `${TARGET_YEAR}-${mm}-30T23:59:59.000Z`,
+      end: `${TARGET_YEAR}-${mm}-${dd}T23:59:59.000Z`,
       granularity: 'day',
     },
     { includeEvidence: true }
@@ -62,15 +73,15 @@ async function main() {
     natal,
     cells,
     lang: 'ko',
-    birthYear: 1995,
+    birthYear: Number(BIRTH.birthDate.slice(0, 4)),
     targetYear: TARGET_YEAR,
     targetMonth: TARGET_MONTH,
     targetDay: Number(TARGET_DAY_ISO.split('-')[2]),
     targetDayIso: TARGET_DAY_ISO,
-    sex: '남',
-    birthDisplay: '1995-02-09 06:40',
-    whoBirthLine: '1995.2.9 06:40',
-    place: '서울',
+    sex: GENDER === 'female' ? '여' : '남',
+    birthDisplay: `${BIRTH.birthDate} ${BIRTH.birthTime}`,
+    whoBirthLine: `${BIRTH.birthDate} ${BIRTH.birthTime}`,
+    place: PLACE,
     focusDayCell,
   })
 
@@ -96,9 +107,9 @@ async function main() {
     }
   })
 
-  writeFileSync(`${OUT}/audit-month.json`, JSON.stringify(month, null, 2))
-  writeFileSync(`${OUT}/audit-day.json`, JSON.stringify(day, null, 2))
-  writeFileSync(`${OUT}/audit-rawcells.json`, JSON.stringify(rawDays, null, 2))
+  writeFileSync(`${OUT}/${PREFIX}-month.json`, JSON.stringify(month, null, 2))
+  writeFileSync(`${OUT}/${PREFIX}-day.json`, JSON.stringify(day, null, 2))
+  writeFileSync(`${OUT}/${PREFIX}-rawcells.json`, JSON.stringify(rawDays, null, 2))
 
   // 콘솔 요약
   const scores = cells.map((c: any) => c.derivedScore)
@@ -135,7 +146,7 @@ async function main() {
   )
   console.log('crossActivations:', month.crossActivations?.length)
   console.log('calendar marks:', month.calendar?.map((d: any) => `${d.d}:${d.mark}`).join(' '))
-  console.log('\nWrote audit-month.json / audit-day.json / audit-rawcells.json to scratchpad')
+  console.log(`\nWrote ${PREFIX}-{month,day,rawcells}.json to scratchpad`)
 }
 main().catch((e) => {
   console.error(e)
