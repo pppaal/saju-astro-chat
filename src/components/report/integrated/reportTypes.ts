@@ -181,7 +181,7 @@ export const DIGNITY_TIER_LABEL: Record<string, BiLabel> = {
   domicile: { ko: '본궁 +5', en: 'Domicile +5' },
   exaltation: { ko: '고양 +4', en: 'Exaltation +4' },
   triplicity: { ko: '삼분궁 +3', en: 'Triplicity +3' },
-  term: { ko: '바운드 +2', en: 'Term +2' },
+  term: { ko: '경계 +2', en: 'Term +2' },
   face: { ko: '안면 +1', en: 'Face +1' },
   detriment: { ko: '손상 −5', en: 'Detriment −5' },
   fall: { ko: '추락 −4', en: 'Fall −4' },
@@ -198,7 +198,7 @@ export const DIGNITY_TIER_FRIENDLY: Record<string, BiLabel> = {
   exaltation: { ko: '환영받는 자리', en: 'Honored guest' }, // 본궁은 아니지만 강력하게 발휘
   triplicity: { ko: '기질이 맞는 자리', en: 'Kindred ground' }, // 같은 원소 가족 — 무리 없는 활동
   term: { ko: '실력 발휘 자리', en: 'Skilled corner' }, // 작은 영역에서 자기 영역 — 도구 잘 다룸
-  face: { ko: '얼굴값 자리', en: 'Faint footing' }, // 가장 약한 dignity — 살짝 존재감
+  face: { ko: '겨우 발 붙인 자리', en: 'Faint footing' }, // 가장 약한 dignity — 살짝 존재감
   detriment: { ko: '낯선 자리', en: 'Foreign turf' }, // 본궁의 반대편 — 어색함
   fall: { ko: '기죽는 자리', en: 'Low ground' }, // 고양의 반대편 — 위축
   peregrine: { ko: '중립', en: 'Neutral' }, // 어느 쪽도 아닌 평지
@@ -221,7 +221,7 @@ export const DIGNITY_TIER_TOOLTIP: Record<string, BiLabel> = {
     en: 'Triplicity +3 — same elemental family',
   },
   term: {
-    ko: '바운드 +2 — 별자리 내 작은 영역 지배',
+    ko: '경계 +2 — 별자리 안의 작은 구역을 다스려요',
     en: 'Term +2 — rulership of a small zone within the sign',
   },
   face: {
@@ -278,7 +278,7 @@ export const ASPECT_FRIENDLY: Record<string, { label: BiLabel; tooltip: BiLabel 
   opposition: {
     label: { ko: '맞서요', en: 'Faces off' },
     tooltip: {
-      ko: '대충(對沖) 180° — 정면 대립',
+      ko: '마주봄 180° — 정면으로 맞서요',
       en: 'Opposition 180° — head-on polarity',
     },
   },

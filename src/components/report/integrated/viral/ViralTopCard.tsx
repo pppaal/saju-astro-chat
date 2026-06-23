@@ -36,8 +36,8 @@ export default function ViralTopCard({ summary, lang, action }: ViralTopCardProp
 
         {summary.outer && (
           <p className={s.outer}>
-            <span className={s.outerKey}>{ko ? '겉모습' : 'Outer'}</span>
-            {ko ? `${summary.outer} 인상` : summary.outer}
+            <span className={s.outerKey}>{ko ? '겉모습' : 'First impression'}</span>
+            {ko ? `${summary.outer} 인상` : `${summary.outer} first impression`}
           </p>
         )}
 

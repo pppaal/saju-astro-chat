@@ -433,7 +433,7 @@ function AspectGrid({ astro, lang }: { astro: ReportData['astro']; lang: Lang })
               return (
                 <td key={col} className={`${s.agCell} ${cls}`} title={tooltip}>
                   <span className={s.agGly}>{meta?.glyph}</span>
-                  <span className={s.agOrb}>{a.orb.toFixed(1)}</span>
+                  <span className={s.agOrb}>{a.orb.toFixed(1)}°</span>
                 </td>
               )
             })}
@@ -578,6 +578,8 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
             </div>
           ))}
         </div>
+        {/* 메타 그리드 안내 — 숫자·전문어가 겁주지 않게 한 줄. */}
+        <p className={s.metaNote}>{t('metaNote')}</p>
 
         {/* 출생시각 미상 경고 — ASC/MC/하우스 의존 해석이 근사치임을 고지 */}
         {input.birthTimeUnknown && (
@@ -650,6 +652,13 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
               </div>
             )
           })()}
+        </div>
+
+        {/* 오리엔테이션 — "이게 뭐고 어떻게 읽는지" 항상 보이게(초보자 길잡이). */}
+        <div className={s.howToRead}>
+          <div className={s.howToReadTitle}>{t('howToReadTitle')}</div>
+          <p className={s.howToReadBody}>{t('howToReadBody')}</p>
+          <div className={s.howToReadJourney}>{t('howToReadJourney')}</div>
         </div>
 
         {/* 입문 용어 풀이 — 사주팔자/천궁도가 뭔지부터 (도입부라 리드 없이 더보기만) */}
@@ -1054,6 +1063,11 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
           <div className={s.gridChart}>
             <div className={`${s.card} ${s.wheelCard}`}>
               <Wheel astro={A} lang={lang} />
+              <p className={s.wheelCaption}>
+                {lang === 'en'
+                  ? 'A round map of the sky at the moment you were born. The outer rim is the 12 zodiac signs, the dots inside are the planets, and the lines connect planets that influence each other.'
+                  : '태어난 순간의 하늘을 둥글게 그린 지도예요. 바깥 테두리는 12별자리, 안쪽 점은 행성, 점을 잇는 선은 서로 영향을 주는 행성끼리의 관계예요.'}
+              </p>
             </div>
             <details className={s.l2}>
               <summary>{t('l2Planets')}</summary>
@@ -1203,7 +1217,7 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
                       if (!tr) return null
                       const read =
                         lang === 'en'
-                          ? `In ${sgn}, your ${cd.label} comes through ${tr.en}` +
+                          ? `In ${sgn}, your ${cd.label} comes through as ${tr.en}` +
                             (h ? `, and plays out mainly in matters of ${dom}.` : '.')
                           : `${sgn} 자리라 ${cd.label}이 ${tr.ko} 색으로 드러나` +
                             (h ? `고, ${dom} 쪽 일에서 주로 펼쳐져요.` : '요.')
@@ -1262,6 +1276,11 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
               <details className={s.l2}>
                 <summary>{t('l2Aspects')}</summary>
                 <div className={s.l2Body}>
+                  <p className={s.gridCaption}>
+                    {lang === 'en'
+                      ? 'Each cell is where two planets meet. The symbol shows whether they flow (△), clash (□), or sit together (☌); the small number is how exact the angle is (closer to 0° = stronger).'
+                      : '각 칸은 두 행성이 만나는 지점이에요. 기호는 둘 사이가 잘 흐르는지(△)·부딪히는지(□)·붙어 있는지(☌)를, 아래 숫자는 그 각이 얼마나 딱 맞는지(0°에 가까울수록 강해요)를 뜻해요.'}
+                  </p>
                   <AspectGrid astro={A} lang={lang} />
                 </div>
               </details>
@@ -1443,10 +1462,12 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
                     {karma.length > 0 && (
                       <li>
                         <b>{lang === 'en' ? 'Lifelong work' : '평생 숙제'}</b>{' '}
-                        {lang === 'en' ? '' : '동·서양이 똑같이 "스스로 채워야 한다"고 짚는 '}
+                        {lang === 'en'
+                          ? 'Both systems point to '
+                          : '동·서양이 똑같이 "스스로 채워야 한다"고 짚는 '}
                         <b>{karma.join(' · ')}</b>
                         {lang === 'en'
-                          ? ' — both systems flag this as not-given, to be built by hand. Fill it in small, steady steps over the years.'
+                          ? ' — neither system gives this; it is yours to build by hand. Fill it in small, steady steps over the years.'
                           : '은(는) 타고나는 게 아니라 직접 만들어가는 영역 — 조급해 말고 해마다 조금씩 채워가면 가장 단단한 자산이 돼요.'}
                       </li>
                     )}
