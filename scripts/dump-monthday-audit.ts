@@ -69,7 +69,7 @@ async function main() {
   )
   const focusDayCell = focusCells[0] ?? null
 
-  const { month, day } = await assembleTiers({
+  const { topbar, user, lifetime, decade, year, month, day } = await assembleTiers({
     natal,
     cells,
     lang: 'ko',
@@ -110,6 +110,10 @@ async function main() {
   writeFileSync(`${OUT}/${PREFIX}-month.json`, JSON.stringify(month, null, 2))
   writeFileSync(`${OUT}/${PREFIX}-day.json`, JSON.stringify(day, null, 2))
   writeFileSync(`${OUT}/${PREFIX}-rawcells.json`, JSON.stringify(rawDays, null, 2))
+  writeFileSync(`${OUT}/${PREFIX}-year.json`, JSON.stringify(year, null, 2))
+  writeFileSync(`${OUT}/${PREFIX}-decade.json`, JSON.stringify(decade, null, 2))
+  writeFileSync(`${OUT}/${PREFIX}-lifetime.json`, JSON.stringify(lifetime, null, 2))
+  writeFileSync(`${OUT}/${PREFIX}-user.json`, JSON.stringify({ topbar, user }, null, 2))
 
   // 콘솔 요약
   const scores = cells.map((c: any) => c.derivedScore)
