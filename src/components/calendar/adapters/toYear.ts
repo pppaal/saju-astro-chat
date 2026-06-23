@@ -90,7 +90,7 @@ export interface DestinypalYear {
   zrFortuneChapters: DestinyDecadeZRChapter[]
 }
 
-const PROFECTION_THEMES: Record<number, { theme: string; themeEn: string }> = {
+export const PROFECTION_THEMES: Record<number, { theme: string; themeEn: string }> = {
   1: { theme: '자기상 · 시작', themeEn: 'Self · Beginnings' },
   2: { theme: '재산 · 가치', themeEn: 'Resources · Values' },
   3: { theme: '소통 · 단거리 이동', themeEn: 'Communication · Short trips' },

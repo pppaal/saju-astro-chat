@@ -35,6 +35,8 @@ import { buildHourMoon } from '@/components/calendar/adapters/toHourMoon'
 import { SIBSIN_EN } from '@/lib/saju/sibsinLabels'
 import { translateSignalLabel } from '@/lib/calendar-engine/derivers/signalI18n'
 import { PLANET_KO } from '@/components/calendar/adapters/shared'
+import { PROFECTION_THEMES } from '@/components/calendar/adapters/toYear'
+import { SIGN_KO } from '@/lib/astrology/signLabels'
 
 import type { NatalContext } from '@/lib/calendar-engine/context/types'
 import type { CalendarCell } from '@/lib/calendar-engine/types'
@@ -444,20 +446,26 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
     sewoon: yearAdapter.sewoon,
     sewoonGz: yearAdapter.sewoonGz,
     sewoonSibsin: yearAdapter.sewoonSibsin,
+    // evidence 없는 (캐시) cells 또는 7~12월생(신호창 미겹침)이면 yearAdapter.profection
+    // 이 undefined → 여기 fallback. house 는 나이로 정확히 복원되므로, theme 는 정본
+    // PROFECTION_THEMES 에서 채우고 cusp/ruler 도 한글화한다(영어 누수·빈 theme 방지).
     profection: yearAdapter.profection ?? {
       house: fallbackHouse,
-      theme: '',
-      themeEn: '',
-      cusp: wheelSlot ? (wheelSlot.cuspSign as string) : '',
+      theme: PROFECTION_THEMES[fallbackHouse]?.theme ?? '',
+      themeEn: PROFECTION_THEMES[fallbackHouse]?.themeEn ?? '',
+      cusp: wheelSlot ? (SIGN_KO[wheelSlot.cuspSign] ?? (wheelSlot.cuspSign as string)) : '',
       cuspEn: wheelSlot?.cuspSign ?? 'Aries',
-      ruler: wheelSlot ? (wheelSlot.cuspRuler as string) : '',
+      ruler: wheelSlot ? (PLANET_KO[wheelSlot.cuspRuler] ?? (wheelSlot.cuspRuler as string)) : '',
       rulerEn: wheelSlot?.cuspRuler ?? 'Sun',
       rulerNatal: '',
       rulerNatalEn: '',
       rulerNatalHouse: 0,
       rulerNatalSign: 'Aries',
     },
-    profectionWheel: yearAdapter.profectionWheel,
+    // fallback 일 때 휠의 active 슬롯이 비어 "현재 하우스" 강조가 사라지므로 채워준다.
+    profectionWheel: yearAdapter.profection
+      ? yearAdapter.profectionWheel
+      : yearAdapter.profectionWheel.map((w) => ({ ...w, active: w.house === fallbackHouse })),
     sajuNote: yearAdapter.sajuNote,
     astroNote: yearAdapter.astroNote,
     zrSpiritChapters: yearAdapter.zrSpiritChapters,
