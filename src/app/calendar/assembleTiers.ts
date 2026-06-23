@@ -505,6 +505,7 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
   const monthKeyDays = deriveConvergence(monthCells, 5, lang).keyDays.map((k) => ({
     date: k.date.slice(5),
     meaning: k.meaning,
+    tone: k.tone,
     astro: k.astro,
     saju: k.saju,
     bothSystems: k.bothSystems,

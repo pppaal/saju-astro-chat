@@ -116,6 +116,25 @@ function convergenceConfidence(
 
 // "2층 의미" 한 줄 — 그날 무거운 신호들의 순극성(톤)으로 구성.
 // 특정 점성 산문을 지어내지 않고 엔진이 이미 매긴 polarity 만 쓴다.
+// 톤 판정은 convergenceTone 으로 분리 — 큰 날 라벨 prefix 가 *같은 톤* 을 쓰게
+// (MonthTier 가 meaning 과 다른 소스로 prefix 를 붙여 "잔잔한 날 · 부딪힘을
+//  조심할 날" 식 모순이 났다 → keyDay.tone 으로 prefix 도 이 톤에 맞춘다).
+function convergenceTone(
+  netPol: number,
+  sumImp: number,
+  astroPolNet: number,
+  sajuPolNet: number
+): MeaningTone {
+  if (sumImp <= 0) return 'neutral'
+  // 두 체계가 *방향이 어긋나면*(점성+ / 사주− 등) 순극성이 한쪽으로 쏠려도
+  // '기회/주의'로 단정하지 않고 중립(혼재) 톤으로 — 라벨이 한쪽 근거만 대변해
+  // 표시되는 다른 쪽 토큰(예: 충/형/파)과 어긋나는 모순을 막는다.
+  const disagree =
+    astroPolNet !== 0 && sajuPolNet !== 0 && Math.sign(astroPolNet) !== Math.sign(sajuPolNet)
+  const ratio = netPol / sumImp
+  return disagree ? 'neutral' : ratio > 0.15 ? 'positive' : ratio < -0.15 ? 'negative' : 'neutral'
+}
+
 function composeMeaning(
   netPol: number,
   sumImp: number,
@@ -125,19 +144,7 @@ function composeMeaning(
   sajuPolNet: number
 ): string | undefined {
   if (sumImp <= 0) return undefined
-  // 두 체계가 *방향이 어긋나면*(점성+ / 사주− 등) 순극성이 한쪽으로 쏠려도
-  // '기회/주의'로 단정하지 않고 중립(혼재) 톤으로 — 라벨이 한쪽 근거만 대변해
-  // 표시되는 다른 쪽 토큰(예: 충/형/파)과 어긋나는 모순을 막는다.
-  const disagree =
-    astroPolNet !== 0 && sajuPolNet !== 0 && Math.sign(astroPolNet) !== Math.sign(sajuPolNet)
-  const ratio = netPol / sumImp
-  const toneKey: MeaningTone = disagree
-    ? 'neutral'
-    : ratio > 0.15
-      ? 'positive'
-      : ratio < -0.15
-        ? 'negative'
-        : 'neutral'
+  const toneKey = convergenceTone(netPol, sumImp, astroPolNet, sajuPolNet)
   // 날짜로 톤 문구를 회전 선택 — 큰 날 목록이 같은 문장으로 도배되지 않게.
   const dayNum = dateStr ? Math.abs(parseInt(dateStr.slice(-2), 10)) : 0
   return toneMeaningFor(toneKey, dayNum, lang)
@@ -186,6 +193,7 @@ export interface ConvergenceDay {
   saju: string[] // 그날 무거운 사주 이벤트
   bothSystems: boolean // 점성·사주 둘 다 무거운 게 있었나 (진짜 수렴)
   meaning?: string // 톤(polarity) 한 줄 의미
+  tone?: MeaningTone // meaning 과 같은 톤 — 라벨 prefix 정합용
   /**
    * 그 큰 날의 *활성 구간* — 구성 무거운 신호들의 active window 집계.
    * start=가장 이른 시작, end=가장 늦은 끝, peak=가장 강한 신호의 정점.
@@ -281,6 +289,8 @@ export function deriveConvergence(
         astroPolNet,
         sajuPolNet
       ),
+      // meaning 과 동일한 톤 — MonthTier 의 라벨 prefix 가 이 톤을 따라가 모순 제거.
+      tone: convergenceTone(netPol, sumImp, astroPolNet, sajuPolNet),
       window: aggregateWindow(heavySignals, c.datetime),
       confidence: convergenceConfidence(heavySignals, bothSystems, astroPolNet, sajuPolNet),
     })

@@ -98,6 +98,13 @@ export function MonthTier({ month, onDive, onRise, showRise = true }: MonthTierP
     if (m === 'avoid') return ko ? '피할 날' : 'Avoid'
     return ko ? '잔잔한 날' : 'Calm day'
   }
+  // 톤(positive/negative/neutral) → prefix. meaning 과 *같은 톤* 에서 뽑아야
+  // "잔잔한 날 · 부딪힘을 조심할 날" 식 모순이 안 난다.
+  const verdictPrefixForTone = (t: MeaningTone): string => {
+    if (t === 'positive') return ko ? '좋은 날' : 'Good day'
+    if (t === 'negative') return ko ? '조심할 날' : 'Caution'
+    return ko ? '잔잔한 날' : 'Calm day'
+  }
   const markToTone = (m: DestinyDayMark | null): MeaningTone => {
     if (m === 'best' || m === 'good') return 'positive'
     if (m === 'caution' || m === 'avoid') return 'negative'
@@ -111,14 +118,18 @@ export function MonthTier({ month, onDive, onRise, showRise = true }: MonthTierP
   }
   const keyDayItems: BigDay[] = [...(month.keyDays ?? [])].map((k) => {
     const mark = markByDs.get(k.date) ?? null
-    const tone = markToTone(mark)
     const dayNum = parseInt(k.date.slice(-2), 10)
-    const meaning =
-      k.meaning && k.meaning.trim()
-        ? k.meaning
-        : toneMeaningFor(tone, dayNum, ko ? 'ko' : 'en', seed)
-    const vp = verdictPrefix(mark)
-    return { when: k.date, title: `${vp} · ${meaning}` }
+    const hasMeaning = !!(k.meaning && k.meaning.trim())
+    // prefix 톤은 meaning 과 *같은 소스* 에서 뽑는다. k.meaning(수렴 톤)이 있으면
+    // 그 keyDay 의 tone 을, 없으면 그리드 밴드 마크 톤을 쓴다 — 섞으면 접두사와
+    // 의미가 어긋난다("잔잔한 날 · 부딪힘을 조심할 날").
+    if (hasMeaning) {
+      const tone: MeaningTone = k.tone ?? markToTone(mark)
+      return { when: k.date, title: `${verdictPrefixForTone(tone)} · ${k.meaning}` }
+    }
+    const tone = markToTone(mark)
+    const meaning = toneMeaningFor(tone, dayNum, ko ? 'ko' : 'en', seed)
+    return { when: k.date, title: `${verdictPrefix(mark)} · ${meaning}` }
   })
   // best(최고)일이 큰 날 목록에 빠졌으면 채워 넣는다.
   if (month.bestDay?.date && !keyDayItems.some((i) => i.when === month.bestDay.date)) {
