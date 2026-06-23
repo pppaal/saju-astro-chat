@@ -353,79 +353,112 @@ export function DayTier({ day, onRise, sex = '남' }: DayTierProps) {
         )}
       </div>
 
-      {/* ── S2 일진 간지 헤더 ── */}
-      <header className={styles.header}>
-        <div className={styles.ganzhi}>{day.iljin.hanja}</div>
-        <div className={styles.ganzhiRead}>{ko ? `${day.iljin.kr}일` : day.iljin.en}</div>
-        <div className={styles.title}>
-          {titleLatin}
-          <span className={styles.titleKo}>{ko ? '오늘의 일진' : "Today's pillar"}</span>
+      {/* ── novice 기본: 한자·용어 없는 일상어 결론 ── */}
+      <header className={styles.novice}>
+        <div
+          className={`${styles.novToneWord} ${
+            day.dayTone?.tone === 'positive'
+              ? styles.novGood
+              : day.dayTone?.tone === 'caution'
+                ? styles.novCare
+                : ''
+          }`.trim()}
+        >
+          {day.dayTone?.tone === 'positive'
+            ? ko
+              ? '좋은 날'
+              : 'A good day'
+            : day.dayTone?.tone === 'caution'
+              ? ko
+                ? '조심할 날'
+                : 'A careful day'
+              : ko
+                ? '잔잔한 날'
+                : 'A calm day'}
         </div>
-        <div className={styles.sibsinTag}>
-          <span className={styles.sibsinPlain}>{sibsinPlain}</span>
-          <span className={styles.sibsinRaw}>{sibsinRaw}</span>
-        </div>
-        {day.dayMaster && (
-          <div className={styles.master}>
-            {ko ? '기준 일간' : 'Day master'} · {day.dayMaster.hanja}{' '}
-            {ko ? day.dayMaster.kr : day.dayMaster.en}
-          </div>
-        )}
-        <div className={styles.counts}>
-          <span className={styles.cScore}>
-            {ko ? '점수' : 'score'}
-            <b>{day.score}</b>
-          </span>
-          <span className={styles.cTone}>
-            {ko ? '바람' : 'wind'}
-            <b className={styles.cToneWord}>{toneWord}</b>
-          </span>
-          <span className={styles.cStrength}>
-            {ko ? '세기' : 'strength'}
-            <b className={styles.cStrengthWord}>{ko ? strength.ko : strength.en}</b>
-          </span>
-        </div>
+        <p className={styles.novLine}>{localizeLabel(dayOneLine, ko)}</p>
       </header>
 
-      {/* ── S3 한 줄 (verdict) ── */}
-      <section className={styles.sec}>
-        <SecHead label={ko ? '오늘의 한 줄' : 'In a line'} latin="In a line" />
-        <p className={styles.verdict}>{localizeLabel(dayOneLine, ko)}</p>
-        <div className={styles.verdictSub}>
-          <span className={styles.termTag}>
-            {[day.iljin.hanja, sibsinRaw].filter(Boolean).join(' · ')}
-          </span>
-        </div>
-      </section>
+      {/* ── 자세히 ① 일진·근거 (사주를 아는 사람용) ── */}
+      <details className={styles.expertWrap}>
+        <summary className={styles.expertSummary}>
+          {ko ? '왜 이런가요? · 일진과 근거 보기' : 'Why? · pillar & reasons'}
+        </summary>
 
-      {/* ── S4 지금 일어나는 일 ── */}
-      <section className={styles.sec}>
-        <SecHead label={ko ? '지금 일어나는 일' : "What's happening"} latin="Now" />
-        {happeningLines.length === 0 ? (
-          <p className={styles.muted}>
-            {ko
-              ? '오늘은 두드러진 신호 없이 무난한 흐름이에요.'
-              : 'A steady day with no standout signals.'}
-          </p>
-        ) : (
-          <ul className={styles.list}>
-            {happeningLines.map((line, i) => (
-              <li className={styles.listItem} key={i}>
-                {line}
-              </li>
-            ))}
-          </ul>
-        )}
-        {cautionLines.length > 0 && (
-          <ul className={`${styles.list} ${styles.listCaution}`}>
-            {cautionLines.map((line, i) => (
-              <li className={styles.listItem} key={i}>
-                {line}
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+        {/* ── S2 일진 간지 헤더 ── */}
+        <header className={styles.header}>
+          <div className={styles.ganzhi}>{day.iljin.hanja}</div>
+          <div className={styles.ganzhiRead}>{ko ? `${day.iljin.kr}일` : day.iljin.en}</div>
+          <div className={styles.title}>
+            {titleLatin}
+            <span className={styles.titleKo}>{ko ? '오늘의 일진' : "Today's pillar"}</span>
+          </div>
+          <div className={styles.sibsinTag}>
+            <span className={styles.sibsinPlain}>{sibsinPlain}</span>
+            <span className={styles.sibsinRaw}>{sibsinRaw}</span>
+          </div>
+          {day.dayMaster && (
+            <div className={styles.master}>
+              {ko ? '기준 일간' : 'Day master'} · {day.dayMaster.hanja}{' '}
+              {ko ? day.dayMaster.kr : day.dayMaster.en}
+            </div>
+          )}
+          <div className={styles.counts}>
+            <span className={styles.cScore}>
+              {ko ? '점수' : 'score'}
+              <b>{day.score}</b>
+            </span>
+            <span className={styles.cTone}>
+              {ko ? '바람' : 'wind'}
+              <b className={styles.cToneWord}>{toneWord}</b>
+            </span>
+            <span className={styles.cStrength}>
+              {ko ? '세기' : 'strength'}
+              <b className={styles.cStrengthWord}>{ko ? strength.ko : strength.en}</b>
+            </span>
+          </div>
+        </header>
+
+        {/* ── S3 한 줄 (verdict) ── */}
+        <section className={styles.sec}>
+          <SecHead label={ko ? '오늘의 한 줄' : 'In a line'} latin="In a line" />
+          <p className={styles.verdict}>{localizeLabel(dayOneLine, ko)}</p>
+          <div className={styles.verdictSub}>
+            <span className={styles.termTag}>
+              {[day.iljin.hanja, sibsinRaw].filter(Boolean).join(' · ')}
+            </span>
+          </div>
+        </section>
+
+        {/* ── S4 지금 일어나는 일 ── */}
+        <section className={styles.sec}>
+          <SecHead label={ko ? '지금 일어나는 일' : "What's happening"} latin="Now" />
+          {happeningLines.length === 0 ? (
+            <p className={styles.muted}>
+              {ko
+                ? '오늘은 두드러진 신호 없이 무난한 흐름이에요.'
+                : 'A steady day with no standout signals.'}
+            </p>
+          ) : (
+            <ul className={styles.list}>
+              {happeningLines.map((line, i) => (
+                <li className={styles.listItem} key={i}>
+                  {line}
+                </li>
+              ))}
+            </ul>
+          )}
+          {cautionLines.length > 0 && (
+            <ul className={`${styles.list} ${styles.listCaution}`}>
+              {cautionLines.map((line, i) => (
+                <li className={styles.listItem} key={i}>
+                  {line}
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      </details>
 
       {/* ── S5 이렇게 해보세요 ── */}
       {dayActions && (
@@ -486,260 +519,267 @@ export function DayTier({ day, onRise, sex = '남' }: DayTierProps) {
         </section>
       )}
 
-      {/* ── S7 사주 × 별자리 교차 (▲/▼) ── */}
-      {crossCards.length > 0 && (
-        <section className={styles.sec}>
-          <SecHead label={ko ? '사주 × 별자리 교차' : 'Saju × Astrology'} latin="Crossings" />
-          <div className={styles.crossLegend}>
-            <span className={styles.clUp}>▲ {ko ? '도움이 되는 흐름' : 'Supporting flow'}</span>
-            <span className={styles.clDn}>▼ {ko ? '부딪히는 흐름' : 'Clashing flow'}</span>
-          </div>
-          {crossCards.map((c, i) => {
-            const isHero = heroCross != null && c === heroCross && Math.abs(c.polarity) >= 2
-            const poleSym = c.polarity > 0 ? '▲' : c.polarity < 0 ? '▼' : '·'
-            const poleCls = c.polarity > 0 ? styles.poleUp : c.polarity < 0 ? styles.poleDn : ''
-            const sajuName = c.sajuKo ?? c.sajuSide
-            const astroName = c.astroKo ?? c.astroSide
-            const head = ko
-              ? `${sibsinArea(sajuName)} × ${planetPlain(astroName, true)}`
-              : `${sibsinAreaEn(sajuName)} × ${planetPlain(astroName, false)}`
-            const body = ko ? c.meaning : (c.meaningEn ?? c.meaning)
-            return (
-              <div
-                className={`${styles.cross} ${isHero ? styles.crossHero : ''}`.trim()}
-                key={c.id ?? i}
-              >
-                <div className={styles.crossTop}>
-                  <span className={`${styles.pole} ${poleCls}`.trim()} aria-hidden>
-                    {poleSym}
-                  </span>
-                  <span className={`${styles.term} ${styles.termSaju}`}>
-                    <span className={styles.termSys}>Saju</span>
-                    <span className={styles.termNm}>{sajuName}</span>
-                  </span>
-                  <span className={styles.crossX} aria-hidden>
-                    ×
-                  </span>
-                  <span className={`${styles.term} ${styles.termAstro}`}>
-                    <span className={styles.termSys}>Astro</span>
-                    <span className={styles.termNm}>{astroName}</span>
-                  </span>
-                  {isHero && (
-                    <span className={styles.crossFlag}>{ko ? '가장 센 흐름' : 'Strongest'}</span>
-                  )}
-                </div>
-                <div className={styles.crossHead}>{head}</div>
-                {body && <div className={styles.crossBody}>{body}</div>}
-              </div>
-            )
-          })}
-        </section>
-      )}
+      {/* ── 자세히 ② 사주×별자리·타이밍 (사주를 아는 사람용) ── */}
+      <details className={styles.expertWrap}>
+        <summary className={styles.expertSummary}>
+          {ko ? '사주 × 별자리 · 타이밍 자세히' : 'Saju × Astro · timing'}
+        </summary>
 
-      {/* ── S8 타이밍 ── */}
-      {(hasFlow || upcoming.length > 0) && (
-        <section className={styles.sec}>
-          <SecHead label={ko ? '타이밍' : 'Timing'} latin="Timing" />
-          {hasFlow && (
-            <>
-              <div className={styles.flowSub}>
-                {ko ? '이달 흐름 속 오늘' : 'Today within the month'}
-              </div>
-              <svg width="100%" viewBox="0 0 320 60" className={styles.flowSvg} aria-hidden>
-                <path d={flowArea} fill="var(--good-bg)" opacity={0.6} />
-                <path d={flowPath} fill="none" stroke="var(--green)" strokeWidth={2} />
-                {flowDot && (
-                  <>
-                    <circle cx={flowDot.x} cy={flowDot.y} r={4.5} fill="var(--blue)" />
-                    <text
-                      x={flowDot.x}
-                      y={flowDot.y - 7}
-                      textAnchor="middle"
-                      className={styles.flowToday}
-                    >
-                      {ko ? '오늘' : 'today'}
-                    </text>
-                  </>
-                )}
-              </svg>
-            </>
-          )}
-          {upcoming.length > 0 && (
-            <>
-              <div className={styles.flowSub}>{ko ? '다가오는 며칠' : 'Next few days'}</div>
-              <div className={styles.upRow}>
-                {upcoming.map((u) => (
-                  <div key={u.date} className={styles.upCell}>
-                    <div className={styles.upBox} style={{ background: upBg(u.score) }}>
-                      {Number(u.date.slice(8, 10))}
-                    </div>
-                    <span className={styles.upWd}>{weekday(u.date)}</span>
-                  </div>
-                ))}
-              </div>
-            </>
-          )}
-        </section>
-      )}
-
-      {/* ── S9 하루 리듬 ── */}
-      {hourSorted.length > 0 && (
-        <section className={styles.sec}>
-          <SecHead label={ko ? '하루 시간 리듬' : "The day's rhythm"} latin="Rhythm" />
-          <div className={styles.rhythmNote}>
-            {ko ? '좋음 ↑ 쪽빛 · 주의 ↓ 주황' : 'good ↑ indigo · caution ↓ amber'}
-          </div>
-          <div className={styles.rhythmRow}>
-            {hourSorted.map((h, i) => {
-              const up = h.tone === 'good'
-              const mag = Math.max(0.4, Math.min(1, h.strength / 2))
-              const label = ko ? h.when : h.whenEn
-              const time = label.replace(/\s*\(.*\)/, '').trim()
+        {/* ── S7 사주 × 별자리 교차 (▲/▼) ── */}
+        {crossCards.length > 0 && (
+          <section className={styles.sec}>
+            <SecHead label={ko ? '사주 × 별자리 교차' : 'Saju × Astrology'} latin="Crossings" />
+            <div className={styles.crossLegend}>
+              <span className={styles.clUp}>▲ {ko ? '도움이 되는 흐름' : 'Supporting flow'}</span>
+              <span className={styles.clDn}>▼ {ko ? '부딪히는 흐름' : 'Clashing flow'}</span>
+            </div>
+            {crossCards.map((c, i) => {
+              const isHero = heroCross != null && c === heroCross && Math.abs(c.polarity) >= 2
+              const poleSym = c.polarity > 0 ? '▲' : c.polarity < 0 ? '▼' : '·'
+              const poleCls = c.polarity > 0 ? styles.poleUp : c.polarity < 0 ? styles.poleDn : ''
+              const sajuName = c.sajuKo ?? c.sajuSide
+              const astroName = c.astroKo ?? c.astroSide
+              const head = ko
+                ? `${sibsinArea(sajuName)} × ${planetPlain(astroName, true)}`
+                : `${sibsinAreaEn(sajuName)} × ${planetPlain(astroName, false)}`
+              const body = ko ? c.meaning : (c.meaningEn ?? c.meaning)
               return (
-                <div className={styles.rhythmCol} key={i} title={label}>
-                  <div className={styles.rhythmTrack}>
-                    <span className={styles.rhythmMid} />
-                    <span
-                      className={`${styles.rhythmBar} ${up ? styles.rhythmUp : styles.rhythmDn}`}
-                      style={{ height: `${mag * 50}%`, [up ? 'bottom' : 'top']: '50%' }}
-                    />
+                <div
+                  className={`${styles.cross} ${isHero ? styles.crossHero : ''}`.trim()}
+                  key={c.id ?? i}
+                >
+                  <div className={styles.crossTop}>
+                    <span className={`${styles.pole} ${poleCls}`.trim()} aria-hidden>
+                      {poleSym}
+                    </span>
+                    <span className={`${styles.term} ${styles.termSaju}`}>
+                      <span className={styles.termSys}>Saju</span>
+                      <span className={styles.termNm}>{sajuName}</span>
+                    </span>
+                    <span className={styles.crossX} aria-hidden>
+                      ×
+                    </span>
+                    <span className={`${styles.term} ${styles.termAstro}`}>
+                      <span className={styles.termSys}>Astro</span>
+                      <span className={styles.termNm}>{astroName}</span>
+                    </span>
+                    {isHero && (
+                      <span className={styles.crossFlag}>{ko ? '가장 센 흐름' : 'Strongest'}</span>
+                    )}
                   </div>
-                  <span className={styles.rhythmTime}>{time}</span>
+                  <div className={styles.crossHead}>{head}</div>
+                  {body && <div className={styles.crossBody}>{body}</div>}
                 </div>
               )
             })}
-          </div>
-        </section>
-      )}
+          </section>
+        )}
 
-      {/* ── S10 자세한 신호 보기 (단일 fold) ── */}
-      <details className={styles.fold}>
-        <summary className={styles.foldSummary}>
-          {ko ? '자세한 신호 보기' : 'See the raw signals'}
-        </summary>
-        <div className={styles.foldBody}>
-          {/* 깊이 읽기 */}
-          <div className={styles.foldBlock}>
-            <div className={styles.foldLabel}>{ko ? '오늘 깊이 읽기' : 'Today in depth'}</div>
-            <p className={styles.deepRead}>{ko ? deepRead.ko : deepRead.en}</p>
-          </div>
+        {/* ── S8 타이밍 ── */}
+        {(hasFlow || upcoming.length > 0) && (
+          <section className={styles.sec}>
+            <SecHead label={ko ? '타이밍' : 'Timing'} latin="Timing" />
+            {hasFlow && (
+              <>
+                <div className={styles.flowSub}>
+                  {ko ? '이달 흐름 속 오늘' : 'Today within the month'}
+                </div>
+                <svg width="100%" viewBox="0 0 320 60" className={styles.flowSvg} aria-hidden>
+                  <path d={flowArea} fill="var(--good-bg)" opacity={0.6} />
+                  <path d={flowPath} fill="none" stroke="var(--green)" strokeWidth={2} />
+                  {flowDot && (
+                    <>
+                      <circle cx={flowDot.x} cy={flowDot.y} r={4.5} fill="var(--blue)" />
+                      <text
+                        x={flowDot.x}
+                        y={flowDot.y - 7}
+                        textAnchor="middle"
+                        className={styles.flowToday}
+                      >
+                        {ko ? '오늘' : 'today'}
+                      </text>
+                    </>
+                  )}
+                </svg>
+              </>
+            )}
+            {upcoming.length > 0 && (
+              <>
+                <div className={styles.flowSub}>{ko ? '다가오는 며칠' : 'Next few days'}</div>
+                <div className={styles.upRow}>
+                  {upcoming.map((u) => (
+                    <div key={u.date} className={styles.upCell}>
+                      <div className={styles.upBox} style={{ background: upBg(u.score) }}>
+                        {Number(u.date.slice(8, 10))}
+                      </div>
+                      <span className={styles.upWd}>{weekday(u.date)}</span>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+          </section>
+        )}
 
-          {/* 오늘 기둥 */}
-          <div className={styles.foldBlock}>
-            <div className={styles.foldLabel}>{ko ? '오늘의 기둥' : "Today's pillar"}</div>
-            <div className={styles.chartRow}>
-              <span className={styles.chartHan}>{day.iljin.hanja}</span>
-              <span className={styles.chartDesc}>
-                {ko
-                  ? `오늘의 기운 ${day.iljin.kr} · ${sibsinPlain} (${sibsinRaw})`
-                  : `today's pillar ${day.iljin.en} · ${sibsinPlain} (${sibsinRaw})`}
-              </span>
+        {/* ── S9 하루 리듬 ── */}
+        {hourSorted.length > 0 && (
+          <section className={styles.sec}>
+            <SecHead label={ko ? '하루 시간 리듬' : "The day's rhythm"} latin="Rhythm" />
+            <div className={styles.rhythmNote}>
+              {ko ? '좋음 ↑ 쪽빛 · 주의 ↓ 주황' : 'good ↑ indigo · caution ↓ amber'}
             </div>
-            {day.dayMaster && (
+            <div className={styles.rhythmRow}>
+              {hourSorted.map((h, i) => {
+                const up = h.tone === 'good'
+                const mag = Math.max(0.4, Math.min(1, h.strength / 2))
+                const label = ko ? h.when : h.whenEn
+                const time = label.replace(/\s*\(.*\)/, '').trim()
+                return (
+                  <div className={styles.rhythmCol} key={i} title={label}>
+                    <div className={styles.rhythmTrack}>
+                      <span className={styles.rhythmMid} />
+                      <span
+                        className={`${styles.rhythmBar} ${up ? styles.rhythmUp : styles.rhythmDn}`}
+                        style={{ height: `${mag * 50}%`, [up ? 'bottom' : 'top']: '50%' }}
+                      />
+                    </div>
+                    <span className={styles.rhythmTime}>{time}</span>
+                  </div>
+                )
+              })}
+            </div>
+          </section>
+        )}
+
+        {/* ── S10 자세한 신호 보기 (단일 fold) ── */}
+        <details className={styles.fold}>
+          <summary className={styles.foldSummary}>
+            {ko ? '자세한 신호 보기' : 'See the raw signals'}
+          </summary>
+          <div className={styles.foldBody}>
+            {/* 깊이 읽기 */}
+            <div className={styles.foldBlock}>
+              <div className={styles.foldLabel}>{ko ? '오늘 깊이 읽기' : 'Today in depth'}</div>
+              <p className={styles.deepRead}>{ko ? deepRead.ko : deepRead.en}</p>
+            </div>
+
+            {/* 오늘 기둥 */}
+            <div className={styles.foldBlock}>
+              <div className={styles.foldLabel}>{ko ? '오늘의 기둥' : "Today's pillar"}</div>
               <div className={styles.chartRow}>
-                <span className={styles.chartHan}>{day.dayMaster.hanja}</span>
+                <span className={styles.chartHan}>{day.iljin.hanja}</span>
                 <span className={styles.chartDesc}>
                   {ko
-                    ? `나의 타고난 기운 · ${day.dayMaster.kr}`
-                    : `your core nature · ${day.dayMaster.en}`}
+                    ? `오늘의 기운 ${day.iljin.kr} · ${sibsinPlain} (${sibsinRaw})`
+                    : `today's pillar ${day.iljin.en} · ${sibsinPlain} (${sibsinRaw})`}
                 </span>
               </div>
-            )}
-          </div>
-
-          {/* 신호와 강도 */}
-          {signalRows.length > 0 && (
-            <div className={styles.foldBlock}>
-              <div className={styles.foldLabel}>{ko ? '신호와 강도' : 'Signals & strength'}</div>
-              <div className={styles.evList}>
-                {signalRows.map((s, i) => (
-                  <div className={styles.evRow} key={s.id ?? i}>
-                    <span className={styles.evSrc}>{srcTag(s)}</span>
-                    <span className={styles.evLabel}>{localizeLabel(s.label, ko)}</span>
-                    <span className={styles.evStrength}>{strengthWord(s.weight)}</span>
-                    <PolChip v={s.polarity} />
-                  </div>
-                ))}
-              </div>
+              {day.dayMaster && (
+                <div className={styles.chartRow}>
+                  <span className={styles.chartHan}>{day.dayMaster.hanja}</span>
+                  <span className={styles.chartDesc}>
+                    {ko
+                      ? `나의 타고난 기운 · ${day.dayMaster.kr}`
+                      : `your core nature · ${day.dayMaster.en}`}
+                  </span>
+                </div>
+              )}
             </div>
-          )}
 
-          {/* 본명 풀이 */}
-          {(patterns.length > 0 || jjLayers.length > 0 || stages.length > 0 || geok) && (
-            <div className={styles.foldBlock}>
-              <div className={styles.foldLabel}>{ko ? '본명 풀이' : 'Natal read'}</div>
-              {patterns.length > 0 && (
-                <div className={styles.natalSub}>
-                  {patterns.map((p, i) => {
-                    const en = appliedPatternEn(String(p.id))
-                    const good = p.polarity >= 0
+            {/* 신호와 강도 */}
+            {signalRows.length > 0 && (
+              <div className={styles.foldBlock}>
+                <div className={styles.foldLabel}>{ko ? '신호와 강도' : 'Signals & strength'}</div>
+                <div className={styles.evList}>
+                  {signalRows.map((s, i) => (
+                    <div className={styles.evRow} key={s.id ?? i}>
+                      <span className={styles.evSrc}>{srcTag(s)}</span>
+                      <span className={styles.evLabel}>{localizeLabel(s.label, ko)}</span>
+                      <span className={styles.evStrength}>{strengthWord(s.weight)}</span>
+                      <PolChip v={s.polarity} />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* 본명 풀이 */}
+            {(patterns.length > 0 || jjLayers.length > 0 || stages.length > 0 || geok) && (
+              <div className={styles.foldBlock}>
+                <div className={styles.foldLabel}>{ko ? '본명 풀이' : 'Natal read'}</div>
+                {patterns.length > 0 && (
+                  <div className={styles.natalSub}>
+                    {patterns.map((p, i) => {
+                      const en = appliedPatternEn(String(p.id))
+                      const good = p.polarity >= 0
+                      return (
+                        <div className={styles.natalRow} key={p.id ?? i}>
+                          <span className={good ? styles.natalPos : styles.natalNeg}>
+                            {ko ? p.rule : (en?.gloss ?? p.rule)}
+                          </span>
+                          <span className={styles.natalDesc}>
+                            {ko ? p.korean : (en?.name ?? p.korean)}{' '}
+                            <span className={styles.natalHan}>{p.name}</span>
+                          </span>
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
+                {jjLayers.length > 0 && (
+                  <div className={styles.natalChips}>
+                    {jjLayers.map((L, i) => (
+                      <span className={styles.natalChip} key={i}>
+                        {ko
+                          ? `${ELEM_PLAIN_KO[L.element] ?? L.element} · ${sibsinArea(String(L.sibsin))} · ${LAYER_PLAIN_KO[L.layer] ?? L.layer}`
+                          : `${elementEn(L.element)} · ${sibsinAreaEn(String(L.sibsin))} · ${jijangganLayerEn(L.layer)}`}{' '}
+                        <span className={styles.natalHan}>{L.stem}</span>
+                      </span>
+                    ))}
+                  </div>
+                )}
+                {stages.length > 0 && (
+                  <div className={styles.natalChips}>
+                    {stages.map((s, i) => (
+                      <span className={styles.natalChip} key={i}>
+                        {ko
+                          ? `${PILLAR_PLAIN[s.pillar]?.ko ?? s.pillar} · ${twelveStagePlain(s.stage)}`
+                          : `${PILLAR_PLAIN[s.pillar]?.en ?? s.pillar} · ${twelveStageEn(s.stage)}`}{' '}
+                        <span className={styles.natalHan}>{s.stage}</span>
+                      </span>
+                    ))}
+                  </div>
+                )}
+                {geok && <div className={styles.natalGeok}>{geok.description}</div>}
+              </div>
+            )}
+
+            {/* 시간대 하늘 */}
+            {hourSorted.length > 0 && (
+              <div className={styles.foldBlock}>
+                <div className={styles.foldLabel}>{ko ? '시간대 하늘' : 'Sky by hour'}</div>
+                <div className={styles.skyList}>
+                  {hourSorted.map((h, i) => {
+                    const label = ko ? h.when : h.whenEn
+                    const time = label.replace(/\s*\(.*\)/, '').trim()
+                    const sign = ko ? h.risingSignKo : h.risingSignEn
+                    const ruler = ko ? h.ruler : h.rulerEn
+                    if (!sign) return null
                     return (
-                      <div className={styles.natalRow} key={p.id ?? i}>
-                        <span className={good ? styles.natalPos : styles.natalNeg}>
-                          {ko ? p.rule : (en?.gloss ?? p.rule)}
-                        </span>
-                        <span className={styles.natalDesc}>
-                          {ko ? p.korean : (en?.name ?? p.korean)}{' '}
-                          <span className={styles.natalHan}>{p.name}</span>
+                      <div className={styles.skyRow} key={i}>
+                        <span className={styles.skyWhen}>{time}</span>
+                        <span className={styles.skyBody}>
+                          {sign} {ko ? '상승' : 'rising'}
+                          {ruler ? (ko ? ` · 지배성 ${ruler}` : ` · ruler ${ruler}`) : ''}
                         </span>
                       </div>
                     )
                   })}
                 </div>
-              )}
-              {jjLayers.length > 0 && (
-                <div className={styles.natalChips}>
-                  {jjLayers.map((L, i) => (
-                    <span className={styles.natalChip} key={i}>
-                      {ko
-                        ? `${ELEM_PLAIN_KO[L.element] ?? L.element} · ${sibsinArea(String(L.sibsin))} · ${LAYER_PLAIN_KO[L.layer] ?? L.layer}`
-                        : `${elementEn(L.element)} · ${sibsinAreaEn(String(L.sibsin))} · ${jijangganLayerEn(L.layer)}`}{' '}
-                      <span className={styles.natalHan}>{L.stem}</span>
-                    </span>
-                  ))}
-                </div>
-              )}
-              {stages.length > 0 && (
-                <div className={styles.natalChips}>
-                  {stages.map((s, i) => (
-                    <span className={styles.natalChip} key={i}>
-                      {ko
-                        ? `${PILLAR_PLAIN[s.pillar]?.ko ?? s.pillar} · ${twelveStagePlain(s.stage)}`
-                        : `${PILLAR_PLAIN[s.pillar]?.en ?? s.pillar} · ${twelveStageEn(s.stage)}`}{' '}
-                      <span className={styles.natalHan}>{s.stage}</span>
-                    </span>
-                  ))}
-                </div>
-              )}
-              {geok && <div className={styles.natalGeok}>{geok.description}</div>}
-            </div>
-          )}
-
-          {/* 시간대 하늘 */}
-          {hourSorted.length > 0 && (
-            <div className={styles.foldBlock}>
-              <div className={styles.foldLabel}>{ko ? '시간대 하늘' : 'Sky by hour'}</div>
-              <div className={styles.skyList}>
-                {hourSorted.map((h, i) => {
-                  const label = ko ? h.when : h.whenEn
-                  const time = label.replace(/\s*\(.*\)/, '').trim()
-                  const sign = ko ? h.risingSignKo : h.risingSignEn
-                  const ruler = ko ? h.ruler : h.rulerEn
-                  if (!sign) return null
-                  return (
-                    <div className={styles.skyRow} key={i}>
-                      <span className={styles.skyWhen}>{time}</span>
-                      <span className={styles.skyBody}>
-                        {sign} {ko ? '상승' : 'rising'}
-                        {ruler ? (ko ? ` · 지배성 ${ruler}` : ` · ruler ${ruler}`) : ''}
-                      </span>
-                    </div>
-                  )
-                })}
               </div>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
+        </details>
       </details>
 
       {/* ── S11 rise (bottom) ── */}
