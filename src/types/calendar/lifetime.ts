@@ -109,6 +109,8 @@ export type DestinyMilestoneKind =
   | 'neptune' // 해왕성 사각·트라인 등
   | 'uranus' // 천왕성 어포지션 (mid-life)
   | 'pluto' // 명왕성 사각/오포지션
+  | 'chiron' // 카이런 회귀 (~50세, 치유)
+  | 'progressed' // 진행 달 회귀 등 진행 마디
   | 'eclipse' // 일식·월식
   | 'zr' // ZR L1 챕터 전환
 

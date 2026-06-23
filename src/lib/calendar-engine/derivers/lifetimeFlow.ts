@@ -1145,10 +1145,15 @@ export function deriveLifetimeFlow(
     let twelveStageLineEn: string | undefined
     try {
       const stage = getTwelveStage(dm, primary.branch)
+      // getTwelveStage 는 정통 표기 임관/왕지를 내는데, 해석 테이블·타입가드는
+      // 동의어 건록/제왕 키를 쓴다. 정규화하지 않으면 임관·왕지 단계가 *항상*
+      // 해석을 잃고 "…기준 임관" 으로 끊겨 raw 용어만 남는다(감사 지적). 동의어를
+      // 매핑해 의미가 절대 비지 않게 한다.
+      const stageForLookup = stage === '임관' ? '건록' : stage === '왕지' ? '제왕' : stage
       let meaningKo = ''
       let meaningEn = ''
-      if (stage && TWELVE_STAGE_TYPES.has(stage as TwelveStageType)) {
-        const interp = getTwelveStageInterpretation(stage as TwelveStageType)
+      if (stageForLookup && TWELVE_STAGE_TYPES.has(stageForLookup as TwelveStageType)) {
+        const interp = getTwelveStageInterpretation(stageForLookup as TwelveStageType)
         if (interp) {
           meaningKo = interp.meaning ?? ''
           meaningEn = interp.meaning_en ?? ''
