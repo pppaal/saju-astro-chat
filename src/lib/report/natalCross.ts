@@ -13,6 +13,7 @@
  */
 
 import { type SajuElement } from '@/lib/saju/elementBridge'
+import { iyeyo } from '@/lib/i18n/koParticle'
 import {
   EL_KO,
   EL_EN,
@@ -79,7 +80,10 @@ export function synthesize(
           ? 'creatively tense'
           : 'evenly balanced'
 
-  const axisKo = sharedElement ? ` 가장 두드러진 기운은 ${EL_KO[sharedElement]}이에요.` : ''
+  // EL_KO 는 모음 종결(화·수·토)도 있어 '이에요'를 하드코딩하면 "화이에요"가 된다 → iyeyo.
+  const axisKo = sharedElement
+    ? ` 가장 두드러진 기운은 ${EL_KO[sharedElement]}${iyeyo(EL_KO[sharedElement])}.`
+    : ''
   const axisEn = sharedElement ? ` The strongest thread is ${EL_EN[sharedElement]}.` : ''
 
   // 톤별 해석 한 단락 — 전체 패턴이 삶에서 어떻게 작동하는지.
@@ -113,6 +117,15 @@ export function synthesize(
     const pairs = els.map((e) => [e, elementCounts[e] ?? 0] as const)
     const dom = pairs.reduce((a, b) => (b[1] > a[1] ? b : a))
     const lacking = pairs.filter(([, n]) => n === 0).map(([e]) => e)
+    // 영어 목록 — 3개 이상이면 "Fire and Metal and Water"(and 반복)가 되므로
+    // 옥스퍼드 콤마로 "Fire, Metal, and Water" 처럼 잇는다.
+    const lackEn = lacking.map((e) => EL_EN[e])
+    const lackEnStr =
+      lackEn.length <= 1
+        ? lackEn.join('')
+        : lackEn.length === 2
+          ? lackEn.join(' and ')
+          : `${lackEn.slice(0, -1).join(', ')}, and ${lackEn[lackEn.length - 1]}`
     distKo =
       ` 오행으로 보면 ${EL_KO[dom[0]]} 기운이 ${dom[1]}개로 가장 두텁고` +
       (lacking.length
@@ -121,15 +134,17 @@ export function synthesize(
     distEn =
       ` By element, ${EL_EN[dom[0]]} is thickest at ${dom[1]}` +
       (lacking.length
-        ? `, while ${lacking.map((e) => EL_EN[e]).join(' and ')} ${lacking.length > 1 ? 'are' : 'is'} empty — a grain you build deliberately rather than inherit, a lifelong task.`
+        ? `, while ${lackEnStr} ${lacking.length > 1 ? 'are' : 'is'} empty — a grain you build deliberately rather than inherit, a lifelong task.`
         : `, with all five fairly evenly spread — a well-balanced makeup.`)
   }
 
+  // 숫자만 던지면 "잘 맞는 게 5개"가 '무엇이' 맞는지 안 보인다 — 사주·점성을
+  // 여러 삶의 영역에서 맞대본 결과(영역 수)임을 문장 안에서 풀어 쓴다.
   return {
     tone,
     text: {
-      ko: `잘 맞는 게 ${resonant}개, 서로 채워주는 게 ${complement}개, 부딪히는 게 ${tension}개 — ${labelKo} 사람이에요.${axisKo}${elabKo}${distKo}`,
-      en: `${resonant} aligned · ${complement} complementary · ${tension} in tension — a ${labelEn} identity.${axisEn}${elabEn}${distEn}`,
+      ko: `사주와 별자리를 여러 삶의 영역에서 나란히 맞대보면, 두 관점이 같은 방향을 가리키는 영역이 ${resonant}개, 서로 부족을 채워주는 영역이 ${complement}개, 부딪히는 영역이 ${tension}개예요 — ${labelKo} 사람이에요.${axisKo}${elabKo}${distKo}`,
+      en: `Lining up Saju and astrology across several areas of life, the two views point the same way in ${resonant}, fill each other's gaps in ${complement}, and pull against each other in ${tension} — a ${labelEn} identity.${axisEn}${elabEn}${distEn}`,
     },
   }
 }

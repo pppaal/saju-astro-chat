@@ -763,6 +763,9 @@
 .wheelCard {
   padding: 14px;
   display: flex;
+  /* 휠(SVG)과 캡션을 세로로 적층 — row 면 캡션 <p>가 휠 옆 좁은 칸에 밀려
+     한 글자씩 세로로 깨지고 휠 위에 거대 공백이 생겼다. */
+  flex-direction: column;
   align-items: center;
   justify-content: center;
 }

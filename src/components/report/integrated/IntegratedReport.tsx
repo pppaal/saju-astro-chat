@@ -1265,19 +1265,32 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
               return cards.map((cd) => {
                 if (!cd.core) return null
                 const sk = SIGN_META[abbr(cd.sign)]
+                // 별자리를 못 구하는 유일한 케이스 = 출생 시각 미상의 상승궁(첫인상).
+                // 빈 헤더·빈 풀이 카드가 나가면 "설명이 없다"는 인상을 주므로,
+                // 별자리·도수 대신 왜 비었는지/어떻게 채우는지 한 줄로 안내한다.
+                const hasSign = !!sk
                 return (
                   <div className={s.bigCard} key={cd.label}>
                     <div className={s.bigHead}>
                       <b className={elClass[sk?.el ?? '']}>
                         {cd.glyph} {cd.label}
                       </b>
-                      <i>
-                        {signLabel(abbr(cd.sign), lang)} {cd.deg}
-                        {''}
-                      </i>
+                      {hasSign && (
+                        <i>
+                          {signLabel(abbr(cd.sign), lang)} {cd.deg}
+                        </i>
+                      )}
                     </div>
                     <div className={s.bigPrin}>{cd.core.principle}</div>
                     {(() => {
+                      if (!hasSign) {
+                        // 상승궁은 정확한 출생 시각이 있어야 계산된다.
+                        const note =
+                          lang === 'en'
+                            ? "Your birth time is missing, so this sign can't be calculated yet — add an exact birth time to reveal it."
+                            : '출생 시각이 없어 별자리를 계산할 수 없어요 — 정확한 출생 시각을 넣으면 나타나요.'
+                        return <div className={s.bigRead}>{note}</div>
+                      }
                       // 점성 해석 — 행성(역할) × 별자리(색) × 하우스(무대)를 한 문장으로.
                       const tr = SIGN_TRAIT[abbr(cd.sign)]
                       const sgn = signLabel(abbr(cd.sign), lang)

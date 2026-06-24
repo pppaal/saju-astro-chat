@@ -18,6 +18,7 @@ import {
   type SibsinCategory,
 } from '@/lib/chart-dictionary'
 import { ELEMENT_RELATIONS, ZODIAC_TO_ELEMENT } from '@/lib/calendar/constants'
+import { iyeyo } from '@/lib/i18n/koParticle'
 import { normalizeElement } from '@/lib/calendar/utils'
 
 // ============================================================
@@ -574,7 +575,11 @@ export function generateChartSummary(saju: unknown, astro: unknown, lang: string
       const code = lastCh.charCodeAt(0)
       const hasJongseong = code >= 0xac00 && code <= 0xd7a3 ? (code - 0xac00) % 28 !== 0 : true
       const ira = hasJongseong ? '이라' : '라'
-      const tail = geokgukTagline ? `${ira} ${geokgukTagline}이에요` : `${ira}고 볼 수 있어요`
+      // 태그라인은 '리더·실무자·사업가·승부사'처럼 모음 종결도 많아 '이에요' 고정 시
+      // "리더이에요"가 된다 → iyeyo 로 받침 분기.
+      const tail = geokgukTagline
+        ? `${ira} ${geokgukTagline}${iyeyo(geokgukTagline)}`
+        : `${ira}고 볼 수 있어요`
       s2 = `사주는 ${both}${tail}.`
     } else if (strengthShort) {
       s2 = `일간이 ${strengthShort}한 면이에요.`

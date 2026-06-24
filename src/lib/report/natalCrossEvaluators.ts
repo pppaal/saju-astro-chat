@@ -888,7 +888,9 @@ export function evalKeyAspect(
   return {
     tone,
     reason: {
-      ko: `별자리가 보여주는 가장 또렷한 기질은 — ${theme.ko}${matchKo}${flowKo} 이런 기질은 평생 잘 안 변하는 기본 성격이라, 억지로 바꾸기보다 이 결을 그대로 살릴 자리를 찾는 게 훨씬 편하고 빨라요.`,
+      // theme.ko 는 완결 서술문이라 "기질은 — 문장" 이면 "은 —" 뒤가 비는 단편이 된다
+      // (audit: 30명 전원). "기질은 이래요. 문장" 으로 자연스럽게 흐르게 한다.
+      ko: `별자리가 보여주는 가장 또렷한 기질은 이래요. ${theme.ko}${matchKo}${flowKo} 이런 기질은 평생 잘 안 변하는 기본 성격이라, 억지로 바꾸기보다 이 결을 그대로 살릴 자리를 찾는 게 훨씬 편하고 빨라요.`,
       en: `The clearest trait your chart shows — ${theme.en.charAt(0).toLowerCase()}${theme.en.slice(1).replace(/\.$/, '')}${matchEn}${flowEn} This kind of trait is a lifelong baseline, so finding a place that uses it as-is is far easier than trying to remake it.`,
     },
   }

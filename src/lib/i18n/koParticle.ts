@@ -50,3 +50,11 @@ function euroRo(word: string): '으로' | '로' {
   if (j === 8) return '로'   // ㄹ 받침
   return '으로'
 }
+
+/**
+ * 서술격 종결 '이에요' / '예요' — 받침 있으면 '이에요', 없으면 '예요'.
+ *   `${el}${iyeyo(el)}`  // 금이에요 / 화예요
+ */
+export function iyeyo(word: string): '이에요' | '예요' {
+  return hasJongsung(word) ? '이에요' : '예요'
+}
