@@ -114,7 +114,11 @@ const NO_PLACEHOLDER = /\{[a-zA-Z]+\}/
 
 describe('buildFreeCompatNarrative', () => {
   it('builds a verdict with tone-matched expansion', () => {
-    const view = buildFreeCompatNarrative(fullReport(), { labelA: '준영', labelB: '민지', lang: 'ko' })
+    const view = buildFreeCompatNarrative(fullReport(), {
+      labelA: '준영',
+      labelB: '민지',
+      lang: 'ko',
+    })
     expect(view.verdict?.tone).toBe('aligned')
     expect(view.verdict?.text).toContain('한목소리')
     expect(view.verdict?.expansion.length).toBeGreaterThan(10)
@@ -123,7 +127,11 @@ describe('buildFreeCompatNarrative', () => {
   })
 
   it('emits the expected sections in order with names filled in', () => {
-    const view = buildFreeCompatNarrative(fullReport(), { labelA: '준영', labelB: '민지', lang: 'ko' })
+    const view = buildFreeCompatNarrative(fullReport(), {
+      labelA: '준영',
+      labelB: '민지',
+      lang: 'ko',
+    })
     const ids = view.sections.map((s) => s.id)
     expect(ids).toEqual(['bands', 'grain', 'hearts', 'stage', 'partner', 'knots'])
     const grain = view.sections.find((s) => s.id === 'grain')!
@@ -136,7 +144,11 @@ describe('buildFreeCompatNarrative', () => {
   })
 
   it('never leaks {placeholder} tokens into any paragraph', () => {
-    const view = buildFreeCompatNarrative(fullReport(), { labelA: '준영', labelB: '민지', lang: 'ko' })
+    const view = buildFreeCompatNarrative(fullReport(), {
+      labelA: '준영',
+      labelB: '민지',
+      lang: 'ko',
+    })
     for (const s of view.sections) {
       for (const p of s.paragraphs) {
         expect(p).not.toMatch(NO_PLACEHOLDER)
@@ -146,7 +158,11 @@ describe('buildFreeCompatNarrative', () => {
   })
 
   it('flags the day-pillar spouse-star as the strongest signal', () => {
-    const view = buildFreeCompatNarrative(fullReport(), { labelA: '준영', labelB: '민지', lang: 'ko' })
+    const view = buildFreeCompatNarrative(fullReport(), {
+      labelA: '준영',
+      labelB: '민지',
+      lang: 'ko',
+    })
     const partner = view.sections.find((s) => s.id === 'partner')!
     expect(partner.paragraphs.join('\n')).toContain('배우자 자리')
   })
@@ -159,7 +175,11 @@ describe('buildFreeCompatNarrative', () => {
   })
 
   it('renders English copy when lang=en', () => {
-    const view = buildFreeCompatNarrative(fullReport(), { labelA: 'Alex', labelB: 'Sam', lang: 'en' })
+    const view = buildFreeCompatNarrative(fullReport(), {
+      labelA: 'Alex',
+      labelB: 'Sam',
+      lang: 'en',
+    })
     expect(view.verdict?.expansion).toMatch(/[A-Za-z]/)
     const grain = view.sections.find((s) => s.id === 'grain')!
     // element label localized to English (금 → Metal, 목 → Wood)
@@ -174,10 +194,12 @@ describe('buildFreeCompatNarrative', () => {
       synView: {
         aspects: [
           {
+            // 외행성끼리(Uranus×Neptune)는 리치카피 사전에 없어 fallback 합성기를 탄다
+            // — vowel 종성 flavor(자극·변화)의 조사(과/와) 처리를 검증하기 위함.
             a: '천왕성',
-            b: '수성',
+            b: '해왕성',
             aKey: 'Uranus',
-            bKey: 'Mercury',
+            bKey: 'Neptune',
             type: 'square',
             label: '긴장',
             tone: 'tension',
