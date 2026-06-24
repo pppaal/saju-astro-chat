@@ -29,7 +29,7 @@ export const COMPAT_GLOSSARY: GlossaryDef[] = [
     },
   },
   {
-    term: { ko: '오행 (목·화·토·금·수)', en: 'Five elements' },
+    term: { ko: '오행 (목·화·토·금·수)', en: 'Five elements (Wood, Fire, Earth, Metal, Water)' },
     body: {
       ko: '세상 기운을 나무·불·흙·금속·물 다섯으로 나눈 거예요. 서로 살려주거나(상생) 누르는(상극) 관계가 있어, 두 사람 기운이 보완되는지 부딪히는지를 봐요.',
       en: 'The world’s energy split into Wood, Fire, Earth, Metal, Water. They nourish (generate) or curb (control) one another — so we read whether your energies complement or clash.',
@@ -39,32 +39,32 @@ export const COMPAT_GLOSSARY: GlossaryDef[] = [
     term: { ko: '천간·지지 (윗글자·아랫글자)', en: 'Stems & branches (upper/lower)' },
     body: {
       ko: '사주 각 기둥은 윗글자(천간)와 아랫글자(지지) 두 칸이에요. 천간은 겉으로 드러나는 결, 지지는 속에 깔린 결을 봐요. 궁합은 이 글자들끼리의 합·충을 읽어요.',
-      en: 'Each Saju pillar has a top symbol (stem) and a bottom one (branch). Stems show the visible grain, branches the underlying one. A match reads union and clash between these.',
+      en: 'Each Saju pillar has two cells: a top symbol (stem) and a bottom one (branch). The stem shows the visible grain, the branch the underlying one. A match reads how these symbols combine and clash.',
     },
   },
   {
-    term: { ko: '합·충·형·해·파', en: 'Union · clash · punishment · harm · break' },
+    term: { ko: '합·충·형·해·파', en: 'Union · clash · friction · strain · rupture' },
     body: {
       ko: '사주 글자끼리의 상호작용이에요. 합은 끌어당겨 묶이고, 충은 정면으로 부딪히고, 형·해·파는 갈거나 어긋나는 미묘한 마찰이에요. 어디가 묶이고 흔들리는지 보여줘요.',
       en: 'Interactions between Saju characters. Union pulls together; clash collides head-on; punishment/harm/break are subtler grinds and misfits. They show which spots bond and which get shaken.',
     },
   },
   {
-    term: { ko: '배우자성 (짝으로 보이는 결)', en: 'Spouse-star' },
+    term: { ko: '배우자성 (짝으로 보이는 결)', en: 'Spouse-star (the thread that reads as your partner)' },
     body: {
-      ko: '내 사주를 기준으로 상대가 "짝·배우자"의 역할로 잡히는 글자예요(정재·편재=처성, 정관·편관=부성). 특히 일지(일 기둥 아랫글자=배우자 자리)에 걸리면 가장 강한 인연 신호예요.',
-      en: 'A character where the other reads as your "partner/spouse" role (Direct/Indirect Wealth = wife-star, Direct/Indirect Officer = husband-star). Strongest when it lands on the day-branch — the spouse seat.',
+      ko: '내 사주를 기준으로 상대가 "짝·배우자" 자리로 잡히는 글자예요(재물 기운=아내 자리, 관(직책) 기운=남편 자리). 특히 일 기둥 아랫글자, 곧 배우자 자리에 걸리면 가장 강한 인연 신호예요.',
+      en: 'A character where the other person reads as your "partner/spouse" role (wealth energy = the wife seat, officer energy = the husband seat). It is the strongest bond signal when it lands on the lower character of the day pillar — the spouse seat.',
     },
   },
   {
-    term: { ko: '십성 (관계의 역할 이름)', en: 'Ten Gods' },
+    term: { ko: '십성 (관계의 역할 이름)', en: 'Ten Gods (the names of your relational roles)' },
     body: {
       ko: '나(일간)를 기준으로 상대 글자가 어떤 역할인지 붙인 이름이에요. 이름이 무섭게 들려도(편관=칠살 등) 좋고 나쁨이 아니라 "어떤 결로 다가오나"의 종류일 뿐이에요.',
       en: 'Labels for what role another character plays relative to you. Some names sound scary (e.g. "Seven Killings") but they mark a *type of grain*, not good or bad.',
     },
   },
   {
-    term: { ko: '도화·홍염 (매력 신호)', en: 'Peach Blossom · Hongyeom (charm stars)' },
+    term: { ko: '도화·홍염 (매력 신호)', en: 'Peach Blossom · Crimson Glow (charm signals)' },
     body: {
       ko: '특정 글자 조합에서 나오는 매력·끌림의 신호예요. 도화는 자석 같은 인기·매력, 홍염은 색기·연애 강도를 더해요. 끌림에 색을 입히는 참고 신호일 뿐이에요.',
       en: 'Charm-and-attraction signals from certain character combos. Peach Blossom is magnetic appeal; Hongyeom adds sensual, romantic intensity. A coloring hint to the pull, not a verdict.',
@@ -88,7 +88,7 @@ export const COMPAT_GLOSSARY: GlossaryDef[] = [
     term: { ko: '하우스 오버레이 (삶의 무대)', en: 'House overlay (life stage)' },
     body: {
       ko: '한 사람의 행성이 상대의 어느 삶의 영역(하우스)에 떨어지는지예요. 1~12하우스가 자아·재물·연애·결혼·일 같은 무대를 나눠요. 7하우스(동반자·결혼)에 들어오면 특히 강한 짝 신호예요.',
-      en: "Which area of life (house) one person's planet lands in for the other. Houses 1–12 split the stage — self, money, romance, marriage, work… A planet in the 7th (partnership) is an especially strong pairing signal.",
+      en: "Which area of life (house) one person's planet lands in for the other. Houses 1–12 split the stage — self, money, romance, marriage, work… A planet in the 7th (partnership and marriage) is an especially strong pairing signal.",
     },
   },
   {
