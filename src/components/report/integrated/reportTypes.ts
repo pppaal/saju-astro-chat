@@ -40,6 +40,7 @@ export interface ReportData {
       name: string
       ko: string
       pillar: string
+      pillarEn?: string
       sub?: string
       polarity: number
     }>

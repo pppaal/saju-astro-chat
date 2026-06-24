@@ -709,6 +709,9 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
             <div className={`${s.pillars} ${s.l2Body}`}>
               {pillarsArr.map(([head, p]) => (
                 <div className={`${s.pillar} ${p.isDay ? s.isDay : ''}`} key={head.ko}>
+                  {p.isDay && (
+                    <span className={s.dayTag}>{lang === 'en' ? 'Self' : '日干'}</span>
+                  )}
                   <div className={s.pillarHead}>{head[lang]}</div>
                   <div className={`${s.sib} ${s.sibTop}`}>
                     {p.isDay ? t('dayBranchLabel') : sibsinLabel(p.sibsinStem, lang)}
@@ -806,7 +809,7 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
                       >
                         <b>{label}</b>
                         <i>
-                          {sh.pillar}
+                          {lang === 'en' ? (sh.pillarEn ?? sh.pillar) : sh.pillar}
                           {sh.sub ? `·${sh.sub}` : ''}
                         </i>
                       </span>
@@ -1045,7 +1048,7 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
             <div className={`${s.card} ${s.cardPad}`} style={{ marginTop: 16 }}>
               <div className={s.subcap}>
                 {lang === 'en'
-                  ? 'Day-Branch (Spouse Palace) Ten God · 十星'
+                  ? 'Day-Branch (Spouse Palace) Ten God'
                   : '일지(배우자궁) 십성 · 十星'}
               </div>
               <div className={s.gaugeHead}>
