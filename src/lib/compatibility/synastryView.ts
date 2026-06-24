@@ -191,6 +191,12 @@ export interface SynAspectView {
   a: string
   /** B 행성 (KO/EN) */
   b: string
+  /** A 행성 영문 키 (콘텐츠 dictionary 키잉용 — 표시 라벨 a 와 별개로 안정) */
+  aKey: string
+  /** B 행성 영문 키 */
+  bKey: string
+  /** 어스펙트 종류 영문 키 (conjunction/trine/sextile/square/opposition/quincunx) */
+  type: string
   /** 관계어 라벨 */
   label: string
   tone: SynastryTone
@@ -203,6 +209,8 @@ export interface SynAspectView {
 
 export interface SynOverlayView {
   planet: string
+  /** 행성 영문 키 — 콘텐츠 dictionary 키잉용. */
+  planetKey: string
   house: number
   meaning: string
 }
@@ -286,6 +294,9 @@ export function computeSynastryView(
     .map((asp) => ({
       a: pko(asp.from.name, isKo),
       b: pko(asp.to.name, isKo),
+      aKey: asp.from.name,
+      bKey: asp.to.name,
+      type: asp.type,
       label: (isKo ? ASPECT_LABEL[asp.type]?.ko : ASPECT_LABEL[asp.type]?.en) ?? asp.type,
       tone: toneOf(asp.type),
       meaning: aspectMeaning(asp.from.name, asp.to.name, toneOf(asp.type), isKo),
@@ -306,6 +317,7 @@ export function computeSynastryView(
 
   const mapOverlay = (o: { planet: string; inHouse: number }): SynOverlayView => ({
     planet: pko(o.planet, isKo),
+    planetKey: o.planet,
     house: o.inHouse,
     meaning: houseMeaning[o.inHouse] ?? '',
   })
