@@ -10,12 +10,7 @@ import type { CompatReport } from '../compatReport'
 import type { SynAspectView, SynOverlayView } from '../synastryView'
 import type { SajuCompatPillarRel, SajuCompatSpouseStar } from '../sajuSynastryFacts'
 import { elLabel } from '../compatChartLabels'
-import type {
-  Bi,
-  FreeReportGlossaryEntry,
-  FreeReportSection,
-  FreeReportView,
-} from './types'
+import type { Bi, FreeReportGlossaryEntry, FreeReportSection, FreeReportView } from './types'
 import {
   ASPECT_PAIR,
   ASPECT_TONE,
@@ -97,18 +92,83 @@ const BAND_ORDER: Array<keyof NonNullable<CompatReport['band']>> = [
 ]
 
 // 기둥 관계 태그 우선순위 — 한 페어에 여러 태그면 가장 의미 큰 것 하나만 풀이.
-const TAG_PRIORITY = [
-  '충',
-  '천간충',
-  '형',
-  '자형',
-  '천간합',
-  '삼합',
-  '육합',
-  '방합',
-  '해',
-  '파',
-]
+const TAG_PRIORITY = ['충', '천간충', '형', '자형', '천간합', '삼합', '육합', '방합', '해', '파']
+
+// 사주 글자(천간·지지) 한글 음 — 한자가 음·뜻 없이 노출되면 한국인도 못 읽고
+// 막힌다(평가단 8/8 최다 지적). "酉" → "유(酉)"로 음을 앞세운다.
+const CHAR_READ_KO: Record<string, string> = {
+  甲: '갑',
+  乙: '을',
+  丙: '병',
+  丁: '정',
+  戊: '무',
+  己: '기',
+  庚: '경',
+  辛: '신',
+  壬: '임',
+  癸: '계',
+  子: '자',
+  丑: '축',
+  寅: '인',
+  卯: '묘',
+  辰: '진',
+  巳: '사',
+  午: '오',
+  未: '미',
+  申: '신',
+  酉: '유',
+  戌: '술',
+  亥: '해',
+}
+// EN: 한자는 영어권에 무의미. 지지는 띠 동물로, 천간은 로마자로.
+const BRANCH_ANIMAL_EN: Record<string, string> = {
+  子: 'Rat',
+  丑: 'Ox',
+  寅: 'Tiger',
+  卯: 'Rabbit',
+  辰: 'Dragon',
+  巳: 'Snake',
+  午: 'Horse',
+  未: 'Goat',
+  申: 'Monkey',
+  酉: 'Rooster',
+  戌: 'Dog',
+  亥: 'Pig',
+}
+const STEM_ROMAN_EN: Record<string, string> = {
+  甲: 'Gap',
+  乙: 'Eul',
+  丙: 'Byeong',
+  丁: 'Jeong',
+  戊: 'Mu',
+  己: 'Gi',
+  庚: 'Gyeong',
+  辛: 'Sin',
+  壬: 'Im',
+  癸: 'Gye',
+}
+// '년/월/일/시 기둥' → 일반인 말로.
+const PILLAR_KO: Record<string, string> = {
+  년: '태어난 해',
+  월: '태어난 달',
+  일: '태어난 날',
+  시: '태어난 시',
+}
+const PILLAR_EN: Record<string, string> = {
+  년: 'birth-year',
+  월: 'birth-month',
+  일: 'birth-day',
+  시: 'birth-hour',
+}
+const charKo = (c: string): string => (CHAR_READ_KO[c] ? `${CHAR_READ_KO[c]}(${c})` : c)
+const charEn = (c: string): string =>
+  BRANCH_ANIMAL_EN[c]
+    ? `the ${BRANCH_ANIMAL_EN[c]} sign`
+    : STEM_ROMAN_EN[c]
+      ? `${STEM_ROMAN_EN[c]} (${c})`
+      : c
+const pillarKo = (p: string): string => PILLAR_KO[p] ?? `${p}기둥`
+const pillarEn = (p: string): string => PILLAR_EN[p] ?? `${p}-pillar`
 
 export function buildFreeCompatNarrative(
   report: CompatReport,
@@ -126,7 +186,13 @@ export function buildFreeCompatNarrative(
       if (v === undefined) return m
       if (!j || !isKo) return v + (j ?? '')
       const type: JosaType =
-        j === '과' || j === '와' ? '과/와' : j === '이' || j === '가' ? '이/가' : j === '을' || j === '를' ? '을/를' : '은/는'
+        j === '과' || j === '와'
+          ? '과/와'
+          : j === '이' || j === '가'
+            ? '이/가'
+            : j === '을' || j === '를'
+              ? '을/를'
+              : '은/는'
       return josa(v, type)
     })
 
@@ -173,25 +239,32 @@ export function buildFreeCompatNarrative(
     if (dm) {
       const aEl = elLabel(dm.aEl, isKo)
       const bEl = elLabel(dm.bEl, isKo)
-      paras.push(
-        fill(t(DAY_MASTER_REL[dm.relation]), { A: labelA, B: labelB, aEl, bEl })
-      )
+      paras.push(fill(t(DAY_MASTER_REL[dm.relation]), { A: labelA, B: labelB, aEl, bEl }))
       // 십성 cross — 서로가 서로에게 어떤 역할로 다가오나.
       const aSeesB = dm.bToA ? TEN_GODS[dm.bToA] : null // A 입장에서 B 는
       const bSeesA = dm.aToB ? TEN_GODS[dm.aToB] : null // B 입장에서 A 는
-      if (aSeesB) {
+      if (aSeesB && bSeesA && dm.bToA === dm.aToB) {
+        // 양쪽이 같은 십성 — 똑같은 문단 두 번 찍지 말고 "서로" 한 문단으로(평가단 지적).
         paras.push(
           isKo
-            ? `${labelA} 입장에서 ${neun(labelB)} ${josa(t(aSeesB.feel), '으로/로')} 와요 — ${t(aSeesB.blurb)}`
-            : `To ${labelA}, ${labelB} comes as ${t(aSeesB.feel)} — ${t(aSeesB.blurb)}`
+            ? `두 사람은 서로에게 ${josa(t(aSeesB.feel), '으로/로')} 다가와요. ${t(aSeesB.blurb)}`
+            : `You two come to each other as ${t(aSeesB.feel)}. ${t(aSeesB.blurb)}`
         )
-      }
-      if (bSeesA) {
-        paras.push(
-          isKo
-            ? `반대로 ${labelB} 입장에서 ${neun(labelA)} ${josa(t(bSeesA.feel), '으로/로')} 와요 — ${t(bSeesA.blurb)}`
-            : `In turn, to ${labelB}, ${labelA} comes as ${t(bSeesA.feel)} — ${t(bSeesA.blurb)}`
-        )
+      } else {
+        if (aSeesB) {
+          paras.push(
+            isKo
+              ? `${labelA} 입장에서 ${neun(labelB)} ${josa(t(aSeesB.feel), '으로/로')} 와요 — ${t(aSeesB.blurb)}`
+              : `To ${labelA}, ${labelB} comes as ${t(aSeesB.feel)} — ${t(aSeesB.blurb)}`
+          )
+        }
+        if (bSeesA) {
+          paras.push(
+            isKo
+              ? `반대로 ${labelB} 입장에서 ${neun(labelA)} ${josa(t(bSeesA.feel), '으로/로')} 와요 — ${t(bSeesA.blurb)}`
+              : `In turn, to ${labelB}, ${labelA} comes as ${t(bSeesA.feel)} — ${t(bSeesA.blurb)}`
+          )
+        }
       }
     }
     // 오행 균형
@@ -236,10 +309,14 @@ export function buildFreeCompatNarrative(
         : `${labelA}'s ${asp.a} × ${labelB}'s ${asp.b} (${asp.label}, ${asp.strength})`
       return `${head} — ${blurb}`
     }
-    const harmony = report.synView.aspects.filter((a) => a.tone === 'harmony').map(aspectPara)
-    const tension = report.synView.aspects.filter((a) => a.tone === 'tension').map(aspectPara)
-    const neutral = report.synView.aspects.filter((a) => a.tone === 'neutral').map(aspectPara)
-    const paras = [...harmony, ...tension, ...neutral]
+    // 가장 또렷한(각이 딱 맞는=orb 작은) 6개만 — 8개씩 줄줄이 나오면 다 똑같이
+    // 들리고 길어진다(평가단 지적). 그 안에서 조화→긴장→엇박 순으로.
+    const ranked = [...report.synView.aspects]
+      .sort((a, b) => (a.orb ?? 99) - (b.orb ?? 99))
+      .slice(0, 6)
+    const byTone = (tone: SynAspectView['tone']) =>
+      ranked.filter((a) => a.tone === tone).map(aspectPara)
+    const paras = [...byTone('harmony'), ...byTone('tension'), ...byTone('neutral')]
     if (paras.length) {
       const m = meta('hearts')
       sections.push({
@@ -254,16 +331,25 @@ export function buildFreeCompatNarrative(
 
   // ── 서로의 삶에서 켜지는 무대 (하우스 오버레이) ──
   if (report.synView) {
-    const overlayPara = (o: SynOverlayView, fromName: string, toName: string): string => {
-      const arena = t(OVERLAY_HOUSE[o.house]) ?? ''
-      const pl = planet(o.planetKey, o.planet)
-      return isKo
-        ? `${fromName}의 ${josa(pl, '이/가')} ${toName}의 ${o.house}번째 — ${arena}`
-        : `${fromName}'s ${pl} lands on ${toName}'s ${ORD_EN[o.house] ?? `${o.house}th`} — ${arena}`
+    // 같은 하우스에 행성이 여러 개 떨어지면 하우스 설명이 토씨까지 똑같이 반복된다
+    // (평가단 지적). 하우스별로 묶어 행성을 나열하고 설명은 한 번만.
+    const overlayParas = (list: SynOverlayView[], fromName: string, toName: string): string[] => {
+      const byHouse = new Map<number, string[]>()
+      for (const o of list) {
+        if (!byHouse.has(o.house)) byHouse.set(o.house, [])
+        byHouse.get(o.house)!.push(planet(o.planetKey, o.planet))
+      }
+      return [...byHouse.entries()].map(([house, planets]) => {
+        const arena = t(OVERLAY_HOUSE[house]) ?? ''
+        const pls = planets.join(', ')
+        return isKo
+          ? `${fromName}의 ${josa(pls, '이/가')} ${toName}의 ${house}번째 자리에 들어와요 — ${arena}`
+          : `${fromName}'s ${pls} land in ${toName}'s ${ORD_EN[house] ?? `${house}th`} — ${arena}`
+      })
     }
     const paras = [
-      ...report.synView.overlaysAtoB.map((o) => overlayPara(o, labelA, labelB)),
-      ...report.synView.overlaysBtoA.map((o) => overlayPara(o, labelB, labelA)),
+      ...overlayParas(report.synView.overlaysAtoB, labelA, labelB),
+      ...overlayParas(report.synView.overlaysBtoA, labelB, labelA),
     ]
     if (paras.length) {
       const m = meta('stage')
@@ -311,22 +397,30 @@ export function buildFreeCompatNarrative(
 
   // ── 사주가 본 인연의 매듭 (기둥 합/충/형) ──
   {
-    const pillarPara = (r: SajuCompatPillarRel): string | null => {
+    // 한자 글자에 한글 음을 붙이고('유(酉)'), '년/월 기둥'을 일반인 말로.
+    const head = (r: SajuCompatPillarRel): string =>
+      isKo
+        ? `${labelA} ${pillarKo(r.aPillar)} ${charKo(r.aChar)} ↔ ${labelB} ${pillarKo(r.bPillar)} ${charKo(r.bChar)}`
+        : `${labelA}'s ${pillarEn(r.aPillar)} ${charEn(r.aChar)} ↔ ${labelB}'s ${pillarEn(r.bPillar)} ${charEn(r.bChar)}`
+    // 같은 작용(태그)이 여러 곳에서 나오면 똑같은 풀이가 반복된다(평가단: 4번 복붙).
+    // 태그별로 묶어 자리(head)만 나열하고 풀이는 한 번만.
+    const order = (r: SajuCompatPillarRel): number =>
+      r.tone === 'bond' ? 0 : r.tone === 'clash' || r.tone === 'friction' ? 1 : 2
+    const byTag = new Map<string, SajuCompatPillarRel[]>()
+    for (const r of [...report.pillarRelations].sort((a, b) => order(a) - order(b))) {
       const tag = TAG_PRIORITY.find((p) => r.tags.includes(p)) ?? r.tags[0]
-      const copy = tag ? PILLAR_REL[tag] : null
-      if (!copy) return null
-      const head = isKo
-        ? `${labelA} ${r.aPillar}기둥 ${r.aChar} ↔ ${labelB} ${r.bPillar}기둥 ${r.bChar}`
-        : `${labelA} ${r.aPillar}-pillar ${r.aChar} ↔ ${labelB} ${r.bPillar}-pillar ${r.bChar}`
-      return `${head} — ${t(copy.blurb)}`
+      if (!tag || !PILLAR_REL[tag]) continue
+      if (!byTag.has(tag)) byTag.set(tag, [])
+      byTag.get(tag)!.push(r)
     }
-    // bond 먼저, clash 다음 — 읽기 흐름.
-    const bonds = report.pillarRelations.filter((r) => r.tone === 'bond')
-    const clashes = report.pillarRelations.filter((r) => r.tone === 'clash' || r.tone === 'friction')
-    const minors = report.pillarRelations.filter((r) => r.tone === 'minor')
-    const paras = [...bonds, ...clashes, ...minors]
-      .map(pillarPara)
-      .filter((s): s is string => !!s)
+    const paras = [...byTag.entries()].map(([tag, rs]) => {
+      const heads = rs.map(head)
+      const headStr =
+        heads.length > 1
+          ? `${heads[0]}${isKo ? ` 외 ${heads.length - 1}곳` : ` +${heads.length - 1} more`}`
+          : heads[0]
+      return `${headStr} — ${t(PILLAR_REL[tag].blurb)}`
+    })
     if (paras.length) {
       const m = meta('knots')
       sections.push({ id: 'knots', icon: m.icon, title: m.title, lead: m.lead, paragraphs: paras })
