@@ -24,8 +24,12 @@ interface DataSourceTogglesProps {
 }
 
 const LABELS: Record<LangKey, { saju: string; astro: string; group: string }> = {
-  ko: { saju: '사주', astro: '점성', group: '상담에 사용할 데이터' },
-  en: { saju: 'Saju', astro: 'Astrology', group: 'Data used for this reading' },
+  ko: { saju: '사주', astro: '점성', group: '이 상담에 쓸 자료를 골라요 (둘 다 추천)' },
+  en: {
+    saju: 'Saju',
+    astro: 'Astrology',
+    group: 'Choose the data for this reading (both recommended)',
+  },
 }
 
 // "사주·점성이란?" 팝업 카드 본문 — 사주가 뭔지, 점성이 뭔지, 둘을 함께 보면
