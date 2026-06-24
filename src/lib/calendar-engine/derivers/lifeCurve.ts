@@ -294,6 +294,11 @@ const CONJ_SIGN: Record<string, number> = {
  * 실 ephemeris 외행성 트랜짓 → 연 단위 점성 점수 시계열(길이 span+1).
  * buildLifeCurve(natal, { astroSeries }) 로 넘기면 벨 근사를 대체한다.
  */
+// 트랜짓 시계열은 *평생 범위*라 currentYear 와 무관 — 차트마다 한 번만 계산하면
+// 같은 프로세스의 재방문/다른 달 요청에서 재사용된다. 바운드 메모(LRU-ish).
+const _transitMemo = new Map<string, number[]>()
+const _TRANSIT_MEMO_MAX = 256
+
 export async function computeTransitAstroSeries(
   natal: NatalContext,
   opts: { span?: number; step?: number } = {}
@@ -306,6 +311,13 @@ export async function computeTransitAstroSeries(
   const loc = natal.astro?.location
   const natalChart = natal.astro?.chart
   if (!birthYear || !loc || !natalChart) return new Array(span + 1).fill(0)
+
+  // 메모 키 — 위치 + 본명 행성 경도(차트 고유) + span/step.
+  const lonSig = natalChart.planets.map((p) => Math.round(p.longitude)).join(',')
+  const memoKey = `${loc.latitude},${loc.longitude},${birthYear},${span},${step},${lonSig}`
+  const memHit = _transitMemo.get(memoKey)
+  if (memHit) return memHit
+
   const cache = createCache()
 
   const sampleAt = async (age: number): Promise<number> => {
@@ -351,5 +363,10 @@ export async function computeTransitAstroSeries(
       series.push(sampled[lo] + t * (sampled[hi] - sampled[lo]))
     }
   }
+  if (_transitMemo.size >= _TRANSIT_MEMO_MAX) {
+    const oldest = _transitMemo.keys().next().value
+    if (oldest !== undefined) _transitMemo.delete(oldest)
+  }
+  _transitMemo.set(memoKey, series)
   return series
 }

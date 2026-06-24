@@ -493,6 +493,34 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
               <span key={a}>{a}</span>
             ))}
           </div>
+          {lifeCurve!.now && (
+            <div className={styles.curveNowLine}>
+              {(() => {
+                const n = lifeCurve!.now!
+                const head = ko
+                  ? n.slope === 'rising'
+                    ? '지금은 흐름이 차오르는 중이에요.'
+                    : n.slope === 'falling'
+                      ? '지금은 흐름이 한 박자 가라앉는 구간이에요.'
+                      : '지금은 흐름이 고른 구간이에요.'
+                  : n.slope === 'rising'
+                    ? 'Right now the flow is on the rise.'
+                    : n.slope === 'falling'
+                      ? 'Right now the flow eases off a beat.'
+                      : 'Right now the flow is even.'
+                const tail = n.nextPeak
+                  ? ko
+                    ? ` 다음 마루는 ${n.nextPeak.age}세(${n.nextPeak.year}년) 무렵.`
+                    : ` Next crest around age ${n.nextPeak.age} (${n.nextPeak.year}).`
+                  : n.nextTrough
+                    ? ko
+                      ? ` 다음 저점은 ${n.nextTrough.age}세(${n.nextTrough.year}년) 무렵 — 지나면 다시 올라가요.`
+                      : ` Next dip around age ${n.nextTrough.age} (${n.nextTrough.year}) — it climbs again after.`
+                    : ''
+                return head + tail
+              })()}
+            </div>
+          )}
           <div className={styles.curveCap}>
             {ko
               ? '대운·세운·충합(사주)과 외행성 트랜짓(점성)을 겹쳐 본 평생 흐름 — ● 마루 ● 골, 세로선이 지금.'
