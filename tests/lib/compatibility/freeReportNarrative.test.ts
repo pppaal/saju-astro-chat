@@ -114,7 +114,11 @@ const NO_PLACEHOLDER = /\{[a-zA-Z]+\}/
 
 describe('buildFreeCompatNarrative', () => {
   it('builds a verdict with tone-matched expansion', () => {
-    const view = buildFreeCompatNarrative(fullReport(), { labelA: '준영', labelB: '민지', lang: 'ko' })
+    const view = buildFreeCompatNarrative(fullReport(), {
+      labelA: '준영',
+      labelB: '민지',
+      lang: 'ko',
+    })
     expect(view.verdict?.tone).toBe('aligned')
     expect(view.verdict?.text).toContain('한목소리')
     expect(view.verdict?.expansion.length).toBeGreaterThan(10)
@@ -123,7 +127,11 @@ describe('buildFreeCompatNarrative', () => {
   })
 
   it('emits the expected sections in order with names filled in', () => {
-    const view = buildFreeCompatNarrative(fullReport(), { labelA: '준영', labelB: '민지', lang: 'ko' })
+    const view = buildFreeCompatNarrative(fullReport(), {
+      labelA: '준영',
+      labelB: '민지',
+      lang: 'ko',
+    })
     const ids = view.sections.map((s) => s.id)
     expect(ids).toEqual(['bands', 'grain', 'hearts', 'stage', 'partner', 'knots'])
     const grain = view.sections.find((s) => s.id === 'grain')!
@@ -136,7 +144,11 @@ describe('buildFreeCompatNarrative', () => {
   })
 
   it('never leaks {placeholder} tokens into any paragraph', () => {
-    const view = buildFreeCompatNarrative(fullReport(), { labelA: '준영', labelB: '민지', lang: 'ko' })
+    const view = buildFreeCompatNarrative(fullReport(), {
+      labelA: '준영',
+      labelB: '민지',
+      lang: 'ko',
+    })
     for (const s of view.sections) {
       for (const p of s.paragraphs) {
         expect(p).not.toMatch(NO_PLACEHOLDER)
@@ -146,7 +158,11 @@ describe('buildFreeCompatNarrative', () => {
   })
 
   it('flags the day-pillar spouse-star as the strongest signal', () => {
-    const view = buildFreeCompatNarrative(fullReport(), { labelA: '준영', labelB: '민지', lang: 'ko' })
+    const view = buildFreeCompatNarrative(fullReport(), {
+      labelA: '준영',
+      labelB: '민지',
+      lang: 'ko',
+    })
     const partner = view.sections.find((s) => s.id === 'partner')!
     expect(partner.paragraphs.join('\n')).toContain('배우자 자리')
   })
@@ -159,7 +175,11 @@ describe('buildFreeCompatNarrative', () => {
   })
 
   it('renders English copy when lang=en', () => {
-    const view = buildFreeCompatNarrative(fullReport(), { labelA: 'Alex', labelB: 'Sam', lang: 'en' })
+    const view = buildFreeCompatNarrative(fullReport(), {
+      labelA: 'Alex',
+      labelB: 'Sam',
+      lang: 'en',
+    })
     expect(view.verdict?.expansion).toMatch(/[A-Za-z]/)
     const grain = view.sections.find((s) => s.id === 'grain')!
     // element label localized to English (금 → Metal, 목 → Wood)
@@ -174,10 +194,12 @@ describe('buildFreeCompatNarrative', () => {
       synView: {
         aspects: [
           {
+            // 외행성끼리(Uranus×Neptune)는 리치카피 사전에 없어 fallback 합성기를 탄다
+            // — vowel 종성 flavor(자극·변화)의 조사(과/와) 처리를 검증하기 위함.
             a: '천왕성',
-            b: '수성',
+            b: '해왕성',
             aKey: 'Uranus',
-            bKey: 'Mercury',
+            bKey: 'Neptune',
             type: 'square',
             label: '긴장',
             tone: 'tension',
@@ -214,6 +236,84 @@ describe('buildFreeCompatNarrative', () => {
     // aspect fallback "{flavor}과 {flavor}이" → 자극·변화 ends in vowel → 변화와
     expect(all).toContain('변화와')
     expect(all).not.toContain('변화과')
+  })
+
+  it('never leaks Hangul into EN theme cards (sik-sin/pyeon-gwan romanized)', () => {
+    const r: CompatReport = {
+      synView: null,
+      dayMaster: {
+        aStem: '丙',
+        aEl: '화',
+        bStem: '癸',
+        bEl: '수',
+        relation: 'generate',
+        relationLabel: '',
+        bToA: '편관',
+        aToB: '식신',
+      },
+      spouseStars: [],
+      pillarRelations: [],
+    }
+    const view = buildFreeCompatNarrative(r, { labelA: 'Mina', labelB: 'Joon', lang: 'en' })
+    const all = view.themes.flatMap((th) => th.paragraphs).join('\n')
+    expect(all).not.toMatch(/[가-힣]/)
+    expect(all).toMatch(/sik-sin|pyeon-gwan/)
+  })
+
+  it('does not repeat the same aspect-type nuance within one theme card', () => {
+    const asp = (
+      aKey: string,
+      bKey: string
+    ): NonNullable<CompatReport['synView']>['aspects'][number] => ({
+      a: aKey,
+      b: bKey,
+      aKey,
+      bKey,
+      type: 'trine',
+      label: '조화',
+      tone: 'harmony',
+      orb: 1,
+      strength: '강하게',
+      meaning: '',
+    })
+    const r: CompatReport = {
+      synView: {
+        // 둘 다 수성 포함 조화 트라인 → 같은 'talk' 테마 + 같은 트라인 뉘앙스
+        aspects: [asp('Mercury', 'Moon'), asp('Mercury', 'Sun')],
+        overlaysAtoB: [],
+        overlaysBtoA: [],
+        harmony: 2,
+        tension: 0,
+      },
+      dayMaster: null,
+      spouseStars: [],
+      pillarRelations: [],
+    }
+    const view = buildFreeCompatNarrative(r, { labelA: 'A', labelB: 'B', lang: 'ko' })
+    const talk = view.themes.find((th) => th.id === 'talk')!
+    const tailHits = talk.paragraphs.filter((p) => p.includes('물 흐르듯 힘 안 들이고')).length
+    expect(talk.paragraphs.length).toBeGreaterThanOrEqual(2)
+    expect(tailHits).toBe(1)
+  })
+
+  it('keeps both-direction overlays on the same house number (no cross-direction drop)', () => {
+    const r: CompatReport = {
+      synView: {
+        aspects: [],
+        // 같은 5번 방에 A→B(금성), B→A(화성) 둘 다 — 방향별로 따로 세야 둘 다 남는다.
+        overlaysAtoB: [{ planet: '금성', planetKey: 'Venus', house: 5, meaning: '' }],
+        overlaysBtoA: [{ planet: '화성', planetKey: 'Mars', house: 5, meaning: '' }],
+        harmony: 0,
+        tension: 0,
+      },
+      dayMaster: null,
+      spouseStars: [],
+      pillarRelations: [],
+    }
+    const view = buildFreeCompatNarrative(r, { labelA: 'A', labelB: 'B', lang: 'ko' })
+    const all = view.themes.flatMap((th) => th.paragraphs).join('\n')
+    expect(all).toContain('A의 금성')
+    expect(all).toContain('B의 화성')
   })
 
   it('omits sections whose signals are absent', () => {
