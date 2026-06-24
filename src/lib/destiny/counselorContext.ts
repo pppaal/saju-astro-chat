@@ -759,7 +759,7 @@ function buildSajuSection(
     for (const ch of (r.detail || '').match(BRANCH_RE) ?? []) combinedBranches.add(ch)
   const parseRel = (kind: string, detail: string) => {
     const m = (detail || '').match(
-      /^(.+?)\s*(삼합|육합|방합|합화|충|형|파|해|원진|합)(?:\(?([목화토금수])\)?)?/
+      /^(.+?)\s*(삼합|육합|방합|반합|합화|충|형|파|해|원진|합)(?:\(?([목화토금수])\)?)?/
     )
     const entities = (m ? m[1] : detail || '').replace(/·/g, '').trim()
     const word = m ? m[2] : kind.replace(/^(지지|천간)/, '')

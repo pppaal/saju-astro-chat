@@ -13,6 +13,7 @@ import {
   stemEl,
   branchEl,
   hanjaHover,
+  hanjaReading,
   stageLabel,
   stageHover,
   sibsinLabel,
@@ -97,6 +98,7 @@ function PillarCard({
     .map((j) => ({
       char: j.g,
       layer: j.layer,
+      reading: hanjaReading(j.g, lang), // 지장간에도 음(音) 표기 — C2 누락분(L4)
       meaning: firstSee(j.g) ? hanjaHover(j.g, lang) : '',
     }))
     .filter((h) => !!h.char)
@@ -140,6 +142,7 @@ function PillarCard({
                   </span>
                 ) : null}
                 <b className={`${s.hanSm} ${elClass[stemEl(h.char)] ?? ''}`}>{h.char}</b>
+                {h.reading ? <span className={s.reading}>{h.reading}</span> : null}
                 {h.meaning ? <span className={s.meaning}>{h.meaning}</span> : null}
               </span>
             ))}

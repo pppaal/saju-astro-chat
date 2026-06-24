@@ -209,7 +209,9 @@ function analyzeEarthly(
       if (inSetPair(a, b, EARTHLY_YUANJIN_PAIRS)) {
         hits.push({ kind: '원진', pillars: [ak, bk], detail: `${a}-${b} 원진` })
       }
-      // 방합(반합) — 삼합이 이미 성립하면 동일 세트 방합은 숨김(중복 방지)
+      // 반합(半合) — 삼합 트리오의 2지지(같은 원소 팀의 절반). 삼합이 이미 성립하면
+      // 동일 세트 반합은 숨김(중복 방지). 옛 코드는 이를 '지지방합(같은 계절)'로 잘못
+      // 표기했으나, 亥-卯·申-子·寅-午 등은 교차 계절 삼합쌍이라 방합이 아니다(R2).
       const half = EARTHLY_HALF_TRINES.find(
         ({ pair }) => (pair[0] === a && pair[1] === b) || (pair[0] === b && pair[1] === a)
       )
@@ -221,9 +223,9 @@ function analyzeEarthly(
         const triSatisfied = !!sameSet && sameSet.set.every((z) => allBranches.includes(z))
         if (!triSatisfied) {
           hits.push({
-            kind: '지지방합',
+            kind: '지지삼합',
             pillars: [ak, bk],
-            detail: includeTrineNote ? `${a}-${b} 방합(${half.element})` : `${a}-${b} 방합`,
+            detail: includeTrineNote ? `${a}-${b} 반합(${half.element})` : `${a}-${b} 반합`,
           })
         }
       }
