@@ -208,32 +208,37 @@ describe('MainPageClient', () => {
     expect(screen.getByTestId('birth-modal')).toHaveAttribute('data-open', 'true')
   })
 
-  it('expands the "other readings" list and renders all MORE_SERVICES entries', () => {
+  it('renders the readings list (default-open) with all MORE_SERVICES entries', () => {
     renderPage()
-    const toggle = screen.getByRole('button', { name: /See other readings/i })
-    expect(toggle).toHaveAttribute('aria-expanded', 'false')
-    fireEvent.click(toggle)
-    expect(screen.getByRole('button', { name: /See other readings/i })).toHaveAttribute(
-      'aria-expanded',
-      'true'
-    )
-    expect(screen.getByText('Tarot Counselor')).toBeInTheDocument()
-    expect(screen.getByText('Compatibility Counselor')).toBeInTheDocument()
+    // 메인 리포트 목록은 기본 펼침(#1592 — 로그인 없이 다 노출).
+    const toggle = screen.getByRole('button', { name: /Explore readings/i })
+    expect(toggle).toHaveAttribute('aria-expanded', 'true')
+    expect(screen.getByText('Compatibility Report')).toBeInTheDocument()
+    expect(screen.getByText('Saju · Astrology Report')).toBeInTheDocument()
     expect(screen.getByText('Fortune Calendar')).toBeInTheDocument()
-    expect(screen.getByText('Free Report')).toBeInTheDocument()
-    expect(screen.getByText('FREE')).toBeInTheDocument()
+    expect(screen.getByText('Life Flow')).toBeInTheDocument()
+    expect(screen.getByText('Tarot Counselor')).toBeInTheDocument()
     // Report link with no saved birth → bare /integrated-report deep link.
-    const reportLink = screen.getByText('Free Report').closest('a')
+    const reportLink = screen.getByText('Saju · Astrology Report').closest('a')
     expect(reportLink?.getAttribute('href')).toContain('/integrated-report')
     expect(reportLink?.getAttribute('href')).toContain('lang=en')
+    // toggle collapses it.
+    fireEvent.click(toggle)
+    expect(screen.getByRole('button', { name: /Explore readings/i })).toHaveAttribute(
+      'aria-expanded',
+      'false'
+    )
   })
 
   it('clicking a service link collapses the list', () => {
     renderPage()
-    fireEvent.click(screen.getByRole('button', { name: /See other readings/i }))
+    expect(screen.getByRole('button', { name: /Explore readings/i })).toHaveAttribute(
+      'aria-expanded',
+      'true'
+    )
     const tarotLink = screen.getByText('Tarot Counselor').closest('a')!
     fireEvent.click(tarotLink)
-    expect(screen.getByRole('button', { name: /See other readings/i })).toHaveAttribute(
+    expect(screen.getByRole('button', { name: /Explore readings/i })).toHaveAttribute(
       'aria-expanded',
       'false'
     )
