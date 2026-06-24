@@ -178,14 +178,16 @@ const pillarEn = (p: string): string => PILLAR_EN[p] ?? `${p}-pillar`
 
 // ── 테마(질문) 분류 ──────────────────────────────────────────────────
 // 신호를 출처(밴드/십성/어스펙트…)가 아니라 "사람들이 실제로 궁금해하는 질문"
-// 으로 재배치한다. 6개 현실 테마, 제목은 질문형.
-type ThemeId = 'spark' | 'talk' | 'love' | 'friction' | 'life' | 'future'
+// 으로 재배치한다. 8개 현실 테마, 제목은 질문형.
+type ThemeId = 'spark' | 'sex' | 'talk' | 'love' | 'friction' | 'life' | 'money' | 'future'
 const THEME_META: { id: ThemeId; icon: string; title: Bi }[] = [
   { id: 'spark', icon: '🔥', title: { ko: '처음에 확 끌려?', en: 'Is there instant chemistry?' } },
+  { id: 'sex', icon: '💋', title: { ko: '잠자리는 잘 맞아?', en: 'Is the physical pull there?' } },
   { id: 'talk', icon: '💬', title: { ko: '말이 잘 통해?', en: 'Do you click when you talk?' } },
   { id: 'love', icon: '💗', title: { ko: '사랑법이 맞아?', en: 'Do your love styles match?' } },
   { id: 'friction', icon: '⚡', title: { ko: '어디서 부딪힐까?', en: 'Where do you clash?' } },
   { id: 'life', icon: '🏠', title: { ko: '같이 있으면 편해?', en: 'Is it easy day to day?' } },
+  { id: 'money', icon: '💰', title: { ko: '돈·가치관은 맞아?', en: 'Same page on money?' } },
   { id: 'future', icon: '💍', title: { ko: '오래 갈 사이야?', en: 'Will it last?' } },
 ]
 // 십성 → 테마
@@ -194,8 +196,8 @@ const SIBSIN_THEME: Record<string, ThemeId> = {
   겁재: 'friction',
   식신: 'talk',
   상관: 'spark',
-  편재: 'spark',
-  정재: 'life',
+  편재: 'money',
+  정재: 'money',
   편관: 'friction',
   정관: 'future',
   편인: 'love',
@@ -204,13 +206,13 @@ const SIBSIN_THEME: Record<string, ThemeId> = {
 // 하우스 → 테마
 const HOUSE_THEME: Record<number, ThemeId> = {
   1: 'spark',
-  2: 'life',
+  2: 'money',
   3: 'talk',
   4: 'life',
   5: 'spark',
   6: 'life',
   7: 'future',
-  8: 'future',
+  8: 'sex',
   9: 'life',
   10: 'life',
   11: 'talk',
@@ -219,20 +221,36 @@ const HOUSE_THEME: Record<number, ThemeId> = {
 // 어스펙트 → 테마 (긴장각이면 부딪힘, 아니면 행성 조합으로)
 function aspectTheme(asp: SynAspectView): ThemeId {
   if (asp.tone === 'tension') return 'friction'
-  const set = new Set([asp.aKey, asp.bKey])
-  if (set.has('Mercury')) return 'talk'
-  if (
-    set.has('Venus') ||
-    set.has('Mars') ||
-    set.has('Ascendant') ||
-    set.has('Uranus') ||
-    set.has('Pluto')
-  )
-    return 'spark'
-  if (set.has('Moon') || set.has('Sun') || set.has('Neptune')) return 'love'
-  if (set.has('Saturn')) return 'future'
-  if (set.has('Jupiter')) return 'life'
+  const has = (k: string): boolean => asp.aKey === k || asp.bKey === k
+  if (has('Mercury')) return 'talk'
+  // 화성·금성 / 명왕성 얽힘 = 몸의 끌림(잠자리)
+  if ((has('Mars') && has('Venus')) || (has('Pluto') && (has('Venus') || has('Mars')))) return 'sex'
+  if (has('Venus') || has('Mars') || has('Ascendant') || has('Uranus')) return 'spark'
+  if (has('Moon') || has('Sun') || has('Neptune')) return 'love'
+  if (has('Saturn')) return 'future'
+  if (has('Jupiter')) return 'life'
   return 'love'
+}
+// 어스펙트 종류 → 한 줄 기하 뉘앙스 (트라인/스퀘어 구분을 일상어로).
+const ASPECT_TYPE_NUANCE: Record<string, Bi> = {
+  conjunction: { ko: '딱 붙어 한 몸처럼 작동하는 자리예요.', en: 'They fuse and act as one here.' },
+  trine: { ko: '물 흐르듯 힘 안 들이고 통하는 자리예요.', en: 'It flows here with no effort.' },
+  sextile: {
+    ko: '손 내밀면 닿는, 기회처럼 열리는 자리예요.',
+    en: 'An open door here if you reach for it.',
+  },
+  square: {
+    ko: '서로 각을 세워 삐걱대기 쉬운 자리예요.',
+    en: 'They rub at right angles here — friction-prone.',
+  },
+  opposition: {
+    ko: '정반대라 끌리면서도 맞서는 자리예요.',
+    en: 'Opposite poles here — drawn yet facing off.',
+  },
+  quincunx: {
+    ko: '미묘하게 어긋나 조정이 필요한 자리예요.',
+    en: 'Subtly off here — it needs adjusting.',
+  },
 }
 // 기둥 작용(태그) → 테마 (합 계열=인연·미래, 충·형·해·파=부딪힘)
 const PILLAR_THEME: Record<string, ThemeId> = {
@@ -534,7 +552,7 @@ export function buildFreeCompatNarrative(
   }
   if (report.elementBalance) {
     const eb = report.elementBalance
-    const text = eb.balanced
+    const base = eb.balanced
       ? t(ELEMENT_BALANCE.balanced)
       : eb.range >= 4
         ? fill(t(ELEMENT_BALANCE.skewed), {
@@ -542,7 +560,20 @@ export function buildFreeCompatNarrative(
             weakEl: elLabel(eb.weakest, isKo),
           })
         : t(ELEMENT_BALANCE.complement)
-    themed.push({ theme: 'life', weight: 1, text })
+    // 1인별 분포 — 각자 어느 기운이 가장 도드라지는지 한 줄 덧붙임.
+    const topEl = (rec: Record<string, number>): string | null => {
+      const e = Object.entries(rec).sort((x, y) => y[1] - x[1])[0]
+      return e && e[1] > 0 ? e[0] : null
+    }
+    const aTop = topEl(eb.a)
+    const bTop = topEl(eb.b)
+    const perPerson =
+      aTop && bTop
+        ? isKo
+          ? ` ${neun(labelA)} ${elLabel(aTop, true)} 기운이, ${neun(labelB)} ${elLabel(bTop, true)} 기운이 가장 도드라져요.`
+          : ` ${labelA} leans ${elLabel(aTop, false)}, ${labelB} leans ${elLabel(bTop, false)}.`
+        : ''
+    themed.push({ theme: 'life', weight: 1, text: base + perPerson })
   }
   if (report.synView) {
     for (const asp of report.synView.aspects) {
@@ -558,18 +589,31 @@ export function buildFreeCompatNarrative(
               ? `${josa(ra, '과/와')} ${josa(rb, '이/가')} 만나는 자리예요. ${tone}`
               : `where ${ra} meets ${rb}. ${tone}`
           })()
+      // 각 종류(트라인/스퀘어…) 한 줄 뉘앙스로 깊이 추가.
+      const nuance = ASPECT_TYPE_NUANCE[asp.type] ? ` ${t(ASPECT_TYPE_NUANCE[asp.type])}` : ''
       themed.push({
         theme: aspectTheme(asp),
         weight: Math.max(1.5, 6 - (asp.orb ?? 4)),
-        text: blurb,
+        text: blurb + nuance,
       })
     }
+    // 오버레이 — 누구의 어느 행성이 어느 방에 들어왔는지(행성 정체 추가). 방당 1회.
     const seenHouse = new Set<number>()
-    for (const o of [...report.synView.overlaysAtoB, ...report.synView.overlaysBtoA]) {
-      if (seenHouse.has(o.house)) continue
-      seenHouse.add(o.house)
-      const arena = t(OVERLAY_HOUSE[o.house]) ?? ''
-      if (arena) themed.push({ theme: HOUSE_THEME[o.house] ?? 'life', weight: 2, text: arena })
+    for (const [list, viewer] of [
+      [report.synView.overlaysAtoB, labelA] as const,
+      [report.synView.overlaysBtoA, labelB] as const,
+    ]) {
+      for (const o of list) {
+        if (seenHouse.has(o.house)) continue
+        seenHouse.add(o.house)
+        const arena = t(OVERLAY_HOUSE[o.house]) ?? ''
+        if (!arena) continue
+        const plName = planet(o.planetKey, o.planet)
+        const text = isKo
+          ? `${viewer}의 ${plName} 기운이 닿는 곳은 ${arena}`
+          : `${viewer}'s ${plName} lands on ${arena}`
+        themed.push({ theme: HOUSE_THEME[o.house] ?? 'life', weight: 2, text })
+      }
     }
   }
   {
