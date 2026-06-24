@@ -52,6 +52,7 @@ import {
   houseHover,
   aspectHover,
   hanjaHover,
+  hanjaReading,
   dignityHover,
   stageHover,
   elementLabel,
@@ -687,7 +688,10 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
             return (
               <div className={s.dmCard}>
                 <div className={s.dmHead}>
-                  <b className={elClass[stemEl(S.dayMaster)]}>{S.dayMaster}</b>
+                  <b className={elClass[stemEl(S.dayMaster)]}>
+                    {S.dayMaster}
+                    <i className={s.hanRead}>{hanjaReading(S.dayMaster, lang)}</i>
+                  </b>
                   <span>{lang === 'en' ? 'Your day character' : '태어난 날의 나'}</span>
                 </div>
                 <div className={s.dmBody}>{dm?.as_daymaster ?? dm?.nature ?? ''}</div>
@@ -716,6 +720,7 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
                     >
                       {p.stem}
                     </div>
+                    <div className={s.gzRead}>{hanjaReading(p.stem, lang)}</div>
                   </div>
                   <div className={`${s.gz} ${s.branch}`}>
                     <div
@@ -724,6 +729,7 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
                     >
                       {p.branch}
                     </div>
+                    <div className={s.gzRead}>{hanjaReading(p.branch, lang)}</div>
                   </div>
                   <div className={s.sib}>{sibsinLabel(p.sibsinBranch, lang)}</div>
                   <div className={s.jjg}>
@@ -762,7 +768,9 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
                   <span className={s.plainHead}>{head[lang]}</span>
                   <b className={s.plainGz}>
                     <span className={elClass[stemEl(p.stem)]}>{p.stem}</span>
+                    <i className={s.hanRead}>{hanjaReading(p.stem, lang)}</i>{' '}
                     <span className={elClass[branchEl(p.branch)]}>{p.branch}</span>
+                    <i className={s.hanRead}>{hanjaReading(p.branch, lang)}</i>
                   </b>
                   <span className={s.plainMeaning}>
                     {[stemG, branchG].filter(Boolean).join(' · ')}
