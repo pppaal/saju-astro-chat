@@ -209,7 +209,7 @@ export function deriveLifePattern(
   // 고전(hard)은 곡선 정규화로 사라지므로 daeun favor 기준을 유지한다.
   let curvePeakAge: number | undefined
   if (curve && curve.points.length >= 10 && key !== 'hard') {
-    const cls = classifyFromCurve(curve.points)
+    const cls = classifyFromCurve(curve.points, currentAge)
     if (cls) {
       key = cls.key
       curvePeakAge = cls.peakAge
@@ -224,7 +224,8 @@ export function deriveLifePattern(
  * 없애기 위해 *같은 곡선*에서 분류·정점을 뽑는다(감사 B1). 정규화(0..1) 후 구간
  * 평균 + 전역 극값 위치로 판정. */
 function classifyFromCurve(
-  pointsAll: Array<{ age: number; macro: number }>
+  pointsAll: Array<{ age: number; macro: number }>,
+  currentAge?: number
 ): { key: LifePatternKey; peakAge: number } | null {
   const p = pointsAll.filter((x) => x.age >= 0 && x.age <= 85)
   if (p.length < 10) return null
@@ -259,16 +260,25 @@ function classifyFromCurve(
   else key = 'smooth'
   // 정점 나이는 *유형이 가리키는 구간* 안의 최댓값으로 — base.line 방향과 detail
   // "정점 시점"이 어긋나지 않게(예: 점진상승인데 정점이 11세이면 모순).
+  // early-peak '정점'은 *유년기*(<16)가 아니라 젊은 시절(초년발복)을 가리켜야 —
+  // "14세에 가장 크게"는 발복 서사와 어긋난다. undulating/smooth 도 유년 정점은 피한다.
   const win: [number, number] =
     key === 'late-bloomer' || key === 'steady-rise'
       ? [50, 85]
       : key === 'early-peak'
-        ? [0, 38]
+        ? [16, 40]
         : key === 'midlife-peak'
           ? [35, 60]
-          : [0, 85]
+          : [16, 85]
   const wp = p.filter((x) => x.age >= win[0] && x.age < win[1])
-  const pool = wp.length ? wp : p
+  let pool = wp.length ? wp : p
+  // 현재 나이를 알면 *가까운 지평*(현재−3 ~ +28년) 안의 정점을 우선한다 — 31세에게
+  // "81세부터 가장 크게"처럼 50년 뒤 정점을 가리키면 비현실적이라(사용자 지적).
+  // 지평 안에 후보가 있으면 그쪽, 없으면(이미 지난 정점뿐인 고령 등) 구간 최댓값.
+  if (typeof currentAge === 'number') {
+    const near = pool.filter((x) => x.age >= currentAge - 3 && x.age <= currentAge + 28)
+    if (near.length) pool = near
+  }
   const peakAge = pool.reduce((best, x) => (x.macro > best.macro ? x : best), pool[0]).age
   return { key, peakAge }
 }

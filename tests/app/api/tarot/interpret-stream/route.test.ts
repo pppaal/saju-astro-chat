@@ -290,6 +290,8 @@ describe('POST /api/tarot/interpret-stream', () => {
         route: 'tarot-interpret-stream',
         limit: 10,
         windowSeconds: 60,
+        // Claude route fails closed on Redis outage (cost guard).
+        failClosed: true,
       })
     })
 
