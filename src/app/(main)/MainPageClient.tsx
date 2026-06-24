@@ -49,10 +49,11 @@ function formatSubject(info: StoredBirthInfo, isKo: boolean): string {
   return `${datePart}${timePart} (${g})`
 }
 
-// 무료 통합 리포트 딥링크 — /integrated-report 는 date/time/lat/lng/tz/gender
-// 쿼리를 읽는다(상담사의 birthDate/birthTime 키와 다름). 저장된 생일이 있으면
-// 그 사람 리포트로, 없으면 파라미터 없이 보내 페이지가 샘플 출생정보로 폴백한다.
-function buildReportHref(info: StoredBirthInfo | null, locale: Locale): string {
+// 생일 딥링크 — /integrated-report·/calendar·/destiny 모두 date/time/lat/lng/tz/
+// gender 쿼리를 읽어 로그인 없이 그 사람 기준으로 빌드한다(상담사의 birthDate/
+// birthTime 키와 다름). 저장된 생일이 있으면 그 사람 걸로, 없으면 파라미터 없이
+// 보내 페이지가 샘플 출생정보로 폴백한다.
+function buildBirthHref(base: string, info: StoredBirthInfo | null, locale: Locale): string {
   const p = new URLSearchParams()
   p.set('lang', locale)
   if (info) {
@@ -62,14 +63,18 @@ function buildReportHref(info: StoredBirthInfo | null, locale: Locale): string {
     if (typeof info.longitude === 'number') p.set('lng', String(info.longitude))
     if (info.timeZone) p.set('tz', info.timeZone)
     p.set('gender', info.gender)
+    if (info.name) p.set('name', info.name)
+    if (info.city) p.set('place', info.city)
   }
-  return `/integrated-report?${p.toString()}`
+  return `${base}?${p.toString()}`
 }
 
-// "다른 서비스 보기"로 펼치는 항목들 — 입력창(=운명 상담사)에 없는 나머지.
-// 캘린더 포함 4개. href '__report__' 는 렌더 시 buildReportHref 로 치환.
+// 메인에 바로 노출하는 리포트들 — 전부 로그인 없이 열람 가능. birthLink 가 true 면
+// 저장된 생일을 date/time/lat/lng/tz/gender 쿼리로 실어 그 사람 기준으로 연다
+// (없으면 페이지가 샘플로 폴백). 궁합은 자체 입력 폼이라 파라미터 없이 링크.
 type MoreService = {
   href: string
+  birthLink?: boolean // true 면 buildBirthHref 로 생일 쿼리를 붙인다
   icon: string
   tint: string // 서비스별 강조 색 — 아이콘 타일 배경 + 호버 테두리/글로우
   title: { ko: string; en: string }
@@ -78,21 +83,23 @@ type MoreService = {
 }
 const MORE_SERVICES: readonly MoreService[] = [
   {
-    href: '/tarot',
-    icon: '🔮',
-    tint: '#a855f7',
-    title: { ko: '타로 상담사', en: 'Tarot Counselor' },
-    desc: { ko: '타로 카드 리딩', en: 'Tarot card reading' },
-  },
-  {
-    href: '/compatibility',
+    href: '/compatibility/free',
     icon: '💕',
     tint: '#ec4899',
-    title: { ko: '궁합 상담사', en: 'Compatibility Counselor' },
-    desc: { ko: '관계 궁합 분석', en: 'Relationship analysis' },
+    title: { ko: '궁합 리포트', en: 'Compatibility Report' },
+    desc: { ko: '두 사람 궁합 풀이', en: 'Two-person match' },
+  },
+  {
+    href: '/integrated-report',
+    birthLink: true,
+    icon: '📜',
+    tint: '#e8cc8a',
+    title: { ko: '사주·점성 리포트', en: 'Saju · Astrology Report' },
+    desc: { ko: '사주·별자리 통합 풀이', en: 'Saju + astrology' },
   },
   {
     href: '/calendar',
+    birthLink: true,
     icon: '🗓️',
     tint: '#38bdf8',
     title: { ko: '운흐름 캘린더', en: 'Fortune Calendar' },
@@ -100,18 +107,18 @@ const MORE_SERVICES: readonly MoreService[] = [
   },
   {
     href: '/destiny',
+    birthLink: true,
     icon: '🌌',
     tint: '#8b9dff',
     title: { ko: '인생 흐름', en: 'Life Flow' },
     desc: { ko: '인생·대운·올해 큰 흐름', en: 'Life · decades · year' },
   },
   {
-    href: '__report__',
-    icon: '📜',
-    tint: '#e8cc8a',
-    title: { ko: '무료 리포트', en: 'Free Report' },
-    desc: { ko: '사주·점성 통합 분석', en: 'Saju + astrology' },
-    free: true,
+    href: '/tarot',
+    icon: '🔮',
+    tint: '#a855f7',
+    title: { ko: '타로 상담사', en: 'Tarot Counselor' },
+    desc: { ko: '타로 카드 리딩', en: 'Tarot card reading' },
   },
 ]
 
@@ -129,7 +136,8 @@ export default function MainPageClient({ initialLocale }: MainPageClientProps) {
   const localeAriaLabel = locale === 'ko' ? 'Switch to English' : '한국어로 전환'
 
   const [drawerOpen, setDrawerOpen] = useState(false)
-  const [servicesOpen, setServicesOpen] = useState(false)
+  // 리포트 목록은 메인에 바로 보이게 기본 펼침(로그인 없이 다 이용 가능).
+  const [servicesOpen, setServicesOpen] = useState(true)
   const [birthModalOpen, setBirthModalOpen] = useState(false)
   const [birthInfo, setBirthInfo] = useState<StoredBirthInfo | null>(null)
   // 생일 없이 운명상담사 질문을 던졌으면 그 질문을 여기 담아두고, 생일 저장
@@ -412,9 +420,9 @@ export default function MainPageClient({ initialLocale }: MainPageClientProps) {
           )}
         </div>
 
-        {/* 다른 서비스 — 생년월일 바로 아래. 평소엔 버튼 하나로 접어두고, 누르면
-            타로·궁합·캘린더·무료 리포트 4개가 주르륵(stagger) 펼쳐진다. 입력창
-            (운명 상담사)이 메인이라 기본은 접힌 상태로 시선을 안 뺏는다. */}
+        {/* 리포트 — 생년월일 바로 아래. 궁합·사주점성·캘린더·인생흐름(+타로)이
+            메인에 바로 보이게 기본 펼침(전부 로그인 없이 열람). 버튼으로 접을 수도
+            있다. birthLink 항목은 저장된 생일을 쿼리로 실어 그 사람 기준으로 연다. */}
         <div className={styles.homeMoreWrap}>
           <button
             type="button"
@@ -422,7 +430,7 @@ export default function MainPageClient({ initialLocale }: MainPageClientProps) {
             onClick={() => setServicesOpen((o) => !o)}
             aria-expanded={servicesOpen}
           >
-            {locale === 'ko' ? '다른 서비스 보기' : 'See other readings'}
+            {locale === 'ko' ? '리포트 둘러보기' : 'Explore readings'}
             <span
               className={`${styles.homeServiceMoreChevron} ${
                 servicesOpen ? styles.homeServiceMoreChevronOpen : ''
@@ -443,7 +451,7 @@ export default function MainPageClient({ initialLocale }: MainPageClientProps) {
                 transition={{ duration: 0.18 }}
               >
                 {MORE_SERVICES.map((s, i) => {
-                  const href = s.href === '__report__' ? buildReportHref(birthInfo, locale) : s.href
+                  const href = s.birthLink ? buildBirthHref(s.href, birthInfo, locale) : s.href
                   return (
                     <motion.li
                       key={s.href}

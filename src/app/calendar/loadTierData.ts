@@ -29,6 +29,56 @@ export type LoadTierResult =
   | { kind: 'no-birth' }
   | ({ kind: 'ok'; lang: 'ko' | 'en' } & AssembledTiers)
 
+// 쿼리파라미터로 들어온 생일 — 로그인 없이도 캘린더/인생흐름을 그 사람 기준으로
+// 빌드한다(통합 리포트와 같은 규약: date/time/lat/lng/tz/gender).
+export interface BirthOverride {
+  birthDate: string
+  birthTime: string
+  gender: 'male' | 'female'
+  latitude: number
+  longitude: number
+  timeZone: string
+  place?: string
+  name?: string
+}
+
+// 익명·무입력 데모용 샘플(프리뷰와 동일 인물). 로그인 벽 대신 보여줘 "써보고"
+// 자기 생일을 입력하게 유도한다.
+const SAMPLE_BIRTH: BirthOverride = {
+  birthDate: '1995-02-09',
+  birthTime: '06:40',
+  gender: 'male',
+  latitude: 37.5665,
+  longitude: 126.978,
+  timeZone: 'Asia/Seoul',
+}
+
+type SP = Record<string, string | string[] | undefined>
+const one = (v: string | string[] | undefined): string | undefined => (Array.isArray(v) ? v[0] : v)
+
+// searchParams → BirthOverride. date(YYYY-MM-DD)가 있어야 override 로 인정한다.
+// 없으면 null → 세션(로그인 사용자) 또는 샘플(익명) 경로로 흐른다.
+export function parseBirthOverride(sp: SP): BirthOverride | null {
+  const date = one(sp.date)
+  if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) return null
+  // 빈 문자열/비숫자 좌표는 NaN 으로 떨궈 서울 기본으로 폴백(빈칸 → Number('')=0
+  // 같은 잘못된 (0,0) 좌표 방지).
+  const latRaw = one(sp.lat)
+  const lngRaw = one(sp.lng)
+  const lat = latRaw ? Number(latRaw) : NaN
+  const lng = lngRaw ? Number(lngRaw) : NaN
+  return {
+    birthDate: date,
+    birthTime: one(sp.time) || '12:00',
+    gender: one(sp.gender) === 'female' ? 'female' : 'male',
+    latitude: Number.isFinite(lat) ? lat : 37.5665,
+    longitude: Number.isFinite(lng) ? lng : 126.978,
+    timeZone: one(sp.tz) || 'Asia/Seoul',
+    place: one(sp.place) || undefined,
+    name: one(sp.name) || undefined,
+  }
+}
+
 // DB UserProfile.gender → 'male' | 'female'. canonical 'female'/'male' 저장,
 // 레거시 'F'/'M'/'U' 도 대소문자 무시 처리. 미상/기타는 male 기본.
 function normalizeGender(g: string | null | undefined): 'male' | 'female' {
@@ -48,46 +98,78 @@ function formatBirthLine(birthDate: string, birthTime: string): string {
  * 로그인 + 본명 가드를 통과하면 어셈블된 tier 데이터를, 아니면 fallback 종류를
  * 반환한다. 서버 컴포넌트(page.tsx)는 결과 kind 로 분기만 하면 된다.
  */
-export async function loadTierData(scope: TierScope): Promise<LoadTierResult> {
+export async function loadTierData(
+  scope: TierScope,
+  override?: BirthOverride | null
+): Promise<LoadTierResult> {
   const lang = await detectServerLocale()
 
-  const session = await getServerSession()
-  if (!session?.user?.id) return { kind: 'login' }
-
-  const userRow = await prisma.user.findUnique({
-    where: { id: session.user.id },
-    select: {
-      profile: {
-        select: {
-          birthDate: true,
-          birthTime: true,
-          gender: true,
-          birthCity: true,
-          latitude: true,
-          longitude: true,
-          tzId: true,
-        },
-      },
-    },
-  })
-  const profile = userRow?.profile
-  const isBirthComplete =
-    !!profile?.birthDate &&
-    !!profile?.birthTime &&
-    typeof profile?.latitude === 'number' &&
-    typeof profile?.longitude === 'number' &&
-    !!profile?.tzId
-  if (!isBirthComplete || !profile) return { kind: 'no-birth' }
-
-  const BIRTH = {
-    birthDate: profile.birthDate!,
-    birthTime: profile.birthTime!,
-    gender: normalizeGender(profile.gender),
-    latitude: profile.latitude!,
-    longitude: profile.longitude!,
-    timeZone: profile.tzId!,
+  let BIRTH: {
+    birthDate: string
+    birthTime: string
+    gender: 'male' | 'female'
+    latitude: number
+    longitude: number
+    timeZone: string
   }
-  const BIRTH_YEAR = Number(profile.birthDate!.split('-')[0])
+  let place: string
+
+  if (override) {
+    // 1) 쿼리파라미터(그 사람 생일) — 로그인 불필요.
+    BIRTH = {
+      birthDate: override.birthDate,
+      birthTime: override.birthTime,
+      gender: override.gender,
+      latitude: override.latitude,
+      longitude: override.longitude,
+      timeZone: override.timeZone,
+    }
+    place = override.place || (lang === 'en' ? 'Seoul' : '서울')
+  } else {
+    const session = await getServerSession()
+    if (!session?.user?.id) {
+      // 2) 익명 + 무입력 — 로그인 벽 대신 샘플 인물로 데모(로그인 없이 이용).
+      BIRTH = { ...SAMPLE_BIRTH }
+      place = lang === 'en' ? 'Seoul' : '서울'
+    } else {
+      // 3) 로그인 사용자 — 저장된 본명으로.
+      const userRow = await prisma.user.findUnique({
+        where: { id: session.user.id },
+        select: {
+          profile: {
+            select: {
+              birthDate: true,
+              birthTime: true,
+              gender: true,
+              birthCity: true,
+              latitude: true,
+              longitude: true,
+              tzId: true,
+            },
+          },
+        },
+      })
+      const profile = userRow?.profile
+      const isBirthComplete =
+        !!profile?.birthDate &&
+        !!profile?.birthTime &&
+        typeof profile?.latitude === 'number' &&
+        typeof profile?.longitude === 'number' &&
+        !!profile?.tzId
+      if (!isBirthComplete || !profile) return { kind: 'no-birth' }
+
+      BIRTH = {
+        birthDate: profile.birthDate!,
+        birthTime: profile.birthTime!,
+        gender: normalizeGender(profile.gender),
+        latitude: profile.latitude!,
+        longitude: profile.longitude!,
+        timeZone: profile.tzId!,
+      }
+      place = profile.birthCity || (lang === 'en' ? 'Seoul' : '미입력')
+    }
+  }
+  const BIRTH_YEAR = Number(BIRTH.birthDate.split('-')[0])
 
   // '오늘' — 사용자 출생 타임존 기준(서버 UTC 와 무관하게 날짜 일관).
   // now 단일 기준: 같은 인스턴트를 deriver(currentManAge)까지 흘려 "현재 단계"가
@@ -108,8 +190,7 @@ export async function loadTierData(scope: TierScope): Promise<LoadTierResult> {
     getFocusDayCell(BIRTH, natal, targetDayIso),
   ])
 
-  const birthDisplay = formatBirthLine(profile.birthDate!, profile.birthTime!)
-  const place = profile.birthCity || '미입력'
+  const birthDisplay = formatBirthLine(BIRTH.birthDate, BIRTH.birthTime)
 
   const assembled = await assembleTiers({
     natal,

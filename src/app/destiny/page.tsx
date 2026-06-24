@@ -8,15 +8,19 @@
    ============================================================ */
 
 import BirthRequiredFallback from '../calendar/birth-required'
-import { loadTierData } from '../calendar/loadTierData'
+import { loadTierData, parseBirthOverride } from '../calendar/loadTierData'
 import DestinyLifeClient from './DestinyLifeClient'
 
-// 서버 컴포넌트 — 세션 기반이라 force-dynamic.
+// 서버 컴포넌트 — 세션/쿼리 기반이라 force-dynamic.
 export const dynamic = 'force-dynamic'
 
-export default async function DestinyLifePage() {
+type SP = Record<string, string | string[] | undefined>
+
+export default async function DestinyLifePage({ searchParams }: { searchParams: Promise<SP> }) {
+  // ?date=&time=&lat=&lng=&tz=&gender= 가 있으면 로그인 없이 그 사람 기준으로.
+  const override = parseBirthOverride(await searchParams)
   // 인생/대운/년은 1년 풀빌드가 필요하다.
-  const data = await loadTierData('year')
+  const data = await loadTierData('year', override)
   if (data.kind === 'login') return <BirthRequiredFallback reason="login" />
   if (data.kind === 'no-birth') return <BirthRequiredFallback reason="no-birth" />
 
