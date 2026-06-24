@@ -43,6 +43,35 @@ const SIGN_KO: Record<string, string> = {
   Pisces: '물고기자리',
 }
 
+// 조후용신 라벨(extractors/saju-johu-yongsin.ts)의 月支 → 계절 평어.
+//   寅卯辰=봄 · 巳午未=여름 · 申酉戌=가을 · 亥子丑=겨울
+const BRANCH_SEASON: Record<string, string> = {
+  寅: '봄',
+  卯: '봄',
+  辰: '봄',
+  巳: '여름',
+  午: '여름',
+  未: '여름',
+  申: '가을',
+  酉: '가을',
+  戌: '가을',
+  亥: '겨울',
+  子: '겨울',
+  丑: '겨울',
+}
+
+// 오행(五行) → 일상어. "수가 … 균형" 같은 한자 음역 노출 방지.
+const ELEMENT_PLAIN: Record<string, string> = {
+  목: '나무',
+  화: '불',
+  토: '흙',
+  금: '금',
+  수: '물',
+}
+
+// "午月 조후 — 수가 열 균형에 필요" → "여름엔 물 기운이 균형에 도움".
+const JOHU_RE = /^([子丑寅卯辰巳午未申酉戌亥])月\s*조후\s*[—\-]\s*([목화토금수])[이가]\s+\S+\s+균형에 필요$/
+
 const LAYER_PLAIN: Record<string, string> = {
   대운: '10년 흐름',
   세운: '올해',
@@ -85,6 +114,23 @@ function pointKo(name: string): string {
   return POINT_KO[name.trim()] ?? name.trim()
 }
 
+/** 받침 유무로 주격 조사 선택 (목성→이, 화성→이, 달→이, 릴리스→가). */
+function subjJosa(word: string): string {
+  const w = word.trim()
+  const c = w.charCodeAt(w.length - 1)
+  if (c < 0xac00 || c > 0xd7a3) return '가' // 한글 외(영문 등)는 받침 없음 취급
+  return (c - 0xac00) % 28 !== 0 ? '이' : '가'
+}
+
+// dignity 라벨을 통째로 일상어로. 행성명은 이미 koPlanet 로 한글이 들어옴.
+//   "목성 엑잘테이션 (고양) (게자리)" → "목성이 가장 좋은 자리"
+const DIGNITY_PLAIN: Array<{ term: RegExp; plain: string }> = [
+  { term: /엑잘테이션\s*\(고양\)/, plain: '가장 좋은 자리' },
+  { term: /디트리먼트\s*\([^)]*\)/, plain: '약해지는 자리' },
+  { term: /폴\s*\(추락\)/, plain: '가장 약한 자리' },
+  { term: /룰러십\s*\([^)]*\)/, plain: '제 힘을 내는 자리' },
+]
+
 /**
  * EN 라벨 평어화 — 영문 콘텐츠는 한글화하지 않고, dignity 전문용어만
  * 일상어 먼저 + 용어 괄호로 부드럽게(엑잘테이션 등 음역 노출 방지).
@@ -114,13 +160,30 @@ function humanizeLabel(label: string): string {
     const [, a, asp, b] = tm
     return `${pointKo(a)} ↔ 타고난 ${pointKo(b)} · ${ASPECT_PLAIN[asp.toLowerCase()] ?? ASPECT_PLAIN[asp] ?? asp}`
   }
+  // 1.5) 조후용신 라벨 — 한자 月支·오행·'조후'를 계절+일상어로.
+  //   "午月 조후 — 수가 열 균형에 필요" → "여름엔 물 기운이 균형에 도움".
+  const jm = label.match(JOHU_RE)
+  if (jm) {
+    const season = BRANCH_SEASON[jm[1]] ?? ''
+    const elem = ELEMENT_PLAIN[jm[2]] ?? jm[2]
+    return season ? `${season}엔 ${elem} 기운이 균형에 도움` : `${elem} 기운이 균형에 도움`
+  }
+  // 1.6) dignity 라벨 — "목성 엑잘테이션 (고양) (게자리)" → "목성이 가장 좋은 자리".
+  //   (행성명만 살리고 음역 전문용어·별자리 괄호는 떨군다.)
+  for (const d of DIGNITY_PLAIN) {
+    const dm = label.match(new RegExp(`^(\\S+)\\s+${d.term.source}(?:\\s*\\([^)]*\\))?\\s*$`))
+    if (dm) {
+      const planet = pointKo(dm[1])
+      return `${planet}${subjJosa(planet)} ${d.plain}`
+    }
+  }
   let t = label
-  // 2) dignity 군더더기 괄호 정리 — 일상어 먼저, 전문용어는 괄호로.
+  // 2) dignity 잔재(비표준 형태) 폴백 — 음역 전문용어를 일상어로(괄호 제거).
   t = t
-    .replace(/엑잘테이션\s*\(고양\)/g, '가장 좋은 자리(고양)')
-    .replace(/디트리먼트\s*\([^)]*\)/g, '힘이 약해지는 자리(반대 자리)')
-    .replace(/폴\s*\(추락\)/g, '가장 약한 자리(추락)')
-    .replace(/룰러십\s*\([^)]*\)/g, '제자리 힘(지배)')
+    .replace(/엑잘테이션\s*\(고양\)/g, '가장 좋은 자리')
+    .replace(/디트리먼트\s*\([^)]*\)/g, '약해지는 자리')
+    .replace(/폴\s*\(추락\)/g, '가장 약한 자리')
+    .replace(/룰러십\s*\([^)]*\)/g, '제 힘을 내는 자리')
   // 3) 영어 포인트 → 한국어 (긴 키 먼저: 'True Node' 가 'Node' 보다 우선).
   for (const en of Object.keys(POINT_KO).sort((a, b) => b.length - a.length)) {
     t = t.replace(new RegExp(`\\b${escapeReg(en)}\\b`, 'g'), POINT_KO[en])
