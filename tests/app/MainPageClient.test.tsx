@@ -208,32 +208,33 @@ describe('MainPageClient', () => {
     expect(screen.getByTestId('birth-modal')).toHaveAttribute('data-open', 'true')
   })
 
-  it('expands the "other readings" list and renders all MORE_SERVICES entries', () => {
+  it('renders all MORE_SERVICES entries (list open by default) and collapses on toggle', () => {
     renderPage()
-    const toggle = screen.getByRole('button', { name: /See other readings/i })
-    expect(toggle).toHaveAttribute('aria-expanded', 'false')
-    fireEvent.click(toggle)
-    expect(screen.getByRole('button', { name: /See other readings/i })).toHaveAttribute(
-      'aria-expanded',
-      'true'
-    )
+    // 리포트 목록은 메인에서 기본 펼침(servicesOpen=true).
+    const toggle = screen.getByRole('button', { name: /Explore readings/i })
+    expect(toggle).toHaveAttribute('aria-expanded', 'true')
     expect(screen.getByText('Tarot Counselor')).toBeInTheDocument()
-    expect(screen.getByText('Compatibility Counselor')).toBeInTheDocument()
+    expect(screen.getByText('Compatibility Report')).toBeInTheDocument()
     expect(screen.getByText('Fortune Calendar')).toBeInTheDocument()
-    expect(screen.getByText('Free Report')).toBeInTheDocument()
-    expect(screen.getByText('FREE')).toBeInTheDocument()
+    expect(screen.getByText('Saju · Astrology Report')).toBeInTheDocument()
     // Report link with no saved birth → bare /integrated-report deep link.
-    const reportLink = screen.getByText('Free Report').closest('a')
+    const reportLink = screen.getByText('Saju · Astrology Report').closest('a')
     expect(reportLink?.getAttribute('href')).toContain('/integrated-report')
     expect(reportLink?.getAttribute('href')).toContain('lang=en')
+    // 토글을 누르면 접힌다. (리렌더 후 노드를 새로 조회)
+    fireEvent.click(toggle)
+    expect(screen.getByRole('button', { name: /Explore readings/i })).toHaveAttribute(
+      'aria-expanded',
+      'false'
+    )
   })
 
   it('clicking a service link collapses the list', () => {
     renderPage()
-    fireEvent.click(screen.getByRole('button', { name: /See other readings/i }))
+    // 기본 펼침 상태 → 서비스 링크를 누르면 목록이 접힌다.
     const tarotLink = screen.getByText('Tarot Counselor').closest('a')!
     fireEvent.click(tarotLink)
-    expect(screen.getByRole('button', { name: /See other readings/i })).toHaveAttribute(
+    expect(screen.getByRole('button', { name: /Explore readings/i })).toHaveAttribute(
       'aria-expanded',
       'false'
     )
