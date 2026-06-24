@@ -36,7 +36,7 @@ export const GENERATED: GeneratedCopy = {
   },
   VERDICT_EXPANSION: {
     aligned: {
-      ko: '둘의 차트가 같은 쪽을 바라보고 있어요. 끌림이 한 사람만의 일이 아니라 양쪽에서 동시에 올라오죠. 그래서 대화도 마음도 굳이 애쓰지 않아도 술술 흘러가요. 처음부터 박자가 맞는 음악처럼요.',
+      ko: '둘의 차트가 같은 쪽을 바라보고 있어요. 끌림이 한 사람만의 일이 아니라 양쪽에서 동시에 올라오죠. 그래서 대화도 마음도 굳이 애쓰지 않아도 자연스레 흘러가요. 처음부터 박자가 맞는 음악처럼요.',
       en: "Your two charts look the same way. The pull isn't one-sided. It rises in both of you at once. So talk and feeling move along easily, like music that was already in rhythm, no effort needed.",
     },
     tension: {
@@ -44,7 +44,7 @@ export const GENERATED: GeneratedCopy = {
       en: 'Neither of you backs down easily. So you push against each other, and yes, sparks fly. But that very friction is what toughens you both up. Think of two rough stones grinding against each other until they come out smooth.',
     },
     mixed: {
-      ko: '둘은 한쪽에선 콩닥콩닥 끌리고, 다른 한쪽에선 티격태격 부딪혀요. 어떤 자리에선 신기할 만큼 말이 척척 통하다가도, 어떤 자리에선 묘하게 박자가 어긋나죠. 그래서 밋밋하지 않고 여러 표정을 가진 사이예요.',
+      ko: '둘은 한쪽에선 두근두근 끌리고, 다른 한쪽에선 티격태격 부딪혀요. 어떤 자리에선 신기할 만큼 말이 척척 통하다가도, 어떤 자리에선 묘하게 박자가 어긋나죠. 그래서 밋밋하지 않고 여러 표정을 가진 사이예요.',
       en: "One of you pulls close while the other pushes back. In some spots you click in a way that's almost uncanny. In others you slip out of sync. So this isn't one flat note. You two carry many faces instead.",
     },
     neutral: {
@@ -66,7 +66,7 @@ export const GENERATED: GeneratedCopy = {
       en: "This time {B}'s {bEl} shapes and steadies {A}'s {aEl}. {A} feels safe with someone holding the center close by. Still, that tidying touch can sometimes land like a small, pointed nudge.",
     },
     generate: {
-      ko: "{aEl}과 {bEl}이 서로를 살려서 쑥쑥 자라게 해요(사주에선 '상생'). 한 사람이 내어준 기운이 상대 안에서 싹을 틔우고, 그게 다시 돌아와 처음 사람을 키워요. 물 주면 자라는 화분처럼, 주고받는 기운이 둘 사이를 술술 오가죠.",
+      ko: "{aEl}과 {bEl}이 서로를 살려서 쑥쑥 자라게 해요(사주에선 '상생'). 한 사람이 내어준 기운이 상대 안에서 싹을 틔우고, 그게 다시 돌아와 처음 사람을 키워요. 물 주면 자라는 화분처럼, 주고받는 기운이 둘 사이를 막힘없이 오가죠.",
       en: "{aEl} and {bEl} feed each other and help one another grow (Saju calls this 'mutual generation'). What one of you offers takes root in the other, then circles back and nourishes the first. Like a plant that grows each time it's watered, this give-and-take moves between you quite naturally.",
     },
   },
@@ -97,7 +97,7 @@ export const GENERATED: GeneratedCopy = {
         en: 'a draw toward ease, where your words come loose',
       },
       blurb: {
-        ko: "이 사람 앞에서는 이상하게 말문이 술술 트여요. 평소 속에만 담아두던 얘기도 자연스럽게 흘러나오죠. 곁에 있으면 마음이 사르르 풀리면서, 내가 가진 솜씨도 한결 가볍게 펼쳐져요. 잘 보이려 애쓰지 않아도 본래의 내가 한 톤 더 환해지는, 그런 따뜻한 끌림이에요(사주에선 '식신').",
+        ko: "이 사람 앞에서는 이상하게 말문이 자연스레 트여요. 평소 속에만 담아두던 얘기도 자연스럽게 흘러나오죠. 곁에 있으면 마음이 사르르 풀리면서, 내가 가진 솜씨도 한결 가볍게 펼쳐져요. 잘 보이려 애쓰지 않아도 본래의 내가 한 톤 더 환해지는, 그런 따뜻한 끌림이에요(사주에선 '식신').",
         en: "Around this person your words just come loose. Things you usually keep tucked away slip out on their own. Next to them you relax, and your own talents flow a little more lightly. Without trying to impress, the real you comes through a shade brighter. It's that kind of warm pull (in Saju, '식신/sik-sin').",
       },
     },
@@ -189,7 +189,7 @@ export const GENERATED: GeneratedCopy = {
         en: 'A lively, fun-loving partner',
       },
       blurb: {
-        ko: '배우자 자리에 활달하고 자유로운 사람이 들어와 있어요. 한곳에 가만히 묶이기보다 어디로 튈지 모르는 생기가 늘 곁에서 콩닥거리죠. 둘이 같이 있으면 평범한 하루도 술술 재밌어지고, 어쩐지 마음이 가벼워져요. 이런 사람한테 자연스레 끌리더라고요.',
+        ko: '배우자 자리에 활달하고 자유로운 사람이 들어와 있어요. 한곳에 가만히 묶이기보다 어디로 튈지 모르는 생기가 늘 곁에서 콩닥거리죠. 둘이 같이 있으면 평범한 하루도 막힘없이 재밌어지고, 어쩐지 마음이 가벼워져요. 이런 사람한테 자연스레 끌리더라고요.',
         en: "In the spouse seat, you've got someone breezy and free-spirited. They don't sit still in one spot. They carry a playful, where-will-they-go-next spark right beside you. With them around, an ordinary day turns fun and your heart feels lighter. That's the kind of person you're drawn to.",
       },
     },
@@ -199,7 +199,7 @@ export const GENERATED: GeneratedCopy = {
         en: 'A safe-harbor partner',
       },
       blurb: {
-        ko: "배우자 자리에서 상대는 기대고 싶을 만큼 듬직한 짝이에요. 약속한 건 끝까지 지키고, 흔들리는 날에도 옆을 반듯하게 지켜줘요. 그래서 이런 사람 곁에 있으면 마음이 술술 가라앉고 '아, 안심된다' 싶어지죠. 화려한 설렘보다는 둘이 함께 집을 한 채 짓는 듯한 든든한 끌림으로 다가와요.",
+        ko: "배우자 자리에서 상대는 기대고 싶을 만큼 듬직한 짝이에요. 약속한 건 끝까지 지키고, 흔들리는 날에도 옆을 반듯하게 지켜줘요. 그래서 이런 사람 곁에 있으면 마음이 자연스레 가라앉고 '아, 안심된다' 싶어지죠. 화려한 설렘보다는 둘이 함께 집을 한 채 짓는 듯한 든든한 끌림으로 다가와요.",
         en: "In the spot your chart keeps for a life partner, they show up as someone solid enough to lean on. They finish what they promise, and they stay steady right beside you even on shaky days. So next to someone like this your mind quietly settles, and a calm sense of safety sets in. It's less a flutter of dazzle, more the steady pull of the two of you building a home together.",
       },
     },
@@ -375,7 +375,7 @@ export const GENERATED: GeneratedCopy = {
         en: 'Magnetic pull',
       },
       blurb: {
-        ko: '두 사람의 가장 윗기운이 손을 맞잡듯 딱 묶여요. 그래서 처음 마주친 순간부터 말로 설명 안 되는 끌림이 콩닥콩닥 흘러요. 같은 공간에 있기만 해도 둘은 자꾸 서로에게 눈길이 가고, 대화가 신기할 만큼 술술 맞아떨어져요. 가끔 둘이 너무 닮아서 살짝 거리감이 들기도 하는데, 그건 안 맞아서가 아니라 서로를 비춰 주며 다듬어 가는 사이라서 그래요.',
+        ko: '두 사람의 가장 윗기운이 손을 맞잡듯 딱 묶여요. 그래서 처음 마주친 순간부터 말로 설명 안 되는 끌림이 두근두근 흘러요. 같은 공간에 있기만 해도 둘은 자꾸 서로에게 눈길이 가고, 대화가 신기할 만큼 막힘없이 맞아떨어져요. 가끔 둘이 너무 닮아서 살짝 거리감이 들기도 하는데, 그건 안 맞아서가 아니라 서로를 비춰 주며 다듬어 가는 사이라서 그래요.',
         en: "Your two topmost energies lock together like clasped hands. So from the very first meeting, a pull you can't quite explain runs between you. Just sharing a room, you keep glancing at each other, and your talk clicks with surprising ease. Sometimes you sit so alike that a faint distance creeps in — that's not a mismatch, it's the way you two reflect and polish each other.",
       },
     },
@@ -465,7 +465,7 @@ export const GENERATED: GeneratedCopy = {
         en: 'A hairline crack',
       },
       blurb: {
-        ko: '둘은 웬만한 일은 술술 잘 통하는데, 딱 한 군데서 살짝 어긋나요. 크게 부딪치는 건 아니에요. 그릇에 난 가는 금처럼, 평소엔 있는지도 모르고 지나가는 미묘한 거리죠. 안 맞아서가 아니라, 서로 다른 자리를 마주하면서 조금씩 단단해지는 사이이기도 해요.',
+        ko: '둘은 웬만한 일은 자연스레 잘 통하는데, 딱 한 군데서 살짝 어긋나요. 크게 부딪치는 건 아니에요. 그릇에 난 가는 금처럼, 평소엔 있는지도 모르고 지나가는 미묘한 거리죠. 안 맞아서가 아니라, 서로 다른 자리를 마주하면서 조금씩 단단해지는 사이이기도 해요.',
         en: "Most things between you two just flow. But in one spot you land slightly out of line. It's not a big clash. It's like a fine crack in a bowl. Most days you'd walk right past it without noticing. It isn't that you don't fit. It's a place where your two different sides meet and slowly grow sturdier.",
       },
     },
@@ -491,7 +491,7 @@ export const GENERATED: GeneratedCopy = {
         en: 'Calm and steady, with few places where the pillars knock against each other',
       },
       high: {
-        ko: '두 사람 글자가 부딪혀서 튀는 데가 거의 없어서 잔잔해요. 그래서 같이 있는 시간이 큰 파도 없이 고요한 물처럼 술술 흘러가요.',
+        ko: '두 사람 글자가 부딪혀서 튀는 데가 거의 없어서 잔잔해요. 그래서 같이 있는 시간이 큰 파도 없이 고요한 물처럼 막힘없이 흘러가요.',
         en: 'Almost none of your pieces grind against each other, so things stay calm. The time you share moves like still water, gliding along without big waves.',
       },
       low: {
@@ -519,7 +519,7 @@ export const GENERATED: GeneratedCopy = {
         en: "How much harmony there is in the way your charts' planets flow and blend together",
       },
       high: {
-        ko: '둘은 서로의 행성이 부드럽게 손을 내미는 자리가 많아요. 그래서 수다를 떨든 가만히 있든, 흐름이 한 곡의 음악처럼 술술 이어지곤 해요.',
+        ko: '둘은 서로의 행성이 부드럽게 손을 내미는 자리가 많아요. 그래서 수다를 떨든 가만히 있든, 흐름이 한 곡의 음악처럼 자연스레 이어지곤 해요.',
         en: "Your planets reach toward each other in many spots. So whether you're talking or just sitting quiet, the flow tends to carry like one continuous song.",
       },
       low: {

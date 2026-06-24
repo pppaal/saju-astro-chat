@@ -25,7 +25,7 @@ import { spouseFeeling } from '@/lib/compatibility/compatChartLabels'
 import type { SajuPillarInput } from '@/lib/compatibility/sajuSynastryFormatter'
 import type { CompatReport } from '@/lib/compatibility/compatReport'
 import { buildFreeCompatNarrative } from '@/lib/compatibility/freeReport/buildNarrative'
-import type { FreeReportSection } from '@/lib/compatibility/freeReport/types'
+import type { FreeReportTheme } from '@/lib/compatibility/freeReport/types'
 import { logger } from '@/lib/logger'
 import s from './freeCompat.module.css'
 
@@ -379,27 +379,38 @@ function PersonForm({
   )
 }
 
-// 한 섹션 — 번호 + 아이콘 + 제목(골드 헤어라인), 도입, 본문 단락들.
-function SectionBlock({ section, index }: { section: FreeReportSection; index: number }) {
+// 테마 카드 — 질문형 제목(아이콘) + 대표 2개 단락 + "+N개 더 보기"(접힘).
+// 출처별 섹션 대신 "사람들이 실제 궁금해하는 질문"으로 묶어 골라 읽게 한다.
+function ThemeCard({ theme, isKo }: { theme: FreeReportTheme; isKo: boolean }) {
+  const top = theme.paragraphs.slice(0, 2)
+  const rest = theme.paragraphs.slice(2)
   return (
     <section className={s.section}>
       <div className={s.secHead}>
-        <span className={s.secNum} aria-hidden="true">
-          {String(index + 1).padStart(2, '0')}
-        </span>
         <span className={s.secTitleWrap}>
           <span className={s.secIcon} aria-hidden="true">
-            {section.icon}
+            {theme.icon}
           </span>
-          <h2 className={s.secTitle}>{section.title}</h2>
+          <h2 className={s.secTitle}>{theme.title}</h2>
         </span>
       </div>
-      {section.lead ? <p className={s.secLead}>{section.lead}</p> : null}
-      {section.paragraphs.map((p, i) => (
+      {top.map((p, i) => (
         <p key={i} className={s.para}>
           {p}
         </p>
       ))}
+      {rest.length ? (
+        <details className={s.themeMore}>
+          <summary className={s.themeMoreSummary}>
+            {isKo ? `+ ${rest.length}개 더 보기` : `+ ${rest.length} more`}
+          </summary>
+          {rest.map((p, i) => (
+            <p key={i} className={s.para}>
+              {p}
+            </p>
+          ))}
+        </details>
+      ) : null}
     </section>
   )
 }
@@ -481,9 +492,16 @@ function ResultView({
         </div>
       ) : null}
 
-      {/* 신호별 섹션 — 결·마음·무대·짝·매듭 */}
-      {view.sections.map((sec, i) => (
-        <SectionBlock key={sec.id} section={sec} index={i} />
+      {/* 궁금한 것부터 — 질문 주제별 테마 카드 */}
+      {view.themes.length ? (
+        <p className={s.secLead}>
+          {isKo
+            ? `궁금한 것부터 — ${view.themes.length}가지`
+            : `Start with what you're curious about — ${view.themes.length} themes`}
+        </p>
+      ) : null}
+      {view.themes.map((th) => (
+        <ThemeCard key={th.id} theme={th} isKo={isKo} />
       ))}
 
       {/* 용어 풀이 */}
