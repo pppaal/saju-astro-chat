@@ -141,6 +141,47 @@ export function getShinsalInterpretation(shinsal: string): ShinsalInterpretation
   return SHINSAL_INTERPRETATIONS[shinsal] || null
 }
 
+// 미성년(만 14세 미만) 안전 모드 — 이성·배우자·매력 등 연애성 신살의 풀이를
+// 발달 단계에 맞는 표현으로 치환(아동 부적합 방지). meaning+effect 전체를 대체한다.
+const MINOR_SAFE_SHINSAL: Record<string, { ko: string; en: string }> = {
+  도화: {
+    ko: '사람들에게 인기 있는 기질이에요. 예술·표현 분야에 재능이 빛나요.',
+    en: 'A likable, popular nature with shining talent in the arts and self-expression.',
+  },
+  홍염: {
+    ko: '밝고 사람을 끄는 에너지가 있어요. 인기가 많은 만큼 가끔 말이 따라올 수 있어요.',
+    en: 'Bright, magnetic energy — well-liked, though a little chatter can tag along.',
+  },
+  홍염살: {
+    ko: '밝고 사람을 끄는 에너지가 있어요. 인기가 많은 만큼 가끔 말이 따라올 수 있어요.',
+    en: 'Bright, magnetic energy — well-liked, though a little chatter can tag along.',
+  },
+  금여: {
+    ko: '풍요와 좋은 복이 따르는 기운이에요.',
+    en: 'A sign of abundance and good fortune.',
+  },
+  금여성: {
+    ko: '편안하고 복이 따르는 기운이에요. 단정한 기품이 있어요.',
+    en: 'Ease and good fortune, with a tidy, graceful bearing.',
+  },
+}
+
+/**
+ * 신살 칩·디테일에 노출할 풀이 텍스트. 미성년이면 연애성 신살을 연령 맞춤 문구로
+ * 치환하고, 그 외엔 meaning+effect 를 잇는다. (ko/en 짝)
+ */
+export function shinsalDisplayText(
+  interp: ShinsalInterpretation,
+  name: string,
+  lang: 'ko' | 'en',
+  isMinor: boolean
+): string {
+  if (isMinor && MINOR_SAFE_SHINSAL[name]) return MINOR_SAFE_SHINSAL[name][lang]
+  return lang === 'en'
+    ? `${interp.meaning_en} ${interp.effect_en}`
+    : `${interp.meaning} ${interp.effect}`
+}
+
 /**
  * 오행 해석 조회
  */

@@ -309,12 +309,50 @@ export function getAspectMeaning(
   return { angle: entry.angle, ...entry[lang] };
 }
 
-export function getHouseRich(num: HouseNumber, lang: Lang): HouseLangEntry | null {
-  return astroHouse[String(num)]?.[lang] ?? null;
+// 미성년(만 14세 미만) 안전 모드 — 하우스 영역 키워드에서 연애·결혼·자녀·성·죽음을
+// 발달 단계에 맞는 표현으로 치환(아동 부적합 방지). 나머지 하우스는 그대로.
+const MINOR_HOUSE_DOMAIN: Record<number, { ko: string; en: string }> = {
+  5: { ko: '창조·놀이·자기표현', en: 'Creativity · play · self-expression' },
+  7: { ko: '1:1 관계·파트너십·약속', en: 'One-to-one relationships · partnership · commitments' },
+  8: { ko: '공유 자원·깊이·변화·재생', en: 'Shared resources · depth · transformation · renewal' },
+};
+
+export function getHouseRich(
+  num: HouseNumber,
+  lang: Lang,
+  isMinor = false
+): HouseLangEntry | null {
+  const entry = astroHouse[String(num)]?.[lang] ?? null;
+  if (!entry) return null;
+  if (isMinor && MINOR_HOUSE_DOMAIN[num]) {
+    return { ...entry, domain: MINOR_HOUSE_DOMAIN[num][lang] };
+  }
+  return entry;
 }
 
-export function getPlanetCore(name: string, lang: Lang): PlanetLangEntry | null {
-  return astroPlanet[name]?.[lang] ?? null;
+// 미성년 안전 모드 — 화성·릴리스의 성적/공격적 의미를 발달 단계에 맞게 치환.
+const MINOR_PLANET_MEANING: Record<string, { ko: string; en: string }> = {
+  Mars: {
+    ko: '원하는 걸 어떻게 밀고 나가는지. 화가 날 때 표현하는 방식과, 마음먹은 걸 행동으로 옮기는 추진력이에요.',
+    en: 'How you go after what you want — how you handle frustration, face challenges, and turn intention into action.',
+  },
+  Lilith: {
+    ko: '남들과 달라도 나답게 지키는 부분이에요. 독립심과 진짜 나다움이 살아나는 자리예요.',
+    en: 'The part of you that stays true to itself even when it does not fit in — where your independence and authentic self come alive.',
+  },
+};
+
+export function getPlanetCore(
+  name: string,
+  lang: Lang,
+  isMinor = false
+): PlanetLangEntry | null {
+  const entry = astroPlanet[name]?.[lang] ?? null;
+  if (!entry) return null;
+  if (isMinor && MINOR_PLANET_MEANING[name]) {
+    return { ...entry, meaning: MINOR_PLANET_MEANING[name][lang] };
+  }
+  return entry;
 }
 
 export function getHanjaRich(char: string, lang: Lang): HanjaLangEntry | null {

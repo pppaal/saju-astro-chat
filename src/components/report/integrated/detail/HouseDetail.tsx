@@ -20,6 +20,8 @@ import s from './HouseDetail.module.css'
 export interface HouseDetailProps {
   astro: ReportData['astro']
   lang: Lang
+  /** 만 14세 미만 — 5·7·8하우스 키워드(연애·결혼·자녀·성·죽음)를 연령 맞춤으로 치환. */
+  isMinor?: boolean
 }
 
 const HOUSE_NUMS: HouseNumber[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
@@ -37,7 +39,7 @@ const EMPTY_NOTE_EN = [
   'Empty — an empty house still matters; other houses simply speak more clearly here.',
 ]
 
-export default function HouseDetail({ astro, lang }: HouseDetailProps) {
+export default function HouseDetail({ astro, lang, isMinor = false }: HouseDetailProps) {
   const en = lang === 'en'
   if (!astro) return null
 
@@ -49,7 +51,7 @@ export default function HouseDetail({ astro, lang }: HouseDetailProps) {
       <summary>{en ? 'The 12 life areas (houses)' : '삶의 12가지 영역 풀이 (하우스)'}</summary>
       <div className={s.body}>
         {HOUSE_NUMS.map((i) => {
-          const rich = getHouseRich(i, lang)
+          const rich = getHouseRich(i, lang, isMinor)
           const cusp = astro.houses?.find((h) => h.i === i)
           const signKey = cusp?.sign
           const meta = signKey ? SIGN_META[signKey] : undefined
