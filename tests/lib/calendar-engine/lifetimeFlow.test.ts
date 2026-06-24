@@ -318,15 +318,17 @@ describe('deriveLifetimeFlow', () => {
       expect(r.intro).not.toContain('격국은')
     })
 
-    it('sibsin.categoryCount 의 지배 카테고리를 % 로 노출', () => {
+    it('강약 × 지배 십신 → 구조 인식 서사 (재성 지배 + 신약 = 재다신약)', () => {
       const n = makeNatal({
+        strength: 'weak',
         analyses: {
           sibsin: { categoryCount: { 비겁: 1, 식상: 1, 재성: 6, 관성: 1, 인성: 1 } },
         },
       })
       const r = deriveLifetimeFlow(n)!
-      // 재성 6/10 = 60%.
-      expect(r.intro).toContain('재성이 60%로 가장 두드러져')
+      // 구조 서사가 raw % 줄을 대체 — 명명된 구조 + 풀리는 운 방향(비겁·인성).
+      expect(r.intro).toContain('재다신약')
+      expect(r.intro).not.toContain('재성이 60%로 가장 두드러져')
     })
 
     it('sibsin categoryCount 합 0 이면 십성 줄 생략', () => {
@@ -608,7 +610,15 @@ describe('deriveLifetimeFlow', () => {
       const r = deriveLifetimeFlow(n)!
       const child = r.phases[0]
       // good variant 중 하나 포함.
-      const goodVariants = ['흐름이 순해서', '기운이 등 뒤에서', '용신과 잘 맞아']
+      const goodVariants = [
+        '흐름이 순해서',
+        '기운이 등 뒤에서',
+        '용신과 잘 맞아',
+        '하려는 방향과',
+        '주변의 도움이',
+        '타이밍이 받쳐줘',
+        '막힘이 적어',
+      ]
       expect(goodVariants.some((v) => child.text.includes(v))).toBe(true)
     })
 
@@ -618,7 +628,15 @@ describe('deriveLifetimeFlow', () => {
       const n = makeNatal({ strength: 'weak', yearStem: '甲' })
       const r = deriveLifetimeFlow(n)!
       const child = r.phases[0]
-      const hardVariants = ['쉽지 않은 고비', '저항이 잦아', '기신과 부딪히며']
+      const hardVariants = [
+        '쉽지 않은 고비',
+        '저항이 잦아',
+        '기신과 부딪히며',
+        '바람을 안고',
+        '뜻대로 안 풀리는',
+        '부딪힘이 잦지만',
+        '서두르기보다',
+      ]
       expect(hardVariants.some((v) => child.text.includes(v))).toBe(true)
     })
 
@@ -627,7 +645,15 @@ describe('deriveLifetimeFlow', () => {
       const n = makeNatal({ strength: 'strong', yearStem: '甲' })
       const r = deriveLifetimeFlow(n)!
       const child = r.phases[0]
-      const goodVariants = ['흐름이 순해서', '기운이 등 뒤에서', '용신과 잘 맞아']
+      const goodVariants = [
+        '흐름이 순해서',
+        '기운이 등 뒤에서',
+        '용신과 잘 맞아',
+        '하려는 방향과',
+        '주변의 도움이',
+        '타이밍이 받쳐줘',
+        '막힘이 적어',
+      ]
       expect(goodVariants.some((v) => child.text.includes(v))).toBe(true)
     })
 
@@ -636,7 +662,15 @@ describe('deriveLifetimeFlow', () => {
       const n = makeNatal({ strength: 'strong', yearStem: '庚' })
       const r = deriveLifetimeFlow(n)!
       const child = r.phases[0]
-      const hardVariants = ['쉽지 않은 고비', '저항이 잦아', '기신과 부딪히며']
+      const hardVariants = [
+        '쉽지 않은 고비',
+        '저항이 잦아',
+        '기신과 부딪히며',
+        '바람을 안고',
+        '뜻대로 안 풀리는',
+        '부딪힘이 잦지만',
+        '서두르기보다',
+      ]
       expect(hardVariants.some((v) => child.text.includes(v))).toBe(true)
     })
   })

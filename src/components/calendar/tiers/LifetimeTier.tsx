@@ -75,6 +75,8 @@ const EL_PLAIN: Record<string, { ko: string; en: string }> = {
 function favorClass(favor: number, base: typeof styles): string {
   if (favor >= 2) return base.dwBoon
   if (favor >= 1) return base.dwLift
+  if (favor <= -2) return base.dwTrough
+  if (favor <= -1) return base.dwDip
   return base.dwNeutral
 }
 
@@ -434,6 +436,10 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
             <i />
             {ko ? '잔잔' : 'Calm'}
           </span>
+          <span className={styles.dwLegDown}>
+            <i />
+            {ko ? '하락' : 'Dip'}
+          </span>
           <span className={styles.dwLegNow}>
             <i />
             {ko ? '지금' : 'Now'}
@@ -445,6 +451,11 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
             const cls = [styles.dwCell, favorClass(favor, styles), d.now && styles.dwNow]
               .filter(Boolean)
               .join(' ')
+            // favor 크기를 셀 바닥 fill 높이로(±2→100%, ±1→50%) — 등폭 타일이 아니라
+            // 굴곡이 눈에 보이는 "바차트". 위(순풍)는 금색, 아래(역풍)는 식은색.
+            const fillH = Math.round((Math.min(Math.abs(favor), 2) / 2) * 52)
+            const fillCls =
+              favor > 0 ? styles.dwFillUp : favor < 0 ? styles.dwFillDown : ''
             const sibsin = d.sibsin && d.sibsin !== '—' ? String(d.sibsin) : ''
             const sibsinGloss = sibsin ? (ko ? sibsinArea(sibsin) : sibsinAreaEn(sibsin)) : ''
             const gzKr = d.gz.kr // 한국어 음(갑술) — secondary 표기.
@@ -454,6 +465,13 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
                 key={`dw-${d.startAge}-${i}`}
                 title={gzKr ? `${gzKr} (${d.gz.hanja})` : d.gz.hanja}
               >
+                {favor !== 0 && (
+                  <span
+                    className={`${styles.dwFill} ${fillCls}`.trim()}
+                    style={{ height: `${fillH}%` }}
+                    aria-hidden
+                  />
+                )}
                 {d.now && (
                   <span className={styles.dwNowTag}>{ko ? '지금 여기' : 'you are here'}</span>
                 )}

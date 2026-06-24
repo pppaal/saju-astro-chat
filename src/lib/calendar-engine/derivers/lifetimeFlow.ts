@@ -80,6 +80,103 @@ import type { LifecycleMilestoneOverride } from '@/lib/calendar-engine/lifecycle
 import { buildLifecycleTiming } from '@/lib/calendar-engine/lifecycle/astroLifecycle'
 import { currentManAge } from '@/lib/datetime/currentAge'
 
+// ─────────────────────────── 구조 인식 서사 ───────────────────────────
+// 강약(신강/신약/중화) × 가장 두드러진 십신 카테고리를 묶어 '재다신약' 같은
+// *명명된 구조*와 그 인생 결을 한 줄로 푼다 — 사람마다 다르고 풍부해야 한다는
+// 지적(감사 후속)에 대응. 풀리는 운 방향은 favor 엔진(신약→비겁·인성, 신강→식상·
+// 재성·관성)과 일치시켜 같은 화면의 곡선과 모순되지 않게 한다.
+interface CatCount {
+  비겁: number
+  식상: number
+  재성: number
+  관성: number
+  인성: number
+}
+const STRUCTURE_READ: Record<string, { ko: string; en: string }> = {
+  // 신약(身弱) — 받칠 힘이 빠듯한데 특정 기운이 과한 구조. 내 편(비겁)·채움(인성) 운에 풀림.
+  'weak-재성': {
+    ko: '재다신약 — 재물·현실·관계가 많아 오히려 끌려다니기 쉬운 구조예요. 욕심내 벌이기보다, 내 편이 드는(비겁)·나를 채워주는(인성) 시기에 자리를 잡아요.',
+    en: 'Wealth-heavy, weaker self — so much money, reality and relationship pull that you can get dragged along. You settle not by overreaching, but when allies (peers) and what replenishes you (resource) are with you.',
+  },
+  'weak-관성': {
+    ko: '관다신약 — 책임·압박·상대의 요구는 큰데 받칠 힘은 빠듯한 구조예요. 무리해 버티기보다, 나를 지켜주는(인성)·내 편이 드는(비겁) 시기에 숨통이 트여요.',
+    en: 'Officer-heavy, weaker self — heavy duty and pressure against limited reserves. Relief comes not from gritting it out, but when protection (resource) and allies (peers) back you.',
+  },
+  'weak-식상': {
+    ko: '식상과다 신약 — 끼와 표현을 다 쏟아내느라 쉽게 지치는 구조예요. 비우기만 하기보다, 나를 채워주는(인성)·내 편이 드는(비겁) 시기에 충전돼요.',
+    en: 'Output-heavy, weaker self — you pour out talent and expression until you run dry. You recharge when resource and peers refill you, not by only giving out.',
+  },
+  'weak-인성': {
+    ko: '인성과다 신약 — 받쳐주는 기운은 두터운데 정작 펼치는 힘이 눌리는 구조예요. 생각만 쌓기보다, 직접 풀어내고(식상)·현실에 부딪히는(재성) 시기에 트여요.',
+    en: 'Resource-heavy, weaker self — plenty of backing, but your outward drive gets smothered. You open up by expressing (output) and meeting reality (wealth), not by only absorbing.',
+  },
+  'weak-비겁': {
+    ko: '비겁의지형 신약 — 혼자선 빠듯해도 동료·형제·내 편의 힘으로 버티는 구조예요. 함께 가고(비겁)·배움으로 채우는(인성) 시기에 단단해져요.',
+    en: 'Peer-leaning, weaker self — on your own you run short, but you hold up through allies, siblings, your people. You firm up when you move together (peers) and fill up through learning (resource).',
+  },
+  // 신강(身强) — 힘이 충분한 구조. 힘을 풀어내고(식상)·거두고(재성)·다스리는(관성) 운에 결실.
+  'strong-비겁': {
+    ko: '비겁과다 신강 — 내 힘이 세고 경쟁·동료 기운도 강해, 재물이 흩어지거나 부딪히기 쉬운 구조예요. 힘을 풀어내고(식상)·절제로 다듬는(관성) 시기에 결실로 모여요.',
+    en: 'Peer-heavy, strong self — abundant force and rivalry can scatter wealth or clash. It gathers into results when you channel it out (output) and temper it (officer).',
+  },
+  'strong-재성': {
+    ko: '신왕재왕 — 나도 세고 재물도 두터운, 벌이를 감당할 그릇이 되는 구조예요. 행동으로 잡고(재성)·표현으로 푸는(식상) 시기에 크게 거둬요.',
+    en: 'Strong self, strong wealth — a frame that can carry what it earns. You reap big when you seize through action (wealth) and channel through output.',
+  },
+  'strong-관성': {
+    ko: '신왕관왕 — 힘도 충분하고 책임·자리도 또렷한, 권한을 감당하는 구조예요. 자리·책임을 맡고(관성)·표현으로 푸는(식상) 시기에 크게 서요.',
+    en: 'Strong self, strong officer — ample force and clear standing, a frame that can carry authority. You rise when you take on duty (officer) and channel through output.',
+  },
+  'strong-식상': {
+    ko: '신강 식상 — 힘이 충분해 끼를 마음껏 풀어낼 수 있는 구조예요. 표현·재능으로 펼치고(식상)·현실로 잇는(재성) 시기에 풀려요.',
+    en: 'Strong self with output — enough force to pour your talent out freely. You open up when you express (output) and convert it into reality (wealth).',
+  },
+  'strong-인성': {
+    ko: '인성과다 신강 — 받쳐주는 힘이 넘쳐 오히려 굼떠지기 쉬운 구조예요. 직접 풀어내고(식상)·현실에 부딪히는(재성) 시기에 비로소 움직여요.',
+    en: 'Resource-heavy, strong self — so much backing you can turn sluggish. You finally move when you express (output) and meet reality (wealth).',
+  },
+  // 중화(中和) — 한쪽으로 치우치지 않은 균형. 그때그때 부족한 기운을 채우는 운에 무난히.
+  'medium-비겁': {
+    ko: '중화에 가까운 균형형 — 주체성·동료 기운이 살짝 도드라지되 큰 치우침은 없어요. 큰 기복보다 꾸준함으로, 그때그때 부족한 기운을 채우는 운에 무난히 풀려요.',
+    en: 'Close to balanced, with a touch of agency/peer flavor — no strong tilt. Steadiness over big swings; you do fine whenever the cycle tops up what is momentarily short.',
+  },
+  'medium-식상': {
+    ko: '중화에 가까운 균형형 — 표현·재능 기운이 살짝 도드라지되 큰 치우침은 없어요. 큰 기복보다 꾸준함으로, 그때그때 부족한 기운을 채우는 운에 무난히 풀려요.',
+    en: 'Close to balanced, with a touch of expressive flavor — no strong tilt. Steadiness over big swings; you do fine whenever the cycle tops up what is momentarily short.',
+  },
+  'medium-재성': {
+    ko: '중화에 가까운 균형형 — 현실·실리 감각이 살짝 도드라지되 큰 치우침은 없어요. 큰 기복보다 꾸준함으로, 그때그때 부족한 기운을 채우는 운에 무난히 풀려요.',
+    en: 'Close to balanced, with a touch of practical flavor — no strong tilt. Steadiness over big swings; you do fine whenever the cycle tops up what is momentarily short.',
+  },
+  'medium-관성': {
+    ko: '중화에 가까운 균형형 — 책임·자리 감각이 살짝 도드라지되 큰 치우침은 없어요. 큰 기복보다 꾸준함으로, 그때그때 부족한 기운을 채우는 운에 무난히 풀려요.',
+    en: 'Close to balanced, with a touch of duty flavor — no strong tilt. Steadiness over big swings; you do fine whenever the cycle tops up what is momentarily short.',
+  },
+  'medium-인성': {
+    ko: '중화에 가까운 균형형 — 배움·내공 기운이 살짝 도드라지되 큰 치우침은 없어요. 큰 기복보다 꾸준함으로, 그때그때 부족한 기운을 채우는 운에 무난히 풀려요.',
+    en: 'Close to balanced, with a touch of studious flavor — no strong tilt. Steadiness over big swings; you do fine whenever the cycle tops up what is momentarily short.',
+  },
+}
+function buildStructureRead(
+  strength: string | undefined,
+  cc: CatCount | undefined
+): { ko: string; en: string } | null {
+  if (!cc) return null
+  const sum = cc.비겁 + cc.식상 + cc.재성 + cc.관성 + cc.인성
+  if (sum <= 0) return null
+  const entries: Array<[keyof CatCount, number]> = [
+    ['비겁', cc.비겁],
+    ['식상', cc.식상],
+    ['재성', cc.재성],
+    ['관성', cc.관성],
+    ['인성', cc.인성],
+  ]
+  entries.sort((a, b) => b[1] - a[1])
+  const domCat = entries[0][0]
+  const bucket = strength === 'weak' ? 'weak' : strength === 'strong' ? 'strong' : 'medium'
+  return STRUCTURE_READ[`${bucket}-${domCat}`] ?? STRUCTURE_READ[`medium-${domCat}`] ?? null
+}
+
 export interface LifePhase {
   label: string // 초년기 … (rendered locale — kept for backward compat)
   /**
@@ -253,21 +350,35 @@ const BAND_CAT_EN: Record<string, Record<Cat, string>> = {
 // 단계 순서대로 회전하면서 직전 단계 톤과 같으면 다음 인덱스 사용 — "큰 굴곡
 // 없이 차분히 자기 몫을 다지는 흐름" 이 청년기·중년기에 똑같이 박히던 회귀
 // (사용자 지적 2026-06) 를 해결.
+// 톤 풀 — 사람마다 같은 글을 안 읽도록 favor 레벨당 7종으로 확장(감사 후속).
+// KO/EN 은 같은 인덱스 = 같은 의미로 1:1 정렬(어댑터가 같은 idx 로 둘 다 뽑음).
 const TONE_VARIANTS_KO: Record<'good' | 'hard' | 'mid', readonly string[]> = {
   good: [
     '흐름이 순해서 노력한 만큼 잘 풀리는 편이에요.',
     '기운이 등 뒤에서 받쳐줘 결정이 매끄럽게 이어져요.',
     '용신과 잘 맞아 시도한 일이 좀처럼 헛돌지 않아요.',
+    '하려는 방향과 운의 결이 맞아 추진력이 붙어요.',
+    '주변의 도움이 자연스럽게 모여 일이 수월해져요.',
+    '타이밍이 받쳐줘 작은 시도도 결실로 이어지기 쉬워요.',
+    '막힘이 적어 마음먹은 일을 밀고 나가기 좋은 때예요.',
   ],
   hard: [
     '쉽지 않은 고비를 넘으며 단단해지는 시기예요.',
     '저항이 잦아 한 걸음마다 무게를 실어야 하는 편이에요.',
     '기신과 부딪히며 깎여나가는 만큼 코어가 굵어져요.',
+    '바람을 안고 가는 구간이라 평소보다 힘이 더 들어요.',
+    '뜻대로 안 풀리는 일이 늘어 인내가 필요한 시기예요.',
+    '부딪힘이 잦지만 그만큼 내공이 깊어지는 때예요.',
+    '서두르기보다 버티며 때를 고르는 게 나은 흐름이에요.',
   ],
   mid: [
     '큰 굴곡 없이 차분히 자기 몫을 다지는 흐름이에요.',
     '드라마틱한 사건보다 누적이 의미 있는 편이에요.',
     '평지에서 페이스를 유지하는 게 핵심이에요.',
+    '큰 사건보다 하루하루 쌓는 것이 힘이 되는 흐름이에요.',
+    '기복이 적어 꾸준함이 가장 큰 무기가 되는 때예요.',
+    '무리하지 않고 페이스를 지키면 무난히 흘러가요.',
+    '눈에 띄는 변화보단 안정 속에서 정리하기 좋은 시기예요.',
   ],
 }
 const TONE_VARIANTS_EN: Record<'good' | 'hard' | 'mid', readonly string[]> = {
@@ -275,16 +386,28 @@ const TONE_VARIANTS_EN: Record<'good' | 'hard' | 'mid', readonly string[]> = {
     'The current runs with you — effort tends to convert into results.',
     'The wind blows at your back, so decisions chain together cleanly.',
     'Your useful element is in season, so attempts rarely spin in place.',
+    'Your direction lines up with the current, so momentum builds.',
+    'Help gathers naturally and things go more smoothly.',
+    'The timing backs you, so even small tries tend to land.',
+    'Few blockages — a good stretch to push what you set your mind to.',
   ],
   hard: [
     'A season of grinding through resistance — you come out denser and tougher.',
     'Pushback shows up often, so each step has to be loaded with weight.',
     'You collide with your unhelpful element — what gets sanded down is what makes your core thicker.',
+    'You move into a headwind, so it takes more effort than usual.',
+    'More things resist your plans — a stretch that asks for patience.',
+    'Friction is frequent, but it is also where your depth builds.',
+    'Better to endure and pick your moment than to rush.',
   ],
   mid: [
     'No dramatic swings — a flow that quietly compounds what you do.',
     'Less about big events, more about the meaning of accumulation.',
     'The point of this stretch is holding pace on flat ground.',
+    'Day-by-day accumulation matters more than big events here.',
+    'Few swings — steadiness is your strongest asset now.',
+    'Hold your pace without overreaching and it flows fine.',
+    'Less dramatic change, more a good time to consolidate in calm.',
   ],
 }
 
@@ -945,6 +1068,10 @@ export function deriveLifetimeFlow(
   const lifeIntroKo = ''
   const lifeIntroEn = ''
 
+  // 구조 인식 서사 — 강약 × 십신 분포 → '재다신약' 등 명명 구조 + 인생 결. 사람마다
+  // 가장 크게 달라지는 한 줄이라 head 바로 뒤(두 번째 문장)로 prominent 하게 둔다.
+  const structure = buildStructureRead(natal.saju.strength, advanced?.sibsin?.categoryCount)
+
   // ── intro 합성 ──
   let intro = ''
   if (isEn) {
@@ -953,8 +1080,10 @@ export function deriveLifetimeFlow(
       : `On the Saju side, ${dm} day master, ${strengthEn}.`
     const parts: string[] = []
     parts.push(head)
+    if (structure) parts.push(structure.en)
     if (geokgukIntroEn) parts.push(geokgukIntroEn)
-    if (sibsinIntroEn) parts.push(sibsinIntroEn)
+    // 구조 서사가 이미 지배 십신을 풀어 설명하므로 raw % 줄은 중복 — 생략.
+    if (!structure && sibsinIntroEn) parts.push(sibsinIntroEn)
     if (rootIntroEn) parts.push(rootIntroEn)
     if (elemIntroEn) parts.push(elemIntroEn)
     if (johuIntroEn) parts.push(johuIntroEn)
@@ -974,8 +1103,10 @@ export function deriveLifetimeFlow(
       : `사주로는 ${dm} 일간으로 ${strengthKo}.`
     const parts: string[] = []
     parts.push(head)
+    if (structure) parts.push(structure.ko)
     if (geokgukIntroKo) parts.push(geokgukIntroKo)
-    if (sibsinIntroKo) parts.push(sibsinIntroKo)
+    // 구조 서사가 이미 지배 십신을 풀어 설명하므로 raw % 줄은 중복 — 생략.
+    if (!structure && sibsinIntroKo) parts.push(sibsinIntroKo)
     if (rootIntroKo) parts.push(rootIntroKo)
     if (elemIntroKo) parts.push(elemIntroKo)
     if (johuIntroKo) parts.push(johuIntroKo)
@@ -1039,11 +1170,20 @@ export function deriveLifetimeFlow(
   // bilingual: 인덱스를 한 번만 advance 하고 KO/EN 두 테이블에서 같은 인덱스로
   // 뽑아 두 언어가 desync 되지 않게 (옛 nextToneText 는 호출마다 advance 라
   // KO·EN 따로 부르면 인덱스가 어긋났음).
-  const lastToneIdx: Record<'good' | 'hard' | 'mid', number> = { good: -1, hard: -1, mid: -1 }
+  // 톤 커서를 *차트별* 시드로 시작 — 옛 코드는 모두 idx 0 부터 돌아 사람마다 같은
+  // 톤을 읽었다(감사: 사람마다 달라야 한다는 지적). 일간·출생연도로 안정 시드를 만들어
+  // 사람마다 다른 variant 에서 출발하고, 단계마다 +1 로 본인 안에서도 변주한다.
+  const toneSeed = Math.abs((dm ? dm.charCodeAt(0) * 7 : 0) + (birthYear ?? 0) * 3)
+  const toneCursor: Record<'good' | 'hard' | 'mid', number> = {
+    good: toneSeed,
+    hard: toneSeed,
+    mid: toneSeed,
+  }
   const nextToneIdx = (fav: 'good' | 'hard' | 'mid'): number => {
     const variants = TONE_VARIANTS_KO[fav]
-    lastToneIdx[fav] = (lastToneIdx[fav] + 1) % variants.length
-    return lastToneIdx[fav]
+    const idx = toneCursor[fav] % variants.length
+    toneCursor[fav] += 1
+    return idx
   }
 
   const phases: LifePhase[] = []

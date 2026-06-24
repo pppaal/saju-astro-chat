@@ -223,6 +223,10 @@
   background: var(--surface-3);
   border: 1px solid var(--line-2);
 }
+.dwLegDown i {
+  background: var(--crimson-bg);
+  border: 1px solid var(--crimson-line);
+}
 .dwLegNow i {
   background: none;
   border: 2px solid var(--blue);
@@ -268,6 +272,36 @@
 .dwBoon {
   background: var(--gold-bg);
   border-color: var(--gold-line);
+}
+/* 역풍(하락) 셀 — gold 의 cool 대응. -1 주춤 / -2 고비. */
+.dwDip {
+  background: linear-gradient(180deg, var(--crimson-bg), var(--surface));
+  border-color: var(--crimson-line);
+}
+.dwTrough {
+  background: var(--crimson-bg);
+  border-color: var(--crimson-line);
+}
+/* favor 크기 fill — 셀 바닥에서 차오르는 "수위" 바(높이=크기, 색=방향). */
+.dwFill {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 0;
+  border-radius: 0 0 11px 11px;
+  pointer-events: none;
+}
+.dwFillUp {
+  background: linear-gradient(0deg, rgba(168, 106, 18, 0.22), rgba(168, 106, 18, 0));
+}
+.dwFillDown {
+  background: linear-gradient(0deg, rgba(165, 54, 54, 0.2), rgba(165, 54, 54, 0));
+}
+/* 본문(글자)은 fill 위로 — fill 만 z-index 0, 나머지 1. */
+.dwCell > *:not(.dwFill) {
+  position: relative;
+  z-index: 1;
 }
 .dwNow {
   border: 2px solid var(--blue);
