@@ -92,8 +92,8 @@ const PATTERN_KO: Record<LifePatternKey, { ko: string; en: string; line: string;
     'late-bloomer': {
       ko: '대기만성형',
       en: 'Late bloomer',
-      line: '젊을 때는 좀 고생해도, 마흔 넘어가면서 자리 잡고 늦게 잘 풀리는 편이에요.',
-      lineEn: 'A rougher start, but from your forties on, things settle and finally open up.',
+      line: '젊을 때는 좀 고생해도, 나이가 들수록 점점 자리 잡고 후반에 잘 풀리는 편이에요.',
+      lineEn: 'A rougher start, but you settle more with each decade and things open up later in life.',
     },
     'early-peak': {
       ko: '초년발복형',
@@ -132,6 +132,15 @@ const PATTERN_KO: Record<LifePatternKey, { ko: string; en: string; line: string;
       lineEn: 'Good spells and hard spells alternate — read the timing well.',
     },
   }
+
+/** 정점 시점을 단정하는 유형 — favor 가 없어도 곡선 마루 시점만이라도 붙여 화면
+ * 곡선과 한 줄 서사가 어긋나지 않게 한다(굴곡/순탄/고전은 정점을 단정하지 않음). */
+const PEAK_WINDOW_KEYS = new Set<LifePatternKey>([
+  'late-bloomer',
+  'steady-rise',
+  'midlife-peak',
+  'early-peak',
+])
 
 /** 인생 곡선(거시 macro)을 입력으로 받아 인생유형과 정점을 *곡선 기준*으로 산출하기
  * 위한 최소 형상. 곡선이 주어지면 분류·정점을 곡선에서 뽑아 lifePattern 과 곡선이
@@ -335,12 +344,25 @@ function personalize(
     const past = typeof currentAge === 'number' ? curvePeakAge < currentAge : false
     const baseLineKo = past ? (LINE_PAST_KO[key] ?? base.line) : base.line
     const baseLineEn = past ? (LINE_PAST_EN[key] ?? base.lineEn) : base.lineEn
-    if (covering.favor <= 0) return { line: baseLineKo, lineEn: baseLineEn }
     const cat = covering.stemCat
     const baseYr = startYears.get(covering.startAge)
     const yr = baseYr != null ? baseYr + (curvePeakAge - covering.startAge) : undefined
     const whenKo = yr ? `${yr}년(${curvePeakAge}세) 무렵` : `${ageBandKo(curvePeakAge)}(${curvePeakAge}세 무렵)`
     const whenEn = yr ? `around ${yr} (age ${curvePeakAge})` : `around age ${curvePeakAge}`
+    // 정점 대운의 십신 우호(favor)가 없어도, 정점 시점을 단정하는 유형은 *곡선 마루
+    // 시점*만이라도 붙여 base.line 의 막연한 어조와 화면 곡선이 어긋나지 않게 한다
+    // (예: late-bloomer 인데 곡선 마루가 60대면 "마흔" 대신 실제 60대를 가리킨다).
+    // 십신 방향은 favor 가 양일 때만 단정한다(없으면 시점만).
+    if (covering.favor <= 0) {
+      if (!PEAK_WINDOW_KEYS.has(key)) return { line: baseLineKo, lineEn: baseLineEn }
+      const tKo = past
+        ? `특히 ${whenKo}이 가장 무르익었던 때였어요.`
+        : `특히 ${whenKo}부터 가장 무르익어요.`
+      const tEn = past
+        ? `Your fullest stretch was ${whenEn}.`
+        : `Your fullest stretch comes ${whenEn} onward.`
+      return { line: `${baseLineKo} ${tKo}`, lineEn: `${baseLineEn} ${tEn}` }
+    }
     const detailKo = past
       ? `특히 ${whenKo} ${CAT_KO[cat]} 쪽으로 가장 크게 힘이 실렸던 시기였어요.`
       : `특히 ${whenKo}부터 ${CAT_KO[cat]} 쪽으로 가장 크게 힘을 실어줘요.`

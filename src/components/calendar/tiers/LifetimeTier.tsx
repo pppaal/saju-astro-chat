@@ -73,10 +73,11 @@ const EL_PLAIN: Record<string, { ko: string; en: string }> = {
 
 // favor(0/1/2) → 톤 밴드 클래스. 0=중립 / 1=오름(lift) / 2=풍요(boon).
 function favorClass(favor: number, base: typeof styles): string {
-  if (favor >= 2) return base.dwBoon
-  if (favor >= 1) return base.dwLift
-  if (favor <= -2) return base.dwTrough
-  if (favor <= -1) return base.dwDip
+  // 연속 밴드(±2, 곡선 유래)와 정수 favor(±2, 폴백) 둘 다 같은 버킷으로.
+  if (favor >= 1.2) return base.dwBoon
+  if (favor >= 0.35) return base.dwLift
+  if (favor <= -1.2) return base.dwTrough
+  if (favor <= -0.35) return base.dwDip
   return base.dwNeutral
 }
 
@@ -153,13 +154,39 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
     (lifePattern?.daeun ?? []).map((d) => [d.startAge, d.favor])
   )
 
-  // ── 계절 arc — daeun favor 평균(없으면 0)으로 Y 굴곡. now=stage.now. ──
+  // ── 10년 막대·계절 arc 의 Y 굴곡은 *인생 곡선(거시)* 과 같은 출처로 ──
+  //   예전엔 막대=대운 favor(억부·용신, ±2 coarse), 곡선=lifeCurve.macro(대운+세운+
+  //   충합+트랜짓 중첩)로 따로 계산돼 서로 어긋났다(곡선엔 저점인데 막대는 평평/반대).
+  //   각 大運 구간의 곡선 평균을 사람 고유 평균 기준으로 ±2 로 펴서 막대·계절이
+  //   곡선·정점과 한 이야기를 하게 한다. 곡선이 없으면(빌드 실패) favor 로 폴백.
+  const decadeBandByAge = (() => {
+    const m = new Map<number, number>()
+    const pts = lifeCurve?.points
+    if (!pts || pts.length < 10) return m
+    const avgFor = (a0: number): number | null => {
+      const seg = pts.filter((p) => p.age >= a0 && p.age < a0 + 10)
+      return seg.length ? seg.reduce((s, p) => s + p.value, 0) / seg.length : null
+    }
+    const rows = daewoon
+      .map((d) => ({ age: d.startAge, avg: avgFor(d.startAge) }))
+      .filter((r): r is { age: number; avg: number } => r.avg != null)
+    if (rows.length < 2) return m
+    const mean = rows.reduce((s, r) => s + r.avg, 0) / rows.length
+    const spread = Math.max(...rows.map((r) => Math.abs(r.avg - mean))) || 1
+    for (const r of rows) m.set(r.age, ((r.avg - mean) / spread) * 2)
+    return m
+  })()
+  // 막대/계절이 쓰는 단일 신호 — 곡선 밴드 우선, 없으면 대운 favor.
+  const bandForAge = (startAge: number): number =>
+    decadeBandByAge.get(startAge) ?? daeunFavorByAge.get(startAge) ?? 0
+
+  // ── 계절 arc — 곡선 밴드(없으면 favor) 평균으로 Y 굴곡. now=stage.now. ──
   const stageFavor = (ageFrom: number, ageTo: number): number => {
     const daeun = lifePattern?.daeun ?? []
     if (daeun.length === 0) return 0
     const inStage = daeun.filter((d) => d.startAge >= ageFrom && d.startAge <= ageTo)
     const pool = inStage.length > 0 ? inStage : daeun
-    return pool.reduce((a, d) => a + d.favor, 0) / pool.length
+    return pool.reduce((a, d) => a + bandForAge(d.startAge), 0) / pool.length
   }
   const stageNowIndex = lifeStages.findIndex((s) => s.now)
 
@@ -566,15 +593,16 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
         </div>
         <div className={styles.dwRow}>
           {daewoon.map((d, i) => {
-            const favor = daeunFavorByAge.get(d.startAge) ?? 0
-            const cls = [styles.dwCell, favorClass(favor, styles), d.now && styles.dwNow]
+            // 막대 = 인생 곡선과 같은 출처(거시 밴드, ±2). 곡선 없으면 favor 폴백.
+            const band = bandForAge(d.startAge)
+            const cls = [styles.dwCell, favorClass(band, styles), d.now && styles.dwNow]
               .filter(Boolean)
               .join(' ')
-            // favor 크기를 셀 바닥 fill 높이로(±2→100%, ±1→50%) — 등폭 타일이 아니라
-            // 굴곡이 눈에 보이는 "바차트". 위(순풍)는 금색, 아래(역풍)는 식은색.
-            const fillH = Math.round((Math.min(Math.abs(favor), 2) / 2) * 52)
+            // 밴드 크기를 셀 바닥 fill 높이로(±2→100%) — 연속값이라 곡선의 굴곡이
+            // 막대에도 그대로 보인다. 위(순풍)는 금색, 아래(역풍)는 식은색.
+            const fillH = Math.round((Math.min(Math.abs(band), 2) / 2) * 52)
             const fillCls =
-              favor > 0 ? styles.dwFillUp : favor < 0 ? styles.dwFillDown : ''
+              band > 0.15 ? styles.dwFillUp : band < -0.15 ? styles.dwFillDown : ''
             const sibsin = d.sibsin && d.sibsin !== '—' ? String(d.sibsin) : ''
             const sibsinGloss = sibsin ? (ko ? sibsinArea(sibsin) : sibsinAreaEn(sibsin)) : ''
             const gzKr = d.gz.kr // 한국어 음(갑술) — secondary 표기.
@@ -584,7 +612,7 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
                 key={`dw-${d.startAge}-${i}`}
                 title={gzKr ? `${gzKr} (${d.gz.hanja})` : d.gz.hanja}
               >
-                {favor !== 0 && (
+                {fillCls && (
                   <span
                     className={`${styles.dwFill} ${fillCls}`.trim()}
                     style={{ height: `${fillH}%` }}
