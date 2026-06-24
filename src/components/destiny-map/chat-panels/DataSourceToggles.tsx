@@ -15,6 +15,12 @@ interface DataSourceTogglesProps {
   theme?: 'light' | 'dark'
   /** 체크박스 옆 "사주·점성이란?" 안내 버튼을 띄울지. 메인에서만 켠다. 기본 false. */
   showInfo?: boolean
+  /** 체크박스 위에 "이 상담에 넣을 자료" 보이는 라벨을 띄울지. 처음 보는
+   *  사용자에게 용도를 바로 알려준다. 기본 false(기존 UI 영향 없음). */
+  showGroupLabel?: boolean
+  /** 안내 팝업 문구 결. 'self'(개인 사주·점성, 운명상담사) / 'synastry'(두 사람
+   *  궁합, 궁합상담사). 같은 체크박스라도 설명이 달라야 해서 분기. 기본 'self'. */
+  variant?: 'self' | 'synastry'
 }
 
 const LABELS: Record<LangKey, { saju: string; astro: string; group: string }> = {
@@ -135,13 +141,120 @@ const INFO: Record<
   },
 }
 
+// 궁합(시너스트리) 버전 안내 — 개인 사주/점성이 아니라 *두 사람 사이* 의
+// 끌림·마찰을 읽는다는 점이 달라, INFO 와 별도로 둔다(체크박스는 같아도 설명이
+// 달라야 사용자가 헷갈리지 않는다). ko/en 같이 둬서 드리프트 방지.
+const INFO_SYNASTRY: Record<
+  LangKey,
+  {
+    trigger: string
+    title: string
+    intro: string
+    close: string
+    saju: InfoSection
+    astro: InfoSection
+    both: InfoSection
+    tip: string
+  }
+> = {
+  ko: {
+    trigger: '사주·점성 궁합이란?',
+    title: '사주 궁합 vs 점성 궁합',
+    intro:
+      '두 사람을 맞대어 보는 서로 다른 두 "언어"예요. 이번 풀이에 어떤 관점을 쓸지 체크박스로 고를 수 있어요.',
+    close: '닫기',
+    saju: {
+      title: '사주 궁합 (동양 명리)',
+      tagline: '두 기운의 끌림과 부딪힘, 그리고 시기',
+      body: '두 사람의 사주(연·월·일·시)를 맞대어, 천간합·지지충 같은 끌림과 마찰, 일간끼리의 관계, 신살 교차, 그리고 지금 대운·세운의 흐름으로 "왜 끌리고 어디서 부딪히는지"와 관계의 시기를 읽습니다.',
+      pointsTitle: '이런 걸 봐요',
+      points: [
+        '천간합·지지충으로 보는 끌림과 마찰 지점',
+        '일간 관계로 보는 두 사람의 역할·결',
+        '신살 교차(도화·천을귀인 등)로 보는 인연의 색',
+        '대운·세운 교차로 보는 관계의 흐름과 시기',
+      ],
+    },
+    astro: {
+      title: '점성 궁합 (서양 시너스트리)',
+      tagline: '마음의 결과 관계의 화학작용',
+      body: '두 사람의 출생 차트를 겹쳐, 행성 사이의 각(aspect), 상대의 하우스로 들어오는 행성(하우스 오버레이), 그리고 둘이 함께 만드는 컴포지트 차트로 정서·애정·욕망의 결을 읽습니다.',
+      pointsTitle: '이런 걸 봐요',
+      points: [
+        '행성 간 각으로 보는 끌림과 긴장',
+        '하우스 오버레이로 보는 결혼·깊은 결합 신호',
+        '금성·화성으로 보는 애정과 욕망의 템포',
+        '컴포지트로 보는 "관계 자체"의 분위기',
+      ],
+    },
+    both: {
+      title: '둘을 함께 보면',
+      tagline: '동·서양의 교차 검증',
+      body: '사주 궁합은 "큰 틀과 시기"에, 점성 궁합은 "마음의 결과 화학작용"에 강해요. 둘을 함께 보면 두 관점이 서로를 보완하고 교차 검증해 더 입체적으로 봅니다.',
+      pointsTitle: '그래서 좋은 점',
+      points: [
+        '두 관점이 같은 결론을 가리키면 신뢰도가 올라가요',
+        '한쪽이 놓친 부분을 다른 쪽이 메워 사각지대가 줄어요',
+        '"왜 그런가(사주)"와 "지금 어떤 느낌인가(점성)"가 함께 보여요',
+        '타이밍과 마음, 두 축을 같이 봐서 조언이 더 구체적이에요',
+      ],
+    },
+    tip: '체크박스로 이번 궁합 풀이에 어떤 관점을 쓸지 고를 수 있어요. 가장 입체적인 해석을 위해 둘 다 켜두는 걸 추천해요.',
+  },
+  en: {
+    trigger: 'What’s this?',
+    title: 'Saju compatibility vs. astrology synastry',
+    intro:
+      'Two different “languages” for reading a couple. Use the checkboxes to choose which lens this reading uses.',
+    close: 'Close',
+    saju: {
+      title: 'Saju compatibility (Eastern)',
+      tagline: 'Pull, friction, and timing between two energies',
+      body: 'Placing both people’s four pillars (year, month, day, hour) side by side, Saju reads the pull and friction (stem combine, branch clash), the relationship between day masters, crossing sinsal, and — through the current daeun/sewoon — “why you’re drawn and where you clash,” plus the timing of the relationship.',
+      pointsTitle: 'What it looks at',
+      points: [
+        'Pull and friction via stem-combine / branch-clash',
+        'Each person’s role and grain via the day-master relationship',
+        'The color of the bond via crossing sinsal (Dohwa, Cheoneul, etc.)',
+        'The relationship’s flow and timing via daeun/sewoon crossings',
+      ],
+    },
+    astro: {
+      title: 'Astrology synastry (Western)',
+      tagline: 'The texture of the heart & the chemistry',
+      body: 'Overlaying both birth charts, astrology reads the grain of feeling, affection, and desire through aspects between planets, planets falling into each other’s houses (house overlays), and the composite chart the two of you create together.',
+      pointsTitle: 'What it looks at',
+      points: [
+        'Attraction and tension via planetary aspects',
+        'Marriage / deep-bonding signals via house overlays',
+        'The tempo of affection and desire via Venus & Mars',
+        'The mood of “the relationship itself” via the composite',
+      ],
+    },
+    both: {
+      title: 'Why read both together',
+      tagline: 'East and West, cross-checked',
+      body: 'Saju compatibility is strong on “the big frame and timing,” astrology synastry on “the texture of the heart and the chemistry.” Reading both lets the two views complement and cross-check each other for a fuller picture.',
+      pointsTitle: 'The payoff',
+      points: [
+        'When both point to the same conclusion, confidence goes up',
+        'What one misses, the other fills in — fewer blind spots',
+        'You see both “why it is” (Saju) and “how it feels now” (astrology)',
+        'Timing and heart, read together, make the advice more concrete',
+      ],
+    },
+    tip: 'Use the checkboxes to choose which lens this reading uses. For the fullest reading, we recommend keeping both on.',
+  },
+}
+
 /**
  * 운명상담사 입력창 위에 끼는 데이터 소스 체크박스 — 이번 답변에 사주/점성 중
  * 무엇을 넣을지 고른다. 둘 다 끄면 빈 컨텍스트라 의미가 없으므로, 마지막 하나는
  * 끄지 못하게 막는다(서버도 둘 다 false 면 둘 다로 폴백하지만 UI 에서 먼저 차단).
  *
  * showInfo 가 켜지면 체크박스 옆에 작은 "사주·점성이란?" 버튼이 붙고, 누르면
- * 로그인 모달처럼 가운데에 설명 카드가 떠오른다(메인에서만 사용).
+ * 로그인 모달처럼 가운데에 설명 카드가 떠오른다. variant 로 개인(self)/궁합
+ * (synastry) 설명을 분기한다. showGroupLabel 은 체크박스 위에 용도 라벨을 띄운다.
  */
 export const DataSourceToggles = React.memo(function DataSourceToggles({
   sources,
@@ -150,8 +263,13 @@ export const DataSourceToggles = React.memo(function DataSourceToggles({
   disabled = false,
   theme = 'light',
   showInfo = false,
+  showGroupLabel = false,
+  variant = 'self',
 }: DataSourceTogglesProps) {
   const L = LABELS[lang] ?? LABELS.en
+  // 안내 팝업 문구는 variant 로 분기 — 개인(운명) vs 궁합(시너스트리).
+  const infoSet = variant === 'synastry' ? INFO_SYNASTRY : INFO
+  const copy = infoSet[lang] ?? infoSet.en
   const [infoOpen, setInfoOpen] = useState(false)
   const toggle = (key: keyof DestinySources) => {
     const next = { ...sources, [key]: !sources[key] }
@@ -160,7 +278,14 @@ export const DataSourceToggles = React.memo(function DataSourceToggles({
     onChange(next)
   }
   return (
-    <div className={styles.toggles} data-theme={theme} role="group" aria-label={L.group}>
+    <div
+      className={styles.toggles}
+      data-theme={theme}
+      data-haslabel={showGroupLabel || undefined}
+      role="group"
+      aria-label={L.group}
+    >
+      {showGroupLabel ? <span className={styles.groupLabel}>{L.group}</span> : null}
       <label className={styles.toggle} data-active={sources.saju || undefined}>
         <input
           type="checkbox"
@@ -192,9 +317,9 @@ export const DataSourceToggles = React.memo(function DataSourceToggles({
             <span className={styles.infoIcon} aria-hidden="true">
               i
             </span>
-            <span className={styles.infoLabel}>{INFO[lang]?.trigger ?? INFO.en.trigger}</span>
+            <span className={styles.infoLabel}>{copy.trigger}</span>
           </button>
-          <DataSourceInfoModal lang={lang} open={infoOpen} onClose={() => setInfoOpen(false)} />
+          <DataSourceInfoModal copy={copy} open={infoOpen} onClose={() => setInfoOpen(false)} />
         </>
       ) : null}
     </div>
@@ -206,15 +331,15 @@ export const DataSourceToggles = React.memo(function DataSourceToggles({
  * 백드롭 + 가운데 흰 카드)으로 띄워 "튀어나오는" 느낌을 준다. ESC/백드롭/X 닫기.
  */
 function DataSourceInfoModal({
-  lang,
+  copy,
   open,
   onClose,
 }: {
-  lang: LangKey
+  copy: (typeof INFO)[LangKey]
   open: boolean
   onClose: () => void
 }) {
-  const I = INFO[lang] ?? INFO.en
+  const I = copy
   const [mounted, setMounted] = useState(false)
   useEffect(() => {
     setMounted(true)
