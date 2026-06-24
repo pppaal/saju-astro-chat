@@ -223,6 +223,82 @@
   overflow-wrap: break-word;
   word-break: keep-all;
 }
+/* 메타 그리드 아래 안내 한 줄 — 숫자·전문어가 겁주지 않게. */
+.metaNote {
+  margin: -42px 4px 46px;
+  font-size: 11.5px;
+  line-height: 1.55;
+  letter-spacing: 0.01em;
+  color: var(--ink-3);
+}
+/* 초보자 오리엔테이션 카드 — "이게 뭐고 어떻게 읽는지" 항상 보이게. */
+.howToRead {
+  margin: 0 0 30px;
+  padding: 16px 18px;
+  border: 1px solid var(--gold-line);
+  border-left: 3px solid var(--gold);
+  border-radius: var(--radius-sm);
+  background: var(--gold-wash);
+}
+.howToReadTitle {
+  color: var(--gold);
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 0.02em;
+  margin-bottom: 8px;
+}
+.howToReadBody {
+  margin: 0;
+  color: var(--ink-2);
+  font-size: 13px;
+  line-height: 1.72;
+  word-break: keep-all;
+}
+.howToReadJourney {
+  margin-top: 11px;
+  padding-top: 10px;
+  border-top: 1px solid var(--gold-line);
+  color: var(--ink-3);
+  font-size: 12px;
+  line-height: 1.65;
+  letter-spacing: 0.01em;
+  word-break: keep-all;
+}
+/* 천궁도 휠 아래 한 줄 설명. */
+.wheelCaption {
+  margin: 14px 6px 2px;
+  color: var(--ink-3);
+  font-size: 12px;
+  line-height: 1.62;
+  text-align: center;
+  word-break: keep-all;
+}
+/* 어스펙트 격자 등 표 위 한 줄 설명. */
+.gridCaption {
+  margin: 0 0 12px;
+  color: var(--ink-2);
+  font-size: 12.5px;
+  line-height: 1.62;
+  word-break: keep-all;
+}
+/* 섹션 챕터 오프너 — 헤딩 아래 따뜻한 이야기 한 문장. */
+.chapterLead {
+  margin: -10px 0 16px;
+  color: var(--ink-2);
+  font-size: 14px;
+  line-height: 1.74;
+  letter-spacing: 0.01em;
+  word-break: keep-all;
+}
+/* 행/칩 묶음 위 한 줄 도입(신살·합충·명식 4줄). */
+.rowLead {
+  margin: 2px 0 10px;
+  color: var(--ink-3);
+  font-size: 12px;
+  line-height: 1.58;
+  letter-spacing: 0.01em;
+  word-break: keep-all;
+}
 
 /* 섹션 */
 .section {
@@ -342,8 +418,9 @@
 .isDay {
   background: linear-gradient(180deg, rgba(169, 131, 59, 0.06), rgba(169, 131, 59, 0.02));
 }
-.isDay::after {
-  content: '日干';
+/* 일간 표식 뱃지 — 텍스트는 JSX(.dayTag)에서 lang 대응으로 주입한다.
+   (옛 ::after content 하드코딩은 EN 리포트에서 '日干'을 그대로 노출하던 버그) */
+.dayTag {
   position: absolute;
   top: 10px;
   right: 10px;
@@ -1235,6 +1312,26 @@
 .plainMeaning {
   color: var(--ink-2);
   line-height: 1.4;
+}
+/* 한자 옆 인라인 '음(소리)' — 庚(경)·庚 Gyeong. 모바일엔 hover 가 없어 음을
+   글리프 옆에 직접 노출(검수 C2). 글리프보다 작고 옅게, 기울임 해제. */
+.hanRead {
+  font-size: 0.62em;
+  font-weight: 400;
+  font-style: normal;
+  color: var(--ink-3);
+  letter-spacing: 0;
+  margin-left: 2px;
+}
+/* 전문가 명식 그리드: 글리프 아래 음 한 줄(가운데, 작게). */
+.gzRead {
+  margin-top: 1px;
+  font-size: 10px;
+  font-weight: 400;
+  color: var(--ink-3);
+  text-align: center;
+  letter-spacing: 0;
+  line-height: 1.1;
 }
 
 /* 핵심 3행성 카드 (태양·달·상승) — planet-core 본문 가시화 */

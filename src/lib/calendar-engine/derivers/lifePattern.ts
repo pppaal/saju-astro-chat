@@ -259,6 +259,7 @@ function personalize(
   // 이후 ~30년 지평). 이렇게 해야 31세에게 "1세가 절정", 65세에게 "32세가 절정"
   // 같은 과거/유아기 정점이 안 나온다. 앞으로 남은 후보가 없으면(고령) 지나온
   // 정점을 회고형(past)으로 서술한다.
+<<<<<<< HEAD
   if (typeof currentAge === 'number') {
     const ahead = pool.filter((c) => c.startAge + 10 > currentAge && c.startAge <= currentAge + 30)
     // 지금~30년 안에 후보가 있으면 그쪽을 우선. 없으면(고령이거나, 어린 사람의
@@ -282,6 +283,21 @@ function personalize(
   // 가리킬 만한 진짜 순풍(favor>0)이 없으면 강조 절을 붙이지 않는다 — 평탄/역풍
   // 곡선에 "가장 크게 힘을 실어줘요"를 붙이면 거짓이 된다.
   if (peak.favor <= 0) return { line: baseLineKo, lineEn: baseLineEn }
+=======
+  let past = false
+  if (typeof currentAge === 'number') {
+    const ahead = pool.filter((c) => c.startAge + 10 > currentAge && c.startAge <= currentAge + 30)
+    if (ahead.length) pool = ahead
+    else past = true
+  }
+  // favor 동률이면 더 빠른(먼저 오는) 대운을 정점으로 — reduce 가 첫 최대를 유지.
+  const peak = pool.reduce((best, c) => (c.favor > best.favor ? c : best), pool[0])
+  if (typeof currentAge === 'number' && peak.startAge + 10 <= currentAge) past = true
+
+  // 가리킬 만한 진짜 순풍(favor>0)이 없으면 강조 절을 붙이지 않는다 — 평탄/역풍
+  // 곡선에 "가장 크게 힘을 실어줘요"를 붙이면 거짓이 된다.
+  if (peak.favor <= 0) return { line: base.line, lineEn: base.lineEn }
+>>>>>>> origin/main
 
   // 그 대운에서 우호 방향을 끄는 십신(둘 다 같으면 stem, 다르면 stem 우선).
   const cat = peak.stemCat

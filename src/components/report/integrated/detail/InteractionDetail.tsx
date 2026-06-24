@@ -54,7 +54,8 @@ export default function InteractionDetail({ shinsal, relations, lang }: Interact
             <ul className={s.list}>
               {shinsalRows.map(({ it, interp }, i) => {
                 const name = en ? (interp.name_en ?? it.ko) : it.ko
-                const where = `${it.pillar}${it.sub ? `·${it.sub}` : ''}`
+                const pillarLabel = en ? (it.pillarEn ?? it.pillar) : it.pillar
+                const where = `${pillarLabel}${it.sub ? `·${it.sub}` : ''}`
                 const meaning = en
                   ? `${interp.meaning_en} ${interp.effect_en}`
                   : `${interp.meaning} ${interp.effect}`

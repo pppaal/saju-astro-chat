@@ -52,6 +52,7 @@ import {
   houseHover,
   aspectHover,
   hanjaHover,
+  hanjaReading,
   dignityHover,
   stageHover,
   elementLabel,
@@ -433,7 +434,7 @@ function AspectGrid({ astro, lang }: { astro: ReportData['astro']; lang: Lang })
               return (
                 <td key={col} className={`${s.agCell} ${cls}`} title={tooltip}>
                   <span className={s.agGly}>{meta?.glyph}</span>
-                  <span className={s.agOrb}>{a.orb.toFixed(1)}</span>
+                  <span className={s.agOrb}>{a.orb.toFixed(1)}°</span>
                 </td>
               )
             })}
@@ -445,15 +446,29 @@ function AspectGrid({ astro, lang }: { astro: ReportData['astro']; lang: Lang })
 }
 
 // ── 메인 ────────────────────────────────────────────────────────────────
+// 미성년(만 14세 미만) 안전 모드 — 연애·배우자 슬롯에 들어갈 연령 맞춤 문구.
+// 슬롯을 숨기지 않고(reframe) 같은 자리에 발달 단계에 맞는 안내를 보여준다.
+const MINOR_RELATION_LABEL: Record<Lang, string> = {
+  ko: '관계 성향',
+  en: 'How you connect',
+}
+const MINOR_RELATION_NOTE: Record<Lang, string> = {
+  ko: '지금은 친구·가족과 어울리며 마음을 표현하는 법을 배우는 시기예요. 연애나 결혼 같은 주제는 더 자란 뒤에 살펴보는 게 좋아요.',
+  en: 'Right now is a time for making friends and learning to express your feelings. Topics like romance and marriage are best explored when you are older.',
+}
+
 export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportProps) {
   const { input, saju: S, astro: A } = data
   // 어댑터 전용 확장 필드(reportTypes 에 없는 보조 정보) — 옵셔널로 읽는다.
   const extras = data as typeof data & {
     geokgukMeta?: { confidence?: 'high' | 'medium' | 'low'; fallback?: boolean }
     sibsinCategoryCount?: Record<string, number>
+    isMinor?: boolean
   }
   const geokgukMeta = extras.geokgukMeta
   const sibsinCategoryCount = extras.sibsinCategoryCount
+  // 만 14세 미만 — 연애/배우자 슬롯을 연령 맞춤 문구로 reframe(아동 부적합 방지).
+  const isMinor = !!extras.isMinor
   const t = (k: keyof typeof UI): string => UI[k][lang]
   // KO 가시 텍스트 라틴 0 — 하우스 시스템·표준시를 한글/숫자로 현지화.
   const HOUSE_SYS_KO: Record<string, string> = {
@@ -578,6 +593,8 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
             </div>
           ))}
         </div>
+        {/* 메타 그리드 안내 — 숫자·전문어가 겁주지 않게 한 줄. */}
+        <p className={s.metaNote}>{t('metaNote')}</p>
 
         {/* 출생시각 미상 경고 — ASC/MC/하우스 의존 해석이 근사치임을 고지 */}
         {input.birthTimeUnknown && (
@@ -652,6 +669,13 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
           })()}
         </div>
 
+        {/* 오리엔테이션 — "이게 뭐고 어떻게 읽는지" 항상 보이게(초보자 길잡이). */}
+        <div className={s.howToRead}>
+          <div className={s.howToReadTitle}>{t('howToReadTitle')}</div>
+          <p className={s.howToReadBody}>{t('howToReadBody')}</p>
+          <div className={s.howToReadJourney}>{t('howToReadJourney')}</div>
+        </div>
+
         {/* 입문 용어 풀이 — 사주팔자/천궁도가 뭔지부터 (도입부라 리드 없이 더보기만) */}
         <Explain section="intro" lang={lang} lead={false} />
 
@@ -664,6 +688,7 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
             </span>
             {lang === 'en' && <span className={s.secEn}>Four Pillars</span>}
           </div>
+          <p className={s.chapterLead}>{t('sec01Lead')}</p>
           <Explain section="s01" lang={lang} />
           {/* 일간(나) 카드 — hanja-rich 의 일간성격·강점·약점·직업을 hover→본문으로. */}
           {(() => {
@@ -677,7 +702,10 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
             return (
               <div className={s.dmCard}>
                 <div className={s.dmHead}>
-                  <b className={elClass[stemEl(S.dayMaster)]}>{S.dayMaster}</b>
+                  <b className={elClass[stemEl(S.dayMaster)]}>
+                    {S.dayMaster}
+                    <i className={s.hanRead}>{hanjaReading(S.dayMaster, lang)}</i>
+                  </b>
                   <span>{lang === 'en' ? 'Your day character' : '태어난 날의 나'}</span>
                 </div>
                 <div className={s.dmBody}>{dm?.as_daymaster ?? dm?.nature ?? ''}</div>
@@ -695,6 +723,9 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
             <div className={`${s.pillars} ${s.l2Body}`}>
               {pillarsArr.map(([head, p]) => (
                 <div className={`${s.pillar} ${p.isDay ? s.isDay : ''}`} key={head.ko}>
+                  {p.isDay && (
+                    <span className={s.dayTag}>{lang === 'en' ? 'Self' : '日干'}</span>
+                  )}
                   <div className={s.pillarHead}>{head[lang]}</div>
                   <div className={`${s.sib} ${s.sibTop}`}>
                     {p.isDay ? t('dayBranchLabel') : sibsinLabel(p.sibsinStem, lang)}
@@ -706,6 +737,7 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
                     >
                       {p.stem}
                     </div>
+                    <div className={s.gzRead}>{hanjaReading(p.stem, lang)}</div>
                   </div>
                   <div className={`${s.gz} ${s.branch}`}>
                     <div
@@ -714,6 +746,7 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
                     >
                       {p.branch}
                     </div>
+                    <div className={s.gzRead}>{hanjaReading(p.branch, lang)}</div>
                   </div>
                   <div className={s.sib}>{sibsinLabel(p.sibsinBranch, lang)}</div>
                   <div className={s.jjg}>
@@ -739,6 +772,7 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
           </details>
           {/* 쉬운 풀이 (Level 1) — 한자/십신을 평이한 한 줄로. 위 전문 그리드는 더보기 안. */}
           <div className={s.plainPillars}>
+            <p className={s.rowLead}>{t('plainPillarsLead')}</p>
             {pillarsArr.map(([head, p]) => {
               const stemG = p.isDay
                 ? lang === 'en'
@@ -751,7 +785,9 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
                   <span className={s.plainHead}>{head[lang]}</span>
                   <b className={s.plainGz}>
                     <span className={elClass[stemEl(p.stem)]}>{p.stem}</span>
+                    <i className={s.hanRead}>{hanjaReading(p.stem, lang)}</i>{' '}
                     <span className={elClass[branchEl(p.branch)]}>{p.branch}</span>
+                    <i className={s.hanRead}>{hanjaReading(p.branch, lang)}</i>
                   </b>
                   <span className={s.plainMeaning}>
                     {[stemG, branchG].filter(Boolean).join(' · ')}
@@ -764,6 +800,7 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
           <div className={s.row2}>
             <div>
               <div className={s.subcap}>{t('shinsalCap')}</div>
+              <p className={s.rowLead}>{t('shinsalLead')}</p>
               <div className={s.chips}>
                 {[...S.natalShinsal]
                   .sort((a, b) => (b.polarity ?? 0) - (a.polarity ?? 0))
@@ -786,7 +823,7 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
                       >
                         <b>{label}</b>
                         <i>
-                          {sh.pillar}
+                          {lang === 'en' ? (sh.pillarEn ?? sh.pillar) : sh.pillar}
                           {sh.sub ? `·${sh.sub}` : ''}
                         </i>
                       </span>
@@ -796,6 +833,7 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
             </div>
             <div>
               <div className={s.subcap}>{t('relCap')}</div>
+              <p className={s.rowLead}>{t('relationsLead')}</p>
               <div className={s.relations}>
                 {S.natalRelations.map((r, i) => {
                   // 합충형파 의미 — relations-pairs 사전(category + 한자 pair). 없으면 detail 폴백.
@@ -845,7 +883,8 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
                 )}
                 {ilju.love && (
                   <div className={s.themeReason} style={{ marginTop: 4 }}>
-                    <b>{t('geokLove')}</b> {ilju.love}
+                    <b>{isMinor ? MINOR_RELATION_LABEL[lang] : t('geokLove')}</b>{' '}
+                    {isMinor ? MINOR_RELATION_NOTE[lang] : ilju.love}
                   </div>
                 )}
               </div>
@@ -861,6 +900,7 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
             <span className={s.secTitle}>{t('sec02Title')}</span>
             {lang === 'en' && <span className={s.secEn}>Elements & Balance</span>}
           </div>
+          <p className={s.chapterLead}>{t('sec02Lead')}</p>
           <Explain section="s02" lang={lang} />
           <div className={s.gridElem}>
             <div className={`${s.card} ${s.cardPad}`}>
@@ -1008,7 +1048,8 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
               )}
               {geok.love && (
                 <div className={s.themeReason} style={{ marginTop: 4 }}>
-                  <b>{t('geokLove')}</b> {geok.love}
+                  <b>{isMinor ? MINOR_RELATION_LABEL[lang] : t('geokLove')}</b>{' '}
+                  {isMinor ? MINOR_RELATION_NOTE[lang] : geok.love}
                 </div>
               )}
               <div className={s.themeReason} style={{ marginTop: 4 }}>
@@ -1023,8 +1064,12 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
             <div className={`${s.card} ${s.cardPad}`} style={{ marginTop: 16 }}>
               <div className={s.subcap}>
                 {lang === 'en'
-                  ? 'Day-Branch (Spouse Palace) Ten God · 十星'
-                  : '일지(배우자궁) 십성 · 十星'}
+                  ? isMinor
+                    ? 'Day-Branch (Relationship Seat) Ten God'
+                    : 'Day-Branch (Spouse Palace) Ten God'
+                  : isMinor
+                    ? '일지(관계 자리) 십성 · 十星'
+                    : '일지(배우자궁) 십성 · 十星'}
               </div>
               <div className={s.gaugeHead}>
                 <span>{sibsinLabel(domSibsinName, lang)}</span>
@@ -1050,10 +1095,16 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
             <span className={s.secTitle}>{lang === 'en' ? 'Your birth sky' : '하늘이 본 나'}</span>
             {lang === 'en' && <span className={s.secEn}>Natal Chart</span>}
           </div>
+          <p className={s.chapterLead}>{t('sec03Lead')}</p>
           <Explain section="s03" lang={lang} />
           <div className={s.gridChart}>
             <div className={`${s.card} ${s.wheelCard}`}>
               <Wheel astro={A} lang={lang} />
+              <p className={s.wheelCaption}>
+                {lang === 'en'
+                  ? 'A round map of the sky at the moment you were born. The outer rim is the 12 zodiac signs, the dots inside are the planets, and the lines connect planets that influence each other.'
+                  : '태어난 순간의 하늘을 둥글게 그린 지도예요. 바깥 테두리는 12별자리, 안쪽 점은 행성, 점을 잇는 선은 서로 영향을 주는 행성끼리의 관계예요.'}
+              </p>
             </div>
             <details className={s.l2}>
               <summary>{t('l2Planets')}</summary>
@@ -1203,7 +1254,7 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
                       if (!tr) return null
                       const read =
                         lang === 'en'
-                          ? `In ${sgn}, your ${cd.label} comes through ${tr.en}` +
+                          ? `In ${sgn}, your ${cd.label} comes through as ${tr.en}` +
                             (h ? `, and plays out mainly in matters of ${dom}.` : '.')
                           : `${sgn} 자리라 ${cd.label}이 ${tr.ko} 색으로 드러나` +
                             (h ? `고, ${dom} 쪽 일에서 주로 펼쳐져요.` : '요.')
@@ -1233,6 +1284,7 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
             </span>
             {lang === 'en' && <span className={s.secEn}>Aspects</span>}
           </div>
+          <p className={s.chapterLead}>{t('sec04Lead')}</p>
           <Explain section="s04" lang={lang} />
           <div className={s.gridAsp}>
             <div>
@@ -1262,6 +1314,11 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
               <details className={s.l2}>
                 <summary>{t('l2Aspects')}</summary>
                 <div className={s.l2Body}>
+                  <p className={s.gridCaption}>
+                    {lang === 'en'
+                      ? 'Each cell is where two planets meet. The symbol shows whether they flow (△), clash (□), or sit together (☌); the small number is how exact the angle is (closer to 0° = stronger).'
+                      : '각 칸은 두 행성이 만나는 지점이에요. 기호는 둘 사이가 잘 흐르는지(△)·부딪히는지(□)·붙어 있는지(☌)를, 아래 숫자는 그 각이 얼마나 딱 맞는지(0°에 가까울수록 강해요)를 뜻해요.'}
+                  </p>
                   <AspectGrid astro={A} lang={lang} />
                 </div>
               </details>
@@ -1317,6 +1374,7 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
               </span>
               {lang === 'en' && <span className={s.secEn}>Cross-System</span>}
             </div>
+            <p className={s.chapterLead}>{t('sec05Lead')}</p>
             <Explain section="s05" lang={lang} />
             {/* 종합 문장은 상단 히어로로 이동(중복 제거). 여기선 톤 분포 막대만. */}
             {/* 교차 그림 — 톤 분포(잘맞음/채워줌/부딪힘) 한눈에. */}
@@ -1409,12 +1467,12 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
                   <ul className={s.crossAdviceList}>
                     {reson.length > 0 && (
                       <li>
-                        <b>{lang === 'en' ? 'Core' : '정체성 코어'}</b>{' '}
-                        {lang === 'en' ? 'East and West agree on ' : '동·서양이 똑같이 가리키는 '}
+                        <b>{lang === 'en' ? 'The real you' : '진짜 나다운 점'}</b>{' '}
+                        {lang === 'en' ? 'East and West agree on ' : '동양 사주와 서양 별자리가 똑같이 짚는 '}
                         <b>{reson.join(' · ')}</b>
                         {lang === 'en'
-                          ? ' — two systems converging suggests this is one of your steadiest cores, so you might consider leaning on it in your work and the way you show up.'
-                          : '은(는) 두 점술이 독립적으로 합의한 지점 — 비교적 흔들리지 않는 정체성 코어로 보여요. 일이나 자기표현에서 이 결을 살려 활용해 볼 만해요.'}
+                          ? ' — when both ways of reading you say the same thing, it is one of your steadiest, most "really you" parts, so lean on it in what you do and how you show up.'
+                          : '은(는) 따로따로 봤는데도 똑같이 나온 부분이라, 좀처럼 흔들리지 않는 가장 너다운 점이에요. 무언가 할 때나 나를 드러낼 때 이 점을 믿고 살리면 좋아요.'}
                         {/* 합의 주제별 평어 한 줄 — 라벨만으로 막막하지 않게 뜻을 곁들인다. */}
                         {reson.some((c) => categoryMeaning(c, lang)) && (
                           <ul className={s.crossGlossList}>
@@ -1443,10 +1501,12 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
                     {karma.length > 0 && (
                       <li>
                         <b>{lang === 'en' ? 'Lifelong work' : '평생 숙제'}</b>{' '}
-                        {lang === 'en' ? '' : '동·서양이 똑같이 "스스로 채워야 한다"고 짚는 '}
+                        {lang === 'en'
+                          ? 'Both systems point to '
+                          : '동·서양이 똑같이 "스스로 채워야 한다"고 짚는 '}
                         <b>{karma.join(' · ')}</b>
                         {lang === 'en'
-                          ? ' — both systems flag this as not-given, to be built by hand. Fill it in small, steady steps over the years.'
+                          ? ' — neither system gives this; it is yours to build by hand. Fill it in small, steady steps over the years.'
                           : '은(는) 타고나는 게 아니라 직접 만들어가는 영역 — 조급해 말고 해마다 조금씩 채워가면 가장 단단한 자산이 돼요.'}
                       </li>
                     )}
