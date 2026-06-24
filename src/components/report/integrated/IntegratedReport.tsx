@@ -446,15 +446,29 @@ function AspectGrid({ astro, lang }: { astro: ReportData['astro']; lang: Lang })
 }
 
 // ── 메인 ────────────────────────────────────────────────────────────────
+// 미성년(만 14세 미만) 안전 모드 — 연애·배우자 슬롯에 들어갈 연령 맞춤 문구.
+// 슬롯을 숨기지 않고(reframe) 같은 자리에 발달 단계에 맞는 안내를 보여준다.
+const MINOR_RELATION_LABEL: Record<Lang, string> = {
+  ko: '관계 성향',
+  en: 'How you connect',
+}
+const MINOR_RELATION_NOTE: Record<Lang, string> = {
+  ko: '지금은 친구·가족과 어울리며 마음을 표현하는 법을 배우는 시기예요. 연애나 결혼 같은 주제는 더 자란 뒤에 살펴보는 게 좋아요.',
+  en: 'Right now is a time for making friends and learning to express your feelings. Topics like romance and marriage are best explored when you are older.',
+}
+
 export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportProps) {
   const { input, saju: S, astro: A } = data
   // 어댑터 전용 확장 필드(reportTypes 에 없는 보조 정보) — 옵셔널로 읽는다.
   const extras = data as typeof data & {
     geokgukMeta?: { confidence?: 'high' | 'medium' | 'low'; fallback?: boolean }
     sibsinCategoryCount?: Record<string, number>
+    isMinor?: boolean
   }
   const geokgukMeta = extras.geokgukMeta
   const sibsinCategoryCount = extras.sibsinCategoryCount
+  // 만 14세 미만 — 연애/배우자 슬롯을 연령 맞춤 문구로 reframe(아동 부적합 방지).
+  const isMinor = !!extras.isMinor
   const t = (k: keyof typeof UI): string => UI[k][lang]
   // KO 가시 텍스트 라틴 0 — 하우스 시스템·표준시를 한글/숫자로 현지화.
   const HOUSE_SYS_KO: Record<string, string> = {
@@ -869,7 +883,8 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
                 )}
                 {ilju.love && (
                   <div className={s.themeReason} style={{ marginTop: 4 }}>
-                    <b>{t('geokLove')}</b> {ilju.love}
+                    <b>{isMinor ? MINOR_RELATION_LABEL[lang] : t('geokLove')}</b>{' '}
+                    {isMinor ? MINOR_RELATION_NOTE[lang] : ilju.love}
                   </div>
                 )}
               </div>
@@ -1033,7 +1048,8 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
               )}
               {geok.love && (
                 <div className={s.themeReason} style={{ marginTop: 4 }}>
-                  <b>{t('geokLove')}</b> {geok.love}
+                  <b>{isMinor ? MINOR_RELATION_LABEL[lang] : t('geokLove')}</b>{' '}
+                  {isMinor ? MINOR_RELATION_NOTE[lang] : geok.love}
                 </div>
               )}
               <div className={s.themeReason} style={{ marginTop: 4 }}>
@@ -1048,8 +1064,12 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
             <div className={`${s.card} ${s.cardPad}`} style={{ marginTop: 16 }}>
               <div className={s.subcap}>
                 {lang === 'en'
-                  ? 'Day-Branch (Spouse Palace) Ten God'
-                  : '일지(배우자궁) 십성 · 十星'}
+                  ? isMinor
+                    ? 'Day-Branch (Relationship Seat) Ten God'
+                    : 'Day-Branch (Spouse Palace) Ten God'
+                  : isMinor
+                    ? '일지(관계 자리) 십성 · 十星'
+                    : '일지(배우자궁) 십성 · 十星'}
               </div>
               <div className={s.gaugeHead}>
                 <span>{sibsinLabel(domSibsinName, lang)}</span>
