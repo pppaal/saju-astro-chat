@@ -139,6 +139,10 @@ export interface ThemeGroup {
 export function groupByTheme(rows: ThemeRowLike[]): ThemeGroup[] {
   const buckets: Record<string, ThemeRowLike[]> = {}
   for (const r of rows) {
+    // CATEGORY_TO_THEME maps every current cross category (ko+en). The `?? 'self'`
+    // is a safety net only: a NEW evaluator category lands under "나는 어떤 사람"
+    // instead of vanishing. If you add a category, map it explicitly above —
+    // don't rely on this fallback.
     const key = CATEGORY_TO_THEME[r.category] ?? 'self'
     ;(buckets[key] ??= []).push(r)
   }
