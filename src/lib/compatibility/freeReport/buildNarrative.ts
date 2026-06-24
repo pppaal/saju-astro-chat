@@ -10,7 +10,13 @@ import type { CompatReport } from '../compatReport'
 import type { SynAspectView, SynOverlayView } from '../synastryView'
 import type { SajuCompatPillarRel, SajuCompatSpouseStar } from '../sajuSynastryFacts'
 import { elLabel } from '../compatChartLabels'
-import type { Bi, FreeReportGlossaryEntry, FreeReportSection, FreeReportView } from './types'
+import type {
+  Bi,
+  FreeReportGlossaryEntry,
+  FreeReportSection,
+  FreeReportTheme,
+  FreeReportView,
+} from './types'
 import {
   ASPECT_PAIR,
   ASPECT_TONE,
@@ -169,6 +175,78 @@ const charEn = (c: string): string =>
       : c
 const pillarKo = (p: string): string => PILLAR_KO[p] ?? `${p}기둥`
 const pillarEn = (p: string): string => PILLAR_EN[p] ?? `${p}-pillar`
+
+// ── 테마(질문) 분류 ──────────────────────────────────────────────────
+// 신호를 출처(밴드/십성/어스펙트…)가 아니라 "사람들이 실제로 궁금해하는 질문"
+// 으로 재배치한다. 6개 현실 테마, 제목은 질문형.
+type ThemeId = 'spark' | 'talk' | 'love' | 'friction' | 'life' | 'future'
+const THEME_META: { id: ThemeId; icon: string; title: Bi }[] = [
+  { id: 'spark', icon: '🔥', title: { ko: '처음에 확 끌려?', en: 'Is there instant chemistry?' } },
+  { id: 'talk', icon: '💬', title: { ko: '말이 잘 통해?', en: 'Do you click when you talk?' } },
+  { id: 'love', icon: '💗', title: { ko: '사랑법이 맞아?', en: 'Do your love styles match?' } },
+  { id: 'friction', icon: '⚡', title: { ko: '어디서 부딪힐까?', en: 'Where do you clash?' } },
+  { id: 'life', icon: '🏠', title: { ko: '같이 있으면 편해?', en: 'Is it easy day to day?' } },
+  { id: 'future', icon: '💍', title: { ko: '오래 갈 사이야?', en: 'Will it last?' } },
+]
+// 십성 → 테마
+const SIBSIN_THEME: Record<string, ThemeId> = {
+  비견: 'talk',
+  겁재: 'friction',
+  식신: 'talk',
+  상관: 'spark',
+  편재: 'spark',
+  정재: 'life',
+  편관: 'friction',
+  정관: 'future',
+  편인: 'love',
+  정인: 'love',
+}
+// 하우스 → 테마
+const HOUSE_THEME: Record<number, ThemeId> = {
+  1: 'spark',
+  2: 'life',
+  3: 'talk',
+  4: 'life',
+  5: 'spark',
+  6: 'life',
+  7: 'future',
+  8: 'future',
+  9: 'life',
+  10: 'life',
+  11: 'talk',
+  12: 'love',
+}
+// 어스펙트 → 테마 (긴장각이면 부딪힘, 아니면 행성 조합으로)
+function aspectTheme(asp: SynAspectView): ThemeId {
+  if (asp.tone === 'tension') return 'friction'
+  const set = new Set([asp.aKey, asp.bKey])
+  if (set.has('Mercury')) return 'talk'
+  if (
+    set.has('Venus') ||
+    set.has('Mars') ||
+    set.has('Ascendant') ||
+    set.has('Uranus') ||
+    set.has('Pluto')
+  )
+    return 'spark'
+  if (set.has('Moon') || set.has('Sun') || set.has('Neptune')) return 'love'
+  if (set.has('Saturn')) return 'future'
+  if (set.has('Jupiter')) return 'life'
+  return 'love'
+}
+// 기둥 작용(태그) → 테마 (합 계열=인연·미래, 충·형·해·파=부딪힘)
+const PILLAR_THEME: Record<string, ThemeId> = {
+  천간합: 'future',
+  육합: 'future',
+  삼합: 'future',
+  방합: 'future',
+  충: 'friction',
+  천간충: 'friction',
+  형: 'friction',
+  자형: 'friction',
+  해: 'friction',
+  파: 'friction',
+}
 
 export function buildFreeCompatNarrative(
   report: CompatReport,
@@ -427,6 +505,112 @@ export function buildFreeCompatNarrative(
     }
   }
 
+  // ── 테마 카드 (질문 주제별 재배치) ──────────────────────────────────
+  // 신호를 출처가 아니라 "사람들이 실제로 궁금해하는 질문"으로 묶는다. 신호는
+  // 버리지 않고 전부 어느 테마든 들어간다(누락 0). 카드 본문은 weight 내림차순,
+  // 기술적 head 없이 풀이만 — 스캔되게.
+  const themed: { theme: ThemeId; weight: number; text: string }[] = []
+  if (report.dayMaster) {
+    const dm = report.dayMaster
+    const aEl = elLabel(dm.aEl, isKo)
+    const bEl = elLabel(dm.bEl, isKo)
+    themed.push({
+      theme: 'life',
+      weight: 4,
+      text: fill(t(DAY_MASTER_REL[dm.relation]), { A: labelA, B: labelB, aEl, bEl }),
+    })
+    if (dm.bToA && TEN_GODS[dm.bToA])
+      themed.push({
+        theme: SIBSIN_THEME[dm.bToA] ?? 'love',
+        weight: 3,
+        text: t(TEN_GODS[dm.bToA].blurb),
+      })
+    if (dm.aToB && dm.aToB !== dm.bToA && TEN_GODS[dm.aToB])
+      themed.push({
+        theme: SIBSIN_THEME[dm.aToB] ?? 'love',
+        weight: 3,
+        text: t(TEN_GODS[dm.aToB].blurb),
+      })
+  }
+  if (report.elementBalance) {
+    const eb = report.elementBalance
+    const text = eb.balanced
+      ? t(ELEMENT_BALANCE.balanced)
+      : eb.range >= 4
+        ? fill(t(ELEMENT_BALANCE.skewed), {
+            strongEl: elLabel(eb.strongest, isKo),
+            weakEl: elLabel(eb.weakest, isKo),
+          })
+        : t(ELEMENT_BALANCE.complement)
+    themed.push({ theme: 'life', weight: 1, text })
+  }
+  if (report.synView) {
+    for (const asp of report.synView.aspects) {
+      const key = [asp.aKey, asp.bKey].sort().join('|')
+      const pair = ASPECT_PAIR[key]
+      const blurb = pair
+        ? t(pair)
+        : (() => {
+            const ra = PLANET_FLAVOR[asp.aKey] ? t(PLANET_FLAVOR[asp.aKey]) : asp.a
+            const rb = PLANET_FLAVOR[asp.bKey] ? t(PLANET_FLAVOR[asp.bKey]) : asp.b
+            const tone = t(ASPECT_TONE[asp.tone])
+            return isKo
+              ? `${josa(ra, '과/와')} ${josa(rb, '이/가')} 만나는 자리예요. ${tone}`
+              : `where ${ra} meets ${rb}. ${tone}`
+          })()
+      themed.push({
+        theme: aspectTheme(asp),
+        weight: Math.max(1.5, 6 - (asp.orb ?? 4)),
+        text: blurb,
+      })
+    }
+    const seenHouse = new Set<number>()
+    for (const o of [...report.synView.overlaysAtoB, ...report.synView.overlaysBtoA]) {
+      if (seenHouse.has(o.house)) continue
+      seenHouse.add(o.house)
+      const arena = t(OVERLAY_HOUSE[o.house]) ?? ''
+      if (arena) themed.push({ theme: HOUSE_THEME[o.house] ?? 'life', weight: 2, text: arena })
+    }
+  }
+  {
+    const seenFrom = new Set<string>()
+    for (const sp of [...report.spouseStars].sort(
+      (a, b) => Number(b.isDayPillar) - Number(a.isDayPillar)
+    )) {
+      if (!SPOUSE_STAR[sp.sibsin] || seenFrom.has(sp.from)) continue
+      seenFrom.add(sp.from)
+      themed.push({
+        theme: 'future',
+        weight: sp.isDayPillar ? 10 : 6,
+        text: t(SPOUSE_STAR[sp.sibsin].blurb),
+      })
+    }
+  }
+  {
+    const seenTag = new Set<string>()
+    for (const r of report.pillarRelations) {
+      const tag = TAG_PRIORITY.find((p) => r.tags.includes(p)) ?? r.tags[0]
+      if (!tag || !PILLAR_REL[tag] || seenTag.has(tag)) continue
+      seenTag.add(tag)
+      themed.push({
+        theme: PILLAR_THEME[tag] ?? 'future',
+        weight: r.tone === 'minor' ? 1 : 3,
+        text: t(PILLAR_REL[tag].blurb),
+      })
+    }
+  }
+  const themes: FreeReportTheme[] = THEME_META.map((m) => {
+    const items = themed.filter((x) => x.theme === m.id).sort((a, b) => b.weight - a.weight)
+    const seenTxt = new Set<string>()
+    const paragraphs: string[] = []
+    for (const it of items) {
+      if (seenTxt.has(it.text)) continue
+      seenTxt.add(it.text)
+      paragraphs.push(it.text)
+    }
+    return { id: m.id, icon: m.icon, title: t(m.title), paragraphs }
+  }).filter((th) => th.paragraphs.length > 0)
+
   const glossary: FreeReportGlossaryEntry[] = COMPAT_GLOSSARY.map((g) => ({
     term: t(g.term),
     body: t(g.body),
@@ -436,6 +620,7 @@ export function buildFreeCompatNarrative(
     intro: t(INTRO),
     verdict,
     sections,
+    themes,
     glossary,
     closing: t(CLOSING),
   }
