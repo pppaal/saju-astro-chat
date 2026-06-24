@@ -89,6 +89,78 @@
   font-weight: 800;
   margin: 0 0 12px;
 }
+/* 사람 카드 헤더 — 제목 + "저장된 정보 불러오기"(로그인 시) 한 줄. */
+.personHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.personHead .personTitle {
+  margin: 0;
+}
+.loadWrap {
+  position: relative;
+  flex-shrink: 0;
+}
+.loadBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: 1px solid var(--gold-line);
+  background: var(--gold-wash);
+  color: var(--gold);
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 11.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    border-color 0.15s,
+    background 0.15s;
+}
+.loadBtn:hover {
+  border-color: var(--gold-soft);
+  background: var(--gold-wash);
+}
+.loadList {
+  position: absolute;
+  right: 0;
+  z-index: 20;
+  margin-top: 6px;
+  width: 220px;
+  max-height: 240px;
+  overflow: auto;
+  list-style: none;
+  padding: 4px;
+  border-radius: 12px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-card);
+}
+.loadItem {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 13px;
+  color: var(--ink);
+  cursor: pointer;
+  transition: background 0.12s;
+}
+.loadItem:hover {
+  background: var(--gold-wash);
+}
+.loadItemLabel {
+  font-weight: 600;
+}
+.loadItemSub {
+  margin-left: 6px;
+  font-size: 11px;
+  color: var(--ink-3);
+}
 .field {
   display: flex;
   flex-direction: column;
