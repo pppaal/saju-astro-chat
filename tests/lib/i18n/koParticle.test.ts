@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { iga, eulReul, eunNeun, waGwa } from '@/lib/i18n/koParticle'
+import { iga, eulReul, eunNeun, waGwa, iyeyo } from '@/lib/i18n/koParticle'
 
 /**
  * 한국어 조사 자동 선택 유틸 테스트.
@@ -68,6 +68,23 @@ describe('i18n/koParticle', () => {
       expect(waGwa('나')).toBe('와')
       expect(waGwa('바다')).toBe('와')
       expect(waGwa('비')).toBe('와')
+    })
+  })
+
+  describe('iyeyo (이에요/예요)', () => {
+    it('받침이 있는 단어는 "이에요"를 반환한다', () => {
+      expect(iyeyo('목')).toBe('이에요') // ㄱ 받침 (오행 木)
+      expect(iyeyo('금')).toBe('이에요') // ㅁ 받침 (오행 金)
+      expect(iyeyo('실무자')).not.toBe('이에요') // 자=모음 → 예요 (대조)
+      expect(iyeyo('1인기업')).toBe('이에요') // ㅂ 받침
+    })
+
+    it('받침이 없는 단어는 "예요"를 반환한다', () => {
+      expect(iyeyo('화')).toBe('예요') // 오행 火 (ㅏ)
+      expect(iyeyo('수')).toBe('예요') // 오행 水 (ㅜ)
+      expect(iyeyo('토')).toBe('예요') // 오행 土 (ㅗ)
+      expect(iyeyo('승부사')).toBe('예요') // 태그라인 사=모음
+      expect(iyeyo('리더')).toBe('예요')
     })
   })
 
