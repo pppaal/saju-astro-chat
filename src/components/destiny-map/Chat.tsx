@@ -665,7 +665,6 @@ ${result.overallMessage}${result.guidance ? `\n\n**\uC870\uC5B8:** ${result.guid
                   onChange={setSources}
                   lang={effectiveLang}
                   disabled={loading}
-                  showGroupLabel
                   showInfo
                 />
               }
