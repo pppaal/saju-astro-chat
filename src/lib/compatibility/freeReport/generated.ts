@@ -4,7 +4,7 @@
  * content.ts 의 베이스라인(BASE) 위에 이 값이 *덮어써진다*. 비어 있어도(생성
  * 실패/부분) 빌더는 베이스라인으로 동작한다 — 그래서 키는 모두 optional.
  * 이 파일의 prose 는 사람이 직접 손보기보다 워크플로 재실행으로 갱신한다.
- * (PILLAR_REL 은 Anthropic tool-schema 가 한글 키를 거부해 미생성 → 베이스라인 사용.)
+ * (PILLAR_REL 은 ASCII 키로 재생성 후 한글 키로 매핑 — 충 항목은 적대적 검수 수정 반영.)
  */
 
 import type { Bi, BandCopy, SignalCopy } from "./types";
@@ -366,6 +366,108 @@ export const GENERATED: GeneratedCopy = {
     "12": {
       "ko": "\"내면과 숨겨진 것\"의 무대예요. 말로 잘 꺼내지 않는 마음, 꿈, 보이지 않는 곳에서 일어나는 일들이 깃든 자리라, 설명하기 어려운 신비롭고 아련한 끌림의 결이 도는 자리예요.",
       "en": "This is the stage of \"the inner world and hidden things.\" It's where the feelings we rarely voice, dreams, and what stirs out of sight reside — so there's a mysterious, faraway quality of attraction that's hard to put into words."
+    }
+  },
+  "PILLAR_REL": {
+    "천간합": {
+      "feel": {
+        "ko": "자석처럼 끌리는",
+        "en": "Magnetic pull"
+      },
+      "blurb": {
+        "ko": "두 사람의 윗기운이 손을 맞잡듯 하나로 묶여서, 처음 마주친 순간부터 설명할 수 없는 끌림이 흘러요. 같은 공간에 있기만 해도 시선이 자꾸 옮겨가고, 대화의 결이 신기할 만큼 맞아 떨어지는 화학 작용이 느껴져요. 가끔 두 기운이 너무 닮아서 미묘한 거리감이 생기기도 하는데, 그건 안 맞아서가 아니라 서로를 단단하게 비추며 다듬어 가는 결이에요.",
+        "en": "The upper currents of you two clasp like joined hands, so an unexplainable pull flows from the very first meeting. Just sharing a space keeps your eyes drifting toward each other, and the grain of your conversations clicks with surprising ease — a real chemistry. Now and then the two energies sit so alike that a faint distance appears, but that isn't a mismatch; it's the texture of two reflections quietly polishing each other."
+      }
+    },
+    "천간충": {
+      "feel": {
+        "ko": "또렷이 부딪히는 사이",
+        "en": "Sharply aware of each other"
+      },
+      "blurb": {
+        "ko": "두 사람은 생각하는 방식도, 세상을 대하는 태도도 정면으로 다른 자리에 서요. 그래서 대화하다 보면 의견이 부딪히고 묘한 거리감이 느껴지기도 하는데, 신기하게도 서로를 흐릿하게 지나치는 법이 없어요. 안 맞아서가 아니라, 너무 또렷이 의식하기 때문에 자꾸 서로의 윤곽이 선명해지는 관계예요.",
+        "en": "The two of you stand on opposite sides in how you think and how you meet the world, so conversations can run into friction and a subtle sense of distance. Yet oddly, neither of you ever drifts past the other unnoticed. It isn't that you don't fit, it's that you register each other so vividly that each keeps coming into sharper focus."
+      }
+    },
+    "육합": {
+      "feel": {
+        "ko": "잔잔한 수면 아래 흐름",
+        "en": "Still surface, a current beneath"
+      },
+      "blurb": {
+        "ko": "겉으로 보면 두 사람 사이엔 별일 없어 보여요. 큰 불꽃도, 요란한 끌림도 없이 그저 곁에 있는 사이 같죠. 그런데 말이 줄어드는 자리에서 오히려 거리가 좁아져요. 같은 공간에 오래 머물수록 서로의 결이 어느새 닮아 있고, 굳이 확인하지 않아도 통하는 무언가가 속에서 천천히 자라요.",
+        "en": "On the surface, nothing much seems to happen between you two. No big spark, no loud pull, just two people who happen to be near each other. But the distance quietly closes in the spaces where words fall away. The longer you share the same room, the more your textures come to resemble each other, and something that needs no checking grows slowly underneath."
+      }
+    },
+    "삼합": {
+      "feel": {
+        "ko": "비면 채우는 사이",
+        "en": "Gaps that fill each other"
+      },
+      "blurb": {
+        "ko": "두 사람의 기운이 한자리에 모이면 묘하게 한 팀이 되는 결이 흘러요. 한 사람에게 비어 있던 자리를 다른 사람이 자연스럽게 메워서, 따로 있을 때보다 둘이 있을 때 방향이 또렷해지고 결속이 단단해지는 사이예요. 가끔 그 단단함이 서로를 살짝 길들이는 미묘한 거리로 느껴지기도 하지만, 안 맞아서가 아니라 한 방향으로 묶이느라 생기는 자연스러운 결입니다.",
+        "en": "When your two energies gather in one place, they fall into a strangely well-fitted team. What feels empty in one of you is quietly filled by the other, so together the direction grows clearer and the bond grows firmer than either of you alone. Sometimes that firmness shows up as a subtle distance where you gently shape each other — not because you don't fit, but as the natural grain of being pulled in one direction together."
+      }
+    },
+    "방합": {
+      "feel": {
+        "ko": "한 색으로 짙어지는 결",
+        "en": "Deepening into one hue"
+      },
+      "blurb": {
+        "ko": "두 사람의 기운이 같은 계절, 같은 방향을 바라보며 자연스럽게 한자리에 모여요. 비슷한 결끼리 겹쳐지니 좋아하는 풍경도 마음이 머무는 자리도 닮아서, 굳이 맞추지 않아도 같은 색으로 점점 짙어지는 사이예요. 너무 닮은 만큼 가끔은 서로의 그림자까지 비슷해 미묘한 거리가 생기기도 하지만, 그건 안 맞아서가 아니라 같은 빛을 오래 들여다보는 시간이에요.",
+        "en": "Your energies face the same season and the same direction, so you gather in one place without trying. Sharing such a similar grain, the scenery you love and the spots where your hearts linger come to resemble each other, deepening into one color all on their own. Being this alike means even your shadows can echo, and a subtle distance sometimes appears, not from a mismatch but from the long quiet of gazing into the same light together."
+      }
+    },
+    "충": {
+      "feel": {
+        "ko": "끌리며 흔들리는 자리",
+        "en": "Drawn in, and shaken"
+      },
+      "blurb": {
+        "ko": "두 사람의 안쪽 기운이 정면으로 마주 서 있어요. 그래서 같이 있으면 서로를 강하게 의식하게 되고, 잔잔하기보다 자극과 변화가 많은 사이예요. 특히 한 사람의 곁자리에서 이 마주섬이 가장 또렷하게 느껴지는데, 안 맞아서가 아니라 서로를 가장 가깝게 건드리는 자리라 그만큼 단련도 변화도 크게 오가요.",
+        "en": "Your inner energies stand face to face, head-on. So when you're together you're keenly aware of each other, and the bond leans toward stimulation and change rather than calm. This collision is felt most sharply in one partner's adjacent position - not because you clash, but because it's the spot where you touch each other most closely, so growth and upheaval move strongly between you."
+      }
+    },
+    "형": {
+      "feel": {
+        "ko": "거치면 단단해지는 사이",
+        "en": "Tempered by friction"
+      },
+      "blurb": {
+        "ko": "두 사람 사이에는 서로를 살짝 누르고 갈아내는 묘한 결이 흘러요. 가끔은 말이 빙 돌아가거나 마음이 답답하게 막히는 순간이 오는데, 그건 안 맞아서가 아니라 둘 사이에 단련의 거리가 놓여 있기 때문이에요. 그 거리를 한 번씩 지날 때마다, 서로를 향한 인내도 관계의 결도 조금씩 더 단단해지는 모양새랍니다.",
+        "en": "Between you two runs a curious grain where each gently presses and grinds against the other. Now and then words take the long way around, or a feeling stalls in a stuffy quiet — and that isn't a sign of mismatch, but a kind of tempering distance set between you. Each time you pass through it, both your patience and the texture of the bond seem to harden into something a little sturdier."
+      }
+    },
+    "자형": {
+      "feel": {
+        "ko": "거울 같은 떨림",
+        "en": "Mirror tremor"
+      },
+      "blurb": {
+        "ko": "두 사람은 같은 결을 타고나서, 마주 보면 마치 거울을 보는 듯한 익숙함과 설렘이 동시에 번져요. 그런데 닮은 만큼 똑같은 자리에서 예민해져서, 한 사람이 흔들릴 때 상대도 같이 출렁이곤 해요. 안 맞아서가 아니라 너무 닮아서 생기는 미묘한 울림이라, 서로의 모습에서 자기 자신을 자꾸 발견하게 되는 사이예요.",
+        "en": "You two are cut from the same cloth, so facing each other feels like looking into a mirror, familiar and quietly thrilling at once. But because you're so alike, you get tender in the very same spots, and when one of you wavers the other ripples right along. It isn't a mismatch, just a subtle echo born of resemblance, the kind that keeps showing each of you a glimpse of yourself in the other."
+      }
+    },
+    "해": {
+      "feel": {
+        "ko": "반 박자 어긋난 결",
+        "en": "Half a beat off"
+      },
+      "blurb": {
+        "ko": "둘 사이엔 부딪치는 큰 소리는 없는데, 어쩐지 발이 딱 맞지 않는 순간이 종종 찾아와요. 같은 곳을 보면서도 도착하는 속도가 미묘하게 달라서, 한 사람이 멈출 때 다른 사람은 이미 한 걸음 더 가 있곤 해요. 싫어서가 아니라, 서로의 박자를 익히는 데 시간이 조금 더 걸리는 결이에요.",
+        "en": "There's no loud clash between you two, yet your steps somehow don't quite land in sync. You're looking at the same place, but you arrive at slightly different speeds, so when one of you pauses, the other has already moved a step ahead. It isn't about dislike, just a rhythm that takes a little longer to learn by heart."
+      }
+    },
+    "파": {
+      "feel": {
+        "ko": "작은 금 같은 결",
+        "en": "A hairline crack"
+      },
+      "blurb": {
+        "ko": "두 사람 사이엔 대부분 매끄럽게 흐르는데, 어떤 결에서는 살짝 어긋나는 지점이 있어요. 크게 부딪치는 건 아니고, 그릇에 난 작은 금처럼 평소엔 잘 보이지도 않는 미묘한 거리예요. 안 맞아서가 아니라, 서로의 다른 결을 마주하며 조금씩 단단해지는 자리이기도 해요.",
+        "en": "Between you two, most things flow smoothly, but along one seam there's a spot that sits slightly out of line. It isn't a big clash, more like a fine crack in a bowl that you'd hardly notice most days. It isn't that you don't fit, it's a place where two different grains meet and quietly grow sturdier."
+      }
     }
   },
   "BAND": {
