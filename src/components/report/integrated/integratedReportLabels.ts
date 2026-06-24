@@ -334,6 +334,17 @@ export function hanjaHover(ch: string, lang: Lang): string {
   if (!h) return ''
   return h.nature ? `${h.name} · ${h.element} · ${h.nature}` : (h.name ?? '')
 }
+/**
+ * 한자 글리프 옆에 인라인으로 보여줄 "음(소리)" 하나. 모바일엔 hover(title) 가 없어
+ * 명식 한자가 음·뜻 없이 암호처럼 보이던 문제(검수 C2)를 풀기 위함.
+ *   ko → 한글 음('경'),  en → 로마자 음('Gyeong'). EN 은 병음 괄호(Gēng)를 떼어
+ * 3중 표기 혼란을 막고, EN 본문에 한글이 새지 않게 한다(enParity 가드).
+ */
+export function hanjaReading(ch: string, lang: Lang): string {
+  const h = getHanjaRich(ch, lang) as { name?: string } | null
+  if (!h?.name) return ''
+  return lang === 'en' ? h.name.replace(/\s*\(.*\)\s*$/, '').trim() : h.name
+}
 const DIGNITY_STATUS_KEY: Record<string, DignityStatus> = {
   domicile: 'Domicile',
   exaltation: 'Exaltation',

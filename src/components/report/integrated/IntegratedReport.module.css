@@ -1312,6 +1312,26 @@
   color: var(--ink-2);
   line-height: 1.4;
 }
+/* 한자 옆 인라인 '음(소리)' — 庚(경)·庚 Gyeong. 모바일엔 hover 가 없어 음을
+   글리프 옆에 직접 노출(검수 C2). 글리프보다 작고 옅게, 기울임 해제. */
+.hanRead {
+  font-size: 0.62em;
+  font-weight: 400;
+  font-style: normal;
+  color: var(--ink-3);
+  letter-spacing: 0;
+  margin-left: 2px;
+}
+/* 전문가 명식 그리드: 글리프 아래 음 한 줄(가운데, 작게). */
+.gzRead {
+  margin-top: 1px;
+  font-size: 10px;
+  font-weight: 400;
+  color: var(--ink-3);
+  text-align: center;
+  letter-spacing: 0;
+  line-height: 1.1;
+}
 
 /* 핵심 3행성 카드 (태양·달·상승) — planet-core 본문 가시화 */
 .bigThree {
