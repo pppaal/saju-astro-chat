@@ -133,9 +133,13 @@ export async function POST(req: NextRequest) {
 
   // 2) Rate limit — 사용자 키 기준.
   const rlKey = `counselor:realtime:${userId}`
+  // failClosed: this is the most expensive route (Claude, streamed). If Redis is
+  // down, deny rather than fall back to bypassable per-instance limits — a Redis
+  // outage must not become an Anthropic-spend drain.
   const rl = await rateLimit(rlKey, {
     limit: RATE_LIMIT_PER_MIN,
     windowSeconds: 60,
+    failClosed: true,
   })
   if (!rl.allowed) {
     return NextResponse.json(

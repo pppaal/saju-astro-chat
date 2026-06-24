@@ -22,7 +22,7 @@ export default function CreditDepletedModal({
   type = 'depleted',
 }: CreditDepletedModalProps) {
   const router = useRouter()
-  const { t } = useI18n()
+  const { t, locale } = useI18n()
   const { isVisible, isAnimating } = useModalTransition(isOpen)
   const trapRef = useFocusTrap(isOpen)
   const [mounted, setMounted] = useState(false)
@@ -30,18 +30,74 @@ export default function CreditDepletedModal({
     setMounted(true)
   }, [])
 
-  const handlePurchase = useCallback(() => {
-    // 결제 후 돌아올 URL 저장 — 경로뿐 아니라 쿼리(질문·생년월일 등)까지
-    // 보존해야 결제 후 "그 자리"(보던 상담 화면)로 정확히 복귀한다.
-    if (typeof window !== 'undefined') {
-      const currentPath = window.location.pathname
-      if (currentPath !== '/pricing' && currentPath !== '/success') {
-        localStorage.setItem('checkout_return_url', currentPath + window.location.search)
-      }
+  // 첫구매 한정 스타터팩 자격 — 모달이 열릴 때 1회 조회. 자격 있으면 인라인
+  // 미끼 오퍼를 띄워 /pricing 평면그리드로 보내지 않고 피크 순간에 전환시킨다.
+  const [starter, setStarter] = useState<{ credits: number; krw: number; usd: number } | null>(null)
+  const [starterBusy, setStarterBusy] = useState(false)
+  useEffect(() => {
+    if (!isOpen) return
+    let cancelled = false
+    setStarter(null)
+    fetch('/api/me/starter-eligibility', { credentials: 'same-origin' })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((res) => {
+        const pack = res?.data?.pack ?? res?.pack ?? null
+        if (!cancelled && pack) setStarter(pack)
+      })
+      .catch(() => {
+        /* 자격 조회 실패는 조용히 무시 — 일반 흐름으로 폴백 */
+      })
+    return () => {
+      cancelled = true
     }
+  }, [isOpen])
+
+  // 결제 후 돌아올 URL 저장 — 경로뿐 아니라 쿼리(질문·생년월일 등)까지
+  // 보존해야 결제 후 "그 자리"(보던 상담 화면)로 정확히 복귀한다.
+  const saveReturnUrl = useCallback(() => {
+    if (typeof window === 'undefined') return
+    const currentPath = window.location.pathname
+    if (currentPath !== '/pricing' && currentPath !== '/success') {
+      localStorage.setItem('checkout_return_url', currentPath + window.location.search)
+    }
+  }, [])
+
+  const handlePurchase = useCallback(() => {
+    saveReturnUrl()
     onClose()
     router.push('/pricing')
-  }, [onClose, router])
+  }, [onClose, router, saveReturnUrl])
+
+  // 스타터팩 원클릭 — 평면그리드를 거치지 않고 바로 Stripe 체크아웃으로.
+  const handleStarterCheckout = useCallback(async () => {
+    if (starterBusy) return
+    setStarterBusy(true)
+    saveReturnUrl()
+    try {
+      const res = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({ creditPack: 'starter' }),
+      })
+      const data = (await res.json().catch(() => null)) as Record<string, unknown> | null
+      const inner = (data?.data ?? data ?? {}) as Record<string, unknown>
+      const url = typeof inner.url === 'string' ? inner.url : null
+      if (url) {
+        window.location.href = url
+        return
+      }
+      // 자격 만료/설정 누락 등 — 일반 결제 흐름으로 폴백.
+      handlePurchase()
+    } catch {
+      handlePurchase()
+    } finally {
+      setStarterBusy(false)
+    }
+  }, [starterBusy, saveReturnUrl, handlePurchase])
+
+  const formatStarterPrice = () =>
+    locale === 'en' && starter ? `$${starter.usd.toFixed(2)}` : `₩${starter?.krw.toLocaleString()}`
 
   // Esc 닫기 + body 스크롤 잠금 (공용 훅).
   useModalDismiss(isOpen, onClose)
@@ -116,12 +172,42 @@ export default function CreditDepletedModal({
           </div>
         </div>
 
+        {starter && (
+          <div className={styles.starterOffer}>
+            <span className={styles.starterBadge}>
+              {t('credits.starter.badge', '첫 구매 한정')}
+            </span>
+            <div className={styles.starterBody}>
+              <div className={styles.starterInfo}>
+                <span className={styles.starterTitle}>{t('credits.starter.title', '스타터팩')}</span>
+                <span className={styles.starterMeta}>
+                  {t('credits.starter.meta', `${starter.credits}크레딧 · 가장 저렴한 첫 시작`)}
+                </span>
+              </div>
+              <button
+                className={styles.starterButton}
+                onClick={handleStarterCheckout}
+                disabled={starterBusy}
+                autoFocus
+              >
+                {starterBusy
+                  ? t('common.loading', '잠시만요…')
+                  : `${formatStarterPrice()} ${t('credits.starter.cta', '지금 시작')}`}
+              </button>
+            </div>
+          </div>
+        )}
+
         <div className={styles.buttons}>
-          <button className={styles.purchaseButton} onClick={handlePurchase} autoFocus>
+          <button
+            className={styles.purchaseButton}
+            onClick={handlePurchase}
+            autoFocus={!starter}
+          >
             <span className={styles.buttonIcon} aria-hidden="true">
               ✦
             </span>
-            {t('credits.purchase', '크레딧 구매하기')}
+            {starter ? t('credits.seeAllPacks', '모든 팩 보기') : t('credits.purchase', '크레딧 구매하기')}
           </button>
           <button className={styles.laterButton} onClick={onClose}>
             {t('common.later', '나중에')}
