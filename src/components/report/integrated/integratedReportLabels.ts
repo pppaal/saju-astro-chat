@@ -79,8 +79,8 @@ export const UI: Record<string, BiLabel> = {
     en: "The different forces inside you sometimes hold hands and sometimes bump heads, so let's see how they all get along together.",
   },
   sec05Lead: {
-    ko: '동양의 사주와 서양의 별자리가 똑같이 고개를 끄덕이는 부분이 있어요. 두 이야기가 한목소리로 말하는 너의 진짜 모습을 만나봐요.',
-    en: "There are places where the Eastern and Western stories nod in agreement, so let's meet the real you that both tell in one voice.",
+    ko: '사주와 별자리가 함께 그려내는 너의 모습을, 연애·일·돈·성장·건강 같은 삶의 주제별로 묶어 풀었어요. 두 이야기가 한목소리로 맞장구치는 부분도, 서로 다른 결로 보완하는 부분도 함께 담겨 있어요.',
+    en: "Here's what Saju and the stars draw together, sorted by life themes — love, work, money, growth, health. You'll see both where the two stories agree in one voice and where they add different colors.",
   },
   // §01 도입 — 네 줄을 "태어난 순간 카드" 이야기로 묶어 주는 문장.
   plainPillarsLead: {
