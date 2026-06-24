@@ -135,6 +135,7 @@ export default function HomeChatInput({
               onChange={setSources}
               lang={isKo ? 'ko' : 'en'}
               theme={lightMode ? 'light' : 'dark'}
+              showGroupLabel
               showInfo
             />
           }
