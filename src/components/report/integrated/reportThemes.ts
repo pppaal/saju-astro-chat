@@ -187,7 +187,7 @@ export interface HealthCard {
 /** 오행 분포 + 용신으로 체질 경향 한 카드 생성(결정적). */
 export function buildHealthCard(
   counts: Partial<Record<El, number>> | undefined,
-  yongsinPrimary: string | undefined,
+  yongsinPrimary: string | null | undefined,
   lang: Lang
 ): HealthCard | null {
   if (!counts) return null
