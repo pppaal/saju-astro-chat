@@ -15,16 +15,16 @@ export interface GlossaryDef {
 
 export const COMPAT_GLOSSARY: GlossaryDef[] = [
   {
-    term: { ko: '궁합(시너스트리)이 뭐가요?', en: 'What is synastry (gunghap)?' },
+    term: { ko: '궁합(시너스트리)이 뭔가요?', en: 'What is synastry (gunghap)?' },
     body: {
-      ko: '두 사람의 사주·별자리를 겹쳠 놓고 "둘이 만나면 어떤 결이 생기나"를 읽는 거예요. 한 사람만 볼 때는 안 보이던, 두 사람 사이에서만 켜지는 신호를 봐요.',
+      ko: '두 사람의 사주·별자리를 겹쳐 놓고 "둘이 만나면 어떤 결이 생기나"를 읽는 거예요. 한 사람만 볼 때는 안 보이던, 두 사람 사이에서만 켜지는 신호를 봐요.',
       en: 'Overlaying two people’s charts to read "what grain arises when they meet." It surfaces signals that only switch on between the two of you, invisible in either chart alone.',
     },
   },
   {
     term: { ko: '일간(나 자신)', en: 'Day master (you)' },
     body: {
-      ko: '사주 여덟 글자 중 "태어난 날"의 윗글자가 곳 나 자신이에요. 궁합에서는 두 사람의 일간끼리 어떤 오행으로 만나는지가 관계의 기본 결이 돼요.',
+      ko: '사주 여덟 글자 중 "태어난 날"의 윗글자가 곧 나 자신이에요. 궁합에서는 두 사람의 일간끼리 어떤 오행으로 만나는지가 관계의 기본 결이 돼요.',
       en: 'The top symbol of your birth-day pillar is "you." In a match, how two day masters meet by element sets the baseline grain of the relationship.',
     },
   },
@@ -38,14 +38,14 @@ export const COMPAT_GLOSSARY: GlossaryDef[] = [
   {
     term: { ko: '천간·지지 (윗글자·아랫글자)', en: 'Stems & branches (upper/lower)' },
     body: {
-      ko: '사주 각 기둥은 윗글자(천간)와 아랫글자(지지) 두 칸이에요. 천간은 격으로 드러나는 결, 지지는 속에 깔린 결을 봐요. 궁합은 이 글자들끼리의 합·충을 읽어요.',
+      ko: '사주 각 기둥은 윗글자(천간)와 아랫글자(지지) 두 칸이에요. 천간은 겉으로 드러나는 결, 지지는 속에 깔린 결을 봐요. 궁합은 이 글자들끼리의 합·충을 읽어요.',
       en: 'Each Saju pillar has a top symbol (stem) and a bottom one (branch). Stems show the visible grain, branches the underlying one. A match reads union and clash between these.',
     },
   },
   {
     term: { ko: '합·충·형·해·파', en: 'Union · clash · punishment · harm · break' },
     body: {
-      ko: '사주 글자끼리의 상호작용이에요. 합은 끌어당겨 묶이고, 충은 정면으로 부딪히고, 형·해·파는 갈거나 어긋나는 미모한 마찰이에요. 어디가 묶이고 흔들리는지 보여줘요.',
+      ko: '사주 글자끼리의 상호작용이에요. 합은 끌어당겨 묶이고, 충은 정면으로 부딪히고, 형·해·파는 갈거나 어긋나는 미묘한 마찰이에요. 어디가 묶이고 흔들리는지 보여줘요.',
       en: 'Interactions between Saju characters. Union pulls together; clash collides head-on; punishment/harm/break are subtler grinds and misfits. They show which spots bond and which get shaken.',
     },
   },
@@ -59,7 +59,7 @@ export const COMPAT_GLOSSARY: GlossaryDef[] = [
   {
     term: { ko: '십성 (관계의 역할 이름)', en: 'Ten Gods' },
     body: {
-      ko: '나(일간)를 기준으로 상대 글자가 어떤 역할인지 붙인 이름이에요. 이름이 무서게 들려도(편관=칠살 등) 좋고 나쁜이 아니라 "어떤 결로 다가오나"의 종류일 뿐이에요.',
+      ko: '나(일간)를 기준으로 상대 글자가 어떤 역할인지 붙인 이름이에요. 이름이 무섭게 들려도(편관=칠살 등) 좋고 나쁨이 아니라 "어떤 결로 다가오나"의 종류일 뿐이에요.',
       en: 'Labels for what role another character plays relative to you. Some names sound scary (e.g. "Seven Killings") but they mark a *type of grain*, not good or bad.',
     },
   },
@@ -80,7 +80,7 @@ export const COMPAT_GLOSSARY: GlossaryDef[] = [
   {
     term: { ko: '어스펙트 (행성 사이 각도)', en: 'Aspects (angles between planets)' },
     body: {
-      ko: '두 사람의 행성이 서로 이루는 각도예요. 부드럽게 흐르거나(조화: 삼각·육각·겹침), 부딪히거나(긴장: 사각·맞섬), 미모하게 엇갈려요(엇박). 각이 딱 맞을수록 더 강하게 작용해요.',
+      ko: '두 사람의 행성이 서로 이루는 각도예요. 부드럽게 흐르거나(조화: 삼각·육각·겹침), 부딪히거나(긴장: 사각·맞섬), 미묘하게 엇갈려요(엇박). 각이 딱 맞을수록 더 강하게 작용해요.',
       en: 'The angles your planets make to each other — flowing (harmony: trine, sextile, conjunction), clashing (tension: square, opposition), or off-key (subtle misfit). The tighter the angle, the stronger it works.',
     },
   },
@@ -94,14 +94,14 @@ export const COMPAT_GLOSSARY: GlossaryDef[] = [
   {
     term: { ko: '대운·세운 (시기의 흐름)', en: 'Daeun · Sewoon (life & yearly cycles)' },
     body: {
-      ko: '대운은 10년 단위로 바뀌는 큰 흐름, 세운은 그해 한 해의 흐름이에요. 두 사람의 시기가 같은 결로 만나는지를 보면 "지금 우리 시기가 어떤가"를 가늘해요. (구체적 시기 풀이는 상담사 몫이에요.)',
+      ko: '대운은 10년 단위로 바뀌는 큰 흐름, 세운은 그해 한 해의 흐름이에요. 두 사람의 시기가 같은 결로 만나는지를 보면 "지금 우리 시기가 어떤가"를 가늠해요. (구체적 시기 풀이는 상담사 몫이에요.)',
       en: 'Daeun is your 10-year tide; Sewoon is the given year’s flow. Whether two people’s cycles meet in the same grain hints at "how our timing runs now." (Detailed timing is for the counselor.)',
     },
   },
   {
     term: { ko: '동·서 교차란?', en: 'What is the East–West cross-read?' },
     body: {
-      ko: '같은 두 사람을 동양 사주와 서양 별자리로 따로 본 뒤 겹쳠 보는 거예요. 둘이 같은 말을 하는 지점일수록 그만큼 또렷하고 단단한 특징이라고 봐요.',
+      ko: '같은 두 사람을 동양 사주와 서양 별자리로 따로 본 뒤 겹쳐 보는 거예요. 둘이 같은 말을 하는 지점일수록 그만큼 또렷하고 단단한 특징이라고 봐요.',
       en: 'Reading the same two people with both Eastern Saju and Western astrology, then overlaying. Where both say the same thing, that trait is especially clear and solid.',
     },
   },
