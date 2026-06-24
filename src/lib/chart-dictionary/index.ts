@@ -340,6 +340,10 @@ const MINOR_PLANET_MEANING: Record<string, { ko: string; en: string }> = {
     ko: '남들과 달라도 나답게 지키는 부분이에요. 독립심과 진짜 나다움이 살아나는 자리예요.',
     en: 'The part of you that stays true to itself even when it does not fit in — where your independence and authentic self come alive.',
   },
+  Pluto: {
+    ko: '깊은 곳에서 큰 변화가 일어나는 영역이에요. 한 번 크게 달라지면 더 단단해지는 힘이에요.',
+    en: 'The area where deep, powerful change happens — once something transforms, you come back stronger.',
+  },
 };
 
 export function getPlanetCore(
