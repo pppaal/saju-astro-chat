@@ -21,6 +21,9 @@ import {
   buildLifecycleTiming,
   type AstroLifecycleEventKind,
 } from '@/lib/calendar-engine/lifecycle/astroLifecycle'
+import { getCachedTransitChart } from '../ephe-cache'
+import { findTransitAspects } from '@/lib/astrology/foundation/transit'
+import { createCache } from '../cache'
 import type { NatalContext } from '../context/types'
 
 const GEN: Record<string, string> = FIVE_ELEMENT_RELATIONS.생하는관계
@@ -128,7 +131,13 @@ function movingAvg(xs: number[], half: number): number[] {
 
 export function buildLifeCurve(
   natal: NatalContext,
-  opts: { now?: Date; span?: number; sajuWeight?: number } = {}
+  opts: {
+    now?: Date
+    span?: number
+    sajuWeight?: number
+    /** 실 트랜짓 ephemeris 점성 시계열(길이 span+1). 없으면 age-table 벨 근사. */
+    astroSeries?: number[]
+  } = {}
 ): LifeCurve | null {
   const now = opts.now ?? new Date()
   const span = opts.span ?? 90
@@ -192,13 +201,17 @@ export function buildLifeCurve(
     // 대운이 베이스, 세운·충합은 *텍스처*(거시 굴곡을 흔들지 않게 약하게).
     sajuRaw.push(1.0 * dae + 0.45 * seun + 0.4 * inter)
 
-    // 점성: 마디 벨커브 중첩
-    let a = 0
-    for (const ev of astroEvents) {
-      const d = age - ev.age
-      a += ev.pol * Math.exp(-(d * d) / (2 * ASTRO_SIGMA * ASTRO_SIGMA))
+    // 점성: 실 트랜짓 시계열이 주어지면 그것, 아니면 age-table 마디 벨커브 근사.
+    if (opts.astroSeries) {
+      astroRaw.push(opts.astroSeries[age] ?? 0)
+    } else {
+      let a = 0
+      for (const ev of astroEvents) {
+        const d = age - ev.age
+        a += ev.pol * Math.exp(-(d * d) / (2 * ASTRO_SIGMA * ASTRO_SIGMA))
+      }
+      astroRaw.push(a)
     }
-    astroRaw.push(a)
   }
 
   const { z: sajuZ } = znorm(sajuRaw)
@@ -242,4 +255,80 @@ export function buildLifeCurve(
   }
 
   return { points, peaks, troughs }
+}
+
+// ─────────────────────── 실 트랜짓 점성 시계열 ───────────────────────
+// 외행성(목성·토성·천왕성·해왕성·명왕성·카이런)의 본명 점 대비 정밀 트랜짓을
+// 연 단위로 계산해 점성 굴곡을 *근사 벨커브가 아닌 실제 각·오브*로 만든다.
+// 느린 행성만 — 빠른 내행성은 연 스케일에서 노이즈.
+const SLOW_TRANSIT = new Set(['Jupiter', 'Saturn', 'Uranus', 'Neptune', 'Pluto', 'Chiron'])
+const PLANET_W: Record<string, number> = {
+  Pluto: 1.3,
+  Saturn: 1.2,
+  Uranus: 1.1,
+  Neptune: 1.0,
+  Chiron: 0.7,
+  Jupiter: 0.8,
+}
+// 하드 각(square/opposition)=압박(−), 소프트(trine/sextile)=순(+). 합(conjunction)
+// 은 행성 성격에 따라 — 목성=확장(+), 토성·명왕성=압박(−).
+const ASPECT_POL: Record<string, number> = {
+  square: -1,
+  opposition: -1,
+  trine: 1,
+  sextile: 0.7,
+  conjunction: 0, // 행성별로 따로
+}
+const CONJ_SIGN: Record<string, number> = {
+  Jupiter: 1,
+  Saturn: -1,
+  Uranus: -0.3,
+  Neptune: -0.5,
+  Pluto: -1,
+  Chiron: -0.5,
+}
+
+/**
+ * 실 ephemeris 외행성 트랜짓 → 연 단위 점성 점수 시계열(길이 span+1).
+ * buildLifeCurve(natal, { astroSeries }) 로 넘기면 벨 근사를 대체한다.
+ */
+export async function computeTransitAstroSeries(
+  natal: NatalContext,
+  opts: { span?: number } = {}
+): Promise<number[]> {
+  const span = opts.span ?? 90
+  const birthYear = natal.input?.year
+  const loc = natal.astro?.location
+  const natalChart = natal.astro?.chart
+  if (!birthYear || !loc || !natalChart) return new Array(span + 1).fill(0)
+  const cache = createCache()
+  const series: number[] = []
+  for (let age = 0; age <= span; age++) {
+    const year = birthYear + age
+    const iso = `${year}-07-01T12:00:00.000Z`
+    let val = 0
+    try {
+      const transitChart = await getCachedTransitChart({
+        iso,
+        latitude: loc.latitude,
+        longitude: loc.longitude,
+        timeZone: loc.timeZone,
+        inMemoryCache: cache,
+      })
+      const aspects = findTransitAspects(transitChart, natalChart)
+      for (const a of aspects) {
+        if (!SLOW_TRANSIT.has(a.transitPlanet)) continue
+        const w = PLANET_W[a.transitPlanet] ?? 0.5
+        const pol =
+          a.type === 'conjunction'
+            ? (CONJ_SIGN[a.transitPlanet] ?? 0)
+            : (ASPECT_POL[a.type] ?? 0)
+        val += pol * w * (a.score ?? 0) // score = 1-orb/limit (tightness)
+      }
+    } catch {
+      // ephemeris 실패 시 그 해는 0
+    }
+    series.push(val)
+  }
+  return series
 }

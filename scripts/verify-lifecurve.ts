@@ -4,8 +4,13 @@
  */
 import { calculateSajuData } from '../src/lib/saju/saju'
 import { buildNatalContext } from '../src/lib/calendar-engine/context/build'
-import { buildLifeCurve } from '../src/lib/calendar-engine/derivers/lifeCurve'
+import {
+  buildLifeCurve,
+  computeTransitAstroSeries,
+} from '../src/lib/calendar-engine/derivers/lifeCurve'
 import { deriveLifePattern } from '../src/lib/calendar-engine/derivers/lifePattern'
+
+const REAL_TRANSIT_N = 15 // 실 ephemeris 트랜짓으로 비교할 차트 수(나머지는 벨 근사)
 
 const PLACES = [
   { lat: 37.5665, lon: 126.978, tz: 'Asia/Seoul' },
@@ -58,7 +63,10 @@ async function main() {
     const saju = calculateSajuData(BIRTH.birthDate, BIRTH.birthTime, BIRTH.gender, 'solar', BIRTH.timeZone)
     const natal = await buildNatalContext(BIRTH, { saju })
 
-    const curve = buildLifeCurve(natal, { now: NOW })
+    // 점성층: 앞 N개는 실 트랜짓 ephemeris, 나머지는 벨 근사.
+    const astroSeries =
+      i < REAL_TRANSIT_N ? await computeTransitAstroSeries(natal, { span: 90 }) : undefined
+    const curve = buildLifeCurve(natal, { now: NOW, astroSeries })
     const pattern = deriveLifePattern(natal.saju as never)
     if (!curve || !pattern) continue
 
@@ -78,13 +86,15 @@ async function main() {
     const favs = pattern.daeun.map((d) => d.favor)
     stepStats.push({ range: Math.max(...favs) - Math.min(...favs), tp: turningPoints(favs) })
 
-    if ([0, 22, 43].includes(i)) {
+    if ([0, 5, 10].includes(i)) {
       // 0~84세 구간만(샘플), 매 3년
       const seg = curve.points.filter((p) => p.age <= 84 && p.age % 2 === 0).map((p) => p.macro)
       samples.push(
-        `p${String(i + 1).padStart(2, '0')} ${pattern.ko}  곡선: ${spark(seg)}  (peaks ${curve.peaks
+        `p${String(i + 1).padStart(2, '0')} ${pattern.ko} [실트랜짓]  곡선: ${spark(
+          seg
+        )}  (peaks ${curve.peaks.map((x) => x.age).join(',')} | troughs ${curve.troughs
           .map((x) => x.age)
-          .join(',')} | troughs ${curve.troughs.map((x) => x.age).join(',')})`
+          .join(',')})`
       )
     }
   }
