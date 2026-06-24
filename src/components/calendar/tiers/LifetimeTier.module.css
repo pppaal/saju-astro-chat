@@ -234,6 +234,59 @@
   height: 9px;
   border-radius: 50%;
 }
+/* ── 인생 굴곡 곡선 ── */
+.curveSvg {
+  width: 100%;
+  height: 96px;
+  display: block;
+}
+.curveMid {
+  stroke: var(--line-2);
+  stroke-width: 1;
+  stroke-dasharray: 2 3;
+}
+.curveArea {
+  fill: var(--gold-bg);
+  opacity: 0.45;
+}
+.curveLine {
+  fill: none;
+  stroke: var(--gold-deep);
+  stroke-width: 2;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+.curvePeak {
+  fill: var(--gold);
+  stroke: var(--surface);
+  stroke-width: 1;
+}
+.curveTrough {
+  fill: var(--crimson);
+  stroke: var(--surface);
+  stroke-width: 1;
+}
+.curveNow {
+  stroke: var(--blue);
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+}
+.curveAxis {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--m-disp);
+  font-size: 9px;
+  color: var(--t2);
+  padding: 0 4px;
+  margin-top: -4px;
+}
+.curveCap {
+  font-size: 11px;
+  color: var(--t1);
+  line-height: 1.5;
+  margin-top: 6px;
+}
 .dwRow {
   display: grid;
   grid-template-columns: repeat(10, minmax(0, 1fr));
