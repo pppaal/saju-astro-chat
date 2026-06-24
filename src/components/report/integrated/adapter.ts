@@ -607,12 +607,15 @@ export function buildCrossRows(
   const rels = S.natalRelations ?? []
   const hap = rels.filter((r: any) => String(r.kind ?? r.type).includes('합')).length
   const chung = rels.filter((r: any) => String(r.kind ?? r.type).includes('충')).length
-  // 궁위 — 일지(日支)=배우자궁. 충/합이 일지에 걸리는지(pillars 에 'day').
+  // 궁위 — 일지(日支)=배우자궁. *지지* 충/합이 일지에 걸리는지(pillars 에 'day').
+  // 주의: '충'/'합' 부분일치는 천간충/천간합까지 잡아 일지(지지) 궁위에 잘못 귀속된다
+  // (R5: 천간충 癸-丁이 일지 巳 충으로 날조됨). 반드시 지지 관계로만 한정한다.
   const dayBranchClash = rels.some(
-    (r: any) => String(r.kind ?? r.type).includes('충') && (r.pillars ?? []).includes('day')
+    (r: any) => String(r.kind ?? r.type).includes('지지충') && (r.pillars ?? []).includes('day')
   )
   const dayBranchCombine = rels.some(
-    (r: any) => String(r.kind ?? r.type).includes('합') && (r.pillars ?? []).includes('day')
+    (r: any) =>
+      /지지(육합|삼합|방합|반합)/.test(String(r.kind ?? r.type)) && (r.pillars ?? []).includes('day')
   )
   const dayShinsal = (S.natalShinsal ?? [])
     .filter((h: any) => Array.isArray(h.pillars) && h.pillars.includes('day'))
