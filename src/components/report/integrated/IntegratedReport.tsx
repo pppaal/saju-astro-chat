@@ -30,7 +30,11 @@ import {
   type SibsinState,
   type HouseNumber,
 } from '@/lib/chart-dictionary'
-import { getShinsalInterpretation, getElementInterpretation } from '@/lib/saju/interpretations'
+import {
+  getShinsalInterpretation,
+  shinsalDisplayText,
+  getElementInterpretation,
+} from '@/lib/saju/interpretations'
 import { ELEMENT_REMEDY } from '../atoms/interpretations'
 import {
   type Lang,
@@ -807,14 +811,9 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
                   .map((sh, i) => {
                     const interp = getShinsalInterpretation(sh.ko)
                     const label = lang === 'en' ? (interp?.name_en ?? sh.ko) : sh.ko
-                    const tip =
-                      lang === 'en'
-                        ? interp
-                          ? `${interp.meaning_en} ${interp.effect_en}`
-                          : undefined
-                        : interp
-                          ? `${interp.meaning} ${interp.effect}`
-                          : undefined
+                    const tip = interp
+                      ? shinsalDisplayText(interp, sh.ko, lang, isMinor)
+                      : undefined
                     return (
                       <span
                         className={`${s.chip} ${sh.polarity > 0 ? s.pos : sh.polarity < 0 ? s.neg : s.neu}`}
@@ -890,7 +889,12 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
               </div>
             </>
           )}
-          <InteractionDetail shinsal={S.natalShinsal} relations={S.natalRelations} lang={lang} />
+          <InteractionDetail
+            shinsal={S.natalShinsal}
+            relations={S.natalRelations}
+            lang={lang}
+            isMinor={isMinor}
+          />
         </section>
 
         {/* 02 오행과 용신 */}
@@ -1215,7 +1219,7 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
                     ? {
                         glyph: gl,
                         label: lang === 'en' ? nm : ko,
-                        core: getPlanetCore(nm, lang),
+                        core: getPlanetCore(nm, lang, isMinor),
                         sign: p.sign,
                         deg: p.deg,
                         house: p.house,
@@ -1271,8 +1275,9 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
             astro={A}
             lang={lang}
             exclude={['Sun', 'Moon', 'Mercury', 'Venus', 'Mars']}
+            isMinor={isMinor}
           />
-          <HouseDetail astro={A} lang={lang} />
+          <HouseDetail astro={A} lang={lang} isMinor={isMinor} />
         </section>
 
         {/* 04 어스펙트 */}

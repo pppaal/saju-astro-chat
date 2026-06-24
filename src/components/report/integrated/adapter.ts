@@ -704,7 +704,8 @@ export function buildCrossRows(
         hard,
         crossGender,
         // 자식성 — 남: 관성 / 여: 식상 (categoryCount 그룹).
-        ((crossGender === 'female' ? details?.식상 : details?.관성) as number | undefined) ?? 0
+        ((crossGender === 'female' ? details?.식상 : details?.관성) as number | undefined) ?? 0,
+        isMinor // 미성년이면 자녀·후대 서술 생략
       ),
     ],
     [

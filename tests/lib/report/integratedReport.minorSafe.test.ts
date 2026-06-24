@@ -8,6 +8,9 @@ import { describe, it, expect } from 'vitest'
 import { buildNatalContext } from '@/lib/calendar-engine/context/build'
 import { getTwelveStagesForPillars } from '@/lib/saju/shinsal'
 import { natalToReportData, buildCrossRows } from '@/components/report/integrated/adapter'
+import { getPlanetCore, getHouseRich } from '@/lib/chart-dictionary'
+import { getShinsalInterpretation, shinsalDisplayText } from '@/lib/saju/interpretations'
+import { evalRelations } from '@/lib/report/natalCross'
 
 const ROMANCE = new Set(['연애·매력', 'Love & Magnetism'])
 const WEALTH = new Set(['재물 그릇', 'Wealth Capacity'])
@@ -59,4 +62,48 @@ describe('통합 리포트 — 미성년 안전 모드 (C5)', () => {
     const minorEn = buildCrossRows(ctx, 'en', new Date('2026-06-24T00:00:00Z'))
     expect(minorEn.rows.some((r) => ROMANCE.has(r.category) || WEALTH.has(r.category))).toBe(false)
   }, 30000)
+})
+
+// ── C5.2: 신살·행성·하우스·자녀 교차 누출 차단 (순수 함수 단위) ──
+describe('미성년 안전 모드 C5.2 — 신살·행성·하우스·자녀 (순수 함수)', () => {
+  it('연애성 신살(도화·금여) 풀이가 미성년이면 이성·배우자 표현을 빼고 치환된다', () => {
+    for (const name of ['도화', '금여']) {
+      const interp = getShinsalInterpretation(name)
+      expect(interp).toBeTruthy()
+      const adult = shinsalDisplayText(interp!, name, 'ko', false)
+      const minor = shinsalDisplayText(interp!, name, 'ko', true)
+      expect(minor).not.toBe(adult)
+      expect(minor).not.toMatch(/이성|배우자/)
+    }
+    // 연애성이 아닌 신살은 미성년이어도 그대로
+    const dohwaEn = shinsalDisplayText(getShinsalInterpretation('도화')!, '도화', 'en', true)
+    expect(dohwaEn).not.toMatch(/romantic|spouse|sexual/i)
+  })
+
+  it('화성·릴리스 행성 의미가 미성년이면 성적/공격적 표현을 빼고 치환된다', () => {
+    const marsAdult = getPlanetCore('Mars', 'ko', false)
+    const marsMinor = getPlanetCore('Mars', 'ko', true)
+    expect(marsMinor?.meaning).not.toBe(marsAdult?.meaning)
+    expect(marsMinor?.meaning).not.toMatch(/성적/)
+    const lilithMinor = getPlanetCore('Lilith', 'ko', true)
+    expect(lilithMinor?.meaning ?? '').not.toMatch(/욕망|분노/)
+    // 일반 행성(태양)은 미성년이어도 동일
+    expect(getPlanetCore('Sun', 'ko', true)?.meaning).toBe(getPlanetCore('Sun', 'ko', false)?.meaning)
+  })
+
+  it('5·7·8하우스 키워드가 미성년이면 연애·결혼·자녀·성·죽음을 뺀다', () => {
+    expect(getHouseRich(5, 'ko', true)?.domain).not.toMatch(/연애|자녀/)
+    expect(getHouseRich(7, 'ko', true)?.domain).not.toMatch(/결혼/)
+    expect(getHouseRich(8, 'ko', true)?.domain).not.toMatch(/성·죽음|죽음/)
+    // 무관 하우스(1)는 그대로
+    expect(getHouseRich(1, 'ko', true)?.domain).toBe(getHouseRich(1, 'ko', false)?.domain)
+  })
+
+  it('관계 교차의 자녀·후대 서술이 미성년이면 생략된다', () => {
+    const adult = evalRelations(2, 0, 2, 0, 'male', 1, false)
+    const minor = evalRelations(2, 0, 2, 0, 'male', 1, true)
+    expect(adult?.reason.ko).toMatch(/자식|자녀/)
+    expect(minor?.reason.ko).not.toMatch(/자식|자녀/)
+    expect(minor?.reason.en ?? '').not.toMatch(/child|next generation/i)
+  })
 })

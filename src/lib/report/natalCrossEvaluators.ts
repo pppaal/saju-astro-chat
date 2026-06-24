@@ -338,7 +338,8 @@ export function evalRelations(
   harmonious: number,
   hard: number,
   gender: 'male' | 'female' = 'male',
-  childStarCount = 0
+  childStarCount = 0,
+  isMinor = false
 ): CrossVerdict | null {
   if (hap + chung + harmonious + hard === 0) return null
   const sajuHarmony = hap - chung
@@ -363,6 +364,10 @@ export function evalRelations(
           }
 
   // ── 성별 자식성(子息星) — 남: 관성, 여: 식상 ──
+  // 미성년 안전 모드: 자녀·후대 서술은 아동에게 부적합하므로 생략(기본 관계 해석만).
+  if (isMinor) {
+    return { tone: base.tone, reason: { ko: base.ko, en: base.en } }
+  }
   const g = gender === 'female'
   const starKo = g ? '식상' : '관성'
   const starEn = g ? 'the Output star' : 'the Officer star'
