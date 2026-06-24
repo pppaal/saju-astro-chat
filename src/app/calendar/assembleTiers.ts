@@ -14,6 +14,7 @@
 import { deriveConvergence } from '@/lib/calendar-engine/derivers/convergence'
 import { deriveLifetimeFlow } from '@/lib/calendar-engine/derivers/lifetimeFlow'
 import { deriveLifetimePivots } from '@/lib/calendar-engine/derivers/lifetimePivots'
+import { buildLifeCurve, computeTransitAstroSeries } from '@/lib/calendar-engine/derivers/lifeCurve'
 import { deriveMonthSummary } from '@/lib/calendar-engine/derivers/monthSummary'
 import { personSeed } from '@/lib/calendar-engine/derivers/personSeed'
 import { deriveLayeredScores } from '@/lib/calendar-engine/derivers/layeredScore'
@@ -234,6 +235,17 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
   const lifetimeFlow = deriveLifetimeFlow(natal, lang, undefined, now)
   const lifetimePivots = deriveLifetimePivots(natal, lang, undefined, now)
 
+  // ─── 인생 굴곡 곡선 (사주 다층 + 실 외행성 트랜짓) ────────────────────────
+  // 외행성은 느려 step=3 샘플 + 보간이면 envelope 보존(ephemeris 호출 ~31회).
+  // 실패해도 곡선만 빠지고 나머지 티어는 정상.
+  let lifeCurve: ReturnType<typeof buildLifeCurve> = null
+  try {
+    const astroSeries = await computeTransitAstroSeries(natal, { span: 90, step: 3 })
+    lifeCurve = buildLifeCurve(natal, { now, span: 90, astroSeries })
+  } catch {
+    lifeCurve = null
+  }
+
   // ─── yearly / month / day 슬라이스 ───────────────────────────────────────
   const monthPrefix = `${TARGET_YEAR}-${String(TARGET_MONTH).padStart(2, '0')}`
   const monthCells = cells.filter((c) => c.datetime.slice(0, 7) === monthPrefix)
@@ -334,6 +346,7 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
     currentYear: TARGET_YEAR,
     lifetimeFlow,
     lifetimePivots,
+    lifeCurve: lifeCurve ?? undefined,
   })
 
   // toDecade — 현재 대운 + 10년 분리 + cross-activation decadal.

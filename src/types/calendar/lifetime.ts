@@ -177,6 +177,29 @@ export interface DestinyLifetime {
   zrFortuneChapters: DestinyZRChapter[]
   /** 인생 유형(신강약 기준 대운 흐름) — 대기만성/초년발복/… 한 줄 + 대운 방향. */
   lifePattern?: DestinyLifePattern
+  /** 인생 굴곡 곡선 — 사주·점성 다층 중첩(연 단위). 차트가 스파크라인으로 렌더. */
+  lifeCurve?: DestinyLifeCurve
+}
+
+/** 인생 곡선의 한 점 — value 는 렌더용 0..1 정규화(거시 굴곡). */
+export interface DestinyLifeCurvePoint {
+  age: number
+  year: number
+  value: number
+}
+/** 곡선 위 마디(전환점) — 피크/골. */
+export interface DestinyLifeCurveMark {
+  age: number
+  year: number
+  kind: 'peak' | 'trough'
+}
+export interface DestinyLifeCurve {
+  /** 거시 굴곡 곡선(연 단위, value 0..1). */
+  points: DestinyLifeCurvePoint[]
+  peaks: DestinyLifeCurveMark[]
+  troughs: DestinyLifeCurveMark[]
+  /** 현재 만 나이(곡선 위 "지금" 위치). */
+  nowAge: number
 }
 
 export interface DestinyLifePattern {

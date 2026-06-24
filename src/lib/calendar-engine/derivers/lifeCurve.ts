@@ -171,13 +171,15 @@ export function buildLifeCurve(
     return f
   }
 
-  // 점성 마디 (age-table 기반) → {age, polarity}
-  const astroEvents = buildLifecycleTiming(birthYear, birthYear + span, false, undefined, now)
-    .events.map((e) => ({
-      age: e.startYear - birthYear,
-      pol: ASTRO_POLARITY[e.event] ?? 0,
-    }))
-    .filter((e) => e.pol !== 0)
+  // 점성 마디 (age-table 기반) → {age, polarity}. 실 트랜짓 시계열이 주어지면 불필요.
+  const astroEvents = opts.astroSeries
+    ? []
+    : buildLifecycleTiming(birthYear, birthYear + span, false, undefined, now)
+        .events.map((e) => ({
+          age: e.startYear - birthYear,
+          pol: ASTRO_POLARITY[e.event] ?? 0,
+        }))
+        .filter((e) => e.pol !== 0)
 
   // ── 연 단위 raw 시계열 ──
   const sajuRaw: number[] = []
@@ -294,18 +296,20 @@ const CONJ_SIGN: Record<string, number> = {
  */
 export async function computeTransitAstroSeries(
   natal: NatalContext,
-  opts: { span?: number } = {}
+  opts: { span?: number; step?: number } = {}
 ): Promise<number[]> {
   const span = opts.span ?? 90
+  // 외행성은 느려 매년 안 떠도 envelope 가 보존된다 — step 년마다 샘플 후 선형 보간해
+  // ephemeris 호출을 1/step 로 줄인다(프로덕션 비용). 기본 2년.
+  const step = Math.max(1, opts.step ?? 2)
   const birthYear = natal.input?.year
   const loc = natal.astro?.location
   const natalChart = natal.astro?.chart
   if (!birthYear || !loc || !natalChart) return new Array(span + 1).fill(0)
   const cache = createCache()
-  const series: number[] = []
-  for (let age = 0; age <= span; age++) {
-    const year = birthYear + age
-    const iso = `${year}-07-01T12:00:00.000Z`
+
+  const sampleAt = async (age: number): Promise<number> => {
+    const iso = `${birthYear + age}-07-01T12:00:00.000Z`
     let val = 0
     try {
       const transitChart = await getCachedTransitChart({
@@ -315,20 +319,37 @@ export async function computeTransitAstroSeries(
         timeZone: loc.timeZone,
         inMemoryCache: cache,
       })
-      const aspects = findTransitAspects(transitChart, natalChart)
-      for (const a of aspects) {
+      for (const a of findTransitAspects(transitChart, natalChart)) {
         if (!SLOW_TRANSIT.has(a.transitPlanet)) continue
         const w = PLANET_W[a.transitPlanet] ?? 0.5
         const pol =
-          a.type === 'conjunction'
-            ? (CONJ_SIGN[a.transitPlanet] ?? 0)
-            : (ASPECT_POL[a.type] ?? 0)
+          a.type === 'conjunction' ? (CONJ_SIGN[a.transitPlanet] ?? 0) : (ASPECT_POL[a.type] ?? 0)
         val += pol * w * (a.score ?? 0) // score = 1-orb/limit (tightness)
       }
     } catch {
-      // ephemeris 실패 시 그 해는 0
+      // ephemeris 실패 시 0
     }
-    series.push(val)
+    return val
+  }
+
+  // step 간격 샘플
+  const sampleAges: number[] = []
+  for (let age = 0; age <= span; age += step) sampleAges.push(age)
+  if (sampleAges[sampleAges.length - 1] !== span) sampleAges.push(span)
+  const sampled = await Promise.all(sampleAges.map((a) => sampleAt(a)))
+
+  // 선형 보간으로 매년 채움
+  const series: number[] = []
+  for (let age = 0; age <= span; age++) {
+    let hi = 0
+    while (hi < sampleAges.length - 1 && sampleAges[hi] < age) hi++
+    if (sampleAges[hi] === age) {
+      series.push(sampled[hi])
+    } else {
+      const lo = hi - 1
+      const t = (age - sampleAges[lo]) / (sampleAges[hi] - sampleAges[lo])
+      series.push(sampled[lo] + t * (sampled[hi] - sampled[lo]))
+    }
   }
   return series
 }

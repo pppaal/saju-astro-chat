@@ -87,7 +87,15 @@ function favorClass(favor: number, base: typeof styles): string {
 export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
   const { locale } = useI18n()
   const ko = locale === 'ko'
-  const { lifeStages, daewoon, milestones, zrSpiritChapters, zrFortuneChapters, lifePattern } =
+  const {
+    lifeStages,
+    daewoon,
+    milestones,
+    zrSpiritChapters,
+    zrFortuneChapters,
+    lifePattern,
+    lifeCurve,
+  } =
     lifetime
 
   // lifeStages 빈 배열 가드 (adapter 실패 시 깨짐 방지) — 로딩.
@@ -256,6 +264,24 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
         dominantPlain?.en ?? 'balance'
       }. It isn't fixed fate — knowing this grain just makes the walk easier.`
 
+  // ── 인생 굴곡 곡선 SVG geometry (사주 다층 + 외행성 트랜짓 중첩). ──
+  const CW = 320
+  const CH = 76
+  const PAD_X = 8
+  const PAD_TOP = 10
+  const PAD_BOT = 16
+  const curve = (() => {
+    const pts = lifeCurve?.points ?? []
+    if (pts.length < 2) return null
+    const maxAge = pts[pts.length - 1].age || 88
+    const x = (age: number) => PAD_X + (age / maxAge) * (CW - 2 * PAD_X)
+    const y = (v: number) => PAD_TOP + (1 - v) * (CH - PAD_TOP - PAD_BOT)
+    const line = pts.map((p, i) => `${i ? 'L' : 'M'}${x(p.age).toFixed(1)} ${y(p.value).toFixed(1)}`).join(' ')
+    const area = `${line} L${x(pts[pts.length - 1].age).toFixed(1)} ${CH - PAD_BOT} L${x(pts[0].age).toFixed(1)} ${CH - PAD_BOT} Z`
+    const valAt = (age: number) => pts.reduce((b, p) => (Math.abs(p.age - age) < Math.abs(b.age - age) ? p : b), pts[0]).value
+    return { pts, maxAge, x, y, line, area, valAt }
+  })()
+
   return (
     <div className={styles.lifeRoot}>
       {/* ── A. eyebrow ── */}
@@ -409,6 +435,71 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
           </div>
         )}
       </details>
+
+      {/* ── B2. 인생 굴곡 곡선 — 사주(대운·세운·충합) + 외행성 트랜짓 중첩 ── */}
+      {curve && (
+        <section className={styles.sec}>
+          <div className={styles.secH}>
+            <span className={styles.secLbl}>{ko ? '인생 굴곡' : 'The life curve'}</span>
+            <span className={styles.secLn} />
+            <span className={styles.secLat}>CURVE</span>
+          </div>
+          <svg
+            className={styles.curveSvg}
+            viewBox={`0 0 ${CW} ${CH}`}
+            preserveAspectRatio="none"
+            role="img"
+            aria-label={ko ? '인생 굴곡 곡선' : 'Life curve'}
+          >
+            <line
+              className={styles.curveMid}
+              x1={PAD_X}
+              x2={CW - PAD_X}
+              y1={curve.y(0.5)}
+              y2={curve.y(0.5)}
+            />
+            <path className={styles.curveArea} d={curve.area} />
+            <path className={styles.curveLine} d={curve.line} />
+            {lifeCurve!.troughs.map((t) => (
+              <circle
+                key={`tr-${t.age}`}
+                className={styles.curveTrough}
+                cx={curve.x(t.age)}
+                cy={curve.y(curve.valAt(t.age))}
+                r={3}
+              />
+            ))}
+            {lifeCurve!.peaks.map((p) => (
+              <circle
+                key={`pk-${p.age}`}
+                className={styles.curvePeak}
+                cx={curve.x(p.age)}
+                cy={curve.y(curve.valAt(p.age))}
+                r={3}
+              />
+            ))}
+            {lifeCurve!.nowAge >= 0 && lifeCurve!.nowAge <= curve.maxAge && (
+              <line
+                className={styles.curveNow}
+                x1={curve.x(lifeCurve!.nowAge)}
+                x2={curve.x(lifeCurve!.nowAge)}
+                y1={PAD_TOP - 4}
+                y2={CH - PAD_BOT}
+              />
+            )}
+          </svg>
+          <div className={styles.curveAxis}>
+            {[0, 20, 40, 60, 80].map((a) => (
+              <span key={a}>{a}</span>
+            ))}
+          </div>
+          <div className={styles.curveCap}>
+            {ko
+              ? '대운·세운·충합(사주)과 외행성 트랜짓(점성)을 겹쳐 본 평생 흐름 — ● 마루 ● 골, 세로선이 지금.'
+              : 'Saju cycles (daeun·year·clash) layered with outer-planet transits — ● peaks ● troughs, the line is now.'}
+          </div>
+        </section>
+      )}
 
       {/* ── C. 大運 10개 가로 인생 타임라인 (SIGNATURE — 기본 유지) ── */}
       <section className={styles.sec}>
