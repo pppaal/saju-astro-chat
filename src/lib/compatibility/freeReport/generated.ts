@@ -4,7 +4,7 @@
  * content.ts 의 베이스라인(BASE) 위에 이 값이 *덮어써진다*. 비어 있어도(생성
  * 실패/부분) 빌더는 베이스라인으로 동작한다 — 그래서 키는 모두 optional.
  * 이 파일의 prose 는 사람이 직접 손보기보다 워크플로 재실행으로 갱신한다.
- * (PILLAR_REL 은 ASCII 키로 재생성 후 한글 키로 매핑 — 충 항목은 적대적 검수 수정 반영.)
+ * (충 항목 + 100-에이전트 영한 검수 수정 반영.)
  */
 
 import type { Bi, BandCopy, SignalCopy } from "./types";
@@ -27,7 +27,7 @@ export const GENERATED: GeneratedCopy = {
   "META": {
     "intro": {
       "ko": "이 리포트는 두 사람의 사주(태어난 날이 담은 네 기둥의 이야기)와 별자리를 한 장에 겹쳐 놓고 가만히 들여다본 거예요. 동양의 결과 서양의 결이 같은 말을 하는 대목이 있다면, 그게 바로 두 사람 사이에서 또렷하게 드러나는 특징이라 볼 수 있어요. 낯선 단어가 나오면 그때그때 쉬운 뜻을 곁들였고, 더 궁금한 말은 아래 용어 풀이에서 다시 찾아볼 수 있어요.",
-      "en": "This report lays your Saju — the story held in the four pillars of your birth — and your star charts side by side on one page, and simply looks. Where the Eastern reading and the Western reading happen to say the same thing, that's usually the trait that stands out most clearly between you. Whenever an unfamiliar word comes up we've slipped in a plain meaning beside it, and you can always look it up again in the glossary below."
+      "en": "This report lays both your Saju charts — the story held in the four pillars of each birth — and both star charts side by side on one page, and simply looks. Where the Eastern reading and the Western reading happen to say the same thing, that's usually the trait that stands out most clearly between the two of you. Whenever an unfamiliar word comes up we've slipped in a plain meaning beside it, and you can always look it up again in the glossary below."
     },
     "closing": {
       "ko": "여기까지는 두 사람을 멀리서 바라본 큰 그림이에요. 이 결들이 실제로 어떤 장면에서 어떻게 피어나는지, 어느 흐름에서 더 또렷해지는지 같은 구체적인 '어떻게'와 '언제'는 상담사가 훨씬 깊이 짚어 드릴 수 있는 자리예요. 마음이 더 가닿는다면, 그 깊은 이야기 속으로 한 걸음 들어가 보셔도 좋아요.",
@@ -41,7 +41,7 @@ export const GENERATED: GeneratedCopy = {
     },
     "tension": {
       "ko": "두 사람의 차트가 서로 맞부딪히는 결이에요. 양쪽이 쉽게 물러서지 않아 불꽃이 튀기도 하지만, 그렇게 부대끼는 사이에서 서로를 더 단단하게 만들어가는, 거친 돌이 마주 갈리며 매끈해지는 듯한 단련의 기운이 함께 담겨 있어요.",
-      "en": "Your charts push against each other here. Neither side gives way easily, so sparks can fly, but in that friction there's a tempering quality too, like two rough stones grinding each other smooth over time."
+      "en": "Your charts push against each other here. Neither side gives way easily, so sparks can fly, but in that friction there's also a tempering quality that makes you both stronger, like two rough stones grinding each other smooth."
     },
     "mixed": {
       "ko": "한쪽에선 끌림이, 다른 한쪽에선 부딪힘이 함께 흐르는 입체적인 결이에요. 어떤 자리에선 신기할 만큼 잘 통하다가도 다른 자리에선 묘하게 어긋나서, 단조롭지 않고 여러 표정을 가진 관계로 보여요.",
@@ -94,7 +94,7 @@ export const GENERATED: GeneratedCopy = {
     "식신": {
       "feel": {
         "ko": "편안함·표현이 트이는 끌림",
-        "en": "an ease that loosens your words"
+        "en": "a draw toward ease, where your words come loose"
       },
       "blurb": {
         "ko": "이 사람 앞에서는 이상하게 말문이 술술 트이고, 평소 안에만 담아두던 이야기도 자연스럽게 흘러나오는 결이에요. 보통 이런 끌림은 상대가 나의 긴장을 슬며시 풀어주는 자리에 있을 때 생기는데, 곁에 있으면 마음이 편해지면서 내가 가진 솜씨나 재주가 한결 가볍게 펼쳐지곤 해요. 잘 보이려 애쓰지 않아도 본래의 내 모습이 한 톤 더 환하게 드러나는, 그런 따뜻한 끌림이에요.",
@@ -154,7 +154,7 @@ export const GENERATED: GeneratedCopy = {
     "편인": {
       "feel": {
         "ko": "직관·독특함의 끌림 (살짝 거리)",
-        "en": "Drawn to their intuition and quiet mystery"
+        "en": "Drawn to their intuition and offbeat charm, with a touch of distance"
       },
       "blurb": {
         "ko": "이 사람은 남들과 다른 시선으로 세상을 읽는 결을 가지고 있어서, 당신에게는 어딘가 신비롭고 자꾸 들여다보고 싶은 사람으로 비쳐요. 가까이 다가가도 마지막 한 뼘은 손에 다 잡히지 않는, 그 옅은 거리감이 오히려 끌림을 더 깊게 만드는 사이랍니다. 보통 이런 결은 익숙함보다 호기심으로 시작되는 인연으로 다가오곤 해요.",
@@ -262,8 +262,8 @@ export const GENERATED: GeneratedCopy = {
       "en": "This is the deepest spot in your chart together — where each person's core sense of \"this is who I am\" meets the other head-on. Your two selves (the Sun) step onto the same stage, so the way you each see the world and steer your lives lays directly over one another. One person's light and the other's gather in the same place, painting the most fundamental tone of the whole relationship together."
     },
     "Mars|Mars": {
-      "ko": "한 사람의 끌림과 추진력(화성)이 다른 사람의 끌림과 추진력(화성)과 맞닿는 자리예요. 두 사람의 속도와 열기, 무언가를 향해 달려드는 에너지가 같은 결에서 부딪히는, 말하자면 둘 다 액셀을 밟는 곳이라 관계의 박자와 추진력이 가장 선명하게 드러나는 자리예요.",
-      "en": "This is where one person's spark and drive (Mars) meets the other's spark and drive (Mars). It's the place where your tempo, your heat, and the way you both lunge toward what you want come into contact, so to speak, the spot where you're both on the gas, which is why the rhythm and momentum of the relationship show up most vividly right here."
+      "ko": "한 사람의 욕망과 추진력(화성)이 다른 사람의 욕망과 추진력(화성)과 맞닿는 자리예요. 두 사람의 속도와 열기, 무언가를 향해 달려드는 에너지가 같은 결에서 부딪히는, 말하자면 둘 다 액셀을 밟는 곳이라 관계의 박자와 추진력이 가장 선명하게 드러나는 자리예요.",
+      "en": "This is where one person's desire and drive (Mars) meets the other's desire and drive (Mars). It's the place where your tempo, your heat, and the way you both lunge toward what you want come into contact, so to speak, the spot where you're both on the gas, which is why the rhythm and momentum of the relationship show up most vividly right here."
     },
     "Moon|Saturn": {
       "ko": "한 사람의 마음의 리듬, 그러니까 기분이 차오르고 가라앉는 정서의 결이, 다른 사람이 관계에 가져오는 무게와 약속(토성)의 결과 맞닿는 자리예요. 한쪽은 그날그날의 감정을 흐르듯 느끼고, 다른 쪽은 그 감정을 진지하게 떠받치고 지키려는 쪽이라, 마음의 온도와 책임의 무게가 서로를 시험하듯 또렷이 비추는 결이에요. 궁합에서 보면 가벼운 설렘만이 아니라 이 관계가 얼마나 단단해질 수 있는지를 건드리는 축이랍니다.",
@@ -295,7 +295,7 @@ export const GENERATED: GeneratedCopy = {
     },
     "Moon|Uranus": {
       "ko": "한 사람의 마음이 흐르는 리듬과 다른 사람이 품은 예측 못 할 설렘이 마주 닿는 자리예요. 잔잔히 흐르던 감정(달)의 결에 갑자기 창문이 열리듯 새로운 바람(천왕성)이 불어드는, 익숙함과 낯섦이 한 호흡에 섞이는 결이라고 보통 말해요. 둘 사이의 정서가 늘 같은 자리에 머물지 않고 조금씩 흔들리고 새로워지는, 마음의 안정과 변화가 동시에 건드려지는 축이에요.",
-      "en": "This is where one person's inner emotional rhythm meets the other's knack for the unexpected. People often describe it as a quietly flowing feeling (the Moon) suddenly having a window thrown open, a fresh gust (Uranus) blowing in so that the familiar and the surprising mingle in a single breath. It's an axis where the emotion between you never quite settles in one place but keeps shifting and renewing itself, touching both the steadiness and the restlessness of the heart at once."
+      "en": "This is where one person's inner emotional rhythm meets the other's knack for the unexpected. People often describe it as a quietly flowing feeling (the Moon) suddenly having a window thrown open, a fresh gust (Uranus) blowing in so that the familiar and the surprising mingle in a single breath. It's an axis where the emotion between you never quite settles in one place but keeps shifting and renewing itself, touching both the steadiness and the changeability of the heart at once."
     },
     "Neptune|Venus": {
       "ko": "한 사람의 꿈꾸고 이상화하는 마음과 다른 사람의 사랑하는 방식, 끌리는 취향(애정·금성)이 맞물리는 자리예요. 보통 이런 결은 상대의 매력이 내 안의 가장 말랑하고 낭만적인 상상을 건드리고, 서로를 실제보다 조금 반짝이게 바라보게 되는 분위기로 흘러요. 환상과 설렘, 그리고 \"이 사람을 어떻게 사랑하고 싶은가\"가 한자리에서 만나는, 마음의 무드를 정하는 결이에요.",
@@ -382,7 +382,7 @@ export const GENERATED: GeneratedCopy = {
     "천간충": {
       "feel": {
         "ko": "또렷이 부딪히는 사이",
-        "en": "Sharply aware of each other"
+        "en": "Sharply colliding with each other"
       },
       "blurb": {
         "ko": "두 사람은 생각하는 방식도, 세상을 대하는 태도도 정면으로 다른 자리에 서요. 그래서 대화하다 보면 의견이 부딪히고 묘한 거리감이 느껴지기도 하는데, 신기하게도 서로를 흐릿하게 지나치는 법이 없어요. 안 맞아서가 아니라, 너무 또렷이 의식하기 때문에 자꾸 서로의 윤곽이 선명해지는 관계예요.",
@@ -452,7 +452,7 @@ export const GENERATED: GeneratedCopy = {
     "해": {
       "feel": {
         "ko": "반 박자 어긋난 결",
-        "en": "Half a beat off"
+        "en": "A grain that's half a beat off"
       },
       "blurb": {
         "ko": "둘 사이엔 부딪치는 큰 소리는 없는데, 어쩐지 발이 딱 맞지 않는 순간이 종종 찾아와요. 같은 곳을 보면서도 도착하는 속도가 미묘하게 달라서, 한 사람이 멈출 때 다른 사람은 이미 한 걸음 더 가 있곤 해요. 싫어서가 아니라, 서로의 박자를 익히는 데 시간이 조금 더 걸리는 결이에요.",
@@ -488,7 +488,7 @@ export const GENERATED: GeneratedCopy = {
     "eastern_chung": {
       "what": {
         "ko": "사주 글자끼리 부딪히는 '충'이 적어 잔잔한 정도",
-        "en": "How calm things stay, with few places where the pillars knock against each other"
+        "en": "Calm and steady, with few places where the pillars knock against each other"
       },
       "high": {
         "ko": "서로의 글자가 부딪히며 튀는 자리가 거의 없는 잔잔한 결이라, 함께 있는 시간이 큰 파도 없이 고요한 물처럼 흘러가는 그림으로 보여요.",
@@ -502,7 +502,7 @@ export const GENERATED: GeneratedCopy = {
     "elements_match": {
       "what": {
         "ko": "서로에게 모자란 기운을 채워주는 오행(다섯 기운)의 보완 정도",
-        "en": "How well your five elements fill in what the other is short on"
+        "en": "How well your five elements fill in what each other is short on"
       },
       "high": {
         "ko": "한 사람에게 비어 있던 기운을 다른 사람이 자연스레 채워주는 결이라, 둘이 모이면 빈칸이 메워진 듯 한결 둥글어지는 그림이 보여요.",
@@ -516,7 +516,7 @@ export const GENERATED: GeneratedCopy = {
     "synastry_harmonic": {
       "what": {
         "ko": "두 사람 별자리 행성끼리 부드럽게 흐르며 어우러지는 '조화'의 정도",
-        "en": "How smoothly your charts' planets flow and blend together"
+        "en": "How much harmony there is in the way your charts' planets flow and blend together"
       },
       "high": {
         "ko": "서로의 행성들이 부드럽게 손을 내미는 자리가 많은 결이라, 대화든 침묵이든 한 곡의 음악처럼 흐름이 잘 이어지는 느낌이 감돌곤 해요.",
@@ -530,7 +530,7 @@ export const GENERATED: GeneratedCopy = {
     "synastry_tension": {
       "what": {
         "ko": "별자리 행성 사이의 긴장이 적어 마음이 편안한 정도",
-        "en": "How easy it feels, with little tension between your charts' planets"
+        "en": "How at ease it feels, with little tension between your planets"
       },
       "high": {
         "ko": "행성 사이에 팽팽하게 당겨지는 자리가 거의 없는 결이라, 곁에 있어도 어깨에 힘이 빠지고 마음이 느슨해지는 편안한 그림으로 보여요.",
