@@ -296,6 +296,26 @@ describe('buildFreeCompatNarrative', () => {
     expect(tailHits).toBe(1)
   })
 
+  it('keeps both-direction overlays on the same house number (no cross-direction drop)', () => {
+    const r: CompatReport = {
+      synView: {
+        aspects: [],
+        // 같은 5번 방에 A→B(금성), B→A(화성) 둘 다 — 방향별로 따로 세야 둘 다 남는다.
+        overlaysAtoB: [{ planet: '금성', planetKey: 'Venus', house: 5, meaning: '' }],
+        overlaysBtoA: [{ planet: '화성', planetKey: 'Mars', house: 5, meaning: '' }],
+        harmony: 0,
+        tension: 0,
+      },
+      dayMaster: null,
+      spouseStars: [],
+      pillarRelations: [],
+    }
+    const view = buildFreeCompatNarrative(r, { labelA: 'A', labelB: 'B', lang: 'ko' })
+    const all = view.themes.flatMap((th) => th.paragraphs).join('\n')
+    expect(all).toContain('A의 금성')
+    expect(all).toContain('B의 화성')
+  })
+
   it('omits sections whose signals are absent', () => {
     const bare: CompatReport = {
       synView: null,

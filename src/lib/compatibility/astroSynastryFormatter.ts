@@ -139,9 +139,6 @@ const SIGNS_EN = [
 // 누출 방지(예: Aquarius → 물병자리). 이미 한글이면 그대로 통과.
 const signKo = (s: string | null | undefined) => (s ? (SIGN_KO[s] ?? s) : '?')
 
-// 하우스 오버레이는 개인 행성만 의미 있음. 외행성은 동세대 공통이라 노이즈.
-const PERSONAL_OVERLAY_KO = new Set(['태양', '달', '수성', '금성', '화성'])
-
 const pko = (name: string) => PLANET_KO[name] ?? PLANET_LABEL[name] ?? name
 
 // 개인 행성·앵글 — synastry에서 의미 있는 것. 나머지(목성~명왕성·노드·

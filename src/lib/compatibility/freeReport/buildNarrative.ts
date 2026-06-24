@@ -607,11 +607,13 @@ export function buildFreeCompatNarrative(
       })
     }
     // 오버레이 — 누구의 어느 행성이 어느 방에 들어왔는지(행성 정체 추가). 방당 1회.
-    const seenHouse = new Set<number>()
+    // 단, 방향(A→B / B→A)별로 따로 센다 — 같은 방 번호라도 서로 다른 신호라
+    // 한 세트로 묶으면 한쪽이 통째로 누락된다(누락 0 위반).
     for (const [list, viewer] of [
       [report.synView.overlaysAtoB, labelA] as const,
       [report.synView.overlaysBtoA, labelB] as const,
     ]) {
+      const seenHouse = new Set<number>()
       for (const o of list) {
         if (seenHouse.has(o.house)) continue
         seenHouse.add(o.house)
