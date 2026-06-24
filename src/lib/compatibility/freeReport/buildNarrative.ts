@@ -236,6 +236,29 @@ function aspectTheme(asp: SynAspectView): ThemeId {
 // 테마별 한 줄 훅 — 질문에 결론부터 답하는 단정 한 줄. 신호 polarity 합으로
 // pos(끌림 우세)/neg(마찰 우세)/mid(반반) 중 선택. 점신·포스텔러식 "콕 집어 답"을
 // 추상 서술 앞에 세워, 길게 읽지 않아도 답이 먼저 보이게 한다.
+// 테마별 점수 차원 라벨 — "끌림 82"의 앞 단어. (friction 만 "마찰" = 높을수록 충돌↑)
+const SCORE_CAPTION: Record<ThemeId, Bi> = {
+  spark: { ko: '끌림', en: 'Spark' },
+  sex: { ko: '케미', en: 'Chemistry' },
+  talk: { ko: '소통', en: 'Talk' },
+  love: { ko: '애정', en: 'Affection' },
+  friction: { ko: '마찰', en: 'Friction' },
+  life: { ko: '편안함', en: 'Ease' },
+  money: { ko: '가치관', en: 'Values' },
+  future: { ko: '미래', en: 'Future' },
+}
+// 테마 신호들 → 0~100 점수. friction 은 "충돌 강도"(셀수록 ↑), 나머지는 끌림/조화 강도.
+// 정규화하지 않고 신호 크기(net/strength)에 비례시켜 테마·커플마다 점수가 벌어지게 한다.
+function themeScore(id: ThemeId, items: { pol: number }[]): number {
+  const clamp = (n: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, Math.round(n)))
+  if (id === 'friction') {
+    const strength = items.reduce((s, it) => s + Math.abs(it.pol), 0)
+    return clamp(48 + strength * 1.7, 45, 92)
+  }
+  const net = items.reduce((s, it) => s + it.pol, 0) // 끌림(+)/마찰(−) 가중합
+  return clamp(57 + net * 2.5, 34, 96)
+}
+
 type HookKey = 'pos' | 'neg' | 'mid'
 const THEME_HOOK: Record<ThemeId, Record<HookKey, Bi>> = {
   spark: {
@@ -752,7 +775,15 @@ export function buildFreeCompatNarrative(
     const net = items.reduce((s, it) => s + it.pol, 0)
     const hookKey: HookKey = net > 0.5 ? 'pos' : net < -0.5 ? 'neg' : 'mid'
     const hook = t(THEME_HOOK[m.id][hookKey])
-    return { id: m.id, icon: m.icon, title: t(m.title), hook, paragraphs }
+    return {
+      id: m.id,
+      icon: m.icon,
+      title: t(m.title),
+      hook,
+      score: themeScore(m.id, items),
+      scoreCaption: t(SCORE_CAPTION[m.id]),
+      paragraphs,
+    }
   }).filter((th) => th.paragraphs.length > 0)
 
   const glossary: FreeReportGlossaryEntry[] = COMPAT_GLOSSARY.map((g) => ({

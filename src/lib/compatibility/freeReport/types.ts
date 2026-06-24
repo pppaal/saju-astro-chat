@@ -42,6 +42,10 @@ export interface FreeReportTheme {
   title: string
   /** 한 줄 단정 훅 — 질문에 바로 답하는 punchy 한 줄(신호 종합 polarity 로 선택). */
   hook?: string
+  /** 0~100 점수 — 점신·포스텔러식 스캔용. (테마 차원의 강도/조화) */
+  score?: number
+  /** 점수 옆 차원 라벨 — 예: "끌림", "소통", "마찰". */
+  scoreCaption?: string
   paragraphs: string[]
 }
 

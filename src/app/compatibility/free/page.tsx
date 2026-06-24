@@ -592,7 +592,25 @@ function ThemeCard({ theme, isKo }: { theme: FreeReportTheme; isKo: boolean }) {
           </span>
           <h2 className={s.secTitle}>{theme.title}</h2>
         </span>
+        {typeof theme.score === 'number' ? (
+          <span className={s.themeScore}>
+            <span className={s.themeScoreCap}>{theme.scoreCaption}</span>
+            <span
+              className={`${s.themeScoreNum} ${theme.id === 'friction' ? s.themeScoreNumClash : ''}`}
+            >
+              {theme.score}
+            </span>
+          </span>
+        ) : null}
       </div>
+      {typeof theme.score === 'number' ? (
+        <div className={s.themeBar} aria-hidden="true">
+          <div
+            className={`${s.themeBarFill} ${theme.id === 'friction' ? s.themeBarFillClash : ''}`}
+            style={{ width: `${theme.score}%` }}
+          />
+        </div>
+      ) : null}
       {theme.hook ? <p className={s.themeHook}>{theme.hook}</p> : null}
       {top.map((p, i) => (
         <p key={i} className={s.para}>

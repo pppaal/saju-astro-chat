@@ -357,6 +357,46 @@
 
 /* 용어 풀이 */
 /* 테마 한 줄 훅 — 질문에 결론부터 답하는 단정 한 줄. 골드 굵은 글씨로 먼저 눈에. */
+/* 테마 점수 칩 — 점신·포스텔러식 스캔용 "끌림 82". 제목 줄 오른쪽 끝. */
+.themeScore {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 5px;
+  white-space: nowrap;
+}
+.themeScoreCap {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--ink-3);
+}
+.themeScoreNum {
+  font-size: 19px;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--gold);
+}
+/* 마찰(어디서 부딪힐까)은 "좋은 점수"가 아니라 충돌 강도 — 로즈로 구분. */
+.themeScoreNumClash {
+  color: var(--rose);
+}
+/* 점수 막대 — 한눈에 보이는 게이지. */
+.themeBar {
+  height: 5px;
+  border-radius: 999px;
+  background: var(--gold-wash);
+  overflow: hidden;
+  margin: 0 0 12px;
+}
+.themeBarFill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--gold-soft), var(--gold));
+}
+.themeBarFillClash {
+  background: linear-gradient(90deg, rgba(194, 84, 138, 0.55), var(--rose));
+}
 .themeHook {
   margin: 0 0 10px;
   font-size: 15px;

@@ -293,8 +293,14 @@ describe('buildFreeCompatNarrative', () => {
     const view = buildFreeCompatNarrative(r, { labelA: 'A', labelB: 'B', lang: 'ko' })
     const talk = view.themes.find((th) => th.id === 'talk')!
     expect(talk.hook).toBe('말 척척 통하는 사이 — 대화가 안 끊겨.') // 끌림 우세 → pos 훅
+    // 점수 칩 — 0~100 숫자 + 차원 라벨
+    expect(typeof talk.score).toBe('number')
+    expect(talk.score!).toBeGreaterThanOrEqual(0)
+    expect(talk.score!).toBeLessThanOrEqual(100)
+    expect(talk.scoreCaption).toBe('소통')
     const friction = view.themes.find((th) => th.id === 'friction')!
     expect(friction.hook).toBe('주로 자존심·주도권에서 부딪혀.') // 마찰만 → neg 훅
+    expect(friction.scoreCaption).toBe('마찰')
     // 기계적 기하 꼬리("물 흐르듯…", "서로 각을 세워…")는 더 이상 안 붙는다
     const all = view.themes.flatMap((th) => th.paragraphs).join('\n')
     expect(all).not.toContain('물 흐르듯 힘 안 들이고')
