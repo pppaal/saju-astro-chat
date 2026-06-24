@@ -22,6 +22,8 @@ export function createPublicStreamGuard(options: {
   requireCredits?: boolean
   creditType?: CreditType
   creditAmount?: number
+  /** Deny on Redis outage instead of fail-open — set on LLM/Claude routes. */
+  failClosed?: boolean
 }): MiddlewareOptions {
   return {
     route: options.route,
@@ -29,6 +31,7 @@ export function createPublicStreamGuard(options: {
     rateLimit: {
       limit: options.limit || RATE_LIMIT_PRESETS.DATA_READ.limit,
       windowSeconds: options.windowSeconds || RATE_LIMIT_PRESETS.DATA_READ.windowSeconds,
+      failClosed: options.failClosed,
     },
     credits: options.requireCredits
       ? {
@@ -52,6 +55,8 @@ export function createAuthenticatedGuard(options: {
   requireCredits?: boolean
   creditType?: CreditType
   creditAmount?: number
+  /** Deny on Redis outage instead of fail-open — set on LLM/Claude routes. */
+  failClosed?: boolean
 }): MiddlewareOptions {
   return {
     route: options.route,
@@ -59,6 +64,7 @@ export function createAuthenticatedGuard(options: {
     rateLimit: {
       limit: options.limit || 60,
       windowSeconds: options.windowSeconds || 60,
+      failClosed: options.failClosed,
     },
     credits: options.requireCredits
       ? {

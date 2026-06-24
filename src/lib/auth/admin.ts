@@ -69,27 +69,6 @@ export async function isAdminUser(userId: string, sessionEmail?: string | null):
   return false
 }
 
-// ✨ NEW: Role과 권한 레벨 체크
-export async function checkAdminRole(
-  userId: string,
-  requiredRole: 'admin' | 'superadmin' = 'admin'
-): Promise<boolean> {
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: { role: true },
-  })
-
-  if (!user) {
-    return false
-  }
-
-  if (requiredRole === 'superadmin') {
-    return user.role === 'superadmin'
-  }
-
-  return user.role === 'admin' || user.role === 'superadmin'
-}
-
 export async function requireAdminSession() {
   const session = await getServerSession()
   if (!session?.user?.id) {
