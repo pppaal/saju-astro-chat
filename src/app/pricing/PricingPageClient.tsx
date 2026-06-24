@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useCallback, useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
 import { useI18n } from '@/i18n/I18nProvider'
+import EngineMoatBanner from '@/components/marketing/EngineMoatBanner'
 import { useRequireLogin } from '@/contexts/LoginModalContext'
 import { isPlaceholderTranslation, toSafeFallbackText } from '@/i18n/utils'
 import BackButton from '@/components/ui/BackButton'
@@ -309,6 +310,9 @@ export default function PricingPageClient({ initialLocale, initialCopy }: Pricin
             ))}
           </div>
         </section>
+
+        {/* 해자 — 결제 결정 직전에 "왜 ChatGPT보다 나은가"를 한눈에 */}
+        <EngineMoatBanner />
 
         {/* Credit Packs */}
         <section className={styles.creditSection}>

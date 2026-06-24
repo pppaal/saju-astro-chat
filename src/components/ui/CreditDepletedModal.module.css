@@ -361,3 +361,77 @@
     transform: none;
   }
 }
+
+/* 첫구매 한정 스타터팩 인라인 오퍼 — /pricing 평면그리드로 보내지 않고
+   크레딧 소진 피크 순간에 바로 전환시키는 미끼 카드. */
+.starterOffer {
+  position: relative;
+  margin: 4px 0 14px;
+  padding: 14px 16px 13px;
+  border: 1px solid rgba(212, 175, 55, 0.55);
+  border-radius: 14px;
+  background: linear-gradient(135deg, rgba(212, 175, 55, 0.14), rgba(212, 175, 55, 0.04));
+}
+.starterBadge {
+  position: absolute;
+  top: -10px;
+  left: 14px;
+  padding: 3px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: #1a1205;
+  background: linear-gradient(135deg, #f3d574, #d4af37);
+  border-radius: 999px;
+  box-shadow: 0 2px 6px rgba(212, 175, 55, 0.35);
+}
+.starterBody {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.starterInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.starterTitle {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--ds-light-text, #1a1205);
+}
+.starterMeta {
+  font-size: 12px;
+  opacity: 0.75;
+}
+.starterButton {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 11px 18px;
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+  color: #1a1205;
+  background: linear-gradient(135deg, #f3d574, #d4af37);
+  border: 1px solid #d4af37;
+  border-radius: 11px;
+  cursor: pointer;
+  transition:
+    filter 0.16s ease,
+    transform 0.1s ease;
+}
+.starterButton:hover:not(:disabled) {
+  filter: brightness(1.05);
+}
+.starterButton:active:not(:disabled) {
+  transform: scale(0.98);
+}
+.starterButton:disabled {
+  opacity: 0.6;
+  cursor: default;
+}

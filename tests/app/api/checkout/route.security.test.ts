@@ -86,11 +86,16 @@ vi.mock('@/lib/auth/publicToken', () => ({
   requirePublicToken: vi.fn(() => ({ valid: true })),
 }))
 
+vi.mock('@/lib/credits/starterPack', () => ({
+  isStarterEligible: vi.fn(() => Promise.resolve(true)),
+}))
+
 // ---------- imports ----------
 import { POST } from '@/app/api/checkout/route'
 import { getServerSession } from '@/lib/auth/session'
 import { rateLimit } from '@/lib/rateLimit'
 import { getCreditPackPriceId, allowedCreditPackIds } from '@/lib/payments/prices'
+import { isStarterEligible } from '@/lib/credits/starterPack'
 
 describe('/api/checkout - Security Tests', () => {
   const originalEnv = process.env
@@ -334,6 +339,44 @@ describe('/api/checkout - Security Tests', () => {
             creditPack: 'mini',
             userId: 'user-123',
           }),
+        }),
+        expect.any(Object)
+      )
+    })
+
+    it('rejects starter pack when user is not first-purchase eligible', async () => {
+      vi.mocked(allowedCreditPackIds).mockReturnValue(['price_pack_starter', 'price_pack_mini'])
+      vi.mocked(isStarterEligible).mockResolvedValue(false)
+
+      const req = new NextRequest('http://localhost:3000/api/checkout', {
+        method: 'POST',
+        body: JSON.stringify({ creditPack: 'starter' }),
+      })
+
+      const response = await POST(req)
+      const data = await response.json()
+
+      expect(response.status).toBe(400)
+      expect(extractErrorMessage(data)).toContain('starter_not_eligible')
+      // 자격 없으면 Stripe 세션 자체를 만들지 않는다(fail-safe).
+      expect(mockStripeCreate).not.toHaveBeenCalled()
+    })
+
+    it('allows starter pack checkout for an eligible first-time buyer', async () => {
+      vi.mocked(allowedCreditPackIds).mockReturnValue(['price_pack_starter', 'price_pack_mini'])
+      vi.mocked(isStarterEligible).mockResolvedValue(true)
+
+      const req = new NextRequest('http://localhost:3000/api/checkout', {
+        method: 'POST',
+        body: JSON.stringify({ creditPack: 'starter' }),
+      })
+
+      const response = await POST(req)
+      expect(response.status).toBe(200)
+      expect(mockStripeCreate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          line_items: [{ price: 'price_pack_starter', quantity: 1 }],
+          metadata: expect.objectContaining({ creditPack: 'starter', userId: 'user-123' }),
         }),
         expect.any(Object)
       )
