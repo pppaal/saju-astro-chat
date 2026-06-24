@@ -163,6 +163,12 @@ const CATEGORY_MEANING: Record<string, BiLabel> = {
     en: 'your rhythm between outward and inward',
   },
 }
+
+// 카르마/성장 축은 resonant·tension 같은 '톤'이 아니라 평생 숙제 축이라, 톤 막대·
+// 톤별 조언·바이럴 요약에서 모두 빼야 한다. cross row 의 `karmaAxis` 플래그는
+// 매칭 분기에서만 켜져 중립 카르마 행을 놓치므로, 카테고리 기반으로 일관 판정한다.
+const KARMA_CATEGORIES = new Set(['공망/카르마', '성장 방향', 'Void / Karma', 'Growth Direction'])
+const isKarmaRow = (r: { category: string }) => KARMA_CATEGORIES.has(r.category)
 // 카테고리 라벨(이미 lang 해석됨) → 평어 한 줄. 매칭 없으면 빈 문자열.
 const categoryMeaning = (category: string, lang: Lang): string =>
   CATEGORY_MEANING[category]?.[lang] ?? ''
@@ -564,7 +570,7 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
     ascTrait: A.ascendant.sign ? (SIGN_TRAIT[abbr(A.ascendant.sign)]?.[lang] ?? null) : null,
     strengths: viralStrengths,
     resonant: (cross?.rows ?? [])
-      .filter((r) => r.tone === 'resonant' && !r.karmaAxis)
+      .filter((r) => r.tone === 'resonant' && !isKarmaRow(r))
       .map((r) => r.category),
     yongsinElement: S.yongsin.primary,
     lang,
@@ -593,7 +599,7 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
         {(() => {
           const counts = { resonant: 0, complement: 0, tension: 0, neutral: 0 }
           cross.rows.forEach((r) => {
-            if (r.karmaAxis) return
+            if (isKarmaRow(r)) return
             counts[r.tone]++
           })
           const segs = (['resonant', 'complement', 'tension', 'neutral'] as const).filter(
@@ -675,14 +681,13 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
         })()}
         {/* 💡 실천 — 진단을 처방으로. */}
         {(() => {
-          const KARMA = new Set(['공망/카르마', '성장 방향', 'Void / Karma', 'Growth Direction'])
           const reson = cross.rows
-            .filter((r) => r.tone === 'resonant' && !KARMA.has(r.category))
+            .filter((r) => r.tone === 'resonant' && !isKarmaRow(r))
             .map((r) => r.category)
           const tens = cross.rows
-            .filter((r) => r.tone === 'tension' && !KARMA.has(r.category))
+            .filter((r) => r.tone === 'tension' && !isKarmaRow(r))
             .map((r) => r.category)
-          const karma = cross.rows.filter((r) => KARMA.has(r.category)).map((r) => r.category)
+          const karma = cross.rows.filter((r) => isKarmaRow(r)).map((r) => r.category)
           return (
             <div className={s.crossAdvice}>
               <div className={s.crossAdviceHead}>
