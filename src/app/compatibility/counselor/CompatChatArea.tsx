@@ -7,7 +7,8 @@
 import React from 'react'
 import ChatBubbleContent from '@/components/chat/ChatBubbleContent'
 import { FollowUpChips } from '@/components/chat/FollowUpChips'
-import { ChatInputArea } from '@/components/destiny-map/chat-panels'
+import { ChatInputArea, DataSourceToggles } from '@/components/destiny-map/chat-panels'
+import type { DestinySources } from '@/components/destiny-map/chat-types'
 import type { useClarifierCard } from '@/hooks/useClarifierCard'
 import styles from './compatibility-counselor.module.css'
 import type { ChatMessage } from './types'
@@ -21,6 +22,9 @@ interface CompatChatAreaProps {
   followUpQuestions: string[]
   input: string
   onInputChange: (value: string) => void
+  // 이번 답변에 넣을 시너스트리 도메인(사주/점성 체크박스) — 운명상담사와 동일 토글.
+  sources: DestinySources
+  onChangeSources: (next: DestinySources) => void
   sendMessage: (text?: string) => Promise<void>
   retryLastAnswer: () => void
   clarifier: Pick<ReturnType<typeof useClarifierCard>, 'buttonProps' | 'buttonLabel'>
@@ -47,6 +51,8 @@ export function CompatChatArea({
   followUpQuestions,
   input,
   onInputChange,
+  sources,
+  onChangeSources,
   sendMessage,
   retryLastAnswer,
   clarifier,
@@ -210,6 +216,15 @@ export function CompatChatArea({
           운명 상담사처럼 max-width 860px 로 가운데 정렬 — 안 그러면 입력창이
           chatWrapper 전체 폭으로 가로로 길게 퍼진다(궁합만 넓던 회귀). */}
       <div className={styles.inputWrap}>
+        {/* 데이터 소스 체크박스 — 이번 답변에 사주/점성 시너스트리 중 무엇을
+            넣을지 고른다(운명상담사와 동일 컴포넌트). 최소 하나는 항상 켜짐. */}
+        <DataSourceToggles
+          sources={sources}
+          onChange={onChangeSources}
+          lang={locale}
+          disabled={isLoading}
+          theme="light"
+        />
         <ChatInputArea
           input={input}
           loading={isLoading}
