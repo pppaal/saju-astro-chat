@@ -159,8 +159,12 @@ export function toLifeStages(
       }
     }
     const parsed = parseAgeRange(phase.ageRange)
-    const tone = deriveToneFromText(phase.textKo)
-    const toneEn = deriveToneFromText(phase.textEn)
+    // 헤드라인 톤 = 운세 톤(평이). lifetimeFlow 가 분리 baked 한 toneKo/toneEn 을
+    // 직접 쓴다. 옛 deriveToneFromText(textKo 역파싱)는 첫 본문 문장을 톤으로
+    // 오추출하고 em-dash 절을 잘라먹어(감사 BUG-1/BUG-2) 폐기. 구버전 데이터
+    // 호환을 위해 새 필드가 없을 때만 폴백.
+    const tone = phase.toneKo ?? deriveToneFromText(phase.textKo)
+    const toneEn = phase.toneEn ?? deriveToneFromText(phase.textEn)
     // 4단계 *전부* detail 을 채운다 — 데이터(daeunLine/relationLine/외행성/신살/
     // 12운성)는 deriveLifetimeFlow 가 모든 단계에 대해 이미 만들어 넘긴다. 예전엔
     // phase.current 단계만 펼치고 나머지를 버려, 프리미엄의 "인생 전체 흐름"(4단계
@@ -168,13 +172,15 @@ export function toLifeStages(
     // body/bodyEn 양 언어 병행 — KO/EN 라인을 각각 모아 클라이언트가 토글로 고른다.
     const detail: DestinypalLifeStageDetail | null = {
       daeunText: phase.daeunLine,
+      // body[0] = 서술 본문(narrative) — 운세 톤(headline)을 제외해 중복 없음
+      // (감사 BUG-1). narrativeKo 가 없으면(구버전) textKo 폴백.
       body: [
-        phase.textKo,
+        phase.narrativeKo ?? phase.textKo,
         ...(phase.relationLine ? [phase.relationLine] : []),
         ...(phase.twelveStageLine ? [phase.twelveStageLine] : []),
       ],
       bodyEn: [
-        phase.textEn,
+        phase.narrativeEn ?? phase.textEn,
         ...(phase.relationLineEn ? [phase.relationLineEn] : []),
         ...(phase.twelveStageLineEn ? [phase.twelveStageLineEn] : []),
       ],

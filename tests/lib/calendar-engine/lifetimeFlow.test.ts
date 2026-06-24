@@ -243,9 +243,11 @@ describe('deriveLifetimeFlow', () => {
       })
       const r = deriveLifetimeFlow(n)!
       const young = r.phases.find((p) => p.label === '청년기')!
-      expect(young.shinsalLine).toContain('천을귀인 활성')
+      expect(young.shinsalLine).toContain('천을귀인 기운')
       expect(young.shinsalLine).toContain('도움·우호적 지원 시기')
-      expect(young.shinsalLine).toContain('본명 일지')
+      // 평이 우선: raw 간지 메커닉(대운/본명 위치 + 한자)을 surface 에서 제거(감사 BUG-3)
+      expect(young.shinsalLine).not.toMatch(/[一-鿿]/)
+      expect(young.shinsalLine).not.toContain('본명')
     })
 
     it('신살 target 이 대운 천간과 일치해도 활성 (stem 분기)', () => {
@@ -255,8 +257,9 @@ describe('deriveLifetimeFlow', () => {
       })
       const r = deriveLifetimeFlow(n)!
       const young = r.phases.find((p) => p.label === '청년기')!
-      expect(young.shinsalLine).toContain('문창귀인 활성')
-      expect(young.shinsalLine).toContain('월간')
+      expect(young.shinsalLine).toContain('문창귀인 기운')
+      // 메커닉(위치 라벨 + 한자) 제거됨 — 평이 의미만
+      expect(young.shinsalLine).not.toMatch(/[一-鿿]/)
     })
 
     it('매핑 테이블에 없는 kind 는 "${kind} 발현" 폴백', () => {
@@ -265,7 +268,7 @@ describe('deriveLifetimeFlow', () => {
       })
       const r = deriveLifetimeFlow(n)!
       const young = r.phases.find((p) => p.label === '청년기')!
-      expect(young.shinsalLine).toContain('괴강 활성')
+      expect(young.shinsalLine).toContain('괴강 기운')
       expect(young.shinsalLine).toContain('괴강 발현')
     })
 
@@ -481,8 +484,8 @@ describe('deriveLifetimeFlow', () => {
       })
       const r = deriveLifetimeFlow(n)!
       const young = r.phases.find((p) => p.label === '청년기')!
-      expect(young.shinsalLine).toContain('천을귀인 활성')
-      expect(young.shinsalLineEn).toContain('Cheoneul Gwiin (Nobleman) active')
+      expect(young.shinsalLine).toContain('천을귀인 기운')
+      expect(young.shinsalLineEn).toContain('Cheoneul Gwiin (Nobleman)')
       expect(young.shinsalLineEn).not.toMatch(/[가-힣]/)
     })
 
@@ -578,7 +581,7 @@ describe('deriveLifetimeFlow', () => {
       })
       const r = deriveLifetimeFlow(n, 'en')!
       const young = r.phases.find((p) => p.label === 'Young adulthood')!
-      expect(young.shinsalLine).toContain('Cheoneul Gwiin (Nobleman) active')
+      expect(young.shinsalLine).toContain('Cheoneul Gwiin (Nobleman)')
       expect(young.shinsalLine).toContain('supportive helpers')
     })
 
