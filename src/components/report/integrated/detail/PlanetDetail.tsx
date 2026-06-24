@@ -79,7 +79,7 @@ function BodyRow({
   const label = lang === 'en' ? b.name : b.ko
   const read = buildRead(label, b.sign, b.house, lang)
   // 코어가 없으면(예: 노드) hover 문자열로 폴백 — 비면 본문 생략.
-  const fallback = core ? '' : planetHover(b.name, lang)
+  const fallback = core ? '' : planetHover(b.name, lang, isMinor)
 
   return (
     <div className={s.row}>

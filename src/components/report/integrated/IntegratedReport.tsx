@@ -250,7 +250,15 @@ function Pentagon({ fe }: { fe: ReportData['saju']['fiveElements'] }) {
 }
 
 // ── 천궁도 휠 ───────────────────────────────────────────────────────────
-function Wheel({ astro, lang }: { astro: ReportData['astro']; lang: Lang }) {
+function Wheel({
+  astro,
+  lang,
+  isMinor = false,
+}: {
+  astro: ReportData['astro']
+  lang: Lang
+  isMinor?: boolean
+}) {
   const SZ = 360,
     cx = SZ / 2,
     cy = SZ / 2
@@ -366,7 +374,7 @@ function Wheel({ astro, lang }: { astro: ReportData['astro']; lang: Lang }) {
         const [px, py] = polar(cx, cy, rPlanet, screen(p.lon))
         return (
           <g key={p.name}>
-            <title>{planetHover(p.name, lang)}</title>
+            <title>{planetHover(p.name, lang, isMinor)}</title>
             <circle
               cx={px}
               cy={py}
@@ -1123,7 +1131,7 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
           <Explain section="s03" lang={lang} />
           <div className={s.gridChart}>
             <div className={`${s.card} ${s.wheelCard}`}>
-              <Wheel astro={A} lang={lang} />
+              <Wheel astro={A} lang={lang} isMinor={isMinor} />
               <p className={s.wheelCaption}>
                 {lang === 'en'
                   ? 'A round map of the sky at the moment you were born. The outer rim is the 12 zodiac signs, the dots inside are the planets, and the lines connect planets that influence each other.'
@@ -1144,7 +1152,7 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
                         <tr
                           key={p.name}
                           title={[
-                            planetHover(p.name, lang),
+                            planetHover(p.name, lang, isMinor),
                             p.house ? houseHover(p.house, lang) : '',
                           ]
                             .filter(Boolean)

@@ -195,8 +195,8 @@ describe('미활용 데이터 활성화 (slice 4)', () => {
   it('almuten: 정체성축에 차트 주인 행성 한 줄', () => {
     const withAlm = evalIdentity('금', 'Leo', 'Leo', 'Saturn')!
     const without = evalIdentity('금', 'Leo', 'Leo', null)!
-    expect(withAlm.reason.ko).toContain('차트의 주인 행성')
-    expect(without.reason.ko).not.toContain('차트의 주인 행성')
+    expect(withAlm.reason.ko).toContain('알무텐')
+    expect(without.reason.ko).not.toContain('알무텐')
   })
   it('sect: 강점축에 같은 섹트 길성(밤=금성/낮=목성)', () => {
     expect(evalStrength('제왕', null, undefined, 'night')!.reason.ko).toContain('금성이 당신 편')
