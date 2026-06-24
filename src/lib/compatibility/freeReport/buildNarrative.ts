@@ -68,6 +68,25 @@ function ege(name: string): string {
   return name ? `${name}에게` : name
 }
 
+// 값의 마지막 한글 음절 종성(받침) 인덱스. 끝에 ")"·공백이 붙어 있어도 건너뛴다.
+// 0=받침없음, 8=ㄹ. 한글이 없으면 null.
+function lastJong(s: string): number | null {
+  for (let i = s.length - 1; i >= 0; i--) {
+    const c = s.charCodeAt(i)
+    if (c >= 0xac00 && c <= 0xd7a3) return (c - 0xac00) % 28
+  }
+  return null
+}
+type JosaType = '과/와' | '이/가' | '을/를' | '은/는' | '으로/로'
+// 값 뒤에 붙는 KO 조사를 받침에 맞게 골라 붙인다. 으로/로 는 ㄹ받침 예외 처리.
+function josa(value: string, type: JosaType): string {
+  const jong = lastJong(value)
+  const hasB = jong != null && jong !== 0
+  if (type === '으로/로') return value + (hasB && jong !== 8 ? '으로' : '로')
+  const [b, n] = type.split('/')
+  return value + (hasB ? b : n)
+}
+
 /** 밴드 키 중 "값이 클수록 좋은(조화)" vs 화면 표시 임계 — 50 기준 high/low. */
 const BAND_ORDER: Array<keyof NonNullable<CompatReport['band']>> = [
   'eastern_hap',
@@ -98,8 +117,18 @@ export function buildFreeCompatNarrative(
   const { labelA, labelB, lang } = opts
   const isKo = lang === 'ko'
   const t = (b: Bi): string => (isKo ? b.ko : b.en)
+  // 자리표시자 치환 + KO 조사 자동 교정. 템플릿에 {aEl}과 / {bEl}을 처럼 조사가
+  // 바로 붙어 있으면, 치환값의 받침 유무로 과/와·이/가·을/를·은/는 을 바로잡는다.
+  // (오행 화·토·수처럼 받침 없는 값에서 "화과/화을/화은" 같은 오류가 났었다.)
   const fill = (s: string, vars: Record<string, string>): string =>
-    s.replace(/\{(\w+)\}/g, (_, k) => vars[k] ?? `{${k}}`)
+    s.replace(/\{(\w+)\}(과|와|이|가|을|를|은|는)?/g, (m, k: string, j?: string) => {
+      const v = vars[k]
+      if (v === undefined) return m
+      if (!j || !isKo) return v + (j ?? '')
+      const type: JosaType =
+        j === '과' || j === '와' ? '과/와' : j === '이' || j === '가' ? '이/가' : j === '을' || j === '를' ? '을/를' : '은/는'
+      return josa(v, type)
+    })
 
   const sections: FreeReportSection[] = []
   const meta = (id: string): { icon: string; title: string; lead: string } => {
@@ -153,14 +182,14 @@ export function buildFreeCompatNarrative(
       if (aSeesB) {
         paras.push(
           isKo
-            ? `${labelA} 입장에서 ${neun(labelB)} ${t(aSeesB.feel)}으로 와요 — ${t(aSeesB.blurb)}`
+            ? `${labelA} 입장에서 ${neun(labelB)} ${josa(t(aSeesB.feel), '으로/로')} 와요 — ${t(aSeesB.blurb)}`
             : `To ${labelA}, ${labelB} comes as ${t(aSeesB.feel)} — ${t(aSeesB.blurb)}`
         )
       }
       if (bSeesA) {
         paras.push(
           isKo
-            ? `반대로 ${labelB} 입장에서 ${neun(labelA)} ${t(bSeesA.feel)}으로 와요 — ${t(bSeesA.blurb)}`
+            ? `반대로 ${labelB} 입장에서 ${neun(labelA)} ${josa(t(bSeesA.feel), '으로/로')} 와요 — ${t(bSeesA.blurb)}`
             : `In turn, to ${labelB}, ${labelA} comes as ${t(bSeesA.feel)} — ${t(bSeesA.blurb)}`
         )
       }
@@ -198,7 +227,9 @@ export function buildFreeCompatNarrative(
             const ra = PLANET_FLAVOR[asp.aKey] ? t(PLANET_FLAVOR[asp.aKey]) : asp.a
             const rb = PLANET_FLAVOR[asp.bKey] ? t(PLANET_FLAVOR[asp.bKey]) : asp.b
             const tone = t(ASPECT_TONE[asp.tone])
-            return isKo ? `${ra}과 ${rb}이 만나는 자리예요. ${tone}` : `where ${ra} meets ${rb}. ${tone}`
+            return isKo
+              ? `${josa(ra, '과/와')} ${josa(rb, '이/가')} 만나는 자리예요. ${tone}`
+              : `where ${ra} meets ${rb}. ${tone}`
           })()
       const head = isKo
         ? `${labelA}의 ${asp.a} × ${labelB}의 ${asp.b} (${asp.label}, ${asp.strength})`
@@ -227,7 +258,7 @@ export function buildFreeCompatNarrative(
       const arena = t(OVERLAY_HOUSE[o.house]) ?? ''
       const pl = planet(o.planetKey, o.planet)
       return isKo
-        ? `${fromName}의 ${pl}이 ${toName}의 ${o.house}번째 — ${arena}`
+        ? `${fromName}의 ${josa(pl, '이/가')} ${toName}의 ${o.house}번째 — ${arena}`
         : `${fromName}'s ${pl} lands on ${toName}'s ${ORD_EN[o.house] ?? `${o.house}th`} — ${arena}`
     }
     const paras = [
@@ -263,7 +294,7 @@ export function buildFreeCompatNarrative(
           : ' And it sits right in the spouse seat (day-pillar) — the strongest bond signal.'
         : ''
       return isKo
-        ? `${ege(viewer)} ${neun(other)} ${t(copy.feel)}으로 다가와요. ${t(copy.blurb)}${strong}`
+        ? `${ege(viewer)} ${neun(other)} ${josa(t(copy.feel), '으로/로')} 다가와요. ${t(copy.blurb)}${strong}`
         : `To ${viewer}, ${other} reads as ${t(copy.feel)}. ${t(copy.blurb)}${strong}`
     })
     if (paras.length) {
