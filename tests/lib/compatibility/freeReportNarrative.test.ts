@@ -169,6 +169,53 @@ describe('buildFreeCompatNarrative', () => {
     expect(joined).not.toMatch(/[가-힣]/)
   })
 
+  it('applies correct Korean particles after vowel-ending elements/flavors', () => {
+    const r: CompatReport = {
+      synView: {
+        aspects: [
+          {
+            a: '천왕성',
+            b: '수성',
+            aKey: 'Uranus',
+            bKey: 'Mercury',
+            type: 'square',
+            label: '긴장',
+            tone: 'tension',
+            orb: 2,
+            strength: '강하게',
+            meaning: '',
+          },
+        ],
+        overlaysAtoB: [],
+        overlaysBtoA: [],
+        harmony: 0,
+        tension: 1,
+      },
+      dayMaster: {
+        aStem: '丙',
+        aEl: '화',
+        bStem: '癸',
+        bEl: '수',
+        relation: 'generate',
+        relationLabel: '',
+        bToA: null,
+        aToB: null,
+      },
+      spouseStars: [],
+      pillarRelations: [],
+    }
+    const view = buildFreeCompatNarrative(r, { labelA: 'A', labelB: 'B', lang: 'ko' })
+    const all = view.sections.flatMap((s) => s.paragraphs).join('\n')
+    // generate template "{aEl}과 {bEl}이" → 화 ends in vowel → 화와, 수 ends in vowel → 수가
+    expect(all).toContain('화와')
+    expect(all).toContain('수가')
+    expect(all).not.toContain('화과')
+    expect(all).not.toContain('수이')
+    // aspect fallback "{flavor}과 {flavor}이" → 자극·변화 ends in vowel → 변화와
+    expect(all).toContain('변화와')
+    expect(all).not.toContain('변화과')
+  })
+
   it('omits sections whose signals are absent', () => {
     const bare: CompatReport = {
       synView: null,
