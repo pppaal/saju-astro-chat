@@ -260,30 +260,31 @@ describe('buildFreeCompatNarrative', () => {
     expect(all).toMatch(/sik-sin|pyeon-gwan/)
   })
 
-  it('does not repeat the same aspect-type nuance within one theme card', () => {
+  it('gives each theme a punchy hook and drops the bolted-on geometry tails', () => {
     const asp = (
       aKey: string,
-      bKey: string
+      bKey: string,
+      tone: 'harmony' | 'tension'
     ): NonNullable<CompatReport['synView']>['aspects'][number] => ({
       a: aKey,
       b: bKey,
       aKey,
       bKey,
-      type: 'trine',
-      label: '조화',
-      tone: 'harmony',
+      type: tone === 'harmony' ? 'trine' : 'square',
+      label: tone === 'harmony' ? '조화' : '긴장',
+      tone,
       orb: 1,
       strength: '강하게',
       meaning: '',
     })
     const r: CompatReport = {
       synView: {
-        // 둘 다 수성 포함 조화 트라인 → 같은 'talk' 테마 + 같은 트라인 뉘앙스
-        aspects: [asp('Mercury', 'Moon'), asp('Mercury', 'Sun')],
+        // 수성 조화 → talk(끌림 우세); 화성·토성 긴장 → friction
+        aspects: [asp('Mercury', 'Moon', 'harmony'), asp('Mars', 'Saturn', 'tension')],
         overlaysAtoB: [],
         overlaysBtoA: [],
-        harmony: 2,
-        tension: 0,
+        harmony: 1,
+        tension: 1,
       },
       dayMaster: null,
       spouseStars: [],
@@ -291,9 +292,13 @@ describe('buildFreeCompatNarrative', () => {
     }
     const view = buildFreeCompatNarrative(r, { labelA: 'A', labelB: 'B', lang: 'ko' })
     const talk = view.themes.find((th) => th.id === 'talk')!
-    const tailHits = talk.paragraphs.filter((p) => p.includes('물 흐르듯 힘 안 들이고')).length
-    expect(talk.paragraphs.length).toBeGreaterThanOrEqual(2)
-    expect(tailHits).toBe(1)
+    expect(talk.hook).toBe('말 척척 통하는 사이 — 대화가 안 끊겨.') // 끌림 우세 → pos 훅
+    const friction = view.themes.find((th) => th.id === 'friction')!
+    expect(friction.hook).toBe('주로 자존심·주도권에서 부딪혀.') // 마찰만 → neg 훅
+    // 기계적 기하 꼬리("물 흐르듯…", "서로 각을 세워…")는 더 이상 안 붙는다
+    const all = view.themes.flatMap((th) => th.paragraphs).join('\n')
+    expect(all).not.toContain('물 흐르듯 힘 안 들이고')
+    expect(all).not.toContain('서로 각을 세워')
   })
 
   it('keeps both-direction overlays on the same house number (no cross-direction drop)', () => {

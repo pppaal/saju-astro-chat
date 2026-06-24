@@ -356,6 +356,16 @@
 }
 
 /* 용어 풀이 */
+/* 테마 한 줄 훅 — 질문에 결론부터 답하는 단정 한 줄. 골드 굵은 글씨로 먼저 눈에. */
+.themeHook {
+  margin: 0 0 10px;
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1.6;
+  color: var(--gold);
+  word-break: keep-all;
+}
+
 /* 테마 카드 "더 보기" — 박스 없는 가벼운 골드 토글. (용어풀이 .glossary 와 별개) */
 .themeMore {
   margin-top: 4px;

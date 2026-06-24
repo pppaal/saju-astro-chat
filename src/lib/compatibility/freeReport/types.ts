@@ -40,6 +40,8 @@ export interface FreeReportTheme {
   icon: string
   /** 질문형 제목 (lang 해석 완료) — 예: "처음에 확 끌려?". */
   title: string
+  /** 한 줄 단정 훅 — 질문에 바로 답하는 punchy 한 줄(신호 종합 polarity 로 선택). */
+  hook?: string
   paragraphs: string[]
 }
 

@@ -593,6 +593,7 @@ function ThemeCard({ theme, isKo }: { theme: FreeReportTheme; isKo: boolean }) {
           <h2 className={s.secTitle}>{theme.title}</h2>
         </span>
       </div>
+      {theme.hook ? <p className={s.themeHook}>{theme.hook}</p> : null}
       {top.map((p, i) => (
         <p key={i} className={s.para}>
           {p}

@@ -190,6 +190,8 @@ const THEME_META: { id: ThemeId; icon: string; title: Bi }[] = [
   { id: 'money', icon: '💰', title: { ko: '돈·가치관은 맞아?', en: 'Same page on money?' } },
   { id: 'future', icon: '💍', title: { ko: '오래 갈 사이야?', en: 'Will it last?' } },
 ]
+// 십성 극성 — 끌림/순기능(+) vs 마찰/도전(−). 테마 훅 polarity 에 쓴다.
+const POS_SIBSIN = new Set(['비견', '식신', '정재', '정관', '정인', '편재'])
 // 십성 → 테마
 const SIBSIN_THEME: Record<string, ThemeId> = {
   비견: 'talk',
@@ -231,25 +233,101 @@ function aspectTheme(asp: SynAspectView): ThemeId {
   if (has('Jupiter')) return 'life'
   return 'love'
 }
-// 어스펙트 종류 → 한 줄 기하 뉘앙스 (트라인/스퀘어 구분을 일상어로).
-const ASPECT_TYPE_NUANCE: Record<string, Bi> = {
-  conjunction: { ko: '딱 붙어 한 몸처럼 작동하는 자리예요.', en: 'They fuse and act as one here.' },
-  trine: { ko: '물 흐르듯 힘 안 들이고 통하는 자리예요.', en: 'It flows here with no effort.' },
-  sextile: {
-    ko: '손 내밀면 닿는, 기회처럼 열리는 자리예요.',
-    en: 'An open door here if you reach for it.',
+// 테마별 한 줄 훅 — 질문에 결론부터 답하는 단정 한 줄. 신호 polarity 합으로
+// pos(끌림 우세)/neg(마찰 우세)/mid(반반) 중 선택. 점신·포스텔러식 "콕 집어 답"을
+// 추상 서술 앞에 세워, 길게 읽지 않아도 답이 먼저 보이게 한다.
+type HookKey = 'pos' | 'neg' | 'mid'
+const THEME_HOOK: Record<ThemeId, Record<HookKey, Bi>> = {
+  spark: {
+    pos: { ko: '응 — 만나자마자 스파크 튀는 쪽이야.', en: 'Yes — sparks fly the moment you meet.' },
+    neg: {
+      ko: '끌리긴 하는데 묘하게 당겼다 멀어지는 결.',
+      en: "There's a pull, but it runs hot-and-cold.",
+    },
+    mid: {
+      ko: '첫 끌림은 분명한데, 타오르는 결은 좀 갈려.',
+      en: 'The draw is real, though it shows up unevenly.',
+    },
   },
-  square: {
-    ko: '서로 각을 세워 삐걱대기 쉬운 자리예요.',
-    en: 'They rub at right angles here — friction-prone.',
+  sex: {
+    pos: {
+      ko: '몸의 케미는 확실해 — 끌림이 진한 쪽.',
+      en: 'The physical chemistry is real — a deep pull.',
+    },
+    neg: {
+      ko: '끌리는 만큼 팽팽함도 커서 온도 차가 나기 쉬워.',
+      en: 'Strong pull, but the heat can run uneven.',
+    },
+    mid: {
+      ko: '은근한 끌림이 깔려 있어 — 천천히 데워지는 쪽.',
+      en: 'A quiet pull underneath — it warms up slowly.',
+    },
   },
-  opposition: {
-    ko: '정반대라 끌리면서도 맞서는 자리예요.',
-    en: 'Opposite poles here — drawn yet facing off.',
+  talk: {
+    pos: {
+      ko: '말 척척 통하는 사이 — 대화가 안 끊겨.',
+      en: 'You just click — the talk never runs dry.',
+    },
+    neg: {
+      ko: '같은 말도 다르게 알아들어 자주 엇갈려.',
+      en: 'You hear the same words differently and miss a lot.',
+    },
+    mid: {
+      ko: '통할 땐 잘 통하는데, 결이 갈리는 지점도 있어.',
+      en: 'You click in places and slip past in others.',
+    },
   },
-  quincunx: {
-    ko: '미묘하게 어긋나 조정이 필요한 자리예요.',
-    en: 'Subtly off here — it needs adjusting.',
+  love: {
+    pos: {
+      ko: '사랑하는 방식이 닮아 마음이 편한 쪽.',
+      en: 'You love in similar ways — it sits easy.',
+    },
+    neg: {
+      ko: '애정 표현이 어긋나 서로 서운할 수 있어.',
+      en: 'Your ways of showing love can miss each other.',
+    },
+    mid: {
+      ko: '다정함의 결이 비슷한 듯 달라 — 맞춰가는 재미가 있어.',
+      en: 'Your tenderness is alike yet not — there’s tuning to do.',
+    },
+  },
+  friction: {
+    pos: { ko: '크게 부딪힐 일은 잘 안 보여.', en: 'Not many real flashpoints here.' },
+    neg: { ko: '주로 자존심·주도권에서 부딪혀.', en: 'Mostly clashes over pride and who leads.' },
+    mid: { ko: '부딪히는 결이 있긴 한데 깊진 않아.', en: 'Some friction, but nothing deep.' },
+  },
+  life: {
+    pos: { ko: '같이 있으면 편안한 쪽 — 긴장이 풀려.', en: 'Easy to be around — you both unwind.' },
+    neg: { ko: '함께 지내는 결을 맞추는 데 손이 좀 가.', en: 'Day-to-day takes some adjusting.' },
+    mid: { ko: '무던하게 편한 사이 — 큰 기복 없이.', en: 'Comfortably low-drama together.' },
+  },
+  money: {
+    pos: {
+      ko: '돈·가치관 결이 비슷해 부딪힐 일 적어.',
+      en: 'Similar values around money — little to fight over.',
+    },
+    neg: {
+      ko: '쓰고 아끼는 결이 달라 조율이 필요해.',
+      en: 'You spend and save differently — needs tuning.',
+    },
+    mid: {
+      ko: '가치관이 닿는 데도, 갈리는 데도 있어.',
+      en: 'Your values meet in some places, split in others.',
+    },
+  },
+  future: {
+    pos: {
+      ko: '오래 갈 결이 보여 — 쌓일수록 단단해져.',
+      en: 'Built to last — it firms up over time.',
+    },
+    neg: {
+      ko: '확 타오르는 만큼, 오래 가려면 공이 들어.',
+      en: 'Burns bright; lasting takes real work.',
+    },
+    mid: {
+      ko: '급하진 않아도 길게 가는 결 — 천천히 깊어져.',
+      en: 'Not dramatic, but a long, deepening grain.',
+    },
   },
 }
 // 기둥 작용(태그) → 테마 (합 계열=인연·미래, 충·형·해·파=부딪힘)
@@ -527,12 +605,12 @@ export function buildFreeCompatNarrative(
   // 신호를 출처가 아니라 "사람들이 실제로 궁금해하는 질문"으로 묶는다. 신호는
   // 버리지 않고 전부 어느 테마든 들어간다(누락 0). 카드 본문은 weight 내림차순,
   // 기술적 head 없이 풀이만 — 스캔되게.
+  // pol = 신호 극성(+끌림 / −마찰 / 0중립) × weight. 테마별 합으로 훅을 고른다.
   const themed: {
     theme: ThemeId
     weight: number
     text: string
-    nuanceKey?: string
-    nuanceText?: string
+    pol: number
   }[] = []
   if (report.dayMaster) {
     const dm = report.dayMaster
@@ -542,18 +620,21 @@ export function buildFreeCompatNarrative(
       theme: 'life',
       weight: 4,
       text: fill(t(DAY_MASTER_REL[dm.relation]), { A: labelA, B: labelB, aEl, bEl }),
+      pol: dm.relation === 'generate' ? 4 : dm.relation === 'same' ? 2 : -4,
     })
     if (dm.bToA && TEN_GODS[dm.bToA])
       themed.push({
         theme: SIBSIN_THEME[dm.bToA] ?? 'love',
         weight: 3,
         text: t(TEN_GODS[dm.bToA].blurb),
+        pol: (POS_SIBSIN.has(dm.bToA) ? 1 : -1) * 3,
       })
     if (dm.aToB && dm.aToB !== dm.bToA && TEN_GODS[dm.aToB])
       themed.push({
         theme: SIBSIN_THEME[dm.aToB] ?? 'love',
         weight: 3,
         text: t(TEN_GODS[dm.aToB].blurb),
+        pol: (POS_SIBSIN.has(dm.aToB) ? 1 : -1) * 3,
       })
   }
   if (report.elementBalance) {
@@ -579,7 +660,12 @@ export function buildFreeCompatNarrative(
           ? ` ${neun(labelA)} ${elLabel(aTop, true)} 기운이, ${neun(labelB)} ${elLabel(bTop, true)} 기운이 가장 도드라져요.`
           : ` ${labelA} leans ${elLabel(aTop, false)}, ${labelB} leans ${elLabel(bTop, false)}.`
         : ''
-    themed.push({ theme: 'life', weight: 1, text: base + perPerson })
+    themed.push({
+      theme: 'life',
+      weight: 1,
+      text: base + perPerson,
+      pol: eb.balanced ? 1 : eb.range >= 4 ? -1 : 1,
+    })
   }
   if (report.synView) {
     for (const asp of report.synView.aspects) {
@@ -595,15 +681,12 @@ export function buildFreeCompatNarrative(
               ? `${josa(ra, '과/와')} ${josa(rb, '이/가')} 만나는 자리예요. ${tone}`
               : `where ${ra} meets ${rb}. ${tone}`
           })()
-      // 각 종류(트라인/스퀘어…) 한 줄 뉘앙스. 본문과 분리해 두고, 같은 테마 안에서
-      // 같은 종류가 반복되면 꼬리문장이 똑같이 되풀이되지 않도록 조립 단계에서 1회만 붙인다.
-      const nuance = ASPECT_TYPE_NUANCE[asp.type] ? ` ${t(ASPECT_TYPE_NUANCE[asp.type])}` : ''
+      const w = Math.max(1.5, 6 - (asp.orb ?? 4))
       themed.push({
         theme: aspectTheme(asp),
-        weight: Math.max(1.5, 6 - (asp.orb ?? 4)),
+        weight: w,
         text: blurb,
-        nuanceKey: asp.type,
-        nuanceText: nuance,
+        pol: asp.tone === 'harmony' ? w : asp.tone === 'tension' ? -w : 0,
       })
     }
     // 오버레이 — 누구의 어느 행성이 어느 방에 들어왔는지(행성 정체 추가). 방당 1회.
@@ -623,7 +706,7 @@ export function buildFreeCompatNarrative(
         const text = isKo
           ? `${viewer}의 ${plName} 기운이 닿는 자리예요. ${arena}`
           : `${viewer}'s ${plName} reaches into this part of life. ${arena}`
-        themed.push({ theme: HOUSE_THEME[o.house] ?? 'life', weight: 2, text })
+        themed.push({ theme: HOUSE_THEME[o.house] ?? 'life', weight: 2, text, pol: 0.6 })
       }
     }
   }
@@ -638,6 +721,7 @@ export function buildFreeCompatNarrative(
         theme: 'future',
         weight: sp.isDayPillar ? 10 : 6,
         text: t(SPOUSE_STAR[sp.sibsin].blurb),
+        pol: sp.isDayPillar ? 4 : 2,
       })
     }
   }
@@ -651,26 +735,24 @@ export function buildFreeCompatNarrative(
         theme: PILLAR_THEME[tag] ?? 'future',
         weight: r.tone === 'minor' ? 1 : 3,
         text: t(PILLAR_REL[tag].blurb),
+        pol: r.tone === 'bond' ? 3 : r.tone === 'clash' || r.tone === 'friction' ? -3 : 0,
       })
     }
   }
   const themes: FreeReportTheme[] = THEME_META.map((m) => {
     const items = themed.filter((x) => x.theme === m.id).sort((a, b) => b.weight - a.weight)
     const seenTxt = new Set<string>()
-    const seenNuance = new Set<string>()
     const paragraphs: string[] = []
     for (const it of items) {
       if (seenTxt.has(it.text)) continue
       seenTxt.add(it.text)
-      // 동일 각 종류 뉘앙스 꼬리문장은 테마당 1회만 — 같은 카드에서 되풀이 방지.
-      let text = it.text
-      if (it.nuanceText && it.nuanceKey && !seenNuance.has(it.nuanceKey)) {
-        seenNuance.add(it.nuanceKey)
-        text += it.nuanceText
-      }
-      paragraphs.push(text)
+      paragraphs.push(it.text)
     }
-    return { id: m.id, icon: m.icon, title: t(m.title), paragraphs }
+    // 한 줄 훅 — 이 테마 신호들의 극성 합으로 결론부터. (질문에 콕 집어 답)
+    const net = items.reduce((s, it) => s + it.pol, 0)
+    const hookKey: HookKey = net > 0.5 ? 'pos' : net < -0.5 ? 'neg' : 'mid'
+    const hook = t(THEME_HOOK[m.id][hookKey])
+    return { id: m.id, icon: m.icon, title: t(m.title), hook, paragraphs }
   }).filter((th) => th.paragraphs.length > 0)
 
   const glossary: FreeReportGlossaryEntry[] = COMPAT_GLOSSARY.map((g) => ({
