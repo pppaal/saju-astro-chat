@@ -40,6 +40,13 @@ export interface RateLimitOptions {
   windowSeconds: number
   /** Optional key prefix for rate limiting */
   keyPrefix?: string
+  /**
+   * Fail CLOSED (deny) when the Redis/Upstash backing store is unreachable
+   * instead of the default fail-open. Set on expensive LLM routes so a Redis
+   * outage can't let an authenticated user bypass the limiter and drain
+   * Anthropic spend. Defaults to false (fail-open) for cheap/deterministic routes.
+   */
+  failClosed?: boolean
 }
 
 export interface CreditOptions {

@@ -50,10 +50,10 @@ function req(days?: string): NextRequest {
 function setupAdmin() {
   vi.mocked(getServerSession).mockResolvedValue(adminSession as any)
   vi.mocked(isAdminUser).mockResolvedValue(true)
-  // 2건: plus 팩(100크레딧=₩9,900) 1건(오늘) + mega(240=₩19,900) 1건
+  // 2건: plus 팩(70크레딧=₩24,900) 1건(오늘) + mega(140=₩44,900) 1건
   vi.mocked(prisma.bonusCreditPurchase.findMany).mockResolvedValue([
-    { amount: 100, createdAt: new Date() },
-    { amount: 240, createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000) },
+    { amount: 70, createdAt: new Date() },
+    { amount: 140, createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000) },
   ] as any)
   vi.mocked(prisma.bonusCreditPurchase.aggregate)
     .mockResolvedValueOnce({ _sum: { amount: 1000 } } as any) // issuedPaid
@@ -99,11 +99,11 @@ describe('GET /api/admin/revenue', () => {
   it('maps credit packs to KRW and sums window/today revenue', async () => {
     setupAdmin()
     const data = (await (await GET(req('30'))).json()).data
-    expect(data.revenue.windowKrw).toBe(9900 + 19900)
-    expect(data.revenue.todayKrw).toBe(9900) // only the plus pack is today
+    expect(data.revenue.windowKrw).toBe(24900 + 44900)
+    expect(data.revenue.todayKrw).toBe(24900) // only the plus pack is today
     expect(data.revenue.purchaseCount).toBe(2)
     // byPack sorted by krw desc → mega first
-    expect(data.revenue.byPack[0]).toMatchObject({ credits: 240, count: 1, krw: 19900 })
+    expect(data.revenue.byPack[0]).toMatchObject({ credits: 140, count: 1, krw: 44900 })
     // daily array has one entry per day
     expect(data.revenue.daily).toHaveLength(30)
     // R1 회귀: 마지막 버킷은 *오늘* 이어야 하고 오늘 매출이 거기 담겨야 한다.
@@ -111,30 +111,30 @@ describe('GET /api/admin/revenue', () => {
     const todayKey = new Date().toISOString().slice(0, 10)
     const last = data.revenue.daily[data.revenue.daily.length - 1]
     expect(last.date).toBe(todayKey)
-    expect(last.krw).toBe(9900)
+    expect(last.krw).toBe(24900)
     // 환불 없음 → 순매출 = 총매출, 환불액 0
-    expect(data.revenue.netKrw).toBe(9900 + 19900)
+    expect(data.revenue.netKrw).toBe(24900 + 44900)
     expect(data.revenue.refundedKrw).toBe(0)
   })
 
   it('subtracts refunded purchases from net revenue', async () => {
     setupAdmin()
-    // mega 팩(240크레딧=₩19,900) 1건이 기간 내 환불됨.
+    // mega 팩(140크레딧=₩44,900) 1건이 기간 내 환불됨.
     vi.mocked(prisma.creditTransaction.findMany).mockResolvedValue([
-      { sourceRef: 'pi_mega', amount: -240 },
+      { sourceRef: 'pi_mega', amount: -140 },
     ] as any)
-    // 환불된 결제(pi_mega)의 원구매 = mega 팩 240크레딧
+    // 환불된 결제(pi_mega)의 원구매 = mega 팩 140크레딧
     vi.mocked(prisma.bonusCreditPurchase.findMany)
       .mockResolvedValueOnce([
-        { amount: 100, createdAt: new Date() },
-        { amount: 240, createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000) },
+        { amount: 70, createdAt: new Date() },
+        { amount: 140, createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000) },
       ] as any) // windowPurchases
-      .mockResolvedValueOnce([{ amount: 240 }] as any) // refundedPurchases 조회
+      .mockResolvedValueOnce([{ amount: 140 }] as any) // refundedPurchases 조회
     const data = (await (await GET(req('30'))).json()).data
-    expect(data.revenue.windowKrw).toBe(9900 + 19900) // 총매출 불변
-    expect(data.revenue.refundedKrw).toBe(19900)
-    expect(data.revenue.netKrw).toBe(9900) // 순매출 = 29,800 − 19,900
-    expect(data.refunds).toEqual({ count: 1, krw: 19900, creditsRefunded: 240 })
+    expect(data.revenue.windowKrw).toBe(24900 + 44900) // 총매출 불변
+    expect(data.revenue.refundedKrw).toBe(44900)
+    expect(data.revenue.netKrw).toBe(24900) // 순매출 = 69,800 − 44,900
+    expect(data.refunds).toEqual({ count: 1, krw: 44900, creditsRefunded: 140 })
   })
 
   it('reports credit economy, consumed as absolute value', async () => {

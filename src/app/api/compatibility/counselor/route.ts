@@ -131,6 +131,8 @@ export async function POST(req: NextRequest) {
       limit: 30,
       windowSeconds: 60,
       requireCredits: false,
+      // Claude route — deny on Redis outage rather than fail open (cost guard).
+      failClosed: true,
     })
 
     const { context, error } = await initializeApiContext(req, authedGuardOptions)

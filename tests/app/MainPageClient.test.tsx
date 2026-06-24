@@ -208,21 +208,20 @@ describe('MainPageClient', () => {
     expect(screen.getByTestId('birth-modal')).toHaveAttribute('data-open', 'true')
   })
 
-  it('renders the readings list (default-open) with all MORE_SERVICES entries', () => {
+  it('renders all MORE_SERVICES entries (list open by default) and collapses on toggle', () => {
     renderPage()
-    // 메인 리포트 목록은 기본 펼침(#1592 — 로그인 없이 다 노출).
+    // 리포트 목록은 메인에서 기본 펼침(servicesOpen=true).
     const toggle = screen.getByRole('button', { name: /Explore readings/i })
     expect(toggle).toHaveAttribute('aria-expanded', 'true')
-    expect(screen.getByText('Compatibility Report')).toBeInTheDocument()
-    expect(screen.getByText('Saju · Astrology Report')).toBeInTheDocument()
-    expect(screen.getByText('Fortune Calendar')).toBeInTheDocument()
-    expect(screen.getByText('Life Flow')).toBeInTheDocument()
     expect(screen.getByText('Tarot Counselor')).toBeInTheDocument()
+    expect(screen.getByText('Compatibility Report')).toBeInTheDocument()
+    expect(screen.getByText('Fortune Calendar')).toBeInTheDocument()
+    expect(screen.getByText('Saju · Astrology Report')).toBeInTheDocument()
     // Report link with no saved birth → bare /integrated-report deep link.
     const reportLink = screen.getByText('Saju · Astrology Report').closest('a')
     expect(reportLink?.getAttribute('href')).toContain('/integrated-report')
     expect(reportLink?.getAttribute('href')).toContain('lang=en')
-    // toggle collapses it.
+    // 토글을 누르면 접힌다. (리렌더 후 노드를 새로 조회)
     fireEvent.click(toggle)
     expect(screen.getByRole('button', { name: /Explore readings/i })).toHaveAttribute(
       'aria-expanded',
@@ -232,10 +231,7 @@ describe('MainPageClient', () => {
 
   it('clicking a service link collapses the list', () => {
     renderPage()
-    expect(screen.getByRole('button', { name: /Explore readings/i })).toHaveAttribute(
-      'aria-expanded',
-      'true'
-    )
+    // 기본 펼침 상태 → 서비스 링크를 누르면 목록이 접힌다.
     const tarotLink = screen.getByText('Tarot Counselor').closest('a')!
     fireEvent.click(tarotLink)
     expect(screen.getByRole('button', { name: /Explore readings/i })).toHaveAttribute(

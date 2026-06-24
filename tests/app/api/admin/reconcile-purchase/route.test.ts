@@ -126,7 +126,7 @@ describe('POST /api/admin/reconcile-purchase', () => {
     vi.mocked(prisma.bonusCreditPurchase.findFirst).mockResolvedValue(null) // 우리 DB 엔 없음
     const data = (await (await POST(req({ query: 'pi_1' }))).json()).data
     expect(data.summary.missing).toBe(1)
-    expect(data.results[0]).toMatchObject({ status: 'missing', userId: 'u1', credits: 100 })
+    expect(data.results[0]).toMatchObject({ status: 'missing', userId: 'u1', credits: 70 })
     expect(addBonusCredits).not.toHaveBeenCalled()
   })
 
@@ -136,7 +136,7 @@ describe('POST /api/admin/reconcile-purchase', () => {
     vi.mocked(prisma.bonusCreditPurchase.findFirst).mockResolvedValue(null)
     const data = (await (await POST(req({ query: 'pi_1', apply: true }))).json()).data
     expect(data.summary.granted).toBe(1)
-    expect(addBonusCredits).toHaveBeenCalledWith('u1', 100, 'purchase', 'pi_1')
+    expect(addBonusCredits).toHaveBeenCalledWith('u1', 70, 'purchase', 'pi_1')
   })
 
   it('reports ok when the purchase already exists in DB', async () => {

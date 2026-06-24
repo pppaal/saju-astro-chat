@@ -12,6 +12,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { headers } from 'next/headers'
 import { recordCounter } from '@/lib/metrics/index'
+import EngineMoatBanner from '@/components/marketing/EngineMoatBanner'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -265,6 +266,11 @@ export default async function FreeFunnelHub() {
               </span>
             </Link>
           ))}
+        </div>
+
+        {/* 해자 — 무료 체험 직후 "왜 ChatGPT보다 나은가"를 각인 */}
+        <div style={{ marginTop: 36 }}>
+          <EngineMoatBanner />
         </div>
 
         {/* 공유 유도 — 바이럴 루프의 핵심 한 줄 */}

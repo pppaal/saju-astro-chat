@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { isAdminEmail, isAdminUser, checkAdminRole, requireAdminSession } from '@/lib/auth/admin'
+import { isAdminEmail, isAdminUser, requireAdminSession } from '@/lib/auth/admin'
 import { getServerSession } from '@/lib/auth/session'
 import { prisma } from '@/lib/db/prisma'
 
@@ -182,91 +182,6 @@ describe('admin.ts', () => {
     })
   })
 
-  describe('checkAdminRole', () => {
-    it('should return true for admin when admin role required', async () => {
-      vi.mocked(prisma.user.findUnique).mockResolvedValue({
-        role: 'admin',
-      } as any)
-
-      const result = await checkAdminRole('user-123', 'admin')
-      expect(result).toBe(true)
-    })
-
-    it('should return true for superadmin when admin role required', async () => {
-      vi.mocked(prisma.user.findUnique).mockResolvedValue({
-        role: 'superadmin',
-      } as any)
-
-      const result = await checkAdminRole('user-123', 'admin')
-      expect(result).toBe(true)
-    })
-
-    it('should return false for user when admin role required', async () => {
-      vi.mocked(prisma.user.findUnique).mockResolvedValue({
-        role: 'user',
-      } as any)
-
-      const result = await checkAdminRole('user-123', 'admin')
-      expect(result).toBe(false)
-    })
-
-    it('should return true for superadmin when superadmin role required', async () => {
-      vi.mocked(prisma.user.findUnique).mockResolvedValue({
-        role: 'superadmin',
-      } as any)
-
-      const result = await checkAdminRole('user-123', 'superadmin')
-      expect(result).toBe(true)
-    })
-
-    it('should return false for admin when superadmin role required', async () => {
-      vi.mocked(prisma.user.findUnique).mockResolvedValue({
-        role: 'admin',
-      } as any)
-
-      const result = await checkAdminRole('user-123', 'superadmin')
-      expect(result).toBe(false)
-    })
-
-    it('should return false for non-existent user', async () => {
-      vi.mocked(prisma.user.findUnique).mockResolvedValue(null)
-
-      const result = await checkAdminRole('non-existent', 'admin')
-      expect(result).toBe(false)
-    })
-
-    it('should default to admin role check when no role specified', async () => {
-      vi.mocked(prisma.user.findUnique).mockResolvedValue({
-        role: 'admin',
-      } as any)
-
-      const result = await checkAdminRole('user-123')
-      expect(result).toBe(true)
-    })
-
-    it('should handle null role', async () => {
-      vi.mocked(prisma.user.findUnique).mockResolvedValue({
-        role: null,
-      } as any)
-
-      const result = await checkAdminRole('user-123', 'admin')
-      expect(result).toBe(false)
-    })
-
-    it('should call prisma with correct parameters', async () => {
-      vi.mocked(prisma.user.findUnique).mockResolvedValue({
-        role: 'admin',
-      } as any)
-
-      await checkAdminRole('user-456', 'superadmin')
-
-      expect(prisma.user.findUnique).toHaveBeenCalledWith({
-        where: { id: 'user-456' },
-        select: { role: true },
-      })
-    })
-  })
-
   describe('requireAdminSession', () => {
     it('should return session for admin user', async () => {
       const mockSession = {
@@ -427,30 +342,5 @@ describe('admin.ts', () => {
       })
     })
 
-    describe('Role hierarchy', () => {
-      it('should treat superadmin as higher privilege than admin', async () => {
-        vi.mocked(prisma.user.findUnique).mockResolvedValue({
-          role: 'superadmin',
-        } as any)
-
-        const adminCheck = await checkAdminRole('user-123', 'admin')
-        const superadminCheck = await checkAdminRole('user-123', 'superadmin')
-
-        expect(adminCheck).toBe(true)
-        expect(superadminCheck).toBe(true)
-      })
-
-      it('should not allow admin to pass superadmin check', async () => {
-        vi.mocked(prisma.user.findUnique).mockResolvedValue({
-          role: 'admin',
-        } as any)
-
-        const adminCheck = await checkAdminRole('user-123', 'admin')
-        const superadminCheck = await checkAdminRole('user-123', 'superadmin')
-
-        expect(adminCheck).toBe(true)
-        expect(superadminCheck).toBe(false)
-      })
-    })
   })
 })

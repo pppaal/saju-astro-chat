@@ -30,6 +30,19 @@ export interface FreeReportSection {
   paragraphs: string[]
 }
 
+/**
+ * 테마 카드 — "사람들이 실제로 궁금해하는 질문"별로 신호를 재배치한 묶음.
+ * 신호별(밴드/일간/십성/어스펙트/하우스/기둥)을 출처가 아니라 *주제*로 묶어,
+ * 읽고 싶은 것부터 골라 보게 한다. paragraphs 는 weight 내림차순.
+ */
+export interface FreeReportTheme {
+  id: string
+  icon: string
+  /** 질문형 제목 (lang 해석 완료) — 예: "처음에 확 끌려?". */
+  title: string
+  paragraphs: string[]
+}
+
 /** 용어 풀이 한 항목 — "그 용어 자체가 무엇인가". */
 export interface FreeReportGlossaryEntry {
   term: string
@@ -46,8 +59,10 @@ export interface FreeReportView {
     tone: 'aligned' | 'mixed' | 'tension' | 'neutral'
     expansion: string
   } | null
-  /** 본문 섹션들 (빈 섹션은 빌더가 생략). */
+  /** 본문 섹션들 (신호 출처별 — 빈 섹션은 빌더가 생략). */
   sections: FreeReportSection[]
+  /** 테마 카드들 (질문 주제별 재배치 — 빈 테마는 빌더가 생략). */
+  themes: FreeReportTheme[]
   /** 용어 풀이. */
   glossary: FreeReportGlossaryEntry[]
   /** 맺음말 — 유료 상담사로 무엇을 더 풀 수 있는지. */

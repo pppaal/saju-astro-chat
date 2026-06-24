@@ -88,13 +88,13 @@ async function checkRateLimit(
 ): Promise<RateLimitCheckResult> {
   if (!options.rateLimit) return {}
 
-  const { limit, windowSeconds, keyPrefix = 'api' } = options.rateLimit
+  const { limit, windowSeconds, keyPrefix = 'api', failClosed } = options.rateLimit
   let headers: Headers | undefined
 
   if (!skipIpCheck) {
     // IP-based rate limiting
     const rateLimitKey = `${keyPrefix}:${route}:${ip}`
-    const result = await rateLimit(rateLimitKey, { limit, windowSeconds })
+    const result = await rateLimit(rateLimitKey, { limit, windowSeconds, failClosed })
     headers = result.headers
 
     if (!result.allowed) {
@@ -116,6 +116,7 @@ async function checkRateLimit(
     const userResult = await rateLimit(userRateLimitKey, {
       limit,
       windowSeconds,
+      failClosed,
     })
     headers = userResult.headers
 

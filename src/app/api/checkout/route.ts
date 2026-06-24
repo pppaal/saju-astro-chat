@@ -18,6 +18,7 @@ import {
 } from '@/lib/payments/prices'
 import { checkoutRequestSchema } from '@/lib/api/zodValidation'
 import { getStripeOrNull } from '@/lib/stripe/client'
+import { isStarterEligible } from '@/lib/credits/starterPack'
 
 export const runtime = 'nodejs'
 
@@ -88,6 +89,15 @@ export const POST = withApiMiddleware(
         logger.error('[checkout] credit pack price not allowed', { creditPack })
         recordCounter('stripe_checkout_price_error', 1, { type: 'credit_pack' })
         return apiError(ErrorCodes.BAD_REQUEST, 'invalid_credit_pack')
+      }
+
+      // 첫구매 한정 스타터팩 — 계정당 평생 1회. UI(모달)도 자격을 보고 노출하지만,
+      // 결제 생성은 클라이언트를 신뢰하지 않고 서버에서 다시 강제한다. 자격 없으면
+      // Stripe 세션 자체를 만들지 않음(fail-safe = 거부).
+      if (creditPack === 'starter' && !(await isStarterEligible(context.userId!))) {
+        logger.warn('[checkout] starter pack not eligible', { userId: context.userId })
+        recordCounter('stripe_checkout_starter_ineligible', 1)
+        return apiError(ErrorCodes.BAD_REQUEST, 'starter_not_eligible')
       }
 
       const checkout = await stripe.checkout.sessions.create(

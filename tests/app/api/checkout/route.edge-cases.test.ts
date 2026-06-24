@@ -44,6 +44,12 @@ vi.mock('@/lib/payments/prices', () => ({
   allowedCreditPackIds: vi.fn(() => ['price_credit_456']),
 }))
 
+// 첫구매 스타터팩 자격 모듈 모킹 — prisma 체인을 끌어오지 않게 하고, 비-starter
+// 테스트에선 호출되지 않으므로 no-op(true)로 둔다.
+vi.mock('@/lib/credits/starterPack', () => ({
+  isStarterEligible: vi.fn(() => Promise.resolve(true)),
+}))
+
 vi.mock('@/lib/telemetry', () => ({
   captureServerError: vi.fn(),
 }))

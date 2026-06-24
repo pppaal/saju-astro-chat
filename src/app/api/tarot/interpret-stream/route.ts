@@ -207,6 +207,8 @@ export async function POST(req: NextRequest) {
         route: 'tarot-interpret-stream',
         limit: 10,
         windowSeconds: 60,
+        // Claude route — deny on Redis outage rather than fail open (cost guard).
+        failClosed: true,
       }),
       // 게스트 제거 — 로그인 필수. 비로그인은 401.
       requireAuth: true,

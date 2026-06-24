@@ -194,7 +194,7 @@ describe('natalCross — 종합', () => {
     ]
     const s = synthesize(verdicts, 'fire')
     expect(s?.tone).toBe('resonant')
-    expect(s?.text.ko).toContain('잘 맞는 게 2')
+    expect(s?.text.ko).toContain('같은 방향을 가리키는 영역이 2개')
   })
   it('판정 없으면 null', () => {
     expect(synthesize([])).toBeNull()
