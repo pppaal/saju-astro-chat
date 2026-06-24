@@ -643,9 +643,9 @@ describe('deriveLifetimeFlow', () => {
 
   describe('twelveStageLine — 동의어 운성(왕지/임관) 의미 복원', () => {
     it('왕지(=제왕 동의어)도 평이 의미가 붙는다 (bare 운성/일간 노출 없음)', () => {
-      // 대운 지지 申 → getTwelveStage('辛','申')='왕지'. 예전엔 해석 테이블이
-      // 동의어 '제왕' 키만 가져 의미가 비고 "…일간 辛 기준 왕지" 로 끊겼다.
-      // 이제 동의어를 매핑해 평이 의미("권력의 정점")가 붙는다.
+      // 대운 지지 申 → getTwelveStage('辛','申')='왕지'. 동의어 '제왕' 으로 매핑돼
+      // 추상 에너지 글로스(BUG-4)가 붙는다 — 문자 그대로의 "권력의 정점"(성공·운
+      // 모순 유발)이 아니라 vitality 결("기운이 가장 무르익은 절정").
       const n = makeNatal({
         daeun: [{ startAge: 25, startYear: 2015, stem: '乙', branch: '申' }],
       })
@@ -653,7 +653,7 @@ describe('deriveLifetimeFlow', () => {
       const young = r.phases.find((p) => p.label === '청년기')
       expect(young).toBeDefined()
       expect(young!.twelveStageLine).toContain('기운의 흐름으로 보면')
-      expect(young!.twelveStageLine).toContain('권력의 정점')
+      expect(young!.twelveStageLine).toContain('기운이 가장 무르익은 절정')
       // raw 운성명/일간은 surface 에 노출하지 않는다.
       expect(young!.twelveStageLine).not.toContain('왕지')
       expect(young!.twelveStageLine).not.toContain('일간')

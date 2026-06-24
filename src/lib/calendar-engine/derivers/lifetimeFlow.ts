@@ -23,7 +23,7 @@ import { STEM_KO, BRANCH_KO } from '@/lib/saju/ganjiKo'
 import { getStemElement } from '@/lib/saju/stemBranchUtils'
 import { getTwelveStage } from '@/lib/saju/shinsal'
 import { getJohuYongsin } from '@/lib/saju/johuYongsin'
-import { getTwelveStageInterpretation, type TwelveStageType } from '@/lib/saju/interpretations'
+import { type TwelveStageType } from '@/lib/saju/interpretations'
 
 const TWELVE_STAGE_TYPES: ReadonlySet<TwelveStageType> = new Set([
   '장생',
@@ -39,6 +39,42 @@ const TWELVE_STAGE_TYPES: ReadonlySet<TwelveStageType> = new Set([
   '태',
   '양',
 ])
+
+// 12운성을 인생 단계 줄에 쓸 때의 *추상 에너지* 글로스(감사 BUG-4).
+// 공유 해석 테이블(getTwelveStageInterpretation)의 의미는 "새 생명이 잉태", "성인이
+// 되어 관을 쓰는", "권력의 정점"처럼 *문자 그대로의 인생 사건/성공* 비유라, 80세
+// 단계에 "잉태"가 붙거나(연령 부적합) 역풍(favor<0) 단계에 "권력의 정점"이 붙어
+// 운(luck)과 모순돼 보였다. 여기선 일간의 *내적 활력 결*만 나이·운과 무관하게
+// 묘사한다 — "기운의 흐름으로 보면, …" 프레이밍과 맞물려 vitality 신호로 읽힌다.
+// EN 은 소문자 시작(템플릿이 중간에 끼움), 끝 구두점 없음(이중 마침표 방지).
+const ENERGY_GLOSS_KO: Record<TwelveStageType, string> = {
+  장생: '기운이 새로 솟는 시작의 결',
+  목욕: '다듬으며 자리를 찾아가는 결',
+  관대: '기운이 한껏 자라 채비를 갖추는 결',
+  건록: '안정되게 무르익는 전성의 결',
+  제왕: '기운이 가장 무르익은 절정의 결',
+  쇠: '정점을 지나 부드러워지는 결',
+  병: '속도를 늦추고 안을 돌보는 결',
+  사: '거두어 정리하는 결',
+  묘: '갈무리하고 응축하는 결',
+  절: '비우고 끊어 새로워지는 결',
+  태: '안에서 새 기운이 깃드는 잠재의 결',
+  양: '조용히 기르며 채비하는 결',
+}
+const ENERGY_GLOSS_EN: Record<TwelveStageType, string> = {
+  장생: 'fresh energy rising — a starting grain',
+  목욕: 'finding form, settling in',
+  관대: 'energy filling out, gearing up',
+  건록: 'steady, ripened vigor',
+  제왕: 'vitality at its fullest',
+  쇠: 'past the peak, easing',
+  병: 'slowing down, tending inward',
+  사: 'gathering in, winding down',
+  묘: 'storing up, condensing',
+  절: 'clearing out, renewing',
+  태: 'new energy quietly forming — latent',
+  양: 'nurturing quietly, getting ready',
+}
 import { SIBSIN_CAT, favorOf, type SibsinCat } from './cycleTone'
 import type { LifecycleMilestoneOverride } from '@/lib/calendar-engine/lifecycle/astroLifecycle'
 import { buildLifecycleTiming } from '@/lib/calendar-engine/lifecycle/astroLifecycle'
@@ -1160,29 +1196,20 @@ export function deriveLifetimeFlow(
       // 해석을 잃고 "…기준 임관" 으로 끊겨 raw 용어만 남는다(감사 지적). 동의어를
       // 매핑해 의미가 절대 비지 않게 한다.
       const stageForLookup = stage === '임관' ? '건록' : stage === '왕지' ? '제왕' : stage
-      let meaningKo = ''
-      let meaningEn = ''
-      if (stageForLookup && TWELVE_STAGE_TYPES.has(stageForLookup as TwelveStageType)) {
-        const interp = getTwelveStageInterpretation(stageForLookup as TwelveStageType)
-        if (interp) {
-          meaningKo = interp.meaning ?? ''
-          meaningEn = interp.meaning_en ?? ''
-        }
-      }
-      // 평이 우선 — "대운 申(신)이 일간 辛 기준 왕지" 같은 간지/일간/운성 원명을
-      // surface 에서 빼고, 12운성의 *평이 의미*만 한 줄로 쓴다(예: "권력의 정점").
-      // 아동기엔 운성 해석이 전부 성인 기준("성인이 되어 관을 쓰는 시기")이라
-      // 유아에게 붙으면 어색하므로 생략한다(감사 지적). 의미가 비면(이론상 없음)
-      // raw 운성명을 노출하지 않고 그냥 줄을 안 만든다.
-      if (!isChildhood && meaningKo) {
-        // meaning 이 이미 마침표로 끝나면 템플릿의 마침표와 겹쳐 ".." 가 됐다(감사
-        // BUG-5). 끝 구두점을 제거하고 한 번만 붙인다.
-        const mKo = meaningKo.replace(/[.。!?]+$/, '')
-        const mEn = meaningEn.replace(/[.。!?]+$/, '')
-        twelveStageLineKo = `기운의 흐름으로 보면, ${mKo}.`
-        twelveStageLineEn = mEn
-          ? `In terms of your life-energy cycle, ${mEn.charAt(0).toLowerCase()}${mEn.slice(1)}.`
-          : undefined
+      // 추상 에너지 글로스만 사용 — 문자 그대로의 인생 사건/성공 비유(잉태/관을
+      // 쓰는/권력의 정점)를 빼 연령·운(favor) 모순을 없앤다(감사 BUG-4).
+      const glossKo =
+        stageForLookup && TWELVE_STAGE_TYPES.has(stageForLookup as TwelveStageType)
+          ? ENERGY_GLOSS_KO[stageForLookup as TwelveStageType]
+          : ''
+      const glossEn =
+        stageForLookup && TWELVE_STAGE_TYPES.has(stageForLookup as TwelveStageType)
+          ? ENERGY_GLOSS_EN[stageForLookup as TwelveStageType]
+          : ''
+      // 아동기엔 운성 줄을 생략(성인 기준 서사라 어색). 글로스가 비면 줄을 안 만든다.
+      if (!isChildhood && glossKo) {
+        twelveStageLineKo = `기운의 흐름으로 보면, ${glossKo}.`
+        twelveStageLineEn = glossEn ? `In terms of your life-energy cycle, ${glossEn}.` : undefined
       }
     } catch {
       // stage 계산 실패 시 silently skip
