@@ -2,15 +2,12 @@
   display: flex;
   align-items: center;
   gap: 0.4rem;
-  flex-wrap: nowrap;
+  /* 줄바꿈 허용 — 칩 글자가 길어지는 언어(EN "Read with Saju" 등)에서 ⓘ 안내
+     버튼이 한 줄 폭을 넘어 오른쪽으로 밀려 잘려 안 보이던 문제 방지. 짧으면
+     (KO) 한 줄 그대로 유지된다. showGroupLabel 라벨도 이 wrap 위에서 동작. */
+  flex-wrap: wrap;
   width: 100%;
   min-width: 0;
-}
-
-/* 보이는 그룹 라벨이 붙으면(showGroupLabel) 한 줄에 다 안 들어가므로 줄바꿈 허용 —
-   라벨이 위 한 줄, 체크박스(+안내 버튼)가 아래 한 줄로 떨어진다. */
-.toggles[data-haslabel] {
-  flex-wrap: wrap;
 }
 
 /* "이 상담에 넣을 자료" 같은 보이는 안내 라벨 — 체크박스가 무엇을 위한 건지
