@@ -26,6 +26,7 @@ import { useCompatCounselorChat } from './useCompatCounselorChat'
 import { CompatChatArea } from './CompatChatArea'
 import { CompatCounselorModals } from './CompatCounselorModals'
 import { ProfileStickyBar } from './ProfileStickyBar'
+import type { DestinySources } from '@/components/destiny-map/chat-types'
 import type { ChatMessage, PersonData } from './types'
 
 // (타이프라이터 placeholder 제거 — 사용자 요청으로 운명·궁합 입력창은 움직이는
@@ -53,6 +54,14 @@ function CompatibilityCounselorContent() {
   const [person2Saju, setPerson2Saju] = useState<Record<string, unknown> | null>(null)
   const [person1Astro, setPerson1Astro] = useState<Record<string, unknown> | null>(null)
   const [person2Astro, setPerson2Astro] = useState<Record<string, unknown> | null>(null)
+  // 이번 상담에 넣을 시너스트리 도메인(사주/점성). URL ?saju=0 / ?astro=0 으로
+  // 진입하면 그 도메인을 끈 채 시작(기본 둘 다). 둘 다 0 이면 빈 컨텍스트 방지로
+  // 둘 다로 폴백. 이후엔 사용자가 입력창 위 체크박스로 자유롭게 바꾼다(운명 동일).
+  const [sources, setSources] = useState<DestinySources>(() => {
+    const saju = searchParams?.get('saju') !== '0'
+    const astro = searchParams?.get('astro') !== '0'
+    return !saju && !astro ? { saju: true, astro: true } : { saju, astro }
+  })
   const [isInitializing, setIsInitializing] = useState(true)
   /** persons 가 비어 있을 때 picker 모달 노출 여부 — URL 에 ?persons= /
    *  ?session= 둘 다 없는 신규 진입 + 새 채팅 직후에 true. */
@@ -129,6 +138,7 @@ function CompatibilityCounselorContent() {
     person2Saju,
     person1Astro,
     person2Astro,
+    sources,
     chatSessionId,
     setChatSessionId,
     chatTitle,
@@ -748,6 +758,8 @@ ${result.overallMessage}${result.guidance ? `\n\n**${isKo ? '조언' : 'Guidance
           followUpQuestions={followUpQuestions}
           input={input}
           onInputChange={setInput}
+          sources={sources}
+          onChangeSources={setSources}
           sendMessage={sendMessage}
           retryLastAnswer={retryLastAnswer}
           clarifier={clarifier}

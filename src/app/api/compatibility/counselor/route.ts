@@ -41,6 +41,7 @@ function relationLabel(locale: 'ko' | 'en', relation?: Relation, note?: string):
   if (opt.key === 'other') return note?.trim() || (locale === 'ko' ? '기타' : 'other')
   return locale === 'ko' ? opt.labelKo : opt.labelEn
 }
+import { resolveCounselorSources } from '@/lib/destiny/counselorRequest'
 import { getRelation, buildRelationToneBlock } from '@/lib/compatibility/counselor/relationConfig'
 import { formatSajuSynastry } from '@/lib/compatibility/sajuSynastryFormatter'
 import { formatAstroSynastry } from '@/lib/compatibility/astroSynastryFormatter'
@@ -188,6 +189,12 @@ export async function POST(req: NextRequest) {
         ? incomingSessionId
         : `compat_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`
       : ''
+
+    // 이번 답변에 넣을 시너스트리 도메인 — 사용자가 체크박스로 사주만/점성만/둘
+    // 다를 고른다(운명상담사와 동일 토글). 선택 안 된 시스템은 facts 계산·블록
+    // 빌드에서 통째로 빠지고(토큰·연산 절약), 시스템 프롬프트도 "그 시스템은
+    // 언급·창작 금지"로 바뀐다. 누락/구버전 클라 → 둘 다로 폴백.
+    const sources = resolveCounselorSources(validationResult.data)
 
     const trimmedHistory = clampMessages(messages)
 
@@ -458,7 +465,8 @@ export async function POST(req: NextRequest) {
       counselorLang,
       counterpart?.relationNote
     )
-    const systemPrompt = buildCompatibilityCounselorPrompt(counselorLang) + relationToneBlock
+    const systemPrompt =
+      buildCompatibilityCounselorPrompt(counselorLang, sources) + relationToneBlock
 
     // User prompt를 두 블록으로 분할 — multi-turn caching:
     //  - cachedUserContext: 두 사람의 차트와 분석 (테마·세션 무관, 진짜 안정)
@@ -487,7 +495,7 @@ export async function POST(req: NextRequest) {
     // 한 번에 만들어, 라우트는 facts 의 평탄 필드만 읽음. raw shape 변경에
     // formatter 두 개가 더 이상 묶이지 않음.
     const compatSaju =
-      person1Seed && person2Seed
+      sources.saju && person1Seed && person2Seed
         ? collectCompatSajuFacts(
             {
               birthDate: person1Seed.date,
@@ -529,7 +537,7 @@ export async function POST(req: NextRequest) {
     // × 2 를 직접 했다. Phase B (2026-06-06): collectCompatAstroFacts 가
     // 두 사람치 chart 페어 한 번에 만들어, formatter 둘 다 평탄 필드만 읽음.
     const compatAstro =
-      person1Seed && person2Seed && process.env.NODE_ENV !== 'test'
+      sources.astro && person1Seed && person2Seed && process.env.NODE_ENV !== 'test'
         ? await collectCompatAstroFacts(
             {
               birthDate: person1Seed.date,

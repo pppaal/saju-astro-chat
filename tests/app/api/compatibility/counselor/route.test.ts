@@ -179,6 +179,9 @@ vi.mock('@/lib/api/zodValidation', () => ({
           person1Astro: data.person1Astro ?? null,
           person2Astro: data.person2Astro ?? null,
           lang: data.lang,
+          // 사주/점성 시너스트리 토글 — 라우트가 resolveCounselorSources 로 읽어
+          // 컨텍스트·프롬프트를 게이팅한다. 누락 시 라우트가 둘 다로 폴백.
+          sources: data.sources,
           messages: data.messages ?? [],
           theme: data.theme ?? 'general',
         },
@@ -661,7 +664,7 @@ describe('Compatibility Counselor API - POST', () => {
       // lang defaults to context.locale -> English system prompt
       const callArg = vi.mocked(streamClaudeAsSSE).mock.calls[0][0]
       expect(callArg.systemPrompt).toContain(
-        'Answer the user directly from the saju and astrology data'
+        'Answer the user directly from the saju and astrology synastry data'
       )
     })
 
@@ -675,6 +678,78 @@ describe('Compatibility Counselor API - POST', () => {
 
       const callArg = vi.mocked(streamClaudeAsSSE).mock.calls[0][0]
       expect(callArg.systemPrompt).toContain('사용자의 질문에 직접 답변한다')
+    })
+
+    // ----------------------------------------------------------
+    // Data-source toggles (사주/점성 시너스트리 체크박스) — mirrors the
+    // destiny counselor's `sources`. Unselected domain is dropped from the
+    // cached context AND the system prompt switches to a single-source scope
+    // (no dangling references to absent data). Note: astro facts are always
+    // null in test env (NODE_ENV gate), so we assert on the saju block +
+    // the deterministic scope/rule text in the system prompt.
+    // ----------------------------------------------------------
+    describe('Data source toggles (sources)', () => {
+      it('saju-only → saju-only scope in prompt; astrology composite rule dropped', async () => {
+        const req = createRequest({
+          persons: validPersons,
+          messages: [{ role: 'user', content: 'are we good?' }],
+          lang: 'en',
+          sources: { saju: true, astro: false },
+        })
+        await POST(req)
+
+        const callArg = vi.mocked(streamClaudeAsSSE).mock.calls[0][0]
+        expect(callArg.systemPrompt).toContain('Saju (four pillars) synastry only')
+        // Composite/House-overlay are astrology rules — must not dangle when astro is off.
+        expect(callArg.systemPrompt).not.toContain('Composite (relationship entity) usage')
+        // Saju synastry block still flows into the cached context.
+        expect(callArg.cachedUserContext).toContain('== 사주 시너스트리 == (stub)')
+      })
+
+      it('astro-only → astro-only scope; saju synastry block dropped from context', async () => {
+        const req = createRequest({
+          persons: validPersons,
+          messages: [{ role: 'user', content: 'are we good?' }],
+          lang: 'en',
+          sources: { saju: false, astro: true },
+        })
+        await POST(req)
+
+        const callArg = vi.mocked(streamClaudeAsSSE).mock.calls[0][0]
+        expect(callArg.systemPrompt).toContain('Western astrology synastry only')
+        // Saju is off → no saju synastry block, and the saju-only hidden-stems
+        // rule is dropped (the phrase is unique to the SAJU_RULES bullet; the
+        // always-on DESCRIBE doctrine mentions "hidden-stems cross" separately).
+        expect(callArg.cachedUserContext).not.toContain('== 사주 시너스트리 == (stub)')
+        expect(callArg.systemPrompt).not.toContain('hidden stems inside earthly branches')
+      })
+
+      it('no sources field → both domains; fusion rule present, no single-source scope', async () => {
+        const req = createRequest({
+          persons: validPersons,
+          messages: [{ role: 'user', content: 'are we good?' }],
+          lang: 'en',
+        })
+        await POST(req)
+
+        const callArg = vi.mocked(streamClaudeAsSSE).mock.calls[0][0]
+        expect(callArg.systemPrompt).not.toContain('synastry only')
+        expect(callArg.systemPrompt).toContain('Fuse saju and astrology in one flow')
+      })
+
+      it('both sources false → falls back to both (never an empty context)', async () => {
+        const req = createRequest({
+          persons: validPersons,
+          messages: [{ role: 'user', content: 'are we good?' }],
+          lang: 'en',
+          sources: { saju: false, astro: false },
+        })
+        await POST(req)
+
+        const callArg = vi.mocked(streamClaudeAsSSE).mock.calls[0][0]
+        expect(callArg.systemPrompt).not.toContain('synastry only')
+        expect(callArg.cachedUserContext).toContain('== 사주 시너스트리 == (stub)')
+      })
     })
 
     it('should still stream when saju data has missing fields', async () => {

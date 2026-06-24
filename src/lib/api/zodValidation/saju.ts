@@ -527,6 +527,16 @@ export const counselorPersonSchema = z.object({
   timeUnknown: z.boolean().optional(),
 })
 
+// 상담사 데이터 소스 토글 — 사주만/점성만/둘 다(체크박스). 누락 시 라우트가
+// resolveCounselorSources 로 둘 다로 폴백하므로 optional. 운명·궁합 상담사가
+// 같은 스키마를 공유한다(궁합은 사주/점성 *시너스트리* 블록을 같은 토글로 게이팅).
+const counselorSourcesSchema = z
+  .object({
+    saju: z.boolean().optional(),
+    astro: z.boolean().optional(),
+  })
+  .optional()
+
 export const compatibilityCounselorRequestSchema = z.object({
   persons: z.array(counselorPersonSchema).min(2).max(4),
   person1Saju: sajuChatContextSchema.nullable().optional(),
@@ -536,6 +546,8 @@ export const compatibilityCounselorRequestSchema = z.object({
   fullContext: z.record(z.string(), z.unknown()).optional(),
   useRag: z.boolean().optional(),
   lang: z.enum(['ko', 'en']).optional(),
+  // 이번 답변에 넣을 시너스트리 도메인(체크박스). 누락 시 서버가 둘 다로 폴백.
+  sources: counselorSourcesSchema,
   messages: z.array(chatMessageSchema).max(50).optional(),
   // Parsed text of a user-attached file (notes/chat log). Injected into the
   // current turn so the LLM can reference it. Client trims to ~6000 chars.
@@ -582,15 +594,6 @@ const counselorBirthGeoFields = {
   latitude: latitudeSchema.optional(),
   longitude: longitudeSchema.optional(),
 }
-
-// 운명상담사 데이터 소스 토글 — 사주만/점성만/둘 다(체크박스). 누락 시 라우트가
-// resolveCounselorSources 로 둘 다로 폴백하므로 optional.
-const counselorSourcesSchema = z
-  .object({
-    saju: z.boolean().optional(),
-    astro: z.boolean().optional(),
-  })
-  .optional()
 
 export const counselorRealtimeRequestSchema = z
   .object({
