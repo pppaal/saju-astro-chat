@@ -452,6 +452,7 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
     yearlySignals,
     cells,
     monthlyLayer: layered.monthly,
+    dayScores: layered.daily, // 월 티어와 같은 일점수로 bestDay 일치(감사 C1)
   })
   const ageThisYear = TARGET_YEAR - BIRTH_YEAR
   const fallbackHouse = (((ageThisYear % 12) + 12) % 12) + 1

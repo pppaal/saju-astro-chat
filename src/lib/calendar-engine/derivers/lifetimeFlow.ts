@@ -855,10 +855,10 @@ export function deriveLifetimeFlow(
   // ── strength / yongsin ──
   const strengthKo =
     natal.saju.strength === 'weak'
-      ? '기운이 약한 편이라'
+      ? '기운이 약한 편'
       : natal.saju.strength === 'strong'
-        ? '기운이 강한 편이라'
-        : '기운이 비교적 균형 잡혀'
+        ? '기운이 강한 편'
+        : '기운이 비교적 균형 잡힌 편'
   const strengthEn =
     natal.saju.strength === 'weak'
       ? 'on the weaker side of strength'
@@ -901,13 +901,13 @@ export function deriveLifetimeFlow(
   if (geokgukPrimary && geokgukPrimary !== '미정') {
     const shortKo = GEOKGUK_SHORT_KO[geokgukPrimary] ?? ''
     const en = GEOKGUK_EN[geokgukPrimary]
+    // 평이 우선 — raw 격국명(정인격/종재격/병신화수격…)을 빼고 평이 결만 쓴다(감사
+    // jargon + 화格 모순 노출 회피). 격국 라벨 자체는 expert fold/태그에만.
     if (shortKo) {
-      // 조사 처리 — 격국명은 항상 '격' 으로 끝나 받침 있음. "정인격으로" 식.
-      // (옛 "정인격로" 비문법 회귀 fix.)
-      geokgukIntroKo = `격국은 ${geokgukPrimary}으로 ${shortKo}.`
+      geokgukIntroKo = `타고난 큰 틀로 보면 ${shortKo}.`
     }
     if (en) {
-      geokgukIntroEn = `Pattern: ${en.name} — ${en.short}.`
+      geokgukIntroEn = `By your core make-up, ${en.short}.`
     }
   }
 
@@ -1075,18 +1075,19 @@ export function deriveLifetimeFlow(
   // ── intro 합성 ──
   let intro = ''
   if (isEn) {
+    // 평이 우선 — raw 한자 일간(壬)·"용신" 용어를 surface 에서 뺀다(감사 jargon).
     const head = yongEn
-      ? `On the Saju side, ${dm} day master, ${strengthEn}; you shine when ${yongEn} elements back you up.`
-      : `On the Saju side, ${dm} day master, ${strengthEn}.`
+      ? `On the Saju side, your nature is ${strengthEn}; you shine when ${yongEn} elements back you up.`
+      : `On the Saju side, your nature is ${strengthEn}.`
     const parts: string[] = []
     parts.push(head)
     if (structure) parts.push(structure.en)
     if (geokgukIntroEn) parts.push(geokgukIntroEn)
     // 구조 서사가 이미 지배 십신을 풀어 설명하므로 raw % 줄은 중복 — 생략.
     if (!structure && sibsinIntroEn) parts.push(sibsinIntroEn)
-    if (rootIntroEn) parts.push(rootIntroEn)
+    // rootIntro(통근/월령/득령)·johuIntro(조후)는 expert 전문어라 novice intro 에서
+    // 제외(감사 jargon). 강약은 head 에, 결은 structure/elem 에 평이하게 이미 있음.
     if (elemIntroEn) parts.push(elemIntroEn)
-    if (johuIntroEn) parts.push(johuIntroEn)
     if (lifeIntroEn) parts.push(lifeIntroEn)
     if (astroId) {
       parts.push(`On the astrology side, you were born with ${astroId}.`)
@@ -1098,18 +1099,19 @@ export function deriveLifetimeFlow(
     }
     intro = parts.join(' ')
   } else {
+    // 평이 우선 — raw 한자 일간(壬)·"용신" 용어를 surface 에서 뺀다(감사 jargon).
     const head = yongKo
-      ? `사주로는 ${dm} 일간으로 ${strengthKo}, 용신 ${yongKo}${gaI(yongKo)} 받쳐줄 때 잘 풀려요.`
-      : `사주로는 ${dm} 일간으로 ${strengthKo}.`
+      ? `사주로는 ${strengthKo}이라, ${yongKo} 기운이 받쳐줄 때 잘 풀려요.`
+      : `사주로는 ${strengthKo}이에요.`
     const parts: string[] = []
     parts.push(head)
     if (structure) parts.push(structure.ko)
     if (geokgukIntroKo) parts.push(geokgukIntroKo)
     // 구조 서사가 이미 지배 십신을 풀어 설명하므로 raw % 줄은 중복 — 생략.
     if (!structure && sibsinIntroKo) parts.push(sibsinIntroKo)
-    if (rootIntroKo) parts.push(rootIntroKo)
+    // rootIntro(통근/월령/득령)·johuIntro(조후)는 expert 전문어라 novice intro 에서
+    // 제외(감사 jargon). 강약은 head 에, 결은 structure/elem 에 평이하게 이미 있음.
     if (elemIntroKo) parts.push(elemIntroKo)
-    if (johuIntroKo) parts.push(johuIntroKo)
     if (lifeIntroKo) parts.push(lifeIntroKo)
     if (astroId) {
       parts.push(`점성으로는 ${astroId}의 기질을 타고났고요.`)
