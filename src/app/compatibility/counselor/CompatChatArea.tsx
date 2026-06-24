@@ -217,16 +217,15 @@ export function CompatChatArea({
           chatWrapper 전체 폭으로 가로로 길게 퍼진다(궁합만 넓던 회귀). */}
       <div className={styles.inputWrap}>
         {/* 데이터 소스 체크박스 — 이번 답변에 사주/점성 시너스트리 중 무엇을
-            넣을지 고른다(운명상담사와 동일 컴포넌트). 최소 하나는 항상 켜짐.
-            showGroupLabel: 체크박스 위 "상담에 사용할 데이터" 라벨로 용도를 바로
-            알리고, showInfo + variant="synastry": 누르면 궁합 전용 설명 팝업. */}
+            넣을지 고른다(운명상담사와 동일 컴포넌트). 칩 글자 자체가 "사주로 보기/
+            점성으로 보기"라 용도가 바로 읽힘. showInfo + variant="synastry":
+            누르면 궁합 전용 설명 팝업. 최소 하나는 항상 켜짐. */}
         <DataSourceToggles
           sources={sources}
           onChange={onChangeSources}
           lang={locale}
           disabled={isLoading}
           theme="light"
-          showGroupLabel
           showInfo
           variant="synastry"
         />

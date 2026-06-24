@@ -50,6 +50,12 @@ describe('DataSourceToggles', () => {
     expect(screen.queryByText('사주·점성 궁합이란?')).toBeNull()
   })
 
+  it('checkbox labels are self-describing (no separate caption needed)', () => {
+    render(<DataSourceToggles sources={{ saju: true, astro: true }} onChange={vi.fn()} lang="ko" />)
+    expect(screen.getByText('사주로 보기')).toBeTruthy()
+    expect(screen.getByText('점성으로 보기')).toBeTruthy()
+  })
+
   it('toggles a source via onChange when it is not the last one on', () => {
     const onChange = vi.fn()
     render(

@@ -23,11 +23,17 @@ interface DataSourceTogglesProps {
   variant?: 'self' | 'synastry'
 }
 
+// 체크박스 글자 자체를 설명형으로 — 별도 안내 라벨 줄 없이 칩만 봐도 "이 걸로
+// 본다"는 용도가 읽히게. (group 은 aria-label 및 showGroupLabel 옵션용으로 유지.)
 const LABELS: Record<LangKey, { saju: string; astro: string; group: string }> = {
-  ko: { saju: '사주', astro: '점성', group: '이 상담에 쓸 자료를 골라요 (둘 다 추천)' },
+  ko: {
+    saju: '사주로 보기',
+    astro: '점성으로 보기',
+    group: '이 상담에 쓸 자료를 골라요 (둘 다 추천)',
+  },
   en: {
-    saju: 'Saju',
-    astro: 'Astrology',
+    saju: 'Read with Saju',
+    astro: 'Read with Astrology',
     group: 'Choose the data for this reading (both recommended)',
   },
 }
