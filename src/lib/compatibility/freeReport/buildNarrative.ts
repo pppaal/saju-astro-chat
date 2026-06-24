@@ -527,7 +527,13 @@ export function buildFreeCompatNarrative(
   // 신호를 출처가 아니라 "사람들이 실제로 궁금해하는 질문"으로 묶는다. 신호는
   // 버리지 않고 전부 어느 테마든 들어간다(누락 0). 카드 본문은 weight 내림차순,
   // 기술적 head 없이 풀이만 — 스캔되게.
-  const themed: { theme: ThemeId; weight: number; text: string }[] = []
+  const themed: {
+    theme: ThemeId
+    weight: number
+    text: string
+    nuanceKey?: string
+    nuanceText?: string
+  }[] = []
   if (report.dayMaster) {
     const dm = report.dayMaster
     const aEl = elLabel(dm.aEl, isKo)
@@ -589,12 +595,15 @@ export function buildFreeCompatNarrative(
               ? `${josa(ra, '과/와')} ${josa(rb, '이/가')} 만나는 자리예요. ${tone}`
               : `where ${ra} meets ${rb}. ${tone}`
           })()
-      // 각 종류(트라인/스퀘어…) 한 줄 뉘앙스로 깊이 추가.
+      // 각 종류(트라인/스퀘어…) 한 줄 뉘앙스. 본문과 분리해 두고, 같은 테마 안에서
+      // 같은 종류가 반복되면 꼬리문장이 똑같이 되풀이되지 않도록 조립 단계에서 1회만 붙인다.
       const nuance = ASPECT_TYPE_NUANCE[asp.type] ? ` ${t(ASPECT_TYPE_NUANCE[asp.type])}` : ''
       themed.push({
         theme: aspectTheme(asp),
         weight: Math.max(1.5, 6 - (asp.orb ?? 4)),
-        text: blurb + nuance,
+        text: blurb,
+        nuanceKey: asp.type,
+        nuanceText: nuance,
       })
     }
     // 오버레이 — 누구의 어느 행성이 어느 방에 들어왔는지(행성 정체 추가). 방당 1회.
@@ -646,11 +655,18 @@ export function buildFreeCompatNarrative(
   const themes: FreeReportTheme[] = THEME_META.map((m) => {
     const items = themed.filter((x) => x.theme === m.id).sort((a, b) => b.weight - a.weight)
     const seenTxt = new Set<string>()
+    const seenNuance = new Set<string>()
     const paragraphs: string[] = []
     for (const it of items) {
       if (seenTxt.has(it.text)) continue
       seenTxt.add(it.text)
-      paragraphs.push(it.text)
+      // 동일 각 종류 뉘앙스 꼬리문장은 테마당 1회만 — 같은 카드에서 되풀이 방지.
+      let text = it.text
+      if (it.nuanceText && it.nuanceKey && !seenNuance.has(it.nuanceKey)) {
+        seenNuance.add(it.nuanceKey)
+        text += it.nuanceText
+      }
+      paragraphs.push(text)
     }
     return { id: m.id, icon: m.icon, title: t(m.title), paragraphs }
   }).filter((th) => th.paragraphs.length > 0)

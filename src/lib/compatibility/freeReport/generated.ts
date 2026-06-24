@@ -98,7 +98,7 @@ export const GENERATED: GeneratedCopy = {
       },
       blurb: {
         ko: "이 사람 앞에서는 이상하게 말문이 자연스레 트여요. 평소 속에만 담아두던 얘기도 자연스럽게 흘러나오죠. 곁에 있으면 마음이 사르르 풀리면서, 내가 가진 솜씨도 한결 가볍게 펼쳐져요. 잘 보이려 애쓰지 않아도 본래의 내가 한 톤 더 환해지는, 그런 따뜻한 끌림이에요(사주에선 '식신').",
-        en: "Around this person your words just come loose. Things you usually keep tucked away slip out on their own. Next to them you relax, and your own talents flow a little more lightly. Without trying to impress, the real you comes through a shade brighter. It's that kind of warm pull (in Saju, '식신/sik-sin').",
+        en: "Around this person your words just come loose. Things you usually keep tucked away slip out on their own. Next to them you relax, and your own talents flow a little more lightly. Without trying to impress, the real you comes through a shade brighter. It's that kind of warm pull (in Saju, 'sik-sin').",
       },
     },
     상관: {
@@ -138,7 +138,7 @@ export const GENERATED: GeneratedCopy = {
       },
       blurb: {
         ko: "둘이 만나면 상대가 잔잔한 호수에 돌을 던지듯 나를 흔들고 콕콕 밀어붙여요. 그래서 가만있던 마음이 단번에 콩닥콩닥 달아오르죠. 동시에 어딘가로 떠밀리는 듯한 묵직함도 같이 와요. 그건 상대가 거칠어서가 아니라, 나를 자꾸 움직이게 만드는 힘이 센 거예요(사주에선 '편관'). 그래서 둘 사이엔 심심할 틈 없이 짜릿함과 긴장이 늘 같이 흘러요.",
-        en: "When you two come together, they stir you up and keep nudging you forward, like a stone tossed into a still pond. A quiet heart lights up in a heartbeat. At the same time you feel a heavier sense of being pushed somewhere. That's not them being harsh, it's a strong force that keeps you moving (Saju calls this '편관'). So between you, the thrill and the tension always run together, never leaving a dull moment.",
+        en: "When you two come together, they stir you up and keep nudging you forward, like a stone tossed into a still pond. A quiet heart lights up in a heartbeat. At the same time you feel a heavier sense of being pushed somewhere. That's not them being harsh, it's a strong force that keeps you moving (Saju calls this 'pyeon-gwan'). So between you, the thrill and the tension always run together, never leaving a dull moment.",
       },
     },
     정관: {

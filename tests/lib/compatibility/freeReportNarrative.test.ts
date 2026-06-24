@@ -238,6 +238,64 @@ describe('buildFreeCompatNarrative', () => {
     expect(all).not.toContain('변화과')
   })
 
+  it('never leaks Hangul into EN theme cards (sik-sin/pyeon-gwan romanized)', () => {
+    const r: CompatReport = {
+      synView: null,
+      dayMaster: {
+        aStem: '丙',
+        aEl: '화',
+        bStem: '癸',
+        bEl: '수',
+        relation: 'generate',
+        relationLabel: '',
+        bToA: '편관',
+        aToB: '식신',
+      },
+      spouseStars: [],
+      pillarRelations: [],
+    }
+    const view = buildFreeCompatNarrative(r, { labelA: 'Mina', labelB: 'Joon', lang: 'en' })
+    const all = view.themes.flatMap((th) => th.paragraphs).join('\n')
+    expect(all).not.toMatch(/[가-힣]/)
+    expect(all).toMatch(/sik-sin|pyeon-gwan/)
+  })
+
+  it('does not repeat the same aspect-type nuance within one theme card', () => {
+    const asp = (
+      aKey: string,
+      bKey: string
+    ): NonNullable<CompatReport['synView']>['aspects'][number] => ({
+      a: aKey,
+      b: bKey,
+      aKey,
+      bKey,
+      type: 'trine',
+      label: '조화',
+      tone: 'harmony',
+      orb: 1,
+      strength: '강하게',
+      meaning: '',
+    })
+    const r: CompatReport = {
+      synView: {
+        // 둘 다 수성 포함 조화 트라인 → 같은 'talk' 테마 + 같은 트라인 뉘앙스
+        aspects: [asp('Mercury', 'Moon'), asp('Mercury', 'Sun')],
+        overlaysAtoB: [],
+        overlaysBtoA: [],
+        harmony: 2,
+        tension: 0,
+      },
+      dayMaster: null,
+      spouseStars: [],
+      pillarRelations: [],
+    }
+    const view = buildFreeCompatNarrative(r, { labelA: 'A', labelB: 'B', lang: 'ko' })
+    const talk = view.themes.find((th) => th.id === 'talk')!
+    const tailHits = talk.paragraphs.filter((p) => p.includes('물 흐르듯 힘 안 들이고')).length
+    expect(talk.paragraphs.length).toBeGreaterThanOrEqual(2)
+    expect(tailHits).toBe(1)
+  })
+
   it('omits sections whose signals are absent', () => {
     const bare: CompatReport = {
       synView: null,
