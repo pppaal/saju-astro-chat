@@ -40,8 +40,8 @@ const TWELVE_STAGE_TYPES: ReadonlySet<TwelveStageType> = new Set([
   '양',
 ])
 import { SIBSIN_CAT, favorOf, type SibsinCat } from './cycleTone'
-import { SIBSIN_EN } from '@/lib/saju/sibsinLabels'
 import type { LifecycleMilestoneOverride } from '@/lib/calendar-engine/lifecycle/astroLifecycle'
+import { buildLifecycleTiming } from '@/lib/calendar-engine/lifecycle/astroLifecycle'
 import { currentManAge } from '@/lib/datetime/currentAge'
 
 export interface LifePhase {
@@ -134,6 +134,22 @@ const BAND_CAT_KO: Record<string, Record<Cat, string>> = {
     비겁: '사람들과 어울리며 진짜 내 자리를 즐겨요',
     인성: '지혜와 내면이 무르익어 다음 세대에 전해요',
   },
+}
+
+// 편관(칠살) 전용 본문 — 관성으로 묶이지만 정관(질서·책임)과 달리 칠살은 *압박·
+// 도전*의 결이다. BAND_CAT 의 부드러운 관성 문구("자리를 정리")가 편관에 붙으면
+// 톤이 어긋나, 편관일 때만 압박을 인정하는 문구로 교체한다(감사 M7).
+const PYEONGWAN_BODY_KO: Record<string, string> = {
+  초년기: '센 압박이나 강한 어른·환경을 일찍 겪는 편이에요. 눌리기보다 부딪히며 단단해져요',
+  청년기: '강하게 밀어붙이는 도전이 많은 시기예요. 책임과 압박을 정면으로 돌파해요',
+  중년기: '큰 책임과 외부 압박이 정점에 올라요. 칼날 위에서 균형을 잡는 시기예요',
+  장년기: '오래 짊어진 압박을 마무리하는 시기예요. 무리한 승부보다 정리가 나아요',
+}
+const PYEONGWAN_BODY_EN: Record<string, string> = {
+  초년기: 'You meet strong pressure or forceful adults early — you toughen by pushing back rather than caving',
+  청년기: 'A season of hard, driving challenges — you take responsibility and pressure head-on',
+  중년기: 'Big responsibility and outside pressure peak — a season of balancing on a knife-edge',
+  장년기: 'A season of winding down long-carried pressure — tidying up beats forcing one more contest',
 }
 
 // ════════════════════════════ EN copy ════════════════════════════
@@ -938,25 +954,23 @@ export function deriveLifetimeFlow(
   // ── 외행성 마디 사실 — kind 별로 (라벨, 정확 일시) 맵. 없거나 null 은 무시. ──
   // bilingual: 날짜 문자열을 KO/EN 양쪽으로 baked (kind 매핑 존재 판정은 KO 테이블
   // 기준 — 두 테이블 키가 동일).
+  // 외행성 마디(토성/목성 회귀·천왕성 대립 등)를 단계 카드의 `outer` 로 채운다.
+  // 예전엔 astroMilestoneOverrides 만 직접 읽어, 그게 미지정(현재 전 경로)이면
+  // milestoneFacts 가 비어 `outer` 가 *항상 []* 였다(감사 CRITICAL — lifeStages 에서
+  // 외행성 마디 전체 누락). lifetimePivots 와 동일하게 buildLifecycleTiming 을 거쳐
+  // (override 있으면 실제 transit, 없으면 평균 테이블) 일관되게 채운다.
+  const overrideByKind = new Map<string, LifecycleMilestoneOverride>()
+  for (const o of astroMilestoneOverrides ?? []) overrideByKind.set(o.kind, o)
   const milestoneFacts: Array<{ kind: string; age: number; dateStrKo: string; dateStrEn: string }> =
-    []
-  for (const o of astroMilestoneOverrides ?? []) {
-    if (o.age == null) continue
-    const short = MILESTONE_SHORT_KO[o.kind]
-    if (!short) continue
-    const dateStrKo = o.exactDateISO
-      ? shortDateKo(o.exactDateISO)
-      : o.startYear != null
-        ? `${o.startYear}년`
-        : ''
-    const dateStrEn = o.exactDateISO
-      ? shortDateEn(o.exactDateISO)
-      : o.startYear != null
-        ? `${o.startYear}`
-        : ''
-    if (!dateStrKo && !dateStrEn) continue
-    milestoneFacts.push({ kind: o.kind, age: o.age, dateStrKo, dateStrEn })
-  }
+    buildLifecycleTiming(birthYear, birthYear + 90, true, astroMilestoneOverrides, now).events
+      .filter((e) => MILESTONE_SHORT_KO[e.event])
+      .map((e) => {
+        const ov = overrideByKind.get(e.event)
+        // override 의 정확 일시가 있으면 "2024년 3월"까지, 없으면 연도만.
+        const dateStrKo = ov?.exactDateISO ? shortDateKo(ov.exactDateISO) : `${e.startYear}년`
+        const dateStrEn = ov?.exactDateISO ? shortDateEn(ov.exactDateISO) : `${e.startYear}`
+        return { kind: e.event, age: e.startYear - birthYear, dateStrKo, dateStrEn }
+      })
 
   // ── 본명 4지지 (지지충/육합 판정용) — 위치 라벨을 KO/EN 양쪽 baked. ──
   const pillars = natal.saju.pillars
@@ -1040,7 +1054,9 @@ export function deriveLifetimeFlow(
     const phaseMilestones = milestoneFacts
       .filter((m) => m.age >= lo && m.age <= hi)
       .slice()
-      .sort((a, b) => (a.dateStrEn < b.dateStrEn ? -1 : a.dateStrEn > b.dateStrEn ? 1 : 0))
+      // 나이(숫자)로 정렬 — dateStr 문자열 정렬은 "2025" 와 "Aug 2019"(override 월표기)가
+      // 섞이면 "A"<"2" 가 거짓이라 시간순이 깨졌다(테이블+override 혼합 시).
+      .sort((a, b) => a.age - b.age)
     const TOP_N = 3
     const top = phaseMilestones.slice(0, TOP_N)
     const moreCount = phaseMilestones.length - top.length
@@ -1062,14 +1078,15 @@ export function deriveLifetimeFlow(
       const daeunBranch = primary.branch
       for (const nb of natalBranches) {
         if (BRANCH_CHUNG[nb.name] === daeunBranch) {
+          // 평이 우선 — 일지/×/충/간지 원명을 surface 에서 빼고 의미만 한 문장으로.
           return en
-            ? `Natal ${nb.posEn} ${nb.name} (${BRANCH_ROM[nb.name] ?? ''}) × daeun ${daeunBranch} (${BRANCH_ROM[daeunBranch] ?? ''}) — clash (volatility pressure)`
-            : `본명 ${nb.posKo}지 ${nb.name}(${BRANCH_KO[nb.name] ?? ''}) × 대운 ${daeunBranch}(${BRANCH_KO[daeunBranch] ?? ''}) → ${nb.name}${daeunBranch}충 (변동 압력)`
+            ? 'This stretch tends to shake your footing a little — expect more change and friction.'
+            : '이 시기엔 환경이 타고난 자리를 흔드는 편이라, 변동과 마찰이 잦아요.'
         }
         if (BRANCH_YUKHAP[nb.name] === daeunBranch) {
           return en
-            ? `Natal ${nb.posEn} ${nb.name} (${BRANCH_ROM[nb.name] ?? ''}) × daeun ${daeunBranch} (${BRANCH_ROM[daeunBranch] ?? ''}) — harmony (environment in step)`
-            : `본명 ${nb.posKo}지 ${nb.name}(${BRANCH_KO[nb.name] ?? ''}) × 대운 ${daeunBranch}(${BRANCH_KO[daeunBranch] ?? ''}) → ${nb.name}${daeunBranch}육합 (환경이 손발 맞춤)`
+            ? 'This stretch clicks with your natural grain — things tend to fall into step.'
+            : '이 시기엔 환경이 타고난 흐름과 잘 맞아, 손발이 척척 맞는 편이에요.'
         }
       }
       return undefined
@@ -1145,25 +1162,30 @@ export function deriveLifetimeFlow(
     let twelveStageLineEn: string | undefined
     try {
       const stage = getTwelveStage(dm, primary.branch)
+      // getTwelveStage 는 정통 표기 임관/왕지를 내는데, 해석 테이블·타입가드는
+      // 동의어 건록/제왕 키를 쓴다. 정규화하지 않으면 임관·왕지 단계가 *항상*
+      // 해석을 잃고 "…기준 임관" 으로 끊겨 raw 용어만 남는다(감사 지적). 동의어를
+      // 매핑해 의미가 절대 비지 않게 한다.
+      const stageForLookup = stage === '임관' ? '건록' : stage === '왕지' ? '제왕' : stage
       let meaningKo = ''
       let meaningEn = ''
-      if (stage && TWELVE_STAGE_TYPES.has(stage as TwelveStageType)) {
-        const interp = getTwelveStageInterpretation(stage as TwelveStageType)
+      if (stageForLookup && TWELVE_STAGE_TYPES.has(stageForLookup as TwelveStageType)) {
+        const interp = getTwelveStageInterpretation(stageForLookup as TwelveStageType)
         if (interp) {
           meaningKo = interp.meaning ?? ''
           meaningEn = interp.meaning_en ?? ''
         }
       }
-      if (stage) {
-        const daeunBranch = primary.branch
-        const branchRom = BRANCH_ROM[daeunBranch] ?? ''
-        const branchStrEn = branchRom ? `${daeunBranch} (${branchRom})` : daeunBranch
-        const stageHeadEn = `daeun ${branchStrEn} reads as ${stage} for day-master ${dm}`
-        twelveStageLineEn = meaningEn ? `${stageHeadEn} — ${meaningEn}` : stageHeadEn
-        const branchKo = BRANCH_KO[daeunBranch] ?? ''
-        const branchStrKo = branchKo ? `${daeunBranch}(${branchKo})` : daeunBranch
-        const stageHeadKo = `대운 ${branchStrKo}이 일간 ${dm} 기준 ${stage}`
-        twelveStageLineKo = meaningKo ? `${stageHeadKo} — ${meaningKo}` : stageHeadKo
+      // 평이 우선 — "대운 申(신)이 일간 辛 기준 왕지" 같은 간지/일간/운성 원명을
+      // surface 에서 빼고, 12운성의 *평이 의미*만 한 줄로 쓴다(예: "권력의 정점").
+      // 아동기엔 운성 해석이 전부 성인 기준("성인이 되어 관을 쓰는 시기")이라
+      // 유아에게 붙으면 어색하므로 생략한다(감사 지적). 의미가 비면(이론상 없음)
+      // raw 운성명을 노출하지 않고 그냥 줄을 안 만든다.
+      if (!isChildhood && meaningKo) {
+        twelveStageLineKo = `기운의 흐름으로 보면, ${meaningKo}.`
+        twelveStageLineEn = meaningEn
+          ? `In terms of your life-energy cycle, ${meaningEn.charAt(0).toLowerCase()}${meaningEn.slice(1)}.`
+          : undefined
       }
     } catch {
       // stage 계산 실패 시 silently skip
@@ -1174,16 +1196,19 @@ export function deriveLifetimeFlow(
     const toneIdx = nextToneIdx(toneFav)
     const toneKo = TONE_VARIANTS_KO[toneFav][toneIdx]
     const toneEn = TONE_VARIANTS_EN[toneFav][toneIdx]
-    const bodyKo = BAND_CAT_KO[label]?.[cat] ?? body
-    const bodyEn = BAND_CAT_EN[label]?.[cat] ?? body
-    const childPrefixKo = isChildhood ? '초년은 년주(부모·뿌리) 기준 — ' : ''
-    const childPrefixEn = isChildhood ? 'From the year pillar (parents·roots) — ' : ''
-    const textKo = `${childPrefixKo}${sibsinName}(${cat}) 흐름 — ${bodyKo}. ${toneKo}`
-    // EN head uses the English ten-god label (not the Korean sibsinName) so the
-    // EN body — and the tone head that deriveToneFromText slices off it — stay
-    // English (was leaking '편재' into EN stage cards).
-    const sibsinNameEn = SIBSIN_EN[sibsinName] ?? CAT_EN[cat]
-    const textEn = `${childPrefixEn}${sibsinNameEn} (${CAT_EN[cat]}) flow — ${bodyEn}. ${toneEn}`
+    // 편관(칠살)은 같은 관성이라도 압박·도전의 결 — 전용 문구로 교체.
+    const isPyeongwan = sibsinName === '편관'
+    const bodyKo =
+      (isPyeongwan ? PYEONGWAN_BODY_KO[label] : undefined) ?? BAND_CAT_KO[label]?.[cat] ?? body
+    const bodyEn =
+      (isPyeongwan ? PYEONGWAN_BODY_EN[label] : undefined) ?? BAND_CAT_EN[label]?.[cat] ?? body
+    const childPrefixKo = isChildhood ? '초년은 부모·뿌리의 영향을 받는 시기예요 — ' : ''
+    const childPrefixEn = isChildhood ? "Shaped by family and roots early on — " : ''
+    // 평이 우선: 십신 원명("편재(재성) 흐름 — ")을 surface 에서 빼고 그 의미를 풀어쓴
+    // bodyKo/En 로 시작한다. 십신 라벨은 어차피 bodyKo 안에 평이하게 녹아 있어
+    // 중복 노이즈였고, novice 표면에 raw 십신을 노출하던 주범이었다(감사 지적).
+    const textKo = `${childPrefixKo}${bodyKo}. ${toneKo}`
+    const textEn = `${childPrefixEn}${bodyEn}. ${toneEn}`
     const text = isEn ? textEn : textKo
 
     const ageRange = isEn

@@ -22,6 +22,7 @@
 import type { CSSProperties } from 'react'
 import { SIGN_KO } from '@/lib/astrology/signLabels'
 import { sibsinArea, sibsinAreaEn, planetPlain } from '@/lib/calendar-engine/derivers/plainLanguage'
+import { getZRChapterTheme } from '@/lib/astrology/foundation/zodiacalReleasing'
 import {
   getGeokgukRich,
   getSibsinCategory,
@@ -215,16 +216,19 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
   const nextMilestone = [...milestones]
     .sort((a, b) => a.year - b.year)
     .find((m) => m.year > currentYear)
-  const youAreHere =
-    nowAge > 0 && nowStageName
-      ? ko
-        ? nextMilestone
-          ? `지금 ${nowAge}세, ‘${nowStageName}’를 살고 있어요. 다음 큰 마디는 ${nextMilestone.age}세예요.`
-          : `지금 ${nowAge}세, ‘${nowStageName}’를 살고 있어요.`
-        : nextMilestone
-          ? `You're ${nowAge} now, living your '${nowStageName}'. The next major turn is at age ${nextMilestone.age}.`
-          : `You're ${nowAge} now, living your '${nowStageName}'.`
-      : ''
+  // 계절명이 없어도(어떤 단계도 now 가 아니면) "지금 N세" + 다음 마디는 항상 보인다
+  // — 예전엔 nowStageName 이 비면 이 연결 한 줄이 통째로 사라졌다(감사 H3).
+  const youAreHere = (() => {
+    if (nowAge <= 0) return ''
+    const nextKo = nextMilestone ? ` 다음 큰 마디는 ${nextMilestone.age}세예요.` : ''
+    const nextEn = nextMilestone ? ` The next major turn is at age ${nextMilestone.age}.` : ''
+    if (nowStageName) {
+      return ko
+        ? `지금 ${nowAge}세, ‘${nowStageName}’를 살고 있어요.${nextKo}`
+        : `You're ${nowAge} now, living your '${nowStageName}'.${nextEn}`
+    }
+    return ko ? `지금 ${nowAge}세를 지나고 있어요.${nextKo}` : `You're ${nowAge} now.${nextEn}`
+  })()
 
   // ── 감사 #5: 리포트 전용 DB 3종을 정체성 폴드로 끌어옴(가드+폴백). ──
   const lang = ko ? 'ko' : 'en'
@@ -262,7 +266,15 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
 
       {/* ── novice 기본: 한자·용어 없는 일상어 결론 ── */}
       <header className={styles.novice}>
-        <div className={styles.novToneWord}>{ko ? `${patternKo} 타입` : `${patternKo} type`}</div>
+        {/* lifePattern 이 없으면(드문 결손 케이스) "내 인생 흐름 타입" 플레이스홀더
+            대신 격국 라벨을 히어로로 — 일주 character 줄이 본문을 받친다. */}
+        <div className={styles.novToneWord}>
+          {lifePattern
+            ? ko
+              ? `${patternKo} 타입`
+              : `${patternKo} type`
+            : gyeokgukLabel || (ko ? patternKo : patternKo)}
+        </div>
         {patternLine && <p className={styles.novLine}>{patternLine}</p>}
         {/* 일주 아키타입 character — novice-grade 평이 프로즈(있으면). */}
         {iljuRich?.character && <p className={styles.novLine}>{iljuRich.character}</p>}
@@ -474,10 +486,12 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
           {lifeStages.map((s, i) => {
             const favor = stageFavor(s.ageFrom, s.ageTo)
             const future = stageNowIndex >= 0 && i > stageNowIndex
+            const past = stageNowIndex >= 0 && i < stageNowIndex
             const cls = [
               styles.seasonCard,
               s.now && styles.seasonNow,
               future && styles.seasonFuture,
+              past && styles.seasonPast,
             ]
               .filter(Boolean)
               .join(' ')
@@ -502,6 +516,7 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
                 }
               >
                 {s.now && <span className={styles.seasonNowTag}>{ko ? '지금' : 'now'}</span>}
+                {past && <span className={styles.seasonPastTag}>{ko ? '지나온' : 'past'}</span>}
                 <span className={styles.seasonName}>{ko ? s.name : (s.nameEn ?? s.name)}</span>
                 <span className={styles.seasonAge}>
                   {s.ageFrom}–{s.ageTo}
@@ -605,6 +620,18 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
                 lane.chapters.length > 0 ? (
                   <div className={styles.zrLane} key={lane.label}>
                     <div className={`${styles.zrLaneLabel} ${lane.cls}`}>{lane.label}</div>
+                    {(() => {
+                      // 지금 챕터의 *평이 테마* 한 줄 — raw 라틴어 별자리 대신 의미를 보인다.
+                      const nowChapter = lane.chapters.find((c) => c.now)
+                      if (!nowChapter) return null
+                      const theme = getZRChapterTheme(nowChapter.sign, ko ? 'ko' : 'en')
+                      if (!theme) return null
+                      return (
+                        <div className={styles.zrNowTheme}>
+                          {ko ? `지금은 ${theme}예요.` : `Right now: ${theme}.`}
+                        </div>
+                      )
+                    })()}
                     <div className={styles.zrTrack}>
                       {lane.chapters.map((c, i) => {
                         const left = zrPct(c.calendarStartYear)
@@ -620,7 +647,11 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
                             className={`${styles.zrChapter} ${c.now ? styles.zrNow : ''}`.trim()}
                             key={`${lane.label}-${c.calendarStartYear}-${i}`}
                             style={{ left: `${left}%`, width: `${width}%` }}
-                            title={`${sign} · ${ruler} · ${c.calendarStartYear}–${c.calendarEndYear}`}
+                            title={`${sign} · ${ruler} · ${c.calendarStartYear}–${c.calendarEndYear}${
+                              getZRChapterTheme(c.sign, ko ? 'ko' : 'en')
+                                ? ` · ${getZRChapterTheme(c.sign, ko ? 'ko' : 'en')}`
+                                : ''
+                            }`}
                           >
                             <span className={styles.zrSign}>{sign}</span>
                             <span className={styles.zrMeta}>

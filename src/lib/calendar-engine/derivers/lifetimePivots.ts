@@ -230,9 +230,15 @@ export function deriveLifetimePivots(
     }
   })
 
-  // 짝 못 찾은 대운 — 그 자체로 분기점
+  // 짝 못 찾은 대운 — 그 자체로 분기점.
+  // 단, 아동기(만 16세 미만) 대운 개시는 "인생의 큰 마디"로 싣지 않는다 — 의미
+  // 문구가 전부 성인 기준("도전의 10년", "홀로서기")이라 1·2세 유아에게 붙으면
+  // 난센스가 된다(감사 BLOCKER). 짝지어진 점성 마일스톤(예: 11세 목성 회귀)은
+  // 나이에 맞는 별도 문구라 그대로 둔다.
+  const DAEUN_MILESTONE_MIN_AGE = 16
   daeun.forEach((d, i) => {
     if (usedDaeun.has(i)) return
+    if (d.age < DAEUN_MILESTONE_MIN_AGE) return
     pivots.push({
       age: d.age,
       year: d.year,
@@ -247,5 +253,21 @@ export function deriveLifetimePivots(
   })
 
   pivots.sort((a, b) => a.age - b.age)
+
+  // "지금" 마디는 정확히 하나 — phaseOf 의 ±2년 창은 여러 마디를 한꺼번에 'current'
+  // 로 찍고(렌더에 "지금" 핀 중복), 2년 *미래* 마디까지 'current' 로 잡았다(감사 H2).
+  // 현재 나이에 가장 가까운 한 개만 'current' 로 남기되 동률이면 이미 지난(≤현재
+  // 나이) 쪽을 우선한다. 나머지 옛 'current' 는 위치에 따라 past/upcoming 으로 환원.
+  const currents = pivots.filter((p) => p.phase === 'current')
+  if (currents.length > 1) {
+    const score = (p: LifePivot) => Math.abs(p.age - currentAge) * 2 + (p.age > currentAge ? 1 : 0)
+    let anchor = currents[0]
+    for (const p of currents) if (score(p) < score(anchor)) anchor = p
+    for (const p of currents) {
+      if (p === anchor) continue
+      p.phase = p.age < currentAge ? 'past' : 'upcoming'
+    }
+  }
+
   return { pivots }
 }
