@@ -53,7 +53,7 @@ export const SECTION_META: Record<string, SectionMeta> = {
     title: { ko: '두 사람의 타고난 결', en: 'The grain you were each born with' },
     lead: {
       ko: '사주에서 "나 자신"을 뜻하는 글자(일간)끼리 어떻게 만나는지, 그리고 두 사람의 기운(오행)이 서로를 채워주는지 봐요.',
-      en: 'How your "day master" characters (the symbol that means *you* in Saju) meet, and whether your elemental energies fill each other in.',
+      en: 'How the two characters that each mean *you* in Saju (your day masters) meet, and whether your two elemental energies fill in what the other lacks.',
     },
   },
   hearts: {
@@ -619,9 +619,9 @@ export const PLANET_FLAVOR: Record<string, Bi> = {
   Venus: { ko: '애정·매력', en: 'affection and charm' },
   Mars: { ko: '욕망·추진', en: 'desire and drive' },
   Jupiter: { ko: '확장·너그러움', en: 'expansion and generosity' },
-  Saturn: { ko: '책임·시험', en: 'commitment and testing' },
+  Saturn: { ko: '책임·시험', en: 'responsibility and testing' },
   Uranus: { ko: '자극·변화', en: 'spark and change' },
-  Neptune: { ko: '환상·이상', en: 'dream and idealization' },
+  Neptune: { ko: '환상·이상', en: 'illusion and idealization' },
   Pluto: { ko: '깊이·강렬함', en: 'depth and intensity' },
-  Ascendant: { ko: '첫인상·태도', en: 'first impression' },
+  Ascendant: { ko: '첫인상·태도', en: 'first impression and demeanor' },
 }
