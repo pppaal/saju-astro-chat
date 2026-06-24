@@ -149,6 +149,13 @@
   line-height: 1.6;
   word-break: keep-all;
 }
+/* 지장간 음(音) — 한자 바로 옆 작은 골드 표기 */
+.reading {
+  font-size: 11px;
+  color: var(--gold);
+  font-family: var(--serif);
+  margin-left: 1px;
+}
 
 /* 지장간 목록 */
 .hiddenList,

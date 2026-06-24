@@ -351,8 +351,8 @@ describe('relations.ts', () => {
       })
     })
 
-    describe('지지방합 (Half Harmonies)', () => {
-      it('detects 申-子 방합 when 삼합 is not complete', () => {
+    describe('반합 (Half Harmonies)', () => {
+      it('detects 申-子 반합 (지지삼합 kind) when 삼합 is not complete', () => {
         const pillars = makePillars(
           ['甲', '申'],
           ['乙', '子'],
@@ -360,12 +360,14 @@ describe('relations.ts', () => {
           ['丁', '丑']
         )
         const result = analyzeRelations({ pillars })
-        const half = result.find((h) => h.kind === '지지방합')
+        // 반합쌍(申-子)은 삼합의 절반 → kind '지지삼합', detail '반합' (옛 '지지방합' 오표기 수정 R2)
+        const half = result.find((h) => h.kind === '지지삼합' && h.detail?.includes('申-子'))
         expect(half).toBeDefined()
-        expect(half?.detail).toContain('방합')
+        expect(half?.detail).toContain('반합')
+        expect(half?.detail).not.toContain('방합')
       })
 
-      it('hides 방합 when 삼합 is complete', () => {
+      it('hides 반합 when 삼합 is complete', () => {
         const pillars = makePillars(
           ['甲', '申'],
           ['乙', '子'],
@@ -373,13 +375,15 @@ describe('relations.ts', () => {
           ['丁', '丑']
         )
         const result = analyzeRelations({ pillars })
-        // Should have 삼합 but not the half-harmony within that set
-        const trine = result.find((h) => h.kind === '지지삼합')
+        // Should have full 삼합 …
+        const trine = result.find((h) => h.kind === '지지삼합' && h.detail?.includes('삼합'))
         expect(trine).toBeDefined()
-        // The 申-子 방합 should be hidden
+        // … but not a separate 반합 within that same set
         const halfFromSameSet = result.find(
           (h) =>
-            h.kind === '지지방합' && (h.detail?.includes('申-子') || h.detail?.includes('子-辰'))
+            h.kind === '지지삼합' &&
+            h.detail?.includes('반합') &&
+            (h.detail?.includes('申-子') || h.detail?.includes('子-辰'))
         )
         expect(halfFromSameSet).toBeUndefined()
       })

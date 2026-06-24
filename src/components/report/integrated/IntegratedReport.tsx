@@ -460,6 +460,15 @@ const MINOR_RELATION_NOTE: Record<Lang, string> = {
   ko: '지금은 친구·가족과 어울리며 마음을 표현하는 법을 배우는 시기예요. 연애나 결혼 같은 주제는 더 자란 뒤에 살펴보는 게 좋아요.',
   en: 'Right now is a time for making friends and learning to express your feelings. Topics like romance and marriage are best explored when you are older.',
 }
+// 미성년 — 구체적 직업 리스트·돈 조언 대신 발달 단계에 맞는 '재능 키우기' 안내로 reframe.
+const MINOR_TALENT_LABEL: Record<Lang, string> = {
+  ko: '타고난 재능',
+  en: 'Natural talents',
+}
+const MINOR_TALENT_NOTE: Record<Lang, string> = {
+  ko: '지금은 여러 가지를 해보며 좋아하고 잘하는 걸 찾아가는 시기예요. 타고난 강점을 놀이처럼 즐겁게 키워가면 돼요. 구체적인 직업은 더 자란 뒤에 천천히 골라도 늦지 않아요.',
+  en: 'Right now is a time to try many things and discover what you love and do well. Grow your natural strengths through play — specific careers can be chosen slowly when you are older.',
+}
 
 export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportProps) {
   const { input, saju: S, astro: A } = data
@@ -714,7 +723,7 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
                 </div>
                 <div className={s.dmBody}>{dm?.as_daymaster ?? dm?.nature ?? ''}</div>
                 {/* 강점/약점은 상단 히어로에 일간+격국 종합으로 한 번만 노출(중복 제거). */}
-                {dm?.career?.length ? (
+                {!isMinor && dm?.career?.length ? (
                   <div className={s.dmRow}>
                     <b>{lang === 'en' ? 'Careers' : '직업'}</b> {dm.career.join(', ')}
                   </div>
@@ -760,9 +769,10 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
                           {j.g}
                         </b>
                         <i>
-                          {lang === 'en'
+                          {(lang === 'en'
                             ? { main: 'main', mid: 'mid', sub: 'sub' }[j.layer]
-                            : { main: '본', mid: '중', sub: '여' }[j.layer]}
+                            : { main: '본', mid: '중', sub: '여' }[j.layer]) ?? ''}{' '}
+                          {hanjaReading(j.g, lang)}
                         </i>
                       </div>
                     ))}
@@ -875,7 +885,7 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
                 <div className={s.themeReason} style={{ marginTop: 4 }}>
                   <b>{t('geokWeakness')}</b> {ilju.weakness}
                 </div>
-                {ilju.career && (
+                {!isMinor && ilju.career && (
                   <div className={s.themeReason} style={{ marginTop: 4 }}>
                     <b>{t('geokCareer')}</b> {ilju.career}
                   </div>
@@ -1045,10 +1055,17 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
                 <b>{t('geokPersonality')}</b> {geok.personality}
               </div>
               {/* 강점/약점은 상단 히어로에 종합되어 있어 카드에서는 생략(중복 제거). */}
-              {geok.career && geok.career.length > 0 && (
+              {isMinor ? (
                 <div className={s.themeReason} style={{ marginTop: 4 }}>
-                  <b>{t('geokCareer')}</b> {geok.career.join(', ')}
+                  <b>{MINOR_TALENT_LABEL[lang]}</b> {MINOR_TALENT_NOTE[lang]}
                 </div>
+              ) : (
+                geok.career &&
+                geok.career.length > 0 && (
+                  <div className={s.themeReason} style={{ marginTop: 4 }}>
+                    <b>{t('geokCareer')}</b> {geok.career.join(', ')}
+                  </div>
+                )
               )}
               {geok.love && (
                 <div className={s.themeReason} style={{ marginTop: 4 }}>
@@ -1056,9 +1073,12 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
                   {isMinor ? MINOR_RELATION_NOTE[lang] : geok.love}
                 </div>
               )}
-              <div className={s.themeReason} style={{ marginTop: 4 }}>
-                <b>{t('geokAdvice')}</b> {geok.advice}
-              </div>
+              {/* 미성년에겐 사업·돈 운용 조언(geok.advice)을 숨긴다 — 연령 부적합 */}
+              {!isMinor && (
+                <div className={s.themeReason} style={{ marginTop: 4 }}>
+                  <b>{t('geokAdvice')}</b> {geok.advice}
+                </div>
+              )}
             </div>
           )}
           {/* 일지(배우자궁) 십성 — sibsin-category 사전. 매칭 없으면 자동 생략.
