@@ -302,8 +302,8 @@ const NODE_CORE_KEY: Record<string, string> = {
   'Mean Node': 'NorthNode',
   'North Node': 'NorthNode',
 }
-export function planetHover(name: string, lang: Lang): string {
-  const c = getPlanetCore(NODE_CORE_KEY[name] ?? name, lang)
+export function planetHover(name: string, lang: Lang, isMinor = false): string {
+  const c = getPlanetCore(NODE_CORE_KEY[name] ?? name, lang, isMinor)
   if (!c) return ''
   return c.keywords?.length ? `${c.principle} · ${c.keywords.slice(0, 4).join(', ')}` : c.principle
 }

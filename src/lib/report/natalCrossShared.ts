@@ -21,8 +21,9 @@ import { getPlanetCore } from '@/lib/chart-dictionary'
 /** 행성의 쉬운 말 결(원리) — 예: 토성 '한계·책임·구조'. 없으면 행성명 폴백.
  * EN: principle 이 'Expansion · Faith · Luck' 같은 대문자 명사나열이라 문장 중간에
  * 박으면 비문 → 소문자 + 쉼표로 풀어 'expansion, faith, luck' 형태로. */
-export function planetTheme(planet: string, lang: Lang): string {
-  const p = getPlanetCore(planet, lang)?.principle ?? PLANET_LABEL[planet]?.[lang] ?? planet
+export function planetTheme(planet: string, lang: Lang, isMinor = false): string {
+  const p =
+    getPlanetCore(planet, lang, isMinor)?.principle ?? PLANET_LABEL[planet]?.[lang] ?? planet
   if (lang !== 'en') return p
   const parts = p
     .toLowerCase()

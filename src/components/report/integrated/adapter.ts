@@ -682,7 +682,13 @@ export function buildCrossRows(
   const items: Array<[keyof typeof CAT, CrossVerdict | null]> = [
     [
       'identity',
-      evalIdentity(dmEl, sunSign, ascSign, (A.almutenFiguris?.winner ?? null) as string | null),
+      evalIdentity(
+        dmEl,
+        sunSign,
+        ascSign,
+        (A.almutenFiguris?.winner ?? null) as string | null,
+        isMinor
+      ),
     ],
     [
       'needs',
