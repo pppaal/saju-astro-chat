@@ -127,8 +127,10 @@ in `src/lib/prompts` as co-located ko/en so they can't drift.
 product, so corrupted Hangul is a real failure class. Korean comments in code are
 fine (the pre-commit hook only _warns_); avoid `console.*` (use `@/lib/logger`).
 
-**pricing.ts is the single source of truth** for credit packs (10/40/100/240/500).
-Docs and the Stripe webhook read from it — don't hardcode pack sizes elsewhere.
+**pricing.ts is the single source of truth** for credit packs (starter 8 · mini 12
+· standard 30 · plus 70 · mega 140 · ultimate 280; `starter` is a first-purchase-only
+impulse pack, excluded from the /pricing grid). Docs and the Stripe webhook read from
+it — don't hardcode pack sizes elsewhere.
 
 ## Deeper reading
 

@@ -1,14 +1,19 @@
-export type CreditPackKey = 'mini' | 'standard' | 'plus' | 'mega' | 'ultimate'
+export type CreditPackKey = 'starter' | 'mini' | 'standard' | 'plus' | 'mega' | 'ultimate'
 
 type CreditPackEntry = {
   id: string
   pack: CreditPackKey
 }
 
-// Credit pack entries (one-time purchases)
-// Pack details: mini(5), standard(20), plus(50), mega(120), ultimate(220)
-// (실제 수량은 src/lib/config/pricing.ts CREDIT_PACKS 가 단일 출처)
+// Credit pack entries (one-time purchases). 실제 수량/가격은
+// src/lib/config/pricing.ts CREDIT_PACKS 가 단일 출처.
+// starter 는 첫구매 1회 한정 미끼 — STRIPE_PRICE_CREDIT_STARTER 가 비어 있으면
+// 아래 .filter 로 자동 제외되어, Stripe Price 생성 전까지 결제 불가(graceful).
 const creditPackEntries = [
+  {
+    id: process.env.STRIPE_PRICE_CREDIT_STARTER || '',
+    pack: 'starter',
+  },
   {
     id: process.env.STRIPE_PRICE_CREDIT_MINI || '',
     pack: 'mini',

@@ -243,6 +243,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   }
 
   const creditPack = metadata.creditPack as
+    | 'starter'
     | 'mini'
     | 'standard'
     | 'plus'

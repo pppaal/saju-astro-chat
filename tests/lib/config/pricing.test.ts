@@ -19,9 +19,22 @@ describe('PricingConfig', () => {
     it('should have mini pack config', () => {
       const mini = CREDIT_PACKS.mini
       expect(mini.id).toBe('mini')
-      // 팩 크레딧 2배 정책: 5 → 10 (perCreditKrw ₩380 → ₩190), 가격은 동일.
-      expect(mini.credits).toBe(10)
-      expect(mini.pricing.krw).toBe(1900)
+      // 2026-06 가치기반 개편(B안): mini 12크레딧 / ₩5,900.
+      expect(mini.credits).toBe(12)
+      expect(mini.pricing.krw).toBe(5900)
+    })
+
+    it('should have starter as a first-purchase-only pack', () => {
+      const starter = CREDIT_PACKS.starter
+      expect(starter.id).toBe('starter')
+      expect(starter.firstPurchaseOnly).toBe(true)
+      expect(starter.credits).toBe(8)
+      expect(starter.pricing.krw).toBe(3900)
+    })
+
+    it('should mark only starter as firstPurchaseOnly', () => {
+      const flagged = getAllCreditPackIds().filter((id) => CREDIT_PACKS[id].firstPurchaseOnly)
+      expect(flagged).toEqual(['starter'])
     })
 
     it('should have plus pack marked as popular', () => {
@@ -79,6 +92,7 @@ describe('PricingConfig', () => {
   describe('getAllCreditPackIds', () => {
     it('should return all credit pack types', () => {
       const ids = getAllCreditPackIds()
+      expect(ids).toContain('starter')
       expect(ids).toContain('mini')
       expect(ids).toContain('standard')
       expect(ids).toContain('plus')
@@ -86,8 +100,8 @@ describe('PricingConfig', () => {
       expect(ids).toContain('ultimate')
     })
 
-    it('should return 5 packs', () => {
-      expect(getAllCreditPackIds().length).toBe(5)
+    it('should return 6 packs', () => {
+      expect(getAllCreditPackIds().length).toBe(6)
     })
   })
 
