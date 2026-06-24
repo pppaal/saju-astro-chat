@@ -12,6 +12,7 @@
 
 import PreviewClient from './preview/PreviewClient'
 import BirthRequiredFallback from './birth-required'
+import CounselorCTA from '@/components/report/CounselorCTA'
 import DailyFortunePushBanner from '@/components/push/DailyFortunePushBanner'
 import { SHOW_FULL_TIERS } from '@/components/calendar/tierConfig'
 import { loadTierData, parseBirthOverride } from './loadTierData'
@@ -44,6 +45,13 @@ export default async function DestinypalPage({ searchParams }: { searchParams: P
       />
       {/* 매일 아침 오늘의 운세 푸시 옵트인 — VAPID 미설정/미지원이면 스스로 숨음 */}
       <DailyFortunePushBanner locale={lang} />
+      <CounselorCTA
+        lang={lang}
+        question={{
+          ko: '이번 달 제 운 흐름을 더 자세히 봐주세요.',
+          en: 'Help me read my fortune timing this month.',
+        }}
+      />
     </>
   )
 }
