@@ -200,6 +200,16 @@ export interface DestinyLifeCurve {
   troughs: DestinyLifeCurveMark[]
   /** 현재 만 나이(곡선 위 "지금" 위치). */
   nowAge: number
+  /** "지금" 읽기 — 곡선 위 현재 위치의 추세 + 다음 마디(서사·앵커용). */
+  now?: DestinyLifeCurveNow
+}
+export interface DestinyLifeCurveNow {
+  /** 현재 추세 — 차오름/가라앉음/고름. */
+  slope: 'rising' | 'falling' | 'plateau'
+  /** 현재 이후 첫 마루(없으면 생략). */
+  nextPeak?: DestinyLifeCurveMark
+  /** 현재 이후 첫 저점(없으면 생략). */
+  nextTrough?: DestinyLifeCurveMark
 }
 
 export interface DestinyLifePattern {
