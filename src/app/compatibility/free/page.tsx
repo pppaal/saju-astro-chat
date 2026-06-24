@@ -24,6 +24,8 @@ import { ShareCompatibilityButton } from '@/components/compatibility/ShareCompat
 import { spouseFeeling } from '@/lib/compatibility/compatChartLabels'
 import type { SajuPillarInput } from '@/lib/compatibility/sajuSynastryFormatter'
 import type { CompatReport } from '@/lib/compatibility/compatReport'
+import { buildFreeCompatNarrative } from '@/lib/compatibility/freeReport/buildNarrative'
+import type { FreeReportSection } from '@/lib/compatibility/freeReport/types'
 import { logger } from '@/lib/logger'
 
 const GOLD = '#e8cc8a'
@@ -434,7 +436,102 @@ function PersonForm({
   )
 }
 
-// 결과 — 동·서 교차 verdict + 끌림/마찰 밴드 + 결정적 신호 한 줄 + 공유 + 유료 CTA.
+// 한 섹션 — 아이콘+제목, 도입, 본문 단락들. (무료 통합 리포트와 같은 카드 결)
+function SectionBlock({ section }: { section: FreeReportSection }) {
+  return (
+    <section
+      style={{
+        marginTop: 18,
+        padding: '18px 18px 6px',
+        borderRadius: 16,
+        background: 'rgba(255,255,255,0.035)',
+        border: '1px solid rgba(255,255,255,0.08)',
+      }}
+    >
+      <h2
+        style={{
+          fontSize: 16,
+          fontWeight: 800,
+          color: GOLD,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 8,
+          wordBreak: 'keep-all',
+        }}
+      >
+        <span aria-hidden="true">{section.icon}</span>
+        {section.title}
+      </h2>
+      {section.lead ? (
+        <p style={{ marginTop: 8, fontSize: 13, lineHeight: 1.7, color: MUTED, wordBreak: 'keep-all' }}>
+          {section.lead}
+        </p>
+      ) : null}
+      <div style={{ marginTop: 10 }}>
+        {section.paragraphs.map((p, i) => (
+          <p
+            key={i}
+            style={{
+              marginBottom: 12,
+              fontSize: 14.5,
+              lineHeight: 1.78,
+              color: '#e6e9f2',
+              wordBreak: 'keep-all',
+            }}
+          >
+            {p}
+          </p>
+        ))}
+      </div>
+    </section>
+  )
+}
+
+// 용어 풀이 — 접고 펼치는 더보기. (사주·점성 모르는 사람이 한 번에 정리)
+function GlossaryBlock({
+  entries,
+  isKo,
+}: {
+  entries: { term: string; body: string }[]
+  isKo: boolean
+}) {
+  if (!entries.length) return null
+  return (
+    <details
+      style={{
+        marginTop: 18,
+        padding: '14px 18px',
+        borderRadius: 16,
+        background: 'rgba(255,255,255,0.03)',
+        border: '1px solid rgba(255,255,255,0.08)',
+      }}
+    >
+      <summary style={{ cursor: 'pointer', fontSize: 14, fontWeight: 700, color: GOLD_SOFT }}>
+        📖 {isKo ? '용어 풀이 — 쉽게 한 번에' : 'Glossary — plain meanings'}
+      </summary>
+      <dl style={{ marginTop: 12 }}>
+        {entries.map((e, i) => (
+          <div key={i} style={{ marginBottom: 12 }}>
+            <dt style={{ fontSize: 13.5, fontWeight: 700, color: '#e6e9f2' }}>{e.term}</dt>
+            <dd
+              style={{
+                margin: '4px 0 0',
+                fontSize: 13,
+                lineHeight: 1.7,
+                color: MUTED,
+                wordBreak: 'keep-all',
+              }}
+            >
+              {e.body}
+            </dd>
+          </div>
+        ))}
+      </dl>
+    </details>
+  )
+}
+
+// 결과 — 풍부한 무료 리포트: 도입 + 밴드 + 한눈에 + 신호별 섹션 + 용어풀이 + 공유 + 유료 CTA.
 function ResultView({
   report,
   headlineReason,
@@ -452,7 +549,8 @@ function ResultView({
   locale: 'ko' | 'en'
   onReset: () => void
 }) {
-  const verdict = report.crossVerdict
+  const view = buildFreeCompatNarrative(report, { labelA, labelB, lang: locale })
+  const verdict = view.verdict
   const verdictColor =
     verdict?.tone === 'aligned'
       ? GOLD
@@ -468,43 +566,68 @@ function ResultView({
         {labelA} <Heart className="inline w-3.5 h-3.5" style={{ color: '#ec4899' }} /> {labelB}
       </p>
 
+      {/* 리포트 도입 — 어떻게 읽는지 */}
+      <p
+        style={{
+          marginTop: 14,
+          fontSize: 13.5,
+          lineHeight: 1.78,
+          color: MUTED,
+          wordBreak: 'keep-all',
+        }}
+      >
+        {view.intro}
+      </p>
+
       {/* 끌림/마찰 밴드 — 가짜 정밀 점수(N/100) 대신 verdict 밴드 + 분해 바 */}
-      <div style={{ marginTop: 16 }}>
+      <div style={{ marginTop: 18 }}>
         <ScoreBreakdown breakdown={report.band} lang={locale} variant="band" theme="dark" />
       </div>
 
-      {/* 동·서 교차 종합 — 사주와 별자리가 한 방향인지 */}
+      {/* 한눈에 — 동·서 교차 종합 + 초보자용 풀이 */}
       {verdict ? (
-        <p
+        <div
           style={{
             marginTop: 18,
+            padding: '18px',
+            borderRadius: 16,
+            background: 'rgba(212,181,114,0.06)',
+            border: '1px solid rgba(212,181,114,0.2)',
             textAlign: 'center',
-            fontSize: 16,
-            fontWeight: 700,
-            lineHeight: 1.6,
-            color: verdictColor,
-            wordBreak: 'keep-all',
           }}
         >
-          {verdict.text}
-        </p>
+          <p
+            style={{
+              fontSize: 16,
+              fontWeight: 800,
+              lineHeight: 1.6,
+              color: verdictColor,
+              wordBreak: 'keep-all',
+            }}
+          >
+            {verdict.text}
+          </p>
+          <p
+            style={{
+              marginTop: 10,
+              fontSize: 13.5,
+              lineHeight: 1.78,
+              color: '#dfe3ee',
+              wordBreak: 'keep-all',
+            }}
+          >
+            {verdict.expansion}
+          </p>
+        </div>
       ) : null}
 
-      {/* 결정적 신호 한 줄 */}
-      {headlineReason ? (
-        <p
-          style={{
-            marginTop: 12,
-            textAlign: 'center',
-            fontSize: 14,
-            lineHeight: 1.7,
-            color: '#dfe3ee',
-            wordBreak: 'keep-all',
-          }}
-        >
-          {headlineReason}
-        </p>
-      ) : null}
+      {/* 신호별 섹션 — 결·마음·무대·짝·매듭 */}
+      {view.sections.map((s) => (
+        <SectionBlock key={s.id} section={s} />
+      ))}
+
+      {/* 용어 풀이 */}
+      <GlossaryBlock entries={view.glossary} isKo={isKo} />
 
       {/* 공유 — 바이럴 루프 */}
       <div style={{ marginTop: 24, display: 'flex', justifyContent: 'center' }}>
@@ -520,7 +643,7 @@ function ResultView({
         />
       </div>
 
-      {/* 깊은 해석은 유료 상담사 — 가장 눈에 띄는 CTA */}
+      {/* 깊은 해석(처방·시기·1:1)은 유료 상담사 — 가장 눈에 띄는 CTA */}
       <div
         style={{
           marginTop: 28,
@@ -532,9 +655,7 @@ function ResultView({
         }}
       >
         <p style={{ fontSize: 14, color: MUTED, lineHeight: 1.7, wordBreak: 'keep-all' }}>
-          {isKo
-            ? '이건 두 사람 케미의 큰 그림이에요. 어디서 통하고 어디를 조율하면 좋을지, 시기까지 — 상담사가 더 깊이 풀어드려요.'
-            : 'This is the big picture of your chemistry. For where you click, what to tune, and the timing — the counselor goes deeper.'}
+          {view.closing}
         </p>
         <Link
           href="/compatibility/counselor"
