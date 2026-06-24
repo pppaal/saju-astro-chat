@@ -83,6 +83,20 @@ type MoreService = {
 }
 const MORE_SERVICES: readonly MoreService[] = [
   {
+    href: '/tarot',
+    icon: '🔮',
+    tint: '#a855f7',
+    title: { ko: '타로 상담사', en: 'Tarot Counselor' },
+    desc: { ko: '타로 카드 리딩', en: 'Tarot card reading' },
+  },
+  {
+    href: '/compatibility',
+    icon: '💬',
+    tint: '#f472b6',
+    title: { ko: '궁합 상담사', en: 'Compatibility Counselor' },
+    desc: { ko: '관계 궁합 상담', en: 'Relationship counsel' },
+  },
+  {
     href: '/compatibility/free',
     icon: '💕',
     tint: '#ec4899',
@@ -112,13 +126,6 @@ const MORE_SERVICES: readonly MoreService[] = [
     tint: '#8b9dff',
     title: { ko: '인생 흐름', en: 'Life Flow' },
     desc: { ko: '인생·대운·올해 큰 흐름', en: 'Life · decades · year' },
-  },
-  {
-    href: '/tarot',
-    icon: '🔮',
-    tint: '#a855f7',
-    title: { ko: '타로 상담사', en: 'Tarot Counselor' },
-    desc: { ko: '타로 카드 리딩', en: 'Tarot card reading' },
   },
 ]
 

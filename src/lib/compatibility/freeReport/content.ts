@@ -36,56 +36,56 @@ export const SECTION_META: Record<string, SectionMeta> = {
     icon: '✨',
     title: { ko: '한눈에 보는 두 사람', en: 'Your match at a glance' },
     lead: {
-      ko: '사주와 별자리가 같은 방향을 가리키는지, 큰 결을 한 줄로 먼저 짚어요.',
-      en: 'First, the big grain in one line — whether Saju and the stars point the same way.',
+      ko: '사주랑 별자리가 같은 곳을 가리키는지, 큰 흐름을 한 줄로 먼저 짚어요.',
+      en: 'First, the big picture in one line. Whether Saju and the stars point the same way.',
     },
   },
   bands: {
     icon: '📊',
     title: { ko: '끌림과 마찰, 다섯 갈래로', en: 'Pull and friction, in five strands' },
     lead: {
-      ko: '궁합을 다섯 갈래(사주의 끌림·부딪힘·기운 보완, 별자리의 조화·긴장)로 나눠 막대로 보여줘요. 점수가 아니라 "어느 결이 센지"를 보는 거예요.',
-      en: 'Compatibility split into five strands (Saju pull, Saju clash, element complement, astro harmony, astro tension), shown as bars. Not a grade — a read on which grain runs stronger.',
+      ko: '궁합을 다섯 갈래로 나눠 막대로 보여줘요(사주의 끌림·부딪힘·기운 보완, 별자리의 조화·긴장). 점수가 아니라 어느 자리가 더 센지를 보는 거예요.',
+      en: "We split your compatibility into five strands and show them as bars (Saju pull, Saju clash, element complement, astro harmony, astro tension). It's not a grade. It's a read on which one runs stronger between you.",
     },
   },
   grain: {
     icon: '🌗',
     title: { ko: '두 사람의 타고난 결', en: 'The grain you were each born with' },
     lead: {
-      ko: '사주에서 "나 자신"을 뜻하는 글자(일간)끼리 어떻게 만나는지, 그리고 두 사람의 기운(오행)이 서로를 채워주는지 봐요.',
-      en: 'How the two characters that each mean *you* in Saju (your day masters) meet, and whether your two elemental energies fill in what the other lacks.',
+      ko: "둘의 '나 자신'을 뜻하는 글자(일간)가 어떻게 만나는지 봐요. 그리고 두 사람의 기운(오행)이 서로를 채워주는지도 같이 살펴요.",
+      en: 'We look at how each of your "day master" symbols (the one that means *you* in Saju) meet. And whether your elemental energies fill each other in.',
     },
   },
   hearts: {
     icon: '💞',
     title: { ko: '마음이 닿는 자리, 부딪히는 자리', en: 'Where hearts meet, where they rub' },
     lead: {
-      ko: '태어난 순간 두 사람의 행성이 서로 어떤 각도로 놓였는지(어스펙트) — 어디서 자연스럽게 흐르고 어디서 조율이 필요한지 보여줘요.',
-      en: 'The angles your planets make to each other (aspects) — where things flow naturally and where they ask for tuning.',
+      ko: "태어난 순간 두 사람의 행성이 서로 어떤 각도로 놓였는지 봐요(점성에선 '어스펙트'). 어디서 자연스럽게 흐르고, 어디서 서로 맞춰가야 하는지 드러나요.",
+      en: 'This looks at the angles your planets make to each other (in astrology, aspects). It shows where you flow easily, and where you two have to meet each other halfway.',
     },
   },
   stage: {
     icon: '🎭',
     title: { ko: '서로의 삶에서 켜지는 무대', en: 'The stage you light up in each other' },
     lead: {
-      ko: '한 사람의 행성이 상대의 어느 삶의 영역(하우스)에 들어오는지 — 둘이 만나면 특히 어떤 무대가 환해지는지 봐요.',
-      en: "Which area of life (house) one person's planet lands in for the other — which stage lights up brightest when you two meet.",
+      ko: '한 사람의 행성이 상대의 어느 삶의 영역(하우스)으로 들어오는지 봐요. 둘이 만나면 특히 어떤 무대가 환해지는지 알 수 있죠.',
+      en: "Here you see which area of life (house) one person's planet lands in for the other. It tells you which stage lights up brightest when you two meet.",
     },
   },
   partner: {
     icon: '💍',
     title: { ko: '짝으로서의 끌림', en: 'Drawn to each other as partners' },
     lead: {
-      ko: '사주에서 "배우자 자리"에 상대가 어떤 결로 들어오는지 봐요. 정통 명리 궁합의 핵심이에요.',
-      en: 'How the other lands in your Saju "spouse seat" — the heart of classical four-pillars matchmaking.',
+      ko: '사주에서 "배우자 자리"에 상대가 어떤 모습으로 들어오는지 봐요. 정통 명리 궁합의 핵심이죠.',
+      en: 'This is how the other person lands in your Saju "spouse seat." It\'s the heart of classical four-pillars matchmaking.',
     },
   },
   knots: {
     icon: '🪢',
     title: { ko: '사주가 본 인연의 매듭', en: 'The knots Saju sees in your bond' },
     lead: {
-      ko: '두 사람의 사주 글자끼리 서로 끌어당기거나(합) 부딪히는(충·형) 지점이에요. 어디서 묶이고 어디서 흔들리는지 보여줘요.',
-      en: 'Where your Saju characters pull together (union) or collide (clash/punishment) — which spots bond and which get shaken.',
+      ko: "두 사람의 사주 글자끼리 서로 끌어당기거나(사주에선 '합') 부딪히는(사주에선 '충·형') 자리예요. 어디서 묶이고 어디서 흔들리는지 둘은 여기서 만나요.",
+      en: "This is where your Saju characters pull together (in Saju, 'union') or collide (in Saju, 'clash' and 'punishment'). Some spots bond you, some shake you.",
     },
   },
 }
@@ -164,7 +164,7 @@ const TEN_GODS_BASE: Record<string, SignalCopy> = {
     feel: { ko: '편안한 표현이 열리는 결', en: 'easy self-expression' },
     blurb: {
       ko: '상대 앞에서 내 표현과 솜씨가 편하게 풀려나오는 결이에요. 꾸미지 않아도 자연스럽게 나를 내보이게 되는 사이예요.',
-      en: "Around the other, your expression and craft flow out with ease. You end up showing yourself naturally, without having to perform.",
+      en: 'Around the other, your expression and craft flow out with ease. You end up showing yourself naturally, without having to perform.',
     },
   },
   상관: {
@@ -343,16 +343,16 @@ export const ASPECT_PAIR = mergeRec(ASPECT_PAIR_BASE, GENERATED.ASPECT_PAIR)
 /** 행성쌍 사전에 없을 때 톤만으로 채우는 폴백. 빌더가 행성 역할명을 합성해 앞에 붙임. */
 export const ASPECT_TONE: Record<'harmony' | 'tension' | 'neutral', Bi> = {
   harmony: {
-    ko: '이 자리에서는 서로의 기운이 자연스럽게 맞물려 흘러요. 애써 맞추지 않아도 통하는 편안한 결이에요.',
-    en: 'Here your energies mesh and flow naturally — an easy grain that connects without effort.',
+    ko: '여기선 둘의 기운이 자연스럽게 맞물려 흘러요. 애써 맞추지 않아도 척척 통하는 편안한 사이죠.',
+    en: 'This is where your energies mesh and flow on their own. You click without forcing it, the easy kind of connection.',
   },
   tension: {
-    ko: '이 자리에서는 두 기운이 살짝 부딪혀요. 안 맞아서가 아니라, 서로 조율하며 결을 맞춰가야 하는 자리예요.',
-    en: 'Here the two energies rub a little. Not a mismatch — a spot that asks you to tune and find the grain together.',
+    ko: '여기서 두 기운이 살짝 부딪혀요. 안 맞아서가 아니라, 서로 박자를 맞춰가는 사이라 그래요.',
+    en: "Here the two energies rub a little. Not a mismatch. This is where you two tune in and find each other's rhythm.",
   },
   neutral: {
-    ko: '이 자리에서는 두 기운이 미묘하게 엮여요. 또렷하진 않아도 은근히 서로를 의식하게 되는 결이에요.',
-    en: 'Here the two energies interweave subtly — not loud, but a quiet awareness of each other.',
+    ko: '여기서 둘은 은근하게 서로 얽혀요. 크게 티 나진 않아도 자꾸 서로를 의식하게 되는 사이예요.',
+    en: "Here you two weave into each other quietly. It's not loud, but you keep noticing each other anyway.",
   },
 }
 

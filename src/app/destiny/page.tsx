@@ -10,6 +10,7 @@
 import BirthRequiredFallback from '../calendar/birth-required'
 import { loadTierData, parseBirthOverride } from '../calendar/loadTierData'
 import DestinyLifeClient from './DestinyLifeClient'
+import CounselorCTA from '@/components/report/CounselorCTA'
 
 // 서버 컴포넌트 — 세션/쿼리 기반이라 force-dynamic.
 export const dynamic = 'force-dynamic'
@@ -24,14 +25,23 @@ export default async function DestinyLifePage({ searchParams }: { searchParams: 
   if (data.kind === 'login') return <BirthRequiredFallback reason="login" />
   if (data.kind === 'no-birth') return <BirthRequiredFallback reason="no-birth" />
 
-  const { topbar, user, lifetime, decade, year } = data
+  const { topbar, user, lifetime, decade, year, lang } = data
   return (
-    <DestinyLifeClient
-      topbar={topbar}
-      user={user}
-      lifetime={lifetime}
-      decade={decade}
-      year={year}
-    />
+    <>
+      <DestinyLifeClient
+        topbar={topbar}
+        user={user}
+        lifetime={lifetime}
+        decade={decade}
+        year={year}
+      />
+      <CounselorCTA
+        lang={lang}
+        question={{
+          ko: '제 인생 큰 흐름(대운)을 더 깊이 짚어주세요.',
+          en: 'Walk me through my life’s larger flow and luck cycles.',
+        }}
+      />
+    </>
   )
 }
