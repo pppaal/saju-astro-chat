@@ -284,6 +284,22 @@
 }
 
 /* 용어 풀이 */
+/* 테마 카드 "더 보기" — 박스 없는 가벼운 골드 토글. (용어풀이 .glossary 와 별개) */
+.themeMore {
+  margin-top: 4px;
+}
+.themeMoreSummary {
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--gold);
+  list-style: none;
+  padding: 2px 0 8px;
+}
+.themeMoreSummary::-webkit-details-marker {
+  display: none;
+}
+
 .glossary {
   margin-top: 22px;
   padding: 14px 18px;
