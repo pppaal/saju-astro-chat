@@ -133,10 +133,12 @@ describe('deriveLifetimeFlow', () => {
       expect(out.phases.map((p) => p.label)).toEqual(['초년기', '청년기', '중년기', '장년기'])
     })
 
-    it('intro 에 일간·강약·용신 노출', () => {
-      expect(out.intro).toContain('辛 일간')
-      expect(out.intro).toContain('균형') // strength=medium
-      expect(out.intro).toContain('용신 토')
+    it('intro head 는 평이 — 강약+용신 오행, raw 한자 일간/"용신" 용어 없음(de-jargon)', () => {
+      expect(out.intro).toContain('기운이 비교적 균형 잡힌 편') // strength=medium
+      expect(out.intro).toContain('토') // 용신 오행은 평이하게 노출
+      // raw 한자 일간·"용신" 용어는 surface 에서 제거됨(감사 jargon).
+      expect(out.intro).not.toContain('辛 일간')
+      expect(out.intro).not.toContain('용신 ')
     })
 
     it('각 단계 ageRange 가 출생연도 기반으로 계산된다', () => {
@@ -305,17 +307,19 @@ describe('deriveLifetimeFlow', () => {
       expect(r.intro).not.toContain('기운이 가장 많아')
     })
 
-    it('geokguk.primary 가 미정이 아니면 격국 줄 노출', () => {
+    it('geokguk.primary 가 미정이 아니면 격국 줄 노출 (평이 — raw 격국명 없음)', () => {
       const n = makeNatal({ analyses: { geokguk: { primary: '정관격' } } })
       const r = deriveLifetimeFlow(n)!
-      expect(r.intro).toContain('격국은 정관격으로')
+      expect(r.intro).toContain('타고난 큰 틀로 보면')
       expect(r.intro).toContain('원칙·책임 중심 스타일')
+      // raw 격국명(정관격)은 surface 에서 제거(감사 jargon).
+      expect(r.intro).not.toContain('정관격')
     })
 
     it('geokguk.primary 가 "미정" 이면 격국 줄 생략', () => {
       const n = makeNatal({ analyses: { geokguk: { primary: '미정' } } })
       const r = deriveLifetimeFlow(n)!
-      expect(r.intro).not.toContain('격국은')
+      expect(r.intro).not.toContain('타고난 큰 틀로 보면')
     })
 
     it('강약 × 지배 십신 → 구조 인식 서사 (재성 지배 + 신약 = 재다신약)', () => {
@@ -341,25 +345,28 @@ describe('deriveLifetimeFlow', () => {
       expect(r.intro).not.toContain('가장 두드러져')
     })
 
-    it('tonggeun totalStrength 구간별 표현 (≥100 단단)', () => {
+    it('통근/월령(득령) 전문어는 novice intro 에 노출하지 않는다(de-jargon)', () => {
       const n = makeNatal({
         strength: 'strong',
         analyses: { tonggeun: { totalStrength: 120 }, deukryeong: { status: '득령' } },
       })
       const r = deriveLifetimeFlow(n)!
-      expect(r.intro).toContain('단단하게 박혀')
-      expect(r.intro).toContain('월령을 얻어')
-      expect(r.intro).toContain('강한 편이에요')
+      // 강약은 head 에 평이하게, 통근/월령/득령 메커닉은 surface 에서 제외(감사 jargon).
+      expect(r.intro).toContain('기운이 강한 편')
+      expect(r.intro).not.toContain('통근')
+      expect(r.intro).not.toContain('월령')
+      expect(r.intro).not.toContain('박혀')
     })
 
-    it('tonggeun totalStrength 0 이면 "뿌리 없이" + 실령', () => {
+    it('통근 0/실령도 전문어 없이 — 평이 강약만', () => {
       const n = makeNatal({
         strength: 'weak',
         analyses: { tonggeun: { totalStrength: 0 }, deukryeong: { status: '실령' } },
       })
       const r = deriveLifetimeFlow(n)!
-      expect(r.intro).toContain('뿌리 없이')
-      expect(r.intro).toContain('월령을 잃어')
+      expect(r.intro).toContain('기운이 약한 편')
+      expect(r.intro).not.toContain('뿌리 없이')
+      expect(r.intro).not.toContain('월령')
     })
   })
 
@@ -542,9 +549,10 @@ describe('deriveLifetimeFlow', () => {
       ])
     })
 
-    it('영문 intro — day master + strength + astro identity', () => {
-      expect(out.intro).toContain('辛 day master')
+    it('영문 intro — 평이 강약(raw 한자 day master 없음) + astro identity', () => {
+      expect(out.intro).toContain('your nature is')
       expect(out.intro).toContain('relatively balanced in strength')
+      expect(out.intro).not.toContain('辛 day master') // raw 한자 제거(감사 jargon)
       expect(out.intro).toContain('Sun in Leo')
       expect(out.intro).toContain('Scorpio rising')
       expect(out.intro).toContain('MC in Aquarius')
@@ -596,10 +604,12 @@ describe('deriveLifetimeFlow', () => {
       expect(young.milestoneLine).toContain('Aug 2019')
     })
 
-    it('영문 격국 줄', () => {
+    it('영문 격국 줄 — 평이(raw pattern name 없음)', () => {
       const n = makeNatal({ astro: { sun: 'Leo' }, analyses: { geokguk: { primary: '정관격' } } })
       const r = deriveLifetimeFlow(n, 'en')!
-      expect(r.intro).toContain('Direct-officer (Jeonggwan) pattern')
+      expect(r.intro).toContain('By your core make-up,')
+      // raw 격국 영문명(Direct-officer (Jeonggwan) pattern)은 surface 에서 제거.
+      expect(r.intro).not.toContain('pattern —')
     })
   })
 
@@ -712,10 +722,11 @@ describe('deriveLifetimeFlow', () => {
   })
 
   describe('용신 secondary 처리', () => {
-    it('primary+secondary 둘 다 있으면 "·" 로 연결', () => {
+    it('primary+secondary 둘 다 있으면 "·" 로 연결 (평이 — "용신" 용어 없음)', () => {
       const n = makeNatal({ yongsin: { primary: '토', secondary: '금', avoid: [] } })
       const r = deriveLifetimeFlow(n)!
-      expect(r.intro).toContain('용신 토·금')
+      expect(r.intro).toContain('토·금 기운이 받쳐줄 때')
+      expect(r.intro).not.toContain('용신 ')
     })
   })
 })

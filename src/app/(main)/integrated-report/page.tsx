@@ -10,6 +10,7 @@
 import { buildReportContext } from './buildReportContext'
 import { natalToReportData, buildCrossRows } from '@/components/report/integrated/adapter'
 import { IntegratedReport } from '@/components/report/integrated/IntegratedReport'
+import CounselorCTA from '@/components/report/CounselorCTA'
 import { getServerLocale } from '@/components/seo/SEO'
 import { cookies } from 'next/headers'
 import { fromZonedTime } from 'date-fns-tz'
@@ -89,5 +90,16 @@ export default async function IntegratedReportPage({
   const data = natalToReportData(ctx, lang)
   const cross = buildCrossRows(ctx, lang)
 
-  return <IntegratedReport data={data} cross={cross} lang={lang} />
+  return (
+    <>
+      <IntegratedReport data={data} cross={cross} lang={lang} />
+      <CounselorCTA
+        lang={lang}
+        question={{
+          ko: '제 사주·별자리 리포트를 더 깊이 풀어주세요.',
+          en: 'Walk me deeper through my saju and astrology report.',
+        }}
+      />
+    </>
+  )
 }

@@ -1,4 +1,4 @@
-export type CreditPackKey = 'mini' | 'standard' | 'plus' | 'mega' | 'ultimate'
+export type CreditPackKey = 'starter' | 'mini' | 'standard' | 'plus' | 'mega' | 'ultimate'
 
 type CreditPackEntry = {
   id: string
@@ -8,7 +8,13 @@ type CreditPackEntry = {
 // Credit pack entries (one-time purchases) — pack→Stripe price-id mapping only.
 // Credit quantities live solely in src/lib/config/pricing.ts CREDIT_PACKS (SSOT);
 // do not restate them here to avoid drift.
+// starter 는 첫구매 1회 한정 미끼 — STRIPE_PRICE_CREDIT_STARTER 가 비어 있으면
+// 아래 .filter 로 자동 제외되어, Stripe Price 생성 전까지 결제 불가(graceful).
 const creditPackEntries = [
+  {
+    id: process.env.STRIPE_PRICE_CREDIT_STARTER || '',
+    pack: 'starter',
+  },
   {
     id: process.env.STRIPE_PRICE_CREDIT_MINI || '',
     pack: 'mini',

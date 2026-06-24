@@ -6,7 +6,14 @@ import { z } from 'zod'
 
 // ============ Payment & Checkout Schemas ============
 
-export const creditPackKeySchema = z.enum(['mini', 'standard', 'plus', 'mega', 'ultimate'])
+export const creditPackKeySchema = z.enum([
+  'starter',
+  'mini',
+  'standard',
+  'plus',
+  'mega',
+  'ultimate',
+])
 
 // 크레딧 전용 — 구독 결제는 폐지됐고 일회성 크레딧팩만 결제한다.
 export const checkoutRequestSchema = z.object({

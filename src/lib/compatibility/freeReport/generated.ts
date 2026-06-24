@@ -7,539 +7,539 @@
  * (충 항목 + 100-에이전트 영한 검수 수정 반영.)
  */
 
-import type { Bi, BandCopy, SignalCopy } from "./types";
+import type { Bi, BandCopy, SignalCopy } from './types'
 
 export interface GeneratedCopy {
-  ASPECT_PAIR?: Record<string, Bi>;
-  TEN_GODS?: Record<string, SignalCopy>;
-  SPOUSE_STAR?: Record<string, SignalCopy>;
-  PILLAR_REL?: Record<string, SignalCopy>;
+  ASPECT_PAIR?: Record<string, Bi>
+  TEN_GODS?: Record<string, SignalCopy>
+  SPOUSE_STAR?: Record<string, SignalCopy>
+  PILLAR_REL?: Record<string, SignalCopy>
   /** 키는 "1".."12" 문자열 — content 측에서 number 키로 변환. */
-  OVERLAY_HOUSE?: Record<string, Bi>;
-  DAY_MASTER_REL?: Record<string, Bi>;
-  VERDICT_EXPANSION?: Record<string, Bi>;
-  ELEMENT_BALANCE?: Record<string, Bi>;
-  BAND?: Record<string, BandCopy>;
-  META?: { intro?: Bi; closing?: Bi };
+  OVERLAY_HOUSE?: Record<string, Bi>
+  DAY_MASTER_REL?: Record<string, Bi>
+  VERDICT_EXPANSION?: Record<string, Bi>
+  ELEMENT_BALANCE?: Record<string, Bi>
+  BAND?: Record<string, BandCopy>
+  META?: { intro?: Bi; closing?: Bi }
 }
 
 export const GENERATED: GeneratedCopy = {
-  "META": {
-    "intro": {
-      "ko": "이 리포트는 두 사람의 사주(태어난 날이 담은 네 기둥의 이야기)와 별자리를 한 장에 겹쳐 놓고 가만히 들여다본 거예요. 동양의 결과 서양의 결이 같은 말을 하는 대목이 있다면, 그게 바로 두 사람 사이에서 또렷하게 드러나는 특징이라 볼 수 있어요. 낯선 단어가 나오면 그때그때 쉬운 뜻을 곁들였고, 더 궁금한 말은 아래 용어 풀이에서 다시 찾아볼 수 있어요.",
-      "en": "This report lays both your Saju charts — the story held in the four pillars of each birth — and both star charts side by side on one page, and simply looks. Where the Eastern reading and the Western reading happen to say the same thing, that's usually the trait that stands out most clearly between the two of you. Whenever an unfamiliar word comes up we've slipped in a plain meaning beside it, and you can always look it up again in the glossary below."
+  META: {
+    intro: {
+      ko: '이 리포트는 두 사람의 사주(태어난 날에 담긴 네 기둥 이야기)랑 별자리를 한 장에 겹쳐 놓고 가만히 봐요. 동양 쪽 풀이랑 서양 쪽 풀이가 같은 얘기를 하는 대목이 있다면, 거기가 바로 두 사람한테서 제일 또렷하게 드러나는 부분이에요. 낯선 단어가 나올 땐 옆에 쉬운 뜻을 붙여 뒀고, 더 궁금하면 아래 용어 풀이에서 다시 찾아볼 수 있어요.',
+      en: "This report lays your two Saju — the story held in the four pillars of each birthday — next to your star charts on one page, and just looks. Where the Eastern reading and the Western reading say the same thing, that's the part that stands out most clearly between you. When an unfamiliar word shows up, we tuck a plain meaning right beside it, and you can always look it up again in the glossary below.",
     },
-    "closing": {
-      "ko": "여기까지는 두 사람을 멀리서 바라본 큰 그림이에요. 이 결들이 실제로 어떤 장면에서 어떻게 피어나는지, 어느 흐름에서 더 또렷해지는지 같은 구체적인 '어떻게'와 '언제'는 상담사가 훨씬 깊이 짚어 드릴 수 있는 자리예요. 마음이 더 가닿는다면, 그 깊은 이야기 속으로 한 걸음 들어가 보셔도 좋아요.",
-      "en": "What you've read so far is the big picture, seen from a little distance. The specific how and when — how these patterns actually show up in real moments, where they grow more vivid — is exactly what a counselor can walk you through far more deeply. If something here tugged at you, you're welcome to step into that fuller story."
-    }
+    closing: {
+      ko: "여기까지는 두 사람을 좀 멀리서 본 큰 그림이에요. 이 사이가 실제로 어떤 순간에 어떻게 피어나는지, 어디서 더 또렷해지는지 같은 '어떻게'와 '언제'는 상담사가 훨씬 깊이 짚어 드려요. 마음이 더 가닿는다면, 그 깊은 이야기 속으로 한 걸음 들어가 봐도 좋아요.",
+      en: "What you've read so far is the big picture, seen from a little distance. The how and when — how this actually shows up in real moments, where it gets more vivid — is what a counselor walks you through far more deeply. If something here tugged at you, you're welcome to step into that fuller story.",
+    },
   },
-  "VERDICT_EXPANSION": {
-    "aligned": {
-      "ko": "두 사람의 차트가 같은 방향을 바라보는 결이에요. 끌림이 한쪽만의 일이 아니라 양쪽에서 동시에 일어나서, 처음부터 박자가 맞는 음악처럼 굳이 애쓰지 않아도 대화와 마음이 자연스럽게 흘러가는 모습이 보여요.",
-      "en": "Your two charts seem to face the same direction. The pull isn't one-sided, it rises from both ends at once, so things flow like music that was already in rhythm, with talk and feeling moving along without much effort."
+  VERDICT_EXPANSION: {
+    aligned: {
+      ko: '둘의 차트가 같은 쪽을 바라보고 있어요. 끌림이 한 사람만의 일이 아니라 양쪽에서 동시에 올라오죠. 그래서 대화도 마음도 굳이 애쓰지 않아도 자연스레 흘러가요. 처음부터 박자가 맞는 음악처럼요.',
+      en: "Your two charts look the same way. The pull isn't one-sided. It rises in both of you at once. So talk and feeling move along easily, like music that was already in rhythm, no effort needed.",
     },
-    "tension": {
-      "ko": "두 사람의 차트가 서로 맞부딪히는 결이에요. 양쪽이 쉽게 물러서지 않아 불꽃이 튀기도 하지만, 그렇게 부대끼는 사이에서 서로를 더 단단하게 만들어가는, 거친 돌이 마주 갈리며 매끈해지는 듯한 단련의 기운이 함께 담겨 있어요.",
-      "en": "Your charts push against each other here. Neither side gives way easily, so sparks can fly, but in that friction there's also a tempering quality that makes you both stronger, like two rough stones grinding each other smooth."
+    tension: {
+      ko: '둘은 쉽게 안 물러서요. 그래서 같이 있으면 팽팽하게 부딪치고, 가끔 불꽃도 튀죠. 근데 그렇게 티격태격하면서 서로를 더 단단하게 만들어 가요. 거친 돌 두 개가 맞갈리다 보면 어느새 매끈해지는 것처럼요.',
+      en: 'Neither of you backs down easily. So you push against each other, and yes, sparks fly. But that very friction is what toughens you both up. Think of two rough stones grinding against each other until they come out smooth.',
     },
-    "mixed": {
-      "ko": "한쪽에선 끌림이, 다른 한쪽에선 부딪힘이 함께 흐르는 입체적인 결이에요. 어떤 자리에선 신기할 만큼 잘 통하다가도 다른 자리에선 묘하게 어긋나서, 단조롭지 않고 여러 표정을 가진 관계로 보여요.",
-      "en": "One side pulls close while another pushes back, giving this a layered feel. In some spots you click in a way that's almost uncanny, and in others you slip out of sync, making for a relationship with many faces rather than one flat note."
+    mixed: {
+      ko: '둘은 한쪽에선 두근두근 끌리고, 다른 한쪽에선 티격태격 부딪혀요. 어떤 자리에선 신기할 만큼 말이 척척 통하다가도, 어떤 자리에선 묘하게 박자가 어긋나죠. 그래서 밋밋하지 않고 여러 표정을 가진 사이예요.',
+      en: "One of you pulls close while the other pushes back. In some spots you click in a way that's almost uncanny. In others you slip out of sync. So this isn't one flat note. You two carry many faces instead.",
     },
-    "neutral": {
-      "ko": "두 사람의 차트가 어느 한쪽으로 치우치지 않고 고르게 섞이는 결이에요. 첫눈에 타오르는 불꽃보다는, 잔잔한 강물처럼 큰 기복 없이 오래 곁에 머무는 종류의 무던하고 편안한 기운이 흐르는 사이로 보여요.",
-      "en": "Your charts blend evenly, without tipping to one side. Rather than a flame that flares at first sight, there's the quiet of a slow river here, an easygoing steadiness that tends to stay close for a long while."
-    }
+    neutral: {
+      ko: '두 사람의 차트가 어느 한쪽으로 쏠리지 않고 고르게 섞여요. 첫눈에 확 타오르는 불꽃 같은 사이는 아니에요. 그보다 잔잔한 강물처럼 큰 기복 없이, 무던하고 편안하게 오래 곁에 머무는 쪽이죠.',
+      en: "Your charts mix evenly, without tipping to one side. This isn't a spark that flares the moment you meet. It's more like a slow river. Easygoing, steady, the kind that stays close for a long while.",
+    },
   },
-  "DAY_MASTER_REL": {
-    "same": {
-      "ko": "두 사람 모두 {aEl} 기운을 본바탕으로 가진 결이에요. 같은 언어를 쓰는 사람을 만난 것처럼 말하지 않아도 통하는 편안함이 흐르지만, 닮은 만큼 약한 자리도 똑같아서 한쪽이 흔들릴 때 같이 휘청이는 모습이 보이기도 해요.",
-      "en": "Both of you carry {aEl} as your core nature. There's an easy familiarity here, like meeting someone who speaks your language without needing to explain. But because you're so alike, your soft spots line up too, and when one of you wobbles the other often sways along."
+  DAY_MASTER_REL: {
+    same: {
+      ko: '두 사람 다 {aEl} 기운을 바탕으로 가진 사이예요. 같은 말을 쓰는 사람을 만난 것처럼, 길게 설명 안 해도 둘은 술술 통해요. 근데 닮은 만큼 약한 자리도 똑같아서, 한쪽이 흔들리면 다른 쪽도 같이 휘청이곤 해요.',
+      en: "You both carry {aEl} as your core nature. It's like meeting someone who speaks your language, so you click without explaining much. But you're alike in the soft spots too, so when one of you wobbles, the other tends to sway right along.",
     },
-    "aControlsB": {
-      "ko": "{A}의 {aEl} 기운이 {B}의 {bEl}을 한 번 다듬고 매만지는 결이에요. {B} 입장에선 곁에 단단한 울타리가 생긴 듯 든든하지만, 그 손길이 가끔은 살짝 따끔하게 느껴지는 순간도 함께 담겨 있어요.",
-      "en": "{A}'s {aEl} tends to shape and smooth {B}'s {bEl}. For {B} it can feel like having a steady fence nearby, reassuring and grounding, though now and then that same hand lands with a little sting."
+    aControlsB: {
+      ko: '{A}의 {aEl} 기운이 {B}의 {bEl}을 한 번씩 다듬고 매만져 줘요. {B}는 곁에 단단한 울타리가 생긴 듯 든든해하죠. 근데 그 손길이 가끔은 살짝 따끔하게 와닿기도 해요.',
+      en: "{A}'s {aEl} keeps shaping and smoothing {B}'s {bEl}. To {B} it feels like a steady fence standing close by, solid and reassuring. Still, every now and then that same hand lands with a little sting.",
     },
-    "bControlsA": {
-      "ko": "이번엔 {B}의 {bEl} 기운이 {A}의 {aEl}을 다듬어주는 결이에요. {A}는 곁에서 중심을 잡아주는 사람이 있는 듯 든든함을 느끼지만, 그 정돈하는 손길이 때로는 콕 짚이듯 따끔하게 와닿기도 해요.",
-      "en": "This time it's {B}'s {bEl} that shapes and steadies {A}'s {aEl}. {A} feels the comfort of someone holding the center close by, yet that tidying touch can occasionally feel like a gentle but pointed nudge."
+    bControlsA: {
+      ko: '이번엔 {B}의 {bEl} 기운이 {A}의 {aEl}을 다듬어줘요. {A}는 곁에서 중심을 잡아주는 사람이 있어서 든든해해요. 근데 그 정돈하는 손길이 가끔은 콕 짚이듯 따끔하게 느껴지기도 해요.',
+      en: "This time {B}'s {bEl} shapes and steadies {A}'s {aEl}. {A} feels safe with someone holding the center close by. Still, that tidying touch can sometimes land like a small, pointed nudge.",
     },
-    "generate": {
-      "ko": "{aEl}과 {bEl}이 서로를 살려주며 자라게 하는 상생의 결이에요. 한 사람이 내어준 기운이 다른 사람 안에서 싹을 틔우고, 그게 다시 돌아와 처음 사람을 키우는, 물 주면 자라는 화분 같은 흐름이 자연스럽게 오가는 사이로 보여요.",
-      "en": "{aEl} and {bEl} feed each other and help one another grow. What one person offers takes root in the other, then circles back to nourish the first, like a plant that thrives each time it's watered, a give-and-take that moves between you quite naturally."
-    }
+    generate: {
+      ko: "{aEl}과 {bEl}이 서로를 살려서 쑥쑥 자라게 해요(사주에선 '상생'). 한 사람이 내어준 기운이 상대 안에서 싹을 틔우고, 그게 다시 돌아와 처음 사람을 키워요. 물 주면 자라는 화분처럼, 주고받는 기운이 둘 사이를 막힘없이 오가죠.",
+      en: "{aEl} and {bEl} feed each other and help one another grow (Saju calls this 'mutual generation'). What one of you offers takes root in the other, then circles back and nourishes the first. Like a plant that grows each time it's watered, this give-and-take moves between you quite naturally.",
+    },
   },
-  "TEN_GODS": {
-    "비견": {
-      "feel": {
-        "ko": "어깨를 나란히 하는 동료의 끌림",
-        "en": "the pull of a shoulder-to-shoulder companion"
+  TEN_GODS: {
+    비견: {
+      feel: {
+        ko: '어깨를 나란히 하는 동료의 끌림',
+        en: 'the pull of a shoulder-to-shoulder companion',
       },
-      "blurb": {
-        "ko": "이 사람은 당신을 마주 보고 서기보다 옆에 나란히 서는 결로 다가와요. 같은 곳을 바라보는 동료처럼, 어깨를 부딪치며 비슷한 보폭으로 걷는 친구 같은 편안함이 느껴지는 사이예요. 보통 이런 결은 굳이 설명하지 않아도 통하는 익숙함과, 같은 편이 되어줄 든든함으로 다가오곤 해요.",
-        "en": "Rather than standing face to face, this person comes to you side by side. There's an ease here, like a companion who looks in the same direction as you and walks at a matching pace, shoulders almost brushing. A bond like this often feels like the kind of familiarity where things just click without explaining, and the quiet reassurance of having someone on your team."
-      }
+      blurb: {
+        ko: "이 사람은 당신과 마주 보고 서기보다, 옆에 나란히 서는 쪽이에요. 같은 곳을 바라보며 비슷한 보폭으로 걷는 친구처럼, 어깨를 톡톡 부딪치며 편하게 같이 가는 사이죠(사주에선 '비견'). 굳이 말로 풀지 않아도 척 통하고, 결정적인 순간엔 같은 편이 되어 주거든요. 그래서 둘은 설명이 필요 없는 익숙함으로 곁에 머물러요.",
+        en: "This person stands beside you, not across from you. You both look in the same direction and walk at a matching pace, shoulders almost bumping, easy and unforced (Saju calls this 'bigyeon', the peer). You get each other without spelling things out, and when it counts, they're on your side. So you two settle into a closeness that needs no explaining.",
+      },
     },
-    "겁재": {
-      "feel": {
-        "ko": "겨루며 끌리는 기운",
-        "en": "A pull that wants to compete"
+    겁재: {
+      feel: {
+        ko: '겨루며 끌리는 기운',
+        en: 'A pull that wants to compete',
       },
-      "blurb": {
-        "ko": "이 사람은 곁에 있으면 이상하게 더 잘하고 싶어지는, 살짝 승부욕을 건드리는 결로 다가와요. 편안하게 기대 쉬는 사이라기보다, 서로를 슬쩍 재고 한 발 더 내딛게 만드는 자극이 흐르는 끌림이에요. 보통 이런 결은 잔잔함보다 팽팽한 긴장감 속에서 마음이 움직이는 쪽이라, 함께 있으면 묘하게 등이 곧게 펴지는 느낌이 들곤 해요.",
-        "en": "Being near this person somehow makes you want to step up your game—there's a quiet competitive spark in how they reach you. It's less the cozy, lean-back kind of closeness and more an attraction with a charged edge, the kind where you're each sizing the other up and nudging one another a little further. A pull like this tends to come alive in tension rather than calm, so their company often leaves you sitting up a little straighter without quite knowing why."
-      }
+      blurb: {
+        ko: "이 사람 곁에 있으면 이상하게 더 잘하고 싶어져요. 편하게 기대 쉬는 사이라기보다, 둘이 서로를 슬쩍 재면서 한 발 더 내딛게 만드는 자극이 오가는 사이거든요. 잔잔할 때보다 살짝 팽팽할 때 마음이 콩닥 움직이는 쪽이라, 같이 있으면 묘하게 등이 곧게 펴지곤 해요(사주에선 '겁재').",
+        en: "Being near this person somehow makes you want to step up your game. It's less the cozy, lean-back kind of closeness and more the kind where you each size the other up and push a step further. This connection comes alive when things get a little charged rather than calm. So their company quietly leaves you sitting up straighter.",
+      },
     },
-    "식신": {
-      "feel": {
-        "ko": "편안함·표현이 트이는 끌림",
-        "en": "a draw toward ease, where your words come loose"
+    식신: {
+      feel: {
+        ko: '편안함·표현이 트이는 끌림',
+        en: 'a draw toward ease, where your words come loose',
       },
-      "blurb": {
-        "ko": "이 사람 앞에서는 이상하게 말문이 술술 트이고, 평소 안에만 담아두던 이야기도 자연스럽게 흘러나오는 결이에요. 보통 이런 끌림은 상대가 나의 긴장을 슬며시 풀어주는 자리에 있을 때 생기는데, 곁에 있으면 마음이 편해지면서 내가 가진 솜씨나 재주가 한결 가볍게 펼쳐지곤 해요. 잘 보이려 애쓰지 않아도 본래의 내 모습이 한 톤 더 환하게 드러나는, 그런 따뜻한 끌림이에요.",
-        "en": "Around this person your words seem to come loose on their own, and even the things you usually keep tucked away find their way out naturally. An ease like this often shows up when someone quietly settles your nerves, and in their company your own talents and craft tend to unfold a little more lightly. It's the kind of warm pull where, without trying to impress, the real you simply comes through a shade brighter."
-      }
+      blurb: {
+        ko: "이 사람 앞에서는 이상하게 말문이 자연스레 트여요. 평소 속에만 담아두던 얘기도 자연스럽게 흘러나오죠. 곁에 있으면 마음이 사르르 풀리면서, 내가 가진 솜씨도 한결 가볍게 펼쳐져요. 잘 보이려 애쓰지 않아도 본래의 내가 한 톤 더 환해지는, 그런 따뜻한 끌림이에요(사주에선 '식신').",
+        en: "Around this person your words just come loose. Things you usually keep tucked away slip out on their own. Next to them you relax, and your own talents flow a little more lightly. Without trying to impress, the real you comes through a shade brighter. It's that kind of warm pull (in Saju, '식신/sik-sin').",
+      },
     },
-    "상관": {
-      "feel": {
-        "ko": "재치·자유로움의 끌림",
-        "en": "the pull of wit and freedom"
+    상관: {
+      feel: {
+        ko: '재치·자유로움의 끌림',
+        en: 'the pull of wit and freedom',
       },
-      "blurb": {
-        "ko": "이 사람은 말 한마디로 분위기를 환하게 바꾸고, 어디로 튈지 모르는 생기로 곁을 가볍게 만들어주는 결로 다가와요. 보통 이런 결은 정해진 답보다 그때그때 떠오르는 재치와 즉흥적인 솜씨로 빛나서, 함께 있으면 일상이 조금 더 헐겁고 재미있어지는 느낌을 줘요. 무거운 자리를 농담 한 줄로 풀어내는 그 자유로움이, 당신에겐 묘하게 끌리는 신호로 비치네요.",
-        "en": "This person comes to you as someone who can light up a room with a single quip, a bright unpredictability that makes the air around you feel lighter. A texture like this tends to shine in spur-of-the-moment wit and improvised charm rather than tidy answers, so being together loosens up the everyday and makes it more fun. That freedom to dissolve a heavy moment with one playful line reads, to you, like a quietly magnetic signal."
-      }
+      blurb: {
+        ko: '이 사람은 말 한마디로 자리 분위기를 환하게 바꿔요. 어디로 튈지 모르는 생기로 곁을 가볍게 만들어 주죠. 정해진 답보다 그때그때 떠오르는 재치로 빛나서, 함께 있으면 하루가 조금 더 헐겁고 재밌어져요. 무거운 순간을 농담 한 줄로 풀어 버리는 그 자유로움에, 당신은 묘하게 끌리더라고요.',
+        en: 'This person can change the whole mood with one line. They bring a bright, unpredictable energy that makes the air around you feel lighter. They shine on quick wit in the moment, not tidy answers, so time together loosens up and gets more fun. You find yourself quietly pulled toward that freedom, the way they melt a heavy moment with a single joke.',
+      },
     },
-    "편재": {
-      "feel": {
-        "ko": "크게 굴러가는 기회·활달함의 끌림",
-        "en": "the pull of big momentum and bright energy"
+    편재: {
+      feel: {
+        ko: '크게 굴러가는 기회·활달함의 끌림',
+        en: 'the pull of big momentum and bright energy',
       },
-      "blurb": {
-        "ko": "두 사람의 결을 겹쳐 보면, 상대는 마치 닫혀 있던 창문을 활짝 열어젖히는 사람처럼 다가와요. 멈춰 있던 일들이 갑자기 굴러가기 시작하고, 평소라면 망설였을 자리에서도 한 발 더 내딛게 되는 활달함이 상대 쪽에서 흘러나오는 거예요. 그래서 이 사람 곁에 있으면 세상이 조금 더 넓어지고 가능성이 커지는 느낌이 드는, 그런 끌림이에요.",
-        "en": "When you lay your two charts side by side, this person comes toward you like someone throwing open a window that had been shut. Things that felt stuck suddenly start rolling, and a kind of bright, expansive energy flows from their side that nudges you a step further than you'd usually dare. That's the pull here: beside this person, the world feels a little wider and your sense of what's possible grows."
-      }
+      blurb: {
+        ko: '두 사람을 겹쳐 보면, 상대는 닫혀 있던 창문을 활짝 열어젖히는 사람처럼 다가와요. 멈춰 있던 일이 갑자기 술술 굴러가고, 평소라면 망설였을 자리에서도 둘은 한 발 더 내딛어요. 그래서 이 사람 곁에 있으면 세상이 조금 넓어지고, 할 수 있는 게 늘어나는 느낌이 들죠.',
+        en: "Lay your two charts side by side and they come toward you like someone throwing open a window that had been shut. Things that felt stuck suddenly roll along. Even in spots where you'd usually hesitate, the two of you step one further. So beside this person the world feels a little wider, and what you can do grows.",
+      },
     },
-    "정재": {
-      "feel": {
-        "ko": "안정·성실의 끌림",
-        "en": "the pull of steady devotion"
+    정재: {
+      feel: {
+        ko: '안정·성실의 끌림',
+        en: 'the pull of steady devotion',
       },
-      "blurb": {
-        "ko": "이 사람은 화려한 한 방보다, 하루치의 마음을 매일 같은 자리에 쌓아 올리는 결로 다가와요. 약속한 건 조용히 지키고, 어제보다 조금 더 단단해진 모습으로 곁에 있어서, 함께 있으면 발밑이 든든해지는 느낌이 드는 사이예요. 보통 이런 결은 요란하지 않아도 오래 데워지는 온기로 남곤 한답니다.",
-        "en": "This person comes through not as a dazzling spark but as someone who lays down a little care in the same spot every single day. They keep their word quietly and show up a touch steadier than yesterday, so being near them makes the ground feel solid under your feet. A pull like this tends to stay as a warmth that builds slowly rather than loudly."
-      }
+      blurb: {
+        ko: '이 사람은 화려한 한 방으로 다가오지 않아요. 매일 같은 자리에 하루치 마음을 조금씩 쌓아요. 약속한 건 조용히 지키고, 어제보다 살짝 더 단단해진 채로 곁에 있죠. 그래서 같이 있으면 발밑이 든든해져요. 요란하진 않아도 천천히 데워지는 온기로 남는 사이예요.',
+        en: "This person doesn't show up as a dazzling spark. They lay down a little care in the same spot every single day. They keep their word quietly. They're there beside you, a touch steadier than yesterday. So being near them makes the ground feel solid under your feet. It's a warmth that builds slowly, not loudly.",
+      },
     },
-    "편관": {
-      "feel": {
-        "ko": "끌어당기는 격정의 결",
-        "en": "A pull of intense, magnetic heat"
+    편관: {
+      feel: {
+        ko: '확 끌려서 콩닥거리는 사이',
+        en: 'A magnetic pull that quickens',
       },
-      "blurb": {
-        "ko": "두 분의 결을 겹쳐 보면, 상대가 잔잔한 호수에 돌을 던지듯 나를 흔들고 밀어붙이는 모양이 또렷하게 나타나요. 그 기운은 가만히 있던 마음을 단번에 달뜨게 하는 짜릿함과, 동시에 어딘가 떠밀리는 듯한 묵직한 부담이 한 호흡에 같이 묻어 오는 결이에요. 보통 이런 끌림은 심심할 틈을 주지 않는 격정과 긴장이 늘 함께 흐르는 사이로 그려지곤 해요.",
-        "en": "When your two charts overlap, there's a clear shape of the other person stirring you up and pressing forward, like a stone tossed into a still pond. That energy carries a jolt that lights up a quiet heart in an instant, and in the same breath a heavier sense of being pushed somewhere you didn't quite choose. A pull like this tends to read as a bond where heat and tension always run together, never leaving room for a dull moment."
-      }
+      blurb: {
+        ko: "둘이 만나면 상대가 잔잔한 호수에 돌을 던지듯 나를 흔들고 콕콕 밀어붙여요. 그래서 가만있던 마음이 단번에 콩닥콩닥 달아오르죠. 동시에 어딘가로 떠밀리는 듯한 묵직함도 같이 와요. 그건 상대가 거칠어서가 아니라, 나를 자꾸 움직이게 만드는 힘이 센 거예요(사주에선 '편관'). 그래서 둘 사이엔 심심할 틈 없이 짜릿함과 긴장이 늘 같이 흘러요.",
+        en: "When you two come together, they stir you up and keep nudging you forward, like a stone tossed into a still pond. A quiet heart lights up in a heartbeat. At the same time you feel a heavier sense of being pushed somewhere. That's not them being harsh, it's a strong force that keeps you moving (Saju calls this '편관'). So between you, the thrill and the tension always run together, never leaving a dull moment.",
+      },
     },
-    "정관": {
-      "feel": {
-        "ko": "기대고 싶은 듬직함",
-        "en": "Steady, Lean-on Pull"
+    정관: {
+      feel: {
+        ko: '기대고 싶은 듬직함',
+        en: 'Steady, Lean-on Pull',
       },
-      "blurb": {
-        "ko": "이 사람의 결은 묵직한 어깨 같은 데가 있어요. 곁에 있으면 어딘가 기대고 싶고, 작은 일도 알아서 챙겨주는 책임감이 마음을 놓이게 하죠. 그 챙김이 가끔은 한 발짝 더 들어와 간섭처럼 느껴지기도 하지만, 보통 이런 결은 무심함이 아니라 너를 살피고 싶은 마음에서 나오는 듬직함으로 다가와요.",
-        "en": "There's something of a broad, steady shoulder in how this person comes across. Being near them makes you want to lean in a little, and the quiet responsibility with which they handle even small things sets your mind at ease. That care can sometimes step a touch too close and feel like fussing, but usually this kind of warmth reads less as control and more as a dependability that simply wants to keep an eye on you."
-      }
+      blurb: {
+        ko: '이 사람 곁에 있으면 어쩐지 어깨를 기대고 싶어져요. 작은 일까지 알아서 챙겨주거든요. 그 듬직함이 마음을 턱 놓이게 하죠. 가끔은 한 발짝 더 들어와서 잔소리처럼 느껴질 때도 있어요. 근데 그건 너를 통제하려는 게 아니라, 네가 어떻게 지내는지 자꾸 살피고 싶은 마음이에요.',
+        en: "Being around this person makes you want to lean a shoulder on them. They handle even the little things without being asked, and that steadiness sets your mind at ease. Sometimes they step a touch closer and it can feel like fussing. But that's not them trying to control you. It's them wanting to keep looking out for how you're doing.",
+      },
     },
-    "편인": {
-      "feel": {
-        "ko": "직관·독특함의 끌림 (살짝 거리)",
-        "en": "Drawn to their intuition and offbeat charm, with a touch of distance"
+    편인: {
+      feel: {
+        ko: '직관·독특함의 끌림 (살짝 거리)',
+        en: 'Drawn to their intuition and offbeat charm, with a touch of distance',
       },
-      "blurb": {
-        "ko": "이 사람은 남들과 다른 시선으로 세상을 읽는 결을 가지고 있어서, 당신에게는 어딘가 신비롭고 자꾸 들여다보고 싶은 사람으로 비쳐요. 가까이 다가가도 마지막 한 뼘은 손에 다 잡히지 않는, 그 옅은 거리감이 오히려 끌림을 더 깊게 만드는 사이랍니다. 보통 이런 결은 익숙함보다 호기심으로 시작되는 인연으로 다가오곤 해요.",
-        "en": "This person reads the world through a lens unlike anyone else's, which is exactly why they come across to you as a little mysterious, someone you keep wanting to understand. Even up close, there's always a last small inch you can't quite reach, and that faint distance is what makes the pull run deeper. A connection with this texture tends to begin not from familiarity but from curiosity."
-      }
+      blurb: {
+        ko: '이 사람은 남들 안 보는 데를 들여다보는 눈을 가졌어요. 그래서 당신한텐 어딘가 알쏭달쏭하고, 자꾸 더 알고 싶어지는 사람이에요. 바짝 다가가도 마지막 한 뼘은 손에 안 잡히죠. 근데 그 옅은 거리가 끌림을 더 깊게 만들어요. 둘은 익숙함보다 호기심으로 시작하는 사이예요.',
+        en: "This person looks where others don't, so to you they read a little puzzling, the kind you keep wanting to understand. Even up close, that last small inch stays out of reach. And that faint distance pulls you in deeper. You two start from curiosity, not familiarity.",
+      },
     },
-    "정인": {
-      "feel": {
-        "ko": "보살핌·성숙의 끌림",
-        "en": "the pull of steady care"
+    정인: {
+      feel: {
+        ko: '보살핌·성숙의 끌림',
+        en: 'the pull of steady care',
       },
-      "blurb": {
-        "ko": "상대는 당신 곁에서 천천히, 그러나 꾸준히 마음을 데워주는 결로 다가와요. 화려한 불꽃이라기보다 매일 같은 자리에서 불씨를 살펴주는 사람의 온기에 가까워서, 그 곁에 있으면 어느새 한 뼘 더 자라 있는 자신을 발견하게 되는 끌림이죠. 보살핌이 곧 가르침이 되는, 그런 둥근 다정함의 결이에요.",
-        "en": "Their warmth reaches you slowly but steadily, more like someone tending a quiet ember in the same spot each day than a sudden blaze. Being near that kind of care has a way of leaving you a little more grown than you were, almost without noticing. It's the soft, rounded tenderness where looking after someone quietly becomes a kind of teaching."
-      }
-    }
+      blurb: {
+        ko: '상대는 당신 곁에서 천천히, 그래도 꾸준히 마음을 데워줘요. 펑 터지는 불꽃이 아니라, 매일 같은 자리에서 불씨를 살펴주는 사람의 온기에 가깝죠. 그 곁에 있으면 어느새 한 뼘 더 자라 있는 자신을 만나게 돼요. 챙겨주는 게 곧 배움이 되는, 그런 둥근 다정함이에요.',
+        en: 'They warm you up slowly, but steadily, right there beside you. Not a sudden blaze. More like someone tending a quiet ember in the same spot every day. Stay near that kind of care and you find yourself a little more grown than before, almost without noticing. Here, being looked after quietly turns into a kind of learning.',
+      },
+    },
   },
-  "SPOUSE_STAR": {
-    "정재": {
-      "feel": {
-        "ko": "안정·가정의 짝",
-        "en": "A steady, home-building partner"
+  SPOUSE_STAR: {
+    정재: {
+      feel: {
+        ko: '안정·가정의 짝',
+        en: 'A steady, home-building partner',
       },
-      "blurb": {
-        "ko": "배우자 자리에서 상대가 하루하루 작은 벽돌을 쌓듯 둘의 안정을 차곡차곡 만들어가는 짝으로 떠올라요. 화려한 설렘보다는 곁에 있으면 마음이 놓이는 믿음직함, 약속을 지키고 함께 집을 가꾸는 성실함이 끌림의 결이에요. 보통 이런 결은 요란하지 않게, 오래 머무는 따뜻함으로 다가오곤 해요.",
-        "en": "In the place that speaks of a life partner, this person comes through as someone who builds your shared stability brick by brick, day after day. The pull here isn't dazzling excitement so much as a quiet dependability, the kind that keeps promises and tends a home together, so being near them simply feels safe. A current like this tends to arrive softly and stay a long, warm while."
-      }
+      blurb: {
+        ko: '배우자 자리에 있는 상대는 하루하루 작은 벽돌을 쌓듯 둘의 안정을 만들어가요. 가슴 콩닥대는 설렘보다, 곁에 있으면 마음이 놓이는 든든함이 끌리는 지점이죠. 약속을 지키고 함께 집을 가꾸는 성실함으로 다가와요. 요란하지 않게, 오래 머무는 따뜻함이에요.',
+        en: "In the spot that speaks of a life partner, they build your stability one small brick at a time, day after day. What pulls you in isn't a racing-heart thrill. It's the steady kind of dependability that keeps promises and tends a home with you, so being close to them just feels safe. It's a warmth that comes quietly and stays a long while.",
+      },
     },
-    "편재": {
-      "feel": {
-        "ko": "생기·재미의 짝",
-        "en": "A lively, fun-loving partner"
+    편재: {
+      feel: {
+        ko: '생기·재미의 짝',
+        en: 'A lively, fun-loving partner',
       },
-      "blurb": {
-        "ko": "배우자 자리에서 활달하고 자유롭게 굴러가는 사람이 짝으로 떠올라요. 한자리에 가만히 묶이기보다 어디로 튈지 모르는 생기가 늘 곁에 있고, 보통 이런 결은 같이 있으면 일상이 재밌어지고 어쩐지 마음이 가벼워지는 끌림으로 다가와요.",
-        "en": "In the place of a life partner, someone breezy and free-spirited tends to come into view. Rather than staying neatly in one spot, they carry a playful, unpredictable spark, and this kind of pull usually feels like life gets more fun and your heart somehow lighter when they're around."
-      }
+      blurb: {
+        ko: '배우자 자리에 활달하고 자유로운 사람이 들어와 있어요. 한곳에 가만히 묶이기보다 어디로 튈지 모르는 생기가 늘 곁에서 콩닥거리죠. 둘이 같이 있으면 평범한 하루도 막힘없이 재밌어지고, 어쩐지 마음이 가벼워져요. 이런 사람한테 자연스레 끌리더라고요.',
+        en: "In the spouse seat, you've got someone breezy and free-spirited. They don't sit still in one spot. They carry a playful, where-will-they-go-next spark right beside you. With them around, an ordinary day turns fun and your heart feels lighter. That's the kind of person you're drawn to.",
+      },
     },
-    "정관": {
-      "feel": {
-        "ko": "안심·가정의 짝",
-        "en": "A safe-harbor partner"
+    정관: {
+      feel: {
+        ko: '안심·가정의 짝',
+        en: 'A safe-harbor partner',
       },
-      "blurb": {
-        "ko": "배우자 자리에서 상대가 기대고 싶을 만큼 듬직한 짝으로 떠올라요. 약속한 건 끝까지 책임지고, 흔들리는 날에도 반듯하게 곁을 지키는 결이라, 보통 이런 사람 옆에선 마음이 자연스럽게 가라앉고 안심이 들곤 해요. 화려한 설렘보다는 함께 집을 짓는 듯한 든든한 끌림으로 다가오는 인연이에요.",
-        "en": "In the place your chart reserves for a life partner, this person comes through as someone solid enough to lean on. They tend to follow through on what they promise and stay steady and grounded even on shaky days, so being near someone like this usually settles the heart and brings a quiet sense of safety. It's less the flutter of dazzle and more the reassuring pull of building a home together."
-      }
+      blurb: {
+        ko: "배우자 자리에서 상대는 기대고 싶을 만큼 듬직한 짝이에요. 약속한 건 끝까지 지키고, 흔들리는 날에도 옆을 반듯하게 지켜줘요. 그래서 이런 사람 곁에 있으면 마음이 자연스레 가라앉고 '아, 안심된다' 싶어지죠. 화려한 설렘보다는 둘이 함께 집을 한 채 짓는 듯한 든든한 끌림으로 다가와요.",
+        en: "In the spot your chart keeps for a life partner, they show up as someone solid enough to lean on. They finish what they promise, and they stay steady right beside you even on shaky days. So next to someone like this your mind quietly settles, and a calm sense of safety sets in. It's less a flutter of dazzle, more the steady pull of the two of you building a home together.",
+      },
     },
-    "편관": {
-      "feel": {
-        "ko": "열정·끌림의 짝",
-        "en": "A spark-and-pull partner"
+    편관: {
+      feel: {
+        ko: '열정·끌림의 짝',
+        en: 'A spark-and-pull partner',
       },
-      "blurb": {
-        "ko": "배우자 자리에서 가만히 곁에 머무는 사람보다, 마주 서면 심장이 한 박자 빨라지는 짝으로 떠올라요. 끌림이 강한 만큼 살짝 팽팽한 긴장이 함께 흐르는 결이라, 편안하다기보다 자꾸 눈이 가고 신경이 쓰이는 자극을 주는 상대로 그려지는 편이에요. 보통 이런 결은 잔잔함보다 짜릿함 쪽으로 마음이 기우는 모습으로 비쳐요.",
-        "en": "In the place your chart reserves for a partner, the one who surfaces isn't the quietly steady type but the kind who makes your heart skip a beat the moment you face them. The pull is strong, and a little tension hums right alongside it, so they read less like comfort and more like someone who keeps catching your eye and stirring you up. A chart with this texture tends to lean toward the thrill rather than the calm."
-      }
-    }
+      blurb: {
+        ko: '배우자 자리에 가만히 곁을 지키는 사람보다, 마주 보면 심장이 콩닥 한 박자 빨라지는 짝이 떠올라요. 끌리는 마음이 큰 만큼 살짝 팽팽한 긴장도 같이 흘러서, 마냥 편하다기보다 자꾸 눈이 가고 신경이 쓰이는 사람이에요. 둘은 잔잔함보다 짜릿함 쪽으로 마음이 기울죠.',
+        en: "In the spot your chart holds for a partner, who shows up isn't the quietly steady type. It's the one who makes your heart skip the moment you face them. The pull runs strong, and a little tension hums right alongside it, so they feel less like comfort and more like someone who keeps catching your eye. You two lean toward the thrill over the calm.",
+      },
+    },
   },
-  "ELEMENT_BALANCE": {
-    "balanced": {
-      "ko": "두 사람의 기운을 한데 모아보면 어느 한쪽으로 쏠리지 않고 고루 퍼져 있는 결이에요. 잘 차려진 한 상처럼 빠진 맛 없이 두루 갖춰진 느낌이라, 함께 있을 때 묘하게 균형 잡힌 안정감이 감도는 사이로 보여요.",
-      "en": "Put your energies together and they spread out evenly, with nothing crowding to one corner. It feels like a well-set table where no flavor is missing, so being together carries a quietly balanced sense of steadiness."
+  ELEMENT_BALANCE: {
+    balanced: {
+      ko: '두 사람 기운을 한데 모아보면 어느 한쪽으로 쏠리지 않고 골고루 퍼져 있어요. 잘 차려진 한 상처럼 빠지는 맛 없이 두루 갖췄죠. 그래서 둘은 같이 있을 때 묘하게 균형 잡힌 안정감을 느껴요.',
+      en: "Bring your two energies together and they spread out evenly, with nothing piling into one corner. It's like a well-set table where no flavor is missing. So when you're together, you feel a quietly balanced steadiness.",
     },
-    "complement": {
-      "ko": "한 사람에게 옅은 자리를 다른 사람이 짙게 채워주는, 서로의 빈칸을 메우는 결이에요. 퍼즐 두 조각이 맞물리듯 혼자일 땐 비어 보이던 부분이 함께 있으면 자연스레 채워지는 모습이 보여요.",
-      "en": "Where one of you runs thin, the other runs full, so you fill in each other's blanks. Like two puzzle pieces locking in, the gaps that showed when you were on your own quietly close up once you're together."
+    complement: {
+      ko: '한 사람이 옅은 자리를 다른 사람이 짙게 채워줘요. 서로의 빈칸을 메우는 사이죠. 퍼즐 두 조각이 딱 맞물리듯, 혼자일 땐 비어 보이던 데가 둘이 있으면 술술 채워지더라고요.',
+      en: "Where one of you runs thin, the other runs full. You fill in each other's blanks. Like two puzzle pieces locking in, the spots that looked empty on your own quietly close up once you're together.",
     },
-    "skewed": {
-      "ko": "두 사람을 합한 기운이 {strongEl} 쪽으로 묵직하게 쏠리고 {weakEl}은 옅게 비치는 결이에요. {strongEl}의 색이 워낙 진하다 보니 관계 전체에 그 분위기가 짙게 물들고, 상대적으로 {weakEl}의 결은 배경처럼 은은하게 깔리는 모습으로 보여요.",
-      "en": "Combined, your energies lean heavily toward {strongEl} while {weakEl} shows up only faintly. The shade of {strongEl} is so deep that it tints the whole relationship, and {weakEl} settles in softly underneath, more like a background hum."
-    }
+    skewed: {
+      ko: '두 사람 기운을 합치면 {strongEl} 쪽으로 묵직하게 쏠리고, {weakEl}은 옅게만 깔려요. {strongEl} 색이 워낙 진하다 보니 관계 전체에 그 분위기가 짙게 물들죠. {weakEl}은 그 아래에 배경처럼 은은하게 깔리고요.',
+      en: 'Put together, your energies lean heavily toward {strongEl}, and {weakEl} shows up only faintly. The shade of {strongEl} runs so deep that it tints the whole relationship. {weakEl} settles in underneath, soft as a background hum.',
+    },
   },
-  "ASPECT_PAIR": {
-    "Moon|Sun": {
-      "ko": "한 사람의 마음의 리듬과 다른 사람의 가장 깊은 중심이 맞닿는, 궁합에서 가장 핵심이 되는 자리예요. 해와 달이 만나듯 한쪽의 감정(달)이 다른 쪽의 자아(해)를 비추고, 그 사람의 정체성이 다시 마음의 결을 물들이는 풍경이 그려져요. 두 사람이 서로를 '있는 그대로' 느끼고 받아들이는 일이 오가는 축이라, 관계의 정서적 온도가 이곳에서부터 그려지는 결이에요.",
-      "en": "This is the most central place in your compatibility, where one person's emotional rhythm touches the very core of who the other person is. Like the sun and moon meeting, one's feelings (the Moon) reflect the other's sense of self (the Sun), and that identity in turn colors the texture of the other's heart. It's the axis where the two of you feel and accept each other exactly as you are, so the emotional warmth of the whole relationship tends to take shape right here."
+  ASPECT_PAIR: {
+    'Moon|Sun': {
+      ko: "한 사람의 마음이 뛰는 리듬과 다른 사람의 가장 깊은 중심이 맞닿는 자리예요. 궁합에서 제일 핵심이 되는 곳이죠. 해와 달이 만나듯, 한쪽의 감정(달)이 다른 쪽의 자아(해)를 비춰요. 그 사람의 정체성은 다시 상대의 마음을 물들이고요. 둘은 여기서 서로를 '있는 그대로' 느끼고 받아들여요. 그래서 둘 사이의 정서적 온도가 바로 이 자리에서 시작돼요.",
+      en: "This is the most central place in your match, where one person's beating heart touches the very core of who the other person is. Like the sun and moon meeting, one of you reflects the other's feelings (the Moon) onto their sense of self (the Sun). That identity then colors the other's heart right back. This is where the two of you feel and accept each other exactly as you are. So the emotional warmth between you starts right here.",
     },
-    "Mars|Venus": {
-      "ko": "한 사람의 끌림과 속도, 밀어붙이는 에너지가 다른 사람의 사랑하는 방식과 취향에 가닿는 자리예요. 욕망(화성)과 애정(금성)이 마주 보는, 궁합에서 흔히 '불꽃이 튀느냐 마느냐'를 가르는 결이라 둘 사이의 끌어당김과 설렘이 어떤 온도로 흐르는지를 보여주는 축이에요.",
-      "en": "This is the place where one person's pull, pace, and forward-moving energy reaches the other's way of loving and what charms them. It's where desire (Mars) and affection (Venus) face each other, the very thread that so often decides whether sparks fly, showing you the temperature of the attraction and flutter that runs between the two of you."
+    'Mars|Venus': {
+      ko: "한 사람의 끌림과 속도, 밀어붙이는 힘이 다른 사람의 사랑하는 방식과 취향에 가닿아요. 욕망(화성)과 애정(금성)이 마주 보는 자리죠. 궁합에서 흔히 '불꽃이 튀냐 마냐'를 가르는 데가 여기예요. 둘 사이의 끌림과 설렘이 어떤 온도로 흐르는지 여기서 드러나요.",
+      en: "One of you brings the pull, the pace, the forward push. The other brings a way of loving and what charms them. This is where desire (Mars) and affection (Venus) face each other. It's often what decides whether sparks fly, and it shows the temperature of the attraction and flutter running between you.",
     },
-    "Moon|Venus": {
-      "ko": "한 사람의 마음이 흐르는 결과 다른 사람이 사랑을 건네는 방식이 맞닿는 자리예요. 감정(달)과 애정(금성)이 서로의 결을 더듬는, 일상의 다정함이 오가는 결이라 함께 있을 때의 온도가 정해지는 부분이기도 해요. 누가 어떻게 마음을 표현하고, 그 표현이 상대 마음에 어떻게 가닿는지가 여기서 그려지는 그림이에요.",
-      "en": "This is the place where one person's inner emotional current touches the way the other reaches out with love. It's where feeling (the Moon) and affection (Venus) feel for each other's texture, the part that shapes the warmth between you in everyday closeness. How one of you offers tenderness, and how it lands in the other's heart, is the picture being drawn here."
+    'Moon|Venus': {
+      ko: '한 사람의 마음이 움직이는 방식과, 다른 한 사람이 사랑을 건네는 방식이 여기서 맞닿아요. 한 사람은 마음(달)으로 느끼고, 다른 한 사람은 애정(금성)으로 다가가죠. 일상에서 다정함을 어떻게 주고받는지, 그 온기가 여기서 정해져요. 누가 어떻게 마음을 표현하고 그게 상대에게 어떻게 가닿는지, 둘은 바로 이 자리에서 만나요.',
+      en: "This is where one of you feels things and the other reaches out with love. You bring the inner mood (the Moon); they bring the warmth of affection (Venus). It's where the everyday tenderness between you gets its temperature. How one offers a soft gesture, and how it lands for the other, plays out right here.",
     },
-    "Mars|Moon": {
-      "ko": "한 사람의 끌림과 추진력(화성), 그러니까 무언가를 향해 달려가는 속도와 에너지가, 다른 사람의 마음이 흐르는 정서적 리듬과 맞닿는 자리예요. 한쪽이 불꽃처럼 당기고 움직이는 결과 다른 한쪽이 잔잔히 차오르는 감정의 결이 서로를 직접 건드리는, 끌림과 마음이 한자리에서 만나는 축이에요. 두 사람 사이에서 설렘과 정서가 얼마나 가깝게 포개지는지를 보여주는 결이랍니다.",
-      "en": "This is the place where one person's pull and drive (Mars), the speed and energy of chasing after something, meets the emotional rhythm of how the other person's heart moves. It's the axis where one side's spark-like, forward-leaning energy and the other side's quietly rising feelings touch each other directly, where attraction and emotion meet in the same spot. It's the thread that shows how closely the flutter of desire and the tides of feeling overlap between the two of you."
+    'Mars|Moon': {
+      ko: "한 사람은 무언가를 향해 확 달려드는 추진력(점성에선 '화성')을 들고 와요. 다른 사람은 잔잔히 차오르는 마음의 리듬(점성에선 '달')을 들고 오죠. 그 둘이 한자리에서 바로 맞닿아요. 그래서 설렘과 감정이 둘 사이에서 얼마나 가깝게 포개지는지가 여기서 드러나요.",
+      en: "One of you brings the drive to charge at something (in astrology, 'Mars'). The other brings the quiet, rising rhythm of how their heart moves (in astrology, the 'Moon'). These two touch each other right away. So this is where the spark and the feeling overlap, and you can see how closely the two of you fold together.",
     },
-    "Mercury|Mercury": {
-      "ko": "한 사람의 말과 생각이 흐르는 결과 다른 사람의 말과 생각이 흐르는 결이 마주 닿는 자리예요. 둘이 어떻게 대화하고, 무엇을 어떻게 받아들이고 풀어내는지, 그 머릿속 리듬과 언어가 서로 겹쳐 보이는 지점이라, 일상의 잡담부터 진지한 이야기까지 두 사람의 소통이 만들어지는 결이에요.",
-      "en": "This is the place where the way one person's words and thoughts flow comes face to face with the other's. It's where your two mental rhythms and your ways of speaking, listening, and making sense of things overlap, so it shapes the whole texture of how you talk together, from light everyday chatter to the deeper conversations."
+    'Mercury|Mercury': {
+      ko: '한 사람이 말하고 생각하는 방식과 다른 사람의 그것이 정면으로 마주 닿아요. 둘이 어떻게 대화하고, 뭘 어떻게 듣고 이해하는지, 그 머릿속 리듬과 말투가 여기서 포개져요. 그래서 가벼운 잡담부터 진지한 이야기까지, 두 사람이 통하는 방식이 만들어지는 자리예요.',
+      en: "Here one person's way of speaking and thinking meets the other's head on. Your mental rhythms overlap. So do your ways of talking, listening, and making sense of things. This shapes how you connect across everything, from light chatter to the deeper conversations.",
     },
-    "Moon|Moon": {
-      "ko": "한 사람의 마음의 리듬과 다른 사람의 마음의 리듬이 직접 포개지는 자리예요. 둘이 무언가에 울컥하고 안심하고 서운해지는 그 결, 그러니까 일상에서 감정이 오르내리는 박자가 서로 맞닿는 곳이에요. 말로 설명하기 전에 분위기로 먼저 느껴지는, 두 사람 마음의 온도가 만나는 결이랍니다.",
-      "en": "This is the place where one person's emotional rhythm folds directly into the other's. It's the part of you both that wells up, settles, or quietly aches — the everyday tempo of feelings rising and falling, touching each other. It's a meeting of inner temperatures, the kind you sense in the air before either of you finds the words."
+    'Moon|Moon': {
+      ko: '한 사람 마음의 박자와 다른 사람 마음의 박자가 바로 포개지는 자리예요. 둘이 무언가에 울컥하고, 안심하고, 서운해지는 그 리듬이 서로 맞닿아요. 그래서 말로 꺼내기 전에 분위기로 먼저 알아차리죠.',
+      en: "This is where one person's emotional beat folds right into the other's. You both well up, settle, and quietly ache on the same rhythm, and those rhythms touch. So you feel it in the air before either of you finds the words.",
     },
-    "Venus|Venus": {
-      "ko": "한 사람의 애정(금성)과 다른 사람의 애정(금성)이 마주 보는 자리예요. 둘 다 사랑할 때 무엇에 설레고 무엇을 예쁘다 여기는지, 그 취향과 끌림의 결끼리 맞닿는 곳이라, 서로를 어떻게 아끼고 어떤 다정함을 주고받는지가 고스란히 드러나는 자리랍니다.",
-      "en": "This is the place where one person's way of loving (Venus) meets the other's way of loving (Venus). It's where two sets of tastes and attractions touch directly, so it quietly reveals what each of you finds sweet and lovely, and the kind of tenderness you tend to offer and receive from each other."
+    'Venus|Venus': {
+      ko: '한 사람이 사랑하는 방식(금성)과 다른 사람이 사랑하는 방식(금성)이 마주 보는 자리예요. 둘은 사랑할 때 무엇에 콩닥거리고 무엇을 예쁘다 여기는지, 그 취향이 바로 맞닿거든요. 그래서 서로를 어떻게 아끼고 어떤 다정함을 주고받는지가 고스란히 드러나요.',
+      en: "This is where one person's way of loving (Venus) meets the other's way of loving (Venus). Your two sets of tastes and attractions touch directly here. So it quietly shows what each of you finds sweet, and the kind of tenderness you offer and take from each other.",
     },
-    "Sun|Sun": {
-      "ko": "두 사람 각자의 '나는 이런 사람이다' 하는 중심이 정면으로 맞닿는, 궁합에서 가장 깊은 자리예요. 서로의 자아(태양)와 자아(태양)가 같은 무대에 함께 서는 결이라, 두 사람이 세상을 바라보는 방식과 삶을 끌고 가는 기질이 그대로 포개지는 자리랍니다. 한 사람의 빛과 다른 한 사람의 빛이 한 곳에서 만나, 관계의 가장 근본적인 톤을 함께 칠하는 만남이에요.",
-      "en": "This is the deepest spot in your chart together — where each person's core sense of \"this is who I am\" meets the other head-on. Your two selves (the Sun) step onto the same stage, so the way you each see the world and steer your lives lays directly over one another. One person's light and the other's gather in the same place, painting the most fundamental tone of the whole relationship together."
+    'Sun|Sun': {
+      ko: "두 사람 각자의 '나는 이런 사람이야' 하는 중심이 정면으로 맞닿아요. 궁합에서 제일 깊은 자리죠. 서로의 자아(점성에선 '태양')가 같은 무대에 함께 서서, 세상을 보는 눈도 삶을 끌고 가는 기질도 그대로 포개져요. 한 사람의 빛과 다른 사람의 빛이 한자리에서 만나, 둘은 관계의 가장 밑바탕 톤을 같이 칠해요.",
+      en: "Here each person's core sense of \"this is who I am\" meets the other head-on. It's the deepest spot in your charts together. Your two selves (in astrology, the Sun) step onto the same stage, so the way you see the world and steer your lives lays right over each other. One person's light and the other's meet in one place, and together you paint the most basic tone of the whole relationship.",
     },
-    "Mars|Mars": {
-      "ko": "한 사람의 욕망과 추진력(화성)이 다른 사람의 욕망과 추진력(화성)과 맞닿는 자리예요. 두 사람의 속도와 열기, 무언가를 향해 달려드는 에너지가 같은 결에서 부딪히는, 말하자면 둘 다 액셀을 밟는 곳이라 관계의 박자와 추진력이 가장 선명하게 드러나는 자리예요.",
-      "en": "This is where one person's desire and drive (Mars) meets the other's desire and drive (Mars). It's the place where your tempo, your heat, and the way you both lunge toward what you want come into contact, so to speak, the spot where you're both on the gas, which is why the rhythm and momentum of the relationship show up most vividly right here."
+    'Mars|Mars': {
+      ko: "두 사람의 끌림과 추진력이 정면으로 맞닿아요(점성에선 '화성'끼리). 속도, 열기, 원하는 걸 향해 달려드는 기운이 같은 자리에서 부딪히죠. 말하자면 둘 다 액셀을 밟는 곳이라, 관계의 박자와 추진력이 여기서 제일 또렷하게 드러나요.",
+      en: "Your spark and drive meet head-on (in astrology, Mars to Mars). Your tempo, your heat, the way you both lunge toward what you want all collide in the same spot. This is where you're both on the gas, so the rhythm and momentum of the relationship show up most vividly right here.",
     },
-    "Moon|Saturn": {
-      "ko": "한 사람의 마음의 리듬, 그러니까 기분이 차오르고 가라앉는 정서의 결이, 다른 사람이 관계에 가져오는 무게와 약속(토성)의 결과 맞닿는 자리예요. 한쪽은 그날그날의 감정을 흐르듯 느끼고, 다른 쪽은 그 감정을 진지하게 떠받치고 지키려는 쪽이라, 마음의 온도와 책임의 무게가 서로를 시험하듯 또렷이 비추는 결이에요. 궁합에서 보면 가벼운 설렘만이 아니라 이 관계가 얼마나 단단해질 수 있는지를 건드리는 축이랍니다.",
-      "en": "This is the place where one person's emotional rhythm, the quiet rise and fall of how they feel, meets the weight and commitment (Saturn) that the other brings into the relationship. One of you tends to feel each day's mood as something flowing and changeable, while the other instinctively wants to hold those feelings steady and keep them safe, so the warmth of the heart and the weight of responsibility end up reflecting each other in a clear, almost testing way. In a compatibility reading, this is the axis that touches not just easy fluttering, but how solid and lasting this bond can grow to be."
+    'Moon|Saturn': {
+      ko: '한 사람은 기분이 차오르고 가라앉는 대로 그날의 마음을 흐르듯 느껴요. 다른 한 사람은 그 마음을 진지하게 떠받치고 지키려 하죠. 그래서 둘 사이엔 마음의 온도와 책임의 무게가 또렷이 맞닿아요(점성에선 달과 토성이 만나는 자리). 가벼운 콩닥거림만이 아니라, 이 관계가 얼마나 단단해질 수 있는지를 건드리는 부분이거든요.',
+      en: "One of you feels each day's mood as it flows, rising and falling. The other instinctively wants to hold those feelings steady and keep them safe. So here, the warmth of one heart and the weight of responsibility meet head-on (in astrology, this is where the Moon meets Saturn). It touches not just the easy flutter, but how solid this bond can grow.",
     },
-    "Saturn|Venus": {
-      "ko": "한 사람이 관계에 들이는 무게와 약속, 그러니까 거리감과 책임의 결이 다른 사람이 사랑을 표현하는 방식, 무엇에 마음이 끌리고 어떻게 다정함을 건네는지(애정·금성)와 맞닿는 자리예요. 한쪽이 진중하게 재고 다지려는 마음과 다른 쪽이 부드럽게 좋아하고 누리려는 마음이 같은 무대에서 서로를 마주 보는, 사랑의 온도와 관계의 무게가 어떻게 포개지는지 드러나는 결이에요.",
-      "en": "This is the place where one person's sense of weight and commitment in the relationship, that pull toward distance and responsibility, meets the way the other person loves, what their heart is drawn to and how they offer their tenderness (affection, Venus). It's where one's careful, steadying instinct stands on the same stage as the other's softer way of delighting and savoring, showing how the warmth of love and the gravity of commitment come to rest against each other."
+    'Saturn|Venus': {
+      ko: "한 사람은 관계에 무게와 약속을 들여요. 진중하게 재고 다지면서, 거리와 책임을 챙기는 쪽이죠(점성에선 '토성'). 다른 한 사람은 부드럽게 좋아하고 누려요. 무엇에 마음이 끌리는지, 다정함을 어떻게 건네는지가 드러나거든요(애정·금성). 둘은 같은 자리에서 사랑의 온도와 관계의 무게를 마주 봐요.",
+      en: 'One of you brings weight and commitment. You measure carefully and steady things, minding distance and responsibility (Saturn). The other brings a softer way of delighting and savoring. What your heart is drawn to, how you offer tenderness, comes through here (affection, Venus). This is where the warmth of love and the gravity of commitment come to rest against each other.',
     },
-    "Mars|Saturn": {
-      "ko": "한 사람의 끌림과 추진력(애정과 활력의 결), 그러니까 좋아하면 곧장 다가가고 속도를 내는 마음이, 다른 사람의 무게와 거리감(약속을 재고 천천히 다가서는 결)과 정면으로 맞물리는 자리예요. 끌어당기는 에너지와 한 발 물러서서 시험하는 마음이 같은 지점에서 만나는, 두 사람의 속도와 거리감이 가장 솔직하게 드러나는 결이에요.",
-      "en": "This is the spot where one person's pull and momentum — the warmth and spark that rushes in the moment they like someone — meets the other's weight and distance, the part that measures a promise and steps closer slowly. The drawing-in energy and the holding-back, testing heart land on the very same point, so it's the place where the two of you reveal your true pace and sense of closeness most honestly."
+    'Mars|Saturn': {
+      ko: "한 사람은 좋아하면 곧장 다가가고 속도를 내요(애정과 활력, 점성에선 '화성'). 다른 사람은 약속을 재고 천천히 거리를 좁히죠(무게와 신중함, '토성'). 그래서 끌어당기는 마음과 한 발 물러서서 살피는 마음이 같은 지점에서 딱 맞물려요. 둘의 속도와 거리감이 가장 솔직하게 드러나는 자리예요.",
+      en: 'One of you rushes in the moment you like someone — all warmth and spark (in astrology, Mars). The other measures the promise and closes the gap slowly — weight and caution (Saturn). So the pull and the hold-back land on the very same point. This is where the two of you show your real pace and sense of closeness most honestly.',
     },
-    "Moon|Pluto": {
-      "ko": "한 사람의 마음의 리듬과 다른 사람의 가장 깊은 곳, 쉽게 흔들리지 않는 강렬함(명왕성)이 맞물리는 자리예요. 잔잔한 호수에 깊은 물줄기가 닿듯, 한쪽의 일상적인 감정의 결을 다른 한쪽이 바닥까지 끌어내리는 깊이로 받아들이는 만남이라, 둘 사이에서 마음이 표면에 머물지 않고 자꾸 더 안쪽을 건드리게 되는 결이에요.",
-      "en": "This is where one person's emotional rhythm meets the other's deepest, most unshakable intensity (Pluto). Like a still lake touched by a current running far below the surface, one person's everyday feelings get drawn down to their roots by the other, so between the two of you the heart rarely stays on the surface and keeps reaching toward something deeper."
+    'Moon|Pluto': {
+      ko: '한 사람의 마음이 흐르는 리듬에, 다른 사람의 가장 깊고 쉽게 흔들리지 않는 강렬함(명왕성)이 맞물려요. 잔잔한 호수에 저 아래 물줄기가 닿듯, 한쪽의 평범한 감정을 다른 한쪽이 바닥까지 끌어내려요. 그래서 둘은 마음이 표면에 머물지 못하고, 자꾸 더 안쪽을 건드리게 돼요.',
+      en: "One person's emotional rhythm locks into the other's deepest, most unshakable intensity (Pluto). Like a still lake touched by a current running far below, one of you draws the other's ordinary feelings all the way down to their roots. So between you two, the heart never quite stays on the surface and keeps reaching deeper.",
     },
-    "Pluto|Venus": {
-      "ko": "한 사람의 가장 깊고 강렬한 부분과 다른 사람이 사랑을 표현하고 끌리는 방식이 맞닿는 자리예요. 매력(금성)이라는 부드러운 결 위로 상대의 깊은 마음(명왕성)이 스며들면서, 좋아하는 감정이 단순한 설렘에 머물지 않고 서로의 밑바닥까지 끌어내려는 힘이 함께 작동하는 결이에요. 궁합에서 끌림의 온도가 유독 진하고 묵직하게 다뤄지는 축이라고 보면 돼요.",
-      "en": "This is where one person's deepest, most intense self meets the way the other loves and feels drawn to someone. As that depth (Pluto) seeps into the softer texture of attraction (Venus), the feeling of liking each other doesn't stay at light flutter; a pull toward each other's very core works alongside it. In your chart, it's the axis where the temperature of attraction tends to run especially deep and weighty."
+    'Pluto|Venus': {
+      ko: '한 사람의 가장 깊고 강렬한 마음이, 다른 사람이 사랑을 표현하고 끌리는 방식과 맞닿아요. 부드러운 끌림(금성) 위로 상대의 깊은 속마음(명왕성)이 스며들죠. 그래서 좋아하는 마음이 설렘에서 멈추지 않고, 서로의 밑바닥까지 끌어내요. 둘 사이에서 끌림이 유독 진하고 묵직하게 흐르는 자리예요.',
+      en: "Here one person's deepest, most intense self meets the way the other loves and feels drawn in. That depth (Pluto) seeps into the softer pull of attraction (Venus). So liking each other doesn't stay at a light flutter. It reaches all the way down to each other's core. This is where attraction between you runs especially deep and heavy.",
     },
-    "Mars|Pluto": {
-      "ko": "한 사람의 끌림과 추진력, 그러니까 무언가를 향해 곧장 달려가는 에너지(화성)가 다른 사람의 가장 깊은 곳, 쉽게 흔들리지 않는 강렬함과 변화의 힘(명왕성)과 맞물리는 자리예요. 가벼운 호감이 아니라 서로의 밑바닥까지 끌어당기는 결이라, 둘 사이에서 욕망과 깊이가 정면으로 만나는 축이 돼요. 표면의 끌림이 어디까지 깊어지는지를 가늠하게 하는, 관계의 온도가 진하게 드러나는 자리랍니다.",
-      "en": "This is where one person's pull and drive, that energy of moving straight toward what they want (Mars), meets the other's deepest place, the kind of intensity and transforming force that doesn't shift easily (Pluto). It isn't a light spark but a pull that reaches all the way down, so it becomes the axis where desire and depth meet head-on between you two. It's the spot where the relationship's temperature shows in full, hinting at just how far a surface attraction can deepen."
+    'Mars|Pluto': {
+      ko: "한 사람은 원하는 걸 향해 곧장 달려가는 힘을 가져와요(점성에선 '화성'). 다른 사람은 쉽게 흔들리지 않는 깊은 강렬함과 변화의 힘으로 받아요(점성에선 '명왕성'). 가벼운 호감이 아니라 서로의 밑바닥까지 끌어당겨요. 그래서 둘은 욕망과 깊이가 정면으로 부딪혀요. 표면의 끌림이 어디까지 깊어지는지, 둘 사이 온도가 진하게 드러나는 자리예요.",
+      en: "You bring the energy of moving straight toward what you want (in astrology, 'Mars'). They bring a deep intensity that doesn't shift easily, and the force to transform (in astrology, 'Pluto'). It isn't a light spark. You two pull each other all the way down, so desire and depth meet head-on. This is where the temperature between you shows in full, hinting at how far a surface attraction can deepen.",
     },
-    "Uranus|Venus": {
-      "ko": "한 사람의 예측 못 할 설렘, 그러니까 늘 새로운 자극과 변화를 몰고 오는 결이 다른 사람의 사랑하는 방식과 취향, 마음이 끌리는 자리(애정·금성)에 가서 닿는 자리예요. 한쪽이 일상에 살짝 균열 같은 두근거림을 던지면, 다른 한쪽의 애정 어린 감각이 그걸 바로 알아차리는 식이라, 둘 사이의 끌림이 어떤 온도로 살아 움직이는지를 건드리는 축이에요. 보통 이런 결은 관계가 한자리에 머무르지 않고 자꾸 색이 바뀌는 풍경 같은 느낌으로 그려져요.",
-      "en": "This is where one person's spark of the unexpected, that restless pull toward something new and electric, reaches over and lands on the way the other person loves and is drawn to things (their affection, Venus). When one tosses a little flutter into the everyday, the other's tender sense of attraction picks up on it right away, so this is the axis that touches the very temperature of the chemistry between them. A meeting like this tends to paint the relationship as a scene that never quite sits still, its colors always shifting."
+    'Uranus|Venus': {
+      ko: '한 사람은 예측 못 할 두근거림을 몰고 와요. 늘 새롭고 짜릿한 쪽으로 잡아끄는 사람이죠(천왕성). 그게 다른 사람이 사랑하고 마음 끌리는 방식(애정·금성)에 가서 닿아요. 한쪽이 일상에 살짝 균열 같은 설렘을 던지면, 다른 한쪽이 그걸 바로 알아채요. 그래서 둘 사이 끌림이 한자리에 머물지 않고 자꾸 색이 바뀌어요.',
+      en: 'One of you brings the unexpected, that restless pull toward something new and electric (Uranus). It reaches over and lands on the way the other loves and gets drawn to things (their affection, Venus). One of you tosses a little flutter into the everyday, and the other picks up on it right away. So the pull between you never quite sits still. Its colors keep shifting.',
     },
-    "Moon|Uranus": {
-      "ko": "한 사람의 마음이 흐르는 리듬과 다른 사람이 품은 예측 못 할 설렘이 마주 닿는 자리예요. 잔잔히 흐르던 감정(달)의 결에 갑자기 창문이 열리듯 새로운 바람(천왕성)이 불어드는, 익숙함과 낯섦이 한 호흡에 섞이는 결이라고 보통 말해요. 둘 사이의 정서가 늘 같은 자리에 머물지 않고 조금씩 흔들리고 새로워지는, 마음의 안정과 변화가 동시에 건드려지는 축이에요.",
-      "en": "This is where one person's inner emotional rhythm meets the other's knack for the unexpected. People often describe it as a quietly flowing feeling (the Moon) suddenly having a window thrown open, a fresh gust (Uranus) blowing in so that the familiar and the surprising mingle in a single breath. It's an axis where the emotion between you never quite settles in one place but keeps shifting and renewing itself, touching both the steadiness and the changeability of the heart at once."
+    'Moon|Uranus': {
+      ko: '한 사람의 마음이 흐르는 잔잔한 리듬과, 다른 사람이 품은 예측 못 할 설렘이 딱 마주쳐요. 조용히 흐르던 감정(달)에 갑자기 창문이 열리듯 새 바람(천왕성)이 훅 불어들죠. 그래서 익숙함과 낯섦이 한 호흡에 섞여요. 둘의 마음은 늘 같은 자리에 머물지 않고 조금씩 흔들리고 새로워져요. 안정과 변화를 동시에 건드리는 사이예요.',
+      en: "One person's quiet emotional rhythm meets the other's knack for the unexpected. A softly flowing feeling (the Moon) has a window thrown open, and a fresh gust (Uranus) blows in. So the familiar and the surprising mingle in a single breath. Between you the mood never settles in one spot. It keeps shifting and renewing itself, touching both steadiness and restlessness at once.",
     },
-    "Neptune|Venus": {
-      "ko": "한 사람의 꿈꾸고 이상화하는 마음과 다른 사람의 사랑하는 방식, 끌리는 취향(애정·금성)이 맞물리는 자리예요. 보통 이런 결은 상대의 매력이 내 안의 가장 말랑하고 낭만적인 상상을 건드리고, 서로를 실제보다 조금 반짝이게 바라보게 되는 분위기로 흘러요. 환상과 설렘, 그리고 \"이 사람을 어떻게 사랑하고 싶은가\"가 한자리에서 만나는, 마음의 무드를 정하는 결이에요.",
-      "en": "This is where one person's dreaming, idealizing heart meets the other's way of loving and what they're drawn to (affection, Venus). A pairing like this tends to touch the softest, most romantic corner of someone's imagination through the other's charm, so you end up seeing each other a little more luminous than life. It's the spot where fantasy, flutter, and \"how do I want to love this person\" all meet, the thread that sets the mood of the heart."
+    'Neptune|Venus': {
+      ko: "한 사람은 꿈꾸고 이상을 그리는 마음을 가져오고, 다른 사람은 사랑하는 방식과 끌리는 취향을 가져와요(애정·금성). 둘은 서로를 실제보다 살짝 반짝이게 바라봐요. 상대의 매력이 마음속 가장 말랑한 자리를 콩닥 건드리거든요. 환상과 설렘, 그리고 '이 사람을 어떻게 사랑하고 싶지'가 한자리에서 만나면서 둘 사이의 무드가 정해지는 거예요.",
+      en: 'One of you brings a dreaming, idealizing heart; the other brings a way of loving and what they\'re drawn to (affection, Venus). You see each other a little more luminous than life. Their charm touches the softest corner inside you. This is where fantasy, flutter, and "how do I want to love this person" all meet, and that sets the mood between you.',
     },
-    "Jupiter|Sun": {
-      "ko": "한 사람의 넓혀주는 기운(목성)과 다른 사람의 나 자신, 그러니까 그 사람의 중심이 정면으로 마주 보는 자리예요. 한쪽이 \"넌 더 커도 돼\" 하고 품을 열어줄 때 다른 쪽의 자기다움이 곧장 반응하는, 서로의 그릇과 존재감이 닿는 결이라 관계 안에서 한 사람이 다른 사람을 얼마나 펼쳐주느냐가 자연스럽게 드러나는 축이에요.",
-      "en": "This is the spot where one person's broadening, generous energy (Jupiter) comes face to face with the other's sense of self, the very center of who they are. When one side opens up and says \"you can be even more,\" the other's true nature responds right away, so it's the kind of meeting where each person's room to grow touches the other's presence, and it quietly reveals how much one widens the other within the relationship."
+    'Jupiter|Sun': {
+      ko: "한 사람은 \"넌 더 커도 돼\" 하고 품을 열어 주고(점성에선 '목성'), 다른 사람은 그 말에 자기다움으로 곧장 반응해요(그 사람의 중심, '태양'). 한쪽이 펼쳐 줄 때 다른 쪽이 환하게 살아나는 사이죠. 그래서 둘은 서로를 얼마나 키워 주는지가 자연스럽게 드러나요.",
+      en: "One of you opens up and says \"you can be even more\" (in astrology, 'Jupiter'); the other lights up and answers with their true self (their core, the 'Sun'). One makes room, the other grows into it. So you two quietly show how much you bring each other out.",
     },
-    "Jupiter|Moon": {
-      "ko": "한 사람의 넓혀주는 너그러운 기운(목성)과 다른 사람의 마음의 리듬(달)이 가만히 포개지는 자리예요. 한쪽이 품을 활짝 열어 세상을 크게 보여줄 때, 다른 한쪽의 정서가 그 품에 어떻게 반응하는지가 비치는 결이라, 두 사람 사이에서 마음이 자라거나 출렁이는 가장 여린 축을 건드려요.",
-      "en": "This is the spot where one person's warm, expansive spirit (Jupiter) quietly settles over the other's emotional rhythm (the Moon). When one of you opens wide and shows the world as a bigger place, the other's feelings answer that openness, so it touches the tender axis where, between the two of you, the heart either grows or sways."
+    'Jupiter|Moon': {
+      ko: "한 사람은 품을 넓혀주는 너그러운 기운(점성에선 '목성')을 내고, 다른 한 사람은 마음의 리듬(점성에선 '달')으로 받아요. 한쪽이 품을 활짝 열어 세상을 크게 보여주면, 다른 한쪽의 마음이 그 품에 콩닥 반응하죠. 그래서 둘 사이에서 마음이 쑥 자라기도, 출렁이기도 하는 가장 여린 데를 건드려요.",
+      en: "One of you brings a warm, expansive spirit (in astrology, Jupiter); the other brings an emotional rhythm (the Moon). When one opens wide and shows the world as a bigger place, the other's heart answers that opening. So this is where, between you two, feelings either grow fast or sway the most. It's the tenderest spot.",
     },
-    "Ascendant|Venus": {
-      "ko": "한 사람의 겉으로 비치는 결, 그러니까 처음 마주했을 때 풍기는 분위기와 태도가, 다른 사람이 사랑할 때 드러나는 애정(금성)의 취향과 맞닿는 자리예요. 첫인상이라는 문과 마음의 결이 서로를 향해 열리는 지점이라, 끌림이 어디서 시작되고 어떤 매력에 마음이 기우는지를 건드리는 결이에요.",
-      "en": "This is where one person's outward impression, the air and manner they give off at first meeting, brushes up against the way the other one loves and what they're drawn to in affection (Venus). It's the point where the doorway of a first impression and the texture of the heart open toward each other, so it touches on where the attraction begins and what kind of charm the heart leans into."
+    'Ascendant|Venus': {
+      ko: "한 사람이 처음 풍기는 분위기와 태도가, 다른 사람이 사랑할 때 드러나는 취향(점성에선 '금성')과 맞닿아요. 첫인상이라는 문과 마음이 서로를 향해 열리는 자리죠. 그래서 끌림이 어디서 시작되고 어떤 매력에 마음이 기우는지를 건드려요. 한 사람은 첫인상을 내밀고, 다른 한 사람은 사랑하는 방식으로 답해요.",
+      en: "The air one person gives off at first meeting brushes right up against the way the other one loves and what they're drawn to (in astrology, Venus). This is where a first impression and the heart open toward each other. So it touches where attraction starts and what charm someone leans into. You bring the first impression; they answer with how they love.",
     },
-    "Ascendant|Sun": {
-      "ko": "한 사람이 처음 다가설 때 풍기는 분위기와 첫인상의 결이, 다른 사람의 가장 깊은 자기다움, 그러니까 그 사람이 누구인지 그 중심과 맞닿는 자리예요. 겉으로 비치는 첫 표정이 상대의 진짜 알맹이를 곧장 건드리는, 만나자마자 서로의 본질이 마주 보게 되는 결이라 궁합에서 꽤 핵심이 되는 축이랍니다.",
-      "en": "This is the spot where the air one person gives off at first, the texture of their first impression, meets the other's deepest sense of self, the very core of who they are. The face you show on the surface reaches straight for the other's true center, so the moment you meet, your essences are already looking at each other, which makes this one of the heart-axes of the match."
-    }
+    'Ascendant|Sun': {
+      ko: '한 사람이 처음 다가설 때 풍기는 분위기와 첫인상이, 다른 사람의 가장 깊은 자기다움하고 맞닿아요. 겉으로 보이는 첫 표정이 상대의 진짜 알맹이를 곧장 건드리는 거죠. 그래서 만나자마자 둘은 서로의 본질을 마주 봐요. 궁합에서 꽤 핵심이 되는 자리예요.',
+      en: "The air one of you gives off at first, that very first impression, meets the other's deepest sense of self. The face you show on the surface reaches straight for their true center. So the moment you meet, you two are already looking at each other's essence. This is one of the core spots in the match.",
+    },
   },
-  "OVERLAY_HOUSE": {
-    "1": {
-      "ko": "\"나는 누구인가\"가 펼쳐지는 무대예요. 첫인상, 몸짓, 세상에 자신을 내미는 방식 같은 가장 바깥의 빛이 머무는 자리라, 존재 자체가 곧장 눈에 들어오는 결이 흐르곤 해요.",
-      "en": "This is the stage of \"who I am.\" It's where the outermost light settles — first impressions, the way someone carries themselves and steps into the world — so there's often a quality of simply being noticed at a glance."
+  OVERLAY_HOUSE: {
+    '1': {
+      ko: '여기는 "나는 누구인가"가 펼쳐지는 자리예요. 첫인상, 몸짓, 세상에 자신을 내미는 방식 같은 가장 바깥의 빛이 머무는 곳이죠. 그래서 둘은 서로의 존재 자체를 한눈에 알아봐요.',
+      en: 'This is where "who I am" plays out. It holds your outermost light: first impressions, the way you carry yourself, how you step into the world. So you two notice each other\'s whole presence at a glance.',
     },
-    "2": {
-      "ko": "\"가진 것과 소중히 여기는 것\"의 무대예요. 돈과 살림살이뿐 아니라 무엇을 진짜 가치 있다고 느끼는지가 드러나는 자리라, 안정감과 손에 쥐는 감각이 짙게 도는 결이에요.",
-      "en": "This is the stage of \"what we hold and what we treasure.\" It's where money and belongings live, but also what feels genuinely worth keeping — so there's a warm undertone of security and something held close in the hand."
+    '2': {
+      ko: '"내가 가진 것, 내가 아끼는 것"이 드러나는 자리예요. 돈이나 살림살이는 물론이고, 둘이 뭘 진짜 소중하다고 느끼는지가 여기서 보여요. 그래서 안정감, 그리고 손에 쥐고 싶은 마음이 짙게 도는 사이죠.',
+      en: 'This is where "what you own and what you cherish" comes out. Money and belongings, sure — but also what each of you genuinely counts as worth keeping. So there\'s a warm pull toward feeling steady, toward holding something close.',
     },
-    "3": {
-      "ko": "\"주고받는 말과 매일의 결\"이 흐르는 무대예요. 대화, 메시지, 사소한 일상의 오감이 오가는 자리라, 가볍게 통하고 자주 닿는 친근한 공기가 감도는 결이에요.",
-      "en": "This is the stage of \"words exchanged and everyday rhythm.\" It's where conversations, messages, and small daily comings-and-goings happen — so there's a friendly air of easy understanding and frequent little touches."
+    '3': {
+      ko: '여기선 둘이 주고받는 말과 매일의 리듬이 흘러요. 대화하고, 메시지 보내고, 사소한 일상을 같이 겪는 자리죠. 그래서 가볍게 통하고 자주 닿는, 친근한 공기가 감돌아요.',
+      en: "This is where the two of you trade words and share an everyday rhythm. You talk, you text, you go through small daily moments side by side. So there's a friendly air to it. You get each other easily, and you touch base often.",
     },
-    "4": {
-      "ko": "\"집과 뿌리\"의 무대예요. 가족, 고향, 마음 깊은 곳의 안식처를 보는 가장 사적인 자리라, 편안히 머물고 속을 내려놓게 되는 포근한 결이 흐르곤 해요.",
-      "en": "This is the stage of \"home and roots.\" It's the most private place, where family, origins, and the heart's resting spot are read — so there's a cozy quality of settling in and letting your guard down."
+    '4': {
+      ko: "여기선 둘이 '집과 뿌리'를 봐요. 가족, 고향, 마음이 푹 쉬는 자리까지 들여다보는 가장 사적인 곳이라, 둘은 여기서 긴장을 풀고 속을 슬며시 내려놔요. 신발 벗고 들어와 소파에 폭 파묻히는 느낌이죠.",
+      en: 'Here you two look at "home and roots." It\'s the most private spot — family, where you come from, the place your heart actually rests. So here you both unclench and quietly let your guard down. It feels like kicking off your shoes and sinking into the couch.',
     },
-    "5": {
-      "ko": "\"연애와 즐거움\"의 무대예요. 설렘, 놀이, 마음을 두근거리게 하는 표현이 피어나는 자리라, 순수하게 끌리고 함께 빛나고 싶어지는 화사한 결이 도는 자리예요.",
-      "en": "This is the stage of \"romance and delight.\" It's where flutter, play, and heart-quickening expression bloom — so there's a bright quality of pure attraction and the wish to shine together."
+    '5': {
+      ko: '여기서 둘은 설레고, 장난치고, 마음을 콩닥거리게 하는 말을 꺼내요. 연애와 즐거움이 피어나는 자리죠. 그래서 둘은 순수하게 끌리고, 같이 빛나고 싶어져요.',
+      en: "This is where you two flutter, play, and say the things that make a heart skip. Romance and delight bloom here. So you're drawn to each other plainly, wanting to shine side by side.",
     },
-    "6": {
-      "ko": "\"일과 매일의 습관\"이 자리한 무대예요. 함께 손발을 맞추고 서로를 챙기는 돌봄이 오가는 자리라, 곁에서 작게 도와주고 일상을 나누는 잔잔한 결이 흐르곤 해요.",
-      "en": "This is the stage of \"work and daily habits.\" It's where pitching in together and looking after one another happen — so there's a quiet quality of small everyday help and shared routine."
+    '6': {
+      ko: "여기는 '일과 매일의 습관'이 펼쳐지는 자리예요. 둘이 손발을 맞추고 서로를 챙기는 곳이라, 옆에서 슬쩍 거들고 하루를 같이 나누는 잔잔한 느낌이 흘러요.",
+      en: "This is where 'work and daily habits' play out. You pitch in together and look after each other here, so it carries a quiet feel of small everyday help and a day you share.",
     },
-    "7": {
-      "ko": "\"동반자와 결혼\"의 무대예요. 정통 점성에서 짝과 결혼을 보는 바로 그 자리라, 한 사람을 곁의 동반자로 깊이 받아들이고 싶어지는 강한 끌림의 결이 도는 자리예요.",
-      "en": "This is the stage of \"partnership and marriage.\" In classical astrology it's the very place where mates and marriage are read — so there's a strong pull toward truly taking someone in as a partner at your side."
+    '7': {
+      ko: '한 사람을 평생 곁에 둘 동반자로 깊이 받아들이고 싶어지는 자리예요. 정통 점성에서 짝과 결혼을 읽는 바로 그 자리라, 둘은 서로를 옆자리에 들이고 싶다는 끌림을 강하게 느껴요.',
+      en: "This is where you want to truly let someone in as a lifelong partner at your side. In classical astrology it's the very place that reads committed partners and marriage, so you two feel a strong pull to make room for each other.",
     },
-    "8": {
-      "ko": "\"깊은 결합과 변화\"의 무대예요. 둘 사이의 가장 은밀한 신뢰와 함께 나누는 것들, 서로를 송두리째 바꿔놓는 결이 흐르는 자리라, 표면 아래로 깊이 엮이는 진한 공기가 도는 자리예요.",
-      "en": "This is the stage of \"deep merging and transformation.\" It's where the most private trust, shared things, and a force that remakes each other live — so there's an intense air of being woven together far beneath the surface."
+    '8': {
+      ko: '여기서 둘은 가장 깊은 자리로 들어가요. 둘만 아는 은밀한 신뢰, 함께 나누는 것들, 서로를 송두리째 바꿔놓는 힘이 도는 자리예요. 그래서 표면 아래로 진하게 엮이는 공기가 흘러요.',
+      en: "This is where you two go all the way in. It's where the most private trust lives, the things you share, the force that remakes each other. So there's an intense air of being woven together far beneath the surface.",
     },
-    "9": {
-      "ko": "\"믿음과 넓어짐\"의 무대예요. 세상을 보는 시야, 배움, 멀리 떠나는 모험이 깃든 자리라, 함께 지평을 넓히고 더 큰 그림을 꿈꾸게 되는 탁 트인 결이 흐르곤 해요.",
-      "en": "This is the stage of \"belief and expansion.\" It's where worldview, learning, and journeys to far places dwell — so there's an open quality of broadening horizons and dreaming a bigger picture together."
+    '9': {
+      ko: "여긴 '믿음과 넓어짐'을 다루는 자리예요. 둘은 세상을 어떻게 볼지 같이 고민하고, 새로운 걸 배우고, 멀리 떠나는 모험을 함께 그려요. 그래서 시야가 탁 트이고, 더 큰 그림을 같이 꿈꾸게 되죠.",
+      en: 'This is where belief and expansion live. You two figure out how to see the world, learn new things, and picture journeys to far-off places together. So your horizons open up, and you start dreaming a bigger picture side by side.',
     },
-    "10": {
-      "ko": "\"커리어와 세상 속 자리\"의 무대예요. 사회에서 어떻게 보이고 무엇으로 기억되는지가 걸린 가장 공적인 자리라, 서로의 길과 위신에 또렷이 영향을 주는 무게감 있는 결이 도는 자리예요.",
-      "en": "This is the stage of \"career and standing in the world.\" It's the most public place, where how one is seen and remembered in society rests — so there's a weighty quality of clearly shaping each other's path and reputation."
+    '10': {
+      ko: "여기서 둘은 '일과 세상에서의 자리'를 다뤄요. 남들 눈에 어떻게 보이고 뭐로 기억되는지가 걸린, 제일 공적인 자리죠. 그래서 서로의 길과 평판을 또렷하게 흔들어 놓는, 묵직한 자리예요.",
+      en: "This is where you two handle work and your standing in the world. It's the most public place — how each of you is seen, what you're remembered for. So you shape each other's path and reputation in plain sight, and it carries real weight.",
     },
-    "11": {
-      "ko": "\"친구와 함께 그리는 미래\"의 무대예요. 같은 곳을 바라보는 동료애와 앞날의 바람이 모이는 자리라, 편안한 동지처럼 나란히 서서 내일을 그려보게 되는 산뜻한 결이 흐르곤 해요.",
-      "en": "This is the stage of \"friends and the future we picture together.\" It's where kinship and shared hopes for what's ahead gather — so there's a fresh quality of standing side by side like easy allies, sketching tomorrow."
+    '11': {
+      ko: '둘은 같은 곳을 바라봐요. 친구처럼 편하게, 함께 그리고 싶은 내일이 비슷하거든요. 동지처럼 나란히 서서 "우리 이러면 어때?" 하고 앞날을 같이 떠올리죠. 그럴 때 둘 사이엔 산뜻한 바람이 불어요.',
+      en: "You two look at the same place. Easy like friends, you want a similar tomorrow. You stand side by side like allies and dream up what's ahead together. When you do, a fresh kind of air moves between you.",
     },
-    "12": {
-      "ko": "\"내면과 숨겨진 것\"의 무대예요. 말로 잘 꺼내지 않는 마음, 꿈, 보이지 않는 곳에서 일어나는 일들이 깃든 자리라, 설명하기 어려운 신비롭고 아련한 끌림의 결이 도는 자리예요.",
-      "en": "This is the stage of \"the inner world and hidden things.\" It's where the feelings we rarely voice, dreams, and what stirs out of sight reside — so there's a mysterious, faraway quality of attraction that's hard to put into words."
-    }
+    '12': {
+      ko: "여기는 마음 깊은 곳, 잘 안 보이는 것들이 머무는 자리예요(점성에선 '12하우스'). 좀처럼 입 밖에 안 내는 마음, 꿈, 안 보이는 데서 일어나는 일들이 깃들어 있죠. 그래서 둘 사이엔 말로 콕 집기 힘든, 신비롭고 아련하게 끌리는 무언가가 돌아요.",
+      en: "This is where the deep, barely-visible parts of you live (in astrology, the '12th house'). The feelings you rarely say out loud, your dreams, the things that stir out of sight. So between you two there's a pull that's mysterious and faraway, the kind that's hard to name.",
+    },
   },
-  "PILLAR_REL": {
-    "천간합": {
-      "feel": {
-        "ko": "자석처럼 끌리는",
-        "en": "Magnetic pull"
+  PILLAR_REL: {
+    천간합: {
+      feel: {
+        ko: '자석처럼 끌리는',
+        en: 'Magnetic pull',
       },
-      "blurb": {
-        "ko": "두 사람의 윗기운이 손을 맞잡듯 하나로 묶여서, 처음 마주친 순간부터 설명할 수 없는 끌림이 흘러요. 같은 공간에 있기만 해도 시선이 자꾸 옮겨가고, 대화의 결이 신기할 만큼 맞아 떨어지는 화학 작용이 느껴져요. 가끔 두 기운이 너무 닮아서 미묘한 거리감이 생기기도 하는데, 그건 안 맞아서가 아니라 서로를 단단하게 비추며 다듬어 가는 결이에요.",
-        "en": "The upper currents of you two clasp like joined hands, so an unexplainable pull flows from the very first meeting. Just sharing a space keeps your eyes drifting toward each other, and the grain of your conversations clicks with surprising ease — a real chemistry. Now and then the two energies sit so alike that a faint distance appears, but that isn't a mismatch; it's the texture of two reflections quietly polishing each other."
-      }
+      blurb: {
+        ko: '두 사람의 가장 윗기운이 손을 맞잡듯 딱 묶여요. 그래서 처음 마주친 순간부터 말로 설명 안 되는 끌림이 두근두근 흘러요. 같은 공간에 있기만 해도 둘은 자꾸 서로에게 눈길이 가고, 대화가 신기할 만큼 막힘없이 맞아떨어져요. 가끔 둘이 너무 닮아서 살짝 거리감이 들기도 하는데, 그건 안 맞아서가 아니라 서로를 비춰 주며 다듬어 가는 사이라서 그래요.',
+        en: "Your two topmost energies lock together like clasped hands. So from the very first meeting, a pull you can't quite explain runs between you. Just sharing a room, you keep glancing at each other, and your talk clicks with surprising ease. Sometimes you sit so alike that a faint distance creeps in — that's not a mismatch, it's the way you two reflect and polish each other.",
+      },
     },
-    "천간충": {
-      "feel": {
-        "ko": "또렷이 부딪히는 사이",
-        "en": "Sharply colliding with each other"
+    천간충: {
+      feel: {
+        ko: '또렷이 부딪히는 사이',
+        en: 'Sharply colliding with each other',
       },
-      "blurb": {
-        "ko": "두 사람은 생각하는 방식도, 세상을 대하는 태도도 정면으로 다른 자리에 서요. 그래서 대화하다 보면 의견이 부딪히고 묘한 거리감이 느껴지기도 하는데, 신기하게도 서로를 흐릿하게 지나치는 법이 없어요. 안 맞아서가 아니라, 너무 또렷이 의식하기 때문에 자꾸 서로의 윤곽이 선명해지는 관계예요.",
-        "en": "The two of you stand on opposite sides in how you think and how you meet the world, so conversations can run into friction and a subtle sense of distance. Yet oddly, neither of you ever drifts past the other unnoticed. It isn't that you don't fit, it's that you register each other so vividly that each keeps coming into sharper focus."
-      }
+      blurb: {
+        ko: '둘은 생각하는 방식도, 세상을 대하는 태도도 정반대예요. 그래서 얘기하다 보면 의견이 자주 부딪히고, 묘하게 거리감이 느껴지기도 하죠. 근데 신기하게 서로를 그냥 흘려보내는 법이 없어요. 안 맞아서가 아니라, 너무 또렷하게 의식하다 보니 자꾸 상대가 선명하게 보이는 거예요.',
+        en: "You two think in opposite ways, and you meet the world from opposite sides. So when you talk, your opinions clash a lot, and a strange distance creeps in. But oddly, neither of you ever just lets the other slide by. It isn't that you don't fit. You notice each other so sharply that the other person keeps coming into clear focus.",
+      },
     },
-    "육합": {
-      "feel": {
-        "ko": "잔잔한 수면 아래 흐름",
-        "en": "Still surface, a current beneath"
+    육합: {
+      feel: {
+        ko: '잔잔한 수면 아래 흐름',
+        en: 'Still surface, a current beneath',
       },
-      "blurb": {
-        "ko": "겉으로 보면 두 사람 사이엔 별일 없어 보여요. 큰 불꽃도, 요란한 끌림도 없이 그저 곁에 있는 사이 같죠. 그런데 말이 줄어드는 자리에서 오히려 거리가 좁아져요. 같은 공간에 오래 머물수록 서로의 결이 어느새 닮아 있고, 굳이 확인하지 않아도 통하는 무언가가 속에서 천천히 자라요.",
-        "en": "On the surface, nothing much seems to happen between you two. No big spark, no loud pull, just two people who happen to be near each other. But the distance quietly closes in the spaces where words fall away. The longer you share the same room, the more your textures come to resemble each other, and something that needs no checking grows slowly underneath."
-      }
+      blurb: {
+        ko: '겉으로 보면 둘 사이엔 별일 없어 보여요. 큰 불꽃도, 요란한 끌림도 없이 그냥 곁에 있는 사이 같죠. 근데 말이 줄어드는 순간에 오히려 거리가 좁아져요. 같은 공간에 오래 머물수록 둘은 어느새 서로를 닮아 가요. 굳이 확인 안 해도 통하는 무언가가 속에서 천천히 자라잖아요.',
+        en: 'On the surface, nothing much seems to happen between you. No big spark, no loud pull — just two people who end up near each other. But the distance closes in the quiet, where words drop away. The longer you share a room, the more you start to resemble each other. Something neither of you has to check on keeps growing underneath.',
+      },
     },
-    "삼합": {
-      "feel": {
-        "ko": "비면 채우는 사이",
-        "en": "Gaps that fill each other"
+    삼합: {
+      feel: {
+        ko: '비면 채우는 사이',
+        en: 'Gaps that fill each other',
       },
-      "blurb": {
-        "ko": "두 사람의 기운이 한자리에 모이면 묘하게 한 팀이 되는 결이 흘러요. 한 사람에게 비어 있던 자리를 다른 사람이 자연스럽게 메워서, 따로 있을 때보다 둘이 있을 때 방향이 또렷해지고 결속이 단단해지는 사이예요. 가끔 그 단단함이 서로를 살짝 길들이는 미묘한 거리로 느껴지기도 하지만, 안 맞아서가 아니라 한 방향으로 묶이느라 생기는 자연스러운 결입니다.",
-        "en": "When your two energies gather in one place, they fall into a strangely well-fitted team. What feels empty in one of you is quietly filled by the other, so together the direction grows clearer and the bond grows firmer than either of you alone. Sometimes that firmness shows up as a subtle distance where you gently shape each other — not because you don't fit, but as the natural grain of being pulled in one direction together."
-      }
+      blurb: {
+        ko: "두 사람이 같이 있으면 묘하게 한 팀이 돼요. 한 사람한테 비어 있던 자리를 다른 사람이 자연스럽게 채워줘서, 혼자일 때보다 둘이 있을 때 어디로 갈지가 또렷해지고 사이도 단단해지죠(사주에선 '삼합'). 가끔 그 단단함이 서로를 살짝 길들이는 거리처럼 느껴지기도 해요. 안 맞아서가 아니라, 둘이 한 방향으로 묶이다 보니 생기는 거예요.",
+        en: "When you're together, you fall into a team in a way that surprises you. What's empty in one of you gets quietly filled by the other, so the two of you know where you're heading more clearly than either of you alone, and the bond holds firmer (Saju calls this 'three-harmony'). Sometimes that firmness feels like a little distance, where you gently shape each other. That's not a mismatch. It's just what happens when you get pulled in one direction together.",
+      },
     },
-    "방합": {
-      "feel": {
-        "ko": "한 색으로 짙어지는 결",
-        "en": "Deepening into one hue"
+    방합: {
+      feel: {
+        ko: '한 색으로 물드는 사이',
+        en: 'Blending into one color',
       },
-      "blurb": {
-        "ko": "두 사람의 기운이 같은 계절, 같은 방향을 바라보며 자연스럽게 한자리에 모여요. 비슷한 결끼리 겹쳐지니 좋아하는 풍경도 마음이 머무는 자리도 닮아서, 굳이 맞추지 않아도 같은 색으로 점점 짙어지는 사이예요. 너무 닮은 만큼 가끔은 서로의 그림자까지 비슷해 미묘한 거리가 생기기도 하지만, 그건 안 맞아서가 아니라 같은 빛을 오래 들여다보는 시간이에요.",
-        "en": "Your energies face the same season and the same direction, so you gather in one place without trying. Sharing such a similar grain, the scenery you love and the spots where your hearts linger come to resemble each other, deepening into one color all on their own. Being this alike means even your shadows can echo, and a subtle distance sometimes appears, not from a mismatch but from the long quiet of gazing into the same light together."
-      }
+      blurb: {
+        ko: '두 사람은 같은 계절, 같은 쪽을 바라봐요. 그래서 굳이 약속하지 않아도 한자리에 모여요. 좋아하는 풍경도 마음이 오래 머무는 곳도 닮아서, 따로 맞추지 않아도 같은 색으로 점점 짙어지죠. 너무 닮은 만큼 가끔 미묘한 거리가 생기기도 해요. 근데 그건 안 맞아서가 아니라, 같은 빛을 오래 들여다보는 시간이에요.',
+        en: "You two look toward the same season, the same direction. So you end up in one place without ever planning it. The scenery you love and the spots where your hearts linger come to look alike, deepening into one color on their own. Being this alike, a subtle distance shows up sometimes. That's not a mismatch — it's the long quiet of staring into the same light together.",
+      },
     },
-    "충": {
-      "feel": {
-        "ko": "끌리며 흔들리는 자리",
-        "en": "Drawn in, and shaken"
+    충: {
+      feel: {
+        ko: '끌리며 흔들리는 자리',
+        en: 'Drawn in, and shaken',
       },
-      "blurb": {
-        "ko": "두 사람의 안쪽 기운이 정면으로 마주 서 있어요. 그래서 같이 있으면 서로를 강하게 의식하게 되고, 잔잔하기보다 자극과 변화가 많은 사이예요. 특히 한 사람의 곁자리에서 이 마주섬이 가장 또렷하게 느껴지는데, 안 맞아서가 아니라 서로를 가장 가깝게 건드리는 자리라 그만큼 단련도 변화도 크게 오가요.",
-        "en": "Your inner energies stand face to face, head-on. So when you're together you're keenly aware of each other, and the bond leans toward stimulation and change rather than calm. This collision is felt most sharply in one partner's adjacent position - not because you clash, but because it's the spot where you touch each other most closely, so growth and upheaval move strongly between you."
-      }
+      blurb: {
+        ko: '두 사람 안쪽 기운이 정면으로 딱 마주 서 있어요. 그래서 같이 있으면 서로를 자꾸 의식하게 되고, 잔잔하기보다 콩닥콩닥 자극이 오가는 사이예요. 특히 한 사람 바로 옆자리에서 이 마주섬이 제일 또렷해지죠. 안 맞아서가 아니라 서로를 가장 가깝게 건드리는 자리라, 그만큼 단단해지는 일도 흔들리는 일도 크게 오가요.',
+        en: "Your inner energies face each other head-on. So when you're together you keep noticing each other, and this connection runs on spark rather than stillness. It lands sharpest right beside one of you. Not because you clash, but because that's where you touch each other most closely, so growth and upheaval both move strongly between you.",
+      },
     },
-    "형": {
-      "feel": {
-        "ko": "거치면 단단해지는 사이",
-        "en": "Tempered by friction"
+    형: {
+      feel: {
+        ko: '거치면 단단해지는 사이',
+        en: 'Tempered by friction',
       },
-      "blurb": {
-        "ko": "두 사람 사이에는 서로를 살짝 누르고 갈아내는 묘한 결이 흘러요. 가끔은 말이 빙 돌아가거나 마음이 답답하게 막히는 순간이 오는데, 그건 안 맞아서가 아니라 둘 사이에 단련의 거리가 놓여 있기 때문이에요. 그 거리를 한 번씩 지날 때마다, 서로를 향한 인내도 관계의 결도 조금씩 더 단단해지는 모양새랍니다.",
-        "en": "Between you two runs a curious grain where each gently presses and grinds against the other. Now and then words take the long way around, or a feeling stalls in a stuffy quiet — and that isn't a sign of mismatch, but a kind of tempering distance set between you. Each time you pass through it, both your patience and the texture of the bond seem to harden into something a little sturdier."
-      }
+      blurb: {
+        ko: '둘은 서로를 은근히 누르고 부딪치는 사이예요. 가끔 말이 빙 돌아가거나 마음이 콱 막혀서 답답해지기도 하죠. 근데 그건 안 맞아서가 아니라, 둘 사이에 서로를 단단하게 만드는 거리가 놓여 있어서예요. 그 거리를 한 번씩 지날 때마다 서로를 향한 인내도, 둘 사이도 조금씩 더 단단해져요.',
+        en: "You two quietly press and bump up against each other. Sometimes words take the long way around, or a feeling gets stuck and stuffy. That isn't a mismatch, though. There's a distance between you that makes each of you tougher. Every time you cross it, your patience and the bond both firm up a little more.",
+      },
     },
-    "자형": {
-      "feel": {
-        "ko": "거울 같은 떨림",
-        "en": "Mirror tremor"
+    자형: {
+      feel: {
+        ko: '거울 같은 떨림',
+        en: 'Mirror tremor',
       },
-      "blurb": {
-        "ko": "두 사람은 같은 결을 타고나서, 마주 보면 마치 거울을 보는 듯한 익숙함과 설렘이 동시에 번져요. 그런데 닮은 만큼 똑같은 자리에서 예민해져서, 한 사람이 흔들릴 때 상대도 같이 출렁이곤 해요. 안 맞아서가 아니라 너무 닮아서 생기는 미묘한 울림이라, 서로의 모습에서 자기 자신을 자꾸 발견하게 되는 사이예요.",
-        "en": "You two are cut from the same cloth, so facing each other feels like looking into a mirror, familiar and quietly thrilling at once. But because you're so alike, you get tender in the very same spots, and when one of you wavers the other ripples right along. It isn't a mismatch, just a subtle echo born of resemblance, the kind that keeps showing each of you a glimpse of yourself in the other."
-      }
+      blurb: {
+        ko: '두 사람은 타고난 바탕이 똑 닮아서, 마주 보면 거울을 보듯 익숙하면서도 콩닥 설레요. 근데 닮은 만큼 똑같은 자리에서 예민해져서, 한 사람이 흔들리면 상대도 같이 출렁여요. 안 맞아서가 아니라 너무 닮아서 생기는 울림이라, 둘은 서로한테서 자기 모습을 자꾸 발견해요.',
+        en: "You two are made of the same stuff, so facing each other feels like a mirror, familiar and a little thrilling at once. But because you're so alike, you get tender in the exact same spots. When one of you wavers, the other ripples right along. It's not a mismatch, it's an echo from how much you resemble each other, and you keep catching glimpses of yourself in the other.",
+      },
     },
-    "해": {
-      "feel": {
-        "ko": "반 박자 어긋난 결",
-        "en": "A grain that's half a beat off"
+    해: {
+      feel: {
+        ko: '반 박자 엇갈리는 사이',
+        en: 'Half a beat out of sync',
       },
-      "blurb": {
-        "ko": "둘 사이엔 부딪치는 큰 소리는 없는데, 어쩐지 발이 딱 맞지 않는 순간이 종종 찾아와요. 같은 곳을 보면서도 도착하는 속도가 미묘하게 달라서, 한 사람이 멈출 때 다른 사람은 이미 한 걸음 더 가 있곤 해요. 싫어서가 아니라, 서로의 박자를 익히는 데 시간이 조금 더 걸리는 결이에요.",
-        "en": "There's no loud clash between you two, yet your steps somehow don't quite land in sync. You're looking at the same place, but you arrive at slightly different speeds, so when one of you pauses, the other has already moved a step ahead. It isn't about dislike, just a rhythm that takes a little longer to learn by heart."
-      }
+      blurb: {
+        ko: '둘은 큰소리 내며 싸우는 일은 별로 없어요. 근데 발이 묘하게 안 맞는 순간이 자꾸 와요. 같은 데를 보고 가는데 도착하는 속도가 살짝 달라서, 한 사람이 멈추면 다른 사람은 벌써 한 발 앞에 가 있죠. 미워서가 아니에요. 서로의 박자를 몸에 익히는 데 시간이 조금 더 걸리는 사이예요.',
+        en: "You two rarely fight out loud. Still, your steps keep landing just a beat off. You're heading to the same place, but you get there at slightly different speeds. So when one of you stops, the other is already a step ahead. It's not dislike. You just need a little longer to learn each other's rhythm by heart.",
+      },
     },
-    "파": {
-      "feel": {
-        "ko": "작은 금 같은 결",
-        "en": "A hairline crack"
+    파: {
+      feel: {
+        ko: '살짝 어긋나는 자리',
+        en: 'A hairline crack',
       },
-      "blurb": {
-        "ko": "두 사람 사이엔 대부분 매끄럽게 흐르는데, 어떤 결에서는 살짝 어긋나는 지점이 있어요. 크게 부딪치는 건 아니고, 그릇에 난 작은 금처럼 평소엔 잘 보이지도 않는 미묘한 거리예요. 안 맞아서가 아니라, 서로의 다른 결을 마주하며 조금씩 단단해지는 자리이기도 해요.",
-        "en": "Between you two, most things flow smoothly, but along one seam there's a spot that sits slightly out of line. It isn't a big clash, more like a fine crack in a bowl that you'd hardly notice most days. It isn't that you don't fit, it's a place where two different grains meet and quietly grow sturdier."
-      }
-    }
+      blurb: {
+        ko: '둘은 웬만한 일은 자연스레 잘 통하는데, 딱 한 군데서 살짝 어긋나요. 크게 부딪치는 건 아니에요. 그릇에 난 가는 금처럼, 평소엔 있는지도 모르고 지나가는 미묘한 거리죠. 안 맞아서가 아니라, 서로 다른 자리를 마주하면서 조금씩 단단해지는 사이이기도 해요.',
+        en: "Most things between you two just flow. But in one spot you land slightly out of line. It's not a big clash. It's like a fine crack in a bowl. Most days you'd walk right past it without noticing. It isn't that you don't fit. It's a place where your two different sides meet and slowly grow sturdier.",
+      },
+    },
   },
-  "BAND": {
-    "eastern_hap": {
-      "what": {
-        "ko": "사주 글자끼리 손을 맞잡듯 묶이는 '합'의 정도",
-        "en": "How much the two charts' pillars naturally link hands and pair up"
+  BAND: {
+    eastern_hap: {
+      what: {
+        ko: "사주 글자끼리 손을 맞잡듯 묶이는 '합'의 정도",
+        en: "How much the two charts' pillars naturally link hands and pair up",
       },
-      "high": {
-        "ko": "두 사람의 사주 글자들이 서로 손을 잡듯 자연스레 엮이는 결이라, 곁에 있으면 말을 길게 하지 않아도 무언가 편하게 맞물리는 느낌이 흐르곤 해요.",
-        "en": "Your charts' pieces tend to clasp hands easily, so being together often feels like things click into place without much explaining."
+      high: {
+        ko: "두 사람 사주 글자들이 서로 손을 잡듯 술술 엮여요(사주에선 '합'). 그래서 곁에 있으면 길게 설명 안 해도 뭔가 편하게 맞물리더라고요.",
+        en: "Your charts' pieces tend to clasp hands and slot together easily (in Saju this is called 'hap'). So when you're together, things often click into place without much explaining.",
       },
-      "low": {
-        "ko": "서로의 글자가 손을 맞잡는 자리가 많지는 않은 결이라, 가까워지기까지 둘만의 속도와 시간이 조금 더 필요한 그림으로 보여요.",
-        "en": "There aren't many spots where your pieces naturally clasp, so this reads like a pairing that warms up at its own slower pace."
-      }
+      low: {
+        ko: '두 사람의 글자가 손을 맞잡는 자리가 많지는 않아요. 그래서 가까워지기까지 둘만의 속도와 시간이 조금 더 필요한 사이죠.',
+        en: "There aren't many spots where your pieces clasp hands. So this is a pairing that warms up at its own slower pace, in its own time.",
+      },
     },
-    "eastern_chung": {
-      "what": {
-        "ko": "사주 글자끼리 부딪히는 '충'이 적어 잔잔한 정도",
-        "en": "Calm and steady, with few places where the pillars knock against each other"
+    eastern_chung: {
+      what: {
+        ko: "사주 글자끼리 부딪히는 '충'이 적어 잔잔한 정도",
+        en: 'Calm and steady, with few places where the pillars knock against each other',
       },
-      "high": {
-        "ko": "서로의 글자가 부딪히며 튀는 자리가 거의 없는 잔잔한 결이라, 함께 있는 시간이 큰 파도 없이 고요한 물처럼 흘러가는 그림으로 보여요.",
-        "en": "Hardly any of your pieces grind against each other, so the time you share reads like still water, moving along without big waves."
+      high: {
+        ko: '두 사람 글자가 부딪혀서 튀는 데가 거의 없어서 잔잔해요. 그래서 같이 있는 시간이 큰 파도 없이 고요한 물처럼 막힘없이 흘러가요.',
+        en: 'Almost none of your pieces grind against each other, so things stay calm. The time you share moves like still water, gliding along without big waves.',
       },
-      "low": {
-        "ko": "서로의 글자가 맞부딪히며 불꽃이 튀는 자리가 더러 있는 결이라, 잔잔하다기보다 생기와 진동이 함께 도는 만남으로 보여요.",
-        "en": "A few of your pieces do knock together and throw sparks, so this reads less like calm water and more like a lively, charged kind of meeting."
-      }
+      low: {
+        ko: '두 사람의 글자가 더러 맞부딪히며 불꽃이 톡톡 튀어요. 그래서 잔잔한 호수라기보다, 생기와 떨림이 같이 도는 만남에 가까워요.',
+        en: 'A few of your pieces knock together and throw sparks. So this feels less like calm water, more like a lively, charged kind of meeting.',
+      },
     },
-    "elements_match": {
-      "what": {
-        "ko": "서로에게 모자란 기운을 채워주는 오행(다섯 기운)의 보완 정도",
-        "en": "How well your five elements fill in what each other is short on"
+    elements_match: {
+      what: {
+        ko: '서로에게 모자란 기운을 채워주는 오행(다섯 기운)의 보완 정도',
+        en: 'How well your five elements fill in what each other is short on',
       },
-      "high": {
-        "ko": "한 사람에게 비어 있던 기운을 다른 사람이 자연스레 채워주는 결이라, 둘이 모이면 빈칸이 메워진 듯 한결 둥글어지는 그림이 보여요.",
-        "en": "Where one of you runs short, the other tends to quietly top it up, so together you read like a circle whose gaps have been filled in."
+      high: {
+        ko: '한 사람에게 비어 있던 기운을 다른 사람이 슬며시 채워줘요. 그래서 둘이 모이면 빈칸이 메워진 듯 한결 둥글어지죠.',
+        en: 'Where one of you runs short, the other quietly fills it in. So together you round out, like a circle whose gaps just got closed.',
       },
-      "low": {
-        "ko": "둘 다 비슷한 기운에 마음이 쏠려 있는 결이라, 서로 채워주기보다 같은 색을 더 짙게 겹쳐 칠하는 듯한 그림으로 보여요.",
-        "en": "You both lean toward similar energies, so rather than filling each other's gaps you read like two coats of the same color, layered deeper."
-      }
+      low: {
+        ko: '둘 다 비슷한 기운에 마음이 쏠려 있어요. 그래서 서로 빈자리를 채워주기보다, 같은 색을 두 번 덧칠해 더 진해지는 쪽에 가까워요.',
+        en: "You both lean toward the same kind of energy. So instead of filling each other's gaps, you're more like two coats of the same color, layered until it deepens.",
+      },
     },
-    "synastry_harmonic": {
-      "what": {
-        "ko": "두 사람 별자리 행성끼리 부드럽게 흐르며 어우러지는 '조화'의 정도",
-        "en": "How much harmony there is in the way your charts' planets flow and blend together"
+    synastry_harmonic: {
+      what: {
+        ko: "두 사람 별자리 행성끼리 부드럽게 흐르며 어우러지는 '조화'의 정도",
+        en: "How much harmony there is in the way your charts' planets flow and blend together",
       },
-      "high": {
-        "ko": "서로의 행성들이 부드럽게 손을 내미는 자리가 많은 결이라, 대화든 침묵이든 한 곡의 음악처럼 흐름이 잘 이어지는 느낌이 감돌곤 해요.",
-        "en": "Your planets reach toward each other in many spots, so whether you're talking or just quiet, the flow tends to carry like one continuous song."
+      high: {
+        ko: '둘은 서로의 행성이 부드럽게 손을 내미는 자리가 많아요. 그래서 수다를 떨든 가만히 있든, 흐름이 한 곡의 음악처럼 자연스레 이어지곤 해요.',
+        en: "Your planets reach toward each other in many spots. So whether you're talking or just sitting quiet, the flow tends to carry like one continuous song.",
       },
-      "low": {
-        "ko": "행성끼리 매끄럽게 이어지는 자리가 많지는 않은 결이라, 자연스레 흐르기보다 둘만의 리듬을 하나씩 맞춰가는 그림으로 보여요.",
-        "en": "There aren't many spots where your planets glide together, so this reads like two people tuning their own rhythm piece by piece rather than flowing on instinct."
-      }
+      low: {
+        ko: '두 사람의 행성이 매끄럽게 이어지는 자리가 많진 않아요. 그래서 저절로 술술 흐르기보다는, 둘만의 리듬을 하나씩 맞춰가는 쪽에 가까워요.',
+        en: "There aren't many spots where your planets glide together. So this works less on instinct and more like two people tuning their own rhythm, piece by piece.",
+      },
     },
-    "synastry_tension": {
-      "what": {
-        "ko": "별자리 행성 사이의 긴장이 적어 마음이 편안한 정도",
-        "en": "How at ease it feels, with little tension between your planets"
+    synastry_tension: {
+      what: {
+        ko: '별자리 행성 사이의 긴장이 적어 마음이 편안한 정도',
+        en: 'How at ease it feels, with little tension between your planets',
       },
-      "high": {
-        "ko": "행성 사이에 팽팽하게 당겨지는 자리가 거의 없는 결이라, 곁에 있어도 어깨에 힘이 빠지고 마음이 느슨해지는 편안한 그림으로 보여요.",
-        "en": "Almost nothing pulls tight between your planets, so being near each other reads as the kind of ease where your shoulders drop and you relax."
+      high: {
+        ko: '둘 사이엔 팽팽하게 당겨지는 자리가 거의 없어요. 그래서 곁에 있으면 어깨에 힘이 풀리고, 둘은 마음이 느슨해지죠.',
+        en: 'Almost nothing pulls tight between you two. So being near each other is the kind of ease where your shoulders drop and you both unwind.',
       },
-      "low": {
-        "ko": "행성끼리 팽팽하게 당겨지는 자리가 더러 있는 결이라, 마냥 느슨하다기보다 서로를 자꾸 끌어당기고 흔드는 긴장감이 함께 도는 만남으로 보여요.",
-        "en": "A few spots pull tight between your planets, so this reads less like pure ease and more like a charged push and pull that keeps drawing you back."
-      }
-    }
-  }
-};
+      low: {
+        ko: '둘의 행성끼리 팽팽하게 당기는 자리가 군데군데 있어요. 그래서 마냥 느슨하다기보다, 서로를 자꾸 끌어당기고 흔드는 긴장이 함께 도는 사이예요.',
+        en: 'A few spots pull tight between your planets. So this works less like pure ease and more like a charged push and pull that keeps drawing you back to each other.',
+      },
+    },
+  },
+}

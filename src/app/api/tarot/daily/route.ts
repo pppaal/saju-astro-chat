@@ -253,5 +253,11 @@ export const POST = withApiMiddleware(
       await cacheSet(lockKey, '', 1).catch(() => {})
     }
   },
-  createPublicStreamGuard({ route: '/api/tarot/daily', limit: 20, windowSeconds: 60 })
+  // failClosed: Claude call — deny on Redis outage rather than fail open (cost guard).
+  createPublicStreamGuard({
+    route: '/api/tarot/daily',
+    limit: 20,
+    windowSeconds: 60,
+    failClosed: true,
+  })
 )

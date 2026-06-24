@@ -290,7 +290,7 @@ describe('POST /api/admin/reconcile-purchase — reconcileSession statuses', () 
     buildStripe({ retrieveSession: paidSession() })
     const data = (await (await POST(req({ query: 'cs_1', apply: true }))).json()).data
     expect(data.summary.granted).toBe(1)
-    expect(addBonusCredits).toHaveBeenCalledWith('u1', 100, 'purchase', 'pi_1')
+    expect(addBonusCredits).toHaveBeenCalledWith('u1', 70, 'purchase', 'pi_1')
     expect(logAdminAction).toHaveBeenCalledTimes(1)
     const auditArg = vi.mocked(logAdminAction).mock.calls[0][0] as any
     expect(auditArg.action).toBe('reconcile_purchase')

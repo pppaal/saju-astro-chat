@@ -73,10 +73,43 @@ function coreReason(s: string): string {
  * 달고 오는데, 한 문단 산문에선 거슬린다. 괄호 그룹을 모두 제거하고 공백 정리.
  */
 function themePhrase(s: string): string {
-  return coreReason(s)
+  let out = coreReason(s)
+  // 점성 위계(dignity) raw 용어 → 평이. themePhrase 가 괄호 글로스를 떼면
+  // "목성 엑잘테이션" 처럼 raw 만 남아 누출되던 문제(감사 캘린더 jargon). 괄호 제거
+  // *전에* 평이어로 치환한다. EN 도 동일.
+  out = out
+    .replace(/엑잘테이션\s*\([^)]*\)/g, '고양')
+    .replace(/엑잘테이션/g, '고양')
+    .replace(/도미사일\s*\([^)]*\)/g, '제자리')
+    .replace(/도미사일/g, '제자리')
+    .replace(/디트리먼트\s*\([^)]*\)/g, '불리한 자리')
+    .replace(/디트리먼트/g, '불리한 자리')
+    .replace(/폴\s*\(추락\)/g, '약한 자리')
+    .replace(/\bExaltation\b/g, 'at its best')
+    .replace(/\bDomicile\b/g, 'at home')
+    .replace(/\bDetriment\b/g, 'out of place')
+    .replace(/\bFall\b/g, 'weakened')
+  out = out
     .replace(/\s*[(（][^)）]*[)）]/g, '')
     .replace(/\s{2,}/g, ' ')
     .trim()
+  // 테마는 *명사구*여야 템플릿("…${th} 흐름이에요")이 자연스럽다. 문장형 topReason
+  // ("압박과 추진력이 흐르는 한 달이에요")이 들어오면 비문이 됐다(감사). 명사화하고,
+  // 그래도 서술 종결형이면 테마에서 제외(filter Boolean).
+  if (/[가-힣]/.test(out)) {
+    out = out
+      .replace(/\s*[이가]?\s*흐르는\s*한?\s*달이에요\.?$/, '')
+      .replace(/\s*흐름이에요\.?$/, '')
+      .trim()
+    if (/(이에요|예요|어요|아요|해요|세요|네요|다|요)\.?$/.test(out)) return ''
+  } else if (out.split(/\s+/).length > 6 || /\b(runs?|run|defines?|sets?|through)\b/.test(out)) {
+    return '' // EN 문장형 절은 테마 부적합
+  }
+  // raw 한자(午月·간지)·saju 전문어(조후/통근/월령/득령/운성/격국/용신)를 단 차트
+  // 메커닉 라벨은 사용자 테마로 부적합 — 제외(감사 jargon). 평이 테마만 남긴다.
+  if (/[㐀-鿿]/.test(out)) return ''
+  if (/조후|통근|월령|득령|운성|격국|용신/.test(out)) return ''
+  return out
 }
 
 type Tone = 'bright' | 'mixed' | 'careful'

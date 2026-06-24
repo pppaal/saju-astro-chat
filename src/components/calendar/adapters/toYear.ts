@@ -171,6 +171,13 @@ export interface ToYearOptions {
    * 주어지면 12 스파인을 이 값으로 (각 달을 그 달 고유 에너지로 판단). key: 1~12.
    */
   monthlyLayer?: Map<number, { score: number }>
+  /**
+   * 일진층 일점수(deriveLayeredScores.daily) — key: "YYYY-MM-DD". 월 티어 bestDay
+   * 와 *같은 점수*로 monthlyScores[].bestDay 를 뽑아 연·월 티어가 어긋나지 않게
+   * 한다(감사 C1: 연 bestDay 가 월 cautionDay 를 지목하던 불일치). 없으면
+   * cell.derivedScore 폴백.
+   */
+  dayScores?: Map<string, { score: number }>
 }
 
 export function toYear(natal: NatalContext, opts: ToYearOptions): DestinypalYear {
@@ -405,6 +412,10 @@ function buildProfectionWheel(
  * derivedScore 를 12 슬롯 배열로 환원. cells 가 없으면 빈 배열.
  */
 function buildMonthlyScores(opts: ToYearOptions): DestinypalYear['monthlyScores'] {
+  // 월·일 점수 SSOT — bestDay 는 월 티어와 *같은* 일점수(dayScores 우선)로 뽑아
+  // 연 티어가 월 cautionDay 를 best 로 지목하지 않게 한다(감사 C1).
+  const dayScore = (c: CalendarCell) =>
+    opts.dayScores?.get(c.datetime.slice(0, 10))?.score ?? c.derivedScore
   // 월운 층 점수 우선 — 각 달을 그 달 고유(월운) 신호로 판단.
   if (opts.monthlyLayer) {
     const best = (m: number) => {
@@ -412,7 +423,7 @@ function buildMonthlyScores(opts: ToYearOptions): DestinypalYear['monthlyScores'
       const ym = `${yPrefix}-${String(m).padStart(2, '0')}`
       const mc = (opts.cells ?? []).filter((c) => c.datetime.slice(0, 7) === ym)
       return mc.length
-        ? mc.reduce((a, b) => (b.derivedScore > a.derivedScore ? b : a)).datetime.slice(0, 10)
+        ? mc.reduce((a, b) => (dayScore(b) > dayScore(a) ? b : a)).datetime.slice(0, 10)
         : undefined
     }
     return Array.from({ length: 12 }, (_, i) => ({
@@ -430,9 +441,9 @@ function buildMonthlyScores(opts: ToYearOptions): DestinypalYear['monthlyScores'
     const ym = `${yPrefix}-${String(i + 1).padStart(2, '0')}`
     const monthCells = opts.cells!.filter((c) => c.datetime.slice(0, 7) === ym)
     const peak = monthCells.length ? Math.max(...monthCells.map((c) => c.salience ?? 0)) : null
-    // 그 달 최고 우호 날짜(여전히 유용 — bestDay 칩).
+    // 그 달 최고 우호 날짜(bestDay 칩) — 월 티어와 같은 일점수로(감사 C1).
     const best = monthCells.length
-      ? monthCells.reduce((a, b) => (b.derivedScore > a.derivedScore ? b : a))
+      ? monthCells.reduce((a, b) => (dayScore(b) > dayScore(a) ? b : a))
       : null
     return { month: i + 1, peak, bestDay: best?.datetime.slice(0, 10) }
   })

@@ -133,7 +133,18 @@ const PATTERN_KO: Record<LifePatternKey, { ko: string; en: string; line: string;
     },
   }
 
-export function deriveLifePattern(saju: SajuLike, currentAge?: number): LifePattern | null {
+/** 인생 곡선(거시 macro)을 입력으로 받아 인생유형과 정점을 *곡선 기준*으로 산출하기
+ * 위한 최소 형상. 곡선이 주어지면 분류·정점을 곡선에서 뽑아 lifePattern 과 곡선이
+ * 화면에서 모순되지 않게 한다(감사 B1). */
+export interface LifeCurveShape {
+  points: Array<{ age: number; macro: number }>
+}
+
+export function deriveLifePattern(
+  saju: SajuLike,
+  currentAge?: number,
+  curve?: LifeCurveShape
+): LifePattern | null {
   const dm = saju.dayMaster?.name
   const daeun = saju.daeun ?? []
   if (!dm || daeun.length === 0) return null
@@ -194,8 +205,72 @@ export function deriveLifePattern(saju: SajuLike, currentAge?: number): LifePatt
     key = 'smooth'
   }
 
-  const { line, lineEn } = personalize(key, seq, startYears, currentAge)
+  // 곡선이 주어지면 분류·정점을 *곡선 기준*으로 덮어쓴다(감사 B1) — 단, 전반적
+  // 고전(hard)은 곡선 정규화로 사라지므로 daeun favor 기준을 유지한다.
+  let curvePeakAge: number | undefined
+  if (curve && curve.points.length >= 10 && key !== 'hard') {
+    const cls = classifyFromCurve(curve.points)
+    if (cls) {
+      key = cls.key
+      curvePeakAge = cls.peakAge
+    }
+  }
+
+  const { line, lineEn } = personalize(key, seq, startYears, currentAge, curvePeakAge)
   return { key, ...PATTERN_KO[key], line, lineEn, daeun: seq }
+}
+
+/** macro 곡선 형상 → 인생유형 키 + 전역 정점 나이. lifePattern 과 곡선의 모순을
+ * 없애기 위해 *같은 곡선*에서 분류·정점을 뽑는다(감사 B1). 정규화(0..1) 후 구간
+ * 평균 + 전역 극값 위치로 판정. */
+function classifyFromCurve(
+  pointsAll: Array<{ age: number; macro: number }>
+): { key: LifePatternKey; peakAge: number } | null {
+  const p = pointsAll.filter((x) => x.age >= 0 && x.age <= 85)
+  if (p.length < 10) return null
+  const macros = p.map((x) => x.macro)
+  const lo = Math.min(...macros)
+  const hi = Math.max(...macros)
+  const range = hi - lo || 1
+  const nv = (m: number) => (m - lo) / range
+  const seg = (a: number, b: number): number => {
+    const s = p.filter((x) => x.age >= a && x.age < b)
+    return s.length ? s.reduce((acc, x) => acc + nv(x.macro), 0) / s.length : 0.5
+  }
+  const early = seg(12, 38)
+  const mid = seg(38, 58)
+  const late = seg(58, 85)
+  const globalPeakAge = p.reduce((best, x) => (x.macro > best.macro ? x : best), p[0]).age
+  const spread = Math.max(early, mid, late) - Math.min(early, mid, late)
+  const D = 0.1
+  let key: LifePatternKey
+  if (mid + D < early && mid + D < late)
+    key = 'undulating' // 중년이 양옆보다 꺼진 V
+  else if (mid > early + D && mid > late + D)
+    key = 'midlife-peak' // 중년 솟음
+  else if (late > early + D && late >= mid - 1e-9 && globalPeakAge >= 52)
+    key = 'late-bloomer' // 말년 정점 반전
+  else if (early > late + D && early >= mid - 1e-9 && globalPeakAge < 38)
+    key = 'early-peak' // 초년 정점 후 하강
+  else if (late > early + D)
+    key = 'steady-rise' // 단조 상승
+  else if (spread > 0.3)
+    key = 'undulating' // 큰 진폭이나 위 형태 아님
+  else key = 'smooth'
+  // 정점 나이는 *유형이 가리키는 구간* 안의 최댓값으로 — base.line 방향과 detail
+  // "정점 시점"이 어긋나지 않게(예: 점진상승인데 정점이 11세이면 모순).
+  const win: [number, number] =
+    key === 'late-bloomer' || key === 'steady-rise'
+      ? [50, 85]
+      : key === 'early-peak'
+        ? [0, 38]
+        : key === 'midlife-peak'
+          ? [35, 60]
+          : [0, 85]
+  const wp = p.filter((x) => x.age >= win[0] && x.age < win[1])
+  const pool = wp.length ? wp : p
+  const peakAge = pool.reduce((best, x) => (x.macro > best.macro ? x : best), pool[0]).age
+  return { key, peakAge }
 }
 
 /** 십신 카테고리의 짧은 라벨(ko/en) — 우호 운의 성격을 한 단어로. */
@@ -237,10 +312,33 @@ function personalize(
   key: LifePatternKey,
   seq: DaeunFavor[],
   startYears: Map<number, number>,
-  currentAge?: number
+  currentAge?: number,
+  curvePeakAge?: number
 ): { line: string; lineEn: string } {
   const base = PATTERN_KO[key]
   if (seq.length === 0) return { line: base.line, lineEn: base.lineEn }
+
+  // 곡선 정점 나이가 주어지면(B1) 그 나이를 덮는 대운을 정점으로 — lifePattern 의
+  // "정점 시점"이 화면의 곡선 마루와 일치한다. 십신(cat)·연도·시제 모두 그 기준.
+  if (typeof curvePeakAge === 'number') {
+    const covering = seq.filter((c) => c.startAge <= curvePeakAge).slice(-1)[0] ?? seq[0]
+    const past = typeof currentAge === 'number' ? curvePeakAge < currentAge : false
+    const baseLineKo = past ? (LINE_PAST_KO[key] ?? base.line) : base.line
+    const baseLineEn = past ? (LINE_PAST_EN[key] ?? base.lineEn) : base.lineEn
+    if (covering.favor <= 0) return { line: baseLineKo, lineEn: baseLineEn }
+    const cat = covering.stemCat
+    const baseYr = startYears.get(covering.startAge)
+    const yr = baseYr != null ? baseYr + (curvePeakAge - covering.startAge) : undefined
+    const whenKo = yr ? `${yr}년(${curvePeakAge}세) 무렵` : `${ageBandKo(curvePeakAge)}(${curvePeakAge}세 무렵)`
+    const whenEn = yr ? `around ${yr} (age ${curvePeakAge})` : `around age ${curvePeakAge}`
+    const detailKo = past
+      ? `특히 ${whenKo} ${CAT_KO[cat]} 쪽으로 가장 크게 힘이 실렸던 시기였어요.`
+      : `특히 ${whenKo}부터 ${CAT_KO[cat]} 쪽으로 가장 크게 힘을 실어줘요.`
+    const detailEn = past
+      ? `Your strongest stretch was ${whenEn}, leaning toward ${CAT_EN[cat]}.`
+      : `Your strongest stretch is ${whenEn} onward, leaning toward ${CAT_EN[cat]}.`
+    return { line: `${baseLineKo} ${detailKo}`, lineEn: `${baseLineEn} ${detailEn}` }
+  }
 
   // 정점 대운을 *유형 서사가 가리키는 구간* 안에서 고른다 — 그래야 "대기만성인데
   // 정점이 한 살" 같은 자기모순이 안 난다.

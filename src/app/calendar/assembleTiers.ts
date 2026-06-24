@@ -15,6 +15,8 @@ import { deriveConvergence } from '@/lib/calendar-engine/derivers/convergence'
 import { deriveLifetimeFlow } from '@/lib/calendar-engine/derivers/lifetimeFlow'
 import { deriveLifetimePivots } from '@/lib/calendar-engine/derivers/lifetimePivots'
 import { buildLifeCurve, computeTransitAstroSeries } from '@/lib/calendar-engine/derivers/lifeCurve'
+import { currentManAge } from '@/lib/datetime/currentAge'
+import { isMinorAge, minorSafeText, sanitizeCrossEntry } from '@/lib/calendar-engine/minorSafe'
 import { deriveMonthSummary } from '@/lib/calendar-engine/derivers/monthSummary'
 import { personSeed } from '@/lib/calendar-engine/derivers/personSeed'
 import { deriveLayeredScores } from '@/lib/calendar-engine/derivers/layeredScore'
@@ -452,6 +454,7 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
     yearlySignals,
     cells,
     monthlyLayer: layered.monthly,
+    dayScores: layered.daily, // 월 티어와 같은 일점수로 bestDay 일치(감사 C1)
   })
   const ageThisYear = TARGET_YEAR - BIRTH_YEAR
   const fallbackHouse = (((ageThisYear % 12) + 12) % 12) + 1
@@ -842,6 +845,28 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
   }
 
   const ilganHanja = user.ilgan.hanja || '辛'
+
+  // 미성년 안전(감사 C3) — cross/시간 서술의 성인 도메인(결혼·공직·투자·삼각관계
+  // 등)을 연령 적합 표현으로 치환. 만 나이(currentManAge)로 게이트 — 연-차가 아닌
+  // 생일 통과 반영(C7 off-by-one 회피).
+  const manAge = currentManAge({
+    birthYear: BIRTH_YEAR,
+    birthMonth: natal.input?.month,
+    birthDate: natal.input?.date,
+    birthTimeZone: natal.input?.timeZone,
+    now,
+  })
+  if (isMinorAge(manAge)) {
+    const rows = (xs: unknown): Array<Record<string, unknown>> =>
+      (xs as Array<Record<string, unknown>>) ?? []
+    for (const c of rows(year.crossings)) sanitizeCrossEntry(c, 'detail', 'detailEn')
+    for (const c of rows(month.crossActivations)) sanitizeCrossEntry(c, 'meaning', 'meaningEn')
+    for (const c of rows(day.crossActivations)) sanitizeCrossEntry(c, 'meaning', 'meaningEn')
+    for (const h of rows(day.hourCrossings)) {
+      if (typeof h.narrative === 'string') h.narrative = minorSafeText(h.narrative, 'ko')
+      if (typeof h.narrativeEn === 'string') h.narrativeEn = minorSafeText(h.narrativeEn, 'en')
+    }
+  }
 
   return {
     topbar: { whoBirthLine, place, ilganHanja },

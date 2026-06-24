@@ -417,10 +417,10 @@ describe('Stripe Webhook API - POST /api/webhook/stripe', () => {
 
       expect(response.status).toBe(200)
       expect(data.received).toBe(true)
-      // standard pack = 40 credits (per CREDIT_PACKS config)
+      // standard pack = 30 credits (per CREDIT_PACKS config)
       expect(vi.mocked(addBonusCredits)).toHaveBeenCalledWith(
         'user-1',
-        40,
+        30,
         'purchase',
         'pi_test_123'
       )
@@ -435,11 +435,12 @@ describe('Stripe Webhook API - POST /api/webhook/stripe', () => {
 
     it('should handle all credit pack types correctly', async () => {
       const packMapping: Record<string, number> = {
-        mini: 10,
-        standard: 40,
-        plus: 100,
-        mega: 240,
-        ultimate: 500,
+        starter: 8,
+        mini: 12,
+        standard: 30,
+        plus: 70,
+        mega: 140,
+        ultimate: 280,
       }
 
       for (const [pack, expectedCredits] of Object.entries(packMapping)) {
@@ -841,7 +842,7 @@ describe('Stripe Webhook API - POST /api/webhook/stripe', () => {
       // Handler actually ran
       expect(vi.mocked(addBonusCredits)).toHaveBeenCalledWith(
         'user-b1',
-        10, // mini = 10 credits
+        12, // mini = 12 credits
         'purchase',
         'pi_b1'
       )
