@@ -14,6 +14,7 @@ import {
   type SajuCompatDayMaster,
   type SajuCompatSpouseStar,
   type SajuCompatPillarRel,
+  type SajuCompatElementBalance,
 } from './sajuSynastryFormatter'
 
 export interface CompatBandScores {
@@ -34,6 +35,8 @@ export interface CompatReport {
   band?: CompatBandScores
   /** 동·서 교차 종합 — 사주(합/충)와 별자리(조화/긴장)가 한 방향인지 한 줄로. */
   crossVerdict?: { tone: 'aligned' | 'mixed' | 'tension' | 'neutral'; text: string }
+  /** 두 사람 오행 합산·강약 — 무료 리포트가 "어느 기운이 넘치고 모자란지" 풀이용. */
+  elementBalance?: SajuCompatElementBalance | null
 }
 
 // 사주(합/충)와 별자리(조화/긴장)의 net 을 교차해 "둘이 같은 말 하는지" 한 줄.
@@ -163,5 +166,6 @@ export function buildCompatReport(input: CompatReportInput): CompatReport {
     pillarRelations,
     band: Object.keys(band).length > 0 ? band : undefined,
     crossVerdict: buildCrossVerdict(pillarRelations, synView, lang === 'ko'),
+    elementBalance: sajuFacts?.elementBalance ?? null,
   }
 }
