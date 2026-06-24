@@ -61,7 +61,7 @@ async function one(p: P, idx: number) {
     { start: `${FOCUS}T00:00:00.000Z`, end: `${FOCUS}T23:59:59.000Z`, granularity: 'day' },
     { includeEvidence: false }
   )
-  const { lifetime } = await assembleTiers({
+  const { lifetime, user } = await assembleTiers({
     natal,
     cells,
     lang: 'ko',
@@ -84,7 +84,12 @@ async function one(p: P, idx: number) {
     place: loc.place,
     ageNow: TARGET_YEAR - Number(p.date.slice(0, 4)),
   }
-  writeFileSync(`${OUT}/${prefix}-lifetime.json`, JSON.stringify({ meta, lifetime }, null, 2))
+  const intro = (user as { intro?: string; introEn?: string }).intro ?? ''
+  const introEn = (user as { intro?: string; introEn?: string }).introEn ?? ''
+  writeFileSync(
+    `${OUT}/${prefix}-lifetime.json`,
+    JSON.stringify({ meta, intro, introEn, lifetime }, null, 2)
+  )
   return `${prefix} ${meta.birth} ${p.gender} ${loc.place} age≈${meta.ageNow}`
 }
 
