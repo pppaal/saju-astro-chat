@@ -20,6 +20,7 @@
 import type { NatalContext } from '@/lib/calendar-engine/context/types'
 import type { LifetimeFlow } from '@/lib/calendar-engine/derivers/lifetimeFlow'
 import type { LifetimePivots } from '@/lib/calendar-engine/derivers/lifetimePivots'
+import type { LifeCurve } from '@/lib/calendar-engine/derivers/lifeCurve'
 import type { ZRPeriod, ZRStartLot } from '@/lib/astrology/foundation/zodiacalReleasing'
 import type {
   DestinyLifetime,
@@ -28,6 +29,7 @@ import type {
   DestinyLifeStage,
   DestinyMilestone,
   DestinyLifeStageDetail,
+  DestinyLifeCurve,
 } from '@/types/calendar'
 
 import { deriveLifePattern } from '@/lib/calendar-engine/derivers/lifePattern'
@@ -44,9 +46,55 @@ export interface ToLifetimeOptions {
   lifetimeFlow?: LifetimeFlow
   /** lifetimePivots deriver 결과 (선택 — 없으면 milestones 가 빈 배열). */
   lifetimePivots?: LifetimePivots
+  /** buildLifeCurve 결과 (선택 — 없으면 lifeCurve 미노출). */
+  lifeCurve?: LifeCurve
   /** ZR 챕터 projection 범위 (만 나이). 기본 0..90. */
   zrAgeFrom?: number
   zrAgeTo?: number
+}
+
+/** buildLifeCurve(macro 곡선) → 렌더용 DestinyLifeCurve (value 0..1 정규화, ≤88세). */
+function toDestinyLifeCurve(
+  curve: LifeCurve | undefined,
+  currentYear: number,
+  birthYear: number
+): DestinyLifeCurve | undefined {
+  if (!curve || curve.points.length === 0) return undefined
+  const pts = curve.points.filter((p) => p.age <= 88)
+  const vals = pts.map((p) => p.macro)
+  const lo = Math.min(...vals)
+  const hi = Math.max(...vals)
+  const r = hi - lo || 1
+  const norm = (v: number) => (v - lo) / r
+  const nowAge = currentYear - birthYear
+  const peaks = curve.peaks
+    .filter((e) => e.age <= 88)
+    .map((e) => ({ age: e.age, year: e.year, kind: 'peak' as const }))
+  const troughs = curve.troughs
+    .filter((e) => e.age <= 88)
+    .map((e) => ({ age: e.age, year: e.year, kind: 'trough' as const }))
+
+  // "지금" 읽기 — macro 기울기(3년) + 현재 이후 첫 마루/저점.
+  let now: DestinyLifeCurve['now']
+  const here = pts.find((p) => p.age === nowAge)
+  if (here) {
+    const prev = pts.find((p) => p.age === nowAge - 3) ?? pts[0]
+    const dv = norm(here.macro) - norm(prev.macro)
+    const slope: 'rising' | 'falling' | 'plateau' = dv > 0.04 ? 'rising' : dv < -0.04 ? 'falling' : 'plateau'
+    now = {
+      slope,
+      nextPeak: peaks.find((e) => e.age > nowAge),
+      nextTrough: troughs.find((e) => e.age > nowAge),
+    }
+  }
+
+  return {
+    points: pts.map((p) => ({ age: p.age, year: p.year, value: norm(p.macro) })),
+    peaks,
+    troughs,
+    nowAge,
+    now,
+  }
 }
 
 /**
@@ -195,7 +243,8 @@ export function toLifetime(natal: NatalContext, opts: ToLifetimeOptions): Destin
     : []
 
   // 인생 유형 — 신강약 기준 대운 흐름(대기만성/초년발복/…).
-  const lp = deriveLifePattern(natal.saju as never)
+  // 현재 나이를 넘겨 "정점" 서술이 지금~앞으로를 가리키게(과거/유아기 정점 방지).
+  const lp = deriveLifePattern(natal.saju as never, opts.currentYear - opts.birthYear)
   const lifePattern = lp
     ? {
         key: lp.key,
@@ -216,5 +265,6 @@ export function toLifetime(natal: NatalContext, opts: ToLifetimeOptions): Destin
     zrSpiritChapters,
     zrFortuneChapters,
     lifePattern,
+    lifeCurve: toDestinyLifeCurve(opts.lifeCurve, opts.currentYear, opts.birthYear),
   }
 }

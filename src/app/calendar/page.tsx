@@ -12,17 +12,22 @@
 
 import PreviewClient from './preview/PreviewClient'
 import BirthRequiredFallback from './birth-required'
+import CounselorCTA from '@/components/report/CounselorCTA'
 import DailyFortunePushBanner from '@/components/push/DailyFortunePushBanner'
 import { SHOW_FULL_TIERS } from '@/components/calendar/tierConfig'
-import { loadTierData } from './loadTierData'
+import { loadTierData, parseBirthOverride } from './loadTierData'
 
 // 서버 컴포넌트 — Swiss Ephemeris 비용 서버에서 한 번에 치름.
-// 세션 기반이므로 force-dynamic 필수 (정적 캐시 금지).
+// 세션/쿼리 기반이므로 force-dynamic 필수 (정적 캐시 금지).
 export const dynamic = 'force-dynamic'
 
-export default async function DestinypalPage() {
+type SP = Record<string, string | string[] | undefined>
+
+export default async function DestinypalPage({ searchParams }: { searchParams: Promise<SP> }) {
+  // ?date=&time=&lat=&lng=&tz=&gender= 가 있으면 로그인 없이 그 사람 기준으로.
+  const override = parseBirthOverride(await searchParams)
   // 월/일만 보일 땐 그 달만 빌드. 5티어 전부면 1년 빌드.
-  const data = await loadTierData(SHOW_FULL_TIERS ? 'year' : 'month')
+  const data = await loadTierData(SHOW_FULL_TIERS ? 'year' : 'month', override)
   if (data.kind === 'login') return <BirthRequiredFallback reason="login" />
   if (data.kind === 'no-birth') return <BirthRequiredFallback reason="no-birth" />
 
@@ -40,6 +45,13 @@ export default async function DestinypalPage() {
       />
       {/* 매일 아침 오늘의 운세 푸시 옵트인 — VAPID 미설정/미지원이면 스스로 숨음 */}
       <DailyFortunePushBanner locale={lang} />
+      <CounselorCTA
+        lang={lang}
+        question={{
+          ko: '이번 달 제 운 흐름을 더 자세히 봐주세요.',
+          en: 'Help me read my fortune timing this month.',
+        }}
+      />
     </>
   )
 }

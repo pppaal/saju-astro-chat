@@ -164,6 +164,16 @@ export interface DestinyUserSummary {
   /** 7대 Arabic Lots. */
   lots: DestinyArabicLot[]
 
+  /**
+   * 본명 일주(日柱) 아키타입 — ilju-60 DB 의 평이 프로즈(character/strength/
+   * weakness/career/love). 선택 — 어댑터가 일주 간지를 못 구하거나 DB 미스 시
+   * 생략(undefined). character 는 novice-grade 평이 문장. PRESENTATION ONLY.
+   */
+  iljuArchetype?: {
+    ko: { character: string; strength: string; weakness: string; career: string; love: string }
+    en: { character: string; strength: string; weakness: string; career: string; love: string }
+  }
+
   // ── 통합 인트로 텍스트 ──
   intro: string
   introEn: string

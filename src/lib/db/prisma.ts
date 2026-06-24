@@ -43,10 +43,10 @@ function createPrismaClient(): PrismaClient {
 
   // Create connection pool.
   //
-  // 기본값(max=10, idle 무한)은 Vercel 서버리스 + Neon 풀러 환경에서 동시성이
-  // 몰릴 때 커넥션이 고갈돼 Prisma 쿼리 엔진이 ECHECKOUTTIMEOUT
+  // 기본값(max=10, idle 무한)은 Vercel 서버리스 + Supabase 풀러 환경에서
+  // 동시성이 몰릴 때 커넥션이 고갈돼 Prisma 쿼리 엔진이 ECHECKOUTTIMEOUT
   // ("unable to check out a connection from the pool")을 던지는 원인이 된다.
-  // 환경변수로 튜닝 가능하게 하고, 유휴 커넥션을 빠르게 회수해 Neon 풀러
+  // 환경변수로 튜닝 가능하게 하고, 유휴 커넥션을 빠르게 회수해 Supabase 풀러
   // 슬롯을 점유하지 않도록 한다.
   const toInt = (value: string | undefined, fallback: number): number => {
     const parsed = Number(value)
@@ -60,12 +60,12 @@ function createPrismaClient(): PrismaClient {
       // 인스턴스당 최대 커넥션 수. 관리자 대시보드 등 한 요청에서 여러 쿼리를
       // 병렬로 던지는 경로가 있어 기본 10보다 여유를 둔다.
       max: toInt(process.env.DATABASE_POOL_MAX, 15),
-      // 유휴 커넥션 회수 시간 — 서버리스에서 죽은 인스턴스가 Neon 슬롯을
+      // 유휴 커넥션 회수 시간 — 서버리스에서 죽은 인스턴스가 Supabase 슬롯을
       // 오래 쥐고 있지 않도록 짧게.
       idleTimeoutMillis: toInt(process.env.DATABASE_POOL_IDLE_TIMEOUT_MS, 10_000),
       // 커넥션 획득이 막히면 무한 대기 대신 빠르게 실패시켜 원인을 드러낸다.
       connectionTimeoutMillis: toInt(process.env.DATABASE_CONNECTION_TIMEOUT_MS, 10_000),
-      // PgBouncer(Neon 풀러)와 함께 쓸 때 커넥션을 주기적으로 재생성.
+      // PgBouncer(Supabase 풀러)와 함께 쓸 때 커넥션을 주기적으로 재생성.
       maxUses: toInt(process.env.DATABASE_POOL_MAX_USES, 7_500),
       // 모든 커넥션이 유휴가 되면 풀이 이벤트 루프를 막지 않도록 — 서버리스 친화.
       allowExitOnIdle: true,

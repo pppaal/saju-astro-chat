@@ -309,12 +309,87 @@ export function getAspectMeaning(
   return { angle: entry.angle, ...entry[lang] };
 }
 
-export function getHouseRich(num: HouseNumber, lang: Lang): HouseLangEntry | null {
-  return astroHouse[String(num)]?.[lang] ?? null;
+// 미성년(만 14세 미만) 안전 모드 — 하우스 영역 키워드에서 연애·결혼·자녀·성·죽음을
+// 발달 단계에 맞는 표현으로 치환(아동 부적합 방지). 나머지 하우스는 그대로.
+const MINOR_HOUSE_DOMAIN: Record<number, { ko: string; en: string }> = {
+  5: { ko: '창조·놀이·자기표현', en: 'Creativity · play · self-expression' },
+  7: { ko: '1:1 관계·파트너십·약속', en: 'One-to-one relationships · partnership · commitments' },
+  8: { ko: '공유 자원·깊이·변화·재생', en: 'Shared resources · depth · transformation · renewal' },
+};
+
+export function getHouseRich(
+  num: HouseNumber,
+  lang: Lang,
+  isMinor = false
+): HouseLangEntry | null {
+  const entry = astroHouse[String(num)]?.[lang] ?? null;
+  if (!entry) return null;
+  if (isMinor && MINOR_HOUSE_DOMAIN[num]) {
+    return { ...entry, domain: MINOR_HOUSE_DOMAIN[num][lang] };
+  }
+  return entry;
 }
 
-export function getPlanetCore(name: string, lang: Lang): PlanetLangEntry | null {
-  return astroPlanet[name]?.[lang] ?? null;
+// 미성년 안전 모드 — 화성·릴리스·명왕성의 성적/공격적/죽음 의미를 발달 단계에 맞게
+// 치환. meaning(본문)·principle(가시 한 줄 결)·keywords(레전드/툴팁) 모두 안전화.
+type MinorPlanetFields = { meaning: string; principle: string; keywords: string[] }
+const MINOR_PLANET_OVERRIDE: Record<string, { ko: MinorPlanetFields; en: MinorPlanetFields }> = {
+  Mars: {
+    ko: {
+      meaning:
+        '원하는 걸 어떻게 밀고 나가는지. 화가 날 때 표현하는 방식과, 마음먹은 걸 행동으로 옮기는 추진력이에요.',
+      principle: '행동·추진력·용기',
+      keywords: ['행동', '추진력', '용기', '도전'],
+    },
+    en: {
+      meaning:
+        'How you go after what you want — how you handle frustration, face challenges, and turn intention into action.',
+      principle: 'Action · Drive · Courage',
+      keywords: ['action', 'drive', 'courage', 'challenge'],
+    },
+  },
+  Lilith: {
+    ko: {
+      meaning:
+        '남들과 달라도 나답게 지키는 부분이에요. 독립심과 진짜 나다움이 살아나는 자리예요.',
+      principle: '독립·나다움',
+      keywords: ['독립', '개성', '나다움', '자기다움'],
+    },
+    en: {
+      meaning:
+        'The part of you that stays true to itself even when it does not fit in — where your independence and authentic self come alive.',
+      principle: 'Independence · True Self',
+      keywords: ['independence', 'individuality', 'authenticity', 'self'],
+    },
+  },
+  Pluto: {
+    ko: {
+      meaning:
+        '깊은 곳에서 큰 변화가 일어나는 영역이에요. 한 번 크게 달라지면 더 단단해지는 힘이에요.',
+      principle: '큰 변화·깊이·집중',
+      keywords: ['변화', '깊이', '집중', '회복'],
+    },
+    en: {
+      meaning:
+        'The area where deep, powerful change happens — once something transforms, you come back stronger.',
+      principle: 'Transformation · Depth · Focus',
+      keywords: ['change', 'depth', 'focus', 'renewal'],
+    },
+  },
+};
+
+export function getPlanetCore(
+  name: string,
+  lang: Lang,
+  isMinor = false
+): PlanetLangEntry | null {
+  const entry = astroPlanet[name]?.[lang] ?? null;
+  if (!entry) return null;
+  if (isMinor && MINOR_PLANET_OVERRIDE[name]) {
+    const o = MINOR_PLANET_OVERRIDE[name][lang];
+    return { ...entry, meaning: o.meaning, principle: o.principle, keywords: o.keywords };
+  }
+  return entry;
 }
 
 export function getHanjaRich(char: string, lang: Lang): HanjaLangEntry | null {

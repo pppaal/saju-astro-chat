@@ -11,7 +11,7 @@ import type {
 } from '../types'
 import type { FiveElement, SibsinKind, YinYang } from '@/lib/saju/types'
 import { getSibsinFromStemInfo as getSibsin } from './shared/sibsin'
-import { sibsinFlowLine, type GanjiTransitLayer } from '../data/ganjiTransitNarrative'
+import { pillarFlowLine, type GanjiTransitLayer } from '../data/ganjiTransitNarrative'
 
 /**
  * 사주 4시간축 — 대운/세운/월운/일주의 십신 활성 추출기.
@@ -271,8 +271,9 @@ interface BuildSignalArgs {
 function buildSignal(args: BuildSignalArgs): ActiveSignal {
   const polarity = polarityFromYongsin(args.element, args.yongsin)
   // 운으로 들어오는 십신의 흐름 한 줄 — 캘린더 voice. (없으면 name 폴백)
-  const korean = sibsinFlowLine(args.sibsin, args.layer as GanjiTransitLayer, 'ko')
-  const english = sibsinFlowLine(args.sibsin, args.layer as GanjiTransitLayer, 'en')
+  // 같은 십신이라도 그 갑자의 결을 더해 인접 갑자가 다르게 읽히게 한다(additive).
+  const korean = pillarFlowLine(args.ganji, args.sibsin, args.layer as GanjiTransitLayer, 'ko')
+  const english = pillarFlowLine(args.ganji, args.sibsin, args.layer as GanjiTransitLayer, 'en')
   return {
     id: `saju.pillar-sibsin.${args.idSuffix}`,
     source: 'saju',

@@ -493,6 +493,51 @@ export function classifyAspects(chart: Chart): { benefic: string[]; malefic: str
 }
 
 /**
+ * 한 차트에서 파생되는 *이벤트-무관* 택일 사실들의 메모.
+ *
+ * analyzeElection 은 같은 날 6개 이벤트(KEY_EVENTS)에 대해 *동일한 chart* 로
+ * 6번 호출되는데, moonPhase·voidOfCourse·retrograde·aspect 분류는 event 가
+ * 아니라 chart 에만 의존한다(특히 classifyAspects 는 findAspects 의 O(n²) 페어
+ * 탐색, checkVoidOfCourse 는 행성×5애스펙트 루프 — 한 호출당 가장 비싼 부분).
+ * chart 객체 참조로 WeakMap 메모해 하루치 6회 호출 중 1회만 실제 계산한다.
+ * 순수 함수의 결과 캐시라 출력은 비트 단위로 동일하다(택일 점수 불변).
+ */
+const electionalChartFactsCache = new WeakMap<
+  Chart,
+  {
+    moonPhase: MoonPhase
+    moonSign: ZodiacKo
+    voidOfCourse: VoidOfCourseInfo
+    retrogradePlanets: string[]
+    benefic: string[]
+    malefic: string[]
+  }
+>()
+
+function getChartElectionalFacts(chart: Chart) {
+  const cached = electionalChartFactsCache.get(chart)
+  if (cached) return cached
+  const sun = chart.planets.find((p) => p.name === 'Sun')!
+  const moon = chart.planets.find((p) => p.name === 'Moon')!
+  const { benefic, malefic } = classifyAspects(chart)
+  const voidOfCourse = checkVoidOfCourse(chart)
+  const retrogradePlanets = getRetrogradePlanets(chart)
+  // 이 facts 는 같은 날 6개 이벤트의 analyzeElection 반환값에 *참조 공유* 된다.
+  // 현재 어떤 caller 도 mutate 하지 않지만, 미래의 caller 가 analysis.beneficAspects
+  // 등을 건드려 다른 이벤트 결과를 오염시키지 못하도록 방어적으로 freeze 한다.
+  const facts = Object.freeze({
+    moonPhase: getMoonPhase(sun.longitude, moon.longitude),
+    moonSign: moon.sign,
+    voidOfCourse: Object.freeze(voidOfCourse),
+    retrogradePlanets: Object.freeze(retrogradePlanets) as string[],
+    benefic: Object.freeze(benefic) as string[],
+    malefic: Object.freeze(malefic) as string[],
+  })
+  electionalChartFactsCache.set(chart, facts)
+  return facts
+}
+
+/**
  * 택일 분석 실행
  */
 export function analyzeElection(
@@ -504,14 +549,8 @@ export function analyzeElection(
 ): ElectionalAnalysis {
   const requirements = EVENT_REQUIREMENTS[eventType]
 
-  const sun = chart.planets.find((p) => p.name === 'Sun')!
-  const moon = chart.planets.find((p) => p.name === 'Moon')!
-
-  const moonPhase = getMoonPhase(sun.longitude, moon.longitude)
-  const moonSign = moon.sign
-  const voidOfCourse = checkVoidOfCourse(chart)
-  const retrogradePlanets = getRetrogradePlanets(chart)
-  const { benefic, malefic } = classifyAspects(chart)
+  const { moonPhase, moonSign, voidOfCourse, retrogradePlanets, benefic, malefic } =
+    getChartElectionalFacts(chart)
 
   // 기본 일출/일몰 시간 (제공되지 않은 경우). 주의: Date.setHours 는 in-place
   // mutation + timestamp 반환이라, 옛 코드는 sunrise/sunset 을 만들면서 원본

@@ -146,18 +146,18 @@ describe('deriveLifetimeFlow', () => {
       expect(out.phases[3].ageRange).toBe('60~84세 · 2050~2074')
     })
 
-    it('초년기 본문은 "년주(부모·뿌리) 기준" prefix + 년간 십신', () => {
+    it('초년기 본문은 평이 부모·뿌리 도입부로 시작 (raw 십신 노출 없음)', () => {
       const child = out.phases[0]
-      // yearStem 庚 vs dayMaster 辛 → 겁재(비겁).
-      expect(child.text).toContain('초년은 년주(부모·뿌리) 기준')
-      expect(child.text).toContain('겁재(비겁)')
+      // 평이 우선: 십신 원명("겁재(비겁) 흐름")을 surface 에서 빼고 부모·뿌리 도입부 + 평이 본문.
+      expect(child.text).toContain('초년은 부모·뿌리의 영향을 받는 시기예요')
+      expect(child.text).not.toContain('겁재(비겁)')
     })
 
-    it('비초년 단계는 대운 천간 기준 십신을 쓴다 (prefix 없음)', () => {
+    it('비초년 단계는 평이 본문으로 시작 (raw 십신/년주 prefix 없음)', () => {
       const young = out.phases[1]
       expect(young.text).not.toContain('년주(부모·뿌리)')
-      // 청년 20~39 대표 대운: startAge 25(乙亥) 가 mid=29 덮음 → 乙 vs 辛 = 편재(재성).
-      expect(young.text).toContain('편재(재성)')
+      // 십신 원명을 surface 에 노출하지 않는다(평이 본문에 의미만 녹음).
+      expect(young.text).not.toContain('편재(재성)')
     })
 
     it('daeunLine 은 단계에 걸친 대운들을 화살표로 연결 (간지+한글음+연도)', () => {
@@ -190,31 +190,39 @@ describe('deriveLifetimeFlow', () => {
       expect(out.phases.find((p) => p.current)!.label).toBe('청년기')
     })
 
-    it('각 단계에 twelveStageLine 이 채워진다 (일간 기준 대운 지지 12운성)', () => {
-      // 모든 phase 의 primary 대운 지지로 stage 산출.
+    it('비초년 단계의 twelveStageLine 은 평이 의미만 (raw 간지/일간/운성 노출 없음)', () => {
+      // 아동기는 운성 해석이 성인 기준이라 생략 — 비초년 단계만 채워진다.
       for (const p of out.phases) {
+        if (p.label === '초년기') {
+          expect(p.twelveStageLine).toBeUndefined()
+          continue
+        }
         expect(typeof p.twelveStageLine).toBe('string')
-        expect(p.twelveStageLine).toContain('일간 辛 기준')
+        // 평이 우선 — 간지/일간/운성 원명을 surface 에서 빼고 의미 한 줄.
+        expect(p.twelveStageLine).not.toContain('일간')
+        expect(p.twelveStageLine).toContain('기운의 흐름으로 보면')
       }
     })
   })
 
   describe('relationLine — 본명 지지 ↔ 대운 지지 충/육합', () => {
-    it('충: 본명 지지가 대운 지지와 충이면 "…충 (변동 압력)"', () => {
+    it('충: 본명 지지가 대운 지지와 충이면 평이 "변동·마찰" 문장 (raw 간지/충 노출 없음)', () => {
       // 청년기 대표 대운 지지 亥. 본명에 巳 있으면 巳↔亥 충.
       const n = makeNatal({ branches: { year: '巳', month: '巳', day: '酉', time: '寅' } })
       const r = deriveLifetimeFlow(n)!
       const young = r.phases.find((p) => p.label === '청년기')!
-      expect(young.relationLine).toContain('충 (변동 압력)')
-      expect(young.relationLine).toContain('亥')
+      expect(young.relationLine).toContain('변동과 마찰이 잦아요')
+      expect(young.relationLine).not.toContain('충')
+      expect(young.relationLine).not.toContain('亥')
     })
 
-    it('육합: 본명 지지가 대운 지지와 육합이면 "…육합 (환경이 손발 맞춤)"', () => {
+    it('육합: 본명 지지가 대운 지지와 육합이면 평이 "손발 맞춤" 문장', () => {
       // 대운 亥 의 육합은 寅. 본명에 寅 두면 육합.
       const n = makeNatal({ branches: { year: '寅', month: '巳', day: '酉', time: '辰' } })
       const r = deriveLifetimeFlow(n)!
       const young = r.phases.find((p) => p.label === '청년기')!
-      expect(young.relationLine).toContain('육합 (환경이 손발 맞춤)')
+      expect(young.relationLine).toContain('손발이 척척 맞는 편이에요')
+      expect(young.relationLine).not.toContain('육합')
     })
 
     it('충도 육합도 없으면 relationLine 은 undefined', () => {
@@ -235,9 +243,11 @@ describe('deriveLifetimeFlow', () => {
       })
       const r = deriveLifetimeFlow(n)!
       const young = r.phases.find((p) => p.label === '청년기')!
-      expect(young.shinsalLine).toContain('천을귀인 활성')
+      expect(young.shinsalLine).toContain('천을귀인 기운')
       expect(young.shinsalLine).toContain('도움·우호적 지원 시기')
-      expect(young.shinsalLine).toContain('본명 일지')
+      // 평이 우선: raw 간지 메커닉(대운/본명 위치 + 한자)을 surface 에서 제거(감사 BUG-3)
+      expect(young.shinsalLine).not.toMatch(/[一-鿿]/)
+      expect(young.shinsalLine).not.toContain('본명')
     })
 
     it('신살 target 이 대운 천간과 일치해도 활성 (stem 분기)', () => {
@@ -247,8 +257,9 @@ describe('deriveLifetimeFlow', () => {
       })
       const r = deriveLifetimeFlow(n)!
       const young = r.phases.find((p) => p.label === '청년기')!
-      expect(young.shinsalLine).toContain('문창귀인 활성')
-      expect(young.shinsalLine).toContain('월간')
+      expect(young.shinsalLine).toContain('문창귀인 기운')
+      // 메커닉(위치 라벨 + 한자) 제거됨 — 평이 의미만
+      expect(young.shinsalLine).not.toMatch(/[一-鿿]/)
     })
 
     it('매핑 테이블에 없는 kind 는 "${kind} 발현" 폴백', () => {
@@ -257,7 +268,7 @@ describe('deriveLifetimeFlow', () => {
       })
       const r = deriveLifetimeFlow(n)!
       const young = r.phases.find((p) => p.label === '청년기')!
-      expect(young.shinsalLine).toContain('괴강 활성')
+      expect(young.shinsalLine).toContain('괴강 기운')
       expect(young.shinsalLine).toContain('괴강 발현')
     })
 
@@ -307,15 +318,17 @@ describe('deriveLifetimeFlow', () => {
       expect(r.intro).not.toContain('격국은')
     })
 
-    it('sibsin.categoryCount 의 지배 카테고리를 % 로 노출', () => {
+    it('강약 × 지배 십신 → 구조 인식 서사 (재성 지배 + 신약 = 재다신약)', () => {
       const n = makeNatal({
+        strength: 'weak',
         analyses: {
           sibsin: { categoryCount: { 비겁: 1, 식상: 1, 재성: 6, 관성: 1, 인성: 1 } },
         },
       })
       const r = deriveLifetimeFlow(n)!
-      // 재성 6/10 = 60%.
-      expect(r.intro).toContain('재성이 60%로 가장 두드러져')
+      // 구조 서사가 raw % 줄을 대체 — 명명된 구조 + 풀리는 운 방향(비겁·인성).
+      expect(r.intro).toContain('재다신약')
+      expect(r.intro).not.toContain('재성이 60%로 가장 두드러져')
     })
 
     it('sibsin categoryCount 합 0 이면 십성 줄 생략', () => {
@@ -387,20 +400,21 @@ describe('deriveLifetimeFlow', () => {
       expect(child.milestoneLine).toContain('2002년')
     })
 
-    it('age null 인 override 는 무시', () => {
-      const overrides: LifecycleMilestoneOverride[] = [
-        { kind: 'saturn_return_1', startYear: 2019, age: null },
-      ]
-      const r = deriveLifetimeFlow(makeNatal(), 'ko', overrides)!
-      expect(r.phases.every((p) => p.milestoneLine === undefined)).toBe(true)
+    it('override 없이도 lifecycle 테이블로 외행성 마디가 채워진다 (outer 항상 채움)', () => {
+      // 회귀: 예전엔 override 미지정 시 milestoneLine 이 전부 undefined → outer 빈 []
+      // (lifeStages 외행성 마디 전체 누락). 이제 테이블로 항상 채운다.
+      const r = deriveLifetimeFlow(makeNatal(), 'ko')!
+      expect(r.phases.some((p) => !!p.milestoneLine)).toBe(true)
     })
 
-    it('매핑 테이블에 없는 kind 의 override 는 무시', () => {
+    it('매핑 테이블에 없는 kind 의 override 는 무시(테이블 마디는 그대로 노출)', () => {
       const overrides = [
         { kind: 'unknown_kind', startYear: 2019, age: 29 },
       ] as unknown as LifecycleMilestoneOverride[]
       const r = deriveLifetimeFlow(makeNatal(), 'ko', overrides)!
-      expect(r.phases.every((p) => p.milestoneLine === undefined)).toBe(true)
+      // unknown override 는 무시되지만 lifecycle 테이블 마디는 여전히 채워진다.
+      expect(r.phases.some((p) => !!p.milestoneLine)).toBe(true)
+      expect(r.phases.map((p) => p.milestoneLine ?? '').join(' ')).not.toContain('unknown_kind')
     })
 
     it('4개 초과 마디는 "외 N" 으로 압축 (TOP_N=3)', () => {
@@ -427,7 +441,8 @@ describe('deriveLifetimeFlow', () => {
       ]
       const r = deriveLifetimeFlow(makeNatal(), 'ko', overrides)!
       const young = r.phases.find((p) => p.label === '청년기')!
-      expect(young.milestoneLine).toContain('외 1')
+      // 청년기(20~39)엔 테이블 마디가 4개 초과로 떨어져 "외 N" 으로 압축된다.
+      expect(young.milestoneLine).toMatch(/외 \d+/)
     })
   })
 
@@ -450,19 +465,18 @@ describe('deriveLifetimeFlow', () => {
       for (const p of koOut.phases) {
         expect(typeof p.textKo).toBe('string')
         expect(typeof p.textEn).toBe('string')
-        // textEn 은 영문 카테고리 라벨 + 영문 BAND_CAT 본문을 쓴다. (십신/12운성
-        // 명칭 자체는 엔진 설계상 양 언어 공통으로 한국어 도메인 용어를 유지 —
-        // i18n 누수 범위 밖.) 영문 카테고리가 들어있는지로 검증.
-        expect(p.textEn).toMatch(/\((Officer|Wealth|Output|Peer|Resource)\)/)
+        // textEn 은 평이 영문 본문(BAND_CAT_EN + 톤). raw 십신/카테고리 라벨을
+        // surface 에 노출하지 않으므로, 한글이 새지 않는지로 검증(영문 순수).
+        expect(p.textEn).not.toMatch(/[가-힣]/)
       }
     })
 
-    it('relationLine 충 — KO/EN 양쪽 baked (EN 에 한글 없음)', () => {
+    it('relationLine 충 — KO/EN 평이 baked (EN 에 한글 없음)', () => {
       const n = makeNatal({ branches: { year: '巳', month: '巳', day: '酉', time: '辰' } })
       const r = deriveLifetimeFlow(n)! // KO render
       const young = r.phases.find((p) => p.label === '청년기')!
-      expect(young.relationLine).toContain('충 (변동 압력)')
-      expect(young.relationLineEn).toContain('clash (volatility pressure)')
+      expect(young.relationLine).toContain('변동과 마찰이 잦아요')
+      expect(young.relationLineEn).toContain('change and friction')
       expect(young.relationLineEn).not.toMatch(/[가-힣]/)
     })
 
@@ -472,18 +486,21 @@ describe('deriveLifetimeFlow', () => {
       })
       const r = deriveLifetimeFlow(n)!
       const young = r.phases.find((p) => p.label === '청년기')!
-      expect(young.shinsalLine).toContain('천을귀인 활성')
-      expect(young.shinsalLineEn).toContain('Cheoneul Gwiin (Nobleman) active')
+      expect(young.shinsalLine).toContain('천을귀인 기운')
+      expect(young.shinsalLineEn).toContain('Cheoneul Gwiin (Nobleman)')
       expect(young.shinsalLineEn).not.toMatch(/[가-힣]/)
     })
 
-    it('twelveStageLine — KO/EN 양쪽 baked (EN 은 영문 머리/의미)', () => {
+    it('twelveStageLine — 비초년만 평이 baked (EN 한글 없음, raw 운성 머리 없음)', () => {
       for (const p of koOut.phases) {
+        if (p.label === '초년기') {
+          expect(p.twelveStageLineEn).toBeUndefined()
+          continue
+        }
         expect(typeof p.twelveStageLineEn).toBe('string')
-        // EN 머리("daeun … reads as … for day-master …") 는 영문. 12운성 명칭
-        // (양/장생/…) 은 엔진 공통 한국어 도메인 용어라 누수 범위 밖.
-        expect(p.twelveStageLineEn).toContain('day-master')
-        expect(p.twelveStageLineEn).toContain('reads as')
+        // 평이 영문 — raw 간지/일간/운성 머리 없이 의미만.
+        expect(p.twelveStageLineEn).toContain('life-energy cycle')
+        expect(p.twelveStageLineEn).not.toMatch(/[가-힣]/)
       }
     })
 
@@ -543,20 +560,21 @@ describe('deriveLifetimeFlow', () => {
       expect(child.daeunLine).toContain('(jeong')
     })
 
-    it('영문 본문 — 십신 영문 카테고리', () => {
-      // 청년 대운 乙 vs 辛 → 편재(재성)=Wealth.
+    it('영문 본문 — 평이 영문(한글 없음, raw 십신 라벨 노출 없음)', () => {
       const young = out.phases[1]
-      expect(young.text).toContain('(Wealth)')
+      expect(young.text).not.toMatch(/[가-힣]/)
+      expect(young.text).not.toContain('(Wealth)')
     })
 
-    it('영문 relationLine — clash', () => {
+    it('영문 relationLine — 평이 clash 문장 (한글 없음)', () => {
       const n = makeNatal({
         astro: { sun: 'Leo' },
         branches: { year: '巳', month: '巳', day: '酉', time: '辰' },
       })
       const r = deriveLifetimeFlow(n, 'en')!
       const young = r.phases.find((p) => p.label === 'Young adulthood')!
-      expect(young.relationLine).toContain('clash (volatility pressure)')
+      expect(young.relationLine).toContain('change and friction')
+      expect(young.relationLine).not.toMatch(/[가-힣]/)
     })
 
     it('영문 shinsalLine — SHINSAL_SHORT_EN name+short', () => {
@@ -565,7 +583,7 @@ describe('deriveLifetimeFlow', () => {
       })
       const r = deriveLifetimeFlow(n, 'en')!
       const young = r.phases.find((p) => p.label === 'Young adulthood')!
-      expect(young.shinsalLine).toContain('Cheoneul Gwiin (Nobleman) active')
+      expect(young.shinsalLine).toContain('Cheoneul Gwiin (Nobleman)')
       expect(young.shinsalLine).toContain('supportive helpers')
     })
 
@@ -592,7 +610,15 @@ describe('deriveLifetimeFlow', () => {
       const r = deriveLifetimeFlow(n)!
       const child = r.phases[0]
       // good variant 중 하나 포함.
-      const goodVariants = ['흐름이 순해서', '기운이 등 뒤에서', '용신과 잘 맞아']
+      const goodVariants = [
+        '흐름이 순해서',
+        '기운이 등 뒤에서',
+        '용신과 잘 맞아',
+        '하려는 방향과',
+        '주변의 도움이',
+        '타이밍이 받쳐줘',
+        '막힘이 적어',
+      ]
       expect(goodVariants.some((v) => child.text.includes(v))).toBe(true)
     })
 
@@ -602,7 +628,15 @@ describe('deriveLifetimeFlow', () => {
       const n = makeNatal({ strength: 'weak', yearStem: '甲' })
       const r = deriveLifetimeFlow(n)!
       const child = r.phases[0]
-      const hardVariants = ['쉽지 않은 고비', '저항이 잦아', '기신과 부딪히며']
+      const hardVariants = [
+        '쉽지 않은 고비',
+        '저항이 잦아',
+        '기신과 부딪히며',
+        '바람을 안고',
+        '뜻대로 안 풀리는',
+        '부딪힘이 잦지만',
+        '서두르기보다',
+      ]
       expect(hardVariants.some((v) => child.text.includes(v))).toBe(true)
     })
 
@@ -611,7 +645,15 @@ describe('deriveLifetimeFlow', () => {
       const n = makeNatal({ strength: 'strong', yearStem: '甲' })
       const r = deriveLifetimeFlow(n)!
       const child = r.phases[0]
-      const goodVariants = ['흐름이 순해서', '기운이 등 뒤에서', '용신과 잘 맞아']
+      const goodVariants = [
+        '흐름이 순해서',
+        '기운이 등 뒤에서',
+        '용신과 잘 맞아',
+        '하려는 방향과',
+        '주변의 도움이',
+        '타이밍이 받쳐줘',
+        '막힘이 적어',
+      ]
       expect(goodVariants.some((v) => child.text.includes(v))).toBe(true)
     })
 
@@ -620,22 +662,35 @@ describe('deriveLifetimeFlow', () => {
       const n = makeNatal({ strength: 'strong', yearStem: '庚' })
       const r = deriveLifetimeFlow(n)!
       const child = r.phases[0]
-      const hardVariants = ['쉽지 않은 고비', '저항이 잦아', '기신과 부딪히며']
+      const hardVariants = [
+        '쉽지 않은 고비',
+        '저항이 잦아',
+        '기신과 부딪히며',
+        '바람을 안고',
+        '뜻대로 안 풀리는',
+        '부딪힘이 잦지만',
+        '서두르기보다',
+      ]
       expect(hardVariants.some((v) => child.text.includes(v))).toBe(true)
     })
   })
 
-  describe('twelveStageLine — 해석 테이블 밖 stage', () => {
-    it('왕지(해석 테이블에 없는 표기)도 stage 머리만 노출', () => {
-      // 대운 지지 申 → getTwelveStage('辛','申')='왕지' (TWELVE_STAGE_TYPES 밖).
+  describe('twelveStageLine — 동의어 운성(왕지/임관) 의미 복원', () => {
+    it('왕지(=제왕 동의어)도 평이 의미가 붙는다 (bare 운성/일간 노출 없음)', () => {
+      // 대운 지지 申 → getTwelveStage('辛','申')='왕지'. 동의어 '제왕' 으로 매핑돼
+      // 추상 에너지 글로스(BUG-4)가 붙는다 — 문자 그대로의 "권력의 정점"(성공·운
+      // 모순 유발)이 아니라 vitality 결("기운이 가장 무르익은 절정").
       const n = makeNatal({
         daeun: [{ startAge: 25, startYear: 2015, stem: '乙', branch: '申' }],
       })
       const r = deriveLifetimeFlow(n)!
       const young = r.phases.find((p) => p.label === '청년기')
       expect(young).toBeDefined()
-      expect(young!.twelveStageLine).toContain('왕지')
-      expect(young!.twelveStageLine).toContain('일간 辛 기준')
+      expect(young!.twelveStageLine).toContain('기운의 흐름으로 보면')
+      expect(young!.twelveStageLine).toContain('기운이 가장 무르익은 절정')
+      // raw 운성명/일간은 surface 에 노출하지 않는다.
+      expect(young!.twelveStageLine).not.toContain('왕지')
+      expect(young!.twelveStageLine).not.toContain('일간')
     })
   })
 

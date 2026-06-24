@@ -213,29 +213,41 @@ function elementPresenceScore(
   stems: string[],
   branches: string[],
   element: FiveElement,
-  maxScore: number
+  maxScore: number,
+  scale = 1
 ): number {
   let score = 0
   for (const stem of stems) {
     if (getStemElement(stem) === element) {
-      score += 3
+      score += 3 * scale
     }
   }
   for (const branch of branches) {
     if (getBranchElement(branch) === element) {
-      score += 2
+      score += 2 * scale
     }
     const jijanggan = JIJANGGAN[branch]
     if (jijanggan) {
       for (const stem of Object.values(jijanggan)) {
         if (getStemElement(stem) === element) {
-          score += 1
+          score += 1 * scale
         }
       }
     }
   }
   return Math.min(maxScore, score)
 }
+
+// 설기·재성·관성(설하는 측) 존재감 배율.
+//
+// 강약은 support(득령·통근·인성·비겁) − resist(식상·재성·관성) 의 균형으로 본다.
+// 그런데 support 쪽에는 득령(최대 30)·통근(최대 25)이라는 *구조적 가산점*이 있는
+// 반면, resist 쪽 세 항목은 순수 존재감(elementPresenceScore)뿐이라 대칭이
+// 깨져 있었다. 그 결과 support 상한 90 vs resist 상한 50 으로, 어떤 사주든
+// total = 50 + (support − resist) 가 강(强) 쪽으로 쏠려 신약/극신약이 사실상
+// 도달 불가능했다(18인 배치 최솟값 44). resist 측 존재감을 1.5배 해 유효 상한을
+// support(90)에 근접(≈78)시켜 50 을 진짜 중립으로 만든다. 결정론적 상수.
+const RESIST_PRESENCE_SCALE = 1.5
 
 /**
  * 강약 점수 SSOT 코어 — 정규화된 이름 배열을 받아 5요소 가중 합산.
@@ -298,7 +310,13 @@ export function computeStrengthScore(input: StrengthCoreInput): StrengthScore {
 
   // 5. 설기 (식상) 점수 - 음수
   const siksangElement = FIVE_ELEMENT_RELATIONS['생하는관계'][dayElement]
-  const siksangScore = elementPresenceScore(stems, branches, siksangElement, 15)
+  const siksangScore = elementPresenceScore(
+    stems,
+    branches,
+    siksangElement,
+    24,
+    RESIST_PRESENCE_SCALE
+  )
   items.push({
     category: '식상',
     name: `${siksangElement} 설기`,
@@ -310,7 +328,13 @@ export function computeStrengthScore(input: StrengthCoreInput): StrengthScore {
 
   // 6. 재성 점수 - 음수
   const jaeseongElement = FIVE_ELEMENT_RELATIONS['극하는관계'][dayElement]
-  const jaeseongScore = elementPresenceScore(stems, branches, jaeseongElement, 15)
+  const jaeseongScore = elementPresenceScore(
+    stems,
+    branches,
+    jaeseongElement,
+    24,
+    RESIST_PRESENCE_SCALE
+  )
   items.push({
     category: '재성',
     name: `${jaeseongElement} 극`,
@@ -322,7 +346,13 @@ export function computeStrengthScore(input: StrengthCoreInput): StrengthScore {
 
   // 7. 관성 점수 - 음수
   const gwanseongElement = FIVE_ELEMENT_RELATIONS['극받는관계'][dayElement]
-  const gwanseongScore = elementPresenceScore(stems, branches, gwanseongElement, 20)
+  const gwanseongScore = elementPresenceScore(
+    stems,
+    branches,
+    gwanseongElement,
+    30,
+    RESIST_PRESENCE_SCALE
+  )
   items.push({
     category: '관성',
     name: `${gwanseongElement} 극`,

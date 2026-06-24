@@ -51,8 +51,8 @@ describe('buildLifecycleTiming — 기본 테이블', () => {
     expect(events[0].label).toBe('First Jupiter return')
     expect(events[0].meaning).toContain('worldview')
     expect(events[0].advice).toContain('curiosity')
-    // 영문이어도 평균 테이블 ageRange 는 "11~13세" 형태(코드상 한글 윈도우 유지).
-    expect(events[0].ageRange).toBe('11~13세')
+    // 영문이어도 평균 테이블 ageRange 는 "12~13세" 형태(코드상 한글 윈도우 유지).
+    expect(events[0].ageRange).toBe('12~13세')
   })
 })
 
@@ -60,8 +60,8 @@ describe('buildLifecycleTiming — startYear / ageRange 계산', () => {
   it('평균 테이블 startYear = 출생연도 + ageStart', () => {
     const { events } = buildLifecycleTiming(2000, 2100, true, undefined, NOW)
     const sat1 = events.find((e) => e.event === 'saturn_return_1')!
-    expect(sat1.startYear).toBe(2000 + 28)
-    expect(sat1.ageRange).toBe('28~31세')
+    expect(sat1.startYear).toBe(2000 + 29)
+    expect(sat1.ageRange).toBe('29~31세')
   })
 })
 
@@ -142,9 +142,9 @@ describe('buildLifecycleTiming — overrides(실제 transit 덮어쓰기)', () =
     const { events } = buildLifecycleTiming(1990, 2100, true, overrides, NOW)
     const sat1 = events.find((e) => e.event === 'saturn_return_1')!
     const jup1 = events.find((e) => e.event === 'jupiter_return_1')!
-    expect(sat1.startYear).toBe(1990 + 28) // 폴백
-    expect(sat1.ageRange).toBe('28~31세')
-    expect(jup1.startYear).toBe(1990 + 11)
+    expect(sat1.startYear).toBe(1990 + 29) // 폴백
+    expect(sat1.ageRange).toBe('29~31세')
+    expect(jup1.startYear).toBe(1990 + 12)
   })
 
   it('일부 kind 만 override 하면 나머지는 평균 테이블 유지(부분 오버라이드)', () => {
@@ -155,7 +155,7 @@ describe('buildLifecycleTiming — overrides(실제 transit 덮어쓰기)', () =
     const jup1 = events.find((e) => e.event === 'jupiter_return_1')!
     const jup2 = events.find((e) => e.event === 'jupiter_return_2')!
     expect(jup1.ageRange).toBe('12세') // overridden
-    expect(jup2.ageRange).toBe('23~25세') // 폴백
+    expect(jup2.ageRange).toBe('24~25세') // 폴백
   })
 
   it('빈 overrides 배열은 평균 테이블과 동일 결과', () => {

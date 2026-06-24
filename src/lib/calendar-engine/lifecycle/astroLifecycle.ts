@@ -38,7 +38,7 @@ export interface AstroLifecycleEvent {
 const TABLE: AstroLifecycleEvent[] = [
   {
     kind: 'jupiter_return_1',
-    ageStart: 11,
+    ageStart: 12,
     ageEnd: 13,
     labelKo: '첫 목성 회귀 — 확장의 한 사이클',
     labelEn: 'First Jupiter return',
@@ -49,7 +49,7 @@ const TABLE: AstroLifecycleEvent[] = [
   },
   {
     kind: 'jupiter_return_2',
-    ageStart: 23,
+    ageStart: 24,
     ageEnd: 25,
     labelKo: '두 번째 목성 회귀 — 진로의 큰 그림',
     labelEn: 'Second Jupiter return',
@@ -71,7 +71,7 @@ const TABLE: AstroLifecycleEvent[] = [
   },
   {
     kind: 'saturn_return_1',
-    ageStart: 28,
+    ageStart: 29,
     ageEnd: 31,
     labelKo: '첫 토성 회귀 — 진짜 어른됨의 통과의례',
     labelEn: 'First Saturn return',
@@ -84,7 +84,7 @@ const TABLE: AstroLifecycleEvent[] = [
   },
   {
     kind: 'jupiter_return_3',
-    ageStart: 35,
+    ageStart: 36,
     ageEnd: 37,
     labelKo: '세 번째 목성 회귀 — 인생 중반 직전의 확장',
     labelEn: 'Third Jupiter return',
@@ -141,7 +141,7 @@ const TABLE: AstroLifecycleEvent[] = [
   },
   {
     kind: 'saturn_return_2',
-    ageStart: 57,
+    ageStart: 59,
     ageEnd: 60,
     labelKo: '두 번째 토성 회귀 — 마지막 어른됨의 통과의례',
     labelEn: 'Second Saturn return',
@@ -152,7 +152,7 @@ const TABLE: AstroLifecycleEvent[] = [
   },
   {
     kind: 'jupiter_return_5',
-    ageStart: 59,
+    ageStart: 60,
     ageEnd: 61,
     labelKo: '다섯 번째 목성 회귀 — 환갑의 전환',
     labelEn: 'Fifth Jupiter return',

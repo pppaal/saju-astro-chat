@@ -77,6 +77,13 @@ const ASPECT_VERB: Record<string, { ko: string; en: string }> = {
   sesquiquadrate: { ko: '은근히 거슬리는', en: 'subtly irritates' },
   quintile: { ko: '재능으로 반짝이는', en: 'sparks a talent with' },
   biquintile: { ko: '창의로 반짝이는', en: 'sparks creativity with' },
+  // 하이픈 표기 변형 — ASPECT_KEY 와 키 정렬 (추출기가 어느 표기로 와도 빈 줄 방지).
+  'semi-sextile': { ko: '슬며시 스치는', en: 'lightly grazes' },
+  'semi-square': { ko: '잔잔히 마찰하는', en: 'mildly rubs against' },
+  'bi-quintile': { ko: '창의로 반짝이는', en: 'sparks creativity with' },
+  // 마이너 어스펙트 보강 — 미세한 운명적 결.
+  septile: { ko: '운명처럼 끌리는', en: 'pulls with a fated undertone toward' },
+  novile: { ko: '조용히 무르익는', en: 'quietly ripens toward' },
 }
 
 export function pointKo(name: string): string {

@@ -92,19 +92,18 @@ function parseAgeRange(ageRange: string): {
 }
 
 /**
- * phase.text 에 박힌 "편재(재성) 흐름 — ..." 같은 톤 문자열에서 "편재 — ..."
- * 짧은 헤드만 추출. 추출 못하면 text 의 첫 절반. KO·EN 동일 구조라 언어 무관.
+ * phase.text 에서 톤 헤드라인(평이 첫 문장)을 뽑는다.
+ *
+ * textKo 형태: `[초년 도입부 — ]${평이 본문}. ${평이 톤}` (십신 원명은 source 에서
+ * 제거됨). 초년 도입부("…시기예요 — ")가 있으면 떼어내고, 그 뒤 평이 본문의 첫
+ * 문장만 톤으로 쓴다 — raw 십신/간지 없이 사람이 읽는 한 줄. KO·EN 동일 구조.
  */
 function deriveToneFromText(t: string | undefined): string {
   if (!t) return ''
-  // "편재(재성) 흐름 — 현실 성취와 돈·연애의 무대가 열려요. 실속을 다지는 결."
-  // "Wealth (재성) flow — The stage of real-world results... opens up. ..."
-  // 앞 두 절(— 까지의 한 절 + 다음 . 까지)을 톤으로.
-  const dash = t.match(/^(.+?)\s—\s(.+?)[.。!?]/)
-  if (dash) return `${dash[1].split('(')[0].trim()} — ${dash[2].trim()}`
-  // 폴백 — 첫 마침표까지
-  const dot = t.match(/^(.+?)[.。!?]/)
-  return dot ? dot[1] : t
+  // 초년 도입부(" … — ")를 떼어 톤이 평이 본문으로 시작하게 한다.
+  const s = t.replace(/^[^—]{0,40}?\s—\s/, '').trim()
+  const dot = s.match(/^(.+?)[.。!?]/)
+  return (dot ? dot[1] : s).trim()
 }
 
 export interface ToLifeStagesOptions {
@@ -160,8 +159,12 @@ export function toLifeStages(
       }
     }
     const parsed = parseAgeRange(phase.ageRange)
-    const tone = deriveToneFromText(phase.textKo)
-    const toneEn = deriveToneFromText(phase.textEn)
+    // 헤드라인 톤 = 운세 톤(평이). lifetimeFlow 가 분리 baked 한 toneKo/toneEn 을
+    // 직접 쓴다. 옛 deriveToneFromText(textKo 역파싱)는 첫 본문 문장을 톤으로
+    // 오추출하고 em-dash 절을 잘라먹어(감사 BUG-1/BUG-2) 폐기. 구버전 데이터
+    // 호환을 위해 새 필드가 없을 때만 폴백.
+    const tone = phase.toneKo ?? deriveToneFromText(phase.textKo)
+    const toneEn = phase.toneEn ?? deriveToneFromText(phase.textEn)
     // 4단계 *전부* detail 을 채운다 — 데이터(daeunLine/relationLine/외행성/신살/
     // 12운성)는 deriveLifetimeFlow 가 모든 단계에 대해 이미 만들어 넘긴다. 예전엔
     // phase.current 단계만 펼치고 나머지를 버려, 프리미엄의 "인생 전체 흐름"(4단계
@@ -169,13 +172,15 @@ export function toLifeStages(
     // body/bodyEn 양 언어 병행 — KO/EN 라인을 각각 모아 클라이언트가 토글로 고른다.
     const detail: DestinypalLifeStageDetail | null = {
       daeunText: phase.daeunLine,
+      // body[0] = 서술 본문(narrative) — 운세 톤(headline)을 제외해 중복 없음
+      // (감사 BUG-1). narrativeKo 가 없으면(구버전) textKo 폴백.
       body: [
-        phase.textKo,
+        phase.narrativeKo ?? phase.textKo,
         ...(phase.relationLine ? [phase.relationLine] : []),
         ...(phase.twelveStageLine ? [phase.twelveStageLine] : []),
       ],
       bodyEn: [
-        phase.textEn,
+        phase.narrativeEn ?? phase.textEn,
         ...(phase.relationLineEn ? [phase.relationLineEn] : []),
         ...(phase.twelveStageLineEn ? [phase.twelveStageLineEn] : []),
       ],

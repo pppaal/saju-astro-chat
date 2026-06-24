@@ -109,6 +109,8 @@ export type DestinyMilestoneKind =
   | 'neptune' // 해왕성 사각·트라인 등
   | 'uranus' // 천왕성 어포지션 (mid-life)
   | 'pluto' // 명왕성 사각/오포지션
+  | 'chiron' // 카이런 회귀 (~50세, 치유)
+  | 'progressed' // 진행 달 회귀 등 진행 마디
   | 'eclipse' // 일식·월식
   | 'zr' // ZR L1 챕터 전환
 
@@ -175,6 +177,39 @@ export interface DestinyLifetime {
   zrFortuneChapters: DestinyZRChapter[]
   /** 인생 유형(신강약 기준 대운 흐름) — 대기만성/초년발복/… 한 줄 + 대운 방향. */
   lifePattern?: DestinyLifePattern
+  /** 인생 굴곡 곡선 — 사주·점성 다층 중첩(연 단위). 차트가 스파크라인으로 렌더. */
+  lifeCurve?: DestinyLifeCurve
+}
+
+/** 인생 곡선의 한 점 — value 는 렌더용 0..1 정규화(거시 굴곡). */
+export interface DestinyLifeCurvePoint {
+  age: number
+  year: number
+  value: number
+}
+/** 곡선 위 마디(전환점) — 피크/골. */
+export interface DestinyLifeCurveMark {
+  age: number
+  year: number
+  kind: 'peak' | 'trough'
+}
+export interface DestinyLifeCurve {
+  /** 거시 굴곡 곡선(연 단위, value 0..1). */
+  points: DestinyLifeCurvePoint[]
+  peaks: DestinyLifeCurveMark[]
+  troughs: DestinyLifeCurveMark[]
+  /** 현재 만 나이(곡선 위 "지금" 위치). */
+  nowAge: number
+  /** "지금" 읽기 — 곡선 위 현재 위치의 추세 + 다음 마디(서사·앵커용). */
+  now?: DestinyLifeCurveNow
+}
+export interface DestinyLifeCurveNow {
+  /** 현재 추세 — 차오름/가라앉음/고름. */
+  slope: 'rising' | 'falling' | 'plateau'
+  /** 현재 이후 첫 마루(없으면 생략). */
+  nextPeak?: DestinyLifeCurveMark
+  /** 현재 이후 첫 저점(없으면 생략). */
+  nextTrough?: DestinyLifeCurveMark
 }
 
 export interface DestinyLifePattern {

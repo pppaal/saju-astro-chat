@@ -1,0 +1,622 @@
+{
+  "birthYear": 1995,
+  "currentYear": 2026,
+  "daewoon": [
+    {
+      "gz": {
+        "hanja": "丁丑",
+        "kr": "정축",
+        "en": "jeongchuk"
+      },
+      "start": 1996,
+      "end": 2006,
+      "startAge": 1,
+      "endAge": 11,
+      "sibsin": "편관",
+      "known": true,
+      "now": false
+    },
+    {
+      "gz": {
+        "hanja": "丙子",
+        "kr": "병자",
+        "en": "byeongja"
+      },
+      "start": 2006,
+      "end": 2016,
+      "startAge": 11,
+      "endAge": 21,
+      "sibsin": "정관",
+      "known": true,
+      "now": false
+    },
+    {
+      "gz": {
+        "hanja": "乙亥",
+        "kr": "을해",
+        "en": "eulhae"
+      },
+      "start": 2016,
+      "end": 2026,
+      "startAge": 21,
+      "endAge": 31,
+      "sibsin": "편재",
+      "known": true,
+      "now": false
+    },
+    {
+      "gz": {
+        "hanja": "甲戌",
+        "kr": "갑술",
+        "en": "gapsul"
+      },
+      "start": 2026,
+      "end": 2036,
+      "startAge": 31,
+      "endAge": 41,
+      "sibsin": "정재",
+      "known": true,
+      "now": true
+    },
+    {
+      "gz": {
+        "hanja": "癸酉",
+        "kr": "계유",
+        "en": "gyeyu"
+      },
+      "start": 2036,
+      "end": 2046,
+      "startAge": 41,
+      "endAge": 51,
+      "sibsin": "식신",
+      "known": true,
+      "now": false
+    },
+    {
+      "gz": {
+        "hanja": "壬申",
+        "kr": "임신",
+        "en": "imsin"
+      },
+      "start": 2046,
+      "end": 2056,
+      "startAge": 51,
+      "endAge": 61,
+      "sibsin": "상관",
+      "known": true,
+      "now": false
+    },
+    {
+      "gz": {
+        "hanja": "辛未",
+        "kr": "신미",
+        "en": "sinmi"
+      },
+      "start": 2056,
+      "end": 2066,
+      "startAge": 61,
+      "endAge": 71,
+      "sibsin": "비견",
+      "known": true,
+      "now": false
+    },
+    {
+      "gz": {
+        "hanja": "庚午",
+        "kr": "경오",
+        "en": "gyeongo"
+      },
+      "start": 2066,
+      "end": 2076,
+      "startAge": 71,
+      "endAge": 81,
+      "sibsin": "겁재",
+      "known": true,
+      "now": false
+    },
+    {
+      "gz": {
+        "hanja": "己巳",
+        "kr": "기사",
+        "en": "gisa"
+      },
+      "start": 2076,
+      "end": 2086,
+      "startAge": 81,
+      "endAge": 91,
+      "sibsin": "편인",
+      "known": true,
+      "now": false
+    },
+    {
+      "gz": {
+        "hanja": "戊辰",
+        "kr": "무진",
+        "en": "mujin"
+      },
+      "start": 2086,
+      "end": 2096,
+      "startAge": 91,
+      "endAge": 101,
+      "sibsin": "정인",
+      "known": true,
+      "now": false
+    }
+  ],
+  "lifeStages": [
+    {
+      "id": "early",
+      "name": "초년기",
+      "nameEn": "Early years",
+      "ageFrom": 0,
+      "ageTo": 19,
+      "yearFrom": 1995,
+      "yearTo": 2014,
+      "now": false,
+      "tone": "초년은 년주 — 편재(재성) 흐름 — 현실 감각이 일찍 트여요",
+      "toneEn": "From the year pillar — Indirect Wealth (Wealth) flow — A practical streak shows up early — you have an eye for money, things, and tangible results",
+      "detail": {
+        "daewoonText": "丁丑(정축) 대운 1996-2006 → 丙子(병자) 대운 2006-2016",
+        "body": [
+          "초년은 년주(부모·뿌리) 기준 — 편재(재성) 흐름 — 현실 감각이 일찍 트여요. 용돈·물건·결과에 눈이 밝은 아이예요. 큰 굴곡 없이 차분히 자기 몫을 다지는 흐름이에요.",
+          "본명 일지 未(미) × 대운 丑(축) → 未丑충 (변동 압력)",
+          "대운 丑(축)이 일간 辛 기준 양 — 보살핌을 받으며 자라는 시기"
+        ],
+        "bodyEn": [
+          "From the year pillar (parents·roots) — Indirect Wealth (Wealth) flow — A practical streak shows up early — you have an eye for money, things, and tangible results. No dramatic swings — a flow that quietly compounds what you do.",
+          "Natal day 未 (mi) × daeun 丑 (chuk) — clash (volatility pressure)",
+          "daeun 丑 (chuk) reads as 양 for day-master 辛 — A time of growing under care — receiving the support that allows you to develop."
+        ],
+        "outer": []
+      }
+    },
+    {
+      "id": "youth",
+      "name": "청년기",
+      "nameEn": "Young adulthood",
+      "ageFrom": 20,
+      "ageTo": 39,
+      "yearFrom": 2015,
+      "yearTo": 2034,
+      "now": true,
+      "tone": "편재 — 현실 성취와 돈·연애의 기회가 열려요",
+      "toneEn": "Indirect Wealth — The stage of real-world results, money, and love opens up — you build your footing",
+      "detail": {
+        "daewoonText": "丙子(병자) 대운 2006-2016 → 乙亥(을해) 대운 2016-2026 → 甲戌(갑술) 대운 2026-2036",
+        "body": [
+          "편재(재성) 흐름 — 현실 성취와 돈·연애의 기회가 열려요. 실속을 다져요. 드라마틱한 사건보다 누적이 의미 있는 편이에요.",
+          "본명 월지 寅(인) × 대운 亥(해) → 寅亥육합 (환경이 손발 맞춤)",
+          "대운 亥(해)이 일간 辛 기준 목욕 — 정화와 성장의 시기"
+        ],
+        "bodyEn": [
+          "Indirect Wealth (Wealth) flow — The stage of real-world results, money, and love opens up — you build your footing. Less about big events, more about the meaning of accumulation.",
+          "Natal month 寅 (in) × daeun 亥 (hae) — harmony (environment in step)",
+          "daeun 亥 (hae) reads as 목욕 for day-master 辛 — A time of cleansing and growth — washing away the old to make room for the new."
+        ],
+        "outer": [],
+        "shinsal": {
+          "title": "신살 활성",
+          "kind": "shinsal",
+          "body": "지살 활성 (대운 亥(해) ↔ 본명 연지 亥(해)) — 자기 시작·이동의 신호",
+          "bodyEn": "Jisal (Self-Start) active (daeun 亥 (hae) ↔ natal year branch 亥 (hae)) — self-initiated moves, departures"
+        }
+      }
+    },
+    {
+      "id": "middle",
+      "name": "중년기",
+      "nameEn": "Midlife",
+      "ageFrom": 40,
+      "ageTo": 59,
+      "yearFrom": 2035,
+      "yearTo": 2054,
+      "now": false,
+      "tone": "식신 — 쌓인 경험이 표현·창작·후배로 흘러나와요",
+      "toneEn": "Eating God — Years of experience pour out through expression, creation, mentoring",
+      "detail": {
+        "daewoonText": "甲戌(갑술) 대운 2026-2036 → 癸酉(계유) 대운 2036-2046 → 壬申(임신) 대운 2046-2056",
+        "body": [
+          "식신(식상) 흐름 — 쌓인 경험이 표현·창작·후배로 흘러나와요. 평지에서 페이스를 유지하는 게 핵심이에요.",
+          "본명 시지 卯(묘) × 대운 酉(유) → 卯酉충 (변동 압력)",
+          "대운 酉(유)이 일간 辛 기준 임관"
+        ],
+        "bodyEn": [
+          "Eating God (Output) flow — Years of experience pour out through expression, creation, mentoring. The point of this stretch is holding pace on flat ground.",
+          "Natal hour 卯 (myo) × daeun 酉 (yu) — clash (volatility pressure)",
+          "daeun 酉 (yu) reads as 임관 for day-master 辛"
+        ],
+        "outer": []
+      }
+    },
+    {
+      "id": "late",
+      "name": "장년기",
+      "nameEn": "Elder years",
+      "ageFrom": 60,
+      "ageTo": 84,
+      "yearFrom": 2055,
+      "yearTo": 2079,
+      "now": false,
+      "tone": "겁재 — 사람들과 어울리며 진짜 내 자리를 즐겨요",
+      "toneEn": "Rob Wealth — You enjoy your real place among people you have walked with",
+      "detail": {
+        "daewoonText": "壬申(임신) 대운 2046-2056 → 辛未(신미) 대운 2056-2066 → 庚午(경오) 대운 2066-2076 →…",
+        "body": [
+          "겁재(비겁) 흐름 — 사람들과 어울리며 진짜 내 자리를 즐겨요. 큰 굴곡 없이 차분히 자기 몫을 다지는 흐름이에요.",
+          "본명 일지 未(미) × 대운 午(오) → 未午육합 (환경이 손발 맞춤)",
+          "대운 午(오)이 일간 辛 기준 병 — 기운이 쇠약해짐"
+        ],
+        "bodyEn": [
+          "Rob Wealth (Peer) flow — You enjoy your real place among people you have walked with. No dramatic swings — a flow that quietly compounds what you do.",
+          "Natal day 未 (mi) × daeun 午 (o) — harmony (environment in step)",
+          "daeun 午 (o) reads as 병 for day-master 辛 — Energy is weakened — a phase of vulnerability that calls for care."
+        ],
+        "outer": []
+      }
+    }
+  ],
+  "milestones": [
+    {
+      "year": 1996,
+      "age": 1,
+      "label": "丁丑 대운",
+      "labelEn": "丁丑 luck cycle",
+      "meaning": "편관 대운이 열려요 — 강하게 밀어붙이는 도전의 10년",
+      "meaningEn": "Indirect-Officer (Pyeongwan) decade opens — a decade of challenge and pressure",
+      "kind": "daewoon"
+    },
+    {
+      "year": 2006,
+      "age": 11,
+      "label": "첫 목성 회귀 — 확장의 한 사이클",
+      "labelEn": "First Jupiter return",
+      "meaning": "12년 만의 첫 회귀로 세계관이 한 번 크게 확장돼요.",
+      "meaningEn": "Your worldview expands a step on this first 12-year return.",
+      "kind": "jupiter"
+    },
+    {
+      "year": 2018,
+      "age": 23,
+      "label": "두 번째 목성 회귀 — 진로의 큰 그림",
+      "labelEn": "Second Jupiter return",
+      "meaning": "진로의 큰 그림을 처음으로 자기 손에 쥐는 시기예요.",
+      "meaningEn": "You first grip the larger picture of your career path.",
+      "kind": "jupiter"
+    },
+    {
+      "year": 2022,
+      "age": 27,
+      "label": "감정 흐름의 한 매듭",
+      "labelEn": "Progressed lunar return",
+      "meaning": "감정과 관계의 한 사이클이 졸업되는 시기예요.",
+      "meaningEn": "One full emotional / relational cycle graduates.",
+      "kind": "saju"
+    },
+    {
+      "year": 2023,
+      "age": 28,
+      "label": "첫 토성 회귀 — 진짜 어른됨의 통과의례",
+      "labelEn": "First Saturn return",
+      "meaning": "책임과 전문성, 기반이 자리 잡는 시기예요.",
+      "meaningEn": "The rite of adulthood — responsibility, craft and foundation lock in.",
+      "kind": "saturn"
+    },
+    {
+      "year": 2026,
+      "age": 31,
+      "label": "甲戌 대운",
+      "labelEn": "甲戌 luck cycle",
+      "meaning": "정재 대운이 열려요 — 차근차근 쌓는 안정의 10년",
+      "meaningEn": "Direct-Wealth (Jeongjae) decade opens — a decade of steady building",
+      "kind": "daewoon",
+      "now": true
+    },
+    {
+      "year": 2030,
+      "age": 35,
+      "label": "세 번째 목성 회귀 — 인생 중반 직전의 확장",
+      "labelEn": "Third Jupiter return",
+      "meaning": "인생 중반에 들어서기 직전, 마지막 큰 확장의 기회예요.",
+      "meaningEn": "The last expansion window before midlife.",
+      "kind": "jupiter"
+    },
+    {
+      "year": 2031,
+      "age": 36,
+      "label": "명왕성 사각 — 깊은 재구성",
+      "labelEn": "Pluto square Pluto",
+      "meaning": "정체성과 내면 깊은 곳이 강하게 재구성되는 시기예요.",
+      "meaningEn": "Identity and the deep self are forcibly reorganised.",
+      "kind": "pluto"
+    },
+    {
+      "year": 2035,
+      "age": 40,
+      "label": "천왕성 마주봄 — 자유의 각성",
+      "labelEn": "Uranus opposition",
+      "meaning": "진짜 자기와 맞지 않는 길이 갑자기 깨지는 중년 각성기예요.",
+      "meaningEn": "The midlife awakening — what is not truly you breaks open.",
+      "kind": "uranus"
+    },
+    {
+      "year": 2036,
+      "age": 41,
+      "label": "해왕성 사각 — 의미의 시험",
+      "labelEn": "Neptune square",
+      "meaning": "의미와 환상이 시험대에 오르는 시기예요.",
+      "meaningEn": "Meaning and illusion are put to the test.",
+      "kind": "neptune"
+    },
+    {
+      "year": 2044,
+      "age": 49,
+      "label": "카이런 회귀 — 치유의 회귀",
+      "labelEn": "Chiron return",
+      "meaning": "평생의 상처를 본격적으로 치유로 바꾸는 시기예요.",
+      "meaningEn": "The lifelong wound now converts itself into healing capacity.",
+      "kind": "saju"
+    },
+    {
+      "year": 2052,
+      "age": 57,
+      "label": "두 번째 토성 회귀 — 마지막 어른됨의 통과의례",
+      "labelEn": "Second Saturn return",
+      "meaning": "사회 무대의 마지막 큰 전환, 진짜 남길 것을 정해주는 시기예요.",
+      "meaningEn": "The last great social pivot — what you choose to leave behind.",
+      "kind": "saturn"
+    },
+    {
+      "year": 2054,
+      "age": 59,
+      "label": "다섯 번째 목성 회귀 — 환갑의 전환",
+      "labelEn": "Fifth Jupiter return",
+      "meaning": "환갑의 전환, 후반 인생의 첫 사이클이 열리는 시기예요.",
+      "meaningEn": "A 60-year turning point — the second half of life opens its first cycle.",
+      "kind": "jupiter"
+    },
+    {
+      "year": 2066,
+      "age": 71,
+      "label": "庚午 대운",
+      "labelEn": "庚午 luck cycle",
+      "meaning": "겁재 대운이 열려요 — 경쟁과 협력이 같이 오는 10년",
+      "meaningEn": "Rob-Wealth (Geopjae) decade opens — a decade of rivalry and partnership",
+      "kind": "daewoon"
+    },
+    {
+      "year": 2078,
+      "age": 83,
+      "label": "천왕성 회귀 — 평생 자유의 결산",
+      "labelEn": "Uranus return",
+      "meaning": "평생의 자유와 독창성이 한 바퀴를 마감하는 결산기예요.",
+      "meaningEn": "A lifetime of freedom and originality finishes its full circle.",
+      "kind": "uranus"
+    },
+    {
+      "year": 2086,
+      "age": 91,
+      "label": "戊辰 대운",
+      "labelEn": "戊辰 luck cycle",
+      "meaning": "정인 대운이 열려요 — 배움과 받쳐주는 도움이 드는 10년",
+      "meaningEn": "Direct-Resource (Jeongin) decade opens — a decade of learning and support",
+      "kind": "daewoon"
+    }
+  ],
+  "zrSpiritChapters": [
+    {
+      "level": 1,
+      "index": 0,
+      "sign": "Taurus",
+      "ruler": "Venus",
+      "startYear": 0,
+      "endYear": 8,
+      "durationYears": 8,
+      "startLot": "Spirit",
+      "calendarStartYear": 1995,
+      "calendarEndYear": 2003,
+      "now": false,
+      "label": "Taurus / Venus / 8년"
+    },
+    {
+      "level": 1,
+      "index": 1,
+      "sign": "Gemini",
+      "ruler": "Mercury",
+      "startYear": 8,
+      "endYear": 28,
+      "durationYears": 20,
+      "startLot": "Spirit",
+      "calendarStartYear": 2003,
+      "calendarEndYear": 2023,
+      "now": false,
+      "label": "Gemini / Mercury / 20년"
+    },
+    {
+      "level": 1,
+      "index": 2,
+      "sign": "Cancer",
+      "ruler": "Moon",
+      "startYear": 28,
+      "endYear": 53,
+      "durationYears": 25,
+      "startLot": "Spirit",
+      "calendarStartYear": 2023,
+      "calendarEndYear": 2048,
+      "now": true,
+      "label": "Cancer / Moon / 25년"
+    },
+    {
+      "level": 1,
+      "index": 3,
+      "sign": "Leo",
+      "ruler": "Sun",
+      "startYear": 53,
+      "endYear": 72,
+      "durationYears": 19,
+      "startLot": "Spirit",
+      "calendarStartYear": 2048,
+      "calendarEndYear": 2067,
+      "now": false,
+      "label": "Leo / Sun / 19년"
+    },
+    {
+      "level": 1,
+      "index": 4,
+      "sign": "Virgo",
+      "ruler": "Mercury",
+      "startYear": 72,
+      "endYear": 92,
+      "durationYears": 20,
+      "startLot": "Spirit",
+      "calendarStartYear": 2067,
+      "calendarEndYear": 2087,
+      "now": false,
+      "label": "Virgo / Mercury / 20년"
+    }
+  ],
+  "zrFortuneChapters": [
+    {
+      "level": 1,
+      "index": 0,
+      "sign": "Libra",
+      "ruler": "Venus",
+      "startYear": 0,
+      "endYear": 8,
+      "durationYears": 8,
+      "startLot": "Fortune",
+      "calendarStartYear": 1995,
+      "calendarEndYear": 2003,
+      "now": false,
+      "label": "Libra / Venus / 8년"
+    },
+    {
+      "level": 1,
+      "index": 1,
+      "sign": "Scorpio",
+      "ruler": "Mars",
+      "startYear": 8,
+      "endYear": 23,
+      "durationYears": 15,
+      "startLot": "Fortune",
+      "calendarStartYear": 2003,
+      "calendarEndYear": 2018,
+      "now": false,
+      "label": "Scorpio / Mars / 15년"
+    },
+    {
+      "level": 1,
+      "index": 2,
+      "sign": "Sagittarius",
+      "ruler": "Jupiter",
+      "startYear": 23,
+      "endYear": 35,
+      "durationYears": 12,
+      "startLot": "Fortune",
+      "calendarStartYear": 2018,
+      "calendarEndYear": 2030,
+      "now": true,
+      "label": "Sagittarius / Jupiter / 12년"
+    },
+    {
+      "level": 1,
+      "index": 3,
+      "sign": "Capricorn",
+      "ruler": "Saturn",
+      "startYear": 35,
+      "endYear": 62,
+      "durationYears": 27,
+      "startLot": "Fortune",
+      "calendarStartYear": 2030,
+      "calendarEndYear": 2057,
+      "now": false,
+      "label": "Capricorn / Saturn / 27년"
+    },
+    {
+      "level": 1,
+      "index": 4,
+      "sign": "Aquarius",
+      "ruler": "Saturn",
+      "startYear": 62,
+      "endYear": 89,
+      "durationYears": 27,
+      "startLot": "Fortune",
+      "calendarStartYear": 2057,
+      "calendarEndYear": 2084,
+      "now": false,
+      "label": "Aquarius / Saturn / 27년"
+    },
+    {
+      "level": 1,
+      "index": 5,
+      "sign": "Pisces",
+      "ruler": "Jupiter",
+      "startYear": 89,
+      "endYear": 101,
+      "durationYears": 12,
+      "startLot": "Fortune",
+      "calendarStartYear": 2084,
+      "calendarEndYear": 2096,
+      "now": false,
+      "label": "Pisces / Jupiter / 12년"
+    }
+  ],
+  "lifePattern": {
+    "key": "undulating",
+    "ko": "굴곡형",
+    "en": "Ups and downs",
+    "line": "좋을 때와 힘들 때가 번갈아 와요. 타이밍을 잘 보면 좋아요. 특히 1996년(1세) 무렵부터 직위·책임 쪽으로 가장 크게 힘을 실어줘요.",
+    "lineEn": "Good spells and hard spells alternate — read the timing well. Your strongest stretch is around 1996 (age 1), leaning toward status and duty.",
+    "daeun": [
+      {
+        "startAge": 1,
+        "gz": "丁丑",
+        "favor": 2
+      },
+      {
+        "startAge": 11,
+        "gz": "丙子",
+        "favor": 1
+      },
+      {
+        "startAge": 21,
+        "gz": "乙亥",
+        "favor": 0
+      },
+      {
+        "startAge": 31,
+        "gz": "甲戌",
+        "favor": 1
+      },
+      {
+        "startAge": 41,
+        "gz": "癸酉",
+        "favor": 0
+      },
+      {
+        "startAge": 51,
+        "gz": "壬申",
+        "favor": 0
+      },
+      {
+        "startAge": 61,
+        "gz": "辛未",
+        "favor": 1
+      },
+      {
+        "startAge": 71,
+        "gz": "庚午",
+        "favor": 1
+      },
+      {
+        "startAge": 81,
+        "gz": "己巳",
+        "favor": 2
+      },
+      {
+        "startAge": 91,
+        "gz": "戊辰",
+        "favor": 2
+      }
+    ]
+  }
+}

@@ -35,6 +35,30 @@ import { getSouthNodeOppositeSign } from '@/lib/astrology/interpretations'
 import { SIGN_KO_TO_EN } from '@/lib/astrology/signLabels'
 import { getGongmang } from '@/lib/saju/pillarLookup'
 import { PLANET_KO as PLANET_KO_BASE } from '@/lib/calendar-engine/data/planetNames'
+import { currentManAge } from '@/lib/datetime/currentAge'
+
+/** 미성년 안전 모드 임계 — 만 14세 미만이면 연애·배우자·재물 콘텐츠를 연령 맞춤으로
+ *  reframe/생략한다(아동 부적합 방지). 출생 시간대 미상이면 'UTC'로 근사(연 단위
+ *  게이트라 자정 경계 오차는 무관). 생년월일 불완전 시 성인으로 간주(오탐 방지). */
+export const MINOR_AGE_THRESHOLD = 14
+function computeIsMinor(inp: any, now: Date): boolean {
+  const y = Number(inp?.year)
+  const m = Number(inp?.month)
+  const d = Number(inp?.date)
+  if (!y || !m || !d) return false
+  try {
+    const age = currentManAge({
+      birthYear: y,
+      birthMonth: m,
+      birthDate: d,
+      birthTimeZone: inp?.timeZone || 'UTC',
+      now,
+    })
+    return age < MINOR_AGE_THRESHOLD
+  } catch {
+    return false
+  }
+}
 
 // 5-tier (정통) → 단일 라벨. 우선순위는 score 절댓값과 일치.
 // domicile/exaltation/detriment/fall 4 종을 먼저 — 라벨 자체가 강한 의미.
@@ -159,6 +183,9 @@ export interface ReportGeokgukMeta {
 export interface ReportDataExtras {
   geokgukMeta?: ReportGeokgukMeta
   sibsinCategoryCount?: Record<string, number>
+  /** 만 14세 미만 — §01/§02 연애 슬롯을 연령 맞춤 문구로 reframe하고
+   *  §05 교차의 연애·재물 축을 생략한다. */
+  isMinor?: boolean
 }
 
 // 관계 detail 문자열에서 천간·지지 한자만 추출. 예: "亥-寅 육합" → "亥寅",
@@ -211,12 +238,14 @@ const RELATION_CATEGORIES = new Set<string>([
 /** NatalContext → ReportData (chart.zip 뷰모델). */
 export function natalToReportData(
   ctx: AnyCtx,
-  lang: 'ko' | 'en' = 'ko'
+  lang: 'ko' | 'en' = 'ko',
+  now: Date = new Date()
 ): ReportData & ReportDataExtras {
   const S = ctx.saju ?? {}
   const A = ctx.astro ?? {}
   const inp = ctx.input ?? {}
   const adv = S.analyses ?? {}
+  const isMinor = computeIsMinor(inp, now)
 
   // 격국 신뢰도/폴백 플래그 — §02 카드가 "확정 정격"으로 단정하지 않도록 전달.
   // adv.geokguk(determineGeokgukAdvanced) 가 SSOT. 월령 본기 추정(fallback:true,
@@ -278,11 +307,14 @@ export function natalToReportData(
   // 신살
   const natalShinsal = (S.natalShinsal ?? []).slice(0, 8).map((h: any) => {
     const kind = h.kind ?? h.name ?? ''
-    const pillar = Array.isArray(h.pillars) ? (PILLAR_KO[h.pillars[0]] ?? '') : ''
+    const pillarKey = Array.isArray(h.pillars) ? h.pillars[0] : ''
+    const pillar = PILLAR_KO[pillarKey] ?? ''
+    const pillarEn = PILLAR_EN[pillarKey] ?? ''
     return {
       name: kind,
       ko: kind,
       pillar,
+      pillarEn,
       sub: h.sub,
       polarity: h.polarity ?? SHINSAL_POLARITY[kind] ?? 0,
     }
@@ -461,6 +493,7 @@ export function natalToReportData(
     },
     geokgukMeta,
     sibsinCategoryCount,
+    isMinor,
   }
 }
 
@@ -470,6 +503,14 @@ const PILLAR_KO: Record<string, string> = {
   day: '日',
   time: '時',
   hour: '時',
+}
+// EN 리포트용 기둥 약칭 — 한자(年月日時)를 그대로 노출하지 않도록 짝을 둔다.
+const PILLAR_EN: Record<string, string> = {
+  year: 'Yr',
+  month: 'Mo',
+  day: 'Day',
+  time: 'Hr',
+  hour: 'Hr',
 }
 
 // ── 섹션 5: natalCross 교차 → 카드 rows ──────────────────────────────────
@@ -484,11 +525,15 @@ export interface CrossRowOut {
 }
 export function buildCrossRows(
   ctx: AnyCtx,
-  lang: 'ko' | 'en' = 'ko'
+  lang: 'ko' | 'en' = 'ko',
+  now: Date = new Date()
 ): { synthesis?: string; rows: CrossRowOut[] } {
   const S = ctx.saju ?? {}
   const A = ctx.astro ?? {}
   const adv = S.analyses ?? {}
+  // 미성년 안전 모드: 연애·재물 교차 축은 verdict/synthesis 산출 전에 제거해
+  // 그리드뿐 아니라 종합문에도 연애·배우자·재물 서술이 섞이지 않게 한다.
+  const isMinor = computeIsMinor(ctx.input ?? {}, now)
   const planets = A.chart?.planets ?? A.planets ?? []
   const find = (n: string) => planets.find((p: any) => p.name === n)
   const dmEl = S.dayMaster?.element
@@ -562,12 +607,15 @@ export function buildCrossRows(
   const rels = S.natalRelations ?? []
   const hap = rels.filter((r: any) => String(r.kind ?? r.type).includes('합')).length
   const chung = rels.filter((r: any) => String(r.kind ?? r.type).includes('충')).length
-  // 궁위 — 일지(日支)=배우자궁. 충/합이 일지에 걸리는지(pillars 에 'day').
+  // 궁위 — 일지(日支)=배우자궁. *지지* 충/합이 일지에 걸리는지(pillars 에 'day').
+  // 주의: '충'/'합' 부분일치는 천간충/천간합까지 잡아 일지(지지) 궁위에 잘못 귀속된다
+  // (R5: 천간충 癸-丁이 일지 巳 충으로 날조됨). 반드시 지지 관계로만 한정한다.
   const dayBranchClash = rels.some(
-    (r: any) => String(r.kind ?? r.type).includes('충') && (r.pillars ?? []).includes('day')
+    (r: any) => String(r.kind ?? r.type).includes('지지충') && (r.pillars ?? []).includes('day')
   )
   const dayBranchCombine = rels.some(
-    (r: any) => String(r.kind ?? r.type).includes('합') && (r.pillars ?? []).includes('day')
+    (r: any) =>
+      /지지(육합|삼합|방합|반합)/.test(String(r.kind ?? r.type)) && (r.pillars ?? []).includes('day')
   )
   const dayShinsal = (S.natalShinsal ?? [])
     .filter((h: any) => Array.isArray(h.pillars) && h.pillars.includes('day'))
@@ -634,7 +682,13 @@ export function buildCrossRows(
   const items: Array<[keyof typeof CAT, CrossVerdict | null]> = [
     [
       'identity',
-      evalIdentity(dmEl, sunSign, ascSign, (A.almutenFiguris?.winner ?? null) as string | null),
+      evalIdentity(
+        dmEl,
+        sunSign,
+        ascSign,
+        (A.almutenFiguris?.winner ?? null) as string | null,
+        isMinor
+      ),
     ],
     [
       'needs',
@@ -659,7 +713,8 @@ export function buildCrossRows(
         hard,
         crossGender,
         // 자식성 — 남: 관성 / 여: 식상 (categoryCount 그룹).
-        ((crossGender === 'female' ? details?.식상 : details?.관성) as number | undefined) ?? 0
+        ((crossGender === 'female' ? details?.식상 : details?.관성) as number | undefined) ?? 0,
+        isMinor // 미성년이면 자녀·후대 서술 생략
       ),
     ],
     [
@@ -714,13 +769,16 @@ export function buildCrossRows(
     ['growth', evalNorthNode(S.fiveElements, northNode?.sign)],
     ['yinYang', evalYinYang(STEM_INFO[S.dayMaster?.name ?? '']?.yy, A.sect)],
   ]
-  const verdicts = items.map(([, v]) => v).filter((v): v is CrossVerdict => !!v)
+  const visibleItems = isMinor
+    ? items.filter(([key]) => key !== 'romance' && key !== 'wealth')
+    : items
+  const verdicts = visibleItems.map(([, v]) => v).filter((v): v is CrossVerdict => !!v)
   const synth = synthesize(
     verdicts,
     undefined,
     S.fiveElements as Record<string, number> | undefined
   )
-  const rows = items
+  const rows = visibleItems
     .filter((it): it is [keyof typeof CAT, CrossVerdict] => !!it[1])
     .map(([key, v]) => ({
       category: CAT[key][lang],

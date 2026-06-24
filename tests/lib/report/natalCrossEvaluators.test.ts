@@ -55,7 +55,7 @@ describe('evalIdentity — ASC 첫인상 분기', () => {
   })
   it('almuten 없으면 주인 행성 줄 없음 / EN 한글 없음', () => {
     const v = evalIdentity('화', 'Leo', 'Aries', 'Mars')!
-    expect(v.reason.ko).toContain('차트의 주인 행성')
+    expect(v.reason.ko).toContain('알무텐')
     expect(HANGUL.test(v.reason.en)).toBe(false)
   })
 })

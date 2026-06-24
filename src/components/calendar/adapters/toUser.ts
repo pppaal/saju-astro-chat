@@ -20,6 +20,7 @@ import type { NatalContext } from '@/lib/calendar-engine/context/types'
 import type { ArabicLotName } from '@/lib/astrology/foundation/arabicParts'
 import type { ZodiacKo } from '@/lib/astrology/foundation/types'
 import type { DestinyDignityEntry, DestinyAlmutenFiguris, DestinyArabicLot } from '@/types/calendar'
+import { getIljuArchetype, type IljuLangEntry } from '@/lib/chart-dictionary'
 import { ELEMENT_KO, ELEMENT_EN, SIGN_KO, geokgukStatusLine, rootLine } from './shared'
 
 export interface DestinypalUserElements {
@@ -93,6 +94,11 @@ export interface DestinypalUser {
    * UI 가 .house / .sect / .korean 으로 읽음.
    */
   lotsFull: DestinyArabicLot[]
+  /**
+   * 본명 일주 아키타입(ilju-60) 평이 프로즈 — character/strength/weakness/
+   * career/love. 일주 간지 결손/DB 미스 시 undefined (옵셔널 · 가드).
+   */
+  iljuArchetype?: { ko: IljuLangEntry; en: IljuLangEntry }
 }
 
 // ── 일간 한글 음 (한자→한글) ───────────────────────────────────────────────
@@ -285,6 +291,29 @@ export interface ToUserOptions {
   introEn?: string
 }
 
+// 한글 천간 → 한자 (일주 간지 합성용 — STEM_KO_TO_HAN 재사용해도 되나, 명시).
+// 일지는 엔진에서 이미 한자(寅·未…)로 들어오므로 천간만 한자화하면 됨.
+
+/**
+ * 본명 일주 간지(干支)로 ilju-60 아키타입 평이 프로즈를 ko/en *둘 다* 해소한다.
+ * 일간(辛) + 일지(未) → '辛未' → getIljuArchetype. 서버에서 양쪽 로케일을 미리
+ * 만들어 두어야 클라이언트 토글 시 한/영이 섞이지 않는다(intro/introEn 패턴과 동일).
+ * 일주 간지를 못 구하거나 DB 미스 시 undefined (가드 → 렌더 생략).
+ */
+function deriveIljuArchetype(
+  natal: NatalContext
+): { ko: IljuLangEntry; en: IljuLangEntry } | undefined {
+  const dayStemRaw = natal.saju.pillars?.day?.heavenlyStem?.name
+  const dayBranchRaw = natal.saju.pillars?.day?.earthlyBranch?.name
+  if (!dayStemRaw || !dayBranchRaw) return undefined
+  // 천간은 한글("신")일 수 있어 한자화. 이미 한자면 그대로.
+  const stemHan = STEM_KO_TO_HAN[dayStemRaw] ?? dayStemRaw
+  const ganji = `${stemHan}${dayBranchRaw}`
+  const ko = getIljuArchetype(ganji, 'ko')
+  const en = getIljuArchetype(ganji, 'en')
+  return ko && en ? { ko, en } : undefined
+}
+
 /**
  * NatalContext → destinypal user 객체.
  *
@@ -373,5 +402,6 @@ export function toUser(natal: NatalContext, opts: ToUserOptions = {}): Destinypa
     almutenFiguris: deriveAlmutenFigurisFull(natal),
     dignities: deriveDignitiesFull(natal),
     lotsFull: deriveLotsFull(natal),
+    iljuArchetype: deriveIljuArchetype(natal),
   }
 }

@@ -5,9 +5,9 @@
 // 무료 궁합 — 로그인 없이 두 사람 생년월일만 넣으면 바로 결과. 바이럴 미끼:
 // 친구·연인과 함께 해보고(소셜성), 결과를 공유(/r 링크)해 다시 사람을 끌어온다.
 //
-// 일부러 "맛보기": 동·서 교차 verdict + 끌림/마찰 밴드 + 결정적 신호 한 줄까지.
-// 깊은 관계 상담(각 영역 풀이·시기·조언)은 유료 상담사의 몫이라, 맨 아래
-// "상담사에게 더 깊이" CTA 로 전환을 유도한다.
+// UI 는 통합 리포트(IntegratedReport)와 같은 밝은 페이퍼 결 — 번호 섹션 + ✦ +
+// 골드 헤어라인 + 넉넉한 여백으로 "깔끔하게" 읽힌다(freeCompat.module.css).
+// 깊은 관계 상담(처방·시기·1:1)은 유료 궁합 상담사의 몫이라 맨 아래 CTA 로 전환.
 //
 // 계산 파이프라인은 검증된 상담사 경로를 그대로 재사용한다:
 //   /api/saju ×2 + /api/astrology ×2 → /api/compatibility/report
@@ -24,14 +24,28 @@ import { ShareCompatibilityButton } from '@/components/compatibility/ShareCompat
 import { spouseFeeling } from '@/lib/compatibility/compatChartLabels'
 import type { SajuPillarInput } from '@/lib/compatibility/sajuSynastryFormatter'
 import type { CompatReport } from '@/lib/compatibility/compatReport'
+import { buildFreeCompatNarrative } from '@/lib/compatibility/freeReport/buildNarrative'
+import type { FreeReportSection } from '@/lib/compatibility/freeReport/types'
 import { logger } from '@/lib/logger'
-
-const GOLD = '#e8cc8a'
-const GOLD_SOFT = '#d4b572'
-const MUTED = '#9aa3b8'
+import s from './freeCompat.module.css'
 
 // 서울 폴백 — 도시 미선택 시 좌표가 없으면 계산이 깨지므로 검증에서 막는다.
 const DEFAULT_TZ = 'Asia/Seoul'
+
+// BirthInfoFields 에 넘기는 라이트(종이) 테마 클래스 — 흰 입력 박스 + 골드 포커스.
+const lightFieldClasses = {
+  field: 'flex flex-col gap-1.5',
+  label: 'text-[12.5px] font-semibold tracking-[0.02em] text-[#6c665b]',
+  input:
+    'w-full rounded-xl border border-[#e2dccf] bg-white px-3 py-2.5 text-[16px] text-[#211f1b] outline-none transition focus:border-[#c9a85f] disabled:cursor-not-allowed disabled:opacity-50',
+  row: 'grid grid-cols-2 gap-2.5',
+  checkboxLabel: 'mt-1.5 flex cursor-pointer items-center gap-1.5 text-[12px] text-[#6c665b]',
+  checkbox: 'h-3.5 w-3.5 cursor-pointer accent-[#a9833b]',
+  suggestionList:
+    'absolute left-0 right-0 top-[calc(100%+4px)] z-20 max-h-56 overflow-auto rounded-xl border border-[#e2dccf] bg-white p-1 shadow-[0_16px_40px_rgba(60,48,40,0.18)]',
+  suggestionItem:
+    'block w-full rounded-lg px-2.5 py-2 text-left text-[13px] text-[#211f1b] transition hover:bg-[rgba(169,131,59,0.12)]',
+}
 
 interface Person {
   name: string
@@ -211,7 +225,7 @@ export default function FreeCompatibilityPage() {
       const who = sp.from === 'A' ? labelA : labelB
       const other = sp.from === 'A' ? labelB : labelA
       return isKo
-        ? `${who}에게 ${withNeun(other)} ‘${feeling}’의 짝으로 와요. 게다가 바로 배우자 자리에 떠 있고요.`
+        ? `${who}에게 ${withNeun(other)} '${feeling}'의 짝으로 와요. 게다가 바로 배우자 자리에 떠 있고요.`
         : `To ${who}, ${other} reads as a "${feeling}" partner — landing right in the spouse seat.`
     }
     const a0 = report?.synView?.aspects?.[0]
@@ -224,42 +238,16 @@ export default function FreeCompatibilityPage() {
   })()
 
   return (
-    <main
-      style={{
-        minHeight: '100vh',
-        background:
-          'radial-gradient(900px 620px at 25% 8%, rgba(236,72,153,0.14), transparent 60%),' +
-          'radial-gradient(820px 700px at 85% 100%, rgba(212,181,114,0.14), transparent 60%),' +
-          'linear-gradient(160deg, #0b1022 0%, #070a1a 58%, #0a0e1f 100%)',
-        color: '#f1f3f9',
-      }}
-    >
-      <div style={{ maxWidth: 620, margin: '0 auto', padding: '36px 20px 96px' }}>
-        <Link href="/free" style={{ color: GOLD_SOFT, textDecoration: 'none', fontSize: 13 }}>
+    <main className={s.page}>
+      <div className={s.container}>
+        <Link href="/free" className={s.back}>
           ← {isKo ? '무료 도구 홈' : 'Free tools'}
         </Link>
 
-        <p
-          style={{
-            marginTop: 22,
-            fontSize: 12,
-            letterSpacing: '0.24em',
-            textTransform: 'uppercase',
-            color: GOLD_SOFT,
-            textAlign: 'center',
-          }}
-        >
+        <p className={s.eyebrow}>
           {isKo ? '무료 궁합 · 로그인 없이' : 'FREE COMPATIBILITY · NO SIGN-UP'}
         </p>
-        <h1
-          style={{
-            marginTop: 8,
-            fontSize: 26,
-            fontWeight: 800,
-            textAlign: 'center',
-            wordBreak: 'keep-all',
-          }}
-        >
+        <h1 className={s.h1}>
           {isKo ? '두 사람의 궁합, 지금 무료로' : 'Your compatibility, free right now'}
         </h1>
 
@@ -278,16 +266,7 @@ export default function FreeCompatibilityPage() {
           />
         ) : (
           <>
-            <p
-              style={{
-                marginTop: 12,
-                fontSize: 15,
-                lineHeight: 1.7,
-                color: MUTED,
-                textAlign: 'center',
-                wordBreak: 'keep-all',
-              }}
-            >
+            <p className={s.lead}>
               {isKo
                 ? '두 사람의 생년월일·출생지를 넣으면 사주와 별자리로 본 케미를 바로 보여드려요.'
                 : 'Enter both birth dates and places — see your chemistry from Saju and the stars.'}
@@ -295,7 +274,7 @@ export default function FreeCompatibilityPage() {
 
             <PersonForm
               title={isKo ? '첫 번째 사람' : 'Person A'}
-              accent="#ec4899"
+              accent="#c2548a"
               person={personA}
               onName={(name) => setPersonA((p) => ({ ...p, name }))}
               onChange={patch(setPersonA)}
@@ -304,7 +283,7 @@ export default function FreeCompatibilityPage() {
             />
             <PersonForm
               title={isKo ? '두 번째 사람' : 'Person B'}
-              accent="#38bdf8"
+              accent="#3f7cae"
               person={personB}
               onName={(name) => setPersonB((p) => ({ ...p, name }))}
               onChange={patch(setPersonB)}
@@ -312,32 +291,13 @@ export default function FreeCompatibilityPage() {
               idPrefix="cf-b"
             />
 
-            {error ? (
-              <p style={{ marginTop: 16, color: '#fda4af', fontSize: 13, textAlign: 'center' }}>
-                {error}
-              </p>
-            ) : null}
+            {error ? <p className={s.error}>{error}</p> : null}
 
             <button
               type="button"
               disabled={!ready || phase === 'loading'}
               onClick={() => void analyze()}
-              style={{
-                marginTop: 24,
-                width: '100%',
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 8,
-                padding: '15px 24px',
-                borderRadius: 999,
-                background: ready ? GOLD : 'rgba(212,181,114,0.3)',
-                color: '#1a1305',
-                fontWeight: 700,
-                fontSize: 16,
-                border: 'none',
-                cursor: ready && phase !== 'loading' ? 'pointer' : 'not-allowed',
-              }}
+              className={s.cta}
             >
               {phase === 'loading' ? (
                 <>
@@ -352,7 +312,7 @@ export default function FreeCompatibilityPage() {
               )}
             </button>
             {!ready ? (
-              <p style={{ marginTop: 10, fontSize: 12, color: MUTED, textAlign: 'center' }}>
+              <p className={s.hint}>
                 {isKo
                   ? '두 사람의 생년월일과 출생 도시(목록에서 선택)를 모두 채워주세요.'
                   : 'Fill in both birth dates and pick each birth city from the list.'}
@@ -385,21 +345,12 @@ function PersonForm({
 }) {
   const isKo = locale === 'ko'
   return (
-    <div
-      style={{
-        marginTop: 20,
-        padding: 18,
-        borderRadius: 16,
-        background: 'rgba(255,255,255,0.035)',
-        border: `1px solid ${accent}44`,
-      }}
-    >
-      <p style={{ fontSize: 13, fontWeight: 700, color: accent, marginBottom: 12 }}>{title}</p>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 12 }}>
-        <label
-          htmlFor={`${idPrefix}-name`}
-          style={{ fontSize: 12.5, fontWeight: 600, color: 'rgba(229,231,240,0.78)' }}
-        >
+    <div className={s.personCard}>
+      <p className={s.personTitle} style={{ color: accent }}>
+        {title}
+      </p>
+      <div className={s.field}>
+        <label htmlFor={`${idPrefix}-name`} className={s.label}>
           {isKo ? '이름 (선택)' : 'Name (optional)'}
         </label>
         <input
@@ -409,14 +360,7 @@ function PersonForm({
           onChange={(e) => onName(e.target.value)}
           placeholder={isKo ? '예: 준영' : 'e.g. Alex'}
           maxLength={20}
-          style={{
-            padding: '10px 12px',
-            borderRadius: 10,
-            background: 'rgba(255,255,255,0.04)',
-            border: '1px solid rgba(255,255,255,0.12)',
-            color: '#f1f3f9',
-            fontSize: 14,
-          }}
+          className={s.input}
         />
       </div>
       <BirthInfoFields
@@ -428,13 +372,65 @@ function PersonForm({
         city={person.city}
         latitude={person.latitude}
         onChange={onChange}
+        classes={lightFieldClasses}
         idPrefix={idPrefix}
       />
     </div>
   )
 }
 
-// 결과 — 동·서 교차 verdict + 끌림/마찰 밴드 + 결정적 신호 한 줄 + 공유 + 유료 CTA.
+// 한 섹션 — 번호 + 아이콘 + 제목(골드 헤어라인), 도입, 본문 단락들.
+function SectionBlock({ section, index }: { section: FreeReportSection; index: number }) {
+  return (
+    <section className={s.section}>
+      <div className={s.secHead}>
+        <span className={s.secNum} aria-hidden="true">
+          {String(index + 1).padStart(2, '0')}
+        </span>
+        <span className={s.secTitleWrap}>
+          <span className={s.secIcon} aria-hidden="true">
+            {section.icon}
+          </span>
+          <h2 className={s.secTitle}>{section.title}</h2>
+        </span>
+      </div>
+      {section.lead ? <p className={s.secLead}>{section.lead}</p> : null}
+      {section.paragraphs.map((p, i) => (
+        <p key={i} className={s.para}>
+          {p}
+        </p>
+      ))}
+    </section>
+  )
+}
+
+// 용어 풀이 — 접고 펼치는 더보기. (사주·점성 모르는 사람이 한 번에 정리)
+function GlossaryBlock({
+  entries,
+  isKo,
+}: {
+  entries: { term: string; body: string }[]
+  isKo: boolean
+}) {
+  if (!entries.length) return null
+  return (
+    <details className={s.glossary}>
+      <summary className={s.glossarySummary}>
+        📖 {isKo ? '용어 풀이 — 쉽게 한 번에' : 'Glossary — plain meanings'}
+      </summary>
+      <dl className={s.glossaryList}>
+        {entries.map((e, i) => (
+          <div key={i} className={s.glossaryRow}>
+            <dt className={s.glossaryTerm}>{e.term}</dt>
+            <dd className={s.glossaryDef}>{e.body}</dd>
+          </div>
+        ))}
+      </dl>
+    </details>
+  )
+}
+
+// 결과 — 풍부한 무료 리포트: 도입 + 밴드 + 한눈에 + 신호별 섹션 + 용어풀이 + 공유 + 유료 CTA.
 function ResultView({
   report,
   headlineReason,
@@ -452,62 +448,49 @@ function ResultView({
   locale: 'ko' | 'en'
   onReset: () => void
 }) {
-  const verdict = report.crossVerdict
-  const verdictColor =
+  const view = buildFreeCompatNarrative(report, { labelA, labelB, lang: locale })
+  const verdict = view.verdict
+  const toneClass =
     verdict?.tone === 'aligned'
-      ? GOLD
+      ? s.aligned
       : verdict?.tone === 'tension'
-        ? '#fda4af'
+        ? s.tension
         : verdict?.tone === 'mixed'
-          ? '#fbbf24'
-          : '#dfe3ee'
+          ? s.mixed
+          : s.neutral
 
   return (
-    <div style={{ marginTop: 24 }}>
-      <p style={{ textAlign: 'center', fontSize: 14, color: MUTED }}>
-        {labelA} <Heart className="inline w-3.5 h-3.5" style={{ color: '#ec4899' }} /> {labelB}
+    <div>
+      <p className={s.resultHead}>
+        {labelA} <Heart className="inline w-3.5 h-3.5" style={{ color: '#c2548a' }} /> {labelB}
       </p>
 
+      {/* 리포트 도입 — 어떻게 읽는지 */}
+      <p className={s.intro}>{view.intro}</p>
+
       {/* 끌림/마찰 밴드 — 가짜 정밀 점수(N/100) 대신 verdict 밴드 + 분해 바 */}
-      <div style={{ marginTop: 16 }}>
-        <ScoreBreakdown breakdown={report.band} lang={locale} variant="band" theme="dark" />
+      <div className={s.bandWrap}>
+        <ScoreBreakdown breakdown={report.band} lang={locale} variant="band" theme="light" />
       </div>
 
-      {/* 동·서 교차 종합 — 사주와 별자리가 한 방향인지 */}
+      {/* 한눈에 — 동·서 교차 종합 + 초보자용 풀이 */}
       {verdict ? (
-        <p
-          style={{
-            marginTop: 18,
-            textAlign: 'center',
-            fontSize: 16,
-            fontWeight: 700,
-            lineHeight: 1.6,
-            color: verdictColor,
-            wordBreak: 'keep-all',
-          }}
-        >
-          {verdict.text}
-        </p>
+        <div className={s.hero}>
+          <p className={`${s.heroText} ${toneClass}`}>{verdict.text}</p>
+          <p className={s.heroSub}>{verdict.expansion}</p>
+        </div>
       ) : null}
 
-      {/* 결정적 신호 한 줄 */}
-      {headlineReason ? (
-        <p
-          style={{
-            marginTop: 12,
-            textAlign: 'center',
-            fontSize: 14,
-            lineHeight: 1.7,
-            color: '#dfe3ee',
-            wordBreak: 'keep-all',
-          }}
-        >
-          {headlineReason}
-        </p>
-      ) : null}
+      {/* 신호별 섹션 — 결·마음·무대·짝·매듭 */}
+      {view.sections.map((sec, i) => (
+        <SectionBlock key={sec.id} section={sec} index={i} />
+      ))}
+
+      {/* 용어 풀이 */}
+      <GlossaryBlock entries={view.glossary} isKo={isKo} />
 
       {/* 공유 — 바이럴 루프 */}
-      <div style={{ marginTop: 24, display: 'flex', justifyContent: 'center' }}>
+      <div className={s.share}>
         <ShareCompatibilityButton
           data={{
             isKo,
@@ -520,58 +503,16 @@ function ResultView({
         />
       </div>
 
-      {/* 깊은 해석은 유료 상담사 — 가장 눈에 띄는 CTA */}
-      <div
-        style={{
-          marginTop: 28,
-          padding: 20,
-          borderRadius: 16,
-          background: 'rgba(212,181,114,0.08)',
-          border: '1px solid rgba(212,181,114,0.28)',
-          textAlign: 'center',
-        }}
-      >
-        <p style={{ fontSize: 14, color: MUTED, lineHeight: 1.7, wordBreak: 'keep-all' }}>
-          {isKo
-            ? '이건 두 사람 케미의 큰 그림이에요. 어디서 통하고 어디를 조율하면 좋을지, 시기까지 — 상담사가 더 깊이 풀어드려요.'
-            : 'This is the big picture of your chemistry. For where you click, what to tune, and the timing — the counselor goes deeper.'}
-        </p>
-        <Link
-          href="/compatibility/counselor"
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 6,
-            marginTop: 16,
-            padding: '12px 24px',
-            borderRadius: 999,
-            background: GOLD,
-            color: '#1a1305',
-            textDecoration: 'none',
-            fontSize: 15,
-            fontWeight: 700,
-          }}
-        >
+      {/* 깊은 해석(처방·시기·1:1)은 유료 궁합 상담사 — 가장 눈에 띄는 CTA */}
+      <div className={s.closing}>
+        <p className={s.closingText}>{view.closing}</p>
+        <Link href="/compatibility/counselor" className={s.counselorCta}>
           <Sparkles className="w-4 h-4" />
           {isKo ? '상담사에게 더 깊이 묻기 →' : 'Ask the counselor for more →'}
         </Link>
       </div>
 
-      <button
-        type="button"
-        onClick={onReset}
-        style={{
-          marginTop: 18,
-          width: '100%',
-          padding: '12px',
-          borderRadius: 999,
-          background: 'transparent',
-          color: MUTED,
-          border: '1px solid rgba(255,255,255,0.14)',
-          fontSize: 14,
-          cursor: 'pointer',
-        }}
-      >
+      <button type="button" onClick={onReset} className={s.resetBtn}>
         {isKo ? '다른 사람과 다시 보기' : 'Try another pair'}
       </button>
     </div>

@@ -1,0 +1,316 @@
+{
+  "topbar": {
+    "whoBirthLine": "1995-02-09 06:40",
+    "place": "서울",
+    "ilganHanja": "辛"
+  },
+  "user": {
+    "birth": "1995-02-09 06:40",
+    "birthKo": "1995년 2월 9일 06:40",
+    "place": "서울",
+    "sex": "남",
+    "ilgan": {
+      "hanja": "辛",
+      "kr": "신금",
+      "en": "Sin · Yin Metal",
+      "element": "금"
+    },
+    "yongsin": {
+      "hanja": "화·토",
+      "kr": "화·토",
+      "en": "Fire · Earth",
+      "primary": "화",
+      "secondary": "토",
+      "avoid": []
+    },
+    "huisin": {
+      "hanja": "토",
+      "kr": "토",
+      "en": "Earth",
+      "primary": "토",
+      "avoid": []
+    },
+    "gyeokguk": "정인격",
+    "gyeokgukEn": "정인격 · Jeongin (Direct-resource)",
+    "gangyak": "중화(中和)",
+    "dominantSibsin": {
+      "name": "재성",
+      "pct": 43
+    },
+    "elements": {
+      "목": 3,
+      "화": 0,
+      "토": 2,
+      "금": 2,
+      "수": 1
+    },
+    "astro": {
+      "sun": "물병자리",
+      "asc": "물병자리",
+      "mc": "전갈자리",
+      "sunEn": "Aquarius",
+      "ascEn": "Aquarius",
+      "mcEn": "Scorpio"
+    },
+    "dignities": [
+      {
+        "planet": "Sun",
+        "sign": "Aquarius",
+        "degree": 19,
+        "tiers": {
+          "domicile": false,
+          "exaltation": false,
+          "triplicity": false,
+          "term": false,
+          "face": false,
+          "detriment": true,
+          "fall": false
+        },
+        "score": -1
+      },
+      {
+        "planet": "Moon",
+        "sign": "Gemini",
+        "degree": 4,
+        "tiers": {
+          "domicile": false,
+          "exaltation": false,
+          "triplicity": false,
+          "term": false,
+          "face": false,
+          "detriment": false,
+          "fall": false
+        },
+        "score": 0
+      },
+      {
+        "planet": "Mercury",
+        "sign": "Aquarius",
+        "degree": 9,
+        "tiers": {
+          "domicile": false,
+          "exaltation": false,
+          "triplicity": true,
+          "term": false,
+          "face": false,
+          "detriment": false,
+          "fall": false
+        },
+        "score": 0.5
+      },
+      {
+        "planet": "Venus",
+        "sign": "Capricorn",
+        "degree": 4,
+        "tiers": {
+          "domicile": false,
+          "exaltation": false,
+          "triplicity": false,
+          "term": false,
+          "face": false,
+          "detriment": false,
+          "fall": false
+        },
+        "score": 0
+      },
+      {
+        "planet": "Mars",
+        "sign": "Leo",
+        "degree": 24,
+        "tiers": {
+          "domicile": false,
+          "exaltation": false,
+          "triplicity": false,
+          "term": true,
+          "face": true,
+          "detriment": false,
+          "fall": false
+        },
+        "score": 0.5
+      },
+      {
+        "planet": "Jupiter",
+        "sign": "Sagittarius",
+        "degree": 11,
+        "tiers": {
+          "domicile": true,
+          "exaltation": false,
+          "triplicity": true,
+          "term": true,
+          "face": false,
+          "detriment": false,
+          "fall": false
+        },
+        "score": 1.8
+      },
+      {
+        "planet": "Saturn",
+        "sign": "Pisces",
+        "degree": 11,
+        "tiers": {
+          "domicile": false,
+          "exaltation": false,
+          "triplicity": false,
+          "term": false,
+          "face": false,
+          "detriment": false,
+          "fall": false
+        },
+        "score": 0
+      },
+      {
+        "planet": "Uranus",
+        "sign": "Capricorn",
+        "degree": 27,
+        "tiers": {
+          "domicile": false,
+          "exaltation": false,
+          "triplicity": false,
+          "term": false,
+          "face": false,
+          "detriment": false,
+          "fall": false
+        },
+        "score": 0
+      },
+      {
+        "planet": "Neptune",
+        "sign": "Capricorn",
+        "degree": 24,
+        "tiers": {
+          "domicile": false,
+          "exaltation": false,
+          "triplicity": false,
+          "term": false,
+          "face": false,
+          "detriment": false,
+          "fall": false
+        },
+        "score": 0
+      },
+      {
+        "planet": "Pluto",
+        "sign": "Sagittarius",
+        "degree": 0,
+        "tiers": {
+          "domicile": false,
+          "exaltation": false,
+          "triplicity": false,
+          "term": false,
+          "face": false,
+          "detriment": false,
+          "fall": false
+        },
+        "score": 0
+      },
+      {
+        "planet": "True Node",
+        "sign": "Scorpio",
+        "degree": 9,
+        "tiers": {
+          "domicile": false,
+          "exaltation": false,
+          "triplicity": false,
+          "term": false,
+          "face": false,
+          "detriment": false,
+          "fall": false
+        },
+        "score": 0
+      }
+    ],
+    "almutenFiguris": {
+      "planet": "Mercury",
+      "score": 22,
+      "runnerUps": [
+        {
+          "planet": "Saturn",
+          "score": 15
+        },
+        {
+          "planet": "Venus",
+          "score": 6
+        }
+      ]
+    },
+    "sect": "night",
+    "lots": [
+      {
+        "name": "Fortune",
+        "sign": "Libra",
+        "degree": 17.56715232532349,
+        "house": 8,
+        "sect": "night",
+        "korean": "복점·재물"
+      },
+      {
+        "name": "Spirit",
+        "sign": "Taurus",
+        "degree": 17.02674532153901,
+        "house": 3,
+        "sect": "night",
+        "korean": "영점·진로"
+      },
+      {
+        "name": "Eros",
+        "sign": "Gemini",
+        "degree": 14.752668600957406,
+        "house": 4,
+        "sect": "night",
+        "korean": "에로스·욕망"
+      },
+      {
+        "name": "Necessity",
+        "sign": "Taurus",
+        "degree": 23.777895167505335,
+        "house": 4,
+        "sect": "night",
+        "korean": "필연·강제"
+      },
+      {
+        "name": "Courage",
+        "sign": "Pisces",
+        "degree": 25.683654119091443,
+        "house": 2,
+        "sect": "night",
+        "korean": "용기·실행"
+      },
+      {
+        "name": "Victory",
+        "sign": "Leo",
+        "degree": 26.776855830972977,
+        "house": 7,
+        "sect": "night",
+        "korean": "승리·성취"
+      },
+      {
+        "name": "Nemesis",
+        "sign": "Gemini",
+        "degree": 26.701582969731135,
+        "house": 5,
+        "sect": "night",
+        "korean": "응보·시련"
+      }
+    ],
+    "intro": "사주로는 辛 일간으로 기운이 비교적 균형 잡혀, 용신 화·토가 받쳐줄 때 잘 풀려요. 격국은 정인격으로 배움·지원이 든든한 스타일. 본명에 재성이 43%로 가장 두드러져 — 행동 동력·물질 감각이 본 스타일. 일간 통근이 뿌리 없이 월령을 잃어 강약은 중화의 편이에요. 사주 8자 중 목 기운이 가장 많아 성장·확장 동력이 큰 편이에요. 조후로 보면 토이 받쳐주면 좋아서 초봄 신금은 무기토 생조 필요. 병화로 따뜻하게. 점성으로는 태양 물병자리·상승 물병자리·MC 전갈자리의 기질을 타고났고요. 이 둘이 평생 흐름의 바탕을 만들고, 그 위에서 시기별로 펼쳐져요.",
+    "introEn": "",
+    "gyeokgukStatus": "정인격 · 반성반파 (+정인 존재 / -재성이 인성 파괴)",
+    "rootStatus": "월령 寅 실령 · 뿌리 없음",
+    "iljuArchetype": {
+      "ko": {
+        "character": "양털 위 보석 — 우아하고 까다로운 감식안. 당신은 아무거나 받아들이지 않는, 안목이 까다로운 사람이에요.",
+        "strength": "심미안과 정확함이 뛰어나며, 본질을 빠르게 골라내요.",
+        "weakness": "쉽게 만족하지 않고 비판이 앞서, 사람을 멀어지게 할 수 있어요.",
+        "career": "디자인·법률·기획·전문직 — 정밀함과 안목이 가치가 되는 분야가 맞아요.",
+        "love": "이상이 높고 까다로움. 마음에 들면 한 사람만 깊게 봐요."
+      },
+      "en": {
+        "character": "A jewel on wool — refined and selective. You don't accept just anything.",
+        "strength": "Aesthetic precision and a quick eye for what really matters.",
+        "weakness": "Hard to satisfy, quick to critique — which can push people away.",
+        "career": "Design, law, planning, specialist work — fields where exacting taste is the asset.",
+        "love": "High standards, picky. Once chosen, you look at one person deeply."
+      }
+    }
+  }
+}

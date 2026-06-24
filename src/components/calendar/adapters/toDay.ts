@@ -38,6 +38,7 @@ import { humanizeReason } from './humanizeReason'
 import { reconcileDayTone, type DayVerdict } from '@/lib/calendar-engine/derivers/reconcile'
 import { LAYER_WEIGHT } from '@/lib/calendar-engine/derivers/constants'
 import { REASON_LAYERS, STATIC_NATAL_KINDS } from '@/lib/calendar-engine/signalTaxonomy'
+import { pickBySeed } from '@/lib/calendar-engine/derivers/personSeed'
 // 12운성 단계 — saju-shinsal 이 'rok-ma' 신살로도 emit 하지만(점수 신호로는 유지),
 // 12운성은 twelveStageMatrix 에서 따로 보여주므로 '활성 신살' 칩에는 중복 노출하지
 // 않는다(예: 제왕·건록이 신살 목록에 잘못 끼던 문제).
@@ -450,8 +451,8 @@ export function toDay(opts: ToDayOptions): DestinypalDay {
     iljinSibsin,
     score: shownScore,
     totalSignals: cell.signals.length,
-    oneLine: opts.oneLine ?? deriveOneLine(dayTone, topReasons, cautions, 'ko'),
-    oneLineEn: opts.oneLine ?? deriveOneLine(dayTone, topReasonsEn, cautionsEn, 'en'),
+    oneLine: opts.oneLine ?? deriveOneLine(dayTone, shownScore + reasonNet, 'ko'),
+    oneLineEn: opts.oneLine ?? deriveOneLine(dayTone, shownScore + reasonNet, 'en'),
     signals,
     transits,
     shinsalActive: Array.from(shinsalActiveSet),
@@ -567,29 +568,75 @@ function stringDetail(s: ActiveSignal, key: string): string | undefined {
   return typeof v === 'string' ? v : undefined
 }
 
+// 톤별 한 줄 verdict 풀 — 사람마다(점수/사유 net) 다른 문장이 나오도록 rot 로 회전.
+// 옛 버전은 topReasons[0](칩 라벨)을 그대로 반환해 '↑ 이달 · …(게자리)' 같은 내부
+// 마커가 헤드라인에 새고, 풀이 톤당 1문장이라 사람마다 같은 줄로 붕괴했다.
+export const ONE_LINE_POOL = {
+  positive: {
+    ko: [
+      '흐름이 등을 밀어주는 하루.',
+      '내디딘 만큼 받쳐주는 하루.',
+      '문이 잘 열리는 하루 — 먼저 움직여보세요.',
+      '하려던 일에 바람이 붙는 하루.',
+      '연락도 제안도 잘 통하는 하루.',
+      '작게라도 한 걸음 내딛기 좋은 하루.',
+    ],
+    en: [
+      'The current is at your back today.',
+      'A day that rewards stepping forward.',
+      'Doors open easily — make the first move.',
+      'A tailwind for what you set out to do.',
+      'Reaching out and proposing land well today.',
+      'A good day to take even a small step.',
+    ],
+  },
+  caution: {
+    ko: [
+      '추진보다 정비가 어울리는 하루.',
+      '한 박자 천천히 가면 탈이 없는 하루.',
+      '큰 결정은 하루 미뤄도 좋은 하루.',
+      '무리한 약속·지출은 접어두는 하루.',
+      '부딪힘이 생기기 쉬우니 말은 둥글게.',
+      '지키고 다듬는 데 힘을 쓰는 하루.',
+    ],
+    en: [
+      'A day better for upkeep than pushing.',
+      'Ease off a beat and the day stays smooth.',
+      'Big calls can wait a day.',
+      'Hold off on overreach and big spends.',
+      'Friction comes easy — keep words soft.',
+      'Spend today guarding and refining.',
+    ],
+  },
+  mixed: {
+    ko: [
+      '좋고 나쁨이 함께 있는 하루 — 잘 풀리는 쪽에 집중하세요.',
+      '오르내림이 있는 하루 — 무게중심만 지키세요.',
+      '맑았다 흐렸다 하는 하루 — 흐름 따라 가볍게.',
+      '한쪽으로 쏠리지 않는 고른 하루.',
+      '되는 일에 힘을 싣고 안 되는 일은 흘려보내요.',
+      '큰 기복 없이 무난히 흐르는 하루.',
+    ],
+    en: [
+      'Highs and lows are mixed — lean on what flows.',
+      'Ups and downs today — just hold your center.',
+      'Sun and clouds trade off — move light with it.',
+      'An even day that leans neither way.',
+      'Back what works, let the rest pass.',
+      'A day that flows by without big swings.',
+    ],
+  },
+} as const
+
 /**
- * 한 줄 요약 — 화해된 톤에 맞춰 만든다.
- * 옛 버전은 topReasons[0](우호 사유)을 *밴드 무관* 무조건 반환해, '조심하는 날'
- * 인데도 한 줄이 긍정 사유를 외치는 모순이 났다. 이제 verdict.tone 에 맞는 쪽
- * 사유만 노출하고, 보여줄 사유가 없으면 톤별 고정 문장으로 폴백한다.
+ * 한 줄 요약 — 화해된 톤별 풀에서 rot(점수+사유 net)으로 회전 선택. 톤은 verdict 가
+ * 권위(positive/caution/mixed). 칩 라벨을 직접 노출하지 않아 마커 누수가 없고,
+ * 사람마다 rot 가 달라 같은 톤이어도 문장이 갈린다.
  */
-function deriveOneLine(
-  verdict: DayVerdict,
-  topReasons: string[],
-  cautions: string[],
-  lang: 'ko' | 'en' = 'ko'
-): string {
+function deriveOneLine(verdict: DayVerdict, rot: number, lang: 'ko' | 'en' = 'ko'): string {
   const ko = lang !== 'en'
-  if (verdict.tone === 'positive') {
-    if (topReasons[0]) return topReasons[0]
-    return ko ? '흐름이 우호적인 하루.' : 'A day the flow favors you.'
-  }
-  if (verdict.tone === 'caution') {
-    if (cautions[0]) return cautions[0]
-    return ko ? '추진보다 정비가 어울리는 하루.' : 'A day better for upkeep than pushing.'
-  }
-  // mixed — 좋고 나쁨이 갈리는 날.
-  return ko
-    ? '좋고 나쁨이 함께 있는 하루 — 잘 풀리는 쪽에 집중하세요.'
-    : 'Highs and lows are mixed — lean on what flows.'
+  const tone =
+    verdict.tone === 'positive' ? 'positive' : verdict.tone === 'caution' ? 'caution' : 'mixed'
+  const pool = ONE_LINE_POOL[tone][ko ? 'ko' : 'en']
+  return pickBySeed(pool, rot)
 }

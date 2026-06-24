@@ -323,7 +323,16 @@ export function determineYongsin(pillars: SajuPillarsInput): YongsinResult {
 
   // 1. 조후용신 체크 (한습/조열 계절)
   const johuResult = selectJohuYongsin(pillars.month.branch, daymaster)
-  if (johuResult) {
+  // R4 가드: 조후용신이 *일간을 극하는 오행(관살)*인데 일간이 신약이면 조후 우선을
+  // 보류한다. 약한 일간에 그를 극하는 기운을 '가장 필요(용신)'로 처방하면 억부와
+  // 정면 충돌하는 역전이 생긴다(예: 신약 丙火 겨울 → 조후 水 처방은 火를 더 끈다).
+  // 이 경우 병약/통관/억부 단계로 흘려보내 일간을 돕는 용신이 잡히게 한다.
+  const dmControlledBy = daymasterElement
+    ? FIVE_ELEMENT_RELATIONS.극받는관계[daymasterElement]
+    : undefined
+  const dmIsWeak = strength === '신약' || strength === '극신약'
+  const johuAttacksWeakDm = !!johuResult && dmIsWeak && johuResult.yongsin === dmControlledBy
+  if (johuResult && !johuAttacksWeakDm) {
     const eokbuResult = selectEokbuYongsin(daymaster, strength)
     // 조후용신이 우선되면 억부 시스템의 kibsin/gusin이 조후용신과 충돌
     // 할 수 있음 (예: 辛 신약 + 寅월 → johu=화, eokbu.kibsin=화 → 자기

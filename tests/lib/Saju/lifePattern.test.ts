@@ -157,6 +157,71 @@ describe('deriveLifePattern', () => {
     expect(deriveLifePattern(saju)?.key).toBe('smooth')
   })
 
+  it('classifies a gentle monotone climb (decent start, climbs) as steady-rise', () => {
+    // 초년이 이미 양(+)이라 대기만성(반전, early≤0.1)은 아니고, 단조 비감소로 오르는 흐름.
+    // FAV=+2, MIX(甲子=비겁목+인성수, weak)=+2... → MIX 대신 한 글자만 우호인 대운으로
+    // 초년을 +0.5 쯤으로 만든다. 甲午: 비겁(목)+식상(화) → weak: +1−1 = 0... 은 안 됨.
+    // 壬午: 인성(수)+식상(화) → weak: +1−1 = 0. 壬寅: 인성(수)+비겁(목) → +1+1 = +2.
+    // 한 글자 우호(+1)만 내려면 stem 우호/branch 불리 조합: 壬午 = 0, 안 됨.
+    // 대신 초년 두 칸을 +2/−1 평균 +0.5 로: 壬子(+2), 庚午? 庚=관성(금)... 복잡 → 직접 favor 구성.
+    // 간단히: 초년 두 대운 평균이 +0.5 가 되도록 壬子(+2) 와 丙申(식상화 −1 + 재성금 −1 = −1) 사용.
+    const climbing = {
+      dayMaster: { name: '甲' },
+      strength: 'weak',
+      daeun: [
+        { ...FAV, startAge: 15 }, // 壬子 +2
+        { ...FAV, startAge: 25 }, // 壬子 +2
+        { ...UNFAV, startAge: 35 }, // 丙午 −2 → early avg (2+2−2)/3 = +0.67 (>0.1, 반전 아님)
+        { ...FAV, startAge: 45 }, // +2
+        { ...FAV, startAge: 55 }, // +2 → mid +2
+        { ...FAV, startAge: 65 }, // +2 → late +2
+        { ...FAV, startAge: 75 },
+      ],
+    }
+    const p = deriveLifePattern(climbing)
+    expect(p?.key).toBe('steady-rise')
+    expect(p?.ko).toBe('점진상승형')
+  })
+
+  it('personalizes line per chart — same pattern key, different sentence', () => {
+    // 같은 late-bloomer 라도 정점 대운(연도·간지·십신)이 달라 line 이 갈린다.
+    const a = {
+      dayMaster: { name: '甲' },
+      strength: 'weak',
+      daeun: [
+        { ...UNFAV, startAge: 15 },
+        { ...UNFAV, startAge: 25 },
+        { ...FAV, startAge: 45, startYear: 2030 }, // 정점 후보 (수=인성)
+        { ...FAV, startAge: 55, startYear: 2040 },
+        { ...FAV, startAge: 65, startYear: 2050 },
+      ],
+    }
+    const b = {
+      dayMaster: { name: '甲' },
+      strength: 'weak',
+      daeun: [
+        { ...UNFAV, startAge: 15 },
+        { ...UNFAV, startAge: 25 },
+        { stem: '甲', branch: '子', startAge: 45, startYear: 1999 }, // 비겁(목)+인성(수)
+        { ...FAV, startAge: 55, startYear: 2009 },
+        { ...FAV, startAge: 65, startYear: 2019 },
+      ],
+    }
+    const pa = deriveLifePattern(a)
+    const pb = deriveLifePattern(b)
+    expect(pa?.key).toBe('late-bloomer')
+    expect(pb?.key).toBe('late-bloomer')
+    // 같은 키, 다른 line/lineEn (개인화 발화).
+    expect(pa?.line).not.toBe(pb?.line)
+    expect(pa?.lineEn).not.toBe(pb?.lineEn)
+    // 공통 템플릿(PATTERN_KO 베이스)은 둘 다 머리에 깔려 있다.
+    expect(pa?.line.startsWith('젊을 때는 좀 고생해도')).toBe(true)
+    expect(pb?.line.startsWith('젊을 때는 좀 고생해도')).toBe(true)
+    // 정점 연도가 line 에 실린다(연도 데이터가 있을 때).
+    expect(pa?.line).toContain('2030')
+    expect(pb?.line).toContain('1999')
+  })
+
   it('uses 용신/기신 elements for medium (중화) strength', () => {
     // medium strength routes through yong/avoid sets rather than 억부 signs.
     const saju = {

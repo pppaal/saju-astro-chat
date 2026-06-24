@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { toYear } from '@/components/calendar/adapters/toYear'
+import { getHouseRich } from '@/lib/chart-dictionary'
 import { makeNatal, makeChart, makePlanet, makeSignal, makeCell } from './_fixtures'
 
 function natal(over = {}) {
@@ -101,6 +102,27 @@ describe('toYear — yearly signals → destinypal year', () => {
       expect(p.rulerNatalEn).toBe('2nd house · Taurus')
       expect(p.rulerNatalHouse).toBe(2)
       expect(p.rulerNatalSign).toBe('Taurus')
+      // 리치 하우스 풀이가 astro-house-rich.json 에서 surface (가드+폴백).
+      expect(p.houseMeaning).toBe(getHouseRich(7, 'ko')!.meaning)
+      expect(p.houseMeaning.length).toBeGreaterThan(0)
+      expect(p.houseMeaningEn).toBe(getHouseRich(7, 'en')!.meaning)
+    })
+
+    it('house 8 profection → 리치 하우스 풀이(공유 자원·빚·친밀감) surface', () => {
+      const sig = profSignal({
+        evidence: {
+          module: 'm',
+          detail: { activatedHouse: 8, activatedSign: 'Virgo', lordOfYear: 'Venus' },
+          houses: [8],
+          planets: ['Venus'],
+        },
+      })
+      const y = toYear(natal(), { year: 2026, yearlySignals: [sig] })
+      const p = y.profection!
+      expect(p.house).toBe(8)
+      // 8하우스 meaning 의 평이한 핵심 문구가 그대로 노출됨.
+      expect(p.houseMeaning).toContain('공동 재산, 배우자의 돈, 빚·세금·유산')
+      expect(p.houseMeaningEn).toContain("a partner's money")
     })
 
     it('profection 있으면 헤드라인/astroNote 가 house 를 반영', () => {

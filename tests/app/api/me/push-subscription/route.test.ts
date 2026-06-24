@@ -173,6 +173,11 @@ describe('/api/me/push-subscription', () => {
         { ...VALID_BODY, locale: 'fr' },
         { endpoint: VALID_BODY.endpoint, keys: { p256dh: 'x' } },
         { ...VALID_BODY, endpoint: `https://example.com/${'a'.repeat(1001)}` },
+        // SSRF 방어 — 알려지지 않은 호스트(내부/임의 도메인)는 거부.
+        { ...VALID_BODY, endpoint: 'https://169.254.169.254/latest/meta-data' },
+        { ...VALID_BODY, endpoint: 'https://internal.example.com/push' },
+        // lookalike 도메인(allowlist suffix 의 선행 '.' 로 차단).
+        { ...VALID_BODY, endpoint: 'https://evil-googleapis.com/fcm/send/x' },
       ]
       for (const body of badBodies) {
         const res = await POST(makeRequest('POST', body))

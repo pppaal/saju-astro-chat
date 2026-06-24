@@ -86,7 +86,8 @@ export function evalIdentity(
   dayMasterEl: string | undefined,
   sunSign: string | undefined,
   ascSign?: string | undefined,
-  almutenPlanet?: string | null
+  almutenPlanet?: string | null,
+  isMinor = false
 ): CrossVerdict | null {
   const a = normSajuElement(dayMasterEl)
   const b = signToSajuElement(sunSign)
@@ -110,12 +111,13 @@ export function evalIdentity(
   const tailEn = ascSame
     ? ` Your first impression reads ${tc.en} too, so inner self, core self, and the face you show line up cleanly.`
     : ` And your first impression reads ${tc.en}, so who you are and how you appear split once more — people find you different the better they know you.`
-  // almuten figuris — 차트를 총괄하는 '주인 행성'. 정체성의 키로 한 줄 덧붙임.
+  // almuten figuris — 차트 전체의 '승자(알무텐)'. ASC 룰러가 아니라 4개 점(해·달·
+  // 상승·행운점)의 위계 합산 1위라, '주인 행성' 표현은 ASC 룰러와 혼동되어 명확화함.
   let almutenKo = ''
   let almutenEn = ''
   if (almutenPlanet) {
-    almutenKo = ` 그리고 이 전부를 끌고 가는 차트의 주인 행성은 '${planetTheme(almutenPlanet, 'ko')}' 쪽 — 인생 전반의 키예요.`
-    almutenEn = ` And the planet that rules your whole chart leans ${planetTheme(almutenPlanet, 'en')} — the key to your life as a whole.`
+    almutenKo = ` 그리고 이 전부를 끌고 가는 차트의 알무텐(전체를 이끄는 별)은 '${planetTheme(almutenPlanet, 'ko', isMinor)}' 쪽 — 인생 전반의 키예요.`
+    almutenEn = ` And your chart's almuten (its overall leading planet) leans ${planetTheme(almutenPlanet, 'en', isMinor)} — the key to your life as a whole.`
   }
   const out: CrossVerdict = {
     ...base,
@@ -338,7 +340,8 @@ export function evalRelations(
   harmonious: number,
   hard: number,
   gender: 'male' | 'female' = 'male',
-  childStarCount = 0
+  childStarCount = 0,
+  isMinor = false
 ): CrossVerdict | null {
   if (hap + chung + harmonious + hard === 0) return null
   const sajuHarmony = hap - chung
@@ -363,6 +366,10 @@ export function evalRelations(
           }
 
   // ── 성별 자식성(子息星) — 남: 관성, 여: 식상 ──
+  // 미성년 안전 모드: 자녀·후대 서술은 아동에게 부적합하므로 생략(기본 관계 해석만).
+  if (isMinor) {
+    return { tone: base.tone, reason: { ko: base.ko, en: base.en } }
+  }
   const g = gender === 'female'
   const starKo = g ? '식상' : '관성'
   const starEn = g ? 'the Output star' : 'the Officer star'

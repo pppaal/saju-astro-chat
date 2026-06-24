@@ -132,6 +132,8 @@ export interface DestinyMonthKeyDay {
   date: string
   /** 한 줄 의미. */
   meaning?: string
+  /** meaning 과 같은 톤 — 라벨 prefix 가 의미와 어긋나지 않게(positive/negative/neutral). */
+  tone?: 'positive' | 'negative' | 'neutral'
   /** 점성측 무거운 신호 라벨들. */
   astro: string[]
   /** 사주측 무거운 신호 라벨들. */

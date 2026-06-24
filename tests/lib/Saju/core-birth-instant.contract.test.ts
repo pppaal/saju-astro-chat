@@ -15,7 +15,6 @@
 import { describe, it, expect, afterEach, beforeEach } from 'vitest'
 import { buildBirthInstant } from '@/lib/datetime'
 import { calculateSajuData } from '@/lib/saju/saju'
-import { getDaeunCycles } from '@/lib/saju/unse'
 
 describe('core/birthInstant.buildBirthInstant — UTC instant 빌더', () => {
   it('KST 출생자 → UTC instant (서버 timezone 무관)', () => {
@@ -56,30 +55,17 @@ describe('서버 timezone 무관 결과 동일성 (S1 회귀)', () => {
 })
 
 describe('비한국 출생자 daeun 정확성 (S2 회귀)', () => {
-  it('LA 출생자의 daeun 이 KST 하드코딩 없이 계산 — 결정적 결과', () => {
-    const birthInstant = buildBirthInstant('1990-02-03', '22:30', 'America/Los_Angeles')
-    const sajuPillars: any = {
-      year: {
-        heavenlyStem: { name: '己', element: '토', yin_yang: '음' },
-        earthlyBranch: { name: '巳', element: '화', yin_yang: '음' },
-      },
-      month: {
-        heavenlyStem: { name: '丁', element: '화', yin_yang: '음' },
-        earthlyBranch: { name: '丑', element: '토', yin_yang: '음' },
-      },
-      day: {
-        heavenlyStem: { name: '甲', element: '목', yin_yang: '양' },
-        earthlyBranch: { name: '寅', element: '목', yin_yang: '양' },
-      },
-      time: {
-        heavenlyStem: { name: '丙', element: '화', yin_yang: '양' },
-        earthlyBranch: { name: '寅', element: '목', yin_yang: '양' },
-      },
-    }
-    const dayMaster: any = { name: '甲', element: '목', yin_yang: '양' }
-    // LA timezone 으로 호출 — 옛 'Asia/Seoul' 하드코딩 케이스와 다른 분기여도 throw 없이 결정적.
-    const r = getDaeunCycles(birthInstant, 'male', sajuPillars, dayMaster, 'America/Los_Angeles')
-    expect(r.daeunsu).toBeGreaterThan(0)
-    expect(r.cycles.length).toBeGreaterThan(0)
+  // 옛 S2 버그는 라우트가 raw 경로(unse.getDaeunCycles)에 'Asia/Seoul' 을
+  // 하드코딩해 비한국 출생자를 한국 timezone 으로 재해석한 것. 이제 대운은
+  // calculateSajuData 단일 소스가 출생지 timezone 으로 산출한다 — raw 경로는
+  // 제거됨. 회귀 잠금: LA 출생자의 daeWoon 이 KST 하드코딩 없이 결정적.
+  it('LA 출생자의 daeWoon 이 출생지 timezone 으로 계산 — 결정적 결과', () => {
+    const r1 = calculateSajuData('1990-02-03', '22:30', 'male', 'solar', 'America/Los_Angeles')
+    expect(r1.daeWoon?.startAge).toBeGreaterThan(0)
+    expect(r1.daeWoon?.list.length).toBe(10)
+
+    const r2 = calculateSajuData('1990-02-03', '22:30', 'male', 'solar', 'America/Los_Angeles')
+    expect(r2.daeWoon?.startAge).toBe(r1.daeWoon?.startAge)
+    expect(r2.daeWoon?.isForward).toBe(r1.daeWoon?.isForward)
   })
 })

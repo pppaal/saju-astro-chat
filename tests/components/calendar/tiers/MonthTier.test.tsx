@@ -1,5 +1,5 @@
 import React from 'react'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen, fireEvent, within } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 let mockLocale: 'ko' | 'en' = 'ko'
@@ -47,7 +47,7 @@ function makeMonth(over: Partial<DestinyMonth> = {}): DestinyMonth {
     label: '2026년 6월',
     ym: '2026-06',
     woolun: makeGanji(),
-    woolunSibsin: over.woolunSibsin ?? '정재',
+    woolunSibsin: over.woolunSibsin ?? '편재',
     cautionDays: over.cautionDays ?? ['06-20'],
     goodDays: over.goodDays ?? ['06-05', '06-10'],
     bestDay: over.bestDay ?? { date: '06-06', score: 92 },
@@ -83,11 +83,12 @@ beforeEach(() => {
   mockLocale = 'ko'
 })
 
-describe('MonthTier (이 달의 모양)', () => {
+describe('MonthTier (이 달의 모양 · LIGHT)', () => {
   describe('header', () => {
     it('renders the monthly eyebrow + ko "N월의 모양" title', () => {
       render(<MonthTier month={makeMonth()} onDive={noop} onRise={noop} />)
-      expect(screen.getByText('1달 · Monthly · 2026-06')).toBeInTheDocument()
+      expect(screen.getByText('2026년 6월')).toBeInTheDocument()
+      // ganzhi 폴드 안의 "6월의 모양" (자세히 보기)
       expect(screen.getByText('6월의 모양')).toBeInTheDocument()
     })
 
@@ -97,15 +98,56 @@ describe('MonthTier (이 달의 모양)', () => {
       expect(screen.getByText('The shape of June')).toBeInTheDocument()
     })
 
-    it('does NOT show the big ganji hanja stamp or 사주/四柱 tag on the main surface', () => {
-      const { container } = render(<MonthTier month={makeMonth()} onDive={noop} onRise={noop} />)
-      // The hanja stamp lives only inside the collapsed <details> fold now —
-      // it must not be a prominent title element on the main surface (the title
-      // is now the shared TierHero lead, no longer an <h1>).
-      const titleText = container.querySelector('header')?.textContent ?? ''
-      expect(titleText).not.toContain('甲午')
-      expect(screen.queryByText('사주 · 四柱')).not.toBeInTheDocument()
-      expect(screen.queryByText(/이 달의 기운/)).not.toBeInTheDocument()
+    it('shows the ganzhi hanja + reading on the main surface (new LIGHT design)', () => {
+      render(<MonthTier month={makeMonth()} onDive={noop} onRise={noop} />)
+      // 간지는 이제 표면에 노출된다(시안 의도) — 더 이상 폴드 안에 숨기지 않는다.
+      expect(screen.getByText('甲午')).toBeInTheDocument()
+      expect(screen.getByText('갑오월')).toBeInTheDocument()
+    })
+  })
+
+  describe('novice basic view (surfaced content)', () => {
+    it('surfaces the do/avoid action line from structured fields (ko)', () => {
+      // bestDay 06-06 → do, cautionDays[0] 06-20 → avoid
+      render(<MonthTier month={makeMonth()} onDive={noop} onRise={noop} />)
+      expect(screen.getByText('이렇게 해보세요')).toBeInTheDocument()
+      expect(screen.getByText(/6\/6 무렵 미뤄둔 일을 추진하고/)).toBeInTheDocument()
+      expect(screen.getByText(/6\/20 무렵엔 큰 결정·이동을 미루세요/)).toBeInTheDocument()
+    })
+
+    it('shows the "tap a date" hint near the grid (ko)', () => {
+      render(<MonthTier month={makeMonth()} onDive={noop} onRise={noop} />)
+      expect(screen.getByText(/날짜를 누르면 그날 운을 볼 수 있어요/)).toBeInTheDocument()
+    })
+
+    it('shows the legend explainer line (ko)', () => {
+      render(<MonthTier month={makeMonth()} onDive={noop} onRise={noop} />)
+      expect(
+        screen.getByText(/색이 진할수록 잘 풀리는 날, 붉은 날은 큰 결정을 미루기 좋은 날/)
+      ).toBeInTheDocument()
+    })
+
+    it('uses plain hero tone word "잘 풀리는 달" (no writer-speak 결)', () => {
+      // goodDays:2 > careN:2? equal → mild. Force a good month.
+      const month = makeMonth({
+        goodDays: ['06-05', '06-10', '06-11'],
+        cautionDays: ['06-20'],
+        avoidDays: [],
+      })
+      render(<MonthTier month={month} onDive={noop} onRise={noop} />)
+      expect(screen.getByText('잘 풀리는 달')).toBeInTheDocument()
+    })
+  })
+
+  describe('fold ledes (쉽게 말하면 …)', () => {
+    it('renders a plain-language lede after each fold summary (ko)', () => {
+      render(<MonthTier month={makeMonth()} onDive={noop} onRise={noop} />)
+      expect(
+        screen.getByText(/이 달 전체에 흐르는 기운을 사주의 '간지'로 나타낸 거예요/)
+      ).toBeInTheDocument()
+      expect(
+        screen.getByText(/가장 또렷한 흐름이 사주와 별자리 어디서 겹치는지/)
+      ).toBeInTheDocument()
     })
   })
 
@@ -124,59 +166,102 @@ describe('MonthTier (이 달의 모양)', () => {
   })
 
   describe('day-count summary', () => {
-    it('summarizes good/caution/avoid counts (ko, plain)', () => {
+    it('summarizes good/caution/avoid counts (ko)', () => {
       const { container } = render(<MonthTier month={makeMonth()} onDive={noop} onRise={noop} />)
       // goodDays:2 cautionDays:1 avoidDays:1
-      expect(container.textContent).toContain('좋은 날 2개 · 조심할 날 1개 · 피하는 날 1개')
+      const counts = container.querySelector('header')?.textContent ?? ''
+      expect(counts).toContain('좋은 날')
+      expect(counts).toContain('2')
+      expect(counts).toContain('조심할 날')
+      expect(counts).toContain('피하는 날')
     })
 
     it('summarizes counts in English', () => {
       mockLocale = 'en'
       const { container } = render(<MonthTier month={makeMonth()} onDive={noop} onRise={noop} />)
-      expect(container.textContent).toContain('2 good · 1 caution · 1 avoid')
+      const counts = container.querySelector('header')?.textContent ?? ''
+      expect(counts).toContain('good')
+      expect(counts).toContain('caution')
+      expect(counts).toContain('avoid')
     })
   })
 
   describe('calendar grid', () => {
     it('renders a cell per calendar entry with day numbers', () => {
-      render(<MonthTier month={makeMonth()} onDive={noop} onRise={noop} />)
-      expect(screen.getByText('6')).toBeInTheDocument()
-      expect(screen.getByText('15')).toBeInTheDocument()
-      expect(screen.getByText('25')).toBeInTheDocument()
-    })
-
-    it('does NOT render per-cell score badges or star glyphs (decluttered)', () => {
       const { container } = render(<MonthTier month={makeMonth()} onDive={noop} onRise={noop} />)
-      // score 92 was a dead field badge in the old design — gone now.
-      expect(screen.queryByText('92')).not.toBeInTheDocument()
-      expect(container.textContent).not.toContain('✦')
+      const grid = container.querySelector('[class*="grid"]')!
+      const nums = within(grid as HTMLElement)
+      expect(nums.getByText('6')).toBeInTheDocument()
+      expect(nums.getByText('15')).toBeInTheDocument()
+      expect(nums.getByText('25')).toBeInTheDocument()
     })
 
-    it('marks the focus cell as an activatable today button and fires onDive on click', () => {
-      const onDive = vi.fn()
-      render(<MonthTier month={makeMonth()} onDive={onDive} onRise={noop} />)
-      const cell = screen.getByRole('button', { name: '오늘 15일로 줌인' })
-      fireEvent.click(cell)
-      expect(onDive).toHaveBeenCalledWith(15)
+    it('marks the focus cell as today (clickable)', () => {
+      render(<MonthTier month={makeMonth()} onDive={noop} onRise={noop} />)
+      // every cell is a button now (selectable for the readout)
+      const cell = screen.getByRole('button', { name: '15일 자세히 보기' })
+      expect(cell).toBeInTheDocument()
+    })
+  })
+
+  describe('readout panel', () => {
+    it('shows a readout for the default focus day (ko)', () => {
+      const { container } = render(<MonthTier month={makeMonth()} onDive={noop} onRise={noop} />)
+      // focusDay=15 is the focus cell → today wins for the label/tag.
+      const readout = container.querySelector('[class*="readout"]')
+      expect(readout?.textContent).toContain('15')
+      expect(readout?.textContent).toContain('오늘')
     })
 
-    it('fires onDive when the focus cell receives a Space keydown', () => {
-      const onDive = vi.fn()
-      render(<MonthTier month={makeMonth()} onDive={onDive} onRise={noop} />)
-      const cell = screen.getByRole('button', { name: '오늘 15일로 줌인' })
-      fireEvent.keyDown(cell, { key: ' ' })
-      expect(onDive).toHaveBeenCalledWith(15)
+    it('updates the readout when a day cell is clicked (caution day)', () => {
+      const { container } = render(<MonthTier month={makeMonth()} onDive={noop} onRise={noop} />)
+      fireEvent.click(screen.getByRole('button', { name: '20일 자세히 보기' }))
+      const readout = container.querySelector('[class*="readout"]')!
+      // day 20 is marked caution → tag "조심할 날"
+      expect((readout as HTMLElement).textContent).toContain('조심할 날')
+      expect((readout as HTMLElement).textContent).toContain('20')
+      // actionable advice for a caution day
+      expect((readout as HTMLElement).textContent).toContain(
+        '큰 결정·계약·이사는 며칠 미루는 게 좋아요'
+      )
+    })
+
+    it('shows actionable advice for a good day in the readout (ko)', () => {
+      const { container } = render(<MonthTier month={makeMonth()} onDive={noop} onRise={noop} />)
+      fireEvent.click(screen.getByRole('button', { name: '5일 자세히 보기' }))
+      const readout = container.querySelector('[class*="readout"]')!
+      expect((readout as HTMLElement).textContent).toContain(
+        '미뤄둔 일을 시작하거나 밀어붙이기 좋아요'
+      )
+    })
+
+    it('shows the big-day title in the readout when the selected day is a key day', () => {
+      const { container } = render(<MonthTier month={makeMonth()} onDive={noop} onRise={noop} />)
+      // day 6 is the best/key day
+      fireEvent.click(screen.getByRole('button', { name: '6일 자세히 보기' }))
+      const readout = container.querySelector('[class*="readout"]')!
+      expect((readout as HTMLElement).textContent).toContain('좋은 날')
+    })
+
+    it('renders a readout in English', () => {
+      mockLocale = 'en'
+      const { container } = render(<MonthTier month={makeMonth()} onDive={noop} onRise={noop} />)
+      fireEvent.click(screen.getByRole('button', { name: 'View day 25' }))
+      const readout = container.querySelector('[class*="readout"]')!
+      expect(within(readout as HTMLElement).getByText('avoid')).toBeInTheDocument()
     })
   })
 
   describe('legend', () => {
-    it('renders the Less→More scale + standout dots (ko)', () => {
-      render(<MonthTier month={makeMonth()} onDive={noop} onRise={noop} />)
-      expect(screen.getByText('잔잔')).toBeInTheDocument()
-      expect(screen.getByText('좋음')).toBeInTheDocument()
-      expect(screen.getByText('좋은 날')).toBeInTheDocument()
-      expect(screen.getByText('조심할 날')).toBeInTheDocument()
-      expect(screen.getByText('오늘')).toBeInTheDocument()
+    it('renders the good/caution/avoid/today legend (ko)', () => {
+      const { container } = render(<MonthTier month={makeMonth()} onDive={noop} onRise={noop} />)
+      const legend = within(container.querySelector('[class*="legend"]') as HTMLElement)
+      expect(legend.getByText('좋은 날')).toBeInTheDocument()
+      expect(legend.getByText('조심할 날')).toBeInTheDocument()
+      expect(legend.getByText('피하는 날')).toBeInTheDocument()
+      expect(legend.getByText('오늘')).toBeInTheDocument()
+      // bigDays present → 큰 날 legend
+      expect(legend.getByText('큰 날')).toBeInTheDocument()
     })
   })
 
@@ -186,56 +271,6 @@ describe('MonthTier (이 달의 모양)', () => {
       expect(screen.getByText('이달의 큰 날')).toBeInTheDocument()
       // best day 06-06 is marked 'best' → verdict prefix "좋은 날".
       expect(screen.getAllByText(/좋은 날/).length).toBeGreaterThan(0)
-    })
-
-    it('expresses overlap as a neutral "겹치는 흐름" label with NO confidence digit', () => {
-      const month = makeMonth({
-        keyDays: [
-          {
-            date: '06-17',
-            meaning: '두 체계가 수렴',
-            astro: ['Jupiter'],
-            saju: ['정재'],
-            bothSystems: true,
-            window: {
-              start: '2026-06-14T00:00:00Z',
-              peak: '2026-06-17T00:00:00Z',
-              end: '2026-06-20T00:00:00Z',
-            },
-            confidence: 82,
-          },
-        ],
-        bestDay: { date: '06-17', score: 90 },
-        calendar: [
-          makeCell({ d: 15, ds: '06-15', focus: true }),
-          makeCell({ d: 17, ds: '06-17', mark: 'best', score: 90 }),
-        ],
-      })
-      const { container } = render(<MonthTier month={month} onDive={noop} onRise={noop} />)
-      // neutral overlap label, plain window — but never the raw confidence digit/word.
-      expect(screen.getByText('겹치는 흐름')).toBeInTheDocument()
-      expect(screen.getByText('6/14–6/20 흐름')).toBeInTheDocument()
-      expect(screen.queryByText(/신뢰/)).not.toBeInTheDocument()
-      expect(container.textContent).not.toContain('82')
-      expect(screen.queryByText('사주+점성')).not.toBeInTheDocument()
-    })
-
-    it('hides the overlap label for single-system key days', () => {
-      const month = makeMonth({
-        keyDays: [
-          {
-            date: '06-20',
-            meaning: '주의',
-            astro: [],
-            saju: ['편관'],
-            bothSystems: false,
-            confidence: 41,
-          },
-        ],
-      })
-      render(<MonthTier month={month} onDive={noop} onRise={noop} />)
-      expect(screen.queryByText('겹치는 흐름')).not.toBeInTheDocument()
-      expect(screen.queryByText(/신뢰/)).not.toBeInTheDocument()
     })
 
     it('appends the best day to key days when missing from keyDays', () => {
@@ -250,90 +285,52 @@ describe('MonthTier (이 달의 모양)', () => {
     })
   })
 
-  describe('monthly summary narrative', () => {
-    it('renders the 이달 총평 summary card when present (ko)', () => {
+  describe('이달의 한 줄 (verdict)', () => {
+    it('renders the verdict heading and a term-tag with ganji · sibsin', () => {
       render(<MonthTier month={makeMonth()} onDive={noop} onRise={noop} />)
-      expect(screen.getByText('이달은 차분히 무르익는 흐름.')).toBeInTheDocument()
-      expect(screen.getByText('이달 총평')).toBeInTheDocument()
-    })
-
-    it('omits the summary card when no matching narrative tag', () => {
-      const month = makeMonth({ narrative: [{ tag: '다른 태그', body: '본문' }] })
-      render(<MonthTier month={month} onDive={noop} onRise={noop} />)
-      expect(screen.queryByText('본문')).not.toBeInTheDocument()
-    })
-
-    it('renders the English summary body from bodyEn on locale toggle', () => {
-      mockLocale = 'en'
-      const month = makeMonth({
-        narrative: [{ tag: '이달 총평', body: '한국어 총평', bodyEn: 'A steady, ripening month.' }],
-      })
-      render(<MonthTier month={month} onDive={noop} onRise={noop} />)
-      expect(screen.getByText('A steady, ripening month.')).toBeInTheDocument()
-      expect(screen.queryByText('한국어 총평')).not.toBeInTheDocument()
-      expect(screen.getByText('This month')).toBeInTheDocument()
+      expect(screen.getByText('이달의 한 줄')).toBeInTheDocument()
+      // term-tag exposes the raw ganji + sibsin on the surface (시안 의도).
+      expect(screen.getByText('甲午 · 편재')).toBeInTheDocument()
     })
   })
 
-  describe('이달의 겹치는 흐름 (month cross — plain pair only)', () => {
+  describe('겹치는 흐름 (crossings)', () => {
     const crossFixture = {
       crossActivations: [
         {
-          saju: '정재',
-          sajuEn: 'Direct Wealth',
-          astro: '금성',
-          astroEn: 'Venus',
-          meaning: '안정된 가치가 살아남',
-          meaningEn: 'stable value lights up',
+          saju: '편재',
+          sajuEn: 'Indirect Wealth',
+          astro: '화성',
+          astroEn: 'Mars',
+          meaning: '활동적인 돈 기운이 살아남',
+          meaningEn: 'active money energy lights up',
           polarity: 2,
         },
       ],
     }
 
-    // Helper: the visible surface = everything OUTSIDE the jargon <details> folds.
-    // The raw 십신 term legitimately appears inside the "왜 이렇게 보나" 근거 fold;
-    // it must just never show on the calm visible surface.
-    const visibleText = (container: HTMLElement) => {
-      const clone = container.cloneNode(true) as HTMLElement
-      clone.querySelectorAll('details').forEach((d) => d.remove())
-      return clone.textContent ?? ''
-    }
-
-    it('renders the plain area × planet pair (ko) and NOT the raw 정재 × 금성 term chip', () => {
-      const { container } = render(
-        <MonthTier month={makeMonth(crossFixture)} onDive={noop} onRise={noop} />
-      )
-      expect(screen.getByText('이달의 겹치는 흐름')).toBeInTheDocument()
-      // The plain meaning shows on the surface (and may also appear inside the fold 근거).
-      expect(screen.getAllByText('안정된 가치가 살아남').length).toBeGreaterThan(0)
-      // plain pair renders (sibsinArea × planetPlain); the raw jargon pair is NOT
-      // on the visible surface (it may live only inside the <details> 근거 fold).
-      expect(visibleText(container)).not.toContain('정재 × 금성')
+    it('renders the crossing card with raw saju/astro terms on the surface (ko)', () => {
+      render(<MonthTier month={makeMonth(crossFixture)} onDive={noop} onRise={noop} />)
+      expect(screen.getByText('겹치는 흐름')).toBeInTheDocument()
+      // raw terms are intentionally shown now
+      expect(screen.getByText('편재')).toBeInTheDocument()
+      expect(screen.getByText('화성')).toBeInTheDocument()
+      // body meaning shown
+      expect(screen.getByText('활동적인 돈 기운이 살아남')).toBeInTheDocument()
+      // single strongest crossing carries the key-day color flag
+      expect(screen.getByText('큰 날의 색')).toBeInTheDocument()
     })
 
-    it('renders the plain cross pair in English (Direct Wealth jargon dropped)', () => {
+    it('renders the crossing meaning in English', () => {
       mockLocale = 'en'
-      const { container } = render(
-        <MonthTier month={makeMonth(crossFixture)} onDive={noop} onRise={noop} />
-      )
-      expect(screen.getAllByText('stable value lights up').length).toBeGreaterThan(0)
-      expect(visibleText(container)).not.toContain('Direct Wealth × Venus')
+      render(<MonthTier month={makeMonth(crossFixture)} onDive={noop} onRise={noop} />)
+      expect(screen.getByText('active money energy lights up')).toBeInTheDocument()
+      expect(screen.getByText('Key-day color')).toBeInTheDocument()
     })
   })
 
-  describe('자세한 신호 보기 (ganji fold)', () => {
-    it('keeps the ganji hanja inside a collapsed details fold, not on the main surface', () => {
-      render(<MonthTier month={makeMonth()} onDive={noop} onRise={noop} />)
-      // the disclosure summary exists...
-      expect(screen.getByText('자세한 신호 보기')).toBeInTheDocument()
-      // ...and the hanja lives within that <details>, which is closed by default.
-      const hanja = screen.getByText('甲午')
-      expect(hanja.closest('details')).not.toBeNull()
-    })
-  })
-
-  describe('dive button', () => {
-    it('fires onDive with focusDay from the bottom button (ko)', () => {
+  describe('CTA / dive button', () => {
+    it('fires onDive with focusDay from the CTA (ko)', () => {
       const onDive = vi.fn()
       render(<MonthTier month={makeMonth()} onDive={onDive} onRise={noop} />)
       fireEvent.click(screen.getByRole('button', { name: /오늘 6월 15일로 줌인/ }))

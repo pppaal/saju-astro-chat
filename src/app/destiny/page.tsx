@@ -8,26 +8,40 @@
    ============================================================ */
 
 import BirthRequiredFallback from '../calendar/birth-required'
-import { loadTierData } from '../calendar/loadTierData'
+import { loadTierData, parseBirthOverride } from '../calendar/loadTierData'
 import DestinyLifeClient from './DestinyLifeClient'
+import CounselorCTA from '@/components/report/CounselorCTA'
 
-// 서버 컴포넌트 — 세션 기반이라 force-dynamic.
+// 서버 컴포넌트 — 세션/쿼리 기반이라 force-dynamic.
 export const dynamic = 'force-dynamic'
 
-export default async function DestinyLifePage() {
+type SP = Record<string, string | string[] | undefined>
+
+export default async function DestinyLifePage({ searchParams }: { searchParams: Promise<SP> }) {
+  // ?date=&time=&lat=&lng=&tz=&gender= 가 있으면 로그인 없이 그 사람 기준으로.
+  const override = parseBirthOverride(await searchParams)
   // 인생/대운/년은 1년 풀빌드가 필요하다.
-  const data = await loadTierData('year')
+  const data = await loadTierData('year', override)
   if (data.kind === 'login') return <BirthRequiredFallback reason="login" />
   if (data.kind === 'no-birth') return <BirthRequiredFallback reason="no-birth" />
 
-  const { topbar, user, lifetime, decade, year } = data
+  const { topbar, user, lifetime, decade, year, lang } = data
   return (
-    <DestinyLifeClient
-      topbar={topbar}
-      user={user}
-      lifetime={lifetime}
-      decade={decade}
-      year={year}
-    />
+    <>
+      <DestinyLifeClient
+        topbar={topbar}
+        user={user}
+        lifetime={lifetime}
+        decade={decade}
+        year={year}
+      />
+      <CounselorCTA
+        lang={lang}
+        question={{
+          ko: '제 인생 큰 흐름(대운)을 더 깊이 짚어주세요.',
+          en: 'Walk me through my life’s larger flow and luck cycles.',
+        }}
+      />
+    </>
   )
 }

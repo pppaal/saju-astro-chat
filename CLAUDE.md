@@ -25,7 +25,7 @@ architecture follows from that split — see `OVERVIEW.md` and
 | AI        | Claude (Anthropic Messages API over HTTP), streamed over SSE |
 | Auth      | Auth.js v5 (NextAuth) — Google OAuth only (JWT sessions)     |
 | Payments  | Stripe one-time **credit packs** (no subscriptions)          |
-| Data      | Prisma 7 + Postgres (Neon)                                   |
+| Data      | Prisma 7 + Postgres (Supabase)                               |
 | Cache/RL  | Upstash Redis (in-memory fallback)                           |
 | Mobile    | Capacitor (iOS/Android)                                      |
 

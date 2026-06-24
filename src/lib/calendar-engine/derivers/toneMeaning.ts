@@ -6,9 +6,12 @@
  * 같은 날인데 "좋음 문구 + 주의 색"으로 어긋났다. 이제 MonthTier 가 셀 판정으로
  * 톤을 정해 이 풀에서 문구를 뽑으면 색과 글이 항상 일치한다.
  *
- * 풀 길이는 톤별 18+ — 큰 날 간격이 흔히 짝수(12일 등)라 짧은 풀이면 같은 문구가
- * 도배됐다(예: 6·18·30일이 전부 같은 줄). 풀을 키우고 개인 시드로 회전하면 날짜
- * 충돌도 줄고 사람마다 다른 문구가 나온다. (기존 7개는 앞쪽에 고정 — seed=0 호환)
+ * 풀 길이는 톤별 31+ — 큰 날 간격이 흔히 짝수(12일 등)라 짧은 풀이면 같은 문구가
+ * 도배됐다(예: 6·18·30일이 전부 같은 줄). 또 풀이 31 미만이면 한 달(≤31일) 안에서
+ * 같은 톤 두 날이 풀 길이만큼 떨어지면 같은 문구로 별칭돼(예: 19칸 풀에서 19일 차)
+ * "이달의 큰 날" 리스트에 중복이 생긴다. 31 이상으로 키워 한 달 내 별칭을 없애고,
+ * 개인 시드로 회전해 날짜 충돌도 줄고 사람마다 다른 문구가 나온다.
+ * (기존 7개는 앞쪽에 고정 — seed=0 호환)
  */
 
 import { pickBySeed } from './personSeed'
@@ -38,6 +41,18 @@ const TONE_POOL_KO: Record<MeaningTone, string[]> = {
     '복이 들어오는 날',
     '속도가 붙는 날',
     '인연이 닿는 날',
+    '햇살이 드는 날',
+    '응원이 모이는 날',
+    '막혔던 게 풀리는 날',
+    '좋은 소식이 오는 날',
+    '마음이 가벼워지는 날',
+    '실력이 빛나는 날',
+    '도움의 손이 닿는 날',
+    '용기를 내기 좋은 날',
+    '걸음이 가벼운 날',
+    '믿음이 통하는 날',
+    '꽃이 피는 날',
+    '기운이 차오르는 날',
   ],
   negative: [
     // 기존 7
@@ -61,6 +76,18 @@ const TONE_POOL_KO: Record<MeaningTone, string[]> = {
     '마음이 지치기 쉬운 날',
     '판단을 미루는 게 나은 날',
     '한 템포 쉬어갈 날',
+    '말다툼을 피할 날',
+    '컨디션을 살필 날',
+    '큰일은 미뤄둘 날',
+    '계약은 신중할 날',
+    '마음을 다독일 날',
+    '무리한 약속을 사릴 날',
+    '한숨 돌리고 갈 날',
+    '잔실수를 조심할 날',
+    '욱하지 않을 날',
+    '속도를 늦출 날',
+    '몸을 돌볼 날',
+    '말보다 듣는 게 나은 날',
   ],
   neutral: [
     // 기존 7
@@ -84,6 +111,18 @@ const TONE_POOL_KO: Record<MeaningTone, string[]> = {
     '새 장을 여는 날',
     '바람의 방향이 도는 날',
     '저울이 움직이는 날',
+    '한 매듭이 마무리되는 날',
+    '잔잔히 고르는 날',
+    '흐름을 가다듬는 날',
+    '호흡을 고르는 날',
+    '한 챕터를 정리하는 날',
+    '물결이 잦아드는 날',
+    '결을 고르게 하는 날',
+    '제자리를 찾는 날',
+    '템포를 맞추는 날',
+    '한 박자 고르는 날',
+    '흐름이 잔잔해지는 날',
+    '매듭을 살피는 날',
   ],
 }
 
@@ -110,6 +149,18 @@ const TONE_POOL_EN: Record<MeaningTone, string[]> = {
     'effort pays off',
     'a day to ask boldly',
     'the path clears',
+    'sunlight breaks through',
+    'support gathers around you',
+    'what was stuck comes loose',
+    'good news is on its way',
+    'your heart feels lighter',
+    'your skill shines through',
+    'a helping hand reaches you',
+    'a good day to be brave',
+    'your step feels light',
+    'trust pays off',
+    'flowers come into bloom',
+    'your energy fills back up',
   ],
   negative: [
     // existing 7
@@ -133,6 +184,18 @@ const TONE_POOL_EN: Record<MeaningTone, string[]> = {
     'a day to hold steady',
     'avoid the hard call',
     'mind your patience',
+    'steer clear of arguments',
+    'keep an eye on your condition',
+    'leave big moves for later',
+    'tread carefully on contracts',
+    'be gentle with yourself',
+    'shy away from big promises',
+    'a day to catch your breath',
+    'watch for small mistakes',
+    'a day to stay calm',
+    'a day to ease the pace',
+    'a day to mind your body',
+    'better to listen than speak',
   ],
   neutral: [
     // existing 7
@@ -156,6 +219,18 @@ const TONE_POOL_EN: Record<MeaningTone, string[]> = {
     'a new scene opens',
     'the wind changes course',
     'the scales tip over',
+    'one knot is tied off',
+    'a calm, steady day',
+    'the flow settles in',
+    'a day to find your breath',
+    'a chapter wraps up',
+    'the ripples quiet down',
+    'the grain evens out',
+    'things settle into place',
+    'a day to match the tempo',
+    'a day to keep an even beat',
+    'the current grows calm',
+    'a day to check the threads',
   ],
 }
 

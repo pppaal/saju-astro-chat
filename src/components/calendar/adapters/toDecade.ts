@@ -29,6 +29,7 @@ import {
   splitPairName,
 } from '@/lib/calendar-engine/derivers/plainLanguage'
 import { SIBSIN_EN } from '@/lib/saju/sibsinLabels'
+import { getRelationMeaning } from '@/lib/chart-dictionary'
 import { toGanji, type Ganji, geokgukStatusLine, computeSewoonGanji, PLANET_KO } from './shared'
 
 // 행성 한글 → 영문 키 역맵 (PLANET_KO 정본의 inverse). 'X × 화성' 의 한글 행성
@@ -188,8 +189,8 @@ const SIBSIN_THEME_KO: Record<
     headlineEn: 'Wealth cycle — a decade of tangible results.',
   },
   정재: {
-    theme: '꾸준한 축적의 무대',
-    themeEn: 'Steady Accumulation',
+    theme: '급하게 벌기보다 천천히 쌓을 때 단단해지는 10년',
+    themeEn: 'A decade that grows solid when you build slowly rather than rush',
     headline: '정재 대운 — 차근차근 자산이 쌓이는 10년.',
     headlineEn: 'Steady-wealth cycle — a decade where assets build up bit by bit.',
   },
@@ -252,8 +253,32 @@ const BRANCH_ROMAJI: Record<string, string> = {
 }
 
 /**
+ * relations-pairs 리치 DB 룩업 — 합/충 페어의 풍부한 평이 의미(meaning + result)를
+ * 가져온다. 페어 키는 정해진 순서(卯戌·子午…)로 저장돼 있어 BOTH 순서를 시도한다.
+ * 미스 시 null → 호출부가 기존 생성 템플릿으로 폴백. (가드 + 폴백 — 새 의미 창작 X.)
+ */
+function lookupRelationMeaning(
+  category: '지지육합' | '지지충',
+  a: string,
+  b: string,
+  lang: 'ko' | 'en'
+): { meaning: string; result?: string } | null {
+  try {
+    const hit =
+      getRelationMeaning(category, `${a}${b}`, lang) ??
+      getRelationMeaning(category, `${b}${a}`, lang)
+    if (!hit || !hit.meaning) return null
+    return { meaning: hit.meaning, result: hit.result }
+  } catch {
+    return null
+  }
+}
+
+/**
  * 대운 지지 × 본명 4지지 충·합 — 이미 있는 충/합 정본표(CHUNG/YUKHAP)를 그대로
  * 룩업. 새 계산 없음. 일/시지 우선으로 가장 가까운 관계 하나를 한 줄로.
+ * 본문은 relations-pairs 리치 DB 의 풍부한 평이 의미(있으면) — 위치 framing 을 접두로
+ * 두고, DB 미스 시 기존 생성 템플릿으로 폴백.
  * 충·합이 없으면 "뚜렷한 충·합 없음" 중립 라인(플레이스홀더 대신).
  */
 function buildDecadeHapchung(natal: NatalContext, decadeBranch: string): DestinypalDecadeRelation {
@@ -271,18 +296,36 @@ function buildDecadeHapchung(natal: NatalContext, decadeBranch: string): Destiny
     const pos = BRANCH_POS_KO[key] ?? key
     const posEn = BRANCH_POS_EN[key] ?? key
     if (CHUNG[db] === nb) {
+      // 위치 framing 접두 + relations-pairs DB 의 풍부한 평이 의미(있으면). DB 미스 → 생성 템플릿.
+      const richKo = lookupRelationMeaning('지지충', nb, db, 'ko')
+      const richEn = lookupRelationMeaning('지지충', nb, db, 'en')
+      const preKo = `본명 ${pos}지 ${nb}(${ko(nb)}) × 대운 ${db}(${ko(db)}) → ${nb}${db}충 — `
+      const preEn = `Natal ${posEn} branch ${nb} (${rom(nb)}) × decade ${db} (${rom(db)}) → ${nb}${db} clash — `
       hits.push({
         title: `${nb}${db}충`,
         titleEn: `${rom(nb)}–${rom(db)} clash`,
-        body: `본명 ${pos}지 ${nb}(${ko(nb)}) × 대운 ${db}(${ko(db)}) → ${nb}${db}충 — 이 영역에 변동·이동 압력이 실려요.`,
-        bodyEn: `Natal ${posEn} branch ${nb} (${rom(nb)}) × decade ${db} (${rom(db)}) → ${nb}${db} clash — this area carries pressure to shift and move.`,
+        body: richKo
+          ? `${preKo}${richKo.meaning}${richKo.result ? ` (${richKo.result})` : ''}`
+          : `${preKo}이 영역에 변동·이동 압력이 실려요.`,
+        bodyEn: richEn
+          ? `${preEn}${richEn.meaning}${richEn.result ? ` (${richEn.result})` : ''}`
+          : `${preEn}this area carries pressure to shift and move.`,
       })
     } else if (YUKHAP[db] === nb) {
+      // 위치 framing 접두 + relations-pairs DB 의 풍부한 평이 의미(있으면). DB 미스 → 생성 템플릿.
+      const richKo = lookupRelationMeaning('지지육합', nb, db, 'ko')
+      const richEn = lookupRelationMeaning('지지육합', nb, db, 'en')
+      const preKo = `본명 ${pos}지 ${nb}(${ko(nb)}) × 대운 ${db}(${ko(db)}) → ${nb}${db}육합 — `
+      const preEn = `Natal ${posEn} branch ${nb} (${rom(nb)}) × decade ${db} (${rom(db)}) → ${nb}${db} harmony — `
       hits.push({
         title: `${nb}${db}육합`,
         titleEn: `${rom(nb)}–${rom(db)} harmony`,
-        body: `본명 ${pos}지 ${nb}(${ko(nb)}) × 대운 ${db}(${ko(db)}) → ${nb}${db}육합 — 환경이 손발을 맞춰줘요.`,
-        bodyEn: `Natal ${posEn} branch ${nb} (${rom(nb)}) × decade ${db} (${rom(db)}) → ${nb}${db} harmony — your surroundings fall into step with you.`,
+        body: richKo
+          ? `${preKo}${richKo.meaning}${richKo.result ? ` (${richKo.result})` : ''}`
+          : `${preKo}환경이 손발을 맞춰줘요.`,
+        bodyEn: richEn
+          ? `${preEn}${richEn.meaning}${richEn.result ? ` (${richEn.result})` : ''}`
+          : `${preEn}your surroundings fall into step with you.`,
       })
     }
   }

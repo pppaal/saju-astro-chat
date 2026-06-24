@@ -1,6 +1,5 @@
 // src/lib/Saju/unse.ts
 
-import { logger } from '@/lib/logger'
 import { STEMS, BRANCHES, MONTH_STEM_LOOKUP, getSolarTermKST } from './constants'
 // 연운/일진 산술의 single source.
 import {
@@ -9,24 +8,16 @@ import {
 } from './cycles'
 // 십신 / 정기 매핑은 core 모듈이 single source — saju.ts/unse.ts 둘 다 같은 것 사용.
 import { getSibseong as getSibseongCore, getBranchSibsin } from './core/sibsin'
-import type { BirthInstant } from '@/lib/datetime'
 import {
   FiveElement,
   YinYang,
   DayMaster,
-  DaeunData,
   YeonunData,
   WolunData,
   IljinData,
   StemBranchInfo,
-  SajuPillars as SajuPillarsAll,
 } from './types'
 import { CALCULATION_STANDARDS } from '@/lib/config/calculationStandards'
-import { daysToDaeunAge } from '@/lib/saju/daeunAge'
-
-// 내부 유틸: 로컬 타임존 영향 제거용 UTC Date 생성
-const utcDate = (y: number, m1to12: number, d: number, hh = 0, mm = 0, ss = 0, ms = 0) =>
-  new Date(Date.UTC(y, m1to12 - 1, d, hh, mm, ss, ms))
 
 // 지지(branch)/천간(stem) 양쪽 인자를 받는 호환 wrapper — 옛 호출자가 stem/branch
 // 객체 둘 다 들어오는 패턴이라 그대로 유지. 지지면 정기 자동 lookup 으로 음양
@@ -42,106 +33,6 @@ function getSibseong(
   }
   // 천간 — core 직접 호출.
   return getSibseongCore(dayMaster, target)
-}
-
-// 옛 코드의 normalizeBirthToUTC 는 birthDate (이미 UTC instant) 를 server-local
-// accessor 로 재분해 → timezone 으로 재해석 하는 두 번 변환 패턴이라 UTC 서버
-// (Vercel) 에서 ±tzOffset 어긋났다 (S1). 사주 계산의 single source 는 UTC
-// instant 라서 그냥 그대로 사용. 변환 helper 자체를 제거.
-
-// 대운 시작 나이 계산은 src/lib/saju/daeunAge.ts (saju.ts 와 단일 출처 공유).
-
-export function getDaeunCycles(
-  birthDate: BirthInstant,
-  gender: 'male' | 'female',
-  sajuPillars: SajuPillarsAll,
-  dayMaster: DayMaster,
-  timezone: string
-): { daeunsu: number; cycles: DaeunData[] } {
-  // timezone 인자는 더 이상 사용 안 함 (절기 lookup 은 KASI KST 데이터). 호환성
-  // 위해 시그니처는 유지 — 호출자가 인자 빼면 BC 깨짐.
-  void timezone
-  if (!birthDate || !sajuPillars || !dayMaster) {
-    logger.error('getDaeunCycles: 유효하지 않은 인자')
-    return { daeunsu: 0, cycles: [] }
-  }
-
-  const yearStemYinYang = sajuPillars.year.heavenlyStem.yin_yang
-  const isForward =
-    (yearStemYinYang === '양' && gender === 'male') ||
-    (yearStemYinYang === '음' && gender === 'female')
-
-  // birthDate 는 이미 UTC instant — saju.ts 의 toDate(..., {timeZone}) 결과.
-  // 재해석 없이 직접 KASI 절기 lookup (KST 변환은 getSolarTermKST 내부).
-  const birthUTC = birthDate
-  const y = birthUTC.getUTCFullYear()
-  const m = birthUTC.getUTCMonth() + 1
-
-  // 주의: getSolarTermKST가 KST 기준 Date를 반환한다고 가정
-  const cur = getSolarTermKST(y, m)
-  if (!cur) {
-    return { daeunsu: 0, cycles: [] }
-  }
-
-  let previousTerm: Date, nextTerm: Date
-  if (birthUTC.getTime() >= cur.getTime()) {
-    const nm = m === 12 ? 1 : m + 1
-    const ny = m === 12 ? y + 1 : y
-    previousTerm = cur
-    const nt = getSolarTermKST(ny, nm)
-    if (!nt) {
-      return { daeunsu: 0, cycles: [] }
-    }
-    nextTerm = nt
-  } else {
-    const pm = m === 1 ? 12 : m - 1
-    const py = m === 1 ? y - 1 : y
-    const pt = getSolarTermKST(py, pm)
-    if (!pt) {
-      return { daeunsu: 0, cycles: [] }
-    }
-    previousTerm = pt
-    nextTerm = cur
-  }
-
-  const diffMs = isForward
-    ? nextTerm.getTime() - birthUTC.getTime()
-    : birthUTC.getTime() - previousTerm.getTime()
-  const diffDays = diffMs / 86400000
-  const daeunsu = daysToDaeunAge(diffDays)
-
-  const cycles: DaeunData[] = []
-  const startStemIndex = STEMS.findIndex((s) => s.name === sajuPillars.month.heavenlyStem.name)
-  const startBranchIndex = BRANCHES.findIndex(
-    (b) => b.name === sajuPillars.month.earthlyBranch.name
-  )
-  if (startStemIndex === -1 || startBranchIndex === -1) {
-    logger.error('대운 시작 간지 탐색 실패')
-    return { daeunsu: 0, cycles: [] }
-  }
-
-  const direction = isForward ? 1 : -1
-  for (let i = 0; i < 10; i++) {
-    const age = daeunsu + i * 10
-    const step = i + 1
-    const stemIndex = (startStemIndex + step * direction + 1000) % 10
-    const branchIndex = (startBranchIndex + step * direction + 1200) % 12
-    const stem = STEMS[stemIndex]
-    const branch = BRANCHES[branchIndex]
-    if (stem && branch) {
-      cycles.push({
-        age,
-        heavenlyStem: stem.name,
-        earthlyBranch: branch.name,
-        sibsin: {
-          cheon: getSibseong(dayMaster, stem),
-          ji: getSibseong(dayMaster, branch),
-        },
-      })
-    }
-  }
-
-  return { daeunsu, cycles }
 }
 
 // 연운 산술은 cycles.ts(single source) 로 위임 — 출력 byte 동일.
