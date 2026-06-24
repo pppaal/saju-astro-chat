@@ -610,8 +610,8 @@ export function buildFreeCompatNarrative(
         if (!arena) continue
         const plName = planet(o.planetKey, o.planet)
         const text = isKo
-          ? `${viewer}의 ${plName} 기운이 닿는 곳은 ${arena}`
-          : `${viewer}'s ${plName} lands on ${arena}`
+          ? `${viewer}의 ${plName} 기운이 닿는 자리예요. ${arena}`
+          : `${viewer}'s ${plName} reaches into this part of life. ${arena}`
         themed.push({ theme: HOUSE_THEME[o.house] ?? 'life', weight: 2, text })
       }
     }
