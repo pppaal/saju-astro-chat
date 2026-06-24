@@ -418,8 +418,9 @@
 .isDay {
   background: linear-gradient(180deg, rgba(169, 131, 59, 0.06), rgba(169, 131, 59, 0.02));
 }
-.isDay::after {
-  content: '日干';
+/* 일간 표식 뱃지 — 텍스트는 JSX(.dayTag)에서 lang 대응으로 주입한다.
+   (옛 ::after content 하드코딩은 EN 리포트에서 '日干'을 그대로 노출하던 버그) */
+.dayTag {
   position: absolute;
   top: 10px;
   right: 10px;

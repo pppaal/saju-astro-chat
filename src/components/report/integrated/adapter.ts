@@ -278,11 +278,14 @@ export function natalToReportData(
   // 신살
   const natalShinsal = (S.natalShinsal ?? []).slice(0, 8).map((h: any) => {
     const kind = h.kind ?? h.name ?? ''
-    const pillar = Array.isArray(h.pillars) ? (PILLAR_KO[h.pillars[0]] ?? '') : ''
+    const pillarKey = Array.isArray(h.pillars) ? h.pillars[0] : ''
+    const pillar = PILLAR_KO[pillarKey] ?? ''
+    const pillarEn = PILLAR_EN[pillarKey] ?? ''
     return {
       name: kind,
       ko: kind,
       pillar,
+      pillarEn,
       sub: h.sub,
       polarity: h.polarity ?? SHINSAL_POLARITY[kind] ?? 0,
     }
@@ -470,6 +473,14 @@ const PILLAR_KO: Record<string, string> = {
   day: '日',
   time: '時',
   hour: '時',
+}
+// EN 리포트용 기둥 약칭 — 한자(年月日時)를 그대로 노출하지 않도록 짝을 둔다.
+const PILLAR_EN: Record<string, string> = {
+  year: 'Yr',
+  month: 'Mo',
+  day: 'Day',
+  time: 'Hr',
+  hour: 'Hr',
 }
 
 // ── 섹션 5: natalCross 교차 → 카드 rows ──────────────────────────────────
