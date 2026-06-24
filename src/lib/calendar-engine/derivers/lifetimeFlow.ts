@@ -23,7 +23,7 @@ import { STEM_KO, BRANCH_KO } from '@/lib/saju/ganjiKo'
 import { getStemElement } from '@/lib/saju/stemBranchUtils'
 import { getTwelveStage } from '@/lib/saju/shinsal'
 import { getJohuYongsin } from '@/lib/saju/johuYongsin'
-import { getTwelveStageInterpretation, type TwelveStageType } from '@/lib/saju/interpretations'
+import { type TwelveStageType } from '@/lib/saju/interpretations'
 
 const TWELVE_STAGE_TYPES: ReadonlySet<TwelveStageType> = new Set([
   '장생',
@@ -39,6 +39,42 @@ const TWELVE_STAGE_TYPES: ReadonlySet<TwelveStageType> = new Set([
   '태',
   '양',
 ])
+
+// 12운성을 인생 단계 줄에 쓸 때의 *추상 에너지* 글로스(감사 BUG-4).
+// 공유 해석 테이블(getTwelveStageInterpretation)의 의미는 "새 생명이 잉태", "성인이
+// 되어 관을 쓰는", "권력의 정점"처럼 *문자 그대로의 인생 사건/성공* 비유라, 80세
+// 단계에 "잉태"가 붙거나(연령 부적합) 역풍(favor<0) 단계에 "권력의 정점"이 붙어
+// 운(luck)과 모순돼 보였다. 여기선 일간의 *내적 활력 결*만 나이·운과 무관하게
+// 묘사한다 — "기운의 흐름으로 보면, …" 프레이밍과 맞물려 vitality 신호로 읽힌다.
+// EN 은 소문자 시작(템플릿이 중간에 끼움), 끝 구두점 없음(이중 마침표 방지).
+const ENERGY_GLOSS_KO: Record<TwelveStageType, string> = {
+  장생: '기운이 새로 솟는 시작의 결',
+  목욕: '다듬으며 자리를 찾아가는 결',
+  관대: '기운이 한껏 자라 채비를 갖추는 결',
+  건록: '안정되게 무르익는 전성의 결',
+  제왕: '기운이 가장 무르익은 절정의 결',
+  쇠: '정점을 지나 부드러워지는 결',
+  병: '속도를 늦추고 안을 돌보는 결',
+  사: '거두어 정리하는 결',
+  묘: '갈무리하고 응축하는 결',
+  절: '비우고 끊어 새로워지는 결',
+  태: '안에서 새 기운이 깃드는 잠재의 결',
+  양: '조용히 기르며 채비하는 결',
+}
+const ENERGY_GLOSS_EN: Record<TwelveStageType, string> = {
+  장생: 'fresh energy rising — a starting grain',
+  목욕: 'finding form, settling in',
+  관대: 'energy filling out, gearing up',
+  건록: 'steady, ripened vigor',
+  제왕: 'vitality at its fullest',
+  쇠: 'past the peak, easing',
+  병: 'slowing down, tending inward',
+  사: 'gathering in, winding down',
+  묘: 'storing up, condensing',
+  절: 'clearing out, renewing',
+  태: 'new energy quietly forming — latent',
+  양: 'nurturing quietly, getting ready',
+}
 import { SIBSIN_CAT, favorOf, type SibsinCat } from './cycleTone'
 import type { LifecycleMilestoneOverride } from '@/lib/calendar-engine/lifecycle/astroLifecycle'
 import { buildLifecycleTiming } from '@/lib/calendar-engine/lifecycle/astroLifecycle'
@@ -59,6 +95,19 @@ export interface LifePhase {
   textKo: string
   /** 본문 영문 — 클라이언트 토글용. */
   textEn: string
+  /**
+   * 운세 톤 한 줄(평이) — 단계 favor 기반 "흐름 날씨". headline 으로 쓴다.
+   * 어댑터가 textKo 를 정규식으로 역파싱하던 방식(첫 본문 문장을 톤으로 오추출 +
+   * em-dash 절을 오절단)을 대체한다(감사 BUG-1/BUG-2). KO/EN 분리 baked.
+   */
+  toneKo: string
+  toneEn: string
+  /**
+   * 서술 본문(도입부 + 단계 묘사) — 운세 톤 제외. detail.body[0] 로 쓴다.
+   * 톤은 headline 으로 빠지므로 본문에 다시 넣지 않아 중복이 없다(감사 BUG-1).
+   */
+  narrativeKo: string
+  narrativeEn: string
   /**
    * 이 단계에 걸친 대운 흐름 한 줄. 예: "丁丑(정축) 대운 1996-2006 → 丙子(병자)
    * 대운 2006-2016". UI 가 본문(text) 위에 작게 표시.
@@ -390,12 +439,12 @@ const SHINSAL_SHORT_KO: Record<string, string> = {
   도화: '관계·매력 활성, 감정 변동',
   역마: '이동·변동 잦은 시기',
   역마살: '이동·변동 잦은 시기',
-  양인: '강한 추진력, 칼끝의 시기',
-  백호: '예측 불가 사건 주의',
-  망신: '체면·신용 시험',
-  망신살: '체면·신용 시험',
-  겁살: '재물·신뢰 도전',
-  공망: '허무·내면 응시 시기',
+  양인: '강한 추진력 — 균형이 중요한 시기',
+  백호: '예상 밖 변수에 유연하게',
+  망신: '체면·신용을 다지는 흐름',
+  망신살: '체면·신용을 다지는 흐름',
+  겁살: '재물·신뢰를 점검하는 흐름',
+  공망: '비움·내면을 응시하는 시기',
   // 12신살 시리즈 (역마 외 11종) — 출력에서 "${kind} 발현" 폴백으로 떨어지던
   // 회귀(2026-06 사용자 지적) 해결. 모두 같은 12신살 계열이라 톤은 비슷하지만
   // 각자 맥락이 다름.
@@ -403,14 +452,14 @@ const SHINSAL_SHORT_KO: Record<string, string> = {
   년살: '도화의 분파 — 감정·관계 자극',
   월살: '발목 잡는 작은 장애 — 변화 직전 정체',
   // (망신 / 망신살 위에 이미 등록 — 12신살 시리즈에서 중복 회피)
-  반안: '겉은 화려, 속은 시험 — 자존심 자극',
-  반안살: '겉은 화려, 속은 시험 — 자존심 자극',
+  반안: '겉은 화려, 속은 단단해지는 — 자존심 자극',
+  반안살: '겉은 화려, 속은 단단해지는 — 자존심 자극',
   장성: '리더십·권위 자극',
   장성살: '리더십·권위 자극',
   화개: '내면·예술·정신성 활성',
   화개살: '내면·예술·정신성 활성',
-  재살: '재물·신뢰 도전 (겁살 분파)',
-  천살: '하늘이 거는 시험 — 부모·권위 이슈',
+  재살: '재물·신뢰를 점검하는 흐름',
+  천살: '권위·부모 주제를 마주하는 흐름',
   육해: '관계 마찰·은근한 방해',
   육해살: '관계 마찰·은근한 방해',
 }
@@ -426,23 +475,23 @@ const SHINSAL_SHORT_EN: Record<string, { name: string; short: string }> = {
   도화: { name: 'Dohwa (Peach Blossom)', short: 'charm & relationships active, emotional swings' },
   역마: { name: 'Yeokma (Travel Horse)', short: 'movement, travel, frequent shifts' },
   역마살: { name: 'Yeokmasal (Travel Horse)', short: 'movement, travel, frequent shifts' },
-  양인: { name: 'Yangin (Yang Blade)', short: 'razor-sharp drive, edge of risk' },
-  백호: { name: 'Baekho (White Tiger)', short: 'watch for unpredictable shocks' },
-  망신: { name: 'Mangsin (Loss of Face)', short: 'test of reputation' },
-  망신살: { name: 'Mangsinsal (Loss of Face)', short: 'test of reputation' },
-  겁살: { name: 'Geopsal (Robbery)', short: 'trials around wealth and trust' },
-  공망: { name: 'Gongmang (Void)', short: 'emptiness, deep introspection' },
+  양인: { name: 'Yangin (Yang Blade)', short: 'razor-sharp drive — balance matters' },
+  백호: { name: 'Baekho (White Tiger)', short: 'stay flexible with the unexpected' },
+  망신: { name: 'Mangsin (Loss of Face)', short: 'a season to firm up reputation & trust' },
+  망신살: { name: 'Mangsinsal (Loss of Face)', short: 'a season to firm up reputation & trust' },
+  겁살: { name: 'Geopsal (Robbery)', short: 'a season to mind wealth & trust' },
+  공망: { name: 'Gongmang (Void)', short: 'spaciousness, deep introspection' },
   지살: { name: 'Jisal (Self-Start)', short: 'self-initiated moves, departures' },
   년살: { name: 'Nyeonsal (Year Spike)', short: 'a Dohwa offshoot — feelings stirred' },
   월살: { name: 'Wolsal (Snag)', short: 'small obstacles stall the cusp of change' },
-  반안: { name: 'Banan (Saddle)', short: 'shiny on the outside, tested on the inside' },
-  반안살: { name: 'Banansal (Saddle)', short: 'shiny on the outside, tested on the inside' },
+  반안: { name: 'Banan (Saddle)', short: 'shiny outside, firming up inside' },
+  반안살: { name: 'Banansal (Saddle)', short: 'shiny outside, firming up inside' },
   장성: { name: 'Jangseong (General)', short: 'leadership and authority stirred' },
   장성살: { name: 'Jangseongsal (General)', short: 'leadership and authority stirred' },
   화개: { name: 'Hwagae (Canopy)', short: 'inwardness, art, spirituality activated' },
   화개살: { name: 'Hwagaesal (Canopy)', short: 'inwardness, art, spirituality activated' },
-  재살: { name: 'Jaesal (Wealth Trial)', short: 'wealth & trust tested (Geopsal cousin)' },
-  천살: { name: 'Cheonsal (Heaven Trial)', short: "sky's test — parent/authority issues" },
+  재살: { name: 'Jaesal (Wealth Trial)', short: 'a season to mind wealth & trust' },
+  천살: { name: 'Cheonsal (Heaven Trial)', short: 'facing authority & parent themes' },
   육해: { name: 'Yukhae (Friction)', short: 'relational friction, quiet interference' },
   육해살: { name: 'Yukhaesal (Friction)', short: 'relational friction, quiet interference' },
 }
@@ -1116,39 +1165,19 @@ export function deriveLifetimeFlow(
         // 없는 경우엔 그냥 "본명" 만 쓴다.
         const pillarKey = sh.pillars?.[0]
         const kind = sh.kind
+        // 평이 우선 — relationLine/twelveStageLine 과 동일하게 surface 에서 raw
+        // 간지 메커닉 "(대운 巳(사) ↔ 본명 연지 巳(사))" 를 뺀다. 그 괄호가
+        // novice 표면에 한자를 흘리던 마지막 경로였다(감사 BUG-3). 신살 개념명 +
+        // 평이 의미만 남긴다.
         // EN
         {
           const meta = SHINSAL_SHORT_EN[kind] ?? { name: kind, short: `${kind} activated` }
-          const posLabel = pillarKey
-            ? isBranch
-              ? (PILLAR_POS_EN[pillarKey] ?? '')
-              : (PILLAR_STEM_POS_EN[pillarKey] ?? '')
-            : ''
-          const anchorRom = isBranch
-            ? `${tgt} (${BRANCH_ROM[tgt] ?? ''})`
-            : `${tgt} (${STEM_ROM[tgt] ?? ''})`
-          const daeunRom = isBranch
-            ? `${daeunBranch} (${BRANCH_ROM[daeunBranch] ?? ''})`
-            : `${daeunStem} (${STEM_ROM[daeunStem] ?? ''})`
-          const anchorPart = posLabel ? `natal ${posLabel} ${anchorRom}` : `natal ${anchorRom}`
-          shinsalLineEn = `${meta.name} active (daeun ${daeunRom} ↔ ${anchorPart}) — ${meta.short}`
+          shinsalLineEn = `${meta.name} — ${meta.short}`
         }
         // KO
         {
           const short = SHINSAL_SHORT_KO[kind] ?? `${kind} 발현`
-          const posLabel = pillarKey
-            ? isBranch
-              ? (PILLAR_POS_KO[pillarKey] ?? '')
-              : (PILLAR_STEM_POS_KO[pillarKey] ?? '')
-            : ''
-          const anchorKo = isBranch
-            ? `${tgt}(${BRANCH_KO[tgt] ?? ''})`
-            : `${tgt}(${STEM_KO[tgt] ?? ''})`
-          const daeunKo = isBranch
-            ? `${daeunBranch}(${BRANCH_KO[daeunBranch] ?? ''})`
-            : `${daeunStem}(${STEM_KO[daeunStem] ?? ''})`
-          const anchorPart = posLabel ? `본명 ${posLabel} ${anchorKo}` : `본명 ${anchorKo}`
-          shinsalLineKo = `${kind} 활성 (대운 ${daeunKo} ↔ ${anchorPart}) — ${short}`
+          shinsalLineKo = `${kind} 기운 — ${short}`
         }
         break // 첫 매칭 한 개만
       }
@@ -1167,25 +1196,20 @@ export function deriveLifetimeFlow(
       // 해석을 잃고 "…기준 임관" 으로 끊겨 raw 용어만 남는다(감사 지적). 동의어를
       // 매핑해 의미가 절대 비지 않게 한다.
       const stageForLookup = stage === '임관' ? '건록' : stage === '왕지' ? '제왕' : stage
-      let meaningKo = ''
-      let meaningEn = ''
-      if (stageForLookup && TWELVE_STAGE_TYPES.has(stageForLookup as TwelveStageType)) {
-        const interp = getTwelveStageInterpretation(stageForLookup as TwelveStageType)
-        if (interp) {
-          meaningKo = interp.meaning ?? ''
-          meaningEn = interp.meaning_en ?? ''
-        }
-      }
-      // 평이 우선 — "대운 申(신)이 일간 辛 기준 왕지" 같은 간지/일간/운성 원명을
-      // surface 에서 빼고, 12운성의 *평이 의미*만 한 줄로 쓴다(예: "권력의 정점").
-      // 아동기엔 운성 해석이 전부 성인 기준("성인이 되어 관을 쓰는 시기")이라
-      // 유아에게 붙으면 어색하므로 생략한다(감사 지적). 의미가 비면(이론상 없음)
-      // raw 운성명을 노출하지 않고 그냥 줄을 안 만든다.
-      if (!isChildhood && meaningKo) {
-        twelveStageLineKo = `기운의 흐름으로 보면, ${meaningKo}.`
-        twelveStageLineEn = meaningEn
-          ? `In terms of your life-energy cycle, ${meaningEn.charAt(0).toLowerCase()}${meaningEn.slice(1)}.`
-          : undefined
+      // 추상 에너지 글로스만 사용 — 문자 그대로의 인생 사건/성공 비유(잉태/관을
+      // 쓰는/권력의 정점)를 빼 연령·운(favor) 모순을 없앤다(감사 BUG-4).
+      const glossKo =
+        stageForLookup && TWELVE_STAGE_TYPES.has(stageForLookup as TwelveStageType)
+          ? ENERGY_GLOSS_KO[stageForLookup as TwelveStageType]
+          : ''
+      const glossEn =
+        stageForLookup && TWELVE_STAGE_TYPES.has(stageForLookup as TwelveStageType)
+          ? ENERGY_GLOSS_EN[stageForLookup as TwelveStageType]
+          : ''
+      // 아동기엔 운성 줄을 생략(성인 기준 서사라 어색). 글로스가 비면 줄을 안 만든다.
+      if (!isChildhood && glossKo) {
+        twelveStageLineKo = `기운의 흐름으로 보면, ${glossKo}.`
+        twelveStageLineEn = glossEn ? `In terms of your life-energy cycle, ${glossEn}.` : undefined
       }
     } catch {
       // stage 계산 실패 시 silently skip
@@ -1207,8 +1231,12 @@ export function deriveLifetimeFlow(
     // 평이 우선: 십신 원명("편재(재성) 흐름 — ")을 surface 에서 빼고 그 의미를 풀어쓴
     // bodyKo/En 로 시작한다. 십신 라벨은 어차피 bodyKo 안에 평이하게 녹아 있어
     // 중복 노이즈였고, novice 표면에 raw 십신을 노출하던 주범이었다(감사 지적).
-    const textKo = `${childPrefixKo}${bodyKo}. ${toneKo}`
-    const textEn = `${childPrefixEn}${bodyEn}. ${toneEn}`
+    // 서술 본문(도입부+묘사)과 운세 톤을 분리 보관 — 어댑터가 헤드라인=톤,
+    // body=서술 로 깔끔히 소비(중복·오절단 제거). text* 는 옛 단일 문자열 호환용.
+    const narrativeKo = `${childPrefixKo}${bodyKo}`.trim()
+    const narrativeEn = `${childPrefixEn}${bodyEn}`.trim()
+    const textKo = `${narrativeKo}. ${toneKo}`
+    const textEn = `${narrativeEn}. ${toneEn}`
     const text = isEn ? textEn : textKo
 
     const ageRange = isEn
@@ -1223,6 +1251,10 @@ export function deriveLifetimeFlow(
       text,
       textKo,
       textEn,
+      toneKo,
+      toneEn,
+      narrativeKo,
+      narrativeEn,
       daeunLine,
       milestoneLine: isEn ? milestoneLineEn : milestoneLineKo,
       milestoneLineEn,

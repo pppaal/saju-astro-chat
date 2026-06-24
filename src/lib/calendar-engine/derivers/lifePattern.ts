@@ -259,19 +259,29 @@ function personalize(
   // 이후 ~30년 지평). 이렇게 해야 31세에게 "1세가 절정", 65세에게 "32세가 절정"
   // 같은 과거/유아기 정점이 안 나온다. 앞으로 남은 후보가 없으면(고령) 지나온
   // 정점을 회고형(past)으로 서술한다.
-  let past = false
   if (typeof currentAge === 'number') {
     const ahead = pool.filter((c) => c.startAge + 10 > currentAge && c.startAge <= currentAge + 30)
+    // 지금~30년 안에 후보가 있으면 그쪽을 우선. 없으면(고령이거나, 어린 사람의
+    // 정점 창이 30년보다 멀거나) pool 을 그대로 두고 시제는 *정점의 실제 위치*로만
+    // 판정한다 — 옛 코드는 'ahead 비었음'을 무조건 past 로 봐서, 9세에게 2074년
+    // (57세) 정점을 "…였어요" 과거형으로 서술했다(감사 BUG-6).
     if (ahead.length) pool = ahead
-    else past = true
   }
   // favor 동률이면 더 빠른(먼저 오는) 대운을 정점으로 — reduce 가 첫 최대를 유지.
   const peak = pool.reduce((best, c) => (c.favor > best.favor ? c : best), pool[0])
-  if (typeof currentAge === 'number' && peak.startAge + 10 <= currentAge) past = true
+  // 시제는 오직 정점 대운이 *이미 지났는가*(decade 끝 ≤ 현재 나이)로 결정.
+  const past =
+    typeof currentAge === 'number' ? peak.startAge + 10 <= currentAge : false
+
+  // 정점 창이 이미 지난 사람에겐 base.line 의 미래 지시 어조도 회고형으로 바꾼다.
+  // midlife-peak "…풀려요. 그때 승부를 보면 좋아요."(미래 조언)를 80세에게 그대로
+  // 주던 문제(감사 BUG-6). 시간 창을 단정하는 유형만 past 변형을 둔다.
+  const baseLineKo = past ? (LINE_PAST_KO[key] ?? base.line) : base.line
+  const baseLineEn = past ? (LINE_PAST_EN[key] ?? base.lineEn) : base.lineEn
 
   // 가리킬 만한 진짜 순풍(favor>0)이 없으면 강조 절을 붙이지 않는다 — 평탄/역풍
   // 곡선에 "가장 크게 힘을 실어줘요"를 붙이면 거짓이 된다.
-  if (peak.favor <= 0) return { line: base.line, lineEn: base.lineEn }
+  if (peak.favor <= 0) return { line: baseLineKo, lineEn: baseLineEn }
 
   // 그 대운에서 우호 방향을 끄는 십신(둘 다 같으면 stem, 다르면 stem 우선).
   const cat = peak.stemCat
@@ -290,7 +300,16 @@ function personalize(
     : `Your strongest stretch is ${whenEn} onward, leaning toward ${CAT_EN[cat]}.`
 
   return {
-    line: `${base.line} ${detailKo}`,
-    lineEn: `${base.lineEn} ${detailEn}`,
+    line: `${baseLineKo} ${detailKo}`,
+    lineEn: `${baseLineEn} ${detailEn}`,
   }
+}
+
+// 정점 시간 창을 단정하는 유형의 회고(past) 변형 — 그 창이 이미 지난 사람에게
+// 미래 지시 어조 대신 과거형으로(감사 BUG-6). 미정의 유형은 base.line 유지.
+const LINE_PAST_KO: Partial<Record<LifePatternKey, string>> = {
+  'midlife-peak': '마흔~쉰 무렵에 가장 크게 풀렸어요.',
+}
+const LINE_PAST_EN: Partial<Record<LifePatternKey, string>> = {
+  'midlife-peak': 'Things opened widest in your forties to fifties.',
 }

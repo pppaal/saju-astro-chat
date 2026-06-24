@@ -243,9 +243,11 @@ describe('deriveLifetimeFlow', () => {
       })
       const r = deriveLifetimeFlow(n)!
       const young = r.phases.find((p) => p.label === '청년기')!
-      expect(young.shinsalLine).toContain('천을귀인 활성')
+      expect(young.shinsalLine).toContain('천을귀인 기운')
       expect(young.shinsalLine).toContain('도움·우호적 지원 시기')
-      expect(young.shinsalLine).toContain('본명 일지')
+      // 평이 우선: raw 간지 메커닉(대운/본명 위치 + 한자)을 surface 에서 제거(감사 BUG-3)
+      expect(young.shinsalLine).not.toMatch(/[一-鿿]/)
+      expect(young.shinsalLine).not.toContain('본명')
     })
 
     it('신살 target 이 대운 천간과 일치해도 활성 (stem 분기)', () => {
@@ -255,8 +257,9 @@ describe('deriveLifetimeFlow', () => {
       })
       const r = deriveLifetimeFlow(n)!
       const young = r.phases.find((p) => p.label === '청년기')!
-      expect(young.shinsalLine).toContain('문창귀인 활성')
-      expect(young.shinsalLine).toContain('월간')
+      expect(young.shinsalLine).toContain('문창귀인 기운')
+      // 메커닉(위치 라벨 + 한자) 제거됨 — 평이 의미만
+      expect(young.shinsalLine).not.toMatch(/[一-鿿]/)
     })
 
     it('매핑 테이블에 없는 kind 는 "${kind} 발현" 폴백', () => {
@@ -265,7 +268,7 @@ describe('deriveLifetimeFlow', () => {
       })
       const r = deriveLifetimeFlow(n)!
       const young = r.phases.find((p) => p.label === '청년기')!
-      expect(young.shinsalLine).toContain('괴강 활성')
+      expect(young.shinsalLine).toContain('괴강 기운')
       expect(young.shinsalLine).toContain('괴강 발현')
     })
 
@@ -481,8 +484,8 @@ describe('deriveLifetimeFlow', () => {
       })
       const r = deriveLifetimeFlow(n)!
       const young = r.phases.find((p) => p.label === '청년기')!
-      expect(young.shinsalLine).toContain('천을귀인 활성')
-      expect(young.shinsalLineEn).toContain('Cheoneul Gwiin (Nobleman) active')
+      expect(young.shinsalLine).toContain('천을귀인 기운')
+      expect(young.shinsalLineEn).toContain('Cheoneul Gwiin (Nobleman)')
       expect(young.shinsalLineEn).not.toMatch(/[가-힣]/)
     })
 
@@ -578,7 +581,7 @@ describe('deriveLifetimeFlow', () => {
       })
       const r = deriveLifetimeFlow(n, 'en')!
       const young = r.phases.find((p) => p.label === 'Young adulthood')!
-      expect(young.shinsalLine).toContain('Cheoneul Gwiin (Nobleman) active')
+      expect(young.shinsalLine).toContain('Cheoneul Gwiin (Nobleman)')
       expect(young.shinsalLine).toContain('supportive helpers')
     })
 
@@ -640,9 +643,9 @@ describe('deriveLifetimeFlow', () => {
 
   describe('twelveStageLine — 동의어 운성(왕지/임관) 의미 복원', () => {
     it('왕지(=제왕 동의어)도 평이 의미가 붙는다 (bare 운성/일간 노출 없음)', () => {
-      // 대운 지지 申 → getTwelveStage('辛','申')='왕지'. 예전엔 해석 테이블이
-      // 동의어 '제왕' 키만 가져 의미가 비고 "…일간 辛 기준 왕지" 로 끊겼다.
-      // 이제 동의어를 매핑해 평이 의미("권력의 정점")가 붙는다.
+      // 대운 지지 申 → getTwelveStage('辛','申')='왕지'. 동의어 '제왕' 으로 매핑돼
+      // 추상 에너지 글로스(BUG-4)가 붙는다 — 문자 그대로의 "권력의 정점"(성공·운
+      // 모순 유발)이 아니라 vitality 결("기운이 가장 무르익은 절정").
       const n = makeNatal({
         daeun: [{ startAge: 25, startYear: 2015, stem: '乙', branch: '申' }],
       })
@@ -650,7 +653,7 @@ describe('deriveLifetimeFlow', () => {
       const young = r.phases.find((p) => p.label === '청년기')
       expect(young).toBeDefined()
       expect(young!.twelveStageLine).toContain('기운의 흐름으로 보면')
-      expect(young!.twelveStageLine).toContain('권력의 정점')
+      expect(young!.twelveStageLine).toContain('기운이 가장 무르익은 절정')
       // raw 운성명/일간은 surface 에 노출하지 않는다.
       expect(young!.twelveStageLine).not.toContain('왕지')
       expect(young!.twelveStageLine).not.toContain('일간')
