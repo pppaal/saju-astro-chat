@@ -17,7 +17,7 @@ describe('DataSourceToggles', () => {
       />
     )
     // 체크박스 위 보이는 안내 라벨
-    expect(screen.getByText('상담에 사용할 데이터')).toBeTruthy()
+    expect(screen.getByText('이 상담에 쓸 자료를 골라요 (둘 다 추천)')).toBeTruthy()
     // 궁합 전용 트리거 + 팝업 문구 (개인용과 달라야 함)
     const trigger = screen.getByText('사주·점성 궁합이란?')
     fireEvent.click(trigger)
@@ -45,7 +45,7 @@ describe('DataSourceToggles', () => {
 
   it('no group label / info button unless opted in (default = bare checkboxes)', () => {
     render(<DataSourceToggles sources={{ saju: true, astro: true }} onChange={vi.fn()} lang="ko" />)
-    expect(screen.queryByText('상담에 사용할 데이터')).toBeNull()
+    expect(screen.queryByText('이 상담에 쓸 자료를 골라요 (둘 다 추천)')).toBeNull()
     expect(screen.queryByText('사주·점성이란?')).toBeNull()
     expect(screen.queryByText('사주·점성 궁합이란?')).toBeNull()
   })

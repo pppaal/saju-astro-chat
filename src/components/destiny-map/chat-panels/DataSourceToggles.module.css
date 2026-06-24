@@ -17,11 +17,11 @@
    한눈에 알려준다. flex-basis 100% 로 항상 제 줄을 차지해 체크박스 위에 온다. */
 .groupLabel {
   flex-basis: 100%;
-  margin: 0 0 0.1rem;
-  font-size: 0.78rem;
+  margin: 0 0 0.15rem;
+  font-size: 0.82rem;
   font-weight: 700;
   line-height: 1.3;
-  color: rgba(0, 0, 0, 0.55);
+  color: rgba(0, 0, 0, 0.62);
 }
 
 .toggles[data-theme='dark'] .groupLabel {
