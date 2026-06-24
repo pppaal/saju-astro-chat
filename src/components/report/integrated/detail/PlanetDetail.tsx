@@ -25,6 +25,8 @@ export interface PlanetDetailProps {
   lang: Lang
   /** 이미 위 카드(bigThree)에서 보여준 행성 이름은 제외해 중복 렌더를 막는다. */
   exclude?: string[]
+  /** 만 14세 미만 — 화성·릴리스 등 성적 의미를 연령 맞춤 문구로 치환. */
+  isMinor?: boolean
 }
 
 // 한 몸(행성/포인트)이 갖는 공통 모양 — planets 와 extraPoints 를 한 줄에 통합.
@@ -59,10 +61,21 @@ function buildRead(label: string, sign: string, house: number, lang: Lang): stri
         (h ? `고, ${house}하우스(${dom}) 무대에서 주로 펼쳐져요.` : '요.')
 }
 
-function BodyRow({ b, lang }: { b: Body; lang: Lang }): React.ReactElement {
+function BodyRow({
+  b,
+  lang,
+  isMinor,
+}: {
+  b: Body
+  lang: Lang
+  isMinor?: boolean
+}): React.ReactElement {
   const sk = SIGN_META[abbr(b.sign)]
   const elCls = elClass[sk?.el ?? ''] ?? ''
-  const core = getPlanetCore(b.name, lang) as { principle?: string; meaning?: string } | null
+  const core = getPlanetCore(b.name, lang, isMinor) as {
+    principle?: string
+    meaning?: string
+  } | null
   const label = lang === 'en' ? b.name : b.ko
   const read = buildRead(label, b.sign, b.house, lang)
   // 코어가 없으면(예: 노드) hover 문자열로 폴백 — 비면 본문 생략.
@@ -95,6 +108,7 @@ export default function PlanetDetail({
   astro,
   lang,
   exclude,
+  isMinor = false,
 }: PlanetDetailProps): React.ReactElement | null {
   const skip = new Set(exclude ?? [])
   const bodies: Body[] = [
@@ -131,7 +145,7 @@ export default function PlanetDetail({
       <summary>{summary}</summary>
       <div className={s.body}>
         {bodies.map((b, i) => (
-          <BodyRow b={b} lang={lang} key={`${b.name}-${i}`} />
+          <BodyRow b={b} lang={lang} isMinor={isMinor} key={`${b.name}-${i}`} />
         ))}
       </div>
     </details>

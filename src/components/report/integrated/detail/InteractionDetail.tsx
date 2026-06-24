@@ -6,7 +6,11 @@
 
 import type { ReportData } from '../reportTypes'
 import { relationTypeLabel, type Lang } from '../integratedReportLabels'
-import { getShinsalInterpretation, type ShinsalInterpretation } from '@/lib/saju/interpretations'
+import {
+  getShinsalInterpretation,
+  shinsalDisplayText,
+  type ShinsalInterpretation,
+} from '@/lib/saju/interpretations'
 import { getRelationMeaning, type RelationCategory } from '@/lib/chart-dictionary'
 import s from './InteractionDetail.module.css'
 
@@ -14,9 +18,16 @@ export interface InteractionDetailProps {
   shinsal: ReportData['saju']['natalShinsal']
   relations: ReportData['saju']['natalRelations']
   lang: Lang
+  /** 만 14세 미만 — 연애성 신살 풀이를 연령 맞춤 문구로 치환. */
+  isMinor?: boolean
 }
 
-export default function InteractionDetail({ shinsal, relations, lang }: InteractionDetailProps) {
+export default function InteractionDetail({
+  shinsal,
+  relations,
+  lang,
+  isMinor = false,
+}: InteractionDetailProps) {
   const en = lang === 'en'
 
   // 의미가 있는 신살만 — 사전 매칭 실패(null) 건 건너뛴다.
@@ -56,9 +67,7 @@ export default function InteractionDetail({ shinsal, relations, lang }: Interact
                 const name = en ? (interp.name_en ?? it.ko) : it.ko
                 const pillarLabel = en ? (it.pillarEn ?? it.pillar) : it.pillar
                 const where = `${pillarLabel}${it.sub ? `·${it.sub}` : ''}`
-                const meaning = en
-                  ? `${interp.meaning_en} ${interp.effect_en}`
-                  : `${interp.meaning} ${interp.effect}`
+                const meaning = shinsalDisplayText(interp, it.ko as string, lang, isMinor)
                 const toneClass = it.polarity > 0 ? s.pos : it.polarity < 0 ? s.neg : ''
                 return (
                   <li className={s.item} key={i}>
