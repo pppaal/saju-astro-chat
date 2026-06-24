@@ -236,24 +236,39 @@ export function buildLifeCurve(
     agree: Math.sign(sajuZ[i]) === Math.sign(astroZ[i]) && sajuZ[i] !== 0,
   }))
 
-  // 극값(마디) — macro 곡선의 *윈도(±W년)* 국지 최대/최소. 평활 곡선은 인접
-  // 차가 0에 가까워 즉시이웃 비교로는 못 잡으니, 윈도 내 최값 + 윈도 prominence
-  // 로 decade-scale 마디만 뽑는다.
+  // 극값(마디) — macro 곡선의 국지 극값(기울기 부호 변화) 후, *floor/ceiling
+  // prominence* 로 거른다. 옛 ±6년 윈도 방식은 넓은 봉우리(전역 최대도)를 진폭
+  // <0.3 이라 놓쳤다(감사 B2: p47 전역최대 age16, p35 깊은 골 age40 누락). 이
+  // 방식은 한쪽 바닥/천장이 전역이라 전역 극값을 항상 포함한다.
   const peaks: LifeCurveExtremum[] = []
   const troughs: LifeCurveExtremum[] = []
-  const W = 6 // 마디 최소 간격 ~12년
-  const PROM = 0.3 // z-scale 윈도 진폭
-  for (let i = W; i < macro.length - W; i++) {
-    let wMax = -Infinity
-    let wMin = Infinity
-    for (let k = i - W; k <= i + W; k++) {
-      wMax = Math.max(wMax, macro[k])
-      wMin = Math.min(wMin, macro[k])
+  const PROM = 0.3
+  const minLeft: number[] = []
+  const minRight: number[] = []
+  const maxLeft: number[] = []
+  const maxRight: number[] = []
+  for (let i = 0; i < macro.length; i++) {
+    minLeft[i] = i === 0 ? macro[0] : Math.min(minLeft[i - 1], macro[i])
+    maxLeft[i] = i === 0 ? macro[0] : Math.max(maxLeft[i - 1], macro[i])
+  }
+  for (let i = macro.length - 1; i >= 0; i--) {
+    minRight[i] = i === macro.length - 1 ? macro[i] : Math.min(minRight[i + 1], macro[i])
+    maxRight[i] = i === macro.length - 1 ? macro[i] : Math.max(maxRight[i + 1], macro[i])
+  }
+  for (let i = 1; i < macro.length - 1; i++) {
+    const a = macro[i - 1]
+    const b = macro[i]
+    const c = macro[i + 1]
+    const isPeak = b > a && b >= c
+    const isTrough = b < a && b <= c
+    if (isPeak) {
+      // 봉우리가 좌·우 바닥 중 *더 높은* 쪽보다 PROM 이상 솟았나(전역최대→바닥이 전역최소→큰 값).
+      const prom = b - Math.max(minLeft[i - 1], minRight[i + 1])
+      if (prom >= PROM) peaks.push({ year: birthYear + i, age: i, kind: 'peak', value: b })
+    } else if (isTrough) {
+      const prom = Math.min(maxLeft[i - 1], maxRight[i + 1]) - b
+      if (prom >= PROM) troughs.push({ year: birthYear + i, age: i, kind: 'trough', value: b })
     }
-    if (macro[i] === wMax && wMax - wMin >= PROM)
-      peaks.push({ year: birthYear + i, age: i, kind: 'peak', value: macro[i] })
-    else if (macro[i] === wMin && wMax - wMin >= PROM)
-      troughs.push({ year: birthYear + i, age: i, kind: 'trough', value: macro[i] })
   }
 
   return { points, peaks, troughs }
