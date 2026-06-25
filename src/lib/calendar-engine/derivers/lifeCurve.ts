@@ -221,7 +221,17 @@ export function buildLifeCurve(
   const combined = sajuRaw.map((_, i) => sajuW * sajuZ[i] + astroW * astroZ[i])
   const smooth = movingAvg(combined, 2) // 5년창 — 중간 텍스처
   // 거시 굴곡 — 9년창 2회로 세운 고주파를 씻어 대운·외행성 위주 decade-scale 만 남긴다.
-  const macro = movingAvg(movingAvg(combined, 4), 4)
+  const macroRaw = movingAvg(movingAvg(combined, 4), 4)
+  // 유년기 성숙 엔벨로프 — 인생 *궤적*(자율·성취·사회적 자리)은 유아기에 거의
+  // 발현되지 않는다. 0~16세 macro 편차를 평균 쪽으로 당겨, 유년기가 거짓 정점/
+  // 저점이 되지 않게 한다(예: 대기만성인데 유아기가 호황으로 잡히던 문제). 16세
+  // 이후는 env=1 로 성인 구간 굴곡은 전혀 건드리지 않는다.
+  const macroMean = macroRaw.reduce((a, b) => a + b, 0) / (macroRaw.length || 1)
+  const MATURE_AGE = 16
+  const macro = macroRaw.map((m, age) => {
+    const env = Math.min(1, 0.2 + (0.8 * age) / MATURE_AGE)
+    return macroMean + (m - macroMean) * env
+  })
 
   const points: LifeCurvePoint[] = sajuRaw.map((_, i) => ({
     year: birthYear + i,
