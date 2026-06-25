@@ -2,9 +2,27 @@
   display: flex;
   align-items: center;
   gap: 0.4rem;
-  flex-wrap: nowrap;
+  /* 줄바꿈 허용 — 칩 글자가 길어지는 언어(EN "Read with Saju" 등)에서 ⓘ 안내
+     버튼이 한 줄 폭을 넘어 오른쪽으로 밀려 잘려 안 보이던 문제 방지. 짧으면
+     (KO) 한 줄 그대로 유지된다. showGroupLabel 라벨도 이 wrap 위에서 동작. */
+  flex-wrap: wrap;
   width: 100%;
   min-width: 0;
+}
+
+/* "이 상담에 넣을 자료" 같은 보이는 안내 라벨 — 체크박스가 무엇을 위한 건지
+   한눈에 알려준다. flex-basis 100% 로 항상 제 줄을 차지해 체크박스 위에 온다. */
+.groupLabel {
+  flex-basis: 100%;
+  margin: 0 0 0.15rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1.3;
+  color: rgba(0, 0, 0, 0.62);
+}
+
+.toggles[data-theme='dark'] .groupLabel {
+  color: rgba(255, 255, 255, 0.72);
 }
 
 .toggle {
@@ -158,10 +176,19 @@
   font-family: Georgia, 'Times New Roman', serif;
 }
 
+/* 안내 텍스트는 화면에서 숨기고 ⓘ 아이콘만 노출 — 칩(사주로 보기/점성으로 보기)
+   2개와 한 줄에 같이 들어가게 폭을 아낀다. 텍스트는 DOM 에 남겨 스크린리더가
+   버튼 이름으로 읽고(접근성), 클릭 시 같은 설명 팝업이 뜬다. */
 .infoLabel {
-  text-decoration: underline;
-  text-underline-offset: 2px;
-  text-decoration-color: rgba(99, 102, 241, 0.4);
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .toggles[data-theme='dark'] .infoButton {
@@ -171,10 +198,6 @@
 .toggles[data-theme='dark'] .infoButton:hover {
   background: rgba(129, 140, 248, 0.18);
   color: rgba(224, 231, 255, 1);
-}
-
-.toggles[data-theme='dark'] .infoLabel {
-  text-decoration-color: rgba(165, 180, 252, 0.5);
 }
 
 /* ===== "사주·점성이란?" 팝업 카드 (로그인 모달과 같은 패턴) ===== */

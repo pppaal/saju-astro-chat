@@ -130,6 +130,9 @@ vi.mock('@/app/(main)/birthInfoStorage', () => ({
   getStoredBirthInfo: () => mockGetStoredBirthInfo(),
   saveBirthInfo: vi.fn(),
   buildCounselorHref: (...args: any[]) => mockBuildCounselorHref(...args),
+  // buildBirthHref(서비스 딥링크)가 쓰는 헬퍼 — 쿼리 문자열만 만들면 충분.
+  buildReportBirthQuery: (info: any, locale: string) =>
+    info ? `date=${info.birthDate}&gender=${info.gender}&lang=${locale}` : `lang=${locale}`,
 }))
 
 import MainPageClient from '@/app/(main)/MainPageClient'

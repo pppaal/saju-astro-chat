@@ -14,11 +14,13 @@
 // (모두 requireToken 만이라 무로그인 가능. unwrap/pillars 헬퍼는 상담사
 //  CompatChartModal 과 동일 — 셰이프가 갈리지 않게 같은 변환을 쓴다.)
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
+import { useSession } from 'next-auth/react'
 import Link from 'next/link'
-import { Heart, Loader2, Sparkles } from 'lucide-react'
+import { Heart, Loader2, Sparkles, Download, ChevronDown } from 'lucide-react'
 import { useI18n } from '@/i18n/I18nProvider'
 import { BirthInfoFields, type BirthFieldsPatch } from '@/components/birth/BirthInfoFields'
+import { getStoredBirthInfo, normGender, timeToState } from '@/app/(main)/birthInfoStorage'
 import { ScoreBreakdown } from '@/components/report/atoms/ScoreBreakdown'
 import { ShareCompatibilityButton } from '@/components/compatibility/ShareCompatibilityButton'
 import { spouseFeeling } from '@/lib/compatibility/compatChartLabels'
@@ -69,6 +71,36 @@ const emptyPerson = (): Person => ({
   latitude: null,
   longitude: null,
   timeZone: null,
+})
+
+// "저장된 정보 불러오기" 옵션 — 내 정보(DB 프로필) + 등록된 지인. 로그인 시에만.
+// 상담사 CompatPersonPickerModal 과 동일 셰이프 — 같은 패턴이 갈리지 않게.
+interface LoadOption {
+  key: string
+  label: string
+  sub?: string
+  name: string
+  birthDate: string
+  birthTime: string
+  timeUnknown: boolean
+  gender: 'male' | 'female' | ''
+  city: string
+  latitude: number | null
+  longitude: number | null
+  timeZone: string | null
+}
+
+// LoadOption → free 페이지 Person 매핑. 좌표·타임존까지 실어 도시 재선택 경고 방지.
+const optionToPerson = (o: LoadOption): Person => ({
+  name: o.name,
+  birthDate: o.birthDate,
+  birthTime: o.timeUnknown ? '' : o.birthTime,
+  timeUnknown: o.timeUnknown,
+  gender: o.gender,
+  city: o.city,
+  latitude: o.latitude,
+  longitude: o.longitude,
+  timeZone: o.timeZone,
 })
 
 // unwrap / pillars 변환 — CompatChartModal 과 동일 로직(SSOT 가 갈리지 않게).
@@ -125,6 +157,129 @@ export default function FreeCompatibilityPage() {
   const [phase, setPhase] = useState<'input' | 'loading' | 'result'>('input')
   const [report, setReport] = useState<CompatReport | null>(null)
   const [error, setError] = useState<string | null>(null)
+
+  // ── 저장된 정보 불러오기 (로그인 시에만) ───────────────────────────────
+  const { data: session, status } = useSession()
+  const isAuthed = !!session
+  const [loadOptions, setLoadOptions] = useState<LoadOption[]>([])
+  const [openDropdown, setOpenDropdown] = useState<'a' | 'b' | null>(null)
+
+  useEffect(() => {
+    if (status !== 'authenticated') {
+      setLoadOptions([])
+      return
+    }
+    let cancelled = false
+
+    // 즉시 로컬 seed — DB 응답 기다리지 않게 "내 정보" 먼저 노출.
+    const seed = getStoredBirthInfo()
+    if (seed?.birthDate) {
+      setLoadOptions([
+        {
+          key: 'me',
+          label: isKo ? '내 정보' : 'My info',
+          name: seed.name || '',
+          ...timeToState(seed.birthTime),
+          birthDate: seed.birthDate,
+          gender: normGender(seed.gender),
+          city: seed.city || '',
+          latitude: seed.latitude ?? null,
+          longitude: seed.longitude ?? null,
+          timeZone: seed.timeZone ?? null,
+        },
+      ])
+    }
+
+    const collect = async () => {
+      const opts: LoadOption[] = []
+      // 내 정보 — DB 프로필 우선
+      try {
+        const res = await fetch('/api/me/profile')
+        if (res.ok) {
+          const u = (await res.json())?.user
+          if (u && (u.birthDate || u.birthTime)) {
+            opts.push({
+              key: 'me',
+              label: isKo ? '내 정보' : 'My info',
+              sub: u.name || undefined,
+              name: u.name || '',
+              birthDate: u.birthDate || '',
+              ...timeToState(u.birthTime),
+              gender: normGender(u.gender),
+              city: u.birthCity || '',
+              latitude: u.latitude ?? null,
+              longitude: u.longitude ?? null,
+              timeZone: u.tzId ?? null,
+            })
+          }
+        }
+      } catch {
+        /* fall through to local seed */
+      }
+      if (!opts.some((o) => o.key === 'me') && seed?.birthDate) {
+        opts.push({
+          key: 'me',
+          label: isKo ? '내 정보' : 'My info',
+          name: seed.name || '',
+          birthDate: seed.birthDate,
+          ...timeToState(seed.birthTime),
+          gender: normGender(seed.gender),
+          city: seed.city || '',
+          latitude: seed.latitude ?? null,
+          longitude: seed.longitude ?? null,
+          timeZone: seed.timeZone ?? null,
+        })
+      }
+      // 등록된 지인
+      try {
+        const res = await fetch('/api/me/circle?limit=50')
+        if (res.ok) {
+          const people = (await res.json())?.data?.people
+          if (Array.isArray(people)) {
+            for (const p of people) {
+              if (!p?.name) continue
+              opts.push({
+                key: `circle-${p.id}`,
+                label: p.name,
+                sub: p.relation || undefined,
+                name: p.name || '',
+                birthDate: p.birthDate || '',
+                ...timeToState(p.birthTime),
+                gender: normGender(p.gender),
+                city: p.birthCity || '',
+                latitude: p.latitude ?? null,
+                longitude: p.longitude ?? null,
+                timeZone: p.tzId ?? null,
+              })
+            }
+          }
+        }
+      } catch {
+        /* ignore — 지인 목록은 선택적 */
+      }
+      if (!cancelled) setLoadOptions(opts)
+    }
+
+    void collect()
+    return () => {
+      cancelled = true
+    }
+  }, [status, isKo])
+
+  // 카드 외부 클릭 시 dropdown 닫기.
+  useEffect(() => {
+    if (openDropdown === null) return
+    const onClick = (e: MouseEvent) => {
+      if (!(e.target as HTMLElement).closest('[data-load-dropdown]')) setOpenDropdown(null)
+    }
+    document.addEventListener('click', onClick)
+    return () => document.removeEventListener('click', onClick)
+  }, [openDropdown])
+
+  const applyOption = (target: 'a' | 'b', opt: LoadOption) => {
+    ;(target === 'a' ? setPersonA : setPersonB)(optionToPerson(opt))
+    setOpenDropdown(null)
+  }
 
   const patch = (setter: typeof setPersonA) => (p: BirthFieldsPatch) =>
     setter((prev) => ({
@@ -280,6 +435,11 @@ export default function FreeCompatibilityPage() {
               onChange={patch(setPersonA)}
               locale={locale}
               idPrefix="cf-a"
+              isAuthenticated={isAuthed}
+              loadOptions={loadOptions}
+              showDropdown={openDropdown === 'a'}
+              onToggleDropdown={() => setOpenDropdown((d) => (d === 'a' ? null : 'a'))}
+              onPickOption={(opt) => applyOption('a', opt)}
             />
             <PersonForm
               title={isKo ? '두 번째 사람' : 'Person B'}
@@ -289,6 +449,11 @@ export default function FreeCompatibilityPage() {
               onChange={patch(setPersonB)}
               locale={locale}
               idPrefix="cf-b"
+              isAuthenticated={isAuthed}
+              loadOptions={loadOptions}
+              showDropdown={openDropdown === 'b'}
+              onToggleDropdown={() => setOpenDropdown((d) => (d === 'b' ? null : 'b'))}
+              onPickOption={(opt) => applyOption('b', opt)}
             />
 
             {error ? <p className={s.error}>{error}</p> : null}
@@ -334,6 +499,11 @@ function PersonForm({
   onChange,
   locale,
   idPrefix,
+  isAuthenticated,
+  loadOptions,
+  showDropdown,
+  onToggleDropdown,
+  onPickOption,
 }: {
   title: string
   accent: string
@@ -342,13 +512,42 @@ function PersonForm({
   onChange: (p: BirthFieldsPatch) => void
   locale: 'ko' | 'en'
   idPrefix: string
+  isAuthenticated: boolean
+  loadOptions: LoadOption[]
+  showDropdown: boolean
+  onToggleDropdown: () => void
+  onPickOption: (opt: LoadOption) => void
 }) {
   const isKo = locale === 'ko'
   return (
     <div className={s.personCard}>
-      <p className={s.personTitle} style={{ color: accent }}>
-        {title}
-      </p>
+      <div className={s.personHead}>
+        <p className={s.personTitle} style={{ color: accent }}>
+          {title}
+        </p>
+        {/* 저장된 정보 불러오기 — 로그인 시에만 (내 정보 + 등록한 지인) */}
+        {isAuthenticated && loadOptions.length > 0 ? (
+          <div className={s.loadWrap} data-load-dropdown>
+            <button type="button" onClick={onToggleDropdown} className={s.loadBtn}>
+              <Download className="w-3 h-3" />
+              {isKo ? '저장된 정보 불러오기' : 'Load saved info'}
+              <ChevronDown className="w-3 h-3" />
+            </button>
+            {showDropdown ? (
+              <ul role="listbox" className={s.loadList}>
+                {loadOptions.map((o) => (
+                  <li key={o.key}>
+                    <button type="button" onClick={() => onPickOption(o)} className={s.loadItem}>
+                      <span className={s.loadItemLabel}>{o.label}</span>
+                      {o.sub ? <span className={s.loadItemSub}>· {o.sub}</span> : null}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+          </div>
+        ) : null}
+      </div>
       <div className={s.field}>
         <label htmlFor={`${idPrefix}-name`} className={s.label}>
           {isKo ? '이름 (선택)' : 'Name (optional)'}
@@ -393,7 +592,26 @@ function ThemeCard({ theme, isKo }: { theme: FreeReportTheme; isKo: boolean }) {
           </span>
           <h2 className={s.secTitle}>{theme.title}</h2>
         </span>
+        {typeof theme.score === 'number' ? (
+          <span className={s.themeScore}>
+            <span className={s.themeScoreCap}>{theme.scoreCaption}</span>
+            <span
+              className={`${s.themeScoreNum} ${theme.id === 'friction' ? s.themeScoreNumClash : ''}`}
+            >
+              {theme.score}
+            </span>
+          </span>
+        ) : null}
       </div>
+      {typeof theme.score === 'number' ? (
+        <div className={s.themeBar} aria-hidden="true">
+          <div
+            className={`${s.themeBarFill} ${theme.id === 'friction' ? s.themeBarFillClash : ''}`}
+            style={{ width: `${theme.score}%` }}
+          />
+        </div>
+      ) : null}
+      {theme.hook ? <p className={s.themeHook}>{theme.hook}</p> : null}
       {top.map((p, i) => (
         <p key={i} className={s.para}>
           {p}
@@ -475,6 +693,23 @@ function ResultView({
       <p className={s.resultHead}>
         {labelA} <Heart className="inline w-3.5 h-3.5" style={{ color: '#c2548a' }} /> {labelB}
       </p>
+
+      {/* 헤드라인 총점 — 한눈에 박히는 큰 숫자 (캡처/공유 후크) */}
+      {view.overallScore != null ? (
+        <div className={s.scoreHero}>
+          <div
+            className={s.scoreRing}
+            style={{ ['--pct' as string]: `${view.overallScore}` }}
+            aria-hidden="true"
+          >
+            <span className={s.scoreRingNum}>{view.overallScore}</span>
+          </div>
+          <div className={s.scoreHeroText}>
+            <span className={s.scoreHeroLabel}>{isKo ? '우리 궁합' : 'Our match'}</span>
+            <span className={s.scoreHeroGrade}>{view.overallGrade}</span>
+          </div>
+        </div>
+      ) : null}
 
       {/* 리포트 도입 — 어떻게 읽는지 */}
       <p className={s.intro}>{view.intro}</p>

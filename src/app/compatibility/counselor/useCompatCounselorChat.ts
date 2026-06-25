@@ -22,6 +22,7 @@ import {
   mergeCounselorFollowUps,
   type UseCounselorChatReturn,
 } from '@/lib/counselor/useCounselorChat'
+import type { DestinySources } from '@/components/destiny-map/chat-types'
 import type { ChatMessage, PersonData } from './types'
 
 // 운명 상담사의 useChatApi 패턴과 동일 — 헤더 도착까지의 절대 시간 cap 과
@@ -40,6 +41,8 @@ export interface UseCompatCounselorChatArgs {
   person2Saju: Record<string, unknown> | null
   person1Astro: Record<string, unknown> | null
   person2Astro: Record<string, unknown> | null
+  /** 이번 답변에 넣을 시너스트리 도메인(체크박스). 누락 시 서버가 둘 다로 폴백. */
+  sources: DestinySources
   chatSessionId: string | undefined
   setChatSessionId: React.Dispatch<React.SetStateAction<string | undefined>>
   chatTitle: string | null
@@ -62,6 +65,7 @@ export function useCompatCounselorChat(
     person2Saju,
     person1Astro,
     person2Astro,
+    sources,
     chatSessionId,
     setChatSessionId,
     chatTitle,
@@ -128,6 +132,8 @@ export function useCompatCounselorChat(
         person2Saju,
         person1Astro,
         person2Astro,
+        // 이번 답변에 넣을 시너스트리 도메인(사주/점성 체크박스).
+        sources,
         lang: locale,
         messages: recentHistory,
         useRag: true,

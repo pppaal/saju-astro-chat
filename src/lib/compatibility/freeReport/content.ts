@@ -336,6 +336,146 @@ const ASPECT_PAIR_BASE: Record<string, Bi> = {
     ko: '첫인상(상승점)과 자아(해)가 만나는 자리예요. 상대의 본모습이 곧 내가 끌린 첫인상과 통하는, 또렷한 존재감의 결이에요.',
     en: "First impression (Ascendant) meets the self (Sun) — the other's true nature lines up with the impression that drew you, a vivid presence.",
   },
+  'Ascendant|Ascendant': {
+    ko: '두 사람의 첫인상과 분위기(상승점)가 서로 얼마나 닮았는지 보는 자리예요. 풍기는 결이 비슷하면 처음부터 편하게 스며들기도, 너무 닮아 같은 약점에 함께 걸리기도 하는 결이에요.',
+    en: 'This is where you see how alike your first impressions and outward vibe (Ascendant) really are. When the feel is similar you can click easily from the start — or be so alike that you both stumble on the very same blind spot.',
+  },
+  'Ascendant|Jupiter': {
+    ko: '두 사람의 첫인상·태도(상승점)와 너그러움·확장(목성)이 만나는 자리예요. 서로를 더 크고 편하게 펼쳐주는 기운이 되기도, 들뜬 기대만 부풀려 헐거워지기도 하는 결이에요.',
+    en: 'This is where first impressions and presence (Ascendant) meet generosity and expansion (Jupiter). It can open each other up to feel bigger and more at ease — or just inflate easy expectations until things turn loose and unanchored.',
+  },
+  'Ascendant|Mars': {
+    ko: '첫인상·태도(상승점)와 욕망·추진력(화성)이 맞부딪치는 자리예요. 서로를 강하게 끌어당기고 일을 밀고 나가는 힘이 되기도, 기싸움처럼 부딪치는 결이 되기도 해요.',
+    en: 'First impression and demeanor (Ascendant) meet desire and drive (Mars). It can spark a strong pull that pushes you both forward — or turn into a clash of wills.',
+  },
+  'Ascendant|MC': {
+    ko: '두 사람의 첫인상·태도(상승점)와 사회적 모습·지향(중천점)이 어떻게 어울리는지 보는 자리예요. 겉으로 풍기는 분위기와 세상에서 가고 싶은 방향이 잘 맞으면 함께 그림이 그려지고, 어긋나면 서로 보여주고 싶은 모습이 따로 노는 결이에요.',
+    en: "This is where one person's first impression and manner (Ascendant) meets the other's public role and ambition (MC). When the vibe you give off and the direction you want to head line up, you picture a future together — when they don't, the selves you each want to show can pull in different directions.",
+  },
+  'Ascendant|Mercury': {
+    ko: '서로의 첫인상·태도(상승점)와 대화·생각(수성)이 어떻게 맞물리는지 보는 자리예요. 보이는 분위기와 주고받는 말이 자연스럽게 이어지기도, 인상과 실제 대화 결이 어긋나 갸웃하게 되기도 하는 결이에요.',
+    en: "This is where each other's first impression and manner (Ascendant) meets talk and thinking (Mercury). The vibe you give off and the words you trade can flow together naturally — or leave you puzzled when the impression and the actual conversation don't quite match.",
+  },
+  'Ascendant|Moon': {
+    ko: '첫인상·태도(상승점)와 속마음·감정(달)이 만나는 자리예요. 겉으로 보이는 결과 마음속 정서가 맞아 편안해지기도, 어딘가 어긋나 묘하게 거리감이 생기기도 하는 결이에요.',
+    en: 'First impression and manner (Ascendant) meet inner feelings and emotion (Moon). The way one comes across can sit easily with how the other feels inside — or quietly miss, leaving a subtle sense of distance.',
+  },
+  'Ascendant|Neptune': {
+    ko: '첫인상·태도(상승점)와 환상·이상(해왕성)이 만나는 자리예요. 상대를 꿈처럼 아름답게 비춰주기도, 실제보다 더 크게 그려서 흐릿하게 보기도 하는 결이에요.',
+    en: "First impression (Ascendant) meets dream and idealization (Neptune). It can make you see each other in a beautiful, dreamlike light — or blur the real person behind an image that's bigger than life.",
+  },
+  'Ascendant|Pluto': {
+    ko: '첫인상·태도(상승점)와 깊이·강렬함(명왕성)이 만나는 자리예요. 서로를 단숨에 끌어당기는 묵직한 인력이 되기도, 처음부터 속까지 파고드는 부담이 되기도 하는 결이에요.',
+    en: "First impression and bearing (Ascendant) meets depth and intensity (Pluto). It can be a heavy pull that draws you in at first sight — or a pressure that digs into you before you're ready.",
+  },
+  'Ascendant|Saturn': {
+    ko: '서로의 첫인상·태도(상승점)와 책임·시험(토성)이 맞물리는 자리예요. 곁에서 듬직하게 자리를 잡아주기도, 은근히 평가받는 듯 긴장하게도 하는 결이에요.',
+    en: "This is where each other's first impression and manner (Ascendant) meets responsibility and testing (Saturn). It can be a steadying presence that grounds you — or a subtle pressure that leaves you feeling quietly judged.",
+  },
+  'Ascendant|Uranus': {
+    ko: '첫인상·태도(상승점)와 자극·변화(천왕성)가 만나는 자리예요. 서로의 분위기를 단숨에 흔들어 신선하게 끌리기도, 종잡을 수 없이 들썩이기도 하는 결이에요.',
+    en: 'First impression and manner (Ascendant) meets spark and change (Uranus). It can pull you in with a fresh, electric jolt — or keep things restless and hard to pin down.',
+  },
+  'Jupiter|Mars': {
+    ko: '크게 키우려는 마음(목성)과 밀어붙이는 욕망·추진력(화성)이 만나는 자리예요. 서로의 의욕에 불을 붙여 더 크게 나아가게 되기도, 욕심과 속도가 과해져 무리하게 되기도 하는 결이에요.',
+    en: "This is where the urge to grow and be generous (Jupiter) meets desire and drive (Mars). It can fire up each other's ambition and push you further together — or tip into overreach when wanting and speed run too hot.",
+  },
+  'Jupiter|Mercury': {
+    ko: '두 사람의 생각과 대화(수성)에 얼마나 너그러움과 여유(목성)가 흐르는지 보는 자리예요. 서로의 말을 크게 품어주고 시야를 넓혀주기도, 좋게 부풀려 말이 커지거나 가벼워지기도 하는 결이에요.',
+    en: "This is where talk and thinking (Mercury) meet generosity and breadth (Jupiter) between you two. It can open each other's minds and widen the view — or let words get inflated and breezy as things get talked up.",
+  },
+  'Jupiter|Venus': {
+    ko: '애정·매력(금성)과 너그럽게 키워주는 마음(목성)이 만나는 자리예요. 서로를 넉넉하게 품고 기분 좋게 부풀려 주기도, 좋은 게 좋은 거라며 적당히 흘려보내기도 하는 결이에요.',
+    en: 'This is where affection and charm (Venus) meet a generous, expansive heart (Jupiter). It can wrap you both in warmth and lift the mood, or let things drift along on an easy "it\'s all good" glow.',
+  },
+  'Mars|Mercury': {
+    ko: '욕망·추진(화성)과 대화·생각(수성)이 만나는 자리예요. 서로의 말에 불이 붙어 아이디어가 시원하게 굴러가기도, 사소한 말 한마디에 발끈해 토론이 신경전이 되기도 하는 결이에요.',
+    en: "Desire and drive (Mars) meet talk and thinking (Mercury). It can spark each other's words into ideas that roll forward fast — or turn a small remark into a heated, prickly debate.",
+  },
+  'Mars|Neptune': {
+    ko: '욕망과 추진력(화성)이 환상과 이상(해왕성)을 만나는 자리예요. 서로를 더 멋지게 꿈꾸게 하는 설렘이 되기도, 실제보다 부풀려 보다가 헷갈리는 안갯속이 되기도 하는 결이에요.',
+    en: "Desire and drive (Mars) meet dream and idealization (Neptune). It can be a spark that lets you dream each other up beautifully — or a fog where you see more than what's really there and lose your footing.",
+  },
+  'Mars|Sun': {
+    ko: '서로의 추진력(화성)이 상대의 자아·정체성(태양)을 어떻게 건드리는지 보는 자리예요. 함께 불이 붙어 같은 곳으로 밀고 나가기도, 자존심과 기싸움으로 부딪히기도 하는 결이에요.',
+    en: "This is where each person's drive (Mars) meets the other's core self (Sun). It can light a fire that pushes you toward the same goal — or spark clashes of pride and willpower.",
+  },
+  'Mars|Uranus': {
+    ko: '욕망·추진(화성)과 자극·변화(천왕성)가 만나는 자리예요. 둘 사이에 짜릿한 불꽃이 튀기도, 예측 못 할 충동으로 들썩이기도 하는 결이에요.',
+    en: 'Desire and drive (Mars) meet spark and change (Uranus). It can throw off exciting sparks between you — or stir up sudden, unpredictable impulses.',
+  },
+  'MC|Mars': {
+    ko: '사회적 모습·지향(중천점)과 욕망·추진(화성)이 만나는 자리예요. 서로의 야망에 불을 붙여 같이 밀고 나가게 되기도, 누가 주도권을 쥐느냐로 부딪히기도 하는 결이에요.',
+    en: "Public role and ambition (MC) meets desire and drive (Mars). It can light a fire under each other's goals and push you forward together — or turn into a clash over who takes the lead.",
+  },
+  'MC|Mercury': {
+    ko: '두 사람이 바깥 세상에서 보여주고 싶은 모습(중천점)과 평소 말과 생각의 결(수성)이 만나는 자리예요. 서로의 방향에 말이 잘 보태지기도, 같은 목표를 두고도 이야기가 자꾸 엇갈리기도 하는 결이에요.',
+    en: "This is where how each person wants to show up in the world (MC) meets the way you talk and think (Mercury). Your words can give real momentum to each other's direction — or you can keep talking past one another about the same goal.",
+  },
+  'MC|Moon': {
+    ko: '사회적으로 보여지는 모습·지향(중천점)과 마음속 감정(달)이 만나는 자리예요. 서로의 꿈과 정서가 같은 방향으로 흐르기도, 보여주고 싶은 모습과 진짜 기분이 어긋나기도 하는 결이에요.',
+    en: 'This is where public role and ambition (MC) meet inner feelings (Moon). Your dreams and emotions can flow the same way — or the face you want to show can pull against how you truly feel.',
+  },
+  'MC|Sun': {
+    ko: '세상에 비치는 모습·지향(중천점)과 본래의 나 자신(해)이 만나는 자리예요. 서로의 길을 같은 방향으로 밀어주기도, 되고 싶은 모습과 원래의 나 사이에서 어긋나기도 하는 결이에요.',
+    en: 'Where your public image and ambition (Midheaven) meet your core self (Sun). It can push you both toward the same direction — or pull between who you want to be seen as and who you really are.',
+  },
+  'MC|Venus': {
+    ko: '사회적 모습·지향(중천점)과 애정·매력(금성)이 만나는 자리예요. 함께 그리는 미래나 서로의 겉모습이 마음에 쏙 들기도, 보여지는 모습에서 결이 어긋나기도 하는 결이에요.',
+    en: 'Public role and ambition (MC) meets affection and charm (Venus). The future you picture together and how you see each other can click beautifully — or quietly pull in different directions.',
+  },
+  'Mercury|Moon': {
+    ko: '대화·생각(수성)과 감정·정서(달)가 만나는 자리예요. 마음을 말로 잘 풀어내 통하기도, 머리와 마음이 따로 놀아 엇갈리기도 하는 결이에요.',
+    en: 'Talk and thinking (Mercury) meets feelings (Moon). It can put the heart into words that land — or leave head and heart pulling in different directions.',
+  },
+  'Mercury|Neptune': {
+    ko: '대화·생각(수성)과 환상·이상(해왕성)이 만나는 자리예요. 말로 다 못 할 마음까지 알아차리는 깊은 교감이 되기도, 듣고 싶은 대로 듣고 오해가 안개처럼 쌓이기도 하는 결이에요.',
+    en: 'Talk and thinking (Mercury) meet dream and idealization (Neptune). It can be a deep, unspoken understanding that reads between the lines — or a fog where you each hear what you wish, and misreadings quietly pile up.',
+  },
+  'Mercury|Pluto': {
+    ko: '대화·생각(수성)이 깊이·강렬함(명왕성)과 만나는 자리예요. 표면적인 말 너머의 진심까지 파고들게 되기도, 캐묻고 통제하려는 무게로 서로를 누르게 되기도 하는 결이에요.',
+    en: "Talk and thinking (Mercury) meet depth and intensity (Pluto). It can pull you past surface words into each other's real truths — or turn into probing and control that weighs you both down.",
+  },
+  'Mercury|Saturn': {
+    ko: '두 사람의 대화·생각(수성)이 책임·시험(토성)과 마주치는 자리예요. 말에 무게와 신뢰가 쌓이기도, 입을 떼기 전에 검열당하듯 조심스러워지기도 하는 결이에요.',
+    en: 'This is where talk and thinking (Mercury) meet responsibility and testing (Saturn). Words can gain weight and trust here — or turn cautious, as if every thought has to pass inspection first.',
+  },
+  'Mercury|Sun': {
+    ko: '대화·생각(수성)과 자아·정체성(해)이 만나는 자리예요. 내 말이 상대의 본모습에 가닿기도, 같은 이야기인데 자존심이 부딪히기도 하는 결이에요.',
+    en: 'Talk and thinking (Mercury) meets the core self (Sun). Your words can reach who the other person really is — or the same conversation can bump up against their pride.',
+  },
+  'Mercury|Uranus': {
+    ko: '대화·생각(수성)과 자극·변화(천왕성)가 만나는 자리예요. 서로의 생각에 신선한 불꽃이 튀기도, 종잡을 수 없이 산만해지기도 하는 결이에요.',
+    en: 'Talk and thinking (Mercury) meets spark and change (Uranus). It can throw fresh sparks into how you think together — or scatter into something restless and hard to pin down.',
+  },
+  'Mercury|Venus': {
+    ko: '대화·생각(수성)과 애정·매력(금성)이 만나는 자리예요. 말 한마디에 호감이 더 깊어지기도, 표현 방식이 어긋나 마음이 헛도는 결이 되기도 해요.',
+    en: 'This is where talk and thinking (Mercury) meet affection and charm (Venus). A single word can deepen the fondness, or a mismatch in how you express things can leave the feeling running in circles.',
+  },
+  'Moon|Neptune': {
+    ko: '감정(달)과 환상·이상(해왕성)이 만나는 자리예요. 서로를 곱게 물들이며 꿈처럼 통하기도, 보고 싶은 모습만 보다 길을 잃기도 하는 결이에요.',
+    en: 'Feeling (Moon) meets dream and idealization (Neptune). It can blend you into a tender, dreamlike understanding — or blur things until you only see what you wish were there.',
+  },
+  'Neptune|Sun': {
+    ko: '환상·이상(해왕성)과 자아·정체성(태양)이 만나는 자리예요. 상대를 빛나게 꿈처럼 비춰주기도, 실제 모습이 흐려져 서로를 헛보기도 하는 결이에요.',
+    en: 'Dream and idealization (Neptune) meets the core self (Sun). It can light someone up like a dream — or blur who they really are so you both end up seeing a mirage.',
+  },
+  'Pluto|Sun': {
+    ko: '깊이·강렬함(명왕성)이 상대의 자아·정체성(해)을 정면으로 건드리는 자리예요. 서로를 완전히 바꿔놓을 만큼 강하게 끌어당기기도, 너무 깊이 파고들어 부담스러운 무게가 되기도 하는 결이에요.',
+    en: "Depth and intensity (Pluto) press right up against the other's core self (Sun). It can pull you together with a force strong enough to remake each other, or dig so deep that it becomes a heavy, overwhelming weight.",
+  },
+  'Saturn|Sun': {
+    ko: '자아·정체성(해)이 책임과 시험(토성)과 마주치는 자리예요. 곁에서 단단하게 다듬어주는 어른의 무게가 되기도, 자꾸 검열당하는 듯 위축되게 만드는 결이 되기도 해요.',
+    en: 'This is where your core self (Sun) comes up against responsibility and testing (Saturn). It can be a grounding, grown-up weight that shapes you — or a pressure that leaves you feeling judged and held back.',
+  },
+  'Sun|Uranus': {
+    ko: '서로의 자아·정체성(해)을 자극과 변화(천왕성)가 흔드는 자리예요. 익숙한 나를 깨우고 새로운 모습을 끌어내기도, 평온하던 자리를 갑자기 흔들어 어수선하게 만들기도 하는 결이에요.',
+    en: "This is where one person's spark and change (Uranus) stirs the other's core self (Sun). It can wake you up and draw out a fresh side of you — or suddenly shake a settled place and leave it unsettled.",
+  },
+  'Sun|Venus': {
+    ko: "두 사람의 '나다움'(해)과 애정·끌림(금성)이 만나는 자리예요. 있는 그대로의 모습에 마음이 끌리기도, 서로의 자존심이 애정과 부딪치기도 하는 결이에요.",
+    en: "This is where one person's sense of self (Sun) meets the other's affection and charm (Venus). It can be a pull toward each other just as you are — or a place where pride and fondness rub against each other.",
+  },
 }
 
 export const ASPECT_PAIR = mergeRec(ASPECT_PAIR_BASE, GENERATED.ASPECT_PAIR)
