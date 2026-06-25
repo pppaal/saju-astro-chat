@@ -183,6 +183,31 @@ function dedupeByBody<T extends { body: string }>(rows: T[]): T[] {
   return out
 }
 
+/**
+ * 인생 곡선 → 연도별 점수(0~100) 맵. 대운 티어의 1년운(years[].score)이 곡선과
+ * 같은 출처를 쓰게 한다. 연 단위 합성(combined: 세운+대운+충합+트랜짓)을 그 사람
+ * *인생 전체* 분포의 백분위로 바꿔, "이 해가 내 인생에서 어디쯤"을 1~99 로 편다.
+ * 곡선이 없으면(빌드 실패) undefined → toDecade 가 50 폴백.
+ */
+function buildYearScoreByYear(
+  lifeCurve: ReturnType<typeof buildLifeCurve>
+): Map<number, number> | undefined {
+  if (!lifeCurve || lifeCurve.points.length < 5) return undefined
+  const vals = lifeCurve.points.map((p) => p.combined)
+  const sorted = [...vals].sort((a, b) => a - b)
+  const pct = (v: number): number => {
+    let lo = 0
+    while (lo < sorted.length && sorted[lo] < v) lo++
+    let hi = lo
+    while (hi < sorted.length && sorted[hi] === v) hi++
+    const rank = (lo + hi) / 2 // 동률은 중앙 순위
+    return Math.max(1, Math.min(99, Math.round((rank / sorted.length) * 100)))
+  }
+  const m = new Map<number, number>()
+  for (const p of lifeCurve.points) m.set(p.year, pct(p.combined))
+  return m
+}
+
 // cross-activation 페어 파서 — 연 셀(경량 캐시)은 evidence.detail 을 비우므로
 // detail.sajuKey/astroKey 가 없을 수 있다. 신호 name("편관 × 화성")은 항상 살아남아
 // 거기서 십신·행성을 뽑는다. (예전엔 detail 만 읽어 월교차 "() ↔" / 일교차 빈 ↔ 버그.)
@@ -231,15 +256,10 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
     now,
   } = args
 
-  // ─── lifetimeFlow / lifetimePivots derivers ─────────────────────────────
-  // 두 deriver 에 동일한 now 를 주입 — "현재 단계"와 "현재 pivot"이 같은 날짜를
-  // 가리키도록(예전엔 flow 가 now 미주입으로 서버 시계를 읽어 둘이 어긋났다).
-  const lifetimeFlow = deriveLifetimeFlow(natal, lang, undefined, now)
-  const lifetimePivots = deriveLifetimePivots(natal, lang, undefined, now)
-
   // ─── 인생 굴곡 곡선 (사주 다층 + 실 외행성 트랜짓) ────────────────────────
   // 외행성은 느려 step=3 샘플 + 보간이면 envelope 보존(ephemeris 호출 ~31회).
-  // 실패해도 곡선만 빠지고 나머지 티어는 정상.
+  // 실패해도 곡선만 빠지고 나머지 티어는 정상. lifetimeFlow(단계 톤)·대운 1년운이
+  // 이 곡선을 valence 출처로 쓰므로 *먼저* 빌드한다.
   let lifeCurve: ReturnType<typeof buildLifeCurve> = null
   try {
     const astroSeries = await computeTransitAstroSeries(natal, { span: 90, step: 3 })
@@ -247,6 +267,12 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
   } catch {
     lifeCurve = null
   }
+
+  // ─── lifetimeFlow / lifetimePivots derivers ─────────────────────────────
+  // 두 deriver 에 동일한 now 를 주입 — "현재 단계"와 "현재 pivot"이 같은 날짜를
+  // 가리키도록(예전엔 flow 가 now 미주입으로 서버 시계를 읽어 둘이 어긋났다).
+  const lifetimeFlow = deriveLifetimeFlow(natal, lang, undefined, now, lifeCurve)
+  const lifetimePivots = deriveLifetimePivots(natal, lang, undefined, now)
 
   // ─── yearly / month / day 슬라이스 ───────────────────────────────────────
   const monthPrefix = `${TARGET_YEAR}-${String(TARGET_MONTH).padStart(2, '0')}`
@@ -354,11 +380,16 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
   // toDecade — 현재 대운 + 10년 분리 + cross-activation decadal.
   const currentAge = TARGET_YEAR - BIRTH_YEAR
   const decadalSignals = cells.flatMap((c) => c.signals).filter((s) => s.layer === 'decadal')
+  // 대운 티어의 *1년운*(years[].score) — 인생 곡선의 연 단위 합성(세운+대운+충합+
+  // 트랜짓)을 인생 백분위로 매핑해 채운다. 예전엔 yearScores 미전달로 전부 50(평탄)
+  // 이라 "1년운"이 무의미했다. 곡선과 같은 출처라 대운 티어·인생 곡선이 일치한다.
+  const yearScoreByYear = buildYearScoreByYear(lifeCurve)
   const decadeAdapter = toDecade(natal, {
     currentAge,
     currentYear: TARGET_YEAR,
     decadalSignals,
     focusYear: TARGET_YEAR,
+    yearScoreByYear,
   })
   // 유효한 사주면 대운은 항상 계산된다. null 이면 입력/계산이 깨진 것 — fail-loud.
   if (!decadeAdapter) {

@@ -837,12 +837,39 @@ export function deriveLifetimeFlow(
    * now 를 받아야 "현재 단계(you are here)"와 "현재 pivot"이 같은 날짜를 가리킨다 —
    * 예전엔 이 인자가 없어 currentManAge 가 서버 시계로 떨어져 비결정적이었다(ENGINE-AUDIT).
    */
-  now?: Date
+  now?: Date,
+  /**
+   * 인생 곡선(거시 macro) — 있으면 성인 단계 톤 valence(good/hard/mid)를 곡선에서
+   * 정해 막대·년운과 같은 출처로 통일한다(단계 톤이 단일 대운 favor 로만 정해져
+   * 곡선 마루/저점과 어긋나던 문제). 없으면 기존 단일 대운 favor 유지.
+   */
+  lifeCurve?: { points: ReadonlyArray<{ age: number; macro: number }> } | null
 ): LifetimeFlow | undefined {
   const birthYear = natal.input?.year
   const daeun = natal.saju?.daeun ?? []
   const dm = natal.saju?.dayMaster?.name
   if (!birthYear || daeun.length === 0 || !dm) return undefined
+
+  // ── 인생 곡선 기반 단계 톤 valence ──
+  // 단계 톤(good/hard/mid)을 곡선 macro 의 그 단계 평균이 *인생 분포*에서 어디쯤인지
+  // (z-점수)로 정해, 막대·1년운과 같은 출처로 통일한다. 곡선이 없으면 null →
+  // 호출부가 기존 단일 대운 favor 로 폴백.
+  const curvePts = lifeCurve?.points ?? []
+  let curveMean = 0
+  let curveStd = 1
+  if (curvePts.length >= 5) {
+    const ms = curvePts.map((p) => p.macro)
+    curveMean = ms.reduce((a, b) => a + b, 0) / ms.length
+    curveStd = Math.sqrt(ms.reduce((a, b) => a + (b - curveMean) ** 2, 0) / ms.length) || 1
+  }
+  const stageCurveLevel = (lo: number, hi: number): 'good' | 'hard' | 'mid' | null => {
+    if (curvePts.length < 5) return null
+    const seg = curvePts.filter((p) => p.age >= lo && p.age <= hi)
+    if (seg.length === 0) return null
+    const avg = seg.reduce((a, p) => a + p.macro, 0) / seg.length
+    const z = (avg - curveMean) / curveStd
+    return z > 0.35 ? 'good' : z < -0.35 ? 'hard' : 'mid'
+  }
 
   // ── lang dispatch helpers ──
   // intro 합성 + daeunLine 은 render 언어를 그대로 쓰고, phase 의 사용자 토글
@@ -1218,7 +1245,7 @@ export function deriveLifetimeFlow(
     const fav = favorOf(natal.saju.strength, cat, getStemElement(lensStem), natal.saju.yongsin)
     // 초년 톤은 억부(신강약)로 — 신약은 비겁·인성이 받침(good), 재성·관성·식상은
     // 부담(hard). 재다신약의 초년 재성 부담이 'mid' 로 뭉개지던 것 교정.
-    const toneFav =
+    let toneFav: 'good' | 'hard' | 'mid' =
       isChildhood && natal.saju.strength === 'weak'
         ? cat === '비겁' || cat === '인성'
           ? 'good'
@@ -1228,6 +1255,13 @@ export function deriveLifetimeFlow(
             ? 'good'
             : 'hard'
           : fav
+    // 성인 단계는 인생 곡선 valence 로 톤을 맞춘다(막대·1년운과 동일 출처). 곡선이
+    // 없으면 위 단일 대운 favor 유지. 초년은 년주 억부 규칙 유지(곡선 유년기 감쇠로
+    // 유아기는 어차피 mid 라 정보가 적다).
+    if (!isChildhood) {
+      const cl = stageCurveLevel(lo, hi)
+      if (cl) toneFav = cl
+    }
 
     // 사실 1: 이 단계에 걸친 대운 모두 (간지 + 한글 음/로마자 + 정확 연도 범위).
     const MAX_DAEUNS = 3

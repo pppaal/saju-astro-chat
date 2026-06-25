@@ -400,6 +400,8 @@ export interface ToDecadeOptions {
   decadalSignals?: ActiveSignal[]
   /** 10년 연간 점수 배열 (선택). 없으면 50으로 채움. */
   yearScores?: number[]
+  /** 연도→점수(0~100) 맵 (선택). yearScores 보다 우선 — 인생 곡선 등 연도 키 소스용. */
+  yearScoreByYear?: Map<number, number>
   /** 본문 body 문장 (선택). */
   body?: string[]
   /** 본문 영문 (선택). 미지정 시 themeEn headline 으로 채움. */
@@ -459,7 +461,7 @@ export function toDecade(natal: NatalContext, opts: ToDecadeOptions = {}): Desti
     yearsArr.push({
       year: y,
       gz: toGanji(sr.stem, sr.branch),
-      score: opts.yearScores?.[i] ?? 50,
+      score: opts.yearScoreByYear?.get(y) ?? opts.yearScores?.[i] ?? 50,
       now: y === currentYear,
       sibsin: safeSibsin(dm, sr.stem),
     })
