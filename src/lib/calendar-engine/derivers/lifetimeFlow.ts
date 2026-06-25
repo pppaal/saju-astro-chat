@@ -805,7 +805,7 @@ const ELEMENT_IMPLICATION_KO: Record<Elem, string> = {
   fire: '드러내고 표현하는 추진력이 큰 편이에요',
   earth: '안정·뿌리·매개 역할에 강한 편이에요',
   metal: '분별·다듬기·맺고 끊는 게 분명해요',
-  water: '유연한 사고와 깊이 있는 흐름이 본 편이에요',
+  water: '유연한 사고와 깊이 있게 파고드는 힘이 강한 편이에요',
 }
 const ELEMENT_IMPLICATION_EN: Record<Elem, string> = {
   wood: 'your engine runs on growth and expansion',
@@ -1391,8 +1391,8 @@ export function deriveLifetimeFlow(
           : ''
       // 아동기엔 운성 줄을 생략(성인 기준 서사라 어색). 글로스가 비면 줄을 안 만든다.
       if (!isChildhood && glossKo) {
-        twelveStageLineKo = `기운의 흐름으로 보면, ${glossKo}.`
-        twelveStageLineEn = glossEn ? `In terms of your life-energy cycle, ${glossEn}.` : undefined
+        twelveStageLineKo = `기운의 흐름으로 보면, ${glossKo}이에요.`
+        twelveStageLineEn = glossEn ? `In your life-energy cycle, this is a time of ${glossEn}.` : undefined
       }
     } catch {
       // stage 계산 실패 시 silently skip

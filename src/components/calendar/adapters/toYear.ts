@@ -16,6 +16,8 @@ import type { NatalContext } from '@/lib/calendar-engine/context/types'
 import type { ActiveSignal, CalendarCell } from '@/lib/calendar-engine/types'
 import { toGanji, type Ganji, SIGN_KO, PLANET_KO, computeSewoonGanji } from './shared'
 import { getSibsinKo } from '@/lib/saju/cycleRelations'
+import { ganjiToKorean, ganjiToRoman, STEM_KO } from '@/lib/saju/ganjiKo'
+import { SIBSIN_EN } from '@/lib/saju/sibsinLabels'
 import { plainPairName } from '@/lib/calendar-engine/derivers/plainLanguage'
 import { ordinalEn } from '@/lib/calendar-engine/ordinal'
 import { getHouseRich, type HouseNumber } from '@/lib/chart-dictionary'
@@ -230,16 +232,16 @@ export function toYear(natal: NatalContext, opts: ToYearOptions): DestinypalYear
     profectionWheel,
     sajuNote:
       opts.sajuNote ??
-      `세운 ${sewoonRaw.stem}${sewoonRaw.branch} — 일간 ${dm} 기준 ${sewoonSibsin}.`,
+      `올해 세운은 ${ganjiToKorean(`${sewoonRaw.stem}${sewoonRaw.branch}`)}이고, 일간 ${STEM_KO[dm] ?? dm}을 기준으로 보면 ${sewoonSibsin}에 해당해요.`,
     sajuNoteEn:
       opts.sajuNoteEn ??
-      `Annual pillar ${sewoonRaw.stem}${sewoonRaw.branch} — ${sewoonSibsin} to day master ${dm}.`,
+      `This year's pillar is ${ganjiToRoman(sewoonRaw.stem, sewoonRaw.branch)} — it reads as ${SIBSIN_EN[sewoonSibsin] ?? sewoonSibsin} to your day master.`,
     astroNote:
       opts.astroNote ??
       (profection
         ? profection.rulerNatal
-          ? `올해의 무대인 ${profection.house}하우스를 이끄는 별은 ${profection.ruler} — 본명에서는 ${profection.rulerNatal}에 자리해요.`
-          : `올해의 무대인 ${profection.house}하우스를 이끄는 별은 ${profection.ruler}이에요.`
+          ? `올해 무대인 ${profection.house}하우스를 이끄는 별은 ${profection.ruler}이에요. 본명에서는 ${profection.rulerNatal}에 자리해요.`
+          : `올해 무대인 ${profection.house}하우스를 이끄는 별은 ${profection.ruler}이에요.`
         : ''),
     astroNoteEn:
       opts.astroNoteEn ??

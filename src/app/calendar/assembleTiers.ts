@@ -493,6 +493,7 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
   const year: DestinyYear = {
     year: yearAdapter.year,
     headline: yearAdapter.headline,
+    headlineEn: yearAdapter.headlineEn,
     sewoon: yearAdapter.sewoon,
     sewoonGz: yearAdapter.sewoonGz,
     sewoonSibsin: yearAdapter.sewoonSibsin,
@@ -517,7 +518,9 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
       ? yearAdapter.profectionWheel
       : yearAdapter.profectionWheel.map((w) => ({ ...w, active: w.house === fallbackHouse })),
     sajuNote: yearAdapter.sajuNote,
+    sajuNoteEn: yearAdapter.sajuNoteEn,
     astroNote: yearAdapter.astroNote,
+    astroNoteEn: yearAdapter.astroNoteEn,
     zrSpiritChapters: yearAdapter.zrSpiritChapters,
     zrFortuneChapters: yearAdapter.zrFortuneChapters,
     monthlyScores: yearAdapter.monthlyScores,

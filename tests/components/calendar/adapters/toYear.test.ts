@@ -35,17 +35,20 @@ describe('toYear — yearly signals → destinypal year', () => {
       const y = toYear(natal(), { year: 2026 })
       expect(y.headline).toBe('2026년 — 흐름이 새로 짜이는 해.')
       expect(y.astroNote).toBe('')
-      expect(y.sajuNote).toContain('세운 丙午')
+      // KO 사주 노트 — 한자 음(병오)로 평이화, 완결 문장. raw 한자 없음.
+      expect(y.sajuNote).toContain('병오')
+      expect(y.sajuNote).not.toMatch(/[一-鿿]/)
     })
 
-    it('영문 노트/헤드라인이 채워지고 한글 누수가 없다 (no Hangul)', () => {
+    it('영문 노트/헤드라인이 채워지고 한글·한자 누수가 없다 (no Hangul/Hanja)', () => {
       const y = toYear(natal(), { year: 2026 })
       // 헤드라인 영문 — 한글 없음
       expect(y.headlineEn).toBe('2026 — a year the flow gets re-drawn.')
       expect(y.headlineEn).not.toMatch(/[가-힣]/)
-      // 사주 노트 영문 — 프레이즈는 영어. (십신명 '식신'은 영문 사전 없는 term of art 라 그대로 둠)
-      expect(y.sajuNoteEn).toContain('Annual pillar 丙午')
-      expect(y.sajuNoteEn).toContain('to day master 甲')
+      // 사주 노트 영문 — 로마자 음 + 영문 십신명. raw 한자/한글 누수 없음.
+      expect(y.sajuNoteEn).toContain('Byeongo')
+      expect(y.sajuNoteEn).toContain('day master')
+      expect(y.sajuNoteEn).not.toMatch(/[가-힣一-鿿]/)
       // profection 없으면 astroNoteEn 빈 문자열
       expect(y.astroNoteEn).toBe('')
     })
