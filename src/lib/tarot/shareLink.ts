@@ -68,10 +68,26 @@ export interface CalendarShareLinkPayload {
   highlights?: string[]
 }
 
+/** 무료 통합 리포트 공유 — 사주 "유형 별명" + 소름 한 줄을 OG/공개 페이지 주인공으로. */
+export interface ReportShareLinkPayload {
+  v: 1
+  kind: 'report'
+  isKo: boolean
+  /** 유형 이모지 — 카드 상단. */
+  emoji: string
+  /** 유형 별명(MBTI 풍) — 공개 페이지/OG 의 주인공. PII 아님(명식 도출 고정 사전). */
+  typeName: string
+  /** 소름 한 줄 — 더 읽을거리. */
+  oneLiner: string
+  /** 동·서양이 둘 다 가리키는 주제 몇 개(선택) — 신뢰 훅. */
+  resonant?: string[]
+}
+
 export type ShareLinkPayload =
   | TarotShareLinkPayload
   | CompatShareLinkPayload
   | CalendarShareLinkPayload
+  | ReportShareLinkPayload
 
 /** 타입 가드 — 공유 종류 분기(렌더/OG). 레거시(미지정)는 tarot. */
 export function isCompatShare(p: ShareLinkPayload): p is CompatShareLinkPayload {
@@ -80,6 +96,10 @@ export function isCompatShare(p: ShareLinkPayload): p is CompatShareLinkPayload 
 
 export function isCalendarShare(p: ShareLinkPayload): p is CalendarShareLinkPayload {
   return p.kind === 'calendar'
+}
+
+export function isReportShare(p: ShareLinkPayload): p is ReportShareLinkPayload {
+  return p.kind === 'report'
 }
 
 const shareKey = (token: string) => `tarot:share:${token}`
@@ -111,8 +131,13 @@ export async function getShareLink(token: string): Promise<ShareLinkPayload | nu
   try {
     const payload = await cacheGet<ShareLinkPayload>(shareKey(clean))
     if (!payload || payload.v !== 1) return null
-    // 궁합·캘린더 공유는 cards 가 없고, 타로(레거시 포함)는 cards 배열을 가진다.
-    if (payload.kind === 'compatibility' || payload.kind === 'calendar') return payload
+    // 궁합·캘린더·리포트 공유는 cards 가 없고, 타로(레거시 포함)는 cards 배열을 가진다.
+    if (
+      payload.kind === 'compatibility' ||
+      payload.kind === 'calendar' ||
+      payload.kind === 'report'
+    )
+      return payload
     if (!Array.isArray((payload as TarotShareLinkPayload).cards)) return null
     return payload
   } catch (error) {

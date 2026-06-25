@@ -23,6 +23,12 @@ import type { ViralSummary } from './viralArchetype'
 
 export const SHARE_CARD_SIZE = 1080
 
+// 이미지 공유는 클릭 불가라 받는 사람이 돌아올 경로(도메인)를 카드에 박는다.
+// NEXT_PUBLIC_ 이라 클라 번들에 인라인됨(서버 siteBaseUrl 과 동일 폴백).
+const SHARE_DOMAIN = (process.env.NEXT_PUBLIC_BASE_URL || 'https://destinypal.com')
+  .replace(/^https?:\/\//, '')
+  .replace(/\/$/, '')
+
 export interface ReportShareData {
   summary: ViralSummary
   /** 출생자 이름 — 카드 상단에 옅게. */
@@ -274,6 +280,10 @@ export const ReportShareCard = React.forwardRef<HTMLDivElement, { data: ReportSh
           <span style={{ color: GOLD_LINE, fontSize: 22 }}>·</span>
           <span style={{ fontSize: 22, color: TEXT_MUTE, wordBreak: 'keep-all' }}>
             {isKo ? '무료 사주 리포트' : 'free birth-chart report'}
+          </span>
+          {/* 이미지 공유엔 링크가 없으니 도메인을 박아 복귀 경로를 남긴다 */}
+          <span style={{ marginLeft: 'auto', fontSize: 24, fontWeight: 600, color: GOLD_SOFT }}>
+            {SHARE_DOMAIN}
           </span>
         </div>
       </div>

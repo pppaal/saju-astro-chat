@@ -12,7 +12,8 @@
 
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import * as htmlToImage from 'html-to-image'
-import { Share2, Download, Loader2, X } from 'lucide-react'
+import { Share2, Download, Loader2, X, Link2, Check } from 'lucide-react'
+import { apiFetch } from '@/lib/api'
 import { logger } from '@/lib/logger'
 import { ReportShareCard, SHARE_CARD_SIZE, type ReportShareData } from './ReportShareCard'
 import type { ViralSummary } from './viralArchetype'
@@ -47,7 +48,66 @@ export function ShareReportButton({ summary, name, dateLabel, isKo }: ShareRepor
   const [blob, setBlob] = useState<Blob | null>(null)
   const [error, setError] = useState<string | null>(null)
 
+  // 링크 공유 — 이미지와 별개로, 클릭 가능한 /r/{token} 링크를 만들어 내보낸다
+  // (카톡·DM 처럼 클릭 전환이 되는 채널용). 서버엔 PII 아닌 유형 한 줄만 저장.
+  const [linkPhase, setLinkPhase] = useState<'idle' | 'creating' | 'copied'>('idle')
+  const [linkError, setLinkError] = useState<string | null>(null)
+  const linkBusyRef = useRef(false)
+
   const shareData: ReportShareData = { summary, name, dateLabel, isKo }
+
+  const shareLink = useCallback(async () => {
+    if (linkBusyRef.current) return
+    linkBusyRef.current = true
+    setLinkError(null)
+    setLinkPhase('creating')
+    try {
+      const res = await apiFetch('/api/report/share', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          isKo,
+          emoji: summary.emoji,
+          typeName: summary.name,
+          oneLiner: summary.oneLiner,
+          resonant: summary.resonant?.slice(0, 3),
+        }),
+      })
+      const json = (await res.json().catch(() => null)) as { data?: { url?: string } } | null
+      const url = json?.data?.url
+      if (!res.ok || !url) {
+        setLinkError(isKo ? '링크를 만들지 못했어요.' : 'Could not create a link.')
+        return
+      }
+      if (typeof navigator !== 'undefined' && typeof navigator.share === 'function') {
+        try {
+          await navigator.share({
+            title: isKo ? `DestinyPal — ${summary.name}` : `My DestinyPal type — ${summary.name}`,
+            text: summary.oneLiner,
+            url,
+          })
+          return
+        } catch (err) {
+          if ((err as Error & { name?: string })?.name === 'AbortError') return
+          // 취소가 아니면 클립보드 복사로 폴백.
+        }
+      }
+      try {
+        await navigator.clipboard.writeText(url)
+        setLinkPhase('copied')
+        setTimeout(() => setLinkPhase('idle'), 2000)
+        return
+      } catch {
+        setLinkError(isKo ? `링크: ${url}` : `Link: ${url}`)
+      }
+    } catch (err) {
+      logger.error('[ShareReport] link create failed', err instanceof Error ? err : undefined)
+      setLinkError(isKo ? '네트워크 오류가 발생했어요.' : 'A network error occurred.')
+    } finally {
+      linkBusyRef.current = false
+      setLinkPhase((p) => (p === 'creating' ? 'idle' : p))
+    }
+  }, [isKo, summary])
 
   // object URL 누수 방지.
   useEffect(() => {
@@ -178,6 +238,33 @@ export function ShareReportButton({ summary, name, dateLabel, isKo }: ShareRepor
         </button>
         {error && (
           <span className="text-[11px] text-rose-300/80 text-center max-w-xs">{error}</span>
+        )}
+
+        {/* 링크로 공유 — 클릭 가능한 /r 링크(카톡·DM 처럼 전환되는 채널용) */}
+        <button
+          type="button"
+          onClick={() => void shareLink()}
+          disabled={linkPhase === 'creating'}
+          className="inline-flex items-center justify-center gap-2 text-sm font-medium transition-colors disabled:opacity-60"
+          style={{ color: '#d4b572' }}
+        >
+          {linkPhase === 'creating' ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : linkPhase === 'copied' ? (
+            <Check className="w-4 h-4" />
+          ) : (
+            <Link2 className="w-4 h-4" />
+          )}
+          {linkPhase === 'copied'
+            ? isKo
+              ? '링크 복사됨!'
+              : 'Link copied!'
+            : isKo
+              ? '링크로 공유'
+              : 'Share as link'}
+        </button>
+        {linkError && (
+          <span className="text-[11px] text-rose-300/80 text-center max-w-xs">{linkError}</span>
         )}
       </div>
 
