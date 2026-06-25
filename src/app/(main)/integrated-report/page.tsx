@@ -11,6 +11,7 @@ import { buildReportContext } from './buildReportContext'
 import { natalToReportData, buildCrossRows } from '@/components/report/integrated/adapter'
 import { IntegratedReport } from '@/components/report/integrated/IntegratedReport'
 import CounselorCTA from '@/components/report/CounselorCTA'
+import BirthGate from '@/components/birth/BirthGate'
 import { getServerLocale } from '@/components/seo/SEO'
 import { cookies } from 'next/headers'
 import { fromZonedTime } from 'date-fns-tz'
@@ -40,6 +41,12 @@ export default async function IntegratedReportPage({
           : cookieLocale === 'en'
             ? 'en'
             : await getServerLocale()
+  // 생년월일 입력이 없으면(쿼리에 ?date= 없음) 임의 샘플로 풀이를 띄우지 않고
+  // 입력 게이트를 보여준다. localStorage 에 저장된 생일이 있으면 클라이언트가
+  // 자동으로 ?date=... 를 붙여 다시 연다.
+  if (!one(sp.date)) {
+    return <BirthGate base="/integrated-report" locale={lang} />
+  }
   const birthDate = one(sp.date) ?? '1992-03-15'
   // 출생시각 미상 — ?time= 없으면 정오(12:00)로 차트 계산(달 오차 최소화)하되,
   // birthTimeUnknown 플래그를 세워 ASC/MC/하우스 의존 해석을 신뢰불가로 처리·경고.

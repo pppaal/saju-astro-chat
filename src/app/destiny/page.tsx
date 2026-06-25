@@ -8,6 +8,7 @@
    ============================================================ */
 
 import BirthRequiredFallback from '../calendar/birth-required'
+import BirthGate from '@/components/birth/BirthGate'
 import { loadTierData, parseBirthOverride } from '../calendar/loadTierData'
 import DestinyLifeClient from './DestinyLifeClient'
 import CounselorCTA from '@/components/report/CounselorCTA'
@@ -24,6 +25,7 @@ export default async function DestinyLifePage({ searchParams }: { searchParams: 
   const data = await loadTierData('year', override)
   if (data.kind === 'login') return <BirthRequiredFallback reason="login" />
   if (data.kind === 'no-birth') return <BirthRequiredFallback reason="no-birth" />
+  if (data.kind === 'guest') return <BirthGate base="/destiny" locale={data.lang} />
 
   const { topbar, user, lifetime, decade, year, lang } = data
   return (
