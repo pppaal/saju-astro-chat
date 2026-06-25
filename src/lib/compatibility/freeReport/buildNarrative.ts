@@ -409,7 +409,7 @@ const THEME_PRIMER: Record<ThemeId, Record<HookKey, Bi>> = {
   },
   talk: {
     pos: {
-      ko: '말과 농담, 생각의 결이 자연스럽게 통하는 사이예요. 굳이 설명 안 해도 상대가 무슨 말인지 알아차리고, 카톡 답장이 빠르게 주고받아지는 식 편한 대화 리듬이 있는 거죠. 같은 코드의 농담이 먹히고, 나중에 비슷한 장면에서 다시 웃을 수 있는 공통의 언어가 자연스럽게 쌓여가요.',
+      ko: '말과 농담, 생각의 결이 자연스럽게 통하는 사이예요. 굳이 설명 안 해도 상대가 무슨 말인지 알아차리고, 카톡도 빠르게 척척 오가는 편한 대화 리듬이 있는 거죠. 같은 코드의 농담이 먹히고, 나중에 비슷한 장면에서 다시 웃을 수 있는 공통의 언어가 자연스럽게 쌓여가요.',
       en: "Your words and thoughts flow in an easy rhythm that barely needs explaining. The other catches your drift without you having to spell it out, and there's a quick back-and-forth — the kind where messages come fast. Jokes in your shared code land, and you find yourselves laughing at the same things again and again, building a common language as you go.",
     },
     neg: {
@@ -441,8 +441,8 @@ const THEME_PRIMER: Record<ThemeId, Record<HookKey, Bi>> = {
       en: "You two either have a knack for reading the room, or there's something that just clicks — enough that big clashes stay off the radar. More likely to let small frustrations stack quietly than explode — watch that — but overall, even when words don't land, there's an ease to brush past it together.",
     },
     neg: {
-      ko: '두 사람을 붙들고 있는 끌림이 있어도, 공간을 함께 쓰다 보면 부딪힐 수밖에 없는 자리들이 있어요. 여기선 그런 지점들을 따라가봐요 — 서로의 타고난 결이 만날 때 어디서 박자가 맞지 않는지, 자존심이 으르렁대는지, 아니면 생각과 속도가 어긋나는지. 이런 신호들이 크게 드러나는 건 아니지만, 함께 시간을 보내며 자연스럽게 느껴지는 이음새 같은 거죠 — 알고 있으면 피할 수도, 아니면 그대로 안고 가는 법도 배울 수 있어요.',
-      en: "Even with the pull holding you two together, some spots are bound to rub when you share space. Here we follow those fault lines — where your born grains misalign, where pride bristles, or where thought and pace run at odds. These signals aren't loud, but they're the kind of seams you naturally feel over time in each other's company — knowing them means you can sidestep them, or learn to live with them as they are.",
+      ko: '끌리는 마음과 별개로, 같이 지내다 보면 분명히 부딪히는 자리가 있어요. 서로의 타고난 성향이 만나는 지점에서 박자가 어긋나거나, 자존심이 으르렁대거나, 생각과 속도가 따로 놀곤 하죠. 미리 알아두면 같은 일로 두 번 부딪히진 않아요 — 피할 건 피하고, 안고 갈 건 안고 가면 되니까요.',
+      en: 'Apart from the pull between you, sharing a life is bound to surface real friction. Where your natural temperaments meet, the timing can slip, pride can bristle, or thought and pace can run apart. Knowing these ahead of time keeps you from clashing twice over the same thing — you sidestep what you can and carry the rest.',
     },
     mid: {
       ko: '둘이 완전히 맞는 건 아니어서, 뭔가를 함께 결정할 때 의견이 엇갈리곤 해요. 근데 그게 틀려서라기보다는, 같은 일을 다른 각도에서 보는 거라 대화하다 보면 오히려 더 단단해지기도 하죠. 때론 작은 마찰에 답답할 때도 있지만, 그만큼 서로를 또렷하게 이해하게 되는 사이예요.',
@@ -838,25 +838,36 @@ export function buildFreeCompatNarrative(
         pol: asp.tone === 'harmony' ? w : asp.tone === 'tension' ? -w : 0,
       })
     }
-    // 오버레이 — 누구의 어느 행성이 어느 방에 들어왔는지(행성 정체 추가). 방당 1회.
-    // 단, 방향(A→B / B→A)별로 따로 센다 — 같은 방 번호라도 서로 다른 신호라
-    // 한 세트로 묶으면 한쪽이 통째로 누락된다(누락 0 위반).
+    // 오버레이 — 누구의 어느 행성이 어느 방에 들어왔는지. 방(하우스)별로 묶어서
+    // 양방향(A→B / B→A)·여러 행성을 한 문단에 모은다. 방 의미(arena)는 한 번만
+    // 나오게 — 같은 방이 양쪽에서 잡히면 똑같은 설명이 두 번 찍히던 문제 방지.
+    const overlayByHouse = new Map<number, { viewer: string; key: string; disp: string }[]>()
     for (const [list, viewer] of [
       [report.synView.overlaysAtoB, labelA] as const,
       [report.synView.overlaysBtoA, labelB] as const,
     ]) {
-      const seenHouse = new Set<number>()
       for (const o of list) {
-        if (seenHouse.has(o.house)) continue
-        seenHouse.add(o.house)
-        const arena = t(OVERLAY_HOUSE[o.house]) ?? ''
-        if (!arena) continue
-        const plName = planet(o.planetKey, o.planet)
-        const text = isKo
-          ? `${viewer}의 ${plName} 기운이 닿는 자리예요. ${arena}`
-          : `${viewer}'s ${plName} reaches into this part of life. ${arena}`
-        themed.push({ theme: HOUSE_THEME[o.house] ?? 'life', weight: 2, text, pol: 0.6 })
+        if (!OVERLAY_HOUSE[o.house]) continue
+        if (!overlayByHouse.has(o.house)) overlayByHouse.set(o.house, [])
+        overlayByHouse.get(o.house)!.push({ viewer, key: o.planetKey, disp: o.planet })
       }
+    }
+    for (const [house, arr] of overlayByHouse) {
+      const arena = t(OVERLAY_HOUSE[house])
+      // 한 방에 행성 하나면 괄호 풀이까지, 여럿이면 풀이 빼고 가볍게 나열(중복·과적재 방지).
+      let lead: string
+      if (arr.length === 1) {
+        const e = arr[0]
+        lead = isKo
+          ? `${e.viewer}의 ${planet(e.key, e.disp)} 기운이 닿는 자리예요. ${arena}`
+          : `${e.viewer}'s ${planet(e.key, e.disp)} reaches into this part of life. ${arena}`
+      } else {
+        const names = arr.map((e) => (isKo ? `${e.viewer}의 ${e.disp}` : `${e.viewer}'s ${e.disp}`))
+        lead = isKo
+          ? `${josa(names.join('·'), '이/가')} 같은 자리에 닿아요. ${arena}`
+          : `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]} all touch this part of life. ${arena}`
+      }
+      themed.push({ theme: HOUSE_THEME[house] ?? 'life', weight: 2, text: lead, pol: 0.6 })
     }
   }
   {
