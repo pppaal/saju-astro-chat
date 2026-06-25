@@ -23,6 +23,7 @@ import { BirthInfoFields, type BirthFieldsPatch } from '@/components/birth/Birth
 import { getStoredBirthInfo, normGender, timeToState } from '@/app/(main)/birthInfoStorage'
 import { ScoreBreakdown } from '@/components/report/atoms/ScoreBreakdown'
 import { ShareCompatibilityButton } from '@/components/compatibility/ShareCompatibilityButton'
+import { ReferralInviteButton } from '@/components/referral/ReferralInviteButton'
 import { spouseFeeling } from '@/lib/compatibility/compatChartLabels'
 import type { SajuPillarInput } from '@/lib/compatibility/sajuSynastryFormatter'
 import type { CompatReport } from '@/lib/compatibility/compatReport'
@@ -771,6 +772,7 @@ function ResultView({
             headline: headlineReason || '',
           }}
         />
+        <ReferralInviteButton isKo={isKo} />
       </div>
 
       {/* 깊은 해석(처방·시기·1:1)은 유료 궁합 상담사 — 가장 눈에 띄는 CTA */}

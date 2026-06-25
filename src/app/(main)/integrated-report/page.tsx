@@ -11,6 +11,7 @@ import { buildReportContext } from './buildReportContext'
 import { natalToReportData, buildCrossRows } from '@/components/report/integrated/adapter'
 import { IntegratedReport } from '@/components/report/integrated/IntegratedReport'
 import CounselorCTA from '@/components/report/CounselorCTA'
+import ReferralInviteButton from '@/components/referral/ReferralInviteButton'
 import BirthGate from '@/components/birth/BirthGate'
 import { getServerLocale } from '@/components/seo/SEO'
 import { cookies } from 'next/headers'
@@ -113,6 +114,9 @@ export default async function IntegratedReportPage({
           en: 'Show me how my report plays out in this season, and what to do first.',
         }}
       />
+      <div style={{ display: 'flex', justifyContent: 'center', margin: '0 auto 48px' }}>
+        <ReferralInviteButton isKo={lang === 'ko'} />
+      </div>
     </>
   )
 }

@@ -8,7 +8,13 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { getShareLink, isCompatShare, isCalendarShare, isReportShare } from '@/lib/tarot/shareLink'
+import {
+  getShareLink,
+  isCompatShare,
+  isCalendarShare,
+  isReportShare,
+  bumpShareViews,
+} from '@/lib/tarot/shareLink'
 import { recordCounter } from '@/lib/metrics/index'
 
 export const dynamic = 'force-dynamic'
@@ -88,6 +94,16 @@ export default async function SharedReadingPage({ params }: PageProps) {
   recordCounter('tarot.share.viewed', 1)
 
   const isKo = reading.isKo
+
+  // 소셜 증거 — 이 결과(토큰)가 지금까지 몇 번 열렸나. 너무 작은 수(<5)는
+  // 오히려 빈약해 보여 숨긴다. best-effort 라 실패하면 0 → 표시 안 함.
+  const views = await bumpShareViews(token)
+  const socialProof =
+    views >= 5
+      ? isKo
+        ? `지금까지 ${views.toLocaleString()}번 열린 결과예요`
+        : `Opened ${views.toLocaleString()} times so far`
+      : null
 
   // 궁합 공유는 카드가 없고 verdict 한 줄이 주인공 — 별도 레이아웃.
   if (isCompatShare(reading)) {
@@ -184,6 +200,10 @@ export default async function SharedReadingPage({ params }: PageProps) {
             >
               {reading.headline}
             </p>
+          ) : null}
+
+          {socialProof ? (
+            <p style={{ marginTop: 26, fontSize: 13, color: GOLD_SOFT }}>✦ {socialProof}</p>
           ) : null}
 
           <div style={{ marginTop: 44 }}>
@@ -318,6 +338,10 @@ export default async function SharedReadingPage({ params }: PageProps) {
                 </li>
               ))}
             </ul>
+          ) : null}
+
+          {socialProof ? (
+            <p style={{ marginTop: 26, fontSize: 13, color: GOLD_SOFT }}>✦ {socialProof}</p>
           ) : null}
 
           <div style={{ marginTop: 44 }}>
@@ -460,6 +484,10 @@ export default async function SharedReadingPage({ params }: PageProps) {
                 </li>
               ))}
             </ul>
+          ) : null}
+
+          {socialProof ? (
+            <p style={{ marginTop: 26, fontSize: 13, color: GOLD_SOFT }}>✦ {socialProof}</p>
           ) : null}
 
           <div style={{ marginTop: 44 }}>

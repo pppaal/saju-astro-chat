@@ -13,6 +13,7 @@ export type FunnelEvent =
   | 'integrated_report.counselor_cta'
   | 'compat_free.report_viewed'
   | 'compat_free.counselor_cta'
+  | 'referral.link_clicked'
 
 export function trackFunnel(event: FunnelEvent): void {
   try {

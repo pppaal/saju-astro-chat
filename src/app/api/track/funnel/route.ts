@@ -29,6 +29,7 @@ const FUNNEL_EVENTS = [
   'integrated_report.counselor_cta',
   'compat_free.report_viewed',
   'compat_free.counselor_cta',
+  'referral.link_clicked',
 ] as const
 
 const funnelSchema = z.object({ event: z.enum(FUNNEL_EVENTS) })

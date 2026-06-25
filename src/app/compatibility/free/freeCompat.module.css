@@ -527,7 +527,9 @@
 .share {
   margin-top: 24px;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
 }
 
 /* 마무리 + 상담사 CTA */

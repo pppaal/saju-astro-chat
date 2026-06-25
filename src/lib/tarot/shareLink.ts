@@ -150,3 +150,23 @@ export async function getShareLink(token: string): Promise<ShareLinkPayload | nu
 export function siteBaseUrl(): string {
   return (process.env.NEXT_PUBLIC_BASE_URL || 'https://destinypal.com').replace(/\/$/, '')
 }
+
+const viewsKey = (token: string) => `share:views:${token}`
+
+/**
+ * 공유 링크 조회수를 1 올리고 누적값을 돌려준다(소셜 증거용). best-effort —
+ * cacheGet→cacheSet 라 동시성에서 약간 적게 셀 수 있으나 허영 지표라 무해하다.
+ * 실패하면 0(표시 안 함). 공유 페이로드와 같은 90일 TTL.
+ */
+export async function bumpShareViews(token: string): Promise<number> {
+  const clean = (token || '').trim()
+  if (!clean) return 0
+  try {
+    const prev = (await cacheGet<number>(viewsKey(clean))) ?? 0
+    const next = (typeof prev === 'number' ? prev : 0) + 1
+    await cacheSet(viewsKey(clean), next, SHARE_TTL_SECONDS)
+    return next
+  } catch {
+    return 0
+  }
+}
