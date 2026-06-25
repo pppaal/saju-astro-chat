@@ -12,6 +12,7 @@
 
 import PreviewClient from './preview/PreviewClient'
 import BirthRequiredFallback from './birth-required'
+import BirthGate from '@/components/birth/BirthGate'
 import CounselorCTA from '@/components/report/CounselorCTA'
 import DailyFortunePushBanner from '@/components/push/DailyFortunePushBanner'
 import { SHOW_FULL_TIERS } from '@/components/calendar/tierConfig'
@@ -30,6 +31,7 @@ export default async function DestinypalPage({ searchParams }: { searchParams: P
   const data = await loadTierData(SHOW_FULL_TIERS ? 'year' : 'month', override)
   if (data.kind === 'login') return <BirthRequiredFallback reason="login" />
   if (data.kind === 'no-birth') return <BirthRequiredFallback reason="no-birth" />
+  if (data.kind === 'guest') return <BirthGate base="/calendar" locale={data.lang} />
 
   const { topbar, user, lifetime, decade, year, month, day, lang } = data
   return (

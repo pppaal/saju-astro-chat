@@ -149,6 +149,29 @@ export function buildBirthQuery(info: StoredBirthInfo | null): string {
 }
 
 /**
+ * Birth query for the report/calendar/destiny pages. These read a DIFFERENT
+ * param schema than the counselor (`date`/`time`/`lat`/`lng`/`tz` +
+ * `gender=male|female`), so buildBirthQuery (counselor schema) must NOT be
+ * reused here. Single source for MainPageClient's deep-links AND the
+ * BirthGate redirect so the two can't drift. Empty info → just `lang`.
+ */
+export function buildReportBirthQuery(info: StoredBirthInfo | null, locale: 'ko' | 'en'): string {
+  const p = new URLSearchParams()
+  p.set('lang', locale)
+  if (info) {
+    p.set('date', info.birthDate)
+    if (!info.birthTimeUnknown && info.birthTime) p.set('time', info.birthTime)
+    if (typeof info.latitude === 'number') p.set('lat', String(info.latitude))
+    if (typeof info.longitude === 'number') p.set('lng', String(info.longitude))
+    if (info.timeZone) p.set('tz', info.timeZone)
+    p.set('gender', info.gender)
+    if (info.name) p.set('name', info.name)
+    if (info.city) p.set('place', info.city)
+  }
+  return p.toString()
+}
+
+/**
  * Deep-link straight into the counselor chat with birth info + the first
  * question prefilled. We target `/destiny-counselor` directly (NOT the
  * `/destiny-counselor` redirect) because that thin redirect drops `q`,
