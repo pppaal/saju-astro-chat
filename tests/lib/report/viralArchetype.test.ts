@@ -66,7 +66,21 @@ describe('viralArchetype', () => {
     expect(en).not.toBeNull()
     expect(HANGUL.test(en!.name)).toBe(false)
     expect(HANGUL.test(en!.oneLiner)).toBe(false)
+    expect(HANGUL.test(en!.subtype)).toBe(false)
     expect(HANGUL.test(en!.partner ?? '')).toBe(false)
+  })
+
+  it('buildViralSummary — 강약(신강/신약/중화)으로 subtype 결이 갈린다', () => {
+    const base = { dayMaster: '甲', strengths: [], resonant: [], lang: 'ko' as const }
+    expect(buildViralSummary({ ...base, strength: 'strong' })!.subtype).toBe('주도형')
+    expect(buildViralSummary({ ...base, strength: 'weak' })!.subtype).toBe('조율형')
+    expect(buildViralSummary({ ...base, strength: null })!.subtype).toBe('균형형')
+    expect(buildViralSummary({ ...base })!.subtype).toBe('균형형') // 미상 → 중화
+    // oneLiner 는 유형 기본 줄 + 강약 결 한 문장으로 길어진다
+    const baseLine = getArchetype('甲')!.oneLiner.ko
+    const strong = buildViralSummary({ ...base, strength: 'strong' })!
+    expect(strong.oneLiner).toContain(baseLine)
+    expect(strong.oneLiner.length).toBeGreaterThan(baseLine.length)
   })
 
   it('유형 매칭이 없으면 null (카드 자동 생략)', () => {

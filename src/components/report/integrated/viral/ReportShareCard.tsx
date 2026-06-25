@@ -134,7 +134,26 @@ export const ReportShareCard = React.forwardRef<HTMLDivElement, { data: ReportSh
           </div>
 
           {/* emoji */}
-          <div style={{ fontSize: 120, lineHeight: 1, marginBottom: 24 }}>{summary.emoji}</div>
+          <div style={{ fontSize: 120, lineHeight: 1, marginBottom: 18 }}>{summary.emoji}</div>
+
+          {/* 강약 결 칩 */}
+          {summary.subtype && (
+            <div
+              style={{
+                display: 'inline-block',
+                fontFamily: SANS,
+                fontSize: 26,
+                fontWeight: 700,
+                color: GOLD_SOFT,
+                border: `2px solid ${GOLD_LINE}`,
+                borderRadius: 999,
+                padding: '6px 22px',
+                marginBottom: 18,
+              }}
+            >
+              {summary.subtype}
+            </div>
+          )}
 
           {/* archetype name */}
           <div

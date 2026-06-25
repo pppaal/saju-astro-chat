@@ -121,6 +121,38 @@ export const PARTNER_BY_ELEMENT: Record<string, BiLabel> = {
   },
 }
 
+// 신강·신약(일간 강약) → 유형의 "결" 보조축. 같은 일간이라도 강약에 따라
+// 표현 방식이 달라 — 헤드라인을 10종(일간)에서 30종(일간×강약)으로 넓힌다.
+// 용신(부족·보강)이 아니라 강약을 쓰는 이유: 강약은 "어떤 사람인가"(정체)에
+// 직결되지만 용신은 "무엇이 필요한가"라 정체 라벨엔 덜 맞는다.
+export type StrengthState = 'strong' | 'weak' | 'balanced'
+
+export const STRENGTH_TAG: Record<StrengthState, BiLabel> = {
+  strong: { ko: '주도형', en: 'Driven' },
+  weak: { ko: '조율형', en: 'Adaptive' },
+  balanced: { ko: '균형형', en: 'Balanced' },
+}
+
+// oneLiner 뒤에 붙는 강약별 한 문장 — 같은 유형도 결이 달라지게.
+const STRENGTH_FLAVOR: Record<StrengthState, BiLabel> = {
+  strong: {
+    ko: '스스로 밀고 나가는 힘이 강해, 방향만 정하면 끝까지 가는 편이에요.',
+    en: 'Your inner drive runs strong — once you set a direction, you carry it all the way.',
+  },
+  weak: {
+    ko: '혼자 밀어붙이기보다 좋은 사람·환경과 어우러질 때 더 크게 빛나는 결이에요.',
+    en: 'You shine brightest in sync with the right people and surroundings, not going it alone.',
+  },
+  balanced: {
+    ko: '치우치지 않고 상황 따라 강약을 조절하는 균형이 강점이에요.',
+    en: 'Your strength is balance — you adjust your intensity to fit the moment.',
+  },
+}
+
+export function normalizeStrength(raw: string | null | undefined): StrengthState {
+  return raw === 'strong' ? 'strong' : raw === 'weak' ? 'weak' : 'balanced'
+}
+
 const STEM_KO_TO_HAN: Record<string, string> = {
   갑: '甲',
   을: '乙',
@@ -144,6 +176,8 @@ export function getArchetype(dayMaster: string): Archetype | null {
 export interface ViralSummary {
   emoji: string
   name: string
+  /** 강약 기반 결 라벨(주도형/조율형/균형형) — 헤드라인 칩. 일간 10종 × 강약 3 = 30종. */
+  subtype: string
   oneLiner: string
   /** 겉모습(상승궁) 한 줄 — 이미 lang 해석됨. 없으면 null. */
   outer: string | null
@@ -162,15 +196,20 @@ export function buildViralSummary(input: {
   strengths: string[]
   resonant: string[]
   yongsinElement?: string | null
+  /** 일간 강약 — 'strong' | 'weak' | (그 외=중화). 헤드라인 결(subtype)을 가른다. */
+  strength?: string | null
   lang: 'ko' | 'en'
 }): ViralSummary | null {
   const a = getArchetype(input.dayMaster)
   if (!a) return null
   const lang = input.lang
+  const st = normalizeStrength(input.strength)
   return {
     emoji: a.emoji,
     name: a.name[lang],
-    oneLiner: a.oneLiner[lang],
+    subtype: STRENGTH_TAG[st][lang],
+    // 유형 기본 한 줄 + 강약별 결 한 문장 → 같은 일간도 30종으로 갈림.
+    oneLiner: `${a.oneLiner[lang]} ${STRENGTH_FLAVOR[st][lang]}`,
     outer: input.ascTrait ?? null,
     hashtags: input.strengths.filter(Boolean).slice(0, 3),
     resonant: input.resonant.filter(Boolean).slice(0, 3),

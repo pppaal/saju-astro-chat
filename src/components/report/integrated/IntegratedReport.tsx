@@ -573,6 +573,7 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
       .filter((r) => r.tone === 'resonant' && !isKarmaRow(r))
       .map((r) => r.category),
     yongsinElement: S.yongsin.primary,
+    strength: S.strength,
     lang,
   })
 

@@ -83,8 +83,21 @@
   line-height: 1;
 }
 
+.subtype {
+  display: inline-block;
+  margin: 14px 0 0;
+  padding: 3px 13px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--plum);
+  border: 1px solid var(--plum);
+  border-radius: 999px;
+  background: transparent;
+}
+
 .name {
-  margin: 16px 0 0;
+  margin: 10px 0 0;
   font-family: var(--serif);
   font-size: 30px;
   font-weight: 700;
