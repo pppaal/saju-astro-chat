@@ -12,7 +12,6 @@ import { natalToReportData, buildCrossRows } from '@/components/report/integrate
 import { IntegratedReport } from '@/components/report/integrated/IntegratedReport'
 import CounselorCTA from '@/components/report/CounselorCTA'
 import ReferralInviteButton from '@/components/referral/ReferralInviteButton'
-import TodayEnergyStrip from '@/components/report/TodayEnergyStrip'
 import BirthGate from '@/components/birth/BirthGate'
 import { getServerLocale } from '@/components/seo/SEO'
 import { cookies } from 'next/headers'
@@ -107,8 +106,6 @@ export default async function IntegratedReportPage({
   return (
     <>
       <IntegratedReport data={data} cross={cross} lang={lang} />
-      {/* 오늘의 기운 — 매일 바뀌는 결정론 한 줄. 정적 명식 리포트에 재방문 훅을 더한다. */}
-      <TodayEnergyStrip birthDate={birthDate} lang={lang} />
       <CounselorCTA
         lang={lang}
         funnelEvent="integrated_report.counselor_cta"
