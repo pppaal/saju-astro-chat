@@ -46,3 +46,25 @@ export function ganjiToKorean(input: string | null | undefined): string {
   }
   return out
 }
+
+// 영문 사용자에겐 한자(乙亥)가 읽히지 않는다 — 개정 로마자 음으로 치환해
+// 라틴 문자로라도 읽히게 한다(의미는 본문이 담당).
+const STEM_ROMAN: Record<string, string> = {
+  甲: 'gap', 乙: 'eul', 丙: 'byeong', 丁: 'jeong', 戊: 'mu',
+  己: 'gi', 庚: 'gyeong', 辛: 'sin', 壬: 'im', 癸: 'gye',
+}
+const BRANCH_ROMAN: Record<string, string> = {
+  子: 'ja', 丑: 'chuk', 寅: 'in', 卯: 'myo', 辰: 'jin', 巳: 'sa',
+  午: 'o', 未: 'mi', 申: 'sin', 酉: 'yu', 戌: 'sul', 亥: 'hae',
+}
+
+/**
+ * 천간+지지 한자 → 로마자 음 (예: '乙亥' → 'Eulhae'). 첫 글자만 대문자.
+ * 못 푸는 글자는 그대로 둔다.
+ */
+export function ganjiToRoman(stem: string, branch: string): string {
+  const s = STEM_ROMAN[stem] ?? ''
+  const b = BRANCH_ROMAN[branch] ?? ''
+  const joined = `${s}${b}`
+  return joined ? joined.charAt(0).toUpperCase() + joined.slice(1) : `${stem}${branch}`
+}

@@ -151,7 +151,7 @@ describe('deriveLifetimeFlow', () => {
     it('초년기 본문은 평이 부모·뿌리 도입부로 시작 (raw 십신 노출 없음)', () => {
       const child = out.phases[0]
       // 평이 우선: 십신 원명("겁재(비겁) 흐름")을 surface 에서 빼고 부모·뿌리 도입부 + 평이 본문.
-      expect(child.text).toContain('초년은 부모·뿌리의 영향을 받는 시기예요')
+      expect(child.text).toContain('초년은 부모와 뿌리의 영향을 받는 시기예요')
       expect(child.text).not.toContain('겁재(비겁)')
     })
 
@@ -162,12 +162,13 @@ describe('deriveLifetimeFlow', () => {
       expect(young.text).not.toContain('편재(재성)')
     })
 
-    it('daeunLine 은 단계에 걸친 대운들을 화살표로 연결 (간지+한글음+연도)', () => {
-      // 초년 0~19: startAge+10>0 && startAge<=19 → 丁丑(5), 丙子(15).
+    it('daeunLine 은 단계에 걸친 대운들을 화살표로 연결 (한글음+연도, raw 한자 없음)', () => {
+      // 초년 0~19: startAge+10>0 && startAge<=19 → 丁丑(5), 丙子(15). novice 표면이라 한글 음만.
       const child = out.phases[0]
-      expect(child.daeunLine).toContain('丁丑(정축) 대운 1995-2005')
-      expect(child.daeunLine).toContain('丙子(병자) 대운 2005-2015')
+      expect(child.daeunLine).toContain('정축 대운 1995-2005')
+      expect(child.daeunLine).toContain('병자 대운 2005-2015')
       expect(child.daeunLine).toContain('→')
+      expect(child.daeunLine).not.toMatch(/[㐀-鿿]/) // raw 간지 한자 누수 금지
     })
 
     it('단계 대운이 3개 초과면 "→…" 로 압축', () => {
@@ -213,7 +214,7 @@ describe('deriveLifetimeFlow', () => {
       const n = makeNatal({ branches: { year: '巳', month: '巳', day: '酉', time: '寅' } })
       const r = deriveLifetimeFlow(n)!
       const young = r.phases.find((p) => p.label === '청년기')!
-      expect(young.relationLine).toContain('변동과 마찰이 잦아요')
+      expect(young.relationLine).toContain('움직임과 전환이 생기는 편이에요')
       expect(young.relationLine).not.toContain('충')
       expect(young.relationLine).not.toContain('亥')
     })
@@ -223,7 +224,7 @@ describe('deriveLifetimeFlow', () => {
       const n = makeNatal({ branches: { year: '寅', month: '巳', day: '酉', time: '辰' } })
       const r = deriveLifetimeFlow(n)!
       const young = r.phases.find((p) => p.label === '청년기')!
-      expect(young.relationLine).toContain('손발이 척척 맞는 편이에요')
+      expect(young.relationLine).toContain('한 방향으로 맞물리며 묶이는 편이에요')
       expect(young.relationLine).not.toContain('육합')
     })
 
@@ -482,8 +483,8 @@ describe('deriveLifetimeFlow', () => {
       const n = makeNatal({ branches: { year: '巳', month: '巳', day: '酉', time: '辰' } })
       const r = deriveLifetimeFlow(n)! // KO render
       const young = r.phases.find((p) => p.label === '청년기')!
-      expect(young.relationLine).toContain('변동과 마찰이 잦아요')
-      expect(young.relationLineEn).toContain('change and friction')
+      expect(young.relationLine).toContain('움직임과 전환이 생기는 편이에요')
+      expect(young.relationLineEn).toContain('movement and turning points')
       expect(young.relationLineEn).not.toMatch(/[가-힣]/)
     })
 
@@ -562,10 +563,11 @@ describe('deriveLifetimeFlow', () => {
       expect(out.phases[0].ageRange).toBe('age 0-19 · 1990-2009')
     })
 
-    it('영문 daeunLine — romanization + "daeun"', () => {
+    it('영문 daeunLine — romanization + "daeun" (raw 한자 없음)', () => {
       const child = out.phases[0]
       expect(child.daeunLine).toContain('daeun')
-      expect(child.daeunLine).toContain('(jeong')
+      expect(child.daeunLine).toContain('Jeongchuk') // 로마자 음(첫 글자 대문자)
+      expect(child.daeunLine).not.toMatch(/[㐀-鿿]/)
     })
 
     it('영문 본문 — 평이 영문(한글 없음, raw 십신 라벨 노출 없음)', () => {
@@ -581,7 +583,7 @@ describe('deriveLifetimeFlow', () => {
       })
       const r = deriveLifetimeFlow(n, 'en')!
       const young = r.phases.find((p) => p.label === 'Young adulthood')!
-      expect(young.relationLine).toContain('change and friction')
+      expect(young.relationLine).toContain('movement and turning points')
       expect(young.relationLine).not.toMatch(/[가-힣]/)
     })
 
@@ -621,12 +623,12 @@ describe('deriveLifetimeFlow', () => {
       const child = r.phases[0]
       // good variant 중 하나 포함.
       const goodVariants = [
-        '흐름이 순해서',
-        '기운이 등 뒤에서',
-        '용신과 잘 맞아',
-        '하려는 방향과',
-        '주변의 도움이',
-        '타이밍이 받쳐줘',
+        '바람이 등을 밀어주어',
+        '물길이 트여',
+        '결이 맞아떨어져',
+        '햇볕이 고르게',
+        '인연과 도움이',
+        '때가 받쳐주어',
         '막힘이 적어',
       ]
       expect(goodVariants.some((v) => child.text.includes(v))).toBe(true)
@@ -639,13 +641,13 @@ describe('deriveLifetimeFlow', () => {
       const r = deriveLifetimeFlow(n)!
       const child = r.phases[0]
       const hardVariants = [
-        '쉽지 않은 고비',
-        '저항이 잦아',
-        '기신과 부딪히며',
         '바람을 안고',
-        '뜻대로 안 풀리는',
-        '부딪힘이 잦지만',
-        '서두르기보다',
+        '뜻대로 풀리지 않는',
+        '깎이고 부딪히는',
+        '길이 좁아지는',
+        '맞바람이 잦지만',
+        '쉽지 않은 고비',
+        '물때가 빠진',
       ]
       expect(hardVariants.some((v) => child.text.includes(v))).toBe(true)
     })
@@ -656,12 +658,12 @@ describe('deriveLifetimeFlow', () => {
       const r = deriveLifetimeFlow(n)!
       const child = r.phases[0]
       const goodVariants = [
-        '흐름이 순해서',
-        '기운이 등 뒤에서',
-        '용신과 잘 맞아',
-        '하려는 방향과',
-        '주변의 도움이',
-        '타이밍이 받쳐줘',
+        '바람이 등을 밀어주어',
+        '물길이 트여',
+        '결이 맞아떨어져',
+        '햇볕이 고르게',
+        '인연과 도움이',
+        '때가 받쳐주어',
         '막힘이 적어',
       ]
       expect(goodVariants.some((v) => child.text.includes(v))).toBe(true)
@@ -673,13 +675,13 @@ describe('deriveLifetimeFlow', () => {
       const r = deriveLifetimeFlow(n)!
       const child = r.phases[0]
       const hardVariants = [
-        '쉽지 않은 고비',
-        '저항이 잦아',
-        '기신과 부딪히며',
         '바람을 안고',
-        '뜻대로 안 풀리는',
-        '부딪힘이 잦지만',
-        '서두르기보다',
+        '뜻대로 풀리지 않는',
+        '깎이고 부딪히는',
+        '길이 좁아지는',
+        '맞바람이 잦지만',
+        '쉽지 않은 고비',
+        '물때가 빠진',
       ]
       expect(hardVariants.some((v) => child.text.includes(v))).toBe(true)
     })

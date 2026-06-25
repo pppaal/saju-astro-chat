@@ -6,6 +6,7 @@ import type { NatalContext } from '../context/types'
 import { currentManAge } from '@/lib/datetime/currentAge'
 import { STEMS } from '@/lib/saju/constants'
 import { getSibseong } from '@/lib/saju/core/sibsin'
+import { ganjiToKorean, ganjiToRoman } from '@/lib/saju/ganjiKo'
 
 /**
  * 십신(十神) → 대운 한 줄 의미(ko/en). 점성 마일스톤이 meaning 을 들고 오듯,
@@ -190,8 +191,8 @@ export function deriveLifetimePivots(
     return {
       age: d.startAge,
       year: d.startYear,
-      label: `${d.stem}${d.branch} 대운`,
-      labelEn: `${d.stem}${d.branch} luck cycle`,
+      label: `${ganjiToKorean(`${d.stem}${d.branch}`)} 대운`,
+      labelEn: `${ganjiToRoman(d.stem, d.branch)} luck cycle`,
       // 십신을 못 풀어도(최소 fixture·미상 글자) novice 표면 제목이 raw 干支 라벨로
       // 새지 않도록 평이 폴백을 보장한다 — 클라이언트는 meaning 이 비면 label(干支)을
       // 제목으로 쓰기 때문(LifetimeTier mMeaning). 干支 원명은 hover tag 로만 남는다.

@@ -190,9 +190,9 @@ const SIBSIN_THEME_KO: Record<
   },
   정재: {
     theme: '급하게 벌기보다 천천히 쌓을 때 단단해지는 10년',
-    themeEn: 'A decade that grows solid when you build slowly rather than rush',
+    themeEn: 'A decade that pays off when you build slowly instead of rushing',
     headline: '정재 대운 — 차근차근 자산이 쌓이는 10년.',
-    headlineEn: 'Steady-wealth cycle — a decade where assets build up bit by bit.',
+    headlineEn: 'Steady wealth cycle — a decade where assets build up little by little.',
   },
   편관: {
     theme: '추진·도전의 무대',
@@ -210,7 +210,7 @@ const SIBSIN_THEME_KO: Record<
     theme: '독자적 사유의 무대',
     themeEn: 'Independent Mind',
     headline: '편인 대운 — 독학과 깊은 사고가 빛나는 10년.',
-    headlineEn: 'Independent-mind cycle — a decade where self-study and deep thought shine.',
+    headlineEn: 'Independent mind cycle — a decade where self-study and deep reflection shine.',
   },
   정인: {
     theme: '배움·지원의 무대',
@@ -299,33 +299,25 @@ function buildDecadeHapchung(natal: NatalContext, decadeBranch: string): Destiny
       // 위치 framing 접두 + relations-pairs DB 의 풍부한 평이 의미(있으면). DB 미스 → 생성 템플릿.
       const richKo = lookupRelationMeaning('지지충', nb, db, 'ko')
       const richEn = lookupRelationMeaning('지지충', nb, db, 'en')
-      const preKo = `본명 ${pos}지 ${nb}(${ko(nb)}) × 대운 ${db}(${ko(db)}) → ${nb}${db}충 — `
-      const preEn = `Natal ${posEn} branch ${nb} (${rom(nb)}) × decade ${db} (${rom(db)}) → ${nb}${db} clash — `
+      const preKo = `본명 ${pos}지 ${ko(nb)} × 대운 ${ko(db)} → ${ko(nb)}${ko(db)}충 — `
+      const preEn = `Natal ${posEn} branch ${rom(nb)} × decade ${rom(db)} → ${rom(nb)}–${rom(db)} clash — `
       hits.push({
-        title: `${nb}${db}충`,
+        title: `${ko(nb)}${ko(db)}충`,
         titleEn: `${rom(nb)}–${rom(db)} clash`,
-        body: richKo
-          ? `${preKo}${richKo.meaning}${richKo.result ? ` (${richKo.result})` : ''}`
-          : `${preKo}이 영역에 변동·이동 압력이 실려요.`,
-        bodyEn: richEn
-          ? `${preEn}${richEn.meaning}${richEn.result ? ` (${richEn.result})` : ''}`
-          : `${preEn}this area carries pressure to shift and move.`,
+        body: richKo ? `${preKo}${richKo.meaning}` : `${preKo}이 영역에 변동·이동 압력이 실려요.`,
+        bodyEn: richEn ? `${preEn}${richEn.meaning}` : `${preEn}this area carries pressure to shift and move.`,
       })
     } else if (YUKHAP[db] === nb) {
       // 위치 framing 접두 + relations-pairs DB 의 풍부한 평이 의미(있으면). DB 미스 → 생성 템플릿.
       const richKo = lookupRelationMeaning('지지육합', nb, db, 'ko')
       const richEn = lookupRelationMeaning('지지육합', nb, db, 'en')
-      const preKo = `본명 ${pos}지 ${nb}(${ko(nb)}) × 대운 ${db}(${ko(db)}) → ${nb}${db}육합 — `
-      const preEn = `Natal ${posEn} branch ${nb} (${rom(nb)}) × decade ${db} (${rom(db)}) → ${nb}${db} harmony — `
+      const preKo = `본명 ${pos}지 ${ko(nb)} × 대운 ${ko(db)} → ${ko(nb)}${ko(db)}육합 — `
+      const preEn = `Natal ${posEn} branch ${rom(nb)} × decade ${rom(db)} → ${rom(nb)}–${rom(db)} harmony — `
       hits.push({
-        title: `${nb}${db}육합`,
+        title: `${ko(nb)}${ko(db)}육합`,
         titleEn: `${rom(nb)}–${rom(db)} harmony`,
-        body: richKo
-          ? `${preKo}${richKo.meaning}${richKo.result ? ` (${richKo.result})` : ''}`
-          : `${preKo}환경이 손발을 맞춰줘요.`,
-        bodyEn: richEn
-          ? `${preEn}${richEn.meaning}${richEn.result ? ` (${richEn.result})` : ''}`
-          : `${preEn}your surroundings fall into step with you.`,
+        body: richKo ? `${preKo}${richKo.meaning}` : `${preKo}환경이 손발을 맞춰줘요.`,
+        bodyEn: richEn ? `${preEn}${richEn.meaning}` : `${preEn}your surroundings fall into step with you.`,
       })
     }
   }
@@ -333,8 +325,8 @@ function buildDecadeHapchung(natal: NatalContext, decadeBranch: string): Destiny
     return {
       title: '—',
       titleEn: '—',
-      body: `본명 지지와 대운 ${db}(${ko(db)}) 사이 뚜렷한 충·합은 없어요 — 무난히 흘러가요.`,
-      bodyEn: `No clear clash or harmony between your natal branches and the decade ${db} (${rom(db)}) — it flows along smoothly.`,
+      body: `본명 지지와 대운 ${ko(db)} 사이 뚜렷한 충·합은 없어요 — 무난히 흘러가요.`,
+      bodyEn: `No clear clash or harmony between your natal branches and the decade ${rom(db)} — it flows along smoothly.`,
     }
   }
   // 가장 가까운(일/시지) 관계를 title 로, 나머지는 본문에 이어 붙임.
@@ -382,12 +374,12 @@ function buildDecadeUnseong(dm: string, decadeBranch: string): DestinypalDecadeR
     // 단계명(stage)은 한글 — EN 로케일엔 영문 라벨('Peak' 등)을 쓴다(한글 누수 방지).
     titleEn: en?.label ?? stage,
     body: desc
-      ? `대운 자리(${decadeBranch}·${ko})는 ${stage} — ${desc}`
-      : `대운 자리(${decadeBranch}·${ko})는 ${stage}예요.`,
+      ? `대운 자리(${ko})는 ${stage} — ${desc}`
+      : `대운 자리(${ko})는 ${stage}예요.`,
     // 단계명(stage)은 한글이라 EN 본문엔 영문 라벨만 쓴다(한글 누수 방지).
     bodyEn: en
-      ? `The decade seat (${decadeBranch}·${rom}) sits at the ${en.label} stage — ${en.desc}.`
-      : `The decade seat (${decadeBranch}·${rom}) sits at this twelve-stage phase.`,
+      ? `The decade seat (${rom}) sits at the ${en.label} stage — ${en.desc}.`
+      : `The decade seat (${rom}) sits at this twelve-stage phase.`,
   }
 }
 
@@ -400,6 +392,8 @@ export interface ToDecadeOptions {
   decadalSignals?: ActiveSignal[]
   /** 10년 연간 점수 배열 (선택). 없으면 50으로 채움. */
   yearScores?: number[]
+  /** 연도→점수(0~100) 맵 (선택). yearScores 보다 우선 — 인생 곡선 등 연도 키 소스용. */
+  yearScoreByYear?: Map<number, number>
   /** 본문 body 문장 (선택). */
   body?: string[]
   /** 본문 영문 (선택). 미지정 시 themeEn headline 으로 채움. */
@@ -443,11 +437,13 @@ export function toDecade(natal: NatalContext, opts: ToDecadeOptions = {}): Desti
   // 지지의 본기(정기) 천간을 통해 지지 십신 — 간단히 지지 오행 → 일간과의 관계.
   const sibsinBranch = deriveBranchSibsin(dm, current.branch)
 
+  const fbGz = toGanji(current.stem, current.branch)
+  const fbSibsinEn = SIBSIN_EN[sibsinStem] ?? sibsinStem
   const theme = SIBSIN_THEME_KO[sibsinStem] ?? {
     theme: `${sibsinStem} 흐름`,
-    themeEn: sibsinStem,
-    headline: `${current.stem}${current.branch} 대운 — ${sibsinStem} 흐름의 10년.`,
-    headlineEn: `${current.stem}${current.branch} luck cycle — a ${sibsinStem} decade.`,
+    themeEn: fbSibsinEn,
+    headline: `${fbGz.kr} 대운 — ${sibsinStem} 흐름의 10년.`,
+    headlineEn: `${fbGz.en} luck cycle — a ${fbSibsinEn} decade.`,
   }
 
   // years[10] — 각 해의 *세운*(연도 고유 60갑자). 대운 간지를 굴리면 안 됨
@@ -459,7 +455,7 @@ export function toDecade(natal: NatalContext, opts: ToDecadeOptions = {}): Desti
     yearsArr.push({
       year: y,
       gz: toGanji(sr.stem, sr.branch),
-      score: opts.yearScores?.[i] ?? 50,
+      score: opts.yearScoreByYear?.get(y) ?? opts.yearScores?.[i] ?? 50,
       now: y === currentYear,
       sibsin: safeSibsin(dm, sr.stem),
     })

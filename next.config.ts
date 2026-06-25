@@ -143,6 +143,24 @@ const nextConfig = {
       './public/ephe/**/*',
     ],
     '/app/api/tarot/**': ['./node_modules/swisseph/build/Release/**/*.node', './public/ephe/**/*'],
+    // PAGE routes (RSC, force-dynamic) that build Swiss Ephemeris *inline* at
+    // request time — not via an API route. On a cache miss (anonymous sample
+    // person, or any first-time/uncached birthKey) the server component calls
+    // buildNatalContext directly, so these serverless bundles need the native
+    // addon + ephe data too. Missing → the natal build throws and /calendar
+    // shows its error boundary ("운흐름을 불러오지 못했어요") — which looked like a
+    // "logged-out doesn't work" bug, because logged-in returning users read
+    // pre-built cells from the DB cache and never hit the ephemeris path.
+    '/app/calendar': ['./node_modules/swisseph/build/Release/**/*.node', './public/ephe/**/*'],
+    '/app/calendar/preview': [
+      './node_modules/swisseph/build/Release/**/*.node',
+      './public/ephe/**/*',
+    ],
+    '/app/destiny': ['./node_modules/swisseph/build/Release/**/*.node', './public/ephe/**/*'],
+    '/app/(main)/integrated-report': [
+      './node_modules/swisseph/build/Release/**/*.node',
+      './public/ephe/**/*',
+    ],
   },
   outputFileTracingExcludes: {
     '/app/api/**': [
