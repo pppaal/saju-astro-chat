@@ -265,6 +265,8 @@ export function MonthTier({ month, onDive, onRise, showRise = true }: MonthTierP
   })
   const selMark = selectedCell?.mark ?? null
   const selToday = !!selectedCell?.focus
+  // 그날 근거(쉬운 뜻 + 용어 칩) — 교차가 있는 날만. 엔진이 calendar 셀에 실어 줌.
+  const selectedReason = selectedCell?.reason ?? null
   const readoutLabel = selectedBigDay
     ? selectedBigDay.title
     : selToday
@@ -334,6 +336,13 @@ export function MonthTier({ month, onDive, onRise, showRise = true }: MonthTierP
     if (mark === 'avoid') return styles.cellAvoid
     return null
   }
+  // 흐름 막대 색 — 그리드와 *같은 mark* 에서. 색이 둘로 갈리지 않게 단일 소스.
+  const barMarkClass = (mark: DestinyDayMark | null): string => {
+    if (mark === 'best' || mark === 'good') return styles.barGood
+    if (mark === 'caution') return styles.barCaution
+    if (mark === 'avoid') return styles.barAvoid
+    return styles.barNeutral
+  }
 
   return (
     <div className={styles.monthRoot}>
@@ -394,6 +403,32 @@ export function MonthTier({ month, onDive, onRise, showRise = true }: MonthTierP
         </div>
       </header>
 
+      {/* ── 한 달 흐름 막대 — 그날 점수(intensity)를 높이로, 색은 그리드와 같은 mark 로.
+            그리드·카운트와 *같은 calendar[].{intensity,mark}* 한 소스라 절대 안 어긋난다. ── */}
+      {calendar.length > 0 && (
+        <section className={styles.flow}>
+          <div className={styles.flowH}>
+            <span className={styles.flowTitle}>{ko ? '한 달 흐름' : 'This month'}</span>
+            <span className={styles.flowHint}>{ko ? '높을수록 잘 풀리는 날' : 'higher = smoother'}</span>
+          </div>
+          <div className={styles.ribbon} role="img" aria-label={ko ? '한 달 운 흐름 막대' : 'Monthly flow bars'}>
+            {calendar.map((c) => (
+              <div
+                key={c.d}
+                className={`${styles.bar} ${barMarkClass(c.mark)} ${c.focus ? styles.barToday : ''}`.trim()}
+                style={{ height: `${Math.max(14, Math.round((c.intensity ?? 0) * 100))}%` }}
+              >
+                {keyDates.has(c.ds) && (
+                  <span className={styles.barStar} aria-hidden>
+                    ✦
+                  </span>
+                )}
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
       {/* ── 자세히 ① 간지·월운 (사주를 아는 사람용) ── */}
       <details className={styles.expertWrap}>
         <summary className={styles.expertSummary}>
@@ -446,9 +481,12 @@ export function MonthTier({ month, onDive, onRise, showRise = true }: MonthTierP
         {calendar.map((c) => {
           const isBig = keyDates.has(c.ds)
           const markCls = cellMarkClass(c.mark)
+          // 큰 날도 *제 색(mark)* 을 유지하고 cellBig 는 금색 ✦ 링만 더한다 —
+          // 색을 덮으면 막대(같은 mark 색)와 어긋나므로(조심·피함인 큰 날). 색=길흉,
+          // ✦=현저도(큰 날) 두 축을 직교로 둔다.
           const cls = [
             styles.cell,
-            !isBig && markCls,
+            markCls,
             isBig && styles.cellBig,
             c.focus && styles.cellToday,
             c.d === selectedDay && styles.cellSel,
@@ -491,6 +529,33 @@ export function MonthTier({ month, onDive, onRise, showRise = true }: MonthTierP
         <div className={styles.rlabel}>{readoutLabel}</div>
         {readoutText && <div className={styles.rtext}>{readoutText}</div>}
         {readoutAdvice && <div className={styles.rAdvice}>{readoutAdvice}</div>}
+        {/* ── 왜 이런 날인지 — 쉬운 뜻(교차 meaning) + 전문용어 칩. topReasons(용어)
+              대신 plain 문장을 surface. 그날 교차가 없으면 생략. ── */}
+        {selectedReason && (
+          <div className={styles.rWhy}>
+            <div className={styles.rWhyHead}>{ko ? '왜 이런 날일까요' : 'Why this day'}</div>
+            <div className={styles.rWhyBody}>
+              <span className={styles.rWhyPole} aria-hidden>
+                {selectedReason.polarity > 0 ? '▲' : selectedReason.polarity < 0 ? '▼' : '·'}
+              </span>
+              <span>
+                {ko ? selectedReason.meaning : selectedReason.meaningEn || selectedReason.meaning}
+              </span>
+            </div>
+            <div className={styles.rWhyChips}>
+              <span className={`${styles.rChip} ${styles.rChipSaju}`}>
+                <small>{ko ? '사주' : 'Saju'}</small> {ko ? selectedReason.saju : selectedReason.sajuEn}
+              </span>
+              <span className={styles.rChipX} aria-hidden>
+                ×
+              </span>
+              <span className={`${styles.rChip} ${styles.rChipAstro}`}>
+                <small>{ko ? '별자리' : 'Astro'}</small>{' '}
+                {ko ? selectedReason.astro : selectedReason.astroEn}
+              </span>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* ── legend ── */}

@@ -23,6 +23,8 @@
  * 'mixed' 로 뭉개지는 버그였다. 부호 기반으로 교정.)
  */
 
+import { CALENDAR_BANDS } from './constants'
+
 export type DayBand = 'good' | 'mid' | 'low'
 export type DayTone = 'positive' | 'mixed' | 'caution'
 
@@ -52,10 +54,10 @@ export interface DayVerdict {
   bright: boolean
 }
 
-/** 보여주는 점수 → 밴드. DayTier 의 헤드라인 기준(60/35)과 동일하게 유지. */
+/** 보여주는 점수 → 밴드. 월 그리드·연 티어와 *같은 단일 밴드*(CALENDAR_BANDS). */
 export function scoreToBand(score: number): DayBand {
-  if (score >= 60) return 'good'
-  if (score >= 35) return 'mid'
+  if (score >= CALENDAR_BANDS.good) return 'good'
+  if (score >= CALENDAR_BANDS.caution) return 'mid'
   return 'low'
 }
 

@@ -2,12 +2,12 @@ import { describe, it, expect } from 'vitest'
 import { scoreToBand, reconcileDayTone } from '@/lib/calendar-engine/derivers/reconcile'
 
 describe('scoreToBand', () => {
-  it('maps score to the same bands DayTier shows (60/35)', () => {
+  it('maps score to the single shared bands (CALENDAR_BANDS 60/40)', () => {
     expect(scoreToBand(80)).toBe('good')
     expect(scoreToBand(60)).toBe('good')
     expect(scoreToBand(59)).toBe('mid')
-    expect(scoreToBand(35)).toBe('mid')
-    expect(scoreToBand(34)).toBe('low')
+    expect(scoreToBand(40)).toBe('mid')
+    expect(scoreToBand(39)).toBe('low')
     expect(scoreToBand(0)).toBe('low')
   })
 })

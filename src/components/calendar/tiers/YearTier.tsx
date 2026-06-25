@@ -25,6 +25,7 @@ import {
   plainReason,
 } from '@/lib/calendar-engine/derivers/plainLanguage'
 import { SIGN_KO } from '@/lib/astrology/signLabels'
+import { CALENDAR_BANDS } from '@/lib/calendar-engine/derivers/constants'
 import { ordinalEn } from '@/lib/calendar-engine/ordinal'
 
 const MONTH_ABBR = [
@@ -106,9 +107,10 @@ type MonthTone = 'good' | 'steady' | 'caution'
 function monthTone(score: number): MonthTone {
   // score 0 = 미스코어/현재 달(점수 미산출). caution-red 로 칠하면 novice 가
   // "위험한 달"로 오해 → 평범(steady, gray) 으로 본다. 실제 낮은 점수만 caution.
+  // 월 그리드·일 톤과 *같은 단일 밴드*(CALENDAR_BANDS).
   if (score <= 0) return 'steady'
-  if (score >= 60) return 'good'
-  if (score >= 40) return 'steady'
+  if (score >= CALENDAR_BANDS.good) return 'good'
+  if (score >= CALENDAR_BANDS.caution) return 'steady'
   return 'caution'
 }
 

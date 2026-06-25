@@ -19,6 +19,7 @@
 
 import type { CalendarCell } from '@/lib/calendar-engine/types'
 import type { CalendarGrade } from '@/lib/calendar-engine/derivers/grade'
+import { CALENDAR_BANDS } from '@/lib/calendar-engine/derivers/constants'
 import { toGanji, type Ganji, pad2 } from './shared'
 
 export interface DestinypalMonthNarrativeItem {
@@ -87,18 +88,18 @@ export interface ToMonthOptions {
  *
  * scoring:
  *   - dayScores(일진층 favorScore) 우선, 없으면 cell.derivedScore.
- *   - 마크는 일 카드 다이얼과 *같은 band(60/35)*: good ≥60 / low <35
- *     안에서만 avoid <22 / caution 22~35 / best — month 최고점 1일.
+ *   - 마크는 일 카드 톤·연 티어와 *같은 단일 밴드*(CALENDAR_BANDS): good ≥60 /
+ *     무색 40~59 / caution 30~39 / avoid <30 / best — month 최고점 1일.
  */
 export function toMonth(opts: ToMonthOptions): {
   month: DestinypalMonth
   calendar: DestinypalCalendarDay[]
 } {
   const th = {
-    caution: opts.thresholds?.caution ?? 35,
-    avoid: opts.thresholds?.avoid ?? 22,
-    good: opts.thresholds?.good ?? 60,
-    best: opts.thresholds?.best ?? 75,
+    caution: opts.thresholds?.caution ?? CALENDAR_BANDS.caution,
+    avoid: opts.thresholds?.avoid ?? CALENDAR_BANDS.avoid,
+    good: opts.thresholds?.good ?? CALENDAR_BANDS.good,
+    best: opts.thresholds?.best ?? CALENDAR_BANDS.best,
   }
 
   const ymPrefix = opts.ym.slice(5, 7) // "06"
