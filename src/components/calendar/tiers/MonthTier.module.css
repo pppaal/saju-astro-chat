@@ -225,12 +225,70 @@
 .cellGood .num {
   color: var(--gold-deep);
 }
+/* 큰 날 = 색(mark) 유지 + 금색 ✦ 링만. 색을 덮지 않는다(흐름 막대와 단일 소스로 일치). */
 .cellBig {
-  background: var(--gold-bg);
-  border: 2px solid var(--gold-line);
+  box-shadow: inset 0 0 0 2px var(--gold-line);
 }
-.cellBig .num {
-  color: var(--gold-deep);
+
+/* ── 한 달 흐름 막대 ── 그날 점수(intensity)=높이, mark=색. 그리드와 같은 소스. */
+.flow {
+  margin-top: 14px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 12px 13px 9px;
+}
+.flowH {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 8px;
+}
+.flowTitle {
+  font-family: var(--m-serif);
+  font-size: 13px;
+  color: var(--t0);
+}
+.flowHint {
+  font-size: 10.5px;
+  color: var(--t2);
+}
+.ribbon {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 44px;
+}
+.bar {
+  flex: 1;
+  min-height: 6px;
+  border-radius: 3px 3px 1px 1px;
+  position: relative;
+  background: var(--line-2);
+}
+.barGood {
+  background: var(--gold);
+}
+.barCaution {
+  background: var(--slate);
+}
+.barAvoid {
+  background: var(--crimson);
+}
+.barNeutral {
+  background: var(--line-2);
+}
+.barToday {
+  outline: 2px solid var(--blue);
+  outline-offset: 1px;
+}
+.barStar {
+  position: absolute;
+  top: -9px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 9px;
+  color: var(--gold);
 }
 .star {
   position: absolute;
