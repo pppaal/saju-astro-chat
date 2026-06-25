@@ -1409,8 +1409,8 @@ export function deriveLifetimeFlow(
       (isPyeongwan ? PYEONGWAN_BODY_KO[label] : undefined) ?? BAND_CAT_KO[label]?.[cat] ?? body
     const bodyEn =
       (isPyeongwan ? PYEONGWAN_BODY_EN[label] : undefined) ?? BAND_CAT_EN[label]?.[cat] ?? body
-    const childPrefixKo = isChildhood ? '초년은 부모·뿌리의 영향을 받는 시기예요 — ' : ''
-    const childPrefixEn = isChildhood ? "Shaped by family and roots early on — " : ''
+    const childPrefixKo = isChildhood ? '초년은 부모와 뿌리의 영향을 받는 시기예요. ' : ''
+    const childPrefixEn = isChildhood ? 'Early on, family and roots shape you. ' : ''
     // 평이 우선: 십신 원명("편재(재성) 흐름 — ")을 surface 에서 빼고 그 의미를 풀어쓴
     // bodyKo/En 로 시작한다. 십신 라벨은 어차피 bodyKo 안에 평이하게 녹아 있어
     // 중복 노이즈였고, novice 표면에 raw 십신을 노출하던 주범이었다(감사 지적).

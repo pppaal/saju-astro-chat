@@ -151,7 +151,7 @@ describe('deriveLifetimeFlow', () => {
     it('초년기 본문은 평이 부모·뿌리 도입부로 시작 (raw 십신 노출 없음)', () => {
       const child = out.phases[0]
       // 평이 우선: 십신 원명("겁재(비겁) 흐름")을 surface 에서 빼고 부모·뿌리 도입부 + 평이 본문.
-      expect(child.text).toContain('초년은 부모·뿌리의 영향을 받는 시기예요')
+      expect(child.text).toContain('초년은 부모와 뿌리의 영향을 받는 시기예요')
       expect(child.text).not.toContain('겁재(비겁)')
     })
 

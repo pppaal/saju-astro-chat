@@ -190,9 +190,9 @@ const SIBSIN_THEME_KO: Record<
   },
   정재: {
     theme: '급하게 벌기보다 천천히 쌓을 때 단단해지는 10년',
-    themeEn: 'A decade that grows solid when you build slowly rather than rush',
+    themeEn: 'A decade that pays off when you build slowly instead of rushing',
     headline: '정재 대운 — 차근차근 자산이 쌓이는 10년.',
-    headlineEn: 'Steady-wealth cycle — a decade where assets build up bit by bit.',
+    headlineEn: 'Steady wealth cycle — a decade where assets build up little by little.',
   },
   편관: {
     theme: '추진·도전의 무대',
@@ -210,7 +210,7 @@ const SIBSIN_THEME_KO: Record<
     theme: '독자적 사유의 무대',
     themeEn: 'Independent Mind',
     headline: '편인 대운 — 독학과 깊은 사고가 빛나는 10년.',
-    headlineEn: 'Independent-mind cycle — a decade where self-study and deep thought shine.',
+    headlineEn: 'Independent mind cycle — a decade where self-study and deep reflection shine.',
   },
   정인: {
     theme: '배움·지원의 무대',
@@ -445,11 +445,13 @@ export function toDecade(natal: NatalContext, opts: ToDecadeOptions = {}): Desti
   // 지지의 본기(정기) 천간을 통해 지지 십신 — 간단히 지지 오행 → 일간과의 관계.
   const sibsinBranch = deriveBranchSibsin(dm, current.branch)
 
+  const fbGz = toGanji(current.stem, current.branch)
+  const fbSibsinEn = SIBSIN_EN[sibsinStem] ?? sibsinStem
   const theme = SIBSIN_THEME_KO[sibsinStem] ?? {
     theme: `${sibsinStem} 흐름`,
-    themeEn: sibsinStem,
-    headline: `${current.stem}${current.branch} 대운 — ${sibsinStem} 흐름의 10년.`,
-    headlineEn: `${current.stem}${current.branch} luck cycle — a ${sibsinStem} decade.`,
+    themeEn: fbSibsinEn,
+    headline: `${fbGz.kr} 대운 — ${sibsinStem} 흐름의 10년.`,
+    headlineEn: `${fbGz.en} luck cycle — a ${fbSibsinEn} decade.`,
   }
 
   // years[10] — 각 해의 *세운*(연도 고유 60갑자). 대운 간지를 굴리면 안 됨
