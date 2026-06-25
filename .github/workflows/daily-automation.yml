@@ -27,6 +27,9 @@ on:
     - cron: '10 22 * * *' # keyday-push        (KST 07:10) 큰 날 개인화 푸시
     - cron: '0 4 * * *' # winback-push       (KST 13:00) 휴면 윈백 푸시
     - cron: '0 * * * *' # anomaly-check      (매시) 이상 탐지
+    - cron: '0 0 * * *' # threads-tarot      (KST 09:00) 타로 공유 결과 Threads 게시(아침)
+    - cron: '0 5 * * *' # threads-tarot      (KST 14:00) 타로 공유 결과 Threads 게시(오후)
+    - cron: '0 10 * * *' # threads-tarot      (KST 19:00) 타로 공유 결과 Threads 게시(저녁)
   workflow_dispatch:
     inputs:
       target:
@@ -43,6 +46,7 @@ on:
           - reset-credits
           - reconcile-activity
           - anomaly-check
+          - threads-tarot
 
 # 같은 엔드포인트 그룹이 겹쳐 쌓이지 않도록. 진행 중이면 이전 건은 두고 새 건은 큐.
 concurrency:
@@ -77,6 +81,9 @@ jobs:
               "10 22 * * *") TARGETS="keyday-push" ;;
               "0 4 * * *")   TARGETS="winback-push" ;;
               "0 * * * *")   TARGETS="anomaly-check" ;;
+              "0 0 * * *")   TARGETS="threads-tarot" ;;
+              "0 5 * * *")   TARGETS="threads-tarot" ;;
+              "0 10 * * *")  TARGETS="threads-tarot" ;;
               *)             TARGETS="" ;;
             esac
           fi
