@@ -1303,15 +1303,17 @@ export function deriveLifetimeFlow(
       const daeunBranch = primary.branch
       for (const nb of natalBranches) {
         if (BRANCH_CHUNG[nb.name] === daeunBranch) {
-          // 평이 우선 — 일지/×/충/간지 원명을 surface 에서 빼고 의미만 한 문장으로.
+          // 평이 우선 — 일지/×/충/간지 원명을 surface 에서 빼고 *기제*만 한 문장으로.
+          // (길흉 단정 금지 — valence 는 단계 톤(곡선)이 가진다. 충/합은 "어떻게
+          // 맞물리나"의 구조 텍스처일 뿐, "잘/안 풀린다"가 아니다.)
           return en
-            ? 'This stretch tends to shake your footing a little — expect more change and friction.'
-            : '이 시기엔 환경이 타고난 자리를 흔드는 편이라, 변동과 마찰이 잦아요.'
+            ? 'This stretch tends to stir familiar ground — more movement and turning points.'
+            : '이 시기엔 익숙한 자리가 흔들리며 움직임과 전환이 생기는 편이에요.'
         }
         if (BRANCH_YUKHAP[nb.name] === daeunBranch) {
           return en
-            ? 'This stretch clicks with your natural grain — things tend to fall into step.'
-            : '이 시기엔 환경이 타고난 흐름과 잘 맞아, 손발이 척척 맞는 편이에요.'
+            ? 'This stretch tends to lock inner and outer into one direction.'
+            : '이 시기엔 안과 밖이 한 방향으로 맞물리며 묶이는 편이에요.'
         }
       }
       return undefined

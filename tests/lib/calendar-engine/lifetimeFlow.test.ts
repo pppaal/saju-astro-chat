@@ -213,7 +213,7 @@ describe('deriveLifetimeFlow', () => {
       const n = makeNatal({ branches: { year: '巳', month: '巳', day: '酉', time: '寅' } })
       const r = deriveLifetimeFlow(n)!
       const young = r.phases.find((p) => p.label === '청년기')!
-      expect(young.relationLine).toContain('변동과 마찰이 잦아요')
+      expect(young.relationLine).toContain('움직임과 전환이 생기는 편이에요')
       expect(young.relationLine).not.toContain('충')
       expect(young.relationLine).not.toContain('亥')
     })
@@ -223,7 +223,7 @@ describe('deriveLifetimeFlow', () => {
       const n = makeNatal({ branches: { year: '寅', month: '巳', day: '酉', time: '辰' } })
       const r = deriveLifetimeFlow(n)!
       const young = r.phases.find((p) => p.label === '청년기')!
-      expect(young.relationLine).toContain('손발이 척척 맞는 편이에요')
+      expect(young.relationLine).toContain('한 방향으로 맞물리며 묶이는 편이에요')
       expect(young.relationLine).not.toContain('육합')
     })
 
@@ -482,8 +482,8 @@ describe('deriveLifetimeFlow', () => {
       const n = makeNatal({ branches: { year: '巳', month: '巳', day: '酉', time: '辰' } })
       const r = deriveLifetimeFlow(n)! // KO render
       const young = r.phases.find((p) => p.label === '청년기')!
-      expect(young.relationLine).toContain('변동과 마찰이 잦아요')
-      expect(young.relationLineEn).toContain('change and friction')
+      expect(young.relationLine).toContain('움직임과 전환이 생기는 편이에요')
+      expect(young.relationLineEn).toContain('movement and turning points')
       expect(young.relationLineEn).not.toMatch(/[가-힣]/)
     })
 
@@ -581,7 +581,7 @@ describe('deriveLifetimeFlow', () => {
       })
       const r = deriveLifetimeFlow(n, 'en')!
       const young = r.phases.find((p) => p.label === 'Young adulthood')!
-      expect(young.relationLine).toContain('change and friction')
+      expect(young.relationLine).toContain('movement and turning points')
       expect(young.relationLine).not.toMatch(/[가-힣]/)
     })
 
