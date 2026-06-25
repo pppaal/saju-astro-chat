@@ -495,6 +495,325 @@ const THEME_PRIMER: Record<ThemeId, Record<HookKey, Bi>> = {
   },
 }
 
+// 커플별 결정적 seed — band·일간·어스펙트·배우자성 해시(시계 안 읽음 → 결정성 유지).
+function coupleSeed(report: CompatReport): number {
+  let h = 2166136261
+  const push = (s: string) => {
+    for (let i = 0; i < s.length; i++) {
+      h ^= s.charCodeAt(i)
+      h = Math.imul(h, 16777619)
+    }
+  }
+  const b = report.band
+  if (b)
+    push(
+      `${b.synastry_harmonic}|${b.synastry_tension}|${b.eastern_hap}|${b.eastern_chung}|${b.elements_match}`
+    )
+  const dm = report.dayMaster
+  if (dm) push(`${dm.aStem}${dm.bStem}${dm.aEl}${dm.bEl}`)
+  for (const a of report.synView?.aspects ?? []) push(`${a.aKey}${a.bKey}${a.type}`)
+  for (const sp of report.spouseStars ?? []) push(sp.sibsin)
+  return h >>> 0
+}
+// seed + 슬롯 라벨 → 변형 풀에서 결정적 선택. 같은 커플·라벨엔 안정, 커플마다·슬롯마다 독립.
+function pickFor<T>(arr: T[], seed: number, label: string): T {
+  let s = seed >>> 0
+  for (let i = 0; i < label.length; i++) s = Math.imul(s ^ label.charCodeAt(i), 16777619)
+  return arr[(s >>> 0) % arr.length]
+}
+
+// 변형 풀(대체) — 원본과 함께 커플 해시로 결정적 선택. 같은 톤·극성이어도 커플마다 달라진다.
+const HOOK_ALT: Record<ThemeId, Record<HookKey, Bi>> = {
+  spark: {
+    pos: {
+      ko: '첫 순간부터 뭔가 톡 터지는 느낌이 있어 — 당신들은 그런 쌍이야.',
+      en: "There's something that just clicks the moment you meet — you two are that kind of pair.",
+    },
+    neg: {
+      ko: '처음엔 확 끌리지만 자꾸 깊어졌다가 떨어졌다를 반복하는 결.',
+      en: 'The magnetism comes on strong at first, then pulls back and forth unpredictably.',
+    },
+    mid: {
+      ko: '만나면 뭔가 반기는 느낌은 확실한데, 그게 계속 불이 붙을지는 시간이 알려줄 거 같아.',
+      en: 'That initial welcome-feeling is real, but whether it grows into something bigger remains to be seen.',
+    },
+  },
+  sex: {
+    pos: {
+      ko: '육체의 호응이 자연스러워 — 가까워지려는 마음도 진하고 명확한 쪽.',
+      en: 'Your physical rhythm aligns instinctively — the desire to be close runs clear and strong.',
+    },
+    neg: {
+      ko: '끌리는 마음은 있는데 분위기 맞추기가 자꾸 엇나가는 편.',
+      en: 'The pull is there, but creating that intimacy tends to fall out of step.',
+    },
+    mid: {
+      ko: '가까워지는 순간이 항상 부드럽지만은 않아 — 그래도 그 안에 어떤 온기는 있어.',
+      en: "Closeness isn't always smooth, though there's a warmth underneath the awkwardness.",
+    },
+  },
+  talk: {
+    pos: {
+      ko: '둘이 나누는 말이 빠르게 이어져 — 말의 끝을 맞춰가는 그런 사이.',
+      en: "Your words flow into each other — you finish each other's thoughts without trying.",
+    },
+    neg: {
+      ko: '같은 말을 던져도 받아들이는 방식이 달라 자꾸 오해하고 엇갈려.',
+      en: 'The same words land differently for each of you, leaving gaps and misunderstandings.',
+    },
+    mid: {
+      ko: '어떤 순간엔 말이 척척 맞는데, 다른 순간엔 엇갈리는 느낌이 있어.',
+      en: 'Sometimes your words land in perfect rhythm, sometimes they slip past each other.',
+    },
+  },
+  love: {
+    pos: {
+      ko: '사랑을 나타내는 방식이 자연스럽게 닮아 서로 편안함을 느껴.',
+      en: 'The way you show affection comes so naturally in sync — comfort flows easily.',
+    },
+    neg: {
+      ko: '사랑 표현의 방식이 자주 엇나가서 서로 혼동하거나 섭섭할 수 있어.',
+      en: 'How you each express love often misses the mark — leaving room for hurt or confusion.',
+    },
+    mid: {
+      ko: '애정 표현의 톤이 비슷하기도 하고 달라서 — 맞춰가면서 배우는 과정 자체가 둘의 연결고리야.',
+      en: 'Your ways of showing tenderness echo in some places and diverge in others—that very dance of meeting halfway builds your bond.',
+    },
+  },
+  friction: {
+    pos: {
+      ko: '크게 부딪힐 일이 잘 없는 결이 보여.',
+      en: 'You two navigate around the big collisions with ease.',
+    },
+    neg: {
+      ko: '자존심이나 주도권 쪽에서 자꾸 충돌하는 경향이 있어.',
+      en: 'Pride and the need to lead keep bringing you two into friction.',
+    },
+    mid: {
+      ko: '부딪히는 부분이 있긴 하지만 표면에 머무는 수준이야.',
+      en: "There's friction between you, though it never cuts very deep.",
+    },
+  },
+  life: {
+    pos: {
+      ko: '함께 있으면 자연스럽게 마음이 편해지는 사이야.',
+      en: 'Just being near each other eases the weight you carry—calm comes naturally.',
+    },
+    neg: {
+      ko: '일상을 나누려면 계속 자리를 맞춰야 해.',
+      en: 'Living together means constant small adjustments.',
+    },
+    mid: {
+      ko: '특별한 일 없이도 편하게 붙어 있을 수 있어.',
+      en: 'Steady and uncluttered — no wild ups and downs.',
+    },
+  },
+  money: {
+    pos: {
+      ko: '돈 쓰는 방식과 중요한 것들이 맞아떨어져.',
+      en: 'You see value the same way — smooth sailing on finances.',
+    },
+    neg: {
+      ko: '번 돈을 어떻게 쓸지에 대해 자꾸 의견이 갈려.',
+      en: 'Your money philosophies are pretty far apart — needs work.',
+    },
+    mid: {
+      ko: '어떤 건 가치관이 통하고, 어떤 건 결이 다르더라.',
+      en: "Sometimes your values line up, sometimes they don't.",
+    },
+  },
+  future: {
+    pos: {
+      ko: '시간 위에 차곡차곡 쌓일 수 있는 사이야.',
+      en: "You're wired to deepen — time just makes it stronger.",
+    },
+    neg: {
+      ko: '처음의 불꽃이 다하면 함께 가기가 빡셀 수 있어.',
+      en: 'The glow fades fast — staying together takes real effort.',
+    },
+    mid: {
+      ko: '서두르지 않고 천천히 스며드는 관계야.',
+      en: 'Slow burn, nothing rushed — but you go deep over time.',
+    },
+  },
+}
+const PRIMER_ALT: Record<ThemeId, Record<HookKey, Bi>> = {
+  spark: {
+    pos: {
+      ko: '처음 마주치는 순간 뭔가 자연스럽게 통하는 기운이 흐르는 거 있잖아요. 굳이 말을 많이 안 해도 분위기가 척척 맞고, 처음 연락 주고받을 때부터 자꾸 웃음이 나와요. 충분히 좋은 사람이라는 느낌이 빠르게 생기더라고요.',
+      en: 'There\'s something that just flows between you the moment you meet. The mood clicks without much talking, and even those first messages back and forth make you smile. That sense of "this is a good person" lands fast.',
+    },
+    neg: {
+      ko: '처음엔 분명 이끌리는 무언가가 있는데, 시간이 흐르면서 그 감정이 오락가락 하는 쪽이에요. 초반의 그 반짝임이 오래가지 못하고, 자꾸 "우리 정말 잘 맞나?" 하는 생각이 들어요. 다만 그런 의심 덕분에 더 신경 써서 상대를 보게 되는 건 장점이라고 할 수 있죠.',
+      en: 'You feel something pulling you together at first, but as time goes on, that feeling ebbs and flows. The initial glow doesn\'t stick around, and you keep catching yourself wondering "are we really right for each other?" On the flip side, that questioning can push you both to pay closer attention and really understand each other.',
+    },
+    mid: {
+      ko: '첫 만남에서 분명히 뭔가가 반겨주는 느낌이 들긴 한데, 그게 진짜 설렘인지 아니면 호기심인지는 지켜봐야 할 것 같아요. 한쪽은 빠르게 끌려 들어갈 수 있지만 다른 쪽은 조금 멀리서 천천히 보는 스타일이라, 이 간격을 어떻게 줄여나갈지가 가장 중요한 지점인 거예요. 세월이 지나면서 천천히 익어가는 당김이 두 사람의 진짜 면모일 수 있어요.',
+      en: "You definitely feel something welcoming when you first meet, but whether it's real chemistry or just curiosity—you'll find out as you go. One of you might dive in quickly while the other prefers to observe from a little distance, and learning to bridge that gap matters most. The connection that ripens slowly over time might turn out to be the truest thing between you.",
+    },
+  },
+  sex: {
+    pos: {
+      ko: '둘의 신체와 기분이 따로 애써야 할 필요 없이 자연스레 맞춰지는 편이에요. 가까워지는 순간의 호흡이 저절로 일치하고, 손이 닿는 것만으로도 마음이 편하게 풀려요. 머리로 생각하기 전에 몸과 분위기가 먼저 통하는, 말보다는 기운으로 가까워지는 관계라고 할 수 있죠.',
+      en: "Your bodies and your moods tend to sync up naturally without any real strain. When you're close, your breathing settles into the same rhythm, and just being touched puts you both at ease. The pull is something your bodies know before your mind catches up—you come together more through presence than through words.",
+    },
+    neg: {
+      ko: '두 사람의 신체 속도와 감정의 높낮이가 조금씩 맞지 않는 편이에요. 밤이 되면 한쪽이 손을 내밀지만 다른 쪽은 피로로 가득 차 있거나, 분위기를 만드는 방식 자체가 달라서 가까워질 타이밍이 자주 어긋나곤 해요. 이런 속도의 불일치가 쌓여가면 서로한테 은근한 서운함이 자리 잡을 수 있으니, 미리 마음을 터놓고 얘기해 두는 것이 중요해요.',
+      en: "The pace of your physical connection and emotional temperature tend to be just slightly off from each other. One partner reaches for closeness at night while the other is depleted, or you each approach intimacy in different ways—so those moments often don't quite align. When this mismatch builds up over time, it can leave a quiet hurt between you, so talking openly about it early really matters.",
+    },
+    mid: {
+      ko: '침대에서 둘의 호흡과 온도가 어떨까 하는 건데, 날마다 다르게 느껴질 거예요. 참 잘 맞는 밤도 있고, 살짝 어색한 밤도 있겠죠—그런데 사실 그게 가장 자연스러운 거거든요. 리듬이 다른 두 사람이 한자리에 누워 만나면서, 때론 포근하게, 때론 조심스럽게 리듬을 맞춰나가는 것 자체가 둘의 진정한 케미라고 봐요.',
+      en: "You'll wonder how your closeness feels night to night—and it probably shifts with your mood. Sometimes it flows easy and warm, other times it needs a little more care—and that's totally how it should be. When two people with different rhythms share a bed, the way you learn to find warmth between you—sometimes naturally, sometimes with a gentle touch—that's where your real chemistry lives.",
+    },
+  },
+  talk: {
+    pos: {
+      ko: '농담과 생각, 말의 톤이 술술 통하는 관계예요. 설명하지 않아도 상대가 의도를 빠르게 알아차리고, 카톡도 빠르게 오가는 리듬 좋은 대화가 자연스럽게 흘러가죠. 공통된 코드의 농담이 매번 먹히고, 같은 장면에서 다시 한 번 웃을 수 있는 공유된 언어가 자꾸만 쌓여가요.',
+      en: 'Your jokes, thoughts, and the way you express them just flow together. The other person catches what you mean without explanation, and your texts come and go with an easy rhythm. Jokes you both get land every time, and you keep building a shared language—inside references and moments that make you smile over and over.',
+    },
+    neg: {
+      ko: '대화가 자주 엇나가는 쌍이에요. 한쪽이 뭔가를 꺼낼 때 다른 쪽이 예상 밖의 방식으로 받아들이거나, 같은 얘기도 서로 완전히 다르게 읽어내곤 하죠. 표현 방식과 말투 결이 달라서 좋은 마음도 중간중간 뭔가 닿지 않는 부분이 있더라고요.',
+      en: "Your conversations tend to slip past each other pretty often. When one person brings something up, the other might interpret it in a completely different direction, and you can end up reading the same words entirely differently. Your ways of expressing yourselves just don't quite match, so even with good intentions, something gets lost in the translation.",
+    },
+    mid: {
+      ko: '둘이 나누는 대화는 재밌는데, 항상 매끄러운 건 아니에요. 누군가 뭔가를 꺼낼 땐 적절하게 받아주다가, 자세한 얘길 나누다 보면 뭔가 엇나가는 부분이 있거든요. 그 작은 틈이 처음엔 답답할 수도 있지만, 오히려 둘을 더 자세히 알아가게 하는 기회가 되기도 해요.',
+      en: "Your conversations can be genuinely good, just not always seamless. Things click sometimes, then you'll hit a moment where you're working around each other—it happens when you dig deeper into topics. That small gap can feel frustrating at first, but it often becomes the very thing that helps you know each other better as you go.",
+    },
+  },
+  love: {
+    pos: {
+      ko: '두 사람이 사랑을 주고받는 방식이 거의 같아서, 넘어야 할 벽이 별로 없는 편이에요. 손을 잡으려는 순간이, 말을 건네려는 마음이 자연스럽게 만나고, 상대가 무엇을 원하는지 굳이 묻지 않아도 알게 되죠. 그래서 부드럽고 깊은 연결감이 자연스레 흐르는 사이예요.',
+      en: "The way you two give and receive affection is so alike there's barely a wall to climb. The moment one reaches out—with a hand, with words—it meets something natural on the other side. You know what the other needs without having to ask, and that ease creates a warm, deep current between you that just flows.",
+    },
+    neg: {
+      ko: '사랑을 드러내는 방식이 둘 다 다르다 보니, 실제로 받고 있는 감정을 놓치곤 해요. 한 사람은 자주 안고 말하며 사랑을 확인받고 싶어하는데, 다른 한 사람은 그 정도로는 충분하지 않다 싶거든요. 그럼 자꾸 "정말 날 사랑하나?" 같은 의문이 떠올라서, 서로에게 작은 상처를 남기기 쉬운 조합이에요.',
+      en: 'The way you each show love is so different that affection can slip past unnoticed. One of you may need frequent reassurance through words and touch to feel truly valued, while the other expresses care in a quieter, less effusive way. So questions like "do they actually love me?" can bubble up and linger, creating small wounds that accumulate over time.',
+    },
+    mid: {
+      ko: '사랑을 나타내는 언어가 서로 조금씩 달라서, 맞춰가는 과정에서 배우게 되는 사이예요. 한 쪽이 열정적으로 표현할 때 다른 쪽은 침착한 신뢰로 응하고, 그렇게 다르지만 만나는 지점들이 있거든요. 처음엔 "어? 이건 다르네?" 할 수도 있지만, 시간이 지나면 서로의 방식을 받아들이면서 더 단단해지는 게 보여요.',
+      en: 'You express love in somewhat different dialects, which means you\'re always learning how to reach each other. When one shows up with intensity, the other brings steady trust, and somehow you still find places where you meet. It might feel like a gap at first—"oh, we do this differently"—but as time goes on, accepting each other\'s language actually becomes what makes you stronger together.',
+    },
+  },
+  friction: {
+    pos: {
+      ko: '신기할 정도로 둘이 충돌하는 일이 별로 없어요. 서로의 성향을 이해하고 있거나, 아니면 그냥 맞는 부분이 많아서 큰 싸움까진 잘 안 가는 거죠. 사소한 불평은 있을 수 있지만, 그걸 나누고도 자연스럽게 흘러가는 편안함이 있는 사이예요.',
+      en: "It's almost uncanny how rarely you two find yourselves in actual conflict. Whether you just understand each other's wiring or there's enough common ground, the big clashes just don't tend to happen. You may swap small frustrations now and then, but there's a comfort to how naturally you move past them and keep going.",
+    },
+    neg: {
+      ko: '둘의 기질이 만나는 자리마다 자꾸 불이 난다고 봐도 될 정도로, 자주 부딪히는 편이에요. 자존심 때문에, 리더십을 두고, 근본적인 가치관이 다르다 보니 의견이 자주 팽팽해지죠. 그래도 미리 알고 있다면, 같은 이유로 또 싸우지 않도록 조심할 수 있으니까 도움이 돼요.',
+      en: 'Wherever your temperaments meet, sparks tend to fly—you clash pretty regularly. Pride gets involved, questions of who leads things come up, and your fundamental values can make it hard to agree. Knowing this ahead of time helps though—at least you can watch for the same pressure points and avoid running the same conflict twice.',
+    },
+    mid: {
+      ko: '완벽하게 어울리진 않아서, 의견을 나눌 때 자주 이견이 생겨요. 근데 그게 누가 틀렸다는 게 아니라, 같은 상황을 다른 방식으로 본다는 뜻일 수 있거든요. 말을 나누다 보면 오히려 함께 더 단단해지기도 하는 거죠. 마찰이 완전히 사라지진 않겠지만, 그 과정에서 서로를 훨씬 잘 알게 돼요.',
+      en: "You're not a perfect fit, so disagreements come up when you're working things out together. But that rarely means someone's wrong—usually you're just seeing the same thing from opposing angles. Working through those moments can actually make you both stronger. The friction won't vanish entirely, but the understanding you build along the way runs deep.",
+    },
+  },
+  life: {
+    pos: {
+      ko: '함께 있는 것만으로도 자연스럽게 편해지는 사이예요. 말을 많이 주고받지 않아도 공기가 통하고, 침묵도 어색하지 않으며, 옆에서 각자 하는 일을 봐도 괜찮은 그런 거죠. 긴 시간을 카톡으로 떨어져 있어도, 다시 만나면 금세 그 편안함이 돌아와요.',
+      en: "Just being in the same space settles you both right down. You don't need much conversation—there's an ease to silence, a comfort in each doing your own thing nearby. Even when you're texting sporadically across time, that ease slips right back in the moment you're together again.",
+    },
+    neg: {
+      ko: '함께 있을 때 자꾸만 속도가 안 맞는 느낌이 생겨요. 한 사람이 쉬고 싶을 땐 다른 사람이 움직이고 싶어 하는 식으로, 같은 공간에서도 따로 놀곤 하더라고요. 영화를 봐도 대화를 나눠도 뭔가 겹치는 부분이 없어서, 편하게 시간을 보내기가 쉽지 않아요.',
+      en: "When you're together, rhythms keep slipping out of step. One of you wants to rest while the other's ready to move, so even in the same room, you're often on separate tracks. Whether watching a film or talking, there's not quite an overlap—it's hard to simply relax and exist in the same moment.",
+    },
+    mid: {
+      ko: '함께 있는 시간이 나쁘진 않은데, 저절로 편함이 생기는 건 아닌 거 같아요. 처음엔 모르던 작은 차이들이 자꾸 눈에 띄고, 그걸 맞춰가면서 조금씩 편해지는 과정이 있는 거죠. 시간이 지나면서 서로의 리듬을 이해하고 나면, 침묵도 괜찮고 각자 하는 것도 자연스러워질 수 있어요.',
+      en: "You're fine when you're together, though it doesn't click effortlessly right away. Small differences you didn't notice at first start to show up, and you'll find yourselves slowly tuning into each other. As time passes and you both understand the other's pace a bit better, silence stops feeling strange and doing your own thing can feel pretty natural.",
+    },
+  },
+  money: {
+    pos: {
+      ko: '돈을 바라보는 태도에서 둘이 같은 결을 가지고 있어서, 통장 문제로 싸울 일은 거의 없을 거 같아요. 큰 구매 앞에서도 의견이 잘 맞고, 저금할 때나 쓸 때나 리듬이 비슷해서 자연스럽게 흘러가죠. 돈 관리에 대한 신뢰가 있으면 다른 것도 훨씬 수월해진다는 걸 봐서, 두 사람의 앞날이 꽤 든든할 것 같아요.',
+      en: "You two share a similar approach to money and spending, so financial tensions are likely to stay off the table. Major purchases feel aligned, and whether you're saving or spending, your paces tend to match—it just flows. Trust around money often spreads to everything else, so that kind of alignment suggests a pretty solid foundation for what comes next.",
+    },
+    neg: {
+      ko: '돈 쓰는 방식에 대해 자주 의견이 부딪혀요. 한쪽은 쓸 때는 아낌없이 쓰고 싶어 하고, 다른 쪽은 차근차근 모으는 걸 더 중요하게 생각하는 식이거든요. 그래서 카톡으로 "이거 사도 돼?" 같은 작은 물음이 자꾸 쌓이고, 월급날이나 보너스 쓰임새 가지고도 자주 마음이 엇갈려요.',
+      en: 'How to spend and save tends to create friction between you. One of you might spend freely when you want something, while the other prioritizes building up a cushion, and that gap shows up constantly—the running negotiations over small purchases, different ideas about windfalls, that tension of pulling in opposite directions with money.',
+    },
+    mid: {
+      ko: '돈을 대하는 태도가 완전히 같지는 않아서, 처음엔 "어? 이 부분 다르네" 싶을 수 있어요. 한쪽이 너그럽게 쓰면 다른 쪽은 신중하게 생각하는 식으로, 약간의 마찰이 생길 수 있죠. 그런데 이런 차이가 오히려 서로를 잘 잡아줄 수 있어서, 대화하면서 함께 현명해질 기회도 많은 사이예요.',
+      en: "Your attitudes toward money aren't quite the same, so you might notice the gap pretty quickly. One of you tends toward generous spending while the other's more cautious, and there's real friction in that—but it often works both ways. These differences can actually keep you both grounded, and talking them through often leads to smarter choices together.",
+    },
+  },
+  future: {
+    pos: {
+      ko: '처음의 반짝함은 자연스럽게 식어가겠지만, 그 아래 깔린 든든함이 오래가는 쪽이에요. 둘이 시간을 함께하면서 피부로 느껴지는 신뢰감이 차곡차곡 쌓여가고, 작은 차이들도 서로를 더 잘 이해하는 발판이 되어요. 급하지 않아도, 천천히 깊어져 가는 관계라 계절이 지날수록 편해지고, 곁에 있는 것만으로도 든든한 사람이 될 거 같아요.',
+      en: 'The initial spark will naturally fade, but what remains underneath is built to endure. As you spend time together, trust settles in slowly and steadily, and even your differences become a way of understanding each other more completely. Not rushed, but deepening season by season—the kind of bond where being together just gets easier and more solid with time.',
+    },
+    neg: {
+      ko: '지금은 분명히 끌리지만, 시간이 지나면서 속도감이 자꾸 어긋날 가능성이 있어요. 한 사람이 앞으로 나아가려 할 때 다른 쪽은 신중하게 멈춰 생각하는 식으로, 그 차이가 자꾸 답답함으로 남을 수 있죠. 초반의 설렘이 식었을 때 "우리 정말 함께 가는 걸까?" 하는 의문이 불쑥 나타날 수 있는 조합이에요.',
+      en: "The pull is real now, but over time your rhythms risk drifting apart. One of you pushing forward while the other pauses to think can wear into frustration fast. Once that initial glow fades, you might find yourselves asking whether you're really heading the same direction—and that doubt can be hard to shake.",
+    },
+    mid: {
+      ko: '처음엔 괜찮아 보이지만, 시간이 쌓이면서 자꾸 작은 불일치들이 생겨요. 같은 방향으로 나아가려면 틈틈이 맞춰주는 손길이 필요한 타입이라, 관심과 노력 여부에 따라 결이 확 달라질 거 같아요. 둘 다 노력하면 그 과정 속에서 훨씬 깊이 이해하게 될 테고, 따로따로 가면 슬쩍 흩어질 수도 있는 관계랍니다.',
+      en: "Things look good at first, but small misalignments tend to creep in as time passes. You'll need regular check-ins to stay on the same page, so how much effort you both invest really shapes what happens. Put in the work together and you'll understand each other far more deeply—step back and this connection could gently drift apart.",
+    },
+  },
+}
+const VERDICT_EXP_ALT: Record<string, Bi[]> = {
+  aligned: [
+    {
+      ko: '두 사람의 기운이 같은 길로 흐르고 있어요. 둘 다 같은 방향을 향하니까, 끌림이 한쪽 일방이 아니라 서로에게서 동시에 울려 나오죠. 그래서 대화와 마음이 특별히 노력하지 않아도 부드럽게 흘러가요. 처음부터 리듬이 맞춘 음악처럼요.',
+      en: "Your energies flow toward the same place. Both of you facing the same direction means the pull isn't one person's dream—it rings out from both at once. So words and hearts move without strain, the way music already knows its beat.",
+    },
+    {
+      ko: '둘의 별과 사주가 가리키는 방향이 한데 모여 있어요. 끌림이 양쪽에서 동시에 올라오니까, 억지스럽지 않아도 자연스럽게 가까워지는 사이예요. 대화도 감정도 굳이 신경 쓰지 않아도 술술 풀려나가죠. 마치 서로를 맞추고 있었다는 듯이요.',
+      en: 'What your charts point to is the same place. The pull rises from both sides at once, so you drift close without straining. Conversation flows, feeling settles—as if you were always meant to fit this way.',
+    },
+  ],
+  tension: [
+    {
+      ko: '둘 다 쉽게 물러나지 않는 성질을 갖고 있어요. 그래서 함께 있으면 팽팽한 기운이 맴돌고, 때론 불꽃이 튀곤 하죠. 하지만 그 마찰과 충돌 속에서 둘 다 더 견고해지고 단단해져 나가요. 거친 두 돌이 부딪치며 자연스레 반질반질해지듯이요.',
+      en: 'Neither of you gives way easily. So together you feel that tautness in the air, and sparks do fly. But in that clash, you both forge yourselves harder, more solid. Two rough stones grinding smooth.',
+    },
+    {
+      ko: '두 사람 모두 고집이 있어서 쉽게 양보하지 않아요. 그 때문에 만날 때마다 어느 정도의 긴장이 생기고, 때때로 불이 튀기도 하죠. 그런데 그 팽팽함이 역설적으로 둘을 더욱 강하고 깊게 만들어줘요. 마치 불에 달궈지는 쇠처럼 더 단련되는 거죠.',
+      en: "You're both stubborn, neither quick to give ground. That means some tension builds between you, and yes, fire sparks sometimes. But that very tautness shapes you both stronger, forged deeper. Like steel tempered in flame.",
+    },
+  ],
+  mixed: [
+    {
+      ko: '한쪽으로는 자석처럼 끌려 들어오면서도, 다른 한쪽으로는 튕겨 나가려는 에너지가 느껴져요. 어느 순간엔 말 없어도 통하는데, 다음 순간엔 묘하게 비틀어지곤 하죠. 그래서 두 사람은 한 가지 표정만으로는 설명이 안 되는 복잡한 사이예요.',
+      en: "One pole pulls you in like magnets, another pushes you back. In one moment you understand without words, the next there's a strange twist. So you two can't be summed up in a single face—there are many.",
+    },
+    {
+      ko: '한쪽에선 강한 끌림이 있고 다른 한쪽에선 저항이 생겨요. 통하는 지점이 분명한가 하면, 불현듯 박자가 엇나가기도 하죠. 한 사이에 여러 결이 섞여 있는 거라, 밋밋하지 않고 색깔이 다양한 사이가 되는 거예요.',
+      en: "One direction has a strong draw, another has friction. You click in clear moments, then suddenly slip out of step. That mix of different grains makes you anything but flat—you're full of different hues.",
+    },
+  ],
+  neutral: [
+    {
+      ko: '두 사람의 차트가 한쪽으로 기울지 않고 담백하게 섞여 있어요. 번개 같은 강렬함은 없지만, 그만큼 편안한 쪽이죠. 마치 잔잔하고 깊은 호수처럼 드라마 없이 오래 곁에 머물 수 있는 그런 사이예요.',
+      en: 'Your charts blend evenly, without tilt toward one side. No lightning strike, but steady ease instead. Like a still, deep lake—the kind you can stay beside for long without fuss.',
+    },
+    {
+      ko: '두 사람의 에너지가 고르게 섞이면서도 어느 한쪽으로 치우치지 않아요. 번쩍이는 불꽃 같은 시작은 아니지만, 잔잔하면서도 튼튼한 호흡으로 오랜 시간을 함께할 수 있는 사이예요. 큰 흔들림 없이 편안하게 길을 걸어가는 스타일이죠.',
+      en: 'Your energies blend in balance, without tipping one way. Not a spark that flares at first sight, but steady breath that carries you through time together. The kind of path you walk easy, without great shaking.',
+    },
+  ],
+}
+const INTRO_ALT: Bi[] = [
+  {
+    ko: '이 보고서는 당신들 두 사람을 담은 사주(태어난 날의 네 기둥)와 별자리를 한 화면에 올려놓고 읽어보는 거예요. 동쪽의 해석과 서쪽의 해석이 같은 이야기를 가리킬 때, 거기가 바로 두 사람 사이에서 가장 뚜렷하게 드러나는 부분이 되는 거죠. 낯선 단어들은 옆에 풀이를 붙여 두었고, 더 알고 싶으면 아래의 용어 설명을 다시 살펴봐도 좋습니다.',
+    en: "This report puts your two Saju—the four pillars held in each birthday—and your star signs side by side and reads them as one. Where the Eastern and Western readings tell the same tale, that's where you two show up most clearly. Unfamiliar words get a plain explanation right there, and if you want to dig deeper, the glossary below is always open to you.",
+  },
+  {
+    ko: '당신들 둘의 사주(생일에 담긴 네 기둥이 만드는 이야기)와 별의 위치를 한곳에 펼쳐서 살펴보는 거예요. 동양의 해석과 서양의 해석이 동시에 같은 걸 가리킬 때, 그게 바로 두 사람의 연결고리 중 가장 선명한 지점이에요. 어려운 말이 나오면 곁에 쉬운 설명을 붙여 뒀고, 궁금하면 아래의 용어집에서 다시 찾아볼 수 있어요.',
+    en: "This reads your two Saju—the story made in the four pillars of your birth—and your star charts laid open in one place. When Eastern reading and Western reading point to the same thing, that's the clearest bright spot in how you two connect. Hard words have plain translations tucked beside them, and you can look it up again below in the glossary any time.",
+  },
+]
+const CLOSING_ALT: Bi[] = [
+  {
+    ko: "지금까지 읽은 건 두 사람을 조금 멀리서 본 밑그림이에요. 이 사이가 구체적으로 언제 어떤 방식으로 피어나는지, 어느 구간에서 가장 또렷한지 같은 '언제'와 '어떻게'는 상담사와 함께할 때 훨씬 깊이 들여다볼 수 있어요. 뭔가 마음이 끌린다면, 그 안쪽의 더 자세한 이야기로 한 발 들어가 봐도 좋습니다.",
+    en: "What you've just read is a rough sketch, seen from a little distance. The when and how—when this will actually bloom, how it shows up, which moments shine brightest—that's where a counselor takes you deeper. If something here has tugged at you, stepping into that more detailed story is worth doing.",
+  },
+  {
+    ko: "여기까지는 두 사람을 멀리서 바라본 윤곽일 뿐이에요. 이 사이가 실제로 피어나는 구체적인 순간들, 어디서 가장 강렬해지는지 같은 '어떻게'와 '언제'는 상담사가 훨씬 섬세하게 짚어 드릴 수 있어요. 마음이 조금이라도 움직인다면, 그 깊은 내용 속으로 한 걸음 더 나아가 보는 것도 좋은 선택이 될 거예요.",
+    en: 'Up to here is just the outline, seen from far away. A counselor can trace the how and when far more gently—the real moments where this blooms, where it burns brightest. If your heart stirred even a little, taking another step into that deeper story is a choice worth making.',
+  },
+]
+
 export function buildFreeCompatNarrative(
   report: CompatReport,
   opts: BuildNarrativeOptions
@@ -531,12 +850,24 @@ export function buildFreeCompatNarrative(
     return f ? `${displayName}(${t(f)})` : displayName
   }
 
+  // 커플별 결정적 seed — 스캐폴딩(verdict/intro/closing/hook/primer) 변형을 커플마다 다르게 고른다.
+  const seed = coupleSeed(report)
+
   // ── 한눈에 (verdict) — 섹션이 아니라 view.verdict 로 따로 ──
   const verdict = report.crossVerdict
     ? {
         text: report.crossVerdict.text,
         tone: report.crossVerdict.tone,
-        expansion: t(VERDICT_EXPANSION[report.crossVerdict.tone]),
+        expansion: t(
+          pickFor(
+            [
+              VERDICT_EXPANSION[report.crossVerdict.tone],
+              ...VERDICT_EXP_ALT[report.crossVerdict.tone],
+            ],
+            seed,
+            `verdict:${report.crossVerdict.tone}`
+          )
+        ),
       }
     : null
 
@@ -916,11 +1247,24 @@ export function buildFreeCompatNarrative(
     // 극성 합 → 훅·기본결·점수 모두 같은 pos/neg/mid 로 결정.
     const net = items.reduce((s, it) => s + it.pol, 0)
     const hookKey: HookKey = net > 0.5 ? 'pos' : net < -0.5 ? 'neg' : 'mid'
-    const hook = t(THEME_HOOK[m.id][hookKey])
+    const hook = t(
+      pickFor([THEME_HOOK[m.id][hookKey], HOOK_ALT[m.id][hookKey]], seed, `hook:${m.id}.${hookKey}`)
+    )
     // 기본 결 문단 — 신호별 본문 앞에 깔아 빈약한 테마도 풍부하게. (훅과 같은 극성)
     // 단, 신호가 0인 테마엔 붙이지 않는다 — "신호 있을 때만 표시" 원칙 유지(빈 테마 부활 X).
     const seenTxt = new Set<string>()
-    const paragraphs: string[] = items.length > 0 ? [t(THEME_PRIMER[m.id][hookKey])] : []
+    const paragraphs: string[] =
+      items.length > 0
+        ? [
+            t(
+              pickFor(
+                [THEME_PRIMER[m.id][hookKey], PRIMER_ALT[m.id][hookKey]],
+                seed,
+                `primer:${m.id}.${hookKey}`
+              )
+            ),
+          ]
+        : []
     for (const it of items) {
       if (seenTxt.has(it.text)) continue
       seenTxt.add(it.text)
@@ -959,11 +1303,11 @@ export function buildFreeCompatNarrative(
   return {
     overallScore,
     overallGrade: overallScore != null ? t(overallGrade(overallScore)) : null,
-    intro: t(INTRO),
+    intro: t(pickFor([INTRO, ...INTRO_ALT], seed, 'intro')),
     verdict,
     sections,
     themes,
     glossary,
-    closing: t(CLOSING),
+    closing: t(pickFor([CLOSING, ...CLOSING_ALT], seed, 'closing')),
   }
 }
