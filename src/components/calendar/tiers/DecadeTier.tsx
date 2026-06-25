@@ -27,6 +27,7 @@ import {
   twelveStagePlain,
 } from '@/lib/calendar-engine/derivers/plainLanguage'
 import { SIBSIN_EN } from '@/lib/saju/sibsinLabels'
+import { CALENDAR_BANDS } from '@/lib/calendar-engine/derivers/constants'
 
 // ============================================================================
 // Props (계약 불변 — 셸 줌 네비게이션이 onDive/onRise 를 호출. showRise 없음)
@@ -149,9 +150,17 @@ function BigYearStrip({
         const cls = [styles.byCell, y.now && styles.byCellNow, peak && styles.byCellPeak]
           .filter(Boolean)
           .join(' ')
+        // 색 = 그 해 점수 밴드(높이와 별개 축). 0점(미스코어)은 중립 회색.
+        const barCls = [
+          styles.byBar,
+          y.score >= CALENDAR_BANDS.good && styles.byBarGood,
+          y.score > 0 && y.score < CALENDAR_BANDS.caution && styles.byBarAvoid,
+        ]
+          .filter(Boolean)
+          .join(' ')
         return (
           <div key={y.year} className={cls} title={`${y.year}`}>
-            <div className={styles.byBar} style={{ height: `${barH}px` }} />
+            <div className={barCls} style={{ height: `${barH}px` }} />
             <div className={styles.byYr}>{String(y.year).slice(2)}</div>
             {y.now && <div className={styles.byNow}>{ko ? '지금' : 'now'}</div>}
           </div>
@@ -234,8 +243,9 @@ export function DecadeTier({ user, decade, onDive, onRise }: DecadeTierProps) {
   // ko: twelveStagePlain 한 줄을 주(主)로. en: bodyEn 폴백(평이 영문).
   const unStagePlain = un ? twelveStagePlain(un.title) : ''
   const unLead = ko ? unStagePlain || un?.body || '' : (un?.bodyEn ?? un?.body ?? '')
-  // 대운 지지의 12운성 단계 쉬운 한 줄 — 매트릭스 캡션.
+  // 대운 지지의 12운성 단계 쉬운 한 줄 — 매트릭스 캡션. EN 은 bodyEn 첫 절(간결).
   const matrixStagePlain = unStagePlain
+  const matrixStagePlainEn = un?.bodyEn ? un.bodyEn.split(/[.,]/)[0].trim() : ''
 
   // ── 외행성 마디 (ko-only — *En 없음). ──
   const astro = decade.astro ?? []
@@ -409,8 +419,10 @@ export function DecadeTier({ user, decade, onDive, onRise }: DecadeTierProps) {
                 <span className={styles.matrixHan}>{decade.pillar.jiji.hanja}</span>
                 {ko ? '대운 지지' : 'decade branch'}
               </span>
-              {ko && matrixStagePlain && (
-                <span className={styles.matrixGloss}>→ {matrixStagePlain}</span>
+              {(ko ? matrixStagePlain : matrixStagePlainEn) && (
+                <span className={styles.matrixGloss}>
+                  → {ko ? matrixStagePlain : matrixStagePlainEn}
+                </span>
               )}
             </div>
           </section>
@@ -445,8 +457,10 @@ export function DecadeTier({ user, decade, onDive, onRise }: DecadeTierProps) {
                       {glyph}
                     </span>
                     <span className={styles.astroDate}>{o.date}</span>
-                    <span className={styles.astroLabel}>{o.label}</span>
-                    {o.body && <span className={styles.astroBody}>{o.body}</span>}
+                    <span className={styles.astroLabel}>{ko ? o.label : (o.labelEn ?? o.label)}</span>
+                    {(ko ? o.body : (o.bodyEn ?? o.body)) && (
+                      <span className={styles.astroBody}>{ko ? o.body : (o.bodyEn ?? o.body)}</span>
+                    )}
                   </div>
                 )
               })}

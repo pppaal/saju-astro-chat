@@ -407,12 +407,22 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
         m.year <= decadeAdapter.end
     )
     .sort((a, b) => a.year - b.year)
-    .map((m) => ({
-      label: m.label.includes('—') ? m.label.split('—')[0].trim() : m.label,
-      date: `${m.year}`,
-      body: m.label.includes('—') ? m.label.split('—').slice(1).join('—').trim() : '',
-      kind: m.kind,
-    }))
+    .map((m) => {
+      const split = (t: string) => ({
+        label: t.includes('—') ? t.split('—')[0].trim() : t,
+        body: t.includes('—') ? t.split('—').slice(1).join('—').trim() : '',
+      })
+      const ko = split(m.label)
+      const en = split(m.labelEn ?? m.label)
+      return {
+        label: ko.label,
+        labelEn: en.label,
+        date: `${m.year}`,
+        body: ko.body,
+        bodyEn: en.body,
+        kind: m.kind,
+      }
+    })
 
   const decade: AssembledTiers['decade'] = {
     gz: decadeAdapter.gz,
@@ -469,8 +479,10 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
     },
     astro: decadeAstroMarks.map((a) => ({
       label: a.label,
+      labelEn: a.labelEn,
       date: a.date,
       body: a.body,
+      bodyEn: a.bodyEn,
       kind: a.kind ?? '',
     })),
     narrative: decadeAdapter.narrative,

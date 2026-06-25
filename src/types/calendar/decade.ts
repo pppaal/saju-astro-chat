@@ -125,8 +125,10 @@ export interface DestinyDecade {
   /** 대운 안 외행성 회귀·사각 등 점성 마일스톤. */
   astro: Array<{
     label: string
+    labelEn?: string
     date: string
     body: string
+    bodyEn?: string
     kind: string
   }>
   /** narrative chip 묶음 — 이 대운의 결 / 용신 흐름 / 주의할 결 / 정점의 해. */
