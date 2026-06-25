@@ -18,6 +18,7 @@ import { getClientIp } from '@/lib/request-ip'
 import { timingSafeCompare } from '@/lib/security/timingSafe'
 import { sendPushToTargets, type PushPayload, type PushTarget } from '@/lib/push/sender'
 import { buildKeyDayPayload, type KeyDayBirth } from '@/lib/push/keyDay'
+import { claimDailyOnce } from '@/lib/cron/dailyOnce'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -54,6 +55,13 @@ async function handle(request: Request): Promise<NextResponse> {
   }
   if (!validateCronSecret(request)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  // 하루 1회 가드 — Vercel cron 과 GitHub Actions 스케줄러가 같은 날 둘 다
+  // 때려도 발송/엔진 계산은 한 번만. 첫 선점만 진행하고 이후 호출은 스킵.
+  if (!(await claimDailyOnce('keyday-push'))) {
+    logger.warn('[Cron keyday-push] already sent today — skipping')
+    return NextResponse.json({ success: true, skipped: 'already_sent_today', sent: 0 })
   }
 
   const subs = await prisma.pushSubscription.findMany({

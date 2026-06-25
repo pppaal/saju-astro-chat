@@ -23,6 +23,10 @@ vi.mock('@/lib/db/prisma', () => ({
       updateMany: vi.fn().mockResolvedValue({ count: 0 }),
       deleteMany: vi.fn().mockResolvedValue({ count: 0 }),
     },
+    // 하루 1회 가드(claimDailyOnce)용 — 기본은 선점 성공(첫 실행).
+    requestIdempotencyLog: {
+      create: vi.fn().mockResolvedValue({}),
+    },
   },
 }))
 
@@ -69,6 +73,7 @@ describe('/api/cron/daily-fortune', () => {
     vi.mocked(prisma.pushSubscription.findMany).mockResolvedValue([] as never)
     vi.mocked(prisma.pushSubscription.updateMany).mockResolvedValue({ count: 0 } as never)
     vi.mocked(prisma.pushSubscription.deleteMany).mockResolvedValue({ count: 0 } as never)
+    vi.mocked(prisma.requestIdempotencyLog.create).mockResolvedValue({} as never)
   })
 
   afterEach(() => {
@@ -99,6 +104,20 @@ describe('/api/cron/daily-fortune', () => {
     const res = await GET(makeRequest(`Bearer ${SECRET}`))
     expect(res.status).toBe(503)
     expect(prisma.pushSubscription.findMany).not.toHaveBeenCalled()
+  })
+
+  it('오늘 이미 발송했으면(하루 1회 가드) 스킵 — 조회/발송 없음', async () => {
+    // claimDailyOnce 의 create-as-lock 이 unique 충돌(P2002) → 이미 선점됨.
+    vi.mocked(prisma.requestIdempotencyLog.create).mockRejectedValueOnce(
+      Object.assign(new Error('unique'), { code: 'P2002' }) as never
+    )
+    const res = await GET(makeRequest(`Bearer ${SECRET}`))
+    const json = await res.json()
+
+    expect(res.status).toBe(200)
+    expect(json).toMatchObject({ success: true, skipped: 'already_sent_today', sent: 0 })
+    expect(prisma.pushSubscription.findMany).not.toHaveBeenCalled()
+    expect(sendNotification).not.toHaveBeenCalled()
   })
 
   it('전 구독 발송 성공 — sent 집계 + lastSentAt/failCount 일괄 갱신', async () => {

@@ -25,6 +25,7 @@ import { getClientIp } from '@/lib/request-ip'
 import { timingSafeCompare } from '@/lib/security/timingSafe'
 import { getWebPush } from '@/lib/push/webPush'
 import { buildDailyFortuneMessage } from '@/lib/push/dailyFortuneMessage'
+import { claimDailyOnce } from '@/lib/cron/dailyOnce'
 
 export const dynamic = 'force-dynamic'
 
@@ -81,6 +82,14 @@ export async function GET(request: Request) {
       })
     }
 
+    // 하루 1회 가드 — Vercel cron 과 GitHub Actions 스케줄러가 같은 날 둘 다
+    // 때려도 발송은 한 번만. 첫 선점만 진행하고 이후 호출은 스킵.
+    const now = new Date()
+    if (!(await claimDailyOnce('daily-fortune', now))) {
+      logger.warn('[Cron daily-fortune] already sent today — skipping')
+      return NextResponse.json({ success: true, skipped: 'already_sent_today', sent: 0 })
+    }
+
     const subscriptions = await prisma.pushSubscription.findMany({
       select: {
         id: true,
@@ -93,8 +102,6 @@ export async function GET(request: Request) {
       },
       orderBy: { createdAt: 'asc' },
     })
-
-    const now = new Date()
     const sentIds: string[] = []
     const pruneIds: string[] = []
     const failIncrementIds: string[] = []
