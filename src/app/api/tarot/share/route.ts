@@ -20,6 +20,7 @@ import {
 import { createShareLink, siteBaseUrl, type ShareLinkPayload } from '@/lib/tarot/shareLink'
 import { getUserDisplayName } from '@/lib/user/displayName'
 import { recordCounter } from '@/lib/metrics/index'
+import { bumpShareCreated } from '@/lib/metrics/shareCounts'
 import { logger } from '@/lib/logger'
 
 export const dynamic = 'force-dynamic'
@@ -99,6 +100,7 @@ export const POST = withApiMiddleware(
 
     // 퍼널 측정 — 공유 링크 생성(게스트/유저 구분). 자가증식 여부의 핵심 지표.
     recordCounter('tarot.share.created', 1, { source: context.userId ? 'user' : 'guest' })
+    await bumpShareCreated('tarot')
 
     const path = `/r/${token}`
     return apiSuccess({ token, path, url: `${siteBaseUrl()}${path}` })

@@ -14,7 +14,18 @@ interface FunnelData {
   paths: { path: string; visitors: number; views: number }[]
   sources: { source: string; visitors: number }[]
   referral?: { signups: number; paid: number; pending: number; paidRate: number }
+  shares?: {
+    total: number
+    byKind: { report: number; compatibility: number; tarot: number; calendar: number }
+  }
   unavailable?: boolean
+}
+
+const SHARE_LABEL: Record<string, string> = {
+  report: '통합 리포트',
+  compatibility: '궁합',
+  tarot: '타로',
+  calendar: '운흐름',
 }
 
 const num = (n: number): string => n.toLocaleString('ko-KR')
@@ -150,6 +161,37 @@ export default function FreeFunnelClient() {
               })}
             </div>
           </section>
+
+          {/* 공유 생성수 — 바이럴 씨앗 */}
+          {data.shares && (
+            <section>
+              <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-stone-500">
+                공유 생성수 (바이럴 씨앗)
+              </h2>
+              <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
+                <div className="flex items-baseline justify-between">
+                  <span className="text-sm font-medium text-stone-700">총 공유 링크 생성</span>
+                  <span className="font-mono text-2xl font-semibold tabular-nums text-stone-900">
+                    {num(data.shares.total)}
+                  </span>
+                </div>
+                <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                  {(['report', 'compatibility', 'tarot', 'calendar'] as const).map((k) => (
+                    <div key={k} className="rounded-xl bg-stone-50 px-3 py-2">
+                      <p className="text-xs text-stone-500">{SHARE_LABEL[k]}</p>
+                      <p className="font-mono text-lg font-semibold tabular-nums text-stone-900">
+                        {num(data.shares!.byKind[k])}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <p className="mt-2 text-xs text-stone-400">
+                결과를 공유 링크로 내보낸 횟수. /r 도달(아래 경로별 방문)과 함께 보면 공유→유입
+                루프가 보여요.
+              </p>
+            </section>
+          )}
 
           {/* 레퍼럴 전환 */}
           {data.referral && (

@@ -22,6 +22,7 @@ import { prisma } from '@/lib/db/prisma'
 import { Prisma } from '@prisma/client'
 import { logger } from '@/lib/logger'
 import { adminDaysQuerySchema, formatZodErrors } from '@/lib/api/zodValidation'
+import { getShareCreatedCounts } from '@/lib/metrics/shareCounts'
 
 export const dynamic = 'force-dynamic'
 
@@ -71,6 +72,9 @@ export const GET = withApiMiddleware(
           return { signups: 0, paid: 0, pending: 0, paidRate: 0 }
         }
       })()
+
+      // 공유 생성수 — Redis 일별 카운터(영구) 합산. Redis 없으면 0.
+      const shares = await getShareCreatedCounts(days)
 
       const toolList = Prisma.join(TOOLS)
       const counselorList = Prisma.join(COUNSELORS)
@@ -145,6 +149,7 @@ export const GET = withApiMiddleware(
             visitors: n(r.visitors),
           })),
           referral,
+          shares,
         } as Record<string, unknown>)
       } catch (dbErr) {
         // PageView 테이블이 아직 없거나(신규 배포) 쿼리 실패 — 빈 값으로 폴백.
@@ -157,6 +162,7 @@ export const GET = withApiMiddleware(
           paths: [],
           sources: [],
           referral,
+          shares,
           unavailable: true,
         } as Record<string, unknown>)
       }
