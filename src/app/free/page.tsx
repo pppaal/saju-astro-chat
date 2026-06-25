@@ -17,9 +17,9 @@ import EngineMoatBanner from '@/components/marketing/EngineMoatBanner'
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
-const GOLD = '#e8cc8a'
-const GOLD_SOFT = '#d4b572'
-const MUTED = '#9aa3b8'
+const GOLD = '#a9833b'
+const GOLD_SOFT = '#9a7a36'
+const MUTED = '#6c665b'
 
 async function resolveLocale(): Promise<'ko' | 'en'> {
   const h = await headers()
@@ -118,10 +118,10 @@ export default async function FreeFunnelHub() {
       style={{
         minHeight: '100vh',
         background:
-          'radial-gradient(900px 620px at 25% 8%, rgba(99,124,200,0.16), transparent 60%),' +
-          'radial-gradient(820px 700px at 85% 100%, rgba(212,181,114,0.14), transparent 60%),' +
-          'linear-gradient(160deg, #0b1022 0%, #070a1a 58%, #0a0e1f 100%)',
-        color: '#f1f3f9',
+          'radial-gradient(900px 620px at 25% 8%, rgba(99,124,200,0.07), transparent 60%),' +
+          'radial-gradient(820px 700px at 85% 100%, rgba(212,181,114,0.16), transparent 60%),' +
+          'linear-gradient(160deg, #fbf9f4 0%, #f4efe5 58%, #f8f5ee 100%)',
+        color: '#2a2722',
       }}
     >
       <div style={{ maxWidth: 720, margin: '0 auto', padding: '40px 20px 96px' }}>
@@ -208,8 +208,9 @@ export default async function FreeFunnelHub() {
                 color: 'inherit',
                 padding: 22,
                 borderRadius: 18,
-                background: 'rgba(255,255,255,0.035)',
-                border: '1px solid rgba(212,181,114,0.22)',
+                background: '#ffffff',
+                border: '1px solid rgba(169,131,59,0.22)',
+                boxShadow: '0 10px 30px -18px rgba(80,60,30,0.35)',
               }}
             >
               <div
@@ -239,7 +240,7 @@ export default async function FreeFunnelHub() {
               >
                 {isKo ? t.badge.ko : t.badge.en}
               </span>
-              <h2 style={{ marginTop: 6, fontSize: 19, fontWeight: 700, color: '#f1f3f9' }}>
+              <h2 style={{ marginTop: 6, fontSize: 19, fontWeight: 700, color: '#2a2722' }}>
                 {isKo ? t.title.ko : t.title.en}
               </h2>
               <p
@@ -279,12 +280,12 @@ export default async function FreeFunnelHub() {
             marginTop: 36,
             padding: 22,
             borderRadius: 16,
-            background: 'rgba(212,181,114,0.08)',
-            border: '1px solid rgba(212,181,114,0.28)',
+            background: 'rgba(212,181,114,0.14)',
+            border: '1px solid rgba(169,131,59,0.30)',
             textAlign: 'center',
           }}
         >
-          <p style={{ fontSize: 15, lineHeight: 1.7, color: '#dfe3ee', wordBreak: 'keep-all' }}>
+          <p style={{ fontSize: 15, lineHeight: 1.7, color: '#4a453d', wordBreak: 'keep-all' }}>
             {isKo
               ? '결과가 마음에 들면 친구에게 링크를 보내보세요. 받은 친구도 로그인 없이 바로 무료로 해볼 수 있어요.'
               : 'Like your result? Send the link to a friend — they can try it free with no sign-up too.'}
@@ -296,6 +297,26 @@ export default async function FreeFunnelHub() {
             ? '더 깊고 구체적인 해석은 앱 안에서 이어집니다.'
             : 'Deeper, more specific readings continue inside the app.'}
         </p>
+
+        {/* 앱(메인)으로 들어가는 또렷한 경로 — 좌상단 로고만으론 눈에 안 띈다. */}
+        <div style={{ marginTop: 16, textAlign: 'center' }}>
+          <Link
+            href="/"
+            style={{
+              display: 'inline-block',
+              padding: '13px 28px',
+              borderRadius: 999,
+              background: GOLD,
+              color: '#fff',
+              fontWeight: 700,
+              fontSize: 15,
+              textDecoration: 'none',
+              boxShadow: '0 12px 30px -16px rgba(120,90,30,0.6)',
+            }}
+          >
+            {isKo ? '앱으로 들어가기 →' : 'Enter the app →'}
+          </Link>
+        </div>
       </div>
     </main>
   )
