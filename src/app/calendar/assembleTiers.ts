@@ -47,6 +47,7 @@ import type {
   DestinyUserSummary,
   DestinyDecade,
   DestinyMonth,
+  DestinyCalendarCell,
   DestinyDay,
   DestinyYear,
   DestinyLifetime,
@@ -688,6 +689,41 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
   month.crossActivations = [...monthCrossByPair.values()]
     .sort((a, b) => Math.abs(b.polarity) - Math.abs(a.polarity))
     .slice(0, 6)
+
+  // ── 날짜별 "근거" — 그날 가장 센 사주×점성 교차의 *쉬운 뜻* 을 각 calendar 셀에.
+  //    선택일 리드아웃이 topReasons(전문용어) 대신 이 plain meaning 을 쓴다.
+  //    교차 meaning(s.korean)은 이미 novice용 plain 문장이라 용어 누수가 없다.
+  type DReason = NonNullable<DestinyCalendarCell['reason']>
+  const reasonByDs = new Map<string, DReason>()
+  for (const c of monthCells) {
+    const ds = c.datetime.slice(5, 10) // 'MM-DD'
+    let best: DReason | null = null
+    let bestImpact = 0
+    for (const s of c.signals) {
+      if (s.kind !== 'cross-activation') continue
+      const { sajuKo, astroKo } = crossKeys(s)
+      if (!sajuKo || !astroKo) continue
+      const meaning = stripCrossPair(s.korean ?? '')
+      if (!meaning) continue
+      const impact = Math.abs(s.polarity) * (s.weight ?? 1)
+      if (impact <= bestImpact) continue
+      bestImpact = impact
+      best = {
+        saju: sajuKo,
+        sajuEn: SIBSIN_EN[sajuKo] ?? translateSignalLabel(sajuKo, 'en'),
+        astro: astroKo,
+        astroEn: PLANET_EN_FROM_KO[astroKo] ?? astroKo,
+        meaning,
+        meaningEn: stripCrossPair(s.english ?? ''),
+        polarity: s.polarity,
+      }
+    }
+    if (best) reasonByDs.set(ds, best)
+  }
+  for (const cell of month.calendar) {
+    const r = reasonByDs.get(cell.ds)
+    if (r) cell.reason = r
+  }
 
   const dayAdapter = toDay({
     cell: dayCell,

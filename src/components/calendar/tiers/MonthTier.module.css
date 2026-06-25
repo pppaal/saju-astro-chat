@@ -833,6 +833,61 @@
   word-break: keep-all;
 }
 
+/* ── 왜 이런 날인지 — 쉬운 뜻 + 용어 칩 ── */
+.rWhy {
+  margin-top: 11px;
+  padding-top: 11px;
+  border-top: 1px dashed var(--line-2);
+}
+.rWhyHead {
+  font-size: 10.5px;
+  color: var(--t2);
+  letter-spacing: 0.04em;
+  margin-bottom: 6px;
+}
+.rWhyBody {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--gold-deep);
+  word-break: keep-all;
+}
+.rWhyPole {
+  flex-shrink: 0;
+}
+.rWhyChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  margin-top: 9px;
+}
+.rChip {
+  font-size: 10.5px;
+  border-radius: 6px;
+  padding: 2px 8px;
+}
+.rChip small {
+  opacity: 0.6;
+  font-size: 9px;
+}
+.rChipSaju {
+  background: var(--gold-bg);
+  color: var(--gold-deep);
+  border: 1px solid var(--gold-line);
+}
+.rChipAstro {
+  background: #e7ecfb;
+  color: #39406f;
+  border: 1px solid #ccd4f0;
+}
+.rChipX {
+  color: var(--t2);
+  font-size: 11px;
+}
+
 /* ── legend 설명 한 줄 ── */
 .legendNote {
   text-align: center;

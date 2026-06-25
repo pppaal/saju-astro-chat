@@ -265,6 +265,8 @@ export function MonthTier({ month, onDive, onRise, showRise = true }: MonthTierP
   })
   const selMark = selectedCell?.mark ?? null
   const selToday = !!selectedCell?.focus
+  // 그날 근거(쉬운 뜻 + 용어 칩) — 교차가 있는 날만. 엔진이 calendar 셀에 실어 줌.
+  const selectedReason = selectedCell?.reason ?? null
   const readoutLabel = selectedBigDay
     ? selectedBigDay.title
     : selToday
@@ -527,6 +529,33 @@ export function MonthTier({ month, onDive, onRise, showRise = true }: MonthTierP
         <div className={styles.rlabel}>{readoutLabel}</div>
         {readoutText && <div className={styles.rtext}>{readoutText}</div>}
         {readoutAdvice && <div className={styles.rAdvice}>{readoutAdvice}</div>}
+        {/* ── 왜 이런 날인지 — 쉬운 뜻(교차 meaning) + 전문용어 칩. topReasons(용어)
+              대신 plain 문장을 surface. 그날 교차가 없으면 생략. ── */}
+        {selectedReason && (
+          <div className={styles.rWhy}>
+            <div className={styles.rWhyHead}>{ko ? '왜 이런 날일까요' : 'Why this day'}</div>
+            <div className={styles.rWhyBody}>
+              <span className={styles.rWhyPole} aria-hidden>
+                {selectedReason.polarity > 0 ? '▲' : selectedReason.polarity < 0 ? '▼' : '·'}
+              </span>
+              <span>
+                {ko ? selectedReason.meaning : selectedReason.meaningEn || selectedReason.meaning}
+              </span>
+            </div>
+            <div className={styles.rWhyChips}>
+              <span className={`${styles.rChip} ${styles.rChipSaju}`}>
+                <small>{ko ? '사주' : 'Saju'}</small> {ko ? selectedReason.saju : selectedReason.sajuEn}
+              </span>
+              <span className={styles.rChipX} aria-hidden>
+                ×
+              </span>
+              <span className={`${styles.rChip} ${styles.rChipAstro}`}>
+                <small>{ko ? '별자리' : 'Astro'}</small>{' '}
+                {ko ? selectedReason.astro : selectedReason.astroEn}
+              </span>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* ── legend ── */}
