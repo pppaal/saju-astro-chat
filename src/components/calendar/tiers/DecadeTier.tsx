@@ -134,14 +134,10 @@ function BigYearGraph({
   years,
   ko,
   peakYear,
-  ageFrom,
-  startYear,
 }: {
   years: Array<{ year: number; score: number; now?: boolean }>
   ko: boolean
   peakYear: number
-  ageFrom: number
-  startYear: number
 }) {
   const n = years.length
   if (n < 2) return null
@@ -255,7 +251,7 @@ function BigYearGraph({
           fill={y.now ? 'var(--blue)' : 'var(--t2)'}
           fontWeight={y.now ? 700 : 400}
         >
-          {ageFrom + (y.year - startYear)}
+          {ko ? `${String(y.year).slice(2)}년` : `'${String(y.year).slice(2)}`}
         </text>
       ))}
     </svg>
@@ -404,13 +400,7 @@ export function DecadeTier({ user, decade, onDive, onRise }: DecadeTierProps) {
               ? '막대가 높을수록 기운이 강한 해예요.'
               : 'The taller the bar, the stronger that year runs.'}
           </p>
-          <BigYearGraph
-            years={years}
-            ko={ko}
-            peakYear={peakYear}
-            ageFrom={decade.ageFrom}
-            startYear={decade.start}
-          />
+          <BigYearGraph years={years} ko={ko} peakYear={peakYear} />
           {/* 평탄 데이터 폴백 — 막대가 다 비슷할 때 "왜 다 같지?" 오해 방지. */}
           {flatScores && (
             <p className={styles.stripFlatNote}>
