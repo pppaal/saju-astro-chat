@@ -693,12 +693,18 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
   // ── 날짜별 "근거" — 그날 가장 센 사주×점성 교차의 *쉬운 뜻* 을 각 calendar 셀에.
   //    선택일 리드아웃이 topReasons(전문용어) 대신 이 plain meaning 을 쓴다.
   //    교차 meaning(s.korean)은 이미 novice용 plain 문장이라 용어 누수가 없다.
+  //
+  //    *그날 고유*(daily/hourly/instant 층) 교차를 우선한다 — monthly 층 교차는 그 달
+  //    내내 모든 날 셀에 똑같이 깔려, 그게 제일 세면 매일 같은 근거가 떠 "월 전체
+  //    근거처럼" 보였다(감사). 같은 날짜 안에서 day-specific 이 month-background 를
+  //    항상 이기게 rank 에 큰 가산점을 주고, day-specific 이 없을 때만 background 로.
+  const DAY_LAYERS = new Set(['daily', 'hourly', 'instant'])
   type DReason = NonNullable<DestinyCalendarCell['reason']>
   const reasonByDs = new Map<string, DReason>()
   for (const c of monthCells) {
     const ds = c.datetime.slice(5, 10) // 'MM-DD'
     let best: DReason | null = null
-    let bestImpact = 0
+    let bestRank = -1
     for (const s of c.signals) {
       if (s.kind !== 'cross-activation') continue
       const { sajuKo, astroKo } = crossKeys(s)
@@ -706,8 +712,9 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
       const meaning = stripCrossPair(s.korean ?? '')
       if (!meaning) continue
       const impact = Math.abs(s.polarity) * (s.weight ?? 1)
-      if (impact <= bestImpact) continue
-      bestImpact = impact
+      const rank = (DAY_LAYERS.has(s.layer) ? 1000 : 0) + impact
+      if (rank <= bestRank) continue
+      bestRank = rank
       best = {
         saju: sajuKo,
         sajuEn: SIBSIN_EN[sajuKo] ?? translateSignalLabel(sajuKo, 'en'),
