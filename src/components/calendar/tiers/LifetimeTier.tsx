@@ -154,26 +154,31 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
     (lifePattern?.daeun ?? []).map((d) => [d.startAge, d.favor])
   )
 
-  // ── 10년 막대·계절 arc 의 Y 굴곡은 *인생 곡선(거시)* 과 같은 출처로 ──
-  //   예전엔 막대=대운 favor(억부·용신, ±2 coarse), 곡선=lifeCurve.macro(대운+세운+
-  //   충합+트랜짓 중첩)로 따로 계산돼 서로 어긋났다(곡선엔 저점인데 막대는 평평/반대).
-  //   각 大運 구간의 곡선 평균을 사람 고유 평균 기준으로 ±2 로 펴서 막대·계절이
-  //   곡선·정점과 한 이야기를 하게 한다. 곡선이 없으면(빌드 실패) favor 로 폴백.
+  // ── 10년 막대·계절 arc 의 Y 굴곡은 *인생 곡선(거시)* 과 같은 출처·같은 기준선으로 ──
+  //   예전엔 막대를 *10개 대운 평균* 기준으로 재정규화해 ±2 로 폈다 → 평생 역풍인
+  //   사주도 "제일 덜 나쁜" 대운이 금색(풍요)으로 강제됐고, 단계 톤(stageCurveLevel,
+  //   평생 평균 기준 z)과 baseline 이 달라 "막대 저점인데 같은 시기 단계 톤 good" 모순도
+  //   났다. 이제 단계 톤과 *동일한* (평생 macro 평균/표준편차) z 를 쓴다 — 절대 길흉을
+  //   보존(역풍 인생엔 금색 막대 0)하고 막대·단계가 부호로 못 어긋난다. 곡선 없으면 favor 폴백.
   const decadeBandByAge = (() => {
     const m = new Map<number, number>()
     const pts = lifeCurve?.points
     if (!pts || pts.length < 10) return m
+    // 곡선(value)의 평생 평균/표준편차 = 단계 톤과 같은 *인생 전체* 기준선.
+    const all = pts.map((p) => p.value)
+    const lifeMean = all.reduce((s, v) => s + v, 0) / all.length
+    const lifeStd = Math.sqrt(all.reduce((s, v) => s + (v - lifeMean) ** 2, 0) / all.length) || 1
     const avgFor = (a0: number): number | null => {
       const seg = pts.filter((p) => p.age >= a0 && p.age < a0 + 10)
       return seg.length ? seg.reduce((s, p) => s + p.value, 0) / seg.length : null
     }
-    const rows = daewoon
-      .map((d) => ({ age: d.startAge, avg: avgFor(d.startAge) }))
-      .filter((r): r is { age: number; avg: number } => r.avg != null)
-    if (rows.length < 2) return m
-    const mean = rows.reduce((s, r) => s + r.avg, 0) / rows.length
-    const spread = Math.max(...rows.map((r) => Math.abs(r.avg - mean))) || 1
-    for (const r of rows) m.set(r.age, ((r.avg - mean) / spread) * 2)
+    for (const d of daewoon) {
+      const avg = avgFor(d.startAge)
+      if (avg == null) continue
+      const z = (avg - lifeMean) / lifeStd
+      // 평생 z 를 막대 스케일(±2)로. 단계 톤(±0.35)과 부호·문턱이 정렬됨.
+      m.set(d.startAge, Math.max(-2, Math.min(2, z * 1.1)))
+    }
     return m
   })()
   // 막대/계절이 쓰는 단일 신호 — 곡선 밴드 우선, 없으면 대운 favor.
