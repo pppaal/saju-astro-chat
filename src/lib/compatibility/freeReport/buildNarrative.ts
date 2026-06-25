@@ -190,6 +190,8 @@ const THEME_META: { id: ThemeId; icon: string; title: Bi }[] = [
   { id: 'money', icon: '💰', title: { ko: '돈·가치관은 맞아?', en: 'Same page on money?' } },
   { id: 'future', icon: '💍', title: { ko: '오래 갈 사이야?', en: 'Will it last?' } },
 ]
+// 십성 극성 — 끌림/순기능(+) vs 마찰/도전(−). 테마 훅 polarity 에 쓴다.
+const POS_SIBSIN = new Set(['비견', '식신', '정재', '정관', '정인', '편재'])
 // 십성 → 테마
 const SIBSIN_THEME: Record<string, ThemeId> = {
   비견: 'talk',
@@ -231,25 +233,133 @@ function aspectTheme(asp: SynAspectView): ThemeId {
   if (has('Jupiter')) return 'life'
   return 'love'
 }
-// 어스펙트 종류 → 한 줄 기하 뉘앙스 (트라인/스퀘어 구분을 일상어로).
-const ASPECT_TYPE_NUANCE: Record<string, Bi> = {
-  conjunction: { ko: '딱 붙어 한 몸처럼 작동하는 자리예요.', en: 'They fuse and act as one here.' },
-  trine: { ko: '물 흐르듯 힘 안 들이고 통하는 자리예요.', en: 'It flows here with no effort.' },
-  sextile: {
-    ko: '손 내밀면 닿는, 기회처럼 열리는 자리예요.',
-    en: 'An open door here if you reach for it.',
+// 테마별 한 줄 훅 — 질문에 결론부터 답하는 단정 한 줄. 신호 polarity 합으로
+// pos(끌림 우세)/neg(마찰 우세)/mid(반반) 중 선택. 점신·포스텔러식 "콕 집어 답"을
+// 추상 서술 앞에 세워, 길게 읽지 않아도 답이 먼저 보이게 한다.
+// 테마별 점수 차원 라벨 — "끌림 82"의 앞 단어. (friction 만 "마찰" = 높을수록 충돌↑)
+const SCORE_CAPTION: Record<ThemeId, Bi> = {
+  spark: { ko: '끌림', en: 'Spark' },
+  sex: { ko: '케미', en: 'Chemistry' },
+  talk: { ko: '소통', en: 'Talk' },
+  love: { ko: '애정', en: 'Affection' },
+  friction: { ko: '마찰', en: 'Friction' },
+  life: { ko: '편안함', en: 'Ease' },
+  money: { ko: '가치관', en: 'Values' },
+  future: { ko: '미래', en: 'Future' },
+}
+// 헤드라인 총점 등급 — 큰 숫자 옆 한 마디. (점신·포스텔러식 캡처용 후크)
+function overallGrade(score: number): Bi {
+  if (score >= 85) return { ko: '찰떡 궁합', en: 'A rare match' }
+  if (score >= 75) return { ko: '잘 맞는 사이', en: 'A strong match' }
+  if (score >= 65) return { ko: '무난한 궁합', en: 'A solid match' }
+  if (score >= 55) return { ko: '노력형 궁합', en: 'Takes some work' }
+  return { ko: '롤러코스터', en: 'A rollercoaster' }
+}
+
+// 테마 신호들 → 0~100 점수. friction 은 "충돌 강도"(셀수록 ↑), 나머지는 끌림/조화 강도.
+// 정규화하지 않고 신호 크기(net/strength)에 비례시켜 테마·커플마다 점수가 벌어지게 한다.
+function themeScore(id: ThemeId, items: { pol: number }[]): number {
+  const clamp = (n: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, Math.round(n)))
+  if (id === 'friction') {
+    const strength = items.reduce((s, it) => s + Math.abs(it.pol), 0)
+    return clamp(48 + strength * 1.7, 45, 92)
+  }
+  const net = items.reduce((s, it) => s + it.pol, 0) // 끌림(+)/마찰(−) 가중합
+  return clamp(57 + net * 2.5, 34, 96)
+}
+
+type HookKey = 'pos' | 'neg' | 'mid'
+const THEME_HOOK: Record<ThemeId, Record<HookKey, Bi>> = {
+  spark: {
+    pos: { ko: '응 — 만나자마자 스파크 튀는 쪽이야.', en: 'Yes — sparks fly the moment you meet.' },
+    neg: {
+      ko: '끌리긴 하는데 묘하게 당겼다 멀어지는 결.',
+      en: "There's a pull, but it runs hot-and-cold.",
+    },
+    mid: {
+      ko: '첫 끌림은 분명한데, 타오르는 결은 좀 갈려.',
+      en: 'The draw is real, though it shows up unevenly.',
+    },
   },
-  square: {
-    ko: '서로 각을 세워 삐걱대기 쉬운 자리예요.',
-    en: 'They rub at right angles here — friction-prone.',
+  sex: {
+    pos: {
+      ko: '몸의 케미는 확실해 — 끌림이 진한 쪽.',
+      en: 'The physical chemistry is real — a deep pull.',
+    },
+    neg: {
+      ko: '끌리는 만큼 팽팽함도 커서 온도 차가 나기 쉬워.',
+      en: 'Strong pull, but the heat can run uneven.',
+    },
+    mid: {
+      ko: '은근한 끌림이 깔려 있어 — 천천히 데워지는 쪽.',
+      en: 'A quiet pull underneath — it warms up slowly.',
+    },
   },
-  opposition: {
-    ko: '정반대라 끌리면서도 맞서는 자리예요.',
-    en: 'Opposite poles here — drawn yet facing off.',
+  talk: {
+    pos: {
+      ko: '말 척척 통하는 사이 — 대화가 안 끊겨.',
+      en: 'You just click — the talk never runs dry.',
+    },
+    neg: {
+      ko: '같은 말도 다르게 알아들어 자주 엇갈려.',
+      en: 'You hear the same words differently and miss a lot.',
+    },
+    mid: {
+      ko: '통할 땐 잘 통하는데, 결이 갈리는 지점도 있어.',
+      en: 'You click in places and slip past in others.',
+    },
   },
-  quincunx: {
-    ko: '미묘하게 어긋나 조정이 필요한 자리예요.',
-    en: 'Subtly off here — it needs adjusting.',
+  love: {
+    pos: {
+      ko: '사랑하는 방식이 닮아 마음이 편한 쪽.',
+      en: 'You love in similar ways — it sits easy.',
+    },
+    neg: {
+      ko: '애정 표현이 어긋나 서로 서운할 수 있어.',
+      en: 'Your ways of showing love can miss each other.',
+    },
+    mid: {
+      ko: '다정함의 결이 비슷한 듯 달라 — 맞춰가는 재미가 있어.',
+      en: 'Your tenderness is alike yet not — there’s tuning to do.',
+    },
+  },
+  friction: {
+    pos: { ko: '크게 부딪힐 일은 잘 안 보여.', en: 'Not many real flashpoints here.' },
+    neg: { ko: '주로 자존심·주도권에서 부딪혀.', en: 'Mostly clashes over pride and who leads.' },
+    mid: { ko: '부딪히는 결이 있긴 한데 깊진 않아.', en: 'Some friction, but nothing deep.' },
+  },
+  life: {
+    pos: { ko: '같이 있으면 편안한 쪽 — 긴장이 풀려.', en: 'Easy to be around — you both unwind.' },
+    neg: { ko: '함께 지내는 결을 맞추는 데 손이 좀 가.', en: 'Day-to-day takes some adjusting.' },
+    mid: { ko: '무던하게 편한 사이 — 큰 기복 없이.', en: 'Comfortably low-drama together.' },
+  },
+  money: {
+    pos: {
+      ko: '돈·가치관 결이 비슷해 부딪힐 일 적어.',
+      en: 'Similar values around money — little to fight over.',
+    },
+    neg: {
+      ko: '쓰고 아끼는 결이 달라 조율이 필요해.',
+      en: 'You spend and save differently — needs tuning.',
+    },
+    mid: {
+      ko: '가치관이 닿는 데도, 갈리는 데도 있어.',
+      en: 'Your values meet in some places, split in others.',
+    },
+  },
+  future: {
+    pos: {
+      ko: '오래 갈 결이 보여 — 쌓일수록 단단해져.',
+      en: 'Built to last — it firms up over time.',
+    },
+    neg: {
+      ko: '확 타오르는 만큼, 오래 가려면 공이 들어.',
+      en: 'Burns bright; lasting takes real work.',
+    },
+    mid: {
+      ko: '급하진 않아도 길게 가는 결 — 천천히 깊어져.',
+      en: 'Not dramatic, but a long, deepening grain.',
+    },
   },
 }
 // 기둥 작용(태그) → 테마 (합 계열=인연·미래, 충·형·해·파=부딪힘)
@@ -264,6 +374,123 @@ const PILLAR_THEME: Record<string, ThemeId> = {
   자형: 'friction',
   해: 'friction',
   파: 'friction',
+}
+
+// 테마별 "기본 결" 문단 — 훅 뒤, 신호별 본문 앞에 깔아 빈약한 테마도 풍부하게.
+// (24개: 8테마 × 3극성, 병렬 Opus 생성. 특정 행성·사주 언급 없이 일반 분위기.)
+const THEME_PRIMER: Record<ThemeId, Record<HookKey, Bi>> = {
+  spark: {
+    pos: {
+      ko: '두 사람이 처음 만났을 때 자연스럽게 시선이 마주치고, 무언가 편하면서도 설레는 기운을 느껴요. 말을 많이 안 해도 분위기가 통하고, 카톡 첫 대화부터 자꾸 웃음이 나게 되는 그런 관계예요. 서로를 가만히 봐도 괜찮은 사람이라는 확신이 빠르게 생기더라고요.',
+      en: 'When you two first meet, there\'s an easy, natural ease between you—your eyes meet and something just clicks. Conversation flows without awkward silences, and even your first text exchanges have you both smiling without trying. There\'s a quiet confidence that whispers, "This person just feels right," and that sense comes fast.',
+    },
+    neg: {
+      ko: '만나는 순간엔 분명 끌리는 데, 시간이 지나면 그 끌림이 왔다 갔다 하는 쪽이에요. 처음의 반짝임이 오래가지 못하고, 자꾸 "정말 맞나?" 하는 의문이 생기더라고요. 그래도 그 의문 때문에 더 주의깊게 보게 되는 거라, 서로를 제대로 알아가는 시간이 될 수 있어요.',
+      en: 'There\'s a definite spark when you first meet, but it flickers — sometimes strong, sometimes fading. That initial shine doesn\'t quite hold, and you find yourselves wondering "is this really it?" now and then. But that very uncertainty can make you pay closer attention, turning it into a chance to truly know each other.',
+    },
+    mid: {
+      ko: '만나자마자 뭔가 반기는 기운이 느껴지지만, 그게 설렘인지 호기심인지는 앞으로 봐야 할 것 같아요. 한쪽은 금방 빠질 수 있는데 다른 쪽은 살짝 거리를 두고 보는 스타일이라, 그 간격을 어떻게 줄여나가느냐가 포인트거든요. 처음 만남의 불꽃보다는 천천히 익어가는 당김이 두 사람의 진짜 맛인 것 같습니다.',
+      en: "There's a spark when you first meet, but it's not quite clear if it's instant chemistry or intrigued curiosity. One of you might fall quickly while the other takes a more measured approach, and that difference can feel like a gentle friction—or even part of the draw. The real connection between you two might turn out to be something that grows quietly rather than dazzles right away.",
+    },
+  },
+  sex: {
+    pos: {
+      ko: '두 사람의 몸과 분위기가 자연스럽게 맞아떨어지는 편이에요. 굳이 애쓰지 않아도 가까워지는 순간의 호흡이 잘 맞고, 손끝 하나에도 마음이 편하게 놓이죠. 끌림이 머리보다 먼저 통하는, 말보다 분위기로 가까워지는 사이예요.',
+      en: 'Your bodies and the mood between you tend to fall into sync on their own. The breath of those close moments lines up without effort, and even a brush of a hand puts you both at ease. The pull lands before the mind catches up — you grow closer through atmosphere more than words.',
+    },
+    neg: {
+      ko: '두 사람의 신체 리듬과 감정의 온도가 살짝 엇갈리는 편이에요. 밤중에 한 사람이 손을 내밀 때 다른 한 사람은 피곤에 절어 있거나, 분위기를 타는 방식이 달라서 가까워지려는 순간이 자주 엇나가는 거죠. 이런 속도의 차이가 쌓이면 서로에게 묘한 답답함을 남길 수 있으니, 미리 말로 풀어두는 게 좋아요.',
+      en: "The rhythm of your physical connection and emotional temperature tend to be slightly out of sync. When one of you reaches out at night, the other might be exhausted or preoccupied, and the way you each approach intimacy simply doesn't align—so those moments often fall flat. If this gap isn't addressed, it can leave a subtle frustration between you, so talking it through early makes all the difference.",
+    },
+    mid: {
+      ko: '침대 속 둘의 온도는 어떨까요. 잘 맞는 날도 있고, 좀 어색할 때도 있는데—그게 사실 자연스러운 거예요. 서로 다른 리듬을 가진 두 사람이 한 침대에서 만나면서, 때론 따뜻하게, 때론 조심스럽게 맞춰가는 과정 자체가 둘의 케미라고 할 수 있죠.',
+      en: "Some nights feel effortlessly close, and others need a little more communication—and that's perfectly normal. When two people with different rhythms share the same bed, you're both learning to find warmth in the dance between you—sometimes it flows naturally, sometimes it takes a gentle touch to sync up. That's where your real chemistry lives.",
+    },
+  },
+  talk: {
+    pos: {
+      ko: '말과 농담, 생각의 결이 자연스럽게 통하는 사이예요. 굳이 설명 안 해도 상대가 무슨 말인지 알아차리고, 카톡 답장이 빠르게 주고받아지는 식 편한 대화 리듬이 있는 거죠. 같은 코드의 농담이 먹히고, 나중에 비슷한 장면에서 다시 웃을 수 있는 공통의 언어가 자연스럽게 쌓여가요.',
+      en: "Your words and thoughts flow in an easy rhythm that barely needs explaining. The other catches your drift without you having to spell it out, and there's a quick back-and-forth — the kind where messages come fast. Jokes in your shared code land, and you find yourselves laughing at the same things again and again, building a common language as you go.",
+    },
+    neg: {
+      ko: '두 사람 대화가 좀 자주 엇갈리는 편이에요. 한 사람이 무언가를 꺼냈을 때 상대가 예상과 다른 방향으로 받아들이거나, 같은 말도 서로 다르게 해석하는 일이 잦다는 거죠. 말투나 표현 스타일이 달라서 의도는 좋아도 띄엄띄엄 미끄러지는 부분이 있더라고요.',
+      en: 'Your conversation rhythms tend to miss each other a bit. When one person brings something up, the other often interprets it differently than intended, and you can find yourselves on separate wavelengths even about the same topic. The way you each express yourselves feels a little mismatched, so good intentions sometimes get lost in translation.',
+    },
+    mid: {
+      ko: '둘의 대화는 묘해요. 통할 땐 정말 통하는데, 가끔 엇갈리는 지점이 있거든요. 카톡으로는 척척 맞는 리듬도, 직접 만나면 뭔가 겹치는 부분이 생기곤 하는 그런 거죠. 그래도 그 틈새가 오히려 둘을 새로 알아가게 하는 기회가 될 수 있어요.',
+      en: "Your conversations have an interesting rhythm — sometimes you're totally in sync, and sometimes there's just a tiny gap between how you're thinking. Your texts might flow easily, but face-to-face, you might find yourselves working around each other now and then. But that small friction can actually be a chance to understand each other a little better.",
+    },
+  },
+  love: {
+    pos: {
+      ko: '두 사람의 사랑하는 방식이 자연스럽게 맞아떨어지는 느낌이에요. 한 사람이 손을 내밀면 다른 사람이 자연스럽게 받아주고, 말없이도 서로 필요한 순간을 알아채는 그런 거죠. 크게 부딪힐 일 없이 부드럽게 흘러가는 연결감이 있어요.',
+      en: "The way you two express and receive love flows naturally together. When one reaches out, the other tends to meet them there—there's an ease to knowing what the other needs even without saying it. You're likely to find yourselves clicking without much friction, just a gentle current of understanding.",
+    },
+    neg: {
+      ko: '두 사람의 사랑을 표현하는 방식이 꽤 다른 편이에요. 한 쪽은 자주 말과 손길로 마음을 나타내고 싶어하는데, 다른 한 쪽은 그보다 조용히 옆에 있어주고 챙기는 방식을 더 편해하더라고요. 그래서 서로 "충분히 사랑받고 있나?" 하는 작은 오해가 쉽게 쌓일 수 있는 구간이죠.',
+      en: "The two of you tend to show affection in quite different ways. One of you reaches for words and touch to express feeling, while the other tends to prefer a quieter presence and thoughtful care. That gap can make it easy for small misunderstandings to build—each wondering if you're truly valued the way you need to be.",
+    },
+    mid: {
+      ko: '두 사람이 사랑을 표현하는 방식이 서로 달라서, 때론 잘 맞고 때론 살짝 어긋나는 편이에요. 한 쪽은 손을 잡고 말을 건네며 마음을 나누고 싶어 하고, 다른 쪽은 조용히 곁에 있으며 신뢰를 쌓으려고 할 수 있죠. 그렇지만 이런 차이가 꼭 문제는 아니에요 — 오히려 서로를 채워주려 노력할 때 더욱 깊어지는 쪽이거든요.',
+      en: "The two of you show affection in different ways, so sometimes you click perfectly and sometimes there's a gentle friction. One of you might want to express love through words and closeness, while the other prefers to show care quietly and build trust over time. But this difference doesn't have to be a problem — in fact, it often brings you closer when you both make the effort to understand and meet each other halfway.",
+    },
+  },
+  friction: {
+    pos: {
+      ko: '둘 다 눈치 있는 타입이거나, 아니면 어딘가 통하는 데가 있어서 큰 충돌 없이 흘러가는 사이예요. 툭툭 터지는 싸움보다는 작은 불만을 쌓아두는 쪽이 조심할 자리지만, 전반적으론 말이 안 통해도 옆에서 웃고 넘어갈 수 있는 편안함이 있어요.',
+      en: "You two either have a knack for reading the room, or there's something that just clicks — enough that big clashes stay off the radar. More likely to let small frustrations stack quietly than explode — watch that — but overall, even when words don't land, there's an ease to brush past it together.",
+    },
+    neg: {
+      ko: '두 사람을 붙들고 있는 끌림이 있어도, 공간을 함께 쓰다 보면 부딪힐 수밖에 없는 자리들이 있어요. 여기선 그런 지점들을 따라가봐요 — 서로의 타고난 결이 만날 때 어디서 박자가 맞지 않는지, 자존심이 으르렁대는지, 아니면 생각과 속도가 어긋나는지. 이런 신호들이 크게 드러나는 건 아니지만, 함께 시간을 보내며 자연스럽게 느껴지는 이음새 같은 거죠 — 알고 있으면 피할 수도, 아니면 그대로 안고 가는 법도 배울 수 있어요.',
+      en: "Even with the pull holding you two together, some spots are bound to rub when you share space. Here we follow those fault lines — where your born grains misalign, where pride bristles, or where thought and pace run at odds. These signals aren't loud, but they're the kind of seams you naturally feel over time in each other's company — knowing them means you can sidestep them, or learn to live with them as they are.",
+    },
+    mid: {
+      ko: '둘이 완전히 맞는 건 아니어서, 뭔가를 함께 결정할 때 의견이 엇갈리곤 해요. 근데 그게 틀려서라기보다는, 같은 일을 다른 각도에서 보는 거라 대화하다 보면 오히려 더 단단해지기도 하죠. 때론 작은 마찰에 답답할 때도 있지만, 그만큼 서로를 또렷하게 이해하게 되는 사이예요.',
+      en: "You two aren't a perfect fit, so your views can diverge when you're deciding something together. It's not that either of you is wrong — it's more that you see the same thing from different angles, and talking it through often leaves you both stronger. There are moments when small friction frustrates, but that same grain keeps you understanding each other more clearly.",
+    },
+  },
+  life: {
+    pos: {
+      ko: '둘이 함께 있으면 자연스럽게 긴장이 풀어지는 분위기예요. 굳이 뭔가 특별한 걸 하지 않아도 옆에 있는 것만으로 편하고, 말을 거의 안 해도 서로 뭐 하는지 잘 알아챌 정도죠. 카톡 답장이 늦어도 괜찮고, 조용히 각자 하는 것도 자연스러운 그런 편안함이 있어요.',
+      en: "Being together just naturally settles you both down. You don't need to do anything special—just being by each other's side feels comfortable and easy. You can read each other without much talking, and even the quiet moments together feel natural, whether it's slow text replies or just doing your own thing beside each other.",
+    },
+    neg: {
+      ko: '둘이 가만히 같은 공간에 있으면, 자꾸만 서로 다른 속도가 느껴져요. 조용히 영화를 봐도, 카톡을 기다려도, 뭔가 맞춰지지 않는 느낌이 물밀듯이 들어서 편하게 쉬기가 어렵죠. 함께 있되 따로 가는 그런 낌새가 자주 생기는 경향이 있어요.',
+      en: "When you're together, there's a nagging sense that you're moving at different rhythms. Whether you're watching a movie in silence or waiting for a text, something feels just slightly out of sync—and that makes it hard to truly relax around each other. You end up together yet somehow apart, and that familiar tension tends to resurface.",
+    },
+    mid: {
+      ko: '같이 있으면 편하면서도, 때론 서로 다른 속도에 맞추느라 작은 마찰이 생기는 편이에요. 처음엔 낯설 수 있지만, 함께 시간을 보내다 보면 그 차이가 오히려 밸런스를 만들어주는 거죠. 카톡 답장이 늦어도, 침묵이 어색하지 않은 그런 사이가 될 수 있어요.',
+      en: "Being together feels natural and comfortable, though you might notice different rhythms creating subtle friction at times. What feels unfamiliar at first often becomes the very thing that keeps you balanced as you spend more time together. Even when responses are slow or silence stretches out, it doesn't feel awkward—that's the space where you two actually fit.",
+    },
+  },
+  money: {
+    pos: {
+      ko: '돈과 가치관이 맞아떨어지는 건, 결국 일상의 작은 순간들에서 드러나요 — 카톡에서 값을 흥정할 때도, 데이트 후 계산할 때도요. 두 사람의 결을 보면 이 영역에서 얼마나 자연스럽게 흐르는지, 아니면 자꾸 손을 맞춰야 하는지가 참 분명해져요. 우리가 돈을 대하는 태도는 사실 그 사람의 삶을 바라보는 법 전부니까, 여기서 비슷하면 크게 부딪힐 일이 적어진다는 뜻이에요.',
+      en: "Money and values show up in the small dailies — when you're eyeing a purchase, splitting a check, or talking about what matters. Looking at your chart tells us whether this zone flows naturally between you or asks for constant tuning. How you handle money says a lot about how you see life itself, so when your rhythms match here, there's far less to clash over.",
+    },
+    neg: {
+      ko: '돈과 쓰임새에 대한 생각이 꽤 다른 편이라 자주 마찰이 생기는 쌍이에요. 한 사람이 차근차근 모으는 걸 중요하게 생각한다면, 다른 쪽은 지금 누리는 게 우선일 수 있거든요. 통장을 까고 나중에 얘기하거나, 큰 구매 앞에서 의견이 팽팽해지는 순간들이 분명 있을 거예요.',
+      en: "The two of you tend to have quite different takes on money and what matters most when it comes to spending—friction often flares up because of it. While one of you might prioritize building savings and playing the long game, the other may feel that enjoying life now is the more important call. You'll likely find yourselves at odds when it comes to big purchases or when one partner realizes a credit card charge after the fact.",
+    },
+    mid: {
+      ko: '둘이 돈 쓰는 리듬이 조금씩 달라서, 처음엔 "어? 이 부분 다네?" 싶을 수 있어요. 하지만 그 차이가 서로를 좀 더 균형잡힌 사람으로 만들어주는 경우도 많거든요. 가벼운 마찰은 있겠지만, 대화로 충분히 맞춰나갈 수 있는 영역이에요.',
+      en: "You two have different rhythms when it comes to money and values, so you might notice some friction early on. But those differences often end up complementing each other, bringing balance to how you each approach what matters. There's room for some give-and-take, but it's the kind of thing you can work through together.",
+    },
+  },
+  future: {
+    pos: {
+      ko: '두 사람이 처음엔 끌려도, 시간이 지나면서 느껴지는 연결의 두께가 다른데 — 이 경우 둘이 가진 기운의 결을 보면, 오히려 차이를 거치면서 더 단단해지는 패턴이 보여요. 서로를 맞춰가는 과정 자체가 관계를 깊게 만드는 거죠. 처음의 반짝임보다 시간이 쌓일수록 믿음과 이해가 자라나는, 오래 가는 결이에요.',
+      en: "You two might spark at first, but what matters for the long haul is the bone underneath — and the grain here shows something that actually grows *deeper* as you navigate the differences. The work of meeting each other in the middle is what builds the bond. Less about the glitter of the start, more about trust and understanding that compound over time. It's a grain built to last.",
+    },
+    neg: {
+      ko: '두 사람은 처음엔 끌리는 게 확실하지만, 시간이 지나면서 자꾸 다른 리듬을 탈 가능성이 있어요. 한 사람이 앞으로 나가려 할 때 다른 한 사람은 멈춰 생각하는 식으로, 속도감이 맞지 않으면서 자주 답답함을 느낄 수 있죠. 초반의 설렘이 식으면 "우리 진짜 잘 맞나?" 하는 의문이 고개를 들 수 있는 조합이에요.',
+      en: 'You may feel a strong spark at first, but as time passes, there\'s a risk of drifting into different rhythms. When one person wants to move forward, the other tends to pause and reflect—this mismatch in pace can leave you both feeling frustrated. Once the initial excitement fades, questions like "Are we really compatible?" might start to surface in this pairing.',
+    },
+    mid: {
+      ko: '둘은 처음엔 잘 맞다가 시간이 지나면서 작은 마찰들이 생기더라고요. 그게 관계를 흔드는 건 아니지만, 둘이 같은 방향으로 나아가려면 자꾸 대화로 맞춰줘야 하는 타입이에요. 다만 그 과정에서 서로를 더 깊이 알아가는 기회도 많으니까, 노력 여부에 따라 오래 함께할 수도, 슬쩍 멀어질 수도 있는 관계랍니다.',
+      en: "The connection feels great at first, but you'll notice some gentle friction building over time. It's not anything that rocks the boat fundamentally, but you'll need to keep checking in and aligning with each other as things unfold. The good news is that working through those moments can actually deepen your understanding—so whether this lasts really comes down to how much both of you are willing to show up for it.",
+    },
+  },
 }
 
 export function buildFreeCompatNarrative(
@@ -527,12 +754,12 @@ export function buildFreeCompatNarrative(
   // 신호를 출처가 아니라 "사람들이 실제로 궁금해하는 질문"으로 묶는다. 신호는
   // 버리지 않고 전부 어느 테마든 들어간다(누락 0). 카드 본문은 weight 내림차순,
   // 기술적 head 없이 풀이만 — 스캔되게.
+  // pol = 신호 극성(+끌림 / −마찰 / 0중립) × weight. 테마별 합으로 훅을 고른다.
   const themed: {
     theme: ThemeId
     weight: number
     text: string
-    nuanceKey?: string
-    nuanceText?: string
+    pol: number
   }[] = []
   if (report.dayMaster) {
     const dm = report.dayMaster
@@ -542,18 +769,21 @@ export function buildFreeCompatNarrative(
       theme: 'life',
       weight: 4,
       text: fill(t(DAY_MASTER_REL[dm.relation]), { A: labelA, B: labelB, aEl, bEl }),
+      pol: dm.relation === 'generate' ? 4 : dm.relation === 'same' ? 2 : -4,
     })
     if (dm.bToA && TEN_GODS[dm.bToA])
       themed.push({
         theme: SIBSIN_THEME[dm.bToA] ?? 'love',
         weight: 3,
         text: t(TEN_GODS[dm.bToA].blurb),
+        pol: (POS_SIBSIN.has(dm.bToA) ? 1 : -1) * 3,
       })
     if (dm.aToB && dm.aToB !== dm.bToA && TEN_GODS[dm.aToB])
       themed.push({
         theme: SIBSIN_THEME[dm.aToB] ?? 'love',
         weight: 3,
         text: t(TEN_GODS[dm.aToB].blurb),
+        pol: (POS_SIBSIN.has(dm.aToB) ? 1 : -1) * 3,
       })
   }
   if (report.elementBalance) {
@@ -579,7 +809,12 @@ export function buildFreeCompatNarrative(
           ? ` ${neun(labelA)} ${elLabel(aTop, true)} 기운이, ${neun(labelB)} ${elLabel(bTop, true)} 기운이 가장 도드라져요.`
           : ` ${labelA} leans ${elLabel(aTop, false)}, ${labelB} leans ${elLabel(bTop, false)}.`
         : ''
-    themed.push({ theme: 'life', weight: 1, text: base + perPerson })
+    themed.push({
+      theme: 'life',
+      weight: 1,
+      text: base + perPerson,
+      pol: eb.balanced ? 1 : eb.range >= 4 ? -1 : 1,
+    })
   }
   if (report.synView) {
     for (const asp of report.synView.aspects) {
@@ -595,15 +830,12 @@ export function buildFreeCompatNarrative(
               ? `${josa(ra, '과/와')} ${josa(rb, '이/가')} 만나는 자리예요. ${tone}`
               : `where ${ra} meets ${rb}. ${tone}`
           })()
-      // 각 종류(트라인/스퀘어…) 한 줄 뉘앙스. 본문과 분리해 두고, 같은 테마 안에서
-      // 같은 종류가 반복되면 꼬리문장이 똑같이 되풀이되지 않도록 조립 단계에서 1회만 붙인다.
-      const nuance = ASPECT_TYPE_NUANCE[asp.type] ? ` ${t(ASPECT_TYPE_NUANCE[asp.type])}` : ''
+      const w = Math.max(1.5, 6 - (asp.orb ?? 4))
       themed.push({
         theme: aspectTheme(asp),
-        weight: Math.max(1.5, 6 - (asp.orb ?? 4)),
+        weight: w,
         text: blurb,
-        nuanceKey: asp.type,
-        nuanceText: nuance,
+        pol: asp.tone === 'harmony' ? w : asp.tone === 'tension' ? -w : 0,
       })
     }
     // 오버레이 — 누구의 어느 행성이 어느 방에 들어왔는지(행성 정체 추가). 방당 1회.
@@ -623,7 +855,7 @@ export function buildFreeCompatNarrative(
         const text = isKo
           ? `${viewer}의 ${plName} 기운이 닿는 자리예요. ${arena}`
           : `${viewer}'s ${plName} reaches into this part of life. ${arena}`
-        themed.push({ theme: HOUSE_THEME[o.house] ?? 'life', weight: 2, text })
+        themed.push({ theme: HOUSE_THEME[o.house] ?? 'life', weight: 2, text, pol: 0.6 })
       }
     }
   }
@@ -638,6 +870,7 @@ export function buildFreeCompatNarrative(
         theme: 'future',
         weight: sp.isDayPillar ? 10 : 6,
         text: t(SPOUSE_STAR[sp.sibsin].blurb),
+        pol: sp.isDayPillar ? 4 : 2,
       })
     }
   }
@@ -651,26 +884,34 @@ export function buildFreeCompatNarrative(
         theme: PILLAR_THEME[tag] ?? 'future',
         weight: r.tone === 'minor' ? 1 : 3,
         text: t(PILLAR_REL[tag].blurb),
+        pol: r.tone === 'bond' ? 3 : r.tone === 'clash' || r.tone === 'friction' ? -3 : 0,
       })
     }
   }
   const themes: FreeReportTheme[] = THEME_META.map((m) => {
     const items = themed.filter((x) => x.theme === m.id).sort((a, b) => b.weight - a.weight)
+    // 극성 합 → 훅·기본결·점수 모두 같은 pos/neg/mid 로 결정.
+    const net = items.reduce((s, it) => s + it.pol, 0)
+    const hookKey: HookKey = net > 0.5 ? 'pos' : net < -0.5 ? 'neg' : 'mid'
+    const hook = t(THEME_HOOK[m.id][hookKey])
+    // 기본 결 문단 — 신호별 본문 앞에 깔아 빈약한 테마도 풍부하게. (훅과 같은 극성)
+    // 단, 신호가 0인 테마엔 붙이지 않는다 — "신호 있을 때만 표시" 원칙 유지(빈 테마 부활 X).
     const seenTxt = new Set<string>()
-    const seenNuance = new Set<string>()
-    const paragraphs: string[] = []
+    const paragraphs: string[] = items.length > 0 ? [t(THEME_PRIMER[m.id][hookKey])] : []
     for (const it of items) {
       if (seenTxt.has(it.text)) continue
       seenTxt.add(it.text)
-      // 동일 각 종류 뉘앙스 꼬리문장은 테마당 1회만 — 같은 카드에서 되풀이 방지.
-      let text = it.text
-      if (it.nuanceText && it.nuanceKey && !seenNuance.has(it.nuanceKey)) {
-        seenNuance.add(it.nuanceKey)
-        text += it.nuanceText
-      }
-      paragraphs.push(text)
+      paragraphs.push(it.text)
     }
-    return { id: m.id, icon: m.icon, title: t(m.title), paragraphs }
+    return {
+      id: m.id,
+      icon: m.icon,
+      title: t(m.title),
+      hook,
+      score: themeScore(m.id, items),
+      scoreCaption: t(SCORE_CAPTION[m.id]),
+      paragraphs,
+    }
   }).filter((th) => th.paragraphs.length > 0)
 
   const glossary: FreeReportGlossaryEntry[] = COMPAT_GLOSSARY.map((g) => ({
@@ -678,7 +919,23 @@ export function buildFreeCompatNarrative(
     body: t(g.body),
   }))
 
+  // 헤드라인 총점 — 끌림/조화축 테마 점수 평균. friction(충돌강도)은 진단축이라
+  // 총점에서 제외하되, 충돌이 큰 커플엔 가벼운 감점만 준다(역산해 평균에 넣으면
+  // 점수가 통째로 짓눌려 모두가 비관적으로 나옴).
+  const posThemes = themes.filter((th) => th.id !== 'friction' && typeof th.score === 'number')
+  const fric = themes.find((th) => th.id === 'friction')
+  let overallScore: number | null = null
+  if (posThemes.length) {
+    const mean = posThemes.reduce((s, th) => s + th.score!, 0) / posThemes.length
+    // 평균은 가운데로 뭉치므로 중심(68) 기준 편차를 1.5배 넓혀 점수가 벌어지게 하고,
+    // 충돌이 큰 커플엔 가벼운 감점만. 40~97 로 클램프.
+    const expanded = 68 + (mean - 68) * 1.5 - (fric ? Math.max(0, fric.score! - 65) * 0.1 : 0)
+    overallScore = Math.max(40, Math.min(97, Math.round(expanded)))
+  }
+
   return {
+    overallScore,
+    overallGrade: overallScore != null ? t(overallGrade(overallScore)) : null,
     intro: t(INTRO),
     verdict,
     sections,

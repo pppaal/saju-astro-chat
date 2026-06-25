@@ -592,7 +592,26 @@ function ThemeCard({ theme, isKo }: { theme: FreeReportTheme; isKo: boolean }) {
           </span>
           <h2 className={s.secTitle}>{theme.title}</h2>
         </span>
+        {typeof theme.score === 'number' ? (
+          <span className={s.themeScore}>
+            <span className={s.themeScoreCap}>{theme.scoreCaption}</span>
+            <span
+              className={`${s.themeScoreNum} ${theme.id === 'friction' ? s.themeScoreNumClash : ''}`}
+            >
+              {theme.score}
+            </span>
+          </span>
+        ) : null}
       </div>
+      {typeof theme.score === 'number' ? (
+        <div className={s.themeBar} aria-hidden="true">
+          <div
+            className={`${s.themeBarFill} ${theme.id === 'friction' ? s.themeBarFillClash : ''}`}
+            style={{ width: `${theme.score}%` }}
+          />
+        </div>
+      ) : null}
+      {theme.hook ? <p className={s.themeHook}>{theme.hook}</p> : null}
       {top.map((p, i) => (
         <p key={i} className={s.para}>
           {p}
@@ -674,6 +693,23 @@ function ResultView({
       <p className={s.resultHead}>
         {labelA} <Heart className="inline w-3.5 h-3.5" style={{ color: '#c2548a' }} /> {labelB}
       </p>
+
+      {/* 헤드라인 총점 — 한눈에 박히는 큰 숫자 (캡처/공유 후크) */}
+      {view.overallScore != null ? (
+        <div className={s.scoreHero}>
+          <div
+            className={s.scoreRing}
+            style={{ ['--pct' as string]: `${view.overallScore}` }}
+            aria-hidden="true"
+          >
+            <span className={s.scoreRingNum}>{view.overallScore}</span>
+          </div>
+          <div className={s.scoreHeroText}>
+            <span className={s.scoreHeroLabel}>{isKo ? '우리 궁합' : 'Our match'}</span>
+            <span className={s.scoreHeroGrade}>{view.overallGrade}</span>
+          </div>
+        </div>
+      ) : null}
 
       {/* 리포트 도입 — 어떻게 읽는지 */}
       <p className={s.intro}>{view.intro}</p>

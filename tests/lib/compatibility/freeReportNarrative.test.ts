@@ -121,6 +121,11 @@ describe('buildFreeCompatNarrative', () => {
     })
     expect(view.verdict?.tone).toBe('aligned')
     expect(view.verdict?.text).toContain('한목소리')
+    // 헤드라인 총점 — 40~97 숫자 + 등급 라벨
+    expect(typeof view.overallScore).toBe('number')
+    expect(view.overallScore!).toBeGreaterThanOrEqual(40)
+    expect(view.overallScore!).toBeLessThanOrEqual(97)
+    expect(typeof view.overallGrade).toBe('string')
     expect(view.verdict?.expansion.length).toBeGreaterThan(10)
     expect(view.intro.length).toBeGreaterThan(10)
     expect(view.closing.length).toBeGreaterThan(10)
@@ -260,30 +265,31 @@ describe('buildFreeCompatNarrative', () => {
     expect(all).toMatch(/sik-sin|pyeon-gwan/)
   })
 
-  it('does not repeat the same aspect-type nuance within one theme card', () => {
+  it('gives each theme a punchy hook and drops the bolted-on geometry tails', () => {
     const asp = (
       aKey: string,
-      bKey: string
+      bKey: string,
+      tone: 'harmony' | 'tension'
     ): NonNullable<CompatReport['synView']>['aspects'][number] => ({
       a: aKey,
       b: bKey,
       aKey,
       bKey,
-      type: 'trine',
-      label: '조화',
-      tone: 'harmony',
+      type: tone === 'harmony' ? 'trine' : 'square',
+      label: tone === 'harmony' ? '조화' : '긴장',
+      tone,
       orb: 1,
       strength: '강하게',
       meaning: '',
     })
     const r: CompatReport = {
       synView: {
-        // 둘 다 수성 포함 조화 트라인 → 같은 'talk' 테마 + 같은 트라인 뉘앙스
-        aspects: [asp('Mercury', 'Moon'), asp('Mercury', 'Sun')],
+        // 수성 조화 → talk(끌림 우세); 화성·토성 긴장 → friction
+        aspects: [asp('Mercury', 'Moon', 'harmony'), asp('Mars', 'Saturn', 'tension')],
         overlaysAtoB: [],
         overlaysBtoA: [],
-        harmony: 2,
-        tension: 0,
+        harmony: 1,
+        tension: 1,
       },
       dayMaster: null,
       spouseStars: [],
@@ -291,9 +297,19 @@ describe('buildFreeCompatNarrative', () => {
     }
     const view = buildFreeCompatNarrative(r, { labelA: 'A', labelB: 'B', lang: 'ko' })
     const talk = view.themes.find((th) => th.id === 'talk')!
-    const tailHits = talk.paragraphs.filter((p) => p.includes('물 흐르듯 힘 안 들이고')).length
-    expect(talk.paragraphs.length).toBeGreaterThanOrEqual(2)
-    expect(tailHits).toBe(1)
+    expect(talk.hook).toBe('말 척척 통하는 사이 — 대화가 안 끊겨.') // 끌림 우세 → pos 훅
+    // 점수 칩 — 0~100 숫자 + 차원 라벨
+    expect(typeof talk.score).toBe('number')
+    expect(talk.score!).toBeGreaterThanOrEqual(0)
+    expect(talk.score!).toBeLessThanOrEqual(100)
+    expect(talk.scoreCaption).toBe('소통')
+    const friction = view.themes.find((th) => th.id === 'friction')!
+    expect(friction.hook).toBe('주로 자존심·주도권에서 부딪혀.') // 마찰만 → neg 훅
+    expect(friction.scoreCaption).toBe('마찰')
+    // 기계적 기하 꼬리("물 흐르듯…", "서로 각을 세워…")는 더 이상 안 붙는다
+    const all = view.themes.flatMap((th) => th.paragraphs).join('\n')
+    expect(all).not.toContain('물 흐르듯 힘 안 들이고')
+    expect(all).not.toContain('서로 각을 세워')
   })
 
   it('keeps both-direction overlays on the same house number (no cross-direction drop)', () => {
@@ -325,6 +341,8 @@ describe('buildFreeCompatNarrative', () => {
     }
     const view = buildFreeCompatNarrative(bare, { labelA: 'A', labelB: 'B', lang: 'ko' })
     expect(view.sections).toHaveLength(0)
+    expect(view.themes).toHaveLength(0)
+    expect(view.overallScore).toBeNull() // 신호 0 → 총점 없음
     expect(view.verdict).toBeNull()
     expect(view.glossary.length).toBeGreaterThan(5)
   })
