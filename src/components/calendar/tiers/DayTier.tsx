@@ -338,6 +338,21 @@ export function DayTier({ day, onRise, sex = '남' }: DayTierProps) {
     const bh = parseInt((b.when.match(/\d+/) ?? ['0'])[0], 10)
     return ah - bh
   })
+  // 하루 리듬(시간대) ↔ 일 톤 정합 — 둘은 *다른 축*(전체 하루 vs 그 안의 상대 리듬)
+  // 이라 어긋날 수 있다(순풍 날인데 ↓ 막대가 많거나 그 반대). 어긋나면 한 줄로
+  // "그날 안에서의 상대 리듬"임을 밝혀 "좋은 날인데 왜 다 주황?" 혼동을 막는다.
+  const hourUp = hourSorted.filter((h) => h.tone === 'good').length
+  const hourDn = hourSorted.length - hourUp
+  const rhythmCoherenceNote =
+    verdict.tone === 'positive' && hourDn > hourUp
+      ? ko
+        ? '전체는 순한 날이에요 — 아래는 그 하루 *안에서의* 상대 리듬이라 오르내림이 있어요.'
+        : "Overall a smooth day — the bars below are the relative rhythm *within* it, so they rise and fall."
+      : verdict.tone === 'caution' && hourUp > hourDn
+        ? ko
+          ? '전체는 조심할 날이지만, 그 안에도 트이는 시간대가 있어요.'
+          : 'A careful day overall, but some hours still open up within it.'
+        : ''
 
   // ── 타이밍 — 이달 흐름 추이선 + 다가오는 며칠. ──
   const scores = day.monthScores ?? []
@@ -687,6 +702,9 @@ export function DayTier({ day, onRise, sex = '남' }: DayTierProps) {
             <div className={styles.rhythmNote}>
               {ko ? '좋음 ↑ 쪽빛 · 주의 ↓ 주황' : 'good ↑ indigo · caution ↓ amber'}
             </div>
+            {rhythmCoherenceNote && (
+              <div className={styles.rhythmNote}>{rhythmCoherenceNote}</div>
+            )}
             <div className={styles.rhythmRow}>
               {hourSorted.map((h, i) => {
                 const up = h.tone === 'good'
