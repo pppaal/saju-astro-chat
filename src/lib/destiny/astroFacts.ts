@@ -28,6 +28,7 @@ import {
   type AlmutenFigurisResult,
 } from '@/lib/astrology/foundation/almutenFiguris'
 import { currentManAge } from '@/lib/datetime/currentAge'
+import { normalizeTimeZone } from '@/lib/datetime/timezone'
 import { logger } from '@/lib/logger'
 import type { Chart, AspectHit, ZodiacKo } from '@/lib/astrology/foundation/types'
 import type {
@@ -173,6 +174,10 @@ export async function collectAstroFacts(
   // 분이 NaN 이 돼 자연차트(ASC/MC/하우스)가 어긋났다. 사주와 동일 파서 사용.
   const { h, m: mi } = parseHourMinute(input.birthTime || '00:00')
 
+  // 잘못된 IANA 타임존이면 natalToJD 의 tz 변환이 throw → 여기서 null 반환 →
+  // buildNatalContext 가 하드 throw → 리포트·캘린더·운명이 모두 죽는다.
+  // 유효하지 않으면 기본값으로 떨궈 차트는 계산되게 한다.
+  const safeTz = normalizeTimeZone(input.timezone)
   let natal: Awaited<ReturnType<typeof calculateNatalChart>>
   try {
     natal = await calculateNatalChart({
@@ -183,7 +188,7 @@ export async function collectAstroFacts(
       minute: mi,
       latitude: input.latitude,
       longitude: input.longitude,
-      timeZone: input.timezone,
+      timeZone: safeTz,
     })
   } catch {
     return null
