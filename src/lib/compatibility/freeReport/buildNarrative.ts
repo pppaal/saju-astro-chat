@@ -866,7 +866,7 @@ export function buildFreeCompatNarrative(
       if (arr.length === 1) {
         const e = arr[0]
         lead = isKo
-          ? `${e.viewer}의 ${planet(e.key, e.disp)} 기운이 닿는 자리예요. ${arena}`
+          ? `${e.viewer}의 ${planet(e.key, e.disp)} 기운이 여기에 와닿아요. ${arena}`
           : `${e.viewer}'s ${planet(e.key, e.disp)} reaches into this part of life. ${arena}`
       } else {
         const names = arr.map((e) => (isKo ? `${e.viewer}의 ${e.disp}` : `${e.viewer}'s ${e.disp}`))
