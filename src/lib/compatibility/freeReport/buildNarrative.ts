@@ -383,7 +383,7 @@ const PILLAR_THEME: Record<string, ThemeId> = {
 const THEME_PRIMER: Record<ThemeId, Record<HookKey, Bi>> = {
   spark: {
     pos: {
-      ko: '두 사람이 처음 만났을 때 자연스럽게 시선이 마주치고, 무언가 편하면서도 설레는 기운을 느껴요. 말을 많이 안 해도 분위기가 통하고, 카톡 첫 대화부터 자꾸 웃음이 나게 되는 그런 관계예요. 서로를 가만히 봐도 괜찮은 사람이라는 확신이 빠르게 생기더라고요.',
+      ko: '두 사람이 처음 만났을 때 저절로 시선이 마주치고, 무언가 편하면서도 설레는 기운을 느껴요. 말을 많이 안 해도 분위기가 통하고, 카톡 첫 대화부터 자꾸 웃음이 나게 되는 그런 관계예요. 서로를 가만히 봐도 괜찮은 사람이라는 확신이 빠르게 생기더라고요.',
       en: 'When you two first meet, there\'s an effortless ease between you — your eyes meet and something just clicks. Conversation flows without awkward silences, and even your first text exchanges have you both smiling without trying. There\'s a quiet confidence that whispers, "This person just feels right," and that sense comes fast.',
     },
     neg: {
@@ -397,7 +397,7 @@ const THEME_PRIMER: Record<ThemeId, Record<HookKey, Bi>> = {
   },
   sex: {
     pos: {
-      ko: '두 사람의 몸과 분위기가 자연스럽게 맞아떨어지는 편이에요. 굳이 애쓰지 않아도 가까워지는 순간의 호흡이 잘 맞고, 손끝 하나에도 마음이 편하게 놓이죠. 끌림이 머리보다 먼저 통하는, 말보다 분위기로 가까워지는 사이예요.',
+      ko: '두 사람의 몸과 분위기가 스스럼없이 맞아떨어지는 편이에요. 굳이 애쓰지 않아도 가까워지는 순간의 호흡이 잘 맞고, 손끝 하나에도 마음이 편하게 놓이죠. 끌림이 머리보다 먼저 통하는, 말보다 분위기로 가까워지는 사이예요.',
       en: 'Your bodies and the mood between you tend to fall into sync on their own. The breath of those close moments lines up without effort, and even a brush of a hand puts you both at ease. The pull lands before the mind catches up — you grow closer through atmosphere more than words.',
     },
     neg: {
@@ -411,7 +411,7 @@ const THEME_PRIMER: Record<ThemeId, Record<HookKey, Bi>> = {
   },
   talk: {
     pos: {
-      ko: '말과 농담, 생각의 결이 자연스럽게 통하는 사이예요. 굳이 설명 안 해도 상대가 무슨 말인지 알아차리고, 카톡도 빠르게 척척 오가는 편한 대화 리듬이 있는 거죠. 같은 코드의 농담이 먹히고, 나중에 비슷한 장면에서 다시 웃을 수 있는 공통의 언어가 자연스럽게 쌓여가요.',
+      ko: '말과 농담, 생각의 결이 척척 통하는 사이예요. 굳이 설명 안 해도 상대가 무슨 말인지 알아차리고, 카톡도 빠르게 척척 오가는 편한 대화 리듬이 있는 거죠. 같은 코드의 농담이 먹히고, 나중에 비슷한 장면에서 다시 웃을 수 있는 공통의 언어가 차곡차곡 쌓여가요.',
       en: "Your words and thoughts flow in an easy rhythm that barely needs explaining. The other catches your drift without you having to spell it out, and there's a quick back-and-forth — the kind where messages come fast. Jokes in your shared code land, and you find yourselves laughing at the same things again and again, building a common language as you go.",
     },
     neg: {
@@ -425,7 +425,7 @@ const THEME_PRIMER: Record<ThemeId, Record<HookKey, Bi>> = {
   },
   love: {
     pos: {
-      ko: '두 사람의 사랑하는 방식이 자연스럽게 맞아떨어지는 느낌이에요. 한 사람이 손을 내밀면 다른 사람이 자연스럽게 받아주고, 말없이도 서로 필요한 순간을 알아채는 그런 거죠. 크게 부딪힐 일 없이 부드럽게 흘러가는 연결감이 있어요.',
+      ko: '두 사람의 사랑하는 방식이 스스럼없이 맞아떨어지는 느낌이에요. 한 사람이 손을 내밀면 다른 사람이 선뜻 받아주고, 말없이도 서로 필요한 순간을 알아채는 그런 거죠. 크게 부딪힐 일 없이 부드럽게 흘러가는 연결감이 있어요.',
       en: "The way you two express and receive love flows naturally together. When one reaches out, the other tends to meet them there—there's an ease to knowing what the other needs even without saying it. You're likely to find yourselves clicking without much friction, just a gentle current of understanding.",
     },
     neg: {
@@ -453,7 +453,7 @@ const THEME_PRIMER: Record<ThemeId, Record<HookKey, Bi>> = {
   },
   life: {
     pos: {
-      ko: '둘이 함께 있으면 자연스럽게 긴장이 풀어지는 분위기예요. 굳이 뭔가 특별한 걸 하지 않아도 옆에 있는 것만으로 편하고, 말을 거의 안 해도 서로 뭐 하는지 잘 알아챌 정도죠. 카톡 답장이 늦어도 괜찮고, 조용히 각자 하는 것도 자연스러운 그런 편안함이 있어요.',
+      ko: '둘이 함께 있으면 어느새 긴장이 풀어지는 분위기예요. 굳이 뭔가 특별한 걸 하지 않아도 옆에 있는 것만으로 편하고, 말을 거의 안 해도 서로 뭐 하는지 잘 알아챌 정도죠. 카톡 답장이 늦어도 괜찮고, 조용히 각자 하는 것도 편안한, 그런 사이예요.',
       en: "Being together just naturally settles you both down. You don't need to do anything special—just being by each other's side feels comfortable and easy. You can read each other without much talking, and even the quiet moments together feel natural, whether it's slow text replies or just doing your own thing beside each other.",
     },
     neg: {
@@ -467,7 +467,7 @@ const THEME_PRIMER: Record<ThemeId, Record<HookKey, Bi>> = {
   },
   money: {
     pos: {
-      ko: '돈과 가치관이 맞아떨어지는 건, 결국 일상의 작은 순간들에서 드러나요 — 카톡에서 값을 흥정할 때도, 데이트 후 계산할 때도요. 두 사람의 결을 보면 이 영역에서 얼마나 자연스럽게 흐르는지, 아니면 자꾸 손을 맞춰야 하는지가 참 분명해져요. 우리가 돈을 대하는 태도는 사실 그 사람의 삶을 바라보는 법 전부니까, 여기서 비슷하면 크게 부딪힐 일이 적어진다는 뜻이에요.',
+      ko: '돈과 가치관이 맞아떨어지는 건, 결국 일상의 작은 순간들에서 드러나요 — 카톡에서 값을 흥정할 때도, 데이트 후 계산할 때도요. 두 사람의 결을 보면 이 영역에서 얼마나 매끄럽게 흐르는지, 아니면 자꾸 손을 맞춰야 하는지가 참 분명해져요. 우리가 돈을 대하는 태도는 사실 그 사람의 삶을 바라보는 법 전부니까, 여기서 비슷하면 크게 부딪힐 일이 적어진다는 뜻이에요.',
       en: "Money and values show up in the small dailies — when you're eyeing a purchase, splitting a check, or talking about what matters. Looking at your chart tells us whether this zone flows naturally between you or asks for constant tuning. How you handle money says a lot about how you see life itself, so when your rhythms match here, there's far less to clash over.",
     },
     neg: {
