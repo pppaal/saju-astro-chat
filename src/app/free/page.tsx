@@ -29,11 +29,11 @@ async function resolveLocale(): Promise<'ko' | 'en'> {
 export async function generateMetadata(): Promise<Metadata> {
   const isKo = (await resolveLocale()) === 'ko'
   const title = isKo
-    ? '전부 무료 — 오늘의 타로·운세 캘린더·사주 리포트·궁합 | DestinyPal'
-    : 'All Free — Tarot, Fortune Calendar, Saju Report & Compatibility | DestinyPal'
+    ? '전부 무료 — 오늘의 타로·인생 흐름·사주 리포트·궁합 | DestinyPal'
+    : 'All Free — Tarot, Life Flow, Saju Report & Compatibility | DestinyPal'
   const description = isKo
-    ? '로그인 없이 지금 바로. 오늘의 타로 한 장, 운세 캘린더, 사주·별자리 통합 리포트, 궁합까지 전부 무료로 받아보세요.'
-    : 'No sign-up, right now. A free card of the day, fortune calendar, Saju + astrology report, and compatibility — all free.'
+    ? '로그인 없이 지금 바로. 오늘의 타로 한 장, 인생 흐름, 사주·별자리 통합 리포트, 궁합까지 전부 무료로 받아보세요.'
+    : 'No sign-up, right now. A free card of the day, your life flow, a Saju + astrology report, and compatibility — all free.'
   return {
     title,
     description,
@@ -50,7 +50,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 // 무료 도구 카드 — href 는 전부 "로그인 없이 즉시 가치"가 나오는 진입점.
-//  타로 → 데일리(완전 무료) / 캘린더 → 프리뷰 / 리포트 → 샘플 폴백 / 궁합 → 상담사
+//  타로 → 데일리(완전 무료) / 인생 흐름 → 생일 게이트(개인화) / 리포트 → 샘플 폴백 / 궁합 → 상담사
 type FreeTool = {
   href: string
   emoji: string
@@ -84,15 +84,15 @@ const FREE_TOOLS: readonly FreeTool[] = [
     badge: { ko: '완전 무료 · 로그인 X', en: 'Free · no sign-up' },
   },
   {
-    href: '/calendar/preview',
-    emoji: '🗓️',
+    href: '/destiny',
+    emoji: '🌊',
     tint: '#38bdf8',
-    title: { ko: '운세 캘린더', en: 'Fortune Calendar' },
+    title: { ko: '인생 흐름', en: 'Life Flow' },
     desc: {
-      ko: '일·월·년 운흐름 타이밍을 한눈에. 언제 움직이면 좋을지 미리 보기.',
-      en: 'Daily · monthly · yearly timing at a glance — see when to move.',
+      ko: '생년월일만 넣으면 인생·10년·올해의 큰 흐름(대운)을 한눈에 봐요.',
+      en: 'Just your birth date — see your life, decade, and this-year flow at a glance.',
     },
-    badge: { ko: '무료 미리보기', en: 'Free preview' },
+    badge: { ko: '완전 무료 · 로그인 X', en: 'Free · no sign-up' },
   },
   {
     href: '/integrated-report',
@@ -185,8 +185,8 @@ export default async function FreeFunnelHub() {
           }}
         >
           {isKo
-            ? '타로 한 장, 궁합, 운세 캘린더, 사주·별자리 리포트까지 — 가입 없이 받아보고 마음에 들면 친구에게도 공유해 보세요.'
-            : 'A tarot card, compatibility, a fortune calendar, and a Saju + astrology report — try them with no sign-up, then share with a friend.'}
+            ? '타로 한 장, 궁합, 인생 흐름, 사주·별자리 리포트까지 — 가입 없이 받아보고 마음에 들면 친구에게도 공유해 보세요.'
+            : 'A tarot card, compatibility, your life flow, and a Saju + astrology report — try them with no sign-up, then share with a friend.'}
         </p>
 
         {/* 무료 도구 그리드 */}
