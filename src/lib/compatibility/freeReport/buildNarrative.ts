@@ -258,14 +258,16 @@ function overallGrade(score: number): Bi {
 
 // 테마 신호들 → 0~100 점수. friction 은 "충돌 강도"(셀수록 ↑), 나머지는 끌림/조화 강도.
 // 정규화하지 않고 신호 크기(net/strength)에 비례시켜 테마·커플마다 점수가 벌어지게 한다.
-function themeScore(id: ThemeId, items: { pol: number }[]): number {
+function themeScore(id: ThemeId, items: { pol: number }[], nudge = 0): number {
   const clamp = (n: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, Math.round(n)))
   if (id === 'friction') {
     const strength = items.reduce((s, it) => s + Math.abs(it.pol), 0)
     return clamp(48 + strength * 1.7, 45, 92)
   }
+  // nudge = 커플 전체 시너스트리 화합도 보정(±). 신호 한 개뿐인 테마(예: 오버레이만)도
+  // 커플마다 점수가 달라지게 — 안 그러면 단일 오버레이 테마가 전 커플 같은 값으로 뭉친다.
   const net = items.reduce((s, it) => s + it.pol, 0) // 끌림(+)/마찰(−) 가중합
-  return clamp(57 + net * 2.5, 34, 96)
+  return clamp(57 + net * 2.5 + nudge, 30, 96)
 }
 
 type HookKey = 'pos' | 'neg' | 'mid'
@@ -382,7 +384,7 @@ const THEME_PRIMER: Record<ThemeId, Record<HookKey, Bi>> = {
   spark: {
     pos: {
       ko: '두 사람이 처음 만났을 때 자연스럽게 시선이 마주치고, 무언가 편하면서도 설레는 기운을 느껴요. 말을 많이 안 해도 분위기가 통하고, 카톡 첫 대화부터 자꾸 웃음이 나게 되는 그런 관계예요. 서로를 가만히 봐도 괜찮은 사람이라는 확신이 빠르게 생기더라고요.',
-      en: 'When you two first meet, there\'s an easy, natural ease between you—your eyes meet and something just clicks. Conversation flows without awkward silences, and even your first text exchanges have you both smiling without trying. There\'s a quiet confidence that whispers, "This person just feels right," and that sense comes fast.',
+      en: 'When you two first meet, there\'s an effortless ease between you — your eyes meet and something just clicks. Conversation flows without awkward silences, and even your first text exchanges have you both smiling without trying. There\'s a quiet confidence that whispers, "This person just feels right," and that sense comes fast.',
     },
     neg: {
       ko: '만나는 순간엔 분명 끌리는 데, 시간이 지나면 그 끌림이 왔다 갔다 하는 쪽이에요. 처음의 반짝임이 오래가지 못하고, 자꾸 "정말 맞나?" 하는 의문이 생기더라고요. 그래도 그 의문 때문에 더 주의깊게 보게 되는 거라, 서로를 제대로 알아가는 시간이 될 수 있어요.',
@@ -805,9 +807,14 @@ export function buildFreeCompatNarrative(
     const bTop = topEl(eb.b)
     const perPerson =
       aTop && bTop
-        ? isKo
-          ? ` ${neun(labelA)} ${elLabel(aTop, true)} 기운이, ${neun(labelB)} ${elLabel(bTop, true)} 기운이 가장 도드라져요.`
-          : ` ${labelA} leans ${elLabel(aTop, false)}, ${labelB} leans ${elLabel(bTop, false)}.`
+        ? aTop === bTop
+          ? // 둘 다 같은 기운이 도드라지면 "X는 화, Y는 화" 중복 대신 한 번만.
+            isKo
+            ? ` 둘 다 ${elLabel(aTop, true)} 기운이 가장 도드라지는 사이예요.`
+            : ` You both lean ${elLabel(aTop, false)}.`
+          : isKo
+            ? ` ${neun(labelA)} ${elLabel(aTop, true)} 기운이, ${neun(labelB)} ${elLabel(bTop, true)} 기운이 가장 도드라져요.`
+            : ` ${labelA} leans ${elLabel(aTop, false)}, ${labelB} leans ${elLabel(bTop, false)}.`
         : ''
     themed.push({
       theme: 'life',
@@ -899,6 +906,11 @@ export function buildFreeCompatNarrative(
       })
     }
   }
+  // 커플 전체 시너스트리 화합도 → 테마 점수 보정(±4). 신호 적은 테마도 커플마다 달라지게.
+  const harmNudge =
+    typeof report.band?.synastry_harmonic === 'number'
+      ? Math.max(-4, Math.min(4, (report.band.synastry_harmonic - 50) / 12))
+      : 0
   const themes: FreeReportTheme[] = THEME_META.map((m) => {
     const items = themed.filter((x) => x.theme === m.id).sort((a, b) => b.weight - a.weight)
     // 극성 합 → 훅·기본결·점수 모두 같은 pos/neg/mid 로 결정.
@@ -919,7 +931,7 @@ export function buildFreeCompatNarrative(
       icon: m.icon,
       title: t(m.title),
       hook,
-      score: themeScore(m.id, items),
+      score: themeScore(m.id, items, harmNudge),
       scoreCaption: t(SCORE_CAPTION[m.id]),
       paragraphs,
     }

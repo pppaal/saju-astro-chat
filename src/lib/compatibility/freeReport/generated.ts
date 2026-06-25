@@ -97,7 +97,7 @@ export const GENERATED: GeneratedCopy = {
         en: 'a draw toward ease, where your words come loose',
       },
       blurb: {
-        ko: "이 사람 앞에서는 이상하게 말문이 자연스레 트여요. 평소 속에만 담아두던 얘기도 자연스럽게 흘러나오죠. 곁에 있으면 마음이 사르르 풀리면서, 내가 가진 솜씨도 한결 가볍게 펼쳐져요. 잘 보이려 애쓰지 않아도 본래의 내가 한 톤 더 환해지는, 그런 따뜻한 끌림이에요(사주에선 '식신').",
+        ko: "이 사람 앞에서는 이상하게 말문이 스르르 트여요. 평소 속에만 담아두던 얘기도 술술 흘러나오죠. 곁에 있으면 마음이 사르르 풀리면서, 내가 가진 솜씨도 한결 가볍게 펼쳐져요. 잘 보이려 애쓰지 않아도 본래의 내가 한 톤 더 환해지는, 그런 따뜻한 끌림이에요(사주에선 '식신').",
         en: "Around this person your words just come loose. Things you usually keep tucked away slip out on their own. Next to them you relax, and your own talents flow a little more lightly. Without trying to impress, the real you comes through a shade brighter. It's that kind of warm pull (in Saju, 'sik-sin').",
       },
     },
@@ -314,7 +314,7 @@ export const GENERATED: GeneratedCopy = {
       en: "The air one person gives off at first meeting brushes right up against the way the other one loves and what they're drawn to (in astrology, Venus). This is where a first impression and the heart open toward each other. So it touches where attraction starts and what charm someone leans into. You bring the first impression; they answer with how they love.",
     },
     'Ascendant|Sun': {
-      ko: '한 사람이 처음 다가설 때 풍기는 분위기와 첫인상이, 다른 사람의 가장 깊은 자기다움하고 맞닿아요. 겉으로 보이는 첫 표정이 상대의 진짜 알맹이를 곧장 건드리는 거죠. 그래서 만나자마자 둘은 서로의 본질을 마주 봐요. 궁합에서 꽤 핵심이 되는 자리예요.',
+      ko: '한 사람이 처음 다가설 때 풍기는 분위기와 첫인상이, 다른 사람의 가장 깊은 본모습과 맞닿아요. 겉으로 보이는 첫 표정이 상대의 진짜 알맹이를 곧장 건드리는 거죠. 그래서 만나자마자 둘은 서로의 본질을 마주 봐요. 궁합에서 꽤 핵심이 되는 자리예요.',
       en: "The air one of you gives off at first, that very first impression, meets the other's deepest sense of self. The face you show on the surface reaches straight for their true center. So the moment you meet, you two are already looking at each other's essence. This is one of the core spots in the match.",
     },
   },
