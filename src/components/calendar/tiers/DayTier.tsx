@@ -488,18 +488,9 @@ export function DayTier({ day, onRise, sex = '남' }: DayTierProps) {
           </div>
         </header>
 
-        {/* ── S3 한 줄 (verdict) ── */}
-        <section className={styles.sec}>
-          <SecHead label={ko ? '오늘의 한 줄' : 'In a line'} latin="In a line" />
-          <p className={styles.verdict}>{localizeLabel(dayOneLine, ko)}</p>
-          <div className={styles.verdictSub}>
-            <span className={styles.termTag}>
-              {[day.iljin.hanja, sibsinRaw].filter(Boolean).join(' · ')}
-            </span>
-          </div>
-        </section>
-
-        {/* ── S4 지금 일어나는 일 ── */}
+        {/* ── S4 지금 일어나는 일 ──
+            (S3 '오늘의 한 줄'은 ①결론의 한 줄과 동일 문장·간지/십신도 ②에 있어
+             완전 중복이라 제거 — 펼침이 가벼워짐.) */}
         <section className={styles.sec}>
           <SecHead label={ko ? '지금 일어나는 일' : "What's happening"} latin="Now" />
           {happeningLines.length === 0 ? (
