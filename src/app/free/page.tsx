@@ -294,11 +294,11 @@ export default async function FreeFunnelHub() {
 
         <p style={{ marginTop: 28, fontSize: 12, color: MUTED, textAlign: 'center' }}>
           {isKo
-            ? '더 깊고 구체적인 해석은 앱 안에서 이어집니다.'
-            : 'Deeper, more specific readings continue inside the app.'}
+            ? '더 깊고 구체적인 해석은 메인에서 이어집니다.'
+            : 'Deeper, more specific readings continue on the main site.'}
         </p>
 
-        {/* 앱(메인)으로 들어가는 또렷한 경로 — 좌상단 로고만으론 눈에 안 띈다. */}
+        {/* 메인 웹페이지로 들어가는 또렷한 경로 — 좌상단 로고만으론 눈에 안 띈다. */}
         <div style={{ marginTop: 16, textAlign: 'center' }}>
           <Link
             href="/"
@@ -314,7 +314,7 @@ export default async function FreeFunnelHub() {
               boxShadow: '0 12px 30px -16px rgba(120,90,30,0.6)',
             }}
           >
-            {isKo ? '앱으로 들어가기 →' : 'Enter the app →'}
+            {isKo ? '메인으로 가기 →' : 'Go to the main site →'}
           </Link>
         </div>
       </div>
