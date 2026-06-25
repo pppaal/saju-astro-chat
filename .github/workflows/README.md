@@ -157,6 +157,54 @@ Preview environment deployment:
 
 ---
 
+### Operational Workflows
+
+#### 8. [daily-automation.yml](./daily-automation.yml) - Daily Engagement Crons
+
+**Triggers:** Scheduled (multiple UTC times), Manual dispatch
+
+Reliably triggers the daily engagement endpoints (`src/app/api/cron/*`) over
+HTTP so they fire regardless of the Vercel cron plan's count/frequency limits.
+Each `schedule:` entry mirrors a `vercel.json` cron time; `github.event.schedule`
+selects which endpoint to hit.
+
+Endpoints driven (KST):
+
+- `social-drafts` (06:00) — pre-generate "오늘의 카드" social drafts
+- `daily-fortune` (07:00) — "오늘의 운세 한 줄" web push to subscribers
+- `keyday-push` (07:10) — personalized "big day" push
+- `winback-push` (13:00) — re-engage dormant users
+- `threads-tarot` (09:00 / 14:00 / 19:00) — generate a tarot share result and auto-post to Threads
+- `reset-credits` (00:00) — monthly credit reset
+- `reconcile-activity` (02:00) — activity bookkeeping
+- `anomaly-check` (hourly) — anomaly monitoring
+
+**Auth:** `Authorization: Bearer ${{ secrets.CRON_SECRET }}` (timing-safe on
+the server). Base URL from `secrets.PRODUCTION_URL`. Both already in
+[Required GitHub Secrets](#required-github-secrets) — no new secrets needed.
+
+**Behavior:** retries transient failures (3 attempts, backoff); `503
+not_configured` (e.g. VAPID unset, or `THREADS_USER_ID`/`THREADS_ACCESS_TOKEN`
+unset for `threads-tarot`) is a warning, not a failure; `401` fails fast.
+
+**Threads auto-posting:** `threads-tarot` builds a real share result (`/r/{token}`)
+and posts it to Threads via the Threads Graph API. It stays a no-op (503) until
+`THREADS_USER_ID` + `THREADS_ACCESS_TOKEN` are set in the **app runtime env**
+(Vercel) — these are not CI secrets. Post locale defaults to `ko`
+(`THREADS_POST_LOCALE=en` to switch).
+
+**Notes:**
+
+- Scheduled runs only fire from the **default branch (`main`)** — activates
+  after merge. Use `workflow_dispatch` (pick a target or `all`) to test before.
+- Complements the Vercel crons in `vercel.json`; the cron handlers are idempotent
+  /per-recipient guarded, so double-firing is safe.
+
+**When it runs:** Daily on schedule (and on demand)
+**Duration:** &lt;1 minute
+
+---
+
 ## Workflow Dependencies
 
 ```

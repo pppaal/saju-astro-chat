@@ -1,0 +1,164 @@
+# Daily Automation — engagement crons
+#
+# Vercel cron(vercel.json)에만 의존하던 데일리 인게이지먼트 엔드포인트를
+# GitHub Actions 스케줄로도 안정적으로 트리거한다. Vercel 플랜의 cron 개수·
+# 빈도 제한과 무관하게 "재방문 푸시"가 매일 확실히 발송되도록 하는 게 목적.
+#
+# 각 schedule 항목은 vercel.json 의 cron 시각(UTC)을 그대로 미러링한다.
+# 한 시각에 여러 cron 이 겹치면 GitHub 은 매칭되는 schedule 마다 별도 run 을
+# 발생시키고 github.event.schedule 로 어떤 항목인지 알려준다 → 그 값으로
+# 어떤 엔드포인트를 칠지 게이팅한다.
+#
+# 인증: 서버는 `Authorization: Bearer <CRON_SECRET>` 를 timing-safe 비교한다
+# (src/app/api/cron/*/route.ts). PRODUCTION_URL / CRON_SECRET 은 repo secret.
+#
+# 주의: 스케줄 워크플로우는 default 브랜치(main)에서만 발화한다. 이 파일이
+# main 에 머지된 뒤부터 cron 이 실제로 돈다. 그 전엔 workflow_dispatch 로
+# 수동 실행해 검증할 수 있다.
+
+name: Daily Automation
+
+on:
+  schedule:
+    - cron: '0 15 * * *' # reset-credits      (KST 00:00) 월 크레딧 리셋
+    - cron: '0 17 * * *' # reconcile-activity (KST 02:00) 활동 정산
+    - cron: '0 21 * * *' # social-drafts      (KST 06:00) 오늘의 카드 초안
+    - cron: '0 22 * * *' # daily-fortune      (KST 07:00) 오늘의 운세 푸시
+    - cron: '10 22 * * *' # keyday-push        (KST 07:10) 큰 날 개인화 푸시
+    - cron: '0 4 * * *' # winback-push       (KST 13:00) 휴면 윈백 푸시
+    - cron: '0 * * * *' # anomaly-check      (매시) 이상 탐지
+    - cron: '0 0 * * *' # threads-tarot      (KST 09:00) 타로 공유 결과 Threads 게시(아침)
+    - cron: '0 5 * * *' # threads-tarot      (KST 14:00) 타로 공유 결과 Threads 게시(오후)
+    - cron: '0 10 * * *' # threads-tarot      (KST 19:00) 타로 공유 결과 Threads 게시(저녁)
+  workflow_dispatch:
+    inputs:
+      target:
+        description: '수동 실행할 cron (all = 전체 순차 실행)'
+        required: true
+        default: all
+        type: choice
+        options:
+          - all
+          - daily-fortune
+          - keyday-push
+          - winback-push
+          - social-drafts
+          - reset-credits
+          - reconcile-activity
+          - anomaly-check
+          - threads-tarot
+
+# 같은 엔드포인트 그룹이 겹쳐 쌓이지 않도록. 진행 중이면 이전 건은 두고 새 건은 큐.
+concurrency:
+  group: daily-automation-${{ github.event.schedule || github.event.inputs.target }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  trigger:
+    name: Trigger engagement crons
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Resolve targets
+        id: resolve
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            INPUT="${{ github.event.inputs.target }}"
+            if [ "$INPUT" = "all" ]; then
+              TARGETS="reset-credits reconcile-activity social-drafts daily-fortune keyday-push winback-push anomaly-check"
+            else
+              TARGETS="$INPUT"
+            fi
+          else
+            case "${{ github.event.schedule }}" in
+              "0 15 * * *")  TARGETS="reset-credits" ;;
+              "0 17 * * *")  TARGETS="reconcile-activity" ;;
+              "0 21 * * *")  TARGETS="social-drafts" ;;
+              "0 22 * * *")  TARGETS="daily-fortune" ;;
+              "10 22 * * *") TARGETS="keyday-push" ;;
+              "0 4 * * *")   TARGETS="winback-push" ;;
+              "0 * * * *")   TARGETS="anomaly-check" ;;
+              "0 0 * * *")   TARGETS="threads-tarot" ;;
+              "0 5 * * *")   TARGETS="threads-tarot" ;;
+              "0 10 * * *")  TARGETS="threads-tarot" ;;
+              *)             TARGETS="" ;;
+            esac
+          fi
+          echo "targets=$TARGETS" >> "$GITHUB_OUTPUT"
+          echo "Resolved targets: $TARGETS"
+
+      - name: Hit cron endpoints
+        env:
+          BASE_URL: ${{ secrets.PRODUCTION_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          TARGETS: ${{ steps.resolve.outputs.targets }}
+        run: |
+          set -u
+          if [ -z "${BASE_URL:-}" ]; then
+            echo "::error::PRODUCTION_URL secret is not set"; exit 1
+          fi
+          if [ -z "${CRON_SECRET:-}" ]; then
+            echo "::error::CRON_SECRET secret is not set"; exit 1
+          fi
+          if [ -z "${TARGETS:-}" ]; then
+            echo "::warning::No target resolved — nothing to do"; exit 0
+          fi
+
+          # 끝 슬래시 제거
+          BASE_URL="${BASE_URL%/}"
+          FAILED=""
+
+          hit() {
+            local name="$1"
+            local url="$BASE_URL/api/cron/$name"
+            local attempt=1
+            local max=3
+            local code body
+            while [ "$attempt" -le "$max" ]; do
+              # 본문과 상태코드를 함께 받음
+              body="$(curl -sS -m 120 -w $'\n%{http_code}' \
+                -H "Authorization: Bearer $CRON_SECRET" \
+                "$url" 2>/dev/null || true)"
+              code="${body##*$'\n'}"
+              body="${body%$'\n'*}"
+
+              if [ "$code" = "200" ]; then
+                echo "✅ $name → 200 $body"
+                return 0
+              fi
+
+              # 503 not_configured = 기능 env 미설정(예: VAPID). 워크플로우 잘못이
+              # 아니므로 경고만 남기고 실패로 치지 않는다.
+              if [ "$code" = "503" ]; then
+                echo "::warning::$name → 503 (not configured) $body"
+                return 0
+              fi
+
+              # 401 = 시크릿 불일치. 재시도해도 동일하므로 즉시 실패.
+              if [ "$code" = "401" ]; then
+                echo "::error::$name → 401 Unauthorized (CRON_SECRET mismatch)"
+                return 1
+              fi
+
+              echo "⚠️  $name → $code (attempt $attempt/$max) $body"
+              attempt=$((attempt + 1))
+              [ "$attempt" -le "$max" ] && sleep $((attempt * 3))
+            done
+            echo "::error::$name → failed after $max attempts (last code: $code)"
+            return 1
+          }
+
+          for t in $TARGETS; do
+            if ! hit "$t"; then
+              FAILED="$FAILED $t"
+            fi
+          done
+
+          if [ -n "$FAILED" ]; then
+            echo "::error::Failed targets:$FAILED"
+            exit 1
+          fi
+          echo "All targets completed."
