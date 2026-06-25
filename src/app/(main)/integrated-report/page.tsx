@@ -15,6 +15,7 @@ import BirthGate from '@/components/birth/BirthGate'
 import { getServerLocale } from '@/components/seo/SEO'
 import { cookies } from 'next/headers'
 import { fromZonedTime } from 'date-fns-tz'
+import { recordCounter } from '@/lib/metrics/index'
 
 export const dynamic = 'force-dynamic'
 
@@ -97,14 +98,19 @@ export default async function IntegratedReportPage({
   const data = natalToReportData(ctx, lang)
   const cross = buildCrossRows(ctx, lang)
 
+  // 퍼널 — 무료 통합 리포트 결과 노출(date 가 있어 실제 풀이가 렌더되는 경우만).
+  // 허브(funnel.free_hub.viewed) → 리포트 노출 → 상담사 CTA 클릭 으로 단계를 잇는다.
+  recordCounter('funnel.integrated_report.viewed', 1)
+
   return (
     <>
       <IntegratedReport data={data} cross={cross} lang={lang} />
       <CounselorCTA
         lang={lang}
+        funnelEvent="integrated_report.counselor_cta"
         question={{
-          ko: '제 사주·별자리 리포트를 더 깊이 풀어주세요.',
-          en: 'Walk me deeper through my saju and astrology report.',
+          ko: '지금 시기에 제 리포트가 어떻게 작동하는지, 무엇부터 하면 좋을지 짚어주세요.',
+          en: 'Show me how my report plays out in this season, and what to do first.',
         }}
       />
     </>

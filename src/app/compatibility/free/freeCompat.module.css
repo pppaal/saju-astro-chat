@@ -223,6 +223,21 @@
   color: #b3415f;
 }
 
+/* 출생시각 미상 안내 — 시주(時柱)·배우자성·점수가 추정임을 알린다 */
+.timeNote {
+  margin: 16px auto 0;
+  max-width: 34em;
+  padding: 10px 14px;
+  border-radius: var(--radius-md, 12px);
+  background: rgba(201, 168, 95, 0.12);
+  border: 1px solid rgba(201, 168, 95, 0.34);
+  text-align: center;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--ink-2);
+  word-break: keep-all;
+}
+
 /* ── 결과 ── */
 .resultHead {
   margin-top: 8px;
