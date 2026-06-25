@@ -297,14 +297,22 @@ describe('buildFreeCompatNarrative', () => {
     }
     const view = buildFreeCompatNarrative(r, { labelA: 'A', labelB: 'B', lang: 'ko' })
     const talk = view.themes.find((th) => th.id === 'talk')!
-    expect(talk.hook).toBe('말 척척 통하는 사이 — 대화가 안 끊겨.') // 끌림 우세 → pos 훅
+    // 끌림 우세 → pos 훅(원본 또는 커플 해시로 고른 대체 변형 중 하나)
+    expect([
+      '말 척척 통하는 사이 — 대화가 안 끊겨.',
+      '둘이 나누는 말이 빠르게 이어져 — 말의 끝을 맞춰가는 그런 사이.',
+    ]).toContain(talk.hook)
     // 점수 칩 — 0~100 숫자 + 차원 라벨
     expect(typeof talk.score).toBe('number')
     expect(talk.score!).toBeGreaterThanOrEqual(0)
     expect(talk.score!).toBeLessThanOrEqual(100)
     expect(talk.scoreCaption).toBe('소통')
     const friction = view.themes.find((th) => th.id === 'friction')!
-    expect(friction.hook).toBe('주로 자존심·주도권에서 부딪혀.') // 마찰만 → neg 훅
+    // 마찰만 → neg 훅(원본 또는 대체 변형)
+    expect([
+      '주로 자존심·주도권에서 부딪혀.',
+      '자존심이나 주도권 쪽에서 자꾸 충돌하는 경향이 있어.',
+    ]).toContain(friction.hook)
     expect(friction.scoreCaption).toBe('마찰')
     // 기계적 기하 꼬리("물 흐르듯…", "서로 각을 세워…")는 더 이상 안 붙는다
     const all = view.themes.flatMap((th) => th.paragraphs).join('\n')
