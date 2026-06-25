@@ -13,6 +13,7 @@ interface FunnelData {
   }
   paths: { path: string; visitors: number; views: number }[]
   sources: { source: string; visitors: number }[]
+  referral?: { signups: number; paid: number; pending: number; paidRate: number }
   unavailable?: boolean
 }
 
@@ -149,6 +150,40 @@ export default function FreeFunnelClient() {
               })}
             </div>
           </section>
+
+          {/* 레퍼럴 전환 */}
+          {data.referral && (
+            <section>
+              <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-stone-500">
+                레퍼럴 전환
+              </h2>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
+                  <span className="text-sm font-medium text-stone-700">레퍼럴 가입</span>
+                  <p className="mt-2 font-mono text-2xl font-semibold tabular-nums text-stone-900">
+                    {num(data.referral.signups)}
+                  </p>
+                  <p className="mt-1 text-xs text-stone-400">추천 링크로 가입한 신규</p>
+                </div>
+                <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
+                  <span className="text-sm font-medium text-stone-700">첫 결제 전환</span>
+                  <p className="mt-2 font-mono text-2xl font-semibold tabular-nums text-stone-900">
+                    {num(data.referral.paid)}
+                  </p>
+                  <p className="mt-1 text-xs text-stone-400">
+                    가입 대비 {data.referral.paidRate}% · 양쪽 크레딧 지급
+                  </p>
+                </div>
+                <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
+                  <span className="text-sm font-medium text-stone-700">대기 중</span>
+                  <p className="mt-2 font-mono text-2xl font-semibold tabular-nums text-stone-900">
+                    {num(data.referral.pending)}
+                  </p>
+                  <p className="mt-1 text-xs text-stone-400">가입했지만 아직 미결제(전체)</p>
+                </div>
+              </div>
+            </section>
+          )}
 
           {/* /free 유입 출처 */}
           <section>

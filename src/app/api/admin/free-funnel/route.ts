@@ -49,6 +49,29 @@ export const GET = withApiMiddleware(
       const { days } = parsed.data
       const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000)
 
+      // 레퍼럴 전환 — PageView 와 독립(영구 모델). 추천 링크로 가입(referrerId) →
+      // 친구 첫 결제로 보상 완료(ReferralReward.status='completed')가 진짜 전환.
+      const referral = await (async () => {
+        try {
+          const [signups, paid, pending] = await Promise.all([
+            prisma.user.count({
+              where: { referrerId: { not: null }, createdAt: { gte: since } },
+            }),
+            prisma.referralReward.count({
+              where: { status: 'completed', completedAt: { gte: since } },
+            }),
+            prisma.referralReward.count({ where: { status: 'pending' } }),
+          ])
+          const paidRate = signups > 0 ? Math.round((paid / signups) * 1000) / 10 : 0
+          return { signups, paid, pending, paidRate }
+        } catch (e) {
+          logger.warn('[admin/free-funnel] referral query failed', {
+            code: (e as { code?: string })?.code,
+          })
+          return { signups: 0, paid: 0, pending: 0, paidRate: 0 }
+        }
+      })()
+
       const toolList = Prisma.join(TOOLS)
       const counselorList = Prisma.join(COUNSELORS)
 
@@ -121,6 +144,7 @@ export const GET = withApiMiddleware(
             source: String(r.source),
             visitors: n(r.visitors),
           })),
+          referral,
         } as Record<string, unknown>)
       } catch (dbErr) {
         // PageView 테이블이 아직 없거나(신규 배포) 쿼리 실패 — 빈 값으로 폴백.
@@ -132,6 +156,7 @@ export const GET = withApiMiddleware(
           funnel: { hub: 0, tool: 0, counselor: 0, toolRate: 0, counselorRate: 0 },
           paths: [],
           sources: [],
+          referral,
           unavailable: true,
         } as Record<string, unknown>)
       }
