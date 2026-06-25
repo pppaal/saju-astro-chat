@@ -114,6 +114,20 @@
   color: var(--ink-2);
 }
 
+/* "콕 집는" 한 줄 — 살짝 강조해 소름 포인트를 만든다 */
+.edge {
+  margin: 12px auto 0;
+  max-width: 28em;
+  padding: 9px 16px;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.55;
+  color: var(--plum);
+  background: rgba(120, 70, 120, 0.07);
+  border: 1px solid var(--plum);
+  border-radius: 12px;
+}
+
 .outer {
   display: inline-flex;
   align-items: center;

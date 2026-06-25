@@ -68,9 +68,12 @@ export function ShareReportButton({ summary, name, dateLabel, isKo }: ShareRepor
         body: JSON.stringify({
           isKo,
           emoji: summary.emoji,
-          // 헤드라인에 강약 결(subtype)까지 실어 공유 미리보기도 30종으로 갈리게.
+          // 헤드라인에 강약 결(subtype)까지 실어 공유 미리보기도 차트별로 갈리게.
           typeName: summary.subtype ? `${summary.subtype} · ${summary.name}` : summary.name,
-          oneLiner: summary.oneLiner,
+          // 콕 집는 한 줄이 있으면 공유 미리보기에도 실어 소름 포인트를 보존.
+          oneLiner: summary.edgeLine
+            ? `${summary.oneLiner} 🔪 ${summary.edgeLine}`
+            : summary.oneLiner,
           resonant: summary.resonant?.slice(0, 3),
         }),
       })

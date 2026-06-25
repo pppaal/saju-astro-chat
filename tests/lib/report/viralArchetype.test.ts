@@ -75,12 +75,37 @@ describe('viralArchetype', () => {
     expect(buildViralSummary({ ...base, strength: 'strong' })!.subtype).toBe('주도형')
     expect(buildViralSummary({ ...base, strength: 'weak' })!.subtype).toBe('조율형')
     expect(buildViralSummary({ ...base, strength: null })!.subtype).toBe('균형형')
+    // 데이터 실제값은 한글('신강'/'신약') — 영문만 받으면 늘 균형형으로 새던 버그 가드
+    expect(buildViralSummary({ ...base, strength: '신강' })!.subtype).toBe('주도형')
+    expect(buildViralSummary({ ...base, strength: '신약' })!.subtype).toBe('조율형')
     expect(buildViralSummary({ ...base })!.subtype).toBe('균형형') // 미상 → 중화
-    // oneLiner 는 유형 기본 줄 + 강약 결 한 문장으로 길어진다
+    // 십성 미지정이면 일간 archetype oneLiner 로 폴백 + 강약 결
     const baseLine = getArchetype('甲')!.oneLiner.ko
     const strong = buildViralSummary({ ...base, strength: 'strong' })!
     expect(strong.oneLiner).toContain(baseLine)
     expect(strong.oneLiner.length).toBeGreaterThan(baseLine.length)
+    expect(strong.edgeLine).toBeNull() // 십성·tension 없으면 콕 집는 줄 없음
+  })
+
+  it('buildViralSummary — 지배 십성으로 헤드라인을 차트별로 합성한다', () => {
+    const base = { dayMaster: '甲', strengths: [], resonant: [], lang: 'ko' as const }
+    const a = buildViralSummary({ ...base, dominantSibsin: '상관', hasTension: true })!
+    const b = buildViralSummary({ ...base, dominantSibsin: '정재', hasTension: true })!
+    // 같은 일간(甲)인데 십성이 다르면 이름·한 줄·콕집는 줄이 모두 달라진다
+    expect(a.name).not.toBe(b.name)
+    expect(a.name).toContain('개척자') // 일간 역할 명사는 유지
+    expect(a.name).toContain('판을 뒤집는') // 십성 수식
+    expect(a.oneLiner).not.toBe(b.oneLiner)
+    expect(a.edgeLine).toBeTruthy()
+    expect(a.edgeLine).not.toBe(b.edgeLine)
+    // tension 없으면 콕 집는 줄은 숨긴다(억지 마찰 X)
+    expect(
+      buildViralSummary({ ...base, dominantSibsin: '상관', hasTension: false })!.edgeLine
+    ).toBeNull()
+    // 알 수 없는 십성은 archetype 폴백
+    expect(buildViralSummary({ ...base, dominantSibsin: 'XX', hasTension: true })!.name).toBe(
+      getArchetype('甲')!.name.ko
+    )
   })
 
   it('유형 매칭이 없으면 null (카드 자동 생략)', () => {

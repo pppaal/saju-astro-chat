@@ -185,6 +185,27 @@ export const ReportShareCard = React.forwardRef<HTMLDivElement, { data: ReportSh
             {summary.oneLiner}
           </div>
 
+          {/* 콕 집는 한 줄 */}
+          {summary.edgeLine && (
+            <div
+              style={{
+                marginTop: 24,
+                fontFamily: SERIF,
+                fontSize: 32,
+                fontWeight: 600,
+                lineHeight: 1.45,
+                color: GOLD_SOFT,
+                wordBreak: 'keep-all',
+                border: `2px solid ${GOLD_LINE}`,
+                borderRadius: 16,
+                padding: '14px 26px',
+                maxWidth: 820,
+              }}
+            >
+              🔪 {summary.edgeLine}
+            </div>
+          )}
+
           {/* hashtags */}
           {hashtags.length > 0 && (
             <div
