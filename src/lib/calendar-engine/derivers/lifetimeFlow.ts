@@ -1259,7 +1259,12 @@ export function deriveLifetimeFlow(
     // 없으면 위 단일 대운 favor 유지. 초년은 년주 억부 규칙 유지(곡선 유년기 감쇠로
     // 유아기는 어차피 mid 라 정보가 적다).
     if (!isChildhood) {
-      const cl = stageCurveLevel(lo, hi)
+      // 현재 계절은 "지금→끝" 구간으로 톤을 잡는다 — 20년 평균은 이미 지난 초반
+      // (저점)에 끌려가, 같은 "지금"이 인생계절=hard 인데 현재 대운/1년운=good 으로
+      // 갈리던 모순을 막는다. 과거/미래 계절은 구간 전체 평균 유지.
+      const isCurrentStage = currentAge >= lo && currentAge <= hi
+      const tLo = isCurrentStage ? Math.max(lo, Math.min(currentAge, hi - 4)) : lo
+      const cl = stageCurveLevel(tLo, hi)
       if (cl) toneFav = cl
     }
 
