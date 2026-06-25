@@ -115,6 +115,102 @@ function SecHead({ label, latin }: { label: string; latin: string }) {
   )
 }
 
+// ── 하루 시간 리듬 곡선 — 12시진을 가운데선 기준 *물결 그래프*로(막대 대신).
+//    위=좋음(쪽빛) / 아래=주의(주황). 대운/인생 곡선과 같은 결. SVG 내부 좌표라
+//    측정 JS 없이 SSR-safe. ──
+function HourGraph({
+  hours,
+  ko,
+}: {
+  hours: Array<{ when: string; whenEn: string; tone: string; strength: number }>
+  ko: boolean
+}) {
+  const n = hours.length
+  if (n < 2) return null
+  const W = 300
+  const H = 86
+  const padT = 8
+  const padB = 18
+  const padX = 8
+  const plotH = H - padT - padB
+  const midY = padT + plotH / 2
+  const amp = (plotH / 2) * 0.9
+  const signed = (h: { tone: string; strength: number }) => {
+    const s = Math.max(0.25, Math.min(1, h.strength / 2))
+    return h.tone === 'good' ? s : h.tone === 'caution' ? -s : 0
+  }
+  const X = (i: number) => padX + (i / (n - 1)) * (W - 2 * padX)
+  const Y = (h: { tone: string; strength: number }) => midY - signed(h) * amp
+  const pts = hours.map((h, i) => [X(i), Y(h)] as const)
+  let line = `M${pts[0][0].toFixed(1)},${pts[0][1].toFixed(1)}`
+  for (let i = 0; i < pts.length - 1; i++) {
+    const p0 = pts[i - 1] ?? pts[i]
+    const p1 = pts[i]
+    const p2 = pts[i + 1]
+    const p3 = pts[i + 2] ?? pts[i + 1]
+    const c1x = p1[0] + (p2[0] - p0[0]) / 6
+    const c1y = p1[1] + (p2[1] - p0[1]) / 6
+    const c2x = p2[0] - (p3[0] - p1[0]) / 6
+    const c2y = p2[1] - (p3[1] - p1[1]) / 6
+    line += ` C${c1x.toFixed(1)},${c1y.toFixed(1)} ${c2x.toFixed(1)},${c2y.toFixed(1)} ${p2[0].toFixed(1)},${p2[1].toFixed(1)}`
+  }
+  const dotColor = (t: string) =>
+    t === 'good' ? 'var(--indigo)' : t === 'caution' ? 'var(--sun)' : 'var(--line-2)'
+  return (
+    <svg
+      className={styles.hourGraph}
+      viewBox={`0 0 ${W} ${H}`}
+      preserveAspectRatio="xMidYMid meet"
+      role="img"
+      aria-label={ko ? '하루 시간 리듬 곡선' : "The day's rhythm curve"}
+    >
+      <line
+        x1={padX}
+        x2={W - padX}
+        y1={midY}
+        y2={midY}
+        stroke="var(--line-2)"
+        strokeWidth={0.8}
+        strokeDasharray="3 3"
+      />
+      <path
+        d={line}
+        fill="none"
+        stroke="var(--slate)"
+        strokeWidth={1.8}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      {hours.map((h, i) => (
+        <circle
+          key={i}
+          cx={X(i)}
+          cy={Y(h)}
+          r={2.6}
+          fill={dotColor(h.tone)}
+          stroke="#fff"
+          strokeWidth={1}
+        />
+      ))}
+      {hours.map((h, i) => {
+        const label = (ko ? h.when : h.whenEn).replace(/\s*\(.*\)/, '').trim()
+        return (
+          <text
+            key={`t-${i}`}
+            x={X(i)}
+            y={H - 5}
+            textAnchor="middle"
+            fontSize={6.5}
+            fill="var(--t2)"
+          >
+            {label}
+          </text>
+        )
+      })}
+    </svg>
+  )
+}
+
 // ── fold 전용 극성 칩(표면엔 ± 노출 X). ──
 function PolChip({ v }: { v: Polarity | number }) {
   const cls = v > 0 ? styles.polPos : v < 0 ? styles.polNeg : styles.polNeu
@@ -642,31 +738,12 @@ export function DayTier({ day, onRise, sex = '남' }: DayTierProps) {
           <section className={styles.sec}>
             <SecHead label={ko ? '하루 시간 리듬' : "The day's rhythm"} latin="Rhythm" />
             <div className={styles.rhythmNote}>
-              {ko ? '좋음 ↑ 쪽빛 · 주의 ↓ 주황' : 'good ↑ indigo · caution ↓ amber'}
+              {ko ? '가운데선 위 = 좋음 · 아래 = 주의' : 'above the line = good · below = caution'}
             </div>
             {rhythmCoherenceNote && (
               <div className={styles.rhythmNote}>{rhythmCoherenceNote}</div>
             )}
-            <div className={styles.rhythmRow}>
-              {hourSorted.map((h, i) => {
-                const up = h.tone === 'good'
-                const mag = Math.max(0.4, Math.min(1, h.strength / 2))
-                const label = ko ? h.when : h.whenEn
-                const time = label.replace(/\s*\(.*\)/, '').trim()
-                return (
-                  <div className={styles.rhythmCol} key={i} title={label}>
-                    <div className={styles.rhythmTrack}>
-                      <span className={styles.rhythmMid} />
-                      <span
-                        className={`${styles.rhythmBar} ${up ? styles.rhythmUp : styles.rhythmDn}`}
-                        style={{ height: `${mag * 50}%`, [up ? 'bottom' : 'top']: '50%' }}
-                      />
-                    </div>
-                    <span className={styles.rhythmTime}>{time}</span>
-                  </div>
-                )
-              })}
-            </div>
+            <HourGraph hours={hourSorted} ko={ko} />
           </section>
         )}
 
