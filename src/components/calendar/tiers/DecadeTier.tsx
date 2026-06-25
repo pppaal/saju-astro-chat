@@ -125,48 +125,140 @@ const OUTER_GLYPH: Record<string, string> = {
 }
 
 // ============================================================================
-// BigYearStrip — 이 10년 연도별 막대 띠. score(평탄 50) → 균일 막대. peak/now 강조.
+// BigYearGraph — 이 10년 연도별 *곡선 그래프*. 인생 곡선과 같은 결: 높이=점수,
+// 점 색=그 해 길흉(CALENDAR_BANDS), 파란 링/점선=지금, ✦=정점. 막대보다 흐름이
+// 한눈에 읽힌다. 라벨까지 SVG 내부 좌표라 측정 JS 없이 SSR-safe.
 // ============================================================================
 
-function BigYearStrip({
+function BigYearGraph({
   years,
   ko,
   peakYear,
+  ageFrom,
+  startYear,
 }: {
   years: Array<{ year: number; score: number; now?: boolean }>
   ko: boolean
   peakYear: number
+  ageFrom: number
+  startYear: number
 }) {
+  const n = years.length
+  if (n < 2) return null
+  const W = 300
+  const H = 112
+  const padT = 16
+  const padB = 26
+  const padX = 12
   const scores = years.map((y) => y.score)
-  const maxScore = Math.max(...scores, 1)
-  const minScore = Math.min(...scores, 0)
-  const range = Math.max(maxScore - minScore, 1)
+  const maxS = Math.max(...scores)
+  const minS = Math.min(...scores)
+  const range = Math.max(maxS - minS, 1)
+  const X = (i: number) => padX + (i / (n - 1)) * (W - 2 * padX)
+  const Y = (s: number) => padT + (1 - (s - minS) / range) * (H - padT - padB)
+  const pts = years.map((y, i) => [X(i), Y(y.score)] as const)
+  // 부드러운 곡선(catmull-rom → 베지어).
+  let line = `M${pts[0][0].toFixed(1)},${pts[0][1].toFixed(1)}`
+  for (let i = 0; i < pts.length - 1; i++) {
+    const p0 = pts[i - 1] ?? pts[i]
+    const p1 = pts[i]
+    const p2 = pts[i + 1]
+    const p3 = pts[i + 2] ?? pts[i + 1]
+    const c1x = p1[0] + (p2[0] - p0[0]) / 6
+    const c1y = p1[1] + (p2[1] - p0[1]) / 6
+    const c2x = p2[0] - (p3[0] - p1[0]) / 6
+    const c2y = p2[1] - (p3[1] - p1[1]) / 6
+    line += ` C${c1x.toFixed(1)},${c1y.toFixed(1)} ${c2x.toFixed(1)},${c2y.toFixed(1)} ${p2[0].toFixed(1)},${p2[1].toFixed(1)}`
+  }
+  const area = `${line} L${X(n - 1).toFixed(1)},${H - padB} L${X(0).toFixed(1)},${H - padB} Z`
+  const dotColor = (s: number) =>
+    s >= CALENDAR_BANDS.good
+      ? 'var(--gold)'
+      : s > 0 && s < CALENDAR_BANDS.caution
+        ? 'var(--crimson)'
+        : 'var(--line-2)'
+  const nowI = years.findIndex((y) => y.now)
+  const peakI = years.findIndex((y) => y.year === peakYear)
   return (
-    <div className={styles.strip}>
-      {years.map((y) => {
-        const norm = (y.score - minScore) / range
-        const barH = 18 + norm * 40
-        const peak = y.year === peakYear
-        const cls = [styles.byCell, y.now && styles.byCellNow, peak && styles.byCellPeak]
-          .filter(Boolean)
-          .join(' ')
-        // 색 = 그 해 점수 밴드(높이와 별개 축). 0점(미스코어)은 중립 회색.
-        const barCls = [
-          styles.byBar,
-          y.score >= CALENDAR_BANDS.good && styles.byBarGood,
-          y.score > 0 && y.score < CALENDAR_BANDS.caution && styles.byBarAvoid,
-        ]
-          .filter(Boolean)
-          .join(' ')
-        return (
-          <div key={y.year} className={cls} title={`${y.year}`}>
-            <div className={barCls} style={{ height: `${barH}px` }} />
-            <div className={styles.byYr}>{String(y.year).slice(2)}</div>
-            {y.now && <div className={styles.byNow}>{ko ? '지금' : 'now'}</div>}
-          </div>
-        )
-      })}
-    </div>
+    <svg
+      className={styles.yGraph}
+      viewBox={`0 0 ${W} ${H}`}
+      preserveAspectRatio="xMidYMid meet"
+      role="img"
+      aria-label={ko ? '대운 10년 흐름 그래프' : 'Decade flow graph'}
+    >
+      <defs>
+        <linearGradient id="dgGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="var(--gold)" stopOpacity="0.22" />
+          <stop offset="100%" stopColor="var(--gold)" stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <path d={area} fill="url(#dgGrad)" />
+      <path
+        d={line}
+        fill="none"
+        stroke="var(--gold)"
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      {nowI >= 0 && (
+        <line
+          x1={X(nowI)}
+          x2={X(nowI)}
+          y1={padT - 4}
+          y2={H - padB}
+          stroke="var(--blue)"
+          strokeWidth={1}
+          strokeDasharray="3 3"
+        />
+      )}
+      {years.map((y, i) => (
+        <circle
+          key={y.year}
+          cx={X(i)}
+          cy={Y(y.score)}
+          r={y.year === peakYear ? 3.6 : 3}
+          fill={dotColor(y.score)}
+          stroke="#fff"
+          strokeWidth={1.2}
+        />
+      ))}
+      {nowI >= 0 && (
+        <circle
+          cx={X(nowI)}
+          cy={Y(years[nowI].score)}
+          r={5.5}
+          fill="none"
+          stroke="var(--blue)"
+          strokeWidth={1.6}
+        />
+      )}
+      {peakI >= 0 && (
+        <text
+          x={X(peakI)}
+          y={Y(years[peakI].score) - 7}
+          textAnchor="middle"
+          fontSize={9}
+          fill="var(--gold-deep)"
+        >
+          ✦
+        </text>
+      )}
+      {years.map((y, i) => (
+        <text
+          key={`ax-${y.year}`}
+          x={X(i)}
+          y={H - 8}
+          textAnchor="middle"
+          fontSize={7.5}
+          fill={y.now ? 'var(--blue)' : 'var(--t2)'}
+          fontWeight={y.now ? 700 : 400}
+        >
+          {ageFrom + (y.year - startYear)}
+        </text>
+      ))}
+    </svg>
   )
 }
 
@@ -312,7 +404,13 @@ export function DecadeTier({ user, decade, onDive, onRise }: DecadeTierProps) {
               ? '막대가 높을수록 기운이 강한 해예요.'
               : 'The taller the bar, the stronger that year runs.'}
           </p>
-          <BigYearStrip years={years} ko={ko} peakYear={peakYear} />
+          <BigYearGraph
+            years={years}
+            ko={ko}
+            peakYear={peakYear}
+            ageFrom={decade.ageFrom}
+            startYear={decade.start}
+          />
           {/* 평탄 데이터 폴백 — 막대가 다 비슷할 때 "왜 다 같지?" 오해 방지. */}
           {flatScores && (
             <p className={styles.stripFlatNote}>

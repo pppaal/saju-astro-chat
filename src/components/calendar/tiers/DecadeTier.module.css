@@ -296,6 +296,12 @@
   background: var(--crimson-bg);
   border-color: var(--crimson-line);
 }
+/* 대운 10년 곡선 그래프 — 막대 대신. 점 색이 그 해 길흉. */
+.yGraph {
+  display: block;
+  width: 100%;
+  height: auto;
+}
 .byCellPeak .byBar {
   background: var(--gold-bg);
   border-color: var(--gold-line);
