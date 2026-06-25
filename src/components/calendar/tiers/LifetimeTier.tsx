@@ -37,6 +37,7 @@ import type {
 } from '@/types/calendar'
 import styles from './LifetimeTier.module.css'
 import { useI18n } from '@/i18n/I18nProvider'
+import ShareLifetimeButton from '@/components/calendar/ShareLifetimeButton'
 
 // ============================================================================
 // Props (계약 불변 — byte-for-byte 보존. 최상단 티어 → onRise/showRise 없음)
@@ -194,6 +195,38 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
     return pool.reduce((a, d) => a + bandForAge(d.startAge), 0) / pool.length
   }
   const stageNowIndex = lifeStages.findIndex((s) => s.now)
+
+  // ── "내 인생 그래프" 공유 데이터 — 곡선(0..100 다운샘플) + 전성기/후크.
+  //   생년월일·원국은 안 보낸다(숫자 곡선 + 요약 텍스트만). 곡선 없으면 null → 버튼 숨김.
+  const lifeShareData = (() => {
+    const pts = lifeCurve?.points
+    if (!pts || pts.length < 8) return null
+    const N = 32
+    const curveArr: number[] = []
+    for (let i = 0; i < N; i++) {
+      const idx = Math.round((i / (N - 1)) * (pts.length - 1))
+      curveArr.push(Math.max(0, Math.min(100, Math.round((pts[idx]?.value ?? 0) * 100))))
+    }
+    // 전성기 — 유년 거짓정점 배제(16세 이후) 최고값 점 나이의 ±4 윈도우.
+    const adult = pts.filter((p) => p.age >= 16)
+    const peak = (adult.length ? adult : pts).reduce((b, p) => (p.value > b.value ? p : b))
+    const lo = Math.max(0, peak.age - 4)
+    const hi = peak.age + 4
+    const peakLabel = ko ? `${lo}–${hi}세` : `ages ${lo}–${hi}`
+    const hook =
+      patternLine ||
+      (ko
+        ? '태어난 순간부터 지금까지, 그리고 앞으로의 내 흐름.'
+        : 'My flow from birth to now — and what comes next.')
+    return {
+      isKo: ko,
+      patternLabel: patternKo,
+      hook,
+      peakLabel,
+      curve: curveArr,
+      nowAge: Math.max(0, Math.round(lifeCurve?.nowAge ?? currentYear - birthYear)),
+    }
+  })()
 
   // ── 인생의 큰 마디 — 연도순.
   //   감사 #2: 제목은 평이 meaning 이 주인공. astro/간지 원명(明王星·甲戌)은
@@ -558,6 +591,12 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
               ? '대운·세운·충합(사주)과 외행성 트랜짓(점성)을 겹쳐 본 평생 흐름 — ● 마루 ● 골, 세로선이 지금.'
               : 'Saju cycles (daeun·year·clash) layered with outer-planet transits — ● peaks ● troughs, the line is now.'}
           </div>
+          {/* 내 인생 그래프 공유 — 정체성 강한 바이럴 자산(곡선 카드 OG 링크). */}
+          {lifeShareData && (
+            <div style={{ marginTop: 18, display: 'flex', justifyContent: 'center' }}>
+              <ShareLifetimeButton data={lifeShareData} />
+            </div>
+          )}
         </section>
       )}
 

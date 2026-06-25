@@ -8,7 +8,12 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { getShareLink, isCompatShare, isCalendarShare } from '@/lib/tarot/shareLink'
+import {
+  getShareLink,
+  isCompatShare,
+  isCalendarShare,
+  isLifetimeShare,
+} from '@/lib/tarot/shareLink'
 import { recordCounter } from '@/lib/metrics/index'
 
 export const dynamic = 'force-dynamic'
@@ -50,6 +55,19 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       robots: { index: false, follow: false },
       openGraph: { title: calTitle, description: calDesc, type: 'article' },
       twitter: { card: 'summary_large_image', title: calTitle, description: calDesc },
+    }
+  }
+  if (isLifetimeShare(reading)) {
+    const lifeTitle = isKo
+      ? `내 인생의 정점은 ${reading.peakLabel} — DestinyPal`
+      : `My peak years: ${reading.peakLabel} — DestinyPal`
+    const lifeDesc = (reading.hook || reading.patternLabel).slice(0, 160)
+    return {
+      title: lifeTitle,
+      description: lifeDesc,
+      robots: { index: false, follow: false },
+      openGraph: { title: lifeTitle, description: lifeDesc, type: 'article' },
+      twitter: { card: 'summary_large_image', title: lifeTitle, description: lifeDesc },
     }
   }
   const title = reading.keyMessage
@@ -329,6 +347,121 @@ export default async function SharedReadingPage({ params }: PageProps) {
               {isKo
                 ? '생년월일로 이달의 큰 날과 흐름을 무료로 확인할 수 있어요.'
                 : 'Find your key days and flow this month, free.'}
+            </p>
+          </div>
+        </div>
+      </main>
+    )
+  }
+
+  // 내 인생 그래프 공유 — 곡선(막대) + 전성기/후크가 주인공. 별도 레이아웃.
+  if (isLifetimeShare(reading)) {
+    recordCounter('lifetime.share.viewed', 1)
+    const curve = reading.curve.length ? reading.curve : [50]
+    const maxV = Math.max(...curve, 1)
+    const peakIdx = curve.indexOf(Math.max(...curve))
+    const nowIdx = Math.max(
+      0,
+      Math.min(curve.length - 1, Math.round((reading.nowAge / 85) * (curve.length - 1)))
+    )
+    return (
+      <main
+        style={{
+          minHeight: '100vh',
+          background:
+            'radial-gradient(900px 620px at 25% 8%, rgba(230,179,92,0.18), transparent 60%),' +
+            'radial-gradient(820px 700px at 85% 100%, rgba(127,176,224,0.12), transparent 60%),' +
+            'linear-gradient(160deg, #14110c 0%, #0b0906 60%, #100c07 100%)',
+          color: '#f4ecdc',
+        }}
+      >
+        <div style={{ maxWidth: 620, margin: '0 auto', padding: '40px 20px 96px', textAlign: 'center' }}>
+          <Link
+            href="/"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 10,
+              color: GOLD,
+              textDecoration: 'none',
+              fontWeight: 600,
+              letterSpacing: '0.04em',
+            }}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/logo/logo.png" alt="DestinyPal" width={30} height={30} style={{ borderRadius: 6 }} />
+            DestinyPal
+          </Link>
+
+          <p style={{ marginTop: 36, fontSize: 12, letterSpacing: '0.22em', textTransform: 'uppercase', color: '#d4b572' }}>
+            {isKo ? '내 인생 그래프' : 'MY LIFE CURVE'}
+          </p>
+          <h1
+            style={{
+              marginTop: 14,
+              fontSize: 28,
+              fontWeight: 800,
+              lineHeight: 1.35,
+              color: '#f0c873',
+              wordBreak: 'keep-all',
+              textShadow: '0 2px 24px rgba(230,179,92,0.18)',
+            }}
+          >
+            {isKo ? `내 인생의 정점은 ${reading.peakLabel}` : `My peak: ${reading.peakLabel}`}
+          </h1>
+
+          {/* 곡선 — 막대. 정점=밝은 금, 지금=블루. */}
+          <div style={{ marginTop: 28, display: 'flex', alignItems: 'flex-end', gap: 3, height: 150 }}>
+            {curve.map((v, i) => {
+              const h = Math.max(8, Math.round((v / maxV) * 140))
+              const isPeak = i === peakIdx
+              const isNow = i === nowIdx
+              return (
+                <div
+                  key={i}
+                  style={{
+                    flex: 1,
+                    height: h,
+                    borderRadius: 3,
+                    background: isNow ? '#7fb0e0' : isPeak ? '#f0c873' : '#7a5a25',
+                    opacity: isPeak || isNow ? 1 : 0.5 + (v / maxV) * 0.4,
+                  }}
+                />
+              )
+            })}
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6, fontSize: 11, color: '#7d745f' }}>
+            <span>{isKo ? '0세' : 'age 0'}</span>
+            <span>{isKo ? `지금 ${reading.nowAge}세` : `now ${reading.nowAge}`}</span>
+            <span>{isKo ? '85세' : '85'}</span>
+          </div>
+
+          {reading.hook ? (
+            <p style={{ marginTop: 26, fontSize: 17, lineHeight: 1.7, color: '#cabfa6', wordBreak: 'keep-all' }}>
+              {reading.hook}
+            </p>
+          ) : null}
+
+          <div style={{ marginTop: 44 }}>
+            <Link
+              href="/destiny"
+              style={{
+                display: 'inline-block',
+                padding: '15px 30px',
+                borderRadius: 999,
+                background: '#f0c873',
+                color: '#241a08',
+                fontWeight: 700,
+                textDecoration: 'none',
+                fontSize: 16,
+              }}
+            >
+              {isKo ? '나도 내 인생 그래프 보기 →' : 'See your life curve free →'}
+            </Link>
+            <p style={{ marginTop: 14, fontSize: 12, color: MUTED }}>
+              {isKo
+                ? '생년월일만 넣으면 태어날 때부터 지금까지 내 인생 곡선이 그려져요.'
+                : 'Just your birth date draws your whole life curve.'}
             </p>
           </div>
         </div>

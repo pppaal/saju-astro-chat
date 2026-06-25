@@ -16,8 +16,10 @@ import {
   createShareLink,
   getShareLink,
   siteBaseUrl,
+  isLifetimeShare,
   SHARE_TTL_SECONDS,
   type ShareLinkPayload,
+  type LifetimeShareLinkPayload,
 } from '@/lib/tarot/shareLink'
 
 const makePayload = (over: Partial<ShareLinkPayload> = {}): ShareLinkPayload => ({
@@ -142,6 +144,44 @@ describe('tarot shareLink', () => {
     it('끝 슬래시 없으면 그대로', () => {
       process.env.NEXT_PUBLIC_BASE_URL = 'https://x.io'
       expect(siteBaseUrl()).toBe('https://x.io')
+    })
+  })
+
+  describe('lifetime 공유 (내 인생 그래프)', () => {
+    const lifePayload: LifetimeShareLinkPayload = {
+      v: 1,
+      kind: 'lifetime',
+      isKo: true,
+      patternLabel: '내 인생 흐름',
+      hook: '흩어진 30대를 지나, 마흔 언저리에 판이 한 번 크게 열려요.',
+      peakLabel: '38–46세',
+      curve: [18, 22, 30, 42, 52, 64, 82, 80, 66, 58, 50, 44],
+      nowAge: 31,
+    }
+
+    it('cards 없이도 round-trip 으로 그대로 회수 (kind=lifetime)', async () => {
+      const store = new Map<string, unknown>()
+      mockCacheSet.mockImplementation(async (k: string, v: unknown) => {
+        store.set(k, v)
+        return true
+      })
+      mockCacheGet.mockImplementation(async (k: string) => store.get(k) ?? null)
+
+      const token = await createShareLink(lifePayload)
+      expect(token).toBeTruthy()
+      const fetched = await getShareLink(token as string)
+      expect(fetched).toEqual(lifePayload)
+      expect(fetched && isLifetimeShare(fetched)).toBe(true)
+    })
+
+    it('isLifetimeShare 가드는 다른 kind 를 거른다', () => {
+      expect(isLifetimeShare(lifePayload)).toBe(true)
+      expect(isLifetimeShare(makePayload())).toBe(false)
+    })
+
+    it('v !== 1 이면 getShareLink 가 null', async () => {
+      mockCacheGet.mockResolvedValue({ ...lifePayload, v: 2 })
+      expect(await getShareLink('tok')).toBeNull()
     })
   })
 

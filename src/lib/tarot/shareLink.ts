@@ -68,10 +68,27 @@ export interface CalendarShareLinkPayload {
   highlights?: string[]
 }
 
+export interface LifetimeShareLinkPayload {
+  v: 1
+  kind: 'lifetime'
+  isKo: boolean
+  /** 인생 패턴/제목 — eyebrow. 예: "내 인생 흐름". */
+  patternLabel: string
+  /** 한 줄 후크(공개 페이지/OG 주인공). */
+  hook: string
+  /** 전성기 라벨 — 예: "38–46세" / "ages 38–46". */
+  peakLabel: string
+  /** 인생 곡선(0..100, 다운샘플 ~32점) — OG 그래프 렌더용. 생일·원국은 안 보냄. */
+  curve: number[]
+  /** 현재 만 나이(곡선 위 '지금' 위치). */
+  nowAge: number
+}
+
 export type ShareLinkPayload =
   | TarotShareLinkPayload
   | CompatShareLinkPayload
   | CalendarShareLinkPayload
+  | LifetimeShareLinkPayload
 
 /** 타입 가드 — 공유 종류 분기(렌더/OG). 레거시(미지정)는 tarot. */
 export function isCompatShare(p: ShareLinkPayload): p is CompatShareLinkPayload {
@@ -80,6 +97,10 @@ export function isCompatShare(p: ShareLinkPayload): p is CompatShareLinkPayload 
 
 export function isCalendarShare(p: ShareLinkPayload): p is CalendarShareLinkPayload {
   return p.kind === 'calendar'
+}
+
+export function isLifetimeShare(p: ShareLinkPayload): p is LifetimeShareLinkPayload {
+  return p.kind === 'lifetime'
 }
 
 const shareKey = (token: string) => `tarot:share:${token}`
@@ -111,8 +132,13 @@ export async function getShareLink(token: string): Promise<ShareLinkPayload | nu
   try {
     const payload = await cacheGet<ShareLinkPayload>(shareKey(clean))
     if (!payload || payload.v !== 1) return null
-    // 궁합·캘린더 공유는 cards 가 없고, 타로(레거시 포함)는 cards 배열을 가진다.
-    if (payload.kind === 'compatibility' || payload.kind === 'calendar') return payload
+    // 궁합·캘린더·인생 공유는 cards 가 없고, 타로(레거시 포함)는 cards 배열을 가진다.
+    if (
+      payload.kind === 'compatibility' ||
+      payload.kind === 'calendar' ||
+      payload.kind === 'lifetime'
+    )
+      return payload
     if (!Array.isArray((payload as TarotShareLinkPayload).cards)) return null
     return payload
   } catch (error) {
