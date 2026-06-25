@@ -621,12 +621,12 @@ describe('deriveLifetimeFlow', () => {
       const child = r.phases[0]
       // good variant 중 하나 포함.
       const goodVariants = [
-        '흐름이 순해서',
-        '기운이 등 뒤에서',
-        '용신과 잘 맞아',
-        '하려는 방향과',
-        '주변의 도움이',
-        '타이밍이 받쳐줘',
+        '바람이 등을 밀어주어',
+        '물길이 트여',
+        '결이 맞아떨어져',
+        '햇볕이 고르게',
+        '인연과 도움이',
+        '때가 받쳐주어',
         '막힘이 적어',
       ]
       expect(goodVariants.some((v) => child.text.includes(v))).toBe(true)
@@ -639,13 +639,13 @@ describe('deriveLifetimeFlow', () => {
       const r = deriveLifetimeFlow(n)!
       const child = r.phases[0]
       const hardVariants = [
-        '쉽지 않은 고비',
-        '저항이 잦아',
-        '기신과 부딪히며',
         '바람을 안고',
-        '뜻대로 안 풀리는',
-        '부딪힘이 잦지만',
-        '서두르기보다',
+        '뜻대로 풀리지 않는',
+        '깎이고 부딪히는',
+        '길이 좁아지는',
+        '맞바람이 잦지만',
+        '쉽지 않은 고비',
+        '물때가 빠진',
       ]
       expect(hardVariants.some((v) => child.text.includes(v))).toBe(true)
     })
@@ -656,12 +656,12 @@ describe('deriveLifetimeFlow', () => {
       const r = deriveLifetimeFlow(n)!
       const child = r.phases[0]
       const goodVariants = [
-        '흐름이 순해서',
-        '기운이 등 뒤에서',
-        '용신과 잘 맞아',
-        '하려는 방향과',
-        '주변의 도움이',
-        '타이밍이 받쳐줘',
+        '바람이 등을 밀어주어',
+        '물길이 트여',
+        '결이 맞아떨어져',
+        '햇볕이 고르게',
+        '인연과 도움이',
+        '때가 받쳐주어',
         '막힘이 적어',
       ]
       expect(goodVariants.some((v) => child.text.includes(v))).toBe(true)
@@ -673,13 +673,13 @@ describe('deriveLifetimeFlow', () => {
       const r = deriveLifetimeFlow(n)!
       const child = r.phases[0]
       const hardVariants = [
-        '쉽지 않은 고비',
-        '저항이 잦아',
-        '기신과 부딪히며',
         '바람을 안고',
-        '뜻대로 안 풀리는',
-        '부딪힘이 잦지만',
-        '서두르기보다',
+        '뜻대로 풀리지 않는',
+        '깎이고 부딪히는',
+        '길이 좁아지는',
+        '맞바람이 잦지만',
+        '쉽지 않은 고비',
+        '물때가 빠진',
       ]
       expect(hardVariants.some((v) => child.text.includes(v))).toBe(true)
     })

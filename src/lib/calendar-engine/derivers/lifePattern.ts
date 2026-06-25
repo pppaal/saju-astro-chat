@@ -92,44 +92,44 @@ const PATTERN_KO: Record<LifePatternKey, { ko: string; en: string; line: string;
     'late-bloomer': {
       ko: '대기만성형',
       en: 'Late bloomer',
-      line: '젊을 때는 좀 고생해도, 나이가 들수록 점점 자리 잡고 후반에 잘 풀리는 편이에요.',
-      lineEn: 'A rougher start, but you settle more with each decade and things open up later in life.',
+      line: '처음엔 더디고 애써야 하지만, 해를 거듭할수록 자리를 잡아가요. 늦게 피어 오래가는, 뒤로 갈수록 환해지는 결이에요.',
+      lineEn: 'A slow, effortful start — but you find your ground as the years go on. Yours is a life that blooms late and lasts, brightening toward the end.',
     },
     'early-peak': {
       ko: '초년발복형',
       en: 'Early peak',
-      line: '젊을 때 빨리 자리 잡는 편이고, 나이 들수록 무리하기보다 지키는 게 나아요.',
-      lineEn: 'You find your footing early; later in life, holding steady beats overreaching.',
+      line: '이른 봄에 일찍 꽃을 피우는 결이에요. 한창때 멀리 나아가고, 뒤로는 넓히기보다 지켜낼 때 더 단단해져요.',
+      lineEn: 'You flower early, in the first warmth of the year. You travel far while the season is at its height; later, you grow steadier by keeping what you have rather than reaching for more.',
     },
     'midlife-peak': {
       ko: '중년절정형',
       en: 'Midlife peak',
-      line: '마흔~쉰 무렵에 가장 크게 풀려요. 그때 승부를 보면 좋아요.',
-      lineEn: 'Things open widest in your forties to fifties — a good window to make your move.',
+      line: '한낮에 해가 가장 높이 뜨듯, 인생의 한가운데서 가장 크게 펼쳐지는 결이에요. 그 길목에서 마음먹고 나아가면 멀리 닿아요.',
+      lineEn: 'Like the sun standing highest at noon, your life opens widest at its middle. Make your move at that crossing and it carries far.',
     },
     'steady-rise': {
       ko: '점진상승형',
       en: 'Steady rise',
-      line: '나이 들수록 조금씩 좋아지는 편이에요.',
-      lineEn: 'Things tend to get a little better with each decade.',
+      line: '서두르지 않아도 물이 차오르듯 한 해 한 해 나아져요. 조금씩, 그러나 멈추지 않고 높아지는 결이에요.',
+      lineEn: 'Without hurrying, you rise like water filling a basin, a little more each year — slow, but never still.',
     },
     smooth: {
       ko: '순탄형',
       en: 'Smooth path',
-      line: '큰 굴곡 없이 무난하게 흘러가는 편이에요.',
-      lineEn: 'Your life tends to flow without big swings.',
+      line: '큰 파도 없이 잔잔하게 흐르는 강 같은 결이에요. 굽이는 적어도, 멀리까지 고르게 닿아요.',
+      lineEn: 'Yours flows like a calm river with few rapids — gentle, even, and far-reaching.',
     },
     hard: {
       ko: '인고형',
       en: 'The long haul',
-      line: '전반적으로 쉽지 않아서, 버티면서 단단해지는 편이에요.',
-      lineEn: 'Not an easy road overall — you grow tougher by enduring.',
+      line: '쉬운 길은 아니에요. 바람을 안고 오래 걷는 동안, 버틴 만큼 단단해지는 결이에요.',
+      lineEn: 'Not an easy road. You walk a long way into the wind, and what you endure is what makes you unbreakable.',
     },
     undulating: {
       ko: '굴곡형',
       en: 'Ups and downs',
-      line: '좋을 때와 힘들 때가 번갈아 와요. 타이밍을 잘 보면 좋아요.',
-      lineEn: 'Good spells and hard spells alternate — read the timing well.',
+      line: '밀물과 썰물처럼 좋을 때와 힘든 때가 번갈아 와요. 물때를 읽을 줄 알면, 그 리듬이 오히려 힘이 돼요.',
+      lineEn: 'Like tides, bright spells and hard spells take turns. Learn to read the water, and the rhythm itself becomes your strength.',
     },
   }
 
@@ -356,19 +356,19 @@ function personalize(
     if (covering.favor <= 0) {
       if (!PEAK_WINDOW_KEYS.has(key)) return { line: baseLineKo, lineEn: baseLineEn }
       const tKo = past
-        ? `특히 ${whenKo}이 가장 무르익었던 때였어요.`
-        : `특히 ${whenKo}부터 가장 무르익어요.`
+        ? `특히 ${whenKo}, 가장 깊이 무르익었던 철이었어요.`
+        : `특히 ${whenKo}부터, 가장 깊이 무르익는 철이에요.`
       const tEn = past
-        ? `Your fullest stretch was ${whenEn}.`
-        : `Your fullest stretch comes ${whenEn} onward.`
+        ? `Your fullest ripening was ${whenEn}.`
+        : `Your fullest ripening comes ${whenEn} onward.`
       return { line: `${baseLineKo} ${tKo}`, lineEn: `${baseLineEn} ${tEn}` }
     }
     const detailKo = past
-      ? `특히 ${whenKo} ${CAT_KO[cat]} 쪽으로 가장 크게 힘이 실렸던 시기였어요.`
-      : `특히 ${whenKo}부터 ${CAT_KO[cat]} 쪽으로 가장 크게 힘을 실어줘요.`
+      ? `특히 ${whenKo}, ${CAT_KO[cat]} 쪽으로 가장 환하게 피어났던 때였어요.`
+      : `특히 ${whenKo}부터, ${CAT_KO[cat]} 쪽으로 가장 환하게 피어나요.`
     const detailEn = past
-      ? `Your strongest stretch was ${whenEn}, leaning toward ${CAT_EN[cat]}.`
-      : `Your strongest stretch is ${whenEn} onward, leaning toward ${CAT_EN[cat]}.`
+      ? `Your fullest bloom was ${whenEn}, turned toward ${CAT_EN[cat]}.`
+      : `Your fullest bloom comes ${whenEn} onward, turned toward ${CAT_EN[cat]}.`
     return { line: `${baseLineKo} ${detailKo}`, lineEn: `${baseLineEn} ${detailEn}` }
   }
 
@@ -438,8 +438,8 @@ function personalize(
 // 정점 시간 창을 단정하는 유형의 회고(past) 변형 — 그 창이 이미 지난 사람에게
 // 미래 지시 어조 대신 과거형으로(감사 BUG-6). 미정의 유형은 base.line 유지.
 const LINE_PAST_KO: Partial<Record<LifePatternKey, string>> = {
-  'midlife-peak': '마흔~쉰 무렵에 가장 크게 풀렸어요.',
+  'midlife-peak': '한낮의 해가 높이 떠오르듯, 인생의 한가운데서 가장 크게 펼쳐졌던 때예요.',
 }
 const LINE_PAST_EN: Partial<Record<LifePatternKey, string>> = {
-  'midlife-peak': 'Things opened widest in your forties to fifties.',
+  'midlife-peak': 'Like the noon sun at its height, your life opened widest at its middle.',
 }
