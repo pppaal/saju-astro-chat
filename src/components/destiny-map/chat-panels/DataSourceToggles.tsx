@@ -323,10 +323,13 @@ export const DataSourceToggles = React.memo(function DataSourceToggles({
             className={styles.infoButton}
             onClick={() => setInfoOpen(true)}
             aria-haspopup="dialog"
+            title={copy.trigger}
           >
             <span className={styles.infoIcon} aria-hidden="true">
               i
             </span>
+            {/* 텍스트는 화면엔 숨기고(아이콘만) 스크린리더·테스트용으로만 둠 —
+                칩 2개 + 안내가 한 줄에 다 들어가게 폭 절약(둘째 줄로 안 내려감). */}
             <span className={styles.infoLabel}>{copy.trigger}</span>
           </button>
           <DataSourceInfoModal copy={copy} open={infoOpen} onClose={() => setInfoOpen(false)} />
