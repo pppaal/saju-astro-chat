@@ -1,6 +1,8 @@
 import { describe, it, expect } from 'vitest'
 import { toMonth } from '@/components/calendar/adapters/toMonth'
 import { scoreToGrade } from '@/lib/calendar-engine/derivers/grade'
+import { scoreToBand } from '@/lib/calendar-engine/derivers/reconcile'
+import { CALENDAR_BANDS } from '@/lib/calendar-engine/derivers/constants'
 import type { CalendarCell } from '@/lib/calendar-engine/types'
 
 /**
@@ -15,11 +17,11 @@ import type { CalendarCell } from '@/lib/calendar-engine/types'
  *   (3) bestDay 는 실제 최고점수 날이고 mark 가 'best'
  */
 
-// toMonth 의 임계값(SSOT) — good≥60 / caution<35 / avoid<22, 그 사이는 무색.
+// 단일 밴드(CALENDAR_BANDS) — good≥60 / caution<40 / avoid<30, 그 사이는 무색.
 function bandOf(score: number): 'good' | 'caution' | 'avoid' | 'neutral' {
   if (score >= 60) return 'good'
-  if (score < 22) return 'avoid'
-  if (score < 35) return 'caution'
+  if (score < 30) return 'avoid'
+  if (score < 40) return 'caution'
   return 'neutral'
 }
 
@@ -124,5 +126,17 @@ describe('월 표면 단일 소스 (그리드 · 막대 · 카운트)', () => {
     expect(month.bestDay?.score).toBe(maxScore)
     const bestCell = calendar.find((c) => c.ds === month.bestDay?.date)
     expect(bestCell?.mark).toBe('best')
+  })
+
+  // 월 그리드(toMonth) ↔ 일 톤(reconcile.scoreToBand)이 같은 밴드(CALENDAR_BANDS)를
+  // 써서 어긋나지 않는지 — 같은 점수가 월·일에서 같은 길흉 방향이어야 한다.
+  it('월 mark 와 일 scoreToBand 가 같은 점수에서 같은 길흉 방향', () => {
+    for (let s = 0; s <= 100; s++) {
+      const monthVerdict =
+        s >= CALENDAR_BANDS.good ? 'good' : s >= CALENDAR_BANDS.caution ? 'neutral' : 'bad'
+      const dayBand = scoreToBand(s) // 'good' | 'mid' | 'low'
+      const dayVerdict = dayBand === 'good' ? 'good' : dayBand === 'mid' ? 'neutral' : 'bad'
+      expect(dayVerdict, `score ${s}: 월=${monthVerdict} ≠ 일=${dayVerdict}`).toBe(monthVerdict)
+    }
   })
 })
