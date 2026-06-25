@@ -19,7 +19,7 @@
 import type { NatalContext } from '../context/types'
 import { getSibsinKo } from '@/lib/saju/cycleRelations'
 import { SIGN_KO as SIGN_KO_SSOT } from '@/lib/astrology/signLabels'
-import { STEM_KO, BRANCH_KO } from '@/lib/saju/ganjiKo'
+import { STEM_KO, BRANCH_KO, ganjiToKorean, ganjiToRoman } from '@/lib/saju/ganjiKo'
 import { getStemElement } from '@/lib/saju/stemBranchUtils'
 import { getTwelveStage } from '@/lib/saju/shinsal'
 import { getJohuYongsin } from '@/lib/saju/johuYongsin'
@@ -432,47 +432,14 @@ const SIGN_EN: Record<string, string> = {
 
 // 천간/지지 한자 → 한글 음. 일반 사용자가 한자를 못 읽어 "丁丑 대운" 이 막막
 // 하다는 피드백(2026-06). 모든 간지 표기 시 옆에 한글 음을 병기한다.
-// 천간/지지 한자→한글 음은 정본(saju/ganjiKo) 의 STEM_KO/BRANCH_KO 직접 import.
-// Romanizations (pinyin-ish) for EN output — English readers can't read
-// 한글 음 either, so we romanize the Korean reading instead.
-const STEM_ROM: Record<string, string> = {
-  甲: 'gap',
-  乙: 'eul',
-  丙: 'byeong',
-  丁: 'jeong',
-  戊: 'mu',
-  己: 'gi',
-  庚: 'gyeong',
-  辛: 'sin',
-  壬: 'im',
-  癸: 'gye',
-}
-const BRANCH_ROM: Record<string, string> = {
-  子: 'ja',
-  丑: 'chuk',
-  寅: 'in',
-  卯: 'myo',
-  辰: 'jin',
-  巳: 'sa',
-  午: 'o',
-  未: 'mi',
-  申: 'sin',
-  酉: 'yu',
-  戌: 'sul',
-  亥: 'hae',
-}
+// 간지 표면 표기 — 한자→음 변환은 *전부* 정본(saju/ganjiKo) 한 곳을 거친다.
+// novice 표면 = 한글 음/로마자 음만(辛亥 같은 raw 한자는 expert/hover 전담).
+// 로컬 로마자 맵을 두지 않는다(중복은 drift 의 원천 — 중앙화).
 function ganjiKo(stem: string, branch: string): string {
-  const s = STEM_KO[stem] ?? ''
-  const b = BRANCH_KO[branch] ?? ''
-  // novice 표면 = 한글 음만(辛亥 같은 raw 한자는 노출 안 함 — 원명은 expert/hover 전담).
-  return s && b ? `${s}${b}` : `${stem}${branch}`
+  return ganjiToKorean(`${stem}${branch}`)
 }
 function ganjiEn(stem: string, branch: string): string {
-  const s = STEM_ROM[stem] ?? ''
-  const b = BRANCH_ROM[branch] ?? ''
-  // EN 도 한자 노출 금지 — 로마자 음만(첫 글자 대문자).
-  const r = `${s}${b}`
-  return r ? r.charAt(0).toUpperCase() + r.slice(1) : `${stem}${branch}`
+  return ganjiToRoman(stem, branch)
 }
 
 // 외행성 마디 kind → 짧은 한국어 라벨 (각 단계 카드에 짧게 박는 용도).

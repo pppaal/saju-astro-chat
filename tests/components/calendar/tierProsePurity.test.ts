@@ -101,6 +101,26 @@ describe('티어 표면 산문 무결성 (가드레일)', () => {
     expect(leaks, `표면 산문 누수 ${leaks.length}건:\n${report}`).toEqual([])
   }, 60_000)
 
+  it('핵심 EN 헤드라인 필드가 비어있지 않다 (현지화 누락 회귀 차단)', async () => {
+    // 년 티어가 headlineEn 를 안 넘겨 EN 모드에서 한국어로 폴백하던 버그처럼,
+    // "EN 필드 누락 → KO 폴백" 류는 표면 한글검사로는 안 잡힌다(폴백된 KO 는
+    // 정당한 KO 필드라). 항상 존재해야 하는 헤드라인의 비어있음을 직접 단언한다.
+    const missing: string[] = []
+    for (const [date, time, gender] of PROFILES) {
+      const t = await assembleFor(date, time, gender, 'en')
+      const lt = t.lifetime as { lifePattern?: { lineEn?: string } }
+      const checks: Array<[string, string | undefined]> = [
+        ['year.headlineEn', (t.year as { headlineEn?: string }).headlineEn],
+        ['decade.headlineEn', (t.decade as { headlineEn?: string }).headlineEn],
+        ['lifetime.lifePattern.lineEn', lt.lifePattern?.lineEn],
+      ]
+      for (const [name, val] of checks) {
+        if (!val || !val.trim()) missing.push(`${date}: ${name}`)
+      }
+    }
+    expect(missing, `비어있는 EN 헤드라인:\n  ${missing.join('\n  ')}`).toEqual([])
+  }, 60_000)
+
   it('가드레일 정규식이 한글을 한자로 오판하지 않는다 (mojibake 자기검증)', () => {
     // 리터럴 CJK 경계문자가 깨지면 한글까지 매칭한다 — 이 자기검증이 그걸 잡는다.
     expect(HANJA.test('월')).toBe(false)
