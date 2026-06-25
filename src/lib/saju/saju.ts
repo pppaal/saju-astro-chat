@@ -30,6 +30,7 @@ import { annualStemBranch, sajuMonthStemBranch } from './cycles'
 import { SAJU_CACHE, CACHE_KEY } from '@/lib/constants/cache'
 import { currentManAge } from '@/lib/datetime/currentAge'
 import { daysToDaeunAge } from '@/lib/saju/daeunAge'
+import { normalizeTimeZone } from '@/lib/datetime/timezone'
 import { solarTimeCorrectionMinutes } from './timezone'
 // 십신 / 정기 매핑은 core 모듈이 single source.
 import { getBranchMainStem, getSibseong } from './core/sibsin'
@@ -244,6 +245,10 @@ export function calculateSajuData(
   // 기본값은 호출 시점이라 프로덕션 동작은 그대로, 테스트는 now 를 고정해 검증한다.
   now: Date = new Date()
 ): CalculateSajuDataResult {
+  // 잘못된 IANA 타임존(빈 문자열·레거시·손상 프로필 값)이 들어오면 아래
+  // Intl.DateTimeFormat 이 RangeError 로 throw → 사주를 쓰는 모든 서비스가
+  // 한꺼번에 죽는다. 유효하지 않으면 기본값으로 떨궈 계산은 진행되게 한다.
+  timezone = normalizeTimeZone(timezone)
   // 캐시 키에 now 의 출생지-로컬 날짜를 섞는다 — 날짜에 따라 달라지는 대운/세운/
   // 월운이 어제 캐시로 오늘 stale 하게 나오지 않게, 그리고 테스트가 now 를 바꾸면
   // 키도 바뀌어 캐시 간섭 없이 결정론적이게 한다.
