@@ -165,3 +165,30 @@ export function plainReason(text: string | undefined, ko: boolean): string {
   }
   return t.replace(/\s{2,}/g, ' ').trim()
 }
+
+// 사주·점성 전문용어 토큰 — 이게 들어있으면 novice 표면(일 '지금 일어나는 일'
+// 리스트)에 부적합. 사유는 *drop-on-doubt*: plain 으로 못 바꾸면 차라리 뺀다
+// (교차 meaning 등 이미 쉬운 사유가 남으므로 리스트가 비지 않는다).
+const REASON_JARGON =
+  /오행|통근|암합|암충|공망|득령|득세|조후|격국|용신|월령|월지|지장간|일간|일주|천간|지지|신약|신강|삼합|육합|형충|상관견관|식신제살|관인상생|재생관|관살혼잡|비겁탈재|효식|견관|제살|상생|편관|정관|편재|정재|편인|정인|비견|겁재|식신|상관|재성|관성|인성|비겁|이탈·결여|허·이탈/
+
+function hasHanjaCodepoint(s: string): boolean {
+  for (const ch of s) {
+    const c = ch.codePointAt(0) ?? 0
+    if ((c >= 0x3400 && c <= 0x4dbf) || (c >= 0x4e00 && c <= 0x9fff) || (c >= 0xf900 && c <= 0xfaff))
+      return true
+  }
+  return false
+}
+
+/**
+ * novice 표면에 내보내기 안전한(쉬운말) 사유인가 — raw 한자도, 사주/점성 전문어도
+ * 없어야 true. 일 카드 '지금 일어나는 일'·'조심할 것' 리스트가 이걸로 거른다.
+ */
+export function isPlainReason(text: string | undefined): boolean {
+  const t = (text ?? '').trim()
+  if (!t) return false
+  if (hasHanjaCodepoint(t)) return false
+  if (REASON_JARGON.test(t)) return false
+  return true
+}

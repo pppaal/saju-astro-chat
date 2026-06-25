@@ -22,6 +22,7 @@ import {
   sibsinAreaEn,
   planetPlain,
   plainReason,
+  isPlainReason,
   twelveStagePlain,
 } from '@/lib/calendar-engine/derivers/plainLanguage'
 import { deriveDayDomains } from '@/lib/calendar-engine/derivers/dayDomains'
@@ -180,13 +181,24 @@ export function DayTier({ day, onRise, sex = '남' }: DayTierProps) {
       : (strongestCross.meaningEn ?? strongestCross.meaning)
     : ''
 
+  // 사유는 쉬운말만 — 전문용어(통근·공망·상관견관·한자…)는 drop-on-doubt 로 뺀다.
+  // 교차 meaning 은 이미 plain 이라 항상 합류 → 리스트가 비지 않는다. 전문 사유는
+  // '자세한 신호' 폴드에서 따로 본다.
+  const plainHappening = dayReasons
+    .map((r) => plainReason(stripMarker(r), ko))
+    .filter(isPlainReason)
+    .map((r) => localizeLabel(r, ko))
   const happeningLines = [
-    ...dayReasons.slice(0, 2).map((r) => localizeLabel(plainReason(stripMarker(r), ko), ko)),
-    ...(strongestCrossMeaning ? [localizeLabel(plainReason(strongestCrossMeaning, ko), ko)] : []),
+    ...plainHappening.slice(0, 2),
+    ...(strongestCrossMeaning && isPlainReason(strongestCrossMeaning)
+      ? [localizeLabel(plainReason(strongestCrossMeaning, ko), ko)]
+      : []),
   ].slice(0, 3)
   const cautionLines = dayCautions
+    .map((c) => plainReason(stripMarker(c), ko))
+    .filter(isPlainReason)
     .slice(0, 2)
-    .map((c) => localizeLabel(plainReason(stripMarker(c), ko), ko))
+    .map((c) => localizeLabel(c, ko))
 
   // ── novice hero: 톤 워드는 결론(oneLine)과 어긋나지 않게, 중립이면 '기복 있는 날'. ──
   const novTone = day.dayTone?.tone
