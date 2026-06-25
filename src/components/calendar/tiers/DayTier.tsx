@@ -590,55 +590,6 @@ export function DayTier({ day, onRise, sex = '남' }: DayTierProps) {
             : 'In plain terms: where your Saju energy and the star flows meet today, and when it peaks.'}
         </p>
 
-        {/* ── S7 사주 × 별자리 교차 (▲/▼) ── */}
-        {crossCards.length > 0 && (
-          <section className={styles.sec}>
-            <SecHead label={ko ? '사주 × 별자리 교차' : 'Saju × Astrology'} latin="Crossings" />
-            <div className={styles.crossLegend}>
-              <span className={styles.clUp}>▲ {ko ? '도움이 되는 흐름' : 'Supporting flow'}</span>
-              <span className={styles.clDn}>▼ {ko ? '부딪히는 흐름' : 'Clashing flow'}</span>
-            </div>
-            {crossCards.map((c, i) => {
-              const isHero = heroCross != null && c === heroCross && Math.abs(c.polarity) >= 2
-              const poleSym = c.polarity > 0 ? '▲' : c.polarity < 0 ? '▼' : '·'
-              const poleCls = c.polarity > 0 ? styles.poleUp : c.polarity < 0 ? styles.poleDn : ''
-              const sajuName = c.sajuKo ?? c.sajuSide
-              const astroName = c.astroKo ?? c.astroSide
-              const head = ko
-                ? `${sibsinArea(sajuName)} × ${planetPlain(astroName, true)}`
-                : `${sibsinAreaEn(sajuName)} × ${planetPlain(astroName, false)}`
-              const body = ko ? c.meaning : (c.meaningEn ?? c.meaning)
-              return (
-                <div
-                  className={`${styles.cross} ${isHero ? styles.crossHero : ''}`.trim()}
-                  key={c.id ?? i}
-                >
-                  <div className={styles.crossTop}>
-                    <span className={`${styles.pole} ${poleCls}`.trim()} aria-hidden>
-                      {poleSym}
-                    </span>
-                    <span className={`${styles.term} ${styles.termSaju}`}>
-                      <span className={styles.termSys}>Saju</span>
-                      <span className={styles.termNm}>{sajuName}</span>
-                    </span>
-                    <span className={styles.crossX} aria-hidden>
-                      ×
-                    </span>
-                    <span className={`${styles.term} ${styles.termAstro}`}>
-                      <span className={styles.termSys}>Astro</span>
-                      <span className={styles.termNm}>{astroName}</span>
-                    </span>
-                    {isHero && (
-                      <span className={styles.crossFlag}>{ko ? '가장 센 흐름' : 'Strongest'}</span>
-                    )}
-                  </div>
-                  <div className={styles.crossHead}>{head}</div>
-                  {body && <div className={styles.crossBody}>{body}</div>}
-                </div>
-              )
-            })}
-          </section>
-        )}
 
         {/* ── S8 타이밍 ── */}
         {(hasFlow || upcoming.length > 0) && (
@@ -827,28 +778,60 @@ export function DayTier({ day, onRise, sex = '남' }: DayTierProps) {
               </div>
             )}
 
-            {/* 시간대 하늘 */}
-            {hourSorted.length > 0 && (
+            {/* 겹치는 흐름 (사주×별자리 교차) — 표면 S7 에서 fold 로 이동.
+                ④'지금 일어나는 일'이 핵심 교차를 이미 보여줘 표면 중복이라,
+                상세 ▲/▼ 목록은 여기 '자세한 신호'에서 본다.
+                (시간대 하늘은 ⑨ 하루 리듬과 같은 시간축이라 제거.) */}
+            {crossCards.length > 0 && (
               <div className={styles.foldBlock}>
-                <div className={styles.foldLabel}>{ko ? '시간대 하늘' : 'Sky by hour'}</div>
-                <div className={styles.skyList}>
-                  {hourSorted.map((h, i) => {
-                    const label = ko ? h.when : h.whenEn
-                    const time = label.replace(/\s*\(.*\)/, '').trim()
-                    const sign = ko ? h.risingSignKo : h.risingSignEn
-                    const ruler = ko ? h.ruler : h.rulerEn
-                    if (!sign) return null
-                    return (
-                      <div className={styles.skyRow} key={i}>
-                        <span className={styles.skyWhen}>{time}</span>
-                        <span className={styles.skyBody}>
-                          {sign} {ko ? '상승' : 'rising'}
-                          {ruler ? (ko ? ` · 지배성 ${ruler}` : ` · ruler ${ruler}`) : ''}
-                        </span>
-                      </div>
-                    )
-                  })}
+                <div className={styles.foldLabel}>
+                  {ko ? '겹치는 흐름 · 사주 × 별자리' : 'Crossings · Saju × Astro'}
                 </div>
+                <div className={styles.crossLegend}>
+                  <span className={styles.clUp}>▲ {ko ? '도움이 되는 흐름' : 'Supporting flow'}</span>
+                  <span className={styles.clDn}>▼ {ko ? '부딪히는 흐름' : 'Clashing flow'}</span>
+                </div>
+                {crossCards.map((c, i) => {
+                  const isHero = heroCross != null && c === heroCross && Math.abs(c.polarity) >= 2
+                  const poleSym = c.polarity > 0 ? '▲' : c.polarity < 0 ? '▼' : '·'
+                  const poleCls = c.polarity > 0 ? styles.poleUp : c.polarity < 0 ? styles.poleDn : ''
+                  const sajuName = c.sajuKo ?? c.sajuSide
+                  const astroName = c.astroKo ?? c.astroSide
+                  const head = ko
+                    ? `${sibsinArea(sajuName)} × ${planetPlain(astroName, true)}`
+                    : `${sibsinAreaEn(sajuName)} × ${planetPlain(astroName, false)}`
+                  const body = ko ? c.meaning : (c.meaningEn ?? c.meaning)
+                  return (
+                    <div
+                      className={`${styles.cross} ${isHero ? styles.crossHero : ''}`.trim()}
+                      key={c.id ?? i}
+                    >
+                      <div className={styles.crossTop}>
+                        <span className={`${styles.pole} ${poleCls}`.trim()} aria-hidden>
+                          {poleSym}
+                        </span>
+                        <span className={`${styles.term} ${styles.termSaju}`}>
+                          <span className={styles.termSys}>Saju</span>
+                          <span className={styles.termNm}>{sajuName}</span>
+                        </span>
+                        <span className={styles.crossX} aria-hidden>
+                          ×
+                        </span>
+                        <span className={`${styles.term} ${styles.termAstro}`}>
+                          <span className={styles.termSys}>Astro</span>
+                          <span className={styles.termNm}>{astroName}</span>
+                        </span>
+                        {isHero && (
+                          <span className={styles.crossFlag}>
+                            {ko ? '가장 센 흐름' : 'Strongest'}
+                          </span>
+                        )}
+                      </div>
+                      <div className={styles.crossHead}>{head}</div>
+                      {body && <div className={styles.crossBody}>{body}</div>}
+                    </div>
+                  )
+                })}
               </div>
             )}
           </div>
