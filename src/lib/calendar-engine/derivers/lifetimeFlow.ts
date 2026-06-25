@@ -464,12 +464,15 @@ const BRANCH_ROM: Record<string, string> = {
 function ganjiKo(stem: string, branch: string): string {
   const s = STEM_KO[stem] ?? ''
   const b = BRANCH_KO[branch] ?? ''
-  return s && b ? `${stem}${branch}(${s}${b})` : `${stem}${branch}`
+  // novice 표면 = 한글 음만(辛亥 같은 raw 한자는 노출 안 함 — 원명은 expert/hover 전담).
+  return s && b ? `${s}${b}` : `${stem}${branch}`
 }
 function ganjiEn(stem: string, branch: string): string {
   const s = STEM_ROM[stem] ?? ''
   const b = BRANCH_ROM[branch] ?? ''
-  return s && b ? `${stem}${branch} (${s}${b})` : `${stem}${branch}`
+  // EN 도 한자 노출 금지 — 로마자 음만(첫 글자 대문자).
+  const r = `${s}${b}`
+  return r ? r.charAt(0).toUpperCase() + r.slice(1) : `${stem}${branch}`
 }
 
 // 외행성 마디 kind → 짧은 한국어 라벨 (각 단계 카드에 짧게 박는 용도).

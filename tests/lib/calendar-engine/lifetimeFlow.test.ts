@@ -162,12 +162,13 @@ describe('deriveLifetimeFlow', () => {
       expect(young.text).not.toContain('편재(재성)')
     })
 
-    it('daeunLine 은 단계에 걸친 대운들을 화살표로 연결 (간지+한글음+연도)', () => {
-      // 초년 0~19: startAge+10>0 && startAge<=19 → 丁丑(5), 丙子(15).
+    it('daeunLine 은 단계에 걸친 대운들을 화살표로 연결 (한글음+연도, raw 한자 없음)', () => {
+      // 초년 0~19: startAge+10>0 && startAge<=19 → 丁丑(5), 丙子(15). novice 표면이라 한글 음만.
       const child = out.phases[0]
-      expect(child.daeunLine).toContain('丁丑(정축) 대운 1995-2005')
-      expect(child.daeunLine).toContain('丙子(병자) 대운 2005-2015')
+      expect(child.daeunLine).toContain('정축 대운 1995-2005')
+      expect(child.daeunLine).toContain('병자 대운 2005-2015')
       expect(child.daeunLine).toContain('→')
+      expect(child.daeunLine).not.toMatch(/[㐀-鿿]/) // raw 간지 한자 누수 금지
     })
 
     it('단계 대운이 3개 초과면 "→…" 로 압축', () => {
@@ -562,10 +563,11 @@ describe('deriveLifetimeFlow', () => {
       expect(out.phases[0].ageRange).toBe('age 0-19 · 1990-2009')
     })
 
-    it('영문 daeunLine — romanization + "daeun"', () => {
+    it('영문 daeunLine — romanization + "daeun" (raw 한자 없음)', () => {
       const child = out.phases[0]
       expect(child.daeunLine).toContain('daeun')
-      expect(child.daeunLine).toContain('(jeong')
+      expect(child.daeunLine).toContain('Jeongchuk') // 로마자 음(첫 글자 대문자)
+      expect(child.daeunLine).not.toMatch(/[㐀-鿿]/)
     })
 
     it('영문 본문 — 평이 영문(한글 없음, raw 십신 라벨 노출 없음)', () => {

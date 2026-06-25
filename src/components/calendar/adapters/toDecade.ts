@@ -299,33 +299,25 @@ function buildDecadeHapchung(natal: NatalContext, decadeBranch: string): Destiny
       // 위치 framing 접두 + relations-pairs DB 의 풍부한 평이 의미(있으면). DB 미스 → 생성 템플릿.
       const richKo = lookupRelationMeaning('지지충', nb, db, 'ko')
       const richEn = lookupRelationMeaning('지지충', nb, db, 'en')
-      const preKo = `본명 ${pos}지 ${nb}(${ko(nb)}) × 대운 ${db}(${ko(db)}) → ${nb}${db}충 — `
-      const preEn = `Natal ${posEn} branch ${nb} (${rom(nb)}) × decade ${db} (${rom(db)}) → ${nb}${db} clash — `
+      const preKo = `본명 ${pos}지 ${ko(nb)} × 대운 ${ko(db)} → ${ko(nb)}${ko(db)}충 — `
+      const preEn = `Natal ${posEn} branch ${rom(nb)} × decade ${rom(db)} → ${rom(nb)}–${rom(db)} clash — `
       hits.push({
-        title: `${nb}${db}충`,
+        title: `${ko(nb)}${ko(db)}충`,
         titleEn: `${rom(nb)}–${rom(db)} clash`,
-        body: richKo
-          ? `${preKo}${richKo.meaning}${richKo.result ? ` (${richKo.result})` : ''}`
-          : `${preKo}이 영역에 변동·이동 압력이 실려요.`,
-        bodyEn: richEn
-          ? `${preEn}${richEn.meaning}${richEn.result ? ` (${richEn.result})` : ''}`
-          : `${preEn}this area carries pressure to shift and move.`,
+        body: richKo ? `${preKo}${richKo.meaning}` : `${preKo}이 영역에 변동·이동 압력이 실려요.`,
+        bodyEn: richEn ? `${preEn}${richEn.meaning}` : `${preEn}this area carries pressure to shift and move.`,
       })
     } else if (YUKHAP[db] === nb) {
       // 위치 framing 접두 + relations-pairs DB 의 풍부한 평이 의미(있으면). DB 미스 → 생성 템플릿.
       const richKo = lookupRelationMeaning('지지육합', nb, db, 'ko')
       const richEn = lookupRelationMeaning('지지육합', nb, db, 'en')
-      const preKo = `본명 ${pos}지 ${nb}(${ko(nb)}) × 대운 ${db}(${ko(db)}) → ${nb}${db}육합 — `
-      const preEn = `Natal ${posEn} branch ${nb} (${rom(nb)}) × decade ${db} (${rom(db)}) → ${nb}${db} harmony — `
+      const preKo = `본명 ${pos}지 ${ko(nb)} × 대운 ${ko(db)} → ${ko(nb)}${ko(db)}육합 — `
+      const preEn = `Natal ${posEn} branch ${rom(nb)} × decade ${rom(db)} → ${rom(nb)}–${rom(db)} harmony — `
       hits.push({
-        title: `${nb}${db}육합`,
+        title: `${ko(nb)}${ko(db)}육합`,
         titleEn: `${rom(nb)}–${rom(db)} harmony`,
-        body: richKo
-          ? `${preKo}${richKo.meaning}${richKo.result ? ` (${richKo.result})` : ''}`
-          : `${preKo}환경이 손발을 맞춰줘요.`,
-        bodyEn: richEn
-          ? `${preEn}${richEn.meaning}${richEn.result ? ` (${richEn.result})` : ''}`
-          : `${preEn}your surroundings fall into step with you.`,
+        body: richKo ? `${preKo}${richKo.meaning}` : `${preKo}환경이 손발을 맞춰줘요.`,
+        bodyEn: richEn ? `${preEn}${richEn.meaning}` : `${preEn}your surroundings fall into step with you.`,
       })
     }
   }
@@ -333,8 +325,8 @@ function buildDecadeHapchung(natal: NatalContext, decadeBranch: string): Destiny
     return {
       title: '—',
       titleEn: '—',
-      body: `본명 지지와 대운 ${db}(${ko(db)}) 사이 뚜렷한 충·합은 없어요 — 무난히 흘러가요.`,
-      bodyEn: `No clear clash or harmony between your natal branches and the decade ${db} (${rom(db)}) — it flows along smoothly.`,
+      body: `본명 지지와 대운 ${ko(db)} 사이 뚜렷한 충·합은 없어요 — 무난히 흘러가요.`,
+      bodyEn: `No clear clash or harmony between your natal branches and the decade ${rom(db)} — it flows along smoothly.`,
     }
   }
   // 가장 가까운(일/시지) 관계를 title 로, 나머지는 본문에 이어 붙임.
@@ -382,12 +374,12 @@ function buildDecadeUnseong(dm: string, decadeBranch: string): DestinypalDecadeR
     // 단계명(stage)은 한글 — EN 로케일엔 영문 라벨('Peak' 등)을 쓴다(한글 누수 방지).
     titleEn: en?.label ?? stage,
     body: desc
-      ? `대운 자리(${decadeBranch}·${ko})는 ${stage} — ${desc}`
-      : `대운 자리(${decadeBranch}·${ko})는 ${stage}예요.`,
+      ? `대운 자리(${ko})는 ${stage} — ${desc}`
+      : `대운 자리(${ko})는 ${stage}예요.`,
     // 단계명(stage)은 한글이라 EN 본문엔 영문 라벨만 쓴다(한글 누수 방지).
     bodyEn: en
-      ? `The decade seat (${decadeBranch}·${rom}) sits at the ${en.label} stage — ${en.desc}.`
-      : `The decade seat (${decadeBranch}·${rom}) sits at this twelve-stage phase.`,
+      ? `The decade seat (${rom}) sits at the ${en.label} stage — ${en.desc}.`
+      : `The decade seat (${rom}) sits at this twelve-stage phase.`,
   }
 }
 
