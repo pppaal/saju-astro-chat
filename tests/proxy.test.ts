@@ -109,38 +109,70 @@ describe('proxy — non-API requests', () => {
     expect(csp).toContain('script-src')
     expect(csp).toContain('nonce-')
     expect(res.headers.get('Content-Language')).toBe('ko')
-    expect(res.headers.get('Vary')).toBe('Cookie, Accept-Language')
+    expect(res.headers.get('Vary')).toBe('Cookie, Accept-Language, X-Vercel-IP-Country')
   })
 
-  it('Accept-Language 기반 로케일을 첫 방문 시 쿠키로 저장한다', () => {
-    const res = proxy(
-      req('/', { headers: { accept: 'text/html', 'accept-language': 'ko-KR,ko;q=0.9' } })
-    )
-    const cookie = res.cookies.get('locale')
-    expect(cookie?.value).toBe('ko')
-  })
-
-  it('지원하지 않는 Accept-Language 는 기본 로케일(en)로 폴백', () => {
-    const res = proxy(
-      req('/', { headers: { accept: 'text/html', 'accept-language': 'fr-FR,fr;q=0.9' } })
-    )
-    expect(res.headers.get('Content-Language')).toBe('en')
-  })
-
-  it('Accept-Language 헤더가 없으면 기본 로케일(en)', () => {
-    const res = proxy(req('/', { headers: { accept: 'text/html' } }))
-    expect(res.headers.get('Content-Language')).toBe('en')
-  })
-
-  it('locale 쿠키가 이미 있으면 그 값을 쓰고 쿠키를 다시 굽지 않는다', () => {
+  it('자동 감지(geo/Accept-Language)값은 쿠키로 굽지 않는다 — 위치 변화에 매번 재평가', () => {
     const res = proxy(
       req('/', {
-        headers: { accept: 'text/html', 'accept-language': 'en-US' },
+        headers: {
+          accept: 'text/html',
+          'accept-language': 'ko-KR,ko;q=0.9',
+          'x-vercel-ip-country': 'KR',
+        },
+      })
+    )
+    expect(res.cookies.get('locale')).toBeUndefined()
+  })
+
+  it('접속 국가가 한국(KR)이면 한국어 — 브라우저 언어가 영어여도', () => {
+    const res = proxy(
+      req('/', {
+        headers: {
+          accept: 'text/html',
+          'accept-language': 'en-US,en;q=0.9',
+          'x-vercel-ip-country': 'KR',
+        },
+      })
+    )
+    expect(res.headers.get('Content-Language')).toBe('ko')
+  })
+
+  it('접속 국가가 외국(US)이면 영어 — 브라우저 언어가 한국어여도', () => {
+    const res = proxy(
+      req('/', {
+        headers: {
+          accept: 'text/html',
+          'accept-language': 'ko-KR,ko;q=0.9',
+          'x-vercel-ip-country': 'US',
+        },
+      })
+    )
+    expect(res.headers.get('Content-Language')).toBe('en')
+  })
+
+  it('접속 국가를 모를 때(로컬/비-Vercel) Accept-Language 로 폴백', () => {
+    const ko = proxy(
+      req('/', { headers: { accept: 'text/html', 'accept-language': 'ko-KR,ko;q=0.9' } })
+    )
+    expect(ko.headers.get('Content-Language')).toBe('ko')
+    const fr = proxy(
+      req('/', { headers: { accept: 'text/html', 'accept-language': 'fr-FR,fr;q=0.9' } })
+    )
+    expect(fr.headers.get('Content-Language')).toBe('en')
+    const none = proxy(req('/', { headers: { accept: 'text/html' } }))
+    expect(none.headers.get('Content-Language')).toBe('en')
+  })
+
+  it('사용자가 직접 고른 쿠키가 접속 국가보다 우선 — 외국(US)에서도 쿠키 ko 면 한국어', () => {
+    const res = proxy(
+      req('/', {
+        headers: { accept: 'text/html', 'accept-language': 'en-US', 'x-vercel-ip-country': 'US' },
         cookies: { locale: 'ko' },
       })
     )
     expect(res.headers.get('Content-Language')).toBe('ko')
-    // fromCookie=true 이므로 Set-Cookie 를 다시 굽지 않는다
+    // 쿠키는 다시 굽지 않는다
     expect(res.cookies.get('locale')).toBeUndefined()
   })
 
