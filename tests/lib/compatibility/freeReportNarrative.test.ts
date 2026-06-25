@@ -121,6 +121,11 @@ describe('buildFreeCompatNarrative', () => {
     })
     expect(view.verdict?.tone).toBe('aligned')
     expect(view.verdict?.text).toContain('한목소리')
+    // 헤드라인 총점 — 40~97 숫자 + 등급 라벨
+    expect(typeof view.overallScore).toBe('number')
+    expect(view.overallScore!).toBeGreaterThanOrEqual(40)
+    expect(view.overallScore!).toBeLessThanOrEqual(97)
+    expect(typeof view.overallGrade).toBe('string')
     expect(view.verdict?.expansion.length).toBeGreaterThan(10)
     expect(view.intro.length).toBeGreaterThan(10)
     expect(view.closing.length).toBeGreaterThan(10)
@@ -336,6 +341,8 @@ describe('buildFreeCompatNarrative', () => {
     }
     const view = buildFreeCompatNarrative(bare, { labelA: 'A', labelB: 'B', lang: 'ko' })
     expect(view.sections).toHaveLength(0)
+    expect(view.themes).toHaveLength(0)
+    expect(view.overallScore).toBeNull() // 신호 0 → 총점 없음
     expect(view.verdict).toBeNull()
     expect(view.glossary.length).toBeGreaterThan(5)
   })

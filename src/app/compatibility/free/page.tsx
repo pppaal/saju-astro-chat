@@ -694,6 +694,23 @@ function ResultView({
         {labelA} <Heart className="inline w-3.5 h-3.5" style={{ color: '#c2548a' }} /> {labelB}
       </p>
 
+      {/* 헤드라인 총점 — 한눈에 박히는 큰 숫자 (캡처/공유 후크) */}
+      {view.overallScore != null ? (
+        <div className={s.scoreHero}>
+          <div
+            className={s.scoreRing}
+            style={{ ['--pct' as string]: `${view.overallScore}` }}
+            aria-hidden="true"
+          >
+            <span className={s.scoreRingNum}>{view.overallScore}</span>
+          </div>
+          <div className={s.scoreHeroText}>
+            <span className={s.scoreHeroLabel}>{isKo ? '우리 궁합' : 'Our match'}</span>
+            <span className={s.scoreHeroGrade}>{view.overallGrade}</span>
+          </div>
+        </div>
+      ) : null}
+
       {/* 리포트 도입 — 어떻게 읽는지 */}
       <p className={s.intro}>{view.intro}</p>
 

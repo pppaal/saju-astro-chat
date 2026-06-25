@@ -357,6 +357,58 @@
 
 /* 용어 풀이 */
 /* 테마 한 줄 훅 — 질문에 결론부터 답하는 단정 한 줄. 골드 굵은 글씨로 먼저 눈에. */
+/* 헤드라인 총점 — 큰 링 게이지 + 등급. 맨 위에 한눈에 박히는 캡처 후크. */
+.scoreHero {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 6px 0 18px;
+  padding: 16px 18px;
+  border-radius: var(--radius-lg);
+  background: var(--celeste);
+  border: 1px solid var(--gold-line);
+}
+.scoreRing {
+  position: relative;
+  width: 76px;
+  height: 76px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: conic-gradient(var(--gold) calc(var(--pct) * 1%), var(--gold-wash) 0);
+  display: grid;
+  place-items: center;
+}
+.scoreRing::before {
+  content: '';
+  position: absolute;
+  inset: 7px;
+  border-radius: 50%;
+  background: var(--card);
+}
+.scoreRingNum {
+  position: relative;
+  font-size: 26px;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--gold);
+}
+.scoreHeroText {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.scoreHeroLabel {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: var(--ink-3);
+}
+.scoreHeroGrade {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--ink);
+}
+
 /* 테마 점수 칩 — 점신·포스텔러식 스캔용 "끌림 82". 제목 줄 오른쪽 끝. */
 .themeScore {
   margin-left: auto;

@@ -247,6 +247,15 @@ const SCORE_CAPTION: Record<ThemeId, Bi> = {
   money: { ko: '가치관', en: 'Values' },
   future: { ko: '미래', en: 'Future' },
 }
+// 헤드라인 총점 등급 — 큰 숫자 옆 한 마디. (점신·포스텔러식 캡처용 후크)
+function overallGrade(score: number): Bi {
+  if (score >= 85) return { ko: '찰떡 궁합', en: 'A rare match' }
+  if (score >= 75) return { ko: '잘 맞는 사이', en: 'A strong match' }
+  if (score >= 65) return { ko: '무난한 궁합', en: 'A solid match' }
+  if (score >= 55) return { ko: '노력형 궁합', en: 'Takes some work' }
+  return { ko: '롤러코스터', en: 'A rollercoaster' }
+}
+
 // 테마 신호들 → 0~100 점수. friction 은 "충돌 강도"(셀수록 ↑), 나머지는 끌림/조화 강도.
 // 정규화하지 않고 신호 크기(net/strength)에 비례시켜 테마·커플마다 점수가 벌어지게 한다.
 function themeScore(id: ThemeId, items: { pol: number }[]): number {
@@ -910,7 +919,23 @@ export function buildFreeCompatNarrative(
     body: t(g.body),
   }))
 
+  // 헤드라인 총점 — 끌림/조화축 테마 점수 평균. friction(충돌강도)은 진단축이라
+  // 총점에서 제외하되, 충돌이 큰 커플엔 가벼운 감점만 준다(역산해 평균에 넣으면
+  // 점수가 통째로 짓눌려 모두가 비관적으로 나옴).
+  const posThemes = themes.filter((th) => th.id !== 'friction' && typeof th.score === 'number')
+  const fric = themes.find((th) => th.id === 'friction')
+  let overallScore: number | null = null
+  if (posThemes.length) {
+    const mean = posThemes.reduce((s, th) => s + th.score!, 0) / posThemes.length
+    // 평균은 가운데로 뭉치므로 중심(68) 기준 편차를 1.5배 넓혀 점수가 벌어지게 하고,
+    // 충돌이 큰 커플엔 가벼운 감점만. 40~97 로 클램프.
+    const expanded = 68 + (mean - 68) * 1.5 - (fric ? Math.max(0, fric.score! - 65) * 0.1 : 0)
+    overallScore = Math.max(40, Math.min(97, Math.round(expanded)))
+  }
+
   return {
+    overallScore,
+    overallGrade: overallScore != null ? t(overallGrade(overallScore)) : null,
     intro: t(INTRO),
     verdict,
     sections,
