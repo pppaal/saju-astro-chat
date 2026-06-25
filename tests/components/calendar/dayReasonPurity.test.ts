@@ -27,6 +27,13 @@ function hasHanja(s: string): boolean {
   }
   return false
 }
+function hasHangul(s: string): boolean {
+  for (const ch of s) {
+    const c = ch.codePointAt(0) ?? 0
+    if (c >= 0xac00 && c <= 0xd7a3) return true
+  }
+  return false
+}
 
 const LOC = { lat: 37.5665, lon: 126.978, tz: 'Asia/Seoul' }
 const PROFILES: Array<[string, string, 'male' | 'female']> = [
@@ -94,6 +101,8 @@ describe('일 카드 사유 쉬운말 무결성', () => {
             lineCount++
             if (hasHanja(line)) leaks.push(`${date} ${iso}/${lang} 한자: "${line}"`)
             if (!isPlainReason(line)) leaks.push(`${date} ${iso}/${lang} 전문어: "${line}"`)
+            // EN 화면에 한글이 섞이면 = english 누락으로 한국어 폴백된 것.
+            if (lang === 'en' && hasHangul(line)) leaks.push(`${date} ${iso}/en 한글누수: "${line}"`)
           }
         }
       }

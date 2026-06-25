@@ -195,6 +195,17 @@
 .cScore b {
   color: var(--gold-deep);
 }
+/* 점수 숫자색은 *화해된 밴드*(tense/bright 반영)를 따른다 — 60+ 인데 평이로 내려간
+   날이 금색 숫자로 떠 "63점·평이" 모순으로 보이던 걸 막는다. 색=톤과 한 출처. */
+.scoreGood {
+  color: var(--gold-deep);
+}
+.scoreMid {
+  color: var(--slate);
+}
+.scoreLow {
+  color: var(--crimson);
+}
 .cToneWord,
 .cStrengthWord {
   font-family: var(--m-serif);

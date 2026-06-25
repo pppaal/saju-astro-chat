@@ -450,7 +450,17 @@ export function DayTier({ day, onRise, sex = '남' }: DayTierProps) {
           <div className={styles.counts}>
             <span className={styles.cScore}>
               {ko ? '점수' : 'score'}
-              <b>{day.score}</b>
+              <b
+                className={
+                  dayBand === 'good'
+                    ? styles.scoreGood
+                    : dayBand === 'low'
+                      ? styles.scoreLow
+                      : styles.scoreMid
+                }
+              >
+                {day.score}
+              </b>
             </span>
             <span className={styles.cTone}>
               {ko ? '바람' : 'wind'}
