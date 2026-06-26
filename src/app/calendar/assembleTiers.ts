@@ -497,11 +497,9 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
     year: TARGET_YEAR,
     yearlySignals,
     cells,
-    monthlyLayer: layered.monthly,
-    dayScores: layered.daily, // 월 티어와 같은 일점수로 bestDay 일치(감사 C1)
-    // 올해 총운 — 대운 티어 1년운(years[].score)과 같은 출처. 12달을 이 수준으로
-    // 재중심해 10년→1년 줌인 모순 제거. (곡선 없으면 undefined → 기존 동작.)
-    yearOverallScore: yearScoreByYear?.get(TARGET_YEAR),
+    // 세운 12달 띠를 월 그리드와 *같은 일점수*로 빌드(각 달=일점수 평균, bestDay 일치).
+    // 줌 레벨(일·월·세운)이 한 척도라 띠↔그리드 색 모순이 구조적으로 사라진다(Option Y).
+    dayScores: layered.daily,
   })
   const ageThisYear = TARGET_YEAR - BIRTH_YEAR
   const fallbackHouse = (((ageThisYear % 12) + 12) % 12) + 1
