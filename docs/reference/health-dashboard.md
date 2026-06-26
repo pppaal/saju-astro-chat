@@ -18,8 +18,8 @@ status: auto-generated
 | 지표          | 값                       |
 | ------------- | ------------------------ |
 | 활성 서비스   | 3개 ([[services-index]]) |
-| API 라우트    | 94개 ([[api-routes]])    |
-| 테스트 파일   | 650+개                   |
+| API 라우트    | 96개 ([[api-routes]])    |
+| 테스트 파일   | 660+개                   |
 | 타로 덱       | 78장 (Major 22/Minor 56) |
 | 하우스 시스템 | `Placidus`               |
 | 사주 기준 TZ  | `Asia/Seoul`             |
