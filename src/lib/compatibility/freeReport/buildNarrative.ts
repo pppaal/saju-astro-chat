@@ -274,94 +274,112 @@ function themeScore(id: ThemeId, items: { pol: number }[], nudge = 0): number {
 type HookKey = 'pos' | 'neg' | 'mid'
 const THEME_HOOK: Record<ThemeId, Record<HookKey, Bi>> = {
   spark: {
-    pos: { ko: '응 — 만나자마자 스파크 튀는 쪽이야.', en: 'Yes — sparks fly the moment you meet.' },
+    pos: {
+      ko: '눈 마주친 순간 끝났어 — 첫눈에 훅 가는 쌍.',
+      en: "One glance and it's over — you fall fast and hard.",
+    },
     neg: {
-      ko: '끌리긴 하는데 묘하게 당겼다 멀어지는 결.',
-      en: "There's a pull, but it runs hot-and-cold.",
+      ko: '미친 듯이 끌렸다가 확 식는 — 위험한 롤러코스터.',
+      en: 'Wildly drawn one second, ice-cold the next — a dangerous ride.',
     },
     mid: {
-      ko: '첫 끌림은 분명한데, 타오르는 결은 좀 갈려.',
-      en: 'The draw is real, though it shows up unevenly.',
+      ko: '끌리는 건 확실해 — 누가 먼저 무너지냐의 싸움이야.',
+      en: "The pull is undeniable — it's a standoff over who cracks first.",
     },
   },
   sex: {
     pos: {
-      ko: '몸의 케미는 확실해 — 끌림이 진한 쪽.',
-      en: 'The physical chemistry is real — a deep pull.',
+      ko: '몸이 먼저 알아 — 말보다 끌림이 진한 쌍.',
+      en: 'Your bodies know first — the pull runs deeper than words.',
     },
     neg: {
-      ko: '끌리는 만큼 팽팽함도 커서 온도 차가 나기 쉬워.',
-      en: 'Strong pull, but the heat can run uneven.',
+      ko: '불은 붙는데 타이밍이 자꾸 어긋나는 쌍.',
+      en: "The fire's there, but your timing keeps missing.",
     },
     mid: {
-      ko: '은근한 끌림이 깔려 있어 — 천천히 데워지는 쪽.',
-      en: 'A quiet pull underneath — it warms up slowly.',
+      ko: '은근히 달아오르는 쪽 — 천천히, 그러나 확실히.',
+      en: 'A slow burn underneath — quiet, but it gets there.',
     },
   },
   talk: {
     pos: {
-      ko: '말 척척 통하는 사이 — 대화가 안 끊겨.',
-      en: 'You just click — the talk never runs dry.',
+      ko: '말 끝을 서로 채우는 사이 — 대화가 안 끊겨.',
+      en: "You finish each other's lines — the talk never dies.",
     },
     neg: {
-      ko: '같은 말도 다르게 알아들어 자주 엇갈려.',
-      en: 'You hear the same words differently and miss a lot.',
+      ko: '같은 말도 정반대로 알아들어 — 자주 터져.',
+      en: 'Same words, opposite meanings — sparks fly often.',
     },
     mid: {
-      ko: '통할 땐 잘 통하는데, 결이 갈리는 지점도 있어.',
-      en: 'You click in places and slip past in others.',
+      ko: '통할 땐 짜릿한데, 엇갈리면 확 식어.',
+      en: 'Electric when you click, icy when you miss.',
     },
   },
   love: {
     pos: {
-      ko: '사랑하는 방식이 닮아 마음이 편한 쪽.',
-      en: 'You love in similar ways — it sits easy.',
+      ko: '사랑하는 법이 닮아 — 마음이 쉽게 포개져.',
+      en: 'You love the same way — hearts fold together easily.',
     },
     neg: {
-      ko: '애정 표현이 어긋나 서로 서운할 수 있어.',
-      en: 'Your ways of showing love can miss each other.',
+      ko: '사랑을 주는 법이 어긋나 — 서로 목말라.',
+      en: 'You give love in mismatched ways — both left wanting.',
     },
     mid: {
-      ko: '다정함의 결이 비슷한 듯 달라 — 맞춰가는 재미가 있어.',
-      en: 'Your tenderness is alike yet not — there’s tuning to do.',
+      ko: '다정함의 결이 닮은 듯 달라 — 끌리고 헷갈려.',
+      en: 'Your tenderness rhymes yet clashes — drawn and confused.',
     },
   },
   friction: {
-    pos: { ko: '크게 부딪힐 일은 잘 안 보여.', en: 'Not many real flashpoints here.' },
-    neg: { ko: '주로 자존심·주도권에서 부딪혀.', en: 'Mostly clashes over pride and who leads.' },
-    mid: { ko: '부딪히는 결이 있긴 한데 깊진 않아.', en: 'Some friction, but nothing deep.' },
+    pos: {
+      ko: '크게 터질 일은 거의 없는 쌍 — 잘 비껴가.',
+      en: 'Few real blowups — you dodge the big ones.',
+    },
+    neg: { ko: '자존심·주도권에서 제대로 맞붙어.', en: 'Pride and control — you clash head-on.' },
+    mid: {
+      ko: '툭툭 부딪혀도 상처까진 안 가.',
+      en: 'You bump often, but it rarely leaves a mark.',
+    },
   },
   life: {
-    pos: { ko: '같이 있으면 편안한 쪽 — 긴장이 풀려.', en: 'Easy to be around — you both unwind.' },
-    neg: { ko: '함께 지내는 결을 맞추는 데 손이 좀 가.', en: 'Day-to-day takes some adjusting.' },
-    mid: { ko: '무던하게 편한 사이 — 큰 기복 없이.', en: 'Comfortably low-drama together.' },
+    pos: {
+      ko: '곁에 있는 것만으로 긴장이 풀리는 사이.',
+      en: 'Just being near melts the tension off.',
+    },
+    neg: {
+      ko: '같이 있어도 박자가 어긋나 — 쉬어도 안 쉬어져.',
+      en: 'Together yet off-beat — rest never quite lands.',
+    },
+    mid: {
+      ko: '큰 기복 없이 무던하게 편한 쪽이야.',
+      en: 'Low drama, easy company — steady as it goes.',
+    },
   },
   money: {
     pos: {
-      ko: '돈·가치관 결이 비슷해 부딪힐 일 적어.',
-      en: 'Similar values around money — little to fight over.',
+      ko: '돈 쓰는 결이 닮아 — 싸울 일이 거의 없어.',
+      en: 'You spend alike — little left to fight over.',
     },
     neg: {
-      ko: '쓰고 아끼는 결이 달라 조율이 필요해.',
-      en: 'You spend and save differently — needs tuning.',
+      ko: '쓰고 모으는 법이 정반대 — 돈 앞에서 팽팽해.',
+      en: 'Opposite spenders — money makes you tense up.',
     },
     mid: {
-      ko: '가치관이 닿는 데도, 갈리는 데도 있어.',
-      en: 'Your values meet in some places, split in others.',
+      ko: '통하는 데도, 확 갈리는 데도 있는 결이야.',
+      en: 'You meet on some, split hard on others.',
     },
   },
   future: {
     pos: {
-      ko: '오래 갈 결이 보여 — 쌓일수록 단단해져.',
-      en: 'Built to last — it firms up over time.',
+      ko: '시간이 갈수록 단단해지는 — 오래 갈 쌍이야.',
+      en: 'You harden with time — built to last.',
     },
     neg: {
-      ko: '확 타오르는 만큼, 오래 가려면 공이 들어.',
-      en: 'Burns bright; lasting takes real work.',
+      ko: '확 타오르는 만큼, 오래 가려면 진짜 공들여야 해.',
+      en: 'Burns bright — but lasting takes real work.',
     },
     mid: {
-      ko: '급하진 않아도 길게 가는 결 — 천천히 깊어져.',
-      en: 'Not dramatic, but a long, deepening grain.',
+      ko: '급하진 않아도 천천히 깊어지는 결이야.',
+      en: 'No rush — but it deepens the longer you go.',
     },
   },
 }
@@ -527,114 +545,114 @@ function pickFor<T>(arr: T[], seed: number, label: string): T {
 const HOOK_ALT: Record<ThemeId, Record<HookKey, Bi>> = {
   spark: {
     pos: {
-      ko: '첫 순간부터 뭔가 톡 터지는 느낌이 있어 — 당신들은 그런 쌍이야.',
-      en: "There's something that just clicks the moment you meet — you two are that kind of pair.",
+      ko: '첫 순간부터 심장이 먼저 반응하는 쌍이야.',
+      en: 'Your heart reacts before your head ever does.',
     },
     neg: {
-      ko: '처음엔 확 끌리지만 자꾸 깊어졌다가 떨어졌다를 반복하는 결.',
-      en: 'The magnetism comes on strong at first, then pulls back and forth unpredictably.',
+      ko: '확 타올랐다 훅 꺼지는 — 불장난 같은 끌림.',
+      en: 'A spark that flares and dies — like playing with fire.',
     },
     mid: {
-      ko: '만나면 뭔가 반기는 느낌은 확실한데, 그게 계속 불이 붙을지는 시간이 알려줄 거 같아.',
-      en: 'That initial welcome-feeling is real, but whether it grows into something bigger remains to be seen.',
+      ko: '끌리는 건 확실한데, 불이 계속 붙을진 두고 봐야 해.',
+      en: 'The draw is undeniable — whether it keeps burning is the question.',
     },
   },
   sex: {
     pos: {
-      ko: '육체의 호응이 자연스러워 — 가까워지려는 마음도 진하고 명확한 쪽.',
-      en: 'Your physical rhythm aligns instinctively — the desire to be close runs clear and strong.',
+      ko: '손끝만 닿아도 통하는 — 위험할 만큼 진한 케미.',
+      en: 'A touch is enough — chemistry this strong is almost dangerous.',
     },
     neg: {
-      ko: '끌리는 마음은 있는데 분위기 맞추기가 자꾸 엇나가는 편.',
-      en: 'The pull is there, but creating that intimacy tends to fall out of step.',
+      ko: '끌리는 만큼 팽팽해 — 타오르다 어긋나기 쉬워.',
+      en: 'As much tension as heat — it flares, then misfires.',
     },
     mid: {
-      ko: '가까워지는 순간이 항상 부드럽지만은 않아 — 그래도 그 안에 어떤 온기는 있어.',
-      en: "Closeness isn't always smooth, though there's a warmth underneath the awkwardness.",
+      ko: '맞는 밤도, 어색한 밤도 — 맞춰가는 재미가 있어.',
+      en: "Some nights click, some don't — and tuning in is half the fun.",
     },
   },
   talk: {
     pos: {
-      ko: '둘이 나누는 말이 빠르게 이어져 — 말의 끝을 맞춰가는 그런 사이.',
-      en: "Your words flow into each other — you finish each other's thoughts without trying.",
+      ko: '눈빛만 봐도 아는 사이 — 설명이 필요 없어.',
+      en: 'A glance says it all — no explaining needed.',
     },
     neg: {
-      ko: '같은 말을 던져도 받아들이는 방식이 달라 자꾸 오해하고 엇갈려.',
-      en: 'The same words land differently for each of you, leaving gaps and misunderstandings.',
+      ko: '대화가 자꾸 불씨가 돼 — 오해가 쌓이는 쪽.',
+      en: 'Talk keeps turning to tinder — misreads pile up.',
     },
     mid: {
-      ko: '어떤 순간엔 말이 척척 맞는데, 다른 순간엔 엇갈리는 느낌이 있어.',
-      en: 'Sometimes your words land in perfect rhythm, sometimes they slip past each other.',
+      ko: '카톡은 척척, 얼굴 보면 묘하게 엇갈려.',
+      en: 'Texts flow; face to face, something slips.',
     },
   },
   love: {
     pos: {
-      ko: '사랑을 나타내는 방식이 자연스럽게 닮아 서로 편안함을 느껴.',
-      en: 'The way you show affection comes so naturally in sync — comfort flows easily.',
+      ko: '말 안 해도 서로 원하는 걸 아는 사이야.',
+      en: 'You know what the other wants without a word.',
     },
     neg: {
-      ko: '사랑 표현의 방식이 자주 엇나가서 서로 혼동하거나 섭섭할 수 있어.',
-      en: 'How you each express love often misses the mark — leaving room for hurt or confusion.',
+      ko: '한쪽은 더 원하고, 한쪽은 자꾸 물러서.',
+      en: 'One reaches for more while the other pulls back.',
     },
     mid: {
-      ko: '애정 표현의 톤이 비슷하기도 하고 달라서 — 맞춰가면서 배우는 과정 자체가 둘의 연결고리야.',
-      en: 'Your ways of showing tenderness echo in some places and diverge in others—that very dance of meeting halfway builds your bond.',
+      ko: '사랑의 온도가 엇비슷해 — 맞추다 더 깊어져.',
+      en: 'Your love runs at near temperatures — tuning deepens it.',
     },
   },
   friction: {
     pos: {
-      ko: '크게 부딪힐 일이 잘 없는 결이 보여.',
-      en: 'You two navigate around the big collisions with ease.',
+      ko: '불씨가 생겨도 금세 꺼뜨리는 사이야.',
+      en: 'Sparks start, but you stamp them out fast.',
     },
     neg: {
-      ko: '자존심이나 주도권 쪽에서 자꾸 충돌하는 경향이 있어.',
-      en: 'Pride and the need to lead keep bringing you two into friction.',
+      ko: '누가 위냐를 두고 불꽃 튀는 쌍이야.',
+      en: "Sparks fly over who's in charge.",
     },
     mid: {
-      ko: '부딪히는 부분이 있긴 하지만 표면에 머무는 수준이야.',
-      en: "There's friction between you, though it never cuts very deep.",
+      ko: '부딪히지만 깊게 베이진 않는 결이야.',
+      en: 'You collide, but never cut deep.',
     },
   },
   life: {
     pos: {
-      ko: '함께 있으면 자연스럽게 마음이 편해지는 사이야.',
-      en: 'Just being near each other eases the weight you carry—calm comes naturally.',
+      ko: '말없이 각자 있어도 편한 — 드문 사이야.',
+      en: "Comfortable even in silence — that's rare.",
     },
     neg: {
-      ko: '일상을 나누려면 계속 자리를 맞춰야 해.',
-      en: 'Living together means constant small adjustments.',
+      ko: '같은 공간에 있어도 자꾸 따로 노는 느낌.',
+      en: 'Same room, separate rhythms — it nags.',
     },
     mid: {
-      ko: '특별한 일 없이도 편하게 붙어 있을 수 있어.',
-      en: 'Steady and uncluttered — no wild ups and downs.',
+      ko: '침묵이 어색하지 않은, 잔잔한 사이야.',
+      en: 'Silence sits easy — calm and unforced.',
     },
   },
   money: {
     pos: {
-      ko: '돈 쓰는 방식과 중요한 것들이 맞아떨어져.',
-      en: 'You see value the same way — smooth sailing on finances.',
+      ko: '돈 보는 눈이 같아 — 미래 그림이 잘 맞아.',
+      en: 'You see money the same — your futures align.',
     },
     neg: {
-      ko: '번 돈을 어떻게 쓸지에 대해 자꾸 의견이 갈려.',
-      en: 'Your money philosophies are pretty far apart — needs work.',
+      ko: '큰 지출 앞에서 의견이 제대로 부딪혀.',
+      en: 'Big purchases bring out the real clashes.',
     },
     mid: {
-      ko: '어떤 건 가치관이 통하고, 어떤 건 결이 다르더라.',
-      en: "Sometimes your values line up, sometimes they don't.",
+      ko: '맞을 땐 맞고, 갈릴 땐 확 갈리는 쪽.',
+      en: 'Aligned at times, miles apart at others.',
     },
   },
   future: {
     pos: {
-      ko: '시간 위에 차곡차곡 쌓일 수 있는 사이야.',
-      en: "You're wired to deepen — time just makes it stronger.",
+      ko: '반짝임보다 믿음이 쌓이는 — 진짜 오래 갈 사이.',
+      en: 'Less glitter, more trust — this one stays.',
     },
     neg: {
-      ko: '처음의 불꽃이 다하면 함께 가기가 빡셀 수 있어.',
-      en: 'The glow fades fast — staying together takes real effort.',
+      ko: '불꽃이 식으면 "우리 맞나?"가 고개 들어.',
+      en: 'Once the spark cools, the doubts creep in.',
     },
     mid: {
-      ko: '서두르지 않고 천천히 스며드는 관계야.',
-      en: 'Slow burn, nothing rushed — but you go deep over time.',
+      ko: '노력하면 오래, 놓으면 슬쩍 멀어지는 사이야.',
+      en: 'Work it and it lasts; coast and it drifts.',
     },
   },
 }

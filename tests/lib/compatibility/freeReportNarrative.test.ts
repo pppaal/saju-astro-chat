@@ -299,8 +299,8 @@ describe('buildFreeCompatNarrative', () => {
     const talk = view.themes.find((th) => th.id === 'talk')!
     // 끌림 우세 → pos 훅(원본 또는 커플 해시로 고른 대체 변형 중 하나)
     expect([
-      '말 척척 통하는 사이 — 대화가 안 끊겨.',
-      '둘이 나누는 말이 빠르게 이어져 — 말의 끝을 맞춰가는 그런 사이.',
+      '말 끝을 서로 채우는 사이 — 대화가 안 끊겨.',
+      '눈빛만 봐도 아는 사이 — 설명이 필요 없어.',
     ]).toContain(talk.hook)
     // 점수 칩 — 0~100 숫자 + 차원 라벨
     expect(typeof talk.score).toBe('number')
@@ -309,10 +309,9 @@ describe('buildFreeCompatNarrative', () => {
     expect(talk.scoreCaption).toBe('소통')
     const friction = view.themes.find((th) => th.id === 'friction')!
     // 마찰만 → neg 훅(원본 또는 대체 변형)
-    expect([
-      '주로 자존심·주도권에서 부딪혀.',
-      '자존심이나 주도권 쪽에서 자꾸 충돌하는 경향이 있어.',
-    ]).toContain(friction.hook)
+    expect(['자존심·주도권에서 제대로 맞붙어.', '누가 위냐를 두고 불꽃 튀는 쌍이야.']).toContain(
+      friction.hook
+    )
     expect(friction.scoreCaption).toBe('마찰')
     // 기계적 기하 꼬리("물 흐르듯…", "서로 각을 세워…")는 더 이상 안 붙는다
     const all = view.themes.flatMap((th) => th.paragraphs).join('\n')

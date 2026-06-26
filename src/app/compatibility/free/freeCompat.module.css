@@ -439,7 +439,7 @@
   color: var(--ink-3);
 }
 .themeScoreNum {
-  font-size: 19px;
+  font-size: 26px;
   font-weight: 800;
   line-height: 1;
   color: var(--gold);
@@ -450,7 +450,7 @@
 }
 /* 점수 막대 — 한눈에 보이는 게이지. */
 .themeBar {
-  height: 5px;
+  height: 7px;
   border-radius: 999px;
   background: var(--gold-wash);
   overflow: hidden;
