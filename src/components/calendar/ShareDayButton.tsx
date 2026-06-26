@@ -1,12 +1,12 @@
 'use client'
 
 /**
- * ShareCalendarButton — 운흐름 캘린더의 이달 흐름 한 줄을 공개 공유 링크
- * (/r/[token])로 만들어 Web Share API 또는 클립보드 복사로 내보낸다.
- * 서버엔 요약 텍스트만 저장(개인 원국/생년월일은 보내지 않음).
+ * ShareDayButton — 하루(일진)의 점수 + 한 줄 + 이달 흐름 곡선을 공개 공유
+ * 링크(/r/[token])로 만들어 Web Share API 또는 클립보드 복사로 내보낸다.
+ * 서버엔 점수·요약 텍스트·곡선 숫자만 저장(개인 원국/생년월일은 안 보냄).
  *
- * 궁합 ShareCompatibilityButton 과 동일한 링크 공유 흐름 — OG 이미지는
- * /r/[token]/opengraph-image 가 동적 생성한다.
+ * ShareCalendarButton 과 동일한 링크 공유 흐름 — OG 이미지는
+ * /r/[token]/opengraph-image 가 동적 생성(점수 + 곡선).
  */
 
 import { useCallback, useRef, useState } from 'react'
@@ -14,16 +14,18 @@ import { Share2, Check, Loader2 } from 'lucide-react'
 import { apiFetch } from '@/lib/api'
 import { logger } from '@/lib/logger'
 
-export interface CalendarShareData {
+export interface DayShareData {
   isKo: boolean
-  periodLabel: string
+  dateLabel: string
+  score: number
+  tone: 'positive' | 'mixed' | 'caution'
   headline: string
-  highlights?: string[]
+  subline?: string
   curve?: number[]
   markerIndex?: number
 }
 
-export function ShareCalendarButton({ data }: { data: CalendarShareData }) {
+export function ShareDayButton({ data }: { data: DayShareData }) {
   const isKo = data.isKo
   const [phase, setPhase] = useState<'idle' | 'creating' | 'copied'>('idle')
   const [error, setError] = useState<string | null>(null)
@@ -35,14 +37,16 @@ export function ShareCalendarButton({ data }: { data: CalendarShareData }) {
     setError(null)
     setPhase('creating')
     try {
-      const res = await apiFetch('/api/calendar/share', {
+      const res = await apiFetch('/api/calendar/day/share', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           isKo,
-          periodLabel: data.periodLabel,
+          dateLabel: data.dateLabel,
+          score: Math.round(data.score),
+          tone: data.tone,
           headline: data.headline,
-          highlights: data.highlights?.length ? data.highlights.slice(0, 5) : undefined,
+          subline: data.subline || undefined,
           curve: data.curve?.length ? data.curve.map((n) => Math.round(n)) : undefined,
           markerIndex: data.markerIndex,
         }),
@@ -53,11 +57,11 @@ export function ShareCalendarButton({ data }: { data: CalendarShareData }) {
         setError(isKo ? '링크를 만들지 못했어요.' : 'Could not create a link.')
         return
       }
-      const shareText = data.headline || data.periodLabel
+      const shareText = data.headline || data.dateLabel
       if (typeof navigator !== 'undefined' && typeof navigator.share === 'function') {
         try {
           await navigator.share({
-            title: isKo ? 'DestinyPal 운흐름' : 'DestinyPal Calendar',
+            title: isKo ? 'DestinyPal 오늘의 운' : 'DestinyPal — Today',
             text: shareText,
             url,
           })
@@ -75,7 +79,7 @@ export function ShareCalendarButton({ data }: { data: CalendarShareData }) {
         setError(isKo ? `링크: ${url}` : `Link: ${url}`)
       }
     } catch (err) {
-      logger.error('[ShareCalendar] link create failed', err instanceof Error ? err : undefined)
+      logger.error('[ShareDay] link create failed', err instanceof Error ? err : undefined)
       setError(isKo ? '네트워크 오류가 발생했어요.' : 'A network error occurred.')
     } finally {
       busyRef.current = false
@@ -115,12 +119,12 @@ export function ShareCalendarButton({ data }: { data: CalendarShareData }) {
             ? '링크 복사됨!'
             : 'Link copied!'
           : isKo
-            ? '이달 흐름 공유하기'
-            : 'Share this month'}
+            ? '오늘 점수 공유하기'
+            : 'Share today'}
       </button>
       {error ? <span style={{ fontSize: 12, color: '#fda4af' }}>{error}</span> : null}
     </div>
   )
 }
 
-export default ShareCalendarButton
+export default ShareDayButton

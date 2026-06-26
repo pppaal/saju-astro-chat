@@ -33,6 +33,8 @@ import { reconcileDayTone, type DayVerdict } from '@/lib/calendar-engine/deriver
 import styles from './DayTier.module.css'
 import { useI18n } from '@/i18n/I18nProvider'
 import { localizeLabel } from '@/components/calendar/adapters/localizeLabel'
+import { ShareDayButton } from '@/components/calendar/ShareDayButton'
+import { dayShareHook } from '@/lib/share/shareHook'
 import {
   shinsalEn,
   elementEn,
@@ -112,6 +114,102 @@ function SecHead({ label, latin }: { label: string; latin: string }) {
       <span className={styles.secLn} />
       <span className={styles.secLat}>{latin}</span>
     </div>
+  )
+}
+
+// ── 하루 시간 리듬 곡선 — 12시진을 가운데선 기준 *물결 그래프*로(막대 대신).
+//    위=좋음(쪽빛) / 아래=주의(주황). 대운/인생 곡선과 같은 결. SVG 내부 좌표라
+//    측정 JS 없이 SSR-safe. ──
+function HourGraph({
+  hours,
+  ko,
+}: {
+  hours: Array<{ when: string; whenEn: string; tone: string; strength: number }>
+  ko: boolean
+}) {
+  const n = hours.length
+  if (n < 2) return null
+  const W = 300
+  const H = 86
+  const padT = 8
+  const padB = 18
+  const padX = 8
+  const plotH = H - padT - padB
+  const midY = padT + plotH / 2
+  const amp = (plotH / 2) * 0.9
+  const signed = (h: { tone: string; strength: number }) => {
+    const s = Math.max(0.25, Math.min(1, h.strength / 2))
+    return h.tone === 'good' ? s : h.tone === 'caution' ? -s : 0
+  }
+  const X = (i: number) => padX + (i / (n - 1)) * (W - 2 * padX)
+  const Y = (h: { tone: string; strength: number }) => midY - signed(h) * amp
+  const pts = hours.map((h, i) => [X(i), Y(h)] as const)
+  let line = `M${pts[0][0].toFixed(1)},${pts[0][1].toFixed(1)}`
+  for (let i = 0; i < pts.length - 1; i++) {
+    const p0 = pts[i - 1] ?? pts[i]
+    const p1 = pts[i]
+    const p2 = pts[i + 1]
+    const p3 = pts[i + 2] ?? pts[i + 1]
+    const c1x = p1[0] + (p2[0] - p0[0]) / 6
+    const c1y = p1[1] + (p2[1] - p0[1]) / 6
+    const c2x = p2[0] - (p3[0] - p1[0]) / 6
+    const c2y = p2[1] - (p3[1] - p1[1]) / 6
+    line += ` C${c1x.toFixed(1)},${c1y.toFixed(1)} ${c2x.toFixed(1)},${c2y.toFixed(1)} ${p2[0].toFixed(1)},${p2[1].toFixed(1)}`
+  }
+  const dotColor = (t: string) =>
+    t === 'good' ? 'var(--indigo)' : t === 'caution' ? 'var(--sun)' : 'var(--line-2)'
+  return (
+    <svg
+      className={styles.hourGraph}
+      viewBox={`0 0 ${W} ${H}`}
+      preserveAspectRatio="xMidYMid meet"
+      role="img"
+      aria-label={ko ? '하루 시간 리듬 곡선' : "The day's rhythm curve"}
+    >
+      <line
+        x1={padX}
+        x2={W - padX}
+        y1={midY}
+        y2={midY}
+        stroke="var(--line-2)"
+        strokeWidth={0.8}
+        strokeDasharray="3 3"
+      />
+      <path
+        d={line}
+        fill="none"
+        stroke="var(--slate)"
+        strokeWidth={1.8}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      {hours.map((h, i) => (
+        <circle
+          key={i}
+          cx={X(i)}
+          cy={Y(h)}
+          r={2.6}
+          fill={dotColor(h.tone)}
+          stroke="#fff"
+          strokeWidth={1}
+        />
+      ))}
+      {hours.map((h, i) => {
+        const label = (ko ? h.when : h.whenEn).replace(/\s*\(.*\)/, '').trim()
+        return (
+          <text
+            key={`t-${i}`}
+            x={X(i)}
+            y={H - 5}
+            textAnchor="middle"
+            fontSize={6.5}
+            fill="var(--t2)"
+          >
+            {label}
+          </text>
+        )
+      })}
+    </svg>
   )
 }
 
@@ -338,6 +436,21 @@ export function DayTier({ day, onRise, sex = '남' }: DayTierProps) {
     const bh = parseInt((b.when.match(/\d+/) ?? ['0'])[0], 10)
     return ah - bh
   })
+  // 하루 리듬(시간대) ↔ 일 톤 정합 — 둘은 *다른 축*(전체 하루 vs 그 안의 상대 리듬)
+  // 이라 어긋날 수 있다(순풍 날인데 ↓ 막대가 많거나 그 반대). 어긋나면 한 줄로
+  // "그날 안에서의 상대 리듬"임을 밝혀 "좋은 날인데 왜 다 주황?" 혼동을 막는다.
+  const hourUp = hourSorted.filter((h) => h.tone === 'good').length
+  const hourDn = hourSorted.length - hourUp
+  const rhythmCoherenceNote =
+    verdict.tone === 'positive' && hourDn > hourUp
+      ? ko
+        ? '전체는 순한 날이에요 — 아래는 그 하루 *안에서의* 상대 리듬이라 오르내림이 있어요.'
+        : 'Overall a smooth day — the bars below are the relative rhythm *within* it, so they rise and fall.'
+      : verdict.tone === 'caution' && hourUp > hourDn
+        ? ko
+          ? '전체는 조심할 날이지만, 그 안에도 트이는 시간대가 있어요.'
+          : 'A careful day overall, but some hours still open up within it.'
+        : ''
 
   // ── 타이밍 — 이달 흐름 추이선 + 다가오는 며칠. ──
   const scores = day.monthScores ?? []
@@ -416,6 +529,28 @@ export function DayTier({ day, onRise, sex = '남' }: DayTierProps) {
         </div>
         <p className={styles.novLine}>{localizeLabel(dayOneLine, ko)}</p>
         {novWhy && <p className={styles.novWhy}>{novWhy}</p>}
+        <div className={styles.novShare}>
+          <ShareDayButton
+            data={{
+              isKo: ko,
+              dateLabel: ko ? `${Number(mm)}월 ${Number(dd)}일 ${weekday(day.date)}` : titleLatin,
+              score: day.score,
+              tone: verdict.tone,
+              // 공유 카드는 더 센 후크(점수/톤 기반·본명 시드 고정). 인앱 결론은 그대로.
+              ...(() => {
+                const hook = dayShareHook({
+                  tone: verdict.tone,
+                  score: day.score,
+                  seed: day.seed ?? 0,
+                  ko,
+                })
+                return { headline: hook.headline, subline: hook.subline }
+              })(),
+              curve: hasFlow ? scores.map((s) => s.score) : undefined,
+              markerIndex: todayIdx >= 0 ? todayIdx : undefined,
+            }}
+          />
+        </div>
       </header>
 
       {/* ── 자세히 ① 일진·근거 (사주를 아는 사람용) ── */}
@@ -473,18 +608,9 @@ export function DayTier({ day, onRise, sex = '남' }: DayTierProps) {
           </div>
         </header>
 
-        {/* ── S3 한 줄 (verdict) ── */}
-        <section className={styles.sec}>
-          <SecHead label={ko ? '오늘의 한 줄' : 'In a line'} latin="In a line" />
-          <p className={styles.verdict}>{localizeLabel(dayOneLine, ko)}</p>
-          <div className={styles.verdictSub}>
-            <span className={styles.termTag}>
-              {[day.iljin.hanja, sibsinRaw].filter(Boolean).join(' · ')}
-            </span>
-          </div>
-        </section>
-
-        {/* ── S4 지금 일어나는 일 ── */}
+        {/* ── S4 지금 일어나는 일 ──
+            (S3 '오늘의 한 줄'은 ①결론의 한 줄과 동일 문장·간지/십신도 ②에 있어
+             완전 중복이라 제거 — 펼침이 가벼워짐.) */}
         <section className={styles.sec}>
           <SecHead label={ko ? '지금 일어나는 일' : "What's happening"} latin="Now" />
           {happeningLines.length === 0 ? (
@@ -584,56 +710,6 @@ export function DayTier({ day, onRise, sex = '남' }: DayTierProps) {
             : 'In plain terms: where your Saju energy and the star flows meet today, and when it peaks.'}
         </p>
 
-        {/* ── S7 사주 × 별자리 교차 (▲/▼) ── */}
-        {crossCards.length > 0 && (
-          <section className={styles.sec}>
-            <SecHead label={ko ? '사주 × 별자리 교차' : 'Saju × Astrology'} latin="Crossings" />
-            <div className={styles.crossLegend}>
-              <span className={styles.clUp}>▲ {ko ? '도움이 되는 흐름' : 'Supporting flow'}</span>
-              <span className={styles.clDn}>▼ {ko ? '부딪히는 흐름' : 'Clashing flow'}</span>
-            </div>
-            {crossCards.map((c, i) => {
-              const isHero = heroCross != null && c === heroCross && Math.abs(c.polarity) >= 2
-              const poleSym = c.polarity > 0 ? '▲' : c.polarity < 0 ? '▼' : '·'
-              const poleCls = c.polarity > 0 ? styles.poleUp : c.polarity < 0 ? styles.poleDn : ''
-              const sajuName = c.sajuKo ?? c.sajuSide
-              const astroName = c.astroKo ?? c.astroSide
-              const head = ko
-                ? `${sibsinArea(sajuName)} × ${planetPlain(astroName, true)}`
-                : `${sibsinAreaEn(sajuName)} × ${planetPlain(astroName, false)}`
-              const body = ko ? c.meaning : (c.meaningEn ?? c.meaning)
-              return (
-                <div
-                  className={`${styles.cross} ${isHero ? styles.crossHero : ''}`.trim()}
-                  key={c.id ?? i}
-                >
-                  <div className={styles.crossTop}>
-                    <span className={`${styles.pole} ${poleCls}`.trim()} aria-hidden>
-                      {poleSym}
-                    </span>
-                    <span className={`${styles.term} ${styles.termSaju}`}>
-                      <span className={styles.termSys}>Saju</span>
-                      <span className={styles.termNm}>{sajuName}</span>
-                    </span>
-                    <span className={styles.crossX} aria-hidden>
-                      ×
-                    </span>
-                    <span className={`${styles.term} ${styles.termAstro}`}>
-                      <span className={styles.termSys}>Astro</span>
-                      <span className={styles.termNm}>{astroName}</span>
-                    </span>
-                    {isHero && (
-                      <span className={styles.crossFlag}>{ko ? '가장 센 흐름' : 'Strongest'}</span>
-                    )}
-                  </div>
-                  <div className={styles.crossHead}>{head}</div>
-                  {body && <div className={styles.crossBody}>{body}</div>}
-                </div>
-              )
-            })}
-          </section>
-        )}
-
         {/* ── S8 타이밍 ── */}
         {(hasFlow || upcoming.length > 0) && (
           <section className={styles.sec}>
@@ -685,28 +761,10 @@ export function DayTier({ day, onRise, sex = '남' }: DayTierProps) {
           <section className={styles.sec}>
             <SecHead label={ko ? '하루 시간 리듬' : "The day's rhythm"} latin="Rhythm" />
             <div className={styles.rhythmNote}>
-              {ko ? '좋음 ↑ 쪽빛 · 주의 ↓ 주황' : 'good ↑ indigo · caution ↓ amber'}
+              {ko ? '가운데선 위 = 좋음 · 아래 = 주의' : 'above the line = good · below = caution'}
             </div>
-            <div className={styles.rhythmRow}>
-              {hourSorted.map((h, i) => {
-                const up = h.tone === 'good'
-                const mag = Math.max(0.4, Math.min(1, h.strength / 2))
-                const label = ko ? h.when : h.whenEn
-                const time = label.replace(/\s*\(.*\)/, '').trim()
-                return (
-                  <div className={styles.rhythmCol} key={i} title={label}>
-                    <div className={styles.rhythmTrack}>
-                      <span className={styles.rhythmMid} />
-                      <span
-                        className={`${styles.rhythmBar} ${up ? styles.rhythmUp : styles.rhythmDn}`}
-                        style={{ height: `${mag * 50}%`, [up ? 'bottom' : 'top']: '50%' }}
-                      />
-                    </div>
-                    <span className={styles.rhythmTime}>{time}</span>
-                  </div>
-                )
-              })}
-            </div>
+            {rhythmCoherenceNote && <div className={styles.rhythmNote}>{rhythmCoherenceNote}</div>}
+            <HourGraph hours={hourSorted} ko={ko} />
           </section>
         )}
 
@@ -818,28 +876,63 @@ export function DayTier({ day, onRise, sex = '남' }: DayTierProps) {
               </div>
             )}
 
-            {/* 시간대 하늘 */}
-            {hourSorted.length > 0 && (
+            {/* 겹치는 흐름 (사주×별자리 교차) — 표면 S7 에서 fold 로 이동.
+                ④'지금 일어나는 일'이 핵심 교차를 이미 보여줘 표면 중복이라,
+                상세 ▲/▼ 목록은 여기 '자세한 신호'에서 본다.
+                (시간대 하늘은 ⑨ 하루 리듬과 같은 시간축이라 제거.) */}
+            {crossCards.length > 0 && (
               <div className={styles.foldBlock}>
-                <div className={styles.foldLabel}>{ko ? '시간대 하늘' : 'Sky by hour'}</div>
-                <div className={styles.skyList}>
-                  {hourSorted.map((h, i) => {
-                    const label = ko ? h.when : h.whenEn
-                    const time = label.replace(/\s*\(.*\)/, '').trim()
-                    const sign = ko ? h.risingSignKo : h.risingSignEn
-                    const ruler = ko ? h.ruler : h.rulerEn
-                    if (!sign) return null
-                    return (
-                      <div className={styles.skyRow} key={i}>
-                        <span className={styles.skyWhen}>{time}</span>
-                        <span className={styles.skyBody}>
-                          {sign} {ko ? '상승' : 'rising'}
-                          {ruler ? (ko ? ` · 지배성 ${ruler}` : ` · ruler ${ruler}`) : ''}
-                        </span>
-                      </div>
-                    )
-                  })}
+                <div className={styles.foldLabel}>
+                  {ko ? '겹치는 흐름 · 사주 × 별자리' : 'Crossings · Saju × Astro'}
                 </div>
+                <div className={styles.crossLegend}>
+                  <span className={styles.clUp}>
+                    ▲ {ko ? '도움이 되는 흐름' : 'Supporting flow'}
+                  </span>
+                  <span className={styles.clDn}>▼ {ko ? '부딪히는 흐름' : 'Clashing flow'}</span>
+                </div>
+                {crossCards.map((c, i) => {
+                  const isHero = heroCross != null && c === heroCross && Math.abs(c.polarity) >= 2
+                  const poleSym = c.polarity > 0 ? '▲' : c.polarity < 0 ? '▼' : '·'
+                  const poleCls =
+                    c.polarity > 0 ? styles.poleUp : c.polarity < 0 ? styles.poleDn : ''
+                  const sajuName = c.sajuKo ?? c.sajuSide
+                  const astroName = c.astroKo ?? c.astroSide
+                  const head = ko
+                    ? `${sibsinArea(sajuName)} × ${planetPlain(astroName, true)}`
+                    : `${sibsinAreaEn(sajuName)} × ${planetPlain(astroName, false)}`
+                  const body = ko ? c.meaning : (c.meaningEn ?? c.meaning)
+                  return (
+                    <div
+                      className={`${styles.cross} ${isHero ? styles.crossHero : ''}`.trim()}
+                      key={c.id ?? i}
+                    >
+                      <div className={styles.crossTop}>
+                        <span className={`${styles.pole} ${poleCls}`.trim()} aria-hidden>
+                          {poleSym}
+                        </span>
+                        <span className={`${styles.term} ${styles.termSaju}`}>
+                          <span className={styles.termSys}>Saju</span>
+                          <span className={styles.termNm}>{sajuName}</span>
+                        </span>
+                        <span className={styles.crossX} aria-hidden>
+                          ×
+                        </span>
+                        <span className={`${styles.term} ${styles.termAstro}`}>
+                          <span className={styles.termSys}>Astro</span>
+                          <span className={styles.termNm}>{astroName}</span>
+                        </span>
+                        {isHero && (
+                          <span className={styles.crossFlag}>
+                            {ko ? '가장 센 흐름' : 'Strongest'}
+                          </span>
+                        )}
+                      </div>
+                      <div className={styles.crossHead}>{head}</div>
+                      {body && <div className={styles.crossBody}>{body}</div>}
+                    </div>
+                  )
+                })}
               </div>
             )}
           </div>

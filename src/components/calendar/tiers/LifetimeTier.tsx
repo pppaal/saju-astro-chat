@@ -37,6 +37,8 @@ import type {
 } from '@/types/calendar'
 import styles from './LifetimeTier.module.css'
 import { useI18n } from '@/i18n/I18nProvider'
+import { ShareLifeButton } from '@/components/calendar/ShareLifeButton'
+import { lifeShareHook } from '@/lib/share/shareHook'
 
 // ============================================================================
 // Props (계약 불변 — byte-for-byte 보존. 최상단 티어 → onRise/showRise 없음)
@@ -96,8 +98,7 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
     zrFortuneChapters,
     lifePattern,
     lifeCurve,
-  } =
-    lifetime
+  } = lifetime
 
   // lifeStages 빈 배열 가드 (adapter 실패 시 깨짐 방지) — 로딩.
   if (!lifeStages?.length) {
@@ -308,10 +309,56 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
     const maxAge = pts[pts.length - 1].age || 88
     const x = (age: number) => PAD_X + (age / maxAge) * (CW - 2 * PAD_X)
     const y = (v: number) => PAD_TOP + (1 - v) * (CH - PAD_TOP - PAD_BOT)
-    const line = pts.map((p, i) => `${i ? 'L' : 'M'}${x(p.age).toFixed(1)} ${y(p.value).toFixed(1)}`).join(' ')
+    const line = pts
+      .map((p, i) => `${i ? 'L' : 'M'}${x(p.age).toFixed(1)} ${y(p.value).toFixed(1)}`)
+      .join(' ')
     const area = `${line} L${x(pts[pts.length - 1].age).toFixed(1)} ${CH - PAD_BOT} L${x(pts[0].age).toFixed(1)} ${CH - PAD_BOT} Z`
-    const valAt = (age: number) => pts.reduce((b, p) => (Math.abs(p.age - age) < Math.abs(b.age - age) ? p : b), pts[0]).value
+    const valAt = (age: number) =>
+      pts.reduce((b, p) => (Math.abs(p.age - age) < Math.abs(b.age - age) ? p : b), pts[0]).value
     return { pts, maxAge, x, y, line, area, valAt }
+  })()
+
+  // ── 공유용 인생 곡선 데이터(숫자·연도 라벨만 — 원국/생년월일은 안 보냄) ──
+  const lifeShare = (() => {
+    const pts = lifeCurve?.points ?? []
+    if (pts.length < 2) return null
+    const curveScores = pts.map((p) => Math.round(Math.max(0, Math.min(1, p.value)) * 100))
+    const nowAge = lifeCurve?.nowAge ?? -1
+    const markerIndex =
+      nowAge >= 0
+        ? pts.reduce(
+            (best, p, i) =>
+              Math.abs(p.age - nowAge) < Math.abs(pts[best].age - nowAge) ? i : best,
+            0
+          )
+        : undefined
+    // 피크 = value 최댓값 인덱스.
+    let peakIndex = 0
+    for (let i = 1; i < pts.length; i++) if (pts[i].value > pts[peakIndex].value) peakIndex = i
+    // 축 라벨 — 곡선 양 끝과 1/3·2/3 지점의 실제 연도 4개.
+    const at = (f: number) => pts[Math.round(f * (pts.length - 1))]?.year
+    const axisLabels = [at(0), at(1 / 3), at(2 / 3), at(1)]
+      .filter((y): y is number => typeof y === 'number')
+      .map((y) => `${y}`)
+    // 공유 카드는 더 센 후크(피크/추세 기반). 인앱 결론(patternLine)은 그대로.
+    const hook = lifeShareHook({
+      slope: lifeCurve?.now?.slope ?? 'plateau',
+      nowAge,
+      peakAge: pts[peakIndex]?.age ?? -1,
+      peakYear: pts[peakIndex]?.year ?? 0,
+      seed: birthYear,
+      ko,
+    })
+    return {
+      isKo: ko,
+      rangeLabel: `${birthYear}–${lifeSpanTo}`,
+      headline: hook.headline,
+      subline: hook.subline || youAreHere || undefined,
+      curve: curveScores,
+      axisLabels,
+      markerIndex,
+      peakIndex,
+    }
   })()
 
   return (
@@ -342,6 +389,12 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
 
       {/* ── 감사 #3: 지금 여기 → 다음 마디 한 줄(hero·timeline·milestones 연결) ── */}
       {youAreHere && <p className={styles.youAreHere}>{youAreHere}</p>}
+
+      {lifeShare && (
+        <div style={{ display: 'flex', justifyContent: 'center', marginTop: 14 }}>
+          <ShareLifeButton data={lifeShare} />
+        </div>
+      )}
 
       {/* ── 자세히 ① 정체성 — 일간·격국·용신·강약 (사주를 아는 사람용) ── */}
       <details className={styles.expertWrap}>
@@ -606,8 +659,7 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
             // 밴드 크기를 셀 바닥 fill 높이로(±2→100%) — 연속값이라 곡선의 굴곡이
             // 막대에도 그대로 보인다. 위(순풍)는 금색, 아래(역풍)는 식은색.
             const fillH = Math.round((Math.min(Math.abs(band), 2) / 2) * 52)
-            const fillCls =
-              band > 0.15 ? styles.dwFillUp : band < -0.15 ? styles.dwFillDown : ''
+            const fillCls = band > 0.15 ? styles.dwFillUp : band < -0.15 ? styles.dwFillDown : ''
             const sibsin = d.sibsin && d.sibsin !== '—' ? String(d.sibsin) : ''
             const sibsinGloss = sibsin ? (ko ? sibsinArea(sibsin) : sibsinAreaEn(sibsin)) : ''
             const gzKr = d.gz.kr // 한국어 음(갑술) — secondary 표기.

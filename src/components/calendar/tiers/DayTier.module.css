@@ -561,6 +561,13 @@
   color: var(--t2);
   margin-bottom: 14px;
 }
+/* 하루 시간 리듬 곡선(막대 대신) — 대운/인생 곡선과 같은 결. */
+.hourGraph {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin-top: 6px;
+}
 .rhythmRow {
   display: grid;
   grid-auto-flow: column;
@@ -850,6 +857,12 @@
   max-width: 32ch;
   margin: 9px auto 0;
   word-break: keep-all;
+}
+
+.novShare {
+  display: flex;
+  justify-content: center;
+  margin-top: 16px;
 }
 
 /* ── 자세히 폴드 (전문층 — 사주를 아는 사람만 펼침) ── */

@@ -1,12 +1,12 @@
 'use client'
 
 /**
- * ShareCalendarButton — 운흐름 캘린더의 이달 흐름 한 줄을 공개 공유 링크
- * (/r/[token])로 만들어 Web Share API 또는 클립보드 복사로 내보낸다.
- * 서버엔 요약 텍스트만 저장(개인 원국/생년월일은 보내지 않음).
+ * ShareLifeButton — 인생/대운 흐름 곡선 + 한 줄을 공개 공유 링크(/r/[token])로
+ * 만들어 Web Share API 또는 클립보드 복사로 내보낸다. 서버엔 요약 텍스트·곡선
+ * 숫자·연도 라벨만 저장(개인 원국/생년월일은 안 보냄).
  *
- * 궁합 ShareCompatibilityButton 과 동일한 링크 공유 흐름 — OG 이미지는
- * /r/[token]/opengraph-image 가 동적 생성한다.
+ * ShareCalendarButton 과 동일한 링크 공유 흐름 — OG 이미지는
+ * /r/[token]/opengraph-image 가 동적 생성(인생 곡선 + 한 줄).
  */
 
 import { useCallback, useRef, useState } from 'react'
@@ -14,16 +14,18 @@ import { Share2, Check, Loader2 } from 'lucide-react'
 import { apiFetch } from '@/lib/api'
 import { logger } from '@/lib/logger'
 
-export interface CalendarShareData {
+export interface LifeShareData {
   isKo: boolean
-  periodLabel: string
+  rangeLabel?: string
   headline: string
-  highlights?: string[]
-  curve?: number[]
+  subline?: string
+  curve: number[]
+  axisLabels?: string[]
   markerIndex?: number
+  peakIndex?: number
 }
 
-export function ShareCalendarButton({ data }: { data: CalendarShareData }) {
+export function ShareLifeButton({ data }: { data: LifeShareData }) {
   const isKo = data.isKo
   const [phase, setPhase] = useState<'idle' | 'creating' | 'copied'>('idle')
   const [error, setError] = useState<string | null>(null)
@@ -35,16 +37,18 @@ export function ShareCalendarButton({ data }: { data: CalendarShareData }) {
     setError(null)
     setPhase('creating')
     try {
-      const res = await apiFetch('/api/calendar/share', {
+      const res = await apiFetch('/api/life/share', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           isKo,
-          periodLabel: data.periodLabel,
+          rangeLabel: data.rangeLabel || undefined,
           headline: data.headline,
-          highlights: data.highlights?.length ? data.highlights.slice(0, 5) : undefined,
-          curve: data.curve?.length ? data.curve.map((n) => Math.round(n)) : undefined,
+          subline: data.subline || undefined,
+          curve: data.curve.map((n) => Math.round(n)),
+          axisLabels: data.axisLabels?.length ? data.axisLabels.slice(0, 4) : undefined,
           markerIndex: data.markerIndex,
+          peakIndex: data.peakIndex,
         }),
       })
       const json = (await res.json().catch(() => null)) as { data?: { url?: string } } | null
@@ -53,11 +57,11 @@ export function ShareCalendarButton({ data }: { data: CalendarShareData }) {
         setError(isKo ? '링크를 만들지 못했어요.' : 'Could not create a link.')
         return
       }
-      const shareText = data.headline || data.periodLabel
+      const shareText = data.headline || data.rangeLabel || ''
       if (typeof navigator !== 'undefined' && typeof navigator.share === 'function') {
         try {
           await navigator.share({
-            title: isKo ? 'DestinyPal 운흐름' : 'DestinyPal Calendar',
+            title: isKo ? 'DestinyPal 인생 곡선' : 'DestinyPal — Life Curve',
             text: shareText,
             url,
           })
@@ -75,7 +79,7 @@ export function ShareCalendarButton({ data }: { data: CalendarShareData }) {
         setError(isKo ? `링크: ${url}` : `Link: ${url}`)
       }
     } catch (err) {
-      logger.error('[ShareCalendar] link create failed', err instanceof Error ? err : undefined)
+      logger.error('[ShareLife] link create failed', err instanceof Error ? err : undefined)
       setError(isKo ? '네트워크 오류가 발생했어요.' : 'A network error occurred.')
     } finally {
       busyRef.current = false
@@ -115,12 +119,12 @@ export function ShareCalendarButton({ data }: { data: CalendarShareData }) {
             ? '링크 복사됨!'
             : 'Link copied!'
           : isKo
-            ? '이달 흐름 공유하기'
-            : 'Share this month'}
+            ? '인생 곡선 공유하기'
+            : 'Share life curve'}
       </button>
       {error ? <span style={{ fontSize: 12, color: '#fda4af' }}>{error}</span> : null}
     </div>
   )
 }
 
-export default ShareCalendarButton
+export default ShareLifeButton

@@ -12,9 +12,12 @@ import {
   getShareLink,
   isCompatShare,
   isCalendarShare,
+  isDayShare,
+  isLifeShare,
   isReportShare,
   bumpShareViews,
 } from '@/lib/tarot/shareLink'
+import { buildCurveSvg, curveSvgDataUri } from '@/lib/share/curveSvg'
 import { recordCounter } from '@/lib/metrics/index'
 
 export const dynamic = 'force-dynamic'
@@ -56,6 +59,28 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       robots: { index: false, follow: false },
       openGraph: { title: calTitle, description: calDesc, type: 'article' },
       twitter: { card: 'summary_large_image', title: calTitle, description: calDesc },
+    }
+  }
+  if (isDayShare(reading)) {
+    const dayTitle = `${reading.headline} — DestinyPal`
+    const dayDesc = (reading.subline || reading.headline).slice(0, 160)
+    return {
+      title: dayTitle,
+      description: dayDesc,
+      robots: { index: false, follow: false },
+      openGraph: { title: dayTitle, description: dayDesc, type: 'article' },
+      twitter: { card: 'summary_large_image', title: dayTitle, description: dayDesc },
+    }
+  }
+  if (isLifeShare(reading)) {
+    const lifeTitle = `${reading.headline} — DestinyPal`
+    const lifeDesc = (reading.subline || reading.headline).slice(0, 160)
+    return {
+      title: lifeTitle,
+      description: lifeDesc,
+      robots: { index: false, follow: false },
+      openGraph: { title: lifeTitle, description: lifeDesc, type: 'article' },
+      twitter: { card: 'summary_large_image', title: lifeTitle, description: lifeDesc },
     }
   }
   if (isReportShare(reading)) {
@@ -308,6 +333,41 @@ export default async function SharedReadingPage({ params }: PageProps) {
             {reading.headline}
           </h1>
 
+          {reading.curve && reading.curve.length >= 2
+            ? (() => {
+                const curveImg = curveSvgDataUri(
+                  buildCurveSvg({
+                    scores: reading.curve,
+                    markerIndex: reading.markerIndex ?? -1,
+                    width: 560,
+                    height: 140,
+                    strokeWidth: 3,
+                    theme: {
+                      stroke: GOLD,
+                      fill: GOLD,
+                      dotGood: GOLD,
+                      dotMid: 'rgba(255,255,255,0.5)',
+                      dotLow: '#fda4af',
+                      marker: '#ffffff',
+                      dotStroke: '#0a0e1f',
+                    },
+                  })
+                )
+                return (
+                  <div style={{ marginTop: 24 }}>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={curveImg}
+                      alt={isKo ? '이달 흐름 곡선' : 'Monthly flow'}
+                      width={560}
+                      height={140}
+                      style={{ maxWidth: '100%', height: 'auto' }}
+                    />
+                  </div>
+                )
+              })()
+            : null}
+
           {reading.highlights?.length ? (
             <ul
               style={{
@@ -510,6 +570,331 @@ export default async function SharedReadingPage({ params }: PageProps) {
               {isKo
                 ? '생년월일만 넣으면 사주와 별자리를 함께 읽은 통합 리포트가 무료로 나와요.'
                 : 'Just your birth date — get a free Saju + astrology report read together.'}
+            </p>
+          </div>
+        </div>
+      </main>
+    )
+  }
+
+  // 하루(일진) 공유 — 점수 + 한 줄 + 이달 흐름 곡선이 주인공.
+  if (isDayShare(reading)) {
+    recordCounter('calendar.dayShare.viewed', 1)
+    const accent =
+      reading.tone === 'caution' ? '#ff6b8a' : reading.tone === 'mixed' ? '#e8a24d' : GOLD
+    const curveImg =
+      reading.curve && reading.curve.length >= 2
+        ? curveSvgDataUri(
+            buildCurveSvg({
+              scores: reading.curve,
+              markerIndex: reading.markerIndex ?? -1,
+              width: 560,
+              height: 150,
+              strokeWidth: 3,
+              theme: {
+                stroke: accent,
+                fill: accent,
+                dotGood: accent,
+                dotMid: 'rgba(255,255,255,0.5)',
+                dotLow: '#ff6b8a',
+                marker: '#ffffff',
+                dotStroke: '#0a0e1f',
+              },
+            })
+          )
+        : null
+    return (
+      <main
+        style={{
+          minHeight: '100vh',
+          background:
+            'radial-gradient(900px 620px at 25% 8%, rgba(212,181,114,0.16), transparent 60%),' +
+            'linear-gradient(160deg, #0b1022 0%, #070a1a 58%, #0a0e1f 100%)',
+          color: '#f1f3f9',
+        }}
+      >
+        <div
+          style={{
+            maxWidth: 600,
+            margin: '0 auto',
+            padding: '40px 20px 96px',
+            textAlign: 'center',
+          }}
+        >
+          <Link
+            href="/"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 10,
+              color: GOLD,
+              textDecoration: 'none',
+              fontWeight: 600,
+              letterSpacing: '0.04em',
+            }}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/logo/logo.png"
+              alt="DestinyPal"
+              width={30}
+              height={30}
+              style={{ borderRadius: 6 }}
+            />
+            DestinyPal
+          </Link>
+
+          <p
+            style={{
+              marginTop: 36,
+              fontSize: 12,
+              letterSpacing: '0.22em',
+              textTransform: 'uppercase',
+              color: GOLD_SOFT,
+            }}
+          >
+            {reading.dateLabel}
+          </p>
+          <div
+            style={{
+              marginTop: 10,
+              display: 'flex',
+              alignItems: 'baseline',
+              justifyContent: 'center',
+              gap: 4,
+              color: accent,
+            }}
+          >
+            <span style={{ fontSize: 72, fontWeight: 800, lineHeight: 1 }}>{reading.score}</span>
+            <span style={{ fontSize: 22, fontWeight: 800 }}>{isKo ? '점' : ''}</span>
+          </div>
+
+          <h1
+            style={{
+              marginTop: 22,
+              fontSize: 28,
+              fontWeight: 800,
+              lineHeight: 1.4,
+              color: '#f1f3f9',
+              wordBreak: 'keep-all',
+              overflowWrap: 'anywhere',
+            }}
+          >
+            {reading.headline}
+          </h1>
+          {reading.subline ? (
+            <p
+              style={{
+                marginTop: 14,
+                fontSize: 16,
+                lineHeight: 1.7,
+                color: '#dfe3ee',
+                wordBreak: 'keep-all',
+              }}
+            >
+              {reading.subline}
+            </p>
+          ) : null}
+
+          {curveImg ? (
+            <div style={{ marginTop: 28 }}>
+              <p style={{ fontSize: 12, color: MUTED, marginBottom: 6 }}>
+                {isKo ? '이달의 흐름' : 'This month'}
+              </p>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={curveImg}
+                alt={isKo ? '이달 흐름 곡선' : 'Monthly flow'}
+                width={560}
+                height={150}
+                style={{ maxWidth: '100%', height: 'auto' }}
+              />
+            </div>
+          ) : null}
+
+          <div style={{ marginTop: 40 }}>
+            <Link
+              href="/free"
+              style={{
+                display: 'inline-block',
+                padding: '15px 30px',
+                borderRadius: 999,
+                background: GOLD,
+                color: '#1a1305',
+                fontWeight: 700,
+                textDecoration: 'none',
+                fontSize: 16,
+              }}
+            >
+              {isKo ? '내 점수도 무료로 보기 →' : 'Get your score free →'}
+            </Link>
+            <p style={{ marginTop: 14, fontSize: 12, color: MUTED }}>
+              {isKo
+                ? '생년월일만 넣으면 오늘의 점수와 이달 흐름을 무료로 볼 수 있어요.'
+                : 'Just your birth date — see today’s score and this month’s flow, free.'}
+            </p>
+          </div>
+        </div>
+      </main>
+    )
+  }
+
+  // 인생/대운 곡선 공유 — 한 줄 + 인생 흐름 곡선이 주인공.
+  if (isLifeShare(reading)) {
+    recordCounter('life.share.viewed', 1)
+    const curveImg =
+      reading.curve.length >= 2
+        ? curveSvgDataUri(
+            buildCurveSvg({
+              scores: reading.curve,
+              markerIndex: reading.markerIndex ?? -1,
+              peakIndex: reading.peakIndex ?? -1,
+              width: 560,
+              height: 180,
+              strokeWidth: 3,
+              theme: {
+                stroke: '#ffb454',
+                fill: '#ffb454',
+                dotGood: '#ffd24d',
+                dotMid: 'rgba(255,255,255,0.55)',
+                dotLow: '#e88a5a',
+                marker: '#ffffff',
+                dotStroke: '#0a0e1f',
+              },
+            })
+          )
+        : null
+    const axis = (reading.axisLabels ?? []).slice(0, 4)
+    return (
+      <main
+        style={{
+          minHeight: '100vh',
+          background:
+            'radial-gradient(900px 620px at 25% 8%, rgba(232,160,90,0.16), transparent 60%),' +
+            'linear-gradient(160deg, #160c12 0%, #0a0710 58%, #120a0a 100%)',
+          color: '#f6ece0',
+        }}
+      >
+        <div
+          style={{
+            maxWidth: 600,
+            margin: '0 auto',
+            padding: '40px 20px 96px',
+            textAlign: 'center',
+          }}
+        >
+          <Link
+            href="/"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 10,
+              color: '#e8a05a',
+              textDecoration: 'none',
+              fontWeight: 600,
+              letterSpacing: '0.04em',
+            }}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/logo/logo.png"
+              alt="DestinyPal"
+              width={30}
+              height={30}
+              style={{ borderRadius: 6 }}
+            />
+            DestinyPal
+          </Link>
+
+          <p
+            style={{
+              marginTop: 36,
+              fontSize: 12,
+              letterSpacing: '0.22em',
+              textTransform: 'uppercase',
+              color: '#e8a05a',
+            }}
+          >
+            {reading.rangeLabel || (isKo ? '사주 × 별자리' : 'Saju × Astrology')}
+          </p>
+
+          <h1
+            style={{
+              marginTop: 22,
+              fontSize: 30,
+              fontWeight: 800,
+              lineHeight: 1.36,
+              color: '#ffe9cf',
+              wordBreak: 'keep-all',
+              overflowWrap: 'anywhere',
+            }}
+          >
+            {reading.headline}
+          </h1>
+          {reading.subline ? (
+            <p
+              style={{
+                marginTop: 14,
+                fontSize: 16,
+                lineHeight: 1.7,
+                color: '#d8b89a',
+                wordBreak: 'keep-all',
+              }}
+            >
+              {reading.subline}
+            </p>
+          ) : null}
+
+          {curveImg ? (
+            <div style={{ marginTop: 28 }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={curveImg}
+                alt={isKo ? '인생 흐름 곡선' : 'Life curve'}
+                width={560}
+                height={180}
+                style={{ maxWidth: '100%', height: 'auto' }}
+              />
+              {axis.length ? (
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    maxWidth: 560,
+                    margin: '4px auto 0',
+                    padding: '0 8px',
+                  }}
+                >
+                  {axis.map((a, i) => (
+                    <span key={i} style={{ fontSize: 11, color: '#c79a7a' }}>
+                      {a}
+                    </span>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+          ) : null}
+
+          <div style={{ marginTop: 40 }}>
+            <Link
+              href="/free"
+              style={{
+                display: 'inline-block',
+                padding: '15px 30px',
+                borderRadius: 999,
+                background: '#ffb454',
+                color: '#1a0e08',
+                fontWeight: 700,
+                textDecoration: 'none',
+                fontSize: 16,
+              }}
+            >
+              {isKo ? '내 인생 곡선도 무료로 보기 →' : 'See your life curve free →'}
+            </Link>
+            <p style={{ marginTop: 14, fontSize: 12, color: '#a98c74' }}>
+              {isKo
+                ? '생년월일만 넣으면 대운 흐름과 큰 마디를 무료로 볼 수 있어요.'
+                : 'Just your birth date — see your life’s arc and turning points, free.'}
             </p>
           </div>
         </div>
