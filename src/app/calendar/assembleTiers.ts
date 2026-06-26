@@ -499,6 +499,9 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
     cells,
     monthlyLayer: layered.monthly,
     dayScores: layered.daily, // 월 티어와 같은 일점수로 bestDay 일치(감사 C1)
+    // 올해 총운 — 대운 티어 1년운(years[].score)과 같은 출처. 12달을 이 수준으로
+    // 재중심해 10년→1년 줌인 모순 제거. (곡선 없으면 undefined → 기존 동작.)
+    yearOverallScore: yearScoreByYear?.get(TARGET_YEAR),
   })
   const ageThisYear = TARGET_YEAR - BIRTH_YEAR
   const fallbackHouse = (((ageThisYear % 12) + 12) % 12) + 1

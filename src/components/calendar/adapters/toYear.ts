@@ -180,6 +180,14 @@ export interface ToYearOptions {
    * cell.derivedScore 폴백.
    */
   dayScores?: Map<string, { score: number }>
+  /**
+   * 올해 총운(0~100) — 대운 티어의 그 해 1년운(years[].score)과 *같은* 출처
+   * (인생곡선 combined 백분위, assembleTiers.buildYearScoreByYear). 주어지면 12달
+   * 점수를 이 값 주변으로 재중심해, 10년(대운)→1년(세운) 줌인 시 "좋은 해인데
+   * 안쪽 달은 평이"한 모순을 없앤다. 월별 *상대 텍스처*(어느 달이 더 좋은지)는
+   * 보존하고 *수준*만 그 해 총운에 맞춘다. 없으면 기존(달 자체 정규화) 유지.
+   */
+  yearOverallScore?: number
 }
 
 export function toYear(natal: NatalContext, opts: ToYearOptions): DestinypalYear {
@@ -410,6 +418,32 @@ function buildProfectionWheel(
 }
 
 /**
+ * 12달 점수를 그 해 총운(yearOverall) 주변으로 재중심한다 — 월별 *상대 텍스처*
+ * (스프레드, 어느 달이 더 좋은지)는 보존하고 *평균 수준*만 총운에 맞춘다.
+ * 이렇게 해야 대운(10년)에서 "좋은 해(70)"로 칠한 해를 세운(1년)으로 줌인해도
+ * 안쪽 달들이 70 근처로 칠해져 모순이 사라진다.
+ *
+ * - yearOverall 이 없으면(곡선 빌드 실패 등) 원본 그대로(기존 동작).
+ * - score<=0 슬롯(미산출/현재 달 sentinel — monthTone 이 'steady' 처리)은 건드리지
+ *   않고, 점수가 있는 달들의 평균만 총운에 맞춘다.
+ * - 결정론: 순수 산술. 클록·랜덤 없음.
+ */
+function recenterToYearOverall(
+  rows: NonNullable<DestinypalYear['monthlyScores']>,
+  yearOverall: number | undefined
+): DestinypalYear['monthlyScores'] {
+  if (yearOverall == null || !Number.isFinite(yearOverall)) return rows
+  const scored = rows.filter((r) => r.score > 0)
+  if (scored.length < 2) return rows
+  const mean = scored.reduce((a, r) => a + r.score, 0) / scored.length
+  const shift = yearOverall - mean
+  if (Math.abs(shift) < 0.5) return rows
+  return rows.map((r) =>
+    r.score > 0 ? { ...r, score: Math.max(1, Math.min(100, Math.round(r.score + shift))) } : r
+  )
+}
+
+/**
  * cells 가 들어오면 datetime prefix `YYYY-MM` 으로 month grouping 해 평균
  * derivedScore 를 12 슬롯 배열로 환원. cells 가 없으면 빈 배열.
  */
@@ -428,11 +462,12 @@ function buildMonthlyScores(opts: ToYearOptions): DestinypalYear['monthlyScores'
         ? mc.reduce((a, b) => (dayScore(b) > dayScore(a) ? b : a)).datetime.slice(0, 10)
         : undefined
     }
-    return Array.from({ length: 12 }, (_, i) => ({
+    const raw = Array.from({ length: 12 }, (_, i) => ({
       month: i + 1,
       score: opts.monthlyLayer!.get(i + 1)?.score ?? opts.monthlyFallbackScore ?? 50,
       bestDay: best(i + 1),
     }))
+    return recenterToYearOverall(raw, opts.yearOverallScore)
   }
   if (!opts.cells || opts.cells.length === 0) return []
   const yPrefix = String(opts.year)

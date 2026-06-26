@@ -227,6 +227,43 @@ describe('toYear — yearly signals → destinypal year', () => {
       expect(y.monthlyScores![1].score).toBe(50)
     })
 
+    it('yearOverallScore 가 12달을 그 해 총운 수준으로 재중심(텍스처 보존)', () => {
+      // 10달 50 + 1월 70 + 6월 30 → 평균 50. 총운 75 → 전부 +25.
+      const layer = new Map([
+        [1, { score: 70 }],
+        [6, { score: 30 }],
+      ])
+      const y = toYear(natal(), { year: 2026, monthlyLayer: layer, yearOverallScore: 75 })
+      const byM = new Map(y.monthlyScores!.map((m) => [m.month, m.score]))
+      expect(byM.get(1)).toBe(95) // 70+25
+      expect(byM.get(6)).toBe(55) // 30+25
+      expect(byM.get(2)).toBe(75) // 50+25 (fallback 달도 같이 이동)
+      // 평균이 총운(75)에 맞춰진다.
+      const mean = y.monthlyScores!.reduce((a, m) => a + m.score, 0) / 12
+      expect(Math.round(mean)).toBe(75)
+      // 상대 텍스처(1월>2월>6월) 순서는 보존.
+      expect(byM.get(1)!).toBeGreaterThan(byM.get(2)!)
+      expect(byM.get(2)!).toBeGreaterThan(byM.get(6)!)
+    })
+
+    it('yearOverallScore 없으면 재중심 안 함(기존 동작)', () => {
+      const layer = new Map([[1, { score: 70 }]])
+      const y = toYear(natal(), { year: 2026, monthlyLayer: layer })
+      expect(y.monthlyScores!.find((m) => m.month === 1)!.score).toBe(70)
+    })
+
+    it('score<=0(미산출/현재 달) 슬롯은 재중심에서 제외·불변', () => {
+      // 2월=0(sentinel), 나머지 50 + 1월 80. 총운 70 → scored 평균 기준 이동, 0 은 유지.
+      const layer = new Map([
+        [1, { score: 80 }],
+        [2, { score: 0 }],
+      ])
+      const y = toYear(natal(), { year: 2026, monthlyLayer: layer, yearOverallScore: 70 })
+      const byM = new Map(y.monthlyScores!.map((m) => [m.month, m.score]))
+      expect(byM.get(2)).toBe(0) // sentinel 불변
+      expect(byM.get(1)!).toBeGreaterThan(80) // 위로 이동
+    })
+
     it('cells 로 salience peak 정규화 + bestDay', () => {
       const cells = [
         makeCell({ datetime: '2026-03-10T00:00:00.000Z', salience: 10, derivedScore: 40 }),
