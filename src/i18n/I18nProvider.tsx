@@ -355,11 +355,17 @@ export function I18nProvider({
   const setLocale = useCallback((next: Locale) => {
     // 쿠키를 먼저 동기로 써서, 이어지는 요청이 새 로케일을 읽게 한다.
     writeCookieLocale(next)
-    // 서버 컴포넌트(/free·/integrated-report 등 x-locale 헤더로 렌더)는 클라
-    // 상태만 바뀌어선 영어로 안 바뀐다. router.refresh() 는 RSC 페이로드는
-    // 갱신되나 클라 적용이 불안정해, 전체 리로드로 새 로케일을 확실히 반영한다.
+    // 서버 컴포넌트(/free·/integrated-report 등 x-locale·쿠키로 렌더)는 클라
+    // 상태만 바뀌어선 안 바뀐다. 전체 리로드로 새 로케일을 확실히 반영한다.
+    // 이때 URL 에 박힌 ?lang/?locale 핀(생일 게이트가 붙임)은 쿠키 토글을
+    // 덮어쓰므로 제거하고 리로드 — 그래야 영어 토글이 리포트·카드까지 먹는다.
     if (typeof window !== 'undefined') {
-      window.location.reload()
+      const url = new URL(window.location.href)
+      const hadPin = url.searchParams.has('lang') || url.searchParams.has('locale')
+      url.searchParams.delete('lang')
+      url.searchParams.delete('locale')
+      if (hadPin) window.location.replace(url.toString())
+      else window.location.reload()
       return
     }
     setLocaleState(next)
