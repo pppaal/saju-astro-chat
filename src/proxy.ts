@@ -178,21 +178,36 @@ export function proxy(request: NextRequest) {
     return NextResponse.next()
   }
 
+  // 로케일 주입 대상: 전체 HTML 로드 + RSC 요청(soft nav·router.refresh()).
+  // RSC 요청은 Accept 에 text/html 이 없어 예전엔 x-locale 이 안 실렸고, 그래서
+  // EN/KO 토글(router.refresh) 이 서버 컴포넌트(/free·/integrated-report 등)를
+  // 영어로 안 바꿨다. CSP nonce 는 HTML 에만 필요하므로 그대로 HTML 한정.
   const accept = request.headers.get('accept') || ''
-  if (!accept.includes('text/html')) {
+  const isHtml = accept.includes('text/html')
+  const isRsc =
+    request.headers.has('rsc') ||
+    request.headers.has('next-router-state-tree') ||
+    accept.includes('text/x-component')
+  if (!isHtml && !isRsc) {
     return NextResponse.next()
   }
 
-  const nonce = crypto.randomUUID()
   const { locale, fromCookie } = resolveLocale(request)
   const requestHeaders = new Headers(request.headers)
-  requestHeaders.set('x-nonce', nonce)
   requestHeaders.set('x-locale', locale)
+
+  let nonce: string | null = null
+  if (isHtml) {
+    nonce = crypto.randomUUID()
+    requestHeaders.set('x-nonce', nonce)
+  }
 
   const response = NextResponse.next({
     request: { headers: requestHeaders },
   })
-  response.headers.set('Content-Security-Policy', buildCsp(nonce, pathname.startsWith('/admin')))
+  if (nonce) {
+    response.headers.set('Content-Security-Policy', buildCsp(nonce, pathname.startsWith('/admin')))
+  }
   response.headers.set('Content-Language', locale)
   // Tell crawlers/CDNs the same URL serves different content per cookie
   response.headers.set('Vary', 'Cookie, Accept-Language')

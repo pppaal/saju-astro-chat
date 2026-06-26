@@ -146,6 +146,13 @@ function pickCloser(kind: keyof typeof VERDICT_CLOSERS, seed: string): { ko: str
   return pool[h % pool.length]
 }
 
+// 시드 기반 결정적 인덱스 — 오프너 변주 풀에서 같은 커플은 항상 같은 변형을 고른다.
+function seedIndex(seed: string, mod: number): number {
+  let h = 0
+  for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) >>> 0
+  return h % mod
+}
+
 export function elementVerdict(a: SajuElement, b: SajuElement, d: DomainCtx): CrossVerdict {
   const seed = `${d.aKo}|${d.bKo}|${a}|${b}`
   // 트레잇은 동의어 풀에서 결정적으로 고른다(override 우선). 같은 원소+같은 시드면
@@ -172,21 +179,30 @@ export function elementVerdict(a: SajuElement, b: SajuElement, d: DomainCtx): Cr
         const hedgeEn = d.airApprox
           ? 'That said, one side is an air sign mapped only approximately onto the elements, so read this as a loose resemblance rather than a firm match. '
           : ''
+        // sameTrait 오프너 변주 — "둘 다 ~결이라" 한 문장만 반복되던 걸 3종으로
+        // 갈라 정형 피로를 줄인다(시드 결정적, ko/en 짝, 톤=resonant 유지).
+        const sameOpeners = [
+          {
+            ko: `${d.aKo}${waGwa(d.aKo)} ${d.bKo}${iga(d.bKo)} 둘 다 ${ta.ko} 결이라, 한 방향으로 또렷한 사람이에요. `,
+            en: `Your ${d.aEn} and ${d.bEn} are both ${ta.en} — one clear, consistent direction. `,
+          },
+          {
+            ko: `${d.aKo}${waGwa(d.aKo)} ${d.bKo}${iga(d.bKo)} 같은 ${ta.ko} 결로 포개져, 속과 겉이 따로 놀지 않아요. `,
+            en: `Your ${d.aEn} and ${d.bEn} stack up in the same ${ta.en} grain — inner and outer don't pull apart. `,
+          },
+          {
+            ko: `여기선 ${d.aKo}${iga(d.aKo)} ${d.bKo}${waGwa(d.bKo)} ${ta.ko} 하나로 모여, 흔들려도 금세 제 결을 찾는 편이에요. `,
+            en: `Here your ${d.aEn} and ${d.bEn} converge on one ${ta.en} note — you find your footing again quickly. `,
+          },
+        ]
+        const sameOp = sameOpeners[seedIndex(`${seed}|same`, sameOpeners.length)]
+        const diffKo = `${d.aKo}${eunNeun(d.aKo)} ${ta.ko}, ${d.bKo}${eunNeun(d.bKo)} ${tb.ko} 결이라 겉보기엔 달라도 뿌리는 같은 흐름이라 한 방향으로 통해요. `
+        const diffEn = `Your ${d.aEn} is ${ta.en} and your ${d.bEn} is ${tb.en} — different on the surface, yet they share one root and pull the same way. `
         return {
           tone: 'resonant',
           reason: {
-            ko:
-              (sameTrait
-                ? `${d.aKo}${waGwa(d.aKo)} ${d.bKo}${iga(d.bKo)} 둘 다 ${ta.ko} 결이라, 한 방향으로 또렷한 사람이에요. `
-                : `${d.aKo}${eunNeun(d.aKo)} ${ta.ko}, ${d.bKo}${eunNeun(d.bKo)} ${tb.ko} 결이라 겉보기엔 달라도 뿌리는 같은 흐름이라 한 방향으로 통해요. `) +
-              hedgeKo +
-              cl.ko,
-            en:
-              (sameTrait
-                ? `Your ${d.aEn} and ${d.bEn} are both ${ta.en} — one clear, consistent direction. `
-                : `Your ${d.aEn} is ${ta.en} and your ${d.bEn} is ${tb.en} — different on the surface, yet they share one root and pull the same way. `) +
-              hedgeEn +
-              cl.en,
+            ko: (sameTrait ? sameOp.ko : diffKo) + hedgeKo + cl.ko,
+            en: (sameTrait ? sameOp.en : diffEn) + hedgeEn + cl.en,
           },
         }
       }

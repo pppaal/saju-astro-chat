@@ -121,12 +121,28 @@ export interface LifeShareLinkPayload {
   peakIndex?: number
 }
 
+/** 무료 통합 리포트 공유 — 사주 "유형 별명" + 소름 한 줄을 OG/공개 페이지 주인공으로. */
+export interface ReportShareLinkPayload {
+  v: 1
+  kind: 'report'
+  isKo: boolean
+  /** 유형 이모지 — 카드 상단. */
+  emoji: string
+  /** 유형 별명(MBTI 풍) — 공개 페이지/OG 의 주인공. PII 아님(명식 도출 고정 사전). */
+  typeName: string
+  /** 소름 한 줄 — 더 읽을거리. */
+  oneLiner: string
+  /** 동·서양이 둘 다 가리키는 주제 몇 개(선택) — 신뢰 훅. */
+  resonant?: string[]
+}
+
 export type ShareLinkPayload =
   | TarotShareLinkPayload
   | CompatShareLinkPayload
   | CalendarShareLinkPayload
   | DayShareLinkPayload
   | LifeShareLinkPayload
+  | ReportShareLinkPayload
 
 /** 타입 가드 — 공유 종류 분기(렌더/OG). 레거시(미지정)는 tarot. */
 export function isCompatShare(p: ShareLinkPayload): p is CompatShareLinkPayload {
@@ -143,6 +159,10 @@ export function isDayShare(p: ShareLinkPayload): p is DayShareLinkPayload {
 
 export function isLifeShare(p: ShareLinkPayload): p is LifeShareLinkPayload {
   return p.kind === 'life'
+}
+
+export function isReportShare(p: ShareLinkPayload): p is ReportShareLinkPayload {
+  return p.kind === 'report'
 }
 
 const shareKey = (token: string) => `tarot:share:${token}`
@@ -174,12 +194,13 @@ export async function getShareLink(token: string): Promise<ShareLinkPayload | nu
   try {
     const payload = await cacheGet<ShareLinkPayload>(shareKey(clean))
     if (!payload || payload.v !== 1) return null
-    // 궁합·캘린더·하루·인생 공유는 cards 가 없고, 타로(레거시 포함)는 cards 배열을 가진다.
+    // 궁합·캘린더·하루·인생·리포트 공유는 cards 가 없고, 타로(레거시 포함)는 cards 배열.
     if (
       payload.kind === 'compatibility' ||
       payload.kind === 'calendar' ||
       payload.kind === 'day' ||
-      payload.kind === 'life'
+      payload.kind === 'life' ||
+      payload.kind === 'report'
     )
       return payload
     if (!Array.isArray((payload as TarotShareLinkPayload).cards)) return null
@@ -193,4 +214,24 @@ export async function getShareLink(token: string): Promise<ShareLinkPayload | nu
 /** 표시·링크용 사이트 기본 URL — 운영 env, 없으면 .com 폴백. */
 export function siteBaseUrl(): string {
   return (process.env.NEXT_PUBLIC_BASE_URL || 'https://destinypal.com').replace(/\/$/, '')
+}
+
+const viewsKey = (token: string) => `share:views:${token}`
+
+/**
+ * 공유 링크 조회수를 1 올리고 누적값을 돌려준다(소셜 증거용). best-effort —
+ * cacheGet→cacheSet 라 동시성에서 약간 적게 셀 수 있으나 허영 지표라 무해하다.
+ * 실패하면 0(표시 안 함). 공유 페이로드와 같은 90일 TTL.
+ */
+export async function bumpShareViews(token: string): Promise<number> {
+  const clean = (token || '').trim()
+  if (!clean) return 0
+  try {
+    const prev = (await cacheGet<number>(viewsKey(clean))) ?? 0
+    const next = (typeof prev === 'number' ? prev : 0) + 1
+    await cacheSet(viewsKey(clean), next, SHARE_TTL_SECONDS)
+    return next
+  } catch {
+    return 0
+  }
 }

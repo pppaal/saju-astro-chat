@@ -23,6 +23,12 @@ import type { ViralSummary } from './viralArchetype'
 
 export const SHARE_CARD_SIZE = 1080
 
+// 이미지 공유는 클릭 불가라 받는 사람이 돌아올 경로(도메인)를 카드에 박는다.
+// NEXT_PUBLIC_ 이라 클라 번들에 인라인됨(서버 siteBaseUrl 과 동일 폴백).
+const SHARE_DOMAIN = (process.env.NEXT_PUBLIC_BASE_URL || 'https://destinypal.com')
+  .replace(/^https?:\/\//, '')
+  .replace(/\/$/, '')
+
 export interface ReportShareData {
   summary: ViralSummary
   /** 출생자 이름 — 카드 상단에 옅게. */
@@ -128,7 +134,26 @@ export const ReportShareCard = React.forwardRef<HTMLDivElement, { data: ReportSh
           </div>
 
           {/* emoji */}
-          <div style={{ fontSize: 120, lineHeight: 1, marginBottom: 24 }}>{summary.emoji}</div>
+          <div style={{ fontSize: 120, lineHeight: 1, marginBottom: 18 }}>{summary.emoji}</div>
+
+          {/* 강약 결 칩 */}
+          {summary.subtype && (
+            <div
+              style={{
+                display: 'inline-block',
+                fontFamily: SANS,
+                fontSize: 26,
+                fontWeight: 700,
+                color: GOLD_SOFT,
+                border: `2px solid ${GOLD_LINE}`,
+                borderRadius: 999,
+                padding: '6px 22px',
+                marginBottom: 18,
+              }}
+            >
+              {summary.subtype}
+            </div>
+          )}
 
           {/* archetype name */}
           <div
@@ -159,6 +184,27 @@ export const ReportShareCard = React.forwardRef<HTMLDivElement, { data: ReportSh
           >
             {summary.oneLiner}
           </div>
+
+          {/* 콕 집는 한 줄 */}
+          {summary.edgeLine && (
+            <div
+              style={{
+                marginTop: 24,
+                fontFamily: SERIF,
+                fontSize: 32,
+                fontWeight: 600,
+                lineHeight: 1.45,
+                color: GOLD_SOFT,
+                wordBreak: 'keep-all',
+                border: `2px solid ${GOLD_LINE}`,
+                borderRadius: 16,
+                padding: '14px 26px',
+                maxWidth: 820,
+              }}
+            >
+              🔪 {summary.edgeLine}
+            </div>
+          )}
 
           {/* hashtags */}
           {hashtags.length > 0 && (
@@ -274,6 +320,10 @@ export const ReportShareCard = React.forwardRef<HTMLDivElement, { data: ReportSh
           <span style={{ color: GOLD_LINE, fontSize: 22 }}>·</span>
           <span style={{ fontSize: 22, color: TEXT_MUTE, wordBreak: 'keep-all' }}>
             {isKo ? '무료 사주 리포트' : 'free birth-chart report'}
+          </span>
+          {/* 이미지 공유엔 링크가 없으니 도메인을 박아 복귀 경로를 남긴다 */}
+          <span style={{ marginLeft: 'auto', fontSize: 24, fontWeight: 600, color: GOLD_SOFT }}>
+            {SHARE_DOMAIN}
           </span>
         </div>
       </div>

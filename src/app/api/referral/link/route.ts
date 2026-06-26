@@ -9,6 +9,7 @@ import {
 } from '@/lib/api/middleware'
 import { linkReferrer } from '@/lib/referral'
 import { prisma } from '@/lib/db/prisma'
+import { recordCounter } from '@/lib/metrics/index'
 import { logger } from '@/lib/logger'
 
 export const dynamic = 'force-dynamic'
@@ -45,6 +46,8 @@ export const POST = withApiMiddleware(
       }
 
       const result = await linkReferrer(userId, code)
+      // 퍼널 — 추천 링크로 들어와 실제로 신규 가입 연결까지 성공한 시점.
+      if (result.success) recordCounter('referral.signup', 1)
       return apiSuccess({
         linked: result.success,
         reason: result.error as string | undefined,

@@ -31,8 +31,10 @@ export default function ViralTopCard({ summary, lang, action }: ViralTopCardProp
           <span className={s.emoji}>{summary.emoji}</span>
         </div>
 
+        {summary.subtype && <span className={s.subtype}>{summary.subtype}</span>}
         <h2 className={s.name}>{summary.name}</h2>
         <p className={s.oneLiner}>{summary.oneLiner}</p>
+        {summary.edgeLine && <p className={s.edge}>🔪 {summary.edgeLine}</p>}
 
         {summary.outer && (
           <p className={s.outer}>

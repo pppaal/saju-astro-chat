@@ -23,11 +23,13 @@ import { BirthInfoFields, type BirthFieldsPatch } from '@/components/birth/Birth
 import { getStoredBirthInfo, normGender, timeToState } from '@/app/(main)/birthInfoStorage'
 import { ScoreBreakdown } from '@/components/report/atoms/ScoreBreakdown'
 import { ShareCompatibilityButton } from '@/components/compatibility/ShareCompatibilityButton'
+import { ReferralInviteButton } from '@/components/referral/ReferralInviteButton'
 import { spouseFeeling } from '@/lib/compatibility/compatChartLabels'
 import type { SajuPillarInput } from '@/lib/compatibility/sajuSynastryFormatter'
 import type { CompatReport } from '@/lib/compatibility/compatReport'
-import { buildFreeCompatNarrative } from '@/lib/compatibility/freeReport/buildNarrative'
+import { buildFreeCompatNarrative, josa } from '@/lib/compatibility/freeReport/buildNarrative'
 import type { FreeReportTheme } from '@/lib/compatibility/freeReport/types'
+import { trackFunnel } from '@/lib/metrics/trackFunnel'
 import { logger } from '@/lib/logger'
 import s from './freeCompat.module.css'
 
@@ -386,7 +388,7 @@ export default function FreeCompatibilityPage() {
     const a0 = report?.synView?.aspects?.[0]
     if (a0) {
       return isKo
-        ? `${labelA} ${a0.a}와 ${labelB} ${a0.b}가 ${a0.label}로 ${a0.strength} 이어져 있어요.`
+        ? `${labelA} ${josa(a0.a, '과/와')} ${labelB} ${josa(a0.b, '이/가')} ${josa(a0.label, '으로/로')} ${a0.strength} 이어져 있어요.`
         : `${labelA}'s ${a0.a} and ${labelB}'s ${a0.b} connect in ${a0.label}, ${a0.strength}.`
     }
     return null
@@ -414,6 +416,7 @@ export default function FreeCompatibilityPage() {
             labelB={labelB}
             isKo={isKo}
             locale={locale}
+            timeUnknown={personA.timeUnknown || personB.timeUnknown}
             onReset={() => {
               setReport(null)
               setPhase('input')
@@ -667,6 +670,7 @@ function ResultView({
   labelB,
   isKo,
   locale,
+  timeUnknown,
   onReset,
 }: {
   report: CompatReport
@@ -675,9 +679,14 @@ function ResultView({
   labelB: string
   isKo: boolean
   locale: 'ko' | 'en'
+  timeUnknown: boolean
   onReset: () => void
 }) {
   const view = buildFreeCompatNarrative(report, { labelA, labelB, lang: locale })
+  // 퍼널 — 결과 화면 노출(폼이 아니라 풀이가 실제로 렌더된 시점). 한 번만 전송.
+  useEffect(() => {
+    trackFunnel('compat_free.report_viewed')
+  }, [])
   const verdict = view.verdict
   const toneClass =
     verdict?.tone === 'aligned'
@@ -713,6 +722,15 @@ function ResultView({
 
       {/* 리포트 도입 — 어떻게 읽는지 */}
       <p className={s.intro}>{view.intro}</p>
+
+      {/* 출생시각 미상 — 시주(時柱)가 바뀌면 배우자성·궁합 점수가 달라질 수 있어 추정임을 알림 */}
+      {timeUnknown ? (
+        <p className={s.timeNote}>
+          {isKo
+            ? '출생 시각을 모르는 분이 있어, 태어난 시(時) 기둥에 기대는 배우자성·점수는 대략적인 추정이에요. 시각을 넣으면 더 또렷해져요.'
+            : 'One birth time is unknown, so spouse-star and score that lean on the birth-hour pillar are rough estimates. Add the time for a sharper read.'}
+        </p>
+      ) : null}
 
       {/* 끌림/마찰 밴드 — 가짜 정밀 점수(N/100) 대신 verdict 밴드 + 분해 바 */}
       <div className={s.bandWrap}>
@@ -754,12 +772,17 @@ function ResultView({
             headline: headlineReason || '',
           }}
         />
+        <ReferralInviteButton isKo={isKo} />
       </div>
 
       {/* 깊은 해석(처방·시기·1:1)은 유료 궁합 상담사 — 가장 눈에 띄는 CTA */}
       <div className={s.closing}>
         <p className={s.closingText}>{view.closing}</p>
-        <Link href="/compatibility/counselor" className={s.counselorCta}>
+        <Link
+          href="/compatibility/counselor"
+          className={s.counselorCta}
+          onClick={() => trackFunnel('compat_free.counselor_cta')}
+        >
           <Sparkles className="w-4 h-4" />
           {isKo ? '상담사에게 더 깊이 묻기 →' : 'Ask the counselor for more →'}
         </Link>

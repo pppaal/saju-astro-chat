@@ -72,7 +72,7 @@ import PlanetDetail from './detail/PlanetDetail'
 import HouseDetail from './detail/HouseDetail'
 import AspectDetail from './detail/AspectDetail'
 import ViralTopCard from './viral/ViralTopCard'
-import { buildViralSummary } from './viral/viralArchetype'
+import { buildViralSummary, normalizeStrength } from './viral/viralArchetype'
 import { ShareReportButton } from './viral/ShareReportButton'
 
 export type { Lang } from './integratedReportLabels'
@@ -525,7 +525,9 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
     [UI.pMonth, S.pillars.month],
     [UI.pYear, S.pillars.year],
   ]
-  const strengthPct = S.strength === 'strong' ? 76 : S.strength === 'weak' ? 28 : 52
+  // S.strength 는 한글('신강'/'신약'/'')이라 영문 비교가 늘 새던 걸 정규화로 교정.
+  const strengthNorm = normalizeStrength(S.strength)
+  const strengthPct = strengthNorm === 'strong' ? 76 : strengthNorm === 'weak' ? 28 : 52
 
   // §02 격국 풀이 — geokguk-rich 사전. '미정' 이거나 매칭 없으면 자동 생략.
   const geok = S.geokguk && S.geokguk !== '미정' ? getGeokgukRich(S.geokguk, lang) : null
@@ -573,6 +575,10 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
       .filter((r) => r.tone === 'resonant' && !isKarmaRow(r))
       .map((r) => r.category),
     yongsinElement: S.yongsin.primary,
+    strength: S.strength,
+    // 차트 합성 헤드라인 — 지배 십성으로 사람마다 다른 유형/한 줄, 마찰 있으면 콕 집는 줄.
+    dominantSibsin: domSibsinName,
+    hasTension: (cross?.rows ?? []).some((r) => r.tone === 'tension'),
     lang,
   })
 
@@ -1113,9 +1119,9 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
                       {t('dayMasterLab')} {S.dayMaster}
                     </span>
                     <b>
-                      {S.strength === 'strong'
+                      {strengthNorm === 'strong'
                         ? t('strong')
-                        : S.strength === 'weak'
+                        : strengthNorm === 'weak'
                           ? t('weak')
                           : t('balanced')}
                     </b>

@@ -121,6 +121,42 @@ export const PARTNER_BY_ELEMENT: Record<string, BiLabel> = {
   },
 }
 
+// 신강·신약(일간 강약) → 유형의 "결" 보조축. 같은 일간이라도 강약에 따라
+// 표현 방식이 달라 — 헤드라인을 10종(일간)에서 30종(일간×강약)으로 넓힌다.
+// 용신(부족·보강)이 아니라 강약을 쓰는 이유: 강약은 "어떤 사람인가"(정체)에
+// 직결되지만 용신은 "무엇이 필요한가"라 정체 라벨엔 덜 맞는다.
+export type StrengthState = 'strong' | 'weak' | 'balanced'
+
+export const STRENGTH_TAG: Record<StrengthState, BiLabel> = {
+  strong: { ko: '주도형', en: 'Driven' },
+  weak: { ko: '조율형', en: 'Adaptive' },
+  balanced: { ko: '균형형', en: 'Balanced' },
+}
+
+// oneLiner 뒤에 붙는 강약별 한 문장 — 같은 유형도 결이 달라지게.
+const STRENGTH_FLAVOR: Record<StrengthState, BiLabel> = {
+  strong: {
+    ko: '스스로 밀고 나가는 힘이 강해, 방향만 정하면 끝까지 가는 편이에요.',
+    en: 'Your inner drive runs strong — once you set a direction, you carry it all the way.',
+  },
+  weak: {
+    ko: '혼자 밀어붙이기보다 좋은 사람·환경과 어우러질 때 더 크게 빛나는 결이에요.',
+    en: 'You shine brightest in sync with the right people and surroundings, not going it alone.',
+  },
+  balanced: {
+    ko: '치우치지 않고 상황 따라 강약을 조절하는 균형이 강점이에요.',
+    en: 'Your strength is balance — you adjust your intensity to fit the moment.',
+  },
+}
+
+// 강약 라벨 정규화 — 데이터는 한글('신강'/'신약'/'')인데 일부 코드가 영문을
+// 기대해 늘 '중화'로 새던 버그가 있었다. 양쪽 표기를 모두 받는다.
+export function normalizeStrength(raw: string | null | undefined): StrengthState {
+  if (raw === 'strong' || raw === '신강') return 'strong'
+  if (raw === 'weak' || raw === '신약') return 'weak'
+  return 'balanced'
+}
+
 const STEM_KO_TO_HAN: Record<string, string> = {
   갑: '甲',
   을: '乙',
@@ -140,11 +176,126 @@ export function getArchetype(dayMaster: string): Archetype | null {
   return key ? (ARCHETYPE_BY_STEM[key] ?? null) : null
 }
 
+// ── 차트 합성 헤드라인 ─────────────────────────────────────────────────────
+// "완전 나"는 버킷 라벨이 아니라 그 사람만의 디테일에서 온다. 일간 archetype 을
+// 그 사람의 지배 십성(domSibsin)으로 합성해 헤드라인을 차트별로 가른다:
+//   name      = [십성 수식] + [일간 역할 명사]   (예: 판을 뒤집는 개척자)
+//   oneLiner  = [십성 결 한 줄] + [강약 결]
+//   edgeLine  = [십성 그림자 한 줄] — tension 이 있을 때만(없는 친화 차트엔 억지 X)
+
+// 일간 → 짧은 역할 명사(수식어가 앞에 붙어도 자연스럽게).
+const STEM_CORE: Record<string, BiLabel> = {
+  甲: { ko: '개척자', en: 'Trailblazer' },
+  乙: { ko: '생존가', en: 'Survivor' },
+  丙: { ko: '분위기메이커', en: 'Spark' },
+  丁: { ko: '장인', en: 'Craftsman' },
+  戊: { ko: '버팀목', en: 'Anchor' },
+  己: { ko: '살림꾼', en: 'Cultivator' },
+  庚: { ko: '승부사', en: 'Closer' },
+  辛: { ko: '완벽주의자', en: 'Perfectionist' },
+  壬: { ko: '자유인', en: 'Free Spirit' },
+  癸: { ko: '직관가', en: 'Seer' },
+}
+
+// 지배 십성 → 이름 수식어.
+const SIBSIN_MODIFIER: Record<string, BiLabel> = {
+  비견: { ko: '나란히 가는', en: 'shoulder-to-shoulder' },
+  겁재: { ko: '지지 않는', en: 'never-backing-down' },
+  식신: { ko: '여유로운', en: 'easygoing' },
+  상관: { ko: '판을 뒤집는', en: 'rule-bending' },
+  편재: { ko: '크게 굴리는', en: 'big-swinging' },
+  정재: { ko: '착실히 쌓는', en: 'steady-building' },
+  편관: { ko: '밀어붙이는', en: 'hard-charging' },
+  정관: { ko: '반듯한', en: 'straight-arrow' },
+  편인: { ko: '촉이 좋은', en: 'sharp-instinct' },
+  정인: { ko: '받쳐주는', en: 'steadying' },
+}
+
+// 지배 십성 → oneLiner 결 한 줄.
+const SIBSIN_LINE: Record<string, BiLabel> = {
+  비견: {
+    ko: '남이랑 겨루기보다 나란히 같이 가는 걸 좋아하는 사람이에요.',
+    en: "You'd rather move shoulder-to-shoulder with people than compete against them.",
+  },
+  겁재: {
+    ko: '은근한 승부욕으로, 곁에 자극이 있을 때 더 잘하는 타입이에요.',
+    en: "A quiet competitive streak — you sharpen up when there's someone to measure against.",
+  },
+  식신: {
+    ko: '좋아하는 걸 편하게 즐기고 표현하는, 결이 부드러운 사람이에요.',
+    en: 'You enjoy and express what you love at ease — a soft, unforced grain.',
+  },
+  상관: {
+    ko: '정해진 답보다 내 식대로 새로 짜는 게 빠른, 재기 넘치는 사람이에요.',
+    en: "You'd rather redo it your own way than follow the set answer — quick and inventive.",
+  },
+  편재: {
+    ko: '기회를 크게 보고 사람·판을 시원하게 굴리는 스케일 큰 사람이에요.',
+    en: 'You see opportunity big and move people and resources with an open hand.',
+  },
+  정재: {
+    ko: '큰소리보다 손에 잡히는 결과로 착실하게 증명하는 사람이에요.',
+    en: 'You prove yourself with tangible results, not big talk — steady and real.',
+  },
+  편관: {
+    ko: '위기일수록 앞장서서 밀어붙이는 추진력의 사람이에요.',
+    en: 'The harder it gets, the more you step up and push — sheer drive.',
+  },
+  정관: {
+    ko: '원칙과 책임을 지키며 신뢰를 쌓는 반듯한 사람이에요.',
+    en: 'You keep your principles and carry your weight, building trust by being solid.',
+  },
+  편인: {
+    ko: '남이 못 보는 결을 먼저 읽는, 촉과 깊이가 있는 사람이에요.',
+    en: 'You read what others miss first — instinct and depth.',
+  },
+  정인: {
+    ko: '배우고 품어서 곁을 든든하게 받쳐주는 사람이에요.',
+    en: 'You learn and hold space, steadying the people around you.',
+  },
+}
+
+// 지배 십성 → "콕 집는" 그림자 한 줄(살짝 불편하게 정확한 말). tension 있을 때만.
+const SIBSIN_EDGE: Record<string, BiLabel> = {
+  비견: { ko: '근데 내 영역 침범당하는 건 못 참죠.', en: "But don't step into your turf." },
+  겁재: { ko: '사실 지는 거, 진짜 싫어하죠.', en: 'Truth is, you hate losing.' },
+  식신: {
+    ko: '편한 게 좋아서 가끔 미루는 거, 본인도 알죠.',
+    en: 'You know you put things off when it gets too cozy.',
+  },
+  상관: {
+    ko: '하고 싶은 말, 결국 다 해버리고 마는 편이고요.',
+    en: 'And you usually end up saying the thing out loud.',
+  },
+  편재: {
+    ko: '벌이는 건 잘하는데 마무리에서 새는 거 있죠.',
+    en: 'Great at starting big — it leaks at the finish.',
+  },
+  정재: {
+    ko: '내 사람 아니면, 정 잘 안 주는 편이죠.',
+    en: "If you're not 'mine,' you stay guarded.",
+  },
+  편관: {
+    ko: '스스로를 너무 몰아붙이는 게 문제고요.',
+    en: 'The catch is how hard you push yourself.',
+  },
+  정관: {
+    ko: '틀에서 벗어나는 걸 은근 불편해하죠.',
+    en: 'Coloring outside the lines quietly unsettles you.',
+  },
+  편인: { ko: '생각이 많아 시작이 자꾸 늦어지죠.', en: 'You overthink, so starting drags.' },
+  정인: { ko: '남 챙기다 정작 내 걸 놓치는 편이고요.', en: 'You mind others and drop your own.' },
+}
+
 // ── 화면/공유 카드가 함께 쓰는 언어-해석 완료 요약 ──────────────────────────
 export interface ViralSummary {
   emoji: string
   name: string
+  /** 강약 기반 결 라벨(주도형/조율형/균형형) — 헤드라인 칩. */
+  subtype: string
   oneLiner: string
+  /** "콕 집는" 그림자 한 줄 — 지배 십성 × tension. 없으면 null. */
+  edgeLine: string | null
   /** 겉모습(상승궁) 한 줄 — 이미 lang 해석됨. 없으면 null. */
   outer: string | null
   /** 강점 → 해시태그(최대 3). */
@@ -162,15 +313,35 @@ export function buildViralSummary(input: {
   strengths: string[]
   resonant: string[]
   yongsinElement?: string | null
+  /** 일간 강약 — 'strong' | 'weak' | (그 외=중화). 헤드라인 결(subtype)을 가른다. */
+  strength?: string | null
+  /** 지배 십성(예: '상관','정재') — 헤드라인을 차트별로 합성하는 핵심 축. */
+  dominantSibsin?: string | null
+  /** 차트에 마찰(tension) 신호가 있나 — 있을 때만 "콕 집는" 그림자 한 줄을 노출. */
+  hasTension?: boolean
   lang: 'ko' | 'en'
 }): ViralSummary | null {
   const a = getArchetype(input.dayMaster)
   if (!a) return null
   const lang = input.lang
+  const st = normalizeStrength(input.strength)
+  // 지배 십성이 사전에 있으면 합성, 없으면 일간 archetype 으로 폴백.
+  const sib =
+    input.dominantSibsin && SIBSIN_LINE[input.dominantSibsin] ? input.dominantSibsin : null
+  const stemHan = ARCHETYPE_BY_STEM[input.dayMaster]
+    ? input.dayMaster
+    : STEM_KO_TO_HAN[input.dayMaster]
+  const core = stemHan ? STEM_CORE[stemHan] : null
+  const name = sib && core ? `${SIBSIN_MODIFIER[sib][lang]} ${core[lang]}` : a.name[lang]
+  const baseLine = sib ? SIBSIN_LINE[sib][lang] : a.oneLiner[lang]
   return {
     emoji: a.emoji,
-    name: a.name[lang],
-    oneLiner: a.oneLiner[lang],
+    name,
+    subtype: STRENGTH_TAG[st][lang],
+    // 십성 결 한 줄 + 강약 결 → 같은 일간도 사람마다 다른 문장.
+    oneLiner: `${baseLine} ${STRENGTH_FLAVOR[st][lang]}`,
+    // 콕 집는 그림자 — 마찰이 실제로 있을 때만(억지 X).
+    edgeLine: sib && input.hasTension ? SIBSIN_EDGE[sib][lang] : null,
     outer: input.ascTrait ?? null,
     hashtags: input.strengths.filter(Boolean).slice(0, 3),
     resonant: input.resonant.filter(Boolean).slice(0, 3),

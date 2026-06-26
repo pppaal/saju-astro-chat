@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react'
 import { useSession } from 'next-auth/react'
+import { trackFunnel } from '@/lib/metrics/trackFunnel'
 import { logger } from '@/lib/logger'
 
 // Referral wiring (login-only app — no separate signup):
@@ -32,6 +33,8 @@ export default function ReferralLinker() {
     const ref = new URLSearchParams(window.location.search).get('ref')
     if (ref && /^[A-Za-z0-9_-]{1,40}$/.test(ref)) {
       setCookie(COOKIE, ref, 30)
+      // 퍼널 — 추천 링크 유입(가입 전 도달). signup 과 비교해 전환율을 본다.
+      trackFunnel('referral.link_clicked')
     }
   }, [])
 

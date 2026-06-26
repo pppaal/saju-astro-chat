@@ -1,0 +1,94 @@
+/* 운흐름/인생 흐름 셸(파치먼트 라이트 테마)의 로딩 스켈레톤.
+   shell.module.css 의 --dp-bg(#ece2cd) 결을 그대로 따라 cold 진입(Swiss
+   Ephemeris 빌드) 동안 레이아웃이 미리 자리 잡게 한다 → 빈 화면/흰 깜빡임 방지. */
+
+.wrap {
+  min-height: 100vh;
+  padding: 18px 16px 64px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background:
+    radial-gradient(90% 70% at 14% 8%, rgba(120, 92, 48, 0.1), transparent 55%),
+    radial-gradient(85% 75% at 88% 94%, rgba(80, 60, 90, 0.08), transparent 58%),
+    radial-gradient(140% 120% at 50% 40%, #efe6d2, #ece2cd 46%, #e6dac1 100%);
+}
+
+.inner {
+  width: 100%;
+  max-width: 760px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* 상단 바 (DestinypalTopbar 자리) */
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: rgba(58, 46, 28, 0.06);
+  border: 1px solid rgba(58, 46, 28, 0.1);
+}
+.logo {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  flex: none;
+}
+.topbarLines {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  flex: 1;
+}
+
+.bar {
+  border-radius: 8px;
+}
+
+/* 줌 티어 카드 자리 */
+.card {
+  border-radius: 18px;
+  border: 1px solid rgba(58, 46, 28, 0.1);
+  background: rgba(255, 255, 255, 0.32);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.hero {
+  min-height: 210px;
+}
+.row {
+  min-height: 120px;
+}
+
+/* shimmer — 따뜻한 톤의 스윕 */
+.sk {
+  position: relative;
+  overflow: hidden;
+  background: rgba(120, 92, 48, 0.12);
+}
+.sk::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5), transparent);
+  animation: dpShimmer 1.4s ease-in-out infinite;
+}
+
+@keyframes dpShimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sk::after {
+    animation: none;
+  }
+}

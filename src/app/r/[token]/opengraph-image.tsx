@@ -16,6 +16,7 @@ import {
   isCalendarShare,
   isDayShare,
   isLifeShare,
+  isReportShare,
   siteBaseUrl,
   type ShareLinkPayload,
 } from '@/lib/tarot/shareLink'
@@ -333,6 +334,11 @@ export default async function Image({ params }: { params: Promise<{ token: strin
     headline = clamp(reading.headline, 72)
     context = reading.highlights?.length ? clamp(reading.highlights[0], 70) : ''
     cta = isKo ? `내 운흐름도 무료로 · ${displayDomain}` : `See your timing free · ${displayDomain}`
+  } else if (reading && isReportShare(reading)) {
+    eyebrow = `${reading.emoji}  ${isKo ? '사주 × 별자리 유형' : 'SAJU × ASTROLOGY TYPE'}`
+    headline = clamp(reading.typeName, 40)
+    context = clamp(reading.oneLiner, 72)
+    cta = isKo ? `내 유형도 무료로 · ${displayDomain}` : `See your own type free · ${displayDomain}`
   } else {
     eyebrow = isKo ? '타로 리딩' : 'TAROT READING'
     headline = reading?.keyMessage
