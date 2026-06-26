@@ -89,8 +89,8 @@ const FREE_TOOLS: readonly FreeTool[] = [
     tint: '#38bdf8',
     title: { ko: '인생 흐름', en: 'Life Flow' },
     desc: {
-      ko: '생년월일만 넣으면 인생·10년·올해의 큰 흐름(대운)을 한눈에 봐요.',
-      en: 'Just your birth date — see your life, decade, and this-year flow at a glance.',
+      ko: '생년월일만 넣으면 인생 전체와 올해의 큰 흐름을 한눈에 봐요.',
+      en: 'Just your birth date — see your whole-life arc and this-year flow at a glance.',
     },
     badge: { ko: '완전 무료 · 로그인 X', en: 'Free · no sign-up' },
   },
