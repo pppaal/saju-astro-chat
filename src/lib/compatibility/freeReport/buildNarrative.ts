@@ -78,9 +78,10 @@ function lastJong(s: string): number | null {
   }
   return null
 }
-type JosaType = '과/와' | '이/가' | '을/를' | '은/는' | '으로/로'
+export type JosaType = '과/와' | '이/가' | '을/를' | '은/는' | '으로/로'
 // 값 뒤에 붙는 KO 조사를 받침에 맞게 골라 붙인다. 으로/로 는 ㄹ받침 예외 처리.
-function josa(value: string, type: JosaType): string {
+// (무료 궁합 페이지의 헤드라인 한 줄에서도 재사용 — 조사 SSOT 가 갈리지 않게 export.)
+export function josa(value: string, type: JosaType): string {
   const jong = lastJong(value)
   const hasB = jong != null && jong !== 0
   if (type === '으로/로') return value + (hasB && jong !== 8 ? '으로' : '로')

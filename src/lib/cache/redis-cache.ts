@@ -147,6 +147,53 @@ export async function cacheSet(key: string, value: unknown, ttl: number = 3600):
 }
 
 /**
+ * 원자적 카운터 증가 (INCR + EXPIRE) — 누적 지표(공유 생성수 등)용.
+ * cacheSet 의 JSON 직렬화와 달리 raw 정수를 쓰므로, 읽을 땐 cacheMGetNumbers 로.
+ * Redis 없으면 null(집계 skip — best-effort). 반환은 증가 후 값.
+ */
+export async function cacheIncr(key: string, ttlSeconds: number): Promise<number | null> {
+  try {
+    validateCacheKey(key)
+    const client = getRedisClient()
+    if (!client) return null
+    const next = await client.incr(key)
+    if (ttlSeconds > 0) {
+      try {
+        await client.expire(key, ttlSeconds)
+      } catch {
+        /* best-effort — 다음 incr 가 재적용 */
+      }
+    }
+    return typeof next === 'number' ? next : null
+  } catch {
+    logger.warn('[cache] incr failed')
+    return null
+  }
+}
+
+/**
+ * 여러 카운터 키를 한 번에 읽어 숫자 배열로 반환(cacheIncr 와 짝). 키 순서 보존,
+ * 없거나 숫자 아님은 0. Redis 없으면 전부 0.
+ */
+export async function cacheMGetNumbers(keys: string[]): Promise<number[]> {
+  try {
+    if (!Array.isArray(keys) || keys.length === 0) return []
+    keys.forEach(validateCacheKey)
+    const client = getRedisClient()
+    if (!client) return keys.map(() => 0)
+    const vals = await client.mget<(number | string | null)[]>(...keys)
+    return keys.map((_, i) => {
+      const v = vals?.[i]
+      const num = typeof v === 'number' ? v : v != null ? Number(v) : 0
+      return Number.isFinite(num) ? num : 0
+    })
+  } catch {
+    logger.warn('[cache] mget numbers failed')
+    return keys.map(() => 0)
+  }
+}
+
+/**
  * Cache delete with error result
  */
 export async function cacheDelResult(key: string): Promise<CacheWriteResult> {

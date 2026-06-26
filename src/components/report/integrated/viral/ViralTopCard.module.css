@@ -83,8 +83,21 @@
   line-height: 1;
 }
 
+.subtype {
+  display: inline-block;
+  margin: 14px 0 0;
+  padding: 3px 13px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--plum);
+  border: 1px solid var(--plum);
+  border-radius: 999px;
+  background: transparent;
+}
+
 .name {
-  margin: 16px 0 0;
+  margin: 10px 0 0;
   font-family: var(--serif);
   font-size: 30px;
   font-weight: 700;
@@ -99,6 +112,20 @@
   font-size: 15.5px;
   line-height: 1.65;
   color: var(--ink-2);
+}
+
+/* "콕 집는" 한 줄 — 살짝 강조해 소름 포인트를 만든다 */
+.edge {
+  margin: 12px auto 0;
+  max-width: 28em;
+  padding: 9px 16px;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.55;
+  color: var(--plum);
+  background: rgba(120, 70, 120, 0.07);
+  border: 1px solid var(--plum);
+  border-radius: 12px;
 }
 
 .outer {

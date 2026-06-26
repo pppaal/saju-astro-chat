@@ -14,14 +14,17 @@ import {
   buildCounselorHref,
   type StoredBirthInfo,
 } from '@/app/(main)/birthInfoStorage'
+import { trackFunnel, type FunnelEvent } from '@/lib/metrics/trackFunnel'
 
 interface CounselorCTAProps {
   lang: 'ko' | 'en'
   /** 상담 채팅에 미리 채울 첫 질문(ko/en). */
   question?: { ko: string; en: string }
+  /** 퍼널 집계용 이벤트 — 지정 시 CTA 클릭을 비콘으로 보낸다(서버 컴포넌트도 문자열로 전달 가능). */
+  funnelEvent?: FunnelEvent
 }
 
-export default function CounselorCTA({ lang, question }: CounselorCTAProps) {
+export default function CounselorCTA({ lang, question, funnelEvent }: CounselorCTAProps) {
   const [info, setInfo] = useState<StoredBirthInfo | null>(null)
   useEffect(() => {
     setInfo(getStoredBirthInfo())
@@ -45,6 +48,7 @@ export default function CounselorCTA({ lang, question }: CounselorCTAProps) {
       <Link
         href={href}
         prefetch={false}
+        onClick={funnelEvent ? () => trackFunnel(funnelEvent) : undefined}
         style={{
           display: 'inline-flex',
           alignItems: 'center',

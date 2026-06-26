@@ -207,12 +207,15 @@ export function buildHealthCard(
   // 과다(가장 두터운 기운이 평균의 2배 이상) 여부
   const excess = dom[1] >= Math.max(2, Math.ceil((total / 5) * 2))
 
+  // 오행-장부 대응은 '단정'이 아니라 동양의학에서 짝지어 보는 전통적 연결임을
+  // 분명히 한다(의료 주장 리스크 완화). "약해진다/과열된다" 같은 단정 대신
+  // "에너지가 쏠리기/덜 채워지기 쉬운 영역" 같은 경향 표현으로 한 톤 낮춘다.
   const parts: string[] = []
   if (excess) {
     parts.push(
       ok
-        ? `${EL_KO[dom[0]]} 기운이 ${dom[1]}개로 두터워, ${ORGAN[dom[0]].ko} 쪽이 과열·긴장되기 쉬워요.`
-        : `${EL_EN[dom[0]]} is heavy (${dom[1]}), so ${ORGAN[dom[0]].en} can run hot or tense.`
+        ? `${EL_KO[dom[0]]} 기운이 ${dom[1]}개로 두터운 편이에요. 동양의학에서 이 기운과 짝지어 보는 ${ORGAN[dom[0]].ko} 영역에 에너지가 쏠리기 쉬운 결이라, 가끔 쉬어주고 무리하지 않으면 좋아요.`
+        : `${EL_EN[dom[0]]} runs heavy (${dom[1]}). In the East-Asian view this energy is paired with ${ORGAN[dom[0]].en}, an area that tends to draw a lot of your energy — so easing off now and then helps.`
     )
   }
   if (lacking.length) {
@@ -228,28 +231,28 @@ export function buildHealthCard(
     const organEn = lacking.map((e) => ORGAN[e].en.split(' (')[0]).join(', ')
     parts.push(
       ok
-        ? `${lkKo} 기운이 비어 ${organKo} 쪽이 약해지기 쉬우니 미리 챙기면 좋아요.`
-        : `${lkEn} ${lacking.length > 1 ? 'are' : 'is'} empty, so ${organEn} can run weak — worth tending early.`
+        ? `${lkKo} 기운은 비어 있는 편이라, 전통적으로 이 기운과 짝지어 보는 ${organKo} 영역을 평소 조금 더 살펴주면 균형에 도움이 돼요.`
+        : `${lkEn} ${lacking.length > 1 ? 'are' : 'is'} on the empty side, so the area traditionally paired with it — ${organEn} — is worth a little extra everyday care.`
     )
   }
   if (!excess && !lacking.length) {
     parts.push(
       ok
-        ? '오행이 비교적 고르게 퍼져 큰 편중은 없는 균형형 체질이에요.'
-        : 'Your elements are fairly even — a balanced constitution without a strong skew.'
+        ? '오행이 비교적 고르게 퍼져 큰 편중은 없는 균형형 결이에요.'
+        : 'Your elements are fairly even — a balanced make-up without a strong skew.'
     )
   }
   if (yong && EL_KO[yong]) {
     parts.push(
       ok
-        ? `생활에서 ${EL_KO[yong]} 기운(${ORGAN[yong].ko.split('(')[0]})을 보태는 음식·습관·환경이 균형에 도움돼요.`
-        : `In daily life, leaning into ${EL_EN[yong]} (${ORGAN[yong].en.split(' (')[0]}) — food, habits, environment — helps your balance.`
+        ? `생활에서 ${EL_KO[yong]} 기운(${ORGAN[yong].ko.split('(')[0]})을 보태는 음식·습관·환경에 마음을 두면 균형 잡는 데 도움이 돼요.`
+        : `In daily life, leaning into ${EL_EN[yong]} (${ORGAN[yong].en.split(' (')[0]}) — food, habits, environment — helps you stay in balance.`
     )
   }
   parts.push(
     ok
-      ? '참고용 경향일 뿐 의학적 진단이 아니에요 — 증상이 있으면 전문의와 상담하세요.'
-      : 'This is a tendency for reference, not a medical diagnosis — see a doctor for symptoms.'
+      ? '오행으로 본 체질 경향일 뿐 의학적 진단이 아니에요 — 몸이 불편하면 꼭 전문의와 상담하세요.'
+      : 'This is a five-element tendency, not a medical diagnosis — please see a doctor for any real symptoms.'
   )
 
   return {
