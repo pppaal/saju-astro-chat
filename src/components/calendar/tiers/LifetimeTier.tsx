@@ -385,10 +385,107 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
         {patternLine && <p className={styles.novLine}>{patternLine}</p>}
         {/* 일주 아키타입 character — novice-grade 평이 프로즈(있으면). */}
         {iljuRich?.character && <p className={styles.novLine}>{iljuRich.character}</p>}
+        {/* 지금 여기 → 다음 마디: 월 티어 verdict 카드(.doBox)와 동일 형식(레이아웃 통일) */}
+        {youAreHere && (
+          <div className={styles.doBox}>
+            <span className={styles.doLbl}>{ko ? '지금' : 'Now'}</span>
+            <span className={styles.doText}>{youAreHere}</span>
+          </div>
+        )}
       </header>
 
-      {/* ── 감사 #3: 지금 여기 → 다음 마디 한 줄(hero·timeline·milestones 연결) ── */}
-      {youAreHere && <p className={styles.youAreHere}>{youAreHere}</p>}
+      {/* ── B2. 인생 굴곡 곡선 — 사주(대운·세운·충합) + 외행성 트랜짓 중첩 ── */}
+      {curve && (
+        <section className={styles.sec}>
+          <div className={styles.secH}>
+            <span className={styles.secLbl}>{ko ? '인생 굴곡' : 'The life curve'}</span>
+            <span className={styles.secLn} />
+            <span className={styles.secLat}>CURVE</span>
+          </div>
+          <svg
+            className={styles.curveSvg}
+            viewBox={`0 0 ${CW} ${CH}`}
+            preserveAspectRatio="none"
+            role="img"
+            aria-label={ko ? '인생 굴곡 곡선' : 'Life curve'}
+          >
+            <line
+              className={styles.curveMid}
+              x1={PAD_X}
+              x2={CW - PAD_X}
+              y1={curve.y(0.5)}
+              y2={curve.y(0.5)}
+            />
+            <path className={styles.curveArea} d={curve.area} />
+            <path className={styles.curveLine} d={curve.line} />
+            {lifeCurve!.troughs.map((t) => (
+              <circle
+                key={`tr-${t.age}`}
+                className={styles.curveTrough}
+                cx={curve.x(t.age)}
+                cy={curve.y(curve.valAt(t.age))}
+                r={3}
+              />
+            ))}
+            {lifeCurve!.peaks.map((p) => (
+              <circle
+                key={`pk-${p.age}`}
+                className={styles.curvePeak}
+                cx={curve.x(p.age)}
+                cy={curve.y(curve.valAt(p.age))}
+                r={3}
+              />
+            ))}
+            {lifeCurve!.nowAge >= 0 && lifeCurve!.nowAge <= curve.maxAge && (
+              <line
+                className={styles.curveNow}
+                x1={curve.x(lifeCurve!.nowAge)}
+                x2={curve.x(lifeCurve!.nowAge)}
+                y1={PAD_TOP - 4}
+                y2={CH - PAD_BOT}
+              />
+            )}
+          </svg>
+          <div className={styles.curveAxis}>
+            {[0, 20, 40, 60, 80].map((a) => (
+              <span key={a}>{a}</span>
+            ))}
+          </div>
+          {lifeCurve!.now && (
+            <div className={styles.curveNowLine}>
+              {(() => {
+                const n = lifeCurve!.now!
+                const head = ko
+                  ? n.slope === 'rising'
+                    ? '지금은 흐름이 차오르는 중이에요.'
+                    : n.slope === 'falling'
+                      ? '지금은 흐름이 한 박자 가라앉는 구간이에요.'
+                      : '지금은 흐름이 고른 구간이에요.'
+                  : n.slope === 'rising'
+                    ? 'Right now the flow is on the rise.'
+                    : n.slope === 'falling'
+                      ? 'Right now the flow eases off a beat.'
+                      : 'Right now the flow is even.'
+                const tail = n.nextPeak
+                  ? ko
+                    ? ` 다음 마루는 ${n.nextPeak.age}세(${n.nextPeak.year}년) 무렵.`
+                    : ` Next crest around age ${n.nextPeak.age} (${n.nextPeak.year}).`
+                  : n.nextTrough
+                    ? ko
+                      ? ` 다음 저점은 ${n.nextTrough.age}세(${n.nextTrough.year}년) 무렵 — 지나면 다시 올라가요.`
+                      : ` Next dip around age ${n.nextTrough.age} (${n.nextTrough.year}) — it climbs again after.`
+                    : ''
+                return head + tail
+              })()}
+            </div>
+          )}
+          <div className={styles.curveCap}>
+            {ko
+              ? '대운·세운·충합(사주)과 외행성 트랜짓(점성)을 겹쳐 본 평생 흐름 — ● 마루 ● 골, 세로선이 지금.'
+              : 'Saju cycles (daeun·year·clash) layered with outer-planet transits — ● peaks ● troughs, the line is now.'}
+          </div>
+        </section>
+      )}
 
       {lifeShare && (
         <div style={{ display: 'flex', justifyContent: 'center', marginTop: 14 }}>
@@ -520,99 +617,6 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
           </div>
         )}
       </details>
-
-      {/* ── B2. 인생 굴곡 곡선 — 사주(대운·세운·충합) + 외행성 트랜짓 중첩 ── */}
-      {curve && (
-        <section className={styles.sec}>
-          <div className={styles.secH}>
-            <span className={styles.secLbl}>{ko ? '인생 굴곡' : 'The life curve'}</span>
-            <span className={styles.secLn} />
-            <span className={styles.secLat}>CURVE</span>
-          </div>
-          <svg
-            className={styles.curveSvg}
-            viewBox={`0 0 ${CW} ${CH}`}
-            preserveAspectRatio="none"
-            role="img"
-            aria-label={ko ? '인생 굴곡 곡선' : 'Life curve'}
-          >
-            <line
-              className={styles.curveMid}
-              x1={PAD_X}
-              x2={CW - PAD_X}
-              y1={curve.y(0.5)}
-              y2={curve.y(0.5)}
-            />
-            <path className={styles.curveArea} d={curve.area} />
-            <path className={styles.curveLine} d={curve.line} />
-            {lifeCurve!.troughs.map((t) => (
-              <circle
-                key={`tr-${t.age}`}
-                className={styles.curveTrough}
-                cx={curve.x(t.age)}
-                cy={curve.y(curve.valAt(t.age))}
-                r={3}
-              />
-            ))}
-            {lifeCurve!.peaks.map((p) => (
-              <circle
-                key={`pk-${p.age}`}
-                className={styles.curvePeak}
-                cx={curve.x(p.age)}
-                cy={curve.y(curve.valAt(p.age))}
-                r={3}
-              />
-            ))}
-            {lifeCurve!.nowAge >= 0 && lifeCurve!.nowAge <= curve.maxAge && (
-              <line
-                className={styles.curveNow}
-                x1={curve.x(lifeCurve!.nowAge)}
-                x2={curve.x(lifeCurve!.nowAge)}
-                y1={PAD_TOP - 4}
-                y2={CH - PAD_BOT}
-              />
-            )}
-          </svg>
-          <div className={styles.curveAxis}>
-            {[0, 20, 40, 60, 80].map((a) => (
-              <span key={a}>{a}</span>
-            ))}
-          </div>
-          {lifeCurve!.now && (
-            <div className={styles.curveNowLine}>
-              {(() => {
-                const n = lifeCurve!.now!
-                const head = ko
-                  ? n.slope === 'rising'
-                    ? '지금은 흐름이 차오르는 중이에요.'
-                    : n.slope === 'falling'
-                      ? '지금은 흐름이 한 박자 가라앉는 구간이에요.'
-                      : '지금은 흐름이 고른 구간이에요.'
-                  : n.slope === 'rising'
-                    ? 'Right now the flow is on the rise.'
-                    : n.slope === 'falling'
-                      ? 'Right now the flow eases off a beat.'
-                      : 'Right now the flow is even.'
-                const tail = n.nextPeak
-                  ? ko
-                    ? ` 다음 마루는 ${n.nextPeak.age}세(${n.nextPeak.year}년) 무렵.`
-                    : ` Next crest around age ${n.nextPeak.age} (${n.nextPeak.year}).`
-                  : n.nextTrough
-                    ? ko
-                      ? ` 다음 저점은 ${n.nextTrough.age}세(${n.nextTrough.year}년) 무렵 — 지나면 다시 올라가요.`
-                      : ` Next dip around age ${n.nextTrough.age} (${n.nextTrough.year}) — it climbs again after.`
-                    : ''
-                return head + tail
-              })()}
-            </div>
-          )}
-          <div className={styles.curveCap}>
-            {ko
-              ? '대운·세운·충합(사주)과 외행성 트랜짓(점성)을 겹쳐 본 평생 흐름 — ● 마루 ● 골, 세로선이 지금.'
-              : 'Saju cycles (daeun·year·clash) layered with outer-planet transits — ● peaks ● troughs, the line is now.'}
-          </div>
-        </section>
-      )}
 
       {/* ── C. 大運 10개 가로 인생 타임라인 (SIGNATURE — 기본 유지) ── */}
       <section className={styles.sec}>
