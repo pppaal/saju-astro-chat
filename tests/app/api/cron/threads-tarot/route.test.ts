@@ -25,11 +25,14 @@ vi.mock('@/lib/social/publish/threads', () => ({
   },
 }))
 
-const buildTarotThreadPost = vi.fn()
 vi.mock('@/lib/social/tarotThread', () => ({
-  buildTarotThreadPost: (...a: unknown[]) => buildTarotThreadPost(...a),
   slotFromKst: () => 'morning',
   isThreadSlot: (v: unknown) => v === 'morning' || v === 'afternoon' || v === 'evening',
+}))
+
+const buildDailyThreadPost = vi.fn()
+vi.mock('@/lib/social/threadDaily', () => ({
+  buildDailyThreadPost: (...a: unknown[]) => buildDailyThreadPost(...a),
 }))
 
 const claimDailyOnce = vi.fn()
@@ -50,10 +53,10 @@ function makeRequest(auth?: string, slot?: string) {
 }
 
 const SAMPLE_POST = {
+  topic: 'tarot',
   slot: 'morning',
   locale: 'ko',
-  cardName: 'The Star',
-  isReversed: false,
+  summary: 'The Star',
   caption: '🔮 오늘 하루를 여는 한 장\n\nThe Star\n\n🔗 https://destinypal.com/r/tok123',
   hashtags: ['#오늘의타로', '#타로'],
   imageUrl: 'https://destinypal.com/images/tarot/star.webp',
@@ -68,7 +71,7 @@ describe('/api/cron/threads-tarot', () => {
     process.env = { ...originalEnv, CRON_SECRET: SECRET }
     isConfigured.mockReturnValue(true)
     claimDailyOnce.mockResolvedValue(true)
-    buildTarotThreadPost.mockResolvedValue(SAMPLE_POST)
+    buildDailyThreadPost.mockResolvedValue(SAMPLE_POST)
     publish.mockResolvedValue({
       ok: true,
       platform: 'threads',
@@ -108,12 +111,12 @@ describe('/api/cron/threads-tarot', () => {
     const json = await res.json()
     expect(res.status).toBe(200)
     expect(json).toMatchObject({ success: true, skipped: 'already_posted', posted: false })
-    expect(buildTarotThreadPost).not.toHaveBeenCalled()
+    expect(buildDailyThreadPost).not.toHaveBeenCalled()
     expect(publish).not.toHaveBeenCalled()
   })
 
   it('공유 결과 빌드 실패면 500', async () => {
-    buildTarotThreadPost.mockResolvedValueOnce(null)
+    buildDailyThreadPost.mockResolvedValueOnce(null)
     const res = await GET(makeRequest(`Bearer ${SECRET}`))
     const json = await res.json()
     expect(res.status).toBe(500)
@@ -128,8 +131,9 @@ describe('/api/cron/threads-tarot', () => {
     expect(json).toMatchObject({
       success: true,
       slot: 'morning',
+      topic: 'tarot',
       posted: true,
-      card: 'The Star',
+      summary: 'The Star',
       shareUrl: 'https://destinypal.com/r/tok123',
     })
     // 어댑터에 caption/hashtags/imageUrl 전달

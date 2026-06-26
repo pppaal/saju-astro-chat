@@ -1,9 +1,9 @@
-// /api/cron/threads-tarot — "타로 공유 결과"를 만들어 Threads 에 자동 게시.
+// /api/cron/threads-tarot — Threads 데일리 자동 게시(주제 로테이션).
 //
-// 슬롯(아침/오후/저녁)마다 카드를 뽑아 실제 공유 링크(/r/{token})를 만들고,
-// 그 링크를 CTA 로 박은 캡션을 Threads 에 올린다(buildTarotThreadPost +
-// threadsAdapter). 소셜에서 들어온 사람이 전체 해석을 보고 무료 퍼널(/free)로
-// 이어지는 바이럴 루프가 목적.
+// 슬롯마다 주제가 다르다: 아침=타로 / 오후=사주(일진) / 저녁=점성(하늘).
+// 슬롯의 주제 빌더로 게시물(캡션 + 해시태그 + 이미지/공유링크)을 만들어
+// threadsAdapter 로 올린다(buildDailyThreadPost). 소셜에서 들어온 사람이 무료
+// 퍼널(/free)로 이어지는 유입 루프가 목적.
 //
 // 보안은 다른 cron 과 동일: IP 레이트리밋 → timing-safe CRON_SECRET.
 // 토큰(THREADS_*) 미설정이면 503 'not_configured' (throw 금지 — 배포는 깨지지
@@ -21,12 +21,8 @@ import { rateLimit } from '@/lib/rateLimit'
 import { getClientIp } from '@/lib/request-ip'
 import { timingSafeCompare } from '@/lib/security/timingSafe'
 import { threadsAdapter } from '@/lib/social/publish/threads'
-import {
-  buildTarotThreadPost,
-  slotFromKst,
-  isThreadSlot,
-  type ThreadSlot,
-} from '@/lib/social/tarotThread'
+import { slotFromKst, isThreadSlot, type ThreadSlot } from '@/lib/social/tarotThread'
+import { buildDailyThreadPost } from '@/lib/social/threadDaily'
 import { claimDailyOnce } from '@/lib/cron/dailyOnce'
 
 export const dynamic = 'force-dynamic'
@@ -84,9 +80,9 @@ async function handle(request: Request): Promise<NextResponse> {
   }
 
   const locale = postLocale()
-  const post = await buildTarotThreadPost(slot, locale, now)
+  const post = await buildDailyThreadPost(slot, locale, now)
   if (!post) {
-    logger.error('[Cron threads-tarot] failed to build post (share link)', { slot, locale })
+    logger.error('[Cron threads-tarot] failed to build post', { slot, locale })
     return NextResponse.json({ success: false, slot, error: 'build_failed' }, { status: 500 })
   }
 
@@ -98,8 +94,9 @@ async function handle(request: Request): Promise<NextResponse> {
 
   logger.warn('[Cron threads-tarot] completed', {
     slot,
+    topic: post.topic,
     locale,
-    card: post.cardName,
+    summary: post.summary,
     shareUrl: post.shareUrl,
     ok: result.ok,
     externalId: result.externalId,
@@ -108,7 +105,12 @@ async function handle(request: Request): Promise<NextResponse> {
 
   if (!result.ok) {
     return NextResponse.json(
-      { success: false, slot, error: result.error ?? result.skipped ?? 'publish_failed' },
+      {
+        success: false,
+        slot,
+        topic: post.topic,
+        error: result.error ?? result.skipped ?? 'publish_failed',
+      },
       { status: 502 }
     )
   }
@@ -116,8 +118,9 @@ async function handle(request: Request): Promise<NextResponse> {
   return NextResponse.json({
     success: true,
     slot,
+    topic: post.topic,
     posted: true,
-    card: post.cardName,
+    summary: post.summary,
     shareUrl: post.shareUrl,
     url: result.url,
   })

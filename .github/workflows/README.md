@@ -174,7 +174,7 @@ Endpoints driven (KST):
 - `daily-fortune` (07:00) — "오늘의 운세 한 줄" web push to subscribers
 - `keyday-push` (07:10) — personalized "big day" push
 - `winback-push` (13:00) — re-engage dormant users
-- `threads-tarot` (09:00 / 14:00 / 19:00) — generate a tarot share result and auto-post to Threads
+- `threads-tarot` (09:00 / 14:00 / 19:00) — Threads daily post, rotating topic by slot: morning=tarot (share result), afternoon=saju (day pillar), evening=astrology (sky)
 - `threads-refresh-token` (12:00) — refresh the Threads long-lived token so posting never expires
 - `reset-credits` (00:00) — monthly credit reset
 - `reconcile-activity` (02:00) — activity bookkeeping
