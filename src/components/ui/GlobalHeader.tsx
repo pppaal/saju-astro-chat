@@ -35,7 +35,10 @@ function GlobalHeaderContent() {
   // 가진 몰입형 화면 — 글로벌 헤더의 "DestinyPal" 워드마크가 캘린더 토프바 위에
   // 겹쳐 뜨므로 /calendar* 에선 글로벌 헤더를 숨긴다.
   const isCalendarPage = Boolean(pathname && pathname.startsWith('/calendar'))
-  if (isMainPage || hasCustomPageHeader || isAdminPage || isCalendarPage) {
+  // /free 는 소셜 바이오용 광고 랜딩 — 상단 "DestinyPal" 워드마크 없이 카피로
+  // 바로 들어가는 게 전환에 낫다. 메인 진입은 페이지 하단 "메인으로 가기" 버튼.
+  const isFreeHub = pathname === '/free'
+  if (isMainPage || hasCustomPageHeader || isAdminPage || isCalendarPage || isFreeHub) {
     return null
   }
 

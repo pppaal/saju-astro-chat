@@ -125,34 +125,13 @@ export default async function FreeFunnelHub() {
       }}
     >
       <div style={{ maxWidth: 720, margin: '0 auto', padding: '40px 20px 96px' }}>
-        {/* 브랜드 */}
-        <Link
-          href="/"
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 10,
-            color: GOLD,
-            textDecoration: 'none',
-            fontWeight: 600,
-            letterSpacing: '0.04em',
-          }}
-        >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/logo/logo.png"
-            alt="DestinyPal"
-            width={30}
-            height={30}
-            style={{ borderRadius: 6 }}
-          />
-          DestinyPal
-        </Link>
+        {/* 상단 브랜드 로고는 제거 — 광고 랜딩이라 카피로 바로 들어간다.
+            메인 진입은 하단 "메인으로 가기" 버튼이 담당. */}
 
         {/* 히어로 */}
         <p
           style={{
-            marginTop: 36,
+            marginTop: 0,
             fontSize: 12,
             letterSpacing: '0.24em',
             textTransform: 'uppercase',
