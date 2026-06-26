@@ -34,6 +34,7 @@ import styles from './DayTier.module.css'
 import { useI18n } from '@/i18n/I18nProvider'
 import { localizeLabel } from '@/components/calendar/adapters/localizeLabel'
 import { ShareDayButton } from '@/components/calendar/ShareDayButton'
+import { dayShareHook } from '@/lib/share/shareHook'
 import {
   shinsalEn,
   elementEn,
@@ -535,8 +536,16 @@ export function DayTier({ day, onRise, sex = '남' }: DayTierProps) {
               dateLabel: ko ? `${Number(mm)}월 ${Number(dd)}일 ${weekday(day.date)}` : titleLatin,
               score: day.score,
               tone: verdict.tone,
-              headline: localizeLabel(dayOneLine, ko),
-              subline: novWhy || undefined,
+              // 공유 카드는 더 센 후크(점수/톤 기반·본명 시드 고정). 인앱 결론은 그대로.
+              ...(() => {
+                const hook = dayShareHook({
+                  tone: verdict.tone,
+                  score: day.score,
+                  seed: day.seed ?? 0,
+                  ko,
+                })
+                return { headline: hook.headline, subline: hook.subline }
+              })(),
               curve: hasFlow ? scores.map((s) => s.score) : undefined,
               markerIndex: todayIdx >= 0 ? todayIdx : undefined,
             }}

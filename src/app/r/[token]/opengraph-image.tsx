@@ -260,6 +260,62 @@ export default async function Image({ params }: { params: Promise<{ token: strin
     )
   }
 
+  // ── 캘린더(이달 흐름 곡선 있음) — 점수 카드처럼 곡선을 주인공으로 ──
+  if (reading && isCalendarShare(reading) && reading.curve && reading.curve.length >= 2) {
+    const headline = clamp(reading.headline, 56)
+    const eyebrow = clamp(reading.periodLabel, 32)
+    const hl = reading.highlights?.length ? clamp(reading.highlights[0], 60) : ''
+    const cta = isKo
+      ? `내 운흐름도 무료로 · ${displayDomain}`
+      : `See your timing free · ${displayDomain}`
+    const curve = dayCurveImg(reading.curve, reading.markerIndex ?? -1, '#e8cc8a')
+    const fonts = await loadOgFonts(eyebrow, headline, hl, cta)
+    return new ImageResponse(
+      <div
+        style={{
+          width: '100%',
+          height: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'space-between',
+          padding: 64,
+          background: BG,
+          color: '#f3eee6',
+          fontFamily: 'NotoKR, sans-serif',
+        }}
+      >
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ fontSize: 28, letterSpacing: 3, color: '#e8cc8a' }}>{eyebrow}</div>
+          <div style={{ fontSize: 26, color: '#8a8398', letterSpacing: 2 }}>DestinyPal</div>
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <div
+            style={{
+              fontSize: 62,
+              fontWeight: 800,
+              lineHeight: 1.18,
+              fontFamily: 'HeavyKR, sans-serif',
+              color: '#f6efdd',
+            }}
+          >
+            {headline}
+          </div>
+          {hl ? <div style={{ fontSize: 30, color: '#b6aec0', lineHeight: 1.4 }}>{hl}</div> : null}
+        </div>
+
+        {curve ? (
+          <img src={curve} alt="" width={1056} height={196} style={{ objectFit: 'contain' }} />
+        ) : (
+          <div style={{ display: 'flex' }} />
+        )}
+
+        <div style={{ fontSize: 26, color: '#8a8398' }}>{cta}</div>
+      </div>,
+      { ...size, fonts: fonts.length ? fonts : undefined }
+    )
+  }
+
   // ── 궁합 / 캘린더 / 타로(레거시) — 텍스트 후크 중심 ──
   let eyebrow: string
   let headline: string

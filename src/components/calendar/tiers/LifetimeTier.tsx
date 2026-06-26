@@ -38,6 +38,7 @@ import type {
 import styles from './LifetimeTier.module.css'
 import { useI18n } from '@/i18n/I18nProvider'
 import { ShareLifeButton } from '@/components/calendar/ShareLifeButton'
+import { lifeShareHook } from '@/lib/share/shareHook'
 
 // ============================================================================
 // Props (계약 불변 — byte-for-byte 보존. 최상단 티어 → onRise/showRise 없음)
@@ -339,12 +340,20 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
     const axisLabels = [at(0), at(1 / 3), at(2 / 3), at(1)]
       .filter((y): y is number => typeof y === 'number')
       .map((y) => `${y}`)
-    const headline = patternLine || (ko ? `${patternKo} 타입` : `${patternKo} type`)
+    // 공유 카드는 더 센 후크(피크/추세 기반). 인앱 결론(patternLine)은 그대로.
+    const hook = lifeShareHook({
+      slope: lifeCurve?.now?.slope ?? 'plateau',
+      nowAge,
+      peakAge: pts[peakIndex]?.age ?? -1,
+      peakYear: pts[peakIndex]?.year ?? 0,
+      seed: birthYear,
+      ko,
+    })
     return {
       isKo: ko,
       rangeLabel: `${birthYear}–${lifeSpanTo}`,
-      headline,
-      subline: youAreHere || undefined,
+      headline: hook.headline,
+      subline: hook.subline || youAreHere || undefined,
       curve: curveScores,
       axisLabels,
       markerIndex,

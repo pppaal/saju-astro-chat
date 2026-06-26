@@ -29,6 +29,8 @@ const bodySchema = z.object({
   periodLabel: z.string().trim().min(1).max(60),
   headline: z.string().trim().min(1).max(280),
   highlights: z.array(z.string().trim().min(1).max(160)).max(5).optional(),
+  curve: z.array(z.number().min(0).max(100)).min(2).max(31).optional(),
+  markerIndex: z.number().int().min(0).max(30).optional(),
 })
 
 export const POST = withApiMiddleware(
@@ -52,6 +54,8 @@ export const POST = withApiMiddleware(
       periodLabel: parsed.data.periodLabel,
       headline: parsed.data.headline,
       highlights: parsed.data.highlights?.length ? parsed.data.highlights : undefined,
+      curve: parsed.data.curve?.length ? parsed.data.curve.map((n) => Math.round(n)) : undefined,
+      markerIndex: parsed.data.markerIndex,
     }
 
     const token = await createShareLink(payload)

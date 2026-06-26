@@ -328,6 +328,9 @@ export function MonthTier({ month, onDive, onRise, showRise = true }: MonthTierP
   const shareHighlights = bigDays
     .slice(0, 4)
     .map((i) => (ko ? `${Number(i.when.slice(-2))}일 · ${i.title}` : `${i.when} · ${i.title}`))
+  // 공유 카드용 이달 흐름 곡선 — 셀 intensity(=점수/100)에서 숫자만. 원국 미전송.
+  const shareCurve = calendar.map((c) => Math.round(Math.max(0, Math.min(1, c.intensity)) * 100))
+  const shareMarkerIndex = calendar.findIndex((c) => c.focus)
 
   // ── 셀 클래스 결정 ──
   const cellMarkClass = (mark: DestinyDayMark | null): string | null => {
@@ -409,9 +412,15 @@ export function MonthTier({ month, onDive, onRise, showRise = true }: MonthTierP
         <section className={styles.flow}>
           <div className={styles.flowH}>
             <span className={styles.flowTitle}>{ko ? '한 달 흐름' : 'This month'}</span>
-            <span className={styles.flowHint}>{ko ? '높을수록 잘 풀리는 날' : 'higher = smoother'}</span>
+            <span className={styles.flowHint}>
+              {ko ? '높을수록 잘 풀리는 날' : 'higher = smoother'}
+            </span>
           </div>
-          <div className={styles.ribbon} role="img" aria-label={ko ? '한 달 운 흐름 막대' : 'Monthly flow bars'}>
+          <div
+            className={styles.ribbon}
+            role="img"
+            aria-label={ko ? '한 달 운 흐름 막대' : 'Monthly flow bars'}
+          >
             {calendar.map((c) => (
               <div
                 key={c.d}
@@ -544,7 +553,8 @@ export function MonthTier({ month, onDive, onRise, showRise = true }: MonthTierP
             </div>
             <div className={styles.rWhyChips}>
               <span className={`${styles.rChip} ${styles.rChipSaju}`}>
-                <small>{ko ? '사주' : 'Saju'}</small> {ko ? selectedReason.saju : selectedReason.sajuEn}
+                <small>{ko ? '사주' : 'Saju'}</small>{' '}
+                {ko ? selectedReason.saju : selectedReason.sajuEn}
               </span>
               <span className={styles.rChipX} aria-hidden>
                 ×
@@ -696,7 +706,14 @@ export function MonthTier({ month, onDive, onRise, showRise = true }: MonthTierP
       {/* ── share (discreet) ── */}
       <div className={styles.shareRow}>
         <ShareCalendarButton
-          data={{ isKo: ko, periodLabel, headline, highlights: shareHighlights }}
+          data={{
+            isKo: ko,
+            periodLabel,
+            headline,
+            highlights: shareHighlights,
+            curve: shareCurve.length >= 3 ? shareCurve : undefined,
+            markerIndex: shareMarkerIndex >= 0 ? shareMarkerIndex : undefined,
+          }}
         />
       </div>
 

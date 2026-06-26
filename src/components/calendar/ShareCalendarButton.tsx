@@ -19,6 +19,8 @@ export interface CalendarShareData {
   periodLabel: string
   headline: string
   highlights?: string[]
+  curve?: number[]
+  markerIndex?: number
 }
 
 export function ShareCalendarButton({ data }: { data: CalendarShareData }) {
@@ -41,6 +43,8 @@ export function ShareCalendarButton({ data }: { data: CalendarShareData }) {
           periodLabel: data.periodLabel,
           headline: data.headline,
           highlights: data.highlights?.length ? data.highlights.slice(0, 5) : undefined,
+          curve: data.curve?.length ? data.curve.map((n) => Math.round(n)) : undefined,
+          markerIndex: data.markerIndex,
         }),
       })
       const json = (await res.json().catch(() => null)) as { data?: { url?: string } } | null

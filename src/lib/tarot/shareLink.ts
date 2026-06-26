@@ -66,6 +66,10 @@ export interface CalendarShareLinkPayload {
   headline: string
   /** 큰 날/포인트 몇 개(선택) — 더 읽을거리. */
   highlights?: string[]
+  /** 이달 일별 흐름 곡선(0..100, 숫자만 — 원국 미전송). */
+  curve?: number[]
+  /** 곡선 위 오늘/포커스 위치 인덱스. */
+  markerIndex?: number
 }
 
 export type DayShareTone = 'positive' | 'mixed' | 'caution'

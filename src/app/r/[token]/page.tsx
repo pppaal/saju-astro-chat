@@ -306,6 +306,41 @@ export default async function SharedReadingPage({ params }: PageProps) {
             {reading.headline}
           </h1>
 
+          {reading.curve && reading.curve.length >= 2
+            ? (() => {
+                const curveImg = curveSvgDataUri(
+                  buildCurveSvg({
+                    scores: reading.curve,
+                    markerIndex: reading.markerIndex ?? -1,
+                    width: 560,
+                    height: 140,
+                    strokeWidth: 3,
+                    theme: {
+                      stroke: GOLD,
+                      fill: GOLD,
+                      dotGood: GOLD,
+                      dotMid: 'rgba(255,255,255,0.5)',
+                      dotLow: '#fda4af',
+                      marker: '#ffffff',
+                      dotStroke: '#0a0e1f',
+                    },
+                  })
+                )
+                return (
+                  <div style={{ marginTop: 24 }}>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={curveImg}
+                      alt={isKo ? '이달 흐름 곡선' : 'Monthly flow'}
+                      width={560}
+                      height={140}
+                      style={{ maxWidth: '100%', height: 'auto' }}
+                    />
+                  </div>
+                )
+              })()
+            : null}
+
           {reading.highlights?.length ? (
             <ul
               style={{
