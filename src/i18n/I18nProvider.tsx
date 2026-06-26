@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useEffect, useMemo, useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { allExtensions } from '@/lib/i18n/extensions'
 import { repairMojibakeText } from '@/lib/text/mojibake'
 
@@ -352,9 +352,18 @@ export function I18nProvider({
     }
   }, [locale])
 
-  const setLocale = (next: Locale) => {
+  const setLocale = useCallback((next: Locale) => {
+    // 쿠키를 먼저 동기로 써서, 이어지는 요청이 새 로케일을 읽게 한다.
+    writeCookieLocale(next)
+    // 서버 컴포넌트(/free·/integrated-report 등 x-locale 헤더로 렌더)는 클라
+    // 상태만 바뀌어선 영어로 안 바뀐다. router.refresh() 는 RSC 페이로드는
+    // 갱신되나 클라 적용이 불안정해, 전체 리로드로 새 로케일을 확실히 반영한다.
+    if (typeof window !== 'undefined') {
+      window.location.reload()
+      return
+    }
     setLocaleState(next)
-  }
+  }, [])
 
   const t = useMemo(() => {
     const getter = (obj: unknown, path: string) => {
@@ -436,7 +445,7 @@ export function I18nProvider({
       dir: isRtl(locale) ? 'rtl' : 'ltr',
       hydrated,
     }),
-    [locale, t, hydrated]
+    [locale, t, hydrated, setLocale]
   )
 
   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>
