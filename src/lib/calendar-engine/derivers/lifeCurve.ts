@@ -40,12 +40,32 @@ function categoryOf(dmEl: string, el: string): SibCat {
 
 // 지지 충(6쌍)·육합(6쌍) — 한자 기준. 세운지지 ↔ 원국 일지/대운지지 상호작용.
 const CLASH: Record<string, string> = {
-  子: '午', 午: '子', 丑: '未', 未: '丑', 寅: '申', 申: '寅',
-  卯: '酉', 酉: '卯', 辰: '戌', 戌: '辰', 巳: '亥', 亥: '巳',
+  子: '午',
+  午: '子',
+  丑: '未',
+  未: '丑',
+  寅: '申',
+  申: '寅',
+  卯: '酉',
+  酉: '卯',
+  辰: '戌',
+  戌: '辰',
+  巳: '亥',
+  亥: '巳',
 }
 const SIXHAP: Record<string, string> = {
-  子: '丑', 丑: '子', 寅: '亥', 亥: '寅', 卯: '戌', 戌: '卯',
-  辰: '酉', 酉: '辰', 巳: '申', 申: '巳', 午: '未', 未: '午',
+  子: '丑',
+  丑: '子',
+  寅: '亥',
+  亥: '寅',
+  卯: '戌',
+  戌: '卯',
+  辰: '酉',
+  酉: '辰',
+  巳: '申',
+  申: '巳',
+  午: '未',
+  未: '午',
 }
 
 // 외행성 인생 마디 → 길흉 방향·강도. 하드(토성회귀·천왕성대립·명왕성스퀘어)는
@@ -220,18 +240,14 @@ export function buildLifeCurve(
   const { z: astroZ } = znorm(astroRaw)
   const combined = sajuRaw.map((_, i) => sajuW * sajuZ[i] + astroW * astroZ[i])
   const smooth = movingAvg(combined, 2) // 5년창 — 중간 텍스처
-  // 거시 굴곡 — 9년창 2회로 세운 고주파를 씻어 대운·외행성 위주 decade-scale 만 남긴다.
-  const macroRaw = movingAvg(movingAvg(combined, 4), 4)
-  // 유년기 성숙 엔벨로프 — 인생 *궤적*(자율·성취·사회적 자리)은 유아기에 거의
-  // 발현되지 않는다. 0~16세 macro 편차를 평균 쪽으로 당겨, 유년기가 거짓 정점/
-  // 저점이 되지 않게 한다(예: 대기만성인데 유아기가 호황으로 잡히던 문제). 16세
-  // 이후는 env=1 로 성인 구간 굴곡은 전혀 건드리지 않는다.
-  const macroMean = macroRaw.reduce((a, b) => a + b, 0) / (macroRaw.length || 1)
-  const MATURE_AGE = 16
-  const macro = macroRaw.map((m, age) => {
-    const env = Math.min(1, 0.2 + (0.8 * age) / MATURE_AGE)
-    return macroMean + (m - macroMean) * env
-  })
+  // 거시 굴곡 — 7년창(±3) 1회. **뿌리 수정**: 예전엔 9년창 2회(≈13년 평활) + 0~16세
+  // 성숙 엔벨로프(편차를 평균 쪽으로 당김)를 *곡선에만* 덧칠해 macro 를 만들었다.
+  // 그 결과 (1) 초년기 굴곡(고생/호황)이 통째로 지워지고, (2) macro 가 combined 와
+  // 부호가 어긋나(평생 ~1/6 해) — *대운·세운 티어는 combined 를 쓰는데 인생곡선만
+  // macro 를 써서* 같은 해를 반대로 그리는 모순이 났다. 이제 곡선·마디·대운밴드가
+  // 모두 combined 를 가볍게(7년) 평활한 *같은 신호* 를 본다. 엔벨로프 없음 →
+  // 초년기 고생/호황이 그대로 드러나고, 티어 간 부호가 일치한다.
+  const macro = movingAvg(combined, 3)
 
   const points: LifeCurvePoint[] = sajuRaw.map((_, i) => ({
     year: birthYear + i,
