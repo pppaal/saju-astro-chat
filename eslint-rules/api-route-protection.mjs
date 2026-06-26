@@ -83,6 +83,7 @@ const ALLOWLIST = new Set([
   'src/app/api/cron/winback-push/route.ts',
   'src/app/api/cron/anomaly-check/route.ts',
   'src/app/api/cron/threads-tarot/route.ts',
+  'src/app/api/cron/threads-refresh-token/route.ts',
 
   // Public share viewer: public by design (SECURITY_AUDIT_REPORT "public
   // share/[id]"), rate-limited manually.

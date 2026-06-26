@@ -1,19 +1,26 @@
 // src/lib/social/publish/threads.ts
 //
 // Threads Graph API 발행 — 2단계: (1) 미디어 컨테이너 생성 (2) 게시.
-// env: THREADS_USER_ID, THREADS_ACCESS_TOKEN. 텍스트 전용 게시.
+// env: THREADS_USER_ID, THREADS_ACCESS_TOKEN(초기 시드). 토큰은 발행 시점에
+// 항상 최신값(자동 갱신된 Redis 값 우선)을 읽는다 — threadsToken 참고.
 // 문서: https://developers.facebook.com/docs/threads
 
 import { logger } from '@/lib/logger'
 import type { PublishAdapter, PublishInput, PublishResult } from './types'
 import { composeText } from './types'
+import { getActiveThreadsToken } from './threadsToken'
 
 const GRAPH = 'https://graph.threads.net/v1.0'
 
-function creds() {
-  const userId = (process.env.THREADS_USER_ID || '').trim()
-  const token = (process.env.THREADS_ACCESS_TOKEN || '').trim()
-  return userId && token ? { userId, token } : null
+// userId 는 안정값이라 env 에서, 토큰은 만료·갱신되므로 발행 시점에 별도 조회.
+function envUserId(): string {
+  return (process.env.THREADS_USER_ID || '').trim()
+}
+
+// isConfigured 게이트용 — 초기 시드(userId + env 토큰)가 있는지. 실제 발행
+// 토큰은 getActiveThreadsToken() 이 Redis 갱신본을 우선해 돌려준다.
+function hasSeedCreds(): boolean {
+  return envUserId() !== '' && (process.env.THREADS_ACCESS_TOKEN || '').trim() !== ''
 }
 
 async function postForm(url: string, params: Record<string, string>): Promise<Response> {
@@ -27,19 +34,20 @@ async function postForm(url: string, params: Record<string, string>): Promise<Re
 
 export const threadsAdapter: PublishAdapter = {
   platform: 'threads',
-  isConfigured: () => creds() !== null,
+  isConfigured: () => hasSeedCreds(),
 
   async publish(input: PublishInput): Promise<PublishResult> {
-    const c = creds()
-    if (!c) return { ok: false, platform: 'threads', skipped: 'not_configured' }
+    const userId = envUserId()
+    const token = await getActiveThreadsToken()
+    if (!userId || !token) return { ok: false, platform: 'threads', skipped: 'not_configured' }
 
     const text = composeText(input)
     try {
       // 1) 컨테이너 생성 (이미지 있으면 IMAGE, 없으면 TEXT).
       const containerParams: Record<string, string> = input.imageUrl
-        ? { media_type: 'IMAGE', image_url: input.imageUrl, text, access_token: c.token }
-        : { media_type: 'TEXT', text, access_token: c.token }
-      const createRes = await postForm(`${GRAPH}/${c.userId}/threads`, containerParams)
+        ? { media_type: 'IMAGE', image_url: input.imageUrl, text, access_token: token }
+        : { media_type: 'TEXT', text, access_token: token }
+      const createRes = await postForm(`${GRAPH}/${userId}/threads`, containerParams)
       if (!createRes.ok) {
         const t = await createRes.text().catch(() => '')
         return {
@@ -52,9 +60,9 @@ export const threadsAdapter: PublishAdapter = {
       if (!creationId) return { ok: false, platform: 'threads', error: 'no creation id' }
 
       // 2) 게시.
-      const pubRes = await postForm(`${GRAPH}/${c.userId}/threads_publish`, {
+      const pubRes = await postForm(`${GRAPH}/${userId}/threads_publish`, {
         creation_id: creationId,
-        access_token: c.token,
+        access_token: token,
       })
       if (!pubRes.ok) {
         const t = await pubRes.text().catch(() => '')

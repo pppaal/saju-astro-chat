@@ -30,6 +30,7 @@ on:
     - cron: '0 0 * * *' # threads-tarot      (KST 09:00) 타로 공유 결과 Threads 게시(아침)
     - cron: '0 5 * * *' # threads-tarot      (KST 14:00) 타로 공유 결과 Threads 게시(오후)
     - cron: '0 10 * * *' # threads-tarot      (KST 19:00) 타로 공유 결과 Threads 게시(저녁)
+    - cron: '0 3 * * *' # threads-refresh-token (KST 12:00) Threads 토큰 자동 갱신
   workflow_dispatch:
     inputs:
       target:
@@ -47,6 +48,7 @@ on:
           - reconcile-activity
           - anomaly-check
           - threads-tarot
+          - threads-refresh-token
 
 # 같은 엔드포인트 그룹이 겹쳐 쌓이지 않도록. 진행 중이면 이전 건은 두고 새 건은 큐.
 concurrency:
@@ -84,6 +86,7 @@ jobs:
               "0 0 * * *")   TARGETS="threads-tarot" ;;
               "0 5 * * *")   TARGETS="threads-tarot" ;;
               "0 10 * * *")  TARGETS="threads-tarot" ;;
+              "0 3 * * *")   TARGETS="threads-refresh-token" ;;
               *)             TARGETS="" ;;
             esac
           fi
