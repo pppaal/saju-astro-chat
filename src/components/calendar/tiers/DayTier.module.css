@@ -859,6 +859,12 @@
   word-break: keep-all;
 }
 
+.novShare {
+  display: flex;
+  justify-content: center;
+  margin-top: 16px;
+}
+
 /* ── 자세히 폴드 (전문층 — 사주를 아는 사람만 펼침) ── */
 .expertWrap {
   border: 1px solid var(--line);

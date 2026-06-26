@@ -33,6 +33,7 @@ import { reconcileDayTone, type DayVerdict } from '@/lib/calendar-engine/deriver
 import styles from './DayTier.module.css'
 import { useI18n } from '@/i18n/I18nProvider'
 import { localizeLabel } from '@/components/calendar/adapters/localizeLabel'
+import { ShareDayButton } from '@/components/calendar/ShareDayButton'
 import {
   shinsalEn,
   elementEn,
@@ -443,7 +444,7 @@ export function DayTier({ day, onRise, sex = '남' }: DayTierProps) {
     verdict.tone === 'positive' && hourDn > hourUp
       ? ko
         ? '전체는 순한 날이에요 — 아래는 그 하루 *안에서의* 상대 리듬이라 오르내림이 있어요.'
-        : "Overall a smooth day — the bars below are the relative rhythm *within* it, so they rise and fall."
+        : 'Overall a smooth day — the bars below are the relative rhythm *within* it, so they rise and fall.'
       : verdict.tone === 'caution' && hourUp > hourDn
         ? ko
           ? '전체는 조심할 날이지만, 그 안에도 트이는 시간대가 있어요.'
@@ -527,6 +528,20 @@ export function DayTier({ day, onRise, sex = '남' }: DayTierProps) {
         </div>
         <p className={styles.novLine}>{localizeLabel(dayOneLine, ko)}</p>
         {novWhy && <p className={styles.novWhy}>{novWhy}</p>}
+        <div className={styles.novShare}>
+          <ShareDayButton
+            data={{
+              isKo: ko,
+              dateLabel: ko ? `${Number(mm)}월 ${Number(dd)}일 ${weekday(day.date)}` : titleLatin,
+              score: day.score,
+              tone: verdict.tone,
+              headline: localizeLabel(dayOneLine, ko),
+              subline: novWhy || undefined,
+              curve: hasFlow ? scores.map((s) => s.score) : undefined,
+              markerIndex: todayIdx >= 0 ? todayIdx : undefined,
+            }}
+          />
+        </div>
       </header>
 
       {/* ── 자세히 ① 일진·근거 (사주를 아는 사람용) ── */}
@@ -686,7 +701,6 @@ export function DayTier({ day, onRise, sex = '남' }: DayTierProps) {
             : 'In plain terms: where your Saju energy and the star flows meet today, and when it peaks.'}
         </p>
 
-
         {/* ── S8 타이밍 ── */}
         {(hasFlow || upcoming.length > 0) && (
           <section className={styles.sec}>
@@ -740,9 +754,7 @@ export function DayTier({ day, onRise, sex = '남' }: DayTierProps) {
             <div className={styles.rhythmNote}>
               {ko ? '가운데선 위 = 좋음 · 아래 = 주의' : 'above the line = good · below = caution'}
             </div>
-            {rhythmCoherenceNote && (
-              <div className={styles.rhythmNote}>{rhythmCoherenceNote}</div>
-            )}
+            {rhythmCoherenceNote && <div className={styles.rhythmNote}>{rhythmCoherenceNote}</div>}
             <HourGraph hours={hourSorted} ko={ko} />
           </section>
         )}
@@ -865,13 +877,16 @@ export function DayTier({ day, onRise, sex = '남' }: DayTierProps) {
                   {ko ? '겹치는 흐름 · 사주 × 별자리' : 'Crossings · Saju × Astro'}
                 </div>
                 <div className={styles.crossLegend}>
-                  <span className={styles.clUp}>▲ {ko ? '도움이 되는 흐름' : 'Supporting flow'}</span>
+                  <span className={styles.clUp}>
+                    ▲ {ko ? '도움이 되는 흐름' : 'Supporting flow'}
+                  </span>
                   <span className={styles.clDn}>▼ {ko ? '부딪히는 흐름' : 'Clashing flow'}</span>
                 </div>
                 {crossCards.map((c, i) => {
                   const isHero = heroCross != null && c === heroCross && Math.abs(c.polarity) >= 2
                   const poleSym = c.polarity > 0 ? '▲' : c.polarity < 0 ? '▼' : '·'
-                  const poleCls = c.polarity > 0 ? styles.poleUp : c.polarity < 0 ? styles.poleDn : ''
+                  const poleCls =
+                    c.polarity > 0 ? styles.poleUp : c.polarity < 0 ? styles.poleDn : ''
                   const sajuName = c.sajuKo ?? c.sajuSide
                   const astroName = c.astroKo ?? c.astroSide
                   const head = ko

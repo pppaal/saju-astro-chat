@@ -68,10 +68,61 @@ export interface CalendarShareLinkPayload {
   highlights?: string[]
 }
 
+export type DayShareTone = 'positive' | 'mixed' | 'caution'
+
+/**
+ * 하루(일진) 공유 — 점수 + 한 줄 + "이달 흐름" 곡선을 OG 의 주인공으로.
+ * 곡선은 숫자 배열(점수)만 보낸다 — 생년월일/원국은 서버에 보내지 않는다.
+ */
+export interface DayShareLinkPayload {
+  v: 1
+  kind: 'day'
+  isKo: boolean
+  /** 날짜 라벨 — '6월 15일 토' / 'Sat, Jun 15'. */
+  dateLabel: string
+  /** 0..100 점수(OG 의 큰 숫자). */
+  score: number
+  tone: DayShareTone
+  /** 한 줄 후크(주인공). */
+  headline: string
+  /** 보조 한 줄(선택). */
+  subline?: string
+  /** 이달 일별 점수 곡선(0..100, 숫자만). */
+  curve?: number[]
+  /** 곡선 위 오늘 위치 인덱스(curve 기준). */
+  markerIndex?: number
+}
+
+/**
+ * 인생/대운 곡선 공유 — 한 줄 + 인생 흐름 곡선(연도 라벨 포함)을 주인공으로.
+ * 곡선·연도 라벨만 보낸다 — 생년월일/원국은 서버에 보내지 않는다.
+ */
+export interface LifeShareLinkPayload {
+  v: 1
+  kind: 'life'
+  isKo: boolean
+  /** 범위 라벨 — "1994 — 2044" 등(선택). */
+  rangeLabel?: string
+  /** 한 줄 후크(주인공). */
+  headline: string
+  /** 보조 한 줄(선택). */
+  subline?: string
+  /** 인생 흐름 점수 곡선(0..100, 숫자만). */
+  curve: number[]
+  /** 축 라벨(곡선 길이와 무관하게 4개 내외 표시). */
+  axisLabels?: string[]
+  /** 곡선 위 현재 위치 인덱스. */
+  markerIndex?: number
+  /** 곡선 위 피크(✦) 인덱스. */
+  peakIndex?: number
+}
+
 export type ShareLinkPayload =
   | TarotShareLinkPayload
   | CompatShareLinkPayload
   | CalendarShareLinkPayload
+  | DayShareLinkPayload
+  | LifeShareLinkPayload
 
 /** 타입 가드 — 공유 종류 분기(렌더/OG). 레거시(미지정)는 tarot. */
 export function isCompatShare(p: ShareLinkPayload): p is CompatShareLinkPayload {
@@ -80,6 +131,14 @@ export function isCompatShare(p: ShareLinkPayload): p is CompatShareLinkPayload 
 
 export function isCalendarShare(p: ShareLinkPayload): p is CalendarShareLinkPayload {
   return p.kind === 'calendar'
+}
+
+export function isDayShare(p: ShareLinkPayload): p is DayShareLinkPayload {
+  return p.kind === 'day'
+}
+
+export function isLifeShare(p: ShareLinkPayload): p is LifeShareLinkPayload {
+  return p.kind === 'life'
 }
 
 const shareKey = (token: string) => `tarot:share:${token}`
@@ -111,8 +170,14 @@ export async function getShareLink(token: string): Promise<ShareLinkPayload | nu
   try {
     const payload = await cacheGet<ShareLinkPayload>(shareKey(clean))
     if (!payload || payload.v !== 1) return null
-    // 궁합·캘린더 공유는 cards 가 없고, 타로(레거시 포함)는 cards 배열을 가진다.
-    if (payload.kind === 'compatibility' || payload.kind === 'calendar') return payload
+    // 궁합·캘린더·하루·인생 공유는 cards 가 없고, 타로(레거시 포함)는 cards 배열을 가진다.
+    if (
+      payload.kind === 'compatibility' ||
+      payload.kind === 'calendar' ||
+      payload.kind === 'day' ||
+      payload.kind === 'life'
+    )
+      return payload
     if (!Array.isArray((payload as TarotShareLinkPayload).cards)) return null
     return payload
   } catch (error) {
