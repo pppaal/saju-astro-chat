@@ -11,6 +11,7 @@
 import { useEffect, useCallback, useMemo, useRef, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useSession } from 'next-auth/react'
+import { analytics } from '@/components/analytics/GoogleAnalytics'
 import { useI18n } from '@/i18n/I18nProvider'
 import { ErrorBoundary, ChatErrorFallback } from '@/components/ErrorBoundary'
 import CreditBadge from '@/components/ui/CreditBadge'
@@ -91,6 +92,15 @@ export default function CounselorPage() {
 
   const { chartData, userContext, parsedParams, profileLoading } =
     useCounselorData(counselorSearchParams)
+
+  // 운명 차트(사주×점성) 생성 — 핵심 기능 사용. chartData 최초 도착 시 1회.
+  const firedMapEventRef = useRef(false)
+  useEffect(() => {
+    if (chartData && !firedMapEventRef.current) {
+      firedMapEventRef.current = true
+      analytics.generateDestinyMap()
+    }
+  }, [chartData])
 
   const {
     name,

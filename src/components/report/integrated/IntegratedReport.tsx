@@ -5,6 +5,7 @@
  * 5섹션: 사주명식 · 오행/용신 · 천궁도 · 어스펙트 · 통합테마(natalCross 교차).
  */
 import React from 'react'
+import { analytics } from '@/components/analytics/GoogleAnalytics'
 import s from './IntegratedReport.module.css'
 import {
   type ReportData,
@@ -486,6 +487,10 @@ const MINOR_TALENT_NOTE: Record<Lang, string> = {
 }
 
 export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportProps) {
+  // 통합 리포트(사주 포함) 조회 — 핵심 기능 사용 측정(동의 시에만 전송).
+  React.useEffect(() => {
+    analytics.checkSaju()
+  }, [])
   const { input, saju: S, astro: A } = data
   // 어댑터 전용 확장 필드(reportTypes 에 없는 보조 정보) — 옵셔널로 읽는다.
   const extras = data as typeof data & {

@@ -9,6 +9,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { useParams, usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { tarotThemes } from '@/lib/tarot/tarot-spreads-data'
 import { findCardBySavedName } from '@/lib/tarot/findCardByName'
+import { analytics } from '@/components/analytics/GoogleAnalytics'
 import {
   loadQuestionAnalysisSnapshot,
   type TarotQuestionAnalysisSnapshot,
@@ -600,6 +601,7 @@ export function useTarotGame(): UseTarotGameReturn {
         if (!mountedRef.current) return
         setDrawError(null)
         setReadingResult(data)
+        analytics.drawTarot(categoryName || 'unknown')
 
         // Basic interpretation while waiting for AI
         const basicInterpretation: InterpretationResult = {

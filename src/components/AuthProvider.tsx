@@ -5,6 +5,7 @@
 import { SessionProvider } from "next-auth/react";
 import React from "react";
 import SessionSync from "@/components/auth/SessionSync";
+import AuthEventTracker from "@/components/analytics/AuthEventTracker";
 
 type Props = {
   children: React.ReactNode;
@@ -18,6 +19,7 @@ export default function AuthProvider({ children }: Props) {
       refetchInterval={0}
     >
       <SessionSync />
+      <AuthEventTracker />
       {children}
     </SessionProvider>
   );
