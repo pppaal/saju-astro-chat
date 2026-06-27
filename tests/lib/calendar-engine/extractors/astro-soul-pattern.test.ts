@@ -107,7 +107,7 @@ describe('astro-soul-pattern extractor', () => {
   })
 
   it('emits draconic + harmonic signals for a single day', async () => {
-    const mod = await import('@/lib/calendar-engine/extractors/astro-soul-pattern')
+    const mod = await import('@/lib/calendar-engine/extractors/astro/astro-soul-pattern')
     const extractor = mod.default
 
     const signals = await extractor.extract({
@@ -164,7 +164,7 @@ describe('astro-soul-pattern extractor', () => {
   })
 
   it('caches draconic and harmonic charts after first day (single calculation)', async () => {
-    const mod = await import('@/lib/calendar-engine/extractors/astro-soul-pattern')
+    const mod = await import('@/lib/calendar-engine/extractors/astro/astro-soul-pattern')
     const extractor = mod.default
 
     await extractor.extract({
@@ -180,7 +180,7 @@ describe('astro-soul-pattern extractor', () => {
   })
 
   it('all signal ids are unique', async () => {
-    const mod = await import('@/lib/calendar-engine/extractors/astro-soul-pattern')
+    const mod = await import('@/lib/calendar-engine/extractors/astro/astro-soul-pattern')
     const extractor = mod.default
     const signals = await extractor.extract({
       natal: createNatal(),

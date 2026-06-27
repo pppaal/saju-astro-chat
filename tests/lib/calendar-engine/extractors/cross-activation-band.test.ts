@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { extractCrossActivations } from '@/lib/calendar-engine/extractors/cross-activation'
+import { extractCrossActivations } from '@/lib/calendar-engine/extractors/cross/cross-activation'
 import { crossLayerAllowed } from '@/lib/calendar-engine/data/saju-astro-mapping'
 import type { ActiveSignal } from '@/lib/calendar-engine/types'
 

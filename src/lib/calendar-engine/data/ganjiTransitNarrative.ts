@@ -20,7 +20,7 @@
  * nothing about polarity/score — that lives in saju-pillar). `pillarFlowLine`
  * composes the generic sibsin flow with the *ganji-specific* texture so
  * same-sibsin adjacent ganji read differently. Wired in
- * `extractors/saju-pillar.ts` (`buildSignal`).
+ * `extractors/saju/saju-pillar.ts` (`buildSignal`).
  */
 
 import { ILJU_ARCHETYPES } from '@/lib/saju/iljuDictionary'

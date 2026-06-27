@@ -1,11 +1,25 @@
-/* eslint-disable @typescript-eslint/no-explicit-any --
- * 경계 어댑터: NatalContext 의 느슨하게 타입된 하위 shape(지장간·신살·관계 등)를
- * 방어적으로 매핑한다. 정확한 내부 타입에 강결합하지 않으려 의도적으로 any 허용. */
 /**
  * 실데이터 어댑터 — NatalContext(buildNatalContext 결과) → ReportData(chart.zip shape).
  * 우리 shape 에 없는 일부 필드(지장간 가중치·신살 polarity·대운 십신)는 룩업/폴백.
+ *
+ * 경계 어댑터: 상위 엔진 shape 에 강결합하지 않으려고 입력을 read-side DTO
+ * (sourceTypes.ts)로 받는다. 옛날엔 이 결합 회피를 file-level `any` 로 했으나,
+ * 그러면 오타·필드 드리프트를 컴파일러가 못 잡아 sourceTypes 의 명시 계약으로 대체.
  */
 import type { ReportData, ReportPillar } from './reportTypes'
+import type {
+  ReportSourceCtx,
+  InputSource,
+  PlanetSource,
+  ExtraPointSource,
+  HouseSource,
+  AspectSource,
+  DignitySource,
+  ShinsalHitSource,
+  RelationHitSource,
+  DaeunHitSource,
+} from './sourceTypes'
+import type { PillarData, JijangganSlot } from '@/lib/saju/types'
 import { SIGN_ABBR, STEM_INFO } from './reportTypes'
 import type { RelationCategory } from '@/lib/chart-dictionary'
 import {
@@ -41,7 +55,7 @@ import { currentManAge } from '@/lib/datetime/currentAge'
  *  reframe/생략한다(아동 부적합 방지). 출생 시간대 미상이면 'UTC'로 근사(연 단위
  *  게이트라 자정 경계 오차는 무관). 생년월일 불완전 시 성인으로 간주(오탐 방지). */
 export const MINOR_AGE_THRESHOLD = 14
-function computeIsMinor(inp: any, now: Date): boolean {
+function computeIsMinor(inp: InputSource, now: Date): boolean {
   const y = Number(inp?.year)
   const m = Number(inp?.month)
   const d = Number(inp?.date)
@@ -64,13 +78,13 @@ function computeIsMinor(inp: any, now: Date): boolean {
 // domicile/exaltation/detriment/fall 4 종을 먼저 — 라벨 자체가 강한 의미.
 // 그 다음 triplicity/term/face — 약한 dignity. 모두 false 면 peregrine.
 const topTier = (t: {
-  domicile: boolean
-  exaltation: boolean
-  triplicity: boolean
-  term: boolean
-  face: boolean
-  detriment: boolean
-  fall: boolean
+  domicile?: boolean
+  exaltation?: boolean
+  triplicity?: boolean
+  term?: boolean
+  face?: boolean
+  detriment?: boolean
+  fall?: boolean
 }): string =>
   t.domicile
     ? 'domicile'
@@ -166,12 +180,6 @@ const SHINSAL_POLARITY: Record<string, number> = {
   현침: -1,
 }
 
-interface AnyCtx {
-  input?: any
-  saju?: any
-  astro?: any
-}
-
 // 격국 신뢰도 메타 — reportTypes.ReportData 에는 없는 보조 정보라 어댑터에서
 // 별도 채널로 흘려 §02 카드가 fallback/medium 일 때 헤딩을 약화하도록 한다.
 export interface ReportGeokgukMeta {
@@ -237,7 +245,7 @@ const RELATION_CATEGORIES = new Set<string>([
 
 /** NatalContext → ReportData (chart.zip 뷰모델). */
 export function natalToReportData(
-  ctx: AnyCtx,
+  ctx: ReportSourceCtx,
   lang: 'ko' | 'en' = 'ko',
   now: Date = new Date()
 ): ReportData & ReportDataExtras {
@@ -276,7 +284,7 @@ export function natalToReportData(
     : `${String(inp.hour).padStart(2, '0')}:${String(inp.minute).padStart(2, '0')}`
 
   const mapPillar = (
-    p: any,
+    p: PillarData | undefined,
     stages: Record<string, string>,
     key: string,
     isDay = false
@@ -287,14 +295,14 @@ export function natalToReportData(
       jj.jeonggi ? { sl: jj.jeonggi, layer: 'main' as const } : null,
       jj.junggi ? { sl: jj.junggi, layer: 'mid' as const } : null,
       jj.chogi ? { sl: jj.chogi, layer: 'sub' as const } : null,
-    ].filter((x): x is { sl: any; layer: 'main' | 'mid' | 'sub' } => !!x)
+    ].filter((x): x is { sl: JijangganSlot; layer: 'main' | 'mid' | 'sub' } => !!x)
     return {
       stem: p?.heavenlyStem?.name ?? '',
       branch: p?.earthlyBranch?.name ?? '',
       sibsinStem: isDay ? '日干' : (p?.heavenlyStem?.sibsin ?? ''),
       sibsinBranch: p?.earthlyBranch?.sibsin ?? '',
       jijanggan: slots.map(({ sl, layer }) => ({
-        g: sl.name ?? sl.stem ?? sl.g ?? '',
+        g: sl.name ?? '',
         layer,
       })),
       twelveStage: stages?.[key] ?? '',
@@ -305,7 +313,7 @@ export function natalToReportData(
   const stages: Record<string, string> = (S.twelveStages as Record<string, string>) ?? {}
 
   // 신살
-  const natalShinsal = (S.natalShinsal ?? []).slice(0, 8).map((h: any) => {
+  const natalShinsal = (S.natalShinsal ?? []).slice(0, 8).map((h: ShinsalHitSource) => {
     const kind = h.kind ?? h.name ?? ''
     const pillarKey = Array.isArray(h.pillars) ? h.pillars[0] : ''
     const pillar = PILLAR_KO[pillarKey] ?? ''
@@ -320,7 +328,7 @@ export function natalToReportData(
     }
   })
   // 관계 — type(kind 약칭), 한자 pair, 카테고리(getRelationMeaning 룩업용).
-  const natalRelations = (S.natalRelations ?? []).slice(0, 6).map((r: any) => {
+  const natalRelations = (S.natalRelations ?? []).slice(0, 6).map((r: RelationHitSource) => {
     const kind = String(r.kind ?? r.type ?? '')
     const tone: 'pos' | 'neg' | 'neutral' = kind.includes('합')
       ? 'pos'
@@ -332,7 +340,7 @@ export function natalToReportData(
     return { type: kind, detail, tone, category, pair: extractPair(detail) }
   })
   // 대운 (현재 여부는 NatalContext 에 없으면 false — 호출측에서 보강 가능)
-  const daeun = (S.daeun ?? []).slice(0, 8).map((d: any) => ({
+  const daeun = (S.daeun ?? []).slice(0, 8).map((d: DaeunHitSource) => ({
     age: d.startAge ?? d.age ?? 0,
     stem: d.stem ?? '',
     branch: d.branch ?? '',
@@ -344,29 +352,35 @@ export function natalToReportData(
   // 값이 있어도 리포트로 내보내지 않는다(0/null 로 비움). 행성 sign 은 유지(시각 의존 미미).
   const placeUnreliable = !!A.placeUnreliable
   // 점성 행성
-  const planets = (A.chart?.planets ?? A.planets ?? []).map((p: any) => ({
-    name: p.name,
-    ko: PLANET_KO[p.name] ?? p.name,
-    glyph: PLANET_GLYPH[p.name] ?? '●',
-    lon: p.longitude ?? p.lon ?? 0,
-    sign: toAbbr(p.sign),
-    deg: fmtDeg(p.longitude ?? p.lon),
-    house: placeUnreliable ? 0 : (p.house ?? 0),
-    retro: typeof p.speed === 'number' ? p.speed < 0 : !!p.retrograde,
-    speed: p.speed ?? 0,
-  }))
-  const extraPoints = (A.extraPoints ?? []).map((p: any) => ({
-    name: p.name,
-    ko: PLANET_KO[p.name] ?? p.name,
-    glyph: PLANET_GLYPH[p.name] ?? '✦',
-    lon: p.longitude ?? p.lon ?? 0,
-    sign: toAbbr(p.sign),
-    deg: fmtDeg(p.longitude ?? p.lon),
-    house: p.house ?? 0,
-  }))
+  const planets = (A.chart?.planets ?? A.planets ?? []).map((p: PlanetSource) => {
+    const name = p.name ?? ''
+    return {
+      name,
+      ko: PLANET_KO[name] ?? name,
+      glyph: PLANET_GLYPH[name] ?? '●',
+      lon: p.longitude ?? p.lon ?? 0,
+      sign: toAbbr(p.sign),
+      deg: fmtDeg(p.longitude ?? p.lon),
+      house: placeUnreliable ? 0 : (p.house ?? 0),
+      retro: typeof p.speed === 'number' ? p.speed < 0 : !!p.retrograde,
+      speed: p.speed ?? 0,
+    }
+  })
+  const extraPoints = (A.extraPoints ?? []).map((p: ExtraPointSource) => {
+    const name = p.name ?? ''
+    return {
+      name,
+      ko: PLANET_KO[name] ?? name,
+      glyph: PLANET_GLYPH[name] ?? '✦',
+      lon: p.longitude ?? p.lon ?? 0,
+      sign: toAbbr(p.sign),
+      deg: fmtDeg(p.longitude ?? p.lon),
+      house: p.house ?? 0,
+    }
+  })
   const houses = placeUnreliable
     ? []
-    : (A.chart?.houses ?? A.houses ?? []).map((h: any, i: number) => ({
+    : (A.chart?.houses ?? A.houses ?? []).map((h: HouseSource, i: number) => ({
         i: h.index ?? h.i ?? i + 1,
         cusp: h.cusp ?? 0,
         sign: toAbbr(h.sign),
@@ -375,9 +389,9 @@ export function natalToReportData(
   // 풀어 24 로 (UI 가 슬라이더/접고 펼침으로 처리). orb 작은 순.
   const aspects = (A.natalAspects ?? A.aspects ?? [])
     .slice()
-    .sort((a: any, b: any) => (a.orb ?? 99) - (b.orb ?? 99))
+    .sort((a: AspectSource, b: AspectSource) => (a.orb ?? 99) - (b.orb ?? 99))
     .slice(0, 24)
-    .map((a: any) => ({
+    .map((a: AspectSource) => ({
       a: a.from?.name ?? a.a ?? '',
       b: a.to?.name ?? a.b ?? '',
       type: a.type ?? 'conjunction',
@@ -389,20 +403,20 @@ export function natalToReportData(
   // 흡수. 옛 dignityOf 재계산 (단순 4-tier) 제거. peregrine 제외, score 절댓값
   // 기준 상위 8개 (정통 깊이 카드용 — 옛 6 보다 조금 넓힘).
   const dignities = (A.dignities ?? [])
-    .map((d: any) => ({
-      planet: d.planet,
+    .map((d: DignitySource) => ({
+      planet: d.planet ?? '',
       sign: toAbbr(d.sign),
       tier: topTier(d.tiers ?? {}),
       score: typeof d.score === 'number' ? d.score : 0,
     }))
-    .filter((d: any) => d.tier !== 'peregrine')
-    .sort((a: any, b: any) => Math.abs(b.score) - Math.abs(a.score))
+    .filter((d) => d.tier !== 'peregrine')
+    .sort((a, b) => Math.abs(b.score) - Math.abs(a.score))
     .slice(0, 8)
 
   // Arabic Lots — 정통 7 lots (Fortune/Spirit/Eros/Necessity/Courage/Victory/
   // Nemesis). facts.hellenistic.lots 에서 받음.
-  const lots = (A.lots ?? []).map((l: any) => ({
-    name: l.name,
+  const lots = (A.lots ?? []).map((l) => ({
+    name: l.name ?? '',
     sign: toAbbr(l.sign),
     deg: fmtDeg(l.longitude),
     house: l.house ?? 0,
@@ -524,7 +538,7 @@ export interface CrossRowOut {
   karmaAxis?: boolean
 }
 export function buildCrossRows(
-  ctx: AnyCtx,
+  ctx: ReportSourceCtx,
   lang: 'ko' | 'en' = 'ko',
   now: Date = new Date()
 ): { synthesis?: string; rows: CrossRowOut[] } {
@@ -534,8 +548,8 @@ export function buildCrossRows(
   // 미성년 안전 모드: 연애·재물 교차 축은 verdict/synthesis 산출 전에 제거해
   // 그리드뿐 아니라 종합문에도 연애·배우자·재물 서술이 섞이지 않게 한다.
   const isMinor = computeIsMinor(ctx.input ?? {}, now)
-  const planets = A.chart?.planets ?? A.planets ?? []
-  const find = (n: string) => planets.find((p: any) => p.name === n)
+  const planets: PlanetSource[] = A.chart?.planets ?? A.planets ?? []
+  const find = (n: string) => planets.find((p) => p.name === n)
   const dmEl = S.dayMaster?.element
   // placeUnreliable(출생시각/출생지 미상) 면 ASC/MC/하우스 의존 신호를 전부 차단 —
   // 자정/서울 폴백으로 만든 "그럴듯하지만 틀린" 사회역할·각도·angularity 누출 방지.
@@ -545,8 +559,7 @@ export function buildCrossRows(
   const ascSign = placeUnreliable ? undefined : (A.chart?.ascendant ?? A.ascendant)?.sign
   const mcSign = placeUnreliable ? undefined : (A.chart?.mc ?? A.mc)?.sign
   const details = adv.sibsin?.categoryCount
-  const crossGender: 'male' | 'female' =
-    (ctx.input as { gender?: string } | undefined)?.gender === 'female' ? 'female' : 'male'
+  const crossGender: 'male' | 'female' = ctx.input?.gender === 'female' ? 'female' : 'male'
 
   // 강조 행성 + 최고 dignity — Phase B: facts.hellenistic.dignities (5-tier)
   // 활용. 옛 dignityOf 재계산 제거. 각 행성 angularity (1/4/7/10 하우스) + 강한
@@ -555,10 +568,8 @@ export function buildCrossRows(
   const emphasized = new Set<string>()
   let topDignity: { planet: string; status: string } | null = null
   const dignityIdx: Record<string, { domicile: boolean; exaltation: boolean }> = {}
-  for (const d of (A.dignities ?? []) as Array<{
-    planet: string
-    tiers?: { domicile?: boolean; exaltation?: boolean }
-  }>) {
+  for (const d of A.dignities ?? []) {
+    if (!d.planet) continue
     dignityIdx[d.planet] = { domicile: !!d.tiers?.domicile, exaltation: !!d.tiers?.exaltation }
   }
   for (const p of planets) {
@@ -575,11 +586,7 @@ export function buildCrossRows(
   }
   // 행성 컨디션(dignity 강도): 본궁·고양=strong / 손상·쇠약=weak / 그 외 neutral.
   const planetCondition = (name: string): 'strong' | 'weak' | 'neutral' => {
-    const d = (A.dignities ?? []).find((x: any) => x.planet === name) as
-      | {
-          tiers?: { domicile?: boolean; exaltation?: boolean; detriment?: boolean; fall?: boolean }
-        }
-      | undefined
+    const d = (A.dignities ?? []).find((x) => x.planet === name)
     const t = d?.tiers ?? {}
     if (t.domicile || t.exaltation) return 'strong'
     if (t.detriment || t.fall) return 'weak'
@@ -591,7 +598,7 @@ export function buildCrossRows(
     : emphasized.has('Sun')
       ? planetCondition('Sun')
       : 'neutral'
-  const aspectsForKey = (A.natalAspects ?? A.aspects ?? []).map((a: any) => ({
+  const aspectsForKey = (A.natalAspects ?? A.aspects ?? []).map((a: AspectSource) => ({
     from: { name: a.from?.name ?? a.a },
     to: { name: a.to?.name ?? a.b },
     type: a.type,
@@ -604,22 +611,22 @@ export function buildCrossRows(
     if (t === 'trine' || t === 'sextile') harmonious++
     else if (t === 'square' || t === 'opposition') hard++
   }
-  const rels = S.natalRelations ?? []
-  const hap = rels.filter((r: any) => String(r.kind ?? r.type).includes('합')).length
-  const chung = rels.filter((r: any) => String(r.kind ?? r.type).includes('충')).length
+  const rels: RelationHitSource[] = S.natalRelations ?? []
+  const hap = rels.filter((r) => String(r.kind ?? r.type).includes('합')).length
+  const chung = rels.filter((r) => String(r.kind ?? r.type).includes('충')).length
   // 궁위 — 일지(日支)=배우자궁. *지지* 충/합이 일지에 걸리는지(pillars 에 'day').
   // 주의: '충'/'합' 부분일치는 천간충/천간합까지 잡아 일지(지지) 궁위에 잘못 귀속된다
   // (R5: 천간충 癸-丁이 일지 巳 충으로 날조됨). 반드시 지지 관계로만 한정한다.
   const dayBranchClash = rels.some(
-    (r: any) => String(r.kind ?? r.type).includes('지지충') && (r.pillars ?? []).includes('day')
+    (r) => String(r.kind ?? r.type).includes('지지충') && (r.pillars ?? []).includes('day')
   )
   const dayBranchCombine = rels.some(
-    (r: any) =>
+    (r) =>
       /지지(육합|삼합|방합|반합)/.test(String(r.kind ?? r.type)) && (r.pillars ?? []).includes('day')
   )
   const dayShinsal = (S.natalShinsal ?? [])
-    .filter((h: any) => Array.isArray(h.pillars) && h.pillars.includes('day'))
-    .map((h: any) => String(h.kind ?? h.name))
+    .filter((h: ShinsalHitSource) => Array.isArray(h.pillars) && h.pillars.includes('day'))
+    .map((h) => String(h.kind ?? h.name))
   const stage = S.twelveStages?.day
   const strength = adv.yongsin?.daymasterStrength ?? S.strength
 
@@ -635,7 +642,7 @@ export function buildCrossRows(
   // 차트의 북교점 행성명은 'True Node'(기본)·'Mean Node'·'North Node'·'Node' 등
   // 구현마다 다름. /node/ 로 매칭하되 'South Node' 는 제외(북교점만).
   const northNode = planets.find(
-    (p: any) => /node/i.test(p.name ?? '') && !/south/i.test(p.name ?? '')
+    (p) => /node/i.test(p.name ?? '') && !/south/i.test(p.name ?? '')
   )
   // 사우스노드 = 북교점 정반대 사인. getSouthNodeOppositeSign 은 *영어 사인*을
   // 받으므로 한글 풀네임(SIGN_KO_FULL)이 아니라 원본 영어 sign 을 넘긴다.
@@ -644,7 +651,7 @@ export function buildCrossRows(
     : undefined
 
   // 생활영역 교차 입력 — 신살 존재 여부(전 기둥) + 하우스 점유 수 + 재성 비중.
-  const allShinsal: string[] = (S.natalShinsal ?? []).map((h: any) => String(h.kind ?? h.name))
+  const allShinsal: string[] = (S.natalShinsal ?? []).map((h) => String(h.kind ?? h.name))
   const hasShinsal = (...names: string[]) =>
     names.some((n) => allShinsal.some((s) => s.includes(n)))
   const houseCount: Record<number, number> = {}
@@ -728,7 +735,10 @@ export function buildCrossRows(
     ],
     [
       'temperament',
-      evalTemperament(S.fiveElements, planets.map((p: any) => p.sign).filter(Boolean)),
+      evalTemperament(
+        S.fiveElements,
+        planets.map((p) => p.sign).filter((s): s is string => !!s)
+      ),
     ],
     ['energy', evalEnergyDirection(details, emphasized)],
     [

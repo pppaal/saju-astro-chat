@@ -43,7 +43,7 @@ const SIGN_KO: Record<string, string> = {
   Pisces: '물고기자리',
 }
 
-// 조후용신 라벨(extractors/saju-johu-yongsin.ts)의 月支 → 계절 평어.
+// 조후용신 라벨(extractors/saju/saju-johu-yongsin.ts)의 月支 → 계절 평어.
 //   寅卯辰=봄 · 巳午未=여름 · 申酉戌=가을 · 亥子丑=겨울
 const BRANCH_SEASON: Record<string, string> = {
   寅: '봄',

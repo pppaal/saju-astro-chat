@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, it, expect } from 'vitest'
-import astroSolarArcExtractor from '@/lib/calendar-engine/extractors/astro-solar-arc'
+import astroSolarArcExtractor from '@/lib/calendar-engine/extractors/astro/astro-solar-arc'
 import {
   calculateSolarArcChart,
   findSolarArcAspects,

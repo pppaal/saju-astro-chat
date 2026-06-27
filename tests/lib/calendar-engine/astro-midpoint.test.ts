@@ -9,7 +9,7 @@ vi.mock('@/lib/calendar-engine/ephe-cache', () => ({
   getCachedTransitChart: vi.fn(),
 }))
 
-import astroMidpointExtractor from '@/lib/calendar-engine/extractors/astro-midpoint'
+import astroMidpointExtractor from '@/lib/calendar-engine/extractors/astro/astro-midpoint'
 import { getCachedTransitChart } from '@/lib/calendar-engine/ephe-cache'
 import { InMemoryCache } from '@/lib/calendar-engine/cache'
 import type { NatalContext } from '@/lib/calendar-engine/context/types'
