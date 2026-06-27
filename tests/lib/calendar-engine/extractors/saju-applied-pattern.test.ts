@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import extractor from '@/lib/calendar-engine/extractors/saju-applied-pattern'
+import extractor from '@/lib/calendar-engine/extractors/saju/saju-applied-pattern'
 import type { ExtractorContext, ActiveSignal } from '@/lib/calendar-engine/types'
 import type { SibsinKind } from '@/lib/saju/types'
 

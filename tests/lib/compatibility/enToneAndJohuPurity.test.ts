@@ -7,7 +7,7 @@
  */
 import { describe, it, expect } from 'vitest'
 import { buildRelationToneBlock } from '@/lib/compatibility/counselor/relationConfig'
-import johuExtractor from '@/lib/calendar-engine/extractors/saju-johu-yongsin'
+import johuExtractor from '@/lib/calendar-engine/extractors/saju/saju-johu-yongsin'
 import type { ExtractorContext } from '@/lib/calendar-engine/types'
 
 const HANGUL = /[가-힣]/

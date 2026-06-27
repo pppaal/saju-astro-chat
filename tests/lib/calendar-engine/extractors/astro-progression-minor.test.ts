@@ -73,7 +73,7 @@ vi.mock('@/lib/astrology/foundation/progressions', () => ({
   ),
 }))
 
-import astroProgressionExtractor from '@/lib/calendar-engine/extractors/astro-progression'
+import astroProgressionExtractor from '@/lib/calendar-engine/extractors/astro/astro-progression'
 import type { ExtractorContext, ExtractorCache } from '@/lib/calendar-engine/types'
 
 const signs: ZodiacKo[] = [

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { extractCrossActivations } from '@/lib/calendar-engine/extractors/cross-activation'
+import { extractCrossActivations } from '@/lib/calendar-engine/extractors/cross/cross-activation'
 import type { ActiveSignal } from '@/lib/calendar-engine/types'
 
 /**

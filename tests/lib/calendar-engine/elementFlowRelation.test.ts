@@ -7,7 +7,7 @@
  * core/sibsin SSOT 기준으로 바로잡은 방향을 잠근다.
  */
 import { describe, it, expect } from 'vitest'
-import { elementRelation } from '@/lib/calendar-engine/extractors/saju-element-flow'
+import { elementRelation } from '@/lib/calendar-engine/extractors/saju/saju-element-flow'
 
 describe('elementRelation — 십성 방향 (일간 기준)', () => {
   it('일진이 일간을 극함 = 官星 압박 (label 관성, polarity -2)', () => {

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import extractor from '@/lib/calendar-engine/extractors/saju-tonggeun'
+import extractor from '@/lib/calendar-engine/extractors/saju/saju-tonggeun'
 import type { ExtractorContext, ActiveSignal } from '@/lib/calendar-engine/types'
 
 /**

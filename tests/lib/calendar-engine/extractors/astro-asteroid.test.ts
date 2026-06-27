@@ -25,7 +25,7 @@ import astroAsteroidExtractor, {
   weightForAsteroid,
   aspectSymbol,
   aspectKorean,
-} from '@/lib/calendar-engine/extractors/astro-asteroid'
+} from '@/lib/calendar-engine/extractors/astro/astro-asteroid'
 import { getCachedTransitChart } from '@/lib/calendar-engine/ephe-cache'
 import { calculateAllAsteroids, findAsteroidAspects } from '@/lib/astrology/foundation/asteroids'
 import { InMemoryCache } from '@/lib/calendar-engine/cache'

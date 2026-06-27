@@ -5,7 +5,7 @@
  * a 16-day window so the daily branch cycles through all 12 지지; with natal
  * branches {子,卯,辰,巳} every relation type is guaranteed to fire at least once.
  */
-import extractor from '@/lib/calendar-engine/extractors/saju-natal-branch-relation'
+import extractor from '@/lib/calendar-engine/extractors/saju/saju-natal-branch-relation'
 import type { ExtractorContext, ActiveSignal } from '@/lib/calendar-engine/types'
 
 function ctxWith(branches: { year: string; month: string; day: string; time: string } | null) {

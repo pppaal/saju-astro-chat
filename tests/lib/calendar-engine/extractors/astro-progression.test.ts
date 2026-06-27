@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { describe, it, expect } from 'vitest'
 import type { Chart, PlanetBase, ZodiacKo } from '@/lib/astrology/foundation/types'
-import { __test } from '@/lib/calendar-engine/extractors/astro-progression'
+import { __test } from '@/lib/calendar-engine/extractors/astro/astro-progression'
 
 const { findProgressedPlanetAspects, computeProgPolarity, classifyAngle, PROG_INNER_PLANETS } =
   __test

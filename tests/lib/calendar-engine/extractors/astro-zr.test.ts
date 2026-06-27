@@ -2,7 +2,7 @@
 import { describe, it, expect } from 'vitest'
 import { calculateSajuData } from '@/lib/saju/saju'
 import { buildNatalContext } from '@/lib/calendar-engine/context/build'
-import astroZRExtractor from '@/lib/calendar-engine/extractors/astro-zr'
+import astroZRExtractor from '@/lib/calendar-engine/extractors/astro/astro-zr'
 import { createCache } from '@/lib/calendar-engine/cache'
 
 /**

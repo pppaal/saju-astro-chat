@@ -6,7 +6,7 @@
 // user's birth year is enough to surface "Saturn return at age 29".
 //
 // Consumers:
-//   • calendar-engine/extractors/astro-lifecycle.ts — buildLifecycleTiming()
+//   • calendar-engine/extractors/astro/astro-lifecycle.ts — buildLifecycleTiming()
 //   • calendar-engine/derivers/lifetimeFlow.ts / lifetimePivots.ts
 
 export type AstroLifecycleEventKind =
