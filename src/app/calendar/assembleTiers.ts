@@ -497,8 +497,9 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
     year: TARGET_YEAR,
     yearlySignals,
     cells,
-    monthlyLayer: layered.monthly,
-    dayScores: layered.daily, // 월 티어와 같은 일점수로 bestDay 일치(감사 C1)
+    // 세운 12달 띠를 월 그리드와 *같은 일점수*로 빌드(각 달=일점수 평균, bestDay 일치).
+    // 줌 레벨(일·월·세운)이 한 척도라 띠↔그리드 색 모순이 구조적으로 사라진다(Option Y).
+    dayScores: layered.daily,
   })
   const ageThisYear = TARGET_YEAR - BIRTH_YEAR
   const fallbackHouse = (((ageThisYear % 12) + 12) % 12) + 1

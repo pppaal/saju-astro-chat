@@ -264,7 +264,85 @@ export function YearTier({ user, year, onDive, onRise }: YearTierProps) {
         <div className={styles.novToneWord}>{novHeadline}</div>
         {heroTheme && <span className={styles.novTag}>{heroTheme}</span>}
         <p className={styles.novLine}>{novSupport}</p>
+        {/* 올해 verdict — 월 티어 .doBox 와 동일 형식(레이아웃 통일) */}
+        {yearReading && (
+          <div className={styles.doBox}>
+            <span className={styles.doLbl}>{ko ? '올해' : 'This year'}</span>
+            <span className={styles.doText}>{yearReading}</span>
+          </div>
+        )}
       </header>
+
+      {/* ── 열두 달 색 띠 (숫자 없음) ── */}
+      {hasMonths && (
+        <section className={styles.sec}>
+          <div className={styles.secH}>
+            <span className={styles.secLbl}>{ko ? '열두 달의 흐름' : 'Twelve months'}</span>
+            <span className={styles.secLn} />
+            <span className={styles.secLat}>12 months</span>
+          </div>
+          <div className={styles.strip}>
+            {stripItems.map((it) => {
+              const cls = [
+                styles.stripCell,
+                it.tone === 'good' && styles.cellGood,
+                it.tone === 'caution' && styles.cellCaution,
+              ]
+                .filter(Boolean)
+                .join(' ')
+              return (
+                <div className={cls} key={it.month}>
+                  <span className={styles.stripNum}>{it.month}</span>
+                  {it.tone === 'good' && (
+                    <span className={styles.star} aria-hidden>
+                      ✦
+                    </span>
+                  )}
+                  {it.bestDay && (
+                    <span className={styles.stripBest} aria-hidden title={it.bestDay} />
+                  )}
+                </div>
+              )
+            })}
+          </div>
+          <p className={styles.stripHint}>
+            {ko
+              ? '색이 진할수록 일을 크게 벌이기 좋은 달, 회색은 평범한 달이에요.'
+              : 'The deeper the colour, the better the month for making big moves; grey months are ordinary.'}
+          </p>
+          <div className={styles.legend}>
+            <span className={`${styles.lg} ${styles.lgGood}`}>
+              <i />
+              {ko ? '좋은 달' : 'Good'}
+            </span>
+            <span className={`${styles.lg} ${styles.lgCare}`}>
+              <i />
+              {ko ? '평이한 달' : 'Steady'}
+            </span>
+            <span className={`${styles.lg} ${styles.lgAvoid}`}>
+              <i />
+              {ko ? '조심할 달' : 'Careful'}
+            </span>
+          </div>
+          {showBandPhrase && (
+            <p className={styles.bandPhrase}>
+              {minorityGood.length > 0 && (
+                <span className={styles.bpGood}>
+                  <b>{ko ? '좋은 달' : 'Good'}</b> {joinMonths(minorityGood)}
+                </span>
+              )}
+              {minorityGood.length > 0 && minorityCaution.length > 0 && (
+                <span className={styles.bpSep}> · </span>
+              )}
+              {minorityCaution.length > 0 && (
+                <span className={styles.bpCare}>
+                  <b>{ko ? '조심' : 'Careful'}</b> {joinMonths(minorityCaution)}
+                </span>
+              )}
+            </p>
+          )}
+        </section>
+      )}
 
       {/* ── 자세히 ① 세운 간지·사주 한 줄 (사주를 아는 사람용) ── */}
       <details className={styles.expertWrap}>
@@ -347,89 +425,6 @@ export function YearTier({ user, year, onDive, onRise }: YearTierProps) {
           </section>
         )}
       </details>
-
-      {/* ── 열두 달 색 띠 (숫자 없음) ── */}
-      {hasMonths && (
-        <section className={styles.sec}>
-          <div className={styles.secH}>
-            <span className={styles.secLbl}>{ko ? '열두 달의 흐름' : 'Twelve months'}</span>
-            <span className={styles.secLn} />
-            <span className={styles.secLat}>12 months</span>
-          </div>
-          <div className={styles.strip}>
-            {stripItems.map((it) => {
-              const cls = [
-                styles.stripCell,
-                it.tone === 'good' && styles.cellGood,
-                it.tone === 'caution' && styles.cellCaution,
-              ]
-                .filter(Boolean)
-                .join(' ')
-              return (
-                <div className={cls} key={it.month}>
-                  <span className={styles.stripNum}>{it.month}</span>
-                  {it.tone === 'good' && (
-                    <span className={styles.star} aria-hidden>
-                      ✦
-                    </span>
-                  )}
-                  {it.bestDay && (
-                    <span className={styles.stripBest} aria-hidden title={it.bestDay} />
-                  )}
-                </div>
-              )
-            })}
-          </div>
-          <p className={styles.stripHint}>
-            {ko
-              ? '색이 진할수록 일을 크게 벌이기 좋은 달, 회색은 평범한 달이에요.'
-              : 'The deeper the colour, the better the month for making big moves; grey months are ordinary.'}
-          </p>
-          <div className={styles.legend}>
-            <span className={`${styles.lg} ${styles.lgGood}`}>
-              <i />
-              {ko ? '좋은 달' : 'Good'}
-            </span>
-            <span className={`${styles.lg} ${styles.lgCare}`}>
-              <i />
-              {ko ? '평이한 달' : 'Steady'}
-            </span>
-            <span className={`${styles.lg} ${styles.lgAvoid}`}>
-              <i />
-              {ko ? '조심할 달' : 'Careful'}
-            </span>
-          </div>
-          {showBandPhrase && (
-            <p className={styles.bandPhrase}>
-              {minorityGood.length > 0 && (
-                <span className={styles.bpGood}>
-                  <b>{ko ? '좋은 달' : 'Good'}</b> {joinMonths(minorityGood)}
-                </span>
-              )}
-              {minorityGood.length > 0 && minorityCaution.length > 0 && (
-                <span className={styles.bpSep}> · </span>
-              )}
-              {minorityCaution.length > 0 && (
-                <span className={styles.bpCare}>
-                  <b>{ko ? '조심' : 'Careful'}</b> {joinMonths(minorityCaution)}
-                </span>
-              )}
-            </p>
-          )}
-        </section>
-      )}
-
-      {/* ── 올해 풀이 (verdict) ── */}
-      {yearReading && (
-        <section className={styles.sec}>
-          <div className={styles.secH}>
-            <span className={styles.secLbl}>{ko ? '올해 풀이' : 'Reading the year'}</span>
-            <span className={styles.secLn} />
-            <span className={styles.secLat}>In a line</span>
-          </div>
-          <p className={styles.verdict}>{yearReading}</p>
-        </section>
-      )}
 
       {/* ── 자세히 ② 무대·교차·황도분기 (사주·점성을 아는 사람용) ── */}
       <details className={styles.expertWrap}>

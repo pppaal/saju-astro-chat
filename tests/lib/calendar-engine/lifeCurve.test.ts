@@ -51,6 +51,21 @@ describe('buildLifeCurve (벨 근사 경로)', () => {
     expect(turns).toBeGreaterThanOrEqual(2)
   })
 
+  it('초년기 고생이 곡선에 드러난다(유년 성숙 엔벨로프 제거 회귀)', () => {
+    // 0~8세에 강한 압박(점성 −3) → 곡선이 그 시기를 *명확히* 저점으로 그려야 한다.
+    // 예전엔 0~16세를 평균 쪽으로 당기는 엔벨로프가 초년 굴곡을 지워, 초년이
+    // 성인 구간과 비슷한 수준으로 납작해졌다. 이제 엔벨로프가 없어 초년 고생이
+    // 그대로 보인다.
+    const series = new Array(91).fill(0)
+    for (let a = 0; a <= 8; a++) series[a] = -3
+    const c = buildLifeCurve(makeNatal(), { now: NOW, span: 90, astroSeries: series })!
+    const avg = (xs: number[]) => xs.reduce((a, b) => a + b, 0) / xs.length
+    const childMacro = avg(c.points.slice(0, 7).map((p) => p.macro))
+    const adultMacro = avg(c.points.slice(20, 40).map((p) => p.macro))
+    // 초년이 성인 구간보다 뚜렷하게 낮다(엔벨로프였다면 평균 쪽으로 눌려 차이 사라짐).
+    expect(childMacro).toBeLessThan(adultMacro - 0.3)
+  })
+
   it('마디(peak/trough)를 추출한다', () => {
     const c = buildLifeCurve(makeNatal(), { now: NOW, span: 90 })!
     expect(c.peaks.length + c.troughs.length).toBeGreaterThan(0)

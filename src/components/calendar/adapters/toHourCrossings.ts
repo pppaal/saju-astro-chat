@@ -139,7 +139,9 @@ export function buildHourCrossings(
     const branchHangul = det.hourBranch ? HANJA_TO_HANGUL[det.hourBranch] : undefined
     const nar = branchHangul ? HOUR_BRANCH_NARRATIVE[branchHangul] : undefined
     const whenEn = nar?.windowEn ?? when
-    const narrativeEn = branchHangul ? pickHourNarrative(branchHangul, s.polarity, 'en') : undefined
+    // 시지가 사전에 매핑되면 시진 narrative 를, 아니면(미매핑 한자) KO 가 s.korean 을
+    // 쓰는 것과 대칭으로 s.english 로 폴백 — EN narrative 가 비지 않게 한다.
+    const narrativeEn = branchHangul ? pickHourNarrative(branchHangul, s.polarity, 'en') : s.english
 
     // 시진 한가운데 시각(시계 기준) 의 상승궁. 2시간 창이라 start+1 이 대표.
     const repHour = (startHour + 1) % 24

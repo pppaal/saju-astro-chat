@@ -209,42 +209,60 @@ describe('toYear — yearly signals → destinypal year', () => {
     })
   })
 
-  describe('monthlyScores', () => {
-    it('cells 없고 monthlyLayer 없으면 빈 배열', () => {
+  describe('monthlyScores — 각 달 = 일점수 평균(세운 띠↔월 그리드 척도 일치, Option Y)', () => {
+    it('cells 없으면 빈 배열', () => {
       expect(toYear(natal(), { year: 2026 }).monthlyScores).toEqual([])
     })
 
-    it('monthlyLayer 가 12 슬롯을 직접 채운다', () => {
-      const layer = new Map([
-        [1, { score: 70 }],
-        [6, { score: 30 }],
-      ])
-      const y = toYear(natal(), { year: 2026, monthlyLayer: layer })
-      expect(y.monthlyScores).toHaveLength(12)
-      expect(y.monthlyScores![0]).toMatchObject({ month: 1, score: 70 })
-      expect(y.monthlyScores![5]).toMatchObject({ month: 6, score: 30 })
-      // 미지정 달은 fallback 50
-      expect(y.monthlyScores![1].score).toBe(50)
-    })
-
-    it('cells 로 salience peak 정규화 + bestDay', () => {
+    it('각 달 score = 그 달 일점수(derivedScore) 평균 + bestDay = 최고일', () => {
       const cells = [
-        makeCell({ datetime: '2026-03-10T00:00:00.000Z', salience: 10, derivedScore: 40 }),
-        makeCell({ datetime: '2026-03-20T00:00:00.000Z', salience: 5, derivedScore: 90 }),
-        makeCell({ datetime: '2026-08-05T00:00:00.000Z', salience: 2, derivedScore: 60 }),
+        makeCell({ datetime: '2026-03-10T00:00:00.000Z', derivedScore: 40 }),
+        makeCell({ datetime: '2026-03-20T00:00:00.000Z', derivedScore: 80 }),
+        makeCell({ datetime: '2026-08-05T00:00:00.000Z', derivedScore: 60 }),
       ]
       const y = toYear(natal(), { year: 2026, cells })
       expect(y.monthlyScores).toHaveLength(12)
       const mar = y.monthlyScores!.find((m) => m.month === 3)!
-      // peak salience = 10 (max), hi=10 lo=2 → norm(10)=100
-      expect(mar.score).toBe(100)
-      expect(mar.bestDay).toBe('2026-03-20') // 최고 derivedScore 날
+      // (40 + 80) / 2 = 60
+      expect(mar.score).toBe(60)
+      expect(mar.bestDay).toBe('2026-03-20') // 최고 일점수 날
       const aug = y.monthlyScores!.find((m) => m.month === 8)!
-      // peak 2 = lo → norm 0
-      expect(aug.score).toBe(0)
-      // 데이터 없는 달은 fallback 50
+      expect(aug.score).toBe(60)
+      expect(aug.bestDay).toBe('2026-08-05')
+      // 데이터 없는 달은 fallback 50, bestDay 없음
       const jan = y.monthlyScores!.find((m) => m.month === 1)!
       expect(jan.score).toBe(50)
+      expect(jan.bestDay).toBeUndefined()
+    })
+
+    it('dayScores(일진층 점수)가 있으면 그걸 우선 사용(월 그리드와 동일 척도)', () => {
+      const cells = [
+        makeCell({ datetime: '2026-05-02T00:00:00.000Z', derivedScore: 10 }),
+        makeCell({ datetime: '2026-05-22T00:00:00.000Z', derivedScore: 10 }),
+      ]
+      // derivedScore 는 10/10 이지만 dayScores 는 70/30 → 평균 50, bestDay=2일
+      const dayScores = new Map([
+        ['2026-05-02', { score: 70 }],
+        ['2026-05-22', { score: 30 }],
+      ])
+      const y = toYear(natal(), { year: 2026, cells, dayScores })
+      const may = y.monthlyScores!.find((m) => m.month === 5)!
+      expect(may.score).toBe(50) // (70+30)/2
+      expect(may.bestDay).toBe('2026-05-02')
+    })
+
+    it('같은 날 여러 cell(시진 등)이 있어도 하루당 1점으로 묶어 중복 가중 방지', () => {
+      const cells = [
+        makeCell({ datetime: '2026-04-10T00:00:00.000Z', derivedScore: 90 }),
+        makeCell({ datetime: '2026-04-10T06:00:00.000Z', derivedScore: 90 }),
+        makeCell({ datetime: '2026-04-10T12:00:00.000Z', derivedScore: 90 }),
+        makeCell({ datetime: '2026-04-20T00:00:00.000Z', derivedScore: 30 }),
+      ]
+      const y = toYear(natal(), { year: 2026, cells })
+      const apr = y.monthlyScores!.find((m) => m.month === 4)!
+      // 10일(1점) + 20일(1점) → (90+30)/2 = 60. 시진 3개로 90 이 3배 가중되지 않음.
+      expect(apr.score).toBe(60)
+      expect(apr.bestDay).toBe('2026-04-10')
     })
   })
 

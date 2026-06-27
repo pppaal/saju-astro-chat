@@ -169,14 +169,9 @@ export interface ToYearOptions {
   /** 미지정 시 평균 score 계산 — fallback 빈 슬롯 점수. */
   monthlyFallbackScore?: number
   /**
-   * 월별 점수 — 월운(monthly) 층 신호로 산출(deriveLayeredScores.monthly).
-   * 주어지면 12 스파인을 이 값으로 (각 달을 그 달 고유 에너지로 판단). key: 1~12.
-   */
-  monthlyLayer?: Map<number, { score: number }>
-  /**
-   * 일진층 일점수(deriveLayeredScores.daily) — key: "YYYY-MM-DD". 월 티어 bestDay
-   * 와 *같은 점수*로 monthlyScores[].bestDay 를 뽑아 연·월 티어가 어긋나지 않게
-   * 한다(감사 C1: 연 bestDay 가 월 cautionDay 를 지목하던 불일치). 없으면
+   * 일진층 일점수(deriveLayeredScores.daily) — key: "YYYY-MM-DD". 세운 12달 띠와
+   * 월 티어가 *같은 일점수*로 칠해지도록(척도 일치) monthlyScores 를 이 값으로 빌드.
+   * 각 달 score = 그 달 일점수 평균, bestDay = 그 달 일점수 최고일. 없으면
    * cell.derivedScore 폴백.
    */
   dayScores?: Map<string, { score: number }>
@@ -410,54 +405,46 @@ function buildProfectionWheel(
 }
 
 /**
- * cells 가 들어오면 datetime prefix `YYYY-MM` 으로 month grouping 해 평균
- * derivedScore 를 12 슬롯 배열로 환원. cells 가 없으면 빈 배열.
+ * 세운 12달 띠 — 각 달 score = 그 달 *일점수 평균*. 월 그리드가 칠해지는 바로 그
+ * 일점수(deriveLayeredScores.daily)를 달 단위로 평균내, 세운(1년)→월 줌인 시 띠 색과
+ * 그리드 색이 *구조적으로* 일치한다(이전엔 띠=월운층, 그리드=일진층이라 ~50% 어긋남).
+ *
+ * 척도 분리(Option Y): 일·월·세운12달은 모두 '기간 내 상대'(일진 분포 정규화)로 한 축에
+ * 두고, 대운·인생만 '인생 절대'(곡선 백분위)를 쓴다 — 줌 레벨끼리 같은 척도라 모순 없음.
+ *
+ * - 같은 날 여러 cell(시진 등)이 있어도 날짜로 묶어 하루당 1점(중복 가중 방지).
+ * - bestDay = 그 달 일점수 최고일(월 티어와 같은 점수 → 연·월 bestDay 일치, 감사 C1).
+ * - cells 없으면 빈 배열. 점수 없는 달은 fallback.
+ * - 결정론: 순수 산술. 클록·랜덤 없음.
  */
 function buildMonthlyScores(opts: ToYearOptions): DestinypalYear['monthlyScores'] {
-  // 월·일 점수 SSOT — bestDay 는 월 티어와 *같은* 일점수(dayScores 우선)로 뽑아
-  // 연 티어가 월 cautionDay 를 best 로 지목하지 않게 한다(감사 C1).
+  if (!opts.cells || opts.cells.length === 0) return []
   const dayScore = (c: CalendarCell) =>
     opts.dayScores?.get(c.datetime.slice(0, 10))?.score ?? c.derivedScore
-  // 월운 층 점수 우선 — 각 달을 그 달 고유(월운) 신호로 판단.
-  if (opts.monthlyLayer) {
-    const best = (m: number) => {
-      const yPrefix = String(opts.year)
-      const ym = `${yPrefix}-${String(m).padStart(2, '0')}`
-      const mc = (opts.cells ?? []).filter((c) => c.datetime.slice(0, 7) === ym)
-      return mc.length
-        ? mc.reduce((a, b) => (dayScore(b) > dayScore(a) ? b : a)).datetime.slice(0, 10)
-        : undefined
-    }
-    return Array.from({ length: 12 }, (_, i) => ({
-      month: i + 1,
-      score: opts.monthlyLayer!.get(i + 1)?.score ?? opts.monthlyFallbackScore ?? 50,
-      bestDay: best(i + 1),
-    }))
-  }
-  if (!opts.cells || opts.cells.length === 0) return []
   const yPrefix = String(opts.year)
   const fallback = opts.monthlyFallbackScore ?? 50
-  // 연간 스파인은 "어느 달에 큰 일이 몰리나" = 월별 최대 salience(현저도=희소×중요).
-  // derivedScore 평균(우호도)은 차트별 중심 쏠림으로 변별이 약해 salience 로 대체.
-  const peaks = Array.from({ length: 12 }, (_, i) => {
+  return Array.from({ length: 12 }, (_, i) => {
     const ym = `${yPrefix}-${String(i + 1).padStart(2, '0')}`
-    const monthCells = opts.cells!.filter((c) => c.datetime.slice(0, 7) === ym)
-    const peak = monthCells.length ? Math.max(...monthCells.map((c) => c.salience ?? 0)) : null
-    // 그 달 최고 우호 날짜(bestDay 칩) — 월 티어와 같은 일점수로(감사 C1).
-    const best = monthCells.length
-      ? monthCells.reduce((a, b) => (dayScore(b) > dayScore(a) ? b : a))
-      : null
-    return { month: i + 1, peak, bestDay: best?.datetime.slice(0, 10) }
+    // 하루당 1점으로 묶기(같은 날 첫 cell 점수). datetime 정렬 가정 없이 first-wins.
+    const byDay = new Map<string, number>()
+    for (const c of opts.cells!) {
+      if (c.datetime.slice(0, 7) !== ym) continue
+      const d = c.datetime.slice(0, 10)
+      if (!byDay.has(d)) byDay.set(d, dayScore(c))
+    }
+    if (byDay.size === 0) return { month: i + 1, score: fallback, bestDay: undefined }
+    let sum = 0
+    let bestDay: string | undefined
+    let bestScore = -Infinity
+    for (const [d, s] of byDay) {
+      sum += s
+      if (s > bestScore) {
+        bestScore = s
+        bestDay = d
+      }
+    }
+    return { month: i + 1, score: Math.round(sum / byDay.size), bestDay }
   })
-  const valid = peaks.map((p) => p.peak).filter((n): n is number => n != null)
-  const lo = valid.length ? Math.min(...valid) : 0
-  const hi = valid.length ? Math.max(...valid) : 1
-  const norm = (v: number) => (hi > lo ? Math.round(((v - lo) / (hi - lo)) * 100) : 50)
-  return peaks.map((p) => ({
-    month: p.month,
-    score: p.peak == null ? fallback : norm(p.peak),
-    bestDay: p.bestDay,
-  }))
 }
 
 /**
