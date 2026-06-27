@@ -72,10 +72,14 @@ export const POST = withApiMiddleware(
         return apiError(ErrorCodes.BAD_REQUEST, 'invalid_email')
       }
 
-      // Idempotency: use client-provided key when reasonable, otherwise generate
+      // Idempotency: use client-provided key when reasonable, otherwise generate.
+      // ALWAYS namespace by userId — Stripe idempotency keys are account-scoped,
+      // so an un-namespaced client key lets user B reuse user A's key and receive
+      // A's cached checkout session (metadata.userId=A), crediting the wrong user.
+      // The userId prefix makes cross-user collisions impossible.
       const clientIdemKey = req.headers.get('x-idempotency-key')
-      const idempotencyKey =
-        clientIdemKey && clientIdemKey.length < 128 ? clientIdemKey : randomUUID()
+      const idemSuffix = clientIdemKey && clientIdemKey.length < 128 ? clientIdemKey : randomUUID()
+      const idempotencyKey = `chk:${context.userId}:${idemSuffix}`
 
       // Only one-time credit-pack purchases are offered. Subscriptions were
       // retired, so a request without a creditPack (e.g. a stale client still

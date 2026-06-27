@@ -282,6 +282,10 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
   // focusDayCell(1일 evidence 빌드)을 우선 사용. 없으면 연 cells 의 해당 일로 폴백.
   const yearDayCell = cells.find((c) => c.datetime.slice(0, 10) === targetDayIso) ?? cells[0]
   const dayCell = focusDayCell ?? yearDayCell
+  // 시(時)별 달 정밀(12 시진 ephemeris)은 natal·targetDayIso 에만 의존하므로 여기서
+  // 미리 발진해, 아래 day-tier 어셈블과 겹쳐 돈다(끝에서 inline await 하면 12회
+  // round-trip 이 전체 어셈블 뒤에 직렬로 붙었다). line 934 에서 await.
+  const hourMoonP = buildHourMoon(targetDayIso, natal)
   const yearlySignals = cells.flatMap((c) => c.signals).filter((s) => s.layer === 'yearly')
 
   // 층별 점수 — 일/시는 일진, 월은 월운, 년은 세운, 10년은 대운 신호로만.
@@ -931,7 +935,8 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
     upcoming,
     hourCrossings: buildHourCrossings(dayCell, targetDayIso, natal.astro.location),
     // 시(時)별 달 정밀 — 그날 12 시진 달을 재계산해 달×본명 어스펙트 절정 시각.
-    hourMoon: await buildHourMoon(targetDayIso, natal),
+    // (위에서 미리 발진한 promise 를 여기서 수확.)
+    hourMoon: await hourMoonP,
   }
 
   const ilganHanja = user.ilgan.hanja || '辛'

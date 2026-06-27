@@ -224,7 +224,11 @@ export function proxy(request: NextRequest) {
   return response
 }
 
-// Matcher for the proxy (runs on all paths; logic gates per request).
+// Matcher for the proxy. 정적 자산(_next/static·_next/image·파비콘·이미지/폰트
+// 확장자)은 제외 — 이들은 최다 볼륨 요청인데 로케일/CSP/CSRF 주입이 필요 없고,
+// 매 요청 isBlockedServicePath 배열 스캔만 헛돌렸다. API/HTML/RSC 는 그대로 매칭.
 export const config = {
-  matcher: '/:path*',
+  matcher: [
+    '/((?!_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|.*\\.(?:svg|png|jpg|jpeg|gif|webp|avif|ico|woff|woff2|ttf|otf|map)$).*)',
+  ],
 }

@@ -117,11 +117,9 @@ export async function streamClaudeWithContinuation(
             // absolute cap 도달 — 무조건 종료.
             if (accumulated.length >= maxTotalOutputChars) {
               logger.warn(`[${label}] maxTotalOutputChars 도달 ${maxTotalOutputChars}자 — 종료`)
-              try {
-                reader.cancel()
-              } catch {
-                /* ignore */
-              }
+              // await 해야 업스트림 Anthropic fetch 취소가 close 전에 전파된다
+              // (미-await 면 함수가 먼저 반환돼 abort 가 한 박자 늦었다).
+              await reader.cancel().catch(() => {})
               controller.close()
               return
             }

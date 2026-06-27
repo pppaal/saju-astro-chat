@@ -29,8 +29,10 @@ export const PostChatHistorySchema = z
     // land on the *same* row). Bound the length since clients now create ids.
     sessionId: z.string().max(128).optional(),
     locale: z.enum(['ko', 'en']).default('ko'),
-    userMessage: z.string().optional(),
-    assistantMessage: z.string().optional(),
+    // 길이 상한 — 무경계 z.string() 은 인증 사용자가 임의 크기 행을 무한 적재할
+    // 수 있는 저장소/DoS 표면이다. 채팅 한 턴 기준 넉넉하되 유한하게 제한.
+    userMessage: z.string().max(20000).optional(),
+    assistantMessage: z.string().max(100000).optional(),
     // Service discriminator. Existing destiny clients omit this and the
     // server defaults to 'destiny'. Compat clients send 'compat'.
     type: z.enum(['destiny', 'compat']).optional(),

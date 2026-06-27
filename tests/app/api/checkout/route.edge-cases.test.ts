@@ -219,8 +219,9 @@ describe('/api/checkout - Edge Cases (P1)', () => {
       const key1 = mockStripeCheckoutCreate.mock.calls[0]?.[1]?.idempotencyKey
       const key2 = mockStripeCheckoutCreate.mock.calls[1]?.[1]?.idempotencyKey
 
-      expect(key1).toBe(idempotencyKey)
-      expect(key2).toBe(idempotencyKey)
+      // Same user + same client key → same namespaced key (retry-safe).
+      expect(key1).toMatch(/^chk:[^:]+:user-123-checkout-abc$/)
+      expect(key2).toBe(key1)
     })
   })
 
@@ -277,7 +278,8 @@ describe('/api/checkout - Edge Cases (P1)', () => {
       await POST(req)
 
       const usedKey = mockStripeCheckoutCreate.mock.calls[0]?.[1]?.idempotencyKey
-      expect(usedKey).toBe(maxLengthKey)
+      // Under the 128 limit → used as the suffix of the userId-namespaced key.
+      expect(usedKey).toMatch(new RegExp(`^chk:[^:]+:${maxLengthKey}$`))
     })
   })
 

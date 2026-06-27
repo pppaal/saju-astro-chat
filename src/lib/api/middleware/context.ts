@@ -21,13 +21,20 @@ import type { ApiContext, MiddlewareOptions } from './types'
  * Extract locale from request headers
  */
 export function extractLocale(req: Request): string {
-  const acceptLang = req.headers.get('accept-language') || ''
-  const urlLocale = new URL(req.url).searchParams.get('locale')
+  // proxy 가 사용자 선택(locale 쿠키)·Accept-Language 를 해석해 주입한 x-locale 가
+  // 가장 권위적 — 페이지는 KO 인데 API 에러 메시지만 Accept-Language 기반 EN 으로
+  // 나가던 불일치를 막는다.
+  const headerLocale = req.headers.get('x-locale')
+  if (headerLocale === 'ko' || headerLocale === 'en') return headerLocale
 
-  if (urlLocale === 'ko' || acceptLang.includes('ko')) {
-    return 'ko'
-  }
-  return 'en'
+  const urlLocale = new URL(req.url).searchParams.get('locale')
+  if (urlLocale === 'ko' || urlLocale === 'en') return urlLocale
+
+  // 사용자가 토글로 고른 locale 쿠키 — Accept-Language 보다 우선.
+  const cookieLocale = (req.headers.get('cookie') || '').match(/(?:^|;\s*)locale=(ko|en)\b/)?.[1]
+  if (cookieLocale) return cookieLocale
+
+  return req.headers.get('accept-language')?.includes('ko') ? 'ko' : 'en'
 }
 
 // ============ Context Helpers ============

@@ -298,7 +298,11 @@ export default function MainPageClient({ initialLocale }: MainPageClientProps) {
 
     const sp = new URLSearchParams(window.location.search)
     const next = sp.get('next')
-    if (next && next.startsWith('/')) window.location.assign(next)
+    // 같은 사이트 내부 경로만 허용 — 프로토콜상대(//evil.com)·백슬래시(/\evil.com)
+    // 변종은 startsWith('/') 를 통과해 외부로 튕기는 오픈 리다이렉트가 된다.
+    if (next && next.startsWith('/') && !next.startsWith('//') && !next.startsWith('/\\')) {
+      window.location.assign(next)
+    }
   }
 
   // Flip from the cosmic dark hero ("brand" surface) to the premium-white

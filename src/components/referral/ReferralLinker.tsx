@@ -9,8 +9,9 @@ import { logger } from '@/lib/logger'
 //  1) A friend opens the referral link `/?ref=CODE` (logged out). We stash the
 //     code in a cookie so it survives the Google OAuth round-trip.
 //  2) On their first authenticated render we POST /api/referral/link, which
-//     grants the referrer's bonus credits (server gates to brand-new accounts),
-//     then we clear the cookie.
+//     RESERVES the referrer's reward as pending (server gates to brand-new
+//     accounts); the bonus is actually granted on the friend's first purchase
+//     (Stripe webhook), not at link time. Then we clear the cookie.
 const COOKIE = 'dp_ref'
 
 function setCookie(name: string, value: string, days: number) {
