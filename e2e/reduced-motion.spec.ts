@@ -19,7 +19,7 @@ import { test, expect } from '@playwright/test'
  */
 
 const TAROT_ROUTE = '/tarot/general-insight/quick-reading?question=test'
-const COMPATIBILITY_ROUTE = '/compatibility/counselor'
+const COMPATIBILITY_ROUTE = '/compatibility'
 
 /**
  * Walk every loaded stylesheet on the page, find every rule block that
@@ -95,23 +95,13 @@ test.describe('Tarot — reduced-motion CSS contract', () => {
 
 test.describe('Compatibility — reduced-motion CSS contract', () => {
   test('person cards are pinned to a visible end state', async ({ page }) => {
-    // `/compatibility` server-redirects to `/compatibility/counselor` (the form
-    // + person-picker live there since the 2026-05 modal refactor). Navigate
-    // straight to the real route so the redirect doesn't race the CSS scrape.
-    // The picker's stylesheet (Compatibility.module.css, which holds the
-    // `.personCardsGrid` reduced-motion pin) is a *static* import in the route
-    // bundle (page → CompatCounselorModals → CompatPersonPickerModal), so it
-    // loads on navigation regardless of whether the modal is open.
-    await page.goto(COMPATIBILITY_ROUTE, { waitUntil: 'networkidle' })
+    await page.goto(COMPATIBILITY_ROUTE, { waitUntil: 'domcontentloaded' })
 
-    // CSS-module <link>s can attach a tick after networkidle; poll until the
-    // person-card reduced-motion branch is present rather than scraping once.
-    await expect
-      .poll(() => getReducedMotionRules(page), { timeout: 10_000 })
-      .toMatch(/personCard/)
-    // .personCardsGrid children start at opacity:0 and only become visible via
-    // the slideInUp animation; the reduced-motion branch must pin them visible.
     const reducedMotionCss = await getReducedMotionRules(page)
+    // .personCard starts at opacity:0 and only becomes visible via the
+    // slideInUp animation; without an explicit reduced-motion fallback
+    // the entire compatibility card stays invisible.
+    expect(reducedMotionCss).toMatch(/personCard/)
     expect(reducedMotionCss).toMatch(/opacity:\s*1/)
   })
 })
