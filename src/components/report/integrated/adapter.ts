@@ -40,7 +40,7 @@ import { currentManAge } from '@/lib/datetime/currentAge'
 /** 미성년 안전 모드 임계 — 만 14세 미만이면 연애·배우자·재물 콘텐츠를 연령 맞춤으로
  *  reframe/생략한다(아동 부적합 방지). 출생 시간대 미상이면 'UTC'로 근사(연 단위
  *  게이트라 자정 경계 오차는 무관). 생년월일 불완전 시 성인으로 간주(오탐 방지). */
-export const MINOR_AGE_THRESHOLD = 14
+const MINOR_AGE_THRESHOLD = 14
 function computeIsMinor(inp: any, now: Date): boolean {
   const y = Number(inp?.year)
   const m = Number(inp?.month)

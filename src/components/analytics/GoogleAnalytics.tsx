@@ -105,7 +105,7 @@ const trackEvent = (eventName: string, params?: Record<string, unknown>) => {
   }
 }
 
-// Pre-defined event trackers
+// Pre-defined event trackers (public tracking API — wired by callers as needed)
 export const analytics = {
   // User interactions
   login: () => trackEvent('login'),

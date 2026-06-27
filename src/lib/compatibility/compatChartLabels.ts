@@ -10,7 +10,7 @@
 import { SIBSIN_EN } from '@/lib/saju/sibsinLabels'
 
 /** 오행 KO → EN. computeSajuSynastryFacts 의 STEM_EL/BRANCH_EL 값 집합과 일치. */
-export const ELEMENT_EN: Record<string, string> = {
+const ELEMENT_EN: Record<string, string> = {
   목: 'Wood',
   화: 'Fire',
   토: 'Earth',
@@ -20,7 +20,7 @@ export const ELEMENT_EN: Record<string, string> = {
 export const elLabel = (el: string, isKo: boolean): string => (isKo ? el : (ELEMENT_EN[el] ?? el))
 
 /** 기둥 관계 태그 KO → EN. CompatChartModal 의 REL_MEANING/REL_PRIORITY 와 같은 키 집합. */
-export const TAG_EN: Record<string, string> = {
+const TAG_EN: Record<string, string> = {
   천간합: 'stem harmony',
   천간충: 'stem clash',
   육합: 'six-harmony',
@@ -66,7 +66,7 @@ export function dayMasterRelationText(
  * 배우자성 느낌 — facts.role(KO prose, 괄호 안 키워드)을 sibsin 으로 다시 잡아 EN 화.
  * 매핑이 없으면 role 괄호 안(KO)으로 폴백.
  */
-export const SPOUSE_FEELING: Record<string, { ko: string; en: string }> = {
+const SPOUSE_FEELING: Record<string, { ko: string; en: string }> = {
   정재: { ko: '안정·가정', en: 'stability & home' },
   편재: { ko: '활달·자유', en: 'lively & free' },
   정관: { ko: '책임·안정', en: 'responsibility & steadiness' },

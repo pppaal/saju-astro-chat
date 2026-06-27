@@ -11,7 +11,7 @@
  * 신살 KO→EN. interpretations.json shinsal 의 name_en 을 기준으로 흔한 것들을
  * 담았다(별칭 ~살 포함). 미상은 호출부에서 KO 폴백.
  */
-export const SHINSAL_EN: Record<string, string> = {
+const SHINSAL_EN: Record<string, string> = {
   겁살: 'Robbery Star',
   도화: 'Peach Blossom',
   역마: 'Traveling Horse',
@@ -117,7 +117,7 @@ export function twelveStageEn(stage: string): string {
  * 응용격국 8종 — EN 이름 + 한 줄 뜻. KO 는 데이터의 korean/rule 을 그대로 쓰고,
  * EN 은 rule 이 한글뿐이라 여기 고정 글로스를 쓴다(EN 누출 방지).
  */
-export const APPLIED_PATTERN_EN: Record<string, { name: string; gloss: string }> = {
+const APPLIED_PATTERN_EN: Record<string, { name: string; gloss: string }> = {
   'sanggwan-gyeon-gwan': {
     name: 'Hurting Officer meets Officer',
     gloss: 'talent rubs against rules — friction with authority',

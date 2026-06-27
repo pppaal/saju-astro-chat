@@ -27,7 +27,7 @@ export async function getDrafts(date: string): Promise<SocialPostDraft[]> {
 }
 
 /** 한 날짜의 초안 배열을 통째로 저장 + 날짜 인덱스 갱신. */
-export async function saveDrafts(date: string, drafts: SocialPostDraft[]): Promise<boolean> {
+async function saveDrafts(date: string, drafts: SocialPostDraft[]): Promise<boolean> {
   const ok = await cacheSet(draftsKey(date), drafts, DRAFT_TTL_SECONDS)
   if (!ok) {
     logger.warn('[social/draftStore] saveDrafts failed', { date })

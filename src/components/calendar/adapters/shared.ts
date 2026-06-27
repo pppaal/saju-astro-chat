@@ -13,7 +13,7 @@ import { PLANET_KO as PLANET_KO_BASE } from '@/lib/calendar-engine/data/planetNa
 import { STEM_KO, BRANCH_KO } from '@/lib/saju/ganjiKo'
 
 // ── 천간 / 지지 한자↔영문 ────────────────────────────────────────────────────
-export const STEM_HAN_TO_EN: Record<string, string> = {
+const STEM_HAN_TO_EN: Record<string, string> = {
   甲: 'gap',
   乙: 'eul',
   丙: 'byeong',
@@ -25,7 +25,7 @@ export const STEM_HAN_TO_EN: Record<string, string> = {
   壬: 'im',
   癸: 'gye',
 }
-export const BRANCH_HAN_TO_EN: Record<string, string> = {
+const BRANCH_HAN_TO_EN: Record<string, string> = {
   子: 'ja',
   丑: 'chuk',
   寅: 'in',
@@ -41,7 +41,7 @@ export const BRANCH_HAN_TO_EN: Record<string, string> = {
 }
 
 // 한글 천간↔한자 (사주 엔진은 한글 천간 — "갑/을/병…" — 으로 들고 다님)
-export const STEM_KO_TO_HAN: Record<string, string> = {
+const STEM_KO_TO_HAN: Record<string, string> = {
   갑: '甲',
   을: '乙',
   병: '丙',
@@ -53,7 +53,7 @@ export const STEM_KO_TO_HAN: Record<string, string> = {
   임: '壬',
   계: '癸',
 }
-export const BRANCH_KO_TO_HAN: Record<string, string> = {
+const BRANCH_KO_TO_HAN: Record<string, string> = {
   자: '子',
   축: '丑',
   인: '寅',
