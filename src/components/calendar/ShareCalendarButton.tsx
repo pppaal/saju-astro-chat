@@ -13,6 +13,7 @@ import { useCallback, useRef, useState } from 'react'
 import { Share2, Check, Loader2 } from 'lucide-react'
 import { apiFetch } from '@/lib/api'
 import { logger } from '@/lib/logger'
+import { analytics } from '@/components/analytics/GoogleAnalytics'
 
 export interface CalendarShareData {
   isKo: boolean
@@ -32,6 +33,7 @@ export function ShareCalendarButton({ data }: { data: CalendarShareData }) {
     busyRef.current = true
     setError(null)
     setPhase('creating')
+    analytics.sharePost(`calendar:${data.periodLabel}`)
     try {
       const res = await apiFetch('/api/calendar/share', {
         method: 'POST',

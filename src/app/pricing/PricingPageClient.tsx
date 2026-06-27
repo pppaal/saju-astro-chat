@@ -10,6 +10,7 @@ import { isPlaceholderTranslation, toSafeFallbackText } from '@/i18n/utils'
 import BackButton from '@/components/ui/BackButton'
 import { useToast } from '@/components/ui/Toast'
 import { logger } from '@/lib/logger'
+import { analytics } from '@/components/analytics/GoogleAnalytics'
 import styles from './pricing.module.css'
 import {
   CREDIT_PACKS,
@@ -133,6 +134,11 @@ export default function PricingPageClient({ initialLocale, initialCopy }: Pricin
   const [emailPendingPack, setEmailPendingPack] = useState<CreditPackType | null>(null)
   const baseCreditPriceUsd = CREDIT_PACKS.mini.perCreditUsd
 
+  // 가격 페이지 조회 — 전환 퍼널 진입 측정(동의 시에만 전송).
+  useEffect(() => {
+    analytics.viewPricing()
+  }, [])
+
   useEffect(() => {
     if (typeof window === 'undefined') {
       return
@@ -203,6 +209,7 @@ export default function PricingPageClient({ initialLocale, initialCopy }: Pricin
   //    누락) → EmailCollectionModal 로 이메일 보충.
   // 2) email 있으면 → RefundConsentModal 로 진행.
   function handleBuyCredit(packId: CreditPackType) {
+    analytics.premiumCtaClick('pricing-pack-card', 'pricing')
     if (authStatus !== 'authenticated') {
       // 로그인 유도 모달을 띄운다(바로 구글로 튕기지 않음). 로그인 후 이 페이지로
       // 복귀하도록 현재 URL 을 callbackUrl 로 넘긴다.

@@ -13,6 +13,7 @@ import { useCallback, useRef, useState } from 'react'
 import { Share2, Check, Loader2 } from 'lucide-react'
 import { apiFetch } from '@/lib/api'
 import { logger } from '@/lib/logger'
+import { analytics } from '@/components/analytics/GoogleAnalytics'
 import type { CompatVerdictTone } from '@/lib/tarot/shareLink'
 
 export interface CompatShareData {
@@ -36,6 +37,7 @@ export function ShareCompatibilityButton({ data }: { data: CompatShareData }) {
     busyRef.current = true
     setError(null)
     setPhase('creating')
+    analytics.sharePost('compatibility')
     try {
       const res = await apiFetch('/api/compatibility/share', {
         method: 'POST',

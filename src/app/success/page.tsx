@@ -7,6 +7,8 @@ import { useSession } from 'next-auth/react'
 import { useI18n } from '@/i18n/I18nProvider'
 import BackButton from '@/components/ui/BackButton'
 import { SUPPORT_EMAIL } from '@/lib/config/contact'
+import { analytics } from '@/components/analytics/GoogleAnalytics'
+import { CREDIT_PACKS, type CreditPackType } from '@/lib/config/pricing'
 import styles from './success.module.css'
 
 // 크레딧 팩별 충전 크레딧 수 — Stripe metadata 의 creditPack 값으로 lookup.
@@ -95,6 +97,14 @@ function SuccessContent() {
     const finish = (remaining: number) => {
       setArrivedTotal(remaining)
       setPollPhase('arrived')
+      // GA4 결제 전환 — 도착 확정 시 1회(동의 시에만 전송). 매출값은 팩 KRW 가격.
+      const packDef = pack && pack in CREDIT_PACKS ? CREDIT_PACKS[pack as CreditPackType] : null
+      analytics.purchase({
+        transaction_id: sessionId ?? 'unknown',
+        value: packDef ? packDef.pricing.krw : 0,
+        currency: 'KRW',
+        plan: pack ?? 'unknown',
+      })
       // 헤더의 CreditBadge 등 다른 위젯도 즉시 갱신.
       if (typeof window !== 'undefined') {
         window.dispatchEvent(new CustomEvent('credit-update'))
@@ -148,7 +158,7 @@ function SuccessContent() {
       cancelled = true
       if (timer) clearTimeout(timer)
     }
-  }, [status, sessionId, expectedCredits])
+  }, [status, sessionId, expectedCredits, pack])
 
   // 크레딧 부족 모달에서 결제로 넘어온 경우만 "리딩으로 돌아가기" 버튼을
   // 띄운다. 홈/요금제에서 그냥 결제한 경우는 돌아갈 곳이 없어 버튼이 노이즈.

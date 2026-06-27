@@ -13,6 +13,7 @@ import * as htmlToImage from 'html-to-image'
 import { Share2, Download, Loader2, X, Link2, Check } from 'lucide-react'
 import { apiFetch } from '@/lib/api'
 import { tarotLogger } from '@/lib/logger'
+import { analytics } from '@/components/analytics/GoogleAnalytics'
 import { TarotShareCard, SHARE_CARD_SIZE, type ShareCardData } from './TarotShareCard'
 
 interface ShareTarotButtonProps {
@@ -94,6 +95,7 @@ export function ShareTarotButton({ data: shareData, language, body }: ShareTarot
     linkBusyRef.current = true
     setError(null)
     setLinkPhase('creating')
+    analytics.sharePost('tarot')
     try {
       const url = await createShareUrl()
       if (!url) return

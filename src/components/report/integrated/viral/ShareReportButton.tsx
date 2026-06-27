@@ -14,6 +14,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react'
 import * as htmlToImage from 'html-to-image'
 import { Share2, Download, Loader2, X } from 'lucide-react'
 import { logger } from '@/lib/logger'
+import { analytics } from '@/components/analytics/GoogleAnalytics'
 import { ReportShareCard, SHARE_CARD_SIZE, type ReportShareData } from './ReportShareCard'
 import type { ViralSummary } from './viralArchetype'
 
@@ -102,6 +103,7 @@ export function ShareReportButton({ summary, name, dateLabel, isKo }: ShareRepor
 
   const onClickShare = () => {
     setError(null)
+    analytics.sharePost('report')
     setPhase('rendering')
   }
 
