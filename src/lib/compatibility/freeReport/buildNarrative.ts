@@ -257,6 +257,119 @@ function overallGrade(score: number): Bi {
   return { ko: '롤러코스터', en: 'A rollercoaster' }
 }
 
+// ── 공유카드 자극적 카피 ─────────────────────────────────────────────
+// 공유 이미지(1080)에 박히는 후크 — 리포트 본문보다 한 톤 더 세게(캡처·재공유
+// 유도). 점수대별 등급 + 톤별 헤드라인을 coupleSeed 로 결정적으로 고른다:
+// 같은 커플엔 안정, 커플마다·톤마다 다른 한 줄. (런타임 LLM 없음 — 결정성 유지)
+type ShareTone = 'aligned' | 'mixed' | 'tension' | 'neutral'
+
+// 점수대별 등급 pill — 본문 overallGrade 보다 자극적.
+const SHARE_GRADE: { min: number; v: Bi }[] = [
+  { min: 88, v: { ko: '헤어나올 수 없는 사이', en: "Can't quit each other" } },
+  { min: 80, v: { ko: '위험할 만큼 잘 맞아', en: 'Dangerously in sync' } },
+  { min: 72, v: { ko: '불꽃 튀는 케미', en: 'Sparks flying' } },
+  { min: 64, v: { ko: '은근히 빠져드는 사이', en: 'Quietly hooked' } },
+  { min: 56, v: { ko: '밀당의 고수들', en: 'Masters of push-pull' } },
+  { min: 0, v: { ko: '위태로운 롤러코스터', en: 'A risky rollercoaster' } },
+]
+function shareGrade(score: number): Bi {
+  for (const g of SHARE_GRADE) if (score >= g.min) return g.v
+  return SHARE_GRADE[SHARE_GRADE.length - 1].v
+}
+
+// 헤드라인 풀 — 톤별. accent = 카드에서 골드로 강조할 핵심 구. \n = 줄바꿈.
+interface SharePunch {
+  ko: string
+  en: string
+  accentKo: string
+  accentEn: string
+}
+const SHARE_PUNCH: Record<ShareTone, SharePunch[]> = {
+  aligned: [
+    {
+      ko: '끌림은 못 속여 —\n둘은 이미 시작됐어',
+      accentKo: '둘은 이미 시작됐어',
+      en: "You can't fake\nthis kind of pull",
+      accentEn: 'this kind of pull',
+    },
+    {
+      ko: '이 조합, 한번 빠지면\n못 헤어나와',
+      accentKo: '못 헤어나와',
+      en: 'Fall once and\nyou’re done for',
+      accentEn: 'you’re done for',
+    },
+    {
+      ko: '머리보다 마음이\n먼저 아는 사이',
+      accentKo: '마음이',
+      en: 'Your hearts knew\nbefore your heads',
+      accentEn: 'before your heads',
+    },
+  ],
+  mixed: [
+    {
+      ko: '끌리는데 자꾸 엇갈리는\n위험한 줄다리기',
+      accentKo: '위험한 줄다리기',
+      en: 'Drawn yet clashing —\na risky tug-of-war',
+      accentEn: 'a risky tug-of-war',
+    },
+    {
+      ko: '통할 땐 짜릿,\n어긋나면 불꽃',
+      accentKo: '짜릿',
+      en: 'Electric when it clicks,\nsparks when it misses',
+      accentEn: 'Electric',
+    },
+  ],
+  tension: [
+    {
+      ko: '끌리는 만큼\n위태로운 사이',
+      accentKo: '위태로운',
+      en: 'As magnetic as\nit is volatile',
+      accentEn: 'volatile',
+    },
+    {
+      ko: '불꽃은 튀는데,\n데일 수도 있어',
+      accentKo: '데일 수도 있어',
+      en: 'Sparks fly —\nbut you might get burned',
+      accentEn: 'get burned',
+    },
+  ],
+  neutral: [
+    {
+      ko: '아직은 물음표,\n그래서 더 궁금한 사이',
+      accentKo: '더 궁금한',
+      en: 'Still a question mark —\nand that pulls you in',
+      accentEn: 'pulls you in',
+    },
+  ],
+}
+
+export interface FreeCompatShareCopy {
+  /** 점수대별 자극적 등급 pill. */
+  grade: string
+  /** 헤드라인(여러 줄 가능 — \n). */
+  punch: string
+  /** punch 안에서 골드로 강조할 핵심 구(없으면 빈 문자열). */
+  accent: string
+}
+// 공유카드용 자극적 카피 — 점수·톤으로 결정적 선택. (page → CompatShareCard)
+export function freeCompatShareCopy(
+  report: CompatReport,
+  lang: 'ko' | 'en',
+  score: number,
+  tone: ShareTone
+): FreeCompatShareCopy {
+  const isKo = lang === 'ko'
+  const seed = coupleSeed(report)
+  const pool = SHARE_PUNCH[tone] ?? SHARE_PUNCH.neutral
+  const p = pickFor(pool, seed, `share-punch:${tone}`)
+  const g = shareGrade(score)
+  return {
+    grade: isKo ? g.ko : g.en,
+    punch: isKo ? p.ko : p.en,
+    accent: isKo ? p.accentKo : p.accentEn,
+  }
+}
+
 // 테마 신호들 → 0~100 점수. friction 은 "충돌 강도"(셀수록 ↑), 나머지는 끌림/조화 강도.
 // 정규화하지 않고 신호 크기(net/strength)에 비례시켜 테마·커플마다 점수가 벌어지게 한다.
 function themeScore(id: ThemeId, items: { pol: number }[], nudge = 0): number {

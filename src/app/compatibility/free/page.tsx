@@ -27,7 +27,11 @@ import { ReferralInviteButton } from '@/components/referral/ReferralInviteButton
 import { spouseFeeling } from '@/lib/compatibility/compatChartLabels'
 import type { SajuPillarInput } from '@/lib/compatibility/sajuSynastryFormatter'
 import type { CompatReport } from '@/lib/compatibility/compatReport'
-import { buildFreeCompatNarrative, josa } from '@/lib/compatibility/freeReport/buildNarrative'
+import {
+  buildFreeCompatNarrative,
+  freeCompatShareCopy,
+  josa,
+} from '@/lib/compatibility/freeReport/buildNarrative'
 import type { FreeReportTheme } from '@/lib/compatibility/freeReport/types'
 import { trackFunnel } from '@/lib/metrics/trackFunnel'
 import { logger } from '@/lib/logger'
@@ -688,6 +692,11 @@ function ResultView({
     trackFunnel('compat_free.report_viewed')
   }, [])
   const verdict = view.verdict
+  // 공유카드 자극적 카피 — 점수·톤 기반 결정적 등급 + 헤드라인(강조구). 한 번만 계산.
+  const shareCopy =
+    view.overallScore != null
+      ? freeCompatShareCopy(report, locale, view.overallScore, verdict?.tone ?? 'neutral')
+      : null
   const toneClass =
     verdict?.tone === 'aligned'
       ? s.aligned
@@ -771,7 +780,10 @@ function ResultView({
             verdictTone: verdict?.tone || 'neutral',
             headline: headlineReason || '',
             score: view.overallScore,
-            grade: view.overallGrade,
+            // 공유카드 자극적 카피 — 점수·톤 기반 결정적 등급 + 헤드라인(강조구).
+            grade: shareCopy?.grade ?? view.overallGrade,
+            punch: shareCopy?.punch ?? null,
+            accent: shareCopy?.accent ?? null,
             // 상위 테마 점수 칩 — 마찰 제외, 점수 높은 3개(끌림 88 · 케미 82 · 소통 79).
             chips: view.themes
               .filter((th) => th.id !== 'friction' && typeof th.score === 'number')

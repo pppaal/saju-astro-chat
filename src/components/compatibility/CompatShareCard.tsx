@@ -4,25 +4,28 @@
  * CompatShareCard — 무료 궁합 결과의 SNS(인스타/카톡) 공유용 1080×1080 정사각 카드.
  *
  * 타로 TarotShareCard 와 같은 결: html-to-image 로 이 DOM 노드를 그대로 PNG
- * 캡처한다(ShareCompatibilityButton). 캡처 호환을 위해 CSS 변수 대신 명시 hex,
- * 평범한 <img> 대신 그라데이션·텍스트로만 구성(외부 이미지 의존 없음 — 두 사람
- * 차트엔 보여줄 단일 이미지가 없으므로, 큰 점수 링이 주인공이 된다).
+ * 캡처한다(ShareCompatibilityButton). 캡처 호환을 위해:
+ *  - CSS 변수 대신 명시 hex.
+ *  - 외부 비트맵 이미지 의존 없음(두 차트엔 대표 이미지가 없음) — 별·게이지·
+ *    텍스트만으로 구성. 게이지 그라데이션은 SVG stroke(캡처 안전), 점수·강조는
+ *    단색 골드(background-clip:text 캡처 이슈 회피).
+ *  - 디스플레이는 세리프 스택(없으면 시스템 serif 폴백) — 디바이스 한글 폰트로.
  *
- * 주인공은 헤드라인 총점(끌림 82 식). 점신·포스텔러처럼 "숫자"가 캡처되어
- * 재공유되게 한다. 부모가 화면 밖에 1080×1080 으로 렌더해 두고 ref 로 캡처.
+ * 주인공은 자극적 헤드라인(punch) + 헤드라인 총점 게이지. "숫자와 후크"가
+ * 캡처되어 재공유되게 한다. 부모가 화면 밖에 1080 으로 렌더해 두고 ref 로 캡처.
  */
 
 import React from 'react'
 import type { CompatVerdictTone } from '@/lib/tarot/shareLink'
 
-const GOLD = '#e8cc8a'
-const GOLD_SOFT = '#d4b572'
-const GOLD_WASH = 'rgba(212,181,114,0.16)'
-const TEXT = '#f1f3f9'
-const MUTED = '#9aa3b8'
-const ROSE = '#fda4af'
-const PINK = '#ec4899'
-const BASE = '#0b1022'
+const GOLD = '#e8c88c'
+const TEXT = '#f3f0ff'
+const MUTED = '#9c93c4'
+const ROSE = '#ff8fae'
+const PINK = '#ff5e8a'
+
+const SERIF = "'Noto Serif KR', 'Nanum Myeongjo', 'Apple SD Gothic Neo', serif"
+const SANS = "'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
 
 export const COMPAT_SHARE_CARD_SIZE = 1080
 
@@ -39,31 +42,74 @@ export interface CompatShareCardData {
   nameB: string
   verdict: string
   verdictTone: CompatVerdictTone
-  /** 공개 링크(/r/[token]) OG·페이지에 실을 보조 한 줄(배우자성/시너스트리). 이미지 카드엔 미표시. */
+  /** 공개 링크(/r/[token]) OG·페이지용 보조 한 줄. 이미지 카드엔 미표시. */
   headline?: string
-  /** 헤드라인 총점(0~100) — 없으면 점수 링 대신 verdict 가 더 크게. */
+  /** 헤드라인 총점(0~100). 없으면 게이지 대신 punch 가 더 크게. */
   score?: number | null
-  /** 총점 등급 라벨 — 예: "찰떡 궁합". */
+  /** 자극적 등급 pill — 예: "위험할 만큼 잘 맞아". */
   grade?: string | null
-  /** 상위 테마 점수 칩 2~4개 — 예: 끌림 88 · 케미 82 · 소통 79. */
+  /** 자극적 헤드라인(여러 줄 가능 — \n). */
+  punch?: string | null
+  /** punch 안에서 골드로 강조할 핵심 구(없으면 강조 없음). */
+  accent?: string | null
+  /** 상위 테마 점수 칩 2~4개 — 끌림 88 · 케미 82 · 소통 79. */
   chips?: CompatShareChip[]
 }
 
-function verdictColor(tone: CompatVerdictTone): string {
-  if (tone === 'aligned') return GOLD
-  if (tone === 'tension') return ROSE
-  if (tone === 'mixed') return '#fbbf24'
-  return '#dfe3ee'
+// 결정적 별 좌표(1080 캔버스) — 캡처마다 같게. r>1.3 은 부드러운 헤일로 추가.
+const STARS: [number, number, number][] = [
+  [120, 160, 1.6],
+  [300, 90, 1.1],
+  [760, 140, 1.8],
+  [930, 220, 1.2],
+  [180, 400, 1.0],
+  [980, 520, 1.5],
+  [90, 640, 1.3],
+  [1000, 760, 1.1],
+  [160, 860, 1.6],
+  [320, 960, 1.2],
+  [560, 120, 1.0],
+  [640, 980, 1.4],
+  [860, 900, 1.1],
+  [40, 300, 1.2],
+  [1020, 360, 1.0],
+  [460, 60, 1.3],
+  [720, 40, 1.0],
+  [900, 60, 1.2],
+  [60, 980, 1.0],
+  [520, 1010, 1.1],
+  [240, 260, 0.9],
+  [820, 300, 1.0],
+  [400, 820, 1.0],
+  [680, 760, 0.9],
+  [140, 520, 0.8],
+  [960, 640, 0.9],
+]
+
+// punch 한 줄을 accent 기준으로 쪼개 골드 강조. accent 없거나 미발견 시 통문자열.
+function renderPunchLine(line: string, accent?: string | null): React.ReactNode {
+  if (!accent || !line.includes(accent)) return line
+  const idx = line.indexOf(accent)
+  return (
+    <>
+      {line.slice(0, idx)}
+      <span style={{ color: GOLD }}>{accent}</span>
+      {line.slice(idx + accent.length)}
+    </>
+  )
 }
 
 export const CompatShareCard = React.forwardRef<HTMLDivElement, { data: CompatShareCardData }>(
   function CompatShareCard({ data }, ref) {
-    const { isKo, nameA, nameB, verdict, verdictTone, score, grade, chips } = data
+    const { isKo, nameA, nameB, score, grade, punch, accent, chips } = data
     const hasScore = typeof score === 'number'
-    const vColor = verdictColor(verdictTone)
     const shownChips = (chips ?? []).slice(0, 4)
-    // 링 채움 각도(도) — 0~100 → 0~360.
-    const ringDeg = hasScore ? Math.round((score as number) * 3.6) : 0
+    const punchLines = (punch ?? '').split('\n')
+
+    // SVG 게이지 — r=174, 둘레 ≈ 1093. 점수만큼 채우고 나머지는 offset.
+    const R = 174
+    const C = 2 * Math.PI * R // ≈ 1093.0
+    const dashoffset = hasScore ? Math.round(C * (1 - (score as number) / 100)) : C
 
     return (
       <div
@@ -72,206 +118,299 @@ export const CompatShareCard = React.forwardRef<HTMLDivElement, { data: CompatSh
           width: COMPAT_SHARE_CARD_SIZE,
           height: COMPAT_SHARE_CARD_SIZE,
           boxSizing: 'border-box',
-          padding: 64,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'space-between',
           position: 'relative',
           overflow: 'hidden',
-          background:
-            'radial-gradient(900px 620px at 25% 8%, rgba(236,72,153,0.16), transparent 60%),' +
-            'radial-gradient(820px 700px at 85% 100%, rgba(212,181,114,0.16), transparent 60%),' +
-            'linear-gradient(160deg, #0b1022 0%, #070a1a 58%, #0a0e1f 100%)',
           color: TEXT,
-          fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+          fontFamily: SANS,
+          background:
+            'radial-gradient(1100px 800px at 22% 12%, rgba(124,92,255,0.30), transparent 58%),' +
+            'radial-gradient(950px 760px at 84% 90%, rgba(232,180,120,0.22), transparent 60%),' +
+            'radial-gradient(700px 900px at 50% 50%, rgba(60,40,120,0.25), transparent 70%),' +
+            'linear-gradient(160deg, #0b0a1f 0%, #0a0817 55%, #0c0a1d 100%)',
         }}
       >
-        {/* 골드 내부 프레임 */}
+        {/* 별 흩뿌리기 */}
+        <svg
+          width={COMPAT_SHARE_CARD_SIZE}
+          height={COMPAT_SHARE_CARD_SIZE}
+          style={{ position: 'absolute', inset: 0 }}
+          aria-hidden="true"
+        >
+          {STARS.map(([x, y, r], i) => (
+            <g key={i}>
+              {r > 1.3 ? <circle cx={x} cy={y} r={r * 2.4} fill="#fff" opacity={0.08} /> : null}
+              <circle cx={x} cy={y} r={r} fill="#fff" opacity={0.25 + r * 0.3} />
+            </g>
+          ))}
+        </svg>
+        {/* 비네트 */}
         <div
           style={{
             position: 'absolute',
-            inset: 28,
-            border: '1px solid rgba(212,181,114,0.28)',
-            borderRadius: 28,
+            inset: 0,
+            background: 'radial-gradient(circle at 50% 46%, transparent 52%, rgba(0,0,0,0.5) 100%)',
+          }}
+        />
+        {/* 골드 프레임 + 코너 */}
+        <div
+          style={{
+            position: 'absolute',
+            inset: 30,
+            border: '1px solid rgba(232,200,140,0.30)',
+            borderRadius: 34,
+            boxShadow: 'inset 0 0 80px rgba(124,92,255,0.10)',
             pointerEvents: 'none',
           }}
         />
 
-        {/* 상단 — 라벨 + 두 사람 */}
-        <div style={{ zIndex: 1, textAlign: 'center', marginTop: 8 }}>
-          <div
-            style={{
-              fontSize: 22,
-              letterSpacing: '0.24em',
-              textTransform: 'uppercase',
-              color: GOLD_SOFT,
-              marginBottom: 18,
-            }}
-          >
-            {isKo ? '우리 궁합' : 'OUR MATCH'}
+        {/* 콘텐츠 */}
+        <div
+          style={{
+            position: 'relative',
+            zIndex: 2,
+            height: '100%',
+            padding: '92px 84px',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+          }}
+        >
+          {/* 라벨 + 두 사람(성좌선) */}
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <div
+              style={{
+                fontSize: 22,
+                letterSpacing: '0.42em',
+                textTransform: 'uppercase',
+                color: GOLD,
+              }}
+            >
+              {isKo ? '우리 궁합' : 'Our Match'}
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 30, marginTop: 28 }}>
+              <span style={{ fontFamily: SERIF, fontSize: 52, fontWeight: 700, color: '#fff' }}>
+                {nameA}
+              </span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                <span
+                  style={{
+                    width: 9,
+                    height: 9,
+                    borderRadius: '50%',
+                    background: GOLD,
+                    boxShadow: '0 0 16px 4px rgba(232,200,140,0.8)',
+                  }}
+                />
+                <span
+                  style={{
+                    width: 64,
+                    height: 1,
+                    background:
+                      'repeating-linear-gradient(90deg, rgba(232,200,140,0.7) 0 7px, transparent 7px 14px)',
+                  }}
+                />
+                <span
+                  style={{
+                    fontSize: 34,
+                    color: PINK,
+                    filter: 'drop-shadow(0 0 14px rgba(255,94,138,0.7))',
+                  }}
+                >
+                  ♥
+                </span>
+                <span
+                  style={{
+                    width: 64,
+                    height: 1,
+                    background:
+                      'repeating-linear-gradient(90deg, rgba(232,200,140,0.7) 0 7px, transparent 7px 14px)',
+                  }}
+                />
+                <span
+                  style={{
+                    width: 9,
+                    height: 9,
+                    borderRadius: '50%',
+                    background: GOLD,
+                    boxShadow: '0 0 16px 4px rgba(232,200,140,0.8)',
+                  }}
+                />
+              </span>
+              <span style={{ fontFamily: SERIF, fontSize: 52, fontWeight: 700, color: '#fff' }}>
+                {nameB}
+              </span>
+            </div>
           </div>
-          <div
-            style={{
-              fontSize: 56,
-              fontWeight: 800,
-              color: TEXT,
-              wordBreak: 'keep-all',
-              overflowWrap: 'anywhere',
-            }}
-          >
-            {nameA} <span style={{ color: PINK }}>♥</span> {nameB}
-          </div>
-        </div>
 
-        {/* 가운데 — 헤드라인 총점 링(주인공). 점수 없으면 verdict 가 자리를 채운다. */}
-        {hasScore ? (
-          <div
-            style={{
-              zIndex: 1,
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              gap: 26,
-            }}
-          >
+          {/* 점수 게이지(주인공) */}
+          {hasScore ? (
             <div
               style={{
                 position: 'relative',
-                width: 340,
-                height: 340,
-                borderRadius: '50%',
-                background: `conic-gradient(${GOLD} ${ringDeg}deg, ${GOLD_WASH} 0)`,
+                width: 400,
+                height: 400,
                 display: 'grid',
                 placeItems: 'center',
               }}
             >
+              <svg width={400} height={400} viewBox="0 0 400 400">
+                <defs>
+                  <linearGradient id="compatGauge" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0" stopColor="#fff2cf" />
+                    <stop offset="0.5" stopColor="#e8c88c" />
+                    <stop offset="1" stopColor="#ff7e9d" />
+                  </linearGradient>
+                  <filter id="compatGlow" x="-40%" y="-40%" width="180%" height="180%">
+                    <feGaussianBlur stdDeviation="8" result="b" />
+                    <feMerge>
+                      <feMergeNode in="b" />
+                      <feMergeNode in="SourceGraphic" />
+                    </feMerge>
+                  </filter>
+                </defs>
+                <circle
+                  cx="200"
+                  cy="200"
+                  r={R}
+                  fill="none"
+                  stroke="rgba(255,255,255,0.08)"
+                  strokeWidth={19}
+                />
+                <circle
+                  cx="200"
+                  cy="200"
+                  r={R}
+                  fill="none"
+                  stroke="url(#compatGauge)"
+                  strokeWidth={19}
+                  strokeLinecap="round"
+                  strokeDasharray={C}
+                  strokeDashoffset={dashoffset}
+                  transform="rotate(-90 200 200)"
+                  filter="url(#compatGlow)"
+                />
+              </svg>
               <div
                 style={{
                   position: 'absolute',
-                  inset: 22,
-                  borderRadius: '50%',
-                  background: BASE,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
                 }}
-              />
-              <div style={{ position: 'relative', textAlign: 'center' }}>
-                <div style={{ fontSize: 168, fontWeight: 800, lineHeight: 1, color: GOLD }}>
+              >
+                <div style={{ fontSize: 188, fontWeight: 900, lineHeight: 0.9, color: GOLD }}>
                   {score}
+                </div>
+                <div
+                  style={{
+                    fontSize: 24,
+                    fontWeight: 600,
+                    letterSpacing: '0.3em',
+                    color: '#b9a8e6',
+                    marginTop: 4,
+                  }}
+                >
+                  ／100
                 </div>
               </div>
             </div>
+          ) : (
+            <div style={{ display: 'flex' }} />
+          )}
+
+          {/* 자극적 헤드라인 + 등급 pill */}
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            {punch ? (
+              <div
+                style={{
+                  maxWidth: 840,
+                  textAlign: 'center',
+                  fontFamily: SERIF,
+                  fontSize: 60,
+                  fontWeight: 900,
+                  lineHeight: 1.32,
+                  color: '#fff',
+                  textShadow: '0 2px 36px rgba(124,92,255,0.55)',
+                  wordBreak: 'keep-all',
+                }}
+              >
+                {punchLines.map((line, i) => (
+                  <div key={i}>{renderPunchLine(line, accent)}</div>
+                ))}
+              </div>
+            ) : null}
             {grade ? (
               <div
                 style={{
-                  padding: '12px 32px',
+                  marginTop: 20,
+                  fontSize: 30,
+                  fontWeight: 700,
+                  letterSpacing: '0.1em',
+                  color: ROSE,
+                  border: '1px solid rgba(255,143,174,0.45)',
                   borderRadius: 999,
-                  background: 'rgba(232,204,138,0.12)',
-                  border: '1px solid rgba(232,204,138,0.45)',
-                  fontSize: 40,
-                  fontWeight: 800,
-                  color: GOLD,
+                  padding: '10px 28px',
+                  background: 'rgba(255,94,138,0.10)',
                 }}
               >
                 {grade}
               </div>
             ) : null}
           </div>
-        ) : (
-          <div style={{ zIndex: 1, maxWidth: 880, textAlign: 'center' }}>
-            <div
-              style={{
-                fontWeight: 800,
-                fontSize: 64,
-                lineHeight: 1.35,
-                color: vColor,
-                textShadow: '0 2px 24px rgba(212,181,114,0.18)',
-                wordBreak: 'keep-all',
-                overflowWrap: 'anywhere',
-              }}
-            >
-              {verdict}
-            </div>
-          </div>
-        )}
 
-        {/* verdict 한 줄 — 점수가 주인공일 때는 그 아래 받쳐주는 카피. */}
-        {hasScore && verdict ? (
-          <div style={{ zIndex: 1, maxWidth: 900, textAlign: 'center' }}>
-            <div
-              style={{
-                fontWeight: 800,
-                fontSize: 44,
-                lineHeight: 1.4,
-                color: vColor,
-                textShadow: '0 2px 24px rgba(212,181,114,0.18)',
-                wordBreak: 'keep-all',
-                overflowWrap: 'anywhere',
-              }}
-            >
-              {verdict}
-            </div>
-          </div>
-        ) : null}
-
-        {/* 상위 테마 점수 칩 — 끌림 88 · 케미 82 · 소통 79 */}
-        {shownChips.length ? (
-          <div
-            style={{
-              zIndex: 1,
-              display: 'flex',
-              alignItems: 'stretch',
-              justifyContent: 'center',
-              gap: 14,
-              flexWrap: 'nowrap',
-            }}
-          >
-            {shownChips.map((c, i) => (
-              <div
-                key={i}
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  gap: 8,
-                  padding: '18px 26px',
-                  borderRadius: 20,
-                  background: 'rgba(255,255,255,0.04)',
-                  border: '1px solid rgba(212,181,114,0.22)',
-                }}
-              >
-                <span style={{ fontSize: 22, fontWeight: 700, color: MUTED }}>{c.label}</span>
-                <span
+          {/* 상위 테마 점수 칩 */}
+          {shownChips.length ? (
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+              {shownChips.map((c, i) => (
+                <div
+                  key={i}
                   style={{
-                    fontSize: 46,
-                    fontWeight: 800,
-                    lineHeight: 1,
-                    color: c.clash ? ROSE : GOLD,
+                    padding: '0 40px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: 8,
+                    borderLeft: i === 0 ? 'none' : '1px solid rgba(232,200,140,0.28)',
                   }}
                 >
-                  {c.value}
-                </span>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div style={{ display: 'flex' }} />
-        )}
+                  <span
+                    style={{ fontSize: 24, fontWeight: 600, letterSpacing: '0.08em', color: MUTED }}
+                  >
+                    {c.label}
+                  </span>
+                  <span
+                    style={{
+                      fontSize: 56,
+                      fontWeight: 800,
+                      lineHeight: 1,
+                      color: c.clash ? ROSE : GOLD,
+                    }}
+                  >
+                    {c.value}
+                  </span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div style={{ display: 'flex' }} />
+          )}
 
-        {/* 푸터 */}
-        <div
-          style={{
-            zIndex: 1,
-            display: 'flex',
-            alignItems: 'center',
-            gap: 14,
-            fontSize: 22,
-            color: MUTED,
-          }}
-        >
-          <span style={{ color: GOLD_SOFT }}>✦</span>
-          <span>{isKo ? '무료 궁합' : 'Free compatibility'}</span>
-          <span style={{ color: 'rgba(154,163,184,0.5)' }}>·</span>
-          <span>destinypal.com</span>
+          {/* 푸터 */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 14,
+              fontSize: 24,
+              color: '#8d85b0',
+            }}
+          >
+            <span style={{ color: GOLD }}>✦</span>
+            <span>
+              {isKo ? '무료 궁합 · destinypal.com' : 'Free compatibility · destinypal.com'}
+            </span>
+          </div>
         </div>
       </div>
     )
