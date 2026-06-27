@@ -28,7 +28,11 @@ import { deriveDayDomains } from '@/lib/calendar-engine/derivers/dayDomains'
 import { deriveDayActions } from '@/lib/calendar-engine/derivers/dayActions'
 import { deriveDayDeepRead } from '@/lib/calendar-engine/derivers/dayDeepRead'
 import { dayStrength } from '@/lib/calendar-engine/derivers/dayStrength'
-import { reconcileDayTone, type DayVerdict } from '@/lib/calendar-engine/derivers/reconcile'
+import {
+  reconcileDayTone,
+  scoreToBand,
+  type DayVerdict,
+} from '@/lib/calendar-engine/derivers/reconcile'
 import styles from './DayTier.module.css'
 import { useI18n } from '@/i18n/I18nProvider'
 import { localizeLabel } from '@/components/calendar/adapters/localizeLabel'
@@ -333,14 +337,17 @@ export function DayTier({ day, onRise, sex = '남' }: DayTierProps) {
   const upcoming = day.upcoming ?? []
   const todayIdx = scores.findIndex((s) => s.today)
 
-  const upBg = (s: number) =>
-    s >= 65
+  // 색 임계는 일 카드/월 그리드와 같은 밴드 SSOT(scoreToBand: good≥60·low<35)를
+  // 따른다. 예전엔 ≥65 green/≤35 crimson/≥50 gold 로, 같은 컴포넌트 안에서도
+  // 62점 날이 카드에선 '좋음'인데 스트립에선 gold 로 어긋났다(자기모순).
+  const upBg = (s: number) => {
+    const band = scoreToBand(s)
+    return band === 'good'
       ? 'var(--good-bg)'
-      : s <= 35
+      : band === 'low'
         ? 'var(--crimson-bg)'
-        : s >= 50
-          ? 'var(--gold-bg)'
-          : 'var(--surface-3)'
+        : 'var(--gold-bg)'
+  }
   const weekday = (iso: string) => {
     const wd = new Date(`${iso}T00:00:00Z`).getUTCDay()
     return (ko ? DOW_KO : DOW_EN)[wd]
