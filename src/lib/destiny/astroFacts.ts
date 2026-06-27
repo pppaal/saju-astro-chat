@@ -190,7 +190,22 @@ export async function collectAstroFacts(
       longitude: input.longitude,
       timeZone: safeTz,
     })
-  } catch {
+  } catch (err) {
+    // calculateNatalChart 가 던지면(천체력 계산 실패·좌표/날짜 이상 등) 여기로 온다.
+    // 예전엔 조용히 null 만 반환해 상위(buildNatalContext/buildReportContext)가
+    // "collectAstroFacts returned null" 로만 터졌다 → Sentry 에서 *진짜* 원인이
+    // 안 보였다(tz 는 normalizeTimeZone 으로 이미 안전하므로 원인은 다른 곳).
+    // 원인을 진단 컨텍스트와 함께 남기고 null 을 흘린다(폴백 동작은 동일).
+    logger.error('collectAstroFacts: calculateNatalChart threw — returning null', {
+      errorMessage: err instanceof Error ? err.message : String(err),
+      stack: err instanceof Error ? err.stack : undefined,
+      birthDate: input.birthDate,
+      hasBirthTime: !!input.birthTime,
+      tzInput: input.timezone,
+      tzResolved: safeTz,
+      latitude: input.latitude,
+      longitude: input.longitude,
+    })
     return null
   }
   const chart = toChart(natal)
