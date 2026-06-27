@@ -118,5 +118,3 @@ export function ShareCalendarButton({ data }: { data: CalendarShareData }) {
     </div>
   )
 }
-
-export default ShareCalendarButton

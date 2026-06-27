@@ -125,5 +125,3 @@ export function ShareCompatibilityButton({ data }: { data: CompatShareData }) {
     </div>
   )
 }
-
-export default ShareCompatibilityButton

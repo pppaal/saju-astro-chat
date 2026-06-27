@@ -7,13 +7,6 @@
  * 미상 키는 호출부에서 KO 로 폴백 → KO 로케일·미상 라벨엔 영향 없음.
  */
 
-/** 격국 성패 단어 — 성격/파격/반성반파. */
-export const GEOKGUK_STATUS_EN: Record<string, string> = {
-  성격: 'Formed',
-  파격: 'Broken',
-  반성반파: 'Mixed',
-}
-
 /**
  * 신살 KO→EN. interpretations.json shinsal 의 name_en 을 기준으로 흔한 것들을
  * 담았다(별칭 ~살 포함). 미상은 호출부에서 KO 폴백.
@@ -70,11 +63,6 @@ export const SHINSAL_EN: Record<string, string> = {
 /** 신살 EN 치환 — strip 트레일링 '살' 후 재시도, 미상은 KO 그대로. */
 export function shinsalEn(name: string): string {
   return SHINSAL_EN[name] ?? SHINSAL_EN[name.replace(/살$/, '')] ?? name
-}
-
-/** 격국 성패 단어 EN 치환 — 미상은 KO 그대로. */
-export function geokgukStatusEn(status: string): string {
-  return GEOKGUK_STATUS_EN[status] ?? status
 }
 
 // ============================================================================
