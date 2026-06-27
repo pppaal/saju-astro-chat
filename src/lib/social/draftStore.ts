@@ -8,7 +8,7 @@
 
 import { cacheGet, cacheSet } from '@/lib/cache/redis-cache'
 import { logger } from '@/lib/logger'
-import type { SocialPostDraft, SocialDraftStatus } from './types'
+import type { SocialPostDraft } from './types'
 
 // 초안 보존 — 마케팅 데이터라 60일이면 충분(이력은 휘발 허용).
 const DRAFT_TTL_SECONDS = 60 * 24 * 60 * 60
@@ -69,15 +69,6 @@ export async function updateDraft(
   drafts[idx] = updated
   await saveDrafts(date, drafts)
   return updated
-}
-
-/** 상태만 바꾸는 헬퍼(승인/반려/발행). */
-export async function setDraftStatus(
-  date: string,
-  id: string,
-  status: SocialDraftStatus
-): Promise<SocialPostDraft | null> {
-  return updateDraft(date, id, { status })
 }
 
 /** 최근 날짜 목록(내림차순). 어드민 목록 네비용. */
