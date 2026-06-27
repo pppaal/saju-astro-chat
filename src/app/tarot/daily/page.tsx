@@ -7,12 +7,13 @@
 // 일부러 얕게 보여준다: 한 줄 후크 + 2문장. 깊은 해석은 유료 리딩의 몫이라,
 // 맨 아래 "질문하고 더 깊이 보기" CTA 로 전환을 유도한다.
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { Sparkles, Loader2 } from 'lucide-react'
 import { useI18n } from '@/i18n/I18nProvider'
 import { apiFetch } from '@/lib/api'
 import { tarotLogger } from '@/lib/logger'
+import { analytics } from '@/components/analytics/GoogleAnalytics'
 import { ShareTarotButton } from '@/components/tarot/ShareTarotButton'
 import { pickTeaser } from '@/components/tarot/shareCardData'
 import type { ShareCardData } from '@/components/tarot/TarotShareCard'
@@ -56,6 +57,14 @@ export default function DailyTarotPage() {
   const { locale } = useI18n()
   const isKo = locale === 'ko'
   const [reading, setReading] = useState<DailyReading | null>(null)
+  // 무료 결과(오늘의 타로) 조회 — 최초 표시 시 1회(동의 시에만 전송).
+  const firedFreeViewRef = useRef(false)
+  useEffect(() => {
+    if (reading && !firedFreeViewRef.current) {
+      firedFreeViewRef.current = true
+      analytics.freeResultView('daily-tarot')
+    }
+  }, [reading])
   const [loading, setLoading] = useState(false)
   const [checking, setChecking] = useState(true)
   const [error, setError] = useState<string | null>(null)

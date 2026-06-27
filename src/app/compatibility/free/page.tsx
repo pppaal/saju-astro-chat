@@ -23,6 +23,7 @@ import { BirthInfoFields, type BirthFieldsPatch } from '@/components/birth/Birth
 import { getStoredBirthInfo, normGender, timeToState } from '@/app/(main)/birthInfoStorage'
 import { ScoreBreakdown } from '@/components/report/atoms/ScoreBreakdown'
 import { ShareCompatibilityButton } from '@/components/compatibility/ShareCompatibilityButton'
+import { analytics } from '@/components/analytics/GoogleAnalytics'
 import { spouseFeeling } from '@/lib/compatibility/compatChartLabels'
 import type { SajuPillarInput } from '@/lib/compatibility/sajuSynastryFormatter'
 import type { CompatReport } from '@/lib/compatibility/compatReport'
@@ -362,6 +363,7 @@ export default function FreeCompatibilityPage() {
       }
       setReport(rep)
       setPhase('result')
+      analytics.freeResultView('compatibility')
     } catch (e) {
       logger.error('[compat-free] analyze failed', e instanceof Error ? e : undefined)
       setError(isKo ? '네트워크 오류가 발생했어요.' : 'A network error occurred.')
