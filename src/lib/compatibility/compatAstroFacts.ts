@@ -11,11 +11,8 @@
 //
 // 본 모듈은 **포매팅 0**. text 0. chart 인스턴스 + meta 만 반환.
 
-import {
-  calculateNatalChart,
-  toChart,
-  type NatalChartData,
-} from '@/lib/astrology/foundation/astrologyService'
+import { toChart, type NatalChartData } from '@/lib/astrology/foundation/astrologyService'
+import { cachedCalculateNatalChart } from '@/lib/astrology/cached'
 import type { Chart } from '@/lib/astrology/foundation/types'
 import { logger } from '@/lib/logger'
 
@@ -49,7 +46,7 @@ export interface CompatAstroFacts {
  */
 export async function collectCompatAstroFacts(
   seedA: CompatAstroPersonInput,
-  seedB: CompatAstroPersonInput,
+  seedB: CompatAstroPersonInput
 ): Promise<CompatAstroFacts | null> {
   try {
     if (!isValidSeed(seedA) || !isValidSeed(seedB)) return null
@@ -72,7 +69,9 @@ function isValidSeed(seed: CompatAstroPersonInput): boolean {
 async function collectOne(seed: CompatAstroPersonInput): Promise<PersonCompatAstroFacts> {
   const [Y, M, D] = seed.birthDate.split('-').map(Number)
   const [h, mi] = (seed.birthTime || '00:00').split(':').map(Number)
-  const natalRaw = await calculateNatalChart({
+  // 본명 차트 불변 → Redis 30일 캐시. 궁합은 두 사람치를 매번 풀계산하던
+  // 가장 무거운 경로라 캐시 효과가 제일 크다(캐시 없으면 graceful 재계산).
+  const natalRaw = await cachedCalculateNatalChart({
     year: Y,
     month: M,
     date: D,
