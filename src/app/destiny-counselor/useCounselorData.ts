@@ -235,8 +235,12 @@ export function useCounselorData(sp: SearchParams) {
   // Seed the app i18n from an explicit URL ?lang= (deep-link intent) only.
   // Never force the default — otherwise landing here would reset the user's
   // chosen app language back to Korean.
+  // reload:false 필수 — 운명상담사 진입 URL 은 buildCounselorHref 가 항상 ?lang 을
+  // 붙인다. setLocale 의 기본(리로드) 경로를 effect 에서 부르면 ?lang 핀과 맞물려
+  // 페이지가 무한 리로드(빈 인사 화면 깜빡임)된다. 진입 페이지는 이미 새로
+  // 렌더되므로 리로드 없이 클라 로케일만 맞추면 충분하다.
   useEffect(() => {
-    if (urlLang) setLocale(urlLang)
+    if (urlLang) setLocale(urlLang, { reload: false })
   }, [urlLang, setLocale])
 
   // Load pre-computed chart data from cache OR compute fresh
