@@ -19,8 +19,6 @@ import { todayKeyKST } from './generateDrafts'
 
 export type ThreadSlot = 'morning' | 'afternoon' | 'evening'
 
-export const THREAD_SLOTS: ThreadSlot[] = ['morning', 'afternoon', 'evening']
-
 export function isThreadSlot(v: unknown): v is ThreadSlot {
   return v === 'morning' || v === 'afternoon' || v === 'evening'
 }

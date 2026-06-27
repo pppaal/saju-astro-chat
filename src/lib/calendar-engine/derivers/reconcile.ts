@@ -23,6 +23,8 @@
  * 'mixed' 로 뭉개지는 버그였다. 부호 기반으로 교정.)
  */
 
+import { scoreToGrade } from './grade'
+
 export type DayBand = 'good' | 'mid' | 'low'
 export type DayTone = 'positive' | 'mixed' | 'caution'
 
@@ -52,11 +54,17 @@ export interface DayVerdict {
   bright: boolean
 }
 
-/** 보여주는 점수 → 밴드. DayTier 의 헤드라인 기준(60/35)과 동일하게 유지. */
+/**
+ * 보여주는 점수 → 밴드. 등급(scoreToGrade)이 SSOT — grade.ts 가 "좋은날=grade≤1
+ * (≥64) · 조심할날=grade≥3(<46)" 로 UI 3단계 파생을 정의한다. 예전엔 별도
+ * 임계(60/35)를 박아둬 같은 날이 band='good'(≥60)인데 grade=2(평범) 이 되는
+ * 모순이 있었다 → 한 소스로 일원화. (임계 변경 → migration golden 재생성)
+ */
 export function scoreToBand(score: number): DayBand {
-  if (score >= 60) return 'good'
-  if (score >= 35) return 'mid'
-  return 'low'
+  const grade = scoreToGrade(score)
+  if (grade <= 1) return 'good' // 최고(0)·좋음(1)
+  if (grade >= 3) return 'low' // 조심(3)·지키기(4)
+  return 'mid' // 평범(2)
 }
 
 /**
