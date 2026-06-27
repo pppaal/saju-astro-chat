@@ -47,9 +47,9 @@ export const CREDIT_PACKS: Record<CreditPackType, CreditPack> = {
   starter: {
     id: 'starter',
     credits: 8,
-    pricing: { krw: 3900, usd: 2.99 },
-    perCreditKrw: 488,
-    perCreditUsd: 0.37,
+    pricing: { krw: 2900, usd: 1.99 },
+    perCreditKrw: 363,
+    perCreditUsd: 0.25,
     firstPurchaseOnly: true,
   },
   mini: {

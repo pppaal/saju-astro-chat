@@ -29,7 +29,7 @@ describe('PricingConfig', () => {
       expect(starter.id).toBe('starter')
       expect(starter.firstPurchaseOnly).toBe(true)
       expect(starter.credits).toBe(8)
-      expect(starter.pricing.krw).toBe(3900)
+      expect(starter.pricing.krw).toBe(2900)
     })
 
     it('should mark only starter as firstPurchaseOnly', () => {
