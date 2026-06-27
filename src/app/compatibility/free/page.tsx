@@ -27,7 +27,11 @@ import { ReferralInviteButton } from '@/components/referral/ReferralInviteButton
 import { spouseFeeling } from '@/lib/compatibility/compatChartLabels'
 import type { SajuPillarInput } from '@/lib/compatibility/sajuSynastryFormatter'
 import type { CompatReport } from '@/lib/compatibility/compatReport'
-import { buildFreeCompatNarrative, josa } from '@/lib/compatibility/freeReport/buildNarrative'
+import {
+  buildFreeCompatNarrative,
+  freeCompatShareCopy,
+  josa,
+} from '@/lib/compatibility/freeReport/buildNarrative'
 import type { FreeReportTheme } from '@/lib/compatibility/freeReport/types'
 import { trackFunnel } from '@/lib/metrics/trackFunnel'
 import { logger } from '@/lib/logger'
@@ -688,6 +692,11 @@ function ResultView({
     trackFunnel('compat_free.report_viewed')
   }, [])
   const verdict = view.verdict
+  // 공유카드 자극적 카피 — 점수·톤 기반 결정적 등급 + 헤드라인(강조구). 한 번만 계산.
+  const shareCopy =
+    view.overallScore != null
+      ? freeCompatShareCopy(report, locale, view.overallScore, verdict?.tone ?? 'neutral')
+      : null
   const toneClass =
     verdict?.tone === 'aligned'
       ? s.aligned
@@ -760,7 +769,7 @@ function ResultView({
       {/* 용어 풀이 */}
       <GlossaryBlock entries={view.glossary} isKo={isKo} />
 
-      {/* 공유 — 바이럴 루프 */}
+      {/* 공유 — 바이럴 루프. 1080×1080 이미지 카드(점수·등급·상위 테마 칩) + 링크. */}
       <div className={s.share}>
         <ShareCompatibilityButton
           data={{
@@ -770,6 +779,17 @@ function ResultView({
             verdict: verdict?.text || '',
             verdictTone: verdict?.tone || 'neutral',
             headline: headlineReason || '',
+            score: view.overallScore,
+            // 공유카드 자극적 카피 — 점수·톤 기반 결정적 등급 + 헤드라인(강조구).
+            grade: shareCopy?.grade ?? view.overallGrade,
+            punch: shareCopy?.punch ?? null,
+            accent: shareCopy?.accent ?? null,
+            // 상위 테마 점수 칩 — 마찰 제외, 점수 높은 3개(끌림 88 · 케미 82 · 소통 79).
+            chips: view.themes
+              .filter((th) => th.id !== 'friction' && typeof th.score === 'number')
+              .sort((a, b) => (b.score ?? 0) - (a.score ?? 0))
+              .slice(0, 3)
+              .map((th) => ({ label: th.scoreCaption ?? '', value: th.score as number })),
           }}
         />
         <ReferralInviteButton isKo={isKo} />
