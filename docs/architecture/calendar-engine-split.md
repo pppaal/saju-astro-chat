@@ -1,3 +1,9 @@
+---
+title: calendar-engine 분할 설계 (extractors 도메인 서브폴더화)
+tags: [architecture, calendar-engine, refactor]
+status: proposal
+---
+
 # calendar-engine 분할 설계 (extractors 도메인 서브폴더화)
 
 > 상태: **제안(Proposal)** · 작성 맥락: 코드 품질 리뷰 — "calendar-engine 81파일
