@@ -244,3 +244,59 @@ describe('deriveLifePattern', () => {
     expect(p?.daeun.find((x) => x.startAge === 15)?.favor).toBe(-2)
   })
 })
+
+// 곡선(macro) 경로의 굴곡 가드 — z-정규화 곡선은 늘 평균 아래 값이 생기므로,
+// 진짜 힘든 대운(favor<0)이 없으면 곡선이 V자여도 '굴곡형'으로 라벨하면 안 된다.
+// (사용자 보고: 고비 없는데 "좋을 때·힘든 때 번갈아"로 떠 모순)
+describe('deriveLifePattern — 곡선 굴곡 가드(hasRealDip)', () => {
+  // 양끝 높고 가운데 꺼진 mid-V macro 곡선 (>=10 points).
+  const V_CURVE = {
+    points: [
+      { age: 5, macro: 0.9 },
+      { age: 12, macro: 0.85 },
+      { age: 20, macro: 0.8 },
+      { age: 28, macro: 0.5 },
+      { age: 35, macro: 0.2 },
+      { age: 42, macro: 0.1 },
+      { age: 50, macro: 0.15 },
+      { age: 58, macro: 0.4 },
+      { age: 65, macro: 0.75 },
+      { age: 72, macro: 0.85 },
+      { age: 80, macro: 0.9 },
+      { age: 85, macro: 0.9 },
+    ],
+  }
+
+  it('실제 고비 없으면(모든 대운 우호) V자 곡선이어도 굴곡형 아님 → smooth', () => {
+    const allFav = weakSaju(
+      daeun([
+        { at: 15, fav: true },
+        { at: 25, fav: true },
+        { at: 35, fav: true },
+        { at: 45, fav: true },
+        { at: 55, fav: true },
+        { at: 65, fav: true },
+      ])
+    )
+    const p = deriveLifePattern(allFav, 40, V_CURVE)
+    expect(p?.key).not.toBe('undulating')
+    expect(p?.key).toBe('smooth')
+    // 한 줄 서사에 "좋을 때와 힘든 때가 번갈아" 가 없어야 한다.
+    expect(p?.line).not.toContain('힘든 때')
+  })
+
+  it('실제 고비가 있으면(음수 대운 존재) 같은 V자 곡선은 굴곡형 유지', () => {
+    const withDip = weakSaju(
+      daeun([
+        { at: 15, fav: true },
+        { at: 25, fav: true },
+        { at: 35, fav: false }, // 진짜 고비 대운
+        { at: 45, fav: false },
+        { at: 55, fav: true },
+        { at: 65, fav: true },
+      ])
+    )
+    const p = deriveLifePattern(withDip, 40, V_CURVE)
+    expect(p?.key).toBe('undulating')
+  })
+})
