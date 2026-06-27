@@ -763,6 +763,34 @@
   word-break: keep-all;
 }
 
+/* ── "지금 여기" verdict 카드 — 월(Month) 티어 .doBox 와 동일 스타일(레이아웃 통일). ── */
+.doBox {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 5px;
+  text-align: left;
+  max-width: 32ch;
+  margin: 16px auto 0;
+  padding: 12px 16px;
+  border: 1px solid var(--gold-line);
+  background: var(--gold-bg);
+  border-radius: 14px;
+}
+.doLbl {
+  font-family: var(--m-mono, var(--dp-mono));
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--gold-deep);
+}
+.doText {
+  font-family: var(--m-serif);
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--t0);
+  word-break: keep-all;
+}
+
 /* ── 폴드 도입부 lede ("쉽게 말하면 …") ── */
 .foldLede {
   font-size: 13px;

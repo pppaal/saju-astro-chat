@@ -99,6 +99,28 @@ export function currentMonthInTimezone(timezone: string): number {
 // ── public date helpers (the historical datetime/timezone surface) ──
 
 /**
+ * Is `tz` a timezone identifier the runtime's Intl can actually use?
+ * Empty / undefined / junk (e.g. legacy or corrupt profile values) → false.
+ * Used to keep a bad IANA string from throwing deep inside the saju /
+ * astrology engines (Intl.DateTimeFormat throws RangeError on an invalid
+ * `timeZone`), which would crash every birth-based service at once.
+ */
+export function isValidTimeZone(tz: string | null | undefined): boolean {
+  if (!tz) return false
+  try {
+    new Intl.DateTimeFormat('en-US', { timeZone: tz })
+    return true
+  } catch {
+    return false
+  }
+}
+
+/** Return `tz` if it's a usable IANA zone, else `fallback` (default Asia/Seoul). */
+export function normalizeTimeZone(tz: string | null | undefined, fallback = 'Asia/Seoul'): string {
+  return isValidTimeZone(tz) ? (tz as string) : fallback
+}
+
+/**
  * Get current date components in a specific timezone.
  *
  * Returns the narrowed {year, month, day} shape this module's callers

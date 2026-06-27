@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useEffect, useMemo, useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { allExtensions } from '@/lib/i18n/extensions'
 import { repairMojibakeText } from '@/lib/text/mojibake'
 
@@ -238,7 +238,9 @@ async function initializeDicts() {
 type I18nContextType = {
   locale: Locale
   language: Locale
-  setLocale: (l: Locale) => void
+  // opts.reload=false 면 전체 페이지 리로드 없이 클라 상태만 바꾼다(프로그램적
+  // 시드용). 기본(사용자 토글)은 리로드해 서버 컴포넌트까지 새 언어로 반영.
+  setLocale: (l: Locale, opts?: { reload?: boolean }) => void
   t: (path: string, fallback?: string) => string
   translate: (path: string, fallback?: string) => string
   dir: 'ltr' | 'rtl'
@@ -311,6 +313,12 @@ export function I18nProvider({
   // dictVersion bumps every time a dict finishes loading, forcing `t` re-memo
   // so consumers re-render with newly-available translations.
   const [dictVersion, setDictVersion] = useState(0)
+  // 항상 최신 locale 을 가리키는 ref — setLocale 을 안정(deps [])하게 두면서도
+  // "이미 이 언어면 리로드 금지" 가드가 stale 값을 보지 않게 한다.
+  const localeRef = useRef(locale)
+  useEffect(() => {
+    localeRef.current = locale
+  }, [locale])
 
   // Initialize English (default/fallback) on mount
   useEffect(() => {
@@ -352,9 +360,35 @@ export function I18nProvider({
     }
   }, [locale])
 
-  const setLocale = (next: Locale) => {
+  const setLocale = useCallback((next: Locale, opts?: { reload?: boolean }) => {
+    // 이미 같은 언어면 아무것도 하지 않는다 — 특히 리로드 금지.
+    if (next === localeRef.current) return
+    // 쿠키를 먼저 동기로 써서, 이어지는 요청이 새 로케일을 읽게 한다.
+    writeCookieLocale(next)
+    // 프로그램적 시드(reload:false) — deep-link ?lang 로 진입할 때 useCounselorData
+    // 가 부른다. 진입 페이지는 어차피 새로 렌더되므로 리로드가 필요 없고, effect
+    // 에서 리로드를 트리거하면 ?lang 핀과 맞물려 무한 깜빡임(리로드 루프)이 났다.
+    // 여기선 클라 상태만 바꿔 루프를 원천 차단한다.
+    if (opts?.reload === false) {
+      localeRef.current = next
+      setLocaleState(next)
+      return
+    }
+    // 사용자 토글(기본) — 서버 컴포넌트(/free·/integrated-report 등 x-locale·쿠키로
+    // 렌더)는 클라 상태만 바뀌어선 안 바뀌므로 전체 리로드로 확실히 반영한다.
+    // 이때 URL 에 박힌 ?lang/?locale 핀(생일 게이트가 붙임)은 쿠키 토글을 덮어쓰므로
+    // 제거하고 리로드 — 그래야 영어 토글이 리포트·카드까지 먹는다.
+    if (typeof window !== 'undefined') {
+      const url = new URL(window.location.href)
+      const hadPin = url.searchParams.has('lang') || url.searchParams.has('locale')
+      url.searchParams.delete('lang')
+      url.searchParams.delete('locale')
+      if (hadPin) window.location.replace(url.toString())
+      else window.location.reload()
+      return
+    }
     setLocaleState(next)
-  }
+  }, [])
 
   const t = useMemo(() => {
     const getter = (obj: unknown, path: string) => {
@@ -436,7 +470,7 @@ export function I18nProvider({
       dir: isRtl(locale) ? 'rtl' : 'ltr',
       hydrated,
     }),
-    [locale, t, hydrated]
+    [locale, t, hydrated, setLocale]
   )
 
   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>

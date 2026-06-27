@@ -40,12 +40,32 @@ function categoryOf(dmEl: string, el: string): SibCat {
 
 // 지지 충(6쌍)·육합(6쌍) — 한자 기준. 세운지지 ↔ 원국 일지/대운지지 상호작용.
 const CLASH: Record<string, string> = {
-  子: '午', 午: '子', 丑: '未', 未: '丑', 寅: '申', 申: '寅',
-  卯: '酉', 酉: '卯', 辰: '戌', 戌: '辰', 巳: '亥', 亥: '巳',
+  子: '午',
+  午: '子',
+  丑: '未',
+  未: '丑',
+  寅: '申',
+  申: '寅',
+  卯: '酉',
+  酉: '卯',
+  辰: '戌',
+  戌: '辰',
+  巳: '亥',
+  亥: '巳',
 }
 const SIXHAP: Record<string, string> = {
-  子: '丑', 丑: '子', 寅: '亥', 亥: '寅', 卯: '戌', 戌: '卯',
-  辰: '酉', 酉: '辰', 巳: '申', 申: '巳', 午: '未', 未: '午',
+  子: '丑',
+  丑: '子',
+  寅: '亥',
+  亥: '寅',
+  卯: '戌',
+  戌: '卯',
+  辰: '酉',
+  酉: '辰',
+  巳: '申',
+  申: '巳',
+  午: '未',
+  未: '午',
 }
 
 // 외행성 인생 마디 → 길흉 방향·강도. 하드(토성회귀·천왕성대립·명왕성스퀘어)는
@@ -220,8 +240,14 @@ export function buildLifeCurve(
   const { z: astroZ } = znorm(astroRaw)
   const combined = sajuRaw.map((_, i) => sajuW * sajuZ[i] + astroW * astroZ[i])
   const smooth = movingAvg(combined, 2) // 5년창 — 중간 텍스처
-  // 거시 굴곡 — 9년창 2회로 세운 고주파를 씻어 대운·외행성 위주 decade-scale 만 남긴다.
-  const macro = movingAvg(movingAvg(combined, 4), 4)
+  // 거시 굴곡 — 7년창(±3) 1회. **뿌리 수정**: 예전엔 9년창 2회(≈13년 평활) + 0~16세
+  // 성숙 엔벨로프(편차를 평균 쪽으로 당김)를 *곡선에만* 덧칠해 macro 를 만들었다.
+  // 그 결과 (1) 초년기 굴곡(고생/호황)이 통째로 지워지고, (2) macro 가 combined 와
+  // 부호가 어긋나(평생 ~1/6 해) — *대운·세운 티어는 combined 를 쓰는데 인생곡선만
+  // macro 를 써서* 같은 해를 반대로 그리는 모순이 났다. 이제 곡선·마디·대운밴드가
+  // 모두 combined 를 가볍게(7년) 평활한 *같은 신호* 를 본다. 엔벨로프 없음 →
+  // 초년기 고생/호황이 그대로 드러나고, 티어 간 부호가 일치한다.
+  const macro = movingAvg(combined, 3)
 
   const points: LifeCurvePoint[] = sajuRaw.map((_, i) => ({
     year: birthYear + i,
@@ -236,24 +262,39 @@ export function buildLifeCurve(
     agree: Math.sign(sajuZ[i]) === Math.sign(astroZ[i]) && sajuZ[i] !== 0,
   }))
 
-  // 극값(마디) — macro 곡선의 *윈도(±W년)* 국지 최대/최소. 평활 곡선은 인접
-  // 차가 0에 가까워 즉시이웃 비교로는 못 잡으니, 윈도 내 최값 + 윈도 prominence
-  // 로 decade-scale 마디만 뽑는다.
+  // 극값(마디) — macro 곡선의 국지 극값(기울기 부호 변화) 후, *floor/ceiling
+  // prominence* 로 거른다. 옛 ±6년 윈도 방식은 넓은 봉우리(전역 최대도)를 진폭
+  // <0.3 이라 놓쳤다(감사 B2: p47 전역최대 age16, p35 깊은 골 age40 누락). 이
+  // 방식은 한쪽 바닥/천장이 전역이라 전역 극값을 항상 포함한다.
   const peaks: LifeCurveExtremum[] = []
   const troughs: LifeCurveExtremum[] = []
-  const W = 6 // 마디 최소 간격 ~12년
-  const PROM = 0.3 // z-scale 윈도 진폭
-  for (let i = W; i < macro.length - W; i++) {
-    let wMax = -Infinity
-    let wMin = Infinity
-    for (let k = i - W; k <= i + W; k++) {
-      wMax = Math.max(wMax, macro[k])
-      wMin = Math.min(wMin, macro[k])
+  const PROM = 0.3
+  const minLeft: number[] = []
+  const minRight: number[] = []
+  const maxLeft: number[] = []
+  const maxRight: number[] = []
+  for (let i = 0; i < macro.length; i++) {
+    minLeft[i] = i === 0 ? macro[0] : Math.min(minLeft[i - 1], macro[i])
+    maxLeft[i] = i === 0 ? macro[0] : Math.max(maxLeft[i - 1], macro[i])
+  }
+  for (let i = macro.length - 1; i >= 0; i--) {
+    minRight[i] = i === macro.length - 1 ? macro[i] : Math.min(minRight[i + 1], macro[i])
+    maxRight[i] = i === macro.length - 1 ? macro[i] : Math.max(maxRight[i + 1], macro[i])
+  }
+  for (let i = 1; i < macro.length - 1; i++) {
+    const a = macro[i - 1]
+    const b = macro[i]
+    const c = macro[i + 1]
+    const isPeak = b > a && b >= c
+    const isTrough = b < a && b <= c
+    if (isPeak) {
+      // 봉우리가 좌·우 바닥 중 *더 높은* 쪽보다 PROM 이상 솟았나(전역최대→바닥이 전역최소→큰 값).
+      const prom = b - Math.max(minLeft[i - 1], minRight[i + 1])
+      if (prom >= PROM) peaks.push({ year: birthYear + i, age: i, kind: 'peak', value: b })
+    } else if (isTrough) {
+      const prom = Math.min(maxLeft[i - 1], maxRight[i + 1]) - b
+      if (prom >= PROM) troughs.push({ year: birthYear + i, age: i, kind: 'trough', value: b })
     }
-    if (macro[i] === wMax && wMax - wMin >= PROM)
-      peaks.push({ year: birthYear + i, age: i, kind: 'peak', value: macro[i] })
-    else if (macro[i] === wMin && wMax - wMin >= PROM)
-      troughs.push({ year: birthYear + i, age: i, kind: 'trough', value: macro[i] })
   }
 
   return { points, peaks, troughs }

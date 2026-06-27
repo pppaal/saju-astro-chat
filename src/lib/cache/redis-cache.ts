@@ -48,6 +48,9 @@ function getRedisClient(): Redis | null {
 export async function disconnectRedis(): Promise<void> {
   // Upstash uses HTTP REST — nothing to disconnect
   redis = null
+  // L1(인메모리) 도 함께 비운다 — 캐시 레이어 전체 리셋. 테스트 afterEach 가
+  // 이걸 호출해 케이스 간 L1 누수를 막고, 운영에선 사실상 호출되지 않는다.
+  l1Store.clear()
 }
 
 /**
@@ -58,6 +61,60 @@ export const CACHE_TTL = {
   CALENDAR_DATA: 60 * 60 * 24, // 1 day (counselor realtime daily context, calendar route)
   NATAL_CHART: 60 * 60 * 24 * 30, // 30 days (counselor stable context, ephe-cache)
 } as const
+
+// ── L1: process-local in-memory cache (Redis 앞단) ─────────────────────────
+// 왜: cacheOrCalculate 는 Redis(L2) 가 없으면(Upstash 미설정) 매 요청 통째로
+// 재계산하고, 인메모리 폴백이 없었다. 그 결과 사주·점성·캘린더가 같은 warm
+// 인스턴스 안에서도 반복 재계산돼 모든 페이지가 느렸다. L1 은 (1) Redis 없는
+// 환경에서도 인스턴스 수명 동안 재계산을 막고, (2) Redis 가 있어도 hot 키의
+// 원격 HTTP 왕복을 없앤다.
+//
+// 안전성: 캐싱 대상은 결정적·immutable 계산(natal/saju/transit) 또는 키에
+// 날짜가 박힌 항목뿐이라 staleness 가 없다. 다만 출생정보 수정 등 무효화가
+// 일어나도 L1(인스턴스 로컬)은 SCAN-DEL 대상이 아니므로, L1 TTL 을 5분으로
+// 짧게 캡해 무효화 지연을 ≤5분으로 묶는다(버스트·새로고침·궁합 4~5콜 fan-out
+// 은 전부 수초 내라 5분이면 충분히 잡는다). 호출자 간 참조 공유/변이를 막기
+// 위해 JSON 문자열로 저장하고 읽을 때 parse 한다(Redis get 과 동일 의미론).
+const L1_MAX_ENTRIES = 500
+const L1_MAX_TTL_MS = 5 * 60 * 1000
+type L1Entry = { json: string; expiresAt: number }
+const l1Store = new Map<string, L1Entry>()
+
+function l1Get<T>(key: string): T | null {
+  const e = l1Store.get(key)
+  if (!e) return null
+  if (e.expiresAt <= Date.now()) {
+    l1Store.delete(key)
+    return null
+  }
+  // LRU 갱신 — 최근 사용 키를 Map 끝으로 옮겨 가장 오래된 항목부터 evict.
+  l1Store.delete(key)
+  l1Store.set(key, e)
+  try {
+    return JSON.parse(e.json) as T
+  } catch {
+    return null
+  }
+}
+
+function l1Set(key: string, value: unknown, ttlSeconds: number): void {
+  let json: string
+  try {
+    json = JSON.stringify(value)
+  } catch {
+    return // 직렬화 불가(순환 등) → L1 skip
+  }
+  if (l1Store.size >= L1_MAX_ENTRIES && !l1Store.has(key)) {
+    const oldest = l1Store.keys().next().value
+    if (oldest !== undefined) l1Store.delete(oldest)
+  }
+  const ttlMs = Math.min(ttlSeconds * 1000, L1_MAX_TTL_MS)
+  l1Store.set(key, { json, expiresAt: Date.now() + ttlMs })
+}
+
+function l1Del(key: string): void {
+  l1Store.delete(key)
+}
 
 /**
  * Validate cache key format
@@ -82,6 +139,12 @@ export async function cacheGetResult<T>(key: string): Promise<CacheResult<T>> {
   try {
     validateCacheKey(key)
 
+    // L1 먼저 — 인스턴스 로컬 hit 이면 Redis 왕복 자체를 생략.
+    const local = l1Get<T>(key)
+    if (local !== null) {
+      return { hit: true, data: local }
+    }
+
     const client = getRedisClient()
     if (!client) {
       return { hit: false, data: null }
@@ -91,6 +154,10 @@ export async function cacheGetResult<T>(key: string): Promise<CacheResult<T>> {
     if (data === null || data === undefined) {
       return { hit: false, data: null }
     }
+
+    // Redis hit → L1 채움(다른 인스턴스가 쓴 값도 이 인스턴스에서 hot 화).
+    // 남은 TTL 을 모르므로 L1 캡(5분)으로 보수적으로 저장 — immutable 이라 안전.
+    l1Set(key, data, L1_MAX_TTL_MS / 1000)
 
     return { hit: true, data }
   } catch (error) {
@@ -124,8 +191,15 @@ export async function cacheSetResult(
       throw new Error('TTL must be between 1 second and 1 year')
     }
 
+    // L1 은 Redis 유무와 무관하게 항상 채운다 — Upstash 미설정 환경에서도
+    // cacheOrCalculate 가 인스턴스 수명 동안 재계산을 피하는 핵심.
+    l1Set(key, value, ttl)
+
     const client = getRedisClient()
     if (!client) {
+      // 반환값은 "durable(L2) 저장 성공" 의미를 유지한다 — shareLink 처럼
+      // 인스턴스 간 영속이 필요한 호출자가 ok=false 로 폴백할 수 있어야 한다.
+      // (cacheOrCalculate 는 반환값을 무시하므로 L1 이득은 그대로 누린다.)
       return { ok: false, error: new Error('Redis client unavailable') }
     }
 
@@ -147,11 +221,61 @@ export async function cacheSet(key: string, value: unknown, ttl: number = 3600):
 }
 
 /**
+ * 원자적 카운터 증가 (INCR + EXPIRE) — 누적 지표(공유 생성수 등)용.
+ * cacheSet 의 JSON 직렬화와 달리 raw 정수를 쓰므로, 읽을 땐 cacheMGetNumbers 로.
+ * Redis 없으면 null(집계 skip — best-effort). 반환은 증가 후 값.
+ */
+export async function cacheIncr(key: string, ttlSeconds: number): Promise<number | null> {
+  try {
+    validateCacheKey(key)
+    const client = getRedisClient()
+    if (!client) return null
+    const next = await client.incr(key)
+    if (ttlSeconds > 0) {
+      try {
+        await client.expire(key, ttlSeconds)
+      } catch {
+        /* best-effort — 다음 incr 가 재적용 */
+      }
+    }
+    return typeof next === 'number' ? next : null
+  } catch {
+    logger.warn('[cache] incr failed')
+    return null
+  }
+}
+
+/**
+ * 여러 카운터 키를 한 번에 읽어 숫자 배열로 반환(cacheIncr 와 짝). 키 순서 보존,
+ * 없거나 숫자 아님은 0. Redis 없으면 전부 0.
+ */
+export async function cacheMGetNumbers(keys: string[]): Promise<number[]> {
+  try {
+    if (!Array.isArray(keys) || keys.length === 0) return []
+    keys.forEach(validateCacheKey)
+    const client = getRedisClient()
+    if (!client) return keys.map(() => 0)
+    const vals = await client.mget<(number | string | null)[]>(...keys)
+    return keys.map((_, i) => {
+      const v = vals?.[i]
+      const num = typeof v === 'number' ? v : v != null ? Number(v) : 0
+      return Number.isFinite(num) ? num : 0
+    })
+  } catch {
+    logger.warn('[cache] mget numbers failed')
+    return keys.map(() => 0)
+  }
+}
+
+/**
  * Cache delete with error result
  */
 export async function cacheDelResult(key: string): Promise<CacheWriteResult> {
   try {
     validateCacheKey(key)
+
+    // L1 도 같이 비운다 — 무효화가 인스턴스 로컬 캐시에 막히지 않게.
+    l1Del(key)
 
     const client = getRedisClient()
     if (!client) {

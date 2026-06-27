@@ -17,7 +17,13 @@ import {
   getShareLink,
   siteBaseUrl,
   SHARE_TTL_SECONDS,
+  isDayShare,
+  isLifeShare,
+  isCalendarShare,
+  isCompatShare,
   type ShareLinkPayload,
+  type DayShareLinkPayload,
+  type LifeShareLinkPayload,
 } from '@/lib/tarot/shareLink'
 
 const makePayload = (over: Partial<ShareLinkPayload> = {}): ShareLinkPayload => ({
@@ -147,5 +153,60 @@ describe('tarot shareLink', () => {
 
   it('SHARE_TTL_SECONDS 는 90일', () => {
     expect(SHARE_TTL_SECONDS).toBe(90 * 24 * 60 * 60)
+  })
+
+  describe('day / life 공유 kind (cards 없음)', () => {
+    const dayPayload: DayShareLinkPayload = {
+      v: 1,
+      kind: 'day',
+      isKo: true,
+      dateLabel: '6월 15일 토',
+      score: 87,
+      tone: 'positive',
+      headline: '먼저 움직이면 풀리는 하루.',
+      subline: '받쳐주는 흐름이 같이 와요.',
+      curve: [40, 55, 60, 87, 70, 65],
+      markerIndex: 3,
+    }
+    const lifePayload: LifeShareLinkPayload = {
+      v: 1,
+      kind: 'life',
+      isKo: true,
+      rangeLabel: '1994–2078',
+      headline: '마흔에 판이 한 번 뒤집힌다.',
+      curve: [30, 45, 40, 70, 88, 60],
+      axisLabels: ['1994', '2022', '2050', '2078'],
+      markerIndex: 2,
+      peakIndex: 4,
+    }
+
+    it('day 페이로드는 cards 없이도 라운드트립', async () => {
+      const store = new Map<string, unknown>()
+      mockCacheSet.mockImplementation(async (k: string, v: unknown) => {
+        store.set(k, v)
+        return true
+      })
+      mockCacheGet.mockImplementation(async (k: string) => store.get(k) ?? null)
+      const token = await createShareLink(dayPayload)
+      const fetched = await getShareLink(token as string)
+      expect(fetched).toEqual(dayPayload)
+      expect(fetched && isDayShare(fetched)).toBe(true)
+    })
+
+    it('life 페이로드는 cards 없이도 라운드트립', async () => {
+      mockCacheGet.mockResolvedValue(lifePayload)
+      const fetched = await getShareLink('tok')
+      expect(fetched).toEqual(lifePayload)
+      expect(fetched && isLifeShare(fetched)).toBe(true)
+    })
+
+    it('타입 가드는 서로 배타적', () => {
+      expect(isDayShare(dayPayload)).toBe(true)
+      expect(isLifeShare(dayPayload)).toBe(false)
+      expect(isCalendarShare(dayPayload)).toBe(false)
+      expect(isCompatShare(dayPayload)).toBe(false)
+      expect(isLifeShare(lifePayload)).toBe(true)
+      expect(isDayShare(lifePayload)).toBe(false)
+    })
   })
 })

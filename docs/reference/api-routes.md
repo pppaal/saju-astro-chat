@@ -15,7 +15,7 @@ status: auto-generated
 <!-- gen:api-routes -->
 <!-- 이 표는 자동 생성됩니다. 직접 수정하지 마세요 — `npm run docs:sync`. -->
 
-**총 93개 라우트** (원천: `src/app/api/**/route.ts`)
+**총 99개 라우트** (원천: `src/app/api/**/route.ts`)
 
 | 라우트                                  | 메서드             |
 | --------------------------------------- | ------------------ |
@@ -23,6 +23,7 @@ status: auto-generated
 | `/api/admin/anomalies`                  | GET                |
 | `/api/admin/audit-log`                  | GET                |
 | `/api/admin/automation-status`          | GET                |
+| `/api/admin/free-funnel`                | GET                |
 | `/api/admin/funnel`                     | GET                |
 | `/api/admin/grant-credits`              | POST               |
 | `/api/admin/metrics`                    | GET                |
@@ -56,6 +57,7 @@ status: auto-generated
 | `/api/astrology/advanced/solar-return`  | POST               |
 | `/api/auth/[...nextauth]`               | GET, POST          |
 | `/api/auth/revoke`                      | POST               |
+| `/api/calendar/day/share`               | POST               |
 | `/api/calendar/share`                   | POST               |
 | `/api/checkout`                         | POST               |
 | `/api/cities`                           | GET                |
@@ -79,6 +81,7 @@ status: auto-generated
 | `/api/cron/winback-push`                | GET, POST          |
 | `/api/csp-report`                       | GET, POST          |
 | `/api/db-ping`                          | GET                |
+| `/api/life/share`                       | POST               |
 | `/api/me`                               | GET                |
 | `/api/me/account`                       | DELETE             |
 | `/api/me/circle`                        | GET, POST, DELETE  |
@@ -91,11 +94,13 @@ status: auto-generated
 | `/api/me/purchases`                     | GET                |
 | `/api/me/push-subscription`             | POST, DELETE       |
 | `/api/me/refund-credit-pack`            | POST               |
+| `/api/me/starter-eligibility`           | GET                |
 | `/api/me/upload-photo`                  | POST               |
 | `/api/referral/claim`                   | POST               |
 | `/api/referral/create-code`             | POST               |
 | `/api/referral/link`                    | POST               |
 | `/api/referral/me`                      | GET                |
+| `/api/report/share`                     | POST               |
 | `/api/saju`                             | POST               |
 | `/api/share/[id]`                       | GET                |
 | `/api/tarot`                            | POST               |
@@ -109,6 +114,7 @@ status: auto-generated
 | `/api/tarot/save`                       | GET, POST          |
 | `/api/tarot/save/[id]`                  | GET, PATCH, DELETE |
 | `/api/tarot/share`                      | POST               |
+| `/api/track/funnel`                     | POST               |
 | `/api/track/visit`                      | POST               |
 | `/api/webhook/sentry`                   | POST               |
 | `/api/webhook/stripe`                   | POST               |

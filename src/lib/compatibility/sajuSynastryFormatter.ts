@@ -541,15 +541,15 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
   const spouseStars = new Set(['정재', '편재', '정관', '편관'])
   const spouseRoleLabel: Record<string, string> = {
     정재: '처성(안정·가정)',
-    편재: '처성(활달·유동)',
+    편재: '처성(활달·자유)',
     정관: '부성(책임·안정)',
-    편관: '부성(긴장·격정)',
+    편관: '부성(열정·자극)',
   }
   const spouseRoleLabelEn: Record<string, string> = {
     정재: 'wife-star (stable·home)',
-    편재: 'wife-star (lively·fluid)',
+    편재: 'wife-star (lively·free)',
     정관: 'husband-star (responsible·stable)',
-    편관: 'husband-star (tense·intense)',
+    편관: 'husband-star (passion·spark)',
   }
   const roleD = (s: string) => (en ? (spouseRoleLabelEn[s] ?? '') : spouseRoleLabel[s])
   const sibsinCrossLines: string[] = []

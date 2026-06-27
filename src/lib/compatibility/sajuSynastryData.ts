@@ -48,8 +48,8 @@ export const BRANCH_HAP: Record<string, { other: string; element: string }> = {
   酉: { other: '辰', element: '금' },
   巳: { other: '申', element: '수' },
   申: { other: '巳', element: '수' },
-  午: { other: '未', element: '화' },
-  未: { other: '午', element: '화' },
+  午: { other: '未', element: '토' },
+  未: { other: '午', element: '토' },
 }
 
 export const BRANCH_CHUNG: Record<string, string> = {

@@ -92,48 +92,68 @@ const PATTERN_KO: Record<LifePatternKey, { ko: string; en: string; line: string;
     'late-bloomer': {
       ko: '대기만성형',
       en: 'Late bloomer',
-      line: '젊을 때는 좀 고생해도, 마흔 넘어가면서 자리 잡고 늦게 잘 풀리는 편이에요.',
-      lineEn: 'A rougher start, but from your forties on, things settle and finally open up.',
+      line: '처음엔 더디고 애써야 하지만, 해를 거듭할수록 자리를 잡아가요. 늦게 피어 오래가는, 뒤로 갈수록 환해지는 결이에요.',
+      lineEn: 'A slow, effortful start — but you find your ground as the years go on. Yours is a life that blooms late and lasts, brightening toward the end.',
     },
     'early-peak': {
       ko: '초년발복형',
       en: 'Early peak',
-      line: '젊을 때 빨리 자리 잡는 편이고, 나이 들수록 무리하기보다 지키는 게 나아요.',
-      lineEn: 'You find your footing early; later in life, holding steady beats overreaching.',
+      line: '이른 봄에 일찍 꽃을 피우는 결이에요. 한창때 멀리 나아가고, 뒤로는 넓히기보다 지켜낼 때 더 단단해져요.',
+      lineEn: 'You flower early, in the first warmth of the year. You travel far while the season is at its height; later, you grow steadier by keeping what you have rather than reaching for more.',
     },
     'midlife-peak': {
       ko: '중년절정형',
       en: 'Midlife peak',
-      line: '마흔~쉰 무렵에 가장 크게 풀려요. 그때 승부를 보면 좋아요.',
-      lineEn: 'Things open widest in your forties to fifties — a good window to make your move.',
+      line: '한낮에 해가 가장 높이 뜨듯, 인생의 한가운데서 가장 크게 펼쳐지는 결이에요. 그 길목에서 마음먹고 나아가면 멀리 닿아요.',
+      lineEn: 'Like the sun standing highest at noon, your life opens widest at its middle. Make your move at that crossing and it carries far.',
     },
     'steady-rise': {
       ko: '점진상승형',
       en: 'Steady rise',
-      line: '나이 들수록 조금씩 좋아지는 편이에요.',
-      lineEn: 'Things tend to get a little better with each decade.',
+      line: '서두르지 않아도 물이 차오르듯 한 해 한 해 나아져요. 조금씩, 그러나 멈추지 않고 높아지는 결이에요.',
+      lineEn: 'Without hurrying, you rise like water filling a basin, a little more each year — slow, but never still.',
     },
     smooth: {
       ko: '순탄형',
       en: 'Smooth path',
-      line: '큰 굴곡 없이 무난하게 흘러가는 편이에요.',
-      lineEn: 'Your life tends to flow without big swings.',
+      line: '큰 파도 없이 잔잔하게 흐르는 강 같은 결이에요. 굽이는 적어도, 멀리까지 고르게 닿아요.',
+      lineEn: 'Yours flows like a calm river with few rapids — gentle, even, and far-reaching.',
     },
     hard: {
       ko: '인고형',
       en: 'The long haul',
-      line: '전반적으로 쉽지 않아서, 버티면서 단단해지는 편이에요.',
-      lineEn: 'Not an easy road overall — you grow tougher by enduring.',
+      line: '쉬운 길은 아니에요. 바람을 안고 오래 걷는 동안, 버틴 만큼 단단해지는 결이에요.',
+      lineEn: 'Not an easy road. You walk a long way into the wind, and what you endure is what makes you unbreakable.',
     },
     undulating: {
       ko: '굴곡형',
       en: 'Ups and downs',
-      line: '좋을 때와 힘들 때가 번갈아 와요. 타이밍을 잘 보면 좋아요.',
-      lineEn: 'Good spells and hard spells alternate — read the timing well.',
+      line: '밀물과 썰물처럼 좋을 때와 힘든 때가 번갈아 와요. 물때를 읽을 줄 알면, 그 리듬이 오히려 힘이 돼요.',
+      lineEn: 'Like tides, bright spells and hard spells take turns. Learn to read the water, and the rhythm itself becomes your strength.',
     },
   }
 
-export function deriveLifePattern(saju: SajuLike, currentAge?: number): LifePattern | null {
+/** 정점 시점을 단정하는 유형 — favor 가 없어도 곡선 마루 시점만이라도 붙여 화면
+ * 곡선과 한 줄 서사가 어긋나지 않게 한다(굴곡/순탄/고전은 정점을 단정하지 않음). */
+const PEAK_WINDOW_KEYS = new Set<LifePatternKey>([
+  'late-bloomer',
+  'steady-rise',
+  'midlife-peak',
+  'early-peak',
+])
+
+/** 인생 곡선(거시 macro)을 입력으로 받아 인생유형과 정점을 *곡선 기준*으로 산출하기
+ * 위한 최소 형상. 곡선이 주어지면 분류·정점을 곡선에서 뽑아 lifePattern 과 곡선이
+ * 화면에서 모순되지 않게 한다(감사 B1). */
+export interface LifeCurveShape {
+  points: Array<{ age: number; macro: number }>
+}
+
+export function deriveLifePattern(
+  saju: SajuLike,
+  currentAge?: number,
+  curve?: LifeCurveShape
+): LifePattern | null {
   const dm = saju.dayMaster?.name
   const daeun = saju.daeun ?? []
   if (!dm || daeun.length === 0) return null
@@ -194,8 +214,82 @@ export function deriveLifePattern(saju: SajuLike, currentAge?: number): LifePatt
     key = 'smooth'
   }
 
-  const { line, lineEn } = personalize(key, seq, startYears, currentAge)
+  // 곡선이 주어지면 분류·정점을 *곡선 기준*으로 덮어쓴다(감사 B1) — 단, 전반적
+  // 고전(hard)은 곡선 정규화로 사라지므로 daeun favor 기준을 유지한다.
+  let curvePeakAge: number | undefined
+  if (curve && curve.points.length >= 10 && key !== 'hard') {
+    const cls = classifyFromCurve(curve.points, currentAge)
+    if (cls) {
+      key = cls.key
+      curvePeakAge = cls.peakAge
+    }
+  }
+
+  const { line, lineEn } = personalize(key, seq, startYears, currentAge, curvePeakAge)
   return { key, ...PATTERN_KO[key], line, lineEn, daeun: seq }
+}
+
+/** macro 곡선 형상 → 인생유형 키 + 전역 정점 나이. lifePattern 과 곡선의 모순을
+ * 없애기 위해 *같은 곡선*에서 분류·정점을 뽑는다(감사 B1). 정규화(0..1) 후 구간
+ * 평균 + 전역 극값 위치로 판정. */
+function classifyFromCurve(
+  pointsAll: Array<{ age: number; macro: number }>,
+  currentAge?: number
+): { key: LifePatternKey; peakAge: number } | null {
+  const p = pointsAll.filter((x) => x.age >= 0 && x.age <= 85)
+  if (p.length < 10) return null
+  const macros = p.map((x) => x.macro)
+  const lo = Math.min(...macros)
+  const hi = Math.max(...macros)
+  const range = hi - lo || 1
+  const nv = (m: number) => (m - lo) / range
+  const seg = (a: number, b: number): number => {
+    const s = p.filter((x) => x.age >= a && x.age < b)
+    return s.length ? s.reduce((acc, x) => acc + nv(x.macro), 0) / s.length : 0.5
+  }
+  const early = seg(12, 38)
+  const mid = seg(38, 58)
+  const late = seg(58, 85)
+  const globalPeakAge = p.reduce((best, x) => (x.macro > best.macro ? x : best), p[0]).age
+  const spread = Math.max(early, mid, late) - Math.min(early, mid, late)
+  const D = 0.1
+  let key: LifePatternKey
+  if (mid + D < early && mid + D < late)
+    key = 'undulating' // 중년이 양옆보다 꺼진 V
+  else if (mid > early + D && mid > late + D)
+    key = 'midlife-peak' // 중년 솟음
+  else if (late > early + D && late >= mid - 1e-9 && globalPeakAge >= 52)
+    key = 'late-bloomer' // 말년 정점 반전
+  else if (early > late + D && early >= mid - 1e-9 && globalPeakAge < 38)
+    key = 'early-peak' // 초년 정점 후 하강
+  else if (late > early + D)
+    key = 'steady-rise' // 단조 상승
+  else if (spread > 0.3)
+    key = 'undulating' // 큰 진폭이나 위 형태 아님
+  else key = 'smooth'
+  // 정점 나이는 *유형이 가리키는 구간* 안의 최댓값으로 — base.line 방향과 detail
+  // "정점 시점"이 어긋나지 않게(예: 점진상승인데 정점이 11세이면 모순).
+  // early-peak '정점'은 *유년기*(<16)가 아니라 젊은 시절(초년발복)을 가리켜야 —
+  // "14세에 가장 크게"는 발복 서사와 어긋난다. undulating/smooth 도 유년 정점은 피한다.
+  const win: [number, number] =
+    key === 'late-bloomer' || key === 'steady-rise'
+      ? [50, 85]
+      : key === 'early-peak'
+        ? [16, 40]
+        : key === 'midlife-peak'
+          ? [35, 60]
+          : [16, 85]
+  const wp = p.filter((x) => x.age >= win[0] && x.age < win[1])
+  let pool = wp.length ? wp : p
+  // 현재 나이를 알면 *가까운 지평*(현재−3 ~ +28년) 안의 정점을 우선한다 — 31세에게
+  // "81세부터 가장 크게"처럼 50년 뒤 정점을 가리키면 비현실적이라(사용자 지적).
+  // 지평 안에 후보가 있으면 그쪽, 없으면(이미 지난 정점뿐인 고령 등) 구간 최댓값.
+  if (typeof currentAge === 'number') {
+    const near = pool.filter((x) => x.age >= currentAge - 3 && x.age <= currentAge + 28)
+    if (near.length) pool = near
+  }
+  const peakAge = pool.reduce((best, x) => (x.macro > best.macro ? x : best), pool[0]).age
+  return { key, peakAge }
 }
 
 /** 십신 카테고리의 짧은 라벨(ko/en) — 우호 운의 성격을 한 단어로. */
@@ -237,10 +331,46 @@ function personalize(
   key: LifePatternKey,
   seq: DaeunFavor[],
   startYears: Map<number, number>,
-  currentAge?: number
+  currentAge?: number,
+  curvePeakAge?: number
 ): { line: string; lineEn: string } {
   const base = PATTERN_KO[key]
   if (seq.length === 0) return { line: base.line, lineEn: base.lineEn }
+
+  // 곡선 정점 나이가 주어지면(B1) 그 나이를 덮는 대운을 정점으로 — lifePattern 의
+  // "정점 시점"이 화면의 곡선 마루와 일치한다. 십신(cat)·연도·시제 모두 그 기준.
+  if (typeof curvePeakAge === 'number') {
+    const covering = seq.filter((c) => c.startAge <= curvePeakAge).slice(-1)[0] ?? seq[0]
+    const past = typeof currentAge === 'number' ? curvePeakAge < currentAge : false
+    const baseLineKo = past ? (LINE_PAST_KO[key] ?? base.line) : base.line
+    const baseLineEn = past ? (LINE_PAST_EN[key] ?? base.lineEn) : base.lineEn
+    const cat = covering.stemCat
+    const baseYr = startYears.get(covering.startAge)
+    const yr = baseYr != null ? baseYr + (curvePeakAge - covering.startAge) : undefined
+    const whenKo = yr ? `${yr}년(${curvePeakAge}세) 무렵` : `${ageBandKo(curvePeakAge)}(${curvePeakAge}세 무렵)`
+    const whenEn = yr ? `around ${yr} (age ${curvePeakAge})` : `around age ${curvePeakAge}`
+    // 정점 대운의 십신 우호(favor)가 없어도, 정점 시점을 단정하는 유형은 *곡선 마루
+    // 시점*만이라도 붙여 base.line 의 막연한 어조와 화면 곡선이 어긋나지 않게 한다
+    // (예: late-bloomer 인데 곡선 마루가 60대면 "마흔" 대신 실제 60대를 가리킨다).
+    // 십신 방향은 favor 가 양일 때만 단정한다(없으면 시점만).
+    if (covering.favor <= 0) {
+      if (!PEAK_WINDOW_KEYS.has(key)) return { line: baseLineKo, lineEn: baseLineEn }
+      const tKo = past
+        ? `특히 ${whenKo}, 가장 깊이 무르익었던 철이었어요.`
+        : `특히 ${whenKo}부터, 가장 깊이 무르익는 철이에요.`
+      const tEn = past
+        ? `Your fullest ripening was ${whenEn}.`
+        : `Your fullest ripening comes ${whenEn} onward.`
+      return { line: `${baseLineKo} ${tKo}`, lineEn: `${baseLineEn} ${tEn}` }
+    }
+    const detailKo = past
+      ? `특히 ${whenKo}, ${CAT_KO[cat]} 쪽으로 가장 환하게 피어났던 때였어요.`
+      : `특히 ${whenKo}부터, ${CAT_KO[cat]} 쪽으로 가장 환하게 피어나요.`
+    const detailEn = past
+      ? `Your fullest bloom was ${whenEn}, turned toward ${CAT_EN[cat]}.`
+      : `Your fullest bloom comes ${whenEn} onward, turned toward ${CAT_EN[cat]}.`
+    return { line: `${baseLineKo} ${detailKo}`, lineEn: `${baseLineEn} ${detailEn}` }
+  }
 
   // 정점 대운을 *유형 서사가 가리키는 구간* 안에서 고른다 — 그래야 "대기만성인데
   // 정점이 한 살" 같은 자기모순이 안 난다.
@@ -308,8 +438,8 @@ function personalize(
 // 정점 시간 창을 단정하는 유형의 회고(past) 변형 — 그 창이 이미 지난 사람에게
 // 미래 지시 어조 대신 과거형으로(감사 BUG-6). 미정의 유형은 base.line 유지.
 const LINE_PAST_KO: Partial<Record<LifePatternKey, string>> = {
-  'midlife-peak': '마흔~쉰 무렵에 가장 크게 풀렸어요.',
+  'midlife-peak': '한낮의 해가 높이 떠오르듯, 인생의 한가운데서 가장 크게 펼쳐졌던 때예요.',
 }
 const LINE_PAST_EN: Partial<Record<LifePatternKey, string>> = {
-  'midlife-peak': 'Things opened widest in your forties to fifties.',
+  'midlife-peak': 'Like the noon sun at its height, your life opened widest at its middle.',
 }

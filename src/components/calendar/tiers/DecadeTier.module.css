@@ -286,6 +286,22 @@
   background: var(--surface-3);
   border: 1px solid var(--line-2);
 }
+/* 막대 색 = 그 해 점수 밴드(CALENDAR_BANDS) — 월·일·연·인생과 같은 길흉 기준.
+   예전엔 전부 회색(높이만)이라 잘 풀리는 10년·고된 10년이 같아 보였다. */
+.byBarGood {
+  background: var(--gold-bg);
+  border-color: var(--gold-line);
+}
+.byBarAvoid {
+  background: var(--crimson-bg);
+  border-color: var(--crimson-line);
+}
+/* 대운 10년 곡선 그래프 — 막대 대신. 점 색이 그 해 길흉. */
+.yGraph {
+  display: block;
+  width: 100%;
+  height: auto;
+}
 .byCellPeak .byBar {
   background: var(--gold-bg);
   border-color: var(--gold-line);

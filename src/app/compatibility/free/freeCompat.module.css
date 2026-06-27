@@ -89,6 +89,78 @@
   font-weight: 800;
   margin: 0 0 12px;
 }
+/* 사람 카드 헤더 — 제목 + "저장된 정보 불러오기"(로그인 시) 한 줄. */
+.personHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.personHead .personTitle {
+  margin: 0;
+}
+.loadWrap {
+  position: relative;
+  flex-shrink: 0;
+}
+.loadBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: 1px solid var(--gold-line);
+  background: var(--gold-wash);
+  color: var(--gold);
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 11.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    border-color 0.15s,
+    background 0.15s;
+}
+.loadBtn:hover {
+  border-color: var(--gold-soft);
+  background: var(--gold-wash);
+}
+.loadList {
+  position: absolute;
+  right: 0;
+  z-index: 20;
+  margin-top: 6px;
+  width: 220px;
+  max-height: 240px;
+  overflow: auto;
+  list-style: none;
+  padding: 4px;
+  border-radius: 12px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-card);
+}
+.loadItem {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 13px;
+  color: var(--ink);
+  cursor: pointer;
+  transition: background 0.12s;
+}
+.loadItem:hover {
+  background: var(--gold-wash);
+}
+.loadItemLabel {
+  font-weight: 600;
+}
+.loadItemSub {
+  margin-left: 6px;
+  font-size: 11px;
+  color: var(--ink-3);
+}
 .field {
   display: flex;
   flex-direction: column;
@@ -149,6 +221,21 @@
   text-align: center;
   font-size: 13px;
   color: #b3415f;
+}
+
+/* 출생시각 미상 안내 — 시주(時柱)·배우자성·점수가 추정임을 알린다 */
+.timeNote {
+  margin: 16px auto 0;
+  max-width: 34em;
+  padding: 10px 14px;
+  border-radius: var(--radius-md, 12px);
+  background: rgba(201, 168, 95, 0.12);
+  border: 1px solid rgba(201, 168, 95, 0.34);
+  text-align: center;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--ink-2);
+  word-break: keep-all;
 }
 
 /* ── 결과 ── */
@@ -284,6 +371,124 @@
 }
 
 /* 용어 풀이 */
+/* 테마 한 줄 훅 — 질문에 결론부터 답하는 단정 한 줄. 골드 굵은 글씨로 먼저 눈에. */
+/* 헤드라인 총점 — 큰 링 게이지 + 등급. 맨 위에 한눈에 박히는 캡처 후크. */
+.scoreHero {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 6px 0 18px;
+  padding: 16px 18px;
+  border-radius: var(--radius-lg);
+  background: var(--celeste);
+  border: 1px solid var(--gold-line);
+}
+.scoreRing {
+  position: relative;
+  width: 76px;
+  height: 76px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: conic-gradient(var(--gold) calc(var(--pct) * 1%), var(--gold-wash) 0);
+  display: grid;
+  place-items: center;
+}
+.scoreRing::before {
+  content: '';
+  position: absolute;
+  inset: 7px;
+  border-radius: 50%;
+  background: var(--card);
+}
+.scoreRingNum {
+  position: relative;
+  font-size: 26px;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--gold);
+}
+.scoreHeroText {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.scoreHeroLabel {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: var(--ink-3);
+}
+.scoreHeroGrade {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--ink);
+}
+
+/* 테마 점수 칩 — 점신·포스텔러식 스캔용 "끌림 82". 제목 줄 오른쪽 끝. */
+.themeScore {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 5px;
+  white-space: nowrap;
+}
+.themeScoreCap {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--ink-3);
+}
+.themeScoreNum {
+  font-size: 26px;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--gold);
+}
+/* 마찰(어디서 부딪힐까)은 "좋은 점수"가 아니라 충돌 강도 — 로즈로 구분. */
+.themeScoreNumClash {
+  color: var(--rose);
+}
+/* 점수 막대 — 한눈에 보이는 게이지. */
+.themeBar {
+  height: 7px;
+  border-radius: 999px;
+  background: var(--gold-wash);
+  overflow: hidden;
+  margin: 0 0 12px;
+}
+.themeBarFill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--gold-soft), var(--gold));
+}
+.themeBarFillClash {
+  background: linear-gradient(90deg, rgba(194, 84, 138, 0.55), var(--rose));
+}
+.themeHook {
+  margin: 0 0 10px;
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1.6;
+  color: var(--gold);
+  word-break: keep-all;
+}
+
+/* 테마 카드 "더 보기" — 박스 없는 가벼운 골드 토글. (용어풀이 .glossary 와 별개) */
+.themeMore {
+  margin-top: 4px;
+}
+.themeMoreSummary {
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--gold);
+  list-style: none;
+  padding: 2px 0 8px;
+}
+.themeMoreSummary::-webkit-details-marker {
+  display: none;
+}
+
 .glossary {
   margin-top: 22px;
   padding: 14px 18px;
@@ -322,7 +527,9 @@
 .share {
   margin-top: 24px;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
 }
 
 /* 마무리 + 상담사 CTA */

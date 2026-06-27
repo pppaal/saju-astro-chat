@@ -37,6 +37,8 @@ import type {
 } from '@/types/calendar'
 import styles from './LifetimeTier.module.css'
 import { useI18n } from '@/i18n/I18nProvider'
+import { ShareLifeButton } from '@/components/calendar/ShareLifeButton'
+import { lifeShareHook } from '@/lib/share/shareHook'
 
 // ============================================================================
 // Props (계약 불변 — byte-for-byte 보존. 최상단 티어 → onRise/showRise 없음)
@@ -73,10 +75,11 @@ const EL_PLAIN: Record<string, { ko: string; en: string }> = {
 
 // favor(0/1/2) → 톤 밴드 클래스. 0=중립 / 1=오름(lift) / 2=풍요(boon).
 function favorClass(favor: number, base: typeof styles): string {
-  if (favor >= 2) return base.dwBoon
-  if (favor >= 1) return base.dwLift
-  if (favor <= -2) return base.dwTrough
-  if (favor <= -1) return base.dwDip
+  // 연속 밴드(±2, 곡선 유래)와 정수 favor(±2, 폴백) 둘 다 같은 버킷으로.
+  if (favor >= 1.2) return base.dwBoon
+  if (favor >= 0.35) return base.dwLift
+  if (favor <= -1.2) return base.dwTrough
+  if (favor <= -0.35) return base.dwDip
   return base.dwNeutral
 }
 
@@ -95,8 +98,7 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
     zrFortuneChapters,
     lifePattern,
     lifeCurve,
-  } =
-    lifetime
+  } = lifetime
 
   // lifeStages 빈 배열 가드 (adapter 실패 시 깨짐 방지) — 로딩.
   if (!lifeStages?.length) {
@@ -153,13 +155,44 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
     (lifePattern?.daeun ?? []).map((d) => [d.startAge, d.favor])
   )
 
-  // ── 계절 arc — daeun favor 평균(없으면 0)으로 Y 굴곡. now=stage.now. ──
+  // ── 10년 막대·계절 arc 의 Y 굴곡은 *인생 곡선(거시)* 과 같은 출처·같은 기준선으로 ──
+  //   예전엔 막대를 *10개 대운 평균* 기준으로 재정규화해 ±2 로 폈다 → 평생 역풍인
+  //   사주도 "제일 덜 나쁜" 대운이 금색(풍요)으로 강제됐고, 단계 톤(stageCurveLevel,
+  //   평생 평균 기준 z)과 baseline 이 달라 "막대 저점인데 같은 시기 단계 톤 good" 모순도
+  //   났다. 이제 단계 톤과 *동일한* (평생 macro 평균/표준편차) z 를 쓴다 — 절대 길흉을
+  //   보존(역풍 인생엔 금색 막대 0)하고 막대·단계가 부호로 못 어긋난다. 곡선 없으면 favor 폴백.
+  const decadeBandByAge = (() => {
+    const m = new Map<number, number>()
+    const pts = lifeCurve?.points
+    if (!pts || pts.length < 10) return m
+    // 곡선(value)의 평생 평균/표준편차 = 단계 톤과 같은 *인생 전체* 기준선.
+    const all = pts.map((p) => p.value)
+    const lifeMean = all.reduce((s, v) => s + v, 0) / all.length
+    const lifeStd = Math.sqrt(all.reduce((s, v) => s + (v - lifeMean) ** 2, 0) / all.length) || 1
+    const avgFor = (a0: number): number | null => {
+      const seg = pts.filter((p) => p.age >= a0 && p.age < a0 + 10)
+      return seg.length ? seg.reduce((s, p) => s + p.value, 0) / seg.length : null
+    }
+    for (const d of daewoon) {
+      const avg = avgFor(d.startAge)
+      if (avg == null) continue
+      const z = (avg - lifeMean) / lifeStd
+      // 평생 z 를 막대 스케일(±2)로. 단계 톤(±0.35)과 부호·문턱이 정렬됨.
+      m.set(d.startAge, Math.max(-2, Math.min(2, z * 1.1)))
+    }
+    return m
+  })()
+  // 막대/계절이 쓰는 단일 신호 — 곡선 밴드 우선, 없으면 대운 favor.
+  const bandForAge = (startAge: number): number =>
+    decadeBandByAge.get(startAge) ?? daeunFavorByAge.get(startAge) ?? 0
+
+  // ── 계절 arc — 곡선 밴드(없으면 favor) 평균으로 Y 굴곡. now=stage.now. ──
   const stageFavor = (ageFrom: number, ageTo: number): number => {
     const daeun = lifePattern?.daeun ?? []
     if (daeun.length === 0) return 0
     const inStage = daeun.filter((d) => d.startAge >= ageFrom && d.startAge <= ageTo)
     const pool = inStage.length > 0 ? inStage : daeun
-    return pool.reduce((a, d) => a + d.favor, 0) / pool.length
+    return pool.reduce((a, d) => a + bandForAge(d.startAge), 0) / pool.length
   }
   const stageNowIndex = lifeStages.findIndex((s) => s.now)
 
@@ -276,10 +309,56 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
     const maxAge = pts[pts.length - 1].age || 88
     const x = (age: number) => PAD_X + (age / maxAge) * (CW - 2 * PAD_X)
     const y = (v: number) => PAD_TOP + (1 - v) * (CH - PAD_TOP - PAD_BOT)
-    const line = pts.map((p, i) => `${i ? 'L' : 'M'}${x(p.age).toFixed(1)} ${y(p.value).toFixed(1)}`).join(' ')
+    const line = pts
+      .map((p, i) => `${i ? 'L' : 'M'}${x(p.age).toFixed(1)} ${y(p.value).toFixed(1)}`)
+      .join(' ')
     const area = `${line} L${x(pts[pts.length - 1].age).toFixed(1)} ${CH - PAD_BOT} L${x(pts[0].age).toFixed(1)} ${CH - PAD_BOT} Z`
-    const valAt = (age: number) => pts.reduce((b, p) => (Math.abs(p.age - age) < Math.abs(b.age - age) ? p : b), pts[0]).value
+    const valAt = (age: number) =>
+      pts.reduce((b, p) => (Math.abs(p.age - age) < Math.abs(b.age - age) ? p : b), pts[0]).value
     return { pts, maxAge, x, y, line, area, valAt }
+  })()
+
+  // ── 공유용 인생 곡선 데이터(숫자·연도 라벨만 — 원국/생년월일은 안 보냄) ──
+  const lifeShare = (() => {
+    const pts = lifeCurve?.points ?? []
+    if (pts.length < 2) return null
+    const curveScores = pts.map((p) => Math.round(Math.max(0, Math.min(1, p.value)) * 100))
+    const nowAge = lifeCurve?.nowAge ?? -1
+    const markerIndex =
+      nowAge >= 0
+        ? pts.reduce(
+            (best, p, i) =>
+              Math.abs(p.age - nowAge) < Math.abs(pts[best].age - nowAge) ? i : best,
+            0
+          )
+        : undefined
+    // 피크 = value 최댓값 인덱스.
+    let peakIndex = 0
+    for (let i = 1; i < pts.length; i++) if (pts[i].value > pts[peakIndex].value) peakIndex = i
+    // 축 라벨 — 곡선 양 끝과 1/3·2/3 지점의 실제 연도 4개.
+    const at = (f: number) => pts[Math.round(f * (pts.length - 1))]?.year
+    const axisLabels = [at(0), at(1 / 3), at(2 / 3), at(1)]
+      .filter((y): y is number => typeof y === 'number')
+      .map((y) => `${y}`)
+    // 공유 카드는 더 센 후크(피크/추세 기반). 인앱 결론(patternLine)은 그대로.
+    const hook = lifeShareHook({
+      slope: lifeCurve?.now?.slope ?? 'plateau',
+      nowAge,
+      peakAge: pts[peakIndex]?.age ?? -1,
+      peakYear: pts[peakIndex]?.year ?? 0,
+      seed: birthYear,
+      ko,
+    })
+    return {
+      isKo: ko,
+      rangeLabel: `${birthYear}–${lifeSpanTo}`,
+      headline: hook.headline,
+      subline: hook.subline || youAreHere || undefined,
+      curve: curveScores,
+      axisLabels,
+      markerIndex,
+      peakIndex,
+    }
   })()
 
   return (
@@ -306,10 +385,113 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
         {patternLine && <p className={styles.novLine}>{patternLine}</p>}
         {/* 일주 아키타입 character — novice-grade 평이 프로즈(있으면). */}
         {iljuRich?.character && <p className={styles.novLine}>{iljuRich.character}</p>}
+        {/* 지금 여기 → 다음 마디: 월 티어 verdict 카드(.doBox)와 동일 형식(레이아웃 통일) */}
+        {youAreHere && (
+          <div className={styles.doBox}>
+            <span className={styles.doLbl}>{ko ? '지금' : 'Now'}</span>
+            <span className={styles.doText}>{youAreHere}</span>
+          </div>
+        )}
       </header>
 
-      {/* ── 감사 #3: 지금 여기 → 다음 마디 한 줄(hero·timeline·milestones 연결) ── */}
-      {youAreHere && <p className={styles.youAreHere}>{youAreHere}</p>}
+      {/* ── B2. 인생 굴곡 곡선 — 사주(대운·세운·충합) + 외행성 트랜짓 중첩 ── */}
+      {curve && (
+        <section className={styles.sec}>
+          <div className={styles.secH}>
+            <span className={styles.secLbl}>{ko ? '인생 굴곡' : 'The life curve'}</span>
+            <span className={styles.secLn} />
+            <span className={styles.secLat}>CURVE</span>
+          </div>
+          <svg
+            className={styles.curveSvg}
+            viewBox={`0 0 ${CW} ${CH}`}
+            preserveAspectRatio="none"
+            role="img"
+            aria-label={ko ? '인생 굴곡 곡선' : 'Life curve'}
+          >
+            <line
+              className={styles.curveMid}
+              x1={PAD_X}
+              x2={CW - PAD_X}
+              y1={curve.y(0.5)}
+              y2={curve.y(0.5)}
+            />
+            <path className={styles.curveArea} d={curve.area} />
+            <path className={styles.curveLine} d={curve.line} />
+            {lifeCurve!.troughs.map((t) => (
+              <circle
+                key={`tr-${t.age}`}
+                className={styles.curveTrough}
+                cx={curve.x(t.age)}
+                cy={curve.y(curve.valAt(t.age))}
+                r={3}
+              />
+            ))}
+            {lifeCurve!.peaks.map((p) => (
+              <circle
+                key={`pk-${p.age}`}
+                className={styles.curvePeak}
+                cx={curve.x(p.age)}
+                cy={curve.y(curve.valAt(p.age))}
+                r={3}
+              />
+            ))}
+            {lifeCurve!.nowAge >= 0 && lifeCurve!.nowAge <= curve.maxAge && (
+              <line
+                className={styles.curveNow}
+                x1={curve.x(lifeCurve!.nowAge)}
+                x2={curve.x(lifeCurve!.nowAge)}
+                y1={PAD_TOP - 4}
+                y2={CH - PAD_BOT}
+              />
+            )}
+          </svg>
+          <div className={styles.curveAxis}>
+            {[0, 20, 40, 60, 80].map((a) => (
+              <span key={a}>{a}</span>
+            ))}
+          </div>
+          {lifeCurve!.now && (
+            <div className={styles.curveNowLine}>
+              {(() => {
+                const n = lifeCurve!.now!
+                const head = ko
+                  ? n.slope === 'rising'
+                    ? '지금은 흐름이 차오르는 중이에요.'
+                    : n.slope === 'falling'
+                      ? '지금은 흐름이 한 박자 가라앉는 구간이에요.'
+                      : '지금은 흐름이 고른 구간이에요.'
+                  : n.slope === 'rising'
+                    ? 'Right now the flow is on the rise.'
+                    : n.slope === 'falling'
+                      ? 'Right now the flow eases off a beat.'
+                      : 'Right now the flow is even.'
+                const tail = n.nextPeak
+                  ? ko
+                    ? ` 다음 마루는 ${n.nextPeak.age}세(${n.nextPeak.year}년) 무렵.`
+                    : ` Next crest around age ${n.nextPeak.age} (${n.nextPeak.year}).`
+                  : n.nextTrough
+                    ? ko
+                      ? ` 다음 저점은 ${n.nextTrough.age}세(${n.nextTrough.year}년) 무렵 — 지나면 다시 올라가요.`
+                      : ` Next dip around age ${n.nextTrough.age} (${n.nextTrough.year}) — it climbs again after.`
+                    : ''
+                return head + tail
+              })()}
+            </div>
+          )}
+          <div className={styles.curveCap}>
+            {ko
+              ? '대운·세운·충합(사주)과 외행성 트랜짓(점성)을 겹쳐 본 평생 흐름 — ● 마루 ● 골, 세로선이 지금.'
+              : 'Saju cycles (daeun·year·clash) layered with outer-planet transits — ● peaks ● troughs, the line is now.'}
+          </div>
+        </section>
+      )}
+
+      {lifeShare && (
+        <div style={{ display: 'flex', justifyContent: 'center', marginTop: 14 }}>
+          <ShareLifeButton data={lifeShare} />
+        </div>
+      )}
 
       {/* ── 자세히 ① 정체성 — 일간·격국·용신·강약 (사주를 아는 사람용) ── */}
       <details className={styles.expertWrap}>
@@ -436,99 +618,6 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
         )}
       </details>
 
-      {/* ── B2. 인생 굴곡 곡선 — 사주(대운·세운·충합) + 외행성 트랜짓 중첩 ── */}
-      {curve && (
-        <section className={styles.sec}>
-          <div className={styles.secH}>
-            <span className={styles.secLbl}>{ko ? '인생 굴곡' : 'The life curve'}</span>
-            <span className={styles.secLn} />
-            <span className={styles.secLat}>CURVE</span>
-          </div>
-          <svg
-            className={styles.curveSvg}
-            viewBox={`0 0 ${CW} ${CH}`}
-            preserveAspectRatio="none"
-            role="img"
-            aria-label={ko ? '인생 굴곡 곡선' : 'Life curve'}
-          >
-            <line
-              className={styles.curveMid}
-              x1={PAD_X}
-              x2={CW - PAD_X}
-              y1={curve.y(0.5)}
-              y2={curve.y(0.5)}
-            />
-            <path className={styles.curveArea} d={curve.area} />
-            <path className={styles.curveLine} d={curve.line} />
-            {lifeCurve!.troughs.map((t) => (
-              <circle
-                key={`tr-${t.age}`}
-                className={styles.curveTrough}
-                cx={curve.x(t.age)}
-                cy={curve.y(curve.valAt(t.age))}
-                r={3}
-              />
-            ))}
-            {lifeCurve!.peaks.map((p) => (
-              <circle
-                key={`pk-${p.age}`}
-                className={styles.curvePeak}
-                cx={curve.x(p.age)}
-                cy={curve.y(curve.valAt(p.age))}
-                r={3}
-              />
-            ))}
-            {lifeCurve!.nowAge >= 0 && lifeCurve!.nowAge <= curve.maxAge && (
-              <line
-                className={styles.curveNow}
-                x1={curve.x(lifeCurve!.nowAge)}
-                x2={curve.x(lifeCurve!.nowAge)}
-                y1={PAD_TOP - 4}
-                y2={CH - PAD_BOT}
-              />
-            )}
-          </svg>
-          <div className={styles.curveAxis}>
-            {[0, 20, 40, 60, 80].map((a) => (
-              <span key={a}>{a}</span>
-            ))}
-          </div>
-          {lifeCurve!.now && (
-            <div className={styles.curveNowLine}>
-              {(() => {
-                const n = lifeCurve!.now!
-                const head = ko
-                  ? n.slope === 'rising'
-                    ? '지금은 흐름이 차오르는 중이에요.'
-                    : n.slope === 'falling'
-                      ? '지금은 흐름이 한 박자 가라앉는 구간이에요.'
-                      : '지금은 흐름이 고른 구간이에요.'
-                  : n.slope === 'rising'
-                    ? 'Right now the flow is on the rise.'
-                    : n.slope === 'falling'
-                      ? 'Right now the flow eases off a beat.'
-                      : 'Right now the flow is even.'
-                const tail = n.nextPeak
-                  ? ko
-                    ? ` 다음 마루는 ${n.nextPeak.age}세(${n.nextPeak.year}년) 무렵.`
-                    : ` Next crest around age ${n.nextPeak.age} (${n.nextPeak.year}).`
-                  : n.nextTrough
-                    ? ko
-                      ? ` 다음 저점은 ${n.nextTrough.age}세(${n.nextTrough.year}년) 무렵 — 지나면 다시 올라가요.`
-                      : ` Next dip around age ${n.nextTrough.age} (${n.nextTrough.year}) — it climbs again after.`
-                    : ''
-                return head + tail
-              })()}
-            </div>
-          )}
-          <div className={styles.curveCap}>
-            {ko
-              ? '대운·세운·충합(사주)과 외행성 트랜짓(점성)을 겹쳐 본 평생 흐름 — ● 마루 ● 골, 세로선이 지금.'
-              : 'Saju cycles (daeun·year·clash) layered with outer-planet transits — ● peaks ● troughs, the line is now.'}
-          </div>
-        </section>
-      )}
-
       {/* ── C. 大運 10개 가로 인생 타임라인 (SIGNATURE — 기본 유지) ── */}
       <section className={styles.sec}>
         <div className={styles.secH}>
@@ -566,15 +655,15 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
         </div>
         <div className={styles.dwRow}>
           {daewoon.map((d, i) => {
-            const favor = daeunFavorByAge.get(d.startAge) ?? 0
-            const cls = [styles.dwCell, favorClass(favor, styles), d.now && styles.dwNow]
+            // 막대 = 인생 곡선과 같은 출처(거시 밴드, ±2). 곡선 없으면 favor 폴백.
+            const band = bandForAge(d.startAge)
+            const cls = [styles.dwCell, favorClass(band, styles), d.now && styles.dwNow]
               .filter(Boolean)
               .join(' ')
-            // favor 크기를 셀 바닥 fill 높이로(±2→100%, ±1→50%) — 등폭 타일이 아니라
-            // 굴곡이 눈에 보이는 "바차트". 위(순풍)는 금색, 아래(역풍)는 식은색.
-            const fillH = Math.round((Math.min(Math.abs(favor), 2) / 2) * 52)
-            const fillCls =
-              favor > 0 ? styles.dwFillUp : favor < 0 ? styles.dwFillDown : ''
+            // 밴드 크기를 셀 바닥 fill 높이로(±2→100%) — 연속값이라 곡선의 굴곡이
+            // 막대에도 그대로 보인다. 위(순풍)는 금색, 아래(역풍)는 식은색.
+            const fillH = Math.round((Math.min(Math.abs(band), 2) / 2) * 52)
+            const fillCls = band > 0.15 ? styles.dwFillUp : band < -0.15 ? styles.dwFillDown : ''
             const sibsin = d.sibsin && d.sibsin !== '—' ? String(d.sibsin) : ''
             const sibsinGloss = sibsin ? (ko ? sibsinArea(sibsin) : sibsinAreaEn(sibsin)) : ''
             const gzKr = d.gz.kr // 한국어 음(갑술) — secondary 표기.
@@ -584,7 +673,7 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
                 key={`dw-${d.startAge}-${i}`}
                 title={gzKr ? `${gzKr} (${d.gz.hanja})` : d.gz.hanja}
               >
-                {favor !== 0 && (
+                {fillCls && (
                   <span
                     className={`${styles.dwFill} ${fillCls}`.trim()}
                     style={{ height: `${fillH}%` }}

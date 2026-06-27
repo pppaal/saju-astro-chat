@@ -27,6 +27,8 @@ export type TierScope = 'month' | 'year'
 export type LoadTierResult =
   | { kind: 'login' }
   | { kind: 'no-birth' }
+  // 익명 + 무입력 — 임의 샘플 대신 생년월일 입력 게이트를 띄운다(lang 전달).
+  | { kind: 'guest'; lang: 'ko' | 'en' }
   | ({ kind: 'ok'; lang: 'ko' | 'en' } & AssembledTiers)
 
 // 쿼리파라미터로 들어온 생일 — 로그인 없이도 캘린더/인생흐름을 그 사람 기준으로
@@ -40,17 +42,6 @@ export interface BirthOverride {
   timeZone: string
   place?: string
   name?: string
-}
-
-// 익명·무입력 데모용 샘플(프리뷰와 동일 인물). 로그인 벽 대신 보여줘 "써보고"
-// 자기 생일을 입력하게 유도한다.
-const SAMPLE_BIRTH: BirthOverride = {
-  birthDate: '1995-02-09',
-  birthTime: '06:40',
-  gender: 'male',
-  latitude: 37.5665,
-  longitude: 126.978,
-  timeZone: 'Asia/Seoul',
 }
 
 type SP = Record<string, string | string[] | undefined>
@@ -128,9 +119,10 @@ export async function loadTierData(
   } else {
     const session = await getServerSession()
     if (!session?.user?.id) {
-      // 2) 익명 + 무입력 — 로그인 벽 대신 샘플 인물로 데모(로그인 없이 이용).
-      BIRTH = { ...SAMPLE_BIRTH }
-      place = lang === 'en' ? 'Seoul' : '서울'
+      // 2) 익명 + 무입력 — 임의 샘플로 풀이를 띄우지 않고 생년월일 입력 게이트로.
+      //    localStorage 에 저장된 생일이 있으면 클라이언트가 ?date=... 를 붙여
+      //    자동으로 다시 연다(통합 리포트와 동일 규약).
+      return { kind: 'guest', lang }
     } else {
       // 3) 로그인 사용자 — 저장된 본명으로.
       const userRow = await prisma.user.findUnique({

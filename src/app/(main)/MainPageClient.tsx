@@ -19,6 +19,7 @@ import {
   getStoredBirthInfo,
   saveBirthInfo,
   buildCounselorHref,
+  buildReportBirthQuery,
   type StoredBirthInfo,
 } from './birthInfoStorage'
 import HexDPLogo from '@/components/branding/HexDPLogo'
@@ -54,19 +55,9 @@ function formatSubject(info: StoredBirthInfo, isKo: boolean): string {
 // birthTime 키와 다름). 저장된 생일이 있으면 그 사람 걸로, 없으면 파라미터 없이
 // 보내 페이지가 샘플 출생정보로 폴백한다.
 function buildBirthHref(base: string, info: StoredBirthInfo | null, locale: Locale): string {
-  const p = new URLSearchParams()
-  p.set('lang', locale)
-  if (info) {
-    p.set('date', info.birthDate)
-    if (!info.birthTimeUnknown && info.birthTime) p.set('time', info.birthTime)
-    if (typeof info.latitude === 'number') p.set('lat', String(info.latitude))
-    if (typeof info.longitude === 'number') p.set('lng', String(info.longitude))
-    if (info.timeZone) p.set('tz', info.timeZone)
-    p.set('gender', info.gender)
-    if (info.name) p.set('name', info.name)
-    if (info.city) p.set('place', info.city)
-  }
-  return `${base}?${p.toString()}`
+  // 리포트/캘린더/운명 페이지가 읽는 쿼리 스키마(date/time/lat/lng/tz/gender).
+  // BirthGate 리다이렉트와 동일 헬퍼를 써 두 경로가 어긋나지 않게 한다.
+  return `${base}?${buildReportBirthQuery(info, locale)}`
 }
 
 // 메인에 바로 노출하는 리포트들 — 전부 로그인 없이 열람 가능. birthLink 가 true 면

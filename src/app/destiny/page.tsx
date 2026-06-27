@@ -1,13 +1,14 @@
 /* ============================================================
-   /destiny — 인생 흐름 (인생 · 10년 · 1년)
+   /destiny — 인생 흐름 (인생 전체 · 세운 1년)
    ───────────────────────────────────────────────────────────
    운흐름 캘린더(/calendar, 월/일)와 분리된 "인생 스케일" surface.
    세션·본명 가드 + tier 어셈블은 loadTierData('year') 로 캘린더와 공유
-   (1년 풀빌드 — 연/대운 티어가 필요로 함). 같은 줌 셸을 인생·10년·1년
-   부분집합으로 재사용한다.
+   (1년 풀빌드). 같은 줌 셸을 인생·1년 부분집합으로 재사용한다 — 10년(대운)
+   티어는 무료 화면이 너무 길어 네비에서 제외(데이터는 내부 계산용으로만 빌드).
    ============================================================ */
 
 import BirthRequiredFallback from '../calendar/birth-required'
+import BirthGate from '@/components/birth/BirthGate'
 import { loadTierData, parseBirthOverride } from '../calendar/loadTierData'
 import DestinyLifeClient from './DestinyLifeClient'
 import CounselorCTA from '@/components/report/CounselorCTA'
@@ -24,17 +25,12 @@ export default async function DestinyLifePage({ searchParams }: { searchParams: 
   const data = await loadTierData('year', override)
   if (data.kind === 'login') return <BirthRequiredFallback reason="login" />
   if (data.kind === 'no-birth') return <BirthRequiredFallback reason="no-birth" />
+  if (data.kind === 'guest') return <BirthGate base="/destiny" locale={data.lang} />
 
-  const { topbar, user, lifetime, decade, year, lang } = data
+  const { topbar, user, lifetime, year, lang } = data
   return (
     <>
-      <DestinyLifeClient
-        topbar={topbar}
-        user={user}
-        lifetime={lifetime}
-        decade={decade}
-        year={year}
-      />
+      <DestinyLifeClient topbar={topbar} user={user} lifetime={lifetime} year={year} />
       <CounselorCTA
         lang={lang}
         question={{

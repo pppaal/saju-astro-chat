@@ -31,4 +31,21 @@ describe('counselor system prompt language purity', () => {
     )
     expect(HANGUL.test(buildCompatibilityCounselorPrompt('ko'))).toBe(true)
   })
+  // Single-source compat prompts add SAJU_ONLY/ASTRO_ONLY scope + focus blocks;
+  // their EN sides must stay Hangul-free too (the scope blocks were a new place
+  // for Korean to leak into the English prompt).
+  it.each([
+    { saju: true, astro: false },
+    { saju: false, astro: true },
+  ])(
+    'EN single-source compat prompt (saju=$saju astro=$astro) has no Hangul; KO does',
+    (sources) => {
+      const en = buildCompatibilityCounselorPrompt('en', sources)
+      expect(
+        hangulLines(en),
+        `Hangul in EN compat prompt (${JSON.stringify(sources)}):\n${hangulLines(en).join('\n')}`
+      ).toEqual([])
+      expect(HANGUL.test(buildCompatibilityCounselorPrompt('ko', sources))).toBe(true)
+    }
+  )
 })

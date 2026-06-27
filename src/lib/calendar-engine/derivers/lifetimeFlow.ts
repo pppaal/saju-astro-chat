@@ -19,7 +19,7 @@
 import type { NatalContext } from '../context/types'
 import { getSibsinKo } from '@/lib/saju/cycleRelations'
 import { SIGN_KO as SIGN_KO_SSOT } from '@/lib/astrology/signLabels'
-import { STEM_KO, BRANCH_KO } from '@/lib/saju/ganjiKo'
+import { STEM_KO, BRANCH_KO, ganjiToKorean, ganjiToRoman } from '@/lib/saju/ganjiKo'
 import { getStemElement } from '@/lib/saju/stemBranchUtils'
 import { getTwelveStage } from '@/lib/saju/shinsal'
 import { getJohuYongsin } from '@/lib/saju/johuYongsin'
@@ -354,60 +354,60 @@ const BAND_CAT_EN: Record<string, Record<Cat, string>> = {
 // KO/EN 은 같은 인덱스 = 같은 의미로 1:1 정렬(어댑터가 같은 idx 로 둘 다 뽑음).
 const TONE_VARIANTS_KO: Record<'good' | 'hard' | 'mid', readonly string[]> = {
   good: [
-    '흐름이 순해서 노력한 만큼 잘 풀리는 편이에요.',
-    '기운이 등 뒤에서 받쳐줘 결정이 매끄럽게 이어져요.',
-    '용신과 잘 맞아 시도한 일이 좀처럼 헛돌지 않아요.',
-    '하려는 방향과 운의 결이 맞아 추진력이 붙어요.',
-    '주변의 도움이 자연스럽게 모여 일이 수월해져요.',
-    '타이밍이 받쳐줘 작은 시도도 결실로 이어지기 쉬워요.',
-    '막힘이 적어 마음먹은 일을 밀고 나가기 좋은 때예요.',
+    '바람이 등을 밀어주어, 애쓴 만큼 멀리 나아가는 때예요.',
+    '물길이 트여, 마음먹은 일이 자연스레 흘러가는 철이에요.',
+    '결이 맞아떨어져, 내딛는 걸음마다 길이 열려요.',
+    '햇볕이 고르게 드는 철이라, 뿌린 것이 어렵잖게 자라요.',
+    '인연과 도움이 곁에 모여, 일이 한결 수월해지는 때예요.',
+    '때가 받쳐주어, 작은 시도도 곧잘 열매로 맺혀요.',
+    '막힘이 적어, 품은 뜻을 멀리 밀고 가기 좋은 흐름이에요.',
   ],
   hard: [
-    '쉽지 않은 고비를 넘으며 단단해지는 시기예요.',
-    '저항이 잦아 한 걸음마다 무게를 실어야 하는 편이에요.',
-    '기신과 부딪히며 깎여나가는 만큼 코어가 굵어져요.',
-    '바람을 안고 가는 구간이라 평소보다 힘이 더 들어요.',
-    '뜻대로 안 풀리는 일이 늘어 인내가 필요한 시기예요.',
-    '부딪힘이 잦지만 그만큼 내공이 깊어지는 때예요.',
-    '서두르기보다 버티며 때를 고르는 게 나은 흐름이에요.',
+    '바람을 안고 오르는 구간이라, 한 걸음마다 무게가 실려요.',
+    '뜻대로 풀리지 않는 일이 늘어, 견디는 힘이 필요한 철이에요.',
+    '깎이고 부딪히는 만큼, 안의 심지가 굵어지는 시기예요.',
+    '길이 좁아지는 철이라, 서두르기보다 때를 고르는 게 나아요.',
+    '맞바람이 잦지만, 그 저항이 끝내 뿌리를 깊게 해요.',
+    '쉽지 않은 고비를 지나며, 단단해지는 법을 배우는 때예요.',
+    '물때가 빠진 구간이라, 무리해 나아가기보다 채비할 때예요.',
   ],
   mid: [
-    '큰 굴곡 없이 차분히 자기 몫을 다지는 흐름이에요.',
-    '드라마틱한 사건보다 누적이 의미 있는 편이에요.',
-    '평지에서 페이스를 유지하는 게 핵심이에요.',
-    '큰 사건보다 하루하루 쌓는 것이 힘이 되는 흐름이에요.',
-    '기복이 적어 꾸준함이 가장 큰 무기가 되는 때예요.',
-    '무리하지 않고 페이스를 지키면 무난히 흘러가요.',
-    '눈에 띄는 변화보단 안정 속에서 정리하기 좋은 시기예요.',
+    '큰 굽이 없이, 잔잔하게 자기 몫을 다져가는 흐름이에요.',
+    '드라마틱한 사건보다, 쌓이는 시간이 의미를 갖는 철이에요.',
+    '평지를 고르게 걷듯, 제 보폭을 지키며 걷기 좋은 시기예요.',
+    '큰 사건보다, 하루하루 포개지는 결이 힘이 되는 철이에요.',
+    '기복이 적어, 꾸준함이 가장 큰 힘이 되는 때예요.',
+    '무리하지 않고 보폭을 지키면, 무던하게 흘러가는 흐름이에요.',
+    '눈에 띄는 변화보다, 고요 속에서 정돈하기 좋은 시기예요.',
   ],
 }
 const TONE_VARIANTS_EN: Record<'good' | 'hard' | 'mid', readonly string[]> = {
   good: [
-    'The current runs with you — effort tends to convert into results.',
-    'The wind blows at your back, so decisions chain together cleanly.',
-    'Your useful element is in season, so attempts rarely spin in place.',
-    'Your direction lines up with the current, so momentum builds.',
-    'Help gathers naturally and things go more smoothly.',
-    'The timing backs you, so even small tries tend to land.',
-    'Few blockages — a good stretch to push what you set your mind to.',
+    'The wind is at your back; effort carries you farther than usual.',
+    'The channel is open, and what you set in motion tends to flow of its own accord.',
+    'Things line up, and a path opens with each step you take.',
+    'The light falls evenly this season, so what you plant grows with ease.',
+    'People and help gather close, and the work goes lighter.',
+    'The timing holds you up — even small attempts ripen into fruit.',
+    'Few obstacles; a good current for carrying what you set your heart on.',
   ],
   hard: [
-    'A season of grinding through resistance — you come out denser and tougher.',
-    'Pushback shows up often, so each step has to be loaded with weight.',
-    'You collide with your unhelpful element — what gets sanded down is what makes your core thicker.',
-    'You move into a headwind, so it takes more effort than usual.',
-    'More things resist your plans — a stretch that asks for patience.',
-    'Friction is frequent, but it is also where your depth builds.',
-    'Better to endure and pick your moment than to rush.',
+    'You climb into a headwind, and each step carries weight.',
+    'More things resist your plans; this is a stretch that asks for endurance.',
+    'What wears you down on the outside also hardens you at the core.',
+    'The road narrows this season — better to pick your moment than to rush.',
+    'Headwinds are frequent, but that resistance deepens your roots.',
+    'You pass through a hard crossing and learn how to grow solid.',
+    'The tide is out — a time to prepare rather than force your way forward.',
   ],
   mid: [
-    'No dramatic swings — a flow that quietly compounds what you do.',
-    'Less about big events, more about the meaning of accumulation.',
-    'The point of this stretch is holding pace on flat ground.',
-    'Day-by-day accumulation matters more than big events here.',
-    'Few swings — steadiness is your strongest asset now.',
-    'Hold your pace without overreaching and it flows fine.',
-    'Less dramatic change, more a good time to consolidate in calm.',
+    'No great bends — a quiet current where you settle into what is yours.',
+    'Less about dramatic events, more about the meaning that builds over time.',
+    'Like walking even ground, the work here is keeping your footing.',
+    'Day after day adds up to more than any single event right now.',
+    'Few swings; steadiness is your strongest asset in this stretch.',
+    'Hold your stride without overreaching, and things keep flowing, untroubled.',
+    'Less visible change — a good season to set things in order, in calm.',
   ],
 }
 
@@ -432,44 +432,14 @@ const SIGN_EN: Record<string, string> = {
 
 // 천간/지지 한자 → 한글 음. 일반 사용자가 한자를 못 읽어 "丁丑 대운" 이 막막
 // 하다는 피드백(2026-06). 모든 간지 표기 시 옆에 한글 음을 병기한다.
-// 천간/지지 한자→한글 음은 정본(saju/ganjiKo) 의 STEM_KO/BRANCH_KO 직접 import.
-// Romanizations (pinyin-ish) for EN output — English readers can't read
-// 한글 음 either, so we romanize the Korean reading instead.
-const STEM_ROM: Record<string, string> = {
-  甲: 'gap',
-  乙: 'eul',
-  丙: 'byeong',
-  丁: 'jeong',
-  戊: 'mu',
-  己: 'gi',
-  庚: 'gyeong',
-  辛: 'sin',
-  壬: 'im',
-  癸: 'gye',
-}
-const BRANCH_ROM: Record<string, string> = {
-  子: 'ja',
-  丑: 'chuk',
-  寅: 'in',
-  卯: 'myo',
-  辰: 'jin',
-  巳: 'sa',
-  午: 'o',
-  未: 'mi',
-  申: 'sin',
-  酉: 'yu',
-  戌: 'sul',
-  亥: 'hae',
-}
+// 간지 표면 표기 — 한자→음 변환은 *전부* 정본(saju/ganjiKo) 한 곳을 거친다.
+// novice 표면 = 한글 음/로마자 음만(辛亥 같은 raw 한자는 expert/hover 전담).
+// 로컬 로마자 맵을 두지 않는다(중복은 drift 의 원천 — 중앙화).
 function ganjiKo(stem: string, branch: string): string {
-  const s = STEM_KO[stem] ?? ''
-  const b = BRANCH_KO[branch] ?? ''
-  return s && b ? `${stem}${branch}(${s}${b})` : `${stem}${branch}`
+  return ganjiToKorean(`${stem}${branch}`)
 }
 function ganjiEn(stem: string, branch: string): string {
-  const s = STEM_ROM[stem] ?? ''
-  const b = BRANCH_ROM[branch] ?? ''
-  return s && b ? `${stem}${branch} (${s}${b})` : `${stem}${branch}`
+  return ganjiToRoman(stem, branch)
 }
 
 // 외행성 마디 kind → 짧은 한국어 라벨 (각 단계 카드에 짧게 박는 용도).
@@ -805,7 +775,7 @@ const ELEMENT_IMPLICATION_KO: Record<Elem, string> = {
   fire: '드러내고 표현하는 추진력이 큰 편이에요',
   earth: '안정·뿌리·매개 역할에 강한 편이에요',
   metal: '분별·다듬기·맺고 끊는 게 분명해요',
-  water: '유연한 사고와 깊이 있는 흐름이 본 편이에요',
+  water: '유연한 사고와 깊이 있게 파고드는 힘이 강한 편이에요',
 }
 const ELEMENT_IMPLICATION_EN: Record<Elem, string> = {
   wood: 'your engine runs on growth and expansion',
@@ -837,12 +807,39 @@ export function deriveLifetimeFlow(
    * now 를 받아야 "현재 단계(you are here)"와 "현재 pivot"이 같은 날짜를 가리킨다 —
    * 예전엔 이 인자가 없어 currentManAge 가 서버 시계로 떨어져 비결정적이었다(ENGINE-AUDIT).
    */
-  now?: Date
+  now?: Date,
+  /**
+   * 인생 곡선(거시 macro) — 있으면 성인 단계 톤 valence(good/hard/mid)를 곡선에서
+   * 정해 막대·년운과 같은 출처로 통일한다(단계 톤이 단일 대운 favor 로만 정해져
+   * 곡선 마루/저점과 어긋나던 문제). 없으면 기존 단일 대운 favor 유지.
+   */
+  lifeCurve?: { points: ReadonlyArray<{ age: number; macro: number }> } | null
 ): LifetimeFlow | undefined {
   const birthYear = natal.input?.year
   const daeun = natal.saju?.daeun ?? []
   const dm = natal.saju?.dayMaster?.name
   if (!birthYear || daeun.length === 0 || !dm) return undefined
+
+  // ── 인생 곡선 기반 단계 톤 valence ──
+  // 단계 톤(good/hard/mid)을 곡선 macro 의 그 단계 평균이 *인생 분포*에서 어디쯤인지
+  // (z-점수)로 정해, 막대·1년운과 같은 출처로 통일한다. 곡선이 없으면 null →
+  // 호출부가 기존 단일 대운 favor 로 폴백.
+  const curvePts = lifeCurve?.points ?? []
+  let curveMean = 0
+  let curveStd = 1
+  if (curvePts.length >= 5) {
+    const ms = curvePts.map((p) => p.macro)
+    curveMean = ms.reduce((a, b) => a + b, 0) / ms.length
+    curveStd = Math.sqrt(ms.reduce((a, b) => a + (b - curveMean) ** 2, 0) / ms.length) || 1
+  }
+  const stageCurveLevel = (lo: number, hi: number): 'good' | 'hard' | 'mid' | null => {
+    if (curvePts.length < 5) return null
+    const seg = curvePts.filter((p) => p.age >= lo && p.age <= hi)
+    if (seg.length === 0) return null
+    const avg = seg.reduce((a, p) => a + p.macro, 0) / seg.length
+    const z = (avg - curveMean) / curveStd
+    return z > 0.35 ? 'good' : z < -0.35 ? 'hard' : 'mid'
+  }
 
   // ── lang dispatch helpers ──
   // intro 합성 + daeunLine 은 render 언어를 그대로 쓰고, phase 의 사용자 토글
@@ -855,10 +852,10 @@ export function deriveLifetimeFlow(
   // ── strength / yongsin ──
   const strengthKo =
     natal.saju.strength === 'weak'
-      ? '기운이 약한 편이라'
+      ? '기운이 약한 편'
       : natal.saju.strength === 'strong'
-        ? '기운이 강한 편이라'
-        : '기운이 비교적 균형 잡혀'
+        ? '기운이 강한 편'
+        : '기운이 비교적 균형 잡힌 편'
   const strengthEn =
     natal.saju.strength === 'weak'
       ? 'on the weaker side of strength'
@@ -901,13 +898,13 @@ export function deriveLifetimeFlow(
   if (geokgukPrimary && geokgukPrimary !== '미정') {
     const shortKo = GEOKGUK_SHORT_KO[geokgukPrimary] ?? ''
     const en = GEOKGUK_EN[geokgukPrimary]
+    // 평이 우선 — raw 격국명(정인격/종재격/병신화수격…)을 빼고 평이 결만 쓴다(감사
+    // jargon + 화格 모순 노출 회피). 격국 라벨 자체는 expert fold/태그에만.
     if (shortKo) {
-      // 조사 처리 — 격국명은 항상 '격' 으로 끝나 받침 있음. "정인격으로" 식.
-      // (옛 "정인격로" 비문법 회귀 fix.)
-      geokgukIntroKo = `격국은 ${geokgukPrimary}으로 ${shortKo}.`
+      geokgukIntroKo = `타고난 큰 틀로 보면 ${shortKo}.`
     }
     if (en) {
-      geokgukIntroEn = `Pattern: ${en.name} — ${en.short}.`
+      geokgukIntroEn = `By your core make-up, ${en.short}.`
     }
   }
 
@@ -1075,18 +1072,19 @@ export function deriveLifetimeFlow(
   // ── intro 합성 ──
   let intro = ''
   if (isEn) {
+    // 평이 우선 — raw 한자 일간(壬)·"용신" 용어를 surface 에서 뺀다(감사 jargon).
     const head = yongEn
-      ? `On the Saju side, ${dm} day master, ${strengthEn}; you shine when ${yongEn} elements back you up.`
-      : `On the Saju side, ${dm} day master, ${strengthEn}.`
+      ? `On the Saju side, your nature is ${strengthEn}; you shine when ${yongEn} elements back you up.`
+      : `On the Saju side, your nature is ${strengthEn}.`
     const parts: string[] = []
     parts.push(head)
     if (structure) parts.push(structure.en)
     if (geokgukIntroEn) parts.push(geokgukIntroEn)
     // 구조 서사가 이미 지배 십신을 풀어 설명하므로 raw % 줄은 중복 — 생략.
     if (!structure && sibsinIntroEn) parts.push(sibsinIntroEn)
-    if (rootIntroEn) parts.push(rootIntroEn)
+    // rootIntro(통근/월령/득령)·johuIntro(조후)는 expert 전문어라 novice intro 에서
+    // 제외(감사 jargon). 강약은 head 에, 결은 structure/elem 에 평이하게 이미 있음.
     if (elemIntroEn) parts.push(elemIntroEn)
-    if (johuIntroEn) parts.push(johuIntroEn)
     if (lifeIntroEn) parts.push(lifeIntroEn)
     if (astroId) {
       parts.push(`On the astrology side, you were born with ${astroId}.`)
@@ -1098,18 +1096,19 @@ export function deriveLifetimeFlow(
     }
     intro = parts.join(' ')
   } else {
+    // 평이 우선 — raw 한자 일간(壬)·"용신" 용어를 surface 에서 뺀다(감사 jargon).
     const head = yongKo
-      ? `사주로는 ${dm} 일간으로 ${strengthKo}, 용신 ${yongKo}${gaI(yongKo)} 받쳐줄 때 잘 풀려요.`
-      : `사주로는 ${dm} 일간으로 ${strengthKo}.`
+      ? `사주로는 ${strengthKo}이라, ${yongKo} 기운이 받쳐줄 때 잘 풀려요.`
+      : `사주로는 ${strengthKo}이에요.`
     const parts: string[] = []
     parts.push(head)
     if (structure) parts.push(structure.ko)
     if (geokgukIntroKo) parts.push(geokgukIntroKo)
     // 구조 서사가 이미 지배 십신을 풀어 설명하므로 raw % 줄은 중복 — 생략.
     if (!structure && sibsinIntroKo) parts.push(sibsinIntroKo)
-    if (rootIntroKo) parts.push(rootIntroKo)
+    // rootIntro(통근/월령/득령)·johuIntro(조후)는 expert 전문어라 novice intro 에서
+    // 제외(감사 jargon). 강약은 head 에, 결은 structure/elem 에 평이하게 이미 있음.
     if (elemIntroKo) parts.push(elemIntroKo)
-    if (johuIntroKo) parts.push(johuIntroKo)
     if (lifeIntroKo) parts.push(lifeIntroKo)
     if (astroId) {
       parts.push(`점성으로는 ${astroId}의 기질을 타고났고요.`)
@@ -1216,7 +1215,7 @@ export function deriveLifetimeFlow(
     const fav = favorOf(natal.saju.strength, cat, getStemElement(lensStem), natal.saju.yongsin)
     // 초년 톤은 억부(신강약)로 — 신약은 비겁·인성이 받침(good), 재성·관성·식상은
     // 부담(hard). 재다신약의 초년 재성 부담이 'mid' 로 뭉개지던 것 교정.
-    const toneFav =
+    let toneFav: 'good' | 'hard' | 'mid' =
       isChildhood && natal.saju.strength === 'weak'
         ? cat === '비겁' || cat === '인성'
           ? 'good'
@@ -1226,6 +1225,18 @@ export function deriveLifetimeFlow(
             ? 'good'
             : 'hard'
           : fav
+    // 성인 단계는 인생 곡선 valence 로 톤을 맞춘다(막대·1년운과 동일 출처). 곡선이
+    // 없으면 위 단일 대운 favor 유지. 초년은 년주 억부 규칙 유지(곡선 유년기 감쇠로
+    // 유아기는 어차피 mid 라 정보가 적다).
+    if (!isChildhood) {
+      // 현재 계절은 "지금→끝" 구간으로 톤을 잡는다 — 20년 평균은 이미 지난 초반
+      // (저점)에 끌려가, 같은 "지금"이 인생계절=hard 인데 현재 대운/1년운=good 으로
+      // 갈리던 모순을 막는다. 과거/미래 계절은 구간 전체 평균 유지.
+      const isCurrentStage = currentAge >= lo && currentAge <= hi
+      const tLo = isCurrentStage ? Math.max(lo, Math.min(currentAge, hi - 4)) : lo
+      const cl = stageCurveLevel(tLo, hi)
+      if (cl) toneFav = cl
+    }
 
     // 사실 1: 이 단계에 걸친 대운 모두 (간지 + 한글 음/로마자 + 정확 연도 범위).
     const MAX_DAEUNS = 3
@@ -1267,15 +1278,17 @@ export function deriveLifetimeFlow(
       const daeunBranch = primary.branch
       for (const nb of natalBranches) {
         if (BRANCH_CHUNG[nb.name] === daeunBranch) {
-          // 평이 우선 — 일지/×/충/간지 원명을 surface 에서 빼고 의미만 한 문장으로.
+          // 평이 우선 — 일지/×/충/간지 원명을 surface 에서 빼고 *기제*만 한 문장으로.
+          // (길흉 단정 금지 — valence 는 단계 톤(곡선)이 가진다. 충/합은 "어떻게
+          // 맞물리나"의 구조 텍스처일 뿐, "잘/안 풀린다"가 아니다.)
           return en
-            ? 'This stretch tends to shake your footing a little — expect more change and friction.'
-            : '이 시기엔 환경이 타고난 자리를 흔드는 편이라, 변동과 마찰이 잦아요.'
+            ? 'This stretch tends to stir familiar ground — more movement and turning points.'
+            : '이 시기엔 익숙한 자리가 흔들리며 움직임과 전환이 생기는 편이에요.'
         }
         if (BRANCH_YUKHAP[nb.name] === daeunBranch) {
           return en
-            ? 'This stretch clicks with your natural grain — things tend to fall into step.'
-            : '이 시기엔 환경이 타고난 흐름과 잘 맞아, 손발이 척척 맞는 편이에요.'
+            ? 'This stretch tends to lock inner and outer into one direction.'
+            : '이 시기엔 안과 밖이 한 방향으로 맞물리며 묶이는 편이에요.'
         }
       }
       return undefined
@@ -1348,8 +1361,8 @@ export function deriveLifetimeFlow(
           : ''
       // 아동기엔 운성 줄을 생략(성인 기준 서사라 어색). 글로스가 비면 줄을 안 만든다.
       if (!isChildhood && glossKo) {
-        twelveStageLineKo = `기운의 흐름으로 보면, ${glossKo}.`
-        twelveStageLineEn = glossEn ? `In terms of your life-energy cycle, ${glossEn}.` : undefined
+        twelveStageLineKo = `기운의 흐름으로 보면, ${glossKo}이에요.`
+        twelveStageLineEn = glossEn ? `In your life-energy cycle, this is a time of ${glossEn}.` : undefined
       }
     } catch {
       // stage 계산 실패 시 silently skip
@@ -1366,8 +1379,8 @@ export function deriveLifetimeFlow(
       (isPyeongwan ? PYEONGWAN_BODY_KO[label] : undefined) ?? BAND_CAT_KO[label]?.[cat] ?? body
     const bodyEn =
       (isPyeongwan ? PYEONGWAN_BODY_EN[label] : undefined) ?? BAND_CAT_EN[label]?.[cat] ?? body
-    const childPrefixKo = isChildhood ? '초년은 부모·뿌리의 영향을 받는 시기예요 — ' : ''
-    const childPrefixEn = isChildhood ? "Shaped by family and roots early on — " : ''
+    const childPrefixKo = isChildhood ? '초년은 부모와 뿌리의 영향을 받는 시기예요. ' : ''
+    const childPrefixEn = isChildhood ? 'Early on, family and roots shape you. ' : ''
     // 평이 우선: 십신 원명("편재(재성) 흐름 — ")을 surface 에서 빼고 그 의미를 풀어쓴
     // bodyKo/En 로 시작한다. 십신 라벨은 어차피 bodyKo 안에 평이하게 녹아 있어
     // 중복 노이즈였고, novice 표면에 raw 십신을 노출하던 주범이었다(감사 지적).

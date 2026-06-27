@@ -28,6 +28,7 @@ const NAV_GROUPS: NavGroup[] = [
       { href: '/admin/dashboard', label: '상세 지표' },
       { href: '/admin/revenue', label: '매출·크레딧' },
       { href: '/admin/funnel', label: '전환 퍼널' },
+      { href: '/admin/free-funnel', label: '무료 퍼널' },
     ],
   },
   {

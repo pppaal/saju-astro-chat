@@ -22,12 +22,24 @@ describe('humanizeReason — 표시 평어화', () => {
     expect(humanizeReason('↑ [세운] 용신 활성 — 丙午 세운')).toBe('↑ 올해 · 용신 활성 — 丙午 세운')
   })
 
-  it('별자리·dignity 정리', () => {
+  it('dignity 라벨은 행성+일상어로 (음역·별자리 괄호 제거)', () => {
     expect(humanizeReason('↑ [월운] Jupiter 엑잘테이션 (고양) (Cancer)')).toBe(
-      '↑ 이달 · 목성 가장 좋은 자리(고양) (게자리)'
+      '↑ 이달 · 목성이 가장 좋은 자리'
     )
     expect(humanizeReason('↓ [세운] Saturn 폴 (추락) (Aries)')).toBe(
-      '↓ 올해 · 토성 가장 약한 자리(추락) (양자리)'
+      '↓ 올해 · 토성이 가장 약한 자리'
+    )
+    expect(humanizeReason('↓ [월운] Mars 디트리먼트 (반대 자리) (Taurus)')).toBe(
+      '↓ 이달 · 화성이 약해지는 자리'
+    )
+  })
+
+  it('조후용신 라벨은 계절+일상어로 (한자 月支·오행 음역 제거)', () => {
+    expect(humanizeReason('↑ [월운] 午月 조후 — 수가 열 균형에 필요')).toBe(
+      '↑ 이달 · 여름엔 물 기운이 균형에 도움'
+    )
+    expect(humanizeReason('↑ [월운] 子月 조후 — 화가 한 균형에 필요')).toBe(
+      '↑ 이달 · 겨울엔 불 기운이 균형에 도움'
     )
   })
 

@@ -101,6 +101,20 @@ export interface DestinyCalendarCell {
   focus: boolean
   /** 이날 활성 신호 개수 (UI 상세 미리보기). */
   signalCount?: number
+  /**
+   * 그날 색·점수를 가장 크게 움직인 사주×점성 교차 — *쉬운 뜻*(meaning)으로.
+   * 선택일 리드아웃의 "왜 이런 날인지" 근거. 전문용어(saju/astro)는 칩으로 따로
+   * 보여주고, 본문은 plain. 그날 교차가 없으면 생략.
+   */
+  reason?: {
+    saju: string
+    sajuEn: string
+    astro: string
+    astroEn: string
+    meaning: string
+    meaningEn: string
+    polarity: number
+  }
 }
 
 // ============================================================================

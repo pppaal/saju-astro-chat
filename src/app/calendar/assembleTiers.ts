@@ -15,6 +15,8 @@ import { deriveConvergence } from '@/lib/calendar-engine/derivers/convergence'
 import { deriveLifetimeFlow } from '@/lib/calendar-engine/derivers/lifetimeFlow'
 import { deriveLifetimePivots } from '@/lib/calendar-engine/derivers/lifetimePivots'
 import { buildLifeCurve, computeTransitAstroSeries } from '@/lib/calendar-engine/derivers/lifeCurve'
+import { currentManAge } from '@/lib/datetime/currentAge'
+import { isMinorAge, minorSafeText, sanitizeCrossEntry } from '@/lib/calendar-engine/minorSafe'
 import { deriveMonthSummary } from '@/lib/calendar-engine/derivers/monthSummary'
 import { personSeed } from '@/lib/calendar-engine/derivers/personSeed'
 import { deriveLayeredScores } from '@/lib/calendar-engine/derivers/layeredScore'
@@ -45,6 +47,7 @@ import type {
   DestinyUserSummary,
   DestinyDecade,
   DestinyMonth,
+  DestinyCalendarCell,
   DestinyDay,
   DestinyYear,
   DestinyLifetime,
@@ -181,6 +184,31 @@ function dedupeByBody<T extends { body: string }>(rows: T[]): T[] {
   return out
 }
 
+/**
+ * 인생 곡선 → 연도별 점수(0~100) 맵. 대운 티어의 1년운(years[].score)이 곡선과
+ * 같은 출처를 쓰게 한다. 연 단위 합성(combined: 세운+대운+충합+트랜짓)을 그 사람
+ * *인생 전체* 분포의 백분위로 바꿔, "이 해가 내 인생에서 어디쯤"을 1~99 로 편다.
+ * 곡선이 없으면(빌드 실패) undefined → toDecade 가 50 폴백.
+ */
+function buildYearScoreByYear(
+  lifeCurve: ReturnType<typeof buildLifeCurve>
+): Map<number, number> | undefined {
+  if (!lifeCurve || lifeCurve.points.length < 5) return undefined
+  const vals = lifeCurve.points.map((p) => p.combined)
+  const sorted = [...vals].sort((a, b) => a - b)
+  const pct = (v: number): number => {
+    let lo = 0
+    while (lo < sorted.length && sorted[lo] < v) lo++
+    let hi = lo
+    while (hi < sorted.length && sorted[hi] === v) hi++
+    const rank = (lo + hi) / 2 // 동률은 중앙 순위
+    return Math.max(1, Math.min(99, Math.round((rank / sorted.length) * 100)))
+  }
+  const m = new Map<number, number>()
+  for (const p of lifeCurve.points) m.set(p.year, pct(p.combined))
+  return m
+}
+
 // cross-activation 페어 파서 — 연 셀(경량 캐시)은 evidence.detail 을 비우므로
 // detail.sajuKey/astroKey 가 없을 수 있다. 신호 name("편관 × 화성")은 항상 살아남아
 // 거기서 십신·행성을 뽑는다. (예전엔 detail 만 읽어 월교차 "() ↔" / 일교차 빈 ↔ 버그.)
@@ -229,15 +257,10 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
     now,
   } = args
 
-  // ─── lifetimeFlow / lifetimePivots derivers ─────────────────────────────
-  // 두 deriver 에 동일한 now 를 주입 — "현재 단계"와 "현재 pivot"이 같은 날짜를
-  // 가리키도록(예전엔 flow 가 now 미주입으로 서버 시계를 읽어 둘이 어긋났다).
-  const lifetimeFlow = deriveLifetimeFlow(natal, lang, undefined, now)
-  const lifetimePivots = deriveLifetimePivots(natal, lang, undefined, now)
-
   // ─── 인생 굴곡 곡선 (사주 다층 + 실 외행성 트랜짓) ────────────────────────
   // 외행성은 느려 step=3 샘플 + 보간이면 envelope 보존(ephemeris 호출 ~31회).
-  // 실패해도 곡선만 빠지고 나머지 티어는 정상.
+  // 실패해도 곡선만 빠지고 나머지 티어는 정상. lifetimeFlow(단계 톤)·대운 1년운이
+  // 이 곡선을 valence 출처로 쓰므로 *먼저* 빌드한다.
   let lifeCurve: ReturnType<typeof buildLifeCurve> = null
   try {
     const astroSeries = await computeTransitAstroSeries(natal, { span: 90, step: 3 })
@@ -245,6 +268,12 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
   } catch {
     lifeCurve = null
   }
+
+  // ─── lifetimeFlow / lifetimePivots derivers ─────────────────────────────
+  // 두 deriver 에 동일한 now 를 주입 — "현재 단계"와 "현재 pivot"이 같은 날짜를
+  // 가리키도록(예전엔 flow 가 now 미주입으로 서버 시계를 읽어 둘이 어긋났다).
+  const lifetimeFlow = deriveLifetimeFlow(natal, lang, undefined, now, lifeCurve)
+  const lifetimePivots = deriveLifetimePivots(natal, lang, undefined, now)
 
   // ─── yearly / month / day 슬라이스 ───────────────────────────────────────
   const monthPrefix = `${TARGET_YEAR}-${String(TARGET_MONTH).padStart(2, '0')}`
@@ -352,11 +381,16 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
   // toDecade — 현재 대운 + 10년 분리 + cross-activation decadal.
   const currentAge = TARGET_YEAR - BIRTH_YEAR
   const decadalSignals = cells.flatMap((c) => c.signals).filter((s) => s.layer === 'decadal')
+  // 대운 티어의 *1년운*(years[].score) — 인생 곡선의 연 단위 합성(세운+대운+충합+
+  // 트랜짓)을 인생 백분위로 매핑해 채운다. 예전엔 yearScores 미전달로 전부 50(평탄)
+  // 이라 "1년운"이 무의미했다. 곡선과 같은 출처라 대운 티어·인생 곡선이 일치한다.
+  const yearScoreByYear = buildYearScoreByYear(lifeCurve)
   const decadeAdapter = toDecade(natal, {
     currentAge,
     currentYear: TARGET_YEAR,
     decadalSignals,
     focusYear: TARGET_YEAR,
+    yearScoreByYear,
   })
   // 유효한 사주면 대운은 항상 계산된다. null 이면 입력/계산이 깨진 것 — fail-loud.
   if (!decadeAdapter) {
@@ -373,12 +407,22 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
         m.year <= decadeAdapter.end
     )
     .sort((a, b) => a.year - b.year)
-    .map((m) => ({
-      label: m.label.includes('—') ? m.label.split('—')[0].trim() : m.label,
-      date: `${m.year}`,
-      body: m.label.includes('—') ? m.label.split('—').slice(1).join('—').trim() : '',
-      kind: m.kind,
-    }))
+    .map((m) => {
+      const split = (t: string) => ({
+        label: t.includes('—') ? t.split('—')[0].trim() : t,
+        body: t.includes('—') ? t.split('—').slice(1).join('—').trim() : '',
+      })
+      const ko = split(m.label)
+      const en = split(m.labelEn ?? m.label)
+      return {
+        label: ko.label,
+        labelEn: en.label,
+        date: `${m.year}`,
+        body: ko.body,
+        bodyEn: en.body,
+        kind: m.kind,
+      }
+    })
 
   const decade: AssembledTiers['decade'] = {
     gz: decadeAdapter.gz,
@@ -435,8 +479,10 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
     },
     astro: decadeAstroMarks.map((a) => ({
       label: a.label,
+      labelEn: a.labelEn,
       date: a.date,
       body: a.body,
+      bodyEn: a.bodyEn,
       kind: a.kind ?? '',
     })),
     narrative: decadeAdapter.narrative,
@@ -451,7 +497,9 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
     year: TARGET_YEAR,
     yearlySignals,
     cells,
-    monthlyLayer: layered.monthly,
+    // 세운 12달 띠를 월 그리드와 *같은 일점수*로 빌드(각 달=일점수 평균, bestDay 일치).
+    // 줌 레벨(일·월·세운)이 한 척도라 띠↔그리드 색 모순이 구조적으로 사라진다(Option Y).
+    dayScores: layered.daily,
   })
   const ageThisYear = TARGET_YEAR - BIRTH_YEAR
   const fallbackHouse = (((ageThisYear % 12) + 12) % 12) + 1
@@ -459,6 +507,7 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
   const year: DestinyYear = {
     year: yearAdapter.year,
     headline: yearAdapter.headline,
+    headlineEn: yearAdapter.headlineEn,
     sewoon: yearAdapter.sewoon,
     sewoonGz: yearAdapter.sewoonGz,
     sewoonSibsin: yearAdapter.sewoonSibsin,
@@ -483,7 +532,9 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
       ? yearAdapter.profectionWheel
       : yearAdapter.profectionWheel.map((w) => ({ ...w, active: w.house === fallbackHouse })),
     sajuNote: yearAdapter.sajuNote,
+    sajuNoteEn: yearAdapter.sajuNoteEn,
     astroNote: yearAdapter.astroNote,
+    astroNoteEn: yearAdapter.astroNoteEn,
     zrSpiritChapters: yearAdapter.zrSpiritChapters,
     zrFortuneChapters: yearAdapter.zrFortuneChapters,
     monthlyScores: yearAdapter.monthlyScores,
@@ -651,6 +702,48 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
   month.crossActivations = [...monthCrossByPair.values()]
     .sort((a, b) => Math.abs(b.polarity) - Math.abs(a.polarity))
     .slice(0, 6)
+
+  // ── 날짜별 "근거" — 그날 가장 센 사주×점성 교차의 *쉬운 뜻* 을 각 calendar 셀에.
+  //    선택일 리드아웃이 topReasons(전문용어) 대신 이 plain meaning 을 쓴다.
+  //    교차 meaning(s.korean)은 이미 novice용 plain 문장이라 용어 누수가 없다.
+  //
+  //    *그날 고유*(daily/hourly/instant 층) 교차를 우선한다 — monthly 층 교차는 그 달
+  //    내내 모든 날 셀에 똑같이 깔려, 그게 제일 세면 매일 같은 근거가 떠 "월 전체
+  //    근거처럼" 보였다(감사). 같은 날짜 안에서 day-specific 이 month-background 를
+  //    항상 이기게 rank 에 큰 가산점을 주고, day-specific 이 없을 때만 background 로.
+  const DAY_LAYERS = new Set(['daily', 'hourly', 'instant'])
+  type DReason = NonNullable<DestinyCalendarCell['reason']>
+  const reasonByDs = new Map<string, DReason>()
+  for (const c of monthCells) {
+    const ds = c.datetime.slice(5, 10) // 'MM-DD'
+    let best: DReason | null = null
+    let bestRank = -1
+    for (const s of c.signals) {
+      if (s.kind !== 'cross-activation') continue
+      const { sajuKo, astroKo } = crossKeys(s)
+      if (!sajuKo || !astroKo) continue
+      const meaning = stripCrossPair(s.korean ?? '')
+      if (!meaning) continue
+      const impact = Math.abs(s.polarity) * (s.weight ?? 1)
+      const rank = (DAY_LAYERS.has(s.layer) ? 1000 : 0) + impact
+      if (rank <= bestRank) continue
+      bestRank = rank
+      best = {
+        saju: sajuKo,
+        sajuEn: SIBSIN_EN[sajuKo] ?? translateSignalLabel(sajuKo, 'en'),
+        astro: astroKo,
+        astroEn: PLANET_EN_FROM_KO[astroKo] ?? astroKo,
+        meaning,
+        meaningEn: stripCrossPair(s.english ?? ''),
+        polarity: s.polarity,
+      }
+    }
+    if (best) reasonByDs.set(ds, best)
+  }
+  for (const cell of month.calendar) {
+    const r = reasonByDs.get(cell.ds)
+    if (r) cell.reason = r
+  }
 
   const dayAdapter = toDay({
     cell: dayCell,
@@ -842,6 +935,28 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
   }
 
   const ilganHanja = user.ilgan.hanja || '辛'
+
+  // 미성년 안전(감사 C3) — cross/시간 서술의 성인 도메인(결혼·공직·투자·삼각관계
+  // 등)을 연령 적합 표현으로 치환. 만 나이(currentManAge)로 게이트 — 연-차가 아닌
+  // 생일 통과 반영(C7 off-by-one 회피).
+  const manAge = currentManAge({
+    birthYear: BIRTH_YEAR,
+    birthMonth: natal.input?.month,
+    birthDate: natal.input?.date,
+    birthTimeZone: natal.input?.timeZone,
+    now,
+  })
+  if (isMinorAge(manAge)) {
+    const rows = (xs: unknown): Array<Record<string, unknown>> =>
+      (xs as Array<Record<string, unknown>>) ?? []
+    for (const c of rows(year.crossings)) sanitizeCrossEntry(c, 'detail', 'detailEn')
+    for (const c of rows(month.crossActivations)) sanitizeCrossEntry(c, 'meaning', 'meaningEn')
+    for (const c of rows(day.crossActivations)) sanitizeCrossEntry(c, 'meaning', 'meaningEn')
+    for (const h of rows(day.hourCrossings)) {
+      if (typeof h.narrative === 'string') h.narrative = minorSafeText(h.narrative, 'ko')
+      if (typeof h.narrativeEn === 'string') h.narrativeEn = minorSafeText(h.narrativeEn, 'en')
+    }
+  }
 
   return {
     topbar: { whoBirthLine, place, ilganHanja },
