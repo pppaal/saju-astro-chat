@@ -760,7 +760,7 @@ function ResultView({
       {/* 용어 풀이 */}
       <GlossaryBlock entries={view.glossary} isKo={isKo} />
 
-      {/* 공유 — 바이럴 루프 */}
+      {/* 공유 — 바이럴 루프. 1080×1080 이미지 카드(점수·등급·상위 테마 칩) + 링크. */}
       <div className={s.share}>
         <ShareCompatibilityButton
           data={{
@@ -770,6 +770,14 @@ function ResultView({
             verdict: verdict?.text || '',
             verdictTone: verdict?.tone || 'neutral',
             headline: headlineReason || '',
+            score: view.overallScore,
+            grade: view.overallGrade,
+            // 상위 테마 점수 칩 — 마찰 제외, 점수 높은 3개(끌림 88 · 케미 82 · 소통 79).
+            chips: view.themes
+              .filter((th) => th.id !== 'friction' && typeof th.score === 'number')
+              .sort((a, b) => (b.score ?? 0) - (a.score ?? 0))
+              .slice(0, 3)
+              .map((th) => ({ label: th.scoreCaption ?? '', value: th.score as number })),
           }}
         />
         <ReferralInviteButton isKo={isKo} />
