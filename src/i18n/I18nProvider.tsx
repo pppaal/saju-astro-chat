@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { allExtensions } from '@/lib/i18n/extensions'
 import { repairMojibakeText } from '@/lib/text/mojibake'
 
@@ -311,6 +311,12 @@ export function I18nProvider({
   // dictVersion bumps every time a dict finishes loading, forcing `t` re-memo
   // so consumers re-render with newly-available translations.
   const [dictVersion, setDictVersion] = useState(0)
+  // 항상 최신 locale 을 가리키는 ref — setLocale 을 안정(deps [])하게 두면서도
+  // "이미 이 언어면 리로드 금지" 가드가 stale 값을 보지 않게 한다.
+  const localeRef = useRef(locale)
+  useEffect(() => {
+    localeRef.current = locale
+  }, [locale])
 
   // Initialize English (default/fallback) on mount
   useEffect(() => {
@@ -353,13 +359,25 @@ export function I18nProvider({
   }, [locale])
 
   const setLocale = useCallback((next: Locale) => {
+    // 이미 같은 언어면 아무것도 하지 않는다 — 특히 리로드 금지. setLocale 은
+    // 사용자 토글뿐 아니라 deep-link 진입 시 useCounselorData 의 effect 가
+    // ?lang= 을 보고 프로그램적으로도 부른다. 가드가 없으면 ?lang 핀이 쿠키와
+    // 어긋날 때마다 리로드가 재트리거돼 운명상담사가 무한 깜빡임(리로드 루프)에
+    // 빠진다. 같은 언어로의 호출을 no-op 으로 막으면 루프가 끊긴다.
+    if (next === localeRef.current) return
     // 쿠키를 먼저 동기로 써서, 이어지는 요청이 새 로케일을 읽게 한다.
     writeCookieLocale(next)
-    // 서버 컴포넌트(/free·/integrated-report 등 x-locale 헤더로 렌더)는 클라
-    // 상태만 바뀌어선 영어로 안 바뀐다. router.refresh() 는 RSC 페이로드는
-    // 갱신되나 클라 적용이 불안정해, 전체 리로드로 새 로케일을 확실히 반영한다.
+    // 서버 컴포넌트(/free·/integrated-report 등 x-locale·쿠키로 렌더)는 클라
+    // 상태만 바뀌어선 안 바뀐다. 전체 리로드로 새 로케일을 확실히 반영한다.
+    // 이때 URL 에 박힌 ?lang/?locale 핀(생일 게이트가 붙임)은 쿠키 토글을
+    // 덮어쓰므로 제거하고 리로드 — 그래야 영어 토글이 리포트·카드까지 먹는다.
     if (typeof window !== 'undefined') {
-      window.location.reload()
+      const url = new URL(window.location.href)
+      const hadPin = url.searchParams.has('lang') || url.searchParams.has('locale')
+      url.searchParams.delete('lang')
+      url.searchParams.delete('locale')
+      if (hadPin) window.location.replace(url.toString())
+      else window.location.reload()
       return
     }
     setLocaleState(next)
