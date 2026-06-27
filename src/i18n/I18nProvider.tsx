@@ -238,7 +238,9 @@ async function initializeDicts() {
 type I18nContextType = {
   locale: Locale
   language: Locale
-  setLocale: (l: Locale) => void
+  // opts.reload=false 면 전체 페이지 리로드 없이 클라 상태만 바꾼다(프로그램적
+  // 시드용). 기본(사용자 토글)은 리로드해 서버 컴포넌트까지 새 언어로 반영.
+  setLocale: (l: Locale, opts?: { reload?: boolean }) => void
   t: (path: string, fallback?: string) => string
   translate: (path: string, fallback?: string) => string
   dir: 'ltr' | 'rtl'
@@ -358,19 +360,24 @@ export function I18nProvider({
     }
   }, [locale])
 
-  const setLocale = useCallback((next: Locale) => {
-    // 이미 같은 언어면 아무것도 하지 않는다 — 특히 리로드 금지. setLocale 은
-    // 사용자 토글뿐 아니라 deep-link 진입 시 useCounselorData 의 effect 가
-    // ?lang= 을 보고 프로그램적으로도 부른다. 가드가 없으면 ?lang 핀이 쿠키와
-    // 어긋날 때마다 리로드가 재트리거돼 운명상담사가 무한 깜빡임(리로드 루프)에
-    // 빠진다. 같은 언어로의 호출을 no-op 으로 막으면 루프가 끊긴다.
+  const setLocale = useCallback((next: Locale, opts?: { reload?: boolean }) => {
+    // 이미 같은 언어면 아무것도 하지 않는다 — 특히 리로드 금지.
     if (next === localeRef.current) return
     // 쿠키를 먼저 동기로 써서, 이어지는 요청이 새 로케일을 읽게 한다.
     writeCookieLocale(next)
-    // 서버 컴포넌트(/free·/integrated-report 등 x-locale·쿠키로 렌더)는 클라
-    // 상태만 바뀌어선 안 바뀐다. 전체 리로드로 새 로케일을 확실히 반영한다.
-    // 이때 URL 에 박힌 ?lang/?locale 핀(생일 게이트가 붙임)은 쿠키 토글을
-    // 덮어쓰므로 제거하고 리로드 — 그래야 영어 토글이 리포트·카드까지 먹는다.
+    // 프로그램적 시드(reload:false) — deep-link ?lang 로 진입할 때 useCounselorData
+    // 가 부른다. 진입 페이지는 어차피 새로 렌더되므로 리로드가 필요 없고, effect
+    // 에서 리로드를 트리거하면 ?lang 핀과 맞물려 무한 깜빡임(리로드 루프)이 났다.
+    // 여기선 클라 상태만 바꿔 루프를 원천 차단한다.
+    if (opts?.reload === false) {
+      localeRef.current = next
+      setLocaleState(next)
+      return
+    }
+    // 사용자 토글(기본) — 서버 컴포넌트(/free·/integrated-report 등 x-locale·쿠키로
+    // 렌더)는 클라 상태만 바뀌어선 안 바뀌므로 전체 리로드로 확실히 반영한다.
+    // 이때 URL 에 박힌 ?lang/?locale 핀(생일 게이트가 붙임)은 쿠키 토글을 덮어쓰므로
+    // 제거하고 리로드 — 그래야 영어 토글이 리포트·카드까지 먹는다.
     if (typeof window !== 'undefined') {
       const url = new URL(window.location.href)
       const hadPin = url.searchParams.has('lang') || url.searchParams.has('locale')
