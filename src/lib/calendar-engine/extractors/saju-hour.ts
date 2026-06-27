@@ -5,6 +5,7 @@ import type { ActiveSignal, ExtractorContext, SignalExtractor, Polarity } from '
 import type { FiveElement, SibsinKind, YinYang } from '@/lib/saju/types'
 import { HOUR_BRANCH_NARRATIVE, pickHourNarrative } from '../data/hourBranchNarrative'
 import { getSibsinFromStemInfo as getSibsin } from './shared/sibsin'
+import { elementFavor } from '../derivers/cycleTone'
 
 /**
  * 사주 시주(時柱) 추출기 — 24시간 변별력 확보.
@@ -168,13 +169,15 @@ function pillarToStemInfo(stemName: string): StemInfo | null {
   return found ? (found as StemInfo) : null
 }
 
+// 순/고비 판정은 cycleTone.elementFavor(용신운 SSOT)에 위임, 강도(주 +2 · 보조 +1
+// · avoid −2)만 시주 스케일로 둔다(시주는 영향이 작아 천간보다 낮게).
 function polarityFromYongsin(
   element: FiveElement,
   yongsin: { primary: FiveElement; secondary?: FiveElement; avoid: FiveElement[] }
 ): Polarity {
-  if (element === yongsin.primary) return 2
-  if (element === yongsin.secondary) return 1
-  if (yongsin.avoid.includes(element)) return -2
+  const fav = elementFavor(element, yongsin)
+  if (fav === 'good') return element === yongsin.primary ? 2 : 1
+  if (fav === 'hard') return -2
   return 0
 }
 

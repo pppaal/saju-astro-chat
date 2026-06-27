@@ -29,9 +29,27 @@ export interface YongsinLike {
 }
 
 /**
+ * 용신운 판정의 단일 규칙(SSOT). 그 오행이 용신/희신이면 순탄(good), 기신/구신
+ * (avoid)이면 고비(hard), 한신이면 중립(mid). 오행/용신 정보가 없으면 null.
+ *
+ * favorOf 의 1순위 분기이자, 캘린더 추출기(saju-pillar/saju-hour)의 polarity 도
+ * 이 규칙을 공유한다 — "용신과 부합하는가"를 두 군데서 따로 구현해 갈라지던 것을
+ * 한 곳으로 모은다(강도 스케일만 호출부가 정한다).
+ */
+export function elementFavor(
+  element: string | undefined,
+  yongsin: YongsinLike | undefined
+): Favor | null {
+  if (!element || !yongsin) return null
+  if (element === yongsin.primary || element === yongsin.secondary) return 'good'
+  if (yongsin.avoid?.includes(element)) return 'hard'
+  return 'mid'
+}
+
+/**
  * 그 주기가 순탄/고비인지. **모든 조합**을 덮는다:
- *  1순위 — 용신운 판정(가장 정확): 그 주기 오행이 용신/희신이면 순탄, 기신/구신이면
- *          고비, 한신이면 중립. (예: 병오 정관이라도 火가 용신이면 '순탄')
+ *  1순위 — 용신운 판정(가장 정확, elementFavor): 그 주기 오행이 용신/희신이면 순탄,
+ *          기신/구신이면 고비, 한신이면 중립. (예: 병오 정관이라도 火가 용신이면 '순탄')
  *  2순위 — 오행/용신 정보가 없을 때만 신강·신약 × 십신 fallback.
  */
 export function favorOf(
@@ -40,11 +58,8 @@ export function favorOf(
   element?: string,
   yongsin?: YongsinLike
 ): Favor {
-  if (element && yongsin) {
-    if (element === yongsin.primary || element === yongsin.secondary) return 'good'
-    if (yongsin.avoid?.includes(element)) return 'hard'
-    return 'mid'
-  }
+  const byElement = elementFavor(element, yongsin)
+  if (byElement) return byElement
   const support: SibsinCat[] = ['인성', '비겁']
   if (strength === 'weak') return support.includes(cat) ? 'good' : 'hard'
   if (strength === 'strong') return support.includes(cat) ? 'hard' : 'good'

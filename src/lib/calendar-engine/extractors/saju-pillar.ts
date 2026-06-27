@@ -12,6 +12,7 @@ import type {
 import type { FiveElement, SibsinKind, YinYang } from '@/lib/saju/types'
 import { getSibsinFromStemInfo as getSibsin } from './shared/sibsin'
 import { pillarFlowLine, type GanjiTransitLayer } from '../data/ganjiTransitNarrative'
+import { elementFavor } from '../derivers/cycleTone'
 
 /**
  * 사주 4시간축 — 대운/세운/월운/일주의 십신 활성 추출기.
@@ -301,19 +302,16 @@ function buildSignal(args: BuildSignalArgs): ActiveSignal {
 }
 
 /**
- * 용신과의 부합 여부로 polarity 결정.
- * - 용신 = +2~+3
- * - 보조용신 = +1~+2
- * - 기신·구신 (avoid) = -2~-3
- * - 그 외 중립 = 0
+ * 용신과의 부합 여부로 polarity 결정. 순/고비 판정은 cycleTone.elementFavor
+ * (용신운 SSOT)에 위임하고, 여기선 강도(주용신 +3 · 보조 +2 · avoid −2)만 둔다.
  */
 function polarityFromYongsin(
   element: FiveElement,
   yongsin: { primary: FiveElement; secondary?: FiveElement; avoid: FiveElement[] }
 ): Polarity {
-  if (element === yongsin.primary) return 3
-  if (element === yongsin.secondary) return 2
-  if (yongsin.avoid.includes(element)) return -2
+  const fav = elementFavor(element, yongsin)
+  if (fav === 'good') return element === yongsin.primary ? 3 : 2
+  if (fav === 'hard') return -2
   return 0
 }
 
