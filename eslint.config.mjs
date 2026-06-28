@@ -185,6 +185,73 @@ const config = [
       'no-console': 'off', // Scripts often use console output
     },
   },
+  {
+    // 캐시 우회 방지 가드레일 — 본명(natal) 차트는 출생정보가 같으면 불변이라
+    // 반드시 cachedCalculateNatalChart(Redis 30일 + 인메모리 L1)를 거쳐야 한다.
+    // 과거 리포트·캘린더·궁합이 raw calculateNatalChart 를 직접 불러 매 로드
+    // Swiss Ephemeris 풀계산(~500ms)을 반복하던 회귀의 *구조적* 재발 차단.
+    // 허용: 래퍼(cached.ts)·엔진(foundation)·배럴(index)·인라인 캐시 라우트
+    // (api/astrology)·테스트·스크립트. destiny-matrix core 는 자체 no-restricted
+    // -imports 를 갖고 있어 ignore(룰 클로버 방지).
+    files: ['**/*.{ts,tsx}'],
+    ignores: [
+      'src/lib/astrology/cached.ts',
+      'src/lib/astrology/index.ts',
+      'src/lib/astrology/foundation/**',
+      'src/app/api/astrology/route.ts',
+      'src/lib/destiny-matrix/core/**',
+      'tests/**',
+      'scripts/**',
+    ],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            {
+              name: '@/lib/astrology',
+              importNames: ['calculateNatalChart'],
+              message:
+                'raw calculateNatalChart 금지 — cachedCalculateNatalChart(@/lib/astrology/cached) 를 쓰세요. 본명 차트는 불변이라 캐시(Redis 30일+L1)를 반드시 거쳐야 합니다.',
+            },
+            {
+              name: '@/lib/astrology/foundation/astrologyService',
+              importNames: ['calculateNatalChart'],
+              message:
+                'raw calculateNatalChart 금지 — cachedCalculateNatalChart(@/lib/astrology/cached) 를 쓰세요.',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    // 번들 경량화 가드레일 — 타로 히스토리/공유는 카드 이미지·이름만 필요하다.
+    // 전체 덱(@/lib/tarot/data, ~400KB 의미텍스트)이나 그걸 끌어오는
+    // findCardByName 을 import 하면 클라 번들에 의미 전문이 다시 들어간다.
+    // 경량 @/lib/tarot/cardNameIndex 만 쓰도록 강제(라이브 게임/해석은 제외 —
+    // 그쪽은 해석에 의미가 필요해 전체 덱을 정당하게 쓴다).
+    files: ['src/app/tarot/history/**/*.{ts,tsx}', 'src/components/tarot/shareCardData.ts'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            {
+              name: '@/lib/tarot/data',
+              message:
+                '히스토리/공유에서 전체 덱(~400KB) import 금지 — @/lib/tarot/cardNameIndex(이미지/이름) 를 쓰세요.',
+            },
+            {
+              name: '@/lib/tarot/findCardByName',
+              message:
+                '히스토리/공유에서 findCardByName(전체 덱 의존) 금지 — @/lib/tarot/cardNameIndex 의 findCardImageBySavedName 을 쓰세요.',
+            },
+          ],
+        },
+      ],
+    },
+  },
   prettier,
 ]
 
