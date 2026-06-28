@@ -1904,47 +1904,6 @@ export const ELEMENT_KO_TO_EN: Record<string, string> = {
   수: 'Water',
 }
 
-export const ELEMENT_EN_TO_KO: Record<string, FiveElement> = {
-  wood: '목',
-  fire: '화',
-  earth: '토',
-  metal: '금',
-  water: '수',
-  Wood: '목',
-  Fire: '화',
-  Earth: '토',
-  Metal: '금',
-  Water: '수',
-}
-
-// ============================================
-// 유틸리티 함수
-// ============================================
-
-/** 천간에서 오행 추출 (한자/한글 모두 지원) */
-export function getElementFromStem(stem: string): FiveElement | null {
-  return STEM_TO_ELEMENT[stem] || null
-}
-
-/** 지지에서 오행 추출 (한자/한글 모두 지원) */
-function getElementFromBranch(branch: string): FiveElement | null {
-  return BRANCH_TO_ELEMENT[branch] || null
-}
-
-/** 오행 한글 → 영어 */
-export function getElementEnglish(koreanElement: string): string {
-  return ELEMENT_KO_TO_EN[koreanElement] || koreanElement
-}
-
-/** 오행 영어 → 한글 */
-export function getElementKorean(englishElement: string): FiveElement | string {
-  return (
-    ELEMENT_EN_TO_KO[englishElement] ||
-    ELEMENT_EN_TO_KO[englishElement.toLowerCase()] ||
-    englishElement
-  )
-}
-
 // ============================================
 // 영어 오행 매핑 (English element keys)
 // ============================================

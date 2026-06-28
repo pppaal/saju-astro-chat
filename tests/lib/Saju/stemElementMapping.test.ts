@@ -7,11 +7,7 @@
 import {
   STEM_TO_ELEMENT,
   ELEMENT_KO_TO_EN,
-  ELEMENT_EN_TO_KO,
   STEM_TO_ELEMENT_EN,
-  getElementFromStem,
-  getElementEnglish,
-  getElementKorean,
   getElementEnFromStem,
 } from '@/lib/saju/constants'
 
@@ -74,28 +70,6 @@ describe('ELEMENT_KO_TO_EN', () => {
   })
 })
 
-describe('ELEMENT_EN_TO_KO', () => {
-  it('maps lowercase English to Korean', () => {
-    expect(ELEMENT_EN_TO_KO['wood']).toBe('목')
-    expect(ELEMENT_EN_TO_KO['fire']).toBe('화')
-    expect(ELEMENT_EN_TO_KO['earth']).toBe('토')
-    expect(ELEMENT_EN_TO_KO['metal']).toBe('금')
-    expect(ELEMENT_EN_TO_KO['water']).toBe('수')
-  })
-
-  it('maps capitalized English to Korean', () => {
-    expect(ELEMENT_EN_TO_KO['Wood']).toBe('목')
-    expect(ELEMENT_EN_TO_KO['Fire']).toBe('화')
-    expect(ELEMENT_EN_TO_KO['Earth']).toBe('토')
-    expect(ELEMENT_EN_TO_KO['Metal']).toBe('금')
-    expect(ELEMENT_EN_TO_KO['Water']).toBe('수')
-  })
-
-  it('has 10 entries (5 lowercase + 5 capitalized)', () => {
-    expect(Object.keys(ELEMENT_EN_TO_KO)).toHaveLength(10)
-  })
-})
-
 describe('STEM_TO_ELEMENT_EN', () => {
   it('maps Chinese stems to English elements', () => {
     expect(STEM_TO_ELEMENT_EN['甲']).toBe('wood')
@@ -111,66 +85,6 @@ describe('STEM_TO_ELEMENT_EN', () => {
     expect(STEM_TO_ELEMENT_EN['무']).toBe('earth')
     expect(STEM_TO_ELEMENT_EN['경']).toBe('metal')
     expect(STEM_TO_ELEMENT_EN['임']).toBe('water')
-  })
-})
-
-describe('getElementFromStem', () => {
-  it('returns Korean element for Chinese stem', () => {
-    expect(getElementFromStem('甲')).toBe('목')
-    expect(getElementFromStem('丙')).toBe('화')
-    expect(getElementFromStem('戊')).toBe('토')
-    expect(getElementFromStem('庚')).toBe('금')
-    expect(getElementFromStem('壬')).toBe('수')
-  })
-
-  it('returns Korean element for Korean stem', () => {
-    expect(getElementFromStem('갑')).toBe('목')
-    expect(getElementFromStem('병')).toBe('화')
-    expect(getElementFromStem('무')).toBe('토')
-    expect(getElementFromStem('경')).toBe('금')
-    expect(getElementFromStem('임')).toBe('수')
-  })
-
-  it('returns null for invalid stem', () => {
-    expect(getElementFromStem('invalid')).toBeNull()
-    expect(getElementFromStem('')).toBeNull()
-    expect(getElementFromStem('X')).toBeNull()
-  })
-})
-
-describe('getElementEnglish', () => {
-  it('converts Korean element to English', () => {
-    expect(getElementEnglish('목')).toBe('Wood')
-    expect(getElementEnglish('화')).toBe('Fire')
-    expect(getElementEnglish('토')).toBe('Earth')
-    expect(getElementEnglish('금')).toBe('Metal')
-    expect(getElementEnglish('수')).toBe('Water')
-  })
-
-  it('returns input for unknown element', () => {
-    expect(getElementEnglish('unknown')).toBe('unknown')
-    expect(getElementEnglish('')).toBe('')
-  })
-})
-
-describe('getElementKorean', () => {
-  it('converts English element to Korean', () => {
-    expect(getElementKorean('wood')).toBe('목')
-    expect(getElementKorean('fire')).toBe('화')
-    expect(getElementKorean('earth')).toBe('토')
-    expect(getElementKorean('metal')).toBe('금')
-    expect(getElementKorean('water')).toBe('수')
-  })
-
-  it('is case insensitive', () => {
-    expect(getElementKorean('WOOD')).toBe('목')
-    expect(getElementKorean('Fire')).toBe('화')
-    expect(getElementKorean('EARTH')).toBe('토')
-  })
-
-  it('returns input for unknown element', () => {
-    expect(getElementKorean('unknown')).toBe('unknown')
-    expect(getElementKorean('')).toBe('')
   })
 })
 

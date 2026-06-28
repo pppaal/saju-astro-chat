@@ -5,12 +5,6 @@
 import { describe, it, expect } from 'vitest'
 import {
   isCheoneulGwiin,
-  getSipsin,
-  isSamjaeYear,
-  isYeokmaDay,
-  isDohwaDay,
-  isGeonrokDay,
-  isYukhap,
   isSamhapPartial,
   isSamhapFull,
   isChung,
@@ -32,78 +26,6 @@ describe('calendar/utils - mega comprehensive tests', () => {
       })
     })
     // 10 stems * 12 branches = 120 tests
-  })
-
-  describe('getSipsin - all stem combinations', () => {
-    STEMS.forEach((dayStem) => {
-      STEMS.forEach((targetStem) => {
-        it(`should return sipsin for ${dayStem}-${targetStem}`, () => {
-          const result = getSipsin(dayStem, targetStem)
-          expect(typeof result).toBe('string')
-        })
-      })
-    })
-    // 10 * 10 = 100 tests
-  })
-
-  describe('isSamjaeYear - all branch combinations', () => {
-    BRANCHES.forEach((birthBranch) => {
-      BRANCHES.forEach((yearBranch) => {
-        it(`should have boolean for ${birthBranch}-${yearBranch}`, () => {
-          const result = isSamjaeYear(birthBranch, yearBranch)
-          expect(typeof result).toBe('boolean')
-        })
-      })
-    })
-    // 12 * 12 = 144 tests
-  })
-
-  describe('isYeokmaDay - all branch combinations', () => {
-    BRANCHES.forEach((birthBranch) => {
-      BRANCHES.forEach((dayBranch) => {
-        it(`should have boolean for ${birthBranch}-${dayBranch}`, () => {
-          const result = isYeokmaDay(birthBranch, dayBranch)
-          expect(typeof result).toBe('boolean')
-        })
-      })
-    })
-    // 12 * 12 = 144 tests
-  })
-
-  describe('isDohwaDay - all branch combinations', () => {
-    BRANCHES.forEach((birthBranch) => {
-      BRANCHES.forEach((dayBranch) => {
-        it(`should have boolean for ${birthBranch}-${dayBranch}`, () => {
-          const result = isDohwaDay(birthBranch, dayBranch)
-          expect(typeof result).toBe('boolean')
-        })
-      })
-    })
-    // 12 * 12 = 144 tests
-  })
-
-  describe('isGeonrokDay - all stem-branch combinations', () => {
-    STEMS.forEach((dayStem) => {
-      BRANCHES.forEach((dayBranch) => {
-        it(`should have boolean for ${dayStem}-${dayBranch}`, () => {
-          const result = isGeonrokDay(dayStem, dayBranch)
-          expect(typeof result).toBe('boolean')
-        })
-      })
-    })
-    // 10 * 12 = 120 tests
-  })
-
-  describe('isYukhap - all branch pair combinations', () => {
-    BRANCHES.forEach((branch1) => {
-      BRANCHES.forEach((branch2) => {
-        it(`should have boolean for ${branch1}-${branch2}`, () => {
-          const result = isYukhap(branch1, branch2)
-          expect(typeof result).toBe('boolean')
-        })
-      })
-    })
-    // 12 * 12 = 144 tests
   })
 
   describe('isChung - all branch pair combinations', () => {
@@ -211,21 +133,6 @@ describe('calendar/utils - mega comprehensive tests', () => {
     // 12 * 2 = 24 tests
   })
 
-  describe('Yukhap symmetry - all pairs', () => {
-    BRANCHES.forEach((b1, i) => {
-      BRANCHES.forEach((b2, j) => {
-        if (i < j) {
-          it(`should have symmetric yukhap for ${b1}-${b2}`, () => {
-            const r1 = isYukhap(b1, b2)
-            const r2 = isYukhap(b2, b1)
-            expect(r1).toBe(r2)
-          })
-        }
-      })
-    })
-    // 12 * 11 / 2 = 66 tests
-  })
-
   describe('Chung symmetry - all pairs', () => {
     BRANCHES.forEach((b1, i) => {
       BRANCHES.forEach((b2, j) => {
@@ -260,31 +167,6 @@ describe('calendar/utils - mega comprehensive tests', () => {
   describe('Edge cases for all functions', () => {
     it('isCheoneulGwiin with invalid stem', () => {
       expect(isCheoneulGwiin('invalid', '子')).toBe(false)
-    })
-
-    it('getSipsin with invalid stems', () => {
-      expect(getSipsin('invalid', '甲')).toBe('')
-    })
-
-    it('isSamjaeYear with invalid branches', () => {
-      expect(isSamjaeYear('invalid', '子')).toBe(false)
-    })
-
-    it('isYeokmaDay with invalid branches', () => {
-      expect(isYeokmaDay('invalid', '子')).toBe(false)
-    })
-
-    it('isDohwaDay with invalid branches', () => {
-      expect(isDohwaDay('invalid', '子')).toBe(false)
-    })
-
-    it('isGeonrokDay with invalid stem', () => {
-      expect(isGeonrokDay('invalid', '子')).toBe(false)
-    })
-
-    it('isYukhap with invalid branches', () => {
-      const result = isYukhap('invalid', '子')
-      expect(typeof result).toBe('boolean')
     })
 
     it('isChung with invalid branches', () => {

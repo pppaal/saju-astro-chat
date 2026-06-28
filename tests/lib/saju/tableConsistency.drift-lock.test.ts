@@ -12,7 +12,6 @@ import {
   BRANCH_TO_ELEMENT,
   JIJANGGAN,
   ELEMENT_KO_TO_EN,
-  ELEMENT_EN_TO_KO,
   FIVE_ELEMENT_RELATIONS,
   ELEMENT_RELATIONS_EN,
 } from '@/lib/saju/constants'
@@ -94,8 +93,6 @@ describe('drift-lock: report ELEMENT_LABEL stays consistent with the element SSO
     for (const [enKey, label] of Object.entries(ELEMENT_LABEL)) {
       // ko(짧은 한글)는 SSOT 의 KO 키여야 하고, en 은 그 KO 의 SSOT EN 라벨과 일치.
       expect(ELEMENT_KO_TO_EN[label.ko], `${enKey}.ko=${label.ko}`).toBe(label.en)
-      // lowercase EN 키 ↔ KO 라운드트립(EN→KO SSOT)도 닫혀 있어야 한다.
-      expect(ELEMENT_EN_TO_KO[label.en], `${enKey}.en=${label.en}`).toBe(label.ko)
     }
   })
 })
