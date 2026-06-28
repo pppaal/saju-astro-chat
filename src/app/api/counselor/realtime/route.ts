@@ -463,10 +463,15 @@ export async function POST(req: NextRequest) {
       //      /api/counselor/realtime/result?turnId=… 로 받아간다(turnId 있을 때).
       //   2) 세션 행 안전망 — 클라 자동 저장이 끝내 안 와도 활동 기록이 남도록
       //      같은 세션 id 로 행을 없으면 생성(차감-기록 불일치 방지).
-      onComplete: async (full) => {
+      onComplete: async (full, meta) => {
+        // 도중에 끊긴 부분 답이면 끊김 마커를 붙여 영속한다 — 복원 시 사용자가
+        // 잘린 답을 완성본으로 오인(+과금)하지 않고 이어가기/재시도를 알 수 있게.
+        const persisted = meta?.incomplete
+          ? `${full}\n\n${lang === 'ko' ? '⚠️ 답변이 도중에 끊겼어요. 이어가려면 다시 시도해 주세요.' : '⚠️ This answer was cut off. Please retry to continue.'}`
+          : full
         if (turnId) {
           try {
-            await cacheSet(counselorTurnResultKey(userId, turnId), full, TURN_RESULT_TTL_SEC)
+            await cacheSet(counselorTurnResultKey(userId, turnId), persisted, TURN_RESULT_TTL_SEC)
           } catch {
             /* 캐시 실패는 무시 — 단순히 복원이 안 될 뿐, 스트림엔 영향 없음 */
           }
@@ -481,7 +486,7 @@ export async function POST(req: NextRequest) {
           await ensureCounselorSessionRecord({
             sessionId: clientSessionId,
             userId,
-            messages: [...priorDialog, { role: 'assistant', content: full }],
+            messages: [...priorDialog, { role: 'assistant', content: persisted }],
             locale: lang,
             type: 'destiny',
           })

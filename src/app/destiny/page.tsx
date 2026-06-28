@@ -25,6 +25,8 @@ export default async function DestinyLifePage({ searchParams }: { searchParams: 
   const data = await loadTierData('year', override)
   if (data.kind === 'login') return <BirthRequiredFallback reason="login" />
   if (data.kind === 'no-birth') return <BirthRequiredFallback reason="no-birth" />
+  if (data.kind === 'rate-limited')
+    return <BirthRequiredFallback reason="rate-limited" locale={data.lang} />
   if (data.kind === 'guest') return <BirthGate base="/destiny" locale={data.lang} />
 
   const { topbar, user, lifetime, year, lang } = data

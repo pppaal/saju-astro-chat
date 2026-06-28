@@ -25,7 +25,10 @@ export interface ClaudeSSEOptions extends CallClaudeOptions {
    * 연결 여부와 무관. fullText 를 세션/캐시에 영속화해 "사용자가 다른 앱 갔다
    * 와도 완성된 답이 남아 있게" 하는 데 쓴다. 던진 예외는 무시.
    */
-  onComplete?: (fullText: string) => void | Promise<void>
+  // meta.incomplete=true 면 자연 종료가 아니라 업스트림 에러/타임아웃으로 *도중에
+  // 끊긴* 부분 답이다. 호출자는 이를 '미완'으로 표시(끊김 마커 등)해, 잘린 답이
+  // 완성본처럼 영속·복원되어 사용자가 과금된 채 잘린 줄 모르는 것을 막아야 한다.
+  onComplete?: (fullText: string, meta?: { incomplete?: boolean }) => void | Promise<void>
   /**
    * true 면 클라이언트 연결이 끊겨도(탭 백그라운드/닫기) 업스트림 생성을
    * 중단하지 않고 끝까지 진행한 뒤 onComplete 로 영속화한다 (ChatGPT 식).
@@ -218,7 +221,9 @@ export async function streamClaudeAsSSE(opts: ClaudeSSEOptions): Promise<Respons
         // 영영 복구 불가 + 사용자 손해.
         if (!shouldRefund && fullText.trim() !== '' && onComplete) {
           try {
-            await onComplete(fullText)
+            // 여기서의 onComplete 는 *비정상 종료*(업스트림 에러/타임아웃) 경로 —
+            // 부분 답이라 incomplete 로 표시해 복원 시 '끊김'을 드러낸다.
+            await onComplete(fullText, { incomplete: true })
           } catch {
             /* persist 실패가 stream 깨지 않게 */
           }

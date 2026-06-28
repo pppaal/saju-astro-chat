@@ -31,6 +31,8 @@ export default async function DestinypalPage({ searchParams }: { searchParams: P
   const data = await loadTierData(SHOW_FULL_TIERS ? 'year' : 'month', override)
   if (data.kind === 'login') return <BirthRequiredFallback reason="login" />
   if (data.kind === 'no-birth') return <BirthRequiredFallback reason="no-birth" />
+  if (data.kind === 'rate-limited')
+    return <BirthRequiredFallback reason="rate-limited" locale={data.lang} />
   if (data.kind === 'guest') return <BirthGate base="/calendar" locale={data.lang} />
 
   const { topbar, user, lifetime, decade, year, month, day, lang } = data
