@@ -342,6 +342,9 @@ export async function getReferralStats(userId: string) {
 
 // 추천 링크 URL 생성
 export function getReferralUrl(code: string, baseUrl?: string): string {
-  const base = baseUrl || process.env.NEXT_PUBLIC_BASE_URL || 'https://destinypal.me'
+  // 폴백 도메인은 공유링크(siteBaseUrl)·메인 메타와 동일하게 .com 으로 통일 —
+  // .me 로 어긋나면 NEXT_PUBLIC_BASE_URL 미설정 환경에서 추천 링크가 잘못된
+  // 도메인을 가리켜 추천 퍼널 전체가 깨졌다.
+  const base = baseUrl || process.env.NEXT_PUBLIC_BASE_URL || 'https://destinypal.com'
   return `${base}/?ref=${code}`
 }

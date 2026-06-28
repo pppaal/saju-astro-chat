@@ -47,7 +47,9 @@ export interface CompatSajuFacts {
 
 /**
  * 두 사람 사주 raw 한 번씩 계산 + 정제된 facts 페어 반환.
- * collectSajuFacts (운명 상담사 SSOT) 위임 → LRU 캐시 적중.
+ * collectSajuFacts (운명 상담사 SSOT) 에 위임한다. 주의: 이 경로엔 결과 캐시가
+ * 없어 매 호출 풀계산이다(점성 짝 collectCompatAstroFacts 는 Redis 캐시인데
+ * 사주는 비대칭). 향후 본명 사주 캐시 도입 시 여기에 래퍼를 건다.
  */
 export function collectCompatSajuFacts(
   seedA: CompatPersonSeed,

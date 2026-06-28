@@ -161,8 +161,20 @@ describe('proxy — non-API requests', () => {
 })
 
 describe('proxy config', () => {
-  it('matcher 는 모든 경로를 대상으로 한다', async () => {
+  it('matcher 는 앱/API 경로는 잡고 정적 자산은 제외한다', async () => {
     const { config } = await import('@/proxy')
-    expect(config.matcher).toBe('/:path*')
+    const patterns = Array.isArray(config.matcher) ? config.matcher : [config.matcher]
+    expect(patterns).toHaveLength(1)
+    const re = new RegExp(`^${patterns[0]}$`)
+    // 앱·API·RSC 경로는 매칭
+    expect(re.test('/')).toBe(true)
+    expect(re.test('/api/saju')).toBe(true)
+    expect(re.test('/destiny-counselor')).toBe(true)
+    // 정적 자산·파비콘은 제외(매 요청 헛돌지 않게)
+    expect(re.test('/_next/static/chunks/main.js')).toBe(false)
+    expect(re.test('/_next/image')).toBe(false)
+    expect(re.test('/favicon.ico')).toBe(false)
+    expect(re.test('/logo.png')).toBe(false)
+    expect(re.test('/fonts/inter.woff2')).toBe(false)
   })
 })

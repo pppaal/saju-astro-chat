@@ -15,6 +15,7 @@ import { getShinsalHits, getTwelveStagesForPillars, toSajuPillarsLike } from '@/
 import { formatAstroSelf } from '@/lib/destiny/astroSelfFormatter'
 import { slimAstroSelf } from '@/lib/destiny/astroSlim'
 import { getIljinCalendar } from '@/lib/saju/unse'
+import { parseHourMinute } from '@/lib/saju/timeParse'
 import { isHyeong } from '@/lib/saju/hyeong'
 import { logger } from '@/lib/logger'
 import type { DayMaster, FiveElement, YinYang } from '@/lib/saju/types'
@@ -176,12 +177,21 @@ function buildIljinWindowBlock(
   const wdNames = locale === 'en' ? WEEKDAY_EN : WEEKDAY_KO
   const lines: string[] = []
   const base = Date.UTC(localToday.year, localToday.month - 1, localToday.day)
+  // getIljinCalendar 는 해당 '월 전체'(28~31일)를 매 호출 새로 빌드한다. 윈도우가
+  // 한 달 안에 있으면 같은 월을 7~8회 중복 빌드하므로 (연-월) 키로 메모이즈한다
+  // (순수 함수 — 출력 불변).
+  const iljinByMonth = new Map<string, ReturnType<typeof getIljinCalendar>>()
   for (let i = 0; i <= days; i++) {
     const dt = new Date(base + i * 86400000)
     const wy = dt.getUTCFullYear()
     const wm = dt.getUTCMonth() + 1
     const wd = dt.getUTCDate()
-    const cal = getIljinCalendar(wy, wm, dayMaster)
+    const mKey = `${wy}-${wm}`
+    let cal = iljinByMonth.get(mKey)
+    if (!cal) {
+      cal = getIljinCalendar(wy, wm, dayMaster)
+      iljinByMonth.set(mKey, cal)
+    }
     const found = cal.find((c) => c.day === wd)
     if (!found) continue
     const wday = wdNames[dt.getUTCDay()]
@@ -457,7 +467,10 @@ export async function buildDestinyContext(
   if (sources.astro)
     try {
       const [Y, M, D] = birth.birthDate.split('-').map(Number)
-      const [h, mi] = (birth.birthTime || '00:00').split(':').map(Number)
+      // 본명 차트(collectAstroFacts)와 동일한 SSOT 파서 사용 — split(':') 로
+      // 직접 파싱하면 '01:45 PM' 이 13:45 가 아닌 01:45 로 떨어져, 본명은 PM
+      // 보정되는데 SR/LR/2차진행(natalInput 소비)만 12시간 어긋났다.
+      const { h, m: mi } = parseHourMinute(birth.birthTime || '00:00')
       // ── 재료 준비실 ──
       // 옛 코드는 raw 호출(calculateNatalChart/findNatalAspects/dignityOf/
       // calculateProfection) + 어스펙트 분류 + 포매팅을 한 try 블록에서 다 했음.

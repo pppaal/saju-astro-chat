@@ -418,10 +418,12 @@ describe('/api/checkout - Security Tests', () => {
 
       await POST(req)
 
+      // Stripe idempotency keys are account-scoped, so the route namespaces the
+      // client key with the userId to prevent cross-user collisions.
       expect(mockStripeCreate).toHaveBeenCalledWith(
         expect.any(Object),
         expect.objectContaining({
-          idempotencyKey,
+          idempotencyKey: expect.stringMatching(/^chk:[^:]+:client-key-123$/),
         })
       )
     })

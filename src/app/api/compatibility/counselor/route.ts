@@ -321,8 +321,13 @@ export async function POST(req: NextRequest) {
     // 출생 시각 미상 — 시주/ASC/MC/하우스 cross 가 날조되지 않게 formatter 에 전달.
     // 명시 플래그 OR 시각 누락 OR 자정(00:00) 기본값 = 미상으로 간주(seed 도 00:00 폴백).
     const isTimeUnknown = (idx: number): boolean => {
-      const raw = persons?.[idx] as { time?: string; birthTimeUnknown?: boolean } | undefined
-      return !!raw?.birthTimeUnknown || !raw?.time || raw.time === '00:00'
+      // 클라/스키마가 보내는 필드는 timeUnknown — 과거 birthTimeUnknown 은 스키마에
+      // 없어 항상 undefined 라 명시 플래그가 죽고 '00:00' 폴백에만 의존했다(같은
+      // 라우트의 notices 블록은 이미 timeUnknown 을 읽어 소스가 갈렸음). 한 필드로 통일.
+      const raw = persons?.[idx] as
+        | { time?: string; timeUnknown?: boolean; birthTimeUnknown?: boolean }
+        | undefined
+      return !!raw?.timeUnknown || !!raw?.birthTimeUnknown || !raw?.time || raw.time === '00:00'
     }
     const timeUnknownA = isTimeUnknown(0)
     const timeUnknownB = isTimeUnknown(1)

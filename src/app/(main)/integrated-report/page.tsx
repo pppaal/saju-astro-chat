@@ -59,9 +59,15 @@ export default async function IntegratedReportPage({
   // 군주를 신뢰불가로 처리해야 한다(시각만 알아도 위치 모르면 앵글/하우스 날조).
   const rawLat = one(sp.lat)
   const rawLng = one(sp.lng)
-  const birthCityUnknown = !rawLat || !rawLng
-  const latitude = Number(rawLat ?? 37.5665)
-  const longitude = Number(rawLng ?? 126.978)
+  // 좌표 파싱 — 존재만 보면 ?lat=abc 같은 비숫자가 Number()→NaN 으로 엔진의
+  // Swiss Ephemeris 앵글/하우스 계산까지 흘러간다(공유·수기편집 URL로 도달 가능).
+  // 유한수가 아니면 서울 기본값 + 미상 처리로 폴백해 NaN 주입을 막는다.
+  const parsedLat = Number(rawLat)
+  const parsedLng = Number(rawLng)
+  const hasValidCoords = Number.isFinite(parsedLat) && Number.isFinite(parsedLng)
+  const birthCityUnknown = !hasValidCoords
+  const latitude = hasValidCoords ? parsedLat : 37.5665
+  const longitude = hasValidCoords ? parsedLng : 126.978
   const timeZone = one(sp.tz) ?? 'Asia/Seoul'
   const gender = one(sp.gender) === 'female' ? 'female' : 'male'
 

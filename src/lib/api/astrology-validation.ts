@@ -161,12 +161,14 @@ const RectificationRequestSchema = z.object({
 
 /** Solar return request schema */
 export const SolarReturnRequestSchema = AdvancedAstrologyRequestSchema.extend({
-  year: z.number().int().optional(),
+  // 다른 날짜 필드와 동일 경계 — 무경계면 극단값이 ephemeris 범위 밖 계산을
+  // 강제해 매 요청 헛된 swisseph 호출 후 500 을 유발한다.
+  year: z.number().int().min(1900).max(2200).optional(),
 })
 
 /** Lunar return request schema */
 export const LunarReturnRequestSchema = AdvancedAstrologyRequestSchema.extend({
-  year: z.number().int().optional(),
+  year: z.number().int().min(1900).max(2200).optional(),
   month: z.number().int().min(1).max(12).optional(),
 })
 

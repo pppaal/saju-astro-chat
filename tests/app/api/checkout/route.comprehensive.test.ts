@@ -407,8 +407,9 @@ describe('/api/checkout', () => {
 
       await POST(req)
 
+      // Client key is namespaced with userId (Stripe keys are account-scoped).
       expect(mockStripeCheckoutCreate).toHaveBeenCalledWith(expect.any(Object), {
-        idempotencyKey: 'client-key-123',
+        idempotencyKey: expect.stringMatching(/^chk:[^:]+:client-key-123$/),
       })
     })
 
