@@ -12,6 +12,7 @@
 
 import { toChart, type NatalChartData } from '@/lib/astrology/foundation/astrologyService'
 import { cachedCalculateNatalChart } from '@/lib/astrology/cached'
+import { cacheOrCalculate, CACHE_TTL } from '@/lib/cache/redis-cache'
 import { findNatalAspects } from '@/lib/astrology/foundation/aspects'
 import { dignityOf, dignityTiers, dignityScore } from '@/lib/astrology/foundation/dignities'
 import { calculateProfection } from '@/lib/astrology/foundation/profections'
@@ -266,17 +267,26 @@ export async function collectAstroFacts(
   }
 
   // ─── Hellenistic (option 켜야 계산, default 비용 0) ──────────────────────
+  // 본명 불변이라 결과도 출생정보의 결정함수 — 통합 리포트가 force-dynamic 로
+  // 매 요청 ZR×2·Almuten·7 Arabic Lots·행성별 5단계 존엄을 재계산하던 것을
+  // Redis 30일 캐시로 막는다(미스/Redis 없으면 graceful 재계산). 결과는 순수
+  // 데이터라 JSON 직렬화 안전.
   const hellenistic = input.includeHellenistic
-    ? buildHellenistic(chart, natal, {
-        Y,
-        M,
-        D,
-        h,
-        mi,
-        lat: input.latitude,
-        lon: input.longitude,
-        tz: input.timezone,
-      })
+    ? await cacheOrCalculate(
+        `hellenistic:v1:${input.birthDate}:${input.birthTime || ''}:${input.latitude.toFixed(2)}:${input.longitude.toFixed(2)}:${safeTz}`,
+        async () =>
+          buildHellenistic(chart, natal, {
+            Y,
+            M,
+            D,
+            h,
+            mi,
+            lat: input.latitude,
+            lon: input.longitude,
+            tz: input.timezone,
+          }),
+        CACHE_TTL.NATAL_CHART
+      )
     : undefined
 
   return {

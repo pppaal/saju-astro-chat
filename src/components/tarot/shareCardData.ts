@@ -9,7 +9,8 @@ import type {
   ReadingResponse,
   InterpretationResult,
 } from '@/app/tarot/[categoryName]/[spreadId]/types'
-import { findCardBySavedName } from '@/lib/tarot/findCardByName'
+// 공유 카드도 이미지/이름만 필요 — 전체 덱(의미 텍스트 ~400KB) 대신 경량 인덱스.
+import { findCardImageBySavedName } from '@/lib/tarot/cardNameIndex'
 import type { ShareCardData } from './TarotShareCard'
 
 // 저장 기록 입력의 최소 구조적 타입 — historyClientUtils / tarot-storage 의
@@ -167,7 +168,7 @@ export function buildShareDataFromSavedReading(
     ),
     spreadTitle: isKo ? reading.spread.titleKo || reading.spread.title : reading.spread.title,
     cards: reading.cards.map((c, idx) => {
-      const full = findCardBySavedName(c, idx)
+      const full = findCardImageBySavedName(c, idx)
       return {
         image: full.image,
         name: isKo ? c.nameKo || full.nameKo || c.name : c.name || full.name,
