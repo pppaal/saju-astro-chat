@@ -481,6 +481,15 @@ async function handleChargeRefunded(charge: Stripe.Charge) {
     )
     recordCounter('stripe_webhook_refund_before_purchase', 1)
   } catch (err) {
+    // 큐 기록이 transient DB 오류로 실패하면 *반드시 throw* 해서 이벤트를
+    // 실패(retryable)로 기록하고 Stripe 가 재시도하게 한다. 여기서 삼키면
+    // success 로 처리돼 재시도가 끊기고, 늦게 도착할 purchase webhook 이
+    // 회수할 큐가 사라져 환불 회수가 영영 누락된다(환불받고도 크레딧 유지).
+    // upsert(unique stripePaymentIntentId, update:{}) 는 멱등이라 재시도 안전.
+    // 형제 경로(handleCheckoutCompleted 의 queued revocation, handleChargeRefunded
+    // 의 revoke 실패)와 동일하게 throw 로 통일.
     logger.error('[Stripe Webhook] Failed to queue PendingCreditRevocation:', err)
+    recordCounter('stripe_webhook_queue_revocation_error', 1)
+    throw err
   }
 }

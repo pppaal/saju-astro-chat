@@ -71,12 +71,26 @@ function getAllowedOrigins(): Set<string> {
     }
   }
 
-  // Additional allowed origins from env (comma-separated). Added raw so that
-  // custom-scheme origins (mobile webviews, Electron) match exactly.
+  // Additional allowed origins from env (comma-separated).
+  // http(s) origins are normalized via URL.origin (lowercased scheme+host) so
+  // they match the browser's Origin header, which is always lowercase per
+  // RFC 3986 / WHATWG URL — otherwise a config like `https://Partner.com`
+  // would reject the legitimate `https://partner.com` request (false CSRF
+  // block / self-DoS). Custom-scheme origins (capacitor://, ionic://, file://,
+  // Electron) are kept raw because URL.origin normalizes them to "null".
   const additionalOrigins = process.env.ALLOWED_ORIGINS?.split(",") || [];
   for (const o of additionalOrigins) {
     const trimmed = o.trim();
-    if (trimmed) {
+    if (!trimmed) {
+      continue;
+    }
+    if (/^https?:\/\//i.test(trimmed)) {
+      try {
+        allowedOrigins.add(new URL(trimmed).origin);
+      } catch {
+        allowedOrigins.add(trimmed);
+      }
+    } else {
       allowedOrigins.add(trimmed);
     }
   }
