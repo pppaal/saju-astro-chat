@@ -14,6 +14,7 @@
 import { toChart, type NatalChartData } from '@/lib/astrology/foundation/astrologyService'
 import { cachedCalculateNatalChart } from '@/lib/astrology/cached'
 import type { Chart } from '@/lib/astrology/foundation/types'
+import { parseHourMinute } from '@/lib/saju/timeParse'
 import { logger } from '@/lib/logger'
 
 export interface CompatAstroPersonInput {
@@ -62,13 +63,15 @@ export async function collectCompatAstroFacts(
 
 function isValidSeed(seed: CompatAstroPersonInput): boolean {
   const [Y, M, D] = seed.birthDate.split('-').map(Number)
-  const [h, mi] = (seed.birthTime || '00:00').split(':').map(Number)
+  // SSOT 파서 — 직접 split 하면 'HH:MM PM' 이 '45 PM'→NaN 으로 떨어져 *유효한*
+  // AM/PM 생시를 가진 사람이 통째로 걸러졌다(시주/ASC 누락). 날짜만 검증.
+  const { h, m: mi } = parseHourMinute(seed.birthTime || '00:00')
   return [Y, M, D, h, mi].every(Number.isFinite)
 }
 
 async function collectOne(seed: CompatAstroPersonInput): Promise<PersonCompatAstroFacts> {
   const [Y, M, D] = seed.birthDate.split('-').map(Number)
-  const [h, mi] = (seed.birthTime || '00:00').split(':').map(Number)
+  const { h, m: mi } = parseHourMinute(seed.birthTime || '00:00')
   // 본명 차트 불변 → Redis 30일 캐시. 궁합은 두 사람치를 매번 풀계산하던
   // 가장 무거운 경로라 캐시 효과가 제일 크다(캐시 없으면 graceful 재계산).
   const natalRaw = await cachedCalculateNatalChart({
