@@ -1,6 +1,3 @@
-'use client'
-
-import { useI18n } from '@/i18n/I18nProvider'
 import styles from './EngineMoatBanner.module.css'
 
 /**
@@ -8,21 +5,49 @@ import styles from './EngineMoatBanner.module.css'
  * 단 하나의 차별점을 한눈에 전달한다. 도메인 깊이(결정론 엔진·실제 천문·
  * 사주×점성 교차검증)는 코드엔 있지만 손님 눈엔 안 보여 ChatGPT처럼 읽히던
  * 전환 킬러를 정조준. 가격표 위 + /free 허브 등 결정 지점에 배치.
+ *
+ * 순수 표현 컴포넌트(서버 렌더 가능) — locale 을 prop 으로 받는다. 'use client'
+ * + useI18n 이던 시절엔 정적 /free 랜딩이 이 배너 하나 때문에 I18nProvider 클라
+ * 런타임을 통째로 하이드레이트했다(불필요 비용). 호출자가 이미 아는 locale 을
+ * 넘겨 클라 경계를 없앤다(가격표는 클라 컴포넌트라 그대로 prop 전달).
  */
-export default function EngineMoatBanner() {
-  const { locale } = useI18n()
+export default function EngineMoatBanner({ locale }: { locale: 'ko' | 'en' }) {
   const ko = locale !== 'en'
 
   const points = ko
     ? [
-        { icon: '⚙️', title: '결정론 엔진', desc: '같은 사주는 언제 봐도 같은 판정. 그날 기분 따라 안 바뀝니다.' },
-        { icon: '🔭', title: '실제 천문 계산', desc: '24절기·진태양시까지 분 단위. 별자리는 스위스 천체력 기반.' },
-        { icon: '🔗', title: '사주 × 별자리 교차검증', desc: '두 체계가 서로 보강·상충하는 지점까지 코드가 짚어줍니다.' },
+        {
+          icon: '⚙️',
+          title: '결정론 엔진',
+          desc: '같은 사주는 언제 봐도 같은 판정. 그날 기분 따라 안 바뀝니다.',
+        },
+        {
+          icon: '🔭',
+          title: '실제 천문 계산',
+          desc: '24절기·진태양시까지 분 단위. 별자리는 스위스 천체력 기반.',
+        },
+        {
+          icon: '🔗',
+          title: '사주 × 별자리 교차검증',
+          desc: '두 체계가 서로 보강·상충하는 지점까지 코드가 짚어줍니다.',
+        },
       ]
     : [
-        { icon: '⚙️', title: 'Deterministic engine', desc: 'The same chart always yields the same reading — not mood-of-the-day output.' },
-        { icon: '🔭', title: 'Real astronomy', desc: 'Solar terms & true solar time to the minute; charts from Swiss Ephemeris.' },
-        { icon: '🔗', title: 'Saju × astrology cross-check', desc: 'The code surfaces where the two systems reinforce or contradict each other.' },
+        {
+          icon: '⚙️',
+          title: 'Deterministic engine',
+          desc: 'The same chart always yields the same reading — not mood-of-the-day output.',
+        },
+        {
+          icon: '🔭',
+          title: 'Real astronomy',
+          desc: 'Solar terms & true solar time to the minute; charts from Swiss Ephemeris.',
+        },
+        {
+          icon: '🔗',
+          title: 'Saju × astrology cross-check',
+          desc: 'The code surfaces where the two systems reinforce or contradict each other.',
+        },
       ]
 
   return (
