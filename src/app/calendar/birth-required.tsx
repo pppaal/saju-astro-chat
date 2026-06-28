@@ -15,23 +15,44 @@
 import Link from 'next/link'
 import styles from './birth-required.module.css'
 
-export type BirthRequiredReason = 'login' | 'no-birth'
+export type BirthRequiredReason = 'login' | 'no-birth' | 'rate-limited'
 
 export interface BirthRequiredFallbackProps {
   reason: BirthRequiredReason
   /** 비로그인 시 signIn 후 돌아올 경로. 기본 /calendar */
   callbackUrl?: string
+  /** rate-limited 안내 문구 로케일. 기본 ko. */
+  locale?: 'ko' | 'en'
 }
 
 export default function BirthRequiredFallback({
   reason,
   callbackUrl = '/calendar',
+  locale = 'ko',
 }: BirthRequiredFallbackProps) {
   // signIn 진입 URL — buildSignInUrl 은 client only(window 의존) 라
   // 서버에서 직접 만들지 못한다. 수동 구성.
   const signinHref = `/auth/signin?callbackUrl=${encodeURIComponent(
     `${callbackUrl}?authRefresh=1`
   )}`
+
+  if (reason === 'rate-limited') {
+    return (
+      <div className={styles.page}>
+        <article className={styles.card}>
+          <span className={styles.seal}>命 · 본명</span>
+          <h1 className={styles.title}>
+            {locale === 'en' ? 'Too many requests' : '요청이 많아요'}
+          </h1>
+          <p className={styles.subtitle}>
+            {locale === 'en'
+              ? 'This chart view is being requested too quickly. Please wait a moment and try again.'
+              : '잠시 사이에 너무 많은 차트 요청이 들어왔어요. 잠깐 기다렸다 다시 시도해 주세요.'}
+          </p>
+        </article>
+      </div>
+    )
+  }
 
   if (reason === 'login') {
     return (

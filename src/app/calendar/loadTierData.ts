@@ -10,8 +10,11 @@
      · 'year'  — 1년 풀빌드(연/대운 티어가 필요로 함). 인생 뷰(/destiny).
    ============================================================ */
 
+import { headers } from 'next/headers'
 import { detectServerLocale } from '@/i18n/server'
 import { getServerSession } from '@/lib/auth/session'
+import { getClientIp } from '@/lib/request-ip'
+import { rateLimit } from '@/lib/cache/redis-rate-limit'
 import { prisma } from '@/lib/db/prisma'
 import {
   getOrBuildNatalContext,
@@ -29,6 +32,8 @@ export type LoadTierResult =
   | { kind: 'no-birth' }
   // 익명 + 무입력 — 임의 샘플 대신 생년월일 입력 게이트를 띄운다(lang 전달).
   | { kind: 'guest'; lang: 'ko' | 'en' }
+  // 익명 override 빌드 IP 한도 초과 — 잠시 후 재시도 안내.
+  | { kind: 'rate-limited'; lang: 'ko' | 'en' }
   | ({ kind: 'ok'; lang: 'ko' | 'en' } & AssembledTiers)
 
 // 쿼리파라미터로 들어온 생일 — 로그인 없이도 캘린더/인생흐름을 그 사람 기준으로
@@ -106,6 +111,13 @@ export async function loadTierData(
   let place: string
 
   if (override) {
+    // 익명 override 빌드는 인증·rate-limit 없이 ?date=&lat= 변주로 무한 풀빌드
+    // (연 ~7.8s) + 캐시 행 증식을 유발할 수 있다(DoS). IP 당 한도를 둔다 —
+    // 정상 '다른 사람 보기'는 분당 수 회라 영향 없고, 스크립트 남용만 막는다.
+    // Redis 없으면 fail-open(상태 없이는 제한 불가) — graceful.
+    const ip = getClientIp(await headers())
+    const rl = await rateLimit(`tier-override:${ip}`, { limit: 20, windowSeconds: 60 })
+    if (!rl.allowed) return { kind: 'rate-limited', lang }
     // 1) 쿼리파라미터(그 사람 생일) — 로그인 불필요.
     BIRTH = {
       birthDate: override.birthDate,

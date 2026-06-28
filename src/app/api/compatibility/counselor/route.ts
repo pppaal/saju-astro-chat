@@ -689,12 +689,17 @@ export async function POST(req: NextRequest) {
         //      메시지는 비워 둔다(클라가 append 로 채움 → 중복 방지). 제목만 질문
         //      에서 뽑는다.
         onComplete: recoverUserId
-          ? async (full) => {
+          ? async (full, meta) => {
+              // 도중에 끊긴 부분 답이면 끊김 마커를 붙여 저장 — 복원 시 잘린 답을
+              // 완성본으로 오인(+과금)하지 않게.
+              const persisted = meta?.incomplete
+                ? `${full}\n\n${lang === 'ko' ? '⚠️ 답변이 도중에 끊겼어요. 이어가려면 다시 시도해 주세요.' : '⚠️ This answer was cut off. Please retry to continue.'}`
+                : full
               if (turnId) {
                 try {
                   await cacheSet(
                     compatTurnResultKey(recoverUserId, turnId),
-                    full,
+                    persisted,
                     COMPAT_TURN_RESULT_TTL_SEC
                   )
                 } catch {
