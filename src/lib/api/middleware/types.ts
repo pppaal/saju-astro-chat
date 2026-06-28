@@ -16,6 +16,12 @@ export interface ApiContext {
   session: (Session & { user?: { id: string; email?: string | null; plan?: string } }) | null
   userId: string | null
   isAuthenticated: boolean
+  /**
+   * @deprecated 신뢰하지 말 것 — JWT 세션에 plan 이 주입되지 않아 사실상 항상
+   * false 다(현재 코드베이스에서 읽는 곳도 없음). 프리미엄 여부가 필요하면
+   * getCreditBalance(@/lib/credits) 로 최신 plan 을 직접 조회하라(예: saju 라우트).
+   * 미들웨어에서 매 요청 DB 조회로 채우는 건 지연 비용이 커 의도적으로 안 한다.
+   */
   isPremium: boolean
   /**
    * Rate limit headers computed by middleware (if enabled).
