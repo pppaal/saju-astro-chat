@@ -180,7 +180,11 @@ function findFirstCrossing(
     const diff = shortDiff(lon, target)
     if (prevDiff !== null && diff !== 0) {
       // sign change 또는 0 도달 — 첫 교차 발견. 이 구간 안에서 이분법.
-      if (Math.sign(prevDiff) !== Math.sign(diff)) {
+      // 단, shortDiff 는 (-180,180] 이라 행성이 anti-target(target±180)을 지날 때
+      // +180→-179 로 부호가 뒤집혀 *가짜* sign-change 가 생긴다. 진짜 0-교차는
+      // prevDiff·diff 가 둘 다 0 근처라 |diff-prevDiff| 가 작지만, ±180 wrap 은
+      // 그 차가 ~360 이다. findMoonAtLongitude 와 동일한 wrap 가드로 가짜 교차 배제.
+      if (Math.sign(prevDiff) !== Math.sign(diff) && Math.abs(diff - prevDiff) < 180) {
         return bisectCrossing(planetId, target, prevJD, jd, prevDiff, diff)
       }
     }
