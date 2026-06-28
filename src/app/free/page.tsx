@@ -271,7 +271,7 @@ export default async function FreeFunnelHub() {
 
         {/* 해자 — 무료 체험 직후 "왜 ChatGPT보다 나은가"를 각인 */}
         <div style={{ marginTop: 36 }}>
-          <EngineMoatBanner />
+          <EngineMoatBanner locale={isKo ? 'ko' : 'en'} />
         </div>
 
         {/* 공유 유도 — 바이럴 루프의 핵심 한 줄 */}

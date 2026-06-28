@@ -312,7 +312,7 @@ export default function PricingPageClient({ initialLocale, initialCopy }: Pricin
         </section>
 
         {/* 해자 — 결제 결정 직전에 "왜 ChatGPT보다 나은가"를 한눈에 */}
-        <EngineMoatBanner />
+        <EngineMoatBanner locale={isKo ? 'ko' : 'en'} />
 
         {/* Credit Packs */}
         <section className={styles.creditSection}>
