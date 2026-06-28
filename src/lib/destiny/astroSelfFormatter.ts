@@ -148,6 +148,12 @@ export interface AstroSelfInput {
   now?: Date
   /** Solar Return / Lunar Return 계산용 natal input — 없으면 SR/LR skip */
   natalInput?: NatalInput
+  /**
+   * Lunar Return 블록 계산 여부 — default true(하위호환). 운명상담사는
+   * slimAstroSelf 로 LR 블록을 *항상* 버리므로(소비처 0), false 로 넘겨
+   * 매 호출 calculateLunarReturn(무거운 ephemeris) 헛계산을 없앤다.
+   */
+  includeLunarReturn?: boolean
   /** 섹션 헤더 라벨 — default '점성' (둘 사람 비교 시 'A 점성' / 'B 점성' 등) */
   label?: string
   /**
@@ -296,27 +302,31 @@ export async function formatAstroSelf(input: AstroSelfInput): Promise<string> {
     } catch {
       /* skip */
     }
-    try {
-      const lr = await calculateLunarReturn({
-        natal: input.natalInput,
-        year: nowDate.getFullYear(),
-        month: nowDate.getMonth() + 1,
-      })
-      out.push(
-        `[Lunar Return — ${nowDate.getFullYear()}-${String(nowDate.getMonth() + 1).padStart(2, '0')}]`
-      )
-      if (!skipAngles && lr.ascendant?.sign)
-        out.push(`Asc: ${sign(lr.ascendant.sign)} ${lr.ascendant.degree}°`)
-      if (!skipAngles && lr.mc?.sign) out.push(`MC: ${sign(lr.mc.sign)} ${lr.mc.degree}°`)
-      for (const pl of lr.planets) {
-        const houseStr = !skipAngles ? `, House ${pl.house}` : ''
+    // includeLunarReturn=false 면 LR 계산 자체를 건너뛴다(상담사는 slim 이 어차피
+    // LR 블록을 버려 소비처가 0). default true 로 다른 호출자 동작은 그대로.
+    if (input.includeLunarReturn !== false) {
+      try {
+        const lr = await calculateLunarReturn({
+          natal: input.natalInput,
+          year: nowDate.getFullYear(),
+          month: nowDate.getMonth() + 1,
+        })
         out.push(
-          `${label(pl.name)} in ${sign(pl.sign)} ${pl.degree}°${houseStr}${pl.retrograde ? ' R' : ''}`
+          `[Lunar Return — ${nowDate.getFullYear()}-${String(nowDate.getMonth() + 1).padStart(2, '0')}]`
         )
+        if (!skipAngles && lr.ascendant?.sign)
+          out.push(`Asc: ${sign(lr.ascendant.sign)} ${lr.ascendant.degree}°`)
+        if (!skipAngles && lr.mc?.sign) out.push(`MC: ${sign(lr.mc.sign)} ${lr.mc.degree}°`)
+        for (const pl of lr.planets) {
+          const houseStr = !skipAngles ? `, House ${pl.house}` : ''
+          out.push(
+            `${label(pl.name)} in ${sign(pl.sign)} ${pl.degree}°${houseStr}${pl.retrograde ? ' R' : ''}`
+          )
+        }
+        out.push('')
+      } catch {
+        /* skip */
       }
-      out.push('')
-    } catch {
-      /* skip */
     }
   }
 

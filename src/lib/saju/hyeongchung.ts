@@ -193,9 +193,13 @@ export function analyzeHyeongchung(pillars: SajuPillarsInput): HyeongchungAnalys
 
   const interactions: InteractionResult[] = []
 
-  // 각종 작용 검사
+  // 각종 작용 검사 — 여기선 육합(checkYukap)만 본다. 충/형/해/파/원진을 포함한
+  // *완전한* 지지 관계 분석은 analyzeRelations(@/lib/saju/relations)·relationTables
+  // 가 단일 출처로 담당하며, 운명상담사 컨텍스트(sajuFacts.relations)·리포트·
+  // 캘린더(saju-hyeongchung extractor)는 모두 그쪽을 쓴다. 이 함수의 출력
+  // (analyses.hyeongchung)은 현재 UI 에 렌더되지 않는 내부 값이라 육합만으로 둔다.
+  // (확장하려면 relations 로 위임할 것 — 자체 골든 테스트가 현 동작을 잠금.)
   interactions.push(...checkYukap(branchMap))
-  // ... 기타 check 함수 호출 (간략화)
 
   // 요약 계산
   const positive = interactions.filter((i) => i.effect === '길')

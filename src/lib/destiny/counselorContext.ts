@@ -553,6 +553,9 @@ export async function buildDestinyContext(
         // 미상이면 각을 건너뛴다. 이전엔 birthCityUnknown 만 봤어서, 출생지는
         // 알고 시간만 모르는 경우 midnight 폴백 ASC 기반 하우스/각이 새어나갔다.
         skipAngles: placeUnreliable,
+        // slimAstroSelf 가 Lunar Return 블록을 버리므로 계산 자체를 끈다(헛된
+        // calculateLunarReturn ephemeris 호출 제거 — 출력 동일).
+        includeLunarReturn: false,
       })
       const cur = slimAstroSelf(block, { locale, year }).trim()
 
