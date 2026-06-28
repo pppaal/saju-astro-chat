@@ -5,6 +5,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { NextResponse } from 'next/server'
 import Stripe from 'stripe'
+import { revokeBonusCreditPurchase } from '@/lib/credits/creditService'
 
 // ---------- hoisted mocks ----------
 const mockStripeWebhooksConstructEvent = vi.fn()
@@ -497,6 +498,81 @@ describe('Stripe Webhook Edge Cases (P1)', () => {
       const response = await POST(request)
 
       expect(response.status).toBe(200)
+    })
+  })
+
+  describe('Refund-before-purchase queue (out-of-order)', () => {
+    const refundEvent = (paymentIntent: string | null) => ({
+      id: `evt_refund_${Date.now()}`,
+      type: 'charge.refunded',
+      created: Math.floor(Date.now() / 1000),
+      livemode: false,
+      api_version: '2023-10-16',
+      data: {
+        object: {
+          id: 'ch_test_123',
+          amount_refunded: 9900,
+          currency: 'krw',
+          payment_intent: paymentIntent,
+        },
+      },
+    })
+
+    beforeEach(() => {
+      mockPrisma.stripeEventLog.create.mockResolvedValue({})
+      mockPrisma.stripeEventLog.update.mockResolvedValue({})
+      // No matching purchase yet → refund arrived before checkout webhook.
+      mockPrisma.bonusCreditPurchase.findFirst.mockResolvedValue(null)
+      // revoke finds nothing to revoke and reports no DB error → falls through
+      // to the PendingCreditRevocation queue path.
+      vi.mocked(revokeBonusCreditPurchase).mockResolvedValueOnce({
+        revoked: false,
+        error: false,
+        reclaimed: 0,
+        alreadyUsed: 0,
+      } as any)
+    })
+
+    it('queues a PendingCreditRevocation and succeeds when the write lands', async () => {
+      const event = refundEvent('pi_refund_first')
+      mockStripeWebhooksConstructEvent.mockReturnValue(event)
+      mockPrisma.pendingCreditRevocation.upsert.mockResolvedValue({})
+
+      const { POST } = await import('@/app/api/webhook/stripe/route')
+      const request = createWebhookRequest(event, 'valid-sig')
+
+      const response = await POST(request)
+
+      expect(response.status).toBe(200)
+      expect(mockPrisma.pendingCreditRevocation.upsert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { stripePaymentIntentId: 'pi_refund_first' },
+        })
+      )
+    })
+
+    it('throws (500, retryable) when queuing the revocation fails — refund clawback must not be silently lost', async () => {
+      const event = refundEvent('pi_refund_dbfail')
+      mockStripeWebhooksConstructEvent.mockReturnValue(event)
+      // Transient DB failure while queuing the clawback.
+      mockPrisma.pendingCreditRevocation.upsert.mockRejectedValue(new Error('DB down'))
+      mockPrisma.stripeEventLog.findUnique.mockResolvedValue(null)
+      mockPrisma.stripeEventLog.upsert.mockResolvedValue({})
+
+      const { POST } = await import('@/app/api/webhook/stripe/route')
+      const request = createWebhookRequest(event, 'valid-sig')
+
+      const response = await POST(request)
+
+      // Must NOT report success — otherwise Stripe never retries and the
+      // queued clawback is lost (user keeps refunded credits).
+      expect(response.status).toBe(500)
+      // Event is recorded as failed so the retry can reprocess it.
+      expect(mockPrisma.stripeEventLog.upsert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          update: expect.objectContaining({ success: false }),
+        })
+      )
     })
   })
 })
