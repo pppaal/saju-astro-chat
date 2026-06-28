@@ -17,7 +17,9 @@ import {
 import { useI18n } from '@/i18n/I18nProvider'
 import { apiFetch } from '@/lib/api'
 import { CosmicBackdrop } from '@/components/ui/CosmicBackdrop'
-import { findCardBySavedName } from '@/lib/tarot/findCardByName'
+// 히스토리는 카드 이미지/이름만 그린다 — 전체 덱(~400KB 의미 텍스트) 대신
+// 경량 인덱스로 매칭해 이 클라 페이지 번들에서 의미 전문을 뺀다.
+import { findCardImageBySavedName } from '@/lib/tarot/cardNameIndex'
 import ChatBubbleContent from '@/components/chat/ChatBubbleContent'
 import { ShareTarotButton } from '@/components/tarot/ShareTarotButton'
 import { buildShareDataFromSavedReading } from '@/components/tarot/shareCardData'
@@ -795,7 +797,7 @@ export default function TarotHistoryClient() {
               </h4>
               <ul className="space-y-2">
                 {selectedReading.cards.map((card, idx) => {
-                  const fullCard = findCardBySavedName(card, idx)
+                  const fullCard = findCardImageBySavedName(card, idx)
                   const expanded = expandedCardIdx === idx
                   const cardInterp = selectedReading.interpretation.cardInsights?.[idx]
                   const hasInterp = !!(cardInterp?.interpretation || '').trim()
@@ -918,7 +920,7 @@ export default function TarotHistoryClient() {
             {selectedReading.clarifierCard &&
               (() => {
                 const clCard = selectedReading.clarifierCard!
-                const clFull = findCardBySavedName(clCard, 0)
+                const clFull = findCardImageBySavedName(clCard, 0)
                 return (
                   <section
                     className="mb-5 rounded-xl border p-4"
