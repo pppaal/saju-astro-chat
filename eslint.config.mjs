@@ -103,6 +103,30 @@ const config = [
       'eqeqeq': ['warn', 'always', { null: 'ignore' }],
       'curly': ['warn', 'all'],
       'import/no-anonymous-default-export': 'off', // Allow anonymous exports
+      // 시각 파싱 SSOT 가드 — birthTime 을 split(':') 로 직접 파싱하면 'HH:MM PM'
+      // 이 12시간 어긋나거나(시주/SR/LR) NaN 으로 떨어져 유효 생시가 걸러진다.
+      // parseHourMinute(@/lib/saju/timeParse)만 쓰도록 강제. 흔한 3가지 형태
+      // (x.birthTime.split / birthTime.split / (x.birthTime||'').split)를 잡는다.
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector:
+            "CallExpression[callee.property.name='split'][callee.object.property.name='birthTime']",
+          message:
+            "birthTime 을 split 으로 직접 파싱 금지 — parseHourMinute(@/lib/saju/timeParse) 를 쓰세요('HH:MM PM' 12시간 오차 방지).",
+        },
+        {
+          selector: "CallExpression[callee.property.name='split'][callee.object.name='birthTime']",
+          message:
+            'birthTime 을 split 으로 직접 파싱 금지 — parseHourMinute(@/lib/saju/timeParse) 를 쓰세요.',
+        },
+        {
+          selector:
+            "CallExpression[callee.property.name='split'][callee.object.type='LogicalExpression'][callee.object.left.property.name='birthTime']",
+          message:
+            'birthTime 을 split 으로 직접 파싱 금지 — parseHourMinute(@/lib/saju/timeParse) 를 쓰세요.',
+        },
+      ],
     },
   },
   {
@@ -166,6 +190,8 @@ const config = [
     // Test files - relaxed rules for test utilities and mocking
     files: ['tests/**/*.{ts,tsx,js}'],
     rules: {
+      // 테스트 픽스처는 24h 리터럴을 직접 다뤄도 무방 — birthTime split 가드 제외.
+      'no-restricted-syntax': 'off',
       '@typescript-eslint/no-explicit-any': 'off', // Tests often need any for mocking
       '@typescript-eslint/no-unused-vars': 'off',
       'no-console': 'off', // Allow console in tests for debugging
@@ -180,6 +206,7 @@ const config = [
     // Scripts - utility scripts with more flexibility
     files: ['scripts/**/*.{ts,tsx,js,mjs,cjs,mts,cts}'],
     rules: {
+      'no-restricted-syntax': 'off', // 스크립트 런너는 24h 입력 직접 처리 허용
       '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/no-unused-vars': 'off',
       'no-console': 'off', // Scripts often use console output

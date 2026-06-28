@@ -22,6 +22,7 @@ import {
   buildReportBirthQuery,
   type StoredBirthInfo,
 } from './birthInfoStorage'
+import { parseHourMinute } from '@/lib/saju/timeParse'
 import HexDPLogo from '@/components/branding/HexDPLogo'
 import { AppHeader, AppHeaderIconButton } from '@/components/ui/AppHeader'
 
@@ -41,7 +42,9 @@ function formatSubject(info: StoredBirthInfo, isKo: boolean): string {
     : `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`
   let timePart = ''
   if (!info.birthTimeUnknown && info.birthTime && info.birthTime !== '00:00') {
-    const [hh, mm] = info.birthTime.split(':').map((n) => parseInt(n, 10))
+    // SSOT 파서 — birthTime 이 'HH:MM PM' 으로 들어와도 24h 로 정규화(split 직접
+    // 파싱은 PM 보정을 못 해 표시가 12시간 어긋난다).
+    const { h: hh, m: mm } = parseHourMinute(info.birthTime)
     const ampm = hh < 12 ? 'am' : 'pm'
     const h12 = hh % 12 === 0 ? 12 : hh % 12
     timePart = ` ${h12}:${String(mm).padStart(2, '0')}${ampm}`
