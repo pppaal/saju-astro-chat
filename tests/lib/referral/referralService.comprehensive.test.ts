@@ -338,7 +338,7 @@ describe('Referral Service', () => {
     it('should use default URL when no base or env', () => {
       delete process.env.NEXT_PUBLIC_BASE_URL
       const url = getReferralUrl('CODE1234')
-      expect(url).toBe('https://destinypal.me/?ref=CODE1234')
+      expect(url).toBe('https://destinypal.com/?ref=CODE1234')
     })
 
     it('should handle special characters in code', () => {
