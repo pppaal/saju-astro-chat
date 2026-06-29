@@ -32,8 +32,8 @@ const LABELS: Record<LangKey, { saju: string; astro: string; group: string }> = 
     group: '이 상담에 쓸 자료를 골라요 (둘 다 추천)',
   },
   en: {
-    saju: 'Read with Saju',
-    astro: 'Read with Astrology',
+    saju: 'Saju',
+    astro: 'Astrology',
     group: 'Choose the data for this reading (both recommended)',
   },
 }
