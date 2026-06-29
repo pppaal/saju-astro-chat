@@ -1722,9 +1722,31 @@ export function buildFreeCompatNarrative(
     overallScore = Math.max(40, Math.min(97, Math.round(expanded)))
   }
 
+  // 점수 드라이버 — 총점(=posThemes 평균)을 끌어올린/깎은 테마를 그대로 노출.
+  // 라벨은 테마의 scoreCaption(끌림/소통/마찰…), 없으면 제목. friction 은 진행축이라
+  // 총점 평균엔 안 들어가지만 점수가 높으면(충돌 큼) "깎는 쪽"으로 함께 보여준다.
+  let scoreDrivers: FreeReportView['scoreDrivers'] = null
+  if (overallScore != null && posThemes.length >= 2) {
+    const byScore = [...posThemes].sort((a, b) => b.score! - a.score!)
+    const toDriver = (th: FreeReportTheme) => ({
+      label: th.scoreCaption || th.title,
+      score: th.score!,
+    })
+    const weighs = byScore.slice(-2).reverse().map(toDriver)
+    // 충돌 강도가 큰 커플이면 friction 을 깎는 요인으로 명시(총점 감점원과 일치).
+    if (fric && typeof fric.score === 'number' && fric.score >= 70) {
+      weighs.unshift(toDriver(fric))
+    }
+    scoreDrivers = {
+      lifts: byScore.slice(0, 2).map(toDriver),
+      weighs: weighs.slice(0, 3),
+    }
+  }
+
   return {
     overallScore,
     overallGrade: overallScore != null ? t(overallGrade(overallScore)) : null,
+    scoreDrivers,
     intro: t(pickFor([INTRO, ...INTRO_ALT], seed, 'intro')),
     verdict,
     sections,

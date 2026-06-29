@@ -353,4 +353,44 @@ describe('buildFreeCompatNarrative', () => {
     expect(view.verdict).toBeNull()
     expect(view.glossary.length).toBeGreaterThan(5)
   })
+
+  it('exposes score drivers — what lifted vs weighed the headline score', () => {
+    const view = buildFreeCompatNarrative(fullReport(), {
+      labelA: '준영',
+      labelB: '민지',
+      lang: 'ko',
+    })
+    const d = view.scoreDrivers
+    expect(d).not.toBeNull()
+    expect(d!.lifts.length).toBeGreaterThanOrEqual(1)
+    expect(d!.weighs.length).toBeGreaterThanOrEqual(1)
+    // 라벨은 비지 않은 문자열, 점수는 0~100 정수.
+    for (const x of [...d!.lifts, ...d!.weighs]) {
+      expect(typeof x.label).toBe('string')
+      expect(x.label.length).toBeGreaterThan(0)
+      expect(Number.isInteger(x.score)).toBe(true)
+      expect(x.score).toBeGreaterThanOrEqual(0)
+      expect(x.score).toBeLessThanOrEqual(100)
+    }
+    // 드라이버는 실제 테마 점수와 일치해야 한다(=총점 산출원). lifts = 끌림축 최고,
+    // weighs 는 끌림축 최저를 포함.
+    const pos = view.themes.filter((t) => t.id !== 'friction' && typeof t.score === 'number')
+    const maxPos = Math.max(...pos.map((t) => t.score!))
+    const minPos = Math.min(...pos.map((t) => t.score!))
+    expect(d!.lifts[0].score).toBe(maxPos)
+    expect(d!.weighs.some((w) => w.score === minPos)).toBe(true)
+    // lifts 는 내림차순.
+    if (d!.lifts.length === 2) expect(d!.lifts[0].score).toBeGreaterThanOrEqual(d!.lifts[1].score)
+  })
+
+  it('has no score drivers when there is no score (no signals)', () => {
+    const bare: CompatReport = {
+      synView: null,
+      dayMaster: null,
+      spouseStars: [],
+      pillarRelations: [],
+    }
+    const view = buildFreeCompatNarrative(bare, { labelA: 'A', labelB: 'B', lang: 'ko' })
+    expect(view.scoreDrivers).toBeNull()
+  })
 })

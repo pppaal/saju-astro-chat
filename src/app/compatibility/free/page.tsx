@@ -729,6 +729,28 @@ function ResultView({
         </div>
       ) : null}
 
+      {/* 점수 "왜" — 무엇이 점수를 올리고 내렸는지(블랙박스 % 불신 해소·신뢰) */}
+      {view.scoreDrivers ? (
+        <p
+          style={{
+            fontSize: 13,
+            lineHeight: 1.5,
+            opacity: 0.72,
+            textAlign: 'center',
+            marginTop: 2,
+          }}
+        >
+          {isKo ? '올린 요인 ' : 'Lifted by '}
+          {view.scoreDrivers.lifts.map((d) => `${d.label} ${d.score}`).join(' · ')}
+          {view.scoreDrivers.weighs.length ? (
+            <>
+              {isKo ? '  ·  내린 요인 ' : '  ·  weighed by '}
+              {view.scoreDrivers.weighs.map((d) => `${d.label} ${d.score}`).join(' · ')}
+            </>
+          ) : null}
+        </p>
+      ) : null}
+
       {/* 리포트 도입 — 어떻게 읽는지 */}
       <p className={s.intro}>{view.intro}</p>
 

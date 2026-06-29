@@ -61,6 +61,15 @@ export interface FreeReportView {
   overallScore: number | null
   /** 총점 등급 라벨 — 예: "찰떡 궁합". */
   overallGrade: string | null
+  /**
+   * 점수 드라이버 — 총점이 *왜* 그렇게 나왔는지 투명하게. 총점은 끌림/조화축
+   * 테마 점수의 평균이므로, 그 중 높은(끌어올린)·낮은(깎은) 테마를 그대로 노출한다.
+   * (유저 최다 불만 = "블랙박스 %" — 근거를 보여 신뢰·교육 효과.)
+   */
+  scoreDrivers: {
+    lifts: { label: string; score: number }[]
+    weighs: { label: string; score: number }[]
+  } | null
   /** 리포트 도입 — 어떻게 읽는지 한 문단. */
   intro: string
   /** 한눈에 — 동·서 교차 종합 + 초보자용 풀이. */
