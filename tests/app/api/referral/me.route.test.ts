@@ -120,7 +120,7 @@ vi.mock('@/lib/auth/authOptions', () => ({
 
 vi.mock('@/lib/referral', () => ({
   getReferralStats: vi.fn(),
-  getReferralUrl: vi.fn((code: string) => `https://destinypal.me/?ref=${code}`),
+  getReferralUrl: vi.fn((code: string) => `https://destinypal.com/?ref=${code}`),
 }))
 
 vi.mock('@/lib/db/prisma', () => ({

@@ -120,7 +120,7 @@ vi.mock('@/lib/auth/authOptions', () => ({
 
 vi.mock('@/lib/referral', () => ({
   getUserReferralCode: vi.fn(),
-  getReferralUrl: vi.fn((code: string) => `https://destinypal.me/?ref=${code}`),
+  getReferralUrl: vi.fn((code: string) => `https://destinypal.com/?ref=${code}`),
 }))
 
 vi.mock('@/lib/db/prisma', () => ({
@@ -173,7 +173,7 @@ describe('/api/referral/create-code', () => {
     // clearAllMocks() does not reset implementations, so without this the override
     // leaks to other tests under non-source execution order.
     vi.mocked(getReferralUrl).mockImplementation(
-      (code: string) => `https://destinypal.me/?ref=${code}`
+      (code: string) => `https://destinypal.com/?ref=${code}`
     )
   })
 
@@ -228,7 +228,7 @@ describe('/api/referral/create-code', () => {
       expect(response.status).toBe(200)
       expect(data.success).toBe(true)
       expect(data.data.code).toBe(mockCode)
-      expect(data.data.referralUrl).toBe(`https://destinypal.me/?ref=${mockCode}`)
+      expect(data.data.referralUrl).toBe(`https://destinypal.com/?ref=${mockCode}`)
       expect(getUserReferralCode).toHaveBeenCalledWith('user_123')
     })
 
@@ -249,7 +249,7 @@ describe('/api/referral/create-code', () => {
     it('should include referral URL in response', async () => {
       const mockCode = 'TESTCODE'
       vi.mocked(getUserReferralCode).mockResolvedValue(mockCode)
-      vi.mocked(getReferralUrl).mockReturnValue('https://destinypal.me/?ref=TESTCODE')
+      vi.mocked(getReferralUrl).mockReturnValue('https://destinypal.com/?ref=TESTCODE')
 
       const req = new NextRequest('http://localhost:3000/api/referral/create-code', {
         method: 'POST',
