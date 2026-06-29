@@ -218,7 +218,7 @@ describe('useCounselorData — language resolution', () => {
   it('an explicit ?lang= seeds setLocale (deep-link intent)', () => {
     mockLocale = 'ko'
     renderHook(() => useCounselorData({ lang: 'en' }))
-    expect(setLocaleMock).toHaveBeenCalledWith('en')
+    expect(setLocaleMock).toHaveBeenCalledWith('en', { reload: false })
   })
 
   it('an unrecognized ?lang= value is ignored (treated as absent)', () => {

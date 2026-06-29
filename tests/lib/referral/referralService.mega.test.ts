@@ -525,7 +525,7 @@ describe('Referral Service', () => {
 
       const url = getReferralUrl('TEST1234')
 
-      expect(url).toBe('https://destinypal.me/?ref=TEST1234')
+      expect(url).toBe('https://destinypal.com/?ref=TEST1234')
 
       process.env.NEXT_PUBLIC_BASE_URL = originalEnv
     })
