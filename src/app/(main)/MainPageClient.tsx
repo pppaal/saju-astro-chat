@@ -389,12 +389,12 @@ export default function MainPageClient({ initialLocale }: MainPageClientProps) {
           <h1 id="home-headline" className={styles.homeHeadline}>
             {locale === 'ko'
               ? 'AI가 풀어내는 당신의 운명'
-              : 'Beyond your Sun sign — your whole chart, East × West'}
+              : 'Your Tarot, Astrology & Korean Saju, Powered by AI'}
           </h1>
           <p className={styles.homeSubline}>
             {locale === 'ko'
               ? '생년월일을 입력하고, 궁금한 점을 자유롭게 물어보세요'
-              : 'The astrology you know + the Korean Saju you don’t, cross-read by AI'}
+              : 'Enter your birth details, then ask anything'}
           </p>
         </section>
 
