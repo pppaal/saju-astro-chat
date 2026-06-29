@@ -957,7 +957,7 @@ const ASPECT_PAIR_ALT: Record<string, Bi> = {
     en: 'Your drive toward what you want meets what makes them find you lovely. The push and the pull meet at one spot and make each other bigger. So between you flows something deeper than simple fondness—a real wanting of each other.',
   },
   'Moon|Venus': {
-    ko: '당신의 마음이 일렁일 때, 상대는 그 감정을 사랑의 언어로 응답해요. 내가 무언가에 잠깐 흔들리면 당신은 그걸 부드럽게 감싸 안으려 하고, 내 심정이 전해질 때마다 당신은 정성스러운 손길로 그 마음을 다뤄요. 그래서 둘의 감정과 애정이 자연스럽게 빗변하는 사이가 되는 거예요.',
+    ko: '당신의 마음이 일렁일 때, 상대는 그 감정을 사랑의 언어로 응답해요. 내가 무언가에 잠깐 흔들리면 당신은 그걸 부드럽게 감싸 안으려 하고, 내 심정이 전해질 때마다 당신은 정성스러운 손길로 그 마음을 다뤄요. 그래서 둘의 감정과 애정이 자연스럽게 어우러지는 사이가 되는 거예요.',
     en: 'When your mood shifts, they answer it in the language of care. When you flutter, they soften around it; when your feeling reaches them, they hold it with quiet grace. So emotion and tenderness weave together between you as one breath.',
   },
   'Mars|Moon': {
@@ -1061,55 +1061,55 @@ const ASPECT_PAIR_ALT: Record<string, Bi> = {
     en: "What you show and what you feel fold perfectly into each other — or a small gap creates a subtle discomfort. Your warmth at first glance should match what's inside, but when the two quietly don't align, a peculiar awkwardness slips between you.",
   },
   'Ascendant|Neptune': {
-    ko: '둘이 처음 만날 때 한 사람의 실제 모습이 다른 사람의 망원경을 타고 온다. 꿈처럼 부풀려지거나, 상대가 본 것만 남는다는 뜻이다. 그래서 둘 사이 끌림은 이미지 너머를 묻고 싶은 욕망과 그 욕망을 우아하게 거부하는 신비감이 춤을 춘다.',
+    ko: '둘이 처음 만날 때 한 사람의 실제 모습이 다른 사람의 망원경을 타고 와요. 꿈처럼 부풀려지거나, 상대가 본 것만 남는다는 뜻이죠. 그래서 둘 사이 끌림은 이미지 너머를 묻고 싶은 욕망과 그 욕망을 우아하게 거부하는 신비감이 함께 춤을 춰요.',
     en: "When you two first meet, one person's actual face goes through the other's lens — enlarged, dreamlike, sometimes seen only as an image. So the pull between you dances with curiosity trying to reach past the mystery and mystery refusing to let itself be known.",
   },
   'Ascendant|Pluto': {
-    ko: '한 사람이 걸어 들어오는 그 순간, 다른 사람은 그 안 깊은 곳을 내려다본다. 첫인상이라는 겉겹을 관통해서 뭔가 본질적인 것을 감지하는 거다. 그래서 둘은 만나자마자 진짜를 마주하는 것 같고, 그 무게감이 둘 사이에 곧장 쌓인다.',
+    ko: '한 사람이 걸어 들어오는 그 순간, 다른 사람은 그 안 깊은 곳을 내려다봐요. 첫인상이라는 겉겹을 관통해서 뭔가 본질적인 것을 감지하는 거죠. 그래서 둘은 만나자마자 진짜를 마주하는 것 같고, 그 무게감이 둘 사이에 곧장 쌓여요.',
     en: "The moment one person enters, the other sees straight down through what lies beneath. It's like piercing the surface to sense something essential before a word is said. So you two meet something real right away, and that weight settles into the space between you immediately.",
   },
   'Ascendant|Saturn': {
-    ko: "둘이 마주할 때 한 쪽의 솔직한 표정이 다른 쪽에게 일종의 무게를 안긴다. 편하게 다가가기보다 '저 사람은 진지할 필요가 있겠군' 하는 조심스러운 마음이 든다. 그 긴장감이 신뢰의 밑바탕이 될 수도 있지만, 때론 처음부터 속이 좁혀지는 기분이 남기도 한다.",
+    ko: "둘이 마주할 때 한쪽의 솔직한 표정이 다른 쪽에게 일종의 무게를 안겨요. 편하게 다가가기보다 '저 사람은 진지할 필요가 있겠구나' 하는 조심스러운 마음이 들죠. 그 긴장감이 신뢰의 밑바탕이 될 수도 있지만, 때론 처음부터 속이 좁혀지는 기분이 남기도 해요.",
     en: "When you two meet, one person's straightforward manner puts a certain weight on the other. Instead of easy warmth, there's a careful sense that this calls for sincerity. That tension can become the foundation of trust, but it can also leave you feeling quietly guarded from the start.",
   },
   'Ascendant|Uranus': {
-    ko: "한 사람이 나타나 다른 사람의 일상에 작은 충격을 건넨다. '아, 이런 사람이 있네' 하고 기존의 틀이 깨지는 경험이다. 그 신선함이 매력이 되기도 하고, 예측 불가능한 부분이 불안을 주기도 하는데, 어느 쪽이든 둘 사이에서 무언가는 자꾸 뒤흔들린다.",
+    ko: "한 사람이 나타나 다른 사람의 일상에 작은 충격을 건네요. '아, 이런 사람이 있구나' 하고 기존의 틀이 깨지는 경험이죠. 그 신선함이 매력이 되기도 하고, 예측 불가능한 부분이 불안을 주기도 하는데, 어느 쪽이든 둘 사이에서 무언가는 자꾸 뒤흔들려요.",
     en: 'One person shows up and jars the other\'s everyday world. You think: "Ah, someone like this exists." It cracks your sense of what\'s normal. That freshness draws you, or the unpredictability unnerves you — either way, something between you keeps getting shaken.',
   },
   'Jupiter|Mars': {
-    ko: "한쪽이 '해 봐, 더 크게' 하고 밀어주면 다른 쪽의 불이 확 타올라. 서로를 부추기는 그 흐름이 동력이 되기도, 과도함의 나선에 빠지기도 한다. 둘이 함께할 때 기운이 커지는 건 분명한데, 그 크기를 얼마나 잘 다루느냐가 관계의 갈래를 가르곤 해.",
+    ko: "한쪽이 '해 봐, 더 크게' 하고 밀어주면 다른 쪽의 불이 확 타올라요. 서로를 부추기는 그 흐름이 동력이 되기도, 과도함의 나선에 빠지기도 하죠. 둘이 함께할 때 기운이 커지는 건 분명한데, 그 크기를 얼마나 잘 다루느냐가 관계의 갈래를 가르곤 해요.",
     en: "When one says 'go bigger' the other ignites. That egging-on becomes fuel — or spins into excess. You two definitely grow when together, but how well you hold that size is what shapes where the relationship goes.",
   },
   'Jupiter|Mercury': {
-    ko: '대화할 때 한쪽은 마음을 넓혀주고, 다른 한쪽은 그 열린 공간에 생각을 마구 펼쳐낸다. 너그러운 귀와 끝없는 말이 만나면서 시야가 탁 트이기도 하고, 중심을 잃고 떠내려가기도 해. 대화의 온도가 둘의 진심을 얼마나 담는지에 따라 깊이가 결정돼.',
+    ko: '대화할 때 한쪽은 마음을 넓혀주고, 다른 한쪽은 그 열린 공간에 생각을 마구 펼쳐내요. 너그러운 귀와 끝없는 말이 만나면서 시야가 탁 트이기도 하고, 중심을 잃고 떠내려가기도 해요. 대화의 온도가 둘의 진심을 얼마나 담는지에 따라 깊이가 결정돼요.',
     en: 'When talking, one opens space and the other spills thoughts into it. A generous ear meeting endless words can break your horizons wide open — or drift you loose. How much truth each carries into those words shapes how deep the connection gets.',
   },
   'Jupiter|Venus': {
-    ko: '사랑할 때 한쪽의 너그러움이 다른 쪽의 마음을 부드럽게 감싼다. 넉넉한 포용감과 즐거운 기분이 흐르는데, 떠다니는 듯 가벼운 흐름에 빠질 수도, 진심이 가득한 따스함으로 자리 잡을 수도 있어. 둘이 얼마나 진심으로 마주하는지에 따라 색이 달라진다.',
+    ko: '사랑할 때 한쪽의 너그러움이 다른 쪽의 마음을 부드럽게 감싸요. 넉넉한 포용감과 즐거운 기분이 흐르는데, 떠다니는 듯 가벼운 흐름에 빠질 수도, 진심이 가득한 따스함으로 자리 잡을 수도 있어요. 둘이 얼마나 진심으로 마주하는지에 따라 색이 달라져요.',
     en: "When loving, one person's warmth wraps gently around the other. A generous embrace and easy joy flow — though you might drift weightless, or settle into real, heartfelt warmth. The color of this depends on how truly you face each other.",
   },
   'Mars|Mercury': {
-    ko: '말을 던지자마자 불이 붙는다. 빠르고 뜨거운 토론이 생각을 날카롭게 갈기도, 한 마디에 상처 주고받기도 한다. 둘이 같은 속도로 움직일 때는 아이디어가 춤을 추듯 나오지만, 맞지 않으면 신경전이 된다. 말의 칼날이 얼마나 날카로운지가 관계를 좌우한다.',
+    ko: '말을 던지자마자 불이 붙어요. 빠르고 뜨거운 토론이 생각을 날카롭게 갈기도, 한 마디에 상처를 주고받기도 하죠. 둘이 같은 속도로 움직일 때는 아이디어가 춤을 추듯 나오지만, 맞지 않으면 신경전이 돼요. 말의 칼날이 얼마나 날카로운지가 관계를 좌우해요.',
     en: "Words ignite instantly. Fast, heated exchanges can sharpen thinking into something brilliant — or wound with a single remark. When you're moving at the same speed, ideas dance out; misaligned, it turns into combat. How sharp that verbal edge is shapes everything.",
   },
   'Mars|Neptune': {
-    ko: '욕망이 꿈을 만나면서 둘은 서로를 더 아름답게 본다. 현실보다 반짝이는 상대의 모습에 끌려들고 싶어 하지만, 바람처럼 잡혀도 손가락 사이로 새어나간다. 충동과 환상의 경계가 흐릿해지는 그곳에서, 둘은 얼마나 깨어 있는지가 중요하다.',
+    ko: '욕망이 꿈을 만나면서 둘은 서로를 더 아름답게 봐요. 현실보다 반짝이는 상대의 모습에 끌려들고 싶어 하지만, 바람처럼 잡아도 손가락 사이로 새어나가죠. 충동과 환상의 경계가 흐릿해지는 그곳에서, 둘이 얼마나 깨어 있는지가 중요해요.',
     en: "When drive meets dream, you see each other more luminous than real. You're drawn to that glittering version — but it slips through your fingers like wind. In that blurred space between impulse and fantasy, it matters how awake you both stay.",
   },
   'Mars|Sun': {
-    ko: '한쪽의 불이 다른 쪽의 정체성을 흔들어 깨워놓거나, 부딪혀 서로를 밀어낸다. 함께할 때 추진력이 생겨 한 방향을 향하기도 하고, 누가 주도권을 쥐는지로 싸우게 되기도 한다. 그 충돌 속에서 너는 너 자신을 더 또렷이 느낀다.',
+    ko: '한쪽의 불이 다른 쪽의 정체성을 흔들어 깨우기도 하고, 부딪혀 서로를 밀어내기도 해요. 함께할 때 추진력이 생겨 한 방향을 향하기도 하고, 누가 주도권을 쥐는지로 다투게 되기도 하죠. 그 충돌 속에서 자신을 더 또렷이 느끼게 돼요.',
     en: "One person's drive either wakes and shakes the other's core, or crashes and pushes back. You might align toward one direction together, or lock horns over who leads. In that collision you feel who you are more vividly.",
   },
   'Mars|Uranus': {
-    ko: '예상할 수 없는 짜릿함이 자꾸 튄다. 한쪽의 추진이 다른 쪽의 변화욕과 만나면서 둘은 늘 뭔가 새로운 쪽을 향한다. 그 신선함이 매력적이지만 정착이 어렵고, 불씨가 어디로 튈지 모르는 불안도 함께한다. 자극과 현실의 균형이 관계를 결정한다.',
+    ko: '예상할 수 없는 짜릿함이 자꾸 튀어요. 한쪽의 추진이 다른 쪽의 변화욕과 만나면서 둘은 늘 뭔가 새로운 쪽을 향하죠. 그 신선함이 매력적이지만 정착이 어렵고, 불씨가 어디로 튈지 모르는 불안도 함께해요. 자극과 현실의 균형이 관계를 결정해요.',
     en: "Thrills you can't predict keep sparking. One's push meets the other's urge to shift, and you're always reaching for something fresh. That spark is magnetic, but settling becomes hard; you never know where the fire will jump. Balance between thrill and reality decides what you become.",
   },
   'MC|Mars': {
-    ko: '세상을 향한 야망과 그것을 밀어붙이는 힘이 둘을 같은 길로 이끌기도, 누가 먼저 나아갈지로 다투게 만들기도 한다. 함께 거대한 걸 도모할 수 있지만, 주도권의 무게 속에서 서로를 밀어내기도 한다. 성취를 어떻게 나눌 건지가 둘의 미래를 그린다.',
+    ko: '세상을 향한 야망과 그것을 밀어붙이는 힘이 둘을 같은 길로 이끌기도, 누가 먼저 나아갈지로 다투게 만들기도 해요. 함께 거대한 걸 도모할 수 있지만, 주도권의 무게 속에서 서로를 밀어내기도 하죠. 성취를 어떻게 나눌지가 둘의 미래를 그려요.',
     en: 'Ambition toward the world and the force to push it can pull you both toward the same path — or leave you battling over who moves first. You can build something grand together, but the weight of control might shove you apart. How you share the wins draws your future.',
   },
   'MC|Mercury': {
-    ko: '세상에 드러내고 싶은 모습과 평소 말하는 결이 어떻게 맞물리는지 본다. 말이 너의 방향을 힘 있게 받쳐주기도, 이야기가 자꾸 어긋나 오해가 쌓이기도 한다. 겉으로 보이는 너와 실제 너를 누가 얼마나 이해하는지가 그 사이를 밝고 어둡게 한다.',
+    ko: '세상에 드러내고 싶은 모습과 평소 말하는 결이 어떻게 맞물리는지를 봐요. 말이 당신의 방향을 힘 있게 받쳐주기도, 이야기가 자꾸 어긋나 오해가 쌓이기도 하죠. 겉으로 보이는 당신과 실제 당신을 누가 얼마나 이해하는지가 그 사이를 밝게도 어둡게도 만들어요.',
     en: 'You see how the face you want to show the world meshes with how you naturally speak. Your words might powerfully support your direction — or keep missing and piling up misunderstandings. How well someone grasps the real you behind the image lights or darkens everything.',
   },
   'MC|Moon': {
@@ -1121,7 +1121,7 @@ const ASPECT_PAIR_ALT: Record<string, Bi> = {
     en: 'Two people deciding how they want to walk their path, who they want to become in the world — when your public ambition (Midheaven) and your true self (Sun) point the same way, you stride together naturally; when they diverge, just keeping in step takes effort.',
   },
   'MC|Venus': {
-    ko: '셈씬 무대에서 우리가 어떻게 함께 비칠지, 그 모습이 정말 예쁜지를 다루는 자리예요. 둘이 바깥에 그려내는 미래(중천점)와 서로를 아끼는 방식(금성)이 잘 맞으면 세상이 아름다워 보이지만, 틀어지면 남들 눈과 내 마음 사이에서 조용히 갈라져요.',
+    ko: '세상이라는 무대에서 우리가 어떻게 함께 비칠지, 그 모습이 정말 예쁜지를 다루는 자리예요. 둘이 바깥에 그려내는 미래(중천점)와 서로를 아끼는 방식(금성)이 잘 맞으면 세상이 아름다워 보이지만, 틀어지면 남들 눈과 내 마음 사이에서 조용히 갈라져요.',
     en: 'This is about what kind of couple you appear to be when the world looks — whether that picture is truly beautiful. When the future you paint together (Midheaven) and how you cherish each other (Venus) align, the world feels lovely; when they split, you quietly drift between public perception and private feeling.',
   },
   'Mercury|Moon': {
@@ -1149,31 +1149,31 @@ const ASPECT_PAIR_ALT: Record<string, Bi> = {
     en: "Where talk can spark electric or scatter everywhere. When conversation (Mercury) meets sudden change (Uranus), you either ignite each other's thinking, or nothing quite settles and you keep second-guessing.",
   },
   'Mercury|Venus': {
-    ko: '한 사람이 말을 내놓으면 다른 사람의 가슴팍이 반응한다. 표현이 직접 느낌으로 닿는 거다. 때론 말의 뉘앙스가 사랑의 언어로 귀결되기도, 듣는 쪽이 자기 방식의 애정(애정·매력)으로만 재석풀이하다 엇갈리기도 한다.',
+    ko: '한 사람이 말을 내놓으면 다른 사람의 가슴이 반응해요. 표현이 곧장 느낌으로 닿는 거죠. 때론 말의 뉘앙스가 사랑의 언어로 귀결되기도, 듣는 쪽이 자기 방식의 애정으로만 받아들이다 엇갈리기도 해요.',
     en: "When one speaks, the other's heart answers. Words land as feelings. Sometimes the way you speak becomes a love language, or the listener hears it through their own way of loving and you miss each other.",
   },
   'Moon|Neptune': {
-    ko: '한 사람의 감정이라는 물이 다른 사람의 꿈이라는 구름에 닿을 때, 무언가 신비로운 빛이 생긴다. 말 없어도 통하지만, 그 통함이 자꾸 실체를 잃기도 한다. 둘은 함께 하늘 위에 떠 있는 기분인데, 발이 동동 떠 있을 수도 있다는 뜻이다.',
+    ko: '한 사람의 감정이라는 물이 다른 사람의 꿈이라는 구름에 닿을 때, 무언가 신비로운 빛이 생겨요. 말 없어도 통하지만, 그 통함이 자꾸 실체를 잃기도 하죠. 둘은 함께 하늘 위에 떠 있는 기분인데, 발이 동동 떠 있을 수도 있다는 뜻이에요.',
     en: "When one person's feelings touch the other's dreams, a mysterious glow forms. Understanding flows without words, but that understanding can drift from reality. You two feel like you're floating together, though sometimes your feet lose the ground.",
   },
   'Neptune|Sun': {
-    ko: '한 사람의 정체성이라는 햇빛을 다른 사람이 화려하게 굴절시킨다. 본인 눈에는 자신이 평범해 보여도, 상대 눈에는 반짝이는 누군가가 된다는 뜻이다. 반대로 그 찬란함이 실제와 너무 달라 둘 다 길을 잃기도 한다.',
+    ko: '한 사람의 정체성이라는 햇빛을 다른 사람이 화려하게 굴절시켜요. 본인 눈에는 자신이 평범해 보여도, 상대 눈에는 반짝이는 누군가가 된다는 뜻이죠. 반대로 그 찬란함이 실제와 너무 달라 둘 다 길을 잃기도 해요.',
     en: "One person's sense of self gets refracted brilliantly through the other's prism. You might see yourself as ordinary, but they see you glowing. Except the glow can be so far from real that you both wander in that gap.",
   },
   'Pluto|Sun': {
-    ko: '한 사람의 변화의 힘이 다른 사람의 본질을 움켜쥔다. 상대 때문에 자신이 완전히 달라지는 경험을 하거나, 그 강한 영향력이 질식할 듯 느껴지기도 한다. 둘 사이의 끌림은 운명처럼 느껴지지만, 그 운명의 무게가 때론 가슴을 짓누른다.',
+    ko: '한 사람의 변화의 힘이 다른 사람의 본질을 움켜쥐어요. 상대 때문에 자신이 완전히 달라지는 경험을 하거나, 그 강한 영향력이 질식할 듯 느껴지기도 하죠. 둘 사이의 끌림은 운명처럼 느껴지지만, 그 운명의 무게가 때론 가슴을 짓누르기도 해요.',
     en: "The force of transformation in one person grasps at the other's core. You might be remade by their presence, or feel nearly suffocated by their pull. The attraction between you feels like fate, except fate can weigh on your chest.",
   },
   'Saturn|Sun': {
-    ko: "한 사람의 진정한 자신이 다른 사람의 시선 아래 자꾸 재단된다. 그 사람 곁에 있으면 내가 뭔가 '되어야 하는' 느낌이 들거나, 한없이 검증받는 기분이 생긴다. 단단함이 전해지는 반면, 있는 그대로가 아닌 나만 남기도 한다.",
+    ko: "한 사람의 진정한 자신이 다른 사람의 시선 아래 자꾸 재단돼요. 그 사람 곁에 있으면 뭔가 '되어야 하는' 느낌이 들거나, 한없이 검증받는 기분이 생기죠. 단단함이 전해지는 반면, 있는 그대로가 아닌 나만 남기도 해요.",
     en: 'One person\'s true self keeps getting measured against the other\'s standards. Near them, you feel you have to "become" something, constantly scrutinized. It can build solidity, but it can also leave only the version of you that passes inspection.',
   },
   'Sun|Uranus': {
-    ko: '한 사람의 본래 자신이 다른 사람의 자극 앞에서 자꾸 깨어난다. 익숙하던 나의 작동법이 멈추고 다시 시작되는 경험이다. 그 신선함이 자유처럼 느껴지기도, 혼란처럼 느껴지기도 하는데, 둘 사이에선 계속 뭔가 새로워진다는 뜻이다.',
+    ko: '한 사람의 본래 자신이 다른 사람의 자극 앞에서 자꾸 깨어나요. 익숙하던 나의 작동법이 멈추고 다시 시작되는 경험이죠. 그 신선함이 자유처럼 느껴지기도, 혼란처럼 느껴지기도 하는데, 둘 사이에선 계속 뭔가 새로워진다는 뜻이에요.',
     en: "One person's core self wakes up under the other's charge. Your familiar ways stop and restart. That newness feels like freedom or chaos — either way, you two never quite settle into the same rhythm twice.",
   },
   'Sun|Venus': {
-    ko: '넌 상대를 있는 그대로 받아주고, 상대도 너를 그렇게 좋아해. 진짜 너로 사랑받는 기분과 상대의 진심 있는 끌림이 함께 흐른다. 다만 때론 자존심이 마음을 흐리곤 하지만, 그 자체도 꽤 생생하고 진한 사이일 때가 많아.',
+    ko: '당신은 상대를 있는 그대로 받아주고, 상대도 당신을 그렇게 좋아해요. 진짜 나로 사랑받는 기분과 상대의 진심 있는 끌림이 함께 흘러요. 다만 때론 자존심이 마음을 흐리곤 하지만, 그 자체도 꽤 생생하고 진한 사이일 때가 많아요.',
     en: 'You let them be exactly who they are, and they return that pure affection. The feeling of being loved as your truest self and their genuine pull run together. Pride might cloud things now and then, but that raw, real intensity often makes the connection quite vivid.',
   },
 }
