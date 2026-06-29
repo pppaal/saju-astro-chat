@@ -94,14 +94,15 @@ test.describe('Tarot — reduced-motion CSS contract', () => {
 })
 
 test.describe('Compatibility — reduced-motion CSS contract', () => {
-  test('person cards are pinned to a visible end state', async ({ page }) => {
+  // /compatibility server-redirects to the counselor; the old .personCard /
+  // slideInUp entry UI was removed in the 2026-05 inline-modal refactor. The
+  // contract that still matters: the reduced-motion branch must suppress entry
+  // animations (animation-name none) so nothing is stranded mid-transition.
+  test('animations are suppressed under reduced motion', async ({ page }) => {
     await page.goto(COMPATIBILITY_ROUTE, { waitUntil: 'domcontentloaded' })
 
     const reducedMotionCss = await getReducedMotionRules(page)
-    // .personCard starts at opacity:0 and only becomes visible via the
-    // slideInUp animation; without an explicit reduced-motion fallback
-    // the entire compatibility card stays invisible.
-    expect(reducedMotionCss).toMatch(/personCard/)
-    expect(reducedMotionCss).toMatch(/opacity:\s*1/)
+    expect(reducedMotionCss.length).toBeGreaterThan(0)
+    expect(reducedMotionCss).toMatch(/animation:[^;]*\bnone\b/)
   })
 })
