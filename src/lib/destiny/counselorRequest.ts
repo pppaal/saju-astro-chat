@@ -61,3 +61,29 @@ export function resolveCounselorSources(
   }
   return { saju: true, astro: true }
 }
+
+/**
+ * 현재 턴 맨앞에 박는 "이번 답변 범위" 한 줄. 시스템 프롬프트에도 scope/balance
+ * 가드가 있지만, priorTurns 로 *직전 답변이 그대로 재생*되면 모델이 그걸 이어가기
+ * 쉽다(도중 토글 전환 시) — 가장 가중치 높은 현재 user 턴에서 재차단/재지시한다.
+ *
+ * ★ 둘 다(both) 도 반드시 한 줄을 박는다. 예전엔 single-source 만 scopeLine 을
+ * 가졌고 both 는 빈 값('')이라, "점성만 답한 직후 → 둘 다 전환" 시 현재 턴에 아무
+ * 지시가 없어 직전 점성 답변의 recency 로 점성만 이어가는 버그가 있었다(ko/en 공통).
+ */
+export function buildScopeLine(sources: DestinySources, lang: CounselorLang): string {
+  const both = sources.saju && sources.astro
+  if (both) {
+    return lang === 'en'
+      ? `[Scope for THIS answer] Use BOTH Saju and astrology — even if an earlier turn answered with only one of them, weave the two together now (at least one signal from each).\n\n`
+      : `[이번 답변 범위] 사주·점성 둘 다 사용. 이전 턴에서 한쪽만 답했더라도 지금은 두 시스템을 함께 엮어서 답해 — 각각 최소 하나씩.\n\n`
+  }
+  if (sources.astro) {
+    return lang === 'en'
+      ? `[Scope for THIS answer] Astrology only. Even if Saju (day master, five elements, ten gods, daeun) appeared earlier in this chat, do NOT continue it — answer using astrology (planets, signs, houses, aspects, transits) only, and don't use Saju terms.\n\n`
+      : `[이번 답변 범위] 점성만 사용. 이전 대화에 사주(일간·오행·십성·대운)가 나왔더라도 지금은 이어가지 말고, 점성(행성·별자리·하우스·각·트랜짓)만으로 답해. 사주 용어를 꺼내지 마.\n\n`
+  }
+  return lang === 'en'
+    ? `[Scope for THIS answer] Saju only. Even if astrology (planets, signs, houses) appeared earlier in this chat, do NOT continue it — answer using Saju (day master, five elements, ten gods, daeun, sewoon, iljin) only, and don't use astrology terms.\n\n`
+    : `[이번 답변 범위] 사주만 사용. 이전 대화에 점성(행성·별자리·하우스)이 나왔더라도 지금은 이어가지 말고, 사주(일간·오행·십성·대운·세운·일진)만으로 답해. 점성 용어를 꺼내지 마.\n\n`
+}
