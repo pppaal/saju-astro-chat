@@ -25,6 +25,7 @@ import {
 import { parseHourMinute } from '@/lib/saju/timeParse'
 import HexDPLogo from '@/components/branding/HexDPLogo'
 import { AppHeader, AppHeaderIconButton } from '@/components/ui/AppHeader'
+import EngineMoatBanner from '@/components/marketing/EngineMoatBanner'
 
 type Locale = 'en' | 'ko'
 
@@ -423,6 +424,14 @@ export default function MainPageClient({ initialLocale }: MainPageClientProps) {
                 : 'Start by entering your birth details'}
             </button>
           )}
+        </div>
+
+        {/* 해자 — 메인 첫 화면에서도 "왜 ChatGPT가 아니라 여기인가"를 각인.
+            /free·/pricing 엔 이미 있었으나 정작 트래픽이 가장 몰리는 홈에 없어
+            엔진 차별점이 안 보이던 전환 킬러를 메움. 순수 표현 컴포넌트라
+            locale 만 넘긴다(돈/엔진 경로 무관). */}
+        <div className={styles.homeMoatWrap}>
+          <EngineMoatBanner locale={locale === 'ko' ? 'ko' : 'en'} />
         </div>
 
         {/* 리포트 — 생년월일 바로 아래. 궁합·사주점성·캘린더·인생흐름(+타로)이

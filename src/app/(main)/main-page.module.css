@@ -1157,6 +1157,16 @@
 /* 입력창 위 남는 공간을 이 영역이 차지한다(flex:1). 그래야 입력창은 바닥에
    고정된 채 절대 안 밀리고, 펼친 리스트는 이 영역 안에서 자체 스크롤하며
    입력창과의 간격(homeBody gap)을 유지한다. */
+.homeMoatWrap {
+  /* 해자 배너 래퍼 — 생년월일 바와 리포트 목록 사이. 폭은 페이지에 맞추고
+     위아래 약간의 숨 쉴 공간만. 늘어나는 건 아래 .homeMoreWrap(flex:1) 담당. */
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  flex: 0 0 auto;
+  margin: 1.25rem 0 0.5rem;
+}
+
 .homeMoreWrap {
   display: flex;
   flex-direction: column;
