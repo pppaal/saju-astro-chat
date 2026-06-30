@@ -185,8 +185,44 @@ describe('createIdempotencyStore — claim / release (create-as-lock)', () => {
 
   it('release() 는 DB delete 가 실패해도 throw 하지 않는다 (catch 흡수)', async () => {
     const store = createIdempotencyStore('route-x')
-    // rows 에 없는 키 → delete 가 P2025 throw 하지만 .catch(()=>{}) 로 흡수.
-    await expect(store.release('route-x:user:1:never-existed')).resolves.toBeUndefined()
+    // claim 으로 소유권을 만든 뒤, rows 에서 직접 지워 delete 가 P2025 를 던지게.
+    await store.claim('route-x:user:1:owned-but-gone')
+    rows.delete('route-x:user:1:owned-but-gone')
+    await expect(store.release('route-x:user:1:owned-but-gone')).resolves.toBeUndefined()
+  })
+
+  it('release() 는 자기가 만들지 않은 락을 지우지 않는다 (소유권 가드)', async () => {
+    const key = 'route-x:user:1:contended'
+    // 다른 요청/인스턴스가 이미 박은 살아있는 락.
+    rows.set(key, { scopedKey: key, expiresAt: new Date(Date.now() + 60_000) })
+
+    // 우리 claim 은 transient 오류로 fail-open(차감 진행) — DB row 를 만들지 않는다.
+    vi.mocked(prisma.requestIdempotencyLog.create).mockRejectedValueOnce(new Error('timeout'))
+    const store = createIdempotencyStore('route-x')
+    expect(await store.claim(key)).toBe(true) // fail-open, owns nothing
+
+    vi.mocked(prisma.requestIdempotencyLog.delete).mockClear()
+    await store.release(key)
+
+    // 남의 살아있는 락을 지워선 안 된다 → DB delete 미호출 + row 유지.
+    expect(prisma.requestIdempotencyLog.delete).not.toHaveBeenCalled()
+    expect(rows.has(key)).toBe(true)
+  })
+
+  it('fail-open 도 memory 마커를 채워 같은 인스턴스의 동시 중복은 replay(false)', async () => {
+    const key = 'route-x:user:1:failopen-dupe'
+    vi.mocked(prisma.requestIdempotencyLog.create).mockRejectedValueOnce(
+      new Error('pool exhausted')
+    )
+    const store = createIdempotencyStore('route-x')
+
+    // 첫 호출: fail-open → true(차감).
+    expect(await store.claim(key)).toBe(true)
+
+    // 둘째 호출(더블클릭/탭복제): memory 마커로 즉시 replay → false, DB 재호출 없음.
+    vi.mocked(prisma.requestIdempotencyLog.create).mockClear()
+    expect(await store.claim(key)).toBe(false)
+    expect(prisma.requestIdempotencyLog.create).not.toHaveBeenCalled()
   })
 
   it('서로 다른 routeName 은 같은 raw key 라도 충돌하지 않는다', async () => {

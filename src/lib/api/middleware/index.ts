@@ -96,6 +96,11 @@ export function withApiMiddleware<T>(handler: ApiHandler<T>, options: Middleware
   return async (req: NextRequest, ...args: unknown[]): Promise<NextResponse> => {
     const route = options.route || new URL(req.url).pathname
 
+    // 핸들러가 throw 했을 때 catch 에서 환불을 호출할 수 있도록 context 를
+    // try 바깥 스코프에 보관한다. credits 옵션이 없으면 refundCreditsOnError 가
+    // attach 되지 않아 catch 의 옵셔널 호출은 자동 no-op.
+    let activeContext: ApiContext | undefined
+
     try {
       // 본문 크기 선검사 — req.json() 버퍼링 전에 거대 본문을 413 으로 거부.
       if (options.maxBodyBytes != null) {
@@ -105,6 +110,7 @@ export function withApiMiddleware<T>(handler: ApiHandler<T>, options: Middleware
 
       // Initialize context
       const { context, error } = await initializeApiContext(req, options)
+      activeContext = context
       const rateLimitHeaders: Headers | undefined = context.rateLimitHeaders
 
       if (error) {
@@ -140,6 +146,13 @@ export function withApiMiddleware<T>(handler: ApiHandler<T>, options: Middleware
     } catch (error) {
       const e = error as Error & { code?: string }
       logger.error(`[API Error] ${route}:`, e)
+
+      // 핸들러가 크레딧을 차감한 뒤 throw 했다면 환불한다. credits 옵션을 쓴
+      // 라우트에서만 attach 되며, refundCreditsOnError 는 요청당 1회 멱등이라
+      // 핸들러가 이미 환불했어도 이중 환불되지 않는다. (미차감 시엔 no-op)
+      if (activeContext?.refundCreditsOnError) {
+        await activeContext.refundCreditsOnError(e.message).catch(() => {})
+      }
 
       // Classify error
       let code: ErrorCode = ErrorCodes.INTERNAL_ERROR

@@ -155,7 +155,16 @@ function SuccessContent() {
   // 크레딧 부족 모달에서 결제로 넘어온 경우만 "리딩으로 돌아가기" 버튼을
   // 띄운다. 홈/요금제에서 그냥 결제한 경우는 돌아갈 곳이 없어 버튼이 노이즈.
   const showReturnButton = Boolean(returnUrl)
-  const packLabel = pack ? t(`success.packs.${pack}`) : null
+  // 팩 이름은 i18n, 크레딧 수는 SSOT(expectedCredits)에서 합성한다. i18n 라벨에
+  // 숫자를 박아두면 가격표(pricing.ts)와 어긋나 "스탠다드(20 크레딧)" 옆에 실제
+  // 잔액 30 이 보이는 모순이 생긴다 — 라벨엔 이름만, 숫자는 SSOT 에서.
+  const packName = pack ? t(`success.packs.${pack}`) : null
+  const packLabel =
+    packName && expectedCredits != null
+      ? isKo
+        ? `${packName} (${expectedCredits} 크레딧)`
+        : `${packName} (${expectedCredits} credits)`
+      : packName
 
   // 영수증이 어디로 가는지 — 사용자에게 확신을 주려고 한 줄 노출. 이메일이
   // 비어 있는 (희귀) 케이스는 줄 자체를 숨겨서 빈칸 "_로 발송돼요" 같은

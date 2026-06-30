@@ -38,6 +38,11 @@ const IDEMPOTENCY_MAX_MEMORY_ENTRIES = 500
  */
 export function createIdempotencyStore(routeName: string) {
   const memory = new Map<string, number>()
+  // 이 store(=이 인스턴스의 이 요청 생애)가 실제로 DB 마커 row 를 *생성한*
+  // 키 집합. release 가 자기가 만들지 않은 락을 지우지 못하게 하는 소유권 증표다.
+  // (fail-open 으로 차감만 진행한 요청은 row 를 안 만들었으므로 여기에 없고,
+  //  P2002 replay 도 남의 락이라 여기에 없다 → release 는 그 경우 DB 를 안 건드린다.)
+  const owned = new Set<string>()
 
   /**
    * 클라이언트 헤더에서 키 추출. ownerKey 는 보통 userId 또는 ip.
@@ -79,6 +84,7 @@ export function createIdempotencyStore(routeName: string) {
       // DB unique 제약이 닫아준다.
       await prisma.requestIdempotencyLog.create({ data: { scopedKey, expiresAt } })
       memory.set(scopedKey, expiresAt.getTime())
+      owned.add(scopedKey)
       pruneMemoryIfNeeded()
       return true
     } catch (err) {
@@ -89,7 +95,12 @@ export function createIdempotencyStore(routeName: string) {
         return false
       }
       // DB 장애 시 fail-open — 차감 막는 게 우선순위는 아님 (사용자 정상
-      // 흐름 보호가 더 중요). 첫 진입으로 처리(차감 진행). 로그만.
+      // 흐름 보호가 더 중요). 첫 진입으로 처리(차감 진행). 단, memory 마커는
+      // 채워 같은 인스턴스의 동시 중복 요청(더블클릭/탭 복제)은 fast-path replay
+      // 로 잡아 인스턴스-내 이중 차감을 줄인다. owned 에는 넣지 않는다 — DB row 를
+      // 만든 게 아니므로 release 가 남의 락을 지우면 안 된다.
+      memory.set(scopedKey, expiresAt.getTime())
+      pruneMemoryIfNeeded()
       logger.warn('[idempotency] claim failed, treat as first (charge)', {
         scopedKey,
         err: err instanceof Error ? err.message : String(err),
@@ -104,6 +115,11 @@ export function createIdempotencyStore(routeName: string) {
    */
   async function release(scopedKey: string): Promise<void> {
     memory.delete(scopedKey)
+    // 우리가 만든 락만 지운다. fail-open(차감만 진행, row 없음)이나 replay 였다면
+    // owned 에 없으므로 DB 를 건드리지 않는다 — 동시에 같은 키를 정당하게 선점한
+    // 다른 요청의 살아있는 락을 지워 이중 차감 창을 여는 것을 막는다.
+    if (!owned.has(scopedKey)) return
+    owned.delete(scopedKey)
     await prisma.requestIdempotencyLog.delete({ where: { scopedKey } }).catch(() => {})
   }
 
