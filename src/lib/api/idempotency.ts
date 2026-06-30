@@ -23,6 +23,7 @@
 //
 // 만료된 DB 행은 별도 cron 으로 정리 (또는 store 가 가끔 자체 cleanup).
 
+import { randomUUID } from 'node:crypto'
 import type { NextRequest } from 'next/server'
 import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/logger'
@@ -38,6 +39,11 @@ const IDEMPOTENCY_MAX_MEMORY_ENTRIES = 500
  */
 export function createIdempotencyStore(routeName: string) {
   const memory = new Map<string, number>()
+  // 이 store(=이 인스턴스의 이 요청 생애)가 실제로 *생성한* DB 락의 소유권 토큰
+  // 맵 (scopedKey → owner token). release 는 이 토큰으로만 DB row 를 지운다 —
+  // fail-open(차감만 진행, row 없음)·P2002 replay(남의 락)는 여기에 없으므로
+  // release 가 남의 살아있는 락을 지워 이중차감 창을 여는 것을 막는다.
+  const owned = new Map<string, string>()
 
   /**
    * 클라이언트 헤더에서 키 추출. ownerKey 는 보통 userId 또는 ip.
@@ -77,8 +83,12 @@ export function createIdempotencyStore(routeName: string) {
       // create-as-lock: 응답 전에 DB 에 마커를 박는다(await). unique 충돌이면
       // 다른 요청/인스턴스가 이미 선점한 것 → replay. 교차-인스턴스 race 까지
       // DB unique 제약이 닫아준다.
-      await prisma.requestIdempotencyLog.create({ data: { scopedKey, expiresAt } })
+      const ownerToken = randomUUID()
+      await prisma.requestIdempotencyLog.create({
+        data: { scopedKey, expiresAt, owner: ownerToken },
+      })
       memory.set(scopedKey, expiresAt.getTime())
+      owned.set(scopedKey, ownerToken)
       pruneMemoryIfNeeded()
       return true
     } catch (err) {
@@ -89,7 +99,12 @@ export function createIdempotencyStore(routeName: string) {
         return false
       }
       // DB 장애 시 fail-open — 차감 막는 게 우선순위는 아님 (사용자 정상
-      // 흐름 보호가 더 중요). 첫 진입으로 처리(차감 진행). 로그만.
+      // 흐름 보호가 더 중요). 첫 진입으로 처리(차감 진행). 단, memory 마커는
+      // 채워 같은 인스턴스의 동시 중복 요청(더블클릭/탭 복제)은 fast-path replay
+      // 로 잡아 인스턴스-내 이중 차감을 줄인다. owned 에는 넣지 않는다 — DB row 를
+      // 만든 게 아니므로 release 가 남의 락을 지우면 안 된다.
+      memory.set(scopedKey, expiresAt.getTime())
+      pruneMemoryIfNeeded()
       logger.warn('[idempotency] claim failed, treat as first (charge)', {
         scopedKey,
         err: err instanceof Error ? err.message : String(err),
@@ -104,7 +119,16 @@ export function createIdempotencyStore(routeName: string) {
    */
   async function release(scopedKey: string): Promise<void> {
     memory.delete(scopedKey)
-    await prisma.requestIdempotencyLog.delete({ where: { scopedKey } }).catch(() => {})
+    // 우리가 만든 락만 지운다. fail-open(차감만 진행, row 없음)이나 replay 였다면
+    // owned 에 없으므로 DB 를 건드리지 않는다. DB 삭제도 (scopedKey, owner) 일치
+    // 조건의 deleteMany 라, 만에 하나 키가 재발급돼 다른 요청이 같은 scopedKey 로
+    // 새 락을 박았더라도(다른 owner) 그 락은 지우지 않는다 — 교차-인스턴스 안전.
+    const ownerToken = owned.get(scopedKey)
+    if (!ownerToken) return
+    owned.delete(scopedKey)
+    await prisma.requestIdempotencyLog
+      .deleteMany({ where: { scopedKey, owner: ownerToken } })
+      .catch(() => {})
   }
 
   function pruneMemoryIfNeeded() {

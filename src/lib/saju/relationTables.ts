@@ -213,6 +213,29 @@ export function toBidiRecord(pairs: ReadonlyArray<Pair>): Record<string, string>
 }
 
 /**
+ * 삼재(三災): 년지(삼합국 기준)별 3년 흉운 시기.
+ *
+ * 정통 규칙 — 삼합국의 생지(첫 글자)와 충(沖)하는 지지에서 시작하는 방합 3년.
+ *   申子辰(水) → 寅卯辰, 亥卯未(木) → 巳午未, 寅午戌(火) → 申酉戌, 巳酉丑(金) → 亥子丑.
+ * 같은 삼합국의 세 지지는 모두 동일한 삼재 시기를 공유한다.
+ *
+ * 직전엔 이 표가 shinsal.ts·calendar/constants.ts 두 곳에 복제돼 있었고, 4개
+ * 삼합국 중 3개(巳酉丑·申子辰·亥卯未)가 엉뚱한 연지로 매핑돼 해당 띠 전원에게
+ * 삼재 연도가 틀리게 출력됐다. THREE_HARMONY × BRANCH_CLASH × DIRECTIONAL_HARMONY
+ * 에서 파생해 드리프트를 구조적으로 차단한다.
+ */
+const CLASH_PARTNER: Record<string, string> = toBidiRecord(BRANCH_CLASH)
+const DIRECTIONAL_BY_LEADER: Record<string, readonly string[]> = Object.fromEntries(
+  DIRECTIONAL_HARMONY.map((d) => [d.members[0], d.members])
+)
+export const SAMJAE_BY_YEAR_BRANCH: Record<string, readonly string[]> = Object.fromEntries(
+  THREE_HARMONY.flatMap(({ members }) => {
+    const samjae = DIRECTIONAL_BY_LEADER[CLASH_PARTNER[members[0]]]
+    return members.map((branch) => [branch, samjae])
+  })
+)
+
+/**
  * 쌍 목록 → "a{sep}b" / "b{sep}a" 양방향 키 Set. 삽입 순서는 입력 쌍 순서를 따른다
  * (각 쌍마다 a-b, 그다음 b-a).
  */

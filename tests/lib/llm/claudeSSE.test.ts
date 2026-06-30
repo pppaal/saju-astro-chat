@@ -106,3 +106,78 @@ describe('streamClaudeAsSSE onFailure (credit refund hook)', () => {
     expect(onFailure).toHaveBeenCalledTimes(1)
   })
 })
+
+describe('streamClaudeAsSSE truncation (incomplete marking)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  // 한 라운드를 흘리고 stop_reason 을 fire 하는 mock round (continuation wrapper 용).
+  function roundWithStop(tokens: string[], stopReason: 'end_turn' | 'max_tokens') {
+    return (opts: { onStreamComplete?: (i: { stopReason: string }) => void }) =>
+      Promise.resolve(
+        new ReadableStream<string>({
+          start(controller) {
+            for (const t of tokens) controller.enqueue(t)
+            opts.onStreamComplete?.({ stopReason })
+            controller.close()
+          },
+        })
+      )
+  }
+
+  async function readBody(res: Response): Promise<string> {
+    const reader = res.body!.getReader()
+    const dec = new TextDecoder()
+    let out = ''
+    for (;;) {
+      const { done, value } = await reader.read()
+      if (done) break
+      out += dec.decode(value)
+    }
+    return out
+  }
+
+  it('marks onComplete incomplete + emits done.incomplete when continuation is exhausted on max_tokens', async () => {
+    vi.mocked(callClaudeStream).mockImplementation(
+      roundWithStop(['cut-off mid'], 'max_tokens') as unknown as typeof callClaudeStream
+    )
+    const onComplete = vi.fn()
+
+    const res = await streamClaudeAsSSE({
+      systemPrompt: 's',
+      userPrompt: 'u',
+      enableContinuation: true,
+      maxContinuations: 0, // 이어쓰기 불가 → 즉시 잘린 종료
+      onComplete,
+    })
+    const body = await readBody(res)
+
+    // 영속화 훅이 incomplete 마커와 함께 호출돼야 한다.
+    expect(onComplete).toHaveBeenCalledTimes(1)
+    expect(onComplete.mock.calls[0][0]).toBe('cut-off mid')
+    expect(onComplete.mock.calls[0][1]).toEqual({ incomplete: true })
+    // 클라이언트 done 프레임에도 incomplete 신호.
+    expect(body).toContain('"done":true')
+    expect(body).toContain('"incomplete":true')
+  })
+
+  it('natural end_turn → onComplete without incomplete, no done.incomplete', async () => {
+    vi.mocked(callClaudeStream).mockImplementation(
+      roundWithStop(['all done'], 'end_turn') as unknown as typeof callClaudeStream
+    )
+    const onComplete = vi.fn()
+
+    const res = await streamClaudeAsSSE({
+      systemPrompt: 's',
+      userPrompt: 'u',
+      enableContinuation: true,
+      onComplete,
+    })
+    const body = await readBody(res)
+
+    expect(onComplete).toHaveBeenCalledTimes(1)
+    expect(onComplete.mock.calls[0][1]).toBeUndefined()
+    expect(body).not.toContain('"incomplete":true')
+  })
+})

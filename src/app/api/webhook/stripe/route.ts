@@ -153,6 +153,16 @@ export const POST = withApiMiddleware(
           await handleCheckoutCompleted(session)
           break
         }
+        case 'checkout.session.async_payment_succeeded': {
+          // 비동기 결제(계좌이체/바우처 등)는 최초 checkout.session.completed 가
+          // payment_status='unpaid' 로 와서 grant 가 보류되고(아래 handleCheckoutCompleted
+          // 의 unpaid skip), 결제 확정이 이 이벤트로 도착한다. 같은 세션을 다시
+          // 처리해 크레딧을 지급한다. addBonusCredits 는 stripePaymentId @unique 로
+          // 멱등이라 completed 와 이 이벤트가 둘 다 paid 로 와도 이중 지급되지 않는다.
+          const session = event.data.object as Stripe.Checkout.Session
+          await handleCheckoutCompleted(session)
+          break
+        }
         case 'charge.refunded': {
           const charge = event.data.object as Stripe.Charge
           await handleChargeRefunded(charge)

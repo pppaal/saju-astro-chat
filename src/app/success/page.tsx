@@ -7,16 +7,18 @@ import { useSession } from 'next-auth/react'
 import { useI18n } from '@/i18n/I18nProvider'
 import BackButton from '@/components/ui/BackButton'
 import { SUPPORT_EMAIL } from '@/lib/config/contact'
+import { CREDIT_PACKS, type CreditPackType } from '@/lib/config/pricing'
 import styles from './success.module.css'
 
-// 크레딧 팩별 충전 크레딧 수 — Stripe metadata 의 creditPack 값으로 lookup.
-// pricing 페이지의 PACK_DETAILS 와 동일 (단일 출처 분리 작업은 별도).
-const PACK_CREDITS: Record<string, number> = {
-  mini: 10,
-  standard: 40,
-  plus: 100,
-  mega: 240,
-  ultimate: 500,
+// 팩별 지급 크레딧 수는 pricing.ts(SSOT)에서 도출한다. 예전엔 이 파일에 로컬
+// 복제본을 두었는데 SSOT 와 어긋나(standard 40 vs 30, plus 100 vs 70 등) webhook
+// 이 실제로 지급한 양과 polling 기대치가 영원히 불일치 → 정상 결제에도 "처리 중"
+// 무한 정체 + 틀린 "+N 크레딧" 표기가 발생했다.
+function packCredits(pack: string | null): number | null {
+  if (pack && pack in CREDIT_PACKS) {
+    return CREDIT_PACKS[pack as CreditPackType].credits
+  }
+  return null
 }
 
 // Webhook 처리 polling — Stripe → 우리 서버 webhook → DB UserCredits 업데이트
@@ -43,7 +45,7 @@ function SuccessContent() {
   const searchParams = useSearchParams()
   const sessionId = searchParams?.get('session_id') ?? null
   const pack = searchParams?.get('pack') ?? null
-  const expectedCredits = pack ? PACK_CREDITS[pack] : null
+  const expectedCredits = packCredits(pack)
   const isKo = locale === 'ko'
   const [returnUrl, setReturnUrl] = useState<string | null>(null)
   const [sessionRefreshed, setSessionRefreshed] = useState(false)
@@ -153,7 +155,16 @@ function SuccessContent() {
   // 크레딧 부족 모달에서 결제로 넘어온 경우만 "리딩으로 돌아가기" 버튼을
   // 띄운다. 홈/요금제에서 그냥 결제한 경우는 돌아갈 곳이 없어 버튼이 노이즈.
   const showReturnButton = Boolean(returnUrl)
-  const packLabel = pack ? t(`success.packs.${pack}`) : null
+  // 팩 이름은 i18n, 크레딧 수는 SSOT(expectedCredits)에서 합성한다. i18n 라벨에
+  // 숫자를 박아두면 가격표(pricing.ts)와 어긋나 "스탠다드(20 크레딧)" 옆에 실제
+  // 잔액 30 이 보이는 모순이 생긴다 — 라벨엔 이름만, 숫자는 SSOT 에서.
+  const packName = pack ? t(`success.packs.${pack}`) : null
+  const packLabel =
+    packName && expectedCredits != null
+      ? isKo
+        ? `${packName} (${expectedCredits} 크레딧)`
+        : `${packName} (${expectedCredits} credits)`
+      : packName
 
   // 영수증이 어디로 가는지 — 사용자에게 확신을 주려고 한 줄 노출. 이메일이
   // 비어 있는 (희귀) 케이스는 줄 자체를 숨겨서 빈칸 "_로 발송돼요" 같은

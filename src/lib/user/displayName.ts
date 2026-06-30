@@ -13,6 +13,9 @@ const CTRL_OR_LINE_SEP_RE = new RegExp('[\\u0000-\\u001f\\u007f-\\u009f\\u2028\\
 /**
  * LLM 프롬프트에 안전하게 박을 수 있게 사용자 이름을 정규화한다:
  *   - 줄바꿈/탭/제어문자 제거 (개행 뒤 `[SYSTEM]` 같은 prompt injection 차단)
+ *   - '<' / '>' 를 전각 '＜' / '＞' 로 치환 (가짜 XML 태그 닫기 injection 차단 —
+ *     이름이 <daily_context>/<birth_data> 같은 서버 주입 태그와 같은 프롬프트
+ *     윈도우에 박히므로, 다른 자유 텍스트와 동일하게 태그 경계를 무력화한다)
  *   - 길이 50자로 cap (User.name 컬럼은 임의 길이 가능)
  *   - 양끝 공백 trim, 내부 다중 공백 단일 공백으로 축약
  *
@@ -22,6 +25,8 @@ export function sanitizeDisplayName(raw: string | null | undefined): string | nu
   if (!raw) return null
   const cleaned = raw
     .replace(CTRL_OR_LINE_SEP_RE, ' ')
+    .replace(/</g, '＜')
+    .replace(/>/g, '＞')
     .replace(/\s+/g, ' ')
     .trim()
     .slice(0, MAX_DISPLAY_NAME_LEN)

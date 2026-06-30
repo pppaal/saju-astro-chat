@@ -247,6 +247,7 @@ export async function callClaude(opts: CallClaudeOptions): Promise<CallClaudeRes
     model: explicitModel,
     feature,
     label = 'claude',
+    abortSignal,
   } = opts
 
   // 비용 정책(SSOT) 적용: 모델·출력 cap 은 라우트가 아니라 llm-policy 가 정한다.
@@ -278,6 +279,10 @@ export async function callClaude(opts: CallClaudeOptions): Promise<CallClaudeRes
         ],
         messages: buildMessages(userPrompt, cachedUserContext, priorTurns),
       }),
+      // 호출자 abortSignal(보통 req.signal)을 fetch 에 연결한다. 직전엔 무시돼,
+      // 클라이언트가 끊겨도 비-스트리밍 Claude 호출이 끝까지 진행되며 출력 토큰이
+      // 계속 청구됐다. fetchWithRetry 가 이 signal 을 내부 timeout 컨트롤러와 합친다.
+      signal: abortSignal,
     },
     {
       maxRetries: 1,
@@ -532,33 +537,46 @@ export async function callClaudeStream(opts: CallClaudeOptions): Promise<Readabl
             if (!dataLine) continue
             const json = dataLine.slice(6).trim()
             if (json === '[DONE]') continue
+            type StreamUsage = {
+              input_tokens?: number
+              output_tokens?: number
+              cache_read_input_tokens?: number
+              cache_creation_input_tokens?: number
+            }
+            let event: {
+              type?: string
+              delta?: { text?: string; type?: string; stop_reason?: string }
+              message?: { usage?: StreamUsage }
+              usage?: StreamUsage
+              error?: { type?: string; message?: string }
+            }
             try {
-              type StreamUsage = {
-                input_tokens?: number
-                output_tokens?: number
-                cache_read_input_tokens?: number
-                cache_creation_input_tokens?: number
-              }
-              const event = JSON.parse(json) as {
-                type?: string
-                delta?: { text?: string; type?: string; stop_reason?: string }
-                message?: { usage?: StreamUsage }
-                usage?: StreamUsage
-              }
-              if (event.type === 'content_block_delta' && event.delta?.type === 'text_delta') {
-                const text = event.delta.text || ''
-                if (text) streamController.enqueue(text)
-              } else if (event.type === 'message_start' && event.message?.usage) {
-                inputTokens = event.message.usage.input_tokens || 0
-                cacheReadTokens = event.message.usage.cache_read_input_tokens || 0
-                cacheCreateTokens = event.message.usage.cache_creation_input_tokens || 0
-              } else if (event.type === 'message_delta') {
-                if (event.usage) outputTokens = event.usage.output_tokens || 0
-                // stop_reason 은 message_delta.delta.stop_reason 으로 옴.
-                if (event.delta?.stop_reason) capturedStopReason = event.delta.stop_reason
-              }
+              event = JSON.parse(json)
             } catch {
-              // partial JSON — skip
+              // partial JSON — skip this block (다음 chunk 에서 이어 파싱)
+              continue
+            }
+            // Anthropic SSE 는 업스트림 과부하/오류를 `event: error` 로 흘린다
+            // (overloaded_error 등). 직전엔 어떤 분기에도 안 걸려 *무음 누락* 되어
+            // 잘린 답이 정상 완료처럼 끝나 과금됐다. 명시적으로 throw 해 outer catch
+            // 가 stream 을 error 시키고, 소비자(claudeSSE)가 빈/부분으로 환불·복구.
+            if (event.type === 'error') {
+              const e = event.error
+              throw new Error(
+                `Claude stream error: ${e?.type ?? 'unknown'}${e?.message ? ` — ${e.message}` : ''}`
+              )
+            }
+            if (event.type === 'content_block_delta' && event.delta?.type === 'text_delta') {
+              const text = event.delta.text || ''
+              if (text) streamController.enqueue(text)
+            } else if (event.type === 'message_start' && event.message?.usage) {
+              inputTokens = event.message.usage.input_tokens || 0
+              cacheReadTokens = event.message.usage.cache_read_input_tokens || 0
+              cacheCreateTokens = event.message.usage.cache_creation_input_tokens || 0
+            } else if (event.type === 'message_delta') {
+              if (event.usage) outputTokens = event.usage.output_tokens || 0
+              // stop_reason 은 message_delta.delta.stop_reason 으로 옴.
+              if (event.delta?.stop_reason) capturedStopReason = event.delta.stop_reason
             }
           }
         }

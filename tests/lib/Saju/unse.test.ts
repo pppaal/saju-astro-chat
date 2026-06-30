@@ -270,3 +270,27 @@ describe('unse', () => {
     })
   })
 })
+
+describe('getMonthlyCycles — solar-terms mode termEnd 역전 방지', () => {
+  const dayMaster: DayMaster = { name: '丙', element: '화', yin_yang: '양' }
+
+  it('모든 절기월의 solarTermEnd 가 solarTermStart 보다 뒤다 (역전 없음)', () => {
+    const cycles = getMonthlyCycles(2024, dayMaster, { useSolarTerms: true })
+    expect(cycles.length).toBe(12)
+    for (const c of cycles) {
+      if (c.solarTermStart && c.solarTermEnd) {
+        expect(c.solarTermEnd.getTime()).toBeGreaterThan(c.solarTermStart.getTime())
+      }
+    }
+  })
+
+  it('子월(대설, 12월·지지 子)의 termEnd 는 다음 해 소한이다 (같은 해 1월 아님)', () => {
+    const cycles = getMonthlyCycles(2024, dayMaster, { useSolarTerms: true })
+    const ja = cycles.find((c) => c.month === 12 && c.earthlyBranch === '子')
+    expect(ja).toBeTruthy()
+    // termStart(대설 2024-12) < termEnd(소한 2025-01).
+    expect(ja!.solarTermStart!.getFullYear()).toBe(2024)
+    expect(ja!.solarTermEnd!.getFullYear()).toBe(2025)
+    expect(ja!.solarTermEnd!.getTime()).toBeGreaterThan(ja!.solarTermStart!.getTime())
+  })
+})

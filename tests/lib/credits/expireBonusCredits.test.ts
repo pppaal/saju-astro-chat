@@ -1,111 +1,117 @@
 /**
- * Regression: expireBonusCredits over-marking (B1).
+ * expireBonusCredits — 동시 cron 이중차감 레이스 방지(B-race) + B1 over-marking 회귀.
  *
- * The per-user updateMany used to flip `expired: true` on ANY row past
- * expiresAt, including rows with `remaining: 0` (already consumed,
- * refunded, or revoked). The deduction amount, however, was computed
- * only over `remaining > 0` rows.
+ * 과거 구현은 상단 findMany 의 stale 값으로 차감액을 계산하고 무조건
+ * `bonusCredits = GREATEST(0, bonusCredits - expiredAmount)` 를 실행해, 두 cron
+ * 실행이 같은 stale 값을 둘 다 빼는 이중차감 + 중복 EXPIRE 감사행이 가능했다.
  *
- * Net effect: balance was untouched but the audit trail was corrupted,
- * AND `revokeBonusCreditPurchase`'s `purchase.expired` idempotency guard
- * misfired on previously-refunded rows (returning `already_refunded`
- * instead of an idempotent no-op).
+ * 새 구현은 유저별 인터랙티브 트랜잭션에서 만료 대상 행을 FOR UPDATE 로 잠그고
+ * 그 잠근 집합에서만 차감액·감사행을 만든다. 동시 실행은 잠금에서 직렬화되어
+ * 두 번째 실행의 SELECT 는 빈 결과(이미 expired=true) → no-op.
  *
- * Fix: `remaining: { gt: 0 }` in the updateMany filter so only rows with
- * actually-unused bonus get flipped.
+ * 잠근 집합은 SELECT 의 `remaining > 0` 필터로 0-remaining(소진/환불) 행을
+ * 애초에 배제하므로 B1 over-marking 도 구조적으로 불가능하다.
  */
 
 import { vi, describe, it, expect, beforeEach } from 'vitest'
 import { prisma } from '@/lib/db/prisma'
 import { expireBonusCredits } from '@/lib/credits/creditService'
 
-vi.mock('@/lib/db/prisma', () => ({
-  prisma: {
-    bonusCreditPurchase: {
-      findMany: vi.fn(),
-      updateMany: vi.fn(),
+vi.mock('@/lib/db/prisma', () => {
+  const tx = {
+    $queryRaw: vi.fn(),
+    $executeRaw: vi.fn(() => Promise.resolve(1)),
+    bonusCreditPurchase: { updateMany: vi.fn(() => Promise.resolve({ count: 0 })) },
+    creditTransaction: { createMany: vi.fn(() => Promise.resolve({ count: 0 })) },
+  }
+  return {
+    prisma: {
+      bonusCreditPurchase: { findMany: vi.fn() },
+      // 인터랙티브 트랜잭션 — 콜백에 tx 를 그대로 넘긴다.
+      $transaction: vi.fn(async (cb: (t: typeof tx) => Promise<unknown>) => cb(tx)),
+      __tx: tx,
     },
-    // expireBonusCredits 가 transaction 배열에 createMany 를 한 줄 추가하므로
-    // noop mock. 본 테스트는 updateMany 의 where 절만 검증한다.
-    creditTransaction: {
-      createMany: vi.fn(() => Promise.resolve({ count: 0 })),
-    },
-    $transaction: vi.fn(),
-    $executeRaw: vi.fn(),
-  },
-}))
+  }
+})
 
-describe('expireBonusCredits — B1 over-marking regression', () => {
+// 테스트에서 tx mock 에 접근하기 위한 핸들.
+const tx = (
+  prisma as unknown as {
+    __tx: {
+      $queryRaw: ReturnType<typeof vi.fn>
+      $executeRaw: ReturnType<typeof vi.fn>
+      bonusCreditPurchase: { updateMany: ReturnType<typeof vi.fn> }
+      creditTransaction: { createMany: ReturnType<typeof vi.fn> }
+    }
+  }
+).__tx
+
+describe('expireBonusCredits — 이중차감 레이스 방지', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    tx.$executeRaw.mockResolvedValue(1)
+    tx.bonusCreditPurchase.updateMany.mockResolvedValue({ count: 0 })
+    tx.creditTransaction.createMany.mockResolvedValue({ count: 0 })
   })
 
-  it('only flips rows with remaining > 0 to expired=true', async () => {
-    // Two users, mixed remaining values past expiresAt.
+  it('잠근 집합으로만 차감/플립/감사하고, 차감액은 잠근 remaining 합계', async () => {
     ;(prisma.bonusCreditPurchase.findMany as ReturnType<typeof vi.fn>).mockResolvedValue([
-      // user1 still has 5 unused → should be expired
-      { id: 'p-active', userId: 'user1', remaining: 5 },
+      { userId: 'user1' },
+    ])
+    // FOR UPDATE 가 잠근 현재값(2건, 합 8).
+    tx.$queryRaw.mockResolvedValue([
+      { id: 'p-a', remaining: 5 },
+      { id: 'p-b', remaining: 3 },
     ])
 
-    // Capture the updateMany call args.
-    const capturedFilters: Array<Record<string, unknown>> = []
-    ;(prisma.bonusCreditPurchase.updateMany as ReturnType<typeof vi.fn>).mockImplementation(
-      (args: { where: Record<string, unknown> }) => {
-        capturedFilters.push(args.where)
-        return Promise.resolve({ count: 1 })
-      }
-    )
-    ;(prisma.$executeRaw as unknown as ReturnType<typeof vi.fn>).mockResolvedValue(1)
+    const result = await expireBonusCredits()
 
-    // Simulate $transaction by executing the prisma operations directly.
-    ;(prisma.$transaction as ReturnType<typeof vi.fn>).mockImplementation(
-      async (ops: Promise<unknown>[]) => {
-        return Promise.all(ops)
-      }
-    )
+    // 플립은 잠근 id 들만 대상으로.
+    expect(tx.bonusCreditPurchase.updateMany).toHaveBeenCalledWith({
+      where: { id: { in: ['p-a', 'p-b'] } },
+      data: { expired: true },
+    })
+    // 차감(executeRaw)·감사(createMany) 각각 1회, 감사행은 purchase 당 1행.
+    expect(tx.$executeRaw).toHaveBeenCalledTimes(1)
+    expect(tx.creditTransaction.createMany).toHaveBeenCalledTimes(1)
+    const auditData = (tx.creditTransaction.createMany.mock.calls[0][0] as { data: unknown[] }).data
+    expect(auditData).toHaveLength(2)
+    // 반환 totalCreditsExpired = 잠근 합계.
+    expect(result.totalCreditsExpired).toBe(8)
+    expect(result.totalUsers).toBe(1)
+    expect(result.succeeded).toBe(1)
+  })
+
+  it('동시 실행으로 이미 처리돼 잠근 집합이 비면 no-op (이중차감/중복감사 없음)', async () => {
+    ;(prisma.bonusCreditPurchase.findMany as ReturnType<typeof vi.fn>).mockResolvedValue([
+      { userId: 'user1' },
+    ])
+    // 다른 실행이 먼저 flip → 이 실행의 FOR UPDATE 는 빈 결과.
+    tx.$queryRaw.mockResolvedValue([])
+
+    const result = await expireBonusCredits()
+
+    // 빈 집합 → 차감·플립·감사 전부 미실행.
+    expect(tx.bonusCreditPurchase.updateMany).not.toHaveBeenCalled()
+    expect(tx.$executeRaw).not.toHaveBeenCalled()
+    expect(tx.creditTransaction.createMany).not.toHaveBeenCalled()
+    expect(result.totalCreditsExpired).toBe(0)
+  })
+
+  it('worklist 는 distinct userId 로 뽑는다(유저당 1 트랜잭션)', async () => {
+    ;(prisma.bonusCreditPurchase.findMany as ReturnType<typeof vi.fn>).mockResolvedValue([
+      { userId: 'u1' },
+      { userId: 'u2' },
+    ])
+    tx.$queryRaw.mockResolvedValue([{ id: 'x', remaining: 1 }])
 
     await expireBonusCredits()
 
-    // Critical assertion: the updateMany filter MUST include remaining > 0.
-    expect(capturedFilters.length).toBeGreaterThan(0)
-    for (const where of capturedFilters) {
-      expect(where).toMatchObject({
-        userId: 'user1',
-        expired: false,
-        remaining: { gt: 0 },
-      })
-      // expiresAt filter still present
-      expect(where.expiresAt).toBeDefined()
-    }
-  })
-
-  it('does not flip already-consumed (remaining=0) purchases for the same user', async () => {
-    // The findMany itself already filters remaining > 0, but the bug was
-    // in the updateMany — confirm the filter is tight.
-    ;(prisma.bonusCreditPurchase.findMany as ReturnType<typeof vi.fn>).mockResolvedValue([
-      { id: 'p-1', userId: 'user1', remaining: 3 },
-    ])
-
-    let updateManyCall: { where: Record<string, unknown>; data: unknown } | null = null
-    ;(prisma.bonusCreditPurchase.updateMany as ReturnType<typeof vi.fn>).mockImplementation(
-      (args: { where: Record<string, unknown>; data: unknown }) => {
-        updateManyCall = args
-        return Promise.resolve({ count: 1 })
-      }
-    )
-    ;(prisma.$executeRaw as unknown as ReturnType<typeof vi.fn>).mockResolvedValue(1)
-    ;(prisma.$transaction as ReturnType<typeof vi.fn>).mockImplementation(
-      async (ops: Promise<unknown>[]) => {
-        return Promise.all(ops)
-      }
-    )
-
-    await expireBonusCredits()
-
-    // The remaining > 0 filter is what stops 0-remaining rows from
-    // being collateral damage. This is the load-bearing assertion.
-    expect(updateManyCall).not.toBeNull()
-    const where = updateManyCall!.where as Record<string, unknown>
-    expect(where.remaining).toEqual({ gt: 0 })
+    // findMany 가 distinct:['userId'] 로 호출됐는지 확인.
+    const findArgs = (prisma.bonusCreditPurchase.findMany as ReturnType<typeof vi.fn>).mock
+      .calls[0][0] as { distinct?: unknown }
+    expect(findArgs.distinct).toEqual(['userId'])
+    // 유저 2명 → 트랜잭션 2회.
+    expect(prisma.$transaction as ReturnType<typeof vi.fn>).toHaveBeenCalledTimes(2)
   })
 })

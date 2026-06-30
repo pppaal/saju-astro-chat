@@ -105,12 +105,12 @@ export function getMonthlyCycles(
       // 절입일 계산
       const termStart = getSolarTermKST(actualYear, solarMonth)
       const nextSolarMonth = solarMonths[(i + 1) % 12]
-      const nextActualYear =
-        nextSolarMonth <= solarMonth && nextSolarMonth !== 1
-          ? actualYear + 1
-          : nextSolarMonth === 1 && solarMonth !== 12
-            ? actualYear + 1
-            : actualYear
+      // 다음 절입(termEnd)의 연도. 시퀀스는 입춘(2)…대설(12)→소한(1)이라,
+      // 대설(子월, i=10) 다음 소한(1)은 *다음 해* 1월에 든다. 직전 공식은
+      // solarMonth===12 를 제외해 子월의 termEnd 를 같은 해 소한(1월)으로 잡아
+      // termEnd < termStart 로 *역전*됐다. 소한(nextSolarMonth===1)이거나 마지막
+      // 칸(i===11, 소한→다음 입춘)이면 year+1, 그 외엔 같은 해.
+      const nextActualYear = nextSolarMonth === 1 || i === 11 ? year + 1 : year
       const termEnd = getSolarTermKST(nextActualYear, nextSolarMonth)
 
       cycles.push({

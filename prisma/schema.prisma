@@ -328,6 +328,10 @@ model RequestIdempotencyLog {
   scopedKey String   @id
   expiresAt DateTime
   createdAt DateTime @default(now())
+  // 락 소유권 증표(per-claim 랜덤 토큰). claim 이 생성하고, release 는 이 토큰이
+  // 일치할 때만 삭제한다 — 자기가 만들지 않은(동시 선점한 다른 요청의) 락을
+  // 지워 이중차감 창을 여는 것을 막는다. drawNonce 마커는 owner 없이(null) 쓴다.
+  owner     String?
 
   @@index([expiresAt])
 }

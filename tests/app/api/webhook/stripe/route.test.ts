@@ -433,6 +433,40 @@ describe('Stripe Webhook API - POST /api/webhook/stripe', () => {
       )
     })
 
+    it('grants credits for checkout.session.async_payment_succeeded (non-card payment)', async () => {
+      // 비동기 결제(계좌이체 등)는 최초 completed 가 unpaid 로 와 보류되고,
+      // 확정이 이 이벤트로 도착한다. 같은 핸들러를 타 크레딧을 지급해야 한다.
+      const event = makeEvent('checkout.session.async_payment_succeeded', {
+        id: 'cs_test_async_1',
+        metadata: { type: 'credit_pack', creditPack: 'plus', userId: 'user-async' },
+        amount_total: 24900,
+        currency: 'krw',
+        payment_status: 'paid',
+        payment_intent: 'pi_async_1',
+      })
+      mockConstructEvent.mockReturnValue(event)
+      vi.mocked(prisma.user.findUnique).mockResolvedValue({
+        id: 'user-async',
+        name: 'Bob',
+        email: 'bob@example.com',
+      } as any)
+      vi.mocked(addBonusCredits).mockResolvedValue(undefined as any)
+      vi.mocked(prisma.pendingCreditRevocation.findUnique).mockResolvedValue(null)
+
+      const response = await POST(makeWebhookRequest())
+      const data = await response.json()
+
+      expect(response.status).toBe(200)
+      expect(data.received).toBe(true)
+      // plus pack = 70 credits (per CREDIT_PACKS config)
+      expect(vi.mocked(addBonusCredits)).toHaveBeenCalledWith(
+        'user-async',
+        70,
+        'purchase',
+        'pi_async_1'
+      )
+    })
+
     it('should handle all credit pack types correctly', async () => {
       const packMapping: Record<string, number> = {
         starter: 8,

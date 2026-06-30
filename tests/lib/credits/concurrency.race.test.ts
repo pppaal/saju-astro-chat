@@ -74,7 +74,7 @@ type CreditTxn = {
   createdAt: Date
 }
 
-type IdemRow = { scopedKey: string; expiresAt: Date; createdAt: Date }
+type IdemRow = { scopedKey: string; expiresAt: Date; createdAt: Date; owner?: string | null }
 
 const state = {
   userCredits: new Map<string, UserCreditsRow>(),
@@ -298,20 +298,31 @@ const fakePrisma: Record<string, unknown> = {
   },
   // Idempotency / refund-once / draw-nonce all guard via this unique create.
   requestIdempotencyLog: {
-    create: vi.fn(async (args: { data: { scopedKey: string; expiresAt: Date } }) => {
-      if (state.idemLogs.has(args.data.scopedKey)) throw p2002()
-      const row: IdemRow = {
-        scopedKey: args.data.scopedKey,
-        expiresAt: args.data.expiresAt,
-        createdAt: new Date(),
+    create: vi.fn(
+      async (args: { data: { scopedKey: string; expiresAt: Date; owner?: string | null } }) => {
+        if (state.idemLogs.has(args.data.scopedKey)) throw p2002()
+        const row: IdemRow = {
+          scopedKey: args.data.scopedKey,
+          expiresAt: args.data.expiresAt,
+          createdAt: new Date(),
+          owner: args.data.owner ?? null,
+        }
+        state.idemLogs.set(args.data.scopedKey, row)
+        return row
       }
-      state.idemLogs.set(args.data.scopedKey, row)
-      return row
-    }),
+    ),
     delete: vi.fn(async (args: { where: { scopedKey: string } }) => {
       const existed = state.idemLogs.delete(args.where.scopedKey)
       if (!existed) throw Object.assign(new Error('not found'), { code: 'P2025' })
       return {}
+    }),
+    // release 의 소유권-가드 deleteMany — (scopedKey, owner) 일치 시에만 삭제.
+    deleteMany: vi.fn(async (args: { where: { scopedKey: string; owner?: string | null } }) => {
+      const row = state.idemLogs.get(args.where.scopedKey)
+      if (!row) return { count: 0 }
+      if (args.where.owner !== undefined && row.owner !== args.where.owner) return { count: 0 }
+      state.idemLogs.delete(args.where.scopedKey)
+      return { count: 1 }
     }),
     findUnique: vi.fn(async (args: { where: { scopedKey: string } }) => {
       return state.idemLogs.get(args.where.scopedKey) ?? null
