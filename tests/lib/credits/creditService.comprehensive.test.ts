@@ -41,6 +41,7 @@ vi.mock('@/lib/db/prisma', () => ({
     },
     $transaction: vi.fn(),
     $executeRaw: vi.fn(),
+    $queryRaw: vi.fn(),
   },
 }))
 
@@ -60,6 +61,9 @@ describe('Credit Service', () => {
       if (Array.isArray(arg)) return Promise.all(arg)
       return undefined
     })
+    // expireBonusCredits 의 FOR UPDATE select 기본값 — 빈 집합(no-op). 개별
+    // 테스트가 override. 기본을 안 두면 locked.reduce 가 undefined 에서 터진다.
+    ;(prisma.$queryRaw as ReturnType<typeof vi.fn>).mockResolvedValue([])
   })
 
   afterEach(() => {
@@ -530,15 +534,15 @@ describe('Credit Service', () => {
 
   describe('expireBonusCredits', () => {
     it('should expire old bonus credits', async () => {
-      const mockExpiredPurchases = [
-        { id: 'p1', userId: 'user1', remaining: 5 },
-        { id: 'p2', userId: 'user2', remaining: 3 },
-      ]
-
-      ;(prisma.bonusCreditPurchase.findMany as ReturnType<typeof vi.fn>).mockResolvedValue(
-        mockExpiredPurchases
-      )
-      ;(prisma.$transaction as ReturnType<typeof vi.fn>).mockResolvedValue([{}, {}])
+      // worklist: 두 유저(findMany 는 distinct userId 행을 돌려준다).
+      ;(prisma.bonusCreditPurchase.findMany as ReturnType<typeof vi.fn>).mockResolvedValue([
+        { userId: 'user1' },
+        { userId: 'user2' },
+      ])
+      // 각 유저의 FOR UPDATE select 가 잠근 현재값 — user1:5, user2:3 (합 8).
+      ;(prisma.$queryRaw as ReturnType<typeof vi.fn>)
+        .mockResolvedValueOnce([{ id: 'p1', remaining: 5 }])
+        .mockResolvedValueOnce([{ id: 'p2', remaining: 3 }])
 
       const result = await expireBonusCredits()
 
