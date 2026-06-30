@@ -32,6 +32,14 @@ export interface ContinuationOptions extends CallClaudeOptions {
   maxContinuations?: number
   /** 누적 출력 절대 cap (chars). 비용 폭주 방지. 기본 24000 (~12k tokens). */
   maxTotalOutputChars?: number
+  /**
+   * 최종 출력이 *잘린 채* 종료됐을 때(이어쓰기 소진으로 stop_reason 이 여전히
+   * max_tokens, 또는 maxTotalOutputChars cap 도달, 또는 이어쓰기 중 에러/abort)
+   * 스트림 close 직전에 정확히 한 번 호출. 자연 종료(end_turn/stop_sequence)면
+   * 호출되지 않는다. 소비자(claudeSSE)가 이 신호로 "완성본인 척 영속·과금"되는
+   * 잘린 답을 미완으로 표시하는 데 쓴다. 던진 예외는 swallow(스트림 보호).
+   */
+  onTruncated?: () => void
 }
 
 export async function streamClaudeWithContinuation(
@@ -42,6 +50,7 @@ export async function streamClaudeWithContinuation(
     maxTotalOutputChars: explicitMaxTotalOutputChars,
     label = 'claude-stream',
     abortSignal,
+    onTruncated,
     ...baseOpts
   } = opts
 
@@ -56,6 +65,18 @@ export async function streamClaudeWithContinuation(
       let accumulated = ''
       let attempt = 0
       let lastStopReason: string | null = null
+      // 자연 종료(end_turn/stop_sequence)로 끝났는가. false 로 끝나면 잘린 것.
+      let naturalEnd = false
+      let truncationNotified = false
+      const notifyTruncated = () => {
+        if (truncationNotified) return
+        truncationNotified = true
+        try {
+          onTruncated?.()
+        } catch {
+          /* 콜백 에러가 스트림을 깨지 않게 */
+        }
+      }
 
       while (attempt <= maxContinuations) {
         // Client already gave up — don't start the next round; we'd just be
@@ -120,6 +141,8 @@ export async function streamClaudeWithContinuation(
               // await 해야 업스트림 Anthropic fetch 취소가 close 전에 전파된다
               // (미-await 면 함수가 먼저 반환돼 abort 가 한 박자 늦었다).
               await reader.cancel().catch(() => {})
+              // cap 도달 = 잘린 종료. 소비자가 미완으로 표시하도록 신호.
+              notifyTruncated()
               controller.close()
               return
             }
@@ -150,14 +173,20 @@ export async function streamClaudeWithContinuation(
           })
           continue
         }
-        // 정상 종료 (end_turn/stop_sequence) 또는 cap 도달 → 종료.
+        // 여기 도달 = 이어쓰기 안 함. stop_reason 이 max_tokens 가 아니면 자연
+        // 종료(end_turn/stop_sequence), max_tokens 면 이어쓰기 소진으로 잘린 종료.
+        naturalEnd = stopReason !== 'max_tokens'
         break
       }
+
+      // 자연 종료가 아니면(이어쓰기 소진/cap/이어쓰기 에러/abort) 잘린 것 → 신호.
+      if (!naturalEnd) notifyTruncated()
 
       logger.info(`[${label}] 종료`, {
         attempts: attempt + 1,
         totalChars: accumulated.length,
         finalStopReason: lastStopReason,
+        truncated: !naturalEnd,
       })
       controller.close()
     },
