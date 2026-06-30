@@ -33,6 +33,7 @@ import {
   josa,
 } from '@/lib/compatibility/freeReport/buildNarrative'
 import type { FreeReportTheme } from '@/lib/compatibility/freeReport/types'
+import type { CompatInviter } from '@/lib/tarot/shareLink'
 import { trackFunnel } from '@/lib/metrics/trackFunnel'
 import { logger } from '@/lib/logger'
 import s from './freeCompat.module.css'
@@ -272,6 +273,40 @@ export default function FreeCompatibilityPage() {
     }
   }, [status, isKo])
 
+  // 2-player 프리필 — 공유 링크(?invite=token)로 들어오면 공유자(personA)를 채워
+  // 받은 사람은 자기 생일(personB)만 넣으면 된다(바이럴 루프). 공유자가 옵트인한
+  // 경우에만 invite 가 있다(미동의면 평소대로 둘 다 입력).
+  useEffect(() => {
+    const token = new URLSearchParams(window.location.search).get('invite')
+    if (!token) return
+    let cancelled = false
+    void (async () => {
+      try {
+        const res = await fetch(`/api/compatibility/share?token=${encodeURIComponent(token)}`)
+        if (!res.ok) return
+        const inv = (await res.json())?.invite
+        const p = inv?.inviter
+        if (!p || cancelled) return
+        setPersonA({
+          name: p.name || inv.nameA || '',
+          birthDate: p.birthDate || '',
+          birthTime: p.timeUnknown ? '' : p.birthTime || '',
+          timeUnknown: !!p.timeUnknown,
+          gender: p.gender === 'female' ? 'female' : 'male',
+          city: p.city || '',
+          latitude: typeof p.lat === 'number' ? p.lat : null,
+          longitude: typeof p.lon === 'number' ? p.lon : null,
+          timeZone: p.tz || null,
+        })
+      } catch {
+        /* ignore — 프리필 실패해도 사용자가 직접 입력 가능 */
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
   // 카드 외부 클릭 시 dropdown 닫기.
   useEffect(() => {
     if (openDropdown === null) return
@@ -421,6 +456,21 @@ export default function FreeCompatibilityPage() {
             isKo={isKo}
             locale={locale}
             timeUnknown={personA.timeUnknown || personB.timeUnknown}
+            inviter={
+              personA.birthDate && (personA.gender === 'male' || personA.gender === 'female')
+                ? {
+                    name: personA.name || (isKo ? 'A' : 'A'),
+                    birthDate: personA.birthDate,
+                    birthTime: personA.timeUnknown ? undefined : personA.birthTime || undefined,
+                    timeUnknown: personA.timeUnknown,
+                    gender: personA.gender,
+                    city: personA.city || undefined,
+                    lat: personA.latitude ?? undefined,
+                    lon: personA.longitude ?? undefined,
+                    tz: personA.timeZone || undefined,
+                  }
+                : undefined
+            }
             onReset={() => {
               setReport(null)
               setPhase('input')
@@ -675,6 +725,7 @@ function ResultView({
   isKo,
   locale,
   timeUnknown,
+  inviter,
   onReset,
 }: {
   report: CompatReport
@@ -684,6 +735,7 @@ function ResultView({
   isKo: boolean
   locale: 'ko' | 'en'
   timeUnknown: boolean
+  inviter?: CompatInviter
   onReset: () => void
 }) {
   const view = buildFreeCompatNarrative(report, { labelA, labelB, lang: locale })
@@ -813,6 +865,7 @@ function ResultView({
               .slice(0, 3)
               .map((th) => ({ label: th.scoreCaption ?? '', value: th.score as number })),
           }}
+          inviter={inviter}
         />
         <ReferralInviteButton isKo={isKo} />
       </div>

@@ -233,7 +233,7 @@ export default async function SharedReadingPage({ params }: PageProps) {
 
           <div style={{ marginTop: 44 }}>
             <Link
-              href="/compatibility/free"
+              href={reading.inviter ? `/compatibility/free?invite=${token}` : '/compatibility/free'}
               style={{
                 display: 'inline-block',
                 padding: '15px 30px',
@@ -245,12 +245,22 @@ export default async function SharedReadingPage({ params }: PageProps) {
                 fontSize: 16,
               }}
             >
-              {isKo ? '우리 궁합도 무료로 보기 →' : 'Check your match free →'}
+              {reading.inviter
+                ? isKo
+                  ? `${reading.nameA}님과 내 궁합 보기 →`
+                  : `See your match with ${reading.nameA} →`
+                : isKo
+                  ? '우리 궁합도 무료로 보기 →'
+                  : 'Check your match free →'}
             </Link>
             <p style={{ marginTop: 14, fontSize: 12, color: MUTED }}>
-              {isKo
-                ? '로그인 없이 두 사람 생년월일만 넣으면 바로 결과가 나와요.'
-                : 'No sign-up — just two birth dates and you get the result.'}
+              {reading.inviter
+                ? isKo
+                  ? `${reading.nameA}님 정보는 채워져 있어요 — 내 생년월일만 넣으면 바로 결과가 나와요.`
+                  : `${reading.nameA} is already filled in — just add your own birth date.`
+                : isKo
+                  ? '로그인 없이 두 사람 생년월일만 넣으면 바로 결과가 나와요.'
+                  : 'No sign-up — just two birth dates and you get the result.'}
             </p>
           </div>
         </div>

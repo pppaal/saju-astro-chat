@@ -20,11 +20,21 @@ import {
   COMPAT_SHARE_CARD_SIZE,
   type CompatShareCardData,
 } from './CompatShareCard'
+import type { CompatInviter } from '@/lib/tarot/shareLink'
 
 export type CompatShareData = CompatShareCardData
 
-export function ShareCompatibilityButton({ data }: { data: CompatShareData }) {
+export function ShareCompatibilityButton({
+  data,
+  inviter,
+}: {
+  data: CompatShareData
+  /** 있으면(=공유자 출생정보) "친구가 나와의 궁합 보게 허용" 옵트인을 띄운다. */
+  inviter?: CompatInviter
+}) {
   const isKo = data.isKo
+  // 프라이버시 기본값 OFF — 사용자가 명시적으로 켜야 링크에 생일이 실린다.
+  const [allowInvite, setAllowInvite] = useState(false)
   const cardRef = useRef<HTMLDivElement>(null)
   // 'idle' | 'rendering'(캡처 중) | 'preview'(모달)
   const [phase, setPhase] = useState<'idle' | 'rendering' | 'preview'>('idle')
@@ -49,6 +59,8 @@ export function ShareCompatibilityButton({ data }: { data: CompatShareData }) {
           verdict: data.verdict,
           verdictTone: data.verdictTone,
           headline: data.headline || undefined,
+          // 옵트인 했을 때만 공유자 출생정보를 링크에 실어 2-player 프리필 활성화.
+          ...(allowInvite && inviter ? { inviter } : {}),
         }),
       })
       const json = (await res.json().catch(() => null)) as { data?: { url?: string } } | null
@@ -63,7 +75,7 @@ export function ShareCompatibilityButton({ data }: { data: CompatShareData }) {
       setError(isKo ? '네트워크 오류가 발생했어요.' : 'A network error occurred.')
       return null
     }
-  }, [isKo, data])
+  }, [isKo, data, allowInvite, inviter])
 
   // 링크 공유 — 토큰 발급 후 Web Share(url) 또는 클립보드 복사로 폴백.
   const handleShareLink = useCallback(async () => {
@@ -292,6 +304,27 @@ export function ShareCompatibilityButton({ data }: { data: CompatShareData }) {
               className="w-full rounded-xl mb-4"
               style={{ aspectRatio: '1 / 1', objectFit: 'cover' }}
             />
+
+            {/* 옵트인 — 켜면 링크에 내 출생정보가 실려, 친구가 자기 생일만 넣고
+                바로 "우리 궁합"을 본다(2-player 프리필). 프라이버시상 기본 OFF. */}
+            {inviter ? (
+              <label
+                className="flex items-start gap-2 mb-3 text-xs cursor-pointer"
+                style={{ color: '#b9a8e6' }}
+              >
+                <input
+                  type="checkbox"
+                  checked={allowInvite}
+                  onChange={(e) => setAllowInvite(e.target.checked)}
+                  className="mt-0.5 accent-[#e8cc8a]"
+                />
+                <span>
+                  {isKo
+                    ? '친구가 나와의 궁합을 바로 보게 하기 (내 생년월일이 링크에 포함돼요)'
+                    : 'Let friends check their match with me (your birth date is included in the link)'}
+                </span>
+              </label>
+            ) : null}
 
             {/* 링크로 공유 — 받는 사람이 한 번 탭하면 우리 사이트로(가장 바이럴). */}
             <button

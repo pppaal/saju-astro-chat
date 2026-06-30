@@ -7,7 +7,7 @@
 // 무로그인 — 게스트가 무료 궁합을 보고 바로 공유 → 받은 사람이 또 무료로
 // 해보고 다시 공유하는 바이럴 루프. 남용은 IP 레이트리밋 + zod 검증으로 가둔다.
 
-import { NextRequest } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import {
   withApiMiddleware,
@@ -17,13 +17,36 @@ import {
   ErrorCodes,
   type ApiContext,
 } from '@/lib/api/middleware'
-import { createShareLink, siteBaseUrl, type CompatShareLinkPayload } from '@/lib/tarot/shareLink'
+import {
+  createShareLink,
+  getShareLink,
+  isCompatShare,
+  siteBaseUrl,
+  type CompatShareLinkPayload,
+} from '@/lib/tarot/shareLink'
 import { recordCounter } from '@/lib/metrics/index'
 import { bumpShareCreated } from '@/lib/metrics/shareCounts'
+import { rateLimit } from '@/lib/rateLimit'
+import { getClientIp } from '@/lib/request-ip'
 import { logger } from '@/lib/logger'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
+
+// 옵트인 시에만 실리는 공유자 출생정보 — 받은 사람의 2-player 프리필용.
+const inviterSchema = z
+  .object({
+    name: z.string().trim().max(40).default(''),
+    birthDate: z.string().trim().min(1).max(20),
+    birthTime: z.string().trim().max(10).optional(),
+    timeUnknown: z.boolean().optional(),
+    gender: z.enum(['male', 'female']),
+    city: z.string().trim().max(120).optional(),
+    lat: z.number().min(-90).max(90).optional(),
+    lon: z.number().min(-180).max(180).optional(),
+    tz: z.string().trim().max(64).optional(),
+  })
+  .optional()
 
 const bodySchema = z.object({
   isKo: z.boolean(),
@@ -33,6 +56,7 @@ const bodySchema = z.object({
   verdict: z.string().trim().min(1).max(280),
   verdictTone: z.enum(['aligned', 'mixed', 'tension', 'neutral']),
   headline: z.string().trim().max(280).optional(),
+  inviter: inviterSchema,
 })
 
 export const POST = withApiMiddleware(
@@ -58,6 +82,8 @@ export const POST = withApiMiddleware(
       verdict: parsed.data.verdict,
       verdictTone: parsed.data.verdictTone,
       headline: parsed.data.headline,
+      // 옵트인 했을 때만 저장 — 미동의면 생일이 링크에 남지 않는다(프라이버시).
+      ...(parsed.data.inviter ? { inviter: parsed.data.inviter } : {}),
     }
 
     const token = await createShareLink(payload)
@@ -76,3 +102,26 @@ export const POST = withApiMiddleware(
   },
   createPublicStreamGuard({ route: '/api/compatibility/share', limit: 12, windowSeconds: 60 })
 )
+
+// 2-player 프리필 — 받은 사람이 ?token= 로 공유자(초대자) 출생정보만 받아 personA
+// 를 채운다. 옵트인 안 한 공유(inviter 없음)면 invite:null 로, 친구는 평소대로
+// 둘 다 입력. ID 스캔 방지용 IP 레이트리밋. verdict 등 민감하지 않은 표시값은
+// /r 페이지가 따로 보여주므로 여기선 inviter 만 노출(최소 권한).
+export async function GET(req: NextRequest) {
+  const ip = getClientIp(req.headers)
+  const rl = await rateLimit(`compat:share:invite:${ip}`, { limit: 60, windowSeconds: 60 })
+  if (!rl.allowed) {
+    return apiError(ErrorCodes.RATE_LIMITED, 'rate_limited')
+  }
+  const token = (new URL(req.url).searchParams.get('token') || '').trim()
+  if (!token) {
+    return apiError(ErrorCodes.VALIDATION_ERROR, 'missing_token')
+  }
+  const reading = await getShareLink(token)
+  if (!reading || !isCompatShare(reading)) {
+    return NextResponse.json({ invite: null })
+  }
+  return NextResponse.json({
+    invite: reading.inviter ? { nameA: reading.nameA, inviter: reading.inviter } : null,
+  })
+}

@@ -41,6 +41,23 @@ export interface TarotShareLinkPayload {
 
 export type CompatVerdictTone = 'aligned' | 'mixed' | 'tension' | 'neutral'
 
+/**
+ * 옵트인 시에만 링크에 실리는 공유자(초대자)의 출생정보 — 받은 사람이 자기
+ * 생일만 넣고 "우리 궁합"을 바로 보게 하는 2-player 프리필용. 프라이버시: 공유자가
+ * "친구가 나와의 궁합을 보게 허용"에 동의했을 때만 채워진다(미동의면 undefined).
+ */
+export interface CompatInviter {
+  name: string
+  birthDate: string
+  birthTime?: string
+  timeUnknown?: boolean
+  gender: 'male' | 'female'
+  city?: string
+  lat?: number
+  lon?: number
+  tz?: string
+}
+
 /** 무료 궁합 결과 공유 — 두 사람 verdict 한 줄을 OG/공개 페이지 주인공으로. */
 export interface CompatShareLinkPayload {
   v: 1
@@ -53,6 +70,8 @@ export interface CompatShareLinkPayload {
   verdictTone: CompatVerdictTone
   /** 결정적 신호 한 줄(선택) — 더 읽을거리. */
   headline?: string
+  /** 옵트인 2-player 프리필용 공유자 출생정보(미동의면 없음). */
+  inviter?: CompatInviter
 }
 
 /** 운흐름 캘린더 공유 — 기간 한 줄 총평을 OG/공개 페이지 주인공으로. */

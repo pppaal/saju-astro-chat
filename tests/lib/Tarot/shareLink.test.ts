@@ -135,6 +135,49 @@ describe('tarot shareLink', () => {
     })
   })
 
+  describe('compat 공유 — 옵트인 inviter(2-player 프리필)', () => {
+    const withInviter: ShareLinkPayload = {
+      v: 1,
+      kind: 'compatibility',
+      isKo: true,
+      nameA: '지민',
+      nameB: '서연',
+      verdict: '불 같은 끌림이지만 고집이 부딪쳐요.',
+      verdictTone: 'mixed',
+      inviter: {
+        name: '지민',
+        birthDate: '1992-03-14',
+        birthTime: '08:20',
+        gender: 'female',
+        city: 'Seoul',
+        lat: 37.5665,
+        lon: 126.978,
+        tz: 'Asia/Seoul',
+      },
+    }
+
+    it('inviter 포함 페이로드를 그대로 라운드트립(프리필 데이터 보존)', async () => {
+      const store = new Map<string, unknown>()
+      mockCacheSet.mockImplementation(async (k: string, v: unknown) => {
+        store.set(k, v)
+        return true
+      })
+      mockCacheGet.mockImplementation(async (k: string) => store.get(k) ?? null)
+      const token = await createShareLink(withInviter)
+      const fetched = await getShareLink(token as string)
+      expect(fetched).toEqual(withInviter)
+      expect(fetched && isCompatShare(fetched) && fetched.inviter?.birthDate).toBe('1992-03-14')
+    })
+
+    it('옵트인 안 한 공유는 inviter 가 없다(생일 미노출)', async () => {
+      const noInviter = { ...withInviter }
+      delete (noInviter as { inviter?: unknown }).inviter
+      mockCacheGet.mockResolvedValue(noInviter)
+      const fetched = await getShareLink('tok')
+      expect(fetched && isCompatShare(fetched) && fetched.inviter).toBeUndefined()
+    })
+  })
+
   describe('siteBaseUrl', () => {
     it('env 없으면 .com 폴백', () => {
       expect(siteBaseUrl()).toBe('https://destinypal.com')
