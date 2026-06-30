@@ -1,7 +1,12 @@
 // src/lib/Saju/shinsal.ts
 import { BRANCHES, STEMS, BRANCH_NAMES, JIJANGGAN, CHEONEUL_GWIIN_MAP } from './constants'
 import type { FiveElement, YinYang, PillarKind, TwelveStage } from './types'
-import { RESENTMENT_PAIRS, SIX_HARMONY, toBidiRecord } from './relationTables'
+import {
+  RESENTMENT_PAIRS,
+  SIX_HARMONY,
+  toBidiRecord,
+  SAMJAE_BY_YEAR_BRANCH,
+} from './relationTables'
 import { getGongmang as getGongmangByPillar } from './pillarLookup'
 import { STEM_KO } from './ganjiKo'
 
@@ -637,22 +642,8 @@ function isJewang(dayStem: string, targetBranch: string): boolean {
   return JEWANG_BY_DAY_STEM[dayStem] === targetBranch
 }
 
-// 삼재(三災): 년지 기준으로 3년 주기의 불운
-// 寅午戌 → 申酉戌 삼재, 巳酉丑 → 寅卯辰 삼재, 申子辰 → 巳午未 삼재, 亥卯未 → 亥子丑 삼재
-const SAMJAE_BY_YEAR_BRANCH: Record<string, string[]> = {
-  寅: ['申', '酉', '戌'],
-  午: ['申', '酉', '戌'],
-  戌: ['申', '酉', '戌'],
-  巳: ['寅', '卯', '辰'],
-  酉: ['寅', '卯', '辰'],
-  丑: ['寅', '卯', '辰'],
-  申: ['巳', '午', '未'],
-  子: ['巳', '午', '未'],
-  辰: ['巳', '午', '未'],
-  亥: ['亥', '子', '丑'],
-  卯: ['亥', '子', '丑'],
-  未: ['亥', '子', '丑'],
-}
+// 삼재(三災): 년지 기준 3년 주기의 불운. 정통 교리값은 relationTables(SSOT)에서
+// THREE_HARMONY × BRANCH_CLASH × DIRECTIONAL_HARMONY 로 파생한다(드리프트 차단).
 function isSamjae(yearBranch: string, currentYearBranch: string): boolean {
   const samjaeBranches = SAMJAE_BY_YEAR_BRANCH[yearBranch]
   return samjaeBranches?.includes(currentYearBranch) ?? false
