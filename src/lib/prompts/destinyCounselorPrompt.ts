@@ -162,7 +162,7 @@ function buildJargon(sources: DestinySources): Bilingual {
       ? `  - ★ 집중: *사주에서만* 근거를 댄다. 점성(별자리·행성·하우스·각) 은 언급·창작 금지. 사주의 오행·일간 결을 중심으로 풀어라.\n`
       : `  - ★ 집중: *점성에서만* 근거를 댄다. 사주(오행·일간·십성·대운) 는 언급·창작 금지. 점성의 행성·별자리·하우스 결을 중심으로 풀어라.\n`
   const balanceEn = both
-    ? ''
+    ? `  - ★ Balance: in EVERY reply weave in *at least one signal from saju AND at least one from astrology* (never lean on just one system). e.g. one line on the five-elements / day-master grain + one line on the planet / sign grain, in the same flow. (If birth time is unknown, skip astrology houses / ASC·MC.)\n`
     : sources.saju
       ? `  - ★ Focus: ground *only in saju*. Never mention or invent astrology (signs, planets, houses, aspects). Center on the five elements / day-master grain.\n`
       : `  - ★ Focus: ground *only in astrology*. Never mention or invent saju (five elements, day master, ten gods, daeun). Center on planets / signs / houses.\n`

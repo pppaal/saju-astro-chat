@@ -48,4 +48,19 @@ describe('counselor system prompt language purity', () => {
       expect(HANGUL.test(buildCompatibilityCounselorPrompt('ko', sources))).toBe(true)
     }
   )
+
+  // 둘 다(both) 모드는 한쪽 시스템으로 쏠리지 않게 "각 시스템에서 최소 하나씩"
+  // 균형 지시를 가져야 한다. 예전엔 EN both 만 이 지시가 비어(balanceEn='') 있어
+  // EN 에서 "둘 다 선택 → 점성만 나옴" 이 났다. ko/en 둘 다 균형 지시 보장.
+  it.each(['ko', 'en'] as const)(
+    '%s destiny prompt (both sources) carries a both-systems balance instruction',
+    (lang) => {
+      const both = buildDestinyCounselorPrompt(lang, { saju: true, astro: true })
+      const balanceRe =
+        lang === 'ko'
+          ? /사주에서 최소 하나.*점성에서 최소 하나|한 시스템만 쓰지 말/
+          : /at least one signal from saju.*at least one from astrology|never lean on just one system/i
+      expect(balanceRe.test(both), `missing both-systems balance rule in ${lang} prompt`).toBe(true)
+    }
+  )
 })
