@@ -141,6 +141,15 @@ export class StreamProcessor {
         truncated: accumulated.length > 0,
         error: error.message,
       }
+    } finally {
+      // 정상/에러 어느 경로로 나가든 reader 를 풀어 body 스트림이 잠긴 채(미취소)
+      // 남지 않게 한다. 직전엔 에러 경로에서 cancel/releaseLock 을 안 해 reader 가
+      // 누수되고 업스트림 연결이 끊기지 않았다. 이미 done 인 스트림엔 무해.
+      try {
+        await reader.cancel()
+      } catch {
+        /* 이미 닫힘/취소됨 — 무시 */
+      }
     }
   }
 
