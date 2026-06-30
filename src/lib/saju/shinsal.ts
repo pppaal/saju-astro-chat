@@ -892,12 +892,20 @@ export function getShinsalHitsForDailyTarget(
     }
   }
 
-  // ─── 천간 기반: 천덕귀인·월덕귀인 (월지 + target 일간) ───
-  if (natalMonthBranch && targetStem) {
-    if (isCheondeokGwiin(natalMonthBranch, targetStem)) {
-      hits.push({ kind: '천덕귀인', basis: `월지(${natalMonthBranch}) ↔ 일간(${targetStem})` })
+  // ─── 천덕귀인·월덕귀인 (월지 기준) ───
+  // 천덕귀인 표는 천간(丁壬辛甲癸丙乙庚)값과 지지(申亥寅巳)값이 섞여 있다
+  // (卯·午·酉·子월의 천덕은 지지 申·亥·寅·巳). 직전엔 일간(천간)만 검사해
+  // 지지값 달에선 영영 미발화했다 → 일간/일지 둘 다로 매칭한다.
+  // 월덕귀인은 항상 천간값이라 일간으로만 검사.
+  if (natalMonthBranch) {
+    const cheondeok = CHEONDEOK_BY_MONTH_BRANCH[natalMonthBranch]
+    if (
+      (targetStem && isCheondeokGwiin(natalMonthBranch, targetStem)) ||
+      (targetBranch && isCheondeokGwiin(natalMonthBranch, targetBranch))
+    ) {
+      hits.push({ kind: '천덕귀인', basis: `월지(${natalMonthBranch}) ↔ ${cheondeok}` })
     }
-    if (isWoldeokGwiin(natalMonthBranch, targetStem)) {
+    if (targetStem && isWoldeokGwiin(natalMonthBranch, targetStem)) {
       hits.push({ kind: '월덕귀인', basis: `월지(${natalMonthBranch}) ↔ 일간(${targetStem})` })
     }
   }
@@ -1082,13 +1090,21 @@ export function getShinsalHits(
     }
   }
 
-  // 천덕귀인/월덕귀인: 천간 기준으로 확인
+  // 천덕귀인/월덕귀인: 월지 기준. 천덕 값은 천간(丁壬辛甲癸丙乙庚) 또는 지지
+  // (申亥寅巳, 卯·午·酉·子월)이므로 각 기둥의 천간·지지 양쪽을 검사한다. 직전엔
+  // 천간만 검사해 지지값 달의 천덕귀인이 전부 누락됐다. 월덕은 항상 천간값.
   if (opt.includeLuckyDetails) {
     const stemPairs: Array<[PillarKind, string]> = [
       ['year', normalizeStemName(p.year.heavenlyStem.name)],
       ['month', normalizeStemName(p.month.heavenlyStem.name)],
       ['day', normalizeStemName(p.day.heavenlyStem.name)],
       ['time', normalizeStemName(p.time.heavenlyStem.name)],
+    ]
+    const branchPairs: Array<[PillarKind, string]> = [
+      ['year', normalizeBranchName(p.year.earthlyBranch.name)],
+      ['month', normalizeBranchName(p.month.earthlyBranch.name)],
+      ['day', normalizeBranchName(p.day.earthlyBranch.name)],
+      ['time', normalizeBranchName(p.time.earthlyBranch.name)],
     ]
     for (const [kind, stem] of stemPairs) {
       if (isCheondeokGwiin(monthBranch, stem)) {
@@ -1104,6 +1120,17 @@ export function getShinsalHits(
           kind: '월덕귀인',
           pillars: [kind],
           target: stem,
+          detail: '월지(' + monthBranch + ') 기준',
+        })
+      }
+    }
+    // 지지값 천덕(卯·午·酉·子월 → 申·亥·寅·巳)을 각 기둥 지지로 매칭.
+    for (const [kind, br] of branchPairs) {
+      if (isCheondeokGwiin(monthBranch, br)) {
+        hits.push({
+          kind: '천덕귀인',
+          pillars: [kind],
+          target: br,
           detail: '월지(' + monthBranch + ') 기준',
         })
       }

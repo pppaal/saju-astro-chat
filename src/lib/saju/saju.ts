@@ -27,6 +27,7 @@ import { toBranchId, toGanjiId, toSajuElementId, toStemId } from './graphIds'
 import { computeDayPillarIndices } from './dayPillar'
 // 연운/월운/일진 stem-branch 산술의 single source.
 import { annualStemBranch, sajuMonthStemBranch } from './cycles'
+import { getSajuYearForDate } from './datePillars'
 import { SAJU_CACHE, CACHE_KEY } from '@/lib/constants/cache'
 import { currentManAge } from '@/lib/datetime/currentAge'
 import { daysToDaeunAge } from '@/lib/saju/daeunAge'
@@ -620,11 +621,15 @@ export function calculateSajuData(
         .reverse()
         .find((d) => currentAge >= d.age) || daeWoonList[0]
 
-    // 연운 (현재 연도부터 6년치) — stem-branch 산술은 cycles.ts(single source) 위임.
+    // 연운 (현재 사주연도부터 6년치) — stem-branch 산술은 cycles.ts(single source) 위임.
     // baseAllDataPrompt/어댑터가 기대하는 wide shape(ganji/element 포함) 으로 매핑.
+    // 세운은 1/1 이 아니라 *입춘*에 바뀐다 — getSajuYearForDate(입춘-aware)로 base 를
+    // 잡아야 1/1~입춘 구간이 다음 해 세운으로 잘못 뜨지 않는다(currentUnse·생일차트와
+    // 동일 convention). 직전엔 그레고리력 연도(yNowLocal)라 이 구간이 한 해 어긋났다.
+    const baseSajuYear = getSajuYearForDate(now)
     const annualCycles: AnnualCycleData[] = []
     for (let i = 0; i < 6; i++) {
-      const yr = yNowLocal + i
+      const yr = baseSajuYear + i
       const { stem, branch } = annualStemBranch(yr)
       const mainForB = getBranchMainStem(branch.name)
       annualCycles.push({
