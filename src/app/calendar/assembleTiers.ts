@@ -653,9 +653,13 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
     woolunKr: month.woolun?.kr && month.woolun.kr !== '—' ? month.woolun.kr : undefined,
     goodDays: month.goodDays.length,
     cautionDays: month.cautionDays.length,
+    // 나쁜 날(<30)을 deriveMonthSummary 의 주의-측 톤·날수에 합산(감사: 예전엔
+    // avoid 를 안 넘겨 나쁜 달이 'bright'로 뒤집히고 날수에서 avoid 가 증발했다).
+    avoidDays: month.avoidDays.length,
     totalDays: monthCells.length,
     bestDay: month.bestDay?.date || undefined,
-    cautionDay: month.cautionDays[0],
+    // caution 이 하나도 없고 avoid 만 있는 달도 '조심할 날'을 한 곳은 짚도록 폴백.
+    cautionDay: month.cautionDays[0] ?? month.avoidDays[0],
     convergeDate: month.converge?.date || undefined,
   }
   // bestDayReason(keyDays meaning)은 서버 lang 으로만 산출돼 있어 그 로케일 요약에만 싣는다.

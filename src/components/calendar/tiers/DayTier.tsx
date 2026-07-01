@@ -896,11 +896,18 @@ export function DayTier({ day, onRise, sex = '남' }: DayTierProps) {
                   const poleSym = c.polarity > 0 ? '▲' : c.polarity < 0 ? '▼' : '·'
                   const poleCls =
                     c.polarity > 0 ? styles.poleUp : c.polarity < 0 ? styles.poleDn : ''
-                  const sajuName = c.sajuKo ?? c.sajuSide
-                  const astroName = c.astroKo ?? c.astroSide
+                  // 도메인/행성 룩업은 *한글 키*(sajuKo/astroKo)로만 동작하므로
+                  // head 계산엔 raw 한글 키를 쓰고, 화면 용어칩엔 로케일 표시명
+                  // (sajuSide/astroSide — EN 에선 영문)을 쓴다. 예전엔 칩이
+                  // sajuKo(항상 한글)를 렌더해 EN 로케일에서 "편관·화성"이 새어나가
+                  // 같은 교차쌍을 영문 표기하는 월 티어와 언어가 어긋났다(감사).
+                  const sajuKey = c.sajuKo ?? c.sajuSide
+                  const astroKey = c.astroKo ?? c.astroSide
+                  const sajuName = ko ? sajuKey : (c.sajuSide ?? sajuKey)
+                  const astroName = ko ? astroKey : (c.astroSide ?? astroKey)
                   const head = ko
-                    ? `${sibsinArea(sajuName)} × ${planetPlain(astroName, true)}`
-                    : `${sibsinAreaEn(sajuName)} × ${planetPlain(astroName, false)}`
+                    ? `${sibsinArea(sajuKey)} × ${planetPlain(astroKey, true)}`
+                    : `${sibsinAreaEn(sajuKey)} × ${planetPlain(astroKey, false)}`
                   const body = ko ? c.meaning : (c.meaningEn ?? c.meaning)
                   return (
                     <div

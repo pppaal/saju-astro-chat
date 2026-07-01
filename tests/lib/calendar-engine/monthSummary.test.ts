@@ -33,6 +33,23 @@ describe('deriveMonthSummary — 전반 톤(bright/mixed/careful)', () => {
     expect(s).toContain('굴곡이 또렷한')
   })
 
+  it('나쁜 날(avoidDays)은 주의-측에 합산돼 톤을 뒤집지 않는다', () => {
+    // 좋은 8 · 주의 3 · 나쁜 19 인 달: avoid 를 무시하면 good(8)>=caution(3)*2 라
+    // 'bright'(순한 달)로 뒤집힌다. avoid 를 주의-측(3+19=22)에 합산하면 caution>good
+    // 이라 'careful'(조심스러운 결)이 정답.
+    const s = deriveMonthSummary({ ...base, goodDays: 8, cautionDays: 3, avoidDays: 19 })
+    // 톤은 careful — bright 도입("전반적으로 …순하게 풀리는")이 아니다.
+    expect(s).toContain('조심스러운 결')
+    // 날수 문구의 주의-측 숫자도 22(=3+19)로 나와, 나쁜 날이 증발하지 않는다.
+    expect(s).toContain('22일')
+  })
+
+  it('avoidDays 미지정은 0 과 동일(하위호환)', () => {
+    expect(deriveMonthSummary({ ...base, goodDays: 8, cautionDays: 3 })).toEqual(
+      deriveMonthSummary({ ...base, goodDays: 8, cautionDays: 3, avoidDays: 0 })
+    )
+  })
+
   it('영문 bright/careful/mixed 톤도 분기된다', () => {
     expect(deriveMonthSummary({ ...base, lang: 'en', goodDays: 10, cautionDays: 4 })).toContain(
       'favorable month'

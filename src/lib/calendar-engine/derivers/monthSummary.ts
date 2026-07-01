@@ -22,6 +22,14 @@ export interface MonthSummaryInput {
   /** 그 달 band 분포 — 좋은 날 / 주의 날 / 전체. */
   goodDays: number
   cautionDays: number
+  /**
+   * 나쁜 날(band 'avoid', 점수 <30) 수. 톤·날수 문구에서 *주의-측*으로 caution 에
+   * 합산한다. 예전엔 이 값을 안 받아 나쁜 날을 통째로 무시했다 — 나쁜 날이 대부분인
+   * 달이 톤 'bright'(good>=caution*2)로 뒤집히고, 날수 문구에서도 avoid 일이 증발해
+   * (예: 30일 중 good 8·caution 3만 표기, 나머지 19일 실종) 위험을 심각하게 축소
+   * 표기했다(감사). 미지정 시 0(하위호환).
+   */
+  avoidDays?: number
   totalDays: number
   /** 그 달 지배 신호(이미 정제·로컬라이즈된 topReasons 본문) 상위 몇 개. */
   topReasons: string[]
@@ -313,7 +321,8 @@ export function deriveMonthSummary(i: MonthSummaryInput): string {
   const seed = i.seed ?? 0
   const parts: string[] = []
   const good = i.goodDays
-  const caution = i.cautionDays
+  // 주의-측 = caution(30~40) + avoid(<30). 나쁜 날을 톤·날수에서 빠뜨리지 않게 합산.
+  const caution = i.cautionDays + (i.avoidDays ?? 0)
   const total = i.totalDays
 
   // 1) 전반 톤 — 좋은 날 vs 주의 날 분포. 한 문장 안에 톤 + 날수까지 녹여 길게.
