@@ -4,7 +4,7 @@
 // 뽑고(없는 사실 X), seed 로 결정론적이며, 톤 버킷이 카피와 어긋나지 않는다.
 
 import { describe, it, expect } from 'vitest'
-import { dayShareHook, lifeShareHook } from '@/lib/share/shareHook'
+import { dayShareHook, lifeShareHook, monthShareHook } from '@/lib/share/shareHook'
 
 describe('dayShareHook', () => {
   it('같은 입력은 같은 후크(결정론)', () => {
@@ -38,8 +38,8 @@ describe('dayShareHook', () => {
 
   it('caution 톤은 caution 카피 풀에서만 — 도발이라도 단정/과장 아님', () => {
     const h = dayShareHook({ tone: 'caution', score: 30, seed: 1, ko: true })
-    // caution 풀의 문구만 나와야 한다.
-    expect(['오늘은 한 박자 늦춰.', '지르지 마. 내일이 더 좋아.']).toContain(h.headline)
+    // caution 풀은 절제 신호(참아/미뤄/늦춰/사려/하지 마/아냐)를 담는다 — 밀어붙임 아님.
+    expect(h.headline).toMatch(/참아|미뤄|늦춰|사려|하지 마|아냐/)
   })
 
   it('ko/en 둘 다 비어있지 않다', () => {
@@ -53,6 +53,30 @@ describe('dayShareHook', () => {
     const high = dayShareHook({ tone: 'positive', score: 80, seed: 0, ko: true })
     const good = dayShareHook({ tone: 'positive', score: 64, seed: 0, ko: true })
     expect(high.headline).not.toBe(good.headline)
+  })
+})
+
+describe('monthShareHook', () => {
+  it('톤별로 다른 풀에서 뽑고 ko/en 둘 다 비어있지 않다', () => {
+    const bright = monthShareHook({ tone: 'bright', seed: 3, ko: true })
+    const careful = monthShareHook({ tone: 'careful', seed: 3, ko: true })
+    const mixed = monthShareHook({ tone: 'mixed', seed: 3, ko: true })
+    expect(new Set([bright.headline, careful.headline, mixed.headline]).size).toBe(3)
+    const en = monthShareHook({ tone: 'bright', seed: 3, ko: false })
+    expect(en.headline).toMatch(/[A-Za-z]/)
+    expect(bright.headline).toContain('이번 달')
+  })
+
+  it('monthSalt 로 달마다 다른 변형(결정적)', () => {
+    const heads = new Set(
+      [1, 2, 3, 4].map(
+        (m) => monthShareHook({ tone: 'bright', seed: 5, monthSalt: m, ko: true }).headline
+      )
+    )
+    expect(heads.size).toBeGreaterThan(1)
+    expect(monthShareHook({ tone: 'bright', seed: 5, monthSalt: 2, ko: true })).toEqual(
+      monthShareHook({ tone: 'bright', seed: 5, monthSalt: 2, ko: true })
+    )
   })
 })
 

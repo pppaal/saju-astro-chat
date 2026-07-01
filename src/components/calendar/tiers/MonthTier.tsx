@@ -24,6 +24,7 @@ import { useI18n } from '@/i18n/I18nProvider'
 import { toneMeaningFor, type MeaningTone } from '@/lib/calendar-engine/derivers/toneMeaning'
 import { sibsinArea, sibsinAreaEn, planetPlain } from '@/lib/calendar-engine/derivers/plainLanguage'
 import { ShareCalendarButton } from '@/components/calendar/ShareCalendarButton'
+import { monthShareHook } from '@/lib/share/shareHook'
 
 const MONTH_EN = [
   'January',
@@ -373,6 +374,22 @@ export function MonthTier({ month, onDive, onRise, showRise = true }: MonthTierP
 
       {/* ── novice 기본: 한자·용어 없는 일상어 결론 ── */}
       <header className={styles.novice}>
+        {/* 도발적 월 후크 — 히어로 최상단. hero 톤워드(noviceTone)와 같은 소스로 맞춰
+            (good→bright / care→careful / mild→mixed) 서로 어긋나지 않게 한다. */}
+        {(() => {
+          const mh = monthShareHook({
+            tone: noviceTone === 'good' ? 'bright' : noviceTone === 'care' ? 'careful' : 'mixed',
+            seed,
+            monthSalt: ymM || 0,
+            ko,
+          })
+          return (
+            <>
+              <p className={styles.novHook}>{mh.headline}</p>
+              {mh.subline && <p className={styles.novHookSub}>{mh.subline}</p>}
+            </>
+          )
+        })()}
         <div
           className={`${styles.novToneWord} ${
             noviceTone === 'good' ? styles.novGood : noviceTone === 'care' ? styles.novCare : ''
