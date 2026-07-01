@@ -135,6 +135,27 @@ describe('StreamProcessor', () => {
       expect(result.content).toBe('Hello World')
     })
 
+    it('cancels the reader on the error path (no reader/body leak)', async () => {
+      // 회귀: 에러 경로에서 reader 를 cancel/releaseLock 하지 않아 body 스트림이
+      // 잠긴 채(미취소) 남았다. finally 에서 reader.cancel() 하는지 검증한다.
+      const cancelSpy = vi.fn()
+      const body = new ReadableStream<Uint8Array>({
+        start(controller) {
+          // [ERROR] 토큰을 흘리고 스트림을 닫지 않는다 — 업스트림 mid-stream 오류 모사.
+          controller.enqueue(new TextEncoder().encode('data: [ERROR] boom\n\n'))
+        },
+        cancel: cancelSpy,
+      })
+      const response = new Response(body)
+
+      const result = await new StreamProcessor().process(response)
+
+      expect(result.success).toBe(false)
+      expect(result.error).toContain('boom')
+      // 미닫힌 스트림이므로 cancel 이 underlying source.cancel 을 호출해야 한다.
+      expect(cancelSpy).toHaveBeenCalledTimes(1)
+    })
+
     it('should call onChunk callback for each chunk', async () => {
       const processor = new StreamProcessor()
       const onChunk = vi.fn()

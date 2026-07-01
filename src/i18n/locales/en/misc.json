@@ -84,11 +84,11 @@
     "goHome": "Go home",
     "emailNote": "A confirmation email has been sent to your registered address.",
     "packs": {
-      "mini": "Mini (5 credits)",
-      "standard": "Standard (20 credits)",
-      "plus": "Plus (50 credits)",
-      "mega": "Mega (120 credits)",
-      "ultimate": "Ultimate (220 credits)"
+      "mini": "Mini",
+      "standard": "Standard",
+      "plus": "Plus",
+      "mega": "Mega",
+      "ultimate": "Ultimate"
     }
   },
   "common": {

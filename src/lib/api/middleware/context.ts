@@ -228,7 +228,13 @@ async function handleCredits(
   // back to general reading credit; without this the refund would
   // credit a counter that was never charged.
   const refundType = creditResult.chargedAs ?? options.credits!.type
+  // 한 요청에서 정확히 한 번만 환불한다. 핸들러가 자체 에러 경로에서 부르고
+  // 그 뒤 throw 해 미들웨어 catch 가 다시 부르더라도(또는 그 반대) 이중 환불이
+  // 되지 않도록 클로저 플래그로 잠근다. (refundCredits 는 멱등 가드가 없는 원함수)
+  let refundIssued = false
   const refundCreditsOnError = async (errorMessage: string, metadata?: Record<string, unknown>) => {
+    if (refundIssued) return
+    refundIssued = true
     try {
       await refundCredits({
         userId: userId!,

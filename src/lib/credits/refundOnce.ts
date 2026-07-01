@@ -31,6 +31,10 @@ const SYNTH_BUCKET_MS = 60 * 60 * 1000 // 1h
  * (or the same params an hour later) each get their own claim.
  */
 function synthesizeRefundKey(params: CreditRefundParams): string {
+  // transactionId(차감된 CONSUME 트랜잭션 id)가 있으면 discriminator 로 포함해,
+  // 같은 시간·같은 파라미터의 *서로 다른* 차감이 같은 키로 충돌해 두 번째 환불이
+  // 누락되는 것을 막는다(환불 누락 방지). 없으면 기존처럼 시간 버킷으로 rapid
+  // 중복만 합친다.
   const bucket = Math.floor(Date.now() / SYNTH_BUCKET_MS)
   const material = [
     params.userId,
@@ -38,6 +42,7 @@ function synthesizeRefundKey(params: CreditRefundParams): string {
     params.reason,
     params.amount,
     params.apiRoute ?? '',
+    params.transactionId ?? '',
     bucket,
   ].join(':')
   return `synth:${createHash('sha256').update(material).digest('hex').slice(0, 32)}`
@@ -60,9 +65,7 @@ export async function refundCreditsOnce(
   // Keyed path: use the caller key verbatim. No-key path: fall back to a
   // synthesized, params-derived key so the previously-undeduped path still
   // collapses rapid double-calls.
-  const scopedKey = idempotencyKey
-    ? `refund:${idempotencyKey}`
-    : synthesizeRefundKey(params)
+  const scopedKey = idempotencyKey ? `refund:${idempotencyKey}` : synthesizeRefundKey(params)
   const expiresAt = new Date(Date.now() + REFUND_IDEM_TTL_MS)
 
   // Claim the refund atomically. First claim wins → perform refund. A unique
@@ -75,13 +78,28 @@ export async function refundCreditsOnce(
       logger.info('[refundOnce] already refunded, skipping', { scopedKey, reason: params.reason })
       return false
     }
-    // Couldn't claim the marker (DB hiccup). Bias toward refunding — a rare
-    // double-refund is less harmful than silently overcharging. Log loudly.
-    logger.warn('[refundOnce] claim failed, refunding without dedupe', {
-      scopedKey,
-      err: err instanceof Error ? err.message : String(err),
-    })
-    return refundCredits(params)
+    // 일시적 DB 블립일 수 있다 — marker 없이 곧장 환불하면 같은 turn 의 다른
+    // 실패 경로도 똑같이 marker 없이 환불해 이중 환불 창이 열린다. 결정 전에
+    // create 를 1회만 더 시도해 대부분의 블립을 흡수하고 dedupe 를 보존한다.
+    try {
+      await prisma.requestIdempotencyLog.create({ data: { scopedKey, expiresAt } })
+    } catch (err2) {
+      const code2 = (err2 as { code?: string } | undefined)?.code
+      if (code2 === 'P2002') {
+        logger.info('[refundOnce] already refunded (post-retry), skipping', {
+          scopedKey,
+          reason: params.reason,
+        })
+        return false
+      }
+      // 두 번 다 실패(지속적 DB 장애) — bias toward refunding (드문 이중 환불이
+      // 무음 과금보다 낫다는 기존 정책 유지). reconciliation 이 잡도록 크게 로그.
+      logger.warn('[refundOnce] claim failed after retry, refunding without dedupe', {
+        scopedKey,
+        err: err2 instanceof Error ? err2.message : String(err2),
+      })
+      return refundCredits(params)
+    }
   }
 
   // We own the claim → perform the refund. If it throws, release the claim so

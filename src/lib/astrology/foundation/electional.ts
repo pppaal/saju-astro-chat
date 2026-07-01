@@ -392,7 +392,9 @@ export function calculatePlanetaryHour(
   sunriseTime: Date,
   sunsetTime: Date
 ): PlanetaryHour {
-  const dayOfWeek = date.getDay()
+  // UTC 요일을 쓴다. getDay() 는 서버 로컬 타임존을 읽어 같은 인스턴트라도
+  // 배포 리전에 따라 요일/행성 지배성이 달라져 택일 점수가 비결정적이 된다.
+  const dayOfWeek = date.getUTCDay()
   const dayRuler = DAY_RULERS[dayOfWeek]
 
   // 낮/밤 시간 계산
@@ -552,14 +554,14 @@ export function analyzeElection(
   const { moonPhase, moonSign, voidOfCourse, retrogradePlanets, benefic, malefic } =
     getChartElectionalFacts(chart)
 
-  // 기본 일출/일몰 시간 (제공되지 않은 경우). 주의: Date.setHours 는 in-place
-  // mutation + timestamp 반환이라, 옛 코드는 sunrise/sunset 을 만들면서 원본
-  // dateTime 을 06:00→18:00 으로 *망가뜨렸고* 아래 calculatePlanetaryHour 가
-  // 18:00 으로 오염된 dateTime 을 썼다(잘못된 행성시). 복제본에서 setHours 해
-  // 원본 dateTime 을 보존한다.
+  // 기본 일출/일몰 시간 (제공되지 않은 경우). UTC 기준 06:00/18:00 을 쓴다 —
+  // setHours 는 서버 로컬 타임존을 읽어 같은 인스턴트라도 배포 리전에 따라
+  // 기본 일출/일몰이 달라져 행성시·택일 점수가 비결정적이 된다(determinism 위반).
+  // 또한 setHours 는 in-place mutation + timestamp 반환이라 원본 dateTime 을
+  // 망가뜨리지 않도록 복제본에서 설정한다.
   const atHour = (hours: number): Date => {
     const d = new Date(dateTime)
-    d.setHours(hours, 0, 0, 0)
+    d.setUTCHours(hours, 0, 0, 0)
     return d
   }
   const sunrise = sunriseTime || atHour(6)

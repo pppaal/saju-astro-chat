@@ -80,3 +80,30 @@ describe('양인(羊刃) = 양간(陽干)만', () => {
     expect(hitKinds('癸', '子')).not.toContain('양인')
   })
 })
+
+describe('천덕귀인(天德貴人) — 월지 기준, 천간/지지 혼합값', () => {
+  // 표준 천덕표는 천간(丁壬辛甲癸丙乙庚)값과 지지(申亥寅巳)값이 섞여 있다.
+  // 卯·午·酉·子월의 천덕은 지지(申·亥·寅·巳) — 직전엔 일간(천간)만 검사해
+  // 이 네 달의 천덕귀인이 전부 누락됐다. 일간/일지 양쪽 매칭을 잠근다.
+  const dailyKinds = (monthBranch: string, opts: { stem?: string; branch?: string }): string[] =>
+    getShinsalHitsForDailyTarget('甲', '子', opts.branch ?? '辰', monthBranch, opts.stem).map(
+      (h) => h.kind
+    )
+
+  it('지지값 달(卯·午·酉·子)의 천덕은 일지로 발화', () => {
+    expect(dailyKinds('卯', { branch: '申' })).toContain('천덕귀인') // 卯→申
+    expect(dailyKinds('午', { branch: '亥' })).toContain('천덕귀인') // 午→亥
+    expect(dailyKinds('酉', { branch: '寅' })).toContain('천덕귀인') // 酉→寅
+    expect(dailyKinds('子', { branch: '巳' })).toContain('천덕귀인') // 子→巳
+  })
+
+  it('천간값 달의 천덕은 일간으로 발화', () => {
+    expect(dailyKinds('寅', { stem: '丁', branch: '辰' })).toContain('천덕귀인') // 寅→丁
+    expect(dailyKinds('丑', { stem: '庚', branch: '辰' })).toContain('천덕귀인') // 丑→庚
+  })
+
+  it('천덕 값과 안 맞으면 미발화', () => {
+    // 卯월 천덕=申. 일지 子, 일간 없음 → 미발화.
+    expect(dailyKinds('卯', { branch: '子' })).not.toContain('천덕귀인')
+  })
+})

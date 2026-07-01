@@ -100,6 +100,19 @@ describe('refundCreditsOnce', () => {
     expect(new Set(keys).size).toBe(4)
   })
 
+  it('distinct charges (different transactionId) get distinct synth keys — no lost refund', async () => {
+    // 같은 시간·같은 파라미터라도 transactionId 가 다르면(서로 다른 차감) 키가
+    // 충돌하지 않아 둘 다 환불된다. 직전엔 시간 버킷만 써서 둘이 합쳐졌다.
+    const a = await refundCreditsOnce(null, { ...params, transactionId: 'ctx_1' })
+    const b = await refundCreditsOnce(null, { ...params, transactionId: 'ctx_2' })
+    expect(a).toBe(true)
+    expect(b).toBe(true)
+    expect(refundCreditsMock).toHaveBeenCalledTimes(2)
+    expect(createMock.mock.calls[0][0].data.scopedKey).not.toBe(
+      createMock.mock.calls[1][0].data.scopedKey
+    )
+  })
+
   it('releases the synthesized claim if the no-key refund throws', async () => {
     refundCreditsMock.mockRejectedValueOnce(new Error('refund boom'))
     await expect(refundCreditsOnce(null, params)).rejects.toThrow('refund boom')
@@ -107,10 +120,29 @@ describe('refundCreditsOnce', () => {
     expect(deleteMock.mock.calls[0][0].where.scopedKey).toMatch(/^synth:/)
   })
 
-  it('still refunds (without dedupe) if claiming the marker errors non-P2002', async () => {
+  it('retries the claim once on a transient error and still dedupes (marker written)', async () => {
+    // 1st create transient-fails, retry succeeds → claimed path (dedupe preserved).
     createMock.mockRejectedValueOnce(new Error('db down'))
     const r = await refundCreditsOnce('k2', params)
     expect(r).toBe(true)
+    expect(createMock).toHaveBeenCalledTimes(2) // original + one retry
+    expect(refundCreditsMock).toHaveBeenCalledTimes(1)
+    // claimed (not bias path) → no release on success.
+    expect(deleteMock).not.toHaveBeenCalled()
+  })
+
+  it('post-retry P2002 means another path already refunded → skip', async () => {
+    createMock.mockRejectedValueOnce(new Error('db down')).mockRejectedValueOnce(p2002())
+    const r = await refundCreditsOnce('k2b', params)
+    expect(r).toBe(false)
+    expect(refundCreditsMock).not.toHaveBeenCalled()
+  })
+
+  it('refunds without dedupe only when BOTH claim attempts fail non-P2002', async () => {
+    createMock.mockRejectedValue(new Error('db down')) // every attempt fails
+    const r = await refundCreditsOnce('k2c', params)
+    expect(r).toBe(true)
+    expect(createMock).toHaveBeenCalledTimes(2) // original + retry, both failed
     expect(refundCreditsMock).toHaveBeenCalledTimes(1)
   })
 

@@ -285,4 +285,51 @@ describe('streamClaudeWithContinuation', () => {
     const stream = await streamClaudeWithContinuation({ ...baseOpts })
     await expect(drain(stream)).rejects.toThrow('first stream errored empty')
   })
+
+  // onTruncated — 잘린 종료 신호(과금 정확성: 소비자가 미완 표시에 사용).
+  it('(g) does NOT fire onTruncated on a natural end_turn finish', async () => {
+    vi.mocked(callClaudeStream).mockImplementationOnce(makeRound(['done'], 'end_turn'))
+    const onTruncated = vi.fn()
+    const stream = await streamClaudeWithContinuation({ ...baseOpts, onTruncated })
+    await drain(stream)
+    expect(onTruncated).not.toHaveBeenCalled()
+  })
+
+  it('(h) fires onTruncated once when continuation is exhausted still on max_tokens', async () => {
+    vi.mocked(callClaudeStream)
+      .mockImplementationOnce(makeRound(['a'], 'max_tokens'))
+      .mockImplementationOnce(makeRound(['b'], 'max_tokens'))
+    const onTruncated = vi.fn()
+    // maxContinuations:1 → 2 rounds, both max_tokens → 잘린 채 종료.
+    const stream = await streamClaudeWithContinuation({
+      ...baseOpts,
+      maxContinuations: 1,
+      onTruncated,
+    })
+    await drain(stream)
+    expect(onTruncated).toHaveBeenCalledTimes(1)
+  })
+
+  it('(i) fires onTruncated once when the maxTotalOutputChars cap is hit', async () => {
+    vi.mocked(callClaudeStream).mockImplementationOnce(makeRound(['xxxxxxxxxx'], 'max_tokens'))
+    const onTruncated = vi.fn()
+    const stream = await streamClaudeWithContinuation({
+      ...baseOpts,
+      maxTotalOutputChars: 5,
+      onTruncated,
+    })
+    await drain(stream)
+    expect(onTruncated).toHaveBeenCalledTimes(1)
+  })
+
+  it('(j) fires onTruncated when a continuation round throws (partial degrade)', async () => {
+    vi.mocked(callClaudeStream)
+      .mockImplementationOnce(makeRound(['kept'], 'max_tokens'))
+      .mockRejectedValueOnce(new Error('upstream 500 on continuation'))
+    const onTruncated = vi.fn()
+    const stream = await streamClaudeWithContinuation({ ...baseOpts, onTruncated })
+    await drain(stream)
+    // 이어쓰기 실패로 잘린 partial → 미완 신호.
+    expect(onTruncated).toHaveBeenCalledTimes(1)
+  })
 })

@@ -264,6 +264,28 @@ describe('callClaude (non-streaming HTTP)', () => {
     expect(result.inputTokens).toBeUndefined()
     expect(result.outputTokens).toBeUndefined()
   })
+
+  it("forwards the caller's abortSignal to fetch (pre-aborted → rejects, no hang)", async () => {
+    // 회귀: callClaude 가 abortSignal 을 무시해, 클라이언트가 끊겨도 비-스트리밍
+    // 호출이 끝까지 진행되며 출력 토큰이 청구됐다. signal 이 fetch 로 전달되는지
+    // 검증 — 이미 abort 된 signal 이면 합쳐진 signal 도 abort 되어 fetch 가 거부.
+    const fetchMock = vi.fn().mockImplementation((_url: string, init?: RequestInit) => {
+      if (init?.signal?.aborted) {
+        return Promise.reject(Object.assign(new Error('aborted'), { name: 'AbortError' }))
+      }
+      return Promise.resolve(jsonResponse({ content: [{ type: 'text', text: 'hi' }] }))
+    })
+    global.fetch = fetchMock as unknown as typeof fetch
+
+    const ac = new AbortController()
+    ac.abort()
+    const { callClaude } = await import('@/lib/llm/claude')
+    await expect(
+      callClaude({ systemPrompt: 's', userPrompt: 'u', abortSignal: ac.signal })
+    ).rejects.toThrow()
+    // fetch 에 signal 이 실려 전달됐다.
+    expect(fetchMock.mock.calls[0][1]?.signal).toBeInstanceOf(AbortSignal)
+  })
 })
 
 describe('callClaudeStream (SSE streaming)', () => {
@@ -483,5 +505,21 @@ describe('callClaudeStream (SSE streaming)', () => {
     const { callClaudeStream } = await import('@/lib/llm/claude')
     const stream = await callClaudeStream({ systemPrompt: 's', userPrompt: 'u' })
     expect(await collectStream(stream)).toBe('split')
+  })
+
+  it('surfaces a mid-stream Anthropic `error` event instead of silently truncating', async () => {
+    // 회귀: SSE `event: error`(overloaded 등)가 어떤 분기에도 안 걸려 무음 누락 →
+    // 잘린 답이 정상 완료처럼 끝나 과금됐다. 이제 stream 이 error 로 끝나야 한다.
+    const fetchMock = vi.fn().mockResolvedValue(
+      sseResponse([
+        { type: 'content_block_delta', delta: { type: 'text_delta', text: 'partial' } },
+        { type: 'error', error: { type: 'overloaded_error', message: 'Overloaded' } },
+      ])
+    )
+    global.fetch = fetchMock as unknown as typeof fetch
+
+    const { callClaudeStream } = await import('@/lib/llm/claude')
+    const stream = await callClaudeStream({ systemPrompt: 's', userPrompt: 'u' })
+    await expect(collectStream(stream)).rejects.toThrow(/Claude stream error.*overloaded/i)
   })
 })

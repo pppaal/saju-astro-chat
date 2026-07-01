@@ -180,3 +180,40 @@ describe('relationTables — 소비 모듈 ↔ canon 교차 일치', () => {
     }
   })
 })
+
+describe('삼재(三災) 골든 — 12지지 전체', () => {
+  // 정통 교리: 삼합국의 생지와 충하는 지지에서 시작하는 방합 3년.
+  //   申子辰(水)→寅卯辰, 亥卯未(木)→巳午未, 寅午戌(火)→申酉戌, 巳酉丑(金)→亥子丑.
+  // 회귀: 직전 복제본은 4개 삼합국 중 3개(巳酉丑·申子辰·亥卯未)를 엉뚱한 연지로
+  //   매핑해 해당 띠 전원의 삼재 연도가 틀렸다. 12지지 전부의 지지셋을 잠근다.
+  const EXPECTED: Record<string, string[]> = {
+    // 申子辰 → 寅卯辰
+    申: ['寅', '卯', '辰'],
+    子: ['寅', '卯', '辰'],
+    辰: ['寅', '卯', '辰'],
+    // 亥卯未 → 巳午未
+    亥: ['巳', '午', '未'],
+    卯: ['巳', '午', '未'],
+    未: ['巳', '午', '未'],
+    // 寅午戌 → 申酉戌
+    寅: ['申', '酉', '戌'],
+    午: ['申', '酉', '戌'],
+    戌: ['申', '酉', '戌'],
+    // 巳酉丑 → 亥子丑
+    巳: ['亥', '子', '丑'],
+    酉: ['亥', '子', '丑'],
+    丑: ['亥', '子', '丑'],
+  }
+
+  it('12지지 모두 정확한 삼재 지지셋을 갖는다', () => {
+    expect(Object.keys(canon.SAMJAE_BY_YEAR_BRANCH)).toHaveLength(12)
+    for (const [branch, samjae] of Object.entries(EXPECTED)) {
+      expect(Array.from(canon.SAMJAE_BY_YEAR_BRANCH[branch])).toEqual(samjae)
+    }
+  })
+
+  it('shinsal·calendar 소비처가 SSOT 와 참조 동일(드리프트 차단)', async () => {
+    const calendar = await import('@/lib/calendar/constants')
+    expect(calendar.SAMJAE_BY_YEAR_BRANCH).toBe(canon.SAMJAE_BY_YEAR_BRANCH)
+  })
+})

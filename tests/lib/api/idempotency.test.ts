@@ -10,29 +10,30 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 
 // requestIdempotencyLog 를 in-memory 로 흉내내는 prisma mock.
-const rows = new Map<string, { scopedKey: string; expiresAt: Date }>()
+const rows = new Map<string, { scopedKey: string; expiresAt: Date; owner?: string }>()
 
 vi.mock('@/lib/db/prisma', () => ({
   prisma: {
     requestIdempotencyLog: {
-      create: vi.fn(async ({ data }: { data: { scopedKey: string; expiresAt: Date } }) => {
-        if (rows.has(data.scopedKey)) {
-          const err = new Error('Unique constraint failed') as Error & { code?: string }
-          err.code = 'P2002'
-          throw err
+      create: vi.fn(
+        async ({ data }: { data: { scopedKey: string; expiresAt: Date; owner?: string } }) => {
+          if (rows.has(data.scopedKey)) {
+            const err = new Error('Unique constraint failed') as Error & { code?: string }
+            err.code = 'P2002'
+            throw err
+          }
+          rows.set(data.scopedKey, data)
+          return data
         }
-        rows.set(data.scopedKey, data)
-        return data
-      }),
-      delete: vi.fn(async ({ where }: { where: { scopedKey: string } }) => {
-        if (!rows.has(where.scopedKey)) {
-          const err = new Error('Record to delete does not exist') as Error & { code?: string }
-          err.code = 'P2025'
-          throw err
-        }
+      ),
+      // release 는 (scopedKey, owner) 일치 조건의 deleteMany 를 쓴다 — owner 가
+      // 일치할 때만 지운다(소유권 가드). 일치 row 가 없으면 count 0(예외 없음).
+      deleteMany: vi.fn(async ({ where }: { where: { scopedKey: string; owner?: string } }) => {
         const row = rows.get(where.scopedKey)
+        if (!row) return { count: 0 }
+        if (where.owner !== undefined && row.owner !== where.owner) return { count: 0 }
         rows.delete(where.scopedKey)
-        return row
+        return { count: 1 }
       }),
     },
   },
@@ -176,7 +177,7 @@ describe('createIdempotencyStore — claim / release (create-as-lock)', () => {
 
     await store.release('route-x:user:1:k1')
     expect(rows.has('route-x:user:1:k1')).toBe(false)
-    expect(prisma.requestIdempotencyLog.delete).toHaveBeenCalledTimes(1)
+    expect(prisma.requestIdempotencyLog.deleteMany).toHaveBeenCalledTimes(1)
 
     // 마커가 지워졌으니 새 store(빈 memory)도 다시 선점 가능.
     const store2 = createIdempotencyStore('route-x')
@@ -185,8 +186,58 @@ describe('createIdempotencyStore — claim / release (create-as-lock)', () => {
 
   it('release() 는 DB delete 가 실패해도 throw 하지 않는다 (catch 흡수)', async () => {
     const store = createIdempotencyStore('route-x')
-    // rows 에 없는 키 → delete 가 P2025 throw 하지만 .catch(()=>{}) 로 흡수.
-    await expect(store.release('route-x:user:1:never-existed')).resolves.toBeUndefined()
+    await store.claim('route-x:user:1:owned-but-gone')
+    // deleteMany 가 던지도록 강제 — release 의 .catch 가 흡수해 throw 하지 않아야.
+    vi.mocked(prisma.requestIdempotencyLog.deleteMany).mockRejectedValueOnce(new Error('db down'))
+    await expect(store.release('route-x:user:1:owned-but-gone')).resolves.toBeUndefined()
+  })
+
+  it('release() 는 자기가 만들지 않은 락을 지우지 않는다 (소유권 가드)', async () => {
+    const key = 'route-x:user:1:contended'
+    // 다른 요청/인스턴스가 이미 박은 살아있는 락.
+    rows.set(key, { scopedKey: key, expiresAt: new Date(Date.now() + 60_000) })
+
+    // 우리 claim 은 transient 오류로 fail-open(차감 진행) — DB row 를 만들지 않는다.
+    vi.mocked(prisma.requestIdempotencyLog.create).mockRejectedValueOnce(new Error('timeout'))
+    const store = createIdempotencyStore('route-x')
+    expect(await store.claim(key)).toBe(true) // fail-open, owns nothing
+
+    vi.mocked(prisma.requestIdempotencyLog.deleteMany).mockClear()
+    await store.release(key)
+
+    // 남의 살아있는 락을 지워선 안 된다 → owned 에 없으므로 DB 미호출 + row 유지.
+    expect(prisma.requestIdempotencyLog.deleteMany).not.toHaveBeenCalled()
+    expect(rows.has(key)).toBe(true)
+  })
+
+  it('release() 는 owner 토큰이 어긋나면 DB row 를 지우지 않는다 (재발급 안전)', async () => {
+    const key = 'route-x:user:1:reissued'
+    const store = createIdempotencyStore('route-x')
+    expect(await store.claim(key)).toBe(true) // store 가 token1 으로 락 생성
+
+    // 만료 후 다른 인스턴스가 같은 scopedKey 를 새 owner(token2)로 재선점했다고 가정.
+    rows.get(key)!.owner = 'token2-from-another-instance'
+
+    await store.release(key) // store 는 token1 로 deleteMany → owner 불일치
+    // token2 의 살아있는 락은 보존돼야 한다.
+    expect(rows.has(key)).toBe(true)
+    expect(rows.get(key)!.owner).toBe('token2-from-another-instance')
+  })
+
+  it('fail-open 도 memory 마커를 채워 같은 인스턴스의 동시 중복은 replay(false)', async () => {
+    const key = 'route-x:user:1:failopen-dupe'
+    vi.mocked(prisma.requestIdempotencyLog.create).mockRejectedValueOnce(
+      new Error('pool exhausted')
+    )
+    const store = createIdempotencyStore('route-x')
+
+    // 첫 호출: fail-open → true(차감).
+    expect(await store.claim(key)).toBe(true)
+
+    // 둘째 호출(더블클릭/탭복제): memory 마커로 즉시 replay → false, DB 재호출 없음.
+    vi.mocked(prisma.requestIdempotencyLog.create).mockClear()
+    expect(await store.claim(key)).toBe(false)
+    expect(prisma.requestIdempotencyLog.create).not.toHaveBeenCalled()
   })
 
   it('서로 다른 routeName 은 같은 raw key 라도 충돌하지 않는다', async () => {

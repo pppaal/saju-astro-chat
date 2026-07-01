@@ -2,6 +2,7 @@
 
 import * as Sentry from '@sentry/nextjs'
 import { logger } from '@/lib/logger'
+import { redactSecrets } from '@/lib/security/logRedaction'
 
 /**
  * Wrap an async unit of work in a Sentry span so it shows up as a named
@@ -22,6 +23,7 @@ export function withSpan<T>(name: string, op: string, fn: () => Promise<T>): Pro
 }
 
 const REDACTED = '[redacted]'
+// 부분일치(substring) 로 가리는 키 — 이 토큰이 키 이름에 포함되면 값 마스킹.
 const SENSITIVE_KEYS = [
   'authorization',
   'cookie',
@@ -34,11 +36,22 @@ const SENSITIVE_KEYS = [
   'apikey',
   'access_key',
   'refresh_token',
+  // 출생/위치 PII — 이 제품의 실제 민감 데이터 클래스. (DataRedactor 가 같은
+  // 필드를 마스킹하도록 만들어졌지만 로거에 연결돼 있지 않았다.)
+  'birthdate',
+  'birthtime',
+  'birthday',
+  'latitude',
+  'longitude',
+  'email',
 ]
+// 정확일치(exact) 로만 가리는 키 — 'name'/'lat'/'lng' 를 substring 으로 쓰면
+// username/filename/eventName 등 무해한 키까지 과도하게 마스킹되므로 분리한다.
+const SENSITIVE_KEYS_EXACT = ['name', 'lat', 'lng', 'lon']
 
 function scrubValue(key: string, value: unknown): unknown {
   const lowerKey = key.toLowerCase()
-  if (SENSITIVE_KEYS.some((k) => lowerKey.includes(k))) {
+  if (SENSITIVE_KEYS.some((k) => lowerKey.includes(k)) || SENSITIVE_KEYS_EXACT.includes(lowerKey)) {
     return REDACTED
   }
   return value
@@ -63,8 +76,10 @@ function scrubObject(obj: unknown, depth = 0): unknown {
 
 export function captureServerError(error: unknown, context?: Record<string, unknown>) {
   const payload = {
-    message: error instanceof Error ? error.message : String(error),
-    stack: error instanceof Error ? error.stack : undefined,
+    // message/stack 에 박힌 시크릿(연결 문자열·토큰·키)·이메일을 redact 한 뒤
+    // 로그로 보낸다. context 는 scrubObject 가 키 기준으로 마스킹.
+    message: redactSecrets(error instanceof Error ? error.message : String(error)),
+    stack: error instanceof Error ? redactSecrets(error.stack) : undefined,
     ...(context ? (scrubObject(context) as Record<string, unknown>) : {}),
   }
 

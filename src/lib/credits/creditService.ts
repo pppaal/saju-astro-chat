@@ -592,60 +592,53 @@ export async function getValidBonusCredits(userId: string): Promise<number> {
 export async function expireBonusCredits() {
   const now = new Date()
 
-  // 만료된 구매 건 조회
-  const expiredPurchases = await prisma.bonusCreditPurchase.findMany({
+  // 만료 대상이 있는 유저 worklist 만 뽑는다(중복 제거). 실제 차감 금액·감사
+  // 행은 아래 트랜잭션에서 *잠근 현재값* 으로 다시 계산한다 — 이 읽기 값으로
+  // 차감하면 동시 cron 실행이 같은 stale 값을 둘 다 빼는 이중차감이 난다.
+  const expirableUsers = await prisma.bonusCreditPurchase.findMany({
     where: {
       expired: false,
       expiresAt: { lte: now },
       remaining: { gt: 0 },
     },
-    select: { id: true, userId: true, remaining: true },
+    select: { userId: true },
+    distinct: ['userId'],
   })
+  const userIds = expirableUsers.map((u) => u.userId)
 
-  // 각 유저별로 만료된 크레딧 합계 + per-purchase 명세 (감사 로그용)
-  const userExpiredCredits = new Map<string, number>()
-  const userExpiredPurchases = new Map<string, Array<{ id: string; remaining: number }>>()
-  for (const p of expiredPurchases) {
-    userExpiredCredits.set(p.userId, (userExpiredCredits.get(p.userId) || 0) + p.remaining)
-    const list = userExpiredPurchases.get(p.userId) ?? []
-    list.push({ id: p.id, remaining: p.remaining })
-    userExpiredPurchases.set(p.userId, list)
-  }
+  // 유저별 인터랙티브 트랜잭션 — 만료 대상 행을 FOR UPDATE 로 잠그고 다시 읽어
+  // 그 잠근 집합에서만 차감액·감사행을 만든다. 동시 cron 실행은 이 행 잠금에서
+  // 직렬화되어, 두 번째 실행의 SELECT 는 (이미 expired=true) 빈 결과 → no-op.
+  // 따라서 이중차감(bonusCredits 두 번 빼기)·중복 EXPIRE 감사행이 불가능해진다.
+  const runUserExpiry = (uid: string): Promise<number> =>
+    prisma.$transaction(async (tx) => {
+      const locked = await tx.$queryRaw<Array<{ id: string; remaining: number }>>`
+        SELECT "id", "remaining" FROM "BonusCreditPurchase"
+        WHERE "userId" = ${uid}
+          AND "expired" = false
+          AND "expiresAt" <= ${now}
+          AND "remaining" > 0
+        FOR UPDATE
+      `
+      if (locked.length === 0) return 0 // 다른 실행이 이미 처리함 → no-op
 
-  // 트랜잭션으로 처리 — bonusCredits 차감은 GREATEST(0, ...) 로 음수 drift 방어.
-  // CreditTransaction (EXPIRE / BONUS) 는 행마다 한 줄씩 — sourceRef = purchase.id.
-  const runUserExpiry = (
-    uid: string,
-    expiredAmount: number,
-    purchases: Array<{ id: string; remaining: number }>
-  ) =>
-    prisma.$transaction([
-      // 만료된 구매 건들 업데이트 — `remaining > 0` 필터는 필수.
-      // 차감 합계 (expiredAmount) 는 `remaining > 0` 행만으로 계산되는데,
-      // 여기서 그 필터 없이 expired=true 로 flip 하면 이미 0 remaining
-      // 인(소진됐거나 환불·회수된) 구매까지 expired=true 로 변형됨.
-      // 잔액 영향은 없지만 audit trail 이 오염되고,
-      // revokeBonusCreditPurchase 의 `purchase.expired` 멱등성 가드가
-      // 오작동(이미 환불된 0-remaining 행을 다시 환불 시도 시
-      // already_refunded 로 잘못 분기) 한다.
-      prisma.bonusCreditPurchase.updateMany({
-        where: {
-          userId: uid,
-          expired: false,
-          expiresAt: { lte: now },
-          remaining: { gt: 0 },
-        },
+      const expiredAmount = locked.reduce((sum, p) => sum + p.remaining, 0)
+      const ids = locked.map((p) => p.id)
+
+      // 잠근 행들만 expired=true 로 flip (이미 0-remaining/환불 행은 애초에 미포함).
+      await tx.bonusCreditPurchase.updateMany({
+        where: { id: { in: ids } },
         data: { expired: true },
-      }),
-      // UserCredits 에서 만료된 크레딧 차감 (atomic floor 0)
-      prisma.$executeRaw`
+      })
+      // UserCredits 에서 만료 크레딧 차감 (atomic floor 0). 잠근 합계만큼만 1회.
+      await tx.$executeRaw`
         UPDATE "UserCredits"
         SET "bonusCredits" = GREATEST(0, "bonusCredits" - ${expiredAmount})
         WHERE "userId" = ${uid}
-      `,
-      // 감사 로그 — purchase 마다 한 행 (sourceRef = purchase.id).
-      prisma.creditTransaction.createMany({
-        data: purchases.map((p) => ({
+      `
+      // 감사 로그 — 잠근 purchase 마다 한 행 (sourceRef = purchase.id).
+      await tx.creditTransaction.createMany({
+        data: locked.map((p) => ({
           userId: uid,
           type: 'EXPIRE' as const,
           pool: 'BONUS' as const,
@@ -654,31 +647,24 @@ export async function expireBonusCredits() {
           sourceRef: p.id,
           metadata: { purchaseId: p.id, expiredAmount: p.remaining },
         })),
-      }),
-    ])
+      })
+      return expiredAmount
+    })
 
-  const entries = Array.from(userExpiredCredits.entries())
-  let results = await Promise.allSettled(
-    entries.map(([uid, amt]) => runUserExpiry(uid, amt, userExpiredPurchases.get(uid) ?? []))
-  )
+  let results = await Promise.allSettled(userIds.map((uid) => runUserExpiry(uid)))
 
   // 1회 재시도 — 일시적 connection blip / deadlock 등 회복 가능한 실패 대비.
   // 그래도 실패하면 critical 로그로 발행해 알림 시스템(메트릭/sentry)에서
   // 잡히도록 한다. 이전엔 단순 카운트만 하고 silent 였음.
   const rejectedIdx = results.flatMap((r, i) => (r.status === 'rejected' ? [i] : []))
   if (rejectedIdx.length > 0) {
-    const retryEntries = rejectedIdx.map((i) => entries[i])
-    const retryResults = await Promise.allSettled(
-      retryEntries.map(([uid, amt]) => runUserExpiry(uid, amt, userExpiredPurchases.get(uid) ?? []))
-    )
+    const retryResults = await Promise.allSettled(rejectedIdx.map((i) => runUserExpiry(userIds[i])))
     retryResults.forEach((r, j) => {
       const origIdx = rejectedIdx[j]
       results = [...results.slice(0, origIdx), r, ...results.slice(origIdx + 1)]
       if (r.status === 'rejected') {
-        const [uid, amt] = retryEntries[j]
         logger.error('[expireBonusCredits] user expiry failed after retry', {
-          userId: uid,
-          expiredAmount: amt,
+          userId: userIds[origIdx],
           reason: r.reason instanceof Error ? r.reason.message : String(r.reason),
         })
       }
@@ -687,10 +673,14 @@ export async function expireBonusCredits() {
 
   const succeeded = results.filter((r) => r.status === 'fulfilled').length
   const failed = results.filter((r) => r.status === 'rejected').length
+  const totalCreditsExpired = results.reduce(
+    (sum, r) => sum + (r.status === 'fulfilled' ? r.value : 0),
+    0
+  )
 
   return {
-    totalUsers: userExpiredCredits.size,
-    totalCreditsExpired: Array.from(userExpiredCredits.values()).reduce((a, b) => a + b, 0),
+    totalUsers: userIds.length,
+    totalCreditsExpired,
     succeeded,
     failed,
   }

@@ -92,6 +92,11 @@ export async function streamClaudeAsSSE(opts: ClaudeSSEOptions): Promise<Respons
     }
   }
 
+  // 이어쓰기 소진/cap 도달로 답이 *잘린 채* 끝났는지. wrapper 가 close 직전에
+  // onTruncated 로 알려준다. 잘린 답은 자연 종료처럼 onComplete 되면 안 되고
+  // (완성본인 척 영속·복원), incomplete 로 표시해야 한다.
+  let truncated = false
+
   // enableContinuation=true 면 wrapper 경유 — max_tokens 자동 이어쓰기.
   const tokenStream = enableContinuation
     ? await streamClaudeWithContinuation({
@@ -99,6 +104,9 @@ export async function streamClaudeAsSSE(opts: ClaudeSSEOptions): Promise<Respons
         maxContinuations,
         maxTotalOutputChars,
         abortSignal: pipelineAbort.signal,
+        onTruncated: () => {
+          truncated = true
+        },
       })
     : await callClaudeStream({ ...claudeOpts, abortSignal: pipelineAbort.signal })
   const reader = tokenStream.getReader()
@@ -178,10 +186,14 @@ export async function streamClaudeAsSSE(opts: ClaudeSSEOptions): Promise<Respons
         }
 
         // 전체 생성 완료 → 서버측 영속화(클라 연결 여부와 무관). keep 모드에서
-        // 사용자가 다른 앱 갔다 와도 완성된 답을 되살릴 수 있게 한다.
+        // 사용자가 다른 앱 갔다 와도 완성된 답을 되살릴 수 있게 한다. 단, 이어쓰기
+        // 소진/cap 으로 *잘린* 답은 incomplete 로 표시해 완성본처럼 복원·과금되어
+        // 사용자가 잘린 줄 모르는 것을 막는다.
         if (fullText.trim() !== '' && onComplete) {
           try {
-            await onComplete(fullText)
+            // 자연 종료는 인자 1개(기존 계약 유지), 잘린 종료만 incomplete 마커.
+            if (truncated) await onComplete(fullText, { incomplete: true })
+            else await onComplete(fullText)
           } catch {
             /* persist 실패가 스트림을 깨지 않게 */
           }
@@ -201,7 +213,13 @@ export async function streamClaudeAsSSE(opts: ClaudeSSEOptions): Promise<Respons
             finalChunk = null
           }
         }
-        safeEnqueue(`data: ${JSON.stringify({ content: finalChunk || '', done: true })}\n\n`)
+        safeEnqueue(
+          `data: ${JSON.stringify({
+            content: finalChunk || '',
+            done: true,
+            ...(truncated ? { incomplete: true } : {}),
+          })}\n\n`
+        )
         stopHeartbeat()
         streamClosed = true
         try {

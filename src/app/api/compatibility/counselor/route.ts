@@ -281,7 +281,14 @@ export async function POST(req: NextRequest) {
           })
         }
         chargedUserId = context.userId
-        refundKey = turnId ? `compat:${chargedUserId}:${turnId}` : null
+        // 환불 키는 차감과 1:1 이어야 한다. turnId 가 비어도 null(시간버킷 합성키 →
+        // 같은 시간 다른 턴이 충돌해 환불 누락) 로 떨어지지 않게, 차감에 쓴
+        // scopedIdemKey 를 그대로 환불 키로 재사용한다(둘 다 없을 때만 null).
+        refundKey = turnId
+          ? `compat:${chargedUserId}:${turnId}`
+          : scopedIdemKey
+            ? `compat-idem:${scopedIdemKey}`
+            : null
       }
     }
 
