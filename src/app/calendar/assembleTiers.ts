@@ -20,6 +20,7 @@ import { isMinorAge, minorSafeText, sanitizeCrossEntry } from '@/lib/calendar-en
 import { deriveMonthSummary } from '@/lib/calendar-engine/derivers/monthSummary'
 import { personSeed } from '@/lib/calendar-engine/derivers/personSeed'
 import { deriveLayeredScores } from '@/lib/calendar-engine/derivers/layeredScore'
+import { CALENDAR_BANDS } from '@/lib/calendar-engine/derivers/constants'
 import { computeDayPillarIndices } from '@/lib/saju/dayPillar'
 import { getMonthPillarForDate, getYearPillarForDate } from '@/lib/saju/datePillars'
 import { STEM_NAMES, BRANCH_NAMES } from '@/lib/saju/constants'
@@ -195,7 +196,9 @@ export function pickNextBigDay(
 ): { date: string; dDay: number; score: number } | null {
   if (!upcoming.length) return null
   const best = upcoming.reduce((a, b) => (b.score > a.score ? b : a))
-  if (best.score < 65) return null
+  // '좋은 날' 문턱은 SSOT(CALENDAR_BANDS.good)와 일치시킨다 — 예전엔 65 하드코딩이라
+  // 그리드는 초록(≥60)인데 "다가오는 큰 날"에선 빠지는 60~64 사각지대가 있었다(감사).
+  if (best.score < CALENDAR_BANDS.good) return null
   const d0 = Date.parse(`${targetDayIso}T00:00:00Z`)
   const d1 = Date.parse(`${best.date}T00:00:00Z`)
   if (Number.isNaN(d0) || Number.isNaN(d1)) return null
@@ -821,6 +824,7 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
       focusCell.mark !== 'focus' &&
       focusCell.mark !== 'converge'
     ) {
+      const wasBest = focusCell.mark === 'best'
       focusCell.mark = 'focus'
       // 밴드 바를 중립화한 날은 good/caution/avoid 버킷에서도 빼야 한다 —
       // 안 그러면 헤더·총평의 카운트(goodN/cautionN/avoidN)가 그리드의 실제
@@ -829,6 +833,14 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
       month.cautionDays = month.cautionDays.filter((d) => d !== focusDs)
       month.goodDays = month.goodDays.filter((d) => d !== focusDs)
       month.avoidDays = month.avoidDays.filter((d) => d !== focusDs)
+      // 오늘(포커스)이 이달 '최고의 날'인데 tense/bright 로 grid 바를 중립화(회색)
+      // 했다면, month.bestDay 를 그대로 두면 안 된다 — MonthTier 가 회색 셀에
+      // "최고의 날 ✦"·"그날 추진하세요"를 그려 그리드(회색)·일 티어(tense)와 모순된다
+      // (감사). 크라운을 비우면 doDate 는 goodDays[0](실제 초록일)로 폴백하고
+      // keyDates 에서도 빠진다.
+      if (wasBest && month.bestDay?.date === focusDs) {
+        month.bestDay = { date: '', score: 0 }
+      }
     }
   }
 

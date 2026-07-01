@@ -23,6 +23,19 @@ describe('dayShareHook', () => {
     expect(hooks.size).toBeGreaterThan(1)
   })
 
+  it('daySalt 가 같은 시드에서도 날마다 다른 변형을 만든다(인앱 재방문 신선도)', () => {
+    const heads = new Set(
+      [1, 2, 3, 4, 5].map(
+        (d) => dayShareHook({ tone: 'positive', score: 90, seed: 7, daySalt: d, ko: true }).headline
+      )
+    )
+    expect(heads.size).toBeGreaterThan(1)
+    // 여전히 결정적: 같은 (시드, daySalt) → 같은 후크.
+    expect(dayShareHook({ tone: 'positive', score: 90, seed: 7, daySalt: 3, ko: true })).toEqual(
+      dayShareHook({ tone: 'positive', score: 90, seed: 7, daySalt: 3, ko: true })
+    )
+  })
+
   it('caution 톤은 caution 카피 풀에서만 — 도발이라도 단정/과장 아님', () => {
     const h = dayShareHook({ tone: 'caution', score: 30, seed: 1, ko: true })
     // caution 풀의 문구만 나와야 한다.

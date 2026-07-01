@@ -16,6 +16,12 @@ export interface DayHookInput {
   score: number
   /** 본명 고정 시드(없으면 0). */
   seed?: number
+  /**
+   * 날짜별 변화 소금(예: 일-of-month) — 같은 톤 버킷이어도 날마다 다른 변형을 고르게
+   * 해 인앱 헤드라인이 매일 같지 않도록(재방문 신선도). 없으면 0(본명 시드만 — 기존
+   * 공유카드 동작). 여전히 결정적(같은 사람·같은 날 → 같은 후크).
+   */
+  daySalt?: number
   ko: boolean
 }
 
@@ -128,7 +134,7 @@ export function dayShareHook(input: DayHookInput): ShareHook {
         : input.score >= 72
           ? 'high'
           : 'good'
-  const v = pick(DAY_POOL[bucket], input.seed ?? 0)
+  const v = pick(DAY_POOL[bucket], (input.seed ?? 0) + (input.daySalt ?? 0))
   return input.ko ? v.ko : v.en
 }
 

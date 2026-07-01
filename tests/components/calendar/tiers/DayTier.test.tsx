@@ -41,6 +41,7 @@ describe('DayTier (오늘의 일진 · LIGHT)', () => {
       tone: day.dayTone?.tone ?? 'mixed',
       score: day.score,
       seed: day.seed ?? 0,
+      daySalt: Number(day.date?.slice(8, 10)) || 0,
       ko: true,
     })
     expect(hook.headline.length).toBeGreaterThan(0)

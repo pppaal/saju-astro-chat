@@ -187,6 +187,13 @@ describe('deriveMonthSummary — 조심할 날 / 수렴일', () => {
     expect(s).toContain('분기점')
   })
 
+  it('convergeDate 가 cautionDay 와 같으면 수렴 문장을 생략한다(같은 날 이중 언급 방지)', () => {
+    const s = deriveMonthSummary({ ...base, cautionDay: '03-20', convergeDate: '03-20' })
+    // '조심할 날'(다만)만 나오고 '분기점'(수렴) 문장은 안 붙는다.
+    expect(s).toContain('3월 20일')
+    expect(s).not.toContain('분기점')
+  })
+
   it('convergeDate 가 bestDay 와 같으면 중복 출력하지 않는다', () => {
     const s = deriveMonthSummary({ ...base, bestDay: '03-15', convergeDate: '03-15' })
     expect(s).not.toContain('분기점')

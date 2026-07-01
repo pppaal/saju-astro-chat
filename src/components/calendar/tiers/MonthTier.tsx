@@ -120,6 +120,16 @@ export function MonthTier({ month, onDive, onRise, showRise = true }: MonthTierP
   const keyDayItems: BigDay[] = [...(month.keyDays ?? [])].map((k) => {
     const mark = markByDs.get(k.date) ?? null
     const dayNum = parseInt(k.date.slice(-2), 10)
+    // 이 날이 그리드 '최고의 날'(초록 best)이면 그리드 권위를 따른다 — 수렴(heavy
+    // 신호) 톤이 음수여도 목록에서 "조심할 날"로 뒤집지 않는다. 그래야 그리드=초록
+    // best 와 목록 라벨이 일치한다(감사: 초록 best 가 목록엔 "조심할 날"이던 모순).
+    // 접두사·의미 모두 positive 로 뽑아 둘이 어긋나지 않게 한다.
+    if (month.bestDay?.date && k.date === month.bestDay.date) {
+      return {
+        when: k.date,
+        title: `${ko ? '최고의 날' : 'Best day'} · ${toneMeaningFor('positive', dayNum, ko ? 'ko' : 'en', seed)}`,
+      }
+    }
     const hasMeaning = !!(k.meaning && k.meaning.trim())
     // prefix 톤은 meaning 과 *같은 소스* 에서 뽑는다. k.meaning(수렴 톤)이 있으면
     // 그 keyDay 의 tone 을, 없으면 그리드 밴드 마크 톤을 쓴다 — 섞으면 접두사와

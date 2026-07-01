@@ -371,7 +371,9 @@ export function deriveMonthSummary(i: MonthSummaryInput): string {
         : pickBySeed(CAUTION_DAY_EN, seed, KEY.cautionDay)(date)
     )
   }
-  if (i.convergeDate && i.convergeDate !== i.bestDay) {
+  // bestDay·cautionDay 와 같은 날이면 수렴 문장을 생략 — 안 그러면 한 문단에서 같은
+  // 날짜를 "조심할 날"과 "수렴 분기점"으로 두 번 언급하게 된다(감사).
+  if (i.convergeDate && i.convergeDate !== i.bestDay && i.convergeDate !== i.cautionDay) {
     const date = fmtDate(i.convergeDate, ko)
     parts.push(
       ko

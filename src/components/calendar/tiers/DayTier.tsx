@@ -44,6 +44,7 @@ import {
   appliedPatternEn,
   geokgukStatusLineEn,
 } from '@/components/calendar/adapters/dayTierEnMaps'
+import { CALENDAR_BANDS } from '@/lib/calendar-engine/derivers/constants'
 
 // ============================================================================
 // HourSlot / DayVoc — 외부 참조(네비 계약). prop 형태 유지 (HourSlot 은 미사용).
@@ -322,6 +323,9 @@ export function DayTier({ day, onRise, sex = '남' }: DayTierProps) {
     tone: verdict.tone,
     score: day.score,
     seed: day.seed ?? 0,
+    // 날짜(일-of-month)를 섞어 같은 톤이어도 날마다 다른 후크 → 매일 같은 헤드라인
+    // 이 뜨던 문제(감사) 해소. day.date 는 'YYYY-MM-DD'.
+    daySalt: Number(day.date?.slice(8, 10)) || 0,
     ko,
   })
 
@@ -472,14 +476,14 @@ export function DayTier({ day, onRise, sex = '남' }: DayTierProps) {
   const nextBig = day.nextBigDay ?? null
   const todayIdx = scores.findIndex((s) => s.today)
 
+  // "다가오는 며칠" 칩 색 — 월 그리드와 동일한 SSOT 밴드(CALENDAR_BANDS)로 통일.
+  // 예전엔 65/50/35 하드코딩이라 62점 날이 그리드=초록인데 이 칩은 중립이던 불일치(감사).
   const upBg = (s: number) =>
-    s >= 65
+    s >= CALENDAR_BANDS.good
       ? 'var(--good-bg)'
-      : s <= 35
+      : s < CALENDAR_BANDS.caution
         ? 'var(--crimson-bg)'
-        : s >= 50
-          ? 'var(--gold-bg)'
-          : 'var(--surface-3)'
+        : 'var(--surface-3)'
   const weekday = (iso: string) => {
     const wd = new Date(`${iso}T00:00:00Z`).getUTCDay()
     return (ko ? DOW_KO : DOW_EN)[wd]

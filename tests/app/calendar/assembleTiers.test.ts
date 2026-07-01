@@ -256,7 +256,7 @@ describe('assembleTiers — male sex mapping', () => {
 
 describe('pickNextBigDay — 다가오는 큰 날 D-day', () => {
   const iso = '2024-06-15'
-  it('앞으로 며칠 중 최고 좋은 날(≥65)을 D-day 로 고른다', () => {
+  it('앞으로 며칠 중 최고 좋은 날(≥60, good 밴드)을 D-day 로 고른다', () => {
     const r = pickNextBigDay(
       [
         { date: '2024-06-16', score: 52 },
@@ -268,16 +268,21 @@ describe('pickNextBigDay — 다가오는 큰 날 D-day', () => {
     expect(r).toEqual({ date: '2024-06-18', dDay: 3, score: 71 })
   })
 
-  it('65 미만뿐이면 null(과장된 "큰 날" 안 만든다)', () => {
+  it('good 밴드(60) 미만뿐이면 null(과장된 "큰 날" 안 만든다)', () => {
     expect(
       pickNextBigDay(
         [
-          { date: '2024-06-16', score: 60 },
-          { date: '2024-06-17', score: 64 },
+          { date: '2024-06-16', score: 52 },
+          { date: '2024-06-17', score: 59 },
         ],
         iso
       )
     ).toBeNull()
+  })
+
+  it('그리드 초록(60~64)도 이제 포함된다(SSOT 밴드 일치)', () => {
+    const r = pickNextBigDay([{ date: '2024-06-16', score: 62 }], iso)
+    expect(r).toEqual({ date: '2024-06-16', dDay: 1, score: 62 })
   })
 
   it('빈 배열/오늘 이전 날짜는 null', () => {
@@ -293,12 +298,12 @@ describe('pickNextBigDay — 다가오는 큰 날 D-day', () => {
 })
 
 describe('assembleTiers — day.nextBigDay 연결', () => {
-  it('nextBigDay 는 null 이거나 유효한 D-day(≥1, score≥65, upcoming 내 날짜)다', async () => {
+  it('nextBigDay 는 null 이거나 유효한 D-day(≥1, score≥60, upcoming 내 날짜)다', async () => {
     const out = await assembleTiers(baseInput())
     const nb = out.day.nextBigDay
     if (nb) {
       expect(nb.dDay).toBeGreaterThanOrEqual(1)
-      expect(nb.score).toBeGreaterThanOrEqual(65)
+      expect(nb.score).toBeGreaterThanOrEqual(60)
       expect(out.day.upcoming?.some((u) => u.date === nb.date && u.score === nb.score)).toBe(true)
     }
   })
