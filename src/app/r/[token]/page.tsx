@@ -133,30 +133,54 @@ export default async function SharedReadingPage({ params }: PageProps) {
   // 궁합 공유는 카드가 없고 verdict 한 줄이 주인공 — 별도 레이아웃.
   if (isCompatShare(reading)) {
     recordCounter('compatibility.share.viewed', 1)
-    const verdictColor =
+    // 라이트 페이퍼 팔레트 — 무료 결과 페이지와 톤 통일(compat 분기 전용 로컬 색).
+    const INK = '#211f1b'
+    const SUB = '#6c665b'
+    const MUTE = '#9a9384'
+    const GOLD_INK = '#a9833b'
+    const GOLD_LINE = 'rgba(169,131,59,0.5)'
+    const ROSE = '#c2548a'
+    const toneLabel =
       reading.verdictTone === 'aligned'
-        ? GOLD
+        ? isKo
+          ? '결이 잘 맞아요'
+          : 'Aligned'
         : reading.verdictTone === 'tension'
-          ? '#fda4af'
+          ? isKo
+            ? '팽팽한 긴장'
+            : 'High tension'
           : reading.verdictTone === 'mixed'
-            ? '#fbbf24'
-            : '#dfe3ee'
+            ? isKo
+              ? '끌림과 충돌'
+              : 'Push & pull'
+            : isKo
+              ? '담백한 케미'
+              : 'Easy chemistry'
     return (
       <main
         style={{
           minHeight: '100vh',
-          background:
-            'radial-gradient(900px 620px at 25% 8%, rgba(236,72,153,0.16), transparent 60%),' +
-            'radial-gradient(820px 700px at 85% 100%, rgba(212,181,114,0.14), transparent 60%),' +
-            'linear-gradient(160deg, #0b1022 0%, #070a1a 58%, #0a0e1f 100%)',
-          color: '#f1f3f9',
+          position: 'relative',
+          overflow: 'hidden',
+          background: 'linear-gradient(180deg, #FCFAF4 0%, #F6F1E6 100%)',
+          color: INK,
         }}
       >
         <div
           style={{
+            position: 'absolute',
+            inset: '-8% 20% auto 20%',
+            height: '32%',
+            background:
+              'radial-gradient(60% 100% at 50% 0%, rgba(169,131,59,0.08), transparent 70%)',
+          }}
+        />
+        <div
+          style={{
+            position: 'relative',
             maxWidth: 600,
             margin: '0 auto',
-            padding: '40px 20px 96px',
+            padding: '44px 24px 96px',
             textAlign: 'center',
           }}
         >
@@ -166,10 +190,10 @@ export default async function SharedReadingPage({ params }: PageProps) {
               display: 'inline-flex',
               alignItems: 'center',
               gap: 10,
-              color: GOLD,
+              color: GOLD_INK,
               textDecoration: 'none',
-              fontWeight: 600,
-              letterSpacing: '0.04em',
+              fontWeight: 700,
+              letterSpacing: '0.02em',
             }}
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -185,29 +209,55 @@ export default async function SharedReadingPage({ params }: PageProps) {
 
           <p
             style={{
-              marginTop: 36,
+              marginTop: 44,
               fontSize: 12,
-              letterSpacing: '0.22em',
+              letterSpacing: '0.3em',
               textTransform: 'uppercase',
-              color: GOLD_SOFT,
+              color: MUTE,
             }}
           >
-            {isKo ? '궁합 결과' : 'COMPATIBILITY'}
+            {isKo ? '궁합' : 'Compatibility'}
           </p>
-          <p style={{ marginTop: 14, fontSize: 22, fontWeight: 700, color: '#f1f3f9' }}>
-            {reading.nameA} <span style={{ color: '#ec4899' }}>♥</span> {reading.nameB}
+          <p style={{ marginTop: 16, fontSize: 23, fontWeight: 700, color: INK }}>
+            {reading.nameA} <span style={{ color: ROSE, margin: '0 6px' }}>♥</span> {reading.nameB}
           </p>
+
+          <div
+            style={{
+              marginTop: 30,
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 8,
+              padding: '7px 16px',
+              border: `1px solid ${GOLD_LINE}`,
+              borderRadius: 999,
+              fontSize: 13,
+              color: GOLD_INK,
+              background: 'rgba(169,131,59,0.06)',
+            }}
+          >
+            <span
+              style={{
+                width: 6,
+                height: 6,
+                borderRadius: '50%',
+                background: GOLD_INK,
+                display: 'inline-block',
+              }}
+            />{' '}
+            {toneLabel}
+          </div>
 
           <h1
             style={{
-              marginTop: 28,
-              fontSize: 28,
-              fontWeight: 800,
-              lineHeight: 1.4,
-              color: verdictColor,
+              marginTop: 22,
+              fontSize: 29,
+              fontWeight: 700,
+              lineHeight: 1.45,
+              color: INK,
               wordBreak: 'keep-all',
               overflowWrap: 'anywhere',
-              textShadow: '0 2px 24px rgba(212,181,114,0.18)',
+              letterSpacing: '-0.01em',
             }}
           >
             {reading.verdict}
@@ -218,8 +268,8 @@ export default async function SharedReadingPage({ params }: PageProps) {
               style={{
                 marginTop: 18,
                 fontSize: 16,
-                lineHeight: 1.8,
-                color: '#dfe3ee',
+                lineHeight: 1.85,
+                color: SUB,
                 wordBreak: 'keep-all',
               }}
             >
@@ -227,22 +277,25 @@ export default async function SharedReadingPage({ params }: PageProps) {
             </p>
           ) : null}
 
+          <div style={{ width: 48, height: 1, background: GOLD_LINE, margin: '40px auto 0' }} />
+
           {socialProof ? (
-            <p style={{ marginTop: 26, fontSize: 13, color: GOLD_SOFT }}>✦ {socialProof}</p>
+            <p style={{ marginTop: 28, fontSize: 13, color: MUTE }}>{socialProof}</p>
           ) : null}
 
-          <div style={{ marginTop: 44 }}>
+          <div style={{ marginTop: socialProof ? 24 : 40 }}>
             <Link
               href={reading.inviter ? `/compatibility/free?invite=${token}` : '/compatibility/free'}
               style={{
                 display: 'inline-block',
-                padding: '15px 30px',
-                borderRadius: 999,
-                background: GOLD,
-                color: '#1a1305',
+                padding: '16px 34px',
+                borderRadius: 14,
+                background: 'linear-gradient(135deg, #B98E3C, #C9A85F)',
+                color: '#fff',
                 fontWeight: 700,
                 textDecoration: 'none',
                 fontSize: 16,
+                boxShadow: '0 10px 28px rgba(169,131,59,0.28)',
               }}
             >
               {reading.inviter
@@ -253,7 +306,7 @@ export default async function SharedReadingPage({ params }: PageProps) {
                   ? '우리 궁합도 무료로 보기 →'
                   : 'Check your match free →'}
             </Link>
-            <p style={{ marginTop: 14, fontSize: 12, color: MUTED }}>
+            <p style={{ marginTop: 16, fontSize: 12, lineHeight: 1.7, color: MUTE }}>
               {reading.inviter
                 ? isKo
                   ? `${reading.nameA}님 정보는 채워져 있어요 — 내 생년월일만 넣으면 바로 결과가 나와요.`
