@@ -313,6 +313,17 @@ export function DayTier({ day, onRise, sex = '남' }: DayTierProps) {
         ? 'A careful day'
         : 'A mixed day'
 
+  // ── 인앱 후크 헤드라인 — 점수/톤에서만 뽑는 도발적 한 줄(Co-Star 식). 예전엔
+  //    공유 카드에만 쓰고 인앱엔 차분한 결론만 노출해 "열어볼 이유"가 약했다(감사).
+  //    hero 최상단에 후크를 얹어 재방문·클릭을 끌고, 아래 차분한 결론은 그대로 둔다.
+  //    같은 소스를 공유 카드와 공유(본명 시드 고정 → 인앱·카드 문구 일치).
+  const dayHook = dayShareHook({
+    tone: verdict.tone,
+    score: day.score,
+    seed: day.seed ?? 0,
+    ko,
+  })
+
   // ── novice hero "왜?" 한 줄 — 기존 평이 근거(받쳐줌/부딪힘)에서만 합성, 용어 0. ──
   const hasSupport = happeningLines.length > 0
   const hasFriction = cautionLines.length > 0
@@ -518,6 +529,9 @@ export function DayTier({ day, onRise, sex = '남' }: DayTierProps) {
 
       {/* ── novice 기본: 한자·용어 없는 일상어 결론 ── */}
       <header className={styles.novice}>
+        {/* 도발적 후크 — 열어볼 이유(재방문/클릭). 아래 차분한 결론과 별개 register. */}
+        <p className={styles.novHook}>{dayHook.headline}</p>
+        {dayHook.subline && <p className={styles.novHookSub}>{dayHook.subline}</p>}
         <div
           className={`${styles.novToneWord} ${
             day.dayTone?.tone === 'positive'
@@ -538,16 +552,9 @@ export function DayTier({ day, onRise, sex = '남' }: DayTierProps) {
               dateLabel: ko ? `${Number(mm)}월 ${Number(dd)}일 ${weekday(day.date)}` : titleLatin,
               score: day.score,
               tone: verdict.tone,
-              // 공유 카드는 더 센 후크(점수/톤 기반·본명 시드 고정). 인앱 결론은 그대로.
-              ...(() => {
-                const hook = dayShareHook({
-                  tone: verdict.tone,
-                  score: day.score,
-                  seed: day.seed ?? 0,
-                  ko,
-                })
-                return { headline: hook.headline, subline: hook.subline }
-              })(),
+              // 공유 카드도 같은 후크(점수/톤 기반·본명 시드 고정) — 인앱 hero 와 일치.
+              headline: dayHook.headline,
+              subline: dayHook.subline,
               curve: hasFlow ? scores.map((s) => s.score) : undefined,
               markerIndex: todayIdx >= 0 ? todayIdx : undefined,
             }}

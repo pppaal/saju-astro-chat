@@ -10,6 +10,7 @@ vi.mock('@/i18n/I18nProvider', () => ({
 }))
 
 import { DayTier } from '@/components/calendar/tiers/DayTier'
+import { dayShareHook } from '@/lib/share/shareHook'
 import type { DestinyDay } from '@/types/calendar'
 
 // 실 덤프 — tests/fixtures/calendar/audit-day.json 을 런타임에 읽어 캐스팅.
@@ -31,6 +32,19 @@ describe('DayTier (오늘의 일진 · LIGHT)', () => {
     const { container } = render(<DayTier day={day} onRise={noop} sex="남" />)
     expect(container.textContent).toContain('庚申')
     expect(container.textContent).toContain('겁재')
+  })
+
+  it('surfaces the punchy in-app hook headline (same source as the share card)', () => {
+    const { container } = render(<DayTier day={day} onRise={noop} sex="남" />)
+    // 후크는 dayTone.tone/score/seed 에서 결정적으로 뽑힌다(fixture: mixed·33).
+    const hook = dayShareHook({
+      tone: day.dayTone?.tone ?? 'mixed',
+      score: day.score,
+      seed: day.seed ?? 0,
+      ko: true,
+    })
+    expect(hook.headline.length).toBeGreaterThan(0)
+    expect(container.textContent).toContain(hook.headline)
   })
 
   it('fires onRise from the top zoom-out button', () => {
