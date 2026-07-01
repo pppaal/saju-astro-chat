@@ -295,18 +295,31 @@ export function ResultsStage(props: ResultsStageProps) {
         {hasGuidance && <GuidanceSection guidance={insight!.guidance!} language={language} />}
 
         {/* ⑥ SNS 공유 — 결과를 1:1 이미지로 만들어 인스타/카톡에 공유·저장.
-            AI 응답이 도착한 후에만 노출(질문+카드+한줄 메시지 카드). */}
+            AI 응답이 도착한 후에만 노출(질문+카드+한줄 메시지 카드).
+            반복·호기심형 재공유 프롬프트("친구는 무슨 카드?")로 브로드캐스트 고리를 연다. */}
         {!aiPending && insight?.overall_message && (
-          <ShareTarotButton
-            data={buildShareDataFromReading(
-              readingResult,
-              interpretation,
-              userTopic,
-              language === 'ko'
-            )}
-            language={language}
-            body={insight?.overall_message || undefined}
-          />
+          <div className="flex flex-col items-center gap-3">
+            <div className="max-w-sm text-center">
+              <p className="text-[15px] font-extrabold text-amber-100">
+                {isKo ? '친구는 무슨 카드가 나올까? 👀' : 'What cards will your friends pull? 👀'}
+              </p>
+              <p className="mt-1.5 text-[12.5px] leading-relaxed text-slate-300/80">
+                {isKo
+                  ? '이 결과를 공유하면, 친구도 로그인 없이 바로 카드를 뽑아봐요.'
+                  : 'Share this — your friends can pull their own cards instantly, no sign-up.'}
+              </p>
+            </div>
+            <ShareTarotButton
+              data={buildShareDataFromReading(
+                readingResult,
+                interpretation,
+                userTopic,
+                language === 'ko'
+              )}
+              language={language}
+              body={insight?.overall_message || undefined}
+            />
+          </div>
         )}
 
         {/* ⑦ Follow-up 채팅 — AI 응답이 도착한 후에만 노출 */}

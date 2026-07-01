@@ -204,7 +204,28 @@
 .action {
   margin-top: 22px;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+/* 재공유 유발 프롬프트 — 배지형(정체성 자랑) 바이럴 훅. "친구는 무슨 유형?"으로
+   공유 동기를 만들어, 카드를 본 친구가 자기 리포트를 뽑는 브로드캐스트 고리를 연다. */
+.sharePrompt {
+  text-align: center;
+  max-width: 360px;
+}
+.sharePromptTitle {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--ink);
+}
+.sharePromptSub {
+  margin: 5px 0 0;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--ink-2);
+  word-break: keep-all;
 }
 
 @media (max-width: 600px) {

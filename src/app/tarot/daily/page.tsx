@@ -284,7 +284,35 @@ export default function DailyTarotPage() {
             ) : null}
 
             {shareData ? (
-              <div style={{ marginTop: 28, display: 'flex', justifyContent: 'center' }}>
+              <div
+                style={{
+                  marginTop: 28,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: 12,
+                }}
+              >
+                {/* 반복형 재공유 훅 — "오늘 내 카드는 이거, 넌?"으로 매일 공유 동기를 만든다. */}
+                <div style={{ maxWidth: 340, textAlign: 'center' }}>
+                  <p style={{ margin: 0, fontSize: 15, fontWeight: 800, color: '#f0e6c8' }}>
+                    {isKo
+                      ? '오늘 내 카드는 이거 — 친구는? 👀'
+                      : "Here's my card today — and yours? 👀"}
+                  </p>
+                  <p
+                    style={{
+                      margin: '5px 0 0',
+                      fontSize: 12.5,
+                      lineHeight: 1.6,
+                      color: 'rgba(223,227,238,0.72)',
+                    }}
+                  >
+                    {isKo
+                      ? '공유하면 친구도 로그인 없이 오늘의 카드를 무료로 받아봐요.'
+                      : 'Share it — your friends get their own daily card, free, no sign-up.'}
+                  </p>
+                </div>
                 <ShareTarotButton data={shareData} language={locale} body={reading.message} />
               </div>
             ) : null}

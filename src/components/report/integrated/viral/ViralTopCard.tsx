@@ -79,7 +79,21 @@ export default function ViralTopCard({ summary, lang, action }: ViralTopCardProp
           </div>
         )}
 
-        {action && <div className={s.action}>{action}</div>}
+        {action && (
+          <div className={s.action}>
+            <div className={s.sharePrompt}>
+              <p className={s.sharePromptTitle}>
+                {ko ? '친구는 무슨 유형일까? 👀' : "What's your friend's type? 👀"}
+              </p>
+              <p className={s.sharePromptSub}>
+                {ko
+                  ? '내 유형 카드를 공유하면, 친구도 생년월일만 넣고 바로 자기 유형을 봐요.'
+                  : 'Share your type card — friends just add their birth date to see their own.'}
+              </p>
+            </div>
+            {action}
+          </div>
+        )}
       </div>
     </div>
   )
