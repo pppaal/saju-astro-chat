@@ -519,6 +519,27 @@
   color: var(--t2);
   margin: 8px 0 6px;
 }
+/* 다가오는 큰 날 — 재방문 유인 D-day 라인(타이밍 섹션 상단 강조). */
+.nextBig {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 2px 0 10px;
+  padding: 8px 12px;
+  border: 1px solid var(--gold-line);
+  border-radius: 12px;
+  background: var(--gold-bg);
+}
+.nextBigDday {
+  flex: none;
+  font: 700 12px var(--m-mono, var(--dp-mono));
+  color: var(--gold-deep);
+  letter-spacing: 0.02em;
+}
+.nextBigText {
+  font-size: 13px;
+  color: var(--t1);
+}
 .flowSvg {
   display: block;
 }

@@ -185,6 +185,25 @@ function dedupeByBody<T extends { body: string }>(rows: T[]): T[] {
 }
 
 /**
+ * 다가오는 '큰 날' — upcoming(오늘 다음날~7일, 일점수) 중 '좋은 날'(score≥65)의
+ * 최고점을 골라 D-day 로 라벨한다. 재방문 유인용(오늘만 보고 이탈하지 않게 다음
+ * 방문 이유 제공). 조건 미달이면 null. 순수 함수 — 테스트 가능하게 분리.
+ */
+export function pickNextBigDay(
+  upcoming: ReadonlyArray<{ date: string; score: number }>,
+  targetDayIso: string
+): { date: string; dDay: number; score: number } | null {
+  if (!upcoming.length) return null
+  const best = upcoming.reduce((a, b) => (b.score > a.score ? b : a))
+  if (best.score < 65) return null
+  const d0 = Date.parse(`${targetDayIso}T00:00:00Z`)
+  const d1 = Date.parse(`${best.date}T00:00:00Z`)
+  if (Number.isNaN(d0) || Number.isNaN(d1)) return null
+  const dDay = Math.round((d1 - d0) / 86_400_000)
+  return dDay >= 1 ? { date: best.date, dDay, score: best.score } : null
+}
+
+/**
  * 인생 곡선 → 연도별 점수(0~100) 맵. 대운 티어의 1년운(years[].score)이 곡선과
  * 같은 출처를 쓰게 한다. 연 단위 합성(combined: 세운+대운+충합+트랜짓)을 그 사람
  * *인생 전체* 분포의 백분위로 바꿔, "이 해가 내 인생에서 어디쯤"을 1~99 로 편다.
@@ -918,6 +937,10 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
     if (!cellByIso.has(iso)) continue
     upcoming.push({ date: iso, score: Math.round(layered.daily.get(iso)?.score ?? 50) })
   }
+  // 다가오는 큰 날 — 앞으로 7일 중 가장 센 '좋은 날'(≥65). 있으면 "6월 19일 (D-3)"
+  // 처럼 재방문 유인을 준다(오늘 답만 보고 끝나지 않게 다음 방문 이유 제공). 데이터는
+  // 이미 계산된 upcoming(일점수)에서 뽑으므로 새 계산·엔진 수정 없음.
+  const nextBigDay = pickNextBigDay(upcoming, targetDayIso)
 
   const day: DestinyDay = {
     date: dayAdapter.date,
@@ -962,6 +985,7 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
     twelveStageMatrix: dayAdapter.twelveStageMatrix,
     monthScores: dayMonthScores,
     upcoming,
+    nextBigDay,
     hourCrossings: buildHourCrossings(dayCell, targetDayIso, natal.astro.location),
     // 시(時)별 달 정밀 — 그날 12 시진 달을 재계산해 달×본명 어스펙트 절정 시각.
     // (위에서 미리 발진한 promise 를 여기서 수확.)

@@ -457,6 +457,7 @@ export function DayTier({ day, onRise, sex = '남' }: DayTierProps) {
   const scores = day.monthScores ?? []
   const hasFlow = scores.length >= 3
   const upcoming = day.upcoming ?? []
+  const nextBig = day.nextBigDay ?? null
   const todayIdx = scores.findIndex((s) => s.today)
 
   const upBg = (s: number) =>
@@ -712,9 +713,23 @@ export function DayTier({ day, onRise, sex = '남' }: DayTierProps) {
         </p>
 
         {/* ── S8 타이밍 ── */}
-        {(hasFlow || upcoming.length > 0) && (
+        {(hasFlow || upcoming.length > 0 || nextBig) && (
           <section className={styles.sec}>
             <SecHead label={ko ? '타이밍' : 'Timing'} latin="Timing" />
+            {nextBig && (
+              <div className={styles.nextBig}>
+                <span className={styles.nextBigDday}>D-{nextBig.dDay}</span>
+                <span className={styles.nextBigText}>
+                  {ko
+                    ? `다가오는 큰 날 · ${Number(nextBig.date.slice(5, 7))}월 ${Number(
+                        nextBig.date.slice(8, 10)
+                      )}일 (${weekday(nextBig.date)})`
+                    : `Your next big day · ${Number(nextBig.date.slice(5, 7))}/${Number(
+                        nextBig.date.slice(8, 10)
+                      )} (${weekday(nextBig.date)})`}
+                </span>
+              </div>
+            )}
             {hasFlow && (
               <>
                 <div className={styles.flowSub}>
