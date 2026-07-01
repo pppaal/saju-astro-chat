@@ -335,7 +335,15 @@ export default async function Image({ params }: { params: Promise<{ token: strin
     context = reading.highlights?.length ? clamp(reading.highlights[0], 70) : ''
     cta = isKo ? `내 운흐름도 무료로 · ${displayDomain}` : `See your timing free · ${displayDomain}`
   } else if (reading && isReportShare(reading)) {
-    eyebrow = `${reading.emoji}  ${isKo ? '사주 × 별자리 유형' : 'SAJU × ASTROLOGY TYPE'}`
+    // resonant(동·서양이 둘 다 가리키는 주제 수)가 2개 이상이면 eyebrow 를 "일치"
+    // 훅으로 — 링크 미리보기에서 typeName 만 있던 밋밋함을 신뢰/호기심 신호로 보강.
+    const rc = reading.resonant?.length ?? 0
+    eyebrow =
+      rc >= 2
+        ? isKo
+          ? `🔮 사주 × 별자리가 ${rc}가지에서 일치`
+          : `🔮 Saju × astrology agree on ${rc} things`
+        : `${reading.emoji}  ${isKo ? '사주 × 별자리 유형' : 'SAJU × ASTROLOGY TYPE'}`
     headline = clamp(reading.typeName, 40)
     context = clamp(reading.oneLiner, 72)
     cta = isKo ? `내 유형도 무료로 · ${displayDomain}` : `See your own type free · ${displayDomain}`

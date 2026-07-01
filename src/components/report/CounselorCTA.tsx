@@ -38,8 +38,8 @@ export default function CounselorCTA({ lang, question, funnelEvent }: CounselorC
   const label = lang === 'ko' ? '운명 상담사에게 물어보기 →' : 'Ask the destiny counselor →'
   const sub =
     lang === 'ko'
-      ? '내 사주·별자리를 기억한 채로 바로 대화가 이어져요.'
-      : 'Picks up with your chart already in context.'
+      ? '내 사주·별자리를 기억한 채로 바로 대화가 이어져요 · 크레딧으로 이용해요'
+      : 'Picks up with your chart already in context · uses credits'
 
   return (
     <div
