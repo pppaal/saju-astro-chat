@@ -531,6 +531,27 @@
   align-items: center;
   gap: 14px;
 }
+/* 재공유 유발 프롬프트 — 결과 직후(만족 최고점)에 "친구도 궁금해할걸" 훅으로
+   공유(브로드캐스트) 동기를 만든다. 바이럴 루프의 B→C 고리를 여는 장치. */
+.sharePrompt {
+  margin-top: 8px;
+  text-align: center;
+  max-width: 420px;
+}
+.sharePromptTitle {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--ink);
+  word-break: keep-all;
+}
+.sharePromptSub {
+  margin: 6px 0 0;
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--ink-2);
+  word-break: keep-all;
+}
 
 /* 마무리 + 상담사 CTA */
 .closing {

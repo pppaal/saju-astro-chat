@@ -845,6 +845,16 @@ function ResultView({
 
       {/* 공유 — 바이럴 루프. 1080×1080 이미지 카드(점수·등급·상위 테마 칩) + 링크. */}
       <div className={s.share}>
+        <div className={s.sharePrompt}>
+          <p className={s.sharePromptTitle}>
+            {isKo ? '친구는 몇 점 나올까? 👀' : 'What score would your friends get? 👀'}
+          </p>
+          <p className={s.sharePromptSub}>
+            {isKo
+              ? '이 카드를 공유하면, 친구는 생년월일만 넣고 바로 자기 궁합을 확인해요.'
+              : 'Share this card — your friends just add their birth date and get their own match instantly.'}
+          </p>
+        </div>
         <ShareCompatibilityButton
           data={{
             isKo,
