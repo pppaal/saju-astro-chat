@@ -21,7 +21,7 @@ import { deriveMonthSummary } from '@/lib/calendar-engine/derivers/monthSummary'
 import { personSeed } from '@/lib/calendar-engine/derivers/personSeed'
 import { deriveLayeredScores } from '@/lib/calendar-engine/derivers/layeredScore'
 import { computeDayPillarIndices } from '@/lib/saju/dayPillar'
-import { getMonthPillarForDate } from '@/lib/saju/datePillars'
+import { getMonthPillarForDate, getYearPillarForDate } from '@/lib/saju/datePillars'
 import { STEM_NAMES, BRANCH_NAMES } from '@/lib/saju/constants'
 import { getSibsinKo } from '@/lib/saju/cycleRelations'
 
@@ -382,8 +382,27 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
     lifeCurve: lifeCurve ?? undefined,
   })
 
+  // ── 만 나이(SSOT) — 대운 매칭·프로펙션·미성년 게이트 공용 단일 출처 ──
+  // 대운 startAge 는 만 나이(daeunAge.ts)이고 currentManAge 는 생일 통과까지 반영한
+  // 만 나이다. 예전엔 대운/프로펙션을 TARGET_YEAR-BIRTH_YEAR(생일 전이면 +1 과다)로
+  // 골라, 만 나이를 쓰는 인생 티어와 한 대운/하우스 어긋날 수 있었다(감사). 한
+  // 컨벤션(만 나이)으로 통일해 티어 간 "현재"를 일치시킨다.
+  const manAge = currentManAge({
+    birthYear: BIRTH_YEAR,
+    birthMonth: natal.input?.month,
+    birthDate: natal.input?.date,
+    birthTimeZone: natal.input?.timeZone,
+    now,
+  })
+  // 오늘 기준 *활성 사주년*의 연주(세운). 세운은 1/1 이 아니라 입춘에 바뀌므로
+  // getYearPillarForDate(SSOT)로 산출 — 일 셀 세운 추출기·상담사 computeCurrentUnse
+  // 와 동일 convention. 1/1~입춘 구간에 연/대운 세운이 월·일과 어긋나던 것(감사) 교정.
+  const sewoonNowPillar = getYearPillarForDate(
+    new Date(Date.UTC(TARGET_YEAR, TARGET_MONTH - 1, TARGET_DAY, 12))
+  )
+
   // toDecade — 현재 대운 + 10년 분리 + cross-activation decadal.
-  const currentAge = TARGET_YEAR - BIRTH_YEAR
+  const currentAge = manAge
   const decadalSignals = cells.flatMap((c) => c.signals).filter((s) => s.layer === 'decadal')
   // 대운 티어의 *1년운*(years[].score) — 인생 곡선의 연 단위 합성(세운+대운+충합+
   // 트랜짓)을 인생 백분위로 매핑해 채운다. 예전엔 yearScores 미전달로 전부 50(평탄)
@@ -395,6 +414,8 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
     decadalSignals,
     focusYear: TARGET_YEAR,
     yearScoreByYear,
+    // 현재 세운(입춘 기준 활성 연주) — 대운 티어 sewoonNow 가 연 티어와 동일 소스.
+    sewoonPillar: sewoonNowPillar,
   })
   // 유효한 사주면 대운은 항상 계산된다. null 이면 입력/계산이 깨진 것 — fail-loud.
   if (!decadeAdapter) {
@@ -504,8 +525,12 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
     // 세운 12달 띠를 월 그리드와 *같은 일점수*로 빌드(각 달=일점수 평균, bestDay 일치).
     // 줌 레벨(일·월·세운)이 한 척도라 띠↔그리드 색 모순이 구조적으로 사라진다(Option Y).
     dayScores: layered.daily,
+    // 현재 세운 = 입춘 기준 활성 연주(SSOT). 1/1~입춘엔 TARGET_YEAR 의 그레고리
+    // 근사(computeSewoonGanji)가 다음 간지로 앞서가 월·일·상담사와 어긋났다(감사).
+    sewoonPillar: sewoonNowPillar,
   })
-  const ageThisYear = TARGET_YEAR - BIRTH_YEAR
+  // 프로펙션 하우스도 만 나이(생일 기준 solar-return 카운트) SSOT 로 — currentManAge.
+  const ageThisYear = manAge
   const fallbackHouse = (((ageThisYear % 12) + 12) % 12) + 1
   const wheelSlot = yearAdapter.profectionWheel.find((w) => w.house === fallbackHouse)
   const year: DestinyYear = {
@@ -946,15 +971,8 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
   const ilganHanja = user.ilgan.hanja || '辛'
 
   // 미성년 안전(감사 C3) — cross/시간 서술의 성인 도메인(결혼·공직·투자·삼각관계
-  // 등)을 연령 적합 표현으로 치환. 만 나이(currentManAge)로 게이트 — 연-차가 아닌
-  // 생일 통과 반영(C7 off-by-one 회피).
-  const manAge = currentManAge({
-    birthYear: BIRTH_YEAR,
-    birthMonth: natal.input?.month,
-    birthDate: natal.input?.date,
-    birthTimeZone: natal.input?.timeZone,
-    now,
-  })
+  // 등)을 연령 적합 표현으로 치환. 만 나이(위에서 산출한 manAge)로 게이트 — 연-차가
+  // 아닌 생일 통과 반영(C7 off-by-one 회피).
   if (isMinorAge(manAge)) {
     const rows = (xs: unknown): Array<Record<string, unknown>> =>
       (xs as Array<Record<string, unknown>>) ?? []

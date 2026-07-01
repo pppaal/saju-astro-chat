@@ -13,6 +13,7 @@ import { buildNatalContext } from '@/lib/calendar-engine/context/build'
 import { buildCalendar } from '@/lib/calendar-engine'
 import { getTwelveStagesForPillars } from '@/lib/saju/shinsal'
 import { assembleTiers, type AssembleTiersInput } from '@/app/calendar/assembleTiers'
+import { getYearPillarForDate } from '@/lib/saju/datePillars'
 import type { NatalContext } from '@/lib/calendar-engine/context/types'
 import type { CalendarCell } from '@/lib/calendar-engine/types'
 
@@ -246,5 +247,34 @@ describe('assembleTiers — male sex mapping', () => {
   it('maps 남 through to the user tier', async () => {
     const out = await assembleTiers(baseInput({ sex: '남' }))
     expect(['남', '여']).toContain(out.user.sex)
+  })
+})
+
+describe('assembleTiers — 세운 입춘 경계 정합(SSOT)', () => {
+  it('1/1~입춘 구간엔 연·대운 세운이 활성 사주년(getYearPillarForDate)과 일치한다', async () => {
+    // 2024 입춘 ≈ 2/4. 1/15 는 아직 사주년 2023(癸卯)이다. 그레고리 근사
+    // computeSewoonGanji(2024)=甲辰 가 아니라 입춘-aware SSOT 활성 연주(癸卯)여야
+    // 월운·일진·상담사 computeCurrentUnse 와 어긋나지 않는다(감사 Finding).
+    const out = await assembleTiers(
+      baseInput({
+        targetMonth: 1,
+        targetDay: 15,
+        targetDayIso: '2024-01-15',
+        now: new Date('2024-01-15T12:00:00Z'),
+      })
+    )
+    const p = getYearPillarForDate(new Date(Date.UTC(2024, 0, 15, 12)))
+    const expected = `${p.stem}${p.branch}`
+    expect(expected).toBe('癸卯') // 그레고리 근사(甲辰) 아님을 못박음
+    expect(out.year.sewoonGz.hanja).toBe(expected)
+    // 대운 티어 sewoonNow 도 연 티어와 동일 소스(입춘 활성 연주).
+    expect(out.decade.sewoonNow.gz.hanja).toBe(expected)
+  })
+
+  it('입춘 이후(6월)엔 그레고리 근사와 동일하다(회귀 없음)', async () => {
+    // FIXED_NOW = 2024-06-15 는 입춘 이후 → 사주년 2024 = 甲辰. 연·대운 세운 일치.
+    const out = await assembleTiers(baseInput())
+    expect(out.year.sewoonGz.hanja).toBe('甲辰')
+    expect(out.decade.sewoonNow.gz.hanja).toBe('甲辰')
   })
 })
