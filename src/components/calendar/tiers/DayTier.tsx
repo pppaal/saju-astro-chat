@@ -35,6 +35,7 @@ import { useI18n } from '@/i18n/I18nProvider'
 import { localizeLabel } from '@/components/calendar/adapters/localizeLabel'
 import { ShareDayButton } from '@/components/calendar/ShareDayButton'
 import { dayShareHook } from '@/lib/share/shareHook'
+import StreakChip from '@/components/calendar/StreakChip'
 import {
   shinsalEn,
   elementEn,
@@ -529,6 +530,8 @@ export function DayTier({ day, onRise, sex = '남' }: DayTierProps) {
 
       {/* ── novice 기본: 한자·용어 없는 일상어 결론 ── */}
       <header className={styles.novice}>
+        {/* 연속 방문 스트릭(클라 localStorage) — 2일째부터 노출, 재방문 동기부여. */}
+        <StreakChip ko={ko} />
         {/* 도발적 후크 — 열어볼 이유(재방문/클릭). 아래 차분한 결론과 별개 register. */}
         <p className={styles.novHook}>{dayHook.headline}</p>
         {dayHook.subline && <p className={styles.novHookSub}>{dayHook.subline}</p>}
