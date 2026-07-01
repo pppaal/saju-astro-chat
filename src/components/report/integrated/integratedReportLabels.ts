@@ -36,8 +36,8 @@ export const UI: Record<string, BiLabel> = {
   titleAccent: { ko: '리포트', en: 'Report' },
   titlePost: { ko: '', en: '' },
   subtitle: {
-    ko: '동양과 서양이 서로 모른 채, 같은 당신을 두 번 읽었어요',
-    en: 'East and West, blind to each other, read the same you twice',
+    ko: '사주와 별자리를 한 화면에서 함께 봐요',
+    en: 'Your Saju and birth chart, read together on one page',
   },
   male: { ko: '남', en: 'M' },
   female: { ko: '여', en: 'F' },
@@ -61,26 +61,26 @@ export const UI: Record<string, BiLabel> = {
     ko: '읽는 순서: ① 타고난 나 → ② 기운 균형 → ③ 태어난 하늘 → ④ 기운들의 대화 → ⑤ 동·서양이 똑같이 말하는 부분',
     en: 'Your path: ① Who you are → ② Energy balance → ③ Your birth sky → ④ How your forces talk → ⑤ Where both systems agree',
   },
-  // 섹션 챕터 오프너 — 헤딩 아래 한 문장. 호기심 갭·명암 대비로 다음 섹션까지 끌어당긴다.
+  // 섹션 챕터 오프너 — 헤딩 아래 따뜻한 한 문장(이야기책처럼 다음 장으로 끌어당김).
   sec01Lead: {
-    ko: '남들은 눈치 못 채도 당신은 이미 알고 있을 거예요 — 태어난 순간 딱 정해진 "기본 성격" 한 장. 사주가 가장 먼저 그 페이지를 펼칩니다.',
-    en: 'Others may not notice, but you already sense it — the one "default self" locked in the moment you were born. Saju turns to that page first.',
+    ko: '이제 너라는 사람의 첫 페이지를 펼쳐볼 거예요. 타고날 때부터 마음속에 담겨 있던 너만의 색깔을 함께 살펴봐요.',
+    en: "Let's turn to the very first page of you, and discover the special colors you've carried inside since the day you were born.",
   },
   sec02Lead: {
-    ko: '당신 안엔 넘쳐나는 기운과 텅 빈 기운이 따로 있어요. 어디가 타고난 무기이고 어디가 평생 발목을 잡는지 — 이 균형 하나가 다 말해줍니다.',
-    en: 'Some energies overflow in you, others run empty. Which one is your built-in weapon and which quietly trips you up — this one balance tells all.',
+    ko: '누구나 마음속엔 여러 가지 기운이 살고 있어요. 너에겐 어떤 기운이 가득하고 어떤 기운이 살짝 부족한지, 가만히 들여다봐요.',
+    en: "Everyone has different kinds of energy living inside them, so let's peek at which ones fill you up and which ones are a little shy in you.",
   },
   sec03Lead: {
-    ko: '당신이 태어나던 그 순간, 하늘엔 열 개의 별이 정확히 제자리에 서 있었어요. 그 배치가 지금의 당신을 어떻게 빚었는지, 지금 봅니다.',
-    en: 'The instant you were born, ten planets stood at exact spots in the sky. See how that one layout shaped the you of today.',
+    ko: '네가 태어나던 날, 하늘은 너를 어떻게 바라보고 있었을까요? 별들이 들려주는 너의 이야기를 들어봐요.',
+    en: "On the day you were born, how was the sky watching over you? Let's listen to the story the stars tell about you.",
   },
   sec04Lead: {
-    ko: '당신 안의 힘들은 서로 밀어주기도, 정면으로 부딪히기도 해요. 유독 어떤 순간이 왜 그렇게 힘든지 — 그 답은 힘들이 충돌하는 지점에 숨어 있어요.',
-    en: 'The forces inside you push each other forward — or collide head-on. Why certain moments feel so hard hides right where they clash.',
+    ko: '네 안의 여러 기운들은 서로 손을 잡기도 하고 가끔 티격태격하기도 해요. 그 친구들이 어떻게 어울려 지내는지 살펴봐요.',
+    en: "The different forces inside you sometimes hold hands and sometimes bump heads, so let's see how they all get along together.",
   },
   sec05Lead: {
-    ko: '이제 진짜예요. 동양 사주와 서양 별자리가 서로 모른 채 똑같이 짚어낸 지점 — 두 개의 다른 언어가 한목소리를 내는 그 자리가, 바로 진짜 당신입니다.',
-    en: 'Now the real part. Where Eastern Saju and Western astrology — blind to each other — point to the exact same spot: that one place they speak in a single voice is the real you.',
+    ko: '사주와 별자리가 함께 그려내는 너의 모습을, 연애·일·돈·성장·건강 같은 삶의 주제별로 묶어 풀었어요. 두 이야기가 한목소리로 맞장구치는 부분도, 서로 다른 결로 보완하는 부분도 함께 담겨 있어요.',
+    en: "Here's what Saju and the stars draw together, sorted by life themes — love, work, money, growth, health. You'll see both where the two stories agree in one voice and where they add different colors.",
   },
   // §01 도입 — 네 줄을 "태어난 순간 카드" 이야기로 묶어 주는 문장.
   plainPillarsLead: {
