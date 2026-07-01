@@ -41,6 +41,7 @@ import {
   jijangganLayerEn,
   twelveStageEn,
   appliedPatternEn,
+  geokgukStatusLineEn,
 } from '@/components/calendar/adapters/dayTierEnMaps'
 
 // ============================================================================
@@ -872,7 +873,13 @@ export function DayTier({ day, onRise, sex = '남' }: DayTierProps) {
                     ))}
                   </div>
                 )}
-                {geok && <div className={styles.natalGeok}>{geok.description}</div>}
+                {geok && (
+                  <div className={styles.natalGeok}>
+                    {/* description(성패 줄)은 한국어 전용 — EN 은 이름·상태로 재구성해
+                        한국어 누수 제거(요인 세부는 EN 에서 생략). */}
+                    {ko ? geok.description : geokgukStatusLineEn(geok.name, geok.status)}
+                  </div>
+                )}
               </div>
             )}
 
