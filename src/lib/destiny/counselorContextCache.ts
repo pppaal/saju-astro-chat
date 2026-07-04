@@ -74,7 +74,12 @@ export async function ensureCounselorContext(
     return { stableContext: cachedStable, dailyContext: cachedDaily }
   }
 
-  const queryDate = new Date(localNow.year, localNow.month - 1, localNow.day, 12, 0, 0)
+  // 기준 시각(=buildDestinyContext 의 now)은 서버 TZ 와 무관해야 한다. 예전엔
+  // 서버-로컬 정오(new Date(y,m,d,12))라 UTC 서버와 KST 서버가 9h 어긋나,
+  // 트랜짓 어스펙트 목록·절기 경계 판정이 배포 환경에 따라 달라지는 결정론
+  // 누수가 있었다. 유저-tz 날짜의 UTC 정오로 고정한다(computeCurrentUnse 를
+  // 부르는 counselorContext.ts:659 와 동일 패턴).
+  const queryDate = new Date(Date.UTC(localNow.year, localNow.month - 1, localNow.day, 12, 0, 0))
   const tz = body.timezone ?? 'Asia/Seoul'
   const birthDate = body.birthDate ?? ''
   const birthTime = body.birthTime ?? '00:00'
