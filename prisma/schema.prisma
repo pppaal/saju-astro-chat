@@ -71,8 +71,25 @@ model User {
   creditTransactions    CreditTransaction[]
   // 웹 푸시 구독 (매일 아침 오늘의 운세 알림)
   pushSubscriptions     PushSubscription[]
+  // 방문 스트릭 (/calendar "N일째 확인 중" — 교차기기 영속)
+  visitStreak           VisitStreak?
 
   @@index([referrerId])
+}
+
+// 방문 스트릭 — /calendar 일 티어 "N일째 확인 중" 칩의 서버 영속본.
+// 익명/미로그인은 localStorage MVP(StreakChip) 그대로, 로그인 사용자는 이 행이
+// 정본이 되어 기기를 바꿔도 이어진다. 날짜는 *클라이언트 로컬* 'YYYY-MM-DD' —
+// 사용자가 화면에서 보는 하루 경계와 일치시키기 위함(서버 UTC 아님). 서버는
+// 포맷·상한(서버 날짜 ±2일)만 검증한다(스트릭은 과금 무관 코스메틱 지표).
+model VisitStreak {
+  userId    String   @id
+  last      String // 마지막 방문일 'YYYY-MM-DD' (클라이언트 로컬 기준)
+  count     Int      @default(1) // 현재 연속 방문 일수 (>=1)
+  longest   Int      @default(1) // 역대 최장 연속 기록
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 // 웹 푸시 구독 — "매일 아침 오늘의 운세 한 줄" 알림용 (Web Push / VAPID).

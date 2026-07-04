@@ -359,3 +359,12 @@ export const pushSubscriptionDeleteSchema = z.object({
 })
 
 export type PushSubscriptionDeleteValidated = z.infer<typeof pushSubscriptionDeleteSchema>
+
+// POST /api/me/streak — 방문 스트릭 체크인. today 는 *클라이언트 로컬* 날짜
+// (사용자가 화면에서 보는 하루 경계와 일치). 서버는 포맷 + 서버 날짜 ±2일
+// 상한만 검증(라우트에서) — 스트릭은 과금 무관 코스메틱 지표.
+export const streakCheckinSchema = z.object({
+  today: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'today must be YYYY-MM-DD'),
+})
+
+export type StreakCheckinValidated = z.infer<typeof streakCheckinSchema>
