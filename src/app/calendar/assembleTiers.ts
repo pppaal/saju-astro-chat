@@ -677,57 +677,10 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
     seed,
   }
 
-  // 이달 총평 — 타이밍·톤·지배 테마를 이어지는 한 문단으로 합성(deriveMonthSummary).
-  // 기존 narrative(인트로+토막)가 안 녹이던 best/caution/converge 날짜·분포를 글로.
-  // narrative 맨 앞에 '이달 총평' 태그로 넣어 카드 선두에 노출.
-  // 양쪽 로케일 요약을 함께 만들어 보관 — 클라이언트 로케일 토글 시 서버언어로
-  // 굳어 한글/영문이 어긋나던 문제(감사 #1 가시성) 해소. 정본 태그 '이달 총평'으로
-  // 찾고, body=ko / bodyEn=en 를 MonthTier 가 로케일로 고른다.
-  const monthReasonsBy = (en: boolean): string[] =>
-    dedupeByBody(
-      monthCells
-        .flatMap((c) =>
-          ((en ? c.topReasonsEn : c.topReasons) ?? []).map((r) => ({
-            score: c.derivedScore,
-            body: r,
-          }))
-        )
-        .sort((a, b) => b.score - a.score)
-    )
-      .slice(0, 4)
-      .map((r) => r.body)
-  const summaryCommon = {
-    woolunKr: month.woolun?.kr && month.woolun.kr !== '—' ? month.woolun.kr : undefined,
-    goodDays: month.goodDays.length,
-    cautionDays: month.cautionDays.length,
-    // 나쁜 날(<30)을 deriveMonthSummary 의 주의-측 톤·날수에 합산(감사: 예전엔
-    // avoid 를 안 넘겨 나쁜 달이 'bright'로 뒤집히고 날수에서 avoid 가 증발했다).
-    avoidDays: month.avoidDays.length,
-    totalDays: monthCells.length,
-    bestDay: month.bestDay?.date || undefined,
-    // caution 이 하나도 없고 avoid 만 있는 달도 '조심할 날'을 한 곳은 짚도록 폴백.
-    cautionDay: month.cautionDays[0] ?? month.avoidDays[0],
-    convergeDate: month.converge?.date || undefined,
-  }
-  // bestDayReason(keyDays meaning)은 서버 lang 으로만 산출돼 있어 그 로케일 요약에만 싣는다.
-  const bestDayReason = monthKeyDays.find((k) => k.date === month.bestDay?.date)?.meaning
-  const summaryKo = deriveMonthSummary({
-    ...summaryCommon,
-    topReasons: monthReasonsBy(false),
-    bestDayReason: lang === 'ko' ? bestDayReason : undefined,
-    lang: 'ko',
-    seed,
-  })
-  const summaryEn = deriveMonthSummary({
-    ...summaryCommon,
-    topReasons: monthReasonsBy(true),
-    bestDayReason: lang === 'en' ? bestDayReason : undefined,
-    lang: 'en',
-    seed,
-  })
-  if (summaryKo || summaryEn) {
-    month.narrative = [{ tag: '이달 총평', body: summaryKo, bodyEn: summaryEn }, ...month.narrative]
-  }
+  // 이달 총평(deriveMonthSummary)은 여기서 만들지 않는다 — 포커스 셀 중립화
+  // (아래 toDay 이후 블록)가 good/caution/avoid 버킷과 bestDay 크라운을 *변경*하므로,
+  // 그 전에 생성하면 총평 문장이 지워진 최고일을 계속 추천하고 날수도 헤더와 1
+  // 어긋난다(감사: 순서 버그). 중립화 직후에 생성한다.
 
   // 이 달의 사주×점성 교차 — monthly 층 cross-activation 페어를 모아 카드 원료로.
   // 같은 페어가 그 달 여러 윈도우로 잡혀 id 는 달라도 의미는 같으므로 *페어* 기준
@@ -842,6 +795,57 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
         month.bestDay = { date: '', score: 0 }
       }
     }
+  }
+
+  // 이달 총평 — 타이밍·톤·지배 테마를 이어지는 한 문단으로 합성(deriveMonthSummary).
+  // *반드시* 위 포커스 셀 중립화 이후에 생성 — 중립화가 버킷·bestDay 를 바꾸므로
+  // 먼저 만들면 총평이 지워진 최고일을 추천하고 날수도 헤더와 1 어긋난다(감사).
+  // 양쪽 로케일 요약을 함께 만들어 보관 — 클라이언트 로케일 토글 시 서버언어로
+  // 굳던 문제 해소. 정본 태그 '이달 총평', body=ko / bodyEn=en 를 MonthTier 가 고른다.
+  const monthReasonsBy = (en: boolean): string[] =>
+    dedupeByBody(
+      monthCells
+        .flatMap((c) =>
+          ((en ? c.topReasonsEn : c.topReasons) ?? []).map((r) => ({
+            score: c.derivedScore,
+            body: r,
+          }))
+        )
+        .sort((a, b) => b.score - a.score)
+    )
+      .slice(0, 4)
+      .map((r) => r.body)
+  const summaryCommon = {
+    woolunKr: month.woolun?.kr && month.woolun.kr !== '—' ? month.woolun.kr : undefined,
+    goodDays: month.goodDays.length,
+    cautionDays: month.cautionDays.length,
+    // 나쁜 날(<30)을 deriveMonthSummary 의 주의-측 톤·날수에 합산(감사: 예전엔
+    // avoid 를 안 넘겨 나쁜 달이 'bright'로 뒤집히고 날수에서 avoid 가 증발했다).
+    avoidDays: month.avoidDays.length,
+    totalDays: monthCells.length,
+    bestDay: month.bestDay?.date || undefined,
+    // caution 이 하나도 없고 avoid 만 있는 달도 '조심할 날'을 한 곳은 짚도록 폴백.
+    cautionDay: month.cautionDays[0] ?? month.avoidDays[0],
+    convergeDate: month.converge?.date || undefined,
+  }
+  // bestDayReason(keyDays meaning)은 서버 lang 으로만 산출돼 있어 그 로케일 요약에만 싣는다.
+  const bestDayReason = monthKeyDays.find((k) => k.date === month.bestDay?.date)?.meaning
+  const summaryKo = deriveMonthSummary({
+    ...summaryCommon,
+    topReasons: monthReasonsBy(false),
+    bestDayReason: lang === 'ko' ? bestDayReason : undefined,
+    lang: 'ko',
+    seed,
+  })
+  const summaryEn = deriveMonthSummary({
+    ...summaryCommon,
+    topReasons: monthReasonsBy(true),
+    bestDayReason: lang === 'en' ? bestDayReason : undefined,
+    lang: 'en',
+    seed,
+  })
+  if (summaryKo || summaryEn) {
+    month.narrative = [{ tag: '이달 총평', body: summaryKo, bodyEn: summaryEn }, ...month.narrative]
   }
 
   const advanced = natal.saju.analyses
