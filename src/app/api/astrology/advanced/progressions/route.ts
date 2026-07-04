@@ -78,6 +78,19 @@ export async function POST(request: Request) {
       targetDate: target,
     })
 
+    // 폴백 차트(입력 불량)라면 날조된 ASC 0°/행성 0 차트를 200 으로 내보내지
+    // 말고 명시적 검증 오류로 응답한다(정직한 실패). 라우트 스키마가 입력을
+    // 먼저 검증하므로 실제로는 거의 도달하지 않는 방어선.
+    if (secondary.isFallback) {
+      logger.warn('[astrology/progressions] fallback chart from invalid natal', { target })
+      return createErrorResponse({
+        code: ErrorCodes.VALIDATION_ERROR,
+        message: 'invalid_natal_input',
+        locale: extractLocale(request),
+        route: 'astrology/advanced/progressions',
+      })
+    }
+
     // Solar Arc Directions 계산
     const solarArc = await calculateSolarArcDirections({
       natal,

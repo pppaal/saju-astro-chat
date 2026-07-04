@@ -21,6 +21,7 @@ import {
   extractSwissLongitude,
 } from './shared'
 import { CALCULATION_STANDARDS } from '@/lib/config/calculationStandards'
+import { logger } from '@/lib/logger'
 
 /**
  * Secondary Progressions (2차 진행법)
@@ -53,11 +54,22 @@ export async function calculateSecondaryProgressions(
     !inputObj?.natal ||
     !inputObj?.targetDate
   ) {
+    // 불량 입력 — 실제 계산 없이 중립 폴백을 반환한다(호출자들이 이 함수를
+    // try/catch 없이 부르고 빈 planets 로 섹션을 건너뛰도록 설계됨). 예전엔
+    // 아무 로그도 안 남겨 "결과가 왜 비었나"를 추적할 수 없었다.
+    logger.warn('[progressions] invalid input — returning fallback chart', {
+      hasInput: !!input,
+      hasNatal: !!inputObj?.natal,
+      hasTargetDate: !!inputObj?.targetDate,
+    })
     return createFallbackProgressedChart(fallbackDate)
   }
 
   const { natal, targetDate } = input as ProgressionInput
   if (!hasValidNatalInput(natal)) {
+    logger.warn('[progressions] incomplete natal input — returning fallback chart', {
+      targetDate: targetDate || fallbackDate,
+    })
     return createFallbackProgressedChart(targetDate || fallbackDate)
   }
 
@@ -177,6 +189,7 @@ function createFallbackProgressedChart(progressedDate: string): ProgressedChart 
     progressionType: 'secondary',
     yearsProgressed: 0,
     progressedDate,
+    isFallback: true,
   }
 }
 
