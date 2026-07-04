@@ -326,7 +326,10 @@ export function deriveMonthSummary(i: MonthSummaryInput): string {
   const total = i.totalDays
 
   // 1) 전반 톤 — 좋은 날 vs 주의 날 분포. 한 문장 안에 톤 + 날수까지 녹여 길게.
-  const tone: Tone = good >= caution * 2 ? 'bright' : caution > good ? 'careful' : 'mixed'
+  // good>0 가드: 좋은 날 0개인 평탄 달이 0>=0 으로 bright("순하게 풀리는 달" + 트이는
+  // 날 0일)가 되는 퇴화 케이스 차단 — mixed 로. (MonthTier 히어로 톤과 동일 공식.)
+  const tone: Tone =
+    good >= caution * 2 && good > 0 ? 'bright' : caution > good ? 'careful' : 'mixed'
   const wool = i.woolunKr ? (ko ? `${i.woolunKr}월은 ` : '') : ''
   const countKo = total > 0 ? pickBySeed(COUNT_KO, seed, KEY.count)(total, good, caution) : ''
   const countEn = total > 0 ? pickBySeed(COUNT_EN, seed, KEY.count)(total, good, caution) : ''

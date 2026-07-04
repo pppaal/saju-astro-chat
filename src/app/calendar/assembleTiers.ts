@@ -826,10 +826,23 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
     bestDay: month.bestDay?.date || undefined,
     // caution 이 하나도 없고 avoid 만 있는 달도 '조심할 날'을 한 곳은 짚도록 폴백.
     cautionDay: month.cautionDays[0] ?? month.avoidDays[0],
-    convergeDate: month.converge?.date || undefined,
+    // convergeDate 는 MM-DD 로 정규화 — bestDay/cautionDay 와 같은 포맷이어야
+    // deriveMonthSummary 의 동일-날짜 중복 가드(!==)와 fmtDate 가 작동한다.
+    // (현재 converge 는 미배선이라 '' 이지만, 배선 시 YYYY-MM-DD 가 그대로 오면
+    // 가드가 영영 안 맞고 "2026월 7일"로 렌더되는 잠복 버그 — 미리 차단.)
+    convergeDate: month.converge?.date
+      ? month.converge.date.length > 5
+        ? month.converge.date.slice(-5)
+        : month.converge.date
+      : undefined,
   }
-  // bestDayReason(keyDays meaning)은 서버 lang 으로만 산출돼 있어 그 로케일 요약에만 싣는다.
-  const bestDayReason = monthKeyDays.find((k) => k.date === month.bestDay?.date)?.meaning
+  // bestDayReason(keyDays meaning)은 서버 lang 으로만 산출돼 있어 그 로케일 요약에만
+  // 싣는다. 톤 게이트: 그 keyDay 의 수렴 톤이 negative 면 이유를 생략 — 총평의
+  // 최고의 날 문장은 "추진해 보세요" 액션으로 닫히는데 부정 의미를 붙이면 한 문장
+  // 안에서 자기모순("부딪힘 조심 — 추진해 보세요")이 된다(감사).
+  const bestKeyDay = monthKeyDays.find((k) => k.date === month.bestDay?.date)
+  const bestDayReason =
+    bestKeyDay && bestKeyDay.tone !== 'negative' ? bestKeyDay.meaning : undefined
   const summaryKo = deriveMonthSummary({
     ...summaryCommon,
     topReasons: monthReasonsBy(false),

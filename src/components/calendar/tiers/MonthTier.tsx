@@ -191,8 +191,8 @@ export function MonthTier({ month, onDive, onRise, showRise = true }: MonthTierP
     if (goodN > 0 || cautionN > 0) {
       parts.push(
         ko
-          ? `흐름이 트이는 날이 ${goodN}개, 한 박자 조심할 날이 ${cautionN + avoidN}개라 전체적으로 ${goodN >= cautionN + avoidN ? '순한 편이에요' : '기복이 있는 달이에요'}.`
-          : `${goodN} day${goodN === 1 ? '' : 's'} open up while ${cautionN + avoidN} ask for care, so overall it reads ${goodN >= cautionN + avoidN ? 'fairly smooth' : 'a bit uneven'}.`
+          ? `흐름이 트이는 날이 ${goodN}개, 한 박자 조심할 날이 ${cautionN + avoidN}개라 전체적으로 ${goodN >= (cautionN + avoidN) * 2 && goodN > 0 ? '순한 편이에요' : '기복이 있는 달이에요'}.`
+          : `${goodN} day${goodN === 1 ? '' : 's'} open up while ${cautionN + avoidN} ask for care, so overall it reads ${goodN >= (cautionN + avoidN) * 2 && goodN > 0 ? 'fairly smooth' : 'a bit uneven'}.`
       )
     }
     if (topCrossMeaning) {
@@ -207,8 +207,8 @@ export function MonthTier({ month, onDive, onRise, showRise = true }: MonthTierP
   const verdictText =
     monthReading ||
     (ko
-      ? `좋은 날 ${goodN}개, 조심할 날 ${cautionN + avoidN}개 — ${goodN >= cautionN + avoidN ? '순한 편의 달이에요.' : '기복이 있는 달이에요.'}`
-      : `${goodN} good, ${cautionN + avoidN} for care — ${goodN >= cautionN + avoidN ? 'a fairly smooth month.' : 'an uneven month.'}`)
+      ? `좋은 날 ${goodN}개, 조심할 날 ${cautionN + avoidN}개 — ${goodN >= (cautionN + avoidN) * 2 && goodN > 0 ? '순한 편의 달이에요.' : '기복이 있는 달이에요.'}`
+      : `${goodN} good, ${cautionN + avoidN} for care — ${goodN >= (cautionN + avoidN) * 2 && goodN > 0 ? 'a fairly smooth month.' : 'an uneven month.'}`)
 
   // ── novice hero — 한자·십신·교차 없는 일상어 결론 한 줄. ──
   // 톤: 좋은날 > 조심날 → 좋은 / 조심날 > 좋은날 → 조심스러운 / else → 순한.
@@ -216,19 +216,24 @@ export function MonthTier({ month, onDive, onRise, showRise = true }: MonthTierP
   // careful / else mixed)과 *동일*하게 — 예전엔 good>care 라 5:4 달이 히어로 "잘
   // 풀리는 달"+후크 "유리하게 짜였어" 인데 총평은 "굴곡이 또렷한 달"로 같은 화면에서
   // 어긋났다(감사). 한 공식이 후크·톤워드·총평을 다 지배한다.
+  // goodN>0 가드: 좋은 날이 하나도 없는 평탄 달(0:0)이 0>=0 으로 'good'(bright 후크
+  // "유리하게 짜였어")로 새는 퇴화 케이스 차단 — mild 로 떨어뜨린다(총평도 동일 가드).
   const noviceTone: 'good' | 'care' | 'mild' =
-    goodN >= careN * 2 ? 'good' : careN > goodN ? 'care' : 'mild'
+    goodN >= careN * 2 && goodN > 0 ? 'good' : careN > goodN ? 'care' : 'mild'
+  // mild 는 정렬된 공식상 "좋은 날·조심 날이 둘 다 섞인" 달(또는 평탄 달)에만 발화
+  // — 라벨도 변동성 프레임('기복 있는')으로. 예전 '순한 달'은 바로 위 mixed 후크
+  // ("오르락내리락해")·총평("굴곡이 또렷한 달")과 정면 모순이었다(감사).
   const noviceToneWord = ko
     ? noviceTone === 'good'
       ? '좋은'
       : noviceTone === 'care'
         ? '조심스러운'
-        : '순한'
+        : '기복 있는'
     : noviceTone === 'good'
       ? 'favourable'
       : noviceTone === 'care'
         ? 'careful'
-        : 'gentle'
+        : 'mixed'
   // 일상어 영역(예: "정재" → "재물·실속"). 없으면 결론 문장에서 영역 절을 생략.
   const noviceArea = woolunArea
   const noviceLine = ko
@@ -249,23 +254,36 @@ export function MonthTier({ month, onDive, onRise, showRise = true }: MonthTierP
   }
   // ── 기본뷰 do/avoid 한 줄 — 그동안 share 카드에만 쓰이던 narrative[0] 의 행동 권유를
   //    구조화 필드(bestDay/cautionDays/avoidDays)에서 평이하게 재구성해 표면에 노출. ──
-  const doDate = month.bestDay?.date || month.goodDays?.[0] || ''
+  // bestDay 폴백은 *앞으로 남은* 초록일 우선 — goodDays 는 시간순이라 첫 항목이
+  // 이미 지난 날짜(예: 28일에 "7/2 추진")일 수 있다(감사). 남은 초록일이 없으면
+  // 첫 초록일 유지(회고성 안내보단 낫진 않지만 빈칸보단 정보가 있음).
+  const focusDayNum = month.focusDay ?? 0
+  const upcomingGood = month.goodDays?.find((d) => Number(d.slice(-2)) >= focusDayNum)
+  const doDate = month.bestDay?.date || upcomingGood || month.goodDays?.[0] || ''
   const avoidDate = month.cautionDays?.[0] || month.avoidDays?.[0] || ''
   const doAvoidLine: string = (() => {
     if (!doDate && !avoidDate) return ''
+    // 각 절이 단독으로도 완결되게 — 예전엔 avoid 없는 달에 "…추진하고"로 끝나는
+    // 비문, do 없는 달에 EN 소문자 시작("hold big…")이 나왔다(감사).
     const parts: string[] = []
     if (doDate) {
       parts.push(
         ko
-          ? `${mdLabel(doDate)} 무렵 미뤄둔 일을 추진하고`
-          : `Push waiting tasks around ${mdLabel(doDate)}`
+          ? avoidDate
+            ? `${mdLabel(doDate)} 무렵 미뤄둔 일을 추진하고`
+            : `${mdLabel(doDate)} 무렵 미뤄둔 일을 추진해 보세요.`
+          : avoidDate
+            ? `Push waiting tasks around ${mdLabel(doDate)}`
+            : `Push waiting tasks around ${mdLabel(doDate)}.`
       )
     }
     if (avoidDate) {
       parts.push(
         ko
           ? `${mdLabel(avoidDate)} 무렵엔 큰 결정·이동을 미루세요.`
-          : `hold big decisions and moves near ${mdLabel(avoidDate)}.`
+          : doDate
+            ? `hold big decisions and moves near ${mdLabel(avoidDate)}.`
+            : `Hold big decisions and moves near ${mdLabel(avoidDate)}.`
       )
     }
     return parts.join(', ')
@@ -404,12 +422,12 @@ export function MonthTier({ month, onDive, onRise, showRise = true }: MonthTierP
               ? '잘 풀리는 달'
               : noviceTone === 'care'
                 ? '조심스러운 달'
-                : '순한 달'
+                : '기복 있는 달'
             : noviceTone === 'good'
               ? 'A favourable month'
               : noviceTone === 'care'
                 ? 'A careful month'
-                : 'A gentle month'}
+                : 'A mixed month'}
         </div>
         <p className={styles.novLine}>{noviceLine}</p>
         <p className={styles.novCounts}>{noviceCounts}</p>
