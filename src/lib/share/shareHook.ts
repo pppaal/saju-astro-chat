@@ -70,7 +70,7 @@ const DAY_POOL: Record<'high' | 'good' | 'mixed' | 'caution', HookVariant[]> = {
       },
       en: {
         headline: "Flinch today and you'll replay it for weeks.",
-        subline: 'The flow is bending up toward its peak.',
+        subline: 'The flow is climbing toward its peak.',
       },
     },
     {
@@ -79,7 +79,7 @@ const DAY_POOL: Record<'high' | 'good' | 'mixed' | 'caution', HookVariant[]> = {
         subline: '먼저 연락하고 먼저 질러.',
       },
       en: {
-        headline: 'The board tilted your way. Not using it is the only loss.',
+        headline: "The board tilted your way. Don't waste it.",
         subline: 'Text first. Ask first.',
       },
     },
@@ -87,7 +87,7 @@ const DAY_POOL: Record<'high' | 'good' | 'mixed' | 'caution', HookVariant[]> = {
       ko: { headline: "'나중에'가 오늘이야.", subline: '핑계 대던 그 일, 오늘 열려.' },
       en: {
         headline: "'Later' is today.",
-        subline: 'The thing you keep excusing yourself out of — open now.',
+        subline: "That thing you keep making excuses about? It's open today.",
       },
     },
     {
@@ -95,7 +95,7 @@ const DAY_POOL: Record<'high' | 'good' | 'mixed' | 'caution', HookVariant[]> = {
       en: { headline: "Don't measure it today. Just go.", subline: 'Push and it gives.' },
     },
     {
-      ko: { headline: '머뭇거리는 순간 남이 가져가.', subline: '오늘 네 편인 거 흐름이 말해줘.' },
+      ko: { headline: '머뭇거리는 순간 남이 가져가.', subline: '오늘은 흐름이 네 편이야.' },
       en: {
         headline: 'Hesitate and someone else takes it.',
         subline: 'The day is on your side.',
@@ -106,7 +106,7 @@ const DAY_POOL: Record<'high' | 'good' | 'mixed' | 'caution', HookVariant[]> = {
     {
       ko: { headline: '오늘 먼저 말 꺼내도 안 튕겨.', subline: '받쳐주는 흐름이 같이 와.' },
       en: {
-        headline: "Speak up first today — it won't bounce.",
+        headline: "Say the thing first today. It won't get thrown back at you.",
         subline: 'A supporting current comes with it.',
       },
     },
@@ -135,13 +135,13 @@ const DAY_POOL: Record<'high' | 'good' | 'mixed' | 'caution', HookVariant[]> = {
       ko: { headline: "오늘은 '될까?'보다 '해볼까'가 맞아.", subline: '밀어주는 결이 와 있어.' },
       en: {
         headline: "Today's a 'let's try' day, not a 'will it work' day.",
-        subline: 'The grain’s behind you.',
+        subline: "Momentum's on your side.",
       },
     },
     {
       ko: {
         headline: '미루던 거 오늘 반만 해도 돼. 시작이 되니까.',
-        subline: '시작에 바람이 붙어.',
+        subline: '시작에 탄력이 붙어.',
       },
       en: {
         headline: 'Do half the thing you keep putting off. Half counts.',
@@ -188,7 +188,7 @@ const DAY_POOL: Record<'high' | 'good' | 'mixed' | 'caution', HookVariant[]> = {
     {
       ko: { headline: '반은 맞고 반은 틀린 날. 욕심만 빼면 돼.', subline: '한쪽으로 쏠리지 마.' },
       en: {
-        headline: "Half right, half wrong. Drop the greed and it's fine.",
+        headline: "Half right, half wrong. Don't get greedy and you're fine.",
         subline: "Don't lean all one way.",
       },
     },
@@ -258,7 +258,7 @@ const DAY_POOL: Record<'high' | 'good' | 'mixed' | 'caution', HookVariant[]> = {
       },
       en: {
         headline: "Don't buy the thing you don't need today.",
-        subline: 'Keep your wallet and your heart shut.',
+        subline: 'Keep your wallet shut — the urge passes.',
       },
     },
   ],
@@ -310,11 +310,11 @@ const MONTH_POOL: Record<MonthTone, HookVariant[]> = {
     },
     {
       ko: {
-        headline: '이번 달은 먼저 지르는 사람이 먹어. 그거 너 해.',
+        headline: '이번 달은 먼저 지르는 사람이 먹어. 네가 먹어.',
         subline: '받쳐주는 흐름이 길게 와.',
       },
       en: {
-        headline: 'This month, whoever moves first eats. Be that person.',
+        headline: 'This month goes to whoever moves first. Make it you.',
         subline: 'A long supporting current.',
       },
     },
@@ -326,9 +326,9 @@ const MONTH_POOL: Record<MonthTone, HookVariant[]> = {
       },
     },
     {
-      ko: { headline: '이번 달 흐름, 등 떠밀리듯 가벼워.', subline: '큰일 벌이기 좋은 달.' },
+      ko: { headline: '이번 달 흐름, 순풍 탄 것처럼 가벼워.', subline: '큰일 벌이기 좋은 달.' },
       en: {
-        headline: 'This month moves light, like a push at your back.',
+        headline: 'This month runs light — wind at your back the whole way.',
         subline: 'A month to start big things.',
       },
     },
@@ -347,7 +347,7 @@ const MONTH_POOL: Record<MonthTone, HookVariant[]> = {
         subline: '속도 줄이고 다지는 게 이득.',
       },
       en: {
-        headline: 'Reach too far this month and it leaks out just as much.',
+        headline: 'Overreach this month and exactly that much slips away.',
         subline: 'Slow down and consolidate.',
       },
     },
@@ -363,7 +363,7 @@ const MONTH_POOL: Record<MonthTone, HookVariant[]> = {
     {
       ko: {
         headline: '이번 달은 오르락내리락해. 큰 날만 노려.',
-        subline: '좋은 날 몰아치고 나머진 흘려.',
+        subline: '좋은 날에 몰아서 하고, 나머진 흘려.',
       },
       en: {
         headline: 'This month swings. Play only the big days.',

@@ -212,8 +212,12 @@ export function MonthTier({ month, onDive, onRise, showRise = true }: MonthTierP
 
   // ── novice hero — 한자·십신·교차 없는 일상어 결론 한 줄. ──
   // 톤: 좋은날 > 조심날 → 좋은 / 조심날 > 좋은날 → 조심스러운 / else → 순한.
+  // 톤 문턱은 '이달 총평'(deriveMonthSummary: good>=caution*2→bright / caution>good→
+  // careful / else mixed)과 *동일*하게 — 예전엔 good>care 라 5:4 달이 히어로 "잘
+  // 풀리는 달"+후크 "유리하게 짜였어" 인데 총평은 "굴곡이 또렷한 달"로 같은 화면에서
+  // 어긋났다(감사). 한 공식이 후크·톤워드·총평을 다 지배한다.
   const noviceTone: 'good' | 'care' | 'mild' =
-    goodN > careN ? 'good' : careN > goodN ? 'care' : 'mild'
+    goodN >= careN * 2 ? 'good' : careN > goodN ? 'care' : 'mild'
   const noviceToneWord = ko
     ? noviceTone === 'good'
       ? '좋은'
