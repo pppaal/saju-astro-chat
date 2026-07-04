@@ -10,6 +10,7 @@ import {
 import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/logger'
 import { userEmailUpdateSchema } from '@/lib/api/zodValidation'
+import { isAdminEmail } from '@/lib/auth/admin'
 
 export const runtime = 'nodejs'
 
@@ -44,6 +45,17 @@ export const PATCH = withApiMiddleware(
     if (!userId) {
       // createAuthenticatedGuard 가 이미 보장하지만, 타입 narrowing 용.
       return apiError(ErrorCodes.UNAUTHORIZED, 'unauthenticated')
+    }
+
+    // 🔒 권한 상승 차단: 어드민 판정(isAdminUser)이 세션/DB 이메일이
+    // ADMIN_EMAILS allowlist 에 있으면 어드민을 부여하는데, 이 셀프-서비스
+    // 엔드포인트는 소유권 검증 없이 이메일을 바꾼다. 아직 미가입한 어드민
+    // 이메일을 임의 계정이 설정 → jwt 갱신 → 어드민 획득이 가능했으므로,
+    // allowlist 이메일로의 셀프 변경은 거부한다(합법 어드민은 OAuth 로 이메일이
+    // 채워지지 이 경로를 타지 않는다 — fail-closed).
+    if (isAdminEmail(email)) {
+      logger.warn('[me/email PATCH] blocked self-assignment of admin-allowlisted email', { userId })
+      return apiError(ErrorCodes.BAD_REQUEST, 'email_in_use')
     }
 
     try {

@@ -575,8 +575,11 @@ const realtimeCounselorTurnSchema = z
     // enum 으로 막지 않는다 — 클라가 보낸 비표준 턴이 422 가 되면 안 됨.
     role: z.string().max(50).optional(),
     // 일부 복원/저장 경로에서 content 가 비거나 null 일 수 있어 라우트의
-    // `m.content ?? ''` 처리와 동일하게 관대히 받는다.
-    content: z.string().nullish(),
+    // `m.content ?? ''` 처리와 동일하게 관대히 받는다. 길이는 abuse 방지 캡만
+    // 둔다 — prior 턴은 sanitizePriorTurns 가 8,000자로 자르고, 현재(마지막)
+    // user 메시지는 예전엔 어떤 캡도 없이 프롬프트로 들어가 1크레딧에 수 MB
+    // 입력 토큰을 태울 수 있었다. cvText(12,000자)보다 여유 있게 20,000자.
+    content: z.string().max(20_000).nullish(),
   })
   .passthrough()
 
@@ -597,7 +600,10 @@ const counselorBirthGeoFields = {
 
 export const counselorRealtimeRequestSchema = z
   .object({
-    messages: z.array(realtimeCounselorTurnSchema).min(1),
+    // 배열 개수 상한 — 예전엔 .max() 가 없어 수만 개 턴을 담은 단일 요청이
+    // req.json() 에서 통째로 버퍼링되고 전 턴이 프롬프트로 재생돼 메모리·토큰
+    // abuse 가 가능했다. 매우 긴 상담 세션도 커버하도록 넉넉히 400.
+    messages: z.array(realtimeCounselorTurnSchema).min(1).max(400),
     birthDate: z.string().min(1).max(64),
     // 상담 대상 이름('다른 사람으로 보기' 시 그 사람 이름). 라우트가
     // sanitizeDisplayName 으로 50자 cap + 정규화하므로 여기선 폭주만 차단.

@@ -361,6 +361,7 @@ export default function PricingPageClient({ initialLocale, initialCopy }: Pricin
                     </div>
                     <button
                       className={`${styles.creditButton} ${pack.popular ? styles.creditButtonPopular : ''}`}
+                      data-testid={`buy-pack-${pack.id}`}
                       onClick={() => handleBuyCredit(pack.id)}
                       disabled={loadingCredit !== null}
                     >

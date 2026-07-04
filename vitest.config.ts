@@ -76,7 +76,12 @@ export default defineConfig({
       enabled: isCoverageRun,
       provider: 'v8',
       reporter: coverageReporters,
-      reportsDirectory: './tmp/coverage',
+      // CI(ci.yml / pr-checks.yml)의 Codecov 업로드·임계치 게이트·PR 코멘트는
+      // 전부 `coverage/`(coverage-summary.json / lcov.info)를 읽는다. 예전엔
+      // 여기가 `./tmp/coverage` 라 hashFiles/existsSync 조건이 항상 거짓 →
+      // 임계치 게이트·업로드·코멘트가 조용히 skip 되는 사문화 상태였다. CI 가
+      // 읽는 경로와 일치시킨다.
+      reportsDirectory: './coverage',
       include: ['src/**/*.{ts,tsx}'],
       exclude: [
         'src/**/*.d.ts',

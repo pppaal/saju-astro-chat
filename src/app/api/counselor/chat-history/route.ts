@@ -10,6 +10,7 @@ import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/logger'
 import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
 import { createValidationErrorResponse } from '@/lib/api/zodValidation'
+import { isCounselorSessionDeleted } from '@/lib/counselor/sessionTombstone'
 import {
   GetChatHistorySchema,
   PostChatHistorySchema,
@@ -130,17 +131,84 @@ export const POST = withApiMiddleware(
     }
 
     if (sessionId) {
-      // 기존 세션 업데이트
-      const existingSession = await prisma.counselorChatSession.findFirst({
-        where: { id: sessionId, userId },
-      })
+      const firstUserContent = newMessages.find((m) => m.role === 'user')?.content?.trim() || ''
+      const candidateTitle = firstUserContent ? truncateChatTitle(firstUserContent) : null
+      const metaJson = meta ? JSON.stringify(meta) : null
 
-      if (!existingSession) {
-        // Default: unknown id → 404 (guards against arbitrary id injection).
-        // Opt-in (compat): create the row with the client-supplied id so the
-        // charge-time safety-net id and the client's content converge on one
-        // row. P2002 = the id belongs to *another* user → keep 404 (no leak).
-        if (!create) {
+      // 원자적 append — 예전엔 findFirst 로 messages 를 읽어 메모리에서 이어붙인 뒤
+      // 통째로 update 했는데(read-modify-write), 같은 세션에 두 turn 이 겹치면
+      // (두 탭/기기, completeTurn↔복원 저장 경합) 둘 다 같은 기존 배열을 읽고
+      // 서로를 덮어써 한쪽의 *유료* turn 이 영구 소실됐다(lost update). DB 측
+      // jsonb concat 단일 UPDATE 로 경쟁창을 없앤다. 소유권은 WHERE userId 로
+      // 강제(남의/없는 세션이면 0행). title 은 null 일 때만 backfill(COALESCE),
+      // meta 는 클라가 실어 보내면 갱신(COALESCE(new, 기존)). updatedAt 은 raw 가
+      // @updatedAt 을 우회하므로 명시적으로 설정.
+      const appendSql = (): Promise<number> =>
+        prisma.$executeRaw`
+          UPDATE "CounselorChatSession"
+          SET "messages" = COALESCE("messages", '[]'::jsonb) || ${JSON.stringify(newMessages)}::jsonb,
+              "messageCount" = jsonb_array_length(COALESCE("messages", '[]'::jsonb)) + ${newMessages.length},
+              "lastMessageAt" = ${now},
+              "updatedAt" = ${now},
+              "title" = COALESCE("title", ${candidateTitle}),
+              "meta" = COALESCE(CAST(${metaJson} AS jsonb), "meta")
+          WHERE "id" = ${sessionId} AND "userId" = ${userId}
+        `
+
+      const affected = await appendSql()
+      if (affected > 0) {
+        // 클라이언트는 session.id 만 사용하므로 전체 messages 를 되돌리지 않는다
+        // (턴당 대화 전체 재전송 = O(N) 페이로드 회피).
+        return NextResponse.json({ success: true, session: { id: sessionId }, action: 'updated' })
+      }
+
+      // 0행 = 이 사용자 소유의 세션이 없음. create 옵트인이 아니면 404
+      // (임의 id 주입 방지, 정보 누출 없음).
+      if (!create) {
+        return createErrorResponse({
+          code: ErrorCodes.NOT_FOUND,
+          message: 'Session not found',
+          locale: extractLocale(req),
+          route: 'counselor/chat-history',
+        })
+      }
+
+      // 삭제된 세션 부활 방지 — 스트리밍/디바운스 중 사용자가 삭제한 세션에
+      // 지연 도착한 fire-and-forget POST 가 create 로 되살리던 구멍을 막는다
+      // (session/save·ensureSessionRecord 와 동일한 tombstone 가드).
+      if (await isCounselorSessionDeleted(sessionId)) {
+        return NextResponse.json({ success: true, session: { id: sessionId }, skipped: 'deleted' })
+      }
+
+      // 클라 지정 id 로 생성. 안전망(ensureCounselorSessionRecord)이나 동시
+      // 요청이 UPDATE~CREATE 사이에 행을 만드는 레이스는 P2002 로 잡아, 옛 코드처럼
+      // 무조건 404 로 오처리(=유료 turn 내용 영구 유실)하지 않고 원자적 append 를
+      // 재시도한다 — 남의 세션이면 0행 → 404, 내 세션(안전망)이면 append 성공.
+      try {
+        const created = await prisma.counselorChatSession.create({
+          data: {
+            id: sessionId,
+            userId,
+            locale,
+            type: sessionType,
+            ...(candidateTitle ? { title: candidateTitle } : {}),
+            ...(meta ? { meta: meta as Prisma.InputJsonValue } : {}),
+            messages: newMessages,
+            messageCount: newMessages.length,
+            lastMessageAt: now,
+          },
+        })
+        return NextResponse.json({ success: true, session: { id: created.id }, action: 'created' })
+      } catch (err) {
+        if (err && typeof err === 'object' && 'code' in err && err.code === 'P2002') {
+          const recovered = await appendSql()
+          if (recovered > 0) {
+            return NextResponse.json({
+              success: true,
+              session: { id: sessionId },
+              action: 'created',
+            })
+          }
           return createErrorResponse({
             code: ErrorCodes.NOT_FOUND,
             message: 'Session not found',
@@ -148,67 +216,8 @@ export const POST = withApiMiddleware(
             route: 'counselor/chat-history',
           })
         }
-        const firstUserContent = newMessages.find((m) => m.role === 'user')?.content?.trim() || ''
-        const upsertTitle = firstUserContent ? truncateChatTitle(firstUserContent) : null
-        try {
-          const createdWithId = await prisma.counselorChatSession.create({
-            data: {
-              id: sessionId,
-              userId,
-              locale,
-              type: sessionType,
-              ...(upsertTitle ? { title: upsertTitle } : {}),
-              ...(meta ? { meta: meta as Prisma.InputJsonValue } : {}),
-              messages: newMessages,
-              messageCount: newMessages.length,
-              lastMessageAt: now,
-            },
-          })
-          return NextResponse.json({ success: true, session: createdWithId, action: 'created' })
-        } catch (err) {
-          if (err && typeof err === 'object' && 'code' in err && err.code === 'P2002') {
-            return createErrorResponse({
-              code: ErrorCodes.NOT_FOUND,
-              message: 'Session not found',
-              locale: extractLocale(req),
-              route: 'counselor/chat-history',
-            })
-          }
-          throw err
-        }
+        throw err
       }
-
-      const existingMessages = (existingSession.messages as ChatMessage[]) || []
-      const updatedMessages = [...existingMessages, ...newMessages]
-
-      // Backfill title from the first user turn for rows that
-      // predate the auto-titler. Sidebar otherwise shows "Untitled
-      // chat" forever — the title only changes on a manual rename.
-      const firstUserContent = updatedMessages.find((m) => m.role === 'user')?.content?.trim() || ''
-      const backfillTitle =
-        !existingSession.title && firstUserContent ? truncateChatTitle(firstUserContent) : undefined
-
-      const updated = await prisma.counselorChatSession.update({
-        where: { id: sessionId },
-        data: {
-          messages: updatedMessages,
-          messageCount: updatedMessages.length,
-          lastMessageAt: now,
-          ...(backfillTitle ? { title: backfillTitle } : {}),
-          // Persist the couple/profile snapshot if the client attaches it.
-          // The server's existence-only safety-net row is created without
-          // meta, so the client's first save is what carries the chart
-          // context for past-chat restore — accept it on update too, not
-          // just create. (Compat sends meta until it's persisted once.)
-          ...(meta ? { meta: meta as Prisma.InputJsonValue } : {}),
-        },
-      })
-
-      return NextResponse.json({
-        success: true,
-        session: updated,
-        action: 'updated',
-      })
     } else {
       // 새 세션 생성 — auto-derive a title from the first user turn
       // so the sidebar shows the question, not "Untitled chat".

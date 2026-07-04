@@ -7,9 +7,14 @@
 //   Spirit     낮: ASC + Sun - Moon     / 밤: ASC + Moon - Sun       (Fortune 의 inverse)
 //   Eros       낮: ASC + Venus - Spirit / 밤: ASC + Spirit - Venus
 //   Necessity  낮: ASC + Fortune - Mercury / 밤: ASC + Mercury - Fortune
-//   Courage    낮: ASC + Mars - Fortune / 밤: ASC + Fortune - Mars
-//   Victory    낮: ASC + Spirit - Jupiter / 밤: ASC + Jupiter - Spirit
+//   Courage    낮: ASC + Fortune - Mars / 밤: ASC + Mars - Fortune
+//   Victory    낮: ASC + Jupiter - Spirit / 밤: ASC + Spirit - Jupiter
 //   Nemesis    낮: ASC + Fortune - Saturn / 밤: ASC + Saturn - Fortune
+//
+// (Courage·Victory 는 예전엔 낮/밤 공식이 서로 뒤바뀌어 있었다 — Paulus/Valens
+//  표준 대비 sect 반전. Fortune-계열 lot(Necessity/Courage/Nemesis)은 낮에
+//  ASC + Fortune − 행성, 길성-계열(Eros/Victory)은 낮에 ASC + 길성 − Spirit 라는
+//  일관된 구조를 이제 따른다. Nemesis/Eros/Necessity 는 원래부터 정상이었다.)
 
 import type { Chart, ZodiacKo } from './types'
 
@@ -99,15 +104,17 @@ export function calculateArabicLots(chart: Chart, isDayChart: boolean): ArabicLo
     isDayChart ? norm(asc + fortuneLon - mercury) : norm(asc + mercury - fortuneLon),
     isDayChart ? 'ASC + Fortune - Mercury' : 'ASC + Mercury - Fortune'
   )
+  // Courage/Victory: 표준(Paulus/Valens) sect 공식. 예전엔 낮/밤이 뒤바뀌어
+  // 낮 차트에서 실제와 다른 경도를 냈다.
   push(
     'Courage',
-    isDayChart ? norm(asc + mars - fortuneLon) : norm(asc + fortuneLon - mars),
-    isDayChart ? 'ASC + Mars - Fortune' : 'ASC + Fortune - Mars'
+    isDayChart ? norm(asc + fortuneLon - mars) : norm(asc + mars - fortuneLon),
+    isDayChart ? 'ASC + Fortune - Mars' : 'ASC + Mars - Fortune'
   )
   push(
     'Victory',
-    isDayChart ? norm(asc + spiritLon - jupiter) : norm(asc + jupiter - spiritLon),
-    isDayChart ? 'ASC + Spirit - Jupiter' : 'ASC + Jupiter - Spirit'
+    isDayChart ? norm(asc + jupiter - spiritLon) : norm(asc + spiritLon - jupiter),
+    isDayChart ? 'ASC + Jupiter - Spirit' : 'ASC + Spirit - Jupiter'
   )
   push(
     'Nemesis',

@@ -3,8 +3,12 @@
 // 시작점 = Lot of Spirit (행적·진로용) 또는 Lot of Fortune (체질·외형·외적 사건용).
 // 시작 sign 의 ruler 의 행성년수만큼 1차 period 진행 → 황도 순서로 다음 sign 으로 transition.
 //
-// 행성년수 (Hellenistic 표준):
-//   Sun 19, Moon 25, Mercury 20, Venus 8, Mars 15, Jupiter 12, Saturn 27
+// 행성년수 (Hellenistic 표준, minor years):
+//   Sun 19, Moon 25, Mercury 20, Venus 8, Mars 15, Jupiter 12, Saturn 30
+// ※ ZR period 길이는 *별자리* 단위다. Saturn 이 지배하는 두 별자리 중
+//   Capricorn 만 27년(Valens 예외), Aquarius 는 30년이다 — 예전엔 ruler(Saturn)
+//   기준으로 둘 다 27 로 처리해 Aquarius L1 이후 전 챕터 경계가 3년씩 당겨졌다.
+//   periodYearsForSign() 이 이 예외를 캡슐화한다.
 //
 // 본 모듈:
 //  - L1 period (years)
@@ -18,8 +22,18 @@ import type { AstroPlanetName } from '../interpretations'
 import { SIGN_RULERS_BY_SIGN } from './dignities'
 
 const ZODIAC_ORDER: ZodiacKo[] = [
-  'Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo',
-  'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces',
+  'Aries',
+  'Taurus',
+  'Gemini',
+  'Cancer',
+  'Leo',
+  'Virgo',
+  'Libra',
+  'Scorpio',
+  'Sagittarius',
+  'Capricorn',
+  'Aquarius',
+  'Pisces',
 ]
 
 // 별자리 지배 행성은 dignities.ts(SSOT)에서 파생. 로컬 복제 금지.
@@ -32,12 +46,21 @@ const PLANET_YEARS: Record<AstroPlanetName, number> = {
   Venus: 8,
   Mars: 15,
   Jupiter: 12,
-  Saturn: 27,
+  Saturn: 30,
   // 외행성은 ZR에 사용 안 함 — 0 으로 처리해 skip.
   Uranus: 0,
   Neptune: 0,
   Pluto: 0,
   Ascendant: 0,
+}
+
+/**
+ * ZR L1 period 길이(년) — 별자리 단위. 기본은 지배 행성의 minor years 지만,
+ * Capricorn 만 Valens 예외로 27년(같은 Saturn 지배인 Aquarius 는 30년).
+ */
+function periodYearsForSign(sign: ZodiacKo): number {
+  if (sign === 'Capricorn') return 27
+  return PLANET_YEARS[SIGN_RULERS[sign]]
 }
 
 /** ZR period level. L1=year, L2=month, L3=day, L4=hour-ish. */
@@ -48,7 +71,7 @@ export type ZRStartLot = 'Spirit' | 'Fortune'
 
 export interface ZRPeriod {
   level: 1
-  index: number               // 0-based
+  index: number // 0-based
   sign: ZodiacKo
   ruler: AstroPlanetName
   startYear: number
@@ -64,9 +87,9 @@ export interface ZRPeriod {
  * start/end 는 본명 출생 기준 연 단위 (실수) 로 저장 — calendar 매핑은 birth + years.
  */
 export interface ZRSubPeriod {
-  level: ZRLevel        // 2 | 3 | 4
-  parentLevel: ZRLevel  // 1 | 2 | 3
-  index: number         // 0-based within parent
+  level: ZRLevel // 2 | 3 | 4
+  parentLevel: ZRLevel // 1 | 2 | 3
+  index: number // 0-based within parent
   sign: ZodiacKo
   ruler: AstroPlanetName
   startYear: number
@@ -87,7 +110,7 @@ export interface ZRSubPeriod {
  */
 export function calculateZodiacalReleasing(
   startSign: ZodiacKo,
-  yearsToProject: number = 90,
+  yearsToProject: number = 90
 ): ZRPeriod[] {
   const periods: ZRPeriod[] = []
   let currentSignIdx = ZODIAC_ORDER.indexOf(startSign)
@@ -96,7 +119,7 @@ export function calculateZodiacalReleasing(
   while (elapsedYears < yearsToProject) {
     const sign = ZODIAC_ORDER[currentSignIdx]
     const ruler = SIGN_RULERS[sign]
-    const duration = PLANET_YEARS[ruler]
+    const duration = periodYearsForSign(sign)
     if (duration <= 0) {
       // 외행성 ruler (modern)이면 skip — 다음 sign 으로
       currentSignIdx = (currentSignIdx + 1) % 12
@@ -119,33 +142,33 @@ export function calculateZodiacalReleasing(
 }
 
 const SIGN_CHAPTER_THEME: Record<ZodiacKo, string> = {
-  Aries:       '시작·개척·자기 발견의 챕터',
-  Taurus:      '안정·축적·뿌리 내림의 챕터',
-  Gemini:      '연결·학습·소통의 챕터',
-  Cancer:      '가정·정서·돌봄의 챕터',
-  Leo:         '자기 표현·창조·드러냄의 챕터',
-  Virgo:       '정밀·실무·다듬음의 챕터',
-  Libra:       '관계·균형·조율의 챕터',
-  Scorpio:     '심층 변환·위기 통과의 챕터',
+  Aries: '시작·개척·자기 발견의 챕터',
+  Taurus: '안정·축적·뿌리 내림의 챕터',
+  Gemini: '연결·학습·소통의 챕터',
+  Cancer: '가정·정서·돌봄의 챕터',
+  Leo: '자기 표현·창조·드러냄의 챕터',
+  Virgo: '정밀·실무·다듬음의 챕터',
+  Libra: '관계·균형·조율의 챕터',
+  Scorpio: '심층 변환·위기 통과의 챕터',
   Sagittarius: '확장·진리·먼 길의 챕터',
-  Capricorn:   '구조·책임·성취의 챕터',
-  Aquarius:    '혁신·집단·새 질서의 챕터',
-  Pisces:      '용해·연민·해체의 챕터',
+  Capricorn: '구조·책임·성취의 챕터',
+  Aquarius: '혁신·집단·새 질서의 챕터',
+  Pisces: '용해·연민·해체의 챕터',
 }
 
 const SIGN_CHAPTER_THEME_EN: Record<ZodiacKo, string> = {
-  Aries:       'a chapter of beginnings, initiative, and self-discovery',
-  Taurus:      'a chapter of stability, building, and putting down roots',
-  Gemini:      'a chapter of connection, learning, and communication',
-  Cancer:      'a chapter of home, feeling, and care',
-  Leo:         'a chapter of self-expression, creativity, and shining',
-  Virgo:       'a chapter of precision, craft, and refinement',
-  Libra:       'a chapter of relationship, balance, and harmony',
-  Scorpio:     'a chapter of deep change and passing through crisis',
+  Aries: 'a chapter of beginnings, initiative, and self-discovery',
+  Taurus: 'a chapter of stability, building, and putting down roots',
+  Gemini: 'a chapter of connection, learning, and communication',
+  Cancer: 'a chapter of home, feeling, and care',
+  Leo: 'a chapter of self-expression, creativity, and shining',
+  Virgo: 'a chapter of precision, craft, and refinement',
+  Libra: 'a chapter of relationship, balance, and harmony',
+  Scorpio: 'a chapter of deep change and passing through crisis',
   Sagittarius: 'a chapter of expansion, meaning, and the long road',
-  Capricorn:   'a chapter of structure, responsibility, and achievement',
-  Aquarius:    'a chapter of innovation, community, and new order',
-  Pisces:      'a chapter of dissolving, compassion, and letting go',
+  Capricorn: 'a chapter of structure, responsibility, and achievement',
+  Aquarius: 'a chapter of innovation, community, and new order',
+  Pisces: 'a chapter of dissolving, compassion, and letting go',
 }
 
 /**
@@ -199,7 +222,7 @@ function expandSubPeriods(args: {
   while (cursorYears < parentDurationYears && safety-- > 0) {
     const sign = ZODIAC_ORDER[currentSignIdx]
     const ruler = SIGN_RULERS[sign]
-    const durationUnits = PLANET_YEARS[ruler]
+    const durationUnits = periodYearsForSign(sign)
     if (durationUnits <= 0) {
       currentSignIdx = (currentSignIdx + 1) % 12
       continue
@@ -228,8 +251,8 @@ function expandSubPeriods(args: {
   return out
 }
 
-const UNIT_YEARS_L2 = 1 / 12          // ~30.4 days per month (avg)
-const UNIT_YEARS_L3 = 1 / 365.25      // 1 day
+const UNIT_YEARS_L2 = 1 / 12 // ~30.4 days per month (avg)
+const UNIT_YEARS_L3 = 1 / 365.25 // 1 day
 const UNIT_YEARS_L4 = 1 / (365.25 * 24) // 1 hour
 
 /**
@@ -278,7 +301,10 @@ export function calculateZRSubPeriodsL4(parent: ZRSubPeriod): ZRSubPeriod[] {
  * 임의 시점(나이, 연 단위 실수)의 활성 L2/L3/L4 sub-period 를 찾는다.
  * L1 → L2 → L3 → L4 순서로 좁혀가며 캘린더 일자별 신호 매핑에 사용.
  */
-export function getActiveZRSub(periods: ZRPeriod[], age: number): {
+export function getActiveZRSub(
+  periods: ZRPeriod[],
+  age: number
+): {
   l1?: ZRPeriod
   l2?: ZRSubPeriod
   l3?: ZRSubPeriod
@@ -308,7 +334,7 @@ export function getActiveZRSub(periods: ZRPeriod[], age: number): {
  */
 export function annotateZRMarkers(
   startSign: ZodiacKo,
-  periods: ZRPeriod[],
+  periods: ZRPeriod[]
 ): Array<ZRPeriod & { isPeak: boolean; isLoosingOfTheBond: boolean; offsetFromStart: number }> {
   const startIdx = ZODIAC_ORDER.indexOf(startSign)
   return periods.map((p) => {

@@ -41,8 +41,11 @@ jobs:
           echo "High vulnerabilities: $HIGH_VULNS"
           echo "Critical vulnerabilities: $CRITICAL_VULNS"
 
-          if [ "$CRITICAL_VULNS" -gt 0 ]; then
-            echo "::error::Critical vulnerabilities found!"
+          # high/critical 모두 차단. 예전엔 critical 만 exit 1 이라, 이름과 달리
+          # high 취약점(undici·nodemailer 등)이 프로덕션 트리에 무기한 남아도
+          # 게이트가 초록불이었다. prod-high 를 0 으로 정리한 뒤 실효화한다.
+          if [ "$CRITICAL_VULNS" -gt 0 ] || [ "$HIGH_VULNS" -gt 0 ]; then
+            echo "::error::High or critical vulnerabilities found in production dependencies!"
             exit 1
           fi
 

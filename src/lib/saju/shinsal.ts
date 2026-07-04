@@ -402,8 +402,23 @@ const HYEONCHIM_BY_STEM: Record<string, string> = {
   壬: '卯',
   癸: '卯',
 }
-function isHyeonchim(dayStem: string, branch: string): boolean {
-  return HYEONCHIM_BY_STEM[dayStem] === branch
+// 'your' 룰셋 현침 오버라이드(일간 辛 → 未). 예전엔 applyYourOverrides() 가
+// 모듈 전역 HYEONCHIM_BY_STEM 을 복원 없이 변이시켜, /api/saju 가 한 번
+// ruleSet:'your' 로 호출된 뒤엔 표준 룰 소비자(상담 컨텍스트·궁합 facts·
+// 캘린더 일진)까지 오염된 값을 읽어 같은 입력이 요청 순서에 따라 다른 결과를
+// 내는 결정론 위반이 있었다. 이제 전역을 건드리지 않고 read-time 에 ruleSet 로
+// 분기한다.
+const HYEONCHIM_BY_STEM_YOUR: Record<string, string> = {
+  ...HYEONCHIM_BY_STEM,
+  辛: '未',
+}
+function isHyeonchim(
+  dayStem: string,
+  branch: string,
+  ruleSet: 'standard' | 'your' = 'standard'
+): boolean {
+  const table = ruleSet === 'your' ? HYEONCHIM_BY_STEM_YOUR : HYEONCHIM_BY_STEM
+  return table[dayStem] === branch
 }
 // 고신(孤神): 월지 三合 그룹의 다음 지지
 //   寅卯辰 (春) → 巳    巳午未 (夏) → 申
@@ -919,16 +934,12 @@ export function getShinsalHitsForDailyTarget(
   return hits
 }
 
-/* your 룰 오버라이드 */
-function applyYourOverrides() {
-  const row = TWELVE_SHINSAL_BY_DAY_BRANCH['未']
-  if (row) {
-    row.장성 = '卯' // 시지 장성
-    row.화개 = '未' // 일지 화개
-    row.망신 = '寅' // 월지 망신
-  }
-  HYEONCHIM_BY_STEM['辛'] = '未' // 현침 오버라이드(일간 辛 → 未)
-}
+// 'your' 룰 오버라이드는 이제 read-time 분기로 처리한다:
+//  - 현침: isHyeonchim(dayStem, branch, ruleSet) 이 HYEONCHIM_BY_STEM_YOUR 참조.
+//  - 12신살 未-row 오버라이드: 런타임 12신살 계산은 SAMHAP_LEADER/
+//    TWELVE_BY_OFFSET_KO 를 쓰고 TWELVE_SHINSAL_BY_DAY_BRANCH 는 모듈 init 시점
+//    inverse-view 스냅샷에만 쓰여, 예전의 런타임 변이는 아무 소비자도 읽지 않는
+//    dead path 였다. 전역 변이(요청 순서 의존 결정론 위반)를 없애기 위해 제거.
 
 /* ===== 신살 계산 ===== */
 export function getShinsalHits(
@@ -936,9 +947,6 @@ export function getShinsalHits(
   options?: Partial<AnnotateOptions>
 ): ShinsalHit[] {
   const opt = { ...DEFAULT_ANNOTATE_OPTIONS, ...(options || {}) }
-  if (opt.ruleSet === 'your') {
-    applyYourOverrides()
-  }
 
   const hits: ShinsalHit[] = []
 
@@ -1010,7 +1018,7 @@ export function getShinsalHits(
         if (getGwimunOn(monthBranch, br, opt.ruleSet)) {
           hits.push({ kind: '귀문관', pillars: [kind], target: br })
         }
-        if (isHyeonchim(dayStem, br)) {
+        if (isHyeonchim(dayStem, br, opt.ruleSet)) {
           hits.push({ kind: '현침', pillars: [kind], target: br })
         }
         if (isGosin(monthBranch, br)) {
@@ -1312,9 +1320,6 @@ export function getTwelveShinsalSingleByPillar(
   options?: Partial<AnnotateOptions>
 ): { year: string; month: string; day: string; time: string } {
   const opt = { ...DEFAULT_ANNOTATE_OPTIONS, ...(options || {}) }
-  if (opt.ruleSet === 'your') {
-    applyYourOverrides()
-  }
 
   const dayBranch = normalizeBranchName(p.day.earthlyBranch.name)
   const monthBranch = normalizeBranchName(p.month.earthlyBranch.name)

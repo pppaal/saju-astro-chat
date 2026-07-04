@@ -7,7 +7,7 @@
 //  - getActiveZRSub 부분 체인 ({l1} / {l1,l2} 반환)
 //  - expandSubPeriods 의 parentIdx<0 (잘못된 sign → 빈 배열)
 //  - annotateZRMarkers 의 offset 계산 모든 arm (2~12)
-//  - Saturn(27)/Jupiter(12) 등 ruler 별 duration 분기
+//  - 별자리별 duration (Capricorn 27 예외 vs Aquarius 30) / Jupiter(12) 등
 import { describe, it, expect } from 'vitest'
 import {
   calculateZodiacalReleasing,
@@ -44,6 +44,26 @@ describe('zodiacalReleasing — 미커버 분기', () => {
       const pisces = calculateZodiacalReleasing('Pisces', 30)[0]
       expect(pisces.ruler).toBe('Jupiter')
       expect(pisces.durationYears).toBe(12)
+    })
+
+    it('Aquarius L1 은 30년, Capricorn 은 27년 (Valens 예외) — 같은 Saturn 지배라도 다름', () => {
+      // 회귀 가드: 예전엔 ruler(Saturn) 기준으로 둘 다 27 이라 Aquarius L1 이후
+      // 전 챕터 경계가 3년씩 당겨졌다. period 길이는 별자리 단위여야 한다.
+      const aqua = calculateZodiacalReleasing('Aquarius', 30)[0]
+      expect(aqua.ruler).toBe('Saturn')
+      expect(aqua.durationYears).toBe(30)
+
+      const cap = calculateZodiacalReleasing('Capricorn', 30)[0]
+      expect(cap.ruler).toBe('Saturn')
+      expect(cap.durationYears).toBe(27)
+    })
+
+    it('Aquarius→Pisces 전이 시 다음 챕터가 30년 뒤에 시작 (경계 카스케이드 정합)', () => {
+      const periods = calculateZodiacalReleasing('Aquarius', 45)
+      expect(periods[0].sign).toBe('Aquarius')
+      expect(periods[0].endYear).toBe(30)
+      expect(periods[1].sign).toBe('Pisces')
+      expect(periods[1].startYear).toBe(30)
     })
   })
 

@@ -1,423 +1,147 @@
+/**
+ * 크레딧 팩 체크아웃 — 머니패스 크리티컬 플로우.
+ *
+ * 이 제품은 구독이 없다(크레딧 팩 단건 결제 전용, src/lib/config/pricing.ts).
+ * 예전 버전은 구독 모델 기준 + `expect([200, 401, 403])` 식 광폭 단언이라
+ * 인증이 깨져도 통과했다. 여기서는 로그인/DB 없이도 결정적인 것만 강하게
+ * 단언한다:
+ *
+ *  - 비로그인 POST /api/checkout 은 *어떤 입력이든* 세션 URL 을 발급하지
+ *    않는다 (401 — auth 가드가 validation 보다 앞).
+ *  - Origin/Referer 없는 cross-site 형태 요청도 발급 불가 (CSRF 403 또는
+ *    auth 401 — 서버 모드에 따라 갈리지만 "url 미발급"은 불변식).
+ *  - /pricing 은 SSOT 5팩 그리드(mini~ultimate)를 렌더하고 starter(첫구매
+ *    임펄스 팩)는 그리드에 없다.
+ *  - 비로그인 구매 클릭 → 로그인 모달 (Stripe 로 새지 않음).
+ */
 import { test, expect } from '@playwright/test'
-import { TestHelpers } from '../fixtures/test-helpers'
 
-test.describe('Stripe Checkout Payment Flow', () => {
-  let helpers: TestHelpers
+// /pricing 그리드의 SSOT 팩 목록 (src/lib/config/pricing.ts 와 동기 —
+// PricingPageClient.tsx 의 creditPacks 배열이 같은 목록을 렌더한다).
+const GRID_PACKS = ['mini', 'standard', 'plus', 'mega', 'ultimate'] as const
 
-  test.beforeEach(async ({ page }) => {
-    helpers = new TestHelpers(page)
-  })
-
-  test('should create checkout session for subscription', async ({ page }) => {
-    // Test checkout API with subscription
+test.describe('Credit-pack checkout — auth wall (API)', () => {
+  test('unauthenticated checkout is rejected with 401 and never returns a session URL', async ({
+    page,
+    baseURL,
+  }) => {
     const response = await page.request.post('/api/checkout', {
-      data: {
-        plan: 'premium',
-        billingCycle: 'monthly',
-      },
+      data: { creditPack: 'standard' },
+      // same-origin Origin 을 명시해 CSRF 가드를 통과시키고, 순수하게
+      // auth 가드만 검증한다 (dev/prod 서버 모두 동일 결과).
+      headers: { origin: baseURL! },
       timeout: 30000,
     })
 
-    // Should return checkout URL or require authentication
-    expect([200, 401, 403]).toContain(response.status())
-
-    if (response.ok()) {
-      const data = await response.json()
-      expect(data).toHaveProperty('url')
-      expect(data.url).toContain('stripe')
-    }
+    expect(response.status()).toBe(401)
+    const body = await response.json().catch(() => ({}))
+    expect(body).not.toHaveProperty('url')
   })
 
-  test('should create checkout session for credit pack', async ({ page }) => {
-    const response = await page.request.post('/api/checkout', {
-      data: {
-        creditPack: 'standard',
-      },
-      timeout: 30000,
-    })
-
-    expect([200, 401, 403]).toContain(response.status())
-
-    if (response.ok()) {
-      const data = await response.json()
-      expect(data).toHaveProperty('url')
-      expect(data.url).toContain('stripe')
-    }
-  })
-
-  test('should validate plan and billingCycle parameters', async ({ page }) => {
-    const response = await page.request.post('/api/checkout', {
-      data: {
-        plan: 'invalid_plan',
-        billingCycle: 'monthly',
-      },
-      timeout: 30000,
-    })
-
-    // Should reject invalid plan
-    expect([400, 401, 422]).toContain(response.status())
-  })
-
-  test('should reject empty checkout request', async ({ page }) => {
-    const response = await page.request.post('/api/checkout', {
-      data: {},
-      timeout: 30000,
-    })
-
-    expect([400, 401, 422]).toContain(response.status())
-  })
-
-  test('should handle monthly vs yearly billing cycle', async ({ page }) => {
-    const monthlyResponse = await page.request.post('/api/checkout', {
-      data: {
-        plan: 'premium',
-        billingCycle: 'monthly',
-      },
-      timeout: 30000,
-    })
-
-    const yearlyResponse = await page.request.post('/api/checkout', {
-      data: {
-        plan: 'premium',
-        billingCycle: 'yearly',
-      },
-      timeout: 30000,
-    })
-
-    // Both should succeed or require auth
-    expect([200, 401, 403]).toContain(monthlyResponse.status())
-    expect([200, 401, 403]).toContain(yearlyResponse.status())
-  })
-
-  test('should validate credit pack types', async ({ page }) => {
-    const validPacks = ['mini', 'standard', 'plus', 'mega', 'ultimate']
-
-    for (const pack of validPacks) {
+  test('every valid pack id is equally rejected when unauthenticated', async ({
+    page,
+    baseURL,
+  }) => {
+    for (const pack of GRID_PACKS) {
       const response = await page.request.post('/api/checkout', {
-        data: {
-          creditPack: pack,
-        },
+        data: { creditPack: pack },
+        headers: { origin: baseURL! },
         timeout: 30000,
       })
-
-      // Should accept valid pack or require auth
-      expect([200, 401, 403]).toContain(response.status())
+      expect(response.status(), `pack=${pack}`).toBe(401)
+      const body = await response.json().catch(() => ({}))
+      expect(body, `pack=${pack} leaked a checkout URL`).not.toHaveProperty('url')
     }
   })
 
-  test('should reject invalid credit pack', async ({ page }) => {
+  test('request without Origin/Referer cannot mint a checkout session (CSRF or auth wall)', async ({
+    page,
+  }) => {
     const response = await page.request.post('/api/checkout', {
-      data: {
-        creditPack: 'invalid_pack',
-      },
+      data: { creditPack: 'standard' },
       timeout: 30000,
     })
 
-    expect([400, 401, 422]).toContain(response.status())
-  })
-
-  test('should handle idempotency key in headers', async ({ page }) => {
-    const idempotencyKey = `test-${Date.now()}`
-
-    const response1 = await page.request.post('/api/checkout', {
-      data: {
-        plan: 'premium',
-        billingCycle: 'monthly',
-      },
-      headers: {
-        'x-idempotency-key': idempotencyKey,
-      },
-      timeout: 30000,
-    })
-
-    const response2 = await page.request.post('/api/checkout', {
-      data: {
-        plan: 'premium',
-        billingCycle: 'monthly',
-      },
-      headers: {
-        'x-idempotency-key': idempotencyKey,
-      },
-      timeout: 30000,
-    })
-
-    // Both requests with same idempotency key should succeed
-    expect([200, 401, 403]).toContain(response1.status())
-    expect([200, 401, 403]).toContain(response2.status())
-
-    // If both succeeded, they should return the same checkout URL
-    if (response1.ok() && response2.ok()) {
-      const data1 = await response1.json()
-      const data2 = await response2.json()
-      expect(data1.url).toBe(data2.url)
-    }
-  })
-
-  test('should redirect to Stripe checkout page from UI', async ({ page }) => {
-    await page.goto('/pricing', { waitUntil: 'domcontentloaded' })
-    await page.waitForTimeout(2000)
-
-    const purchaseButton = page
-      .locator(
-        'button:has-text("구독"), button:has-text("Subscribe"), button:has-text("시작"), button:has-text("구매"), button:has-text("Purchase")'
-      )
-      .first()
-
-    if (await purchaseButton.isVisible({ timeout: 3000 }).catch(() => false)) {
-      // Store current URL
-      const beforeUrl = page.url()
-
-      await purchaseButton.click()
-      await page.waitForTimeout(3000)
-
-      const afterUrl = page.url()
-      const bodyText = await page.textContent('body')
-
-      // Should either redirect to checkout, show payment modal, or require login
-      const isCheckoutFlow =
-        afterUrl.includes('checkout') ||
-        afterUrl.includes('stripe') ||
-        afterUrl !== beforeUrl ||
-        bodyText?.includes('결제') ||
-        bodyText?.includes('payment') ||
-        bodyText?.includes('로그인')
-
-      expect(isCheckoutFlow).toBe(true)
-    }
-  })
-
-  test('should display credit pack purchase options', async ({ page }) => {
-    await page.goto('/pricing', { waitUntil: 'domcontentloaded' })
-    await page.waitForTimeout(2000)
-
-    const bodyText = await page.textContent('body')
-
-    // Should show various credit pack options
-    const hasPackOptions =
-      bodyText?.includes('5') ||
-      bodyText?.includes('15') ||
-      bodyText?.includes('40') ||
-      bodyText?.includes('100') ||
-      bodyText?.includes('크레딧') ||
-      bodyText?.includes('credit')
-
-    expect(hasPackOptions).toBe(true)
-  })
-
-  test('should handle success redirect from Stripe', async ({ page }) => {
-    await page.goto('/success?session_id=test_session_123', {
-      waitUntil: 'domcontentloaded',
-    })
-
-    await page.waitForTimeout(2000)
-
-    const bodyText = await page.textContent('body')
-
-    // Success page should show confirmation or thank you message
-    const hasSuccessMessage =
-      bodyText?.includes('성공') ||
-      bodyText?.includes('success') ||
-      bodyText?.includes('감사') ||
-      bodyText?.includes('thank') ||
-      bodyText?.includes('완료') ||
-      bodyText?.includes('complete') ||
-      bodyText?.includes('구독') ||
-      bodyText?.includes('subscription')
-
-    expect(hasSuccessMessage).toBe(true)
-  })
-
-  test('should handle cancel redirect from Stripe', async ({ page }) => {
-    await page.goto('/pricing?canceled=true', {
-      waitUntil: 'domcontentloaded',
-    })
-
-    await page.waitForTimeout(2000)
-
-    // Should return to pricing page
-    expect(page.url()).toContain('/pricing')
-    await expect(page.locator('body')).toBeVisible()
-  })
-
-  test('should validate email before checkout', async ({ page }) => {
-    // Checkout requires valid email from session
-    const response = await page.request.post('/api/checkout', {
-      data: {
-        plan: 'premium',
-        billingCycle: 'monthly',
-      },
-      timeout: 30000,
-    })
-
-    // Should either succeed with valid session or return auth error
-    expect([200, 400, 401, 403]).toContain(response.status())
-  })
-
-  test('should enforce rate limiting on checkout endpoint', async ({ page }) => {
-    const requests = []
-
-    // Make 10 rapid checkout requests
-    for (let i = 0; i < 10; i++) {
-      requests.push(
-        page.request.post('/api/checkout', {
-          data: {
-            plan: 'premium',
-            billingCycle: 'monthly',
-          },
-          timeout: 30000,
-        })
-      )
-    }
-
-    const responses = await Promise.all(requests)
-    const statuses = responses.map((r) => r.status())
-
-    // Some requests should succeed, others might be rate limited
-    const hasRateLimit = statuses.some((s) => s === 429)
-    const hasSuccess = statuses.some((s) => [200, 401, 403].includes(s))
-
-    // At least verify the endpoint responds to all requests
-    expect(statuses.length).toBe(10)
-  })
-
-  test('should handle promotional codes in checkout', async ({ page }) => {
-    await page.goto('/pricing', { waitUntil: 'domcontentloaded' })
-    await page.waitForTimeout(2000)
-
-    // Look for promo code input
-    const promoInput = page
-      .locator(
-        'input[placeholder*="프로모"], input[placeholder*="promo"], input[placeholder*="coupon"], input[name*="promo"]'
-      )
-      .first()
-
-    if (await promoInput.isVisible({ timeout: 3000 }).catch(() => false)) {
-      await promoInput.fill('TEST_PROMO')
-      await page.waitForTimeout(1000)
-
-      // Check if promo code is applied
-      const bodyText = await page.textContent('body')
-      expect(bodyText).toBeTruthy()
-    }
-  })
-
-  test('should display different plan options', async ({ page }) => {
-    await page.goto('/pricing', { waitUntil: 'domcontentloaded' })
-    await page.waitForTimeout(2000)
-
-    const bodyText = await page.textContent('body')
-
-    // Should show multiple plan tiers
-    const hasMultiplePlans =
-      (bodyText?.includes('무료') || bodyText?.includes('Free')) &&
-      (bodyText?.includes('프리미엄') || bodyText?.includes('Premium'))
-
-    expect(hasMultiplePlans).toBe(true)
-  })
-
-  test('should show pricing in correct currency', async ({ page }) => {
-    await page.goto('/pricing', { waitUntil: 'domcontentloaded' })
-    await page.waitForTimeout(2000)
-
-    const bodyText = await page.textContent('body')
-
-    // Should display currency symbols
-    const hasCurrency =
-      bodyText?.includes('₩') ||
-      bodyText?.includes('$') ||
-      bodyText?.includes('원') ||
-      /\d+,\d+/.test(bodyText || '')
-
-    expect(hasCurrency).toBe(true)
-  })
-
-  test('should highlight recommended plan', async ({ page }) => {
-    await page.goto('/pricing', { waitUntil: 'domcontentloaded' })
-    await page.waitForTimeout(2000)
-
-    const bodyText = await page.textContent('body')
-
-    // Look for "recommended" or "popular" badge
-    const hasRecommendation =
-      bodyText?.includes('추천') ||
-      bodyText?.includes('인기') ||
-      bodyText?.includes('recommended') ||
-      bodyText?.includes('popular') ||
-      bodyText?.includes('best')
-
-    // Recommendation badge is optional
-    expect(typeof hasRecommendation).toBe('boolean')
-  })
-
-  test('should handle unauthenticated checkout attempt', async ({ page }) => {
-    // Clear session
-    await helpers.clearSession()
-
-    const response = await page.request.post('/api/checkout', {
-      data: {
-        plan: 'premium',
-        billingCycle: 'monthly',
-      },
-      timeout: 30000,
-    })
-
-    // Should require authentication
+    // dev 서버(localhost 허용)는 auth 401, prod 서버는 CSRF 403 — 어느 쪽이든
+    // 거부여야 하고, 성공(2xx)이나 URL 발급은 절대 불가.
     expect([401, 403]).toContain(response.status())
+    const body = await response.json().catch(() => ({}))
+    expect(body).not.toHaveProperty('url')
   })
 
-  test('should prevent duplicate subscription purchases', async ({ page }) => {
-    const isPremium = await helpers.checkPremiumStatus()
-
-    if (isPremium) {
-      // Try to purchase another subscription
-      const response = await page.request.post('/api/checkout', {
-        data: {
-          plan: 'premium',
-          billingCycle: 'monthly',
-        },
-        timeout: 30000,
-      })
-
-      // Should either allow (for upgrade) or show as already subscribed
-      expect([200, 400, 401, 403]).toContain(response.status())
-    }
-  })
-
-  test('should track checkout session creation', async ({ page }) => {
+  test('invalid pack id is rejected (never 2xx)', async ({ page, baseURL }) => {
     const response = await page.request.post('/api/checkout', {
-      data: {
-        plan: 'premium',
-        billingCycle: 'monthly',
-      },
+      data: { creditPack: 'invalid_pack' },
+      headers: { origin: baseURL! },
       timeout: 30000,
     })
 
-    if (response.ok()) {
-      const data = await response.json()
-
-      // Verify checkout URL structure
-      expect(data.url).toBeTruthy()
-      if (data.url) {
-        expect(typeof data.url).toBe('string')
-        expect(data.url.length).toBeGreaterThan(10)
-      }
-    }
+    // 비로그인이라 auth(401)가 validation(400)보다 먼저 걸린다. 로그인 상태
+    // validation 은 유닛 테스트(zodValidation)가 커버.
+    expect(response.status()).toBe(401)
   })
 
-  test('should include metadata in checkout session', async ({ page }) => {
-    // This tests that the API includes necessary metadata
-    // The actual metadata is verified via Stripe webhook handlers
+  test('legacy subscription-shaped payload is not accepted', async ({ page, baseURL }) => {
+    // 제거된 구독 모델의 페이로드가 다시 통하게 되는 회귀 방지.
     const response = await page.request.post('/api/checkout', {
-      data: {
-        plan: 'premium',
-        billingCycle: 'yearly',
-      },
+      data: { plan: 'premium', billingCycle: 'monthly' },
+      headers: { origin: baseURL! },
       timeout: 30000,
     })
 
-    if (response.ok()) {
-      const data = await response.json()
-      expect(data.url).toBeTruthy()
+    expect(response.ok()).toBe(false)
+    const body = await response.json().catch(() => ({}))
+    expect(body).not.toHaveProperty('url')
+  })
+})
+
+test.describe('Credit-pack checkout — pricing page (UI)', () => {
+  test('renders the 5-pack SSOT grid, and starter is not in the grid', async ({ page }) => {
+    await page.goto('/pricing', { waitUntil: 'domcontentloaded' })
+
+    for (const pack of GRID_PACKS) {
+      await expect(page.getByTestId(`buy-pack-${pack}`)).toBeVisible({ timeout: 15000 })
     }
+    // starter 는 첫구매 전용 임펄스 팩 — /pricing 그리드에서 제외 (pricing.ts).
+    await expect(page.getByTestId('buy-pack-starter')).toHaveCount(0)
+  })
+
+  test('shows credit wording and currency (no subscription copy as the model)', async ({
+    page,
+  }) => {
+    await page.goto('/pricing', { waitUntil: 'domcontentloaded' })
+    await expect(page.getByTestId(`buy-pack-mini`)).toBeVisible({ timeout: 15000 })
+
+    const bodyText = (await page.textContent('body')) ?? ''
+    expect(bodyText).toMatch(/크레딧|credit/i)
+    expect(bodyText).toMatch(/₩|\$|원/)
+  })
+
+  test('guest buy click opens the login modal instead of leaking to Stripe', async ({ page }) => {
+    await page.goto('/pricing', { waitUntil: 'domcontentloaded' })
+
+    // 동의 배너는 클라이언트에서만 렌더된다 — 노출 = React 하이드레이션 완료.
+    // SSR 버튼에 하이드레이션 전 클릭이 나가면 핸들러가 없어 모달이 안 뜨는
+    // 레이스가 있어, 배너를 하이드레이션 신호로 기다렸다가 닫고 클릭한다.
+    const consent = page.getByRole('dialog', { name: /Help us improve|서비스 사용 분석 동의/ })
+    await expect(consent).toBeVisible({ timeout: 15000 })
+    await consent.getByRole('button', { name: /^(OK|동의)$/ }).click()
+
+    const buyButton = page.getByTestId('buy-pack-standard')
+    await expect(buyButton).toBeVisible({ timeout: 15000 })
+    await buyButton.click()
+
+    // 비로그인 → LoginRequiredModal. aria-label 은 로케일별(ko '로그인 필요' /
+    // en 'Sign in required') — consent 배너도 role=dialog 라 이름으로 좁힌다.
+    await expect(page.getByRole('dialog', { name: /로그인 필요|Sign in required/ })).toBeVisible({
+      timeout: 10000,
+    })
+    expect(page.url()).not.toContain('stripe')
+  })
+
+  test('cancel redirect from Stripe returns to pricing', async ({ page }) => {
+    await page.goto('/pricing?canceled=true', { waitUntil: 'domcontentloaded' })
+    expect(page.url()).toContain('/pricing')
+    await expect(page.getByTestId('buy-pack-mini')).toBeVisible({ timeout: 15000 })
   })
 })

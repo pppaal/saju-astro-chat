@@ -13,6 +13,8 @@ const mockCreate = vi.fn()
 const mockUpdate = vi.fn()
 const mockPersonaUpsert = vi.fn()
 const mockPersonaFindUnique = vi.fn()
+const mockExecuteRaw = vi.fn()
+const mockIsSessionDeleted = vi.fn()
 
 vi.mock('@/lib/db/prisma', () => ({
   prisma: {
@@ -26,7 +28,13 @@ vi.mock('@/lib/db/prisma', () => ({
       findUnique: (...a: unknown[]) => mockPersonaFindUnique(...a),
       upsert: (...a: unknown[]) => mockPersonaUpsert(...a),
     },
+    $executeRaw: (...a: unknown[]) => mockExecuteRaw(...a),
   },
+}))
+
+vi.mock('@/lib/counselor/sessionTombstone', () => ({
+  isCounselorSessionDeleted: (...a: unknown[]) => mockIsSessionDeleted(...a),
+  markCounselorSessionDeleted: vi.fn(),
 }))
 
 vi.mock('@/lib/api/middleware', () => ({
@@ -62,6 +70,10 @@ beforeEach(() => {
   mockUpdate.mockReset()
   mockPersonaUpsert.mockReset()
   mockPersonaFindUnique.mockReset()
+  mockExecuteRaw.mockReset()
+  mockExecuteRaw.mockResolvedValue(1)
+  mockIsSessionDeleted.mockReset()
+  mockIsSessionDeleted.mockResolvedValue(false)
 })
 
 describe('POST /api/counselor/chat-history — compat type', () => {
@@ -130,13 +142,9 @@ describe('POST /api/counselor/chat-history — compat type', () => {
     expect(mockPersonaUpsert).not.toHaveBeenCalled()
   })
 
-  it('updates existing compat session without touching persona memory', async () => {
-    mockFindFirst.mockResolvedValue({
-      id: 'cm_compat_existing',
-      type: 'compat',
-      messages: [{ role: 'user', content: '이전 질문' }],
-    })
-    mockUpdate.mockResolvedValue({ id: 'cm_compat_existing' })
+  it('updates existing compat session via atomic append without touching persona memory', async () => {
+    // 업데이트 경로는 이제 원자적 jsonb concat($executeRaw). 1행 = append 성공.
+    mockExecuteRaw.mockResolvedValue(1)
 
     const res = await POST(
       jsonRequest('POST', {
@@ -148,7 +156,8 @@ describe('POST /api/counselor/chat-history — compat type', () => {
       })
     )
     expect(res.status).toBe(200)
-    expect(mockUpdate).toHaveBeenCalled()
+    expect(mockExecuteRaw).toHaveBeenCalled()
+    expect(mockUpdate).not.toHaveBeenCalled()
     expect(mockPersonaUpsert).not.toHaveBeenCalled()
   })
 

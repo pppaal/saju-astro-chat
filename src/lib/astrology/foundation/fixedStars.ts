@@ -227,7 +227,7 @@ const FIXED_STARS: FixedStar[] = [
   {
     name: 'Deneb Algedi',
     name_ko: '데네브 알게디 (염소 꼬리)',
-    longitude: 293.49, // 23 Aquarius 33
+    longitude: 323.55, // 23 Aquarius 33 (= 300 + 23°33'). 사인 1개 어긋남 정정(Deneb Algedi).
     magnitude: 2.87,
     nature: 'Saturn/Jupiter',
     constellation: 'Capricornus',
@@ -248,7 +248,9 @@ const FIXED_STARS: FixedStar[] = [
   {
     name: 'Dubhe',
     name_ko: '두베 (곰의 등)',
-    longitude: 105.24, // 15 Leo 12
+    longitude: 135.2, // 15 Leo 12 (= 120 + 15°12'). A3 fix 후속: 값이 주석/실제
+    // J2000 위치보다 정확히 한 사인(30°) 낮은 15 Cancer 로 박혀 있어 orb 1° 합을
+    // 놓치고 한 사인 떨어진 행성에 가짜 합을 냈다(Dubhe).
     magnitude: 1.79,
     nature: 'Mars',
     constellation: 'Ursa Major',
@@ -437,7 +439,7 @@ const FIXED_STARS: FixedStar[] = [
   {
     name: 'Acubens',
     name_ko: '아쿠벤스 (집게)',
-    longitude: 103.53, // 13 Leo 38
+    longitude: 133.63, // 13 Leo 38 (= 120 + 13°38'). 사인 1개 어긋남 정정(Acubens).
     magnitude: 4.25,
     nature: 'Saturn/Mercury',
     constellation: 'Cancer',
@@ -448,7 +450,7 @@ const FIXED_STARS: FixedStar[] = [
   {
     name: 'Zubeneschamali',
     name_ko: '주베네스카말리 (북쪽 집게)',
-    longitude: 199.17, // 19 Scorpio 22
+    longitude: 229.37, // 19 Scorpio 22 (= 210 + 19°22'). 사인 1개 어긋남 정정(Zubeneschamali).
     magnitude: 2.61,
     nature: 'Jupiter/Mercury',
     constellation: 'Libra',
@@ -458,7 +460,7 @@ const FIXED_STARS: FixedStar[] = [
   {
     name: 'Zubenelgenubi',
     name_ko: '주베넬게누비 (남쪽 집게)',
-    longitude: 195.07, // 15 Scorpio 05
+    longitude: 225.08, // 15 Scorpio 05 (= 210 + 15°05'). 사인 1개 어긋남 정정(Zubenelgenubi).
     magnitude: 2.75,
     nature: 'Saturn/Mars',
     constellation: 'Libra',

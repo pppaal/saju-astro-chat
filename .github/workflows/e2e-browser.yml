@@ -59,8 +59,10 @@ jobs:
         run: npm run test:e2e:wait
         timeout-minutes: 3
 
-      - name: Run public smoke suite (CI config)
-        run: npx playwright test --config=playwright.ci.config.ts e2e/public-pages-smoke.spec.ts --project=${{ matrix.browser }}
+      - name: Run public smoke suite + checkout money-path (CI config)
+        # 09-stripe-checkout-flow 는 로그인/DB 없이 결정적(auth wall 401,
+        # SSOT 팩 그리드, 게스트 로그인 모달) — 머니패스 최소 게이트.
+        run: npx playwright test --config=playwright.ci.config.ts e2e/public-pages-smoke.spec.ts e2e/critical-flows/09-stripe-checkout-flow.spec.ts --project=${{ matrix.browser }}
         env:
           PLAYWRIGHT_BASE_URL: http://localhost:3000
           DEMO_TOKEN: ${{ secrets.DEMO_TOKEN || 'demo-test-token' }}

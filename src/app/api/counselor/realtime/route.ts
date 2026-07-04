@@ -17,6 +17,7 @@ import { logger } from '@/lib/logger'
 import { containsForbidden, safetyMessage } from '@/lib/textGuards'
 import { isSelfHarm, crisisMessage } from '@/lib/safety/crisis'
 import { csrfGuard } from '@/lib/security/csrf'
+import { enforceBodySize } from '@/lib/http'
 import { rateLimit } from '@/lib/rateLimit'
 import { canUseCredits, consumeCredits } from '@/lib/credits/creditService'
 import { createIdempotencyStore, idemContentTag } from '@/lib/api/idempotency'
@@ -152,7 +153,14 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  // 3) Parse body
+  // 3) Parse body — 이 라우트는 withApiMiddleware 를 우회하므로 body-size 캡을
+  // 직접 건다. 없으면 req.json() 이 임의 크기 본문을 메모리에 통째로 버퍼링해
+  // 메모리 DoS + Anthropic 비용 폭증 벡터가 된다. 1MB: 긴 상담 히스토리(스키마
+  // 상 최대 400턴 × 20KB 는 이론상 8MB 지만 실제 세션은 수백 KB 수준)를 넉넉히
+  // 담으면서 폭주는 막는 선.
+  const tooLarge = enforceBodySize(req, 1024 * 1024)
+  if (tooLarge) return tooLarge
+
   let body: RealtimeBody
   try {
     body = (await req.json()) as RealtimeBody

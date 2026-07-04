@@ -71,10 +71,10 @@ full gate list.
 
 ```
 src/
-  app/                 Next.js App Router — pages + 76 API route handlers (api/**/route.ts)
+  app/                 Next.js App Router — pages + ~100 API route handlers (api/**/route.ts; exact list: docs/reference/api-routes.md)
   components/          React UI
   lib/
-    saju/              Saju four-pillars engine (deterministic) — 39 files
+    saju/              Saju four-pillars engine (deterministic) — ~50 files
     astrology/         Western astrology; foundation/ wraps Swiss Ephemeris
     calendar-engine/   "운흐름" timing calendar (extractors → derivers)
     cross/             Saju × astrology fusion (pure)
@@ -89,7 +89,7 @@ src/
     config/            pricing.ts (SSOT for credit packs) + other constants
 docs/                  canonical docs — start at docs/DOCS_INDEX.md
 prisma/                schema (24 models) + migrations
-tests/ e2e/            ~548 test files; e2e/critical-flows are the money paths
+tests/ e2e/            ~730 test files; e2e/critical-flows are the money paths
 ```
 
 `docs/REPO_STRUCTURE.md` defines source-vs-generated boundaries.

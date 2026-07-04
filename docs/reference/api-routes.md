@@ -64,7 +64,7 @@ status: auto-generated
 | `/api/compatibility/counselor`          | POST               |
 | `/api/compatibility/counselor/result`   | GET                |
 | `/api/compatibility/report`             | POST               |
-| `/api/compatibility/share`              | POST               |
+| `/api/compatibility/share`              | GET, POST          |
 | `/api/counselor/chat-history`           | GET, POST, PATCH   |
 | `/api/counselor/realtime`               | POST               |
 | `/api/counselor/realtime/result`        | GET                |
