@@ -325,8 +325,13 @@ export function deriveDayDeepRead(args: DayDeepReadArgs): { ko: string; en: stri
     en.push(hour.en(args.peakHour.whenEn))
   }
 
-  // 6) 톤 마무리.
-  const close = pickBySeed(TONE_CLOSE[args.tone], seed, ROLE.close)
+  // 6) 톤 마무리. 본문에 우호(lift)와 충돌(drag)이 *둘 다* 실렸으면, 한쪽만
+  //    가리키는 positive/caution 마무리는 본문과 어긋난다(예: caution 인데 lift 가
+  //    "두 결이 힘을 보탠다"고 해놓고 닫는 문장은 "큰 결정 다 미뤄라"). 양쪽이 다
+  //    있으면 두 결을 함께 안는 mixed 마무리("나아갈 곳엔 빠르게, 부딪칠 곳엔
+  //    천천히")로 닫아 문단 내 자기모순을 없앤다 — 화해된 판정 톤(헤드라인)은 불변.
+  const closeTone: DeepReadTone = pos && neg ? 'mixed' : args.tone
+  const close = pickBySeed(TONE_CLOSE[closeTone], seed, ROLE.close)
   ko.push(close.ko)
   en.push(close.en)
 

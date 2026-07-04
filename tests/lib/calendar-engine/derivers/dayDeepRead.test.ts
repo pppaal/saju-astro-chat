@@ -74,6 +74,37 @@ describe('deriveDayDeepRead', () => {
     expect(r.ko).toContain('서두르지 말고')
   })
 
+  it('closes with the mixed line when both a lift and a clash are present, even if tone=caution', () => {
+    // 본문에 우호(lift)와 충돌(drag)이 둘 다 실린 날은, caution 톤이어도 "다 미뤄라"
+    // 식 한쪽 마무리로 닫으면 lift 문장과 자기모순이다. 양쪽이 있으면 mixed 마무리로.
+    const r = deriveDayDeepRead({
+      ...base,
+      tone: 'caution',
+      crosses: [
+        { sajuKo: '정재', astroKo: '금성', polarity: 2 }, // 우호(lift)
+        { sajuKo: '편관', astroKo: '화성', polarity: -2 }, // 충돌(drag)
+      ],
+    })
+    // 본문엔 우호·충돌 두 결이 모두 있다.
+    expect(r.ko).toContain('돈·안정 × 사랑·돈')
+    expect(r.ko).toContain('일·도전 × 추진·마찰')
+    // 마무리는 mixed(둘 다 안는) 문장 — caution "미뤄두세요" 마무리가 아니다.
+    expect(r.ko).toContain('나아갈 곳엔')
+    expect(r.ko).not.toContain('서두르지 말고')
+    expect(r.en).toContain('Move fast where it opens')
+  })
+
+  it('keeps the caution close when only a clash is present (no contradiction)', () => {
+    const r = deriveDayDeepRead({
+      ...base,
+      tone: 'caution',
+      crosses: [{ sajuKo: '편관', astroKo: '화성', polarity: -2 }],
+    })
+    // 우호 없음 → 톤 그대로 caution 마무리.
+    expect(r.ko).toContain('서두르지 말고')
+    expect(r.ko).not.toContain('나아갈 곳엔')
+  })
+
   it('is deterministic — same input yields identical output', () => {
     const args = {
       ...base,

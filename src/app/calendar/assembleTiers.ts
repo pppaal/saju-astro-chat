@@ -20,8 +20,9 @@ import { isMinorAge, minorSafeText, sanitizeCrossEntry } from '@/lib/calendar-en
 import { deriveMonthSummary } from '@/lib/calendar-engine/derivers/monthSummary'
 import { personSeed } from '@/lib/calendar-engine/derivers/personSeed'
 import { deriveLayeredScores } from '@/lib/calendar-engine/derivers/layeredScore'
+import { CALENDAR_BANDS } from '@/lib/calendar-engine/derivers/constants'
 import { computeDayPillarIndices } from '@/lib/saju/dayPillar'
-import { getMonthPillarForDate } from '@/lib/saju/datePillars'
+import { getMonthPillarForDate, getYearPillarForDate } from '@/lib/saju/datePillars'
 import { STEM_NAMES, BRANCH_NAMES } from '@/lib/saju/constants'
 import { getSibsinKo } from '@/lib/saju/cycleRelations'
 
@@ -182,6 +183,27 @@ function dedupeByBody<T extends { body: string }>(rows: T[]): T[] {
     out.push(r)
   }
   return out
+}
+
+/**
+ * 다가오는 '큰 날' — upcoming(오늘 다음날~7일, 일점수) 중 '좋은 날'(score≥65)의
+ * 최고점을 골라 D-day 로 라벨한다. 재방문 유인용(오늘만 보고 이탈하지 않게 다음
+ * 방문 이유 제공). 조건 미달이면 null. 순수 함수 — 테스트 가능하게 분리.
+ */
+export function pickNextBigDay(
+  upcoming: ReadonlyArray<{ date: string; score: number }>,
+  targetDayIso: string
+): { date: string; dDay: number; score: number } | null {
+  if (!upcoming.length) return null
+  const best = upcoming.reduce((a, b) => (b.score > a.score ? b : a))
+  // '좋은 날' 문턱은 SSOT(CALENDAR_BANDS.good)와 일치시킨다 — 예전엔 65 하드코딩이라
+  // 그리드는 초록(≥60)인데 "다가오는 큰 날"에선 빠지는 60~64 사각지대가 있었다(감사).
+  if (best.score < CALENDAR_BANDS.good) return null
+  const d0 = Date.parse(`${targetDayIso}T00:00:00Z`)
+  const d1 = Date.parse(`${best.date}T00:00:00Z`)
+  if (Number.isNaN(d0) || Number.isNaN(d1)) return null
+  const dDay = Math.round((d1 - d0) / 86_400_000)
+  return dDay >= 1 ? { date: best.date, dDay, score: best.score } : null
 }
 
 /**
@@ -382,8 +404,27 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
     lifeCurve: lifeCurve ?? undefined,
   })
 
+  // ── 만 나이(SSOT) — 대운 매칭·프로펙션·미성년 게이트 공용 단일 출처 ──
+  // 대운 startAge 는 만 나이(daeunAge.ts)이고 currentManAge 는 생일 통과까지 반영한
+  // 만 나이다. 예전엔 대운/프로펙션을 TARGET_YEAR-BIRTH_YEAR(생일 전이면 +1 과다)로
+  // 골라, 만 나이를 쓰는 인생 티어와 한 대운/하우스 어긋날 수 있었다(감사). 한
+  // 컨벤션(만 나이)으로 통일해 티어 간 "현재"를 일치시킨다.
+  const manAge = currentManAge({
+    birthYear: BIRTH_YEAR,
+    birthMonth: natal.input?.month,
+    birthDate: natal.input?.date,
+    birthTimeZone: natal.input?.timeZone,
+    now,
+  })
+  // 오늘 기준 *활성 사주년*의 연주(세운). 세운은 1/1 이 아니라 입춘에 바뀌므로
+  // getYearPillarForDate(SSOT)로 산출 — 일 셀 세운 추출기·상담사 computeCurrentUnse
+  // 와 동일 convention. 1/1~입춘 구간에 연/대운 세운이 월·일과 어긋나던 것(감사) 교정.
+  const sewoonNowPillar = getYearPillarForDate(
+    new Date(Date.UTC(TARGET_YEAR, TARGET_MONTH - 1, TARGET_DAY, 12))
+  )
+
   // toDecade — 현재 대운 + 10년 분리 + cross-activation decadal.
-  const currentAge = TARGET_YEAR - BIRTH_YEAR
+  const currentAge = manAge
   const decadalSignals = cells.flatMap((c) => c.signals).filter((s) => s.layer === 'decadal')
   // 대운 티어의 *1년운*(years[].score) — 인생 곡선의 연 단위 합성(세운+대운+충합+
   // 트랜짓)을 인생 백분위로 매핑해 채운다. 예전엔 yearScores 미전달로 전부 50(평탄)
@@ -395,6 +436,8 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
     decadalSignals,
     focusYear: TARGET_YEAR,
     yearScoreByYear,
+    // 현재 세운(입춘 기준 활성 연주) — 대운 티어 sewoonNow 가 연 티어와 동일 소스.
+    sewoonPillar: sewoonNowPillar,
   })
   // 유효한 사주면 대운은 항상 계산된다. null 이면 입력/계산이 깨진 것 — fail-loud.
   if (!decadeAdapter) {
@@ -504,8 +547,12 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
     // 세운 12달 띠를 월 그리드와 *같은 일점수*로 빌드(각 달=일점수 평균, bestDay 일치).
     // 줌 레벨(일·월·세운)이 한 척도라 띠↔그리드 색 모순이 구조적으로 사라진다(Option Y).
     dayScores: layered.daily,
+    // 현재 세운 = 입춘 기준 활성 연주(SSOT). 1/1~입춘엔 TARGET_YEAR 의 그레고리
+    // 근사(computeSewoonGanji)가 다음 간지로 앞서가 월·일·상담사와 어긋났다(감사).
+    sewoonPillar: sewoonNowPillar,
   })
-  const ageThisYear = TARGET_YEAR - BIRTH_YEAR
+  // 프로펙션 하우스도 만 나이(생일 기준 solar-return 카운트) SSOT 로 — currentManAge.
+  const ageThisYear = manAge
   const fallbackHouse = (((ageThisYear % 12) + 12) % 12) + 1
   const wheelSlot = yearAdapter.profectionWheel.find((w) => w.house === fallbackHouse)
   const year: DestinyYear = {
@@ -630,53 +677,10 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
     seed,
   }
 
-  // 이달 총평 — 타이밍·톤·지배 테마를 이어지는 한 문단으로 합성(deriveMonthSummary).
-  // 기존 narrative(인트로+토막)가 안 녹이던 best/caution/converge 날짜·분포를 글로.
-  // narrative 맨 앞에 '이달 총평' 태그로 넣어 카드 선두에 노출.
-  // 양쪽 로케일 요약을 함께 만들어 보관 — 클라이언트 로케일 토글 시 서버언어로
-  // 굳어 한글/영문이 어긋나던 문제(감사 #1 가시성) 해소. 정본 태그 '이달 총평'으로
-  // 찾고, body=ko / bodyEn=en 를 MonthTier 가 로케일로 고른다.
-  const monthReasonsBy = (en: boolean): string[] =>
-    dedupeByBody(
-      monthCells
-        .flatMap((c) =>
-          ((en ? c.topReasonsEn : c.topReasons) ?? []).map((r) => ({
-            score: c.derivedScore,
-            body: r,
-          }))
-        )
-        .sort((a, b) => b.score - a.score)
-    )
-      .slice(0, 4)
-      .map((r) => r.body)
-  const summaryCommon = {
-    woolunKr: month.woolun?.kr && month.woolun.kr !== '—' ? month.woolun.kr : undefined,
-    goodDays: month.goodDays.length,
-    cautionDays: month.cautionDays.length,
-    totalDays: monthCells.length,
-    bestDay: month.bestDay?.date || undefined,
-    cautionDay: month.cautionDays[0],
-    convergeDate: month.converge?.date || undefined,
-  }
-  // bestDayReason(keyDays meaning)은 서버 lang 으로만 산출돼 있어 그 로케일 요약에만 싣는다.
-  const bestDayReason = monthKeyDays.find((k) => k.date === month.bestDay?.date)?.meaning
-  const summaryKo = deriveMonthSummary({
-    ...summaryCommon,
-    topReasons: monthReasonsBy(false),
-    bestDayReason: lang === 'ko' ? bestDayReason : undefined,
-    lang: 'ko',
-    seed,
-  })
-  const summaryEn = deriveMonthSummary({
-    ...summaryCommon,
-    topReasons: monthReasonsBy(true),
-    bestDayReason: lang === 'en' ? bestDayReason : undefined,
-    lang: 'en',
-    seed,
-  })
-  if (summaryKo || summaryEn) {
-    month.narrative = [{ tag: '이달 총평', body: summaryKo, bodyEn: summaryEn }, ...month.narrative]
-  }
+  // 이달 총평(deriveMonthSummary)은 여기서 만들지 않는다 — 포커스 셀 중립화
+  // (아래 toDay 이후 블록)가 good/caution/avoid 버킷과 bestDay 크라운을 *변경*하므로,
+  // 그 전에 생성하면 총평 문장이 지워진 최고일을 계속 추천하고 날수도 헤더와 1
+  // 어긋난다(감사: 순서 버그). 중립화 직후에 생성한다.
 
   // 이 달의 사주×점성 교차 — monthly 층 cross-activation 페어를 모아 카드 원료로.
   // 같은 페어가 그 달 여러 윈도우로 잡혀 id 는 달라도 의미는 같으므로 *페어* 기준
@@ -773,6 +777,7 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
       focusCell.mark !== 'focus' &&
       focusCell.mark !== 'converge'
     ) {
+      const wasBest = focusCell.mark === 'best'
       focusCell.mark = 'focus'
       // 밴드 바를 중립화한 날은 good/caution/avoid 버킷에서도 빼야 한다 —
       // 안 그러면 헤더·총평의 카운트(goodN/cautionN/avoidN)가 그리드의 실제
@@ -781,7 +786,79 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
       month.cautionDays = month.cautionDays.filter((d) => d !== focusDs)
       month.goodDays = month.goodDays.filter((d) => d !== focusDs)
       month.avoidDays = month.avoidDays.filter((d) => d !== focusDs)
+      // 오늘(포커스)이 이달 '최고의 날'인데 tense/bright 로 grid 바를 중립화(회색)
+      // 했다면, month.bestDay 를 그대로 두면 안 된다 — MonthTier 가 회색 셀에
+      // "최고의 날 ✦"·"그날 추진하세요"를 그려 그리드(회색)·일 티어(tense)와 모순된다
+      // (감사). 크라운을 비우면 doDate 는 goodDays[0](실제 초록일)로 폴백하고
+      // keyDates 에서도 빠진다.
+      if (wasBest && month.bestDay?.date === focusDs) {
+        month.bestDay = { date: '', score: 0 }
+      }
     }
+  }
+
+  // 이달 총평 — 타이밍·톤·지배 테마를 이어지는 한 문단으로 합성(deriveMonthSummary).
+  // *반드시* 위 포커스 셀 중립화 이후에 생성 — 중립화가 버킷·bestDay 를 바꾸므로
+  // 먼저 만들면 총평이 지워진 최고일을 추천하고 날수도 헤더와 1 어긋난다(감사).
+  // 양쪽 로케일 요약을 함께 만들어 보관 — 클라이언트 로케일 토글 시 서버언어로
+  // 굳던 문제 해소. 정본 태그 '이달 총평', body=ko / bodyEn=en 를 MonthTier 가 고른다.
+  const monthReasonsBy = (en: boolean): string[] =>
+    dedupeByBody(
+      monthCells
+        .flatMap((c) =>
+          ((en ? c.topReasonsEn : c.topReasons) ?? []).map((r) => ({
+            score: c.derivedScore,
+            body: r,
+          }))
+        )
+        .sort((a, b) => b.score - a.score)
+    )
+      .slice(0, 4)
+      .map((r) => r.body)
+  const summaryCommon = {
+    woolunKr: month.woolun?.kr && month.woolun.kr !== '—' ? month.woolun.kr : undefined,
+    goodDays: month.goodDays.length,
+    cautionDays: month.cautionDays.length,
+    // 나쁜 날(<30)을 deriveMonthSummary 의 주의-측 톤·날수에 합산(감사: 예전엔
+    // avoid 를 안 넘겨 나쁜 달이 'bright'로 뒤집히고 날수에서 avoid 가 증발했다).
+    avoidDays: month.avoidDays.length,
+    totalDays: monthCells.length,
+    bestDay: month.bestDay?.date || undefined,
+    // caution 이 하나도 없고 avoid 만 있는 달도 '조심할 날'을 한 곳은 짚도록 폴백.
+    cautionDay: month.cautionDays[0] ?? month.avoidDays[0],
+    // convergeDate 는 MM-DD 로 정규화 — bestDay/cautionDay 와 같은 포맷이어야
+    // deriveMonthSummary 의 동일-날짜 중복 가드(!==)와 fmtDate 가 작동한다.
+    // (현재 converge 는 미배선이라 '' 이지만, 배선 시 YYYY-MM-DD 가 그대로 오면
+    // 가드가 영영 안 맞고 "2026월 7일"로 렌더되는 잠복 버그 — 미리 차단.)
+    convergeDate: month.converge?.date
+      ? month.converge.date.length > 5
+        ? month.converge.date.slice(-5)
+        : month.converge.date
+      : undefined,
+  }
+  // bestDayReason(keyDays meaning)은 서버 lang 으로만 산출돼 있어 그 로케일 요약에만
+  // 싣는다. 톤 게이트: 그 keyDay 의 수렴 톤이 negative 면 이유를 생략 — 총평의
+  // 최고의 날 문장은 "추진해 보세요" 액션으로 닫히는데 부정 의미를 붙이면 한 문장
+  // 안에서 자기모순("부딪힘 조심 — 추진해 보세요")이 된다(감사).
+  const bestKeyDay = monthKeyDays.find((k) => k.date === month.bestDay?.date)
+  const bestDayReason =
+    bestKeyDay && bestKeyDay.tone !== 'negative' ? bestKeyDay.meaning : undefined
+  const summaryKo = deriveMonthSummary({
+    ...summaryCommon,
+    topReasons: monthReasonsBy(false),
+    bestDayReason: lang === 'ko' ? bestDayReason : undefined,
+    lang: 'ko',
+    seed,
+  })
+  const summaryEn = deriveMonthSummary({
+    ...summaryCommon,
+    topReasons: monthReasonsBy(true),
+    bestDayReason: lang === 'en' ? bestDayReason : undefined,
+    lang: 'en',
+    seed,
+  })
+  if (summaryKo || summaryEn) {
+    month.narrative = [{ tag: '이달 총평', body: summaryKo, bodyEn: summaryEn }, ...month.narrative]
   }
 
   const advanced = natal.saju.analyses
@@ -889,6 +966,10 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
     if (!cellByIso.has(iso)) continue
     upcoming.push({ date: iso, score: Math.round(layered.daily.get(iso)?.score ?? 50) })
   }
+  // 다가오는 큰 날 — 앞으로 7일 중 가장 센 '좋은 날'(≥65). 있으면 "6월 19일 (D-3)"
+  // 처럼 재방문 유인을 준다(오늘 답만 보고 끝나지 않게 다음 방문 이유 제공). 데이터는
+  // 이미 계산된 upcoming(일점수)에서 뽑으므로 새 계산·엔진 수정 없음.
+  const nextBigDay = pickNextBigDay(upcoming, targetDayIso)
 
   const day: DestinyDay = {
     date: dayAdapter.date,
@@ -933,6 +1014,7 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
     twelveStageMatrix: dayAdapter.twelveStageMatrix,
     monthScores: dayMonthScores,
     upcoming,
+    nextBigDay,
     hourCrossings: buildHourCrossings(dayCell, targetDayIso, natal.astro.location),
     // 시(時)별 달 정밀 — 그날 12 시진 달을 재계산해 달×본명 어스펙트 절정 시각.
     // (위에서 미리 발진한 promise 를 여기서 수확.)
@@ -942,15 +1024,8 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
   const ilganHanja = user.ilgan.hanja || '辛'
 
   // 미성년 안전(감사 C3) — cross/시간 서술의 성인 도메인(결혼·공직·투자·삼각관계
-  // 등)을 연령 적합 표현으로 치환. 만 나이(currentManAge)로 게이트 — 연-차가 아닌
-  // 생일 통과 반영(C7 off-by-one 회피).
-  const manAge = currentManAge({
-    birthYear: BIRTH_YEAR,
-    birthMonth: natal.input?.month,
-    birthDate: natal.input?.date,
-    birthTimeZone: natal.input?.timeZone,
-    now,
-  })
+  // 등)을 연령 적합 표현으로 치환. 만 나이(위에서 산출한 manAge)로 게이트 — 연-차가
+  // 아닌 생일 통과 반영(C7 off-by-one 회피).
   if (isMinorAge(manAge)) {
     const rows = (xs: unknown): Array<Record<string, unknown>> =>
       (xs as Array<Record<string, unknown>>) ?? []

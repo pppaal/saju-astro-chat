@@ -152,8 +152,14 @@ export function toMonth(opts: ToMonthOptions): {
     })
   }
 
-  // best mark — 층별 일점수면 그 달 최고날을 항상 best 로(절대 th.best 게이트 생략).
-  if (bestDay > 0 && (opts.dayScores ? true : bestScore >= th.best)) {
+  // best mark — 층별 일점수면 절대 th.best 게이트는 생략하되, *good 밴드(60)* 는
+  // 요구한다. 안 그러면 평탄/나쁜 달에서 최고점이 60 미만이어도 초록 크라운이 찍혀
+  // "좋은 날 0개" 헤더 옆 초록 ✦, 심하면 caution 버킷에 든 날이 '최고의 날'로
+  // 표시되는 모순이 가능하다(감사 — 현재 linearMapper 가 최고점 ≥70 을 보장해
+  // 잠복이지만, 그 불변식은 이 파일 밖이라 지역 게이트로 못 박는다). 게이트에
+  // 걸리면 bestDay 필드도 함께 비워 목록 '최고의 날'·doDate 추천과 일관되게.
+  const crowned = bestDay > 0 && bestScore >= (opts.dayScores ? th.good : th.best)
+  if (crowned) {
     const c = calendar.find((c) => c.d === bestDay)
     if (c) c.mark = 'best'
   }
@@ -190,7 +196,12 @@ export function toMonth(opts: ToMonthOptions): {
       woolun,
       cautionDays,
       goodDays,
-      bestDay: bestDay > 0 ? { date: bestDs, score: Math.round(bestScore) } : undefined,
+      // dayScores 경로에선 good 밴드 미달 최고일의 크라운·필드를 함께 비운다(위 게이트
+      // 참조). 절대점수 경로는 기존과 동일(필드는 항상, 마크만 th.best 게이트).
+      bestDay:
+        bestDay > 0 && (!opts.dayScores || bestScore >= th.good)
+          ? { date: bestDs, score: Math.round(bestScore) }
+          : undefined,
       avoidDays,
       narrative: opts.narrative ?? [],
       converge: opts.converge,

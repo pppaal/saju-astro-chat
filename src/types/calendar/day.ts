@@ -211,6 +211,12 @@ export interface DestinyDay extends DestinyIljinHeader {
   monthScores?: Array<{ day: number; score: number; today: boolean }>
   /** 다가오는 며칠(오늘 다음날~) — 미리보기용. date='YYYY-MM-DD', score=0..100. */
   upcoming?: Array<{ date: string; score: number }>
+  /**
+   * 다가오는 큰 날 — 앞으로 7일 중 가장 센 '좋은 날'(score ≥ CALENDAR_BANDS.good=60,
+   * 그리드 초록 밴드와 동일 문턱)이 있으면 그날. dDay = 오늘로부터 며칠 뒤(양수).
+   * 재방문 유인용 D-day 라인. 없으면 null.
+   */
+  nextBigDay?: { date: string; dDay: number; score: number } | null
 
   // ── 부속 (기존 destinypal data.js) ──
   /** 활성 신살 한글 이름들 — ['천을귀인','도화','역마']. */
