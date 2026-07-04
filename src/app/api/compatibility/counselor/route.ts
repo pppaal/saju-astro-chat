@@ -298,9 +298,15 @@ export async function POST(req: NextRequest) {
     const refundChargedCredit = async (reason: string) => {
       if (!chargedUserId) return
       try {
+        // creditType 은 'reading' 이어야 한다. consumeCredits 는 type 을 무시하고
+        // (creditService.ts `void type`) 항상 BONUS 풀에서 차감하는데, refundCredits
+        // 의 'compatibility' 분기는 항상 0 인 compatibilityUsed 카운터만 감소시켜
+        // (GREATEST(0,-1)=0) bonusCredits 를 전혀 복원하지 않는 no-op 이었다 —
+        // 실패 시 사용자가 크레딧을 영구히 잃는데 감사 로그엔 환불 성공으로 남았다.
+        // BONUS 풀을 실제로 되돌리는 'reading' 분기로 통일한다.
         await refundCreditsOnce(refundKey, {
           userId: chargedUserId,
-          creditType: 'compatibility',
+          creditType: 'reading',
           amount: 1,
           reason: 'api_error',
           apiRoute: 'compatibility/counselor',
@@ -781,9 +787,11 @@ export async function POST(req: NextRequest) {
       try {
         // Idempotent: same key as refundChargedCredit, so if an inner path
         // already refunded this turn, this is a no-op (no double refund).
+        // 'reading' 로 통일 — 위 refundChargedCredit 주석 참조(consumeCredits 가
+        // BONUS 풀에서 차감하므로 'compatibility' 환불은 no-op 이었다).
         await refundCreditsOnce(refundKey, {
           userId: chargedUserId,
-          creditType: 'compatibility',
+          creditType: 'reading',
           amount: 1,
           reason: 'api_error',
           apiRoute: 'compatibility/counselor',

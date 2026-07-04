@@ -179,4 +179,37 @@ describe('PATCH /api/me/email', () => {
     expect(res.status).toBe(500)
     expect(data.error.code).toBe('INTERNAL_ERROR')
   })
+
+  it('어드민 allowlist 이메일로의 셀프 변경은 거부(권한 상승 차단)', async () => {
+    // 회귀 가드: 무검증 셀프 이메일 변경으로 ADMIN_EMAILS 이메일을 설정하면
+    // isAdminUser 가 어드민을 부여해 권한 상승이 됐다. 이제 allowlist 이메일로의
+    // 변경은 DB 를 건드리기 전에 거부돼야 한다.
+    const prev = process.env.ADMIN_EMAILS
+    process.env.ADMIN_EMAILS = 'admin@corp.com, boss@corp.com'
+    try {
+      const res = await PATCH(patchReq({ email: 'Admin@corp.com' })) // 대소문자 무관
+      const data = await res.json()
+      expect(res.status).toBe(400)
+      expect(data.error.message).toBe('email_in_use')
+      // DB 접근 전에 차단.
+      expect(prisma.user.findUnique).not.toHaveBeenCalled()
+      expect(prisma.user.update).not.toHaveBeenCalled()
+    } finally {
+      process.env.ADMIN_EMAILS = prev
+    }
+  })
+
+  it('ADMIN_EMAILS 미설정이면 일반 이메일 변경에 영향 없음', async () => {
+    const prev = process.env.ADMIN_EMAILS
+    delete process.env.ADMIN_EMAILS
+    try {
+      vi.mocked(prisma.user.findUnique).mockResolvedValue({ email: null } as any)
+      vi.mocked(prisma.user.update).mockResolvedValue({} as any)
+      const res = await PATCH(patchReq({ email: 'regular@b.com' }))
+      expect(res.status).toBe(200)
+      expect(prisma.user.update).toHaveBeenCalled()
+    } finally {
+      process.env.ADMIN_EMAILS = prev
+    }
+  })
 })

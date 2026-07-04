@@ -37,6 +37,44 @@ class Logger {
     return true
   }
 
+  /**
+   * context 객체 안에 담긴 Error 를 직렬화 가능한 형태로 변환한다.
+   *
+   * 대부분의 호출부는 `logger.error('..', { err })` 처럼 Error 를 context
+   * 프로퍼티로 넘기는데, Error 의 message/name/stack 은 non-enumerable own
+   * property 라 `JSON.stringify({ err: new Error('x') })` === `{"err":{}}` 로
+   * 소실된다("환불 실패" 같은 최중요 경보가 프로덕션에서 무음이 되던 원인).
+   * 여기서 top-level Error 값을 `{ name, message, stack }`(redact)로 펼쳐
+   * 로그·Sentry 에 실제 내용이 남게 한다.
+   */
+  private normalizeContext(context?: LogContext): LogContext | undefined {
+    if (!context) return context
+    let changed = false
+    const out: LogContext = {}
+    for (const [k, v] of Object.entries(context)) {
+      if (v instanceof Error) {
+        changed = true
+        out[k] = {
+          name: v.name,
+          message: redactSecrets(v.message),
+          stack: v.stack ? redactSecrets(v.stack) : undefined,
+        }
+      } else {
+        out[k] = v
+      }
+    }
+    return changed ? out : context
+  }
+
+  /** context 프로퍼티에 담겨 온 첫 Error 를 찾아 반환(Sentry 라우팅용). */
+  private firstErrorInContext(context?: LogContext): Error | undefined {
+    if (!context) return undefined
+    for (const v of Object.values(context)) {
+      if (v instanceof Error) return v
+    }
+    return undefined
+  }
+
   private formatMessage(entry: LogEntry): string {
     const { level, message, timestamp, context, error } = entry
 
@@ -52,7 +90,7 @@ class Logger {
       let output = `${emoji} [${level.toUpperCase()}] ${message}`
 
       if (context && Object.keys(context).length > 0) {
-        output += '\n  Context: ' + JSON.stringify(context, null, 2)
+        output += '\n  Context: ' + JSON.stringify(this.normalizeContext(context), null, 2)
       }
 
       if (error) {
@@ -71,7 +109,7 @@ class Logger {
       level,
       message,
       timestamp,
-      context,
+      context: this.normalizeContext(context),
       error: error
         ? {
             message: redactSecrets(error.message),
@@ -128,10 +166,16 @@ class Logger {
   private sendToSentry(entry: LogEntry) {
     // captureServerError 사용 (서버 환경)
     if (typeof window === 'undefined') {
+      // Error 가 2번째 인자로 왔으면 entry.error, context 프로퍼티(`{ err }`)로
+      // 왔으면 거기서 추출한다. 둘 다 없어도 error 레벨이면 message 로 합성 Error 를
+      // 만들어 반드시 Sentry 에 도달하게 한다(무음 방지). warn 은 Error 가 있을
+      // 때만 — 순수 정보성 warn 으로 Sentry 를 오염시키지 않게.
+      const err = entry.error ?? this.firstErrorInContext(entry.context)
+      const toCapture = err ?? (entry.level === 'error' ? new Error(entry.message) : undefined)
       import('@/lib/telemetry')
         .then(({ captureServerError }) => {
-          if (entry.error) {
-            captureServerError(entry.error, entry.context)
+          if (toCapture) {
+            captureServerError(toCapture, entry.context)
           }
         })
         .catch(() => {

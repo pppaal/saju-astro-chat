@@ -169,6 +169,43 @@ describe('getShinsalHits (full 4-pillar scan)', () => {
     const hits = getShinsalHits(c, { ruleSet: 'your' })
     expect(Array.isArray(hits)).toBe(true)
   })
+
+  it('"your" ruleSet does not pollute a subsequent "standard" call (현침 determinism)', () => {
+    // 辛 일간의 현침: 표준=午, your=未. 예전엔 applyYourOverrides() 가 모듈 전역
+    // HYEONCHIM_BY_STEM 을 복원 없이 변이시켜, 한 번 your 로 호출하면 이후 표준
+    // 호출까지 未 로 오염됐다(요청 순서 의존 = 결정론 위반). read-time 분기로
+    // 바꾼 뒤엔 순서와 무관하게 표준은 항상 午, your 는 항상 未 여야 한다.
+    // 辛 일간 + 午 시지 차트: 표준에서 현침이 午 에서 발동.
+    const hyeonStd = chart('甲', '子', '甲', '子', '辛', '巳', '甲', '午')
+
+    const before = getShinsalHits(hyeonStd, { ruleSet: 'standard' })
+    // your 호출로 과거엔 전역이 오염됐다.
+    getShinsalHits(hyeonStd, { ruleSet: 'your' })
+    const after = getShinsalHits(hyeonStd, { ruleSet: 'standard' })
+
+    const hyeonAt = (hits: ReturnType<typeof getShinsalHits>) =>
+      hits
+        .filter((h) => h.kind === '현침')
+        .flatMap((h) => h.target ?? [])
+        .sort()
+
+    // 표준 결과가 your 호출 전후로 동일해야 한다(오염 없음).
+    expect(hyeonAt(after)).toEqual(hyeonAt(before))
+    // 그리고 표준에서 현침은 午 에서 발동(未 아님).
+    expect(hyeonAt(before)).toContain('午')
+    expect(hyeonAt(before)).not.toContain('未')
+  })
+
+  it('"your" ruleSet 현침 is 未 for 辛 (override still applied at read-time)', () => {
+    // 辛 일간 + 未 시지: your 룰에서만 현침 발동.
+    const c2 = chart('甲', '子', '甲', '子', '辛', '巳', '甲', '未')
+    const your = getShinsalHits(c2, { ruleSet: 'your' })
+    const std = getShinsalHits(c2, { ruleSet: 'standard' })
+    const hyeonYour = your.filter((h) => h.kind === '현침').flatMap((h) => h.target ?? [])
+    const hyeonStd = std.filter((h) => h.kind === '현침').flatMap((h) => h.target ?? [])
+    expect(hyeonYour).toContain('未')
+    expect(hyeonStd).not.toContain('未')
+  })
 })
 
 describe('getShinsalHitsForDailyTarget (calendar daily scan)', () => {

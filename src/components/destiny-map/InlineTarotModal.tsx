@@ -106,8 +106,25 @@ const InlineTarotModal = memo(function InlineTarotModal({
     cleanupRef.current = api.cleanup
   }, [api.cleanup])
 
-  // Keyboard handling and body scroll lock — 모달 open/close 전이 시점에만
-  // 발화하도록 deps 는 isOpen + onClose 로 한정.
+  // in-flight fetch abort 는 *오직* 모달이 실제로 닫히거나(isOpen true→false)
+  // unmount 될 때만 발화해야 한다. deps 를 [isOpen] 로만 잡아, 부모(Chat)가
+  // onClose 인라인 화살표를 넘겨 리렌더마다 새 참조를 주더라도 이 effect 가
+  // 재실행되지 않게 한다. (예전엔 keydown effect 의 cleanup 에 abort 가 섞여
+  // 있고 deps 에 onClose 가 있어, next-auth 포커스 refetch 같은 부모 리렌더가
+  // 진행 중인 유료 interpret-stream 을 중간에 abort → isSupersede 분기가 복구
+  // 등록 전에 return → 크레딧은 차감됐는데 "카드를 읽고 있어요" 스피너에서
+  // 영구 정지하던 버그가 있었다.)
+  useEffect(() => {
+    if (!isOpen) {
+      return
+    }
+    return () => {
+      cleanupRef.current?.()
+    }
+  }, [isOpen])
+
+  // Keyboard handling and body scroll lock. onClose 참조가 바뀌어 재실행돼도
+  // 위 abort effect 와 분리돼 있어 스트림에 영향이 없다.
   useEffect(() => {
     if (!isOpen) {
       return
@@ -125,8 +142,6 @@ const InlineTarotModal = memo(function InlineTarotModal({
     return () => {
       document.removeEventListener('keydown', handleKeyDown)
       document.body.style.overflow = ''
-      // 모달이 닫히거나 unmount 될 때만 in-flight fetch abort.
-      cleanupRef.current?.()
     }
   }, [isOpen, onClose])
 
@@ -208,102 +223,102 @@ const InlineTarotModal = memo(function InlineTarotModal({
             exit={{ opacity: 0, y: 16, scale: 0.98 }}
             transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
           >
-        {/* Header */}
-        <div className={styles.header}>
-          <h2 id="tarot-modal-title" className={styles.title}>
-            🃏 {tr.title}
-          </h2>
-          <button className={styles.closeButton} onClick={onClose} aria-label={tr.close}>
-            ✕
-          </button>
-        </div>
+            {/* Header */}
+            <div className={styles.header}>
+              <h2 id="tarot-modal-title" className={styles.title}>
+                🃏 {tr.title}
+              </h2>
+              <button className={styles.closeButton} onClick={onClose} aria-label={tr.close}>
+                ✕
+              </button>
+            </div>
 
-        {/* Step indicator */}
-        <div className={styles.stepIndicator}>
-          {['concern', 'spread-select', 'card-draw', 'result'].map((s, i) => (
-            <div
-              key={s}
-              className={`${styles.stepDot} ${
-                state.step === s || (state.step === 'interpreting' && s === 'result')
-                  ? styles.active
-                  : ''
-              } ${
-                ['concern', 'spread-select', 'card-draw', 'interpreting', 'result'].indexOf(
-                  state.step
-                ) > i
-                  ? styles.completed
-                  : ''
-              }`}
-            />
-          ))}
-        </div>
+            {/* Step indicator */}
+            <div className={styles.stepIndicator}>
+              {['concern', 'spread-select', 'card-draw', 'result'].map((s, i) => (
+                <div
+                  key={s}
+                  className={`${styles.stepDot} ${
+                    state.step === s || (state.step === 'interpreting' && s === 'result')
+                      ? styles.active
+                      : ''
+                  } ${
+                    ['concern', 'spread-select', 'card-draw', 'interpreting', 'result'].indexOf(
+                      state.step
+                    ) > i
+                      ? styles.completed
+                      : ''
+                  }`}
+                />
+              ))}
+            </div>
 
-        {/* Content */}
-        <div className={styles.content}>
-          {/* Step 1: Concern Input */}
-          {state.step === 'concern' && (
-            <ConcernStep
-              tr={tr}
-              concern={state.concern}
-              onConcernChange={actions.setConcern}
-              onNext={handleConcernNext}
-            />
-          )}
+            {/* Content */}
+            <div className={styles.content}>
+              {/* Step 1: Concern Input */}
+              {state.step === 'concern' && (
+                <ConcernStep
+                  tr={tr}
+                  concern={state.concern}
+                  onConcernChange={actions.setConcern}
+                  onNext={handleConcernNext}
+                />
+              )}
 
-          {/* Step 2: Spread Selection */}
-          {state.step === 'spread-select' && (
-            <SpreadSelectStep
-              tr={tr}
-              lang={lang}
-              concern={state.concern}
-              questionSummary={questionSummary}
-              directAnswer={directAnswer}
-              recommendedSpreads={recommendedSpreads}
-              onSelect={handleSpreadSelect}
-            />
-          )}
+              {/* Step 2: Spread Selection */}
+              {state.step === 'spread-select' && (
+                <SpreadSelectStep
+                  tr={tr}
+                  lang={lang}
+                  concern={state.concern}
+                  questionSummary={questionSummary}
+                  directAnswer={directAnswer}
+                  recommendedSpreads={recommendedSpreads}
+                  onSelect={handleSpreadSelect}
+                />
+              )}
 
-          {/* Step 3: Card Draw */}
-          {state.step === 'card-draw' && (
-            <CardDrawStep
-              tr={tr}
-              lang={lang}
-              selectedSpread={state.selectedSpread}
-              questionSummary={questionSummary}
-              directAnswer={directAnswer}
-              drawnCards={state.drawnCards}
-              revealedCount={state.revealedCount}
-              isDrawing={state.isDrawing}
-              onDraw={api.drawCards}
-            />
-          )}
+              {/* Step 3: Card Draw */}
+              {state.step === 'card-draw' && (
+                <CardDrawStep
+                  tr={tr}
+                  lang={lang}
+                  selectedSpread={state.selectedSpread}
+                  questionSummary={questionSummary}
+                  directAnswer={directAnswer}
+                  drawnCards={state.drawnCards}
+                  revealedCount={state.revealedCount}
+                  isDrawing={state.isDrawing}
+                  onDraw={api.drawCards}
+                />
+              )}
 
-          {/* Step 4: Interpreting */}
-          {state.step === 'interpreting' && (
-            <InterpretingStep
-              tr={tr}
-              overallMessage={state.overallMessage}
-              lang={lang}
-              onRetry={api.retryInterpretation}
-            />
-          )}
+              {/* Step 4: Interpreting */}
+              {state.step === 'interpreting' && (
+                <InterpretingStep
+                  tr={tr}
+                  overallMessage={state.overallMessage}
+                  lang={lang}
+                  onRetry={api.retryInterpretation}
+                />
+              )}
 
-          {/* Step 5: Result */}
-          {state.step === 'result' && (
-            <ResultStep
-              tr={tr}
-              lang={lang}
-              state={state}
-              questionSummary={questionSummary}
-              directAnswer={directAnswer}
-              onDrawAgain={actions.resetForDrawAgain}
-              onSave={api.saveReading}
-              onComplete={handleComplete}
-              onDeeper={goToFullTarot}
-              onRetryInterpret={api.retryInterpretation}
-            />
-          )}
-        </div>
+              {/* Step 5: Result */}
+              {state.step === 'result' && (
+                <ResultStep
+                  tr={tr}
+                  lang={lang}
+                  state={state}
+                  questionSummary={questionSummary}
+                  directAnswer={directAnswer}
+                  onDrawAgain={actions.resetForDrawAgain}
+                  onSave={api.saveReading}
+                  onComplete={handleComplete}
+                  onDeeper={goToFullTarot}
+                  onRetryInterpret={api.retryInterpretation}
+                />
+              )}
+            </div>
           </motion.div>
         </motion.div>
       )}
