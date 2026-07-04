@@ -305,7 +305,9 @@ function buildDecadeHapchung(natal: NatalContext, decadeBranch: string): Destiny
         title: `${ko(nb)}${ko(db)}충`,
         titleEn: `${rom(nb)}–${rom(db)} clash`,
         body: richKo ? `${preKo}${richKo.meaning}` : `${preKo}이 영역에 변동·이동 압력이 실려요.`,
-        bodyEn: richEn ? `${preEn}${richEn.meaning}` : `${preEn}this area carries pressure to shift and move.`,
+        bodyEn: richEn
+          ? `${preEn}${richEn.meaning}`
+          : `${preEn}this area carries pressure to shift and move.`,
       })
     } else if (YUKHAP[db] === nb) {
       // 위치 framing 접두 + relations-pairs DB 의 풍부한 평이 의미(있으면). DB 미스 → 생성 템플릿.
@@ -317,7 +319,9 @@ function buildDecadeHapchung(natal: NatalContext, decadeBranch: string): Destiny
         title: `${ko(nb)}${ko(db)}육합`,
         titleEn: `${rom(nb)}–${rom(db)} harmony`,
         body: richKo ? `${preKo}${richKo.meaning}` : `${preKo}환경이 손발을 맞춰줘요.`,
-        bodyEn: richEn ? `${preEn}${richEn.meaning}` : `${preEn}your surroundings fall into step with you.`,
+        bodyEn: richEn
+          ? `${preEn}${richEn.meaning}`
+          : `${preEn}your surroundings fall into step with you.`,
       })
     }
   }
@@ -373,9 +377,7 @@ function buildDecadeUnseong(dm: string, decadeBranch: string): DestinypalDecadeR
     title: stage,
     // 단계명(stage)은 한글 — EN 로케일엔 영문 라벨('Peak' 등)을 쓴다(한글 누수 방지).
     titleEn: en?.label ?? stage,
-    body: desc
-      ? `대운 자리(${ko})는 ${stage} — ${desc}`
-      : `대운 자리(${ko})는 ${stage}예요.`,
+    body: desc ? `대운 자리(${ko})는 ${stage} — ${desc}` : `대운 자리(${ko})는 ${stage}예요.`,
     // 단계명(stage)은 한글이라 EN 본문엔 영문 라벨만 쓴다(한글 누수 방지).
     bodyEn: en
       ? `The decade seat (${rom}) sits at the ${en.label} stage — ${en.desc}.`
@@ -407,6 +409,12 @@ export interface ToDecadeOptions {
   unseong?: DestinypalDecadeRelation
   /** focusYear — 어느 해를 펼쳐 보일지. 미지정 시 currentYear. */
   focusYear?: number
+  /**
+   * 현재 세운 연주(입춘 기준 활성 간지). sewoonNow 를 이 값으로 표기해 연 티어와
+   * 동일 소스로 맞춘다. 없으면 computeSewoonGanji(focusYear) 그레고리 근사로 폴백.
+   * (years[] 타임라인 행은 여전히 각 그레고리 연도 고유 세운을 라벨로 유지.)
+   */
+  sewoonPillar?: { stem: string; branch: string }
 }
 
 /**
@@ -461,13 +469,14 @@ export function toDecade(natal: NatalContext, opts: ToDecadeOptions = {}): Desti
     })
   }
 
-  // sewoonNow — focusYear 의 진짜 세운 (YearTier 와 동일 계산, 단일 소스).
+  // sewoonNow — 현재 활성 세운(입춘 기준). sewoonPillar(SSOT)가 오면 그걸 쓰고
+  // (연 티어와 동일 소스 → 1/1~입춘 어긋남 제거), 없으면 focusYear 그레고리 근사.
   let sewoonNow: DestinypalDecade['sewoonNow']
   const focusYear = opts.focusYear ?? currentYear
+  const srNow = opts.sewoonPillar ?? computeSewoonGanji(focusYear)
   const yearItem = yearsArr.find((y) => y.year === focusYear)
-  if (yearItem) {
-    const sr = computeSewoonGanji(focusYear)
-    sewoonNow = { gz: yearItem.gz, sibsin: safeSibsin(dm, sr.stem) }
+  if (opts.sewoonPillar || yearItem) {
+    sewoonNow = { gz: toGanji(srNow.stem, srNow.branch), sibsin: safeSibsin(dm, srNow.stem) }
   }
 
   // cross-activation 풀에서 decadal layer 만 — 같은 페어가 여러 날 중복되므로

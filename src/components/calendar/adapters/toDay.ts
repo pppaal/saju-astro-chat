@@ -613,17 +613,19 @@ export const ONE_LINE_POOL = {
       '좋고 나쁨이 함께 있는 하루 — 잘 풀리는 쪽에 집중하세요.',
       '오르내림이 있는 하루 — 무게중심만 지키세요.',
       '맑았다 흐렸다 하는 하루 — 흐름 따라 가볍게.',
-      '한쪽으로 쏠리지 않는 고른 하루.',
+      // 평탄("고른/기복 없이") 변형은 금지 — mixed 후크가 변동성("딱 갈려")을 말하므로
+      // 같은 화면에서 모순됐다(감사). mixed 풀은 전부 변동성 프레임으로 유지한다.
+      '풀리는 쪽과 막히는 쪽이 또렷이 갈리는 하루.',
       '되는 일에 힘을 싣고 안 되는 일은 흘려보내요.',
-      '큰 기복 없이 무난히 흐르는 하루.',
+      '오르내림을 타면 무난히 지나가는 하루.',
     ],
     en: [
       'Highs and lows are mixed — lean on what flows.',
       'Ups and downs today — just hold your center.',
       'Sun and clouds trade off — move light with it.',
-      'An even day that leans neither way.',
+      'A day that splits clearly between what flows and what stalls.',
       'Back what works, let the rest pass.',
-      'A day that flows by without big swings.',
+      'Ride the swings and the day passes fine.',
     ],
   },
 } as const

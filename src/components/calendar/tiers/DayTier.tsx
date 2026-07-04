@@ -35,13 +35,16 @@ import { useI18n } from '@/i18n/I18nProvider'
 import { localizeLabel } from '@/components/calendar/adapters/localizeLabel'
 import { ShareDayButton } from '@/components/calendar/ShareDayButton'
 import { dayShareHook } from '@/lib/share/shareHook'
+import StreakChip from '@/components/calendar/StreakChip'
 import {
   shinsalEn,
   elementEn,
   jijangganLayerEn,
   twelveStageEn,
   appliedPatternEn,
+  geokgukStatusLineEn,
 } from '@/components/calendar/adapters/dayTierEnMaps'
+import { CALENDAR_BANDS } from '@/lib/calendar-engine/derivers/constants'
 
 // ============================================================================
 // HourSlot / DayVoc — 외부 참조(네비 계약). prop 형태 유지 (HourSlot 은 미사용).
@@ -312,6 +315,20 @@ export function DayTier({ day, onRise, sex = '남' }: DayTierProps) {
         ? 'A careful day'
         : 'A mixed day'
 
+  // ── 인앱 후크 헤드라인 — 점수/톤에서만 뽑는 도발적 한 줄(Co-Star 식). 예전엔
+  //    공유 카드에만 쓰고 인앱엔 차분한 결론만 노출해 "열어볼 이유"가 약했다(감사).
+  //    hero 최상단에 후크를 얹어 재방문·클릭을 끌고, 아래 차분한 결론은 그대로 둔다.
+  //    같은 소스를 공유 카드와 공유(본명 시드 고정 → 인앱·카드 문구 일치).
+  const dayHook = dayShareHook({
+    tone: verdict.tone,
+    score: day.score,
+    seed: day.seed ?? 0,
+    // 날짜(일-of-month)를 섞어 같은 톤이어도 날마다 다른 후크 → 매일 같은 헤드라인
+    // 이 뜨던 문제(감사) 해소. day.date 는 'YYYY-MM-DD'.
+    daySalt: Number(day.date?.slice(8, 10)) || 0,
+    ko,
+  })
+
   // ── novice hero "왜?" 한 줄 — 기존 평이 근거(받쳐줌/부딪힘)에서만 합성, 용어 0. ──
   const hasSupport = happeningLines.length > 0
   const hasFriction = cautionLines.length > 0
@@ -456,16 +473,17 @@ export function DayTier({ day, onRise, sex = '남' }: DayTierProps) {
   const scores = day.monthScores ?? []
   const hasFlow = scores.length >= 3
   const upcoming = day.upcoming ?? []
+  const nextBig = day.nextBigDay ?? null
   const todayIdx = scores.findIndex((s) => s.today)
 
+  // "다가오는 며칠" 칩 색 — 월 그리드와 동일한 SSOT 밴드(CALENDAR_BANDS)로 통일.
+  // 예전엔 65/50/35 하드코딩이라 62점 날이 그리드=초록인데 이 칩은 중립이던 불일치(감사).
   const upBg = (s: number) =>
-    s >= 65
+    s >= CALENDAR_BANDS.good
       ? 'var(--good-bg)'
-      : s <= 35
+      : s < CALENDAR_BANDS.caution
         ? 'var(--crimson-bg)'
-        : s >= 50
-          ? 'var(--gold-bg)'
-          : 'var(--surface-3)'
+        : 'var(--surface-3)'
   const weekday = (iso: string) => {
     const wd = new Date(`${iso}T00:00:00Z`).getUTCDay()
     return (ko ? DOW_KO : DOW_EN)[wd]
@@ -516,6 +534,11 @@ export function DayTier({ day, onRise, sex = '남' }: DayTierProps) {
 
       {/* ── novice 기본: 한자·용어 없는 일상어 결론 ── */}
       <header className={styles.novice}>
+        {/* 연속 방문 스트릭(클라 localStorage) — 2일째부터 노출, 재방문 동기부여. */}
+        <StreakChip ko={ko} />
+        {/* 도발적 후크 — 열어볼 이유(재방문/클릭). 아래 차분한 결론과 별개 register. */}
+        <p className={styles.novHook}>{dayHook.headline}</p>
+        {dayHook.subline && <p className={styles.novHookSub}>{dayHook.subline}</p>}
         <div
           className={`${styles.novToneWord} ${
             day.dayTone?.tone === 'positive'
@@ -536,16 +559,9 @@ export function DayTier({ day, onRise, sex = '남' }: DayTierProps) {
               dateLabel: ko ? `${Number(mm)}월 ${Number(dd)}일 ${weekday(day.date)}` : titleLatin,
               score: day.score,
               tone: verdict.tone,
-              // 공유 카드는 더 센 후크(점수/톤 기반·본명 시드 고정). 인앱 결론은 그대로.
-              ...(() => {
-                const hook = dayShareHook({
-                  tone: verdict.tone,
-                  score: day.score,
-                  seed: day.seed ?? 0,
-                  ko,
-                })
-                return { headline: hook.headline, subline: hook.subline }
-              })(),
+              // 공유 카드도 같은 후크(점수/톤 기반·본명 시드 고정) — 인앱 hero 와 일치.
+              headline: dayHook.headline,
+              subline: dayHook.subline,
               curve: hasFlow ? scores.map((s) => s.score) : undefined,
               markerIndex: todayIdx >= 0 ? todayIdx : undefined,
             }}
@@ -711,9 +727,23 @@ export function DayTier({ day, onRise, sex = '남' }: DayTierProps) {
         </p>
 
         {/* ── S8 타이밍 ── */}
-        {(hasFlow || upcoming.length > 0) && (
+        {(hasFlow || upcoming.length > 0 || nextBig) && (
           <section className={styles.sec}>
             <SecHead label={ko ? '타이밍' : 'Timing'} latin="Timing" />
+            {nextBig && (
+              <div className={styles.nextBig}>
+                <span className={styles.nextBigDday}>D-{nextBig.dDay}</span>
+                <span className={styles.nextBigText}>
+                  {ko
+                    ? `다가오는 큰 날 · ${Number(nextBig.date.slice(5, 7))}월 ${Number(
+                        nextBig.date.slice(8, 10)
+                      )}일 (${weekday(nextBig.date)})`
+                    : `Your next big day · ${Number(nextBig.date.slice(5, 7))}/${Number(
+                        nextBig.date.slice(8, 10)
+                      )} (${weekday(nextBig.date)})`}
+                </span>
+              </div>
+            )}
             {hasFlow && (
               <>
                 <div className={styles.flowSub}>
@@ -872,7 +902,13 @@ export function DayTier({ day, onRise, sex = '남' }: DayTierProps) {
                     ))}
                   </div>
                 )}
-                {geok && <div className={styles.natalGeok}>{geok.description}</div>}
+                {geok && (
+                  <div className={styles.natalGeok}>
+                    {/* description(성패 줄)은 한국어 전용 — EN 은 이름·상태로 재구성해
+                        한국어 누수 제거(요인 세부는 EN 에서 생략). */}
+                    {ko ? geok.description : geokgukStatusLineEn(geok.name, geok.status)}
+                  </div>
+                )}
               </div>
             )}
 
@@ -896,11 +932,18 @@ export function DayTier({ day, onRise, sex = '남' }: DayTierProps) {
                   const poleSym = c.polarity > 0 ? '▲' : c.polarity < 0 ? '▼' : '·'
                   const poleCls =
                     c.polarity > 0 ? styles.poleUp : c.polarity < 0 ? styles.poleDn : ''
-                  const sajuName = c.sajuKo ?? c.sajuSide
-                  const astroName = c.astroKo ?? c.astroSide
+                  // 도메인/행성 룩업은 *한글 키*(sajuKo/astroKo)로만 동작하므로
+                  // head 계산엔 raw 한글 키를 쓰고, 화면 용어칩엔 로케일 표시명
+                  // (sajuSide/astroSide — EN 에선 영문)을 쓴다. 예전엔 칩이
+                  // sajuKo(항상 한글)를 렌더해 EN 로케일에서 "편관·화성"이 새어나가
+                  // 같은 교차쌍을 영문 표기하는 월 티어와 언어가 어긋났다(감사).
+                  const sajuKey = c.sajuKo ?? c.sajuSide
+                  const astroKey = c.astroKo ?? c.astroSide
+                  const sajuName = ko ? sajuKey : (c.sajuSide ?? sajuKey)
+                  const astroName = ko ? astroKey : (c.astroSide ?? astroKey)
                   const head = ko
-                    ? `${sibsinArea(sajuName)} × ${planetPlain(astroName, true)}`
-                    : `${sibsinAreaEn(sajuName)} × ${planetPlain(astroName, false)}`
+                    ? `${sibsinArea(sajuKey)} × ${planetPlain(astroKey, true)}`
+                    : `${sibsinAreaEn(sajuKey)} × ${planetPlain(astroKey, false)}`
                   const body = ko ? c.meaning : (c.meaningEn ?? c.meaning)
                   return (
                     <div

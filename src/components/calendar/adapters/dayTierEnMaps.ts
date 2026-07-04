@@ -15,6 +15,60 @@ export const GEOKGUK_STATUS_EN: Record<string, string> = {
 }
 
 /**
+ * 격국 이름 KO→EN (GeokgukType 전체 29종). toUser.GEOKGUK_EN_NAME(정격 8종)의
+ * 상위집합 — 종격·비격·화기격·특수격까지 포함해 EN 로케일에서 격국명이 한국어로
+ * 새지 않게 한다. 고전 격국 어휘라 사실상 불변. (정격 8종 표기는 toUser 와 동일 유지.)
+ */
+export const GEOKGUK_NAME_EN: Record<string, string> = {
+  // 정격 8
+  식신격: 'Siksin (Eating-god)',
+  상관격: 'Sanggwan (Hurting-officer)',
+  편재격: 'Pyeonjae (Indirect-wealth)',
+  정재격: 'Jeongjae (Direct-wealth)',
+  편관격: 'Pyeongwan (Indirect-officer)',
+  정관격: 'Jeonggwan (Direct-officer)',
+  편인격: 'Pyeonin (Indirect-resource)',
+  정인격: 'Jeongin (Direct-resource)',
+  // 종격 5
+  종왕격: 'Jongwang (Dominant self)',
+  종강격: 'Jonggang (Dominant resource)',
+  종아격: 'Jongah (Dominant output)',
+  종재격: 'Jongjae (Dominant wealth)',
+  종살격: 'Jongsal (Dominant officer)',
+  // 비격 4
+  건록격: 'Geonrok (Officer stipend)',
+  양인격: 'Yangin (Blade edge)',
+  월겁격: 'Wolgeop (Monthly rob)',
+  잡기격: 'Japgi (Mixed storage)',
+  // 화기격국 5
+  갑기화토격: 'Gap-Gi Earth transformation',
+  을경화금격: 'Eul-Gyeong Metal transformation',
+  병신화수격: 'Byeong-Sin Water transformation',
+  정임화목격: 'Jeong-Im Wood transformation',
+  무계화화격: 'Mu-Gye Fire transformation',
+  // 특수격국 5
+  곡직격: 'Gokjik (Curved-straight Wood)',
+  염상격: 'Yeomsang (Blazing Fire)',
+  가색격: 'Gasaek (Sowing-reaping Earth)',
+  종혁격: 'Jonghyeok (Reforming Metal)',
+  윤하격: 'Yunha (Flowing Water)',
+  // 미정
+  미정: 'Undetermined',
+}
+
+/**
+ * 격국 상태 한 줄 EN — '정인격 · 반성반파 (+투출 / -합거)' 같은 한국어 전용 줄을
+ * '이름 · 상태'로 영문화한다. 성패 요인(투출/합거 등)은 수십 개 자유서술 구라
+ * EN 맵을 두지 않고 EN 에선 생략(핵심 정보 = 격국명 + 성패는 보존, 한국어 누수 제거).
+ * 미상 이름/상태는 각 맵에서 KO 폴백.
+ */
+export function geokgukStatusLineEn(name: string, status?: string): string {
+  const n = GEOKGUK_NAME_EN[name] ?? name
+  const s = status ? (GEOKGUK_STATUS_EN[status] ?? status) : ''
+  return s ? `${n} · ${s}` : n
+}
+
+/**
  * 신살 KO→EN. interpretations.json shinsal 의 name_en 을 기준으로 흔한 것들을
  * 담았다(별칭 ~살 포함). 미상은 호출부에서 KO 폴백.
  */

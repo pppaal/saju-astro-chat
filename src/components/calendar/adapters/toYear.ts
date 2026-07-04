@@ -175,11 +175,17 @@ export interface ToYearOptions {
    * cell.derivedScore 폴백.
    */
   dayScores?: Map<string, { score: number }>
+  /**
+   * 현재 세운 연주(입춘 기준 활성 간지). 주면 이 값으로 세운 칩을 표기하고,
+   * 없으면 computeSewoonGanji(year) 그레고리 근사로 폴백(하위호환). 세운은 1/1 이
+   * 아니라 입춘에 바뀌므로, 1/1~입춘 구간엔 이 SSOT 값이 그레고리 근사와 달라진다.
+   */
+  sewoonPillar?: { stem: string; branch: string }
 }
 
 export function toYear(natal: NatalContext, opts: ToYearOptions): DestinypalYear {
   const dm = natal.saju?.dayMaster?.name ?? ''
-  const sewoonRaw = computeSewoonGanji(opts.year)
+  const sewoonRaw = opts.sewoonPillar ?? computeSewoonGanji(opts.year)
   const sewoon = toGanji(sewoonRaw.stem, sewoonRaw.branch)
   const sewoonSibsin = dm ? safeSibsin(dm, sewoonRaw.stem) : '—'
 

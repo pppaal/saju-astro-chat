@@ -12,7 +12,12 @@ import { describe, it, expect, beforeAll } from 'vitest'
 import { buildNatalContext } from '@/lib/calendar-engine/context/build'
 import { buildCalendar } from '@/lib/calendar-engine'
 import { getTwelveStagesForPillars } from '@/lib/saju/shinsal'
-import { assembleTiers, type AssembleTiersInput } from '@/app/calendar/assembleTiers'
+import {
+  assembleTiers,
+  pickNextBigDay,
+  type AssembleTiersInput,
+} from '@/app/calendar/assembleTiers'
+import { getYearPillarForDate } from '@/lib/saju/datePillars'
 import type { NatalContext } from '@/lib/calendar-engine/context/types'
 import type { CalendarCell } from '@/lib/calendar-engine/types'
 
@@ -246,5 +251,89 @@ describe('assembleTiers — male sex mapping', () => {
   it('maps 남 through to the user tier', async () => {
     const out = await assembleTiers(baseInput({ sex: '남' }))
     expect(['남', '여']).toContain(out.user.sex)
+  })
+})
+
+describe('pickNextBigDay — 다가오는 큰 날 D-day', () => {
+  const iso = '2024-06-15'
+  it('앞으로 며칠 중 최고 좋은 날(≥60, good 밴드)을 D-day 로 고른다', () => {
+    const r = pickNextBigDay(
+      [
+        { date: '2024-06-16', score: 52 },
+        { date: '2024-06-18', score: 71 }, // 최고
+        { date: '2024-06-19', score: 66 },
+      ],
+      iso
+    )
+    expect(r).toEqual({ date: '2024-06-18', dDay: 3, score: 71 })
+  })
+
+  it('good 밴드(60) 미만뿐이면 null(과장된 "큰 날" 안 만든다)', () => {
+    expect(
+      pickNextBigDay(
+        [
+          { date: '2024-06-16', score: 52 },
+          { date: '2024-06-17', score: 59 },
+        ],
+        iso
+      )
+    ).toBeNull()
+  })
+
+  it('그리드 초록(60~64)도 이제 포함된다(SSOT 밴드 일치)', () => {
+    const r = pickNextBigDay([{ date: '2024-06-16', score: 62 }], iso)
+    expect(r).toEqual({ date: '2024-06-16', dDay: 1, score: 62 })
+  })
+
+  it('빈 배열/오늘 이전 날짜는 null', () => {
+    expect(pickNextBigDay([], iso)).toBeNull()
+    // 방어적: dDay<1 이면(과거·오늘) 제외.
+    expect(pickNextBigDay([{ date: '2024-06-15', score: 90 }], iso)).toBeNull()
+  })
+
+  it('월 경계를 넘어도 D-day 를 정확히 센다', () => {
+    const r = pickNextBigDay([{ date: '2024-07-01', score: 80 }], '2024-06-28')
+    expect(r).toEqual({ date: '2024-07-01', dDay: 3, score: 80 })
+  })
+})
+
+describe('assembleTiers — day.nextBigDay 연결', () => {
+  it('nextBigDay 는 null 이거나 유효한 D-day(≥1, score≥60, upcoming 내 날짜)다', async () => {
+    const out = await assembleTiers(baseInput())
+    const nb = out.day.nextBigDay
+    if (nb) {
+      expect(nb.dDay).toBeGreaterThanOrEqual(1)
+      expect(nb.score).toBeGreaterThanOrEqual(60)
+      expect(out.day.upcoming?.some((u) => u.date === nb.date && u.score === nb.score)).toBe(true)
+    }
+  })
+})
+
+describe('assembleTiers — 세운 입춘 경계 정합(SSOT)', () => {
+  it('1/1~입춘 구간엔 연·대운 세운이 활성 사주년(getYearPillarForDate)과 일치한다', async () => {
+    // 2024 입춘 ≈ 2/4. 1/15 는 아직 사주년 2023(癸卯)이다. 그레고리 근사
+    // computeSewoonGanji(2024)=甲辰 가 아니라 입춘-aware SSOT 활성 연주(癸卯)여야
+    // 월운·일진·상담사 computeCurrentUnse 와 어긋나지 않는다(감사 Finding).
+    const out = await assembleTiers(
+      baseInput({
+        targetMonth: 1,
+        targetDay: 15,
+        targetDayIso: '2024-01-15',
+        now: new Date('2024-01-15T12:00:00Z'),
+      })
+    )
+    const p = getYearPillarForDate(new Date(Date.UTC(2024, 0, 15, 12)))
+    const expected = `${p.stem}${p.branch}`
+    expect(expected).toBe('癸卯') // 그레고리 근사(甲辰) 아님을 못박음
+    expect(out.year.sewoonGz.hanja).toBe(expected)
+    // 대운 티어 sewoonNow 도 연 티어와 동일 소스(입춘 활성 연주).
+    expect(out.decade.sewoonNow.gz.hanja).toBe(expected)
+  })
+
+  it('입춘 이후(6월)엔 그레고리 근사와 동일하다(회귀 없음)', async () => {
+    // FIXED_NOW = 2024-06-15 는 입춘 이후 → 사주년 2024 = 甲辰. 연·대운 세운 일치.
+    const out = await assembleTiers(baseInput())
+    expect(out.year.sewoonGz.hanja).toBe('甲辰')
+    expect(out.decade.sewoonNow.gz.hanja).toBe('甲辰')
   })
 })
