@@ -304,6 +304,12 @@ export interface ViralSummary {
   resonant: string[]
   /** 궁합 한 줄(용신 기반) — 이미 lang 해석됨. 없으면 null. */
   partner: string | null
+  /** 일주(60갑자) 캐릭터 별명 구절 — 십성×강약(30조합)만으로는 친구끼리 카드
+   *  문장이 겹쳐서, 60-way 축을 더해 사실상 충돌을 없앤다. 없으면 null. */
+  iljuLine: string | null
+  /** 동·서양이 실제로 엇갈린 지점 — 교차 tension 행의 서술자 쌍("금 · 예리하고
+   *  결단하는" ⚡ "공기 · 퍼뜨리고 연결하는"). 둘 다 진짜 나라는 현실 모순 훅. */
+  clash: { category: string; saju: string; astro: string } | null
 }
 
 /** 명식에서 뽑은 1차 값으로 바이럴 요약을 합성. 순수 함수(테스트 가능). */
@@ -319,6 +325,10 @@ export function buildViralSummary(input: {
   dominantSibsin?: string | null
   /** 차트에 마찰(tension) 신호가 있나 — 있을 때만 "콕 집는" 그림자 한 줄을 노출. */
   hasTension?: boolean
+  /** 일주 사전 character 원문 — 첫 별명 구절만 잘라 iljuLine 으로 노출. */
+  iljuCharacter?: string | null
+  /** 교차 tension 1위 행(서술자 있는 것) — clash ⚡ 블록 재료. */
+  topTension?: { category: string; left?: string; right?: string } | null
   lang: 'ko' | 'en'
 }): ViralSummary | null {
   const a = getArchetype(input.dayMaster)
@@ -348,5 +358,15 @@ export function buildViralSummary(input: {
     partner: input.yongsinElement
       ? (PARTNER_BY_ELEMENT[input.yongsinElement]?.[lang] ?? null)
       : null,
+    // 일주 character 는 "별명 구절. 본문…" 꼴 — 첫 문장(별명)만 카드에 싣는다.
+    iljuLine: input.iljuCharacter ? (input.iljuCharacter.split('.')[0]?.trim() ?? null) : null,
+    clash:
+      input.topTension?.left && input.topTension.right
+        ? {
+            category: input.topTension.category,
+            saju: input.topTension.left,
+            astro: input.topTension.right,
+          }
+        : null,
   }
 }

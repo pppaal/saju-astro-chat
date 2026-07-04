@@ -579,6 +579,10 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
     // 차트 합성 헤드라인 — 지배 십성으로 사람마다 다른 유형/한 줄, 마찰 있으면 콕 집는 줄.
     dominantSibsin: domSibsinName,
     hasTension: (cross?.rows ?? []).some((r) => r.tone === 'tension'),
+    // 일주(60갑자) 별명 — 십성×강약만으론 친구끼리 카드 문장이 겹쳐 60-way 축 추가.
+    iljuCharacter: ilju?.character ?? null,
+    // 동·서양이 실제로 엇갈린 지점(서술자 있는 tension 1위) — 카드 ⚡ 현실 모순 훅.
+    topTension: (cross?.rows ?? []).find((r) => r.tone === 'tension' && r.left && r.right) ?? null,
     lang,
   })
 

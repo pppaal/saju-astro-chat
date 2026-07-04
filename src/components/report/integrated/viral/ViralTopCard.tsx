@@ -33,6 +33,7 @@ export default function ViralTopCard({ summary, lang, action }: ViralTopCardProp
 
         {summary.subtype && <span className={s.subtype}>{summary.subtype}</span>}
         <h2 className={s.name}>{summary.name}</h2>
+        {summary.iljuLine && <p className={s.iljuLine}>{summary.iljuLine}</p>}
         <p className={s.oneLiner}>{summary.oneLiner}</p>
         {summary.edgeLine && <p className={s.edge}>🔪 {summary.edgeLine}</p>}
 
@@ -53,8 +54,28 @@ export default function ViralTopCard({ summary, lang, action }: ViralTopCardProp
           </div>
         )}
 
-        {(summary.resonant.length > 0 || summary.partner) && (
+        {(summary.resonant.length > 0 || summary.partner || summary.clash) && (
           <div className={s.facts}>
+            {summary.clash && (
+              <div className={s.fact}>
+                <span className={s.factIcon}>⚡</span>
+                <p>
+                  {ko ? (
+                    <>
+                      동·서양이 딱 여기서 널 다르게 봤어 — <b>{summary.clash.category}</b>. 사주는
+                      &ldquo;{summary.clash.saju}&rdquo;, 별자리는 &ldquo;{summary.clash.astro}
+                      &rdquo; — 둘 다 진짜 너예요.
+                    </>
+                  ) : (
+                    <>
+                      The one place East and West read you differently —{' '}
+                      <b>{summary.clash.category}</b>: Saju sees &ldquo;{summary.clash.saju}&rdquo;,
+                      the stars see &ldquo;{summary.clash.astro}&rdquo; — both are really you.
+                    </>
+                  )}
+                </p>
+              </div>
+            )}
             {summary.resonant.length > 0 && (
               <div className={s.fact}>
                 <span className={s.factIcon}>🔮</span>

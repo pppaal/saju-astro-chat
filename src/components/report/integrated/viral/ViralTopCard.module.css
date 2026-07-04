@@ -106,6 +106,17 @@
   color: var(--ink);
 }
 
+/* 일주(60갑자) 별명 구절 — 유형명 아래 작은 캡션. 친구끼리 카드가 같아 보이지
+   않게 하는 60-way 개인화 축이라, 존재감은 낮되 항상 보이게. */
+.iljuLine {
+  margin: 7px auto 0;
+  max-width: 28em;
+  font-size: 13px;
+  letter-spacing: 0.01em;
+  color: var(--ink-2);
+  opacity: 0.85;
+}
+
 .oneLiner {
   margin: 12px auto 0;
   max-width: 30em;

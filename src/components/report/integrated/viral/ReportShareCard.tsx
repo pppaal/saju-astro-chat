@@ -164,11 +164,28 @@ export const ReportShareCard = React.forwardRef<HTMLDivElement, { data: ReportSh
               fontWeight: 700,
               color: GOLD,
               wordBreak: 'keep-all',
-              marginBottom: 28,
+              marginBottom: summary.iljuLine ? 14 : 28,
             }}
           >
             {summary.name}
           </div>
+
+          {/* 일주(60갑자) 별명 — 유형명(30조합) 아래 60-way 개인화 축.
+              친구끼리 카드가 같은 문장으로 보이지 않게 하는 핵심 줄. */}
+          {summary.iljuLine && (
+            <div
+              style={{
+                fontSize: 26,
+                lineHeight: 1.4,
+                color: TEXT_DIM,
+                wordBreak: 'keep-all',
+                marginBottom: 26,
+                maxWidth: 820,
+              }}
+            >
+              {summary.iljuLine}
+            </div>
+          )}
 
           {/* one-liner */}
           <div
@@ -271,6 +288,24 @@ export const ReportShareCard = React.forwardRef<HTMLDivElement, { data: ReportSh
               {isKo
                 ? `🔮 사주와 별자리가 ${resonant.join(' · ')}을 둘 다 가리켜요`
                 : `🔮 Saju & astrology both point to ${resonant.join(' · ')}`}
+            </div>
+          )}
+
+          {/* 동·서양이 엇갈린 지점 — "둘 다 너"라는 현실 모순 훅. 카드에서 가장
+              차트-고유한 줄이라, 받은 사람의 "내 것도 궁금" 호기심을 만든다. */}
+          {summary.clash && (
+            <div
+              style={{
+                fontSize: 26,
+                lineHeight: 1.5,
+                color: TEXT_DIM,
+                textAlign: 'center',
+                wordBreak: 'keep-all',
+              }}
+            >
+              {isKo
+                ? `⚡ ${summary.clash.category}에선 갈렸어 — 사주는 "${summary.clash.saju}", 별자리는 "${summary.clash.astro}"`
+                : `⚡ They split on ${summary.clash.category} — Saju: "${summary.clash.saju}", stars: "${summary.clash.astro}"`}
             </div>
           )}
 

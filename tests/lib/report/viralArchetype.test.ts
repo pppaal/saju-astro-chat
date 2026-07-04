@@ -113,4 +113,35 @@ describe('viralArchetype', () => {
       buildViralSummary({ dayMaster: '??', strengths: [], resonant: [], lang: 'ko' })
     ).toBeNull()
   })
+
+  it('buildViralSummary — 일주 character 첫 구절을 iljuLine 으로 자른다', () => {
+    const base = { dayMaster: '甲', strengths: [], resonant: [], lang: 'ko' as const }
+    const s = buildViralSummary({
+      ...base,
+      iljuCharacter: '큰 나무 아래 시작하는 쥐형 — 어린 결단력. 당신은 새싹 같은 사람이에요.',
+    })!
+    expect(s.iljuLine).toBe('큰 나무 아래 시작하는 쥐형 — 어린 결단력')
+    // 없으면 null — 카드가 줄을 자동 생략
+    expect(buildViralSummary(base)!.iljuLine).toBeNull()
+  })
+
+  it('buildViralSummary — 교차 tension 서술자 쌍을 clash 로 노출한다', () => {
+    const base = { dayMaster: '甲', strengths: [], resonant: [], lang: 'ko' as const }
+    const s = buildViralSummary({
+      ...base,
+      topTension: {
+        category: '정체성',
+        left: '금 · 예리하고 결단하는',
+        right: '공기 · 퍼뜨리고 연결하는',
+      },
+    })!
+    expect(s.clash).toEqual({
+      category: '정체성',
+      saju: '금 · 예리하고 결단하는',
+      astro: '공기 · 퍼뜨리고 연결하는',
+    })
+    // 서술자가 없는 tension 행은 clash 를 만들지 않는다(빈 따옴표 방지)
+    expect(buildViralSummary({ ...base, topTension: { category: '욕망' } })!.clash).toBeNull()
+    expect(buildViralSummary(base)!.clash).toBeNull()
+  })
 })
