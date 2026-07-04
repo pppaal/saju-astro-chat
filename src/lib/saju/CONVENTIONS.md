@@ -69,7 +69,7 @@ const sajuYear = birthDateTime < ipchunUTC ? year - 1 : year
 
 **선택:** **KST(Asia/Seoul) 자정**이 일주 전환선. Julian Day Number(JDN) 기반 결정적 계산.
 
-- `longitude` 인자가 들어오면 진태양시(LST) 보정 적용 가능 — 출생지 경도로 분 단위 시각 조정
+- `longitude` 인자가 들어오면 평균태양시(mean solar time) 보정 적용 가능 — 출생지 경도로 분 단위 시각 조정. 균시차 미적용 ([docs/SOLAR_TIME_CONVENTION.md](../../../docs/SOLAR_TIME_CONVENTION.md))
 - 기본은 KST 자정 (한국 표준 사주)
 
 **위치:** [`saju.ts:271-274`](./saju.ts#L271-L274) (longitude param), `dayPillar.ts` (JDN compute)
@@ -265,7 +265,7 @@ isForward = (yearStem이 양 && male) || (yearStem이 음 && female)
 
 ## 추가가 필요한 항목 (TODO)
 
-- **진태양시(LST) 보정 정책 기본값** — 현재 longitude 가 옵션 인자. ON/OFF 정책 결정 + 문서화 필요.
+- **평균태양시 보정 정책 기본값** — 현재 longitude 가 옵션 인자. ON/OFF 정책 결정 + 문서화 필요.
 - **`CALCULATION_STANDARDS.saju.daeunRounding` 의 현행 값** — config 파일 링크 + 결정 근거 메모.
 
 ---

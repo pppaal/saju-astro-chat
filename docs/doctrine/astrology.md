@@ -24,7 +24,7 @@ status: living
 
 ## 심화 문서
 
-- [계산 스펙](../CALCULATION_SPEC.md) · [점성 감사](../AUDIT_ASTRO.md) · [진태양시 정책](../SOLAR_TIME_CONVENTION.md)
+- [계산 스펙](../CALCULATION_SPEC.md) · [점성 감사](../AUDIT_ASTRO.md) · [태양시 정책 — 평균태양시, 균시차 미적용](../SOLAR_TIME_CONVENTION.md)
 
 ## 사용처
 

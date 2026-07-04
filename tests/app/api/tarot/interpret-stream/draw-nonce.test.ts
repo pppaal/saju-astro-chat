@@ -25,7 +25,8 @@ vi.mock('@/lib/credits/withCredits', () => ({
     new Response(JSON.stringify({ error: 'insufficient' }), { status: 402 }),
 }))
 
-vi.mock('@/lib/credits/creditRefund', () => ({ refundCredits: mockRefund }))
+// replay 환불은 멱등 래퍼(refundCreditsOnce)를 쓴다 — (key, params) 시그니처.
+vi.mock('@/lib/credits/refundOnce', () => ({ refundCreditsOnce: mockRefund }))
 
 // draw-nonce store mock — consume() 반환값을 테스트마다 제어.
 // vi.hoisted: mock factory 가 hoist 되어 module-scope createDrawNonceStore()
@@ -140,9 +141,12 @@ describe('interpret-stream — single-use draw nonce gating (Fix A)', () => {
     // skip" 하는 이전 설계를 기대해 실패했으므로, 환불로 상쇄됨을 검증한다.
     expect(mockCheckAndConsumeCredits).toHaveBeenCalledTimes(1)
     expect(mockRefund).toHaveBeenCalledTimes(1)
+    // 멱등 키가 nonce 에 묶여야 같은 replay 재시도가 중복 환불되지 않는다.
     expect(mockRefund).toHaveBeenCalledWith(
+      expect.stringContaining('tarot-replay:'),
       expect.objectContaining({ creditType: 'reading', amount: 1, reason: 'tarot_nonce_replay' })
     )
+    expect(mockRefund.mock.calls[0][0]).toContain('valid-nonce')
   })
 
   it('charges normally for a forged/unknown nonce (no free pass)', async () => {

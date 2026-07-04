@@ -329,9 +329,11 @@ export async function POST(req: NextRequest) {
       // refund 후 free pass.
       logger.info('[tarot-stream] draw-nonce replay, refunding credit', { ownerKey })
       try {
-        const { refundCredits } = await import('@/lib/credits/creditRefund')
+        const { refundCreditsOnce } = await import('@/lib/credits/refundOnce')
         if (context.userId) {
-          await refundCredits({
+          // nonce 가 replay-턴의 안정 키 — 같은 replay 가 재시도돼도 환불은 1회.
+          // (예전 비멱등 refundCredits 는 replay 재시도마다 중복 환불 가능했다.)
+          await refundCreditsOnce(`tarot-replay:${context.userId}:${drawNonce}`, {
             userId: context.userId,
             creditType: 'reading',
             amount: creditCost,
@@ -340,7 +342,15 @@ export async function POST(req: NextRequest) {
           })
         }
       } catch (refundErr) {
-        logger.warn('[tarot-stream] replay refund failed', { refundErr })
+        // 환불 실패 = 같은 리딩에 이중 과금 잔존. 리딩 자체는 이미 결제된
+        // 것이므로 free pass 는 유지하되, reconciliation 이 잡도록 error 레벨
+        // + 식별 필드(userId/nonce/amount)를 남긴다.
+        logger.error('[tarot-stream] replay refund failed — user remains double-charged', {
+          userId: context.userId,
+          drawNonce,
+          amount: creditCost,
+          err: refundErr instanceof Error ? refundErr.message : String(refundErr),
+        })
       }
       creditResult = null
     } else if (consumeResult === 'unknown' && drawNonce) {

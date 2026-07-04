@@ -11,7 +11,7 @@ Last audited: 2026-06-15 (Asia/Hong_Kong)
 | `README.md`                                                          | Repo overview, architecture, quality engineering                | All engineers               | 2026-06-15   |
 | `BUILD_INSTRUCTIONS.md`                                              | Prereqs, env setup, DB, build/test, deployment, troubleshooting | Developers, DevOps          | 2026-04-01   |
 | `OVERVIEW.md`                                                        | Architecture and runtime topology                               | Engineers, architects       | 2026-06-15   |
-| `docs/SECURITY_AUDIT_REPORT.md`                                      | Current API security posture (76-route review) and open items   | Security, backend engineers | 2026-06-15   |
+| `docs/SECURITY_AUDIT_REPORT.md`                                      | API security posture (historical route review) and open items   | Security, backend engineers | 2026-06-15   |
 | `ROADMAP.md`                                                         | Technical planning priorities                                   | Engineering leadership      | 2026-06-15   |
 | `docs/UNICORN_STRATEGY.md`                                           | Long-range product strategy (non-normative)                     | Product leadership          | 2026-02-15   |
 | `docs/archive/root-history/PROJECT_IMPROVEMENT_STATUS_2026-02-03.md` | Historical checkpoint, de-authorized                            | Maintainers                 | 2026-02-15   |
@@ -33,12 +33,12 @@ Last audited: 2026-06-15 (Asia/Hong_Kong)
 
 ## Cross-Layer / Fortune Engine Docs
 
-| Document                              | Covers                                                               | Audience             | Last audited |
-| ------------------------------------- | -------------------------------------------------------------------- | -------------------- | ------------ |
-| `docs/DESTINY_ENGINE_ARCHITECTURE.md` | End-to-end pipeline (input → saju → astro → facts → cross → surface) | Backend/AI engineers | 2026-06-15   |
-| `docs/AUDIT_SAJU.md`                  | Saju calculation audit                                               | Backend engineers    | 2026-03-11   |
-| `docs/AUDIT_ASTRO.md`                 | Astrology calculation audit                                          | Backend engineers    | 2026-03-11   |
-| `docs/SOLAR_TIME_CONVENTION.md`       | True solar time policy and boundary handling                         | Backend engineers    | 2026-03-11   |
+| Document                              | Covers                                                                         | Audience             | Last audited |
+| ------------------------------------- | ------------------------------------------------------------------------------ | -------------------- | ------------ |
+| `docs/DESTINY_ENGINE_ARCHITECTURE.md` | End-to-end pipeline (input → saju → astro → facts → cross → surface)           | Backend/AI engineers | 2026-06-15   |
+| `docs/AUDIT_SAJU.md`                  | Saju calculation audit                                                         | Backend engineers    | 2026-03-11   |
+| `docs/AUDIT_ASTRO.md`                 | Astrology calculation audit                                                    | Backend engineers    | 2026-03-11   |
+| `docs/SOLAR_TIME_CONVENTION.md`       | Solar time policy (mean solar time; no equation-of-time) and boundary handling | Backend engineers    | 2026-06-06   |
 
 ## Generated And Audit Docs
 
