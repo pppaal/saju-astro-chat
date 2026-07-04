@@ -17,7 +17,11 @@ import { collectAstroFacts } from '@/lib/destiny/astroFacts'
 import type { Chart, NatalInput } from '@/lib/astrology/foundation/types'
 
 const BIRTH = {
-  birthDate: '1990-05-15',
+  // 1990-03-01 14:30 Seoul — Saturn 이 항성 Altair 와 orb 0.07° 로 합(느린
+  // 행성이라 시각에 둔감·안정적). 이 fixture 로 Fixed Stars 섹션 렌더를 검증한다.
+  // (이전 1990-05-15 fixture 는 잘못 배치됐던 항성과의 '가짜 합'에 의존했는데,
+  //  항성 경도 sign-off-by-one 정정 후 그 합이 사라져 fixture 를 교체했다.)
+  birthDate: '1990-03-01',
   birthTime: '14:30',
   latitude: 37.5665,
   longitude: 126.978,
@@ -27,8 +31,8 @@ const NOW = new Date('2024-06-21T09:00:00.000Z')
 
 const NATAL: NatalInput = {
   year: 1990,
-  month: 5,
-  date: 15,
+  month: 3,
+  date: 1,
   hour: 14,
   minute: 30,
   latitude: 37.5665,
