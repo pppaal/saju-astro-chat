@@ -183,6 +183,21 @@ describe('buildCompatReport — spouseStars 정렬(일주 우선) + 상위 4', (
       }
     }
   })
+
+  it('A 관점 배우자성이 많아도 B 관점이 통째로 잘리지 않는다 (관점 균형)', () => {
+    // A 일간 甲(목): 배우자성=금(정/편관)·토(정/편재). B 네 기둥 모두 금/토라
+    // A 관점 배우자성이 4개 이상 잡힌다. 반대로 B 일간 己(토): 배우자성=수(정/
+    // 편재)·목(정/편관). A 기둥에 수/목이 있어 B 관점도 잡히게 구성.
+    // 예전엔 A 관점이 상위 4를 독식해 B 관점이 0개가 됐다.
+    const pillarsA = [P('甲', '子'), P('甲', '寅'), P('甲', '申'), P('甲', '辰')]
+    const pillarsB = [P('己', '申'), P('己', '酉'), P('己', '辰'), P('己', '丑')]
+    const r = buildCompatReport({ astroA: null, astroB: null, pillarsA, pillarsB, lang: 'ko' })
+    const froms = new Set(r.spouseStars.map((s) => s.from))
+    // 양쪽 관점이 모두 잡히면 둘 다 대표되어야 한다(한쪽 독식 방지).
+    expect(r.spouseStars.length).toBeLessThanOrEqual(4)
+    expect(froms.has('A')).toBe(true)
+    expect(froms.has('B')).toBe(true)
+  })
 })
 
 describe('buildCompatReport — crossVerdict 톤 arm', () => {

@@ -381,6 +381,12 @@ describe('buildFreeCompatNarrative', () => {
     expect(d!.weighs.some((w) => w.score === minPos)).toBe(true)
     // lifts 는 내림차순.
     if (d!.lifts.length === 2) expect(d!.lifts[0].score).toBeGreaterThanOrEqual(d!.lifts[1].score)
+    // 같은 테마가 lifts 와 weighs 에 동시에 나오면 안 된다("올린 요인 X · 내린
+    // 요인 X" 자기모순). 평균 기준 분리(> mean vs < mean)라 구조적으로 disjoint.
+    const liftLabels = new Set(d!.lifts.map((x) => x.label))
+    for (const w of d!.weighs) {
+      expect(liftLabels.has(w.label), `${w.label} 가 lifts/weighs 양쪽에 노출됨`).toBe(false)
+    }
   })
 
   it('has no score drivers when there is no score (no signals)', () => {
@@ -392,5 +398,45 @@ describe('buildFreeCompatNarrative', () => {
     }
     const view = buildFreeCompatNarrative(bare, { labelA: 'A', labelB: 'B', lang: 'ko' })
     expect(view.scoreDrivers).toBeNull()
+  })
+
+  it('밴드 카피: 충 2~3건엔 "거의 없어"류 카피가 붙지 않고, 0~1건과 문구가 달라진다', () => {
+    // 예전엔 v≥50 이라 충 3건(eastern_chung=55)에도 "충이 거의 없어" 가 붙어
+    // 같은 리포트의 매듭 섹션(충 3건 나열)과 자기모순이었다. 임계 85 로
+    // clash≤1(값 ≥85) 일 때만 high("거의 없어")가 되게 고쳤다. (카피 본문은
+    // GENERATED 변형이라 정확 문자열 대신 "거의 없어" 유무 + high/low 분기 전환을
+    // 검사한다.)
+    const bandsText = (chung: number) => {
+      const r: CompatReport = {
+        synView: null,
+        dayMaster: null,
+        spouseStars: [],
+        pillarRelations: [],
+        band: { eastern_chung: chung },
+      }
+      const view = buildFreeCompatNarrative(r, { labelA: 'A', labelB: 'B', lang: 'ko' })
+      return view.sections.find((s) => s.id === 'bands')!.paragraphs.join(' ')
+    }
+    const clash3 = bandsText(55) // 충 3건
+    const clash2 = bandsText(70) // 충 2건
+    const clash1 = bandsText(85) // 충 1건
+    // 2~3건엔 "거의 없어" 라는 절대적 무충돌 카피가 붙으면 안 된다.
+    expect(clash3).not.toContain('거의 없어')
+    expect(clash2).not.toContain('거의 없어')
+    // 1건(임계 통과)은 low 문구와 달라진다(high 분기 전환 확인).
+    expect(clash1).not.toBe(clash3)
+  })
+
+  it('밴드 카피: synastry_tension 긴장 2건(60)엔 "거의 없어"류가 붙지 않는다', () => {
+    const r: CompatReport = {
+      synView: null,
+      dayMaster: null,
+      spouseStars: [],
+      pillarRelations: [],
+      band: { synastry_tension: 60 }, // 긴장 2건 (100−tens×20)
+    }
+    const view = buildFreeCompatNarrative(r, { labelA: 'A', labelB: 'B', lang: 'ko' })
+    const text = view.sections.find((s) => s.id === 'bands')!.paragraphs.join(' ')
+    expect(text).not.toContain('거의 없어')
   })
 })

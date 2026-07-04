@@ -107,6 +107,25 @@ export interface CompatReportInput {
 
 const ELEMENTS = ['목', '화', '토', '금', '수'] as const
 
+/**
+ * 배우자성 상위 4를 두 관점(A/B) 균형 있게 뽑는다. 각 관점에서 일주(배우자궁)
+ * 우선 상위 2개씩 → 남는 슬롯은 나머지에서 일주 우선으로 채움. 최종 정렬은 일주
+ * 우선(표시 순서 기존 유지). 한쪽 관점이 비-일주 배우자성을 많이 가져도 다른
+ * 쪽이 통째로 잘리지 않게 한다.
+ */
+function balanceSpouseStars(all: SajuCompatSpouseStar[]): SajuCompatSpouseStar[] {
+  const byDay = (a: SajuCompatSpouseStar, b: SajuCompatSpouseStar) =>
+    Number(b.isDayPillar) - Number(a.isDayPillar)
+  const aSide = all.filter((s) => s.from === 'A').sort(byDay)
+  const bSide = all.filter((s) => s.from === 'B').sort(byDay)
+  const picked = [...aSide.slice(0, 2), ...bSide.slice(0, 2)]
+  if (picked.length < 4) {
+    const rest = [...aSide.slice(2), ...bSide.slice(2)].sort(byDay)
+    picked.push(...rest.slice(0, 4 - picked.length))
+  }
+  return picked.sort(byDay).slice(0, 4)
+}
+
 export function buildCompatReport(input: CompatReportInput): CompatReport {
   const { astroA, astroB, pillarsA, pillarsB, timeUnknownA, timeUnknownB, lang = 'ko' } = input
 
@@ -117,12 +136,13 @@ export function buildCompatReport(input: CompatReportInput): CompatReport {
       ? computeSajuSynastryFacts({ pillarsA, pillarsB, timeUnknownA, timeUnknownB })
       : null
 
-  // 배우자성 — 일주(배우자궁)에 잡힌 것 우선, 상위 4.
-  const spouseStars = sajuFacts
-    ? [...sajuFacts.spouseStars]
-        .sort((a, b) => Number(b.isDayPillar) - Number(a.isDayPillar))
-        .slice(0, 4)
-    : []
+  // 배우자성 — 일주(배우자궁) 우선, 두 사람 관점 균형 후 상위 4.
+  // 예전엔 isDayPillar 로만 정렬 후 slice(0,4) 했는데, facts 가 A 관점을 먼저
+  // push 하고 안정 정렬이라 A 가 비-일주 배우자성을 4개 이상 가지면 B 관점이
+  // 통째로 잘려 한쪽 편향 리포트가 됐다(buildNarrative 는 "사람당 대표 1개씩"을
+  // 의도). 각 관점에서 일주 우선 상위 2개씩 뽑아 균형을 맞추고, 슬롯이 남으면
+  // 나머지로 채운다. 최종 표시 순서는 기존과 동일하게 일주 우선.
+  const spouseStars = sajuFacts ? balanceSpouseStars(sajuFacts.spouseStars) : []
 
   // 밴드 분해 바 — SSOT(엔진 시너스트리 + 사주 facts)에서 도출. 가중치는 서버에만.
   const band: CompatBandScores = {}
