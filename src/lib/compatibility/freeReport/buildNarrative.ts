@@ -98,6 +98,17 @@ const BAND_ORDER: Array<keyof NonNullable<CompatReport['band']>> = [
   'synastry_tension',
 ]
 
+// 밴드별 "high 카피" 임계. 기본 50. eastern_chung/synastry_tension 은 "충/긴장이
+// 거의 없어" 라는 절대적 카피라, 감점 산식(eastern_chung=100−clash×15,
+// synastry_tension=100−tens×20)상 충/긴장이 0~1건일 때만 참이 되도록 임계를
+// 올린다. 예전엔 v≥50 이라 충 3건(55)·긴장 2건(60)에도 "거의 없어"가 붙어,
+// 같은 리포트의 '매듭' 섹션이 그 충·긴장을 나열하는 것과 자기모순이었다.
+//   clash ≤ 1 ⟺ eastern_chung ≥ 85 · tens ≤ 1 ⟺ synastry_tension ≥ 80.
+const BAND_HIGH_THRESHOLD: Partial<Record<keyof NonNullable<CompatReport['band']>, number>> = {
+  eastern_chung: 85,
+  synastry_tension: 80,
+}
+
 // 기둥 관계 태그 우선순위 — 한 페어에 여러 태그면 가장 의미 큰 것 하나만 풀이.
 const TAG_PRIORITY = ['충', '천간충', '형', '자형', '천간합', '삼합', '육합', '방합', '해', '파']
 
@@ -1293,7 +1304,8 @@ export function buildFreeCompatNarrative(
       if (typeof v !== 'number') continue
       const copy = BAND[key]
       if (!copy) continue
-      const side = v >= 50 ? copy.high : copy.low
+      const threshold = BAND_HIGH_THRESHOLD[key] ?? 50
+      const side = v >= threshold ? copy.high : copy.low
       paras.push(`${t(copy.what)} — ${t(side)}`)
     }
     if (paras.length) {
@@ -1517,7 +1529,11 @@ export function buildFreeCompatNarrative(
       theme: 'life',
       weight: 4,
       text: fill(t(DAY_MASTER_REL[dm.relation]), { A: labelA, B: labelB, aEl, bEl }),
-      pol: dm.relation === 'generate' ? 4 : dm.relation === 'same' ? 2 : -4,
+      // 상극(aControlsB/bControlsA)은 카피가 양가적("단단히 잡아줘 든든하지만
+      // 때론 제약")이라, generate(+4)와 같은 크기의 강한 음수(-4)는 훅·테마
+      // 점수를 과하게 깎아 "든든" 문단과 모순됐다. 제약의 결만 반영해 완만한
+      // 음수(-1)로 둔다. same(+2)은 mild+, generate(+4)는 strong+ 유지.
+      pol: dm.relation === 'generate' ? 4 : dm.relation === 'same' ? 2 : -1, // aControlsB / bControlsA (상극)
     })
     if (dm.bToA && TEN_GODS[dm.bToA])
       themed.push({
@@ -1722,25 +1738,41 @@ export function buildFreeCompatNarrative(
     overallScore = Math.max(40, Math.min(97, Math.round(expanded)))
   }
 
-  // 점수 드라이버 — 총점(=posThemes 평균)을 끌어올린/깎은 테마를 그대로 노출.
+  // 점수 드라이버 — 총점(posThemes 평균 기반)을 끌어올린/깎은 테마를 노출.
   // 라벨은 테마의 scoreCaption(끌림/소통/마찰…), 없으면 제목. friction 은 진행축이라
   // 총점 평균엔 안 들어가지만 점수가 높으면(충돌 큼) "깎는 쪽"으로 함께 보여준다.
+  //
+  // 평균을 피벗으로 lifts(평균 위)/weighs(평균 아래)를 *분리*한다. 예전엔
+  // slice(0,2)(상위 2)와 slice(-2)(하위 2)를 썼는데 테마가 2~3개면 두 slice 가
+  // 겹쳐 같은 테마가 "올린 요인"과 "내린 요인"에 동시에 나오는 자기모순
+  // ("올린 요인 소통 64 · 내린 요인 소통 64")이 났다. 사주만 입력한 커플처럼
+  // 신호가 적어 posThemes 가 2~3개인 경우가 흔해 실제로 자주 노출됐다.
   let scoreDrivers: FreeReportView['scoreDrivers'] = null
   if (overallScore != null && posThemes.length >= 2) {
-    const byScore = [...posThemes].sort((a, b) => b.score! - a.score!)
+    const driverMean = posThemes.reduce((s, th) => s + th.score!, 0) / posThemes.length
     const toDriver = (th: FreeReportTheme) => ({
       label: th.scoreCaption || th.title,
       score: th.score!,
     })
-    const weighs = byScore.slice(-2).reverse().map(toDriver)
-    // 충돌 강도가 큰 커플이면 friction 을 깎는 요인으로 명시(총점 감점원과 일치).
-    if (fric && typeof fric.score === 'number' && fric.score >= 70) {
+    const lifts = posThemes
+      .filter((th) => th.score! > driverMean)
+      .sort((a, b) => b.score! - a.score!)
+      .slice(0, 2)
+      .map(toDriver)
+    const weighs = posThemes
+      .filter((th) => th.score! < driverMean)
+      .sort((a, b) => a.score! - b.score!)
+      .slice(0, 2)
+      .map(toDriver)
+    // 충돌 강도가 큰 커플이면 friction 을 깎는 요인으로 명시. 임계(65)를 총점
+    // 감점식(`Math.max(0, fric.score − 65)`)과 맞춰, 감점됐는데 드라이버엔 안
+    // 뜨던 66~69 구간 불일치를 없앤다.
+    if (fric && typeof fric.score === 'number' && fric.score > 65) {
       weighs.unshift(toDriver(fric))
     }
-    scoreDrivers = {
-      lifts: byScore.slice(0, 2).map(toDriver),
-      weighs: weighs.slice(0, 3),
-    }
+    // lifts 가 비면(= 모든 테마 점수가 동일) 방향 정보가 없어 노출하지 않는다.
+    // 평균 특성상 lifts 가 비지 않으면 weighs 도 비지 않는다(항상 균형).
+    scoreDrivers = lifts.length ? { lifts, weighs: weighs.slice(0, 3) } : null
   }
 
   return {
