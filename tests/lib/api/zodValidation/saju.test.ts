@@ -75,6 +75,28 @@ describe('Counselor 지오 필드 경계 (passthrough 라도 검증)', () => {
       counselorWarmRequestSchema.safeParse({ birthDate: '1990-05-15', longitude: 99999 }).success
     ).toBe(false)
   })
+
+  it('messages 배열/턴 길이 상한을 강제한다 (메모리·토큰 abuse 차단)', () => {
+    // 400턴 초과 거부.
+    const tooMany = {
+      ...base,
+      messages: Array.from({ length: 401 }, () => ({ role: 'user', content: 'x' })),
+    }
+    expect(counselorRealtimeRequestSchema.safeParse(tooMany).success).toBe(false)
+    // 400턴 정확히는 통과.
+    const atLimit = {
+      ...base,
+      messages: Array.from({ length: 400 }, () => ({ role: 'user', content: 'x' })),
+    }
+    expect(counselorRealtimeRequestSchema.safeParse(atLimit).success).toBe(true)
+    // 턴 content 20,000자 초과 거부(마지막 user 메시지가 무캡으로 프롬프트에
+    // 들어가던 벡터 차단).
+    const hugeContent = {
+      ...base,
+      messages: [{ role: 'user', content: 'a'.repeat(20_001) }],
+    }
+    expect(counselorRealtimeRequestSchema.safeParse(hugeContent).success).toBe(false)
+  })
 })
 
 describe('Saju Schema Tests', () => {

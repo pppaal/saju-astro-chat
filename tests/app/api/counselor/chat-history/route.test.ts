@@ -14,6 +14,10 @@ const mockCreate = vi.fn()
 const mockUpdate = vi.fn()
 const mockUpsert = vi.fn()
 const mockPersonaFindUnique = vi.fn()
+// POST 업데이트 경로는 이제 원자적 jsonb concat($executeRaw)로 append 한다.
+// 반환값 = 영향받은 행 수(1=append 성공, 0=이 사용자 소유 세션 없음).
+const mockExecuteRaw = vi.fn()
+const mockIsSessionDeleted = vi.fn()
 
 // Mock withApiMiddleware to pass through with test context
 vi.mock('@/lib/api/middleware', () => ({
@@ -43,7 +47,14 @@ vi.mock('@/lib/db/prisma', () => ({
       findUnique: (...args: any[]) => mockPersonaFindUnique(...args),
       upsert: (...args: any[]) => mockUpsert(...args),
     },
+    $executeRaw: (...args: any[]) => mockExecuteRaw(...args),
   },
+}))
+
+// 삭제 tombstone — 기본은 "삭제 안 됨"(false).
+vi.mock('@/lib/counselor/sessionTombstone', () => ({
+  isCounselorSessionDeleted: (...args: any[]) => mockIsSessionDeleted(...args),
+  markCounselorSessionDeleted: vi.fn(),
 }))
 
 // Mock logger
@@ -113,6 +124,9 @@ describe('/api/counselor/chat-history', () => {
     mockCreate.mockResolvedValue(mockChatSession)
     mockUpdate.mockResolvedValue(mockChatSession)
     mockUpsert.mockResolvedValue(mockPersonaMemory)
+    // 기본: append 1행 성공, 세션 미삭제.
+    mockExecuteRaw.mockResolvedValue(1)
+    mockIsSessionDeleted.mockResolvedValue(false)
   })
 
   afterEach(() => {
@@ -562,20 +576,10 @@ describe('/api/counselor/chat-history', () => {
   })
 
   describe('POST - Update Existing Session', () => {
-    it('should update existing session when sessionId is provided', async () => {
-      mockFindFirst.mockResolvedValue({
-        id: 'session-123',
-        userId: mockUserId,
-        messages: [{ role: 'user', content: 'First message', timestamp: '2024-01-15T10:00:00Z' }],
-      })
-      mockUpdate.mockResolvedValue({
-        id: 'session-123',
-        messages: [
-          { role: 'user', content: 'First message', timestamp: '2024-01-15T10:00:00Z' },
-          { role: 'user', content: 'Second message', timestamp: '2024-01-15T10:01:00Z' },
-        ],
-        messageCount: 2,
-      })
+    // 업데이트 경로는 이제 원자적 jsonb concat($executeRaw)로 append 한다.
+    // mockExecuteRaw>0 = 이 사용자 소유 세션에 append 성공.
+    it('should append to existing session via atomic UPDATE when sessionId is provided', async () => {
+      mockExecuteRaw.mockResolvedValue(1)
 
       const req = new NextRequest('http://localhost:3000/api/counselor/chat-history', {
         method: 'POST',
@@ -592,11 +596,15 @@ describe('/api/counselor/chat-history', () => {
       expect(response.status).toBe(200)
       expect(result.success).toBe(true)
       expect(result.action).toBe('updated')
-      expect(mockUpdate).toHaveBeenCalled()
+      // 클라는 id 만 사용 — 전체 messages 를 되돌리지 않는다(O(N) 페이로드 회피).
+      expect(result.session).toEqual({ id: 'session-123' })
+      expect(mockExecuteRaw).toHaveBeenCalled()
+      // read-modify-write(findFirst→update)를 더 이상 쓰지 않는다.
+      expect(mockUpdate).not.toHaveBeenCalled()
     })
 
-    it('should return 404 when session does not exist', async () => {
-      mockFindFirst.mockResolvedValue(null)
+    it('should return 404 when session does not exist (0 rows affected)', async () => {
+      mockExecuteRaw.mockResolvedValue(0)
 
       const req = new NextRequest('http://localhost:3000/api/counselor/chat-history', {
         method: 'POST',
@@ -612,10 +620,12 @@ describe('/api/counselor/chat-history', () => {
 
       expect(response.status).toBe(404)
       expect(result.error.code).toBe('NOT_FOUND')
+      expect(mockCreate).not.toHaveBeenCalled()
     })
 
     it('create:true 면 없는 sessionId 를 그 id 로 생성한다 (compat 안전망 합류)', async () => {
-      mockFindFirst.mockResolvedValue(null)
+      // append 0행(세션 없음) → create.
+      mockExecuteRaw.mockResolvedValue(0)
       mockCreate.mockResolvedValue({ id: 'compat_123_abc', messageCount: 2 })
 
       const req = new NextRequest('http://localhost:3000/api/counselor/chat-history', {
@@ -635,14 +645,40 @@ describe('/api/counselor/chat-history', () => {
 
       expect(response.status).toBe(200)
       expect(result.action).toBe('created')
+      expect(result.session).toEqual({ id: 'compat_123_abc' })
       const arg = mockCreate.mock.calls[0][0]
       expect(arg.data.id).toBe('compat_123_abc')
       expect(arg.data.type).toBe('compat')
       expect(arg.data.meta).toEqual({ persons: [{ name: 'A' }, { name: 'B' }] })
     })
 
+    it('create:true + P2002 레이스(안전망이 먼저 행 생성) → append 재시도로 복구', async () => {
+      // append 0행 → create → P2002(안전망이 UPDATE~CREATE 사이 행 생성) →
+      // append 재시도가 내 세션이므로 1행 성공 → created. 예전엔 무조건 404 로
+      // 오처리해 유료 turn 내용이 영구 유실됐다.
+      mockExecuteRaw.mockResolvedValueOnce(0).mockResolvedValueOnce(1)
+      mockCreate.mockRejectedValue({ code: 'P2002' })
+
+      const req = new NextRequest('http://localhost:3000/api/counselor/chat-history', {
+        method: 'POST',
+        body: JSON.stringify({
+          sessionId: 'compat_123_abc',
+          create: true,
+          userMessage: 'hi',
+        }),
+      })
+
+      const response = await POST(req)
+      const result = await response.json()
+
+      expect(response.status).toBe(200)
+      expect(result.action).toBe('created')
+      expect(mockExecuteRaw).toHaveBeenCalledTimes(2)
+    })
+
     it('create:true 라도 id 가 타 사용자 소유(P2002)면 404 (정보 누출 없음)', async () => {
-      mockFindFirst.mockResolvedValue(null)
+      // append 0행 → create → P2002 → append 재시도도 0행(남의 세션) → 404.
+      mockExecuteRaw.mockResolvedValue(0)
       mockCreate.mockRejectedValue({ code: 'P2002' })
 
       const req = new NextRequest('http://localhost:3000/api/counselor/chat-history', {
@@ -661,47 +697,29 @@ describe('/api/counselor/chat-history', () => {
       expect(result.error.code).toBe('NOT_FOUND')
     })
 
-    it('update 경로에서도 meta 를 받으면 저장한다 (서버 존재 보장 행에 차트 채우기)', async () => {
-      mockFindFirst.mockResolvedValue({
-        id: 'compat_123_abc',
-        userId: mockUserId,
-        title: 'q',
-        messages: [],
-      })
-      mockUpdate.mockResolvedValue({ id: 'compat_123_abc', messageCount: 2 })
+    it('삭제된 세션(tombstone)은 create:true 여도 부활하지 않는다', async () => {
+      mockExecuteRaw.mockResolvedValue(0) // 세션 없음(삭제됨)
+      mockIsSessionDeleted.mockResolvedValue(true)
 
       const req = new NextRequest('http://localhost:3000/api/counselor/chat-history', {
         method: 'POST',
         body: JSON.stringify({
-          sessionId: 'compat_123_abc',
-          type: 'compat',
+          sessionId: 'deleted-session',
           create: true,
-          userMessage: '우리 잘 맞을까요?',
-          assistantMessage: '흐름은 좋아요.',
-          meta: { persons: [{ name: 'A' }] },
+          userMessage: '지연 도착한 저장',
         }),
       })
 
-      await POST(req)
+      const response = await POST(req)
+      const result = await response.json()
 
-      expect(mockUpdate).toHaveBeenCalledWith({
-        where: { id: 'compat_123_abc' },
-        data: expect.objectContaining({ meta: { persons: [{ name: 'A' }] } }),
-      })
+      expect(response.status).toBe(200)
+      expect(result.skipped).toBe('deleted')
+      expect(mockCreate).not.toHaveBeenCalled()
     })
 
-    it('should append messages to existing session', async () => {
-      const existingMessages = [
-        { role: 'user', content: 'Hello', timestamp: '2024-01-15T10:00:00Z' },
-        { role: 'assistant', content: 'Hi!', timestamp: '2024-01-15T10:00:01Z' },
-      ]
-
-      mockFindFirst.mockResolvedValue({
-        id: 'session-123',
-        userId: mockUserId,
-        messages: existingMessages,
-      })
-      mockUpdate.mockResolvedValue({ id: 'session-123', messageCount: 3 })
+    it('append 는 원자적 UPDATE 로 이뤄진다(lost-update 방지) — read-modify-write 미사용', async () => {
+      mockExecuteRaw.mockResolvedValue(1)
 
       const req = new NextRequest('http://localhost:3000/api/counselor/chat-history', {
         method: 'POST',
@@ -714,43 +732,9 @@ describe('/api/counselor/chat-history', () => {
 
       await POST(req)
 
-      expect(mockUpdate).toHaveBeenCalledWith({
-        where: { id: 'session-123' },
-        data: expect.objectContaining({
-          messages: expect.arrayContaining([
-            ...existingMessages,
-            expect.objectContaining({ role: 'user', content: 'New message' }),
-          ]),
-          messageCount: 3,
-        }),
-      })
-    })
-
-    it('should update lastMessageAt timestamp on update', async () => {
-      mockFindFirst.mockResolvedValue({
-        id: 'session-123',
-        userId: mockUserId,
-        messages: [],
-      })
-      mockUpdate.mockResolvedValue({ id: 'session-123' })
-
-      const req = new NextRequest('http://localhost:3000/api/counselor/chat-history', {
-        method: 'POST',
-        body: JSON.stringify({
-          sessionId: 'session-123',
-          theme: 'career',
-          userMessage: 'Hello',
-        }),
-      })
-
-      await POST(req)
-
-      expect(mockUpdate).toHaveBeenCalledWith({
-        where: { id: 'session-123' },
-        data: expect.objectContaining({
-          lastMessageAt: expect.any(Date),
-        }),
-      })
+      expect(mockExecuteRaw).toHaveBeenCalledTimes(1)
+      expect(mockFindFirst).not.toHaveBeenCalled()
+      expect(mockUpdate).not.toHaveBeenCalled()
     })
   })
 
@@ -1173,12 +1157,8 @@ describe('/api/counselor/chat-history', () => {
     })
 
     it('should propagate database errors on POST update', async () => {
-      mockFindFirst.mockResolvedValue({
-        id: 'session-123',
-        userId: mockUserId,
-        messages: [],
-      })
-      mockUpdate.mockRejectedValue(new Error('Database update error'))
+      // 원자적 append($executeRaw)가 throw 하면 그대로 전파.
+      mockExecuteRaw.mockRejectedValue(new Error('Database update error'))
 
       const req = new NextRequest('http://localhost:3000/api/counselor/chat-history', {
         method: 'POST',
@@ -1212,12 +1192,9 @@ describe('/api/counselor/chat-history', () => {
   // ============================================
   describe('Edge Cases', () => {
     it('should handle empty messages array in existing session', async () => {
-      mockFindFirst.mockResolvedValue({
-        id: 'session-123',
-        userId: mockUserId,
-        messages: null, // No messages yet
-      })
-      mockUpdate.mockResolvedValue({ id: 'session-123', messageCount: 1 })
+      // 빈/누락 messages 는 SQL 의 COALESCE("messages",'[]') 가 처리 —
+      // append 는 1행 성공하고 클라엔 id 만 반환.
+      mockExecuteRaw.mockResolvedValue(1)
 
       const req = new NextRequest('http://localhost:3000/api/counselor/chat-history', {
         method: 'POST',
@@ -1229,28 +1206,16 @@ describe('/api/counselor/chat-history', () => {
       })
 
       const response = await POST(req)
+      const result = await response.json()
 
       expect(response.status).toBe(200)
-      expect(mockUpdate).toHaveBeenCalledWith({
-        where: { id: 'session-123' },
-        data: expect.objectContaining({
-          messages: [expect.objectContaining({ role: 'user', content: 'Hello' })],
-          messageCount: 1,
-        }),
-      })
+      expect(result.session).toEqual({ id: 'session-123' })
+      expect(mockExecuteRaw).toHaveBeenCalled()
     })
 
-    it('should handle concurrent requests to same session', async () => {
-      const existingMessages = [
-        { role: 'user', content: 'First', timestamp: '2024-01-15T10:00:00Z' },
-      ]
-
-      mockFindFirst.mockResolvedValue({
-        id: 'session-123',
-        userId: mockUserId,
-        messages: existingMessages,
-      })
-      mockUpdate.mockResolvedValue({ id: 'session-123', messageCount: 2 })
+    it('should handle concurrent requests to same session (atomic append)', async () => {
+      // 원자적 append 라 동시 요청도 각자 1행씩 안전하게 붙는다(lost-update 없음).
+      mockExecuteRaw.mockResolvedValue(1)
 
       const req = new NextRequest('http://localhost:3000/api/counselor/chat-history', {
         method: 'POST',
@@ -1264,6 +1229,7 @@ describe('/api/counselor/chat-history', () => {
       const response = await POST(req)
 
       expect(response.status).toBe(200)
+      expect(mockExecuteRaw).toHaveBeenCalled()
     })
 
     it('should handle long message content', async () => {
@@ -1344,12 +1310,9 @@ describe('/api/counselor/chat-history', () => {
     })
 
     it('should use correct userId for POST session ownership check', async () => {
-      mockFindFirst.mockResolvedValue({
-        id: 'session-123',
-        userId: mockUserId,
-        messages: [],
-      })
-      mockUpdate.mockResolvedValue({ id: 'session-123' })
+      // 소유권은 이제 원자적 UPDATE 의 WHERE "id"=.. AND "userId"=.. 로 강제된다.
+      // $executeRaw 에 보간된 값에 sessionId 와 userId 가 모두 포함돼야 한다.
+      mockExecuteRaw.mockResolvedValue(1)
 
       const req = new NextRequest('http://localhost:3000/api/counselor/chat-history', {
         method: 'POST',
@@ -1361,9 +1324,10 @@ describe('/api/counselor/chat-history', () => {
 
       await POST(req)
 
-      expect(mockFindFirst).toHaveBeenCalledWith({
-        where: { id: 'session-123', userId: mockUserId },
-      })
+      expect(mockExecuteRaw).toHaveBeenCalledTimes(1)
+      const interpolated = mockExecuteRaw.mock.calls[0].slice(1) // template strings 제외한 보간 값들
+      expect(interpolated).toContain('session-123')
+      expect(interpolated).toContain(mockUserId)
     })
   })
 })
