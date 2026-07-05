@@ -465,6 +465,20 @@ export function DayTier({ day, onRise, sex = '남', isToday = true }: DayTierPro
   // "그날 안에서의 상대 리듬"임을 밝혀 "좋은 날인데 왜 다 주황?" 혼동을 막는다.
   const hourUp = hourSorted.filter((h) => h.tone === 'good').length
   const hourDn = hourSorted.length - hourUp
+
+  // ── 시진 생활 문장 표면화 — 가장 센 좋은/조심 시각 각 1줄. ──
+  // hourBranchNarrative/crossMeaning 은 계산돼 오면서도 그래프(점·라벨)만 그려져
+  // 버려지고 있었다(감사 갭 #2). 교차 해석(crossMeaning)이 더 구체적이라 우선.
+  const peakOf = (tone: 'good' | 'caution') =>
+    [...hourSorted].filter((h) => h.tone === tone).sort((a, b) => b.strength - a.strength)[0]
+  const rhythmPeaks = [peakOf('good'), peakOf('caution')]
+    .filter((h): h is NonNullable<typeof h> => !!h)
+    .map((h) => ({
+      when: (ko ? h.when : h.whenEn).replace(/\s*\(.*\)/, '').trim(),
+      tone: h.tone,
+      text: ko ? (h.crossMeaning ?? h.narrative ?? '') : (h.crossMeaningEn ?? h.narrativeEn ?? ''),
+    }))
+    .filter((p) => p.text)
   const rhythmCoherenceNote =
     verdict.tone === 'positive' && hourDn > hourUp
       ? ko
@@ -818,6 +832,20 @@ export function DayTier({ day, onRise, sex = '남', isToday = true }: DayTierPro
             </div>
             {rhythmCoherenceNote && <div className={styles.rhythmNote}>{rhythmCoherenceNote}</div>}
             <HourGraph hours={hourSorted} ko={ko} />
+            {/* 절정 시각의 생활 문장 — 곡선만으론 "그래서 언제 뭘?"이 안 보인다. */}
+            {rhythmPeaks.length > 0 && (
+              <div className={styles.rhythmPeaks}>
+                {rhythmPeaks.map((p, i) => (
+                  <div className={styles.rhythmPeak} key={i}>
+                    <span className={p.tone === 'good' ? styles.rpUp : styles.rpDn} aria-hidden>
+                      {p.tone === 'good' ? '▲' : '▼'}
+                    </span>
+                    <b className={styles.rpWhen}>{p.when}</b>
+                    <span className={styles.rpText}>{p.text}</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </section>
         )}
 

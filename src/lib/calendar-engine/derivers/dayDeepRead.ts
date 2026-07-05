@@ -17,7 +17,7 @@
  * 않고 em-dash 로 절을 잇는다(비문 방지).
  */
 
-import { sibsinArea, sibsinAreaEn, planetPlain } from './plainLanguage'
+import { sibsinArea, sibsinAreaEn, planetPlain, shinsalScene } from './plainLanguage'
 import { pickBySeed } from './personSeed'
 
 export type DeepReadTone = 'positive' | 'caution' | 'mixed'
@@ -311,11 +311,22 @@ export function deriveDayDeepRead(args: DayDeepReadArgs): { ko: string; en: stri
   }
 
   // 4) 신살 — 그날 함께하는 기운(최대 2개). 동적 텍스트엔 조사 안 붙이고 콜론으로.
+  //    원어만 나열하면(백호 · 괴강) 초보에겐 무의미 — 생활 장면 사전(shinsalScene)이
+  //    있으면 "백호(몸 다치기 쉬운 날 — 칼·차 주의)" 로 병기한다(감사 갭 #1).
   if (args.shinsal?.length) {
     const ss = args.shinsal.slice(0, 2)
     const line = pickBySeed(SHINSAL, seed, ROLE.shinsal)
-    ko.push(line.ko(ss.map((x) => x.ko).join(' · ')))
-    en.push(line.en(ss.map((x) => x.en).join(' · ')))
+    // 사전 키는 KO 신살명 — EN 도 x.ko 로 조회하고 표기만 x.en 을 쓴다.
+    const koLabel = (x: { ko: string }) => {
+      const scene = shinsalScene(x.ko, 'ko')
+      return scene ? `${x.ko}(${scene})` : x.ko
+    }
+    const enLabel = (x: { ko: string; en: string }) => {
+      const scene = shinsalScene(x.ko, 'en')
+      return scene ? `${x.en} (${scene})` : x.en
+    }
+    ko.push(line.ko(ss.map(koLabel).join(' · ')))
+    en.push(line.en(ss.map(enLabel).join(' · ')))
   }
 
   // 5) 시진(時) — 가장 센 시각의 타이밍 한 줄.

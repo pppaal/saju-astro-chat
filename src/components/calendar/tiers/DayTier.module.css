@@ -589,6 +589,38 @@
   height: auto;
   margin-top: 6px;
 }
+/* 절정 시각 생활 문장 — 곡선 아래 최대 2줄(좋은 시각 ▲ / 조심 시각 ▼). */
+.rhythmPeaks {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 10px;
+}
+.rhythmPeak {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  font-size: 12.5px;
+  color: var(--t1);
+  line-height: 1.5;
+}
+.rpUp {
+  color: var(--indigo);
+  flex: none;
+}
+.rpDn {
+  color: var(--sun);
+  flex: none;
+}
+.rpWhen {
+  flex: none;
+  font-weight: 700;
+  color: var(--t0);
+  font-variant-numeric: tabular-nums;
+}
+.rpText {
+  min-width: 0;
+}
 .rhythmRow {
   display: grid;
   grid-auto-flow: column;

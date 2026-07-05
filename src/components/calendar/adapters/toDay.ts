@@ -225,14 +225,16 @@ const KIND_TO_CAT: Record<string, string> = {
 }
 
 // 한국어 어스펙트 (transit signal 의 evidence.aspectType → 한글 라벨).
+// 칩·짧은 라벨 슬롯이라 한 단어 평어 — '긴장각/대립각' 류 각(角) 조어는 용어투라
+// 교체(감사 갭 #4). 긴 문장 슬롯의 관계 묘사는 humanizeReason.ASPECT_PLAIN 담당.
 const ASPECT_KO: Record<string, string> = {
   conjunction: '겹침',
-  sextile: '기회각',
-  square: '긴장각',
-  trine: '조화각',
-  opposition: '대립각',
-  semisextile: '미세각',
-  quincunx: '어긋남각',
+  sextile: '순풍',
+  square: '마찰',
+  trine: '맞물림',
+  opposition: '맞섬',
+  semisextile: '스침',
+  quincunx: '어긋남',
   quintile: '퀸타일',
   biquintile: '바이퀸타일',
   sesquiquadrate: '세스큐쿼드레이트',

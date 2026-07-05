@@ -122,10 +122,12 @@ describe('deriveDayDeepRead', () => {
         { ko: '도화', en: 'Peach Blossom' },
       ],
     })
-    // seed=0 → shinsal key3 → idx3 variant
-    expect(r.ko).toContain('함께 도는 신살: 천을귀인 · 문창.')
+    // seed=0 → shinsal key3 → idx3 variant. 생활 장면 사전(shinsalScene)이 괄호로 병기됨.
+    expect(r.ko).toContain('함께 도는 신살: 천을귀인(막힐 때 도와줄 사람이 나타나는 날)')
+    expect(r.ko).toContain('문창(글·문서·시험에 강한 날).')
     expect(r.ko).not.toContain('도화') // capped at 2
-    expect(r.en).toContain('In company today: Heavenly Benefactor · Literary Star.')
+    expect(r.en).toContain('Heavenly Benefactor (when stuck, a helper shows up)')
+    expect(r.en).toContain('Literary Star (strong for writing, papers, exams).')
   })
 
   it('weaves the peak hour with a tone-appropriate clause', () => {

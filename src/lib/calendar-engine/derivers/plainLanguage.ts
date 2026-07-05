@@ -97,6 +97,131 @@ export function twelveStagePlain(stage: string | undefined): string {
   return TWELVE_STAGE_PLAIN[stage] ?? stage
 }
 
+/**
+ * 신살 → 생활 장면 한 줄 (ko/en).
+ *
+ * 감사(2026-07): 추출기가 방출하는 신살 ~33종 중 4종만 생활어가 있어, 화면
+ * (깊이 읽기 "오늘 함께하는 기운")에 백호·괴강 같은 원어가 그대로 떴다.
+ * 전 어휘를 구체 장면(칼·차·지갑·카톡·회식)으로 매핑 — 카피 원칙은
+ * toneMeaning 과 동일: 단정 + 생활 명사 + 처방, 공포·숙명론 금지.
+ * 키는 saju-shinsal 추출기의 SHINSAL_POLARITY 어휘와 1:1(별칭 포함 조회).
+ */
+const SHINSAL_SCENE: Record<string, { ko: string; en: string }> = {
+  // ── 12신살 ──
+  장성: { ko: '앞에 나설수록 서는 힘', en: 'stepping forward gives you standing' },
+  반안: { ko: '한 계단 올라서는 안정운', en: 'a steady one-step climb' },
+  역마: {
+    ko: '움직일수록 풀리는 날 — 이동·출장·외근',
+    en: 'movement unlocks it — trips, errands, field work',
+  },
+  육해: { ko: '잔병·잔사고 조심 — 컨디션부터', en: 'minor aches and slips — mind your condition' },
+  화개: { ko: '혼자 몰입이 되는 날 — 공부·창작', en: 'solo focus flows — study and making' },
+  겁살: {
+    ko: '뺏기기 쉬운 날 — 지갑·폰·데이터 단속',
+    en: 'easy to lose things — guard wallet, phone, files',
+  },
+  재살: {
+    ko: '구설·다툼에 얽히기 쉬움 — 한 발 빼기',
+    en: 'easy to get dragged into disputes — step back',
+  },
+  천살: {
+    ko: '위에서 내려오는 변수 — 윗사람·기관 일 조심',
+    en: 'variables from above — bosses and offices',
+  },
+  월살: {
+    ko: '기운이 새는 날 — 무리한 약속은 접기',
+    en: 'energy leaks today — skip the stretch commitments',
+  },
+  망신: {
+    ko: '체면 깎일 일 조심 — 말과 옷차림 단정하게',
+    en: 'guard your face — mind words and appearance',
+  },
+  지살: { ko: '가까운 이동·자리 이동이 생기는 기운', en: 'short moves and seat changes stir' },
+  년살: { ko: '시선이 모이는 날 — 꾸민 만큼 통함', en: 'eyes gather on you — grooming pays' },
+  // ── 길성 (귀인·문창류) ──
+  천을귀인: { ko: '막힐 때 도와줄 사람이 나타나는 날', en: 'when stuck, a helper shows up' },
+  태극귀인: { ko: '큰 판에서 끌어주는 힘이 붙는 날', en: 'a pull upward on the big board' },
+  천덕귀인: { ko: '넘어가도 봐주는 무사통과 운', en: 'a pass-through day — slips get pardoned' },
+  월덕귀인: { ko: '주변이 감싸주는 부드러운 운', en: 'people around you cushion the day' },
+  천주귀인: { ko: '먹을 복 — 식사 자리·대접이 이로움', en: 'luck at the table — meals open doors' },
+  암록: { ko: '보이지 않는 뒷배·숨은 도움', en: 'quiet backing works for you unseen' },
+  금여성: { ko: '품위 있는 인연이 닿는 기운', en: 'refined connections come near' },
+  천의성: {
+    ko: '치료·회복에 좋은 날 — 병원 갈 일 미루지 말기',
+    en: 'good for healing — keep that appointment',
+  },
+  천문성: {
+    ko: '직감이 날카로운 날 — 첫 느낌을 믿기',
+    en: 'sharp intuition — trust the first read',
+  },
+  문창: { ko: '글·문서·시험에 강한 날', en: 'strong for writing, papers, exams' },
+  문곡: { ko: '배움이 잘 붙는 날 — 강의·독서', en: 'learning sticks — lectures and reading' },
+  학당귀인: { ko: '공부·자격에 유리한 기운', en: 'favorable for study and credentials' },
+  건록: {
+    ko: '제 실력으로 버는 힘 — 본업이 답',
+    en: 'earn on your own skill — the day job delivers',
+  },
+  제왕: { ko: '기세 최고조 — 단, 독주는 조심', en: 'peak momentum — just don’t go solo blind' },
+  // ── 흉신·살 ──
+  도화: {
+    ko: '눈에 띄는 매력 — 소개·미팅이 통하는 날',
+    en: 'magnetic today — intros and meetings land',
+  },
+  홍염살: {
+    ko: '치명적 매력 — 선 넘는 유혹은 거르기',
+    en: 'dangerous charm — filter the line-crossing pull',
+  },
+  현침: {
+    ko: '말이 바늘이 되기 쉬움 — 톡 쏘는 말 조심',
+    en: 'words turn needle-sharp — soften the jab',
+  },
+  고신: {
+    ko: '혼자가 편한 날 — 외로움에 무게 두지 않기',
+    en: 'solitude suits today — don’t over-read the quiet',
+  },
+  과숙: {
+    ko: '겉도는 기분 — 관계에 억지 부리지 않기',
+    en: 'feeling adrift — don’t force closeness',
+  },
+  괴강: {
+    ko: '극단으로 세게 가는 기운 — 승부수는 신중히',
+    en: 'all-or-nothing energy — place bets carefully',
+  },
+  양인: { ko: '날붙이·차·과속 조심', en: 'mind blades, cars, and speed' },
+  백호: {
+    ko: '몸 다치기 쉬운 날 — 칼·차·격한 운동 주의',
+    en: 'injury-prone — careful with knives, cars, hard workouts',
+  },
+  공망: {
+    ko: '애써도 헛도는 느낌 — 결과에 집착하지 않기',
+    en: 'effort spins in place — loosen the grip on outcomes',
+  },
+  귀문관: {
+    ko: '신경이 예민해지는 날 — 새벽 카톡은 금물',
+    en: 'nerves run fine-tuned — no 2am texts',
+  },
+  원진: {
+    ko: '말이 안 통하는 상대와 부딪히는 날',
+    en: 'friction with someone you just can’t reach',
+  },
+  천라지망: {
+    ko: '그물에 걸린 듯 더딤 — 서류·절차 재확인',
+    en: 'caught-in-a-net slowness — recheck papers and steps',
+  },
+  삼재: { ko: '큰 모험은 미루는 구간', en: 'a stretch to postpone big gambles' },
+}
+
+/**
+ * 신살명 → 생활 장면 한 줄. '역마살' 같은 -살 별칭도 조회. 못 찾으면 ''
+ * (호출부가 원어 병기 여부를 정한다 — 억지 폴백 문장 금지, drop-on-doubt).
+ */
+export function shinsalScene(name: string | undefined, lang: 'ko' | 'en' = 'ko'): string {
+  if (!name) return ''
+  const entry =
+    SHINSAL_SCENE[name] ?? SHINSAL_SCENE[name.replace(/살$/, '')] ?? SHINSAL_SCENE[`${name}살`]
+  return entry ? entry[lang] : ''
+}
+
 /** 행성명(영문 'Venus' 또는 한글 '금성') → 쉬운 별 별명. 못 찾으면 원어. */
 export function planetPlain(name: string | undefined, ko: boolean): string {
   if (!name) return ''
@@ -175,7 +300,11 @@ const REASON_JARGON =
 function hasHanjaCodepoint(s: string): boolean {
   for (const ch of s) {
     const c = ch.codePointAt(0) ?? 0
-    if ((c >= 0x3400 && c <= 0x4dbf) || (c >= 0x4e00 && c <= 0x9fff) || (c >= 0xf900 && c <= 0xfaff))
+    if (
+      (c >= 0x3400 && c <= 0x4dbf) ||
+      (c >= 0x4e00 && c <= 0x9fff) ||
+      (c >= 0xf900 && c <= 0xfaff)
+    )
       return true
   }
   return false
