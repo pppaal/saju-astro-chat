@@ -8,20 +8,16 @@
 // 어드민 UI 가 "권한 추가 필요"를 안내할 수 있게 한다.
 
 import { logger } from '@/lib/logger'
+import { getThreadsAccessToken } from './threadsToken'
 import { getDrafts, saveDrafts } from './draftStore'
 import { draftCategory, type SocialPostDraft, type SocialPostMetrics } from './types'
 
 const GRAPH = 'https://graph.threads.net/v1.0'
 const METRICS = 'views,likes,replies,reposts,quotes' as const
 
-function token(): string | null {
-  const t = (process.env.THREADS_ACCESS_TOKEN || '').trim()
-  return t || null
-}
-
-/** insights 수집이 가능한 설정인가 (Threads 토큰 존재). */
+/** insights 수집이 가능한 설정인가 (Threads 토큰 존재 — env 기준). */
 export function insightsConfigured(): boolean {
-  return token() !== null
+  return (process.env.THREADS_ACCESS_TOKEN || '').trim() !== ''
 }
 
 // Threads insights 응답 — metric 별로 values[] 또는 total_value 로 온다.
@@ -42,7 +38,7 @@ export function mediaIdFromUrl(url: string | undefined): string | null {
 export async function fetchThreadsInsights(
   mediaId: string
 ): Promise<{ metrics: SocialPostMetrics } | { error: string }> {
-  const t = token()
+  const t = await getThreadsAccessToken()
   if (!t) return { error: 'not_configured' }
   try {
     const res = await fetch(

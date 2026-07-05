@@ -15,6 +15,7 @@ import { getClientIp } from '@/lib/request-ip'
 import { timingSafeCompare } from '@/lib/security/timingSafe'
 import { ensureDrafts } from '@/lib/social/draftStore'
 import { generateDailyDrafts, todayKeyKST } from '@/lib/social/generateDrafts'
+import { autoPublishLocales, configuredPlatforms, publishAndRecord } from '@/lib/social/publish'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -47,7 +48,28 @@ async function handle(request: Request): Promise<NextResponse> {
   const date = todayKeyKST()
   try {
     const { drafts, created } = await ensureDrafts(date, () => generateDailyDrafts(date))
-    return NextResponse.json({ success: true, date, created, count: drafts.length })
+
+    // 완전 자동 발행 모드 — SOCIAL_AUTO_PUBLISH 로케일의 "이번에 새로 생성된"
+    // pending 초안을 승인 없이 바로 발행한다. 재실행(created=false)이나 이미
+    // 발행/반려된 초안은 건드리지 않음(멱등). 실패해도 크론은 성공으로 —
+    // 초안은 남아 있으니 어드민이 수동 발행하면 된다.
+    let autoPublished = 0
+    const locales = autoPublishLocales()
+    if (created && locales.length > 0 && configuredPlatforms().length > 0) {
+      for (const draft of drafts) {
+        if (draft.status !== 'pending') continue
+        if (!locales.includes(draft.locale)) continue
+        try {
+          const { results } = await publishAndRecord(draft)
+          if (results.some((r) => r.ok)) autoPublished += 1
+        } catch (error) {
+          logger.error('[Cron social-drafts] auto-publish failed', { id: draft.id, error })
+        }
+      }
+      logger.info('[Cron social-drafts] auto-published', { date, autoPublished })
+    }
+
+    return NextResponse.json({ success: true, date, created, count: drafts.length, autoPublished })
   } catch (error) {
     logger.error('[Cron social-drafts] generation failed', { date, error })
     return NextResponse.json({ success: false, error: 'generation_failed' }, { status: 500 })

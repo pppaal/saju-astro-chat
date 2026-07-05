@@ -5,14 +5,26 @@
 // 문서: https://developers.facebook.com/docs/threads
 
 import { logger } from '@/lib/logger'
+import { getThreadsAccessToken } from '../threadsToken'
 import type { PublishAdapter, PublishInput, PublishResult } from './types'
 import { composeText } from './types'
 
 const GRAPH = 'https://graph.threads.net/v1.0'
 
-function creds() {
+// 설정 여부는 env 기준(동기) — 실제 토큰은 발행 시점에 Redis(자동 갱신본)
+// 우선으로 읽는다 (threadsToken.ts).
+function envUserId(): string | null {
   const userId = (process.env.THREADS_USER_ID || '').trim()
-  const token = (process.env.THREADS_ACCESS_TOKEN || '').trim()
+  return userId || null
+}
+
+function isEnvConfigured(): boolean {
+  return envUserId() !== null && (process.env.THREADS_ACCESS_TOKEN || '').trim() !== ''
+}
+
+async function creds(): Promise<{ userId: string; token: string } | null> {
+  const userId = envUserId()
+  const token = await getThreadsAccessToken()
   return userId && token ? { userId, token } : null
 }
 
@@ -27,10 +39,10 @@ async function postForm(url: string, params: Record<string, string>): Promise<Re
 
 export const threadsAdapter: PublishAdapter = {
   platform: 'threads',
-  isConfigured: () => creds() !== null,
+  isConfigured: () => isEnvConfigured(),
 
   async publish(input: PublishInput): Promise<PublishResult> {
-    const c = creds()
+    const c = await creds()
     if (!c) return { ok: false, platform: 'threads', skipped: 'not_configured' }
 
     const text = composeText(input)
