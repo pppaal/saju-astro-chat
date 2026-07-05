@@ -72,6 +72,7 @@
 }
 
 /* ---------- top chrome ---------- */
+/* 최소 크롬 한 줄(메뉴 · 본명 · EN) — 워드마크·티어명은 티어 헤더와 겹쳐 제거. */
 .topbar {
   position: absolute;
   top: 0;
@@ -81,8 +82,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px clamp(18px, 4vw, 40px);
-  background: linear-gradient(180deg, rgba(236, 226, 205, 0.96), rgba(236, 226, 205, 0));
+  padding: 10px clamp(14px, 3vw, 28px);
+  background: linear-gradient(180deg, rgba(236, 226, 205, 0.94), rgba(236, 226, 205, 0));
   pointer-events: none;
   gap: 12px;
 }
@@ -122,43 +123,14 @@
   border-color: var(--dp-ink-dim);
   background: rgba(58, 46, 28, 0.05);
 }
-.brandMark {
-  font-family: var(--dp-serif);
-  font-size: 23px;
-  letter-spacing: 0.01em;
-  color: var(--dp-ink);
-  align-self: center;
-}
-.brandMark em {
-  font-style: italic;
-  color: var(--dp-ember);
-}
 .brandWho {
   font-family: var(--dp-mono);
   font-size: 11px;
   letter-spacing: 0.02em;
   color: var(--dp-ink-mute);
-  border-left: 1px solid var(--dp-line);
-  padding-left: 11px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-}
-.topbarRight {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  min-width: 0;
-}
-.tierName {
-  pointer-events: auto;
-  font-family: var(--dp-serif-ko);
-  font-weight: 700;
-  font-size: clamp(15px, 2.4vw, 19px);
-  color: var(--dp-ink-dim);
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
 }
 .localeToggle {
   pointer-events: auto;
@@ -183,57 +155,16 @@
   border-color: var(--dp-ink-dim);
   background: rgba(58, 46, 28, 0.05);
 }
-.tierName b {
-  font-weight: 400;
-  font-family: var(--dp-mono);
-  font-size: 11px;
-  color: var(--dp-ember);
-  letter-spacing: 0.14em;
-}
 
 /* ---- topbar mobile collapse ---- */
-@media (max-width: 375px) {
-  /* H4: very-narrow phone — 작은 화면 overflow 방지 */
-  .topbar {
-    padding: 8px 10px;
-    gap: 4px;
-  }
-  .brandMark {
-    font-size: 17px;
-  }
-  .brandWho {
-    font-size: 9px;
-    max-width: 32vw;
-  }
-  .tierName {
-    font-size: 11px;
-  }
-}
 @media (max-width: 640px) {
   .topbar {
-    padding: 10px 14px;
-    flex-wrap: wrap;
-    gap: 6px;
-  }
-  .brandMark {
-    font-size: 19px;
+    padding: 8px 12px;
+    gap: 8px;
   }
   .brandWho {
     font-size: 10px;
-    padding-left: 8px;
-    max-width: 38vw;
-  }
-  .topbarRight {
-    margin-left: auto;
-    gap: 8px;
-  }
-  .tierName {
-    font-size: 13px;
-    gap: 6px;
-  }
-  .tierName b {
-    font-size: 9.5px;
-    letter-spacing: 0.1em;
+    max-width: 62vw;
   }
 }
 
