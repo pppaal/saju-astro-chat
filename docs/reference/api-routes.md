@@ -15,7 +15,7 @@ status: auto-generated
 <!-- gen:api-routes -->
 <!-- 이 표는 자동 생성됩니다. 직접 수정하지 마세요 — `npm run docs:sync`. -->
 
-**총 99개 라우트** (원천: `src/app/api/**/route.ts`)
+**총 101개 라우트** (원천: `src/app/api/**/route.ts`)
 
 | 라우트                                  | 메서드             |
 | --------------------------------------- | ------------------ |
@@ -38,6 +38,7 @@ status: auto-generated
 | `/api/admin/social/drafts`              | GET                |
 | `/api/admin/social/drafts/[id]`         | PATCH              |
 | `/api/admin/social/generate`            | POST               |
+| `/api/admin/social/insights`            | GET, POST          |
 | `/api/admin/social/publish/[id]`        | POST               |
 | `/api/admin/usage`                      | GET                |
 | `/api/admin/users`                      | GET                |
@@ -95,6 +96,7 @@ status: auto-generated
 | `/api/me/push-subscription`             | POST, DELETE       |
 | `/api/me/refund-credit-pack`            | POST               |
 | `/api/me/starter-eligibility`           | GET                |
+| `/api/me/streak`                        | POST               |
 | `/api/me/upload-photo`                  | POST               |
 | `/api/referral/claim`                   | POST               |
 | `/api/referral/create-code`             | POST               |
