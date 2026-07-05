@@ -81,11 +81,13 @@ describe('unse', () => {
       expect(result.length).toBe(12)
     })
 
-    it('should include correct year for all months', () => {
+    it('should include correct year for all months (절기 기본값: 소한만 다음 해)', () => {
+      // 기본값이 절기 모드(useSolarTermsForMonthlyCycles=true)라, 소한(1월)은
+      // 다음 사주년에 속해 year+1, 나머지(입춘~대설)는 입력 연도.
       const result = getMonthlyCycles(2024, dayMaster)
 
       for (const cycle of result) {
-        expect(cycle.year).toBe(2024)
+        expect(cycle.year).toBe(cycle.month === 1 ? 2025 : 2024)
       }
     })
 

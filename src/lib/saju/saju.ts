@@ -647,6 +647,14 @@ export function calculateSajuData(
     }
 
     // 월운 (현재 월부터 12개월치) — 사주월(寅-first) 산술은 cycles.ts 위임.
+    //
+    // ⚠️ 정확도 한계: 이 배열은 (연, 양력월)만으로 간지를 매기며 절기 경계(월
+    // 전환이 매월 4~6일경)를 반영하지 않아, 양력월 라벨과 사주월 간지가 최대 한
+    // 칸 어긋날 수 있다(예: 양력 7월에 未월 대신 申월). 사용자에게 노출하는
+    // "현재 월운"의 권위 있는 값은 절기 기준으로 계산하는 currentUnse
+    // (computeCurrentUnse)를 쓴다 — 이 raw 배열을 직접 소비하지 말 것. 현재 활성
+    // 소비자는 없으며(프롬프트/리포트/캘린더 모두 currentUnse 또는 getMonthlyCycles
+    // 를 사용) 하위호환 shape 유지용으로만 남긴다.
     const monthlyCycles: MonthlyCycleData[] = []
     for (let i = 0; i < 12; i++) {
       let yr = yNowLocal

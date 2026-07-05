@@ -75,6 +75,21 @@ describe('SajuDateSchema', () => {
     expect(() => SajuDateSchema.parse('1990/05/15')).toThrow()
     expect(() => SajuDateSchema.parse('invalid')).toThrow()
   })
+
+  it('경계 연도(1900-01-01 / 2100-12-31)를 서버 TZ 와 무관하게 수용', () => {
+    // 예전엔 new Date("1900-01-01")(UTC 자정).getFullYear() 가 UTC 서쪽 서버에서
+    // 1899 로 읽혀 유효한 경계 생일이 거부됐다. 연도를 문자열에서 직접 뽑아 이
+    // TZ 의존을 제거했다.
+    expect(SajuDateSchema.parse('1900-01-01')).toBe('1900-01-01')
+    expect(SajuDateSchema.parse('2100-12-31')).toBe('2100-12-31')
+  })
+
+  it('존재하지 않는 날짜(롤오버)를 거부', () => {
+    // 형식은 맞지만 실재하지 않는 날짜 — UTC 왕복 검증으로 차단.
+    expect(() => SajuDateSchema.parse('2001-02-30')).toThrow()
+    expect(() => SajuDateSchema.parse('2001-13-01')).toThrow()
+    expect(() => SajuDateSchema.parse('2001-04-31')).toThrow()
+  })
 })
 
 describe('StemSchema and BranchSchema', () => {

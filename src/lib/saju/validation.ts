@@ -54,12 +54,7 @@ export const VALID_SIBSIN = [
 ] as const satisfies readonly SibsinKind[]
 
 /** Valid 기둥 종류 */
-const VALID_PILLAR_KINDS = [
-  'year',
-  'month',
-  'day',
-  'time',
-] as const satisfies readonly PillarKind[]
+const VALID_PILLAR_KINDS = ['year', 'month', 'day', 'time'] as const satisfies readonly PillarKind[]
 
 // ============================================================
 // Zod Schemas
@@ -100,11 +95,22 @@ export const SajuDateSchema = z
   .regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be in YYYY-MM-DD format')
   .refine(
     (val) => {
-      const date = new Date(val)
-      if (isNaN(date.getTime())) return false
-
-      const year = date.getFullYear()
-      return year >= 1900 && year <= 2100
+      // 연도는 문자열에서 직접 뽑는다. 예전엔 `new Date(val).getFullYear()` 로
+      // 읽었는데, `new Date("YYYY-MM-DD")` 는 UTC 자정으로 파싱되고 getFullYear()
+      // 는 서버-로컬 연도라, UTC 서쪽(음수 오프셋) 서버에서 "1900-01-01" 이 로컬
+      // 1899 로 읽혀 유효한 경계 생일이 거부됐다(서버 TZ 의존 결정론 누수).
+      const [y, m, d] = val.split('-').map(Number)
+      // 실제 존재하는 날짜인지 UTC 구성으로 왕복 확인(02-30 같은 롤오버도 차단).
+      const dt = new Date(Date.UTC(y, m - 1, d))
+      if (
+        isNaN(dt.getTime()) ||
+        dt.getUTCFullYear() !== y ||
+        dt.getUTCMonth() !== m - 1 ||
+        dt.getUTCDate() !== d
+      ) {
+        return false
+      }
+      return y >= 1900 && y <= 2100
     },
     { message: 'Birth year must be between 1900 and 2100' }
   )

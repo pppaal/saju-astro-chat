@@ -70,6 +70,14 @@ describe('isInAppBrowserUA', () => {
     expect(isInAppBrowserUA(ua)).toBe(false)
   })
 
+  it('flags generic Android WebView (자사 Capacitor 포함) via "; wv)" token', () => {
+    // Android WebView UA 는 "...; wv) AppleWebKit..." 형태. Google OAuth 가
+    // 모든 webview 를 차단하므로 특정 앱 열거 대신 이 공통 표식으로 잡는다.
+    const ua =
+      'Mozilla/5.0 (Linux; Android 13; SM-S908N; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/120.0.0.0 Mobile Safari/537.36'
+    expect(isInAppBrowserUA(ua)).toBe(true)
+  })
+
   it('handles empty UA without throwing', () => {
     expect(isInAppBrowserUA('')).toBe(false)
   })

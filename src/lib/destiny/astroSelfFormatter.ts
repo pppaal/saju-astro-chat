@@ -20,6 +20,7 @@ import { findFixedStarConjunctions } from '@/lib/astrology/foundation/fixedStars
 import { findEclipseImpact, getUpcomingEclipses } from '@/lib/astrology/foundation/eclipses'
 import type { NatalInput } from '@/lib/astrology/foundation/types'
 import { SIGN_KO_TO_EN } from '@/lib/astrology/signLabels'
+import { getDateComponentsInTimezone, getWeekdayInTimezone } from '@/lib/datetime'
 
 // 요일 ruler — Chaldean order의 day-of-week 매핑
 const DAY_RULER = ['Sun', 'Moon', 'Mars', 'Mercury', 'Jupiter', 'Venus', 'Saturn'] as const
@@ -283,12 +284,19 @@ export async function formatAstroSelf(input: AstroSelfInput): Promise<string> {
   // Solar Return / Lunar Return — natalInput 있으면 계산
   if (input.natalInput) {
     const nowDate = input.now ?? new Date()
+    // 대상 연/월은 서버-로컬 getFullYear/getMonth 가 아니라 사용자 tz 기준으로
+    // 뽑는다. 예전엔 연말·월말 경계에서 UTC 서버와 KST 서버가 다른 연/월을
+    // 계산해(예: 2025-12-31T20:00Z = KST 1/1) 완전히 다른 리턴 차트가 컨텍스트에
+    // 들어가는 결정론 누수가 있었다.
+    const nowParts = getDateComponentsInTimezone(nowDate, input.timeZone)
+    const nowYear = nowParts.year
+    const nowMonth = nowParts.month // 1-12
     try {
       const sr = await calculateSolarReturn({
         natal: input.natalInput,
-        year: nowDate.getFullYear(),
+        year: nowYear,
       })
-      out.push(`[Solar Return — ${nowDate.getFullYear()}]`)
+      out.push(`[Solar Return — ${nowYear}]`)
       if (!skipAngles && sr.ascendant?.sign)
         out.push(`Asc: ${sign(sr.ascendant.sign)} ${sr.ascendant.degree}°`)
       if (!skipAngles && sr.mc?.sign) out.push(`MC: ${sign(sr.mc.sign)} ${sr.mc.degree}°`)
@@ -308,12 +316,10 @@ export async function formatAstroSelf(input: AstroSelfInput): Promise<string> {
       try {
         const lr = await calculateLunarReturn({
           natal: input.natalInput,
-          year: nowDate.getFullYear(),
-          month: nowDate.getMonth() + 1,
+          year: nowYear,
+          month: nowMonth,
         })
-        out.push(
-          `[Lunar Return — ${nowDate.getFullYear()}-${String(nowDate.getMonth() + 1).padStart(2, '0')}]`
-        )
+        out.push(`[Lunar Return — ${nowYear}-${String(nowMonth).padStart(2, '0')}]`)
         if (!skipAngles && lr.ascendant?.sign)
           out.push(`Asc: ${sign(lr.ascendant.sign)} ${lr.ascendant.degree}°`)
         if (!skipAngles && lr.mc?.sign) out.push(`MC: ${sign(lr.mc.sign)} ${lr.mc.degree}°`)
@@ -371,10 +377,16 @@ export async function formatAstroSelf(input: AstroSelfInput): Promise<string> {
   }
 
   // ── Planetary Hour / Day Ruler — 오늘 요일 기반 ─────────────
-  const nowDate = input.now ?? new Date()
-  const dayRuler = DAY_RULER[nowDate.getDay()]
+  // 요일과 표시 날짜 모두 사용자 tz 기준으로 뽑아 일관되게 한다. 예전엔 요일이
+  // 서버-로컬 getDay(), 날짜가 UTC(toISOString) 라 (a) 서버 TZ 에 따라 요일
+  // ruler 가 달라지고 (b) 자정 경계에서 "날짜와 요일이 안 맞는" 조합이 LLM
+  // 컨텍스트에 들어갔다.
+  const rulerNow = input.now ?? new Date()
+  const rulerParts = getDateComponentsInTimezone(rulerNow, input.timeZone)
+  const rulerDateStr = `${rulerParts.year}-${String(rulerParts.month).padStart(2, '0')}-${String(rulerParts.day).padStart(2, '0')}`
+  const dayRuler = DAY_RULER[getWeekdayInTimezone(rulerNow, input.timeZone)]
   out.push(`[현재 시점 행성 신호]`)
-  out.push(`오늘 (${nowDate.toISOString().slice(0, 10)}) 요일 ruler: ${dayRuler} (행성시 base)`)
+  out.push(`오늘 (${rulerDateStr}) 요일 ruler: ${dayRuler} (행성시 base)`)
 
   // Lunar phase (electional용 단순화) — Sun · Moon 각도로 phase 추정
   // chart에 있는 Sun/Moon 위치는 *natal*이라 의미 없음. transit chart에서 가져옴.
