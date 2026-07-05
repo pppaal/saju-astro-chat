@@ -92,7 +92,7 @@ flowchart LR
 | Saju core                 | `src/lib/saju/saju.ts` — `calculateSajuData()`                                                         |
 | Western astrology core    | `src/lib/astrology/foundation/astrologyService.ts` — `calculateNatalChart()`                           |
 | Deterministic facts       | `src/lib/destiny/sajuFacts.ts`, `src/lib/destiny/astroFacts.ts`                                        |
-| Saju ↔ astrology fusion   | `src/lib/cross/crossInterpret.ts`                                                                      |
+| Saju ↔ astrology fusion   | `src/lib/calendar-engine/extractors/cross-activation.ts` (+ `data/saju-astro-mapping.ts`)              |
 | Calendar engine           | `src/lib/calendar-engine/index.ts` — `buildCalendar()` over `buildNatalContext()`                      |
 | Destiny counselor context | `src/lib/destiny/counselorContext.ts` — `buildDestinyContext()` (cached by `counselorContextCache.ts`) |
 | Compatibility             | `src/lib/compatibility/compatReport.ts` — `buildCompatReport()`                                        |

@@ -98,6 +98,12 @@ const HARMONY_ADVICE: Record<PushLocale, string> = {
   en: 'connections flow smoothly, so reach out first',
 }
 
+// 어제 충 경고를 받았던 사람에게 붙는 회고 한 줄 — 적중 경험 각인 루프.
+const RECALL_LINE: Record<PushLocale, string> = {
+  ko: '어제 조심하라던 변수, 잘 지나갔나요?',
+  en: "Did yesterday's tricky spots pass okay?",
+}
+
 // 프로필 없음 — 오늘 일진의 오행(천간 인덱스 >> 1)별 일반 문구.
 const GENERIC_LINES: Array<{ emoji: string; ko: string; en: string }> = [
   {
@@ -188,10 +194,32 @@ export function buildDailyFortuneMessage(options: {
       ? HARMONY_ADVICE[locale]
       : line[locale].advice
 
+  // 경고 적중 리마인드 — *어제* 이 채널이 충(변수 주의)을 경고했던 사람에게만,
+  // 오늘 아침 한 줄 앞에 회고를 붙인다. "맞았다"는 기억은 경고에서 나온다
+  // (벤치마크: The Pattern 의 주기 종료 알림과 같은 원리). 어제 판정은 같은
+  // 결정론 경로(일진 충)를 하루 전 날짜로 다시 돌려 얻는다 — 어제 발송된
+  // 문구와 반드시 일치(같은 산식). 오늘도 충이면 오늘 경고가 우선이라 생략.
+  const yesterday = new Date(date.getTime() - 86_400_000)
+  const yBranch =
+    BRANCH_NAMES[
+      computeDayPillarIndices(
+        yesterday.getUTCFullYear(),
+        yesterday.getUTCMonth() + 1,
+        yesterday.getUTCDate()
+      ).branchIndex
+    ]
+  const wasClashYesterday = CHUNG[natalBranch] === yBranch
+  const recall =
+    wasClashYesterday && !isClash
+      ? locale === 'ko'
+        ? `${RECALL_LINE.ko} `
+        : `${RECALL_LINE.en} `
+      : ''
+
   const body =
     locale === 'ko'
-      ? `오늘은 ${line.ko.mood} 날 ${line.emoji} — ${advice}`
-      : `Today feels ${line.en.mood} ${line.emoji} — ${advice}`
+      ? `${recall}오늘은 ${line.ko.mood} 날 ${line.emoji} — ${advice}`
+      : `${recall}Today feels ${line.en.mood} ${line.emoji} — ${advice}`
 
   return { title, body }
 }

@@ -72,6 +72,8 @@ export default async function DestinypalPreview() {
     whoBirthLine: '1995.2.9 06:40',
     place: '서울',
     focusDayCell,
+    // 정식 라우트와 동일 규약 — 월/일만 보일 땐 인생 곡선 계산 생략.
+    scope: SHOW_FULL_TIERS ? 'year' : 'month',
   })
 
   return (
@@ -83,6 +85,16 @@ export default async function DestinypalPreview() {
       year={year}
       month={month}
       day={day}
+      // preview 는 세션이 아닌 고정 본명 — 일 티어 재빌드 fetch 도 같은 본명으로
+      // (override 쿼리 규약). 없으면 세션 본명/401 로 새서 다른 사람 하루가 뜬다.
+      dayFetchParams={{
+        date: BIRTH.birthDate,
+        time: BIRTH.birthTime,
+        gender: BIRTH.gender,
+        lat: String(BIRTH.latitude),
+        lng: String(BIRTH.longitude),
+        tz: BIRTH.timeZone,
+      }}
     />
   )
 }

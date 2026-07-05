@@ -96,4 +96,47 @@ describe('buildDailyFortuneMessage', () => {
     }
     expect(bodies.size).toBeGreaterThan(1)
   })
+
+  describe('경고 적중 리마인드 (어제 충 → 오늘 회고 한 줄)', () => {
+    // 1990-05-21 → 일지 戌, 충 대상 辰. 2026-07-05 는 辰일(충 경고 발송일),
+    // 2026-07-06 은 충 아님 → 회고가 붙는다. (fixture 는 dayPillar 산식으로 산출.)
+    it('어제가 충이고 오늘이 아니면 회고 한 줄을 앞에 붙인다', () => {
+      const msg = buildDailyFortuneMessage({
+        birthDate: '1990-05-21',
+        date: DAY(2026, 7, 6),
+        locale: 'ko',
+      })
+      expect(msg.body.startsWith('어제 조심하라던 변수, 잘 지나갔나요?')).toBe(true)
+      const en = buildDailyFortuneMessage({
+        birthDate: '1990-05-21',
+        date: DAY(2026, 7, 6),
+        locale: 'en',
+      })
+      expect(en.body.startsWith("Did yesterday's tricky spots pass okay?")).toBe(true)
+    })
+
+    it('오늘이 충이면(오늘 경고 우선) 회고를 붙이지 않는다', () => {
+      const msg = buildDailyFortuneMessage({
+        birthDate: '1990-05-21',
+        date: DAY(2026, 7, 5),
+        locale: 'ko',
+      })
+      expect(msg.body).not.toContain('어제 조심하라던')
+      expect(msg.body).toContain('중요한 결정은 하루 미루세요')
+    })
+
+    it('어제도 오늘도 충이 아니면 회고 없음', () => {
+      const msg = buildDailyFortuneMessage({
+        birthDate: '1990-05-21',
+        date: DAY(2026, 7, 10),
+        locale: 'ko',
+      })
+      expect(msg.body).not.toContain('어제 조심하라던')
+    })
+
+    it('프로필 없으면(일반 문구) 회고 없음', () => {
+      const msg = buildDailyFortuneMessage({ birthDate: null, date: DAY(2026, 7, 6), locale: 'ko' })
+      expect(msg.body).not.toContain('어제 조심하라던')
+    })
+  })
 })

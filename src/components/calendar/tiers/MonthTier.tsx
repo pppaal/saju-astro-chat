@@ -50,10 +50,16 @@ const DOWS_EN = ['S', 'M', 'T', 'W', 'T', 'F', 'S'] as const
 
 export interface MonthTierProps {
   month: DestinyMonth
-  onDive: (focusDay: number) => void
+  /** 줌인 — 그리드에서 *선택된 날*(기본=오늘)을 넘긴다. 일 티어가 그 날로 빌드됨. */
+  onDive: (selectedDay: number) => void
   onRise: () => void
   /** 위 티어가 있을 때만 줌아웃 버튼 노출 (월이 최상단이면 숨김). 기본 true. */
   showRise?: boolean
+  /**
+   * 그리드에서 날짜를 고를 때마다 호출 — 부모가 일 티어 데이터를 미리 준비해,
+   * CTA 없이 스와이프/레일로 줌인해도 고른 날이 보이게 한다.
+   */
+  onSelectDay?: (day: number) => void
 }
 
 // ============================================================================
@@ -72,7 +78,7 @@ function firstDowOfMonth(ym: string): number {
 // 컴포넌트
 // ============================================================================
 
-export function MonthTier({ month, onDive, onRise, showRise = true }: MonthTierProps) {
+export function MonthTier({ month, onDive, onRise, showRise = true, onSelectDay }: MonthTierProps) {
   const { locale } = useI18n()
   const ko = locale === 'ko'
   const firstDow = firstDowOfMonth(month.ym)
@@ -307,9 +313,14 @@ export function MonthTier({ month, onDive, onRise, showRise = true }: MonthTierP
         ? '오늘'
         : 'Today'
       : verdictPrefix(selMark)
+  // 그날의 화해된 한 줄 — 일(日) 티어 oneLine 과 같은 소스(셀에 서버가 실어 줌).
+  // 줌인하면 이 문장이 일 화면 첫 줄로 그대로 이어진다. 없으면(구 캐시 등) 톤 풀 폴백.
+  const selectedOneLine = ko
+    ? selectedCell?.oneLine
+    : (selectedCell?.oneLineEn ?? selectedCell?.oneLine)
   const readoutText = selectedBigDay
     ? ''
-    : toneMeaningFor(markToTone(selMark), selectedDay, ko ? 'ko' : 'en', seed)
+    : (selectedOneLine ?? toneMeaningFor(markToTone(selMark), selectedDay, ko ? 'ko' : 'en', seed))
   // 행동 한 줄 — 그날의 mark 톤으로 평이하게(전문어 0). 좋은날=밀어붙이기, 조심날=미루기.
   const readoutAdvice: string = (() => {
     const tone = markToTone(selMark)
@@ -516,7 +527,9 @@ export function MonthTier({ month, onDive, onRise, showRise = true }: MonthTierP
 
       {/* ── 인터랙션 힌트 — 날짜가 눌러진다는 걸 모르는 초보용 ── */}
       <p className={styles.tapHint}>
-        {ko ? '👆 날짜를 누르면 그날 운을 볼 수 있어요.' : '👆 Tap a date to see that day.'}
+        {ko
+          ? '👆 날짜를 누르면 그날 운이, 한 번 더 누르면 자세한 풀이가 열려요.'
+          : '👆 Tap a date for its read — tap again to open the full day.'}
       </p>
 
       {/* ── weekday row ── */}
@@ -559,11 +572,25 @@ export function MonthTier({ month, onDive, onRise, showRise = true }: MonthTierP
               tabIndex={0}
               aria-label={ko ? `${c.d}일 자세히 보기` : `View day ${c.d}`}
               aria-pressed={c.d === selectedDay}
-              onClick={() => setSelectedDay(c.d)}
+              onClick={() => {
+                // 이미 선택된 날을 한 번 더 탭 → 바로 그 날로 줌인(일반 캘린더 직관).
+                // 첫 탭은 선택(리드아웃)만 — 스캔하며 훑어보는 동작을 방해하지 않는다.
+                if (c.d === selectedDay) {
+                  onDive(c.d)
+                  return
+                }
+                setSelectedDay(c.d)
+                onSelectDay?.(c.d)
+              }}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
                   e.preventDefault()
+                  if (c.d === selectedDay) {
+                    onDive(c.d)
+                    return
+                  }
                   setSelectedDay(c.d)
+                  onSelectDay?.(c.d)
                 }
               }}
             >
@@ -766,9 +793,16 @@ export function MonthTier({ month, onDive, onRise, showRise = true }: MonthTierP
         />
       </div>
 
-      {/* ── CTA (zoom-in) ── */}
-      <button className={styles.cta} onClick={() => onDive(focusDay)} type="button">
-        {ko ? `오늘 ${ymM ?? ''}월 ${focusDay}일로 줌인 →` : `Zoom in to ${monthEn} ${focusDay}`}
+      {/* ── CTA (zoom-in) — 그리드에서 고른 날로 줌인(기본=오늘). 예전엔 어떤 날을
+            골라도 focusDay(오늘)만 넘겨 일 티어가 항상 오늘을 보여줬다. ── */}
+      <button className={styles.cta} onClick={() => onDive(selectedDay)} type="button">
+        {selectedDay === focusDay
+          ? ko
+            ? `오늘 ${ymM ?? ''}월 ${focusDay}일로 줌인 →`
+            : `Zoom in to today, ${monthEn} ${focusDay}`
+          : ko
+            ? `${ymM ?? ''}월 ${selectedDay}일 운 자세히 보기 →`
+            : `Zoom in to ${monthEn} ${selectedDay}`}
       </button>
     </div>
   )

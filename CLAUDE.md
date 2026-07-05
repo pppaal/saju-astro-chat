@@ -77,7 +77,6 @@ src/
     saju/              Saju four-pillars engine (deterministic) — ~50 files
     astrology/         Western astrology; foundation/ wraps Swiss Ephemeris
     calendar-engine/   "운흐름" timing calendar (extractors → derivers)
-    cross/             Saju × astrology fusion (pure)
     compatibility/     궁합 (synastry) formatters + facts
     destiny/           fact collectors feeding counselors/reports
     counselor/         counselor context + chat plumbing

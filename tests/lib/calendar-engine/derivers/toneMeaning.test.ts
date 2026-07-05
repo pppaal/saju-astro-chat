@@ -19,11 +19,11 @@ describe('toneMeaningFor', () => {
     expect(toneMeaningFor('negative', 3, 'en', 999)).toBe(toneMeaningFor('negative', 3, 'en', 999))
   })
 
-  it('seed=0 stays on the original first-7 selections (backward compatible)', () => {
-    // seed 0 + dayNum index rotates over the head of the pool, which begins
-    // with the original 7 variants.
-    expect(toneMeaningFor('positive', 0, 'ko', 0)).toBe('일이 풀리는 날')
-    expect(toneMeaningFor('positive', 0, 'en', 0)).toBe('things fall into place')
+  it('seed=0 · day=0 pins the pool head (fixture guard for copy changes)', () => {
+    // 카피 리라이트(단정문+마이크로 액션, 2026-07) 이후의 풀 머리를 고정 —
+    // 의도치 않은 풀 순서 변경(회전 별칭 재발)을 잡는 가드.
+    expect(toneMeaningFor('positive', 0, 'ko', 0)).toBe('먼저 움직이면 이기는 날')
+    expect(toneMeaningFor('positive', 0, 'en', 0)).toBe('move first and you win')
   })
 
   it('every tone/locale pool has at least 18 distinct entries', () => {

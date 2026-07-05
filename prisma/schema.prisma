@@ -75,6 +75,9 @@ model User {
   visitStreak           VisitStreak?
 
   @@index([referrerId])
+  // 어드민 대시보드(overview/users/funnel)의 가입일 정렬·기간 스캔용 —
+  // 최대 테이블 풀스캔 방지 (2026-07 DB 감사).
+  @@index([createdAt])
 }
 
 // 방문 스트릭 — /calendar 일 티어 "N일째 확인 중" 칩의 서버 영속본.
@@ -334,6 +337,8 @@ model BonusCreditPurchase {
   @@index([userId, expired])
   @@index([userId, acknowledgedAt])
   @@index([expiresAt])
+  // 어드민 revenue/funnel 의 기간(createdAt >= since) 스캔용 (2026-07 DB 감사).
+  @@index([createdAt])
 }
 
 // 새로고침/탭 복제 등 같은 API 호출이 재진입할 때 크레딧 중복 차감
@@ -543,41 +548,9 @@ model StripeEventLog {
 // 옛 UserBlock / UserReport (destiny-match 차단 & 신고) — destiny-match
 // 본체 제거 (PR #1218) 후 잔재. caller 0, row 0 으로 2026-06-06 삭제.
 
-// 🔒 Security Audit Log - 보안 이벤트 로그
-model SecurityAuditLog {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-
-  // 이벤트 분류
-  category String // auth, admin, token, data, security, api
-  action   String // login, logout, rate_limit_exceeded, suspicious_injection_attempt, etc.
-  severity String // info, warn, error, critical
-
-  // 결과
-  success Boolean @default(true)
-
-  // 사용자/세션 정보
-  userId    String?
-  userEmail String?
-
-  // 요청 정보
-  ipAddress String?
-  userAgent String? @db.Text
-  path      String?
-  method    String?
-
-  // 추가 정보 (JSON)
-  details Json?
-
-  // 에러 메시지
-  errorMessage String? @db.Text
-
-  @@index([category, createdAt])
-  @@index([severity, createdAt])
-  @@index([userId, createdAt])
-  @@index([ipAddress, createdAt])
-  @@index([action, createdAt])
-}
+// 옛 SecurityAuditLog — writer/reader 0 인 채 인덱스 5개만 유지하던 죽은 모델.
+// 2026-07 DB 감사로 드랍 (마이그레이션 20260705500000_db_audit_cleanup).
+// 보안 이벤트 로깅을 다시 도입하면 logger→외부 수집 경로를 권장.
 
 // 📊 익명 방문 로그 — 비로그인 방문자까지 포함한 트래픽 집계용.
 // visitorId 는 "일별 회전 해시" (sha256(날짜+ip+ua+salt))라 원본 IP/UA 를
@@ -705,6 +678,7 @@ model CreditTransaction {
   @@index([sourceRef])
   @@index([type, createdAt])
   @@index([userId, pool, createdAt])
-  @@index([lotId])
-  @@index([expiresAt])
+  // lotId/expiresAt 인덱스는 드랍됨(2026-07 DB 감사) — 두 컬럼은 Phase 0 이후
+  // 어떤 코드도 안 써 항상 NULL 인데, 최다 쓰기 원장 테이블의 모든 INSERT 가
+  // 인덱스 2개를 헛갱신하고 있었다. ledger 전환으로 컬럼을 실제 쓸 때 재생성.
 }

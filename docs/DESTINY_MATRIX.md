@@ -60,7 +60,9 @@ options): Promise<CalendarCell[]>`.
 - Saju↔Astrology correspondence data: `src/lib/calendar-engine/data/saju-astro-mapping.ts`
   (`SAJU_ASTRO_MAPPINGS`, A/B/C grades, ko/en meanings).
 - The calendar is rendered server-side at `src/app/calendar/page.tsx` via
-  `src/app/calendar/assembleTiers.ts`. There is no `/api/calendar` route.
+  `src/app/calendar/assembleTiers.ts`. The only calendar API is
+  `GET /api/calendar/day` (day-tier rebuild for a date picked in the month
+  grid, sharing `assembleDayTier`) plus the share-link POST routes.
 
 ### Counselor context
 

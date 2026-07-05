@@ -83,6 +83,67 @@ function normalizeGender(g: string | null | undefined): 'male' | 'female' {
   return 'male'
 }
 
+export interface BirthInput {
+  birthDate: string
+  birthTime: string
+  gender: 'male' | 'female'
+  latitude: number
+  longitude: number
+  timeZone: string
+}
+
+export type SessionBirthResult =
+  | { kind: 'anonymous' }
+  | { kind: 'no-birth' }
+  | { kind: 'ok'; birth: BirthInput; place: string | null }
+
+/**
+ * 세션(로그인 사용자)의 저장된 본명 — loadTierData 와 /api/calendar/day 가 공유.
+ * 익명이면 'anonymous', 프로필 미완성이면 'no-birth'.
+ */
+export async function loadSessionBirth(): Promise<SessionBirthResult> {
+  const session = await getServerSession()
+  if (!session?.user?.id) return { kind: 'anonymous' }
+
+  const userRow = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: {
+      profile: {
+        select: {
+          birthDate: true,
+          birthTime: true,
+          gender: true,
+          birthCity: true,
+          latitude: true,
+          longitude: true,
+          tzId: true,
+        },
+      },
+    },
+  })
+  const profile = userRow?.profile
+  const isBirthComplete =
+    !!profile?.birthDate &&
+    !!profile?.birthTime &&
+    typeof profile?.latitude === 'number' &&
+    typeof profile?.longitude === 'number' &&
+    !!profile?.tzId
+  if (!isBirthComplete || !profile) return { kind: 'no-birth' }
+
+  return {
+    kind: 'ok',
+    birth: {
+      birthDate: profile.birthDate!,
+      birthTime: profile.birthTime!,
+      gender: normalizeGender(profile.gender),
+      latitude: profile.latitude!,
+      longitude: profile.longitude!,
+      timeZone: profile.tzId!,
+    },
+    place: profile.birthCity || null,
+  }
+}
+
 // MM-DD 한국어 표기 — '1995.2.9 06:40'.
 function formatBirthLine(birthDate: string, birthTime: string): string {
   const [y, m, d] = birthDate.split('-')
@@ -100,14 +161,7 @@ export async function loadTierData(
 ): Promise<LoadTierResult> {
   const lang = await detectServerLocale()
 
-  let BIRTH: {
-    birthDate: string
-    birthTime: string
-    gender: 'male' | 'female'
-    latitude: number
-    longitude: number
-    timeZone: string
-  }
+  let BIRTH: BirthInput
   let place: string
 
   if (override) {
@@ -129,49 +183,17 @@ export async function loadTierData(
     }
     place = override.place || (lang === 'en' ? 'Seoul' : '서울')
   } else {
-    const session = await getServerSession()
-    if (!session?.user?.id) {
+    const resolved = await loadSessionBirth()
+    if (resolved.kind === 'anonymous') {
       // 2) 익명 + 무입력 — 임의 샘플로 풀이를 띄우지 않고 생년월일 입력 게이트로.
       //    localStorage 에 저장된 생일이 있으면 클라이언트가 ?date=... 를 붙여
       //    자동으로 다시 연다(통합 리포트와 동일 규약).
       return { kind: 'guest', lang }
-    } else {
-      // 3) 로그인 사용자 — 저장된 본명으로.
-      const userRow = await prisma.user.findUnique({
-        where: { id: session.user.id },
-        select: {
-          profile: {
-            select: {
-              birthDate: true,
-              birthTime: true,
-              gender: true,
-              birthCity: true,
-              latitude: true,
-              longitude: true,
-              tzId: true,
-            },
-          },
-        },
-      })
-      const profile = userRow?.profile
-      const isBirthComplete =
-        !!profile?.birthDate &&
-        !!profile?.birthTime &&
-        typeof profile?.latitude === 'number' &&
-        typeof profile?.longitude === 'number' &&
-        !!profile?.tzId
-      if (!isBirthComplete || !profile) return { kind: 'no-birth' }
-
-      BIRTH = {
-        birthDate: profile.birthDate!,
-        birthTime: profile.birthTime!,
-        gender: normalizeGender(profile.gender),
-        latitude: profile.latitude!,
-        longitude: profile.longitude!,
-        timeZone: profile.tzId!,
-      }
-      place = profile.birthCity || (lang === 'en' ? 'Seoul' : '미입력')
     }
+    if (resolved.kind === 'no-birth') return { kind: 'no-birth' }
+    // 3) 로그인 사용자 — 저장된 본명으로.
+    BIRTH = resolved.birth
+    place = resolved.place || (lang === 'en' ? 'Seoul' : '미입력')
   }
   const BIRTH_YEAR = Number(BIRTH.birthDate.split('-')[0])
 
@@ -211,6 +233,8 @@ export async function loadTierData(
     place,
     focusDayCell,
     now,
+    // 'month'(캘린더)면 숨은 상위 티어의 인생 곡선 계산을 건너뛴다(진입 속도).
+    scope,
   })
 
   return { kind: 'ok', lang, ...assembled }

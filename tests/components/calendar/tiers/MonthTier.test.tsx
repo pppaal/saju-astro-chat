@@ -117,7 +117,9 @@ describe('MonthTier (이 달의 모양 · LIGHT)', () => {
 
     it('shows the "tap a date" hint near the grid (ko)', () => {
       render(<MonthTier month={makeMonth()} onDive={noop} onRise={noop} />)
-      expect(screen.getByText(/날짜를 누르면 그날 운을 볼 수 있어요/)).toBeInTheDocument()
+      expect(
+        screen.getByText(/날짜를 누르면 그날 운이, 한 번 더 누르면 자세한 풀이가 열려요/)
+      ).toBeInTheDocument()
     })
 
     it('shows the legend explainer line (ko)', () => {
@@ -337,10 +339,29 @@ describe('MonthTier (이 달의 모양 · LIGHT)', () => {
       expect(onDive).toHaveBeenCalledWith(15)
     })
 
+    it('fires onDive with the *selected* day after tapping another cell (ko)', () => {
+      const onDive = vi.fn()
+      render(<MonthTier month={makeMonth()} onDive={onDive} onRise={noop} />)
+      // 20일 선택 → CTA 라벨이 그 날로 바뀌고, 줌인도 그 날로 간다.
+      fireEvent.click(screen.getByRole('button', { name: '20일 자세히 보기' }))
+      fireEvent.click(screen.getByRole('button', { name: /6월 20일 운 자세히 보기/ }))
+      expect(onDive).toHaveBeenCalledWith(20)
+    })
+
+    it('tapping the already-selected day dives straight into it (재탭 줌인)', () => {
+      const onDive = vi.fn()
+      render(<MonthTier month={makeMonth()} onDive={onDive} onRise={noop} />)
+      const cell = screen.getByRole('button', { name: '20일 자세히 보기' })
+      fireEvent.click(cell) // 첫 탭 = 선택(리드아웃만)
+      expect(onDive).not.toHaveBeenCalled()
+      fireEvent.click(cell) // 재탭 = 줌인
+      expect(onDive).toHaveBeenCalledWith(20)
+    })
+
     it('renders the English dive label', () => {
       mockLocale = 'en'
       render(<MonthTier month={makeMonth()} onDive={noop} onRise={noop} />)
-      expect(screen.getByRole('button', { name: /Zoom in to June 15/ })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: /Zoom in to today, June 15/ })).toBeInTheDocument()
     })
   })
 })

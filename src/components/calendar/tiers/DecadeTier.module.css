@@ -42,7 +42,7 @@
   max-width: 740px;
   margin: 0 auto;
   /* 셸의 absolute 탑바를 비워야 한다 — 상단 패딩을 넉넉히. */
-  padding: clamp(76px, 8vh, 104px) 22px 88px;
+  padding: clamp(54px, 6vh, 72px) 22px 88px;
   font-family: var(--m-sans);
   color: var(--t0);
   background: var(--bg);
@@ -616,7 +616,7 @@
 
 @media (max-width: 560px) {
   .decadeRoot {
-    padding: clamp(72px, 8vh, 92px) 16px 70px;
+    padding: clamp(50px, 6vh, 62px) 16px 70px;
   }
   .strip {
     gap: 3px;

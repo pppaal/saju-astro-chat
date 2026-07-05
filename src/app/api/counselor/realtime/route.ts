@@ -227,8 +227,23 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ message: safetyMessage(lang) }, { status: 200 })
   }
 
-  // 4) Pre-check credit availability. 매 메시지 1 credit. 차감은 아래
-  // validation 이후 stream 직전에 실제 consume.
+  // 4+5) 크레딧 프리체크(DB 읽기)·닉네임 조회(DB 읽기)·컨텍스트 빌드(CPU/캐시)는
+  // 서로 독립 — 동시에 발진해 콜드 첫 답변의 직렬 왕복을 줄인다. 차감(consume)은
+  // 여전히 프리체크 통과 *후*에만 일어나므로 과금 순서는 불변. 프리체크가 402 로
+  // 떨어져도 빌드는 캐시에 남아(warm 과 동일 부수효과) 충전 후 재시도가 빨라진다.
+  //
+  // 본명(stable·30d) + 일진/타이밍(daily·1d) 컨텍스트 — 공유 캐시 함수
+  // (ensureCounselorContext). 진입 시 /api/counselor/warm 이 동일 키로 미리
+  // 워밍하고, 콜드 동시 진입은 single-flight 로 한 빌드에 합류한다.
+  const ctxP = ensureCounselorContext(body, userId, lang, sources)
+  // 402 조기 반환 시 unhandled rejection 이 되지 않게 미리 삼켜 둔다 —
+  // 아래 await ctxP 는 원 promise 라 실패를 그대로 받는다.
+  ctxP.catch(() => {})
+  // 호출자 이름 — body.name 이 비어 있을 때만 DB 폴백이 필요하다. 예전엔 컨텍스트
+  // 빌드·차감이 끝난 뒤 직렬로 기다렸다.
+  const bodyName = sanitizeDisplayName(body.name)
+  const displayNameP = bodyName ? null : getUserDisplayName(userId).catch(() => null)
+
   const credit = await canUseCredits(userId, 'reading', 1)
   if (!credit.allowed) {
     return NextResponse.json(
@@ -237,14 +252,10 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  // 5) 본명(stable·30d) + 일진/타이밍(daily·1d) 컨텍스트 — 공유 캐시 함수
-  //    (ensureCounselorContext). 진입 시 /api/counselor/warm 이 동일 키로 미리
-  //    워밍하므로, "그날 첫 답변"의 무거운 천체력 빌드를 critical path 에서
-  //    제거(캐시 hit)해 첫 응답을 빠르게 한다.
   let stableContext: string
   let dailyContext: string
   try {
-    const ctx = await ensureCounselorContext(body, userId, lang, sources)
+    const ctx = await ctxP
     stableContext = ctx.stableContext
     dailyContext = ctx.dailyContext
   } catch (err) {
@@ -398,9 +409,9 @@ export async function POST(req: NextRequest) {
     // 상담 대상의 이름. '다른 사람으로 보기'면 클라가 그 사람 이름을 body.name
     // 으로 보낸다 — 차트(birthDate 등)는 이미 그 사람 기준으로 계산되므로 호명도
     // 같은 사람으로 맞춰야 한다. body.name 은 사용자 입력이라 sanitizeDisplayName
-    // 으로 개행/제어문자/길이를 정규화한 뒤 프롬프트에 박는다. 비어 있으면(구버전
-    // 클라 / 미지정) 로그인 사용자의 DB 이름으로 폴백.
-    const userName = sanitizeDisplayName(body.name) ?? (await getUserDisplayName(userId))
+    // 으로 정규화(위 bodyName). 비어 있으면(구버전 클라 / 미지정) 위에서 미리
+    // 발진해 둔 DB 이름 조회(displayNameP)를 여기서 수확 — 컨텍스트 빌드와 겹침.
+    const userName = bodyName ?? (displayNameP ? await displayNameP : null)
     // 만나이 앵커 — 출생 시간대 기준(currentManAge)으로 도출해 profection 나이와
     // 동일 기준을 쓴다. 예전 computeAgeYears 는 서버 로컬 시계로 계산해, 생일
     // 경계에서 이 앵커와 대운/프로펙션 나이가 1년 어긋날 수 있었다.

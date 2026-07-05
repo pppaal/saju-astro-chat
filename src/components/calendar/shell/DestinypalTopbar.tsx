@@ -1,11 +1,15 @@
 'use client'
 
 /* ============================================================
-   destinypal · Topbar — 상단 brand + tier-name 표기.
-   직역 출처: destinypal-extracted/js/app.jsx <div className="topbar"> 블록.
-   - brand.mark: "destiny" + <em>pal</em>
-   - brand.who:  생년월일·장소·일간 한 줄
-   - tier-name:  현재 줌 단의 라벨 + 영문·스케일 (locale 대응)
+   destinypal · Topbar — 상단 최소 크롬(메뉴 · 본명 한 줄 · 언어 토글).
+   ────────────────────────────────────────────────────────────
+   예전엔 브랜드 워드마크("destinypal") + 생년월일 + "1달의 흐름 MONTHLY ·
+   30일" 티어명까지 넣어 두 줄로 감싸며 티어 자체 헤더(eyebrow "2026년 7월",
+   후크)와 겹쳐 상단이 3겹이 됐다(감사: 사용자 불만). 정보는 티어 헤더와
+   레일이 이미 다 말해주므로 topbar 는 기능 요소만 남긴다:
+     · 햄버거 메뉴 (캘린더는 몰입형이라 글로벌 헤더가 숨음 — 자체 제공)
+     · 본명 한 줄 ("다른 사람 보기"일 때 누구 차트인지 확인용 — 작게)
+     · 언어 토글
    ============================================================ */
 
 import { useState } from 'react'
@@ -17,37 +21,9 @@ export interface DestinypalTopbarProps {
   whoBirthLine: string
   place: string
   ilganHanja: string
-  tierKo: string
-  tierEn: string
-  tierScale: string
 }
 
-// 영문 줌 단 친근 라벨 — 각 tier H1 과 결을 맞춘다.
-const EN_TIER_LABEL: Record<string, string> = {
-  LIFETIME: 'Lifetime',
-  DECADE: 'This decade',
-  YEARLY: 'This year',
-  MONTHLY: 'This month',
-  DAILY: 'Today',
-}
-
-// 한글 스케일("84년"/"12달"/"30일"/"24시") → 영문.
-function scaleEn(s: string): string {
-  return s
-    .replace(/년/g, 'y')
-    .replace(/달/g, 'mo')
-    .replace(/일(?!간)/g, 'd')
-    .replace(/시(?!간)/g, 'h')
-}
-
-export function DestinypalTopbar({
-  whoBirthLine,
-  place,
-  ilganHanja,
-  tierKo,
-  tierEn,
-  tierScale,
-}: DestinypalTopbarProps) {
+export function DestinypalTopbar({ whoBirthLine, place, ilganHanja }: DestinypalTopbarProps) {
   const { locale, setLocale } = useI18n()
   const ko = locale === 'ko'
   const [drawerOpen, setDrawerOpen] = useState(false)
@@ -65,30 +41,19 @@ export function DestinypalTopbar({
           <span />
           <span />
         </button>
-        <span className={styles.brandMark}>
-          destiny<em>pal</em>
-        </span>
         <span className={styles.brandWho}>
           {whoBirthLine} · {place} · {ilganHanja}
         </span>
       </div>
-      <div className={styles.topbarRight}>
-        <div className={styles.tierName}>
-          <span>{ko ? `${tierKo}의 흐름` : (EN_TIER_LABEL[tierEn] ?? tierEn)}</span>
-          <b>
-            {tierEn} · {ko ? tierScale : scaleEn(tierScale)}
-          </b>
-        </div>
-        {/* 언어 토글 — 캘린더는 몰입형이라 글로벌 헤더를 숨겨, 토글을 자체 제공한다. */}
-        <button
-          type="button"
-          className={styles.localeToggle}
-          onClick={() => setLocale(ko ? 'en' : 'ko')}
-          aria-label={ko ? 'Switch to English' : '한국어로 전환'}
-        >
-          {ko ? 'EN' : 'KO'}
-        </button>
-      </div>
+      {/* 언어 토글 — 캘린더는 몰입형이라 글로벌 헤더를 숨겨, 토글을 자체 제공한다. */}
+      <button
+        type="button"
+        className={styles.localeToggle}
+        onClick={() => setLocale(ko ? 'en' : 'ko')}
+        aria-label={ko ? 'Switch to English' : '한국어로 전환'}
+      >
+        {ko ? 'EN' : 'KO'}
+      </button>
       {/* 한지 톤이라 light variant 드로어. */}
       <MenuDrawerPanel
         open={drawerOpen}

@@ -113,7 +113,7 @@ describe('toDay — CalendarCell → destinypal day', () => {
       expect(d.transits[0]).toMatchObject({
         body: 'Mercury',
         bodyKo: '수성',
-        aspect: '긴장각',
+        aspect: '마찰',
         target: '본명 Sun',
         glyph: '☿',
         polarity: -1,

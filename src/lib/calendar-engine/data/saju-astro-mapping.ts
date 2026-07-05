@@ -38,6 +38,7 @@ export type SajuMatchKey =
   | '역마'
   | '건록'
   | '양인'
+  | '천을귀인'
 
 /** 점성 측의 매칭 키 — 단일 행성명. astro extractor 가 evidence.planets[0] 에 박는 명칭과 일치. */
 export type AstroMatchKey =
@@ -475,6 +476,338 @@ export const SAJU_ASTRO_MAPPINGS: readonly CrossMapping[] = [
     polarity: -1,
     grade: 'B',
     note: '겁재(분탈·경쟁·공유 자원) ↔ Pluto(power·elimination·shared resources). decadal 전용(밴드).',
+  },
+
+  // ─── 일/월 근거 커버리지 확장 (2026-07) ───
+  // 감사: 26쌍 시절엔 그날 가장 센 신호가 매핑 밖이면 "왜 이런 날" 근거가 비어
+  // 일반 문구로 떨어졌다. 특히 달(Moon)은 가장 자주 발화하는 일간 트랜짓인데
+  // 매핑이 2쌍뿐이었다. 원칙 불변 — 의미상 자연스럽게 강화·간섭하는 조합만,
+  // 신호를 지어내지 않고 양쪽이 실제 활성일 때만 발화. 전부 crossOnly(보조) —
+  // 리포트의 십신→대표행성 단일화는 기존 1차 등치를 유지한다.
+  // 카피 원칙은 toneMeaning 과 동일: 단정 + 생활 명사 + 처방.
+
+  // ── × Moon (daily 전용 밴드 — 일간 근거의 최대 공백) ──
+  {
+    saju: '식신',
+    astro: 'Moon',
+    meaning: {
+      ko: '식신 × 달 — 일상을 빚는 결. 요리·살림·루틴 산출과 돌봄이 손에 잘 붙는 날.',
+      en: 'Eating God × Moon — a streak for shaping daily life. Cooking, homemaking, routines, and caregiving all come easily.',
+    },
+    polarity: 1,
+    grade: 'B',
+    crossOnly: true,
+    note: '식신(양생·산출·먹거리) ↔ Moon(일상·양육·먹고사는 일). 둘 다 양생축.',
+  },
+  {
+    saju: '상관',
+    astro: 'Moon',
+    meaning: {
+      ko: '상관 × 달 — 기분이 말로 새기 쉬운 결. 감정 실린 답장·댓글은 하루 묵혔다 보내기.',
+      en: 'Hurting Officer × Moon — moods leak straight into words. Sit on emotionally loaded replies for a day.',
+    },
+    polarity: -1,
+    grade: 'B',
+    crossOnly: true,
+    note: '상관(감정 표출·예봉) ↔ Moon(기분·정서). 표출축이 정서로 증폭 → 압력 −1.',
+  },
+  {
+    saju: '편인',
+    astro: 'Moon',
+    meaning: {
+      ko: '편인 × 달 — 마음이 안으로 예민해지는 결. 혼자 재충전이 답, 새벽 감성 결정은 금물.',
+      en: 'Indirect Resource × Moon — the mind turns inward and fine-tuned. Recharge alone; no 2am feelings-driven decisions.',
+    },
+    polarity: 0,
+    grade: 'B',
+    crossOnly: true,
+    note: '편인(내향 수용·불안정 정서) ↔ Moon(기분). 깊이↑ 기복↑ 양가 → 0.',
+  },
+  {
+    saju: '정재',
+    astro: 'Moon',
+    meaning: {
+      ko: '정재 × 달 — 집·가족·생활비의 결. 가계 정돈, 집 정리, 가족과 쓰는 돈 계획에 우호.',
+      en: 'Direct Wealth × Moon — home, family, and living costs align. Favours tidying budgets, the house, and family spending plans.',
+    },
+    polarity: 1,
+    grade: 'B',
+    crossOnly: true,
+    note: '정재(안정 재물·정처·살림) ↔ Moon(가정·생활). 둘 다 생활 안정축.',
+  },
+  {
+    saju: '편관',
+    astro: 'Moon',
+    meaning: {
+      ko: '편관 × 달 — 압박이 기분까지 누르는 결. 수면·스트레스 관리부터, 밤의 걱정은 내일의 나에게.',
+      en: 'Seven Killings × Moon — pressure weighs on your mood itself. Guard sleep and stress first; hand tonight’s worries to tomorrow-you.',
+    },
+    polarity: -1,
+    grade: 'B',
+    crossOnly: true,
+    note: '편관(압박·긴장) ↔ Moon(정서·수면). 압박이 정서축을 침식 → −1.',
+  },
+
+  // ── × Sun (daily/monthly — 무대·권위·주목) ──
+  {
+    saju: '상관',
+    astro: 'Sun',
+    meaning: {
+      ko: '상관 × 태양 — 윗사람·권위와 부딪히기 쉬운 결(상관견관). 상사 앞 직설·공개 반박은 오늘 접기.',
+      en: 'Hurting Officer × Sun — friction with authority runs high. Shelve blunt words and public pushback in front of the boss today.',
+    },
+    polarity: -2,
+    grade: 'A',
+    crossOnly: true,
+    note: '상관견관(傷官見官) 고전 축 ↔ Sun(권위·자리). 반권위축 직접 등치 — A.',
+  },
+  {
+    saju: '건록',
+    astro: 'Sun',
+    meaning: {
+      ko: '건록 × 태양 — 제 이름 걸고 서는 결. 발표·면접·서명처럼 내 실력이 무대 중앙에 서는 일에 우호.',
+      en: 'Established Stipend × Sun — a streak for standing under your own name. Favours presentations, interviews, and signatures where your skill takes centre stage.',
+    },
+    polarity: 2,
+    grade: 'B',
+    crossOnly: true,
+    note: '건록(관록·제 실력의 자리) ↔ Sun(자기 이름·무대). 둘 다 주체·자리축.',
+  },
+  {
+    saju: '식신',
+    astro: 'Sun',
+    meaning: {
+      ko: '식신 × 태양 — 만든 것을 공개 무대에 올리는 결. 발행·출시·시연에 우호.',
+      en: 'Eating God × Sun — a streak for putting your work on the public stage. Favours publishing, launching, and demos.',
+    },
+    polarity: 1,
+    grade: 'B',
+    crossOnly: true,
+    note: '식신(산출) ↔ Sun(공개·조명). 산출이 가시성으로 → +1.',
+  },
+  {
+    saju: '도화',
+    astro: 'Sun',
+    meaning: {
+      ko: '도화살 × 태양 — 시선이 나에게 모이는 결. 프로필 사진·무대·라이브처럼 보여지는 일에 우호.',
+      en: 'Peach Blossom × Sun — eyes gather on you. Favours profile shots, stages, and going live — anything where you’re seen.',
+    },
+    polarity: 1,
+    grade: 'B',
+    crossOnly: true,
+    note: '도화(인기·주목) ↔ Sun(조명·가시성). 매력이 무대 중앙으로 → +1.',
+  },
+  {
+    saju: '겁재',
+    astro: 'Sun',
+    meaning: {
+      ko: '겁재 × 태양 — 성과와 주목을 두고 다투는 결. 공 가로채기 조심, 내 기여는 기록으로 남기기.',
+      en: 'Rob Wealth × Sun — credit and spotlight become contested. Watch for claimed credit; keep your contribution on record.',
+    },
+    polarity: -1,
+    grade: 'B',
+    crossOnly: true,
+    note: '겁재(분탈·경쟁) ↔ Sun(공·주목·자리). 주목 자원의 다툼 → −1.',
+  },
+
+  // ── × Mercury (daily/monthly — 문서·거래·기록) ──
+  {
+    saju: '정관',
+    astro: 'Mercury',
+    meaning: {
+      ko: '정관 × 수성 — 공문서·결재의 결. 계약서 검토, 관공서 서류, 공식 메일 처리에 우호.',
+      en: 'Direct Officer × Mercury — a streak for official paperwork. Favours contract review, government forms, and formal mail.',
+    },
+    polarity: 1,
+    grade: 'B',
+    crossOnly: true,
+    note: '정관(규범·절차) ↔ Mercury(문서·소통). 절차가 문서로 → +1.',
+  },
+  {
+    saju: '정재',
+    astro: 'Mercury',
+    meaning: {
+      ko: '정재 × 수성 — 장부가 맞아떨어지는 결. 정산·가계부·구독 정리, 미뤄둔 환불 요청에 우호.',
+      en: 'Direct Wealth × Mercury — the books balance today. Favours settling accounts, budgets, subscriptions, and that refund request you postponed.',
+    },
+    polarity: 1,
+    grade: 'B',
+    crossOnly: true,
+    note: '정재(안정 재물·꼼꼼함) ↔ Mercury(기록·계산). 재물의 회계축 → +1.',
+  },
+  {
+    saju: '정인',
+    astro: 'Mercury',
+    meaning: {
+      ko: '정인 × 수성 — 배운 게 정리되는 결. 필기·요약·복습, 배운 내용을 문서로 굳히기에 우호.',
+      en: 'Direct Resource × Mercury — learning settles into order. Favours notes, summaries, review, and writing down what you’ve learned.',
+    },
+    polarity: 1,
+    grade: 'B',
+    crossOnly: true,
+    note: '정인(학문·수용) ↔ Mercury(기록·정리). 학습의 문서화축 → +1.',
+  },
+  {
+    saju: '도화',
+    astro: 'Mercury',
+    meaning: {
+      ko: '도화살 × 수성 — 대화가 통하는 결. 먼저 보낸 메시지·소개 자리의 스몰토크가 잘 풀림.',
+      en: 'Peach Blossom × Mercury — conversation lands well. First messages and small talk at introductions flow easily.',
+    },
+    polarity: 1,
+    grade: 'B',
+    crossOnly: true,
+    note: '도화(끌림·사교) ↔ Mercury(대화·메시지). 매력의 소통축 → +1.',
+  },
+  {
+    saju: '편관',
+    astro: 'Mercury',
+    meaning: {
+      ko: '편관 × 수성 — 독촉·통보가 날아들기 쉬운 결. 기한 지난 서류·답장부터 먼저 치우면 압박이 준다.',
+      en: 'Seven Killings × Mercury — demands and notices tend to land today. Clear overdue papers and replies first and the pressure eases.',
+    },
+    polarity: -1,
+    grade: 'B',
+    crossOnly: true,
+    note: '편관(압박·독촉) ↔ Mercury(문서·연락). 압박의 문서화축 → −1, 처방으로 닫음.',
+  },
+
+  // ── × Venus (daily/monthly — 관계·가치·보상) ──
+  {
+    saju: '상관',
+    astro: 'Venus',
+    meaning: {
+      ko: '상관 × 금성 — 재능이 매력으로 번지는 결. 창작 발표·공연·스타일 변화가 좋게 받아들여짐.',
+      en: 'Hurting Officer × Venus — talent spills over into charm. Creative releases, performances, and a style change land well.',
+    },
+    polarity: 1,
+    grade: 'B',
+    crossOnly: true,
+    note: '상관(재능 표출) ↔ Venus(미·매력). 예봉이 미감으로 순화 → +1.',
+  },
+  {
+    saju: '정관',
+    astro: 'Venus',
+    meaning: {
+      ko: '정관 × 금성 — 격식 있는 자리가 부드럽게 풀리는 결. 상견례·공식 행사·예의 갖춘 부탁에 우호.',
+      en: 'Direct Officer × Venus — formal occasions soften in your favour. Good for meeting the parents, official events, and courteous asks.',
+    },
+    polarity: 1,
+    grade: 'B',
+    crossOnly: true,
+    note: '정관(격식·규범) ↔ Venus(조화·호감). 격식의 관계축 → +1.',
+  },
+  {
+    saju: '건록',
+    astro: 'Venus',
+    meaning: {
+      ko: '건록 × 금성 — 실력이 보상으로 이어지는 결. 몸값·연봉·단가 이야기 꺼내기 좋은 날.',
+      en: 'Established Stipend × Venus — skill converts into reward. A good day to bring up your rate, salary, or price.',
+    },
+    polarity: 1,
+    grade: 'B',
+    crossOnly: true,
+    note: '건록(제 실력의 록) ↔ Venus(가치·보상). 실력의 가격축 → +1.',
+  },
+
+  // ── × Mars (daily/monthly — 추진·충동·과열) ──
+  {
+    saju: '식신',
+    astro: 'Mars',
+    meaning: {
+      ko: '식신 × 화성 — 만들기에 불이 붙는 결. 몰아서 끝내는 제작·운동엔 최고, 밤샘은 하루만.',
+      en: 'Eating God × Mars — making catches fire. Great for sprint-finishing work and workouts; cap the all-nighter at one.',
+    },
+    polarity: 1,
+    grade: 'B',
+    crossOnly: true,
+    note: '식신(산출) ↔ Mars(추진·에너지). 산출의 추진축 → +1.',
+  },
+  {
+    saju: '정관',
+    astro: 'Mars',
+    meaning: {
+      ko: '정관 × 화성 — 절차를 건너뛰고 싶은 충동의 결. 서류는 순서대로, 지름길이 오늘은 더 멀다.',
+      en: 'Direct Officer × Mars — the urge to skip procedure runs hot. Do the paperwork in order; today the shortcut is the long way.',
+    },
+    polarity: -1,
+    grade: 'B',
+    crossOnly: true,
+    note: '정관(절차·규범) ↔ Mars(충동·속도). 규범축과 충동축의 간섭 → −1.',
+  },
+  {
+    saju: '편재',
+    astro: 'Mars',
+    meaning: {
+      ko: '편재 × 화성 — 공격적으로 지르고 싶은 결. 몰빵·레버리지·홧김 결제는 오늘 금지, 소액 테스트까지만.',
+      en: 'Indirect Wealth × Mars — the urge to bet aggressively runs hot. No all-ins, leverage, or rage-buys today; small tests only.',
+    },
+    polarity: -1,
+    grade: 'B',
+    crossOnly: true,
+    note: '편재(기회 재물·투기) ↔ Mars(충동). 투기의 과열축 → −1.',
+  },
+  {
+    saju: '정재',
+    astro: 'Mars',
+    meaning: {
+      ko: '정재 × 화성 — 아껴둔 돈에 충동이 붙는 결. 장바구니 결제·큰 지출은 24시간 묵히기.',
+      en: 'Direct Wealth × Mars — impulse latches onto saved money. Let the cart and any big spend sit for 24 hours.',
+    },
+    polarity: -1,
+    grade: 'B',
+    crossOnly: true,
+    note: '정재(축적 재물) ↔ Mars(충동 지출). 축적축 침식 → −1.',
+  },
+  {
+    saju: '비견',
+    astro: 'Mars',
+    meaning: {
+      ko: '비견 × 화성 — 동료·형제와 경쟁이 과열되는 결. 이기려 들기보다 판을 나누면 오히려 얻는다.',
+      en: 'Companion × Mars — rivalry with peers and siblings overheats. Split the field instead of fighting for it and you gain more.',
+    },
+    polarity: -1,
+    grade: 'B',
+    crossOnly: true,
+    note: '비견(동배 경쟁) ↔ Mars(경쟁·열기). 겁재×Mars 의 완화판 — −1.',
+  },
+  {
+    saju: '도화',
+    astro: 'Mars',
+    meaning: {
+      ko: '도화살 × 화성 — 끌림이 격정으로 달아오르는 결. 질투·성급한 고백은 하루 식히고.',
+      en: 'Peach Blossom × Mars — attraction heats into intensity. Cool jealousy and rushed confessions for a day.',
+    },
+    polarity: -1,
+    grade: 'B',
+    crossOnly: true,
+    note: '도화(끌림) ↔ Mars(격정·성급). 인연축의 과열 → −1.',
+  },
+  {
+    saju: '건록',
+    astro: 'Mars',
+    meaning: {
+      ko: '건록 × 화성 — 실력에 추진력이 붙는 결. 미뤄둔 승부수·도전 과제를 걸기 좋은 날.',
+      en: 'Established Stipend × Mars — drive attaches to real skill. A good day to make the bold move you postponed.',
+    },
+    polarity: 1,
+    grade: 'B',
+    crossOnly: true,
+    note: '건록(실력·자리) ↔ Mars(추진). 실력의 승부축 → +1.',
+  },
+
+  // ── 신살 길성 확장 ──
+  {
+    saju: '천을귀인',
+    astro: 'Jupiter',
+    meaning: {
+      ko: '천을귀인 × 목성 — 귀인이 실제로 움직이는 결. 부탁·소개 요청·멘토 연락을 미루지 말 것.',
+      en: 'Heavenly Benefactor × Jupiter — your helpers are actually in motion. Don’t postpone the ask, the intro request, or that message to a mentor.',
+    },
+    polarity: 2,
+    grade: 'A',
+    crossOnly: true,
+    note: '천을귀인(최상 길성·조력자) ↔ Jupiter(greater benefic·귀인운). 동·서 길성 아키타입 직접 등치 — A.',
   },
 ]
 

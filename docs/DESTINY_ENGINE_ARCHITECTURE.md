@@ -114,7 +114,11 @@ preComputed?)` builds the `NatalContext` the engine consumes. It reuses
 - Rendered server-side: `src/app/calendar/page.tsx` ->
   `src/app/calendar/assembleTiers.ts` (`assembleTiers`) consumes
   `CalendarCell[]` and assembles lifetime/decade/year/month/day tiers using
-  the calendar-engine derivers. There is **no** `/api/calendar` route.
+  the calendar-engine derivers. The day tier is assembled by the shared
+  `src/app/calendar/assembleDayTier.ts`, which `GET /api/calendar/day` also
+  uses to rebuild the day view for a date picked in the month grid — the
+  two views can't drift because they run the same code on the same
+  `layered.daily` score scale.
 
 ## 6. Context builders
 
