@@ -233,6 +233,8 @@ export async function loadTierData(
     place,
     focusDayCell,
     now,
+    // 'month'(캘린더)면 숨은 상위 티어의 인생 곡선 계산을 건너뛴다(진입 속도).
+    scope,
   })
 
   return { kind: 'ok', lang, ...assembled }

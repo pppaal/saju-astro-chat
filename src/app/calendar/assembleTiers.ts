@@ -24,6 +24,7 @@ import { getMonthPillarForDate, getYearPillarForDate } from '@/lib/saju/datePill
 import { getSibsinKo } from '@/lib/saju/cycleRelations'
 
 import { toUser, toLifetime, toDecade, toYear, toMonth } from '@/components/calendar/adapters'
+import { reconcileCellOneLine } from '@/components/calendar/adapters/toDay'
 import { SIBSIN_EN } from '@/lib/saju/sibsinLabels'
 import { translateSignalLabel } from '@/lib/calendar-engine/derivers/signalI18n'
 import { PLANET_KO } from '@/components/calendar/adapters/shared'
@@ -74,6 +75,14 @@ export interface AssembleTiersInput {
    * 기준. 미지정 시 호출 시점(new Date()). 프로덕션은 그대로, 테스트는 고정.
    */
   now?: Date
+  /**
+   * 빌드 범위 — 'month'(캘린더: 월/일만 표시)면 숨은 인생/10년/연 티어의
+   * 무거운 인생 곡선(외행성 트랜짓 ephemeris ~31회 + 90년 CPU 합성)을
+   * 건너뛴다. 티어 객체 자체는 여전히 조립(타입·/destiny 호환)하되 곡선만
+   * 빠진다 — lifetimeFlow 는 곡선 없이도 동작(기존 ephemeris 실패 폴백 경로와
+   * 동일)해 월 총평의 '타고난 결' intro 는 유지된다. 기본 'year'(전체 계산).
+   */
+  scope?: 'month' | 'year'
 }
 
 export interface AssembledTiers {
@@ -199,12 +208,19 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
   // 외행성은 느려 step=3 샘플 + 보간이면 envelope 보존(ephemeris 호출 ~31회).
   // 실패해도 곡선만 빠지고 나머지 티어는 정상. lifetimeFlow(단계 톤)·대운 1년운이
   // 이 곡선을 valence 출처로 쓰므로 *먼저* 빌드한다.
+  //
+  // scope='month'(캘린더 — 인생/10년/연 티어 숨김)면 통째로 건너뛴다: 이 블록이
+  // 캘린더 요청의 최대 낭비였다(감사 — 결과가 클라이언트에서 버려지는데 매 방문
+  // ephemeris ~31회 + 90년 합성 CPU). 곡선 없는 경로는 ephemeris 실패 폴백과
+  // 동일해 이미 프로덕션에서 검증된 분기다.
   let lifeCurve: ReturnType<typeof buildLifeCurve> = null
-  try {
-    const astroSeries = await computeTransitAstroSeries(natal, { span: 90, step: 3 })
-    lifeCurve = buildLifeCurve(natal, { now, span: 90, astroSeries })
-  } catch {
-    lifeCurve = null
+  if (args.scope !== 'month') {
+    try {
+      const astroSeries = await computeTransitAstroSeries(natal, { span: 90, step: 3 })
+      lifeCurve = buildLifeCurve(natal, { now, span: 90, astroSeries })
+    } catch {
+      lifeCurve = null
+    }
   }
 
   // ─── lifetimeFlow / lifetimePivots derivers ─────────────────────────────
@@ -652,6 +668,25 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
   for (const cell of month.calendar) {
     const r = reasonByDs.get(cell.ds)
     if (r) cell.reason = r
+  }
+
+  // ── 날짜별 "한 줄" — 일(日) 티어 oneLine 과 같은 소스(reconcileCellOneLine)를
+  //    각 calendar 셀에 실어, 월 리드아웃 문장이 줌인한 일 화면 첫 줄로 그대로
+  //    이어지게 한다("월은 예고편, 일은 본편"). 예전엔 두 화면이 다른 풀
+  //    (toneMeaningFor vs ONE_LINE_POOL)·다른 톤 산식을 써서 같은 날의 문장이
+  //    화면마다 달랐다(감사 잔여 불일치 #2).
+  const oneLineByDs = new Map<string, { oneLine: string; oneLineEn: string }>()
+  for (const c of monthCells) {
+    const iso = c.datetime.slice(0, 10)
+    const u = reconcileCellOneLine(c, layered.daily.get(iso)?.score)
+    oneLineByDs.set(c.datetime.slice(5, 10), { oneLine: u.oneLine, oneLineEn: u.oneLineEn })
+  }
+  for (const cell of month.calendar) {
+    const u = oneLineByDs.get(cell.ds)
+    if (u) {
+      cell.oneLine = u.oneLine
+      cell.oneLineEn = u.oneLineEn
+    }
   }
 
   // 일 티어 수확 — 맨 위에서 미리 발진해 둔 분리 어셈블러 결과.

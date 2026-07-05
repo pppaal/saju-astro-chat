@@ -26,6 +26,7 @@ import { STEM_NAMES, BRANCH_NAMES } from '@/lib/saju/constants'
 import { SIBSIN_EN } from '@/lib/saju/sibsinLabels'
 import { currentManAge } from '@/lib/datetime/currentAge'
 import { toUser, toDay } from '@/components/calendar/adapters'
+import { reconcileCellOneLine } from '@/components/calendar/adapters/toDay'
 import { buildHourCrossings } from '@/components/calendar/adapters/toHourCrossings'
 import { buildHourMoon } from '@/components/calendar/adapters/toHourMoon'
 import { crossKeys, stripCrossPair, PLANET_EN_FROM_KO } from './crossPair'
@@ -151,6 +152,17 @@ export async function assembleDayTier(input: AssembleDayTierInput): Promise<Dest
     lang,
   })
 
+  // ── 한 줄·톤의 단일 소스 — *월 모집단 셀*로 화해 ──
+  // 점수가 layered.daily(월 모집단)에서 오듯, 한 줄·verdict 도 같은 월 셀에서
+  // 파생시킨다. focusDayCell(1일 evidence 빌드)은 salience 정규화 모집단이 달라
+  // reasonNet 이 미세하게 어긋날 수 있는데, 그러면 월 리드아웃(월 셀 기반)과 일
+  // 화면의 문장·톤이 같은 날인데 갈린다. 월 셀이 있으면 그걸 권위로 쓴다
+  // (evidence 는 여전히 focusDayCell 에서 — 근거카드·교차·시진은 그대로).
+  const monthPopCell = cells.find((c) => c.datetime.slice(0, 10) === targetDayIso) ?? null
+  const unified = monthPopCell
+    ? reconcileCellOneLine(monthPopCell, layered.daily.get(targetDayIso)?.score)
+    : null
+
   const advanced = natal.saju.analyses
   const statusResult = advanced?.geokguk?.statusResult
   const geokgukName = advanced?.geokguk?.primary ?? '미정'
@@ -271,8 +283,8 @@ export async function assembleDayTier(input: AssembleDayTierInput): Promise<Dest
     dayMaster: { hanja: userBase.ilgan.hanja, kr: userBase.ilgan.kr, en: userBase.ilgan.en },
     seed,
     score: dayAdapter.score,
-    oneLine: dayAdapter.oneLine,
-    oneLineEn: dayAdapter.oneLineEn,
+    oneLine: unified?.oneLine ?? dayAdapter.oneLine,
+    oneLineEn: unified?.oneLineEn ?? dayAdapter.oneLineEn,
     totalSignals: dayAdapter.totalSignals,
     signals: daySajuSignals,
     transits: dayTransits,
@@ -299,9 +311,9 @@ export async function assembleDayTier(input: AssembleDayTierInput): Promise<Dest
     topReasonsEn: dayAdapter.topReasonsEn,
     cautions: dayAdapter.cautions,
     cautionsEn: dayAdapter.cautionsEn,
-    // 출력 화해 verdict — toDay 가 산출한 단일 권위. 빠뜨리면 DayTier 가 중립
-    // fallback 으로 떨어져 tense/bright 화해가 프로덕션에서 죽는다(반드시 전달).
-    dayTone: dayAdapter.dayTone,
+    // 출력 화해 verdict — 월 모집단 셀 기준(위 unified)이 권위. 빠뜨리면 DayTier
+    // 가 중립 fallback 으로 떨어져 tense/bright 화해가 프로덕션에서 죽는다.
+    dayTone: unified?.dayTone ?? dayAdapter.dayTone,
     twelveStageMatrix: dayAdapter.twelveStageMatrix,
     monthScores: dayMonthScores,
     upcoming,

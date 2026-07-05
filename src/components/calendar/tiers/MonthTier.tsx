@@ -313,9 +313,14 @@ export function MonthTier({ month, onDive, onRise, showRise = true, onSelectDay 
         ? '오늘'
         : 'Today'
       : verdictPrefix(selMark)
+  // 그날의 화해된 한 줄 — 일(日) 티어 oneLine 과 같은 소스(셀에 서버가 실어 줌).
+  // 줌인하면 이 문장이 일 화면 첫 줄로 그대로 이어진다. 없으면(구 캐시 등) 톤 풀 폴백.
+  const selectedOneLine = ko
+    ? selectedCell?.oneLine
+    : (selectedCell?.oneLineEn ?? selectedCell?.oneLine)
   const readoutText = selectedBigDay
     ? ''
-    : toneMeaningFor(markToTone(selMark), selectedDay, ko ? 'ko' : 'en', seed)
+    : (selectedOneLine ?? toneMeaningFor(markToTone(selMark), selectedDay, ko ? 'ko' : 'en', seed))
   // 행동 한 줄 — 그날의 mark 톤으로 평이하게(전문어 0). 좋은날=밀어붙이기, 조심날=미루기.
   const readoutAdvice: string = (() => {
     const tone = markToTone(selMark)
@@ -522,7 +527,9 @@ export function MonthTier({ month, onDive, onRise, showRise = true, onSelectDay 
 
       {/* ── 인터랙션 힌트 — 날짜가 눌러진다는 걸 모르는 초보용 ── */}
       <p className={styles.tapHint}>
-        {ko ? '👆 날짜를 누르면 그날 운을 볼 수 있어요.' : '👆 Tap a date to see that day.'}
+        {ko
+          ? '👆 날짜를 누르면 그날 운이, 한 번 더 누르면 자세한 풀이가 열려요.'
+          : '👆 Tap a date for its read — tap again to open the full day.'}
       </p>
 
       {/* ── weekday row ── */}
@@ -566,12 +573,22 @@ export function MonthTier({ month, onDive, onRise, showRise = true, onSelectDay 
               aria-label={ko ? `${c.d}일 자세히 보기` : `View day ${c.d}`}
               aria-pressed={c.d === selectedDay}
               onClick={() => {
+                // 이미 선택된 날을 한 번 더 탭 → 바로 그 날로 줌인(일반 캘린더 직관).
+                // 첫 탭은 선택(리드아웃)만 — 스캔하며 훑어보는 동작을 방해하지 않는다.
+                if (c.d === selectedDay) {
+                  onDive(c.d)
+                  return
+                }
                 setSelectedDay(c.d)
                 onSelectDay?.(c.d)
               }}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
                   e.preventDefault()
+                  if (c.d === selectedDay) {
+                    onDive(c.d)
+                    return
+                  }
                   setSelectedDay(c.d)
                   onSelectDay?.(c.d)
                 }

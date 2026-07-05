@@ -642,3 +642,37 @@ function deriveOneLine(verdict: DayVerdict, rot: number, lang: 'ko' | 'en' = 'ko
   const pool = ONE_LINE_POOL[tone][ko ? 'ko' : 'en']
   return pickBySeed(pool, rot)
 }
+
+/**
+ * 셀 → 화해 verdict + 한 줄(양 로케일) — 월 리드아웃과 일(日) 티어의 *단일 소스*.
+ *
+ * 점수가 이미 월 모집단(layered.daily)에서 오듯, 톤·문장도 같은 월 셀 신호에서
+ * 파생시킨다. 예전엔 월 리드아웃(toneMeaningFor 풀)과 일 화면(ONE_LINE_POOL)이
+ * 다른 풀·다른 톤 산식이라 같은 날의 문장이 두 화면에서 달랐다. 이제 두 화면이
+ * 같은 (cell, favorScore) 입력으로 이 함수를 지나므로 문장이 그대로 이어진다.
+ */
+export function reconcileCellOneLine(
+  cell: CalendarCell,
+  favorScore?: number
+): { dayTone: DayVerdict; score: number; oneLine: string; oneLineEn: string } {
+  // toDay 본문과 동일 산식 — 큐레이션 사유 층(월·일·시·정점)의 impact net.
+  let reasonNet = 0
+  for (const s of cell.signals) {
+    if (!STATIC_NATAL_KINDS.has(s.kind) && REASON_LAYERS.has(s.layer)) {
+      reasonNet += s.polarity * s.weight * (LAYER_WEIGHT[s.layer] ?? 0.5)
+    }
+  }
+  const score = Math.round(favorScore ?? cell.derivedScore)
+  const dayTone = reconcileDayTone({
+    score,
+    reasonNet,
+    hasGoodReason: (cell.topReasons ?? []).length > 0,
+    hasCautionReason: (cell.cautions ?? []).length > 0,
+  })
+  return {
+    dayTone,
+    score,
+    oneLine: deriveOneLine(dayTone, score + reasonNet, 'ko'),
+    oneLineEn: deriveOneLine(dayTone, score + reasonNet, 'en'),
+  }
+}

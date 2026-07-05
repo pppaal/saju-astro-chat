@@ -72,6 +72,8 @@ export default async function DestinypalPreview() {
     whoBirthLine: '1995.2.9 06:40',
     place: '서울',
     focusDayCell,
+    // 정식 라우트와 동일 규약 — 월/일만 보일 땐 인생 곡선 계산 생략.
+    scope: SHOW_FULL_TIERS ? 'year' : 'month',
   })
 
   return (
