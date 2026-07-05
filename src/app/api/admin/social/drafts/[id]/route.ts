@@ -22,11 +22,26 @@ export const runtime = 'nodejs'
 
 type RouteContext = { params: Promise<{ id: string }> }
 
+// 발행 이력/성과 필드도 스키마에 포함 — zod 는 미정의 키를 벗겨내므로, 빼먹으면
+// 어드민이 캡션을 편집·저장할 때 publishedUrl/metrics 가 조용히 사라진다.
+const metricsSchema = z.object({
+  views: z.number().int().min(0),
+  likes: z.number().int().min(0),
+  replies: z.number().int().min(0),
+  reposts: z.number().int().min(0),
+  quotes: z.number().int().min(0),
+  fetchedAt: z.string().max(40),
+})
+
 const variantSchema = z.object({
   platform: z.enum(['instagram', 'threads', 'youtube']),
   caption: z.string().max(4000),
   hashtags: z.array(z.string().max(60)).max(30),
   script: z.string().max(4000).optional(),
+  publishedUrl: z.string().max(500).optional(),
+  externalId: z.string().max(120).optional(),
+  publishError: z.string().max(500).optional(),
+  metrics: metricsSchema.optional(),
 })
 
 const bodySchema = z.object({
