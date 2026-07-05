@@ -37,6 +37,15 @@ function birthFingerprint(b: CounselorBirthInput): string {
   ].join('|')
 }
 
+// 동시 중복 빌드 단일화(single-flight) — 첫 방문(콜드)엔 진입 워밍(/warm)과
+// 첫 질문(/realtime)이 수백 ms 간격으로 같은 키를 miss 해, 무거운 천체력 빌드가
+// *두 번 동시에* 돌며 같은 인스턴스 CPU 를 서로 뺏었다(워밍의 head start 무의미).
+// 진행 중 빌드 promise 를 키별로 공유해 두 번째 요청이 첫 빌드에 합류하게 한다.
+// 인스턴스-로컬 map 이라 별도 인스턴스로 갈린 요청엔 안 닿지만(그 경우 기존과
+// 동일), 같은 인스턴스에선 빌드가 정확히 1회다. settle 시 제거 — 실패는 공유
+// 순간까지만이고 다음 호출은 새로 빌드한다(실패 캐싱 없음).
+const inFlightBuilds = new Map<string, Promise<{ stableContext: string; dailyContext: string }>>()
+
 /**
  * 캐시 hit 이면 즉시 반환, miss 면 빌드 후 캐시하고 반환.
  * realtime 답변 경로와 워밍 경로가 공유 — 워밍이 먼저 돌면 답변은 캐시 hit.
@@ -74,6 +83,43 @@ export async function ensureCounselorContext(
     return { stableContext: cachedStable, dailyContext: cachedDaily }
   }
 
+  // miss — 같은 키의 빌드가 이미 돌고 있으면 합류(single-flight).
+  // dailyCtxKey 가 가장 구체적(=stable 키를 포함하는 조합 + 날짜)이라 이걸 키로 쓴다.
+  const running = inFlightBuilds.get(dailyCtxKey)
+  if (running) return running
+
+  const buildP = buildAndCacheContext(body, lang, {
+    stableCtxKey,
+    dailyCtxKey,
+    localNow,
+    hourUnknown,
+    cityUnknown,
+    userTz,
+    sources,
+  })
+  inFlightBuilds.set(dailyCtxKey, buildP)
+  try {
+    return await buildP
+  } finally {
+    inFlightBuilds.delete(dailyCtxKey)
+  }
+}
+
+/** miss 경로의 실제 빌드+캐시 — single-flight 로 공유되는 본체. */
+async function buildAndCacheContext(
+  body: CounselorBirthInput,
+  lang: 'ko' | 'en',
+  opts: {
+    stableCtxKey: string
+    dailyCtxKey: string
+    localNow: { year: number; month: number; day: number }
+    hourUnknown: boolean
+    cityUnknown: boolean
+    userTz: string
+    sources: DestinySources
+  }
+): Promise<{ stableContext: string; dailyContext: string }> {
+  const { stableCtxKey, dailyCtxKey, localNow, hourUnknown, cityUnknown, userTz, sources } = opts
   const queryDate = new Date(localNow.year, localNow.month - 1, localNow.day, 12, 0, 0)
   const tz = body.timezone ?? 'Asia/Seoul'
   const birthDate = body.birthDate ?? ''

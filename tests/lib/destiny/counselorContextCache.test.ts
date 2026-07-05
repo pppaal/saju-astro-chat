@@ -183,4 +183,47 @@ describe('ensureCounselorContext (운명상담사 컨텍스트 캐시)', () => {
     const result = await ensureCounselorContext(fullBody, 'user-10', 'ko')
     expect(result.stableContext).toContain('37.5665,126.9780')
   })
+
+  it('동시 콜드 miss 2건(warm+realtime) → 빌드는 1회만(single-flight), 같은 결과 공유', async () => {
+    mockCacheGet.mockResolvedValue(null)
+    // 빌드를 지연시켜 두 호출이 확실히 겹치게 한다.
+    let resolveBuild!: (v: { stable: string; daily: string }) => void
+    mockBuildDestinyContext.mockImplementation(
+      () => new Promise((res) => (resolveBuild = res as typeof resolveBuild))
+    )
+
+    const p1 = ensureCounselorContext(fullBody, 'user-sf', 'ko')
+    const p2 = ensureCounselorContext(fullBody, 'user-sf', 'ko')
+    // 두 번째 호출이 캐시 조회를 끝내고 in-flight 에 합류할 시간을 준다.
+    await new Promise((r) => setTimeout(r, 0))
+    resolveBuild({ stable: 'ONCE', daily: 'ONCE_DAILY' })
+
+    const [r1, r2] = await Promise.all([p1, p2])
+    expect(mockBuildDestinyContext).toHaveBeenCalledTimes(1)
+    expect(r1).toEqual(r2)
+    expect(r1.dailyContext).toBe('ONCE_DAILY')
+    // 캐시 저장도 1회 빌드분(stable+daily 2건)만.
+    expect(mockCacheSet).toHaveBeenCalledTimes(2)
+  })
+
+  it('single-flight 는 키가 다르면(다른 사용자) 각자 빌드', async () => {
+    mockCacheGet.mockResolvedValue(null)
+    mockBuildDestinyContext.mockResolvedValue({ stable: 's', daily: 'd' })
+    await Promise.all([
+      ensureCounselorContext(fullBody, 'user-a', 'ko'),
+      ensureCounselorContext(fullBody, 'user-b', 'ko'),
+    ])
+    expect(mockBuildDestinyContext).toHaveBeenCalledTimes(2)
+  })
+
+  it('single-flight 빌드가 끝나면 다음 호출은 새로 진행(맵 정리)', async () => {
+    mockCacheGet.mockResolvedValue(null)
+    mockBuildDestinyContext.mockResolvedValue({ stable: 's1', daily: 'd1' })
+    await ensureCounselorContext(fullBody, 'user-cleanup', 'ko')
+    mockBuildDestinyContext.mockResolvedValue({ stable: 's2', daily: 'd2' })
+    const second = await ensureCounselorContext(fullBody, 'user-cleanup', 'ko')
+    // 두 번째 호출은 캐시 miss 시 새 빌드를 돈다(끝난 promise 재사용 금지).
+    expect(mockBuildDestinyContext).toHaveBeenCalledTimes(2)
+    expect(second.dailyContext).toBe('d2')
+  })
 })
