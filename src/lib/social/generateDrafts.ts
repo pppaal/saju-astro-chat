@@ -141,9 +141,12 @@ const ASTRO_THEMES = [
 ]
 
 function astrologySubject(date: string): Subject {
-  const h = seedHash(date, 'astrology')
-  const sign = ZODIAC[h.readUInt32BE(0) % ZODIAC.length]
-  const theme = ASTRO_THEMES[h.readUInt32BE(4) % ASTRO_THEMES.length]
+  // JDN 순환 — 12일마다 모든 별자리를 한 번씩, 테마는 사이클마다 교대.
+  // (해시 추첨은 같은 별자리가 연속으로 뜰 수 있어 피드가 없어 보인다)
+  const [y, m, d] = date.split('-').map(Number)
+  const { jdn } = computeDayPillarIndices(y, m, d)
+  const sign = ZODIAC[jdn % ZODIAC.length]
+  const theme = ASTRO_THEMES[Math.floor(jdn / ZODIAC.length) % ASTRO_THEMES.length]
   return {
     nameKo: `오늘의 별자리 스포트라이트: ${sign.ko}`,
     nameEn: `Sign spotlight: ${sign.en}`,
@@ -171,11 +174,44 @@ const COMPAT_THEMES = [
     en: 'Why anniversaries spark fights — timing compatibility',
   },
   { ko: '첫인상 끌림은 일지(日支)가 결정한다?', en: 'First-sight chemistry and the day branch' },
+  {
+    ko: '금(金) 기운 애인의 사랑 표현법 — 무뚝뚝이 아니라 단단함',
+    en: 'How Metal partners show love',
+  },
+  { ko: '토(土) 기운 파트너 — 느린 대신 안 떠나는 사람', en: 'Earth partners: slow but steady' },
+  {
+    ko: '연상연하 궁합, 나이차보다 중요한 한 가지',
+    en: 'Age-gap couples: what matters more than years',
+  },
+  {
+    ko: '권태기가 빨리 오는 조합 vs 오래 가는 조합',
+    en: 'Pairings that burn out vs pairings that last',
+  },
+  { ko: '헤어졌다 다시 만나는 커플의 사주 공통점', en: 'Charts of on-again off-again couples' },
+  { ko: '결혼 시기 궁합 — 언제 만났느냐가 반이다', en: 'Marriage timing: when you met matters' },
+  { ko: '돈 문제로 싸우는 커플의 오행 조합', en: 'Money fights, by element pairing' },
+  { ko: '표현이 서툰 커플을 위한 오행별 사랑의 언어', en: 'Love languages, by five elements' },
+  { ko: '장거리 연애를 버티는 사주 조합', en: 'Pairings that survive long distance' },
+  {
+    ko: '부모님이 반대하는 궁합, 진짜 나쁜 걸까?',
+    en: 'When families disapprove — is the match bad?',
+  },
+  { ko: '친구에서 연인이 되는 조합의 특징', en: 'Friends-to-lovers pairings' },
+  { ko: '일 궁합과 연애 궁합은 다르다 — 동업 커플 주의보', en: 'Work chemistry vs love chemistry' },
+  { ko: '질투가 많은 조합, 신뢰가 쌓이는 조합', en: 'Jealous pairings vs trusting pairings' },
+  { ko: '말다툼 후 화해가 빠른 커플의 비밀', en: 'Couples who make up fast — the chart reason' },
+  { ko: '서로의 운을 끌어올리는 상생 커플', en: "Couples who raise each other's luck" },
+  {
+    ko: '띠 궁합은 미신일까 과학일까 — 지지 육합 이야기',
+    en: 'Zodiac-animal matching: myth or method?',
+  },
 ]
 
 function compatibilitySubject(date: string): Subject {
-  const h = seedHash(date, 'compatibility')
-  const theme = COMPAT_THEMES[h.readUInt32BE(0) % COMPAT_THEMES.length]
+  // JDN 순환 — 24일 동안 같은 소재가 두 번 나오지 않는다.
+  const [y, m, d] = date.split('-').map(Number)
+  const { jdn } = computeDayPillarIndices(y, m, d)
+  const theme = COMPAT_THEMES[jdn % COMPAT_THEMES.length]
   return {
     nameKo: theme.ko,
     nameEn: theme.en,
@@ -184,33 +220,51 @@ function compatibilitySubject(date: string): Subject {
   }
 }
 
-// 캘린더 — 운흐름 타이밍 테마 (요일감 + 날짜 시드 추첨).
-const CALENDAR_THEMES = [
-  {
-    ko: '중요한 결정, 아무 날에나 하지 마세요 — 타이밍의 운',
-    en: 'Big decisions deserve the right day',
-  },
-  {
-    ko: '이번 주 에너지가 꺾이는 날과 올라오는 날',
-    en: 'This week: your dip day and your peak day',
-  },
-  { ko: '계약·서명하기 좋은 날은 따로 있다', en: 'There is a better day to sign' },
-  { ko: '고백/대화를 미뤄야 하는 날의 신호', en: 'Signals to postpone the big talk' },
-  {
-    ko: '월말마다 지치는 이유 — 운의 리듬 읽기',
-    en: 'Why month-ends drain you — reading your rhythm',
-  },
-  { ko: '오늘 밀어붙일까, 하루 쉬어갈까', en: 'Push today or rest today?' },
+// 캘린더 — 실제 일진 오행(엔진 계산)을 "오늘의 타이밍"으로 푼다. 사주
+// 카테고리와 같은 60갑자 소스지만, 각도가 다르다: 사주=기운 해설,
+// 캘린더=행동 타이밍("오늘 뭘 하기 좋은 날인가"). 앵글 12개 × 오행 5 = 매일 조합이 달라짐.
+const ELEMENT_TIMING_KO: Record<string, string> = {
+  목: '시작·기획·새 대화에 유리한',
+  화: '발표·홍보·밀어붙이기에 유리한',
+  토: '정리·계약 검토·기반 다지기에 유리한',
+  금: '결단·마무리·끊어내기에 유리한',
+  수: '조사·공부·소통 준비에 유리한',
+}
+const CALENDAR_ANGLES = [
+  { ko: '중요한 결정을 내리기 좋은가', en: 'a day for big decisions?' },
+  { ko: '계약·서명 타이밍', en: 'signing & contracts timing' },
+  { ko: '고백·솔직한 대화 타이밍', en: 'timing the honest talk' },
+  { ko: '쉬어가야 하는 신호', en: 'signals to rest' },
+  { ko: '돈 쓰기 vs 아끼기', en: 'spend or save today' },
+  { ko: '새 일 시작하기', en: 'starting something new' },
+  { ko: '관계 회복의 타이밍', en: 'mending a relationship' },
+  { ko: '이직·면접 같은 승부수', en: 'bold career moves' },
+  { ko: '건강 리듬 점검', en: 'checking your energy rhythm' },
+  { ko: '미뤄둔 일 처리하기', en: 'clearing the backlog' },
+  { ko: '만남과 약속 잡기', en: 'scheduling meetings & dates' },
+  { ko: '한 주 계획 세우기', en: 'planning the week ahead' },
 ]
 
 function calendarSubject(date: string): Subject {
-  const h = seedHash(date, 'calendar')
-  const theme = CALENDAR_THEMES[h.readUInt32BE(0) % CALENDAR_THEMES.length]
+  const [y, m, d] = date.split('-').map(Number)
+  const { jdn, stemIndex, branchIndex } = computeDayPillarIndices(y, m, d)
+  const stem = STEMS[stemIndex]
+  const ganzhiKo = `${STEM_HANGUL[stemIndex]}${BRANCH_HANGUL[branchIndex]}`
+  const angle = CALENDAR_ANGLES[jdn % CALENDAR_ANGLES.length]
+  const timing = ELEMENT_TIMING_KO[stem.element] || ''
   return {
-    nameKo: theme.ko,
-    nameEn: theme.en,
-    keywordsKo: ['운세 캘린더', '타이밍', '대운·세운 흐름'],
-    keywordsEn: ['fortune calendar', 'timing', 'luck cycles'],
+    nameKo: `오늘(${ganzhiKo}일)은 ${angle.ko}? — ${stem.element}(${ELEMENT_EN[stem.element]}) 기운`,
+    nameEn: `Today (${stem.name}${BRANCHES[branchIndex].name}): ${angle.en}`,
+    keywordsKo: [
+      `오늘은 ${stem.element} 기운이 ${timing} 날`,
+      `일진 ${ganzhiKo}`,
+      '운세 캘린더로 나에게 맞는 날 확인',
+    ],
+    keywordsEn: [
+      `${ELEMENT_EN[stem.element]} day energy`,
+      `day pillar ${stem.name}${BRANCHES[branchIndex].name}`,
+      'personal fortune calendar',
+    ],
   }
 }
 
