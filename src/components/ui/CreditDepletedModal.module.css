@@ -1,53 +1,76 @@
 /* CreditDepletedModal — 라이트 모던. profile / BirthInfoModal 과 동일 톤
- * (white card, gold accent, ink text). 옛 dark-purple 그라데이션 + 펄싱 링
- * 디자인에서 정리. iOS picker 충돌 회피용 backdrop-filter 사용 안 함. */
+ * (white card, gold accent, ink text). 오버레이는 LegalConsentModal 과 같은
+ * frosted blur — 이 모달엔 iOS picker 가 없어 backdrop-filter 충돌 이슈 없음. */
 
 .overlay {
   position: fixed;
   inset: 0;
-  background: rgba(3, 5, 12, 0);
+  background: rgba(10, 8, 20, 0);
+  -webkit-backdrop-filter: blur(0px);
+  backdrop-filter: blur(0px);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: var(--z-modal);
-  transition: background 0.2s ease;
+  transition:
+    background 0.25s ease,
+    backdrop-filter 0.25s ease;
   padding: 16px;
 }
 
 .overlayVisible {
-  background: rgba(3, 5, 12, 0.55);
+  background: rgba(10, 8, 20, 0.62);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
 }
 
 .modal {
   position: relative;
-  background: #ffffff;
-  border-radius: 22px;
-  padding: 28px 26px 24px;
+  background: linear-gradient(180deg, #fffdf8 0%, #ffffff 32%);
+  border-radius: 24px;
+  padding: 30px 26px 24px;
   max-width: 420px;
   width: 100%;
   text-align: center;
-  border: 1px solid #ece4d4;
-  box-shadow: 0 24px 48px rgba(28, 25, 23, 0.18);
-  transform: translateY(12px);
+  border: 1px solid rgba(212, 175, 55, 0.28);
+  box-shadow:
+    0 32px 72px rgba(15, 12, 30, 0.38),
+    0 4px 18px rgba(15, 12, 30, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  transform: translateY(14px) scale(0.985);
   opacity: 0;
   transition:
-    transform 0.22s cubic-bezier(0.2, 0.7, 0.2, 1),
-    opacity 0.22s ease;
+    transform 0.24s cubic-bezier(0.2, 0.7, 0.2, 1),
+    opacity 0.24s ease;
+  overflow: hidden;
+}
+
+/* 카드 상단 은은한 골드 광원 — pricing 카드의 top-glow 와 같은 문법. */
+.modal::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(120% 55% at 50% 0%, rgba(212, 175, 55, 0.12), transparent 60%);
+  pointer-events: none;
 }
 
 .modalVisible {
-  transform: translateY(0);
+  transform: translateY(0) scale(1);
   opacity: 1;
 }
 
-/* Icon — 단일 골드 sparkle, 부드러운 spin/fade 만. */
+/* Icon — 단일 골드 sparkle + 부드러운 halo. */
 .iconContainer {
-  width: 56px;
-  height: 56px;
+  position: relative;
+  width: 58px;
+  height: 58px;
   margin: 0 auto 18px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #fdf6e8, #f5e9c8);
-  border: 1px solid #ece4d4;
+  background: linear-gradient(135deg, #fdf6e8, #f3e5bd);
+  border: 1px solid rgba(212, 175, 55, 0.45);
+  box-shadow:
+    0 0 0 7px rgba(212, 175, 55, 0.08),
+    0 6px 18px rgba(212, 175, 55, 0.22);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -85,11 +108,12 @@
   align-items: center;
   justify-content: center;
   gap: 12px;
-  background: #fdfbf6;
-  border: 1px solid #ece4d4;
+  background: linear-gradient(180deg, #fdfbf6, #faf6ec);
+  border: 1px solid rgba(212, 175, 55, 0.25);
   border-radius: 14px;
   padding: 14px 18px;
   margin-bottom: 20px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
 }
 
 .creditIcon {
@@ -151,17 +175,20 @@
   font-size: 14.5px;
   font-weight: 600;
   color: #ffffff;
-  background: var(--ds-light-text);
+  background: linear-gradient(135deg, #33302a, var(--ds-light-text, #1c1917));
   border: 1px solid var(--ds-light-text);
   border-radius: 12px;
   cursor: pointer;
+  box-shadow: 0 8px 20px rgba(28, 25, 23, 0.22);
   transition:
     background 0.16s ease,
+    box-shadow 0.16s ease,
     transform 0.1s ease;
 }
 
 .purchaseButton:hover {
-  background: #3a3530;
+  background: linear-gradient(135deg, #3f3a33, #2a2622);
+  box-shadow: 0 10px 26px rgba(28, 25, 23, 0.3);
 }
 
 .purchaseButton:active {
@@ -404,7 +431,7 @@
 }
 .starterMeta {
   font-size: 12px;
-  opacity: 0.75;
+  color: var(--ds-light-text-muted);
 }
 .starterButton {
   flex-shrink: 0;
