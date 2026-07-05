@@ -1043,8 +1043,8 @@ body {
   /* Disable blur effects on low-end devices for better performance */
   [class*='blur']:not(.preserve-blur),
   .backdrop-blur:not(.preserve-blur) {
-    backdrop-filter: none;
     -webkit-backdrop-filter: none;
+    backdrop-filter: none;
   }
 }
 
@@ -1088,8 +1088,8 @@ body {
 
   [data-print-area] [class*='backdrop-blur'],
   [data-print-area] [class*='blur'] {
-    backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
     filter: none !important;
   }
 

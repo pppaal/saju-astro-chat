@@ -249,8 +249,8 @@
   padding: 28px 22px 26px;
   display: flex;
   flex-direction: column;
-  backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
   overflow: hidden;
   transition:
     transform 0.28s cubic-bezier(0.2, 0.7, 0.3, 1),
