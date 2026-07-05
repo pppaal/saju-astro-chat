@@ -172,6 +172,12 @@ export type ProgressedChart = Chart & {
   progressionType: 'secondary' | 'solarArc'
   yearsProgressed: number
   progressedDate: string
+  /**
+   * true 면 입력이 불량(natal/targetDate 누락·불완전)이라 실제 계산 없이 반환된
+   * 중립 폴백 차트(ASC/행성 0)다. 호출자는 이 값으로 '진짜 차트'와 구분할 수
+   * 있다 — 예전엔 표시 필드가 없어 폴백을 실제 결과로 오인할 수 있었다.
+   */
+  isFallback?: boolean
 }
 
 export type ReturnChart = Chart & {

@@ -27,7 +27,7 @@ export type TzNowComponents = {
   second: number // 0-59
 }
 
-function partsFor(timezone: string | undefined): TzNowComponents {
+function partsFor(timezone: string | undefined, at: Date = new Date()): TzNowComponents {
   // 기본값은 이 모듈이 export 하는 DEFAULT_TIMEZONE(Asia/Seoul)과 일치해야
   // 한다. 'UTC' 기본이던 시절엔 UTC 날짜와 KST 날짜가 다른 매일 약 9시간
   // 동안(KST 00:00~09:00) 무인자 호출·invalid fallback 이 어제 날짜를
@@ -43,7 +43,7 @@ function partsFor(timezone: string | undefined): TzNowComponents {
     minute: '2-digit',
     second: '2-digit',
     hour12: false,
-  }).formatToParts(new Date())
+  }).formatToParts(at)
   const lookup = (type: string) => Number(parts.find((p) => p.type === type)?.value ?? '0')
   // Intl returns '24' for midnight in some locales; coerce back to 0 so
   // Date.UTC doesn't roll the day forward and a downstream "today" check
@@ -84,6 +84,30 @@ export function getNowComponentsInTimezone(timezone?: string): TzNowComponents {
     // so a malformed profile doesn't break the entire request.
     return partsFor('Asia/Seoul')
   }
+}
+
+/**
+ * 주어진 *인스턴트*(injected now 등)를 특정 timezone 의 wall-clock 요소로
+ * 분해한다. getNowComponentsInTimezone 과 달리 실제 시계가 아니라 넘긴 Date 를
+ * 쓰므로 결정론 경로(주입식 now)에서 안전하다. Invalid IANA 는 Asia/Seoul 폴백.
+ */
+export function getDateComponentsInTimezone(at: Date, timezone?: string): TzNowComponents {
+  try {
+    return partsFor(timezone, at)
+  } catch {
+    return partsFor('Asia/Seoul', at)
+  }
+}
+
+/**
+ * 주어진 인스턴트의 요일(0=일 … 6=토)을 특정 timezone 기준으로 반환.
+ * 서버-로컬 getDay() 대신 사용해 서버 TZ 의존성을 없앤다.
+ */
+export function getWeekdayInTimezone(at: Date, timezone?: string): number {
+  const tz = timezone || 'Asia/Seoul'
+  const wd = new Intl.DateTimeFormat('en-US', { timeZone: tz, weekday: 'short' }).format(at)
+  const map: Record<string, number> = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 }
+  return map[wd] ?? 0
 }
 
 /** Convenience: the user's local year right now at the given timezone. */

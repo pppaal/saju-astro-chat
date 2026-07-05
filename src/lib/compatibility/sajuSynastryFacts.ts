@@ -21,6 +21,8 @@ import {
   EL_CONTROLS,
   sibsinOf,
   PILLAR_LABELS,
+  TRI_HAP,
+  BANG_HAP,
 } from './sajuSynastryData'
 
 export interface SajuCompatDayMaster {
@@ -60,6 +62,29 @@ export interface SajuCompatPillarRel {
   isDayInvolved: boolean
 }
 
+/**
+ * 삼합(三合)·방합(方合) 교차 — 두 사람 지지를 합쳐 3지 국(局)이 형성되는지.
+ * pillarRelations 는 엄격히 두 글자(pairwise)라 3지 조합을 담을 수 없어 별도 표현.
+ * 포매터(sajuSynastryFormatter)의 삼합/방합 prose 와 *같은 표·같은 union 규칙*을
+ * 쓴다("차트=상담사" 정합) — 양쪽이 서로 없는 글자를 보태 union 이 각자보다 커야
+ * 진짜 cross(한 사람이 이미 다 가진 본명 신호는 제외).
+ */
+export interface SajuCompatBranchCombo {
+  type: '삼합' | '방합'
+  /** 국을 이루는 3지 (예: 申子辰) */
+  branches: string[]
+  /** 국의 오행 (예: 수) */
+  element: string
+  /** full=3지 모두 교차 완성, partial=3지 중 2지 */
+  completion: 'full' | 'partial'
+  /** A 가 기여한 지지 */
+  aBranches: string[]
+  /** B 가 기여한 지지 */
+  bBranches: string[]
+  /** 어느 한쪽 일지(배우자궁)가 조합에 참여하는가 */
+  isDayInvolved: boolean
+}
+
 export interface SajuCompatElementBalance {
   merged: Record<string, number>
   a: Record<string, number>
@@ -74,6 +99,7 @@ export interface SajuCompatFacts {
   dayMaster: SajuCompatDayMaster | null
   spouseStars: SajuCompatSpouseStar[]
   pillarRelations: SajuCompatPillarRel[]
+  branchCombos: SajuCompatBranchCombo[]
   elementBalance: SajuCompatElementBalance | null
 }
 
@@ -239,6 +265,33 @@ export function computeSajuSynastryFacts(input: SajuSynastryInput): SajuCompatFa
     }
   }
 
+  // 3b. 삼합·방합 교차 — 두 사람 지지를 합쳐 3지 국이 형성되는지. 포매터의
+  // 삼합/방합 prose(sajuSynastryFormatter)와 같은 표·같은 union 규칙. union 이
+  // 각자보다 커야 진짜 cross(한 사람이 이미 다 가진 본명 신호는 제외).
+  const branchCombos: SajuCompatBranchCombo[] = []
+  const aBranches = A.map((p) => p.branch)
+  const bBranches = B.map((p) => p.branch)
+  const aDayBranch = aDay?.branch
+  const bDayBranch = bDay?.branch
+  for (const trio of [...TRI_HAP, ...BANG_HAP]) {
+    const setA = new Set(aBranches.filter((b) => trio.branches.includes(b)))
+    const setB = new Set(bBranches.filter((b) => trio.branches.includes(b)))
+    const union = new Set([...setA, ...setB])
+    if (union.size >= 2 && union.size > setA.size && union.size > setB.size) {
+      branchCombos.push({
+        type: TRI_HAP.includes(trio) ? '삼합' : '방합',
+        branches: trio.branches,
+        element: trio.element,
+        completion: union.size === 3 ? 'full' : 'partial',
+        aBranches: [...setA],
+        bBranches: [...setB],
+        isDayInvolved:
+          (aDayBranch !== undefined && setA.has(aDayBranch)) ||
+          (bDayBranch !== undefined && setB.has(bDayBranch)),
+      })
+    }
+  }
+
   // 4. 오행 균형 — 동일 집계 (천간 + 지지, 두 사람 합산).
   let elementBalance: SajuCompatElementBalance | null = null
   if (A.length && B.length) {
@@ -268,5 +321,5 @@ export function computeSajuSynastryFacts(input: SajuSynastryInput): SajuCompatFa
     }
   }
 
-  return { dayMaster, spouseStars, pillarRelations, elementBalance }
+  return { dayMaster, spouseStars, pillarRelations, branchCombos, elementBalance }
 }

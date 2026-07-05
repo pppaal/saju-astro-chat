@@ -14,6 +14,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react'
 import * as htmlToImage from 'html-to-image'
 import { Share2, Download, Loader2, X, Link2, Check } from 'lucide-react'
 import { apiFetch } from '@/lib/api'
+import { trackFunnel } from '@/lib/metrics/trackFunnel'
 import { logger } from '@/lib/logger'
 import { ReportShareCard, SHARE_CARD_SIZE, type ReportShareData } from './ReportShareCard'
 import type { ViralSummary } from './viralArchetype'
@@ -75,6 +76,9 @@ export function ShareReportButton({ summary, name, dateLabel, isKo }: ShareRepor
             ? `${summary.oneLiner} 🔪 ${summary.edgeLine}`
             : summary.oneLiner,
           resonant: summary.resonant?.slice(0, 3),
+          // 일주 별명 + 엇갈림 — 랜딩/OG 를 카드처럼 차트-고유하게 만드는 훅.
+          iljuLine: summary.iljuLine ?? undefined,
+          clash: summary.clash ?? undefined,
         }),
       })
       const json = (await res.json().catch(() => null)) as { data?: { url?: string } } | null
@@ -165,6 +169,7 @@ export function ShareReportButton({ summary, name, dateLabel, isKo }: ShareRepor
   }, [phase, capture])
 
   const onClickShare = () => {
+    trackFunnel('integrated_report.share_clicked')
     setError(null)
     setPhase('rendering')
   }

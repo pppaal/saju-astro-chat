@@ -33,6 +33,15 @@ const bodySchema = z.object({
   typeName: z.string().trim().min(1).max(60),
   oneLiner: z.string().trim().min(1).max(280),
   resonant: z.array(z.string().trim().max(120)).max(3).optional(),
+  // 명식 도출 고정 사전 값들 — PII 아님. 랜딩/OG 의 개인화·클릭 훅.
+  iljuLine: z.string().trim().min(1).max(120).optional(),
+  clash: z
+    .object({
+      category: z.string().trim().min(1).max(40),
+      saju: z.string().trim().min(1).max(80),
+      astro: z.string().trim().min(1).max(80),
+    })
+    .optional(),
 })
 
 export const POST = withApiMiddleware(
@@ -57,6 +66,8 @@ export const POST = withApiMiddleware(
       typeName: parsed.data.typeName,
       oneLiner: parsed.data.oneLiner,
       resonant: parsed.data.resonant?.filter(Boolean),
+      iljuLine: parsed.data.iljuLine,
+      clash: parsed.data.clash,
     }
 
     const token = await createShareLink(payload)

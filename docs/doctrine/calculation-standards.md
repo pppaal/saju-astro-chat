@@ -23,7 +23,7 @@ status: auto-generated
 | ------------------------------- | ------------ |
 | `baseTimezone`                  | `Asia/Seoul` |
 | `daeunRounding`                 | `floor`      |
-| `useSolarTermsForMonthlyCycles` | `false`      |
+| `useSolarTermsForMonthlyCycles` | `true`       |
 
 ### 점성 (Astrology)
 

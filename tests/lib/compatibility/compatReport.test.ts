@@ -97,7 +97,10 @@ describe('buildCompatReport — eastern_hap / eastern_chung 점수', () => {
     const pillarsA = [P('甲', '寅'), P('乙', '卯'), P('甲', '子'), P('乙', '丑')]
     const pillarsB = [P('己', '巳'), P('丙', '午'), P('己', '申'), P('丁', '酉')]
     const r = buildCompatReport({ astroA: null, astroB: null, pillarsA, pillarsB, lang: 'ko' })
-    const bonds = r.pillarRelations.filter((x) => x.tone === 'bond').length
+    // eastern_hap = pillarRelations 의 bond + 삼합/방합 완성(full)을 함께 센다.
+    const bonds =
+      r.pillarRelations.filter((x) => x.tone === 'bond').length +
+      r.branchCombos.filter((c) => c.completion === 'full').length
     const clashes = r.pillarRelations.filter((x) => x.tone === 'clash').length
     expect(r.band!.eastern_hap).toBe(Math.min(100, bonds * 20))
     expect(r.band!.eastern_chung).toBe(Math.max(0, 100 - clashes * 15))
@@ -120,6 +123,37 @@ describe('buildCompatReport — eastern_hap / eastern_chung 점수', () => {
     const pillarsB = [P('己', '巳'), P('己', '午'), P('己', '申'), P('己', '酉')]
     const r = buildCompatReport({ astroA: null, astroB: null, pillarsA, pillarsB, lang: 'ko' })
     expect(r.band!.eastern_hap).toBe(100)
+  })
+})
+
+describe('buildCompatReport — 삼합·방합 교차(branchCombos)', () => {
+  it('두 사람 지지가 3지 국을 완성하면 full 삼합 + eastern_hap 가산', () => {
+    // 삼합 申子辰(수): A 가 申·辰, B 가 子 를 대 union=3(교차 완성).
+    // 천간은 무관계(甲↔丙 은 합/충 아님)로 두어 삼합 효과만 분리 측정.
+    const pillarsA = [P('甲', '申'), P('甲', '辰'), P('甲', '寅'), P('甲', '卯')]
+    const pillarsB = [P('丙', '子'), P('丙', '午'), P('丙', '巳'), P('丙', '未')]
+    const r = buildCompatReport({ astroA: null, astroB: null, pillarsA, pillarsB, lang: 'ko' })
+    const full = r.branchCombos.filter((c) => c.completion === 'full')
+    const samhap = full.find((c) => c.type === '삼합' && c.element === '수')
+    expect(samhap).toBeDefined()
+    expect(new Set(samhap!.branches)).toEqual(new Set(['申', '子', '辰']))
+    // 한 사람이 이미 다 가진 게 아니라 양쪽이 보태야 함(진짜 cross).
+    expect(samhap!.aBranches.length).toBeGreaterThan(0)
+    expect(samhap!.bBranches.length).toBeGreaterThan(0)
+    // full 삼합은 결합(bond)으로 eastern_hap 에 +20 반영.
+    const bonds =
+      r.pillarRelations.filter((x) => x.tone === 'bond').length +
+      r.branchCombos.filter((c) => c.completion === 'full').length
+    expect(bonds).toBeGreaterThanOrEqual(1)
+    expect(r.band!.eastern_hap).toBe(Math.min(100, bonds * 20))
+  })
+
+  it('한 사람이 이미 3지를 다 가지면 본명 신호라 교차로 안 잡힌다', () => {
+    // A 가 申子辰 을 혼자 다 가짐 → union 이 setA 보다 크지 않아 제외.
+    const pillarsA = [P('甲', '申'), P('甲', '子'), P('甲', '辰'), P('甲', '卯')]
+    const pillarsB = [P('丙', '巳'), P('丙', '午'), P('丙', '未'), P('丙', '戌')]
+    const r = buildCompatReport({ astroA: null, astroB: null, pillarsA, pillarsB, lang: 'ko' })
+    expect(r.branchCombos.some((c) => c.element === '수' && c.type === '삼합')).toBe(false)
   })
 })
 

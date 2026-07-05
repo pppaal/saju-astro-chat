@@ -28,6 +28,14 @@ const IN_APP_UA_MARKERS = [
   'kakaostory',
   'everytimeapp',
   'tossapp',
+  // 일반 Android WebView 표식. Android WebView(및 그 위에 뜨는 Capacitor 자사 앱,
+  // 그 외 특정-앱 목록에 없는 임베디드 webview)의 UA 는 "...; wv) AppleWebKit..."
+  // 형태로 "; wv)" 토큰을 담는다. Google OAuth 는 *모든* webview 를 차단하므로
+  // (disallowed_useragent) 특정 앱을 열거하는 대신 이 공통 표식으로 커버리지를
+  // 넓힌다. 일반 모바일 브라우저(Chrome/Safari) UA 엔 "; wv)" 가 없어 웹 사용자
+  // 오탐 없음. 예전엔 이 표식이 없어 자사 Capacitor WebView 사용자가 경고 없이
+  // Google 에러 페이지에서 막혔다.
+  '; wv)',
 ] as const
 
 export function isInAppBrowserUA(userAgent: string): boolean {

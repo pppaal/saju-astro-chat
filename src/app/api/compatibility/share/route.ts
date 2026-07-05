@@ -17,6 +17,7 @@ import {
   ErrorCodes,
   type ApiContext,
 } from '@/lib/api/middleware'
+import { createErrorResponse } from '@/lib/api/errorHandler'
 import {
   createShareLink,
   getShareLink,
@@ -111,11 +112,17 @@ export async function GET(req: NextRequest) {
   const ip = getClientIp(req.headers)
   const rl = await rateLimit(`compat:share:invite:${ip}`, { limit: 60, windowSeconds: 60 })
   if (!rl.allowed) {
-    return apiError(ErrorCodes.RATE_LIMITED, 'rate_limited')
+    // apiError 는 withApiMiddleware 가 Response 로 변환해주는 봉투 객체라,
+    // 미들웨어 밖의 bare 핸들러에선 실제 NextResponse 를 직접 만들어야 한다.
+    return createErrorResponse({ code: ErrorCodes.RATE_LIMITED, route: '/api/compatibility/share' })
   }
   const token = (new URL(req.url).searchParams.get('token') || '').trim()
   if (!token) {
-    return apiError(ErrorCodes.VALIDATION_ERROR, 'missing_token')
+    return createErrorResponse({
+      code: ErrorCodes.VALIDATION_ERROR,
+      message: 'missing_token',
+      route: '/api/compatibility/share',
+    })
   }
   const reading = await getShareLink(token)
   if (!reading || !isCompatShare(reading)) {
