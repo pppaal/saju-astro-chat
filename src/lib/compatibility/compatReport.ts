@@ -14,6 +14,7 @@ import {
   type SajuCompatDayMaster,
   type SajuCompatSpouseStar,
   type SajuCompatPillarRel,
+  type SajuCompatBranchCombo,
   type SajuCompatElementBalance,
 } from './sajuSynastryFormatter'
 
@@ -32,6 +33,8 @@ export interface CompatReport {
   spouseStars: SajuCompatSpouseStar[]
   /** 기둥 cross 관계 (관계 요약 시각화용 — 천간합/충·지지 육합/충/형/자형/해/파) */
   pillarRelations: SajuCompatPillarRel[]
+  /** 삼합·방합 교차 (두 사람 지지가 합쳐 3지 국을 이루는 경우) */
+  branchCombos: SajuCompatBranchCombo[]
   band?: CompatBandScores
   /** 동·서 교차 종합 — 사주(합/충)와 별자리(조화/긴장)가 한 방향인지 한 줄로. */
   crossVerdict?: { tone: 'aligned' | 'mixed' | 'tension' | 'neutral'; text: string }
@@ -153,6 +156,11 @@ export function buildCompatReport(input: CompatReportInput): CompatReport {
       if (r.tone === 'bond') bond++
       else if (r.tone === 'clash') clash++
     }
+    // 삼합·방합 완성(3지 국)은 강한 결속 신호라 결합(bond)으로 가산. 부분(2/3)은
+    // "비중 낮음"이라 밴드엔 넣지 않고 내러티브에서만 가볍게 다룬다.
+    for (const c of sajuFacts.branchCombos) {
+      if (c.completion === 'full') bond++
+    }
     band.eastern_hap = Math.min(100, bond * 20)
     band.eastern_chung = Math.max(0, 100 - clash * 15)
     if (sajuFacts.elementBalance) {
@@ -184,6 +192,7 @@ export function buildCompatReport(input: CompatReportInput): CompatReport {
     dayMaster: sajuFacts?.dayMaster ?? null,
     spouseStars,
     pillarRelations,
+    branchCombos: sajuFacts?.branchCombos ?? [],
     band: Object.keys(band).length > 0 ? band : undefined,
     crossVerdict: buildCrossVerdict(pillarRelations, synView, lang === 'ko'),
     elementBalance: sajuFacts?.elementBalance ?? null,

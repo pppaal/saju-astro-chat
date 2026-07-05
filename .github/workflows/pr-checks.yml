@@ -487,7 +487,7 @@ jobs:
   pr-status:
     name: PR Status Summary
     runs-on: ubuntu-latest
-    needs: [quick-checks, test-matrix, build-check, security-check, coverage]
+    needs: [quick-checks, test-matrix, build-check, destiny-release-gate, security-check, coverage]
     if: always() && github.event.pull_request.draft == false
 
     steps:
@@ -499,6 +499,7 @@ jobs:
               'Quick Checks': '${{ needs.quick-checks.result }}',
               'Tests': '${{ needs.test-matrix.result }}',
               'Build': '${{ needs.build-check.result }}',
+              'Destiny Release Gate': '${{ needs.destiny-release-gate.result }}',
               'Security': '${{ needs.security-check.result }}',
               'Coverage': '${{ needs.coverage.result }}'
             };

@@ -14,7 +14,7 @@
 // (모두 requireToken 만이라 무로그인 가능. unwrap/pillars 헬퍼는 상담사
 //  CompatChartModal 과 동일 — 셰이프가 갈리지 않게 같은 변환을 쓴다.)
 
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { useSession } from 'next-auth/react'
 import Link from 'next/link'
 import { Heart, Loader2, Sparkles, Download, ChevronDown } from 'lucide-react'
@@ -163,6 +163,8 @@ export default function FreeCompatibilityPage() {
   const [personB, setPersonB] = useState<Person>(emptyPerson)
   const [phase, setPhase] = useState<'input' | 'loading' | 'result'>('input')
   const [report, setReport] = useState<CompatReport | null>(null)
+  // 초대 링크(?invite=)로 들어온 세션 표식 — 결과 완주 시 invite_converted 계측.
+  const cameFromInviteRef = useRef(false)
   const [error, setError] = useState<string | null>(null)
 
   // ── 저장된 정보 불러오기 (로그인 시에만) ───────────────────────────────
@@ -279,6 +281,9 @@ export default function FreeCompatibilityPage() {
   useEffect(() => {
     const token = new URLSearchParams(window.location.search).get('invite')
     if (!token) return
+    // 바이럴 퍼널 — 초대 링크로 실제 랜딩한 수(프리필 성공 여부와 별개).
+    trackFunnel('compat_free.invite_landed')
+    cameFromInviteRef.current = true
     let cancelled = false
     void (async () => {
       try {
@@ -287,6 +292,7 @@ export default function FreeCompatibilityPage() {
         const inv = (await res.json())?.invite
         const p = inv?.inviter
         if (!p || cancelled) return
+        trackFunnel('compat_free.invite_prefilled')
         setPersonA({
           name: p.name || inv.nameA || '',
           birthDate: p.birthDate || '',
@@ -403,6 +409,8 @@ export default function FreeCompatibilityPage() {
       }
       setReport(rep)
       setPhase('result')
+      // 바이럴 퍼널 종점 — 초대받아 들어온 사람이 자기 결과까지 완주.
+      if (cameFromInviteRef.current) trackFunnel('compat_free.invite_converted')
     } catch (e) {
       logger.error('[compat-free] analyze failed', e instanceof Error ? e : undefined)
       setError(isKo ? '네트워크 오류가 발생했어요.' : 'A network error occurred.')

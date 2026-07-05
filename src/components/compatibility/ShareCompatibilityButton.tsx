@@ -21,6 +21,7 @@ import {
   type CompatShareCardData,
 } from './CompatShareCard'
 import type { CompatInviter } from '@/lib/tarot/shareLink'
+import { trackFunnel } from '@/lib/metrics/trackFunnel'
 
 export type CompatShareData = CompatShareCardData
 
@@ -33,8 +34,9 @@ export function ShareCompatibilityButton({
   inviter?: CompatInviter
 }) {
   const isKo = data.isKo
-  // 프라이버시 기본값 OFF — 사용자가 명시적으로 켜야 링크에 생일이 실린다.
-  const [allowInvite, setAllowInvite] = useState(false)
+  // 기본 ON — 프리필(친구가 자기 생일만 넣으면 됨)이 바이럴 전환의 핵심이라 켜둔다.
+  // 체크박스는 항상 보이고 문구에 "내 생년월일 포함"을 명시해 한 번에 끌 수 있다.
+  const [allowInvite, setAllowInvite] = useState(true)
   const cardRef = useRef<HTMLDivElement>(null)
   // 'idle' | 'rendering'(캡처 중) | 'preview'(모달)
   const [phase, setPhase] = useState<'idle' | 'rendering' | 'preview'>('idle')
@@ -165,6 +167,7 @@ export function ShareCompatibilityButton({
 
   const onClickShare = () => {
     setError(null)
+    trackFunnel('compat_free.share_clicked')
     setPhase('rendering')
   }
 
@@ -305,8 +308,9 @@ export function ShareCompatibilityButton({
               style={{ aspectRatio: '1 / 1', objectFit: 'cover' }}
             />
 
-            {/* 옵트인 — 켜면 링크에 내 출생정보가 실려, 친구가 자기 생일만 넣고
-                바로 "우리 궁합"을 본다(2-player 프리필). 프라이버시상 기본 OFF. */}
+            {/* 켜면 링크에 내 출생정보가 실려, 친구가 자기 생일만 넣고 바로
+                "우리 궁합"을 본다(2-player 프리필). 기본 ON — 문구에 포함 사실을
+                명시하고 체크박스로 언제든 끌 수 있다. */}
             {inviter ? (
               <label
                 className="flex items-start gap-2 mb-3 text-xs cursor-pointer"

@@ -8,7 +8,11 @@
 
 import type { CompatReport } from '../compatReport'
 import type { SynAspectView, SynOverlayView } from '../synastryView'
-import type { SajuCompatPillarRel, SajuCompatSpouseStar } from '../sajuSynastryFacts'
+import type {
+  SajuCompatPillarRel,
+  SajuCompatBranchCombo,
+  SajuCompatSpouseStar,
+} from '../sajuSynastryFacts'
 import { elLabel } from '../compatChartLabels'
 import type {
   Bi,
@@ -1504,6 +1508,32 @@ export function buildFreeCompatNarrative(
           : heads[0]
       return `${headStr} — ${t(PILLAR_REL[tag].blurb)}`
     })
+    // 삼합·방합 교차(3지 국) — 두 사람 지지가 합쳐 국을 이루는 결속. type 별로
+    // 묶어 참여 지지만 나열하고 풀이는 한 번. pillarRelations 와 태그가 달라 위
+    // paras 와 중복되지 않는다.
+    const combosByType = new Map<string, SajuCompatBranchCombo[]>()
+    for (const c of [...(report.branchCombos ?? [])].sort(
+      (a, b) => Number(b.completion === 'full') - Number(a.completion === 'full')
+    )) {
+      if (!PILLAR_REL[c.type]) continue
+      if (!combosByType.has(c.type)) combosByType.set(c.type, [])
+      combosByType.get(c.type)!.push(c)
+    }
+    for (const [type, cs] of combosByType) {
+      const heads = cs.map((c) => {
+        const aStr = c.aBranches.map((b) => (isKo ? charKo(b) : charEn(b))).join('')
+        const bStr = c.bBranches.map((b) => (isKo ? charKo(b) : charEn(b))).join('')
+        const guk = isKo ? `${type}(${c.element})` : `${type} (${c.element})`
+        return isKo
+          ? `${labelA} ${aStr} + ${labelB} ${bStr} → ${guk}`
+          : `${labelA}'s ${aStr} + ${labelB}'s ${bStr} → ${guk}`
+      })
+      const headStr =
+        heads.length > 1
+          ? `${heads[0]}${isKo ? ` 외 ${heads.length - 1}건` : ` +${heads.length - 1} more`}`
+          : heads[0]
+      paras.push(`${headStr} — ${t(PILLAR_REL[type].blurb)}`)
+    }
     if (paras.length) {
       const m = meta('knots')
       sections.push({ id: 'knots', icon: m.icon, title: m.title, lead: m.lead, paragraphs: paras })
@@ -1672,6 +1702,23 @@ export function buildFreeCompatNarrative(
         weight: r.tone === 'minor' ? 1 : 3,
         text: t(PILLAR_REL[tag].blurb),
         pol: r.tone === 'bond' ? 3 : r.tone === 'clash' || r.tone === 'friction' ? -3 : 0,
+      })
+    }
+  }
+  {
+    // 삼합·방합 교차 → 결속(끌림/미래) 신호. 완성(3지)은 결합급(+3), 부분(2/3)은
+    // 가볍게(+1). pillarRelations 는 삼합/방합 태그를 만들지 않으므로 위 루프와
+    // 겹치지 않는다(태그별 1회 유지).
+    const seenComboTag = new Set<string>()
+    for (const c of report.branchCombos ?? []) {
+      const tag = c.type
+      if (!PILLAR_REL[tag] || seenComboTag.has(tag)) continue
+      seenComboTag.add(tag)
+      themed.push({
+        theme: PILLAR_THEME[tag] ?? 'future',
+        weight: c.completion === 'full' ? 3 : 1,
+        text: t(PILLAR_REL[tag].blurb),
+        pol: c.completion === 'full' ? 3 : 1,
       })
     }
   }

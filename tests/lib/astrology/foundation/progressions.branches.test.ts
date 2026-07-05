@@ -71,6 +71,8 @@ describe('calculateSecondaryProgressions — 폴백 분기', () => {
     expect(r.yearsProgressed).toBe(0)
     expect(r.progressionType).toBe('secondary')
     expect(r.houses).toHaveLength(12)
+    // 폴백은 isFallback 로 표시돼 호출자가 실제 차트와 구분 가능해야 한다.
+    expect(r.isFallback).toBe(true)
   })
 
   it('returns fallback for undefined input / undefined 입력 폴백', async () => {
@@ -128,6 +130,8 @@ describe('calculateSecondaryProgressions — 폴백 분기', () => {
     // 30년 진행 → yearsProgressed ~ 30
     expect(r.yearsProgressed).toBeGreaterThan(29)
     expect(r.yearsProgressed).toBeLessThan(31)
+    // 정상 차트는 폴백 표시가 없어야 한다.
+    expect(r.isFallback).toBeFalsy()
   })
 })
 

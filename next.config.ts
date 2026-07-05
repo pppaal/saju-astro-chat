@@ -2,94 +2,19 @@
 import { withSentryConfig } from '@sentry/nextjs'
 // Bundle Analyzer - enable with ANALYZE=true npm run build
 import bundleAnalyzer from '@next/bundle-analyzer'
-// PWA support - offline capability and app-like experience
-import withPWAInit from '@ducanh2912/next-pwa'
 // 파일 경로: next.config.ts
+//
+// PWA(오프라인/푸시): 예전엔 @ducanh2912/next-pwa(withPWA)로 sw.js 를 생성했으나,
+// 이 프로젝트의 `next build` 는 Turbopack 으로 돌고 next-pwa 는 webpack 플러그인
+// 이라 아무 sw.js 도 생성되지 않았다(설정만 있고 무효). 실제 오프라인 폴백·웹
+// 푸시는 정적 통합 SW(public/push-sw.js)를 ServiceWorkerStabilityGuard 가 등록해
+// 처리한다. 오도를 유발하던 죽은 withPWA 래퍼/설정은 제거했다.
 
 import path from 'path'
 import type { Configuration } from 'webpack'
 
 const withBundleAnalyzer = bundleAnalyzer({
   enabled: process.env.ANALYZE === 'true',
-})
-
-const withPWA = withPWAInit({
-  dest: 'public',
-  disable: process.env.NODE_ENV === 'development',
-  register: true,
-  skipWaiting: false, // Prevent automatic page refresh on SW update
-  reloadOnOnline: false, // Disable auto-reload which can cause refresh loops
-  // SECURITY: Disabled to prevent caching of authenticated page shells in
-  // the service-worker. With this on, `@ducanh2912/next-pwa` caches HTML
-  // documents visited via client-side navigation; on a shared device a
-  // signed-out user's session-aware page (header with previous user's
-  // name, balances, etc.) could be served to the next user. The minor
-  // perf cost is acceptable for the security win.
-  cacheOnFrontEndNav: false,
-  aggressiveFrontEndNavCaching: false, // Reduce aggressive caching that may conflict with new deployments
-  fallbacks: {
-    document: '/offline',
-  },
-  workboxOptions: {
-    maximumFileSizeToCacheInBytes: 3 * 1024 * 1024, // Allow ~3MB bundles in precache
-    runtimeCaching: [
-      {
-        urlPattern: /^https:\/\/fonts\.(?:gstatic|googleapis)\.com\/.*/i,
-        handler: 'CacheFirst',
-        options: {
-          cacheName: 'google-fonts',
-          expiration: {
-            maxEntries: 10,
-            maxAgeSeconds: 365 * 24 * 60 * 60, // 1 year
-          },
-        },
-      },
-      {
-        // SECURITY: Only cache same-origin static assets (anything under
-        // `/`), not arbitrary remote image URLs. Previously this regex
-        // matched any image extension, including
-        // `firebasestorage.googleapis.com` and `*.public.blob.vercel-storage.com`
-        // URLs that serve per-user profile photos. Without a per-user
-        // cache key those entries leaked across sign-outs on a shared
-        // browser. Build artifacts and `/public/*` images live on the
-        // CDN and are already covered by HTTP `Cache-Control: max-age`
-        // headers (see headers() below), so SW caching is redundant.
-        urlPattern: ({ url, sameOrigin }: { url: URL; sameOrigin: boolean }) =>
-          sameOrigin && /\.(?:jpg|jpeg|gif|png|svg|ico|webp|avif)$/i.test(url.pathname),
-        handler: 'StaleWhileRevalidate',
-        options: {
-          cacheName: 'static-images',
-          expiration: {
-            maxEntries: 64,
-            maxAgeSeconds: 30 * 24 * 60 * 60, // 30 days
-          },
-        },
-      },
-      {
-        // Same-origin JS/CSS only. Hashed build artifacts are safe to
-        // cache aggressively; cross-origin scripts are not.
-        urlPattern: ({ url, sameOrigin }: { url: URL; sameOrigin: boolean }) =>
-          sameOrigin && /\.(?:js|css)$/i.test(url.pathname),
-        handler: 'StaleWhileRevalidate',
-        options: {
-          cacheName: 'static-resources',
-          expiration: {
-            maxEntries: 32,
-            maxAgeSeconds: 24 * 60 * 60, // 24 hours
-          },
-        },
-      },
-      // SECURITY: We intentionally do NOT runtime-cache API responses in
-      // the service worker. The previous `api.destinypal.com/*`
-      // NetworkFirst entry had no per-user cache key, so on a shared
-      // browser the next user could be served the previous user's
-      // `/api/me/*`, credits, chat history, or profile data when the
-      // network was slow or offline. API routes already send
-      // `Cache-Control: no-store` (see headers() below); if we ever
-      // need offline-read of static content from the API, it must be
-      // implemented with a per-user cache key as a deliberate feature.
-    ],
-  },
 })
 
 const isVercelBuild = process.env.VERCEL === '1' || process.env.VERCEL === 'true'
@@ -503,22 +428,21 @@ const nextConfig = {
   },
 }
 
-// Apply multiple wrappers: PWA + Bundle Analyzer + Sentry
-export default withPWA(
-  withBundleAnalyzer(
-    withSentryConfig(nextConfig, {
-      org: 'destinypal',
-      project: 'javascript-nextjs',
-      silent: !process.env.CI,
-      widenClientFileUpload: true,
-      tunnelRoute: '/monitoring',
-      bundleSizeOptimizations: {
-        excludeDebugStatements: true,
-      },
-      webpack: {
-        // Updated per Sentry deprecation: use webpack.automaticVercelMonitors
-        automaticVercelMonitors: true,
-      },
-    })
-  )
+// Apply wrappers: Bundle Analyzer + Sentry. (PWA 는 withPWA 대신 정적
+// public/push-sw.js + ServiceWorkerStabilityGuard 로 처리 — 상단 주석 참조.)
+export default withBundleAnalyzer(
+  withSentryConfig(nextConfig, {
+    org: 'destinypal',
+    project: 'javascript-nextjs',
+    silent: !process.env.CI,
+    widenClientFileUpload: true,
+    tunnelRoute: '/monitoring',
+    bundleSizeOptimizations: {
+      excludeDebugStatements: true,
+    },
+    webpack: {
+      // Updated per Sentry deprecation: use webpack.automaticVercelMonitors
+      automaticVercelMonitors: true,
+    },
+  })
 )

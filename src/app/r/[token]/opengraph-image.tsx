@@ -345,7 +345,15 @@ export default async function Image({ params }: { params: Promise<{ token: strin
           : `🔮 Saju × astrology agree on ${rc} things`
         : `${reading.emoji}  ${isKo ? '사주 × 별자리 유형' : 'SAJU × ASTROLOGY TYPE'}`
     headline = clamp(reading.typeName, 40)
-    context = clamp(reading.oneLiner, 72)
+    // 엇갈림(clash)이 있으면 그게 가장 차트-고유한 클릭 훅 — oneLiner 보다 우선.
+    context = reading.clash
+      ? clamp(
+          isKo
+            ? `⚡ ${reading.clash.category}에선 갈렸어 — 사주 "${reading.clash.saju}" vs 별자리 "${reading.clash.astro}"`
+            : `⚡ Split on ${reading.clash.category} — Saju "${reading.clash.saju}" vs stars "${reading.clash.astro}"`,
+          80
+        )
+      : clamp(reading.oneLiner, 72)
     cta = isKo ? `내 유형도 무료로 · ${displayDomain}` : `See your own type free · ${displayDomain}`
   } else {
     eyebrow = isKo ? '타로 리딩' : 'TAROT READING'
