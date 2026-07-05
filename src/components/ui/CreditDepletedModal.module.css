@@ -26,13 +26,22 @@
 
 .modal {
   position: relative;
-  background: linear-gradient(180deg, #fffdf8 0%, #ffffff 32%);
+  /* 골드 그라데이션 헤어라인 보더 — padding-box/border-box 이중 배경 트릭. */
+  border: 1px solid transparent;
+  background:
+    linear-gradient(180deg, #fffdf8 0%, #ffffff 32%) padding-box,
+    linear-gradient(
+        165deg,
+        rgba(212, 175, 55, 0.75),
+        rgba(236, 228, 212, 0.9) 45%,
+        rgba(139, 123, 216, 0.4)
+      )
+      border-box;
   border-radius: 24px;
   padding: 30px 26px 24px;
   max-width: 420px;
   width: 100%;
   text-align: center;
-  border: 1px solid rgba(212, 175, 55, 0.28);
   box-shadow:
     0 32px 72px rgba(15, 12, 30, 0.38),
     0 4px 18px rgba(15, 12, 30, 0.12),
@@ -59,7 +68,7 @@
   opacity: 1;
 }
 
-/* Icon — 단일 골드 sparkle + 부드러운 halo. */
+/* Icon — 단일 골드 sparkle + 부드러운 halo + 살짝 떠 있는 float. */
 .iconContainer {
   position: relative;
   width: 58px;
@@ -76,6 +85,51 @@
   justify-content: center;
   color: var(--ds-gold);
   font-size: 24px;
+  animation: creditIconFloat 3.6s ease-in-out infinite;
+}
+
+/* 아이콘 주위 잔별 두 개 — 은은한 twinkle. */
+.iconContainer::before,
+.iconContainer::after {
+  content: '✦';
+  position: absolute;
+  color: rgba(212, 175, 55, 0.8);
+  animation: creditTwinkle 2.6s ease-in-out infinite;
+}
+
+.iconContainer::before {
+  top: -7px;
+  right: -12px;
+  font-size: 11px;
+}
+
+.iconContainer::after {
+  bottom: -4px;
+  left: -14px;
+  font-size: 8px;
+  animation-delay: 1.3s;
+}
+
+@keyframes creditIconFloat {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes creditTwinkle {
+  0%,
+  100% {
+    opacity: 0.2;
+    transform: scale(0.8);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.15);
+  }
 }
 
 .iconContainer.warning {
@@ -89,6 +143,17 @@
   color: var(--ds-light-text);
   letter-spacing: -0.005em;
   margin: 0 0 8px;
+}
+
+/* 타이틀 아래 골드 헤어라인 디바이더. */
+.title::after {
+  content: '';
+  display: block;
+  width: 58px;
+  height: 2px;
+  margin: 10px auto 0;
+  border-radius: 1px;
+  background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.85), transparent);
 }
 
 .description {
@@ -387,6 +452,12 @@
   .purchaseButton:active {
     transform: none;
   }
+  .iconContainer,
+  .iconContainer::before,
+  .iconContainer::after,
+  .starterButton::after {
+    animation: none;
+  }
 }
 
 /* 첫구매 한정 스타터팩 인라인 오퍼 — /pricing 평면그리드로 보내지 않고
@@ -434,6 +505,8 @@
   color: var(--ds-light-text-muted);
 }
 .starterButton {
+  position: relative;
+  overflow: hidden;
   flex-shrink: 0;
   display: inline-flex;
   align-items: center;
@@ -448,9 +521,33 @@
   border: 1px solid #d4af37;
   border-radius: 11px;
   cursor: pointer;
+  box-shadow: 0 6px 16px rgba(212, 175, 55, 0.35);
   transition:
     filter 0.16s ease,
     transform 0.1s ease;
+}
+
+/* 골드 버튼 위를 주기적으로 스치는 shimmer 하이라이트. */
+.starterButton::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 45%;
+  left: -60%;
+  background: linear-gradient(105deg, transparent, rgba(255, 255, 255, 0.55), transparent);
+  animation: creditShimmer 3s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes creditShimmer {
+  0% {
+    left: -60%;
+  }
+  55%,
+  100% {
+    left: 130%;
+  }
 }
 .starterButton:hover:not(:disabled) {
   filter: brightness(1.05);
