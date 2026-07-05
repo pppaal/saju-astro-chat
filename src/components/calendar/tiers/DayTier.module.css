@@ -834,6 +834,12 @@
   color: var(--t1);
   margin-top: 6px;
 }
+/* 격국 성패 원문(성격/파격 — 아는 사람용) — 생활어 결론 아래 서브 줄. */
+.natalGeokSub {
+  font-size: 11.5px;
+  color: var(--t2);
+  margin-top: 2px;
+}
 .skyList {
   display: flex;
   flex-direction: column;

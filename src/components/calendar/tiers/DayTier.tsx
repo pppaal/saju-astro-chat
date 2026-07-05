@@ -24,6 +24,7 @@ import {
   plainReason,
   isPlainReason,
   twelveStagePlain,
+  geokgukStatusPlain,
 } from '@/lib/calendar-engine/derivers/plainLanguage'
 import { deriveDayDomains } from '@/lib/calendar-engine/derivers/dayDomains'
 import { deriveDayActions } from '@/lib/calendar-engine/derivers/dayActions'
@@ -959,9 +960,16 @@ export function DayTier({ day, onRise, sex = '남', isToday = true }: DayTierPro
                 )}
                 {geok && (
                   <div className={styles.natalGeok}>
+                    {/* 결론 일상어 먼저 — 성격/파격/반성반파는 마지막 남은 용어투였다
+                        (감사 갭 #3). 원 성패 줄은 서브로 유지(아는 사람용). */}
+                    {geokgukStatusPlain(geok.status, ko ? 'ko' : 'en') && (
+                      <div>{geokgukStatusPlain(geok.status, ko ? 'ko' : 'en')}</div>
+                    )}
                     {/* description(성패 줄)은 한국어 전용 — EN 은 이름·상태로 재구성해
                         한국어 누수 제거(요인 세부는 EN 에서 생략). */}
-                    {ko ? geok.description : geokgukStatusLineEn(geok.name, geok.status)}
+                    <div className={styles.natalGeokSub}>
+                      {ko ? geok.description : geokgukStatusLineEn(geok.name, geok.status)}
+                    </div>
                   </div>
                 )}
               </div>

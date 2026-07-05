@@ -62,22 +62,24 @@ const KO_PLANET_TO_EN: Record<string, string> = {
   명왕성: 'Pluto',
 }
 
-/** 12운성 → 기세 단계 쉬운 한 줄. */
+/** 12운성 → 기세 단계 쉬운 한 줄.
+ *  시적 은유("새싹처럼") 대신 생활 프레임(벌이기/확정/본업/정리)으로 —
+ *  단계 의미(왕상휴수)는 보존하고 표현만 행동 지향으로(2026-07 생활어 정비). */
 const TWELVE_STAGE_PLAIN: Record<string, string> = {
-  장생: '새싹처럼 막 시작하는 기세',
-  목욕: '다듬어지며 흔들리는 기세',
-  관대: '막 자리를 잡아가는 기세',
-  건록: '제 힘으로 단단히 서는 기세',
-  임관: '제 힘으로 단단히 서는 기세',
-  제왕: '기세가 절정에 오른 때',
-  왕지: '기세가 절정에 오른 때',
-  쇠: '정점을 지나 누그러지는 때',
-  병: '힘이 빠지며 쉬어가는 때',
-  사: '한 막이 닫히는 때',
-  묘: '갈무리하고 묻어두는 때',
-  절: '끊기고 비워지는 때',
-  태: '새로 잉태되는 때',
-  양: '조용히 길러지는 때',
+  장생: '새 일 벌이기 좋은 시작 기세',
+  목욕: '아직 다듬는 중 — 확정은 이르게',
+  관대: '이름 내걸고 나서기 시작하는 기세',
+  건록: '본업 실력으로 버는 단단한 기세',
+  임관: '본업 실력으로 버는 단단한 기세',
+  제왕: '기세 절정 — 밀어붙임이 통함',
+  왕지: '기세 절정 — 밀어붙임이 통함',
+  쇠: '정점 지난 뒤 — 지키는 게 이득',
+  병: '배터리 낮음 — 몸부터 챙길 때',
+  사: '끝난 일은 접는 마무리 기세',
+  묘: '넓히기보단 정리·저장할 때',
+  절: '비우고 다시 시작하는 전환점',
+  태: '아이디어가 조용히 잉태되는 때',
+  양: '조용히 힘을 기르는 준비 기세',
 }
 
 /** 십신명 → 생활영역 단어. 못 찾으면 원어. */
@@ -95,6 +97,31 @@ export function sibsinAreaEn(name?: string): string {
 export function twelveStagePlain(stage: string | undefined): string {
   if (!stage) return ''
   return TWELVE_STAGE_PLAIN[stage] ?? stage
+}
+
+/**
+ * 격국 성패(status) → 생활어 한 줄 (ko/en).
+ * '성격/파격/반성반파'는 화면 최심부 폴드에서 그대로 노출되던 마지막 용어투
+ * (감사 갭 #3). 원 status 라벨은 옆 서브 줄로 유지 — 결론 일상어 먼저 원칙.
+ */
+const GEOKGUK_STATUS_PLAIN: Record<string, { ko: string; en: string }> = {
+  성격: {
+    ko: '타고난 판이 제대로 선 날 — 내 강점이 그대로 통해요',
+    en: 'your natal setup stands firm — your strengths carry as-is',
+  },
+  파격: {
+    ko: '타고난 판이 흔들리는 날 — 기본기와 루틴으로 버티세요',
+    en: 'your natal setup wobbles — lean on basics and routine',
+  },
+  반성반파: {
+    ko: '서는 쪽과 흔들리는 쪽이 반반 — 되는 일에 힘을 실으세요',
+    en: 'half steady, half shaky — back what already works',
+  },
+}
+
+export function geokgukStatusPlain(status: string | undefined, lang: 'ko' | 'en' = 'ko'): string {
+  if (!status) return ''
+  return GEOKGUK_STATUS_PLAIN[status]?.[lang] ?? ''
 }
 
 /**
