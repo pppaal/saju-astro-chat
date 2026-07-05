@@ -62,6 +62,7 @@ export default function SocialClient() {
   const [drafts, setDrafts] = useState<SocialPostDraft[]>([])
   const [dates, setDates] = useState<string[]>([])
   const [publishConfigured, setPublishConfigured] = useState<SocialPlatform[]>([])
+  const [autoPublish, setAutoPublish] = useState<string[]>([])
   const [summary, setSummary] = useState<SocialSummary | null>(null)
   const [category, setCategory] = useState<CategoryFilter>('all')
   const [loading, setLoading] = useState(false)
@@ -80,11 +81,13 @@ export default function SocialClient() {
           drafts?: SocialPostDraft[]
           dates?: string[]
           publishConfigured?: SocialPlatform[]
+          autoPublish?: string[]
         }
       } | null
       setDrafts(json?.data?.drafts ?? [])
       setDates(json?.data?.dates ?? [])
       setPublishConfigured(json?.data?.publishConfigured ?? [])
+      setAutoPublish(json?.data?.autoPublish ?? [])
     } catch {
       setError('초안을 불러오지 못했어요.')
     } finally {
@@ -235,6 +238,12 @@ export default function SocialClient() {
             타로·사주·점성·궁합·캘린더 5개 버티컬 초안을 매일 자동 생성 — 검토 후 원클릭 발행, 발행
             후 조회수까지 한 화면에서.
           </p>
+          {autoPublish.length > 0 ? (
+            <p className="mt-1.5 inline-flex items-center gap-1 rounded-full bg-violet-100 px-2.5 py-0.5 text-[11px] font-semibold text-violet-700">
+              ⚡ 완전 자동 발행 켜짐 ({autoPublish.join(', ').toUpperCase()}) — 매일 아침 승인 없이
+              게시됩니다
+            </p>
+          ) : null}
         </div>
         <div className="flex flex-wrap gap-2">
           <button
@@ -267,6 +276,33 @@ export default function SocialClient() {
             value={formatCount(summary.totalReplies + summary.totalReposts)}
             icon="💬"
           />
+          {Object.keys(summary.byCategory).length > 0 ? (
+            <div className="col-span-2 rounded-xl border border-stone-200 bg-white px-4 py-3 shadow-sm md:col-span-4">
+              <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-stone-400">
+                📈 카테고리별 성과 (Threads)
+              </p>
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-5">
+                {SOCIAL_CATEGORIES.filter((c) => summary.byCategory[c]).map((c) => {
+                  const b = summary.byCategory[c]
+                  const avg = b.posts > 0 ? Math.round(b.views / b.posts) : 0
+                  return (
+                    <div key={c} className="rounded-lg bg-stone-50 px-3 py-2">
+                      <p className="text-xs font-semibold text-stone-700">
+                        {CATEGORY_META[c].emoji} {CATEGORY_META[c].labelKo}
+                        <span className="ml-1 font-normal text-stone-400">{b.posts}건</span>
+                      </p>
+                      <p className="mt-0.5 text-sm font-bold text-stone-900">
+                        👁️ {formatCount(b.views)}
+                        <span className="ml-1.5 text-[11px] font-medium text-stone-500">
+                          평균 {formatCount(avg)}
+                        </span>
+                      </p>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          ) : null}
           {summary.best ? (
             <div className="col-span-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 md:col-span-4">
               <p className="text-[11px] font-semibold uppercase tracking-wide text-amber-700">

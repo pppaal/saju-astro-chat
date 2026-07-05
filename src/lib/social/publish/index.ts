@@ -4,6 +4,7 @@
 // 설정된(키 있는) 플랫폼만 발행, 나머지는 스킵. 서버 전용.
 
 import { siteBaseUrl } from '@/lib/tarot/shareLink'
+import { updateDraft } from '../draftStore'
 import type { SocialPostDraft, SocialPlatform } from '../types'
 import type { PublishAdapter, PublishResult } from './types'
 import { threadsAdapter } from './threads'
@@ -62,4 +63,53 @@ export async function publishDraft(
     )
   }
   return results
+}
+
+/**
+ * 완전 자동 발행 모드 — SOCIAL_AUTO_PUBLISH env 로 켠다.
+ *   'true' | 'ko,en' : 두 로케일 모두 자동 발행
+ *   'ko' 또는 'en'   : 해당 로케일만 (기본 추천: ko)
+ *   미설정/그 외      : 꺼짐(어드민 수동 승인 흐름)
+ */
+export function autoPublishLocales(): Array<'ko' | 'en'> {
+  const raw = (process.env.SOCIAL_AUTO_PUBLISH || '').trim().toLowerCase()
+  if (!raw) return []
+  if (raw === 'true' || raw === '1' || raw === 'all') return ['ko', 'en']
+  const locales = raw
+    .split(',')
+    .map((s) => s.trim())
+    .filter((s): s is 'ko' | 'en' => s === 'ko' || s === 'en')
+  return [...new Set(locales)]
+}
+
+/**
+ * 발행 + 결과 기록 원스톱 — variant 에 URL/externalId/에러를 반영해 저장하고,
+ * 하나라도 성공하면 상태를 published 로. 어드민 발행 라우트와 자동 발행 크론이
+ * 같은 기록 규칙을 쓰도록 여기로 모은다.
+ */
+export async function publishAndRecord(
+  draft: SocialPostDraft,
+  platforms?: SocialPlatform[]
+): Promise<{ draft: SocialPostDraft | null; results: PublishResult[] }> {
+  const results = await publishDraft(draft, platforms)
+
+  const nextVariants = draft.variants.map((v) => {
+    const r = results.find((x) => x.platform === v.platform)
+    if (!r || r.skipped === 'not_configured') return v
+    return r.ok
+      ? {
+          ...v,
+          publishedUrl: r.url ?? v.publishedUrl,
+          externalId: r.externalId ?? v.externalId,
+          publishError: undefined,
+        }
+      : { ...v, publishError: r.error || r.skipped || 'failed' }
+  })
+
+  const anyOk = results.some((r) => r.ok)
+  const updated = await updateDraft(draft.date, draft.id, {
+    variants: nextVariants,
+    ...(anyOk ? { status: 'published' as const } : {}),
+  })
+  return { draft: updated, results }
 }

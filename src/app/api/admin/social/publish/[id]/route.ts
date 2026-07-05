@@ -14,9 +14,8 @@ import {
   ErrorCodes,
   type ApiContext,
 } from '@/lib/api/middleware'
-import { getDrafts, updateDraft } from '@/lib/social/draftStore'
-import { publishDraft } from '@/lib/social/publish'
-import type { SocialVariant } from '@/lib/social/types'
+import { getDrafts } from '@/lib/social/draftStore'
+import { publishAndRecord } from '@/lib/social/publish'
 import { logger } from '@/lib/logger'
 
 export const dynamic = 'force-dynamic'
@@ -49,27 +48,8 @@ export async function POST(request: NextRequest, routeContext: RouteContext) {
       const draft = (await getDrafts(date)).find((d) => d.id === id)
       if (!draft) return apiError(ErrorCodes.NOT_FOUND, 'draft_not_found')
 
-      const results = await publishDraft(draft, platforms)
-
-      // 결과를 variant 에 반영 — 성공 URL / 실패 사유.
-      const nextVariants: SocialVariant[] = draft.variants.map((v) => {
-        const r = results.find((x) => x.platform === v.platform)
-        if (!r || r.skipped === 'not_configured') return v
-        return r.ok
-          ? {
-              ...v,
-              publishedUrl: r.url ?? v.publishedUrl,
-              externalId: r.externalId ?? v.externalId,
-              publishError: undefined,
-            }
-          : { ...v, publishError: r.error || r.skipped || 'failed' }
-      })
-
-      const anyOk = results.some((r) => r.ok)
-      const updated = await updateDraft(date, id, {
-        variants: nextVariants,
-        ...(anyOk ? { status: 'published' as const } : {}),
-      })
+      // 발행 + 결과 기록은 자동 발행 크론과 동일한 헬퍼로 (기록 규칙 단일화).
+      const { draft: updated, results } = await publishAndRecord(draft, platforms)
 
       logger.info('[admin/social/publish]', {
         id,
