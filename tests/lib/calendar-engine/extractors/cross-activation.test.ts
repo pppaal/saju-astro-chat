@@ -175,10 +175,11 @@ describe('extractCrossActivations — dedup / 키 추출 / 스킵', () => {
     expect(out.length).toBe(0)
   })
 
-  it('매핑 사전에 없는 페어면 emit 안 함 (정재 × Mars 미정의)', () => {
+  it('매핑 사전에 없는 페어면 emit 안 함 (편인 × Sun 미정의)', () => {
+    // (예전 예시 정재×Mars 는 v5 커버리지 확장으로 매핑됨 — 미정의 페어 교체.)
     const out = extractCrossActivations([
-      sajuSig({ sibsin: '정재', polarity: 2 }),
-      astroSig({ planet: 'Mars', polarity: 2 }),
+      sajuSig({ sibsin: '편인', polarity: 2 }),
+      astroSig({ planet: 'Sun', polarity: 2 }),
     ])
     expect(out.length).toBe(0)
   })

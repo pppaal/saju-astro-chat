@@ -75,7 +75,7 @@ beforeEach(() => {
 
 describe('getOrBuildNatalContext', () => {
   it('cache hit: engineSignature 일치 row 면 빌드 없이 캐시 data 반환', async () => {
-    natalFindUnique.mockResolvedValue({ engineSignature: 'v4', data: FAKE_NATAL })
+    natalFindUnique.mockResolvedValue({ engineSignature: 'v5', data: FAKE_NATAL })
     const res = await getOrBuildNatalContext(INPUT)
     expect(res).toBe(FAKE_NATAL)
     expect(buildNatalContext).not.toHaveBeenCalled()
@@ -91,7 +91,7 @@ describe('getOrBuildNatalContext', () => {
     expect(buildNatalContext).toHaveBeenCalledWith(INPUT)
     expect(natalUpsert).toHaveBeenCalledTimes(1)
     const arg = natalUpsert.mock.calls[0][0]
-    expect(arg.create.engineSignature).toBe('v4')
+    expect(arg.create.engineSignature).toBe('v5')
   })
 
   it('cache miss(null row): 빌드 후 upsert', async () => {
@@ -123,7 +123,7 @@ describe('getOrBuildNatalContext', () => {
   })
 
   it('birthKey 가 입력에 결정적이다(같은 입력→같은 where.birthKey)', async () => {
-    natalFindUnique.mockResolvedValue({ engineSignature: 'v4', data: FAKE_NATAL })
+    natalFindUnique.mockResolvedValue({ engineSignature: 'v5', data: FAKE_NATAL })
     await getOrBuildNatalContext(INPUT)
     await getOrBuildNatalContext(INPUT)
     const k1 = natalFindUnique.mock.calls[0][0].where.birthKey
@@ -133,7 +133,7 @@ describe('getOrBuildNatalContext', () => {
   })
 
   it('다른 입력은 다른 birthKey 를 만든다', async () => {
-    natalFindUnique.mockResolvedValue({ engineSignature: 'v4', data: FAKE_NATAL })
+    natalFindUnique.mockResolvedValue({ engineSignature: 'v5', data: FAKE_NATAL })
     await getOrBuildNatalContext(INPUT)
     await getOrBuildNatalContext({ ...INPUT, gender: 'female' })
     const k1 = natalFindUnique.mock.calls[0][0].where.birthKey
@@ -142,7 +142,7 @@ describe('getOrBuildNatalContext', () => {
   })
 
   it('lunar/leap 옵션도 birthKey 에 반영된다', async () => {
-    natalFindUnique.mockResolvedValue({ engineSignature: 'v4', data: FAKE_NATAL })
+    natalFindUnique.mockResolvedValue({ engineSignature: 'v5', data: FAKE_NATAL })
     await getOrBuildNatalContext({ ...INPUT, calendarType: 'lunar', lunarLeap: true })
     await getOrBuildNatalContext({ ...INPUT, calendarType: 'lunar', lunarLeap: false })
     const k1 = natalFindUnique.mock.calls[0][0].where.birthKey
