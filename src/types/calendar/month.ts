@@ -122,6 +122,13 @@ export interface DestinyCalendarCell {
    */
   oneLine?: string
   oneLineEn?: string
+  /**
+   * 그날의 화해된 톤 — oneLine 과 같은 소스(reconcileCellOneLine.dayTone.tone).
+   * 리드아웃 태그·조언·큰 날 라벨이 이 톤을 권위로 쓴다(밴드 마크에서 따로 뽑아
+   * 태그="좋은 날" vs 문장="무게중심 지키세요"로 어긋나던 모순 제거 — 감사 #2).
+   * 시스템 규약: 색=점수 밴드, 문장·라벨=화해 톤.
+   */
+  tone?: 'positive' | 'mixed' | 'caution'
 }
 
 // ============================================================================

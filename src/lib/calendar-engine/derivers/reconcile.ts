@@ -32,9 +32,14 @@ export interface DayToneInput {
   /** 사용자에게 실제 보여주는 점수(day.score = favorScore ?? derivedScore). */
   score: number
   /**
-   * 큐레이션 사유 층(월·일·시·정점)의 impact 합(polarity×weight×layerWeight).
-   * 부호만 사용: >0 우호 우세, <0 주의 우세. summary.ts 의 topReasons/cautions 와
-   * 같은 모집단·같은 가중이라 "칩이 실제로 어느 쪽으로 기우는가"를 대표한다.
+   * *그날 고유* 층(TONE_LAYERS: daily·instant)의 impact 합(polarity×weight×
+   * layerWeight). 부호만 사용: >0 우호 우세, <0 주의 우세.
+   *
+   * 월운(monthly)·시진(hourly)은 넣지 않는다 — 월운은 한 달 내내 같은 상수라
+   * 좋은 달엔 매일 양수 베이스를 깔고, 시진은 12시진 합이라 항상 양수로 쏠려,
+   * 그날 자체가 흉이어도 net>0 이 되어 bright 승격이 상시 발동했다(실측: 저점일
+   * 25일 중 23일). 점수(layered.daily)가 그날의 상대 위치를 말하므로, 화해도
+   * 그날의 신호로 판정해야 점수와 문장이 같은 방향을 본다.
    */
   reasonNet: number
   /** 보여줄 '좋은 것' 사유가 있는지 (topReasons 비어있지 않음). */
@@ -80,8 +85,7 @@ export function reconcileDayTone(input: DayToneInput): DayVerdict {
     (input.reasonNet < 0 || (input.hasCautionReason && !input.hasGoodReason))
 
   const bright =
-    band === 'low' &&
-    (input.reasonNet > 0 || (input.hasGoodReason && !input.hasCautionReason))
+    band === 'low' && (input.reasonNet > 0 || (input.hasGoodReason && !input.hasCautionReason))
 
   let tone: DayTone = band === 'good' ? 'positive' : band === 'mid' ? 'mixed' : 'caution'
   if (tense && tone === 'positive') tone = 'mixed'

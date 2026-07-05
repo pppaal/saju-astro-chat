@@ -37,7 +37,11 @@ import { getGongmang, getTwelveStage } from '@/lib/saju/shinsal'
 import { humanizeReason } from './humanizeReason'
 import { reconcileDayTone, type DayVerdict } from '@/lib/calendar-engine/derivers/reconcile'
 import { LAYER_WEIGHT } from '@/lib/calendar-engine/derivers/constants'
-import { REASON_LAYERS, STATIC_NATAL_KINDS } from '@/lib/calendar-engine/signalTaxonomy'
+import {
+  REASON_LAYERS,
+  TONE_LAYERS,
+  STATIC_NATAL_KINDS,
+} from '@/lib/calendar-engine/signalTaxonomy'
 import { pickBySeed } from '@/lib/calendar-engine/derivers/personSeed'
 // 12운성 단계 — saju-shinsal 이 'rok-ma' 신살로도 emit 하지만(점수 신호로는 유지),
 // 12운성은 twelveStageMatrix 에서 따로 보여주므로 '활성 신살' 칩에는 중복 노출하지
@@ -261,8 +265,6 @@ export interface ToDayOptions {
   /** 일진 ganji (한자/한글) — 미지정 시 cell 의 datetime 으로 60갑자 환산 시도. */
   iljinStem?: string
   iljinBranch?: string
-  /** oneLine — 한 줄 요약. 미지정 시 derive 함수가 만든 결과 직주입 가능. */
-  oneLine?: string
   /** 신살 polarity cap 적용 여부 — 기본 true (정통화 보완). */
   applyShinsalCap?: boolean
   /**
@@ -302,13 +304,19 @@ export function toDay(opts: ToDayOptions): DestinypalDay {
   const crossActivations: DestinypalDayCrossActivation[] = []
   // cell.signals 의 jijanggan signal 활성 layer 표시용 (보조). primary 는 natal.dayJijanggan.
   let gongmangActiveFromSignal: { branches: string[]; reason?: string } | null = null
-  // 화해용 — 큐레이션 사유 층(월·일·시·정점)의 impact net. 부호로 톤 화해.
+  // 문구 회전용 — 큐레이션 사유 층(월·일·시·정점)의 impact net.
   let reasonNet = 0
+  // 화해(tense/bright) 판정용 — *그날 고유* 층(daily·instant)만. 월운·시진의
+  // 상수 베이스가 그날 흉 신호를 덮어 bright 상시 발동하던 문제 교정(TONE_LAYERS).
+  let toneNet = 0
 
   for (const s of cell.signals) {
     const polarity = clampPolarity(maybeCap(s, applyCap))
     if (!STATIC_NATAL_KINDS.has(s.kind) && REASON_LAYERS.has(s.layer)) {
       reasonNet += s.polarity * s.weight * (LAYER_WEIGHT[s.layer] ?? 0.5)
+      if (TONE_LAYERS.has(s.layer)) {
+        toneNet += s.polarity * s.weight * (LAYER_WEIGHT[s.layer] ?? 0.5)
+      }
     }
     const cat = KIND_TO_CAT[s.kind] ?? s.source + '/' + s.kind
 
@@ -438,10 +446,10 @@ export function toDay(opts: ToDayOptions): DestinypalDay {
   const cautions = (cell.cautions ?? []).map((r) => humanizeReason(r, 'ko'))
   const cautionsEn = (cell.cautionsEn ?? []).map((r) => humanizeReason(r, 'en'))
 
-  // ── 출력 화해 — 점수 밴드 ↔ 사유 net 톤을 한 verdict 로 묶는다(단일 권위). ──
+  // ── 출력 화해 — 점수 밴드 ↔ 그날 고유 신호 net 을 한 verdict 로 묶는다(단일 권위). ──
   const dayTone = reconcileDayTone({
     score: shownScore,
-    reasonNet,
+    reasonNet: toneNet,
     hasGoodReason: topReasons.length > 0,
     hasCautionReason: cautions.length > 0,
   })
@@ -453,8 +461,8 @@ export function toDay(opts: ToDayOptions): DestinypalDay {
     iljinSibsin,
     score: shownScore,
     totalSignals: cell.signals.length,
-    oneLine: opts.oneLine ?? deriveOneLine(dayTone, shownScore + reasonNet, 'ko'),
-    oneLineEn: opts.oneLine ?? deriveOneLine(dayTone, shownScore + reasonNet, 'en'),
+    oneLine: deriveOneLine(dayTone, shownScore + reasonNet, 'ko'),
+    oneLineEn: deriveOneLine(dayTone, shownScore + reasonNet, 'en'),
     signals,
     transits,
     shinsalActive: Array.from(shinsalActiveSet),
@@ -657,17 +665,21 @@ export function reconcileCellOneLine(
   cell: CalendarCell,
   favorScore?: number
 ): { dayTone: DayVerdict; score: number; oneLine: string; oneLineEn: string } {
-  // toDay 본문과 동일 산식 — 큐레이션 사유 층(월·일·시·정점)의 impact net.
+  // toDay 본문과 동일 산식 — reasonNet(문구 회전)·toneNet(화해 판정) 분리.
   let reasonNet = 0
+  let toneNet = 0
   for (const s of cell.signals) {
     if (!STATIC_NATAL_KINDS.has(s.kind) && REASON_LAYERS.has(s.layer)) {
       reasonNet += s.polarity * s.weight * (LAYER_WEIGHT[s.layer] ?? 0.5)
+      if (TONE_LAYERS.has(s.layer)) {
+        toneNet += s.polarity * s.weight * (LAYER_WEIGHT[s.layer] ?? 0.5)
+      }
     }
   }
   const score = Math.round(favorScore ?? cell.derivedScore)
   const dayTone = reconcileDayTone({
     score,
-    reasonNet,
+    reasonNet: toneNet,
     hasGoodReason: (cell.topReasons ?? []).length > 0,
     hasCautionReason: (cell.cautions ?? []).length > 0,
   })

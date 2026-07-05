@@ -83,6 +83,12 @@ export interface AssembleTiersInput {
    * 동일)해 월 총평의 '타고난 결' intro 는 유지된다. 기본 'year'(전체 계산).
    */
   scope?: 'month' | 'year'
+  /**
+   * 다음 달 cells(선택) — 월말에 "다가오는 7일"이 월 경계에서 잘리지 않게
+   * assembleDayTier 로 그대로 전달(감사 #13). loadTierData 가 월말(±7일)일 때만
+   * 캐시에서 얹어 준다.
+   */
+  nextMonthCells?: CalendarCell[]
 }
 
 export interface AssembledTiers {
@@ -202,7 +208,16 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
   // /api/calendar/day(월 그리드에서 고른 날짜)와 같은 코드 경로. 내부의
   // 시진 달 ephemeris(12회)가 아래 lifeCurve·어댑터 작업과 겹쳐 돌도록 여기서
   // 시작하고, 포커스 셀 톤 정합 직전에 await 한다.
-  const dayP = assembleDayTier({ natal, cells, lang, targetDayIso, focusDayCell, now, layered })
+  const dayP = assembleDayTier({
+    natal,
+    cells,
+    lang,
+    targetDayIso,
+    focusDayCell,
+    now,
+    layered,
+    nextMonthCells: args.nextMonthCells,
+  })
 
   // ─── 인생 굴곡 곡선 (사주 다층 + 실 외행성 트랜짓) ────────────────────────
   // 외행성은 느려 step=3 샘플 + 보간이면 envelope 보존(ephemeris 호출 ~31회).
@@ -645,6 +660,10 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
     let bestRank = -1
     for (const s of c.signals) {
       if (s.kind !== 'cross-activation') continue
+      // 부호 충돌로 톤이 무력화된(polarity 0) 교차는 근거 슬롯에서 제외 — 층 가산점
+      // (+1000) 때문에 유의미한 길/흉 교차를 밀어내고 "왜 이런 날"에 중립 문구가
+      // 뜨던 문제(감사 #9). 그날 남는 교차가 없으면 근거 없이 두는 게 정직하다.
+      if (s.polarity === 0) continue
       const { sajuKo, astroKo } = crossKeys(s)
       if (!sajuKo || !astroKo) continue
       const meaning = stripCrossPair(s.korean ?? '')
@@ -675,17 +694,25 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
   //    이어지게 한다("월은 예고편, 일은 본편"). 예전엔 두 화면이 다른 풀
   //    (toneMeaningFor vs ONE_LINE_POOL)·다른 톤 산식을 써서 같은 날의 문장이
   //    화면마다 달랐다(감사 잔여 불일치 #2).
-  const oneLineByDs = new Map<string, { oneLine: string; oneLineEn: string }>()
+  const oneLineByDs = new Map<
+    string,
+    { oneLine: string; oneLineEn: string; tone: 'positive' | 'mixed' | 'caution' }
+  >()
   for (const c of monthCells) {
     const iso = c.datetime.slice(0, 10)
     const u = reconcileCellOneLine(c, layered.daily.get(iso)?.score)
-    oneLineByDs.set(c.datetime.slice(5, 10), { oneLine: u.oneLine, oneLineEn: u.oneLineEn })
+    oneLineByDs.set(c.datetime.slice(5, 10), {
+      oneLine: u.oneLine,
+      oneLineEn: u.oneLineEn,
+      tone: u.dayTone.tone,
+    })
   }
   for (const cell of month.calendar) {
     const u = oneLineByDs.get(cell.ds)
     if (u) {
       cell.oneLine = u.oneLine
       cell.oneLineEn = u.oneLineEn
+      cell.tone = u.tone
     }
   }
 
@@ -698,7 +725,8 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
   // bright: 낮은밴드인데 살릴 구석)은 같은 날 월=초록"좋음" vs 일=평이 로 모순됐다.
   // 포커스일(양쪽에 동시에 보이는 유일한 날)만 화해와 어긋나는 밴드 바를 중립화해
   // (mark→'focus': 바 없음, 오늘 링만) 두 화면의 톤을 일치시킨다. 비포커스일은
-  // evidence 가 없어 화해 불가 — 그날로 다이브하면 그 셀이 포커스가 되어 동일 처리.
+  // 셀에 실린 화해 톤(cell.tone)이 리드아웃 태그·조언을 지배하므로(감사 #2 수정)
+  // 밴드 바(색=점수)는 그대로 둬도 문장·라벨과 축이 갈리지 않는다.
   if (day.dayTone?.tense || day.dayTone?.bright) {
     const focusCell = month.calendar.find((c) => c.focus)
     if (

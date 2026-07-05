@@ -142,6 +142,11 @@ export interface DestinyCrossActivation {
   polarity: Polarity
   /** 합성 weight. */
   weight: number
+  /**
+   * 발화 층 — daily/monthly 는 "그날/그달 고유", decadal/yearly 는 1년 내내 같은
+   * 배경. 일 심층읽기("오늘의 흐름" 프레임)는 daily/monthly 만 쓴다(감사 #12).
+   */
+  layer?: string
 }
 
 // ============================================================================

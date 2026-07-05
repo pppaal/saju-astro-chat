@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { toDay, ONE_LINE_POOL } from '@/components/calendar/adapters/toDay'
+import { toDay, ONE_LINE_POOL, reconcileCellOneLine } from '@/components/calendar/adapters/toDay'
 import { makeNatal, makeCell, makeSignal } from './_fixtures'
 
 // 본명 — 일간 甲, 일주 甲子 (공망 戌/亥), 지장간 미(己/乙/丁) 등.
@@ -418,10 +418,59 @@ describe('toDay — CalendarCell → destinypal day', () => {
       expect(ONE_LINE_POOL.caution.en).toContain(d.oneLineEn)
     })
 
-    it('opts.oneLine 직주입이 derive 보다 우선', () => {
-      const cell = makeCell({ datetime: '2026-06-15T00:00:00.000Z', derivedScore: 80 })
-      const d = toDay({ cell, natal: natal(), oneLine: '주입 한 줄' })
-      expect(d.oneLine).toBe('주입 한 줄')
+    // (구 opts.oneLine 직주입 옵션은 제거 — 사용처가 없고, 주입 시 oneLineEn 에
+    //  한국어가 그대로 들어가는 잠복 결함이 있었다. 감사 라운드에서 정리.)
+  })
+
+  describe('화해 판정 축 — 그날 고유(daily·instant) 층만 (감사 #1 회귀 가드)', () => {
+    it('저점 + 그날 신호 흉 우세 → monthly/hourly 양수 베이스가 있어도 caution 유지', () => {
+      // 예전 축(REASON_LAYERS: monthly+hourly 포함)이면 net = −1.8w_d + 2w_m + 2w_h > 0
+      // 으로 bright 가 발동해 mixed 로 승격됐다(실측: 저점일 25일 중 23일).
+      const cell = makeCell({
+        datetime: '2026-06-15T00:00:00.000Z',
+        derivedScore: 20,
+        topReasons: ['좋은 것 하나'],
+        cautions: ['조심할 것 하나'],
+        signals: [
+          makeSignal({ kind: 'pillar-sibsin', layer: 'daily', polarity: -2, weight: 0.9 }),
+          makeSignal({ kind: 'pillar-sibsin', layer: 'monthly', polarity: 2, weight: 1 }),
+          makeSignal({ kind: 'pillar-sibsin', layer: 'hourly', polarity: 2, weight: 1 }),
+        ],
+      })
+      const u = reconcileCellOneLine(cell, 20)
+      expect(u.dayTone.band).toBe('low')
+      expect(u.dayTone.bright).toBe(false)
+      expect(u.dayTone.tone).toBe('caution')
+      expect(ONE_LINE_POOL.caution.ko).toContain(u.oneLine)
+    })
+
+    it('저점이라도 *그날* 신호가 우호면 bright 승격 → mixed (안전망은 유지)', () => {
+      const cell = makeCell({
+        datetime: '2026-06-15T00:00:00.000Z',
+        derivedScore: 20,
+        topReasons: ['좋은 것 하나'],
+        cautions: ['조심할 것 하나'],
+        signals: [makeSignal({ kind: 'pillar-sibsin', layer: 'daily', polarity: 2, weight: 0.9 })],
+      })
+      const u = reconcileCellOneLine(cell, 20)
+      expect(u.dayTone.bright).toBe(true)
+      expect(u.dayTone.tone).toBe('mixed')
+    })
+
+    it('고점 + 그날 신호 흉 우세 → tense 로 한 단계 낮춤 (positive→mixed)', () => {
+      const cell = makeCell({
+        datetime: '2026-06-15T00:00:00.000Z',
+        derivedScore: 70,
+        topReasons: ['좋은 것 하나'],
+        cautions: ['조심할 것 하나'],
+        signals: [
+          makeSignal({ kind: 'pillar-sibsin', layer: 'daily', polarity: -2, weight: 0.9 }),
+          makeSignal({ kind: 'pillar-sibsin', layer: 'monthly', polarity: 3, weight: 1 }),
+        ],
+      })
+      const u = reconcileCellOneLine(cell, 70)
+      expect(u.dayTone.tense).toBe(true)
+      expect(u.dayTone.tone).toBe('mixed')
     })
   })
 

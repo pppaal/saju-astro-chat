@@ -209,11 +209,19 @@ export async function loadTierData(
 
   const natal = await getOrBuildNatalContext(BIRTH)
   // scope 에 맞춰 1년 ↔ 그 달만. evidence 가 필요한 그 하루는 따로(focusDayCell).
-  const [cells, focusDayCell] = await Promise.all([
+  // 월 scope 이고 오늘+7일이 월을 넘으면 다음 달 cells 도 얹는다 — "다가오는
+  // 7일"이 월 경계에서 잘려 다음 달 초 큰 날이 안 보이던 문제(감사 #13).
+  const lastDayOfMonth = new Date(Date.UTC(TARGET_YEAR, TARGET_MONTH, 0)).getUTCDate()
+  const needNextMonth = scope === 'month' && TARGET_DAY + 7 > lastDayOfMonth
+  const [nmY, nmM] = TARGET_MONTH === 12 ? [TARGET_YEAR + 1, 1] : [TARGET_YEAR, TARGET_MONTH + 1]
+  const [cells, focusDayCell, nextMonthCells] = await Promise.all([
     scope === 'year'
       ? getOrBuildYearCells(BIRTH, natal, TARGET_YEAR, { includeEvidence: false })
       : getOrBuildMonthCells(BIRTH, natal, TARGET_YEAR, TARGET_MONTH, { includeEvidence: false }),
     getFocusDayCell(BIRTH, natal, targetDayIso),
+    needNextMonth
+      ? getOrBuildMonthCells(BIRTH, natal, nmY, nmM, { includeEvidence: false })
+      : Promise.resolve(undefined),
   ])
 
   const birthDisplay = formatBirthLine(BIRTH.birthDate, BIRTH.birthTime)
@@ -235,6 +243,7 @@ export async function loadTierData(
     now,
     // 'month'(캘린더)면 숨은 상위 티어의 인생 곡선 계산을 건너뛴다(진입 속도).
     scope,
+    nextMonthCells,
   })
 
   return { kind: 'ok', lang, ...assembled }

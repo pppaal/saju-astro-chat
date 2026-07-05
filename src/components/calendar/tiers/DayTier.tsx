@@ -30,7 +30,11 @@ import { deriveDayDomains } from '@/lib/calendar-engine/derivers/dayDomains'
 import { deriveDayActions } from '@/lib/calendar-engine/derivers/dayActions'
 import { deriveDayDeepRead } from '@/lib/calendar-engine/derivers/dayDeepRead'
 import { dayStrength } from '@/lib/calendar-engine/derivers/dayStrength'
-import { reconcileDayTone, type DayVerdict } from '@/lib/calendar-engine/derivers/reconcile'
+import {
+  reconcileDayTone,
+  scoreToBand,
+  type DayVerdict,
+} from '@/lib/calendar-engine/derivers/reconcile'
 import styles from './DayTier.module.css'
 import { useI18n } from '@/i18n/I18nProvider'
 import { localizeLabel } from '@/components/calendar/adapters/localizeLabel'
@@ -249,6 +253,10 @@ export function DayTier({ day, onRise, sex = '남', isToday = true }: DayTierPro
     })
   const dayBand: 'good' | 'mid' | 'low' =
     verdict.tone === 'positive' ? 'good' : verdict.tone === 'caution' ? 'low' : 'mid'
+  // 점수 *색*은 월 그리드와 같은 축(점수 밴드) — 톤이 화해로 낮춰진 날(예: 65점
+  // tense)에 그리드는 초록인데 여기 점수만 회색이던 어긋남 제거. 말(toneWord·
+  // hero)은 톤을, 숫자 색은 점수를 따른다 — 시스템 전체에서 색=점수, 문장=톤.
+  const scoreBand = scoreToBand(day.score)
 
   const toneWord = ko
     ? verdict.tone === 'positive'
@@ -291,23 +299,30 @@ export function DayTier({ day, onRise, sex = '남', isToday = true }: DayTierPro
     : ''
 
   // 사유는 쉬운말만 — 전문용어(통근·공망·상관견관·한자…)는 drop-on-doubt 로 뺀다.
-  // 교차 meaning 은 이미 plain 이라 항상 합류 → 리스트가 비지 않는다. 전문 사유는
-  // '자세한 신호' 폴드에서 따로 본다.
+  // 교차 meaning 은 이미 plain 이라 *부호에 맞는 목록*에 합류 — 예전엔 부호 무시로
+  // 무조건 happening 에 넣어, 흉 교차 경고문이 "받쳐주는 흐름" 헤더 밑에 뜨는
+  // 모순이 있었다(감사 #8). 흉(−)이면 조심 목록으로. 전문 사유는 '자세한 신호'
+  // 폴드에서 따로 본다.
   const plainHappening = dayReasons
     .map((r) => plainReason(stripMarker(r), ko))
     .filter(isPlainReason)
     .map((r) => localizeLabel(r, ko))
+  const crossLine =
+    strongestCrossMeaning && isPlainReason(strongestCrossMeaning)
+      ? localizeLabel(plainReason(strongestCrossMeaning, ko), ko)
+      : ''
+  const crossPositive = (strongestCross?.polarity ?? 0) > 0
   const happeningLines = [
     ...plainHappening.slice(0, 2),
-    ...(strongestCrossMeaning && isPlainReason(strongestCrossMeaning)
-      ? [localizeLabel(plainReason(strongestCrossMeaning, ko), ko)]
-      : []),
+    ...(crossLine && crossPositive ? [crossLine] : []),
   ].slice(0, 3)
-  const cautionLines = dayCautions
-    .map((c) => plainReason(stripMarker(c), ko))
-    .filter(isPlainReason)
-    .slice(0, 2)
-    .map((c) => localizeLabel(c, ko))
+  const cautionLines = [
+    ...dayCautions
+      .map((c) => plainReason(stripMarker(c), ko))
+      .filter(isPlainReason)
+      .map((c) => localizeLabel(c, ko)),
+    ...(crossLine && (strongestCross?.polarity ?? 0) < 0 ? [crossLine] : []),
+  ].slice(0, 2)
 
   // ── novice hero: 톤 워드는 결론(oneLine)과 어긋나지 않게, 중립이면 '기복 있는 날'. ──
   const novTone = day.dayTone?.tone
@@ -407,8 +422,11 @@ export function DayTier({ day, onRise, sex = '남', isToday = true }: DayTierPro
     iljinKr: day.iljin.kr,
     iljinSibsin: sibsinRaw,
     tone: verdict.tone,
+    // "오늘의 흐름" 프레임 — 대운/세운(decadal/yearly) 배경 교차는 1년 내내 같은
+    // 문장을 도배하므로 제외(감사 #12). layer 미기재(구 캐시)는 종전대로 포함.
     crosses: (day.crossActivations ?? [])
       .filter((c) => c.sajuKo && c.astroKo)
+      .filter((c) => !c.layer || c.layer === 'daily' || c.layer === 'monthly')
       .map((c) => ({
         sajuKo: c.sajuKo as string,
         astroKo: c.astroKo as string,
@@ -631,9 +649,9 @@ export function DayTier({ day, onRise, sex = '남', isToday = true }: DayTierPro
               {ko ? '점수' : 'score'}
               <b
                 className={
-                  dayBand === 'good'
+                  scoreBand === 'good'
                     ? styles.scoreGood
-                    : dayBand === 'low'
+                    : scoreBand === 'low'
                       ? styles.scoreLow
                       : styles.scoreMid
                 }

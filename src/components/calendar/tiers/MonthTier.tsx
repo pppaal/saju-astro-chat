@@ -100,6 +100,13 @@ export function MonthTier({ month, onDive, onRise, showRise = true, onSelectDay 
 
   // ── 셀 mark ↔ 톤 매핑 (색과 의미가 어긋나지 않게 같은 소스). ──
   const markByDs = new Map<string, DestinyDayMark | null>(calendar.map((c) => [c.ds, c.mark]))
+  // 셀별 화해 톤(서버 reconcileCellOneLine) — 태그·조언·큰 날 라벨의 단일 권위.
+  // 규약: 색=점수 밴드(mark), 문장·라벨=화해 톤. 없으면(구 캐시) mark 톤 폴백.
+  const toneByDs = new Map<string, 'positive' | 'mixed' | 'caution' | undefined>(
+    calendar.map((c) => [c.ds, c.tone])
+  )
+  const cellToneToMeaningTone = (t: 'positive' | 'mixed' | 'caution'): MeaningTone =>
+    t === 'positive' ? 'positive' : t === 'caution' ? 'negative' : 'neutral'
   const verdictPrefix = (m: DestinyDayMark | null): string => {
     if (m === 'best' || m === 'good') return ko ? '좋은 날' : 'Good day'
     if (m === 'caution') return ko ? '조심할 날' : 'Caution'
@@ -137,17 +144,26 @@ export function MonthTier({ month, onDive, onRise, showRise = true, onSelectDay 
         title: `${ko ? '최고의 날' : 'Best day'} · ${toneMeaningFor('positive', dayNum, ko ? 'ko' : 'en', seed)}`,
       }
     }
-    const hasMeaning = !!(k.meaning && k.meaning.trim())
-    // prefix 톤은 meaning 과 *같은 소스* 에서 뽑는다. k.meaning(수렴 톤)이 있으면
-    // 그 keyDay 의 tone 을, 없으면 그리드 밴드 마크 톤을 쓴다 — 섞으면 접두사와
-    // 의미가 어긋난다("잔잔한 날 · 부딪힘을 조심할 날").
-    if (hasMeaning) {
-      const tone: MeaningTone = k.tone ?? markToTone(mark)
-      return { when: k.date, title: `${verdictPrefixForTone(tone)} · ${k.meaning}` }
-    }
-    const tone = markToTone(mark)
+    // 톤 권위 = 셀의 화해 톤(cell.tone) — 그리드 리드아웃·일 화면과 같은 축.
+    // 예전엔 k.tone(수렴 톤: 전 층 무거운 신호 순극성)을 그대로 써서, 그리드가
+    // 빨간(avoid) 날이 목록에선 "좋은 날"로 뜨는 모순이 났다(감사 #3). 수렴은
+    // *선정*(어느 날이 큰 날인가)까지만 — 라벨·문구 톤은 화해 톤이 정한다.
+    // meaning 도 클라이언트 로케일로 재생성 — k.meaning 은 서버 언어로 구워져
+    // 언어 토글 시 "Good day · 먼저 움직이면…" 혼종이 났다(감사 #11).
+    const cellTone = toneByDs.get(k.date)
+    const tone: MeaningTone = cellTone
+      ? cellToneToMeaningTone(cellTone)
+      : (k.tone ?? markToTone(mark))
     const meaning = toneMeaningFor(tone, dayNum, ko ? 'ko' : 'en', seed)
-    return { when: k.date, title: `${verdictPrefix(mark)} · ${meaning}` }
+    const prefix =
+      cellTone === 'mixed'
+        ? ko
+          ? '기복 있는 날'
+          : 'Mixed day'
+        : cellTone
+          ? verdictPrefixForTone(tone)
+          : verdictPrefix(mark)
+    return { when: k.date, title: `${prefix} · ${meaning}` }
   })
   // best(최고)일이 큰 날 목록에 빠졌으면 채워 넣는다.
   if (month.bestDay?.date && !keyDayItems.some((i) => i.when === month.bestDay.date)) {
@@ -304,6 +320,8 @@ export function MonthTier({ month, onDive, onRise, showRise = true, onSelectDay 
   })
   const selMark = selectedCell?.mark ?? null
   const selToday = !!selectedCell?.focus
+  // 선택일의 화해 톤 — 태그·조언·라벨의 권위(문장 selectedOneLine 과 같은 소스).
+  const selTone = selectedCell?.tone
   // 그날 근거(쉬운 뜻 + 용어 칩) — 교차가 있는 날만. 엔진이 calendar 셀에 실어 줌.
   const selectedReason = selectedCell?.reason ?? null
   const readoutLabel = selectedBigDay
@@ -312,7 +330,27 @@ export function MonthTier({ month, onDive, onRise, showRise = true, onSelectDay 
       ? ko
         ? '오늘'
         : 'Today'
-      : verdictPrefix(selMark)
+      : selTone === 'positive'
+        ? selMark === 'best'
+          ? ko
+            ? '최고의 날'
+            : 'Best day'
+          : ko
+            ? '좋은 날'
+            : 'Good day'
+        : selTone === 'caution'
+          ? selMark === 'avoid'
+            ? ko
+              ? '피할 날'
+              : 'Avoid'
+            : ko
+              ? '조심할 날'
+              : 'Caution'
+          : selTone === 'mixed'
+            ? ko
+              ? '기복 있는 날'
+              : 'Mixed day'
+            : verdictPrefix(selMark)
   // 그날의 화해된 한 줄 — 일(日) 티어 oneLine 과 같은 소스(셀에 서버가 실어 줌).
   // 줌인하면 이 문장이 일 화면 첫 줄로 그대로 이어진다. 없으면(구 캐시 등) 톤 풀 폴백.
   const selectedOneLine = ko
@@ -321,10 +359,12 @@ export function MonthTier({ month, onDive, onRise, showRise = true, onSelectDay 
   const readoutText = selectedBigDay
     ? ''
     : (selectedOneLine ?? toneMeaningFor(markToTone(selMark), selectedDay, ko ? 'ko' : 'en', seed))
-  // 행동 한 줄 — 그날의 mark 톤으로 평이하게(전문어 0). 좋은날=밀어붙이기, 조심날=미루기.
+  // 행동 한 줄 — 화해 톤(문장과 같은 소스)으로 평이하게(전문어 0). 예전엔 mark
+  // (점수 밴드)에서 뽑아 tense 날에 "밀어붙이기 좋아요" + "무게중심 지키세요"가
+  // 한 패널에 같이 떴다(감사 #2). mixed 는 조언 생략(oneLine 이 이미 행동 프레임).
   const readoutAdvice: string = (() => {
-    const tone = markToTone(selMark)
-    if (tone === 'negative') {
+    const tone = selTone ?? markToTone(selMark)
+    if (tone === 'caution' || tone === 'negative') {
       return ko
         ? '큰 결정·계약·이사는 며칠 미루는 게 좋아요.'
         : 'Best to push big decisions, contracts, and moves back a few days.'
@@ -336,33 +376,47 @@ export function MonthTier({ month, onDive, onRise, showRise = true, onSelectDay 
     }
     return ''
   })()
-  // 태그 칩 텍스트 — today 가 우선.
+  // 태그 칩 — today 우선, 그다음 화해 톤(라벨·문장과 같은 축), 톤 없으면 mark 폴백.
   const readoutTag = selToday
     ? ko
       ? '오늘'
       : 'Today'
-    : selMark === 'best' || selMark === 'good'
+    : selTone === 'positive'
       ? ko
         ? '좋은 날'
         : 'good'
-      : selMark === 'caution'
+      : selTone === 'caution'
         ? ko
           ? '조심할 날'
           : 'caution'
-        : selMark === 'avoid'
+        : selTone === 'mixed'
           ? ko
-            ? '피하는 날'
-            : 'avoid'
-          : ko
-            ? '잔잔한 날'
-            : 'normal'
+            ? '기복 있는 날'
+            : 'mixed'
+          : selMark === 'best' || selMark === 'good'
+            ? ko
+              ? '좋은 날'
+              : 'good'
+            : selMark === 'caution'
+              ? ko
+                ? '조심할 날'
+                : 'caution'
+              : selMark === 'avoid'
+                ? ko
+                  ? '피하는 날'
+                  : 'avoid'
+                : ko
+                  ? '잔잔한 날'
+                  : 'normal'
   const readoutTagClass = selToday
     ? styles.rtagToday
-    : selMark === 'best' || selMark === 'good'
+    : (selTone ?? markToTone(selMark)) === 'positive'
       ? styles.rtagGood
-      : selMark === 'avoid'
+      : selTone === 'caution' && selMark === 'avoid'
         ? styles.rtagAvoid
-        : ''
+        : !selTone && selMark === 'avoid'
+          ? styles.rtagAvoid
+          : ''
 
   // ── 셰어용 ── (한 줄 총평 + 큰 날 몇 개)
   const periodLabel = ko ? month.label : `${monthEn} ${year}`.trim()
@@ -525,11 +579,13 @@ export function MonthTier({ month, onDive, onRise, showRise = true, onSelectDay 
         </header>
       </details>
 
-      {/* ── 인터랙션 힌트 — 날짜가 눌러진다는 걸 모르는 초보용 ── */}
+      {/* ── 인터랙션 힌트 — 날짜가 눌러진다는 걸 모르는 초보용. 오늘은 이미
+          선택돼 있어 첫 탭에 바로 풀이가 열리므로, "선택된 날"을 기준으로 쓴다
+          (예전 문구는 오늘 셀 동작과 안 맞았다 — 감사 #14). ── */}
       <p className={styles.tapHint}>
         {ko
-          ? '👆 날짜를 누르면 그날 운이, 한 번 더 누르면 자세한 풀이가 열려요.'
-          : '👆 Tap a date for its read — tap again to open the full day.'}
+          ? '👆 날짜를 누르면 그날 운이, 선택된 날을 다시 누르면 자세한 풀이가 열려요.'
+          : '👆 Tap a date for its read — tap the selected date again for the full day.'}
       </p>
 
       {/* ── weekday row ── */}

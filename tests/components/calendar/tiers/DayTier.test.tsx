@@ -48,6 +48,35 @@ describe('DayTier (오늘의 일진 · LIGHT)', () => {
     expect(container.textContent).toContain(hook.headline)
   })
 
+  it('가장 센 교차가 흉(−)이면 조심 목록으로 — "받쳐주는 흐름" 헤더 금지 (감사 #8)', () => {
+    const d = {
+      ...day,
+      topReasons: [],
+      topReasonsEn: [],
+      cautions: [],
+      cautionsEn: [],
+      crossActivations: [
+        {
+          id: 'x',
+          sajuSide: '겁재',
+          astroSide: '화성',
+          sajuKo: '겁재',
+          astroKo: '화성',
+          meaning: '경쟁과 충동의 결이 두 배로 강해져요. 큰 돈과 관계 결정은 한 박자 늦추세요.',
+          meaningEn: 'Rivalry and impulse double up — slow big money and relationship calls.',
+          polarity: -2,
+          weight: 0.5,
+          layer: 'daily',
+        },
+      ],
+    } as DestinyDay
+    const { container } = render(<DayTier day={d} onRise={noop} sex="남" />)
+    // 흉 교차만 있는 날 — "받쳐주는 흐름" 문구가 떠서는 안 된다(부호 무시 버그).
+    expect(container.textContent).not.toContain('받쳐주는 흐름이 같이 와요')
+    // 교차 경고문은 조심 목록으로 합류.
+    expect(container.textContent).toContain('경쟁과 충동의 결이 두 배로')
+  })
+
   it('fires onRise from the top zoom-out button', () => {
     const onRise = vi.fn()
     const { getAllByRole } = render(<DayTier day={day} onRise={onRise} sex="남" />)
