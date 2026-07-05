@@ -153,6 +153,10 @@ export interface ReportShareLinkPayload {
   oneLiner: string
   /** 동·서양이 둘 다 가리키는 주제 몇 개(선택) — 신뢰 훅. */
   resonant?: string[]
+  /** 일주(60갑자) 별명 구절(선택) — 유형명(30조합)보다 촘촘한 개인화 줄. PII 아님. */
+  iljuLine?: string
+  /** 동·서양이 엇갈린 지점(선택) — 링크를 연 사람의 "내 것도 궁금"을 만드는 훅. */
+  clash?: { category: string; saju: string; astro: string }
 }
 
 export type ShareLinkPayload =
