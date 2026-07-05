@@ -66,7 +66,8 @@ describe('Saju Core Integration', () => {
 
   describe('Supporting Module Exports', () => {
     it('should expose supporting modules', () => {
-      assertNamedExports('lib/saju/compatibility', ['analyzeComprehensiveCompatibility'])
+      // saju/compatibility — 레거시 궁합 엔진, 라이브 경로(lib/compatibility)로
+      // 대체된 지 오래라 통째 삭제됨 (2026-07 정리)
       // saju/cache — 미사용으로 통째 삭제됨 (2025 정리)
       // visualizationData / fortuneSimulator — 미사용으로 삭제됨 (2025 정리)
       // unseAnalysis / textGenerator / familyLineage / comprehensiveReport — DEAD 정리로 삭제됨
@@ -205,7 +206,6 @@ describe('Saju Core Integration', () => {
         'lib/saju/strengthScore',
         'lib/saju/sibsinAnalysis',
         'lib/saju/unse',
-        'lib/saju/compatibility',
         'lib/saju/geokguk',
         'lib/saju/tonggeun',
         'lib/saju/patternMatcher',
@@ -215,7 +215,7 @@ describe('Saju Core Integration', () => {
       // unseAnalysis / textGenerator / familyLineage / comprehensiveReport — DEAD 정리로 삭제됨
       // advancedSajuCore / advancedAnalysis — 미사용으로 통째 삭제됨 (2026-06)
 
-      expect(modules.length).toBe(10)
+      expect(modules.length).toBe(9)
       modules.forEach((modulePath) => {
         readModule(modulePath)
       })

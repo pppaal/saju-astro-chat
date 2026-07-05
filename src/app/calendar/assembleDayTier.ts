@@ -13,7 +13,10 @@
    그 해) 전체를 줘야 salience/점수 정규화가 월 그리드와 같은 모집단이 된다.
    ============================================================ */
 
-import { deriveLayeredScores } from '@/lib/calendar-engine/derivers/layeredScore'
+import {
+  deriveLayeredScores,
+  type LayeredScores,
+} from '@/lib/calendar-engine/derivers/layeredScore'
 import { CALENDAR_BANDS } from '@/lib/calendar-engine/derivers/constants'
 import { personSeed } from '@/lib/calendar-engine/derivers/personSeed'
 import { translateSignalLabel } from '@/lib/calendar-engine/derivers/signalI18n'
@@ -97,6 +100,12 @@ export interface AssembleDayTierInput {
   focusDayCell?: CalendarCell | null
   /** "지금" 주입점 — 미성년 게이트의 만 나이 기준. 미지정 시 호출 시점. */
   now?: Date
+  /**
+   * 미리 계산한 층별 점수 — assembleTiers 가 같은 cells 로 이미 계산한 값을
+   * 넘겨 이중 전수 스캔(셀×신호 base-rate + 월 12패스)을 없앤다.
+   * 단독 호출(/api/calendar/day)은 생략 → 자체 계산.
+   */
+  layered?: LayeredScores
 }
 
 export async function assembleDayTier(input: AssembleDayTierInput): Promise<DestinyDay> {
@@ -113,7 +122,8 @@ export async function assembleDayTier(input: AssembleDayTierInput): Promise<Dest
   const hourMoonP = buildHourMoon(targetDayIso, natal)
 
   // 층별 점수 — 월 그리드와 같은 소스(deriveLayeredScores.daily), 같은 모집단.
-  const layered = deriveLayeredScores(cells)
+  // assembleTiers 경유면 precomputed 를 공유(이중 계산 제거), 단독 호출이면 계산.
+  const layered = input.layered ?? deriveLayeredScores(cells)
 
   // ─── iljin(일진) 60갑자 (KASI 절기 룩업) ───
   const [focusY, focusM, focusD] = targetDayIso.split('-').map(Number)

@@ -45,10 +45,7 @@ import astroDignityExtractor from './extractors/astro-dignity'
 import astroMoonNodesExtractor from './extractors/astro-moon-nodes'
 import astroHouseTransitExtractor from './extractors/astro-house-transit'
 import astroPlanetaryHourExtractor from './extractors/astro-planetary-hour'
-import astroAsteroidExtractor from './extractors/astro-asteroid'
 import astroSolarArcExtractor from './extractors/astro-solar-arc'
-import astroMidpointExtractor from './extractors/astro-midpoint'
-import astroSoulPatternExtractor from './extractors/astro-soul-pattern'
 
 // derivers
 import { deriveScore } from './derivers/score'
@@ -145,17 +142,11 @@ function getRegisteredExtractors(): SignalExtractor[] {
     astroMoonNodesExtractor,
     astroHouseTransitExtractor,
     astroPlanetaryHourExtractor,
-    // ── 정통 단일화 (Hellenistic) — Phase 1: modern esoteric 차단 ──
-    // 코드는 살려두되 등록만 끔. 학파 통일 위해 emit 차단.
-    // - asteroid (Ceres/Pallas/Juno/Vesta): 19세기+ 발견, 현대 페미니스트 점성
-    // - midpoint (Hamburg/Uranian 1923): 정통 아님
-    // - soul-pattern (draconic + harmonic, Addey 1976): 완전 현대 esoteric
-    // 복원하려면 아래 3줄 주석 해제 + 위 import 사용 (현재 미사용 import 경고
-    // 회피 위해 import는 살려둠 — 다시 켜기 한 줄로 해결).
-    // astroAsteroidExtractor,
+    // ── 정통 단일화 (Hellenistic) — modern esoteric 차단 ──
+    // asteroid(19세기+)/midpoint(Uranian 1923)/soul-pattern(draconic+harmonic,
+    // Addey 1976) 추출기는 2026-06 등록 해제 후 소비처가 없어 코드째 제거됨
+    // (git 히스토리 astro-{asteroid,midpoint,soul-pattern}.ts 에서 복원 가능).
     astroSolarArcExtractor,
-    // astroMidpointExtractor,
-    // astroSoulPatternExtractor,
   ]
 }
 

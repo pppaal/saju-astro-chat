@@ -12,11 +12,8 @@ import { describe, it, expect, beforeAll } from 'vitest'
 import { buildNatalContext } from '@/lib/calendar-engine/context/build'
 import { buildCalendar } from '@/lib/calendar-engine'
 import { getTwelveStagesForPillars } from '@/lib/saju/shinsal'
-import {
-  assembleTiers,
-  pickNextBigDay,
-  type AssembleTiersInput,
-} from '@/app/calendar/assembleTiers'
+import { assembleTiers, type AssembleTiersInput } from '@/app/calendar/assembleTiers'
+import { pickNextBigDay } from '@/app/calendar/assembleDayTier'
 import { getYearPillarForDate } from '@/lib/saju/datePillars'
 import type { NatalContext } from '@/lib/calendar-engine/context/types'
 import type { CalendarCell } from '@/lib/calendar-engine/types'

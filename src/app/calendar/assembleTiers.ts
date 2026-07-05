@@ -32,9 +32,6 @@ import { SIGN_KO } from '@/lib/astrology/signLabels'
 import { assembleDayTier } from './assembleDayTier'
 import { crossKeys, stripCrossPair, PLANET_EN_FROM_KO } from './crossPair'
 
-// 하위호환 re-export — 기존 소비자(테스트 등)가 assembleTiers 에서 import 하던 것.
-export { pickNextBigDay } from './assembleDayTier'
-
 import type { NatalContext } from '@/lib/calendar-engine/context/types'
 import type { CalendarCell } from '@/lib/calendar-engine/types'
 import type {
@@ -187,11 +184,16 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
     now,
   } = args
 
+  // 층별 점수 — 일/시는 일진, 월은 월운, 년은 세운, 10년은 대운 신호로만.
+  // 한 번만 계산해 아래 월/연 어댑터와 일 티어(assembleDayTier)가 공유한다 —
+  // 예전엔 두 어셈블러가 같은 cells 전수 스캔을 각자 반복했다(감사).
+  const layered = deriveLayeredScores(cells)
+
   // ─── 일(日) 티어 — 분리 어셈블러로 *미리 발진* ───────────────────────────
   // /api/calendar/day(월 그리드에서 고른 날짜)와 같은 코드 경로. 내부의
   // 시진 달 ephemeris(12회)가 아래 lifeCurve·어댑터 작업과 겹쳐 돌도록 여기서
   // 시작하고, 포커스 셀 톤 정합 직전에 await 한다.
-  const dayP = assembleDayTier({ natal, cells, lang, targetDayIso, focusDayCell, now })
+  const dayP = assembleDayTier({ natal, cells, lang, targetDayIso, focusDayCell, now, layered })
 
   // ─── 인생 굴곡 곡선 (사주 다층 + 실 외행성 트랜짓) ────────────────────────
   // 외행성은 느려 step=3 샘플 + 보간이면 envelope 보존(ephemeris 호출 ~31회).
@@ -215,9 +217,6 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
   const monthPrefix = `${TARGET_YEAR}-${String(TARGET_MONTH).padStart(2, '0')}`
   const monthCells = cells.filter((c) => c.datetime.slice(0, 7) === monthPrefix)
   const yearlySignals = cells.flatMap((c) => c.signals).filter((s) => s.layer === 'yearly')
-
-  // 층별 점수 — 일/시는 일진, 월은 월운, 년은 세운, 10년은 대운 신호로만.
-  const layered = deriveLayeredScores(cells)
 
   // ─── woolun(월운) 60갑자 (KASI 절기 룩업) ─────────────────────────────────
   // 월운 기준 인스턴트는 *UTC* 로 만든다. tz-less `new Date('YYYY-MM-15T00:00:00')`

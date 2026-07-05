@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { expireBonusCredits } from '@/lib/credits/creditService'
 import { sweepExpiredIdempotency } from '@/lib/credits/sweepExpiredIdempotency'
+import { sweepDataRetention } from '@/lib/db/dataRetention'
 import { logger } from '@/lib/logger'
 import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
 import { extractLocale } from '@/lib/api/middleware'
@@ -60,11 +61,18 @@ export async function GET(request: Request) {
     const sweep = await sweepExpiredIdempotency()
     logger.warn('[Cron] Expired idempotency/revocation sweep completed:', sweep)
 
+    // 무한 증식 테이블 보존기간 스윕 — PageView·캘린더 캐시·버전 고아·만료 공유.
+    // 전부 fail-soft 캐시/로그라 지워도 재계산될 뿐(DB 감사 2026-07). 내부에서
+    // 테이블별 try/catch — 부분 실패해도 크레딧 정리 결과는 이미 확보됨.
+    const retention = await sweepDataRetention()
+    logger.warn('[Cron] Data retention sweep completed:', retention)
+
     return NextResponse.json({
       success: true,
       message: 'Credit maintenance completed',
       bonusExpiration: bonusResult,
       idempotencySweep: sweep,
+      dataRetention: retention,
     })
   } catch (err: unknown) {
     logger.error('[Cron Reset error]', err)
