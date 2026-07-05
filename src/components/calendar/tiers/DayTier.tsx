@@ -69,6 +69,11 @@ export interface DayTierProps {
   onRise: () => void
   /** 분야별 연애 조언 성별 분기용 (남=재성, 여=관성이 배우자성). 기본 '남'. */
   sex?: string
+  /**
+   * day 가 '오늘'인지 — 월 그리드에서 다른 날을 골라 줌인하면 false 로 내려와
+   * "오늘" 라벨을 그 날짜/'이날' 표기로 바꾼다. 기본 true(서버 렌더 = 오늘).
+   */
+  isToday?: boolean
 }
 
 // 영문 라틴 월 라벨 — 타이틀 Cinzel 표기.
@@ -226,9 +231,11 @@ function PolChip({ v }: { v: Polarity | number }) {
 // ============================================================================
 // DayTier (main).
 // ============================================================================
-export function DayTier({ day, onRise, sex = '남' }: DayTierProps) {
+export function DayTier({ day, onRise, sex = '남', isToday = true }: DayTierProps) {
   const { locale } = useI18n()
   const ko = locale === 'ko'
+  // "오늘" 라벨 치환어 — 선택한 다른 날이면 '이날'/'this day' 로.
+  const dayWord = ko ? (isToday ? '오늘' : '이날') : isToday ? 'today' : 'this day'
 
   // ── 톤 권위 — day.dayTone 우선, 없으면 reconcile 폴백. ──
   const verdict: DayVerdict =
@@ -336,14 +343,14 @@ export function DayTier({ day, onRise, sex = '남' }: DayTierProps) {
     ? hasSupport && hasFriction
       ? '부딪히는 기운이 좀 있지만 받쳐주는 흐름도 같이 와요.'
       : hasFriction
-        ? '오늘은 살짝 거스르는 기운이 깔려 있어요.'
+        ? `${dayWord}은 살짝 거스르는 기운이 깔려 있어요.`
         : hasSupport
           ? '받쳐주는 흐름이 같이 와요.'
           : ''
     : hasSupport && hasFriction
       ? 'A bit of friction, but a supporting flow comes with it.'
       : hasFriction
-        ? "There's a slightly rough current underneath today."
+        ? `There's a slightly rough current underneath ${dayWord}.`
         : hasSupport
           ? 'A supporting flow comes with it.'
           : ''
@@ -521,12 +528,12 @@ export function DayTier({ day, onRise, sex = '남' }: DayTierProps) {
       <div className={styles.eyebrow}>
         {ko ? (
           <>
-            <span>오늘</span>
+            <span>{isToday ? '오늘' : '고른 날'}</span>
             <span className={styles.eyebrowKo}>{day.dateKo ?? day.date}</span>
           </>
         ) : (
           <>
-            <span>Today · Daily</span>
+            <span>{isToday ? 'Today · Daily' : 'Selected · Daily'}</span>
             <span className={styles.eyebrowKo}>{day.date}</span>
           </>
         )}
@@ -576,8 +583,8 @@ export function DayTier({ day, onRise, sex = '남' }: DayTierProps) {
         </summary>
         <p className={styles.foldLede}>
           {ko
-            ? '쉽게 말하면, 오늘 하루에 깔린 기운을 사주로 풀어 왜 좋은·조심할 날인지 근거를 보여드려요.'
-            : 'In plain terms: we read the energy under today through Saju to show why it’s a good or careful day.'}
+            ? `쉽게 말하면, ${dayWord} 하루에 깔린 기운을 사주로 풀어 왜 좋은·조심할 날인지 근거를 보여드려요.`
+            : `In plain terms: we read the energy under ${dayWord} through Saju to show why it’s a good or careful day.`}
         </p>
 
         {/* ── S2 일진 간지 헤더 ── */}
@@ -586,7 +593,13 @@ export function DayTier({ day, onRise, sex = '남' }: DayTierProps) {
           <div className={styles.ganzhiRead}>{ko ? `${day.iljin.kr}일` : day.iljin.en}</div>
           <div className={styles.title}>
             {titleLatin}
-            <span className={styles.titleKo}>{ko ? '오늘의 일진' : "Today's pillar"}</span>
+            <span className={styles.titleKo}>
+              {ko
+                ? `${isToday ? '오늘' : '이날'}의 일진`
+                : isToday
+                  ? "Today's pillar"
+                  : "The day's pillar"}
+            </span>
           </div>
           <div className={styles.sibsinTag}>
             <span className={styles.sibsinPlain}>{sibsinPlain}</span>
@@ -632,7 +645,7 @@ export function DayTier({ day, onRise, sex = '남' }: DayTierProps) {
           {happeningLines.length === 0 ? (
             <p className={styles.muted}>
               {ko
-                ? '오늘은 두드러진 신호 없이 무난한 흐름이에요.'
+                ? `${dayWord}은 두드러진 신호 없이 무난한 흐름이에요.`
                 : 'A steady day with no standout signals.'}
             </p>
           ) : (
@@ -659,7 +672,10 @@ export function DayTier({ day, onRise, sex = '남' }: DayTierProps) {
       {/* ── S5 이렇게 해보세요 ── */}
       {dayActions && (
         <section className={styles.sec}>
-          <SecHead label={ko ? '이렇게 해보세요' : 'Try this today'} latin="Try" />
+          <SecHead
+            label={ko ? '이렇게 해보세요' : isToday ? 'Try this today' : 'Try this on the day'}
+            latin="Try"
+          />
           <div className={styles.actions}>
             <div className={styles.actionGroup}>
               <span className={`${styles.chip} ${styles.chipDo}`}>{ko ? '이렇게' : 'DO'}</span>
@@ -687,7 +703,10 @@ export function DayTier({ day, onRise, sex = '남' }: DayTierProps) {
       {/* ── S6 분야별 오늘 ── */}
       {dayDomains && (
         <section className={styles.sec}>
-          <SecHead label={ko ? '분야별 오늘' : 'Today by area'} latin="By area" />
+          <SecHead
+            label={ko ? `분야별 ${dayWord}` : isToday ? 'Today by area' : 'The day by area'}
+            latin="By area"
+          />
           <div className={styles.domainNote}>
             {ko ? dayDomains.bandNote : dayDomains.bandNoteEn}
           </div>
@@ -704,7 +723,7 @@ export function DayTier({ day, onRise, sex = '남' }: DayTierProps) {
                   <span className={styles.domainLabel}>
                     {ko ? d.label : d.labelEn}
                     {d.active && (
-                      <span className={styles.domainOn}>{ko ? '오늘 주목' : 'in focus'}</span>
+                      <span className={styles.domainOn}>{ko ? `${dayWord} 주목` : 'in focus'}</span>
                     )}
                   </span>
                   <span className={styles.domainBody}>{ko ? d.body : d.bodyEn}</span>
@@ -722,8 +741,8 @@ export function DayTier({ day, onRise, sex = '남' }: DayTierProps) {
         </summary>
         <p className={styles.foldLede}>
           {ko
-            ? '쉽게 말하면, 사주의 기운과 별자리 흐름이 오늘 어디서 맞물리는지, 언제 가장 세지는지를 보여드려요.'
-            : 'In plain terms: where your Saju energy and the star flows meet today, and when it peaks.'}
+            ? `쉽게 말하면, 사주의 기운과 별자리 흐름이 ${dayWord} 어디서 맞물리는지, 언제 가장 세지는지를 보여드려요.`
+            : `In plain terms: where your Saju energy and the star flows meet ${dayWord}, and when it peaks.`}
         </p>
 
         {/* ── S8 타이밍 ── */}
@@ -747,7 +766,11 @@ export function DayTier({ day, onRise, sex = '남' }: DayTierProps) {
             {hasFlow && (
               <>
                 <div className={styles.flowSub}>
-                  {ko ? '이달 흐름 속 오늘' : 'Today within the month'}
+                  {ko
+                    ? `이달 흐름 속 ${dayWord}`
+                    : isToday
+                      ? 'Today within the month'
+                      : 'This day within the month'}
                 </div>
                 <svg width="100%" viewBox="0 0 320 60" className={styles.flowSvg} aria-hidden>
                   <path d={flowArea} fill="var(--good-bg)" opacity={0.6} />
@@ -761,7 +784,7 @@ export function DayTier({ day, onRise, sex = '남' }: DayTierProps) {
                         textAnchor="middle"
                         className={styles.flowToday}
                       >
-                        {ko ? '오늘' : 'today'}
+                        {isToday ? (ko ? '오늘' : 'today') : `${Number(dd) || ''}${ko ? '일' : ''}`}
                       </text>
                     </>
                   )}
@@ -811,19 +834,23 @@ export function DayTier({ day, onRise, sex = '남' }: DayTierProps) {
           <div className={styles.foldBody}>
             {/* 깊이 읽기 */}
             <div className={styles.foldBlock}>
-              <div className={styles.foldLabel}>{ko ? '오늘 깊이 읽기' : 'Today in depth'}</div>
+              <div className={styles.foldLabel}>
+                {ko ? `${dayWord} 깊이 읽기` : isToday ? 'Today in depth' : 'The day in depth'}
+              </div>
               <p className={styles.deepRead}>{ko ? deepRead.ko : deepRead.en}</p>
             </div>
 
             {/* 오늘 기둥 */}
             <div className={styles.foldBlock}>
-              <div className={styles.foldLabel}>{ko ? '오늘의 기둥' : "Today's pillar"}</div>
+              <div className={styles.foldLabel}>
+                {ko ? `${dayWord}의 기둥` : isToday ? "Today's pillar" : "The day's pillar"}
+              </div>
               <div className={styles.chartRow}>
                 <span className={styles.chartHan}>{day.iljin.hanja}</span>
                 <span className={styles.chartDesc}>
                   {ko
-                    ? `오늘의 기운 ${day.iljin.kr} · ${sibsinPlain} (${sibsinRaw})`
-                    : `today's pillar ${day.iljin.en} · ${sibsinPlain} (${sibsinRaw})`}
+                    ? `${dayWord}의 기운 ${day.iljin.kr} · ${sibsinPlain} (${sibsinRaw})`
+                    : `${isToday ? "today's" : "the day's"} pillar ${day.iljin.en} · ${sibsinPlain} (${sibsinRaw})`}
                 </span>
               </div>
               {day.dayMaster && (

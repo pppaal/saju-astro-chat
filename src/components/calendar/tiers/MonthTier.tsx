@@ -50,10 +50,16 @@ const DOWS_EN = ['S', 'M', 'T', 'W', 'T', 'F', 'S'] as const
 
 export interface MonthTierProps {
   month: DestinyMonth
-  onDive: (focusDay: number) => void
+  /** 줌인 — 그리드에서 *선택된 날*(기본=오늘)을 넘긴다. 일 티어가 그 날로 빌드됨. */
+  onDive: (selectedDay: number) => void
   onRise: () => void
   /** 위 티어가 있을 때만 줌아웃 버튼 노출 (월이 최상단이면 숨김). 기본 true. */
   showRise?: boolean
+  /**
+   * 그리드에서 날짜를 고를 때마다 호출 — 부모가 일 티어 데이터를 미리 준비해,
+   * CTA 없이 스와이프/레일로 줌인해도 고른 날이 보이게 한다.
+   */
+  onSelectDay?: (day: number) => void
 }
 
 // ============================================================================
@@ -72,7 +78,7 @@ function firstDowOfMonth(ym: string): number {
 // 컴포넌트
 // ============================================================================
 
-export function MonthTier({ month, onDive, onRise, showRise = true }: MonthTierProps) {
+export function MonthTier({ month, onDive, onRise, showRise = true, onSelectDay }: MonthTierProps) {
   const { locale } = useI18n()
   const ko = locale === 'ko'
   const firstDow = firstDowOfMonth(month.ym)
@@ -559,11 +565,15 @@ export function MonthTier({ month, onDive, onRise, showRise = true }: MonthTierP
               tabIndex={0}
               aria-label={ko ? `${c.d}일 자세히 보기` : `View day ${c.d}`}
               aria-pressed={c.d === selectedDay}
-              onClick={() => setSelectedDay(c.d)}
+              onClick={() => {
+                setSelectedDay(c.d)
+                onSelectDay?.(c.d)
+              }}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
                   e.preventDefault()
                   setSelectedDay(c.d)
+                  onSelectDay?.(c.d)
                 }
               }}
             >
@@ -766,9 +776,16 @@ export function MonthTier({ month, onDive, onRise, showRise = true }: MonthTierP
         />
       </div>
 
-      {/* ── CTA (zoom-in) ── */}
-      <button className={styles.cta} onClick={() => onDive(focusDay)} type="button">
-        {ko ? `오늘 ${ymM ?? ''}월 ${focusDay}일로 줌인 →` : `Zoom in to ${monthEn} ${focusDay}`}
+      {/* ── CTA (zoom-in) — 그리드에서 고른 날로 줌인(기본=오늘). 예전엔 어떤 날을
+            골라도 focusDay(오늘)만 넘겨 일 티어가 항상 오늘을 보여줬다. ── */}
+      <button className={styles.cta} onClick={() => onDive(selectedDay)} type="button">
+        {selectedDay === focusDay
+          ? ko
+            ? `오늘 ${ymM ?? ''}월 ${focusDay}일로 줌인 →`
+            : `Zoom in to today, ${monthEn} ${focusDay}`
+          : ko
+            ? `${ymM ?? ''}월 ${selectedDay}일 운 자세히 보기 →`
+            : `Zoom in to ${monthEn} ${selectedDay}`}
       </button>
     </div>
   )
