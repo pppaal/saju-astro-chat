@@ -56,7 +56,12 @@ export async function POST(request: NextRequest, routeContext: RouteContext) {
         const r = results.find((x) => x.platform === v.platform)
         if (!r || r.skipped === 'not_configured') return v
         return r.ok
-          ? { ...v, publishedUrl: r.url ?? v.publishedUrl, publishError: undefined }
+          ? {
+              ...v,
+              publishedUrl: r.url ?? v.publishedUrl,
+              externalId: r.externalId ?? v.externalId,
+              publishError: undefined,
+            }
           : { ...v, publishError: r.error || r.skipped || 'failed' }
       })
 

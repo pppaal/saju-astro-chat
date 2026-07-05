@@ -1,16 +1,21 @@
 'use client'
 
-// 소셜 초안 검토 콘솔 — 날짜별 초안을 불러와 플랫폼별로 편집/복사/승인/반려.
-// 발행 어댑터(Meta/YouTube API)는 키 확보 후 연결 — 그 전까진 "복사"로 수동
-// 게시하고 승인 상태만 기록한다(승인 큐 = 발행 대기열).
+// 소셜 콘텐츠 콘솔 — 상단 성과 대시보드(발행 수·조회수·베스트 글) + 카테고리
+// 탭(타로/사주/점성/궁합/캘린더) + 날짜별 초안 검토/편집/발행. 발행된 Threads
+// 게시물은 insights API 로 조회수·좋아요를 수집해 카드에 표시한다.
 
-import { useCallback, useEffect, useState } from 'react'
-import type {
-  SocialPostDraft,
-  SocialVariant,
-  SocialPlatform,
-  SocialDraftStatus,
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import {
+  CATEGORY_META,
+  SOCIAL_CATEGORIES,
+  draftCategory,
+  type SocialCategory,
+  type SocialPostDraft,
+  type SocialVariant,
+  type SocialPlatform,
+  type SocialDraftStatus,
 } from '@/lib/social/types'
+import type { SocialSummary } from '@/lib/social/insights'
 
 interface PublishResult {
   ok: boolean
@@ -44,14 +49,26 @@ function todayKST(): string {
   return kst.toISOString().slice(0, 10)
 }
 
+function formatCount(n: number): string {
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`
+  if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`
+  return String(n)
+}
+
+type CategoryFilter = SocialCategory | 'all'
+
 export default function SocialClient() {
   const [date, setDate] = useState(todayKST())
   const [drafts, setDrafts] = useState<SocialPostDraft[]>([])
   const [dates, setDates] = useState<string[]>([])
   const [publishConfigured, setPublishConfigured] = useState<SocialPlatform[]>([])
+  const [summary, setSummary] = useState<SocialSummary | null>(null)
+  const [category, setCategory] = useState<CategoryFilter>('all')
   const [loading, setLoading] = useState(false)
   const [generating, setGenerating] = useState(false)
+  const [refreshing, setRefreshing] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [notice, setNotice] = useState<string | null>(null)
 
   const load = useCallback(async (d: string) => {
     setLoading(true)
@@ -75,9 +92,25 @@ export default function SocialClient() {
     }
   }, [])
 
+  const loadSummary = useCallback(async () => {
+    try {
+      const res = await fetch('/api/admin/social/insights', { cache: 'no-store' })
+      const json = (await res.json().catch(() => null)) as {
+        data?: { summary?: SocialSummary }
+      } | null
+      if (json?.data?.summary) setSummary(json.data.summary)
+    } catch {
+      /* 요약 실패는 치명적이지 않음 — 조용히 스킵 */
+    }
+  }, [])
+
   useEffect(() => {
     void load(date)
   }, [date, load])
+
+  useEffect(() => {
+    void loadSummary()
+  }, [loadSummary])
 
   const generate = async () => {
     setGenerating(true)
@@ -101,6 +134,43 @@ export default function SocialClient() {
       setError('생성 중 오류가 발생했어요.')
     } finally {
       setGenerating(false)
+    }
+  }
+
+  // 이 날짜의 발행된 Threads 게시물 조회수 재수집.
+  const refreshInsights = async () => {
+    setRefreshing(true)
+    setNotice(null)
+    setError(null)
+    try {
+      const res = await fetch('/api/admin/social/insights', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ date }),
+      })
+      const json = (await res.json().catch(() => null)) as {
+        data?: { drafts?: SocialPostDraft[]; updated?: number; firstError?: string | null }
+      } | null
+      if (!res.ok) {
+        setError('조회수 수집 실패 — THREADS_ACCESS_TOKEN 설정을 확인하세요.')
+        return
+      }
+      if (json?.data?.drafts) setDrafts(json.data.drafts)
+      const updated = json?.data?.updated ?? 0
+      const firstError = json?.data?.firstError
+      if (firstError) {
+        setError(
+          firstError.toLowerCase().includes('permission')
+            ? '조회수 수집에 threads_manage_insights 권한이 필요해요 — Meta 앱에서 권한 추가 후 토큰을 재발급하세요.'
+            : `일부 수집 실패: ${firstError}`
+        )
+      }
+      setNotice(
+        updated > 0 ? `게시물 ${updated}건의 조회수를 갱신했어요.` : '갱신할 발행 게시물이 없어요.'
+      )
+      await loadSummary()
+    } finally {
+      setRefreshing(false)
     }
   }
 
@@ -141,26 +211,87 @@ export default function SocialClient() {
     [date]
   )
 
+  const visibleDrafts = useMemo(
+    () => (category === 'all' ? drafts : drafts.filter((d) => draftCategory(d) === category)),
+    [drafts, category]
+  )
+
+  // 이 날짜에 카테고리별 초안이 몇 건인지 (탭 뱃지).
+  const categoryCounts = useMemo(() => {
+    const counts = new Map<SocialCategory, number>()
+    for (const d of drafts) {
+      const c = draftCategory(d)
+      counts.set(c, (counts.get(c) || 0) + 1)
+    }
+    return counts
+  }, [drafts])
+
   return (
     <div>
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl font-semibold text-stone-900">소셜 자동화</h1>
+          <h1 className="text-xl font-semibold text-stone-900">소셜 콘텐츠 스튜디오</h1>
           <p className="mt-1 text-sm text-stone-500">
-            매일 “오늘의 카드” 초안을 검토·편집한 뒤 승인하세요. 승인된 글은 발행 대기열이 됩니다.
+            타로·사주·점성·궁합·캘린더 5개 버티컬 초안을 매일 자동 생성 — 검토 후 원클릭 발행, 발행
+            후 조회수까지 한 화면에서.
           </p>
         </div>
-        <button
-          type="button"
-          onClick={() => void generate()}
-          disabled={generating}
-          className="rounded-full bg-stone-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-stone-700 disabled:opacity-50"
-        >
-          {generating ? '생성 중…' : '이 날짜 초안 생성'}
-        </button>
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => void refreshInsights()}
+            disabled={refreshing}
+            className="rounded-full border border-stone-300 bg-white px-4 py-2 text-sm font-medium text-stone-700 transition hover:bg-stone-50 disabled:opacity-50"
+          >
+            {refreshing ? '수집 중…' : '📊 조회수 새로고침'}
+          </button>
+          <button
+            type="button"
+            onClick={() => void generate()}
+            disabled={generating}
+            className="rounded-full bg-stone-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-stone-700 disabled:opacity-50"
+          >
+            {generating ? '생성 중… (최대 30초)' : '이 날짜 초안 생성'}
+          </button>
+        </div>
       </div>
 
-      <div className="mb-5 flex flex-wrap items-center gap-2">
+      {/* ===== 성과 대시보드 ===== */}
+      {summary ? (
+        <div className="mb-6 grid grid-cols-2 gap-3 md:grid-cols-4">
+          <StatCard label="발행 게시물" value={formatCount(summary.publishedPosts)} icon="🚀" />
+          <StatCard label="총 조회수" value={formatCount(summary.totalViews)} icon="👁️" />
+          <StatCard label="좋아요" value={formatCount(summary.totalLikes)} icon="❤️" />
+          <StatCard
+            label="답글·리포스트"
+            value={formatCount(summary.totalReplies + summary.totalReposts)}
+            icon="💬"
+          />
+          {summary.best ? (
+            <div className="col-span-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 md:col-span-4">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-amber-700">
+                🏆 베스트 게시물 — 조회수 {formatCount(summary.best.views)}
+              </p>
+              <p className="mt-0.5 truncate text-sm text-stone-800">
+                {CATEGORY_META[summary.best.category as SocialCategory]?.emoji} {summary.best.hook}
+                {summary.best.url ? (
+                  <a
+                    href={summary.best.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="ml-2 text-xs font-medium text-sky-700 underline"
+                  >
+                    보기 ↗
+                  </a>
+                ) : null}
+              </p>
+            </div>
+          ) : null}
+        </div>
+      ) : null}
+
+      {/* ===== 날짜 + 카테고리 탭 ===== */}
+      <div className="mb-3 flex flex-wrap items-center gap-2">
         <input
           type="date"
           value={date}
@@ -183,19 +314,46 @@ export default function SocialClient() {
         ))}
       </div>
 
+      <div className="mb-5 flex flex-wrap items-center gap-1.5">
+        <CategoryTab
+          active={category === 'all'}
+          onClick={() => setCategory('all')}
+          label={`전체 ${drafts.length ? `(${drafts.length})` : ''}`}
+        />
+        {SOCIAL_CATEGORIES.map((c) => {
+          const n = categoryCounts.get(c) || 0
+          return (
+            <CategoryTab
+              key={c}
+              active={category === c}
+              onClick={() => setCategory(c)}
+              label={`${CATEGORY_META[c].emoji} ${CATEGORY_META[c].labelKo}${n ? ` (${n})` : ''}`}
+              dim={n === 0}
+            />
+          )
+        })}
+      </div>
+
       {error ? (
         <div className="mb-4 rounded-lg bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</div>
+      ) : null}
+      {notice ? (
+        <div className="mb-4 rounded-lg bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+          {notice}
+        </div>
       ) : null}
 
       {loading ? (
         <div className="py-16 text-center text-sm text-stone-400">불러오는 중…</div>
-      ) : drafts.length === 0 ? (
+      ) : visibleDrafts.length === 0 ? (
         <div className="rounded-xl border border-dashed border-stone-300 py-16 text-center text-sm text-stone-500">
-          이 날짜의 초안이 없어요. 상단 “이 날짜 초안 생성”을 눌러 만드세요.
+          {drafts.length === 0
+            ? '이 날짜의 초안이 없어요. 상단 "이 날짜 초안 생성"을 눌러 5개 버티컬 초안을 만드세요.'
+            : '이 카테고리의 초안이 없어요. (구버전 초안은 타로로 분류됩니다)'}
         </div>
       ) : (
         <div className="space-y-6">
-          {drafts.map((draft) => (
+          {visibleDrafts.map((draft) => (
             <DraftCard
               key={draft.id}
               draft={draft}
@@ -207,6 +365,63 @@ export default function SocialClient() {
         </div>
       )}
     </div>
+  )
+}
+
+function StatCard({ label, value, icon }: { label: string; value: string; icon: string }) {
+  return (
+    <div className="rounded-xl border border-stone-200 bg-white px-4 py-3 shadow-sm">
+      <p className="text-[11px] font-semibold uppercase tracking-wide text-stone-400">
+        {icon} {label}
+      </p>
+      <p className="mt-1 text-2xl font-bold text-stone-900">{value}</p>
+    </div>
+  )
+}
+
+function CategoryTab({
+  active,
+  onClick,
+  label,
+  dim,
+}: {
+  active: boolean
+  onClick: () => void
+  label: string
+  dim?: boolean
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={
+        active
+          ? 'rounded-full bg-stone-900 px-3.5 py-1.5 text-xs font-semibold text-white'
+          : `rounded-full bg-stone-100 px-3.5 py-1.5 text-xs font-medium hover:bg-stone-200 ${
+              dim ? 'text-stone-400' : 'text-stone-700'
+            }`
+      }
+    >
+      {label}
+    </button>
+  )
+}
+
+function MetricsChips({ metrics }: { metrics: NonNullable<SocialVariant['metrics']> }) {
+  const chips: Array<[string, number]> = [
+    ['👁️', metrics.views],
+    ['❤️', metrics.likes],
+    ['💬', metrics.replies],
+    ['🔁', metrics.reposts + metrics.quotes],
+  ]
+  return (
+    <span className="ml-2 inline-flex items-center gap-2 rounded-full bg-stone-900 px-2.5 py-0.5 text-[11px] font-medium text-white">
+      {chips.map(([icon, n]) => (
+        <span key={icon}>
+          {icon} {formatCount(n)}
+        </span>
+      ))}
+    </span>
   )
 }
 
@@ -234,6 +449,9 @@ function DraftCard({
     setVariants(draft.variants)
     setDirty(false)
   }, [draft.variants])
+
+  const cat = draftCategory(draft)
+  const meta = CATEGORY_META[cat]
 
   const editCaption = (platform: SocialPlatform, caption: string) => {
     setVariants((prev) => prev.map((v) => (v.platform === platform ? { ...v, caption } : v)))
@@ -281,19 +499,30 @@ function DraftCard({
     <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={draft.cardImage}
-            alt={draft.cardName}
-            width={44}
-            height={70}
-            className="rounded-md border border-stone-200"
-            style={{ transform: draft.isReversed ? 'rotate(180deg)' : 'none', objectFit: 'cover' }}
-          />
+          {draft.cardImage ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={draft.cardImage}
+              alt={draft.cardName}
+              width={44}
+              height={70}
+              className="rounded-md border border-stone-200"
+              style={{
+                transform: draft.isReversed ? 'rotate(180deg)' : 'none',
+                objectFit: 'cover',
+              }}
+            />
+          ) : (
+            <div className="flex h-[70px] w-[44px] items-center justify-center rounded-md border border-stone-200 bg-stone-50 text-2xl">
+              {meta.emoji}
+            </div>
+          )}
           <div>
             <p className="text-sm font-semibold text-stone-900">
+              <span className="mr-1.5 rounded bg-stone-900 px-1.5 py-0.5 text-[11px] font-semibold text-white">
+                {meta.emoji} {meta.labelKo}
+              </span>
               {draft.cardName}
-              {draft.isReversed ? ' (역방향)' : ''}
               <span className="ml-2 rounded bg-stone-100 px-1.5 py-0.5 text-[11px] font-medium text-stone-500">
                 {draft.locale.toUpperCase()}
               </span>
@@ -312,7 +541,10 @@ function DraftCard({
         {variants.map((v) => (
           <div key={v.platform} className="rounded-xl bg-stone-50 p-3">
             <div className="mb-1.5 flex items-center justify-between">
-              <span className="text-xs font-bold text-stone-700">{PLATFORM_LABEL[v.platform]}</span>
+              <span className="text-xs font-bold text-stone-700">
+                {PLATFORM_LABEL[v.platform]}
+                {v.metrics ? <MetricsChips metrics={v.metrics} /> : null}
+              </span>
               <button
                 type="button"
                 onClick={() => void navigator.clipboard?.writeText(fullText(v))}
