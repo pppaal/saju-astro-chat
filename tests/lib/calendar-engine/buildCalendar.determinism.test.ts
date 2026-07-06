@@ -73,10 +73,10 @@ describe('buildCalendar 결정론 골든', () => {
 
   it('digest 가 고정 golden 과 일치 (의도치 않은 산식 변화 감지)', async () => {
     // 의도적 산식/룰 변경 시에만 이 값을 갱신한다(Saju determinism-golden 과 동일 규약).
-    // 2026-07 갱신: arabic lots(Courage/Victory sect 반전 수정) · ZR(Aquarius
-    // 27→30 · Capricorn 27 예외 유지) · 항성 5개 경도 sign-off-by-one 정정이
-    // 캘린더 빌드에 반영되며 digest 변경. 도메인 정확성 수정에 따른 정당한 갱신.
-    const GOLDEN = '072b7d71892039def7bf8b706983e28b4eb7d846'
+    // 2026-07 갱신(v5): 교차 매핑 31→57쌍 확장(일/월 근거 커버리지 — 달·태양·
+    // 수성·금성·화성·천을귀인). 새 cross-activation 신호가 점수 골격에 합류하며
+    // digest 변경. 의도된 커버리지 확장에 따른 정당한 갱신.
+    const GOLDEN = '44d750c7eb599aecd67541fc2ea251412fd87e7c'
     expect(digest(await build())).toBe(GOLDEN)
   }, 60_000)
 })

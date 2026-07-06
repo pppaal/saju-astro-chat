@@ -10,7 +10,8 @@ describe('plainLanguage', () => {
   it('translates terms to everyday Korean', () => {
     expect(sibsinArea('정재')).toBe('돈·안정')
     expect(sibsinArea('정관')).toBe('일·책임')
-    expect(twelveStagePlain('관대')).toContain('자리를 잡')
+    // 2026-07 생활어 정비 — 시적 은유 대신 행동 프레임.
+    expect(twelveStagePlain('관대')).toContain('나서기')
     expect(sibsinArea('없는것')).toBe('없는것') // graceful
   })
 })
@@ -33,9 +34,10 @@ describe('plainLanguage — uncovered branches', () => {
   })
 
   it('twelveStagePlain: 모든 12운성 단계가 한 줄 뜻으로 풀린다', () => {
-    expect(twelveStagePlain('장생')).toContain('새싹')
+    // 2026-07 생활어 정비 — 시적 은유("새싹") 대신 행동 프레임("벌이기").
+    expect(twelveStagePlain('장생')).toContain('시작')
     expect(twelveStagePlain('제왕')).toContain('절정')
-    expect(twelveStagePlain('절')).toContain('비워')
+    expect(twelveStagePlain('절')).toContain('비우')
     expect(twelveStagePlain('태')).toContain('잉태')
   })
 
@@ -68,5 +70,18 @@ describe('plainLanguage — uncovered branches', () => {
     expect(plainPairName('YL0', true)).toBe('YL0')
     expect(plainPairName('동일', false)).toBe('동일')
     expect(plainPairName(undefined, true)).toBe('')
+  })
+})
+
+describe('geokgukStatusPlain — 격국 성패 생활어', () => {
+  it('성격/파격/반성반파 전부 생활어 한 줄이 있다 (한/영)', async () => {
+    const { geokgukStatusPlain } = await import('@/lib/calendar-engine/derivers/plainLanguage')
+    for (const st of ['성격', '파격', '반성반파']) {
+      expect(geokgukStatusPlain(st, 'ko')).not.toBe('')
+      expect(geokgukStatusPlain(st, 'en')).not.toBe('')
+    }
+    // 미지의 status/미지정은 빈 문자열 — 억지 문장 금지.
+    expect(geokgukStatusPlain('이상한상태', 'ko')).toBe('')
+    expect(geokgukStatusPlain(undefined, 'ko')).toBe('')
   })
 })

@@ -251,9 +251,14 @@ describe('useFileUpload', () => {
         await result.current.handleFileUpload(makeChangeEvent(txt))
       })
 
-      await waitFor(() => {
-        expect(result.current.cvText.length).toBe(6000)
-      })
+      // FileReader onload 는 매크로태스크 — 풀 스위트 병렬 부하에선 기본 1s
+      // waitFor 를 넘겨 플레이크가 났다(2026-07 게이트). 여유 타임아웃.
+      await waitFor(
+        () => {
+          expect(result.current.cvText.length).toBe(6000)
+        },
+        { timeout: 5000 }
+      )
     })
 
     it('should surface a read failure when FileReader errors', async () => {

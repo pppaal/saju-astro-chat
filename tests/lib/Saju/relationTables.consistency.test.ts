@@ -7,15 +7,6 @@
 import { describe, it, expect } from 'vitest'
 import * as canon from '@/lib/saju/relationTables'
 import { YUKHAP, CHUNG, SAMHAP, XING, HAI, PA } from '@/lib/saju/constants'
-import {
-  STEM_HAP,
-  STEM_CHUNG,
-  BRANCH_YUKHAP,
-  BRANCH_SAMHAP,
-  BRANCH_CHUNG,
-  BRANCH_HYEONG,
-  BRANCH_HAE,
-} from '@/lib/saju/compatibility/constants'
 import { BRANCH_HYEONG_PAIR, SELF_HYEONG } from '@/lib/saju/hyeong'
 import * as compat from '@/lib/compatibility/sajuSynastryData'
 import { CHEONEUL_GWIIN_MAP } from '@/lib/saju/constants'
@@ -25,8 +16,6 @@ const sig = (a: string, b: string) => [a, b].sort().join('')
 const fromPairs = (pairs: ReadonlyArray<canon.Pair>) => new Set(pairs.map(([a, b]) => sig(a, b)))
 const fromRecord = (rec: Record<string, string>) =>
   new Set(Object.entries(rec).map(([a, b]) => sig(a, b)))
-const fromPartnerRecord = (rec: Record<string, { partner: string }>) =>
-  new Set(Object.entries(rec).map(([a, v]) => sig(a, v.partner)))
 // compat 표는 partner 대신 `other` 키를 쓴다.
 const fromOtherRecord = (rec: Record<string, { other: string }>) =>
   new Set(Object.entries(rec).map(([a, v]) => sig(a, v.other)))
@@ -115,27 +104,8 @@ describe('relationTables — 소비 모듈 ↔ canon 교차 일치', () => {
     expect(new Set(XING['寅'])).toEqual(new Set(['巳', '申']))
   })
 
-  it('compatibility/constants.ts 의 표가 canon 과 일치', () => {
-    expect(fromPartnerRecord(STEM_HAP)).toEqual(fromPairs(canon.STEM_COMBINE.map((s) => s.pair)))
-    expect(fromRecord(STEM_CHUNG)).toEqual(fromPairs(canon.STEM_CLASH_4))
-    expect(fromPartnerRecord(BRANCH_YUKHAP)).toEqual(
-      fromPairs(canon.SIX_HARMONY.map((h) => h.pair))
-    )
-    expect(fromRecord(BRANCH_CHUNG)).toEqual(fromPairs(canon.BRANCH_CLASH))
-    expect(fromRecord(BRANCH_HAE)).toEqual(fromPairs(canon.HARM_PAIRS))
-    // 삼합 멤버 집합
-    const samhapSets = BRANCH_SAMHAP.map((s) => new Set(s.branches))
-    for (const t of canon.THREE_HARMONY) {
-      expect(samhapSets.some((s) => s.size === 3 && t.members.every((m) => s.has(m)))).toBe(true)
-    }
-    // 삼형 두 조가 모두 존재
-    const hyeongTrios = BRANCH_HYEONG.filter((h) => h.branches.length === 3).map(
-      (h) => new Set(h.branches)
-    )
-    for (const trio of canon.PUNISHMENT_TRIOS) {
-      expect(hyeongTrios.some((s) => trio.every((m) => s.has(m)))).toBe(true)
-    }
-  })
+  // (옛 'compatibility/constants.ts ↔ canon' 교차 검증은 레거시 궁합 엔진
+  //  saju/compatibility 삭제와 함께 제거 — 라이브 표는 아래 sajuSynastryData 검증이 커버.)
 
   it('hyeong.ts(엄격 형) 빌딩블록이 canon 과 일치', () => {
     expect(new Set(SELF_HYEONG)).toEqual(new Set(canon.SELF_PUNISHMENT_STRICT))

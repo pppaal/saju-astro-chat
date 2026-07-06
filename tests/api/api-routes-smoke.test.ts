@@ -40,14 +40,12 @@ describe('API Routes Smoke Tests', () => {
     })
 
     it('should have astrology advanced routes', () => {
+      // asteroids/draconic/harmonics/midpoints — Hellenistic 정통 단일화 후
+      // 소비처 0 이라 라우트째 삭제됨 (2026-07 DEAD 정리).
       assertModules([
-        'app/api/astrology/advanced/asteroids/route',
-        'app/api/astrology/advanced/draconic/route',
         'app/api/astrology/advanced/eclipses/route',
         'app/api/astrology/advanced/fixed-stars/route',
-        'app/api/astrology/advanced/harmonics/route',
         'app/api/astrology/advanced/lunar-return/route',
-        'app/api/astrology/advanced/midpoints/route',
         'app/api/astrology/advanced/progressions/route',
         'app/api/astrology/advanced/solar-return/route',
       ])

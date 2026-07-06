@@ -158,22 +158,24 @@ export function jijangganLayerEn(layer: string): string {
   return JIJANGGAN_LAYER_EN[layer] ?? layer
 }
 
-/** 12운성 단계 KO→EN (별칭 건록=임관, 제왕=왕지 포함). */
+/** 12운성 단계 KO→EN (별칭 건록=임관, 제왕=왕지 포함).
+ *  옛 단어 직역(Death/Illness/Tomb)은 EN 사용자에게 공포어로 읽혔다 —
+ *  KO twelveStagePlain 과 같은 생활 프레임으로(단계 의미 보존, 2026-07). */
 const TWELVE_STAGE_EN: Record<string, string> = {
-  장생: 'Birth',
-  목욕: 'Bath',
-  관대: 'Coming of Age',
-  건록: 'Prime',
-  임관: 'Prime',
-  제왕: 'Peak',
-  왕지: 'Peak',
-  쇠: 'Decline',
-  병: 'Illness',
-  사: 'Death',
-  묘: 'Tomb',
-  절: 'Void',
-  태: 'Conception',
-  양: 'Nurture',
+  장생: 'fresh-start momentum',
+  목욕: 'still polishing — hold the final call',
+  관대: 'stepping out under your own name',
+  건록: 'earning on solid skill',
+  임관: 'earning on solid skill',
+  제왕: 'peak momentum — pushing works',
+  왕지: 'peak momentum — pushing works',
+  쇠: 'past the peak — protect your gains',
+  병: 'low battery — body comes first',
+  사: 'wrap-up energy — close what is done',
+  묘: 'sort and store, don’t expand',
+  절: 'empty out, then restart',
+  태: 'ideas quietly forming',
+  양: 'quietly building strength',
 }
 export function twelveStageEn(stage: string): string {
   return TWELVE_STAGE_EN[stage] ?? stage

@@ -3,11 +3,12 @@ import { humanizeReason } from '@/components/calendar/adapters/humanizeReason'
 
 describe('humanizeReason — 표시 평어화', () => {
   it('영어 트랜짓을 한국어 관계 평어로 재구성', () => {
+    // '대립각/긴장각' 류 각(角) 조어 대신 관계 묘사 평어(2026-07 생활어 정비).
     expect(humanizeReason('↓ [세운] Uranus 어포지션 본명 Pluto')).toBe(
-      '↓ 올해 · 천왕성 ↔ 타고난 명왕성 · 대립각'
+      '↓ 올해 · 천왕성 ↔ 타고난 명왕성 · 팽팽히 맞섬'
     )
     expect(humanizeReason('↓ [월운] Mars 스퀘어 본명 Mars')).toBe(
-      '↓ 이달 · 화성 ↔ 타고난 화성 · 긴장각'
+      '↓ 이달 · 화성 ↔ 타고난 화성 · 밀고 당기는 마찰'
     )
   })
 
@@ -50,6 +51,6 @@ describe('humanizeReason — 표시 평어화', () => {
   })
 
   it('형식 안 맞으면 라벨만 평어화 (견고)', () => {
-    expect(humanizeReason('Venus 트라인 본명 Moon')).toBe('금성 ↔ 타고난 달 · 조화각')
+    expect(humanizeReason('Venus 트라인 본명 Moon')).toBe('금성 ↔ 타고난 달 · 술술 맞물림')
   })
 })

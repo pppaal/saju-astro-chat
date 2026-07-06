@@ -18,15 +18,14 @@ vi.mock('@/components/calendar/shell/Starfield', () => ({
 }))
 
 // Topbar uses useI18n; render a simple stand-in that surfaces the props we
-// assert on (the tier label that follows the camera).
+// assert on. (티어명/워드마크는 상단 겹침 정리로 topbar 에서 제거됨 — 본명
+// 한 줄 + 메뉴 + 언어 토글만 남는다.)
 vi.mock('@/components/calendar/shell/DestinypalTopbar', () => ({
   DestinypalTopbar: (props: Record<string, unknown>) => (
     <div data-testid="topbar">
       <span data-testid="who">{String(props.whoBirthLine)}</span>
       <span data-testid="place">{String(props.place)}</span>
       <span data-testid="ilgan">{String(props.ilganHanja)}</span>
-      <span data-testid="tier-ko">{String(props.tierKo)}</span>
-      <span data-testid="tier-en">{String(props.tierEn)}</span>
     </div>
   ),
 }))

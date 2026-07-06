@@ -92,15 +92,15 @@ vi.mock('@/lib/logger', () => ({
 }))
 
 // ---------------------------------------------------------------------------
-// Mock Prisma — models the route touches, plus the preserved-log models so we
-// can assert they are NOT deleted (C-option: keep accounting/security logs).
+// Mock Prisma — models the route touches, plus the preserved-log model so we
+// can assert it is NOT deleted (C-option: keep accounting logs).
+// (SecurityAuditLog 는 미사용 모델로 2026-07 드랍 — mock 대상에서 제외.)
 // ---------------------------------------------------------------------------
 vi.mock('@/lib/db/prisma', () => ({
   prisma: {
     user: { findUnique: vi.fn(), delete: vi.fn() },
     sharedResult: { deleteMany: vi.fn() },
     bonusCreditPurchase: { deleteMany: vi.fn() },
-    securityAuditLog: { deleteMany: vi.fn() },
     $transaction: vi.fn(),
   },
 }))
@@ -218,10 +218,9 @@ describe('Account API – DELETE /api/me/account', () => {
       expect(prisma.$transaction).toHaveBeenCalledTimes(1)
     })
 
-    it('preserves accounting/security logs (does not delete them)', async () => {
+    it('preserves accounting logs (does not delete them)', async () => {
       await DELETE(makeRequest({ confirm: 'me@example.com' }))
       expect(prisma.bonusCreditPurchase.deleteMany).not.toHaveBeenCalled()
-      expect(prisma.securityAuditLog.deleteMany).not.toHaveBeenCalled()
     })
 
     it('returns { deleted: true } on success', async () => {

@@ -15,7 +15,7 @@ status: auto-generated
 <!-- gen:api-routes -->
 <!-- 이 표는 자동 생성됩니다. 직접 수정하지 마세요 — `npm run docs:sync`. -->
 
-**총 102개 라우트** (원천: `src/app/api/**/route.ts`)
+**총 100개 라우트** (원천: `src/app/api/**/route.ts`)
 
 | 라우트                                  | 메서드             |
 | --------------------------------------- | ------------------ |
@@ -47,17 +47,14 @@ status: auto-generated
 | `/api/admin/visitors`                   | GET                |
 | `/api/admin/webhook-events`             | GET                |
 | `/api/astrology`                        | POST               |
-| `/api/astrology/advanced/asteroids`     | POST               |
-| `/api/astrology/advanced/draconic`      | POST               |
 | `/api/astrology/advanced/eclipses`      | POST               |
 | `/api/astrology/advanced/fixed-stars`   | POST               |
-| `/api/astrology/advanced/harmonics`     | POST               |
 | `/api/astrology/advanced/lunar-return`  | POST               |
-| `/api/astrology/advanced/midpoints`     | POST               |
 | `/api/astrology/advanced/progressions`  | POST               |
 | `/api/astrology/advanced/solar-return`  | POST               |
 | `/api/auth/[...nextauth]`               | GET, POST          |
 | `/api/auth/revoke`                      | POST               |
+| `/api/calendar/day`                     | GET                |
 | `/api/calendar/day/share`               | POST               |
 | `/api/calendar/share`                   | POST               |
 | `/api/checkout`                         | POST               |
@@ -79,6 +76,7 @@ status: auto-generated
 | `/api/cron/reconcile-activity`          | GET, POST          |
 | `/api/cron/reset-credits`               | GET, POST          |
 | `/api/cron/social-drafts`               | GET, POST          |
+| `/api/cron/social-insights`             | GET, POST          |
 | `/api/cron/threads-token-refresh`       | GET, POST          |
 | `/api/cron/winback-push`                | GET, POST          |
 | `/api/csp-report`                       | GET, POST          |

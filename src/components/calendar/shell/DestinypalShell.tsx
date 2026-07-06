@@ -301,8 +301,6 @@ export function DestinypalShell({
   }
 
   const camRounded = clampTier(Math.round(cam))
-  // fail-soft: invalid/empty tierIds → no rows. Don't crash topbar on curT.ko.
-  const curT = TIERS[camRounded] ?? { id: '', ko: '', en: '', scale: '' }
 
   const renderArgs = (idx: number): DestinypalTierRenderArgs => ({
     onRise: () => goTo(idx - 1),
@@ -344,9 +342,6 @@ export function DestinypalShell({
         whoBirthLine={topbar.whoBirthLine}
         place={topbar.place}
         ilganHanja={topbar.ilganHanja}
-        tierKo={curT.ko}
-        tierEn={curT.en}
-        tierScale={curT.scale}
       />
 
       <DestinypalRail tiers={TIERS} activeIndex={camRounded} onSelect={(i) => goTo(i)} />

@@ -16,31 +16,22 @@ import { deriveLifetimeFlow } from '@/lib/calendar-engine/derivers/lifetimeFlow'
 import { deriveLifetimePivots } from '@/lib/calendar-engine/derivers/lifetimePivots'
 import { buildLifeCurve, computeTransitAstroSeries } from '@/lib/calendar-engine/derivers/lifeCurve'
 import { currentManAge } from '@/lib/datetime/currentAge'
-import { isMinorAge, minorSafeText, sanitizeCrossEntry } from '@/lib/calendar-engine/minorSafe'
+import { isMinorAge, sanitizeCrossEntry } from '@/lib/calendar-engine/minorSafe'
 import { deriveMonthSummary } from '@/lib/calendar-engine/derivers/monthSummary'
 import { personSeed } from '@/lib/calendar-engine/derivers/personSeed'
 import { deriveLayeredScores } from '@/lib/calendar-engine/derivers/layeredScore'
-import { CALENDAR_BANDS } from '@/lib/calendar-engine/derivers/constants'
-import { computeDayPillarIndices } from '@/lib/saju/dayPillar'
 import { getMonthPillarForDate, getYearPillarForDate } from '@/lib/saju/datePillars'
-import { STEM_NAMES, BRANCH_NAMES } from '@/lib/saju/constants'
 import { getSibsinKo } from '@/lib/saju/cycleRelations'
 
-import {
-  toUser,
-  toLifetime,
-  toDecade,
-  toYear,
-  toMonth,
-  toDay,
-} from '@/components/calendar/adapters'
-import { buildHourCrossings } from '@/components/calendar/adapters/toHourCrossings'
-import { buildHourMoon } from '@/components/calendar/adapters/toHourMoon'
+import { toUser, toLifetime, toDecade, toYear, toMonth } from '@/components/calendar/adapters'
+import { reconcileCellOneLine } from '@/components/calendar/adapters/toDay'
 import { SIBSIN_EN } from '@/lib/saju/sibsinLabels'
 import { translateSignalLabel } from '@/lib/calendar-engine/derivers/signalI18n'
 import { PLANET_KO } from '@/components/calendar/adapters/shared'
 import { PROFECTION_THEMES } from '@/components/calendar/adapters/toYear'
 import { SIGN_KO } from '@/lib/astrology/signLabels'
+import { assembleDayTier } from './assembleDayTier'
+import { crossKeys, stripCrossPair, PLANET_EN_FROM_KO } from './crossPair'
 
 import type { NatalContext } from '@/lib/calendar-engine/context/types'
 import type { CalendarCell } from '@/lib/calendar-engine/types'
@@ -84,6 +75,14 @@ export interface AssembleTiersInput {
    * 기준. 미지정 시 호출 시점(new Date()). 프로덕션은 그대로, 테스트는 고정.
    */
   now?: Date
+  /**
+   * 빌드 범위 — 'month'(캘린더: 월/일만 표시)면 숨은 인생/10년/연 티어의
+   * 무거운 인생 곡선(외행성 트랜짓 ephemeris ~31회 + 90년 CPU 합성)을
+   * 건너뛴다. 티어 객체 자체는 여전히 조립(타입·/destiny 호환)하되 곡선만
+   * 빠진다 — lifetimeFlow 는 곡선 없이도 동작(기존 ephemeris 실패 폴백 경로와
+   * 동일)해 월 총평의 '타고난 결' intro 는 유지된다. 기본 'year'(전체 계산).
+   */
+  scope?: 'month' | 'year'
 }
 
 export interface AssembledTiers {
@@ -138,40 +137,6 @@ function pickElement(hanja: string, fallback: Record<string, FE>): FE {
   return fallback[hanja] ?? '목'
 }
 
-const SIG_KIND_TO_CAT: Record<string, string> = {
-  shinsal: 'saju/shinsal',
-  hyeongchung: 'saju/hyeongchung',
-  'pillar-sibsin': 'saju/pillar-sibsin',
-  'tonggeun-shift': 'saju/tonggeun-shift',
-  'saju-pattern': 'saju/saju-pattern',
-  jijanggan: 'saju/jijanggan',
-  'geokguk-status': 'saju/geokguk-status',
-  gongmang: 'saju/gongmang',
-  'applied-pattern': 'saju/applied-pattern',
-  transit: 'astro/transit',
-  eclipse: 'astro/eclipse',
-  progression: 'astro/progression',
-  'progressed-moon': 'astro/progressed-moon',
-  'solar-return': 'astro/solar-return',
-  'lunar-return': 'astro/lunar-return',
-  profection: 'astro/profection',
-  'zodiacal-releasing': 'astro/zodiacal-releasing',
-  lifecycle: 'astro/lifecycle',
-  electional: 'astro/electional',
-  'moon-phase': 'astro/moon-phase',
-  'void-of-course': 'astro/void-of-course',
-  'fixed-star': 'astro/fixed-star',
-  'arabic-part': 'astro/arabic-part',
-  'house-transit': 'astro/house-transit',
-  'angle-contact': 'astro/angle-contact',
-  midpoint: 'astro/midpoint',
-  asteroid: 'astro/asteroid',
-  'solar-arc': 'astro/solar-arc',
-  draconic: 'astro/draconic',
-  harmonic: 'astro/harmonic',
-  'cross-activation': 'cross/activation',
-}
-
 /** 동일 문구 중복 제거(순서 보존). monthly-layer 사유는 그 달 매일 동일 문자열로
  *  떠서, 셀을 가로질러 모으면 같은 줄이 반복된다 — body 기준 1회만 남긴다. */
 function dedupeByBody<T extends { body: string }>(rows: T[]): T[] {
@@ -183,27 +148,6 @@ function dedupeByBody<T extends { body: string }>(rows: T[]): T[] {
     out.push(r)
   }
   return out
-}
-
-/**
- * 다가오는 '큰 날' — upcoming(오늘 다음날~7일, 일점수) 중 '좋은 날'(score≥65)의
- * 최고점을 골라 D-day 로 라벨한다. 재방문 유인용(오늘만 보고 이탈하지 않게 다음
- * 방문 이유 제공). 조건 미달이면 null. 순수 함수 — 테스트 가능하게 분리.
- */
-export function pickNextBigDay(
-  upcoming: ReadonlyArray<{ date: string; score: number }>,
-  targetDayIso: string
-): { date: string; dDay: number; score: number } | null {
-  if (!upcoming.length) return null
-  const best = upcoming.reduce((a, b) => (b.score > a.score ? b : a))
-  // '좋은 날' 문턱은 SSOT(CALENDAR_BANDS.good)와 일치시킨다 — 예전엔 65 하드코딩이라
-  // 그리드는 초록(≥60)인데 "다가오는 큰 날"에선 빠지는 60~64 사각지대가 있었다(감사).
-  if (best.score < CALENDAR_BANDS.good) return null
-  const d0 = Date.parse(`${targetDayIso}T00:00:00Z`)
-  const d1 = Date.parse(`${best.date}T00:00:00Z`)
-  if (Number.isNaN(d0) || Number.isNaN(d1)) return null
-  const dDay = Math.round((d1 - d0) / 86_400_000)
-  return dDay >= 1 ? { date: best.date, dDay, score: best.score } : null
 }
 
 /**
@@ -231,36 +175,6 @@ function buildYearScoreByYear(
   return m
 }
 
-// cross-activation 페어 파서 — 연 셀(경량 캐시)은 evidence.detail 을 비우므로
-// detail.sajuKey/astroKey 가 없을 수 있다. 신호 name("편관 × 화성")은 항상 살아남아
-// 거기서 십신·행성을 뽑는다. (예전엔 detail 만 읽어 월교차 "() ↔" / 일교차 빈 ↔ 버그.)
-const PLANET_EN_FROM_KO: Record<string, string> = Object.fromEntries(
-  Object.entries(PLANET_KO).map(([en, ko]) => [ko, en])
-)
-function parseCrossName(name: string | undefined): { sajuKo: string; astroKo: string } {
-  const parts = (name ?? '').split('×').map((x) => x.trim())
-  return { sajuKo: parts[0] ?? '', astroKo: parts[1] ?? '' }
-}
-// 교차 페어 키 — 구조화 evidence.detail(sajuKey=KO 십신/신살, astroKey=영문 행성)이
-// 있으면 그걸 쓰고, 없으면(연 셀은 detail 을 비움) 표시 name 파싱으로 폴백. detail
-// 우선이 견고하다 — name 의 '×' 글리프/구분자/로케일 포맷 변경에 안 흔들린다.
-function crossKeys(s: {
-  name?: string
-  evidence?: { detail?: Record<string, unknown> | null } | null
-}): { sajuKo: string; astroKo: string } {
-  const d = s.evidence?.detail
-  const sajuKey = typeof d?.sajuKey === 'string' ? d.sajuKey : ''
-  const astroKey = typeof d?.astroKey === 'string' ? d.astroKey : ''
-  if (sajuKey && astroKey) {
-    return { sajuKo: sajuKey, astroKo: PLANET_KO[astroKey] ?? astroKey }
-  }
-  return parseCrossName(s.name)
-}
-// 매핑 의미문은 "편관 × 화성 — …" 로 시작 — 카드가 페어를 따로 보여주므로 머리 제거.
-function stripCrossPair(t: string): string {
-  return t.replace(/^[^—]*×[^—]*—\s*/, '')
-}
-
 export async function assembleTiers(args: AssembleTiersInput): Promise<AssembledTiers> {
   const {
     natal,
@@ -279,16 +193,34 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
     now,
   } = args
 
+  // 층별 점수 — 일/시는 일진, 월은 월운, 년은 세운, 10년은 대운 신호로만.
+  // 한 번만 계산해 아래 월/연 어댑터와 일 티어(assembleDayTier)가 공유한다 —
+  // 예전엔 두 어셈블러가 같은 cells 전수 스캔을 각자 반복했다(감사).
+  const layered = deriveLayeredScores(cells)
+
+  // ─── 일(日) 티어 — 분리 어셈블러로 *미리 발진* ───────────────────────────
+  // /api/calendar/day(월 그리드에서 고른 날짜)와 같은 코드 경로. 내부의
+  // 시진 달 ephemeris(12회)가 아래 lifeCurve·어댑터 작업과 겹쳐 돌도록 여기서
+  // 시작하고, 포커스 셀 톤 정합 직전에 await 한다.
+  const dayP = assembleDayTier({ natal, cells, lang, targetDayIso, focusDayCell, now, layered })
+
   // ─── 인생 굴곡 곡선 (사주 다층 + 실 외행성 트랜짓) ────────────────────────
   // 외행성은 느려 step=3 샘플 + 보간이면 envelope 보존(ephemeris 호출 ~31회).
   // 실패해도 곡선만 빠지고 나머지 티어는 정상. lifetimeFlow(단계 톤)·대운 1년운이
   // 이 곡선을 valence 출처로 쓰므로 *먼저* 빌드한다.
+  //
+  // scope='month'(캘린더 — 인생/10년/연 티어 숨김)면 통째로 건너뛴다: 이 블록이
+  // 캘린더 요청의 최대 낭비였다(감사 — 결과가 클라이언트에서 버려지는데 매 방문
+  // ephemeris ~31회 + 90년 합성 CPU). 곡선 없는 경로는 ephemeris 실패 폴백과
+  // 동일해 이미 프로덕션에서 검증된 분기다.
   let lifeCurve: ReturnType<typeof buildLifeCurve> = null
-  try {
-    const astroSeries = await computeTransitAstroSeries(natal, { span: 90, step: 3 })
-    lifeCurve = buildLifeCurve(natal, { now, span: 90, astroSeries })
-  } catch {
-    lifeCurve = null
+  if (args.scope !== 'month') {
+    try {
+      const astroSeries = await computeTransitAstroSeries(natal, { span: 90, step: 3 })
+      lifeCurve = buildLifeCurve(natal, { now, span: 90, astroSeries })
+    } catch {
+      lifeCurve = null
+    }
   }
 
   // ─── lifetimeFlow / lifetimePivots derivers ─────────────────────────────
@@ -300,24 +232,9 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
   // ─── yearly / month / day 슬라이스 ───────────────────────────────────────
   const monthPrefix = `${TARGET_YEAR}-${String(TARGET_MONTH).padStart(2, '0')}`
   const monthCells = cells.filter((c) => c.datetime.slice(0, 7) === monthPrefix)
-  // 연 cells 는 evidence 없이 캐시되므로, evidence 가 필요한 day tier 는
-  // focusDayCell(1일 evidence 빌드)을 우선 사용. 없으면 연 cells 의 해당 일로 폴백.
-  const yearDayCell = cells.find((c) => c.datetime.slice(0, 10) === targetDayIso) ?? cells[0]
-  const dayCell = focusDayCell ?? yearDayCell
-  // 시(時)별 달 정밀(12 시진 ephemeris)은 natal·targetDayIso 에만 의존하므로 여기서
-  // 미리 발진해, 아래 day-tier 어셈블과 겹쳐 돈다(끝에서 inline await 하면 12회
-  // round-trip 이 전체 어셈블 뒤에 직렬로 붙었다). line 934 에서 await.
-  const hourMoonP = buildHourMoon(targetDayIso, natal)
   const yearlySignals = cells.flatMap((c) => c.signals).filter((s) => s.layer === 'yearly')
 
-  // 층별 점수 — 일/시는 일진, 월은 월운, 년은 세운, 10년은 대운 신호로만.
-  const layered = deriveLayeredScores(cells)
-
-  // ─── iljin(일진) / woolun(월운) 60갑자 (KASI 절기 룩업) ───────────────────
-  const [focusY, focusM, focusD] = targetDayIso.split('-').map(Number)
-  const dayIdx = computeDayPillarIndices(focusY, focusM, focusD)
-  const iljinStem = STEM_NAMES[dayIdx.stemIndex]
-  const iljinBranch = BRANCH_NAMES[dayIdx.branchIndex]
+  // ─── woolun(월운) 60갑자 (KASI 절기 룩업) ─────────────────────────────────
   // 월운 기준 인스턴트는 *UTC* 로 만든다. tz-less `new Date('YYYY-MM-15T00:00:00')`
   // 는 서버 로컬로 해석돼 절입(節入) 근처에서 서버 시간대별로 60갑자가 갈렸다
   // (Honolulu↔Seoul ~19h 차). 15일이라 실제 플립은 드물지만 결정성 위반이라 고정.
@@ -753,14 +670,27 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
     if (r) cell.reason = r
   }
 
-  const dayAdapter = toDay({
-    cell: dayCell,
-    natal,
-    iljinStem,
-    iljinBranch,
-    favorScore: layered.daily.get(dayCell.datetime.slice(0, 10))?.score,
-    lang,
-  })
+  // ── 날짜별 "한 줄" — 일(日) 티어 oneLine 과 같은 소스(reconcileCellOneLine)를
+  //    각 calendar 셀에 실어, 월 리드아웃 문장이 줌인한 일 화면 첫 줄로 그대로
+  //    이어지게 한다("월은 예고편, 일은 본편"). 예전엔 두 화면이 다른 풀
+  //    (toneMeaningFor vs ONE_LINE_POOL)·다른 톤 산식을 써서 같은 날의 문장이
+  //    화면마다 달랐다(감사 잔여 불일치 #2).
+  const oneLineByDs = new Map<string, { oneLine: string; oneLineEn: string }>()
+  for (const c of monthCells) {
+    const iso = c.datetime.slice(0, 10)
+    const u = reconcileCellOneLine(c, layered.daily.get(iso)?.score)
+    oneLineByDs.set(c.datetime.slice(5, 10), { oneLine: u.oneLine, oneLineEn: u.oneLineEn })
+  }
+  for (const cell of month.calendar) {
+    const u = oneLineByDs.get(cell.ds)
+    if (u) {
+      cell.oneLine = u.oneLine
+      cell.oneLineEn = u.oneLineEn
+    }
+  }
+
+  // 일 티어 수확 — 맨 위에서 미리 발진해 둔 분리 어셈블러 결과.
+  const day = await dayP
 
   // ── 포커스(오늘) 셀 톤 정합 ──
   // 월 grid 의 셀 색은 *원점수 밴드*(60/35)인데, 일 카드 헤드라인은 toDay 가 화해한
@@ -769,7 +699,7 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
   // 포커스일(양쪽에 동시에 보이는 유일한 날)만 화해와 어긋나는 밴드 바를 중립화해
   // (mark→'focus': 바 없음, 오늘 링만) 두 화면의 톤을 일치시킨다. 비포커스일은
   // evidence 가 없어 화해 불가 — 그날로 다이브하면 그 셀이 포커스가 되어 동일 처리.
-  if (dayAdapter.dayTone?.tense || dayAdapter.dayTone?.bright) {
+  if (day.dayTone?.tense || day.dayTone?.bright) {
     const focusCell = month.calendar.find((c) => c.focus)
     if (
       focusCell &&
@@ -861,181 +791,16 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
     month.narrative = [{ tag: '이달 총평', body: summaryKo, bodyEn: summaryEn }, ...month.narrative]
   }
 
-  const advanced = natal.saju.analyses
-  const statusResult = advanced?.geokguk?.statusResult
-  const geokgukName = advanced?.geokguk?.primary ?? '미정'
-  // ── 일진 cell.signals → DestinySignal[] 풀세트 projection ──
-  // adapter 의 DestinypalDaySignal 은 id/weight/layer/source 를 버리는데 DayTier 의
-  // signal stream + FixedStarRow + ArabicLotRow 정렬·필터에 모두 필요.
-  type DSig = DestinyDay['allSignals'][number]
-  const allDaySignals: DSig[] = dayCell.signals.map((s) => {
-    const base = {
-      id: s.id,
-      cat: SIG_KIND_TO_CAT[s.kind] ?? `${s.source}/${s.kind}`,
-      label: s.name,
-      // 엔진이 EN 라벨을 별도 방출했으면(있을 때만) 보존 — DayTier 신호 스트림이
-      // EN 로케일에서 s.english 우선 사용(없으면 localizeLabel 폴백, KO 유지).
-      english: s.english,
-      polarity: s.polarity,
-      weight: s.weight,
-      kind: s.kind,
-      layer: s.layer,
-    }
-    if (s.source === 'astro') {
-      const planets = s.evidence?.planets ?? []
-      return {
-        ...base,
-        source: 'astro' as const,
-        body: planets[0],
-        aspect: s.evidence?.aspectType,
-        target: planets[1] ? `본명 ${planets[1]}` : undefined,
-      }
-    }
-    return { ...base, source: 'saju' as const }
-  }) as DSig[]
-  const dayTransits = allDaySignals.filter((s) => s.kind === 'transit') as DestinyDay['transits']
-  const daySajuSignals = allDaySignals.filter(
-    (s) => s.kind !== 'transit' && s.kind !== 'cross-activation'
-  ) as DestinyDay['signals']
-  const dayCrossSignals = allDaySignals.filter(
-    (s) => s.kind === 'cross-activation'
-  ) as DestinyDay['crossSignals']
-  const dayAppliedPatterns: DestinyDay['appliedPatterns'] = dayCell.signals
-    .filter((s) => s.kind === 'applied-pattern')
-    .map((s) => ({
-      id: s.id,
-      name: s.name,
-      korean:
-        typeof s.evidence?.detail?.korean === 'string'
-          ? (s.evidence.detail.korean as string)
-          : s.name,
-      polarity: s.polarity,
-      weight: s.weight,
-      activeAxes: Array.isArray(s.evidence?.detail?.activeAxes)
-        ? (s.evidence!.detail!.activeAxes as string[])
-        : [],
-      rule:
-        typeof s.evidence?.detail?.rule === 'string' ? (s.evidence!.detail!.rule as string) : '',
-    }))
-  // name("편관 × 화성")에서 파싱 — detail.sajuName/astroName 은 존재하지 않는 필드라
-  // 양쪽이 늘 빈 ↔ 로 떴다. name 파싱 + korean/english 로 교정. 같은 페어가 여러
-  // 층(daily/monthly…)에서 잡혀 중복되므로 페어 기준 1개(가장 센 것)만 남긴다.
-  const dayCrossByPair = new Map<string, DestinyDay['crossActivations'][number]>()
-  for (const s of dayCell.signals) {
-    if (s.kind !== 'cross-activation') continue
-    // 포커스일 셀은 evidence.detail 이 살아 있어 구조화 키를 직접 쓴다(견고).
-    const { sajuKo, astroKo } = crossKeys(s)
-    if (!sajuKo || !astroKo) continue
-    const key = `${sajuKo}|${astroKo}`
-    const prev = dayCrossByPair.get(key)
-    if (prev && Math.abs(prev.polarity) >= Math.abs(s.polarity)) continue
-    const ko = lang === 'ko'
-    dayCrossByPair.set(key, {
-      id: s.id,
-      sajuSide: ko ? sajuKo : (SIBSIN_EN[sajuKo] ?? translateSignalLabel(sajuKo, 'en')),
-      astroSide: ko ? astroKo : (PLANET_EN_FROM_KO[astroKo] ?? astroKo),
-      sajuKo, // raw — 분야 라우팅이 로케일에 흔들리지 않게(EN 에선 영문이라 키워드 매칭 실패).
-      astroKo,
-      // 양쪽 로케일 보관 — DayTier 가 클라이언트 로케일로 고른다(토글 불일치 방지).
-      meaning: stripCrossPair(s.korean ?? ''),
-      meaningEn: stripCrossPair(s.english ?? ''),
-      polarity: s.polarity,
-      weight: s.weight,
-    })
-  }
-  const dayCrossActivations: DestinyDay['crossActivations'] = [...dayCrossByPair.values()].sort(
-    (a, b) => Math.abs(b.polarity) - Math.abs(a.polarity)
-  )
-  // ── 타이밍 컨텍스트 (이달 흐름 추이 + 다가오는 7일) ──
-  // 이달 일별 점수(추이선) — monthCells 순서대로, layered.daily 의 정규화 점수.
-  const dayMonthScores = monthCells.map((c) => {
-    const iso = c.datetime.slice(0, 10)
-    return {
-      day: Number(iso.slice(8, 10)),
-      score: Math.round(layered.daily.get(iso)?.score ?? 50),
-      today: iso === targetDayIso,
-    }
-  })
-  // 다가오는 7일 — 오늘 다음날부터. cells 범위 밖(월말 등)은 자연히 짧아진다.
-  const cellByIso = new Map(cells.map((c) => [c.datetime.slice(0, 10), c]))
-  const upcoming: Array<{ date: string; score: number }> = []
-  for (let i = 1; i <= 7; i++) {
-    const d = new Date(`${targetDayIso}T00:00:00Z`)
-    d.setUTCDate(d.getUTCDate() + i)
-    const iso = d.toISOString().slice(0, 10)
-    if (!cellByIso.has(iso)) continue
-    upcoming.push({ date: iso, score: Math.round(layered.daily.get(iso)?.score ?? 50) })
-  }
-  // 다가오는 큰 날 — 앞으로 7일 중 가장 센 '좋은 날'(≥65). 있으면 "6월 19일 (D-3)"
-  // 처럼 재방문 유인을 준다(오늘 답만 보고 끝나지 않게 다음 방문 이유 제공). 데이터는
-  // 이미 계산된 upcoming(일점수)에서 뽑으므로 새 계산·엔진 수정 없음.
-  const nextBigDay = pickNextBigDay(upcoming, targetDayIso)
-
-  const day: DestinyDay = {
-    date: dayAdapter.date,
-    dateKo: dayAdapter.dateKo,
-    iljin: dayAdapter.iljin,
-    iljinSibsin: dayAdapter.iljinSibsin,
-    // 본명 일간 — 그날 십신의 기준점. 화면 맨 위 기준선에 노출.
-    dayMaster: { hanja: user.ilgan.hanja, kr: user.ilgan.kr, en: user.ilgan.en },
-    seed,
-    score: dayAdapter.score,
-    oneLine: dayAdapter.oneLine,
-    oneLineEn: dayAdapter.oneLineEn,
-    totalSignals: dayAdapter.totalSignals,
-    signals: daySajuSignals,
-    transits: dayTransits,
-    crossSignals: dayCrossSignals,
-    allSignals: allDaySignals,
-    jijanggan: dayAdapter.jijanggan,
-    geokgukStatus: {
-      name: geokgukName,
-      status: statusResult?.status ?? '반성반파',
-      factors: statusResult?.factors ?? { positive: [], negative: [] },
-      description: dayAdapter.geokgukStatus ?? '',
-    },
-    gongmang: {
-      natalBranches: dayAdapter.gongmang.natalBranches,
-      activeBranches: dayAdapter.gongmang.activeBranches,
-      activeAxes: dayAdapter.gongmang.activeAxes,
-      note: dayAdapter.gongmang.note,
-    },
-    appliedPatterns: dayAppliedPatterns,
-    crossActivations: dayCrossActivations,
-    shinsalActive: dayAdapter.shinsalActive,
-    narrative: dayAdapter.narrative,
-    topReasons: dayAdapter.topReasons,
-    topReasonsEn: dayAdapter.topReasonsEn,
-    cautions: dayAdapter.cautions,
-    cautionsEn: dayAdapter.cautionsEn,
-    // 출력 화해 verdict — toDay 가 산출한 단일 권위. 빠뜨리면 DayTier 가 중립
-    // fallback 으로 떨어져 tense/bright 화해가 프로덕션에서 죽는다(반드시 전달).
-    dayTone: dayAdapter.dayTone,
-    twelveStageMatrix: dayAdapter.twelveStageMatrix,
-    monthScores: dayMonthScores,
-    upcoming,
-    nextBigDay,
-    hourCrossings: buildHourCrossings(dayCell, targetDayIso, natal.astro.location),
-    // 시(時)별 달 정밀 — 그날 12 시진 달을 재계산해 달×본명 어스펙트 절정 시각.
-    // (위에서 미리 발진한 promise 를 여기서 수확.)
-    hourMoon: await hourMoonP,
-  }
-
   const ilganHanja = user.ilgan.hanja || '辛'
 
   // 미성년 안전(감사 C3) — cross/시간 서술의 성인 도메인(결혼·공직·투자·삼각관계
   // 등)을 연령 적합 표현으로 치환. 만 나이(위에서 산출한 manAge)로 게이트 — 연-차가
-  // 아닌 생일 통과 반영(C7 off-by-one 회피).
+  // 아닌 생일 통과 반영(C7 off-by-one 회피). day 쪽은 assembleDayTier 가 자체 처리.
   if (isMinorAge(manAge)) {
     const rows = (xs: unknown): Array<Record<string, unknown>> =>
       (xs as Array<Record<string, unknown>>) ?? []
     for (const c of rows(year.crossings)) sanitizeCrossEntry(c, 'detail', 'detailEn')
     for (const c of rows(month.crossActivations)) sanitizeCrossEntry(c, 'meaning', 'meaningEn')
-    for (const c of rows(day.crossActivations)) sanitizeCrossEntry(c, 'meaning', 'meaningEn')
-    for (const h of rows(day.hourCrossings)) {
-      if (typeof h.narrative === 'string') h.narrative = minorSafeText(h.narrative, 'ko')
-      if (typeof h.narrativeEn === 'string') h.narrativeEn = minorSafeText(h.narrativeEn, 'en')
-    }
   }
 
   return {

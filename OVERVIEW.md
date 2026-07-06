@@ -39,7 +39,7 @@ Main entry points:
 - Saju core: `src/lib/saju/saju.ts` (`calculateSajuData`)
 - Astrology core: `src/lib/astrology/foundation/astrologyService.ts` (`calculateNatalChart`)
 - Deterministic facts: `src/lib/destiny/sajuFacts.ts` (`collectSajuFacts`), `src/lib/destiny/astroFacts.ts` (`collectAstroFacts`)
-- Saju ↔ astrology fusion: `src/lib/cross/crossInterpret.ts` (`lookupCross`, `crossMeaning`, `rankActiveCrosses`)
+- Saju ↔ astrology fusion: `src/lib/calendar-engine/extractors/cross-activation.ts` over `src/lib/calendar-engine/data/saju-astro-mapping.ts`
 - Calendar engine: `src/lib/calendar-engine/index.ts` (`buildCalendar`) over `src/lib/calendar-engine/context/build.ts` (`buildNatalContext`)
 - Destiny counselor context: `src/lib/destiny/counselorContext.ts` (`buildDestinyContext`), cached by `src/lib/destiny/counselorContextCache.ts` (`ensureCounselorContext`)
 - Compatibility report: `src/lib/compatibility/compatReport.ts` (`buildCompatReport`)

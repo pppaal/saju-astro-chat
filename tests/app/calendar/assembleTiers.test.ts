@@ -12,11 +12,8 @@ import { describe, it, expect, beforeAll } from 'vitest'
 import { buildNatalContext } from '@/lib/calendar-engine/context/build'
 import { buildCalendar } from '@/lib/calendar-engine'
 import { getTwelveStagesForPillars } from '@/lib/saju/shinsal'
-import {
-  assembleTiers,
-  pickNextBigDay,
-  type AssembleTiersInput,
-} from '@/app/calendar/assembleTiers'
+import { assembleTiers, type AssembleTiersInput } from '@/app/calendar/assembleTiers'
+import { pickNextBigDay } from '@/app/calendar/assembleDayTier'
 import { getYearPillarForDate } from '@/lib/saju/datePillars'
 import type { NatalContext } from '@/lib/calendar-engine/context/types'
 import type { CalendarCell } from '@/lib/calendar-engine/types'
@@ -335,5 +332,52 @@ describe('assembleTiers — 세운 입춘 경계 정합(SSOT)', () => {
     const out = await assembleTiers(baseInput())
     expect(out.year.sewoonGz.hanja).toBe('甲辰')
     expect(out.decade.sewoonNow.gz.hanja).toBe('甲辰')
+  })
+})
+
+describe('assembleTiers — scope=month (캘린더: 인생 곡선 생략)', () => {
+  it('month 스코프도 5티어 shape 을 전부 반환한다(타입/destiny 호환)', async () => {
+    const out = await assembleTiers(baseInput({ scope: 'month' }))
+    expect(out.lifetime).toBeDefined()
+    expect(out.decade).toBeDefined()
+    expect(out.year).toBeDefined()
+    expect(out.month).toBeDefined()
+    expect(out.day).toBeDefined()
+  })
+
+  it('월/일 핵심 출력은 full 스코프와 동일하다(곡선은 상위 티어 전용)', async () => {
+    const [full, monthOnly] = await Promise.all([
+      assembleTiers(baseInput()),
+      assembleTiers(baseInput({ scope: 'month' })),
+    ])
+    // 일 티어 — 점수·한 줄·일진이 곡선 유무와 무관.
+    expect(monthOnly.day.score).toBe(full.day.score)
+    expect(monthOnly.day.oneLine).toBe(full.day.oneLine)
+    expect(monthOnly.day.iljin).toEqual(full.day.iljin)
+    // 월 그리드 — 셀 mark/점수 동일.
+    expect(monthOnly.month.calendar.map((c) => c.mark)).toEqual(
+      full.month.calendar.map((c) => c.mark)
+    )
+    expect(monthOnly.month.goodDays).toEqual(full.month.goodDays)
+    // 월 내러티브는 여전히 존재(타고난 결 intro 는 곡선 없이도 파생).
+    expect(monthOnly.month.narrative.length).toBeGreaterThan(0)
+  })
+})
+
+describe('assembleTiers — 월 리드아웃 ↔ 일 티어 문장 통일', () => {
+  it('월 그리드 셀의 oneLine 이 일 티어 oneLine 과 동일하다(예고편=본편)', async () => {
+    const out = await assembleTiers(baseInput())
+    const focusDs = out.day.date.slice(5) // 'MM-DD'
+    const cell = out.month.calendar.find((c) => c.ds === focusDs)
+    expect(cell?.oneLine).toBeTruthy()
+    expect(cell?.oneLine).toBe(out.day.oneLine)
+    expect(cell?.oneLineEn).toBe(out.day.oneLineEn)
+  })
+
+  it('모든 달력 셀에 화해된 한 줄이 실린다', async () => {
+    const out = await assembleTiers(baseInput())
+    for (const cell of out.month.calendar) {
+      expect(cell.oneLine, `day ${cell.d} missing oneLine`).toBeTruthy()
+    }
   })
 })

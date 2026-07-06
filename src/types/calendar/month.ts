@@ -115,6 +115,13 @@ export interface DestinyCalendarCell {
     meaningEn: string
     polarity: number
   }
+  /**
+   * 그날의 화해된 한 줄 — 일(日) 티어의 oneLine 과 *같은 소스*(월 셀 신호 +
+   * layered.daily 점수 → reconcile → ONE_LINE_POOL). 월 리드아웃이 이걸 쓰면
+   * "월은 예고편, 일은 본편"으로 두 화면 문장이 그대로 이어진다.
+   */
+  oneLine?: string
+  oneLineEn?: string
 }
 
 // ============================================================================
