@@ -21,6 +21,8 @@ import s from './IntegratedReport.module.css'
 export type Lang = 'ko' | 'en'
 
 export interface CrossRow {
+  /** 의미 키(identity/romance/wealth…) — 지역화 전 원본. clash 선택 우선순위용(옵셔널). */
+  key?: string
   category: string
   tone: 'resonant' | 'complement' | 'tension' | 'neutral'
   reason: string
@@ -31,7 +33,7 @@ export interface CrossRow {
 }
 
 export const UI: Record<string, BiLabel> = {
-  eyebrow: { ko: '동양 사주 + 서양 별자리', en: 'Saju + Astrology' },
+  eyebrow: { ko: '동양 사주 + 서양 별자리', en: 'Korean Astrology × Zodiac' },
   titlePre: { ko: '통합', en: 'Your' },
   titleAccent: { ko: '리포트', en: 'Report' },
   titlePost: { ko: '', en: '' },

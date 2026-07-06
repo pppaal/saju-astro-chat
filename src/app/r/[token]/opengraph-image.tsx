@@ -188,7 +188,7 @@ export default async function Image({ params }: { params: Promise<{ token: strin
       ? clamp(reading.rangeLabel, 32)
       : isKo
         ? '사주 × 별자리'
-        : 'Saju × Astrology'
+        : 'Korean Astrology × Zodiac'
     const cta = isKo
       ? `내 인생 곡선도 무료로 · ${displayDomain}`
       : `See your life curve free · ${displayDomain}`
@@ -350,8 +350,8 @@ export default async function Image({ params }: { params: Promise<{ token: strin
       rc >= 2
         ? isKo
           ? `🔮 사주 × 별자리가 ${rc}가지에서 일치`
-          : `🔮 Saju × astrology agree on ${rc} things`
-        : `${reading.emoji}  ${isKo ? '사주 × 별자리 유형' : 'SAJU × ASTROLOGY TYPE'}`
+          : `🔮 Korean astrology × zodiac agree on ${rc} things`
+        : `${reading.emoji}  ${isKo ? '사주 × 별자리 유형' : 'KOREAN ASTROLOGY × ZODIAC'}`
     headline = clamp(reading.typeName, 40)
     // 엇갈림(clash)이 있으면 그게 가장 차트-고유한 클릭 훅 — oneLiner 보다 우선.
     context = reading.clash

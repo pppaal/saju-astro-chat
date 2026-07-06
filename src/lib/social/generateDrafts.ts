@@ -16,6 +16,7 @@ import { computeDayPillarIndices } from '@/lib/saju/dayPillar'
 import { STEMS, BRANCHES } from '@/lib/saju/constants'
 import { callClaude, extractJsonObject, isClaudeAvailable } from '@/lib/llm/claude'
 import { siteBaseUrl } from '@/lib/tarot/shareLink'
+import { socialCardImageUrl } from './cardImageUrl'
 import { logger } from '@/lib/logger'
 import {
   SOCIAL_CATEGORIES,
@@ -48,7 +49,12 @@ interface Subject {
   /** 타로만 이미지 있음. */
   image?: string
   isReversed?: boolean
+  /** 카드 배경 글리프(한자/간지) — 버티컬 정체성을 시각화하는 워터마크. */
+  glyph?: string
 }
+
+// 오행(한글) → 한자. 카드 글리프·강조에 쓴다.
+const ELEMENT_HANJA: Record<string, string> = { 목: '木', 화: '火', 토: '土', 금: '金', 수: '水' }
 
 // 타로 — 기존 "오늘의 카드" 추첨 그대로 (데일리 타로와 같은 덱/역방향 확률).
 // 시드는 구버전과 동일한 'social:${date}' 를 유지 — 같은 날 재생성해도 카드가
@@ -105,6 +111,7 @@ function sajuSubject(date: string): Subject {
   return {
     nameKo: `오늘의 일진 ${ganzhiKo}일 (${ganzhiHanja})`,
     nameEn: `Day pillar ${ganzhiHanja}`,
+    glyph: ganzhiHanja,
     keywordsKo: [
       `일간 ${STEM_HANGUL[stemIndex]} (${stem.element}·${stem.yin_yang})`,
       `일지 ${BRANCH_HANGUL[branchIndex]} (${branch.element}·${animal}띠 기운)`,
@@ -150,6 +157,7 @@ function astrologySubject(date: string): Subject {
   return {
     nameKo: `오늘의 별자리 스포트라이트: ${sign.ko}`,
     nameEn: `Sign spotlight: ${sign.en}`,
+    glyph: '星',
     keywordsKo: [sign.ko, theme.ko, '출생차트', '트랜짓'],
     keywordsEn: [sign.en, theme.en, 'natal chart', 'transits'],
   }
@@ -215,6 +223,7 @@ function compatibilitySubject(date: string): Subject {
   return {
     nameKo: theme.ko,
     nameEn: theme.en,
+    glyph: '緣',
     keywordsKo: ['궁합', '사주 커플 분석', '오행 상성'],
     keywordsEn: ['compatibility', 'synastry', 'five elements'],
   }
@@ -255,6 +264,7 @@ function calendarSubject(date: string): Subject {
   return {
     nameKo: `오늘(${ganzhiKo}일)은 ${angle.ko}? — ${stem.element}(${ELEMENT_EN[stem.element]}) 기운`,
     nameEn: `Today (${stem.name}${BRANCHES[branchIndex].name}): ${angle.en}`,
+    glyph: ELEMENT_HANJA[stem.element] || '運',
     keywordsKo: [
       `오늘은 ${stem.element} 기운이 ${timing} 날`,
       `일진 ${ganzhiKo}`,
@@ -389,10 +399,10 @@ function buildPrompt(
       '  - Add one line that makes the reader think "I have to send this to ___" (a designed share trigger).',
       '  - End with one kind engagement prompt (e.g., "drop your birth month below — i\'ll reply to a few").',
       '  - Keep the Threads caption under 420 chars (excluding hashtags); short posts win.',
-      '  - Saju/eastern-calendar angles are a fresh hook for western readers — lean into "your western sign says X, your eastern chart says Y" when it fits.',
+      '  - Frame it as "Korean astrology" (rides the K-wave; instantly graspable to western readers who don\'t know "Saju") crossed with their familiar zodiac — lean into "your western sign says X, your Korean chart says Y" when it fits.',
       '- YouTube: a Shorts script (15-25s, hook -> body -> CTA).',
       `- CTA: Instagram/YouTube may include "${ctaUrl} (free, no sign-up)". Threads: NO URL in the body — nudge to the link in bio.`,
-      '- Hashtags: Instagram 5-8, Threads 0-1 only (tag-stuffing reads as spam), YouTube #Shorts.',
+      '- Hashtags: Instagram 5-8 (always include #koreanastrology + 1-2 zodiac/astrology tags for discovery), Threads 0-1 only (tag-stuffing reads as spam), YouTube #Shorts.',
       'Output ONLY this JSON:',
       '{"hook":"shared one-line hook",',
       '"instagram":{"caption":"aesthetic caption (2-4 sentences)","hashtags":["#tarot"]},',
@@ -480,7 +490,17 @@ async function generateOne(
     locale,
     category,
     cardName: locale === 'ko' ? subject.nameKo : subject.nameEn,
-    cardImage: subject.image || '',
+    // 타로는 카드 아트를 그대로, 나머지 버티컬은 후크를 박은 브랜디드 카드를
+    // 서버사이드 생성해 싣는다 → 전 발행 비주얼화 + Instagram(이미지 필수) 오픈.
+    cardImage:
+      subject.image ||
+      socialCardImageUrl({
+        category,
+        title: locale === 'ko' ? subject.nameKo : subject.nameEn,
+        hook: (parsed.hook || '').trim() || (locale === 'ko' ? subject.nameKo : subject.nameEn),
+        locale,
+        glyph: subject.glyph,
+      }),
     isReversed: subject.isReversed ?? false,
     hook: (parsed.hook || '').trim(),
     variants,

@@ -183,6 +183,9 @@ export interface ReportGeokgukMeta {
 export interface ReportDataExtras {
   geokgukMeta?: ReportGeokgukMeta
   sibsinCategoryCount?: Record<string, number>
+  /** 십신 10종 개수(비견/겁재/…/정인) — 바이럴 헤드라인의 "주도 십성"을 일지
+   *  (배우자궁)가 아니라 명식 전체 최빈값으로 뽑기 위해 전달(C1). */
+  sibsinCount?: Record<string, number>
   /** 만 14세 미만 — §01/§02 연애 슬롯을 연령 맞춤 문구로 reframe하고
    *  §05 교차의 연애·재물 축을 생략한다. */
   isMinor?: boolean
@@ -265,6 +268,11 @@ export function natalToReportData(
   // 상태를 일간 강약(S.strength)이 아니라 실제 카테고리 개수로 산출하기 위해 전달.
   const sibsinCategoryCount: Record<string, number> | undefined = adv.sibsin?.categoryCount
     ? { ...adv.sibsin.categoryCount }
+    : undefined
+  // 십신 10종 개수 — 헤드라인 주도 십성 산출용(pickHeadlineSibsin). 일지 대신
+  // 명식 전체 최빈값을 써야 "완전 나" 한 줄이 정체를 대표한다(C1).
+  const sibsinCount: Record<string, number> | undefined = adv.sibsin?.count
+    ? { ...adv.sibsin.count }
     : undefined
 
   const date = `${String(inp.year).padStart(4, '0')}-${String(inp.month).padStart(2, '0')}-${String(inp.date).padStart(2, '0')}`
@@ -493,6 +501,7 @@ export function natalToReportData(
     },
     geokgukMeta,
     sibsinCategoryCount,
+    sibsinCount,
     isMinor,
   }
 }
@@ -515,6 +524,8 @@ const PILLAR_EN: Record<string, string> = {
 
 // ── 섹션 5: natalCross 교차 → 카드 rows ──────────────────────────────────
 export interface CrossRowOut {
+  /** 의미 키(identity/romance/wealth…) — 지역화 전 원본. clash 선택 우선순위에 쓴다. */
+  key: string
   category: string
   tone: CrossVerdict['tone']
   reason: string
@@ -615,7 +626,8 @@ export function buildCrossRows(
   )
   const dayBranchCombine = rels.some(
     (r: any) =>
-      /지지(육합|삼합|방합|반합)/.test(String(r.kind ?? r.type)) && (r.pillars ?? []).includes('day')
+      /지지(육합|삼합|방합|반합)/.test(String(r.kind ?? r.type)) &&
+      (r.pillars ?? []).includes('day')
   )
   const dayShinsal = (S.natalShinsal ?? [])
     .filter((h: any) => Array.isArray(h.pillars) && h.pillars.includes('day'))
@@ -781,6 +793,7 @@ export function buildCrossRows(
   const rows = visibleItems
     .filter((it): it is [keyof typeof CAT, CrossVerdict] => !!it[1])
     .map(([key, v]) => ({
+      key,
       category: CAT[key][lang],
       tone: v.tone,
       reason: v.reason[lang],

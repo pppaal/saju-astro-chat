@@ -12,6 +12,7 @@ import { natalToReportData, buildCrossRows } from '@/components/report/integrate
 import { IntegratedReport } from '@/components/report/integrated/IntegratedReport'
 import CounselorCTA from '@/components/report/CounselorCTA'
 import ReferralInviteButton from '@/components/referral/ReferralInviteButton'
+import ReportInviteTracker from '@/components/report/integrated/viral/ReportInviteTracker'
 import BirthGate from '@/components/birth/BirthGate'
 import { getServerLocale } from '@/components/seo/SEO'
 import { cookies } from 'next/headers'
@@ -47,7 +48,14 @@ export default async function IntegratedReportPage({
   // 입력 게이트를 보여준다. localStorage 에 저장된 생일이 있으면 클라이언트가
   // 자동으로 ?date=... 를 붙여 다시 연다.
   if (!one(sp.date)) {
-    return <BirthGate base="/integrated-report" locale={lang} />
+    // 초대 랜딩 계측 — 생일 입력 전 단계에서도 ?invite= 를 잡아 플래그를 저장해,
+    // 게이트→결과 네비게이션을 넘어 전환까지 귀속되게 한다.
+    return (
+      <>
+        <ReportInviteTracker hasResult={false} />
+        <BirthGate base="/integrated-report" locale={lang} />
+      </>
+    )
   }
   const birthDate = one(sp.date) ?? '1992-03-15'
   // 출생시각 미상 — ?time= 없으면 정오(12:00)로 차트 계산(달 오차 최소화)하되,
@@ -111,6 +119,8 @@ export default async function IntegratedReportPage({
 
   return (
     <>
+      {/* 결과 렌더 — 초대에서 온 흐름이면 invite_converted 를 1회 쏜다(K 계산). */}
+      <ReportInviteTracker hasResult />
       <IntegratedReport data={data} cross={cross} lang={lang} />
       <CounselorCTA
         lang={lang}

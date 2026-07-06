@@ -45,6 +45,8 @@ vi.mock('@/lib/telemetry', () => ({
 vi.mock('@/lib/metrics', () => ({
   recordCounter: vi.fn(),
   recordTiming: vi.fn(),
+  // 바이럴 K 리드아웃이 funnel.* 카운터를 읽는다 — 빈 스냅샷으로 목킹.
+  getMetricsSnapshot: vi.fn(() => ({ counters: [], gauges: [], timings: [] })),
 }))
 
 vi.mock('@/lib/auth/publicToken', () => ({
@@ -103,6 +105,7 @@ import { rateLimit } from '@/lib/rateLimit'
 import { prisma } from '@/lib/db/prisma'
 import { isAdminUser } from '@/lib/auth/admin'
 import { logger } from '@/lib/logger'
+import { getMetricsSnapshot } from '@/lib/metrics'
 
 // ===========================================================================
 // Helpers
@@ -549,6 +552,51 @@ describe('GET /api/admin/metrics/funnel', () => {
         expect(prisma.user.count).toHaveBeenCalled()
       }
     )
+  })
+
+  // =========================================================================
+  // Viral K readout (funnel.* 카운터 → K + 단계 전환율)
+  // =========================================================================
+  describe('Viral K readout', () => {
+    beforeEach(() => setupHappyPath())
+
+    const counter = (name: string, value: number) => ({ name, labels: {}, value })
+
+    it('카운터에서 리포트 K + 단계 전환율을 계산한다', async () => {
+      vi.mocked(getMetricsSnapshot).mockReturnValueOnce({
+        counters: [
+          counter('funnel.integrated_report.viewed', 100),
+          counter('funnel.integrated_report.share_clicked', 40),
+          counter('funnel.integrated_report.invite_landed', 20),
+          counter('funnel.integrated_report.invite_converted', 10),
+        ],
+        gauges: [],
+        timings: [],
+      } as never)
+      const data = (await (await GET(createRequest())).json()).data
+      expect(data.viral.report).toMatchObject({
+        viewed: 100,
+        shareClicked: 40,
+        inviteLanded: 20,
+        inviteConverted: 10,
+        shareRate: 0.4, // 40/100
+        landRate: 0.5, // 20/40
+        convertRate: 0.5, // 10/20
+        k: 0.1, // 10/100
+      })
+    })
+
+    it('카운터가 없으면 0 으로 안전하게(0 나눗셈 방지)', async () => {
+      vi.mocked(getMetricsSnapshot).mockReturnValueOnce({
+        counters: [],
+        gauges: [],
+        timings: [],
+      } as never)
+      const data = (await (await GET(createRequest())).json()).data
+      expect(data.viral.report.k).toBe(0)
+      expect(data.viral.compat.k).toBe(0)
+      expect(data.viral.note).toContain('per-instance')
+    })
   })
 
   // =========================================================================

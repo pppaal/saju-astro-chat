@@ -481,6 +481,11 @@ export default function FreeCompatibilityPage() {
             }
             onReset={() => {
               setReport(null)
+              // 재짝짓기(바이럴 K 배수) — "나"는 그대로 두고 상대만 비워, 두 번째
+              // 사람과 원탭으로 또 본다(내 생일 재입력 마찰 제거). 초대로 들어왔으면
+              // 내가 personB(상대=초대자=A), 아니면 내가 personA.
+              if (cameFromInviteRef.current) setPersonA(emptyPerson())
+              else setPersonB(emptyPerson())
               setPhase('input')
             }}
           />
@@ -902,7 +907,7 @@ function ResultView({
       </div>
 
       <button type="button" onClick={onReset} className={s.resetBtn}>
-        {isKo ? '다른 사람과 다시 보기' : 'Try another pair'}
+        {isKo ? '나로 다른 사람이랑 또 보기' : 'Match me with someone else'}
       </button>
     </div>
   )

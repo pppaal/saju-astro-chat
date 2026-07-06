@@ -196,9 +196,16 @@ export function evalNeeds(
     sufKo += ` 계절로 보면 ${climateKo} 달에 태어나 ${EL_KO[johuEl]} 기운이 특히 절실해요 — 그게 활기의 스위치예요.`
     sufEn += ` By season, born in a ${johu?.climateEn ?? ''} month, you especially need ${EL_EN[johuEl]} — it's your switch for vitality.`
   }
+  // 교차 그림/바이럴 clash 용 서술자 — 사주가 채우라는 기운 ↔ 달이 끌리는 곳.
+  // identity·temperament 외에 clash 후보 축을 넓혀 '동·서양 엇갈림' 훅이 사람마다
+  // 다른 영역(욕망)으로도 표면화되게 한다(친구끼리 clash 겹침 완화). 달이 공기
+  // 별자리면 라벨/결을 '공기'로 표기(木 근사 혼동 방지).
+  const moonLabel = signElementLabel(moonSign) ?? { ko: EL_KO[moon], en: EL_EN[moon] }
+  const left = { ko: `${EL_KO[need]} · ${tNeed.ko}`, en: `${EL_EN[need]} · ${tNeed.en}` }
+  const right = { ko: `${moonLabel.ko} · ${tCrave.ko}`, en: `${moonLabel.en} · ${tCrave.en}` }
   const out = sufKo
-    ? { ...base, reason: { ko: base.reason.ko + sufKo, en: base.reason.en + sufEn } }
-    : base
+    ? { ...base, left, right, reason: { ko: base.reason.ko + sufKo, en: base.reason.en + sufEn } }
+    : { ...base, left, right }
   // 달이 공기 별자리면 moon 은 wood 근사값이라, '필요와 끌림이 같은 결' 판정이
   // air→木 근사에서 나온 거짓 수렴일 수 있다 → 헤지(ENGINE-AUDIT).
   return isAirSign(moonSign) ? withHedge(out, AIR_JUDGE_HEDGE) : out

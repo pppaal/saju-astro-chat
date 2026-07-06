@@ -24,7 +24,7 @@ export default function ViralTopCard({ summary, lang, action }: ViralTopCardProp
       <div className={s.aura} aria-hidden />
       <div className={s.inner}>
         <span className={s.eyebrow}>
-          {ko ? '나의 사주 × 별자리 유형' : 'My Saju × Astrology type'}
+          {ko ? '나의 사주 × 별자리 유형' : 'My Korean Astrology × Zodiac type'}
         </span>
 
         <div className={s.medallion}>

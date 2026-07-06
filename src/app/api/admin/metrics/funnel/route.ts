@@ -16,7 +16,64 @@ import {
 import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/logger'
 import { realUserWhere } from '@/lib/admin/realUser'
+import { getMetricsSnapshot } from '@/lib/metrics/index'
 import { DashboardTimeRangeSchema, type DashboardTimeRange } from '@/lib/metrics/schema'
+
+/**
+ * 바이럴 K(바이럴 계수) 리드아웃 — funnel.* 인메모리 카운터에서 계산.
+ * K = 원참여자 1명이 만들어내는 신규 완주자 수(= invite_converted / 원노출).
+ * K ≥ 1 이면 자가증식(바이럴). 단계 전환율도 같이 노출해 어디서 새는지 본다.
+ *
+ * 주의: recordCounter 는 프로세스-로컬 인메모리라 배포·재시작으로 리셋되고
+ * 멀티 인스턴스에선 인스턴스별 값이다(교차 합산은 Prometheus 스크랩이 SSOT).
+ * 따라서 여기 K 는 "이 인스턴스의 재시작 이후" 방향값 — 절대 총량 아님.
+ */
+function readViralFunnel(): Record<string, unknown> {
+  const counters = getMetricsSnapshot().counters as Array<{ name: string; value: number }>
+  const sum = (event: string): number =>
+    counters.filter((c) => c.name === `funnel.${event}`).reduce((a, c) => a + (c.value || 0), 0)
+  const ratio = (num: number, den: number): number =>
+    den > 0 ? Math.round((num / den) * 1000) / 1000 : 0
+
+  // 리포트 루프: 자기 리포트 노출 → 공유 클릭 → 초대 랜딩 → 초대 전환.
+  const rViewed = sum('integrated_report.viewed')
+  const rShare = sum('integrated_report.share_clicked')
+  const rLanded = sum('integrated_report.invite_landed')
+  const rConverted = sum('integrated_report.invite_converted')
+
+  // 궁합 루프: 리포트 노출 → 공유 클릭 → 랜딩 → 프리필 → 전환.
+  const cViewed = sum('compat_free.report_viewed')
+  const cShare = sum('compat_free.share_clicked')
+  const cLanded = sum('compat_free.invite_landed')
+  const cPrefilled = sum('compat_free.invite_prefilled')
+  const cConverted = sum('compat_free.invite_converted')
+
+  return {
+    report: {
+      viewed: rViewed,
+      shareClicked: rShare,
+      inviteLanded: rLanded,
+      inviteConverted: rConverted,
+      shareRate: ratio(rShare, rViewed), // 노출→공유
+      landRate: ratio(rLanded, rShare), // 공유→랜딩
+      convertRate: ratio(rConverted, rLanded), // 랜딩→전환
+      k: ratio(rConverted, rViewed), // 바이럴 계수
+    },
+    compat: {
+      viewed: cViewed,
+      shareClicked: cShare,
+      inviteLanded: cLanded,
+      invitePrefilled: cPrefilled,
+      inviteConverted: cConverted,
+      shareRate: ratio(cShare, cViewed),
+      landRate: ratio(cLanded, cShare),
+      prefillRate: ratio(cPrefilled, cLanded),
+      convertRate: ratio(cConverted, cPrefilled),
+      k: ratio(cConverted, cViewed),
+    },
+    note: 'in-memory counters — per-instance, reset on deploy; Prometheus is SSOT for cross-instance totals',
+  }
+}
 
 function getDateRange(timeRange: DashboardTimeRange): { start: Date; end: Date } {
   const end = new Date()
@@ -139,6 +196,8 @@ export const GET = withApiMiddleware(
           weeklyActiveUsers: wau,
           readingsPerUser: wau > 0 ? Math.round((weeklyActions / wau) * 10) / 10 : 0,
         },
+        // 바이럴 K + 단계 전환율(리포트·궁합 루프) — funnel.* 카운터에서 산출.
+        viral: readViralFunnel(),
       }
 
       // apiSuccess 가 이미 { success, data: payload } 로 감싼다. 여기서 다시

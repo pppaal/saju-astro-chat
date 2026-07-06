@@ -133,7 +133,7 @@ export const STRENGTH_TAG: Record<StrengthState, BiLabel> = {
   balanced: { ko: '균형형', en: 'Balanced' },
 }
 
-// oneLiner 뒤에 붙는 강약별 한 문장 — 같은 유형도 결이 달라지게.
+// oneLiner 뒤에 붙는 강약별 한 문장(폴백) — 지배 십성이 없을 때만 쓴다.
 const STRENGTH_FLAVOR: Record<StrengthState, BiLabel> = {
   strong: {
     ko: '스스로 밀고 나가는 힘이 강해, 방향만 정하면 끝까지 가는 편이에요.',
@@ -146,6 +146,98 @@ const STRENGTH_FLAVOR: Record<StrengthState, BiLabel> = {
   balanced: {
     ko: '치우치지 않고 상황 따라 강약을 조절하는 균형이 강점이에요.',
     en: 'Your strength is balance — you adjust your intensity to fit the moment.',
+  },
+}
+
+// 일간 오행. STEM_ELEMENT 는 헤드라인 tempo flavor 를 오행별로 가르는 축.
+export type DayElement = 'wood' | 'fire' | 'earth' | 'metal' | 'water'
+const STEM_ELEMENT: Record<string, DayElement> = {
+  甲: 'wood',
+  乙: 'wood',
+  丙: 'fire',
+  丁: 'fire',
+  戊: 'earth',
+  己: 'earth',
+  庚: 'metal',
+  辛: 'metal',
+  壬: 'water',
+  癸: 'water',
+}
+
+// oneLiner 둘째 문장 — 일간 오행(움직임의 '결/tempo') × 강약. 십성 첫 문장은
+// '무엇을 하는가'(관계 역할), 이 문장은 '어떻게 움직이는가'(질감)라 직교한다.
+// 강약 3종만 쓰면 같은 강약끼리 문장이 통째로 겹쳐(친구끼리 카드 충돌) — 오행 5축을
+// 곱해 15종으로 넓힌다. 지배 십성이 있을 때만 적용(없으면 STRENGTH_FLAVOR 폴백).
+const STRENGTH_FLAVOR_BY_ELEMENT: Record<DayElement, Record<StrengthState, BiLabel>> = {
+  wood: {
+    strong: {
+      ko: '한번 방향을 잡으면 위로 쭉 뻗어 끝까지 밀어붙이는 힘이 강해요.',
+      en: 'Once you pick a direction you shoot straight up and push it all the way.',
+    },
+    weak: {
+      ko: '좋은 토양·사람을 만나면 쑥 자라나는, 뻗어나가는 결이에요.',
+      en: 'Give you the right soil and people and you grow fast — an outward-reaching grain.',
+    },
+    balanced: {
+      ko: '무리하지 않고 꾸준히 자라 올라가는 성장의 리듬이 강점이에요.',
+      en: 'You grow upward steadily without forcing it — a patient rhythm.',
+    },
+  },
+  fire: {
+    strong: {
+      ko: '타오르면 주변까지 환하게 밝히는 표현과 열기가 강해요.',
+      en: 'When you catch, you light up the whole room — heat and expression to spare.',
+    },
+    weak: {
+      ko: '불씨를 살려줄 사람·무대가 있을 때 확 타오르는 결이에요.',
+      en: 'The right stage or person and you flare up bright in an instant.',
+    },
+    balanced: {
+      ko: '확 타오르되 스스로를 태우진 않는, 조절된 열기가 강점이에요.',
+      en: 'You burn bright without burning out — warmth on a steady wick.',
+    },
+  },
+  earth: {
+    strong: {
+      ko: '흔들림 없이 버티며 주변을 받쳐주는 무게감이 강해요.',
+      en: 'You hold your ground and carry the weight others lean on.',
+    },
+    weak: {
+      ko: '믿을 자리·사람이 생기면 단단히 뿌리내리는 결이에요.',
+      en: 'Give you ground you trust and you root down solid.',
+    },
+    balanced: {
+      ko: '서두르지 않고 차곡차곡 다져 올리는 안정의 리듬이 강점이에요.',
+      en: 'You pack it down layer by layer, unhurried — steady by rhythm.',
+    },
+  },
+  metal: {
+    strong: {
+      ko: '핵심을 예리하게 끊어내고 밀어붙이는 결단력이 강해요.',
+      en: 'You cut to the core and drive it home — sharp and decisive.',
+    },
+    weak: {
+      ko: '다듬어줄 사람·기준이 있을 때 더 날카롭게 빛나는 결이에요.',
+      en: 'With the right standard to hone against, your edge shines sharper.',
+    },
+    balanced: {
+      ko: '벨 때와 둘 때를 아는, 절제된 예리함이 강점이에요.',
+      en: 'You know when to cut and when to hold — an edge with restraint.',
+    },
+  },
+  water: {
+    strong: {
+      ko: '어떤 틈이든 파고들어 깊고 넓게 흐르는 힘이 강해요.',
+      en: 'You seep into any gap and flow deep and wide.',
+    },
+    weak: {
+      ko: '받아주는 그릇을 만나면 잔잔히 스며들어 채우는 결이에요.',
+      en: 'Find a vessel that holds you and you quietly seep in and fill it.',
+    },
+    balanced: {
+      ko: '막히면 돌아가고 트이면 흐르는, 유연한 리듬이 강점이에요.',
+      en: 'You go around when blocked and flow when open — flexible by nature.',
+    },
   },
 }
 
@@ -174,6 +266,55 @@ const STEM_KO_TO_HAN: Record<string, string> = {
 export function getArchetype(dayMaster: string): Archetype | null {
   const key = ARCHETYPE_BY_STEM[dayMaster] ? dayMaster : STEM_KO_TO_HAN[dayMaster]
   return key ? (ARCHETYPE_BY_STEM[key] ?? null) : null
+}
+
+// 헤드라인 합성에 쓸 수 있는 십성 10종(정재·상관 등). count 키·라벨이 이 집합.
+const SIBSIN_NAMES = [
+  '비견',
+  '겁재',
+  '식신',
+  '상관',
+  '편재',
+  '정재',
+  '편관',
+  '정관',
+  '편인',
+  '정인',
+] as const
+
+/**
+ * 헤드라인용 "주도 십성" 선택 — 바이럴 한 줄이 "완전 나"가 되려면 그 사람의
+ * *정체*를 대표하는 십성이어야 한다. 일지(배우자궁) 십성은 관계 자리라 정체
+ * 라벨엔 맞지 않으므로(C1), 명식 전체 십성 개수(count)의 최빈값을 쓴다.
+ *   - count 최빈값이 2 이상이면 그것(정체를 지배하는 십성).
+ *   - 동률이면 월간(월령 근접, 격국의 자리) 십성을 우선한다.
+ *   - 지배(≥2)가 없으면(고른 명식) 월간 → 일지 십성 순으로 폴백.
+ * 순수 함수 — 카운트 없으면(구데이터) 폴백만으로 동작, 매칭 없으면 null.
+ */
+export function pickHeadlineSibsin(
+  count: Record<string, number> | null | undefined,
+  monthStemSibsin?: string | null,
+  dayBranchSibsin?: string | null
+): string | null {
+  if (count) {
+    let best: string | null = null
+    let bestN = 0
+    for (const n of SIBSIN_NAMES) {
+      const c = count[n] ?? 0
+      if (c > bestN || (c === bestN && c > 0 && n === monthStemSibsin)) {
+        bestN = c
+        best = n
+      }
+    }
+    if (best && bestN >= 2) return best
+  }
+  if (monthStemSibsin && (SIBSIN_NAMES as readonly string[]).includes(monthStemSibsin)) {
+    return monthStemSibsin
+  }
+  if (dayBranchSibsin && (SIBSIN_NAMES as readonly string[]).includes(dayBranchSibsin)) {
+    return dayBranchSibsin
+  }
+  return null
 }
 
 // ── 차트 합성 헤드라인 ─────────────────────────────────────────────────────
@@ -344,12 +485,17 @@ export function buildViralSummary(input: {
   const core = stemHan ? STEM_CORE[stemHan] : null
   const name = sib && core ? `${SIBSIN_MODIFIER[sib][lang]} ${core[lang]}` : a.name[lang]
   const baseLine = sib ? SIBSIN_LINE[sib][lang] : a.oneLiner[lang]
+  // 둘째 문장(tempo) — 지배 십성이 있으면 일간 오행×강약(15종, 직교축)으로, 없으면
+  // 첫 문장이 archetype 이라 오행 tempo 와 겹칠 수 있어 강약 폴백(3종)만 쓴다.
+  const el = stemHan ? STEM_ELEMENT[stemHan] : null
+  const flavor =
+    sib && el ? (STRENGTH_FLAVOR_BY_ELEMENT[el]?.[st] ?? STRENGTH_FLAVOR[st]) : STRENGTH_FLAVOR[st]
   return {
     emoji: a.emoji,
     name,
     subtype: STRENGTH_TAG[st][lang],
-    // 십성 결 한 줄 + 강약 결 → 같은 일간도 사람마다 다른 문장.
-    oneLiner: `${baseLine} ${STRENGTH_FLAVOR[st][lang]}`,
+    // 십성 결(관계 역할) 한 줄 + 오행 tempo(움직임 질감) 결 → 같은 일간도 사람마다 다른 문장.
+    oneLiner: `${baseLine} ${flavor[lang]}`,
     // 콕 집는 그림자 — 마찰이 실제로 있을 때만(억지 X).
     edgeLine: sib && input.hasTension ? SIBSIN_EDGE[sib][lang] : null,
     outer: input.ascTrait ?? null,

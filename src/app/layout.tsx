@@ -100,7 +100,7 @@ export const metadata: Metadata = {
       (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://destinypal.com')
   ),
   title: {
-    default: 'DestinyPal — AI Saju, Astrology, Tarot, Compatibility & Fortune Calendar',
+    default: 'DestinyPal — AI Korean Astrology, Tarot, Compatibility & Fortune Calendar',
     template: '%s | DestinyPal',
   },
   description:
@@ -167,7 +167,7 @@ export const metadata: Metadata = {
     alternateLocale: ['ko_KR'],
     url: '/',
     siteName: 'DestinyPal',
-    title: 'DestinyPal — AI Saju, Astrology, Tarot & Fortune Calendar',
+    title: 'DestinyPal — AI Korean Astrology, Tarot & Fortune Calendar',
     description:
       'AI reads your Saju and natal astrology together — daily counsel, tarot, compatibility, and a fortune calendar. See the flow and timing when you need to decide.',
     images: [
@@ -175,13 +175,13 @@ export const metadata: Metadata = {
         url: '/og-card-v2.png',
         width: 1200,
         height: 630,
-        alt: 'DestinyPal — AI Saju, Astrology, Tarot & Fortune Calendar',
+        alt: 'DestinyPal — AI Korean Astrology, Tarot & Fortune Calendar',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'DestinyPal — AI Saju, Astrology, Tarot & Fortune Calendar',
+    title: 'DestinyPal — AI Korean Astrology, Tarot & Fortune Calendar',
     description:
       'AI reads your Saju and natal astrology together — daily counsel, tarot, compatibility, and a fortune calendar.',
     images: ['/og-card-v2.png'],
@@ -244,8 +244,8 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="apple-mobile-web-app-title" content="DestinyPal" />
         <meta name="theme-color" content="#07091a" />
-        <JsonLd data={websiteJsonLd} nonce={nonce} />
-        <JsonLd data={organizationJsonLd} nonce={nonce} />
+        <JsonLd data={websiteJsonLd} />
+        <JsonLd data={organizationJsonLd} />
       </head>
       <body
         className={`
