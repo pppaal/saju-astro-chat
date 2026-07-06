@@ -20,6 +20,17 @@ function clamp(s: string, max: number): string {
   return t.length > max ? `${t.slice(0, max - 1).trim()}…` : t
 }
 
+// 후크용 — 단어 중간에서 자르지 않는다(공백/구두점 경계에서만). 영어는 한글보다
+// 덜 촘촘해 같은 폭에 더 많은 글자가 들어가므로 max 를 언어별로 다르게 준다.
+function clampWords(s: string, max: number): string {
+  const t = (s || '').trim()
+  if (t.length <= max) return t
+  const cut = t.slice(0, max)
+  const lastBreak = Math.max(cut.lastIndexOf(' '), cut.lastIndexOf('—'), cut.lastIndexOf(','))
+  const base = lastBreak > max * 0.5 ? cut.slice(0, lastBreak) : cut
+  return `${base.trim().replace(/[,—-]$/, '')}…`
+}
+
 // 버티컬별 강조색 — 카드 결을 가른다(사주=골드, 점성=별빛, 궁합=로즈…).
 const ACCENT: Record<SocialCategory, string> = {
   tarot: '#c9a0ff',
@@ -44,20 +55,21 @@ export async function GET(req: Request): Promise<Response> {
     : 'saju'
   const isKo = (url.searchParams.get('lang') || 'ko') !== 'en'
   const title = clamp(url.searchParams.get('t') || '', 42)
-  // 후크가 비면 제목을 헤드라인으로 승격(빈 카드 방지).
-  const hook = clamp(url.searchParams.get('h') || title, 56)
+  // 후크가 비면 제목을 헤드라인으로 승격(빈 카드 방지). 영어는 덜 촘촘해 max 를 넉넉히.
+  const hook = clampWords(url.searchParams.get('h') || title, isKo ? 54 : 66)
   const glyph = clamp(url.searchParams.get('g') || '', 4)
   const accent = ACCENT[v]
   const soft = SOFT[v]
-  // 브랜드 라인 — 동·서양 융합이 우리 차별점이라 이걸 아이브로로. 버티컬은 강조색·
-  // 후크·제목으로 구분(카테고리명 중복 노출은 뺀다).
-  const eyebrow = isKo ? '사주 × 별자리' : 'SAJU × ASTROLOGY'
+  // 브랜드 라인 — 동·서양 융합이 우리 차별점이라 이걸 아이브로로. 서양권은 'Saju'를
+  // 모르니 EN 은 즉시 읽히는 'EASTERN × WESTERN'(융합이 핵심 가치)으로. 버티컬은
+  // 강조색·후크·제목으로 구분(카테고리명 중복 노출은 뺀다).
+  const eyebrow = isKo ? '사주 × 별자리' : 'EASTERN × WESTERN'
   const domain = siteBaseUrl()
     .replace(/^https?:\/\//, '')
     .replace(/\/$/, '')
   const cta = isKo ? `생일만 넣으면 무료로 · ${domain}` : `Free — just your birthday · ${domain}`
   // 후크가 짧으면 더 크게(임팩트), 길면 줄여 넘침 방지.
-  const hookSize = hook.length <= 22 ? 96 : hook.length <= 38 ? 82 : 70
+  const hookSize = hook.length <= 22 ? 96 : hook.length <= 40 ? 80 : hook.length <= 54 ? 70 : 62
 
   const fonts = await loadOgFonts(eyebrow, hook, title, cta, glyph)
   return new ImageResponse(
