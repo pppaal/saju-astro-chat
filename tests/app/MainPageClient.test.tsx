@@ -165,7 +165,9 @@ afterEach(() => {
 describe('MainPageClient', () => {
   it('renders the hero, header and chat input for a guest with no saved birth info', () => {
     renderPage()
-    expect(screen.getByRole('heading', { name: /Your Tarot, Astrology/i })).toBeInTheDocument()
+    expect(
+      screen.getByRole('heading', { name: /Korean Astrology × Western Zodiac/i })
+    ).toBeInTheDocument()
     expect(screen.getByTestId('app-header')).toBeInTheDocument()
     expect(screen.getByTestId('home-chat-input')).toBeInTheDocument()
     // Guest, no birth → cosmic (not light) surface and CTA prompt visible.
