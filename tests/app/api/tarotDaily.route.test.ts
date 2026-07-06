@@ -71,6 +71,13 @@ vi.mock('@/lib/api/middleware', () => ({
   },
 }))
 
+// next/headers — 신규 게스트에게 dp_guest 쿠키를 발급하는 경로를 검증한다.
+const cookieSet = vi.fn()
+const cookieGet = vi.fn()
+vi.mock('next/headers', () => ({
+  cookies: vi.fn(async () => ({ set: cookieSet, get: cookieGet })),
+}))
+
 vi.mock('@/lib/cache/redis-cache', () => ({
   cacheGet: vi.fn(),
   cacheSet: vi.fn().mockResolvedValue(true),
@@ -262,5 +269,58 @@ describe('POST /api/tarot/daily', () => {
     // 결과 캐시 조회 키에 g:abcd1234efgh 가 들어갔는지 확인.
     const key = vi.mocked(cacheGet).mock.calls[0][0] as string
     expect(key).toContain('g:abcd1234efgh')
+  })
+})
+
+describe('게스트 식별 — 지문 충돌 해소(쿠키 승격)', () => {
+  const cached = { date: 'd', card: {}, hook: '', message: 'm' }
+
+  it('헤더·쿠키가 모두 없으면 지문 id 로 조회하고 dp_guest 쿠키를 발급', async () => {
+    vi.mocked(cacheGet).mockResolvedValueOnce(cached as any)
+
+    await POST(makeReq({ 'x-forwarded-for': '9.9.9.9', 'user-agent': 'UA-X' }))
+
+    const key = vi.mocked(cacheGet).mock.calls[0][0] as string
+    expect(key).toContain('g:') // 지문 기반(캐시·1일1장 유지)
+    // 신규 게스트 → 다음 요청부터 안정 식별되도록 브라우저 고유 쿠키 발급.
+    expect(cookieSet).toHaveBeenCalledTimes(1)
+    const [name, value, opts] = cookieSet.mock.calls[0]
+    expect(name).toBe('dp_guest')
+    expect(String(value)).toMatch(/^[A-Za-z0-9]{8,}$/)
+    expect(opts).toMatchObject({ httpOnly: true, path: '/', sameSite: 'lax' })
+  })
+
+  it('dp_guest 쿠키가 유효하면 g:{cookie} 로 조회하고 쿠키를 재발급하지 않음', async () => {
+    vi.mocked(cacheGet).mockResolvedValueOnce(cached as any)
+
+    // 주의: Cookie 는 금지 헤더라 fetch/undici 가 생성 시 제거한다. 실제 요청과
+    // 동일하게 req.cookies 로 직접 심는다.
+    const req = makeReq()
+    req.cookies.set('dp_guest', 'cookieguest01')
+    await POST(req)
+
+    const key = vi.mocked(cacheGet).mock.calls[0][0] as string
+    expect(key).toContain('g:cookieguest01')
+    expect(cookieSet).not.toHaveBeenCalled()
+  })
+
+  it('같은 지문(IP+UA)이라도 쿠키가 다르면 서로 다른 카드 id — 충돌 해소', async () => {
+    vi.mocked(cacheGet).mockResolvedValue(cached as any)
+    const sameFp = { 'x-forwarded-for': '1.2.3.4', 'user-agent': 'SameUA' }
+
+    const reqA = makeReq(sameFp)
+    reqA.cookies.set('dp_guest', 'guestaaaa1111')
+    const reqB = makeReq(sameFp)
+    reqB.cookies.set('dp_guest', 'guestbbbb2222')
+    await POST(reqA)
+    await POST(reqB)
+
+    const keyA = vi.mocked(cacheGet).mock.calls[0][0] as string
+    const keyB = vi.mocked(cacheGet).mock.calls[1][0] as string
+    expect(keyA).toContain('g:guestaaaa1111')
+    expect(keyB).toContain('g:guestbbbb2222')
+    expect(keyA).not.toEqual(keyB)
+    // 헤더·쿠키가 있으니 신규 쿠키 발급 없음.
+    expect(cookieSet).not.toHaveBeenCalled()
   })
 })

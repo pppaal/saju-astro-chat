@@ -15,8 +15,9 @@
 // GET  : 오늘 이미 뽑았으면 그 결과, 아니면 ready:false (아직 안 뽑음).
 // POST : 오늘 처음이면 뽑고 LLM 해석해 캐시 후 반환, 이미 있으면 그대로.
 
-import { createHash } from 'crypto'
+import { createHash, randomUUID } from 'crypto'
 import { NextRequest } from 'next/server'
+import { cookies } from 'next/headers'
 import {
   withApiMiddleware,
   createPublicStreamGuard,
@@ -69,10 +70,54 @@ function clientFingerprint(req: NextRequest): string {
   const ua = req.headers.get('user-agent') || 'noua'
   return createHash('sha256').update(`${ip}|${ua}`).digest('base64url').slice(0, 16)
 }
-function resolveDailyId(req: NextRequest, userId: string | null | undefined): string {
+
+const GUEST_ID_RE = /^[A-Za-z0-9_-]{8,64}$/
+const GUEST_COOKIE = 'dp_guest'
+
+// 새 게스트에게 발급할 브라우저 고유 id — 쿠키에 심어 다음 요청부터 안정 식별.
+function randomGuestId(): string {
+  return randomUUID().replace(/-/g, '').slice(0, 24)
+}
+
+// 게스트/유저 식별. 우선순위:
+//  1) 로그인 → u:{userId}
+//  2) localStorage 게스트 id(x-dp-guest 헤더) → g:{id}
+//  3) 서버 발급 게스트 쿠키 → g:{id}
+//  4) 둘 다 없으면(예: 인앱 브라우저가 localStorage 를 막은 신규 게스트):
+//     이번 응답은 안정적 지문으로 답하되(당일 캐시·1일1장 유지), 브라우저
+//     고유 쿠키를 새로 발급해 *다음* 요청부터 g:{쿠키} 로 승격시킨다. 이렇게
+//     하면 같은 IP+UA(같은 와이파이+같은 기종) 두 사람이 같은 카드를 받던 지문
+//     충돌이 사라진다. 쿠키까지 막힌 극단적 환경에서도 지문 덕에 기존과
+//     동일하게 안정적으로 동작한다.
+//
+// 쿠키는 next/headers 로 심는다 — Set-Cookie 를 NextResponse init 헤더로 넣으면
+// undici 가 제거하지만(금지 헤더), cookies().set() 은 프레임워크가 최종 응답에
+// 확실히 붙여준다. HttpOnly 라 서버만 읽고 클라 localStorage 와 독립적이다.
+async function resolveDailyId(
+  req: NextRequest,
+  userId: string | null | undefined
+): Promise<string> {
   if (userId) return `u:${userId}`
+
   const raw = (req.headers.get('x-dp-guest') || '').trim()
-  if (/^[A-Za-z0-9_-]{8,64}$/.test(raw)) return `g:${raw}`
+  if (GUEST_ID_RE.test(raw)) return `g:${raw}`
+
+  const cookieId = (req.cookies.get(GUEST_COOKIE)?.value || '').trim()
+  if (GUEST_ID_RE.test(cookieId)) return `g:${cookieId}`
+
+  const fresh = randomGuestId()
+  try {
+    const jar = await cookies()
+    jar.set(GUEST_COOKIE, fresh, {
+      path: '/',
+      httpOnly: true,
+      sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 34560000, // ~400일(브라우저 상한)
+    })
+  } catch {
+    // request scope 밖(비정상 실행 경로)이면 쿠키 발급만 건너뛴다 — 식별은 지문으로 계속.
+  }
   return `g:${clientFingerprint(req)}`
 }
 
@@ -163,7 +208,7 @@ function buildDailyTeaserPrompt(
 
 export const GET = withApiMiddleware(
   async (req: NextRequest, context: ApiContext) => {
-    const id = resolveDailyId(req, context.userId)
+    const id = await resolveDailyId(req, context.userId)
     const date = todayKeyKST()
     const cached = await cacheGet<DailyReading>(dailyKey(id, date))
     if (cached) return apiSuccess({ ready: true, reading: cached })
@@ -174,7 +219,7 @@ export const GET = withApiMiddleware(
 
 export const POST = withApiMiddleware(
   async (req: NextRequest, context: ApiContext) => {
-    const id = resolveDailyId(req, context.userId)
+    const id = await resolveDailyId(req, context.userId)
     const date = todayKeyKST()
     const key = dailyKey(id, date)
 
