@@ -242,4 +242,27 @@ describe('formatSajuSynastry', () => {
       for (const l of yongLines) expect(l).not.toMatch(/[가-힣]/)
     })
   })
+
+  describe('지지 원진 cross', () => {
+    // valid 지지: A 子(년)·寅(월)·午(일)·辰(시) / B 丑(년)·申(월)·未(일)·亥(시).
+    // 원진 쌍: 辰亥(순수) · 子未(해+원진) · 丑午(해+원진).
+    it('원진 쌍이 지지 cross 에 태그된다', () => {
+      const out = formatSajuSynastry(valid)
+      expect(out).toContain('원진')
+      expect(out).toContain('진해 원진') // A 辰 ↔ B 亥 순수 원진
+    })
+
+    it('子未·丑午 는 해와 원진이 함께 태그된다(복합)', () => {
+      const out = formatSajuSynastry(valid)
+      // A 子 ↔ B 未 → 자미 해+원진
+      expect(out).toMatch(/자미 [^\n]*해[^\n]*원진|자미 [^\n]*원진[^\n]*해/)
+    })
+
+    it('EN 은 resentment 로 렌더하며 한글이 없다', () => {
+      const out = formatSajuSynastry({ ...valid, lang: 'en' })
+      const lines = out.split('\n').filter((l) => l.includes('resentment'))
+      expect(lines.length).toBeGreaterThan(0)
+      for (const l of lines) expect(l).not.toMatch(/[가-힣]/)
+    })
+  })
 })

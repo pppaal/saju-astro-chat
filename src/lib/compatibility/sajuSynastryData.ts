@@ -12,6 +12,7 @@ import { getSibseong, BRANCH_MAIN_QI } from '@/lib/saju/core/sibsin'
 import { STEMS, FIVE_ELEMENT_RELATIONS, CHEONEUL_GWIIN_MAP } from '@/lib/saju/constants'
 import type { FiveElement, YinYang } from '@/lib/saju/types'
 import type { YongsinResult } from '@/lib/saju/yongsin'
+import { RESENTMENT_PAIRS } from '@/lib/saju/relationTables'
 import { getYearPillarForDate, getSajuYearForDate } from '@/lib/saju/datePillars'
 
 export const STEM_HAP: Record<string, { other: string; element: string }> = {
@@ -97,6 +98,16 @@ export const BRANCH_PA: Record<string, string> = {
   戌: '未',
   未: '戌',
 }
+
+// 원진(元嗔/怨嗔) — 표준 6쌍(子未·丑午·寅酉·卯申·辰亥·巳戌). SSOT
+// relationTables.RESENTMENT_PAIRS 에서 파생한다. 과거 다수 파일이 원진을
+// 해(害) 값으로 잘못 채운 이력이 있어(relationTables 주석 참고) 하드코딩 금지.
+export const BRANCH_WONJIN: Record<string, string> = Object.fromEntries(
+  RESENTMENT_PAIRS.flatMap(([a, b]) => [
+    [a, b],
+    [b, a],
+  ])
+)
 
 // 형(刑) 교리는 @/lib/saju/hyeong 단일 소스(상단 import). destiny counselor 와
 // 동일 교리를 공유 — 이전엔 여기에 복붙돼 있어 한쪽만 고치면 드리프트했음.

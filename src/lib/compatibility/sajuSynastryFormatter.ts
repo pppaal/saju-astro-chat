@@ -25,6 +25,7 @@ import {
   BRANCH_CHUNG,
   BRANCH_HAE,
   BRANCH_PA,
+  BRANCH_WONJIN,
   TRI_HAP,
   BANG_HAP,
   STEM_EL,
@@ -208,6 +209,9 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
       if (SELF_HYEONG.has(aBr) && aBr === bBr) addTag(i, j, aBr, bBr, '자형')
       if (BRANCH_HAE[aBr] === bBr) addTag(i, j, aBr, bBr, '해')
       if (BRANCH_PA[aBr] === bBr) addTag(i, j, aBr, bBr, '파')
+      // 원진(元嗔) — 이유 없이 미묘하게 어긋나는 심리적 반감. 정통 궁합 신호.
+      // 子未·丑午 는 해(害)와 겹쳐 "해+원진 복합"으로 함께 표기된다(둘 다 성립).
+      if (BRANCH_WONJIN[aBr] === bBr) addTag(i, j, aBr, bBr, '원진')
     }
   }
   const TAG_EN: Record<string, string> = {
@@ -218,6 +222,7 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
     자형: 'self-punishment',
     해: 'harm',
     파: 'break',
+    원진: 'resentment',
   }
   for (const { i, j, aBr, bBr, tags } of pairMap.values()) {
     const hasClash = tags.some((t) => t === '충' || t === '형' || t === '3형' || t === '자형')
@@ -226,9 +231,11 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
       ? L('이별·갈등 핵심 신호', 'core breakup/conflict signal')
       : hasHap
         ? L('결속', 'bonding')
-        : tags.includes('해')
-          ? L('미묘한 거리감', 'subtle distance')
-          : L('사소한 파열', 'minor rupture')
+        : tags.includes('원진')
+          ? L('미묘한 반감·원망', 'subtle resentment')
+          : tags.includes('해')
+            ? L('미묘한 거리감', 'subtle distance')
+            : L('사소한 파열', 'minor rupture')
     const tagsD = en ? tags.map((t) => TAG_EN[t] ?? t) : tags
     const combo = tagsD.length > 1 ? `${tagsD.join('+')} ${L('복합', 'combined')}` : tagsD[0]
     const line = L(
