@@ -5,7 +5,6 @@
  *
  * Increment ①: SAJU section.
  */
-import { currentManAge } from '@/lib/datetime/currentAge'
 import { ELEMENT_KO_TO_EN } from '@/lib/saju/constants'
 import { collectSajuFacts } from '@/lib/destiny/sajuFacts'
 import { computeCurrentUnse, type CurrentUnse } from '@/lib/saju/currentUnse'
@@ -70,7 +69,6 @@ const PLANET_KO_A: Record<string, string> = {
 // 별자리 KO(long form) — 정본(astrology/signLabels) 재사용. 소비처가 '자리'
 // 접미사를 벗겨 짧게 쓰지만 정본 long form 을 인덱싱 후 가공.
 const SIGN_KO_A = SIGN_KO
-const MAJOR_TYPES = new Set(['conjunction', 'opposition', 'trine', 'square', 'sextile'])
 // essential dignity — ko 라벨. EN locale 은 raw enum(domicile/detriment) 유지.
 // 의미는 레전드의 [domicile]강 [detriment]약 와 동일, exaltation/fall 은 점성 표준.
 const DIGNITY_KO: Record<string, string> = {

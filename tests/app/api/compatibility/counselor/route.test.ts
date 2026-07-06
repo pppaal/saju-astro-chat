@@ -72,10 +72,6 @@ vi.mock('@/lib/user/displayName', () => ({
   getUserDisplayName: vi.fn().mockResolvedValue(null),
 }))
 
-vi.mock('@/lib/prompts/fortuneWithIcp', () => ({
-  buildEvidenceGroundingGuide: vi.fn(() => ''),
-}))
-
 // Error response helper — route uses this for 401 guest limit + 402 credit
 // exhaustion. Echoes the status so tests on those paths see the expected
 // code without us re-implementing the helper's body.
