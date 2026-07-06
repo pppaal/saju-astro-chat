@@ -24,9 +24,16 @@ import type { LifecycleMilestoneOverride } from '@/lib/calendar-engine/lifecycle
 import { currentManAge } from '@/lib/datetime/currentAge'
 import { toLifetime } from '@/components/calendar/adapters'
 import { assembleUserSummary, type AssembledUser } from './assembleUser'
+import { getYearPillarForDate } from '@/lib/saju/datePillars'
+import { getSibsinKo } from '@/lib/saju/cycleRelations'
+import { sibsinArea, sibsinAreaEn } from '@/lib/calendar-engine/derivers/plainLanguage'
+import { SIBSIN_EN } from '@/lib/saju/sibsinLabels'
+import { translateSignalLabel } from '@/lib/calendar-engine/derivers/signalI18n'
+import { crossKeys, stripCrossPair, PLANET_EN_FROM_KO } from './crossPair'
 
 import type { NatalContext } from '@/lib/calendar-engine/context/types'
-import type { DestinyLifetime } from '@/types/calendar'
+import type { CalendarCell } from '@/lib/calendar-engine/types'
+import type { DestinyLifetime, DestinyThisYear, DestinyDecadeCross } from '@/types/calendar'
 
 export interface AssembleLifetimeInput {
   natal: NatalContext
@@ -39,6 +46,14 @@ export interface AssembleLifetimeInput {
   place: string
   /** "지금" 주입점 — 미지정 시 호출 시점. 테스트는 고정해 결정론 검증. */
   now?: Date
+  /**
+   * 오늘의 evidence 셀(getFocusDayCell) — 대운(decadal) 층 사주×점성 교차 원천.
+   * 없으면 decadeCross 생략(연 셀은 여전히 빌드 안 함 — 이 1일 셀만이 유일한
+   * 셀 의존이고, /calendar 와 캐시 공유라 정상 사용에선 추가 빌드가 없다).
+   */
+  focusDayCell?: CalendarCell | null
+  /** 세운(올해 간지) 기준 날짜 — 미지정 시 now. 입춘 SSOT 로 세운 결정. */
+  todayIso?: string
 }
 
 export interface AssembledLifetime {
@@ -98,6 +113,62 @@ export async function assembleLifetime(input: AssembleLifetimeInput): Promise<As
     lifeCurve: lifeCurve ?? undefined,
   })
 
+  // ⑥ 올해 한 줄(세운) — 연 셀 없이 입춘 SSOT 로. 캘린더로 내려보내는 연결 고리.
+  lifetime.thisYear = buildThisYear(natal, input.todayIso, now)
+  // ⑧ 이 10년의 사주×점성 교차 — 1일 evidence 셀의 decadal 층만(연 셀 불필요).
+  lifetime.decadeCross = buildDecadeCross(input.focusDayCell ?? null)
+
   const ilganHanja = user.ilgan.hanja || '辛'
   return { topbar: { whoBirthLine, place, ilganHanja }, user, lifetime }
+}
+
+/** 세운(올해 간지) 한 줄 — getYearPillarForDate(입춘 SSOT) + 일간 기준 십신. */
+function buildThisYear(
+  natal: NatalContext,
+  todayIso: string | undefined,
+  now: Date
+): DestinyThisYear {
+  const ref = todayIso ? new Date(`${todayIso}T12:00:00.000Z`) : now
+  const yp = getYearPillarForDate(ref)
+  const dm =
+    (natal.saju?.dayMaster as { name?: string } | undefined)?.name ??
+    (natal.saju?.pillars as { day?: { heavenlyStem?: { name?: string } } } | undefined)?.day
+      ?.heavenlyStem?.name ??
+    ''
+  const sibsin = dm ? getSibsinKo(dm, yp.stem) || '' : ''
+  return {
+    gz: `${yp.stem}${yp.branch}`,
+    sibsin,
+    area: sibsin ? sibsinArea(sibsin) : '',
+    areaEn: sibsin ? sibsinAreaEn(sibsin) : '',
+  }
+}
+
+/** 대운(decadal) 층 사주×점성 교차 — 페어 기준 중복 제거(가장 센 |polarity|). */
+function buildDecadeCross(focusDayCell: CalendarCell | null): DestinyDecadeCross[] {
+  if (!focusDayCell) return []
+  const byPair = new Map<string, DestinyDecadeCross>()
+  for (const s of focusDayCell.signals) {
+    if (s.kind !== 'cross-activation' || s.layer !== 'decadal') continue
+    // 상충 무력화(polarity 0)는 인생 스케일 신뢰 카피("두 체계가 같은 말을 할
+    // 때만")와 어긋나므로 제외 — 방향이 있는 교차만 올린다.
+    if (s.polarity === 0) continue
+    const { sajuKo, astroKo } = crossKeys(s)
+    if (!sajuKo || !astroKo) continue
+    const key = `${sajuKo}|${astroKo}`
+    const prev = byPair.get(key)
+    if (prev && Math.abs(prev.polarity) >= Math.abs(s.polarity)) continue
+    byPair.set(key, {
+      saju: sajuKo,
+      sajuEn: SIBSIN_EN[sajuKo] ?? translateSignalLabel(sajuKo, 'en'),
+      astro: astroKo,
+      astroEn: PLANET_EN_FROM_KO[astroKo] ?? astroKo,
+      meaning: stripCrossPair(s.korean ?? ''),
+      meaningEn: stripCrossPair(s.english ?? ''),
+      polarity: s.polarity,
+    })
+  }
+  return [...byPair.values()]
+    .sort((a, b) => Math.abs(b.polarity) - Math.abs(a.polarity))
+    .slice(0, 4)
 }

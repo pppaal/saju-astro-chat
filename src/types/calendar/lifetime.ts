@@ -179,6 +179,41 @@ export interface DestinyLifetime {
   lifePattern?: DestinyLifePattern
   /** 인생 굴곡 곡선 — 사주·점성 다층 중첩(연 단위). 차트가 스파크라인으로 렌더. */
   lifeCurve?: DestinyLifeCurve
+  /**
+   * 올해 한 줄(세운) — /destiny 가 캘린더(연/월/일)로 내려보내는 연결 고리.
+   * 연 셀 없이 getYearPillarForDate(now)+십신으로 산출(입춘 SSOT). 시안 ⑥ 블록.
+   */
+  thisYear?: DestinyThisYear
+  /**
+   * 이 10년의 사주×점성 교차 — 대운(decadal) 층 cross-activation. 1일 evidence
+   * 셀에서 decadal 층만 필터(연 셀 불필요). 층마다 자기 티어에서 발화하는 구조의
+   * 인생 스케일(일 화면 감사 #12로 일 화면에선 뺀 배경 교차의 원래 집). 시안 ⑧.
+   */
+  decadeCross?: DestinyDecadeCross[]
+}
+
+export interface DestinyThisYear {
+  /** 세운 간지(한자) — '丙午'. */
+  gz: string
+  /** 세운 천간 십신(일간 기준) — '정관'. */
+  sibsin: string
+  /** 십신 생활어 영역(ko) — '재물·실속'. 없으면 빈 문자열. */
+  area: string
+  areaEn: string
+}
+
+export interface DestinyDecadeCross {
+  /** 사주측 십신(ko) — '정재'. */
+  saju: string
+  sajuEn: string
+  /** 점성측 행성(ko) — '토성'. */
+  astro: string
+  astroEn: string
+  /** 쉬운 뜻(ko) — stripCrossPair 로 페어 머리 제거된 본문. */
+  meaning: string
+  meaningEn: string
+  /** 합성 polarity(부호=길흉, 0=상충 무력화). */
+  polarity: number
 }
 
 /** 인생 곡선의 한 점 — value 는 렌더용 0..1 정규화(거시 굴곡). */

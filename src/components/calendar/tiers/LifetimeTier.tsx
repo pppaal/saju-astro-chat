@@ -98,6 +98,8 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
     zrFortuneChapters,
     lifePattern,
     lifeCurve,
+    thisYear,
+    decadeCross,
   } = lifetime
 
   // lifeStages 빈 배열 가드 (adapter 실패 시 깨짐 방지) — 로딩.
@@ -492,6 +494,41 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
         <div style={{ display: 'flex', justifyContent: 'center', marginTop: 14 }}>
           <ShareLifeButton data={lifeShare} />
         </div>
+      )}
+
+      {/* ── B3. 이 10년의 사주×점성 교차 (대운층 cross-activation) ──
+          층마다 자기 티어에서 발화하는 구조의 인생 스케일 — 일 화면 감사 #12 로
+          일 화면에선 뺀 배경(decadal) 교차의 원래 집. 경쟁사에 없는 이중 근거. */}
+      {decadeCross && decadeCross.length > 0 && (
+        <section className={styles.sec}>
+          <div className={styles.secH}>
+            <span className={styles.secLbl}>{ko ? '이 10년의 겹침' : "This decade's overlap"}</span>
+            <span className={styles.secLn} />
+            <span className={styles.secLat}>SAJU × ASTRO</span>
+          </div>
+          <div className={styles.crossList}>
+            {decadeCross.map((c, i) => {
+              const meaning = ko ? c.meaning : (c.meaningEn ?? c.meaning)
+              const saju = ko ? c.saju : (c.sajuEn ?? c.saju)
+              const astro = ko ? c.astro : (c.astroEn ?? c.astro)
+              const pos = c.polarity > 0
+              return (
+                <div key={i} className={styles.crossRow}>
+                  <span className={styles.crossPair}>
+                    {saju} <i>×</i> {astro}
+                  </span>
+                  <span className={pos ? styles.crossPos : styles.crossNeg}>{pos ? '▲' : '▼'}</span>
+                  <p className={styles.crossMeaning}>{meaning}</p>
+                </div>
+              )
+            })}
+          </div>
+          <p className={styles.crossNote}>
+            {ko
+              ? '사주 대운과 외행성 트랜짓이 같은 방향을 가리킬 때만 여기 올라와요.'
+              : 'These surface only when your saju decade and outer-planet transits point the same way.'}
+          </p>
+        </section>
       )}
 
       {/* ── 자세히 ① 정체성 — 일간·격국·용신·강약 (사주를 아는 사람용) ── */}
@@ -920,6 +957,34 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
         </details>
       )}
 
+      {/* ── H2. 이 흐름에서 올해(세운) → 캘린더 퍼널 ──
+          인생(장기) 화면은 한 번 보면 끝이라 리텐션이 없다. 세운 한 줄로
+          "이 흐름에서 올해는" 를 짚고 매일 도는 캘린더로 내려보낸다(전환 지표). */}
+      {thisYear && (
+        <section className={styles.sec}>
+          <div className={styles.secH}>
+            <span className={styles.secLbl}>
+              {ko ? '이 흐름에서, 올해' : 'This year, within it'}
+            </span>
+            <span className={styles.secLn} />
+            <span className={styles.secLat}>{currentYear}</span>
+          </div>
+          <p className={styles.yearLine}>
+            {ko ? (
+              <>
+                올해는 <b>{thisYear.gz}</b> 세운 — {thisYear.area ? `‘${thisYear.area}’ ` : ''}
+                결이 한 해를 물들여요.
+              </>
+            ) : (
+              <>
+                This year runs on <b>{thisYear.gz}</b>
+                {thisYear.areaEn ? ` — a year tinted by "${thisYear.areaEn}".` : '.'}
+              </>
+            )}
+          </p>
+        </section>
+      )}
+
       {/* ── I. anti-fatalism footer + CTA(zoom-in) ── */}
       <p className={styles.forecast}>
         {ko
@@ -927,7 +992,7 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
           : 'What lies ahead is not fixed fate but a seasonal forecast read from today’s weather — you walk the path.'}
       </p>
       <button className={styles.cta} onClick={onDive} type="button">
-        {ko ? `올해 ${currentYear}으로 줌인 ↓` : `Zoom in to ${currentYear} ↓`}
+        {ko ? `올해를 달·일로 보기 → 운흐름 캘린더 ↓` : `See this year day by day → calendar ↓`}
       </button>
     </div>
   )

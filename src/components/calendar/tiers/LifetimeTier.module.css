@@ -180,6 +180,68 @@
   white-space: nowrap;
 }
 
+/* ── B3. 사주×점성 대운 교차 ── */
+.crossList {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.crossRow {
+  display: grid;
+  grid-template-columns: auto auto;
+  gap: 3px 10px;
+  align-items: baseline;
+  padding: 12px 0;
+  border-top: 1px dashed var(--line);
+}
+.crossRow:first-child {
+  border-top: 0;
+}
+.crossPair {
+  font-family: var(--m-serif);
+  font-size: 16px;
+  font-weight: 600;
+}
+.crossPair i {
+  font-style: normal;
+  color: var(--t2);
+  font-weight: 400;
+}
+.crossPos {
+  color: var(--green);
+  font-size: 13px;
+}
+.crossNeg {
+  color: var(--crimson);
+  font-size: 13px;
+}
+.crossMeaning {
+  grid-column: 1 / -1;
+  margin: 2px 0 0;
+  font-size: 14px;
+  color: var(--t1);
+  line-height: 1.6;
+}
+.crossNote {
+  margin: 14px 0 0;
+  font-size: 12.5px;
+  color: var(--t2);
+  line-height: 1.6;
+}
+
+/* ── H2. 올해(세운) 한 줄 ── */
+.yearLine {
+  margin: 0;
+  font-size: 15px;
+  color: var(--t1);
+  line-height: 1.7;
+}
+.yearLine b {
+  font-family: var(--m-serif);
+  color: var(--t0);
+  font-weight: 700;
+}
+
 /* ── term tag ── */
 .termTag {
   font-family: var(--m-serif);

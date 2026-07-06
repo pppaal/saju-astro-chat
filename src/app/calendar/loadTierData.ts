@@ -296,9 +296,13 @@ export async function loadLifetimeData(
 
   const now = new Date()
   const today = getNowInTimezone(BIRTH.timeZone)
+  const todayIso = formatDateString(today.year, today.month, today.day)
 
   const natal = await getOrBuildNatalContext(BIRTH)
   const birthDisplay = formatBirthLine(BIRTH.birthDate, BIRTH.birthTime)
+  // 오늘 1일 evidence 셀 — 대운층 사주×점성 교차 원천(연 셀은 여전히 안 빌드).
+  // /calendar 와 같은 캐시(getFocusDayCell)라 두 화면 방문 시 공유된다.
+  const focusDayCell = await getFocusDayCell(BIRTH, natal, todayIso)
 
   const assembled = await assembleLifetime({
     natal,
@@ -310,6 +314,8 @@ export async function loadLifetimeData(
     whoBirthLine: birthDisplay,
     place,
     now,
+    todayIso,
+    focusDayCell,
   })
 
   return { kind: 'ok', lang, ...assembled }
