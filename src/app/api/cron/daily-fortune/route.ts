@@ -25,6 +25,7 @@ import { getClientIp } from '@/lib/request-ip'
 import { timingSafeCompare } from '@/lib/security/timingSafe'
 import { getWebPush } from '@/lib/push/webPush'
 import { buildDailyFortuneMessage } from '@/lib/push/dailyFortuneMessage'
+import { getNowInTimezone } from '@/lib/datetime/timezone'
 
 export const dynamic = 'force-dynamic'
 
@@ -89,7 +90,7 @@ export async function GET(request: Request) {
         auth: true,
         locale: true,
         failCount: true,
-        user: { select: { profile: { select: { birthDate: true } } } },
+        user: { select: { profile: { select: { birthDate: true, tzId: true } } } },
       },
       orderBy: { createdAt: 'asc' },
     })
@@ -105,9 +106,15 @@ export async function GET(request: Request) {
       await Promise.all(
         batch.map(async (sub) => {
           const locale = sub.locale === 'en' ? 'en' : 'ko'
+          // 발송 당일 = *수신자 타임존*의 오늘 날짜. cron 은 22:00 UTC(= KST 아침
+          // 07:00)에 돌므로 `now`(UTC 달력)를 그대로 주면 어제 일진으로 작성돼
+          // 웹 캘린더(getNowInTimezone 기준)와 다른 날을 설명한다(감사 #4).
+          // keyday 푸시(keyDay.ts)와 같은 기준으로 정렬.
+          const tz = sub.user?.profile?.tzId || 'Asia/Seoul'
+          const t = getNowInTimezone(tz)
           const message = buildDailyFortuneMessage({
             birthDate: sub.user?.profile?.birthDate ?? null,
-            date: now,
+            date: new Date(Date.UTC(t.year, t.month - 1, t.day)),
             locale,
           })
           const payload = JSON.stringify({

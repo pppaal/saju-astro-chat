@@ -115,13 +115,14 @@ describe('DestinypalShell', () => {
     expect(screen.getByTestId('ilgan')).toHaveTextContent('甲')
   })
 
-  it('renders only the visible tiers (month + day) from tierConfig', () => {
-    // SHOW_FULL_TIERS is false → life/decade/year are hidden, so the rail only
-    // exposes month + day stops.
+  it('renders only the visible tiers (month + day) by default', () => {
+    // 기본 가시 티어는 month + day — life 는 tierIds 로 명시할 때만(/destiny).
+    // (10년·1년 티어는 아예 제거됨.)
     render(<DestinypalShell {...makeProps()} />)
     expect(screen.getByTestId('rail-month')).toBeInTheDocument()
     expect(screen.getByTestId('rail-day')).toBeInTheDocument()
     expect(screen.queryByTestId('rail-life')).not.toBeInTheDocument()
+    // 중간 티어는 티어 레지스트리에서 제거 — 레일에 존재하지 않는다.
     expect(screen.queryByTestId('rail-decade')).not.toBeInTheDocument()
     expect(screen.queryByTestId('rail-year')).not.toBeInTheDocument()
   })
@@ -213,24 +214,18 @@ describe('DestinypalShell', () => {
     expect(window.localStorage.getItem('dp_tier')).toBe('1')
   })
 
-  it('renders an explicit tier subset (life view: life·decade·year) via tierIds', () => {
+  it('renders an explicit tier subset (life view: life only) via tierIds', () => {
+    // /destiny 는 tierIds={['life']} 로 같은 셸을 재사용 — 인생 티어만 노출.
     const renderLife = vi.fn(() => <div data-testid="life-layer">life</div>)
-    const renderDecade = vi.fn(() => <div data-testid="decade-layer">decade</div>)
-    const renderYear = vi.fn(() => <div data-testid="year-layer">year</div>)
     render(
       <DestinypalShell
         topbar={topbar}
-        tierIds={['life', 'decade', 'year']}
+        tierIds={['life']}
         storageKey="dp_tier_life"
         renderLife={renderLife}
-        renderDecade={renderDecade}
-        renderYear={renderYear}
       />
     )
-    // only the three life-scale stops are exposed (no month/day)
     expect(screen.getByTestId('rail-life')).toBeInTheDocument()
-    expect(screen.getByTestId('rail-decade')).toBeInTheDocument()
-    expect(screen.getByTestId('rail-year')).toBeInTheDocument()
     expect(screen.queryByTestId('rail-month')).not.toBeInTheDocument()
     expect(screen.queryByTestId('rail-day')).not.toBeInTheDocument()
     expect(renderLife).toHaveBeenCalled()
@@ -240,17 +235,17 @@ describe('DestinypalShell', () => {
     render(
       <DestinypalShell
         topbar={topbar}
-        tierIds={['life', 'decade', 'year']}
+        tierIds={['life', 'month', 'day']}
         storageKey="dp_tier_life"
         renderLife={() => <div>life</div>}
-        renderDecade={() => <div>decade</div>}
-        renderYear={() => <div>year</div>}
+        renderMonth={() => <div>month</div>}
+        renderDay={() => <div>day</div>}
       />
     )
     act(() => {
-      fireEvent.click(screen.getByTestId('rail-year'))
+      fireEvent.click(screen.getByTestId('rail-day'))
     })
-    // year is index 2 in this subset; written under the life-scoped key only.
+    // day is index 2 in this subset; written under the life-scoped key only.
     expect(window.localStorage.getItem('dp_tier_life')).toBe('2')
     expect(window.localStorage.getItem('dp_tier')).toBeNull()
   })

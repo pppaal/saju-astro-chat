@@ -38,6 +38,15 @@ function renderTier() {
   )
 }
 
+// 새 블록(세운·대운 교차)이 담긴 lifetime 변형 — /destiny 경량 경로가 채우는 필드.
+function renderTierWith(extra: Partial<DestinyLifetime>) {
+  return render(
+    <I18nProvider>
+      <LifetimeTier user={user} lifetime={{ ...lifetime, ...extra }} onDive={noop} />
+    </I18nProvider>
+  )
+}
+
 beforeEach(() => {
   mockLocale = 'ko'
 })
@@ -136,5 +145,46 @@ describe('LifetimeTier (인생 전체 · LIGHT)', () => {
     expect(screen.getAllByText('辛').length).toBeGreaterThan(0)
     // timeline shows the readable 갑술 label; raw 甲戌 only on hover title.
     expect(screen.getByText('갑술')).toBeInTheDocument()
+  })
+
+  // ── 새 블록 — /destiny 경량 경로가 채우는 세운·대운 교차 ──
+  it('대운층 사주×점성 교차 블록 — 페어·뜻·방향 표시', () => {
+    renderTierWith({
+      decadeCross: [
+        {
+          saju: '정재',
+          sajuEn: 'Wealth',
+          astro: '토성',
+          astroEn: 'Saturn',
+          meaning: '서두르지 않고 쌓을수록 단단해지는 결이에요.',
+          meaningEn: 'What you build slowly holds.',
+          polarity: 1,
+        },
+      ],
+    })
+    expect(screen.getByText('이 10년의 겹침')).toBeInTheDocument()
+    // 교차 페어(정재 × 토성)가 한 span 안에 렌더 — 노드 분리 대신 컨테이너 텍스트로.
+    const meaning = screen.getByText('서두르지 않고 쌓을수록 단단해지는 결이에요.')
+    expect(meaning).toBeInTheDocument()
+    const row = meaning.closest('div')!
+    expect(row.textContent).toContain('정재')
+    expect(row.textContent).toContain('토성')
+    // 신뢰 카피 — "같은 방향을 가리킬 때만".
+    expect(screen.getByText(/같은 방향을 가리킬 때만/)).toBeInTheDocument()
+  })
+
+  it('교차가 없으면 블록 자체가 렌더되지 않는다', () => {
+    renderTierWith({ decadeCross: [] })
+    expect(screen.queryByText('이 10년의 겹침')).not.toBeInTheDocument()
+  })
+
+  it('세운 한 줄 + 캘린더 퍼널 CTA', () => {
+    renderTierWith({
+      thisYear: { gz: '丙午', sibsin: '정관', area: '일·책임', areaEn: 'duty & standing' },
+    })
+    expect(screen.getByText('이 흐름에서, 올해')).toBeInTheDocument()
+    expect(screen.getByText('丙午')).toBeInTheDocument()
+    // CTA 는 캘린더로 내려보낸다.
+    expect(screen.getByRole('button', { name: /운흐름 캘린더/ })).toBeInTheDocument()
   })
 })

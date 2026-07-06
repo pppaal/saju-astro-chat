@@ -94,6 +94,29 @@ describe('combinePolarity (extractCrossActivations 경유)', () => {
     expect(out[0].polarity).toBe(0)
   })
 
+  it('부호 충돌이면 문구도 중립 교체 — 강한 길/흉 원문 유지 금지 (감사 #9)', () => {
+    const out = extractCrossActivations([
+      sajuSig({ sibsin: '정재', polarity: 2 }),
+      astroSig({ planet: 'Venus', polarity: -2 }),
+    ])
+    expect(out[0].korean).toContain('상쇄')
+    expect(out[0].english).toContain('cancel out')
+    // "X × Y — 문장" 머리 형식 유지 — stripCrossPair 의존.
+    expect(out[0].korean).toMatch(/×.*—/)
+    expect(out[0].english).toMatch(/×.*—/)
+    // EN 머리에 한글 페어명 누수 없음 (산문 무결성 가드와 동일 기준).
+    expect(/[가-힣]/.test((out[0].english ?? '').split('—')[0])).toBe(false)
+  })
+
+  it('부호가 같은 방향이면 매핑 원문 문구 그대로 (중립 교체 없음)', () => {
+    const out = extractCrossActivations([
+      sajuSig({ sibsin: '정재', polarity: 2 }),
+      astroSig({ planet: 'Venus', polarity: 2 }),
+    ])
+    expect(out[0].korean).not.toContain('상쇄되는 날')
+    expect(out[0].polarity).toBe(2)
+  })
+
   it('한쪽 polarity=0 이면 매핑 polarity 그대로 (편관 × Mars = −2)', () => {
     const out = extractCrossActivations([
       sajuSig({ sibsin: '편관', polarity: 0 }),

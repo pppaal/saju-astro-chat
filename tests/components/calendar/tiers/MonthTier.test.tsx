@@ -27,6 +27,9 @@ function makeCell(over: Partial<DestinyCalendarCell> & { d: number }): DestinyCa
     mark: over.mark ?? null,
     focus: over.focus ?? false,
     signalCount: over.signalCount,
+    tone: over.tone,
+    oneLine: over.oneLine,
+    oneLineEn: over.oneLineEn,
   }
 }
 
@@ -118,7 +121,7 @@ describe('MonthTier (이 달의 모양 · LIGHT)', () => {
     it('shows the "tap a date" hint near the grid (ko)', () => {
       render(<MonthTier month={makeMonth()} onDive={noop} onRise={noop} />)
       expect(
-        screen.getByText(/날짜를 누르면 그날 운이, 한 번 더 누르면 자세한 풀이가 열려요/)
+        screen.getByText(/날짜를 누르면 그날 운이, 선택된 날을 다시 누르면 자세한 풀이가 열려요/)
       ).toBeInTheDocument()
     })
 
@@ -127,6 +130,36 @@ describe('MonthTier (이 달의 모양 · LIGHT)', () => {
       expect(
         screen.getByText(/색이 진할수록 잘 풀리는 날, 붉은 날은 큰 결정을 미루기 좋은 날/)
       ).toBeInTheDocument()
+    })
+
+    it('care월(조심날 우세)은 히어로에서 "조심스러운" — "기복"으로 부르지 않는다 (U3)', () => {
+      // careN(3) > goodN(1) → noviceTone=care. 예전엔 mild 하나라 총평이 "기복"으로 샜다.
+      const month = makeMonth({
+        goodDays: ['06-05'],
+        cautionDays: ['06-20', '06-21'],
+        avoidDays: ['06-25'],
+      })
+      const { container } = render(<MonthTier month={month} onDive={noop} onRise={noop} />)
+      const text = container.textContent ?? ''
+      expect(text).toContain('조심스러운')
+      expect(text).not.toContain('기복')
+    })
+
+    it('완전 평탄월(좋은날·조심날 0)은 "고른" 흐름 — 없는 "큰 날/좋은 날"을 겨냥하지 않는다 (U4)', () => {
+      // goodN=0, careN=0 → noviceTone=flat. 예전엔 mild→"큰 날만 노려" 로 없는 날 지시.
+      const month = makeMonth({
+        goodDays: [],
+        cautionDays: [],
+        avoidDays: [],
+        bestDay: { date: '', score: 0 },
+        keyDays: [],
+        converge: undefined,
+      })
+      const { container } = render(<MonthTier month={month} onDive={noop} onRise={noop} />)
+      const text = container.textContent ?? ''
+      // flat 톤워드는 "고른/고르게" — "기복"·"좋은 날 N개" 카운트 클로즈가 아니다.
+      expect(text).toMatch(/고른|고르게/)
+      expect(text).not.toContain('기복')
     })
 
     it('uses plain hero tone word "잘 풀리는 달" (no writer-speak 결)', () => {
@@ -251,6 +284,96 @@ describe('MonthTier (이 달의 모양 · LIGHT)', () => {
       fireEvent.click(screen.getByRole('button', { name: 'View day 25' }))
       const readout = container.querySelector('[class*="readout"]')!
       expect(within(readout as HTMLElement).getByText('avoid')).toBeInTheDocument()
+    })
+  })
+
+  describe('리드아웃·큰 날 톤 권위 — cell.tone (감사 #2·#3·#11 회귀 가드)', () => {
+    it('mark=good 이어도 tone=mixed 면 태그 "기복 있는 날" + 추진 조언 없음 (#2)', () => {
+      const month = makeMonth({
+        keyDays: [],
+        calendar: [
+          makeCell({
+            d: 5,
+            ds: '06-05',
+            mark: 'good',
+            score: 70,
+            tone: 'mixed',
+            oneLine: '오르내림이 있는 하루 — 무게중심만 지키세요.',
+          }),
+          makeCell({ d: 15, ds: '06-15', focus: true, score: 55 }),
+        ],
+      })
+      const { container } = render(<MonthTier month={month} onDive={noop} onRise={noop} />)
+      fireEvent.click(screen.getByRole('button', { name: '5일 자세히 보기' }))
+      const readout = container.querySelector('[class*="readout"]') as HTMLElement
+      expect(readout.textContent).toContain('기복 있는 날')
+      // 밴드(good)에서 뽑던 추진 조언이 문장(mixed)과 싸우지 않게 — 조언 생략.
+      expect(readout.textContent).not.toContain('미뤄둔 일을 시작하거나 밀어붙이기 좋아요')
+      expect(readout.textContent).toContain('오르내림이 있는 하루')
+    })
+
+    it('tone=caution 이면 mark 와 무관하게 조심 태그 + 미루기 조언 (#2)', () => {
+      const month = makeMonth({
+        keyDays: [],
+        calendar: [
+          makeCell({ d: 5, ds: '06-05', mark: 'good', score: 62, tone: 'caution' }),
+          makeCell({ d: 15, ds: '06-15', focus: true, score: 55 }),
+        ],
+      })
+      const { container } = render(<MonthTier month={month} onDive={noop} onRise={noop} />)
+      fireEvent.click(screen.getByRole('button', { name: '5일 자세히 보기' }))
+      const readout = container.querySelector('[class*="readout"]') as HTMLElement
+      expect(readout.textContent).toContain('조심할 날')
+      expect(readout.textContent).toContain('큰 결정·계약·이사는 며칠 미루는 게 좋아요')
+    })
+
+    it('큰 날 라벨 톤은 셀 화해 톤을 따른다 — 수렴 톤이 반대여도 (#3)', () => {
+      const month = makeMonth({
+        bestDay: { date: '', score: 0 },
+        keyDays: [
+          {
+            date: '06-05',
+            meaning: '먼저 움직이면 이기는 날',
+            tone: 'positive',
+            astro: [],
+            saju: [],
+            bothSystems: false,
+          },
+        ],
+        calendar: [
+          makeCell({ d: 5, ds: '06-05', mark: 'avoid', score: 20, tone: 'caution' }),
+          makeCell({ d: 15, ds: '06-15', focus: true, score: 55 }),
+        ],
+      })
+      render(<MonthTier month={month} onDive={noop} onRise={noop} />)
+      // 수렴(positive) 라벨이 아니라 셀 화해 톤(caution) 라벨.
+      expect(screen.getByText(/조심할 날 · /)).toBeInTheDocument()
+      expect(screen.queryByText(/좋은 날 · 먼저 움직이면 이기는 날/)).not.toBeInTheDocument()
+    })
+
+    it('큰 날 meaning 은 클라이언트 로케일로 재생성 — 서버언어 혼종 금지 (#11)', () => {
+      mockLocale = 'en'
+      const month = makeMonth({
+        bestDay: { date: '', score: 0 },
+        keyDays: [
+          {
+            date: '06-05',
+            meaning: '먼저 움직이면 이기는 날', // 서버(ko)에서 구운 meaning
+            tone: 'positive',
+            astro: [],
+            saju: [],
+            bothSystems: false,
+          },
+        ],
+        calendar: [
+          makeCell({ d: 5, ds: '06-05', mark: 'good', score: 70, tone: 'positive' }),
+          makeCell({ d: 15, ds: '06-15', focus: true, score: 55 }),
+        ],
+      })
+      render(<MonthTier month={month} onDive={noop} onRise={noop} />)
+      // "Good day · 먼저 움직이면 이기는 날" 혼종이 나오면 안 된다.
+      expect(screen.queryByText(/먼저 움직이면 이기는 날/)).not.toBeInTheDocument()
+      expect(screen.getByText(/Good day · /)).toBeInTheDocument()
     })
   })
 

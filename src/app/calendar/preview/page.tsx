@@ -5,7 +5,7 @@
    2026년 CalendarCell 으로 5 tier UI 를 자동으로 채운다.
 
    tier 어셈블은 정식 라우트(/calendar/page.tsx)와 assembleTiers() 를 공유.
-   본명·cells 계산은 DB 캐시(getOrBuildNatalContext / getOrBuildYearCells) 우선.
+   본명·cells 계산은 DB 캐시(getOrBuildNatalContext / getOrBuildMonthCells) 우선.
 
    임시 처리 / `as unknown as` 캐스팅 0건 — adapter 가 NatalContext →
    destinypal tier props 까지 100% 책임.
@@ -16,12 +16,10 @@ import PreviewClient from './PreviewClient'
 
 import {
   getOrBuildNatalContext,
-  getOrBuildYearCells,
   getOrBuildMonthCells,
   getFocusDayCell,
 } from '@/lib/calendar-engine/persistence'
 import { assembleTiers } from '../assembleTiers'
-import { SHOW_FULL_TIERS } from '@/components/calendar/tierConfig'
 
 // Server component: 빌드 비용(Swiss Ephemeris) 을 서버에서 한 번만 치름.
 export const dynamic = 'force-dynamic'
@@ -45,20 +43,16 @@ export default async function DestinypalPreview() {
   // 서버 로케일 — 헤더 → 쿠키 → Accept-Language 정식 해석(클라이언트 로케일과 일치).
   const lang = await detectServerLocale()
 
-  // ─── NatalContext + 그 해 cells (DB 캐시 우선) ────────────────────────
+  // ─── NatalContext + 그 달 cells (DB 캐시 우선) ────────────────────────
   const natal = await getOrBuildNatalContext(BIRTH)
-  // SHOW_FULL_TIERS=false(월/일만)면 1년 대신 그 달만 빌드 — 안 보이는 연 티어용
-  // 1년 빌드(7.8s) 낭비 제거.
   const [cells, focusDayCell] = await Promise.all([
-    SHOW_FULL_TIERS
-      ? getOrBuildYearCells(BIRTH, natal, TARGET_YEAR, { includeEvidence: false })
-      : getOrBuildMonthCells(BIRTH, natal, TARGET_YEAR, TARGET_MONTH, { includeEvidence: false }),
+    getOrBuildMonthCells(BIRTH, natal, TARGET_YEAR, TARGET_MONTH, { includeEvidence: false }),
     getFocusDayCell(BIRTH, natal, TARGET_DAY_ISO),
   ])
 
-  // ─── 5 tier 어셈블 (정식 라우트와 공유) ───────────────────────────────
+  // ─── 월/일 tier 어셈블 (정식 라우트와 공유) ───────────────────────────
   const TARGET_DAY = Number(TARGET_DAY_ISO.split('-')[2])
-  const { topbar, user, lifetime, decade, year, month, day } = await assembleTiers({
+  const { topbar, user, lifetime, month, day } = await assembleTiers({
     natal,
     cells,
     lang,
@@ -72,8 +66,8 @@ export default async function DestinypalPreview() {
     whoBirthLine: '1995.2.9 06:40',
     place: '서울',
     focusDayCell,
-    // 정식 라우트와 동일 규약 — 월/일만 보일 땐 인생 곡선 계산 생략.
-    scope: SHOW_FULL_TIERS ? 'year' : 'month',
+    // 정식 라우트와 동일 규약 — 캘린더는 인생 곡선(90년) 계산 생략.
+    scope: 'month',
   })
 
   return (
@@ -81,8 +75,6 @@ export default async function DestinypalPreview() {
       topbar={topbar}
       user={user}
       lifetime={lifetime}
-      decade={decade}
-      year={year}
       month={month}
       day={day}
       // preview 는 세션이 아닌 고정 본명 — 일 티어 재빌드 fetch 도 같은 본명으로

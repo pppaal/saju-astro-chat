@@ -27,6 +27,15 @@ export const RETENTION = {
   pageViewDays: 180,
   /** 캘린더 셀 캐시 — 재방문 시 그 달만 재빌드(~0.3s)라 부담 없음. */
   calendarCacheDays: 90,
+  /**
+   * 본명 컨텍스트 캐시 — 현행 버전 행이라도 오래 안 쓰이면 정리한다. 익명·일회성
+   * 조회(다시는 같은 birthKey 로 안 옴)가 현행 버전으로 들어오면 옛-버전 스윕에
+   * 안 걸려 영원히 남는다. builtAt 은 캐시 *미스*(재빌드) 때만 갱신되므로(히트는
+   * read-only), 이 창을 넘긴 행은 사실상 재조회가 없는 고아다. 재방문 유저면
+   * 다음 방문에 결정적 재빌드(fail-soft)될 뿐이라 지워도 안전하다. pageView 와
+   * 같은 넉넉한 창으로 활성 유저를 보호한다.
+   */
+  natalCacheDays: 180,
 } as const
 
 /** 배치 삭제 — id 를 LIMIT 으로 끊어 지워 단일 롱 트랜잭션/락을 피한다. */
@@ -51,6 +60,8 @@ export interface RetentionSweepResult {
   calendarCacheDeleted: number
   natalOrphansDeleted: number
   expiredSharesDeleted: number
+  yearBlobsDeleted: number
+  stripeEventLogsDeleted: number
 }
 
 export async function sweepDataRetention(now: Date = new Date()): Promise<RetentionSweepResult> {
@@ -59,6 +70,8 @@ export async function sweepDataRetention(now: Date = new Date()): Promise<Retent
     calendarCacheDeleted: 0,
     natalOrphansDeleted: 0,
     expiredSharesDeleted: 0,
+    yearBlobsDeleted: 0,
+    stripeEventLogsDeleted: 0,
   }
 
   // 1) PageView — 보존기간 초과분. @@index([createdAt]) 로 pick 이 싸다.
@@ -98,13 +111,22 @@ export async function sweepDataRetention(now: Date = new Date()): Promise<Retent
     })
   }
 
-  // 3) NatalContextCache — 현행 버전은 영구 보존, 옛 버전 시그니처만 삭제.
-  //    @@index([engineSignature]).
+  // 3) NatalContextCache — 옛 버전 시그니처 + 오래 안 쓰인 현행 버전 고아를 삭제.
+  //    옛 버전(engineSignature≠현행)은 다시 조회 안 되는 고아. 현행 버전이라도
+  //    builtAt 이 보존창을 넘긴 행은 익명·일회성 조회의 잔재라 함께 정리한다
+  //    (히트는 builtAt 을 안 건드리므로 창을 넘겼다 = 재빌드가 없었다). 둘 다
+  //    @@index([engineSignature])·@@index([builtAt]) 로 pick 이 싸다.
   try {
+    const natalCutoff = new Date(now.getTime() - RETENTION.natalCacheDays * DAY_MS)
     result.natalOrphansDeleted = await deleteInBatches(
       (take) =>
         prisma.natalContextCache.findMany({
-          where: { engineSignature: { not: CALENDAR_ENGINE_VERSION } },
+          where: {
+            OR: [
+              { engineSignature: { not: CALENDAR_ENGINE_VERSION } },
+              { builtAt: { lt: natalCutoff } },
+            ],
+          },
           select: { id: true },
           take,
         }),
@@ -112,6 +134,25 @@ export async function sweepDataRetention(now: Date = new Date()): Promise<Retent
     )
   } catch (err) {
     logger.error('[dataRetention] natalContextCache sweep failed', {
+      err: err instanceof Error ? err.message : String(err),
+    })
+  }
+
+  // 3b) 연(year) 셀 블롭 — monthKey 가 `${year}:{hash}` 형태(sentinel). /destiny
+  //     경량화로 프로덕션 writer/reader 가 사라졌고 행당 ~39MB(실측)라 나이와
+  //     무관하게 즉시 정리한다. (월 `YYYY-MM:`·일 `day:` 키와 형태가 구분됨.)
+  try {
+    result.yearBlobsDeleted = await deleteInBatches(
+      (take) =>
+        prisma.$queryRawUnsafe<Array<{ id: string }>>(
+          `SELECT id FROM "CalendarBuildCache" WHERE "monthKey" ~ '^[0-9]{4}:' LIMIT ${Math.trunc(take)}`
+        ),
+      (ids) => prisma.calendarBuildCache.deleteMany({ where: { id: { in: ids } } }),
+      // 대형 블롭 행 — 배치를 작게 잡아 삭제 트랜잭션을 짧게 유지.
+      { batchSize: 50, maxBatches: 20 }
+    )
+  } catch (err) {
+    logger.error('[dataRetention] year blob sweep failed', {
       err: err instanceof Error ? err.message : String(err),
     })
   }
@@ -129,6 +170,26 @@ export async function sweepDataRetention(now: Date = new Date()): Promise<Retent
     )
   } catch (err) {
     logger.error('[dataRetention] sharedResult sweep failed', {
+      err: err instanceof Error ? err.message : String(err),
+    })
+  }
+
+  // 5) StripeEventLog — 웹훅 dedupe 로그. Stripe 자체 재시도 창(72h)을 한참 넘긴
+  //    행은 dedupe 에 쓰이지 않는다. 감사 추적 여유로 1년 보존 후 정리.
+  //    @@index([processedAt]).
+  try {
+    const cutoff = new Date(now.getTime() - 365 * DAY_MS)
+    result.stripeEventLogsDeleted = await deleteInBatches(
+      (take) =>
+        prisma.stripeEventLog.findMany({
+          where: { processedAt: { lt: cutoff } },
+          select: { id: true },
+          take,
+        }),
+      (ids) => prisma.stripeEventLog.deleteMany({ where: { id: { in: ids } } })
+    )
+  } catch (err) {
+    logger.error('[dataRetention] stripeEventLog sweep failed', {
       err: err instanceof Error ? err.message : String(err),
     })
   }

@@ -143,6 +143,18 @@ function buildCrossSignal(
   const weight = Math.max(0, Math.min(1, baseWeight))
   const day = isoDay(window.start)
   const name = `${mapping.saju} × ${PLANET_KO[mapping.astro] ?? mapping.astro}`
+  // 부호 충돌(polarity 0)이면 톤만 무력화하고 강한 길/흉 원문을 그대로 두면
+  // "중립 마커(·) + 강한 경고문" 모순이 난다(감사 #9). 문구도 중립으로 교체 —
+  // "X × Y — …" 머리 형식은 유지해 stripCrossPair 가 그대로 동작한다.
+  const conflicted = polarity === 0 && sajuSig.polarity !== 0 && astroSig.polarity !== 0
+  const koMeaning = conflicted
+    ? `${name} — 두 기운이 서로 반대로 당겨 상쇄되는 날. 크게 밀지도 밀리지도 않으니 판단을 서두르지 마세요.`
+    : mapping.meaning.ko
+  // EN 머리는 매핑 원문 머리("Direct Officer × Saturn") 재사용 — 한글 누수 방지.
+  const enHead = mapping.meaning.en.split('—')[0]?.trim() || `${mapping.saju} × ${mapping.astro}`
+  const enMeaning = conflicted
+    ? `${enHead} — the two currents pull opposite ways and cancel out. Nothing pushes hard either way, so don't rush the call.`
+    : mapping.meaning.en
   const evidence: SignalEvidence = {
     module: 'cross-activation',
     sibsin: sajuSig.evidence?.sibsin,
@@ -163,8 +175,8 @@ function buildCrossSignal(
     source: 'saju', // hybrid 표시 — tagger 가 source 별 라우팅에 안전. (cross-activation kind 로 식별)
     kind: 'cross-activation',
     name,
-    korean: mapping.meaning.ko,
-    english: mapping.meaning.en,
+    korean: koMeaning,
+    english: enMeaning,
     polarity,
     layer:
       sajuSig.layer === 'decadal' || astroSig.layer === 'decadal'

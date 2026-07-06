@@ -211,6 +211,24 @@ function groupIntoCells(
     cell.signals = dedupeShinsalSignals(cell.signals)
   }
 
+  // 자시(子時) 이중계상 dedup — 시진 신호는 활성 윈도우로 셀에 붙는데(위 groupIntoCells),
+  // 자시는 23:00~다음날 01:00 로 자정을 넘겨 *두* 날 셀에 걸린다. 그래서 매일 셀이
+  // 자기 자시(그날 23시 시작) + 전날 자시의 새벽 꼬리(00~01시), 두 개의 子時 신호를
+  // 갖고 — 둘은 시주(時柱) 천간이 달라(일간 의존) 톤·근거가 갈리는 데다 hourly 층을
+  // 이중 계상해 일점수를 부풀렸다(감사 C2). 각 셀은 *그날 생성된* 시진만 남긴다
+  // (id 의 dayIso 로 판별) — 새벽 꼬리(전날 소속)는 걷어내 하루당 자시 1개로 고정.
+  // day 그래뉼래리티에서만 유효(hour 셀은 자정 넘김이 애초에 다른 셀).
+  if (range.granularity === 'day') {
+    for (const cell of cells.values()) {
+      const cellDay = cell.datetime.slice(0, 10)
+      cell.signals = cell.signals.filter((s) => {
+        if (!s.id.startsWith('saju.hour.')) return true
+        // 'saju.hour.' (10자) 뒤 10자가 생성일(YYYY-MM-DD). 그날 셀에만 남긴다.
+        return s.id.slice(10, 20) === cellDay
+      })
+    }
+  }
+
   // derivers — 점수·패턴·요약 계산 (점수는 부산물)
   // 패턴을 먼저 검출하고, 점수 계산에 패턴 보너스 반영.
   //

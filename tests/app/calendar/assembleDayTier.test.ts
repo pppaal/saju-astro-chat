@@ -111,4 +111,36 @@ describe('assembleDayTier — 선택한 날짜로 빌드', () => {
     expect(standalone.dayTone).toEqual(full.day.dayTone)
     expect(standalone.upcoming).toEqual(full.day.upcoming)
   })
+
+  it('월말: nextMonthCells 로 "다가오는 7일"이 월 경계를 넘어 이어진다 (감사 #13)', async () => {
+    const juneCells = cells.filter((c) => c.datetime.slice(5, 7) === '06')
+    const julyCells = cells.filter((c) => c.datetime.slice(5, 7) === '07')
+
+    // 없으면 종전대로 월말 절단 — 6/28 기준 6/29·6/30 두 날만.
+    const without = await assembleDayTier({
+      natal,
+      cells: juneCells,
+      lang: 'ko',
+      targetDayIso: '2024-06-28',
+      focusDayCell: null,
+      now: FIXED_NOW,
+    })
+    expect(without.upcoming.map((u) => u.date)).toEqual(['2024-06-29', '2024-06-30'])
+
+    const withNext = await assembleDayTier({
+      natal,
+      cells: juneCells,
+      lang: 'ko',
+      targetDayIso: '2024-06-28',
+      focusDayCell: null,
+      now: FIXED_NOW,
+      nextMonthCells: julyCells,
+    })
+    expect(withNext.upcoming).toHaveLength(7)
+    expect(withNext.upcoming.map((u) => u.date)).toContain('2024-07-03')
+    // 다음 달 날짜 점수는 *그 달 모집단* 기준 — 사용자가 7월을 열었을 때와 동일값.
+    const julyLayered = deriveLayeredScores(julyCells)
+    const jul3 = withNext.upcoming.find((u) => u.date === '2024-07-03')!
+    expect(jul3.score).toBe(Math.round(julyLayered.daily.get('2024-07-03')!.score))
+  }, 30000)
 })

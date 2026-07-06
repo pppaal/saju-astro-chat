@@ -85,9 +85,18 @@ export const GET = withApiMiddleware(
 
     const natal = await getOrBuildNatalContext(birth)
     // 그 달 cells(점수 모집단 — 월 그리드와 동일) + 그 하루 evidence 셀.
-    const [cells, focusDayCell] = await Promise.all([
+    // 대상일+7일이 월을 넘으면 다음 달 cells 도 — "다가오는 7일" 월말 절단 방지
+    // (감사 #13). 캐시 히트라 정상 사용에선 추가 빌드 없음.
+    const d = Number(dayIso.slice(8, 10))
+    const lastDayOfMonth = new Date(Date.UTC(y, m, 0)).getUTCDate()
+    const needNextMonth = d + 7 > lastDayOfMonth
+    const [nmY, nmM] = m === 12 ? [y + 1, 1] : [y, m + 1]
+    const [cells, focusDayCell, nextMonthCells] = await Promise.all([
       getOrBuildMonthCells(birth, natal, y, m, { includeEvidence: false }),
       getFocusDayCell(birth, natal, dayIso),
+      needNextMonth
+        ? getOrBuildMonthCells(birth, natal, nmY, nmM, { includeEvidence: false })
+        : Promise.resolve(undefined),
     ])
 
     const day = await assembleDayTier({
@@ -96,6 +105,7 @@ export const GET = withApiMiddleware(
       lang,
       targetDayIso: dayIso,
       focusDayCell,
+      nextMonthCells,
     })
 
     return apiSuccess({ day })

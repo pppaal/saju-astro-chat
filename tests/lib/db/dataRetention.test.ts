@@ -13,16 +13,20 @@ const mockFindMany = {
   calendarBuildCache: vi.fn(),
   natalContextCache: vi.fn(),
   sharedResult: vi.fn(),
+  stripeEventLog: vi.fn(),
 }
 const mockDeleteMany = {
   pageView: vi.fn(),
   calendarBuildCache: vi.fn(),
   natalContextCache: vi.fn(),
   sharedResult: vi.fn(),
+  stripeEventLog: vi.fn(),
 }
+const mockQueryRawUnsafe = vi.fn()
 
 vi.mock('@/lib/db/prisma', () => ({
   prisma: {
+    $queryRawUnsafe: (...a: unknown[]) => mockQueryRawUnsafe(...a),
     pageView: {
       findMany: (...a: unknown[]) => mockFindMany.pageView(...a),
       deleteMany: (...a: unknown[]) => mockDeleteMany.pageView(...a),
@@ -38,6 +42,10 @@ vi.mock('@/lib/db/prisma', () => ({
     sharedResult: {
       findMany: (...a: unknown[]) => mockFindMany.sharedResult(...a),
       deleteMany: (...a: unknown[]) => mockDeleteMany.sharedResult(...a),
+    },
+    stripeEventLog: {
+      findMany: (...a: unknown[]) => mockFindMany.stripeEventLog(...a),
+      deleteMany: (...a: unknown[]) => mockDeleteMany.stripeEventLog(...a),
     },
   },
 }))
@@ -59,6 +67,7 @@ function ids(n: number, prefix: string) {
 beforeEach(() => {
   for (const m of Object.values(mockFindMany)) m.mockReset().mockResolvedValue([])
   for (const m of Object.values(mockDeleteMany)) m.mockReset().mockResolvedValue({ count: 0 })
+  mockQueryRawUnsafe.mockReset().mockResolvedValue([])
 })
 
 describe('sweepDataRetention', () => {
@@ -89,15 +98,22 @@ describe('sweepDataRetention', () => {
     expect(r.pageViewsDeleted).toBe(100_000)
   })
 
-  it('NatalContextCache — 현행 엔진 버전은 지우지 않는다(옛 버전 고아만)', async () => {
+  it('NatalContextCache — 옛 버전 고아 OR 오래 안 쓰인 현행 버전 행을 지운다', async () => {
     mockFindMany.natalContextCache.mockResolvedValueOnce(ids(2, 'n')).mockResolvedValue([])
     mockDeleteMany.natalContextCache.mockResolvedValue({ count: 2 })
 
     const r = await sweepDataRetention(NOW)
 
+    const natalCutoff = new Date(NOW.getTime() - RETENTION.natalCacheDays * DAY_MS)
+    // 현행 버전이라도 builtAt 이 보존창을 넘긴 익명·일회성 고아는 함께 지운다.
     expect(mockFindMany.natalContextCache).toHaveBeenCalledWith(
       expect.objectContaining({
-        where: { engineSignature: { not: CALENDAR_ENGINE_VERSION } },
+        where: {
+          OR: [
+            { engineSignature: { not: CALENDAR_ENGINE_VERSION } },
+            { builtAt: { lt: natalCutoff } },
+          ],
+        },
       })
     )
     expect(r.natalOrphansDeleted).toBe(2)
@@ -113,6 +129,36 @@ describe('sweepDataRetention', () => {
       expect.objectContaining({ where: { expiresAt: { lt: NOW } } })
     )
     expect(r.expiredSharesDeleted).toBe(1)
+  })
+
+  it('연(year) 셀 블롭 — monthKey ~ ^\\d{4}: 인 대형 행을 정리(감사)', async () => {
+    mockQueryRawUnsafe.mockResolvedValueOnce(ids(2, 'y')).mockResolvedValue([])
+    mockDeleteMany.calendarBuildCache.mockResolvedValue({ count: 2 })
+
+    const r = await sweepDataRetention(NOW)
+
+    // 연 sentinel 정규식으로 골라 지운다(월 `YYYY-MM:`·일 `day:` 는 제외됨).
+    expect(mockQueryRawUnsafe).toHaveBeenCalled()
+    const sql = String(mockQueryRawUnsafe.mock.calls[0][0])
+    expect(sql).toContain('monthKey')
+    expect(sql).toContain('^[0-9]{4}:')
+    expect(mockDeleteMany.calendarBuildCache).toHaveBeenCalledWith({
+      where: { id: { in: ['y0', 'y1'] } },
+    })
+    expect(r.yearBlobsDeleted).toBe(2)
+  })
+
+  it('StripeEventLog — 1년 지난 dedupe 로그만 정리', async () => {
+    mockFindMany.stripeEventLog.mockResolvedValueOnce(ids(3, 'se')).mockResolvedValue([])
+    mockDeleteMany.stripeEventLog.mockResolvedValue({ count: 3 })
+
+    const r = await sweepDataRetention(NOW)
+
+    const cutoff = new Date(NOW.getTime() - 365 * DAY_MS)
+    expect(mockFindMany.stripeEventLog).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { processedAt: { lt: cutoff } } })
+    )
+    expect(r.stripeEventLogsDeleted).toBe(3)
   })
 
   it('fail-soft — 한 테이블이 throw 해도 나머지 스윕은 계속된다', async () => {

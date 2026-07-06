@@ -107,6 +107,13 @@ export interface AssembleDayTierInput {
    * 단독 호출(/api/calendar/day)은 생략 → 자체 계산.
    */
   layered?: LayeredScores
+  /**
+   * 다음 달 cells(선택) — 월말엔 "다가오는 7일"이 월 경계에서 잘려 다음 달 초의
+   * 큰 날이 안 보이다가 1일에 갑자기 나타났다(감사 #13). 대상일+7일이 월을 넘으면
+   * 호출부가 다음 달 cells(캐시 히트)을 줘서 이어 붙인다. 점수는 *그 달 모집단*
+   * 기준 — 사용자가 그 달을 열었을 때 볼 점수와 동일.
+   */
+  nextMonthCells?: CalendarCell[]
 }
 
 export async function assembleDayTier(input: AssembleDayTierInput): Promise<DestinyDay> {
@@ -244,6 +251,7 @@ export async function assembleDayTier(input: AssembleDayTierInput): Promise<Dest
       meaningEn: stripCrossPair(s.english ?? ''),
       polarity: s.polarity,
       weight: s.weight,
+      layer: s.layer,
     })
   }
   const dayCrossActivations: DestinyDay['crossActivations'] = [...dayCrossByPair.values()].sort(
@@ -260,15 +268,25 @@ export async function assembleDayTier(input: AssembleDayTierInput): Promise<Dest
       today: iso === targetDayIso,
     }
   })
-  // 다가오는 7일 — 대상일 다음날부터. cells 범위 밖(월말 등)은 자연히 짧아진다.
+  // 다가오는 7일 — 대상일 다음날부터. 월 경계를 넘으면 nextMonthCells 로 이어
+  // 붙인다(그 달 모집단 점수 — 다음 달 화면과 동일 값).
   const cellByIso = new Map(cells.map((c) => [c.datetime.slice(0, 10), c]))
+  const nextCellByIso = new Map(
+    (input.nextMonthCells ?? []).map((c) => [c.datetime.slice(0, 10), c])
+  )
+  const nextLayered = input.nextMonthCells?.length
+    ? deriveLayeredScores(input.nextMonthCells)
+    : null
   const upcoming: Array<{ date: string; score: number }> = []
   for (let i = 1; i <= 7; i++) {
     const d = new Date(`${targetDayIso}T00:00:00Z`)
     d.setUTCDate(d.getUTCDate() + i)
     const iso = d.toISOString().slice(0, 10)
-    if (!cellByIso.has(iso)) continue
-    upcoming.push({ date: iso, score: Math.round(layered.daily.get(iso)?.score ?? 50) })
+    if (cellByIso.has(iso)) {
+      upcoming.push({ date: iso, score: Math.round(layered.daily.get(iso)?.score ?? 50) })
+    } else if (nextLayered && nextCellByIso.has(iso)) {
+      upcoming.push({ date: iso, score: Math.round(nextLayered.daily.get(iso)?.score ?? 50) })
+    }
   }
   // 다가오는 큰 날 — 앞으로 7일 중 가장 센 '좋은 날'. 있으면 "6월 19일 (D-3)" 처럼
   // 재방문 유인을 준다. 이미 계산된 upcoming(일점수)에서 뽑으므로 새 계산 없음.

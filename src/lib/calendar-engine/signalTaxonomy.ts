@@ -22,6 +22,17 @@ export const REASON_LAYERS: ReadonlySet<SignalLayer> = new Set<SignalLayer>([
 ])
 
 /**
+ * "그날 고유" 층 — 톤 화해(tense/bright) 판정에 쓰는 신호 층.
+ *
+ * REASON_LAYERS(칩 모집단)보다 좁다. 월운(monthly)은 한 달 내내 같은 상수라
+ * 좋은 달엔 매일 양수 베이스를 깔고, 시진(hourly)은 12시진 합이라 나쁜 날에도
+ * 좋은 시간이 늘 더 많아 양수로 쏠린다 — 이 둘을 넣으면 그날 자체(daily)가
+ * 흉이어도 net>0 이 되어 bright 승격이 상시 발동했다(실측: 저점일 25일 중 23일).
+ * 점수가 "이 달에서 약한 날"을 말할 때 톤도 *그날의 신호*로 판정해야 맞는다.
+ */
+export const TONE_LAYERS: ReadonlySet<SignalLayer> = new Set<SignalLayer>(['daily', 'instant'])
+
+/**
  * 정적 본명(명사) 표지 — *흐름 점수·사유*에서 제외.
  * 그날 가변 신호가 아니라 본명 자체 표지라, 매일 같은 줄·impact 로 점수를 오염시키고
  * (강한 사주만 매일 좋음 inflate) 칩 목록도 도배한다. 날짜별 변별을 위해 흐름
