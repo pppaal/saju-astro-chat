@@ -58,15 +58,19 @@ interface YearWindow {
   peak: string
 }
 
-function birthAgeToDate(birthYear: number, ageYears: number): Date {
-  const ms = Date.UTC(birthYear, 0, 1) + ageYears * 365.25 * 86400 * 1000
-  return new Date(ms)
+/**
+ * ZR 나이(0=출생) → 달력 시각. 앵커는 *실제 생일*(연·월·일, 정오 UTC 근사) —
+ * 예전 출생년 1/1 앵커는 12월생에게 모든 ZR 경계(L1 챕터·L2 월·L3 일)를 최대
+ * ~12개월 조기 발화시켰다(감사 A-2). 시각의 시간 단위 오차는 연 스케일에서 무의미.
+ */
+function birthAgeToDate(birthAnchorMs: number, ageYears: number): Date {
+  return new Date(birthAnchorMs + ageYears * 365.25 * 86400 * 1000)
 }
 
-function makeWindow(birthYear: number, startAge: number, endAge: number): YearWindow {
-  const start = birthAgeToDate(birthYear, startAge).toISOString()
-  const end = birthAgeToDate(birthYear, endAge).toISOString()
-  const peak = birthAgeToDate(birthYear, (startAge + endAge) / 2).toISOString()
+function makeWindow(birthAnchorMs: number, startAge: number, endAge: number): YearWindow {
+  const start = birthAgeToDate(birthAnchorMs, startAge).toISOString()
+  const end = birthAgeToDate(birthAnchorMs, endAge).toISOString()
+  const peak = birthAgeToDate(birthAnchorMs, (startAge + endAge) / 2).toISOString()
   return { start, end, peak }
 }
 
@@ -87,10 +91,10 @@ function clampPolarity(value: number): Polarity {
 function emitL1Signals(args: {
   lot: ZRStartLot
   startSign: ZodiacKo
-  birthYear: number
+  birthAnchorMs: number
   range: { start: string; end: string }
 }): { signals: ActiveSignal[]; periods: ZRPeriod[] } {
-  const { lot, startSign, birthYear, range } = args
+  const { lot, startSign, birthAnchorMs, range } = args
   const periods = calculateZodiacalReleasing(startSign, 90)
   const annotated = annotateZRMarkers(startSign, periods)
   const signals: ActiveSignal[] = []
@@ -99,7 +103,7 @@ function emitL1Signals(args: {
   const lotKo = lot === 'Spirit' ? '영혼' : '운명·몸'
 
   for (const period of annotated) {
-    const win = makeWindow(birthYear, period.startYear, period.endYear)
+    const win = makeWindow(birthAnchorMs, period.startYear, period.endYear)
     if (!withinRange(win, range.start, range.end)) continue
 
     const polarity = clampPolarity((RULER_POLARITY[period.ruler] ?? 0) * 2)
@@ -165,36 +169,9 @@ function emitL1Signals(args: {
       })
     }
 
-    // Loosing of the bond — 시작 sign 의 7번째 (opposition) — 큰 전환점.
-    if (period.isLoosingOfTheBond) {
-      signals.push({
-        id: `astro.zr.${baseKey}.l1.loosing.${period.index}.${period.sign}`,
-        source: 'astro',
-        kind: 'zodiacal-releasing',
-        name: `ZR ${lot} Loosing-of-the-Bond: ${period.sign}`,
-        korean: `${lot === 'Spirit' ? '영혼' : '운명'} ZR 결 풀림 — ${period.sign}`,
-        english: `${lot} ZR Loosing-of-the-Bond — ${period.sign}: a major turning point and release`,
-        // 큰 폴라리티 (전환). ruler 길흉 위에 절댓값 1 더 — 부정/긍정 어느 쪽이든 진폭이 큼.
-        polarity: clampPolarity(polarity === 0 ? -2 : polarity + Math.sign(polarity)),
-        layer: layerL1,
-        active: win,
-        weight: 0.95,
-        evidence: {
-          module: 'astro-zr',
-          planets: [period.ruler],
-          detail: {
-            lot,
-            lotKo,
-            level: 1,
-            event: 'loosing-of-bond',
-            sign: period.sign,
-            ruler: period.ruler,
-            offsetFromStart: period.offsetFromStart,
-            translationKey: 'zrLoosingOfBond',
-          },
-        },
-      })
-    }
+    // (예전의 L1 "결 풀림" 이벤트는 오정의였다 — 감사 A-1. LB 는 L2 시퀀스가
+    //  한 바퀴 돌아 부모 sign 으로 돌아올 때의 반대편 점프 사건이라, 이제
+    //  emitSubSignals 가 점프로 진입한 L2 sub-period 에서 이벤트를 발화한다.)
   }
 
   return { signals, periods }
@@ -205,17 +182,17 @@ function emitSubSignals(args: {
   level: 2 | 3
   parent: ZRPeriod | ZRSubPeriod
   subPeriods: ZRSubPeriod[]
-  birthYear: number
+  birthAnchorMs: number
   range: { start: string; end: string }
 }): ActiveSignal[] {
-  const { lot, level, parent, subPeriods, birthYear, range } = args
+  const { lot, level, parent, subPeriods, birthAnchorMs, range } = args
   const signals: ActiveSignal[] = []
   const baseKey = lot.toLowerCase()
   const layer = level === 2 ? 'monthly' : 'daily'
   const lotKo = lot === 'Spirit' ? '영혼' : '운명·몸'
 
   for (const sub of subPeriods) {
-    const win = makeWindow(birthYear, sub.startYear, sub.endYear)
+    const win = makeWindow(birthAnchorMs, sub.startYear, sub.endYear)
     if (!withinRange(win, range.start, range.end)) continue
 
     const polarity = clampPolarity(RULER_POLARITY[sub.ruler] ?? 0)
@@ -321,7 +298,14 @@ const astroZRExtractor: SignalExtractor = {
     const spirit = lots.find((l) => l.name === 'Spirit')
     const fortune = lots.find((l) => l.name === 'Fortune')
 
-    const birthYear = natal.input.year
+    // 실제 생일 앵커(감사 A-2) — 출생년 1/1 앵커는 12월생의 모든 ZR 경계를 최대
+    // ~12개월 조기 발화시켰다. 정오 UTC 근사(연 스케일에서 시간 오차 무의미).
+    const birthAnchorMs = Date.UTC(
+      natal.input.year,
+      (natal.input.month ?? 1) - 1,
+      natal.input.date ?? 1,
+      12
+    )
     const all: ActiveSignal[] = []
 
     for (const lot of [
@@ -333,16 +317,15 @@ const astroZRExtractor: SignalExtractor = {
       const { signals: l1signals, periods } = emitL1Signals({
         lot: lot.lotName,
         startSign: lot.sign,
-        birthYear,
+        birthAnchorMs,
         range,
       })
       all.push(...l1signals)
 
       // L2/L3: range 와 겹치는 L1 만 펼쳐 비용 절약.
       const rangeStartAge =
-        (new Date(range.start).getTime() - Date.UTC(birthYear, 0, 1)) / (365.25 * 86400 * 1000)
-      const rangeEndAge =
-        (new Date(range.end).getTime() - Date.UTC(birthYear, 0, 1)) / (365.25 * 86400 * 1000)
+        (new Date(range.start).getTime() - birthAnchorMs) / (365.25 * 86400 * 1000)
+      const rangeEndAge = (new Date(range.end).getTime() - birthAnchorMs) / (365.25 * 86400 * 1000)
 
       for (const parentL1 of periods) {
         if (parentL1.endYear < rangeStartAge || parentL1.startYear > rangeEndAge) continue
@@ -353,7 +336,7 @@ const astroZRExtractor: SignalExtractor = {
             level: 2,
             parent: parentL1,
             subPeriods: l2List,
-            birthYear,
+            birthAnchorMs,
             range,
           })
         )
@@ -367,7 +350,7 @@ const astroZRExtractor: SignalExtractor = {
               level: 3,
               parent: parentL2,
               subPeriods: l3List,
-              birthYear,
+              birthAnchorMs,
               range,
             })
           )

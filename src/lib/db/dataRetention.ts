@@ -51,6 +51,8 @@ export interface RetentionSweepResult {
   calendarCacheDeleted: number
   natalOrphansDeleted: number
   expiredSharesDeleted: number
+  yearBlobsDeleted: number
+  stripeEventLogsDeleted: number
 }
 
 export async function sweepDataRetention(now: Date = new Date()): Promise<RetentionSweepResult> {
@@ -59,6 +61,8 @@ export async function sweepDataRetention(now: Date = new Date()): Promise<Retent
     calendarCacheDeleted: 0,
     natalOrphansDeleted: 0,
     expiredSharesDeleted: 0,
+    yearBlobsDeleted: 0,
+    stripeEventLogsDeleted: 0,
   }
 
   // 1) PageView — 보존기간 초과분. @@index([createdAt]) 로 pick 이 싸다.
@@ -116,6 +120,25 @@ export async function sweepDataRetention(now: Date = new Date()): Promise<Retent
     })
   }
 
+  // 3b) 연(year) 셀 블롭 — monthKey 가 `${year}:{hash}` 형태(sentinel). /destiny
+  //     경량화로 프로덕션 writer/reader 가 사라졌고 행당 ~39MB(실측)라 나이와
+  //     무관하게 즉시 정리한다. (월 `YYYY-MM:`·일 `day:` 키와 형태가 구분됨.)
+  try {
+    result.yearBlobsDeleted = await deleteInBatches(
+      (take) =>
+        prisma.$queryRawUnsafe<Array<{ id: string }>>(
+          `SELECT id FROM "CalendarBuildCache" WHERE "monthKey" ~ '^[0-9]{4}:' LIMIT ${Math.trunc(take)}`
+        ),
+      (ids) => prisma.calendarBuildCache.deleteMany({ where: { id: { in: ids } } }),
+      // 대형 블롭 행 — 배치를 작게 잡아 삭제 트랜잭션을 짧게 유지.
+      { batchSize: 50, maxBatches: 20 }
+    )
+  } catch (err) {
+    logger.error('[dataRetention] year blob sweep failed', {
+      err: err instanceof Error ? err.message : String(err),
+    })
+  }
+
   // 4) SharedResult — 만료 지난 공유 링크만(expiresAt null=영구는 유지).
   try {
     result.expiredSharesDeleted = await deleteInBatches(
@@ -129,6 +152,26 @@ export async function sweepDataRetention(now: Date = new Date()): Promise<Retent
     )
   } catch (err) {
     logger.error('[dataRetention] sharedResult sweep failed', {
+      err: err instanceof Error ? err.message : String(err),
+    })
+  }
+
+  // 5) StripeEventLog — 웹훅 dedupe 로그. Stripe 자체 재시도 창(72h)을 한참 넘긴
+  //    행은 dedupe 에 쓰이지 않는다. 감사 추적 여유로 1년 보존 후 정리.
+  //    @@index([processedAt]).
+  try {
+    const cutoff = new Date(now.getTime() - 365 * DAY_MS)
+    result.stripeEventLogsDeleted = await deleteInBatches(
+      (take) =>
+        prisma.stripeEventLog.findMany({
+          where: { processedAt: { lt: cutoff } },
+          select: { id: true },
+          take,
+        }),
+      (ids) => prisma.stripeEventLog.deleteMany({ where: { id: { in: ids } } })
+    )
+  } catch (err) {
+    logger.error('[dataRetention] stripeEventLog sweep failed', {
       err: err instanceof Error ? err.message : String(err),
     })
   }

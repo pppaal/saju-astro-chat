@@ -76,7 +76,10 @@ describe('buildCalendar 결정론 골든', () => {
     // 2026-07 갱신(v5): 교차 매핑 31→57쌍 확장(일/월 근거 커버리지 — 달·태양·
     // 수성·금성·화성·천을귀인). 새 cross-activation 신호가 점수 골격에 합류하며
     // digest 변경. 의도된 커버리지 확장에 따른 정당한 갱신.
-    const GOLDEN = '44d750c7eb599aecd67541fc2ea251412fd87e7c'
+    // 2026-07 갱신(v6): ZR 정통화 — 나이 앵커 출생년 1/1→실제 생일(A-2) +
+    // Loosing-of-the-Bond Valens 점프 규칙(A-1). ZR 신호 창·이벤트가 이동하며
+    // digest 변경. 의도된 정통 규칙 교정에 따른 정당한 갱신.
+    const GOLDEN = 'a9fe1fba6ba1b2f03a149a9b8157e827c9dac943'
     expect(digest(await build())).toBe(GOLDEN)
   }, 60_000)
 })

@@ -23,6 +23,7 @@ import {
   getFocusDayCell,
 } from '@/lib/calendar-engine/persistence'
 import { assembleTiers, type AssembledTiers } from './assembleTiers'
+import { assembleLifetime, type AssembledLifetime } from './assembleLifetime'
 import { getNowInTimezone, formatDateString } from '@/lib/datetime/timezone'
 
 export type TierScope = 'month' | 'year'
@@ -35,6 +36,13 @@ export type LoadTierResult =
   // 익명 override 빌드 IP 한도 초과 — 잠시 후 재시도 안내.
   | { kind: 'rate-limited'; lang: 'ko' | 'en' }
   | ({ kind: 'ok'; lang: 'ko' | 'en' } & AssembledTiers)
+
+export type LoadLifetimeResult =
+  | { kind: 'login' }
+  | { kind: 'no-birth' }
+  | { kind: 'guest'; lang: 'ko' | 'en' }
+  | { kind: 'rate-limited'; lang: 'ko' | 'en' }
+  | ({ kind: 'ok'; lang: 'ko' | 'en' } & AssembledLifetime)
 
 // 쿼리파라미터로 들어온 생일 — 로그인 없이도 캘린더/인생흐름을 그 사람 기준으로
 // 빌드한다(통합 리포트와 같은 규약: date/time/lat/lng/tz/gender).
@@ -151,6 +159,51 @@ function formatBirthLine(birthDate: string, birthTime: string): string {
   return `${ymd} ${birthTime}`
 }
 
+/** 공용 본명 가드 — override(IP 한도) 또는 세션 본명. 두 로더가 공유. */
+type BirthGuardResult =
+  | { kind: 'guest' }
+  | { kind: 'no-birth' }
+  | { kind: 'rate-limited' }
+  | { kind: 'ok'; birth: BirthInput; place: string }
+
+async function resolveBirthGuard(
+  override: BirthOverride | null | undefined,
+  lang: 'ko' | 'en'
+): Promise<BirthGuardResult> {
+  if (override) {
+    // 익명 override 빌드는 인증·rate-limit 없이 ?date=&lat= 변주로 무한 풀빌드
+    // + 캐시 행 증식을 유발할 수 있다(DoS). IP 당 한도를 둔다 — 정상 '다른 사람
+    // 보기'는 분당 수 회라 영향 없고, 스크립트 남용만 막는다.
+    // Redis 없으면 fail-open(상태 없이는 제한 불가) — graceful.
+    const ip = getClientIp(await headers())
+    const rl = await rateLimit(`tier-override:${ip}`, { limit: 20, windowSeconds: 60 })
+    if (!rl.allowed) return { kind: 'rate-limited' }
+    return {
+      kind: 'ok',
+      birth: {
+        birthDate: override.birthDate,
+        birthTime: override.birthTime,
+        gender: override.gender,
+        latitude: override.latitude,
+        longitude: override.longitude,
+        timeZone: override.timeZone,
+      },
+      place: override.place || (lang === 'en' ? 'Seoul' : '서울'),
+    }
+  }
+  const resolved = await loadSessionBirth()
+  // 익명 + 무입력 — 임의 샘플로 풀이를 띄우지 않고 생년월일 입력 게이트로.
+  // localStorage 에 저장된 생일이 있으면 클라이언트가 ?date=... 를 붙여
+  // 자동으로 다시 연다(통합 리포트와 동일 규약).
+  if (resolved.kind === 'anonymous') return { kind: 'guest' }
+  if (resolved.kind === 'no-birth') return { kind: 'no-birth' }
+  return {
+    kind: 'ok',
+    birth: resolved.birth,
+    place: resolved.place || (lang === 'en' ? 'Seoul' : '미입력'),
+  }
+}
+
 /**
  * 로그인 + 본명 가드를 통과하면 어셈블된 tier 데이터를, 아니면 fallback 종류를
  * 반환한다. 서버 컴포넌트(page.tsx)는 결과 kind 로 분기만 하면 된다.
@@ -161,40 +214,12 @@ export async function loadTierData(
 ): Promise<LoadTierResult> {
   const lang = await detectServerLocale()
 
-  let BIRTH: BirthInput
-  let place: string
-
-  if (override) {
-    // 익명 override 빌드는 인증·rate-limit 없이 ?date=&lat= 변주로 무한 풀빌드
-    // (연 ~7.8s) + 캐시 행 증식을 유발할 수 있다(DoS). IP 당 한도를 둔다 —
-    // 정상 '다른 사람 보기'는 분당 수 회라 영향 없고, 스크립트 남용만 막는다.
-    // Redis 없으면 fail-open(상태 없이는 제한 불가) — graceful.
-    const ip = getClientIp(await headers())
-    const rl = await rateLimit(`tier-override:${ip}`, { limit: 20, windowSeconds: 60 })
-    if (!rl.allowed) return { kind: 'rate-limited', lang }
-    // 1) 쿼리파라미터(그 사람 생일) — 로그인 불필요.
-    BIRTH = {
-      birthDate: override.birthDate,
-      birthTime: override.birthTime,
-      gender: override.gender,
-      latitude: override.latitude,
-      longitude: override.longitude,
-      timeZone: override.timeZone,
-    }
-    place = override.place || (lang === 'en' ? 'Seoul' : '서울')
-  } else {
-    const resolved = await loadSessionBirth()
-    if (resolved.kind === 'anonymous') {
-      // 2) 익명 + 무입력 — 임의 샘플로 풀이를 띄우지 않고 생년월일 입력 게이트로.
-      //    localStorage 에 저장된 생일이 있으면 클라이언트가 ?date=... 를 붙여
-      //    자동으로 다시 연다(통합 리포트와 동일 규약).
-      return { kind: 'guest', lang }
-    }
-    if (resolved.kind === 'no-birth') return { kind: 'no-birth' }
-    // 3) 로그인 사용자 — 저장된 본명으로.
-    BIRTH = resolved.birth
-    place = resolved.place || (lang === 'en' ? 'Seoul' : '미입력')
-  }
+  const guard = await resolveBirthGuard(override, lang)
+  if (guard.kind === 'guest') return { kind: 'guest', lang }
+  if (guard.kind === 'no-birth') return { kind: 'no-birth' }
+  if (guard.kind === 'rate-limited') return { kind: 'rate-limited', lang }
+  const BIRTH = guard.birth
+  const place = guard.place
   const BIRTH_YEAR = Number(BIRTH.birthDate.split('-')[0])
 
   // '오늘' — 사용자 출생 타임존 기준(서버 UTC 와 무관하게 날짜 일관).
@@ -244,6 +269,47 @@ export async function loadTierData(
     // 'month'(캘린더)면 숨은 상위 티어의 인생 곡선 계산을 건너뛴다(진입 속도).
     scope,
     nextMonthCells,
+  })
+
+  return { kind: 'ok', lang, ...assembled }
+}
+
+/**
+ * /destiny(인생 흐름) 전용 경량 로더 — 연 cells 풀빌드 없이 natal 캐시 +
+ * assembleLifetime 만. 예전엔 loadTierData('year')를 공유해 콜드 ~8초(연 셀
+ * 2.9s 계산 + ~39MB 캐시 행 왕복)를 냈지만, 인생 티어는 연 cells 를 전혀 쓰지
+ * 않는다(감사 의존성 표) — 이 로더는 ~0.4s(콜드)/~0.1s(natal 웜)로 같은 화면을
+ * 만든다. 결과는 birthKey 순수 파생이라 DB 캐시도 두지 않는다.
+ */
+export async function loadLifetimeData(
+  override?: BirthOverride | null
+): Promise<LoadLifetimeResult> {
+  const lang = await detectServerLocale()
+
+  const guard = await resolveBirthGuard(override, lang)
+  if (guard.kind === 'guest') return { kind: 'guest', lang }
+  if (guard.kind === 'no-birth') return { kind: 'no-birth' }
+  if (guard.kind === 'rate-limited') return { kind: 'rate-limited', lang }
+  const BIRTH = guard.birth
+  const place = guard.place
+  const BIRTH_YEAR = Number(BIRTH.birthDate.split('-')[0])
+
+  const now = new Date()
+  const today = getNowInTimezone(BIRTH.timeZone)
+
+  const natal = await getOrBuildNatalContext(BIRTH)
+  const birthDisplay = formatBirthLine(BIRTH.birthDate, BIRTH.birthTime)
+
+  const assembled = await assembleLifetime({
+    natal,
+    lang,
+    birthYear: BIRTH_YEAR,
+    targetYear: today.year,
+    sex: BIRTH.gender === 'female' ? '여' : '남',
+    birthDisplay,
+    whoBirthLine: birthDisplay,
+    place,
+    now,
   })
 
   return { kind: 'ok', lang, ...assembled }

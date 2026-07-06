@@ -15,6 +15,8 @@ import { deriveConvergence } from '@/lib/calendar-engine/derivers/convergence'
 import { deriveLifetimeFlow } from '@/lib/calendar-engine/derivers/lifetimeFlow'
 import { deriveLifetimePivots } from '@/lib/calendar-engine/derivers/lifetimePivots'
 import { buildLifeCurve, computeTransitAstroSeries } from '@/lib/calendar-engine/derivers/lifeCurve'
+import { calculateOuterPlanetMilestones } from '@/lib/calendar-engine/lifecycle/outerMilestones'
+import type { LifecycleMilestoneOverride } from '@/lib/calendar-engine/lifecycle/astroLifecycle'
 import { currentManAge } from '@/lib/datetime/currentAge'
 import { isMinorAge, sanitizeCrossEntry } from '@/lib/calendar-engine/minorSafe'
 import { deriveMonthSummary } from '@/lib/calendar-engine/derivers/monthSummary'
@@ -23,7 +25,8 @@ import { deriveLayeredScores } from '@/lib/calendar-engine/derivers/layeredScore
 import { getMonthPillarForDate, getYearPillarForDate } from '@/lib/saju/datePillars'
 import { getSibsinKo } from '@/lib/saju/cycleRelations'
 
-import { toUser, toLifetime, toDecade, toYear, toMonth } from '@/components/calendar/adapters'
+import { toLifetime, toDecade, toYear, toMonth } from '@/components/calendar/adapters'
+import { assembleUserSummary } from './assembleUser'
 import { reconcileCellOneLine } from '@/components/calendar/adapters/toDay'
 import { SIBSIN_EN } from '@/lib/saju/sibsinLabels'
 import { translateSignalLabel } from '@/lib/calendar-engine/derivers/signalI18n'
@@ -229,6 +232,7 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
   // ephemeris ~31회 + 90년 합성 CPU). 곡선 없는 경로는 ephemeris 실패 폴백과
   // 동일해 이미 프로덕션에서 검증된 분기다.
   let lifeCurve: ReturnType<typeof buildLifeCurve> = null
+  let milestoneOverrides: LifecycleMilestoneOverride[] | undefined
   if (args.scope !== 'month') {
     try {
       const astroSeries = await computeTransitAstroSeries(natal, { span: 90, step: 3 })
@@ -236,13 +240,21 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
     } catch {
       lifeCurve = null
     }
+    // 외행성 마일스톤 실측(감사 A-3) — 고정 나이표 대신 실제 회귀/각 연도.
+    // 실패하면 undefined → buildLifecycleTiming 이 평균 테이블 폴백(종전 동작).
+    try {
+      milestoneOverrides = await calculateOuterPlanetMilestones(natal)
+    } catch {
+      milestoneOverrides = undefined
+    }
   }
 
   // ─── lifetimeFlow / lifetimePivots derivers ─────────────────────────────
   // 두 deriver 에 동일한 now 를 주입 — "현재 단계"와 "현재 pivot"이 같은 날짜를
   // 가리키도록(예전엔 flow 가 now 미주입으로 서버 시계를 읽어 둘이 어긋났다).
-  const lifetimeFlow = deriveLifetimeFlow(natal, lang, undefined, now, lifeCurve)
-  const lifetimePivots = deriveLifetimePivots(natal, lang, undefined, now)
+  // 마일스톤 override 도 동일하게 양쪽에 — 단계 카드와 pivot 점이 같은 해를 본다.
+  const lifetimeFlow = deriveLifetimeFlow(natal, lang, milestoneOverrides, now, lifeCurve)
+  const lifetimePivots = deriveLifetimePivots(natal, lang, milestoneOverrides, now)
 
   // ─── yearly / month / day 슬라이스 ───────────────────────────────────────
   const monthPrefix = `${TARGET_YEAR}-${String(TARGET_MONTH).padStart(2, '0')}`
@@ -259,64 +271,15 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
   const woolunBranch = woolunRef.branch
 
   // ─── adapter 호출 (5 tier prop 자동 어셈블) ──────────────────────────────
-  const userBase = toUser(natal, {
+  // user 매핑은 assembleUser.ts 로 분리 — /destiny(assembleLifetime)와 공유.
+  const user = assembleUserSummary(natal, {
     birthDisplay,
     place,
     sex,
     intro: lifetimeFlow?.intro,
   })
-  const user: DestinyUserSummary & {
-    gyeokgukStatus?: string
-    rootStatus?: string
-  } = {
-    birth: userBase.birth,
-    birthKo: userBase.birthKo,
-    place: userBase.place,
-    sex: userBase.sex === '남' || userBase.sex === '여' ? userBase.sex : '남',
-    ilgan: {
-      hanja: userBase.ilgan.hanja,
-      kr: userBase.ilgan.kr,
-      en: userBase.ilgan.en,
-      element: userBase.ilgan.element as DestinyUserSummary['ilgan']['element'],
-    },
-    yongsin: {
-      hanja: userBase.yongsin.hanja,
-      kr: userBase.yongsin.kr,
-      en: userBase.yongsin.en,
-      primary: natal.saju.yongsin.primary,
-      secondary: natal.saju.yongsin.secondary,
-      avoid: natal.saju.yongsin.avoid,
-    },
-    huisin: {
-      hanja: userBase.huisin.hanja,
-      kr: userBase.huisin.kr,
-      en: userBase.huisin.en,
-      primary: natal.saju.yongsin.secondary ?? natal.saju.yongsin.primary,
-      avoid: natal.saju.yongsin.avoid,
-    },
-    gyeokguk: userBase.gyeokguk,
-    gyeokgukEn: userBase.gyeokgukEn,
-    gangyak: userBase.gangyak,
-    dominantSibsin: userBase.dominantSibsin,
-    elements: userBase.elements,
-    astro: {
-      sun: userBase.astro.sun ?? '',
-      asc: userBase.astro.asc ?? '',
-      mc: userBase.astro.mc ?? '',
-      sunEn: userBase.astro.sunEn!,
-      ascEn: userBase.astro.ascEn!,
-      mcEn: userBase.astro.mcEn!,
-    },
-    dignities: userBase.dignities,
-    almutenFiguris: userBase.almutenFiguris,
-    sect: userBase.sectKind,
-    lots: userBase.lotsFull,
-    intro: userBase.intro,
-    introEn: userBase.introEn,
-    gyeokgukStatus: userBase.geokgukStatus,
-    rootStatus: userBase.rootStatus,
-    iljuArchetype: userBase.iljuArchetype,
-  }
+  // seed 계산 등에 쓰는 어댑터 원본 필드 일부는 user 로 충분하지만, ilgan 표기
+  // 등 아래 로직이 참조하는 값은 전부 user 에 있다.
 
   // 개인 시드 — 본명 고정 값(일간·용신·격국·신강약)에서 한 번 산출. 템플릿 문구를
   // 사람마다 다르게 고르는 데 쓴다(month.seed·day.seed 로 전달). 날짜 무관.
@@ -328,15 +291,7 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
     user.gangyak,
   ])
 
-  const lifetime = toLifetime(natal, {
-    birthYear: BIRTH_YEAR,
-    currentYear: TARGET_YEAR,
-    lifetimeFlow,
-    lifetimePivots,
-    lifeCurve: lifeCurve ?? undefined,
-  })
-
-  // ── 만 나이(SSOT) — 대운 매칭·프로펙션·미성년 게이트 공용 단일 출처 ──
+  // ── 만 나이(SSOT) — 대운 매칭·프로펙션·미성년 게이트·인생 티어 공용 단일 출처 ──
   // 대운 startAge 는 만 나이(daeunAge.ts)이고 currentManAge 는 생일 통과까지 반영한
   // 만 나이다. 예전엔 대운/프로펙션을 TARGET_YEAR-BIRTH_YEAR(생일 전이면 +1 과다)로
   // 골라, 만 나이를 쓰는 인생 티어와 한 대운/하우스 어긋날 수 있었다(감사). 한
@@ -347,6 +302,18 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
     birthDate: natal.input?.date,
     birthTimeZone: natal.input?.timeZone,
     now,
+  })
+
+  const lifetime = toLifetime(natal, {
+    birthYear: BIRTH_YEAR,
+    currentYear: TARGET_YEAR,
+    // 곡선 nowAge·lifePattern 시제·대운/ZR now 플래그의 만 나이 SSOT(감사 B1) —
+    // 예전엔 toLifetime 이 연차 나이를 자체 계산해 생일 전 사용자에게 "지금" 핀이
+    // milestones(만 나이)보다 1살 앞섰다.
+    manAge,
+    lifetimeFlow,
+    lifetimePivots,
+    lifeCurve: lifeCurve ?? undefined,
   })
   // 오늘 기준 *활성 사주년*의 연주(세운). 세운은 1/1 이 아니라 입춘에 바뀌므로
   // getYearPillarForDate(SSOT)로 산출 — 일 셀 세운 추출기·상담사 computeCurrentUnse

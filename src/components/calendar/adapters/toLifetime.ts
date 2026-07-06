@@ -42,6 +42,12 @@ export interface ToLifetimeOptions {
   birthYear: number
   /** UI 기준 (현재) 연도. */
   currentYear: number
+  /**
+   * 현재 *만 나이* (currentManAge — 생일 통과 반영). 만 나이 SSOT(감사 B1):
+   * 곡선 nowAge·lifePattern 시제·대운/ZR 챕터 now 플래그가 전부 이 값을 쓴다.
+   * 미지정 시 연차 나이(currentYear−birthYear) 폴백 — 생일 전엔 1살 과다.
+   */
+  manAge?: number
   /** lifetimeFlow deriver 결과 (선택 — 없으면 lifeStages 가 빈 4-슬롯). */
   lifetimeFlow?: LifetimeFlow
   /** lifetimePivots deriver 결과 (선택 — 없으면 milestones 가 빈 배열). */
@@ -56,8 +62,7 @@ export interface ToLifetimeOptions {
 /** buildLifeCurve(macro 곡선) → 렌더용 DestinyLifeCurve (value 0..1 정규화, ≤88세). */
 function toDestinyLifeCurve(
   curve: LifeCurve | undefined,
-  currentYear: number,
-  birthYear: number
+  nowAge: number
 ): DestinyLifeCurve | undefined {
   if (!curve || curve.points.length === 0) return undefined
   const pts = curve.points.filter((p) => p.age <= 88)
@@ -66,7 +71,6 @@ function toDestinyLifeCurve(
   const hi = Math.max(...vals)
   const r = hi - lo || 1
   const norm = (v: number) => (v - lo) / r
-  const nowAge = currentYear - birthYear
   const peaks = curve.peaks
     .filter((e) => e.age <= 88)
     .map((e) => ({ age: e.age, year: e.year, kind: 'peak' as const }))
@@ -80,7 +84,8 @@ function toDestinyLifeCurve(
   if (here) {
     const prev = pts.find((p) => p.age === nowAge - 3) ?? pts[0]
     const dv = norm(here.macro) - norm(prev.macro)
-    const slope: 'rising' | 'falling' | 'plateau' = dv > 0.04 ? 'rising' : dv < -0.04 ? 'falling' : 'plateau'
+    const slope: 'rising' | 'falling' | 'plateau' =
+      dv > 0.04 ? 'rising' : dv < -0.04 ? 'falling' : 'plateau'
     now = {
       slope,
       nextPeak: peaks.find((e) => e.age > nowAge),
@@ -107,7 +112,7 @@ function zrPeriodsToChapters(
   periods: ZRPeriod[],
   startLot: ZRStartLot,
   birthYear: number,
-  currentYear: number,
+  nowAge: number,
   ageFrom: number,
   ageTo: number
 ): DestinyZRChapter[] {
@@ -118,7 +123,9 @@ function zrPeriodsToChapters(
     if (p.startYear >= ageTo) break
     const calStart = birthYear + Math.round(p.startYear)
     const calEnd = birthYear + Math.round(p.endYear)
-    const now = currentYear >= calStart && currentYear < calEnd
+    // now 는 *만 나이 vs 챕터 나이 범위*로 판정 — 출생년 1/1 앵커의 달력 연도
+    // 비교(최대 ~12개월 조기)를 쓰지 않는다(감사 A-2). calStart/End 는 표시용.
+    const now = nowAge >= p.startYear && nowAge < p.endYear
     chapters.push({
       ...p,
       startLot,
@@ -141,6 +148,8 @@ function zrPeriodsToChapters(
 export function toLifetime(natal: NatalContext, opts: ToLifetimeOptions): DestinyLifetime {
   const ageFrom = opts.zrAgeFrom ?? 0
   const ageTo = opts.zrAgeTo ?? 90
+  // 만 나이 SSOT — milestones(lifetimePivots)·lifeStages(lifetimeFlow)와 같은 축.
+  const nowAge = opts.manAge ?? opts.currentYear - opts.birthYear
 
   const daewoon: DestinyDaewoon[] = toDaewoon(natal).map((d) => ({
     gz: d.gz,
@@ -150,7 +159,10 @@ export function toLifetime(natal: NatalContext, opts: ToLifetimeOptions): Destin
     endAge: d.startAge + 10,
     sibsin: d.sibsin,
     known: d.known,
-    now: opts.currentYear >= d.start && opts.currentYear < d.end,
+    now:
+      opts.manAge != null
+        ? nowAge >= d.startAge && nowAge < d.startAge + 10
+        : opts.currentYear >= d.start && opts.currentYear < d.end,
   }))
 
   const lifeStagesRaw = toLifeStages(opts.lifetimeFlow, { birthYear: opts.birthYear })
@@ -222,32 +234,19 @@ export function toLifetime(natal: NatalContext, opts: ToLifetimeOptions): Destin
   // ── ZR L1 챕터: Spirit / Fortune 자동 펼침 ──
   const zr = natal.astro.zodiacalReleasing
   const zrSpiritChapters: DestinyZRChapter[] = zr.spirit
-    ? zrPeriodsToChapters(
-        zr.spirit.periods,
-        'Spirit',
-        opts.birthYear,
-        opts.currentYear,
-        ageFrom,
-        ageTo
-      )
+    ? zrPeriodsToChapters(zr.spirit.periods, 'Spirit', opts.birthYear, nowAge, ageFrom, ageTo)
     : []
   const zrFortuneChapters: DestinyZRChapter[] = zr.fortune
-    ? zrPeriodsToChapters(
-        zr.fortune.periods,
-        'Fortune',
-        opts.birthYear,
-        opts.currentYear,
-        ageFrom,
-        ageTo
-      )
+    ? zrPeriodsToChapters(zr.fortune.periods, 'Fortune', opts.birthYear, nowAge, ageFrom, ageTo)
     : []
 
   // 인생 유형 — 신강약 기준 대운 흐름(대기만성/초년발복/…).
-  // 현재 나이를 넘겨 "정점" 서술이 지금~앞으로를 가리키게(과거/유아기 정점 방지).
-  // 곡선을 lifePattern 분류·정점의 SSOT 로 — 인생유형과 곡선이 모순되지 않게(감사 B1).
+  // 현재 *만* 나이를 넘겨 "정점" 서술이 지금~앞으로를 가리키게(과거/유아기 정점 방지
+  // + 생일 전 1살 과다로 시제가 어긋나던 감사 B1 교정).
+  // 곡선을 lifePattern 분류·정점의 SSOT 로 — 인생유형과 곡선이 모순되지 않게.
   const lp = deriveLifePattern(
     natal.saju as never,
-    opts.currentYear - opts.birthYear,
+    nowAge,
     opts.lifeCurve ? { points: opts.lifeCurve.points } : undefined
   )
   const lifePattern = lp
@@ -270,6 +269,6 @@ export function toLifetime(natal: NatalContext, opts: ToLifetimeOptions): Destin
     zrSpiritChapters,
     zrFortuneChapters,
     lifePattern,
-    lifeCurve: toDestinyLifeCurve(opts.lifeCurve, opts.currentYear, opts.birthYear),
+    lifeCurve: toDestinyLifeCurve(opts.lifeCurve, nowAge),
   }
 }

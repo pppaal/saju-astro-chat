@@ -252,8 +252,9 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
     Math.max(0, Math.min(100, ((year - birthYear) / Math.max(1, zrSpanYear - birthYear)) * 100))
 
   // ── 감사 #3: "지금 여기 → 다음 마디" 한 줄(hero→timeline→milestones 연결). ──
-  //   현재 나이 = currentYear - birthYear. 현재 계절명 + 다음 큰 마디 나이/제목.
-  const nowAge = currentYear - birthYear
+  //   현재 나이 = lifeCurve.nowAge(만 나이 SSOT — 서버가 currentManAge 로 산출).
+  //   곡선이 없을 때만 연차 나이 폴백(감사 B1: 생일 전 +1 과다 표기 교정).
+  const nowAge = lifetime.lifeCurve?.nowAge ?? currentYear - birthYear
   const nowStage = lifeStages.find((s) => s.now)
   const nowStageName = nowStage ? (ko ? nowStage.name : (nowStage.nameEn ?? nowStage.name)) : ''
   const nextMilestone = [...milestones]

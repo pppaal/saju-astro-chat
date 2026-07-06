@@ -37,8 +37,12 @@ import type { CalendarCell, CalendarBuildOptions, CalendarRange } from './types'
 //     cross-activation 추출기가 빌드 시 셀에 구우므로, 웜 캐시도 새 교차를 얻도록 bump.
 // v5: 일/월 근거 커버리지 확장 — 교차 매핑 31→57쌍(달 5·태양 5·수성 5·금성 3·
 //     화성 7·천을귀인×목성). 웜 캐시가 새 교차 근거를 얻도록 bump.
+// v6: ZR 정통화(감사 A-1·A-2) — ① 나이 앵커를 출생년 1/1 → 실제 생일로(12월생
+//     경계 최대 ~12개월 조기 발화 교정), ② Loosing-of-the-Bond 를 "7번째 사인"
+//     오정의에서 Valens 점프(한 바퀴 후 반대편 진입) 규칙으로 재구현. ZR 신호
+//     창·이벤트가 셀에 구워지므로 웜 캐시가 옛 경계를 계속 내보내지 않게 bump.
 // (export — dataRetention 스윕이 옛 버전 NatalContextCache 고아 행을 지우는 기준.)
-export const CALENDAR_ENGINE_VERSION = 'v5'
+export const CALENDAR_ENGINE_VERSION = 'v6'
 
 /**
  * 본명 입력 → 안정적 캐시 키. 위치는 4자리(≈11m)로 라운딩해 부동소수 잡음으로
@@ -106,7 +110,10 @@ export async function getOrBuildYearCells(
   input: BuildContextInput,
   natal: NatalContext,
   year: number,
-  options: CalendarBuildOptions = { includeEvidence: true }
+  // 기본 evidence 제외 — 연 365셀은 evidence 없이도 행당 ~39MB(실측)라, 옵션을
+  // 빠뜨린 caller 가 evidence 포함 연 블롭을 굽는 함정을 막는다(감사). evidence
+  // 는 getFocusDayCell(1일) 전용.
+  options: CalendarBuildOptions = { includeEvidence: false }
 ): Promise<CalendarCell[]> {
   const birthKey = birthKeyFor(input)
   const monthKey = `${year}:${makeOptionsKey(options)}`

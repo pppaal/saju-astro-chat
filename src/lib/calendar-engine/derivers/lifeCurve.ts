@@ -24,6 +24,7 @@ import {
 import { getCachedTransitChart } from '../ephe-cache'
 import { findTransitAspects } from '@/lib/astrology/foundation/transit'
 import { createCache } from '../cache'
+import { logger } from '@/lib/logger'
 import type { NatalContext } from '../context/types'
 
 const GEN: Record<string, string> = FIVE_ELEMENT_RELATIONS.생하는관계
@@ -361,9 +362,11 @@ export async function computeTransitAstroSeries(
 
   const cache = createCache()
 
-  const sampleAt = async (age: number): Promise<number> => {
+  // 부분 실패는 0 이 아니라 null(결측) — 0 으로 삼키면 step 보간 때문에 ±step 년
+  // 구간이 0 으로 눌린 *가짜 골*이 생긴다(감사 B5). 결측 샘플은 보간에서 건너뛰고
+  // 이웃 성공 샘플끼리 잇는다. 로그도 남겨 조용한 왜곡을 없앤다.
+  const sampleAt = async (age: number): Promise<number | null> => {
     const iso = `${birthYear + age}-07-01T12:00:00.000Z`
-    let val = 0
     try {
       const transitChart = await getCachedTransitChart({
         iso,
@@ -372,6 +375,7 @@ export async function computeTransitAstroSeries(
         timeZone: loc.timeZone,
         inMemoryCache: cache,
       })
+      let val = 0
       for (const a of findTransitAspects(transitChart, natalChart)) {
         if (!SLOW_TRANSIT.has(a.transitPlanet)) continue
         const w = PLANET_W[a.transitPlanet] ?? 0.5
@@ -379,29 +383,48 @@ export async function computeTransitAstroSeries(
           a.type === 'conjunction' ? (CONJ_SIGN[a.transitPlanet] ?? 0) : (ASPECT_POL[a.type] ?? 0)
         val += pol * w * (a.score ?? 0) // score = 1-orb/limit (tightness)
       }
-    } catch {
-      // ephemeris 실패 시 0
+      return val
+    } catch (err) {
+      logger.warn(`[lifeCurve] transit sample failed at age ${age} — treating as missing`, err)
+      return null
     }
-    return val
   }
 
   // step 간격 샘플
   const sampleAges: number[] = []
   for (let age = 0; age <= span; age += step) sampleAges.push(age)
   if (sampleAges[sampleAges.length - 1] !== span) sampleAges.push(span)
-  const sampled = await Promise.all(sampleAges.map((a) => sampleAt(a)))
+  const sampledRaw = await Promise.all(sampleAges.map((a) => sampleAt(a)))
+  // 결측 제거 — 성공 샘플만으로 보간 골격을 만든다. 전부 실패면 0 시계열(종전 동일).
+  const okAges: number[] = []
+  const okVals: number[] = []
+  for (let k = 0; k < sampleAges.length; k++) {
+    if (sampledRaw[k] != null) {
+      okAges.push(sampleAges[k])
+      okVals.push(sampledRaw[k] as number)
+    }
+  }
+  if (okAges.length === 0) return new Array(span + 1).fill(0)
 
-  // 선형 보간으로 매년 채움
+  // 선형 보간으로 매년 채움(결측 구간은 이웃 성공 샘플로 이어짐, 양끝은 평탄 연장)
   const series: number[] = []
   for (let age = 0; age <= span; age++) {
+    if (age <= okAges[0]) {
+      series.push(okVals[0])
+      continue
+    }
+    if (age >= okAges[okAges.length - 1]) {
+      series.push(okVals[okVals.length - 1])
+      continue
+    }
     let hi = 0
-    while (hi < sampleAges.length - 1 && sampleAges[hi] < age) hi++
-    if (sampleAges[hi] === age) {
-      series.push(sampled[hi])
+    while (hi < okAges.length - 1 && okAges[hi] < age) hi++
+    if (okAges[hi] === age) {
+      series.push(okVals[hi])
     } else {
       const lo = hi - 1
-      const t = (age - sampleAges[lo]) / (sampleAges[hi] - sampleAges[lo])
-      series.push(sampled[lo] + t * (sampled[hi] - sampled[lo]))
+      const t = (age - okAges[lo]) / (okAges[hi] - okAges[lo])
+      series.push(okVals[lo] + t * (okVals[hi] - okVals[lo]))
     }
   }
   if (_transitMemo.size >= _TRANSIT_MEMO_MAX) {

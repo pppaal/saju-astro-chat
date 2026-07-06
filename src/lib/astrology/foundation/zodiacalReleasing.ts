@@ -198,10 +198,18 @@ export function getActiveZRPeriod(periods: ZRPeriod[], age: number): ZRPeriod | 
 // ===========================================================================
 
 /**
- * 한 L1 period (또는 sub-period) 의 시작 sign 부터, 황도 순서로 12개의 하위 period 를 펼침.
+ * 한 L1 period (또는 sub-period) 의 시작 sign 부터, 황도 순서로 하위 period 를 펼침.
  * 단위는 unitYears (월=1/12, 일=1/365.25, 시간=1/8766) 로 곱해진다.
  *
- * 부모 sign 기준 angular(1/4/7/10) 위치 → peak, 7th → loosing-of-bond.
+ * 부모 sign 기준 angular(1/4/7/10) 위치 → peak.
+ *
+ * Loosing of the bond (결 풀림, Valens 정통 규칙 — 감사 A-1): 하위 시퀀스가 12궁을
+ * 한 바퀴 돌아 *부모 sign 으로 되돌아오려는 순간*, 부모 sign 을 반복하지 않고
+ * **반대편(7th) sign 으로 점프**해 거기서부터 황도 순서를 잇는다. 점프로 진입한
+ * 그 하위 period 가 LB 이벤트다. (한 바퀴 = 행성년수 합 211단위 ≈ 17.6년이므로
+ * L1 이 그보다 긴 챕터 — Leo 19 · Gemini/Virgo 20 · Cancer 25 · Capricorn 27 ·
+ * Aquarius 30 — 에서만 발생. 예전 구현은 점프 없이 부모 sign 을 반복하고 LB 를
+ * "부모 기준 7번째 sign"으로 오정의해, 긴 챕터 후반 하위 sign 이 전부 틀렸다.)
  */
 function expandSubPeriods(args: {
   parentSign: ZodiacKo
@@ -218,8 +226,14 @@ function expandSubPeriods(args: {
   let currentSignIdx = parentIdx
   let cursorYears = 0
   let i = 0
-  let safety = 200
+  let safety = 2000
   while (cursorYears < parentDurationYears && safety-- > 0) {
+    // 시퀀스가 부모 sign 으로 *되돌아오면*(첫 period 제외) 반대편 sign 으로 점프.
+    let loosing = false
+    if (i > 0 && currentSignIdx === parentIdx) {
+      currentSignIdx = (parentIdx + 6) % 12
+      loosing = true
+    }
     const sign = ZODIAC_ORDER[currentSignIdx]
     const ruler = SIGN_RULERS[sign]
     const durationUnits = periodYearsForSign(sign)
@@ -242,7 +256,7 @@ function expandSubPeriods(args: {
       durationYears: segmentEnd - segmentStart,
       parentSign,
       isPeak: [1, 4, 7, 10].includes(offset),
-      isLoosingOfTheBond: offset === 7,
+      isLoosingOfTheBond: loosing,
     })
     cursorYears += durationYears
     currentSignIdx = (currentSignIdx + 1) % 12
@@ -328,9 +342,12 @@ export function getActiveZRSub(
 // ===========================================================================
 
 /**
- * Spirit/Fortune 시작 sign 대비 L1 sign 위치를 검사해 Peak/LoosingOfBond 마커 부여.
- *  - Peak: 시작 sign 기준 1/4/7/10번째 (angular)
- *  - LoosingOfBond: 시작 sign 기준 7번째 (opposition) — 큰 전환점
+ * Spirit/Fortune 시작 sign 대비 L1 sign 위치를 검사해 Peak 마커 부여.
+ *  - Peak: 시작 sign 기준 1/4/7/10번째 (angular) — 고가시성 챕터.
+ *  - LoosingOfBond: L1 에는 **없다**(항상 false). LB 는 "하위 시퀀스가 한 바퀴
+ *    돌아 부모 sign 으로 돌아올 때의 반대편 점프" 사건(expandSubPeriods)이지,
+ *    "시작 sign 기준 7번째 챕터"가 아니다 — 예전 오정의(감사 A-1)는 엉뚱한
+ *    시기를 "결 풀림"으로 표시했다. 7번째 챕터는 angular peak 로만 남긴다.
  */
 export function annotateZRMarkers(
   startSign: ZodiacKo,
@@ -343,7 +360,7 @@ export function annotateZRMarkers(
       ...p,
       offsetFromStart: offset,
       isPeak: [1, 4, 7, 10].includes(offset),
-      isLoosingOfTheBond: offset === 7,
+      isLoosingOfTheBond: false,
     }
   })
 }
