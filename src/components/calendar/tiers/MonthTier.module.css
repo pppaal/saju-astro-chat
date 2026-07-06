@@ -10,28 +10,30 @@
    ============================================================ */
 
 .monthRoot {
-  /* ── 라이트 팔레트 토큰 (유일한 raw-hex 블록) ── */
-  --bg: #f6f4ee;
-  --surface: #ffffff;
-  --surface-2: #f1efe7;
-  --surface-3: #e9e6dc;
-  --line: #e5e2d8;
-  --line-2: #d7d4c8;
-  --t0: #211f1b;
-  --t1: #5c5a53;
-  --t2: #908e83;
-  --gold: #a86a12;
-  --gold-deep: #8a5a0e;
-  --gold-bg: #fbe9c4;
-  --gold-line: #e9cb8c;
-  --indigo: #4a4fb0;
-  --blue: #2f7fcf;
-  --green: #4c7a14;
-  --slate: #75746c;
-  --crimson: #a53636;
-  --crimson-bg: #fbe3e1;
-  --crimson-line: #eec6c2;
-  --sun: #b06a6a;
+  /* ── 다크 코스믹 팔레트 토큰 "자정" (유일한 raw-hex 블록) ──
+     심야 인디고 위에 금(金) 길일. 색=길흉(gold 길/slate 조심/crimson 흉),
+     today=moonstone. 크림·머스타드 제거 — 앱 셸(다크)과 한 세계. */
+  --bg: #0b1022;
+  --surface: #0e1430;
+  --surface-2: #131a38;
+  --surface-3: #182046;
+  --line: rgba(255, 255, 255, 0.09);
+  --line-2: rgba(255, 255, 255, 0.16);
+  --t0: #ece9f6;
+  --t1: #aeb4ce;
+  --t2: #8a90ae;
+  --gold: #e3b664;
+  --gold-deep: #e9c77e;
+  --gold-bg: rgba(227, 182, 100, 0.14);
+  --gold-line: rgba(227, 182, 100, 0.34);
+  --indigo: #9b7bff;
+  --blue: #aeb8d8;
+  --green: #5bc88c;
+  --slate: #9096b6;
+  --crimson: #c7788c;
+  --crimson-bg: rgba(199, 120, 140, 0.15);
+  --crimson-line: rgba(199, 120, 140, 0.34);
+  --sun: #c79a86;
 
   /* 폰트 — 앱 토큰 재사용. "disp" 누멀럴은 Cinzel(자체호스팅) + tabular-nums. */
   --m-serif: var(--dp-serif-ko);
