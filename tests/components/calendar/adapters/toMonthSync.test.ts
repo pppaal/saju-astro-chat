@@ -101,9 +101,10 @@ describe('월 표면 단일 소스 (그리드 · 막대 · 카운트)', () => {
               ? 'avoid'
               : 'neutral'
       // best 는 good 밴드(최고점이라 intensity 도 good 구간) — 위에서 good 으로 정규화됨.
-      expect(fromIntensity, `${c.ds}: 막대(intensity ${c.intensity}) ≠ 그리드(mark ${c.mark})`).toBe(
-        fromMark
-      )
+      expect(
+        fromIntensity,
+        `${c.ds}: 막대(intensity ${c.intensity}) ≠ 그리드(mark ${c.mark})`
+      ).toBe(fromMark)
     }
   })
 
@@ -126,6 +127,35 @@ describe('월 표면 단일 소스 (그리드 · 막대 · 카운트)', () => {
     expect(month.bestDay?.score).toBe(maxScore)
     const bestCell = calendar.find((c) => c.ds === month.bestDay?.date)
     expect(bestCell?.mark).toBe('best')
+  })
+
+  // 수렴일(converge)은 현저도(✦) 축이지 길흉(색) 축이 아니다 — good/caution 색과
+  // 카운트를 덮으면 안 된다(감사 U5). 강도만 올리고 mark·버킷은 밴드 그대로 유지.
+  it('converge 일이 good 밴드면 mark=good·goodDays 유지, 색은 안 덮인다 (U5)', () => {
+    const cells: CalendarCell[] = SCORES.map((s, i) =>
+      cell(`2026-06-${String(i + 1).padStart(2, '0')}T00:00:00.000Z`, s)
+    )
+    // 12일(점수 78) = 확실한 good 밴드. 이 날을 수렴일로 지정.
+    const { month, calendar } = toMonth({
+      ym: '2026-06',
+      cells,
+      focusDay: 3,
+      converge: {
+        date: '2026-06-12',
+        score: 78,
+        astro: ['Venus'],
+        saju: ['정재'],
+        bothSystems: true,
+        meaning: '수렴',
+      },
+    })
+    const conv = calendar.find((c) => c.d === 12)!
+    // 색(mark)은 밴드 그대로(good/best 초록) — 'converge' 로 덮여 무채색이 되지 않는다.
+    expect(conv.mark === 'good' || conv.mark === 'best').toBe(true)
+    // 카운트도 일치 — goodDays 에 남아 헤더("좋은 날 N")와 그리드 초록 셀이 어긋나지 않는다.
+    expect(month.goodDays).toContain('06-12')
+    // 강조는 intensity 로만 — 최소 0.9.
+    expect(conv.intensity).toBeGreaterThanOrEqual(0.9)
   })
 
   // 월 그리드(toMonth) ↔ 일 톤(reconcile.scoreToBand)이 같은 밴드(CALENDAR_BANDS)를

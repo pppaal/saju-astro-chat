@@ -200,6 +200,37 @@ export function MonthTier({ month, onDive, onRise, showRise = true, onSelectDay 
       : (topCross.meaningEn ?? topCross.meaning)
     : ''
 
+  // ── 월 톤 — 후크·톤워드·총평·공유카드를 다 지배하는 *단일 권위*. ──
+  // 4-way: good(좋은날 우세) / care(조심날 우세) / volatile(둘 다 있고 균형=기복) /
+  // flat(둘 다 거의 없음=고른·평탄). 예전엔 mild 하나로 "기복"과 "평탄"을 뭉뚱그려,
+  // care월이 총평에선 "기복"으로 불리고(U3) 완전 평탄월이 "큰 날만 노려"(U4)로
+  // 존재 안 하는 날을 지시했다. flat 을 분리해 교정.
+  const noviceTone: 'good' | 'care' | 'volatile' | 'flat' =
+    goodN >= careN * 2 && goodN > 0
+      ? 'good'
+      : careN > goodN
+        ? 'care'
+        : goodN === 0 && careN === 0
+          ? 'flat'
+          : 'volatile'
+  // 총평/한줄이 쓰는 톤 서술어(순한/조심스러운/기복/고른) — 한 소스.
+  const toneVerdictKo =
+    noviceTone === 'good'
+      ? '순한 편이에요'
+      : noviceTone === 'care'
+        ? '조심스러운 달이에요'
+        : noviceTone === 'flat'
+          ? '고르게 흐르는 달이에요'
+          : '기복이 있는 달이에요'
+  const toneVerdictEn =
+    noviceTone === 'good'
+      ? 'fairly smooth'
+      : noviceTone === 'care'
+        ? 'a careful month'
+        : noviceTone === 'flat'
+          ? 'evenly paced'
+          : 'a bit uneven'
+
   // ── 이달 한 줄 총평 — 월운 분야 + 좋은/조심 날 + 가장 센 흐름 합성(쉬운말 2~3줄). ──
   const monthReading: string = (() => {
     const parts: string[] = []
@@ -213,8 +244,8 @@ export function MonthTier({ month, onDive, onRise, showRise = true, onSelectDay 
     if (goodN > 0 || cautionN > 0) {
       parts.push(
         ko
-          ? `흐름이 트이는 날이 ${goodN}개, 한 박자 조심할 날이 ${cautionN + avoidN}개라 전체적으로 ${goodN >= (cautionN + avoidN) * 2 && goodN > 0 ? '순한 편이에요' : '기복이 있는 달이에요'}.`
-          : `${goodN} day${goodN === 1 ? '' : 's'} open up while ${cautionN + avoidN} ask for care, so overall it reads ${goodN >= (cautionN + avoidN) * 2 && goodN > 0 ? 'fairly smooth' : 'a bit uneven'}.`
+          ? `흐름이 트이는 날이 ${goodN}개, 한 박자 조심할 날이 ${careN}개라 전체적으로 ${toneVerdictKo}.`
+          : `${goodN} day${goodN === 1 ? '' : 's'} open up while ${careN} ${careN === 1 ? 'asks' : 'ask'} for care, so overall it reads ${toneVerdictEn}.`
       )
     }
     if (topCrossMeaning) {
@@ -229,33 +260,25 @@ export function MonthTier({ month, onDive, onRise, showRise = true, onSelectDay 
   const verdictText =
     monthReading ||
     (ko
-      ? `좋은 날 ${goodN}개, 조심할 날 ${cautionN + avoidN}개 — ${goodN >= (cautionN + avoidN) * 2 && goodN > 0 ? '순한 편의 달이에요.' : '기복이 있는 달이에요.'}`
-      : `${goodN} good, ${cautionN + avoidN} for care — ${goodN >= (cautionN + avoidN) * 2 && goodN > 0 ? 'a fairly smooth month.' : 'an uneven month.'}`)
+      ? `좋은 날 ${goodN}개, 조심할 날 ${careN}개 — ${toneVerdictKo}.`
+      : `${goodN} good, ${careN} for care — ${toneVerdictEn}.`)
 
-  // ── novice hero — 한자·십신·교차 없는 일상어 결론 한 줄. ──
-  // 톤: 좋은날 > 조심날 → 좋은 / 조심날 > 좋은날 → 조심스러운 / else → 순한.
-  // 톤 문턱은 '이달 총평'(deriveMonthSummary: good>=caution*2→bright / caution>good→
-  // careful / else mixed)과 *동일*하게 — 예전엔 good>care 라 5:4 달이 히어로 "잘
-  // 풀리는 달"+후크 "유리하게 짜였어" 인데 총평은 "굴곡이 또렷한 달"로 같은 화면에서
-  // 어긋났다(감사). 한 공식이 후크·톤워드·총평을 다 지배한다.
-  // goodN>0 가드: 좋은 날이 하나도 없는 평탄 달(0:0)이 0>=0 으로 'good'(bright 후크
-  // "유리하게 짜였어")로 새는 퇴화 케이스 차단 — mild 로 떨어뜨린다(총평도 동일 가드).
-  const noviceTone: 'good' | 'care' | 'mild' =
-    goodN >= careN * 2 && goodN > 0 ? 'good' : careN > goodN ? 'care' : 'mild'
-  // mild 는 정렬된 공식상 "좋은 날·조심 날이 둘 다 섞인" 달(또는 평탄 달)에만 발화
-  // — 라벨도 변동성 프레임('기복 있는')으로. 예전 '순한 달'은 바로 위 mixed 후크
-  // ("오르락내리락해")·총평("굴곡이 또렷한 달")과 정면 모순이었다(감사).
+  // ── novice hero 톤 워드 — 위 단일 톤에서. ──
   const noviceToneWord = ko
     ? noviceTone === 'good'
       ? '좋은'
       : noviceTone === 'care'
         ? '조심스러운'
-        : '기복 있는'
+        : noviceTone === 'flat'
+          ? '고른'
+          : '기복 있는'
     : noviceTone === 'good'
       ? 'favourable'
       : noviceTone === 'care'
         ? 'careful'
-        : 'mixed'
+        : noviceTone === 'flat'
+          ? 'even'
+          : 'mixed'
   // 일상어 영역(예: "정재" → "재물·실속"). 없으면 결론 문장에서 영역 절을 생략.
   const noviceArea = woolunArea
   const noviceLine = ko
@@ -465,7 +488,14 @@ export function MonthTier({ month, onDive, onRise, showRise = true, onSelectDay 
             (good→bright / care→careful / mild→mixed) 서로 어긋나지 않게 한다. */}
         {(() => {
           const mh = monthShareHook({
-            tone: noviceTone === 'good' ? 'bright' : noviceTone === 'care' ? 'careful' : 'mixed',
+            tone:
+              noviceTone === 'good'
+                ? 'bright'
+                : noviceTone === 'care'
+                  ? 'careful'
+                  : noviceTone === 'flat'
+                    ? 'steady'
+                    : 'mixed',
             seed,
             monthSalt: ymM || 0,
             ko,
@@ -487,12 +517,16 @@ export function MonthTier({ month, onDive, onRise, showRise = true, onSelectDay 
               ? '잘 풀리는 달'
               : noviceTone === 'care'
                 ? '조심스러운 달'
-                : '기복 있는 달'
+                : noviceTone === 'flat'
+                  ? '고르게 흐르는 달'
+                  : '기복 있는 달'
             : noviceTone === 'good'
               ? 'A favourable month'
               : noviceTone === 'care'
                 ? 'A careful month'
-                : 'A mixed month'}
+                : noviceTone === 'flat'
+                  ? 'An even month'
+                  : 'A mixed month'}
         </div>
         <p className={styles.novLine}>{noviceLine}</p>
         <p className={styles.novCounts}>{noviceCounts}</p>

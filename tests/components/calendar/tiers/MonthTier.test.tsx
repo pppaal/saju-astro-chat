@@ -132,6 +132,36 @@ describe('MonthTier (이 달의 모양 · LIGHT)', () => {
       ).toBeInTheDocument()
     })
 
+    it('care월(조심날 우세)은 히어로에서 "조심스러운" — "기복"으로 부르지 않는다 (U3)', () => {
+      // careN(3) > goodN(1) → noviceTone=care. 예전엔 mild 하나라 총평이 "기복"으로 샜다.
+      const month = makeMonth({
+        goodDays: ['06-05'],
+        cautionDays: ['06-20', '06-21'],
+        avoidDays: ['06-25'],
+      })
+      const { container } = render(<MonthTier month={month} onDive={noop} onRise={noop} />)
+      const text = container.textContent ?? ''
+      expect(text).toContain('조심스러운')
+      expect(text).not.toContain('기복')
+    })
+
+    it('완전 평탄월(좋은날·조심날 0)은 "고른" 흐름 — 없는 "큰 날/좋은 날"을 겨냥하지 않는다 (U4)', () => {
+      // goodN=0, careN=0 → noviceTone=flat. 예전엔 mild→"큰 날만 노려" 로 없는 날 지시.
+      const month = makeMonth({
+        goodDays: [],
+        cautionDays: [],
+        avoidDays: [],
+        bestDay: { date: '', score: 0 },
+        keyDays: [],
+        converge: undefined,
+      })
+      const { container } = render(<MonthTier month={month} onDive={noop} onRise={noop} />)
+      const text = container.textContent ?? ''
+      // flat 톤워드는 "고른/고르게" — "기복"·"좋은 날 N개" 카운트 클로즈가 아니다.
+      expect(text).toMatch(/고른|고르게/)
+      expect(text).not.toContain('기복')
+    })
+
     it('uses plain hero tone word "잘 풀리는 달" (no writer-speak 결)', () => {
       // goodDays:2 > careN:2? equal → mild. Force a good month.
       const month = makeMonth({

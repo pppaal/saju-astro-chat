@@ -93,3 +93,16 @@ export function reconcileDayTone(input: DayToneInput): DayVerdict {
 
   return { band, tone, tense, bright }
 }
+
+/**
+ * mixed 톤의 결(flavor) — 'volatile'(기복/오르내림) vs 'flat'(무난/고른).
+ *
+ * mixed 는 두 상황을 뭉뚱그린다: ① 점수↔신호가 실제로 어긋나 화해로 한 단계
+ * 조정된 날(tense/bright) = *변동성*이 진짜 있는 날 ② 그냥 중간밴드라 두드러진
+ * 신호가 없는 평범한 날 = *평이*한 날. 예전엔 이 둘을 구분 안 해 같은 mixed 날을
+ * 어떤 슬롯은 '평이(flat)', 어떤 슬롯은 '기복(volatile)'로 불러 정면 모순이 났다
+ * (감사 U1: 모든 중간밴드 날 상시). tense/bright 로 갈라 카피를 통일한다.
+ */
+export function mixedFlavor(v: DayVerdict): 'volatile' | 'flat' {
+  return v.tense || v.bright ? 'volatile' : 'flat'
+}

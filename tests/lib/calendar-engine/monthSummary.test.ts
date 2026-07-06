@@ -63,6 +63,42 @@ describe('deriveMonthSummary — 전반 톤(bright/mixed/careful)', () => {
   })
 })
 
+describe('deriveMonthSummary — 평이한 달(flat, U4 회귀)', () => {
+  // good·caution 둘 다 0 = 중간 밴드만 가득 찬 실제로 고른 달. mixed("굴곡이 또렷한")
+  // 로 떨어지면 사실과 반대다. 여는 문장·닫는 문장 모두 flat 전용이어야 한다.
+  const flat = { ...base, goodDays: 0, cautionDays: 0, avoidDays: 0 }
+
+  it('여는 문장이 "고르게 흐르는 달" 이고 mixed 굴곡 표현이 없다', () => {
+    const s = deriveMonthSummary(flat)
+    expect(s).toContain('고르게 흐르는 달')
+    expect(s).not.toContain('굴곡이 또렷한')
+  })
+
+  it('마무리가 없는 좋은날/조심날을 전제한 mixed 리듬 문장이 아니다', () => {
+    const s = deriveMonthSummary(flat)
+    // mixed 마무리는 "좋은 날엔 밀고 조심할 날엔…" — 없는 날을 겨냥하므로 flat 에선 금지.
+    expect(s).not.toContain('조심할 날엔 쉬어')
+    // flat 마무리는 "루틴/기본기/쌓기" 쪽으로 닫는다(어떤 시드든 공통 어휘 존재).
+    expect(s).toMatch(/루틴|기본기|쌓기|리듬만 꾸준히/)
+  })
+
+  it('영문 flat 도 evenly paced 로 열고 mixed 리듬 문장이 아니다', () => {
+    const s = deriveMonthSummary({ ...flat, lang: 'en' })
+    expect(s).toContain('evenly paced month')
+    expect(s).not.toContain('A month of swings')
+    expect(s).not.toContain('rest on the cautious ones')
+  })
+
+  it('good·caution 중 하나라도 있으면 flat 이 아니다(경계)', () => {
+    expect(deriveMonthSummary({ ...base, goodDays: 1, cautionDays: 0 })).not.toContain(
+      '고르게 흐르는 달'
+    )
+    expect(deriveMonthSummary({ ...base, goodDays: 0, cautionDays: 1 })).not.toContain(
+      '고르게 흐르는 달'
+    )
+  })
+})
+
 describe('deriveMonthSummary — 날수/우룬 문구', () => {
   it('total>0 이면 날수 문구가 한글로 섞인다', () => {
     const s = deriveMonthSummary({ ...base, totalDays: 30, goodDays: 12, cautionDays: 6 })

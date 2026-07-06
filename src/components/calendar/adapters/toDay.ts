@@ -35,7 +35,11 @@ import {
 import { getSibsinKo } from '@/lib/saju/cycleRelations'
 import { getGongmang, getTwelveStage } from '@/lib/saju/shinsal'
 import { humanizeReason } from './humanizeReason'
-import { reconcileDayTone, type DayVerdict } from '@/lib/calendar-engine/derivers/reconcile'
+import {
+  reconcileDayTone,
+  mixedFlavor,
+  type DayVerdict,
+} from '@/lib/calendar-engine/derivers/reconcile'
 import { LAYER_WEIGHT } from '@/lib/calendar-engine/derivers/constants'
 import {
   REASON_LAYERS,
@@ -618,13 +622,13 @@ export const ONE_LINE_POOL = {
       'Spend today guarding and refining.',
     ],
   },
+  // mixed = *변동성*(volatile) 프레임 전용 — tense/bright 로 화해된 날(점수↔신호
+  // 어긋남)에만 쓴다. 평이한 중간밴드 날은 steady 풀(아래)로 간다(감사 U1).
   mixed: {
     ko: [
       '좋고 나쁨이 함께 있는 하루 — 잘 풀리는 쪽에 집중하세요.',
       '오르내림이 있는 하루 — 무게중심만 지키세요.',
       '맑았다 흐렸다 하는 하루 — 흐름 따라 가볍게.',
-      // 평탄("고른/기복 없이") 변형은 금지 — mixed 후크가 변동성("딱 갈려")을 말하므로
-      // 같은 화면에서 모순됐다(감사). mixed 풀은 전부 변동성 프레임으로 유지한다.
       '풀리는 쪽과 막히는 쪽이 또렷이 갈리는 하루.',
       '되는 일에 힘을 싣고 안 되는 일은 흘려보내요.',
       '오르내림을 타면 무난히 지나가는 하루.',
@@ -638,6 +642,26 @@ export const ONE_LINE_POOL = {
       'Ride the swings and the day passes fine.',
     ],
   },
+  // steady = *평이*(flat) 프레임 — 그냥 중간밴드라 두드러진 신호가 없는 평범한 날.
+  // "오르내림/딱 갈려" 같은 변동성 단어는 금지(그런 날이 아님). 고르고 잔잔한 결.
+  steady: {
+    ko: [
+      '큰 굽이 없이 고르게 흐르는 하루.',
+      '두드러진 일 없이 잔잔한 하루 — 하던 대로 가면 돼요.',
+      '무난하게 지나가는 하루 — 기본에 충실하기 좋아요.',
+      '특별한 변수 없이 평온한 하루.',
+      '밀거나 당기지 않아도 순하게 흐르는 하루.',
+      '조용히 제 할 일 하기 좋은 하루.',
+    ],
+    en: [
+      'A day that flows evenly, with no big bends.',
+      'A quiet day with nothing standing out — just carry on.',
+      'A steady, uneventful day — good for the basics.',
+      'A calm day with no real surprises.',
+      'It flows gently without pushing or pulling.',
+      'A good day to quietly get things done.',
+    ],
+  },
 } as const
 
 /**
@@ -647,9 +671,17 @@ export const ONE_LINE_POOL = {
  */
 function deriveOneLine(verdict: DayVerdict, rot: number, lang: 'ko' | 'en' = 'ko'): string {
   const ko = lang !== 'en'
-  const tone =
-    verdict.tone === 'positive' ? 'positive' : verdict.tone === 'caution' ? 'caution' : 'mixed'
-  const pool = ONE_LINE_POOL[tone][ko ? 'ko' : 'en']
+  // mixed 는 결(flavor)에 따라 갈린다: 화해된 변동성 날 → mixed(기복), 평이한
+  // 중간밴드 날 → steady(무난). 이래야 히어로·바람 칩·한 줄이 같은 프레임을 쓴다(U1).
+  const key: keyof typeof ONE_LINE_POOL =
+    verdict.tone === 'positive'
+      ? 'positive'
+      : verdict.tone === 'caution'
+        ? 'caution'
+        : mixedFlavor(verdict) === 'flat'
+          ? 'steady'
+          : 'mixed'
+  const pool = ONE_LINE_POOL[key][ko ? 'ko' : 'en']
   return pickBySeed(pool, rot)
 }
 

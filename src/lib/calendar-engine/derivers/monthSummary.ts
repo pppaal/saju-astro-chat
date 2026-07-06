@@ -316,6 +316,22 @@ const CLOSING_EN: Record<Tone, string[]> = {
   ],
 }
 
+// 큰 굴곡 없이 평이한 달(good·caution 모두 0) 전용 마무리 — 특정 날짜를 겨냥하지
+// 않고 "루틴을 단단히" 쪽으로 닫는다. mixed 풀은 없는 좋은날/조심날을 전제로 하므로 부적합.
+const CLOSING_FLAT_KO: string[] = [
+  '큰 이벤트 없이 하던 루틴만 단단히 지키면 넉넉하게 지나갈 달이에요.',
+  '특별한 굴곡이 없으니 평소 리듬만 꾸준히 이어가면 무난한 달이에요.',
+  '눈에 띄는 파도가 없는 달이라, 하던 일을 차곡차곡 쌓기에 좋아요.',
+  '큰 변수 없이 흐르는 달이니, 기본기를 다지며 다음을 준비하기 좋아요.',
+]
+
+const CLOSING_FLAT_EN: string[] = [
+  'No big events to steer around — keep your routine steady and the month passes with ease.',
+  'Nothing dramatic in the flow, so holding your usual rhythm carries you through comfortably.',
+  'A month without visible waves — a good stretch to stack steady progress.',
+  'It runs without big variables, so it is a fine time to shore up the basics and prep what comes next.',
+]
+
 export function deriveMonthSummary(i: MonthSummaryInput): string {
   const ko = i.lang === 'ko'
   const seed = i.seed ?? 0
@@ -330,10 +346,20 @@ export function deriveMonthSummary(i: MonthSummaryInput): string {
   // 날 0일)가 되는 퇴화 케이스 차단 — mixed 로. (MonthTier 히어로 톤과 동일 공식.)
   const tone: Tone =
     good >= caution * 2 && good > 0 ? 'bright' : caution > good ? 'careful' : 'mixed'
+  // 완전 평탄 달(좋은 날·조심 날 둘 다 0)은 mixed("굴곡이 또렷한 달")로 떨어지면
+  // 사실과 반대다(굴곡 없음). MonthTier 히어로 flat 톤과 맞춰 별도 고른-달 문장으로
+  // 열고 닫는다(감사 U4). 중간 밴드만 가득 찬, 실제로 고른 달.
+  const isFlat = good === 0 && caution === 0
   const wool = i.woolunKr ? (ko ? `${i.woolunKr}월은 ` : '') : ''
   const countKo = total > 0 ? pickBySeed(COUNT_KO, seed, KEY.count)(total, good, caution) : ''
   const countEn = total > 0 ? pickBySeed(COUNT_EN, seed, KEY.count)(total, good, caution) : ''
-  if (ko) {
+  if (isFlat) {
+    parts.push(
+      ko
+        ? `${wool}큰 굽이 없이 고르게 흐르는 달이에요.${countKo}`
+        : `An evenly paced month with no big swings.${countEn}`
+    )
+  } else if (ko) {
     parts.push(pickBySeed(TONE_OPEN_KO[tone], seed, KEY.toneOpen)(wool) + countKo)
   } else {
     parts.push(pickBySeed(TONE_OPEN_EN[tone], seed, KEY.toneOpen) + countEn)
@@ -386,10 +412,15 @@ export function deriveMonthSummary(i: MonthSummaryInput): string {
   }
 
   // 5) 마무리 한 줄 — 톤별 행동 제안으로 문단을 자연스럽게 닫는다(길이·완결감).
+  //    평이한 달은 mixed 풀(없는 좋은날/조심날을 전제)이 어색하므로 flat 전용 풀로.
   parts.push(
-    ko
-      ? pickBySeed(CLOSING_KO[tone], seed, KEY.closing)
-      : pickBySeed(CLOSING_EN[tone], seed, KEY.closing)
+    isFlat
+      ? ko
+        ? pickBySeed(CLOSING_FLAT_KO, seed, KEY.closing)
+        : pickBySeed(CLOSING_FLAT_EN, seed, KEY.closing)
+      : ko
+        ? pickBySeed(CLOSING_KO[tone], seed, KEY.closing)
+        : pickBySeed(CLOSING_EN[tone], seed, KEY.closing)
   )
 
   return parts.join(' ')

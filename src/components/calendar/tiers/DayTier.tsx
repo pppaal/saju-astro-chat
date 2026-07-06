@@ -33,6 +33,7 @@ import { dayStrength } from '@/lib/calendar-engine/derivers/dayStrength'
 import {
   reconcileDayTone,
   scoreToBand,
+  mixedFlavor,
   type DayVerdict,
 } from '@/lib/calendar-engine/derivers/reconcile'
 import styles from './DayTier.module.css'
@@ -258,17 +259,24 @@ export function DayTier({ day, onRise, sex = '남', isToday = true }: DayTierPro
   // hero)은 톤을, 숫자 색은 점수를 따른다 — 시스템 전체에서 색=점수, 문장=톤.
   const scoreBand = scoreToBand(day.score)
 
+  // mixed 는 결(flavor)로 갈린다 — 변동성(기복) vs 평이(잔잔). 히어로·한 줄과 같은
+  // 기준을 써야 "평이 ↔ 기복" 모순이 안 난다(감사 U1).
+  const volatile = verdict.tone === 'mixed' && mixedFlavor(verdict) === 'volatile'
   const toneWord = ko
     ? verdict.tone === 'positive'
       ? '순풍'
       : verdict.tone === 'caution'
         ? '역풍'
-        : '평이'
+        : volatile
+          ? '변덕'
+          : '잔잔'
     : verdict.tone === 'positive'
       ? 'Tailwind'
       : verdict.tone === 'caution'
         ? 'Headwind'
-        : 'Steady'
+        : volatile
+          ? 'Shifting'
+          : 'Calm'
 
   const strength = dayStrength(day.score)
   const sibsinRaw = String(day.iljinSibsin)
@@ -324,19 +332,25 @@ export function DayTier({ day, onRise, sex = '남', isToday = true }: DayTierPro
     ...(crossLine && (strongestCross?.polarity ?? 0) < 0 ? [crossLine] : []),
   ].slice(0, 2)
 
-  // ── novice hero: 톤 워드는 결론(oneLine)과 어긋나지 않게, 중립이면 '기복 있는 날'. ──
-  const novTone = day.dayTone?.tone
+  // ── novice hero: 톤 워드는 결론(oneLine)과 어긋나지 않게. ──
+  // *verdict*(폴백 포함 화해 톤)를 쓴다 — 예전엔 day.dayTone 원시값을 읽어 구 캐시
+  // (dayTone 없는) 응답에서 히어로만 dayHook·바람·점수색과 어긋났다(감사 U2).
+  // mixed 는 결(flavor)로 갈라 변동성=기복 / 평이=무난 (감사 U1).
   const novToneWord = ko
-    ? novTone === 'positive'
+    ? verdict.tone === 'positive'
       ? '좋은 날'
-      : novTone === 'caution'
+      : verdict.tone === 'caution'
         ? '조심할 날'
-        : '기복 있는 날'
-    : novTone === 'positive'
+        : volatile
+          ? '기복 있는 날'
+          : '무난한 날'
+    : verdict.tone === 'positive'
       ? 'A good day'
-      : novTone === 'caution'
+      : verdict.tone === 'caution'
         ? 'A careful day'
-        : 'A mixed day'
+        : volatile
+          ? 'A mixed day'
+          : 'A steady day'
 
   // ── 인앱 후크 헤드라인 — 점수/톤에서만 뽑는 도발적 한 줄(Co-Star 식). 예전엔
   //    공유 카드에만 쓰고 인앱엔 차분한 결론만 노출해 "열어볼 이유"가 약했다(감사).
@@ -581,9 +595,9 @@ export function DayTier({ day, onRise, sex = '남', isToday = true }: DayTierPro
         {dayHook.subline && <p className={styles.novHookSub}>{dayHook.subline}</p>}
         <div
           className={`${styles.novToneWord} ${
-            day.dayTone?.tone === 'positive'
+            verdict.tone === 'positive'
               ? styles.novGood
-              : day.dayTone?.tone === 'caution'
+              : verdict.tone === 'caution'
                 ? styles.novCare
                 : ''
           }`.trim()}

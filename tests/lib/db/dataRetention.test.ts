@@ -98,15 +98,22 @@ describe('sweepDataRetention', () => {
     expect(r.pageViewsDeleted).toBe(100_000)
   })
 
-  it('NatalContextCache — 현행 엔진 버전은 지우지 않는다(옛 버전 고아만)', async () => {
+  it('NatalContextCache — 옛 버전 고아 OR 오래 안 쓰인 현행 버전 행을 지운다', async () => {
     mockFindMany.natalContextCache.mockResolvedValueOnce(ids(2, 'n')).mockResolvedValue([])
     mockDeleteMany.natalContextCache.mockResolvedValue({ count: 2 })
 
     const r = await sweepDataRetention(NOW)
 
+    const natalCutoff = new Date(NOW.getTime() - RETENTION.natalCacheDays * DAY_MS)
+    // 현행 버전이라도 builtAt 이 보존창을 넘긴 익명·일회성 고아는 함께 지운다.
     expect(mockFindMany.natalContextCache).toHaveBeenCalledWith(
       expect.objectContaining({
-        where: { engineSignature: { not: CALENDAR_ENGINE_VERSION } },
+        where: {
+          OR: [
+            { engineSignature: { not: CALENDAR_ENGINE_VERSION } },
+            { builtAt: { lt: natalCutoff } },
+          ],
+        },
       })
     )
     expect(r.natalOrphansDeleted).toBe(2)

@@ -472,6 +472,39 @@ describe('toDay — CalendarCell → destinypal day', () => {
       expect(u.dayTone.tense).toBe(true)
       expect(u.dayTone.tone).toBe('mixed')
     })
+
+    it('평이한 중간밴드(신호 약함)는 steady 풀(무난) — 변동성(기복) 문장 금지 (감사 U1)', () => {
+      // 점수 50, tense/bright 없음 → flat-mixed. oneLine 은 steady 풀에서 나와야
+      // "오르내림/딱 갈려" 같은 변동성 단어를 쓰지 않는다.
+      const cell = makeCell({
+        datetime: '2026-06-15T00:00:00.000Z',
+        derivedScore: 50,
+        signals: [makeSignal({ kind: 'pillar-sibsin', layer: 'daily', polarity: 0, weight: 0.1 })],
+      })
+      const u = reconcileCellOneLine(cell, 50)
+      expect(u.dayTone.tone).toBe('mixed')
+      expect(u.dayTone.tense).toBe(false)
+      expect(u.dayTone.bright).toBe(false)
+      // steady 풀에서 뽑힌다(변동성 mixed 풀 아님).
+      expect(ONE_LINE_POOL.steady.ko).toContain(u.oneLine)
+      expect(ONE_LINE_POOL.steady.en).toContain(u.oneLineEn)
+      // 변동성 단어 부재.
+      expect(/오르내림|갈리는|기복/.test(u.oneLine)).toBe(false)
+    })
+
+    it('화해된 변동성 날(tense/bright)은 mixed 풀(기복) 유지 (감사 U1)', () => {
+      const cell = makeCell({
+        datetime: '2026-06-15T00:00:00.000Z',
+        derivedScore: 20,
+        topReasons: ['좋은 것 하나'],
+        signals: [makeSignal({ kind: 'pillar-sibsin', layer: 'daily', polarity: 2, weight: 0.9 })],
+      })
+      const u = reconcileCellOneLine(cell, 20)
+      expect(u.dayTone.tone).toBe('mixed')
+      expect(u.dayTone.bright).toBe(true)
+      // 변동성 mixed 풀에서 뽑힌다(steady 아님).
+      expect(ONE_LINE_POOL.mixed.ko).toContain(u.oneLine)
+    })
   })
 
   describe('topReasons / cautions (lang 분기 + humanize)', () => {
