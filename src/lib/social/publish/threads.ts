@@ -7,9 +7,17 @@
 import { logger } from '@/lib/logger'
 import { getThreadsAccessToken } from '../threadsToken'
 import type { PublishAdapter, PublishInput, PublishResult } from './types'
-import { composeText } from './types'
+import { composeTextForThreads } from './types'
 
 const GRAPH = 'https://graph.threads.net/v1.0'
+
+// 컨테이너 생성 → 게시 사이 서버 처리 대기. 텍스트는 보통 즉시지만 이미지는
+// 지연이 있어, 게시가 "media not ready" 로 실패하면 짧게 backoff 후 재시도.
+const PUBLISH_RETRY_DELAYS_MS = [1500, 4000, 8000]
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}
 
 // 설정 여부는 env 기준(동기) — 실제 토큰은 발행 시점에 Redis(자동 갱신본)
 // 우선으로 읽는다 (threadsToken.ts).
@@ -45,7 +53,9 @@ export const threadsAdapter: PublishAdapter = {
     const c = await creds()
     if (!c) return { ok: false, platform: 'threads', skipped: 'not_configured' }
 
-    const text = composeText(input)
+    // 500자 상한에 맞춰 안전 조립 — 초과 시 해시태그→캡션 순으로 트림.
+    const { text, trimmed } = composeTextForThreads(input)
+    if (trimmed) logger.warn('[publish/threads] text trimmed to fit 500-char limit')
     try {
       // 1) 컨테이너 생성 (이미지 있으면 IMAGE, 없으면 TEXT).
       const containerParams: Record<string, string> = input.imageUrl
@@ -63,27 +73,30 @@ export const threadsAdapter: PublishAdapter = {
       const { id: creationId } = (await createRes.json()) as { id?: string }
       if (!creationId) return { ok: false, platform: 'threads', error: 'no creation id' }
 
-      // 2) 게시.
-      const pubRes = await postForm(`${GRAPH}/${c.userId}/threads_publish`, {
-        creation_id: creationId,
-        access_token: c.token,
-      })
-      if (!pubRes.ok) {
-        const t = await pubRes.text().catch(() => '')
-        return {
-          ok: false,
-          platform: 'threads',
-          error: `publish: ${pubRes.status} ${t.slice(0, 200)}`,
+      // 2) 게시 — 컨테이너가 아직 준비 전이면 Meta 가 실패를 준다. 짧은
+      //    backoff 로 재시도(특히 이미지). 마지막 시도까지 실패하면 에러 반환.
+      let lastErr = ''
+      for (let attempt = 0; attempt <= PUBLISH_RETRY_DELAYS_MS.length; attempt++) {
+        if (attempt > 0) await sleep(PUBLISH_RETRY_DELAYS_MS[attempt - 1])
+        const pubRes = await postForm(`${GRAPH}/${c.userId}/threads_publish`, {
+          creation_id: creationId,
+          access_token: c.token,
+        })
+        if (pubRes.ok) {
+          const { id } = (await pubRes.json()) as { id?: string }
+          logger.info('[publish/threads] published', { id, attempt })
+          return {
+            ok: true,
+            platform: 'threads',
+            externalId: id,
+            url: id ? `https://www.threads.net/t/${id}` : undefined,
+          }
         }
+        lastErr = `${pubRes.status} ${(await pubRes.text().catch(() => '')).slice(0, 200)}`
+        // 4xx(잘못된 요청·중복 등)는 재시도해도 소용없으니 즉시 중단.
+        if (pubRes.status >= 400 && pubRes.status < 500 && pubRes.status !== 429) break
       }
-      const { id } = (await pubRes.json()) as { id?: string }
-      logger.info('[publish/threads] published', { id })
-      return {
-        ok: true,
-        platform: 'threads',
-        externalId: id,
-        url: id ? `https://www.threads.net/t/${id}` : undefined,
-      }
+      return { ok: false, platform: 'threads', error: `publish: ${lastErr}` }
     } catch (error) {
       logger.error('[publish/threads] failed', { error })
       return {
