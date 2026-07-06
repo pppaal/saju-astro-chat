@@ -19,10 +19,11 @@ import { DestinypalTopbar } from './DestinypalTopbar'
 import { Starfield, type StarfieldHandle } from './Starfield'
 import { SHOW_FULL_TIERS } from '../tierConfig'
 
+// 티어 축 — 인생(장기 리포트) ↔ 월·일(매일 재방문) 두 축. 중간 10년·1년 티어는
+// 제거: 대운은 인생 흐름이 챕터·지금 대운 앵커·사주×점성 교차로 커버하고, 세운은
+// 인생 흐름 한 줄 + 캘린더로 이어진다(중복 중간 티어 정리).
 const ALL_TIERS: ReadonlyArray<RailTier> = [
   { id: 'life', ko: '인생', en: 'LIFETIME', scale: '84년' },
-  { id: 'decade', ko: '10년', en: 'DECADE', scale: '甲戌 대운' },
-  { id: 'year', ko: '1년', en: 'YEARLY', scale: '12달' },
   { id: 'month', ko: '1달', en: 'MONTHLY', scale: '30일' },
   { id: 'day', ko: '1일', en: 'DAILY', scale: '24시' },
 ] as const
@@ -66,8 +67,6 @@ export interface DestinypalShellProps {
   storageKey?: string
   // 가시 티어가 아닌 렌더러는 안 줘도 된다 → 해당 레이어는 안 그림.
   renderLife?: (args: DestinypalTierRenderArgs) => ReactNode
-  renderDecade?: (args: DestinypalTierRenderArgs) => ReactNode
-  renderYear?: (args: DestinypalTierRenderArgs) => ReactNode
   renderMonth?: (args: DestinypalTierRenderArgs & { onFocusDay: () => void }) => ReactNode
   renderDay?: (args: DestinypalTierRenderArgs) => ReactNode
   initialTier?: number
@@ -83,8 +82,6 @@ export function DestinypalShell({
   tierIds,
   storageKey = DEFAULT_STORAGE_KEY,
   renderLife,
-  renderDecade,
-  renderYear,
   renderMonth,
   renderDay,
   initialTier = 0,
@@ -318,10 +315,6 @@ export function DestinypalShell({
     switch (id) {
       case 'life':
         return renderLife ? renderLife(args) : null
-      case 'decade':
-        return renderDecade ? renderDecade(args) : null
-      case 'year':
-        return renderYear ? renderYear(args) : null
       case 'month':
         return renderMonth
           ? renderMonth({ ...args, onFocusDay: () => goTo(dayIndex >= 0 ? dayIndex : idx) })

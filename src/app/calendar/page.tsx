@@ -35,18 +35,10 @@ export default async function DestinypalPage({ searchParams }: { searchParams: P
     return <BirthRequiredFallback reason="rate-limited" locale={data.lang} />
   if (data.kind === 'guest') return <BirthGate base="/calendar" locale={data.lang} />
 
-  const { topbar, user, lifetime, decade, year, month, day, lang } = data
+  const { topbar, user, lifetime, month, day, lang } = data
   return (
     <>
-      <PreviewClient
-        topbar={topbar}
-        user={user}
-        lifetime={lifetime}
-        decade={decade}
-        year={year}
-        month={month}
-        day={day}
-      />
+      <PreviewClient topbar={topbar} user={user} lifetime={lifetime} month={month} day={day} />
       {/* 매일 아침 오늘의 운세 푸시 옵트인 — VAPID 미설정/미지원이면 스스로 숨음 */}
       <DailyFortunePushBanner locale={lang} />
       <CounselorCTA

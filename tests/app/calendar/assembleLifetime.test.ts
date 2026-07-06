@@ -78,6 +78,25 @@ describe('assembleLifetime', () => {
     expect(lifetime.thisYear?.areaEn.length).toBeGreaterThan(0)
   }, 60000)
 
+  it('세운 입춘 경계 SSOT — 1/1~입춘 구간은 활성 사주년(그레고리 근사 아님)', async () => {
+    // 2024 입춘 ≈ 2/4. 2024-01-15 는 아직 사주년 2023(癸卯) — 그레고리 근사 甲辰 아님.
+    // (assembleTiers 에서 이관: 세운 SSOT 는 이제 thisYear 가 담당.)
+    const { lifetime } = await assembleLifetime({
+      natal,
+      lang: 'ko',
+      birthYear: 1995,
+      targetYear: 2024,
+      sex: '남',
+      birthDisplay: '1995.2.9 06:40',
+      whoBirthLine: '1995.2.9 06:40',
+      place: '서울',
+      now: new Date('2024-01-15T12:00:00Z'),
+      todayIso: '2024-01-15',
+      focusDayCell: null,
+    })
+    expect(lifetime.thisYear?.gz).toBe('癸卯')
+  }, 60000)
+
   it('대운 교차(decadeCross) — decadal 층만, 페어 중복 없음, polarity≠0', async () => {
     const { lifetime } = await run()
     const dc = lifetime.decadeCross ?? []

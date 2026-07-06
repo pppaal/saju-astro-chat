@@ -58,7 +58,7 @@ export default async function DestinypalPreview() {
 
   // ─── 5 tier 어셈블 (정식 라우트와 공유) ───────────────────────────────
   const TARGET_DAY = Number(TARGET_DAY_ISO.split('-')[2])
-  const { topbar, user, lifetime, decade, year, month, day } = await assembleTiers({
+  const { topbar, user, lifetime, month, day } = await assembleTiers({
     natal,
     cells,
     lang,
@@ -81,8 +81,6 @@ export default async function DestinypalPreview() {
       topbar={topbar}
       user={user}
       lifetime={lifetime}
-      decade={decade}
-      year={year}
       month={month}
       day={day}
       // preview 는 세션이 아닌 고정 본명 — 일 티어 재빌드 fetch 도 같은 본명으로

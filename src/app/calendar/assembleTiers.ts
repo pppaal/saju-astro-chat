@@ -22,17 +22,14 @@ import { isMinorAge, sanitizeCrossEntry } from '@/lib/calendar-engine/minorSafe'
 import { deriveMonthSummary } from '@/lib/calendar-engine/derivers/monthSummary'
 import { personSeed } from '@/lib/calendar-engine/derivers/personSeed'
 import { deriveLayeredScores } from '@/lib/calendar-engine/derivers/layeredScore'
-import { getMonthPillarForDate, getYearPillarForDate } from '@/lib/saju/datePillars'
+import { getMonthPillarForDate } from '@/lib/saju/datePillars'
 import { getSibsinKo } from '@/lib/saju/cycleRelations'
 
-import { toLifetime, toDecade, toYear, toMonth } from '@/components/calendar/adapters'
+import { toLifetime, toMonth } from '@/components/calendar/adapters'
 import { assembleUserSummary } from './assembleUser'
 import { reconcileCellOneLine } from '@/components/calendar/adapters/toDay'
 import { SIBSIN_EN } from '@/lib/saju/sibsinLabels'
 import { translateSignalLabel } from '@/lib/calendar-engine/derivers/signalI18n'
-import { PLANET_KO } from '@/components/calendar/adapters/shared'
-import { PROFECTION_THEMES } from '@/components/calendar/adapters/toYear'
-import { SIGN_KO } from '@/lib/astrology/signLabels'
 import { assembleDayTier } from './assembleDayTier'
 import { crossKeys, stripCrossPair, PLANET_EN_FROM_KO } from './crossPair'
 
@@ -40,11 +37,9 @@ import type { NatalContext } from '@/lib/calendar-engine/context/types'
 import type { CalendarCell } from '@/lib/calendar-engine/types'
 import type {
   DestinyUserSummary,
-  DestinyDecade,
   DestinyMonth,
   DestinyCalendarCell,
   DestinyDay,
-  DestinyYear,
   DestinyLifetime,
 } from '@/types/calendar'
 
@@ -98,52 +93,8 @@ export interface AssembledTiers {
   topbar: { whoBirthLine: string; place: string; ilganHanja: string }
   user: DestinyUserSummary & { gyeokgukStatus?: string; rootStatus?: string }
   lifetime: DestinyLifetime
-  decade: DestinyDecade & {
-    crossActivations?: Array<{
-      signalId: string
-      name: string
-      sajuLine?: string
-      astroLine?: string
-      polarity: number
-      meaning?: string
-    }>
-    geokgukStatus?: string
-  }
-  year: DestinyYear
   month: DestinyMonth
   day: DestinyDay
-}
-
-type FE = DestinyDecade['pillar']['cheongan']['element']
-
-const STEM_EL_FALLBACK: Record<string, FE> = {
-  甲: '목',
-  乙: '목',
-  丙: '화',
-  丁: '화',
-  戊: '토',
-  己: '토',
-  庚: '금',
-  辛: '금',
-  壬: '수',
-  癸: '수',
-}
-const BRANCH_EL_FALLBACK: Record<string, FE> = {
-  子: '수',
-  丑: '토',
-  寅: '목',
-  卯: '목',
-  辰: '토',
-  巳: '화',
-  午: '화',
-  未: '토',
-  申: '금',
-  酉: '금',
-  戌: '토',
-  亥: '수',
-}
-function pickElement(hanja: string, fallback: Record<string, FE>): FE {
-  return fallback[hanja] ?? '목'
 }
 
 /** 동일 문구 중복 제거(순서 보존). monthly-layer 사유는 그 달 매일 동일 문자열로
@@ -157,31 +108,6 @@ function dedupeByBody<T extends { body: string }>(rows: T[]): T[] {
     out.push(r)
   }
   return out
-}
-
-/**
- * 인생 곡선 → 연도별 점수(0~100) 맵. 대운 티어의 1년운(years[].score)이 곡선과
- * 같은 출처를 쓰게 한다. 연 단위 합성(combined: 세운+대운+충합+트랜짓)을 그 사람
- * *인생 전체* 분포의 백분위로 바꿔, "이 해가 내 인생에서 어디쯤"을 1~99 로 편다.
- * 곡선이 없으면(빌드 실패) undefined → toDecade 가 50 폴백.
- */
-function buildYearScoreByYear(
-  lifeCurve: ReturnType<typeof buildLifeCurve>
-): Map<number, number> | undefined {
-  if (!lifeCurve || lifeCurve.points.length < 5) return undefined
-  const vals = lifeCurve.points.map((p) => p.combined)
-  const sorted = [...vals].sort((a, b) => a - b)
-  const pct = (v: number): number => {
-    let lo = 0
-    while (lo < sorted.length && sorted[lo] < v) lo++
-    let hi = lo
-    while (hi < sorted.length && sorted[hi] === v) hi++
-    const rank = (lo + hi) / 2 // 동률은 중앙 순위
-    return Math.max(1, Math.min(99, Math.round((rank / sorted.length) * 100)))
-  }
-  const m = new Map<number, number>()
-  for (const p of lifeCurve.points) m.set(p.year, pct(p.combined))
-  return m
 }
 
 export async function assembleTiers(args: AssembleTiersInput): Promise<AssembledTiers> {
@@ -256,10 +182,9 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
   const lifetimeFlow = deriveLifetimeFlow(natal, lang, milestoneOverrides, now, lifeCurve)
   const lifetimePivots = deriveLifetimePivots(natal, lang, milestoneOverrides, now)
 
-  // ─── yearly / month / day 슬라이스 ───────────────────────────────────────
+  // ─── month / day 슬라이스 ───────────────────────────────────────────────
   const monthPrefix = `${TARGET_YEAR}-${String(TARGET_MONTH).padStart(2, '0')}`
   const monthCells = cells.filter((c) => c.datetime.slice(0, 7) === monthPrefix)
-  const yearlySignals = cells.flatMap((c) => c.signals).filter((s) => s.layer === 'yearly')
 
   // ─── woolun(월운) 60갑자 (KASI 절기 룩업) ─────────────────────────────────
   // 월운 기준 인스턴트는 *UTC* 로 만든다. tz-less `new Date('YYYY-MM-15T00:00:00')`
@@ -315,181 +240,8 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
     lifetimePivots,
     lifeCurve: lifeCurve ?? undefined,
   })
-  // 오늘 기준 *활성 사주년*의 연주(세운). 세운은 1/1 이 아니라 입춘에 바뀌므로
-  // getYearPillarForDate(SSOT)로 산출 — 일 셀 세운 추출기·상담사 computeCurrentUnse
-  // 와 동일 convention. 1/1~입춘 구간에 연/대운 세운이 월·일과 어긋나던 것(감사) 교정.
-  const sewoonNowPillar = getYearPillarForDate(
-    new Date(Date.UTC(TARGET_YEAR, TARGET_MONTH - 1, TARGET_DAY, 12))
-  )
-
-  // toDecade — 현재 대운 + 10년 분리 + cross-activation decadal.
-  const currentAge = manAge
-  const decadalSignals = cells.flatMap((c) => c.signals).filter((s) => s.layer === 'decadal')
-  // 대운 티어의 *1년운*(years[].score) — 인생 곡선의 연 단위 합성(세운+대운+충합+
-  // 트랜짓)을 인생 백분위로 매핑해 채운다. 예전엔 yearScores 미전달로 전부 50(평탄)
-  // 이라 "1년운"이 무의미했다. 곡선과 같은 출처라 대운 티어·인생 곡선이 일치한다.
-  const yearScoreByYear = buildYearScoreByYear(lifeCurve)
-  const decadeAdapter = toDecade(natal, {
-    currentAge,
-    currentYear: TARGET_YEAR,
-    decadalSignals,
-    focusYear: TARGET_YEAR,
-    yearScoreByYear,
-    // 현재 세운(입춘 기준 활성 연주) — 대운 티어 sewoonNow 가 연 티어와 동일 소스.
-    sewoonPillar: sewoonNowPillar,
-  })
-  // 유효한 사주면 대운은 항상 계산된다. null 이면 입력/계산이 깨진 것 — fail-loud.
-  if (!decadeAdapter) {
-    throw new Error('대운 계산 실패: 유효한 사주인데 대운 리스트가 비었습니다 (불변식 위반).')
-  }
-
-  // 이 대운(10년) 안에 떨어지는 점성 마디 = 사주(대운) × 점성 교차의 '언제'.
-  const decadeAstroMarks = lifetime.milestones
-    .filter(
-      (m) =>
-        m.kind !== 'saju' &&
-        m.kind !== 'daewoon' &&
-        m.year >= decadeAdapter.start &&
-        m.year <= decadeAdapter.end
-    )
-    .sort((a, b) => a.year - b.year)
-    .map((m) => {
-      const split = (t: string) => ({
-        label: t.includes('—') ? t.split('—')[0].trim() : t,
-        body: t.includes('—') ? t.split('—').slice(1).join('—').trim() : '',
-      })
-      const ko = split(m.label)
-      const en = split(m.labelEn ?? m.label)
-      return {
-        label: ko.label,
-        labelEn: en.label,
-        date: `${m.year}`,
-        body: ko.body,
-        bodyEn: en.body,
-        kind: m.kind,
-      }
-    })
-
-  const decade: AssembledTiers['decade'] = {
-    gz: decadeAdapter.gz,
-    start: decadeAdapter.start,
-    end: decadeAdapter.end,
-    ageFrom: decadeAdapter.ageFrom,
-    ageTo: decadeAdapter.ageTo,
-    sibsin: decadeAdapter.sibsin,
-    theme: decadeAdapter.theme,
-    themeEn: decadeAdapter.themeEn,
-    headline: decadeAdapter.headline,
-    headlineEn: decadeAdapter.headlineEn,
-    pillar: {
-      cheongan: {
-        hanja: decadeAdapter.pillar.cheongan.hanja,
-        sibsin: decadeAdapter.pillar.cheongan.sibsin,
-        el: decadeAdapter.pillar.cheongan.el,
-        element: pickElement(decadeAdapter.pillar.cheongan.hanja, STEM_EL_FALLBACK),
-        note: decadeAdapter.pillar.cheongan.note ?? '',
-      },
-      jiji: {
-        hanja: decadeAdapter.pillar.jiji.hanja,
-        sibsin: decadeAdapter.pillar.jiji.sibsin,
-        el: decadeAdapter.pillar.jiji.el,
-        element: pickElement(decadeAdapter.pillar.jiji.hanja, BRANCH_EL_FALLBACK),
-        note: decadeAdapter.pillar.jiji.note ?? '',
-      },
-    },
-    sewoonNow: decadeAdapter.sewoonNow
-      ? {
-          gz: decadeAdapter.sewoonNow.gz,
-          sibsin: decadeAdapter.sewoonNow.sibsin,
-          year: TARGET_YEAR,
-        }
-      : {
-          gz: decadeAdapter.gz,
-          sibsin: decadeAdapter.sibsin,
-          year: TARGET_YEAR,
-        },
-    years: decadeAdapter.years,
-    body: decadeAdapter.body,
-    bodyEn: decadeAdapter.bodyEn,
-    hapchung: {
-      title: decadeAdapter.hapchung.title,
-      romaji: decadeAdapter.hapchung.romaji,
-      body: decadeAdapter.hapchung.body,
-      bodyEn: decadeAdapter.hapchung.bodyEn,
-    },
-    unseong: {
-      title: decadeAdapter.unseong.title,
-      romaji: decadeAdapter.unseong.romaji,
-      body: decadeAdapter.unseong.body,
-      bodyEn: decadeAdapter.unseong.bodyEn,
-    },
-    astro: decadeAstroMarks.map((a) => ({
-      label: a.label,
-      labelEn: a.labelEn,
-      date: a.date,
-      body: a.body,
-      bodyEn: a.bodyEn,
-      kind: a.kind ?? '',
-    })),
-    narrative: decadeAdapter.narrative,
-    focusYear: decadeAdapter.focusYear,
-    zrSpiritChapters: [],
-    zrFortuneChapters: [],
-    crossActivations: decadeAdapter.crossActivations,
-    geokgukStatus: decadeAdapter.geokgukStatus,
-  }
-
-  const yearAdapter = toYear(natal, {
-    year: TARGET_YEAR,
-    yearlySignals,
-    cells,
-    // 세운 12달 띠를 월 그리드와 *같은 일점수*로 빌드(각 달=일점수 평균, bestDay 일치).
-    // 줌 레벨(일·월·세운)이 한 척도라 띠↔그리드 색 모순이 구조적으로 사라진다(Option Y).
-    dayScores: layered.daily,
-    // 현재 세운 = 입춘 기준 활성 연주(SSOT). 1/1~입춘엔 TARGET_YEAR 의 그레고리
-    // 근사(computeSewoonGanji)가 다음 간지로 앞서가 월·일·상담사와 어긋났다(감사).
-    sewoonPillar: sewoonNowPillar,
-  })
-  // 프로펙션 하우스도 만 나이(생일 기준 solar-return 카운트) SSOT 로 — currentManAge.
-  const ageThisYear = manAge
-  const fallbackHouse = (((ageThisYear % 12) + 12) % 12) + 1
-  const wheelSlot = yearAdapter.profectionWheel.find((w) => w.house === fallbackHouse)
-  const year: DestinyYear = {
-    year: yearAdapter.year,
-    headline: yearAdapter.headline,
-    headlineEn: yearAdapter.headlineEn,
-    sewoon: yearAdapter.sewoon,
-    sewoonGz: yearAdapter.sewoonGz,
-    sewoonSibsin: yearAdapter.sewoonSibsin,
-    // evidence 없는 (캐시) cells 또는 7~12월생(신호창 미겹침)이면 yearAdapter.profection
-    // 이 undefined → 여기 fallback. house 는 나이로 정확히 복원되므로, theme 는 정본
-    // PROFECTION_THEMES 에서 채우고 cusp/ruler 도 한글화한다(영어 누수·빈 theme 방지).
-    profection: yearAdapter.profection ?? {
-      house: fallbackHouse,
-      theme: PROFECTION_THEMES[fallbackHouse]?.theme ?? '',
-      themeEn: PROFECTION_THEMES[fallbackHouse]?.themeEn ?? '',
-      cusp: wheelSlot ? (SIGN_KO[wheelSlot.cuspSign] ?? (wheelSlot.cuspSign as string)) : '',
-      cuspEn: wheelSlot?.cuspSign ?? 'Aries',
-      ruler: wheelSlot ? (PLANET_KO[wheelSlot.cuspRuler] ?? (wheelSlot.cuspRuler as string)) : '',
-      rulerEn: wheelSlot?.cuspRuler ?? 'Sun',
-      rulerNatal: '',
-      rulerNatalEn: '',
-      rulerNatalHouse: 0,
-      rulerNatalSign: 'Aries',
-    },
-    // fallback 일 때 휠의 active 슬롯이 비어 "현재 하우스" 강조가 사라지므로 채워준다.
-    profectionWheel: yearAdapter.profection
-      ? yearAdapter.profectionWheel
-      : yearAdapter.profectionWheel.map((w) => ({ ...w, active: w.house === fallbackHouse })),
-    sajuNote: yearAdapter.sajuNote,
-    sajuNoteEn: yearAdapter.sajuNoteEn,
-    astroNote: yearAdapter.astroNote,
-    astroNoteEn: yearAdapter.astroNoteEn,
-    zrSpiritChapters: yearAdapter.zrSpiritChapters,
-    zrFortuneChapters: yearAdapter.zrFortuneChapters,
-    monthlyScores: yearAdapter.monthlyScores,
-    crossings: yearAdapter.crossings,
-  }
+  // (10년 대운·1년 세운 티어 제거 — 대운은 인생 흐름이, 세운은 인생 흐름 한 줄+
+  //  캘린더가 커버. sewoonNowPillar·decade/year 조립·yearScoreByYear 삭제.)
 
   // 월 narrative — 타고난 결(lifetimeFlow.intro) + 그 달 상위 topReasons.
   const monthNarrative: Array<{ tag: string; body: string }> = []
@@ -794,7 +546,6 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
   if (isMinorAge(manAge)) {
     const rows = (xs: unknown): Array<Record<string, unknown>> =>
       (xs as Array<Record<string, unknown>>) ?? []
-    for (const c of rows(year.crossings)) sanitizeCrossEntry(c, 'detail', 'detailEn')
     for (const c of rows(month.crossActivations)) sanitizeCrossEntry(c, 'meaning', 'meaningEn')
   }
 
@@ -802,8 +553,6 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
     topbar: { whoBirthLine, place, ilganHanja },
     user,
     lifetime,
-    decade,
-    year,
     month,
     day,
   }
