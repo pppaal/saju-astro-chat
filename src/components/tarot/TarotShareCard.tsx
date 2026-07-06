@@ -27,6 +27,12 @@ export interface ShareCardData {
   eyebrow?: string
   /** 후크 아래 살짝 보여줄 해석 티저(궁금증 유발 — "…"로 끊김). 선택. */
   teaser?: string
+  /**
+   * QR 코드 data URL(선택) — 우하단 코너에 박아, 스크린샷을 찍어 올려도 스캔
+   * 한 번에 무료 진입점으로 온다(재공유 시 출처·유입이 따라온다). 부모(버튼)가
+   * 캡처 전에 생성해 넘긴다.
+   */
+  qrDataUrl?: string
 }
 
 const GOLD = '#e8cc8a'
@@ -46,7 +52,7 @@ function cardWidthFor(n: number): number {
 
 export const TarotShareCard = React.forwardRef<HTMLDivElement, { data: ShareCardData }>(
   function TarotShareCard({ data }, ref) {
-    const { question, spreadTitle, cards, keyMessage, isKo, eyebrow, teaser } = data
+    const { question, spreadTitle, cards, keyMessage, isKo, eyebrow, teaser, qrDataUrl } = data
     const eyebrowLabel = eyebrow ?? (isKo ? '타로 리딩' : 'TAROT READING')
     // 티저가 후크와 같으면(중복) 숨김.
     const showTeaser = !!teaser && teaser.trim() !== keyMessage.trim()
@@ -227,6 +233,38 @@ export const TarotShareCard = React.forwardRef<HTMLDivElement, { data: ShareCard
           <span style={{ color: 'rgba(154,163,184,0.5)' }}>·</span>
           <span>destinypal.com</span>
         </div>
+
+        {/* QR — 우하단 코너(절대 위치라 space-between 레이아웃에 영향 없음).
+            스크린샷만 봐도 스캔 한 번에 무료 진입점으로 유입된다. */}
+        {qrDataUrl ? (
+          <div
+            style={{
+              position: 'absolute',
+              right: 52,
+              bottom: 48,
+              zIndex: 3,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 6,
+            }}
+          >
+            <div
+              style={{
+                padding: 8,
+                background: '#ffffff',
+                borderRadius: 12,
+                boxShadow: '0 6px 20px rgba(0,0,0,0.4)',
+              }}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={qrDataUrl} alt="" width={104} height={104} style={{ display: 'block' }} />
+            </div>
+            <span style={{ fontSize: 16, fontWeight: 600, color: GOLD_SOFT }}>
+              {isKo ? '스캔 · 무료' : 'Scan · free'}
+            </span>
+          </div>
+        ) : null}
       </div>
     )
   }

@@ -37,6 +37,26 @@ describe('pickTeaser — 후크 아래 궁금증 한 줄', () => {
   })
 })
 
+describe('어절 경계 자르기 — 단어 중간에서 끊기지 않는다', () => {
+  it('pickTeaser: 한국어를 어절(공백) 경계에서 끊는다', () => {
+    // 글자수로 뚝 자르면 "…쪽은 새로" 처럼 단어 중간에서 끊긴다. 공백 경계까지만.
+    expect(pickTeaser('오늘은 당신에게 새로운 기회가 다가와요', 12)).toBe('오늘은 당신에게…')
+  })
+  it('cleanShareHook: 한국어를 어절 경계에서 끊는다', () => {
+    expect(cleanShareHook('먼저 연락 오는 쪽은 아마도 상대일 거예요', 12)).toBe('먼저 연락 오는…')
+  })
+  it('pickTeaser: 영어도 단어 경계에서 끊는다', () => {
+    expect(pickTeaser('A steady current is forming under the surface', 20)).toBe(
+      'A steady current…'
+    )
+  })
+  it('공백이 전혀 없으면(초장문 한 어절) 하드컷 폴백', () => {
+    const out = pickTeaser('가'.repeat(40), 12)
+    expect(out.endsWith('…')).toBe(true)
+    expect(out.length).toBeLessThanOrEqual(12)
+  })
+})
+
 describe('cleanShareHook — 모델이 뭘 뱉든 한 줄 깔끔하게', () => {
   it('감싼 따옴표를 벗긴다', () => {
     expect(cleanShareHook('"먼저 연락 오는 쪽은 상대"')).toBe('먼저 연락 오는 쪽은 상대')

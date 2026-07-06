@@ -57,6 +57,9 @@ const bodySchema = z.object({
   verdict: z.string().trim().min(1).max(280),
   verdictTone: z.enum(['aligned', 'mixed', 'tension', 'neutral']),
   headline: z.string().trim().max(280).optional(),
+  // 0~100 종합 점수 + 등급 별명 — 링크 미리보기(OG/공개 페이지)의 극적 후크.
+  score: z.number().int().min(0).max(100).optional(),
+  grade: z.string().trim().max(40).optional(),
   inviter: inviterSchema,
 })
 
@@ -83,6 +86,9 @@ export const POST = withApiMiddleware(
       verdict: parsed.data.verdict,
       verdictTone: parsed.data.verdictTone,
       headline: parsed.data.headline,
+      // 점수/등급은 있을 때만 저장 — 링크 미리보기에서 큰 숫자 후크로 쓴다.
+      ...(typeof parsed.data.score === 'number' ? { score: parsed.data.score } : {}),
+      ...(parsed.data.grade ? { grade: parsed.data.grade } : {}),
       // 옵트인 했을 때만 저장 — 미동의면 생일이 링크에 남지 않는다(프라이버시).
       ...(parsed.data.inviter ? { inviter: parsed.data.inviter } : {}),
     }

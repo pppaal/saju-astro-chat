@@ -15,8 +15,9 @@
 // GET  : 오늘 이미 뽑았으면 그 결과, 아니면 ready:false (아직 안 뽑음).
 // POST : 오늘 처음이면 뽑고 LLM 해석해 캐시 후 반환, 이미 있으면 그대로.
 
-import { createHash } from 'crypto'
+import { createHash, randomUUID } from 'crypto'
 import { NextRequest } from 'next/server'
+import { cookies } from 'next/headers'
 import {
   withApiMiddleware,
   createPublicStreamGuard,
@@ -53,7 +54,7 @@ function secondsUntilKstMidnight(now: Date = new Date()): number {
 
 // 캐시 스키마/프롬프트가 바뀌면 이 버전을 올린다 — 당일 자정 전에도 오래된
 // 캐시(예: 짧은 본문)를 우회해 새 결과가 즉시 나오게 한다.
-const DAILY_CACHE_VERSION = 'v4'
+const DAILY_CACHE_VERSION = 'v6'
 const dailyKey = (id: string, date: string) => `tarot:daily:${DAILY_CACHE_VERSION}:${id}:${date}`
 const dailyLockKey = (id: string, date: string) =>
   `tarot:daily:lock:${DAILY_CACHE_VERSION}:${id}:${date}`
@@ -69,10 +70,54 @@ function clientFingerprint(req: NextRequest): string {
   const ua = req.headers.get('user-agent') || 'noua'
   return createHash('sha256').update(`${ip}|${ua}`).digest('base64url').slice(0, 16)
 }
-function resolveDailyId(req: NextRequest, userId: string | null | undefined): string {
+
+const GUEST_ID_RE = /^[A-Za-z0-9_-]{8,64}$/
+const GUEST_COOKIE = 'dp_guest'
+
+// 새 게스트에게 발급할 브라우저 고유 id — 쿠키에 심어 다음 요청부터 안정 식별.
+function randomGuestId(): string {
+  return randomUUID().replace(/-/g, '').slice(0, 24)
+}
+
+// 게스트/유저 식별. 우선순위:
+//  1) 로그인 → u:{userId}
+//  2) localStorage 게스트 id(x-dp-guest 헤더) → g:{id}
+//  3) 서버 발급 게스트 쿠키 → g:{id}
+//  4) 둘 다 없으면(예: 인앱 브라우저가 localStorage 를 막은 신규 게스트):
+//     이번 응답은 안정적 지문으로 답하되(당일 캐시·1일1장 유지), 브라우저
+//     고유 쿠키를 새로 발급해 *다음* 요청부터 g:{쿠키} 로 승격시킨다. 이렇게
+//     하면 같은 IP+UA(같은 와이파이+같은 기종) 두 사람이 같은 카드를 받던 지문
+//     충돌이 사라진다. 쿠키까지 막힌 극단적 환경에서도 지문 덕에 기존과
+//     동일하게 안정적으로 동작한다.
+//
+// 쿠키는 next/headers 로 심는다 — Set-Cookie 를 NextResponse init 헤더로 넣으면
+// undici 가 제거하지만(금지 헤더), cookies().set() 은 프레임워크가 최종 응답에
+// 확실히 붙여준다. HttpOnly 라 서버만 읽고 클라 localStorage 와 독립적이다.
+async function resolveDailyId(
+  req: NextRequest,
+  userId: string | null | undefined
+): Promise<string> {
   if (userId) return `u:${userId}`
+
   const raw = (req.headers.get('x-dp-guest') || '').trim()
-  if (/^[A-Za-z0-9_-]{8,64}$/.test(raw)) return `g:${raw}`
+  if (GUEST_ID_RE.test(raw)) return `g:${raw}`
+
+  const cookieId = (req.cookies.get(GUEST_COOKIE)?.value || '').trim()
+  if (GUEST_ID_RE.test(cookieId)) return `g:${cookieId}`
+
+  const fresh = randomGuestId()
+  try {
+    const jar = await cookies()
+    jar.set(GUEST_COOKIE, fresh, {
+      path: '/',
+      httpOnly: true,
+      sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 34560000, // ~400일(브라우저 상한)
+    })
+  } catch {
+    // request scope 밖(비정상 실행 경로)이면 쿠키 발급만 건너뛴다 — 식별은 지문으로 계속.
+  }
   return `g:${clientFingerprint(req)}`
 }
 
@@ -118,14 +163,14 @@ function buildDailyTeaserPrompt(
       systemPrompt: [
         '너는 따뜻하고 통찰력 있는 타로 리더다. "오늘의 한 장" 무료 리딩을 준다.',
         '규칙:',
-        '- 말투: 마주 앉아 카드를 펴주며 말해주듯 따뜻한 *해요체 존댓말*("~해요/~예요/~보세요"). 반말("~해/~할 거야/~네") 절대 금지.',
+        '- 본문(message) 말투: 마주 앉아 카드를 펴주며 말하듯 따뜻한 *해요체 존댓말*("~해요/~예요/~보세요"). (후크는 예외 — 아래 hook 규칙의 저격 반말을 쓴다.)',
         '- 따뜻하고 구체적으로, 충분히 읽을거리가 되게 쓴다. 단, 한 장짜리라 "오늘 하루"에 집중한다.',
         '- 마크다운(*, _, #, `), 해시태그(#), 따옴표로 문장 전체 감싸기 금지.',
         '- 저주·불행·공포 조장 금지. 양면이 있되 희망의 여지를 남긴다.',
         '- 막연한 덕담 금지. 카드 키워드를 오늘의 상황·감정·행동으로 풀어 구체적으로.',
         '반드시 아래 JSON 만 출력:',
         '{"hook": "한 줄 후크", "message": "본문(4~6문장)"}',
-        'hook 규칙: 28자 이내. 2인칭("당신")으로 단언하되 *해요체 존댓말*, 구체적인 디테일 1개를 넣고, 살짝 양면의 트위스트로 여운을 남긴다. 반말 금지.',
+        'hook 규칙: 스크롤을 멈추게 하는 *저격 한 줄* — 이게 공유 카드에 박혀 재공유되는 핵심이다. 완결된 *반말 단정문*(22자 이내). "오늘 너, ~한다"처럼 나를 콕 집어 말한다. 물음표·말줄임표(…)·따옴표 금지, 절대 잘리게 쓰지 마라. 카드에서 온 구체적 디테일 1개. 조롱·저주·공포 조장 금지 — 찔리되 기분 나쁘지 않은 통찰이어야 한다. (예: "오늘 너, 하려던 말 또 삼킨다." / "미뤄둔 그거, 오늘은 결국 손이 가.")',
         'message 규칙: 4~6문장 *해요체 존댓말*. ①오늘의 큰 흐름 ②카드가 비추는 마음/관계/일의 한 면 ③오늘 해보면 좋은 구체적 행동 1가지 ④따뜻한 마무리 한 줄. *한 문단으로 자연스럽게 이어 쓰고, 중간에 줄바꿈(빈 줄)은 넣지 마라.*',
       ].join('\n'),
       userPrompt: [
@@ -148,7 +193,7 @@ function buildDailyTeaserPrompt(
       '- No vague platitudes. Translate the card keywords into concrete situations, feelings, and actions for today.',
       'Output ONLY this JSON:',
       '{"hook": "one-line hook", "message": "body (4-6 sentences)"}',
-      'hook rules: max 12 words. Speak in second person ("you"), make a confident claim, include one concrete detail, end with a slight two-sided twist.',
+      'hook rules: ONE blunt call-out line (max 10 words) — this is the line that gets screenshotted and reshared, so make it land. NO question mark, NO ellipsis, NO quotes; never let it look cut off. Second person, declarative, makes a claim about the reader with one concrete detail from the card. Called-out but not cruel — no doom or mockery. (e.g. "You reach for the thing you kept pretending to forget." / "You say the quiet thing out loud today.")',
       'message rules: 4-6 sentences. (1) the overall flow of today (2) one facet the card highlights in your heart/relationships/work (3) one concrete thing worth doing today (4) a warm closing line. Write it as ONE flowing paragraph — do not insert line breaks or blank lines.',
     ].join('\n'),
     userPrompt: [
@@ -163,7 +208,7 @@ function buildDailyTeaserPrompt(
 
 export const GET = withApiMiddleware(
   async (req: NextRequest, context: ApiContext) => {
-    const id = resolveDailyId(req, context.userId)
+    const id = await resolveDailyId(req, context.userId)
     const date = todayKeyKST()
     const cached = await cacheGet<DailyReading>(dailyKey(id, date))
     if (cached) return apiSuccess({ ready: true, reading: cached })
@@ -174,7 +219,7 @@ export const GET = withApiMiddleware(
 
 export const POST = withApiMiddleware(
   async (req: NextRequest, context: ApiContext) => {
-    const id = resolveDailyId(req, context.userId)
+    const id = await resolveDailyId(req, context.userId)
     const date = todayKeyKST()
     const key = dailyKey(id, date)
 
