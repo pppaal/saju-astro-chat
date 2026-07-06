@@ -54,7 +54,7 @@ function secondsUntilKstMidnight(now: Date = new Date()): number {
 
 // 캐시 스키마/프롬프트가 바뀌면 이 버전을 올린다 — 당일 자정 전에도 오래된
 // 캐시(예: 짧은 본문)를 우회해 새 결과가 즉시 나오게 한다.
-const DAILY_CACHE_VERSION = 'v4'
+const DAILY_CACHE_VERSION = 'v5'
 const dailyKey = (id: string, date: string) => `tarot:daily:${DAILY_CACHE_VERSION}:${id}:${date}`
 const dailyLockKey = (id: string, date: string) =>
   `tarot:daily:lock:${DAILY_CACHE_VERSION}:${id}:${date}`
@@ -170,7 +170,7 @@ function buildDailyTeaserPrompt(
         '- 막연한 덕담 금지. 카드 키워드를 오늘의 상황·감정·행동으로 풀어 구체적으로.',
         '반드시 아래 JSON 만 출력:',
         '{"hook": "한 줄 후크", "message": "본문(4~6문장)"}',
-        'hook 규칙: 28자 이내. 2인칭("당신")으로 단언하되 *해요체 존댓말*, 구체적인 디테일 1개를 넣고, 살짝 양면의 트위스트로 여운을 남긴다. 반말 금지.',
+        'hook 규칙: *완결된 한 문장* (22자 이내). 물음표·말줄임표(…)·따옴표 금지 — 공유 이미지에서 잘린 것처럼 보이면 안 된다. 2인칭("당신")으로 나를 콕 집어 말하듯 *단정적으로*, 구체적 디테일 1개. *해요체 존댓말*, 반말 금지. (예: "오늘 당신, 미뤄둔 그 일에 드디어 손이 가요.")',
         'message 규칙: 4~6문장 *해요체 존댓말*. ①오늘의 큰 흐름 ②카드가 비추는 마음/관계/일의 한 면 ③오늘 해보면 좋은 구체적 행동 1가지 ④따뜻한 마무리 한 줄. *한 문단으로 자연스럽게 이어 쓰고, 중간에 줄바꿈(빈 줄)은 넣지 마라.*',
       ].join('\n'),
       userPrompt: [
@@ -193,7 +193,7 @@ function buildDailyTeaserPrompt(
       '- No vague platitudes. Translate the card keywords into concrete situations, feelings, and actions for today.',
       'Output ONLY this JSON:',
       '{"hook": "one-line hook", "message": "body (4-6 sentences)"}',
-      'hook rules: max 12 words. Speak in second person ("you"), make a confident claim, include one concrete detail, end with a slight two-sided twist.',
+      'hook rules: ONE complete sentence, max 10 words. NO question mark, NO ellipsis, NO quotes — it must not look cut off in a share image. Second person ("you"), a blunt declarative call-out with one concrete detail. A statement, not a question. (e.g. "You finally reach for the thing you kept putting off.")',
       'message rules: 4-6 sentences. (1) the overall flow of today (2) one facet the card highlights in your heart/relationships/work (3) one concrete thing worth doing today (4) a warm closing line. Write it as ONE flowing paragraph — do not insert line breaks or blank lines.',
     ].join('\n'),
     userPrompt: [

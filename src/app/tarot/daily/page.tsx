@@ -15,7 +15,7 @@ import { apiFetch } from '@/lib/api'
 import { tarotLogger } from '@/lib/logger'
 import { ShareTarotButton } from '@/components/tarot/ShareTarotButton'
 import { bumpStreakForToday } from '@/lib/tarot/dailyStreak'
-import { pickTeaser, cleanShareHook, pickKeyMessage } from '@/components/tarot/shareCardData'
+import { cleanShareHook, pickKeyMessage } from '@/components/tarot/shareCardData'
 import type { ShareCardData } from '@/components/tarot/TarotShareCard'
 
 interface DailyReading {
@@ -154,9 +154,9 @@ export default function DailyTarotPage() {
         keyMessage: dailyHook || pickKeyMessage(reading.message),
         // 데일리만 상단 라벨을 "오늘의 타로"로(일반 리딩은 "타로 리딩" 기본값).
         eyebrow: isKo ? '오늘의 타로' : "TODAY'S TAROT",
-        // 후크가 있을 때만 본문 티저로 궁금증 한 줄. 1080 카드에 안정적으로
-        // 들어오도록 짧게(72자) — 길면 하단 브랜드/URL 이 프레임 밖으로 밀린다.
-        teaser: dailyHook ? pickTeaser(reading.message, 72) : undefined,
+        // 티저(본문 발췌)는 싣지 않는다 — 공유 이미지에서 "…"로 잘린 본문은
+        // 궁금증 갭이 아니라 "미완성"으로 읽힌다(스크린샷엔 클릭할 대상이 없음).
+        // 카드엔 완결된 후크 한 줄만. 본문은 페이지/유료 리딩에서 읽게 한다.
         isKo,
       }
     : null
