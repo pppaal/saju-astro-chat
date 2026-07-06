@@ -115,9 +115,9 @@ describe('DestinypalShell', () => {
     expect(screen.getByTestId('ilgan')).toHaveTextContent('甲')
   })
 
-  it('renders only the visible tiers (month + day) from tierConfig', () => {
-    // SHOW_FULL_TIERS is false → life is hidden, so the rail only exposes
-    // month + day stops. (10년·1년 티어는 아예 제거됨.)
+  it('renders only the visible tiers (month + day) by default', () => {
+    // 기본 가시 티어는 month + day — life 는 tierIds 로 명시할 때만(/destiny).
+    // (10년·1년 티어는 아예 제거됨.)
     render(<DestinypalShell {...makeProps()} />)
     expect(screen.getByTestId('rail-month')).toBeInTheDocument()
     expect(screen.getByTestId('rail-day')).toBeInTheDocument()

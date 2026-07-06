@@ -21,21 +21,6 @@ export type { DestinypalDaewoonEntry, ToDaewoonOptions } from './toDaewoon'
 
 export type { DestinypalMilestone } from './toMilestones'
 
-export { toDecade } from './toDecade'
-export type {
-  DestinypalDecade,
-  DestinypalDecadePillar,
-  DestinypalDecadeYear,
-  DestinypalDecadeNarrative,
-  DestinypalDecadeAstroMark,
-  DestinypalDecadeRelation,
-  DestinypalDecadeCrossActivation,
-  ToDecadeOptions,
-} from './toDecade'
-
-export { toYear } from './toYear'
-export type { DestinypalYear, DestinypalYearProfection, ToYearOptions } from './toYear'
-
 export { toMonth } from './toMonth'
 export type {
   DestinypalMonth,

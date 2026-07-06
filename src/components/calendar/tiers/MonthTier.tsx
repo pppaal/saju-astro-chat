@@ -25,6 +25,7 @@ import { toneMeaningFor, type MeaningTone } from '@/lib/calendar-engine/derivers
 import { sibsinArea, sibsinAreaEn, planetPlain } from '@/lib/calendar-engine/derivers/plainLanguage'
 import { ShareCalendarButton } from '@/components/calendar/ShareCalendarButton'
 import { monthShareHook } from '@/lib/share/shareHook'
+import { reconcileMonthTone } from '@/lib/calendar-engine/derivers/reconcile'
 
 const MONTH_EN = [
   'January',
@@ -91,10 +92,21 @@ export function MonthTier({ month, onDive, onRise, showRise = true, onSelectDay 
   const monthEn = MONTH_EN[(ymM ?? 1) - 1] ?? ''
   const flowTitle = ko ? `${ymM ?? ''}월의 모양` : `The shape of ${monthEn}`.trim()
 
-  const goodN = month.goodDays?.length ?? 0
-  const cautionN = month.cautionDays?.length ?? 0
-  const avoidN = month.avoidDays?.length ?? 0
-  const careN = cautionN + avoidN
+  // 월 verdict — 톤·카운트의 단일 권위. 서버(assembleTiers)가 중립화까지 끝낸 최종
+  // 카운트로 산출해 month.verdict 로 실어 준다. 없으면(직접 렌더/테스트) 같은
+  // 함수로 폴백 — 어느 경로든 히어로·총평·공유카드가 한 공식을 본다(감사 D-1).
+  const verdict =
+    month.verdict ??
+    reconcileMonthTone({
+      goodN: month.goodDays?.length ?? 0,
+      cautionN: month.cautionDays?.length ?? 0,
+      avoidN: month.avoidDays?.length ?? 0,
+      totalN: month.calendar?.length ?? 0,
+    })
+  const goodN = verdict.goodN
+  const cautionN = verdict.cautionN
+  const avoidN = verdict.avoidN
+  const careN = verdict.careN
   // 개인 시드 — 톤 문구를 사람마다 다르게 회전(같은 날·톤이라도 본명 다르면 다른 줄).
   const seed = month.seed ?? 0
 
@@ -131,18 +143,27 @@ export function MonthTier({ month, onDive, onRise, showRise = true, onSelectDay 
     when: string
     title: string
   }
+  // 최고의 날 라벨 — 그리드 best(초록)라도 그날 화해 톤이 mixed(tense: 좋은밴드인데
+  // 흉신 우세)면 라벨도 그 톤을 따른다. 무조건 positive 로 굳히면 목록은 "최고의 날 ·
+  // <낙관>"인데 그날 리드아웃은 "기복 있는 날"이라 어긋난다(감사 #4). caution 은
+  // good 밴드 best 에선 안 나오지만 방어적으로 포함. flat/positive 는 최고의 날 유지.
+  const bestDayTitle = (date: string): string => {
+    const dn = parseInt(date.slice(-2), 10)
+    const cellTone = toneByDs.get(date)
+    if (cellTone === 'mixed') {
+      return `${ko ? '기복 있는 날' : 'Mixed day'} · ${toneMeaningFor('neutral', dn, ko ? 'ko' : 'en', seed)}`
+    }
+    if (cellTone === 'caution') {
+      return `${verdictPrefixForTone('negative')} · ${toneMeaningFor('negative', dn, ko ? 'ko' : 'en', seed)}`
+    }
+    return `${ko ? '최고의 날' : 'Best day'} · ${toneMeaningFor('positive', dn, ko ? 'ko' : 'en', seed)}`
+  }
   const keyDayItems: BigDay[] = [...(month.keyDays ?? [])].map((k) => {
     const mark = markByDs.get(k.date) ?? null
     const dayNum = parseInt(k.date.slice(-2), 10)
-    // 이 날이 그리드 '최고의 날'(초록 best)이면 그리드 권위를 따른다 — 수렴(heavy
-    // 신호) 톤이 음수여도 목록에서 "조심할 날"로 뒤집지 않는다. 그래야 그리드=초록
-    // best 와 목록 라벨이 일치한다(감사: 초록 best 가 목록엔 "조심할 날"이던 모순).
-    // 접두사·의미 모두 positive 로 뽑아 둘이 어긋나지 않게 한다.
+    // 이 날이 그리드 '최고의 날'(초록 best)이면 best 라벨 규약을 따른다(화해 톤 반영).
     if (month.bestDay?.date && k.date === month.bestDay.date) {
-      return {
-        when: k.date,
-        title: `${ko ? '최고의 날' : 'Best day'} · ${toneMeaningFor('positive', dayNum, ko ? 'ko' : 'en', seed)}`,
-      }
+      return { when: k.date, title: bestDayTitle(k.date) }
     }
     // 톤 권위 = 셀의 화해 톤(cell.tone) — 그리드 리드아웃·일 화면과 같은 축.
     // 예전엔 k.tone(수렴 톤: 전 층 무거운 신호 순극성)을 그대로 써서, 그리드가
@@ -165,13 +186,9 @@ export function MonthTier({ month, onDive, onRise, showRise = true, onSelectDay 
           : verdictPrefix(mark)
     return { when: k.date, title: `${prefix} · ${meaning}` }
   })
-  // best(최고)일이 큰 날 목록에 빠졌으면 채워 넣는다.
+  // best(최고)일이 큰 날 목록에 빠졌으면 채워 넣는다(화해 톤 반영 라벨).
   if (month.bestDay?.date && !keyDayItems.some((i) => i.when === month.bestDay.date)) {
-    const dn = parseInt(month.bestDay.date.slice(-2), 10)
-    keyDayItems.push({
-      when: month.bestDay.date,
-      title: `${ko ? '최고의 날' : 'Best day'} · ${toneMeaningFor('positive', dn, ko ? 'ko' : 'en', seed)}`,
-    })
+    keyDayItems.push({ when: month.bestDay.date, title: bestDayTitle(month.bestDay.date) })
   }
   const bigDays = keyDayItems.sort((a, b) => a.when.localeCompare(b.when))
   const keyDates = new Set(bigDays.map((i) => i.when))
@@ -200,19 +217,11 @@ export function MonthTier({ month, onDive, onRise, showRise = true, onSelectDay 
       : (topCross.meaningEn ?? topCross.meaning)
     : ''
 
-  // ── 월 톤 — 후크·톤워드·총평·공유카드를 다 지배하는 *단일 권위*. ──
+  // ── 월 톤 — 후크·톤워드·총평·공유카드를 다 지배하는 *단일 권위*(verdict.tone). ──
   // 4-way: good(좋은날 우세) / care(조심날 우세) / volatile(둘 다 있고 균형=기복) /
-  // flat(둘 다 거의 없음=고른·평탄). 예전엔 mild 하나로 "기복"과 "평탄"을 뭉뚱그려,
-  // care월이 총평에선 "기복"으로 불리고(U3) 완전 평탄월이 "큰 날만 노려"(U4)로
-  // 존재 안 하는 날을 지시했다. flat 을 분리해 교정.
-  const noviceTone: 'good' | 'care' | 'volatile' | 'flat' =
-    goodN >= careN * 2 && goodN > 0
-      ? 'good'
-      : careN > goodN
-        ? 'care'
-        : goodN === 0 && careN === 0
-          ? 'flat'
-          : 'volatile'
+  // flat(둘 다 없음=고른·평탄). 이제 reconcileMonthTone 한 곳에서만 판정하고 여기선
+  // 읽기만 — 예전엔 이 공식이 monthSummary 와 두 벌 복붙이라 어긋날 수 있었다(D-1).
+  const noviceTone = verdict.tone
   // 총평/한줄이 쓰는 톤 서술어(순한/조심스러운/기복/고른) — 한 소스.
   const toneVerdictKo =
     noviceTone === 'good'
@@ -484,18 +493,12 @@ export function MonthTier({ month, onDive, onRise, showRise = true, onSelectDay 
 
       {/* ── novice 기본: 한자·용어 없는 일상어 결론 ── */}
       <header className={styles.novice}>
-        {/* 도발적 월 후크 — 히어로 최상단. hero 톤워드(noviceTone)와 같은 소스로 맞춰
-            (good→bright / care→careful / mild→mixed) 서로 어긋나지 않게 한다. */}
+        {/* 도발적 월 후크 — 히어로 최상단. 공유 톤도 verdict.shareTone 단일 소스에서
+            (tone→shareTone 매핑은 reconcileMonthTone 이 소유) — 히어로 톤워드와 어긋날
+            수 없다. */}
         {(() => {
           const mh = monthShareHook({
-            tone:
-              noviceTone === 'good'
-                ? 'bright'
-                : noviceTone === 'care'
-                  ? 'careful'
-                  : noviceTone === 'flat'
-                    ? 'steady'
-                    : 'mixed',
+            tone: verdict.shareTone,
             seed,
             monthSalt: ymM || 0,
             ko,

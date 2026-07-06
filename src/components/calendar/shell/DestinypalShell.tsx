@@ -17,24 +17,19 @@ import styles from '../styles/shell.module.css'
 import { DestinypalRail, type RailTier } from './DestinypalRail'
 import { DestinypalTopbar } from './DestinypalTopbar'
 import { Starfield, type StarfieldHandle } from './Starfield'
-import { SHOW_FULL_TIERS } from '../tierConfig'
 
-// 티어 축 — 인생(장기 리포트) ↔ 월·일(매일 재방문) 두 축. 중간 10년·1년 티어는
-// 제거: 대운은 인생 흐름이 챕터·지금 대운 앵커·사주×점성 교차로 커버하고, 세운은
-// 인생 흐름 한 줄 + 캘린더로 이어진다(중복 중간 티어 정리).
+// 티어 축 — 인생(장기 리포트) ↔ 월·일(매일 재방문) 세 surface 만. 중간 10년·1년
+// 티어는 제거: 대운은 인생 흐름이 챕터·지금 대운 앵커·사주×점성 교차로 커버하고,
+// 세운은 인생 흐름 한 줄 + 캘린더로 이어진다(중복 중간 티어 정리).
 const ALL_TIERS: ReadonlyArray<RailTier> = [
   { id: 'life', ko: '인생', en: 'LIFETIME', scale: '84년' },
   { id: 'month', ko: '1달', en: 'MONTHLY', scale: '30일' },
   { id: 'day', ko: '1일', en: 'DAILY', scale: '24시' },
 ] as const
 
-// 기본(캘린더) 가시 티어 — tierConfig.SHOW_FULL_TIERS 단일 스위치로 제어.
-// false: 인생·10년·1년 숨김 → 월·일만. true: 5티어 전부. (코드는 모두 보존)
-// `tierIds` prop 을 주면 이 기본을 무시하고 그 부분집합만 — 인생 뷰(/destiny)가
-// ['life','decade','year'] 로 같은 셸을 재사용한다.
-const DEFAULT_TIER_IDS: ReadonlyArray<string> = SHOW_FULL_TIERS
-  ? ALL_TIERS.map((t) => t.id)
-  : ['month', 'day']
+// 기본(캘린더) 가시 티어 — 월·일. `tierIds` prop 을 주면 이 기본을 무시하고 그
+// 부분집합만 — 인생 전체 뷰(/destiny)가 ['life'] 로 같은 셸을 재사용한다.
+const DEFAULT_TIER_IDS: ReadonlyArray<string> = ['month', 'day']
 
 const BASE = 5
 const DUR = 680

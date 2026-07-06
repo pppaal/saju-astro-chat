@@ -30,12 +30,7 @@ import { deriveDayDomains } from '@/lib/calendar-engine/derivers/dayDomains'
 import { deriveDayActions } from '@/lib/calendar-engine/derivers/dayActions'
 import { deriveDayDeepRead } from '@/lib/calendar-engine/derivers/dayDeepRead'
 import { dayStrength } from '@/lib/calendar-engine/derivers/dayStrength'
-import {
-  reconcileDayTone,
-  scoreToBand,
-  mixedFlavor,
-  type DayVerdict,
-} from '@/lib/calendar-engine/derivers/reconcile'
+import { reconcileDayTone, type DayVerdict } from '@/lib/calendar-engine/derivers/reconcile'
 import styles from './DayTier.module.css'
 import { useI18n } from '@/i18n/I18nProvider'
 import { localizeLabel } from '@/components/calendar/adapters/localizeLabel'
@@ -254,14 +249,15 @@ export function DayTier({ day, onRise, sex = '남', isToday = true }: DayTierPro
     })
   const dayBand: 'good' | 'mid' | 'low' =
     verdict.tone === 'positive' ? 'good' : verdict.tone === 'caution' ? 'low' : 'mid'
-  // 점수 *색*은 월 그리드와 같은 축(점수 밴드) — 톤이 화해로 낮춰진 날(예: 65점
-  // tense)에 그리드는 초록인데 여기 점수만 회색이던 어긋남 제거. 말(toneWord·
-  // hero)은 톤을, 숫자 색은 점수를 따른다 — 시스템 전체에서 색=점수, 문장=톤.
-  const scoreBand = scoreToBand(day.score)
+  // 점수 *색*은 월 그리드와 같은 축(점수 밴드) — verdict.band 를 그대로 쓴다(=
+  // scoreToBand(shownScore), 단일 산출). 톤이 화해로 낮춰진 날(예: 65점 tense)에
+  // 그리드는 초록인데 여기 점수만 회색이던 어긋남 제거. 말(toneWord·hero)은 톤을,
+  // 숫자 색은 점수(밴드)를 따른다 — 시스템 전체에서 색=점수, 문장=톤.
+  const scoreBand = verdict.band
 
-  // mixed 는 결(flavor)로 갈린다 — 변동성(기복) vs 평이(잔잔). 히어로·한 줄과 같은
-  // 기준을 써야 "평이 ↔ 기복" 모순이 안 난다(감사 U1).
-  const volatile = verdict.tone === 'mixed' && mixedFlavor(verdict) === 'volatile'
+  // mixed 는 결(flavor)로 갈린다 — 변동성(기복) vs 평이(잔잔). verdict 에 실린 단일
+  // flavor 를 읽어(표면 재계산 금지) "평이 ↔ 기복" 모순을 없앤다(감사 U1·#2).
+  const volatile = verdict.tone === 'mixed' && verdict.flavor === 'volatile'
   const toneWord = ko
     ? verdict.tone === 'positive'
       ? '순풍'
@@ -358,7 +354,9 @@ export function DayTier({ day, onRise, sex = '남', isToday = true }: DayTierPro
   //    같은 소스를 공유 카드와 공유(본명 시드 고정 → 인앱·카드 문구 일치).
   const dayHook = dayShareHook({
     tone: verdict.tone,
-    score: day.score,
+    // 후크 72점 컷도 verdict.score(=보여주는 점수) 단일 소스에서 — 별도 day.score
+    // 읽기를 없애 밴드·후크가 한 점수를 본다(감사 #3).
+    score: verdict.score,
     seed: day.seed ?? 0,
     // 날짜(일-of-month)를 섞어 같은 톤이어도 날마다 다른 후크 → 매일 같은 헤드라인
     // 이 뜨던 문제(감사) 해소. day.date 는 'YYYY-MM-DD'.

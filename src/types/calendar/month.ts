@@ -7,6 +7,7 @@
 // narrative 8칩 + Converge(특정일 사주·점성 동시 임팩트) 통합.
 
 import type { Ganji, TaggedNarrative, SibsinKind } from './shared'
+import type { MonthVerdict } from '@/lib/calendar-engine/derivers/reconcile'
 
 // ============================================================================
 // 응용 격국 패턴 — 한 달 동안 며칠 활성됐는가 (Phase B 보강).
@@ -240,4 +241,10 @@ export interface DestinyMonth {
   }>
   /** 개인 시드(본명 고정) — 템플릿 문구를 사람마다 다르게 고르는 데 쓴다. */
   seed?: number
+  /**
+   * 월 톤 단일 권위 — 히어로 톤워드·총평·공유카드가 다 이 하나를 읽는다. 카운트
+   * 중립화(assembleTiers)까지 끝난 최종 goodN/careN 으로 산출해 부착한다. 예전엔
+   * 표면마다 goodDays.length 로 4분류를 다시 계산해 어긋났다(감사 D-1).
+   */
+  verdict?: MonthVerdict
 }

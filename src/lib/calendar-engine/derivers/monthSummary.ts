@@ -15,6 +15,7 @@
  */
 
 import { pickBySeed } from './personSeed'
+import type { MonthTone } from './reconcile'
 
 export interface MonthSummaryInput {
   /** 월운 한글 (예: '갑오') — 없으면 생략. */
@@ -43,6 +44,12 @@ export interface MonthSummaryInput {
   lang: 'ko' | 'en'
   /** 본명 고정 개인 시드 — 문구 풀 회전용. 없으면 0(첫 변형). */
   seed?: number
+  /**
+   * 월 톤 단일 권위(reconcileMonthTone). 주어지면 이 4분류로 여는/닫는 문장 톤을
+   * 정한다 — MonthTier 히어로와 *같은 소스*라 어긋날 수 없다(감사 D-1). 미지정 시
+   * 아래 카운트 기반 계산으로 폴백(하위호환).
+   */
+  monthTone?: MonthTone
 }
 
 /** role 별 key — 한 문단 안에서 풀들이 같은 index 로 동기화되지 않게 분산. */
@@ -341,15 +348,25 @@ export function deriveMonthSummary(i: MonthSummaryInput): string {
   const caution = i.cautionDays + (i.avoidDays ?? 0)
   const total = i.totalDays
 
-  // 1) 전반 톤 — 좋은 날 vs 주의 날 분포. 한 문장 안에 톤 + 날수까지 녹여 길게.
-  // good>0 가드: 좋은 날 0개인 평탄 달이 0>=0 으로 bright("순하게 풀리는 달" + 트이는
-  // 날 0일)가 되는 퇴화 케이스 차단 — mixed 로. (MonthTier 히어로 톤과 동일 공식.)
-  const tone: Tone =
-    good >= caution * 2 && good > 0 ? 'bright' : caution > good ? 'careful' : 'mixed'
+  // 1) 전반 톤 — 월 verdict(reconcileMonthTone) 단일 권위에서. 4분류(good/care/
+  // volatile/flat)를 여기 3분류 Tone + isFlat 로 매핑한다: good→bright, care→
+  // careful, volatile→mixed, flat→(mixed 풀 대신 flat 전용 문장). 예전엔 이 톤을
+  // 카운트로 다시 계산해 MonthTier 히어로와 어긋날 수 있었다(감사 D-1). monthTone
+  // 미지정 시(하위호환)만 카운트 기반 폴백. good>0 가드·flat 분리 의미는 동일.
+  const tone: Tone = i.monthTone
+    ? i.monthTone === 'good'
+      ? 'bright'
+      : i.monthTone === 'care'
+        ? 'careful'
+        : 'mixed'
+    : good >= caution * 2 && good > 0
+      ? 'bright'
+      : caution > good
+        ? 'careful'
+        : 'mixed'
   // 완전 평탄 달(좋은 날·조심 날 둘 다 0)은 mixed("굴곡이 또렷한 달")로 떨어지면
-  // 사실과 반대다(굴곡 없음). MonthTier 히어로 flat 톤과 맞춰 별도 고른-달 문장으로
-  // 열고 닫는다(감사 U4). 중간 밴드만 가득 찬, 실제로 고른 달.
-  const isFlat = good === 0 && caution === 0
+  // 사실과 반대다(굴곡 없음). flat 전용 고른-달 문장으로 열고 닫는다(감사 U4).
+  const isFlat = i.monthTone ? i.monthTone === 'flat' : good === 0 && caution === 0
   const wool = i.woolunKr ? (ko ? `${i.woolunKr}월은 ` : '') : ''
   const countKo = total > 0 ? pickBySeed(COUNT_KO, seed, KEY.count)(total, good, caution) : ''
   const countEn = total > 0 ? pickBySeed(COUNT_EN, seed, KEY.count)(total, good, caution) : ''

@@ -2,7 +2,7 @@
  * destinypal adapters — shared helpers
  *
  * Pure-function utilities shared by toUser / toLifeStages / toDaewoon /
- * toMilestones / toDecade / toYear / toMonth / toDay.
+ * toMilestones / toMonth / toDay.
  *
  * No side effects. No I/O. Everything is deterministic so adapters can run
  * inside React `useMemo` and SSR/server boundaries without surprises.
@@ -93,20 +93,6 @@ export function toGanji(stem: string, branch: string): Ganji {
     hanja: `${stemHan}${branchHan}`,
     kr: `${stemKo}${branchKo}`,
     en: `${stemEn}${branchEn}`,
-  }
-}
-
-/**
- * 연주(세운) 간지 — 1984년 = 甲子(인덱스 0) 기준 shift. 세운은 *연도 고유*
- * 60갑자라 대운 간지와 무관하다. toYear·toDecade 공용 단일 계산.
- */
-export function computeSewoonGanji(year: number): { stem: string; branch: string } {
-  const STEMS = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸']
-  const BRANCHES = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥']
-  const offset = year - 1984
-  return {
-    stem: STEMS[((offset % 10) + 10) % 10],
-    branch: BRANCHES[((offset % 12) + 12) % 12],
   }
 }
 

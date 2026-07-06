@@ -49,7 +49,6 @@ vi.mock('@/lib/calendar-engine/index', () => ({
 // Import AFTER mocks are registered.
 import {
   getOrBuildNatalContext,
-  getOrBuildYearCells,
   getOrBuildMonthCells,
   getFocusDayCell,
   CALENDAR_ENGINE_VERSION,
@@ -161,63 +160,6 @@ describe('getOrBuildNatalContext', () => {
     const k1 = natalFindUnique.mock.calls[0][0].where.birthKey
     const k2 = natalFindUnique.mock.calls[1][0].where.birthKey
     expect(k1).not.toBe(k2)
-  })
-})
-
-describe('getOrBuildYearCells', () => {
-  const CELLS = [cell('2026-01-01'), cell('2026-06-15')]
-
-  it('cache hit: row 있으면 빌드 없이 반환', async () => {
-    cellsFindUnique.mockResolvedValue({ data: CELLS })
-    const res = await getOrBuildYearCells(INPUT, FAKE_NATAL, 2026)
-    expect(res).toBe(CELLS)
-    expect(buildCalendar).not.toHaveBeenCalled()
-  })
-
-  it('cache miss: 연 범위로 빌드 후 upsert', async () => {
-    cellsFindUnique.mockResolvedValue(null)
-    buildCalendar.mockResolvedValue(CELLS)
-    cellsUpsert.mockResolvedValue({})
-    const res = await getOrBuildYearCells(INPUT, FAKE_NATAL, 2026)
-    expect(res).toBe(CELLS)
-    const range = buildCalendar.mock.calls[0][1]
-    expect(range.start).toBe('2026-01-01T00:00:00.000Z')
-    expect(range.end).toBe('2026-12-31T23:59:59.999Z')
-    expect(range.granularity).toBe('day')
-    expect(cellsUpsert).toHaveBeenCalledTimes(1)
-  })
-
-  it('monthKey 는 `${year}:optionsHash` 형태', async () => {
-    cellsFindUnique.mockResolvedValue({ data: CELLS })
-    await getOrBuildYearCells(INPUT, FAKE_NATAL, 2026)
-    const mk = cellsFindUnique.mock.calls[0][0].where.birthKey_monthKey.monthKey
-    expect(mk.startsWith('2026:')).toBe(true)
-  })
-
-  it('기본 옵션은 includeEvidence:false — 연 365셀 evidence 블롭 함정 방지(감사)', async () => {
-    cellsFindUnique.mockResolvedValue(null)
-    buildCalendar.mockResolvedValue(CELLS)
-    cellsUpsert.mockResolvedValue({})
-    await getOrBuildYearCells(INPUT, FAKE_NATAL, 2026)
-    expect(buildCalendar.mock.calls[0][2]).toEqual({ includeEvidence: false })
-  })
-
-  it('read 실패는 fail-soft → 빌드 진행', async () => {
-    cellsFindUnique.mockRejectedValue(new Error('read fail'))
-    buildCalendar.mockResolvedValue(CELLS)
-    cellsUpsert.mockResolvedValue({})
-    const res = await getOrBuildYearCells(INPUT, FAKE_NATAL, 2026)
-    expect(res).toBe(CELLS)
-    expect(warn).toHaveBeenCalled()
-  })
-
-  it('write 실패는 fail-soft → 빌드 결과 반환', async () => {
-    cellsFindUnique.mockResolvedValue(null)
-    buildCalendar.mockResolvedValue(CELLS)
-    cellsUpsert.mockRejectedValue(new Error('write fail'))
-    const res = await getOrBuildYearCells(INPUT, FAKE_NATAL, 2026)
-    expect(res).toBe(CELLS)
-    expect(warn).toHaveBeenCalled()
   })
 })
 

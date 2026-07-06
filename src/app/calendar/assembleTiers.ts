@@ -1,14 +1,13 @@
 /* ============================================================
-   /calendar 5-tier 어셈블러 (page.tsx · preview/page.tsx 공유)
+   /calendar tier 어셈블러 (page.tsx · preview/page.tsx 공유)
    ───────────────────────────────────────────────────────────
-   직전까지 page.tsx(656줄)와 preview/page.tsx(612줄)가 *입력 소스만* 다른 채
-   (세션/현재날짜 vs 고정 1995 본명) tier 어셈블 로직을 통째로 복붙하고 있었다.
-   주석에 "preview 와 동일"이 10번 넘게 박혀 있었고 실제로 한쪽만 고쳐진
-   버그(gender 매핑·signals 투영 누락 등) 흔적이 있었다. 단일 함수로 모아
-   drift 를 끝낸다.
+   직전까지 page.tsx 와 preview/page.tsx 가 *입력 소스만* 다른 채(세션/현재날짜
+   vs 고정 1995 본명) tier 어셈블 로직을 통째로 복붙하고 있었다. 주석에 "preview
+   와 동일"이 10번 넘게 박혀 있었고 실제로 한쪽만 고쳐진 버그(gender 매핑·signals
+   투영 누락 등) 흔적이 있었다. 단일 함수로 모아 drift 를 끝낸다.
 
-   NatalContext + 그 해 cells + 표시용 입력을 받아 PreviewClient 가 받는
-   { topbar, user, lifetime, decade, year, month, day } 를 만든다.
+   NatalContext + 그 달 cells + 표시용 입력을 받아 PreviewClient 가 받는
+   { topbar, user, lifetime, month, day } 를 만든다. (10년·1년 티어는 제거됨.)
    ============================================================ */
 
 import { deriveConvergence } from '@/lib/calendar-engine/derivers/convergence'
@@ -20,6 +19,7 @@ import type { LifecycleMilestoneOverride } from '@/lib/calendar-engine/lifecycle
 import { currentManAge } from '@/lib/datetime/currentAge'
 import { isMinorAge, sanitizeCrossEntry } from '@/lib/calendar-engine/minorSafe'
 import { deriveMonthSummary } from '@/lib/calendar-engine/derivers/monthSummary'
+import { reconcileMonthTone } from '@/lib/calendar-engine/derivers/reconcile'
 import { personSeed } from '@/lib/calendar-engine/derivers/personSeed'
 import { deriveLayeredScores } from '@/lib/calendar-engine/derivers/layeredScore'
 import { getMonthPillarForDate } from '@/lib/saju/datePillars'
@@ -492,6 +492,18 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
     )
       .slice(0, 4)
       .map((r) => r.body)
+
+  // ── 월 verdict — 톤의 단일 권위. 중립화까지 끝난 *최종* 카운트로 1회 산출해
+  //    month.verdict 에 부착하고, 총평(deriveMonthSummary)에도 같은 톤을 주입한다.
+  //    히어로 칩(MonthTier)·총평 문단·공유카드가 전부 이 하나를 읽어 어긋날 수 없다.
+  const monthVerdict = reconcileMonthTone({
+    goodN: month.goodDays.length,
+    cautionN: month.cautionDays.length,
+    avoidN: month.avoidDays.length,
+    totalN: monthCells.length,
+  })
+  month.verdict = monthVerdict
+
   const summaryCommon = {
     woolunKr: month.woolun?.kr && month.woolun.kr !== '—' ? month.woolun.kr : undefined,
     goodDays: month.goodDays.length,
@@ -524,6 +536,7 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
     ...summaryCommon,
     topReasons: monthReasonsBy(false),
     bestDayReason: lang === 'ko' ? bestDayReason : undefined,
+    monthTone: monthVerdict.tone,
     lang: 'ko',
     seed,
   })
@@ -531,6 +544,7 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
     ...summaryCommon,
     topReasons: monthReasonsBy(true),
     bestDayReason: lang === 'en' ? bestDayReason : undefined,
+    monthTone: monthVerdict.tone,
     lang: 'en',
     seed,
   })

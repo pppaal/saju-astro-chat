@@ -2,12 +2,12 @@
    loadTierData — /calendar 와 /destiny 가 공유하는 서버 데이터 로더.
    ───────────────────────────────────────────────────────────
    세션·본명 가드 → NatalContext + cells(DB 캐시) → assembleTiers 까지
-   한 경로로 모은다. 두 surface 가 같은 어셈블 결과({lifetime/decade/year/
-   month/day})를 받아, 각자 보여줄 티어만 골라 렌더한다.
+   한 경로로 모은다. 캘린더(/calendar)는 이 로더로 월/일 티어를, 인생 전체
+   (/destiny)는 loadLifetimeData 로 life 티어를 받는다. (10년·1년 티어는 제거됨 —
+   대운/세운 데이터는 인생 전체가 내부에서 소비.)
 
-   scope:
-     · 'month' — 그 달만 빌드(저비용). 캘린더(월/일) 기본.
-     · 'year'  — 1년 풀빌드(연/대운 티어가 필요로 함). 인생 뷰(/destiny).
+   캘린더는 항상 '그 달'만 빌드한다(저비용). 인생 전체는 연 cells 풀빌드 없이
+   natal + focusDayCell 만 쓰는 loadLifetimeData 경로.
    ============================================================ */
 
 import { headers } from 'next/headers'
@@ -18,15 +18,12 @@ import { rateLimit } from '@/lib/cache/redis-rate-limit'
 import { prisma } from '@/lib/db/prisma'
 import {
   getOrBuildNatalContext,
-  getOrBuildYearCells,
   getOrBuildMonthCells,
   getFocusDayCell,
 } from '@/lib/calendar-engine/persistence'
 import { assembleTiers, type AssembledTiers } from './assembleTiers'
 import { assembleLifetime, type AssembledLifetime } from './assembleLifetime'
 import { getNowInTimezone, formatDateString } from '@/lib/datetime/timezone'
-
-export type TierScope = 'month' | 'year'
 
 export type LoadTierResult =
   | { kind: 'login' }
@@ -208,10 +205,7 @@ async function resolveBirthGuard(
  * 로그인 + 본명 가드를 통과하면 어셈블된 tier 데이터를, 아니면 fallback 종류를
  * 반환한다. 서버 컴포넌트(page.tsx)는 결과 kind 로 분기만 하면 된다.
  */
-export async function loadTierData(
-  scope: TierScope,
-  override?: BirthOverride | null
-): Promise<LoadTierResult> {
+export async function loadTierData(override?: BirthOverride | null): Promise<LoadTierResult> {
   const lang = await detectServerLocale()
 
   const guard = await resolveBirthGuard(override, lang)
@@ -233,16 +227,14 @@ export async function loadTierData(
   const targetDayIso = formatDateString(today.year, today.month, today.day)
 
   const natal = await getOrBuildNatalContext(BIRTH)
-  // scope 에 맞춰 1년 ↔ 그 달만. evidence 가 필요한 그 하루는 따로(focusDayCell).
-  // 월 scope 이고 오늘+7일이 월을 넘으면 다음 달 cells 도 얹는다 — "다가오는
-  // 7일"이 월 경계에서 잘려 다음 달 초 큰 날이 안 보이던 문제(감사 #13).
+  // 캘린더는 그 달만 빌드. evidence 가 필요한 그 하루는 따로(focusDayCell).
+  // 오늘+7일이 월을 넘으면 다음 달 cells 도 얹는다 — "다가오는 7일"이 월 경계에서
+  // 잘려 다음 달 초 큰 날이 안 보이던 문제(감사 #13).
   const lastDayOfMonth = new Date(Date.UTC(TARGET_YEAR, TARGET_MONTH, 0)).getUTCDate()
-  const needNextMonth = scope === 'month' && TARGET_DAY + 7 > lastDayOfMonth
+  const needNextMonth = TARGET_DAY + 7 > lastDayOfMonth
   const [nmY, nmM] = TARGET_MONTH === 12 ? [TARGET_YEAR + 1, 1] : [TARGET_YEAR, TARGET_MONTH + 1]
   const [cells, focusDayCell, nextMonthCells] = await Promise.all([
-    scope === 'year'
-      ? getOrBuildYearCells(BIRTH, natal, TARGET_YEAR, { includeEvidence: false })
-      : getOrBuildMonthCells(BIRTH, natal, TARGET_YEAR, TARGET_MONTH, { includeEvidence: false }),
+    getOrBuildMonthCells(BIRTH, natal, TARGET_YEAR, TARGET_MONTH, { includeEvidence: false }),
     getFocusDayCell(BIRTH, natal, targetDayIso),
     needNextMonth
       ? getOrBuildMonthCells(BIRTH, natal, nmY, nmM, { includeEvidence: false })
@@ -266,8 +258,9 @@ export async function loadTierData(
     place,
     focusDayCell,
     now,
-    // 'month'(캘린더)면 숨은 상위 티어의 인생 곡선 계산을 건너뛴다(진입 속도).
-    scope,
+    // 캘린더는 항상 'month' — 인생 곡선(90년) 계산을 건너뛴다(진입 속도). 인생
+    // 전체는 별도 loadLifetimeData 경로가 담당.
+    scope: 'month',
     nextMonthCells,
   })
 
