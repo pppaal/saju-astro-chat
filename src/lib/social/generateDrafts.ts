@@ -16,6 +16,7 @@ import { computeDayPillarIndices } from '@/lib/saju/dayPillar'
 import { STEMS, BRANCHES } from '@/lib/saju/constants'
 import { callClaude, extractJsonObject, isClaudeAvailable } from '@/lib/llm/claude'
 import { siteBaseUrl } from '@/lib/tarot/shareLink'
+import { socialCardImageUrl } from './cardImageUrl'
 import { logger } from '@/lib/logger'
 import {
   SOCIAL_CATEGORIES,
@@ -476,7 +477,16 @@ async function generateOne(
     locale,
     category,
     cardName: locale === 'ko' ? subject.nameKo : subject.nameEn,
-    cardImage: subject.image || '',
+    // 타로는 카드 아트를 그대로, 나머지 버티컬은 후크를 박은 브랜디드 카드를
+    // 서버사이드 생성해 싣는다 → 전 발행 비주얼화 + Instagram(이미지 필수) 오픈.
+    cardImage:
+      subject.image ||
+      socialCardImageUrl({
+        category,
+        title: locale === 'ko' ? subject.nameKo : subject.nameEn,
+        hook: (parsed.hook || '').trim() || (locale === 'ko' ? subject.nameKo : subject.nameEn),
+        locale,
+      }),
     isReversed: subject.isReversed ?? false,
     hook: (parsed.hook || '').trim(),
     variants,
