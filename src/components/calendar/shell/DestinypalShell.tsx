@@ -22,9 +22,9 @@ import { Starfield, type StarfieldHandle } from './Starfield'
 // 티어는 제거: 대운은 인생 흐름이 챕터·지금 대운 앵커·사주×점성 교차로 커버하고,
 // 세운은 인생 흐름 한 줄 + 캘린더로 이어진다(중복 중간 티어 정리).
 const ALL_TIERS: ReadonlyArray<RailTier> = [
-  { id: 'life', ko: '인생', en: 'LIFETIME', scale: '84년' },
-  { id: 'month', ko: '1달', en: 'MONTHLY', scale: '30일' },
-  { id: 'day', ko: '1일', en: 'DAILY', scale: '24시' },
+  { id: 'life', ko: '인생', en: 'LIFETIME', scale: '84년', scaleEn: '84y' },
+  { id: 'month', ko: '1달', en: 'MONTHLY', scale: '30일', scaleEn: '30d' },
+  { id: 'day', ko: '1일', en: 'DAILY', scale: '24시', scaleEn: '24h' },
 ] as const
 
 // 기본(캘린더) 가시 티어 — 월·일. `tierIds` prop 을 주면 이 기본을 무시하고 그

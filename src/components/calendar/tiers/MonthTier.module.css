@@ -1,42 +1,40 @@
 /* ============================================================
    destinypal · MonthTier — LIGHT "이 달의 모양" 만세력
    ────────────────────────────────────────────────────────────
-   self-contained LIGHT design. 앱 셸은 다크이므로 이 티어는 .monthRoot 가
-   라이트 팔레트(--bg/--surface/--gold…)를 *직접* 정의해 그 안에서만 소비한다.
-
-   pre-commit 의 raw-hex 검사를 통과하려면 모든 라이트 hex 는 아래 단 하나의
-   `.monthRoot { --… }` 토큰 블록 안에만 둔다 — 나머지는 전부 var() 참조.
-   폰트는 앱의 기존 --dp-serif-ko/--dp-sans/--dp-mono 를 그대로 쓴다(구글 폰트 X).
+   브랜드 팔레트는 variables.module.css 의 --cal-* 단일 SSOT 를 참조한다
+   (.monthRoot 는 --bg 등을 var(--cal-*) 로 매핑만). 색을 바꾸려면 거기 한 곳만.
+   Day·Lifetime 티어와 같은 소스라 화면마다 갈리지 않는다.
+   세리프 디스플레이는 --cal-serif(Lora 라틴 → 한글 폴백, 영문 우선).
    ============================================================ */
 
 .monthRoot {
-  /* ── 다크 코스믹 팔레트 토큰 "자정" (유일한 raw-hex 블록) ──
-     심야 인디고 위에 금(金) 길일. 색=길흉(gold 길/slate 조심/crimson 흉),
-     today=moonstone. 크림·머스타드 제거 — 앱 셸(다크)과 한 세계. */
-  --bg: #0b1022;
-  --surface: #0e1430;
-  --surface-2: #131a38;
-  --surface-3: #182046;
-  --line: rgba(255, 255, 255, 0.09);
-  --line-2: rgba(255, 255, 255, 0.16);
-  --t0: #ece9f6;
-  --t1: #aeb4ce;
-  --t2: #8a90ae;
-  --gold: #e3b664;
-  --gold-deep: #e9c77e;
-  --gold-bg: rgba(227, 182, 100, 0.14);
-  --gold-line: rgba(227, 182, 100, 0.34);
-  --indigo: #9b7bff;
-  --blue: #aeb8d8;
-  --green: #5bc88c;
-  --slate: #9096b6;
-  --crimson: #c7788c;
-  --crimson-bg: rgba(199, 120, 140, 0.15);
-  --crimson-line: rgba(199, 120, 140, 0.34);
-  --sun: #c79a86;
+  /* ── 팔레트 — 브랜드 SSOT(variables.module.css의 --cal-*)를 참조만 한다.
+     예전엔 이 블록에 hex 20줄을 직접 들고 있어 Day·Lifetime 과 복붙 드리프트가
+     났다(그중 하나가 카톡색). 이제 색을 바꾸려면 --cal-* 한 곳만 고친다. */
+  --bg: var(--cal-bg);
+  --surface: var(--cal-surface);
+  --surface-2: var(--cal-surface-2);
+  --surface-3: var(--cal-surface-3);
+  --line: var(--cal-line);
+  --line-2: var(--cal-line-2);
+  --t0: var(--cal-t0);
+  --t1: var(--cal-t1);
+  --t2: var(--cal-t2);
+  --gold: var(--cal-gold);
+  --gold-deep: var(--cal-gold-deep);
+  --gold-bg: var(--cal-gold-bg);
+  --gold-line: var(--cal-gold-line);
+  --indigo: var(--cal-indigo);
+  --blue: var(--cal-blue);
+  --green: var(--cal-green);
+  --slate: var(--cal-slate);
+  --crimson: var(--cal-crimson);
+  --crimson-bg: var(--cal-crimson-bg);
+  --crimson-line: var(--cal-crimson-line);
+  --sun: var(--cal-sun);
 
-  /* 폰트 — 앱 토큰 재사용. "disp" 누멀럴은 Cinzel(자체호스팅) + tabular-nums. */
-  --m-serif: var(--dp-serif-ko);
+  /* 폰트 — 세리프는 브랜드 SSOT(--cal-serif: Lora 라틴 → 한글 폴백, 영문 우선). */
+  --m-serif: var(--cal-serif);
   --m-sans: var(--dp-sans);
   --m-disp: var(--font-cinzel), var(--dp-serif);
 
