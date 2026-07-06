@@ -16,7 +16,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return generateLocalizedMetadata(
     {
       en: {
-        title: 'Destiny Counselor — 1:1 AI Saju & Astrology Chat',
+        title: 'Destiny Counselor — 1:1 AI Korean Astrology Chat',
         description:
           '1:1 AI counselor chat that reads your Saju (Four Pillars) and natal astrology together, with practical action guidance for life decisions.',
         keywords: [

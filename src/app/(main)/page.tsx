@@ -35,13 +35,13 @@ export async function generateMetadata({
 
   const en = isReferral
     ? {
-        title: 'Join me on DestinyPal — AI Saju, Astrology & Tarot',
+        title: 'Join me on DestinyPal — AI Korean Astrology & Tarot',
         description:
           "I'm on DestinyPal! AI reads your Saju & natal astrology for daily counsel, tarot, and compatibility. Open the link to get your own free AI reading.",
         keywords: enKeywords,
       }
     : {
-        title: 'DestinyPal — AI Saju, Astrology, Tarot, Compatibility & Fortune Calendar',
+        title: 'DestinyPal — AI Korean Astrology, Tarot, Compatibility & Fortune Calendar',
         description:
           'AI reads your Saju (Korean Four Pillars) and natal astrology together — daily counsel, tarot, compatibility, and a fortune calendar. See the flow and timing when you need to decide.',
         keywords: enKeywords,
@@ -86,7 +86,7 @@ export default async function MainPage() {
     type: 'WebPage',
     name: isKo
       ? 'DestinyPal — AI 사주·점성·타로·궁합·캘린더'
-      : 'DestinyPal — AI Saju, Astrology, Tarot, Compatibility & Fortune Calendar',
+      : 'DestinyPal — AI Korean Astrology, Tarot, Compatibility & Fortune Calendar',
     description: isKo
       ? 'AI가 사주와 점성을 함께 분석해 운세 상담, 타로, 궁합, 캘린더, 리포트를 제공합니다.'
       : 'AI reads your Saju (Four Pillars) and natal astrology together — daily counsel, tarot, compatibility, calendar, and reports.',

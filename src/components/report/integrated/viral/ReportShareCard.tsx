@@ -130,7 +130,7 @@ export const ReportShareCard = React.forwardRef<HTMLDivElement, { data: ReportSh
               wordBreak: 'keep-all',
             }}
           >
-            {isKo ? '나의 사주 × 별자리 유형' : 'My Saju × Astrology type'}
+            {isKo ? '나의 사주 × 별자리 유형' : 'My Korean Astrology × Zodiac type'}
           </div>
 
           {/* emoji */}

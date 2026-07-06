@@ -33,7 +33,7 @@ export interface CrossRow {
 }
 
 export const UI: Record<string, BiLabel> = {
-  eyebrow: { ko: '동양 사주 + 서양 별자리', en: 'Saju + Astrology' },
+  eyebrow: { ko: '동양 사주 + 서양 별자리', en: 'Korean Astrology × Zodiac' },
   titlePre: { ko: '통합', en: 'Your' },
   titleAccent: { ko: '리포트', en: 'Report' },
   titlePost: { ko: '', en: '' },

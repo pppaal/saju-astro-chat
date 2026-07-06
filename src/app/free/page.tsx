@@ -98,7 +98,7 @@ const FREE_TOOLS: readonly FreeTool[] = [
     href: '/integrated-report',
     emoji: '📜',
     tint: '#e8cc8a',
-    title: { ko: '사주·별자리 통합 리포트', en: 'Saju + Astrology Report' },
+    title: { ko: '사주·별자리 통합 리포트', en: 'Korean Astrology Report' },
     desc: {
       ko: '사주 네 기둥과 출생 별자리를 함께 읽는 통합 분석. 생년월일만 있으면 끝.',
       en: 'Your four pillars and natal chart, read together. Just your birth date.',

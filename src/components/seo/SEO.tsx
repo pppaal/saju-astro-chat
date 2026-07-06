@@ -480,13 +480,13 @@ export function generateServiceSchema(
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://destinypal.com'
   const services = {
     'destiny-map': {
-      name: 'Destiny Map - Saju & Astrology Fusion',
+      name: 'Destiny Map - Korean Astrology × Western Zodiac',
       description:
         'Comprehensive life guidance combining Eastern Four Pillars and Western Astrology for personalized insights.',
       category: 'Spiritual Consultation',
     },
     compatibility: {
-      name: 'Compatibility Analysis - Saju & Astrology Synastry',
+      name: 'Compatibility Analysis - Korean Astrology Synastry',
       description:
         'AI relationship compatibility combining Eastern Saju (Four Pillars) and Western astrology synastry for love, partnership, and friendship.',
       category: 'Spiritual Consultation',

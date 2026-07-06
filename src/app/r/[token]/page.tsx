@@ -566,7 +566,7 @@ export default async function SharedReadingPage({ params }: PageProps) {
               color: GOLD_SOFT,
             }}
           >
-            {isKo ? '사주 × 별자리 유형' : 'SAJU × ASTROLOGY TYPE'}
+            {isKo ? '사주 × 별자리 유형' : 'KOREAN ASTROLOGY × ZODIAC'}
           </p>
           <p style={{ marginTop: 16, fontSize: 52, lineHeight: 1 }}>{reading.emoji}</p>
           <h1
@@ -933,7 +933,7 @@ export default async function SharedReadingPage({ params }: PageProps) {
               color: MUTE,
             }}
           >
-            {reading.rangeLabel || (isKo ? '사주 × 별자리' : 'Saju × Astrology')}
+            {reading.rangeLabel || (isKo ? '사주 × 별자리' : 'Korean Astrology × Zodiac')}
           </p>
 
           <h1
