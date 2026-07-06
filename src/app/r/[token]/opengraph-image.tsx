@@ -324,8 +324,16 @@ export default async function Image({ params }: { params: Promise<{ token: strin
   let cta: string
   if (reading && isCompatShare(reading)) {
     eyebrow = `${reading.nameA}  ♥  ${reading.nameB}`
-    headline = clamp(reading.verdict, 80)
-    context = reading.headline ? clamp(reading.headline, 70) : ''
+    // 점수가 있으면 큰 숫자+등급을 헤드라인으로(극적 후크), verdict 는 보조로.
+    // 없으면(구버전 링크) 기존대로 verdict 를 헤드라인으로.
+    if (typeof reading.score === 'number') {
+      const scoreLabel = isKo ? `${reading.score}점` : `${reading.score}/100`
+      headline = clamp(reading.grade ? `${scoreLabel} · ${reading.grade}` : scoreLabel, 40)
+      context = clamp(reading.verdict, 70)
+    } else {
+      headline = clamp(reading.verdict, 80)
+      context = reading.headline ? clamp(reading.headline, 70) : ''
+    }
     cta = isKo
       ? `우리 궁합도 무료로 · ${displayDomain}`
       : `Check your match free · ${displayDomain}`

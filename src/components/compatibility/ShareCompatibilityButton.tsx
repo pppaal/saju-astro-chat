@@ -61,6 +61,9 @@ export function ShareCompatibilityButton({
           verdict: data.verdict,
           verdictTone: data.verdictTone,
           headline: data.headline || undefined,
+          // 점수/등급을 링크에 실어 미리보기(OG/공개 페이지)에 큰 숫자 후크가 뜨게 한다.
+          ...(typeof data.score === 'number' ? { score: data.score } : {}),
+          ...(data.grade ? { grade: data.grade } : {}),
           // 옵트인 했을 때만 공유자 출생정보를 링크에 실어 2-player 프리필 활성화.
           ...(allowInvite && inviter ? { inviter } : {}),
         }),
