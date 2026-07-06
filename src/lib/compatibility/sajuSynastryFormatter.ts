@@ -114,6 +114,7 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
   const critical: string[] = []
   const important: string[] = []
   const chamgo: string[] = []
+  const yongsinCrossLines: string[] = [] // 용신 보완 cross (오행 궁합) — 아래 섹션 7-b 에서 채움
 
   // 1. 일간 cross — 항상 CRITICAL
   if (elA && elB) {
@@ -490,6 +491,49 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
     )
   )
 
+  // 7-b. 용신 보완 cross → CRITICAL. 정통 명리 궁합의 1급 신호: 상대가 내
+  // *주용신* 오행을 채워주나(궁합 호), 내 *기신* 오행을 가중하나(주의).
+  // 주용신/기신은 FiveElement('목/화/토/금/수')라 위 counts 키와 동일 →
+  // 상대 카운트로 바로 인덱싱. yongsin 미제공(구버전·계산 실패)이면 통째 생략.
+  {
+    const yongOne = (
+      label: string,
+      y: SajuSynastryInput['yongsinA'],
+      partnerCnt: Record<string, number>
+    ): string | null => {
+      if (!y?.primaryYongsin) return null
+      const yong = y.primaryYongsin
+      const sup = partnerCnt[yong] ?? 0
+      // stripAux 가 괄호를 전부 제거하므로 유형·강도를 괄호 밖에 둔다.
+      const verdict =
+        sup >= 2
+          ? L('잘 채워줌', 'well supplied')
+          : sup === 1
+            ? L('약간 보완', 'partial')
+            : L('못 채움', 'not supplied')
+      // 용신 유형(조후/억부/…)은 KO 만 — EN 유형 라벨 맵이 없어 한글 누수 방지차 생략.
+      const ytype = y.yongsinType ? y.yongsinType.replace('용신', '') : ''
+      let line = L(
+        `${label} ${ytype}용신 ${yong} ← 상대 ${yong}${sup} ${verdict}`,
+        `${label} yongsin ${elD(yong)} ← partner ${elD(yong)} ${sup} ${verdict}`
+      )
+      const kib = y.kibsin
+      if (kib) {
+        const kc = partnerCnt[kib] ?? 0
+        if (kc >= 2)
+          line += L(
+            ` · 기신 ${kib} 상대 ${kib}${kc} 가중주의`,
+            ` · avoids ${elD(kib)} but partner has ${kc}`
+          )
+      }
+      return line
+    }
+    const yLineA = yongOne(labelA, input.yongsinA, countsB)
+    const yLineB = yongOne(labelB, input.yongsinB, countsA)
+    if (yLineA) yongsinCrossLines.push(yLineA)
+    if (yLineB) yongsinCrossLines.push(yLineB)
+  }
+
   // 8. 공망 cross — 한 쪽 공망이 상대 지지에 걸리면 그 영역이 공허·초연.
   // 일지(2)에 걸리면 가장 강한 신호.
   {
@@ -831,6 +875,10 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
   if (sibsinCrossLines.length) {
     out.push(L('[CRITICAL · 배우자성 (십성)]', '[CRITICAL · spouse-stars (ten-gods)]'))
     out.push(...sibsinCrossLines)
+  }
+  if (yongsinCrossLines.length) {
+    out.push(L('[CRITICAL · 용신 보완 (오행 궁합)]', '[CRITICAL · yongsin supply (element fit)]'))
+    out.push(...yongsinCrossLines)
   }
   if (shinsalCrossLines.length) {
     out.push(

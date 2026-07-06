@@ -14,6 +14,7 @@ import {
   computeSajuSynastryFacts,
   type SajuPillarInput,
 } from '@/lib/compatibility/sajuSynastryFormatter'
+import type { YongsinResult } from '@/lib/saju/yongsin'
 
 const P = (stem: string, branch: string): SajuPillarInput => ({ stem, branch })
 
@@ -198,6 +199,47 @@ describe('formatSajuSynastry', () => {
     it('B 시각 미상이면 B 시주가 빠져 시주 천간합이 사라진다', () => {
       const out = formatSajuSynastry({ ...valid, timeUnknownB: true })
       expect(out).not.toContain('시천간 임 + B 시천간 정')
+    })
+  })
+
+  describe('용신 보완 cross (오행 궁합)', () => {
+    // valid 오행: A 수2(子·壬) / B 토3(己·丑·未)·목2(甲·乙)·수1(亥).
+    const yongA: YongsinResult = {
+      primaryYongsin: '토',
+      yongsinType: '억부용신',
+      daymasterStrength: '신약',
+      reasoning: '',
+      kibsin: '목',
+    }
+    const yongB: YongsinResult = {
+      primaryYongsin: '수',
+      yongsinType: '조후용신',
+      daymasterStrength: '신강',
+      reasoning: '',
+    }
+
+    it('상대가 내 용신 오행을 채워주면 CRITICAL 용신 보완 블록에 나온다', () => {
+      const out = formatSajuSynastry({ ...valid, yongsinA: yongA, yongsinB: yongB, lang: 'ko' })
+      expect(out).toContain('용신 보완')
+      expect(out).toContain('A 억부용신 토 ← 상대 토3 잘 채워줌')
+      expect(out).toContain('B 조후용신 수 ← 상대 수2 잘 채워줌')
+    })
+
+    it('상대가 내 기신 오행을 2개 이상 가지면 가중주의를 붙인다', () => {
+      // A 기신 목 → B 목2
+      const out = formatSajuSynastry({ ...valid, yongsinA: yongA, lang: 'ko' })
+      expect(out).toContain('기신 목 상대 목2 가중주의')
+    })
+
+    it('yongsin 미제공이면 블록이 없다 (하위호환)', () => {
+      expect(formatSajuSynastry(valid)).not.toContain('용신 보완')
+    })
+
+    it('EN 은 용신 라인에 한글이 없다', () => {
+      const out = formatSajuSynastry({ ...valid, yongsinA: yongA, yongsinB: yongB, lang: 'en' })
+      const yongLines = out.split('\n').filter((l) => l.toLowerCase().includes('yongsin'))
+      expect(yongLines.length).toBeGreaterThan(0)
+      for (const l of yongLines) expect(l).not.toMatch(/[가-힣]/)
     })
   })
 })

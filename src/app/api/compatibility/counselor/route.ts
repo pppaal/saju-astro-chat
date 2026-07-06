@@ -540,6 +540,10 @@ export async function POST(req: NextRequest) {
           timeUnknownA,
           timeUnknownB,
           lang,
+          // 용신 보완 cross — collectCompatSajuFacts 가 이미 계산해 둔 격국용신을
+          // 그대로 전달(추가 연산 0). 상대가 내 용신 오행을 채워주나/기신 가중하나.
+          yongsinA: compatSaju.a.base.yongsin,
+          yongsinB: compatSaju.b.base.yongsin,
         })
       }
     } catch (err) {

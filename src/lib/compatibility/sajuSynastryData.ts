@@ -11,6 +11,7 @@ import { STEM_KO, BRANCH_KO } from '@/lib/saju/ganjiKo'
 import { getSibseong, BRANCH_MAIN_QI } from '@/lib/saju/core/sibsin'
 import { STEMS, FIVE_ELEMENT_RELATIONS, CHEONEUL_GWIIN_MAP } from '@/lib/saju/constants'
 import type { FiveElement, YinYang } from '@/lib/saju/types'
+import type { YongsinResult } from '@/lib/saju/yongsin'
 import { getYearPillarForDate, getSajuYearForDate } from '@/lib/saju/datePillars'
 
 export const STEM_HAP: Record<string, { other: string; element: string }> = {
@@ -292,6 +293,13 @@ export interface SajuSynastryInput {
    */
   timeUnknownA?: boolean
   timeUnknownB?: boolean
+  /**
+   * A/B 격국용신(주용신·희신·기신). 상대가 내 주용신 오행을 채워주는지 /
+   * 기신 오행을 가중하는지 판정하는 순수 오행 궁합 cross 용. 계산은
+   * compatSajuFacts.base.yongsin 이 이미 갖고 있어 그대로 전달(없으면 생략).
+   */
+  yongsinA?: YongsinResult | null
+  yongsinB?: YongsinResult | null
   /** 출력 언어. 'en' 이면 한국어 라벨이 영어 응답에 새지 않게 영어로 렌더. 기본 'ko'. */
   lang?: 'ko' | 'en'
 }
