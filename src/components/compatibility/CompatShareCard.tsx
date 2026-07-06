@@ -54,6 +54,11 @@ export interface CompatShareCardData {
   accent?: string | null
   /** 상위 테마 점수 칩 2~4개 — 끌림 88 · 케미 82 · 소통 79. */
   chips?: CompatShareChip[]
+  /**
+   * QR 코드 data URL(선택) — 우하단 코너에 박아, 스크린샷을 찍어 올려도 스캔
+   * 한 번에 무료 궁합 진입점으로 온다(재공유 시 출처·유입이 따라온다).
+   */
+  qrDataUrl?: string
 }
 
 // 결정적 별 좌표(1080 캔버스) — 캡처마다 같게. r>1.3 은 부드러운 헤일로 추가.
@@ -101,7 +106,7 @@ function renderPunchLine(line: string, accent?: string | null): React.ReactNode 
 
 export const CompatShareCard = React.forwardRef<HTMLDivElement, { data: CompatShareCardData }>(
   function CompatShareCard({ data }, ref) {
-    const { isKo, nameA, nameB, score, grade, punch, accent, chips } = data
+    const { isKo, nameA, nameB, score, grade, punch, accent, chips, qrDataUrl } = data
     const hasScore = typeof score === 'number'
     const shownChips = (chips ?? []).slice(0, 4)
     const punchLines = (punch ?? '').split('\n')
@@ -412,6 +417,37 @@ export const CompatShareCard = React.forwardRef<HTMLDivElement, { data: CompatSh
             </span>
           </div>
         </div>
+
+        {/* QR — 우하단 코너(절대 위치). 스크린샷만 봐도 스캔 한 번에 무료 궁합으로. */}
+        {qrDataUrl ? (
+          <div
+            style={{
+              position: 'absolute',
+              right: 58,
+              bottom: 52,
+              zIndex: 4,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 6,
+            }}
+          >
+            <div
+              style={{
+                padding: 8,
+                background: '#ffffff',
+                borderRadius: 12,
+                boxShadow: '0 6px 20px rgba(0,0,0,0.45)',
+              }}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={qrDataUrl} alt="" width={104} height={104} style={{ display: 'block' }} />
+            </div>
+            <span style={{ fontSize: 16, fontWeight: 600, color: GOLD }}>
+              {isKo ? '스캔 · 무료' : 'Scan · free'}
+            </span>
+          </div>
+        ) : null}
       </div>
     )
   }

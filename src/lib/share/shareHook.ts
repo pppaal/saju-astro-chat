@@ -416,7 +416,7 @@ export function dayShareHook(input: DayHookInput): ShareHook {
   return input.ko ? v.ko : v.en
 }
 
-export type MonthTone = 'bright' | 'careful' | 'mixed'
+export type MonthTone = 'bright' | 'careful' | 'mixed' | 'steady'
 
 export interface MonthHookInput {
   tone: MonthTone
@@ -572,6 +572,34 @@ const MONTH_POOL: Record<MonthTone, HookVariant[]> = {
       en: {
         headline: 'Skip the overreach and this month nets positive.',
         subline: 'Earn on the good days, rest on the murky ones.',
+      },
+    },
+  ],
+  // steady = 완전 평탄한 달(좋은 날·조심 날이 둘 다 거의 없음). "큰 날만 노려"
+  // 처럼 존재하지 않는 날을 지시하면 안 된다(감사 U4) — 고르게 쌓는 프레임.
+  steady: [
+    {
+      ko: {
+        headline: '이번 달은 큰 파도가 없어. 그래서 쌓기 좋아.',
+        subline: '꾸준히 하던 걸 밀고 가.',
+      },
+      en: {
+        headline: 'No big waves this month — which makes it good for building.',
+        subline: 'Keep pushing what you already do.',
+      },
+    },
+    {
+      ko: { headline: '이번 달은 고르게 흘러. 기본기 다지는 달이야.', subline: '루틴을 단단히.' },
+      en: {
+        headline: 'This month runs even — a month for the fundamentals.',
+        subline: 'Firm up your routine.',
+      },
+    },
+    {
+      ko: { headline: '요란한 이벤트 없이 잔잔한 달.', subline: '조용히 할 일 하면 남는 게 많아.' },
+      en: {
+        headline: 'A quiet month with no loud events.',
+        subline: 'Quietly get things done and it adds up.',
       },
     },
   ],

@@ -93,25 +93,29 @@ const PATTERN_KO: Record<LifePatternKey, { ko: string; en: string; line: string;
       ko: '대기만성형',
       en: 'Late bloomer',
       line: '처음엔 더디고 애써야 하지만, 해를 거듭할수록 자리를 잡아가요. 늦게 피어 오래가는, 뒤로 갈수록 환해지는 결이에요.',
-      lineEn: 'A slow, effortful start — but you find your ground as the years go on. Yours is a life that blooms late and lasts, brightening toward the end.',
+      lineEn:
+        'A slow, effortful start — but you find your ground as the years go on. Yours is a life that blooms late and lasts, brightening toward the end.',
     },
     'early-peak': {
       ko: '초년발복형',
       en: 'Early peak',
       line: '이른 봄에 일찍 꽃을 피우는 결이에요. 한창때 멀리 나아가고, 뒤로는 넓히기보다 지켜낼 때 더 단단해져요.',
-      lineEn: 'You flower early, in the first warmth of the year. You travel far while the season is at its height; later, you grow steadier by keeping what you have rather than reaching for more.',
+      lineEn:
+        'You flower early, in the first warmth of the year. You travel far while the season is at its height; later, you grow steadier by keeping what you have rather than reaching for more.',
     },
     'midlife-peak': {
       ko: '중년절정형',
       en: 'Midlife peak',
       line: '한낮에 해가 가장 높이 뜨듯, 인생의 한가운데서 가장 크게 펼쳐지는 결이에요. 그 길목에서 마음먹고 나아가면 멀리 닿아요.',
-      lineEn: 'Like the sun standing highest at noon, your life opens widest at its middle. Make your move at that crossing and it carries far.',
+      lineEn:
+        'Like the sun standing highest at noon, your life opens widest at its middle. Make your move at that crossing and it carries far.',
     },
     'steady-rise': {
       ko: '점진상승형',
       en: 'Steady rise',
       line: '서두르지 않아도 물이 차오르듯 한 해 한 해 나아져요. 조금씩, 그러나 멈추지 않고 높아지는 결이에요.',
-      lineEn: 'Without hurrying, you rise like water filling a basin, a little more each year — slow, but never still.',
+      lineEn:
+        'Without hurrying, you rise like water filling a basin, a little more each year — slow, but never still.',
     },
     smooth: {
       ko: '순탄형',
@@ -123,13 +127,15 @@ const PATTERN_KO: Record<LifePatternKey, { ko: string; en: string; line: string;
       ko: '인고형',
       en: 'The long haul',
       line: '쉬운 길은 아니에요. 바람을 안고 오래 걷는 동안, 버틴 만큼 단단해지는 결이에요.',
-      lineEn: 'Not an easy road. You walk a long way into the wind, and what you endure is what makes you unbreakable.',
+      lineEn:
+        'Not an easy road. You walk a long way into the wind, and what you endure is what makes you unbreakable.',
     },
     undulating: {
       ko: '굴곡형',
       en: 'Ups and downs',
       line: '밀물과 썰물처럼 좋을 때와 힘든 때가 번갈아 와요. 물때를 읽을 줄 알면, 그 리듬이 오히려 힘이 돼요.',
-      lineEn: 'Like tides, bright spells and hard spells take turns. Learn to read the water, and the rhythm itself becomes your strength.',
+      lineEn:
+        'Like tides, bright spells and hard spells take turns. Learn to read the water, and the rhythm itself becomes your strength.',
     },
   }
 
@@ -167,7 +173,8 @@ export function deriveLifePattern(
     const be = getBranchElement(d.branch)
     const stemCat = categoryOf(dmEl, se)
     const branchCat = categoryOf(dmEl, be)
-    const favor = favorSign(stemCat, se, strength, yongsin) + favorSign(branchCat, be, strength, yongsin)
+    const favor =
+      favorSign(stemCat, se, strength, yongsin) + favorSign(branchCat, be, strength, yongsin)
     if (typeof d.startYear === 'number') startYears.set(d.startAge, d.startYear)
     return { startAge: d.startAge, gz: `${d.stem}${d.branch}`, stemCat, branchCat, favor }
   })
@@ -241,6 +248,14 @@ function classifyFromCurve(
   const macros = p.map((x) => x.macro)
   const lo = Math.min(...macros)
   const hi = Math.max(...macros)
+  // 절대 진폭 게이트(감사 A-4) — min-max 스트레치는 *거의 평탄한* 곡선의 미세
+  // 잔물결도 풀스케일로 증폭해 극적 유형(undulating 등)으로 오분류한다. macro 는
+  // z-정규화 합성(±1 스케일, 7년 이동평균)이라 절대 범위가 의미를 가짐: 범위가
+  // 0.25σ 미만이면 실질 굴곡이 없는 인생 — 'smooth' 로 확정하고 증폭하지 않는다.
+  if (hi - lo < 0.25) {
+    const flatPeak = p.reduce((best, x) => (x.macro > best.macro ? x : best), p[0]).age
+    return { key: 'smooth', peakAge: Math.max(16, flatPeak) }
+  }
   const range = hi - lo || 1
   const nv = (m: number) => (m - lo) / range
   const seg = (a: number, b: number): number => {
@@ -347,7 +362,9 @@ function personalize(
     const cat = covering.stemCat
     const baseYr = startYears.get(covering.startAge)
     const yr = baseYr != null ? baseYr + (curvePeakAge - covering.startAge) : undefined
-    const whenKo = yr ? `${yr}년(${curvePeakAge}세) 무렵` : `${ageBandKo(curvePeakAge)}(${curvePeakAge}세 무렵)`
+    const whenKo = yr
+      ? `${yr}년(${curvePeakAge}세) 무렵`
+      : `${ageBandKo(curvePeakAge)}(${curvePeakAge}세 무렵)`
     const whenEn = yr ? `around ${yr} (age ${curvePeakAge})` : `around age ${curvePeakAge}`
     // 정점 대운의 십신 우호(favor)가 없어도, 정점 시점을 단정하는 유형은 *곡선 마루
     // 시점*만이라도 붙여 base.line 의 막연한 어조와 화면 곡선이 어긋나지 않게 한다
@@ -400,8 +417,7 @@ function personalize(
   // favor 동률이면 더 빠른(먼저 오는) 대운을 정점으로 — reduce 가 첫 최대를 유지.
   const peak = pool.reduce((best, c) => (c.favor > best.favor ? c : best), pool[0])
   // 시제는 오직 정점 대운이 *이미 지났는가*(decade 끝 ≤ 현재 나이)로 결정.
-  const past =
-    typeof currentAge === 'number' ? peak.startAge + 10 <= currentAge : false
+  const past = typeof currentAge === 'number' ? peak.startAge + 10 <= currentAge : false
 
   // 정점 창이 이미 지난 사람에겐 base.line 의 미래 지시 어조도 회고형으로 바꾼다.
   // midlife-peak "…풀려요. 그때 승부를 보면 좋아요."(미래 조언)를 80세에게 그대로

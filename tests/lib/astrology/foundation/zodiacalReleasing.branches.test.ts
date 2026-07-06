@@ -133,8 +133,8 @@ describe('zodiacalReleasing — 미커버 분기', () => {
       expect(bySign('Capricorn').isPeak).toBe(true)
       // non-peak
       expect(bySign('Gemini').isPeak).toBe(false)
-      // loosing only at 7
-      expect(bySign('Libra').isLoosingOfTheBond).toBe(true)
+      // L1 에 LB 마커 없음 — LB 는 하위 시퀀스의 반대편 점프 사건(감사 A-1).
+      expect(bySign('Libra').isLoosingOfTheBond).toBe(false)
       expect(bySign('Cancer').isLoosingOfTheBond).toBe(false)
     })
 
@@ -144,10 +144,11 @@ describe('zodiacalReleasing — 미커버 분기', () => {
       const cancer = marked.find((p) => p.sign === 'Cancer')!
       expect(cancer.offsetFromStart).toBe(1)
       expect(cancer.isPeak).toBe(true)
-      // 7th from Cancer = Capricorn → loosing of bond
+      // 7th from Cancer = Capricorn → angular peak (L1 LB 마커는 폐지 — 감사 A-1)
       const cap = marked.find((p) => p.sign === 'Capricorn')!
       expect(cap.offsetFromStart).toBe(7)
-      expect(cap.isLoosingOfTheBond).toBe(true)
+      expect(cap.isPeak).toBe(true)
+      expect(cap.isLoosingOfTheBond).toBe(false)
     })
   })
 

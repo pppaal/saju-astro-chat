@@ -70,6 +70,14 @@ export interface CompatShareLinkPayload {
   verdictTone: CompatVerdictTone
   /** 결정적 신호 한 줄(선택) — 더 읽을거리. */
   headline?: string
+  /**
+   * 0~100 종합 점수(선택) — 링크 미리보기(OG/공개 페이지)의 극적 후크.
+   * "우리 궁합 87점?!" 처럼 숫자가 재공유·클릭을 만든다. 원국은 보내지 않고
+   * 도출된 점수 숫자만 저장(PII 아님). 구버전 링크엔 없어 optional.
+   */
+  score?: number
+  /** 점수 등급 별명(선택) — "위험할 만큼 잘 맞아" 등. 점수 옆 배지. PII 아님. */
+  grade?: string
   /** 옵트인 2-player 프리필용 공유자 출생정보(미동의면 없음). */
   inviter?: CompatInviter
 }

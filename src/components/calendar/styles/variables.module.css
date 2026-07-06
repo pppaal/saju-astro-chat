@@ -55,6 +55,38 @@
   --dp-line-soft: rgba(58, 46, 28, 0.1);
   --dp-now-ring: rgba(52, 64, 111, 0.85);
 
+  /* ============================================================
+     브랜드 라이트 팔레트 "월백(月白) 백자" — 캘린더 티어 단일 SSOT.
+     Month·Day·Lifetime 티어가 예전엔 이 20줄을 각자 복붙(→ 하나가 카톡색으로
+     새고 화면마다 갈림)했다. 여기 한 벌만 두고 티어는 var(--cal-*)로 참조한다.
+     차가운 백자 종이 + 먹 글자 + 정제 앤티크 브라스. 버터옐로우·머스타드 제거.
+     색=길흉: gold 길 / slate 조심 / crimson(인주) 흉, today=쪽빛.
+     방향을 통째로 바꾸려면(예: 다크) 이 블록만 갈아끼운다. ============ */
+  --cal-bg: #f1f2f3;
+  --cal-surface: #ffffff;
+  --cal-surface-2: #e9ebec;
+  --cal-surface-3: #dfe2e3;
+  --cal-line: #e3e5e6;
+  --cal-line-2: #d0d4d5;
+  --cal-t0: #1b1d20;
+  --cal-t1: #54585f;
+  --cal-t2: #888d93;
+  --cal-gold: #8a6f33;
+  --cal-gold-deep: #6f592a;
+  --cal-gold-bg: #ece7d8;
+  --cal-gold-line: #d8ccb2;
+  --cal-indigo: #454b9c;
+  --cal-blue: #3a6fb0;
+  --cal-green: #3e7c52;
+  --cal-slate: #767a82;
+  --cal-crimson: #b23a3f;
+  --cal-crimson-bg: #f2e2e2;
+  --cal-crimson-line: #e5c7c8;
+  --cal-sun: #a06d6a;
+  --cal-good-bg: #e7ece2;
+  /* 세리프 디스플레이(영문 우선): Lora(라틴) → 한글 Gowun Batang 폴백(글리프 단위). */
+  --cal-serif: var(--font-lora), var(--dp-serif-ko);
+
   /* type */
   --dp-serif:
     'Newsreader', 'Gowun Batang', 'Noto Serif KR', 'Noto Serif CJK KR', 'Source Han Serif KR', serif;

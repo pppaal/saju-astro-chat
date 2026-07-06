@@ -2,7 +2,7 @@
  * assembleTiers — 5-tier 어셈블러 통합 테스트.
  *
  * assembleTiers 는 NatalContext + 그 해 CalendarCell[] 을 받아 PreviewClient 가
- * 받는 { topbar, user, lifetime, decade, year, month, day } 를 만든다. 순수
+ * 받는 { topbar, user, lifetime, month, day } 를 만든다. 순수
  * 변환 로직이지만 입력 fixture 가 무겁다(여러 deriver/adapter 가 실제
  * NatalContext 구조를 요구). 그래서 실제 buildNatalContext + buildCalendar 로
  * fixture 를 만든 뒤(Swiss Ephemeris 는 tests/setup.ts 가 mock), 어셈블 결과의
@@ -14,7 +14,7 @@ import { buildCalendar } from '@/lib/calendar-engine'
 import { getTwelveStagesForPillars } from '@/lib/saju/shinsal'
 import { assembleTiers, type AssembleTiersInput } from '@/app/calendar/assembleTiers'
 import { pickNextBigDay } from '@/app/calendar/assembleDayTier'
-import { getYearPillarForDate } from '@/lib/saju/datePillars'
+
 import type { NatalContext } from '@/lib/calendar-engine/context/types'
 import type { CalendarCell } from '@/lib/calendar-engine/types'
 
@@ -77,15 +77,16 @@ describe('assembleTiers — fixture sanity', () => {
 })
 
 describe('assembleTiers — top-level shape', () => {
-  it('returns all six tiers + topbar', async () => {
+  it('returns lifetime/month/day tiers + topbar (10년·1년 티어 제거됨)', async () => {
     const out = await assembleTiers(baseInput())
     expect(out).toHaveProperty('topbar')
     expect(out).toHaveProperty('user')
     expect(out).toHaveProperty('lifetime')
-    expect(out).toHaveProperty('decade')
-    expect(out).toHaveProperty('year')
     expect(out).toHaveProperty('month')
     expect(out).toHaveProperty('day')
+    // 중간 티어는 제거 — 대운은 인생 흐름이, 세운은 인생 흐름 한 줄+캘린더가 커버.
+    expect(out).not.toHaveProperty('decade')
+    expect(out).not.toHaveProperty('year')
   })
 
   it('topbar carries the display lines and an ilgan hanja', async () => {
@@ -118,30 +119,9 @@ describe('assembleTiers — user tier', () => {
   })
 })
 
-describe('assembleTiers — decade tier', () => {
-  it('produces a current decade pillar with elements + sewoonNow at target year', async () => {
-    const out = await assembleTiers(baseInput())
-    expect(out.decade.start).toBeLessThanOrEqual(TARGET_YEAR)
-    expect(out.decade.end).toBeGreaterThanOrEqual(TARGET_YEAR)
-    expect(out.decade.pillar.cheongan.element).toBeTruthy()
-    expect(out.decade.pillar.jiji.element).toBeTruthy()
-    expect(out.decade.sewoonNow.year).toBe(TARGET_YEAR)
-    // arrays default to empty (zr chapters not assembled here).
-    expect(out.decade.zrSpiritChapters).toEqual([])
-    expect(out.decade.zrFortuneChapters).toEqual([])
-  })
-})
-
-describe('assembleTiers — year tier', () => {
-  it('returns the target year + a 12-house profection wheel', async () => {
-    const out = await assembleTiers(baseInput())
-    expect(out.year.year).toBe(TARGET_YEAR)
-    expect(Array.isArray(out.year.profectionWheel)).toBe(true)
-    expect(out.year.profectionWheel.length).toBe(12)
-    expect(out.year.profection.house).toBeGreaterThanOrEqual(1)
-    expect(out.year.profection.house).toBeLessThanOrEqual(12)
-  })
-})
+// (10년 대운·1년 세운 티어는 제거 — assembleTiers 는 더 이상 decade/year 를 내지
+//  않는다. 대운은 인생 흐름(LifetimeTier)이, 세운은 인생 흐름 thisYear 한 줄이
+//  커버하고 assembleLifetime.test 가 검증한다.)
 
 describe('assembleTiers — month tier', () => {
   it('labels the target month and exposes day collections', async () => {
@@ -232,10 +212,9 @@ describe('assembleTiers — focusDayCell fallback', () => {
 })
 
 describe('assembleTiers — language toggle', () => {
-  it('en and ko both assemble without throwing and share structural year/month', async () => {
+  it('en and ko both assemble without throwing and share structural month', async () => {
     const ko = await assembleTiers(baseInput({ lang: 'ko' }))
     const en = await assembleTiers(baseInput({ lang: 'en' }))
-    expect(ko.year.year).toBe(en.year.year)
     expect(ko.month.ym).toBe(en.month.ym)
     // en cross-activations expose English sides.
     if (en.day.crossActivations.length > 0) {
@@ -306,41 +285,13 @@ describe('assembleTiers — day.nextBigDay 연결', () => {
   })
 })
 
-describe('assembleTiers — 세운 입춘 경계 정합(SSOT)', () => {
-  it('1/1~입춘 구간엔 연·대운 세운이 활성 사주년(getYearPillarForDate)과 일치한다', async () => {
-    // 2024 입춘 ≈ 2/4. 1/15 는 아직 사주년 2023(癸卯)이다. 그레고리 근사
-    // computeSewoonGanji(2024)=甲辰 가 아니라 입춘-aware SSOT 활성 연주(癸卯)여야
-    // 월운·일진·상담사 computeCurrentUnse 와 어긋나지 않는다(감사 Finding).
-    const out = await assembleTiers(
-      baseInput({
-        targetMonth: 1,
-        targetDay: 15,
-        targetDayIso: '2024-01-15',
-        now: new Date('2024-01-15T12:00:00Z'),
-      })
-    )
-    const p = getYearPillarForDate(new Date(Date.UTC(2024, 0, 15, 12)))
-    const expected = `${p.stem}${p.branch}`
-    expect(expected).toBe('癸卯') // 그레고리 근사(甲辰) 아님을 못박음
-    expect(out.year.sewoonGz.hanja).toBe(expected)
-    // 대운 티어 sewoonNow 도 연 티어와 동일 소스(입춘 활성 연주).
-    expect(out.decade.sewoonNow.gz.hanja).toBe(expected)
-  })
-
-  it('입춘 이후(6월)엔 그레고리 근사와 동일하다(회귀 없음)', async () => {
-    // FIXED_NOW = 2024-06-15 는 입춘 이후 → 사주년 2024 = 甲辰. 연·대운 세운 일치.
-    const out = await assembleTiers(baseInput())
-    expect(out.year.sewoonGz.hanja).toBe('甲辰')
-    expect(out.decade.sewoonNow.gz.hanja).toBe('甲辰')
-  })
-})
+// (세운 입춘 경계 SSOT 는 이제 assembleLifetime.thisYear 가 담당 —
+//  assembleLifetime.test.ts 로 이관.)
 
 describe('assembleTiers — scope=month (캘린더: 인생 곡선 생략)', () => {
-  it('month 스코프도 5티어 shape 을 전부 반환한다(타입/destiny 호환)', async () => {
+  it('month 스코프도 lifetime/month/day shape 을 반환한다', async () => {
     const out = await assembleTiers(baseInput({ scope: 'month' }))
     expect(out.lifetime).toBeDefined()
-    expect(out.decade).toBeDefined()
-    expect(out.year).toBeDefined()
     expect(out.month).toBeDefined()
     expect(out.day).toBeDefined()
   })

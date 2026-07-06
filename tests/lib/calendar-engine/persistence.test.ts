@@ -49,9 +49,9 @@ vi.mock('@/lib/calendar-engine/index', () => ({
 // Import AFTER mocks are registered.
 import {
   getOrBuildNatalContext,
-  getOrBuildYearCells,
   getOrBuildMonthCells,
   getFocusDayCell,
+  CALENDAR_ENGINE_VERSION,
 } from '@/lib/calendar-engine/persistence'
 
 const INPUT: BuildContextInput = {
@@ -75,7 +75,10 @@ beforeEach(() => {
 
 describe('getOrBuildNatalContext', () => {
   it('cache hit: engineSignature 일치 row 면 빌드 없이 캐시 data 반환', async () => {
-    natalFindUnique.mockResolvedValue({ engineSignature: 'v5', data: FAKE_NATAL })
+    natalFindUnique.mockResolvedValue({
+      engineSignature: CALENDAR_ENGINE_VERSION,
+      data: FAKE_NATAL,
+    })
     const res = await getOrBuildNatalContext(INPUT)
     expect(res).toBe(FAKE_NATAL)
     expect(buildNatalContext).not.toHaveBeenCalled()
@@ -91,7 +94,7 @@ describe('getOrBuildNatalContext', () => {
     expect(buildNatalContext).toHaveBeenCalledWith(INPUT)
     expect(natalUpsert).toHaveBeenCalledTimes(1)
     const arg = natalUpsert.mock.calls[0][0]
-    expect(arg.create.engineSignature).toBe('v5')
+    expect(arg.create.engineSignature).toBe(CALENDAR_ENGINE_VERSION)
   })
 
   it('cache miss(null row): 빌드 후 upsert', async () => {
@@ -123,7 +126,10 @@ describe('getOrBuildNatalContext', () => {
   })
 
   it('birthKey 가 입력에 결정적이다(같은 입력→같은 where.birthKey)', async () => {
-    natalFindUnique.mockResolvedValue({ engineSignature: 'v5', data: FAKE_NATAL })
+    natalFindUnique.mockResolvedValue({
+      engineSignature: CALENDAR_ENGINE_VERSION,
+      data: FAKE_NATAL,
+    })
     await getOrBuildNatalContext(INPUT)
     await getOrBuildNatalContext(INPUT)
     const k1 = natalFindUnique.mock.calls[0][0].where.birthKey
@@ -133,7 +139,10 @@ describe('getOrBuildNatalContext', () => {
   })
 
   it('다른 입력은 다른 birthKey 를 만든다', async () => {
-    natalFindUnique.mockResolvedValue({ engineSignature: 'v5', data: FAKE_NATAL })
+    natalFindUnique.mockResolvedValue({
+      engineSignature: CALENDAR_ENGINE_VERSION,
+      data: FAKE_NATAL,
+    })
     await getOrBuildNatalContext(INPUT)
     await getOrBuildNatalContext({ ...INPUT, gender: 'female' })
     const k1 = natalFindUnique.mock.calls[0][0].where.birthKey
@@ -142,69 +151,15 @@ describe('getOrBuildNatalContext', () => {
   })
 
   it('lunar/leap 옵션도 birthKey 에 반영된다', async () => {
-    natalFindUnique.mockResolvedValue({ engineSignature: 'v5', data: FAKE_NATAL })
+    natalFindUnique.mockResolvedValue({
+      engineSignature: CALENDAR_ENGINE_VERSION,
+      data: FAKE_NATAL,
+    })
     await getOrBuildNatalContext({ ...INPUT, calendarType: 'lunar', lunarLeap: true })
     await getOrBuildNatalContext({ ...INPUT, calendarType: 'lunar', lunarLeap: false })
     const k1 = natalFindUnique.mock.calls[0][0].where.birthKey
     const k2 = natalFindUnique.mock.calls[1][0].where.birthKey
     expect(k1).not.toBe(k2)
-  })
-})
-
-describe('getOrBuildYearCells', () => {
-  const CELLS = [cell('2026-01-01'), cell('2026-06-15')]
-
-  it('cache hit: row 있으면 빌드 없이 반환', async () => {
-    cellsFindUnique.mockResolvedValue({ data: CELLS })
-    const res = await getOrBuildYearCells(INPUT, FAKE_NATAL, 2026)
-    expect(res).toBe(CELLS)
-    expect(buildCalendar).not.toHaveBeenCalled()
-  })
-
-  it('cache miss: 연 범위로 빌드 후 upsert', async () => {
-    cellsFindUnique.mockResolvedValue(null)
-    buildCalendar.mockResolvedValue(CELLS)
-    cellsUpsert.mockResolvedValue({})
-    const res = await getOrBuildYearCells(INPUT, FAKE_NATAL, 2026)
-    expect(res).toBe(CELLS)
-    const range = buildCalendar.mock.calls[0][1]
-    expect(range.start).toBe('2026-01-01T00:00:00.000Z')
-    expect(range.end).toBe('2026-12-31T23:59:59.999Z')
-    expect(range.granularity).toBe('day')
-    expect(cellsUpsert).toHaveBeenCalledTimes(1)
-  })
-
-  it('monthKey 는 `${year}:optionsHash` 형태', async () => {
-    cellsFindUnique.mockResolvedValue({ data: CELLS })
-    await getOrBuildYearCells(INPUT, FAKE_NATAL, 2026)
-    const mk = cellsFindUnique.mock.calls[0][0].where.birthKey_monthKey.monthKey
-    expect(mk.startsWith('2026:')).toBe(true)
-  })
-
-  it('기본 옵션은 includeEvidence:true', async () => {
-    cellsFindUnique.mockResolvedValue(null)
-    buildCalendar.mockResolvedValue(CELLS)
-    cellsUpsert.mockResolvedValue({})
-    await getOrBuildYearCells(INPUT, FAKE_NATAL, 2026)
-    expect(buildCalendar.mock.calls[0][2]).toEqual({ includeEvidence: true })
-  })
-
-  it('read 실패는 fail-soft → 빌드 진행', async () => {
-    cellsFindUnique.mockRejectedValue(new Error('read fail'))
-    buildCalendar.mockResolvedValue(CELLS)
-    cellsUpsert.mockResolvedValue({})
-    const res = await getOrBuildYearCells(INPUT, FAKE_NATAL, 2026)
-    expect(res).toBe(CELLS)
-    expect(warn).toHaveBeenCalled()
-  })
-
-  it('write 실패는 fail-soft → 빌드 결과 반환', async () => {
-    cellsFindUnique.mockResolvedValue(null)
-    buildCalendar.mockResolvedValue(CELLS)
-    cellsUpsert.mockRejectedValue(new Error('write fail'))
-    const res = await getOrBuildYearCells(INPUT, FAKE_NATAL, 2026)
-    expect(res).toBe(CELLS)
-    expect(warn).toHaveBeenCalled()
   })
 })
 

@@ -17,8 +17,6 @@ import { useCallback, useRef, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { DestinypalShell } from '@/components/calendar/shell'
 import { LifetimeTier } from '@/components/calendar/tiers/LifetimeTier'
-import { DecadeTier } from '@/components/calendar/tiers/DecadeTier'
-import { YearTier } from '@/components/calendar/tiers/YearTier'
 import { MonthTier } from '@/components/calendar/tiers/MonthTier'
 import { DayTier } from '@/components/calendar/tiers/DayTier'
 import { useI18n } from '@/i18n/I18nProvider'
@@ -26,8 +24,6 @@ import { useI18n } from '@/i18n/I18nProvider'
 import type {
   DestinyUserSummary,
   DestinyLifetime,
-  DestinyDecade,
-  DestinyYear,
   DestinyMonth,
   DestinyDay,
 } from '@/types/calendar'
@@ -40,18 +36,6 @@ export interface PreviewClientProps {
   }
   user: DestinyUserSummary & { gyeokgukStatus?: string; rootStatus?: string }
   lifetime: DestinyLifetime
-  decade: DestinyDecade & {
-    crossActivations?: Array<{
-      signalId: string
-      name: string
-      sajuLine?: string
-      astroLine?: string
-      polarity: number
-      meaning?: string
-    }>
-    geokgukStatus?: string
-  }
-  year: DestinyYear
   month: DestinyMonth
   day: DestinyDay
   /**
@@ -66,8 +50,6 @@ export default function PreviewClient({
   topbar,
   user,
   lifetime,
-  decade,
-  year,
   month,
   day,
   dayFetchParams,
@@ -144,12 +126,6 @@ export default function PreviewClient({
     <DestinypalShell
       topbar={topbar}
       renderLife={({ onDive }) => <LifetimeTier user={user} lifetime={lifetime} onDive={onDive} />}
-      renderDecade={({ onRise, onDive }) => (
-        <DecadeTier user={user} decade={decade} onRise={onRise} onDive={onDive} />
-      )}
-      renderYear={({ onRise, onDive }) => (
-        <YearTier user={user} year={year} onRise={onRise} onDive={onDive} />
-      )}
       renderMonth={({ onRise, onFocusDay, canRise }) => (
         <MonthTier
           month={month}

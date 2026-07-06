@@ -2,12 +2,10 @@
    /calendar — Phase D 정식 라우트 (실 사용자 본명)
    ───────────────────────────────────────────────────────────
    세션·본명 가드 + NatalContext + cells + tier 어셈블은 loadTierData()
-   로 공유한다(/destiny 와 동일 경로). 이 라우트는 월/일 surface 만
-   렌더한다 — 인생·10년·1년은 /destiny 로 분리.
+   로 공유한다. 이 라우트는 월/일 surface 만 렌더한다 — 인생 전체는
+   /destiny 로 분리(10년·1년 티어는 제거됨).
 
-   tier 가시 범위는 SHOW_FULL_TIERS 로 제어:
-     · false → 월/일만 (그 달만 빌드, 저비용)
-     · true  → 5티어 전부 (1년 빌드)
+   항상 '그 달'만 빌드한다(저비용).
    ============================================================ */
 
 import PreviewClient from './preview/PreviewClient'
@@ -15,7 +13,6 @@ import BirthRequiredFallback from './birth-required'
 import BirthGate from '@/components/birth/BirthGate'
 import CounselorCTA from '@/components/report/CounselorCTA'
 import DailyFortunePushBanner from '@/components/push/DailyFortunePushBanner'
-import { SHOW_FULL_TIERS } from '@/components/calendar/tierConfig'
 import { loadTierData, parseBirthOverride } from './loadTierData'
 
 // 서버 컴포넌트 — Swiss Ephemeris 비용 서버에서 한 번에 치름.
@@ -27,26 +24,17 @@ type SP = Record<string, string | string[] | undefined>
 export default async function DestinypalPage({ searchParams }: { searchParams: Promise<SP> }) {
   // ?date=&time=&lat=&lng=&tz=&gender= 가 있으면 로그인 없이 그 사람 기준으로.
   const override = parseBirthOverride(await searchParams)
-  // 월/일만 보일 땐 그 달만 빌드. 5티어 전부면 1년 빌드.
-  const data = await loadTierData(SHOW_FULL_TIERS ? 'year' : 'month', override)
+  const data = await loadTierData(override)
   if (data.kind === 'login') return <BirthRequiredFallback reason="login" />
   if (data.kind === 'no-birth') return <BirthRequiredFallback reason="no-birth" />
   if (data.kind === 'rate-limited')
     return <BirthRequiredFallback reason="rate-limited" locale={data.lang} />
   if (data.kind === 'guest') return <BirthGate base="/calendar" locale={data.lang} />
 
-  const { topbar, user, lifetime, decade, year, month, day, lang } = data
+  const { topbar, user, lifetime, month, day, lang } = data
   return (
     <>
-      <PreviewClient
-        topbar={topbar}
-        user={user}
-        lifetime={lifetime}
-        decade={decade}
-        year={year}
-        month={month}
-        day={day}
-      />
+      <PreviewClient topbar={topbar} user={user} lifetime={lifetime} month={month} day={day} />
       {/* 매일 아침 오늘의 운세 푸시 옵트인 — VAPID 미설정/미지원이면 스스로 숨음 */}
       <DailyFortunePushBanner locale={lang} />
       <CounselorCTA

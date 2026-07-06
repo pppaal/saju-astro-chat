@@ -14,7 +14,8 @@ import { useI18n } from '@/i18n/I18nProvider'
 import { apiFetch } from '@/lib/api'
 import { tarotLogger } from '@/lib/logger'
 import { ShareTarotButton } from '@/components/tarot/ShareTarotButton'
-import { pickTeaser } from '@/components/tarot/shareCardData'
+import { bumpStreakForToday } from '@/lib/tarot/dailyStreak'
+import { cleanShareHook, pickKeyMessage } from '@/components/tarot/shareCardData'
 import type { ShareCardData } from '@/components/tarot/TarotShareCard'
 
 interface DailyReading {
@@ -59,6 +60,7 @@ export default function DailyTarotPage() {
   const [loading, setLoading] = useState(false)
   const [checking, setChecking] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [streak, setStreak] = useState<number | null>(null)
 
   const draw = useCallback(async () => {
     setError(null)
@@ -117,6 +119,13 @@ export default function DailyTarotPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  // 오늘 카드를 보게 되면(캐시/신규 무관) 연속 뽑기 스트릭을 갱신한다.
+  useEffect(() => {
+    if (!reading?.date) return
+    const n = bumpStreakForToday(reading.date)
+    if (n > 0) setStreak(n)
+  }, [reading?.date])
+
   // 공유 카드 상단 라벨이 이미 "오늘의 타로"라, 질문/푸터까지 같은 문구를 쓰면
   // 한 카드에 "오늘의 타로"가 세 번 박힌다. 질문은 날짜로, 푸터는 "오늘의 카드"로
   // 바꿔 중복을 없앤다.
@@ -127,6 +136,10 @@ export default function DailyTarotPage() {
         day: 'numeric',
       })
     : ''
+  // 데일리 라우트는 hook 을 날것으로 저장한다. 공유 카드(이미지)에선 일반 리딩과
+  // 동일하게 정리한다: 마크다운/따옴표 제거 + 길이 컷(cleanShareHook). 비면
+  // 본문 첫 문장으로 폴백. 이미지에 별표·따옴표가 그대로 박히는 걸 막는다.
+  const dailyHook = reading ? cleanShareHook(reading.hook) : ''
   const shareData: ShareCardData | null = reading
     ? {
         question: dateLabel,
@@ -138,11 +151,12 @@ export default function DailyTarotPage() {
             isReversed: reading.card.isReversed,
           },
         ],
-        keyMessage: reading.hook || reading.message || '',
+        keyMessage: dailyHook || pickKeyMessage(reading.message),
         // 데일리만 상단 라벨을 "오늘의 타로"로(일반 리딩은 "타로 리딩" 기본값).
         eyebrow: isKo ? '오늘의 타로' : "TODAY'S TAROT",
-        // 후크가 있을 때만 본문(message) 티저로 궁금증 한 줄.
-        teaser: reading.hook ? pickTeaser(reading.message) : undefined,
+        // 티저(본문 발췌)는 싣지 않는다 — 공유 이미지에서 "…"로 잘린 본문은
+        // 궁금증 갭이 아니라 "미완성"으로 읽힌다(스크린샷엔 클릭할 대상이 없음).
+        // 카드엔 완결된 후크 한 줄만. 본문은 페이지/유료 리딩에서 읽게 한다.
         isKo,
       }
     : null
@@ -227,6 +241,26 @@ export default function DailyTarotPage() {
           </div>
         ) : (
           <div style={{ marginTop: 32 }}>
+            {/* 연속 뽑기 스트릭 — 재방문 습관 루프. 2일부터 노출("연속"이 자연스럽게). */}
+            {streak && streak >= 2 ? (
+              <div
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  marginBottom: 20,
+                  padding: '7px 16px',
+                  borderRadius: 999,
+                  background: 'rgba(232,204,138,0.12)',
+                  border: '1px solid rgba(232,204,138,0.4)',
+                  color: GOLD,
+                  fontSize: 14,
+                  fontWeight: 700,
+                }}
+              >
+                🔥 {isKo ? `${streak}일 연속` : `${streak}-day streak`}
+              </div>
+            ) : null}
             <div
               style={{
                 width: 168,

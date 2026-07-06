@@ -27,20 +27,42 @@ const HANGUL = /[가-힣]/
 // (sibsin·element·gz.hanja 같은 *렌더 시 번역되거나 expert/hover 전담* 필드는
 //  제외 — 그건 표면 산문이 아니라 토큰이라 별도 계약이다.)
 const PROSE_KEYS = new Set([
-  'line', 'lineEn', 'tone', 'toneEn', 'headline', 'headlineEn',
-  'theme', 'themeEn', 'meaning', 'meaningEn', 'label', 'labelEn',
-  'daewoonText', 'sajuNote', 'sajuNoteEn', 'astroNote', 'astroNoteEn',
-  'body', 'bodyEn', 'intro', 'introEn',
+  'line',
+  'lineEn',
+  'tone',
+  'toneEn',
+  'headline',
+  'headlineEn',
+  'theme',
+  'themeEn',
+  'meaning',
+  'meaningEn',
+  'label',
+  'labelEn',
+  'daewoonText',
+  'sajuNote',
+  'sajuNoteEn',
+  'astroNote',
+  'astroNoteEn',
+  'body',
+  'bodyEn',
+  'intro',
+  'introEn',
 ])
 
-interface Leak { rule: string; key: string; text: string }
+interface Leak {
+  rule: string
+  key: string
+  text: string
+}
 
 function collect(node: unknown, key: string, out: Leak[]): void {
   if (node == null) return
   if (typeof node === 'string') {
     if (!PROSE_KEYS.has(key) || !node.trim()) return
     if (HANJA.test(node)) out.push({ rule: 'CJK-hanja-on-prose-surface', key, text: node })
-    if (key.endsWith('En') && HANGUL.test(node)) out.push({ rule: 'Hangul-in-EN-prose', key, text: node })
+    if (key.endsWith('En') && HANGUL.test(node))
+      out.push({ rule: 'Hangul-in-EN-prose', key, text: node })
     return
   }
   if (Array.isArray(node)) {
@@ -63,10 +85,19 @@ const PROFILES: Array<[string, string, 'male' | 'female']> = [
   ['2001-07-30', '21:10', 'male'],
 ]
 
-async function assembleFor(date: string, time: string, gender: 'male' | 'female', lang: 'ko' | 'en') {
+async function assembleFor(
+  date: string,
+  time: string,
+  gender: 'male' | 'female',
+  lang: 'ko' | 'en'
+) {
   const birth = {
-    birthDate: date, birthTime: time, gender,
-    latitude: LOC.lat, longitude: LOC.lon, timeZone: LOC.tz,
+    birthDate: date,
+    birthTime: time,
+    gender,
+    latitude: LOC.lat,
+    longitude: LOC.lon,
+    timeZone: LOC.tz,
   }
   const saju = calculateSajuData(date, time, gender, 'solar', LOC.tz)
   const natal = await buildNatalContext(birth, { saju })
@@ -76,11 +107,18 @@ async function assembleFor(date: string, time: string, gender: 'male' | 'female'
     { includeEvidence: true }
   )
   return assembleTiers({
-    natal, cells, lang,
+    natal,
+    cells,
+    lang,
     birthYear: Number(date.slice(0, 4)),
-    targetYear: 2026, targetMonth: 6, targetDay: 15, targetDayIso: '2026-06-15',
+    targetYear: 2026,
+    targetMonth: 6,
+    targetDay: 15,
+    targetDayIso: '2026-06-15',
     sex: gender === 'female' ? '여' : '남',
-    birthDisplay: `${date} ${time}`, whoBirthLine: `${date} ${time}`, place: 'Seoul',
+    birthDisplay: `${date} ${time}`,
+    whoBirthLine: `${date} ${time}`,
+    place: 'Seoul',
     focusDayCell: cells[0] ?? null,
   })
 }
@@ -91,13 +129,14 @@ describe('티어 표면 산문 무결성 (가드레일)', () => {
     for (const [date, time, gender] of PROFILES) {
       for (const lang of ['ko', 'en'] as const) {
         const t = await assembleFor(date, time, gender, lang)
-        collect({ lifetime: t.lifetime, decade: t.decade, year: t.year }, 'root', leaks)
+        // novice 산문 무결성은 인생 티어 표면만 대상 — 월/일 티어는 일진·십신
+        // 라벨에 raw 한자를 *의도적으로* 노출한다(각자 별도 규칙). (10년·1년 티어
+        // 제거로 lifetime 만 남음.)
+        collect({ lifetime: t.lifetime }, 'root', leaks)
       }
     }
     // 위반이 있으면 어떤 필드·문장인지 그대로 보여주고 실패한다.
-    const report = leaks
-      .map((l) => `  [${l.rule}] ${l.key}: ${l.text.slice(0, 90)}`)
-      .join('\n')
+    const report = leaks.map((l) => `  [${l.rule}] ${l.key}: ${l.text.slice(0, 90)}`).join('\n')
     expect(leaks, `표면 산문 누수 ${leaks.length}건:\n${report}`).toEqual([])
   }, 60_000)
 
@@ -110,8 +149,6 @@ describe('티어 표면 산문 무결성 (가드레일)', () => {
       const t = await assembleFor(date, time, gender, 'en')
       const lt = t.lifetime as { lifePattern?: { lineEn?: string } }
       const checks: Array<[string, string | undefined]> = [
-        ['year.headlineEn', (t.year as { headlineEn?: string }).headlineEn],
-        ['decade.headlineEn', (t.decade as { headlineEn?: string }).headlineEn],
         ['lifetime.lifePattern.lineEn', lt.lifePattern?.lineEn],
       ]
       for (const [name, val] of checks) {

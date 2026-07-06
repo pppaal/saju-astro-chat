@@ -173,12 +173,16 @@ export function toMonth(opts: ToMonthOptions): {
     }
   }
 
-  // converge mark
+  // converge 강조 — 현저도(✦/큰 날) 축이지 길흉(색) 축이 아니다. mark 를 'converge'
+  // 로 덮으면 그 날의 good/caution 색(그리고 cellMarkClass)이 사라져 그리드가 무채색이
+  // 되는데, goodDays/cautionDays 카운트엔 그대로 남아 헤더("좋은 날 N")와 그리드가
+  // 어긋난다(감사 U5). MonthTier 는 큰 날을 "제 색 유지 + ✦ 링"으로 그리므로(색=길흉,
+  // ✦=현저도 직교), 수렴일도 색은 밴드 그대로 두고 강도만 올린다. 수렴 자체의 현저도는
+  // keyDays·총평·✦ 링이 전한다.
   if (opts.converge?.date) {
     const convDay = parseInt(opts.converge.date.slice(8, 10), 10)
     const c = calendar.find((c) => c.d === convDay)
     if (c) {
-      c.mark = 'converge'
       c.intensity = Math.max(c.intensity, 0.9)
     }
   }

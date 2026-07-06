@@ -27,6 +27,26 @@ function truncate(text: string, max: number): string {
   return t.length > max ? `${t.slice(0, max - 1).trim()}…` : t
 }
 
+// 예산(글자수) 안에서 단어(어절) 경계까지만 남긴다 — 글자수로 뚝 자르면
+// "…찾아올 것 같은 느" 처럼 단어 중간에서 끊겨 깨져 보인다. 한국어(어절)·영어
+// 모두 공백이 경계이므로 마지막 공백까지만 남긴다(경계가 예산 절반보다 앞이면
+// 너무 짧아지니 하드컷 폴백). 끝에 남은 구두점은 정리. 말줄임표는 붙이지 않는다.
+function cutAtWord(text: string, budget: number): string {
+  const t = (text || '').trim()
+  if (t.length <= budget) return t
+  let cut = t.slice(0, budget)
+  const lastSpace = cut.lastIndexOf(' ')
+  if (lastSpace > budget * 0.5) cut = cut.slice(0, lastSpace)
+  return cut.replace(/[.!?。！？,，·\s]+$/, '').trim()
+}
+
+// 어절 경계 컷 + 말줄임표('…' 포함 최종 길이 ≤ max). 안 잘리면 원문 그대로.
+function truncateAtWord(text: string, max: number): string {
+  const t = (text || '').trim()
+  if (t.length <= max) return t
+  return `${cutAtWord(t, max - 1)}…`
+}
+
 // 공유 이미지엔 순수 텍스트만 박는다. 해석 프롬프트가 강조에 쓰는 `*별표*`,
 // `_밑줄_`, `` `코드` ``, `#헤더`, `~취소선` 마커가 이미지에 그대로 찍히지
 // 않게 출력단에서 제거한다. (프롬프트에 "마크다운 쓰지 마"를 박아도 모델이
@@ -64,8 +84,7 @@ export function cleanShareHook(text: string | undefined | null, max = 42): strin
     .replace(/["'”’」』)]+$/, '')
     .trim() // 감싼 따옴표
   s = s.replace(/[.!?。！？~\-—…\s]+$/, '').trim() // 끝 군더더기 구두점
-  if (s.length > max) s = `${s.slice(0, max - 1).trim()}…`
-  return s
+  return truncateAtWord(s, max) // 너무 길면 어절 경계에서 자름
 }
 
 // 해석 본문의 첫 문장(또는 폴백)을 한 줄 메시지로. 공유 이미지에 실명이
@@ -88,8 +107,7 @@ export function pickKeyMessage(source: string | undefined | null, max = 58): str
   let sentence = (match ? match[0] : s).trim()
   // 호명을 떼고 남은 영어 문장의 첫 글자를 대문자로 ("a new..." → "A new...").
   if (/^[a-z]/.test(sentence)) sentence = sentence[0].toUpperCase() + sentence.slice(1)
-  if (sentence.length > max) sentence = `${sentence.slice(0, max - 1).trim()}…`
-  return sentence
+  return truncateAtWord(sentence, max) // 문장이 max 보다 길면 어절 경계에서 자름
 }
 
 // 후크 아래에 깔 "해석 티저" — 본문 앞부분을 짧게 따 "…"로 끊어 궁금증을
@@ -112,9 +130,9 @@ export function pickTeaser(source: string | undefined | null, max = 100): string
     .trim()
   if (!s) return ''
   if (/^[a-z]/.test(s)) s = s[0].toUpperCase() + s.slice(1)
-  // 끊어서 궁금증 — max 안에서 자르고 "…" 를 붙인다(… 포함 길이 ≤ max).
-  if (s.length > max) s = s.slice(0, max - 1).trim()
-  s = s.replace(/[.!?。！？,，·\s]+$/, '').trim()
+  // 끊어서 궁금증 — 어절 경계로 자르고(단어 중간 끊김 방지) "…" 를 붙인다
+  // (… 포함 길이 ≤ max). 짧으면 그대로 두고 "…"만.
+  s = cutAtWord(s, max - 1)
   return s ? `${s}…` : ''
 }
 

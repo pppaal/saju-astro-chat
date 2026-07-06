@@ -37,8 +37,16 @@ import type { CalendarCell, CalendarBuildOptions, CalendarRange } from './types'
 //     cross-activation 추출기가 빌드 시 셀에 구우므로, 웜 캐시도 새 교차를 얻도록 bump.
 // v5: 일/월 근거 커버리지 확장 — 교차 매핑 31→57쌍(달 5·태양 5·수성 5·금성 3·
 //     화성 7·천을귀인×목성). 웜 캐시가 새 교차 근거를 얻도록 bump.
+// v6: ZR 정통화(감사 A-1·A-2) — ① 나이 앵커를 출생년 1/1 → 실제 생일로(12월생
+//     경계 최대 ~12개월 조기 발화 교정), ② Loosing-of-the-Bond 를 "7번째 사인"
+//     오정의에서 Valens 점프(한 바퀴 후 반대편 진입) 규칙으로 재구현. ZR 신호
+//     창·이벤트가 셀에 구워지므로 웜 캐시가 옛 경계를 계속 내보내지 않게 bump.
+// v7: 자시(子時) 이중계상 교정(감사 C2) — 자시가 자정을 넘겨(23~01시) 두 날 셀에
+//     걸려, 매일 셀이 자기 자시 + 전날 자시 새벽 꼬리(다른 時柱 천간) 두 개를 갖고
+//     hourly 층을 이중 계상해 일점수를 부풀렸다. 각 셀은 그날 생성 시진만 남기도록
+//     dedup — 점수 골격이 이동하므로 웜 캐시가 옛 점수를 계속 내보내지 않게 bump.
 // (export — dataRetention 스윕이 옛 버전 NatalContextCache 고아 행을 지우는 기준.)
-export const CALENDAR_ENGINE_VERSION = 'v5'
+export const CALENDAR_ENGINE_VERSION = 'v7'
 
 /**
  * 본명 입력 → 안정적 캐시 키. 위치는 4자리(≈11m)로 라운딩해 부동소수 잡음으로
@@ -94,60 +102,12 @@ export async function getOrBuildNatalContext(input: BuildContextInput): Promise<
 }
 
 /**
- * 그 해 전체 cells — DB 캐시 우선, miss 면 빌드 후 저장.
- *
- * monthKey 는 `${year}:${optionsHash}` 형태(year-full sentinel). 스키마 주석은
- * 'YYYY-MM' 을 상정하지만 페이지는 salience 를 *연 단위 모집단*으로 계산하므로
- * (index.ts groupIntoCells) 연을 통째로 캐싱해야 출력이 보존된다. 옵션
- * 해시(includeEvidence/enablePatterns/enabledExtractors)를 키에 접어 옵션이
- * 다른 caller 가 잘못된 cell 을 받는 잠복 충돌을 막는다.
- */
-export async function getOrBuildYearCells(
-  input: BuildContextInput,
-  natal: NatalContext,
-  year: number,
-  options: CalendarBuildOptions = { includeEvidence: true }
-): Promise<CalendarCell[]> {
-  const birthKey = birthKeyFor(input)
-  const monthKey = `${year}:${makeOptionsKey(options)}`
-
-  try {
-    const row = await prisma.calendarBuildCache.findUnique({
-      where: { birthKey_monthKey: { birthKey, monthKey } },
-    })
-    if (row) return row.data as unknown as CalendarCell[]
-  } catch (err) {
-    logger.warn('[calendar-cache] cells read failed — building fresh', err)
-  }
-
-  const range: CalendarRange = {
-    start: `${year}-01-01T00:00:00.000Z`,
-    end: `${year}-12-31T23:59:59.999Z`,
-    granularity: 'day',
-  }
-  const cells = await buildCalendar(natal, range, options)
-
-  try {
-    const data = cells as unknown as Prisma.InputJsonValue
-    await prisma.calendarBuildCache.upsert({
-      where: { birthKey_monthKey: { birthKey, monthKey } },
-      create: { birthKey, monthKey, data },
-      update: { data, builtAt: new Date() },
-    })
-  } catch (err) {
-    logger.warn('[calendar-cache] cells write failed — continuing uncached', err)
-  }
-
-  return cells
-}
-
-/**
  * 그 달만 cells — DB 캐시 우선, miss 면 빌드 후 저장.
  *
- * SHOW_FULL_TIERS=false(월/일만 표시) 경로용. 연 티어가 안 보이므로 1년을 굽지
- * 않고 *보고 있는 그 달*(~30일)만 계산한다 (연 7.8s → 월 ~0.3s). 점수·salience 는
- * 그 달 모집단 대비로 정규화된다("그 달 기준") — 연 빌드를 안 하므로 의도된 동작.
- * monthKey 는 `${year}-MM:${optionsHash}` (스키마 주석의 YYYY-MM 의미 그대로).
+ * 캘린더(월/일)는 1년을 굽지 않고 *보고 있는 그 달*(~30일)만 계산한다
+ * (연 7.8s → 월 ~0.3s). 점수·salience 는 그 달 모집단 대비로 정규화된다
+ * ("그 달 기준"). monthKey 는 `${year}-MM:${optionsHash}` (스키마 주석의
+ * YYYY-MM 의미 그대로). (10년·1년 티어 제거로 연 풀빌드 경로는 삭제됨.)
  */
 export async function getOrBuildMonthCells(
   input: BuildContextInput,
@@ -194,11 +154,11 @@ export async function getOrBuildMonthCells(
 /**
  * 포커스된 하루만 evidence 포함으로 빌드 — DB 캐시 우선.
  *
- * 연 캐시(getOrBuildYearCells)는 evidence 를 빼고 저장한다 — 365일 × 셀당 수백
- * 신호 × 원시 evidence 는 수 MB 블롭이라 캐시 읽기/쓰기·직렬화가 느려지는데,
- * 정작 evidence 를 쓰는 건 *포커스된 그 하루*(근거카드·교차·시진)뿐이다. 그래서
- * 그 하루만 1일 범위로 evidence 포함 빌드한다. (점수는 연 layered map 에서 오므로
- * 이 1일 빌드의 점수는 쓰지 않는다.)
+ * 월 캐시(getOrBuildMonthCells)는 evidence 를 빼고 저장한다 — 셀당 수백 신호 ×
+ * 원시 evidence 는 큰 블롭이라 캐시 읽기/쓰기·직렬화가 느려지는데, 정작 evidence
+ * 를 쓰는 건 *포커스된 그 하루*(근거카드·교차·시진)뿐이다. 그래서 그 하루만 1일
+ * 범위로 evidence 포함 빌드한다. (점수는 월 layered map 에서 오므로 이 1일 빌드의
+ * 점수는 쓰지 않는다.)
  *
  * 이 하루(보통 '오늘')는 같은 유저가 반복 방문하므로, 1일치 evidence(작은 블롭)는
  * `day:${dateIso}` 키로 따로 캐싱한다 — 매 방문 Swiss Ephemeris 재계산 방지.

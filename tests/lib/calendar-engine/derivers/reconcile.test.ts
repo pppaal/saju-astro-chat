@@ -73,4 +73,22 @@ describe('reconcileDayTone', () => {
     expect(reconcileDayTone({ score: 90, reasonNet: 0, ...base }).tense).toBe(false)
     expect(reconcileDayTone({ score: 20, reasonNet: 0, ...base }).bright).toBe(false)
   })
+
+  // verdict 는 flavor·score 를 *1회* 실어, 표면들이 tense/bright·day.score 를 다시
+  // 계산하다 어긋나는 것(감사 U1·#2·#3)을 원천 차단한다.
+  it('flavor 를 verdict 에 실어둔다 — tense/bright 면 volatile, 아니면 flat', () => {
+    // 평이한 중간밴드(신호 없음) → flat.
+    expect(reconcileDayTone({ score: 50, reasonNet: 0, ...base }).flavor).toBe('flat')
+    // 화해로 조정된 날(tense) → volatile.
+    expect(reconcileDayTone({ score: 50, reasonNet: -2, ...base }).flavor).toBe('volatile')
+    // 낮은밴드인데 우호 우세(bright) → volatile.
+    expect(reconcileDayTone({ score: 20, reasonNet: 5, ...base }).flavor).toBe('volatile')
+  })
+
+  it('보여주는 점수(score)를 verdict 에 실어 밴드·후크가 한 소스를 본다', () => {
+    const v = reconcileDayTone({ score: 73, reasonNet: 2, ...base })
+    expect(v.score).toBe(73)
+    // band 는 그 score 의 순수 함수 — 별도 scoreToBand 읽기가 필요 없다.
+    expect(v.band).toBe(scoreToBand(73))
+  })
 })

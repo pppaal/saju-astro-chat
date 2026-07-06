@@ -222,6 +222,45 @@ describe('deriveLifePattern', () => {
     expect(pb?.line).toContain('1999')
   })
 
+  it('거의 평탄한 곡선은 미세 잔물결을 증폭하지 않고 smooth 유지 (감사 A-4)', () => {
+    // 곡선 macro 진폭이 0.25σ 미만이면 min-max 스트레치의 노이즈 증폭을 막고
+    // smooth 로 확정한다. daeun favor 로는 late-bloomer 가 나오는 입력이라도,
+    // *거의 평탄한 곡선*이 함께 오면 곡선 게이트가 smooth 로 덮는다.
+    const saju = weakSaju(
+      daeun([
+        { at: 15, fav: false },
+        { at: 25, fav: false },
+        { at: 45, fav: true },
+        { at: 65, fav: true },
+        { at: 75, fav: true },
+      ])
+    )
+    // 만 90까지 거의 평탄(±0.05)한 macro — 진폭 0.1 < 0.25 게이트.
+    const flat = Array.from({ length: 90 }, (_, age) => ({
+      age,
+      macro: 0.5 + 0.05 * Math.sin(age / 7),
+    }))
+    const p = deriveLifePattern(saju as never, 30, { points: flat })
+    expect(p?.key).toBe('smooth')
+  })
+
+  it('진폭이 충분한 곡선은 형상대로 분류(게이트 통과) (감사 A-4)', () => {
+    const saju = weakSaju(
+      daeun([
+        { at: 15, fav: false },
+        { at: 45, fav: true },
+        { at: 65, fav: true },
+      ])
+    )
+    // 말년으로 크게 오르는 곡선(진폭 ~0.9) — 게이트 통과 후 late-bloomer/steady-rise.
+    const rising = Array.from({ length: 90 }, (_, age) => ({
+      age,
+      macro: age < 40 ? 0.05 : 0.05 + ((age - 40) / 50) * 0.9,
+    }))
+    const p = deriveLifePattern(saju as never, 30, { points: rising })
+    expect(['late-bloomer', 'steady-rise']).toContain(p?.key)
+  })
+
   it('uses 용신/기신 elements for medium (중화) strength', () => {
     // medium strength routes through yong/avoid sets rather than 억부 signs.
     const saju = {
