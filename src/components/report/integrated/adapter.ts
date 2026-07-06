@@ -524,6 +524,8 @@ const PILLAR_EN: Record<string, string> = {
 
 // ── 섹션 5: natalCross 교차 → 카드 rows ──────────────────────────────────
 export interface CrossRowOut {
+  /** 의미 키(identity/romance/wealth…) — 지역화 전 원본. clash 선택 우선순위에 쓴다. */
+  key: string
   category: string
   tone: CrossVerdict['tone']
   reason: string
@@ -791,6 +793,7 @@ export function buildCrossRows(
   const rows = visibleItems
     .filter((it): it is [keyof typeof CAT, CrossVerdict] => !!it[1])
     .map(([key, v]) => ({
+      key,
       category: CAT[key][lang],
       tone: v.tone,
       reason: v.reason[lang],

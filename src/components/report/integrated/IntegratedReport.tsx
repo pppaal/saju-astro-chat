@@ -169,6 +169,12 @@ const CATEGORY_MEANING: Record<string, BiLabel> = {
 // 매칭 분기에서만 켜져 중립 카르마 행을 놓치므로, 카테고리 기반으로 일관 판정한다.
 const KARMA_CATEGORIES = new Set(['공망/카르마', '성장 방향', 'Void / Karma', 'Growth Direction'])
 const isKarmaRow = (r: { category: string }) => KARMA_CATEGORIES.has(r.category)
+// 엇갈림(clash) 훅 선택 우선순위 — 서술자(left/right)를 내는 교차 축은 욕망(needs)·
+// 기질(temperament)·정체성(identity) 셋뿐이다. 정체성은 tension 이 가장 흔해 그대로
+// 두면 clash 가 '정체성'으로 몰린다(친구끼리 훅 겹침). 더 개인적이고 서로 독립적인
+// 욕망·기질을 정체성보다 앞세워, 사람마다 다른 축이 표면에 오도록 분산한다. 셋 다
+// 진짜 오행 엇갈림이라 억지가 아니다. 여기 없는 키는 뒤로 밀린다(rank = 길이).
+const CLASH_PRIORITY = ['needs', 'temperament', 'identity']
 // 카테고리 라벨(이미 lang 해석됨) → 평어 한 줄. 매칭 없으면 빈 문자열.
 const categoryMeaning = (category: string, lang: Lang): string =>
   CATEGORY_MEANING[category]?.[lang] ?? ''
@@ -577,6 +583,22 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
     )
     return set.slice(0, 3)
   })()
+  // 엇갈림(clash) 훅 선택 — 항상 배열 첫 tension(대개 '정체성')을 집으면 친구끼리
+  // clash 가 '정체성'으로 몰려 훅이 겹친다. 구체 생활영역(연애·재물·관계…)을 추상
+  // 정체성보다 앞세워, 사람마다 서로 다른 영역이 표면에 오게 분산한다. 모두 진짜
+  // tension 이므로(억지 X) 정직하다. 카르마(결핍 숙제) 축은 '둘 다 진짜 너' 훅이
+  // 아니라 제외. 우선순위에 없는 tension 은 뒤로, 그래도 없으면 첫 tension 폴백.
+  const clashTension = (() => {
+    const cand = (cross?.rows ?? []).filter(
+      (r) => r.tone === 'tension' && r.left && r.right && r.key !== 'karma'
+    )
+    if (cand.length === 0) return null
+    const rank = (k: string | undefined): number => {
+      const i = CLASH_PRIORITY.indexOf(k ?? '')
+      return i === -1 ? CLASH_PRIORITY.length : i
+    }
+    return [...cand].sort((a, b) => rank(a.key) - rank(b.key))[0] ?? null
+  })()
   const viral = buildViralSummary({
     dayMaster: S.dayMaster,
     ascTrait: A.ascendant.sign ? (SIGN_TRAIT[abbr(A.ascendant.sign)]?.[lang] ?? null) : null,
@@ -592,8 +614,8 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
     hasTension: (cross?.rows ?? []).some((r) => r.tone === 'tension'),
     // 일주(60갑자) 별명 — 십성×강약만으론 친구끼리 카드 문장이 겹쳐 60-way 축 추가.
     iljuCharacter: ilju?.character ?? null,
-    // 동·서양이 실제로 엇갈린 지점(서술자 있는 tension 1위) — 카드 ⚡ 현실 모순 훅.
-    topTension: (cross?.rows ?? []).find((r) => r.tone === 'tension' && r.left && r.right) ?? null,
+    // 동·서양이 실제로 엇갈린 지점(우선순위로 고른 tension) — 카드 ⚡ 현실 모순 훅.
+    topTension: clashTension,
     lang,
   })
 

@@ -109,6 +109,55 @@ describe('viralArchetype', () => {
     )
   })
 
+  it('buildViralSummary — 둘째 문장이 일간 오행별로 달라진다(친구끼리 충돌 완화)', () => {
+    // 같은 십성·강약이라도 일간 오행이 다르면 tempo 문장이 갈린다.
+    const mk = (dm: string) =>
+      buildViralSummary({
+        dayMaster: dm,
+        strengths: [],
+        resonant: [],
+        dominantSibsin: '정재',
+        strength: 'strong',
+        lang: 'ko' as const,
+      })!.oneLiner
+    const wood = mk('甲')
+    const fire = mk('丙')
+    const water = mk('壬')
+    // 첫 문장(정재 결)은 같고 둘째(오행 tempo)만 달라야 셋 다 서로 다르다.
+    expect(new Set([wood, fire, water]).size).toBe(3)
+    // en 면에 한글 없음(글로벌)
+    const en = buildViralSummary({
+      dayMaster: '辛',
+      strengths: [],
+      resonant: [],
+      dominantSibsin: '편재',
+      strength: 'weak',
+      lang: 'en',
+    })!
+    expect(HANGUL.test(en.oneLiner)).toBe(false)
+  })
+
+  it('buildViralSummary — 지배 십성이 없으면 강약 폴백 문장(오행 tempo 미적용)', () => {
+    // sib 없으면 첫 문장이 archetype 라 오행 tempo 와 겹칠 수 있어 강약 3종 폴백.
+    const wood = buildViralSummary({
+      dayMaster: '甲',
+      strengths: [],
+      resonant: [],
+      strength: 'strong',
+      lang: 'ko',
+    })!.oneLiner
+    const fire = buildViralSummary({
+      dayMaster: '丙',
+      strengths: [],
+      resonant: [],
+      strength: 'strong',
+      lang: 'ko',
+    })!.oneLiner
+    // 폴백 강약 문장은 오행과 무관하게 동일 → 둘째 문장이 같다.
+    expect(wood.endsWith('방향만 정하면 끝까지 가는 편이에요.')).toBe(true)
+    expect(fire.endsWith('방향만 정하면 끝까지 가는 편이에요.')).toBe(true)
+  })
+
   it('pickHeadlineSibsin — 명식 전체 최빈 십성을 주도로 뽑는다(일지 아님)', () => {
     // 최빈값(정재 3)이 2 이상이면 그것 — 일지가 편관이어도 헤드라인은 정재.
     expect(pickHeadlineSibsin({ 정재: 3, 편관: 1, 식신: 1, 정인: 1 }, '식신', '편관')).toBe('정재')

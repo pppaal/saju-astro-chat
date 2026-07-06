@@ -21,6 +21,8 @@ import s from './IntegratedReport.module.css'
 export type Lang = 'ko' | 'en'
 
 export interface CrossRow {
+  /** 의미 키(identity/romance/wealth…) — 지역화 전 원본. clash 선택 우선순위용(옵셔널). */
+  key?: string
   category: string
   tone: 'resonant' | 'complement' | 'tension' | 'neutral'
   reason: string
