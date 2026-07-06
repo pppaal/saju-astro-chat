@@ -14,7 +14,7 @@ import { useI18n } from '@/i18n/I18nProvider'
 import { apiFetch } from '@/lib/api'
 import { tarotLogger } from '@/lib/logger'
 import { ShareTarotButton } from '@/components/tarot/ShareTarotButton'
-import { pickTeaser } from '@/components/tarot/shareCardData'
+import { pickTeaser, cleanShareHook, pickKeyMessage } from '@/components/tarot/shareCardData'
 import type { ShareCardData } from '@/components/tarot/TarotShareCard'
 
 interface DailyReading {
@@ -127,6 +127,10 @@ export default function DailyTarotPage() {
         day: 'numeric',
       })
     : ''
+  // 데일리 라우트는 hook 을 날것으로 저장한다. 공유 카드(이미지)에선 일반 리딩과
+  // 동일하게 정리한다: 마크다운/따옴표 제거 + 길이 컷(cleanShareHook). 비면
+  // 본문 첫 문장으로 폴백. 이미지에 별표·따옴표가 그대로 박히는 걸 막는다.
+  const dailyHook = reading ? cleanShareHook(reading.hook) : ''
   const shareData: ShareCardData | null = reading
     ? {
         question: dateLabel,
@@ -138,11 +142,12 @@ export default function DailyTarotPage() {
             isReversed: reading.card.isReversed,
           },
         ],
-        keyMessage: reading.hook || reading.message || '',
+        keyMessage: dailyHook || pickKeyMessage(reading.message),
         // 데일리만 상단 라벨을 "오늘의 타로"로(일반 리딩은 "타로 리딩" 기본값).
         eyebrow: isKo ? '오늘의 타로' : "TODAY'S TAROT",
-        // 후크가 있을 때만 본문(message) 티저로 궁금증 한 줄.
-        teaser: reading.hook ? pickTeaser(reading.message) : undefined,
+        // 후크가 있을 때만 본문 티저로 궁금증 한 줄. 1080 카드에 안정적으로
+        // 들어오도록 짧게(72자) — 길면 하단 브랜드/URL 이 프레임 밖으로 밀린다.
+        teaser: dailyHook ? pickTeaser(reading.message, 72) : undefined,
         isKo,
       }
     : null
