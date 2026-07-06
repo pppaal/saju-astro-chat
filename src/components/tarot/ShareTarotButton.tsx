@@ -13,6 +13,7 @@ import * as htmlToImage from 'html-to-image'
 import { Share2, Download, Loader2, X, Link2, Check } from 'lucide-react'
 import { apiFetch } from '@/lib/api'
 import { tarotLogger } from '@/lib/logger'
+import { makeShareQr } from '@/lib/share/qr'
 import { TarotShareCard, SHARE_CARD_SIZE, type ShareCardData } from './TarotShareCard'
 
 interface ShareTarotButtonProps {
@@ -46,6 +47,7 @@ export function ShareTarotButton({ data: shareData, language, body }: ShareTarot
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [blob, setBlob] = useState<Blob | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [qrDataUrl, setQrDataUrl] = useState<string | undefined>(undefined)
   // 링크 공유: 'idle' | 'creating'(토큰 발급 중) | 'copied'(클립보드 복사 완료)
   const [linkPhase, setLinkPhase] = useState<'idle' | 'creating' | 'copied'>('idle')
   // 빠른 더블클릭으로 토큰이 두 번 발급되지 않게 하는 동기 가드(state 는 비동기).
@@ -136,7 +138,11 @@ export function ShareTarotButton({ data: shareData, language, body }: ShareTarot
     const node = cardRef.current
     if (!node) return
     try {
-      await preloadImages([...shareData.cards.map((c) => c.image), '/logo/logo.png'])
+      await preloadImages([
+        ...shareData.cards.map((c) => c.image),
+        '/logo/logo.png',
+        ...(qrDataUrl ? [qrDataUrl] : []),
+      ])
       // 폰트/레이아웃 안정화를 위해 한 프레임 양보.
       await new Promise((r) => requestAnimationFrame(() => r(null)))
       const out = await htmlToImage.toBlob(node, {
@@ -160,7 +166,7 @@ export function ShareTarotButton({ data: shareData, language, body }: ShareTarot
       )
       setPhase('idle')
     }
-  }, [shareData.cards, isKo])
+  }, [shareData.cards, isKo, qrDataUrl])
 
   // 'rendering' 단계에서 카드가 DOM 에 마운트된 뒤 캡처.
   useEffect(() => {
@@ -176,8 +182,10 @@ export function ShareTarotButton({ data: shareData, language, body }: ShareTarot
     }
   }, [phase, capture])
 
-  const onClickShare = () => {
+  const onClickShare = async () => {
     setError(null)
+    // 캡처 전에 QR 을 먼저 만들어 카드에 실어 보낸다(다음 렌더에 포함되게).
+    setQrDataUrl(await makeShareQr('/free?s=card'))
     setPhase('rendering')
   }
 
@@ -272,7 +280,7 @@ export function ShareTarotButton({ data: shareData, language, body }: ShareTarot
             zIndex: -1,
           }}
         >
-          <TarotShareCard ref={cardRef} data={shareData} />
+          <TarotShareCard ref={cardRef} data={{ ...shareData, qrDataUrl }} />
         </div>
       )}
 

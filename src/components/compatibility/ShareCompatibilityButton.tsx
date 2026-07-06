@@ -15,6 +15,7 @@ import * as htmlToImage from 'html-to-image'
 import { Share2, Download, Loader2, X, Link2, Check } from 'lucide-react'
 import { apiFetch } from '@/lib/api'
 import { logger } from '@/lib/logger'
+import { makeShareQr } from '@/lib/share/qr'
 import {
   CompatShareCard,
   COMPAT_SHARE_CARD_SIZE,
@@ -43,6 +44,7 @@ export function ShareCompatibilityButton({
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [blob, setBlob] = useState<Blob | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [qrDataUrl, setQrDataUrl] = useState<string | undefined>(undefined)
   // 링크 공유: 'idle' | 'creating' | 'copied'
   const [linkPhase, setLinkPhase] = useState<'idle' | 'creating' | 'copied'>('idle')
   // 더블클릭으로 토큰이 두 번 발급되지 않게 하는 동기 가드.
@@ -130,6 +132,15 @@ export function ShareCompatibilityButton({
     const node = cardRef.current
     if (!node) return
     try {
+      // QR(있으면) 을 먼저 디코드해 빈 칸 캡처 방지.
+      if (qrDataUrl) {
+        await new Promise<void>((res) => {
+          const img = new Image()
+          img.onload = () => res()
+          img.onerror = () => res()
+          img.src = qrDataUrl
+        })
+      }
       // 폰트/레이아웃 안정화를 위해 한 프레임 양보(외부 이미지 의존 없음).
       await new Promise((r) => requestAnimationFrame(() => r(null)))
       const out = await htmlToImage.toBlob(node, {
@@ -153,7 +164,7 @@ export function ShareCompatibilityButton({
       )
       setPhase('idle')
     }
-  }, [isKo])
+  }, [isKo, qrDataUrl])
 
   // 'rendering' 단계에서 카드가 DOM 에 마운트된 뒤 캡처.
   useEffect(() => {
@@ -168,9 +179,11 @@ export function ShareCompatibilityButton({
     }
   }, [phase, capture])
 
-  const onClickShare = () => {
+  const onClickShare = async () => {
     setError(null)
     trackFunnel('compat_free.share_clicked')
+    // 캡처 전에 QR 을 먼저 만들어 카드에 실어 보낸다(무료 궁합 진입점으로 유입).
+    setQrDataUrl(await makeShareQr('/compatibility/free?s=card'))
     setPhase('rendering')
   }
 
@@ -273,7 +286,7 @@ export function ShareCompatibilityButton({
             zIndex: -1,
           }}
         >
-          <CompatShareCard ref={cardRef} data={data} />
+          <CompatShareCard ref={cardRef} data={{ ...data, qrDataUrl }} />
         </div>
       ) : null}
 
