@@ -36,6 +36,8 @@ const FUNNEL_EVENTS = [
   'compat_free.invite_prefilled',
   'compat_free.invite_converted',
   'integrated_report.share_clicked',
+  'integrated_report.invite_landed',
+  'integrated_report.invite_converted',
 ] as const
 
 const funnelSchema = z.object({ event: z.enum(FUNNEL_EVENTS) })

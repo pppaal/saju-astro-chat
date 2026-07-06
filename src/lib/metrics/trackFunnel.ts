@@ -21,6 +21,10 @@ export type FunnelEvent =
   | 'compat_free.invite_prefilled'
   | 'compat_free.invite_converted'
   | 'integrated_report.share_clicked'
+  // 리포트 바이럴 루프 — 공유 링크(/r)로 온 친구가 리포트 랜딩→자기 리포트 완주.
+  // k_report = share_clicked→invite_landed→invite_converted 로 계산(궁합과 대칭).
+  | 'integrated_report.invite_landed'
+  | 'integrated_report.invite_converted'
 
 export function trackFunnel(event: FunnelEvent): void {
   try {
