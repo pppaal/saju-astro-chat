@@ -19,10 +19,11 @@
    ============================================================ */
 
 import { createHash } from 'node:crypto'
-import { prisma, Prisma } from '@/lib/db/prisma'
+import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/logger'
 import { buildNatalContext, type BuildContextInput } from './context/build'
 import { buildCalendar, makeOptionsKey } from './index'
+import { encodeBlob, decodeBlob } from './blobCodec'
 import type { NatalContext } from './context/types'
 import type { CalendarCell, CalendarBuildOptions, CalendarRange } from './types'
 
@@ -79,7 +80,7 @@ export async function getOrBuildNatalContext(input: BuildContextInput): Promise<
     // birthKey 에 이미 버전이 접혀 있어 engineSignature 불일치 row 는 사실상 안
     // 나오지만, 방어적으로 한 번 더 검증한다.
     if (row && row.engineSignature === CALENDAR_ENGINE_VERSION) {
-      return row.data as unknown as NatalContext
+      return decodeBlob<NatalContext>(row.data)
     }
   } catch (err) {
     logger.warn('[calendar-cache] natal read failed — building fresh', err)
@@ -88,7 +89,7 @@ export async function getOrBuildNatalContext(input: BuildContextInput): Promise<
   const natal = await buildNatalContext(input)
 
   try {
-    const data = natal as unknown as Prisma.InputJsonValue
+    const data = encodeBlob(natal)
     await prisma.natalContextCache.upsert({
       where: { birthKey },
       create: { birthKey, engineSignature: CALENDAR_ENGINE_VERSION, data },
@@ -124,7 +125,7 @@ export async function getOrBuildMonthCells(
     const row = await prisma.calendarBuildCache.findUnique({
       where: { birthKey_monthKey: { birthKey, monthKey } },
     })
-    if (row) return row.data as unknown as CalendarCell[]
+    if (row) return decodeBlob<CalendarCell[]>(row.data)
   } catch (err) {
     logger.warn('[calendar-cache] month cells read failed — building fresh', err)
   }
@@ -138,7 +139,7 @@ export async function getOrBuildMonthCells(
   const cells = await buildCalendar(natal, range, options)
 
   try {
-    const data = cells as unknown as Prisma.InputJsonValue
+    const data = encodeBlob(cells)
     await prisma.calendarBuildCache.upsert({
       where: { birthKey_monthKey: { birthKey, monthKey } },
       create: { birthKey, monthKey, data },
@@ -176,7 +177,7 @@ export async function getFocusDayCell(
       where: { birthKey_monthKey: { birthKey, monthKey } },
     })
     if (row) {
-      const cached = row.data as unknown as CalendarCell[]
+      const cached = decodeBlob<CalendarCell[]>(row.data)
       return cached.find((c) => c.datetime.slice(0, 10) === dateIso) ?? cached[0] ?? null
     }
   } catch (err) {
@@ -191,7 +192,7 @@ export async function getFocusDayCell(
   try {
     const cells = await buildCalendar(natal, range, { includeEvidence: true })
     try {
-      const data = cells as unknown as Prisma.InputJsonValue
+      const data = encodeBlob(cells)
       await prisma.calendarBuildCache.upsert({
         where: { birthKey_monthKey: { birthKey, monthKey } },
         create: { birthKey, monthKey, data },
