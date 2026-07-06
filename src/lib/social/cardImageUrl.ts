@@ -14,6 +14,8 @@ export function socialCardImageUrl(input: {
   title: string
   hook: string
   locale: 'ko' | 'en'
+  /** 배경 글리프(간지/오행 한자 등) — 없으면 생략. */
+  glyph?: string
 }): string {
   const p = new URLSearchParams({
     v: input.category,
@@ -21,5 +23,6 @@ export function socialCardImageUrl(input: {
     h: input.hook.slice(0, 140),
     lang: input.locale,
   })
+  if (input.glyph) p.set('g', input.glyph.slice(0, 4))
   return `/api/social/card?${p.toString()}`
 }

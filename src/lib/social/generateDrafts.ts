@@ -49,7 +49,12 @@ interface Subject {
   /** 타로만 이미지 있음. */
   image?: string
   isReversed?: boolean
+  /** 카드 배경 글리프(한자/간지) — 버티컬 정체성을 시각화하는 워터마크. */
+  glyph?: string
 }
+
+// 오행(한글) → 한자. 카드 글리프·강조에 쓴다.
+const ELEMENT_HANJA: Record<string, string> = { 목: '木', 화: '火', 토: '土', 금: '金', 수: '水' }
 
 // 타로 — 기존 "오늘의 카드" 추첨 그대로 (데일리 타로와 같은 덱/역방향 확률).
 // 시드는 구버전과 동일한 'social:${date}' 를 유지 — 같은 날 재생성해도 카드가
@@ -106,6 +111,7 @@ function sajuSubject(date: string): Subject {
   return {
     nameKo: `오늘의 일진 ${ganzhiKo}일 (${ganzhiHanja})`,
     nameEn: `Day pillar ${ganzhiHanja}`,
+    glyph: ganzhiHanja,
     keywordsKo: [
       `일간 ${STEM_HANGUL[stemIndex]} (${stem.element}·${stem.yin_yang})`,
       `일지 ${BRANCH_HANGUL[branchIndex]} (${branch.element}·${animal}띠 기운)`,
@@ -151,6 +157,7 @@ function astrologySubject(date: string): Subject {
   return {
     nameKo: `오늘의 별자리 스포트라이트: ${sign.ko}`,
     nameEn: `Sign spotlight: ${sign.en}`,
+    glyph: '星',
     keywordsKo: [sign.ko, theme.ko, '출생차트', '트랜짓'],
     keywordsEn: [sign.en, theme.en, 'natal chart', 'transits'],
   }
@@ -216,6 +223,7 @@ function compatibilitySubject(date: string): Subject {
   return {
     nameKo: theme.ko,
     nameEn: theme.en,
+    glyph: '緣',
     keywordsKo: ['궁합', '사주 커플 분석', '오행 상성'],
     keywordsEn: ['compatibility', 'synastry', 'five elements'],
   }
@@ -256,6 +264,7 @@ function calendarSubject(date: string): Subject {
   return {
     nameKo: `오늘(${ganzhiKo}일)은 ${angle.ko}? — ${stem.element}(${ELEMENT_EN[stem.element]}) 기운`,
     nameEn: `Today (${stem.name}${BRANCHES[branchIndex].name}): ${angle.en}`,
+    glyph: ELEMENT_HANJA[stem.element] || '運',
     keywordsKo: [
       `오늘은 ${stem.element} 기운이 ${timing} 날`,
       `일진 ${ganzhiKo}`,
@@ -486,6 +495,7 @@ async function generateOne(
         title: locale === 'ko' ? subject.nameKo : subject.nameEn,
         hook: (parsed.hook || '').trim() || (locale === 'ko' ? subject.nameKo : subject.nameEn),
         locale,
+        glyph: subject.glyph,
       }),
     isReversed: subject.isReversed ?? false,
     hook: (parsed.hook || '').trim(),
