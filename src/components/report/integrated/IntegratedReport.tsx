@@ -72,7 +72,7 @@ import PlanetDetail from './detail/PlanetDetail'
 import HouseDetail from './detail/HouseDetail'
 import AspectDetail from './detail/AspectDetail'
 import ViralTopCard from './viral/ViralTopCard'
-import { buildViralSummary, normalizeStrength } from './viral/viralArchetype'
+import { buildViralSummary, normalizeStrength, pickHeadlineSibsin } from './viral/viralArchetype'
 import { ShareReportButton } from './viral/ShareReportButton'
 
 export type { Lang } from './integratedReportLabels'
@@ -491,10 +491,12 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
   const extras = data as typeof data & {
     geokgukMeta?: { confidence?: 'high' | 'medium' | 'low'; fallback?: boolean }
     sibsinCategoryCount?: Record<string, number>
+    sibsinCount?: Record<string, number>
     isMinor?: boolean
   }
   const geokgukMeta = extras.geokgukMeta
   const sibsinCategoryCount = extras.sibsinCategoryCount
+  const sibsinCount = extras.sibsinCount
   // 만 14세 미만 — 연애/배우자 슬롯을 연령 맞춤 문구로 reframe(아동 부적합 방지).
   const isMinor = !!extras.isMinor
   const t = (k: keyof typeof UI): string => UI[k][lang]
@@ -554,6 +556,14 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
           ? 'dominant'
           : 'balanced'
   const sibsinBlock = domCategory ? getSibsinCategory(domCategory, sibsinState, lang) : null
+  // 바이럴 헤드라인용 "주도 십성" — §02 카드(일지=배우자궁)와 분리한다(C1). 헤드라인은
+  // 정체를 대표해야 하므로 명식 전체 십성 개수의 최빈값을 쓰고, 카운트가 없으면
+  // 월간(월령) → 일지 순으로 폴백한다.
+  const headlineSibsin = pickHeadlineSibsin(
+    sibsinCount,
+    S.pillars.month.sibsinStem,
+    S.pillars.day.sibsinBranch
+  )
   // §01 일주 원형 — 일간+일지 간지 → ilju-60 사전.
   const dayGanji = `${S.pillars.day.stem}${S.pillars.day.branch}`
   const ilju = getIljuArchetype(dayGanji, lang)
@@ -576,8 +586,9 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
       .map((r) => r.category),
     yongsinElement: S.yongsin.primary,
     strength: S.strength,
-    // 차트 합성 헤드라인 — 지배 십성으로 사람마다 다른 유형/한 줄, 마찰 있으면 콕 집는 줄.
-    dominantSibsin: domSibsinName,
+    // 차트 합성 헤드라인 — 명식 전체 주도 십성으로 사람마다 다른 유형/한 줄, 마찰 있으면
+    // 콕 집는 줄. 일지(배우자궁)가 아니라 최빈 십성을 써야 "완전 나"가 정체와 맞는다(C1).
+    dominantSibsin: headlineSibsin,
     hasTension: (cross?.rows ?? []).some((r) => r.tone === 'tension'),
     // 일주(60갑자) 별명 — 십성×강약만으론 친구끼리 카드 문장이 겹쳐 60-way 축 추가.
     iljuCharacter: ilju?.character ?? null,

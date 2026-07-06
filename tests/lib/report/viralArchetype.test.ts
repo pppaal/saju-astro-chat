@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest'
 import {
   getArchetype,
   buildViralSummary,
+  pickHeadlineSibsin,
   ARCHETYPE_BY_STEM,
   PARTNER_BY_ELEMENT,
 } from '@/components/report/integrated/viral/viralArchetype'
@@ -106,6 +107,30 @@ describe('viralArchetype', () => {
     expect(buildViralSummary({ ...base, dominantSibsin: 'XX', hasTension: true })!.name).toBe(
       getArchetype('甲')!.name.ko
     )
+  })
+
+  it('pickHeadlineSibsin — 명식 전체 최빈 십성을 주도로 뽑는다(일지 아님)', () => {
+    // 최빈값(정재 3)이 2 이상이면 그것 — 일지가 편관이어도 헤드라인은 정재.
+    expect(pickHeadlineSibsin({ 정재: 3, 편관: 1, 식신: 1, 정인: 1 }, '식신', '편관')).toBe('정재')
+  })
+
+  it('pickHeadlineSibsin — 동률이면 월간(월령) 십성을 우선한다', () => {
+    // 상관·정재 둘 다 2 → 월간이 정재면 정재.
+    expect(pickHeadlineSibsin({ 상관: 2, 정재: 2 }, '정재', '상관')).toBe('정재')
+    // 월간이 동률에 없으면 SIBSIN_NAMES 순(상관이 정재보다 앞).
+    expect(pickHeadlineSibsin({ 상관: 2, 정재: 2 }, '비견', '정재')).toBe('상관')
+  })
+
+  it('pickHeadlineSibsin — 지배(≥2)가 없으면 월간 → 일지 순 폴백', () => {
+    // 전부 1개(고른 명식): count 로는 못 정함 → 월간 십성.
+    expect(pickHeadlineSibsin({ 편재: 1, 정관: 1, 편인: 1 }, '정관', '편재')).toBe('정관')
+    // 월간이 유효 십성이 아니면(일간 자리 '日干' 등) 일지로.
+    expect(pickHeadlineSibsin({ 편재: 1 }, '日干', '편재')).toBe('편재')
+    // 카운트 자체가 없어도(구데이터) 폴백만으로 동작.
+    expect(pickHeadlineSibsin(undefined, '정인', '상관')).toBe('정인')
+    // 아무 재료도 없으면 null → 헤드라인이 일간 archetype 으로 폴백.
+    expect(pickHeadlineSibsin(undefined, null, null)).toBeNull()
+    expect(pickHeadlineSibsin({}, '', '')).toBeNull()
   })
 
   it('유형 매칭이 없으면 null (카드 자동 생략)', () => {

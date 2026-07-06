@@ -176,6 +176,55 @@ export function getArchetype(dayMaster: string): Archetype | null {
   return key ? (ARCHETYPE_BY_STEM[key] ?? null) : null
 }
 
+// 헤드라인 합성에 쓸 수 있는 십성 10종(정재·상관 등). count 키·라벨이 이 집합.
+const SIBSIN_NAMES = [
+  '비견',
+  '겁재',
+  '식신',
+  '상관',
+  '편재',
+  '정재',
+  '편관',
+  '정관',
+  '편인',
+  '정인',
+] as const
+
+/**
+ * 헤드라인용 "주도 십성" 선택 — 바이럴 한 줄이 "완전 나"가 되려면 그 사람의
+ * *정체*를 대표하는 십성이어야 한다. 일지(배우자궁) 십성은 관계 자리라 정체
+ * 라벨엔 맞지 않으므로(C1), 명식 전체 십성 개수(count)의 최빈값을 쓴다.
+ *   - count 최빈값이 2 이상이면 그것(정체를 지배하는 십성).
+ *   - 동률이면 월간(월령 근접, 격국의 자리) 십성을 우선한다.
+ *   - 지배(≥2)가 없으면(고른 명식) 월간 → 일지 십성 순으로 폴백.
+ * 순수 함수 — 카운트 없으면(구데이터) 폴백만으로 동작, 매칭 없으면 null.
+ */
+export function pickHeadlineSibsin(
+  count: Record<string, number> | null | undefined,
+  monthStemSibsin?: string | null,
+  dayBranchSibsin?: string | null
+): string | null {
+  if (count) {
+    let best: string | null = null
+    let bestN = 0
+    for (const n of SIBSIN_NAMES) {
+      const c = count[n] ?? 0
+      if (c > bestN || (c === bestN && c > 0 && n === monthStemSibsin)) {
+        bestN = c
+        best = n
+      }
+    }
+    if (best && bestN >= 2) return best
+  }
+  if (monthStemSibsin && (SIBSIN_NAMES as readonly string[]).includes(monthStemSibsin)) {
+    return monthStemSibsin
+  }
+  if (dayBranchSibsin && (SIBSIN_NAMES as readonly string[]).includes(dayBranchSibsin)) {
+    return dayBranchSibsin
+  }
+  return null
+}
+
 // ── 차트 합성 헤드라인 ─────────────────────────────────────────────────────
 // "완전 나"는 버킷 라벨이 아니라 그 사람만의 디테일에서 온다. 일간 archetype 을
 // 그 사람의 지배 십성(domSibsin)으로 합성해 헤드라인을 차트별로 가른다:
