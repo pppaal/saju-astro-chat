@@ -60,10 +60,10 @@ export async function GET(req: Request): Promise<Response> {
   const glyph = clamp(url.searchParams.get('g') || '', 4)
   const accent = ACCENT[v]
   const soft = SOFT[v]
-  // 브랜드 라인 — 동·서양 융합이 우리 차별점이라 이걸 아이브로로. 서양권은 'Saju'를
-  // 모르니 EN 은 즉시 읽히는 'EASTERN × WESTERN'(융합이 핵심 가치)으로. 버티컬은
-  // 강조색·후크·제목으로 구분(카테고리명 중복 노출은 뺀다).
-  const eyebrow = isKo ? '사주 × 별자리' : 'EASTERN × WESTERN'
+  // 브랜드 라인 — 동·서양 융합이 우리 차별점이라 이걸 아이브로로. EN 은 K-웨이브
+  // 후광을 탄 'KOREAN ASTROLOGY'(발견 훅)를 앞세우고, 서양이 아는 'ZODIAC'와 융합해
+  // 우리 moat(사주 × 서양 점성)를 드러낸다. 버티컬은 강조색·후크·제목으로 구분.
+  const eyebrow = isKo ? '사주 × 별자리' : 'KOREAN ASTROLOGY × ZODIAC'
   const domain = siteBaseUrl()
     .replace(/^https?:\/\//, '')
     .replace(/\/$/, '')
