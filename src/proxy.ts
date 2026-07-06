@@ -130,7 +130,20 @@ function pickLocaleFromAcceptLanguage(header: string | null): string {
   return DEFAULT_LOCALE
 }
 
-function resolveLocale(request: NextRequest): { locale: string; fromCookie: boolean } {
+function resolveLocale(request: NextRequest): {
+  locale: string
+  /** cookie 로 이미 확정돼 재저장 불필요한 경우만 true. query/header 유래는 false → 저장. */
+  fromCookie: boolean
+} {
+  // 1) ?lang / ?locale 쿼리 — 서버 페이지(예: /integrated-report)와 같은 우선순위로
+  //    전역 로케일도 강제한다. 예전엔 쿼리를 무시해, ?lang=ko 링크가 리포트 본문만
+  //    한국어로 바꾸고 공용 UI(동의 배너·메뉴 등)는 브라우저 언어로 남아 섞였다.
+  //    강제 로케일은 쿠키에도 심어 이후 네비게이션·클라 I18nProvider 와 일치시킨다.
+  const q = request.nextUrl.searchParams
+  const queryLocale = q.get('lang') || q.get('locale')
+  if (queryLocale && SUPPORTED_LOCALES.has(queryLocale)) {
+    return { locale: queryLocale, fromCookie: false }
+  }
   const cookieLocale = request.cookies.get(LOCALE_COOKIE)?.value
   if (cookieLocale && SUPPORTED_LOCALES.has(cookieLocale)) {
     return { locale: cookieLocale, fromCookie: true }

@@ -144,6 +144,37 @@ describe('proxy — non-API requests', () => {
     expect(res.cookies.get('locale')).toBeUndefined()
   })
 
+  it('?lang 쿼리 핀이 로케일을 강제하고 쿠키로 저장한다(공유 링크 일관성)', () => {
+    // 영어 브라우저인데 ?lang=ko 공유 링크 — 전역 UI(동의·헤더)까지 한국어로.
+    const res = proxy(
+      req('/integrated-report?date=1990-01-01&lang=ko', {
+        headers: { accept: 'text/html', 'accept-language': 'en-US' },
+      })
+    )
+    expect(res.headers.get('Content-Language')).toBe('ko')
+    expect(res.cookies.get('locale')?.value).toBe('ko')
+  })
+
+  it('?lang 핀은 기존 쿠키보다 우선한다(리포트 본문과 전역 UI 일치)', () => {
+    const res = proxy(
+      req('/integrated-report?lang=en', {
+        headers: { accept: 'text/html', 'accept-language': 'ko-KR' },
+        cookies: { locale: 'ko' },
+      })
+    )
+    expect(res.headers.get('Content-Language')).toBe('en')
+  })
+
+  it('지원하지 않는 ?lang 값은 무시하고 쿠키/헤더로 폴백', () => {
+    const res = proxy(
+      req('/?lang=fr', {
+        headers: { accept: 'text/html', 'accept-language': 'en-US' },
+        cookies: { locale: 'ko' },
+      })
+    )
+    expect(res.headers.get('Content-Language')).toBe('ko')
+  })
+
   it('/admin HTML 경로는 CSP 에 unsafe-eval 을 허용한다', () => {
     const res = proxy(req('/admin/dashboard', { headers: { accept: 'text/html' } }))
     const csp = res.headers.get('Content-Security-Policy')

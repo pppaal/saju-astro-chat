@@ -71,35 +71,40 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
   )
 }
 
+/** 한 기둥의 글자 풀이 노출 결정 — 부모가 순수 계산해 넘긴다(렌더 중 변이 금지). */
+interface ShowMeaning {
+  stem: boolean
+  branch: boolean
+  /** p.jijanggan 순서와 1:1 정렬. */
+  jij: boolean[]
+}
+
 function PillarCard({
   col,
   p,
   lang,
-  seen,
+  show,
 }: {
   col: 'hour' | 'day' | 'month' | 'year'
   p: ReportPillar
   lang: Lang
-  /** 글자 풀이 중복 방지 — 같은 한자는 네 기둥 통틀어 처음 나올 때만 뜻을 보인다. */
-  seen: Set<string>
+  /** 글자 풀이 중복 방지 결정 — 부모(PillarDetail)가 네 기둥을 한 번에 순수
+   *  계산해 넘긴다. 예전엔 공유 Set 을 렌더 중 변이(seen.add)해 dedup 했으나,
+   *  React 19 Strict Mode 의 렌더 2회 호출에서 두 번째 패스가 이미 채워진 Set 을
+   *  보고 뜻 span 을 빠뜨려 하이드레이션 미스매치가 났다 → 순수 prop 으로 교체. */
+  show: ShowMeaning
 }) {
   const isDay = !!p.isDay
-  // 처음 보는 글자면 true(이후 같은 글자는 풀이 생략). 글자 자체는 항상 렌더.
-  const firstSee = (c: string): boolean => {
-    if (seen.has(c)) return false
-    seen.add(c)
-    return true
-  }
-  const stemMeaning = firstSee(p.stem) ? hanjaHover(p.stem, lang) : ''
-  const branchMeaning = firstSee(p.branch) ? hanjaHover(p.branch, lang) : ''
+  const stemMeaning = show.stem ? hanjaHover(p.stem, lang) : ''
+  const branchMeaning = show.branch ? hanjaHover(p.branch, lang) : ''
 
   // 지장간: 빈 의미는 건너뛰고, 이미 나온 글자는 뜻 생략. 결(본/중/여)도 함께.
   const hidden = (p.jijanggan ?? [])
-    .map((j) => ({
+    .map((j, i) => ({
       char: j.g,
       layer: j.layer,
       reading: hanjaReading(j.g, lang), // 지장간에도 음(音) 표기 — C2 누락분(L4)
-      meaning: firstSee(j.g) ? hanjaHover(j.g, lang) : '',
+      meaning: show.jij[i] ? hanjaHover(j.g, lang) : '',
     }))
     .filter((h) => !!h.char)
 
@@ -184,14 +189,31 @@ function PillarCard({
 }
 
 export default function PillarDetail({ pillars, lang }: PillarDetailProps) {
-  // 네 기둥에 걸쳐 같은 한자의 글자 풀이가 똑같이 반복되지 않게 공유 추적.
-  const seen = new Set<string>()
+  // 네 기둥에 걸쳐 같은 한자의 글자 풀이는 처음 나올 때만 보인다. 이 dedup 은
+  // 렌더 밖 순수 fold 로 한 번에 결정한다 — 자식 렌더 중 공유 Set 을 변이하면
+  // (예전 방식) Strict Mode 이중 렌더에서 SSR/CSR 이 어긋난다. 순서(기둥→글자)는
+  // 원래 firstSee 호출 순서(기둥별 천간→지지→지장간, ORDER 순)와 동일하게 유지.
+  const globalSeen = new Set<string>()
+  const takeFirst = (c: string): boolean => {
+    if (!c || globalSeen.has(c)) return false
+    globalSeen.add(c)
+    return true
+  }
+  const shows: Record<string, ShowMeaning> = {}
+  for (const col of ORDER) {
+    const p = pillars[col]
+    shows[col] = {
+      stem: takeFirst(p.stem),
+      branch: takeFirst(p.branch),
+      jij: (p.jijanggan ?? []).map((j) => takeFirst(j.g)),
+    }
+  }
   return (
     <details className={s.box}>
       <summary>{tx('summary', lang)}</summary>
       <div className={s.body}>
         {ORDER.map((col) => (
-          <PillarCard col={col} p={pillars[col]} lang={lang} seen={seen} key={col} />
+          <PillarCard col={col} p={pillars[col]} lang={lang} show={shows[col]} key={col} />
         ))}
       </div>
     </details>

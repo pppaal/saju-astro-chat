@@ -244,8 +244,8 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="apple-mobile-web-app-title" content="DestinyPal" />
         <meta name="theme-color" content="#07091a" />
-        <JsonLd data={websiteJsonLd} nonce={nonce} />
-        <JsonLd data={organizationJsonLd} nonce={nonce} />
+        <JsonLd data={websiteJsonLd} />
+        <JsonLd data={organizationJsonLd} />
       </head>
       <body
         className={`
