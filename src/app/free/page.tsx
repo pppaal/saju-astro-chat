@@ -95,6 +95,17 @@ const FREE_TOOLS: readonly FreeTool[] = [
     badge: { ko: '완전 무료 · 로그인 X', en: 'Free · no sign-up' },
   },
   {
+    href: '/calendar',
+    emoji: '📅',
+    tint: '#e8a24d',
+    title: { ko: '운흐름 캘린더', en: 'Fortune Calendar' },
+    desc: {
+      ko: '생년월일만 넣으면 이번 달 좋은 날·조심할 날을 한눈에 봐요.',
+      en: 'Just your birth date — see this month’s best and tricky days at a glance.',
+    },
+    badge: { ko: '완전 무료 · 로그인 X', en: 'Free · no sign-up' },
+  },
+  {
     href: '/integrated-report',
     emoji: '📜',
     tint: '#e8cc8a',
