@@ -19,6 +19,7 @@
    ============================================================ */
 
 import { createHash } from 'node:crypto'
+import { after } from 'next/server'
 import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/logger'
 import { buildNatalContext, type BuildContextInput } from './context/build'
@@ -26,6 +27,31 @@ import { buildCalendar, makeOptionsKey } from './index'
 import { encodeBlob, decodeBlob } from './blobCodec'
 import type { NatalContext } from './context/types'
 import type { CalendarCell, CalendarBuildOptions, CalendarRange } from './types'
+
+/**
+ * 캐시 write 를 응답 임계 경로에서 뺀다. 콜드(첫) 로드는 build 결과를 곧바로
+ * 반환하고, blob 압축(encodeBlob)+DB upsert 는 응답이 나간 *뒤* 돌린다.
+ *
+ * 왜: 캐시 write 는 read 정합성에 필요 없다(다음 방문 최적화일 뿐). 그런데
+ * 예전엔 세 write(natal·월·포커스일)가 전부 응답 전에 await 됐고, 특히 natal
+ * write 는 월/포커스 build 가 시작되기도 전에 끼어 DB 왕복만큼 첫 로드를 늦췄다.
+ *
+ * 방식: Next 요청 스코프면 after()로 응답 후 실행(서버리스에서 함수가 그때까지
+ * 살아 있음을 런타임이 보장 — 단순 fire-and-forget 과 달리 write 유실 없음).
+ * 스코프 밖(단위 테스트·스크립트)에선 after()가 throw 하므로 즉시 실행으로 폴백.
+ * 어느 쪽이든 write 실패는 warn 만 하고 삼킨다(fail-soft — 캐시는 최적화).
+ */
+function deferPersist(label: string, write: () => Promise<void>): void {
+  const run = () =>
+    write().catch((err) =>
+      logger.warn(`[calendar-cache] ${label} write failed — continuing uncached`, err)
+    )
+  try {
+    after(run)
+  } catch {
+    void run()
+  }
+}
 
 /**
  * 사주/점성 엔진 버전 시그니처. extractor·deriver 산식이 출력에 영향 주게
@@ -88,16 +114,15 @@ export async function getOrBuildNatalContext(input: BuildContextInput): Promise<
 
   const natal = await buildNatalContext(input)
 
-  try {
+  // write 는 응답 후로 미룬다 — 월/포커스 build 가 natal write 왕복을 기다리지 않게.
+  deferPersist('natal', async () => {
     const data = encodeBlob(natal)
     await prisma.natalContextCache.upsert({
       where: { birthKey },
       create: { birthKey, engineSignature: CALENDAR_ENGINE_VERSION, data },
       update: { engineSignature: CALENDAR_ENGINE_VERSION, data, builtAt: new Date() },
     })
-  } catch (err) {
-    logger.warn('[calendar-cache] natal write failed — continuing uncached', err)
-  }
+  })
 
   return natal
 }
@@ -138,16 +163,14 @@ export async function getOrBuildMonthCells(
   }
   const cells = await buildCalendar(natal, range, options)
 
-  try {
+  deferPersist('month cells', async () => {
     const data = encodeBlob(cells)
     await prisma.calendarBuildCache.upsert({
       where: { birthKey_monthKey: { birthKey, monthKey } },
       create: { birthKey, monthKey, data },
       update: { data, builtAt: new Date() },
     })
-  } catch (err) {
-    logger.warn('[calendar-cache] month cells write failed — continuing uncached', err)
-  }
+  })
 
   return cells
 }
@@ -191,16 +214,14 @@ export async function getFocusDayCell(
   }
   try {
     const cells = await buildCalendar(natal, range, { includeEvidence: true })
-    try {
+    deferPersist('focus-day', async () => {
       const data = encodeBlob(cells)
       await prisma.calendarBuildCache.upsert({
         where: { birthKey_monthKey: { birthKey, monthKey } },
         create: { birthKey, monthKey, data },
         update: { data, builtAt: new Date() },
       })
-    } catch (err) {
-      logger.warn('[calendar-cache] focus-day write failed — continuing uncached', err)
-    }
+    })
     return cells.find((c) => c.datetime.slice(0, 10) === dateIso) ?? cells[0] ?? null
   } catch (err) {
     logger.warn('[calendar] focus-day build failed — evidence card may be sparse', err)

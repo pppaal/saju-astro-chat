@@ -73,6 +73,11 @@ beforeEach(() => {
   vi.clearAllMocks()
 })
 
+// 캐시 write 는 deferPersist 로 응답 후(after())로 미뤄진다. 단위 테스트는 요청
+// 스코프 밖이라 after()가 throw → 즉시 실행 폴백을 타지만, write 실패의 warn 은
+// 함수 반환 *다음* 마이크로태스크에서 뜬다. 그 시점을 지나 검증하도록 flush.
+const flush = () => new Promise((r) => setTimeout(r, 0))
+
 describe('getOrBuildNatalContext', () => {
   it('cache hit: engineSignature 일치 row 면 빌드 없이 캐시 data 반환', async () => {
     natalFindUnique.mockResolvedValue({
@@ -122,6 +127,7 @@ describe('getOrBuildNatalContext', () => {
     natalUpsert.mockRejectedValue(new Error('write fail'))
     const res = await getOrBuildNatalContext(INPUT)
     expect(res).toBe(FAKE_NATAL)
+    await flush()
     expect(warn).toHaveBeenCalled()
   })
 
@@ -225,6 +231,7 @@ describe('getOrBuildMonthCells', () => {
     cellsUpsert.mockRejectedValue(new Error('w'))
     const res = await getOrBuildMonthCells(INPUT, FAKE_NATAL, 2026, 5)
     expect(res).toBe(CELLS)
+    await flush()
     expect(warn).toHaveBeenCalledTimes(2)
   })
 })
@@ -296,6 +303,7 @@ describe('getFocusDayCell', () => {
     cellsUpsert.mockRejectedValue(new Error('write fail'))
     const res = await getFocusDayCell(INPUT, FAKE_NATAL, ISO)
     expect(res).toBe(built[0])
+    await flush()
     expect(warn).toHaveBeenCalled()
   })
 
