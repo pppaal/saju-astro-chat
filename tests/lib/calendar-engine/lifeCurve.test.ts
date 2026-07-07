@@ -95,6 +95,52 @@ describe('buildLifeCurve (벨 근사 경로)', () => {
     // 점성이 평탄이면 astro raw 가 전부 0.
     expect(c.points.every((p) => p.astro === 0)).toBe(true)
   })
+
+  it('sajuMacro 는 점성 시계열과 무관(라벨 격리) — astro 를 뭘 주든 동일', () => {
+    // 인생유형 라벨은 sajuMacro 로 분류한다. 점성 텍스처가 라벨을 뒤집지 못하게,
+    // sajuMacro 는 astroSeries 를 어떤 값으로 주든(급락/급등/평탄) 동일해야 한다.
+    const crash = Array.from({ length: 91 }, (_, a) => -a / 10) // 단조 급락
+    const boom = Array.from({ length: 91 }, (_, a) => a / 10) // 단조 급등
+    const cCrash = buildLifeCurve(makeNatal(), { now: NOW, span: 90, astroSeries: crash })!
+    const cBoom = buildLifeCurve(makeNatal(), { now: NOW, span: 90, astroSeries: boom })!
+    for (let i = 0; i < 91; i++) {
+      expect(cCrash.points[i].sajuMacro).toBeCloseTo(cBoom.points[i].sajuMacro, 9)
+    }
+    // 그리고 blended macro 는 실제로 달라야 한다(격리가 의미 있으려면).
+    const diff = cCrash.points.some((p, i) => Math.abs(p.macro - cBoom.points[i].macro) > 0.1)
+    expect(diff).toBe(true)
+  })
+
+  it('말년 용신운 사주는 단조 급락 점성이 와도 sajuMacro 로는 late-bloomer (950209 회귀)', () => {
+    // 초년 기신·말년 용신 대운(사주만으로 대기만성)인 차트에, 점성이 평생 단조로
+    // 급락(성숙 트랜짓을 순압박으로 찍던 옛 버그가 만들던 형상)해도, 라벨은 사주
+    // 곡선(sajuMacro)에서 나오므로 대기만성을 유지해야 한다.
+    const lateSaju: NatalContext = {
+      input: { year: 1990, month: 5, date: 15, timeZone: 'Asia/Seoul' },
+      saju: {
+        dayMaster: { name: '甲' }, // 목
+        strength: 'weak',
+        yongsin: { primary: '수', secondary: '목', avoid: ['화', '토'] },
+        pillars: { day: { earthlyBranch: { name: '子' } } },
+        daeun: [
+          { startAge: 5, startYear: 1995, stem: '丙', branch: '午' }, // 화 기신
+          { startAge: 15, startYear: 2005, stem: '丁', branch: '巳' }, // 화 기신
+          { startAge: 25, startYear: 2015, stem: '戊', branch: '辰' }, // 토 기신
+          { startAge: 35, startYear: 2025, stem: '己', branch: '未' }, // 토 기신
+          { startAge: 45, startYear: 2035, stem: '壬', branch: '子' }, // 수 용신
+          { startAge: 55, startYear: 2045, stem: '癸', branch: '亥' }, // 수 용신
+          { startAge: 65, startYear: 2055, stem: '甲', branch: '寅' }, // 목 용신
+          { startAge: 75, startYear: 2065, stem: '乙', branch: '卯' }, // 목 용신
+        ],
+      },
+    } as unknown as NatalContext
+    const crash = Array.from({ length: 91 }, (_, a) => -a / 8) // 평생 단조 급락
+    const c = buildLifeCurve(lateSaju, { now: NOW, span: 90, astroSeries: crash })!
+    const lp = deriveLifePattern(lateSaju.saju as never, 30, {
+      points: c.points.map((p) => ({ age: p.age, macro: p.sajuMacro })),
+    })!
+    expect(lp.key).toBe('late-bloomer')
+  })
 })
 
 import { deriveLifePattern } from '@/lib/calendar-engine/derivers/lifePattern'

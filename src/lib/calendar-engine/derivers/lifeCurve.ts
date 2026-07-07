@@ -69,21 +69,32 @@ const SIXHAP: Record<string, string> = {
   未: '午',
 }
 
-// 외행성 인생 마디 → 길흉 방향·강도. 하드(토성회귀·천왕성대립·명왕성스퀘어)는
-// 압박(−), 목성회귀는 확장(+), 카이런·해왕성스퀘어는 약한 골(−).
+// 외행성 인생 마디 → *인생-호(arc)* 방향·강도.
+//
+// **뿌리 수정(2026-07, 성숙 트랜짓 재평가):** 예전 표는 토성회귀·천왕성대립·
+// 명왕성/해왕성 스퀘어·카이런회귀를 모두 순(純)압박(−)으로 찍었다. 이 마디들은
+// 29~60세 구간에 몰려 있어 *중·말년을 체계적으로 눌러* 사주가 대기만성이라 읽는
+// 차트도 곡선이 초년발복/굴곡으로 뒤집혔다(사용자 지적: 950209). 서양 인생-호
+// 정통(헬레니즘·심층 점성 — Hand/Astrodienst/Rudhyar, docs/운흐름 §0.5 채택 노선)은
+// 이들을 *쇠퇴가 아니라 성숙(maturation)* 으로 본다:
+//   · 토성 1회귀(~29) 성인기 진입·토대 확립 / 2회귀(~59) 수확·원로 권위
+//   · 카이런 회귀(~50) 상처→지혜 통합, 천왕성 대립(~42) 중년 각성·해방
+//   · 명왕성/해왕성 스퀘어 붕괴 *또는* 돌파 — 순손실 아님(양가 → 중립)
+// 성숙 마디는 곡선 *레벨* 에 ≈0(중립±약)만 실어 하강 슬로프를 만들지 않게 하고,
+// 확장(목성회귀·천왕성회귀)만 뚜렷한 +. 단조 90년 하강은 점성 정통에 근거가 없다.
 const ASTRO_POLARITY: Record<AstroLifecycleEventKind, number> = {
   jupiter_return_1: 0.9,
   jupiter_return_2: 0.9,
   jupiter_return_3: 0.9,
   jupiter_return_5: 0.9,
-  saturn_return_1: -1.0,
-  saturn_return_2: -1.0,
-  pluto_square_pluto: -1.1,
-  uranus_opposition: -1.1,
-  neptune_square: -0.7,
-  chiron_return: -0.5,
-  uranus_return: 0.6,
-  progressed_lunar_1: -0.2,
+  saturn_return_1: 0.2, // 성인기 토대(성숙, 약한 +)
+  saturn_return_2: 0.4, // 수확·원로 권위(길)
+  pluto_square_pluto: 0.0, // 변형 — 붕괴 또는 돌파(중립)
+  uranus_opposition: 0.2, // 중년 각성·해방(약한 +)
+  neptune_square: 0.0, // 양가 — 혼란 또는 영적 각성(중립)
+  chiron_return: 0.4, // 지혜·치유 통합(길)
+  uranus_return: 0.5, // 자유의 수확
+  progressed_lunar_1: 0.0, // 위상 의존(중립)
 }
 const ASTRO_SIGMA = 1.8 // 마디 벨커브 폭(년)
 
@@ -97,6 +108,11 @@ export interface LifeCurvePoint {
   combined: number // 정규화 합성 (세운 텍스처 포함, 연 단위)
   smooth: number // 5년 이동평균(중간 스케일)
   macro: number // 넓은 평활(대운·외행성 위주 — 거시 굴곡, 마디 추출용)
+  // 사주-단독 거시 곡선(점성 0 가중, z-정규화 후 7년 평활). 인생유형(대기만성/
+  // 초년발복…)은 *사주* 개념이므로 라벨 분류는 이 신호로 한다 — 점성 텍스처가
+  // 라벨을 뒤집지 못하게(감사: 950209 사주는 대기만성인데 점성 성숙-골이 굴곡으로
+  // 뒤집던 문제). 화면 곡선·마디는 blended macro 를 그대로 쓴다.
+  sajuMacro: number
   agree: boolean // 사주·점성 부호 일치
 }
 export interface LifeCurveExtremum {
@@ -252,6 +268,10 @@ export function buildLifeCurve(
   // 모두 combined 를 가볍게(7년) 평활한 *같은 신호* 를 본다. 엔벨로프 없음 →
   // 초년기 고생/호황이 그대로 드러나고, 티어 간 부호가 일치한다.
   const macro = movingAvg(combined, 3)
+  // 사주-단독 거시 — combined 와 같은 7년창을 sajuZ 에만 적용. 인생유형 라벨 분류
+  // 전용(점성 텍스처 격리). z-정규화라 미세한 대운 favor 차도 뚜렷한 마루/골로 살아
+  // 나 favor-path 원시 임계(±0.5)로는 못 잡던 은근한 대기만성도 곡선에서 분류된다.
+  const sajuMacro = movingAvg(sajuZ, 3)
 
   const points: LifeCurvePoint[] = sajuRaw.map((_, i) => ({
     year: birthYear + i,
@@ -263,6 +283,7 @@ export function buildLifeCurve(
     combined: combined[i],
     smooth: smooth[i],
     macro: macro[i],
+    sajuMacro: sajuMacro[i],
     agree: Math.sign(sajuZ[i]) === Math.sign(astroZ[i]) && sajuZ[i] !== 0,
   }))
 
@@ -329,22 +350,28 @@ const PLANET_W: Record<string, number> = {
   Chiron: 0.7,
   Jupiter: 0.8,
 }
-// 하드 각(square/opposition)=압박(−), 소프트(trine/sextile)=순(+). 합(conjunction)
-// 은 행성 성격에 따라 — 목성=확장(+), 토성·명왕성=압박(−).
+// 인생-호 스케일의 각/합 값(ASTRO_POLARITY 와 같은 성숙 재평가 노선).
+//
+// **뿌리 수정(2026-07):** 예전엔 하드 각(square/opposition)을 평-1 로 찍었는데,
+// 외행성은 나이가 들수록 본명 점에 하드 각을 *더 많이* 맺어(휠을 더 돈다) 평-1
+// 누적이 곧 말년 하강 슬로프가 됐다. 90년 호에서 지나가는 토성 스퀘어는 −1 재앙이
+// 아니라 성장 마찰 — 크기를 줄여(−0.3) 텍스처만 남기고 슬로프를 안 만든다. 소프트
+// 각도 과승 방지로 낮춘다. 합(conjunction)은 인생 마디로 재평가: 성숙 회귀(토성·
+// 명왕성·해왕성)는 중립(0), 확장(목성)·각성(천왕성·카이런)만 +.
 const ASPECT_POL: Record<string, number> = {
-  square: -1,
-  opposition: -1,
-  trine: 1,
-  sextile: 0.7,
+  square: -0.3,
+  opposition: -0.3,
+  trine: 0.6,
+  sextile: 0.4,
   conjunction: 0, // 행성별로 따로
 }
 const CONJ_SIGN: Record<string, number> = {
-  Jupiter: 1,
-  Saturn: -1,
-  Uranus: -0.3,
-  Neptune: -0.5,
-  Pluto: -1,
-  Chiron: -0.5,
+  Jupiter: 1, // 확장·기회
+  Saturn: 0.0, // 성숙·토대(쇠퇴 아님)
+  Uranus: 0.2, // 각성·해방
+  Neptune: 0.0, // 양가
+  Pluto: 0.0, // 변형(붕괴 또는 돌파)
+  Chiron: 0.3, // 지혜 통합
 }
 
 /**
