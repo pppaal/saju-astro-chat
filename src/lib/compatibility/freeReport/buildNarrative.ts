@@ -1258,6 +1258,29 @@ const OVERLAY_ALT: Record<number, Bi> = {
   },
 }
 
+// 일간 관계 변형 풀 — "두 사람의 타고난 결"은 먼저·가장 많이 읽히는 개인 섹션이라,
+// 같은 관계(같은 신호)라도 커플마다 다른 문장이 나오게 대체 변형을 둔다. {A}{B}{aEl}
+// {bEl} 자리표시자는 본판(generated)과 동일. (친구끼리 비교했을 때 토씨까지 같아
+// "이거 우리 얘기 맞나?" 의 몰입이 깨지던 문제 해소.)
+const DAY_MASTER_REL_ALT: Record<string, Bi> = {
+  same: {
+    ko: '두 사람 다 {aEl} 기운을 "나"로 삼고 태어났어요. 그래서 눈빛만 봐도 통하는 편안함이 있죠. 다만 강점도 약점도 판박이라, 한쪽이 흔들릴 때 붙잡아줄 다른 색이 부족할 수 있어요.',
+    en: "You were both born with {aEl} as your 'I.' That's why an easy, glance-and-you-get-it comfort runs between you. The catch: your strengths and soft spots are near-identical, so when one wobbles there's little of another color to catch the fall.",
+  },
+  aControlsB: {
+    ko: '{A}의 {aEl} 기운이 {B}의 {bEl}을 지그시 눌러 다듬어줘요. {B}는 곁에 중심 잡아주는 사람이 생긴 듯 든든하지만, 그 손길이 가끔은 한 뼘 더 단단하게 닿아 따끔할 때도 있어요.',
+    en: "{A}'s {aEl} presses and shapes {B}'s {bEl} with a steady hand. To {B} it feels like finally having someone who holds the center — though now and then that same touch lands a notch too firm and stings a little.",
+  },
+  bControlsA: {
+    ko: '{B}의 {bEl} 기운이 {A}의 {aEl}을 다듬어주는 흐름이에요. {A}는 잡아주는 힘에 안심하면서도, 그 정돈이 이따금 제약처럼 느껴져 살짝 답답할 때가 있어요.',
+    en: "{B}'s {bEl} energy files and steadies {A}'s {aEl}. {A} feels reassured by that grounding hand, yet every so often the tidying reads as a limit, and a small stuffiness creeps in.",
+  },
+  generate: {
+    ko: '{aEl}과 {bEl}이 서로를 북돋아 키우는 상생의 결이에요. 한쪽이 내어준 기운이 상대 안에서 싹을 틔우고 그게 다시 돌아와, 같이 있을수록 서로가 더 자라나는 사이예요.',
+    en: '{aEl} and {bEl} lift and grow each other in a generating cycle. What one gives sprouts in the other and circles back, so the more time you share, the more you each come into your own.',
+  },
+}
+
 export function buildFreeCompatNarrative(
   report: CompatReport,
   opts: BuildNarrativeOptions
@@ -1296,6 +1319,17 @@ export function buildFreeCompatNarrative(
 
   // 커플별 결정적 seed — 스캐폴딩(verdict/intro/closing/hook/primer) 변형을 커플마다 다르게 고른다.
   const seed = coupleSeed(report)
+
+  // 일간 관계 카피 — 본판(generated)과 ALT 중 seed 로 결정적 선택. 두 사용처(결 섹션·
+  // 테마)가 같은 label 을 써 한 리포트 안에선 같은 변형으로 일관.
+  const dayMasterBi = (rel: keyof typeof DAY_MASTER_REL): Bi =>
+    pickFor(
+      DAY_MASTER_REL_ALT[rel]
+        ? [DAY_MASTER_REL[rel], DAY_MASTER_REL_ALT[rel]]
+        : [DAY_MASTER_REL[rel]],
+      seed,
+      `daymaster:${rel}`
+    )
 
   // ── 한눈에 (verdict) — 섹션이 아니라 view.verdict 로 따로 ──
   const verdict = report.crossVerdict
@@ -1340,7 +1374,7 @@ export function buildFreeCompatNarrative(
     if (dm) {
       const aEl = elLabel(dm.aEl, isKo)
       const bEl = elLabel(dm.bEl, isKo)
-      paras.push(fill(t(DAY_MASTER_REL[dm.relation]), { A: labelA, B: labelB, aEl, bEl }))
+      paras.push(fill(t(dayMasterBi(dm.relation)), { A: labelA, B: labelB, aEl, bEl }))
       // 십성 cross — 서로가 서로에게 어떤 역할로 다가오나.
       const aSeesB = dm.bToA ? TEN_GODS[dm.bToA] : null // A 입장에서 B 는
       const bSeesA = dm.aToB ? TEN_GODS[dm.aToB] : null // B 입장에서 A 는
@@ -1573,7 +1607,7 @@ export function buildFreeCompatNarrative(
     themed.push({
       theme: 'life',
       weight: 4,
-      text: fill(t(DAY_MASTER_REL[dm.relation]), { A: labelA, B: labelB, aEl, bEl }),
+      text: fill(t(dayMasterBi(dm.relation)), { A: labelA, B: labelB, aEl, bEl }),
       // 상극(aControlsB/bControlsA)은 카피가 양가적("단단히 잡아줘 든든하지만
       // 때론 제약")이라, generate(+4)와 같은 크기의 강한 음수(-4)는 훅·테마
       // 점수를 과하게 깎아 "든든" 문단과 모순됐다. 제약의 결만 반영해 완만한

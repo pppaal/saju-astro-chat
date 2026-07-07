@@ -759,6 +759,8 @@ function ResultView({
   onReset: () => void
 }) {
   const view = buildFreeCompatNarrative(report, { labelA, labelB, lang: locale })
+  // 이름 미입력 — 카드가 "A ♥ B" 로 나가면 개인화가 즉사한다. 공유 블록에서 유도.
+  const namesMissing = labelA === 'A' || labelB === 'B'
   // 퍼널 — 결과 화면 노출(폼이 아니라 풀이가 실제로 렌더된 시점). 한 번만 전송.
   useEffect(() => {
     trackFunnel('compat_free.report_viewed')
@@ -886,6 +888,15 @@ function ResultView({
                 ? '이 카드를 공유하면, 친구는 생년월일만 넣고 바로 자기 궁합을 확인해요.'
                 : 'Share this card — your friends just add their birth date and get their own match instantly.'}
           </p>
+          {/* 이름 유도 — 이름이 비면 카드가 "A ♥ B" 로 나가 남 얘기처럼 보인다.
+              위로 올라가 이름을 넣으면 "우리 카드" 가 돼 개인화·재공유가 오른다. */}
+          {namesMissing ? (
+            <p className={s.shareNameHint}>
+              {isKo
+                ? '💡 위에서 이름을 넣으면 카드에 이름이 박혀 “우리 카드”가 돼요.'
+                : '💡 Add names above and they’ll appear on the card — makes it truly yours.'}
+            </p>
+          ) : null}
         </div>
         <ShareCompatibilityButton
           data={{

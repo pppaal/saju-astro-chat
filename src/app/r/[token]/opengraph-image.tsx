@@ -323,7 +323,9 @@ export default async function Image({ params }: { params: Promise<{ token: strin
   if (reading && isCompatShare(reading) && typeof reading.score === 'number') {
     const eyebrow = `${reading.nameA}   ♥   ${reading.nameB}`
     const grade = reading.grade ? clamp(reading.grade, 22) : ''
-    const verdict = clamp(reading.verdict, 76)
+    const verdict = clamp(reading.verdict, 72)
+    // 족집게 한 줄 — 이름+구체 신호. 링크 미리보기에서 "이거 우리 얘기?" 를 만든다.
+    const proof = reading.headline ? clamp(reading.headline, 66) : ''
     const cta = isKo
       ? `우리 궁합도 무료로 · ${displayDomain}`
       : `Check your match free · ${displayDomain}`
@@ -340,7 +342,7 @@ export default async function Image({ params }: { params: Promise<{ token: strin
         },
       })
     )
-    const fonts = await loadOgFonts(eyebrow, `${reading.score}`, grade, verdict, cta)
+    const fonts = await loadOgFonts(eyebrow, `${reading.score}`, grade, verdict, proof, cta)
     return new ImageResponse(
       <div
         style={{
@@ -420,15 +422,40 @@ export default async function Image({ params }: { params: Promise<{ token: strin
             ) : null}
             <div
               style={{
-                fontSize: 44,
+                fontSize: 42,
                 fontWeight: 800,
-                lineHeight: 1.28,
+                lineHeight: 1.26,
                 color: '#f6efdd',
                 fontFamily: 'HeavyKR, sans-serif',
               }}
             >
               {verdict}
             </div>
+            {proof ? (
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  fontSize: 26,
+                  lineHeight: 1.4,
+                  color: '#c9bff0',
+                }}
+              >
+                {/* satori 는 ✦ 같은 딩벳을 못 그릴 수 있어 도형(점)으로 대신한다. */}
+                <span
+                  style={{
+                    display: 'flex',
+                    width: 11,
+                    height: 11,
+                    borderRadius: 999,
+                    background: '#e8c88c',
+                    marginRight: 13,
+                    marginTop: 12,
+                  }}
+                />
+                {proof}
+              </div>
+            ) : null}
           </div>
         </div>
 
