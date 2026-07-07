@@ -284,8 +284,8 @@ const SHARE_GRADE: { min: number; v: Bi }[] = [
   { min: 80, v: { ko: '위험할 만큼 잘 맞아', en: 'Dangerously in sync' } },
   { min: 72, v: { ko: '불꽃 튀는 케미', en: 'Sparks flying' } },
   { min: 64, v: { ko: '은근히 빠져드는 사이', en: 'Quietly hooked' } },
-  { min: 56, v: { ko: '밀당의 고수들', en: 'Masters of push-pull' } },
-  { min: 0, v: { ko: '위태로운 롤러코스터', en: 'A risky rollercoaster' } },
+  { min: 56, v: { ko: '밀당의 고수들', en: 'Masters of the chase' } },
+  { min: 0, v: { ko: '위태로운 롤러코스터', en: "A rollercoaster you can't get off" } },
 ]
 function shareGrade(score: number): Bi {
   for (const g of SHARE_GRADE) if (score >= g.min) return g.v
@@ -304,8 +304,8 @@ const SHARE_PUNCH: Record<ShareTone, SharePunch[]> = {
     {
       ko: '끌림은 못 속여 —\n둘은 이미 시작됐어',
       accentKo: '둘은 이미 시작됐어',
-      en: "You can't fake\nthis kind of pull",
-      accentEn: 'this kind of pull',
+      en: "You can't fake this —\nyou two already started",
+      accentEn: 'you two already started',
     },
     {
       ko: '이 조합, 한번 빠지면\n못 헤어나와',
@@ -338,8 +338,8 @@ const SHARE_PUNCH: Record<ShareTone, SharePunch[]> = {
     {
       ko: '끌리는 만큼\n위태로운 사이',
       accentKo: '위태로운',
-      en: 'As magnetic as\nit is volatile',
-      accentEn: 'volatile',
+      en: 'As magnetic as\nit is dangerous',
+      accentEn: 'dangerous',
     },
     {
       ko: '불꽃은 튀는데,\n데일 수도 있어',
@@ -354,6 +354,18 @@ const SHARE_PUNCH: Record<ShareTone, SharePunch[]> = {
       accentKo: '더 궁금한',
       en: 'Still a question mark —\nand that pulls you in',
       accentEn: 'pulls you in',
+    },
+    {
+      ko: '잔잔한데 자꾸\n생각나는 사이',
+      accentKo: '자꾸 생각나는',
+      en: 'Quiet — but you\nkeep coming back',
+      accentEn: 'keep coming back',
+    },
+    {
+      ko: '요란하지 않아도\n오래 남는 사이',
+      accentKo: '오래 남는',
+      en: 'No fireworks —\nbut it stays',
+      accentEn: 'it stays',
     },
   ],
 }
@@ -462,7 +474,10 @@ const THEME_HOOK: Record<ThemeId, Record<HookKey, Bi>> = {
       ko: '크게 터질 일은 거의 없는 쌍 — 잘 비껴가.',
       en: 'Few real blowups — you dodge the big ones.',
     },
-    neg: { ko: '자존심·주도권에서 제대로 맞붙어.', en: 'Pride and control — you clash head-on.' },
+    neg: {
+      ko: '자존심·주도권에서 제대로 맞붙어.',
+      en: 'Pride and control — you go at it head-on.',
+    },
     mid: {
       ko: '툭툭 부딪혀도 상처까진 안 가.',
       en: 'You bump often, but it rarely leaves a mark.',
@@ -499,7 +514,7 @@ const THEME_HOOK: Record<ThemeId, Record<HookKey, Bi>> = {
   future: {
     pos: {
       ko: '시간이 갈수록 단단해지는 — 오래 갈 쌍이야.',
-      en: 'You harden with time — built to last.',
+      en: 'You only get stronger with time — built to last.',
     },
     neg: {
       ko: '확 타오르는 만큼, 오래 가려면 진짜 공들여야 해.',
@@ -615,7 +630,7 @@ const THEME_PRIMER: Record<ThemeId, Record<HookKey, Bi>> = {
   money: {
     pos: {
       ko: '돈과 가치관이 맞아떨어지는 건, 결국 일상의 작은 순간들에서 드러나요 — 카톡에서 값을 흥정할 때도, 데이트 후 계산할 때도요. 두 사람의 결을 보면 이 영역에서 얼마나 매끄럽게 흐르는지, 아니면 자꾸 손을 맞춰야 하는지가 참 분명해져요. 우리가 돈을 대하는 태도는 사실 그 사람의 삶을 바라보는 법 전부니까, 여기서 비슷하면 크게 부딪힐 일이 적어진다는 뜻이에요.',
-      en: "Money and values show up in the small dailies — when you're eyeing a purchase, splitting a check, or talking about what matters. Looking at your chart tells us whether this zone flows naturally between you or asks for constant tuning. How you handle money says a lot about how you see life itself, so when your rhythms match here, there's far less to clash over.",
+      en: "Money and values show up in the small everyday moments — eyeing a purchase, splitting a check, talking about what matters. Your chart shows whether this zone flows naturally between you or needs constant tuning. How you handle money says a lot about how you see life itself, so when your rhythms match here, there's far less to clash over.",
     },
     neg: {
       ko: '돈과 쓰임새에 대한 생각이 꽤 다른 편이라 자주 마찰이 생기는 쌍이에요. 한 사람이 차근차근 모으는 걸 중요하게 생각한다면, 다른 쪽은 지금 누리는 게 우선일 수 있거든요. 통장을 까고 나중에 얘기하거나, 큰 구매 앞에서 의견이 팽팽해지는 순간들이 분명 있을 거예요.',
@@ -629,7 +644,7 @@ const THEME_PRIMER: Record<ThemeId, Record<HookKey, Bi>> = {
   future: {
     pos: {
       ko: '두 사람이 처음엔 끌려도, 시간이 지나면서 느껴지는 연결의 두께가 다른데 — 이 경우 둘이 가진 기운의 결을 보면, 오히려 차이를 거치면서 더 단단해지는 패턴이 보여요. 서로를 맞춰가는 과정 자체가 관계를 깊게 만드는 거죠. 처음의 반짝임보다 시간이 쌓일수록 믿음과 이해가 자라나는, 오래 가는 결이에요.',
-      en: "You two might spark at first, but what matters for the long haul is the bone underneath — and the grain here shows something that actually grows *deeper* as you navigate the differences. The work of meeting each other in the middle is what builds the bond. Less about the glitter of the start, more about trust and understanding that compound over time. It's a grain built to last.",
+      en: "You two might spark at first, but what matters for the long haul is what's underneath — and here it actually grows *deeper* as you work through the differences. The work of meeting each other in the middle is what builds the bond. Less about the glitter of the start, more about trust and understanding that compound over time. This one is built to last.",
     },
     neg: {
       ko: '두 사람은 처음엔 끌리는 게 확실하지만, 시간이 지나면서 자꾸 다른 리듬을 탈 가능성이 있어요. 한 사람이 앞으로 나가려 할 때 다른 한 사람은 멈춰 생각하는 식으로, 속도감이 맞지 않으면서 자주 답답함을 느낄 수 있죠. 초반의 설렘이 식으면 "우리 진짜 잘 맞나?" 하는 의문이 고개를 들 수 있는 조합이에요.',

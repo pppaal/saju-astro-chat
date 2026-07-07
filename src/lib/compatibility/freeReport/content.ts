@@ -50,10 +50,10 @@ export const SECTION_META: Record<string, SectionMeta> = {
   },
   grain: {
     icon: '🌗',
-    title: { ko: '두 사람의 타고난 결', en: 'The grain you were each born with' },
+    title: { ko: '두 사람의 타고난 결', en: 'What each of you is made of' },
     lead: {
       ko: "둘의 '나 자신'을 뜻하는 글자(일간)가 어떻게 만나는지 봐요. 그리고 두 사람의 기운(오행)이 서로를 채워주는지도 같이 살펴요.",
-      en: 'We look at how each of your "day master" symbols (the one that means *you* in Saju) meet. And whether your elemental energies fill each other in.',
+      en: 'We look at how each of your "day master" symbols (the one that means *you* in Saju) meet. And whether your elemental energies complete each other.',
     },
   },
   hearts: {

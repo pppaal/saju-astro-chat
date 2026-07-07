@@ -230,19 +230,19 @@ export const GENERATED: GeneratedCopy = {
   },
   ASPECT_PAIR: {
     'Ascendant|Ascendant': {
-      ko: '두 사람의 첫인상과 분위기(상승점)가 서로 얼마나 닮았는지 보는 자리예요. 풍기는 결이 비슷하면 처음부터 편하게 스며들기도 하고, 너무 닮아 같은 약점에 함께 걸리곤 합니다.',
+      ko: '두 사람의 첫인상과 분위기(상승점)가 서로 얼마나 닮았는지 보는 자리예요. 풍기는 결이 비슷하면 처음부터 편하게 스며들기도 하고, 너무 닮아 같은 약점에 함께 걸리곤 해요.',
       en: 'This is where you see how alike your first impressions and outward vibe (Ascendant) really are. When the feel is similar you can click easily from the start — or be so alike that you both stumble on the very same blind spot.',
     },
     'Ascendant|Jupiter': {
-      ko: '두 사람의 첫인상·태도(상승점)와 너그러움·확장(목성)이 만나는 자리예요. 서로를 더 크고 편하게 펼쳐주는 기운이 되거나, 들뜬 기대만 부풀려 헐거워지기도 합니다.',
+      ko: '두 사람의 첫인상·태도(상승점)와 너그러움·확장(목성)이 만나는 자리예요. 서로를 더 크고 편하게 펼쳐주는 기운이 되거나, 들뜬 기대만 부풀려 헐거워지기도 해요.',
       en: 'This is where first impressions and presence (Ascendant) meet generosity and expansion (Jupiter). It can open each other up to feel bigger and more at ease — or just inflate easy expectations until things turn loose and unanchored.',
     },
     'Ascendant|MC': {
-      ko: '두 사람의 첫인상·태도(상승점)와 사회적 모습·지향(중천점)이 어떻게 어울리는지 보는 자리예요. 겉으로 풍기는 분위기와 세상에서 가고 싶은 방향이 잘 맞으면 함께 그림이 그려지고, 어긋나면 서로 보여주고 싶은 모습이 따로 놀기도 합니다.',
+      ko: '두 사람의 첫인상·태도(상승점)와 사회적 모습·지향(중천점)이 어떻게 어울리는지 보는 자리예요. 겉으로 풍기는 분위기와 세상에서 가고 싶은 방향이 잘 맞으면 함께 그림이 그려지고, 어긋나면 서로 보여주고 싶은 모습이 따로 놀기도 해요.',
       en: "This is where one person's first impression and manner (Ascendant) meets the other's public role and ambition (MC). When the vibe you give off and the direction you want to head line up, you picture a future together — when they don't, the selves you each want to show can pull in different directions.",
     },
     'Ascendant|Mars': {
-      ko: '첫인상·태도(상승점)와 욕망·추진력(화성)이 맞부딪치는 자리예요. 서로를 강하게 끌어당기고 일을 밀고 나가는 힘이 되거나, 기싸움처럼 부딪치는 흐름이 생기곤 합니다.',
+      ko: '첫인상·태도(상승점)와 욕망·추진력(화성)이 맞부딪치는 자리예요. 서로를 강하게 끌어당기고 일을 밀고 나가는 힘이 되거나, 기싸움처럼 부딪치는 흐름이 생기곤 해요.',
       en: 'First impression and demeanor (Ascendant) meet desire and drive (Mars). It can spark a strong pull that pushes you both forward — or turn into a clash of wills.',
     },
     'Ascendant|Mercury': {
@@ -254,7 +254,7 @@ export const GENERATED: GeneratedCopy = {
       en: 'First impression and manner (Ascendant) meet inner feelings and emotion (Moon). The way one comes across can sit easily with how the other feels inside — or quietly miss, leaving a subtle sense of distance.',
     },
     'Ascendant|Neptune': {
-      ko: '첫인상·태도(상승점)와 환상·이상(해왕성)이 만나는 자리예요. 상대를 꿈처럼 아름답게 비춰주기도 하고, 실제보다 더 크게 그려서 흐릿해지는 경우도 있다.',
+      ko: '첫인상·태도(상승점)와 환상·이상(해왕성)이 만나는 자리예요. 상대를 꿈처럼 아름답게 비춰주기도 하고, 실제보다 더 크게 그려서 흐릿해지는 경우도 있어요.',
       en: "First impression (Ascendant) meets dream and idealization (Neptune). It can make you see each other in a beautiful, dreamlike light — or blur the real person behind an image that's bigger than life.",
     },
     'Ascendant|Pluto': {
@@ -262,15 +262,15 @@ export const GENERATED: GeneratedCopy = {
       en: "First impression and bearing (Ascendant) meets depth and intensity (Pluto). It can be a heavy pull that draws you in at first sight — or a pressure that digs into you before you're ready.",
     },
     'Ascendant|Saturn': {
-      ko: '서로의 첫인상·태도(상승점)와 책임·시험(토성)이 맞물리는 자리예요. 곁에서 듬직하게 자리를 잡아주기도 한다면, 은근히 평가받는 듯 긴장하게 만드는 흐름도 흐른다.',
+      ko: '서로의 첫인상·태도(상승점)와 책임·시험(토성)이 맞물리는 자리예요. 곁에서 듬직하게 자리를 잡아주기도 한다면, 은근히 평가받는 듯 긴장하게 만드는 흐름도 흘러요.',
       en: "This is where each other's first impression and manner (Ascendant) meets responsibility and testing (Saturn). It can be a steadying presence that grounds you — or a subtle pressure that leaves you feeling quietly judged.",
     },
     'Ascendant|Sun': {
-      ko: '한 사람이 처음 다가설 때 풍기는 분위기와 첫인상이, 다른 사람의 가장 깊은 본모습과 맞닿아요. 겉으로 보이는 첫 표정이 상대의 진짜 알맹이를 곧장 건드립니다. 그래서 만나자마자 둘은 서로의 본질을 마주 봐요. 궁합에서 꽤 핵심이 되는 자리랍니다.',
+      ko: '한 사람이 처음 다가설 때 풍기는 분위기와 첫인상이, 다른 사람의 가장 깊은 본모습과 맞닿아요. 겉으로 보이는 첫 표정이 상대의 진짜 알맹이를 곧장 건드려요. 그래서 만나자마자 둘은 서로의 본질을 마주 봐요. 궁합에서 꽤 핵심이 되는 자리랍니다.',
       en: "The air one of you gives off at first, that very first impression, meets the other's deepest sense of self. The face you show on the surface reaches straight for their true center. So the moment you meet, you two are already looking at each other's essence. This is one of the core spots in the match.",
     },
     'Ascendant|Uranus': {
-      ko: '첫인상·태도(상승점)와 자극·변화(천왕성)가 만나는 자리예요. 서로의 분위기를 단숨에 흔들어 신선하게 끌리는 경우도 있고, 종잡을 수 없이 들썩대는 결이 되기도 한다.',
+      ko: '첫인상·태도(상승점)와 자극·변화(천왕성)가 만나는 자리예요. 서로의 분위기를 단숨에 흔들어 신선하게 끌리는 경우도 있고, 종잡을 수 없이 들썩대는 결이 되기도 해요.',
       en: 'First impression and manner (Ascendant) meets spark and change (Uranus). It can pull you in with a fresh, electric jolt — or keep things restless and hard to pin down.',
     },
     'Ascendant|Venus': {
@@ -382,7 +382,7 @@ export const GENERATED: GeneratedCopy = {
       en: 'Talk and thinking (Mercury) meets spark and change (Uranus). It can throw fresh sparks into how you think together, or scatter into something restless and hard to pin down.',
     },
     'Mercury|Venus': {
-      ko: '대화·생각(수성)과 애정·매력(금성)이 만나는 자리거든요. 말 한마디에 호감이 깊어지기도 하고, 표현 방식이 어긋나 마음이 헛돌기도 합니다.',
+      ko: '대화·생각(수성)과 애정·매력(금성)이 만나는 자리거든요. 말 한마디에 호감이 깊어지기도 하고, 표현 방식이 어긋나 마음이 헛돌기도 해요.',
       en: 'This is where talk and thinking (Mercury) meet affection and charm (Venus). A single word can deepen the fondness, or a mismatch in how you express yourselves can leave the feeling running in circles.',
     },
     'Moon|Moon': {
@@ -390,7 +390,7 @@ export const GENERATED: GeneratedCopy = {
       en: "This is where one person's emotional beat folds right into the other's. You both well up, settle, and quietly ache on the same rhythm, and those rhythms touch. So you feel it in the air before either of you finds the words.",
     },
     'Moon|Neptune': {
-      ko: '감정(달)과 환상·이상(해왕성)이 만나는 자리예요. 서로를 곱게 물들이며 꿈처럼 통하기도 하고, 보고 싶은 모습만 보다가 길을 잃기도 합니다.',
+      ko: '감정(달)과 환상·이상(해왕성)이 만나는 자리예요. 서로를 곱게 물들이며 꿈처럼 통하기도 하고, 보고 싶은 모습만 보다가 길을 잃기도 해요.',
       en: 'Feeling (Moon) meets dream and idealization (Neptune). It can blend you into a tender, dreamlike understanding — or blur things until you only see what you wish were true.',
     },
     'Moon|Pluto': {
@@ -419,7 +419,7 @@ export const GENERATED: GeneratedCopy = {
     },
     'Neptune|Venus': {
       ko: "한 사람은 꿈꾸고 이상을 그리는 마음을 가져오고, 다른 사람은 사랑하는 방식과 끌리는 취향을 가져와요(애정·금성). 둘은 서로를 실제보다 살짝 반짝이게 바라봐요. 상대의 매력이 마음속 가장 말랑한 자리를 설레게 하거든요. 환상과 설렘, 그리고 '이 사람을 어떻게 사랑하고 싶지'가 한자리에서 만나면서 둘 사이의 무드가 정해지는 거예요.",
-      en: 'One of you brings a dreaming, idealizing heart; the other brings a way of loving and what they\'re drawn to (affection, Venus). You see each other a little more luminous than life. Their charm touches the softest corner inside you. This is where fantasy, flutter, and "how do I want to love this person" all meet, and that sets the mood between you.',
+      en: 'One of you brings a dreaming, idealizing heart; the other brings a way of loving and what they\'re drawn to (affection, Venus). You see each other with a little more shine than real life allows. Their charm touches the softest corner inside you. This is where fantasy, flutter, and "how do I want to love this person" all meet, and that sets the mood between you.',
     },
     'Pluto|Sun': {
       ko: '깊이·강렬함(명왕성)이 상대의 자아·정체성(해)을 정면으로 건드려요. 서로를 완전히 바꿔놓을 만큼 강하게 끌어당기기도 하고, 너무 깊이 파고들어 부담스러운 무게가 되기도 하죠.',
@@ -430,7 +430,7 @@ export const GENERATED: GeneratedCopy = {
       en: "Here one person's deepest, most intense self meets the way the other loves and feels drawn in. That depth (Pluto) seeps into the softer pull of attraction (Venus). So liking each other doesn't stay at a light flutter. It reaches all the way down to each other's core. This is where attraction between you runs especially deep and heavy.",
     },
     'Saturn|Sun': {
-      ko: '자아·정체성(해)이 책임과 시험(토성)과 마주쳐요. 곁에서 단단하게 다듬어주는 어른의 무게가 되기도 하고, 자꾸 검열당하는 듯 위축되게 만드는 쪽이 되기도 합니다.',
+      ko: '자아·정체성(해)이 책임과 시험(토성)과 마주쳐요. 곁에서 단단하게 다듬어주는 어른의 무게가 되기도 하고, 자꾸 검열당하는 듯 위축되게 만드는 쪽이 되기도 해요.',
       en: 'Your core self (Sun) comes up against responsibility and testing (Saturn). It can be a grounding, grown-up weight that shapes you — or turn into a pressure that leaves you feeling judged and diminished.',
     },
     'Saturn|Venus': {

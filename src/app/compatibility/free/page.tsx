@@ -164,7 +164,10 @@ export default function FreeCompatibilityPage() {
   const [phase, setPhase] = useState<'input' | 'loading' | 'result'>('input')
   const [report, setReport] = useState<CompatReport | null>(null)
   // 초대 링크(?invite=)로 들어온 세션 표식 — 결과 완주 시 invite_converted 계측.
+  // ref 는 콜백(analyze/onReset)용, state 는 렌더용(공유 프롬프트를 "초대자에게
+  // 되돌려 보내기"로 프레이밍). 둘 다 초대 effect 에서 함께 세운다.
   const cameFromInviteRef = useRef(false)
+  const [cameFromInvite, setCameFromInvite] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   // ── 저장된 정보 불러오기 (로그인 시에만) ───────────────────────────────
@@ -284,6 +287,7 @@ export default function FreeCompatibilityPage() {
     // 바이럴 퍼널 — 초대 링크로 실제 랜딩한 수(프리필 성공 여부와 별개).
     trackFunnel('compat_free.invite_landed')
     cameFromInviteRef.current = true
+    setCameFromInvite(true)
     let cancelled = false
     void (async () => {
       try {
@@ -464,6 +468,7 @@ export default function FreeCompatibilityPage() {
             isKo={isKo}
             locale={locale}
             timeUnknown={personA.timeUnknown || personB.timeUnknown}
+            cameFromInvite={cameFromInvite}
             inviter={
               personA.birthDate && (personA.gender === 'male' || personA.gender === 'female')
                 ? {
@@ -738,6 +743,7 @@ function ResultView({
   isKo,
   locale,
   timeUnknown,
+  cameFromInvite,
   inviter,
   onReset,
 }: {
@@ -748,6 +754,7 @@ function ResultView({
   isKo: boolean
   locale: 'ko' | 'en'
   timeUnknown: boolean
+  cameFromInvite?: boolean
   inviter?: CompatInviter
   onReset: () => void
 }) {
@@ -856,16 +863,28 @@ function ResultView({
       {/* 용어 풀이 */}
       <GlossaryBlock entries={view.glossary} isKo={isKo} />
 
-      {/* 공유 — 바이럴 루프. 1080×1080 이미지 카드(점수·등급·상위 테마 칩) + 링크. */}
+      {/* 공유 — 바이럴 루프. 1080×1080 이미지 카드(점수·등급·상위 테마 칩) + 링크.
+          초대(?invite=)로 들어온 사람에겐 "초대한 사람에게 결과 되돌려 보내기"로
+          프레이밍 — 같은 채널(카톡 등)로 루프가 A에게 되돌아가 K가 배가된다. */}
       <div className={s.share}>
         <div className={s.sharePrompt}>
           <p className={s.sharePromptTitle}>
-            {isKo ? '친구는 몇 점 나올까? 👀' : 'What score would your friends get? 👀'}
+            {cameFromInvite
+              ? isKo
+                ? `${labelA}님도 결과를 기다려요 👀`
+                : `${labelA} is waiting to see this 👀`
+              : isKo
+                ? '친구는 몇 점 나올까? 👀'
+                : 'What score would your friends get? 👀'}
           </p>
           <p className={s.sharePromptSub}>
-            {isKo
-              ? '이 카드를 공유하면, 친구는 생년월일만 넣고 바로 자기 궁합을 확인해요.'
-              : 'Share this card — your friends just add their birth date and get their own match instantly.'}
+            {cameFromInvite
+              ? isKo
+                ? `이 카드를 ${labelA}님에게 보내면, 두 사람이 같은 결과를 같이 봐요.`
+                : `Send this card back to ${labelA} — you'll both be looking at the same result.`
+              : isKo
+                ? '이 카드를 공유하면, 친구는 생년월일만 넣고 바로 자기 궁합을 확인해요.'
+                : 'Share this card — your friends just add their birth date and get their own match instantly.'}
           </p>
         </div>
         <ShareCompatibilityButton
