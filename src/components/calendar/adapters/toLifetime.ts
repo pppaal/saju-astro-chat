@@ -247,17 +247,18 @@ export function toLifetime(natal: NatalContext, opts: ToLifetimeOptions): Destin
     ? zrPeriodsToChapters(zr.fortune.periods, 'Fortune', opts.birthYear, nowAge, ageFrom, ageTo)
     : []
 
-  // 인생 유형 — 신강약 기준 대운 흐름(대기만성/초년발복/…).
+  // 인생 유형 — 대운 흐름(대기만성/초년발복/청년절정/…).
   // 현재 *만* 나이를 넘겨 "정점" 서술이 지금~앞으로를 가리키게(과거/유아기 정점 방지
   // + 생일 전 1살 과다로 시제가 어긋나던 감사 B1 교정).
-  // 분류·정점은 *사주-단독 거시(sajuMacro)* 로 — 인생유형은 사주 개념이라 점성
-  // 텍스처가 라벨을 뒤집지 못하게(감사: 950209 사주=대기만성인데 점성 성숙-골이
-  // 굴곡으로 뒤집던 문제). 화면 곡선은 blended 를 그대로 그린다.
+  // 분류·정점·계절톤·곡선을 *모두 같은 blended macro* 에서 뽑아 라벨↔정점서사↔단계
+  // 톤↔화면 곡선이 구조적으로 일치하게 한다(감사 30인: 라벨과 표시 곡선이 다른
+  // 신호라 "가장 환하게 N세"가 저점 구간을 가리키던 모순 다수). 점성 성숙-트랜짓
+  // 재평가(lifeCurve) 이후엔 blended 가 사주 곡선 형상을 뒤집지 않아 안전.
   const lp = deriveLifePattern(
     natal.saju as never,
     nowAge,
     opts.lifeCurve
-      ? { points: opts.lifeCurve.points.map((p) => ({ age: p.age, macro: p.sajuMacro })) }
+      ? { points: opts.lifeCurve.points.map((p) => ({ age: p.age, macro: p.macro })) }
       : undefined
   )
   const lifePattern = lp

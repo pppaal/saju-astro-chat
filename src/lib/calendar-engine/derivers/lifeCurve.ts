@@ -108,11 +108,6 @@ export interface LifeCurvePoint {
   combined: number // 정규화 합성 (세운 텍스처 포함, 연 단위)
   smooth: number // 5년 이동평균(중간 스케일)
   macro: number // 넓은 평활(대운·외행성 위주 — 거시 굴곡, 마디 추출용)
-  // 사주-단독 거시 곡선(점성 0 가중, z-정규화 후 7년 평활). 인생유형(대기만성/
-  // 초년발복…)은 *사주* 개념이므로 라벨 분류는 이 신호로 한다 — 점성 텍스처가
-  // 라벨을 뒤집지 못하게(감사: 950209 사주는 대기만성인데 점성 성숙-골이 굴곡으로
-  // 뒤집던 문제). 화면 곡선·마디는 blended macro 를 그대로 쓴다.
-  sajuMacro: number
   agree: boolean // 사주·점성 부호 일치
 }
 export interface LifeCurveExtremum {
@@ -268,10 +263,6 @@ export function buildLifeCurve(
   // 모두 combined 를 가볍게(7년) 평활한 *같은 신호* 를 본다. 엔벨로프 없음 →
   // 초년기 고생/호황이 그대로 드러나고, 티어 간 부호가 일치한다.
   const macro = movingAvg(combined, 3)
-  // 사주-단독 거시 — combined 와 같은 7년창을 sajuZ 에만 적용. 인생유형 라벨 분류
-  // 전용(점성 텍스처 격리). z-정규화라 미세한 대운 favor 차도 뚜렷한 마루/골로 살아
-  // 나 favor-path 원시 임계(±0.5)로는 못 잡던 은근한 대기만성도 곡선에서 분류된다.
-  const sajuMacro = movingAvg(sajuZ, 3)
 
   const points: LifeCurvePoint[] = sajuRaw.map((_, i) => ({
     year: birthYear + i,
@@ -283,7 +274,6 @@ export function buildLifeCurve(
     combined: combined[i],
     smooth: smooth[i],
     macro: macro[i],
-    sajuMacro: sajuMacro[i],
     agree: Math.sign(sajuZ[i]) === Math.sign(astroZ[i]) && sajuZ[i] !== 0,
   }))
 

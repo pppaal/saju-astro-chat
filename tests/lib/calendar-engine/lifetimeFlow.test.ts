@@ -654,11 +654,11 @@ describe('deriveLifetimeFlow', () => {
       const goodVariants = [
         '드디어 되는 일이',
         '착착 맞아떨어지는',
-        '내딛는 걸음마다 길이 열리는',
-        '뿌린 게 어렵잖게',
-        '사람도 기회도 곁에',
-        '때가 딱 받쳐주는',
-        '막히는 게 적어서',
+        '지금 지르면 크게 돌아오는',
+        '노력한 것보다 더 크게',
+        '사람도 기회도 알아서',
+        '작은 시도도 곧잘 결과',
+        '이때다 싶은 걸',
       ]
       expect(goodVariants.some((v) => child.text.includes(v))).toBe(true)
     })
@@ -672,11 +672,11 @@ describe('deriveLifetimeFlow', () => {
       const hardVariants = [
         '나만 매번 애쓰는',
         '나만 제자리인가',
-        '부딪히고 깎이는',
-        '길이 좁아진 느낌',
-        '맞바람이 자주 부는',
-        '쉽지 않은 고비',
-        '숨 고르고 채비할',
+        '노력에 비해 결과가',
+        '한 박자씩 어긋나는',
+        '주변에 치이고',
+        '크게 넘어야 하는 고비',
+        '한 템포 쉬며',
       ]
       expect(hardVariants.some((v) => child.text.includes(v))).toBe(true)
     })
@@ -689,11 +689,11 @@ describe('deriveLifetimeFlow', () => {
       const goodVariants = [
         '드디어 되는 일이',
         '착착 맞아떨어지는',
-        '내딛는 걸음마다 길이 열리는',
-        '뿌린 게 어렵잖게',
-        '사람도 기회도 곁에',
-        '때가 딱 받쳐주는',
-        '막히는 게 적어서',
+        '지금 지르면 크게 돌아오는',
+        '노력한 것보다 더 크게',
+        '사람도 기회도 알아서',
+        '작은 시도도 곧잘 결과',
+        '이때다 싶은 걸',
       ]
       expect(goodVariants.some((v) => child.text.includes(v))).toBe(true)
     })
@@ -706,11 +706,11 @@ describe('deriveLifetimeFlow', () => {
       const hardVariants = [
         '나만 매번 애쓰는',
         '나만 제자리인가',
-        '부딪히고 깎이는',
-        '길이 좁아진 느낌',
-        '맞바람이 자주 부는',
-        '쉽지 않은 고비',
-        '숨 고르고 채비할',
+        '노력에 비해 결과가',
+        '한 박자씩 어긋나는',
+        '주변에 치이고',
+        '크게 넘어야 하는 고비',
+        '한 템포 쉬며',
       ]
       expect(hardVariants.some((v) => child.text.includes(v))).toBe(true)
     })
