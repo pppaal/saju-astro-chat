@@ -1363,6 +1363,61 @@ const ELEMENT_BALANCE_ALT: Record<string, Bi> = {
   },
 }
 
+// 밴드(끌림·마찰 다섯 갈래) 변형 풀 — 리포트 상단의 잘 보이는 섹션이라, 같은
+// 고/저라도 커플마다 문장이 갈리게 대체 high/low 를 둔다. what(캡션)은 유지.
+const BAND_ALT: Record<string, { high: Bi; low: Bi }> = {
+  eastern_hap: {
+    high: {
+      ko: "두 사람 사주 글자들이 여기저기서 짝을 지어 묶여요(사주에선 '합'). 그래서 함께 있으면 톱니바퀴 맞물리듯, 애쓰지 않아도 척척 들어맞는 느낌이 있어요.",
+      en: "Your chart's characters pair up and bind in spot after spot (in Saju, 'hap'). So together, things mesh like gears catching — the fit comes without either of you having to try.",
+    },
+    low: {
+      ko: '두 사람 글자가 손을 맞잡는 자리는 그리 많지 않아요. 그래서 서로에게 스며들기까지 둘만의 리듬과 시간이 조금 더 필요한 사이예요.',
+      en: "There aren't so many places where your characters clasp hands. So sinking into each other takes a bit more of your own rhythm and time.",
+    },
+  },
+  eastern_chung: {
+    high: {
+      ko: '두 사람 글자가 정면으로 부딪히는 자리가 거의 없어요. 그래서 함께 보내는 시간이 잔물결 하나 없는 호수처럼 고요하게 이어져요.',
+      en: 'Almost nowhere do your characters collide head-on. So the time you share runs still, like a lake without a single ripple.',
+    },
+    low: {
+      ko: '두 사람 글자가 군데군데 맞부딪히며 불꽃이 튀어요. 그래서 잔잔한 물이라기보다, 생기와 떨림이 함께 도는 만남에 가까워요.',
+      en: 'Here and there your characters knock together and throw sparks. So less like calm water, more a meeting that hums with life and a little tremor.',
+    },
+  },
+  elements_match: {
+    high: {
+      ko: '한 사람에게 옅던 기운을 다른 사람이 넉넉히 갖고 있어요. 그래서 둘이 모이면 서로의 빈칸이 메워져 한결 둥글고 안정된 결이 돼요.',
+      en: 'What runs thin in one of you, the other holds in plenty. So together your blanks get filled and the whole thing rounds out, steadier.',
+    },
+    low: {
+      ko: '둘 다 비슷한 기운 쪽으로 마음이 쏠려 있어요. 그래서 서로 빈자리를 메우기보다, 같은 색을 두 번 덧칠하듯 그 기운이 더 진해지는 쪽이에요.',
+      en: "You both lean toward the same kind of energy. So rather than filling each other's gaps, it's like two coats of one color — that energy just deepens.",
+    },
+  },
+  synastry_harmonic: {
+    high: {
+      ko: '둘의 행성이 서로 결이 맞아 매끄럽게 흐르는 자리가 많아요. 그래서 특별히 노력하지 않아도 대화도 분위기도 물 흐르듯 이어지곤 해요.',
+      en: 'Your planets fall into an easy grain in many spots. So without any special effort, the talk and the mood tend to flow like water.',
+    },
+    low: {
+      ko: '두 사람 행성이 매끄럽게 이어지는 자리는 많지 않아요. 그래서 저절로 흐르기보다, 둘만의 박자를 하나씩 맞춰가는 쪽에 가까워요.',
+      en: "There aren't many places where your planets glide together. So less on autopilot, more like tuning your own tempo, step by step.",
+    },
+  },
+  synastry_tension: {
+    high: {
+      ko: '둘의 행성끼리 날을 세우고 맞서는 자리가 거의 없어요. 그래서 함께 있는 시간이 편안하고, 굳이 조심하지 않아도 마음이 놓여요.',
+      en: 'Your planets almost never square off against each other. So time together feels easy, and your guard drops without you trying.',
+    },
+    low: {
+      ko: '둘의 행성이 팽팽하게 당기는 자리가 군데군데 있어요. 그래서 마냥 느슨하기보다, 서로를 끌어당기고 흔드는 긴장이 함께 도는 사이예요.',
+      en: 'A few places pull taut between your planets. So less pure ease, more a charged tug that keeps drawing you back to each other.',
+    },
+  },
+}
+
 export function buildFreeCompatNarrative(
   report: CompatReport,
   opts: BuildNarrativeOptions
@@ -1430,6 +1485,12 @@ export function buildFreeCompatNarrative(
     const alt = ELEMENT_BALANCE_ALT[key]
     return alt ? pickFor([ELEMENT_BALANCE[key], alt], seed, `element:${key}`) : ELEMENT_BALANCE[key]
   }
+  const bandSideBi = (key: string, isHigh: boolean): Bi => {
+    const base = isHigh ? BAND[key].high : BAND[key].low
+    const alt = BAND_ALT[key]
+    const altSide = alt ? (isHigh ? alt.high : alt.low) : undefined
+    return altSide ? pickFor([base, altSide], seed, `band:${key}:${isHigh ? 'h' : 'l'}`) : base
+  }
 
   // ── 한눈에 (verdict) — 섹션이 아니라 view.verdict 로 따로 ──
   const verdict = report.crossVerdict
@@ -1458,8 +1519,8 @@ export function buildFreeCompatNarrative(
       const copy = BAND[key]
       if (!copy) continue
       const threshold = BAND_HIGH_THRESHOLD[key] ?? 50
-      const side = v >= threshold ? copy.high : copy.low
-      paras.push(`${t(copy.what)} — ${t(side)}`)
+      const sideBi = bandSideBi(key, v >= threshold)
+      paras.push(`${t(copy.what)} — ${t(sideBi)}`)
     }
     if (paras.length) {
       const m = meta('bands')
