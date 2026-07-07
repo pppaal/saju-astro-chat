@@ -34,7 +34,8 @@ export const COMPAT_SHARE_CARD_SIZE = 1080
 // 넘치면 말줄임표(…) 대신 마지막 단어 경계에서 끊고, 짝 안 맞는 따옴표·꼬리
 // 접속어(— a, and …)를 떼어 완결된 절에서 끝낸다 — "spous…"처럼 단어 중간에서
 // 잘리거나 따옴표가 열린 채 남는 걸 막는다(실 이름 길이에선 거의 발동 안 함).
-function clampCard(text: string, max: number): string {
+// (export 는 유닛 테스트용 — 로직이 까다로워 회귀 방지 테스트를 붙였다.)
+export function clampCard(text: string, max: number): string {
   const s = (text || '').trim()
   if (s.length <= max) return s
   const cut = s.slice(0, max)
