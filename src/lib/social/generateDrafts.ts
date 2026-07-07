@@ -309,24 +309,24 @@ function ctaPathFor(category: SocialCategory): string {
 // 카테고리별 작가 지시 한 줄 — 소재를 어떤 각도로 풀지.
 const CATEGORY_ANGLE_KO: Record<SocialCategory, string> = {
   tarot: '오늘의 카드 한 장이 건네는 메시지를 일상 장면 1개에 연결해라.',
-  saju: '오늘의 일진(간지)의 기운을 "오늘 하루를 어떻게 쓰면 좋은지"로 풀어라. 미신처럼 단정하지 말고 리듬/컨디션 조언 톤.',
+  saju: '오늘의 일진(간지) 기운을 "오늘 왜 유독 이런 컨디션/기분인지" 짚어 "아 그래서 오늘 이랬구나" 싶게 풀어라. 미신처럼 단정 금지, 리듬/컨디션 조언 톤. 오늘 같은 하루 보낸 사람이 "내 얘기네" 하고 저장·공유하게.',
   astrology:
     '해당 별자리 독자가 "어 내 얘기네" 하고 멈추게, 구체적 상황 1개를 짚어라. 다른 별자리 독자도 재미있게.',
   compatibility:
     '연애/관계 공감 소재로 풀되, 이분법 단정 대신 "이런 조합은 이런 식으로 부딪히고 이렇게 풀린다"는 통찰을 담아라.',
   calendar:
-    '"언제 하느냐"가 결과를 바꾼다는 타이밍 감각을 자극해라. 오늘/이번 주에 적용할 수 있는 행동 1개.',
+    '"오늘은 이걸 하기 좋은 날 / 이건 미루는 게 나은 날"을 딱 하나 짚어 스크린샷하고 싶게 만들어라. 오늘·이번 주 바로 쓸 행동 1개. "오늘 이거 하려던 사람 잠깐!" 같은 가벼운 타이밍 알림 톤(겁주지 말 것).',
 }
 
 const CATEGORY_ANGLE_EN: Record<SocialCategory, string> = {
   tarot: 'Tie the card of the day to one concrete everyday scene.',
-  saju: 'Turn the day pillar energy into practical "how to use today" rhythm advice — no superstition, no doom.',
+  saju: 'Turn the day pillar energy into a "so THAT is why today felt like this" read — practical rhythm/energy advice, no superstition, no doom. Make people who had the same kind of day go "this is me" and save/share it.',
   astrology:
     'Make readers of that sign stop scrolling with one specific relatable situation; keep it fun for others too.',
   compatibility:
     'Relationship-relatable, but insightful: how this pairing clashes and how it resolves — no binary verdicts.',
   calendar:
-    'Evoke the sense that WHEN you act changes outcomes; give one action applicable today or this week.',
+    'Pin one thing that is "a good day to do X / better to hold off on Y" so it is screenshot-worthy. One action for today or this week. A light timing-alert tone ("about to do this today? hold on —"), never scary.',
 }
 
 // 카테고리별 해시태그 힌트.
