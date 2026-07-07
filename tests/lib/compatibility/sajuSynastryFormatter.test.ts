@@ -14,6 +14,7 @@ import {
   computeSajuSynastryFacts,
   type SajuPillarInput,
 } from '@/lib/compatibility/sajuSynastryFormatter'
+import type { YongsinResult } from '@/lib/saju/yongsin'
 
 const P = (stem: string, branch: string): SajuPillarInput => ({ stem, branch })
 
@@ -198,6 +199,70 @@ describe('formatSajuSynastry', () => {
     it('B 시각 미상이면 B 시주가 빠져 시주 천간합이 사라진다', () => {
       const out = formatSajuSynastry({ ...valid, timeUnknownB: true })
       expect(out).not.toContain('시천간 임 + B 시천간 정')
+    })
+  })
+
+  describe('용신 보완 cross (오행 궁합)', () => {
+    // valid 오행: A 수2(子·壬) / B 토3(己·丑·未)·목2(甲·乙)·수1(亥).
+    const yongA: YongsinResult = {
+      primaryYongsin: '토',
+      yongsinType: '억부용신',
+      daymasterStrength: '신약',
+      reasoning: '',
+      kibsin: '목',
+    }
+    const yongB: YongsinResult = {
+      primaryYongsin: '수',
+      yongsinType: '조후용신',
+      daymasterStrength: '신강',
+      reasoning: '',
+    }
+
+    it('상대가 내 용신 오행을 채워주면 CRITICAL 용신 보완 블록에 나온다', () => {
+      const out = formatSajuSynastry({ ...valid, yongsinA: yongA, yongsinB: yongB, lang: 'ko' })
+      expect(out).toContain('용신 보완')
+      expect(out).toContain('A 억부용신 토 ← 상대 토3 잘 채워줌')
+      expect(out).toContain('B 조후용신 수 ← 상대 수2 잘 채워줌')
+    })
+
+    it('상대가 내 기신 오행을 2개 이상 가지면 가중주의를 붙인다', () => {
+      // A 기신 목 → B 목2
+      const out = formatSajuSynastry({ ...valid, yongsinA: yongA, lang: 'ko' })
+      expect(out).toContain('기신 목 상대 목2 가중주의')
+    })
+
+    it('yongsin 미제공이면 블록이 없다 (하위호환)', () => {
+      expect(formatSajuSynastry(valid)).not.toContain('용신 보완')
+    })
+
+    it('EN 은 용신 라인에 한글이 없다', () => {
+      const out = formatSajuSynastry({ ...valid, yongsinA: yongA, yongsinB: yongB, lang: 'en' })
+      const yongLines = out.split('\n').filter((l) => l.toLowerCase().includes('yongsin'))
+      expect(yongLines.length).toBeGreaterThan(0)
+      for (const l of yongLines) expect(l).not.toMatch(/[가-힣]/)
+    })
+  })
+
+  describe('지지 원진 cross', () => {
+    // valid 지지: A 子(년)·寅(월)·午(일)·辰(시) / B 丑(년)·申(월)·未(일)·亥(시).
+    // 원진 쌍: 辰亥(순수) · 子未(해+원진) · 丑午(해+원진).
+    it('원진 쌍이 지지 cross 에 태그된다', () => {
+      const out = formatSajuSynastry(valid)
+      expect(out).toContain('원진')
+      expect(out).toContain('진해 원진') // A 辰 ↔ B 亥 순수 원진
+    })
+
+    it('子未·丑午 는 해와 원진이 함께 태그된다(복합)', () => {
+      const out = formatSajuSynastry(valid)
+      // A 子 ↔ B 未 → 자미 해+원진
+      expect(out).toMatch(/자미 [^\n]*해[^\n]*원진|자미 [^\n]*원진[^\n]*해/)
+    })
+
+    it('EN 은 resentment 로 렌더하며 한글이 없다', () => {
+      const out = formatSajuSynastry({ ...valid, lang: 'en' })
+      const lines = out.split('\n').filter((l) => l.includes('resentment'))
+      expect(lines.length).toBeGreaterThan(0)
+      for (const l of lines) expect(l).not.toMatch(/[가-힣]/)
     })
   })
 })

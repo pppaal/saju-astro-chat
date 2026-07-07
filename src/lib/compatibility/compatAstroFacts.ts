@@ -11,7 +11,7 @@
 //
 // 본 모듈은 **포매팅 0**. text 0. chart 인스턴스 + meta 만 반환.
 
-import { toChart, type NatalChartData } from '@/lib/astrology/foundation/astrologyService'
+import { toChart } from '@/lib/astrology/foundation/astrologyService'
 import { cachedCalculateNatalChart } from '@/lib/astrology/cached'
 import type { Chart } from '@/lib/astrology/foundation/types'
 import { parseHourMinute } from '@/lib/saju/timeParse'
@@ -28,8 +28,6 @@ export interface CompatAstroPersonInput {
 export interface PersonCompatAstroFacts {
   /** formatAstroSynastry / formatCompositeChart 가 받는 chart 인스턴스. */
   chart: Chart
-  /** Swiss Ephemeris raw — 옛 인터페이스 호환용 escape hatch. */
-  natalRaw: NatalChartData
   /** 위·경도 — formatAstroSynastry 가 같이 받음 (house overlay 계산). */
   latitude: number
   longitude: number
@@ -87,7 +85,6 @@ async function collectOne(seed: CompatAstroPersonInput): Promise<PersonCompatAst
   const chart = toChart(natalRaw)
   return {
     chart,
-    natalRaw,
     latitude: seed.latitude,
     longitude: seed.longitude,
   }

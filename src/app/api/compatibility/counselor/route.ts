@@ -8,7 +8,6 @@ import { isSelfHarm, crisisMessage } from '@/lib/safety/crisis'
 import { logger } from '@/lib/logger'
 import { HTTP_STATUS } from '@/lib/constants/http'
 import { compatibilityCounselorRequestSchema } from '@/lib/api/zodValidation'
-import { buildEvidenceGroundingGuide } from '@/lib/prompts/evidenceGroundingGuide'
 import { buildCompatibilityCounselorPrompt } from '@/lib/prompts/compatibilityCounselorPrompt'
 import { sanitizeForXmlTagBoundary, sanitizePriorTurns } from '@/lib/llm/promptSafety'
 import { consumeCredits } from '@/lib/credits/creditService'
@@ -458,8 +457,6 @@ export async function POST(req: NextRequest) {
       )
       .join('\n')
 
-    const evidenceGuide = buildEvidenceGroundingGuide(normalizedLang)
-
     // System prompt — minimal. The previous build pulled in the full
     // counselorVoiceBase (identity + listening protocol + 16 signature
     // sentences + absolute rules + anti-patterns + length guide) plus
@@ -543,6 +540,10 @@ export async function POST(req: NextRequest) {
           timeUnknownA,
           timeUnknownB,
           lang,
+          // 용신 보완 cross — collectCompatSajuFacts 가 이미 계산해 둔 격국용신을
+          // 그대로 전달(추가 연산 0). 상대가 내 용신 오행을 채워주나/기신 가중하나.
+          yongsinA: compatSaju.a.base.yongsin,
+          yongsinB: compatSaju.b.base.yongsin,
         })
       }
     } catch (err) {
@@ -671,7 +672,6 @@ export async function POST(req: NextRequest) {
     // 월운/일진·트랜짓·리턴) 은 "두 사람이 어떻게 얽히나"가 아니라 개인 운세라
     // 궁합 철학과 안 맞고 토큰만 먹어 제거. 관계 시기는 cached 의 사주
     // synastry 안 세운 cross 가 담당.
-    void evidenceGuide
     // 호출자 이름은 cachedUserContext 밖에서 주입 — 이전엔 callerLine
     // 이 cached prefix 안에 들어가서 (a) 유저 간 prompt-cache 공유 불가,
     // (b) 이름 변경시 다음 세션 캐시 무효화. 이제 휘발성 userPrompt
