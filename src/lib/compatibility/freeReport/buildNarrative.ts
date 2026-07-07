@@ -231,8 +231,10 @@ const HOUSE_THEME: Record<number, ThemeId> = {
   6: 'life',
   7: 'future',
   8: 'sex',
-  9: 'life',
-  10: 'life',
+  // 9(모험·확장·먼 여행)·10(커리어·사회적 위치·평판)은 "같이 있으면 편해?(일상
+  // 편안함)"와 겉돌아, 함께 그리는 방향인 '미래'로 라우팅(평가단 지적).
+  9: 'future',
+  10: 'future',
   11: 'talk',
   12: 'love',
 }
@@ -287,9 +289,20 @@ const SHARE_GRADE: { min: number; v: Bi }[] = [
   { min: 56, v: { ko: '밀당의 고수들', en: 'Masters of the chase' } },
   { min: 0, v: { ko: '위태로운 롤러코스터', en: "A rollercoaster you can't get off" } },
 ]
-function shareGrade(score: number): Bi {
-  for (const g of SHARE_GRADE) if (score >= g.min) return g.v
-  return SHARE_GRADE[SHARE_GRADE.length - 1].v
+// neutral(균형·슬로우번) 톤 전용 등급 — SHARE_GRADE 의 '불꽃/위험' 언어가 "번쩍이는
+// 불꽃 같은 시작은 아니지만"이라는 neutral verdict 와 정면 충돌하던 문제(평가단 다수).
+// 같은 점수대라도 잔잔한 결로 표현해 카드-verdict 톤을 잠근다.
+const SHARE_GRADE_CALM: { min: number; v: Bi }[] = [
+  { min: 80, v: { ko: '조용히 깊어지는 사이', en: 'Quietly deepening' } },
+  { min: 72, v: { ko: '잔잔히 오래 갈 사이', en: 'Steady and lasting' } },
+  { min: 64, v: { ko: '담백하게 맞는 결', en: 'An easy, low-key match' } },
+  { min: 56, v: { ko: '천천히 스며드는 사이', en: 'A slow, gentle draw' } },
+  { min: 0, v: { ko: '무던하게 흘러가는 사이', en: 'Easygoing, no drama' } },
+]
+function shareGrade(score: number, tone: ShareTone): Bi {
+  const ladder = tone === 'neutral' ? SHARE_GRADE_CALM : SHARE_GRADE
+  for (const g of ladder) if (score >= g.min) return g.v
+  return ladder[ladder.length - 1].v
 }
 
 // 헤드라인 풀 — 톤별. accent = 카드에서 골드로 강조할 핵심 구. \n = 줄바꿈.
@@ -389,7 +402,7 @@ export function freeCompatShareCopy(
   const seed = coupleSeed(report)
   const pool = SHARE_PUNCH[tone] ?? SHARE_PUNCH.neutral
   const p = pickFor(pool, seed, `share-punch:${tone}`)
-  const g = shareGrade(score)
+  const g = shareGrade(score, tone)
   return {
     grade: isKo ? g.ko : g.en,
     punch: isKo ? p.ko : p.en,
@@ -1939,8 +1952,15 @@ export function buildFreeCompatNarrative(
     typeof report.band?.synastry_harmonic === 'number'
       ? Math.max(-4, Math.min(4, (report.band.synastry_harmonic - 50) / 12))
       : 0
+  // 테마당 본문 상한 — 마찰 테마가 7~13문단으로 벽이 되던 문제(평가단 다수 지적).
+  // 가중치순 상위 N개만 남겨 어느 테마도 "점성 백과사전"처럼 늘어지지 않게 한다.
+  const THEME_PARA_CAP = 5
   const themes: FreeReportTheme[] = THEME_META.map((m) => {
-    const items = themed.filter((x) => x.theme === m.id).sort((a, b) => b.weight - a.weight)
+    let items = themed.filter((x) => x.theme === m.id).sort((a, b) => b.weight - a.weight)
+    // "어디서 부딪힐까(마찰)" 카드엔 실제 마찰(음극성) 신호만 담는다 — 결속·조화
+    // 신호가 섞이면 화합 얘기가 마찰 헤딩 아래 들어가 톤이 무너지고, 높은 마찰
+    // 점수와 pos 훅이 정면으로 모순됐다(예: 마찰 92인데 "큰 일 거의 없어").
+    if (m.id === 'friction') items = items.filter((it) => it.pol < 0)
     // 극성 합 → 훅·기본결·점수 모두 같은 pos/neg/mid 로 결정.
     const net = items.reduce((s, it) => s + it.pol, 0)
     const hookKey: HookKey = net > 0.5 ? 'pos' : net < -0.5 ? 'neg' : 'mid'
@@ -1950,6 +1970,13 @@ export function buildFreeCompatNarrative(
     // 기본 결 문단 — 신호별 본문 앞에 깔아 빈약한 테마도 풍부하게. (훅과 같은 극성)
     // 단, 신호가 0인 테마엔 붙이지 않는다 — "신호 있을 때만 표시" 원칙 유지(빈 테마 부활 X).
     const seenTxt = new Set<string>()
+    const body: string[] = []
+    for (const it of items) {
+      if (seenTxt.has(it.text)) continue
+      seenTxt.add(it.text)
+      body.push(it.text)
+      if (body.length >= THEME_PARA_CAP) break // 벽 방지: 상위 N개(가중치순)만
+    }
     const paragraphs: string[] =
       items.length > 0
         ? [
@@ -1960,13 +1987,9 @@ export function buildFreeCompatNarrative(
                 `primer:${m.id}.${hookKey}`
               )
             ),
+            ...body,
           ]
         : []
-    for (const it of items) {
-      if (seenTxt.has(it.text)) continue
-      seenTxt.add(it.text)
-      paragraphs.push(it.text)
-    }
     return {
       id: m.id,
       icon: m.icon,
@@ -1977,6 +2000,32 @@ export function buildFreeCompatNarrative(
       paragraphs,
     }
   }).filter((th) => th.paragraphs.length > 0)
+
+  // 위로 상투구 변주 — "안 맞아서가 아니라~"(EN "Not a mismatch")가 리포트당 4~6회
+  // 반복돼 템플릿 이음새가 훤히 보였다(평가단 다수). 첫 등장은 두고 2번째부터
+  // 커플 seed 로 결정적으로 변주해 반복 티를 지운다.
+  {
+    const KO_VARS = ['틀어져서가 아니라', '부딪혀서가 아니라', '멀어져서가 아니라']
+    const EN_VARS = [
+      'not that you clash',
+      "not that you're wrong for each other",
+      'not from missing',
+    ]
+    let nk = 0
+    let ne = 0
+    const varyKo = (s: string): string =>
+      s.replace(/안 맞아서가 아니라/g, () =>
+        nk++ === 0 ? '안 맞아서가 아니라' : KO_VARS[(seed + nk) % KO_VARS.length]
+      )
+    const varyEn = (s: string): string =>
+      s.replace(/([Nn])ot a mismatch/g, (m0, c: string) => {
+        if (ne++ === 0) return m0
+        const v = EN_VARS[(seed + ne) % EN_VARS.length] // "not ..."
+        return c === 'N' ? v.charAt(0).toUpperCase() + v.slice(1) : v
+      })
+    for (const th of themes)
+      th.paragraphs = th.paragraphs.map((p) => (isKo ? varyKo(p) : varyEn(p)))
+  }
 
   const glossary: FreeReportGlossaryEntry[] = COMPAT_GLOSSARY.map((g) => ({
     term: t(g.term),
