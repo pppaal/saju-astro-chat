@@ -78,7 +78,11 @@ function pickDominant(cands: ActiveSignal[]): ActiveSignal | undefined {
     if (
       !best ||
       impact(s) > impact(best) ||
-      (impact(s) === impact(best) && (s.weight > best.weight || s.id < best.id))
+      // 전순서(total order) tie-break — impact 동점→weight, weight 동점→id.
+      // 옛 `weight> || id<` 는 (낮은 weight·낮은 id) 후보가 순서 따라 이겨 결정성이
+      // 깨졌다(감사).
+      (impact(s) === impact(best) &&
+        (s.weight > best.weight || (s.weight === best.weight && s.id < best.id)))
     ) {
       best = s
     }
@@ -138,8 +142,22 @@ const ASPECT_MARK: Record<string, string> = {
   semisextile: '⚺',
 }
 
+// PLANET_KO 는 10행성+ASC/MC 만. 트랜짓 natal point 로 자주 오는 교점·소천체·각도점을
+// 보강해 KO 칩에 'True Node'/'Chiron' 같은 영문이 새지 않게 한다(감사).
+const POINT_KO_EXTRA: Record<string, string> = {
+  'True Node': '북교점',
+  'North Node': '북교점',
+  'South Node': '남교점',
+  Node: '교점',
+  Chiron: '카이런',
+  Lilith: '릴리스',
+  Descendant: '하강점',
+  DC: '하강점',
+  IC: '천저점',
+  Vertex: '버텍스',
+}
 const planetKoOr = (name: string, lang: Lang): string =>
-  lang === 'ko' ? (PLANET_KO[name] ?? name) : name
+  lang === 'ko' ? (PLANET_KO[name] ?? POINT_KO_EXTRA[name] ?? name) : name
 
 /** 점성 지배신호 → 짧은 칩 라벨. transit 은 '금성 △ 금성', 그 외는 kind 라벨. */
 function astroChipText(s: ActiveSignal, lang: Lang): string {
@@ -149,10 +167,15 @@ function astroChipText(s: ActiveSignal, lang: Lang): string {
     if (planets && planets.length >= 2) {
       return `${planetKoOr(planets[0], lang)} ${mark} ${planetKoOr(planets[1], lang)}`
     }
-    // evidence 없으면 name('Venus △ Venus')의 영문 행성 토큰만 한글로.
+    // evidence 없으면 name('Venus △ Venus')의 영문 행성/포인트 토큰만 한글로.
+    // 긴 키부터(‘True Node’ 가 ‘Node’ 보다 먼저) 치환해 부분겹침 방지.
     let t = s.name
     if (lang === 'ko') {
-      for (const [en, ko] of Object.entries(PLANET_KO)) {
+      const map: Array<[string, string]> = [
+        ...Object.entries(PLANET_KO),
+        ...Object.entries(POINT_KO_EXTRA),
+      ].sort((a, b) => b[0].length - a[0].length)
+      for (const [en, ko] of map) {
         t = t.replace(new RegExp(`\\b${en}\\b`, 'g'), ko)
       }
     }
@@ -251,10 +274,16 @@ export function deriveEvidenceLadder(
 
     if (sajuPrimary) {
       const sibsin = primarySibsin(sajuPrimary)!
-      polarity = sajuPrimary.polarity
-      conclusion = sajuConclusion(sibsin, scale, sajuPrimary.polarity, lang)
       // 칩은 십신 원어 — EN 은 표준 영문 라벨(SIBSIN_EN), 없으면 원어 폴백.
       chips.push({ text: lang === 'en' ? (SIBSIN_EN[sibsin] ?? sibsin) : sibsin, source: 'saju' })
+      // 중립 십신(용신 무관, polarity 0)이 강한 점성 driver 를 가리지 않게 — 그 층에
+      // 방향 있는 트랜짓이 있으면 톤·결론을 점성에 양보한다(칩은 유지). 안 그러면
+      // 강한 트랜짓이 깔린 층이 "…바탕 기운"(중립)으로 잘못 떴다(감사).
+      const yieldToAstro = sajuPrimary.polarity === 0 && !!astroDom && astroDom.polarity !== 0
+      if (!yieldToAstro) {
+        polarity = sajuPrimary.polarity
+        conclusion = sajuConclusion(sibsin, scale, sajuPrimary.polarity, lang)
+      }
     } else if (sajuFallback) {
       polarity = sajuFallback.polarity
       const label =

@@ -250,7 +250,7 @@ export function MonthTier({ month, onDive, onRise, showRise = true, onSelectDay 
           : `This month leans toward ${woolunArea}.`
       )
     }
-    if (goodN > 0 || cautionN > 0) {
+    if (goodN > 0 || careN > 0) {
       parts.push(
         ko
           ? `흐름이 트이는 날이 ${goodN}개, 한 박자 조심할 날이 ${careN}개라 전체적으로 ${toneVerdictKo}.`

@@ -35,6 +35,30 @@ import type { EvidenceRung } from '@/lib/calendar-engine/derivers/evidenceLadder
 import styles from './DayTier.module.css'
 import { useI18n } from '@/i18n/I18nProvider'
 import { localizeLabel } from '@/components/calendar/adapters/localizeLabel'
+import { minorSafeText } from '@/lib/calendar-engine/minorSafe'
+
+/**
+ * 미성년 안전 — 파생 카피 객체의 모든 문자열을 재귀로 정화(감사 C3-hole). 키가
+ * `...En` 이면 EN 어휘로, `...Ko`/그 외면 KO 어휘로 minorSafeText 적용. minorSafeText
+ * 는 성인 도메인 토큰(결혼·투자·도박·배우자…)만 치환하므로 라벨·아이콘·키에 걸어도
+ * 무해하다. isMinor=false 면 원본 그대로.
+ */
+function deepMinorSafe<T>(v: T, en: boolean): T {
+  if (typeof v === 'string') return minorSafeText(v, en ? 'en' : 'ko') as unknown as T
+  if (Array.isArray(v)) return v.map((x) => deepMinorSafe(x, en)) as unknown as T
+  if (v && typeof v === 'object') {
+    const out: Record<string, unknown> = {}
+    for (const [k, val] of Object.entries(v)) {
+      const childEn = /En$/.test(k) ? true : /Ko$/.test(k) ? false : en
+      out[k] = deepMinorSafe(val, childEn)
+    }
+    return out as unknown as T
+  }
+  return v
+}
+function minorSafeAll<T>(o: T, isMinor: boolean): T {
+  return isMinor ? deepMinorSafe(o, false) : o
+}
 import { ShareDayButton } from '@/components/calendar/ShareDayButton'
 import { dayShareHook } from '@/lib/share/shareHook'
 import StreakChip from '@/components/calendar/StreakChip'
@@ -423,44 +447,50 @@ export function DayTier({ day, onRise, sex = '남', isToday = true }: DayTierPro
           ? 'A supporting flow comes with it.'
           : ''
 
-  // ── 행동 처방. ──
-  const dayActions = deriveDayActions({
-    iljinSibsin: sibsinRaw,
-    scoreBand: dayBand,
-    seed: day.seed ?? 0,
-  })
+  // ── 행동 처방. (미성년이면 성인 도메인 카피 정화 — 감사 C3-hole) ──
+  const dayActions = minorSafeAll(
+    deriveDayActions({
+      iljinSibsin: sibsinRaw,
+      scoreBand: dayBand,
+      seed: day.seed ?? 0,
+    }),
+    !!day.isMinor
+  )
 
   // ── 분야별 오늘. ──
-  const dayDomains = deriveDayDomains({
-    iljinSibsin: sibsinRaw,
-    sex,
-    scoreBand: dayBand,
-    ko,
-    seed: day.seed ?? 0,
-    evidence: {
-      transits: (day.transits ?? []).map((t) => ({
-        body: (t as { body?: string }).body,
-        aspect: (t as { aspect?: string }).aspect,
-        polarity: t.polarity,
-      })),
-      shinsal: day.shinsalActive ?? [],
-      crossActivations: (day.crossActivations ?? []).map((c) => ({
-        sajuSide: c.sajuSide,
-        astroSide: c.astroSide,
-        route: `${c.sajuKo ?? c.sajuSide} ${c.astroKo ?? c.astroSide}`,
-        meaning: c.meaning,
-        polarity: c.polarity,
-      })),
-      moon: (day.hourMoon ?? []).map((m) => ({
-        body: m.body,
-        aspectKo: m.aspectKo,
-        aspectEn: m.aspectEn,
-        when: m.when,
-        whenEn: m.whenEn,
-        polarity: m.polarity,
-      })),
-    },
-  })
+  const dayDomains = minorSafeAll(
+    deriveDayDomains({
+      iljinSibsin: sibsinRaw,
+      sex,
+      scoreBand: dayBand,
+      ko,
+      seed: day.seed ?? 0,
+      evidence: {
+        transits: (day.transits ?? []).map((t) => ({
+          body: (t as { body?: string }).body,
+          aspect: (t as { aspect?: string }).aspect,
+          polarity: t.polarity,
+        })),
+        shinsal: day.shinsalActive ?? [],
+        crossActivations: (day.crossActivations ?? []).map((c) => ({
+          sajuSide: c.sajuSide,
+          astroSide: c.astroSide,
+          route: `${c.sajuKo ?? c.sajuSide} ${c.astroKo ?? c.astroSide}`,
+          meaning: c.meaning,
+          polarity: c.polarity,
+        })),
+        moon: (day.hourMoon ?? []).map((m) => ({
+          body: m.body,
+          aspectKo: m.aspectKo,
+          aspectEn: m.aspectEn,
+          when: m.when,
+          whenEn: m.whenEn,
+          polarity: m.polarity,
+        })),
+      },
+    }),
+    !!day.isMinor
+  )
 
   // ── 교차 카드 (▲/▼, cap 4, 절댓값 정렬). ──
   const crossCards = crossSorted.slice(0, 4)
@@ -470,30 +500,33 @@ export function DayTier({ day, onRise, sex = '남', isToday = true }: DayTierPro
   const peakHourSrc = [...(day.hourCrossings ?? [])].sort(
     (a, b) => Number(b.matched) - Number(a.matched) || b.strength - a.strength
   )[0]
-  const deepRead = deriveDayDeepRead({
-    iljinKr: day.iljin.kr,
-    iljinSibsin: sibsinRaw,
-    tone: verdict.tone,
-    // "오늘의 흐름" 프레임 — 대운/세운(decadal/yearly) 배경 교차는 1년 내내 같은
-    // 문장을 도배하므로 제외(감사 #12). layer 미기재(구 캐시)는 종전대로 포함.
-    crosses: (day.crossActivations ?? [])
-      .filter((c) => c.sajuKo && c.astroKo)
-      .filter((c) => !c.layer || c.layer === 'daily' || c.layer === 'monthly')
-      .map((c) => ({
-        sajuKo: c.sajuKo as string,
-        astroKo: c.astroKo as string,
-        polarity: c.polarity,
-      })),
-    shinsal: (day.shinsalActive ?? []).slice(0, 2).map((s) => ({ ko: s, en: shinsalEn(s) })),
-    peakHour: peakHourSrc
-      ? {
-          whenKo: peakHourSrc.when.replace(/\s*\(.*\)/, '').trim(),
-          whenEn: peakHourSrc.whenEn.replace(/\s*\(.*\)/, '').trim(),
-          tone: peakHourSrc.tone === 'good' ? 'good' : 'caution',
-        }
-      : null,
-    seed: day.seed ?? 0,
-  })
+  const deepRead = minorSafeAll(
+    deriveDayDeepRead({
+      iljinKr: day.iljin.kr,
+      iljinSibsin: sibsinRaw,
+      tone: verdict.tone,
+      // "오늘의 흐름" 프레임 — 대운/세운(decadal/yearly) 배경 교차는 1년 내내 같은
+      // 문장을 도배하므로 제외(감사 #12). layer 미기재(구 캐시)는 종전대로 포함.
+      crosses: (day.crossActivations ?? [])
+        .filter((c) => c.sajuKo && c.astroKo)
+        .filter((c) => !c.layer || c.layer === 'daily' || c.layer === 'monthly')
+        .map((c) => ({
+          sajuKo: c.sajuKo as string,
+          astroKo: c.astroKo as string,
+          polarity: c.polarity,
+        })),
+      shinsal: (day.shinsalActive ?? []).slice(0, 2).map((s) => ({ ko: s, en: shinsalEn(s) })),
+      peakHour: peakHourSrc
+        ? {
+            whenKo: peakHourSrc.when.replace(/\s*\(.*\)/, '').trim(),
+            whenEn: peakHourSrc.whenEn.replace(/\s*\(.*\)/, '').trim(),
+            tone: peakHourSrc.tone === 'good' ? 'good' : 'caution',
+          }
+        : null,
+      seed: day.seed ?? 0,
+    }),
+    !!day.isMinor
+  )
 
   // ── 자세한 신호 보기 — allSignals cap 12, polarity!==0, weight·polarity 정렬. ──
   const signalRows = [...(day.allSignals ?? [])]
@@ -986,7 +1019,13 @@ export function DayTier({ day, onRise, sex = '남', isToday = true }: DayTierPro
                   {signalRows.map((s, i) => (
                     <div className={styles.evRow} key={s.id ?? i}>
                       <span className={styles.evSrc}>{srcTag(s)}</span>
-                      <span className={styles.evLabel}>{localizeLabel(s.label, ko)}</span>
+                      {/* EN 은 엔진이 방출한 s.english 우선 — 안 그러면 라이프사이클
+                          한글 산문("첫 토성 회귀 —…")이 EN raw 폴드에 샜다(감사). */}
+                      <span className={styles.evLabel}>
+                        {ko
+                          ? localizeLabel(s.label, true)
+                          : ((s as { english?: string }).english ?? localizeLabel(s.label, false))}
+                      </span>
                       <span className={styles.evStrength}>{strengthWord(s.weight)}</span>
                       <PolChip v={s.polarity} />
                     </div>

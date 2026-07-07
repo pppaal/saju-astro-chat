@@ -211,6 +211,13 @@ export interface DestinyDay extends DestinyIljinHeader {
 
   /** 개인 시드(본명 고정) — 템플릿 문구를 사람마다 다르게 고르는 데 쓴다. */
   seed?: number
+  /**
+   * 미성년(만 19세 미만) 여부 — 서버(assembleDayTier)가 만 나이로 판정해 실어보낸다.
+   * DayTier 가 클라이언트에서 파생하는 행동·분야·깊이읽기 카피(결혼·투자·도박·배우자
+   * 등 성인 도메인)를 연령 적합 표현으로 치환하는 게이트. 서버 minorSafe 패스는
+   * cross/시진만 덮으므로 클라 파생 카피는 이 플래그로 별도 정화한다(감사 C3-hole).
+   */
+  isMinor?: boolean
 
   // ── 타이밍 컨텍스트 (캘린더용 — assembleTiers 가 주변 날짜에서 채움) ──
   /** 이달 일별 점수 — 흐름 추이선용. day=1..31, score=0..100, today 표시. */

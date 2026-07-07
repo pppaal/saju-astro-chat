@@ -201,12 +201,17 @@ export function toMonth(opts: ToMonthOptions): {
   const woolun =
     opts.woolunStem && opts.woolunBranch ? toGanji(opts.woolunStem, opts.woolunBranch) : undefined
 
-  // ── 근거 사다리 — 그 달 대표 셀(focus 우선, 없으면 중앙)의 10년/올해/이달 층. ──
-  // decadal·yearly·monthly 신호는 한 달 내내 상수라 아무 셀이나 동일. daily 는 생략.
+  // ── 근거 사다리 — 그 달 *중순(15일 근처)* 대표 셀의 10년/올해/이달 층. ──
+  // 월운(월)은 절입, 세운(년)은 입춘에서 *달력월 중간을 가르며* 바뀔 수 있어(감사),
+  // focus/best 셀(임의의 강한 날)을 쓰면 소수파 절기월의 십신이 "이달"로 잘못 뜬다.
+  // 15일은 절입·입춘과 가장 먼 지점이라 다수파 절기월/세운을 대표한다. daily 는 생략.
+  const midDom = (c: CalendarCell) => parseInt(c.datetime.slice(8, 10), 10) || 0
   const repCell =
-    opts.cells.find((c) => parseInt(c.datetime.slice(8, 10), 10) === focusDay) ??
-    opts.cells[Math.floor(opts.cells.length / 2)] ??
-    opts.cells[0]
+    opts.cells.length > 0
+      ? opts.cells.reduce((best, c) =>
+          Math.abs(midDom(c) - 15) < Math.abs(midDom(best) - 15) ? c : best
+        )
+      : undefined
   const ladderScales = ['decadal', 'yearly', 'monthly'] as const
   const evidenceLadder = repCell
     ? deriveEvidenceLadder(repCell.signals, 'ko', [...ladderScales])

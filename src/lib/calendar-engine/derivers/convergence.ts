@@ -7,6 +7,7 @@ import {
   MIN_IMPACT,
 } from './convergence-heavy'
 import { toneMeaningFor, type MeaningTone } from './toneMeaning'
+import { toUtcMs } from '../timeUtc'
 
 /**
  * 수렴(convergence) 디라이버 — "큰 날" 탐지.
@@ -27,7 +28,9 @@ const PEAK_WINDOW_DAYS = 15
 function exactnessFactor(cellDate: string, s: ActiveSignal): number {
   const peak = s.active?.peak
   if (!peak) return 1
-  const days = Math.abs(new Date(cellDate).getTime() - new Date(peak).getTime()) / 86_400_000
+  // tz-safe 파싱(감사) — active.peak 이 tz-less 면 서버 로컬 파싱이 감쇠·점수·
+  // 큰날 선택을 서버 TZ 별로 갈랐다. toUtcMs 로 UTC 고정.
+  const days = Math.abs(toUtcMs(cellDate) - toUtcMs(peak)) / 86_400_000
   return Math.max(0.3, 1 - days / PEAK_WINDOW_DAYS)
 }
 
@@ -49,8 +52,8 @@ function aggregateWindow(
   let peakIso: string | undefined
   let peakImp = -1
   for (const s of sigs) {
-    const st = s.active?.start ? Date.parse(s.active.start) : NaN
-    const en = s.active?.end ? Date.parse(s.active.end) : NaN
+    const st = s.active?.start ? toUtcMs(s.active.start) : NaN
+    const en = s.active?.end ? toUtcMs(s.active.end) : NaN
     if (Number.isNaN(st) || Number.isNaN(en)) continue
     if (en - st > MAX_SPAN_MS) continue // 느린(년/십년) 신호는 윈도우 집계 제외
     startMs = Math.min(startMs, st)
@@ -61,7 +64,7 @@ function aggregateWindow(
       peakIso = s.active.peak
     }
   }
-  const cellMs = Date.parse(cellIso)
+  const cellMs = toUtcMs(cellIso)
   // 스케일 적합 신호가 하나도 없으면(전부 느림) 셀 날짜 점으로 폴백.
   if (!Number.isFinite(startMs) || !Number.isFinite(endMs)) {
     if (Number.isNaN(cellMs)) return undefined
@@ -70,7 +73,7 @@ function aggregateWindow(
   }
   // 정점 — 가장 강한 신호의 peak 이 구간 안이면 그걸, 아니면 셀 날짜(구간 안일
   // 때), 둘 다 아니면 중점.
-  const peakMs = peakIso ? Date.parse(peakIso) : NaN
+  const peakMs = peakIso ? toUtcMs(peakIso) : NaN
   const peakResolved =
     !Number.isNaN(peakMs) && peakMs >= startMs && peakMs <= endMs
       ? peakMs
@@ -155,8 +158,8 @@ const CHIP_SPAN_LIMIT_MS = 45 * 86_400_000
 // 변별을 죽인다 — 무거움 합산엔 반영하되 *표시 칩*에서는 숨긴다. (외곽 배경은
 // isSlowBackgroundAstro 가 따로 처리.)
 function isLongSpan(s: ActiveSignal): boolean {
-  const st = s.active?.start ? Date.parse(s.active.start) : NaN
-  const en = s.active?.end ? Date.parse(s.active.end) : NaN
+  const st = s.active?.start ? toUtcMs(s.active.start) : NaN
+  const en = s.active?.end ? toUtcMs(s.active.end) : NaN
   if (Number.isNaN(st) || Number.isNaN(en)) return false
   return en - st > CHIP_SPAN_LIMIT_MS
 }

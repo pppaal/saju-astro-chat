@@ -160,6 +160,64 @@ describe('deriveEvidenceLadder', () => {
     expect(daily.chips.some((c) => c.text === 'Direct Wealth')).toBe(true) // 정재
   })
 
+  it('R3: KO 칩이 True Node/Chiron 등 비-행성 포인트도 한글로 (영문 누출 방지)', () => {
+    const sigs = [
+      sig({
+        id: 'p',
+        kind: 'pillar-sibsin',
+        name: '庚辰 (정재)',
+        layer: 'daily',
+        polarity: 0,
+        weight: 0.55,
+        sibsin: '정재',
+      }),
+      sig({
+        id: 't',
+        kind: 'transit',
+        name: 'Venus △ True Node',
+        layer: 'daily',
+        polarity: 2,
+        weight: 0.6,
+        planets: ['Venus', 'True Node'],
+        aspectType: 'trine',
+      }),
+    ]
+    const daily = deriveEvidenceLadder(sigs, 'ko').find((r) => r.scale === 'daily')!
+    const astroChip = daily.chips.find((c) => c.source === 'astro')!
+    expect(astroChip.text).toBe('금성 △ 북교점')
+    expect(astroChip.text).not.toMatch(/[A-Za-z]/)
+  })
+
+  it('R3: 중립 십신(polarity 0)은 강한 점성 driver 에 톤·결론을 양보(칩은 유지)', () => {
+    const sigs = [
+      // 중립 일진 십신
+      sig({
+        id: 'p',
+        kind: 'pillar-sibsin',
+        name: '庚辰 (비견)',
+        layer: 'daily',
+        polarity: 0,
+        weight: 0.55,
+        sibsin: '비견',
+      }),
+      // 같은 층 강한 흉 트랜짓
+      sig({
+        id: 't',
+        kind: 'transit',
+        name: 'Saturn □ Sun',
+        layer: 'daily',
+        polarity: -2,
+        weight: 0.9,
+        planets: ['Saturn', 'Sun'],
+        aspectType: 'square',
+      }),
+    ]
+    const daily = deriveEvidenceLadder(sigs, 'ko').find((r) => r.scale === 'daily')!
+    expect(daily.polarity).toBe(-2) // 점성 driver 로 톤 양보
+    expect(daily.chips.some((c) => c.source === 'saju' && c.text === '비견')).toBe(true) // 칩 유지
+    expect(daily.conclusion).not.toContain('바탕 기운') // 중립 결론 아님
+  })
+
   it('정적 본명(명사) 신호는 제외 — geokguk-status 는 사다리에 안 뜬다', () => {
     const withStatic = [
       sig({

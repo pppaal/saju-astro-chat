@@ -146,7 +146,11 @@ function buildCrossSignal(
   // 부호 충돌(polarity 0)이면 톤만 무력화하고 강한 길/흉 원문을 그대로 두면
   // "중립 마커(·) + 강한 경고문" 모순이 난다(감사 #9). 문구도 중립으로 교체 —
   // "X × Y — …" 머리 형식은 유지해 stripCrossPair 가 그대로 동작한다.
-  const conflicted = polarity === 0 && sajuSig.polarity !== 0 && astroSig.polarity !== 0
+  // 부호 충돌로 인한 0 만 "상쇄"로 본다. 매핑 자체가 중립(mapping.polarity===0,
+  // 예 역마×화성·편인×수성)인데 부모가 *같은 방향*이면 상쇄가 아니라 양가(兩價)라
+  // "서로 반대로 당겨 상쇄" 카피가 매핑 원문과 모순됐다(감사). mapping.polarity!==0 추가.
+  const conflicted =
+    polarity === 0 && mapping.polarity !== 0 && sajuSig.polarity !== 0 && astroSig.polarity !== 0
   const koMeaning = conflicted
     ? `${name} — 두 기운이 서로 반대로 당겨 상쇄되는 날. 크게 밀지도 밀리지도 않으니 판단을 서두르지 마세요.`
     : mapping.meaning.ko

@@ -353,6 +353,9 @@ export async function assembleDayTier(input: AssembleDayTierInput): Promise<Dest
     birthTimeZone: natal.input?.timeZone,
     now,
   })
+  // 미성년 플래그를 실어보내 DayTier 가 클라 파생 카피(행동·분야·깊이읽기)를 정화하게.
+  // 서버 minorSafe 패스는 cross/시진만 덮으므로(클라 파생은 여기서 못 만짐) 플래그 전달.
+  day.isMinor = isMinorAge(manAge)
   if (isMinorAge(manAge)) {
     const rows = (xs: unknown): Array<Record<string, unknown>> =>
       (xs as Array<Record<string, unknown>>) ?? []
