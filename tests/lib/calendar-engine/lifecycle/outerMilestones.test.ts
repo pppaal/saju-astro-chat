@@ -108,6 +108,53 @@ describe('resolveMilestoneFromSamples — 순수 교차 검출', () => {
       })
     ).toBeNull()
   })
+
+  it('F1: 회귀(무교차)도 이웃 비대칭이면 sub-year 시점을 복원 — 항상 7/1 조작값 아님', () => {
+    const samples = [
+      { age: 28, err: 9 },
+      { age: 29, err: 1 },
+      { age: 30, err: 5 },
+    ]
+    const r = resolveMilestoneFromSamples({
+      kind: 'saturn_return_1',
+      samples,
+      yearlyMotion: 12.2,
+      birthYear: BIRTH_YEAR,
+      birthAnchorMs: ANCHOR,
+    })
+    expect(r).not.toBeNull()
+    expect(r!.exactDateISO!.slice(5)).not.toBe('07-01')
+  })
+
+  it('F1: 대칭 이웃이면 7/1 근처(꼭짓점 offset 0) — 회귀', () => {
+    const samples = [
+      { age: 28, err: 5 },
+      { age: 29, err: 1 },
+      { age: 30, err: 5 },
+    ]
+    const r = resolveMilestoneFromSamples({
+      kind: 'saturn_return_1',
+      samples,
+      yearlyMotion: 12.2,
+      birthYear: BIRTH_YEAR,
+      birthAnchorMs: ANCHOR,
+    })
+    expect(r!.exactDateISO!.slice(5)).toBe('07-01')
+  })
+})
+
+describe('F2: LifecycleEntry.age — 만 나이 노출', () => {
+  it('override 면 실측 만 나이, 아니면 테이블 나이를 age 로 노출', () => {
+    const { events } = buildLifecycleTiming(
+      1990,
+      2080,
+      true,
+      [{ kind: 'saturn_return_1', startYear: 2019, age: 28, exactDateISO: '2019-11-02' }],
+      new Date('2026-07-07T00:00:00Z')
+    )
+    expect(events.find((e) => e.event === 'saturn_return_1')!.age).toBe(28)
+    expect(events.find((e) => e.event === 'jupiter_return_1')!.age).toBe(12)
+  })
 })
 
 describe('buildLifecycleTiming — override 배선', () => {

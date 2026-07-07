@@ -225,7 +225,7 @@ export function deriveLifePattern(
   // 고전(hard)은 곡선 정규화로 사라지므로 daeun favor 기준을 유지한다.
   let curvePeakAge: number | undefined
   if (curve && curve.points.length >= 10 && key !== 'hard') {
-    const cls = classifyFromCurve(curve.points, currentAge)
+    const cls = classifyFromCurve(curve.points, currentAge, hasRealDip)
     if (cls) {
       key = cls.key
       curvePeakAge = cls.peakAge
@@ -241,7 +241,14 @@ export function deriveLifePattern(
  * 평균 + 전역 극값 위치로 판정. */
 function classifyFromCurve(
   pointsAll: Array<{ age: number; macro: number }>,
-  currentAge?: number
+  currentAge?: number,
+  /**
+   * 실제 음수 favor 구간이 있나(용신 기준). 없으면 곡선 형상만으로 'undulating'
+   * (“힘든 때가 번갈아”)을 붙이지 않는다 — 곡선은 min-max 정규화라 전부 양호한
+   * 인생의 얕은 잔물결도 V 로 증폭해 거짓 “힘든 때” 카피를 냈다(감사 F3). favor
+   * 경로의 hasRealDip 가드와 동일 기준을 곡선 경로에도 적용.
+   */
+  hasRealDip: boolean = true
 ): { key: LifePatternKey; peakAge: number } | null {
   const p = pointsAll.filter((x) => x.age >= 0 && x.age <= 85)
   if (p.length < 10) return null
@@ -270,7 +277,7 @@ function classifyFromCurve(
   const D = 0.1
   let key: LifePatternKey
   if (mid + D < early && mid + D < late)
-    key = 'undulating' // 중년이 양옆보다 꺼진 V
+    key = hasRealDip ? 'undulating' : 'smooth' // 중년이 양옆보다 꺼진 V (실 음수골 있을 때만 굴곡형)
   else if (mid > early + D && mid > late + D)
     key = 'midlife-peak' // 중년 솟음
   else if (late > early + D && late >= mid - 1e-9 && globalPeakAge >= 52)
@@ -279,8 +286,8 @@ function classifyFromCurve(
     key = 'early-peak' // 초년 정점 후 하강
   else if (late > early + D)
     key = 'steady-rise' // 단조 상승
-  else if (spread > 0.3)
-    key = 'undulating' // 큰 진폭이나 위 형태 아님
+  else if (spread > 0.3 && hasRealDip)
+    key = 'undulating' // 큰 진폭 + 실 음수골 — 형태는 위와 안 맞지만 굴곡
   else key = 'smooth'
   // 정점 나이는 *유형이 가리키는 구간* 안의 최댓값으로 — base.line 방향과 detail
   // "정점 시점"이 어긋나지 않게(예: 점진상승인데 정점이 11세이면 모순).

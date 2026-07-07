@@ -217,6 +217,8 @@ export interface LifePhase {
   milestoneLine?: string
   /** milestoneLine 영문 — 클라이언트 토글용. */
   milestoneLineEn?: string
+  /** milestoneLine 한국어 — 클라이언트 KO 토글용(감사 F6: EN 렌더 시 KO 라인 소실 방지). */
+  milestoneLineKo?: string
   /**
    * 본명 지지 ↔ 이 단계 대운 지지의 충·합 한 줄. 예: "본명 巳(사) × 대운
    * 亥(해) → 巳亥충 (변동 압력)". 있으면 UI 가 본문 아래 (milestoneLine 과 별도)
@@ -225,6 +227,8 @@ export interface LifePhase {
   relationLine?: string
   /** relationLine 영문 — 클라이언트 토글용. */
   relationLineEn?: string
+  /** relationLine 한국어 — 클라이언트 KO 토글용(감사 F6). */
+  relationLineKo?: string
   /**
    * 본명 신살 중 이 단계 대운 지지(또는 천간)와 anchor 가 일치해 활성화되는
    * 첫 번째 신살 한 줄. 예: "신살: 천을귀인 활성 (대운 丑 ↔ 본명 일지) —
@@ -233,6 +237,8 @@ export interface LifePhase {
   shinsalLine?: string
   /** shinsalLine 영문 — 클라이언트 토글용. */
   shinsalLineEn?: string
+  /** shinsalLine 한국어 — 클라이언트 KO 토글용(감사 F6). */
+  shinsalLineKo?: string
   /**
    * 일간 기준 이 단계 대운 지지의 12운성 한 줄. 예: "12운성: 대운 丑이
    * 일간 辛 기준 衰(쇠) — 천천히 힘이 빠지는 시기". advancedAnalysis 의
@@ -241,6 +247,8 @@ export interface LifePhase {
   twelveStageLine?: string
   /** twelveStageLine 영문 — 클라이언트 토글용. */
   twelveStageLineEn?: string
+  /** twelveStageLine 한국어 — 클라이언트 KO 토글용(감사 F6). */
+  twelveStageLineKo?: string
   current: boolean
 }
 export interface LifetimeFlow {
@@ -292,10 +300,12 @@ const PYEONGWAN_BODY_KO: Record<string, string> = {
   장년기: '오래 짊어진 압박을 마무리하는 시기예요. 무리한 승부보다 정리가 나아요',
 }
 const PYEONGWAN_BODY_EN: Record<string, string> = {
-  초년기: 'You meet strong pressure or forceful adults early — you toughen by pushing back rather than caving',
+  초년기:
+    'You meet strong pressure or forceful adults early — you toughen by pushing back rather than caving',
   청년기: 'A season of hard, driving challenges — you take responsibility and pressure head-on',
   중년기: 'Big responsibility and outside pressure peak — a season of balancing on a knife-edge',
-  장년기: 'A season of winding down long-carried pressure — tidying up beats forcing one more contest',
+  장년기:
+    'A season of winding down long-carried pressure — tidying up beats forcing one more contest',
 }
 
 // ════════════════════════════ EN copy ════════════════════════════
@@ -480,6 +490,9 @@ const BANDS: Array<[number, number, string]> = [
   [40, 59, '중년기'],
   [60, 84, '장년기'],
 ]
+/** 마지막 밴드 상한 — 이 값을 넘는(85세+) 사용자도 마지막 밴드를 '현재'로 잡도록
+ *  상한을 개방하는 데 쓴다(감사 F7: 옛 `<= hi` 는 85세+ 에게 현재 마커를 없앴다). */
+const LAST_BAND_HI = BANDS[BANDS.length - 1][1]
 
 // ─────────────────────────────────────────────────────────────
 // 지지 충/육합 — 본명 ↔ 대운 지지 관계. 6+6 pair 만 다루고 형/해/파
@@ -1141,14 +1154,16 @@ export function deriveLifetimeFlow(
   const overrideByKind = new Map<string, LifecycleMilestoneOverride>()
   for (const o of astroMilestoneOverrides ?? []) overrideByKind.set(o.kind, o)
   const milestoneFacts: Array<{ kind: string; age: number; dateStrKo: string; dateStrEn: string }> =
-    buildLifecycleTiming(birthYear, birthYear + 90, true, astroMilestoneOverrides, now).events
-      .filter((e) => MILESTONE_SHORT_KO[e.event])
+    buildLifecycleTiming(birthYear, birthYear + 90, true, astroMilestoneOverrides, now)
+      .events.filter((e) => MILESTONE_SHORT_KO[e.event])
       .map((e) => {
         const ov = overrideByKind.get(e.event)
         // override 의 정확 일시가 있으면 "2024년 3월"까지, 없으면 연도만.
         const dateStrKo = ov?.exactDateISO ? shortDateKo(ov.exactDateISO) : `${e.startYear}년`
         const dateStrEn = ov?.exactDateISO ? shortDateEn(ov.exactDateISO) : `${e.startYear}`
-        return { kind: e.event, age: e.startYear - birthYear, dateStrKo, dateStrEn }
+        // 만 나이 SSOT(감사 F2) — 밴드 배치에 달력 나이(startYear−birthYear) 대신
+        // LifecycleEntry.age 를 써 연말 출생자의 경계 밴드 오배치를 막는다.
+        return { kind: e.event, age: e.age, dateStrKo, dateStrEn }
       })
 
   // ── 본명 4지지 (지지충/육합 판정용) — 위치 라벨을 KO/EN 양쪽 baked. ──
@@ -1362,7 +1377,9 @@ export function deriveLifetimeFlow(
       // 아동기엔 운성 줄을 생략(성인 기준 서사라 어색). 글로스가 비면 줄을 안 만든다.
       if (!isChildhood && glossKo) {
         twelveStageLineKo = `기운의 흐름으로 보면, ${glossKo}이에요.`
-        twelveStageLineEn = glossEn ? `In your life-energy cycle, this is a time of ${glossEn}.` : undefined
+        twelveStageLineEn = glossEn
+          ? `In your life-energy cycle, this is a time of ${glossEn}.`
+          : undefined
       }
     } catch {
       // stage 계산 실패 시 silently skip
@@ -1411,13 +1428,19 @@ export function deriveLifetimeFlow(
       daeunLine,
       milestoneLine: isEn ? milestoneLineEn : milestoneLineKo,
       milestoneLineEn,
+      milestoneLineKo,
       relationLine: isEn ? relationLineEn : relationLineKo,
       relationLineEn,
+      relationLineKo,
       shinsalLine: isEn ? shinsalLineEn : shinsalLineKo,
       shinsalLineEn,
+      shinsalLineKo,
       twelveStageLine: isEn ? twelveStageLineEn : twelveStageLineKo,
       twelveStageLineEn,
-      current: currentAge >= lo && currentAge <= hi,
+      twelveStageLineKo,
+      // 85세+ 도 마지막 밴드를 현재로 — 상한 개방(감사 F7). hi===LAST_BAND_HI 는
+      // 마지막 밴드만 참(84 고유)이라 다른 밴드는 종전대로 닫힌 구간 유지.
+      current: currentAge >= lo && (currentAge <= hi || hi === LAST_BAND_HI),
     })
   }
   if (phases.length === 0) return undefined

@@ -282,18 +282,30 @@ export function buildLifeCurve(
     minRight[i] = i === macro.length - 1 ? macro[i] : Math.min(minRight[i + 1], macro[i])
     maxRight[i] = i === macro.length - 1 ? macro[i] : Math.max(maxRight[i + 1], macro[i])
   }
-  for (let i = 1; i < macro.length - 1; i++) {
-    const a = macro[i - 1]
+  // 경계(0세·마지막 나이)도 극값 후보로 본다(감사 F5) — 옛 `i=1..len-2` 는 유년/
+  // 말년이 전역 정점·저점인 인생(예: age0 이 전 생애 최댓값)을 통째로 놓쳐 peaks[]·
+  // "다음 마루"가 비었다. 경계는 존재하는 한쪽 이웃만으로 판정하고 prominence 도
+  // 그 방향으로만 잰다.
+  const last = macro.length - 1
+  for (let i = 0; i < macro.length; i++) {
     const b = macro[i]
-    const c = macro[i + 1]
-    const isPeak = b > a && b >= c
-    const isTrough = b < a && b <= c
-    if (isPeak) {
-      // 봉우리가 좌·우 바닥 중 *더 높은* 쪽보다 PROM 이상 솟았나(전역최대→바닥이 전역최소→큰 값).
-      const prom = b - Math.max(minLeft[i - 1], minRight[i + 1])
+    const hasL = i > 0
+    const hasR = i < last
+    if (!hasL && !hasR) continue
+    // 존재하는 이웃 모두보다 높으면(같으면 우측 허용) 봉우리, 낮으면 골.
+    const isPeak = (!hasL || b > macro[i - 1]) && (!hasR || b >= macro[i + 1])
+    const isTrough = (!hasL || b < macro[i - 1]) && (!hasR || b <= macro[i + 1])
+    if (isPeak && !isTrough) {
+      const floors: number[] = []
+      if (hasL) floors.push(minLeft[i - 1])
+      if (hasR) floors.push(minRight[i + 1])
+      const prom = b - Math.max(...floors) // 존재하는 쪽 바닥 중 더 높은 쪽 기준
       if (prom >= PROM) peaks.push({ year: birthYear + i, age: i, kind: 'peak', value: b })
-    } else if (isTrough) {
-      const prom = Math.min(maxLeft[i - 1], maxRight[i + 1]) - b
+    } else if (isTrough && !isPeak) {
+      const ceils: number[] = []
+      if (hasL) ceils.push(maxLeft[i - 1])
+      if (hasR) ceils.push(maxRight[i + 1])
+      const prom = Math.min(...ceils) - b
       if (prom >= PROM) troughs.push({ year: birthYear + i, age: i, kind: 'trough', value: b })
     }
   }

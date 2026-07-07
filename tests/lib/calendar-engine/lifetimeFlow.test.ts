@@ -148,6 +148,19 @@ describe('deriveLifetimeFlow', () => {
       expect(out.phases[3].ageRange).toBe('60~84세 · 2050~2074')
     })
 
+    it('F7: 85세+ 도 마지막 단계(장년기)를 현재로 표시 — 현재 마커 소실 방지', () => {
+      // 1990 출생, now=2081 → 만 90세. 옛 `<= 84` 는 어느 단계도 현재가 아니었다.
+      const old = deriveLifetimeFlow(
+        makeNatal(),
+        'ko',
+        undefined,
+        new Date('2081-07-07T00:00:00Z')
+      )!
+      const current = old.phases.filter((p) => p.current)
+      expect(current).toHaveLength(1)
+      expect(current[0].label).toBe('장년기')
+    })
+
     it('초년기 본문은 평이 부모·뿌리 도입부로 시작 (raw 십신 노출 없음)', () => {
       const child = out.phases[0]
       // 평이 우선: 십신 원명("겁재(비겁) 흐름")을 surface 에서 빼고 부모·뿌리 도입부 + 평이 본문.

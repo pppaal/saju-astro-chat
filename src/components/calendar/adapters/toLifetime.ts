@@ -82,8 +82,13 @@ function toDestinyLifeCurve(
   let now: DestinyLifeCurve['now']
   const here = pts.find((p) => p.age === nowAge)
   if (here) {
-    const prev = pts.find((p) => p.age === nowAge - 3) ?? pts[0]
-    const dv = norm(here.macro) - norm(prev.macro)
+    // 3년 뒤쪽 기울기가 기본. 유아기(nowAge<3)는 뒤쪽 점이 없어 항상 plateau 로
+    // 뭉개지던(감사 F8) 것을 앞쪽 3년 기울기로 대체한다.
+    const prev = pts.find((p) => p.age === nowAge - 3)
+    const dv = prev
+      ? norm(here.macro) - norm(prev.macro)
+      : norm((pts.find((p) => p.age === nowAge + 3) ?? pts[pts.length - 1]).macro) -
+        norm(here.macro)
     const slope: 'rising' | 'falling' | 'plateau' =
       dv > 0.04 ? 'rising' : dv < -0.04 ? 'falling' : 'plateau'
     now = {

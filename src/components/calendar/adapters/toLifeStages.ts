@@ -174,34 +174,43 @@ export function toLifeStages(
       daeunText: phase.daeunLine,
       // body[0] = 서술 본문(narrative) — 운세 톤(headline)을 제외해 중복 없음
       // (감사 BUG-1). narrativeKo 가 없으면(구버전) textKo 폴백.
+      // KO body 는 반드시 *KO* 팩트라인으로 — 옛 phase.relationLine(=렌더언어)은
+      // 서버가 EN 렌더 시 영어라, KO 토글 시 "한국어 서사 + 영어 관계/12운성 줄"이
+      // 섞였다(감사 F6). *LineKo 를 우선, 없으면(구버전) 렌더언어 폴백.
       body: [
         phase.narrativeKo ?? phase.textKo,
-        ...(phase.relationLine ? [phase.relationLine] : []),
-        ...(phase.twelveStageLine ? [phase.twelveStageLine] : []),
+        ...((phase.relationLineKo ?? phase.relationLine)
+          ? [phase.relationLineKo ?? phase.relationLine!]
+          : []),
+        ...((phase.twelveStageLineKo ?? phase.twelveStageLine)
+          ? [phase.twelveStageLineKo ?? phase.twelveStageLine!]
+          : []),
       ],
       bodyEn: [
         phase.narrativeEn ?? phase.textEn,
         ...(phase.relationLineEn ? [phase.relationLineEn] : []),
         ...(phase.twelveStageLineEn ? [phase.twelveStageLineEn] : []),
       ],
-      outer: phase.milestoneLine
-        ? [
-            {
-              label: phase.milestoneLineEn ?? phase.milestoneLine,
-              date: '',
-              body: phase.milestoneLine,
-            },
-          ]
-        : [],
-      shinsal: phase.shinsalLine
-        ? {
-            // title 은 generic 마커 — 렌더 단(tier)에서 kind 로 로케일 라벨을 고른다.
-            title: '신살 활성',
-            kind: 'shinsal',
-            body: phase.shinsalLine,
-            bodyEn: phase.shinsalLineEn,
-          }
-        : undefined,
+      outer:
+        (phase.milestoneLineKo ?? phase.milestoneLine)
+          ? [
+              {
+                label: phase.milestoneLineEn ?? phase.milestoneLineKo ?? phase.milestoneLine!,
+                date: '',
+                body: phase.milestoneLineKo ?? phase.milestoneLine!,
+              },
+            ]
+          : [],
+      shinsal:
+        (phase.shinsalLineKo ?? phase.shinsalLine)
+          ? {
+              // title 은 generic 마커 — 렌더 단(tier)에서 kind 로 로케일 라벨을 고른다.
+              title: '신살 활성',
+              kind: 'shinsal',
+              body: phase.shinsalLineKo ?? phase.shinsalLine!,
+              bodyEn: phase.shinsalLineEn,
+            }
+          : undefined,
     }
     return {
       id: band.id,
