@@ -62,12 +62,12 @@ describe('LifetimeTier (인생 전체 · LIGHT)', () => {
     expect(screen.getAllByText('辛').length).toBeGreaterThan(0)
   })
 
-  it('surfaces the lifePattern name as the novice hero "{pattern} 타입"', () => {
+  it('surfaces the lifePattern as the 결과카드 배지 (이모지+유형명+태그)', () => {
     renderTier()
-    // novice-default hero: lifePattern.ko + ' 타입'. Real dump = 굴곡형.
-    expect(screen.getByText('굴곡형 타입')).toBeInTheDocument()
-    // raw pattern name also appears as the verdict term-tag.
+    // 결과카드: 유형명 배지 + 태그(굴곡형 = 오르내림이 무기인) + 이모지.
     expect(screen.getAllByText('굴곡형').length).toBeGreaterThan(0)
+    expect(screen.getByText('오르내림이 무기인')).toBeInTheDocument()
+    expect(screen.getByText('🎢')).toBeInTheDocument()
   })
 
   it('shows the current decade as a readable 갑술 label, 甲戌 only on hover', () => {
@@ -139,8 +139,9 @@ describe('LifetimeTier (인생 전체 · LIGHT)', () => {
   it('renders English identity when locale=en (pattern in EN; 干支 hanja folded/hover only)', () => {
     mockLocale = 'en'
     renderTier()
-    // novice hero in EN: '{pattern} type'. Real dump = Ups and downs.
-    expect(screen.getByText('Ups and downs type')).toBeInTheDocument()
+    // 결과카드 EN: 유형명 배지 + 영문 태그(굴곡형 = Rides the waves).
+    expect(screen.getAllByText('Ups and downs').length).toBeGreaterThan(0)
+    expect(screen.getByText('Rides the waves')).toBeInTheDocument()
     // 일간 辛 lives inside the (DOM-present) identity fold.
     expect(screen.getAllByText('辛').length).toBeGreaterThan(0)
     // EN 타임라인은 로마자 음(gapsul)을 보여준다 — 한글 음(갑술)이나 raw 甲戌 아님

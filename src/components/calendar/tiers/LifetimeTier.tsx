@@ -39,6 +39,7 @@ import styles from './LifetimeTier.module.css'
 import { useI18n } from '@/i18n/I18nProvider'
 import { ShareLifeButton } from '@/components/calendar/ShareLifeButton'
 import { lifeShareHook } from '@/lib/share/shareHook'
+import { lifeTypeStyle } from '@/components/calendar/lifeTypeStyle'
 
 // ============================================================================
 // Props (계약 불변 — byte-for-byte 보존. 최상단 티어 → onRise/showRise 없음)
@@ -379,15 +380,26 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
 
       {/* ── novice 기본: 한자·용어 없는 일상어 결론 ── */}
       <header className={styles.novice}>
-        {/* lifePattern 이 없으면(드문 결손 케이스) "내 인생 흐름 타입" 플레이스홀더
-            대신 격국 라벨을 히어로로 — 일주 character 줄이 본문을 받친다. */}
-        <div className={styles.novToneWord}>
-          {lifePattern
-            ? ko
-              ? `${patternKo} 타입`
-              : `${patternKo} type`
-            : gyeokgukLabel || (ko ? patternKo : patternKo)}
-        </div>
+        {/* 인생유형 결과카드 — 이모지·유형명·태그를 배지처럼(캡처·공유 훅). lifePattern
+            결손(드문 케이스)이면 격국 라벨을 히어로로 폴백. */}
+        {lifePattern ? (
+          <div
+            className={styles.typeCard}
+            style={{ ['--tAccent']: lifeTypeStyle(lifePattern.key).accent } as CSSProperties}
+          >
+            <span className={styles.typeEmoji} aria-hidden>
+              {lifeTypeStyle(lifePattern.key).emoji}
+            </span>
+            <span className={styles.typeName}>{patternKo}</span>
+            <span className={styles.typeTag}>
+              {ko
+                ? lifeTypeStyle(lifePattern.key).taglineKo
+                : lifeTypeStyle(lifePattern.key).taglineEn}
+            </span>
+          </div>
+        ) : (
+          <div className={styles.novToneWord}>{gyeokgukLabel || patternKo}</div>
+        )}
         {patternLine && <p className={styles.novLine}>{patternLine}</p>}
         {/* 일주 아키타입 character — novice-grade 평이 프로즈(있으면). */}
         {iljuRich?.character && <p className={styles.novLine}>{iljuRich.character}</p>}
