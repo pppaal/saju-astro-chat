@@ -290,6 +290,11 @@ function classifyFromCurve(
     key = 'midlife-peak' // 중년 솟음
   else if (late > early + D && late >= mid - 1e-9 && globalPeakAge >= 52)
     key = 'late-bloomer' // 말년 정점 반전
+  else if (early + D < mid && early + D < late && globalPeakAge >= 52 && realDip)
+    // 초년 저점 → 말년 전역정점 반전. 말년 *2차 골*(예: 71세 관살 대운)이 late-평균을
+    // mid 밑으로 눌러 위 게이트(late≥mid)가 빗나가도, 초년이 뚜렷한 골이고 전역
+    // 정점이 말년(≥52)이면 이건 점진상승(무난한 오름)이 아니라 대기만성(반전)이다.
+    key = 'late-bloomer'
   else if (early > late + D && early >= mid - 1e-9 && globalPeakAge < 38)
     key = 'early-peak' // 초년 정점 후 하강
   else if (late > early + D)

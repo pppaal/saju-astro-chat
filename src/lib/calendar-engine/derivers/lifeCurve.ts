@@ -350,6 +350,20 @@ const PLANET_W: Record<string, number> = {
   Chiron: 0.7,
   Jupiter: 0.8,
 }
+// 외행성 첫 회귀 나이(궤도 주기). 태어난 순간엔 트랜짓 차트 ≈ 본명 차트라 *모든*
+// 느린 행성이 자기 본명 위치에 트리비얼하게 합(orb≈0)을 맺는다 — 이건 회귀가 아니라
+// 출생 항등(identity)이다. 첫 궤도를 돌기 전(회귀 나이−3년)의 동일-행성 합은
+// 인생 마디가 아니므로 뺀다. 안 그러면 age0 에 합 더미(관측 raw≈3)가 쌓여 유아기가
+// 인위적으로 치솟는다(감사: 950209 초년 오탐). 해왕성·명왕성은 평생 회귀 없음(165/248)
+// → 동일-행성 합은 항상 출생 항등이라 항상 제외.
+const FIRST_RETURN_AGE: Record<string, number> = {
+  Jupiter: 12,
+  Saturn: 29,
+  Chiron: 50,
+  Uranus: 84,
+  Neptune: 165,
+  Pluto: 248,
+}
 // 인생-호 스케일의 각/합 값(ASTRO_POLARITY 와 같은 성숙 재평가 노선).
 //
 // **뿌리 수정(2026-07):** 예전엔 하드 각(square/opposition)을 평-1 로 찍었는데,
@@ -420,6 +434,12 @@ export async function computeTransitAstroSeries(
       let val = 0
       for (const a of findTransitAspects(transitChart, natalChart)) {
         if (!SLOW_TRANSIT.has(a.transitPlanet)) continue
+        // 동일-행성 합은 첫 회귀 전이면 출생 항등(트랜짓≈본명)이라 인생 마디 아님 —
+        // age0 합 더미로 유아기가 치솟는 아티팩트 제거(감사).
+        if (a.type === 'conjunction' && a.transitPlanet === a.natalPoint) {
+          const firstReturn = FIRST_RETURN_AGE[a.transitPlanet] ?? 0
+          if (age < firstReturn - 3) continue
+        }
         const w = PLANET_W[a.transitPlanet] ?? 0.5
         const pol =
           a.type === 'conjunction' ? (CONJ_SIGN[a.transitPlanet] ?? 0) : (ASPECT_POL[a.type] ?? 0)
