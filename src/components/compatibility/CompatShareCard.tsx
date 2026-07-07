@@ -31,9 +31,28 @@ const PROOF = '#d8cff2'
 export const COMPAT_SHARE_CARD_SIZE = 1080
 
 // 카드에 얹는 "족집게 한 줄"(headline)은 길 수 있어 카드 폭에 맞게 자른다.
+// 넘치면 말줄임표(…) 대신 마지막 단어 경계에서 끊고, 짝 안 맞는 따옴표·꼬리
+// 접속어(— a, and …)를 떼어 완결된 절에서 끝낸다 — "spous…"처럼 단어 중간에서
+// 잘리거나 따옴표가 열린 채 남는 걸 막는다(실 이름 길이에선 거의 발동 안 함).
 function clampCard(text: string, max: number): string {
   const s = (text || '').trim()
-  return s.length > max ? `${s.slice(0, max - 1).trim()}…` : s
+  if (s.length <= max) return s
+  const cut = s.slice(0, max)
+  const lastSpace = cut.lastIndexOf(' ')
+  let head = (lastSpace > max * 0.5 ? cut.slice(0, lastSpace) : cut).trim()
+  // 꼬리 구두점 먼저 정리 후, 짝 안 맞는 여는 따옴표가 남으면 그 따옴표부터 잘라낸다
+  // ("passion & spa → 제거). 순서 뒤집으면 닫는 따옴표를 떼며 도리어 홀수가 된다.
+  head = head.replace(/[\s"'“”—–,.·:;]+$/u, '')
+  if ((head.match(/["“”]/g)?.length ?? 0) % 2 === 1) {
+    head = head.slice(0, head.search(/["“”][^"“”]*$/u))
+  }
+  // 꼬리 구두점·대시·접속어를 안정될 때까지 번갈아 제거 → "…seat — a" 대신 "…seat".
+  let prev: string
+  do {
+    prev = head
+    head = head.replace(/[\s"'“”—–,.·:;]+$/u, '').replace(/\s+(?:—|–|-|a|an|the|and|&|to)$/iu, '')
+  } while (head !== prev)
+  return head.trim()
 }
 
 /** 점수 칩 — 테마 차원 라벨 + 0~100. (마찰은 로즈로 구분) */
@@ -181,8 +200,12 @@ export const CompatShareCard = React.forwardRef<HTMLDivElement, { data: CompatSh
             position: 'relative',
             zIndex: 2,
             height: '100%',
-            // 족집게 한 줄(headline)이 들어갈 세로 공간 확보 — 위아래 여백을 줄인다.
-            padding: '64px 84px',
+            // 패딩을 높이 안에 포함(border-box) — content-box면 상하 패딩이 1080 위에
+            // 더해져 콘텐츠 박스가 1184px가 되고 푸터가 카드 밖으로 잘렸다.
+            boxSizing: 'border-box',
+            // 족집게 한 줄(headline)이 들어갈 세로 공간 확보 — 위아래 여백을 줄여
+            // 최악(2줄 punch + 2줄 proof + 칩)에도 space-between 이 클리핑되지 않게.
+            padding: '52px 84px',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
@@ -256,18 +279,19 @@ export const CompatShareCard = React.forwardRef<HTMLDivElement, { data: CompatSh
             </div>
           </div>
 
-          {/* 점수 게이지(주인공) */}
+          {/* 점수 게이지(주인공) — 336px. 1080 세로 예산에 족집게 라인까지 들어가도
+              하단 칩·푸터가 잘리지 않게 400→336 으로 줄였다(오버플로 방지). */}
           {hasScore ? (
             <div
               style={{
                 position: 'relative',
-                width: 400,
-                height: 400,
+                width: 312,
+                height: 312,
                 display: 'grid',
                 placeItems: 'center',
               }}
             >
-              <svg width={400} height={400} viewBox="0 0 400 400">
+              <svg width={312} height={312} viewBox="0 0 400 400">
                 <defs>
                   <linearGradient id="compatGauge" x1="0" y1="0" x2="1" y2="1">
                     <stop offset="0" stopColor="#fff2cf" />
@@ -312,7 +336,7 @@ export const CompatShareCard = React.forwardRef<HTMLDivElement, { data: CompatSh
                   alignItems: 'center',
                 }}
               >
-                <div style={{ fontSize: 188, fontWeight: 900, lineHeight: 0.9, color: GOLD }}>
+                <div style={{ fontSize: 140, fontWeight: 900, lineHeight: 0.9, color: GOLD }}>
                   {score}
                 </div>
                 <div
@@ -340,9 +364,9 @@ export const CompatShareCard = React.forwardRef<HTMLDivElement, { data: CompatSh
                   maxWidth: 840,
                   textAlign: 'center',
                   fontFamily: SERIF,
-                  fontSize: 60,
+                  fontSize: 54,
                   fontWeight: 900,
-                  lineHeight: 1.32,
+                  lineHeight: 1.3,
                   color: '#fff',
                   textShadow: '0 2px 36px rgba(124,92,255,0.55)',
                   wordBreak: 'keep-all',
@@ -384,8 +408,10 @@ export const CompatShareCard = React.forwardRef<HTMLDivElement, { data: CompatSh
                   wordBreak: 'keep-all',
                 }}
               >
+                {/* 클램프는 로케일별 — KO 54자(2줄)면 EN 은 반 문장에서 잘려버려
+                    "구체적" 이라는 이 줄의 목적이 깨진다. EN 은 ~92자로 문장 끝까지. */}
                 <span style={{ color: GOLD }}>✦ </span>
-                {clampCard(headline, 54)}
+                {clampCard(headline, isKo ? 54 : 92)}
               </div>
             ) : null}
           </div>

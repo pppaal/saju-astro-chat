@@ -231,8 +231,10 @@ const HOUSE_THEME: Record<number, ThemeId> = {
   6: 'life',
   7: 'future',
   8: 'sex',
-  9: 'life',
-  10: 'life',
+  // 9(모험·확장·먼 여행)·10(커리어·사회적 위치·평판)은 "같이 있으면 편해?(일상
+  // 편안함)"와 겉돌아, 함께 그리는 방향인 '미래'로 라우팅(평가단 지적).
+  9: 'future',
+  10: 'future',
   11: 'talk',
   12: 'love',
 }
@@ -287,9 +289,20 @@ const SHARE_GRADE: { min: number; v: Bi }[] = [
   { min: 56, v: { ko: '밀당의 고수들', en: 'Masters of the chase' } },
   { min: 0, v: { ko: '위태로운 롤러코스터', en: "A rollercoaster you can't get off" } },
 ]
-function shareGrade(score: number): Bi {
-  for (const g of SHARE_GRADE) if (score >= g.min) return g.v
-  return SHARE_GRADE[SHARE_GRADE.length - 1].v
+// neutral(균형·슬로우번) 톤 전용 등급 — SHARE_GRADE 의 '불꽃/위험' 언어가 "번쩍이는
+// 불꽃 같은 시작은 아니지만"이라는 neutral verdict 와 정면 충돌하던 문제(평가단 다수).
+// 같은 점수대라도 잔잔한 결로 표현해 카드-verdict 톤을 잠근다.
+const SHARE_GRADE_CALM: { min: number; v: Bi }[] = [
+  { min: 80, v: { ko: '조용히 깊어지는 사이', en: 'Quietly deepening' } },
+  { min: 72, v: { ko: '잔잔히 오래 갈 사이', en: 'Steady and lasting' } },
+  { min: 64, v: { ko: '담백하게 맞는 결', en: 'An easy, low-key match' } },
+  { min: 56, v: { ko: '천천히 스며드는 사이', en: 'A slow, gentle draw' } },
+  { min: 0, v: { ko: '무던하게 흘러가는 사이', en: 'Easygoing, no drama' } },
+]
+function shareGrade(score: number, tone: ShareTone): Bi {
+  const ladder = tone === 'neutral' ? SHARE_GRADE_CALM : SHARE_GRADE
+  for (const g of ladder) if (score >= g.min) return g.v
+  return ladder[ladder.length - 1].v
 }
 
 // 헤드라인 풀 — 톤별. accent = 카드에서 골드로 강조할 핵심 구. \n = 줄바꿈.
@@ -389,7 +402,7 @@ export function freeCompatShareCopy(
   const seed = coupleSeed(report)
   const pool = SHARE_PUNCH[tone] ?? SHARE_PUNCH.neutral
   const p = pickFor(pool, seed, `share-punch:${tone}`)
-  const g = shareGrade(score)
+  const g = shareGrade(score, tone)
   return {
     grade: isKo ? g.ko : g.en,
     punch: isKo ? p.ko : p.en,
@@ -1221,8 +1234,8 @@ const OVERLAY_ALT: Record<number, Bi> = {
     en: 'The words you trade each day, that ordinary rhythm of living — it weaves you together. A text, a conversation that flows so naturally it becomes part of your skin. Here you two communicate lightly, touch often, and breathe easy.',
   },
   4: {
-    ko: '가족의 냄새, 어린 시절의 기억, 마음이 진짜로 쉬는 그곳까지 당신은 상대에게 문을 열어주게 돼요. 신발을 벗고 옷깃을 풀 수 있는 가장 사적인 자리에서, 둘은 서로의 다리를 편하게 시킬 수 있어요.',
-    en: 'The scent of home, childhood memory, the place your heart actually rests — you open that door to them. Where you can kick off your shoes and unbutton your collar, the most private corner, you two can let each other settle in.',
+    ko: '가족의 냄새, 어린 시절의 기억, 마음이 진짜로 쉬는 그곳까지 당신은 상대에게 문을 열어주게 돼요. 신발을 벗고 마음을 툭 놓을 수 있는 가장 사적인 자리에서, 둘은 다리를 쭉 뻗고 편히 쉴 수 있어요.',
+    en: 'The scent of home, childhood memory, the place your heart actually rests — you open that door to them. Where you can kick off your shoes and let your guard down, the most private corner, you two can truly settle in.',
   },
   5: {
     ko: '당신이 그 사람 옆에 있으면 자연스럽게 떨리고 싶어지는 곳이에요. 연애의 색감, 설렘의 향기가 거기 있거든요. 둘은 이 자리에서 서로를 밝혀주고 싶다는 마음, 함께 빛나고 싶다는 순수한 끌림을 느껴요.',
@@ -1599,7 +1612,7 @@ export function buildFreeCompatNarrative(
             const tone = t(ASPECT_TONE[asp.tone])
             return isKo
               ? `${josa(ra, '과/와')} ${josa(rb, '이/가')} 만나는 자리예요. ${tone}`
-              : `where ${ra} meets ${rb}. ${tone}`
+              : `This is where ${ra} meets ${rb}. ${tone}`
           })()
       const head = isKo
         ? `${labelA}의 ${asp.a} × ${labelB}의 ${asp.b} (${asp.label}, ${asp.strength})`
@@ -1838,7 +1851,7 @@ export function buildFreeCompatNarrative(
             const tone = t(ASPECT_TONE[asp.tone])
             return isKo
               ? `${josa(ra, '과/와')} ${josa(rb, '이/가')} 만나는 자리예요. ${tone}`
-              : `where ${ra} meets ${rb}. ${tone}`
+              : `This is where ${ra} meets ${rb}. ${tone}`
           })()
       const w = Math.max(1.5, 6 - (asp.orb ?? 4))
       themed.push({
@@ -1874,30 +1887,65 @@ export function buildFreeCompatNarrative(
       let lead: string
       if (arr.length === 1) {
         const e = arr[0]
-        lead = isKo
-          ? `${e.viewer}의 ${planet(e.key, e.disp)} 기운이 여기에 와닿아요. ${arena}`
-          : `${e.viewer}'s ${planet(e.key, e.disp)} reaches into this part of life. ${arena}`
+        const pl = planet(e.key, e.disp)
+        // 오프너 변주 — "OO의 XX 기운이 여기에 와닿아요"/"reaches into this part of
+        // life"가 한 리포트에 4회+ 반복돼 개인화가 아니라 양식-채우기로 읽히던 문제
+        // (평가단 13/30). house 로 분산해 같은 문형이 연달아 나오지 않게 한다.
+        const koOpeners = [
+          `${e.viewer}의 ${pl} 기운이 여기에 와닿아요.`,
+          `여기엔 ${e.viewer}의 ${josa(pl, '이/가')} 스며요.`,
+          `이 자리는 ${e.viewer}의 ${josa(pl, '이/가')} 건드리는 곳이에요.`,
+        ]
+        const enOpeners = [
+          `${e.viewer}'s ${pl} reaches into this part of life.`,
+          `${e.viewer}'s ${pl} colors this part of life.`,
+          `This part of life carries ${e.viewer}'s ${pl}.`,
+        ]
+        const oi = (seed + house) % 3
+        lead = isKo ? `${koOpeners[oi]} ${arena}` : `${enOpeners[oi]} ${arena}`
       } else {
         const names = arr.map((e) => (isKo ? `${e.viewer}의 ${e.disp}` : `${e.viewer}'s ${e.disp}`))
         lead = isKo
           ? `${josa(names.join('·'), '이/가')} 같은 자리에 닿아요. ${arena}`
-          : `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]} all touch this part of life. ${arena}`
+          : arr.length === 2
+            ? `${names[0]} and ${names[1]} both touch this part of life. ${arena}`
+            : `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]} all touch this part of life. ${arena}`
       }
       themed.push({ theme: HOUSE_THEME[house] ?? 'life', weight: 2, text: lead, pol: 0.6 })
     }
   }
   {
     const seenFrom = new Set<string>()
+    const spousePicks: SajuCompatSpouseStar[] = []
     for (const sp of [...report.spouseStars].sort(
       (a, b) => Number(b.isDayPillar) - Number(a.isDayPillar)
     )) {
       if (!SPOUSE_STAR[sp.sibsin] || seenFrom.has(sp.from)) continue
       seenFrom.add(sp.from)
+      spousePicks.push(sp)
+    }
+    // 두 사람의 배우자성이 정(정재·정관=안정)·편(편재·편관=설렘)으로 갈리면, 미래
+    // 테마에 나란히 두면 "활달·자유" 옆에 "반듯·안정"이 붙어 자기모순처럼 읽힌다
+    // (평가단 22/30). 그럴 땐 강한 하나만 넣고 두 얼굴의 공존을 한 줄로 봉합한다.
+    const nature = (sib: string) => (sib === '정재' || sib === '정관' ? '정' : '편')
+    const opposite =
+      spousePicks.length >= 2 && nature(spousePicks[0].sibsin) !== nature(spousePicks[1].sibsin)
+    for (const sp of opposite ? spousePicks.slice(0, 1) : spousePicks) {
       themed.push({
         theme: 'future',
         weight: sp.isDayPillar ? 10 : 6,
         text: t(spouseBlurbBi(sp.sibsin)),
         pol: sp.isDayPillar ? 4 : 2,
+      })
+    }
+    if (opposite) {
+      themed.push({
+        theme: 'future',
+        weight: 5,
+        text: isKo
+          ? '한 사람에겐 설레는 짝으로, 다른 한 사람에겐 든든한 짝으로 다가와요 — 서로에게 다른 얼굴의 인연이 되는 거죠. 그래서 안정과 설렘이 한 관계 안에 같이 살아요.'
+          : 'To one of you they read as an exciting partner, to the other as a steady one — you become different kinds of match for each other. So safety and spark live side by side in the same bond.',
+        pol: 2,
       })
     }
   }
@@ -1937,17 +1985,40 @@ export function buildFreeCompatNarrative(
     typeof report.band?.synastry_harmonic === 'number'
       ? Math.max(-4, Math.min(4, (report.band.synastry_harmonic - 50) / 12))
       : 0
+  // 테마당 본문 상한 — 마찰 테마가 7~13문단으로 벽이 되던 문제(평가단 다수 지적).
+  // 가중치순 상위 N개만 남겨 어느 테마도 "점성 백과사전"처럼 늘어지지 않게 한다.
+  const THEME_PARA_CAP = 5
+  // 테마 간 통째 복붙 방지 — seenText 를 리포트 전역으로 공유한다. 같은 어스펙트
+  // 블러브(예: 달-천왕성)가 방향만 바뀌어 끌림·마찰 두 테마에 글자까지 똑같이
+  // 나오던 문제(평가단 11/30). 먼저 배정된 테마가 갖고, 뒤 테마는 건너뛴다.
+  const seenText = new Set<string>()
   const themes: FreeReportTheme[] = THEME_META.map((m) => {
-    const items = themed.filter((x) => x.theme === m.id).sort((a, b) => b.weight - a.weight)
-    // 극성 합 → 훅·기본결·점수 모두 같은 pos/neg/mid 로 결정.
+    let items = themed.filter((x) => x.theme === m.id).sort((a, b) => b.weight - a.weight)
+    // "어디서 부딪힐까(마찰)" 카드엔 실제 마찰(음극성) 신호만 담는다 — 결속·조화
+    // 신호가 섞이면 화합 얘기가 마찰 헤딩 아래 들어가 톤이 무너지고, 높은 마찰
+    // 점수와 pos 훅이 정면으로 모순됐다(예: 마찰 92인데 "큰 일 거의 없어").
+    if (m.id === 'friction') items = items.filter((it) => it.pol < 0)
+    // 점수 먼저 — 훅/기본결이 점수와 어긋나지 않게(점수↔카피 잠금).
+    const score = themeScore(m.id, items, harmNudge)
+    // 극성 합 → pos/neg/mid. 단 점수가 낮은데 'pos' 극찬 훅("위험할 만큼 진한
+    // 케미")이 붙으면 숫자와 문구가 정면으로 어긋난다(평가단 18/30). 마찰이 아닌
+    // 테마는 점수가 충분히 높을 때만 pos, 낮으면 담백한 mid 로 낮춘다.
     const net = items.reduce((s, it) => s + it.pol, 0)
-    const hookKey: HookKey = net > 0.5 ? 'pos' : net < -0.5 ? 'neg' : 'mid'
+    let hookKey: HookKey = net > 0.5 ? 'pos' : net < -0.5 ? 'neg' : 'mid'
+    if (hookKey === 'pos' && m.id !== 'friction' && typeof score === 'number' && score < 66)
+      hookKey = 'mid'
     const hook = t(
       pickFor([THEME_HOOK[m.id][hookKey], HOOK_ALT[m.id][hookKey]], seed, `hook:${m.id}.${hookKey}`)
     )
     // 기본 결 문단 — 신호별 본문 앞에 깔아 빈약한 테마도 풍부하게. (훅과 같은 극성)
     // 단, 신호가 0인 테마엔 붙이지 않는다 — "신호 있을 때만 표시" 원칙 유지(빈 테마 부활 X).
-    const seenTxt = new Set<string>()
+    const body: string[] = []
+    for (const it of items) {
+      if (seenText.has(it.text)) continue
+      seenText.add(it.text)
+      body.push(it.text)
+      if (body.length >= THEME_PARA_CAP) break // 벽 방지: 상위 N개(가중치순)만
+    }
     const paragraphs: string[] =
       items.length > 0
         ? [
@@ -1958,23 +2029,45 @@ export function buildFreeCompatNarrative(
                 `primer:${m.id}.${hookKey}`
               )
             ),
+            ...body,
           ]
         : []
-    for (const it of items) {
-      if (seenTxt.has(it.text)) continue
-      seenTxt.add(it.text)
-      paragraphs.push(it.text)
-    }
     return {
       id: m.id,
       icon: m.icon,
       title: t(m.title),
       hook,
-      score: themeScore(m.id, items, harmNudge),
+      score,
       scoreCaption: t(SCORE_CAPTION[m.id]),
       paragraphs,
     }
   }).filter((th) => th.paragraphs.length > 0)
+
+  // 위로 상투구 변주 — "안 맞아서가 아니라~"(EN "Not a mismatch")가 리포트당 4~6회
+  // 반복돼 템플릿 이음새가 훤히 보였다(평가단 다수). 첫 등장은 두고 2번째부터
+  // 커플 seed 로 결정적으로 변주해 반복 티를 지운다.
+  {
+    const KO_VARS = ['틀어져서가 아니라', '부딪혀서가 아니라', '멀어져서가 아니라']
+    const EN_VARS = [
+      'not that you clash',
+      "not that you're wrong for each other",
+      'not from missing',
+    ]
+    let nk = 0
+    let ne = 0
+    const varyKo = (s: string): string =>
+      s.replace(/안 맞아서가 아니라/g, () =>
+        nk++ === 0 ? '안 맞아서가 아니라' : KO_VARS[(seed + nk) % KO_VARS.length]
+      )
+    const varyEn = (s: string): string =>
+      s.replace(/([Nn])ot a mismatch/g, (m0, c: string) => {
+        if (ne++ === 0) return m0
+        const v = EN_VARS[(seed + ne) % EN_VARS.length] // "not ..."
+        return c === 'N' ? v.charAt(0).toUpperCase() + v.slice(1) : v
+      })
+    for (const th of themes)
+      th.paragraphs = th.paragraphs.map((p) => (isKo ? varyKo(p) : varyEn(p)))
+  }
 
   const glossary: FreeReportGlossaryEntry[] = COMPAT_GLOSSARY.map((g) => ({
     term: t(g.term),
