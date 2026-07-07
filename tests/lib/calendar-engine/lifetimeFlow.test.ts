@@ -652,13 +652,13 @@ describe('deriveLifetimeFlow', () => {
       const child = r.phases[0]
       // good variant 중 하나 포함.
       const goodVariants = [
-        '바람이 등을 밀어주어',
-        '물길이 트여',
-        '결이 맞아떨어져',
-        '햇볕이 고르게',
-        '인연과 도움이',
-        '때가 받쳐주어',
-        '막힘이 적어',
+        '드디어 되는 일이',
+        '착착 맞아떨어지는',
+        '내딛는 걸음마다 길이 열리는',
+        '뿌린 게 어렵잖게',
+        '사람도 기회도 곁에',
+        '때가 딱 받쳐주는',
+        '막히는 게 적어서',
       ]
       expect(goodVariants.some((v) => child.text.includes(v))).toBe(true)
     })
@@ -670,13 +670,13 @@ describe('deriveLifetimeFlow', () => {
       const r = deriveLifetimeFlow(n)!
       const child = r.phases[0]
       const hardVariants = [
-        '바람을 안고',
-        '뜻대로 풀리지 않는',
-        '깎이고 부딪히는',
-        '길이 좁아지는',
-        '맞바람이 잦지만',
+        '나만 매번 애쓰는',
+        '나만 제자리인가',
+        '부딪히고 깎이는',
+        '길이 좁아진 느낌',
+        '맞바람이 자주 부는',
         '쉽지 않은 고비',
-        '물때가 빠진',
+        '숨 고르고 채비할',
       ]
       expect(hardVariants.some((v) => child.text.includes(v))).toBe(true)
     })
@@ -687,13 +687,13 @@ describe('deriveLifetimeFlow', () => {
       const r = deriveLifetimeFlow(n)!
       const child = r.phases[0]
       const goodVariants = [
-        '바람이 등을 밀어주어',
-        '물길이 트여',
-        '결이 맞아떨어져',
-        '햇볕이 고르게',
-        '인연과 도움이',
-        '때가 받쳐주어',
-        '막힘이 적어',
+        '드디어 되는 일이',
+        '착착 맞아떨어지는',
+        '내딛는 걸음마다 길이 열리는',
+        '뿌린 게 어렵잖게',
+        '사람도 기회도 곁에',
+        '때가 딱 받쳐주는',
+        '막히는 게 적어서',
       ]
       expect(goodVariants.some((v) => child.text.includes(v))).toBe(true)
     })
@@ -704,13 +704,13 @@ describe('deriveLifetimeFlow', () => {
       const r = deriveLifetimeFlow(n)!
       const child = r.phases[0]
       const hardVariants = [
-        '바람을 안고',
-        '뜻대로 풀리지 않는',
-        '깎이고 부딪히는',
-        '길이 좁아지는',
-        '맞바람이 잦지만',
+        '나만 매번 애쓰는',
+        '나만 제자리인가',
+        '부딪히고 깎이는',
+        '길이 좁아진 느낌',
+        '맞바람이 자주 부는',
         '쉽지 않은 고비',
-        '물때가 빠진',
+        '숨 고르고 채비할',
       ]
       expect(hardVariants.some((v) => child.text.includes(v))).toBe(true)
     })

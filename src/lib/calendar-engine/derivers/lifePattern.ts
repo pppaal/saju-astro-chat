@@ -93,50 +93,51 @@ const PATTERN_KO: Record<LifePatternKey, { ko: string; en: string; line: string;
     'late-bloomer': {
       ko: '대기만성형',
       en: 'Late bloomer',
-      line: '처음엔 더디고 애써야 하지만, 해를 거듭할수록 자리를 잡아가요. 늦게 피어 오래가는, 뒤로 갈수록 환해지는 결이에요.',
+      line: '어릴 땐 “왜 나만 이렇게 더디지” 싶어 속으로 많이 앓았을 거예요. 근데 당신은 원래 늦게 피는 사람이에요. 급하게 안 터지는 대신, 한번 자리 잡으면 안 꺼져요. 나이 들수록 진짜 빛나는 쪽.',
       lineEn:
-        'A slow, effortful start — but you find your ground as the years go on. Yours is a life that blooms late and lasts, brightening toward the end.',
+        'Early on you probably ached inside, wondering “why am I the slow one?” But you’re simply built to bloom late. You don’t pop off early — yet once you land, you don’t fade. You’re the kind that truly shines with age.',
     },
     'early-peak': {
       ko: '초년발복형',
       en: 'Early peak',
-      line: '이른 봄에 일찍 꽃을 피우는 결이에요. 한창때 멀리 나아가고, 뒤로는 넓히기보다 지켜낼 때 더 단단해져요.',
+      line: '당신은 일찍 꽃피는 사람이에요. 젊을 때 이미 멀리 나가봐서 남들보다 빨리 자기 걸 잡죠. 뒤로는 새로 벌이기보다, 가진 걸 지킬 때 더 단단해져요.',
       lineEn:
-        'You flower early, in the first warmth of the year. You travel far while the season is at its height; later, you grow steadier by keeping what you have rather than reaching for more.',
+        'You’re someone who flowers early. You get far while young and grab what’s yours sooner than most. Later on, you grow steadier by protecting what you have rather than starting new things.',
     },
     'midlife-peak': {
       ko: '중년절정형',
       en: 'Midlife peak',
-      line: '한낮에 해가 가장 높이 뜨듯, 인생의 한가운데서 가장 크게 펼쳐지는 결이에요. 그 길목에서 마음먹고 나아가면 멀리 닿아요.',
+      line: '당신의 전성기는 인생 한가운데예요. 젊을 때 쌓은 게 중년에 한꺼번에 터지는 타입. 그 길목에서 마음먹고 밀어붙이면 진짜 멀리 가요.',
       lineEn:
-        'Like the sun standing highest at noon, your life opens widest at its middle. Make your move at that crossing and it carries far.',
+        'Your prime is the middle of life. You’re the type whose early groundwork all pays off at once in midlife. Make your move at that crossing and it truly carries far.',
     },
     'steady-rise': {
       ko: '점진상승형',
       en: 'Steady rise',
-      line: '서두르지 않아도 물이 차오르듯 한 해 한 해 나아져요. 조금씩, 그러나 멈추지 않고 높아지는 결이에요.',
+      line: '당신은 반짝 터지는 대신, 한 해 한 해 꾸준히 올라가는 사람이에요. 조급해 보여도 결국 멈춘 적 없이 높아지는 게 당신 강점.',
       lineEn:
-        'Without hurrying, you rise like water filling a basin, a little more each year — slow, but never still.',
+        'Instead of flashing bright, you’re someone who climbs steadily year by year. It can feel slow, but never once stalling is exactly your strength.',
     },
     smooth: {
       ko: '순탄형',
       en: 'Smooth path',
-      line: '큰 파도 없이 잔잔하게 흐르는 강 같은 결이에요. 굽이는 적어도, 멀리까지 고르게 닿아요.',
-      lineEn: 'Yours flows like a calm river with few rapids — gentle, even, and far-reaching.',
+      line: '당신 인생은 큰 파도 없이 잔잔하게 흐르는 편이에요. 극적인 굴곡은 적어도, 그만큼 멀리까지 고르게 가는 힘이 있어요.',
+      lineEn:
+        'Your life tends to flow calmly, without big waves. There’s little dramatic upheaval — and that’s exactly what lets you go far, evenly.',
     },
     hard: {
       ko: '인고형',
       en: 'The long haul',
-      line: '쉬운 길은 아니에요. 바람을 안고 오래 걷는 동안, 버틴 만큼 단단해지는 결이에요.',
+      line: '쉬운 길은 아니었을 거예요. 바람 안고 오래 걸어온 사람. 근데 그렇게 버틴 만큼, 어지간한 일엔 안 흔들리는 단단함이 생겼어요.',
       lineEn:
-        'Not an easy road. You walk a long way into the wind, and what you endure is what makes you unbreakable.',
+        'It probably wasn’t an easy road — you’ve walked a long way into the wind. But all that enduring gave you a solidness that ordinary troubles can’t shake.',
     },
     undulating: {
       ko: '굴곡형',
       en: 'Ups and downs',
-      line: '밀물과 썰물처럼 좋을 때와 힘든 때가 번갈아 와요. 물때를 읽을 줄 알면, 그 리듬이 오히려 힘이 돼요.',
+      line: '당신은 좋을 때와 힘들 때가 파도처럼 번갈아 오는 사람이에요. 근데 그 리듬을 읽을 줄 알면, 오히려 그게 남들 없는 무기가 돼요.',
       lineEn:
-        'Like tides, bright spells and hard spells take turns. Learn to read the water, and the rhythm itself becomes your strength.',
+        'For you, good spells and hard spells take turns like waves. But once you learn to read that rhythm, it becomes a weapon others don’t have.',
     },
   }
 

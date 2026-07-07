@@ -215,8 +215,8 @@ describe('deriveLifePattern', () => {
     expect(pa?.line).not.toBe(pb?.line)
     expect(pa?.lineEn).not.toBe(pb?.lineEn)
     // 공통 템플릿(PATTERN_KO 베이스)은 둘 다 머리에 깔려 있다.
-    expect(pa?.line.startsWith('처음엔 더디고 애써야 하지만')).toBe(true)
-    expect(pb?.line.startsWith('처음엔 더디고 애써야 하지만')).toBe(true)
+    expect(pa?.line.startsWith('어릴 땐')).toBe(true)
+    expect(pb?.line.startsWith('어릴 땐')).toBe(true)
     // 정점 연도가 line 에 실린다(연도 데이터가 있을 때).
     expect(pa?.line).toContain('2030')
     expect(pb?.line).toContain('1999')
