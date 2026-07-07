@@ -652,13 +652,13 @@ describe('deriveLifetimeFlow', () => {
       const child = r.phases[0]
       // good variant 중 하나 포함.
       const goodVariants = [
-        '드디어 되는 일이',
-        '착착 맞아떨어지는',
-        '지금 지르면 크게 돌아오는',
-        '노력한 것보다 더 크게',
-        '사람도 기회도 알아서',
-        '작은 시도도 곧잘 결과',
-        '이때다 싶은 걸',
+        '자기 색을 일찍부터',
+        '예쁨받고 기회도',
+        '기질이 일찍 트여서',
+        '집안·주변이 든든해',
+        '배우고 흡수하는 게',
+        '인정받아 자신감',
+        '타고난 걸 마음껏',
       ]
       expect(goodVariants.some((v) => child.text.includes(v))).toBe(true)
     })
@@ -670,13 +670,13 @@ describe('deriveLifetimeFlow', () => {
       const r = deriveLifetimeFlow(n)!
       const child = r.phases[0]
       const hardVariants = [
-        '나만 매번 애쓰는',
-        '나만 제자리인가',
-        '노력에 비해 결과가',
-        '한 박자씩 어긋나는',
-        '주변에 치이고',
-        '크게 넘어야 하는 고비',
-        '한 템포 쉬며',
+        '만만찮은 환경',
+        '일찍 어른스러워야',
+        '마음 편할 새가 없던',
+        '혼자 서는 법',
+        '마음 붙일 곳',
+        '참거나 미뤄야',
+        '세상 눈치를 봐야',
       ]
       expect(hardVariants.some((v) => child.text.includes(v))).toBe(true)
     })
@@ -687,13 +687,13 @@ describe('deriveLifetimeFlow', () => {
       const r = deriveLifetimeFlow(n)!
       const child = r.phases[0]
       const goodVariants = [
-        '드디어 되는 일이',
-        '착착 맞아떨어지는',
-        '지금 지르면 크게 돌아오는',
-        '노력한 것보다 더 크게',
-        '사람도 기회도 알아서',
-        '작은 시도도 곧잘 결과',
-        '이때다 싶은 걸',
+        '자기 색을 일찍부터',
+        '예쁨받고 기회도',
+        '기질이 일찍 트여서',
+        '집안·주변이 든든해',
+        '배우고 흡수하는 게',
+        '인정받아 자신감',
+        '타고난 걸 마음껏',
       ]
       expect(goodVariants.some((v) => child.text.includes(v))).toBe(true)
     })
@@ -704,13 +704,13 @@ describe('deriveLifetimeFlow', () => {
       const r = deriveLifetimeFlow(n)!
       const child = r.phases[0]
       const hardVariants = [
-        '나만 매번 애쓰는',
-        '나만 제자리인가',
-        '노력에 비해 결과가',
-        '한 박자씩 어긋나는',
-        '주변에 치이고',
-        '크게 넘어야 하는 고비',
-        '한 템포 쉬며',
+        '만만찮은 환경',
+        '일찍 어른스러워야',
+        '마음 편할 새가 없던',
+        '혼자 서는 법',
+        '마음 붙일 곳',
+        '참거나 미뤄야',
+        '세상 눈치를 봐야',
       ]
       expect(hardVariants.some((v) => child.text.includes(v))).toBe(true)
     })

@@ -421,6 +421,68 @@ const TONE_VARIANTS_EN: Record<'good' | 'hard' | 'mid', readonly string[]> = {
   ],
 }
 
+// 초년기(0~19) 전용 톤 — 성인 변주("진작 이랬으면"·"벌여놨던 걸 정리")는 아직
+// 아무것도 벌이지 않은 유년기에 맞지 않는다(감사 30인 p08/p24). 유년은 *자라온
+// 환경·기질 형성*의 결로 서술한다. 인덱스는 성인 배열과 1:1(7종)이라 회전 dedup 동일.
+const TONE_VARIANTS_CHILD_KO: Record<'good' | 'hard' | 'mid', readonly string[]> = {
+  good: [
+    '받쳐주는 어른·환경 속에서 자란 편이라, 자기 색을 일찍부터 편하게 꺼내본 시기예요.',
+    '어릴 때부터 예쁨받고 기회도 곧잘 주어져, 하고 싶은 걸 눈치 안 보고 해본 편이에요.',
+    '기질이 일찍 트여서, 또래보다 한발 앞서 자기 걸 찾아가던 때예요.',
+    '집안·주변이 든든해, 크게 부족함 모르고 자기 재능을 키워간 시기예요.',
+    '곁의 어른이 잘 이끌어줘서, 배우고 흡수하는 게 유독 빨랐던 편이에요.',
+    '일찍부터 인정받아 자신감이 붙은 시기라, 그때 생긴 자존감이 오래가요.',
+    '타고난 걸 마음껏 펼쳐본 유년이라, 그 경험이 두고두고 밑천이 돼요.',
+  ],
+  hard: [
+    '어릴 때부터 만만찮은 환경·어른을 겪은 편이에요. 눌리기보다 부딪히며 일찍 철든 쪽.',
+    '남들보다 일찍 어른스러워야 했던 시기예요. 그만큼 속이 야무지게 여물었어요.',
+    '기대나 압박이 커서 마음 편할 새가 없던 유년이에요. 근데 그 긴장이 근성으로 남아요.',
+    '내 편이 부족한 느낌 속에 큰 편이라, 일찍부터 혼자 서는 법을 익혔어요.',
+    '환경이 자주 흔들려 마음 붙일 곳이 아쉬웠던 시기예요. 그만큼 적응력은 남달라졌어요.',
+    '하고 싶은 걸 참거나 미뤄야 했던 유년이에요. 근데 그 절제가 뒷심이 돼요.',
+    '일찍 세상 눈치를 봐야 했던 편이라, 사람·상황 읽는 눈이 또래보다 깊어졌어요.',
+  ],
+  mid: [
+    '크게 모나지도 부족하지도 않게, 무난한 환경에서 자기 기질을 다져간 시기예요.',
+    '특별한 사건보다, 잔잔한 일상 속에서 자기 색이 서서히 잡혀간 유년이에요.',
+    '평범하지만 안정된 환경이라, 조급함 없이 자기 속도로 자란 편이에요.',
+    '큰 굴곡 없이, 보고 배운 것들이 차곡차곡 성격의 바탕이 된 시기예요.',
+    '있는 듯 없는 듯 흘러갔어도, 그 무던함이 오히려 단단한 기본이 됐어요.',
+    '눈에 띄는 일은 적어도, 그 안에서 자기만의 리듬을 익혀간 유년이에요.',
+    '조용한 환경에서 자기 세계를 천천히 넓혀간 시기예요.',
+  ],
+}
+const TONE_VARIANTS_CHILD_EN: Record<'good' | 'hard' | 'mid', readonly string[]> = {
+  good: [
+    'You grew up with adults and surroundings that had your back, so you got to show your own colors early and at ease.',
+    'You were doted on and handed chances early, so you did what you wanted without reading the room.',
+    'Your temperament opened up early — you were a step ahead of your peers in finding your own thing.',
+    'With a solid family and surroundings, you grew your talents without knowing much lack.',
+    'The adults around you guided you well, so you learned and absorbed unusually fast.',
+    'You were recognized early and it built your confidence — the self-esteem from then lasts.',
+    'A childhood where you got to unfold what you were born with; that experience stays a lifelong asset.',
+  ],
+  hard: [
+    'You met a tough environment and tough adults early. Rather than being crushed, you hardened by pushing back and grew up fast.',
+    'You had to be grown-up earlier than others — and your core matured all the more solidly for it.',
+    'Expectations and pressure ran high, with little room to breathe. But that tension became grit.',
+    'You grew up feeling short on people in your corner, so you learned to stand alone early.',
+    'The ground shifted often and steady footing was scarce — which made your adaptability exceptional.',
+    'A childhood where you had to hold back or defer what you wanted. But that restraint became staying power.',
+    'You had to read the room early, so your eye for people and situations grew deeper than your peers’.',
+  ],
+  mid: [
+    'Neither harsh nor lacking — you shaped your temperament in a steady, ordinary environment.',
+    'Less about big events, more your own colors settling in slowly through quiet everyday life.',
+    'Plain but stable surroundings, so you grew at your own pace without rushing.',
+    'Without big swings, what you saw and learned stacked up into the base of your character.',
+    'It passed almost unnoticed, yet that evenness became a solid foundation.',
+    'Few standout moments, but you learned your own rhythm inside them.',
+    'A quiet setting where you slowly widened your own world.',
+  ],
+}
+
 // 별자리 EN→KO(long form) — 정본(astrology/signLabels) 재사용.
 const SIGN_KO = SIGN_KO_SSOT
 // EN sign names ARE identity (Aries → Aries) but a lookup keeps signature
@@ -1390,8 +1452,9 @@ export function deriveLifetimeFlow(
     // 본문 — 십신(정확명) + cat + body + 톤. 초년은 "년주(부모·뿌리) 기준" 명시.
     // KO/EN 양쪽 산출. 톤 variant 는 인덱스를 한 번만 뽑아 두 언어 동기화.
     const toneIdx = nextToneIdx(toneFav)
-    const toneKo = TONE_VARIANTS_KO[toneFav][toneIdx]
-    const toneEn = TONE_VARIANTS_EN[toneFav][toneIdx]
+    // 유년기는 성인 변주가 안 맞아 전용 배열 사용(자라온 환경·기질 형성 결).
+    const toneKo = (isChildhood ? TONE_VARIANTS_CHILD_KO : TONE_VARIANTS_KO)[toneFav][toneIdx]
+    const toneEn = (isChildhood ? TONE_VARIANTS_CHILD_EN : TONE_VARIANTS_EN)[toneFav][toneIdx]
     // 편관(칠살)은 같은 관성이라도 압박·도전의 결 — 전용 문구로 교체.
     const isPyeongwan = sibsinName === '편관'
     const bodyKo =

@@ -334,8 +334,12 @@ function classifyFromCurve(
   let pool = wp.length ? wp : p
   // 현재 나이를 알면 *가까운 지평*(현재−3 ~ +28년) 안의 정점을 우선한다 — 31세에게
   // "81세부터 가장 크게"처럼 50년 뒤 정점을 가리키면 비현실적이라(사용자 지적).
-  // 지평 안에 후보가 있으면 그쪽, 없으면(이미 지난 정점뿐인 고령 등) 구간 최댓값.
-  if (typeof currentAge === 'number') {
+  // 단, 대기만성·점진상승은 정점이 *본래 말년(장년 60+)* 이라 지평으로 자르면 젊은
+  // 사람의 하이라이트가 실제 장년 마루가 아니라 중년 끝(55~59)으로 당겨져 곡선과
+  // 어긋난다(감사 30인: "57세 가장 환하게"인데 곡선 정점은 장년). 이 두 유형은
+  // 지평 캡을 걸지 않고 장년 창의 실제 최댓값을 그대로 가리킨다.
+  const farPeakType = key === 'late-bloomer' || key === 'steady-rise'
+  if (typeof currentAge === 'number' && !farPeakType) {
     const near = pool.filter((x) => x.age >= currentAge - 3 && x.age <= currentAge + 28)
     if (near.length) pool = near
   }
