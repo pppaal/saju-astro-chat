@@ -94,9 +94,9 @@ const PATTERN_KO: Record<LifePatternKey, { ko: string; en: string; line: string;
     'late-bloomer': {
       ko: '대기만성형',
       en: 'Late bloomer',
-      line: '어릴 땐 “왜 나만 이렇게 더디지” 싶어 속으로 많이 앓았을 거예요. 근데 당신은 원래 늦게 피는 사람이에요. 급하게 안 터지는 대신, 한번 자리 잡으면 안 꺼져요. 나이 들수록 진짜 빛나는 쪽.',
+      line: '어릴 땐 “왜 나만 이렇게 더디지” 싶어 속으로 많이 앓았을 거예요. 근데 당신은 원래 늦게 자리 잡는 사람이에요. 급하게 안 터지는 대신, 한번 잡으면 안 흔들려요. 나이 들수록 진가가 드러나는 쪽.',
       lineEn:
-        'Early on you probably ached inside, wondering “why am I the slow one?” But you’re simply built to bloom late. You don’t pop off early — yet once you land, you don’t fade. You’re the kind that truly shines with age.',
+        'Early on you probably ached inside, wondering “why am I the slow one?” But you’re simply built to land late. You don’t pop off early — yet once you settle in, you don’t waver. Your real worth shows more with age.',
     },
     'early-peak': {
       ko: '초년발복형',
@@ -421,11 +421,11 @@ function personalize(
       return { line: `${baseLineKo} ${tKo}`, lineEn: `${baseLineEn} ${tEn}` }
     }
     const detailKo = past
-      ? `특히 ${whenKo}, ${CAT_KO[cat]} 쪽으로 가장 환하게 피어났던 때였어요.`
-      : `특히 ${whenKo}부터, ${CAT_KO[cat]} 쪽으로 가장 환하게 피어나요.`
+      ? `특히 ${whenKo}, ${CAT_KO[cat]} 쪽으로 가장 크게 열렸던 때였어요.`
+      : `특히 ${whenKo}부터, ${CAT_KO[cat]} 쪽으로 가장 크게 열려요.`
     const detailEn = past
-      ? `Your fullest bloom was ${whenEn}, turned toward ${CAT_EN[cat]}.`
-      : `Your fullest bloom comes ${whenEn} onward, turned toward ${CAT_EN[cat]}.`
+      ? `It opened widest ${whenEn}, toward ${CAT_EN[cat]}.`
+      : `It opens widest ${whenEn} onward, toward ${CAT_EN[cat]}.`
     return { line: `${baseLineKo} ${detailKo}`, lineEn: `${baseLineEn} ${detailEn}` }
   }
 
@@ -495,8 +495,13 @@ function personalize(
 // 정점 시간 창을 단정하는 유형의 회고(past) 변형 — 그 창이 이미 지난 사람에게
 // 미래 지시 어조 대신 과거형으로(감사 BUG-6). 미정의 유형은 base.line 유지.
 const LINE_PAST_KO: Partial<Record<LifePatternKey, string>> = {
-  'midlife-peak': '한낮의 해가 높이 떠오르듯, 인생의 한가운데서 가장 크게 펼쳐졌던 때예요.',
+  'midlife-peak':
+    '당신의 전성기는 인생 한가운데였어요. 젊을 때 쌓은 게 그 무렵 한꺼번에 터졌던 사람.',
+  'youth-peak': '당신은 이십대·삼십대에 확 치고 나갔던 사람이에요. 그때 만든 게 지금까지 받쳐줘요.',
 }
 const LINE_PAST_EN: Partial<Record<LifePatternKey, string>> = {
-  'midlife-peak': 'Like the noon sun at its height, your life opened widest at its middle.',
+  'midlife-peak':
+    'Your prime was the middle of life — the type whose early groundwork all paid off at once back then.',
+  'youth-peak':
+    'You broke out hard in your twenties and thirties. What you built then still holds you up today.',
 }

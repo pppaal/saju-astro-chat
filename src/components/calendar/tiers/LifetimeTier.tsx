@@ -355,6 +355,8 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
     })
     return {
       isKo: ko,
+      // 인생유형 별명을 카드 주인공 배지로(대기만성형 등) — MBTI 풍 공유 훅.
+      typeName: lifePattern ? patternKo : undefined,
       rangeLabel: `${birthYear}–${lifeSpanTo}`,
       headline: hook.headline,
       subline: hook.subline || youAreHere || undefined,

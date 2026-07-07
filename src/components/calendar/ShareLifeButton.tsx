@@ -16,6 +16,8 @@ import { logger } from '@/lib/logger'
 
 export interface LifeShareData {
   isKo: boolean
+  /** 인생유형 별명(대기만성형 등) — 공유카드 주인공 배지. */
+  typeName?: string
   rangeLabel?: string
   headline: string
   subline?: string
@@ -42,6 +44,7 @@ export function ShareLifeButton({ data }: { data: LifeShareData }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           isKo,
+          typeName: data.typeName || undefined,
           rangeLabel: data.rangeLabel || undefined,
           headline: data.headline,
           subline: data.subline || undefined,

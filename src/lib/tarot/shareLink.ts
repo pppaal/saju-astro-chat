@@ -132,6 +132,9 @@ export interface LifeShareLinkPayload {
   v: 1
   kind: 'life'
   isKo: boolean
+  /** 인생유형 별명(대기만성형·청년절정형 등) — 공유카드 주인공 배지(MBTI 풍).
+   *  PII 아님(명식 도출 고정 사전). 없으면 후크 헤드라인만 크게. */
+  typeName?: string
   /** 범위 라벨 — "1994 — 2044" 등(선택). */
   rangeLabel?: string
   /** 한 줄 후크(주인공). */
