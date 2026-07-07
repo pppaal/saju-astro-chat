@@ -36,6 +36,10 @@ import { getSibsinKo } from '@/lib/saju/cycleRelations'
 import { getGongmang, getTwelveStage } from '@/lib/saju/shinsal'
 import { humanizeReason } from './humanizeReason'
 import {
+  deriveEvidenceLadder,
+  type EvidenceRung,
+} from '@/lib/calendar-engine/derivers/evidenceLadder'
+import {
   reconcileDayTone,
   mixedFlavor,
   type DayVerdict,
@@ -183,6 +187,10 @@ export interface DestinypalDay {
   cautions: string[]
   /** 상위 주의 사유(EN) — 토글용. */
   cautionsEn: string[]
+  /** 근거 사다리(10년→올해→이달→오늘) — 층별 지배신호 1개 + 쉬운 결론 + 용어 칩. */
+  evidenceLadder: EvidenceRung[]
+  /** 근거 사다리 영문 — 토글용. */
+  evidenceLadderEn: EvidenceRung[]
   /** 본명 4기둥(천간) × 일진 지지 12운성 — getTwelveStage 정통 계산(기둥별 실제값). */
   twelveStageMatrix: TwelveStageCell[]
   /** 출력 화해 verdict — 헤드라인·한줄·칩 톤 단일 권위 (reconcile.ts). */
@@ -450,6 +458,10 @@ export function toDay(opts: ToDayOptions): DestinypalDay {
   const cautions = (cell.cautions ?? []).map((r) => humanizeReason(r, 'ko'))
   const cautionsEn = (cell.cautionsEn ?? []).map((r) => humanizeReason(r, 'en'))
 
+  // ── 근거 사다리 — 10년→올해→이달→오늘 층별 지배신호 1개(쉬운 결론 + 용어 칩). ──
+  const evidenceLadder = deriveEvidenceLadder(cell.signals, 'ko')
+  const evidenceLadderEn = deriveEvidenceLadder(cell.signals, 'en')
+
   // ── 출력 화해 — 점수 밴드 ↔ 그날 고유 신호 net 을 한 verdict 로 묶는다(단일 권위). ──
   const dayTone = reconcileDayTone({
     score: shownScore,
@@ -483,6 +495,8 @@ export function toDay(opts: ToDayOptions): DestinypalDay {
     topReasonsEn,
     cautions,
     cautionsEn,
+    evidenceLadder,
+    evidenceLadderEn,
     twelveStageMatrix,
     dayTone,
   }

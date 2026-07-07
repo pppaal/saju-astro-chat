@@ -21,6 +21,7 @@ import type {
 } from './shared'
 import type { GeokgukStatus, GeokgukStatusResult } from '@/lib/saju/geokguk'
 import type { DayVerdict } from '@/lib/calendar-engine/derivers/reconcile'
+import type { EvidenceRung } from '@/lib/calendar-engine/derivers/evidenceLadder'
 
 // ============================================================================
 // 지장간 (Jijanggan) — 본명 일주(=일지) 의 정기·중기·여기 분해.
@@ -236,6 +237,13 @@ export interface DestinyDay extends DestinyIljinHeader {
   cautions?: string[]
   /** 상위 주의 사유 영문 — 토글용. */
   cautionsEn?: string[]
+  /**
+   * 근거 사다리(10년→올해→이달→오늘) — 층별 지배신호 1개를 "쉬운 결론 + 용어 칩"
+   * 으로. 점수·근거·톤이 같은 사다리를 함께 읽게 하는 표시용(evidenceLadder.ts).
+   */
+  evidenceLadder?: EvidenceRung[]
+  /** 근거 사다리 영문 — 토글용. */
+  evidenceLadderEn?: EvidenceRung[]
   /**
    * 출력 화해 verdict — 점수 밴드 ↔ 신호/사유 톤을 묶은 단일 권위.
    * 헤드라인·한줄·칩이 같은 톤(positive/mixed/caution)을 말하도록 adapter 가

@@ -8,6 +8,7 @@
 
 import type { Ganji, TaggedNarrative, SibsinKind } from './shared'
 import type { MonthVerdict } from '@/lib/calendar-engine/derivers/reconcile'
+import type { EvidenceRung } from '@/lib/calendar-engine/derivers/evidenceLadder'
 
 // ============================================================================
 // 응용 격국 패턴 — 한 달 동안 며칠 활성됐는가 (Phase B 보강).
@@ -247,4 +248,11 @@ export interface DestinyMonth {
    * 표면마다 goodDays.length 로 4분류를 다시 계산해 어긋났다(감사 D-1).
    */
   verdict?: MonthVerdict
+  /**
+   * 근거 사다리(10년→올해→이달) — 층별 지배신호 1개를 "쉬운 결론 + 용어 칩"으로.
+   * 월 카드는 daily 층을 생략(그 달 대표 셀 기준). evidenceLadder.ts.
+   */
+  evidenceLadder?: EvidenceRung[]
+  /** 근거 사다리 영문 — 토글용. */
+  evidenceLadderEn?: EvidenceRung[]
 }

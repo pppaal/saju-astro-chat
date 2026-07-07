@@ -450,6 +450,10 @@ export function MonthTier({ month, onDive, onRise, showRise = true, onSelectDay 
           ? styles.rtagAvoid
           : ''
 
+  // 근거 사다리 — 10년→올해→이달 층별 지배신호(쉬운 결론 + 용어 칩).
+  const monthLadder =
+    (ko ? month.evidenceLadder : month.evidenceLadderEn) ?? month.evidenceLadder ?? []
+
   // ── 셰어용 ── (한 줄 총평 + 큰 날 몇 개)
   const periodLabel = ko ? month.label : `${monthEn} ${year}`.trim()
   const summaryCard = (month.narrative ?? []).find((n) => n.tag === '이달 총평')
@@ -819,6 +823,46 @@ export function MonthTier({ month, onDive, onRise, showRise = true, onSelectDay 
             </div>
           )}
         </section>
+
+        {/* ── 왜 이런 달인가 — 근거 사다리(10년→올해→이달 층별 지배 근거). ── */}
+        {monthLadder.length > 0 && (
+          <section className={styles.sec}>
+            <div className={styles.secH}>
+              <span className={styles.secLbl}>{ko ? '왜 이런 달인가' : 'Why this month'}</span>
+              <span className={styles.secLn} />
+              <span className={styles.secLat}>Evidence</span>
+            </div>
+            <ul className={styles.ladder}>
+              {monthLadder.map((r) => (
+                <li
+                  className={`${styles.rung} ${
+                    r.polarity > 0 ? styles.rungPos : r.polarity < 0 ? styles.rungNeg : ''
+                  }`.trim()}
+                  key={r.scale}
+                >
+                  <span className={styles.rungScale}>{r.scaleLabel}</span>
+                  <div className={styles.rungBody}>
+                    <span className={styles.rungConcl}>{r.conclusion}</span>
+                    {r.chips.length > 0 && (
+                      <span className={styles.rungChips}>
+                        {r.chips.map((c, i) => (
+                          <span
+                            className={`${styles.rungChip} ${
+                              c.source === 'saju' ? styles.chipSaju : styles.chipAstro
+                            }`}
+                            key={i}
+                          >
+                            {c.text}
+                          </span>
+                        ))}
+                      </span>
+                    )}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
 
         {/* ── 겹치는 흐름 (crossings) ── */}
         {monthCross.length > 0 && (

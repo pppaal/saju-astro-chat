@@ -329,6 +329,8 @@ export async function assembleDayTier(input: AssembleDayTierInput): Promise<Dest
     topReasonsEn: dayAdapter.topReasonsEn,
     cautions: dayAdapter.cautions,
     cautionsEn: dayAdapter.cautionsEn,
+    evidenceLadder: dayAdapter.evidenceLadder,
+    evidenceLadderEn: dayAdapter.evidenceLadderEn,
     // 출력 화해 verdict — 월 모집단 셀 기준(위 unified)이 권위. 빠뜨리면 DayTier
     // 가 중립 fallback 으로 떨어져 tense/bright 화해가 프로덕션에서 죽는다.
     dayTone: unified?.dayTone ?? dayAdapter.dayTone,

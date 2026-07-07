@@ -31,6 +31,7 @@ import { deriveDayActions } from '@/lib/calendar-engine/derivers/dayActions'
 import { deriveDayDeepRead } from '@/lib/calendar-engine/derivers/dayDeepRead'
 import { dayStrength } from '@/lib/calendar-engine/derivers/dayStrength'
 import { reconcileDayTone, type DayVerdict } from '@/lib/calendar-engine/derivers/reconcile'
+import type { EvidenceRung } from '@/lib/calendar-engine/derivers/evidenceLadder'
 import styles from './DayTier.module.css'
 import { useI18n } from '@/i18n/I18nProvider'
 import { localizeLabel } from '@/components/calendar/adapters/localizeLabel'
@@ -123,6 +124,43 @@ function SecHead({ label, latin }: { label: string; latin: string }) {
       <span className={styles.secLn} />
       <span className={styles.secLat}>{latin}</span>
     </div>
+  )
+}
+
+// ── 근거 사다리 — 시간층별 지배신호 1개를 "쉬운 결론 + 용어 칩"으로. 점수·근거·
+//    톤이 같은 사다리를 함께 읽게 하는 표시(운흐름 근거 D2·D3 해소). ──
+function EvidenceLadder({ rungs }: { rungs: EvidenceRung[] }) {
+  if (rungs.length === 0) return null
+  return (
+    <ul className={styles.ladder}>
+      {rungs.map((r) => (
+        <li
+          className={`${styles.rung} ${
+            r.polarity > 0 ? styles.rungPos : r.polarity < 0 ? styles.rungNeg : ''
+          }`.trim()}
+          key={r.scale}
+        >
+          <span className={styles.rungScale}>{r.scaleLabel}</span>
+          <div className={styles.rungBody}>
+            <span className={styles.rungConcl}>{r.conclusion}</span>
+            {r.chips.length > 0 && (
+              <span className={styles.rungChips}>
+                {r.chips.map((c, i) => (
+                  <span
+                    className={`${styles.rungChip} ${
+                      c.source === 'saju' ? styles.chipSaju : styles.chipAstro
+                    }`}
+                    key={i}
+                  >
+                    {c.text}
+                  </span>
+                ))}
+              </span>
+            )}
+          </div>
+        </li>
+      ))}
+    </ul>
   )
 }
 
@@ -287,6 +325,8 @@ export function DayTier({ day, onRise, sex = '남', isToday = true }: DayTierPro
   const dayOneLine = ko ? day.oneLine : (day.oneLineEn ?? day.oneLine)
   const dayReasons = ko ? (day.topReasons ?? []) : (day.topReasonsEn ?? day.topReasons ?? [])
   const dayCautions = ko ? (day.cautions ?? []) : (day.cautionsEn ?? day.cautions ?? [])
+  // 근거 사다리 — 10년→올해→이달→오늘 층별 지배신호(쉬운 결론 + 용어 칩).
+  const dayLadder = (ko ? day.evidenceLadder : day.evidenceLadderEn) ?? day.evidenceLadder ?? []
 
   // 인라인 마커("↑ 이달 · " / "↓ 오늘 · ")를 걷어내 쉬운말만 남긴다.
   const stripMarker = (s: string) => s.replace(/^[↑↓▲▼]\s*[^·]*·\s*/, '').trim()
@@ -620,6 +660,20 @@ export function DayTier({ day, onRise, sex = '남', isToday = true }: DayTierPro
           />
         </div>
       </header>
+
+      {/* ── 근거 사다리 — 왜 이렇게 봤나(시간층별 지배 근거). novice 표면에 노출:
+          쉬운 결론 + 용어 칩 2단으로 근거를 버리지 않고 살린다. ── */}
+      {dayLadder.length > 0 && (
+        <section className={styles.sec}>
+          <SecHead label={ko ? '왜 이렇게 봤나' : 'Why we read it this way'} latin="Evidence" />
+          <p className={styles.ladderCap}>
+            {ko
+              ? '10년 → 올해 → 이달 → 오늘, 시간대마다 가장 센 근거 하나씩.'
+              : '10-yr → year → month → today: the strongest driver at each scale.'}
+          </p>
+          <EvidenceLadder rungs={dayLadder} />
+        </section>
+      )}
 
       {/* ── 자세히 ① 일진·근거 (사주를 아는 사람용) ── */}
       <details className={styles.expertWrap}>

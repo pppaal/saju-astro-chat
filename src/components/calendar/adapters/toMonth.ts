@@ -20,6 +20,10 @@
 import type { CalendarCell } from '@/lib/calendar-engine/types'
 import type { CalendarGrade } from '@/lib/calendar-engine/derivers/grade'
 import { CALENDAR_BANDS } from '@/lib/calendar-engine/derivers/constants'
+import {
+  deriveEvidenceLadder,
+  type EvidenceRung,
+} from '@/lib/calendar-engine/derivers/evidenceLadder'
 import { toGanji, type Ganji, pad2 } from './shared'
 
 export interface DestinypalMonthNarrativeItem {
@@ -55,6 +59,10 @@ export interface DestinypalMonth {
   narrative: DestinypalMonthNarrativeItem[]
   converge?: DestinypalMonthConvergence
   focusDay: number // 1..30
+  /** 근거 사다리(10년→올해→이달) — 그 달 대표 셀 기준. */
+  evidenceLadder?: EvidenceRung[]
+  /** 근거 사다리 영문. */
+  evidenceLadderEn?: EvidenceRung[]
 }
 
 export interface ToMonthOptions {
@@ -193,6 +201,20 @@ export function toMonth(opts: ToMonthOptions): {
   const woolun =
     opts.woolunStem && opts.woolunBranch ? toGanji(opts.woolunStem, opts.woolunBranch) : undefined
 
+  // ── 근거 사다리 — 그 달 대표 셀(focus 우선, 없으면 중앙)의 10년/올해/이달 층. ──
+  // decadal·yearly·monthly 신호는 한 달 내내 상수라 아무 셀이나 동일. daily 는 생략.
+  const repCell =
+    opts.cells.find((c) => parseInt(c.datetime.slice(8, 10), 10) === focusDay) ??
+    opts.cells[Math.floor(opts.cells.length / 2)] ??
+    opts.cells[0]
+  const ladderScales = ['decadal', 'yearly', 'monthly'] as const
+  const evidenceLadder = repCell
+    ? deriveEvidenceLadder(repCell.signals, 'ko', [...ladderScales])
+    : []
+  const evidenceLadderEn = repCell
+    ? deriveEvidenceLadder(repCell.signals, 'en', [...ladderScales])
+    : []
+
   return {
     month: {
       label,
@@ -210,6 +232,8 @@ export function toMonth(opts: ToMonthOptions): {
       narrative: opts.narrative ?? [],
       converge: opts.converge,
       focusDay,
+      evidenceLadder,
+      evidenceLadderEn,
     },
     calendar,
   }
