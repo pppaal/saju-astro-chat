@@ -1612,7 +1612,7 @@ export function buildFreeCompatNarrative(
             const tone = t(ASPECT_TONE[asp.tone])
             return isKo
               ? `${josa(ra, '과/와')} ${josa(rb, '이/가')} 만나는 자리예요. ${tone}`
-              : `where ${ra} meets ${rb}. ${tone}`
+              : `This is where ${ra} meets ${rb}. ${tone}`
           })()
       const head = isKo
         ? `${labelA}의 ${asp.a} × ${labelB}의 ${asp.b} (${asp.label}, ${asp.strength})`
@@ -1851,7 +1851,7 @@ export function buildFreeCompatNarrative(
             const tone = t(ASPECT_TONE[asp.tone])
             return isKo
               ? `${josa(ra, '과/와')} ${josa(rb, '이/가')} 만나는 자리예요. ${tone}`
-              : `where ${ra} meets ${rb}. ${tone}`
+              : `This is where ${ra} meets ${rb}. ${tone}`
           })()
       const w = Math.max(1.5, 6 - (asp.orb ?? 4))
       themed.push({
@@ -1887,9 +1887,22 @@ export function buildFreeCompatNarrative(
       let lead: string
       if (arr.length === 1) {
         const e = arr[0]
-        lead = isKo
-          ? `${e.viewer}의 ${planet(e.key, e.disp)} 기운이 여기에 와닿아요. ${arena}`
-          : `${e.viewer}'s ${planet(e.key, e.disp)} reaches into this part of life. ${arena}`
+        const pl = planet(e.key, e.disp)
+        // 오프너 변주 — "OO의 XX 기운이 여기에 와닿아요"/"reaches into this part of
+        // life"가 한 리포트에 4회+ 반복돼 개인화가 아니라 양식-채우기로 읽히던 문제
+        // (평가단 13/30). house 로 분산해 같은 문형이 연달아 나오지 않게 한다.
+        const koOpeners = [
+          `${e.viewer}의 ${pl} 기운이 여기에 와닿아요.`,
+          `여기엔 ${e.viewer}의 ${josa(pl, '이/가')} 스며요.`,
+          `이 자리는 ${e.viewer}의 ${josa(pl, '이/가')} 건드리는 곳이에요.`,
+        ]
+        const enOpeners = [
+          `${e.viewer}'s ${pl} reaches into this part of life.`,
+          `${e.viewer}'s ${pl} colors this part of life.`,
+          `This part of life carries ${e.viewer}'s ${pl}.`,
+        ]
+        const oi = (seed + house) % 3
+        lead = isKo ? `${koOpeners[oi]} ${arena}` : `${enOpeners[oi]} ${arena}`
       } else {
         const names = arr.map((e) => (isKo ? `${e.viewer}의 ${e.disp}` : `${e.viewer}'s ${e.disp}`))
         lead = isKo
@@ -1903,16 +1916,36 @@ export function buildFreeCompatNarrative(
   }
   {
     const seenFrom = new Set<string>()
+    const spousePicks: SajuCompatSpouseStar[] = []
     for (const sp of [...report.spouseStars].sort(
       (a, b) => Number(b.isDayPillar) - Number(a.isDayPillar)
     )) {
       if (!SPOUSE_STAR[sp.sibsin] || seenFrom.has(sp.from)) continue
       seenFrom.add(sp.from)
+      spousePicks.push(sp)
+    }
+    // 두 사람의 배우자성이 정(정재·정관=안정)·편(편재·편관=설렘)으로 갈리면, 미래
+    // 테마에 나란히 두면 "활달·자유" 옆에 "반듯·안정"이 붙어 자기모순처럼 읽힌다
+    // (평가단 22/30). 그럴 땐 강한 하나만 넣고 두 얼굴의 공존을 한 줄로 봉합한다.
+    const nature = (sib: string) => (sib === '정재' || sib === '정관' ? '정' : '편')
+    const opposite =
+      spousePicks.length >= 2 && nature(spousePicks[0].sibsin) !== nature(spousePicks[1].sibsin)
+    for (const sp of opposite ? spousePicks.slice(0, 1) : spousePicks) {
       themed.push({
         theme: 'future',
         weight: sp.isDayPillar ? 10 : 6,
         text: t(spouseBlurbBi(sp.sibsin)),
         pol: sp.isDayPillar ? 4 : 2,
+      })
+    }
+    if (opposite) {
+      themed.push({
+        theme: 'future',
+        weight: 5,
+        text: isKo
+          ? '한 사람에겐 설레는 짝으로, 다른 한 사람에겐 든든한 짝으로 다가와요 — 서로에게 다른 얼굴의 인연이 되는 거죠. 그래서 안정과 설렘이 한 관계 안에 같이 살아요.'
+          : 'To one of you they read as an exciting partner, to the other as a steady one — you become different kinds of match for each other. So safety and spark live side by side in the same bond.',
+        pol: 2,
       })
     }
   }
@@ -1955,25 +1988,34 @@ export function buildFreeCompatNarrative(
   // 테마당 본문 상한 — 마찰 테마가 7~13문단으로 벽이 되던 문제(평가단 다수 지적).
   // 가중치순 상위 N개만 남겨 어느 테마도 "점성 백과사전"처럼 늘어지지 않게 한다.
   const THEME_PARA_CAP = 5
+  // 테마 간 통째 복붙 방지 — seenText 를 리포트 전역으로 공유한다. 같은 어스펙트
+  // 블러브(예: 달-천왕성)가 방향만 바뀌어 끌림·마찰 두 테마에 글자까지 똑같이
+  // 나오던 문제(평가단 11/30). 먼저 배정된 테마가 갖고, 뒤 테마는 건너뛴다.
+  const seenText = new Set<string>()
   const themes: FreeReportTheme[] = THEME_META.map((m) => {
     let items = themed.filter((x) => x.theme === m.id).sort((a, b) => b.weight - a.weight)
     // "어디서 부딪힐까(마찰)" 카드엔 실제 마찰(음극성) 신호만 담는다 — 결속·조화
     // 신호가 섞이면 화합 얘기가 마찰 헤딩 아래 들어가 톤이 무너지고, 높은 마찰
     // 점수와 pos 훅이 정면으로 모순됐다(예: 마찰 92인데 "큰 일 거의 없어").
     if (m.id === 'friction') items = items.filter((it) => it.pol < 0)
-    // 극성 합 → 훅·기본결·점수 모두 같은 pos/neg/mid 로 결정.
+    // 점수 먼저 — 훅/기본결이 점수와 어긋나지 않게(점수↔카피 잠금).
+    const score = themeScore(m.id, items, harmNudge)
+    // 극성 합 → pos/neg/mid. 단 점수가 낮은데 'pos' 극찬 훅("위험할 만큼 진한
+    // 케미")이 붙으면 숫자와 문구가 정면으로 어긋난다(평가단 18/30). 마찰이 아닌
+    // 테마는 점수가 충분히 높을 때만 pos, 낮으면 담백한 mid 로 낮춘다.
     const net = items.reduce((s, it) => s + it.pol, 0)
-    const hookKey: HookKey = net > 0.5 ? 'pos' : net < -0.5 ? 'neg' : 'mid'
+    let hookKey: HookKey = net > 0.5 ? 'pos' : net < -0.5 ? 'neg' : 'mid'
+    if (hookKey === 'pos' && m.id !== 'friction' && typeof score === 'number' && score < 66)
+      hookKey = 'mid'
     const hook = t(
       pickFor([THEME_HOOK[m.id][hookKey], HOOK_ALT[m.id][hookKey]], seed, `hook:${m.id}.${hookKey}`)
     )
     // 기본 결 문단 — 신호별 본문 앞에 깔아 빈약한 테마도 풍부하게. (훅과 같은 극성)
     // 단, 신호가 0인 테마엔 붙이지 않는다 — "신호 있을 때만 표시" 원칙 유지(빈 테마 부활 X).
-    const seenTxt = new Set<string>()
     const body: string[] = []
     for (const it of items) {
-      if (seenTxt.has(it.text)) continue
-      seenTxt.add(it.text)
+      if (seenText.has(it.text)) continue
+      seenText.add(it.text)
       body.push(it.text)
       if (body.length >= THEME_PARA_CAP) break // 벽 방지: 상위 N개(가중치순)만
     }
@@ -1995,7 +2037,7 @@ export function buildFreeCompatNarrative(
       icon: m.icon,
       title: t(m.title),
       hook,
-      score: themeScore(m.id, items, harmNudge),
+      score,
       scoreCaption: t(SCORE_CAPTION[m.id]),
       paragraphs,
     }
