@@ -148,12 +148,13 @@ const ASTRO_THEMES = [
 ]
 
 function astrologySubject(date: string): Subject {
-  // JDN 순환 — 12일마다 모든 별자리를 한 번씩, 테마는 사이클마다 교대.
-  // (해시 추첨은 같은 별자리가 연속으로 뜰 수 있어 피드가 없어 보인다)
+  // JDN 순환 — 별자리는 12일 주기(jdn%12), 테마는 5일 주기(jdn%5)로 각각 매일 돈다.
+  // 12·5 는 서로소라 (별자리×테마) 조합은 60일 동안 겹치지 않는다.
+  // (예전엔 테마가 floor(jdn/12) 라 12일 내리 같은 테마가 떠서 피드가 "돈 얘기만" 반복됐다)
   const [y, m, d] = date.split('-').map(Number)
   const { jdn } = computeDayPillarIndices(y, m, d)
   const sign = ZODIAC[jdn % ZODIAC.length]
-  const theme = ASTRO_THEMES[Math.floor(jdn / ZODIAC.length) % ASTRO_THEMES.length]
+  const theme = ASTRO_THEMES[jdn % ASTRO_THEMES.length]
   return {
     nameKo: `오늘의 별자리 스포트라이트: ${sign.ko}`,
     nameEn: `Sign spotlight: ${sign.en}`,
