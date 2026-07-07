@@ -1221,8 +1221,8 @@ const OVERLAY_ALT: Record<number, Bi> = {
     en: 'The words you trade each day, that ordinary rhythm of living — it weaves you together. A text, a conversation that flows so naturally it becomes part of your skin. Here you two communicate lightly, touch often, and breathe easy.',
   },
   4: {
-    ko: '가족의 냄새, 어린 시절의 기억, 마음이 진짜로 쉬는 그곳까지 당신은 상대에게 문을 열어주게 돼요. 신발을 벗고 옷깃을 풀 수 있는 가장 사적인 자리에서, 둘은 서로의 다리를 편하게 시킬 수 있어요.',
-    en: 'The scent of home, childhood memory, the place your heart actually rests — you open that door to them. Where you can kick off your shoes and unbutton your collar, the most private corner, you two can let each other settle in.',
+    ko: '가족의 냄새, 어린 시절의 기억, 마음이 진짜로 쉬는 그곳까지 당신은 상대에게 문을 열어주게 돼요. 신발을 벗고 마음을 툭 놓을 수 있는 가장 사적인 자리에서, 둘은 다리를 쭉 뻗고 편히 쉴 수 있어요.',
+    en: 'The scent of home, childhood memory, the place your heart actually rests — you open that door to them. Where you can kick off your shoes and let your guard down, the most private corner, you two can truly settle in.',
   },
   5: {
     ko: '당신이 그 사람 옆에 있으면 자연스럽게 떨리고 싶어지는 곳이에요. 연애의 색감, 설렘의 향기가 거기 있거든요. 둘은 이 자리에서 서로를 밝혀주고 싶다는 마음, 함께 빛나고 싶다는 순수한 끌림을 느껴요.',
@@ -1881,7 +1881,9 @@ export function buildFreeCompatNarrative(
         const names = arr.map((e) => (isKo ? `${e.viewer}의 ${e.disp}` : `${e.viewer}'s ${e.disp}`))
         lead = isKo
           ? `${josa(names.join('·'), '이/가')} 같은 자리에 닿아요. ${arena}`
-          : `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]} all touch this part of life. ${arena}`
+          : arr.length === 2
+            ? `${names[0]} and ${names[1]} both touch this part of life. ${arena}`
+            : `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]} all touch this part of life. ${arena}`
       }
       themed.push({ theme: HOUSE_THEME[house] ?? 'life', weight: 2, text: lead, pol: 0.6 })
     }

@@ -181,8 +181,9 @@ export const CompatShareCard = React.forwardRef<HTMLDivElement, { data: CompatSh
             position: 'relative',
             zIndex: 2,
             height: '100%',
-            // 족집게 한 줄(headline)이 들어갈 세로 공간 확보 — 위아래 여백을 줄인다.
-            padding: '64px 84px',
+            // 족집게 한 줄(headline)이 들어갈 세로 공간 확보 — 위아래 여백을 줄여
+            // 최악(2줄 punch + 2줄 proof + 칩)에도 space-between 이 클리핑되지 않게.
+            padding: '52px 84px',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
@@ -384,8 +385,10 @@ export const CompatShareCard = React.forwardRef<HTMLDivElement, { data: CompatSh
                   wordBreak: 'keep-all',
                 }}
               >
+                {/* 클램프는 로케일별 — KO 54자(2줄)면 EN 은 반 문장에서 잘려버려
+                    "구체적" 이라는 이 줄의 목적이 깨진다. EN 은 ~92자로 문장 끝까지. */}
                 <span style={{ color: GOLD }}>✦ </span>
-                {clampCard(headline, 54)}
+                {clampCard(headline, isKo ? 54 : 92)}
               </div>
             ) : null}
           </div>
