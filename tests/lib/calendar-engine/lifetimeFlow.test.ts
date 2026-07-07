@@ -168,6 +168,22 @@ describe('deriveLifetimeFlow', () => {
       expect(child.text).not.toContain('겁재(비겁)')
     })
 
+    it('감사: 초년 톤도 인생 곡선을 따른다 — 초년 高곡선 vs 低곡선이 다른 톤(색·톤 모순 제거)', () => {
+      // 곡선 초년(0~19) 이 높은 vs 낮은 두 케이스. 옛 코드는 초년 톤을 억부(년주)에
+      // 고정해 곡선(계절 색)과 부호가 어긋났다(950209 초년발복형인데 초년 톤 '힘겹게').
+      const earlyHigh = {
+        points: Array.from({ length: 91 }, (_, age) => ({ age, macro: (40 - age) / 40 })), // 초년 高
+      }
+      const earlyLow = {
+        points: Array.from({ length: 91 }, (_, age) => ({ age, macro: (age - 50) / 40 })), // 초년 低
+      }
+      const now = new Date('2026-07-07T00:00:00Z')
+      const hi = deriveLifetimeFlow(makeNatal(), 'ko', undefined, now, earlyHigh)!
+      const lo = deriveLifetimeFlow(makeNatal(), 'ko', undefined, now, earlyLow)!
+      // 초년 톤이 곡선에 반응 → 두 케이스가 달라야 한다(억부 고정이면 동일).
+      expect(hi.phases[0].toneKo).not.toBe(lo.phases[0].toneKo)
+    })
+
     it('비초년 단계는 평이 본문으로 시작 (raw 십신/년주 prefix 없음)', () => {
       const young = out.phases[1]
       expect(young.text).not.toContain('년주(부모·뿌리)')

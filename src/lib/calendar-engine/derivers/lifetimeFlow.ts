@@ -1240,13 +1240,15 @@ export function deriveLifetimeFlow(
             ? 'good'
             : 'hard'
           : fav
-    // 성인 단계는 인생 곡선 valence 로 톤을 맞춘다(막대·1년운과 동일 출처). 곡선이
-    // 없으면 위 단일 대운 favor 유지. 초년은 년주 억부 규칙 유지(곡선 유년기 감쇠로
-    // 유아기는 어차피 mid 라 정보가 적다).
-    if (!isChildhood) {
-      // 현재 계절은 "지금→끝" 구간으로 톤을 잡는다 — 20년 평균은 이미 지난 초반
-      // (저점)에 끌려가, 같은 "지금"이 인생계절=hard 인데 현재 대운/1년운=good 으로
-      // 갈리던 모순을 막는다. 과거/미래 계절은 구간 전체 평균 유지.
+    // *모든* 단계(초년 포함) 톤을 인생 곡선 valence 로 맞춘다 — 계절 카드의 색(막대)이
+    // 곡선 밴드(decadeBandByAge, 같은 평생 z-기준선)라, 톤도 곡선을 써야 "톤은 힘듦인데
+    // 색은 양(+)" 모순이 사라진다(감사: 950209 초년발복형인데 초년 톤 '힘겹게 오름' +
+    // 색 노랑). 억부(년주) 뉘앙스는 본문(narrative)에 그대로 남는다. 곡선 없으면 위
+    // 억부/favor 유지. (초년도 곡선이 유의미하면 그 valence 를 신뢰 — 초년발복형이면
+    // 초년 good 이 맞고, 재다신약 실저점이면 곡선이 이미 음(−)으로 내려간다.)
+    {
+      // 현재 계절은 "지금→끝" 구간으로 — 20년 평균은 지난 초반(저점)에 끌려가 현재
+      // 대운/1년운과 갈리던 모순을 막는다. 과거/미래 계절은 구간 전체 평균.
       const isCurrentStage = currentAge >= lo && currentAge <= hi
       const tLo = isCurrentStage ? Math.max(lo, Math.min(currentAge, hi - 4)) : lo
       const cl = stageCurveLevel(tLo, hi)
