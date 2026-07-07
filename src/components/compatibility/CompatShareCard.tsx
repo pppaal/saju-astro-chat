@@ -181,6 +181,9 @@ export const CompatShareCard = React.forwardRef<HTMLDivElement, { data: CompatSh
             position: 'relative',
             zIndex: 2,
             height: '100%',
+            // 패딩을 높이 안에 포함(border-box) — content-box면 상하 패딩이 1080 위에
+            // 더해져 콘텐츠 박스가 1184px가 되고 푸터가 카드 밖으로 잘렸다.
+            boxSizing: 'border-box',
             // 족집게 한 줄(headline)이 들어갈 세로 공간 확보 — 위아래 여백을 줄여
             // 최악(2줄 punch + 2줄 proof + 칩)에도 space-between 이 클리핑되지 않게.
             padding: '52px 84px',
@@ -257,18 +260,19 @@ export const CompatShareCard = React.forwardRef<HTMLDivElement, { data: CompatSh
             </div>
           </div>
 
-          {/* 점수 게이지(주인공) */}
+          {/* 점수 게이지(주인공) — 336px. 1080 세로 예산에 족집게 라인까지 들어가도
+              하단 칩·푸터가 잘리지 않게 400→336 으로 줄였다(오버플로 방지). */}
           {hasScore ? (
             <div
               style={{
                 position: 'relative',
-                width: 400,
-                height: 400,
+                width: 312,
+                height: 312,
                 display: 'grid',
                 placeItems: 'center',
               }}
             >
-              <svg width={400} height={400} viewBox="0 0 400 400">
+              <svg width={312} height={312} viewBox="0 0 400 400">
                 <defs>
                   <linearGradient id="compatGauge" x1="0" y1="0" x2="1" y2="1">
                     <stop offset="0" stopColor="#fff2cf" />
@@ -313,7 +317,7 @@ export const CompatShareCard = React.forwardRef<HTMLDivElement, { data: CompatSh
                   alignItems: 'center',
                 }}
               >
-                <div style={{ fontSize: 188, fontWeight: 900, lineHeight: 0.9, color: GOLD }}>
+                <div style={{ fontSize: 140, fontWeight: 900, lineHeight: 0.9, color: GOLD }}>
                   {score}
                 </div>
                 <div
@@ -341,9 +345,9 @@ export const CompatShareCard = React.forwardRef<HTMLDivElement, { data: CompatSh
                   maxWidth: 840,
                   textAlign: 'center',
                   fontFamily: SERIF,
-                  fontSize: 60,
+                  fontSize: 54,
                   fontWeight: 900,
-                  lineHeight: 1.32,
+                  lineHeight: 1.3,
                   color: '#fff',
                   textShadow: '0 2px 36px rgba(124,92,255,0.55)',
                   wordBreak: 'keep-all',
