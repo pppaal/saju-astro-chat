@@ -46,7 +46,7 @@ export const COMPAT_GLOSSARY: GlossaryDef[] = [
     term: { ko: '합·충·형·해·파', en: 'Union · clash · friction · strain · rupture' },
     body: {
       ko: '사주 글자끼리 주고받는 작용이에요. 합은 서로 끌어당겨 묶이고, 충은 정면으로 부딪혀요. 형·해·파는 갈거나 어긋나는 더 미묘한 마찰이죠. 어디가 묶이고 어디가 흔들리는지 둘은 이걸로 알 수 있어요.',
-      en: 'This is how Saju characters act on each other. Union pulls together and binds; clash collides head-on. Punishment, harm, and break are subtler grinds and misfits. They show you which spots bond and which ones get shaken.',
+      en: 'This is how Saju characters act on each other. Union pulls together and binds; clash collides head-on. Punishment, harm, and break are finer forms of friction and misalignment. They show you which spots bond and which ones get shaken.',
     },
   },
   {
@@ -63,14 +63,14 @@ export const COMPAT_GLOSSARY: GlossaryDef[] = [
     term: { ko: '십성 (관계의 역할 이름)', en: 'Ten Gods (the names of your relational roles)' },
     body: {
       ko: "나(일간)를 기준으로 상대 글자가 어떤 역할을 하는지 붙인 이름이에요. 이름이 좀 무섭게 들려도(편관=칠살 같은 거요) 좋고 나쁨이 아니에요. 그냥 '나한테 어떤 식으로 다가오나'를 나눠 부르는 거죠.",
-      en: 'These are names for the role another character plays relative to you (your Day Master). Some sound scary (like "Seven Killings") but they aren\'t good or bad. They just mark what kind of way that character comes at you.',
+      en: 'These are names for the role another character plays relative to you (your Day Master). Some sound scary (like "Seven Killings") but they aren\'t good or bad. They just describe how that character shows up for you.',
     },
   },
   {
     term: { ko: '도화·홍염 (매력 신호)', en: 'Peach Blossom · Crimson Glow (charm signals)' },
     body: {
       ko: '특정 글자가 만났을 때 켜지는 매력·끌림 신호예요. 도화는 자석처럼 끌어당기는 인기와 매력을, 홍염은 색기와 연애의 강도를 더해 줘요. 끌림에 색을 입히는 참고 신호일 뿐이죠.',
-      en: 'Charm-and-pull signals that switch on when certain characters meet. Peach Blossom is magnetic appeal; Hongyeom adds sensual, romantic intensity. This is a coloring hint to the attraction, not a verdict.',
+      en: 'Charm-and-pull signals that switch on when certain characters meet. Peach Blossom is magnetic appeal; Crimson Glow (hongyeom) adds sensual, romantic intensity. This is a coloring hint to the attraction, not a verdict.',
     },
   },
   {

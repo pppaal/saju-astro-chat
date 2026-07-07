@@ -164,7 +164,10 @@ export default function FreeCompatibilityPage() {
   const [phase, setPhase] = useState<'input' | 'loading' | 'result'>('input')
   const [report, setReport] = useState<CompatReport | null>(null)
   // 초대 링크(?invite=)로 들어온 세션 표식 — 결과 완주 시 invite_converted 계측.
+  // ref 는 콜백(analyze/onReset)용, state 는 렌더용(공유 프롬프트를 "초대자에게
+  // 되돌려 보내기"로 프레이밍). 둘 다 초대 effect 에서 함께 세운다.
   const cameFromInviteRef = useRef(false)
+  const [cameFromInvite, setCameFromInvite] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   // ── 저장된 정보 불러오기 (로그인 시에만) ───────────────────────────────
@@ -284,6 +287,7 @@ export default function FreeCompatibilityPage() {
     // 바이럴 퍼널 — 초대 링크로 실제 랜딩한 수(프리필 성공 여부와 별개).
     trackFunnel('compat_free.invite_landed')
     cameFromInviteRef.current = true
+    setCameFromInvite(true)
     let cancelled = false
     void (async () => {
       try {
@@ -464,6 +468,7 @@ export default function FreeCompatibilityPage() {
             isKo={isKo}
             locale={locale}
             timeUnknown={personA.timeUnknown || personB.timeUnknown}
+            cameFromInvite={cameFromInvite}
             inviter={
               personA.birthDate && (personA.gender === 'male' || personA.gender === 'female')
                 ? {
@@ -738,6 +743,7 @@ function ResultView({
   isKo,
   locale,
   timeUnknown,
+  cameFromInvite,
   inviter,
   onReset,
 }: {
@@ -748,10 +754,13 @@ function ResultView({
   isKo: boolean
   locale: 'ko' | 'en'
   timeUnknown: boolean
+  cameFromInvite?: boolean
   inviter?: CompatInviter
   onReset: () => void
 }) {
   const view = buildFreeCompatNarrative(report, { labelA, labelB, lang: locale })
+  // 이름 미입력 — 카드가 "A ♥ B" 로 나가면 개인화가 즉사한다. 공유 블록에서 유도.
+  const namesMissing = labelA === 'A' || labelB === 'B'
   // 퍼널 — 결과 화면 노출(폼이 아니라 풀이가 실제로 렌더된 시점). 한 번만 전송.
   useEffect(() => {
     trackFunnel('compat_free.report_viewed')
@@ -856,17 +865,38 @@ function ResultView({
       {/* 용어 풀이 */}
       <GlossaryBlock entries={view.glossary} isKo={isKo} />
 
-      {/* 공유 — 바이럴 루프. 1080×1080 이미지 카드(점수·등급·상위 테마 칩) + 링크. */}
+      {/* 공유 — 바이럴 루프. 1080×1080 이미지 카드(점수·등급·상위 테마 칩) + 링크.
+          초대(?invite=)로 들어온 사람에겐 "초대한 사람에게 결과 되돌려 보내기"로
+          프레이밍 — 같은 채널(카톡 등)로 루프가 A에게 되돌아가 K가 배가된다. */}
       <div className={s.share}>
         <div className={s.sharePrompt}>
           <p className={s.sharePromptTitle}>
-            {isKo ? '친구는 몇 점 나올까? 👀' : 'What score would your friends get? 👀'}
+            {cameFromInvite
+              ? isKo
+                ? `${labelA}님도 결과를 기다려요 👀`
+                : `${labelA} is waiting to see this 👀`
+              : isKo
+                ? '친구는 몇 점 나올까? 👀'
+                : 'What score would your friends get? 👀'}
           </p>
           <p className={s.sharePromptSub}>
-            {isKo
-              ? '이 카드를 공유하면, 친구는 생년월일만 넣고 바로 자기 궁합을 확인해요.'
-              : 'Share this card — your friends just add their birth date and get their own match instantly.'}
+            {cameFromInvite
+              ? isKo
+                ? `이 카드를 ${labelA}님에게 보내면, 두 사람이 같은 결과를 같이 봐요.`
+                : `Send this card back to ${labelA} — you'll both be looking at the same result.`
+              : isKo
+                ? '이 카드를 공유하면, 친구는 생년월일만 넣고 바로 자기 궁합을 확인해요.'
+                : 'Share this card — your friends just add their birth date and get their own match instantly.'}
           </p>
+          {/* 이름 유도 — 이름이 비면 카드가 "A ♥ B" 로 나가 남 얘기처럼 보인다.
+              위로 올라가 이름을 넣으면 "우리 카드" 가 돼 개인화·재공유가 오른다. */}
+          {namesMissing ? (
+            <p className={s.shareNameHint}>
+              {isKo
+                ? '💡 위에서 이름을 넣으면 카드에 이름이 박혀 “우리 카드”가 돼요.'
+                : '💡 Add names above and they’ll appear on the card — makes it truly yours.'}
+            </p>
+          ) : null}
         </div>
         <ShareCompatibilityButton
           data={{

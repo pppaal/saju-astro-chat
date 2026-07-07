@@ -26,8 +26,15 @@ const PINK = '#ff5e8a'
 
 const SERIF = "'Noto Serif KR', 'Nanum Myeongjo', 'Apple SD Gothic Neo', serif"
 const SANS = "'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+const PROOF = '#d8cff2'
 
 export const COMPAT_SHARE_CARD_SIZE = 1080
+
+// 카드에 얹는 "족집게 한 줄"(headline)은 길 수 있어 카드 폭에 맞게 자른다.
+function clampCard(text: string, max: number): string {
+  const s = (text || '').trim()
+  return s.length > max ? `${s.slice(0, max - 1).trim()}…` : s
+}
 
 /** 점수 칩 — 테마 차원 라벨 + 0~100. (마찰은 로즈로 구분) */
 export interface CompatShareChip {
@@ -106,7 +113,7 @@ function renderPunchLine(line: string, accent?: string | null): React.ReactNode 
 
 export const CompatShareCard = React.forwardRef<HTMLDivElement, { data: CompatShareCardData }>(
   function CompatShareCard({ data }, ref) {
-    const { isKo, nameA, nameB, score, grade, punch, accent, chips, qrDataUrl } = data
+    const { isKo, nameA, nameB, score, grade, punch, accent, chips, qrDataUrl, headline } = data
     const hasScore = typeof score === 'number'
     const shownChips = (chips ?? []).slice(0, 4)
     const punchLines = (punch ?? '').split('\n')
@@ -174,7 +181,8 @@ export const CompatShareCard = React.forwardRef<HTMLDivElement, { data: CompatSh
             position: 'relative',
             zIndex: 2,
             height: '100%',
-            padding: '92px 84px',
+            // 족집게 한 줄(headline)이 들어갈 세로 공간 확보 — 위아래 여백을 줄인다.
+            padding: '64px 84px',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
@@ -360,6 +368,24 @@ export const CompatShareCard = React.forwardRef<HTMLDivElement, { data: CompatSh
                 }}
               >
                 {grade}
+              </div>
+            ) : null}
+            {/* 족집게 한 줄 — 이름+구체 신호(headlineReason). "헐 이거 우리야?"의 증거.
+                톤-제네릭 punch 와 달리 이 커플에게만 나오는 문장이라 캡처를 부른다. */}
+            {headline ? (
+              <div
+                style={{
+                  marginTop: 18,
+                  maxWidth: 860,
+                  textAlign: 'center',
+                  fontSize: 27,
+                  lineHeight: 1.4,
+                  color: PROOF,
+                  wordBreak: 'keep-all',
+                }}
+              >
+                <span style={{ color: GOLD }}>✦ </span>
+                {clampCard(headline, 54)}
               </div>
             ) : null}
           </div>

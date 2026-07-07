@@ -134,3 +134,63 @@ export function curveSvgDataUri(svg: string): string {
   const b64 = Buffer.from(svg, 'utf8').toString('base64')
   return `data:image/svg+xml;base64,${b64}`
 }
+
+// ── 점수 게이지(원형 링) ──────────────────────────────────────────────
+// 궁합 공유의 "얼굴 통일"용. 다운로드 1080 카드(CompatShareCard)와 같은 결의
+// 원형 점수 게이지를 순수 SVG 문자열로 만든다 — satori(OG) 는 inline <svg> 를
+// 못 그리므로 곡선과 똑같이 data-URI <img> 로 박고, 라이트 페이지(/r)는 그대로
+// <img> 로 쓴다. 필터(글로우)는 satori 비호환이라 그라데이션 stroke 만 쓴다.
+
+export interface GaugeTheme {
+  /** 배경 트랙(안 채워진 부분) 색. */
+  track: string
+  /** 진행 호 그라데이션 — 시작(상단)→중간→끝. */
+  gradFrom: string
+  gradMid?: string
+  gradTo: string
+}
+
+export interface GaugeSvgOptions {
+  /** 0..100 점수. */
+  score: number
+  /** 정사각 한 변(px). */
+  size?: number
+  /** 링 두께. 기본 size*0.05. */
+  strokeWidth?: number
+  theme: GaugeTheme
+}
+
+/**
+ * 원형 점수 게이지 SVG 문자열. 상단(12시)에서 시작해 점수만큼 시계방향으로 채운다.
+ * 텍스트는 없다(호출부가 숫자를 위에 얹는다) — 순수 도형이라 폰트 이슈 없음.
+ */
+export function buildGaugeSvg(opts: GaugeSvgOptions): string {
+  const size = opts.size ?? 400
+  const sw = opts.strokeWidth ?? Math.round(size * 0.05)
+  const s = Math.max(0, Math.min(100, Math.round(opts.score)))
+  const cx = size / 2
+  const cy = size / 2
+  const r = (size - sw) / 2 - Math.round(size * 0.012)
+  const C = 2 * Math.PI * r
+  const off = C * (1 - s / 100)
+  const t = opts.theme
+  const mid = t.gradMid ?? t.gradFrom
+  return (
+    `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">` +
+    `<defs><linearGradient id="gg" x1="0" y1="0" x2="1" y2="1">` +
+    `<stop offset="0" stop-color="${t.gradFrom}"/>` +
+    `<stop offset="0.5" stop-color="${mid}"/>` +
+    `<stop offset="1" stop-color="${t.gradTo}"/>` +
+    `</linearGradient></defs>` +
+    `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${t.track}" stroke-width="${sw}"/>` +
+    `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="url(#gg)" stroke-width="${sw}" ` +
+    `stroke-linecap="round" stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${off.toFixed(1)}" ` +
+    `transform="rotate(-90 ${cx} ${cy})"/>` +
+    `</svg>`
+  )
+}
+
+/** 게이지 SVG 문자열을 <img> src 용 data-URI 로. (curveSvgDataUri 와 동일) */
+export function gaugeSvgDataUri(svg: string): string {
+  return curveSvgDataUri(svg)
+}

@@ -20,7 +20,7 @@ import {
   siteBaseUrl,
   type ShareLinkPayload,
 } from '@/lib/tarot/shareLink'
-import { buildCurveSvg, curveSvgDataUri } from '@/lib/share/curveSvg'
+import { buildCurveSvg, curveSvgDataUri, buildGaugeSvg } from '@/lib/share/curveSvg'
 import { loadOgFonts } from '@/lib/share/ogFont'
 
 export const runtime = 'nodejs'
@@ -317,7 +317,155 @@ export default async function Image({ params }: { params: Promise<{ token: strin
     )
   }
 
-  // ── 궁합 / 캘린더 / 타로(레거시) — 텍스트 후크 중심 ──
+  // ── 궁합(점수 있음) — 점수 게이지가 주인공. 다운로드 1080 카드와 "한 얼굴" ──
+  // 링크 미리보기(카톡·X)에서 곡선처럼 게이지를 박아, 텍스트만이던 밋밋함을 없애고
+  // 클릭을 부른다. 게이지는 satori 비호환 필터 없이 그라데이션 stroke 만(카드와 동일 결).
+  if (reading && isCompatShare(reading) && typeof reading.score === 'number') {
+    const eyebrow = `${reading.nameA}   ♥   ${reading.nameB}`
+    const grade = reading.grade ? clamp(reading.grade, 22) : ''
+    const verdict = clamp(reading.verdict, 72)
+    // 족집게 한 줄 — 이름+구체 신호. 링크 미리보기에서 "이거 우리 얘기?" 를 만든다.
+    const proof = reading.headline ? clamp(reading.headline, 66) : ''
+    const cta = isKo
+      ? `우리 궁합도 무료로 · ${displayDomain}`
+      : `Check your match free · ${displayDomain}`
+    const gauge = curveSvgDataUri(
+      buildGaugeSvg({
+        score: reading.score,
+        size: 300,
+        strokeWidth: 20,
+        theme: {
+          track: 'rgba(255,255,255,0.09)',
+          gradFrom: '#fff2cf',
+          gradMid: '#e8c88c',
+          gradTo: '#ff7e9d',
+        },
+      })
+    )
+    const fonts = await loadOgFonts(eyebrow, `${reading.score}`, grade, verdict, proof, cta)
+    return new ImageResponse(
+      <div
+        style={{
+          width: '100%',
+          height: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'space-between',
+          padding: 64,
+          background:
+            'radial-gradient(900px 620px at 20% 8%, rgba(124,92,255,0.24), transparent 58%),' +
+            'radial-gradient(820px 640px at 88% 96%, rgba(232,180,120,0.18), transparent 60%),' +
+            'linear-gradient(160deg, #0b0a1f 0%, #0a0817 56%, #0c0a1d 100%)',
+          color: '#f3f0ff',
+          fontFamily: 'NotoKR, sans-serif',
+        }}
+      >
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ display: 'flex', alignItems: 'center', fontSize: 30, letterSpacing: 3 }}>
+            <span style={{ color: '#fff', fontWeight: 700 }}>{clamp(reading.nameA, 14)}</span>
+            <span style={{ color: '#ff6f97', margin: '0 16px', fontSize: 30 }}>♥</span>
+            <span style={{ color: '#fff', fontWeight: 700 }}>{clamp(reading.nameB, 14)}</span>
+          </div>
+          <div style={{ fontSize: 26, color: '#8d85b0', letterSpacing: 2 }}>DestinyPal</div>
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: 56 }}>
+          <div style={{ display: 'flex', width: 300, height: 300, position: 'relative' }}>
+            <img src={gauge} width={300} height={300} alt="" />
+            <div
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: 300,
+                height: 300,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <div
+                style={{
+                  fontSize: 132,
+                  fontWeight: 800,
+                  lineHeight: 1,
+                  color: '#e8c88c',
+                  fontFamily: 'HeavyKR, sans-serif',
+                }}
+              >
+                {reading.score}
+              </div>
+              <div style={{ fontSize: 24, color: '#b9a8e6', letterSpacing: 3, marginTop: 2 }}>
+                /100
+              </div>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 18, flex: 1 }}>
+            {grade ? (
+              <div
+                style={{
+                  display: 'flex',
+                  alignSelf: 'flex-start',
+                  padding: '8px 22px',
+                  borderRadius: 999,
+                  border: '1px solid rgba(255,143,174,0.45)',
+                  background: 'rgba(255,94,138,0.10)',
+                  color: '#ff8fae',
+                  fontSize: 28,
+                  fontWeight: 700,
+                }}
+              >
+                {grade}
+              </div>
+            ) : null}
+            <div
+              style={{
+                fontSize: 42,
+                fontWeight: 800,
+                lineHeight: 1.26,
+                color: '#f6efdd',
+                fontFamily: 'HeavyKR, sans-serif',
+              }}
+            >
+              {verdict}
+            </div>
+            {proof ? (
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  fontSize: 26,
+                  lineHeight: 1.4,
+                  color: '#c9bff0',
+                }}
+              >
+                {/* satori 는 ✦ 같은 딩벳을 못 그릴 수 있어 도형(점)으로 대신한다. */}
+                <span
+                  style={{
+                    display: 'flex',
+                    width: 11,
+                    height: 11,
+                    borderRadius: 999,
+                    background: '#e8c88c',
+                    marginRight: 13,
+                    marginTop: 12,
+                  }}
+                />
+                {proof}
+              </div>
+            ) : null}
+          </div>
+        </div>
+
+        <div style={{ fontSize: 27, color: '#8d85b0' }}>{cta}</div>
+      </div>,
+      { ...size, fonts: fonts.length ? fonts : undefined }
+    )
+  }
+
+  // ── 궁합(점수 없는 구버전) / 캘린더 / 타로(레거시) — 텍스트 후크 중심 ──
   let eyebrow: string
   let headline: string
   let context: string

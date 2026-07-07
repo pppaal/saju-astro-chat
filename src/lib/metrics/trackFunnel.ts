@@ -17,6 +17,9 @@ export type FunnelEvent =
   // 바이럴 루프 계측 — 공유 의도(클릭)부터 초대 랜딩→프리필→결과 완주까지.
   // k(바이럴 계수) = share_clicked→(서버 share.created)→invite_landed→invite_converted 로 계산.
   | 'compat_free.share_clicked'
+  // 공유 경로 분리 — 링크 공유(재유입 큰 경로) vs 이미지 저장/공유를 따로 잰다.
+  | 'compat_free.share_link'
+  | 'compat_free.share_image'
   | 'compat_free.invite_landed'
   | 'compat_free.invite_prefilled'
   | 'compat_free.invite_converted'

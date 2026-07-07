@@ -552,6 +552,18 @@
   color: var(--ink-2);
   word-break: keep-all;
 }
+.shareNameHint {
+  margin: 10px auto 0;
+  max-width: 360px;
+  padding: 7px 12px;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--gold);
+  background: var(--gold-wash);
+  border: 1px solid var(--gold-line);
+  border-radius: 10px;
+  word-break: keep-all;
+}
 
 /* 마무리 + 상담사 CTA */
 .closing {

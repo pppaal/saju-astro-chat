@@ -284,8 +284,8 @@ const SHARE_GRADE: { min: number; v: Bi }[] = [
   { min: 80, v: { ko: '위험할 만큼 잘 맞아', en: 'Dangerously in sync' } },
   { min: 72, v: { ko: '불꽃 튀는 케미', en: 'Sparks flying' } },
   { min: 64, v: { ko: '은근히 빠져드는 사이', en: 'Quietly hooked' } },
-  { min: 56, v: { ko: '밀당의 고수들', en: 'Masters of push-pull' } },
-  { min: 0, v: { ko: '위태로운 롤러코스터', en: 'A risky rollercoaster' } },
+  { min: 56, v: { ko: '밀당의 고수들', en: 'Masters of the chase' } },
+  { min: 0, v: { ko: '위태로운 롤러코스터', en: "A rollercoaster you can't get off" } },
 ]
 function shareGrade(score: number): Bi {
   for (const g of SHARE_GRADE) if (score >= g.min) return g.v
@@ -304,8 +304,8 @@ const SHARE_PUNCH: Record<ShareTone, SharePunch[]> = {
     {
       ko: '끌림은 못 속여 —\n둘은 이미 시작됐어',
       accentKo: '둘은 이미 시작됐어',
-      en: "You can't fake\nthis kind of pull",
-      accentEn: 'this kind of pull',
+      en: "You can't fake this —\nyou two already started",
+      accentEn: 'you two already started',
     },
     {
       ko: '이 조합, 한번 빠지면\n못 헤어나와',
@@ -338,8 +338,8 @@ const SHARE_PUNCH: Record<ShareTone, SharePunch[]> = {
     {
       ko: '끌리는 만큼\n위태로운 사이',
       accentKo: '위태로운',
-      en: 'As magnetic as\nit is volatile',
-      accentEn: 'volatile',
+      en: 'As magnetic as\nit is dangerous',
+      accentEn: 'dangerous',
     },
     {
       ko: '불꽃은 튀는데,\n데일 수도 있어',
@@ -354,6 +354,18 @@ const SHARE_PUNCH: Record<ShareTone, SharePunch[]> = {
       accentKo: '더 궁금한',
       en: 'Still a question mark —\nand that pulls you in',
       accentEn: 'pulls you in',
+    },
+    {
+      ko: '잔잔한데 자꾸\n생각나는 사이',
+      accentKo: '자꾸 생각나는',
+      en: 'Quiet — but you\nkeep coming back',
+      accentEn: 'keep coming back',
+    },
+    {
+      ko: '요란하지 않아도\n오래 남는 사이',
+      accentKo: '오래 남는',
+      en: 'No fireworks —\nbut it stays',
+      accentEn: 'it stays',
     },
   ],
 }
@@ -462,7 +474,10 @@ const THEME_HOOK: Record<ThemeId, Record<HookKey, Bi>> = {
       ko: '크게 터질 일은 거의 없는 쌍 — 잘 비껴가.',
       en: 'Few real blowups — you dodge the big ones.',
     },
-    neg: { ko: '자존심·주도권에서 제대로 맞붙어.', en: 'Pride and control — you clash head-on.' },
+    neg: {
+      ko: '자존심·주도권에서 제대로 맞붙어.',
+      en: 'Pride and control — you go at it head-on.',
+    },
     mid: {
       ko: '툭툭 부딪혀도 상처까진 안 가.',
       en: 'You bump often, but it rarely leaves a mark.',
@@ -499,7 +514,7 @@ const THEME_HOOK: Record<ThemeId, Record<HookKey, Bi>> = {
   future: {
     pos: {
       ko: '시간이 갈수록 단단해지는 — 오래 갈 쌍이야.',
-      en: 'You harden with time — built to last.',
+      en: 'You only get stronger with time — built to last.',
     },
     neg: {
       ko: '확 타오르는 만큼, 오래 가려면 진짜 공들여야 해.',
@@ -615,7 +630,7 @@ const THEME_PRIMER: Record<ThemeId, Record<HookKey, Bi>> = {
   money: {
     pos: {
       ko: '돈과 가치관이 맞아떨어지는 건, 결국 일상의 작은 순간들에서 드러나요 — 카톡에서 값을 흥정할 때도, 데이트 후 계산할 때도요. 두 사람의 결을 보면 이 영역에서 얼마나 매끄럽게 흐르는지, 아니면 자꾸 손을 맞춰야 하는지가 참 분명해져요. 우리가 돈을 대하는 태도는 사실 그 사람의 삶을 바라보는 법 전부니까, 여기서 비슷하면 크게 부딪힐 일이 적어진다는 뜻이에요.',
-      en: "Money and values show up in the small dailies — when you're eyeing a purchase, splitting a check, or talking about what matters. Looking at your chart tells us whether this zone flows naturally between you or asks for constant tuning. How you handle money says a lot about how you see life itself, so when your rhythms match here, there's far less to clash over.",
+      en: "Money and values show up in the small everyday moments — eyeing a purchase, splitting a check, talking about what matters. Your chart shows whether this zone flows naturally between you or needs constant tuning. How you handle money says a lot about how you see life itself, so when your rhythms match here, there's far less to clash over.",
     },
     neg: {
       ko: '돈과 쓰임새에 대한 생각이 꽤 다른 편이라 자주 마찰이 생기는 쌍이에요. 한 사람이 차근차근 모으는 걸 중요하게 생각한다면, 다른 쪽은 지금 누리는 게 우선일 수 있거든요. 통장을 까고 나중에 얘기하거나, 큰 구매 앞에서 의견이 팽팽해지는 순간들이 분명 있을 거예요.',
@@ -629,7 +644,7 @@ const THEME_PRIMER: Record<ThemeId, Record<HookKey, Bi>> = {
   future: {
     pos: {
       ko: '두 사람이 처음엔 끌려도, 시간이 지나면서 느껴지는 연결의 두께가 다른데 — 이 경우 둘이 가진 기운의 결을 보면, 오히려 차이를 거치면서 더 단단해지는 패턴이 보여요. 서로를 맞춰가는 과정 자체가 관계를 깊게 만드는 거죠. 처음의 반짝임보다 시간이 쌓일수록 믿음과 이해가 자라나는, 오래 가는 결이에요.',
-      en: "You two might spark at first, but what matters for the long haul is the bone underneath — and the grain here shows something that actually grows *deeper* as you navigate the differences. The work of meeting each other in the middle is what builds the bond. Less about the glitter of the start, more about trust and understanding that compound over time. It's a grain built to last.",
+      en: "You two might spark at first, but what matters for the long haul is what's underneath — and here it actually grows *deeper* as you work through the differences. The work of meeting each other in the middle is what builds the bond. Less about the glitter of the start, more about trust and understanding that compound over time. This one is built to last.",
     },
     neg: {
       ko: '두 사람은 처음엔 끌리는 게 확실하지만, 시간이 지나면서 자꾸 다른 리듬을 탈 가능성이 있어요. 한 사람이 앞으로 나가려 할 때 다른 한 사람은 멈춰 생각하는 식으로, 속도감이 맞지 않으면서 자주 답답함을 느낄 수 있죠. 초반의 설렘이 식으면 "우리 진짜 잘 맞나?" 하는 의문이 고개를 들 수 있는 조합이에요.',
@@ -1243,6 +1258,166 @@ const OVERLAY_ALT: Record<number, Bi> = {
   },
 }
 
+// 일간 관계 변형 풀 — "두 사람의 타고난 결"은 먼저·가장 많이 읽히는 개인 섹션이라,
+// 같은 관계(같은 신호)라도 커플마다 다른 문장이 나오게 대체 변형을 둔다. {A}{B}{aEl}
+// {bEl} 자리표시자는 본판(generated)과 동일. (친구끼리 비교했을 때 토씨까지 같아
+// "이거 우리 얘기 맞나?" 의 몰입이 깨지던 문제 해소.)
+const DAY_MASTER_REL_ALT: Record<string, Bi> = {
+  same: {
+    ko: '두 사람 다 {aEl} 기운을 "나"로 삼고 태어났어요. 그래서 눈빛만 봐도 통하는 편안함이 있죠. 다만 강점도 약점도 판박이라, 한쪽이 흔들릴 때 붙잡아줄 다른 색이 부족할 수 있어요.',
+    en: "You were both born with {aEl} as your 'I.' That's why an easy, glance-and-you-get-it comfort runs between you. The catch: your strengths and soft spots are near-identical, so when one wobbles there's little of another color to catch the fall.",
+  },
+  aControlsB: {
+    ko: '{A}의 {aEl} 기운이 {B}의 {bEl}을 지그시 눌러 다듬어줘요. {B}는 곁에 중심 잡아주는 사람이 생긴 듯 든든하지만, 그 손길이 가끔은 한 뼘 더 단단하게 닿아 따끔할 때도 있어요.',
+    en: "{A}'s {aEl} presses and shapes {B}'s {bEl} with a steady hand. To {B} it feels like finally having someone who holds the center — though now and then that same touch lands a notch too firm and stings a little.",
+  },
+  bControlsA: {
+    ko: '{B}의 {bEl} 기운이 {A}의 {aEl}을 다듬어주는 흐름이에요. {A}는 잡아주는 힘에 안심하면서도, 그 정돈이 이따금 제약처럼 느껴져 살짝 답답할 때가 있어요.',
+    en: "{B}'s {bEl} energy files and steadies {A}'s {aEl}. {A} feels reassured by that grounding hand, yet every so often the tidying reads as a limit, and a small stuffiness creeps in.",
+  },
+  generate: {
+    ko: '{aEl}과 {bEl}이 서로를 북돋아 키우는 상생의 결이에요. 한쪽이 내어준 기운이 상대 안에서 싹을 틔우고 그게 다시 돌아와, 같이 있을수록 서로가 더 자라나는 사이예요.',
+    en: '{aEl} and {bEl} lift and grow each other in a generating cycle. What one gives sprouts in the other and circles back, so the more time you share, the more you each come into your own.',
+  },
+}
+
+// 배우자성 변형 풀 — "짝으로서의 끌림"은 정통 명리 궁합의 핵심이자 가장 개인적인
+// 섹션이라, 같은 십성이라도 커플마다 다른 문장이 나오게 대체 blurb 를 둔다.
+const SPOUSE_STAR_ALT: Record<string, Bi> = {
+  정재: {
+    ko: '배우자 자리에 든 상대는 하루하루 조용히 둘의 살림을 다져가는 사람이에요. 불꽃 같은 짜릿함보다, 곁에 있으면 어깨에 힘이 풀리는 편안함이 끌림의 핵심이죠. 말보다 행동으로 약속을 지키고 함께 일상을 가꾸는 성실함으로 마음을 얻어요. 티 안 나게 오래가는 온기예요.',
+    en: "The one in your spouse seat quietly firms up your life together, day after day. What draws you isn't a spark of thrill but the ease of your shoulders dropping when they're near. They keep promises through action more than words, winning you over by tending the everyday alongside you — a warmth that never shows off and stays for the long haul.",
+  },
+  편재: {
+    ko: '배우자 자리에 자유롭고 활기 넘치는 사람이 앉아 있어요. 한자리에 붙잡히기보다 늘 새 재미를 찾아 움직이는 결이라, 곁에 있으면 심심할 틈이 없죠. 뻔한 하루도 이 사람과 있으면 어디로 튈지 몰라 설레고 마음이 한결 가벼워져요. 그런 생기에 자꾸 끌리게 돼요.',
+    en: "Sitting in your spouse seat is someone free and full of life. They'd rather chase the next bit of fun than stay pinned in one place, so there's never a dull moment beside them. An ordinary day turns unpredictable and bright in their company, and your heart feels lighter — that spark is what keeps pulling you in.",
+  },
+  정관: {
+    ko: '배우자 자리의 상대는 기대도 흔들리지 않을 만큼 반듯한 짝이에요. 한번 한 약속은 끝까지 지키고, 힘든 날에도 자리를 지켜 옆을 든든하게 채워주죠. 그래서 이런 사람 곁에선 마음이 저절로 가라앉고 안심이 돼요. 화려한 설렘보다 함께 뿌리를 내리는 듯한 묵직한 끌림이에요.',
+    en: 'The one in your spouse seat is upright enough to lean on without a wobble. They see a promise through and hold their spot even on hard days, filling the space beside you with steadiness. So next to someone like this your mind settles on its own and a quiet safety takes hold — less a dazzle of flutter, more the grounded pull of putting down roots together.',
+  },
+  편관: {
+    ko: '배우자 자리엔 얌전히 곁을 지키는 사람보다, 마주 보면 심장이 한 박자 빨라지는 짝이 떠올라요. 끌리는 힘이 센 만큼 은근한 긴장도 함께 흘러서, 마냥 편하기보다 자꾸 신경 쓰이고 눈이 가는 사람이죠. 둘은 잔잔함보다 짜릿함 쪽으로 마음이 기울어요.',
+    en: "In your spouse seat it's less the calmly-there type and more the one who quickens your pulse the instant your eyes meet. The pull runs strong, and a quiet tension hums alongside it, so they feel less like comfort and more like someone you can't stop noticing. You two tilt toward the thrill over the calm.",
+  },
+}
+
+// 기둥 합·충·형·해·파 변형 풀 — "인연의 매듭"은 리포트에서 자주 등장하는 개인
+// 섹션이라, 같은 태그라도 커플마다 문장이 갈리게 대체 blurb 를 둔다.
+const PILLAR_REL_ALT: Record<string, Bi> = {
+  천간합: {
+    ko: '두 사람의 가장 겉기운이 손깍지 끼듯 맞물려요. 그래서 처음 본 순간부터 설명 못 할 끌림이 두근두근 오가죠. 한 공간에 있기만 해도 눈길이 자꾸 가고 대화가 신기하게 척척 맞아요. 너무 닮아 가끔 거리감이 들기도 하는데, 그건 서로를 비춰 다듬어 가는 사이라 그래요.',
+    en: "Your outermost energies interlace like laced fingers. So from the first glance an unexplainable pull hums back and forth. Just sharing a room, your eyes keep drifting over and your talk fits together uncannily. Being so alike, a distance sneaks in now and then — but that's only how you two mirror and refine each other.",
+  },
+  천간충: {
+    ko: '두 사람은 생각도, 세상을 대하는 태도도 정반대편에 서 있어요. 그래서 대화하다 보면 의견이 자주 맞부딪히고 묘한 거리가 생기죠. 근데 이상하게 서로를 그냥 지나치는 법이 없어요. 안 맞아서가 아니라, 너무 또렷이 의식해서 상대가 자꾸 선명하게 보이는 거예요.',
+    en: "You two stand on opposite sides — in how you think and how you meet the world. So talk brings frequent collisions and a strange distance. Yet somehow neither of you ever just passes the other by. Not because you don't fit, but because you're so keenly aware of each other that the other keeps snapping into focus.",
+  },
+  육합: {
+    ko: '이 사이는 겉으로 티가 잘 안 나요. 불꽃놀이 같은 끌림 대신, 옆에 있는 게 당연해지는 조용한 결이죠. 신기하게 말수가 줄어드는 순간에 마음이 더 가까워져요. 함께 보내는 시간이 쌓일수록 둘은 서서히 서로에게 스며들고, 애써 확인하지 않아도 통하는 믿음이 자라나요.',
+    en: "This bond doesn't announce itself. Instead of fireworks, it's the quiet kind where having them near just becomes natural. Oddly, you draw closer in the moments the words run thin. As shared time piles up, you slowly seep into each other, and a trust that needs no checking takes root.",
+  },
+  삼합: {
+    ko: "둘이 모이면 어느새 한 팀이 돼요. 한쪽에 비었던 자리를 다른 쪽이 자연스레 채워, 혼자일 때보다 갈 방향이 또렷해지고 사이도 단단해지죠(사주에선 '삼합'). 그 단단함이 가끔은 서로를 살짝 길들이는 거리처럼 느껴지기도 해요. 안 맞아서가 아니라 한 방향으로 묶이며 생기는 결이에요.",
+    en: "Come together and you quietly become a team. What sat empty in one of you gets filled by the other, so your direction sharpens and the bond firms beyond what either manages alone (Saju calls this 'three-harmony'). That firmness can feel like a faint distance where you gently tame each other — not a mismatch, just what forms when you're bound toward one direction.",
+  },
+  방합: {
+    ko: '둘은 마치 같은 계절에서 나고 자란 사람들 같아요. 바라보는 방향이 같아 굳이 약속하지 않아도 한곳에 모이죠. 취향도, 마음이 오래 머무는 자리도 닮아 저절로 같은 색으로 짙어져요. 지나치게 닮은 만큼 옅은 거리가 생기기도 하지만, 그건 같은 빛을 오래 들여다보는 시간이에요.',
+    en: "You two feel like people born and raised in the same season. Facing the same direction, you gather in one place without planning it. Tastes and the spots your hearts settle come to match, deepening into a single color on their own. As alike as you are, a faint distance can slip in — but it's just the long look into the same light.",
+  },
+  충: {
+    ko: '둘의 속기운이 서로를 정면으로 마주 봐요. 그래서 같이 있으면 자꾸 상대가 의식되고, 고요함보다 두근대는 자극이 흐르죠. 이 마주섬은 한 사람의 바로 옆자리에서 가장 세게 느껴져요. 부딪혀서가 아니라 가장 가까이 서로를 건드리기 때문에, 함께 단단해지기도 크게 흔들리기도 해요.',
+    en: 'Your inner energies square off face-to-face. So together you keep sensing each other, and a fluttering charge runs through instead of stillness. This standoff hits hardest right beside one of you — not from clashing, but from touching at the closest range, so you both firm up and shake up in big swings.',
+  },
+  형: {
+    ko: '둘은 서로를 은근히 누르고 스치며 부딪혀요. 가끔 말이 빙 돌거나 마음이 콱 막혀 답답할 때도 있죠. 근데 그건 안 맞아서가 아니라, 둘 사이에 서로를 단련시키는 거리가 놓여 있어서예요. 그 거리를 한 번씩 통과할 때마다 인내도, 둘 사이도 조금씩 더 단단해져요.',
+    en: "You two quietly press and graze against each other. Sometimes words loop around, or a feeling jams up and turns stuffy. But that's no mismatch — there's a distance between you that tempers each of you. Every time you pass through it, your patience and your bond firm up a notch.",
+  },
+  자형: {
+    ko: '두 사람은 타고난 바탕이 꼭 닮아, 마주 보면 거울을 보듯 익숙하면서도 은근히 설레요. 닮은 만큼 똑같은 자리에서 예민해져서, 한 사람이 흔들리면 다른 사람도 함께 출렁이죠. 안 맞아서가 아니라 너무 닮아 생기는 울림이라, 서로에게서 자기 모습을 자꾸 발견해요.',
+    en: "You two share the same makeup, so facing each other feels like a mirror — familiar and quietly thrilling at once. As alike as you are, you turn tender in the very same spots, so when one wavers the other sways too. It's no mismatch but an echo of your likeness, and you keep spotting yourself in the other.",
+  },
+  해: {
+    ko: '둘은 목소리 높여 싸우는 일은 드물어요. 대신 발이 묘하게 안 맞는 순간이 자꾸 찾아오죠. 같은 곳을 향해 가는데 도착 속도가 살짝 달라, 한 사람이 멈추면 다른 사람은 이미 한 발 앞서 있어요. 싫어서가 아니에요. 서로의 박자를 몸에 익히는 데 시간이 조금 더 걸리는 사이일 뿐이에요.',
+    en: "You two seldom fight out loud. Instead your steps keep landing oddly off. You head the same way but arrive at slightly different speeds, so when one stops, the other is already a step ahead. It isn't dislike — you just need a bit longer to learn each other's rhythm by heart.",
+  },
+  파: {
+    ko: '웬만한 건 둘이 자연스레 잘 통하는데, 딱 한 군데서 살짝 어긋나요. 크게 부딪히는 건 아니에요. 그릇에 난 가는 실금처럼, 평소엔 있는 줄도 모르고 지나가는 미묘한 거리죠. 안 맞아서가 아니라, 서로 다른 면을 마주하며 조금씩 단단해지는 자리이기도 해요.',
+    en: "Most things flow easily between you, but in one spot you land just out of line. It's no big clash — like a hairline crack in a bowl you'd pass without noticing most days. Not a mismatch, but a place where your different sides meet and slowly toughen.",
+  },
+}
+
+// 오행 균형 변형 풀 — skewed 는 {strongEl}/{weakEl} 자리표시자 유지.
+const ELEMENT_BALANCE_ALT: Record<string, Bi> = {
+  balanced: {
+    ko: '두 사람 기운을 포개 보면 어느 한쪽으로 기울지 않고 고르게 자리 잡아요. 부족한 맛 없이 두루 갖춘 한 상 같죠. 그래서 같이 있을 때 이유는 몰라도 균형 잡힌 안정감이 감돌아요.',
+    en: "Lay your two energies over each other and they settle evenly, tipping to no one side — like a full table with no flavor missing. So together, a balanced steadiness hangs in the air even when you can't quite say why.",
+  },
+  complement: {
+    ko: '한쪽에 모자란 기운을 다른 쪽이 넉넉히 갖고 있어요. 그래서 둘이 만나면 각자 비어 보이던 자리가 자연스레 메워지죠. 혼자선 안 보이던 결이 상대 덕에 살아나는, 서로를 완성하는 사이예요.',
+    en: 'What one of you lacks, the other has to spare. So when you meet, the spots that looked empty on your own quietly fill in. Sides that stayed hidden alone come alive thanks to the other — the kind of pair that completes each other.',
+  },
+  skewed: {
+    ko: '두 기운을 합치면 {strongEl} 쪽으로 확 기울고, {weakEl}은 옅게만 남아요. {strongEl} 색이 워낙 진해서 관계 전체 분위기를 그 색으로 물들이죠. {weakEl}은 그 아래 배경처럼 은은히 깔려 있고요.',
+    en: 'Combined, your energies tip hard toward {strongEl}, and {weakEl} lingers only faintly. The shade of {strongEl} runs so deep it colors the whole mood between you, while {weakEl} rests underneath like a soft backdrop.',
+  },
+}
+
+// 밴드(끌림·마찰 다섯 갈래) 변형 풀 — 리포트 상단의 잘 보이는 섹션이라, 같은
+// 고/저라도 커플마다 문장이 갈리게 대체 high/low 를 둔다. what(캡션)은 유지.
+const BAND_ALT: Record<string, { high: Bi; low: Bi }> = {
+  eastern_hap: {
+    high: {
+      ko: "두 사람 사주 글자들이 여기저기서 짝을 지어 묶여요(사주에선 '합'). 그래서 함께 있으면 톱니바퀴 맞물리듯, 애쓰지 않아도 척척 들어맞는 느낌이 있어요.",
+      en: "Your chart's characters pair up and bind in spot after spot (in Saju, 'hap'). So together, things mesh like gears catching — the fit comes without either of you having to try.",
+    },
+    low: {
+      ko: '두 사람 글자가 손을 맞잡는 자리는 그리 많지 않아요. 그래서 서로에게 스며들기까지 둘만의 리듬과 시간이 조금 더 필요한 사이예요.',
+      en: "There aren't so many places where your characters clasp hands. So sinking into each other takes a bit more of your own rhythm and time.",
+    },
+  },
+  eastern_chung: {
+    high: {
+      ko: '두 사람 글자가 정면으로 부딪히는 자리가 거의 없어요. 그래서 함께 보내는 시간이 잔물결 하나 없는 호수처럼 고요하게 이어져요.',
+      en: 'Almost nowhere do your characters collide head-on. So the time you share runs still, like a lake without a single ripple.',
+    },
+    low: {
+      ko: '두 사람 글자가 군데군데 맞부딪히며 불꽃이 튀어요. 그래서 잔잔한 물이라기보다, 생기와 떨림이 함께 도는 만남에 가까워요.',
+      en: 'Here and there your characters knock together and throw sparks. So less like calm water, more a meeting that hums with life and a little tremor.',
+    },
+  },
+  elements_match: {
+    high: {
+      ko: '한 사람에게 옅던 기운을 다른 사람이 넉넉히 갖고 있어요. 그래서 둘이 모이면 서로의 빈칸이 메워져 한결 둥글고 안정된 결이 돼요.',
+      en: 'What runs thin in one of you, the other holds in plenty. So together your blanks get filled and the whole thing rounds out, steadier.',
+    },
+    low: {
+      ko: '둘 다 비슷한 기운 쪽으로 마음이 쏠려 있어요. 그래서 서로 빈자리를 메우기보다, 같은 색을 두 번 덧칠하듯 그 기운이 더 진해지는 쪽이에요.',
+      en: "You both lean toward the same kind of energy. So rather than filling each other's gaps, it's like two coats of one color — that energy just deepens.",
+    },
+  },
+  synastry_harmonic: {
+    high: {
+      ko: '둘의 행성이 서로 결이 맞아 매끄럽게 흐르는 자리가 많아요. 그래서 특별히 노력하지 않아도 대화도 분위기도 물 흐르듯 이어지곤 해요.',
+      en: 'Your planets fall into an easy grain in many spots. So without any special effort, the talk and the mood tend to flow like water.',
+    },
+    low: {
+      ko: '두 사람 행성이 매끄럽게 이어지는 자리는 많지 않아요. 그래서 저절로 흐르기보다, 둘만의 박자를 하나씩 맞춰가는 쪽에 가까워요.',
+      en: "There aren't many places where your planets glide together. So less on autopilot, more like tuning your own tempo, step by step.",
+    },
+  },
+  synastry_tension: {
+    high: {
+      ko: '둘의 행성끼리 날을 세우고 맞서는 자리가 거의 없어요. 그래서 함께 있는 시간이 편안하고, 굳이 조심하지 않아도 마음이 놓여요.',
+      en: 'Your planets almost never square off against each other. So time together feels easy, and your guard drops without you trying.',
+    },
+    low: {
+      ko: '둘의 행성이 팽팽하게 당기는 자리가 군데군데 있어요. 그래서 마냥 느슨하기보다, 서로를 끌어당기고 흔드는 긴장이 함께 도는 사이예요.',
+      en: 'A few places pull taut between your planets. So less pure ease, more a charged tug that keeps drawing you back to each other.',
+    },
+  },
+}
+
 export function buildFreeCompatNarrative(
   report: CompatReport,
   opts: BuildNarrativeOptions
@@ -1282,6 +1457,41 @@ export function buildFreeCompatNarrative(
   // 커플별 결정적 seed — 스캐폴딩(verdict/intro/closing/hook/primer) 변형을 커플마다 다르게 고른다.
   const seed = coupleSeed(report)
 
+  // 일간 관계 카피 — 본판(generated)과 ALT 중 seed 로 결정적 선택. 두 사용처(결 섹션·
+  // 테마)가 같은 label 을 써 한 리포트 안에선 같은 변형으로 일관.
+  const dayMasterBi = (rel: keyof typeof DAY_MASTER_REL): Bi =>
+    pickFor(
+      DAY_MASTER_REL_ALT[rel]
+        ? [DAY_MASTER_REL[rel], DAY_MASTER_REL_ALT[rel]]
+        : [DAY_MASTER_REL[rel]],
+      seed,
+      `daymaster:${rel}`
+    )
+  // 배우자성·기둥·오행 blurb 도 본판/ALT 중 seed 로 결정적 선택 — 같은 신호라도
+  // 커플마다 다른 문장. 한 리포트 안에선 같은 label 로 일관(섹션·테마 동일).
+  const spouseBlurbBi = (sibsin: string): Bi => {
+    const alt = SPOUSE_STAR_ALT[sibsin]
+    return alt
+      ? pickFor([SPOUSE_STAR[sibsin].blurb, alt], seed, `spouse:${sibsin}`)
+      : SPOUSE_STAR[sibsin].blurb
+  }
+  const pillarBlurbBi = (tag: string): Bi => {
+    const alt = PILLAR_REL_ALT[tag]
+    return alt
+      ? pickFor([PILLAR_REL[tag].blurb, alt], seed, `pillar:${tag}`)
+      : PILLAR_REL[tag].blurb
+  }
+  const elementBi = (key: keyof typeof ELEMENT_BALANCE): Bi => {
+    const alt = ELEMENT_BALANCE_ALT[key]
+    return alt ? pickFor([ELEMENT_BALANCE[key], alt], seed, `element:${key}`) : ELEMENT_BALANCE[key]
+  }
+  const bandSideBi = (key: string, isHigh: boolean): Bi => {
+    const base = isHigh ? BAND[key].high : BAND[key].low
+    const alt = BAND_ALT[key]
+    const altSide = alt ? (isHigh ? alt.high : alt.low) : undefined
+    return altSide ? pickFor([base, altSide], seed, `band:${key}:${isHigh ? 'h' : 'l'}`) : base
+  }
+
   // ── 한눈에 (verdict) — 섹션이 아니라 view.verdict 로 따로 ──
   const verdict = report.crossVerdict
     ? {
@@ -1309,8 +1519,8 @@ export function buildFreeCompatNarrative(
       const copy = BAND[key]
       if (!copy) continue
       const threshold = BAND_HIGH_THRESHOLD[key] ?? 50
-      const side = v >= threshold ? copy.high : copy.low
-      paras.push(`${t(copy.what)} — ${t(side)}`)
+      const sideBi = bandSideBi(key, v >= threshold)
+      paras.push(`${t(copy.what)} — ${t(sideBi)}`)
     }
     if (paras.length) {
       const m = meta('bands')
@@ -1325,7 +1535,7 @@ export function buildFreeCompatNarrative(
     if (dm) {
       const aEl = elLabel(dm.aEl, isKo)
       const bEl = elLabel(dm.bEl, isKo)
-      paras.push(fill(t(DAY_MASTER_REL[dm.relation]), { A: labelA, B: labelB, aEl, bEl }))
+      paras.push(fill(t(dayMasterBi(dm.relation)), { A: labelA, B: labelB, aEl, bEl }))
       // 십성 cross — 서로가 서로에게 어떤 역할로 다가오나.
       const aSeesB = dm.bToA ? TEN_GODS[dm.bToA] : null // A 입장에서 B 는
       const bSeesA = dm.aToB ? TEN_GODS[dm.aToB] : null // B 입장에서 A 는
@@ -1357,16 +1567,16 @@ export function buildFreeCompatNarrative(
     const eb = report.elementBalance
     if (eb) {
       if (eb.balanced) {
-        paras.push(t(ELEMENT_BALANCE.balanced))
+        paras.push(t(elementBi('balanced')))
       } else if (eb.range >= 4) {
         paras.push(
-          fill(t(ELEMENT_BALANCE.skewed), {
+          fill(t(elementBi('skewed')), {
             strongEl: elLabel(eb.strongest, isKo),
             weakEl: elLabel(eb.weakest, isKo),
           })
         )
       } else {
-        paras.push(t(ELEMENT_BALANCE.complement))
+        paras.push(t(elementBi('complement')))
       }
     }
     if (paras.length) {
@@ -1467,8 +1677,8 @@ export function buildFreeCompatNarrative(
           : ' And it sits right in the spouse seat (day-pillar) — the strongest bond signal.'
         : ''
       return isKo
-        ? `${ege(viewer)} ${neun(other)} ${josa(t(copy.feel), '으로/로')} 다가와요. ${t(copy.blurb)}${strong}`
-        : `To ${viewer}, ${other} reads as ${t(copy.feel)}. ${t(copy.blurb)}${strong}`
+        ? `${ege(viewer)} ${neun(other)} ${josa(t(copy.feel), '으로/로')} 다가와요. ${t(spouseBlurbBi(s.sibsin))}${strong}`
+        : `To ${viewer}, ${other} reads as ${t(copy.feel)}. ${t(spouseBlurbBi(s.sibsin))}${strong}`
     })
     if (paras.length) {
       const m = meta('partner')
@@ -1506,7 +1716,7 @@ export function buildFreeCompatNarrative(
         heads.length > 1
           ? `${heads[0]}${isKo ? ` 외 ${heads.length - 1}곳` : ` +${heads.length - 1} more`}`
           : heads[0]
-      return `${headStr} — ${t(PILLAR_REL[tag].blurb)}`
+      return `${headStr} — ${t(pillarBlurbBi(tag))}`
     })
     // 삼합·방합 교차(3지 국) — 두 사람 지지가 합쳐 국을 이루는 결속. type 별로
     // 묶어 참여 지지만 나열하고 풀이는 한 번. pillarRelations 와 태그가 달라 위
@@ -1532,7 +1742,7 @@ export function buildFreeCompatNarrative(
         heads.length > 1
           ? `${heads[0]}${isKo ? ` 외 ${heads.length - 1}건` : ` +${heads.length - 1} more`}`
           : heads[0]
-      paras.push(`${headStr} — ${t(PILLAR_REL[type].blurb)}`)
+      paras.push(`${headStr} — ${t(pillarBlurbBi(type))}`)
     }
     if (paras.length) {
       const m = meta('knots')
@@ -1558,7 +1768,7 @@ export function buildFreeCompatNarrative(
     themed.push({
       theme: 'life',
       weight: 4,
-      text: fill(t(DAY_MASTER_REL[dm.relation]), { A: labelA, B: labelB, aEl, bEl }),
+      text: fill(t(dayMasterBi(dm.relation)), { A: labelA, B: labelB, aEl, bEl }),
       // 상극(aControlsB/bControlsA)은 카피가 양가적("단단히 잡아줘 든든하지만
       // 때론 제약")이라, generate(+4)와 같은 크기의 강한 음수(-4)는 훅·테마
       // 점수를 과하게 깎아 "든든" 문단과 모순됐다. 제약의 결만 반영해 완만한
@@ -1583,13 +1793,13 @@ export function buildFreeCompatNarrative(
   if (report.elementBalance) {
     const eb = report.elementBalance
     const base = eb.balanced
-      ? t(ELEMENT_BALANCE.balanced)
+      ? t(elementBi('balanced'))
       : eb.range >= 4
-        ? fill(t(ELEMENT_BALANCE.skewed), {
+        ? fill(t(elementBi('skewed')), {
             strongEl: elLabel(eb.strongest, isKo),
             weakEl: elLabel(eb.weakest, isKo),
           })
-        : t(ELEMENT_BALANCE.complement)
+        : t(elementBi('complement'))
     // 1인별 분포 — 각자 어느 기운이 가장 도드라지는지 한 줄 덧붙임.
     const topEl = (rec: Record<string, number>): string | null => {
       const e = Object.entries(rec).sort((x, y) => y[1] - x[1])[0]
@@ -1686,7 +1896,7 @@ export function buildFreeCompatNarrative(
       themed.push({
         theme: 'future',
         weight: sp.isDayPillar ? 10 : 6,
-        text: t(SPOUSE_STAR[sp.sibsin].blurb),
+        text: t(spouseBlurbBi(sp.sibsin)),
         pol: sp.isDayPillar ? 4 : 2,
       })
     }
@@ -1700,7 +1910,7 @@ export function buildFreeCompatNarrative(
       themed.push({
         theme: PILLAR_THEME[tag] ?? 'future',
         weight: r.tone === 'minor' ? 1 : 3,
-        text: t(PILLAR_REL[tag].blurb),
+        text: t(pillarBlurbBi(tag)),
         pol: r.tone === 'bond' ? 3 : r.tone === 'clash' || r.tone === 'friction' ? -3 : 0,
       })
     }
@@ -1717,7 +1927,7 @@ export function buildFreeCompatNarrative(
       themed.push({
         theme: PILLAR_THEME[tag] ?? 'future',
         weight: c.completion === 'full' ? 3 : 1,
-        text: t(PILLAR_REL[tag].blurb),
+        text: t(pillarBlurbBi(tag)),
         pol: c.completion === 'full' ? 3 : 1,
       })
     }
