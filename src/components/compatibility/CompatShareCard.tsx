@@ -31,9 +31,28 @@ const PROOF = '#d8cff2'
 export const COMPAT_SHARE_CARD_SIZE = 1080
 
 // 카드에 얹는 "족집게 한 줄"(headline)은 길 수 있어 카드 폭에 맞게 자른다.
+// 넘치면 말줄임표(…) 대신 마지막 단어 경계에서 끊고, 짝 안 맞는 따옴표·꼬리
+// 접속어(— a, and …)를 떼어 완결된 절에서 끝낸다 — "spous…"처럼 단어 중간에서
+// 잘리거나 따옴표가 열린 채 남는 걸 막는다(실 이름 길이에선 거의 발동 안 함).
 function clampCard(text: string, max: number): string {
   const s = (text || '').trim()
-  return s.length > max ? `${s.slice(0, max - 1).trim()}…` : s
+  if (s.length <= max) return s
+  const cut = s.slice(0, max)
+  const lastSpace = cut.lastIndexOf(' ')
+  let head = (lastSpace > max * 0.5 ? cut.slice(0, lastSpace) : cut).trim()
+  // 꼬리 구두점 먼저 정리 후, 짝 안 맞는 여는 따옴표가 남으면 그 따옴표부터 잘라낸다
+  // ("passion & spa → 제거). 순서 뒤집으면 닫는 따옴표를 떼며 도리어 홀수가 된다.
+  head = head.replace(/[\s"'“”—–,.·:;]+$/u, '')
+  if ((head.match(/["“”]/g)?.length ?? 0) % 2 === 1) {
+    head = head.slice(0, head.search(/["“”][^"“”]*$/u))
+  }
+  // 꼬리 구두점·대시·접속어를 안정될 때까지 번갈아 제거 → "…seat — a" 대신 "…seat".
+  let prev: string
+  do {
+    prev = head
+    head = head.replace(/[\s"'“”—–,.·:;]+$/u, '').replace(/\s+(?:—|–|-|a|an|the|and|&|to)$/iu, '')
+  } while (head !== prev)
+  return head.trim()
 }
 
 /** 점수 칩 — 테마 차원 라벨 + 0~100. (마찰은 로즈로 구분) */
