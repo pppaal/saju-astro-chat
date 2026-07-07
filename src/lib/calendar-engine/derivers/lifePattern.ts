@@ -250,11 +250,18 @@ function classifyFromCurve(
    */
   hasRealDip: boolean = true
 ): { key: LifePatternKey; peakAge: number } | null {
-  const p = pointsAll.filter((x) => x.age >= 0 && x.age <= 85)
+  // 호라이즌 90 통일(감사 R2) — 옛 85 컷은 말년(86~90) 전역정점을 분류·정점창에서
+  // 못 봐 매우-말년발복형을 오분류했다. lifeCurve span·toLifetime 필터와 한 값으로.
+  const p = pointsAll.filter((x) => x.age >= 0 && x.age <= 90)
   if (p.length < 10) return null
   const macros = p.map((x) => x.macro)
   const lo = Math.min(...macros)
   const hi = Math.max(...macros)
+  // 굴곡형(undulating="힘든 때") 게이트 — hasRealDip 은 *사주 favor* 부호라
+  // 0.6·사주+0.4·점성 곡선의 *점성 주도 골*을 놓친다(감사 R2). macro 는 z-정규화
+  // (mean~0)라 lo 가 실제로 음(-0.35↓)이면 그건 진짜 저점 — 사주 favor 가 전부
+  // ≥0 이어도 곡선이 실제로 꺼졌으면 굴곡형을 허용한다.
+  const realDip = hasRealDip || lo <= -0.35
   // 절대 진폭 게이트(감사 A-4) — min-max 스트레치는 *거의 평탄한* 곡선의 미세
   // 잔물결도 풀스케일로 증폭해 극적 유형(undulating 등)으로 오분류한다. macro 는
   // z-정규화 합성(±1 스케일, 7년 이동평균)이라 절대 범위가 의미를 가짐: 범위가
@@ -277,7 +284,7 @@ function classifyFromCurve(
   const D = 0.1
   let key: LifePatternKey
   if (mid + D < early && mid + D < late)
-    key = hasRealDip ? 'undulating' : 'smooth' // 중년이 양옆보다 꺼진 V (실 음수골 있을 때만 굴곡형)
+    key = realDip ? 'undulating' : 'smooth' // 중년이 양옆보다 꺼진 V (실 저점 있을 때만 굴곡형)
   else if (mid > early + D && mid > late + D)
     key = 'midlife-peak' // 중년 솟음
   else if (late > early + D && late >= mid - 1e-9 && globalPeakAge >= 52)
@@ -286,8 +293,8 @@ function classifyFromCurve(
     key = 'early-peak' // 초년 정점 후 하강
   else if (late > early + D)
     key = 'steady-rise' // 단조 상승
-  else if (spread > 0.3 && hasRealDip)
-    key = 'undulating' // 큰 진폭 + 실 음수골 — 형태는 위와 안 맞지만 굴곡
+  else if (spread > 0.3 && realDip)
+    key = 'undulating' // 큰 진폭 + 실 저점 — 형태는 위와 안 맞지만 굴곡
   else key = 'smooth'
   // 정점 나이는 *유형이 가리키는 구간* 안의 최댓값으로 — base.line 방향과 detail
   // "정점 시점"이 어긋나지 않게(예: 점진상승인데 정점이 11세이면 모순).

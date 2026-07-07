@@ -197,7 +197,10 @@ export function buildLifeCurve(
     ? []
     : buildLifecycleTiming(birthYear, birthYear + span, false, undefined, now)
         .events.map((e) => ({
-          age: e.startYear - birthYear,
+          // 만 나이 SSOT — LifecycleEntry.age(감사 F2 parity). 지금은 overrides
+          // 미주입이라 startYear−birthYear 와 같지만, 향후 override 배선 시 다른
+          // 티어(만 나이)와 곡선 Gaussian 중심이 어긋나지 않도록 e.age 로 통일.
+          age: e.age,
           pol: ASTRO_POLARITY[e.event] ?? 0,
         }))
         .filter((e) => e.pol !== 0)

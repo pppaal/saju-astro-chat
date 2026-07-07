@@ -254,9 +254,10 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
     Math.max(0, Math.min(100, ((year - birthYear) / Math.max(1, zrSpanYear - birthYear)) * 100))
 
   // ── 감사 #3: "지금 여기 → 다음 마디" 한 줄(hero→timeline→milestones 연결). ──
-  //   현재 나이 = lifeCurve.nowAge(만 나이 SSOT — 서버가 currentManAge 로 산출).
-  //   곡선이 없을 때만 연차 나이 폴백(감사 B1: 생일 전 +1 과다 표기 교정).
-  const nowAge = lifetime.lifeCurve?.nowAge ?? currentYear - birthYear
+  //   현재 나이 = 만 나이 SSOT — lifetime.nowAge(서버 currentManAge) 우선, 곡선
+  //   nowAge, 최후에만 연차 나이 폴백(감사 G4: 에페메리스 실패로 곡선이 없어도
+  //   달력 나이(생일 전 +1)로 안 떨어지게 — 대운 하이라이트와 텍스트가 어긋나던 것).
+  const nowAge = lifetime.nowAge ?? lifetime.lifeCurve?.nowAge ?? currentYear - birthYear
   const nowStage = lifeStages.find((s) => s.now)
   const nowStageName = nowStage ? (ko ? nowStage.name : (nowStage.nameEn ?? nowStage.name)) : ''
   const nextMilestone = [...milestones]
@@ -704,12 +705,14 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
             const fillCls = band > 0.15 ? styles.dwFillUp : band < -0.15 ? styles.dwFillDown : ''
             const sibsin = d.sibsin && d.sibsin !== '—' ? String(d.sibsin) : ''
             const sibsinGloss = sibsin ? (ko ? sibsinArea(sibsin) : sibsinAreaEn(sibsin)) : ''
-            const gzKr = d.gz.kr // 한국어 음(갑술) — secondary 표기.
+            // 읽을 수 있는 간지 표기 — KO 는 한글 음(갑술), EN 은 로마자(gapsul).
+            // 옛 코드는 EN 에도 한글 음을 노출해 영문 사용자가 외계문자를 봤다(감사 G1).
+            const gzRead = ko ? d.gz.kr : d.gz.en
             return (
               <div
                 className={cls}
                 key={`dw-${d.startAge}-${i}`}
-                title={gzKr ? `${gzKr} (${d.gz.hanja})` : d.gz.hanja}
+                title={gzRead ? `${gzRead} (${d.gz.hanja})` : d.gz.hanja}
               >
                 {fillCls && (
                   <span
@@ -723,15 +726,17 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
                 )}
                 {/* 감사: 평이 영역(생활영역)이 헤드라인 — bare 한자로 시작하지 않음. */}
                 {sibsinGloss && <span className={styles.dwGloss}>{sibsinGloss}</span>}
-                {/* 기본뷰는 읽을 수 있는 한글 음(갑술)만 — raw 간지 한자(甲戌)는 hover
-                    title 로만 보존(0지식 유저에겐 외계문자 노이즈라 표면에서 뺀다). */}
-                {gzKr && <span className={styles.dwKr}>{gzKr}</span>}
+                {/* 기본뷰는 읽을 수 있는 음(KO 갑술 / EN gapsul)만 — raw 한자(甲戌)는
+                    hover title 로만 보존(0지식 유저에겐 외계문자 노이즈). */}
+                {gzRead && <span className={styles.dwKr}>{gzRead}</span>}
+                {/* endAge/end 는 배타적(startAge+10) — 표시는 포함 범위(−1)로 해
+                    인접 대운이 경계 나이(예: 26)를 이중 표기하지 않게(감사 G3). */}
                 <span className={styles.dwAge}>
-                  {d.startAge}–{d.endAge}
+                  {d.startAge}–{d.endAge - 1}
                   {ko ? '세' : ''}
                 </span>
                 <span className={styles.dwYear}>
-                  {d.start}–{d.end}
+                  {d.start}–{d.end - 1}
                 </span>
               </div>
             )
@@ -972,12 +977,12 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
           <p className={styles.yearLine}>
             {ko ? (
               <>
-                올해는 <b>{thisYear.gz}</b> 세운 — {thisYear.area ? `‘${thisYear.area}’ ` : ''}
-                결이 한 해를 물들여요.
+                올해는 <b title={thisYear.gz}>{thisYear.gzKr || thisYear.gz}</b> 세운 —{' '}
+                {thisYear.area ? `‘${thisYear.area}’ ` : ''}결이 한 해를 물들여요.
               </>
             ) : (
               <>
-                This year runs on <b>{thisYear.gz}</b>
+                This year runs on <b title={thisYear.gz}>{thisYear.gzEn || thisYear.gz}</b>
                 {thisYear.areaEn ? ` — a year tinted by "${thisYear.areaEn}".` : '.'}
               </>
             )}

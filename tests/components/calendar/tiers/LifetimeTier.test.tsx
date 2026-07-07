@@ -143,8 +143,12 @@ describe('LifetimeTier (인생 전체 · LIGHT)', () => {
     expect(screen.getByText('Ups and downs type')).toBeInTheDocument()
     // 일간 辛 lives inside the (DOM-present) identity fold.
     expect(screen.getAllByText('辛').length).toBeGreaterThan(0)
-    // timeline shows the readable 갑술 label; raw 甲戌 only on hover title.
-    expect(screen.getByText('갑술')).toBeInTheDocument()
+    // EN 타임라인은 로마자 음(gapsul)을 보여준다 — 한글 음(갑술)이나 raw 甲戌 아님
+    // (감사 G1: 옛 코드는 EN 에도 한글 음을 노출해 영문 사용자가 외계문자를 봤다).
+    expect(screen.getByText('gapsul')).toBeInTheDocument()
+    expect(screen.queryByText('갑술')).not.toBeInTheDocument()
+    // raw 甲戌 은 hover title 로만.
+    expect(screen.getByTitle('gapsul (甲戌)')).toBeInTheDocument()
   })
 
   // ── 새 블록 — /destiny 경량 경로가 채우는 세운·대운 교차 ──

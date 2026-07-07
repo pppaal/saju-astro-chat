@@ -156,11 +156,36 @@ describe('deriveLifePattern × lifeCurve 정합(B1)', () => {
         { startAge: 65, startYear: 2055, stem: '庚', branch: '辰' },
       ],
     }
-    // 중년이 꺼진 V자 (양끝 높고 age42 최저).
-    const vCurve = {
+    // 얕은 V (macro 가 음으로 안 내려감, lo≈0) → 굴곡형 아님.
+    const shallowV = {
       points: Array.from({ length: 86 }, (_, age) => ({ age, macro: Math.abs(age - 42) / 42 })),
     }
-    const lp = deriveLifePattern(noDipSaju as never, 30, vCurve)!
-    expect(lp.key).not.toBe('undulating')
+    expect(deriveLifePattern(noDipSaju as never, 30, shallowV)!.key).not.toBe('undulating')
+  })
+
+  it('R2: 사주 dip 은 없어도 곡선이 실제로 꺼지면(점성 주도) 굴곡형 유지', () => {
+    // noDipSaju 와 동일(사주 favor 전부 ≥0)이지만 곡선이 중년에 실제 음(lo≈−0.6)
+    // 으로 내려감 → 점성 주도 실 저점. hasRealDip=false 여도 realDip=true → undulating.
+    const noDipSaju = {
+      dayMaster: { name: '辛' },
+      strength: 'medium',
+      yongsin: { primary: '수', secondary: '금', avoid: ['목'] },
+      daeun: [
+        { startAge: 5, startYear: 1995, stem: '庚', branch: '申' },
+        { startAge: 15, startYear: 2005, stem: '辛', branch: '酉' },
+        { startAge: 25, startYear: 2015, stem: '戊', branch: '戌' },
+        { startAge: 35, startYear: 2025, stem: '己', branch: '丑' },
+        { startAge: 45, startYear: 2035, stem: '壬', branch: '子' },
+        { startAge: 55, startYear: 2045, stem: '癸', branch: '亥' },
+        { startAge: 65, startYear: 2055, stem: '庚', branch: '辰' },
+      ],
+    }
+    const deepV = {
+      points: Array.from({ length: 86 }, (_, age) => ({
+        age,
+        macro: Math.abs(age - 42) / 42 - 0.6,
+      })),
+    }
+    expect(deriveLifePattern(noDipSaju as never, 30, deepV)!.key).toBe('undulating')
   })
 })
