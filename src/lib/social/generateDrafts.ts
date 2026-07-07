@@ -308,7 +308,8 @@ function ctaPathFor(category: SocialCategory): string {
 
 // 카테고리별 작가 지시 한 줄 — 소재를 어떤 각도로 풀지.
 const CATEGORY_ANGLE_KO: Record<SocialCategory, string> = {
-  tarot: '오늘의 카드 한 장이 건네는 메시지를 일상 장면 1개에 연결해라.',
+  tarot:
+    '카드를 "요새 이런 사람" 캐릭터로 세워라 — 카드 이름을 제목처럼 앞세우지 말고, 딱 집히는 행동/상황 1개로 열고 카드는 그 정체를 밝히는 근거로 뒤에 붙여라(예: 펜타클 시종 = 강의만 저장해두고 시작은 안 하는 사람). 두루뭉술한 덕담·바넘 금지, "어 내 얘긴데" 소리 나오게.',
   saju: '오늘의 일진(간지) 기운을 "오늘 왜 유독 이런 컨디션/기분인지" 짚어 "아 그래서 오늘 이랬구나" 싶게 풀어라. 미신처럼 단정 금지, 리듬/컨디션 조언 톤. 오늘 같은 하루 보낸 사람이 "내 얘기네" 하고 저장·공유하게.',
   astrology:
     '해당 별자리 독자가 "어 내 얘기네" 하고 멈추게, 구체적 상황 1개를 짚어라. 다른 별자리 독자도 재미있게.',
@@ -319,7 +320,8 @@ const CATEGORY_ANGLE_KO: Record<SocialCategory, string> = {
 }
 
 const CATEGORY_ANGLE_EN: Record<SocialCategory, string> = {
-  tarot: 'Tie the card of the day to one concrete everyday scene.',
+  tarot:
+    'Cast the card as a "that person who…" character — do not lead with the card name like a headline; open with one sharp behavior/scene and reveal the card as the reason (e.g. Page of Pentacles = keeps saving courses but never starting). No vague fortune-cookie/Barnum lines; make readers go "that is literally me."',
   saju: 'Turn the day pillar energy into a "so THAT is why today felt like this" read — practical rhythm/energy advice, no superstition, no doom. Make people who had the same kind of day go "this is me" and save/share it.',
   astrology:
     'Make readers of that sign stop scrolling with one specific relatable situation; keep it fun for others too.',
