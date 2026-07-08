@@ -20,6 +20,7 @@ export type FunnelEvent =
   // 공유 경로 분리 — 링크 공유(재유입 큰 경로) vs 이미지 저장/공유를 따로 잰다.
   | 'compat_free.share_link'
   | 'compat_free.share_image'
+  | 'compat_free.share_kakao'
   | 'compat_free.invite_landed'
   | 'compat_free.invite_prefilled'
   | 'compat_free.invite_converted'

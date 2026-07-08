@@ -34,6 +34,7 @@ const FUNNEL_EVENTS = [
   'compat_free.share_clicked',
   'compat_free.share_link',
   'compat_free.share_image',
+  'compat_free.share_kakao',
   'compat_free.invite_landed',
   'compat_free.invite_prefilled',
   'compat_free.invite_converted',
