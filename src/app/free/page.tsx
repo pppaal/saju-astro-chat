@@ -126,25 +126,27 @@ const FREE_TOOLS: readonly FreeTool[] = [
   },
   {
     href: '/fortune',
-    emoji: '🐲',
     tint: '#e0653b',
-    title: { ko: '띠별 오늘의 운세', en: 'Zodiac Daily Fortune' },
+    bg: 'rgba(224,101,59,.1)',
+    bd: 'rgba(224,101,59,.26)',
+    svg: '<circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.2 2.2M16.9 16.9l2.2 2.2M19.1 4.9l-2.2 2.2M7.1 16.9l-2.2 2.2"/>',
+    title: { ko: '내 띠, 오늘 어떤 날일까', en: "How's my sign's day" },
     desc: {
-      ko: '오늘 일진과 내 띠의 합·충을 엔진이 계산한 오늘의 흐름. 매일 아침 새로 나와요.',
-      en: 'Today’s flow for your zodiac sign, computed from the day-pillar. Fresh every morning.',
+      ko: '오늘 일진과 내 띠의 합·충으로 읽는 하루의 흐름. 매일 아침 새로.',
+      en: "Today's day-pillar read against your zodiac sign. Fresh every morning.",
     },
-    badge: { ko: '완전 무료 · 로그인 X', en: 'Free · no sign-up' },
   },
   {
     href: '/tarot/cards',
-    emoji: '🃏',
     tint: '#8b5cf6',
-    title: { ko: '타로 카드 의미 사전', en: 'Tarot Card Meanings' },
+    bg: 'rgba(139,92,246,.1)',
+    bd: 'rgba(139,92,246,.26)',
+    svg: '<path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M4 19a2 2 0 0 1 2-2h13M9 7h6"/>',
+    title: { ko: '그 카드, 무슨 뜻일까', en: 'What does that card mean' },
     desc: {
-      ko: '78장 카드의 정방향·역방향 의미와 조언을 카드별로. 궁금했던 그 카드를 찾아보세요.',
-      en: 'Upright & reversed meanings and advice for all 78 cards. Look up the card on your mind.',
+      ko: '타로 78장의 정방향·역방향 의미와 조언을 카드별로 찾아보세요.',
+      en: 'Upright and reversed meanings for all 78 cards, card by card.',
     },
-    badge: { ko: '완전 무료 · 로그인 X', en: 'Free · no sign-up' },
   },
 ]
 
