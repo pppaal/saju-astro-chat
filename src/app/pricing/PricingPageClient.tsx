@@ -356,7 +356,7 @@ export default function PricingPageClient({ initialLocale, initialCopy }: Pricin
                         ? `${formatKrw(CREDIT_PACKS[pack.id].perCreditKrw)}`
                         : `${formatUsd(CREDIT_PACKS[pack.id].perCreditUsd)}`}
                       {discountPercent > 0 && (
-                        <span className={styles.discountInline}> · -{discountPercent}%</span>
+                        <span className={styles.discountInline}>-{discountPercent}%</span>
                       )}
                     </div>
                     <button
