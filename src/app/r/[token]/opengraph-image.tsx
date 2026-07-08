@@ -139,6 +139,7 @@ export default async function Image({ params }: { params: Promise<{ token: strin
             <div style={{ display: 'flex', alignItems: 'baseline', color: accent }}>
               <div
                 style={{
+                  display: 'flex',
                   fontSize: 132,
                   fontWeight: 800,
                   fontFamily: 'HeavyKR, sans-serif',
@@ -147,7 +148,9 @@ export default async function Image({ params }: { params: Promise<{ token: strin
               >
                 {reading.score}
               </div>
-              <div style={{ fontSize: 40, fontWeight: 800, marginLeft: 6 }}>{isKo ? '점' : ''}</div>
+              <div style={{ display: 'flex', fontSize: 40, fontWeight: 800, marginLeft: 6 }}>
+                {isKo ? '점' : ''}
+              </div>
             </div>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14, flex: 1 }}>
@@ -222,52 +225,54 @@ export default async function Image({ params }: { params: Promise<{ token: strin
           <div style={{ fontSize: 26, color: '#a98c74', letterSpacing: 2 }}>DestinyPal</div>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          {typeName ? (
-            <>
-              <div
-                style={{
-                  display: 'flex',
-                  fontSize: 108,
-                  fontWeight: 800,
-                  lineHeight: 1.05,
-                  fontFamily: 'HeavyKR, sans-serif',
-                  color: '#ffd9a3',
-                }}
-              >
-                {typeName}
+        {typeName ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <div
+              style={{
+                display: 'flex',
+                fontSize: 108,
+                fontWeight: 800,
+                lineHeight: 1.05,
+                fontFamily: 'HeavyKR, sans-serif',
+                color: '#ffd9a3',
+              }}
+            >
+              {typeName}
+            </div>
+            <div
+              style={{
+                display: 'flex',
+                fontSize: 40,
+                fontWeight: 700,
+                lineHeight: 1.3,
+                fontFamily: 'HeavyKR, sans-serif',
+                color: '#f6ece0',
+              }}
+            >
+              {headline}
+            </div>
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <div
+              style={{
+                display: 'flex',
+                fontSize: 70,
+                fontWeight: 800,
+                lineHeight: 1.2,
+                fontFamily: 'HeavyKR, sans-serif',
+                color: '#ffe9cf',
+              }}
+            >
+              {headline}
+            </div>
+            {subline ? (
+              <div style={{ display: 'flex', fontSize: 30, color: '#d8b89a', lineHeight: 1.45 }}>
+                {subline}
               </div>
-              <div
-                style={{
-                  fontSize: 40,
-                  fontWeight: 700,
-                  lineHeight: 1.3,
-                  fontFamily: 'HeavyKR, sans-serif',
-                  color: '#f6ece0',
-                }}
-              >
-                {headline}
-              </div>
-            </>
-          ) : (
-            <>
-              <div
-                style={{
-                  fontSize: 70,
-                  fontWeight: 800,
-                  lineHeight: 1.2,
-                  fontFamily: 'HeavyKR, sans-serif',
-                  color: '#ffe9cf',
-                }}
-              >
-                {headline}
-              </div>
-              {subline ? (
-                <div style={{ fontSize: 30, color: '#d8b89a', lineHeight: 1.45 }}>{subline}</div>
-              ) : null}
-            </>
-          )}
-        </div>
+            ) : null}
+          </div>
+        )}
 
         {curve ? (
           <div style={{ display: 'flex', flexDirection: 'column' }}>
