@@ -3,6 +3,7 @@ import { blogPosts } from '@/data/blog-posts'
 import { isBlockedBlogPost } from '@/data/blog/publicFilters'
 import { ENABLED_SERVICES } from '@/config/enabledServices'
 import { ALL_CARD_SLUGS } from '@/lib/tarot/cardPages'
+import { ZODIAC_ANIMALS } from '@/lib/fortune/zodiacDaily'
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://destinypal.com'
 
@@ -115,6 +116,22 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ),
   ]
 
+  // 띠별 오늘의 운세 — 매일 갱신되는 데일리 SEO 표면(인덱스 + 12띠).
+  const fortunePages: MetadataRoute.Sitemap = [
+    ...localizedEntries('/fortune', {
+      lastModified: currentDate,
+      changeFrequency: 'daily',
+      priority: 0.9,
+    }),
+    ...ZODIAC_ANIMALS.flatMap((a) =>
+      localizedEntries(`/fortune/${a.slug}`, {
+        lastModified: currentDate,
+        changeFrequency: 'daily',
+        priority: 0.8,
+      })
+    ),
+  ]
+
   // Blog posts (ko/en 본문이 같은 slug 에 공존 — 언어별 URL 로 각각 색인)
   const blogPages: MetadataRoute.Sitemap = blogPosts
     .filter((post) => !isBlockedBlogPost(post))
@@ -126,5 +143,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       })
     )
 
-  return [...mainPages, ...servicePages, ...policyPages, ...tarotCardPages, ...blogPages]
+  return [
+    ...mainPages,
+    ...servicePages,
+    ...policyPages,
+    ...fortunePages,
+    ...tarotCardPages,
+    ...blogPages,
+  ]
 }

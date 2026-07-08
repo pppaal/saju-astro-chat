@@ -117,6 +117,17 @@ const FREE_TOOLS: readonly FreeTool[] = [
     badge: { ko: '무료 리포트', en: 'Free report' },
   },
   {
+    href: '/fortune',
+    emoji: '🐲',
+    tint: '#e0653b',
+    title: { ko: '띠별 오늘의 운세', en: 'Zodiac Daily Fortune' },
+    desc: {
+      ko: '오늘 일진과 내 띠의 합·충을 엔진이 계산한 오늘의 흐름. 매일 아침 새로 나와요.',
+      en: 'Today’s flow for your zodiac sign, computed from the day-pillar. Fresh every morning.',
+    },
+    badge: { ko: '완전 무료 · 로그인 X', en: 'Free · no sign-up' },
+  },
+  {
     href: '/tarot/cards',
     emoji: '🃏',
     tint: '#8b5cf6',
