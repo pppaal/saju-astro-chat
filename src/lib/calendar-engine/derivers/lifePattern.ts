@@ -1,11 +1,12 @@
 /**
- * 인생 유형(life pattern) — 대운 흐름을 "신강약 기준"으로 읽어 사람마다 다른
- * 생애 시나리오(대기만성·초년발복·중년절정·굴곡…)를 도출한다.
+ * 인생 유형(life pattern) — 대운 흐름을 읽어 사람마다 다른 생애 시나리오
+ * (대기만성·초년발복·중년절정·굴곡…)를 도출한다. *사주* 개념이므로 라벨은
+ * 사주 신호에서만 나온다(점성은 화면 곡선 텍스처일 뿐 라벨을 뒤집지 않는다).
  *
- * 왜 신강약 기준인가: 단순 "용신 오행이면 좋다" 매칭은 신약에게 부담이 되는
- * 관성·재성운까지 좋게 쳐서 인생 곡선을 거꾸로 만든다(재다신약인데 초년 황금기 등).
- * 정통 억부 논리 — 신약은 비겁·인성운에 힘이 붙고, 신강은 식상·재성·관성운에 풀린다 —
- * 으로 각 대운의 우호 방향을 잡는다. 중화는 방향이 약하므로 용신 오행으로 판정.
+ * 각 대운의 우호 방향은 cycleTone.favorOf 로 잡는다 — 용신/희신=순(+)·기신/구신=
+ * 고비(−)·한신=중립(0). 억부는 이미 용신 판정에 반영돼 있어(신약이면 관성·재성이
+ * 기신으로 잡힘) 용신-오행 매칭만으로 "재다신약인데 초년 황금기" 같은 역전이 안 난다.
+ * 용신에 오행 정보가 없을 때만 신강약×십신 fallback 으로 떨어진다(favorSign 주석 참고).
  *
  * 점수가 아니라 *방향(+/−)* 과 *시나리오 라벨* 만 낸다(점수 제거 방침과 일관).
  * 순수 함수 — saju 입력만.
@@ -18,6 +19,7 @@ export type SibsinCategory = '비겁' | '식상' | '재성' | '관성' | '인성
 export type LifePatternKey =
   | 'late-bloomer' // 대기만성
   | 'early-peak' // 초년발복 → 후반 하강
+  | 'youth-peak' // 청년절정 (20~30대 정점)
   | 'midlife-peak' // 중년 절정
   | 'steady-rise' // 꾸준히 상승
   | 'smooth' // 전반적 순탄
@@ -92,50 +94,58 @@ const PATTERN_KO: Record<LifePatternKey, { ko: string; en: string; line: string;
     'late-bloomer': {
       ko: '대기만성형',
       en: 'Late bloomer',
-      line: '처음엔 더디고 애써야 하지만, 해를 거듭할수록 자리를 잡아가요. 늦게 피어 오래가는, 뒤로 갈수록 환해지는 결이에요.',
+      line: '어릴 땐 “왜 나만 이렇게 더디지” 싶어 속으로 많이 앓았을 거예요. 근데 당신은 원래 늦게 자리 잡는 사람이에요. 급하게 안 터지는 대신, 한번 잡으면 안 흔들려요. 나이 들수록 진가가 드러나는 쪽.',
       lineEn:
-        'A slow, effortful start — but you find your ground as the years go on. Yours is a life that blooms late and lasts, brightening toward the end.',
+        'Early on you probably ached inside, wondering “why am I the slow one?” But you’re simply built to land late. You don’t pop off early — yet once you settle in, you don’t waver. Your real worth shows more with age.',
     },
     'early-peak': {
       ko: '초년발복형',
       en: 'Early peak',
-      line: '이른 봄에 일찍 꽃을 피우는 결이에요. 한창때 멀리 나아가고, 뒤로는 넓히기보다 지켜낼 때 더 단단해져요.',
+      line: '당신은 아주 일찍부터 두각을 드러내는 사람이에요. 어린 시절·10대에 이미 자기 색이 뚜렷하죠. 뒤로는 새로 벌이기보다, 그때 잡은 걸 지키고 다질 때 더 단단해져요.',
       lineEn:
-        'You flower early, in the first warmth of the year. You travel far while the season is at its height; later, you grow steadier by keeping what you have rather than reaching for more.',
+        'You stand out very early — your own color is already clear in childhood and your teens. Later on, you grow steadier by protecting and refining what you grabbed then rather than starting new things.',
+    },
+    'youth-peak': {
+      ko: '청년절정형',
+      en: 'Youth peak',
+      line: '당신은 이십대·삼십대에 확 치고 나가는 사람이에요. 남들 아직 몸 풀 때 이미 자기 걸 잡고 달리죠. 그 기세를 잘 굴리면 그때 만든 게 평생을 받쳐줘요.',
+      lineEn:
+        'You’re someone who breaks out hard in your twenties and thirties. While others are still warming up, you’ve already grabbed your thing and started running. Ride that momentum well and what you build then carries the rest of your life.',
     },
     'midlife-peak': {
       ko: '중년절정형',
       en: 'Midlife peak',
-      line: '한낮에 해가 가장 높이 뜨듯, 인생의 한가운데서 가장 크게 펼쳐지는 결이에요. 그 길목에서 마음먹고 나아가면 멀리 닿아요.',
+      line: '당신의 전성기는 인생 한가운데예요. 젊을 때 쌓은 게 중년에 한꺼번에 터지는 타입. 그 길목에서 마음먹고 밀어붙이면 진짜 멀리 가요.',
       lineEn:
-        'Like the sun standing highest at noon, your life opens widest at its middle. Make your move at that crossing and it carries far.',
+        'Your prime is the middle of life. You’re the type whose early groundwork all pays off at once in midlife. Make your move at that crossing and it truly carries far.',
     },
     'steady-rise': {
       ko: '점진상승형',
       en: 'Steady rise',
-      line: '서두르지 않아도 물이 차오르듯 한 해 한 해 나아져요. 조금씩, 그러나 멈추지 않고 높아지는 결이에요.',
+      line: '당신은 반짝 터지는 대신, 한 해 한 해 꾸준히 올라가는 사람이에요. 조급해 보여도 결국 멈춘 적 없이 높아지는 게 당신 강점.',
       lineEn:
-        'Without hurrying, you rise like water filling a basin, a little more each year — slow, but never still.',
+        'Instead of flashing bright, you’re someone who climbs steadily year by year. It can feel slow, but never once stalling is exactly your strength.',
     },
     smooth: {
       ko: '순탄형',
       en: 'Smooth path',
-      line: '큰 파도 없이 잔잔하게 흐르는 강 같은 결이에요. 굽이는 적어도, 멀리까지 고르게 닿아요.',
-      lineEn: 'Yours flows like a calm river with few rapids — gentle, even, and far-reaching.',
+      line: '당신은 큰 사건 없이 무던하게 흘러가는 편이에요. 극적인 반전은 적어도, 그만큼 흔들림 없이 꾸준히 멀리 가는 힘이 있어요.',
+      lineEn:
+        'You tend to move through life without big incidents. There’s little dramatic reversal — and that’s exactly what lets you keep going far, unshaken.',
     },
     hard: {
       ko: '인고형',
       en: 'The long haul',
-      line: '쉬운 길은 아니에요. 바람을 안고 오래 걷는 동안, 버틴 만큼 단단해지는 결이에요.',
+      line: '쉬운 길은 아니었을 거예요. 남들보다 애써야 하는 일이 유독 많았던 사람. 근데 그렇게 버틴 만큼, 어지간한 일엔 안 흔들리는 단단함이 생겼어요.',
       lineEn:
-        'Not an easy road. You walk a long way into the wind, and what you endure is what makes you unbreakable.',
+        'It probably wasn’t an easy road — you’ve had to try harder than most, again and again. But all that enduring gave you a solidness ordinary troubles can’t shake.',
     },
     undulating: {
       ko: '굴곡형',
       en: 'Ups and downs',
-      line: '밀물과 썰물처럼 좋을 때와 힘든 때가 번갈아 와요. 물때를 읽을 줄 알면, 그 리듬이 오히려 힘이 돼요.',
+      line: '당신은 좋을 때와 힘든 때가 크게 번갈아 오는 사람이에요. 기복이 있는 대신, 그 리듬을 읽을 줄만 알면 오히려 그게 남들 없는 무기가 돼요.',
       lineEn:
-        'Like tides, bright spells and hard spells take turns. Learn to read the water, and the rhythm itself becomes your strength.',
+        'For you, good stretches and hard stretches swing back and forth in a big way. The ups and downs are real — but once you learn to read that rhythm, it becomes a weapon others don’t have.',
     },
   }
 
@@ -145,6 +155,7 @@ const PEAK_WINDOW_KEYS = new Set<LifePatternKey>([
   'late-bloomer',
   'steady-rise',
   'midlife-peak',
+  'youth-peak',
   'early-peak',
 ])
 
@@ -225,7 +236,7 @@ export function deriveLifePattern(
   // 고전(hard)은 곡선 정규화로 사라지므로 daeun favor 기준을 유지한다.
   let curvePeakAge: number | undefined
   if (curve && curve.points.length >= 10 && key !== 'hard') {
-    const cls = classifyFromCurve(curve.points, currentAge)
+    const cls = classifyFromCurve(curve.points, currentAge, hasRealDip)
     if (cls) {
       key = cls.key
       curvePeakAge = cls.peakAge
@@ -241,13 +252,27 @@ export function deriveLifePattern(
  * 평균 + 전역 극값 위치로 판정. */
 function classifyFromCurve(
   pointsAll: Array<{ age: number; macro: number }>,
-  currentAge?: number
+  currentAge?: number,
+  /**
+   * 실제 음수 favor 구간이 있나(용신 기준). 없으면 곡선 형상만으로 'undulating'
+   * (“힘든 때가 번갈아”)을 붙이지 않는다 — 곡선은 min-max 정규화라 전부 양호한
+   * 인생의 얕은 잔물결도 V 로 증폭해 거짓 “힘든 때” 카피를 냈다(감사 F3). favor
+   * 경로의 hasRealDip 가드와 동일 기준을 곡선 경로에도 적용.
+   */
+  hasRealDip: boolean = true
 ): { key: LifePatternKey; peakAge: number } | null {
-  const p = pointsAll.filter((x) => x.age >= 0 && x.age <= 85)
+  // 호라이즌 90 통일(감사 R2) — 옛 85 컷은 말년(86~90) 전역정점을 분류·정점창에서
+  // 못 봐 매우-말년발복형을 오분류했다. lifeCurve span·toLifetime 필터와 한 값으로.
+  const p = pointsAll.filter((x) => x.age >= 0 && x.age <= 90)
   if (p.length < 10) return null
   const macros = p.map((x) => x.macro)
   const lo = Math.min(...macros)
   const hi = Math.max(...macros)
+  // 굴곡형(undulating="힘든 때") 게이트 — hasRealDip 은 *사주 favor* 부호라
+  // 0.6·사주+0.4·점성 곡선의 *점성 주도 골*을 놓친다(감사 R2). macro 는 z-정규화
+  // (mean~0)라 lo 가 실제로 음(-0.35↓)이면 그건 진짜 저점 — 사주 favor 가 전부
+  // ≥0 이어도 곡선이 실제로 꺼졌으면 굴곡형을 허용한다.
+  const realDip = hasRealDip || lo <= -0.35
   // 절대 진폭 게이트(감사 A-4) — min-max 스트레치는 *거의 평탄한* 곡선의 미세
   // 잔물결도 풀스케일로 증폭해 극적 유형(undulating 등)으로 오분류한다. macro 는
   // z-정규화 합성(±1 스케일, 7년 이동평균)이라 절대 범위가 의미를 가짐: 범위가
@@ -262,44 +287,59 @@ function classifyFromCurve(
     const s = p.filter((x) => x.age >= a && x.age < b)
     return s.length ? s.reduce((acc, x) => acc + nv(x.macro), 0) / s.length : 0.5
   }
-  const early = seg(12, 38)
-  const mid = seg(38, 58)
-  const late = seg(58, 85)
-  const globalPeakAge = p.reduce((best, x) => (x.macro > best.macro ? x : best), p[0]).age
-  const spread = Math.max(early, mid, late) - Math.min(early, mid, late)
+  // 화면 4단계(초년 0-19 / 청년 20-39 / 중년 40-59 / 장년 60+)와 *같은 밴드*로 분류해
+  // 라벨↔단계 톤↔곡선이 구조적으로 일치하게 한다(감사 30인: 초년발복인데 초년 곡선이
+  // 낮고 청년이 정점인 오분류 다수 — 초년/청년을 한 밴드로 뭉치던 옛 seg(12,38) 탓).
+  const s1 = seg(0, 20) // 초년
+  const s2 = seg(20, 40) // 청년
+  const s3 = seg(40, 60) // 중년
+  const s4 = seg(60, 85) // 장년
+  const bands = [s1, s2, s3, s4]
+  const maxV = Math.max(...bands)
+  const minV = Math.min(...bands)
+  const maxI = bands.indexOf(maxV)
   const D = 0.1
   let key: LifePatternKey
-  if (mid + D < early && mid + D < late)
-    key = 'undulating' // 중년이 양옆보다 꺼진 V
-  else if (mid > early + D && mid > late + D)
-    key = 'midlife-peak' // 중년 솟음
-  else if (late > early + D && late >= mid - 1e-9 && globalPeakAge >= 52)
-    key = 'late-bloomer' // 말년 정점 반전
-  else if (early > late + D && early >= mid - 1e-9 && globalPeakAge < 38)
-    key = 'early-peak' // 초년 정점 후 하강
-  else if (late > early + D)
-    key = 'steady-rise' // 단조 상승
-  else if (spread > 0.3)
-    key = 'undulating' // 큰 진폭이나 위 형태 아님
-  else key = 'smooth'
-  // 정점 나이는 *유형이 가리키는 구간* 안의 최댓값으로 — base.line 방향과 detail
-  // "정점 시점"이 어긋나지 않게(예: 점진상승인데 정점이 11세이면 모순).
-  // early-peak '정점'은 *유년기*(<16)가 아니라 젊은 시절(초년발복)을 가리켜야 —
-  // "14세에 가장 크게"는 발복 서사와 어긋난다. undulating/smooth 도 유년 정점은 피한다.
+  if (maxV - minV < 0.18) {
+    // 밴드 편차가 작음 — 뚜렷한 정점/골 없이 무난.
+    key = 'smooth'
+  } else if (realDip && ((s2 + D < s1 && s2 + D < s3) || (s3 + D < s2 && s3 + D < s4))) {
+    // 가운데(청년 또는 중년)가 양옆보다 꺼진 V — 실 저점 있을 때만 굴곡형.
+    key = 'undulating'
+  } else if (maxI === 0) {
+    key = 'early-peak' // 초년(0-19) 정점
+  } else if (maxI === 1) {
+    key = 'youth-peak' // 청년(20-39) 정점
+  } else if (maxI === 2) {
+    key = 'midlife-peak' // 중년(40-59) 정점
+  } else {
+    // 장년(60+) 정점 — 초년 저점에서의 반전이면 대기만성, 실 저점 없는 완만한
+    // 오름이면 점진상승.
+    const monotoneRise = s1 <= s2 + 1e-9 && s2 <= s3 + 1e-9 && s3 <= s4 + 1e-9
+    key = monotoneRise && !realDip ? 'steady-rise' : 'late-bloomer'
+  }
+  // 정점 나이는 *유형이 가리키는 밴드* 안의 최댓값으로 — 서사 "정점 시점"과 곡선
+  // 마루가 어긋나지 않게. early-peak 은 진짜 초년(0-19), youth-peak 은 청년(20-39).
   const win: [number, number] =
     key === 'late-bloomer' || key === 'steady-rise'
-      ? [50, 85]
+      ? [55, 85]
       : key === 'early-peak'
-        ? [16, 40]
-        : key === 'midlife-peak'
-          ? [35, 60]
-          : [16, 85]
+        ? [3, 20]
+        : key === 'youth-peak'
+          ? [20, 40]
+          : key === 'midlife-peak'
+            ? [40, 60]
+            : [16, 85]
   const wp = p.filter((x) => x.age >= win[0] && x.age < win[1])
   let pool = wp.length ? wp : p
   // 현재 나이를 알면 *가까운 지평*(현재−3 ~ +28년) 안의 정점을 우선한다 — 31세에게
   // "81세부터 가장 크게"처럼 50년 뒤 정점을 가리키면 비현실적이라(사용자 지적).
-  // 지평 안에 후보가 있으면 그쪽, 없으면(이미 지난 정점뿐인 고령 등) 구간 최댓값.
-  if (typeof currentAge === 'number') {
+  // 단, 대기만성·점진상승은 정점이 *본래 말년(장년 60+)* 이라 지평으로 자르면 젊은
+  // 사람의 하이라이트가 실제 장년 마루가 아니라 중년 끝(55~59)으로 당겨져 곡선과
+  // 어긋난다(감사 30인: "57세 가장 환하게"인데 곡선 정점은 장년). 이 두 유형은
+  // 지평 캡을 걸지 않고 장년 창의 실제 최댓값을 그대로 가리킨다.
+  const farPeakType = key === 'late-bloomer' || key === 'steady-rise'
+  if (typeof currentAge === 'number' && !farPeakType) {
     const near = pool.filter((x) => x.age >= currentAge - 3 && x.age <= currentAge + 28)
     if (near.length) pool = near
   }
@@ -381,11 +421,11 @@ function personalize(
       return { line: `${baseLineKo} ${tKo}`, lineEn: `${baseLineEn} ${tEn}` }
     }
     const detailKo = past
-      ? `특히 ${whenKo}, ${CAT_KO[cat]} 쪽으로 가장 환하게 피어났던 때였어요.`
-      : `특히 ${whenKo}부터, ${CAT_KO[cat]} 쪽으로 가장 환하게 피어나요.`
+      ? `특히 ${whenKo}, ${CAT_KO[cat]} 쪽으로 가장 크게 열렸던 때였어요.`
+      : `특히 ${whenKo}부터, ${CAT_KO[cat]} 쪽으로 가장 크게 열려요.`
     const detailEn = past
-      ? `Your fullest bloom was ${whenEn}, turned toward ${CAT_EN[cat]}.`
-      : `Your fullest bloom comes ${whenEn} onward, turned toward ${CAT_EN[cat]}.`
+      ? `It opened widest ${whenEn}, toward ${CAT_EN[cat]}.`
+      : `It opens widest ${whenEn} onward, toward ${CAT_EN[cat]}.`
     return { line: `${baseLineKo} ${detailKo}`, lineEn: `${baseLineEn} ${detailEn}` }
   }
 
@@ -395,7 +435,8 @@ function personalize(
   //   midlife-peak → 중년(35~60), undulating/smooth/hard → 활동기 전체(~75세).
   const inWindow = (c: DaeunFavor): boolean => {
     if (key === 'late-bloomer' || key === 'steady-rise') return c.startAge >= 40
-    if (key === 'early-peak') return c.startAge < 40
+    if (key === 'early-peak') return c.startAge < 22
+    if (key === 'youth-peak') return c.startAge >= 18 && c.startAge < 42
     if (key === 'midlife-peak') return c.startAge >= 35 && c.startAge < 60
     return c.startAge < 75 // undulating / smooth / hard
   }
@@ -454,8 +495,13 @@ function personalize(
 // 정점 시간 창을 단정하는 유형의 회고(past) 변형 — 그 창이 이미 지난 사람에게
 // 미래 지시 어조 대신 과거형으로(감사 BUG-6). 미정의 유형은 base.line 유지.
 const LINE_PAST_KO: Partial<Record<LifePatternKey, string>> = {
-  'midlife-peak': '한낮의 해가 높이 떠오르듯, 인생의 한가운데서 가장 크게 펼쳐졌던 때예요.',
+  'midlife-peak':
+    '당신의 전성기는 인생 한가운데였어요. 젊을 때 쌓은 게 그 무렵 한꺼번에 터졌던 사람.',
+  'youth-peak': '당신은 이십대·삼십대에 확 치고 나갔던 사람이에요. 그때 만든 게 지금까지 받쳐줘요.',
 }
 const LINE_PAST_EN: Partial<Record<LifePatternKey, string>> = {
-  'midlife-peak': 'Like the noon sun at its height, your life opened widest at its middle.',
+  'midlife-peak':
+    'Your prime was the middle of life — the type whose early groundwork all paid off at once back then.',
+  'youth-peak':
+    'You broke out hard in your twenties and thirties. What you built then still holds you up today.',
 }

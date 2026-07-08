@@ -79,11 +79,46 @@ describe('buildLifeCurve (벨 근사 경로)', () => {
     expect(buildLifeCurve({ input: { year: 1990 }, saju: {} } as never, { now: NOW })).toBeNull()
   })
 
+  it('F5: 양 끝(경계) 전역 극값도 마디로 잡는다(단조 상승 → 말년 봉우리·유년 골)', () => {
+    // 강한 단조 상승 점성 시계열 → 내부 국지 극값이 없어도 경계가 전역 극값.
+    // 옛 루프(i=1..len-2)는 이를 통째로 놓쳐 peaks/troughs 가 비었다.
+    const rising = Array.from({ length: 91 }, (_, a) => (a - 45) / 15) // -3..+3
+    const c = buildLifeCurve(makeNatal(), { now: NOW, span: 90, astroSeries: rising })!
+    expect(c.peaks.some((p) => p.age >= 85)).toBe(true) // 말년 경계 봉우리
+    // 경계(age 0 또는 90)가 마디로 잡힌다 — 옛 i=1..len-2 는 못 잡았다.
+    expect([...c.peaks, ...c.troughs].some((e) => e.age === 0 || e.age === 90)).toBe(true)
+  })
+
   it('astroSeries 를 주면 그 점성 시계열을 쓴다(벨 무시)', () => {
     const flat = new Array(91).fill(0)
     const c = buildLifeCurve(makeNatal(), { now: NOW, span: 90, astroSeries: flat })!
     // 점성이 평탄이면 astro raw 가 전부 0.
     expect(c.points.every((p) => p.astro === 0)).toBe(true)
+  })
+
+  it('초년 저점 → 장년 정점(반전) 곡선은 late-bloomer (950209 계열)', () => {
+    // 초년이 뚜렷한 저점이고 장년(60+)이 전역 정점인 단조 반전 곡선 → 대기만성.
+    // 라벨·정점·톤·곡선을 모두 blended macro 에서 뽑는 프로덕션 경로를 그대로 검증.
+    const lateBloom = {
+      points: Array.from({ length: 86 }, (_, age) => ({
+        age,
+        macro: age < 20 ? -0.6 : -0.6 + ((age - 20) / 60) * 1.4, // 초년 -0.6 → 85세 +0.8
+      })),
+    }
+    const lp = deriveLifePattern(makeNatal().saju as never, 30, lateBloom)!
+    expect(lp.key).toBe('late-bloomer')
+  })
+
+  it('청년(20-39) 정점 곡선은 청년절정형 (감사 30인: 초년발복 오분류 교정)', () => {
+    // 청년기에 뚜렷한 정점을 찍고 이후 하강하는 곡선 → early-peak(초년발복)이 아니라
+    // youth-peak(청년절정). 옛 seg(12,38)은 초년+청년을 한 밴드로 뭉쳐 오분류했다.
+    const youthPeak = {
+      points: Array.from({ length: 86 }, (_, age) => ({
+        age,
+        macro: 1 - Math.abs(age - 29) / 40, // 29세 정점
+      })),
+    }
+    expect(deriveLifePattern(makeNatal().saju as never, 25, youthPeak)!.key).toBe('youth-peak')
   })
 })
 
@@ -127,5 +162,55 @@ describe('deriveLifePattern × lifeCurve 정합(B1)', () => {
     const lp = deriveLifePattern(saju as never, 30)!
     expect(lp.key).toBeTruthy()
     expect(lp.daeun.length).toBe(7)
+  })
+
+  it('F3: 실 음수 favor 가 없으면 V자 곡선이어도 undulating("힘든 때") 안 붙는다', () => {
+    // 대운 오행이 전부 용신/한신(음수 favor 0) → hasRealDip=false. 옛 곡선 경로는
+    // 이 가드를 무시해 얕은 V 잔물결에 "힘든 때가 번갈아" 거짓 카피를 붙였다.
+    const noDipSaju = {
+      dayMaster: { name: '辛' },
+      strength: 'medium',
+      yongsin: { primary: '수', secondary: '금', avoid: ['목'] }, // 목 대운 없음
+      daeun: [
+        { startAge: 5, startYear: 1995, stem: '庚', branch: '申' },
+        { startAge: 15, startYear: 2005, stem: '辛', branch: '酉' },
+        { startAge: 25, startYear: 2015, stem: '戊', branch: '戌' },
+        { startAge: 35, startYear: 2025, stem: '己', branch: '丑' },
+        { startAge: 45, startYear: 2035, stem: '壬', branch: '子' },
+        { startAge: 55, startYear: 2045, stem: '癸', branch: '亥' },
+        { startAge: 65, startYear: 2055, stem: '庚', branch: '辰' },
+      ],
+    }
+    // 얕은 V (macro 가 음으로 안 내려감, lo≈0) → 굴곡형 아님.
+    const shallowV = {
+      points: Array.from({ length: 86 }, (_, age) => ({ age, macro: Math.abs(age - 42) / 42 })),
+    }
+    expect(deriveLifePattern(noDipSaju as never, 30, shallowV)!.key).not.toBe('undulating')
+  })
+
+  it('R2: 사주 dip 은 없어도 곡선이 실제로 꺼지면(점성 주도) 굴곡형 유지', () => {
+    // noDipSaju 와 동일(사주 favor 전부 ≥0)이지만 곡선이 중년에 실제 음(lo≈−0.6)
+    // 으로 내려감 → 점성 주도 실 저점. hasRealDip=false 여도 realDip=true → undulating.
+    const noDipSaju = {
+      dayMaster: { name: '辛' },
+      strength: 'medium',
+      yongsin: { primary: '수', secondary: '금', avoid: ['목'] },
+      daeun: [
+        { startAge: 5, startYear: 1995, stem: '庚', branch: '申' },
+        { startAge: 15, startYear: 2005, stem: '辛', branch: '酉' },
+        { startAge: 25, startYear: 2015, stem: '戊', branch: '戌' },
+        { startAge: 35, startYear: 2025, stem: '己', branch: '丑' },
+        { startAge: 45, startYear: 2035, stem: '壬', branch: '子' },
+        { startAge: 55, startYear: 2045, stem: '癸', branch: '亥' },
+        { startAge: 65, startYear: 2055, stem: '庚', branch: '辰' },
+      ],
+    }
+    const deepV = {
+      points: Array.from({ length: 86 }, (_, age) => ({
+        age,
+        macro: Math.abs(age - 42) / 42 - 0.6,
+      })),
+    }
+    expect(deriveLifePattern(noDipSaju as never, 30, deepV)!.key).toBe('undulating')
   })
 })

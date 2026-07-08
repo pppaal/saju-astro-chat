@@ -157,7 +157,15 @@ function assessDaymasterStrength(daymaster: string, pillars: SajuPillarsInput): 
  */
 function selectEokbuYongsin(
   daymaster: string,
-  strength: DaymasterStrength
+  strength: DaymasterStrength,
+  /**
+   * 중화 세부 편향 — true=편약(偏弱), false=편강(偏强), undefined=판정 불가(종전 동작).
+   * 코스 버킷(총점 40~60 전부 '중화')이 中和偏弱/偏强을 뭉개 기신을 통째로 비우면
+   * 인생 곡선에 '힘든 시기'가 하나도 안 생긴다(감사 950209: 총점 45 편약인데
+   * 관살·재성이 순중립으로 잡혀 초년 고비가 사라짐). 편향이 주어지면 그 방향의
+   * 억부 기신을 부여한다. *용신(primary)은 바꾸지 않는다* — 추천은 인성 유지.
+   */
+  junghwaLean?: boolean
 ): { yongsin: FiveElement; gusin?: FiveElement; kibsin?: FiveElement; reasoning: string } {
   const daymasterElement = getElement(daymaster)
   if (!daymasterElement) {
@@ -187,7 +195,17 @@ function selectEokbuYongsin(
     }
   }
 
-  // 중화: 가장 부족한 오행 보충
+  // 중화(偏弱) — 신약 준용: 인성 보강 + 관살(기신)·재성(구신). 용신 추천은 인성 유지.
+  // 편강(偏强)·판정불가는 종전대로 기신 없음 — 편강 중화의 기신은 원칙상 인성인데
+  // 이는 용신(인성)과 충돌하므로 무리하게 표기하지 않는다(최소 개입, 하위호환).
+  if (junghwaLean === true) {
+    return {
+      yongsin: supportingElement,
+      gusin: wealthElement, // 재성(재생살로 약한 일간을 더 흔듦)
+      kibsin: controlElement, // 관살이 기신(약한 일간을 극)
+      reasoning: '일간이 중화(편약)하여 인성으로 보강, 관살을 기신으로',
+    }
+  }
   return {
     yongsin: supportingElement,
     reasoning: '일간이 중화하여 균형 유지에 주력',
@@ -320,6 +338,11 @@ export function determineYongsin(pillars: SajuPillarsInput): YongsinResult {
   const daymaster = pillars.day.stem
   const daymasterElement = getElement(daymaster)
   const strength = assessDaymasterStrength(daymaster, pillars)
+  // 중화 세부 편향 — 총점 <50 이면 편약(偏弱). 코스 버킷(40~60 전부 중화)이 편약을
+  // 뭉개 기신을 비워, 인생 곡선·favor 에 '힘든 시기'가 하나도 안 생기던 문제(감사
+  // 950209: 총점 45 편약). selectEokbuYongsin 이 편약이면 관살 기신을 부여한다.
+  const junghwaLean =
+    strength === '중화' ? computeStrengthScore(toStrengthCoreInput(pillars)).total < 50 : undefined
 
   // 1. 조후용신 체크 (한습/조열 계절)
   const johuResult = selectJohuYongsin(pillars.month.branch, daymaster)
@@ -333,7 +356,7 @@ export function determineYongsin(pillars: SajuPillarsInput): YongsinResult {
   const dmIsWeak = strength === '신약' || strength === '극신약'
   const johuAttacksWeakDm = !!johuResult && dmIsWeak && johuResult.yongsin === dmControlledBy
   if (johuResult && !johuAttacksWeakDm) {
-    const eokbuResult = selectEokbuYongsin(daymaster, strength)
+    const eokbuResult = selectEokbuYongsin(daymaster, strength, junghwaLean)
     // 조후용신이 우선되면 억부 시스템의 kibsin/gusin이 조후용신과 충돌
     // 할 수 있음 (예: 辛 신약 + 寅월 → johu=화, eokbu.kibsin=화 → 자기
     // 자신이 기신). primary와 같은 오행은 avoid에서 제외해서 모순 해소.
@@ -354,7 +377,7 @@ export function determineYongsin(pillars: SajuPillarsInput): YongsinResult {
   // 2. 병약용신 체크
   const byeongYakResult = selectByeongYakYongsin(pillars)
   if (byeongYakResult) {
-    const eokbuResult = selectEokbuYongsin(daymaster, strength)
+    const eokbuResult = selectEokbuYongsin(daymaster, strength, junghwaLean)
     return {
       primaryYongsin: byeongYakResult.yongsin,
       secondaryYongsin:
@@ -369,7 +392,7 @@ export function determineYongsin(pillars: SajuPillarsInput): YongsinResult {
   // 3. 통관용신 체크
   const tonggwanResult = selectTonggwanYongsin(pillars)
   if (tonggwanResult) {
-    const eokbuResult = selectEokbuYongsin(daymaster, strength)
+    const eokbuResult = selectEokbuYongsin(daymaster, strength, junghwaLean)
     return {
       primaryYongsin: tonggwanResult.yongsin,
       secondaryYongsin:
@@ -383,7 +406,7 @@ export function determineYongsin(pillars: SajuPillarsInput): YongsinResult {
   }
 
   // 4. 억부용신 (기본)
-  const eokbuResult = selectEokbuYongsin(daymaster, strength)
+  const eokbuResult = selectEokbuYongsin(daymaster, strength, junghwaLean)
   return {
     primaryYongsin: eokbuResult.yongsin,
     secondaryYongsin: eokbuResult.gusin,

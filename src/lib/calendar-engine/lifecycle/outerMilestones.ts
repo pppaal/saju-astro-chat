@@ -86,15 +86,37 @@ export function resolveMilestoneFromSamples(args: {
       break
     }
   }
-  if (!cross) {
-    const best = samples.reduce((x, y) => (Math.abs(y.err) < Math.abs(x.err) ? y : x))
+
+  // 샘플은 매년 7/1 이므로 fracYear 는 "출생 후 경과년(7/1 기준)"의 소수부.
+  let baseAge: number
+  let fracYear: number
+  if (cross) {
+    // 사각(90°) 등 부호가 실제로 뒤집히는 각 — 두 샘플 사이 err=0 지점 선형 보간.
+    baseAge = cross.a0
+    fracYear = cross.e0 / (cross.e0 - cross.e1 || Number.EPSILON)
+  } else {
+    // 회귀(0°)·마주봄(180°)은 |sep| 기반 err 이 목표에서 0 에 *접(接)* 할 뿐
+    // 부호가 안 뒤집혀 교차가 없다(감사 F1). 예전엔 frac=0 → exactDateISO 가
+    // *항상 YYYY-07-01* 이 되는 조작값이었다. 최소 샘플 3점 포물선 꼭짓점으로
+    // sub-year 시점을 복원해 월 정밀도를 되살린다.
+    const bestIdx = samples.reduce(
+      (bi, s, i) => (Math.abs(s.err) < Math.abs(samples[bi].err) ? i : bi),
+      0
+    )
+    const best = samples[bestIdx]
     if (Math.abs(best.err) > yearlyMotion * 0.6) return null
-    cross = { a0: best.age, e0: best.err, a1: best.age, e1: best.err }
+    const ep = samples[bestIdx - 1]?.err
+    const en = samples[bestIdx + 1]?.err
+    let vertexFrac = 0
+    if (ep != null && en != null) {
+      const denom = ep - 2 * best.err + en
+      if (denom !== 0) vertexFrac = Math.max(-0.5, Math.min(0.5, (0.5 * (ep - en)) / denom))
+    }
+    baseAge = best.age
+    fracYear = vertexFrac
   }
 
-  // 선형 보간 — 샘플은 매년 7/1 이므로 frac 은 "출생 후 경과년(7/1 기준)".
-  const frac = cross.a0 === cross.a1 ? 0 : cross.e0 / (cross.e0 - cross.e1 || Number.EPSILON)
-  const eventMs = Date.UTC(birthYear + cross.a0, 6, 1) + frac * 365.25 * 86_400_000
+  const eventMs = Date.UTC(birthYear + baseAge, 6, 1) + fracYear * 365.25 * 86_400_000
   const eventDate = new Date(eventMs)
   const age = Math.floor((eventMs - birthAnchorMs) / (365.25 * 86_400_000))
   return {

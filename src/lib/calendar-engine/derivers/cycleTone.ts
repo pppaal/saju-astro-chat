@@ -40,9 +40,14 @@ export function favorOf(
   element?: string,
   yongsin?: YongsinLike
 ): Favor {
-  if (element && yongsin) {
-    if (element === yongsin.primary || element === yongsin.secondary) return 'good'
-    if (yongsin.avoid?.includes(element)) return 'hard'
+  // yongsin 이 실제 정보를 가질 때만 1순위 — primary 조차 없는 빈 객체면 모든
+  // element 가 'mid' 로 뭉개져 곡선·favor 가 통째 0 이 됐다(감사 F8). 빈 객체는
+  // 2순위(신강약×십신)로 흘려보낸다.
+  const yongsinUsable =
+    !!yongsin && (!!yongsin.primary || !!yongsin.secondary || !!yongsin.avoid?.length)
+  if (element && yongsinUsable) {
+    if (element === yongsin!.primary || element === yongsin!.secondary) return 'good'
+    if (yongsin!.avoid?.includes(element)) return 'hard'
     return 'mid'
   }
   const support: SibsinCat[] = ['인성', '비겁']

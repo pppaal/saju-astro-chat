@@ -326,6 +326,8 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
     focusDay: monthAdapter.focusDay,
     calendar,
     seed,
+    evidenceLadder: monthAdapter.evidenceLadder,
+    evidenceLadderEn: monthAdapter.evidenceLadderEn,
   }
 
   // 이달 총평(deriveMonthSummary)은 여기서 만들지 않는다 — 포커스 셀 중립화

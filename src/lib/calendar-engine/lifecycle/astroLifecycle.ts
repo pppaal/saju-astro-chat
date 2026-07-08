@@ -189,6 +189,13 @@ export interface LifecycleEntry {
   ageRange: string
   /** Birth year + ageStart. */
   startYear: number
+  /**
+   * 만 나이(SSOT) — override 면 실측 만 나이(outerMilestones 가 생일 앵커로 산출),
+   * 아니면 평균 테이블 ageStart. 소비처(lifetimePivots·lifetimeFlow)가 `startYear −
+   * birthYear`(달력 나이)로 재계산하면 연말 출생자가 생일 전 +1 살 어긋나므로(감사 F2),
+   * 여기서 정통 만 나이를 그대로 노출한다.
+   */
+  age: number
   isPast: boolean
   isCurrent: boolean
   isUpcoming: boolean
@@ -270,6 +277,7 @@ export function buildLifecycleTiming(
       label: isKo ? evt.labelKo : evt.labelEn,
       ageRange,
       startYear,
+      age,
       isPast: currentYear > endYearOfEvent,
       isCurrent: currentYear >= startYear && currentYear <= endYearOfEvent,
       isUpcoming: currentYear < startYear && startYear <= endYear,

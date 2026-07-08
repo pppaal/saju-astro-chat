@@ -21,6 +21,7 @@ import type {
 } from './shared'
 import type { GeokgukStatus, GeokgukStatusResult } from '@/lib/saju/geokguk'
 import type { DayVerdict } from '@/lib/calendar-engine/derivers/reconcile'
+import type { EvidenceRung } from '@/lib/calendar-engine/derivers/evidenceLadder'
 
 // ============================================================================
 // 지장간 (Jijanggan) — 본명 일주(=일지) 의 정기·중기·여기 분해.
@@ -210,6 +211,13 @@ export interface DestinyDay extends DestinyIljinHeader {
 
   /** 개인 시드(본명 고정) — 템플릿 문구를 사람마다 다르게 고르는 데 쓴다. */
   seed?: number
+  /**
+   * 미성년(만 19세 미만) 여부 — 서버(assembleDayTier)가 만 나이로 판정해 실어보낸다.
+   * DayTier 가 클라이언트에서 파생하는 행동·분야·깊이읽기 카피(결혼·투자·도박·배우자
+   * 등 성인 도메인)를 연령 적합 표현으로 치환하는 게이트. 서버 minorSafe 패스는
+   * cross/시진만 덮으므로 클라 파생 카피는 이 플래그로 별도 정화한다(감사 C3-hole).
+   */
+  isMinor?: boolean
 
   // ── 타이밍 컨텍스트 (캘린더용 — assembleTiers 가 주변 날짜에서 채움) ──
   /** 이달 일별 점수 — 흐름 추이선용. day=1..31, score=0..100, today 표시. */
@@ -236,6 +244,13 @@ export interface DestinyDay extends DestinyIljinHeader {
   cautions?: string[]
   /** 상위 주의 사유 영문 — 토글용. */
   cautionsEn?: string[]
+  /**
+   * 근거 사다리(10년→올해→이달→오늘) — 층별 지배신호 1개를 "쉬운 결론 + 용어 칩"
+   * 으로. 점수·근거·톤이 같은 사다리를 함께 읽게 하는 표시용(evidenceLadder.ts).
+   */
+  evidenceLadder?: EvidenceRung[]
+  /** 근거 사다리 영문 — 토글용. */
+  evidenceLadderEn?: EvidenceRung[]
   /**
    * 출력 화해 verdict — 점수 밴드 ↔ 신호/사유 톤을 묶은 단일 권위.
    * 헤드라인·한줄·칩이 같은 톤(positive/mixed/caution)을 말하도록 adapter 가

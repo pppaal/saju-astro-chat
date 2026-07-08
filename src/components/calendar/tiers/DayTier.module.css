@@ -237,6 +237,78 @@
   text-transform: uppercase;
 }
 
+/* ── 근거 사다리 — 시간층별 지배신호(쉬운 결론 + 용어 칩) ── */
+.ladderCap {
+  margin: -8px 0 16px;
+  font-size: 13px;
+  color: var(--t2);
+}
+.ladder {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+.rung {
+  display: grid;
+  grid-template-columns: 54px 1fr;
+  gap: 14px;
+  align-items: start;
+  padding: 14px 0 14px 14px;
+  border-left: 2px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+.rung:last-child {
+  border-bottom: none;
+}
+.rungPos {
+  border-left-color: var(--green);
+}
+.rungNeg {
+  border-left-color: var(--crimson);
+}
+.rungScale {
+  font-family: var(--m-mono, var(--dp-mono));
+  font-size: 12px;
+  color: var(--t2);
+  padding-top: 2px;
+  white-space: nowrap;
+}
+.rungBody {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.rungConcl {
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--t0);
+}
+.rungChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.rungChip {
+  font-family: var(--m-mono, var(--dp-mono));
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+.chipSaju {
+  color: var(--gold-deep);
+  background: var(--gold-bg);
+  border-color: var(--gold-line);
+}
+.chipAstro {
+  color: var(--blue);
+  background: color-mix(in srgb, var(--blue) 12%, transparent);
+  border-color: color-mix(in srgb, var(--blue) 30%, transparent);
+}
+
 /* ── verdict ── */
 .verdict {
   font-family: var(--m-serif);

@@ -217,6 +217,8 @@ export interface LifePhase {
   milestoneLine?: string
   /** milestoneLine 영문 — 클라이언트 토글용. */
   milestoneLineEn?: string
+  /** milestoneLine 한국어 — 클라이언트 KO 토글용(감사 F6: EN 렌더 시 KO 라인 소실 방지). */
+  milestoneLineKo?: string
   /**
    * 본명 지지 ↔ 이 단계 대운 지지의 충·합 한 줄. 예: "본명 巳(사) × 대운
    * 亥(해) → 巳亥충 (변동 압력)". 있으면 UI 가 본문 아래 (milestoneLine 과 별도)
@@ -225,6 +227,8 @@ export interface LifePhase {
   relationLine?: string
   /** relationLine 영문 — 클라이언트 토글용. */
   relationLineEn?: string
+  /** relationLine 한국어 — 클라이언트 KO 토글용(감사 F6). */
+  relationLineKo?: string
   /**
    * 본명 신살 중 이 단계 대운 지지(또는 천간)와 anchor 가 일치해 활성화되는
    * 첫 번째 신살 한 줄. 예: "신살: 천을귀인 활성 (대운 丑 ↔ 본명 일지) —
@@ -233,6 +237,8 @@ export interface LifePhase {
   shinsalLine?: string
   /** shinsalLine 영문 — 클라이언트 토글용. */
   shinsalLineEn?: string
+  /** shinsalLine 한국어 — 클라이언트 KO 토글용(감사 F6). */
+  shinsalLineKo?: string
   /**
    * 일간 기준 이 단계 대운 지지의 12운성 한 줄. 예: "12운성: 대운 丑이
    * 일간 辛 기준 衰(쇠) — 천천히 힘이 빠지는 시기". advancedAnalysis 의
@@ -241,6 +247,8 @@ export interface LifePhase {
   twelveStageLine?: string
   /** twelveStageLine 영문 — 클라이언트 토글용. */
   twelveStageLineEn?: string
+  /** twelveStageLine 한국어 — 클라이언트 KO 토글용(감사 F6). */
+  twelveStageLineKo?: string
   current: boolean
 }
 export interface LifetimeFlow {
@@ -292,10 +300,12 @@ const PYEONGWAN_BODY_KO: Record<string, string> = {
   장년기: '오래 짊어진 압박을 마무리하는 시기예요. 무리한 승부보다 정리가 나아요',
 }
 const PYEONGWAN_BODY_EN: Record<string, string> = {
-  초년기: 'You meet strong pressure or forceful adults early — you toughen by pushing back rather than caving',
+  초년기:
+    'You meet strong pressure or forceful adults early — you toughen by pushing back rather than caving',
   청년기: 'A season of hard, driving challenges — you take responsibility and pressure head-on',
   중년기: 'Big responsibility and outside pressure peak — a season of balancing on a knife-edge',
-  장년기: 'A season of winding down long-carried pressure — tidying up beats forcing one more contest',
+  장년기:
+    'A season of winding down long-carried pressure — tidying up beats forcing one more contest',
 }
 
 // ════════════════════════════ EN copy ════════════════════════════
@@ -354,60 +364,122 @@ const BAND_CAT_EN: Record<string, Record<Cat, string>> = {
 // KO/EN 은 같은 인덱스 = 같은 의미로 1:1 정렬(어댑터가 같은 idx 로 둘 다 뽑음).
 const TONE_VARIANTS_KO: Record<'good' | 'hard' | 'mid', readonly string[]> = {
   good: [
-    '바람이 등을 밀어주어, 애쓴 만큼 멀리 나아가는 때예요.',
-    '물길이 트여, 마음먹은 일이 자연스레 흘러가는 철이에요.',
-    '결이 맞아떨어져, 내딛는 걸음마다 길이 열려요.',
-    '햇볕이 고르게 드는 철이라, 뿌린 것이 어렵잖게 자라요.',
-    '인연과 도움이 곁에 모여, 일이 한결 수월해지는 때예요.',
-    '때가 받쳐주어, 작은 시도도 곧잘 열매로 맺혀요.',
-    '막힘이 적어, 품은 뜻을 멀리 밀고 가기 좋은 흐름이에요.',
+    '드디어 되는 일이 많아지는 때예요. 예전 같으면 벅찼을 일도 이상하게 술술 풀려서 “진작 이랬으면” 싶은.',
+    '마음먹은 게 착착 맞아떨어지는 철이에요. “어, 왜 이렇게 잘되지?” 싶을 만큼.',
+    '미뤄두기만 했던 걸 지금 지르면 크게 돌아오는 때예요. 망설였던 게 아까울 만큼.',
+    '노력한 것보다 더 크게 돌아오는 시기예요. 실력에 운까지 얹히는 느낌.',
+    '사람도 기회도 알아서 곁에 붙는 때예요. 혼자 끙끙대던 게 갑자기 수월해져요.',
+    '작은 시도도 곧잘 결과가 되는 구간이라, 자신감 가지고 벌여도 되는 때예요.',
+    '이때다 싶은 걸 크게 밀어붙이기 좋은 때예요. 평소 못 하던 결단이 통해요.',
   ],
   hard: [
-    '바람을 안고 오르는 구간이라, 한 걸음마다 무게가 실려요.',
-    '뜻대로 풀리지 않는 일이 늘어, 견디는 힘이 필요한 철이에요.',
-    '깎이고 부딪히는 만큼, 안의 심지가 굵어지는 시기예요.',
-    '길이 좁아지는 철이라, 서두르기보다 때를 고르는 게 나아요.',
-    '맞바람이 잦지만, 그 저항이 끝내 뿌리를 깊게 해요.',
-    '쉽지 않은 고비를 지나며, 단단해지는 법을 배우는 때예요.',
-    '물때가 빠진 구간이라, 무리해 나아가기보다 채비할 때예요.',
+    '남들은 쉽게 가는 것 같은데 나만 매번 애쓰는 것 같은 때예요. 근데 이때 버틴 게, 나중에 남들 없는 뚝심이 돼요.',
+    '해도 해도 뜻대로 안 풀려서 “나만 제자리인가” 싶어지는 시기예요. 근데 여기서 안 놓은 사람이 결국 오래가요.',
+    '노력에 비해 결과가 안 나와서 속으로 많이 지치는 때예요. 그래도 이 악물고 버틴 시간이 실력으로 남아요.',
+    '뭘 해도 한 박자씩 어긋나는 느낌이라, 무리하기보다 버티는 게 이기는 때예요. 조급함만 내려놓으면 견딜 만해요.',
+    '주변에 치이고 마음 상하는 일이 잦은 구간이에요. 근데 그럴수록 사람 보는 눈은 깊어져요.',
+    '한 번은 크게 넘어야 하는 고비를 지나는 때예요. 힘들어도 여기서 배운 게 평생 가는 무기가 돼요.',
+    '지금은 밀어붙일 때가 아니라 한 템포 쉬며 힘 모을 때예요. 물러서는 게 지는 게 아니에요.',
   ],
   mid: [
-    '큰 굽이 없이, 잔잔하게 자기 몫을 다져가는 흐름이에요.',
-    '드라마틱한 사건보다, 쌓이는 시간이 의미를 갖는 철이에요.',
-    '평지를 고르게 걷듯, 제 보폭을 지키며 걷기 좋은 시기예요.',
-    '큰 사건보다, 하루하루 포개지는 결이 힘이 되는 철이에요.',
-    '기복이 적어, 꾸준함이 가장 큰 힘이 되는 때예요.',
-    '무리하지 않고 보폭을 지키면, 무던하게 흘러가는 흐름이에요.',
-    '눈에 띄는 변화보다, 고요 속에서 정돈하기 좋은 시기예요.',
+    '큰 사건은 없어요. 근데 그게 나빠서가 아니라, 조용히 내 실력 쌓기 딱 좋은 때라 그래요. 티 안 나도 속으로 단단해지는.',
+    '한 방보다, 그동안 쌓은 게 하나씩 결과로 돌아오는 때예요. 반짝보다 오래 가는 사람의 구간.',
+    '눈에 띄는 변화는 없어도 내 페이스대로 가기 좋은 때예요. 남 속도에 안 휘둘려도 되는.',
+    '큰일보다 하루하루 쌓이는 게 힘이 되는 때예요. 꾸준함 하나가 제일 빛나는 구간.',
+    '기복이 적어서 오히려 흔들림 없이 갈 수 있는 때예요. 무던함이 강점이 되는.',
+    '욕심만 안 부리면 무던하게 흘러가는 시기예요. 지킬 것만 지키면 되는.',
+    '큰 결정보다, 벌여놨던 걸 차분히 정리하기 좋은 때예요. 숨 고르고 다음을 준비하는.',
   ],
 }
 const TONE_VARIANTS_EN: Record<'good' | 'hard' | 'mid', readonly string[]> = {
   good: [
-    'The wind is at your back; effort carries you farther than usual.',
-    'The channel is open, and what you set in motion tends to flow of its own accord.',
-    'Things line up, and a path opens with each step you take.',
-    'The light falls evenly this season, so what you plant grows with ease.',
-    'People and help gather close, and the work goes lighter.',
-    'The timing holds you up — even small attempts ripen into fruit.',
-    'Few obstacles; a good current for carrying what you set your heart on.',
+    'Things finally start clicking. Stuff that used to feel like a slog just flows — the kind that makes you think, “why wasn’t it always like this?”',
+    'What you set your mind to lines up neatly — enough to make you go, “wait, why is this going so well?”',
+    'Push the thing you kept putting off and it pays back big right now — enough that you’ll regret hesitating.',
+    'It comes back bigger than the effort you put in. Skill, with a little luck stacked on top.',
+    'People and chances attach themselves to you; what you struggled with alone suddenly gets easier.',
+    'Even small attempts turn into real results here — a stretch where you can act with confidence.',
+    'A great time to push hard on the thing that feels right. Decisions you couldn’t normally make actually land.',
   ],
   hard: [
-    'You climb into a headwind, and each step carries weight.',
-    'More things resist your plans; this is a stretch that asks for endurance.',
-    'What wears you down on the outside also hardens you at the core.',
-    'The road narrows this season — better to pick your moment than to rush.',
-    'Headwinds are frequent, but that resistance deepens your roots.',
-    'You pass through a hard crossing and learn how to grow solid.',
-    'The tide is out — a time to prepare rather than force your way forward.',
+    'Everyone else seems to have it easy while you’re grinding every time. But what you outlast here becomes a grit others just don’t have.',
+    'No matter how hard you try it won’t break your way — the “am I the only one stuck?” feeling. But the ones who don’t let go here are the ones who last.',
+    'The results don’t match the effort and it wears you down inside. Still, the time you grit through becomes real skill.',
+    'Everything lands a beat off, so holding steady beats forcing it. Drop the rush and it’s bearable.',
+    'You get knocked around and hurt by people more than usual. But it’s exactly this that sharpens how you read them.',
+    'You pass through one big obstacle you have to clear. It’s tough, but what you learn here becomes a weapon that lasts a lifetime.',
+    'This isn’t the time to push — it’s the time to rest a beat and gather strength. Stepping back isn’t losing.',
   ],
   mid: [
-    'No great bends — a quiet current where you settle into what is yours.',
-    'Less about dramatic events, more about the meaning that builds over time.',
-    'Like walking even ground, the work here is keeping your footing.',
-    'Day after day adds up to more than any single event right now.',
-    'Few swings; steadiness is your strongest asset in this stretch.',
-    'Hold your stride without overreaching, and things keep flowing, untroubled.',
-    'Less visible change — a good season to set things in order, in calm.',
+    'No big events. But that’s not a bad thing — it’s just a great time to quietly build your skills. You get stronger inside without it showing.',
+    'Less one big break, more the things you’ve stacked up coming back one by one. This is the stretch of someone who lasts over someone who flashes.',
+    'No dramatic change, but a good time to move at your own pace — without being pulled around by anyone else’s speed.',
+    'Less about big moments, more about days adding up. This is where a single steady habit shines brightest.',
+    'Few swings here, so you can actually move without being rattled. Your evenness becomes the strength.',
+    'As long as you don’t get greedy, it flows along easily. Just keep what’s worth keeping.',
+    'Less a time for big decisions, more for calmly tidying up what you’ve started — catching your breath for what’s next.',
+  ],
+}
+
+// 초년기(0~19) 전용 톤 — 성인 변주("진작 이랬으면"·"벌여놨던 걸 정리")는 아직
+// 아무것도 벌이지 않은 유년기에 맞지 않는다(감사 30인 p08/p24). 유년은 *자라온
+// 환경·기질 형성*의 결로 서술한다. 인덱스는 성인 배열과 1:1(7종)이라 회전 dedup 동일.
+const TONE_VARIANTS_CHILD_KO: Record<'good' | 'hard' | 'mid', readonly string[]> = {
+  good: [
+    '받쳐주는 어른·환경 속에서 자란 편이라, 자기 색을 일찍부터 편하게 꺼내본 시기예요.',
+    '어릴 때부터 예쁨받고 기회도 곧잘 주어져, 하고 싶은 걸 눈치 안 보고 해본 편이에요.',
+    '기질이 일찍 트여서, 또래보다 한발 앞서 자기 걸 찾아가던 때예요.',
+    '집안·주변이 든든해, 크게 부족함 모르고 자기 재능을 키워간 시기예요.',
+    '곁의 어른이 잘 이끌어줘서, 배우고 흡수하는 게 유독 빨랐던 편이에요.',
+    '일찍부터 인정받아 자신감이 붙은 시기라, 그때 생긴 자존감이 오래가요.',
+    '타고난 걸 마음껏 펼쳐본 유년이라, 그 경험이 두고두고 밑천이 돼요.',
+  ],
+  hard: [
+    '어릴 때부터 만만찮은 환경·어른을 겪은 편이에요. 눌리기보다 부딪히며 일찍 철든 쪽.',
+    '남들보다 일찍 어른스러워야 했던 시기예요. 그만큼 속이 야무지게 여물었어요.',
+    '기대나 압박이 커서 마음 편할 새가 없던 유년이에요. 근데 그 긴장이 근성으로 남아요.',
+    '내 편이 부족한 느낌 속에 큰 편이라, 일찍부터 혼자 서는 법을 익혔어요.',
+    '환경이 자주 흔들려 마음 붙일 곳이 아쉬웠던 시기예요. 그만큼 적응력은 남달라졌어요.',
+    '하고 싶은 걸 참거나 미뤄야 했던 유년이에요. 근데 그 절제가 뒷심이 돼요.',
+    '일찍 세상 눈치를 봐야 했던 편이라, 사람·상황 읽는 눈이 또래보다 깊어졌어요.',
+  ],
+  mid: [
+    '크게 모나지도 부족하지도 않게, 무난한 환경에서 자기 기질을 다져간 시기예요.',
+    '특별한 사건보다, 잔잔한 일상 속에서 자기 색이 서서히 잡혀간 유년이에요.',
+    '평범하지만 안정된 환경이라, 조급함 없이 자기 속도로 자란 편이에요.',
+    '큰 굴곡 없이, 보고 배운 것들이 차곡차곡 성격의 바탕이 된 시기예요.',
+    '있는 듯 없는 듯 흘러갔어도, 그 무던함이 오히려 단단한 기본이 됐어요.',
+    '눈에 띄는 일은 적어도, 그 안에서 자기만의 리듬을 익혀간 유년이에요.',
+    '조용한 환경에서 자기 세계를 천천히 넓혀간 시기예요.',
+  ],
+}
+const TONE_VARIANTS_CHILD_EN: Record<'good' | 'hard' | 'mid', readonly string[]> = {
+  good: [
+    'You grew up with adults and surroundings that had your back, so you got to show your own colors early and at ease.',
+    'You were doted on and handed chances early, so you did what you wanted without reading the room.',
+    'Your temperament opened up early — you were a step ahead of your peers in finding your own thing.',
+    'With a solid family and surroundings, you grew your talents without knowing much lack.',
+    'The adults around you guided you well, so you learned and absorbed unusually fast.',
+    'You were recognized early and it built your confidence — the self-esteem from then lasts.',
+    'A childhood where you got to unfold what you were born with; that experience stays a lifelong asset.',
+  ],
+  hard: [
+    'You met a tough environment and tough adults early. Rather than being crushed, you hardened by pushing back and grew up fast.',
+    'You had to be grown-up earlier than others — and your core matured all the more solidly for it.',
+    'Expectations and pressure ran high, with little room to breathe. But that tension became grit.',
+    'You grew up feeling short on people in your corner, so you learned to stand alone early.',
+    'The ground shifted often and steady footing was scarce — which made your adaptability exceptional.',
+    'A childhood where you had to hold back or defer what you wanted. But that restraint became staying power.',
+    'You had to read the room early, so your eye for people and situations grew deeper than your peers’.',
+  ],
+  mid: [
+    'Neither harsh nor lacking — you shaped your temperament in a steady, ordinary environment.',
+    'Less about big events, more your own colors settling in slowly through quiet everyday life.',
+    'Plain but stable surroundings, so you grew at your own pace without rushing.',
+    'Without big swings, what you saw and learned stacked up into the base of your character.',
+    'It passed almost unnoticed, yet that evenness became a solid foundation.',
+    'Few standout moments, but you learned your own rhythm inside them.',
+    'A quiet setting where you slowly widened your own world.',
   ],
 }
 
@@ -480,6 +552,9 @@ const BANDS: Array<[number, number, string]> = [
   [40, 59, '중년기'],
   [60, 84, '장년기'],
 ]
+/** 마지막 밴드 상한 — 이 값을 넘는(85세+) 사용자도 마지막 밴드를 '현재'로 잡도록
+ *  상한을 개방하는 데 쓴다(감사 F7: 옛 `<= hi` 는 85세+ 에게 현재 마커를 없앴다). */
+const LAST_BAND_HI = BANDS[BANDS.length - 1][1]
 
 // ─────────────────────────────────────────────────────────────
 // 지지 충/육합 — 본명 ↔ 대운 지지 관계. 6+6 pair 만 다루고 형/해/파
@@ -1141,14 +1216,16 @@ export function deriveLifetimeFlow(
   const overrideByKind = new Map<string, LifecycleMilestoneOverride>()
   for (const o of astroMilestoneOverrides ?? []) overrideByKind.set(o.kind, o)
   const milestoneFacts: Array<{ kind: string; age: number; dateStrKo: string; dateStrEn: string }> =
-    buildLifecycleTiming(birthYear, birthYear + 90, true, astroMilestoneOverrides, now).events
-      .filter((e) => MILESTONE_SHORT_KO[e.event])
+    buildLifecycleTiming(birthYear, birthYear + 90, true, astroMilestoneOverrides, now)
+      .events.filter((e) => MILESTONE_SHORT_KO[e.event])
       .map((e) => {
         const ov = overrideByKind.get(e.event)
         // override 의 정확 일시가 있으면 "2024년 3월"까지, 없으면 연도만.
         const dateStrKo = ov?.exactDateISO ? shortDateKo(ov.exactDateISO) : `${e.startYear}년`
         const dateStrEn = ov?.exactDateISO ? shortDateEn(ov.exactDateISO) : `${e.startYear}`
-        return { kind: e.event, age: e.startYear - birthYear, dateStrKo, dateStrEn }
+        // 만 나이 SSOT(감사 F2) — 밴드 배치에 달력 나이(startYear−birthYear) 대신
+        // LifecycleEntry.age 를 써 연말 출생자의 경계 밴드 오배치를 막는다.
+        return { kind: e.event, age: e.age, dateStrKo, dateStrEn }
       })
 
   // ── 본명 4지지 (지지충/육합 판정용) — 위치 라벨을 KO/EN 양쪽 baked. ──
@@ -1225,13 +1302,15 @@ export function deriveLifetimeFlow(
             ? 'good'
             : 'hard'
           : fav
-    // 성인 단계는 인생 곡선 valence 로 톤을 맞춘다(막대·1년운과 동일 출처). 곡선이
-    // 없으면 위 단일 대운 favor 유지. 초년은 년주 억부 규칙 유지(곡선 유년기 감쇠로
-    // 유아기는 어차피 mid 라 정보가 적다).
-    if (!isChildhood) {
-      // 현재 계절은 "지금→끝" 구간으로 톤을 잡는다 — 20년 평균은 이미 지난 초반
-      // (저점)에 끌려가, 같은 "지금"이 인생계절=hard 인데 현재 대운/1년운=good 으로
-      // 갈리던 모순을 막는다. 과거/미래 계절은 구간 전체 평균 유지.
+    // *모든* 단계(초년 포함) 톤을 인생 곡선 valence 로 맞춘다 — 계절 카드의 색(막대)이
+    // 곡선 밴드(decadeBandByAge, 같은 평생 z-기준선)라, 톤도 곡선을 써야 "톤은 힘듦인데
+    // 색은 양(+)" 모순이 사라진다(감사: 950209 초년발복형인데 초년 톤 '힘겹게 오름' +
+    // 색 노랑). 억부(년주) 뉘앙스는 본문(narrative)에 그대로 남는다. 곡선 없으면 위
+    // 억부/favor 유지. (초년도 곡선이 유의미하면 그 valence 를 신뢰 — 초년발복형이면
+    // 초년 good 이 맞고, 재다신약 실저점이면 곡선이 이미 음(−)으로 내려간다.)
+    {
+      // 현재 계절은 "지금→끝" 구간으로 — 20년 평균은 지난 초반(저점)에 끌려가 현재
+      // 대운/1년운과 갈리던 모순을 막는다. 과거/미래 계절은 구간 전체 평균.
       const isCurrentStage = currentAge >= lo && currentAge <= hi
       const tLo = isCurrentStage ? Math.max(lo, Math.min(currentAge, hi - 4)) : lo
       const cl = stageCurveLevel(tLo, hi)
@@ -1362,7 +1441,9 @@ export function deriveLifetimeFlow(
       // 아동기엔 운성 줄을 생략(성인 기준 서사라 어색). 글로스가 비면 줄을 안 만든다.
       if (!isChildhood && glossKo) {
         twelveStageLineKo = `기운의 흐름으로 보면, ${glossKo}이에요.`
-        twelveStageLineEn = glossEn ? `In your life-energy cycle, this is a time of ${glossEn}.` : undefined
+        twelveStageLineEn = glossEn
+          ? `In your life-energy cycle, this is a time of ${glossEn}.`
+          : undefined
       }
     } catch {
       // stage 계산 실패 시 silently skip
@@ -1371,8 +1452,9 @@ export function deriveLifetimeFlow(
     // 본문 — 십신(정확명) + cat + body + 톤. 초년은 "년주(부모·뿌리) 기준" 명시.
     // KO/EN 양쪽 산출. 톤 variant 는 인덱스를 한 번만 뽑아 두 언어 동기화.
     const toneIdx = nextToneIdx(toneFav)
-    const toneKo = TONE_VARIANTS_KO[toneFav][toneIdx]
-    const toneEn = TONE_VARIANTS_EN[toneFav][toneIdx]
+    // 유년기는 성인 변주가 안 맞아 전용 배열 사용(자라온 환경·기질 형성 결).
+    const toneKo = (isChildhood ? TONE_VARIANTS_CHILD_KO : TONE_VARIANTS_KO)[toneFav][toneIdx]
+    const toneEn = (isChildhood ? TONE_VARIANTS_CHILD_EN : TONE_VARIANTS_EN)[toneFav][toneIdx]
     // 편관(칠살)은 같은 관성이라도 압박·도전의 결 — 전용 문구로 교체.
     const isPyeongwan = sibsinName === '편관'
     const bodyKo =
@@ -1411,13 +1493,19 @@ export function deriveLifetimeFlow(
       daeunLine,
       milestoneLine: isEn ? milestoneLineEn : milestoneLineKo,
       milestoneLineEn,
+      milestoneLineKo,
       relationLine: isEn ? relationLineEn : relationLineKo,
       relationLineEn,
+      relationLineKo,
       shinsalLine: isEn ? shinsalLineEn : shinsalLineKo,
       shinsalLineEn,
+      shinsalLineKo,
       twelveStageLine: isEn ? twelveStageLineEn : twelveStageLineKo,
       twelveStageLineEn,
-      current: currentAge >= lo && currentAge <= hi,
+      twelveStageLineKo,
+      // 85세+ 도 마지막 밴드를 현재로 — 상한 개방(감사 F7). hi===LAST_BAND_HI 는
+      // 마지막 밴드만 참(84 고유)이라 다른 밴드는 종전대로 닫힌 구간 유지.
+      current: currentAge >= lo && (currentAge <= hi || hi === LAST_BAND_HI),
     })
   }
   if (phases.length === 0) return undefined

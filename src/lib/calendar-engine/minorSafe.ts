@@ -40,14 +40,24 @@ const PHRASE_EN: Array<[string, string]> = [
   ],
 ]
 // 토큰 fallback — phrase 가 살짝 달라도 남은 성인 어휘를 차단.
+// 순서 주의 — 긴/구체 phrase 를 앞에 둬 부분치환 뒤 남은 토큰이 어색해지지 않게.
 const TOKEN_KO: Array<[RegExp, string]> = [
-  [/결혼/g, '약속'],
+  [/좋은 인연·배우자운/g, '좋은 친구운'],
+  [/배우자운/g, '친구운'],
   [/배우자/g, '가까운 친구'],
+  [/결혼/g, '약속'],
   [/공직/g, '진로'],
   [/면허/g, '자격'],
   [/투자/g, '계획'],
+  [/투기/g, '조급함'],
+  [/코인·도박 같은 한탕/g, '요행'],
+  [/도박/g, '내기'],
+  [/코인/g, '용돈 모으기'],
+  [/한탕/g, '요행'],
+  [/베팅/g, '내기'],
   [/삼각관계/g, '친구 사이 다툼'],
   [/승진/g, '인정받는 일'],
+  [/썸/g, '친한 사이'],
 ]
 const TOKEN_EN: Array<[RegExp, string]> = [
   [/\bmarriage\b/gi, 'a promise'],
@@ -55,6 +65,12 @@ const TOKEN_EN: Array<[RegExp, string]> = [
   [/\bpublic office\b/gi, 'a path'],
   [/\blicen[cs]es?\b/gi, 'qualifications'],
   [/\binvestments?\b/gi, 'plans'],
+  [/\bspeculation\b/gi, 'haste'],
+  [/\bgambling\b/gi, 'a bet with friends'],
+  [/\bbetting\b/gi, 'a bet with friends'],
+  [/\bcrypto\b/gi, 'saving up'],
+  [/\bcoins?\b/gi, 'saving up'],
+  [/\blotter(?:y|ies)\b/gi, 'a raffle'],
   [/\blove triangles?\b/gi, 'friend squabbles'],
   [/\bpromotion\b/gi, 'recognition'],
 ]

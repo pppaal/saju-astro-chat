@@ -821,6 +821,47 @@
   word-break: keep-all;
 }
 
+/* ── 인생유형 결과카드 — 이모지·유형명·태그 배지(캡처·공유 훅). --tAccent 는 유형별
+   강조색(inline 주입). color-mix 로 라이트/다크 양쪽에서 톤·대비를 유지한다. ── */
+.typeCard {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  padding: 20px 32px 17px;
+  border-radius: 24px;
+  border: 1px solid color-mix(in srgb, var(--tAccent) 42%, transparent);
+  background:
+    radial-gradient(
+      130% 90% at 50% -6%,
+      color-mix(in srgb, var(--tAccent) 16%, transparent) 0%,
+      transparent 68%
+    ),
+    color-mix(in srgb, var(--tAccent) 7%, transparent);
+  box-shadow: 0 12px 36px -16px color-mix(in srgb, var(--tAccent) 60%, transparent);
+}
+.typeEmoji {
+  font-size: clamp(40px, 11vw, 54px);
+  line-height: 1;
+  filter: drop-shadow(0 4px 12px color-mix(in srgb, var(--tAccent) 55%, transparent));
+}
+.typeName {
+  font-family: var(--m-serif);
+  font-size: clamp(31px, 8.8vw, 43px);
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  line-height: 1.04;
+  /* 강조색을 전경 쪽으로 살짝 섞어 라이트 배경에서도 안 흐리게. */
+  color: color-mix(in srgb, var(--tAccent) 80%, var(--t0));
+}
+.typeTag {
+  font-size: clamp(11px, 3vw, 13px);
+  letter-spacing: 0.05em;
+  font-weight: 700;
+  color: var(--t2);
+  word-break: keep-all;
+}
+
 /* ── "지금 여기" verdict 카드 — 월(Month) 티어 .doBox 와 동일 스타일(레이아웃 통일). ── */
 .doBox {
   display: inline-flex;

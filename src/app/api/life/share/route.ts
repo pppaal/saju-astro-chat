@@ -25,6 +25,7 @@ export const runtime = 'nodejs'
 
 const bodySchema = z.object({
   isKo: z.boolean(),
+  typeName: z.string().trim().min(1).max(40).optional(),
   rangeLabel: z.string().trim().min(1).max(40).optional(),
   headline: z.string().trim().min(1).max(160),
   subline: z.string().trim().min(1).max(160).optional(),
@@ -53,6 +54,7 @@ export const POST = withApiMiddleware(
       v: 1,
       kind: 'life',
       isKo: d.isKo,
+      typeName: d.typeName,
       rangeLabel: d.rangeLabel,
       headline: d.headline,
       subline: d.subline,

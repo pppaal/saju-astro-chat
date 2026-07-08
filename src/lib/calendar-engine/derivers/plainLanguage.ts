@@ -93,6 +93,11 @@ export function sibsinAreaEn(name?: string): string {
   return SIBSIN_DOMAIN[name ?? '']?.areaEn ?? name ?? ''
 }
 
+/** 십신명 → 한 줄 뜻(생활 장면). 못 찾으면 ''(호출부가 폴백 결정 — drop-on-doubt). */
+export function sibsinGloss(name?: string): string {
+  return SIBSIN_DOMAIN[name ?? '']?.gloss ?? ''
+}
+
 /** 12운성명 → 쉬운 한 줄. 못 찾으면 원어. */
 export function twelveStagePlain(stage: string | undefined): string {
   if (!stage) return ''

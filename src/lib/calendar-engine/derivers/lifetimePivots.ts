@@ -176,7 +176,9 @@ export function deriveLifetimePivots(
     now
   ).events
   const astroEvents = astroKoEvents.map((e, i) => ({
-    age: e.startYear - birthYear,
+    // 만 나이 SSOT — LifecycleEntry.age(실측/테이블 만 나이). 옛 `startYear −
+    // birthYear`(달력 나이)는 연말 출생자를 생일 전 +1 살 어긋나게 했다(감사 F2).
+    age: e.age,
     year: e.startYear,
     label: e.label, // ko
     labelEn: astroEnEvents[i]?.label ?? e.label,

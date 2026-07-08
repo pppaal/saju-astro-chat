@@ -37,6 +37,20 @@ describe('minorSafe', () => {
     expect(minorSafeText('공부·취미에 좋은 날', 'ko')).toBe('공부·취미에 좋은 날')
   })
 
+  it('R3: 도박·코인·한탕·투기·배우자운 등 일/분야 카피 성인어 차단(감사 C3-hole)', () => {
+    const money = minorSafeText('코인·도박 같은 한탕은 욕심이 화를 부릅니다.', 'ko')
+    expect(money).not.toMatch(/도박|코인|한탕/)
+    expect(minorSafeText('솔깃한 투자·한탕 제안', 'ko')).not.toMatch(/투자|한탕/)
+    expect(minorSafeText('여성에겐 좋은 인연·배우자운이 강한 날', 'ko')).not.toMatch(/배우자/)
+    expect(minorSafeText('투기만 한 박자 누르세요', 'ko')).not.toMatch(/투기/)
+  })
+
+  it('R3: en — gambling/betting/crypto/lottery 차단', () => {
+    expect(minorSafeText('avoid gambling and betting today', 'en')).not.toMatch(/gambl|bett/i)
+    expect(minorSafeText('a crypto coin windfall', 'en')).not.toMatch(/crypto|\bcoin/i)
+    expect(minorSafeText('lottery luck', 'en')).not.toMatch(/lottery/i)
+  })
+
   it('sanitizeCrossEntry — ko/en 두 필드 in-place 정화', () => {
     const e: Record<string, unknown> = {
       meaning: '결혼·계약·구매에 우호',

@@ -26,6 +26,7 @@ import { toLifetime } from '@/components/calendar/adapters'
 import { assembleUserSummary, type AssembledUser } from './assembleUser'
 import { getYearPillarForDate } from '@/lib/saju/datePillars'
 import { getSibsinKo } from '@/lib/saju/cycleRelations'
+import { ganjiToKorean, ganjiToRoman } from '@/lib/saju/ganjiKo'
 import { sibsinArea, sibsinAreaEn } from '@/lib/calendar-engine/derivers/plainLanguage'
 import { SIBSIN_EN } from '@/lib/saju/sibsinLabels'
 import { translateSignalLabel } from '@/lib/calendar-engine/derivers/signalI18n'
@@ -136,8 +137,13 @@ function buildThisYear(
       ?.heavenlyStem?.name ??
     ''
   const sibsin = dm ? getSibsinKo(dm, yp.stem) || '' : ''
+  const gz = `${yp.stem}${yp.branch}`
   return {
-    gz: `${yp.stem}${yp.branch}`,
+    gz,
+    // bare 한자(丙午) 대신 한글 읽기·로마자를 함께 — 카드의 "한자로 시작 금지" 원칙
+    // + EN 사용자에게 읽히는 라벨(감사 G2).
+    gzKr: ganjiToKorean(gz),
+    gzEn: ganjiToRoman(yp.stem, yp.branch),
     sibsin,
     area: sibsin ? sibsinArea(sibsin) : '',
     areaEn: sibsin ? sibsinAreaEn(sibsin) : '',

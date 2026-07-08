@@ -21,7 +21,12 @@ const astroProfectionExtractor: SignalExtractor = {
     const birth = natal.input
     const startYear = new Date(range.start).getUTCFullYear()
     const endYear = new Date(range.end).getUTCFullYear()
-    const fromAge = startYear - birth.year
+    // 생일 전 구간을 위해 한 해 앞(−1)부터 생성한다(감사). 프로펙션 나이 N 창은
+    // [생일+N, 생일+N+1] 이라, 생일 전 달(예 1~10월, 11월 출생자)에 활성인 창은
+    // 나이 (달력나이−1) 이다. 옛 `startYear−birth.year` 만 쓰면 그 창이 생성 안 돼
+    // 생일 전 ~반년치 셀에 프로펙션(활성 하우스·Lord)이 통째로 비었다. 비-겹침
+    // 연도는 groupIntoCells 가 어차피 버리므로 과생성은 무해.
+    const fromAge = startYear - birth.year - 1
     const toAge = endYear - birth.year
     if (toAge < 0) return []
 

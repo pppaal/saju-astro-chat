@@ -65,25 +65,32 @@ function toDestinyLifeCurve(
   nowAge: number
 ): DestinyLifeCurve | undefined {
   if (!curve || curve.points.length === 0) return undefined
-  const pts = curve.points.filter((p) => p.age <= 88)
+  // 호라이즌 90 통일(감사 R2) — 88 컷은 F5 가 살린 말년(89~90) 경계 피크를 다시
+  // 떨궈 "다음 마루" 가 비던 증상을 재현했다. span·classifyFromCurve 와 한 값으로.
+  const pts = curve.points.filter((p) => p.age <= 90)
   const vals = pts.map((p) => p.macro)
   const lo = Math.min(...vals)
   const hi = Math.max(...vals)
   const r = hi - lo || 1
   const norm = (v: number) => (v - lo) / r
   const peaks = curve.peaks
-    .filter((e) => e.age <= 88)
+    .filter((e) => e.age <= 90)
     .map((e) => ({ age: e.age, year: e.year, kind: 'peak' as const }))
   const troughs = curve.troughs
-    .filter((e) => e.age <= 88)
+    .filter((e) => e.age <= 90)
     .map((e) => ({ age: e.age, year: e.year, kind: 'trough' as const }))
 
   // "지금" 읽기 — macro 기울기(3년) + 현재 이후 첫 마루/저점.
   let now: DestinyLifeCurve['now']
   const here = pts.find((p) => p.age === nowAge)
   if (here) {
-    const prev = pts.find((p) => p.age === nowAge - 3) ?? pts[0]
-    const dv = norm(here.macro) - norm(prev.macro)
+    // 3년 뒤쪽 기울기가 기본. 유아기(nowAge<3)는 뒤쪽 점이 없어 항상 plateau 로
+    // 뭉개지던(감사 F8) 것을 앞쪽 3년 기울기로 대체한다.
+    const prev = pts.find((p) => p.age === nowAge - 3)
+    const dv = prev
+      ? norm(here.macro) - norm(prev.macro)
+      : norm((pts.find((p) => p.age === nowAge + 3) ?? pts[pts.length - 1]).macro) -
+        norm(here.macro)
     const slope: 'rising' | 'falling' | 'plateau' =
       dv > 0.04 ? 'rising' : dv < -0.04 ? 'falling' : 'plateau'
     now = {
@@ -240,14 +247,19 @@ export function toLifetime(natal: NatalContext, opts: ToLifetimeOptions): Destin
     ? zrPeriodsToChapters(zr.fortune.periods, 'Fortune', opts.birthYear, nowAge, ageFrom, ageTo)
     : []
 
-  // 인생 유형 — 신강약 기준 대운 흐름(대기만성/초년발복/…).
+  // 인생 유형 — 대운 흐름(대기만성/초년발복/청년절정/…).
   // 현재 *만* 나이를 넘겨 "정점" 서술이 지금~앞으로를 가리키게(과거/유아기 정점 방지
   // + 생일 전 1살 과다로 시제가 어긋나던 감사 B1 교정).
-  // 곡선을 lifePattern 분류·정점의 SSOT 로 — 인생유형과 곡선이 모순되지 않게.
+  // 분류·정점·계절톤·곡선을 *모두 같은 blended macro* 에서 뽑아 라벨↔정점서사↔단계
+  // 톤↔화면 곡선이 구조적으로 일치하게 한다(감사 30인: 라벨과 표시 곡선이 다른
+  // 신호라 "가장 환하게 N세"가 저점 구간을 가리키던 모순 다수). 점성 성숙-트랜짓
+  // 재평가(lifeCurve) 이후엔 blended 가 사주 곡선 형상을 뒤집지 않아 안전.
   const lp = deriveLifePattern(
     natal.saju as never,
     nowAge,
-    opts.lifeCurve ? { points: opts.lifeCurve.points } : undefined
+    opts.lifeCurve
+      ? { points: opts.lifeCurve.points.map((p) => ({ age: p.age, macro: p.macro })) }
+      : undefined
   )
   const lifePattern = lp
     ? {
@@ -263,6 +275,9 @@ export function toLifetime(natal: NatalContext, opts: ToLifetimeOptions): Destin
   return {
     birthYear: opts.birthYear,
     currentYear: opts.currentYear,
+    // 만 나이 SSOT 를 lifetime 에 직접 실어, 컴포넌트가 곡선 부재(에페메리스 실패)
+    // 시에도 달력 나이(currentYear−birthYear, 생일 전 +1)로 떨어지지 않게 한다(감사 G4).
+    nowAge,
     daewoon,
     lifeStages,
     milestones,

@@ -117,6 +117,19 @@ describe('combinePolarity (extractCrossActivations 경유)', () => {
     expect(out[0].polarity).toBe(2)
   })
 
+  it('R3: 매핑 자체가 중립(polarity 0)이고 부모 같은 방향이면 "상쇄" 아님 — 매핑 원문 유지', () => {
+    // 편인 × 수성 = mapping polarity 0. 옛 코드는 부모가 같은 방향(++)이어도
+    // "서로 반대로 당겨 상쇄" 로 잘못 찍어 매핑 의미와 모순됐다(감사).
+    const out = extractCrossActivations([
+      sajuSig({ sibsin: '편인', polarity: 1 }),
+      astroSig({ planet: 'Mercury', polarity: 1 }),
+    ])
+    expect(out.length).toBe(1)
+    expect(out[0].polarity).toBe(0)
+    expect(out[0].korean).not.toContain('상쇄')
+    expect(out[0].korean).toContain('편인 × 수성') // 매핑 원문
+  })
+
   it('한쪽 polarity=0 이면 매핑 polarity 그대로 (편관 × Mars = −2)', () => {
     const out = extractCrossActivations([
       sajuSig({ sibsin: '편관', polarity: 0 }),

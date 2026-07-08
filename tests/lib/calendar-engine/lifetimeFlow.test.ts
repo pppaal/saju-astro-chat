@@ -148,11 +148,40 @@ describe('deriveLifetimeFlow', () => {
       expect(out.phases[3].ageRange).toBe('60~84세 · 2050~2074')
     })
 
+    it('F7: 85세+ 도 마지막 단계(장년기)를 현재로 표시 — 현재 마커 소실 방지', () => {
+      // 1990 출생, now=2081 → 만 90세. 옛 `<= 84` 는 어느 단계도 현재가 아니었다.
+      const old = deriveLifetimeFlow(
+        makeNatal(),
+        'ko',
+        undefined,
+        new Date('2081-07-07T00:00:00Z')
+      )!
+      const current = old.phases.filter((p) => p.current)
+      expect(current).toHaveLength(1)
+      expect(current[0].label).toBe('장년기')
+    })
+
     it('초년기 본문은 평이 부모·뿌리 도입부로 시작 (raw 십신 노출 없음)', () => {
       const child = out.phases[0]
       // 평이 우선: 십신 원명("겁재(비겁) 흐름")을 surface 에서 빼고 부모·뿌리 도입부 + 평이 본문.
       expect(child.text).toContain('초년은 부모와 뿌리의 영향을 받는 시기예요')
       expect(child.text).not.toContain('겁재(비겁)')
+    })
+
+    it('감사: 초년 톤도 인생 곡선을 따른다 — 초년 高곡선 vs 低곡선이 다른 톤(색·톤 모순 제거)', () => {
+      // 곡선 초년(0~19) 이 높은 vs 낮은 두 케이스. 옛 코드는 초년 톤을 억부(년주)에
+      // 고정해 곡선(계절 색)과 부호가 어긋났다(950209 초년발복형인데 초년 톤 '힘겹게').
+      const earlyHigh = {
+        points: Array.from({ length: 91 }, (_, age) => ({ age, macro: (40 - age) / 40 })), // 초년 高
+      }
+      const earlyLow = {
+        points: Array.from({ length: 91 }, (_, age) => ({ age, macro: (age - 50) / 40 })), // 초년 低
+      }
+      const now = new Date('2026-07-07T00:00:00Z')
+      const hi = deriveLifetimeFlow(makeNatal(), 'ko', undefined, now, earlyHigh)!
+      const lo = deriveLifetimeFlow(makeNatal(), 'ko', undefined, now, earlyLow)!
+      // 초년 톤이 곡선에 반응 → 두 케이스가 달라야 한다(억부 고정이면 동일).
+      expect(hi.phases[0].toneKo).not.toBe(lo.phases[0].toneKo)
     })
 
     it('비초년 단계는 평이 본문으로 시작 (raw 십신/년주 prefix 없음)', () => {
@@ -623,13 +652,13 @@ describe('deriveLifetimeFlow', () => {
       const child = r.phases[0]
       // good variant 중 하나 포함.
       const goodVariants = [
-        '바람이 등을 밀어주어',
-        '물길이 트여',
-        '결이 맞아떨어져',
-        '햇볕이 고르게',
-        '인연과 도움이',
-        '때가 받쳐주어',
-        '막힘이 적어',
+        '자기 색을 일찍부터',
+        '예쁨받고 기회도',
+        '기질이 일찍 트여서',
+        '집안·주변이 든든해',
+        '배우고 흡수하는 게',
+        '인정받아 자신감',
+        '타고난 걸 마음껏',
       ]
       expect(goodVariants.some((v) => child.text.includes(v))).toBe(true)
     })
@@ -641,13 +670,13 @@ describe('deriveLifetimeFlow', () => {
       const r = deriveLifetimeFlow(n)!
       const child = r.phases[0]
       const hardVariants = [
-        '바람을 안고',
-        '뜻대로 풀리지 않는',
-        '깎이고 부딪히는',
-        '길이 좁아지는',
-        '맞바람이 잦지만',
-        '쉽지 않은 고비',
-        '물때가 빠진',
+        '만만찮은 환경',
+        '일찍 어른스러워야',
+        '마음 편할 새가 없던',
+        '혼자 서는 법',
+        '마음 붙일 곳',
+        '참거나 미뤄야',
+        '세상 눈치를 봐야',
       ]
       expect(hardVariants.some((v) => child.text.includes(v))).toBe(true)
     })
@@ -658,13 +687,13 @@ describe('deriveLifetimeFlow', () => {
       const r = deriveLifetimeFlow(n)!
       const child = r.phases[0]
       const goodVariants = [
-        '바람이 등을 밀어주어',
-        '물길이 트여',
-        '결이 맞아떨어져',
-        '햇볕이 고르게',
-        '인연과 도움이',
-        '때가 받쳐주어',
-        '막힘이 적어',
+        '자기 색을 일찍부터',
+        '예쁨받고 기회도',
+        '기질이 일찍 트여서',
+        '집안·주변이 든든해',
+        '배우고 흡수하는 게',
+        '인정받아 자신감',
+        '타고난 걸 마음껏',
       ]
       expect(goodVariants.some((v) => child.text.includes(v))).toBe(true)
     })
@@ -675,13 +704,13 @@ describe('deriveLifetimeFlow', () => {
       const r = deriveLifetimeFlow(n)!
       const child = r.phases[0]
       const hardVariants = [
-        '바람을 안고',
-        '뜻대로 풀리지 않는',
-        '깎이고 부딪히는',
-        '길이 좁아지는',
-        '맞바람이 잦지만',
-        '쉽지 않은 고비',
-        '물때가 빠진',
+        '만만찮은 환경',
+        '일찍 어른스러워야',
+        '마음 편할 새가 없던',
+        '혼자 서는 법',
+        '마음 붙일 곳',
+        '참거나 미뤄야',
+        '세상 눈치를 봐야',
       ]
       expect(hardVariants.some((v) => child.text.includes(v))).toBe(true)
     })

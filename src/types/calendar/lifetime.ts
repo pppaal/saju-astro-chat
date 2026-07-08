@@ -165,6 +165,8 @@ export interface DestinyLifetime {
   birthYear: number
   /** 현재 연도 (UI 기준). */
   currentYear: number
+  /** 현재 만 나이(SSOT) — 곡선 부재 시에도 컴포넌트가 달력 나이로 안 떨어지게. */
+  nowAge?: number
   /** 대운 스파인 (전체 — 10년 단위). */
   daewoon: DestinyDaewoon[]
   /** 4구간 stage. 현재 진행 stage 만 detail 채움. */
@@ -193,8 +195,12 @@ export interface DestinyLifetime {
 }
 
 export interface DestinyThisYear {
-  /** 세운 간지(한자) — '丙午'. */
+  /** 세운 간지(한자) — '丙午'. hover/title 용. */
   gz: string
+  /** 세운 간지 한글 읽기 — '병오'. (novice 표면: bare 한자 금지 원칙) */
+  gzKr: string
+  /** 세운 간지 로마자 — 'byeongo'. EN 표면용. */
+  gzEn: string
   /** 세운 천간 십신(일간 기준) — '정관'. */
   sibsin: string
   /** 십신 생활어 영역(ko) — '재물·실속'. 없으면 빈 문자열. */

@@ -182,19 +182,27 @@ export default async function Image({ params }: { params: Promise<{ token: strin
 
   // ── 인생/대운 곡선 — 큰 그림 + 곡선 ──
   if (reading && isLifeShare(reading)) {
-    const headline = clamp(reading.headline, 40)
+    // 인생유형 별명(대기만성형 등)이 있으면 그게 카드 주인공(MBTI 풍 배지) — 사람들이
+    // 공유하는 건 곡선이 아니라 "나 대기만성형이래" 정체성이다. 없으면(레거시 링크)
+    // 후크 헤드라인을 주인공으로.
+    const typeName = reading.typeName ? clamp(reading.typeName, 20) : ''
+    const headline = clamp(reading.headline, typeName ? 52 : 40)
     const subline = reading.subline ? clamp(reading.subline, 64) : ''
-    const eyebrow = reading.rangeLabel
-      ? clamp(reading.rangeLabel, 32)
-      : isKo
-        ? '사주 × 별자리'
-        : 'Korean Astrology × Zodiac'
+    const eyebrow = typeName
+      ? isKo
+        ? '사주 × 별자리 · 인생유형'
+        : 'Korean Astrology × Zodiac · Life type'
+      : reading.rangeLabel
+        ? clamp(reading.rangeLabel, 32)
+        : isKo
+          ? '사주 × 별자리'
+          : 'Korean Astrology × Zodiac'
     const cta = isKo
-      ? `내 인생 곡선도 무료로 · ${displayDomain}`
-      : `See your life curve free · ${displayDomain}`
+      ? `내 인생유형도 무료로 · ${displayDomain}`
+      : `See your life type free · ${displayDomain}`
     const curve = lifeCurveImg(reading.curve, reading.markerIndex ?? -1, reading.peakIndex ?? -1)
     const axis = (reading.axisLabels ?? []).slice(0, 4)
-    const fonts = await loadOgFonts(eyebrow, headline, subline, cta, axis.join(' '))
+    const fonts = await loadOgFonts(eyebrow, typeName, headline, subline, cta, axis.join(' '))
     return new ImageResponse(
       <div
         style={{
@@ -215,20 +223,50 @@ export default async function Image({ params }: { params: Promise<{ token: strin
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          <div
-            style={{
-              fontSize: 70,
-              fontWeight: 800,
-              lineHeight: 1.2,
-              fontFamily: 'HeavyKR, sans-serif',
-              color: '#ffe9cf',
-            }}
-          >
-            {headline}
-          </div>
-          {subline ? (
-            <div style={{ fontSize: 30, color: '#d8b89a', lineHeight: 1.45 }}>{subline}</div>
-          ) : null}
+          {typeName ? (
+            <>
+              <div
+                style={{
+                  display: 'flex',
+                  fontSize: 108,
+                  fontWeight: 800,
+                  lineHeight: 1.05,
+                  fontFamily: 'HeavyKR, sans-serif',
+                  color: '#ffd9a3',
+                }}
+              >
+                {typeName}
+              </div>
+              <div
+                style={{
+                  fontSize: 40,
+                  fontWeight: 700,
+                  lineHeight: 1.3,
+                  fontFamily: 'HeavyKR, sans-serif',
+                  color: '#f6ece0',
+                }}
+              >
+                {headline}
+              </div>
+            </>
+          ) : (
+            <>
+              <div
+                style={{
+                  fontSize: 70,
+                  fontWeight: 800,
+                  lineHeight: 1.2,
+                  fontFamily: 'HeavyKR, sans-serif',
+                  color: '#ffe9cf',
+                }}
+              >
+                {headline}
+              </div>
+              {subline ? (
+                <div style={{ fontSize: 30, color: '#d8b89a', lineHeight: 1.45 }}>{subline}</div>
+              ) : null}
+            </>
+          )}
         </div>
 
         {curve ? (

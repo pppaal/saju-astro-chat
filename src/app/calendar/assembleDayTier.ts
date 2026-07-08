@@ -329,6 +329,8 @@ export async function assembleDayTier(input: AssembleDayTierInput): Promise<Dest
     topReasonsEn: dayAdapter.topReasonsEn,
     cautions: dayAdapter.cautions,
     cautionsEn: dayAdapter.cautionsEn,
+    evidenceLadder: dayAdapter.evidenceLadder,
+    evidenceLadderEn: dayAdapter.evidenceLadderEn,
     // 출력 화해 verdict — 월 모집단 셀 기준(위 unified)이 권위. 빠뜨리면 DayTier
     // 가 중립 fallback 으로 떨어져 tense/bright 화해가 프로덕션에서 죽는다.
     dayTone: unified?.dayTone ?? dayAdapter.dayTone,
@@ -351,6 +353,9 @@ export async function assembleDayTier(input: AssembleDayTierInput): Promise<Dest
     birthTimeZone: natal.input?.timeZone,
     now,
   })
+  // 미성년 플래그를 실어보내 DayTier 가 클라 파생 카피(행동·분야·깊이읽기)를 정화하게.
+  // 서버 minorSafe 패스는 cross/시진만 덮으므로(클라 파생은 여기서 못 만짐) 플래그 전달.
+  day.isMinor = isMinorAge(manAge)
   if (isMinorAge(manAge)) {
     const rows = (xs: unknown): Array<Record<string, unknown>> =>
       (xs as Array<Record<string, unknown>>) ?? []
