@@ -191,6 +191,63 @@ describe('proxy — non-API requests', () => {
   })
 })
 
+describe('proxy — /ko 경로 프리픽스 (한국어 고유 URL)', () => {
+  it('/ko 는 / 로 리라이트하고 로케일을 ko 로 강제한다', () => {
+    const res = proxy(req('/ko', { headers: { accept: 'text/html', 'accept-language': 'en-US' } }))
+    expect(res.headers.get('x-middleware-rewrite')).toContain(`${ORIGIN}/`)
+    expect(res.headers.get('Content-Language')).toBe('ko')
+    expect(res.cookies.get('locale')?.value).toBe('ko')
+  })
+
+  it('/ko 하위 경로는 스트립된 실제 경로로 리라이트한다', () => {
+    const res = proxy(req('/ko/free', { headers: { accept: 'text/html' } }))
+    expect(res.headers.get('x-middleware-rewrite')).toContain('/free')
+    expect(res.headers.get('x-middleware-rewrite')).not.toContain('/ko/')
+    expect(res.headers.get('Content-Language')).toBe('ko')
+  })
+
+  it('accept 가 text/html 이 아니어도 /ko 는 리라이트된다(크롤러 대응)', () => {
+    const res = proxy(req('/ko/free', { headers: { accept: '*/*' } }))
+    expect(res.headers.get('x-middleware-rewrite')).toContain('/free')
+    expect(res.headers.get('Content-Language')).toBe('ko')
+  })
+
+  it('en 쿠키가 있어도 /ko URL 이 우선하고 쿠키를 ko 로 갱신한다', () => {
+    const res = proxy(
+      req('/ko/free', { headers: { accept: 'text/html' }, cookies: { locale: 'en' } })
+    )
+    expect(res.headers.get('Content-Language')).toBe('ko')
+    expect(res.cookies.get('locale')?.value).toBe('ko')
+  })
+
+  it('쿠키가 이미 ko 면 다시 굽지 않는다', () => {
+    const res = proxy(
+      req('/ko/free', { headers: { accept: 'text/html' }, cookies: { locale: 'ko' } })
+    )
+    expect(res.headers.get('Content-Language')).toBe('ko')
+    expect(res.cookies.get('locale')).toBeUndefined()
+  })
+
+  it('/ko 아래 삭제 서비스 경로도 홈으로 리다이렉트한다', () => {
+    const res = proxy(req('/ko/astrology'))
+    expect(res.status).toBe(307)
+    expect(res.headers.get('location')).toBe(`${ORIGIN}/`)
+  })
+
+  it('/ko/api 는 로케일 리라이트 대상이 아니다(CSRF 게이트 우회 방지)', () => {
+    const res = proxy(req('/ko/api/saju', { method: 'GET', headers: { accept: 'text/html' } }))
+    expect(res.headers.get('x-middleware-rewrite')).toBeNull()
+  })
+
+  it('/korea-page 같은 유사 프리픽스는 건드리지 않는다', () => {
+    const res = proxy(
+      req('/korea-page', { headers: { accept: 'text/html', 'accept-language': 'en-US' } })
+    )
+    expect(res.headers.get('x-middleware-rewrite')).toBeNull()
+    expect(res.headers.get('Content-Language')).toBe('en')
+  })
+})
+
 describe('proxy config', () => {
   it('matcher 는 앱/API 경로는 잡고 정적 자산은 제외한다', async () => {
     const { config } = await import('@/proxy')

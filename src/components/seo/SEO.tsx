@@ -75,6 +75,18 @@ export function generateLocalizedMetadata(
   })
 }
 
+/**
+ * 베어(영어) URL 을 /ko 프리픽스 한국어 URL 로 변환.
+ * proxy.ts 의 /ko 리라이트 규약과 쌍 — 베어 경로 = en canonical,
+ * /ko/... = ko canonical. hreflang 이 서로 다른 URL 을 가리켜야
+ * 두 언어가 같은 URL 을 놓고 경쟁하지 않는다.
+ */
+export function toKoUrl(url: string, baseUrl: string): string {
+  if (url === baseUrl || url === `${baseUrl}/`) return `${baseUrl}/ko`
+  if (url.startsWith(`${baseUrl}/`)) return `${baseUrl}/ko${url.slice(baseUrl.length)}`
+  return url
+}
+
 function generateMetadata({
   title,
   description,
@@ -93,7 +105,9 @@ function generateMetadata({
   const socialTitle = pageTitle.includes(siteName) ? pageTitle : `${pageTitle} | ${siteName}`
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://destinypal.com'
   const twitterHandle = process.env.NEXT_PUBLIC_TWITTER_HANDLE?.trim()
-  const canonical = canonicalUrl || baseUrl
+  const enUrl = canonicalUrl || baseUrl
+  const koUrl = toKoUrl(enUrl, baseUrl)
+  const canonical = locale === 'ko' ? koUrl : enUrl
   const fullOgImage = ogImage.startsWith('http') ? ogImage : `${baseUrl}${ogImage}`
 
   return {
@@ -151,9 +165,9 @@ function generateMetadata({
     alternates: {
       canonical,
       languages: {
-        'en-US': canonical,
-        'ko-KR': canonical,
-        'x-default': canonical,
+        'en-US': enUrl,
+        'ko-KR': koUrl,
+        'x-default': enUrl,
       },
     },
 
