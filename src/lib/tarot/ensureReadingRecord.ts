@@ -18,6 +18,7 @@
 
 import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/logger'
+import { grantReferralRewardOnActivation } from '@/lib/referral'
 import type { Prisma } from '@prisma/client'
 
 // 클라가 보내는 readingId 와 동일한 `tr_<hex>` 형태(≈27자). 비정상적으로 긴
@@ -85,6 +86,10 @@ export async function ensureTarotReadingRecord(
       },
     })
     logger.info('[ensureTarotReadingRecord] safety-net record created', { readingId, userId })
+    // 활성화(첫 리딩 완료) — 추천으로 가입한 사용자라면 추천 보상을 발화시킨다.
+    // 멱등하며 절대 throw 하지 않는다(내부에서 모두 catch). 새 리딩이 실제로
+    // 생성된 순간에만 실행돼 과금/스트림 경로 오버헤드가 낮다.
+    await grantReferralRewardOnActivation(userId)
     return 'created'
   } catch (err) {
     // find 와 create 사이 race(클라 저장이 먼저 만든 경우) — P2002 는 "이미 존재".

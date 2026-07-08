@@ -22,6 +22,7 @@
 
 import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/logger'
+import { grantReferralRewardOnActivation } from '@/lib/referral'
 import { isCounselorSessionDeleted } from '@/lib/counselor/sessionTombstone'
 
 // sidebar 제목과 동일 규칙(=chat-history 라우트의 truncateChatTitle)을 맞춰,
@@ -145,6 +146,10 @@ export async function ensureCounselorSessionRecord(
       userId,
       messageCount: normalized.length,
     })
+    // 활성화(첫 상담 완료) — 추천으로 가입한 사용자라면 추천 보상을 발화시킨다.
+    // 멱등하며 절대 throw 하지 않는다(내부에서 모두 catch). 새 세션이 실제로
+    // 생성된 순간에만 실행돼 과금/스트림 경로 오버헤드가 낮다.
+    await grantReferralRewardOnActivation(userId)
     return 'created'
   } catch (err) {
     // find 와 create 사이에 클라 자동 저장이 같은 id 로 먼저 만든 race — 충돌은

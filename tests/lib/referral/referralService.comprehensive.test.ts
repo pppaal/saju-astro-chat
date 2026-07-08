@@ -185,12 +185,12 @@ describe('Referral Service', () => {
 
       expect(result.success).toBe(true)
       expect(result.referrerId).toBe('referrer-1')
-      // 첫 결제 전까지는 지급하지 않는다 — pending 보상만 생성.
+      // 활성화(첫 리딩/상담) 전까지는 지급하지 않는다 — pending 보상만 생성.
       expect(addBonusCredits).not.toHaveBeenCalled()
       expect(mockedPrisma.referralReward.create).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({
-            rewardType: 'first_purchase',
+            rewardType: 'activation',
             status: 'pending',
           }),
         })
@@ -274,8 +274,20 @@ describe('Referral Service', () => {
         referralCode: 'CODE1234',
       } as never)
       mockedPrisma.user.findMany.mockResolvedValue([
-        { id: 'ref-1', name: 'User 1', createdAt: new Date(), tarotReadings: [{ id: 'r1' }], counselorChatSessions: [] },
-        { id: 'ref-2', name: 'User 2', createdAt: new Date(), tarotReadings: [], counselorChatSessions: [] },
+        {
+          id: 'ref-1',
+          name: 'User 1',
+          createdAt: new Date(),
+          tarotReadings: [{ id: 'r1' }],
+          counselorChatSessions: [],
+        },
+        {
+          id: 'ref-2',
+          name: 'User 2',
+          createdAt: new Date(),
+          tarotReadings: [],
+          counselorChatSessions: [],
+        },
       ] as never)
       mockedPrisma.referralReward.findMany.mockResolvedValue([
         { id: 'rw-1', creditsAwarded: 3, status: 'completed', createdAt: new Date() },

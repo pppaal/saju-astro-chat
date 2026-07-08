@@ -401,8 +401,9 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     `[Stripe Webhook] Credit pack purchase completed: ${userId} bought ${creditPack} (${creditAmount} credits)`
   )
 
-  // 추천 보상은 피추천자의 '첫 결제' 시점에만 지급(멀티 계정 파밍 방지).
-  // pending 보상이 있으면 추천인에게 1회 지급된다.
+  // 추천 보상은 이제 피추천자의 '활성화'(첫 리딩/상담) 시점에 지급된다. 이
+  // 결제 경로는 fallback — 활성화 훅을 놓쳤거나 활성화 이전 legacy pending
+  // 보상이 남은 경우에만 마저 해소한다(멱등, 없으면 no-op).
   try {
     const reward = await grantReferralRewardOnFirstPurchase(userId)
     if (reward.granted) {

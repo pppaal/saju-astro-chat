@@ -4,10 +4,16 @@ import { addBonusCredits } from '@/lib/credits/creditService'
 import { randomBytes } from 'crypto'
 import { logger } from '@/lib/logger'
 
-// 추천 보상 — 친구의 첫 결제 시점에 지급.
+// 추천 보상 — 친구의 '활성화'(첫 리딩/상담 완료) 시점에 지급.
 //   - REFERRER_CREDITS: 추천인이 받는 크레딧.
-//   - REFEREE_CREDITS: 친구(피추천자) 본인이 첫 결제 보너스로 받는 크레딧.
-// 양쪽 모두 받게 해서 추천 동기 + 친구의 결제 동기 둘 다 잡는다.
+//   - REFEREE_CREDITS: 친구(피추천자) 본인이 받는 환영 보너스 크레딧.
+// 양쪽 모두 받게 해서 추천 동기 + 친구의 활성화 동기 둘 다 잡는다.
+//
+// 예전엔 '첫 결제' 시점이었는데, 대부분의 사용자가 결제하지 않아 추천 루프가
+// 사실상 안 돌았다. 무료 사용자도 첫 리딩만 하면 추천인에게 보상이 가도록
+// 활성화 시점으로 앞당겨 루프가 실제로 발화하게 한다. 파밍은 Google OAuth
+// 전용(대량 계정 생성 난이도) + self-referral 차단 + UNIQUE(1회) + "가입만으론
+// 안 되고 실제 리딩 필요"로 가둔다.
 const REFERRER_CREDITS = 10
 const REFEREE_CREDITS = 5
 // 후방 호환 — linkReferrer 가 pending 행에 기록하는 추천인 보상 액수.
@@ -94,17 +100,17 @@ export async function linkReferrer(
     }
 
     // 어뷰징(멀티 계정 파밍) 방지: 가입만으로는 지급하지 않고 보상을 pending
-    // 으로 예약한다. 피추천자가 첫 크레딧팩 결제를 완료하면(웹훅에서
-    // grantReferralRewardOnFirstPurchase 호출) 그때 추천인에게 지급한다.
-    // ReferralReward 의 (userId, referredUserId, rewardType) UNIQUE 가 2차
-    // 가드 — updateMany race 가 뚫려도 P2002 로 두 번째 create 막힘.
+    // 으로 예약한다. 피추천자가 첫 리딩/상담을 완료(=활성화)하면 그때
+    // (grantReferralRewardOnActivation) 추천인에게 지급한다. ReferralReward 의
+    // (userId, referredUserId, rewardType) UNIQUE 가 2차 가드 — updateMany race
+    // 가 뚫려도 P2002 로 두 번째 create 막힘.
     try {
       await prisma.referralReward.create({
         data: {
           userId: referrer.id,
           referredUserId: newUserId,
           creditsAwarded: REFERRAL_CREDITS,
-          rewardType: 'first_purchase',
+          rewardType: 'activation',
           status: 'pending',
         },
       })
@@ -126,10 +132,11 @@ export async function linkReferrer(
   }
 }
 
-// 피추천자가 첫 결제(크레딧팩 구매)를 완료하면 추천인에게 보상 지급.
-// Stripe 웹훅(handleCheckoutCompleted)에서 구매자 크레딧 적립 직후 호출한다.
-// pending 보상이 있을 때 한 번만 지급되며, 이후 결제에는 재지급되지 않는다.
-export async function grantReferralRewardOnFirstPurchase(referredUserId: string): Promise<{
+// 피추천자의 pending 추천 보상을 지급하는 공용 코어. 활성화(첫 리딩/상담) 또는
+// (하위호환) 첫 결제 웹훅에서 호출된다. pending 보상이 있을 때 원자적 claim 으로
+// 한 번만 지급되며, 이후 호출에는 재지급되지 않는다. rewardType 은 새 'activation'
+// 과 legacy 'first_purchase' 를 모두 매칭해 기존 대기 보상도 마저 해소한다.
+async function grantPendingReferralReward(referredUserId: string): Promise<{
   granted: boolean
   referrerId?: string
   creditsAwarded?: number
@@ -141,7 +148,7 @@ export async function grantReferralRewardOnFirstPurchase(referredUserId: string)
       where: {
         referredUserId,
         status: 'pending',
-        rewardType: 'first_purchase',
+        rewardType: { in: ['activation', 'first_purchase'] },
       },
     })
 
@@ -162,7 +169,7 @@ export async function grantReferralRewardOnFirstPurchase(referredUserId: string)
       select: { email: true, name: true },
     })
     if (!referrerUser) {
-      logger.warn('[grantReferralRewardOnFirstPurchase] referrer deleted, cancelling reward', {
+      logger.warn('[grantPendingReferralReward] referrer deleted, cancelling reward', {
         rewardId: pendingReward.id,
         referrerId: pendingReward.userId,
       })
@@ -177,7 +184,7 @@ export async function grantReferralRewardOnFirstPurchase(referredUserId: string)
         refereeBonusGranted = true
       } catch (err) {
         logger.error(
-          '[grantReferralRewardOnFirstPurchase] referee bonus after deleted referrer failed:',
+          '[grantPendingReferralReward] referee bonus after deleted referrer failed:',
           err
         )
       }
@@ -209,7 +216,7 @@ export async function grantReferralRewardOnFirstPurchase(referredUserId: string)
     }
     await addBonusCredits(pendingReward.userId, pendingReward.creditsAwarded, 'referral')
 
-    // 친구(피추천자) 본인에게도 첫 결제 보너스 지급. pendingReward 처리는
+    // 친구(피추천자) 본인에게도 활성화 환영 보너스 지급. pendingReward 처리는
     // 이미 멱등 — 두 번째 호출 시 위에서 early return 되므로 referee 도
     // 1 회만 받음. addBonusCredits 가 실패해도 추천인 보상은 이미 완료
     // 상태이므로 log 만 남기고 silent fail.
@@ -218,10 +225,7 @@ export async function grantReferralRewardOnFirstPurchase(referredUserId: string)
       await addBonusCredits(referredUserId, REFEREE_CREDITS, 'referral')
       refereeBonusGranted = true
     } catch (err) {
-      logger.error(
-        '[grantReferralRewardOnFirstPurchase] Failed to grant referee first-purchase bonus:',
-        err
-      )
+      logger.error('[grantPendingReferralReward] Failed to grant referee welcome bonus:', err)
     }
 
     return {
@@ -232,9 +236,24 @@ export async function grantReferralRewardOnFirstPurchase(referredUserId: string)
       refereeBonusCredits: refereeBonusGranted ? REFEREE_CREDITS : 0,
     }
   } catch (error: unknown) {
-    logger.error('[grantReferralRewardOnFirstPurchase] error:', error)
+    logger.error('[grantPendingReferralReward] error:', error)
     return { granted: false }
   }
+}
+
+// 피추천자가 '활성화'(첫 리딩/상담을 완료해 과금이 확정된 순간)하면 추천인 +
+// 친구 본인에게 보상 지급. tarot interpret-stream / counselor realtime 의 정상
+// 완료 경로(안전망 레코드 생성)에서 fire-and-forget 로 호출된다. 멱등하므로
+// 여러 번 호출돼도 pending→completed 원자적 claim 으로 정확히 1회만 지급된다.
+export async function grantReferralRewardOnActivation(referredUserId: string) {
+  return grantPendingReferralReward(referredUserId)
+}
+
+// (하위호환 / fallback) 첫 결제 웹훅 경로 — 활성화 훅을 놓쳤거나 활성화 이전
+// legacy pending 보상이 남은 사용자를 결제 시점에 마저 해소한다. 활성화에서
+// 이미 지급됐으면 pending 보상이 없어 no-op(granted:false).
+export async function grantReferralRewardOnFirstPurchase(referredUserId: string) {
+  return grantPendingReferralReward(referredUserId)
 }
 
 // (레거시) 첫 분석 완료 시 추천 보상 지급 — 현재 추천 보상은 친구의 첫

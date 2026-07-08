@@ -616,14 +616,14 @@ describe('Referral Service with mocked Prisma', () => {
 
       expect(result.success).toBe(true)
       expect(result.referrerId).toBe('referrer-1')
-      // 가입만으로는 지급하지 않고 pending 보상만 예약(첫 결제 시 지급).
+      // 가입만으로는 지급하지 않고 pending 보상만 예약(활성화=첫 리딩/상담 시 지급).
       expect(addBonusCredits).not.toHaveBeenCalled()
       expect(prisma.referralReward.create).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({
             userId: 'referrer-1',
             referredUserId: 'new-user',
-            rewardType: 'first_purchase',
+            rewardType: 'activation',
             status: 'pending',
           }),
         })
@@ -717,7 +717,13 @@ describe('Referral Service with mocked Prisma', () => {
           tarotReadings: [{ id: 'rd1' }],
           counselorChatSessions: [],
         },
-        { id: 'r2', name: null, createdAt: new Date(), tarotReadings: [], counselorChatSessions: [] },
+        {
+          id: 'r2',
+          name: null,
+          createdAt: new Date(),
+          tarotReadings: [],
+          counselorChatSessions: [],
+        },
       ] as never)
       vi.mocked(prisma.referralReward.findMany).mockResolvedValue([
         {

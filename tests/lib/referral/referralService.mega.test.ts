@@ -13,6 +13,7 @@ import {
   findUserByReferralCode,
   linkReferrer,
   grantReferralRewardOnFirstPurchase,
+  grantReferralRewardOnActivation,
   claimReferralReward,
   getReferralStats,
   getReferralUrl,
@@ -206,7 +207,7 @@ describe('Referral Service', () => {
       expect(addBonusCredits).not.toHaveBeenCalled()
     })
 
-    it('should create a pending first_purchase reward record', async () => {
+    it('should create a pending activation reward record', async () => {
       await linkReferrer('new_user_123', 'REF12345')
 
       expect(prisma.referralReward.create).toHaveBeenCalledWith(
@@ -215,7 +216,7 @@ describe('Referral Service', () => {
             userId: 'referrer_123',
             referredUserId: 'new_user_123',
             creditsAwarded: 10,
-            rewardType: 'first_purchase',
+            rewardType: 'activation',
             status: 'pending',
           }),
         })
@@ -312,6 +313,71 @@ describe('Referral Service', () => {
     })
   })
 
+  describe('grantReferralRewardOnActivation', () => {
+    it('grants the referrer on activation (first reading/chat), not waiting for a purchase', async () => {
+      ;(prisma.referralReward.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue({
+        id: 'reward_act',
+        userId: 'referrer_123',
+        referredUserId: 'friend_1',
+        creditsAwarded: 10,
+        status: 'pending',
+        rewardType: 'activation',
+      })
+      ;(prisma.referralReward.updateMany as ReturnType<typeof vi.fn>).mockResolvedValue({
+        count: 1,
+      })
+      ;(prisma.user.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
+        email: 'referrer@test.com',
+        name: 'Referrer User',
+      })
+      ;(addBonusCredits as ReturnType<typeof vi.fn>).mockResolvedValue({})
+
+      const result = await grantReferralRewardOnActivation('friend_1')
+
+      expect(result.granted).toBe(true)
+      expect(result.referrerId).toBe('referrer_123')
+      // Referrer reward + referee welcome bonus, both as 'referral' source.
+      expect(addBonusCredits).toHaveBeenCalledWith('referrer_123', 10, 'referral')
+      expect(addBonusCredits).toHaveBeenCalledWith('friend_1', 5, 'referral')
+    })
+
+    it('matches legacy first_purchase pending rewards so they still resolve', async () => {
+      ;(prisma.referralReward.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue({
+        id: 'reward_legacy',
+        userId: 'referrer_123',
+        referredUserId: 'friend_2',
+        creditsAwarded: 10,
+        status: 'pending',
+        rewardType: 'first_purchase',
+      })
+      ;(prisma.referralReward.updateMany as ReturnType<typeof vi.fn>).mockResolvedValue({
+        count: 1,
+      })
+      ;(prisma.user.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
+        email: 'referrer@test.com',
+        name: 'Referrer User',
+      })
+      ;(addBonusCredits as ReturnType<typeof vi.fn>).mockResolvedValue({})
+
+      const result = await grantReferralRewardOnActivation('friend_2')
+
+      expect(result.granted).toBe(true)
+      // The findFirst query accepts both 'activation' and legacy 'first_purchase'.
+      const whereArg = (prisma.referralReward.findFirst as ReturnType<typeof vi.fn>).mock
+        .calls[0][0].where
+      expect(whereArg.rewardType).toEqual({ in: ['activation', 'first_purchase'] })
+    })
+
+    it('is a no-op (idempotent) when the reward was already claimed', async () => {
+      ;(prisma.referralReward.findFirst as ReturnType<typeof vi.fn>).mockResolvedValue(null)
+
+      const result = await grantReferralRewardOnActivation('friend_1')
+
+      expect(result.granted).toBe(false)
+      expect(addBonusCredits).not.toHaveBeenCalled()
+    })
+  })
+
   describe('claimReferralReward', () => {
     it('should claim pending reward', async () => {
       const mockPendingReward = {
@@ -388,13 +454,15 @@ describe('Referral Service', () => {
           id: 'ref1',
           name: 'User 1',
           createdAt: new Date('2024-01-01'),
-          tarotReadings: [{ id: 'reading1' }], counselorChatSessions: [],
+          tarotReadings: [{ id: 'reading1' }],
+          counselorChatSessions: [],
         },
         {
           id: 'ref2',
           name: 'User 2',
           createdAt: new Date('2024-01-02'),
-          tarotReadings: [], counselorChatSessions: [],
+          tarotReadings: [],
+          counselorChatSessions: [],
         },
       ]
       const mockRewards = [
@@ -448,7 +516,8 @@ describe('Referral Service', () => {
           id: 'ref1',
           name: null,
           createdAt: new Date(),
-          tarotReadings: [], counselorChatSessions: [],
+          tarotReadings: [],
+          counselorChatSessions: [],
         },
       ]
 
@@ -465,9 +534,27 @@ describe('Referral Service', () => {
 
     it('should calculate completed referrals correctly', async () => {
       const mockReferrals = [
-        { id: 'ref1', name: 'User 1', createdAt: new Date(), tarotReadings: [{ id: 'r1' }], counselorChatSessions: [] },
-        { id: 'ref2', name: 'User 2', createdAt: new Date(), tarotReadings: [{ id: 'r2' }], counselorChatSessions: [] },
-        { id: 'ref3', name: 'User 3', createdAt: new Date(), tarotReadings: [], counselorChatSessions: [] },
+        {
+          id: 'ref1',
+          name: 'User 1',
+          createdAt: new Date(),
+          tarotReadings: [{ id: 'r1' }],
+          counselorChatSessions: [],
+        },
+        {
+          id: 'ref2',
+          name: 'User 2',
+          createdAt: new Date(),
+          tarotReadings: [{ id: 'r2' }],
+          counselorChatSessions: [],
+        },
+        {
+          id: 'ref3',
+          name: 'User 3',
+          createdAt: new Date(),
+          tarotReadings: [],
+          counselorChatSessions: [],
+        },
       ]
 
       ;(prisma.userSettings.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
@@ -676,7 +763,13 @@ describe('Referral Service', () => {
 
       // 4. Check stats
       ;(prisma.user.findMany as ReturnType<typeof vi.fn>).mockResolvedValue([
-        { id: 'new_user_123', name: 'New User', createdAt: new Date(), tarotReadings: [], counselorChatSessions: [] },
+        {
+          id: 'new_user_123',
+          name: 'New User',
+          createdAt: new Date(),
+          tarotReadings: [],
+          counselorChatSessions: [],
+        },
       ])
       ;(prisma.referralReward.findMany as ReturnType<typeof vi.fn>).mockResolvedValue([
         {
