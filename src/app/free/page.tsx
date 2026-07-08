@@ -116,6 +116,17 @@ const FREE_TOOLS: readonly FreeTool[] = [
     },
     badge: { ko: '무료 리포트', en: 'Free report' },
   },
+  {
+    href: '/tarot/cards',
+    emoji: '🃏',
+    tint: '#8b5cf6',
+    title: { ko: '타로 카드 의미 사전', en: 'Tarot Card Meanings' },
+    desc: {
+      ko: '78장 카드의 정방향·역방향 의미와 조언을 카드별로. 궁금했던 그 카드를 찾아보세요.',
+      en: 'Upright & reversed meanings and advice for all 78 cards. Look up the card on your mind.',
+    },
+    badge: { ko: '완전 무료 · 로그인 X', en: 'Free · no sign-up' },
+  },
 ]
 
 export default async function FreeFunnelHub() {
@@ -279,13 +290,6 @@ export default async function FreeFunnelHub() {
             </Link>
           ))}
         </div>
-
-        {/* 카드 의미 사전 — 검색 유입 SEO 허브로의 내부 링크(크롤 경로 + 체류) */}
-        <p style={{ marginTop: 20, fontSize: 14, textAlign: 'center' }}>
-          <Link href="/tarot/cards" style={{ color: GOLD, fontWeight: 600 }}>
-            {isKo ? '🃏 타로 카드 78장 의미 사전 →' : '🃏 Tarot card meanings — all 78 cards →'}
-          </Link>
-        </p>
 
         {/* 해자 — 무료 체험 직후 "왜 ChatGPT보다 나은가"를 각인 */}
         <div style={{ marginTop: 36 }}>
