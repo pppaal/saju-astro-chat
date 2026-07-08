@@ -143,8 +143,12 @@ export default async function SharedReadingPage({ params }: PageProps) {
   const reading = await getShareLink(token)
   if (!reading) notFound()
 
-  // 퍼널 측정 — 공유 링크가 실제로 열린 횟수(바이럴 도달). 토큰 단위는 아니고 총량.
-  recordCounter('tarot.share.viewed', 1)
+  // 퍼널 측정 — 공유 링크가 실제로 열린 총 횟수(바이럴 도달, 종류 무관 총량).
+  // 예전엔 이 kind-무관 총량을 'tarot.share.viewed' 로 찍어, 아래 종류별
+  // (compatibility/calendar/day/life/report).share.viewed 가 다 여기에도 더해져
+  // 타로 조회수가 전체 조회수로 뻥튀기됐다. 종류 무관 총량은 'share.viewed' 로,
+  // 타로 고유 조회는 종류 분기(레거시 타로 = kind 미매치)에서 따로 세게 둔다.
+  recordCounter('share.viewed', 1)
 
   const isKo = reading.isKo
 
@@ -1114,6 +1118,11 @@ export default async function SharedReadingPage({ params }: PageProps) {
       </main>
     )
   }
+
+  // 여기까지 오면 타로(레거시 포함, kind 미매치) — 다른 종류처럼 고유 조회수를
+  // 따로 센다(총량은 위 share.viewed). 예전엔 타로 전용 카운터가 없어 위의
+  // 'tarot.share.viewed' 총량이 타로 값으로 오인됐다.
+  recordCounter('tarot.share.viewed', 1)
 
   const cards = reading.cards.slice(0, 10)
 
