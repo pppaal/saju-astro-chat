@@ -430,6 +430,7 @@ export default async function Image({ params }: { params: Promise<{ token: strin
             >
               <div
                 style={{
+                  display: 'flex',
                   fontSize: 132,
                   fontWeight: 800,
                   lineHeight: 1,
@@ -439,7 +440,15 @@ export default async function Image({ params }: { params: Promise<{ token: strin
               >
                 {reading.score}
               </div>
-              <div style={{ fontSize: 24, color: '#b9a8e6', letterSpacing: 3, marginTop: 2 }}>
+              <div
+                style={{
+                  display: 'flex',
+                  fontSize: 24,
+                  color: '#b9a8e6',
+                  letterSpacing: 3,
+                  marginTop: 2,
+                }}
+              >
                 /100
               </div>
             </div>
