@@ -1,6 +1,6 @@
 'use client'
 
-import { signIn } from 'next-auth/react'
+import { getProviders, signIn } from 'next-auth/react'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { isInAppBrowser } from '@/lib/auth/detectInAppBrowser'
@@ -26,6 +26,28 @@ interface GoogleLoginPanelProps {
   // light 일 때 흰 글자/연한 cyan 링크가 안 보이는 문제를 막기 위해 색 반전.
   variant?: 'dark' | 'light'
 }
+
+// 카카오 provider 활성 여부(KAKAO_CLIENT_ID/SECRET)는 서버 env 로만 결정되므로
+// 클라는 /api/auth/providers 를 조회해 알아낸다. 모듈 레벨 캐시로 드로어/모달이
+// 여러 번 열려도 fetch 는 페이지 로드당 1회.
+let kakaoEnabledCache: Promise<boolean> | null = null
+function isKakaoEnabled(): Promise<boolean> {
+  if (!kakaoEnabledCache) {
+    kakaoEnabledCache = getProviders()
+      .then((p) => Boolean(p?.kakao))
+      .catch(() => false)
+  }
+  return kakaoEnabledCache
+}
+
+const KakaoIcon = () => (
+  <svg viewBox="0 0 24 24" width={16} height={16} aria-hidden="true">
+    <path
+      fill="#191919"
+      d="M12 3C6.48 3 2 6.54 2 10.9c0 2.8 1.86 5.26 4.66 6.66-.15.52-.97 3.36-1 3.58 0 0-.02.17.09.24.11.07.24.02.24.02.32-.05 3.66-2.4 4.24-2.81.57.08 1.16.13 1.77.13 5.52 0 10-3.54 10-7.82S17.52 3 12 3z"
+    />
+  </svg>
+)
 
 const GoogleIcon = () => (
   <svg viewBox="0 0 24 24" width={16} height={16} aria-hidden="true">
@@ -74,9 +96,18 @@ export default function GoogleLoginPanel({
   const [pwa, setPwa] = useState(false)
   // iOS 인스타·페북 등 자동 점프 불가 케이스에서 "링크 복사됨" 피드백.
   const [copied, setCopied] = useState(false)
+  // 카카오 버튼 노출 여부 — env 미설정 배포에서는 조용히 구글 단독으로 남는다.
+  const [kakaoAvailable, setKakaoAvailable] = useState(false)
   useEffect(() => {
     setInApp(isInAppBrowser())
     setPwa(isStandalonePWA())
+    let mounted = true
+    void isKakaoEnabled().then((enabled) => {
+      if (mounted) setKakaoAvailable(enabled)
+    })
+    return () => {
+      mounted = false
+    }
   }, [])
 
   // 인앱 브라우저면 외부 브라우저로 점프시킨다. 카톡/안드로이드는 자동
@@ -90,7 +121,7 @@ export default function GoogleLoginPanel({
     window.setTimeout(() => setCopied(false), 1800)
   }
 
-  const handleSignIn = () => {
+  const handleSignIn = (provider: 'google' | 'kakao' = 'google') => {
     if (!agreed) {
       setShowWarn(true)
       return
@@ -98,11 +129,12 @@ export default function GoogleLoginPanel({
     // 인앱 브라우저에서 구글 OAuth 는 막히므로(disallowed_useragent), 바로
     // signIn 을 호출하면 구글 에러 페이지에서 막다른 길에 빠진다. 그 대신
     // 외부 브라우저로 점프시켜 다른 사이트처럼 매끄럽게 로그인되게 한다.
-    if (inApp) {
+    // 카카오 OAuth 는 카톡 등 인앱 웹뷰에서도 동작하므로 점프 없이 바로 진행.
+    if (provider === 'google' && inApp) {
       handleOpenExternal()
       return
     }
-    void signIn('google', { callbackUrl })
+    void signIn(provider, { callbackUrl })
   }
 
   const copyCurrentUrl = async () => {
@@ -131,11 +163,7 @@ export default function GoogleLoginPanel({
         (className ?? '')
       }
     >
-      <p
-        className={
-          'text-[13px] font-medium ' + (isLight ? 'text-stone-800' : 'text-white/90')
-        }
-      >
+      <p className={'text-[13px] font-medium ' + (isLight ? 'text-stone-800' : 'text-white/90')}>
         {isKo ? '로그인하고 계속하기' : 'Sign in to continue'}
       </p>
 
@@ -296,13 +324,27 @@ export default function GoogleLoginPanel({
           빨갛게 강조되고 안내 텍스트가 뜨므로 사용자가 다음 행동을 즉시 알 수 있음. */}
       <button
         type="button"
-        onClick={handleSignIn}
+        onClick={() => handleSignIn('google')}
         disabled={!providersReady}
         className="flex w-full items-center justify-center gap-2 rounded-lg bg-white px-3 py-2.5 text-sm font-medium text-slate-900 transition-colors hover:bg-white/95 disabled:cursor-not-allowed disabled:bg-white/40 disabled:text-slate-700"
       >
         <GoogleIcon />
         {isKo ? 'Google로 로그인' : 'Continue with Google'}
       </button>
+
+      {/* 카카오 — 인앱 웹뷰(카톡 공유 유입)에서도 로그인이 끊기지 않는 국내
+          핵심 경로. 서버에 provider 가 등록된 경우에만 노출. */}
+      {kakaoAvailable && (
+        <button
+          type="button"
+          onClick={() => handleSignIn('kakao')}
+          disabled={!providersReady}
+          className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#FEE500] px-3 py-2.5 text-sm font-medium text-[#191919] transition-colors hover:bg-[#f6dc00] disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          <KakaoIcon />
+          {isKo ? '카카오로 로그인' : 'Continue with Kakao'}
+        </button>
+      )}
     </div>
   )
 }
