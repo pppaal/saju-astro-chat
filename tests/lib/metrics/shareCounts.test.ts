@@ -56,4 +56,23 @@ describe('shareCounts', () => {
     expect(res.total).toBe(0)
     expect(res.byKind.report).toBe(0)
   })
+
+  it('life·day 도 집계 종류에 포함(예전엔 누락돼 인생·하루 공유가 안 세짐)', () => {
+    expect(SHARE_KINDS).toContain('life')
+    expect(SHARE_KINDS).toContain('day')
+  })
+
+  it('life·day 도 종류별 집계에 잡힌다', async () => {
+    cacheMGetNumbers.mockImplementation(async (keys: string[]) =>
+      keys.map((k) => {
+        if (k === 'funnel:share:life:2026-07-07') return 4
+        if (k === 'funnel:share:day:2026-07-07') return 7
+        return null
+      })
+    )
+    const res = await getShareCreatedCounts(1, new Date('2026-07-07T00:00:00Z'))
+    expect(res.byKind.life).toBe(4)
+    expect(res.byKind.day).toBe(7)
+    expect(res.total).toBe(11)
+  })
 })

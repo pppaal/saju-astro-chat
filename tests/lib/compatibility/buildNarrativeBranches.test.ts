@@ -213,3 +213,64 @@ describe('buildFreeCompatNarrative — 확장 분기', () => {
     }
   })
 })
+
+// 오행 균형 3분기(complement/skewed/balanced) — 예전엔 balanced=range<4 라
+// `else if(range>=4)` 가 항상 참이라 complement 가 죽은 가지였다. 회귀 방지.
+describe('buildFreeCompatNarrative — 오행 균형 3분기', () => {
+  const ebReport = (elements_match: number, range: number, balanced: boolean): CompatReport =>
+    ({
+      crossVerdict: { tone: 'neutral', text: 'x' },
+      band: {
+        elements_match,
+        synastry_harmonic: 50,
+        synastry_tension: 50,
+        eastern_hap: 40,
+        eastern_chung: 60,
+      },
+      dayMaster: {
+        aStem: '甲',
+        aEl: '목',
+        bStem: '庚',
+        bEl: '금',
+        relation: 'bControlsA',
+        relationLabel: '금극목',
+        bToA: '정관',
+        aToB: '정재',
+      },
+      spouseStars: [],
+      pillarRelations: [],
+      branchCombos: [],
+      elementBalance: {
+        merged: { 목: 2 },
+        a: { 목: 1 },
+        b: { 목: 1 },
+        range,
+        balanced,
+        strongest: '목',
+        weakest: '수',
+      },
+      synView: null,
+    }) as unknown as CompatReport
+
+  const themeText = (r: CompatReport) =>
+    [
+      ...buildFreeCompatNarrative(r, { labelA: 'A', labelB: 'B', lang: 'ko' }).sections,
+      ...buildFreeCompatNarrative(r, { labelA: 'A', labelB: 'B', lang: 'ko' }).themes,
+    ]
+      .flatMap((x) => x.paragraphs)
+      .join('\n')
+
+  it('상호 보완(elements_match ≥ 40)이면 complement 카피 — 죽은 가지 부활', () => {
+    expect(themeText(ebReport(40, 2, true))).toMatch(/채워|메우|보완|빈칸|빈자리|퍼즐/)
+  })
+
+  it('합쳐도 치우치면(range ≥ 4, 보완 아님) skewed 카피', () => {
+    expect(themeText(ebReport(0, 5, false))).toMatch(/쏠리|물들|도드라지고|기울/)
+  })
+
+  it('고르면(보완도 치우침도 아님) balanced 카피', () => {
+    const t = themeText(ebReport(20, 2, true))
+    expect(t).toMatch(/고르|균형|두루|치우치지/)
+    expect(t).not.toMatch(/퍼즐|빈칸/)
+  })
+})

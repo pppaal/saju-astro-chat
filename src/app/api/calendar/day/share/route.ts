@@ -18,6 +18,7 @@ import {
 } from '@/lib/api/middleware'
 import { createShareLink, siteBaseUrl, type DayShareLinkPayload } from '@/lib/tarot/shareLink'
 import { recordCounter } from '@/lib/metrics/index'
+import { bumpShareCreated } from '@/lib/metrics/shareCounts'
 import { logger } from '@/lib/logger'
 
 export const dynamic = 'force-dynamic'
@@ -69,6 +70,7 @@ export const POST = withApiMiddleware(
     }
 
     recordCounter('calendar.dayShare.created', 1, { source: context.userId ? 'user' : 'guest' })
+    await bumpShareCreated('day')
 
     const path = `/r/${token}`
     return apiSuccess({ token, path, url: `${siteBaseUrl()}${path}` })
