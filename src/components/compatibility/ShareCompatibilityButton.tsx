@@ -93,6 +93,9 @@ export function ShareCompatibilityButton({
     try {
       const url = await createShareUrl()
       if (!url) return
+      // 계측 분리 — 링크 공유(가장 바이럴)를 이미지 저장과 따로 잰다. 어느 경로가
+      // 실제 재유입을 만드는지 알아야 다음 최적화 방향이 잡힌다.
+      trackFunnel('compat_free.share_link')
       const shareText = data.verdict || `${data.nameA} ♥ ${data.nameB}`
       if (typeof navigator !== 'undefined' && typeof navigator.share === 'function') {
         try {
@@ -210,6 +213,7 @@ export function ShareCompatibilityButton({
     try {
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
         await navigator.share(shareData)
+        trackFunnel('compat_free.share_image')
         return
       }
     } catch (err) {
@@ -222,6 +226,7 @@ export function ShareCompatibilityButton({
 
   const handleDownload = () => {
     if (!previewUrl) return
+    trackFunnel('compat_free.share_image')
     const a = document.createElement('a')
     a.href = previewUrl
     a.download = filename

@@ -256,8 +256,15 @@ export default defineConfig({
               // + dead-code removal. Floors sit ~3pt under measured actuals
               // (global L91.2 / S89.6 / F88.8 / B75.8) to absorb CI (Node 24) vs
               // local (Node 20) v8-remapping variance while locking in the gains.
+              // 2026-07-07: functions floor 84→83. vitest 3→4 AST remapping 이후
+              // 실측 global functions 는 ~83.4%(CI Node24) 로, 84 floor 는 실측보다
+              // *위*라 compat 무관 diff 에서도 게이트가 상시 red 였다(2026-06-23 api
+              // 재기준과 동일한 mis-set). compat/공유/사주/검증 유닛 13종을 추가해
+              // 실측을 83.4→~83.96 으로 끌어올렸고, floor 를 실측 ~1pt 아래(83)로
+              // 맞춰 문서화된 "floor<actual" 불변식을 복원한다. 나머지 축(L/S/B·api)은
+              // 이번 추가로 여유 있게 통과. 커버리지가 더 오르면 ratchet back up.
               lines: 87,
-              functions: 84,
+              functions: 83,
               branches: 71,
               statements: 85,
               'src/lib/auth/**': {

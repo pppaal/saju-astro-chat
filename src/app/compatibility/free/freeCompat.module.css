@@ -10,9 +10,12 @@
   --card-2: #f9f6ef;
   --ink: #211f1b;
   --ink-2: #6c665b;
-  --ink-3: #9c9588;
+  /* WCAG AA — 이전 #9c9588 은 종이 위 2.6:1 로 소형 캡션(11~12px)이 미달이라 어둡게. */
+  --ink-3: #7d7666;
   --line: #e2dccf;
   --gold: #a9833b;
+  /* 텍스트 전용 골드 — #a9833b(3.5:1)는 소형 텍스트 AA 미달. 헤일라인/링/바엔 --gold 유지. */
+  --gold-text: #856428;
   --gold-soft: #c9a85f;
   --gold-line: rgba(169, 131, 59, 0.35);
   --gold-wash: rgba(169, 131, 59, 0.08);
@@ -385,8 +388,8 @@
 }
 .scoreRing {
   position: relative;
-  width: 76px;
-  height: 76px;
+  width: 92px;
+  height: 92px;
   flex-shrink: 0;
   border-radius: 50%;
   background: conic-gradient(var(--gold) calc(var(--pct) * 1%), var(--gold-wash) 0);
@@ -396,13 +399,15 @@
 .scoreRing::before {
   content: '';
   position: absolute;
-  inset: 7px;
+  inset: 9px;
   border-radius: 50%;
   background: var(--card);
 }
+/* 히어로 총점 — 테마 점수(26px)와 같은 크기였어 계층이 눌렸다. 키워서 "점수→
+   verdict→테마" 시선 흐름의 주인공으로. (36px bold gold 는 대형 텍스트라 AA 통과) */
 .scoreRingNum {
   position: relative;
-  font-size: 26px;
+  font-size: 36px;
   font-weight: 800;
   line-height: 1;
   color: var(--gold);
@@ -469,7 +474,7 @@
   font-size: 15px;
   font-weight: 800;
   line-height: 1.6;
-  color: var(--gold);
+  color: var(--gold-text);
   word-break: keep-all;
 }
 
@@ -481,7 +486,7 @@
   cursor: pointer;
   font-size: 13px;
   font-weight: 700;
-  color: var(--gold);
+  color: var(--gold-text);
   list-style: none;
   padding: 2px 0 8px;
 }
@@ -500,7 +505,7 @@
   cursor: pointer;
   font-size: 14px;
   font-weight: 700;
-  color: var(--gold);
+  color: var(--gold-text);
 }
 .glossaryList {
   margin: 12px 0 0;
@@ -550,6 +555,18 @@
   font-size: 13px;
   line-height: 1.65;
   color: var(--ink-2);
+  word-break: keep-all;
+}
+.shareNameHint {
+  margin: 10px auto 0;
+  max-width: 360px;
+  padding: 7px 12px;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--gold);
+  background: var(--gold-wash);
+  border: 1px solid var(--gold-line);
+  border-radius: 10px;
   word-break: keep-all;
 }
 

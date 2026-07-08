@@ -148,12 +148,13 @@ const ASTRO_THEMES = [
 ]
 
 function astrologySubject(date: string): Subject {
-  // JDN 순환 — 12일마다 모든 별자리를 한 번씩, 테마는 사이클마다 교대.
-  // (해시 추첨은 같은 별자리가 연속으로 뜰 수 있어 피드가 없어 보인다)
+  // JDN 순환 — 별자리는 12일 주기(jdn%12), 테마는 5일 주기(jdn%5)로 각각 매일 돈다.
+  // 12·5 는 서로소라 (별자리×테마) 조합은 60일 동안 겹치지 않는다.
+  // (예전엔 테마가 floor(jdn/12) 라 12일 내리 같은 테마가 떠서 피드가 "돈 얘기만" 반복됐다)
   const [y, m, d] = date.split('-').map(Number)
   const { jdn } = computeDayPillarIndices(y, m, d)
   const sign = ZODIAC[jdn % ZODIAC.length]
-  const theme = ASTRO_THEMES[Math.floor(jdn / ZODIAC.length) % ASTRO_THEMES.length]
+  const theme = ASTRO_THEMES[jdn % ASTRO_THEMES.length]
   return {
     nameKo: `오늘의 별자리 스포트라이트: ${sign.ko}`,
     nameEn: `Sign spotlight: ${sign.en}`,
@@ -307,25 +308,27 @@ function ctaPathFor(category: SocialCategory): string {
 
 // 카테고리별 작가 지시 한 줄 — 소재를 어떤 각도로 풀지.
 const CATEGORY_ANGLE_KO: Record<SocialCategory, string> = {
-  tarot: '오늘의 카드 한 장이 건네는 메시지를 일상 장면 1개에 연결해라.',
-  saju: '오늘의 일진(간지)의 기운을 "오늘 하루를 어떻게 쓰면 좋은지"로 풀어라. 미신처럼 단정하지 말고 리듬/컨디션 조언 톤.',
+  tarot:
+    '카드를 "요새 이런 사람" 캐릭터로 세워라 — 카드 이름을 제목처럼 앞세우지 말고, 딱 집히는 행동/상황 1개로 열고 카드는 그 정체를 밝히는 근거로 뒤에 붙여라(예: 펜타클 시종 = 강의만 저장해두고 시작은 안 하는 사람). 두루뭉술한 덕담·바넘 금지, "어 내 얘긴데" 소리 나오게.',
+  saju: '오늘의 일진(간지) 기운을 "오늘 왜 유독 이런 컨디션/기분인지" 짚어 "아 그래서 오늘 이랬구나" 싶게 풀어라. 미신처럼 단정 금지, 리듬/컨디션 조언 톤. 오늘 같은 하루 보낸 사람이 "내 얘기네" 하고 저장·공유하게.',
   astrology:
     '해당 별자리 독자가 "어 내 얘기네" 하고 멈추게, 구체적 상황 1개를 짚어라. 다른 별자리 독자도 재미있게.',
   compatibility:
     '연애/관계 공감 소재로 풀되, 이분법 단정 대신 "이런 조합은 이런 식으로 부딪히고 이렇게 풀린다"는 통찰을 담아라.',
   calendar:
-    '"언제 하느냐"가 결과를 바꾼다는 타이밍 감각을 자극해라. 오늘/이번 주에 적용할 수 있는 행동 1개.',
+    '"오늘은 이걸 하기 좋은 날 / 이건 미루는 게 나은 날"을 딱 하나 짚어 스크린샷하고 싶게 만들어라. 오늘·이번 주 바로 쓸 행동 1개. "오늘 이거 하려던 사람 잠깐!" 같은 가벼운 타이밍 알림 톤(겁주지 말 것).',
 }
 
 const CATEGORY_ANGLE_EN: Record<SocialCategory, string> = {
-  tarot: 'Tie the card of the day to one concrete everyday scene.',
-  saju: 'Turn the day pillar energy into practical "how to use today" rhythm advice — no superstition, no doom.',
+  tarot:
+    'Cast the card as a "that person who…" character — do not lead with the card name like a headline; open with one sharp behavior/scene and reveal the card as the reason (e.g. Page of Pentacles = keeps saving courses but never starting). No vague fortune-cookie/Barnum lines; make readers go "that is literally me."',
+  saju: 'Turn the day pillar energy into a "so THAT is why today felt like this" read — practical rhythm/energy advice, no superstition, no doom. Make people who had the same kind of day go "this is me" and save/share it.',
   astrology:
     'Make readers of that sign stop scrolling with one specific relatable situation; keep it fun for others too.',
   compatibility:
     'Relationship-relatable, but insightful: how this pairing clashes and how it resolves — no binary verdicts.',
   calendar:
-    'Evoke the sense that WHEN you act changes outcomes; give one action applicable today or this week.',
+    'Pin one thing that is "a good day to do X / better to hold off on Y" so it is screenshot-worthy. One action for today or this week. A light timing-alert tone ("about to do this today? hold on —"), never scary.',
 }
 
 // 카테고리별 해시태그 힌트.
@@ -355,21 +358,21 @@ function buildPrompt(
         '- 후크는 스크롤을 멈추게 하는 한 줄. 구체적 디테일 1개 + 살짝 양면의 여운.',
         `- 콘텐츠 각도: ${CATEGORY_ANGLE_KO[category]}`,
         '- 인스타 톤: 따뜻한 해요체, 감성적이고 짧게(2~4문장).',
-        '- 쓰레드 톤(중요): 브랜드 광고 말투 금지. 친구가 툭 던지듯 솔직하고 사람 냄새 나게(부드러운 해요체 + 가벼운 구어체).',
-        '  · "이 글이 보였다면 ..." 류의 부드러운 저격 훅으로 시작해 스크롤을 멈추게 하라.',
-        '  · 1~2문장마다 줄바꿈해 리듬을 만들어라(문단 덩어리 금지).',
-        '  · 소재의 구체 수치/간지/카드명을 그대로 써서 근거 있는 글로 보이게 하라.',
-        '  · 본문에 URL/링크를 절대 넣지 마라 — 링크가 있으면 쓰레드 도달이 눌린다. "프로필 링크에서 무료로" 정도로만 유도.',
+        '- 쓰레드 톤(중요): 브랜드 광고 말투 절대 금지. *반말 구어체*로, 친구한테 톡 보내듯 툭 던진다(ㅋㅋ·물음표·이모지 자연스럽게). 인스타(해요체)와 확실히 다르게.',
+        '  · *저격/팩폭 훅*으로 시작해 스크롤을 멈춘다 — "지금 딱 한 명 떠올랐지?", "이거 보고 찔렸으면 조용히 하트." 처럼 콕 집어라. 단 조롱·저주·인신공격은 금지(찔리되 기분 나쁘지 않게).',
+        '  · 1~2문장마다 줄바꿈해 리듬을 만든다(문단 덩어리 금지).',
+        '  · 소재의 구체 수치/간지/카드명/오행을 그대로 써서 "이거 어떻게 알았지" 느낌을 준다.',
+        '  · 본문에 URL/링크 절대 금지 — 링크가 있으면 도달이 눌린다. "프사 링크"로만 유도.',
         '  · 다 읽고 "이거 ○○한테 보내야겠다" 싶게, 특정한 사람이 떠오르는 한 줄을 꼭 넣어라(공유 트리거).',
-        '  · 마지막에 가벼운 참여 유도 1개(예: "당신의 생일 월을 댓글로, 몇 분께는 답글 드릴게요").',
-        '  · 쓰레드 캡션은 해시태그 제외 420자 이내로 짧게(줄바꿈 포함). 길면 스크롤에서 진다.',
+        '  · 마지막에 반말 참여 유도 1개(예: "넌 불이야 물이야? 댓글 ㄱㄱ").',
+        '  · 캡션은 해시태그 제외 420자 이내로 짧게(줄바꿈 포함). 길면 스크롤에서 진다.',
         '- 유튜브 톤: Shorts 대본(15~25초, 오프닝 훅→본문→CTA).',
         `- CTA: 인스타·유튜브는 "${ctaUrl} (로그인 없이 무료)" 를 자연스럽게. 쓰레드는 본문에 URL 금지(프로필 링크로 유도).`,
         `- 해시태그: 인스타 5~8개(${CATEGORY_TAGS_KO[category]}), 쓰레드는 0~1개만(도배는 스팸), 유튜브 #Shorts.`,
         '반드시 아래 JSON 만 출력:',
         '{"hook":"공통 후크 한 줄",',
         '"instagram":{"caption":"감성 캡션(2~4문장)","hashtags":["#태그"]},',
-        '"threads":{"caption":"대화체 글(질문 1개 포함)","hashtags":["#태그"]},',
+        '"threads":{"caption":"반말 저격 구어체(공유 트리거 + 참여 질문 1개)","hashtags":["#태그"]},',
         '"youtube":{"caption":"Shorts 제목","script":"15~25초 대본 (훅→본문→CTA)","hashtags":["#Shorts"]}}',
       ].join('\n'),
       userPrompt: [
@@ -391,13 +394,13 @@ function buildPrompt(
       '- The hook is one scroll-stopping line: one concrete detail + a slight two-sided twist.',
       `- Content angle: ${CATEGORY_ANGLE_EN[category]}`,
       '- Instagram tone: aesthetic & short (2-4 sentences).',
-      '- Threads tone (important): NOT brand-ad voice. Lowercase-casual, honest, human — like a friend tossing off a thought.',
-      '  - Open with a gentle callout hook ("if this found you today, ...").',
+      '- Threads tone (important): NOT brand-ad voice. Lowercase, blunt, a little savage — Co-Star style. Call the reader out.',
+      '  - Open with a spiky call-out hook that stops the scroll ("you already know who you just thought of.", "if this stung, just quietly like and keep scrolling."). Called-out but never cruel — no mockery or doom.',
       '  - Break lines every 1-2 sentences for rhythm (no dense paragraphs).',
-      '  - Use the concrete detail (day pillar, card name, element) so it reads grounded, not generic.',
-      '  - Never put a URL/link in the Threads body — links suppress reach. Nudge to "free via the link in bio" instead.',
+      '  - Use the concrete detail (day pillar, card name, element) so it reads "how did it know," not generic.',
+      '  - Never put a URL/link in the Threads body — links suppress reach. Nudge to "link in bio" instead.',
       '  - Add one line that makes the reader think "I have to send this to ___" (a designed share trigger).',
-      '  - End with one kind engagement prompt (e.g., "drop your birth month below — i\'ll reply to a few").',
+      '  - End with one blunt engagement prompt (e.g., "fire or water? drop it below.").',
       '  - Keep the Threads caption under 420 chars (excluding hashtags); short posts win.',
       '  - Frame it as "Korean astrology" (rides the K-wave; instantly graspable to western readers who don\'t know "Saju") crossed with their familiar zodiac — lean into "your western sign says X, your Korean chart says Y" when it fits.',
       '- YouTube: a Shorts script (15-25s, hook -> body -> CTA).',
@@ -406,7 +409,7 @@ function buildPrompt(
       'Output ONLY this JSON:',
       '{"hook":"shared one-line hook",',
       '"instagram":{"caption":"aesthetic caption (2-4 sentences)","hashtags":["#tarot"]},',
-      '"threads":{"caption":"conversational post (include 1 question)","hashtags":["#tarot"]},',
+      '"threads":{"caption":"blunt lowercase call-out (share trigger + 1 question)","hashtags":["#tarot"]},',
       '"youtube":{"caption":"Shorts title","script":"15-25s script (hook->body->CTA)","hashtags":["#Shorts"]}}',
     ].join('\n'),
     userPrompt: [

@@ -250,42 +250,99 @@ export default async function SharedReadingPage({ params }: PageProps) {
             {reading.nameA} <span style={{ color: ROSE, margin: '0 6px' }}>♥</span> {reading.nameB}
           </p>
 
-          {/* 점수 히어로 — 링크를 연 사람이 가장 먼저 보는 극적 숫자(재공유 후크). */}
-          {typeof reading.score === 'number' ? (
-            <div style={{ marginTop: 26 }}>
-              <div
-                style={{
-                  fontSize: 76,
-                  fontWeight: 800,
-                  lineHeight: 1,
-                  color: GOLD_INK,
-                  letterSpacing: '-0.02em',
-                }}
-              >
-                {reading.score}
-                <span style={{ fontSize: 26, fontWeight: 700, color: MUTE, marginLeft: 4 }}>
-                  {isKo ? '점' : '/100'}
-                </span>
-              </div>
-              {reading.grade ? (
-                <div
-                  style={{
-                    marginTop: 12,
-                    display: 'inline-block',
-                    padding: '6px 16px',
-                    borderRadius: 999,
-                    background: 'rgba(194,84,138,0.10)',
-                    border: '1px solid rgba(194,84,138,0.4)',
-                    color: ROSE,
-                    fontSize: 15,
-                    fontWeight: 700,
-                  }}
-                >
-                  {reading.grade}
-                </div>
-              ) : null}
-            </div>
-          ) : null}
+          {/* 점수 히어로 — 다운로드 1080 카드와 같은 원형 게이지로 "한 얼굴" 통일.
+              링크를 연 사람이 가장 먼저 보는 극적 숫자 + 게이지(재공유 후크). */}
+          {typeof reading.score === 'number'
+            ? (() => {
+                const R = 104
+                const C = 2 * Math.PI * R
+                const off = C * (1 - Math.max(0, Math.min(100, reading.score)) / 100)
+                return (
+                  <div
+                    style={{
+                      marginTop: 30,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                    }}
+                  >
+                    <div style={{ position: 'relative', width: 240, height: 240 }}>
+                      <svg width={240} height={240} viewBox="0 0 240 240">
+                        <defs>
+                          <linearGradient id="rGauge" x1="0" y1="0" x2="1" y2="1">
+                            <stop offset="0" stopColor="#e6c877" />
+                            <stop offset="0.55" stopColor={AMBER} />
+                            <stop offset="1" stopColor={ROSE} />
+                          </linearGradient>
+                        </defs>
+                        <circle
+                          cx="120"
+                          cy="120"
+                          r={R}
+                          fill="none"
+                          stroke="rgba(169,131,59,0.16)"
+                          strokeWidth={14}
+                        />
+                        <circle
+                          cx="120"
+                          cy="120"
+                          r={R}
+                          fill="none"
+                          stroke="url(#rGauge)"
+                          strokeWidth={14}
+                          strokeLinecap="round"
+                          strokeDasharray={C}
+                          strokeDashoffset={off}
+                          transform="rotate(-90 120 120)"
+                        />
+                      </svg>
+                      <div
+                        style={{
+                          position: 'absolute',
+                          inset: 0,
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        <span
+                          style={{
+                            fontSize: 72,
+                            fontWeight: 800,
+                            lineHeight: 1,
+                            color: GOLD_INK,
+                            letterSpacing: '-0.02em',
+                          }}
+                        >
+                          {reading.score}
+                        </span>
+                        <span style={{ fontSize: 15, fontWeight: 700, color: MUTE, marginTop: 4 }}>
+                          {isKo ? '점' : '/100'}
+                        </span>
+                      </div>
+                    </div>
+                    {reading.grade ? (
+                      <div
+                        style={{
+                          marginTop: 16,
+                          display: 'inline-block',
+                          padding: '6px 16px',
+                          borderRadius: 999,
+                          background: 'rgba(194,84,138,0.10)',
+                          border: '1px solid rgba(194,84,138,0.4)',
+                          color: ROSE,
+                          fontSize: 15,
+                          fontWeight: 700,
+                        }}
+                      >
+                        {reading.grade}
+                      </div>
+                    ) : null}
+                  </div>
+                )
+              })()
+            : null}
 
           <div
             style={{

@@ -354,7 +354,7 @@ export function CompatChartModal({
       const other = sp.from === 'A' ? labelB : labelA
       return isKo
         ? `${who}에게 ${withNeun(other)} ‘${feeling}’의 짝으로 와요. 게다가 바로 배우자 자리에 떠 있고요.`
-        : `To ${who}, ${other} reads as a "${feeling}" partner — landing right in the spouse seat.`
+        : `${other} lands right in ${who}'s spouse seat — a "${feeling}" match.`
     }
     const a0 = synView?.aspects[0]
     if (a0) {
