@@ -42,6 +42,16 @@ describe('sitemap — 언어별 URL 쌍', () => {
     }
   })
 
+  it('타로 카드 사전(인덱스 + 78장)이 en/ko 쌍으로 들어간다', () => {
+    expect(urls.has(`${BASE}/tarot/cards`)).toBe(true)
+    expect(urls.has(`${BASE}/ko/tarot/cards`)).toBe(true)
+    expect(urls.has(`${BASE}/tarot/cards/the-fool`)).toBe(true)
+    expect(urls.has(`${BASE}/ko/tarot/cards/the-fool`)).toBe(true)
+    const cardEntries = entries.filter((e) => e.url.includes('/tarot/cards/'))
+    // 78장 × en/ko
+    expect(cardEntries).toHaveLength(156)
+  })
+
   it('중복 URL 이 없다', () => {
     expect(urls.size).toBe(entries.length)
   })

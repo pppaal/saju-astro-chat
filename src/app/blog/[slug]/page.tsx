@@ -3,7 +3,7 @@ import { notFound, redirect } from 'next/navigation'
 import { blogPosts } from '@/data/blog-posts'
 import { isBlockedBlogPost } from '@/data/blog/publicFilters'
 import { JsonLd } from '@/components/seo/JsonLd'
-import { generateJsonLd } from '@/components/seo/SEO'
+import { generateJsonLd, toKoUrl } from '@/components/seo/SEO'
 import BlogPostClient from './BlogPostClient'
 
 type Props = {
@@ -37,6 +37,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://destinypal.com'
+  const postUrl = `${baseUrl}/blog/${post.slug}`
+  const koPostUrl = toKoUrl(postUrl, baseUrl)
 
   return {
     title: post.title,
@@ -77,11 +79,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       images: [`${baseUrl}/og-image.png`],
     },
     alternates: {
-      canonical: `${baseUrl}/blog/${post.slug}`,
+      // hreflang 은 /ko 경로 프리픽스 규약(proxy.ts·SEO.tsx)을 따른다.
+      // canonical 은 정적 생성(generateStaticParams) 페이지라 요청 로케일을
+      // 읽을 수 없어 베어(en) URL 로 고정 — 본문이 locale SSR 로 바뀌면 그때
+      // SEO.tsx 의 로케일별 canonical 로 승격.
+      canonical: postUrl,
       languages: {
-        'ko-KR': `${baseUrl}/blog/${post.slug}`,
-        'en-US': `${baseUrl}/blog/${post.slug}`,
-        'x-default': `${baseUrl}/blog/${post.slug}`,
+        'ko-KR': koPostUrl,
+        'en-US': postUrl,
+        'x-default': postUrl,
       },
     },
   }

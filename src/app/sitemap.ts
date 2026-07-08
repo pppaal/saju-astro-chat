@@ -2,6 +2,7 @@ import { MetadataRoute } from 'next'
 import { blogPosts } from '@/data/blog-posts'
 import { isBlockedBlogPost } from '@/data/blog/publicFilters'
 import { ENABLED_SERVICES } from '@/config/enabledServices'
+import { ALL_CARD_SLUGS } from '@/lib/tarot/cardPages'
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://destinypal.com'
 
@@ -97,6 +98,23 @@ export default function sitemap(): MetadataRoute.Sitemap {
     })
   )
 
+  // 타로 카드 의미 사전 — 프로그램매틱 SEO 표면(인덱스 + 78장 상세).
+  // 콘텐츠는 덱 SSOT 에서 렌더되는 상시(evergreen) 페이지.
+  const tarotCardPages: MetadataRoute.Sitemap = [
+    ...localizedEntries('/tarot/cards', {
+      lastModified: currentDate,
+      changeFrequency: 'monthly',
+      priority: 0.8,
+    }),
+    ...ALL_CARD_SLUGS.flatMap((slug) =>
+      localizedEntries(`/tarot/cards/${slug}`, {
+        lastModified: currentDate,
+        changeFrequency: 'monthly',
+        priority: 0.7,
+      })
+    ),
+  ]
+
   // Blog posts (ko/en 본문이 같은 slug 에 공존 — 언어별 URL 로 각각 색인)
   const blogPages: MetadataRoute.Sitemap = blogPosts
     .filter((post) => !isBlockedBlogPost(post))
@@ -108,5 +126,5 @@ export default function sitemap(): MetadataRoute.Sitemap {
       })
     )
 
-  return [...mainPages, ...servicePages, ...policyPages, ...blogPages]
+  return [...mainPages, ...servicePages, ...policyPages, ...tarotCardPages, ...blogPages]
 }
