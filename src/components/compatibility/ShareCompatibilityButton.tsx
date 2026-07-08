@@ -12,11 +12,10 @@
 
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import * as htmlToImage from 'html-to-image'
-import { Share2, Download, Loader2, X, Link2, Check, MessageCircle } from 'lucide-react'
+import { Share2, Download, Loader2, X, Link2, Check } from 'lucide-react'
 import { apiFetch } from '@/lib/api'
 import { logger } from '@/lib/logger'
 import { makeShareQr } from '@/lib/share/qr'
-import { isKakaoConfigured, shareToKakao } from '@/lib/share/kakao'
 import {
   CompatShareCard,
   COMPAT_SHARE_CARD_SIZE,
@@ -48,23 +47,11 @@ export function ShareCompatibilityButton({
   const [qrDataUrl, setQrDataUrl] = useState<string | undefined>(undefined)
   // 링크 공유: 'idle' | 'creating' | 'copied'
   const [linkPhase, setLinkPhase] = useState<'idle' | 'creating' | 'copied'>('idle')
-  // 카톡 공유: 'idle' | 'creating'
-  const [kakaoPhase, setKakaoPhase] = useState<'idle' | 'creating'>('idle')
-  // 카톡 공유 가능 여부(키 설정 + 브라우저) — SSR 하이드레이션 불일치를 피해
-  // 마운트 후에만 켠다.
-  const [kakaoAvailable, setKakaoAvailable] = useState(false)
-  useEffect(() => {
-    setKakaoAvailable(isKakaoConfigured())
-  }, [])
   // 더블클릭으로 토큰이 두 번 발급되지 않게 하는 동기 가드.
   const linkBusyRef = useRef(false)
-  // 링크/카톡 공유가 같은 토큰을 재사용하도록 캐시(중복 발급 방지).
-  const shareUrlRef = useRef<string | null>(null)
 
-  // 공개 공유 링크 발급(서버에 verdict 토큰 저장). 실패 시 null. 한 번 발급하면
-  // 캐시해 링크·카톡 버튼이 같은 토큰을 공유한다.
+  // 공개 공유 링크 발급(서버에 verdict 토큰 저장). 실패 시 null.
   const createShareUrl = useCallback(async (): Promise<string | null> => {
-    if (shareUrlRef.current) return shareUrlRef.current
     try {
       const res = await apiFetch('/api/compatibility/share', {
         method: 'POST',
@@ -89,7 +76,6 @@ export function ShareCompatibilityButton({
         setError(isKo ? '링크를 만들지 못했어요.' : 'Could not create a link.')
         return null
       }
-      shareUrlRef.current = url
       return url
     } catch (err) {
       logger.error('[ShareCompat] link create failed', err instanceof Error ? err : undefined)
@@ -135,41 +121,6 @@ export function ShareCompatibilityButton({
     } finally {
       linkBusyRef.current = false
       setLinkPhase((p) => (p === 'creating' ? 'idle' : p))
-    }
-  }, [createShareUrl, data, isKo])
-
-  // 카톡으로 공유 — 토큰 발급 후 카카오 피드 카드 전송(제목/설명/OG 이미지/버튼).
-  // 한국 바이럴의 핵심 채널. SDK 실패 시 클립보드 복사로 폴백해 흐름이 끊기지 않게 한다.
-  const handleShareKakao = useCallback(async () => {
-    if (linkBusyRef.current) return
-    linkBusyRef.current = true
-    setError(null)
-    setKakaoPhase('creating')
-    try {
-      const url = await createShareUrl()
-      if (!url) return
-      trackFunnel('compat_free.share_kakao')
-      const ok = await shareToKakao({
-        title: isKo ? 'DestinyPal 궁합' : 'DestinyPal Compatibility',
-        description: data.verdict || `${data.nameA} ♥ ${data.nameB}`,
-        // 공개 OG 이미지(/r/{token}/opengraph-image) — 카톡 서버가 크롤 가능한 https.
-        imageUrl: `${url}/opengraph-image`,
-        link: url,
-        buttonTitle: isKo ? '나도 궁합 보기' : 'Check your match',
-      })
-      if (!ok) {
-        // SDK 미로드/미설정 등 — 클립보드 복사 폴백.
-        try {
-          await navigator.clipboard.writeText(url)
-          setLinkPhase('copied')
-          setTimeout(() => setLinkPhase('idle'), 2000)
-        } catch {
-          setError(isKo ? `링크: ${url}` : `Link: ${url}`)
-        }
-      }
-    } finally {
-      linkBusyRef.current = false
-      setKakaoPhase('idle')
     }
   }, [createShareUrl, data, isKo])
 
@@ -398,32 +349,6 @@ export function ShareCompatibilityButton({
                     : 'Let friends check their match with me (your birth date is included in the link)'}
                 </span>
               </label>
-            ) : null}
-
-            {/* 카톡으로 공유 — 한국 바이럴의 핵심 채널. 받는 사람이 카톡에서
-                바로 예쁜 카드 + "나도 궁합 보기" 버튼을 본다. 키가 설정된
-                환경에서만 노출(미설정이면 링크/이미지 공유로 폴백). */}
-            {kakaoAvailable ? (
-              <button
-                type="button"
-                onClick={() => void handleShareKakao()}
-                disabled={kakaoPhase === 'creating' || linkPhase === 'creating'}
-                className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors disabled:opacity-60 disabled:cursor-not-allowed mb-2"
-                style={{ background: '#FEE500', color: '#191600' }}
-              >
-                {kakaoPhase === 'creating' ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <MessageCircle className="w-4 h-4" />
-                )}
-                {kakaoPhase === 'creating'
-                  ? isKo
-                    ? '카톡 여는 중…'
-                    : 'Opening Kakao…'
-                  : isKo
-                    ? '카카오톡으로 공유'
-                    : 'Share on KakaoTalk'}
-              </button>
             ) : null}
 
             {/* 링크로 공유 — 받는 사람이 한 번 탭하면 우리 사이트로(가장 바이럴). */}

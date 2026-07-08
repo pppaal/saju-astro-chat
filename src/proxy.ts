@@ -33,9 +33,6 @@ const _cspConnectSrc: string = (() => {
     'https://www.googletagmanager.com',
     'https://www.clarity.ms',
     'https://vitals.vercel-insights.com',
-    // 카카오 공유 SDK — sendDefault 시 kapi/sharer 로 요청.
-    'https://*.kakao.com',
-    'https://t1.kakaocdn.net',
     'wss:',
   ]
   return src.join(' ')
