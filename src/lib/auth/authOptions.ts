@@ -1,6 +1,7 @@
 import type { NextAuthConfig } from 'next-auth'
 import type { Adapter, AdapterAccount, AdapterUser } from 'next-auth/adapters'
 import GoogleProvider from 'next-auth/providers/google'
+import KakaoProvider from 'next-auth/providers/kakao'
 import * as Sentry from '@sentry/nextjs'
 import { prisma } from '@/lib/db/prisma'
 import { withDbRetry } from '@/lib/db/retry'
@@ -269,6 +270,20 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
           prompt: 'select_account',
         },
       },
+    })
+  )
+}
+
+// 카카오 로그인 — 한국 시장 핵심 진입로. 구글 OAuth 는 카톡/인스타 인앱
+// 브라우저에서 disallowed_useragent 로 막히지만(외부 브라우저 점프 우회 중)
+// 카카오 OAuth 는 웹뷰에서도 동작해, 카톡으로 퍼진 공유 링크의 로그인 전환이
+// 끊기지 않는다. User.email 은 nullable — 카카오가 이메일 미제공(동의 항목
+// 미승인)이어도 가입은 진행된다. env 미설정 시 버튼/provider 모두 비노출.
+if (process.env.KAKAO_CLIENT_ID && process.env.KAKAO_CLIENT_SECRET) {
+  providers.push(
+    KakaoProvider({
+      clientId: process.env.KAKAO_CLIENT_ID,
+      clientSecret: process.env.KAKAO_CLIENT_SECRET,
     })
   )
 }

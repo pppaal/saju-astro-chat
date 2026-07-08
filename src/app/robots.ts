@@ -4,7 +4,9 @@ export default function robots(): MetadataRoute.Robots {
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://destinypal.com'
 
   // 비공개·기능 경로 — 모든 크롤러(AI 포함)에게 동일하게 차단.
-  const disallow = [
+  // /ko 경로 프리픽스(proxy.ts 리라이트)로도 같은 페이지가 열리므로
+  // 각 항목의 /ko 변형도 함께 차단한다.
+  const privatePaths = [
     '/api/',
     '/admin/',
     '/_next/',
@@ -17,6 +19,7 @@ export default function robots(): MetadataRoute.Robots {
     '/shared/',
     '/tarot/history/',
   ]
+  const disallow = [...privatePaths, ...privatePaths.map((p) => `/ko${p}`)]
 
   // GEO(생성형 엔진 최적화) — ChatGPT·Perplexity·Claude·Gemini 등 AI 답변에
   // 인용/노출되도록 주요 AI 크롤러를 명시적으로 허용한다. 검색·브라우징(인용)

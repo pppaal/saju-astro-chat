@@ -4,6 +4,8 @@ import { render, screen, cleanup, act, fireEvent } from '@testing-library/react'
 
 vi.mock('next-auth/react', () => ({
   signIn: vi.fn(),
+  // 카카오 버튼 노출 판단용 — 기본은 provider 정보 없음(구글 단독과 동일 동작)
+  getProviders: vi.fn(async () => null),
 }))
 
 import { signIn } from 'next-auth/react'

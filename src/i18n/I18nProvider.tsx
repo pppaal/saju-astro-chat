@@ -383,7 +383,14 @@ export function I18nProvider({
       const hadPin = url.searchParams.has('lang') || url.searchParams.has('locale')
       url.searchParams.delete('lang')
       url.searchParams.delete('locale')
-      if (hadPin) window.location.replace(url.toString())
+      // /ko 경로 프리픽스(proxy.ts 리라이트)도 ?lang 과 같은 URL 핀이다 —
+      // 프리픽스를 남긴 채 리로드하면 URL 이 쿠키 토글을 다시 덮어써
+      // EN 전환이 영영 안 먹는다. 베어 경로로 벗겨서 리로드한다.
+      const hadKoPrefix = url.pathname === '/ko' || url.pathname.startsWith('/ko/')
+      if (hadKoPrefix) {
+        url.pathname = url.pathname === '/ko' ? '/' : url.pathname.slice(3)
+      }
+      if (hadPin || hadKoPrefix) window.location.replace(url.toString())
       else window.location.reload()
       return
     }

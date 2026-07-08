@@ -102,9 +102,20 @@ describe('authOptions', () => {
       expect(googleProvider).toBeDefined()
     })
 
-    it('should not include Kakao provider (not implemented)', async () => {
+    it('should include Kakao provider when configured', async () => {
       process.env.KAKAO_CLIENT_ID = 'kakao-client-id'
       process.env.KAKAO_CLIENT_SECRET = 'kakao-client-secret'
+      process.env.NEXTAUTH_SECRET = 'test-secret'
+
+      const { authOptions } = await import('@/lib/auth/authOptions')
+
+      const kakaoProvider = authOptions.providers.find((p) => p.id === 'kakao')
+      expect(kakaoProvider).toBeDefined()
+    })
+
+    it('should not include Kakao provider without env credentials', async () => {
+      delete process.env.KAKAO_CLIENT_ID
+      delete process.env.KAKAO_CLIENT_SECRET
       process.env.NEXTAUTH_SECRET = 'test-secret'
 
       const { authOptions } = await import('@/lib/auth/authOptions')

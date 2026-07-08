@@ -119,6 +119,23 @@ const DEFAULT_LOCALE = 'en'
 const LOCALE_COOKIE = 'locale'
 const LOCALE_COOKIE_MAX_AGE = 60 * 60 * 24 * 365 // 1 year
 
+// ── /ko 경로 프리픽스 (SEO: 한국어 고유 URL) ──
+// 쿠키/Accept-Language 기반 단일 URL i18n 은 크롤러 입장에서 en/ko 가 같은
+// URL 을 놓고 경쟁해 hreflang 이 무력했다. /ko/* 를 실제 라우트로 리라이트해
+// 앱 트리 재구성 없이 한국어 콘텐츠에 색인 가능한 고유 URL 을 준다.
+// 베어 경로(/)는 영어 canonical, /ko/... 는 한국어 canonical — hreflang 쌍은
+// SEO.tsx / sitemap.ts 가 이 규약을 기준으로 생성한다.
+function stripKoPrefix(pathname: string): string | null {
+  if (pathname === '/ko') return '/'
+  if (pathname.startsWith('/ko/')) {
+    const rest = pathname.slice(3)
+    // API 는 로케일 프리픽스 대상이 아님 — 리라이트하면 CSRF 게이트를 우회한다
+    if (rest === '/api' || rest.startsWith('/api/')) return null
+    return rest
+  }
+  return null
+}
+
 function pickLocaleFromAcceptLanguage(header: string | null): string {
   if (!header) return DEFAULT_LOCALE
   // Parse "ko-KR,ko;q=0.9,en;q=0.8" — take first supported lang in order
@@ -158,7 +175,11 @@ function resolveLocale(request: NextRequest): {
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
 
-  if (isBlockedServicePath(pathname)) {
+  // /ko/... 는 스트립된 실제 경로 기준으로 이후 로직(삭제 서비스 리다이렉트 등)을 태운다
+  const koPath = stripKoPrefix(pathname)
+  const effectivePath = koPath ?? pathname
+
+  if (isBlockedServicePath(effectivePath)) {
     const redirectUrl = request.nextUrl.clone()
     redirectUrl.pathname = '/'
     return NextResponse.redirect(redirectUrl)
@@ -201,11 +222,20 @@ export function proxy(request: NextRequest) {
     request.headers.has('rsc') ||
     request.headers.has('next-router-state-tree') ||
     accept.includes('text/x-component')
-  if (!isHtml && !isRsc) {
+  // /ko 경로는 accept 와 무관하게 리라이트가 필요하다(크롤러가 text/html 을
+  // 안 보내는 경우에도 404 가 아니라 페이지가 나가야 함). 그 외 경로는
+  // 기존대로 HTML/RSC 요청에만 로케일을 주입한다.
+  if (koPath === null && !isHtml && !isRsc) {
     return NextResponse.next()
   }
 
-  const { locale, fromCookie } = resolveLocale(request)
+  const resolved = resolveLocale(request)
+  // /ko URL 은 ?lang 핀과 같은 강제 로케일 — 쿠키/헤더보다 우선하고,
+  // 이후 베어 경로 네비게이션도 한국어가 유지되게 쿠키로 저장한다.
+  const locale = koPath !== null ? 'ko' : resolved.locale
+  const fromCookie =
+    koPath !== null ? request.cookies.get(LOCALE_COOKIE)?.value === 'ko' : resolved.fromCookie
+
   const requestHeaders = new Headers(request.headers)
   requestHeaders.set('x-locale', locale)
 
@@ -215,11 +245,19 @@ export function proxy(request: NextRequest) {
     requestHeaders.set('x-nonce', nonce)
   }
 
-  const response = NextResponse.next({
-    request: { headers: requestHeaders },
-  })
+  let response: NextResponse
+  if (koPath !== null) {
+    const rewriteUrl = request.nextUrl.clone()
+    rewriteUrl.pathname = koPath
+    response = NextResponse.rewrite(rewriteUrl, { request: { headers: requestHeaders } })
+  } else {
+    response = NextResponse.next({ request: { headers: requestHeaders } })
+  }
   if (nonce) {
-    response.headers.set('Content-Security-Policy', buildCsp(nonce, pathname.startsWith('/admin')))
+    response.headers.set(
+      'Content-Security-Policy',
+      buildCsp(nonce, effectivePath.startsWith('/admin'))
+    )
   }
   response.headers.set('Content-Language', locale)
   // Tell crawlers/CDNs the same URL serves different content per cookie

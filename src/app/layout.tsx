@@ -202,8 +202,10 @@ export const metadata: Metadata = {
   alternates: {
     canonical: '/',
     languages: {
+      // /ko 경로 프리픽스(proxy.ts 리라이트)로 한국어가 고유 URL 을 갖는다.
+      // 같은 URL 을 en/ko 가 공유하면 hreflang 이 무력해 서로 경쟁했다.
       'en-US': '/',
-      'ko-KR': '/',
+      'ko-KR': '/ko',
       'x-default': '/',
     },
   },
