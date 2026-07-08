@@ -18,6 +18,7 @@ import {
 } from '@/lib/api/middleware'
 import { createShareLink, siteBaseUrl, type LifeShareLinkPayload } from '@/lib/tarot/shareLink'
 import { recordCounter } from '@/lib/metrics/index'
+import { bumpShareCreated } from '@/lib/metrics/shareCounts'
 import { logger } from '@/lib/logger'
 
 export const dynamic = 'force-dynamic'
@@ -71,6 +72,7 @@ export const POST = withApiMiddleware(
     }
 
     recordCounter('life.share.created', 1, { source: context.userId ? 'user' : 'guest' })
+    await bumpShareCreated('life')
 
     const path = `/r/${token}`
     return apiSuccess({ token, path, url: `${siteBaseUrl()}${path}` })

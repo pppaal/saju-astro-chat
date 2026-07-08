@@ -8,8 +8,15 @@
 
 import { cacheIncr, cacheMGetNumbers } from '@/lib/cache/redis-cache'
 
-export type ShareKind = 'report' | 'compatibility' | 'tarot' | 'calendar'
-export const SHARE_KINDS: readonly ShareKind[] = ['report', 'compatibility', 'tarot', 'calendar']
+export type ShareKind = 'report' | 'compatibility' | 'tarot' | 'calendar' | 'life' | 'day'
+export const SHARE_KINDS: readonly ShareKind[] = [
+  'report',
+  'compatibility',
+  'tarot',
+  'calendar',
+  'life',
+  'day',
+]
 
 // 최대 조회(90일)보다 길게 보존해 경계 손실 방지.
 const TTL_SECONDS = 100 * 24 * 60 * 60
@@ -47,6 +54,8 @@ export async function getShareCreatedCounts(
     compatibility: 0,
     tarot: 0,
     calendar: 0,
+    life: 0,
+    day: 0,
   }
   let total = 0
   vals.forEach((v, i) => {

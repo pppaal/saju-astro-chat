@@ -1576,11 +1576,17 @@ export function buildFreeCompatNarrative(
         }
       }
     }
-    // 오행 균형
+    // 오행 균형 — complement(서로 채움) / skewed(합쳐도 치우침) / balanced(고름).
+    // complement 는 "빈 기운을 상대가 채운다"라 병합 range 가 아니라 *상호 보완*
+    // 신호로 판정한다. band.elements_match 는 방향당 +20 이라 40+ 면 양방향 보완.
+    // (예전엔 balanced=range<4 라 `else if(range>=4)` 가 항상 참 → complement 가
+    // 도달 불가 죽은 가지였고, 보완형 커플도 elements_match 바와 모순되게 'skewed'
+    // 로 잘못 나왔다.)
     const eb = report.elementBalance
     if (eb) {
-      if (eb.balanced) {
-        paras.push(t(elementBi('balanced')))
+      const complement = (report.band?.elements_match ?? 0) >= 40
+      if (complement) {
+        paras.push(t(elementBi('complement')))
       } else if (eb.range >= 4) {
         paras.push(
           fill(t(elementBi('skewed')), {
@@ -1589,7 +1595,7 @@ export function buildFreeCompatNarrative(
           })
         )
       } else {
-        paras.push(t(elementBi('complement')))
+        paras.push(t(elementBi('balanced')))
       }
     }
     if (paras.length) {
@@ -1805,14 +1811,18 @@ export function buildFreeCompatNarrative(
   }
   if (report.elementBalance) {
     const eb = report.elementBalance
-    const base = eb.balanced
-      ? t(elementBi('balanced'))
+    // grain 섹션과 동일 판정 — complement 는 상호 보완(band.elements_match 40+),
+    // 아니면 range 로 skewed/balanced. (예전 `eb.balanced ? … : range>=4 ? … :
+    // complement` 는 complement 가 도달 불가라 죽은 가지였다.)
+    const complement = (report.band?.elements_match ?? 0) >= 40
+    const base = complement
+      ? t(elementBi('complement'))
       : eb.range >= 4
         ? fill(t(elementBi('skewed')), {
             strongEl: elLabel(eb.strongest, isKo),
             weakEl: elLabel(eb.weakest, isKo),
           })
-        : t(elementBi('complement'))
+        : t(elementBi('balanced'))
     // 1인별 분포 — 각자 어느 기운이 가장 도드라지는지 한 줄 덧붙임.
     const topEl = (rec: Record<string, number>): string | null => {
       const e = Object.entries(rec).sort((x, y) => y[1] - x[1])[0]
@@ -1835,7 +1845,7 @@ export function buildFreeCompatNarrative(
       theme: 'life',
       weight: 1,
       text: base + perPerson,
-      pol: eb.balanced ? 1 : eb.range >= 4 ? -1 : 1,
+      pol: complement ? 1 : eb.range >= 4 ? -1 : 1,
     })
   }
   if (report.synView) {

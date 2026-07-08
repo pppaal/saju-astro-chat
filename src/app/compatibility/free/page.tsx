@@ -903,7 +903,14 @@ function ResultView({
             isKo,
             nameA: labelA,
             nameB: labelB,
-            verdict: verdict?.text || '',
+            // crossVerdict 가 없는 리포트(사주 cross·별자리 aspect 둘 다 없음)도 공유
+            // 가능해야 한다 — 빈 verdict 는 공유 API zod(min1)에서 400 으로 막혀 바이럴
+            // 루프가 조용히 끊겼다. 신호 없을 때만 중립 한 줄로 폴백.
+            verdict:
+              verdict?.text ||
+              (isKo
+                ? '끌림과 마찰이 고르게 섞인 사이예요.'
+                : 'A balanced mix of pull and friction.'),
             verdictTone: verdict?.tone || 'neutral',
             headline: headlineReason || '',
             score: view.overallScore,
