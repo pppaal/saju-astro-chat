@@ -85,12 +85,12 @@ const FREE_TOOLS: readonly FreeTool[] = [
   },
   {
     href: '/destiny',
-    emoji: '🌊',
+    emoji: '🌙',
     tint: '#38bdf8',
-    title: { ko: '인생 흐름', en: 'Life Flow' },
+    title: { ko: '내 인생유형 · 인생 흐름', en: 'My Life Type · Life Flow' },
     desc: {
-      ko: '생년월일만 넣으면 인생 전체와 올해의 큰 흐름을 한눈에 봐요.',
-      en: 'Just your birth date — see your whole-life arc and this-year flow at a glance.',
+      ko: '생년월일만 넣으면 대기만성형·초년발복형 같은 “내 인생유형”과 평생 흐름을 한눈에. 캡처해서 친구랑 비교해 보세요.',
+      en: 'Just your birth date — see your life type (late bloomer, early peak…) and whole-life arc. Screenshot it and compare with friends.',
     },
     badge: { ko: '완전 무료 · 로그인 X', en: 'Free · no sign-up' },
   },
@@ -196,8 +196,8 @@ export default async function FreeFunnelHub() {
           }}
         >
           {isKo
-            ? '타로 한 장, 궁합, 인생 흐름, 사주·별자리 리포트까지 — 가입 없이 받아보고 마음에 들면 친구에게도 공유해 보세요.'
-            : 'A tarot card, compatibility, your life flow, and a Saju + astrology report — try them with no sign-up, then share with a friend.'}
+            ? '타로 한 장, 궁합, 내 인생유형, 사주·별자리 리포트까지 — 가입 없이 받아보고 마음에 들면 친구에게도 공유해 보세요.'
+            : 'A tarot card, compatibility, your life type, and a Saju + astrology report — try them with no sign-up, then share with a friend.'}
         </p>
 
         {/* 무료 도구 그리드 */}
