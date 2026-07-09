@@ -48,4 +48,10 @@ describe('buildPersonSeed — 시간 미상 정오 앵커', () => {
     expect(seed?.time).toBe(TIME_UNKNOWN_ANCHOR)
     expect(seed?.timeUnknown).toBe(true)
   })
+
+  it("tri-state: 명시 플래그 false + '00:00' 은 실제 자정 출생 — 자정 그대로 계산", () => {
+    const seed = buildPersonSeed({ ...BASE, birthTime: '00:00', timeUnknown: false })
+    expect(seed?.time).toBe('00:00')
+    expect(seed?.timeUnknown).toBe(false)
+  })
 })

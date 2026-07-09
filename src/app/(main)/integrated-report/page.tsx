@@ -59,11 +59,17 @@ export default async function IntegratedReportPage({
     )
   }
   const birthDate = one(sp.date) ?? '1992-03-15'
-  // 출생시각 미상 — ?time= 없거나 '00:00'(앱 저장 규약상 미상)이면 정오 앵커로
-  // 차트 계산(진태양시 보정이 날짜 경계를 못 넘게 + 달 오차 최소화)하되,
-  // birthTimeUnknown 플래그를 세워 ASC/MC/하우스 의존 해석을 신뢰불가로 처리·경고.
-  // 판정·앵커는 birthTimeAnchor SSOT — 궁합/상담사/캘린더와 같은 규약.
-  const { time: birthTime, timeUnknown: birthTimeUnknown } = resolveBirthTimeAnchor(one(sp.time))
+  // 출생시각 미상 — 정오 앵커로 차트 계산(진태양시 보정이 날짜 경계를 못 넘게 +
+  // 달 오차 최소화)하되, birthTimeUnknown 플래그를 세워 ASC/MC/하우스 의존 해석을
+  // 신뢰불가로 처리·경고. 판정·앵커는 birthTimeAnchor SSOT(tri-state) —
+  // ?tu=1|0 명시 플래그(buildReportBirthQuery)가 있으면 신뢰(tu=0 + time=00:00 =
+  // 실제 자정 출생), 없으면 레거시 휴리스틱(?time 생략/'00:00' = 미상).
+  const tuRaw = one(sp.tu)
+  const tuFlag = tuRaw === '1' ? true : tuRaw === '0' ? false : undefined
+  const { time: birthTime, timeUnknown: birthTimeUnknown } = resolveBirthTimeAnchor(
+    one(sp.time),
+    tuFlag
+  )
   // 출생지 미상 — 좌표가 없으면 기본(서울)로 계산되므로 ASC/MC/하우스·profection
   // 군주를 신뢰불가로 처리해야 한다(시각만 알아도 위치 모르면 앵글/하우스 날조).
   const rawLat = one(sp.lat)

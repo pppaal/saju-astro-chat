@@ -13,6 +13,7 @@ import InlineTarotModal, {
 import ChatActionModals from '@/components/counselor/ChatActionModals'
 import type { useChatActions } from '@/lib/counselor/useChatActions'
 import type { useClarifierCard } from '@/hooks/useClarifierCard'
+import { isBirthTimeUnknown } from '@/lib/saju/birthTimeAnchor'
 import { CompatChartModal } from './CompatChartModal'
 import { CompatPersonPickerModal, type PickedPersonData } from './CompatPersonPickerModal'
 import type { PersonData } from './types'
@@ -107,10 +108,11 @@ export function CompatCounselorModals({
         person2Saju={person2Saju}
         person1Astro={person1Astro}
         person2Astro={person2Astro}
-        // 시각 미상 — 서버 라우트(isTimeUnknown)와 동일 규칙(누락/00:00). 차트가
-        // 상담사처럼 날조된 子시 시주 cross 를 만들지 않게 facts 경로에 전달.
-        timeUnknownA={!persons[0]?.time || persons[0]?.time === '00:00'}
-        timeUnknownB={!persons[1]?.time || persons[1]?.time === '00:00'}
+        // 시각 미상 — 서버 라우트(buildPersonSeed)와 동일 tri-state SSOT. 차트가
+        // 상담사처럼 날조된 시주 cross 를 만들지 않게 facts 경로에 전달.
+        // (명시 플래그 false + '00:00' = 실제 자정 출생 → 시주 유효.)
+        timeUnknownA={isBirthTimeUnknown(persons[0]?.time, persons[0]?.timeUnknown)}
+        timeUnknownB={isBirthTimeUnknown(persons[1]?.time, persons[1]?.timeUnknown)}
         nameA={persons[0]?.name || ''}
         nameB={persons[1]?.name || ''}
         lang={isKo ? 'ko' : 'en'}

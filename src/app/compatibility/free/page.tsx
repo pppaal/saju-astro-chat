@@ -192,7 +192,8 @@ export default function FreeCompatibilityPage() {
           key: 'me',
           label: isKo ? '내 정보' : 'My info',
           name: seed.name || '',
-          ...timeToState(seed.birthTime),
+          // tri-state SSOT — 명시 플래그가 있으면 신뢰(false + '00:00' = 실제 자정).
+          ...timeToState(seed.birthTime, seed.birthTimeUnknown),
           birthDate: seed.birthDate,
           gender: normGender(seed.gender),
           city: seed.city || '',
@@ -217,7 +218,8 @@ export default function FreeCompatibilityPage() {
               sub: u.name || undefined,
               name: u.name || '',
               birthDate: u.birthDate || '',
-              ...timeToState(u.birthTime),
+              // DB 명시 플래그(tri-state) — 실제 자정 출생('00:00' + false) 보존.
+              ...timeToState(u.birthTime, u.birthTimeUnknown),
               gender: normGender(u.gender),
               city: u.birthCity || '',
               latitude: u.latitude ?? null,
@@ -235,7 +237,7 @@ export default function FreeCompatibilityPage() {
           label: isKo ? '내 정보' : 'My info',
           name: seed.name || '',
           birthDate: seed.birthDate,
-          ...timeToState(seed.birthTime),
+          ...timeToState(seed.birthTime, seed.birthTimeUnknown),
           gender: normGender(seed.gender),
           city: seed.city || '',
           latitude: seed.latitude ?? null,
@@ -257,7 +259,8 @@ export default function FreeCompatibilityPage() {
                 sub: p.relation || undefined,
                 name: p.name || '',
                 birthDate: p.birthDate || '',
-                ...timeToState(p.birthTime),
+                // Circle DB 명시 플래그(tri-state) — 레거시 행(NULL)은 휴리스틱.
+                ...timeToState(p.birthTime, p.birthTimeUnknown),
                 gender: normGender(p.gender),
                 city: p.birthCity || '',
                 latitude: p.latitude ?? null,

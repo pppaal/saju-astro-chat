@@ -9,6 +9,8 @@ export type SavedPerson = {
   relation: string
   birthDate?: string | null
   birthTime?: string | null
+  /** 시각 미상 명시 플래그 — null/미존재 = 레거시 행('00:00'=미상 휴리스틱 폴백). */
+  birthTimeUnknown?: boolean | null
   gender?: string | null
   birthCity?: string | null
   latitude?: number | null

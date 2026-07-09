@@ -23,6 +23,7 @@ import {
   type StoredBirthInfo,
 } from './birthInfoStorage'
 import { parseHourMinute } from '@/lib/saju/timeParse'
+import { isBirthTimeUnknown } from '@/lib/saju/birthTimeAnchor'
 import HexDPLogo from '@/components/branding/HexDPLogo'
 import { AppHeader, AppHeaderIconButton } from '@/components/ui/AppHeader'
 
@@ -41,7 +42,8 @@ function formatSubject(info: StoredBirthInfo, isKo: boolean): string {
     ? `${y}년 ${m}월 ${d}일`
     : `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`
   let timePart = ''
-  if (!info.birthTimeUnknown && info.birthTime && info.birthTime !== '00:00') {
+  // tri-state SSOT — 명시 플래그 false + '00:00' 은 실제 자정 출생이라 12:00am 표시.
+  if (!isBirthTimeUnknown(info.birthTime, info.birthTimeUnknown)) {
     // SSOT 파서 — birthTime 이 'HH:MM PM' 으로 들어와도 24h 로 정규화(split 직접
     // 파싱은 PM 보정을 못 해 표시가 12시간 어긋난다).
     const { h: hh, m: mm } = parseHourMinute(info.birthTime)

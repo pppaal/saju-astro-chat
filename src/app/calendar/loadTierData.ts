@@ -72,9 +72,13 @@ export function parseBirthOverride(sp: SP): BirthOverride | null {
   const lngRaw = one(sp.lng)
   const lat = latRaw ? Number(latRaw) : NaN
   const lng = lngRaw ? Number(lngRaw) : NaN
-  // 시간 미상(파라미터 생략 또는 레거시 링크의 '00:00') → 정오 앵커(SSOT).
-  // '00:00' 그대로 계산하면 진태양시 보정으로 일주가 전날로 밀린다.
-  const timeAnchor = resolveBirthTimeAnchor(one(sp.time))
+  // 시간 미상 → 정오 앵커(SSOT, tri-state). ?tu=1|0 명시 플래그가 있으면 신뢰
+  // (tu=0 + time=00:00 = 실제 자정 출생 → 자정 그대로 계산), 없으면 레거시
+  // 휴리스틱(생략/'00:00' = 미상 — 자정 그대로 계산하면 진태양시 보정으로
+  // 일주가 전날로 밀린다).
+  const tuRaw = one(sp.tu)
+  const tuFlag = tuRaw === '1' ? true : tuRaw === '0' ? false : undefined
+  const timeAnchor = resolveBirthTimeAnchor(one(sp.time), tuFlag)
   return {
     birthDate: date,
     birthTime: timeAnchor.time,
@@ -125,6 +129,7 @@ export async function loadSessionBirth(): Promise<SessionBirthResult> {
         select: {
           birthDate: true,
           birthTime: true,
+          birthTimeUnknown: true,
           gender: true,
           birthCity: true,
           latitude: true,
@@ -143,10 +148,12 @@ export async function loadSessionBirth(): Promise<SessionBirthResult> {
     !!profile?.tzId
   if (!isBirthComplete || !profile) return { kind: 'no-birth' }
 
-  // 시간 모름(프로필 저장 규약 '00:00') → 정오 앵커(SSOT: birthTimeAnchor).
-  // 예전엔 프로필 '00:00' 이 그대로 계산돼, 같은 사용자가 딥링크(?date=, 정오
-  // 폴백)로 들어오면 당일 일주·세션 진입이면 전날 일주를 보는 자기모순이 있었다.
-  const anchor = resolveBirthTimeAnchor(profile.birthTime)
+  // 시간 모름 → 정오 앵커(SSOT: birthTimeAnchor, tri-state). DB 명시 플래그가
+  // 있으면 신뢰(false + '00:00' = 실제 자정 출생), NULL(레거시 행)이면
+  // '00:00'=미상 휴리스틱. 예전엔 프로필 '00:00' 이 그대로 계산돼, 같은
+  // 사용자가 딥링크(정오 폴백)로 들어오면 당일 일주·세션 진입이면 전날 일주를
+  // 보는 자기모순이 있었다.
+  const anchor = resolveBirthTimeAnchor(profile.birthTime, profile.birthTimeUnknown)
 
   return {
     kind: 'ok',

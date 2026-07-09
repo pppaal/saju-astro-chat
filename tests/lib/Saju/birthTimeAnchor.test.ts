@@ -9,7 +9,11 @@
  * 틀리다" 버그). 정오는 보정이 날짜 경계를 절대 못 넘는 안전한 앵커다.
  */
 import { describe, it, expect } from 'vitest'
-import { resolveBirthTimeAnchor, TIME_UNKNOWN_ANCHOR } from '@/lib/saju/birthTimeAnchor'
+import {
+  isBirthTimeUnknown,
+  resolveBirthTimeAnchor,
+  TIME_UNKNOWN_ANCHOR,
+} from '@/lib/saju/birthTimeAnchor'
 import { calculateSajuData } from '@/lib/saju/saju'
 
 describe('resolveBirthTimeAnchor — 판정 규약', () => {
@@ -36,6 +40,20 @@ describe('resolveBirthTimeAnchor — 판정 규약', () => {
     expect(resolveBirthTimeAnchor('23:30')).toEqual({ time: '23:30', timeUnknown: false })
     expect(resolveBirthTimeAnchor('00:01')).toEqual({ time: '00:01', timeUnknown: false })
     expect(resolveBirthTimeAnchor(' 06:40 ', false)).toEqual({ time: '06:40', timeUnknown: false })
+  })
+
+  it("tri-state: 명시 플래그 false 면 '00:00' 을 실제 자정 출생으로 신뢰", () => {
+    // 플래그가 DB/URL/폼에서 보존된 새 데이터 — '00:00' 은 진짜 자정.
+    expect(resolveBirthTimeAnchor('00:00', false)).toEqual({ time: '00:00', timeUnknown: false })
+    expect(isBirthTimeUnknown('00:00', false)).toBe(false)
+    // 단 빈 시각은 플래그와 무관하게 미상 (앎을 주장해도 계산할 시각이 없다).
+    expect(resolveBirthTimeAnchor('', false)).toEqual({
+      time: TIME_UNKNOWN_ANCHOR,
+      timeUnknown: true,
+    })
+    // null 플래그(레거시 DB 행) = 미지정 → 휴리스틱.
+    expect(isBirthTimeUnknown('00:00', null)).toBe(true)
+    expect(isBirthTimeUnknown('08:30', null)).toBe(false)
   })
 })
 

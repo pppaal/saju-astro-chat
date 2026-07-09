@@ -16,6 +16,7 @@ import { useI18n } from '@/i18n/I18nProvider'
 import { useCompatibilityForm } from '@/hooks/useCompatibilityForm'
 import { useCityAutocomplete } from '@/hooks/useCityAutocomplete'
 import { getStoredBirthInfo, normGender, timeToState } from '@/app/(main)/birthInfoStorage'
+import { isBirthTimeUnknown } from '@/lib/saju/birthTimeAnchor'
 import { validatePersons } from '../validatePersons'
 import { PersonCard, SubmitButton, type LoadOption } from '../components'
 import { useFocusTrap } from '@/hooks/useFocusTrap'
@@ -26,6 +27,8 @@ export interface PickedPersonData {
   name: string
   date: string
   time: string
+  /** 시간 미상 명시 플래그 — '00:00'(실제 자정)과 "시간 모름" 구분(birthTimeAnchor SSOT). */
+  timeUnknown?: boolean
   city: string
   latitude?: number
   longitude?: number
@@ -92,9 +95,8 @@ export function CompatPersonPickerModal({
           label: isKo ? '내 정보' : 'My info',
           name: localSeed.name || '',
           birthDate: localSeed.birthDate,
-          birthTime:
-            localSeed.birthTime && localSeed.birthTime !== '00:00' ? localSeed.birthTime : '',
-          timeUnknown: localSeed.birthTimeUnknown === true || localSeed.birthTime === '00:00',
+          // tri-state SSOT — 명시 플래그가 있으면 신뢰(false + '00:00' = 실제 자정).
+          ...timeToState(localSeed.birthTime, localSeed.birthTimeUnknown),
           gender: localSeed.gender || '',
           city: localSeed.city || '',
           latitude: localSeed.latitude ?? null,
@@ -120,7 +122,8 @@ export function CompatPersonPickerModal({
               sub: u.name || undefined,
               name: u.name || '',
               birthDate: u.birthDate || '',
-              ...timeToState(u.birthTime),
+              // DB 명시 플래그(tri-state) — 실제 자정 출생('00:00' + false) 보존.
+              ...timeToState(u.birthTime, u.birthTimeUnknown),
               gender: normGender(u.gender),
               city: u.birthCity || '',
               // 좌표도 같이 실어야 "내 정보" 불러오기 시 도시가 유효하게 들어온다.
@@ -142,8 +145,7 @@ export function CompatPersonPickerModal({
             label: isKo ? '내 정보' : 'My info',
             name: local.name || '',
             birthDate: local.birthDate,
-            birthTime: local.birthTime && local.birthTime !== '00:00' ? local.birthTime : '',
-            timeUnknown: local.birthTimeUnknown === true || local.birthTime === '00:00',
+            ...timeToState(local.birthTime, local.birthTimeUnknown),
             gender: local.gender || '',
             city: local.city || '',
             latitude: local.latitude ?? null,
@@ -168,7 +170,8 @@ export function CompatPersonPickerModal({
                 sub: p.relation || undefined,
                 name: p.name || '',
                 birthDate: p.birthDate || '',
-                ...timeToState(p.birthTime),
+                // Circle DB 명시 플래그(tri-state) — 레거시 행(NULL)은 휴리스틱.
+                ...timeToState(p.birthTime, p.birthTimeUnknown),
                 gender: normGender(p.gender),
                 city: p.birthCity || '',
                 latitude: p.latitude ?? null,
@@ -256,8 +259,11 @@ export function CompatPersonPickerModal({
       name: p.name,
       date: p.date,
       // 시간 모름 시 '00:00' *표기* — 앱 전체 저장 컨벤션(types.ts/useCompatibilityForm).
-      // 계산 시엔 birthTimeAnchor SSOT 가 '00:00' 을 미상으로 보고 정오 앵커로 바꾼다.
+      // 계산 시엔 birthTimeAnchor SSOT 가 timeUnknown 플래그(tri-state)를 보고
+      // 정오 앵커로 바꾼다 — 플래그를 함께 실어야 실제 자정 출생('00:00' + false)이
+      // "시간 모름"으로 오분류되지 않는다.
       time: p.time || '00:00',
+      timeUnknown: p.timeUnknown ?? isBirthTimeUnknown(p.time),
       city: p.cityQuery || '',
       latitude: p.lat ?? undefined,
       longitude: p.lon ?? undefined,

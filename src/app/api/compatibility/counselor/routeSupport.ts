@@ -54,10 +54,12 @@ function buildPersonSeed(person: Record<string, unknown> | null | undefined): Pe
   const date = parseDateString(person.birthDate ?? person.date)
   // 시간 모름 → 정오 앵커(SSOT: birthTimeAnchor). 예전 '00:00' 폴백은 진태양시
   // 보정(-32분)으로 일주가 전날로 밀려, LLM 컨텍스트의 사주가 차트/통합리포트와
-  // 달랐다. 명시 플래그(timeUnknown/birthTimeUnknown)와 '00:00' 입력 둘 다 미상.
+  // 달랐다. 플래그는 tri-state — 명시 boolean 이면 신뢰(false + '00:00' = 실제
+  // 자정 출생), 미전송(레거시 클라)이면 undefined 로 두어 '00:00'=미상 휴리스틱.
+  const flagRaw = person.timeUnknown ?? person.birthTimeUnknown
   const { time, timeUnknown } = resolveBirthTimeAnchor(
     parseTimeString(person.birthTime ?? person.time),
-    person.timeUnknown === true || person.birthTimeUnknown === true
+    typeof flagRaw === 'boolean' ? flagRaw : undefined
   )
   if (!date) return null
 
