@@ -364,7 +364,8 @@ jobs:
         # 마이그레이션 어디에도 없음 — 프로덕션은 db push 로 만들어진 걸로
         # 추정). CI 는 "현재 스키마"에 대해 도는 게 목적이므로 schema.prisma
         # 를 SSOT 로 그대로 민다. 드리프트 정리는 별도 과제.
-        run: npx prisma db push --skip-generate
+        # (Prisma 7 의 db push 에는 --skip-generate 플래그가 없다)
+        run: npx prisma db push
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/saju_ci
 
