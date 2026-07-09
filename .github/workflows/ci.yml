@@ -9,6 +9,13 @@ on:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+    # Coverage PR 코멘트가 기본(read-only) GITHUB_TOKEN 으로는 403
+    # ("Resource not accessible by integration")으로 죽어 잡 전체가
+    # 만성 실패했다. 코멘트 작성에 필요한 최소 권한만 명시한다.
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -172,6 +179,10 @@ jobs:
 
       - name: Coverage PR comment
         if: github.event_name == 'pull_request'
+        # 코멘트는 정보성 — 임계값 검증은 위 "Coverage threshold check" 가
+        # 담당한다. 포크 PR 등 토큰 권한이 막힌 컨텍스트에서 코멘트 실패가
+        # CI 전체를 빨갛게 만들지 않도록 소프트 실패 처리.
+        continue-on-error: true
         uses: actions/github-script@v7
         with:
           script: |
@@ -348,7 +359,13 @@ jobs:
           NEXTAUTH_URL: http://localhost:3000
           NEXT_PUBLIC_BASE_URL: http://localhost:3000
           TOKEN_ENCRYPTION_KEY: ${{ secrets.TOKEN_ENCRYPTION_KEY || 'k8Xm9Rv3Pn7Q2wL5sT0uY4bC6dF8gHjWe1' }}
-          DATABASE_URL: ${{ secrets.DATABASE_URL || 'postgres://user:pass@host/db' }}
+          # 'postgres://user:pass@host/db' 는 호스트 'host' DNS 조회가 행이 걸려
+          # cron e2e 요청이 15초 abort 로 만성 실패했다. localhost 플레이스홀더는
+          # 즉시 ECONNREFUSED → 라우트가 빠르게 500 을 반환하고, api-smoke 테스트는
+          # 500 을 허용한다(스모크의 관심사는 토큰 게이트지 DB 가 아님).
+          # secrets.DATABASE_URL 을 여기 쓰지 않는 것은 의도 — CI e2e 가 절대
+          # 실 DB(크레딧 리셋!)를 건드리면 안 된다.
+          DATABASE_URL: postgresql://placeholder:placeholder@localhost:5432/placeholder
           CRON_SECRET: ci-cron-secret
           PUBLIC_METRICS_TOKEN: ci-metrics-token
 

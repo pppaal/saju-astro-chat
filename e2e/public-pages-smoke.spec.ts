@@ -19,6 +19,13 @@ const PUBLIC_ROUTES = [
   '/policy/terms',
   '/policy/privacy',
   '/policy/refund',
+  // 프로그램매틱 SEO 표면 — 무로그인·무DB 서버 렌더 페이지들.
+  // 색인 대상이라 여기서 렌더 깨짐을 조기에 잡는다.
+  '/free',
+  '/fortune',
+  '/fortune/horse',
+  '/tarot/cards',
+  '/tarot/cards/the-fool',
 ]
 
 const KEY_LEAK_PATTERNS = [
