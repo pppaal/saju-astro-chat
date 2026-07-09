@@ -402,3 +402,9 @@ jobs:
           API_BASE_URL: http://localhost:3000
           CRON_SECRET: ci-cron-secret
           PUBLIC_METRICS_TOKEN: ci-metrics-token
+
+      - name: Show API server log on failure
+        if: failure()
+        run: |
+          echo "=== /tmp/next-server.log (last 200 lines) ==="
+          tail -n 200 /tmp/next-server.log || echo "(log file missing)"
