@@ -392,6 +392,12 @@ jobs:
     runs-on: ubuntu-latest
     needs: test-matrix
     if: github.event.pull_request.draft == false
+    # PR 코멘트 작성이 기본(read-only) GITHUB_TOKEN 으로 403 나며 커버리지가
+    # 초록인데도 잡 전체가 만성 실패했다(ci.yml 과 동일 증상). 최소 권한 부여.
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
 
     steps:
       - name: Checkout
@@ -412,6 +418,9 @@ jobs:
         run: npm run test:coverage
 
       - name: Comment PR with coverage
+        # 코멘트는 정보성 — 임계값 검증은 test-matrix/커버리지 게이트가 담당.
+        # 포크 PR 등 토큰이 막힌 컨텍스트에서 CI 를 빨갛게 만들지 않는다.
+        continue-on-error: true
         uses: actions/github-script@v7
         with:
           script: |
