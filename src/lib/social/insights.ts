@@ -1,23 +1,32 @@
 // src/lib/social/insights.ts
 //
-// Threads 게시물 성과 수집 — graph.threads.net insights API 로 views/likes/
-// replies/reposts/quotes 를 읽어 초안 variant 에 저장한다. 서버 전용.
+// 게시물 성과 수집(Threads·Instagram) — 각 플랫폼 insights API 로 조회수/
+// 좋아요 등을 읽어 초안 variant 에 저장한다. 지표는 Threads 형태
+// (views/likes/replies/reposts/quotes)로 통일하고 IG 는 거기 매핑한다
+// (comments→replies, shares→reposts). 서버 전용.
 //
-// 요구 권한: 토큰에 threads_manage_insights 스코프가 있어야 한다. 없으면
-// Meta 가 permission 에러를 주는데, 그대로 삼키지 않고 에러 메시지를 올려
-// 어드민 UI 가 "권한 추가 필요"를 안내할 수 있게 한다.
+// 요구 권한: Threads 는 threads_manage_insights, IG 는
+// instagram_business_manage_insights. 없으면 Meta 가 permission 에러를 주는데
+// (IG 는 그 경우 like_count/comments_count 기본 필드로 폴백), 그대로 삼키지
+// 않고 에러 메시지를 올려 어드민 UI 가 "권한 추가 필요"를 안내할 수 있게 한다.
 
 import { logger } from '@/lib/logger'
 import { getThreadsAccessToken } from './threadsToken'
+import { getIgAccessToken } from './igToken'
 import { getDrafts, saveDrafts } from './draftStore'
 import { draftCategory, type SocialPostDraft, type SocialPostMetrics } from './types'
 
 const GRAPH = 'https://graph.threads.net/v1.0'
 const METRICS = 'views,likes,replies,reposts,quotes' as const
+const IG_GRAPH = 'https://graph.instagram.com/v21.0'
+const IG_METRICS = 'views,likes,comments,shares' as const
 
-/** insights 수집이 가능한 설정인가 (Threads 토큰 존재 — env 기준). */
+/** insights 수집이 가능한 설정인가 (Threads 또는 IG 토큰 존재 — env 기준). */
 export function insightsConfigured(): boolean {
-  return (process.env.THREADS_ACCESS_TOKEN || '').trim() !== ''
+  return (
+    (process.env.THREADS_ACCESS_TOKEN || '').trim() !== '' ||
+    (process.env.IG_ACCESS_TOKEN || '').trim() !== ''
+  )
 }
 
 // Threads insights 응답 — metric 별로 values[] 또는 total_value 로 온다.
@@ -76,7 +85,75 @@ export async function fetchThreadsInsights(
 }
 
 /**
- * 한 날짜의 발행된 Threads variant 들의 metrics 를 갱신해 저장한다.
+ * 단일 IG 미디어의 insights 조회 — Threads 지표 형태로 매핑(comments→replies,
+ * shares→reposts, quotes 없음). insights 권한이 없으면 like_count/
+ * comments_count 기본 필드로 폴백해 최소한의 수치는 쌓는다.
+ */
+export async function fetchIgInsights(
+  mediaId: string
+): Promise<{ metrics: SocialPostMetrics } | { error: string }> {
+  const t = await getIgAccessToken()
+  if (!t) return { error: 'not_configured' }
+  try {
+    const res = await fetch(
+      `${IG_GRAPH}/${encodeURIComponent(mediaId)}/insights?metric=${IG_METRICS}&access_token=${encodeURIComponent(t)}`,
+      { cache: 'no-store' }
+    )
+    const body = (await res.json().catch(() => null)) as {
+      data?: InsightEntry[]
+      error?: { message?: string; code?: number }
+    } | null
+    if (res.ok && body?.data) {
+      const read = (name: string): number => {
+        const entry = body.data!.find((e) => e.name === name)
+        if (!entry) return 0
+        const v = entry.total_value?.value ?? entry.values?.[0]?.value
+        return typeof v === 'number' ? v : 0
+      }
+      return {
+        metrics: {
+          views: read('views'),
+          likes: read('likes'),
+          replies: read('comments'),
+          reposts: read('shares'),
+          quotes: 0,
+          fetchedAt: new Date().toISOString(),
+        },
+      }
+    }
+
+    // insights 권한/지표 미지원 → 기본 필드 폴백 (조회수는 못 얻지만
+    // 좋아요/댓글은 instagram_business_basic 만으로 읽힌다).
+    const fbRes = await fetch(
+      `${IG_GRAPH}/${encodeURIComponent(mediaId)}?fields=like_count,comments_count&access_token=${encodeURIComponent(t)}`,
+      { cache: 'no-store' }
+    )
+    const fb = (await fbRes.json().catch(() => null)) as {
+      like_count?: number
+      comments_count?: number
+      error?: { message?: string }
+    } | null
+    if (fbRes.ok && fb && typeof fb.like_count === 'number') {
+      return {
+        metrics: {
+          views: 0,
+          likes: fb.like_count,
+          replies: fb.comments_count ?? 0,
+          reposts: 0,
+          quotes: 0,
+          fetchedAt: new Date().toISOString(),
+        },
+      }
+    }
+    return { error: body?.error?.message || fb?.error?.message || `HTTP ${res.status}` }
+  } catch (error) {
+    logger.warn('[social/insights] ig fetch failed', { mediaId, error })
+    return { error: error instanceof Error ? error.message : 'network_error' }
+  }
+}
+
+/**
+ * 한 날짜의 발행된 Threads·IG variant 들의 metrics 를 갱신해 저장한다.
  * 갱신된 초안 배열과 (있다면) 첫 에러 메시지를 돌려준다.
  */
 export async function refreshMetricsForDate(
@@ -88,10 +165,13 @@ export async function refreshMetricsForDate(
 
   for (const draft of drafts) {
     for (const v of draft.variants) {
-      if (v.platform !== 'threads') continue
+      if (v.platform !== 'threads' && v.platform !== 'instagram') continue
       const mediaId = v.externalId || mediaIdFromUrl(v.publishedUrl)
       if (!mediaId) continue
-      const result = await fetchThreadsInsights(mediaId)
+      const result =
+        v.platform === 'threads'
+          ? await fetchThreadsInsights(mediaId)
+          : await fetchIgInsights(mediaId)
       if ('metrics' in result) {
         v.metrics = result.metrics
         updated += 1
@@ -137,7 +217,9 @@ export function summarizeDrafts(
   for (const { date, drafts } of all) {
     for (const draft of drafts) {
       for (const v of draft.variants) {
-        if (v.platform !== 'threads' || !v.publishedUrl) continue
+        // 발행 판단: Threads 는 publishedUrl, IG 는 URL 없이 externalId 만 남는다.
+        if (v.platform !== 'threads' && v.platform !== 'instagram') continue
+        if (!v.publishedUrl && !v.externalId) continue
         summary.publishedPosts += 1
         const cat = draftCategory(draft)
         const bucket = (summary.byCategory[cat] ||= { posts: 0, views: 0, likes: 0 })
