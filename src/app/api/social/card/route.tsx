@@ -38,6 +38,7 @@ const ACCENT: Record<SocialCategory, string> = {
   astrology: '#8ab4ff',
   compatibility: '#ff8fb0',
   calendar: '#e8a24d',
+  zodiac: '#ff9d6b',
 }
 // 강조색의 반투명 버전 — 오라 글로우/글리프 워터마크용(rgba, satori 안전).
 const SOFT: Record<SocialCategory, string> = {
@@ -46,6 +47,7 @@ const SOFT: Record<SocialCategory, string> = {
   astrology: 'rgba(138,180,255,',
   compatibility: 'rgba(255,143,176,',
   calendar: 'rgba(232,162,77,',
+  zodiac: 'rgba(255,157,107,',
 }
 export async function GET(req: Request): Promise<Response> {
   const url = new URL(req.url)
