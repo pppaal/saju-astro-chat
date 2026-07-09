@@ -739,6 +739,11 @@
   justify-content: center;
   gap: 8px;
   width: 100%;
+  /* 헤더(layoutCounselor)와 같은 860px 컬럼에 맞춘다 — 이전엔 바(흰 배경 +
+     하단 헤어라인)가 뷰포트 전체 폭으로 깔려, 데스크탑에서 이름 줄이 콘텐츠
+     컬럼 밖으로 옆으로 튀어나와 보였다. */
+  max-width: 860px;
+  margin: 0 auto;
   padding: 4px 14px 5px;
   background: #ffffff;
   border: 0;
