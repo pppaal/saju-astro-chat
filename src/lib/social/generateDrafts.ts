@@ -10,13 +10,16 @@
 
 import { createHash, randomUUID } from 'crypto'
 import { tarotDeck } from '@/lib/tarot/data'
+import { cardSlug } from '@/lib/tarot/cardPages'
 import { TAROT_REVERSED_BYTE_THRESHOLD } from '@/lib/tarot/reversedProbability'
 import type { Card } from '@/lib/tarot/tarot.types'
 import { computeDayPillarIndices } from '@/lib/saju/dayPillar'
 import { STEMS, BRANCHES } from '@/lib/saju/constants'
+import { computeAllZodiacDaily } from '@/lib/fortune/zodiacDaily'
 import { callClaude, extractJsonObject, isClaudeAvailable } from '@/lib/llm/claude'
 import { siteBaseUrl } from '@/lib/tarot/shareLink'
 import { socialCardImageUrl } from './cardImageUrl'
+import { ensureDailyBackgrounds } from './aiImage'
 import { logger } from '@/lib/logger'
 import {
   SOCIAL_CATEGORIES,
@@ -51,6 +54,9 @@ interface Subject {
   isReversed?: boolean
   /** 카드 배경 글리프(한자/간지) — 버티컬 정체성을 시각화하는 워터마크. */
   glyph?: string
+  /** 소재별 딥링크 — 있으면 카테고리 기본 CTA(ctaPathFor)보다 우선.
+   *  예: 타로 = 그날 카드의 의미 사전 페이지, 띠운세 = /fortune. */
+  ctaPath?: string
 }
 
 // 오행(한글) → 한자. 카드 글리프·강조에 쓴다.
@@ -72,6 +78,40 @@ function tarotSubject(date: string): Subject {
     keywordsEn: meaning.keywords || [],
     image: card.image,
     isReversed,
+    // 그날 카드의 의미 사전 페이지로 딥링크 — 포스트 주제와 착지 페이지가
+    // 정확히 일치해 이탈이 적고, 사전 페이지의 무료 데일리 훅으로 이어진다.
+    ctaPath: `/tarot/cards/${cardSlug(card.name)}`,
+  }
+}
+
+// 띠운세 — /fortune 데일리 엔진(일진 × 띠 합충)을 그대로 소재로 쓴다.
+// 오늘 가장 잘 풀리는 띠(합)와 조심할 띠(충)를 콕 집으면 독자가 자기/친구
+// 띠를 찾게 되고, 태그·공유로 번진다. 판정은 엔진(결정론), 카피만 Claude.
+function zodiacSubject(date: string): Subject {
+  // KST 정오 — 날짜 경계 이슈 없이 해당 달력일의 일진을 가리킨다.
+  const all = computeAllZodiacDaily(new Date(`${date}T12:00:00+09:00`))
+  const best = [...all].sort((a, b) => b.grade - a.grade)[0]
+  const worst = [...all].sort((a, b) => a.grade - b.grade)[0]
+  const day = all[0]
+  return {
+    nameKo: `${best.animal.ko} 맑음 · ${worst.animal.ko} 주의 (${day.dayGanzhi.ko})`,
+    nameEn: `${best.animal.en} rising · ${worst.animal.en} caution (${day.dayGanzhi.hanja})`,
+    keywordsKo: [
+      `오늘 일진 ${day.dayGanzhi.ko}(${day.dayGanzhi.hanja})`,
+      `${best.animal.ko} ${best.gradeLabel.ko}: ${best.message.ko}`,
+      `${best.animal.ko} 조언: ${best.advice.ko}`,
+      `${worst.animal.ko} ${worst.gradeLabel.ko}: ${worst.message.ko}`,
+      `${worst.animal.ko} 조언: ${worst.advice.ko}`,
+    ],
+    keywordsEn: [
+      `Day pillar ${day.dayGanzhi.hanja}`,
+      `${best.animal.en} (${best.gradeLabel.en}): ${best.message.en}`,
+      `${best.animal.en} advice: ${best.advice.en}`,
+      `${worst.animal.en} (${worst.gradeLabel.en}): ${worst.message.en}`,
+      `${worst.animal.en} advice: ${worst.advice.en}`,
+    ],
+    glyph: day.dayGanzhi.hanja.slice(1), // 일진 지지 한자 — 띠 정체성 워터마크
+    ctaPath: '/fortune',
   }
 }
 
@@ -291,6 +331,8 @@ function subjectFor(category: SocialCategory, date: string): Subject {
       return compatibilitySubject(date)
     case 'calendar':
       return calendarSubject(date)
+    case 'zodiac':
+      return zodiacSubject(date)
   }
 }
 
@@ -301,6 +343,8 @@ function ctaPathFor(category: SocialCategory): string {
       return '/compatibility/free'
     case 'calendar':
       return '/calendar'
+    case 'zodiac':
+      return '/fortune'
     default:
       return '/free'
   }
@@ -317,6 +361,8 @@ const CATEGORY_ANGLE_KO: Record<SocialCategory, string> = {
     '연애/관계 공감 소재로 풀되, 이분법 단정 대신 "이런 조합은 이런 식으로 부딪히고 이렇게 풀린다"는 통찰을 담아라.',
   calendar:
     '"오늘은 이걸 하기 좋은 날 / 이건 미루는 게 나은 날"을 딱 하나 짚어 스크린샷하고 싶게 만들어라. 오늘·이번 주 바로 쓸 행동 1개. "오늘 이거 하려던 사람 잠깐!" 같은 가벼운 타이밍 알림 톤(겁주지 말 것).',
+  zodiac:
+    '오늘 가장 잘 풀리는 띠 하나와 조심할 띠 하나를 콕 집어라 — 독자가 자기 띠부터 찾고, 해당 띠 친구를 태그하게. "말띠 오늘 미뤄둔 부탁 꺼내기 좋은 날" 처럼 행동 1개로 구체화. 단정 대신 흐름 표현, 겁주지 말 것. 나머지 띠는 링크에서 확인하게 궁금증만 남겨라.',
 }
 
 const CATEGORY_ANGLE_EN: Record<SocialCategory, string> = {
@@ -329,6 +375,8 @@ const CATEGORY_ANGLE_EN: Record<SocialCategory, string> = {
     'Relationship-relatable, but insightful: how this pairing clashes and how it resolves — no binary verdicts.',
   calendar:
     'Pin one thing that is "a good day to do X / better to hold off on Y" so it is screenshot-worthy. One action for today or this week. A light timing-alert tone ("about to do this today? hold on —"), never scary.',
+  zodiac:
+    'Call out today\'s luckiest zodiac animal and the one that should take care — make readers hunt for their own sign and tag a friend born in that year. Anchor each with ONE concrete action ("Horse people: today\'s the day to ask that favor"). Flow language, never doom; leave the other signs as a curiosity gap for the link.',
 }
 
 // 카테고리별 해시태그 힌트.
@@ -338,6 +386,7 @@ const CATEGORY_TAGS_KO: Record<SocialCategory, string> = {
   astrology: '#별자리 #점성술 #별자리운세 등',
   compatibility: '#궁합 #연애운 #커플 #사주궁합 등',
   calendar: '#운세 #오늘의운세 #타이밍 #운세캘린더 등',
+  zodiac: '#띠별운세 #오늘의운세 #12간지 #일진 등',
 }
 
 /* ===================== 프롬프트 ===================== */
@@ -442,10 +491,11 @@ function cleanHashtags(v: unknown): string[] {
 async function generateOne(
   date: string,
   category: SocialCategory,
-  locale: 'ko' | 'en'
+  locale: 'ko' | 'en',
+  bg?: string
 ): Promise<SocialPostDraft | null> {
   const subject = subjectFor(category, date)
-  const ctaUrl = `${siteBaseUrl()}${ctaPathFor(category)}`
+  const ctaUrl = `${siteBaseUrl()}${subject.ctaPath ?? ctaPathFor(category)}`
   const { systemPrompt, userPrompt } = buildPrompt(locale, category, subject, ctaUrl)
 
   let parsed: ParsedCopy | null = null
@@ -503,6 +553,7 @@ async function generateOne(
         hook: (parsed.hook || '').trim() || (locale === 'ko' ? subject.nameKo : subject.nameEn),
         locale,
         glyph: subject.glyph,
+        bg,
       }),
     isReversed: subject.isReversed ?? false,
     hook: (parsed.hook || '').trim(),
@@ -526,10 +577,13 @@ export async function generateDailyDrafts(
     logger.warn('[social/generate] Claude unavailable — skipping draft generation')
     return []
   }
+  // AI 배경 먼저 일괄 확보(카테고리당 1장, ko/en 공유·타로 제외) — 미설정/실패는
+  // 빈 맵이라 기존 그라데이션 카드로 그대로 진행된다.
+  const backgrounds = await ensureDailyBackgrounds(date, categories)
   const jobs: Array<Promise<SocialPostDraft | null>> = []
   for (const category of categories) {
     for (const loc of locales) {
-      jobs.push(generateOne(date, category, loc))
+      jobs.push(generateOne(date, category, loc, backgrounds[category]))
     }
   }
   const results = await Promise.all(jobs)

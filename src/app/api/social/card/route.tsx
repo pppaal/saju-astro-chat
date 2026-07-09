@@ -7,6 +7,7 @@
 
 import { ImageResponse } from 'next/og'
 import { loadOgFonts } from '@/lib/share/ogFont'
+import { isAllowedCardBg } from '@/lib/social/aiImage'
 import { SOCIAL_CATEGORIES, type SocialCategory } from '@/lib/social/types'
 import { siteBaseUrl } from '@/lib/tarot/shareLink'
 
@@ -38,6 +39,7 @@ const ACCENT: Record<SocialCategory, string> = {
   astrology: '#8ab4ff',
   compatibility: '#ff8fb0',
   calendar: '#e8a24d',
+  zodiac: '#ff9d6b',
 }
 // 강조색의 반투명 버전 — 오라 글로우/글리프 워터마크용(rgba, satori 안전).
 const SOFT: Record<SocialCategory, string> = {
@@ -46,6 +48,7 @@ const SOFT: Record<SocialCategory, string> = {
   astrology: 'rgba(138,180,255,',
   compatibility: 'rgba(255,143,176,',
   calendar: 'rgba(232,162,77,',
+  zodiac: 'rgba(255,157,107,',
 }
 export async function GET(req: Request): Promise<Response> {
   const url = new URL(req.url)
@@ -58,6 +61,9 @@ export async function GET(req: Request): Promise<Response> {
   // 후크가 비면 제목을 헤드라인으로 승격(빈 카드 방지). 영어는 덜 촘촘해 max 를 넉넉히.
   const hook = clampWords(url.searchParams.get('h') || title, isKo ? 54 : 66)
   const glyph = clamp(url.searchParams.get('g') || '', 4)
+  // AI 배경(aiImage.ts 가 Blob 에 저장) — 우리 스토어 URL 만 허용(SSRF/악용 차단).
+  const bgRaw = url.searchParams.get('bg') || ''
+  const bg = bgRaw && isAllowedCardBg(bgRaw) ? bgRaw : null
   const accent = ACCENT[v]
   const soft = SOFT[v]
   // 브랜드 라인 — 동·서양 융합이 우리 차별점이라 이걸 아이브로로. EN 은 K-웨이브
@@ -84,18 +90,51 @@ export async function GET(req: Request): Promise<Response> {
         fontFamily: 'NotoKR, sans-serif',
       }}
     >
-      {/* 오라 글로우 — 상단 강조색 빛무리로 깊이감 */}
-      <div
-        style={{
-          position: 'absolute',
-          top: -320,
-          right: -220,
-          width: 1000,
-          height: 1000,
-          display: 'flex',
-          background: `radial-gradient(closest-side, ${soft}0.22), ${soft}0) 72%)`,
-        }}
-      />
+      {/* AI 배경 — 전면 깔고 어두운 오버레이로 텍스트 대비 확보 */}
+      {bg ? (
+        // eslint-disable-next-line @next/next/no-img-element, jsx-a11y/alt-text -- satori(ImageResponse) 렌더러는 원시 <img> 만 지원하고 alt 는 무의미(출력물이 이미지)
+        <img
+          src={bg}
+          width={SIZE.width}
+          height={SIZE.height}
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+          }}
+        />
+      ) : null}
+      {bg ? (
+        <div
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            background:
+              'linear-gradient(180deg, rgba(11,8,18,0.55) 0%, rgba(11,8,18,0.35) 42%, rgba(11,8,18,0.82) 100%)',
+          }}
+        />
+      ) : null}
+      {/* 오라 글로우 — 상단 강조색 빛무리로 깊이감 (AI 배경 위엔 과해서 생략) */}
+      {!bg ? (
+        <div
+          style={{
+            position: 'absolute',
+            top: -320,
+            right: -220,
+            width: 1000,
+            height: 1000,
+            display: 'flex',
+            background: `radial-gradient(closest-side, ${soft}0.22), ${soft}0) 72%)`,
+          }}
+        />
+      ) : null}
       {/* 글리프 워터마크 — 간지/오행 한자로 버티컬 정체성 시각화 */}
       {glyph ? (
         <div

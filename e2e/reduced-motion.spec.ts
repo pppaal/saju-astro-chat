@@ -19,7 +19,10 @@ import { test, expect } from '@playwright/test'
  */
 
 const TAROT_ROUTE = '/tarot/general-insight/quick-reading?question=test'
-const COMPATIBILITY_ROUTE = '/compatibility'
+// /compatibility 는 2026-05 부터 counselor 로 redirect 하는 껍데기 —
+// personCard(피커 모달)의 CSS 는 counselor 페이지 번들에 실린다.
+// 리다이렉트를 거치지 않고 실제 페이지를 직접 검사한다.
+const COMPATIBILITY_ROUTE = '/compatibility/counselor'
 
 /**
  * Walk every loaded stylesheet on the page, find every rule block that
@@ -95,7 +98,9 @@ test.describe('Tarot — reduced-motion CSS contract', () => {
 
 test.describe('Compatibility — reduced-motion CSS contract', () => {
   test('person cards are pinned to a visible end state', async ({ page }) => {
-    await page.goto(COMPATIBILITY_ROUTE, { waitUntil: 'domcontentloaded' })
+    // domcontentloaded 시점엔 클라 청크의 CSS 가 아직 안 실려 있을 수 있어
+    // (모달 컴포넌트의 CSS 모듈) 플레이키했다 — 전체 load 를 기다린다.
+    await page.goto(COMPATIBILITY_ROUTE, { waitUntil: 'load' })
 
     const reducedMotionCss = await getReducedMotionRules(page)
     // .personCard starts at opacity:0 and only becomes visible via the

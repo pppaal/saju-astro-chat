@@ -8,8 +8,15 @@ export type SocialPlatform = 'instagram' | 'threads' | 'youtube'
 
 export const SOCIAL_PLATFORMS: readonly SocialPlatform[] = ['instagram', 'threads', 'youtube']
 
-// 콘텐츠 버티컬 — 제품 5개 축과 1:1. 초안 생성/필터/성과 집계의 기준 단위.
-export type SocialCategory = 'tarot' | 'saju' | 'astrology' | 'compatibility' | 'calendar'
+// 콘텐츠 버티컬 — 제품 축과 1:1. 초안 생성/필터/성과 집계의 기준 단위.
+// zodiac(띠운세)은 /fortune 데일리 SEO 페이지와 짝 — 일진×띠 엔진이 소재 공급.
+export type SocialCategory =
+  | 'tarot'
+  | 'saju'
+  | 'astrology'
+  | 'compatibility'
+  | 'calendar'
+  | 'zodiac'
 
 export const SOCIAL_CATEGORIES: readonly SocialCategory[] = [
   'tarot',
@@ -17,6 +24,7 @@ export const SOCIAL_CATEGORIES: readonly SocialCategory[] = [
   'astrology',
   'compatibility',
   'calendar',
+  'zodiac',
 ]
 
 export const CATEGORY_META: Record<SocialCategory, { labelKo: string; emoji: string }> = {
@@ -25,6 +33,7 @@ export const CATEGORY_META: Record<SocialCategory, { labelKo: string; emoji: str
   astrology: { labelKo: '점성', emoji: '✨' },
   compatibility: { labelKo: '궁합', emoji: '💞' },
   calendar: { labelKo: '캘린더', emoji: '📅' },
+  zodiac: { labelKo: '띠운세', emoji: '🐲' },
 }
 
 // pending: 생성됨(검토 대기) · approved: 승인(발행 가능) · rejected: 반려
