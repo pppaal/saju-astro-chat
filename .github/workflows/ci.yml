@@ -358,8 +358,13 @@ jobs:
 
           echo "✅ Bundle size check passed"
 
-      - name: Apply Prisma migrations (service DB)
-        run: npm run db:migrate
+      - name: Create schema on service DB (db push)
+        # migrate deploy 가 아니라 db push 인 이유: 마이그레이션 폴더가
+        # schema.prisma 와 드리프트돼 있다(예: SharedResult 테이블이 45개
+        # 마이그레이션 어디에도 없음 — 프로덕션은 db push 로 만들어진 걸로
+        # 추정). CI 는 "현재 스키마"에 대해 도는 게 목적이므로 schema.prisma
+        # 를 SSOT 로 그대로 민다. 드리프트 정리는 별도 과제.
+        run: npx prisma db push --skip-generate
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/saju_ci
 
