@@ -421,7 +421,7 @@ jobs:
         # 코멘트는 정보성 — 임계값 검증은 test-matrix/커버리지 게이트가 담당.
         # 포크 PR 등 토큰이 막힌 컨텍스트에서 CI 를 빨갛게 만들지 않는다.
         continue-on-error: true
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             const fs = require('fs');
@@ -501,7 +501,7 @@ jobs:
 
     steps:
       - name: Check all job statuses
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             const jobs = {
