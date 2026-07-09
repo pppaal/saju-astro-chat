@@ -18,7 +18,7 @@ import { generateDailyDrafts, todayKeyKST } from '@/lib/social/generateDrafts'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
-export const maxDuration = 60
+export const maxDuration = 120
 
 function validateCronSecret(request: Request): boolean {
   const authHeader = request.headers.get('authorization')

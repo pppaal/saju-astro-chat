@@ -19,6 +19,7 @@ import { computeAllZodiacDaily } from '@/lib/fortune/zodiacDaily'
 import { callClaude, extractJsonObject, isClaudeAvailable } from '@/lib/llm/claude'
 import { siteBaseUrl } from '@/lib/tarot/shareLink'
 import { socialCardImageUrl } from './cardImageUrl'
+import { ensureDailyBackgrounds } from './aiImage'
 import { logger } from '@/lib/logger'
 import {
   SOCIAL_CATEGORIES,
@@ -490,7 +491,8 @@ function cleanHashtags(v: unknown): string[] {
 async function generateOne(
   date: string,
   category: SocialCategory,
-  locale: 'ko' | 'en'
+  locale: 'ko' | 'en',
+  bg?: string
 ): Promise<SocialPostDraft | null> {
   const subject = subjectFor(category, date)
   const ctaUrl = `${siteBaseUrl()}${subject.ctaPath ?? ctaPathFor(category)}`
@@ -551,6 +553,7 @@ async function generateOne(
         hook: (parsed.hook || '').trim() || (locale === 'ko' ? subject.nameKo : subject.nameEn),
         locale,
         glyph: subject.glyph,
+        bg,
       }),
     isReversed: subject.isReversed ?? false,
     hook: (parsed.hook || '').trim(),
@@ -574,10 +577,13 @@ export async function generateDailyDrafts(
     logger.warn('[social/generate] Claude unavailable — skipping draft generation')
     return []
   }
+  // AI 배경 먼저 일괄 확보(카테고리당 1장, ko/en 공유·타로 제외) — 미설정/실패는
+  // 빈 맵이라 기존 그라데이션 카드로 그대로 진행된다.
+  const backgrounds = await ensureDailyBackgrounds(date, categories)
   const jobs: Array<Promise<SocialPostDraft | null>> = []
   for (const category of categories) {
     for (const loc of locales) {
-      jobs.push(generateOne(date, category, loc))
+      jobs.push(generateOne(date, category, loc, backgrounds[category]))
     }
   }
   const results = await Promise.all(jobs)
