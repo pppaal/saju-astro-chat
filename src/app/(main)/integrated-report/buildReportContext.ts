@@ -30,6 +30,7 @@ import { performAnalyses } from '@/app/api/saju/services/analyses'
 import { annotateShinsal, getTwelveStagesForPillars } from '@/lib/saju/shinsal'
 import { JIJANGGAN } from '@/lib/saju/constants'
 import { parseHourMinute } from '@/lib/saju/timeParse'
+import { TIME_UNKNOWN_ANCHOR } from '@/lib/saju/birthTimeAnchor'
 import type { NatalContext, NatalDayJijanggan } from '@/lib/calendar-engine/context/types'
 import type { FiveElement, SajuPillarsInput } from '@/lib/saju/types'
 
@@ -115,7 +116,8 @@ export async function buildReportContext(input: ReportContextInput): Promise<Nat
   const [Y, M, D] = input.birthDate.split('-').map(Number)
   // SSOT 파서 — split(':') 는 'HH:MM PM' 의 PM 보정을 못 해 출생시각 표시가
   // 어긋난다(collectAstroFacts·counselorContext 와 동일 규약).
-  const { h, m: mi } = parseHourMinute(input.birthTime || '00:00')
+  // 빈 값 폴백은 정오(시간 미상 앵커 SSOT) — page.tsx 가 이미 앵커를 넣어 준다.
+  const { h, m: mi } = parseHourMinute(input.birthTime || TIME_UNKNOWN_ANCHOR)
   const daeunList = (raw.daeWoon?.list ?? []).map((d) => ({
     startAge: d.age,
     startYear: Y + d.age,

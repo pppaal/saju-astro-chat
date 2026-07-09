@@ -63,7 +63,7 @@ export interface ReportData {
     sect: string
     houseSystem: string
     // 출생시각/출생지 미상(placeUnreliable) 시 ASC·MC 는 산출 불가 → null.
-    // 자정 폴백 각을 가짜로 채우지 않는다(astroFacts 의 의도적 null-out 을 그대로 보존).
+    // 미상 앵커 폴백 각을 가짜로 채우지 않는다(astroFacts 의 의도적 null-out 을 그대로 보존).
     ascendant: { lon: number | null; sign: string | null; deg: string }
     mc: { lon: number | null; sign: string | null; deg: string }
     planets: Array<{

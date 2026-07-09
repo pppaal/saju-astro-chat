@@ -81,7 +81,7 @@ const TWELVE_SINSAL_EN: Record<string, string> = {
 
 export function formatSajuSynastry(input: SajuSynastryInput): string {
   if (input.pillarsA.length < 4 || input.pillarsB.length < 4) return ''
-  // 시각 미상이면 시주(時, index 3)는 子시 가정의 날조값 → cross 대상에서 제외.
+  // 시각 미상이면 시주(時, index 3)는 정오 앵커(午시) 가정의 날조값 → cross 대상에서 제외.
   // 아래 모든 pillar 루프는 A.length / B.length 로 도므로, 잘라내면 자동으로
   // 시주가 빠진다(일주=index 2 는 항상 유지). i 는 항상 A, j 는 항상 B 를 인덱싱.
   const A = input.timeUnknownA ? input.pillarsA.slice(0, 3) : input.pillarsA

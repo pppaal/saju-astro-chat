@@ -255,7 +255,8 @@ export function CompatPersonPickerModal({
     const personsData: PickedPersonData[] = persons.slice(0, 2).map((p) => ({
       name: p.name,
       date: p.date,
-      // 시간 모름 시 '00:00'(자정) 기준 — 앱 전체 컨벤션(types.ts/useCompatibilityForm).
+      // 시간 모름 시 '00:00' *표기* — 앱 전체 저장 컨벤션(types.ts/useCompatibilityForm).
+      // 계산 시엔 birthTimeAnchor SSOT 가 '00:00' 을 미상으로 보고 정오 앵커로 바꾼다.
       time: p.time || '00:00',
       city: p.cityQuery || '',
       latitude: p.lat ?? undefined,

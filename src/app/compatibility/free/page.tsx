@@ -21,6 +21,7 @@ import { Heart, Loader2, Sparkles, Download, ChevronDown } from 'lucide-react'
 import { useI18n } from '@/i18n/I18nProvider'
 import { BirthInfoFields, type BirthFieldsPatch } from '@/components/birth/BirthInfoFields'
 import { getStoredBirthInfo, normGender, timeToState } from '@/app/(main)/birthInfoStorage'
+import { resolveBirthTimeAnchor } from '@/lib/saju/birthTimeAnchor'
 import { ScoreBreakdown } from '@/components/report/atoms/ScoreBreakdown'
 import { ShareCompatibilityButton } from '@/components/compatibility/ShareCompatibilityButton'
 import { ReferralInviteButton } from '@/components/referral/ReferralInviteButton'
@@ -355,9 +356,12 @@ export default function FreeCompatibilityPage() {
     setError(null)
     setPhase('loading')
     try {
+      // 시간 모름 → 정오 앵커(SSOT: birthTimeAnchor). 예전 '00:00' 앵커는
+      // 진태양시 보정(-32분)으로 일주가 전날로 밀려 통합리포트와 다른 사주가 나왔다.
+      const anchorOf = (p: Person) => resolveBirthTimeAnchor(p.birthTime, p.timeUnknown).time
       const sajuPayload = (p: Person) => ({
         birthDate: p.birthDate,
-        birthTime: p.timeUnknown ? '00:00' : p.birthTime || '00:00',
+        birthTime: anchorOf(p),
         gender: p.gender === 'female' ? 'female' : 'male',
         calendarType: 'solar' as const,
         timezone: p.timeZone || DEFAULT_TZ,
@@ -366,7 +370,7 @@ export default function FreeCompatibilityPage() {
       })
       const astroPayload = (p: Person) => ({
         date: p.birthDate,
-        time: p.timeUnknown ? '00:00' : p.birthTime || '00:00',
+        time: anchorOf(p),
         latitude: p.latitude ?? 37.5665,
         longitude: p.longitude ?? 126.978,
         timeZone: p.timeZone || DEFAULT_TZ,
@@ -394,8 +398,9 @@ export default function FreeCompatibilityPage() {
         astroB: unwrapAstro(astroBJson) ?? null,
         pillarsA: sajuToPillars(unwrapSaju(sajuAJson)),
         pillarsB: sajuToPillars(unwrapSaju(sajuBJson)),
-        timeUnknownA: personA.timeUnknown,
-        timeUnknownB: personB.timeUnknown,
+        // 플래그 미체크여도 시간이 빈 값이면 미상 — 앵커와 같은 판정(SSOT)으로 통일.
+        timeUnknownA: resolveBirthTimeAnchor(personA.birthTime, personA.timeUnknown).timeUnknown,
+        timeUnknownB: resolveBirthTimeAnchor(personB.birthTime, personB.timeUnknown).timeUnknown,
         lang: locale,
       })
       const reportJson = (reportRes.ok ? await reportRes.json() : null) as {

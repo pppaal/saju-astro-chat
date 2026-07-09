@@ -480,7 +480,7 @@ export function natalToReportData(
       sect: A.sect ?? 'day',
       houseSystem: A.houseSystem ?? 'Placidus',
       // placeUnreliable(출생시각/출생지 미상) 면 facts 가 ascendant/mc 를 null 로 비워 보낸다
-      // → 자정 폴백 각을 'Virgo'/'Gemini'/lon 0 으로 가짜로 채우지 않고 그대로 null 을 보존한다.
+      // → 미상 앵커 폴백 각을 'Virgo'/'Gemini'/lon 0 으로 가짜로 채우지 않고 그대로 null 을 보존한다.
       ascendant: {
         lon: asc.longitude ?? asc.lon ?? null,
         sign: asc.sign ? (SIGN_KO_FULL[asc.sign] ?? asc.sign) : null,

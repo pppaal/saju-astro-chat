@@ -160,7 +160,10 @@ export function buildReportBirthQuery(info: StoredBirthInfo | null, locale: 'ko'
   p.set('lang', locale)
   if (info) {
     p.set('date', info.birthDate)
-    if (!info.birthTimeUnknown && info.birthTime) p.set('time', info.birthTime)
+    // '00:00' 은 앱 저장 규약상 시간 미상(timeToState) — 플래그 없는 레거시
+    // 저장값도 time 파라미터를 생략해, 리포트/캘린더가 정오 앵커로 계산하게 한다.
+    if (!info.birthTimeUnknown && info.birthTime && info.birthTime !== '00:00')
+      p.set('time', info.birthTime)
     if (typeof info.latitude === 'number') p.set('lat', String(info.latitude))
     if (typeof info.longitude === 'number') p.set('lng', String(info.longitude))
     if (info.timeZone) p.set('tz', info.timeZone)

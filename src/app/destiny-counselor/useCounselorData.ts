@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useI18n } from '@/i18n/I18nProvider'
 import { normalizeGender } from '@/lib/utils/gender'
+import { resolveBirthTimeAnchor } from '@/lib/saju/birthTimeAnchor'
 import { loadChartData, saveChartData } from '@/lib/cache/chartDataCache'
 import type { Lang, ChartData, UserContext, CounselorContextResponse } from '@/types/api'
 import { logger } from '@/lib/logger'
@@ -249,6 +250,12 @@ export function useCounselorData(sp: SearchParams) {
       return
     }
 
+    // 시간 모름(프로필 규약 '00:00'/명시 플래그) → 정오 앵커(SSOT: birthTimeAnchor).
+    // 예전 '00:00' 앵커는 진태양시 보정(-32분)으로 일주가 전날로 밀려, 상담사
+    // 차트가 통합리포트와 다른 사주를 보여줬다. 캐시 키에도 앵커를 써서 옛
+    // '00:00' 캐시와 자연 분리한다.
+    const anchoredBirthTime = resolveBirthTimeAnchor(birthTime, birthTimeUnknown).time
+
     // Guard against stale async writes: if the effect re-runs (birth data /
     // location / locale change) or the component unmounts before a fetch
     // resolves, a late response must NOT overwrite fresh chart data. applyChart
@@ -271,7 +278,7 @@ export function useCounselorData(sp: SearchParams) {
     let advancedAstro: Record<string, unknown> | null = null
 
     // Try to load from cache with birth data validation
-    const cached = loadChartData(birthDate, birthTime, resolvedLatitude, resolvedLongitude)
+    const cached = loadChartData(birthDate, anchoredBirthTime, resolvedLatitude, resolvedLongitude)
     if (cached) {
       logger.warn('[CounselorPage] Using cached chart data')
       saju = cached.saju ?? null
@@ -305,7 +312,7 @@ export function useCounselorData(sp: SearchParams) {
             },
             body: JSON.stringify({
               birthDate,
-              birthTime,
+              birthTime: anchoredBirthTime,
               gender: normalizedGender,
               calendarType: 'solar',
               timezone: resolvedTimeZone,
@@ -338,7 +345,7 @@ export function useCounselorData(sp: SearchParams) {
             advancedAstro: prev?.advancedAstro,
           }))
           try {
-            saveChartData(birthDate, birthTime, resolvedLatitude, resolvedLongitude, {
+            saveChartData(birthDate, anchoredBirthTime, resolvedLatitude, resolvedLongitude, {
               saju: richSaju,
               astro: (astro as Record<string, unknown>) || undefined,
               advancedAstro: (advancedAstro as Record<string, unknown>) || undefined,
@@ -371,7 +378,7 @@ export function useCounselorData(sp: SearchParams) {
             },
             body: JSON.stringify({
               date: birthDate,
-              time: birthTime,
+              time: anchoredBirthTime,
               latitude: resolvedLatitude,
               longitude: resolvedLongitude,
               timeZone: resolvedTimeZone,
@@ -398,7 +405,7 @@ export function useCounselorData(sp: SearchParams) {
           }))
           // 캐시에 저장해서 다음 방문 때 즉시 hit
           try {
-            saveChartData(birthDate, birthTime, resolvedLatitude, resolvedLongitude, {
+            saveChartData(birthDate, anchoredBirthTime, resolvedLatitude, resolvedLongitude, {
               saju: (saju as Record<string, unknown>) || undefined,
               astro: astroWithAspects,
               advancedAstro: (advancedAstro as Record<string, unknown>) || undefined,
@@ -435,6 +442,7 @@ export function useCounselorData(sp: SearchParams) {
   }, [
     birthDate,
     birthTime,
+    birthTimeUnknown,
     normalizedGender,
     resolvedLatitude,
     resolvedLongitude,

@@ -11,6 +11,7 @@ import { buildDestinyContext } from './counselorContext'
 import { resolveUserTz, type DestinySources } from './counselorRequest'
 import { getNowInTimezone } from '@/lib/datetime'
 import { normalizeGender } from '@/lib/utils/gender'
+import { resolveBirthTimeAnchor, TIME_UNKNOWN_ANCHOR } from '@/lib/saju/birthTimeAnchor'
 import { cacheGet, cacheSet, CACHE_TTL } from '@/lib/cache/redis-cache'
 import { logger } from '@/lib/logger'
 
@@ -29,7 +30,9 @@ export interface CounselorBirthInput {
 function birthFingerprint(b: CounselorBirthInput): string {
   return [
     b.birthDate ?? '',
-    b.birthTime ?? '00:00',
+    // 앵커 정규화 뒤의 값 — 시간 미상('00:00'/미입력/플래그)은 전부 정오로
+    // 수렴하므로 같은 사람의 미상 표기가 달라도 키가 갈리지 않는다.
+    b.birthTime ?? TIME_UNKNOWN_ANCHOR,
     b.gender ?? 'male',
     b.timezone ?? 'Asia/Seoul',
     b.latitude ?? '',
@@ -58,7 +61,13 @@ export async function ensureCounselorContext(
   // 바꾼 요청이 옛 소스로 빌드된 컨텍스트를 잘못 hit 하지 않는다.
   sources: DestinySources = { saju: true, astro: true }
 ): Promise<{ stableContext: string; dailyContext: string }> {
-  const hourUnknown = !!body.birthTimeUnknown || !body.birthTime
+  // 시간 모름 → 정오 앵커(SSOT: birthTimeAnchor). 예전 '00:00' 앵커는 진태양시
+  // 보정(-32분)으로 일주가 전날로 밀려, 상담사 LLM 이 통합리포트와 다른 사주를
+  // 읽었다. '00:00' 입력도 미상으로 취급(프로필 저장 규약) — hourUnknown 판정과
+  // 계산 앵커가 같은 헬퍼에서 나와 갈리지 않는다.
+  const anchor = resolveBirthTimeAnchor(body.birthTime, body.birthTimeUnknown)
+  body = { ...body, birthTime: anchor.time, birthTimeUnknown: anchor.timeUnknown }
+  const hourUnknown = anchor.timeUnknown
   const cityUnknown =
     !!body.birthCityUnknown ||
     (body.latitude === undefined && body.longitude === undefined && !body.timezone)
@@ -128,7 +137,8 @@ async function buildAndCacheContext(
   const queryDate = new Date(Date.UTC(localNow.year, localNow.month - 1, localNow.day, 12, 0, 0))
   const tz = body.timezone ?? 'Asia/Seoul'
   const birthDate = body.birthDate ?? ''
-  const birthTime = body.birthTime ?? '00:00'
+  // body 는 ensureCounselorContext 에서 앵커 정규화 완료 — 이 폴백은 방어용.
+  const birthTime = body.birthTime ?? TIME_UNKNOWN_ANCHOR
   const gender: 'male' | 'female' = normalizeGender(body.gender) === 'female' ? 'female' : 'male'
   const latitude = body.latitude ?? 37.5665
   const longitude = body.longitude ?? 126.978
