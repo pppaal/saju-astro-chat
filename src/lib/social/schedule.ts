@@ -68,9 +68,36 @@ function isEligibleFor(draft: SocialPostDraft, platform: SocialPlatform): boolea
   return true
 }
 
+function isPublishedOn(draft: SocialPostDraft, platform: SocialPlatform): boolean {
+  return draft.variants.some((v) => v.platform === platform && (v.publishedUrl || v.externalId))
+}
+
 /**
- * 다음에 발행할 초안 1개를 고른다 — 카테고리 우선순위(날짜 로테이션) × 로케일
- * 우선순위 순. 대상이 없으면 null. 하루 상한 체크는 호출부(크론)가 한다.
+ * 날짜별 로케일 우선순위 — JDN(+플랫폼 오프셋) 홀짝으로 교대. IG 처럼 하루
+ * 1개인 플랫폼도 날마다 ko/en 을 번갈아 커버하게 된다.
+ */
+export function localeOrderForDate(
+  date: string,
+  locales: Array<'ko' | 'en'>,
+  platform: AutoPublishPlatform
+): Array<'ko' | 'en'> {
+  if (locales.length < 2) return locales
+  const [y, m, d] = date.split('-').map(Number)
+  const { jdn } = computeDayPillarIndices(y, m, d)
+  const offset = platform === 'instagram' ? 1 : 0
+  return (jdn + offset) % 2 === 0 ? locales : [...locales].reverse()
+}
+
+/**
+ * 다음에 발행할 초안 1개를 고른다. 정렬 우선순위:
+ *   1. 오늘 이 플랫폼으로 아직 안 나간 카테고리 먼저 — 하루 N개가 전부 같은
+ *      주제로 나가는 단조로움 방지 (예전엔 1순위 카테고리의 ko·en 이 연달아
+ *      나가 "오늘은 별자리만 2개" 가 됐다)
+ *   2. 카테고리 로테이션(날짜 기준, IG 는 한 칸 어긋나게 — 같은 날 Threads 와
+ *      다른 주제를 커버)
+ *   3. 오늘 이 플랫폼으로 아직 안 나간 로케일 먼저 (Threads 2개 = ko+en)
+ *   4. 날짜별 로케일 교대 순서
+ * 대상이 없으면 null. 하루 상한 체크는 호출부(크론)가 한다.
  */
 export async function pickNextPlatformDraft(
   date: string,
@@ -78,19 +105,37 @@ export async function pickNextPlatformDraft(
   platform: AutoPublishPlatform
 ): Promise<SocialPostDraft | null> {
   const drafts = await getDrafts(date)
-  const order = categoryOrderForDate(date)
+  const baseOrder = categoryOrderForDate(date)
+  const order = platform === 'instagram' ? [...baseOrder.slice(1), baseOrder[0]] : baseOrder
   const rank = (c: SocialCategory) => {
     const i = order.indexOf(c)
     return i < 0 ? 999 : i
   }
+  const localeOrder = localeOrderForDate(date, locales, platform)
+
+  // 오늘 이 플랫폼으로 이미 나간 카테고리/로케일 — 뒤로 밀어 다양화.
+  const publishedCats = new Set<SocialCategory>()
+  const publishedLocales = new Set<'ko' | 'en'>()
+  for (const d of drafts) {
+    if (!isPublishedOn(d, platform)) continue
+    publishedCats.add(draftCategory(d))
+    publishedLocales.add(d.locale)
+  }
+
   const eligible = drafts
     .filter((d) => isEligibleFor(d, platform))
     .filter((d) => locales.includes(d.locale))
     .sort((a, b) => {
-      // 1순위: 카테고리 로테이션, 2순위: 로케일 목록 순서.
-      const byCat = rank(draftCategory(a)) - rank(draftCategory(b))
+      const catA = draftCategory(a)
+      const catB = draftCategory(b)
+      const seenCat = Number(publishedCats.has(catA)) - Number(publishedCats.has(catB))
+      if (seenCat !== 0) return seenCat
+      const byCat = rank(catA) - rank(catB)
       if (byCat !== 0) return byCat
-      return locales.indexOf(a.locale) - locales.indexOf(b.locale)
+      const seenLoc =
+        Number(publishedLocales.has(a.locale)) - Number(publishedLocales.has(b.locale))
+      if (seenLoc !== 0) return seenLoc
+      return localeOrder.indexOf(a.locale) - localeOrder.indexOf(b.locale)
     })
   return eligible[0] ?? null
 }
