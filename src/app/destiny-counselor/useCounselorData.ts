@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useI18n } from '@/i18n/I18nProvider'
 import { normalizeGender } from '@/lib/utils/gender'
+import { isBirthTimeUnknown, resolveBirthTimeAnchor } from '@/lib/saju/birthTimeAnchor'
 import { loadChartData, saveChartData } from '@/lib/cache/chartDataCache'
 import type { Lang, ChartData, UserContext, CounselorContextResponse } from '@/types/api'
 import { logger } from '@/lib/logger'
@@ -75,6 +76,9 @@ export function useCounselorData(sp: SearchParams) {
       name: stored.name,
       birthDate: stored.birthDate,
       birthTime: stored.birthTime,
+      // 명시 플래그(있으면) — '00:00'(실제 자정)과 "시간 모름" 구분. 레거시
+      // 저장값은 undefined → 아래 tri-state 판정이 '00:00'=미상 휴리스틱으로 폴백.
+      birthTimeUnknown: stored.birthTimeUnknown,
       gender: stored.gender,
       birthCity: stored.city,
       tzId: stored.timeZone,
@@ -103,6 +107,9 @@ export function useCounselorData(sp: SearchParams) {
             name: u.name ?? prev.name,
             birthDate: u.birthDate ?? prev.birthDate,
             birthTime: u.birthTime ?? prev.birthTime,
+            // DB 플래그(boolean) 우선, null(레거시 행)이면 localStorage 시드 보존.
+            birthTimeUnknown:
+              typeof u.birthTimeUnknown === 'boolean' ? u.birthTimeUnknown : prev.birthTimeUnknown,
             gender: u.gender ?? prev.gender,
             birthCity: u.birthCity ?? prev.birthCity,
             tzId: u.tzId ?? prev.tzId,
@@ -195,10 +202,22 @@ export function useCounselorData(sp: SearchParams) {
   const birthTime = urlBirthTime || birthSource.birthTime || ''
   const city = urlCity || birthSource.birthCity || ''
   const effectiveGender = rawGender || birthSource.gender || ''
+  // 시간 미상 tri-state: URL 명시('1'/'0') > 소스 플래그 > undefined(레거시 —
+  // isBirthTimeUnknown 이 '00:00'=미상 휴리스틱으로 폴백). 예전처럼 무신호를
+  // false 로 뭉개면, tri-state 헬퍼가 레거시 '00:00' 을 "실제 자정 출생"으로
+  // 오분류해 일주가 다시 밀린다.
+  const birthTimeUnknownFlag: boolean | undefined =
+    rawBirthTimeUnknown === '1' || rawBirthTimeUnknown === 'true'
+      ? true
+      : rawBirthTimeUnknown === '0' || rawBirthTimeUnknown === 'false'
+        ? false
+        : birthSource.birthTimeUnknown
+  // 마스킹/표시용 확정 boolean — 계산 앵커와 같은 판정(SSOT). 단 birthTime 이
+  // 아직 없으면(URL/프로필 미도착) "미상"이 아니라 그냥 무데이터 — false 유지
+  // (기존 계약: 데이터 없음 ≠ 시간 모름. 차트 effect 도 그 경우 계산 안 함).
   const birthTimeUnknown =
-    rawBirthTimeUnknown === '1' ||
-    rawBirthTimeUnknown === 'true' ||
-    Boolean(birthSource.birthTimeUnknown)
+    birthTimeUnknownFlag === true ||
+    (!!birthTime && isBirthTimeUnknown(birthTime, birthTimeUnknownFlag))
 
   const latStr =
     (Array.isArray(sp.lat) ? sp.lat[0] : sp.lat) ??
@@ -249,6 +268,12 @@ export function useCounselorData(sp: SearchParams) {
       return
     }
 
+    // 시간 모름(프로필 규약 '00:00'/명시 플래그) → 정오 앵커(SSOT: birthTimeAnchor).
+    // 예전 '00:00' 앵커는 진태양시 보정(-32분)으로 일주가 전날로 밀려, 상담사
+    // 차트가 통합리포트와 다른 사주를 보여줬다. 캐시 키에도 앵커를 써서 옛
+    // '00:00' 캐시와 자연 분리한다.
+    const anchoredBirthTime = resolveBirthTimeAnchor(birthTime, birthTimeUnknown).time
+
     // Guard against stale async writes: if the effect re-runs (birth data /
     // location / locale change) or the component unmounts before a fetch
     // resolves, a late response must NOT overwrite fresh chart data. applyChart
@@ -271,7 +296,7 @@ export function useCounselorData(sp: SearchParams) {
     let advancedAstro: Record<string, unknown> | null = null
 
     // Try to load from cache with birth data validation
-    const cached = loadChartData(birthDate, birthTime, resolvedLatitude, resolvedLongitude)
+    const cached = loadChartData(birthDate, anchoredBirthTime, resolvedLatitude, resolvedLongitude)
     if (cached) {
       logger.warn('[CounselorPage] Using cached chart data')
       saju = cached.saju ?? null
@@ -305,7 +330,7 @@ export function useCounselorData(sp: SearchParams) {
             },
             body: JSON.stringify({
               birthDate,
-              birthTime,
+              birthTime: anchoredBirthTime,
               gender: normalizedGender,
               calendarType: 'solar',
               timezone: resolvedTimeZone,
@@ -338,7 +363,7 @@ export function useCounselorData(sp: SearchParams) {
             advancedAstro: prev?.advancedAstro,
           }))
           try {
-            saveChartData(birthDate, birthTime, resolvedLatitude, resolvedLongitude, {
+            saveChartData(birthDate, anchoredBirthTime, resolvedLatitude, resolvedLongitude, {
               saju: richSaju,
               astro: (astro as Record<string, unknown>) || undefined,
               advancedAstro: (advancedAstro as Record<string, unknown>) || undefined,
@@ -371,7 +396,7 @@ export function useCounselorData(sp: SearchParams) {
             },
             body: JSON.stringify({
               date: birthDate,
-              time: birthTime,
+              time: anchoredBirthTime,
               latitude: resolvedLatitude,
               longitude: resolvedLongitude,
               timeZone: resolvedTimeZone,
@@ -398,7 +423,7 @@ export function useCounselorData(sp: SearchParams) {
           }))
           // 캐시에 저장해서 다음 방문 때 즉시 hit
           try {
-            saveChartData(birthDate, birthTime, resolvedLatitude, resolvedLongitude, {
+            saveChartData(birthDate, anchoredBirthTime, resolvedLatitude, resolvedLongitude, {
               saju: (saju as Record<string, unknown>) || undefined,
               astro: astroWithAspects,
               advancedAstro: (advancedAstro as Record<string, unknown>) || undefined,
@@ -435,6 +460,7 @@ export function useCounselorData(sp: SearchParams) {
   }, [
     birthDate,
     birthTime,
+    birthTimeUnknown,
     normalizedGender,
     resolvedLatitude,
     resolvedLongitude,

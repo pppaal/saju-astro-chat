@@ -295,6 +295,7 @@ export default function ProfilePage() {
             name: profile?.name ?? null,
             birthDate: profile?.birthDate ?? null,
             birthTime: profile?.birthTime ?? null,
+            birthTimeUnknown: profile?.birthTimeUnknown ?? null,
             gender: profile?.gender ?? null,
             birthCity: profile?.birthCity ?? null,
             latitude: profile?.latitude ?? null,

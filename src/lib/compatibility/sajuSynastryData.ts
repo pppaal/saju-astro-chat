@@ -297,10 +297,10 @@ export interface SajuSynastryInput {
   nameA?: string | null
   nameB?: string | null
   /**
-   * 출생 시각 미상 플래그. true 면 그 사람의 시주(時, index 3)는 자정(子시) 가정으로
-   * 날조된 값이라 cross(합/충/형/신살/공망)에서 통째로 제외한다. [Meta] 라인이
-   * LLM 에게 "인용 금지"라 말해도, 엔진이 애초에 날조 cross 를 만들지 않는 게
-   * doctrine(엔진이 판단, LLM 은 표현)에 맞다.
+   * 출생 시각 미상 플래그. true 면 그 사람의 시주(時, index 3)는 정오 앵커(午시,
+   * birthTimeAnchor SSOT) 가정으로 날조된 값이라 cross(합/충/형/신살/공망)에서
+   * 통째로 제외한다. [Meta] 라인이 LLM 에게 "인용 금지"라 말해도, 엔진이 애초에
+   * 날조 cross 를 만들지 않는 게 doctrine(엔진이 판단, LLM 은 표현)에 맞다.
    */
   timeUnknownA?: boolean
   timeUnknownB?: boolean

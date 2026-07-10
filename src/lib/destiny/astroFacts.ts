@@ -21,6 +21,7 @@ import { natalToJD, matchHouseForCusps, UNKNOWN_HOUSE } from '@/lib/astrology/fo
 import { calculateZodiacalReleasing } from '@/lib/astrology/foundation/zodiacalReleasing'
 import { calculateArabicLots, type ArabicLot } from '@/lib/astrology/foundation/arabicParts'
 import { parseHourMinute } from '@/lib/saju/timeParse'
+import { TIME_UNKNOWN_ANCHOR } from '@/lib/saju/birthTimeAnchor'
 import {
   calculateAlmutenFiguris,
   type AlmutenFigurisResult,
@@ -59,8 +60,8 @@ export interface PlanetFact {
   name: string
   sign: string
   /**
-   * 하우스 배치 — ASC 의존. placeUnreliable(출생시각/출생지 미상) 시 자정 폴백
-   * ASC 로 계산된 "그럴듯하지만 틀린" 하우스가 새어나가지 않도록 null.
+   * 하우스 배치 — ASC 의존. placeUnreliable(출생시각/출생지 미상) 시 미상 앵커
+   * (정오) 폴백 ASC 로 계산된 "그럴듯하지만 틀린" 하우스가 새어나가지 않도록 null.
    */
   house: number | null
   longitude: number
@@ -82,7 +83,7 @@ export interface AstroFacts {
     /**
      * 상승점 — ASC 의존이라 placeUnreliable(출생시각/출생지 미상) 시 null.
      * 엔진이 스스로 가려, _chart 가 아닌 facts.natal 을 읽는 호출처(상담사·
-     * 캘린더 등)는 자정 폴백 ASC 에 절대 노출되지 않는다.
+     * 캘린더 등)는 미상 앵커 폴백 ASC 에 절대 노출되지 않는다.
      */
     ascendant: { sign: string; longitude: number } | null
     /** 중천점 — ASC 와 동일하게 placeUnreliable 시 null. */
@@ -170,7 +171,9 @@ export async function collectAstroFacts(
   const [Y, M, D] = input.birthDate.split('-').map(Number)
   // AM/PM('11:30 PM') 정확히 24h 정규화 — 직접 split(':') 하면 PM 이 12h 빠지고
   // 분이 NaN 이 돼 자연차트(ASC/MC/하우스)가 어긋났다. 사주와 동일 파서 사용.
-  const { h, m: mi } = parseHourMinute(input.birthTime || '00:00')
+  // 빈 값 폴백은 정오(시간 미상 앵커 SSOT) — 자정 폴백은 tz 변환에서 행성
+  // 위치가 전날로 밀릴 수 있다. 정상 경로는 caller 가 이미 앵커를 넣어 준다.
+  const { h, m: mi } = parseHourMinute(input.birthTime || TIME_UNKNOWN_ANCHOR)
 
   // 잘못된 IANA 타임존이면 natalToJD 의 tz 변환이 throw → 여기서 null 반환 →
   // buildNatalContext 가 하드 throw → 리포트·캘린더·운명이 모두 죽는다.
@@ -198,7 +201,7 @@ export async function collectAstroFacts(
   const placeUnreliable = !!input.birthTimeUnknown || !!input.birthCityUnknown
 
   // 행성 — sign / house / dignity 평탄화.
-  // house 는 ASC 의존 → placeUnreliable 면 null (자정 폴백 하우스 누출 차단).
+  // house 는 ASC 의존 → placeUnreliable 면 null (미상 앵커 폴백 하우스 누출 차단).
   const planets: PlanetFact[] = natal.planets.map((p) => ({
     name: p.name,
     sign: p.sign,
@@ -292,7 +295,7 @@ export async function collectAstroFacts(
   return {
     natal: {
       planets,
-      // ASC/MC 도 ASC 의존 → placeUnreliable 면 null. 엔진이 자정 폴백 각을
+      // ASC/MC 도 ASC 의존 → placeUnreliable 면 null. 엔진이 미상 앵커 폴백 각을
       // 스스로 가려 facts.natal 을 읽는 비-LLM 소비자(리포트 등)도 안전.
       ascendant: placeUnreliable
         ? null

@@ -45,19 +45,21 @@ const TONE = bi(
 )
 
 const LENGTH = bi(
-  `답변 분량: 질문이 요구하는 깊이만큼 충분히 답한다 — 글자 수 상한에 얽매이지 말 것. 열린 질문은 2~3 단락으로 풍성하게. 후속 질문도 짧게 끊지 말 것: 초점만 좁히고 그 한 주제를 2~3 단락으로 더 깊이 파고들어 새 근거·디테일을 보탠다. 단, 사실 1-줄 질문("A 일간 뭐야?")만 1~3 문장으로 간결히.`,
-  `Length: answer with as much depth as the question calls for — don't ration by character count. Open questions get 2-3 rich paragraphs. Follow-ups should NOT be cut short either: narrow the focus but go 2-3 paragraphs deeper into that one topic, adding fresh evidence/detail. Only one-line factual asks ("What's A's day master?") stay terse (1-3 sentences).`
+  `답변 분량: 질문이 요구하는 깊이만큼 충분히, 넉넉하게 답한다 — 글자 수 상한에 얽매이지 말 것. 열린 질문은 4~5 단락으로 풍성하게: [CRITICAL] 신호가 여럿이면 하나로 뭉개지 말고 신호마다 자기 단락을 준다(차트 근거가 받쳐 주는 한 길수록 좋다). 후속 질문도 짧게 끊지 말 것: 초점만 좁히고 그 한 주제를 3~4 단락으로 더 깊이 파고들어 새 근거·디테일을 보탠다. 단, 사실 1-줄 질문("A 일간 뭐야?")만 1~3 문장으로 간결히.`,
+  `Length: answer with as much depth as the question calls for — don't ration by character count. Open questions get 4-5 rich paragraphs: when several [CRITICAL] signals exist, give each its own paragraph instead of collapsing them (the more chart-grounded depth, the better). Follow-ups should NOT be cut short either: narrow the focus but go 3-4 paragraphs deeper into that one topic, adding fresh evidence/detail. Only one-line factual asks ("What's A's day master?") stay terse (1-3 sentences).`
 )
 
 const STRUCTURE = bi(
-  `답변 구조 (열린 질문, 2~3 단락):
+  `답변 구조 (열린 질문, 4~5 단락):
   · 첫 단락 — *차트의 구체적 사실 + 끌림 메커니즘*. 일간/지지/하우스/aspect 같은 요소를 일상어로 풀어, 그 데이터에서 어떤 결로 끌리는지 짚는다.
   · 두 번째 단락 — *결의 차이 또는 잘 흐르는 이유* + *관찰 질문 1~2 개*. [CRITICAL] friction 신호가 *명확히* 있을 때만 결의 차이를 짚고, 약하거나 없으면 *왜 잘 흐르는지*로 대체. 끝에 사용자가 자기 경험으로 즉시 확인 가능한 관찰 질문("보통 이런 결인 분들은 ~ 경향이 있는데, 두 분도 그러시나요?", "~ 같은 순간 느껴 보신 적 있어요?") 1~2 개 자연스럽게 끼움.
-  · 셋째 단락(쓸 거면) — *차트 근거가 있는 더 깊은 분석*만. 예전 "풀어가는 길/타이밍" 식 처방형 조언("소통이 중요", "이해해주세요")은 여전히 금지 — 분량 채우려 일반론 늘리지 말 것. 시기/타이밍은 사용자가 *직접 물을 때만* 답한다.`,
-  `Structure (open questions, 2-3 paragraphs):
+  · 셋째~넷째 단락 — *아직 안 다룬 다른 cross 축*을 하나씩. 십성(배우자성)·용신 보완·삼합/방합·신살·하우스 overlay 중 [CRITICAL] 급인데 위에서 못 다룬 신호를 골라 각각 한 단락으로 풀어낸다. 같은 신호 재탕으로 늘리지 말고 *새 근거*를 보탤 것.
+  · 마지막 단락(쓸 거면) — *차트 근거가 있는 더 깊은 종합*만. 예전 "풀어가는 길/타이밍" 식 처방형 조언("소통이 중요", "이해해주세요")은 여전히 금지 — 분량 채우려 일반론 늘리지 말 것. 시기/타이밍은 사용자가 *직접 물을 때만* 답한다.`,
+  `Structure (open questions, 4-5 paragraphs):
   · First — *concrete chart facts + pull mechanism*. Translate elements (day master, branches, houses, aspects) into plain language, then show what kind of pull emerges from that data.
   · Second — *where the grain differs OR why it flows* + *1-2 observational hooks*. Only call out friction when [CRITICAL] signals are *clearly* present; if signals are weak/absent, replace with *why the dynamic flows*. End with 1-2 observational questions the user can verify from their own experience ("Couples with this grain usually X — do you two notice that?", "Have you felt Y in moments like Z?").
-  · Third paragraph (if you write one) — *deeper chart-grounded analysis only*. The old "path forward / timing" prescriptive style ("communicate well", "be patient") stays banned — never pad length with generic advice. Timing is answered *only when the user directly asks*.`
+  · Third-fourth — *cross axes not yet covered*, one per paragraph. Pick [CRITICAL]-grade signals left untouched above (spouse stars / yongsin complement / trine-directional combos / shinsal / house overlays) and unpack each with *fresh evidence* — never pad by restating the same signal.
+  · Final paragraph (if you write one) — *deeper chart-grounded synthesis only*. The old "path forward / timing" prescriptive style ("communicate well", "be patient") stays banned — never pad length with generic advice. Timing is answered *only when the user directly asks*.`
 )
 
 const RULES_HEADER = bi(`규칙:`, `Rules:`)

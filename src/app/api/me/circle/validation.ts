@@ -19,6 +19,8 @@ export const PostCircleSchema = z.object({
   relation: z.string().min(1, 'Relation is required').max(50, 'Relation too long (max 50)'),
   birthDate: z.string().optional().nullable(),
   birthTime: z.string().optional().nullable(),
+  // 출생 시각 미상 명시 플래그 — '00:00'(실제 자정)과 "시간 모름" 구분(birthTimeAnchor SSOT).
+  birthTimeUnknown: z.boolean().optional().nullable(),
   gender: z.enum(['male', 'female']).optional().nullable(),
   birthCity: z.string().optional().nullable(),
   latitude: z.number().min(-90).max(90).optional().nullable(),

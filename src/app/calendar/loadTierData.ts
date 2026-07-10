@@ -24,6 +24,7 @@ import {
 import { assembleTiers, type AssembledTiers } from './assembleTiers'
 import { assembleLifetime, type AssembledLifetime } from './assembleLifetime'
 import { getNowInTimezone, formatDateString } from '@/lib/datetime/timezone'
+import { resolveBirthTimeAnchor } from '@/lib/saju/birthTimeAnchor'
 
 export type LoadTierResult =
   | { kind: 'login' }
@@ -45,7 +46,10 @@ export type LoadLifetimeResult =
 // 빌드한다(통합 리포트와 같은 규약: date/time/lat/lng/tz/gender).
 export interface BirthOverride {
   birthDate: string
+  /** 계산 앵커 (HH:MM). 시간 미상이면 정오 — birthTimeAnchor SSOT. */
   birthTime: string
+  /** 시간 미상(?time= 생략/'00:00') — 표시에서 앵커 시각을 숨기는 용. */
+  timeUnknown: boolean
   gender: 'male' | 'female'
   latitude: number
   longitude: number
@@ -68,9 +72,17 @@ export function parseBirthOverride(sp: SP): BirthOverride | null {
   const lngRaw = one(sp.lng)
   const lat = latRaw ? Number(latRaw) : NaN
   const lng = lngRaw ? Number(lngRaw) : NaN
+  // 시간 미상 → 정오 앵커(SSOT, tri-state). ?tu=1|0 명시 플래그가 있으면 신뢰
+  // (tu=0 + time=00:00 = 실제 자정 출생 → 자정 그대로 계산), 없으면 레거시
+  // 휴리스틱(생략/'00:00' = 미상 — 자정 그대로 계산하면 진태양시 보정으로
+  // 일주가 전날로 밀린다).
+  const tuRaw = one(sp.tu)
+  const tuFlag = tuRaw === '1' ? true : tuRaw === '0' ? false : undefined
+  const timeAnchor = resolveBirthTimeAnchor(one(sp.time), tuFlag)
   return {
     birthDate: date,
-    birthTime: one(sp.time) || '12:00',
+    birthTime: timeAnchor.time,
+    timeUnknown: timeAnchor.timeUnknown,
     gender: one(sp.gender) === 'female' ? 'female' : 'male',
     latitude: Number.isFinite(lat) ? lat : 37.5665,
     longitude: Number.isFinite(lng) ? lng : 126.978,
@@ -100,7 +112,7 @@ export interface BirthInput {
 export type SessionBirthResult =
   | { kind: 'anonymous' }
   | { kind: 'no-birth' }
-  | { kind: 'ok'; birth: BirthInput; place: string | null }
+  | { kind: 'ok'; birth: BirthInput; timeUnknown: boolean; place: string | null }
 
 /**
  * 세션(로그인 사용자)의 저장된 본명 — loadTierData 와 /api/calendar/day 가 공유.
@@ -117,6 +129,7 @@ export async function loadSessionBirth(): Promise<SessionBirthResult> {
         select: {
           birthDate: true,
           birthTime: true,
+          birthTimeUnknown: true,
           gender: true,
           birthCity: true,
           latitude: true,
@@ -135,25 +148,34 @@ export async function loadSessionBirth(): Promise<SessionBirthResult> {
     !!profile?.tzId
   if (!isBirthComplete || !profile) return { kind: 'no-birth' }
 
+  // 시간 모름 → 정오 앵커(SSOT: birthTimeAnchor, tri-state). DB 명시 플래그가
+  // 있으면 신뢰(false + '00:00' = 실제 자정 출생), NULL(레거시 행)이면
+  // '00:00'=미상 휴리스틱. 예전엔 프로필 '00:00' 이 그대로 계산돼, 같은
+  // 사용자가 딥링크(정오 폴백)로 들어오면 당일 일주·세션 진입이면 전날 일주를
+  // 보는 자기모순이 있었다.
+  const anchor = resolveBirthTimeAnchor(profile.birthTime, profile.birthTimeUnknown)
+
   return {
     kind: 'ok',
     birth: {
       birthDate: profile.birthDate!,
-      birthTime: profile.birthTime!,
+      birthTime: anchor.time,
       gender: normalizeGender(profile.gender),
       latitude: profile.latitude!,
       longitude: profile.longitude!,
       timeZone: profile.tzId!,
     },
+    timeUnknown: anchor.timeUnknown,
     place: profile.birthCity || null,
   }
 }
 
-// MM-DD 한국어 표기 — '1995.2.9 06:40'.
-function formatBirthLine(birthDate: string, birthTime: string): string {
+// MM-DD 한국어 표기 — '1995.2.9 06:40'. 시간 미상이면 날짜만(정오 앵커 '12:00'
+// 을 실제 출생 시각처럼 보여주지 않는다).
+function formatBirthLine(birthDate: string, birthTime: string, timeUnknown = false): string {
   const [y, m, d] = birthDate.split('-')
   const ymd = `${Number(y)}.${Number(m)}.${Number(d)}`
-  return `${ymd} ${birthTime}`
+  return timeUnknown ? ymd : `${ymd} ${birthTime}`
 }
 
 /** 공용 본명 가드 — override(IP 한도) 또는 세션 본명. 두 로더가 공유. */
@@ -161,7 +183,7 @@ type BirthGuardResult =
   | { kind: 'guest' }
   | { kind: 'no-birth' }
   | { kind: 'rate-limited' }
-  | { kind: 'ok'; birth: BirthInput; place: string }
+  | { kind: 'ok'; birth: BirthInput; timeUnknown: boolean; place: string }
 
 async function resolveBirthGuard(
   override: BirthOverride | null | undefined,
@@ -185,6 +207,7 @@ async function resolveBirthGuard(
         longitude: override.longitude,
         timeZone: override.timeZone,
       },
+      timeUnknown: override.timeUnknown,
       place: override.place || (lang === 'en' ? 'Seoul' : '서울'),
     }
   }
@@ -197,6 +220,7 @@ async function resolveBirthGuard(
   return {
     kind: 'ok',
     birth: resolved.birth,
+    timeUnknown: resolved.timeUnknown,
     place: resolved.place || (lang === 'en' ? 'Seoul' : '미입력'),
   }
 }
@@ -241,7 +265,7 @@ export async function loadTierData(override?: BirthOverride | null): Promise<Loa
       : Promise.resolve(undefined),
   ])
 
-  const birthDisplay = formatBirthLine(BIRTH.birthDate, BIRTH.birthTime)
+  const birthDisplay = formatBirthLine(BIRTH.birthDate, BIRTH.birthTime, guard.timeUnknown)
 
   const assembled = await assembleTiers({
     natal,
@@ -292,7 +316,7 @@ export async function loadLifetimeData(
   const todayIso = formatDateString(today.year, today.month, today.day)
 
   const natal = await getOrBuildNatalContext(BIRTH)
-  const birthDisplay = formatBirthLine(BIRTH.birthDate, BIRTH.birthTime)
+  const birthDisplay = formatBirthLine(BIRTH.birthDate, BIRTH.birthTime, guard.timeUnknown)
   // 오늘 1일 evidence 셀 — 대운층 사주×점성 교차 원천(연 셀은 여전히 안 빌드).
   // /calendar 와 같은 캐시(getFocusDayCell)라 두 화면 방문 시 공유된다.
   const focusDayCell = await getFocusDayCell(BIRTH, natal, todayIso)

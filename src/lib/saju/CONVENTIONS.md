@@ -83,6 +83,8 @@ const sajuYear = birthDateTime < ipchunUTC ? year - 1 : year
 **선택:** 위 1번(자시)과 동일 표 기반. 한국 LMT +30분 보정 시진 경계.
 
 - 시간 미상(`birthTimeUnknown=true`): 시주 계산 skip, 다른 모듈은 ASC/MC 의존 정보(점성 하우스 등) 자동 마스킹
+- **시간 미상 계산 앵커 = 정오(12:00)** — SSOT [`birthTimeAnchor.ts`](./birthTimeAnchor.ts) (`resolveBirthTimeAnchor`/`isBirthTimeUnknown`). 자정 앵커는 진태양시 보정(서울 -32분)으로 출생 인스턴트가 전날로 밀려 **일주**(절입일엔 월주·년주까지)가 어긋난다 — 실제로 궁합/상담사/캘린더 세션 경로가 `'00:00'` 앵커를 써서 통합리포트(정오)와 다른 사주를 내던 버그의 원인. 시간 미상 입력을 엔진(사주·점성)에 넣는 모든 경로는 이 헬퍼를 거칠 것.
+- **미상 판정은 tri-state** — 명시 플래그(`birthTimeUnknown`: UserProfile/SavedPerson DB 컬럼, URL `birthTimeUnknown=1|0`·`tu=1|0`, 폼 상태)가 boolean 이면 신뢰한다: `false` + `'00:00'` 은 **실제 자정 출생**(자정 그대로 계산, 시주 유효). 플래그 미보존(레거시 행/링크, NULL)은 `'00:00'`=미상 휴리스틱으로 폴백.
 
 **위치:** [`saju.ts:160-192`](./saju.ts#L160-L192) 및 호출처
 

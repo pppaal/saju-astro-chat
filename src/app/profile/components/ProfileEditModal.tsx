@@ -5,6 +5,7 @@ import { X } from 'lucide-react'
 import { localizeStoredCity } from '@/lib/cities/formatter'
 import { logger } from '@/lib/logger'
 import { normalizeGender } from '@/lib/utils/gender'
+import { isBirthTimeUnknown } from '@/lib/saju/birthTimeAnchor'
 import {
   BirthInfoFields,
   type BirthFieldsClasses,
@@ -38,6 +39,8 @@ interface ProfileEditModalProps {
     birthTime?: string | null
     gender?: string | null
     birthCity?: string | null
+    /** 시각 미상 명시 플래그 — null/미존재 = 레거시('00:00'=미상 휴리스틱). */
+    birthTimeUnknown?: boolean | null
     latitude?: number | null
     longitude?: number | null
     tzId?: string | null
@@ -63,8 +66,14 @@ export function ProfileEditModal({
 
   const [name, setName] = useState(initial.name ?? '')
   const [birthDate, setBirthDate] = useState(initial.birthDate ?? '')
-  const [timeUnknown, setTimeUnknown] = useState(!initial.birthTime)
-  const [birthTime, setBirthTime] = useState(initial.birthTime ?? '')
+  // tri-state SSOT — 명시 플래그가 있으면 신뢰(false + '00:00' = 실제 자정 출생
+  // 으로 시각 유지), 레거시(플래그 없음)의 '00:00'/빈 값은 미상.
+  const [timeUnknown, setTimeUnknown] = useState(
+    isBirthTimeUnknown(initial.birthTime, initial.birthTimeUnknown)
+  )
+  const [birthTime, setBirthTime] = useState(
+    isBirthTimeUnknown(initial.birthTime, initial.birthTimeUnknown) ? '' : (initial.birthTime ?? '')
+  )
   const [gender, setGender] = useState<'M' | 'F'>(
     // The server may return any of 'M' / 'F' / 'Male' / 'Female' / 'male' /
     // 'female' depending on when the row was last written, so route every
@@ -120,6 +129,8 @@ export function ProfileEditModal({
       const body: Record<string, unknown> = {
         birthDate: birthDate || null,
         birthTime: timeUnknown ? null : birthTime || null,
+        // 명시 플래그 — '00:00'(실제 자정 출생)과 "시간 모름"을 DB 에서 구분.
+        birthTimeUnknown: timeUnknown,
         gender,
         birthCity: birthCity || null,
         // 좌표도 함께 저장 — 안 그러면 도시 이름만 남아 불러오기 시 "도시

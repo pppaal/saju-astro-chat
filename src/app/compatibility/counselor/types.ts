@@ -12,6 +12,12 @@ export type PersonData = {
   name: string
   date: string
   time: string
+  /**
+   * 시간 미상 명시 플래그(tri-state) — true=모름, false=앎('00:00' 도 실제 자정
+   * 출생), undefined=레거시(수신측이 '00:00'=미상 휴리스틱으로 판정).
+   * birthTimeAnchor SSOT 규약.
+   */
+  timeUnknown?: boolean
   city: string
   latitude?: number
   longitude?: number

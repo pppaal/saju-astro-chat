@@ -72,14 +72,14 @@ export default function BirthInfoModal({
   const seed = initial ?? (startBlank ? null : getStoredBirthInfo())
   const [name, setName] = useState(seed?.name || '')
   const [birthDate, setBirthDate] = useState(seed?.birthDate || '')
-  const [birthTime, setBirthTime] = useState(
-    seed?.birthTime && seed.birthTime !== '00:00' ? seed.birthTime : ''
-  )
-  // Default to "time known" for new users so the time input is enabled.
-  // Only mark as unknown when a prior save explicitly used the 00:00
-  // placeholder or set the flag.
+  // tri-state SSOT(timeToState) — 명시 플래그가 있으면 신뢰(false + '00:00' =
+  // 실제 자정 출생으로 시각 유지), 레거시(플래그 없음)의 '00:00' 은 미상.
+  const seededTime = timeToState(seed?.birthTime, seed?.birthTimeUnknown)
+  const [birthTime, setBirthTime] = useState(seededTime.birthTime)
+  // Default to "time known" for new users so the time input is enabled —
+  // 시드가 없거나 시각이 빈 값이면 미상 체크 대신 빈 입력으로 시작.
   const [timeUnknown, setTimeUnknown] = useState(
-    seed?.birthTimeUnknown === true || seed?.birthTime === '00:00'
+    seed?.birthTimeUnknown === true || (!!seed?.birthTime && seededTime.timeUnknown)
   )
   const [gender, setGender] = useState<'male' | 'female' | ''>(seed?.gender || '')
   const [city, setCity] = useState(seed?.city || '')
@@ -130,9 +130,7 @@ export default function BirthInfoModal({
           label: isKo ? '내 정보' : 'My info',
           name: localSeed.name || '',
           birthDate: localSeed.birthDate,
-          birthTime:
-            localSeed.birthTime && localSeed.birthTime !== '00:00' ? localSeed.birthTime : '',
-          timeUnknown: localSeed.birthTimeUnknown === true || localSeed.birthTime === '00:00',
+          ...timeToState(localSeed.birthTime, localSeed.birthTimeUnknown),
           gender: localSeed.gender || '',
           city: localSeed.city || '',
           latitude: localSeed.latitude ?? null,
@@ -158,7 +156,8 @@ export default function BirthInfoModal({
               sub: u.name || undefined,
               name: u.name || '',
               birthDate: u.birthDate || '',
-              ...timeToState(u.birthTime),
+              // DB 명시 플래그(tri-state) — 실제 자정 출생('00:00' + false) 보존.
+              ...timeToState(u.birthTime, u.birthTimeUnknown),
               gender: normGender(u.gender),
               city: u.birthCity || '',
               latitude: u.latitude ?? null,
@@ -178,8 +177,7 @@ export default function BirthInfoModal({
             label: isKo ? '내 정보' : 'My info',
             name: local.name || '',
             birthDate: local.birthDate,
-            birthTime: local.birthTime && local.birthTime !== '00:00' ? local.birthTime : '',
-            timeUnknown: local.birthTimeUnknown === true || local.birthTime === '00:00',
+            ...timeToState(local.birthTime, local.birthTimeUnknown),
             gender: local.gender || '',
             city: local.city || '',
             latitude: local.latitude ?? null,
@@ -204,7 +202,7 @@ export default function BirthInfoModal({
                 sub: p.relation || undefined,
                 name: p.name || '',
                 birthDate: p.birthDate || '',
-                ...timeToState(p.birthTime),
+                ...timeToState(p.birthTime, p.birthTimeUnknown),
                 gender: normGender(p.gender),
                 city: p.birthCity || '',
                 latitude: p.latitude ?? null,
@@ -326,6 +324,8 @@ export default function BirthInfoModal({
             ...(trimmedName ? { name: trimmedName } : {}),
             birthDate,
             birthTime: timeUnknown ? null : effectiveTime,
+            // 명시 플래그 — '00:00'(실제 자정 출생)과 "시간 모름"을 DB 에서 구분.
+            birthTimeUnknown: timeUnknown,
             gender: gender as 'male' | 'female',
             birthCity: trimmedCity ?? null,
             // 출생지 좌표 — 사주 진태양시 보정이 운세 차트·캘린더·궁합·
@@ -361,6 +361,7 @@ export default function BirthInfoModal({
         body: JSON.stringify({
           birthDate: null,
           birthTime: null,
+          birthTimeUnknown: null,
           birthCity: null,
           tzId: null,
         }),

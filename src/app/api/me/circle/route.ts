@@ -85,6 +85,7 @@ export const POST = withApiMiddleware(
       relation,
       birthDate,
       birthTime,
+      birthTimeUnknown,
       gender,
       birthCity,
       latitude,
@@ -101,6 +102,9 @@ export const POST = withApiMiddleware(
           relation,
           birthDate: birthDate || null,
           birthTime: birthTime || null,
+          // 명시 플래그 그대로 보존 (false = 실제 자정 출생 가능). 미전송이면 null
+          // → 소비처가 '00:00'=미상 휴리스틱으로 폴백.
+          birthTimeUnknown: birthTimeUnknown ?? null,
           gender: gender || null,
           birthCity: birthCity || null,
           latitude: latitude != null ? latitude : null,

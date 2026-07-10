@@ -16,6 +16,7 @@ import { type TarotResultSummary } from '@/components/destiny-map/InlineTarotMod
 import { useFileUpload } from '@/components/destiny-map/hooks/useFileUpload'
 import { pushRecentPair } from '@/app/compatibility/lib'
 import { normalizeGender } from '@/lib/utils/gender'
+import { resolveBirthTimeAnchor } from '@/lib/saju/birthTimeAnchor'
 import { type PickedPersonData } from './CompatPersonPickerModal'
 import { fetchLatestSessionId } from '@/lib/counselor/latestSession'
 import { useChatActions } from '@/lib/counselor/useChatActions'
@@ -293,6 +294,9 @@ function CompatibilityCounselorContent() {
               name: p.name,
               date: p.date,
               time: p.time,
+              // 플래그 보존 — 빠지면 다음 복원 때 '00:00'=미상 휴리스틱으로
+              // 떨어져 실제 자정 출생이 "시간 모름"으로 오분류된다.
+              timeUnknown: p.timeUnknown,
               gender: p.gender,
               cityQuery: p.city || '',
               lat: p.latitude ?? null,
@@ -346,9 +350,12 @@ function CompatibilityCounselorContent() {
       // /api/saju · /api/astrology 는 이제 차트 계산만 하고 LLM 해석은 하지
       // 않는다 (dead code 제거됨). 궁합 상담사는 chart 데이터만 받아 자체
       // LLM(streamClaudeAsSSE) 으로 통합 해석.
+      // 시간 모름 → 정오 앵커(SSOT: birthTimeAnchor, tri-state). 예전엔 '00:00'
+      // 그대로 계산돼 진태양시 보정(-32분)으로 일주가 전날로 밀렸다. 명시 플래그가
+      // 있으면 신뢰(false + '00:00' = 실제 자정 출생 → 자정 그대로 계산).
       const sajuPayload = (p: PersonData) => ({
         birthDate: p.date,
-        birthTime: p.time,
+        birthTime: resolveBirthTimeAnchor(p.time, p.timeUnknown).time,
         // 공용 normalizer — 'M'/'F'/'Male'/'Female'/'male'/'female' 다 처리.
         // 이전 `.toLowerCase().startsWith('f')` 도 known input 에선 동작
         // 했지만 다른 normalizer 호출처와 시그니처/시맨틱 통일.
@@ -362,7 +369,7 @@ function CompatibilityCounselorContent() {
       // 검증 400으로 떨어져 점성 데이터가 영영 안 들어온다.
       const astroPayload = (p: PersonData) => ({
         date: p.date,
-        time: p.time,
+        time: resolveBirthTimeAnchor(p.time, p.timeUnknown).time,
         latitude: p.latitude || 37.5665,
         longitude: p.longitude || 126.978,
         timeZone: p.timeZone || 'Asia/Seoul',
@@ -511,6 +518,9 @@ function CompatibilityCounselorContent() {
         name: p.name,
         date: p.date,
         time: p.time,
+        // tri-state 플래그 보존 — 빠지면 서버/차트가 '00:00'=미상 휴리스틱으로
+        // 떨어져 실제 자정 출생이 "시간 모름"으로 오분류된다.
+        timeUnknown: p.timeUnknown,
         city: p.city,
         latitude: p.latitude,
         longitude: p.longitude,
@@ -524,6 +534,7 @@ function CompatibilityCounselorContent() {
         name: p.name,
         date: p.date,
         time: p.time,
+        timeUnknown: p.timeUnknown,
         gender: p.gender,
         cityQuery: p.city || '',
         lat: p.latitude ?? null,
@@ -722,6 +733,9 @@ ${result.overallMessage}${result.guidance ? `\n\n**${isKo ? '조언' : 'Guidance
                 name: p.name,
                 date: p.date,
                 time: p.time,
+                // tri-state 플래그 보존 — 실제 자정 출생('00:00' + false)이
+                // "시간 모름"으로 오분류되지 않게 페어 전환에도 함께 싣는다.
+                timeUnknown: p.timeUnknown,
                 gender: p.gender || 'M',
                 city: p.cityQuery,
                 latitude: p.lat ?? undefined,

@@ -216,19 +216,6 @@ export function CompatChatArea({
           운명 상담사처럼 max-width 860px 로 가운데 정렬 — 안 그러면 입력창이
           chatWrapper 전체 폭으로 가로로 길게 퍼진다(궁합만 넓던 회귀). */}
       <div className={styles.inputWrap}>
-        {/* 데이터 소스 체크박스 — 이번 답변에 사주/점성 시너스트리 중 무엇을
-            넣을지 고른다(운명상담사와 동일 컴포넌트). 칩 글자 자체가 "사주로 보기/
-            점성으로 보기"라 용도가 바로 읽힘. showInfo + variant="synastry":
-            누르면 궁합 전용 설명 팝업. 최소 하나는 항상 켜짐. */}
-        <DataSourceToggles
-          sources={sources}
-          onChange={onChangeSources}
-          lang={locale}
-          disabled={isLoading}
-          theme="light"
-          showInfo
-          variant="synastry"
-        />
         <ChatInputArea
           input={input}
           loading={isLoading}
@@ -267,6 +254,21 @@ export function CompatChatArea({
           }}
           focusToken={focusToken}
           theme="light"
+          // 데이터 소스 체크박스(사주/점성) — 운명상담사(Chat.tsx)와 동일하게
+          // 입력 카드 *안* topSlot 으로. 예전엔 입력창 밖 위에 따로 떠 있어
+          // 두 상담사의 입력 영역이 다르게 보였다. variant="synastry": 누르면
+          // 궁합 전용 설명 팝업. 최소 하나는 항상 켜짐.
+          topSlot={
+            <DataSourceToggles
+              sources={sources}
+              onChange={onChangeSources}
+              lang={locale}
+              disabled={isLoading}
+              theme="light"
+              showInfo
+              variant="synastry"
+            />
+          }
         />
         {fileNotice && <div className={styles.fileNotice}>{fileNotice}</div>}
       </div>

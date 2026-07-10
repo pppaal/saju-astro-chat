@@ -15,6 +15,7 @@ import { formatAstroSelf } from '@/lib/destiny/astroSelfFormatter'
 import { slimAstroSelf } from '@/lib/destiny/astroSlim'
 import { getIljinCalendar } from '@/lib/saju/unse'
 import { parseHourMinute } from '@/lib/saju/timeParse'
+import { TIME_UNKNOWN_ANCHOR } from '@/lib/saju/birthTimeAnchor'
 import { isHyeong } from '@/lib/saju/hyeong'
 import { logger } from '@/lib/logger'
 import type { DayMaster, FiveElement, YinYang } from '@/lib/saju/types'
@@ -468,7 +469,9 @@ export async function buildDestinyContext(
       // 본명 차트(collectAstroFacts)와 동일한 SSOT 파서 사용 — split(':') 로
       // 직접 파싱하면 '01:45 PM' 이 13:45 가 아닌 01:45 로 떨어져, 본명은 PM
       // 보정되는데 SR/LR/2차진행(natalInput 소비)만 12시간 어긋났다.
-      const { h, m: mi } = parseHourMinute(birth.birthTime || '00:00')
+      // 빈 값 폴백은 정오(시간 미상 앵커 SSOT) — 정상 경로는 캐시 레이어
+      // (counselorContextCache)가 이미 앵커를 넣어 준다.
+      const { h, m: mi } = parseHourMinute(birth.birthTime || TIME_UNKNOWN_ANCHOR)
       // ── 재료 준비실 ──
       // 옛 코드는 raw 호출(calculateNatalChart/findNatalAspects/dignityOf/
       // calculateProfection) + 어스펙트 분류 + 포매팅을 한 try 블록에서 다 했음.

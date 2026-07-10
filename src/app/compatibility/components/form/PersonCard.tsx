@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react'
 import { User, Users, ChevronDown, Download } from 'lucide-react'
 import { type PersonForm, type Relation } from '../../lib/types'
+import { isBirthTimeUnknown } from '@/lib/saju/birthTimeAnchor'
 import type { CirclePerson } from '@/hooks/useMyCircle'
 import {
   BirthInfoFields,
@@ -71,7 +72,9 @@ export const PersonCard = React.memo<PersonCardProps>(
   }) => {
     const idx = index
     const isKo = locale === 'ko' || locale.startsWith('ko')
-    const timeUnknown = person.timeUnknown ?? (!person.time || person.time === '00:00')
+    // tri-state SSOT — 명시 플래그 우선(false + '00:00' = 실제 자정 출생),
+    // 레거시(플래그 없음)는 '00:00'=미상 휴리스틱.
+    const timeUnknown = person.timeUnknown ?? isBirthTimeUnknown(person.time)
     useEffect(() => {
       if (timeUnknown && person.time !== '00:00') {
         onUpdatePerson(idx, 'time', '00:00')
@@ -226,7 +229,9 @@ export const PersonCard = React.memo<PersonCardProps>(
                   <option value="lover">
                     {t('compatibilityPage.partnerLover', 'Partner / Lover 💕')}
                   </option>
-                  <option value="crush">{t('compatibilityPage.crush', 'Crush / Talking 💗')}</option>
+                  <option value="crush">
+                    {t('compatibilityPage.crush', 'Crush / Talking 💗')}
+                  </option>
                   <option value="spouse">{t('compatibilityPage.spouse', 'Spouse 💍')}</option>
                   <option value="engaged">{t('compatibilityPage.engaged', 'Engaged 💐')}</option>
                   <option value="ex">{t('compatibilityPage.ex', 'Ex 💔')}</option>

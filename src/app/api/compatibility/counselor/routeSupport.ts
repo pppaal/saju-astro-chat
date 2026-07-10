@@ -1,5 +1,6 @@
 import { normalizeGender } from '@/lib/utils/gender'
 import { currentManAge } from '@/lib/datetime/currentAge'
+import { resolveBirthTimeAnchor } from '@/lib/saju/birthTimeAnchor'
 import type { ChatMessage } from '@/lib/api'
 
 function clampMessages(messages: ChatMessage[], max = 8) {
@@ -8,7 +9,10 @@ function clampMessages(messages: ChatMessage[], max = 8) {
 
 type PersonSeed = {
   date: string
+  /** 계산 앵커 (HH:MM). 시간 미상이면 정오(TIME_UNKNOWN_ANCHOR) — birthTimeAnchor SSOT. */
   time: string
+  /** 시간 미상 여부 — 시주/ASC/MC/하우스 마스킹용. */
+  timeUnknown: boolean
   gender: 'male' | 'female'
   latitude: number
   longitude: number
@@ -48,7 +52,15 @@ function parseTimeString(input: unknown): string | null {
 function buildPersonSeed(person: Record<string, unknown> | null | undefined): PersonSeed | null {
   if (!person) return null
   const date = parseDateString(person.birthDate ?? person.date)
-  const time = parseTimeString(person.birthTime ?? person.time) || '00:00'
+  // 시간 모름 → 정오 앵커(SSOT: birthTimeAnchor). 예전 '00:00' 폴백은 진태양시
+  // 보정(-32분)으로 일주가 전날로 밀려, LLM 컨텍스트의 사주가 차트/통합리포트와
+  // 달랐다. 플래그는 tri-state — 명시 boolean 이면 신뢰(false + '00:00' = 실제
+  // 자정 출생), 미전송(레거시 클라)이면 undefined 로 두어 '00:00'=미상 휴리스틱.
+  const flagRaw = person.timeUnknown ?? person.birthTimeUnknown
+  const { time, timeUnknown } = resolveBirthTimeAnchor(
+    parseTimeString(person.birthTime ?? person.time),
+    typeof flagRaw === 'boolean' ? flagRaw : undefined
+  )
   if (!date) return null
 
   const latRaw = typeof person.latitude === 'number' ? person.latitude : null
@@ -70,6 +82,7 @@ function buildPersonSeed(person: Record<string, unknown> | null | undefined): Pe
   return {
     date,
     time,
+    timeUnknown,
     gender,
     latitude,
     longitude,

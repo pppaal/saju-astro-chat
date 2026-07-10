@@ -64,6 +64,9 @@ export const userProfileUpdateSchema = z.object({
   readingLength: z.enum(['brief', 'moderate', 'detailed']).optional(),
   birthDate: dateSchema.optional().nullable(),
   birthTime: timeSchema.optional().nullable(),
+  // 출생 시각 미상 명시 플래그 — '00:00'(실제 자정)과 "시간 모름" 구분(birthTimeAnchor SSOT).
+  // null 은 플래그 제거(레거시 휴리스틱 '00:00'=미상으로 복귀).
+  birthTimeUnknown: z.boolean().optional().nullable(),
   gender: genderSchema.optional().nullable(),
   birthCity: z.string().max(200).trim().optional().nullable(),
   latitude: z.number().min(-90).max(90).optional().nullable(),

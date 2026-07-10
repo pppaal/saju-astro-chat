@@ -4,6 +4,7 @@ import { formatCityForDropdown, localizeStoredCity } from '@/lib/cities/formatte
 import type { PersonForm, CityItem, Relation } from '@/app/compatibility/lib'
 import { makeEmptyPerson, getLatestPair } from '@/app/compatibility/lib'
 import { getStoredBirthInfo } from '@/app/(main)/birthInfoStorage'
+import { isBirthTimeUnknown } from '@/lib/saju/birthTimeAnchor'
 
 export function useCompatibilityForm(initialCount: number = 2, locale: 'ko' | 'en' = 'ko') {
   const [count, setCount] = useState<number>(initialCount)
@@ -48,7 +49,8 @@ export function useCompatibilityForm(initialCount: number = 2, locale: 'ko' | 'e
           lat: home.latitude ?? null,
           lon: home.longitude ?? null,
           timeZone: home.timeZone || getUserTimezone() || 'Asia/Seoul',
-          timeUnknown: home.birthTimeUnknown,
+          // tri-state SSOT — 명시 플래그 우선, 레거시는 '00:00'=미상 휴리스틱.
+          timeUnknown: isBirthTimeUnknown(home.birthTime, home.birthTimeUnknown),
         }
       } else if (latest?.persons[0] && next[0]) {
         const src = latest.persons[0]
@@ -58,9 +60,7 @@ export function useCompatibilityForm(initialCount: number = 2, locale: 'ko' | 'e
           date: src.date,
           time: src.time,
           gender: src.gender,
-          cityQuery: src.cityQuery
-            ? localizeStoredCity(src.cityQuery, locale)
-            : next[0].cityQuery,
+          cityQuery: src.cityQuery ? localizeStoredCity(src.cityQuery, locale) : next[0].cityQuery,
           lat: src.lat,
           lon: src.lon,
           timeZone: src.timeZone || getUserTimezone() || 'Asia/Seoul',
@@ -107,6 +107,7 @@ export function useCompatibilityForm(initialCount: number = 2, locale: 'ko' | 'e
         name: string
         birthDate?: string | null
         birthTime?: string | null
+        birthTimeUnknown?: boolean | null
         gender?: string | null
         birthCity?: string | null
         latitude?: number | null
@@ -131,15 +132,16 @@ export function useCompatibilityForm(initialCount: number = 2, locale: 'ko' | 'e
           if (rel === 'colleague') return 'colleague'
           return 'other'
         }
-        const hasTime = !!(savedPerson.birthTime && savedPerson.birthTime !== '00:00')
+        // tri-state SSOT — Circle DB 의 명시 플래그가 있으면 신뢰(false +
+        // '00:00' = 실제 자정 출생), 레거시 행(NULL)이면 '00:00'=미상 휴리스틱.
+        const hasTime = !isBirthTimeUnknown(savedPerson.birthTime, savedPerson.birthTimeUnknown)
         next[personIdx] = {
           ...next[personIdx],
           name: savedPerson.name,
           date: savedPerson.birthDate || '',
-          // Force 00:00 when the Circle record has no real birth time so
-          // downstream saju calc uses a stable anchor; the timeUnknown
-          // flag below tells the counselor route to skip time-dependent
-          // signals (siju / 일진 / ASC / MC / houses).
+          // 시간 모름이면 '00:00' *표기*(폼 저장 규약). 계산 시엔 counselor
+          // 라우트/차트 fetch 가 timeUnknown 플래그를 보고 정오 앵커로 바꾸며
+          // 시간 의존 신호(시주/일진/ASC/MC/하우스)를 마스킹한다.
           time: hasTime ? savedPerson.birthTime! : '00:00',
           timeUnknown: !hasTime,
           gender:

@@ -21,6 +21,7 @@ import { Heart, Loader2, Sparkles, Download, ChevronDown } from 'lucide-react'
 import { useI18n } from '@/i18n/I18nProvider'
 import { BirthInfoFields, type BirthFieldsPatch } from '@/components/birth/BirthInfoFields'
 import { getStoredBirthInfo, normGender, timeToState } from '@/app/(main)/birthInfoStorage'
+import { resolveBirthTimeAnchor } from '@/lib/saju/birthTimeAnchor'
 import { ScoreBreakdown } from '@/components/report/atoms/ScoreBreakdown'
 import { ShareCompatibilityButton } from '@/components/compatibility/ShareCompatibilityButton'
 import { ReferralInviteButton } from '@/components/referral/ReferralInviteButton'
@@ -191,7 +192,8 @@ export default function FreeCompatibilityPage() {
           key: 'me',
           label: isKo ? '내 정보' : 'My info',
           name: seed.name || '',
-          ...timeToState(seed.birthTime),
+          // tri-state SSOT — 명시 플래그가 있으면 신뢰(false + '00:00' = 실제 자정).
+          ...timeToState(seed.birthTime, seed.birthTimeUnknown),
           birthDate: seed.birthDate,
           gender: normGender(seed.gender),
           city: seed.city || '',
@@ -216,7 +218,8 @@ export default function FreeCompatibilityPage() {
               sub: u.name || undefined,
               name: u.name || '',
               birthDate: u.birthDate || '',
-              ...timeToState(u.birthTime),
+              // DB 명시 플래그(tri-state) — 실제 자정 출생('00:00' + false) 보존.
+              ...timeToState(u.birthTime, u.birthTimeUnknown),
               gender: normGender(u.gender),
               city: u.birthCity || '',
               latitude: u.latitude ?? null,
@@ -234,7 +237,7 @@ export default function FreeCompatibilityPage() {
           label: isKo ? '내 정보' : 'My info',
           name: seed.name || '',
           birthDate: seed.birthDate,
-          ...timeToState(seed.birthTime),
+          ...timeToState(seed.birthTime, seed.birthTimeUnknown),
           gender: normGender(seed.gender),
           city: seed.city || '',
           latitude: seed.latitude ?? null,
@@ -256,7 +259,8 @@ export default function FreeCompatibilityPage() {
                 sub: p.relation || undefined,
                 name: p.name || '',
                 birthDate: p.birthDate || '',
-                ...timeToState(p.birthTime),
+                // Circle DB 명시 플래그(tri-state) — 레거시 행(NULL)은 휴리스틱.
+                ...timeToState(p.birthTime, p.birthTimeUnknown),
                 gender: normGender(p.gender),
                 city: p.birthCity || '',
                 latitude: p.latitude ?? null,
@@ -355,9 +359,12 @@ export default function FreeCompatibilityPage() {
     setError(null)
     setPhase('loading')
     try {
+      // 시간 모름 → 정오 앵커(SSOT: birthTimeAnchor). 예전 '00:00' 앵커는
+      // 진태양시 보정(-32분)으로 일주가 전날로 밀려 통합리포트와 다른 사주가 나왔다.
+      const anchorOf = (p: Person) => resolveBirthTimeAnchor(p.birthTime, p.timeUnknown).time
       const sajuPayload = (p: Person) => ({
         birthDate: p.birthDate,
-        birthTime: p.timeUnknown ? '00:00' : p.birthTime || '00:00',
+        birthTime: anchorOf(p),
         gender: p.gender === 'female' ? 'female' : 'male',
         calendarType: 'solar' as const,
         timezone: p.timeZone || DEFAULT_TZ,
@@ -366,7 +373,7 @@ export default function FreeCompatibilityPage() {
       })
       const astroPayload = (p: Person) => ({
         date: p.birthDate,
-        time: p.timeUnknown ? '00:00' : p.birthTime || '00:00',
+        time: anchorOf(p),
         latitude: p.latitude ?? 37.5665,
         longitude: p.longitude ?? 126.978,
         timeZone: p.timeZone || DEFAULT_TZ,
@@ -394,8 +401,9 @@ export default function FreeCompatibilityPage() {
         astroB: unwrapAstro(astroBJson) ?? null,
         pillarsA: sajuToPillars(unwrapSaju(sajuAJson)),
         pillarsB: sajuToPillars(unwrapSaju(sajuBJson)),
-        timeUnknownA: personA.timeUnknown,
-        timeUnknownB: personB.timeUnknown,
+        // 플래그 미체크여도 시간이 빈 값이면 미상 — 앵커와 같은 판정(SSOT)으로 통일.
+        timeUnknownA: resolveBirthTimeAnchor(personA.birthTime, personA.timeUnknown).timeUnknown,
+        timeUnknownB: resolveBirthTimeAnchor(personB.birthTime, personB.timeUnknown).timeUnknown,
         lang: locale,
       })
       const reportJson = (reportRes.ok ? await reportRes.json() : null) as {

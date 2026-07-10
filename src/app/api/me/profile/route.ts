@@ -26,6 +26,7 @@ export const GET = withApiMiddleware(
             profilePhoto: true,
             birthDate: true,
             birthTime: true,
+            birthTimeUnknown: true,
             gender: true,
             birthCity: true,
             latitude: true,
@@ -55,6 +56,8 @@ export const GET = withApiMiddleware(
       profilePhoto: user.profile?.profilePhoto ?? null,
       birthDate: user.profile?.birthDate ?? null,
       birthTime: user.profile?.birthTime ?? null,
+      // null = 플래그 미보존 레거시 — 소비처는 '00:00'=미상 휴리스틱으로 폴백.
+      birthTimeUnknown: user.profile?.birthTimeUnknown ?? null,
       gender: user.profile?.gender ?? null,
       birthCity: user.profile?.birthCity ?? null,
       latitude: user.profile?.latitude ?? null,
@@ -104,6 +107,9 @@ export const PATCH = withApiMiddleware(
 
     if (birthDate !== undefined) profileData.birthDate = birthDate
     if (birthTime !== undefined) profileData.birthTime = birthTime
+    // 시각 미상 명시 플래그 — birthTime 과 함께 저장해야 '00:00'(실제 자정)과
+    // "시간 모름"이 구분된다. null 은 플래그 제거(레거시 휴리스틱 복귀).
+    if (body.birthTimeUnknown !== undefined) profileData.birthTimeUnknown = body.birthTimeUnknown
     if (gender !== undefined) profileData.gender = gender
     if (body.birthCity !== undefined) profileData.birthCity = body.birthCity
     // 진태양시(진경도) 보정용 출생지 좌표 — 사주·점성이 화면 간 일관되게
@@ -148,6 +154,7 @@ export const PATCH = withApiMiddleware(
             profilePhoto: true,
             birthDate: true,
             birthTime: true,
+            birthTimeUnknown: true,
             gender: true,
             birthCity: true,
             latitude: true,
@@ -198,21 +205,24 @@ export const PATCH = withApiMiddleware(
     }
 
     // Flatten for backward compatibility
-    const flattenedUser = updatedUser ? {
-      id: updatedUser.id,
-      name: updatedUser.name,
-      email: updatedUser.email,
-      image: updatedUser.image,
-      createdAt: updatedUser.createdAt,
-      profilePhoto: updatedUser.profile?.profilePhoto ?? null,
-      birthDate: updatedUser.profile?.birthDate ?? null,
-      birthTime: updatedUser.profile?.birthTime ?? null,
-      gender: updatedUser.profile?.gender ?? null,
-      birthCity: updatedUser.profile?.birthCity ?? null,
-      latitude: updatedUser.profile?.latitude ?? null,
-      longitude: updatedUser.profile?.longitude ?? null,
-      tzId: updatedUser.profile?.tzId ?? null,
-    } : null
+    const flattenedUser = updatedUser
+      ? {
+          id: updatedUser.id,
+          name: updatedUser.name,
+          email: updatedUser.email,
+          image: updatedUser.image,
+          createdAt: updatedUser.createdAt,
+          profilePhoto: updatedUser.profile?.profilePhoto ?? null,
+          birthDate: updatedUser.profile?.birthDate ?? null,
+          birthTime: updatedUser.profile?.birthTime ?? null,
+          birthTimeUnknown: updatedUser.profile?.birthTimeUnknown ?? null,
+          gender: updatedUser.profile?.gender ?? null,
+          birthCity: updatedUser.profile?.birthCity ?? null,
+          latitude: updatedUser.profile?.latitude ?? null,
+          longitude: updatedUser.profile?.longitude ?? null,
+          tzId: updatedUser.profile?.tzId ?? null,
+        }
+      : null
 
     return NextResponse.json({ user: flattenedUser })
   },

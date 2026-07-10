@@ -244,6 +244,8 @@ describe('/api/me/profile', () => {
               profilePhoto: true,
               birthDate: true,
               birthTime: true,
+              // 시각 미상 명시 플래그 — '00:00'(실제 자정)과 "시간 모름" 구분.
+              birthTimeUnknown: true,
               gender: true,
               birthCity: true,
               latitude: true,

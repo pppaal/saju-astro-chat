@@ -21,6 +21,7 @@ import {
   clearUserProfile,
   type UserProfile,
 } from '@/lib/userProfile'
+import { isBirthTimeUnknown, resolveBirthTimeAnchor } from '@/lib/saju/birthTimeAnchor'
 
 export interface StoredBirthInfo {
   name?: string // 표시 이름 — 운명상담사/타로/궁합에 매핑
@@ -55,6 +56,9 @@ function userProfileToBirthInfo(profile: UserProfile): StoredBirthInfo | null {
     name: profile.name || undefined,
     birthDate: profile.birthDate,
     birthTime: profile.birthTime,
+    // 캐노니컬 미러가 플래그를 보존했으면 그대로 복원(레거시 항목은 undefined —
+    // tri-state 소비처가 '00:00'=미상 휴리스틱으로 폴백).
+    birthTimeUnknown: profile.birthTimeUnknown,
     gender,
     city: profile.birthCity || undefined,
     latitude: profile.latitude,
@@ -69,6 +73,9 @@ function birthInfoToUserProfile(info: StoredBirthInfo): Partial<UserProfile> {
     name: info.name,
     birthDate: info.birthDate,
     birthTime: info.birthTime,
+    // 명시 플래그도 미러 — 이게 빠지면 userProfile 폴백 경로에서 실제 자정
+    // 출생('00:00' + false)이 다시 "시간 모름"으로 오분류된다.
+    birthTimeUnknown: info.birthTimeUnknown,
     gender: info.gender === 'male' ? 'Male' : 'Female',
     birthCity: info.city,
     latitude: info.latitude,
@@ -138,7 +145,11 @@ export function buildBirthQuery(info: StoredBirthInfo | null): string {
   params.set('birthTime', info.birthTime)
   params.set('gender', info.gender === 'male' ? 'M' : 'F')
   if (info.city) params.set('birthCity', info.city)
-  if (info.birthTimeUnknown) params.set('birthTimeUnknown', '1')
+  // tri-state 보존: 명시 boolean 이면 '1'/'0' 로 싣는다 — '0'(앎)이 빠지면
+  // 실제 자정 출생('00:00')이 수신측 휴리스틱에서 "시간 모름"으로 오분류된다.
+  // 레거시(undefined)는 생략 → 수신측이 휴리스틱으로 판정.
+  if (typeof info.birthTimeUnknown === 'boolean')
+    params.set('birthTimeUnknown', info.birthTimeUnknown ? '1' : '0')
   // useCounselorData reads sp.lat/sp.lon/sp.timeZone — without these it
   // falls back to Seoul coords + the browser's current tz, so the hour
   // pillar and houses come out wrong for anyone not in Asia/Seoul.
@@ -160,7 +171,14 @@ export function buildReportBirthQuery(info: StoredBirthInfo | null, locale: 'ko'
   p.set('lang', locale)
   if (info) {
     p.set('date', info.birthDate)
-    if (!info.birthTimeUnknown && info.birthTime) p.set('time', info.birthTime)
+    // 시간 미상 판정은 tri-state SSOT(birthTimeAnchor) — 명시 플래그가 있으면
+    // 신뢰(false + '00:00' = 실제 자정 출생 → time 을 싣는다), 레거시(플래그
+    // 없음)의 '00:00' 은 미상으로 보고 생략해 정오 앵커로 계산하게 한다.
+    const anchor = resolveBirthTimeAnchor(info.birthTime, info.birthTimeUnknown)
+    if (!anchor.timeUnknown) p.set('time', anchor.time)
+    // 수신측(통합리포트·캘린더)이 '00:00' 을 미상으로 오분류하지 않게 tri-state
+    // 플래그도 tu=1|0 으로 싣는다(레거시 링크는 파라미터 없음 → 휴리스틱).
+    if (typeof info.birthTimeUnknown === 'boolean') p.set('tu', info.birthTimeUnknown ? '1' : '0')
     if (typeof info.latitude === 'number') p.set('lat', String(info.latitude))
     if (typeof info.longitude === 'number') p.set('lng', String(info.longitude))
     if (info.timeZone) p.set('tz', info.timeZone)
@@ -195,7 +213,9 @@ export function buildCounselorHref(
   params.set('gender', info.gender === 'male' ? 'M' : 'F')
   // useCounselorData reads `city` (the redirect used to translate birthCity→city).
   if (info.city) params.set('city', info.city)
-  if (info.birthTimeUnknown) params.set('birthTimeUnknown', '1')
+  // tri-state 보존 — buildBirthQuery 와 동일('0' 이 실제 자정 출생을 지킨다).
+  if (typeof info.birthTimeUnknown === 'boolean')
+    params.set('birthTimeUnknown', info.birthTimeUnknown ? '1' : '0')
   if (typeof info.latitude === 'number') params.set('lat', String(info.latitude))
   if (typeof info.longitude === 'number') params.set('lon', String(info.longitude))
   if (info.timeZone) params.set('timeZone', info.timeZone)
@@ -220,9 +240,16 @@ export function normGender(g: unknown): 'male' | 'female' | '' {
   return ''
 }
 
-/** birthTime 원본(빈값/'00:00' = 시간 모름)을 폼 상태로. */
-export function timeToState(raw: unknown): { birthTime: string; timeUnknown: boolean } {
+/**
+ * birthTime 원본을 폼 상태로. 판정은 tri-state SSOT(isBirthTimeUnknown) —
+ * 명시 플래그가 있으면 신뢰(false + '00:00' = 실제 자정 출생으로 시각 유지),
+ * 없으면 레거시 휴리스틱(빈값/'00:00' = 시간 모름).
+ */
+export function timeToState(
+  raw: unknown,
+  timeUnknownFlag?: boolean | null
+): { birthTime: string; timeUnknown: boolean } {
   const t = typeof raw === 'string' ? raw : ''
-  if (!t || t === '00:00') return { birthTime: '', timeUnknown: true }
-  return { birthTime: t, timeUnknown: false }
+  const unknown = isBirthTimeUnknown(t, timeUnknownFlag)
+  return unknown ? { birthTime: '', timeUnknown: true } : { birthTime: t, timeUnknown: false }
 }

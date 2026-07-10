@@ -1,6 +1,7 @@
 'use client'
 
 import { Calendar, Clock, MapPin, Pencil, User as UserIcon } from 'lucide-react'
+import { isBirthTimeUnknown } from '@/lib/saju/birthTimeAnchor'
 import {
   type Locale,
   type MeProfile,
@@ -40,7 +41,15 @@ export function MyInfoSection({ profile, locale, loading, onEdit }: Props) {
         <InfoRow
           Icon={Clock}
           label={locale === 'ko' ? '출생 시간' : 'Birth time'}
-          value={profile?.birthTime || (locale === 'ko' ? '미입력' : 'Not set')}
+          // tri-state SSOT — 레거시 '00:00'(미상 표기)은 미입력으로, 명시 플래그
+          // false 의 '00:00' 은 실제 자정 출생이라 그대로 표시.
+          value={
+            isBirthTimeUnknown(profile?.birthTime, profile?.birthTimeUnknown)
+              ? locale === 'ko'
+                ? '미입력'
+                : 'Not set'
+              : profile!.birthTime!
+          }
           loading={loading}
         />
         <InfoRow

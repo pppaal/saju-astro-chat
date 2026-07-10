@@ -331,18 +331,11 @@ export async function POST(req: NextRequest) {
     const person2Seed = buildPersonSeed((persons?.[1] as Record<string, unknown>) || null)
 
     // 출생 시각 미상 — 시주/ASC/MC/하우스 cross 가 날조되지 않게 formatter 에 전달.
-    // 명시 플래그 OR 시각 누락 OR 자정(00:00) 기본값 = 미상으로 간주(seed 도 00:00 폴백).
-    const isTimeUnknown = (idx: number): boolean => {
-      // 클라/스키마가 보내는 필드는 timeUnknown — 과거 birthTimeUnknown 은 스키마에
-      // 없어 항상 undefined 라 명시 플래그가 죽고 '00:00' 폴백에만 의존했다(같은
-      // 라우트의 notices 블록은 이미 timeUnknown 을 읽어 소스가 갈렸음). 한 필드로 통일.
-      const raw = persons?.[idx] as
-        | { time?: string; timeUnknown?: boolean; birthTimeUnknown?: boolean }
-        | undefined
-      return !!raw?.timeUnknown || !!raw?.birthTimeUnknown || !raw?.time || raw.time === '00:00'
-    }
-    const timeUnknownA = isTimeUnknown(0)
-    const timeUnknownB = isTimeUnknown(1)
+    // 판정은 buildPersonSeed(birthTimeAnchor SSOT)가 이미 했다: 명시 플래그
+    // (timeUnknown/birthTimeUnknown) OR 시각 누락 OR 자정(00:00) = 미상.
+    // seed 가 null(생일 미파싱)이면 사주/점성 블록 자체가 안 만들어지므로 true 로 폴백.
+    const timeUnknownA = person1Seed?.timeUnknown ?? true
+    const timeUnknownB = person2Seed?.timeUnknown ?? true
 
     // Phase E (2026-06-06): stale 모니터링 정리.
     // Phase A/B 후 사주/점성 시나스트리 블록은 compatSajuFacts /
@@ -353,14 +346,13 @@ export async function POST(req: NextRequest) {
     // path 도 dead. fullContext 채널은 client 송신처 0 (옛 legacy 가정
     // 만 남아 dead). 모두 제거.
 
-    // 시간 미상 헤더는 살린다 — A/B 둘 다 시간 모를 때 LLM 이 자정 폴백
-    // 으로 그럴듯한 ASC/MC 를 만들지 않게 막는다.
-    const personA = persons[0] as { timeUnknown?: boolean } | undefined
-    const personB = persons[1] as { timeUnknown?: boolean } | undefined
+    // 시간 미상 헤더는 살린다 — 시간 모를 때 LLM 이 정오 앵커로 그럴듯한
+    // ASC/MC/시주를 만들지 않게 막는다. 판정은 위 SSOT 플래그와 동일 소스
+    // (예전엔 명시 플래그만 봐서 '00:00' 입력이 notices 없이 마스킹만 됐다).
     const unknownNotices: string[] = []
-    if (personA?.timeUnknown)
+    if (timeUnknownA)
       unknownNotices.push(lang === 'en' ? '# A birth time unknown.' : '# A 시간 미상.')
-    if (personB?.timeUnknown)
+    if (timeUnknownB)
       unknownNotices.push(lang === 'en' ? '# B birth time unknown.' : '# B 시간 미상.')
     const timeUnknownNotices = unknownNotices.join('\n')
 

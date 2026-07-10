@@ -118,6 +118,8 @@ export function CircleAddModal({ open, onClose, locale, onAdded }: CircleAddModa
         relation,
         birthDate: birthDate || null,
         birthTime: timeUnknown ? null : birthTime || null,
+        // 명시 플래그 — '00:00'(실제 자정 출생)과 "시간 모름"을 DB 에서 구분.
+        birthTimeUnknown: timeUnknown,
         gender: gender === 'F' ? 'female' : 'male',
         birthCity: birthCity || null,
         latitude: cityData.latitude ?? null,
