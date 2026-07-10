@@ -300,61 +300,52 @@ export async function POST(req: NextRequest) {
       : Math.max(spreadCardCount ?? 0, clientCardCount, 1)
     creditCost = tarotCreditCostFor(cardCountForCost)
 
-    // T1 fix: 옛 코드는 nonce.consume() 이 credit check 전에 호출됐다. credit
-    // 부족 시 402 반환되는데 nonce 는 이미 burn. 사용자가 충전 후 같은 nonce
-    // 로 재시도 → consume='replay' → creditResult=null → 무료 reading.
+    // 과금 순서 — 두 누수를 동시에 막는 배치:
     //
-    // 순서 변경: 먼저 credit check 후 nonce consume. credit 충분할 때만 nonce
-    // burn → 차감 fail 시 nonce 보존되어 같은 free-pass 흐름 재진입 가능.
-
-    // 1) credit 먼저 — nonce 는 peek 만 (consume 안 함).
-    // peek 가 없으면 보수적으로: credit 확인 후 consume.
-    creditResult = await checkAndConsumeCredits('reading', creditCost, {
-      apiRoute: 'tarot/interpret-stream',
-      activityType: 'tarot_reading',
-      // 위에서 차감 전에 산출한 안정적 readingId. onComplete 의
-      // ensureTarotReadingRecord 가 같은 id 로 행을 보장 → reconciliation 이
-      // "차감됐는데 리딩 행 없음"을 정확히 잡는다(게스트는 빈 값이라 링크 생략).
-      activityRef: persistReadingId || undefined,
-    })
-    if (!creditResult.allowed) {
-      // nonce 아직 burn 안 됨. 사용자가 충전 후 재시도 가능.
-      return creditErrorResponse(creditResult)
-    }
-
-    // 2) credit 차감 성공 후에야 nonce 소비. replay 면 차감 환불.
+    // 1) nonce consume 먼저. 'replay'(정당한 재진입: 새로고침/뒤로가기)면
+    //    아예 차감하지 않는다. 예전엔 "차감 → 환불" 왕복이었는데, 환불
+    //    멱등키가 nonce 당 고정(`tarot-replay:user:nonce`)이라 두 번째
+    //    replay 에서 키가 이미 사용됨 → 3번째 재진입부터 차감만 되고 환불이
+    //    조용히 skip 되는 재과금 버그가 있었다. 차감 자체를 안 하면 환불이
+    //    필요 없어 dedupe 문제가 원천적으로 사라진다.
+    // 2) 'first'/'unknown' 이면 정상 차감. 차감 실패(잔액 부족·오류) 시
+    //    이번 요청이 태운 nonce 를 release 로 되살린다 — 충전 후 재시도가
+    //    'replay' 무료 리딩이 되는 T1 누수 차단은 그대로 유지된다.
     const consumeResult = drawNonce ? await drawNonceStore.consume(drawNonce, ownerKey) : 'unknown'
     if (consumeResult === 'replay') {
-      // 진짜 재진입 — 첫 호출 때 이미 차감 + reading 받음. 방금 차감한 credit
-      // refund 후 free pass.
-      logger.info('[tarot-stream] draw-nonce replay, refunding credit', { ownerKey })
-      try {
-        const { refundCreditsOnce } = await import('@/lib/credits/refundOnce')
-        if (context.userId) {
-          // nonce 가 replay-턴의 안정 키 — 같은 replay 가 재시도돼도 환불은 1회.
-          // (예전 비멱등 refundCredits 는 replay 재시도마다 중복 환불 가능했다.)
-          await refundCreditsOnce(`tarot-replay:${context.userId}:${drawNonce}`, {
-            userId: context.userId,
-            creditType: 'reading',
-            amount: creditCost,
-            reason: 'tarot_nonce_replay',
-            apiRoute: '/api/tarot/interpret-stream',
-          })
-        }
-      } catch (refundErr) {
-        // 환불 실패 = 같은 리딩에 이중 과금 잔존. 리딩 자체는 이미 결제된
-        // 것이므로 free pass 는 유지하되, reconciliation 이 잡도록 error 레벨
-        // + 식별 필드(userId/nonce/amount)를 남긴다.
-        logger.error('[tarot-stream] replay refund failed — user remains double-charged', {
-          userId: context.userId,
-          drawNonce,
-          amount: creditCost,
-          err: refundErr instanceof Error ? refundErr.message : String(refundErr),
-        })
-      }
+      // 첫 호출 때 이미 차감 + reading 받음 → 이번 요청은 무과금 free pass.
+      logger.info('[tarot-stream] draw-nonce replay, skipping charge', { ownerKey })
       creditResult = null
-    } else if (consumeResult === 'unknown' && drawNonce) {
-      logger.info('[tarot-stream] unknown/forged draw-nonce, charging normally', { ownerKey })
+    } else {
+      if (consumeResult === 'unknown' && drawNonce) {
+        logger.info('[tarot-stream] unknown/forged draw-nonce, charging normally', { ownerKey })
+      }
+      // 이번 요청이 'first' 로 태운 nonce 를 차감 실패 시 복구하는 헬퍼 —
+      // 402 반환/차감 예외 양쪽에서 호출해 재시도가 다시 정상 과금 경로로.
+      const releaseNonceOnChargeFailure = async () => {
+        if (drawNonce && consumeResult === 'first') {
+          await drawNonceStore.release(drawNonce, ownerKey)
+        }
+      }
+      try {
+        creditResult = await checkAndConsumeCredits('reading', creditCost, {
+          apiRoute: 'tarot/interpret-stream',
+          activityType: 'tarot_reading',
+          // 위에서 차감 전에 산출한 안정적 readingId. onComplete 의
+          // ensureTarotReadingRecord 가 같은 id 로 행을 보장 → reconciliation 이
+          // "차감됐는데 리딩 행 없음"을 정확히 잡는다(게스트는 빈 값이라 링크 생략).
+          activityRef: persistReadingId || undefined,
+        })
+      } catch (chargeErr) {
+        // 차감 중 시스템 오류 — nonce 복구 후 외부 catch(500)로 전파.
+        await releaseNonceOnChargeFailure()
+        throw chargeErr
+      }
+      if (!creditResult.allowed) {
+        // 잔액 부족 등 — nonce 복구 후 402. 충전하고 오면 'first' 로 재과금.
+        await releaseNonceOnChargeFailure()
+        return creditErrorResponse(creditResult)
+      }
     }
 
     const categoryId = body.categoryId

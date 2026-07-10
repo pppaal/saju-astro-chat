@@ -31,13 +31,14 @@ vi.mock('@/lib/credits/refundOnce', () => ({ refundCreditsOnce: mockRefund }))
 // draw-nonce store mock — consume() 반환값을 테스트마다 제어.
 // vi.hoisted: mock factory 가 hoist 되어 module-scope createDrawNonceStore()
 // 가 실행될 때 mockConsume 가 이미 초기화돼 있어야 한다.
-const { mockConsume, mockIssue, mockRefund } = vi.hoisted(() => ({
+const { mockConsume, mockIssue, mockRelease, mockRefund } = vi.hoisted(() => ({
   mockConsume: vi.fn(),
   mockIssue: vi.fn(),
+  mockRelease: vi.fn(),
   mockRefund: vi.fn(),
 }))
 vi.mock('@/lib/api/idempotency', () => ({
-  createDrawNonceStore: () => ({ consume: mockConsume, issue: mockIssue }),
+  createDrawNonceStore: () => ({ consume: mockConsume, issue: mockIssue, release: mockRelease }),
   drawNonceOwnerKey: () => 'user:user-123',
 }))
 
@@ -132,21 +133,43 @@ describe('interpret-stream — single-use draw nonce gating (Fix A)', () => {
     )
   })
 
-  it('does NOT net-double-charge a genuine replay (charges then refunds the SAME nonce)', async () => {
+  it('does NOT charge a genuine replay at all (no charge → no refund needed)', async () => {
     mockConsume.mockResolvedValue('replay')
     await POST(makeReq(BODY_3CARD, 'valid-nonce'))
-    // T1 fix(route): credit 를 먼저 차감하고(크레딧 부족 재시도 시 nonce 가
-    // 미리 burn 돼 무료 reading 누수되던 버그 차단), replay 로 판정되면 방금
-    // 차감한 금액을 즉시 환불한다 → 순 이중과금 0. 옛 테스트는 "차감 자체를
-    // skip" 하는 이전 설계를 기대해 실패했으므로, 환불로 상쇄됨을 검증한다.
-    expect(mockCheckAndConsumeCredits).toHaveBeenCalledTimes(1)
-    expect(mockRefund).toHaveBeenCalledTimes(1)
-    // 멱등 키가 nonce 에 묶여야 같은 replay 재시도가 중복 환불되지 않는다.
-    expect(mockRefund).toHaveBeenCalledWith(
-      expect.stringContaining('tarot-replay:'),
-      expect.objectContaining({ creditType: 'reading', amount: 1, reason: 'tarot_nonce_replay' })
-    )
-    expect(mockRefund.mock.calls[0][0]).toContain('valid-nonce')
+    // replay 는 첫 호출에서 이미 과금된 재진입 — 아예 차감하지 않는다.
+    // 옛 설계(차감→환불)는 환불 멱등키가 nonce 당 고정이라 3번째 재진입부터
+    // 환불이 dedupe 로 skip 돼 재과금이 남는 버그가 있었다. 무과금이면 환불
+    // 왕복 자체가 없어 몇 번을 재진입해도 추가 차감이 없다.
+    expect(mockCheckAndConsumeCredits).not.toHaveBeenCalled()
+    expect(mockRefund).not.toHaveBeenCalled()
+  })
+
+  it('replays repeatedly without any additional charge (3rd+ refresh regression)', async () => {
+    mockConsume.mockResolvedValue('replay')
+    await POST(makeReq(BODY_3CARD, 'valid-nonce'))
+    await POST(makeReq(BODY_3CARD, 'valid-nonce'))
+    await POST(makeReq(BODY_3CARD, 'valid-nonce'))
+    expect(mockCheckAndConsumeCredits).not.toHaveBeenCalled()
+    expect(mockRefund).not.toHaveBeenCalled()
+  })
+
+  it("releases the nonce when the charge fails after a 'first' consume (T1 leak guard)", async () => {
+    mockConsume.mockResolvedValue('first')
+    mockCheckAndConsumeCredits.mockResolvedValue({ allowed: false, userId: 'user-123' })
+    const res = await POST(makeReq(BODY_3CARD, 'valid-nonce'))
+    // 잔액 부족 402 — 이번 요청이 태운 nonce 를 복구해, 충전 후 재시도가
+    // 'replay' 무료 리딩이 아니라 정상 과금('first')으로 들어오게 한다.
+    expect(res.status).toBe(402)
+    expect(mockRelease).toHaveBeenCalledWith('valid-nonce', 'user:user-123')
+  })
+
+  it("does not release anything when charge fails on an 'unknown' nonce", async () => {
+    mockConsume.mockResolvedValue('unknown')
+    mockCheckAndConsumeCredits.mockResolvedValue({ allowed: false, userId: 'user-123' })
+    const res = await POST(makeReq(BODY_3CARD, 'forged-nonce'))
+    expect(res.status).toBe(402)
+    // 이번 요청이 consumed 마커를 만든 게 아니므로 release 대상이 없다.
+    expect(mockRelease).not.toHaveBeenCalled()
   })
 
   it('charges normally for a forged/unknown nonce (no free pass)', async () => {
