@@ -66,6 +66,10 @@
       "schedule": "30 20 * * 1"
     },
     {
+      "path": "/api/cron/ig-token-refresh",
+      "schedule": "40 20 * * 1"
+    },
+    {
       "path": "/api/cron/social-insights",
       "schedule": "30 22 * * *"
     },

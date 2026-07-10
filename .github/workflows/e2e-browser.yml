@@ -54,10 +54,26 @@ jobs:
           NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET || 'ci-test-secret-32-characters-long-test-secret' }}
           NEXTAUTH_URL: http://localhost:3000
           NEXT_PUBLIC_BASE_URL: http://localhost:3000
+          # 프로덕션 모드(next start)에서 TOKEN_ENCRYPTION_KEY 가 없거나 32자
+          # 미만이면 auth 모듈이 하드 실패해 전 요청이 500 → wait-for-server 가
+          # 영영 ready 를 못 본다(.env.example 플레이스홀더는 27자라 무효).
+          # mobile-layout 잡과 동일하게 유효한 키/DB 를 명시한다. DATABASE_URL 은
+          # localhost 플레이스홀더 — 즉시 ECONNREFUSED 로 빠르게 실패해야 페이지가
+          # 행 없이 폴백 렌더된다(스모크 스펙은 DB 없이 결정적으로 설계됨).
+          TOKEN_ENCRYPTION_KEY: ${{ secrets.TOKEN_ENCRYPTION_KEY || 'k8Xm9Rv3Pn7Q2wL5sT0uY4bC6dF8gHjWe1' }}
+          DATABASE_URL: postgresql://placeholder:placeholder@localhost:5432/placeholder
+          DEMO_TOKEN: ${{ secrets.DEMO_TOKEN || 'demo-test-token' }}
+          SUPPORT_EMAIL: ${{ secrets.SUPPORT_EMAIL || 'support@destinypal.com' }}
 
       - name: Wait for server to be ready
         run: npm run test:e2e:wait
         timeout-minutes: 3
+
+      - name: Show server log on failure
+        if: failure()
+        run: |
+          echo "=== /tmp/next-server.log (last 200 lines) ==="
+          tail -n 200 /tmp/next-server.log || echo "(log file missing)"
 
       - name: Run public smoke suite + checkout money-path (CI config)
         # 09-stripe-checkout-flow 는 로그인/DB 없이 결정적(auth wall 401,

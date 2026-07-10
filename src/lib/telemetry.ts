@@ -83,7 +83,11 @@ export function captureServerError(error: unknown, context?: Record<string, unkn
     ...(context ? (scrubObject(context) as Record<string, unknown>) : {}),
   }
 
-  logger.error('Server error:', payload)
+  // 여기서 logger.error 를 부르면 안 된다: logger.error(프로덕션) →
+  // logger.sendToSentry → captureServerError → logger.error → … 무한 상호
+  // 재귀로 이벤트 루프가 고정돼 인스턴스 전체가 wedge 된다(cron 라우트가
+  // 영영 안 끝나던 CI 실패의 근본 원인). 콘솔 직행이 재귀의 종단점.
+  console.error('[telemetry] Server error:', JSON.stringify(payload))
 
   // Send to Sentry for real-time alerts
   if (typeof window === 'undefined') {
@@ -110,10 +114,12 @@ export function captureServerError(error: unknown, context?: Record<string, unkn
 export function captureException(error: unknown, context?: Record<string, unknown>) {
   const scrubbedContext = context ? (scrubObject(context) as Record<string, unknown>) : undefined
 
-  logger.error('Exception captured:', {
-    message: error instanceof Error ? error.message : String(error),
-    ...(scrubbedContext || {}),
-  })
+  // captureServerError 와 동일 — logger.error 재진입 금지(무한 상호 재귀).
+  console.error(
+    '[telemetry] Exception captured:',
+    error instanceof Error ? error.message : String(error),
+    scrubbedContext ? JSON.stringify(scrubbedContext) : ''
+  )
 
   // Send to Sentry
   if (typeof window !== 'undefined') {

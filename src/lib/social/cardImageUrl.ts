@@ -16,6 +16,8 @@ export function socialCardImageUrl(input: {
   locale: 'ko' | 'en'
   /** 배경 글리프(간지/오행 한자 등) — 없으면 생략. */
   glyph?: string
+  /** AI 배경 이미지 URL(우리 Blob 스토어) — 있으면 그라데이션 대신 깔린다(aiImage.ts). */
+  bg?: string
 }): string {
   const p = new URLSearchParams({
     v: input.category,
@@ -24,5 +26,6 @@ export function socialCardImageUrl(input: {
     lang: input.locale,
   })
   if (input.glyph) p.set('g', input.glyph.slice(0, 4))
+  if (input.bg) p.set('bg', input.bg)
   return `/api/social/card?${p.toString()}`
 }
