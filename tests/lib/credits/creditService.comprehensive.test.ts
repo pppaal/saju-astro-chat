@@ -64,6 +64,10 @@ describe('Credit Service', () => {
     // expireBonusCredits 의 FOR UPDATE select 기본값 — 빈 집합(no-op). 개별
     // 테스트가 override. 기본을 안 두면 locked.reduce 가 undefined 에서 터진다.
     ;(prisma.$queryRaw as ReturnType<typeof vi.fn>).mockResolvedValue([])
+    // getCreditBalance 가 getValidBonusCredits(유효 purchase 합)도 조회한다 —
+    // 기본은 빈 집합(유효 크레딧 0). 잔액>0 을 기대하는 테스트는 counter 와
+    // 일치하는 purchase 행을 직접 mock 한다.
+    ;(prisma.bonusCreditPurchase.findMany as ReturnType<typeof vi.fn>).mockResolvedValue([])
   })
 
   afterEach(() => {
@@ -159,11 +163,40 @@ describe('Credit Service', () => {
       }
 
       ;(prisma.userCredits.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue(mockCredits)
+      ;(prisma.bonusCreditPurchase.findMany as ReturnType<typeof vi.fn>).mockResolvedValue([
+        { remaining: 5 },
+      ])
 
       const balance = await getCreditBalance(mockUserId)
 
       // bonus-only — frozen monthly/used(10/3)는 무시, bonusCredits(5)만 잔액.
       expect(balance.remainingCredits).toBe(5)
+    })
+
+    it('만료됐지만 cron 이 아직 안 돈 크레딧은 잔액에서 제외한다 (유령 크레딧 차단)', async () => {
+      // 카운터(bonusCredits=5)는 아직 만료 미반영, 유효 purchase 는 0 —
+      // 차감(consume)이 불가능한 상태이므로 표시/게이트도 0 이어야 한다.
+      ;(prisma.userCredits.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue({
+        userId: mockUserId,
+        plan: 'free',
+        monthlyCredits: 0,
+        usedCredits: 0,
+        bonusCredits: 5,
+        compatibilityUsed: 0,
+        compatibilityLimit: 0,
+        followUpUsed: 0,
+        followUpLimit: 0,
+        historyRetention: 365,
+        periodEnd: new Date('2024-02-01'),
+      })
+      ;(prisma.bonusCreditPurchase.findMany as ReturnType<typeof vi.fn>).mockResolvedValue([])
+
+      const balance = await getCreditBalance(mockUserId)
+      expect(balance.remainingCredits).toBe(0)
+
+      const gate = await canUseCredits(mockUserId, 'reading', 1)
+      expect(gate.allowed).toBe(false)
+      expect(gate.reason).toBe('no_credits')
     })
 
     it('잔액은 bonus-only — frozen monthly/used 를 무시한다 (canUseCredits 정합)', () => {
@@ -182,6 +215,9 @@ describe('Credit Service', () => {
           historyRetention: 365,
           periodEnd: new Date('2024-02-01'),
         })
+        ;(prisma.bonusCreditPurchase.findMany as ReturnType<typeof vi.fn>).mockResolvedValue([
+          { remaining: 7 },
+        ])
         const balance = await getCreditBalance(mockUserId)
         expect(balance.remainingCredits).toBe(7)
         expect(balance.totalCredits).toBe(7)
@@ -252,6 +288,9 @@ describe('Credit Service', () => {
       }
 
       ;(prisma.userCredits.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue(mockCredits)
+      ;(prisma.bonusCreditPurchase.findMany as ReturnType<typeof vi.fn>).mockResolvedValue([
+        { remaining: 5 },
+      ])
 
       const result = await canUseCredits(mockUserId, 'reading', 3)
 
@@ -298,6 +337,9 @@ describe('Credit Service', () => {
       }
 
       ;(prisma.userCredits.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue(mockCredits)
+      ;(prisma.bonusCreditPurchase.findMany as ReturnType<typeof vi.fn>).mockResolvedValue([
+        { remaining: 10 },
+      ])
 
       const result = await canUseCredits(mockUserId, 'compatibility', 1)
 
@@ -321,6 +363,9 @@ describe('Credit Service', () => {
       }
 
       ;(prisma.userCredits.findUnique as ReturnType<typeof vi.fn>).mockResolvedValue(mockCredits)
+      ;(prisma.bonusCreditPurchase.findMany as ReturnType<typeof vi.fn>).mockResolvedValue([
+        { remaining: 30 },
+      ])
 
       const result = await canUseCredits(mockUserId, 'followUp', 2)
 

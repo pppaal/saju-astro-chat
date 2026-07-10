@@ -143,14 +143,19 @@ export async function getUserCredits(userId: string) {
 // 크레딧 잔여량 조회
 export async function getCreditBalance(userId: string) {
   const credits = await getUserCredits(userId)
-  // bonusCredits 가 실제 잔액의 단일 진실원천(SSOT). monthlyCredits/usedCredits 는
-  // 폐기된 월간충전 모델의 frozen 컬럼이라 잔액에서 제외한다. 직전엔
-  // remaining = monthly - used + bonus 였는데, monthly @default(1) 인 행에서
-  // remaining 이 +1 부풀려져 canUseCredits 는 "쓸 수 있다"는데 consumeCredits 는
-  // (bonus 만 차감) 못 빼는 유령 크레딧 불일치가 났다. bonus-only 로 통일해
-  // 게이팅(canUseCredits)과 실제 차감을 정확히 맞춘다. monthly/used 필드 자체는
-  // 호환을 위해 그대로 반환만 한다(잔액 계산엔 안 씀).
-  const remaining = credits.bonusCredits
+  // 잔액은 "실제로 차감 가능한 양"과 정확히 일치해야 한다. 차감
+  // (consumeBonusCreditsFromPurchasesInTx)은 BonusCreditPurchase 중
+  // 미만료(expired=false AND expiresAt>now) 행에서만 빼는데, 집계 카운터
+  // (UserCredits.bonusCredits)는 만료를 일 1회 cron(expireBonusCredits)에서만
+  // 반영한다. 그래서 만료 시각~cron 사이(최대 ~24h)엔 카운터가 부풀어
+  // "잔액은 있다고 뜨는데 차감은 부족 402" 유령 크레딧이 났다. 표시/게이트를
+  // 유효 purchase 합(getValidBonusCredits — 차감과 동일 필터)과 카운터의
+  // min 으로 계산해 불일치를 없앤다. (min 인 이유: consumeCredits 의 사전
+  // 가드가 카운터도 보므로, 실사용 가능량은 둘 중 작은 쪽이다.)
+  // monthlyCredits/usedCredits 는 폐기된 월간충전 모델의 frozen 컬럼이라
+  // 잔액에서 제외 — 호환을 위해 반환만 한다.
+  const validBonus = await getValidBonusCredits(userId)
+  const remaining = Math.min(credits.bonusCredits, validBonus)
   // totalBonusReceived가 없는 기존 유저는 현재 bonusCredits를 사용
   const totalBonus =
     (credits as { totalBonusReceived?: number }).totalBonusReceived ?? credits.bonusCredits

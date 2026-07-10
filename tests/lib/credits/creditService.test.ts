@@ -200,6 +200,8 @@ describe('Credit Service Functions with Mocked Prisma', () => {
       }
 
       mockPrisma.userCredits.findUnique.mockResolvedValue(mockCredits as never)
+      // 유효(미만료) purchase 합 — 카운터와 일치하는 정상 상태.
+      mockPrisma.bonusCreditPurchase.findMany.mockResolvedValue([{ remaining: 20 }] as never)
 
       const balance = await getCreditBalance('balance-user')
 
@@ -207,6 +209,30 @@ describe('Credit Service Functions with Mocked Prisma', () => {
       expect(balance.usedCredits).toBe(30)
       expect(balance.bonusCredits).toBe(20)
       expect(balance.remainingCredits).toBe(20) // bonus-only — frozen monthly(80)/used(30) 무시
+    })
+
+    it('만료됐지만 cron 미반영인 크레딧은 잔액 0 (유령 크레딧 차단)', async () => {
+      const { getCreditBalance } = await import('@/lib/credits/creditService')
+
+      mockPrisma.userCredits.findUnique.mockResolvedValue({
+        userId: 'drift-user',
+        plan: 'free',
+        monthlyCredits: 0,
+        usedCredits: 0,
+        bonusCredits: 5, // 카운터는 아직 만료 미반영
+        compatibilityUsed: 0,
+        followUpUsed: 0,
+        compatibilityLimit: 0,
+        followUpLimit: 0,
+        historyRetention: 365,
+        periodStart: new Date(),
+        periodEnd: new Date(Date.now() + 86400000 * 15),
+      } as never)
+      // 유효 purchase 없음(전부 만료) — 차감 불가이므로 표시도 0 이어야 한다.
+      mockPrisma.bonusCreditPurchase.findMany.mockResolvedValue([] as never)
+
+      const balance = await getCreditBalance('drift-user')
+      expect(balance.remainingCredits).toBe(0)
     })
 
     it('returns 0 when credits are exhausted', async () => {
@@ -255,6 +281,7 @@ describe('Credit Service Functions with Mocked Prisma', () => {
       }
 
       mockPrisma.userCredits.findUnique.mockResolvedValue(mockCredits as never)
+      mockPrisma.bonusCreditPurchase.findMany.mockResolvedValue([{ remaining: 70 }] as never)
 
       const result = await canUseCredits('can-use-user', 'reading', 1)
 
@@ -307,6 +334,7 @@ describe('Credit Service Functions with Mocked Prisma', () => {
       }
 
       mockPrisma.userCredits.findUnique.mockResolvedValue(mockCredits as never)
+      mockPrisma.bonusCreditPurchase.findMany.mockResolvedValue([{ remaining: 3 }] as never)
 
       const result = await canUseCredits('compat-user', 'compatibility', 1)
 

@@ -12,6 +12,7 @@ import { buildCompatibilityCounselorPrompt } from '@/lib/prompts/compatibilityCo
 import { sanitizeForXmlTagBoundary, sanitizePriorTurns } from '@/lib/llm/promptSafety'
 import { consumeCredits } from '@/lib/credits/creditService'
 import { refundCreditsOnce } from '@/lib/credits/refundOnce'
+import { CREDIT_COSTS } from '@/lib/config/creditCosts'
 import { ensureCounselorSessionRecord } from '@/lib/counselor/ensureSessionRecord'
 import { createIdempotencyStore, idemContentTag } from '@/lib/api/idempotency'
 import { cacheSet } from '@/lib/cache/redis-cache'
@@ -261,11 +262,16 @@ export async function POST(req: NextRequest) {
         // 비어있지 않음)는 onComplete 의 ensureCounselorSessionRecord 가 행을
         // 보장하는 바로 그 id. CONSUME 감사행에 박아 사후 reconciliation 이
         // "차감됐는데 세션 행 없음"을 정확히 잡게 한다.
-        const res = await consumeCredits(context.userId, 'compatibility', 1, {
-          apiRoute: 'compatibility/counselor',
-          activityType: 'compat_session',
-          activityRef: persistSessionId || undefined,
-        })
+        const res = await consumeCredits(
+          context.userId,
+          'compatibility',
+          CREDIT_COSTS.compatibilityTurn,
+          {
+            apiRoute: 'compatibility/counselor',
+            activityType: 'compat_session',
+            activityRef: persistSessionId || undefined,
+          }
+        )
         if (!res.success) {
           // 차감 실패 → 선점 해제 후 결제 요구 응답(재시도가 다시 차감 가능).
           if (scopedIdemKey) await idemStore.release(scopedIdemKey)
@@ -306,7 +312,8 @@ export async function POST(req: NextRequest) {
         await refundCreditsOnce(refundKey, {
           userId: chargedUserId,
           creditType: 'reading',
-          amount: 1,
+          // 차감과 같은 SSOT 값 — 환불액이 차감액과 어긋나지 않게.
+          amount: CREDIT_COSTS.compatibilityTurn,
           reason: 'api_error',
           apiRoute: 'compatibility/counselor',
           errorMessage: reason,
@@ -792,7 +799,7 @@ export async function POST(req: NextRequest) {
         await refundCreditsOnce(refundKey, {
           userId: chargedUserId,
           creditType: 'reading',
-          amount: 1,
+          amount: CREDIT_COSTS.compatibilityTurn,
           reason: 'api_error',
           apiRoute: 'compatibility/counselor',
           errorMessage: `handler error: ${error instanceof Error ? error.name : 'Unknown'}`,

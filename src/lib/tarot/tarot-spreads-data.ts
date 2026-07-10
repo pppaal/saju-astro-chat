@@ -1,13 +1,15 @@
 import { TarotTheme } from './tarot.types'
+import { CREDIT_COSTS } from '@/lib/config/creditCosts'
 
 /**
  * 카드 수에 따른 크레딧 비용. UI(스프레드 선택 화면) 와 API(/api/tarot/
- * interpret-stream) 가 같은 룰을 쓰도록 single source of truth.
- *   1~3 장 = 1 크레딧
- *   5~7 장 = 2 크레딧 (LLM 토큰 비용 ~3-4 배)
+ * interpret-stream) 가 같은 룰을 쓰도록 여기서만 계산한다. 소모량 수치
+ * 자체는 config/creditCosts.ts(SSOT)가 정한다.
  */
 export function tarotCreditCostFor(cardCount: number): number {
-  return cardCount >= 5 ? 2 : 1
+  return cardCount >= CREDIT_COSTS.tarotReading.largeSpreadMinCards
+    ? CREDIT_COSTS.tarotReading.large
+    : CREDIT_COSTS.tarotReading.small
 }
 
 // 4 동적 스프레드 — 1·3·5·7장. 자리(positions) 는 고정 라벨 대신
