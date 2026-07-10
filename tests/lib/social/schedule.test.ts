@@ -9,6 +9,8 @@ import {
   platformDailyLimit,
   publishedPlatformCount,
   pickNextPlatformDraft,
+  categoryOrderForDate,
+  localeOrderForDate,
 } from '@/lib/social/schedule'
 import type { SocialPostDraft, SocialVariant } from '@/lib/social/types'
 
@@ -105,15 +107,57 @@ describe('pickNextPlatformDraft', () => {
     expect(await pickNextPlatformDraft('2026-07-09', ['ko'], 'instagram')).toBeNull()
   })
 
-  it('로케일 필터 + 로케일 목록 순서를 따른다', async () => {
+  it('로케일 필터를 지키고, 단일 로케일이면 그것만 나온다', async () => {
     getDraftsMock.mockResolvedValue([
       draft({ id: 'en1', locale: 'en' }),
       draft({ id: 'ko1', locale: 'ko' }),
     ])
-    const picked = await pickNextPlatformDraft('2026-07-09', ['en', 'ko'], 'threads')
-    expect(picked?.id).toBe('en1')
     expect(await pickNextPlatformDraft('2026-07-09', ['ko'], 'threads')).toMatchObject({
       id: 'ko1',
     })
+  })
+
+  it('다양화 — 이미 나간 카테고리·로케일은 뒤로 밀린다 (하루 2개 = 2주제 × 2언어)', async () => {
+    const date = '2026-07-10'
+    const [first, second] = categoryOrderForDate(date)
+    const [loc1, loc2] = localeOrderForDate(date, ['ko', 'en'], 'threads')
+    // 1순위 카테고리의 loc1 이 이미 발행된 상태 → 다음 픽은 2순위 카테고리의 loc2.
+    getDraftsMock.mockResolvedValue([
+      draft({
+        id: 'done',
+        category: first,
+        locale: loc1,
+        status: 'published',
+        variants: [variant('threads', { publishedUrl: 'https://t/1' }), variant('instagram')],
+      }),
+      draft({ id: 'same-cat-other-loc', category: first, locale: loc2 }),
+      draft({ id: 'next-cat-loc1', category: second, locale: loc1 }),
+      draft({ id: 'next-cat-loc2', category: second, locale: loc2 }),
+    ])
+    const picked = await pickNextPlatformDraft(date, ['ko', 'en'], 'threads')
+    expect(picked?.id).toBe('next-cat-loc2')
+  })
+
+  it('IG 는 카테고리 회전이 한 칸 어긋난다 — 같은 날 Threads 와 다른 주제', async () => {
+    const date = '2026-07-10'
+    const [first, second] = categoryOrderForDate(date)
+    getDraftsMock.mockResolvedValue([
+      draft({ id: 'a', category: first, locale: 'ko' }),
+      draft({ id: 'b', category: second, locale: 'ko' }),
+    ])
+    const th = await pickNextPlatformDraft(date, ['ko'], 'threads')
+    const ig = await pickNextPlatformDraft(date, ['ko'], 'instagram')
+    expect(th?.id).toBe('a')
+    expect(ig?.id).toBe('b')
+  })
+
+  it('로케일 교대 — 날짜가 하루 지나면 우선 로케일이 뒤집히고, IG 는 Threads 와 반대', () => {
+    const d1 = localeOrderForDate('2026-07-10', ['ko', 'en'], 'threads')
+    const d2 = localeOrderForDate('2026-07-11', ['ko', 'en'], 'threads')
+    expect(d1).not.toEqual(d2)
+    const ig = localeOrderForDate('2026-07-10', ['ko', 'en'], 'instagram')
+    expect(ig).not.toEqual(d1)
+    // 단일 로케일이면 그대로.
+    expect(localeOrderForDate('2026-07-10', ['ko'], 'instagram')).toEqual(['ko'])
   })
 })
