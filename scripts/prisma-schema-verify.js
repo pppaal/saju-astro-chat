@@ -320,6 +320,21 @@ const REQUIRED_SCHEMA = [
       { name: 'latitude', ddl: `ADD COLUMN IF NOT EXISTS "latitude" DOUBLE PRECISION` },
       { name: 'longitude', ddl: `ADD COLUMN IF NOT EXISTS "longitude" DOUBLE PRECISION` },
       { name: 'tzId', ddl: `ADD COLUMN IF NOT EXISTS "tzId" TEXT` },
+      // 20260709 마이그레이션(birth_time_unknown_flag)이 prod 에서 phantom-apply
+      // 돼 PATCH /api/me/profile 의 userProfile.upsert 가 P2022 ("column
+      // birthTimeUnknown does not exist") 로 죽던 원인 (2026-07-11 Sentry).
+      // DEFAULT 백필 금지 — NULL 이어야 레거시 행이 '00:00'=미상 휴리스틱으로
+      // 폴백한다 (마이그레이션 SQL 의 주석 참조).
+      { name: 'birthTimeUnknown', ddl: `ADD COLUMN IF NOT EXISTS "birthTimeUnknown" BOOLEAN` },
+    ],
+  },
+  {
+    // UserProfile.birthTimeUnknown 과 같은 마이그레이션의 쌍둥이 컬럼 —
+    // 같은 phantom-apply 로 궁합 SavedPerson 저장/조회가 P2022 로 죽는 것 방지.
+    table: 'SavedPerson',
+    migration: '20260709000000_birth_time_unknown_flag',
+    columns: [
+      { name: 'birthTimeUnknown', ddl: `ADD COLUMN IF NOT EXISTS "birthTimeUnknown" BOOLEAN` },
     ],
   },
   {
