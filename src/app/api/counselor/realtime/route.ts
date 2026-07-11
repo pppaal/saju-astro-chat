@@ -20,6 +20,7 @@ import { csrfGuard } from '@/lib/security/csrf'
 import { enforceBodySize } from '@/lib/http'
 import { rateLimit } from '@/lib/rateLimit'
 import { canUseCredits, consumeCredits } from '@/lib/credits/creditService'
+import { CREDIT_COSTS } from '@/lib/config/creditCosts'
 import { createIdempotencyStore, idemContentTag } from '@/lib/api/idempotency'
 import { counselorRealtimeRequestSchema } from '@/lib/api/zodValidation'
 import { buildDestinyCounselorPrompt } from '@/lib/prompts/destinyCounselorPrompt'
@@ -244,7 +245,7 @@ export async function POST(req: NextRequest) {
   const bodyName = sanitizeDisplayName(body.name)
   const displayNameP = bodyName ? null : getUserDisplayName(userId).catch(() => null)
 
-  const credit = await canUseCredits(userId, 'reading', 1)
+  const credit = await canUseCredits(userId, 'reading', CREDIT_COSTS.counselorTurn)
   if (!credit.allowed) {
     return NextResponse.json(
       { error: 'insufficient_credits', message: credit.reason ?? 'credits required' },
@@ -286,7 +287,7 @@ export async function POST(req: NextRequest) {
         // 이미 아는 이 id 를 CONSUME 감사행에 박아 사후 reconciliation 이 "차감됐는데
         // 세션 행 없음"을 정확히 잡게 한다(헤더 없으면 링크 생략).
         const sidForLink = (req.headers.get('x-session-id') ?? '').trim() || undefined
-        consumed = await consumeCredits(userId, 'reading', 1, {
+        consumed = await consumeCredits(userId, 'reading', CREDIT_COSTS.counselorTurn, {
           apiRoute: 'counselor/realtime',
           activityType: 'counselor_session',
           activityRef: sidForLink,
@@ -340,7 +341,8 @@ export async function POST(req: NextRequest) {
       await refundCreditsOnce(refundKey, {
         userId,
         creditType: 'reading',
-        amount: 1,
+        // 차감과 같은 SSOT 값 — 환불액이 차감액과 어긋나지 않게.
+        amount: CREDIT_COSTS.counselorTurn,
         reason,
         apiRoute: '/api/counselor/realtime',
       })

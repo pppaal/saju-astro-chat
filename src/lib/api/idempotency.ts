@@ -276,7 +276,28 @@ export function createDrawNonceStore(routeName: string) {
     }
   }
 
-  return { issue, consume }
+  /**
+   * 이번 요청이 'first' 로 소비한 nonce 를 되살린다 — 소비 직후 차감이
+   * 실패(잔액 부족/차감 오류)했을 때만 호출. consumed 마커를 지워 다음
+   * 재시도가 다시 'first' 로 정상 과금 경로에 들어오게 한다. 이게 없으면
+   * 실패한 요청이 nonce 만 태워, 충전 후 재시도가 'replay' 판정 → 무료
+   * 리딩이 되는 누수(T1)가 생긴다.
+   */
+  async function release(nonce: string, ownerKey: string): Promise<void> {
+    try {
+      await prisma.requestIdempotencyLog.delete({
+        where: { scopedKey: consumedKey(ownerKey, nonce) },
+      })
+    } catch (err) {
+      // 삭제 실패 시 nonce 가 소비된 채 남는다 — 다음 재시도가 replay 로
+      // 무과금 처리될 수 있는 좁은 창. 치명적이지 않으니 로그만.
+      logger.warn('[draw-nonce] release failed', {
+        err: err instanceof Error ? err.message : String(err),
+      })
+    }
+  }
+
+  return { issue, consume, release }
 }
 
 export type DrawNonceStore = ReturnType<typeof createDrawNonceStore>

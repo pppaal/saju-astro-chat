@@ -59,6 +59,8 @@ export {
   // Central credit-limit modal signal (dispatched by apiFetch on 402/guest-limit)
   CREDIT_MODAL_EVENT,
   type CreditModalKind,
+  // Balance-widget refresh signal (dispatched by apiFetch after charging routes)
+  CREDIT_UPDATE_EVENT,
   // Backend API client class
   ApiClient,
   apiClient,

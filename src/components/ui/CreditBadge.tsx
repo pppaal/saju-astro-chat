@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
 import Link from 'next/link'
+import { CREDIT_UPDATE_EVENT } from '@/lib/api/ApiClient'
 import styles from './CreditBadge.module.css'
 
 interface CreditData {
@@ -46,7 +47,12 @@ export default function CreditBadge({ variant = 'default', className = '' }: Cre
       if (!res.ok) {
         throw new Error('Failed to fetch')
       }
-      const data = await res.json()
+      const json = await res.json()
+      // /api/me/credits 는 withApiMiddleware 의 apiSuccess 로 감싸
+      // `{ success, data: { isLoggedIn, credits } }` 를 준다. 직전엔 최상위
+      // 에서 credits 를 읽어 항상 undefined → 뱃지가 아무것도 렌더하지 않는
+      // 무음 실패였다. 언랩 우선, (혹시 모를) 비래핑 응답도 그대로 흡수.
+      const data = (json?.data ?? json) as CreditData
       setCreditData(data)
       setError(false)
     } catch {
@@ -66,8 +72,8 @@ export default function CreditBadge({ variant = 'default', className = '' }: Cre
       fetchCredits()
     }
 
-    window.addEventListener('credit-update', handleCreditUpdate)
-    return () => window.removeEventListener('credit-update', handleCreditUpdate)
+    window.addEventListener(CREDIT_UPDATE_EVENT, handleCreditUpdate)
+    return () => window.removeEventListener(CREDIT_UPDATE_EVENT, handleCreditUpdate)
   }, [fetchCredits])
 
   // Not logged in - show login prompt
@@ -185,9 +191,11 @@ export default function CreditBadge({ variant = 'default', className = '' }: Cre
   )
 }
 
-// Helper function to trigger credit update across components
+// Helper function to trigger credit update across components.
+// 과금 라우트 호출은 apiFetch 가 자동으로 이 이벤트를 쏘므로(ApiClient 의
+// CREDIT_MUTATING_ROUTES), 이 헬퍼는 그 밖의 잔액 변경(결제 성공 등)에서 쓴다.
 export function triggerCreditUpdate() {
   if (typeof window !== 'undefined') {
-    window.dispatchEvent(new CustomEvent('credit-update'))
+    window.dispatchEvent(new CustomEvent(CREDIT_UPDATE_EVENT))
   }
 }

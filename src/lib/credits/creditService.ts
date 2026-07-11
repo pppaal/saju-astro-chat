@@ -143,14 +143,19 @@ export async function getUserCredits(userId: string) {
 // 크레딧 잔여량 조회
 export async function getCreditBalance(userId: string) {
   const credits = await getUserCredits(userId)
-  // bonusCredits 가 실제 잔액의 단일 진실원천(SSOT). monthlyCredits/usedCredits 는
-  // 폐기된 월간충전 모델의 frozen 컬럼이라 잔액에서 제외한다. 직전엔
-  // remaining = monthly - used + bonus 였는데, monthly @default(1) 인 행에서
-  // remaining 이 +1 부풀려져 canUseCredits 는 "쓸 수 있다"는데 consumeCredits 는
-  // (bonus 만 차감) 못 빼는 유령 크레딧 불일치가 났다. bonus-only 로 통일해
-  // 게이팅(canUseCredits)과 실제 차감을 정확히 맞춘다. monthly/used 필드 자체는
-  // 호환을 위해 그대로 반환만 한다(잔액 계산엔 안 씀).
-  const remaining = credits.bonusCredits
+  // 잔액은 "실제로 차감 가능한 양"과 정확히 일치해야 한다. 차감
+  // (consumeBonusCreditsFromPurchasesInTx)은 BonusCreditPurchase 중
+  // 미만료(expired=false AND expiresAt>now) 행에서만 빼는데, 집계 카운터
+  // (UserCredits.bonusCredits)는 만료를 일 1회 cron(expireBonusCredits)에서만
+  // 반영한다. 그래서 만료 시각~cron 사이(최대 ~24h)엔 카운터가 부풀어
+  // "잔액은 있다고 뜨는데 차감은 부족 402" 유령 크레딧이 났다. 표시/게이트를
+  // 유효 purchase 합(getValidBonusCredits — 차감과 동일 필터)과 카운터의
+  // min 으로 계산해 불일치를 없앤다. (min 인 이유: consumeCredits 의 사전
+  // 가드가 카운터도 보므로, 실사용 가능량은 둘 중 작은 쪽이다.)
+  // monthlyCredits/usedCredits 는 폐기된 월간충전 모델의 frozen 컬럼이라
+  // 잔액에서 제외 — 호환을 위해 반환만 한다.
+  const validBonus = await getValidBonusCredits(userId)
+  const remaining = Math.min(credits.bonusCredits, validBonus)
   // totalBonusReceived가 없는 기존 유저는 현재 bonusCredits를 사용
   const totalBonus =
     (credits as { totalBonusReceived?: number }).totalBonusReceived ?? credits.bonusCredits
@@ -334,8 +339,17 @@ export async function consumeBonusCreditsFromPurchasesInTx(
     // (두 동시 트랜잭션이 같은 `remaining=5` 읽고 둘 다 `remaining=4` write → 차감 1번
     // 누락). updateMany + relative decrement + `remaining >= toConsume` guard 로
     // race-safe. consumeBonusCreditOnceInTx 와 동일 패턴.
+    // expired/expiresAt 재확인: 만료 cron 은 remaining 을 그대로 두고
+    // expired=true 만 flip + 카운터 전액 차감하므로, findMany 와 이 update
+    // 사이에 cron 이 끼면 remaining 가드만으로는 만료 lot 을 또 차감해
+    // 카운터가 (만료분+차감분) 이중으로 깎인다.
     const updated = await tx.bonusCreditPurchase.updateMany({
-      where: { id: purchase.id, remaining: { gte: toConsume } },
+      where: {
+        id: purchase.id,
+        remaining: { gte: toConsume },
+        expired: false,
+        expiresAt: { gt: now },
+      },
       data: { remaining: { decrement: toConsume } },
     })
 
@@ -421,9 +435,12 @@ export async function consumeBonusCreditOnceInTx(
   }
 
   // 조건부 update — 동시 차감 race 에서 0 으로 내려가지 않도록 remaining > 0
-  // guard. 두 update 모두 같은 트랜잭션 안.
+  // guard. expired/expiresAt 도 재확인한다: 만료 cron(expireBonusCredits)은
+  // remaining 을 그대로 두고 expired=true 만 flip + 카운터를 전액 차감하므로,
+  // select 와 update 사이에 cron 이 끼어들면 remaining 가드만으로는 만료된
+  // lot 을 또 차감(카운터 이중 차감)하게 된다. 두 update 모두 같은 트랜잭션 안.
   const purchaseUpdate = await tx.bonusCreditPurchase.updateMany({
-    where: { id: purchase.id, remaining: { gt: 0 } },
+    where: { id: purchase.id, remaining: { gt: 0 }, expired: false, expiresAt: { gt: now } },
     data: { remaining: { decrement: 1 } },
   })
 
@@ -702,69 +719,101 @@ export async function revokeBonusCreditPurchase(
   if (!stripePaymentId) return { revoked: false, reclaimed: 0, alreadyUsed: 0 }
 
   try {
-    // select 명시 — schema 의 acknowledgedAt 등 신규 컬럼 prod 미적용 시
-    // default SELECT 가 죽는 회귀 차단. 함수에서 실제 사용하는 필드만.
-    const purchase = await prisma.bonusCreditPurchase.findFirst({
-      where: { stripePaymentId },
-      select: { id: true, userId: true, amount: true, remaining: true, expired: true },
-    })
+    // 동시성: 예전엔 잠금 없는 findFirst 로 읽은 stale remaining 을 그대로
+    // 무조건 update + 카운터 차감에 써서, 같은 결제의 webhook 이 동시에 두 번
+    // 처리되거나(부분 환불 2건, 재전송 race) revoke 와 일반 차감이 겹치면
+    // 카운터가 이중으로 깎여 사용자의 *다른* 팩 크레딧까지 회수됐다.
+    // claimBonusPurchaseForRefund(:860) 와 동일하게 "exact remaining +
+    // expired:false" 조건부 updateMany 를 원자 잠금으로 쓰고, 값이 바뀌어
+    // 잠금에 실패하면 재읽기 후 재시도한다. expired 로 바뀌었으면 멱등 no-op.
+    const MAX_ATTEMPTS = 3
+    let reclaim = 0
+    let alreadyUsed = 0
+    let revoked = false
+    let revokedUserId = ''
+    let revokedPackAmount = 0
 
-    if (!purchase) {
-      logger.warn('[revokeBonusCreditPurchase] no purchase found for paymentId', {
+    for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+      // select 명시 — schema 의 acknowledgedAt 등 신규 컬럼 prod 미적용 시
+      // default SELECT 가 죽는 회귀 차단. 함수에서 실제 사용하는 필드만.
+      const purchase = await prisma.bonusCreditPurchase.findFirst({
+        where: { stripePaymentId },
+        select: { id: true, userId: true, amount: true, remaining: true, expired: true },
+      })
+
+      if (!purchase) {
+        logger.warn('[revokeBonusCreditPurchase] no purchase found for paymentId', {
+          stripePaymentId,
+        })
+        return { revoked: false, reclaimed: 0, alreadyUsed: 0 }
+      }
+
+      if (purchase.expired) {
+        // 이미 만료/회수된 구매 — 멱등성 (중복 webhook 무시)
+        return { revoked: false, reclaimed: 0, alreadyUsed: purchase.amount - purchase.remaining }
+      }
+
+      reclaim = purchase.remaining
+      alreadyUsed = purchase.amount - purchase.remaining
+
+      const claimed = await prisma.$transaction(async (tx) => {
+        // 원자 잠금 — 읽은 remaining 이 그대로일 때만 성립. 동시 revoke 는
+        // 둘 중 하나만 성공하고, 동시 일반 차감으로 remaining 이 변했으면
+        // 실패 → 재읽기로 최신 값을 회수한다.
+        const lock = await tx.bonusCreditPurchase.updateMany({
+          where: { id: purchase.id, expired: false, remaining: reclaim },
+          data: { remaining: 0, expired: true, expiresAt: new Date() },
+        })
+        if (lock.count !== 1) return false
+        // 음수 방지 atomic — GREATEST 로 floor 를 0 에 박는다.
+        await tx.$executeRaw`
+          UPDATE "UserCredits"
+          SET "bonusCredits" = GREATEST(0, "bonusCredits" - ${reclaim})
+          WHERE "userId" = ${purchase.userId}
+        `
+        // 감사 로그 — REVOKE (BONUS) 한 줄 (reclaim 이 0 이면 생략).
+        if (reclaim > 0) {
+          await tx.creditTransaction.create({
+            data: {
+              userId: purchase.userId,
+              type: 'REVOKE',
+              pool: 'BONUS',
+              amount: -reclaim,
+              reason: 'stripe_refund',
+              sourceRef: stripePaymentId,
+              metadata: {
+                purchaseId: purchase.id,
+                stripePaymentId,
+                reclaimed: reclaim,
+                alreadyUsed,
+              },
+            },
+          })
+        }
+        return true
+      })
+
+      if (claimed) {
+        revoked = true
+        revokedUserId = purchase.userId
+        revokedPackAmount = purchase.amount
+        break
+      }
+      // 잠금 실패 — 동시 변경. 루프 상단에서 재읽기 (expired 면 멱등 반환).
+    }
+
+    if (!revoked) {
+      // 재시도 소진 — 지속 경합. reconciliation 이 잡도록 error 레벨 로그.
+      logger.error('[revokeBonusCreditPurchase] claim failed after retries', {
         stripePaymentId,
       })
-      return { revoked: false, reclaimed: 0, alreadyUsed: 0 }
+      return { revoked: false, reclaimed: 0, alreadyUsed: 0, error: true }
     }
-
-    if (purchase.expired) {
-      // 이미 만료/회수된 구매 — 멱등성 (중복 webhook 무시)
-      return { revoked: false, reclaimed: 0, alreadyUsed: purchase.amount - purchase.remaining }
-    }
-
-    const reclaim = purchase.remaining
-    const alreadyUsed = purchase.amount - purchase.remaining
-
-    // 음수 방지 atomic — Prisma 의 단순 decrement 는 raw guard 가 없어
-    // 동시 차감 / 다른 경로의 0 도달 시 음수 drift 발생 가능. GREATEST 로
-    // floor 를 0 에 박아 transaction 안에서 한 줄로 처리.
-    // 감사 로그 — REVOKE (BONUS) 한 줄 (reclaim 이 0 이면 생략).
-    const ops: Prisma.PrismaPromise<unknown>[] = [
-      prisma.bonusCreditPurchase.update({
-        where: { id: purchase.id },
-        data: { remaining: 0, expired: true, expiresAt: new Date() },
-      }),
-      prisma.$executeRaw`
-        UPDATE "UserCredits"
-        SET "bonusCredits" = GREATEST(0, "bonusCredits" - ${reclaim})
-        WHERE "userId" = ${purchase.userId}
-      `,
-    ]
-    if (reclaim > 0) {
-      ops.push(
-        prisma.creditTransaction.create({
-          data: {
-            userId: purchase.userId,
-            type: 'REVOKE',
-            pool: 'BONUS',
-            amount: -reclaim,
-            reason: 'stripe_refund',
-            sourceRef: stripePaymentId,
-            metadata: {
-              purchaseId: purchase.id,
-              stripePaymentId,
-              reclaimed: reclaim,
-              alreadyUsed,
-            },
-          },
-        })
-      )
-    }
-    await prisma.$transaction(ops)
 
     logger.warn('[revokeBonusCreditPurchase] revoked refunded purchase', {
-      userId: purchase.userId,
+      userId: revokedUserId,
       stripePaymentId,
-      packAmount: purchase.amount,
+      packAmount: revokedPackAmount,
       reclaimed: reclaim,
       alreadyUsed,
     })

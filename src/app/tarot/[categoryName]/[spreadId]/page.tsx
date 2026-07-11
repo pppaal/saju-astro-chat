@@ -12,6 +12,7 @@ import TarotLoading from '@/components/branding/TarotLoading'
 import { CosmicBackdrop } from '@/components/ui/CosmicBackdrop'
 import { useCreditModal } from '@/contexts/CreditModalContext'
 import { useRequireLogin } from '@/contexts/LoginModalContext'
+import { triggerCreditUpdate } from '@/components/ui/CreditBadge'
 
 export default function TarotReadingPageWrapper() {
   return (
@@ -203,6 +204,11 @@ function TarotReadingPage() {
           (result.fallback === true &&
             (!result.overall_message || result.overall_message.length < 40))
         setInterpretationFailed(failedToLLM)
+
+        // 스트림 종료 시점의 잔액 재조회 — 차감 시점(요청 헤더)은 apiFetch 가
+        // 자동으로 쏘지만, 스트림 도중 서버 환불(emergency fallback 등)은 이
+        // 시점에야 확정되므로 한 번 더 갱신한다.
+        triggerCreditUpdate()
 
         // 성공적인 LLM 결과만 캐시 — fallback/실패는 다음에 다시 시도하도록 저장 X.
         if (result && !failedToLLM && typeof window !== 'undefined') {

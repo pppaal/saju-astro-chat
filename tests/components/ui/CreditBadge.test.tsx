@@ -92,7 +92,6 @@ describe('CreditBadge', () => {
         data: { user: { email: 'test@test.com' } },
         update: vi.fn(),
       } as any)
-
       ;(global.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
         ok: true,
         json: async () => mockCreditData,
@@ -113,6 +112,22 @@ describe('CreditBadge', () => {
 
       await waitFor(() => {
         expect(global.fetch).toHaveBeenCalledWith('/api/me/credits')
+      })
+    })
+
+    it('실제 API 응답 모양({success, data:{...}} 래핑)도 렌더한다 — 프로덕션 envelope 회귀', async () => {
+      // /api/me/credits 는 apiSuccess 로 감싸 내려온다. 직전 구현은 최상위에서
+      // credits 를 읽어 항상 null 렌더(뱃지 실종)였다.
+      ;(global.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
+        ok: true,
+        json: async () => ({ success: true, data: mockCreditData }),
+      })
+
+      render(<CreditBadge />)
+
+      await waitFor(() => {
+        expect(screen.getByText('90')).toBeInTheDocument()
+        expect(screen.getByText('120')).toBeInTheDocument()
       })
     })
   })
@@ -136,7 +151,6 @@ describe('CreditBadge', () => {
         data: { user: { email: 'test@test.com' } },
         update: vi.fn(),
       } as any)
-
       ;(global.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
         ok: true,
         json: async () => mockCreditData,
@@ -270,7 +284,6 @@ describe('CreditBadge', () => {
         data: { user: { email: 'test@test.com' } },
         update: vi.fn(),
       } as any)
-
       ;(global.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
         ok: true,
         json: async () => ({
@@ -396,7 +409,6 @@ describe('CreditBadge', () => {
         data: { user: { email: 'test@test.com' } },
         update: vi.fn(),
       } as any)
-
       ;(global.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
         ok: true,
         json: async () => ({
@@ -498,7 +510,6 @@ describe('CreditBadge', () => {
         data: { user: { email: 'test@test.com' } },
         update: vi.fn(),
       } as any)
-
       ;(global.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
         ok: true,
         json: async () => ({
@@ -537,7 +548,6 @@ describe('CreditBadge', () => {
       expect(() => {
         triggerCreditUpdate()
       }).not.toThrow()
-
       ;(global as any).window = originalWindow
     })
   })
