@@ -310,6 +310,39 @@ describe('Tarot Prefetch API - POST Success Cases', () => {
 })
 
 // ===================================================================
+// POST /api/tarot/prefetch - Credit pre-check cost (spread-aware)
+// ===================================================================
+// 사전체크 비용이 스프레드 카드 수 기반(SSOT: creditCosts.ts)이어야 한다.
+// 직전엔 1 로 고정돼, 잔액 1 인 사용자가 2크레딧짜리 5·7장 스프레드를 카드
+// 선택까지 다 마친 뒤에야 402 를 받는 사전체크 무력화가 있었다.
+describe('Tarot Prefetch API - spread-aware credit cost', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    mockApiClientPost.mockResolvedValue({ ok: true })
+  })
+
+  it('checks 1 credit for a 3-card spread (real spread id)', async () => {
+    const { checkCreditsOnly } = await import('@/lib/credits/withCredits')
+    await POST(makePostRequest({ categoryId: 'general-insight', spreadId: 'past-present-future' }))
+    expect(checkCreditsOnly).toHaveBeenCalledWith('reading', 1)
+  })
+
+  it('checks 2 credits for 5- and 7-card spreads', async () => {
+    const { checkCreditsOnly } = await import('@/lib/credits/withCredits')
+    await POST(makePostRequest({ categoryId: 'general-insight', spreadId: 'general-cross' }))
+    expect(checkCreditsOnly).toHaveBeenLastCalledWith('reading', 2)
+    await POST(makePostRequest({ categoryId: 'general-insight', spreadId: 'celtic-cross' }))
+    expect(checkCreditsOnly).toHaveBeenLastCalledWith('reading', 2)
+  })
+
+  it('falls back to 1 credit for an unknown category/spread', async () => {
+    const { checkCreditsOnly } = await import('@/lib/credits/withCredits')
+    await POST(makePostRequest({ categoryId: 'no-such-category', spreadId: 'no-such-spread' }))
+    expect(checkCreditsOnly).toHaveBeenLastCalledWith('reading', 1)
+  })
+})
+
+// ===================================================================
 // POST /api/tarot/prefetch - Validation Cases
 // ===================================================================
 describe('Tarot Prefetch API - POST Validation', () => {
