@@ -22,6 +22,11 @@ import { rateLimit } from '@/lib/rateLimit'
 import { canUseCredits, consumeCredits } from '@/lib/credits/creditService'
 import { CREDIT_COSTS } from '@/lib/config/creditCosts'
 import { createIdempotencyStore, idemContentTag } from '@/lib/api/idempotency'
+import {
+  streamCachedAnswer,
+  REPLAY_RESULT_TTL_SEC,
+  makeReplayCacheKeys,
+} from '@/lib/api/counselorReplayCache'
 import { counselorRealtimeRequestSchema } from '@/lib/api/zodValidation'
 import { buildDestinyCounselorPrompt } from '@/lib/prompts/destinyCounselorPrompt'
 
@@ -83,50 +88,17 @@ interface RealtimeBody {
 
 // 끊긴 턴의 완성 답안을 잠깐 보관하는 캐시 키 — result 엔드포인트가 같은 키로 읽음.
 // userId 를 키에 포함해 ownership 검증 (다른 사용자가 turnId 알아도 조회 불가).
-export const counselorTurnResultKey = (userId: string, turnId: string) =>
-  `counselor:turn-result:${userId}:${turnId}`
+// replay 키는 scopedIdemKey(=차감 멱등키) 로 완성 답안을 캐시 — 예전엔 replay 가
+// 과금만 건너뛰고 Claude(Sonnet)를 통째로 재생성해 1회 결제로 6h claim 창 동안
+// 매번 다른 유료 답변을 무제한 재생성하던 수익 누수였다. 이제 저장본을 돌려준다.
+// 키 포맷·streamCachedAnswer·TTL 은 compat-counselor 와 공유(counselorReplayCache).
+const { turnResultKey: counselorTurnResultKey, replayResultKey: counselorReplayResultKey } =
+  makeReplayCacheKeys('counselor')
+export { counselorTurnResultKey }
 
 // 돌아와서 받아갈 시간을 충분히 (30분) — 크레딧 충전하러 갔다 오는 왕복도
 // 커버. 받아가면 그만이고 TTL 로 자동 소멸.
 const TURN_RESULT_TTL_SEC = 1800
-
-// idempotent replay(새로고침/탭 복제)가 이미 결제한 그 답변을 그대로 받도록
-// scopedIdemKey(=차감 멱등키) 로 완성 답안을 캐시하는 키. 예전엔 replay 가
-// 과금만 건너뛰고 Claude(Sonnet, temp 0.7)를 통째로 재생성 → 1회 결제로 6h
-// claim 창 동안 매번 다른 유료 답변을 무제한 재생성하던 수익 누수였다. 이제
-// 이 캐시가 있으면 재생 없이 저장본을 돌려준다(turnId 기반 복구 캐시와 별개 —
-// replay 판정과 같은 키를 써 turnId 불일치와 무관하게 항상 매칭).
-const counselorReplayResultKey = (scopedIdemKey: string) =>
-  `counselor:replay-result:${scopedIdemKey}`
-
-// replay 캐시 TTL — 차감 멱등 claim TTL(6h) 과 맞춰, replay 가 유효한 창 동안은
-// 항상 캐시된 원본 답변을 돌려줄 수 있게 한다.
-const REPLAY_RESULT_TTL_SEC = 6 * 60 * 60
-
-// 이미 완성된 답변 텍스트를 counselor SSE 형식(content 청크 1개 + done)으로
-// 단발 재생하는 헬퍼 — replay 캐시 히트 시 Claude 호출 없이 저장본을 그대로
-// 흘려보낸다. streamClaudeAsSSE 가 emit 하는 `{content,done}` 스키마와 동일.
-function streamCachedAnswer(text: string, extraHeaders?: Record<string, string>): Response {
-  const encoder = new TextEncoder()
-  const stream = new ReadableStream({
-    start(controller) {
-      controller.enqueue(
-        encoder.encode(`data: ${JSON.stringify({ content: text, done: false })}\n\n`)
-      )
-      controller.enqueue(encoder.encode(`data: ${JSON.stringify({ content: '', done: true })}\n\n`))
-      controller.close()
-    },
-  })
-  return new Response(stream, {
-    headers: {
-      'Content-Type': 'text/event-stream',
-      'Cache-Control': 'no-cache, no-transform',
-      Connection: 'keep-alive',
-      'X-Accel-Buffering': 'no',
-      ...(extraHeaders || {}),
-    },
-  })
-}
 
 // Cap injected attachment text so a huge upload can't blow the context
 // window (the client already trims, this is defense-in-depth).

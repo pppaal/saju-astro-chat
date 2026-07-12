@@ -15,50 +15,27 @@ import { refundCreditsOnce } from '@/lib/credits/refundOnce'
 import { CREDIT_COSTS } from '@/lib/config/creditCosts'
 import { ensureCounselorSessionRecord } from '@/lib/counselor/ensureSessionRecord'
 import { createIdempotencyStore, idemContentTag } from '@/lib/api/idempotency'
+import {
+  streamCachedAnswer,
+  REPLAY_RESULT_TTL_SEC,
+  makeReplayCacheKeys,
+} from '@/lib/api/counselorReplayCache'
 import { cacheGet, cacheSet } from '@/lib/cache/redis-cache'
 import type { Relation } from '../types'
 
 // 끊긴 턴 복원용 캐시 키 — userId 를 포함해 ownership 검증 (다른 사용자가
-// turnId 알아도 조회 불가). 게스트는 끊김 복구 미지원 (turnId 보관 안 함).
-export const compatTurnResultKey = (userId: string, turnId: string) =>
-  `compat:turn-result:${userId}:${turnId}`
+// turnId 알아도 조회 불가). replay 키는 scopedIdemKey(=차감 멱등키) 로 완성
+// 답안을 캐시 — replay 시 Claude 재호출 없이 저장본 재생. 키 포맷·
+// streamCachedAnswer·TTL 은 counselor/realtime 과 공유(counselorReplayCache).
+const { turnResultKey: compatTurnResultKey, replayResultKey: compatReplayResultKey } =
+  makeReplayCacheKeys('compat')
+export { compatTurnResultKey }
 
 // 30분 — 크레딧 충전하러 갔다 오는 왕복도 복구되게 (10→30분).
 export const COMPAT_TURN_RESULT_TTL_SEC = 1800
 
-// idempotent replay 가 이미 결제한 답변을 그대로 받도록 scopedIdemKey(=차감
-// 멱등키) 로 완성 답안을 캐시하는 키. replay 판정과 같은 키를 써 turnId
-// 유무·불일치와 무관하게 매칭 — replay 시 Claude 재호출 없이 저장본 재생.
-const compatReplayResultKey = (scopedIdemKey: string) => `compat:replay-result:${scopedIdemKey}`
-
-// replay 캐시 TTL — 차감 멱등 claim TTL(6h) 과 맞춰, replay 유효 창 동안 항상
-// 저장된 원본 답변을 돌려줄 수 있게 한다.
-const COMPAT_REPLAY_RESULT_TTL_SEC = 6 * 60 * 60
-
-// 완성 답변을 counselor SSE 형식(content 청크 1개 + done)으로 단발 재생하는
-// 헬퍼 — replay 캐시 히트 시 Claude 호출 없이 저장본을 그대로 흘려보낸다.
-// streamClaudeAsSSE 가 emit 하는 `{content,done}` 스키마와 동일.
-function streamCachedAnswer(text: string, extraHeaders?: Record<string, string>): Response {
-  const encoder = new TextEncoder()
-  const stream = new ReadableStream({
-    start(controller) {
-      controller.enqueue(
-        encoder.encode(`data: ${JSON.stringify({ content: text, done: false })}\n\n`)
-      )
-      controller.enqueue(encoder.encode(`data: ${JSON.stringify({ content: '', done: true })}\n\n`))
-      controller.close()
-    },
-  })
-  return new Response(stream, {
-    headers: {
-      'Content-Type': 'text/event-stream',
-      'Cache-Control': 'no-cache, no-transform',
-      Connection: 'keep-alive',
-      'X-Accel-Buffering': 'no',
-      ...(extraHeaders || {}),
-    },
-  })
-}
+// replay 캐시 TTL — 공유 상수(6h) 를 라우트 로컬 이름으로 별칭.
+const COMPAT_REPLAY_RESULT_TTL_SEC = REPLAY_RESULT_TTL_SEC
 
 // 새로고침/뒤로가기/다른 탭 등으로 같은 user turn 이 재진입할 때 크레딧
 // 중복 차감 방지. 클라이언트가 매 메시지에 UUID 를 x-idempotency-key 헤더로
