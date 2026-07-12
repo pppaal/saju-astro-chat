@@ -442,11 +442,16 @@ export async function buildDestinyContext(
 ): Promise<DestinyContextSplit> {
   const L = (ko: string, en: string) => (locale === 'ko' ? ko : en)
   // "오늘"은 주입된 now 에서 직접 뽑는다. now 는 ensureCounselorContext 가 사용자
-  // tz 기준으로 만든 그날 정오 Date 라, 로컬 필드(getFullYear/Month/Date)가 곧
-  // 사용자-tz 날짜다. 예전엔 여기서 getNowInTimezone(wall clock)을 다시 읽어
-  // astro(now 사용)와 saju/"오늘"이 서로 다른 시계를 보던 tz·날짜경계 불일치 +
-  // 결정론 누수(테스트로 now 고정 불가)가 있었다. now 단일 기준으로 통일.
-  const localNow = { year: now.getFullYear(), month: now.getMonth() + 1, day: now.getDate() }
+  // tz 기준 그날의 *UTC 정오*(Date.UTC(...,12,0,0)) 로 만든 Date 라, UTC 필드가
+  // 곧 사용자-tz 날짜다. 예전엔 서버-로컬 필드(getFullYear/Month/Date)를 읽어,
+  // UTC+13/+14 호스트(예: Pacific/Auckland DST)에선 UTC 정오가 로컬 다음날
+  // 01~02시가 돼 "# 오늘" 앵커·일진 창·사주 연도 라벨이 하루 밀렸다. 서버-tz
+  // 의존을 없애려 getUTC* 로 읽는다(buildIljinWindowBlock 이 이미 getUTC* 사용).
+  const localNow = {
+    year: now.getUTCFullYear(),
+    month: now.getUTCMonth() + 1,
+    day: now.getUTCDate(),
+  }
   const year = localNow.year
   // 사주 미선택이면 아예 빌드하지 않는다(원국·타이밍·일진 전부 스킵).
   const saju = sources.saju ? buildSajuSection(birth, locale, year, localNow, now) : null

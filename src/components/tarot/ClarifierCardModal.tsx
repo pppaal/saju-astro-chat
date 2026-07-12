@@ -4,7 +4,7 @@
 // 본 채팅에 해석 요청 메시지로 흘려보낸다. 운명/궁합/타로 followup 셋 다
 // 같은 모달을 공유한다 — 카드는 모달 마운트 시점에 뽑혀 즉시 노출.
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import Image from 'next/image'
 import { Sparkles } from 'lucide-react'
@@ -16,6 +16,8 @@ interface ClarifierCardModalProps {
   onClose: () => void
   onConfirm: (card: ClarifierCard) => void
   lang: 'ko' | 'en'
+  /** 이미 깔린 카드 이름들 — 보충 카드가 이 중 하나와 겹치지 않게 제외. */
+  excludeCardNames?: string[]
 }
 
 export default function ClarifierCardModal({
@@ -23,6 +25,7 @@ export default function ClarifierCardModal({
   onClose,
   onConfirm,
   lang,
+  excludeCardNames,
 }: ClarifierCardModalProps) {
   const isKo = lang === 'ko'
   const [card, setCard] = useState<ClarifierCard | null>(null)
@@ -31,14 +34,24 @@ export default function ClarifierCardModal({
   // 페이지가 모달 위치로 점프해 frozen 처럼 보이던 회귀.
   const trapRef = useFocusTrap(isOpen, { autoFocus: false })
 
+  // 제외 목록은 ref 로 최신값 보관 — 아래 draw effect 는 isOpen 전환에만 반응해야
+  // 하고(열 때 1회 draw), 부모가 매 렌더 새 배열을 넘겨도 재추첨되면 안 된다.
+  // ref 갱신은 렌더 중이 아니라 effect 에서(렌더 중 ref 변경 금지). draw effect
+  // 보다 먼저 선언해, isOpen 이 true 로 바뀌는 렌더에서 draw 전에 ref 가 최신화됨.
+  const excludeRef = useRef<string[]>(excludeCardNames ?? [])
+  useEffect(() => {
+    excludeRef.current = excludeCardNames ?? []
+  })
+
   useEffect(() => {
     setMounted(true)
   }, [])
 
   // 모달이 열릴 때마다 새 카드를 뽑는다. 닫히면 다음 오픈을 위해 reset.
+  // 열리는 순간의 제외 목록(스프레드 카드 등)을 넘겨 중복 카드를 피한다.
   useEffect(() => {
     if (isOpen) {
-      setCard(drawClarifierCard())
+      setCard(drawClarifierCard(excludeRef.current))
     } else {
       setCard(null)
     }

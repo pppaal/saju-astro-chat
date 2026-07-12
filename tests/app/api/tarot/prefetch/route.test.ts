@@ -246,23 +246,15 @@ describe('Tarot Prefetch API - POST Success Cases', () => {
     const data = await response.json()
 
     expect(response.status).toBe(200)
-    expect(data.status).toBe('prefetching')
+    expect(data.status).toBe('ok')
   })
 
-  it('should call backend prefetch endpoint with correct data', async () => {
+  it('does NOT call any backend (dead self-referential prefetch removed)', async () => {
+    // 예전엔 apiClient.post('/api/tarot/prefetch', …) 로 자기 자신에게 보내던
+    // 보장된-실패 no-op 이 있었다. 제거됐으므로 apiClient 는 절대 호출되지 않는다.
     await POST(makePostRequest(VALID_REQUEST_BODY))
-
-    // Wait for fire-and-forget call to be made
     await new Promise((resolve) => setTimeout(resolve, 10))
-
-    expect(mockApiClientPost).toHaveBeenCalledWith(
-      '/api/tarot/prefetch',
-      {
-        categoryId: 'love',
-        spreadId: 'three-card',
-      },
-      { timeout: 10000 }
-    )
+    expect(mockApiClientPost).not.toHaveBeenCalled()
   })
 
   it('should work with different category and spread IDs', async () => {
@@ -274,38 +266,23 @@ describe('Tarot Prefetch API - POST Success Cases', () => {
 
     for (const testCase of testCases) {
       vi.clearAllMocks()
-      mockApiClientPost.mockResolvedValue({ ok: true })
       const response = await POST(makePostRequest(testCase))
       const data = await response.json()
 
       expect(response.status).toBe(200)
-      expect(data.status).toBe('prefetching')
-
-      // Wait for fire-and-forget call
-      await new Promise((resolve) => setTimeout(resolve, 10))
-
-      expect(mockApiClientPost).toHaveBeenCalledWith('/api/tarot/prefetch', testCase, {
-        timeout: 10000,
-      })
+      expect(data.status).toBe('ok')
     }
   })
 
-  it('should not wait for backend prefetch to complete', async () => {
-    // Simulate slow backend response
-    mockApiClientPost.mockImplementation(
-      () => new Promise((resolve) => setTimeout(() => resolve({ ok: true }), 5000))
-    )
-
+  it('responds immediately (only the credit pre-check runs, no background work)', async () => {
     const startTime = Date.now()
     const response = await POST(makePostRequest(VALID_REQUEST_BODY))
     const endTime = Date.now()
 
-    // Response should be immediate (fire-and-forget)
     expect(endTime - startTime).toBeLessThan(100)
     expect(response.status).toBe(200)
-
     const data = await response.json()
-    expect(data.status).toBe('prefetching')
+    expect(data.status).toBe('ok')
   })
 })
 
@@ -472,7 +449,7 @@ describe('Tarot Prefetch API - POST Validation', () => {
     const data = await response.json()
 
     expect(response.status).toBe(200)
-    expect(data.status).toBe('prefetching')
+    expect(data.status).toBe('ok')
   })
 })
 
@@ -493,7 +470,7 @@ describe('Tarot Prefetch API - Backend Error Handling', () => {
 
     // Should still return success since errors are caught
     expect(response.status).toBe(200)
-    expect(data.status).toBe('prefetching')
+    expect(data.status).toBe('ok')
   })
 
   it('should return success even when backend returns HTTP error', async () => {
@@ -504,7 +481,7 @@ describe('Tarot Prefetch API - Backend Error Handling', () => {
 
     // Should still return success since fire-and-forget ignores response
     expect(response.status).toBe(200)
-    expect(data.status).toBe('prefetching')
+    expect(data.status).toBe('ok')
   })
 
   it('should return success even when backend times out', async () => {
@@ -514,7 +491,7 @@ describe('Tarot Prefetch API - Backend Error Handling', () => {
     const data = await response.json()
 
     expect(response.status).toBe(200)
-    expect(data.status).toBe('prefetching')
+    expect(data.status).toBe('ok')
   })
 
   it('should not log errors for silent failures', async () => {
@@ -550,7 +527,7 @@ describe('Tarot Prefetch API - Anonymous User Handling', () => {
     const data = await response.json()
 
     expect(response.status).toBe(200)
-    expect(data.status).toBe('prefetching')
+    expect(data.status).toBe('ok')
   })
 
   it('should process prefetch for authenticated users', async () => {
@@ -564,7 +541,7 @@ describe('Tarot Prefetch API - Anonymous User Handling', () => {
     const data = await response.json()
 
     expect(response.status).toBe(200)
-    expect(data.status).toBe('prefetching')
+    expect(data.status).toBe('ok')
   })
 
   it('should process prefetch for premium users', async () => {
@@ -579,7 +556,7 @@ describe('Tarot Prefetch API - Anonymous User Handling', () => {
     const data = await response.json()
 
     expect(response.status).toBe(200)
-    expect(data.status).toBe('prefetching')
+    expect(data.status).toBe('ok')
   })
 })
 
@@ -623,7 +600,7 @@ describe('Tarot Prefetch API - Edge Cases', () => {
     const data = await response.json()
 
     expect(response.status).toBe(200)
-    expect(data.status).toBe('prefetching')
+    expect(data.status).toBe('ok')
   })
 
   it('should handle special characters in spreadId', async () => {
@@ -636,7 +613,7 @@ describe('Tarot Prefetch API - Edge Cases', () => {
     const data = await response.json()
 
     expect(response.status).toBe(200)
-    expect(data.status).toBe('prefetching')
+    expect(data.status).toBe('ok')
   })
 
   it('should handle Korean characters in IDs', async () => {
@@ -649,7 +626,7 @@ describe('Tarot Prefetch API - Edge Cases', () => {
     const data = await response.json()
 
     expect(response.status).toBe(200)
-    expect(data.status).toBe('prefetching')
+    expect(data.status).toBe('ok')
   })
 
   it('should handle numeric string IDs', async () => {
@@ -662,7 +639,7 @@ describe('Tarot Prefetch API - Edge Cases', () => {
     const data = await response.json()
 
     expect(response.status).toBe(200)
-    expect(data.status).toBe('prefetching')
+    expect(data.status).toBe('ok')
   })
 
   it('should handle single character IDs', async () => {
@@ -675,7 +652,7 @@ describe('Tarot Prefetch API - Edge Cases', () => {
     const data = await response.json()
 
     expect(response.status).toBe(200)
-    expect(data.status).toBe('prefetching')
+    expect(data.status).toBe('ok')
   })
 
   it('should ignore extra fields in request body', async () => {
@@ -690,20 +667,10 @@ describe('Tarot Prefetch API - Edge Cases', () => {
     const data = await response.json()
 
     expect(response.status).toBe(200)
-    expect(data.status).toBe('prefetching')
-
-    // Wait for fire-and-forget call
+    expect(data.status).toBe('ok')
+    // 백엔드 자기호출이 제거됐으므로 apiClient 는 호출되지 않는다.
     await new Promise((resolve) => setTimeout(resolve, 10))
-
-    // Backend call should only include categoryId and spreadId
-    expect(mockApiClientPost).toHaveBeenCalledWith(
-      '/api/tarot/prefetch',
-      {
-        categoryId: 'love',
-        spreadId: 'three-card',
-      },
-      { timeout: 10000 }
-    )
+    expect(mockApiClientPost).not.toHaveBeenCalled()
   })
 })
 
@@ -728,13 +695,12 @@ describe('Tarot Prefetch API - Concurrency', () => {
     for (const response of responses) {
       const data = await response.json()
       expect(response.status).toBe(200)
-      expect(data.status).toBe('prefetching')
+      expect(data.status).toBe('ok')
     }
 
-    // Wait for fire-and-forget calls
+    // 자기호출 제거로 어느 요청도 apiClient 를 부르지 않는다.
     await new Promise((resolve) => setTimeout(resolve, 50))
-
-    expect(mockApiClientPost).toHaveBeenCalledTimes(3)
+    expect(mockApiClientPost).not.toHaveBeenCalled()
   })
 
   it('should handle rapid successive requests', async () => {
@@ -753,7 +719,7 @@ describe('Tarot Prefetch API - Concurrency', () => {
     for (const response of results) {
       const data = await response.json()
       expect(response.status).toBe(200)
-      expect(data.status).toBe('prefetching')
+      expect(data.status).toBe('ok')
     }
   })
 })
@@ -797,6 +763,6 @@ describe('Tarot Prefetch API - Credit pre-flight', () => {
     const data = await response.json()
 
     expect(response.status).toBe(200)
-    expect(data.status).toBe('prefetching')
+    expect(data.status).toBe('ok')
   })
 })

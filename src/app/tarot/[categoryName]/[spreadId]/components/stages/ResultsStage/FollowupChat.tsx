@@ -499,6 +499,9 @@ export function FollowupChat({
     disabled: submitting,
     // 복원한 리딩이 이미 보충 카드를 뽑았으면 버튼을 처음부터 잠근다.
     initiallyUsed: initialClarifierUsed,
+    // 스프레드에 이미 깔린 카드들 — 보충 카드가 이 중 하나와 겹치지 않게 제외
+    // (같은 리딩에 같은 카드가 두 번 나오는 물리 덱 불가능한 중복 방지).
+    excludeCardNames: readingResult.drawnCards.map((dc) => dc.card.name),
   })
 
   return (

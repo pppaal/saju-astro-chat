@@ -8,13 +8,11 @@ import {
   extractLocale,
   type ApiContext,
 } from '@/lib/api/middleware'
-import { apiClient } from '@/lib/api/ApiClient'
 import { TarotPrefetchSchema } from '@/lib/api/validator'
 import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
 import { createValidationErrorResponse } from '@/lib/api/zodValidation'
 import { checkCreditsOnly, creditErrorResponse } from '@/lib/credits/withCredits'
 import { tarotCreditCostFor, tarotThemes } from '@/lib/tarot/tarot-spreads-data'
-import { logger } from '@/lib/logger'
 
 export const POST = withApiMiddleware(
   async (req: NextRequest, _context: ApiContext) => {
@@ -52,23 +50,13 @@ export const POST = withApiMiddleware(
       return creditErrorResponse(creditResult)
     }
 
-    // Fire-and-forget prefetch to backend
-    apiClient
-      .post(
-        '/api/tarot/prefetch',
-        {
-          categoryId,
-          spreadId,
-        },
-        { timeout: 10000 }
-      )
-      // Prefetch 는 best-effort 이므로 실패해도 사용자 흐름엔 영향 X.
-      // 다만 디버깅용 debug 로그는 남긴다 (이전엔 완전 silent).
-      .catch((err) => {
-        logger.debug('[tarot/prefetch] background fetch failed', { err })
-      })
-
-    return NextResponse.json({ status: 'prefetching' })
+    // 예전엔 여기서 apiClient.post('/api/tarot/prefetch', …) 로 *자기 자신* 경로에
+    // fire-and-forget 요청을 보냈다. Python AI 백엔드가 제거돼 apiClient 는
+    // baseUrl 이 없으므로(''), Node fetch 가 root-relative URL 을 파싱 못 해 매번
+    // 즉시 실패 → debug 로그만 남기는 보장된 no-op 이었다(RAG 프리페치는 실질
+    // 미동작). 죽은 자기호출을 제거하고 크레딧 사전체크만 남긴다 — 그게 이 라우트의
+    // 실제 기능(질문 화면에서 잔액 부족을 즉시 막기)이다.
+    return NextResponse.json({ status: 'ok' })
   },
   {
     ...createTarotGuard({

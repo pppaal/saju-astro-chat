@@ -95,8 +95,12 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
   const L = (ko: string, e: string) => (en ? e : ko)
   const PL = en ? PILLAR_LABELS_EN : PILLAR_LABELS
   const elD = (c: string) => (en ? (ELEMENT_KO_TO_EN[c] ?? c) : c)
-  // stem+element 표기: KO 는 `甲목`(붙임), EN 은 `甲(Wood)`.
-  const se = (stem: string, el: string) => (en ? `${stem}(${elD(el)})` : `${stem}${el}`)
+  // stem+element 표기: KO 는 `甲목`(붙임), EN 은 `甲=Wood`.
+  // EN 을 예전엔 `甲(Wood)` 괄호로 썼는데, 최종 stripAux(stripParens)가 괄호를
+  // 전부 지워 EN 출력에서 일간 오행이 통째로 사라졌다("never reverse the element"
+  // 지시가 정작 참조할 오행이 없어짐). 괄호 대신 `=` 로 박아 flip 방지 앵커가
+  // stripAux 를 통과하게 한다(KO 는 원래 괄호가 아니라 영향 없음).
+  const se = (stem: string, el: string) => (en ? `${stem}=${elD(el)}` : `${stem}${el}`)
   const sibD = (s: string) => (en ? (SIBSIN_EN[s] ?? s) : s)
   const glossD = (s: string) => (en ? (SIBSIN_GLOSS_EN[s] ?? '') : (SIBSIN_GLOSS[s] ?? ''))
   const twD = (lbl: string) => (en ? (TWELVE_SINSAL_EN[lbl] ?? lbl) : lbl)
@@ -104,10 +108,12 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
   // 라벨에 실명을 고정한다. "A", "B"만 주면 모델이 어느 쪽이 누구인지,
   // 辛→금 같은 오행 매핑까지 머릿속으로 다시 풀다가 통째로 뒤집는 사고가
   // 난다(辛(금) 일간을 "목"이라 부르는 등). 이름·오행을 데이터에 박아둔다.
+  // 라벨은 `A·철수` 형식 — 예전 `A(철수)` 는 최종 stripAux 가 괄호를 지워
+  // 이름이 통째로 사라졌다(flip 방지 앵커 무력화). 괄호 대신 `·` 로 박는다.
   const nmA = (input.nameA || '').trim()
   const nmB = (input.nameB || '').trim()
-  const labelA = nmA ? `A(${nmA})` : 'A'
-  const labelB = nmB ? `B(${nmB})` : 'B'
+  const labelA = nmA ? `A·${nmA}` : 'A'
+  const labelB = nmB ? `B·${nmB}` : 'B'
   const elA = STEM_EL[aDay.stem]
   const elB = STEM_EL[bDay.stem]
 
@@ -127,8 +133,8 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
         b = nmB || 'B'
       critical.push(
         L(
-          `${dm} — ${elA}극${elB} · 통제 방향 ${a}(${elA}) → ${b}(${elB}) (${a}이(가) ${b}을(를) 정리·다듬는 흐름, ${b}은(는) 따끔·제약처럼 느낄 수 있음) ※오행·방향 반대로 쓰지 말 것`,
-          `${dm} — ${elD(elA)} controls ${elD(elB)} · control direction ${a}(${elD(elA)}) → ${b}(${elD(elB)}) (${a} files down / refines ${b}; ${b} may feel it as a sting / constraint) ※never reverse the element or direction`
+          `${dm} — ${elA}극${elB} · 통제 방향 ${a}=${elA} → ${b}=${elB} (${a}이(가) ${b}을(를) 정리·다듬는 흐름, ${b}은(는) 따끔·제약처럼 느낄 수 있음) ※오행·방향 반대로 쓰지 말 것`,
+          `${dm} — ${elD(elA)} controls ${elD(elB)} · control direction ${a}=${elD(elA)} → ${b}=${elD(elB)} (${a} files down / refines ${b}; ${b} may feel it as a sting / constraint) ※never reverse the element or direction`
         )
       )
     } else if (EL_CONTROLS[elB] === elA) {
@@ -136,8 +142,8 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
         b = nmB || 'B'
       critical.push(
         L(
-          `${dm} — ${elB}극${elA} · 통제 방향 ${b}(${elB}) → ${a}(${elA}) (${b}이(가) ${a}을(를) 정리·다듬는 흐름, ${a}은(는) 따끔·제약처럼 느낄 수 있음) ※오행·방향 반대로 쓰지 말 것`,
-          `${dm} — ${elD(elB)} controls ${elD(elA)} · control direction ${b}(${elD(elB)}) → ${a}(${elD(elA)}) (${b} files down / refines ${a}; ${a} may feel it as a sting / constraint) ※never reverse the element or direction`
+          `${dm} — ${elB}극${elA} · 통제 방향 ${b}=${elB} → ${a}=${elA} (${b}이(가) ${a}을(를) 정리·다듬는 흐름, ${a}은(는) 따끔·제약처럼 느낄 수 있음) ※오행·방향 반대로 쓰지 말 것`,
+          `${dm} — ${elD(elB)} controls ${elD(elA)} · control direction ${b}=${elD(elB)} → ${a}=${elD(elA)} (${b} files down / refines ${a}; ${a} may feel it as a sting / constraint) ※never reverse the element or direction`
         )
       )
     } else {

@@ -279,7 +279,12 @@ export function computeSynastryView(
   const isKo = lang === 'ko'
   const houseMeaning = isKo ? HOUSE_MEANING_KO : HOUSE_MEANING_EN
 
-  // 어스펙트 — 개인행성이 하나라도 낀 것 우선, orb≤5° 만, score(가중) 순.
+  // 어스펙트 — 개인행성이 하나라도 낀 것 우선, orb≤5° 만, orb 좁은 순(=강한 순).
+  // 예전엔 필터 후 곧장 .slice(0,8) 이라 엔진의 방출 순서(planetsA 중첩루프 →
+  // Sun 먼저…ASC 마지막)대로 잘렸다. 그래서 타이트한 Venus-Mars 0.3° 가 느슨한
+  // Sun 4.9° 에 밀려 탈락하고 ASC 각은 거의 항상 누락돼, 차트·밴드점수·verdict 가
+  // 상담사 포매터(astroSynastryFormatter 는 orb 로 정렬)와 어긋났다. slice 전에
+  // orb 오름차순으로 정렬해 "가장 강한 8개" 를 취하고 두 경로를 일치시킨다.
   const aspects: SynAspectView[] = result.aspects
     .filter((asp) => {
       if (asp.orb > 5) return false
@@ -290,6 +295,7 @@ export function computeSynastryView(
       if (timeUnknownB && ANGLE_POINTS.has(asp.to.name)) return false
       return PERSONAL.has(asp.from.name) || PERSONAL.has(asp.to.name)
     })
+    .sort((a, b) => a.orb - b.orb)
     .slice(0, 8)
     .map((asp) => ({
       a: pko(asp.from.name, isKo),
