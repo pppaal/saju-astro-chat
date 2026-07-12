@@ -539,6 +539,13 @@ export async function POST(req: NextRequest) {
     // 받아갈 사람도 없는데 토큰만 태우는 일을 막는다.
     const upstreamAbort = new AbortController()
     const upstreamSignal = isRecoverable ? upstreamAbort.signal : req.signal
+    // 이어쓰기(maxContinuations)까지 소진하고도 하드 토큰캡에 잘렸는지. onTruncated
+    // 가 없던 예전엔 advice 중간에 잘린 리딩이 isUsableReading(overall+cards 만 검사)
+    // 을 통과해 "완성본"으로 캐시·복구 저장됐다. 상담사 라우트는 claudeSSE 경유로
+    // incomplete 마킹을 했는데 타로만 빠져 있던 비대칭. truncated 면 아래에서 저장/
+    // replay 캐시를 건너뛴다(과금은 유지 — 클라는 이미 카드+overall 을 받았고, 잘림은
+    // 서버측 토큰캡이라 사용자 탓이 아니라 상담사와 동일하게 청구 유지).
+    let truncated = false
     let claudeStream: ReadableStream<string>
     try {
       // streamClaudeWithContinuation — maxTokens 도달해도 자동 이어쓰기
@@ -554,6 +561,10 @@ export async function POST(req: NextRequest) {
         temperature: 0.7,
         timeoutMs: CLAUDE_TIMEOUT_MS,
         label: 'tarot-stream',
+        // 하드캡 잘림 신호 — 완성본으로 저장/replay 하지 않도록 아래에서 사용.
+        onTruncated: () => {
+          truncated = true
+        },
       })
     } catch (claudeErr) {
       recordExternalCall('anthropic', TAROT_INTERPRET_MODEL, 'error', Date.now() - claudeStartTime)
@@ -667,6 +678,37 @@ export async function POST(req: NextRequest) {
             // 복구 턴에서 클라가 사라졌어도 enqueue 는 안전하게 무시되어야 하므로
             // safeEnqueue 사용 (기존 success path 와 동일 동작).
             safeEnqueue(encoder.encode(createSSEEvent({ content: JSON.stringify(fallback) })))
+            safeEnqueue(encoder.encode(createSSEDoneEvent()))
+          } else if (truncated) {
+            // 하드 토큰캡에 잘린 리딩 — isUsableReading 은 통과(카드+overall 존재)
+            // 하지만 advice 등이 잘려 "완성본"이 아니다. 과금은 유지(상담사 parity,
+            // 서버측 잘림)하되, 복구/replay 캐시에는 저장하지 않는다 — 돌아온
+            // 사용자나 새로고침 replay 가 잘린 리딩을 "결제한 완성본"으로 받는 것을
+            // 막는다(그 경로는 캐시 miss → 완전한 리딩으로 재생성). ensureTarot-
+            // ReadingRecord 는 과금이 남으므로 아래에서 그대로 보장한다.
+            logger.warn(
+              '[tarot-stream] reading truncated (hit token cap) — charged, not cached as final',
+              {
+                bytesEmitted,
+                fullTextLen: fullText.length,
+                isRecoverable,
+              }
+            )
+            if (creditResult?.userId && persistReadingId) {
+              try {
+                await ensureTarotReadingRecord({
+                  readingId: persistReadingId,
+                  userId: creditResult.userId,
+                  question: userQuestion,
+                  spreadId,
+                  spreadTitle,
+                  cards: rawCards,
+                  locale: language,
+                })
+              } catch {
+                /* 존재 보장 실패는 무시 */
+              }
+            }
             safeEnqueue(encoder.encode(createSSEDoneEvent()))
           } else {
             // 정상 완료 → 복구 가능 턴이면 완성 리딩 캐시 저장. (클라 연결 여부 무관.)
