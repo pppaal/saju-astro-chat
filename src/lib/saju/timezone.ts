@@ -155,6 +155,29 @@ export function solarTimeCorrectionMinutes(
   return Math.round((longitude - standardMeridian) * 4)
 }
 
+/**
+ * 그 해(연도)의 표준(비 DST) offset(분). DST 는 항상 시계를 앞당기므로,
+ * 1월/7월 offset 중 *작은 쪽* 이 표준 offset 이다(남·북반구 모두 성립).
+ * Intl 만으로 timeZone+instant 에서 순수 유도 — 새 입력 데이터 불필요.
+ */
+function getStandardOffsetMinutes(instantUTC: Date, timeZone: string): number {
+  const y = instantUTC.getUTCFullYear()
+  const jan = getOffsetMinutes(new Date(Date.UTC(y, 0, 1, 12)), timeZone)
+  const jul = getOffsetMinutes(new Date(Date.UTC(y, 6, 1, 12)), timeZone)
+  return Math.min(jan, jul)
+}
+
+/**
+ * `instantUTC` 시점의 DST 적용분(분). 표준시면 0, DST 면 보통 60.
+ * 시지(시주) 산정 전에 시계의 DST 인공물을 제거하는 데 쓴다 — DST 는 민간
+ * 시계 규약일 뿐 천문학적 의미가 없어, 2시간 지지 버킷 경계를 한 시간 밀어
+ * 잘못된 시지를 만든다. longitude(진태양시) 경로는 이미 offset 에 DST 가
+ * 반영돼 별도 처리 불필요; 이 함수는 longitude 미상(옛 동작) 경로용이다.
+ */
+export function getDstAmountMinutes(instantUTC: Date, timeZone: string): number {
+  return getOffsetMinutes(instantUTC, timeZone) - getStandardOffsetMinutes(instantUTC, timeZone)
+}
+
 export function formatOffset(offsetMin: number): string {
   const sign = offsetMin >= 0 ? '+' : '-'
   const h = Math.floor(Math.abs(offsetMin) / 60)
