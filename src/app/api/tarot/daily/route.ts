@@ -115,10 +115,17 @@ async function resolveDailyId(
       secure: process.env.NODE_ENV === 'production',
       maxAge: 34560000, // ~400일(브라우저 상한)
     })
+    // 이번 응답도 방금 발급한 쿠키 id 로 답한다 — 다음 요청부터 이 쿠키가
+    // 실려오므로 같은 id 로 캐시가 매칭돼 "당일 1장(같은 카드)" 이 유지된다.
+    // 예전엔 이번 요청만 지문(fingerprint)으로 답하고 쿠키는 fresh 로 심어,
+    // 첫 요청(지문)→이후 요청(쿠키) 사이 id 가 갈려 같은 게스트가 하루에
+    // 서로 다른 두 장을 받고 Claude 를 두 번 호출하던 버그가 있었다.
+    return `g:${fresh}`
   } catch {
-    // request scope 밖(비정상 실행 경로)이면 쿠키 발급만 건너뛴다 — 식별은 지문으로 계속.
+    // request scope 밖(비정상 실행 경로) — 쿠키 발급 불가. 이 경우에만 지문으로
+    // 폴백한다(쿠키가 없어 다음 요청도 지문으로 오므로 id 가 일관됨).
+    return `g:${clientFingerprint(req)}`
   }
-  return `g:${clientFingerprint(req)}`
 }
 
 interface DailyReading {

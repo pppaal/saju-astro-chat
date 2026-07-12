@@ -14,6 +14,7 @@ import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
 import { nowInTimezone } from '@/lib/utils/timezone'
 import { createValidationErrorResponse } from '@/lib/api/zodValidation'
 import { extractLocale } from '@/lib/api/middleware'
+import { enforceBodySize } from '@/lib/http'
 
 export async function POST(request: Request) {
   try {
@@ -36,6 +37,12 @@ export async function POST(request: Request) {
         headers: Object.fromEntries(limit.headers.entries()),
       })
     }
+
+    // 거대 본문 버퍼링 전 413 — 이 라우트는 createAstrologyGuard(1MB 캡)를 쓰지
+    // 않고 가드를 손수 조립하므로, 형제 라우트(eclipses/fixed-stars/lunar-return)
+    // 가 가드로 얻는 body-size 캡을 여기서 직접 건다(메모리 DoS 차단).
+    const tooLarge = enforceBodySize(request, 1024 * 1024)
+    if (tooLarge) return tooLarge
 
     // Validate request body with Zod
     const body = await request.json().catch(() => ({}))

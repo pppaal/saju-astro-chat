@@ -62,11 +62,45 @@ vi.mock('@/lib/api/astrology-validation', () => ({
 // Mock astrology functions
 const mockSolarReturnChart = {
   planets: [
-    { name: 'Sun', longitude: 120.5, sign: 'Leo', degree: 0, minute: 30, house: 5, speed: 1.0, retrograde: false },
-    { name: 'Moon', longitude: 45.2, sign: 'Taurus', degree: 15, minute: 12, house: 2, speed: 12.5, retrograde: false },
+    {
+      name: 'Sun',
+      longitude: 120.5,
+      sign: 'Leo',
+      degree: 0,
+      minute: 30,
+      house: 5,
+      speed: 1.0,
+      retrograde: false,
+    },
+    {
+      name: 'Moon',
+      longitude: 45.2,
+      sign: 'Taurus',
+      degree: 15,
+      minute: 12,
+      house: 2,
+      speed: 12.5,
+      retrograde: false,
+    },
   ],
-  ascendant: { name: 'Ascendant', longitude: 15.0, sign: 'Aries', degree: 15, minute: 0, house: 1, formatted: 'Aries 15°00′' },
-  mc: { name: 'MC', longitude: 285.0, sign: 'Capricorn', degree: 15, minute: 0, house: 10, formatted: 'Capricorn 15°00′' },
+  ascendant: {
+    name: 'Ascendant',
+    longitude: 15.0,
+    sign: 'Aries',
+    degree: 15,
+    minute: 0,
+    house: 1,
+    formatted: 'Aries 15°00′',
+  },
+  mc: {
+    name: 'MC',
+    longitude: 285.0,
+    sign: 'Capricorn',
+    degree: 15,
+    minute: 0,
+    house: 10,
+    formatted: 'Capricorn 15°00′',
+  },
   houses: [{ index: 1, cusp: 15.0, sign: 'Aries', formatted: 'Aries 15°00′' }],
   returnType: 'solar' as const,
   returnYear: 2024,
@@ -175,6 +209,37 @@ describe('Solar Return API - POST /api/astrology/advanced/solar-return', () => {
       const response = await POST(makeRequest(validBody))
 
       expect(response.status).toBe(200)
+    })
+  })
+
+  // ---- Body Size Guard ----
+  describe('Body size guard', () => {
+    beforeEach(() => {
+      vi.mocked(rateLimit).mockResolvedValue({
+        allowed: true,
+        headers: defaultRateLimitHeaders,
+      } as ReturnType<typeof rateLimit> extends Promise<infer T> ? T : never)
+      vi.mocked(requirePublicToken).mockReturnValue({ valid: true })
+    })
+
+    it('returns 413 for an oversized body before parsing/validating (memory DoS guard)', async () => {
+      // This hand-rolled route does not use createAstrologyGuard, so it must
+      // apply the 1MB cap directly. A content-length beyond 1MB is rejected
+      // before req.json() buffers it — validation never runs. (Real Request
+      // recomputes content-length from the body, so we hand it a Headers object
+      // carrying the oversized length; only enforceBodySize reads it, and
+      // getClientIp/requirePublicToken are mocked.)
+      const bigReq = {
+        headers: new Headers({
+          'content-type': 'application/json',
+          'content-length': String(2 * 1024 * 1024),
+        }),
+      } as unknown as Request
+
+      const response = await POST(bigReq)
+
+      expect(response.status).toBe(413)
+      expect(mockSafeParse).not.toHaveBeenCalled()
     })
   })
 
@@ -539,9 +604,7 @@ describe('Solar Return API - POST /api/astrology/advanced/solar-return', () => {
 
       await POST(makeRequest({ ...validBody, year: pastYear }))
 
-      expect(calculateSolarReturn).toHaveBeenCalledWith(
-        expect.objectContaining({ year: pastYear })
-      )
+      expect(calculateSolarReturn).toHaveBeenCalledWith(expect.objectContaining({ year: pastYear }))
     })
 
     it('should handle concurrent requests without state leaking', async () => {

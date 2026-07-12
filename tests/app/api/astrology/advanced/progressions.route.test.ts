@@ -54,11 +54,45 @@ vi.mock('@/lib/api/astrology-validation', () => ({
 // Mock astrology functions
 const mockSecondaryProgressionsChart = {
   planets: [
-    { name: 'Sun', longitude: 125.5, sign: 'Leo', degree: 5, minute: 30, house: 5, speed: 1.0, retrograde: false },
-    { name: 'Moon', longitude: 210.2, sign: 'Libra', degree: 0, minute: 12, house: 7, speed: 12.5, retrograde: false },
+    {
+      name: 'Sun',
+      longitude: 125.5,
+      sign: 'Leo',
+      degree: 5,
+      minute: 30,
+      house: 5,
+      speed: 1.0,
+      retrograde: false,
+    },
+    {
+      name: 'Moon',
+      longitude: 210.2,
+      sign: 'Libra',
+      degree: 0,
+      minute: 12,
+      house: 7,
+      speed: 12.5,
+      retrograde: false,
+    },
   ],
-  ascendant: { name: 'Ascendant', longitude: 18.0, sign: 'Aries', degree: 18, minute: 0, house: 1, formatted: 'Aries 18°00′' },
-  mc: { name: 'MC', longitude: 288.0, sign: 'Capricorn', degree: 18, minute: 0, house: 10, formatted: 'Capricorn 18°00′' },
+  ascendant: {
+    name: 'Ascendant',
+    longitude: 18.0,
+    sign: 'Aries',
+    degree: 18,
+    minute: 0,
+    house: 1,
+    formatted: 'Aries 18°00′',
+  },
+  mc: {
+    name: 'MC',
+    longitude: 288.0,
+    sign: 'Capricorn',
+    degree: 18,
+    minute: 0,
+    house: 10,
+    formatted: 'Capricorn 18°00′',
+  },
   houses: [{ index: 1, cusp: 18.0, sign: 'Aries', formatted: 'Aries 18°00′' }],
   progressionType: 'secondary' as const,
   yearsProgressed: 34.5,
@@ -67,11 +101,45 @@ const mockSecondaryProgressionsChart = {
 
 const mockSolarArcChart = {
   planets: [
-    { name: 'Sun', longitude: 154.8, sign: 'Virgo', degree: 4, minute: 48, house: 6, speed: 1.0, retrograde: false },
-    { name: 'Moon', longitude: 79.5, sign: 'Gemini', degree: 19, minute: 30, house: 3, speed: 12.5, retrograde: false },
+    {
+      name: 'Sun',
+      longitude: 154.8,
+      sign: 'Virgo',
+      degree: 4,
+      minute: 48,
+      house: 6,
+      speed: 1.0,
+      retrograde: false,
+    },
+    {
+      name: 'Moon',
+      longitude: 79.5,
+      sign: 'Gemini',
+      degree: 19,
+      minute: 30,
+      house: 3,
+      speed: 12.5,
+      retrograde: false,
+    },
   ],
-  ascendant: { name: 'Ascendant', longitude: 49.3, sign: 'Taurus', degree: 19, minute: 18, house: 1, formatted: 'Taurus 19°18′' },
-  mc: { name: 'MC', longitude: 319.3, sign: 'Aquarius', degree: 19, minute: 18, house: 10, formatted: 'Aquarius 19°18′' },
+  ascendant: {
+    name: 'Ascendant',
+    longitude: 49.3,
+    sign: 'Taurus',
+    degree: 19,
+    minute: 18,
+    house: 1,
+    formatted: 'Taurus 19°18′',
+  },
+  mc: {
+    name: 'MC',
+    longitude: 319.3,
+    sign: 'Aquarius',
+    degree: 19,
+    minute: 18,
+    house: 10,
+    formatted: 'Aquarius 19°18′',
+  },
   houses: [{ index: 1, cusp: 49.3, sign: 'Taurus', formatted: 'Taurus 19°18′' }],
   progressionType: 'solarArc' as const,
   yearsProgressed: 34.5,
@@ -160,6 +228,34 @@ function setupSuccessfulFlow() {
 describe('Progressions API - POST /api/astrology/advanced/progressions', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+  })
+
+  // ---- Body Size Guard ----
+  describe('Body size guard', () => {
+    it('returns 413 for an oversized body before parsing/validating (memory DoS guard)', async () => {
+      vi.mocked(rateLimit).mockResolvedValue({
+        allowed: true,
+        headers: defaultRateLimitHeaders,
+      } as ReturnType<typeof rateLimit> extends Promise<infer T> ? T : never)
+      vi.mocked(requirePublicToken).mockReturnValue({ valid: true })
+
+      // Hand-rolled route (no createAstrologyGuard) must apply the 1MB cap
+      // directly — an oversized content-length is rejected before req.json().
+      // (Real Request recomputes content-length from the body, so hand it a
+      // Headers object carrying the oversized length; only enforceBodySize
+      // reads it, and getClientIp/requirePublicToken are mocked.)
+      const bigReq = {
+        headers: new Headers({
+          'content-type': 'application/json',
+          'content-length': String(2 * 1024 * 1024),
+        }),
+      } as unknown as Request
+
+      const response = await POST(bigReq)
+
+      expect(response.status).toBe(413)
+      expect(mockSafeParse).not.toHaveBeenCalled()
+    })
   })
 
   // ---- Rate Limiting ----
@@ -470,7 +566,18 @@ describe('Progressions API - POST /api/astrology/advanced/progressions', () => {
     it('should return null moonPhase when Moon is not found in progressed chart', async () => {
       vi.mocked(calculateSecondaryProgressions).mockResolvedValue({
         ...mockSecondaryProgressionsChart,
-        planets: [{ name: 'Sun', longitude: 125.5, sign: 'Leo', degree: 5, minute: 30, house: 5, speed: 1.0, retrograde: false }],
+        planets: [
+          {
+            name: 'Sun',
+            longitude: 125.5,
+            sign: 'Leo',
+            degree: 5,
+            minute: 30,
+            house: 5,
+            speed: 1.0,
+            retrograde: false,
+          },
+        ],
       })
 
       const response = await POST(makeRequest(validBody))
@@ -482,7 +589,18 @@ describe('Progressions API - POST /api/astrology/advanced/progressions', () => {
     it('should return null moonPhase when Sun is not found in progressed chart', async () => {
       vi.mocked(calculateSecondaryProgressions).mockResolvedValue({
         ...mockSecondaryProgressionsChart,
-        planets: [{ name: 'Moon', longitude: 210.2, sign: 'Libra', degree: 0, minute: 12, house: 7, speed: 12.5, retrograde: false }],
+        planets: [
+          {
+            name: 'Moon',
+            longitude: 210.2,
+            sign: 'Libra',
+            degree: 0,
+            minute: 12,
+            house: 7,
+            speed: 12.5,
+            retrograde: false,
+          },
+        ],
       })
 
       const response = await POST(makeRequest(validBody))
@@ -525,7 +643,9 @@ describe('Progressions API - POST /api/astrology/advanced/progressions', () => {
     })
 
     it('should return 500 when calculateSecondaryProgressions throws', async () => {
-      vi.mocked(calculateSecondaryProgressions).mockRejectedValue(new Error('Ephemeris engine error'))
+      vi.mocked(calculateSecondaryProgressions).mockRejectedValue(
+        new Error('Ephemeris engine error')
+      )
 
       const response = await POST(makeRequest(validBody))
       const data = await response.json()
@@ -540,7 +660,9 @@ describe('Progressions API - POST /api/astrology/advanced/progressions', () => {
 
     it('should return 500 when calculateSolarArcDirections throws', async () => {
       vi.mocked(calculateSecondaryProgressions).mockResolvedValue(mockSecondaryProgressionsChart)
-      vi.mocked(calculateSolarArcDirections).mockRejectedValue(new Error('Solar arc calculation failed'))
+      vi.mocked(calculateSolarArcDirections).mockRejectedValue(
+        new Error('Solar arc calculation failed')
+      )
 
       const response = await POST(makeRequest(validBody))
       const data = await response.json()
@@ -591,7 +713,9 @@ describe('Progressions API - POST /api/astrology/advanced/progressions', () => {
     })
 
     it('should capture server errors via telemetry', async () => {
-      vi.mocked(calculateSecondaryProgressions).mockRejectedValue(new Error('Progression calculation failed'))
+      vi.mocked(calculateSecondaryProgressions).mockRejectedValue(
+        new Error('Progression calculation failed')
+      )
 
       await POST(makeRequest(validBody))
 
@@ -687,9 +811,7 @@ describe('Progressions API - POST /api/astrology/advanced/progressions', () => {
 
     it('should handle concurrent requests without state leaking', async () => {
       const targetDates = ['2024-01-15', '2024-06-15', '2024-12-15']
-      const requests = targetDates.map((targetDate) =>
-        makeRequest({ ...validBody, targetDate })
-      )
+      const requests = targetDates.map((targetDate) => makeRequest({ ...validBody, targetDate }))
 
       // Configure mocks to return different dates based on input
       vi.mocked(calculateSecondaryProgressions).mockImplementation(async (input) => ({
