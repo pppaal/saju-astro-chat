@@ -141,5 +141,8 @@ export const POST = withApiMiddleware(
     route: '/api/checkout',
     limit: 8,
     windowSeconds: 60,
+    // 결제 경로 — Redis 장애 시 우회 가능한 per-instance 인메모리 폴백에
+    // 의존하지 않고 거부(fail-closed)한다.
+    failClosed: true,
   })
 )

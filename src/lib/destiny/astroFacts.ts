@@ -350,10 +350,10 @@ function buildHellenistic(
     extraPoints = undefined
   }
 
-  // 본명 aspects (major + minor, orb 3°). chart 깨져있어도 안전하게 빈 배열.
+  // 본명 aspects (Hellenistic major only, orb 3°). chart 깨져있어도 안전하게 빈 배열.
   let natalAspects: AspectHit[]
   try {
-    natalAspects = findNatalAspects(chart, { includeMinor: true })
+    natalAspects = findNatalAspects(chart)
   } catch (err) {
     logger.warn('[astroFacts] findNatalAspects failed, defaulting to []', {
       err: err instanceof Error ? err.message : String(err),

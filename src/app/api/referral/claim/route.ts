@@ -43,5 +43,7 @@ export const POST = withApiMiddleware(
     route: '/api/referral/claim',
     limit: 20,
     windowSeconds: 60,
+    // 크레딧 보상 abuse 표면 — Redis 장애 시 우회 가능한 인메모리 폴백 대신 거부.
+    failClosed: true,
   })
 )

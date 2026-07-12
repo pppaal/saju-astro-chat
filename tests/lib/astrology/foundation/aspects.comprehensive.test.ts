@@ -150,7 +150,7 @@ describe('aspects.ts', () => {
       expect(tooWide).toBeUndefined()
     })
 
-    it('blocks minor aspects even when includeMinor requested (Hellenistic)', () => {
+    it('blocks minor aspects — major only (Hellenistic)', () => {
       const natal: Chart = {
         planets: [{ name: 'Sun', longitude: 0, house: 1, sign: 'Aries', speed: 1 }],
         ascendant: { longitude: 0, sign: 'Aries', house: 1 },
@@ -167,11 +167,11 @@ describe('aspects.ts', () => {
         houses: [],
       }
 
-      const results = findAspects(natal, transit, { includeMinor: true })
+      const results = findAspects(natal, transit, {})
 
       const quincunx = results.find((h) => h.type === 'quincunx')
 
-      // 정통 Hellenistic 정책: minor aspect 는 항상 차단, includeMinor 무시.
+      // 정통 Hellenistic 정책: minor aspect 는 항상 차단 (major only 엔진).
       expect(quincunx).toBeUndefined()
     })
 
@@ -192,7 +192,7 @@ describe('aspects.ts', () => {
         houses: [],
       }
 
-      const results = findAspects(natal, transit, { includeMinor: false })
+      const results = findAspects(natal, transit, {})
 
       const semisextile = results.find((h) => h.type === 'semisextile')
 
@@ -485,7 +485,7 @@ describe('aspects.ts', () => {
       }
     })
 
-    it('blocks minor aspects even when includeMinor requested (Hellenistic)', () => {
+    it('blocks minor aspects — major only (Hellenistic)', () => {
       const chart: Chart = {
         planets: [
           { name: 'Sun', longitude: 0, house: 1, sign: 'Aries', speed: 1 },
@@ -496,11 +496,11 @@ describe('aspects.ts', () => {
         houses: [],
       }
 
-      const results = findNatalAspects(chart, { includeMinor: true })
+      const results = findNatalAspects(chart, {})
 
       const semisextile = results.find((h) => h.type === 'semisextile')
 
-      // 정통 Hellenistic 정책: minor aspect 는 항상 차단, includeMinor 무시.
+      // 정통 Hellenistic 정책: minor aspect 는 항상 차단 (major only 엔진).
       expect(semisextile).toBeUndefined()
     })
 

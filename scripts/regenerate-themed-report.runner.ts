@@ -239,7 +239,7 @@ async function main() {
     timeZone: PROFILE.timezone,
   })
   const natalChart = toChart(natal)
-  const natalAspects = findNatalAspects(natalChart, { includeMinor: true, maxResults: 80 })
+  const natalAspects = findNatalAspects(natalChart, { maxResults: 80 })
   const nowIso = new Date().toISOString()
   const transit = await calculateTransitChart({
     iso: nowIso,
@@ -400,13 +400,19 @@ async function main() {
 
   if (REPORT_SCOPE === 'all' || REPORT_SCOPE === 'themed') {
     try {
-      themedCareerReport = await generateThemedReport(matrixInput, baseReport, 'career', timingData, {
-        name: 'fixture-1995-02-09-0640',
-        birthDate: PROFILE.birthDate,
-        lang: PROFILE.lang,
-        userPlan: 'premium',
-        matrixSummary: matrix.summary,
-      })
+      themedCareerReport = await generateThemedReport(
+        matrixInput,
+        baseReport,
+        'career',
+        timingData,
+        {
+          name: 'fixture-1995-02-09-0640',
+          birthDate: PROFILE.birthDate,
+          lang: PROFILE.lang,
+          userPlan: 'premium',
+          matrixSummary: matrix.summary,
+        }
+      )
     } catch (error) {
       console.warn('[regen:themed] themed report skipped (no AI provider):', String(error))
     }

@@ -322,7 +322,7 @@ async function main() {
         timeZone: profile.timezone,
       })
       const natalChart = toChart(natal)
-      const natalAspects = findNatalAspects(natalChart, { includeMinor: true, maxResults: 80 })
+      const natalAspects = findNatalAspects(natalChart, { maxResults: 80 })
       const majorTransits = findMajorTransits(transitChart, natalChart, 1.0).slice(0, 40)
       const activeTransits = mapMajorTransitsToActiveTransits(majorTransits, 8)
 

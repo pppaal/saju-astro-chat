@@ -206,7 +206,7 @@ function applyingFlagByTarget(
 
 function resolveAspectList(rules: AspectRules) {
   // 정통 Hellenistic: minor aspect 는 항상 차단. rules.aspects 가 명시돼도 minor 는 필터.
-  // includeMinor=true 옵션은 backward compat 위해 받지만 무시.
+  // (minor 를 켜는 옵션은 없다 — 이 엔진은 major only.)
   if (rules.aspects) {
     return rules.aspects.filter((a) => !BLOCKED_MINOR.has(a))
   }

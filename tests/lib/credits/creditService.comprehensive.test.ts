@@ -605,15 +605,16 @@ describe('Credit Service', () => {
         mockExpiredPurchases
       )
 
-      // expireBonusCredits now retries rejected user-expiry transactions once.
-      // First allSettled covers both users (1 ok, 1 failed); the retry only
-      // re-runs the single failed entry, so its result array has 1 element.
-      vi.spyOn(Promise, 'allSettled')
-        .mockResolvedValueOnce([
-          { status: 'fulfilled', value: undefined },
-          { status: 'rejected', reason: new Error('DB error') },
-        ] as any)
-        .mockResolvedValueOnce([{ status: 'rejected', reason: new Error('DB error') }] as any)
+      // expireBonusCredits fan-outs per-user transactions with a bounded
+      // concurrency pool and retries each rejected user once. Drive it at the
+      // $transaction level: user1's tx resolves; user2's tx rejects on both the
+      // initial pass and the single retry. Call order is deterministic — user1
+      // (idx 0) is invoked before user2 (idx 1), then the retry re-runs user2.
+      ;(prisma.$transaction as ReturnType<typeof vi.fn>)
+        .mockReset()
+        .mockResolvedValueOnce(5) // user1 — ok
+        .mockRejectedValueOnce(new Error('DB error')) // user2 — initial fail
+        .mockRejectedValueOnce(new Error('DB error')) // user2 — retry fail
 
       const result = await expireBonusCredits()
 

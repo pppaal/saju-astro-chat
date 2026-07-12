@@ -228,4 +228,41 @@ describe('streamClaudeAsSSE — abort propagation', () => {
     expect(onComplete).toHaveBeenCalledOnce()
     expect(onComplete.mock.calls[0][0]).toContain('part2 end')
   })
+
+  it('non-keep + external abort racing a clean close: refunds XOR persists, never both', async () => {
+    // 회귀: 비 keep 모드에서 클라 disconnect(외부 signal)로 pipeline 이 abort 된
+    // 상태로 upstream 이 *깨끗이* close 되면 자연 종료 블록으로 들어온다. 이전엔
+    // 이 블록이 persist(onComplete)와 refund(onFailure)를 둘 다 실행해, 환불했는데
+    // replay 캐시·세션 기록이 남아 다음 동일 요청이 공짜로 재생됐다. 이제 둘은
+    // 상호배타 — shouldRefund 이면 onComplete 는 절대 실행되지 않는다.
+    const upstream = makeControlledUpstream()
+    vi.mocked(callClaudeStream).mockResolvedValue(upstream.stream)
+    const onFailure = vi.fn()
+    const onComplete = vi.fn()
+    const ctrl = new AbortController()
+
+    const res = await streamClaudeAsSSE({
+      systemPrompt: 's',
+      userPrompt: 'u',
+      abortSignal: ctrl.signal,
+      onFailure,
+      onComplete,
+      // keepGeneratingOnDisconnect 미지정 → 비 keep 경로.
+    })
+
+    const reader = res.body!.getReader()
+    upstream.tick('usable partial answer')
+    await reader.read() // fullText 가 비어있지 않게 한 청크 소비
+
+    // 클라 disconnect: 외부 signal 이 pipelineAbort 를 abort 시킨다.
+    ctrl.abort()
+    // 그럼에도 upstream 은 (continuation 이 abort 시 clean close 하듯) 깨끗이 종료.
+    upstream.finish()
+    await new Promise((r) => setTimeout(r, 0))
+    await new Promise((r) => setTimeout(r, 0))
+
+    // 정확히 하나만 — 비 keep + abort 이므로 환불(onFailure)이고 persist 는 없다.
+    expect(onFailure).toHaveBeenCalledOnce()
+    expect(onComplete).not.toHaveBeenCalled()
+  })
 })

@@ -167,15 +167,14 @@ describe('aspects', () => {
     })
 
     // 정통 Hellenistic 정책: minor aspect(semisextile·quincunx 등)는 *항상 차단*.
-    // includeMinor=true 옵션은 backward-compat 으로 받기만 하고 무시한다
+    // 이 엔진은 major only — minor 를 켜는 옵션 자체가 없다
     // (resolveAspectList 의 BLOCKED_MINOR 필터). 아래 테스트는 그 정책을 잠근다.
     describe('minor aspects — always blocked (Hellenistic policy)', () => {
-      it('ignores includeMinor: semisextile is not returned', () => {
+      it('semisextile is not returned', () => {
         const natal = createChart([createPlanet('Sun', 0)])
         const transit = createChart([createPlanet('Mars', 30)]) // 30° = semisextile
 
-        const rules: AspectRules = { includeMinor: true }
-        const result = findAspects(natal, transit, rules)
+        const result = findAspects(natal, transit, {})
         const semisextile = result.find((a) => a.type === 'semisextile')
 
         expect(semisextile).toBeUndefined()
@@ -185,8 +184,7 @@ describe('aspects', () => {
         const natal = createChart([createPlanet('Sun', 0)])
         const transit = createChart([createPlanet('Mars', 150)])
 
-        const rules: AspectRules = { includeMinor: true }
-        const result = findAspects(natal, transit, rules)
+        const result = findAspects(natal, transit, {})
         const quincunx = result.find((a) => a.type === 'quincunx')
 
         expect(quincunx).toBeUndefined()

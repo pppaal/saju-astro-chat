@@ -113,6 +113,20 @@ describe('refundCreditsOnce', () => {
     )
   })
 
+  it('does not collide when a delimiter char migrates across free-form fields', async () => {
+    // 필드 경계 모호성 회귀: raw ':'-join 이면 apiRoute='a',txn='b:c' 와
+    // apiRoute='a:b',txn='c' 가 같은 material 문자열이 돼 두 번째 환불이 누락됐다.
+    // JSON 직렬화로 각 필드를 인용/이스케이프하므로 두 키는 반드시 달라야 한다.
+    const a = await refundCreditsOnce(null, { ...params, apiRoute: 'a', transactionId: 'b:c' })
+    const b = await refundCreditsOnce(null, { ...params, apiRoute: 'a:b', transactionId: 'c' })
+    expect(a).toBe(true)
+    expect(b).toBe(true)
+    expect(refundCreditsMock).toHaveBeenCalledTimes(2)
+    expect(createMock.mock.calls[0][0].data.scopedKey).not.toBe(
+      createMock.mock.calls[1][0].data.scopedKey
+    )
+  })
+
   it('releases the synthesized claim if the no-key refund throws', async () => {
     refundCreditsMock.mockRejectedValueOnce(new Error('refund boom'))
     await expect(refundCreditsOnce(null, params)).rejects.toThrow('refund boom')
