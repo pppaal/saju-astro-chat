@@ -18,6 +18,11 @@ const mockStreamClaudeAsSSE = vi.fn()
 const mockRateLimit = vi.fn()
 const mockCanUseCredits = vi.fn()
 const mockConsumeCredits = vi.fn()
+const mockKeyFor = vi.fn()
+const mockClaim = vi.fn()
+const mockRelease = vi.fn()
+const mockCacheGet = vi.fn()
+const mockCacheSet = vi.fn()
 
 vi.mock('@/lib/auth/session', () => ({
   getServerSession: (...args: any[]) => mockGetServerSession(...args),
@@ -42,15 +47,15 @@ vi.mock('@/lib/credits/refundOnce', () => ({
 }))
 vi.mock('@/lib/api/idempotency', () => ({
   createIdempotencyStore: vi.fn(() => ({
-    keyFor: vi.fn(() => null),
-    claim: vi.fn().mockResolvedValue(true),
-    release: vi.fn().mockResolvedValue(undefined),
+    keyFor: (...args: any[]) => mockKeyFor(...args),
+    claim: (...args: any[]) => mockClaim(...args),
+    release: (...args: any[]) => mockRelease(...args),
   })),
   idemContentTag: (t: string) => `tag:${t.length}`,
 }))
 vi.mock('@/lib/cache/redis-cache', () => ({
-  cacheGet: vi.fn().mockResolvedValue(null),
-  cacheSet: vi.fn().mockResolvedValue(undefined),
+  cacheGet: (...args: any[]) => mockCacheGet(...args),
+  cacheSet: (...args: any[]) => mockCacheSet(...args),
   CACHE_TTL: { MEDIUM: 3600 },
 }))
 // getUserDisplayName(DB 조회)만 모킹하고 sanitizeDisplayName(순수 정규화)은
@@ -111,6 +116,13 @@ describe('/api/counselor/realtime POST — 검증', () => {
     mockRateLimit.mockResolvedValue({ allowed: true, headers: new Headers() })
     mockCanUseCredits.mockResolvedValue({ allowed: true })
     mockConsumeCredits.mockResolvedValue({ success: true })
+    // 기존 테스트 기본값 보존: 멱등키 없음(null) → replay 판정 자체가 없어
+    // 항상 정상 차감·스트림. claim=true(첫 진입), 캐시 미스.
+    mockKeyFor.mockReturnValue(null)
+    mockClaim.mockResolvedValue(true)
+    mockRelease.mockResolvedValue(undefined)
+    mockCacheGet.mockResolvedValue(null)
+    mockCacheSet.mockResolvedValue(undefined)
     mockEnsureCounselorContext.mockResolvedValue({
       stableContext: 'stable',
       dailyContext: 'daily',
@@ -245,6 +257,39 @@ describe('/api/counselor/realtime POST — 검증', () => {
     expect(res.status).toBe(503)
     expect((await res.json()).error).toBe('charge_failed')
     expect(mockStreamClaudeAsSSE).not.toHaveBeenCalled()
+  })
+
+  it('replay(claim 실패) + 캐시 히트 → 저장된 답변 재생, Claude 재호출·차감 없음 (re-roll 누수 차단)', async () => {
+    // 같은 x-idempotency-key + 같은 질문 재진입 = replay. 예전엔 과금만 건너뛰고
+    // Claude 를 통째로 재생성 → 1회 결제로 6h 동안 매번 다른 유료 답변을 무제한
+    // 재생성하던 누수. 이제 원턴에서 저장한 답변을 그대로 돌려준다.
+    mockKeyFor.mockReturnValue('scoped-idem-key')
+    mockClaim.mockResolvedValue(false) // 이미 선점됨 = replay
+    mockCacheGet.mockResolvedValue('이미 결제한 원본 답변입니다.')
+
+    const { POST } = await importRoute()
+    const res = await POST(makeReq(realClientPayload))
+    const text = await res.text()
+
+    expect(res.status).toBe(200)
+    expect(res.headers.get('X-Counselor-Replay')).toBe('1')
+    expect(text).toContain('이미 결제한 원본 답변입니다.')
+    // 핵심: Claude 재호출 없음 + 차감 없음.
+    expect(mockStreamClaudeAsSSE).not.toHaveBeenCalled()
+    expect(mockConsumeCredits).not.toHaveBeenCalled()
+  })
+
+  it('replay(claim 실패) + 캐시 미스 → 재생성으로 폴백(무과금), 스트림은 진행', async () => {
+    mockKeyFor.mockReturnValue('scoped-idem-key')
+    mockClaim.mockResolvedValue(false)
+    mockCacheGet.mockResolvedValue(null) // 원턴 생성 중이거나 TTL 만료
+
+    const { POST } = await importRoute()
+    const res = await POST(makeReq(realClientPayload))
+    expect(res.status).toBe(200)
+    // 캐시가 없으면 부득이 재생성(스트림 진행)하되 차감은 하지 않는다.
+    expect(mockStreamClaudeAsSSE).toHaveBeenCalledTimes(1)
+    expect(mockConsumeCredits).not.toHaveBeenCalled()
   })
 
   // ── 데이터 소스 토글(사주만/점성만/둘 다) ─────────────────────────────

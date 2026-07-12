@@ -15,7 +15,7 @@ import { refundCreditsOnce } from '@/lib/credits/refundOnce'
 import { CREDIT_COSTS } from '@/lib/config/creditCosts'
 import { ensureCounselorSessionRecord } from '@/lib/counselor/ensureSessionRecord'
 import { createIdempotencyStore, idemContentTag } from '@/lib/api/idempotency'
-import { cacheSet } from '@/lib/cache/redis-cache'
+import { cacheGet, cacheSet } from '@/lib/cache/redis-cache'
 import type { Relation } from '../types'
 
 // 끊긴 턴 복원용 캐시 키 — userId 를 포함해 ownership 검증 (다른 사용자가
@@ -25,6 +25,40 @@ export const compatTurnResultKey = (userId: string, turnId: string) =>
 
 // 30분 — 크레딧 충전하러 갔다 오는 왕복도 복구되게 (10→30분).
 export const COMPAT_TURN_RESULT_TTL_SEC = 1800
+
+// idempotent replay 가 이미 결제한 답변을 그대로 받도록 scopedIdemKey(=차감
+// 멱등키) 로 완성 답안을 캐시하는 키. replay 판정과 같은 키를 써 turnId
+// 유무·불일치와 무관하게 매칭 — replay 시 Claude 재호출 없이 저장본 재생.
+const compatReplayResultKey = (scopedIdemKey: string) => `compat:replay-result:${scopedIdemKey}`
+
+// replay 캐시 TTL — 차감 멱등 claim TTL(6h) 과 맞춰, replay 유효 창 동안 항상
+// 저장된 원본 답변을 돌려줄 수 있게 한다.
+const COMPAT_REPLAY_RESULT_TTL_SEC = 6 * 60 * 60
+
+// 완성 답변을 counselor SSE 형식(content 청크 1개 + done)으로 단발 재생하는
+// 헬퍼 — replay 캐시 히트 시 Claude 호출 없이 저장본을 그대로 흘려보낸다.
+// streamClaudeAsSSE 가 emit 하는 `{content,done}` 스키마와 동일.
+function streamCachedAnswer(text: string, extraHeaders?: Record<string, string>): Response {
+  const encoder = new TextEncoder()
+  const stream = new ReadableStream({
+    start(controller) {
+      controller.enqueue(
+        encoder.encode(`data: ${JSON.stringify({ content: text, done: false })}\n\n`)
+      )
+      controller.enqueue(encoder.encode(`data: ${JSON.stringify({ content: '', done: true })}\n\n`))
+      controller.close()
+    },
+  })
+  return new Response(stream, {
+    headers: {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache, no-transform',
+      Connection: 'keep-alive',
+      'X-Accel-Buffering': 'no',
+      ...(extraHeaders || {}),
+    },
+  })
+}
 
 // 새로고침/뒤로가기/다른 탭 등으로 같은 user turn 이 재진입할 때 크레딧
 // 중복 차감 방지. 클라이언트가 매 메시지에 UUID 를 x-idempotency-key 헤더로
@@ -122,6 +156,9 @@ export async function POST(req: NextRequest) {
   // shared per-turn idempotency key so inner + outer refunds never double-pay.
   let chargedUserId: string | null = null
   let refundKey: string | null = null
+  // 함수 스코프로 hoist — replay 판정 블록과 onComplete(replay 캐시 저장) 양쪽에서
+  // 같은 키를 써야 하므로. 실제 값은 아래 credit 블록에서 산출.
+  let scopedIdemKey: string | null = null
   try {
     // Apply middleware: authenticated guard — 로그인 필수. 비로그인은 401.
     // requireCredits 는 false — 새로고침 idempotent replay 일 때 차감을
@@ -246,7 +283,7 @@ export async function POST(req: NextRequest) {
       // 같은 x-idempotency-key 를 다른 질문에 재사용해 첫 차감 후 공짜로 받던
       // free-replay 차단. 운명상담사 realtime 과 동일 보호(그쪽엔 있었고 여긴 빠져
       // 있던 비대칭 해소).
-      const scopedIdemKey = idemStore.keyFor(
+      scopedIdemKey = idemStore.keyFor(
         req,
         `user:${context.userId}`,
         idemContentTag(lastUser?.content ?? '')
@@ -254,7 +291,18 @@ export async function POST(req: NextRequest) {
       // 원자적 선점 — 동시 요청 중 하나만 첫 진입으로 차감(이중 차감 방지).
       const claimed = scopedIdemKey ? await idemStore.claim(scopedIdemKey) : true
       if (scopedIdemKey && !claimed) {
-        logger.info('[compat/counselor] idempotent replay, skip credit consume', {
+        // 같은 질문의 정당한 재진입 — 원턴에서 이미 차감됨. 예전엔 여기서 그대로
+        // Claude 를 재호출해 매번 다른 유료 답변을 무과금 재생성(6h claim 창 동안
+        // re-roll)하던 수익 누수였다. 이제 원턴에서 저장한 "이미 결제한 그 답변"
+        // 을 그대로 재생하고, 캐시가 비었을 때만 재생성으로 폴백한다.
+        const cachedAnswer = await cacheGet<string>(compatReplayResultKey(scopedIdemKey))
+        if (cachedAnswer && cachedAnswer.trim() !== '') {
+          logger.info('[compat/counselor] idempotent replay, serving cached answer', {
+            userId: context.userId,
+          })
+          return streamCachedAnswer(cachedAnswer, { 'X-Counselor-Replay': '1' })
+        }
+        logger.info('[compat/counselor] idempotent replay, no cache — regenerating uncharged', {
           userId: context.userId,
         })
       } else {
@@ -736,6 +784,20 @@ export async function POST(req: NextRequest) {
                   )
                 } catch {
                   /* 캐시 실패는 무시 — 단순히 복원이 안 될 뿐, 스트림엔 영향 없음 */
+                }
+              }
+              // replay 캐시 저장 — 같은 질문의 재진입이 이 "이미 결제한 답변" 을
+              // 그대로 받아, Claude 재호출로 다른 답변을 무과금 재생성하던 re-roll
+              // 누수를 막는다. scopedIdemKey 는 replay 판정과 같은 키.
+              if (scopedIdemKey) {
+                try {
+                  await cacheSet(
+                    compatReplayResultKey(scopedIdemKey),
+                    persisted,
+                    COMPAT_REPLAY_RESULT_TTL_SEC
+                  )
+                } catch {
+                  /* 캐시 실패 무시 — replay 시 재생성으로 폴백 */
                 }
               }
               try {

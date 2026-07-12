@@ -32,10 +32,18 @@ vi.mock('@/lib/api/middleware', () => ({
 // per authed turn (with idempotent replay skip on refresh) and refunds it
 // if Claude fails mid-stream. Tests focus on the routing logic; these are
 // black-boxed as always-succeeding so the flow reaches streamClaudeAsSSE.
-const { mockConsumeCredits, mockClaim, mockRelease } = vi.hoisted(() => ({
-  mockConsumeCredits: vi.fn(),
-  mockClaim: vi.fn(),
-  mockRelease: vi.fn(),
+const { mockConsumeCredits, mockClaim, mockRelease, mockCacheGet, mockCacheSet } = vi.hoisted(
+  () => ({
+    mockConsumeCredits: vi.fn(),
+    mockClaim: vi.fn(),
+    mockRelease: vi.fn(),
+    mockCacheGet: vi.fn(),
+    mockCacheSet: vi.fn(),
+  })
+)
+vi.mock('@/lib/cache/redis-cache', () => ({
+  cacheGet: (...a: unknown[]) => mockCacheGet(...a),
+  cacheSet: (...a: unknown[]) => mockCacheSet(...a),
 }))
 vi.mock('@/lib/credits/creditService', () => ({
   consumeCredits: (...a: unknown[]) => mockConsumeCredits(...a),
@@ -271,10 +279,12 @@ describe('Compatibility Counselor API - POST', () => {
   beforeEach(() => {
     vi.clearAllMocks()
 
-    // Default: charge succeeds, first-entry claim wins (not a replay).
+    // Default: charge succeeds, first-entry claim wins (not a replay), cache miss.
     mockConsumeCredits.mockResolvedValue({ success: true, remaining: 99 })
     mockClaim.mockResolvedValue(true)
     mockRelease.mockResolvedValue(undefined)
+    mockCacheGet.mockResolvedValue(null)
+    mockCacheSet.mockResolvedValue(true)
 
     // Default: authenticated user with no errors
     vi.mocked(initializeApiContext).mockResolvedValue({
@@ -558,6 +568,47 @@ describe('Compatibility Counselor API - POST', () => {
       const callArg = vi.mocked(streamClaudeAsSSE).mock.calls[0][0]
       expect(Array.isArray(callArg.priorTurns)).toBe(true)
       expect((callArg.priorTurns as unknown[]).length).toBeLessThanOrEqual(8)
+    })
+  })
+
+  // ----------------------------------------------------------
+  // Idempotent replay — serve cached answer, don't re-roll the LLM
+  // ----------------------------------------------------------
+  describe('Idempotent replay caching', () => {
+    it('serves the cached original answer on replay without charging or calling Claude', async () => {
+      // 같은 질문 재진입(claim 실패) — 예전엔 과금만 건너뛰고 Claude 를 재생성 →
+      // 1회 결제로 매번 다른 유료 답변을 무제한 재생성하던 re-roll 누수.
+      mockClaim.mockResolvedValue(false) // replay
+      mockCacheGet.mockResolvedValue('이미 결제한 궁합 답변입니다.')
+
+      const req = createRequest({
+        persons: validPersons,
+        messages: [{ role: 'user', content: 'How are we?' }],
+        lang: 'ko',
+      })
+      const res = await POST(req)
+      const text = await res.text()
+
+      expect(res.headers.get('X-Counselor-Replay')).toBe('1')
+      expect(text).toContain('이미 결제한 궁합 답변입니다.')
+      expect(streamClaudeAsSSE).not.toHaveBeenCalled()
+      expect(mockConsumeCredits).not.toHaveBeenCalled()
+    })
+
+    it('falls back to regeneration (uncharged) on replay when the cache is empty', async () => {
+      mockClaim.mockResolvedValue(false) // replay
+      mockCacheGet.mockResolvedValue(null) // 캐시 미스
+
+      const req = createRequest({
+        persons: validPersons,
+        messages: [{ role: 'user', content: 'How are we?' }],
+        lang: 'ko',
+      })
+      await POST(req)
+
+      // 캐시가 없으면 재생성(스트림)하되 차감은 하지 않는다.
+      expect(streamClaudeAsSSE).toHaveBeenCalledTimes(1)
+      expect(mockConsumeCredits).not.toHaveBeenCalled()
     })
   })
 

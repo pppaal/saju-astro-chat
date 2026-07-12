@@ -32,7 +32,7 @@ const idemStore = createIdempotencyStore('counselor-realtime')
 
 import { refundCreditsOnce } from '@/lib/credits/refundOnce'
 import { ensureCounselorSessionRecord } from '@/lib/counselor/ensureSessionRecord'
-import { cacheSet } from '@/lib/cache/redis-cache'
+import { cacheGet, cacheSet } from '@/lib/cache/redis-cache'
 import { getUserDisplayName, sanitizeDisplayName } from '@/lib/user/displayName'
 import { currentManAge } from '@/lib/datetime/currentAge'
 import {
@@ -89,6 +89,44 @@ export const counselorTurnResultKey = (userId: string, turnId: string) =>
 // 돌아와서 받아갈 시간을 충분히 (30분) — 크레딧 충전하러 갔다 오는 왕복도
 // 커버. 받아가면 그만이고 TTL 로 자동 소멸.
 const TURN_RESULT_TTL_SEC = 1800
+
+// idempotent replay(새로고침/탭 복제)가 이미 결제한 그 답변을 그대로 받도록
+// scopedIdemKey(=차감 멱등키) 로 완성 답안을 캐시하는 키. 예전엔 replay 가
+// 과금만 건너뛰고 Claude(Sonnet, temp 0.7)를 통째로 재생성 → 1회 결제로 6h
+// claim 창 동안 매번 다른 유료 답변을 무제한 재생성하던 수익 누수였다. 이제
+// 이 캐시가 있으면 재생 없이 저장본을 돌려준다(turnId 기반 복구 캐시와 별개 —
+// replay 판정과 같은 키를 써 turnId 불일치와 무관하게 항상 매칭).
+const counselorReplayResultKey = (scopedIdemKey: string) =>
+  `counselor:replay-result:${scopedIdemKey}`
+
+// replay 캐시 TTL — 차감 멱등 claim TTL(6h) 과 맞춰, replay 가 유효한 창 동안은
+// 항상 캐시된 원본 답변을 돌려줄 수 있게 한다.
+const REPLAY_RESULT_TTL_SEC = 6 * 60 * 60
+
+// 이미 완성된 답변 텍스트를 counselor SSE 형식(content 청크 1개 + done)으로
+// 단발 재생하는 헬퍼 — replay 캐시 히트 시 Claude 호출 없이 저장본을 그대로
+// 흘려보낸다. streamClaudeAsSSE 가 emit 하는 `{content,done}` 스키마와 동일.
+function streamCachedAnswer(text: string, extraHeaders?: Record<string, string>): Response {
+  const encoder = new TextEncoder()
+  const stream = new ReadableStream({
+    start(controller) {
+      controller.enqueue(
+        encoder.encode(`data: ${JSON.stringify({ content: text, done: false })}\n\n`)
+      )
+      controller.enqueue(encoder.encode(`data: ${JSON.stringify({ content: '', done: true })}\n\n`))
+      controller.close()
+    },
+  })
+  return new Response(stream, {
+    headers: {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache, no-transform',
+      Connection: 'keep-alive',
+      'X-Accel-Buffering': 'no',
+      ...(extraHeaders || {}),
+    },
+  })
+}
 
 // Cap injected attachment text so a huge upload can't blow the context
 // window (the client already trims, this is defense-in-depth).
@@ -277,8 +315,19 @@ export async function POST(req: NextRequest) {
     // 선점 실패(replay)면 차감 스킵, 스트림은 정상 진행. 키 없으면 차감 진행.
     const claimed = scopedIdemKey ? await idemStore.claim(scopedIdemKey) : true
     if (scopedIdemKey && !claimed) {
-      // 같은 질문의 정당한 재진입 — 원턴에서 이미 차감됨. 스트림만 다시 진행.
-      logger.info('[counselor/realtime] idempotent replay, skip credit consume', { userId })
+      // 같은 질문의 정당한 재진입 — 원턴에서 이미 차감됨. 예전엔 여기서 그대로
+      // Claude 를 재호출해 매번 *다른* 유료 답변을 무과금 재생성 → 1회 결제로
+      // 6h claim 창 동안 무제한 re-roll 하던 수익 누수였다. 이제 원턴에서 저장한
+      // "이미 결제한 그 답변" 을 그대로 재생한다(Claude 호출 없음). 캐시가
+      // 비었을 때(원턴 생성 중이거나 TTL 만료)만 부득이 재생성으로 폴백한다.
+      const cachedAnswer = await cacheGet<string>(counselorReplayResultKey(scopedIdemKey))
+      if (cachedAnswer && cachedAnswer.trim() !== '') {
+        logger.info('[counselor/realtime] idempotent replay, serving cached answer', { userId })
+        return streamCachedAnswer(cachedAnswer, { 'X-Counselor-Replay': '1' })
+      }
+      logger.info('[counselor/realtime] idempotent replay, no cache — regenerating uncharged', {
+        userId,
+      })
     } else {
       let consumed: { success: boolean }
       try {
@@ -492,6 +541,21 @@ export async function POST(req: NextRequest) {
             await cacheSet(counselorTurnResultKey(userId, turnId), persisted, TURN_RESULT_TTL_SEC)
           } catch {
             /* 캐시 실패는 무시 — 단순히 복원이 안 될 뿐, 스트림엔 영향 없음 */
+          }
+        }
+        // replay 캐시 저장 — 같은 질문의 재진입(새로고침/탭 복제)이 이 "이미
+        // 결제한 답변" 을 그대로 받아, Claude 재호출로 다른 답변을 무과금
+        // 재생성하던 re-roll 누수를 막는다. scopedIdemKey 는 replay 판정과 같은
+        // 키라 turnId 유무·불일치와 무관하게 매칭된다.
+        if (scopedIdemKey) {
+          try {
+            await cacheSet(
+              counselorReplayResultKey(scopedIdemKey),
+              persisted,
+              REPLAY_RESULT_TTL_SEC
+            )
+          } catch {
+            /* 캐시 실패 무시 — replay 시 재생성으로 폴백 */
           }
         }
         // body.messages 는 마지막 user 질문까지의 대화. 거기에 방금 생성한
