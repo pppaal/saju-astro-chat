@@ -381,12 +381,14 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     throw err
   }
 
-  // B2 fix: duplicate retry 인 경우 receipt 이메일과 referral 보상은
-  // 1차 시도 때 이미 실행됐다(또는 시도됐다). 다시 실행하면 이메일 중복
-  // 발송 / referral 멱등 가드에 의존하게 되므로 여기서 종료.
-  if (creditGrantWasDuplicate) {
-    return
-  }
+  // duplicate retry(creditGrantWasDuplicate) 여도 아래 referral 지급까지 계속
+  // 진행한다. 예전엔 여기서 early return 했는데, 1차 시도가 크레딧은 적립하고
+  // referral 지급 *전에* 죽으면(예: 위 queued-revocation 체크에서 throw) 재시도가
+  // P2002 duplicate 로 이 지점에 도달해 곧장 return → 추천인의 정당한 첫결제
+  // 보상이 영영 누락됐다. grantReferralRewardOnFirstPurchase 는 멱등(pending→
+  // completed 원자 claim; 이미 지급됐으면 count 0 no-op)이라 재시도에 안전하고,
+  // 이 라우트엔 중복 발송 위험이 있는 receipt 이메일 코드도 없다. 유일한 부작용은
+  // 로그 1줄 중복뿐이므로 그대로 흘려보내 referral 누락을 막는다.
 
   // 구매 기록 저장 (선택사항) - CreditPurchase 모델이 스키마에 없음
   // await prisma.creditPurchase.create({

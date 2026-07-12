@@ -121,7 +121,7 @@ vi.mock('@/lib/referral', () => ({
 import { POST } from '@/app/api/webhook/stripe/route'
 import { prisma } from '@/lib/db/prisma'
 import { addBonusCredits, revokeBonusCreditPurchase } from '@/lib/credits/creditService'
-import { reverseReferralRewardOnRefund } from '@/lib/referral'
+import { reverseReferralRewardOnRefund, grantReferralRewardOnFirstPurchase } from '@/lib/referral'
 import { captureServerError } from '@/lib/telemetry'
 import { recordCounter } from '@/lib/metrics'
 import { logger } from '@/lib/logger'
@@ -1015,6 +1015,41 @@ describe('Stripe Webhook API - POST /api/webhook/stripe', () => {
       const response = await POST(makeWebhookRequest('body'))
       expect(response.status).toBe(200)
       expect(vi.mocked(addBonusCredits)).not.toHaveBeenCalled()
+    })
+  })
+
+  describe('Referral grant on duplicate retry', () => {
+    it('duplicate retry (addBonusCredits P2002, no queued revocation) STILL grants the referral reward', async () => {
+      // 회귀: 1차 시도가 크레딧은 적립하고 referral 지급 전에 죽으면, 재시도는
+      // P2002 duplicate 로 도달해 예전엔 곧장 return → 추천인 보상 영영 누락.
+      // 이제 멱등한 referral grant 까지 진행해야 한다.
+      const event = makeEvent('checkout.session.completed', {
+        id: 'cs_ref_retry',
+        metadata: { type: 'credit_pack', creditPack: 'mini', userId: 'user-ref-retry' },
+        amount_total: 1900,
+        currency: 'krw',
+        payment_status: 'paid',
+        payment_intent: 'pi_ref_retry',
+      })
+      mockConstructEvent.mockReturnValue(event)
+      vi.mocked(prisma.user.findUnique).mockResolvedValue({
+        id: 'user-ref-retry',
+        name: 'R',
+        email: 'r@example.com',
+      } as any)
+      // addBonusCredits P2002 → creditGrantWasDuplicate=true (already credited).
+      const dup: any = new Error('Unique constraint failed on BonusCreditPurchase.stripePaymentId')
+      dup.code = 'P2002'
+      vi.mocked(addBonusCredits).mockRejectedValue(dup)
+      // 큐된 revocation 없음 → 정상 구매(환불 아님).
+      vi.mocked(prisma.pendingCreditRevocation.findUnique).mockResolvedValue(null)
+      vi.mocked(grantReferralRewardOnFirstPurchase).mockResolvedValue({ granted: true } as any)
+
+      const response = await POST(makeWebhookRequest('body'))
+
+      expect(response.status).toBe(200)
+      // 핵심: 재시도여도 referral 지급 시도가 이뤄진다(멱등).
+      expect(vi.mocked(grantReferralRewardOnFirstPurchase)).toHaveBeenCalledWith('user-ref-retry')
     })
   })
 
