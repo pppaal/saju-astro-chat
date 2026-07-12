@@ -315,6 +315,25 @@ describe('aspects', () => {
   })
 
   describe('findNatalAspects', () => {
+    describe('closest-orb selection (overlap zone)', () => {
+      it('picks the tighter aspect (square, orb 14) over the looser (sextile, orb 16) for Sun-Moon 76° apart', () => {
+        // 넓은 natal moiety 한도(≈16.5°)에서 sextile 창 [43.5,76.5] 과 square 창
+        // [73.5,106.5] 이 [73.5,76.5] 에서 겹친다. 76° 분리는 square(orb 14)가
+        // sextile(orb 16)보다 타이트하다. 예전엔 aspects 순서상 먼저 걸린 sextile
+        // 로 오표기됐다 — 이제 최소 orb(square)를 취한다.
+        const natal = createChart([createPlanet('Sun', 0), createPlanet('Moon', 76)])
+        const hits = findNatalAspects(natal)
+        const sunMoon = hits.find(
+          (h) =>
+            (h.from.name === 'Sun' && h.to.name === 'Moon') ||
+            (h.from.name === 'Moon' && h.to.name === 'Sun')
+        )
+        expect(sunMoon).toBeDefined()
+        expect(sunMoon!.type).toBe('square')
+        expect(sunMoon!.orb).toBeCloseTo(14, 1)
+      })
+    })
+
     describe('structure validation', () => {
       it('should return an array of AspectHit', () => {
         const natal = createChart([createPlanet('Sun', 0), createPlanet('Moon', 90)])

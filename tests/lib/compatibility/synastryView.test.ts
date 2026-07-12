@@ -146,10 +146,11 @@ describe('computeSynastryView — 입력 가드(toChartLike) null 분기', () =>
   })
 })
 
-describe('computeSynastryView — calculateSynastry throw 시 catch→null', () => {
-  it('houses 누락(빈 배열)이면 overlay 계산이 throw → null', () => {
-    // toChartLike 가 houses 를 [] 로 채움 → getHouseForLongitude 가 빈 배열을
-    // 인덱싱하다 throw → computeSynastryView 의 try/catch 가 null 반환.
+describe('computeSynastryView — 하우스 없는 차트는 null(뷰 숨김)', () => {
+  it('houses 누락이면 null (toChartLike 가 유효 12칸 하우스 없으면 게이팅)', () => {
+    // 엔진이 이제 graceful(UNKNOWN_HOUSE)하게 고쳐져 더는 throw 하지 않으므로,
+    // 하우스 없는 차트의 "뷰 숨김(null)" 은 toChartLike 의 명시적 하우스 가드가
+    // 담당한다(동작 불변 — 하우스 없으면 여전히 null).
     const noHouses = {
       planets: [p('Sun', 10), p('Venus', 130)],
       ascendant: p('Ascendant', 0),

@@ -235,11 +235,17 @@ function toChartLike(natal: unknown): Chart | null {
   if (!Array.isArray(planets) || planets.length === 0) return null
   const hasLon = planets.some((p) => typeof (p as Loose)?.longitude === 'number')
   if (!hasLon) return null
+  // 하우스 오버레이가 이 시너스트리 뷰의 핵심 출력이라, 유효한 12칸 하우스가 없으면
+  // (예: 원본 차트에 houses 누락) 뷰 전체를 숨긴다(null). 예전엔 하우스 없는 차트가
+  // 엔진 안 getHouseForLongitude 에서 throw → computeSynastryView catch → null 로
+  // *우연히* 같은 결과였는데, 엔진이 이제 graceful(UNKNOWN_HOUSE)하게 고쳐졌으므로
+  // 여기서 명시적으로 게이팅해 기존 동작(하우스 없으면 null)을 그대로 유지한다.
+  if (!Array.isArray(n.houses) || n.houses.length < 12) return null
   return {
     planets,
     ascendant: n.ascendant,
     mc: n.mc,
-    houses: Array.isArray(n.houses) ? n.houses : [],
+    houses: n.houses,
   } as unknown as Chart
 }
 

@@ -110,11 +110,14 @@ function toChartLike(natal: unknown): Chart | null {
   if (!Array.isArray(planets) || planets.length === 0) return null
   const hasLon = planets.some((p) => typeof (p as Loose)?.longitude === 'number')
   if (!hasLon) return null
+  // houses(cusp)가 없으면 house 매칭이 불가능해 조용히 0으로 오염된 결과를 낸다.
+  // 엔진이 UNKNOWN_HOUSE로 graceful 처리하므로, 여기서 미리 걸러 섹션을 숨긴다.
+  if (!Array.isArray(n.houses) || n.houses.length < 12) return null
   return {
     planets,
     ascendant: n.ascendant,
     mc: n.mc,
-    houses: Array.isArray(n.houses) ? n.houses : [],
+    houses: n.houses,
   } as unknown as Chart
 }
 

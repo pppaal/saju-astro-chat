@@ -200,9 +200,22 @@ export function calculateVertex(
  * 태양 위치로 주간/야간 차트 판별
  * 태양이 지평선 위(1-6하우스가 아닌 7-12하우스)면 주간
  */
-export function isNightChart(sunHouse: number): boolean {
-  // 태양이 1-6하우스에 있으면 야간 차트
-  return sunHouse >= 1 && sunHouse <= 6
+export function isNightChart(
+  sunHouse: number,
+  sunLongitude?: number,
+  ascLongitude?: number
+): boolean {
+  // 태양이 1-6하우스(지평선 아래)면 야간, 7-12(지평선 위)면 주간.
+  if (sunHouse >= 1 && sunHouse <= 6) return true
+  if (sunHouse >= 7 && sunHouse <= 12) return false
+  // sunHouse === UNKNOWN_HOUSE(0) 또는 범위 밖 — 하우스로 sect 판별 불가.
+  // 예전엔 0 을 그대로 false(주간)로 떨어뜨려 sect 가 뒤집히고 Part of Fortune
+  // 주/야 공식이 틀렸다. 지평선(ASC–DESC 축) 기준 경도로 폴백한다: ASC 에서
+  // 순행 180°(1~6하우스가 차지하는 지평선 아래 반원)면 태양이 지평선 아래 = 야간.
+  if (typeof sunLongitude === 'number' && typeof ascLongitude === 'number') {
+    return normalize360(sunLongitude - ascLongitude) < 180
+  }
+  return false // 정보 부족 시에만 기존 동작(주간) 유지
 }
 
 /**
@@ -224,7 +237,8 @@ export function extendChartWithExtraPoints(
     throw new Error('Sun or Moon not found in chart')
   }
 
-  const nightChart = isNightChart(sun.house)
+  // sun.house 가 UNKNOWN_HOUSE(0)여도 태양·ASC 경도로 sect 를 폴백 판별.
+  const nightChart = isNightChart(sun.house, sun.longitude, chart.ascendant.longitude)
 
   return {
     ...chart,
