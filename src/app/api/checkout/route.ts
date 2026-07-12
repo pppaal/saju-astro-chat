@@ -141,8 +141,9 @@ export const POST = withApiMiddleware(
     route: '/api/checkout',
     limit: 8,
     windowSeconds: 60,
-    // 결제 경로 — Redis 장애 시 우회 가능한 per-instance 인메모리 폴백에
-    // 의존하지 않고 거부(fail-closed)한다.
-    failClosed: true,
+    // NOTE: fail-open(→ per-instance 인메모리 폴백)을 의도적으로 유지한다.
+    // 이 라우트는 이미 auth + Stripe 세션 생성으로 보호되며, failClosed 로 하면
+    // Redis 미설정/장애 시 정상 결제까지 429 로 막혀 매출·가용성 손실이 난다
+    // (LLM 라우트와 달리 per-request 비용이 낮아 fail-closed 이득이 작다).
   })
 )
