@@ -32,8 +32,13 @@ vi.mock('@/lib/api/middleware', () => ({
 // per authed turn (with idempotent replay skip on refresh) and refunds it
 // if Claude fails mid-stream. Tests focus on the routing logic; these are
 // black-boxed as always-succeeding so the flow reaches streamClaudeAsSSE.
+const { mockConsumeCredits, mockClaim, mockRelease } = vi.hoisted(() => ({
+  mockConsumeCredits: vi.fn(),
+  mockClaim: vi.fn(),
+  mockRelease: vi.fn(),
+}))
 vi.mock('@/lib/credits/creditService', () => ({
-  consumeCredits: vi.fn().mockResolvedValue({ success: true, remaining: 99 }),
+  consumeCredits: (...a: unknown[]) => mockConsumeCredits(...a),
 }))
 vi.mock('@/lib/credits/creditRefund', () => ({
   refundCredits: vi.fn().mockResolvedValue({ success: true }),
@@ -41,8 +46,8 @@ vi.mock('@/lib/credits/creditRefund', () => ({
 vi.mock('@/lib/api/idempotency', () => ({
   createIdempotencyStore: vi.fn(() => ({
     keyFor: vi.fn(() => 'test-idem-key'),
-    claim: vi.fn().mockResolvedValue(true),
-    release: vi.fn().mockResolvedValue(undefined),
+    claim: (...a: unknown[]) => mockClaim(...a),
+    release: (...a: unknown[]) => mockRelease(...a),
   })),
   idemContentTag: (t: string) => `tag:${t.length}`,
 }))
@@ -79,7 +84,13 @@ vi.mock('@/lib/api/errorHandler', () => ({
   createErrorResponse: vi.fn(
     (opts: { code: string; message?: string; headers?: Record<string, string> }) => {
       const status =
-        opts.code === 'PAYMENT_REQUIRED' ? 402 : opts.code === 'UNAUTHORIZED' ? 401 : 400
+        opts.code === 'PAYMENT_REQUIRED'
+          ? 402
+          : opts.code === 'UNAUTHORIZED'
+            ? 401
+            : opts.code === 'INTERNAL_ERROR'
+              ? 500
+              : 400
       return NextResponse.json(
         { error: opts.code, message: opts.message },
         { status, headers: opts.headers }
@@ -259,6 +270,11 @@ function createRequest(body: Record<string, unknown>): NextRequest {
 describe('Compatibility Counselor API - POST', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+
+    // Default: charge succeeds, first-entry claim wins (not a replay).
+    mockConsumeCredits.mockResolvedValue({ success: true, remaining: 99 })
+    mockClaim.mockResolvedValue(true)
+    mockRelease.mockResolvedValue(undefined)
 
     // Default: authenticated user with no errors
     vi.mocked(initializeApiContext).mockResolvedValue({
@@ -542,6 +558,33 @@ describe('Compatibility Counselor API - POST', () => {
       const callArg = vi.mocked(streamClaudeAsSSE).mock.calls[0][0]
       expect(Array.isArray(callArg.priorTurns)).toBe(true)
       expect((callArg.priorTurns as unknown[]).length).toBeLessThanOrEqual(8)
+    })
+  })
+
+  // ----------------------------------------------------------
+  // Credit charge — system error must not leak a free stream
+  // ----------------------------------------------------------
+  describe('Credit charge system error', () => {
+    it('releases the idempotency claim and returns 5xx (never a free stream) when consumeCredits throws', async () => {
+      // consumeCredits rethrows system errors (Prisma/network) rather than
+      // returning {success:false}. If the route lets that escape, the claim
+      // (6h) stays and the client's 5xx auto-retry replays for a free stream.
+      mockClaim.mockResolvedValue(true)
+      mockConsumeCredits.mockRejectedValue(new Error('DB connection lost'))
+
+      const req = createRequest({
+        persons: validPersons,
+        messages: [{ role: 'user', content: 'How are we?' }],
+        lang: 'ko',
+      })
+      const res = await POST(req)
+
+      // The turn must NOT be streamed for free…
+      expect(streamClaudeAsSSE).not.toHaveBeenCalled()
+      // …the claim must be released so the retry re-enters the charge path…
+      expect(mockRelease).toHaveBeenCalledWith('test-idem-key')
+      // …and the caller gets a 5xx, not a 200 SSE.
+      expect(res.status).toBeGreaterThanOrEqual(500)
     })
   })
 

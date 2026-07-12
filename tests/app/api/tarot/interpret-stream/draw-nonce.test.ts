@@ -47,6 +47,17 @@ vi.mock('@/lib/streaming', () => ({
   createSSEDoneEvent: () => 'data: [DONE]\n\n',
 }))
 
+// redis 캐시 mock — replay 가 저장된 원본 리딩을 돌려주는지(무과금 re-roll
+// 차단) / 정상 전달이 nonce 키로 캐시 저장하는지 검증.
+const { mockCacheGet, mockCacheSet } = vi.hoisted(() => ({
+  mockCacheGet: vi.fn(),
+  mockCacheSet: vi.fn(),
+}))
+vi.mock('@/lib/cache/redis-cache', () => ({
+  cacheGet: (...a: unknown[]) => mockCacheGet(...a),
+  cacheSet: (...a: unknown[]) => mockCacheSet(...a),
+}))
+
 vi.mock('@/lib/http', () => ({ enforceBodySize: vi.fn(() => null) }))
 vi.mock('@/lib/logger', () => ({
   logger: { error: vi.fn(), info: vi.fn(), warn: vi.fn(), debug: vi.fn() },
@@ -115,10 +126,54 @@ describe('interpret-stream — single-use draw nonce gating (Fix A)', () => {
       error: undefined,
     })
     mockCheckAndConsumeCredits.mockResolvedValue({ allowed: true, userId: 'user-123' })
+    // 기본: 캐시 미스(대부분의 기존 테스트가 이 경로). replay 캐시 히트 테스트만
+    // 개별적으로 override 한다.
+    mockCacheGet.mockResolvedValue(null)
+    mockCacheSet.mockResolvedValue(true)
     mockSafeParse.mockImplementation((b: { drawNonce?: string }) => ({
       success: true,
       data: { ...BODY_3CARD, drawNonce: b?.drawNonce },
     }))
+  })
+
+  it('serves the cached original reading on replay without charging or calling Claude (re-roll leak guard)', async () => {
+    mockConsume.mockResolvedValue('replay')
+    // 첫 호출에서 저장된 "이미 결제한" 리딩이 캐시에 있다.
+    const cachedReading = JSON.stringify({
+      overall: 'cached original',
+      cards: [{ position: 'p', interpretation: 'i' }],
+      advice: 'a',
+    })
+    mockCacheGet.mockResolvedValue(cachedReading)
+
+    const { streamClaudeWithContinuation } = await import('@/lib/llm/claudeWithContinuation')
+    const res = await POST(makeReq(BODY_3CARD, 'valid-nonce'))
+    const text = await res.text()
+
+    // 저장된 원본 리딩을 그대로 재생 — 매번 다른 리딩을 재생성하지 않는다.
+    expect(res.headers.get('X-Tarot-Replay')).toBe('1')
+    expect(text).toContain('cached original')
+    // Claude 재호출 없음 + 무과금(replay).
+    expect(streamClaudeWithContinuation).not.toHaveBeenCalled()
+    expect(mockCheckAndConsumeCredits).not.toHaveBeenCalled()
+    expect(mockRefund).not.toHaveBeenCalled()
+  })
+
+  it('releases the nonce when a charged turn is refunded (post-refund replay = free reading guard)', async () => {
+    mockConsume.mockResolvedValue('first')
+    // chargedAs 를 채워 refundOnFailure 가 실제로 환불을 발화하게 한다.
+    mockCheckAndConsumeCredits.mockResolvedValue({
+      allowed: true,
+      userId: 'user-123',
+      chargedAs: 'reading',
+    })
+    // isClaudeAvailable()=false (상단 mock) → 과금 후 정적 fallback + 환불 경로.
+    await POST(makeReq(BODY_3CARD, 'valid-nonce'))
+
+    // 과금은 됐고(첫 소비), 전달 실패로 환불됐다면 nonce 를 되살려야 한다 —
+    // 그래야 같은 nonce 재시도가 'replay' 무료 리딩이 아니라 정상 재과금이 된다.
+    expect(mockRefund).toHaveBeenCalledTimes(1)
+    expect(mockRelease).toHaveBeenCalledWith('valid-nonce', 'user:user-123')
   })
 
   it('charges on first consumption of a valid issued nonce', async () => {

@@ -262,16 +262,36 @@ export async function POST(req: NextRequest) {
         // 비어있지 않음)는 onComplete 의 ensureCounselorSessionRecord 가 행을
         // 보장하는 바로 그 id. CONSUME 감사행에 박아 사후 reconciliation 이
         // "차감됐는데 세션 행 없음"을 정확히 잡게 한다.
-        const res = await consumeCredits(
-          context.userId,
-          'compatibility',
-          CREDIT_COSTS.compatibilityTurn,
-          {
-            apiRoute: 'compatibility/counselor',
-            activityType: 'compat_session',
-            activityRef: persistSessionId || undefined,
-          }
-        )
+        let res: { success: boolean }
+        try {
+          res = await consumeCredits(
+            context.userId,
+            'compatibility',
+            CREDIT_COSTS.compatibilityTurn,
+            {
+              apiRoute: 'compatibility/counselor',
+              activityType: 'compat_session',
+              activityRef: persistSessionId || undefined,
+            }
+          )
+        } catch (err) {
+          // consumeCredits 는 비즈니스 실패만 {success:false} 로 돌리고 시스템
+          // 에러(Prisma/네트워크)는 rethrow 한다. 여기서 잡지 않으면 예외가 외부
+          // catch 로 빠져 idemStore.release 없이 claim(6h) 이 남고, 클라 5xx 자동
+          // 재시도가 replay 로 판정돼 프리미엄 스트림이 무료로 나갔다. realtime
+          // 라우트와 동일하게 선점 해제 후 503 으로 막는다 — 절대 무료 스트림 금지.
+          logger.warn('[compat/counselor] credit deduction error', { err })
+          if (scopedIdemKey) await idemStore.release(scopedIdemKey)
+          return createErrorResponse({
+            code: ErrorCodes.INTERNAL_ERROR,
+            message:
+              lang === 'ko'
+                ? '결제 처리 중 문제가 생겼어요. 잠시 후 다시 시도해주세요.'
+                : 'Could not process credits. Please try again.',
+            locale: lang,
+            route: 'compatibility/counselor',
+          })
+        }
         if (!res.success) {
           // 차감 실패 → 선점 해제 후 결제 요구 응답(재시도가 다시 차감 가능).
           if (scopedIdemKey) await idemStore.release(scopedIdemKey)
