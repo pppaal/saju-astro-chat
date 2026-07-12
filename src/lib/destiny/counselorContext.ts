@@ -427,6 +427,12 @@ function buildInstructions(
 export interface DestinyContextSplit {
   stable: string
   daily: string
+  /**
+   * 요청된 소스 중 하나가 실패해 결과가 degraded(예: astro 를 요청했는데 천체력
+   * 계산이 throw 해 사주만 남음)임을 알린다. 캐시 레이어가 이걸 보고 30일 정본
+   * 대신 짧은 네거티브 TTL 로만 저장해, 부분 실패가 한 달간 고착되지 않게 한다.
+   */
+  degraded?: boolean
 }
 
 export async function buildDestinyContext(
@@ -467,6 +473,9 @@ export async function buildDestinyContext(
 
   let astroNatal = '' // ## 점성 (static natal chart)
   let astroTiming = '' // moves under ## 타이밍 (transits/eclipses/SR/progression/profection)
+  // astro 를 요청했는데 아래 계산이 throw 하면 degraded=true — 캐시 레이어가
+  // 30일 대신 짧은 TTL 로만 저장하게 신호한다.
+  let astroDegraded = false
   // 점성 미선택이면 천체력 계산(무거움) 자체를 스킵.
   if (sources.astro)
     try {
@@ -596,6 +605,7 @@ export async function buildDestinyContext(
       logger.warn('[buildDestinyContext] astro section build failed', {
         err: err instanceof Error ? err.message : String(err),
       })
+      astroDegraded = true
     }
 
   // === STABLE (cached prefix) ===
@@ -621,9 +631,13 @@ export async function buildDestinyContext(
   // KO: 남은 영어 구조 태그/전문용어(cross/[CRITICAL]/SR/Lord/orb 등)를 한글로.
   // 한국어 사용자에겐 한국어 데이터만 — EN 경로는 손대지 않아 영어 유지.
   if (locale === 'ko') {
-    return { stable: koStructuralLabels(stable), daily: koStructuralLabels(daily) }
+    return {
+      stable: koStructuralLabels(stable),
+      daily: koStructuralLabels(daily),
+      degraded: astroDegraded,
+    }
   }
-  return { stable, daily }
+  return { stable, daily, degraded: astroDegraded }
 }
 
 function buildSajuSection(

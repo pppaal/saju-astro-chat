@@ -69,6 +69,42 @@ describe('ensureCounselorContext (운명상담사 컨텍스트 캐시)', () => {
     expect(result.stableContext).toContain('gender: F')
     // 두 개 캐시 저장 (stable 30d, daily 1d)
     expect(mockCacheSet).toHaveBeenCalledTimes(2)
+    // 정상 빌드 → 정본 TTL(30d/1d) 로 저장.
+    const ttls = mockCacheSet.mock.calls.map((c) => c[2] as number)
+    expect(ttls).toContain(60 * 60 * 24 * 30) // NATAL_CHART 30d
+    expect(ttls).toContain(60 * 60 * 24) // CALENDAR_DATA 1d
+  })
+
+  it('빌드 throw → degraded 컨텍스트를 짧은 네거티브 TTL(60s)로만 저장 (30일 고착 방지)', async () => {
+    mockCacheGet.mockResolvedValue(null)
+    mockBuildDestinyContext.mockRejectedValue(new Error('engine boom'))
+
+    const result = await ensureCounselorContext(fullBody, 'user-fail', 'ko')
+
+    // 이번 요청은 차트 없는 컨텍스트로라도 응답(신규 500 없음).
+    expect(result.stableContext).toContain('<birth_data>')
+    // 두 캐시 모두 60초 TTL — 1분 뒤 다음 요청이 정상 빌드를 재시도한다.
+    expect(mockCacheSet).toHaveBeenCalledTimes(2)
+    for (const call of mockCacheSet.mock.calls) {
+      expect(call[2]).toBe(60)
+    }
+  })
+
+  it('부분 실패(degraded:true, 예: astro throw) → 네거티브 TTL(60s) 로만 저장', async () => {
+    mockCacheGet.mockResolvedValue(null)
+    // 빌드는 성공하지만 astro 섹션 실패로 degraded 표시(사주만 남음).
+    mockBuildDestinyContext.mockResolvedValue({
+      stable: 'SAJU_ONLY',
+      daily: '',
+      degraded: true,
+    })
+
+    await ensureCounselorContext(fullBody, 'user-degraded', 'ko')
+
+    expect(mockCacheSet).toHaveBeenCalledTimes(2)
+    for (const call of mockCacheSet.mock.calls) {
+      expect(call[2]).toBe(60)
+    }
   })
 
   it('stable 캐시 키에 lang/userId 포함, daily 키엔 날짜키 추가', async () => {

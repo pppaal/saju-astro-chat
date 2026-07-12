@@ -81,6 +81,8 @@ vi.mock('next/headers', () => ({
 vi.mock('@/lib/cache/redis-cache', () => ({
   cacheGet: vi.fn(),
   cacheSet: vi.fn().mockResolvedValue(true),
+  // IP당 일일 LLM 카운터 — 기본 1(캡 12 이하)로 정상 생성 경로를 탄다.
+  cacheIncr: vi.fn().mockResolvedValue(1),
 }))
 
 vi.mock('@/lib/llm/claude', () => ({
@@ -98,7 +100,7 @@ vi.mock('@/lib/logger', () => ({
 }))
 
 import { GET, POST } from '@/app/api/tarot/daily/route'
-import { cacheGet, cacheSet } from '@/lib/cache/redis-cache'
+import { cacheGet, cacheSet, cacheIncr } from '@/lib/cache/redis-cache'
 import { callClaude, extractJsonObject, isClaudeAvailable } from '@/lib/llm/claude'
 import { recordCounter } from '@/lib/metrics/index'
 
@@ -206,6 +208,27 @@ describe('POST /api/tarot/daily', () => {
     // 결과 캐시 set + 락 set + 락 해제 → 최소 3회 cacheSet.
     expect(cacheSet).toHaveBeenCalled()
     expect(recordCounter).toHaveBeenCalledWith('tarot.daily.drawn', 1, { source: 'guest' })
+  })
+
+  it('IP 일일 LLM 캡 초과 시 Claude 호출 없이 결정적 카드+폴백 메시지 반환', async () => {
+    // 헤더 로테이션 비용 증폭 방어: IP당 신규 LLM 생성이 캡(12)을 넘으면
+    // callClaude 를 부르지 않고, drawDaily 카드 + 키워드 폴백으로만 응답한다.
+    vi.mocked(cacheGet).mockResolvedValueOnce(null).mockResolvedValueOnce(null)
+    vi.mocked(cacheIncr).mockResolvedValueOnce(13) // 캡 12 초과
+
+    const res = await POST(makeReq())
+    const data = await res.json()
+
+    expect(res.status).toBe(200)
+    expect(data.data.fresh).toBe(true)
+    // Claude 는 호출되지 않는다.
+    expect(callClaude).not.toHaveBeenCalled()
+    // 카드는 결정적으로 나오고, 메시지는 폴백(비어있지 않음)이다.
+    expect(data.data.reading.card).toBeDefined()
+    expect(typeof data.data.reading.message).toBe('string')
+    expect(data.data.reading.message.length).toBeGreaterThan(0)
+    expect(data.data.reading.hook).toBe('')
+    expect(recordCounter).toHaveBeenCalledWith('tarot.daily.llm_capped', 1, { source: 'guest' })
   })
 
   it('LLM 이 빈 message 를 주면 키워드 기반 폴백 메시지 사용', async () => {

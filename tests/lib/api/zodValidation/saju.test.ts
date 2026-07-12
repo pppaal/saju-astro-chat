@@ -76,6 +76,24 @@ describe('Counselor 지오 필드 경계 (passthrough 라도 검증)', () => {
     ).toBe(false)
   })
 
+  it('malformed birthDate 를 거부한다 (YYYY-MM-DD 강제 — 엔진 garbage-throw 차단)', () => {
+    // 예전엔 min(1).max(64) 라 'hello'/'2026-13-99' 가 통과→엔진 throw→차트 없는
+    // 컨텍스트가 30일 캐시되고 턴은 과금됐다. 이제 다른 스키마와 동일 dateSchema.
+    for (const bad of ['hello', '2026-13-99', '1990/05/15', '90-5-1', '']) {
+      expect(
+        counselorRealtimeRequestSchema.safeParse({ ...base, birthDate: bad }).success,
+        `realtime should reject birthDate="${bad}"`
+      ).toBe(false)
+      expect(
+        counselorWarmRequestSchema.safeParse({ birthDate: bad }).success,
+        `warm should reject birthDate="${bad}"`
+      ).toBe(false)
+    }
+    // 정상 포맷은 통과.
+    expect(counselorRealtimeRequestSchema.safeParse(base).success).toBe(true)
+    expect(counselorWarmRequestSchema.safeParse({ birthDate: '1990-05-15' }).success).toBe(true)
+  })
+
   it('messages 배열/턴 길이 상한을 강제한다 (메모리·토큰 abuse 차단)', () => {
     // 400턴 초과 거부.
     const tooMany = {

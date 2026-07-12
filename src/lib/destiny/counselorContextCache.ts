@@ -206,6 +206,9 @@ async function buildAndCacheContext(
     )
     stableCtxBody = split.stable
     dailyCtxBody = split.daily
+    // 요청한 소스 중 하나가 조용히 실패(예: astro throw → 사주만 남음)했으면
+    // 부분 결과다 — 30일 정본으로 굳히지 않고 아래 네거티브 TTL 로만 저장한다.
+    if (split.degraded) buildFailed = true
   } catch (err) {
     buildFailed = true
     logger.warn('[counselorContextCache] destiny context build failed', {
