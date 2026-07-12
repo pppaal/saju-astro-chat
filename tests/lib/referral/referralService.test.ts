@@ -492,12 +492,19 @@ describe('Referral Service with mocked Prisma', () => {
         findFirst: vi.fn(),
         findMany: vi.fn(),
         update: vi.fn(),
+        updateMany: vi.fn(),
+      },
+      bonusCreditPurchase: {
+        findFirst: vi.fn(),
       },
     },
   }))
 
   vi.mock('@/lib/credits/creditService', () => ({
     addBonusCredits: vi.fn().mockResolvedValue(undefined),
+    claimBonusPurchaseForRefund: vi
+      .fn()
+      .mockResolvedValue({ claimed: true, reclaimed: 0, alreadyUsed: 0 }),
   }))
 
   vi.mock('@/lib/logger', () => ({
@@ -508,6 +515,87 @@ describe('Referral Service with mocked Prisma', () => {
       debug: vi.fn(),
     },
   }))
+
+  describe('reverseReferralRewardOnRefund (환불 시 추천 보상 회수)', () => {
+    it('완료된 first_purchase 보상을 reversed 로 claim 하고 추천인+피추천인 lot 을 회수한다', async () => {
+      const { prisma } = await import('@/lib/db/prisma')
+      const { claimBonusPurchaseForRefund } = await import('@/lib/credits/creditService')
+      const { reverseReferralRewardOnRefund } = await import('@/lib/referral/referralService')
+
+      vi.mocked(prisma.referralReward.findFirst).mockResolvedValue({
+        id: 'rw1',
+        userId: 'referrer-1',
+        referredUserId: 'buyer-1',
+        creditsAwarded: 3,
+        rewardType: 'first_purchase',
+        status: 'completed',
+      } as never)
+      // 원자적 claim 성공(1건).
+      vi.mocked(prisma.referralReward.updateMany).mockResolvedValue({ count: 1 } as never)
+      // 각 회수 대상 referral lot 조회 — 추천인(amount 3) / 피추천인(amount 5).
+      vi.mocked(prisma.bonusCreditPurchase.findFirst)
+        .mockResolvedValueOnce({ id: 'lot-referrer', amount: 3, remaining: 3 } as never)
+        .mockResolvedValueOnce({ id: 'lot-referee', amount: 5, remaining: 5 } as never)
+      vi.mocked(claimBonusPurchaseForRefund).mockResolvedValue({
+        claimed: true,
+        reclaimed: 3,
+        alreadyUsed: 0,
+      })
+
+      const res = await reverseReferralRewardOnRefund('buyer-1', 'pi_123')
+
+      expect(res.reversed).toBe(true)
+      // completed → reversed 원자 claim.
+      expect(prisma.referralReward.updateMany).toHaveBeenCalledWith({
+        where: { id: 'rw1', status: 'completed' },
+        data: expect.objectContaining({ status: 'reversed' }),
+      })
+      // 두 lot(추천인+피추천인) 회수.
+      expect(claimBonusPurchaseForRefund).toHaveBeenCalledTimes(2)
+      const owners = vi.mocked(claimBonusPurchaseForRefund).mock.calls.map((c) => c[0].ownerUserId)
+      expect(owners).toContain('referrer-1')
+      expect(owners).toContain('buyer-1')
+      // system 트리거 + referral lot 허용(requireSourcePurchase 미설정).
+      for (const call of vi.mocked(claimBonusPurchaseForRefund).mock.calls) {
+        expect(call[0].initiatedBy).toBe('system')
+        expect(call[0].requireSourcePurchase).toBeUndefined()
+      }
+    })
+
+    it('되돌릴 보상이 없으면 no-op (회수 안 함)', async () => {
+      const { prisma } = await import('@/lib/db/prisma')
+      const { claimBonusPurchaseForRefund } = await import('@/lib/credits/creditService')
+      const { reverseReferralRewardOnRefund } = await import('@/lib/referral/referralService')
+
+      vi.mocked(prisma.referralReward.findFirst).mockResolvedValue(null)
+      vi.mocked(claimBonusPurchaseForRefund).mockClear()
+
+      const res = await reverseReferralRewardOnRefund('buyer-x', 'pi_x')
+      expect(res.reversed).toBe(false)
+      expect(claimBonusPurchaseForRefund).not.toHaveBeenCalled()
+    })
+
+    it('claim 이 경합으로 실패(count 0)하면 이중 회수하지 않는다', async () => {
+      const { prisma } = await import('@/lib/db/prisma')
+      const { claimBonusPurchaseForRefund } = await import('@/lib/credits/creditService')
+      const { reverseReferralRewardOnRefund } = await import('@/lib/referral/referralService')
+
+      vi.mocked(prisma.referralReward.findFirst).mockResolvedValue({
+        id: 'rw2',
+        userId: 'referrer-2',
+        referredUserId: 'buyer-2',
+        creditsAwarded: 3,
+        rewardType: 'first_purchase',
+        status: 'completed',
+      } as never)
+      vi.mocked(prisma.referralReward.updateMany).mockResolvedValue({ count: 0 } as never) // 이미 처리됨
+      vi.mocked(claimBonusPurchaseForRefund).mockClear()
+
+      const res = await reverseReferralRewardOnRefund('buyer-2', 'pi_2')
+      expect(res.reversed).toBe(false)
+      expect(claimBonusPurchaseForRefund).not.toHaveBeenCalled()
+    })
+  })
 
   describe('getUserReferralCode', () => {
     it('returns existing referral code if user has one', async () => {
@@ -717,7 +805,13 @@ describe('Referral Service with mocked Prisma', () => {
           tarotReadings: [{ id: 'rd1' }],
           counselorChatSessions: [],
         },
-        { id: 'r2', name: null, createdAt: new Date(), tarotReadings: [], counselorChatSessions: [] },
+        {
+          id: 'r2',
+          name: null,
+          createdAt: new Date(),
+          tarotReadings: [],
+          counselorChatSessions: [],
+        },
       ] as never)
       vi.mocked(prisma.referralReward.findMany).mockResolvedValue([
         {

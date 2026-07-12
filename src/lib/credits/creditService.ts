@@ -854,12 +854,15 @@ export interface RefundClaimParams {
    * 회수량(reclaim)도 이 값이다.
    */
   expectedRemaining: number
-  /** REVOKE 원장 reason ('self_refund' | 'admin_refund'). */
+  /** REVOKE 원장 reason ('self_refund' | 'admin_refund' | 'referral_reversed_on_refund'). */
   reason: string
-  initiatedBy: 'self' | 'admin'
-  /** stripePaymentId — 원장 sourceRef. */
+  // 'system' — 사용자/관리자 액션이 아닌 시스템 트리거(예: 추천 대상 구매가
+  // 환불돼 추천 보상 lot 을 되돌리는 경로). requireSourcePurchase 를 생략해
+  // source='referral' lot 도 회수 대상으로 허용한다.
+  initiatedBy: 'self' | 'admin' | 'system'
+  /** stripePaymentId 등 원장 sourceRef. */
   sourceRef: string
-  /** me/ 는 source='purchase' 가드 추가(프로모/추천분 환불 차단). admin 은 생략. */
+  /** me/ 는 source='purchase' 가드 추가(프로모/추천분 환불 차단). admin/system 은 생략. */
   requireSourcePurchase?: boolean
   /** admin 호출 시 감사 메타에 남길 admin userId. */
   actorUserId?: string
