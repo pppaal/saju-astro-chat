@@ -87,6 +87,28 @@ Ephemeris golden run — Vitest mocks the ephemeris, so raw astronomical accurac
 is only verified by this script. It is enforced in the `pr-checks.yml`
 `build-check` job.
 
+## Recurrence Guards (source-level invariants)
+
+These source-scanning tests make recurring bug _classes_ impossible to reintroduce
+silently — they fail CI when a structural invariant is violated, rather than
+catching one instance at a time:
+
+- `tests/route-protection-guard.test.ts` — every mutating (`POST/PUT/PATCH/DELETE`)
+  API route must go through `withApiMiddleware` or be an explicit, justified entry
+  in the `HANDROLLED` allow-list (which must still carry a real protection token).
+  There is no global edge `middleware.ts`, so protection is opt-in per route; this
+  guard stops a new route shipping with no CSRF/auth/rate-limit.
+- `tests/determinism-guard.test.ts` — bans argless `new Date()` / `Date.now()` in
+  the engine dirs (`src/lib/{saju,astrology,calendar-engine}`); only injected-now
+  (`= new Date()` / `?? new Date()`) and explicitly listed cache/persistence
+  bookkeeping are allowed. Enforces the CLAUDE.md Determinism invariant.
+- `tests/llm-cost-policy-guard.test.ts` — routes may not pick a model directly;
+  model/cap/continuation come from `src/lib/config/llm-policy.ts`.
+- `tests/paid-routes-money-guards.test.ts` — money-path charge/refund invariants.
+
+When a fix lands for a duplicated/opt-in class, prefer adding (or extending) a
+guard here so the _class_ closes, not just the instance.
+
 ## CI Gates
 
 ### `ci.yml` (push to main, PRs)
