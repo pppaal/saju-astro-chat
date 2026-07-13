@@ -35,7 +35,7 @@ import { buildDestinyCounselorPrompt } from '@/lib/prompts/destinyCounselorPromp
 // 헤더로 보냄. 같은 키 재진입 시 차감만 스킵.
 const idemStore = createIdempotencyStore('counselor-realtime')
 
-import { refundCreditsOnce } from '@/lib/credits/refundOnce'
+import { makeChargedRefunder } from '@/lib/api/chargedRefund'
 import { ensureCounselorSessionRecord } from '@/lib/counselor/ensureSessionRecord'
 import { cacheGet, cacheSet } from '@/lib/cache/redis-cache'
 import { getUserDisplayName, sanitizeDisplayName } from '@/lib/user/displayName'
@@ -356,21 +356,17 @@ export async function POST(req: NextRequest) {
   // 붙이므로 차감 claim 레코드와 충돌하지 않는다. 멱등 헤더가 없을 때만 turnId
   // 기반으로 폴백한다.
   const refundKey = scopedIdemKey ?? (turnId ? `counselor-realtime:${userId}:${turnId}` : null)
-  const refundChargedTurn = async (reason: string) => {
-    if (!chargedThisTurn) return
-    try {
-      await refundCreditsOnce(refundKey, {
-        userId,
-        creditType: 'reading',
-        // 차감과 같은 SSOT 값 — 환불액이 차감액과 어긋나지 않게.
-        amount: CREDIT_COSTS.counselorTurn,
-        reason,
-        apiRoute: '/api/counselor/realtime',
-      })
-    } catch (err) {
-      logger.warn('[counselor/realtime] refund failed', { err, reason })
-    }
-  }
+  // 환불 불변식(creditType='reading' + refundKey dedupe)은 공유 헬퍼가 고정한다.
+  const refundChargedTurn = makeChargedRefunder(
+    {
+      refundKey,
+      userId,
+      amount: CREDIT_COSTS.counselorTurn,
+      apiRoute: '/api/counselor/realtime',
+      logLabel: 'counselor/realtime',
+    },
+    () => chargedThisTurn
+  )
 
   try {
     // 7) Build prompt and stream — 진짜 multi-turn 구조.
