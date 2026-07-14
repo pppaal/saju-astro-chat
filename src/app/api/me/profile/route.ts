@@ -109,7 +109,11 @@ export const PATCH = withApiMiddleware(
     if (birthTime !== undefined) profileData.birthTime = birthTime
     // 시각 미상 명시 플래그 — birthTime 과 함께 저장해야 '00:00'(실제 자정)과
     // "시간 모름"이 구분된다. null 은 플래그 제거(레거시 휴리스틱 복귀).
-    if (body.birthTimeUnknown !== undefined) profileData.birthTimeUnknown = body.birthTimeUnknown
+    // 단, 이 컬럼은 *핵심* birthDate 와 같은 upsert 에 넣지 않고 아래에서 별도
+    // best-effort 로 쓴다 — prod DB 에서 birthTimeUnknown 컬럼이 누락(마이그레이션
+    // phantom-apply)되면 P2022 로 트랜잭션이 통째로 롤백돼 birthDate 저장까지
+    // 막히던 사고 방지(2026-07 Sentry). 핵심 출생정보는 항상 저장되게 한다.
+    const birthTimeUnknown = body.birthTimeUnknown
     if (gender !== undefined) profileData.gender = gender
     if (body.birthCity !== undefined) profileData.birthCity = body.birthCity
     // 진태양시(진경도) 보정용 출생지 좌표 — 사주·점성이 화면 간 일관되게
@@ -138,6 +142,23 @@ export const PATCH = withApiMiddleware(
           })
         }
       })
+    }
+
+    // birthTimeUnknown 은 핵심 저장이 커밋된 뒤 별도 best-effort 로 쓴다. 컬럼이
+    // 누락된 드리프트 DB 에서 P2022 가 나도 위 birthDate 저장은 이미 커밋됐으니
+    // 500 대신 경고만 남기고 넘어간다(비핵심 플래그가 핵심 저장을 막지 않게).
+    if (birthTimeUnknown !== undefined) {
+      try {
+        await prisma.userProfile.upsert({
+          where: { userId: context.userId! },
+          create: { userId: context.userId!, birthTimeUnknown },
+          update: { birthTimeUnknown },
+        })
+      } catch (err) {
+        logger.warn('[me/profile] birthTimeUnknown write skipped (likely column drift)', {
+          code: (err as { code?: string })?.code,
+        })
+      }
     }
 
     // Fetch updated user with relations
