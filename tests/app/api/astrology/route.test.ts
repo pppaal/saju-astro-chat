@@ -256,7 +256,6 @@ const validBody = {
 }
 
 const mockOpts = {
-  includeMinorAspects: false,
   houseSystem: 'Placidus',
 }
 

@@ -189,7 +189,19 @@ export async function streamClaudeAsSSE(opts: ClaudeSSEOptions): Promise<Respons
         // 사용자가 다른 앱 갔다 와도 완성된 답을 되살릴 수 있게 한다. 단, 이어쓰기
         // 소진/cap 으로 *잘린* 답은 incomplete 로 표시해 완성본처럼 복원·과금되어
         // 사용자가 잘린 줄 모르는 것을 막는다.
-        if (fullText.trim() !== '' && onComplete) {
+        // 환불 여부를 *영속화 전에* 결정해 둘을 상호배타로 만든다: 환불된 턴은
+        // usable/replayable 결과를 영속화하면 안 되고(공짜 결과·환불된 유료 기록),
+        // 영속화된 턴은 환불되면 안 된다. 비 keep 경로에서 클라 abort 가 upstream
+        // 의 *깨끗한* close 와 겹치면 자연 종료 블록으로 들어오는데, 이전 코드는
+        // persist 와 refund 를 둘 다 실행해 이 이중결과가 났다. 아래 catch 경로의
+        // if/else 와 동일한 배타 구조로 맞춘다.
+        // keep 모드에선 연결 끊김(clientGone)은 끝까지 생성·저장하므로 환불 사유가
+        // 아니다 — shouldRefund 는 빈 응답일 때만 true(기존 동작 유지).
+        const shouldRefund =
+          fullText.trim() === '' || (!keepGeneratingOnDisconnect && pipelineAbort.signal.aborted)
+        if (shouldRefund) {
+          await handleFailure()
+        } else if (fullText.trim() !== '' && onComplete) {
           try {
             // 자연 종료는 인자 1개(기존 계약 유지), 잘린 종료만 incomplete 마커.
             if (truncated) await onComplete(fullText, { incomplete: true })
@@ -198,12 +210,6 @@ export async function streamClaudeAsSSE(opts: ClaudeSSEOptions): Promise<Respons
             /* persist 실패가 스트림을 깨지 않게 */
           }
         }
-
-        // 환불은 "빈 응답"일 때만. keep 모드에선 연결 끊김(clientGone)은 끝까지
-        // 생성·저장하므로 환불 사유가 아니다. 비 keep 모드는 기존대로 abort 도 환불.
-        const shouldRefund =
-          fullText.trim() === '' || (!keepGeneratingOnDisconnect && pipelineAbort.signal.aborted)
-        if (shouldRefund) await handleFailure()
 
         let finalChunk: string | null = null
         if (finalize) {

@@ -19,9 +19,17 @@ export interface ClarifierCard {
   isReversed: boolean
 }
 
-export function drawClarifierCard(): ClarifierCard {
-  const idx = Math.floor(Math.random() * tarotDeck.length)
-  const card = tarotDeck[idx]
+// exclude — 이미 테이블에 깔린 카드 이름들(스프레드 + 앞서 뽑은 클래리파이어).
+// 클래리파이어도 같은 리딩에 합류(followup 컨텍스트·TarotReading.clarifierCard 로
+// 영속)하므로, 제외하지 않으면 The Fool 이 스프레드에도 뜨고 보충 카드로도 또
+// 뜨는 물리 덱 불가능한 중복이 나온다. 제외 후보가 덱을 다 덮는 비정상 입력이면
+// 안전하게 전체 덱으로 폴백(빈 배열 방지).
+export function drawClarifierCard(exclude: string[] = []): ClarifierCard {
+  const excludeSet = new Set(exclude)
+  const pool = tarotDeck.filter((c) => !excludeSet.has(c.name))
+  const deck = pool.length > 0 ? pool : tarotDeck
+  const idx = Math.floor(Math.random() * deck.length)
+  const card = deck[idx]
   return {
     name: card.name,
     nameKo: card.nameKo,

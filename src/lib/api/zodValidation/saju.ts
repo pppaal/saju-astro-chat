@@ -604,7 +604,11 @@ export const counselorRealtimeRequestSchema = z
     // req.json() 에서 통째로 버퍼링되고 전 턴이 프롬프트로 재생돼 메모리·토큰
     // abuse 가 가능했다. 매우 긴 상담 세션도 커버하도록 넉넉히 400.
     messages: z.array(realtimeCounselorTurnSchema).min(1).max(400),
-    birthDate: z.string().min(1).max(64),
+    // YYYY-MM-DD 강제 — 엔진이 birthDate.split('-').map(Number) 로 파싱하므로
+    // 애초에 이 포맷을 기대한다. 예전엔 min(1).max(64) 로 느슨해 'hello'/'2026-13-99'
+    // 같은 값이 통과→calculateSajuData 에서 throw→차트 없는 컨텍스트가 캐시되고
+    // 턴은 그대로 과금됐다(다른 모든 스키마와 동일하게 dateSchema 로 통일).
+    birthDate: dateSchema,
     // 상담 대상 이름('다른 사람으로 보기' 시 그 사람 이름). 라우트가
     // sanitizeDisplayName 으로 50자 cap + 정규화하므로 여기선 폭주만 차단.
     name: z.string().max(200).optional(),
@@ -623,7 +627,8 @@ export type CounselorRealtimeRequestValidated = z.infer<typeof counselorRealtime
 // 을 받지만 LLM 호출·과금이 없어 잠그는 코어는 birthDate + 지오 경계.
 export const counselorWarmRequestSchema = z
   .object({
-    birthDate: z.string().min(1).max(64),
+    // realtime 과 동일하게 YYYY-MM-DD 강제(위 주석 참조).
+    birthDate: dateSchema,
     sources: counselorSourcesSchema,
     ...counselorBirthGeoFields,
   })

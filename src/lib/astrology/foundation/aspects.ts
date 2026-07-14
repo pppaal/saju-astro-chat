@@ -206,7 +206,7 @@ function applyingFlagByTarget(
 
 function resolveAspectList(rules: AspectRules) {
   // 정통 Hellenistic: minor aspect 는 항상 차단. rules.aspects 가 명시돼도 minor 는 필터.
-  // includeMinor=true 옵션은 backward compat 위해 받지만 무시.
+  // (minor 를 켜는 옵션은 없다 — 이 엔진은 major only.)
   if (rules.aspects) {
     return rules.aspects.filter((a) => !BLOCKED_MINOR.has(a))
   }
@@ -225,6 +225,12 @@ export function findAspects(natal: Chart, transit: Chart, rules: AspectRules = {
   const natalPlanets = Array.isArray(natal?.planets) ? natal.planets : []
   const transitPlanets = Array.isArray(transit?.planets) ? transit.planets : []
 
+  // ASC/MC 는 longitude 가 유한수일 때만 포함한다. 예전엔 `?? 0` 로 폴백해,
+  // 출생 시각 미상 등으로 ASC/MC 가 없는 차트에서 0° Aries 에 유령 앵글을
+  // 만들었고 → 0° 근처 트랜짓이 그 유령과 conjunction 으로 잡히는 가짜 aspect 가
+  // 생겼다. 0 은 실제 유효 경도(0° 양자리)라 downstream orb 계산이 진짜로 취급한다.
+  const ascLon = natal?.ascendant?.longitude
+  const mcLon = natal?.mc?.longitude
   const natalTargets = [
     ...natalPlanets.map((p) => ({
       name: p.name,
@@ -234,8 +240,12 @@ export function findAspects(natal: Chart, transit: Chart, rules: AspectRules = {
       sign: p.sign,
       speed: p.speed,
     })),
-    { name: 'Ascendant', kind: 'natal' as const, longitude: natal?.ascendant?.longitude ?? 0 },
-    { name: 'MC', kind: 'natal' as const, longitude: natal?.mc?.longitude ?? 0 },
+    ...(typeof ascLon === 'number' && Number.isFinite(ascLon)
+      ? [{ name: 'Ascendant', kind: 'natal' as const, longitude: ascLon }]
+      : []),
+    ...(typeof mcLon === 'number' && Number.isFinite(mcLon)
+      ? [{ name: 'MC', kind: 'natal' as const, longitude: mcLon }]
+      : []),
   ]
 
   const transitSources = transitPlanets.map((p) => ({
@@ -416,8 +426,24 @@ export function findNatalAspects(natal: Chart, rules: AspectRules = {}): AspectH
         B = ps[j]
       const sep = shortestAngle(A.longitude, B.longitude)
       const relSpeed = (A.speed ?? 0) - (B.speed ?? 0)
-      for (const t of aspects) {
-        if (useWholeSign) {
+      const from = {
+        name: A.name,
+        kind: 'natal' as const,
+        longitude: A.longitude,
+        house: A.house,
+        sign: A.sign,
+      }
+      const to = {
+        name: B.name,
+        kind: 'natal' as const,
+        longitude: B.longitude,
+        house: B.house,
+        sign: B.sign,
+      }
+      if (useWholeSign) {
+        // whole-sign 은 사인 기반(orb 항상 0)이라 "가장 가까운 각" 개념이 없다 —
+        // 첫 regard 매칭에서 확정.
+        for (const t of aspects) {
           if (!isWholeSignRegard(A.longitude, B.longitude, t)) continue
           const applying = applyingFlagByTarget(
             A.longitude,
@@ -426,65 +452,49 @@ export function findNatalAspects(natal: Chart, rules: AspectRules = {}): AspectH
             DESIRED_ANGLES[t]
           )
           const score = 0.6 + 0.35 * baseAspectWeight(t)
-          hits.push({
-            from: {
-              name: A.name,
-              kind: 'natal',
-              longitude: A.longitude,
-              house: A.house,
-              sign: A.sign,
-            },
-            to: {
-              name: B.name,
-              kind: 'natal',
-              longitude: B.longitude,
-              house: B.house,
-              sign: B.sign,
-            },
-            type: t,
-            orb: 0,
-            applying,
-            score: Number(score.toFixed(3)),
-          })
+          hits.push({ from, to, type: t, orb: 0, applying, score: Number(score.toFixed(3)) })
           break
         }
-        const evalResult = evaluateAspect(
-          A.name,
-          A.longitude,
-          B.name,
-          B.longitude,
-          sep,
-          relSpeed,
-          t,
-          config
-        )
-
-        if (evalResult.accepted) {
-          const orb = evalResult.orb
-          const applying = evalResult.applying
-          const score = evalResult.score
-
+      } else {
+        // 각 쌍에 대해 모든 후보 각을 평가하고 *orb 가 가장 작은*(가장 타이트한)
+        // 각을 취한다. 예전엔 aspects 순서대로 첫 accepted 에서 break 해서, 넓은
+        // moiety orb 로 sextile 창과 square 창이 겹치는 구간(예: Sun-Moon 76°)
+        // 에서 실제로는 square(orb 14)인데 먼저 검사된 sextile(orb 16)로 오표기됐다.
+        let best: {
+          t: (typeof aspects)[number]
+          orb: number
+          applying: boolean
+          score: number
+        } | null = null
+        for (const t of aspects) {
+          const evalResult = evaluateAspect(
+            A.name,
+            A.longitude,
+            B.name,
+            B.longitude,
+            sep,
+            relSpeed,
+            t,
+            config
+          )
+          if (evalResult.accepted && (best === null || evalResult.orb < best.orb)) {
+            best = {
+              t,
+              orb: evalResult.orb,
+              applying: evalResult.applying,
+              score: evalResult.score,
+            }
+          }
+        }
+        if (best) {
           hits.push({
-            from: {
-              name: A.name,
-              kind: 'natal',
-              longitude: A.longitude,
-              house: A.house,
-              sign: A.sign,
-            },
-            to: {
-              name: B.name,
-              kind: 'natal',
-              longitude: B.longitude,
-              house: B.house,
-              sign: B.sign,
-            },
-            type: t,
-            orb: Number(orb.toFixed(2)),
-            applying,
-            score: Number(score.toFixed(3)),
+            from,
+            to,
+            type: best.t,
+            orb: Number(best.orb.toFixed(2)),
+            applying: best.applying,
+            score: Number(best.score.toFixed(3)),
           })
-          break
         }
       }
     }

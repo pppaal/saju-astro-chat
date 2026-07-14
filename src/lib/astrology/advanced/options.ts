@@ -9,7 +9,6 @@ export type AstroOptions = {
   theme?: AstroTheme
   houseSystem?: HouseSystemType
   nodeType?: 'true' | 'mean'
-  includeMinorAspects?: boolean
   includeAsteroids?: boolean
   includeFixedStars?: boolean
   includeChiron?: boolean
@@ -26,7 +25,6 @@ export const defaultOptions: Required<AstroOptions> = {
   theme: 'western',
   houseSystem: CALCULATION_STANDARDS.astrology.houseSystem,
   nodeType: CALCULATION_STANDARDS.astrology.nodeType,
-  includeMinorAspects: false,
   includeAsteroids: false,
   includeFixedStars: false,
   includeChiron: false,
@@ -39,19 +37,16 @@ export const presets: Record<AstroTheme, Partial<AstroOptions>> = {
   western: {
     houseSystem: CALCULATION_STANDARDS.astrology.houseSystem,
     nodeType: CALCULATION_STANDARDS.astrology.nodeType,
-    includeMinorAspects: false,
     enable: { chiron: true, lilith: 'true', pof: true },
   },
   saju: {
     houseSystem: CALCULATION_STANDARDS.astrology.houseSystem,
     nodeType: CALCULATION_STANDARDS.astrology.nodeType,
-    includeMinorAspects: false,
     enable: { chiron: false, lilith: false, pof: false },
   },
   hybrid: {
     houseSystem: CALCULATION_STANDARDS.astrology.houseSystem,
     nodeType: CALCULATION_STANDARDS.astrology.nodeType,
-    includeMinorAspects: true,
     enable: { chiron: true, lilith: 'mean', pof: true },
   },
 }
@@ -63,7 +58,6 @@ export function resolveOptions(input?: AstroOptions): Required<AstroOptions> {
     theme,
     houseSystem: input?.houseSystem ?? base.houseSystem,
     nodeType: input?.nodeType ?? base.nodeType,
-    includeMinorAspects: input?.includeMinorAspects ?? base.includeMinorAspects,
     includeAsteroids: input?.includeAsteroids ?? base.includeAsteroids,
     includeFixedStars: input?.includeFixedStars ?? base.includeFixedStars,
     includeChiron: input?.includeChiron ?? base.includeChiron,

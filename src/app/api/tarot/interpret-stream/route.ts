@@ -33,7 +33,7 @@ import { loadDrawCards } from '@/lib/tarot/drawCardsCache'
 import { checkAndConsumeCredits, creditErrorResponse } from '@/lib/credits/withCredits'
 import { refundCreditsOnce } from '@/lib/credits/refundOnce'
 import { getUserDisplayName } from '@/lib/user/displayName'
-import { cacheSet } from '@/lib/cache/redis-cache'
+import { cacheGet, cacheSet } from '@/lib/cache/redis-cache'
 import { ensureTarotReadingRecord } from '@/lib/tarot/ensureReadingRecord'
 import { createHash } from 'crypto'
 
@@ -54,6 +54,41 @@ export const tarotTurnResultKey = (userId: string, turnId: string) =>
 // 돌아와서 받아갈 시간을 충분히 (30분) — 크레딧 충전하러 갔다 오는 왕복도
 // 커버. 받아가면 그만이고 TTL 로 자동 소멸.
 const TURN_RESULT_TTL_SEC = 1800
+
+// draw-nonce 로 태운 "첫 리딩" 을 nonce 로 캐시하는 키 — 같은 draw 를 다시
+// interpret 하는 replay(새로고침/뒤로가기) 가 Claude 를 재호출해 매번 다른
+// 리딩을 무과금으로 재생성하던 수익 누수를 막는다. replay 는 이 캐시에 저장된
+// "이미 결제한 그 리딩" 을 그대로 돌려주고, 캐시가 없을 때만 재생성으로 폴백한다.
+// ownerKey(로그인=user, 게스트=fingerprint)를 키에 포함해 타인 조회 차단.
+// nonce 는 이미 ownerKey 스코프라 여기선 nonce 만으로 충분하지만 방어적으로 함께.
+const tarotDrawResultKey = (ownerKey: string, nonce: string) =>
+  `tarot:draw-result:${ownerKey}:${nonce}`
+
+// nonce replay 캐시 TTL — draw-nonce TTL(6h) 과 맞춰, replay 가 유효한 창
+// 동안은 항상 캐시된 원본 리딩을 돌려줄 수 있게 한다.
+const DRAW_RESULT_TTL_SEC = 6 * 60 * 60
+
+// 이미 직렬화된 리딩 문자열을 그대로 단발 SSE 로 흘려보내는 헬퍼 — replay
+// 캐시 히트 시 Claude 호출 없이 저장본을 그대로 재생한다. streamJsonPayload
+// 와 동일한 SSE 형식(content 이벤트 1개 + done).
+function streamRawReading(jsonText: string, extraHeaders?: Record<string, string>): Response {
+  const encoder = new TextEncoder()
+  const stream = new ReadableStream({
+    start(controller) {
+      controller.enqueue(encoder.encode(createSSEEvent({ content: jsonText })))
+      controller.enqueue(encoder.encode(createSSEDoneEvent()))
+      controller.close()
+    },
+  })
+  return new Response(stream, {
+    headers: {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache',
+      Connection: 'keep-alive',
+      ...(extraHeaders || {}),
+    },
+  })
+}
 
 // 카드 수 차등 가격은 tarot-spreads-data.ts 의 tarotCreditCostFor 가 SSOT.
 
@@ -313,8 +348,20 @@ export async function POST(req: NextRequest) {
     //    'replay' 무료 리딩이 되는 T1 누수 차단은 그대로 유지된다.
     const consumeResult = drawNonce ? await drawNonceStore.consume(drawNonce, ownerKey) : 'unknown'
     if (consumeResult === 'replay') {
-      // 첫 호출 때 이미 차감 + reading 받음 → 이번 요청은 무과금 free pass.
-      logger.info('[tarot-stream] draw-nonce replay, skipping charge', { ownerKey })
+      // 첫 호출 때 이미 차감 + reading 받음 → 이번 요청은 무과금.
+      // 예전엔 여기서 그대로 Claude 를 재호출해 매번 *다른* 리딩을 무과금으로
+      // 재생성 → 1회 결제로 6h rate-limit 한도까지 유료 리딩을 re-roll 하는
+      // 수익 누수였다. 이제 nonce 캐시에 저장된 "이미 결제한 그 리딩" 을 그대로
+      // 재생한다(Claude 호출 없음). 캐시가 비었을 때(TTL 만료 등)만 부득이
+      // 재생성으로 폴백한다.
+      const cached = await cacheGet<string>(tarotDrawResultKey(ownerKey, drawNonce))
+      if (cached && cached.trim() !== '') {
+        logger.info('[tarot-stream] draw-nonce replay, serving cached reading', { ownerKey })
+        return streamRawReading(cached, { 'X-Tarot-Replay': '1' })
+      }
+      logger.info('[tarot-stream] draw-nonce replay, no cache — regenerating uncharged', {
+        ownerKey,
+      })
       creditResult = null
     } else {
       if (consumeResult === 'unknown' && drawNonce) {
@@ -345,6 +392,28 @@ export async function POST(req: NextRequest) {
         // 잔액 부족 등 — nonce 복구 후 402. 충전하고 오면 'first' 로 재과금.
         await releaseNonceOnChargeFailure()
         return creditErrorResponse(creditResult)
+      }
+    }
+
+    // 환불 + nonce 해제 묶음 — 이 요청이 'first' 로 nonce 를 태워 실제 과금한
+    // 턴이 (스트림 실패/미사용 리딩 등으로) 환불될 때, 그 nonce 를 release 해
+    // 같은 nonce 재시도가 'replay' 무료 리딩이 아니라 정상 'first' 과금 경로로
+    // 재진입하게 한다(환불 후 nonce 미해제 → 재시도 공짜 리딩 누수 차단).
+    // consumeResult !== 'first' (replay/unknown/nonce 없음)면 release 하지 않는다.
+    const refundTurn = async (
+      cr: Awaited<ReturnType<typeof checkAndConsumeCredits>> | null,
+      reason: string,
+      cost: number,
+      detail: string,
+      key: string | null
+    ): Promise<void> => {
+      await refundOnFailure(cr, reason, cost, detail, key)
+      if (drawNonce && consumeResult === 'first') {
+        try {
+          await drawNonceStore.release(drawNonce, ownerKey)
+        } catch {
+          /* release 실패 무시 — 최악의 경우 replay 는 캐시(없음)→재생성 폴백 */
+        }
       }
     }
 
@@ -436,7 +505,7 @@ export async function POST(req: NextRequest) {
     // Claude 없으면 정적 fallback 으로 즉시 응답 + 크레딧 환불.
     if (!isClaudeAvailable()) {
       logger.warn('Tarot stream missing ANTHROPIC_API_KEY, using fallback')
-      await refundOnFailure(
+      await refundTurn(
         creditResult,
         'tarot_llm_unavailable',
         creditCost,
@@ -470,6 +539,13 @@ export async function POST(req: NextRequest) {
     // 받아갈 사람도 없는데 토큰만 태우는 일을 막는다.
     const upstreamAbort = new AbortController()
     const upstreamSignal = isRecoverable ? upstreamAbort.signal : req.signal
+    // 이어쓰기(maxContinuations)까지 소진하고도 하드 토큰캡에 잘렸는지. onTruncated
+    // 가 없던 예전엔 advice 중간에 잘린 리딩이 isUsableReading(overall+cards 만 검사)
+    // 을 통과해 "완성본"으로 캐시·복구 저장됐다. 상담사 라우트는 claudeSSE 경유로
+    // incomplete 마킹을 했는데 타로만 빠져 있던 비대칭. truncated 면 아래에서 저장/
+    // replay 캐시를 건너뛴다(과금은 유지 — 클라는 이미 카드+overall 을 받았고, 잘림은
+    // 서버측 토큰캡이라 사용자 탓이 아니라 상담사와 동일하게 청구 유지).
+    let truncated = false
     let claudeStream: ReadableStream<string>
     try {
       // streamClaudeWithContinuation — maxTokens 도달해도 자동 이어쓰기
@@ -485,13 +561,17 @@ export async function POST(req: NextRequest) {
         temperature: 0.7,
         timeoutMs: CLAUDE_TIMEOUT_MS,
         label: 'tarot-stream',
+        // 하드캡 잘림 신호 — 완성본으로 저장/replay 하지 않도록 아래에서 사용.
+        onTruncated: () => {
+          truncated = true
+        },
       })
     } catch (claudeErr) {
       recordExternalCall('anthropic', TAROT_INTERPRET_MODEL, 'error', Date.now() - claudeStartTime)
       logger.error('[tarot-stream] Claude initial call failed', {
         error: claudeErr instanceof Error ? claudeErr.message : String(claudeErr),
       })
-      await refundOnFailure(
+      await refundTurn(
         creditResult,
         'tarot_claude_error',
         creditCost,
@@ -587,7 +667,7 @@ export async function POST(req: NextRequest) {
               fullTextLen: fullText.length,
               isRecoverable,
             })
-            await refundOnFailure(
+            await refundTurn(
               creditResult,
               'tarot_empty_reading',
               creditCost,
@@ -599,9 +679,55 @@ export async function POST(req: NextRequest) {
             // safeEnqueue 사용 (기존 success path 와 동일 동작).
             safeEnqueue(encoder.encode(createSSEEvent({ content: JSON.stringify(fallback) })))
             safeEnqueue(encoder.encode(createSSEDoneEvent()))
+          } else if (truncated) {
+            // 하드 토큰캡에 잘린 리딩 — isUsableReading 은 통과(카드+overall 존재)
+            // 하지만 advice 등이 잘려 "완성본"이 아니다. 과금은 유지(상담사 parity,
+            // 서버측 잘림)하되, 복구/replay 캐시에는 저장하지 않는다 — 돌아온
+            // 사용자나 새로고침 replay 가 잘린 리딩을 "결제한 완성본"으로 받는 것을
+            // 막는다(그 경로는 캐시 miss → 완전한 리딩으로 재생성). ensureTarot-
+            // ReadingRecord 는 과금이 남으므로 아래에서 그대로 보장한다.
+            logger.warn(
+              '[tarot-stream] reading truncated (hit token cap) — charged, not cached as final',
+              {
+                bytesEmitted,
+                fullTextLen: fullText.length,
+                isRecoverable,
+              }
+            )
+            if (creditResult?.userId && persistReadingId) {
+              try {
+                await ensureTarotReadingRecord({
+                  readingId: persistReadingId,
+                  userId: creditResult.userId,
+                  question: userQuestion,
+                  spreadId,
+                  spreadTitle,
+                  cards: rawCards,
+                  locale: language,
+                })
+              } catch {
+                /* 존재 보장 실패는 무시 */
+              }
+            }
+            safeEnqueue(encoder.encode(createSSEDoneEvent()))
           } else {
             // 정상 완료 → 복구 가능 턴이면 완성 리딩 캐시 저장. (클라 연결 여부 무관.)
             await persistIfRecoverable()
+            // nonce replay 캐시 저장 — 같은 draw 의 replay(새로고침/뒤로가기)가
+            // 이 "이미 결제한 원본 리딩" 을 그대로 받아, Claude 재호출로 다른
+            // 리딩을 무과금 재생성하던 re-roll 누수를 막는다. 게스트도 drawNonce
+            // 는 있으므로 로그인/게스트 모두 커버(turnId 기반 복구 캐시와 별개).
+            if (drawNonce && fullText.trim() !== '') {
+              try {
+                await cacheSet(
+                  tarotDrawResultKey(ownerKey, drawNonce),
+                  fullText,
+                  DRAW_RESULT_TTL_SEC
+                )
+              } catch {
+                /* 캐시 실패 무시 — replay 시 재생성으로 폴백 */
+              }
+            }
             // 차감-기록 안전망 — 이번 요청이 실제로 과금했고(creditResult 존재,
             // replay 면 null) 로그인 사용자면 같은 readingId 로 존재 행을 보장
             // 생성한다. 클라 tarot/save 가 끝내 안 와도 활동 기록이 남는다.
@@ -643,7 +769,7 @@ export async function POST(req: NextRequest) {
           // 클라가 렌더 못 함).
           const deliveredUsable = receivedAny && isUsableReading(fullText, rawCards.length)
           if (!deliveredUsable) {
-            await refundOnFailure(
+            await refundTurn(
               creditResult,
               receivedAny ? 'tarot_claude_stream_partial' : 'tarot_claude_stream_no_content',
               creditCost,

@@ -30,7 +30,7 @@ import { tarotDeck } from '@/lib/tarot/data'
 import { TAROT_REVERSED_BYTE_THRESHOLD } from '@/lib/tarot/reversedProbability'
 import type { Card } from '@/lib/tarot/tarot.types'
 import { callClaude, extractJsonObject, isClaudeAvailable } from '@/lib/llm/claude'
-import { cacheGet, cacheSet } from '@/lib/cache/redis-cache'
+import { cacheGet, cacheSet, cacheIncr } from '@/lib/cache/redis-cache'
 import { recordCounter } from '@/lib/metrics/index'
 import { logger } from '@/lib/logger'
 
@@ -115,10 +115,17 @@ async function resolveDailyId(
       secure: process.env.NODE_ENV === 'production',
       maxAge: 34560000, // ~400일(브라우저 상한)
     })
+    // 이번 응답도 방금 발급한 쿠키 id 로 답한다 — 다음 요청부터 이 쿠키가
+    // 실려오므로 같은 id 로 캐시가 매칭돼 "당일 1장(같은 카드)" 이 유지된다.
+    // 예전엔 이번 요청만 지문(fingerprint)으로 답하고 쿠키는 fresh 로 심어,
+    // 첫 요청(지문)→이후 요청(쿠키) 사이 id 가 갈려 같은 게스트가 하루에
+    // 서로 다른 두 장을 받고 Claude 를 두 번 호출하던 버그가 있었다.
+    return `g:${fresh}`
   } catch {
-    // request scope 밖(비정상 실행 경로)이면 쿠키 발급만 건너뛴다 — 식별은 지문으로 계속.
+    // request scope 밖(비정상 실행 경로) — 쿠키 발급 불가. 이 경우에만 지문으로
+    // 폴백한다(쿠키가 없어 다음 요청도 지문으로 오므로 id 가 일관됨).
+    return `g:${clientFingerprint(req)}`
   }
-  return `g:${clientFingerprint(req)}`
 }
 
 interface DailyReading {
@@ -247,33 +254,51 @@ export const POST = withApiMiddleware(
         locale === 'ko' ? meaning.keywordsKo || meaning.keywords || [] : meaning.keywords || []
       const cardName = locale === 'ko' ? card.nameKo || card.name : card.name
 
-      const { systemPrompt, userPrompt } = buildDailyTeaserPrompt(
-        locale,
-        cardName,
-        isReversed,
-        keywords
-      )
-
-      // 싸게: 기본 모델(Haiku). 무료지만 본문 4~6문장이 잘리지 않게 토큰 여유.
-      const { text } = await callClaude({
-        systemPrompt,
-        userPrompt,
-        maxTokens: 550,
-        temperature: 0.85,
-        timeoutMs: 25000,
-        label: 'tarot-daily',
-      })
-
-      const parsed = extractJsonObject<{ hook?: string; message?: string }>(text)
-      const hook = (parsed?.hook || '').trim()
-      const message = (parsed?.message || '').trim()
-
-      // 방탄 폴백 — 모델이 뭘 뱉든 사용자는 항상 한 장의 메시지를 본다.
-      // (LLM 이 JSON 을 깨도 키워드로 최소한의 맛보기를 구성.)
+      // 방탄 폴백 — 모델이 뭘 뱉든(또는 안 부르든) 사용자는 항상 한 장의
+      // 메시지를 본다. (LLM 이 JSON 을 깨도 키워드로 최소한의 맛보기를 구성.)
       const fallbackMessage =
         locale === 'ko'
           ? `오늘은 ${keywords.slice(0, 3).join(', ') || '변화'}의 기운이 함께해요.`
           : `Today carries the energy of ${keywords.slice(0, 3).join(', ') || 'change'}.`
+
+      // IP당 하루 LLM 생성 상한 — 데일리 캐시 키(id)가 클라 헤더(x-dp-guest)라
+      // 로테이션하면 매번 캐시 미스로 새 Haiku 호출이 가능한 비용 증폭이 있었다.
+      // 카드 자체는 (id,date) 순수 함수(drawDaily)라 LLM 없이도 나오고, 위
+      // fallbackMessage 로 맛보기까지 구성되므로, IP당 신규 LLM 생성을 넉넉히
+      // 12회로 묶는다. 안정적 id 를 쓰는 정상 사용자는 첫 뽑기 후 캐시 hit 이라
+      // 무관하고, 헤더 로테이션 파밍만 카드-only 폴백으로 떨어진다(NAT 여유 12).
+      // cacheIncr 실패(백엔드 이슈)는 null → fail-open(생성 허용, 소프트 비용가드).
+      const DAILY_LLM_CAP_PER_IP = 12
+      const llmCount = await cacheIncr(
+        `tarot:daily:llmcount:${context.ip}:${date}`,
+        secondsUntilKstMidnight()
+      )
+      const overLlmCap = typeof llmCount === 'number' && llmCount > DAILY_LLM_CAP_PER_IP
+
+      let hook = ''
+      let message = ''
+      if (overLlmCap) {
+        recordCounter('tarot.daily.llm_capped', 1, { source: context.userId ? 'user' : 'guest' })
+      } else {
+        const { systemPrompt, userPrompt } = buildDailyTeaserPrompt(
+          locale,
+          cardName,
+          isReversed,
+          keywords
+        )
+        // 싸게: 기본 모델(Haiku). 무료지만 본문 4~6문장이 잘리지 않게 토큰 여유.
+        const { text } = await callClaude({
+          systemPrompt,
+          userPrompt,
+          maxTokens: 550,
+          temperature: 0.85,
+          timeoutMs: 25000,
+          label: 'tarot-daily',
+        })
+        const parsed = extractJsonObject<{ hook?: string; message?: string }>(text)
+        hook = (parsed?.hook || '').trim()
+        message = (parsed?.message || '').trim()
+      }
 
       const reading: DailyReading = {
         date,

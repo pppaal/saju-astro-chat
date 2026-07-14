@@ -772,6 +772,38 @@ describe('POST /api/tarot/interpret-stream', () => {
   })
 
   // -----------------------------------------------------------------
+  // Truncation (hit token cap after continuations)
+  // -----------------------------------------------------------------
+  describe('Truncated reading handling', () => {
+    it('truncated-but-usable reading is charged but NOT cached/persisted as final', async () => {
+      // 회귀: 예전엔 onTruncated 를 안 넘겨, advice 가 잘려도 완성본으로 캐시·복구
+      // 저장됐다. 이제 usable 이어도 truncated 면 저장/replay 캐시를 건너뛴다(과금은
+      // 상담사 parity 로 유지). 스트림 mock 이 onTruncated 를 발화하고 유효 JSON 을
+      // 돌려주면 route 는 truncated 브랜치를 타야 한다.
+      mockCallClaudeStream.mockImplementation((opts: any) => {
+        opts?.onTruncated?.()
+        return Promise.resolve(
+          createMockClaudeStream([
+            '{"overall":"O","cards":[{"position":"Past","interpretation":"P"}],"advice":"A"}',
+          ])
+        )
+      })
+
+      const res = await POST(makePostRequest(VALID_REQUEST_BODY))
+      await res.text() // 스트림을 done 까지 소비시켜 완료 브랜치 실행
+
+      expect(res.status).toBe(200)
+      // 과금은 유지(환불 아님).
+      expect(mockCheckAndConsumeCredits).toHaveBeenCalled()
+      // truncated 브랜치가 실행됐음을 로그로 확인(저장/replay 캐시는 이 브랜치에서 스킵).
+      expect(logger.warn).toHaveBeenCalledWith(
+        expect.stringContaining('truncated'),
+        expect.any(Object)
+      )
+    })
+  })
+
+  // -----------------------------------------------------------------
   // Card Processing
   // -----------------------------------------------------------------
   describe('Card Processing', () => {

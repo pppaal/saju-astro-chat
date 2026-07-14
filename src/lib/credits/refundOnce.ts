@@ -36,7 +36,11 @@ function synthesizeRefundKey(params: CreditRefundParams): string {
   // 누락되는 것을 막는다(환불 누락 방지). 없으면 기존처럼 시간 버킷으로 rapid
   // 중복만 합친다.
   const bucket = Math.floor(Date.now() / SYNTH_BUCKET_MS)
-  const material = [
+  // JSON 직렬화로 각 필드를 인용/이스케이프해, free-form 필드(reason/apiRoute/
+  // transactionId)에 ':' 가 들어와도 delimiter 경계를 옮겨 서로 다른 환불이 같은
+  // 키로 뭉개지지 않도록 한다. (raw ':'-join 은 apiRoute='a',txn='b:c' 와
+  // apiRoute='a:b',txn='c' 가 같은 문자열이 돼 두 번째 환불이 조용히 누락됐다.)
+  const material = JSON.stringify([
     params.userId,
     params.creditType,
     params.reason,
@@ -44,7 +48,7 @@ function synthesizeRefundKey(params: CreditRefundParams): string {
     params.apiRoute ?? '',
     params.transactionId ?? '',
     bucket,
-  ].join(':')
+  ])
   return `synth:${createHash('sha256').update(material).digest('hex').slice(0, 32)}`
 }
 

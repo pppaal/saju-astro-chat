@@ -43,5 +43,7 @@ export const POST = withApiMiddleware(
     route: '/api/referral/claim',
     limit: 20,
     windowSeconds: 60,
+    // fail-open(→ 인메모리 폴백) 유지 — auth 로 보호되는 저비용 라우트라
+    // Redis 미설정/장애 시 failClosed 로 정상 요청까지 막는 것이 손해다.
   })
 )

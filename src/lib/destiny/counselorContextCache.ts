@@ -33,7 +33,9 @@ function birthFingerprint(b: CounselorBirthInput): string {
     // 앵커 정규화 뒤의 값 — 시간 미상('00:00'/미입력/플래그)은 전부 정오로
     // 수렴하므로 같은 사람의 미상 표기가 달라도 키가 갈리지 않는다.
     b.birthTime ?? TIME_UNKNOWN_ANCHOR,
-    b.gender ?? 'male',
+    // 차트/Meta 와 같은 정규화 값으로 — 'F'/'female'/'FEMALE' 이 서로 다른 캐시
+    // 키로 갈려 같은 사람이 중복 빌드되던 fragmentation 방지.
+    normalizeGender(b.gender) === 'female' ? 'female' : 'male',
     b.timezone ?? 'Asia/Seoul',
     b.latitude ?? '',
     b.longitude ?? '',
@@ -68,9 +70,13 @@ export async function ensureCounselorContext(
   const anchor = resolveBirthTimeAnchor(body.birthTime, body.birthTimeUnknown)
   body = { ...body, birthTime: anchor.time, birthTimeUnknown: anchor.timeUnknown }
   const hourUnknown = anchor.timeUnknown
+  // 좌표가 없으면 도시 미상으로 본다 — timezone 이 있든 없든. 예전엔 timezone 이
+  // 있으면(&& !body.timezone) cityUnknown=false 라, 좌표 없이 timezone 만 온
+  // 요청이 서울 폴백 좌표(37.5665,126.978)로 ASC/MC/하우스를 계산하고 그걸
+  // placeUnreliable=false 로 "신뢰"라 표기해 내보냈다(예: New York timezone 인데
+  // 서울 앵글). 좌표 부재 자체를 미상으로 처리해 날조된 앵글이 신뢰로 새는 걸 막는다.
   const cityUnknown =
-    !!body.birthCityUnknown ||
-    (body.latitude === undefined && body.longitude === undefined && !body.timezone)
+    !!body.birthCityUnknown || (body.latitude === undefined && body.longitude === undefined)
   const userTz = resolveUserTz(body)
   const localNow = getNowInTimezone(userTz)
   const localDateKey = `${localNow.year}-${localNow.month}-${localNow.day}`
@@ -155,7 +161,11 @@ async function buildAndCacheContext(
     ? unknownTag
     : `${body.latitude?.toFixed(4) ?? '?'},${body.longitude?.toFixed(4) ?? '?'}`
   const timeTag = birthTimeUnknown ? unknownTag : (body.birthTime ?? unknownTag)
-  const genderTag = body.gender === 'female' ? 'F' : 'M'
+  // 차트는 normalizeGender(body.gender)('F'/'Female'/'FEMALE' 등 관대 처리)로
+  // 계산하는데, 예전엔 Meta 태그만 raw exact-match(body.gender === 'female')라
+  // 'F'/'Female' 입력 시 차트는 여성인데 프롬프트엔 gender: M 으로 새 상담사가
+  // 성별을 반대로 읽었다(대운 방향은 성별 의존). 차트와 같은 정규화 값을 쓴다.
+  const genderTag = gender === 'female' ? 'F' : 'M'
   parts.push(
     `[Meta] birthDate: ${body.birthDate} | birthTime: ${timeTag} | gender: ${genderTag} | location: ${locTag} | timezone: ${body.timezone ?? 'Asia/Seoul'} | birthTimeUnknown: ${birthTimeUnknown ? 'true' : 'false'} | birthCityUnknown: ${birthCityUnknown ? 'true' : 'false'}`
   )
@@ -176,6 +186,7 @@ async function buildAndCacheContext(
 
   let stableCtxBody = ''
   let dailyCtxBody = ''
+  let buildFailed = false
   try {
     const split = await buildDestinyContext(
       {
@@ -195,7 +206,11 @@ async function buildAndCacheContext(
     )
     stableCtxBody = split.stable
     dailyCtxBody = split.daily
+    // 요청한 소스 중 하나가 조용히 실패(예: astro throw → 사주만 남음)했으면
+    // 부분 결과다 — 30일 정본으로 굳히지 않고 아래 네거티브 TTL 로만 저장한다.
+    if (split.degraded) buildFailed = true
   } catch (err) {
+    buildFailed = true
     logger.warn('[counselorContextCache] destiny context build failed', {
       err: err instanceof Error ? err.message : String(err),
     })
@@ -204,9 +219,18 @@ async function buildAndCacheContext(
   const stableContext = `<birth_data>\n${parts.join('\n')}${stableCtxBody ? `\n\n${stableCtxBody}` : ''}\n</birth_data>`
   const dailyContext = dailyCtxBody
 
+  // 빌드 실패 시엔 차트 없는 [Meta]-only 컨텍스트가 나오는데, 예전엔 이걸 30일
+  // 정본 캐시에 그대로 박아 이후 최대 30일간 차트 0 인 답변을 매 턴 과금하며
+  // 내보냈다(자가복구 불가). 실패 시엔 짧은 네거티브 TTL(60s)로만 캐시해 —
+  // 이번 요청은 degraded 컨텍스트로 답하되(신규 500 없음) 1분 뒤 다음 요청이
+  // 정상 빌드를 재시도하게 한다.
+  const NEGATIVE_TTL_SEC = 60
+  const stableTtl = buildFailed ? NEGATIVE_TTL_SEC : CACHE_TTL.NATAL_CHART // 실패 60s / 정상 30d
+  const dailyTtl = buildFailed ? NEGATIVE_TTL_SEC : CACHE_TTL.CALENDAR_DATA // 실패 60s / 정상 1d
+
   await Promise.all([
-    cacheSet(stableCtxKey, stableContext, CACHE_TTL.NATAL_CHART), // 30d
-    cacheSet(dailyCtxKey, dailyContext, CACHE_TTL.CALENDAR_DATA), // 1d
+    cacheSet(stableCtxKey, stableContext, stableTtl),
+    cacheSet(dailyCtxKey, dailyContext, dailyTtl),
   ])
   return { stableContext, dailyContext }
 }

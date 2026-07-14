@@ -20,6 +20,7 @@ import {
 } from '@/lib/destiny/counselorContextCache'
 import { resolveCounselorLang, resolveCounselorSources } from '@/lib/destiny/counselorRequest'
 import { counselorWarmRequestSchema } from '@/lib/api/zodValidation'
+import { enforceBodySize } from '@/lib/http'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -42,6 +43,11 @@ export async function POST(req: NextRequest) {
     lang?: string
     sources?: { saju?: boolean; astro?: boolean }
   }
+  // 이 라우트는 withApiMiddleware 를 우회하므로 body-size 캡을 직접 건다 —
+  // 거대 본문을 메모리에 버퍼링(req.json)하기 전에 413. realtime 과 동일 상한.
+  const tooLarge = enforceBodySize(req, 1024 * 1024)
+  if (tooLarge) return tooLarge
+
   let body: WarmBody | null
   try {
     body = (await req.json()) as WarmBody

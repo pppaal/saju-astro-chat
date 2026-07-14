@@ -112,6 +112,7 @@ vi.mock('@/lib/credits/creditService', () => ({
 // Mock referral service
 vi.mock('@/lib/referral', () => ({
   grantReferralRewardOnFirstPurchase: vi.fn().mockResolvedValue({ granted: false }),
+  reverseReferralRewardOnRefund: vi.fn().mockResolvedValue({ reversed: false }),
 }))
 
 // ---------------------------------------------------------------------------
@@ -120,6 +121,7 @@ vi.mock('@/lib/referral', () => ({
 import { POST } from '@/app/api/webhook/stripe/route'
 import { prisma } from '@/lib/db/prisma'
 import { addBonusCredits, revokeBonusCreditPurchase } from '@/lib/credits/creditService'
+import { reverseReferralRewardOnRefund, grantReferralRewardOnFirstPurchase } from '@/lib/referral'
 import { captureServerError } from '@/lib/telemetry'
 import { recordCounter } from '@/lib/metrics'
 import { logger } from '@/lib/logger'
@@ -1013,6 +1015,97 @@ describe('Stripe Webhook API - POST /api/webhook/stripe', () => {
       const response = await POST(makeWebhookRequest('body'))
       expect(response.status).toBe(200)
       expect(vi.mocked(addBonusCredits)).not.toHaveBeenCalled()
+    })
+  })
+
+  describe('Referral grant on duplicate retry', () => {
+    it('duplicate retry (addBonusCredits P2002, no queued revocation) STILL grants the referral reward', async () => {
+      // 회귀: 1차 시도가 크레딧은 적립하고 referral 지급 전에 죽으면, 재시도는
+      // P2002 duplicate 로 도달해 예전엔 곧장 return → 추천인 보상 영영 누락.
+      // 이제 멱등한 referral grant 까지 진행해야 한다.
+      const event = makeEvent('checkout.session.completed', {
+        id: 'cs_ref_retry',
+        metadata: { type: 'credit_pack', creditPack: 'mini', userId: 'user-ref-retry' },
+        amount_total: 1900,
+        currency: 'krw',
+        payment_status: 'paid',
+        payment_intent: 'pi_ref_retry',
+      })
+      mockConstructEvent.mockReturnValue(event)
+      vi.mocked(prisma.user.findUnique).mockResolvedValue({
+        id: 'user-ref-retry',
+        name: 'R',
+        email: 'r@example.com',
+      } as any)
+      // addBonusCredits P2002 → creditGrantWasDuplicate=true (already credited).
+      const dup: any = new Error('Unique constraint failed on BonusCreditPurchase.stripePaymentId')
+      dup.code = 'P2002'
+      vi.mocked(addBonusCredits).mockRejectedValue(dup)
+      // 큐된 revocation 없음 → 정상 구매(환불 아님).
+      vi.mocked(prisma.pendingCreditRevocation.findUnique).mockResolvedValue(null)
+      vi.mocked(grantReferralRewardOnFirstPurchase).mockResolvedValue({ granted: true } as any)
+
+      const response = await POST(makeWebhookRequest('body'))
+
+      expect(response.status).toBe(200)
+      // 핵심: 재시도여도 referral 지급 시도가 이뤄진다(멱등).
+      expect(vi.mocked(grantReferralRewardOnFirstPurchase)).toHaveBeenCalledWith('user-ref-retry')
+    })
+  })
+
+  describe('Referral reversal on refund', () => {
+    it('charge.refunded → after revoking the buyer purchase, reverses the referral reward', async () => {
+      const event = makeEvent('charge.refunded', {
+        id: 'ch_ref_1',
+        amount_refunded: 1900,
+        currency: 'krw',
+        payment_intent: 'pi_ref_1',
+      })
+      mockConstructEvent.mockReturnValue(event)
+      vi.mocked(revokeBonusCreditPurchase).mockResolvedValue({
+        revoked: true,
+        reclaimed: 10,
+        alreadyUsed: 0,
+      })
+      // 구매자 userId 조회 — 회수한 purchase 행에서.
+      vi.mocked(prisma.bonusCreditPurchase.findFirst).mockResolvedValue({
+        userId: 'buyer-ref-1',
+      } as any)
+
+      const response = await POST(makeWebhookRequest('body'))
+
+      expect(response.status).toBe(200)
+      expect(vi.mocked(revokeBonusCreditPurchase)).toHaveBeenCalledWith('pi_ref_1')
+      // 추천 보상 역전 — 구매자 userId + 트리거 paymentIntentId 로 호출.
+      expect(vi.mocked(reverseReferralRewardOnRefund)).toHaveBeenCalledWith(
+        'buyer-ref-1',
+        'pi_ref_1'
+      )
+    })
+
+    it('charge.refunded → referral reversal failure is swallowed (purchase revoke still succeeds, 200)', async () => {
+      const event = makeEvent('charge.refunded', {
+        id: 'ch_ref_2',
+        amount_refunded: 1900,
+        currency: 'krw',
+        payment_intent: 'pi_ref_2',
+      })
+      mockConstructEvent.mockReturnValue(event)
+      vi.mocked(revokeBonusCreditPurchase).mockResolvedValue({
+        revoked: true,
+        reclaimed: 10,
+        alreadyUsed: 0,
+      })
+      vi.mocked(prisma.bonusCreditPurchase.findFirst).mockResolvedValue({
+        userId: 'buyer-ref-2',
+      } as any)
+      vi.mocked(reverseReferralRewardOnRefund).mockRejectedValueOnce(new Error('boom'))
+
+      const response = await POST(makeWebhookRequest('body'))
+
+      // anti-fraud 부가 작업 실패는 이미 성공한 구매 회수를 되돌리지 않는다.
+      expect(response.status).toBe(200)
+      expect(vi.mocked(revokeBonusCreditPurchase)).toHaveBeenCalledWith('pi_ref_2')
     })
   })
 })

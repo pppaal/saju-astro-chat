@@ -48,7 +48,6 @@ export const ASPECT_ANGLES: Record<AspectType, number> = {
 
 export type AspectRules = {
   aspects?: AspectType[]
-  includeMinor?: boolean
   maxResults?: number // default 50
   orbs?: {
     Sun?: number

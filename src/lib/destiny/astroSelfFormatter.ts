@@ -194,7 +194,7 @@ export async function formatAstroSelf(input: AstroSelfInput): Promise<string> {
     signByName.set(pl.name, sign(pl.sign))
   }
   out.push(skipAngles ? '[Natal aspects — 행성 사이]' : '[Natal aspects — 행성·angle 사이]')
-  const natalAspects = findNatalAspects(chart, { includeMinor: true, maxResults: 80 })
+  const natalAspects = findNatalAspects(chart, { maxResults: 80 })
   for (const asp of natalAspects) {
     if (skipAngles && (ANGLE_NAMES.has(asp.from.name) || ANGLE_NAMES.has(asp.to.name))) continue
     const fromSign = signByName.get(asp.from.name) ?? '?'

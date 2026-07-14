@@ -14,6 +14,7 @@ import {
   claimBonusPurchaseForRefund,
   rollbackBonusPurchaseRefundClaim,
 } from '@/lib/credits/creditService'
+import { reverseReferralRewardOnRefund } from '@/lib/referral'
 import { getStripeOrNull } from '@/lib/stripe/client'
 
 export const dynamic = 'force-dynamic'
@@ -209,6 +210,16 @@ export const POST = withApiMiddleware(
         })
       }
       return apiError(ErrorCodes.INTERNAL_ERROR, 'stripe_refund_failed')
+    }
+
+    // 추천 보상 역전 — 이 구매가 트리거한 first_purchase 추천 보상이 있으면
+    // 추천인+피추천인 referral 크레딧을 회수한다(구매 환불 → 보상 회수, 파밍 차단).
+    // anti-fraud 부가 작업이라 실패해도 (이미 완료된) 현금·크레딧 환불을 되돌리지
+    // 않는다 — log 후 진행. reverse 함수는 멱등(completed→reversed).
+    try {
+      await reverseReferralRewardOnRefund(context.userId!, stripePaymentId)
+    } catch (err) {
+      logger.error('[me/refund-credit-pack] referral reversal failed', { purchaseId, err })
     }
 
     logger.info('[me/refund-credit-pack] self-service refund success', {

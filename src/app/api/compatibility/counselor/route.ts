@@ -11,20 +11,31 @@ import { compatibilityCounselorRequestSchema } from '@/lib/api/zodValidation'
 import { buildCompatibilityCounselorPrompt } from '@/lib/prompts/compatibilityCounselorPrompt'
 import { sanitizeForXmlTagBoundary, sanitizePriorTurns } from '@/lib/llm/promptSafety'
 import { consumeCredits } from '@/lib/credits/creditService'
-import { refundCreditsOnce } from '@/lib/credits/refundOnce'
+import { makeChargedRefunder } from '@/lib/api/chargedRefund'
 import { CREDIT_COSTS } from '@/lib/config/creditCosts'
 import { ensureCounselorSessionRecord } from '@/lib/counselor/ensureSessionRecord'
 import { createIdempotencyStore, idemContentTag } from '@/lib/api/idempotency'
-import { cacheSet } from '@/lib/cache/redis-cache'
+import {
+  streamCachedAnswer,
+  REPLAY_RESULT_TTL_SEC,
+  makeReplayCacheKeys,
+} from '@/lib/api/counselorReplayCache'
+import { cacheGet, cacheSet } from '@/lib/cache/redis-cache'
 import type { Relation } from '../types'
 
 // 끊긴 턴 복원용 캐시 키 — userId 를 포함해 ownership 검증 (다른 사용자가
-// turnId 알아도 조회 불가). 게스트는 끊김 복구 미지원 (turnId 보관 안 함).
-export const compatTurnResultKey = (userId: string, turnId: string) =>
-  `compat:turn-result:${userId}:${turnId}`
+// turnId 알아도 조회 불가). replay 키는 scopedIdemKey(=차감 멱등키) 로 완성
+// 답안을 캐시 — replay 시 Claude 재호출 없이 저장본 재생. 키 포맷·
+// streamCachedAnswer·TTL 은 counselor/realtime 과 공유(counselorReplayCache).
+const { turnResultKey: compatTurnResultKey, replayResultKey: compatReplayResultKey } =
+  makeReplayCacheKeys('compat')
+export { compatTurnResultKey }
 
 // 30분 — 크레딧 충전하러 갔다 오는 왕복도 복구되게 (10→30분).
 export const COMPAT_TURN_RESULT_TTL_SEC = 1800
+
+// replay 캐시 TTL — 공유 상수(6h) 를 라우트 로컬 이름으로 별칭.
+const COMPAT_REPLAY_RESULT_TTL_SEC = REPLAY_RESULT_TTL_SEC
 
 // 새로고침/뒤로가기/다른 탭 등으로 같은 user turn 이 재진입할 때 크레딧
 // 중복 차감 방지. 클라이언트가 매 메시지에 UUID 를 x-idempotency-key 헤더로
@@ -122,6 +133,13 @@ export async function POST(req: NextRequest) {
   // shared per-turn idempotency key so inner + outer refunds never double-pay.
   let chargedUserId: string | null = null
   let refundKey: string | null = null
+  // 함수 스코프로 hoist — replay 판정 블록과 onComplete(replay 캐시 저장) 양쪽에서
+  // 같은 키를 써야 하므로. 실제 값은 아래 credit 블록에서 산출.
+  let scopedIdemKey: string | null = null
+  // 공유 refunder — try 안에서 charge 직후 할당. outer catch(try 밖)도 같은
+  // 클로저를 호출해 pre-stream throw 를 환불한다(refundKey dedupe 로 이중환불 없음).
+  // 아직 차감 전이면 undefined → catch 에서 optional-call 이 no-op.
+  let refundChargedCredit: ((reason: string, errorMessage?: string) => Promise<void>) | undefined
   try {
     // Apply middleware: authenticated guard — 로그인 필수. 비로그인은 401.
     // requireCredits 는 false — 새로고침 idempotent replay 일 때 차감을
@@ -246,7 +264,7 @@ export async function POST(req: NextRequest) {
       // 같은 x-idempotency-key 를 다른 질문에 재사용해 첫 차감 후 공짜로 받던
       // free-replay 차단. 운명상담사 realtime 과 동일 보호(그쪽엔 있었고 여긴 빠져
       // 있던 비대칭 해소).
-      const scopedIdemKey = idemStore.keyFor(
+      scopedIdemKey = idemStore.keyFor(
         req,
         `user:${context.userId}`,
         idemContentTag(lastUser?.content ?? '')
@@ -254,7 +272,18 @@ export async function POST(req: NextRequest) {
       // 원자적 선점 — 동시 요청 중 하나만 첫 진입으로 차감(이중 차감 방지).
       const claimed = scopedIdemKey ? await idemStore.claim(scopedIdemKey) : true
       if (scopedIdemKey && !claimed) {
-        logger.info('[compat/counselor] idempotent replay, skip credit consume', {
+        // 같은 질문의 정당한 재진입 — 원턴에서 이미 차감됨. 예전엔 여기서 그대로
+        // Claude 를 재호출해 매번 다른 유료 답변을 무과금 재생성(6h claim 창 동안
+        // re-roll)하던 수익 누수였다. 이제 원턴에서 저장한 "이미 결제한 그 답변"
+        // 을 그대로 재생하고, 캐시가 비었을 때만 재생성으로 폴백한다.
+        const cachedAnswer = await cacheGet<string>(compatReplayResultKey(scopedIdemKey))
+        if (cachedAnswer && cachedAnswer.trim() !== '') {
+          logger.info('[compat/counselor] idempotent replay, serving cached answer', {
+            userId: context.userId,
+          })
+          return streamCachedAnswer(cachedAnswer, { 'X-Counselor-Replay': '1' })
+        }
+        logger.info('[compat/counselor] idempotent replay, no cache — regenerating uncharged', {
           userId: context.userId,
         })
       } else {
@@ -262,16 +291,36 @@ export async function POST(req: NextRequest) {
         // 비어있지 않음)는 onComplete 의 ensureCounselorSessionRecord 가 행을
         // 보장하는 바로 그 id. CONSUME 감사행에 박아 사후 reconciliation 이
         // "차감됐는데 세션 행 없음"을 정확히 잡게 한다.
-        const res = await consumeCredits(
-          context.userId,
-          'compatibility',
-          CREDIT_COSTS.compatibilityTurn,
-          {
-            apiRoute: 'compatibility/counselor',
-            activityType: 'compat_session',
-            activityRef: persistSessionId || undefined,
-          }
-        )
+        let res: { success: boolean }
+        try {
+          res = await consumeCredits(
+            context.userId,
+            'compatibility',
+            CREDIT_COSTS.compatibilityTurn,
+            {
+              apiRoute: 'compatibility/counselor',
+              activityType: 'compat_session',
+              activityRef: persistSessionId || undefined,
+            }
+          )
+        } catch (err) {
+          // consumeCredits 는 비즈니스 실패만 {success:false} 로 돌리고 시스템
+          // 에러(Prisma/네트워크)는 rethrow 한다. 여기서 잡지 않으면 예외가 외부
+          // catch 로 빠져 idemStore.release 없이 claim(6h) 이 남고, 클라 5xx 자동
+          // 재시도가 replay 로 판정돼 프리미엄 스트림이 무료로 나갔다. realtime
+          // 라우트와 동일하게 선점 해제 후 503 으로 막는다 — 절대 무료 스트림 금지.
+          logger.warn('[compat/counselor] credit deduction error', { err })
+          if (scopedIdemKey) await idemStore.release(scopedIdemKey)
+          return createErrorResponse({
+            code: ErrorCodes.INTERNAL_ERROR,
+            message:
+              lang === 'ko'
+                ? '결제 처리 중 문제가 생겼어요. 잠시 후 다시 시도해주세요.'
+                : 'Could not process credits. Please try again.',
+            locale: lang,
+            route: 'compatibility/counselor',
+          })
+        }
         if (!res.success) {
           // 차감 실패 → 선점 해제 후 결제 요구 응답(재시도가 다시 차감 가능).
           if (scopedIdemKey) await idemStore.release(scopedIdemKey)
@@ -299,33 +348,21 @@ export async function POST(req: NextRequest) {
 
     // Claude 호출 실패 시 차감된 1 크레딧 환불 (인증 사용자 + 이번 turn 에
     // 실제 차감한 경우만). idempotent replay 일 땐 chargedUserId === null
-    // 이므로 no-op.
-    const refundChargedCredit = async (reason: string) => {
-      if (!chargedUserId) return
-      try {
-        // creditType 은 'reading' 이어야 한다. consumeCredits 는 type 을 무시하고
-        // (creditService.ts `void type`) 항상 BONUS 풀에서 차감하는데, refundCredits
-        // 의 'compatibility' 분기는 항상 0 인 compatibilityUsed 카운터만 감소시켜
-        // (GREATEST(0,-1)=0) bonusCredits 를 전혀 복원하지 않는 no-op 이었다 —
-        // 실패 시 사용자가 크레딧을 영구히 잃는데 감사 로그엔 환불 성공으로 남았다.
-        // BONUS 풀을 실제로 되돌리는 'reading' 분기로 통일한다.
-        await refundCreditsOnce(refundKey, {
-          userId: chargedUserId,
-          creditType: 'reading',
-          // 차감과 같은 SSOT 값 — 환불액이 차감액과 어긋나지 않게.
-          amount: CREDIT_COSTS.compatibilityTurn,
-          reason: 'api_error',
-          apiRoute: 'compatibility/counselor',
-          errorMessage: reason,
-        })
-        logger.info('[compat/counselor] credit refunded on failure', {
-          userId: chargedUserId,
-          reason,
-        })
-      } catch (err) {
-        logger.error('[compat/counselor] refund failed', { err })
-      }
-    }
+    // 이므로 no-op. 환불 불변식(creditType='reading' + refundKey dedupe)은
+    // 공유 헬퍼가 고정한다 — 전엔 이 클로저와 outer-catch 에 각각 복붙돼 있었다.
+    // 이 시점엔 refundKey·chargedUserId 가 확정 상태다: 차감했으면 세팅됐고,
+    // 아니면(게스트 / replay-uncharged) null 이라 refunder 가 no-op 이 된다.
+    // (replay-cache 히트·차감 실패는 위에서 early return 해 여기 안 온다.)
+    refundChargedCredit = makeChargedRefunder(
+      {
+        refundKey,
+        userId: chargedUserId ?? '',
+        amount: CREDIT_COSTS.compatibilityTurn,
+        apiRoute: 'compatibility/counselor',
+        logLabel: 'compat/counselor',
+      },
+      () => chargedUserId !== null
+    )
 
     // Build raw saju + astro contexts. We hand the LLM raw chart tables
     // (saju pillars, natal planets/houses/aspects) and let it do its
@@ -718,6 +755,20 @@ export async function POST(req: NextRequest) {
                   /* 캐시 실패는 무시 — 단순히 복원이 안 될 뿐, 스트림엔 영향 없음 */
                 }
               }
+              // replay 캐시 저장 — 같은 질문의 재진입이 이 "이미 결제한 답변" 을
+              // 그대로 받아, Claude 재호출로 다른 답변을 무과금 재생성하던 re-roll
+              // 누수를 막는다. scopedIdemKey 는 replay 판정과 같은 키.
+              if (scopedIdemKey) {
+                try {
+                  await cacheSet(
+                    compatReplayResultKey(scopedIdemKey),
+                    persisted,
+                    COMPAT_REPLAY_RESULT_TTL_SEC
+                  )
+                } catch {
+                  /* 캐시 실패 무시 — replay 시 재생성으로 폴백 */
+                }
+              }
               try {
                 await ensureCounselorSessionRecord({
                   sessionId: persistSessionId,
@@ -753,7 +804,10 @@ export async function POST(req: NextRequest) {
         // never sees them. Refund the consumed credit here too.
         onFailure: chargedUserId
           ? async () => {
-              await refundChargedCredit('compatibility-counselor stream delivered no content')
+              await refundChargedCredit?.(
+                'api_error',
+                'compatibility-counselor stream delivered no content'
+              )
             }
           : undefined,
       })
@@ -763,7 +817,8 @@ export async function POST(req: NextRequest) {
       })
 
       // Refund credit if Claude failed (authed users only, this turn 차감 후)
-      await refundChargedCredit(
+      await refundChargedCredit?.(
+        'api_error',
         `Claude error: ${claudeErr instanceof Error ? claudeErr.message : 'unknown'}`
       )
 
@@ -782,25 +837,14 @@ export async function POST(req: NextRequest) {
     // failure (e.g. chart building threw before the stream started), refund it
     // here. The inner claudeErr catch returns instead of rethrowing, so this
     // only runs for pre-stream failures → no double refund.
-    if (chargedUserId) {
-      try {
-        // Idempotent: same key as refundChargedCredit, so if an inner path
-        // already refunded this turn, this is a no-op (no double refund).
-        // 'reading' 로 통일 — 위 refundChargedCredit 주석 참조(consumeCredits 가
-        // BONUS 풀에서 차감하므로 'compatibility' 환불은 no-op 이었다).
-        await refundCreditsOnce(refundKey, {
-          userId: chargedUserId,
-          creditType: 'reading',
-          amount: CREDIT_COSTS.compatibilityTurn,
-          reason: 'api_error',
-          apiRoute: 'compatibility/counselor',
-          errorMessage: `handler error: ${error instanceof Error ? error.name : 'Unknown'}`,
-        })
-        logger.info('[compat/counselor] credit refunded in outer catch', { userId: chargedUserId })
-      } catch (refundErr) {
-        logger.error('[compat/counselor] outer-catch refund failed', { refundErr })
-      }
-    }
+    // 같은 공유 refunder(refundKey dedupe) — 스트림 inner catch 가 이미 환불했으면
+    // no-op. inner claudeErr catch 는 rethrow 하지 않으므로 이 outer catch 는
+    // pre-stream 실패(차감 후 차트/프롬프트 빌드 throw)에서만 실제 환불한다.
+    // refundChargedCredit 이 undefined 면(차감 전 throw) 환불할 것도 없다 → no-op.
+    await refundChargedCredit?.(
+      'api_error',
+      `handler error: ${error instanceof Error ? error.name : 'Unknown'}`
+    )
     logger.error('[Compatibility Counselor] Error:', { error: error })
     // Never reflect raw internal/DB error text to the client (project policy:
     // "don't reflect raw errors"). The detail is captured server-side via the

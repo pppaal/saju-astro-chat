@@ -423,6 +423,45 @@ describe('/api/me/profile', () => {
       })
     })
 
+    it('saves birthDate even when the birthTimeUnknown write fails (column drift → P2022)', async () => {
+      // 회귀: birthTimeUnknown 컬럼이 prod DB 에서 누락(마이그레이션 phantom-apply)
+      // 되면, 예전엔 같은 upsert 안에 있어 P2022 가 트랜잭션을 통째로 롤백 →
+      // birthDate 저장까지 막히고 500. 이제 birthTimeUnknown 은 별도 best-effort
+      // 라, 실패해도 핵심 birthDate 저장은 커밋되고 500 이 나지 않는다.
+      vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUserData as any)
+      const p2022 = Object.assign(new Error('column "birthTimeUnknown" does not exist'), {
+        code: 'P2022',
+      })
+      // 결정적 mock — core upsert(birthDate 포함)는 성공, birthTimeUnknown-only
+      // 별도 upsert 만 P2022 로 실패. (Once 큐 대신 args 기반이라 테스트 간 누수 없음.)
+      const upsertMock = vi.mocked(prisma.userProfile.upsert)
+      upsertMock.mockReset()
+      upsertMock.mockImplementation((args: any) =>
+        args?.create?.birthTimeUnknown !== undefined && args?.create?.birthDate === undefined
+          ? Promise.reject(p2022)
+          : (Promise.resolve({}) as any)
+      )
+
+      const req = new NextRequest('http://localhost:3000/api/me/profile', {
+        method: 'PATCH',
+        body: JSON.stringify({ birthDate: '1990-05-15', birthTimeUnknown: true }),
+      })
+
+      const response = await PATCH(req, mockContext)
+
+      // 500 이 아니어야 한다 (핵심 저장은 성공).
+      expect(response.status).not.toBe(500)
+      // core upsert 는 birthDate 를 실제로 썼다.
+      const firstUpsert = vi.mocked(prisma.userProfile.upsert).mock.calls[0][0] as {
+        create: Record<string, unknown>
+      }
+      expect(firstUpsert.create).toMatchObject({ birthDate: '1990-05-15' })
+      // birthTimeUnknown 은 core upsert 에 섞이지 않았다(별도 쓰기로 분리).
+      expect(firstUpsert.create).not.toHaveProperty('birthTimeUnknown')
+      // 다음 테스트로 impl 이 새지 않게 초기화(beforeEach 는 clearAllMocks 만 함).
+      upsertMock.mockReset()
+    })
+
     it('should allow null values for birth fields', async () => {
       vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUserData as any)
 

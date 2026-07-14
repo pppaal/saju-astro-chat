@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/db/prisma'
 import { Prisma } from '@prisma/client'
-import { addBonusCredits } from '@/lib/credits/creditService'
+import { addBonusCredits, claimBonusPurchaseForRefund } from '@/lib/credits/creditService'
 import { randomBytes } from 'crypto'
 import { logger } from '@/lib/logger'
 
@@ -234,6 +234,103 @@ export async function grantReferralRewardOnFirstPurchase(referredUserId: string)
   } catch (error: unknown) {
     logger.error('[grantReferralRewardOnFirstPurchase] error:', error)
     return { granted: false }
+  }
+}
+
+// 특정 사용자의 source='referral' lot 하나(정확한 발급액과 일치)를 회수한다.
+// remaining 경합(사용자가 그 사이 크레딧 사용) 시 소수 재시도. claimBonus-
+// PurchaseForRefund 가 remaining 을 낙관적 잠금으로 보고 GREATEST(0,...) 로
+// floor 하므로 이미 쓴 크레딧은 절대 마이너스로 회수되지 않는다(미사용분만 회수).
+async function revokeOneReferralLot(
+  userId: string,
+  expectedAmount: number,
+  sourceRef: string
+): Promise<number> {
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const lot = await prisma.bonusCreditPurchase.findFirst({
+      // 이 보상 크기(expectedAmount)와 일치하는 referral lot — 추천인이 여러 명을
+      // 추천해 lot 이 여럿이어도 "이 보상 1건 분량"만 되돌린다.
+      where: {
+        userId,
+        source: 'referral',
+        amount: expectedAmount,
+        expired: false,
+        remaining: { gt: 0 },
+      },
+      orderBy: { createdAt: 'desc' },
+      select: { id: true, amount: true, remaining: true },
+    })
+    if (!lot) return 0
+    const res = await claimBonusPurchaseForRefund({
+      purchaseId: lot.id,
+      ownerUserId: userId,
+      amount: lot.amount,
+      expectedRemaining: lot.remaining,
+      reason: 'referral_reversed_on_refund',
+      initiatedBy: 'system',
+      sourceRef,
+      // requireSourcePurchase 생략 → referral lot 회수 허용.
+    })
+    if (res.claimed) return res.reclaimed
+    // lock 실패 = remaining 이 경합으로 바뀜 → 재읽기 후 재시도.
+  }
+  return 0
+}
+
+/**
+ * 추천 대상 구매가 환불됐을 때 그 구매가 트리거한 first_purchase 추천 보상을
+ * 되돌린다 — 추천인·피추천인 양쪽의 referral 크레딧을 회수하고 보상을 'reversed'
+ * 로 표시한다. (업계 표준: 추천 보상은 구매 완료가 조건이라 그 구매가 환불되면
+ * 회수. 자기추천 파밍[A·B 둘 다 통제 → B가 결제·환불]을 완전히 닫는다.)
+ *
+ * 멱등: status completed → reversed 를 원자적 updateMany 로 claim 하므로,
+ * 동시/재시도 환불이 이중 회수하지 않는다. lot 회수는 미사용분만(floored) 되므로
+ * 이미 쓴 크레딧을 마이너스로 만들지 않는다. sourceRef 는 트리거한 환불의
+ * stripePaymentId(원장 추적용).
+ */
+export async function reverseReferralRewardOnRefund(
+  refundedBuyerUserId: string,
+  sourceRef: string
+): Promise<{ reversed: boolean; referrerReclaimed?: number; refereeReclaimed?: number }> {
+  try {
+    const reward = await prisma.referralReward.findFirst({
+      where: {
+        referredUserId: refundedBuyerUserId,
+        status: 'completed',
+        rewardType: 'first_purchase',
+      },
+    })
+    if (!reward) return { reversed: false }
+
+    // 원자적 claim — 이 환불이 보상을 되돌리는 유일한 처리자가 되게 한다.
+    const claimed = await prisma.referralReward.updateMany({
+      where: { id: reward.id, status: 'completed' },
+      data: { status: 'reversed', completedAt: new Date() },
+    })
+    if (claimed.count === 0) return { reversed: false } // 동시/재시도 — 이미 처리됨
+
+    const referrerReclaimed = await revokeOneReferralLot(
+      reward.userId,
+      reward.creditsAwarded,
+      sourceRef
+    )
+    const refereeReclaimed = await revokeOneReferralLot(
+      refundedBuyerUserId,
+      REFEREE_CREDITS,
+      sourceRef
+    )
+
+    logger.info('[reverseReferralRewardOnRefund] reversed', {
+      rewardId: reward.id,
+      referrerId: reward.userId,
+      refereeId: refundedBuyerUserId,
+      referrerReclaimed,
+      refereeReclaimed,
+    })
+    return { reversed: true, referrerReclaimed, refereeReclaimed }
+  } catch (error: unknown) {
+    logger.error('[reverseReferralRewardOnRefund] error:', error)
+    return { reversed: false }
   }
 }
 

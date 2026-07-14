@@ -10,6 +10,8 @@ import { loadOgFonts } from '@/lib/share/ogFont'
 import { isAllowedCardBg } from '@/lib/social/aiImage'
 import { SOCIAL_CATEGORIES, type SocialCategory } from '@/lib/social/types'
 import { siteBaseUrl } from '@/lib/tarot/shareLink'
+import { rateLimit } from '@/lib/rateLimit'
+import { getClientIp } from '@/lib/request-ip'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -51,6 +53,16 @@ const SOFT: Record<SocialCategory, string> = {
   zodiac: 'rgba(255,157,107,',
 }
 export async function GET(req: Request): Promise<Response> {
+  // 비인증·미들웨어 미적용 라우트 — 요청마다 1080×1350 satori 렌더 + (텍스트별)
+  // Google Fonts 서브셋 외부 fetch 가 돈다. 무제한이면 파라미터만 바꿔 반복 호출해
+  // CPU·아웃바운드를 증폭시킬 수 있으므로 IP 레이트리밋을 직접 건다. 정상 발행
+  // 흐름은 카드당 한두 번이라 60/min 은 체감 영향 없음.
+  const ip = getClientIp(req.headers)
+  const rl = await rateLimit(`social:card:${ip}`, { limit: 60, windowSeconds: 60 })
+  if (!rl.allowed) {
+    return new Response('Too Many Requests', { status: 429 })
+  }
+
   const url = new URL(req.url)
   const vRaw = url.searchParams.get('v') || 'saju'
   const v: SocialCategory = (SOCIAL_CATEGORIES as readonly string[]).includes(vRaw)

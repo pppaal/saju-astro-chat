@@ -142,7 +142,6 @@ export const POST = withApiMiddleware(async (req: NextRequest, context: ApiConte
   // 6. Calculate aspects and advanced data
   const chart = toChart(natal)
   const aspectRules: AspectRules = {
-    includeMinor: opts.includeMinorAspects,
     maxResults: 120,
     scoring: { weights: { orb: 0.55, aspect: 0.4, speed: 0.05 } },
   }

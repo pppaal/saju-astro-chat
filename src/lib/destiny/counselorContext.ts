@@ -427,6 +427,12 @@ function buildInstructions(
 export interface DestinyContextSplit {
   stable: string
   daily: string
+  /**
+   * 요청된 소스 중 하나가 실패해 결과가 degraded(예: astro 를 요청했는데 천체력
+   * 계산이 throw 해 사주만 남음)임을 알린다. 캐시 레이어가 이걸 보고 30일 정본
+   * 대신 짧은 네거티브 TTL 로만 저장해, 부분 실패가 한 달간 고착되지 않게 한다.
+   */
+  degraded?: boolean
 }
 
 export async function buildDestinyContext(
@@ -442,11 +448,16 @@ export async function buildDestinyContext(
 ): Promise<DestinyContextSplit> {
   const L = (ko: string, en: string) => (locale === 'ko' ? ko : en)
   // "오늘"은 주입된 now 에서 직접 뽑는다. now 는 ensureCounselorContext 가 사용자
-  // tz 기준으로 만든 그날 정오 Date 라, 로컬 필드(getFullYear/Month/Date)가 곧
-  // 사용자-tz 날짜다. 예전엔 여기서 getNowInTimezone(wall clock)을 다시 읽어
-  // astro(now 사용)와 saju/"오늘"이 서로 다른 시계를 보던 tz·날짜경계 불일치 +
-  // 결정론 누수(테스트로 now 고정 불가)가 있었다. now 단일 기준으로 통일.
-  const localNow = { year: now.getFullYear(), month: now.getMonth() + 1, day: now.getDate() }
+  // tz 기준 그날의 *UTC 정오*(Date.UTC(...,12,0,0)) 로 만든 Date 라, UTC 필드가
+  // 곧 사용자-tz 날짜다. 예전엔 서버-로컬 필드(getFullYear/Month/Date)를 읽어,
+  // UTC+13/+14 호스트(예: Pacific/Auckland DST)에선 UTC 정오가 로컬 다음날
+  // 01~02시가 돼 "# 오늘" 앵커·일진 창·사주 연도 라벨이 하루 밀렸다. 서버-tz
+  // 의존을 없애려 getUTC* 로 읽는다(buildIljinWindowBlock 이 이미 getUTC* 사용).
+  const localNow = {
+    year: now.getUTCFullYear(),
+    month: now.getUTCMonth() + 1,
+    day: now.getUTCDate(),
+  }
   const year = localNow.year
   // 사주 미선택이면 아예 빌드하지 않는다(원국·타이밍·일진 전부 스킵).
   const saju = sources.saju ? buildSajuSection(birth, locale, year, localNow, now) : null
@@ -462,6 +473,9 @@ export async function buildDestinyContext(
 
   let astroNatal = '' // ## 점성 (static natal chart)
   let astroTiming = '' // moves under ## 타이밍 (transits/eclipses/SR/progression/profection)
+  // astro 를 요청했는데 아래 계산이 throw 하면 degraded=true — 캐시 레이어가
+  // 30일 대신 짧은 TTL 로만 저장하게 신호한다.
+  let astroDegraded = false
   // 점성 미선택이면 천체력 계산(무거움) 자체를 스킵.
   if (sources.astro)
     try {
@@ -591,6 +605,7 @@ export async function buildDestinyContext(
       logger.warn('[buildDestinyContext] astro section build failed', {
         err: err instanceof Error ? err.message : String(err),
       })
+      astroDegraded = true
     }
 
   // === STABLE (cached prefix) ===
@@ -616,9 +631,13 @@ export async function buildDestinyContext(
   // KO: 남은 영어 구조 태그/전문용어(cross/[CRITICAL]/SR/Lord/orb 등)를 한글로.
   // 한국어 사용자에겐 한국어 데이터만 — EN 경로는 손대지 않아 영어 유지.
   if (locale === 'ko') {
-    return { stable: koStructuralLabels(stable), daily: koStructuralLabels(daily) }
+    return {
+      stable: koStructuralLabels(stable),
+      daily: koStructuralLabels(daily),
+      degraded: astroDegraded,
+    }
   }
-  return { stable, daily }
+  return { stable, daily, degraded: astroDegraded }
 }
 
 function buildSajuSection(

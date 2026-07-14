@@ -1,31 +1,33 @@
 // src/lib/astrology/foundation/synastry.ts
 // 시너스트리 (두 차트 비교) 계산
 
-import { Chart, PlanetBase, AspectHit, AspectType, ZodiacKo } from "./types";
-import { shortestAngle, normalize360 } from "./utils";
-import { evaluateAspect, AspectEngineConfig } from "./aspectCore";
+import { Chart, PlanetBase, AspectHit, AspectType, ZodiacKo } from './types'
+import { shortestAngle, normalize360 } from './utils'
+import { evaluateAspect, AspectEngineConfig } from './aspectCore'
+import { matchHouseForCusps, UNKNOWN_HOUSE } from './shared'
+import { logger } from '@/lib/logger'
 
 export interface SynastryInput {
-  chartA: Chart;
-  chartB: Chart;
+  chartA: Chart
+  chartB: Chart
 }
 
 export interface HouseOverlay {
-  planet: string;
-  planetSign: ZodiacKo;
-  inHouse: number;
-  description: string;
+  planet: string
+  planetSign: ZodiacKo
+  inHouse: number
+  description: string
 }
 
 export interface SynastryResult {
-  aspects: AspectHit[];
-  houseOverlaysAtoB: HouseOverlay[];  // A의 행성이 B의 하우스에
-  houseOverlaysBtoA: HouseOverlay[];  // B의 행성이 A의 하우스에
+  aspects: AspectHit[]
+  houseOverlaysAtoB: HouseOverlay[] // A의 행성이 B의 하우스에
+  houseOverlaysBtoA: HouseOverlay[] // B의 행성이 A의 하우스에
   score: {
-    harmony: number;    // 조화로운 애스펙트 점수
-    tension: number;    // 긴장 애스펙트 점수
-    total: number;      // 총점
-  };
+    harmony: number // 조화로운 애스펙트 점수
+    tension: number // 긴장 애스펙트 점수
+    total: number // 총점
+  }
 }
 
 const ASPECT_ANGLES: Record<AspectType, number> = {
@@ -39,7 +41,7 @@ const ASPECT_ANGLES: Record<AspectType, number> = {
   quintile: 72,
   biquintile: 144,
   sesquiquadrate: 135,
-};
+}
 
 const ASPECT_ORBS: Record<AspectType, number> = {
   conjunction: 8,
@@ -52,10 +54,10 @@ const ASPECT_ORBS: Record<AspectType, number> = {
   quintile: 2,
   biquintile: 2,
   sesquiquadrate: 2,
-};
+}
 
-const HARMONY_ASPECTS: AspectType[] = ["conjunction", "trine", "sextile"];
-const TENSION_ASPECTS: AspectType[] = ["square", "opposition", "quincunx"];
+const HARMONY_ASPECTS: AspectType[] = ['conjunction', 'trine', 'sextile']
+const TENSION_ASPECTS: AspectType[] = ['square', 'opposition', 'quincunx']
 
 // 시너스트리(두 차트 비교) 엔진 config — 코어 evaluateAspect 에 주입할
 // *시너스트리 고유* 산술. 이전엔 findAspectBetween 이 "최단 분리각 → orb 테스트
@@ -82,16 +84,16 @@ const SYNASTRY_ASPECT_CONFIG: AspectEngineConfig = {
   // 결과를 버리므로 부작용 없는 false 를 반환한다.
   isApplying: () => false,
   computeScore: ({ orb, limit }) => 1 - orb / limit,
-};
+}
 
 function findAspectBetween(
   pA: PlanetBase,
   pB: PlanetBase,
   // Quincunx (150°) 는 synastry 에서 "조정 필요" 핵심 신호 — major 5 와
   // 함께 default 에 포함. orb 는 ASPECT_ORBS 에서 별도(기본 ~3°) 로 묶임.
-  aspects: AspectType[] = ["conjunction", "sextile", "square", "trine", "opposition", "quincunx"]
+  aspects: AspectType[] = ['conjunction', 'sextile', 'square', 'trine', 'opposition', 'quincunx']
 ): AspectHit | null {
-  const diff = shortestAngle(pA.longitude, pB.longitude);
+  const diff = shortestAngle(pA.longitude, pB.longitude)
 
   for (const aspectType of aspects) {
     // relSpeed 슬롯은 시너스트리에서 미사용(applying 을 보고하지 않음) → 0.
@@ -104,20 +106,20 @@ function findAspectBetween(
       0,
       aspectType,
       SYNASTRY_ASPECT_CONFIG
-    );
+    )
 
     if (evalResult.accepted) {
       return {
         from: {
           name: pA.name,
-          kind: "natal",
+          kind: 'natal',
           house: pA.house,
           sign: pA.sign,
           longitude: pA.longitude,
         },
         to: {
           name: pB.name,
-          kind: "natal",
+          kind: 'natal',
           house: pB.house,
           sign: pB.sign,
           longitude: pB.longitude,
@@ -125,28 +127,28 @@ function findAspectBetween(
         type: aspectType,
         orb: evalResult.orb,
         score: evalResult.score,
-      };
+      }
     }
   }
-  return null;
+  return null
 }
 
+// 하우스 매칭은 엔진 SSOT(matchHouseForCusps)에 위임한다. 예전엔 이 함수가
+// (a) no-match 시 1 을 날조로 반환했고 — 엔진 나머지가 UNKNOWN_HOUSE(0)+warn 으로
+// 통일한 바로 그 "그럴듯한 하우스 날조" 동작 — (b) houses[i]/[nextI] 를 길이/NaN
+// 가드 없이 인덱싱해 12칸 미만 결손 차트에서 throw 하거나 조용히 틀린 오버레이를
+// 냈다. 정상 차트(12개 유효 cusp)는 항상 1~12 로 매칭돼 동작 불변이고, 결손
+// 차트만 UNKNOWN_HOUSE(0)+warn 으로 안전하게 처리된다.
 function getHouseForLongitude(longitude: number, houses: { cusp: number }[]): number {
-  const norm = normalize360(longitude);
-  for (let i = 0; i < 12; i++) {
-    const nextI = (i + 1) % 12;
-    const cusp = houses[i].cusp;
-    let nextCusp = houses[nextI].cusp;
-
-    if (nextCusp < cusp) {nextCusp += 360;}
-    let testLon = norm;
-    if (testLon < cusp) {testLon += 360;}
-
-    if (testLon >= cusp && testLon < nextCusp) {
-      return i + 1;
-    }
+  const matched = matchHouseForCusps(
+    longitude,
+    houses.map((h) => h.cusp)
+  )
+  if (matched === null) {
+    logger.warn('[synastry] house overlay: no cusp match → unknown house', { longitude })
+    return UNKNOWN_HOUSE
   }
-  return 1;
+  return matched
 }
 
 /**
@@ -154,22 +156,22 @@ function getHouseForLongitude(longitude: number, houses: { cusp: number }[]): nu
  * 두 차트 간의 애스펙트와 하우스 오버레이를 분석합니다.
  */
 export function calculateSynastry(input: SynastryInput): SynastryResult {
-  const { chartA, chartB } = input;
-  const aspects: AspectHit[] = [];
-  const houseOverlaysAtoB: HouseOverlay[] = [];
-  const houseOverlaysBtoA: HouseOverlay[] = [];
+  const { chartA, chartB } = input
+  const aspects: AspectHit[] = []
+  const houseOverlaysAtoB: HouseOverlay[] = []
+  const houseOverlaysBtoA: HouseOverlay[] = []
 
   // 1. 행성 간 애스펙트 찾기
-  const planetsA = [...chartA.planets, chartA.ascendant, chartA.mc];
-  const planetsB = [...chartB.planets, chartB.ascendant, chartB.mc];
+  const planetsA = [...chartA.planets, chartA.ascendant, chartA.mc]
+  const planetsB = [...chartB.planets, chartB.ascendant, chartB.mc]
 
   for (const pA of planetsA) {
     for (const pB of planetsB) {
-      const aspect = findAspectBetween(pA, pB);
+      const aspect = findAspectBetween(pA, pB)
       if (aspect) {
-        aspect.from.kind = "natal";
-        aspect.to.kind = "natal";
-        aspects.push(aspect);
+        aspect.from.kind = 'natal'
+        aspect.to.kind = 'natal'
+        aspects.push(aspect)
       }
     }
   }
@@ -179,13 +181,13 @@ export function calculateSynastry(input: SynastryInput): SynastryResult {
     const houseInB = getHouseForLongitude(
       pA.longitude,
       chartB.houses.map((h) => ({ cusp: h.cusp }))
-    );
+    )
     houseOverlaysAtoB.push({
       planet: pA.name,
       planetSign: pA.sign,
       inHouse: houseInB,
       description: `A의 ${pA.name} → B의 ${houseInB}하우스에 위치`,
-    });
+    })
   }
 
   // 3. 하우스 오버레이 계산: B의 행성이 A의 하우스에
@@ -193,25 +195,25 @@ export function calculateSynastry(input: SynastryInput): SynastryResult {
     const houseInA = getHouseForLongitude(
       pB.longitude,
       chartA.houses.map((h) => ({ cusp: h.cusp }))
-    );
+    )
     houseOverlaysBtoA.push({
       planet: pB.name,
       planetSign: pB.sign,
       inHouse: houseInA,
       description: `B의 ${pB.name} → A의 ${houseInA}하우스에 위치`,
-    });
+    })
   }
 
   // 4. 점수 계산
-  let harmony = 0;
-  let tension = 0;
+  let harmony = 0
+  let tension = 0
 
   for (const aspect of aspects) {
-    const weight = aspect.score ?? 0.5;
+    const weight = aspect.score ?? 0.5
     if (HARMONY_ASPECTS.includes(aspect.type)) {
-      harmony += weight;
+      harmony += weight
     } else if (TENSION_ASPECTS.includes(aspect.type)) {
-      tension += weight;
+      tension += weight
     }
   }
 
@@ -224,7 +226,7 @@ export function calculateSynastry(input: SynastryInput): SynastryResult {
       tension: Math.round(tension * 10) / 10,
       total: Math.round((harmony - tension * 0.5 + 10) * 10) / 10,
     },
-  };
+  }
 }
 
 /**
@@ -235,9 +237,9 @@ export function findSynastryAspects(
   chartB: Chart,
   aspectTypes?: AspectType[]
 ): AspectHit[] {
-  const result = calculateSynastry({ chartA, chartB });
+  const result = calculateSynastry({ chartA, chartB })
   if (aspectTypes) {
-    return result.aspects.filter((a) => aspectTypes.includes(a.type));
+    return result.aspects.filter((a) => aspectTypes.includes(a.type))
   }
-  return result.aspects;
+  return result.aspects
 }

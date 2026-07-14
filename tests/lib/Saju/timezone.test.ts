@@ -4,9 +4,31 @@ import {
   getOffsetMinutes,
   formatOffset,
   solarTimeCorrectionMinutes,
+  getDstAmountMinutes,
 } from '@/lib/saju/timezone'
 
 describe('Saju Timezone Utils', () => {
+  describe('getDstAmountMinutes', () => {
+    it('returns 60 during Northern-hemisphere DST (New York, July)', () => {
+      // EDT: 표준 EST(-300) 대비 +60.
+      expect(getDstAmountMinutes(new Date('2000-07-15T12:00:00Z'), 'America/New_York')).toBe(60)
+    })
+    it('returns 0 during Northern-hemisphere standard time (New York, January)', () => {
+      expect(getDstAmountMinutes(new Date('2000-01-15T12:00:00Z'), 'America/New_York')).toBe(0)
+    })
+    it('returns 60 during Southern-hemisphere DST (Sydney, January)', () => {
+      // AEDT: 표준 AEST(+600) 대비 +60. min(jan,jul) 로 표준을 잡아야 성립.
+      expect(getDstAmountMinutes(new Date('2000-01-15T00:00:00Z'), 'Australia/Sydney')).toBe(60)
+    })
+    it('returns 0 during Southern-hemisphere standard time (Sydney, July)', () => {
+      expect(getDstAmountMinutes(new Date('2000-07-15T00:00:00Z'), 'Australia/Sydney')).toBe(0)
+    })
+    it('returns 0 for a zone without DST (Seoul, any month)', () => {
+      expect(getDstAmountMinutes(new Date('2000-07-15T03:00:00Z'), 'Asia/Seoul')).toBe(0)
+      expect(getDstAmountMinutes(new Date('2000-01-15T03:00:00Z'), 'Asia/Seoul')).toBe(0)
+    })
+  })
+
   describe('getSupportedTimezones', () => {
     it('returns a non-empty array of timezone strings', () => {
       const timezones = getSupportedTimezones()

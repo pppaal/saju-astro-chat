@@ -39,6 +39,24 @@ function sanitizePillars(v: unknown): SajuPillarInput[] | null {
   return out
 }
 
+// 시너스트리 엔진은 planetsA×planetsB 를 이중 루프(O(n×m))로 도는데, astro 입력엔
+// pillars 의 4칸 캡 같은 상한이 없었다. 공개 토큰(번들 노출)만 있으면 수만 개
+// planets 를 실은 본문으로 2차식 CPU 를 유발할 수 있다. 실제 차트는 행성 ~14개·
+// 하우스 12개라, 넉넉한 상한(행성 40·하우스 24)은 정상 입력을 절대 자르지 않으면서
+// n² 를 확실히 묶는다. 다른 필드(ascendant/mc 등)는 그대로 보존한다.
+const MAX_ASTRO_PLANETS = 40
+const MAX_ASTRO_HOUSES = 24
+export function sanitizeAstro(v: unknown): unknown {
+  if (!v || typeof v !== 'object') return v ?? null
+  const o = v as Record<string, unknown>
+  if (!Array.isArray(o.planets) && !Array.isArray(o.houses)) return v
+  return {
+    ...o,
+    ...(Array.isArray(o.planets) ? { planets: o.planets.slice(0, MAX_ASTRO_PLANETS) } : {}),
+    ...(Array.isArray(o.houses) ? { houses: o.houses.slice(0, MAX_ASTRO_HOUSES) } : {}),
+  }
+}
+
 export const POST = withApiMiddleware(async (req: NextRequest, _context: ApiContext) => {
   let body: Body
   try {
@@ -48,8 +66,8 @@ export const POST = withApiMiddleware(async (req: NextRequest, _context: ApiCont
   }
 
   const report = buildCompatReport({
-    astroA: body.astroA ?? null,
-    astroB: body.astroB ?? null,
+    astroA: sanitizeAstro(body.astroA ?? null),
+    astroB: sanitizeAstro(body.astroB ?? null),
     pillarsA: sanitizePillars(body.pillarsA),
     pillarsB: sanitizePillars(body.pillarsB),
     timeUnknownA: body.timeUnknownA === true,

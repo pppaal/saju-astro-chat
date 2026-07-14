@@ -22,6 +22,11 @@ import { rateLimit } from '@/lib/rateLimit'
 import { canUseCredits, consumeCredits } from '@/lib/credits/creditService'
 import { CREDIT_COSTS } from '@/lib/config/creditCosts'
 import { createIdempotencyStore, idemContentTag } from '@/lib/api/idempotency'
+import {
+  streamCachedAnswer,
+  REPLAY_RESULT_TTL_SEC,
+  makeReplayCacheKeys,
+} from '@/lib/api/counselorReplayCache'
 import { counselorRealtimeRequestSchema } from '@/lib/api/zodValidation'
 import { buildDestinyCounselorPrompt } from '@/lib/prompts/destinyCounselorPrompt'
 
@@ -30,9 +35,9 @@ import { buildDestinyCounselorPrompt } from '@/lib/prompts/destinyCounselorPromp
 // 헤더로 보냄. 같은 키 재진입 시 차감만 스킵.
 const idemStore = createIdempotencyStore('counselor-realtime')
 
-import { refundCreditsOnce } from '@/lib/credits/refundOnce'
+import { makeChargedRefunder } from '@/lib/api/chargedRefund'
 import { ensureCounselorSessionRecord } from '@/lib/counselor/ensureSessionRecord'
-import { cacheSet } from '@/lib/cache/redis-cache'
+import { cacheGet, cacheSet } from '@/lib/cache/redis-cache'
 import { getUserDisplayName, sanitizeDisplayName } from '@/lib/user/displayName'
 import { currentManAge } from '@/lib/datetime/currentAge'
 import {
@@ -83,8 +88,13 @@ interface RealtimeBody {
 
 // 끊긴 턴의 완성 답안을 잠깐 보관하는 캐시 키 — result 엔드포인트가 같은 키로 읽음.
 // userId 를 키에 포함해 ownership 검증 (다른 사용자가 turnId 알아도 조회 불가).
-export const counselorTurnResultKey = (userId: string, turnId: string) =>
-  `counselor:turn-result:${userId}:${turnId}`
+// replay 키는 scopedIdemKey(=차감 멱등키) 로 완성 답안을 캐시 — 예전엔 replay 가
+// 과금만 건너뛰고 Claude(Sonnet)를 통째로 재생성해 1회 결제로 6h claim 창 동안
+// 매번 다른 유료 답변을 무제한 재생성하던 수익 누수였다. 이제 저장본을 돌려준다.
+// 키 포맷·streamCachedAnswer·TTL 은 compat-counselor 와 공유(counselorReplayCache).
+const { turnResultKey: counselorTurnResultKey, replayResultKey: counselorReplayResultKey } =
+  makeReplayCacheKeys('counselor')
+export { counselorTurnResultKey }
 
 // 돌아와서 받아갈 시간을 충분히 (30분) — 크레딧 충전하러 갔다 오는 왕복도
 // 커버. 받아가면 그만이고 TTL 로 자동 소멸.
@@ -277,8 +287,19 @@ export async function POST(req: NextRequest) {
     // 선점 실패(replay)면 차감 스킵, 스트림은 정상 진행. 키 없으면 차감 진행.
     const claimed = scopedIdemKey ? await idemStore.claim(scopedIdemKey) : true
     if (scopedIdemKey && !claimed) {
-      // 같은 질문의 정당한 재진입 — 원턴에서 이미 차감됨. 스트림만 다시 진행.
-      logger.info('[counselor/realtime] idempotent replay, skip credit consume', { userId })
+      // 같은 질문의 정당한 재진입 — 원턴에서 이미 차감됨. 예전엔 여기서 그대로
+      // Claude 를 재호출해 매번 *다른* 유료 답변을 무과금 재생성 → 1회 결제로
+      // 6h claim 창 동안 무제한 re-roll 하던 수익 누수였다. 이제 원턴에서 저장한
+      // "이미 결제한 그 답변" 을 그대로 재생한다(Claude 호출 없음). 캐시가
+      // 비었을 때(원턴 생성 중이거나 TTL 만료)만 부득이 재생성으로 폴백한다.
+      const cachedAnswer = await cacheGet<string>(counselorReplayResultKey(scopedIdemKey))
+      if (cachedAnswer && cachedAnswer.trim() !== '') {
+        logger.info('[counselor/realtime] idempotent replay, serving cached answer', { userId })
+        return streamCachedAnswer(cachedAnswer, { 'X-Counselor-Replay': '1' })
+      }
+      logger.info('[counselor/realtime] idempotent replay, no cache — regenerating uncharged', {
+        userId,
+      })
     } else {
       let consumed: { success: boolean }
       try {
@@ -335,21 +356,17 @@ export async function POST(req: NextRequest) {
   // 붙이므로 차감 claim 레코드와 충돌하지 않는다. 멱등 헤더가 없을 때만 turnId
   // 기반으로 폴백한다.
   const refundKey = scopedIdemKey ?? (turnId ? `counselor-realtime:${userId}:${turnId}` : null)
-  const refundChargedTurn = async (reason: string) => {
-    if (!chargedThisTurn) return
-    try {
-      await refundCreditsOnce(refundKey, {
-        userId,
-        creditType: 'reading',
-        // 차감과 같은 SSOT 값 — 환불액이 차감액과 어긋나지 않게.
-        amount: CREDIT_COSTS.counselorTurn,
-        reason,
-        apiRoute: '/api/counselor/realtime',
-      })
-    } catch (err) {
-      logger.warn('[counselor/realtime] refund failed', { err, reason })
-    }
-  }
+  // 환불 불변식(creditType='reading' + refundKey dedupe)은 공유 헬퍼가 고정한다.
+  const refundChargedTurn = makeChargedRefunder(
+    {
+      refundKey,
+      userId,
+      amount: CREDIT_COSTS.counselorTurn,
+      apiRoute: '/api/counselor/realtime',
+      logLabel: 'counselor/realtime',
+    },
+    () => chargedThisTurn
+  )
 
   try {
     // 7) Build prompt and stream — 진짜 multi-turn 구조.
@@ -492,6 +509,21 @@ export async function POST(req: NextRequest) {
             await cacheSet(counselorTurnResultKey(userId, turnId), persisted, TURN_RESULT_TTL_SEC)
           } catch {
             /* 캐시 실패는 무시 — 단순히 복원이 안 될 뿐, 스트림엔 영향 없음 */
+          }
+        }
+        // replay 캐시 저장 — 같은 질문의 재진입(새로고침/탭 복제)이 이 "이미
+        // 결제한 답변" 을 그대로 받아, Claude 재호출로 다른 답변을 무과금
+        // 재생성하던 re-roll 누수를 막는다. scopedIdemKey 는 replay 판정과 같은
+        // 키라 turnId 유무·불일치와 무관하게 매칭된다.
+        if (scopedIdemKey) {
+          try {
+            await cacheSet(
+              counselorReplayResultKey(scopedIdemKey),
+              persisted,
+              REPLAY_RESULT_TTL_SEC
+            )
+          } catch {
+            /* 캐시 실패 무시 — replay 시 재생성으로 폴백 */
           }
         }
         // body.messages 는 마지막 user 질문까지의 대화. 거기에 방금 생성한

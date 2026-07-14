@@ -77,6 +77,12 @@ export interface UseClarifierCardOptions {
    * 잠근다(복원 시 새 카드를 또 뽑을 수 있던 회귀 차단).
    */
   initiallyUsed?: boolean
+  /**
+   * 이미 테이블에 깔린 카드 이름들 — 클래리파이어가 이 중 하나와 겹치지 않게
+   * 제외한다(물리 덱 불가능한 중복 방지). 타로 followup 은 스프레드 카드들을
+   * 넘긴다. 상담사(사주/점성) 화면처럼 깔린 카드가 없으면 생략(기본 []).
+   */
+  excludeCardNames?: string[]
 }
 
 export interface ClarifierButtonProps {
@@ -94,6 +100,7 @@ export interface UseClarifierCardReturn {
     onClose: () => void
     onConfirm: (card: ClarifierCard) => void
     lang: LangKey
+    excludeCardNames?: string[]
   }
   /** 버튼에 spread 할 props (className/icon 은 호출자가 결합). */
   buttonProps: ClarifierButtonProps
@@ -115,6 +122,7 @@ export function useClarifierCard(options: UseClarifierCardOptions): UseClarifier
     suspendDurationMs = 25_000,
     disabled = false,
     initiallyUsed = false,
+    excludeCardNames,
   } = options
 
   const [showModal, setShowModal] = useState(false)
@@ -174,6 +182,7 @@ export function useClarifierCard(options: UseClarifierCardOptions): UseClarifier
       onClose: closeModal,
       onConfirm: handleConfirm,
       lang,
+      excludeCardNames,
     },
     buttonProps,
     buttonLabel: used ? messages.lockedLabel : messages.activeLabel,

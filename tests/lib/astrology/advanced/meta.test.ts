@@ -19,7 +19,6 @@ describe('buildEngineMeta', () => {
     theme: 'western' as const,
     houseSystem: 'Placidus' as const,
     nodeType: 'true' as const,
-    includeMinorAspects: false,
     enable: { chiron: false, lilith: false, pof: false },
   }
 

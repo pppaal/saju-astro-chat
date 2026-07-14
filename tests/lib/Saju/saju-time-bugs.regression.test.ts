@@ -66,11 +66,13 @@ describe('Saju time/date 4 bugs — 회귀 테스트', () => {
       expect(r.timePillar.earthlyBranch.name).toBe('子')
     })
 
-    it('2000-06-15 23:15 America/New_York → 子時 (한국 LMT 비적용)', () => {
+    it('2000-06-15 23:15 America/New_York (EDT) → 亥時 (DST 제거)', () => {
       const r = calculateSajuData('2000-06-15', '23:15', 'male', 'solar', 'America/New_York')
-      // 미국 출생에 한국 +30 LMT 를 적용해선 안 됨. plain 子=23-01 → 子.
-      // (구버전: 무조건 LMT → 23:15 → 亥)
-      expect(r.timePillar.earthlyBranch.name).toBe('子')
+      // 6월 뉴욕은 EDT(DST). DST 는 천문학적 의미 없는 시계 인공물이므로 시지
+      // 산정 전에 -60min 제거: 시계 23:15 → 표준 22:15 → plain 亥=21-23 → 亥.
+      // 미국 출생에 한국 +30 LMT 를 적용하지 않는 것도 그대로 유지된다.
+      // (구버전: DST 미제거로 23:15 → 子 로 한 칸 밀림.)
+      expect(r.timePillar.earthlyBranch.name).toBe('亥')
     })
 
     it('회귀 보호: 1990-05-15 10:00 Asia/Seoul (평범한 현대 한국) → 巳時', () => {

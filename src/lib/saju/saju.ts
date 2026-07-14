@@ -32,7 +32,7 @@ import { SAJU_CACHE, CACHE_KEY } from '@/lib/constants/cache'
 import { currentManAge } from '@/lib/datetime/currentAge'
 import { daysToDaeunAge } from '@/lib/saju/daeunAge'
 import { normalizeTimeZone } from '@/lib/datetime/timezone'
-import { solarTimeCorrectionMinutes } from './timezone'
+import { solarTimeCorrectionMinutes, getDstAmountMinutes } from './timezone'
 // 십신 / 정기 매핑은 core 모듈이 single source.
 import { getBranchMainStem, getSibseong } from './core/sibsin'
 
@@ -141,23 +141,6 @@ function applyKoreanLmtCorrection(birthUtcMs: number, timezone: string): boolean
     return false
   }
   return true
-}
-
-/**
- * 시지 산정용 분(min) 보정값.
- * - DST 기간: 시계가 1시간 앞당겨졌으므로 −60분 (평상시 시계로 환원)
- * - 그 외: 0
- *
- * KMT 시대는 시계 자체가 127.5°E 자오선 = 평상시 정오와 일치 → 분 보정 불필요.
- */
-function getHourLookupOffsetMin(birthUtcMs: number, timezone: string): number {
-  if (timezone !== SEOUL_TZ) {
-    return 0
-  }
-  if (isInKoreanDst(birthUtcMs)) {
-    return -60
-  }
-  return 0
 }
 
 // 시지 범위 — 두 가지 변형.
@@ -442,8 +425,11 @@ export function calculateSajuData(
       ranges = PLAIN_HOUR_RANGES
     } else {
       const useLmtRanges = applyKoreanLmtCorrection(birthUtcMs, timezone)
-      const lookupOffsetMin = getHourLookupOffsetMin(birthUtcMs, timezone)
-      totalMin = hour * 60 + minute + lookupOffsetMin
+      // DST 를 *모든* 타임존에서 제거한 뒤 버킷팅한다 — DST 는 민간 시계 인공물로
+      // 천문학적 의미가 없다. 한국 −60 케이스는 이제 이 일반 케이스에 흡수된다.
+      // (이전엔 한국 외 DST 지역에서 DST 를 안 빼 여름 출생이 시지 한 칸씩 밀렸다.)
+      const dstMin = getDstAmountMinutes(birthDateTime, timezone)
+      totalMin = hour * 60 + minute - dstMin
       ranges = useLmtRanges ? LMT_HOUR_RANGES : PLAIN_HOUR_RANGES
     }
     // candidate 보정 — totalMin 이 음수일 수 있으므로 양수로 정규화 후 [0, 1440) 범위로 회수.

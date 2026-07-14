@@ -5,7 +5,7 @@ import { prisma } from '@/lib/db/prisma'
 import { captureServerError } from '@/lib/telemetry'
 import { recordCounter } from '@/lib/metrics'
 import { addBonusCredits, revokeBonusCreditPurchase } from '@/lib/credits/creditService'
-import { grantReferralRewardOnFirstPurchase } from '@/lib/referral'
+import { grantReferralRewardOnFirstPurchase, reverseReferralRewardOnRefund } from '@/lib/referral'
 import { CREDIT_PACKS } from '@/lib/config/pricing'
 import { logger } from '@/lib/logger'
 import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
@@ -317,6 +317,10 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   // 뜻이므로 silent skip (멱등성). 그 외 에러만 상위로 던져 webhook 이
   // 재시도되도록 한다.
   let creditGrantWasDuplicate = false
+  // refund 가 purchase webhook 보다 먼저 도착해(queued revocation) 이 구매가
+  // 즉시 회수됐는가. true 면 환불된 구매이므로 아래에서 추천 보상을 지급하지
+  // 않는다(환불된 구매에 추천 보상을 주던 누수 차단).
+  let purchaseWasRevoked = false
   try {
     await addBonusCredits(userId, creditAmount, 'purchase', paymentIntentId)
     logger.info(
@@ -361,6 +365,8 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
         )
       }
       await prisma.pendingCreditRevocation.delete({ where: { id: pending.id } })
+      // 이 구매는 즉시 회수됐다 → 아래 추천 보상 지급 스킵(환불된 구매엔 보상 없음).
+      purchaseWasRevoked = true
       logger.warn(
         `[Stripe Webhook] Applied queued refund after late purchase webhook: payment=${paymentIntentId} reclaimed=${revokeResult.reclaimed} (duplicateRetry=${creditGrantWasDuplicate})`
       )
@@ -375,12 +381,14 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     throw err
   }
 
-  // B2 fix: duplicate retry 인 경우 receipt 이메일과 referral 보상은
-  // 1차 시도 때 이미 실행됐다(또는 시도됐다). 다시 실행하면 이메일 중복
-  // 발송 / referral 멱등 가드에 의존하게 되므로 여기서 종료.
-  if (creditGrantWasDuplicate) {
-    return
-  }
+  // duplicate retry(creditGrantWasDuplicate) 여도 아래 referral 지급까지 계속
+  // 진행한다. 예전엔 여기서 early return 했는데, 1차 시도가 크레딧은 적립하고
+  // referral 지급 *전에* 죽으면(예: 위 queued-revocation 체크에서 throw) 재시도가
+  // P2002 duplicate 로 이 지점에 도달해 곧장 return → 추천인의 정당한 첫결제
+  // 보상이 영영 누락됐다. grantReferralRewardOnFirstPurchase 는 멱등(pending→
+  // completed 원자 claim; 이미 지급됐으면 count 0 no-op)이라 재시도에 안전하고,
+  // 이 라우트엔 중복 발송 위험이 있는 receipt 이메일 코드도 없다. 유일한 부작용은
+  // 로그 1줄 중복뿐이므로 그대로 흘려보내 referral 누락을 막는다.
 
   // 구매 기록 저장 (선택사항) - CreditPurchase 모델이 스키마에 없음
   // await prisma.creditPurchase.create({
@@ -400,6 +408,16 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   logger.info(
     `[Stripe Webhook] Credit pack purchase completed: ${userId} bought ${creditPack} (${creditAmount} credits)`
   )
+
+  // 이 구매가 refund-before-purchase 로 즉시 회수됐으면 추천 보상을 주지 않는다.
+  // (환불된 구매에 추천/피추천 크레딧을 지급하던 누수 — reverseReferralRewardOnRefund
+  //  로 사후 회수도 되지만, 애초에 지급하지 않는 게 정합적이다.)
+  if (purchaseWasRevoked) {
+    logger.info(
+      `[Stripe Webhook] Skipping referral reward — purchase was immediately revoked (refund-before-purchase): payment=${paymentIntentId}`
+    )
+    return
+  }
 
   // 추천 보상은 피추천자의 '첫 결제' 시점에만 지급(멀티 계정 파밍 방지).
   // pending 보상이 있으면 추천인에게 1회 지급된다.
@@ -442,6 +460,23 @@ async function handleChargeRefunded(charge: Stripe.Charge) {
     logger.info(
       `[Stripe Webhook] Revoked refunded purchase: payment=${paymentIntentId} reclaimed=${result.reclaimed} alreadyUsed=${result.alreadyUsed}`
     )
+    // 추천 보상 역전 — 이 구매가 first_purchase 추천 보상을 트리거했다면, 구매가
+    // 환불됐으므로 추천인+피추천인 referral 크레딧을 회수한다(자기추천 파밍 차단).
+    // 구매자 userId 는 방금 회수한 purchase 행에서 조회. 회수는 anti-fraud 부가
+    // 작업이라 실패해도 (이미 성공한) 구매 회수를 되돌리거나 Stripe 재시도를
+    // 유발하지 않도록 log 후 swallow — reverse 함수 자체가 멱등(completed→reversed).
+    try {
+      const buyer = await prisma.bonusCreditPurchase.findFirst({
+        where: { stripePaymentId: paymentIntentId },
+        select: { userId: true },
+      })
+      if (buyer?.userId) await reverseReferralRewardOnRefund(buyer.userId, paymentIntentId)
+    } catch (err) {
+      logger.error('[Stripe Webhook] referral reversal after refund failed', {
+        err: err instanceof Error ? err.message : String(err),
+        paymentIntentId,
+      })
+    }
     return
   }
 

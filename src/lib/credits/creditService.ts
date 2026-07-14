@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/logger'
+import { runWithConcurrency } from '@/lib/utils/concurrency'
 import type { Prisma } from '@prisma/client'
 
 // 크레딧 전용 모델 — 구독 플랜은 폐지됨. 신규 유저는 월간 무료 0,
@@ -605,6 +606,9 @@ export async function getValidBonusCredits(userId: string): Promise<number> {
   return validPurchases.reduce((sum, p) => sum + p.remaining, 0)
 }
 
+// 만료 fan-out 동시성 상한 — Prisma/pg 풀 고갈(ECHECKOUTTIMEOUT) 방지.
+const EXPIRY_CONCURRENCY = 8
+
 // 만료된 보너스 크레딧 정리 (cron job용)
 export async function expireBonusCredits() {
   const now = new Date()
@@ -668,14 +672,31 @@ export async function expireBonusCredits() {
       return expiredAmount
     })
 
-  let results = await Promise.allSettled(userIds.map((uid) => runUserExpiry(uid)))
+  // fan-out 동시성 상한 — 각 작업이 인터랙티브 트랜잭션 1개(연결 1개 + FOR UPDATE)
+  // 를 잡으므로, 만료일에 유저 수천 명을 Promise.allSettled 로 한 번에 띄우면
+  // Prisma/pg 풀이 고갈돼 ECHECKOUTTIMEOUT 이 난다. 소수로 제한해 겹쳐 실행한다.
+  const settle = (uid: string) => async (): Promise<PromiseSettledResult<number>> => {
+    try {
+      return { status: 'fulfilled', value: await runUserExpiry(uid) }
+    } catch (reason) {
+      return { status: 'rejected', reason }
+    }
+  }
+
+  let results = await runWithConcurrency(
+    userIds.map((uid) => settle(uid)),
+    EXPIRY_CONCURRENCY
+  )
 
   // 1회 재시도 — 일시적 connection blip / deadlock 등 회복 가능한 실패 대비.
   // 그래도 실패하면 critical 로그로 발행해 알림 시스템(메트릭/sentry)에서
   // 잡히도록 한다. 이전엔 단순 카운트만 하고 silent 였음.
   const rejectedIdx = results.flatMap((r, i) => (r.status === 'rejected' ? [i] : []))
   if (rejectedIdx.length > 0) {
-    const retryResults = await Promise.allSettled(rejectedIdx.map((i) => runUserExpiry(userIds[i])))
+    const retryResults = await runWithConcurrency(
+      rejectedIdx.map((i) => settle(userIds[i])),
+      EXPIRY_CONCURRENCY
+    )
     retryResults.forEach((r, j) => {
       const origIdx = rejectedIdx[j]
       results = [...results.slice(0, origIdx), r, ...results.slice(origIdx + 1)]
@@ -854,12 +875,15 @@ export interface RefundClaimParams {
    * 회수량(reclaim)도 이 값이다.
    */
   expectedRemaining: number
-  /** REVOKE 원장 reason ('self_refund' | 'admin_refund'). */
+  /** REVOKE 원장 reason ('self_refund' | 'admin_refund' | 'referral_reversed_on_refund'). */
   reason: string
-  initiatedBy: 'self' | 'admin'
-  /** stripePaymentId — 원장 sourceRef. */
+  // 'system' — 사용자/관리자 액션이 아닌 시스템 트리거(예: 추천 대상 구매가
+  // 환불돼 추천 보상 lot 을 되돌리는 경로). requireSourcePurchase 를 생략해
+  // source='referral' lot 도 회수 대상으로 허용한다.
+  initiatedBy: 'self' | 'admin' | 'system'
+  /** stripePaymentId 등 원장 sourceRef. */
   sourceRef: string
-  /** me/ 는 source='purchase' 가드 추가(프로모/추천분 환불 차단). admin 은 생략. */
+  /** me/ 는 source='purchase' 가드 추가(프로모/추천분 환불 차단). admin/system 은 생략. */
   requireSourcePurchase?: boolean
   /** admin 호출 시 감사 메타에 남길 admin userId. */
   actorUserId?: string

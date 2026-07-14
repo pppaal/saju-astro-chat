@@ -181,6 +181,29 @@ describe('formatSajuSynastry', () => {
     expect(out.length).toBeGreaterThan(50)
   })
 
+  // 회귀: flip 방지 앵커(이름·일간 오행)가 최종 stripAux(괄호 제거)를 통과해야
+  // 한다. 예전엔 `A(민수)` / EN `庚(Metal)` 처럼 괄호로 박아 stripParens 가 지워,
+  // KO 는 이름이 사라지고 EN 은 일간 오행이 통째로 사라졌다("never reverse the
+  // element" 지시가 참조할 오행이 없어짐). `·`/`=` 로 박아 살아남게 했다.
+  describe('flip 방지 앵커가 stripAux 를 통과한다', () => {
+    it('KO: 실명(민수/지영)이 출력에 남는다', () => {
+      const out = formatSajuSynastry({ ...valid, nameA: '민수', nameB: '지영', lang: 'ko' })
+      expect(out).toContain('민수')
+      expect(out).toContain('지영')
+    })
+
+    it('EN: 두 사람 일간 오행(Metal/Wood)이 출력에 남는다', () => {
+      // valid: A 일간 庚=Metal, B 일간 乙=Wood.
+      const out = formatSajuSynastry({ ...valid, nameA: 'Minsu', nameB: 'Jiyoung', lang: 'en' })
+      expect(out).toContain('day-master')
+      expect(out).toContain('Metal')
+      expect(out).toContain('Wood')
+      // 이름도 남아야 한다.
+      expect(out).toContain('Minsu')
+      expect(out).toContain('Jiyoung')
+    })
+  })
+
   describe('시각 미상 — 시주(index 3) cross 제외', () => {
     // valid 의 시주: A=壬辰, B=丁亥 → 壬丁合化木 (시천간 천간합). 시각 미상이면 이
     // 날조 cross 가 빠져야 한다. 반대로 일/월주 cross(천간충 庚↔甲)는 유지.

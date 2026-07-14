@@ -33,7 +33,6 @@ export interface AdvancedOptions {
   houseSystem?: string
   theme?: string
   nodeType?: string
-  includeMinorAspects?: boolean
   enable?: {
     chiron?: boolean
     lilith?: boolean
@@ -49,7 +48,6 @@ export interface AdvancedMeta {
   sweVersion?: string
   nodeType?: string
   houseSystem?: string
-  includeMinorAspects?: boolean
   [key: string]: unknown
 }
 

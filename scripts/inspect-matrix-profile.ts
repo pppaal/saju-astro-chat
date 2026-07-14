@@ -362,7 +362,7 @@ async function main() {
     timeZone: profile.timezone,
   })
   const chart = toChart(natal)
-  const aspects = findNatalAspects(chart, { includeMinor: true, maxResults: 80 })
+  const aspects = findNatalAspects(chart, { maxResults: 80 })
 
   const planetSigns: Record<string, string> = {}
   const planetHouses: Record<string, number> = {}
