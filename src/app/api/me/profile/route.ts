@@ -11,31 +11,70 @@ import { clearCacheByPattern, CacheInvalidationPatterns } from '@/lib/cache/redi
 import { userProfileUpdateSchema, createValidationErrorResponse } from '@/lib/api/zodValidation'
 import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
 
-export const GET = withApiMiddleware(
-  async (req: NextRequest, context: ApiContext) => {
-    const user = await prisma.user.findUnique({
-      where: { id: context.userId! },
+// 프로필 조회 select — birthTimeUnknown 은 아래 fetchUserWithProfile 이 내성
+// 처리하려고 별도로 뺐다.
+const PROFILE_CORE_SELECT = {
+  profilePhoto: true,
+  birthDate: true,
+  birthTime: true,
+  gender: true,
+  birthCity: true,
+  latitude: true,
+  longitude: true,
+  tzId: true,
+} as const
+const USER_CORE_SELECT = {
+  id: true,
+  name: true,
+  email: true,
+  image: true,
+  createdAt: true,
+} as const
+
+/**
+ * user+profile 조회에 birthTimeUnknown 컬럼 드리프트 내성을 준다. 그 컬럼이
+ * prod DB 에서 누락(마이그레이션 phantom-apply)되면 select 가 Prisma P2022 로
+ * 죽어 프로필 조회·저장-후-재조회가 전부 500 났다(2026-07 Sentry). 컬럼이 있으면
+ * 그대로 읽고, 없으면 그 컬럼만 빼고 재조회한 뒤 birthTimeUnknown=null 로 채운다.
+ * (컬럼은 vercel-build 의 prisma-schema-verify 가 재생성하지만, 그 사이·그게
+ * 실패해도 프로필 화면과 저장이 살아있게 하는 방어.)
+ */
+async function fetchUserWithProfile(userId: string) {
+  try {
+    return await prisma.user.findUnique({
+      where: { id: userId },
       select: {
-        id: true,
-        name: true,
-        email: true,
-        image: true,
-        createdAt: true,
-        profile: {
-          select: {
-            profilePhoto: true,
-            birthDate: true,
-            birthTime: true,
-            birthTimeUnknown: true,
-            gender: true,
-            birthCity: true,
-            latitude: true,
-            longitude: true,
-            tzId: true,
-          },
-        },
+        ...USER_CORE_SELECT,
+        profile: { select: { ...PROFILE_CORE_SELECT, birthTimeUnknown: true } },
       },
     })
+  } catch (err) {
+    // "column does not exist" 는 Prisma P2022. 버전에 따라 meta.column 이
+    // "(not available)" 로 와도 code 는 P2022 다. code 확인 + 메시지 매칭 둘 다
+    // 봐서 이 정확한 프로덕션 에러를 확실히 잡는다(놓치면 그대로 500).
+    const code = (err as { code?: string })?.code
+    const msg = err instanceof Error ? err.message : String(err)
+    const isMissingColumn = code === 'P2022' || /does not exist in the current database/i.test(msg)
+    if (!isMissingColumn) throw err
+    logger.warn('[me/profile] birthTimeUnknown column missing on read — falling back', { code })
+    const fallback = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { ...USER_CORE_SELECT, profile: { select: PROFILE_CORE_SELECT } },
+    })
+    if (fallback?.profile) {
+      ;(fallback.profile as Record<string, unknown>).birthTimeUnknown = null
+    }
+    return fallback as
+      | (typeof fallback & {
+          profile: (typeof PROFILE_CORE_SELECT & { birthTimeUnknown: null }) | null
+        })
+      | null
+  }
+}
+
+export const GET = withApiMiddleware(
+  async (req: NextRequest, context: ApiContext) => {
+    const user = await fetchUserWithProfile(context.userId!)
 
     if (!user) {
       return createErrorResponse({
@@ -161,30 +200,10 @@ export const PATCH = withApiMiddleware(
       }
     }
 
-    // Fetch updated user with relations
-    const updatedUser = await prisma.user.findUnique({
-      where: { id: context.userId! },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        image: true,
-        createdAt: true,
-        profile: {
-          select: {
-            profilePhoto: true,
-            birthDate: true,
-            birthTime: true,
-            birthTimeUnknown: true,
-            gender: true,
-            birthCity: true,
-            latitude: true,
-            longitude: true,
-            tzId: true,
-          },
-        },
-      },
-    })
+    // Fetch updated user with relations — birthTimeUnknown 컬럼 드리프트 내성.
+    // 이게 없으면 위 write 가 성공해도 이 재조회가 P2022 로 죽어 500 → 사용자는
+    // 저장됐는데도 "저장 실패" 를 본다.
+    const updatedUser = await fetchUserWithProfile(context.userId!)
 
     // Invalidate user-specific caches on any profile update
     if (context.userId) {

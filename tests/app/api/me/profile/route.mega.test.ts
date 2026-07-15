@@ -279,6 +279,34 @@ describe('/api/me/profile', () => {
       expect(data.user.birthDate).toBe('1990-01-15')
       expect(data.user.birthTime).toBe('14:30')
     })
+
+    it('still returns the profile when birthTimeUnknown column is missing (P2022 → fallback)', async () => {
+      // 회귀: birthTimeUnknown 컬럼이 드리프트로 없으면 select 가 P2022 로 죽어
+      // GET 이 500 나고 프로필 화면이 통째로 안 떴다. 이제 그 컬럼만 빼고 재조회해
+      // birthTimeUnknown=null 로 채워 정상 200 을 준다.
+      const p2022 = Object.assign(new Error('column "birthTimeUnknown" does not exist'), {
+        code: 'P2022',
+      })
+      const fallbackUser = {
+        ...mockUserData,
+        profile: { ...(mockUserData as any).profile },
+      }
+      delete (fallbackUser.profile as Record<string, unknown>).birthTimeUnknown
+      const findUnique = vi.mocked(prisma.user.findUnique)
+      findUnique.mockReset()
+      findUnique
+        .mockRejectedValueOnce(p2022) // full select (birthTimeUnknown 포함) → 컬럼 없음
+        .mockResolvedValueOnce(fallbackUser as any) // 컬럼 뺀 재조회 → 성공
+
+      const req = new NextRequest('http://localhost:3000/api/me/profile')
+      const response = await GET(req, mockContext)
+
+      expect(response.status).not.toBe(500)
+      const data = await response.json()
+      expect(data.user.birthDate).toBe('1990-01-15')
+      expect(data.user.birthTimeUnknown).toBeNull()
+      findUnique.mockReset()
+    })
   })
 
   describe('PATCH /api/me/profile - Basic Fields', () => {
