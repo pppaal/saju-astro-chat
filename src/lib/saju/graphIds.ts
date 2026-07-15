@@ -19,7 +19,7 @@ const ELEMENT_ALIASES: Record<string, FiveElement> = {
   WATER: '수',
 }
 
-const STEM_HANJA_TO_HANGUL: Record<string, string> = {
+export const STEM_HANJA_TO_HANGUL: Record<string, string> = {
   甲: '갑',
   乙: '을',
   丙: '병',

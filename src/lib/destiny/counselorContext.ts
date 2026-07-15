@@ -6,6 +6,7 @@
  * Increment ①: SAJU section.
  */
 import { ELEMENT_KO_TO_EN } from '@/lib/saju/constants'
+import { STEM_HANJA_TO_HANGUL } from '@/lib/saju/graphIds'
 import { collectSajuFacts } from '@/lib/destiny/sajuFacts'
 import { computeCurrentUnse, type CurrentUnse } from '@/lib/saju/currentUnse'
 import { getSajuYearForDate } from '@/lib/saju/datePillars'
@@ -716,7 +717,13 @@ function buildSajuSection(
   // 통근 — facts.dayMaster.rooted 가 이미 계산 (sajuFacts.ts SSOT).
   const rootLab =
     locale === 'en' ? (dm.rooted ? 'rooted' : 'rootless') : dm.rooted ? '유근' : '무근'
-  out.push(`${L('일간', 'day_master')}: ${dm.name}(${yinyang}${dmElDisp}) ${strLab} ${rootLab}`)
+  // 한자 옆에 한글 음을 *명시* — 없으면 LLM 이 음을 스스로 지어내다 庚(경)↔辛(신)
+  // 처럼 같은 오행의 인접 천간을 헷갈려 "庚(신금)" 같은 오독을 낸다(실제 발생).
+  // ko 만 붙인다(en 사용자는 한글 음 불필요).
+  const stemKo = locale === 'en' ? '' : (STEM_HANJA_TO_HANGUL[dm.name] ?? '')
+  out.push(
+    `${L('일간', 'day_master')}: ${dm.name}${stemKo}(${yinyang}${dmElDisp}) ${strLab} ${rootLab}`
+  )
   const fe = facts.fiveElements
   out.push(
     `${L('오행', 'elements')}: 木${fe.wood} 火${fe.fire} 土${fe.earth} 金${fe.metal} 水${fe.water}`
