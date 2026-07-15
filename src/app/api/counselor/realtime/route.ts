@@ -550,11 +550,13 @@ export async function POST(req: NextRequest) {
       priorTurns,
       // 모델은 비용 정책(SSOT, llm-policy)이 정한다 — counselor.realtime =
       // Sonnet 4.5. 사주+점성 통합 reasoning 과 자연스러운 한국어 톤이 핵심.
-      // maxTokens 2500 이면 Sonnet 30~40s 안에 완료 — 기존 120s timeout 안에 여유.
+      // maxTokens 3500 이면 Sonnet 40~55s 안에 완료 — 기존 120s timeout 안에 여유.
+      // 실질 질문에 신호 2~3개를 구체적으로 풀도록 깊이를 올렸으므로 cap 도 상향
+      // (2500→3500) — 이어쓰기 round-trip 을 줄인다.
       feature: 'counselor.realtime',
-      maxTokens: 2500,
+      maxTokens: 3500,
       // maxTokens 도달해도 자동 이어쓰기 — 답이 중간에 안 잘림.
-      // 운명상담사도 본문 깊게 답할 때 가끔 2500 cap 도달.
+      // 운명상담사도 본문 깊게 답할 때 종종 cap 도달.
       enableContinuation: true,
       // 0.5 → 0.7 — 비유·스토리텔링이 핵심인 채널이라 약간 풀어준다.
       // (타로 interpret-stream 도 0.7 사용 중)

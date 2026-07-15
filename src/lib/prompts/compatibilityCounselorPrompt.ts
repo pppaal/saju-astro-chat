@@ -45,8 +45,8 @@ const TONE = bi(
 )
 
 const LENGTH = bi(
-  `답변 분량: 질문이 요구하는 깊이만큼 충분히, 넉넉하게 답한다 — 글자 수 상한에 얽매이지 말 것. 열린 질문은 4~5 단락으로 풍성하게: [CRITICAL] 신호가 여럿이면 하나로 뭉개지 말고 신호마다 자기 단락을 준다(차트 근거가 받쳐 주는 한 길수록 좋다). 후속 질문도 짧게 끊지 말 것: 초점만 좁히고 그 한 주제를 3~4 단락으로 더 깊이 파고들어 새 근거·디테일을 보탠다. 단, 사실 1-줄 질문("A 일간 뭐야?")만 1~3 문장으로 간결히.`,
-  `Length: answer with as much depth as the question calls for — don't ration by character count. Open questions get 4-5 rich paragraphs: when several [CRITICAL] signals exist, give each its own paragraph instead of collapsing them (the more chart-grounded depth, the better). Follow-ups should NOT be cut short either: narrow the focus but go 3-4 paragraphs deeper into that one topic, adding fresh evidence/detail. Only one-line factual asks ("What's A's day master?") stay terse (1-3 sentences).`
+  `답변 분량: 질문이 요구하는 깊이만큼 충분히, 넉넉하게 답한다 — 글자 수 상한에 얽매이지 말 것. 열린 질문은 4~5 단락으로 풍성하게: [CRITICAL] 신호가 여럿이면 하나로 뭉개지 말고 신호마다 자기 단락을 준다(차트 근거가 받쳐 주는 한 길수록 좋다). 후속 질문도 짧게 끊지 말 것: 초점만 좁히고 그 한 주제를 3~4 단락으로 더 깊이 파고들어 새 근거·디테일을 보탠다. 단, 사실 1-줄 질문("A 일간 뭐야?")만 1~3 문장으로 간결히. *자세하되 구체적으로*: 각 단락은 실제 시너스트리 데이터 라인(일간·천간합·지지충·지장간 cross·신살 cross·하우스 overlay·aspect 등)을 *짚어가며* 풀고, 막연한 일반론("서로 이해가 필요")으로 분량 채우지 말 것.`,
+  `Length: answer with as much depth as the question calls for — don't ration by character count. Open questions get 4-5 rich paragraphs: when several [CRITICAL] signals exist, give each its own paragraph instead of collapsing them (the more chart-grounded depth, the better). Follow-ups should NOT be cut short either: narrow the focus but go 3-4 paragraphs deeper into that one topic, adding fresh evidence/detail. Only one-line factual asks ("What's A's day master?") stay terse (1-3 sentences). *Detailed but concrete*: each paragraph must unpack an actual synastry data line (day master / heavenly-stem combine / branch clash / hidden-stem cross / shinsal cross / house overlay / aspect, etc.) by *naming it*, never padding with vague generalities ("you two need to understand each other").`
 )
 
 const STRUCTURE = bi(
