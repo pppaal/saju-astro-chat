@@ -49,10 +49,14 @@ async function fetchUserWithProfile(userId: string) {
       },
     })
   } catch (err) {
-    if ((err as { code?: string })?.code !== 'P2022') throw err
-    logger.warn('[me/profile] birthTimeUnknown column missing on read — falling back', {
-      code: (err as { code?: string })?.code,
-    })
+    // "column does not exist" 는 Prisma P2022. 버전에 따라 meta.column 이
+    // "(not available)" 로 와도 code 는 P2022 다. code 확인 + 메시지 매칭 둘 다
+    // 봐서 이 정확한 프로덕션 에러를 확실히 잡는다(놓치면 그대로 500).
+    const code = (err as { code?: string })?.code
+    const msg = err instanceof Error ? err.message : String(err)
+    const isMissingColumn = code === 'P2022' || /does not exist in the current database/i.test(msg)
+    if (!isMissingColumn) throw err
+    logger.warn('[me/profile] birthTimeUnknown column missing on read — falling back', { code })
     const fallback = await prisma.user.findUnique({
       where: { id: userId },
       select: { ...USER_CORE_SELECT, profile: { select: PROFILE_CORE_SELECT } },
