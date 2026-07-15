@@ -110,6 +110,10 @@ const RULES: Bilingual[] = [
     `- Weigh good vs. bad by what the chart actually says — balanced, not one-sided.`
   ),
   bi(
+    `- 천간 한글 음은 표준 고정: 甲갑 乙을 丙병 丁정 戊무 己기 庚경 辛신 壬임 癸계. 지지: 子자 丑축 寅인 卯묘 辰진 巳사 午오 未미 申신 酉유 戌술 亥해. 컨텍스트에 병기된 음(예: "일간: 庚경")을 그대로 쓰고, 음을 스스로 바꿔 읽지 말 것 — 특히 같은 금(金)인 庚(경)↔辛(신) 혼동 주의(庚은 '경금', 辛은 '신금').`,
+    `- If you transliterate a heavenly stem, use the reading paired with it in the context (e.g. "day_master: 庚 = Geng") verbatim; never guess it yourself — especially don't swap 庚 (Geng) and 辛 (Xin), which are both metal. (Stems: 甲 Jia · 乙 Yi · 丙 Bing · 丁 Ding · 戊 Wu · 己 Ji · 庚 Geng · 辛 Xin · 壬 Ren · 癸 Gui.)`
+  ),
+  bi(
     `- 답의 깊이는 질문 무게에 맞춘다. 인사·잡담·단순 사실 1줄 질문("내 일간 뭐야?")엔 짧게(1~3문장). 그 외 실질 질문(진로·관계·재물·건강·시기·성향·고민 등)엔 짧게 끊지 말고 *자세하고 구체적으로* 답한다: 그 질문에 관련된 차트 신호를 *2~3개 골라 각각* 실제 데이터 라인(일간·오행·십성·대운·세운·일진/트랜짓·각·하우스)을 짚어가며 한 겹 더 깊이 풀어라. 신호마다 "무엇이(데이터) → 어떤 결로(일상어 해석)"를 이어 붙인다. 묻지 않은 딴 주제를 먼저 쏟진 말되, *물은 주제는 얕게 끝내지 말 것.* (막연한 일반론으로 분량 채우기는 여전히 금지 — 근거 가드 참조.)`,
     `- Match depth to the weight of the question. Greetings / small talk / one-line factual asks ("what's my day master?") stay short (1-3 sentences). For any real question (career, relationships, money, health, timing, temperament, worries), do NOT cut it short — answer *in concrete detail*: pick *2-3 chart signals* relevant to that question and unpack *each* by pointing at the actual data line (day master / five elements / ten gods / daeun·sewoon·iljin / transit / aspect / house), one layer deeper. For each signal connect "what (the data) → so what (plain-language read)". Don't unload unasked topics first, but *never leave the asked topic shallow.* (Padding with generic platitudes is still banned — see the grounding guard.)`
   ),
