@@ -616,7 +616,8 @@ describe('Credit Service', () => {
         .mockRejectedValueOnce(new Error('DB error')) // user2 — initial fail
         .mockRejectedValueOnce(new Error('DB error')) // user2 — retry fail
 
-      const result = await expireBonusCredits()
+      // retryBackoffMs=0 — 테스트에서 실제 타이머 없이 즉시 재시도(가짜 타이머 회피).
+      const result = await expireBonusCredits(0)
 
       expect(result.succeeded).toBe(1)
       expect(result.failed).toBe(1)

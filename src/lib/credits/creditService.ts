@@ -608,9 +608,13 @@ export async function getValidBonusCredits(userId: string): Promise<number> {
 
 // 만료 fan-out 동시성 상한 — Prisma/pg 풀 고갈(ECHECKOUTTIMEOUT) 방지.
 const EXPIRY_CONCURRENCY = 8
+// 재시도 전 backoff — 즉시 재시도는 일시적 락/커넥션 블립을 그대로 다시 맞아
+// "재시도 후에도 실패"로 떨어지기 쉽다. 잠깐 쉬어 블립이 가라앉을 시간을 준다.
+const EXPIRY_RETRY_BACKOFF_MS = 800
 
-// 만료된 보너스 크레딧 정리 (cron job용)
-export async function expireBonusCredits() {
+// 만료된 보너스 크레딧 정리 (cron job용). retryBackoffMs 는 재시도 전 대기(ms) —
+// 테스트에서 0 을 넘겨 실제 타이머 없이 즉시 재시도하게 할 수 있다(주입식).
+export async function expireBonusCredits(retryBackoffMs: number = EXPIRY_RETRY_BACKOFF_MS) {
   const now = new Date()
 
   // 만료 대상이 있는 유저 worklist 만 뽑는다(중복 제거). 실제 차감 금액·감사
@@ -693,9 +697,14 @@ export async function expireBonusCredits() {
   // 잡히도록 한다. 이전엔 단순 카운트만 하고 silent 였음.
   const rejectedIdx = results.flatMap((r, i) => (r.status === 'rejected' ? [i] : []))
   if (rejectedIdx.length > 0) {
+    // 재시도 전에 잠깐 대기 — 블립이 가라앉을 시간을 준다. 재시도는 동시성도 더
+    // 낮춰(min 4) 남은 소수의 유저를 부드럽게 다시 시도한다. (0 이면 대기 생략.)
+    if (retryBackoffMs > 0) {
+      await new Promise((resolve) => setTimeout(resolve, retryBackoffMs))
+    }
     const retryResults = await runWithConcurrency(
       rejectedIdx.map((i) => settle(userIds[i])),
-      EXPIRY_CONCURRENCY
+      Math.min(EXPIRY_CONCURRENCY, 4)
     )
     retryResults.forEach((r, j) => {
       const origIdx = rejectedIdx[j]
