@@ -52,6 +52,28 @@ export async function ensureDrafts(
   return { drafts, created: drafts.length > 0 }
 }
 
+/**
+ * 강제 재생성 — 프롬프트를 고친 뒤 "오늘 초안을 지금 다시" 보고 싶을 때.
+ * 이미 *발행된* 초안(status=published 또는 externalId/publishedUrl 있는 variant)
+ * 은 보존한다 — 지우면 발행 기록·조회수 수집 키가 사라지고, 자동 발행 크론이
+ * 같은 소재를 중복 발행할 수 있다. 나머지(pending/approved/rejected)만 새
+ * 생성분으로 교체. 생성 실패(빈 배열)면 기존 초안을 그대로 둔다.
+ */
+export async function regenerateDrafts(
+  date: string,
+  generate: () => Promise<SocialPostDraft[]>
+): Promise<{ drafts: SocialPostDraft[]; created: boolean }> {
+  const existing = await getDrafts(date)
+  const fresh = await generate()
+  if (fresh.length === 0) return { drafts: existing, created: false }
+  const published = existing.filter(
+    (d) => d.status === 'published' || d.variants.some((v) => v.externalId || v.publishedUrl)
+  )
+  const drafts = [...published, ...fresh]
+  await saveDrafts(date, drafts)
+  return { drafts, created: true }
+}
+
 /** 단건 수정 — 텍스트 편집/상태 변경. 없으면 null. */
 export async function updateDraft(
   date: string,

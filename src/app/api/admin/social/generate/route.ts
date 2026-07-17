@@ -12,7 +12,7 @@ import {
   ErrorCodes,
   type ApiContext,
 } from '@/lib/api/middleware'
-import { ensureDrafts } from '@/lib/social/draftStore'
+import { ensureDrafts, regenerateDrafts } from '@/lib/social/draftStore'
 import { generateDailyDrafts, todayKeyKST } from '@/lib/social/generateDrafts'
 import { logger } from '@/lib/logger'
 
@@ -25,15 +25,24 @@ const DATE_RE = /^\d{4}-\d{2}-\d{2}$/
 export const POST = withApiMiddleware(
   async (req: NextRequest, _context: ApiContext) => {
     let date = todayKeyKST()
+    let force = false
     try {
-      const body = (await req.json().catch(() => null)) as { date?: string } | null
+      const body = (await req.json().catch(() => null)) as {
+        date?: string
+        force?: boolean
+      } | null
       if (body?.date && DATE_RE.test(body.date)) date = body.date
+      force = body?.force === true
     } catch {
       /* body 없음 — 오늘 날짜로 */
     }
 
     try {
-      const { drafts, created } = await ensureDrafts(date, () => generateDailyDrafts(date))
+      // force: 프롬프트 수정 직후 "지금 다시" 보기용 — 발행분은 보존하고 나머지만
+      // 새로 생성해 교체(regenerateDrafts). 기본은 기존 초안 있으면 그대로(ensure).
+      const { drafts, created } = force
+        ? await regenerateDrafts(date, () => generateDailyDrafts(date))
+        : await ensureDrafts(date, () => generateDailyDrafts(date))
       if (drafts.length === 0) {
         return apiError(ErrorCodes.SERVICE_UNAVAILABLE, 'generation_unavailable')
       }

@@ -8,6 +8,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   CATEGORY_META,
   SOCIAL_CATEGORIES,
+  SOCIAL_PLATFORMS,
   draftCategory,
   type SocialCategory,
   type SocialPostDraft,
@@ -65,6 +66,14 @@ export default function SocialClient() {
   const [autoPublish, setAutoPublish] = useState<string[]>([])
   const [summary, setSummary] = useState<SocialSummary | null>(null)
   const [category, setCategory] = useState<CategoryFilter>('all')
+  // 플랫폼 필터 — 체크된 플랫폼의 캡션만 카드에 표시 (기본: 전부).
+  const [platforms, setPlatforms] = useState<SocialPlatform[]>([...SOCIAL_PLATFORMS])
+  const togglePlatform = (p: SocialPlatform) =>
+    setPlatforms((prev) => {
+      const next = prev.includes(p) ? prev.filter((x) => x !== p) : [...prev, p]
+      // 전부 끄면 아무것도 안 보여 혼란 — 최소 1개는 유지.
+      return next.length === 0 ? prev : next
+    })
   const [loading, setLoading] = useState(false)
   const [generating, setGenerating] = useState(false)
   const [refreshing, setRefreshing] = useState(false)
@@ -115,14 +124,22 @@ export default function SocialClient() {
     void loadSummary()
   }, [loadSummary])
 
-  const generate = async () => {
+  const generate = async (force = false) => {
+    if (
+      force &&
+      !window.confirm(
+        '이 날짜의 미발행 초안을 버리고 새로 생성합니다 (발행된 초안·조회수 기록은 보존). 계속할까요?'
+      )
+    ) {
+      return
+    }
     setGenerating(true)
     setError(null)
     try {
       const res = await fetch('/api/admin/social/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ date }),
+        body: JSON.stringify({ date, ...(force ? { force: true } : {}) }),
       })
       const json = (await res.json().catch(() => null)) as {
         data?: { drafts?: SocialPostDraft[] }
@@ -262,6 +279,15 @@ export default function SocialClient() {
           >
             {generating ? '생성 중… (최대 30초)' : '이 날짜 초안 생성'}
           </button>
+          <button
+            type="button"
+            onClick={() => void generate(true)}
+            disabled={generating}
+            title="미발행 초안을 버리고 현재 프롬프트로 새로 생성 (발행분 보존)"
+            className="rounded-full border border-amber-400 bg-amber-50 px-4 py-2 text-sm font-medium text-amber-800 transition hover:bg-amber-100 disabled:opacity-50"
+          >
+            {generating ? '생성 중…' : '🔄 다시 생성 (덮어쓰기)'}
+          </button>
         </div>
       </div>
 
@@ -350,7 +376,7 @@ export default function SocialClient() {
         ))}
       </div>
 
-      <div className="mb-5 flex flex-wrap items-center gap-1.5">
+      <div className="mb-2 flex flex-wrap items-center gap-1.5">
         <CategoryTab
           active={category === 'all'}
           onClick={() => setCategory('all')}
@@ -368,6 +394,24 @@ export default function SocialClient() {
             />
           )
         })}
+      </div>
+
+      {/* 플랫폼 필터 — 어느 플랫폼용 캡션을 볼지 체크 (기본 전부) */}
+      <div className="mb-5 flex flex-wrap items-center gap-3 text-sm text-stone-700">
+        <span className="text-[11px] font-semibold uppercase tracking-wide text-stone-400">
+          플랫폼
+        </span>
+        {SOCIAL_PLATFORMS.map((p) => (
+          <label key={p} className="flex cursor-pointer items-center gap-1.5">
+            <input
+              type="checkbox"
+              checked={platforms.includes(p)}
+              onChange={() => togglePlatform(p)}
+              className="h-3.5 w-3.5 cursor-pointer accent-stone-900"
+            />
+            {PLATFORM_LABEL[p]}
+          </label>
+        ))}
       </div>
 
       {error ? (
@@ -396,6 +440,7 @@ export default function SocialClient() {
               onPersist={persist}
               onPublish={publish}
               publishConfigured={publishConfigured}
+              visiblePlatforms={platforms}
             />
           ))}
         </div>
@@ -466,6 +511,7 @@ function DraftCard({
   onPersist,
   onPublish,
   publishConfigured,
+  visiblePlatforms,
 }: {
   draft: SocialPostDraft
   onPersist: (
@@ -474,6 +520,7 @@ function DraftCard({
   ) => Promise<void>
   onPublish: (id: string) => Promise<PublishResult[]>
   publishConfigured: SocialPlatform[]
+  visiblePlatforms: SocialPlatform[]
 }) {
   const [variants, setVariants] = useState<SocialVariant[]>(draft.variants)
   const [dirty, setDirty] = useState(false)
@@ -574,50 +621,52 @@ function DraftCard({
       </div>
 
       <div className="space-y-4">
-        {variants.map((v) => (
-          <div key={v.platform} className="rounded-xl bg-stone-50 p-3">
-            <div className="mb-1.5 flex items-center justify-between">
-              <span className="text-xs font-bold text-stone-700">
-                {PLATFORM_LABEL[v.platform]}
-                {v.metrics ? <MetricsChips metrics={v.metrics} /> : null}
-              </span>
-              <button
-                type="button"
-                onClick={() => void navigator.clipboard?.writeText(fullText(v))}
-                className="rounded-md bg-stone-200 px-2 py-1 text-[11px] font-medium text-stone-700 hover:bg-stone-300"
-              >
-                복사
-              </button>
+        {variants
+          .filter((v) => visiblePlatforms.includes(v.platform))
+          .map((v) => (
+            <div key={v.platform} className="rounded-xl bg-stone-50 p-3">
+              <div className="mb-1.5 flex items-center justify-between">
+                <span className="text-xs font-bold text-stone-700">
+                  {PLATFORM_LABEL[v.platform]}
+                  {v.metrics ? <MetricsChips metrics={v.metrics} /> : null}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => void navigator.clipboard?.writeText(fullText(v))}
+                  className="rounded-md bg-stone-200 px-2 py-1 text-[11px] font-medium text-stone-700 hover:bg-stone-300"
+                >
+                  복사
+                </button>
+              </div>
+              <textarea
+                value={v.caption}
+                onChange={(e) => editCaption(v.platform, e.target.value)}
+                rows={v.platform === 'youtube' ? 3 : 4}
+                className="w-full resize-y rounded-lg border border-stone-200 bg-white px-3 py-2 text-sm text-stone-800"
+              />
+              {v.script ? (
+                <p className="mt-2 whitespace-pre-wrap rounded-lg bg-white px-3 py-2 text-xs text-stone-600">
+                  <span className="font-semibold text-stone-500">대본: </span>
+                  {v.script}
+                </p>
+              ) : null}
+              {v.hashtags.length ? (
+                <p className="mt-2 text-xs text-sky-700">{v.hashtags.join(' ')}</p>
+              ) : null}
+              {v.publishedUrl ? (
+                <a
+                  href={v.publishedUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-2 inline-block text-xs font-medium text-emerald-700 underline"
+                >
+                  ✓ 발행된 게시물 보기
+                </a>
+              ) : v.publishError ? (
+                <p className="mt-2 text-xs text-rose-600">발행 실패: {v.publishError}</p>
+              ) : null}
             </div>
-            <textarea
-              value={v.caption}
-              onChange={(e) => editCaption(v.platform, e.target.value)}
-              rows={v.platform === 'youtube' ? 3 : 4}
-              className="w-full resize-y rounded-lg border border-stone-200 bg-white px-3 py-2 text-sm text-stone-800"
-            />
-            {v.script ? (
-              <p className="mt-2 whitespace-pre-wrap rounded-lg bg-white px-3 py-2 text-xs text-stone-600">
-                <span className="font-semibold text-stone-500">대본: </span>
-                {v.script}
-              </p>
-            ) : null}
-            {v.hashtags.length ? (
-              <p className="mt-2 text-xs text-sky-700">{v.hashtags.join(' ')}</p>
-            ) : null}
-            {v.publishedUrl ? (
-              <a
-                href={v.publishedUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-2 inline-block text-xs font-medium text-emerald-700 underline"
-              >
-                ✓ 발행된 게시물 보기
-              </a>
-            ) : v.publishError ? (
-              <p className="mt-2 text-xs text-rose-600">발행 실패: {v.publishError}</p>
-            ) : null}
-          </div>
-        ))}
+          ))}
       </div>
 
       <div className="mt-4 flex flex-wrap items-center gap-2">
