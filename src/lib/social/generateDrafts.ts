@@ -379,14 +379,24 @@ const CATEGORY_ANGLE_EN: Record<SocialCategory, string> = {
     'Call out today\'s luckiest zodiac animal and the one that should take care — make readers hunt for their own sign and tag a friend born in that year. Anchor each with ONE concrete action ("Horse people: today\'s the day to ask that favor"). Flow language, never doom; leave the other signs as a curiosity gap for the link.',
 }
 
-// 카테고리별 해시태그 힌트.
+// 카테고리별 해시태그 힌트 — *실제로 검색량 있는 기존 태그*만 나열한다.
+// 모델이 태그를 지어내는 걸(#moneylove 같은 검색 0 합성어) 막는 anchor.
 const CATEGORY_TAGS_KO: Record<SocialCategory, string> = {
-  tarot: '#타로 #오늘의타로 #타로카드 등',
-  saju: '#사주 #오늘의운세 #일진 #사주팔자 등',
-  astrology: '#별자리 #점성술 #별자리운세 등',
-  compatibility: '#궁합 #연애운 #커플 #사주궁합 등',
-  calendar: '#운세 #오늘의운세 #타이밍 #운세캘린더 등',
+  tarot: '#타로 #오늘의타로 #타로카드 #타로리딩 등',
+  saju: '#사주 #오늘의운세 #일진 #사주팔자 #운세 등',
+  astrology: '#별자리 #점성술 #별자리운세 #오늘의운세 등',
+  compatibility: '#궁합 #연애운 #사주궁합 #연애 #커플 등',
+  calendar: '#운세 #오늘의운세 #운세캘린더 #타이밍 등',
   zodiac: '#띠별운세 #오늘의운세 #12간지 #일진 등',
+}
+const CATEGORY_TAGS_EN: Record<SocialCategory, string> = {
+  tarot: '#tarot #dailytarot #tarotreading #tarotcards etc.',
+  saju: '#koreanastrology #saju #astrology #dailyhoroscope etc.',
+  astrology: '#astrology #horoscope #zodiacsigns #dailyhoroscope etc.',
+  compatibility:
+    '#zodiaccompatibility #astrologycompatibility #relationships #koreanastrology etc.',
+  calendar: '#astrology #dailyhoroscope #horoscope #koreanastrology etc.',
+  zodiac: '#chinesezodiac #zodiacsigns #dailyhoroscope #koreanastrology etc.',
 }
 
 /* ===================== 프롬프트 ===================== */
@@ -404,9 +414,9 @@ function buildPrompt(
         '인스타그램·쓰레드·유튜브 Shorts 용 게시물 초안을 만든다.',
         '규칙:',
         '- 저주·공포 조장 금지(양면이 있되 희망을 남긴다). 놀림·명령·비난 금지.',
-        '- 후크는 스크롤을 멈추게 하는 한 줄. 구체적 디테일 1개 + 살짝 양면의 여운.',
+        '- 후크는 스크롤을 멈추게 하는 한 줄. 구체적 디테일 1개 + 살짝 양면의 여운. *공백 포함 50자 이내의 완결된 문장* — 카드 이미지에 그대로 박혀서 길면 중간에 잘린다("…"로 끝나는 카드는 실패작).',
         `- 콘텐츠 각도: ${CATEGORY_ANGLE_KO[category]}`,
-        '- 인스타 톤: 따뜻한 해요체, 감성적이고 짧게(2~4문장).',
+        '- 인스타 톤(중요): 광고 카피 말투·클리셰("반전은요?", "~의 비밀", "지금 확인해보세요") 금지. 첫 문장이 전부다 — 피드에선 첫 줄까지만 보이니, 구체적 행동/상황 1개로 열어 "더보기"를 누르게 하라. 따뜻한 해요체 2~4문장, 1~2문장마다 줄바꿈. 소재의 간지/카드명/오행을 그대로 써서 "어떻게 알았지" 느낌을 준다. 마지막은 저장하고 싶어지는 실용 한 줄 또는 가벼운 질문 1개.',
         '- 쓰레드 톤(중요): 브랜드 광고 말투 절대 금지. *반말 구어체*로, 친구한테 톡 보내듯 툭 던진다(ㅋㅋ·물음표·이모지 자연스럽게). 인스타(해요체)와 확실히 다르게.',
         '  · *저격/팩폭 훅*으로 시작해 스크롤을 멈춘다 — "지금 딱 한 명 떠올랐지?", "이거 보고 찔렸으면 조용히 하트." 처럼 콕 집어라. 단 조롱·저주·인신공격은 금지(찔리되 기분 나쁘지 않게).',
         '  · 1~2문장마다 줄바꿈해 리듬을 만든다(문단 덩어리 금지).',
@@ -416,8 +426,8 @@ function buildPrompt(
         '  · 마지막에 반말 참여 유도 1개(예: "넌 불이야 물이야? 댓글 ㄱㄱ").',
         '  · 캡션은 해시태그 제외 420자 이내로 짧게(줄바꿈 포함). 길면 스크롤에서 진다.',
         '- 유튜브 톤: Shorts 대본(15~25초, 오프닝 훅→본문→CTA).',
-        `- CTA: 인스타·유튜브는 "${ctaUrl} (로그인 없이 무료)" 를 자연스럽게. 쓰레드는 본문에 URL 금지(프로필 링크로 유도).`,
-        `- 해시태그: 인스타 5~8개(${CATEGORY_TAGS_KO[category]}), 쓰레드는 0~1개만(도배는 스팸), 유튜브 #Shorts.`,
+        `- CTA: 유튜브 대본에만 "${ctaUrl} (로그인 없이 무료)". 인스타·쓰레드 본문엔 URL 금지 — 인스타 캡션 링크는 클릭이 안 돼 스팸처럼 보일 뿐이다. 둘 다 "프로필 링크에서 무료로" 식으로만 유도.`,
+        `- 해시태그(인스타 5~8개): 사람들이 *실제로 검색하는 기존 태그만*. 지어낸 합성 태그 금지, 이 포스트 주제와 무관한 태그 금지(예: 궁합 포스트에 #타로). 대형 태그 2~3개 + 카테고리 태그 2~3개: ${CATEGORY_TAGS_KO[category]}. 특정 별자리/띠를 다루면 그 태그(#사수자리 #말띠)도 포함. 쓰레드는 0~1개만(도배는 스팸), 유튜브 #Shorts.`,
         '반드시 아래 JSON 만 출력:',
         '{"hook":"공통 후크 한 줄",',
         '"instagram":{"caption":"감성 캡션(2~4문장)","hashtags":["#태그"]},',
@@ -440,9 +450,9 @@ function buildPrompt(
       'topic of the day, produce post drafts for Instagram, Threads, and YouTube Shorts.',
       'Rules:',
       '- Warm and encouraging. No doom or fear-mongering (acknowledge both sides, leave hope). No mockery, no commands.',
-      '- The hook is one scroll-stopping line: one concrete detail + a slight two-sided twist.',
+      '- The hook is one scroll-stopping line: one concrete detail + a slight two-sided twist. *A complete sentence within 60 characters* — it is printed verbatim on the card image, and anything longer gets chopped mid-thought (a card ending in "…" is a failed card).',
       `- Content angle: ${CATEGORY_ANGLE_EN[category]}`,
-      '- Instagram tone: aesthetic & short (2-4 sentences).',
+      '- Instagram tone (important): NOT brand-ad copy — ban clichés ("The plot twist?", "Here\'s the secret", "Ready to find out?"). The first line is everything (the feed truncates after it): open with one concrete behavior/scene that makes people tap "more". 2-4 short sentences, line break every 1-2 sentences. Use the concrete detail (day pillar, card name, element, sign) verbatim so it reads "how did it know". End with one save-worthy practical line or one light question.',
       '- Threads tone (important): NOT brand-ad voice. Lowercase, blunt, a little savage — Co-Star style. Call the reader out.',
       '  - Open with a spiky call-out hook that stops the scroll ("you already know who you just thought of.", "if this stung, just quietly like and keep scrolling."). Called-out but never cruel — no mockery or doom.',
       '  - Break lines every 1-2 sentences for rhythm (no dense paragraphs).',
@@ -453,12 +463,12 @@ function buildPrompt(
       '  - Keep the Threads caption under 420 chars (excluding hashtags); short posts win.',
       '  - Frame it as "Korean astrology" (rides the K-wave; instantly graspable to western readers who don\'t know "Saju") crossed with their familiar zodiac — lean into "your western sign says X, your Korean chart says Y" when it fits.',
       '- YouTube: a Shorts script (15-25s, hook -> body -> CTA).',
-      `- CTA: Instagram/YouTube may include "${ctaUrl} (free, no sign-up)". Threads: NO URL in the body — nudge to the link in bio.`,
-      '- Hashtags: Instagram 5-8 (always include #koreanastrology + 1-2 zodiac/astrology tags for discovery), Threads 0-1 only (tag-stuffing reads as spam), YouTube #Shorts.',
+      `- CTA: only the YouTube script may include "${ctaUrl} (free, no sign-up)". NO URL in Instagram or Threads bodies — IG caption links aren't clickable and read as spam. Nudge both to "link in bio" instead.`,
+      `- Hashtags (Instagram 5-8): only real tags people actually search — NEVER invent compound tags (#moneylove) and NEVER add tags unrelated to this post's topic (#tarot on a compatibility post). Mix 2-3 big tags + 2-3 category tags: ${CATEGORY_TAGS_EN[category]}. Always include #koreanastrology (brand). If a specific sign/animal is featured, add its own tag (#taurus, #yearofthehorse). Threads 0-1 only (tag-stuffing reads as spam), YouTube #Shorts.`,
       'Output ONLY this JSON:',
       '{"hook":"shared one-line hook",',
-      '"instagram":{"caption":"aesthetic caption (2-4 sentences)","hashtags":["#tarot"]},',
-      '"threads":{"caption":"blunt lowercase call-out (share trigger + 1 question)","hashtags":["#tarot"]},',
+      '"instagram":{"caption":"caption (2-4 sentences)","hashtags":["#tag1","#tag2"]},',
+      '"threads":{"caption":"blunt lowercase call-out (share trigger + 1 question)","hashtags":["#tag"]},',
       '"youtube":{"caption":"Shorts title","script":"15-25s script (hook->body->CTA)","hashtags":["#Shorts"]}}',
     ].join('\n'),
     userPrompt: [
