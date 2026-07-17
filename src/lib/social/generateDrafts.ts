@@ -319,7 +319,8 @@ function calendarSubject(date: string): Subject {
   }
 }
 
-function subjectFor(category: SocialCategory, date: string): Subject {
+// 테스트/드라이런 seam — 프롬트·소재 조립을 LLM 호출 없이 검증할 수 있게 export.
+export function subjectFor(category: SocialCategory, date: string): Subject {
   switch (category) {
     case 'tarot':
       return tarotSubject(date)
@@ -401,7 +402,7 @@ const CATEGORY_TAGS_EN: Record<SocialCategory, string> = {
 
 /* ===================== 프롬프트 ===================== */
 
-function buildPrompt(
+export function buildPrompt(
   locale: 'ko' | 'en',
   category: SocialCategory,
   subject: Subject,
@@ -575,12 +576,16 @@ async function generateOne(
 }
 
 /**
- * 하루치 초안 생성 — (카테고리 5종 × ko/en) 최대 10건. Claude 없으면 빈 배열.
+ * 하루치 초안 생성 — 카테고리별 EN 1건씩(기본). Claude 없으면 빈 배열.
  * 저장은 호출부(draftStore.ensureDrafts/saveDrafts)가 담당.
+ *
+ * EN 전용이 기본이다 — 한 계정에 ko/en 이 섞여 나가면 피드 정체성이 흐려지고,
+ * 글로벌 확장(K-wave "Korean astrology" 포지셔닝)은 영어가 맞다. ko 파이프라인
+ * 코드는 남겨둔다(명시적으로 locales=['ko'] 를 넘기면 여전히 동작).
  */
 export async function generateDailyDrafts(
   date: string = todayKeyKST(),
-  locales: Array<'ko' | 'en'> = ['ko', 'en'],
+  locales: Array<'ko' | 'en'> = ['en'],
   categories: readonly SocialCategory[] = SOCIAL_CATEGORIES
 ): Promise<SocialPostDraft[]> {
   if (!isClaudeAvailable()) {
