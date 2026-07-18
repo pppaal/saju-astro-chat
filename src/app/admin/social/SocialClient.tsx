@@ -556,7 +556,10 @@ function DraftCard({
     const results = await onPublish(draft.id)
     setPublishing(false)
     const ok = results.filter((r) => r.ok).map((r) => r.platform)
-    const failed = results.filter((r) => !r.ok && r.skipped !== 'not_configured')
+    // already_published = 재시도 시 성공분 스킵(중복 방지) — 실패가 아니다.
+    const failed = results.filter(
+      (r) => !r.ok && r.skipped !== 'not_configured' && r.skipped !== 'already_published'
+    )
     setPublishMsg(
       [
         ok.length ? `발행됨: ${ok.join(', ')}` : '',
