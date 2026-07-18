@@ -24,7 +24,7 @@ export interface PublishResult {
   /** 실패 사유(사람이 읽을 수 있게). */
   error?: string
   /** 발행을 건너뛴 이유 — 미설정/미지원. */
-  skipped?: 'not_configured' | 'unsupported'
+  skipped?: 'not_configured' | 'unsupported' | 'already_published'
 }
 
 export interface PublishAdapter {

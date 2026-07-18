@@ -53,6 +53,13 @@ export async function publishDraft(
       results.push({ ok: false, platform, error: 'no caption' })
       continue
     }
+    // 이미 이 플랫폼으로 발행된 variant 는 건너뛴다 — 부분 실패(예: IG 성공 +
+    // Threads 일시 오류) 후 어드민이 발행을 다시 눌러도 성공분이 중복 포스트
+    // 되지 않게. 실패한 플랫폼만 재시도된다(멱등 재시도).
+    if (variant.publishedUrl || variant.externalId) {
+      results.push({ ok: false, platform, skipped: 'already_published' })
+      continue
+    }
     results.push(
       await adapter.publish({
         caption: variant.caption,
@@ -95,7 +102,8 @@ export async function publishAndRecord(
 
   const nextVariants = draft.variants.map((v) => {
     const r = results.find((x) => x.platform === v.platform)
-    if (!r || r.skipped === 'not_configured') return v
+    // already_published 스킵은 기존 발행 기록을 절대 건드리지 않는다.
+    if (!r || r.skipped === 'not_configured' || r.skipped === 'already_published') return v
     return r.ok
       ? {
           ...v,
