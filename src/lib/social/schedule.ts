@@ -20,11 +20,12 @@ import {
 /** 자동 발행을 지원하는 플랫폼 — 유튜브는 영상 렌더링이 없어 수동 유지. */
 export type AutoPublishPlatform = 'threads' | 'instagram'
 
-// 플랫폼별 하루 상한 env·기본값 — Threads 는 게시물 단위 발견이라 2, IG 는
-// 피드 도배가 언팔로 직결이라 1 을 기본으로 보수적으로 잡는다.
+// 플랫폼별 하루 상한 env·기본값 — Threads 는 게시물 단위 발견이라 테마 6종
+// 전부(6) 나가는 게 기본 전략(하루 3회 크론에 2개씩 분산). IG 는 피드 도배가
+// 언팔로 직결이라 2 로 보수적으로 — 더 올리려면 env 로.
 const LIMIT_CONFIG: Record<AutoPublishPlatform, { env: string; fallback: number }> = {
-  threads: { env: 'SOCIAL_THREADS_DAILY_LIMIT', fallback: 2 },
-  instagram: { env: 'SOCIAL_IG_DAILY_LIMIT', fallback: 1 },
+  threads: { env: 'SOCIAL_THREADS_DAILY_LIMIT', fallback: 6 },
+  instagram: { env: 'SOCIAL_IG_DAILY_LIMIT', fallback: 2 },
 }
 
 /** 플랫폼별 하루 자동 발행 상한 (최대 10 — 스팸 방지 캡). */
