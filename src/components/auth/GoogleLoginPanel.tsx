@@ -27,6 +27,11 @@ interface GoogleLoginPanelProps {
   variant?: 'dark' | 'light'
 }
 
+// 카카오 로그인 잠정 숨김(2026-07) — 글로벌(영어) 포커스 전환. 다시 켜려면 이
+// 플래그만 false 로. 백엔드 provider 는 그대로 두므로 기존 카카오 계정 세션은
+// 영향 없다(로그인 UI 진입점만 사라짐).
+const HIDE_KAKAO_LOGIN = true
+
 // 카카오 provider 활성 여부(KAKAO_CLIENT_ID/SECRET)는 서버 env 로만 결정되므로
 // 클라는 /api/auth/providers 를 조회해 알아낸다. 모듈 레벨 캐시로 드로어/모달이
 // 여러 번 열려도 fetch 는 페이지 로드당 1회.
@@ -102,9 +107,11 @@ export default function GoogleLoginPanel({
     setInApp(isInAppBrowser())
     setPwa(isStandalonePWA())
     let mounted = true
-    void isKakaoEnabled().then((enabled) => {
-      if (mounted) setKakaoAvailable(enabled)
-    })
+    if (!HIDE_KAKAO_LOGIN) {
+      void isKakaoEnabled().then((enabled) => {
+        if (mounted) setKakaoAvailable(enabled)
+      })
+    }
     return () => {
       mounted = false
     }
