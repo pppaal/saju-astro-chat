@@ -53,14 +53,19 @@ export const threadsAdapter: PublishAdapter = {
     const c = await creds()
     if (!c) return { ok: false, platform: 'threads', skipped: 'not_configured' }
 
-    // 500자 상한에 맞춰 안전 조립 — 초과 시 해시태그→캡션 순으로 트림.
-    const { text, trimmed } = composeTextForThreads(input)
+    // 해시태그는 *본문에 넣지 않는다* — 본문 끝 "#koreanastrology" 는 Threads
+    // 에서 어색한 꼬리 줄로 렌더된다. 대신 첫 태그를 API 의 topic_tag 로 넘겨
+    // 토픽 칩(계정명 옆)만 달고 본문은 깨끗하게 유지한다.
+    const topicTag = (input.hashtags[0] || '').replace(/^#/, '').trim()
+    // 500자 상한에 맞춰 안전 조립 — 초과 시 캡션 트림.
+    const { text, trimmed } = composeTextForThreads({ ...input, hashtags: [] })
     if (trimmed) logger.warn('[publish/threads] text trimmed to fit 500-char limit')
     try {
       // 1) 컨테이너 생성 (이미지 있으면 IMAGE, 없으면 TEXT).
       const containerParams: Record<string, string> = input.imageUrl
         ? { media_type: 'IMAGE', image_url: input.imageUrl, text, access_token: c.token }
         : { media_type: 'TEXT', text, access_token: c.token }
+      if (topicTag) containerParams.topic_tag = topicTag
       const createRes = await postForm(`${GRAPH}/${c.userId}/threads`, containerParams)
       if (!createRes.ok) {
         const t = await createRes.text().catch(() => '')

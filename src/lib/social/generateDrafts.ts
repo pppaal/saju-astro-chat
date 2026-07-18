@@ -139,6 +139,21 @@ const ELEMENT_EN: Record<string, string> = {
   금: 'Metal',
   수: 'Water',
 }
+// 지지 → 영어 띠 동물. "Water-Snake day (癸巳)" 처럼 영어 독자용 일진 명칭에 쓴다.
+const BRANCH_ANIMAL_EN = [
+  'Rat',
+  'Ox',
+  'Tiger',
+  'Rabbit',
+  'Dragon',
+  'Snake',
+  'Horse',
+  'Goat',
+  'Monkey',
+  'Rooster',
+  'Dog',
+  'Pig',
+]
 
 function sajuSubject(date: string): Subject {
   const [y, m, d] = date.split('-').map(Number)
@@ -148,9 +163,10 @@ function sajuSubject(date: string): Subject {
   const ganzhiKo = `${STEM_HANGUL[stemIndex]}${BRANCH_HANGUL[branchIndex]}`
   const ganzhiHanja = `${stem.name}${branch.name}`
   const animal = BRANCH_ANIMAL_KO[branchIndex]
+  const dayNameEn = `${ELEMENT_EN[stem.element]}-${BRANCH_ANIMAL_EN[branchIndex]} day (${ganzhiHanja})`
   return {
     nameKo: `오늘의 일진 ${ganzhiKo}일 (${ganzhiHanja})`,
-    nameEn: `Day pillar ${ganzhiHanja}`,
+    nameEn: dayNameEn,
     glyph: ganzhiHanja,
     keywordsKo: [
       `일간 ${STEM_HANGUL[stemIndex]} (${stem.element}·${stem.yin_yang})`,
@@ -158,8 +174,11 @@ function sajuSubject(date: string): Subject {
       `${stem.element} 기운의 하루`,
     ],
     keywordsEn: [
+      // 영어 독자용 완성 명칭을 그대로 공급 — 모델이 한자만 보고 직접 지어내면
+      // 한자 오프닝/오역이 난다. 카피에는 이 이름을 쓰고 한자는 괄호 1회.
+      dayNameEn,
       `day stem ${stem.name} (${ELEMENT_EN[stem.element]})`,
-      `day branch ${branch.name} (${ELEMENT_EN[branch.element]})`,
+      `day branch ${branch.name} (${ELEMENT_EN[branch.element]}, ${BRANCH_ANIMAL_EN[branchIndex]} energy)`,
     ],
   }
 }
@@ -302,9 +321,12 @@ function calendarSubject(date: string): Subject {
   const ganzhiKo = `${STEM_HANGUL[stemIndex]}${BRANCH_HANGUL[branchIndex]}`
   const angle = CALENDAR_ANGLES[jdn % CALENDAR_ANGLES.length]
   const timing = ELEMENT_TIMING_KO[stem.element] || ''
+  const calDayNameEn = `${ELEMENT_EN[stem.element]}-${BRANCH_ANIMAL_EN[branchIndex]} day`
   return {
     nameKo: `오늘(${ganzhiKo}일)은 ${angle.ko}? — ${stem.element}(${ELEMENT_EN[stem.element]}) 기운`,
-    nameEn: `Today (${stem.name}${BRANCHES[branchIndex].name}): ${angle.en}`,
+    // 카드 제목이 그대로 노출되므로 영어 독자가 읽을 수 있는 이름으로
+    // ("Today (壬辰): …" 처럼 한자가 제목에 박히던 것 교체).
+    nameEn: `${calDayNameEn}: ${angle.en}`,
     glyph: ELEMENT_HANJA[stem.element] || '運',
     keywordsKo: [
       `오늘은 ${stem.element} 기운이 ${timing} 날`,
@@ -312,8 +334,8 @@ function calendarSubject(date: string): Subject {
       '운세 캘린더로 나에게 맞는 날 확인',
     ],
     keywordsEn: [
+      `${calDayNameEn} (${stem.name}${BRANCHES[branchIndex].name})`,
       `${ELEMENT_EN[stem.element]} day energy`,
-      `day pillar ${stem.name}${BRANCHES[branchIndex].name}`,
       'personal fortune calendar',
     ],
   }
@@ -377,7 +399,7 @@ const CATEGORY_ANGLE_EN: Record<SocialCategory, string> = {
   calendar:
     'Pin one thing that is "a good day to do X / better to hold off on Y" so it is screenshot-worthy. One action for today or this week. A light timing-alert tone ("about to do this today? hold on —"), never scary.',
   zodiac:
-    'Call out today\'s luckiest zodiac animal and the one that should take care — make readers hunt for their own sign and tag a friend born in that year. Anchor each with ONE concrete action ("Horse people: today\'s the day to ask that favor"). Flow language, never doom; leave the other signs as a curiosity gap for the link.',
+    'Call out today\'s luckiest zodiac animal and the one that should take care — make readers hunt for their own sign and tag a friend born in that year. Anchor each with ONE concrete action ("born in a Horse year? today\'s the day to ask that favor"). Flow language, never doom; leave the other signs as a curiosity gap for the link.',
 }
 
 // 카테고리별 해시태그 힌트 — *실제로 검색량 있는 기존 태그*만 나열한다.
@@ -453,14 +475,15 @@ export function buildPrompt(
       '- Warm and encouraging. No doom or fear-mongering (acknowledge both sides, leave hope). No mockery, no commands.',
       '- The hook is one scroll-stopping line: one concrete detail + a slight two-sided twist. *A complete sentence within 60 characters* — it is printed verbatim on the card image, and anything longer gets chopped mid-thought (a card ending in "…" is a failed card).',
       `- Content angle: ${CATEGORY_ANGLE_EN[category]}`,
+      '- English-first naming: write the day pillar as its element-animal English name with the hanja in parentheses at most once — "Water-Snake day (癸巳)" — and NEVER open the post with raw hanja (western readers cannot read it). Zodiac animals: "Ox-year people" / "born in an Ox year" — never "ox people"/"pig people" (reads wrong in English).',
       '- Instagram tone (important): NOT brand-ad copy — ban clichés ("The plot twist?", "Here\'s the secret", "Ready to find out?"). The first line is everything (the feed truncates after it): open with one concrete behavior/scene that makes people tap "more". 2-4 short sentences, line break every 1-2 sentences. Use the concrete detail (day pillar, card name, element, sign) verbatim so it reads "how did it know". End with one save-worthy practical line or one light question.',
       '- Threads tone (important): NOT brand-ad voice. Lowercase, blunt, a little savage — Co-Star style. Call the reader out.',
       '  - Open with a spiky call-out hook that stops the scroll ("you already know who you just thought of.", "if this stung, just quietly like and keep scrolling."). Called-out but never cruel — no mockery or doom.',
       '  - Break lines every 1-2 sentences for rhythm (no dense paragraphs).',
       '  - Use the concrete detail (day pillar, card name, element) so it reads "how did it know," not generic.',
       '  - Never put a URL/link in the Threads body — links suppress reach. Nudge to "link in bio" instead.',
-      '  - Add one line that makes the reader think "I have to send this to ___" (a designed share trigger).',
-      '  - End with one blunt engagement prompt (e.g., "fire or water? drop it below.").',
+      '  - Toolkit — pick ONE of these per post, not both (using every trick daily makes the feed read templated): a share-trigger line ("send this to the friend who…") OR a closing question ("fire or water?"). Vary the post skeleton day to day.',
+      '  - Ban the word "literally". At most ONE staccato fragment ("hold. that. order.") per post — stacking them reads like parody.',
       '  - Keep the Threads caption under 420 chars (excluding hashtags); short posts win.',
       '  - Frame it as "Korean astrology" (rides the K-wave; instantly graspable to western readers who don\'t know "Saju") crossed with their familiar zodiac — lean into "your western sign says X, your Korean chart says Y" when it fits.',
       '- YouTube: a Shorts script (15-25s, hook -> body -> CTA).',
