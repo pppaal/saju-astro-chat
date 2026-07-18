@@ -78,6 +78,8 @@ export interface SocialPostDraft {
   /** 소스 카드/테마 — 어드민 표시 + 이미지 첨부 기준. */
   cardName: string
   cardImage: string
+  /** 렌더된 릴스/Shorts MP4(Blob 공개 URL) — 있으면 IG 는 REELS 로 발행. */
+  videoUrl?: string
   isReversed: boolean
   /** 한 줄 후크(공통). */
   hook: string

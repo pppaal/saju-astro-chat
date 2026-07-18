@@ -10,6 +10,8 @@ export interface PublishInput {
   hashtags: string[]
   /** 절대 이미지 URL(Instagram 필수). 카드 이미지에서 만든다. */
   imageUrl?: string
+  /** 릴스 MP4 공개 URL — 있으면 IG 는 이미지 대신 REELS 로 발행. */
+  videoUrl?: string
   /** Shorts 대본(YouTube — 자동발행 미지원). */
   script?: string
 }

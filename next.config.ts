@@ -38,7 +38,7 @@ const nextConfig = {
 
   // Native Node.js modules that should not be bundled
   // This is required for Turbopack compatibility with native modules like swisseph
-  serverExternalPackages: ['swisseph'],
+  serverExternalPackages: ['swisseph', '@ffmpeg-installer/ffmpeg'],
 
   // Ensure native addon and ephemeris files are traced into serverless outputs.
   // Without this, routes that depend on swisseph can fail at runtime on deploy.
