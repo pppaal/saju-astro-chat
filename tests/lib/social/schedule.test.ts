@@ -50,11 +50,11 @@ describe('platformDailyLimit', () => {
     process.env.SOCIAL_IG_DAILY_LIMIT = saved.SOCIAL_IG_DAILY_LIMIT
   })
 
-  it('기본값 — threads 2, instagram 1', () => {
+  it('기본값 — threads 6(테마 전부), instagram 2', () => {
     delete process.env.SOCIAL_THREADS_DAILY_LIMIT
     delete process.env.SOCIAL_IG_DAILY_LIMIT
-    expect(platformDailyLimit('threads')).toBe(2)
-    expect(platformDailyLimit('instagram')).toBe(1)
+    expect(platformDailyLimit('threads')).toBe(6)
+    expect(platformDailyLimit('instagram')).toBe(2)
   })
 
   it('env 로 오버라이드하되 10 에서 캡', () => {
