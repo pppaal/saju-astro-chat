@@ -614,6 +614,16 @@ function DraftCard({
               </span>
             </p>
             {draft.hook ? <p className="mt-0.5 text-sm text-stone-500">{draft.hook}</p> : null}
+            {draft.videoUrl ? (
+              <a
+                href={draft.videoUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="mt-1 inline-block rounded bg-violet-100 px-1.5 py-0.5 text-[11px] font-medium text-violet-700 hover:bg-violet-200"
+              >
+                🎬 릴스 영상 (IG 자동 · TikTok/Shorts 업로드용)
+              </a>
+            ) : null}
           </div>
         </div>
         <span

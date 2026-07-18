@@ -13,12 +13,16 @@ import { extractLocale } from '@/lib/api/middleware'
 import { rateLimit } from '@/lib/rateLimit'
 import { getClientIp } from '@/lib/request-ip'
 import { timingSafeCompare } from '@/lib/security/timingSafe'
-import { ensureDrafts } from '@/lib/social/draftStore'
+import { ensureDrafts, updateDraft } from '@/lib/social/draftStore'
 import { generateDailyDrafts, todayKeyKST } from '@/lib/social/generateDrafts'
+import { isVideoConfigured, renderCardReel } from '@/lib/social/video'
+import { siteBaseUrl } from '@/lib/tarot/shareLink'
+import type { SocialPostDraft } from '@/lib/social/types'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
-export const maxDuration = 120
+// 릴스 렌더(SOCIAL_VIDEO=on 시 카테고리당 ~15-40초)까지 포함 — Vercel Pro 상한.
+export const maxDuration = 300
 
 function validateCronSecret(request: Request): boolean {
   const authHeader = request.headers.get('authorization')
@@ -50,11 +54,42 @@ async function handle(request: Request): Promise<NextResponse> {
     // 분산으로 처리한다("한 번에 우르르" 방지). 자동모드면 그 크론이 승인 없이
     // 발행하고, 아니면 어드민이 수동 발행한다.
     const { drafts, created } = await ensureDrafts(date, () => generateDailyDrafts(date))
-    return NextResponse.json({ success: true, date, created, count: drafts.length })
+    const videos = await renderReels(date, drafts)
+    return NextResponse.json({ success: true, date, created, count: drafts.length, videos })
   } catch (error) {
     logger.error('[Cron social-drafts] generation failed', { date, error })
     return NextResponse.json({ success: false, error: 'generation_failed' }, { status: 500 })
   }
+}
+
+// 초안별 릴스 렌더 — SOCIAL_VIDEO=on 일 때만. 순차 렌더 + 시간 예산(전체
+// 220초)으로 maxDuration 안에서 끊고, 남은 건 다음 실행(멱등 — videoUrl 있는
+// 초안은 스킵)이 이어서 한다. 렌더 실패는 초안에 영향 없음(이미지 발행 폴백).
+async function renderReels(date: string, drafts: SocialPostDraft[]): Promise<number> {
+  if (!isVideoConfigured()) return 0
+  const budgetMs = 220_000
+  const start = Date.now()
+  let rendered = 0
+  for (const d of drafts) {
+    if (d.videoUrl) continue
+    const remaining = budgetMs - (Date.now() - start)
+    if (remaining < 20_000) break
+    const cardUrl = /^https?:\/\//.test(d.cardImage)
+      ? d.cardImage
+      : `${siteBaseUrl()}${d.cardImage.startsWith('/') ? '' : '/'}${d.cardImage}`
+    const url = await renderCardReel({
+      cardImageUrl: cardUrl,
+      date,
+      category: d.category ?? 'tarot',
+      locale: d.locale,
+      timeoutMs: Math.min(90_000, remaining - 10_000),
+    })
+    if (url) {
+      await updateDraft(date, d.id, { videoUrl: url })
+      rendered += 1
+    }
+  }
+  return rendered
 }
 
 export async function GET(request: Request) {

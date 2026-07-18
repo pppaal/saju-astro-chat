@@ -78,7 +78,7 @@ export async function regenerateDrafts(
 export async function updateDraft(
   date: string,
   id: string,
-  patch: Partial<Pick<SocialPostDraft, 'variants' | 'status' | 'hook'>>
+  patch: Partial<Pick<SocialPostDraft, 'variants' | 'status' | 'hook' | 'videoUrl'>>
 ): Promise<SocialPostDraft | null> {
   const drafts = await getDrafts(date)
   const idx = drafts.findIndex((d) => d.id === id)

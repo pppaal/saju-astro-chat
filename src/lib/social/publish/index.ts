@@ -65,6 +65,7 @@ export async function publishDraft(
         caption: variant.caption,
         hashtags: variant.hashtags,
         imageUrl,
+        videoUrl: draft.videoUrl,
         script: variant.script,
       })
     )

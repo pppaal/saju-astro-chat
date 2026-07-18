@@ -19,6 +19,10 @@ const GRAPH = 'https://graph.instagram.com/v21.0'
 // 컨테이너 생성 → 게시 사이 이미지 처리 대기 — 준비 전이면 Meta 가 실패를
 // 주므로 짧은 backoff 후 재시도(threads 어댑터와 동일 패턴).
 const PUBLISH_RETRY_DELAYS_MS = [1500, 4000, 8000]
+// REELS 는 Meta 서버측 영상 인코딩이 있어 컨테이너 준비가 훨씬 느리다(보통
+// 15~60초). 합계 ~50초 — 어드민 발행 라우트 maxDuration(60초) 안. 그래도
+// 미완료면 실패 반환 → 멱등 재시도(발행 버튼 다시)로 이어서 처리.
+const REELS_RETRY_DELAYS_MS = [5000, 8000, 12000, 12000, 12000]
 
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms))
@@ -55,19 +59,28 @@ export const instagramAdapter: PublishAdapter = {
   async publish(input: PublishInput): Promise<PublishResult> {
     const c = await creds()
     if (!c) return { ok: false, platform: 'instagram', skipped: 'not_configured' }
-    if (!input.imageUrl) {
-      // IG 피드는 미디어가 필수 — 이미지 없으면 자동발행 불가.
-      return { ok: false, platform: 'instagram', skipped: 'unsupported', error: 'image required' }
+    if (!input.imageUrl && !input.videoUrl) {
+      // IG 피드는 미디어가 필수 — 이미지/영상 없으면 자동발행 불가.
+      return { ok: false, platform: 'instagram', skipped: 'unsupported', error: 'media required' }
     }
 
     const caption = composeText(input)
+    // 영상이 있으면 REELS 로 — 정적 이미지 대비 알고리즘 노출이 월등하다.
+    // (REELS 는 서버측 인코딩이 있어 컨테이너 준비까지 이미지보다 오래 걸린다 —
+    // 아래 9007 재시도 백오프가 흡수. share_to_feed 로 피드에도 같이 노출.)
+    const isReel = Boolean(input.videoUrl)
+    const containerParams: Record<string, string> = isReel
+      ? {
+          media_type: 'REELS',
+          video_url: input.videoUrl!,
+          share_to_feed: 'true',
+          caption,
+          access_token: c.token,
+        }
+      : { image_url: input.imageUrl!, caption, access_token: c.token }
     try {
       // 1) 컨테이너 생성.
-      const createRes = await postForm(`${GRAPH}/${c.userId}/media`, {
-        image_url: input.imageUrl,
-        caption,
-        access_token: c.token,
-      })
+      const createRes = await postForm(`${GRAPH}/${c.userId}/media`, containerParams)
       if (!createRes.ok) {
         const t = await createRes.text().catch(() => '')
         return {
@@ -83,8 +96,9 @@ export const instagramAdapter: PublishAdapter = {
       //    not available")을 주므로 그 경우만 backoff 재시도. 그 외 4xx(권한 등)
       //    는 재시도해도 소용없으니 즉시 중단.
       let lastErr = ''
-      for (let attempt = 0; attempt <= PUBLISH_RETRY_DELAYS_MS.length; attempt++) {
-        if (attempt > 0) await sleep(PUBLISH_RETRY_DELAYS_MS[attempt - 1])
+      const delays = isReel ? REELS_RETRY_DELAYS_MS : PUBLISH_RETRY_DELAYS_MS
+      for (let attempt = 0; attempt <= delays.length; attempt++) {
+        if (attempt > 0) await sleep(delays[attempt - 1])
         const pubRes = await postForm(`${GRAPH}/${c.userId}/media_publish`, {
           creation_id: creationId,
           access_token: c.token,
