@@ -14,7 +14,9 @@ import { useCallback, useRef, useState } from 'react'
 import { useSession } from 'next-auth/react'
 import { Gift, Check, Loader2 } from 'lucide-react'
 import { apiFetch } from '@/lib/api'
+import { trackFunnel } from '@/lib/metrics/trackFunnel'
 import { logger } from '@/lib/logger'
+import { REFERRER_CREDITS, REFEREE_CREDITS } from '@/lib/referral/rewards'
 
 export function ReferralInviteButton({ isKo }: { isKo: boolean }) {
   const { status } = useSession()
@@ -25,6 +27,7 @@ export function ReferralInviteButton({ isKo }: { isKo: boolean }) {
   const handleInvite = useCallback(async () => {
     if (busyRef.current) return
     busyRef.current = true
+    trackFunnel('referral.invite_clicked')
     setError(null)
     setPhase('creating')
     try {
@@ -104,13 +107,13 @@ export function ReferralInviteButton({ isKo }: { isKo: boolean }) {
             ? '초대 링크 복사됨!'
             : 'Invite link copied!'
           : isKo
-            ? '친구 초대하고 크레딧 받기'
-            : 'Invite a friend, earn credits'}
+            ? `친구 초대하고 ${REFERRER_CREDITS} 크레딧 받기`
+            : `Invite a friend, earn ${REFERRER_CREDITS} credits`}
       </button>
       <p style={{ fontSize: 11.5, lineHeight: 1.5, color: '#9aa3b8', textAlign: 'center' }}>
         {isKo
-          ? '친구가 첫 결제하면 두 분 다 크레딧을 받아요.'
-          : 'When your friend makes their first purchase, you both get credits.'}
+          ? `친구가 첫 결제하면 나 +${REFERRER_CREDITS} · 친구 +${REFEREE_CREDITS} 크레딧.`
+          : `When your friend makes their first purchase: you +${REFERRER_CREDITS}, they +${REFEREE_CREDITS} credits.`}
       </p>
       {error ? <span style={{ fontSize: 12, color: '#fda4af' }}>{error}</span> : null}
     </div>

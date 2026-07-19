@@ -38,6 +38,7 @@ import type {
 import styles from './LifetimeTier.module.css'
 import { useI18n } from '@/i18n/I18nProvider'
 import { ShareLifeButton } from '@/components/calendar/ShareLifeButton'
+import { ReferralInviteButton } from '@/components/referral/ReferralInviteButton'
 import { lifeShareHook } from '@/lib/share/shareHook'
 import { lifeTypeStyle } from '@/components/calendar/lifeTypeStyle'
 
@@ -506,8 +507,18 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
       )}
 
       {lifeShare && (
-        <div style={{ display: 'flex', justifyContent: 'center', marginTop: 14 }}>
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: 14,
+            marginTop: 14,
+          }}
+        >
           <ShareLifeButton data={lifeShare} />
+          {/* 결과 자랑(위)과 별개로 "친구 데려오면 크레딧" 동기 — 로그인 유저만 렌더됨. */}
+          <ReferralInviteButton isKo={ko} />
         </div>
       )}
 
