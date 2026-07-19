@@ -40,6 +40,9 @@ const FUNNEL_EVENTS = [
   'integrated_report.share_clicked',
   'integrated_report.invite_landed',
   'integrated_report.invite_converted',
+  // /destiny 인생유형 공유 — trackFunnel.ts 의 FunnelEvent 와 동일하게 유지.
+  'destiny.share_link',
+  'destiny.share_image',
 ] as const
 
 const funnelSchema = z.object({ event: z.enum(FUNNEL_EVENTS) })
