@@ -14,6 +14,7 @@ import { useI18n } from '@/i18n/I18nProvider'
 import { apiFetch } from '@/lib/api'
 import { tarotLogger } from '@/lib/logger'
 import { ShareTarotButton } from '@/components/tarot/ShareTarotButton'
+import { ReferralInviteButton } from '@/components/referral/ReferralInviteButton'
 import { bumpStreakForToday } from '@/lib/tarot/dailyStreak'
 import { cleanShareHook, pickKeyMessage } from '@/components/tarot/shareCardData'
 import type { ShareCardData } from '@/components/tarot/TarotShareCard'
@@ -348,6 +349,8 @@ export default function DailyTarotPage() {
                   </p>
                 </div>
                 <ShareTarotButton data={shareData} language={locale} body={reading.message} />
+                {/* 결과 자랑(위)과 별개로 "친구 데려오면 크레딧" 동기 — 로그인 유저만 렌더됨. */}
+                <ReferralInviteButton isKo={isKo} />
               </div>
             ) : null}
 

@@ -14,6 +14,9 @@ export type FunnelEvent =
   | 'compat_free.report_viewed'
   | 'compat_free.counselor_cta'
   | 'referral.link_clicked'
+  // 추천 루프 시작점 — 무료 결과 화면에서 "친구 초대" 버튼 클릭.
+  // invite_clicked → (친구) link_clicked → 첫 결제 보상으로 루프를 계측.
+  | 'referral.invite_clicked'
   // 바이럴 루프 계측 — 공유 의도(클릭)부터 초대 랜딩→프리필→결과 완주까지.
   // k(바이럴 계수) = share_clicked→(서버 share.created)→invite_landed→invite_converted 로 계산.
   | 'compat_free.share_clicked'

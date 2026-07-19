@@ -30,6 +30,7 @@ const FUNNEL_EVENTS = [
   'compat_free.report_viewed',
   'compat_free.counselor_cta',
   'referral.link_clicked',
+  'referral.invite_clicked',
   // 바이럴 루프 계측 — trackFunnel.ts 의 FunnelEvent 와 동일하게 유지.
   'compat_free.share_clicked',
   'compat_free.share_link',

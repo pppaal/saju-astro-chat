@@ -3,13 +3,10 @@ import { Prisma } from '@prisma/client'
 import { addBonusCredits, claimBonusPurchaseForRefund } from '@/lib/credits/creditService'
 import { randomBytes } from 'crypto'
 import { logger } from '@/lib/logger'
-
-// 추천 보상 — 친구의 첫 결제 시점에 지급.
-//   - REFERRER_CREDITS: 추천인이 받는 크레딧.
-//   - REFEREE_CREDITS: 친구(피추천자) 본인이 첫 결제 보너스로 받는 크레딧.
+// 추천 보상 — 친구의 첫 결제 시점에 지급. 액수는 rewards.ts(SSOT)에서 —
+// 노출 카피(ReferralInviteButton)와 지급 로직이 같은 숫자를 읽게 한다.
 // 양쪽 모두 받게 해서 추천 동기 + 친구의 결제 동기 둘 다 잡는다.
-const REFERRER_CREDITS = 10
-const REFEREE_CREDITS = 5
+import { REFERRER_CREDITS, REFEREE_CREDITS } from './rewards'
 // 후방 호환 — linkReferrer 가 pending 행에 기록하는 추천인 보상 액수.
 const REFERRAL_CREDITS = REFERRER_CREDITS
 
