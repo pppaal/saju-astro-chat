@@ -28,6 +28,9 @@ export type FunnelEvent =
   // k_report = share_clicked→invite_landed→invite_converted 로 계산(궁합과 대칭).
   | 'integrated_report.invite_landed'
   | 'integrated_report.invite_converted'
+  // /destiny 인생유형 공유 — 링크(재유입 큰 경로) vs 이미지 카드(스토리용)를 분리 계측.
+  | 'destiny.share_link'
+  | 'destiny.share_image'
 
 export function trackFunnel(event: FunnelEvent): void {
   try {
