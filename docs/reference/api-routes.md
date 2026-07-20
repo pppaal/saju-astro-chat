@@ -15,7 +15,7 @@ status: auto-generated
 <!-- gen:api-routes -->
 <!-- 이 표는 자동 생성됩니다. 직접 수정하지 마세요 — `npm run docs:sync`. -->
 
-**총 102개 라우트** (원천: `src/app/api/**/route.ts`)
+**총 103개 라우트** (원천: `src/app/api/**/route.ts`)
 
 | 라우트                                  | 메서드             |
 | --------------------------------------- | ------------------ |
@@ -73,6 +73,7 @@ status: auto-generated
 | `/api/cron/anomaly-check`               | GET, POST          |
 | `/api/cron/daily-fortune`               | GET, POST          |
 | `/api/cron/ig-token-refresh`            | GET, POST          |
+| `/api/cron/indexnow`                    | GET, POST          |
 | `/api/cron/keyday-push`                 | GET, POST          |
 | `/api/cron/reconcile-activity`          | GET, POST          |
 | `/api/cron/reset-credits`               | GET, POST          |
