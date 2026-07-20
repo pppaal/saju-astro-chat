@@ -66,6 +66,7 @@ const HANDROLLED: Record<string, { reason: string; requires: RegExp }> = {
   // cron 라우트 — 전부 CRON_SECRET 로 인가(Vercel Cron/GitHub Actions 만 호출).
   'src/app/api/cron/anomaly-check/route.ts': { reason: 'cron', requires: /CRON_SECRET/ },
   'src/app/api/cron/ig-token-refresh/route.ts': { reason: 'cron', requires: /CRON_SECRET/ },
+  'src/app/api/cron/indexnow/route.ts': { reason: 'cron', requires: /CRON_SECRET/ },
   'src/app/api/cron/keyday-push/route.ts': { reason: 'cron', requires: /CRON_SECRET/ },
   'src/app/api/cron/reconcile-activity/route.ts': { reason: 'cron', requires: /CRON_SECRET/ },
   'src/app/api/cron/social-drafts/route.ts': { reason: 'cron', requires: /CRON_SECRET/ },

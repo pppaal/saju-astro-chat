@@ -86,6 +86,7 @@ const ALLOWLIST = new Set([
   'src/app/api/cron/ig-token-refresh/route.ts',
   'src/app/api/cron/social-insights/route.ts',
   'src/app/api/cron/social-publish/route.ts',
+  'src/app/api/cron/indexnow/route.ts',
 
   // Public share viewer: public by design (SECURITY_AUDIT_REPORT "public
   // share/[id]"), rate-limited manually.

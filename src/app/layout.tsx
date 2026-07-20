@@ -212,6 +212,11 @@ export const metadata: Metadata = {
   verification: {
     google: process.env.NEXT_PUBLIC_GOOGLE_VERIFICATION,
     yandex: process.env.NEXT_PUBLIC_YANDEX_VERIFICATION,
+    // 네이버 서치어드바이저 소유 확인 — 한국어 운세 검색 유입의 핵심 엔진.
+    // 등록 시 발급되는 메타태그 content 값을 env 로 넣으면 <meta name="naver-site-verification">가 렌더된다.
+    ...(process.env.NEXT_PUBLIC_NAVER_VERIFICATION
+      ? { other: { 'naver-site-verification': process.env.NEXT_PUBLIC_NAVER_VERIFICATION } }
+      : {}),
   },
 }
 
