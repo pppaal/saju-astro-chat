@@ -198,4 +198,42 @@ describe('/api/me/streak POST', () => {
       })
     )
   })
+
+  // 프로덕션 회귀: VisitStreak 테이블이 아직 없을 때(마이그레이션 드리프트, P2021)
+  // 500 으로 흐름을 깨지 않고 count 없는 graceful 성공 → 클라 localStorage 폴백.
+  it('테이블 없음(P2021)이면 500 아닌 200 + count 없음(코스메틱 저하)', async () => {
+    mockSession('user-1')
+    const err = Object.assign(new Error('The table `public.VisitStreak` does not exist'), {
+      code: 'P2021',
+    })
+    vi.mocked(prisma.visitStreak.findUnique).mockRejectedValue(err as any)
+
+    const res = await POST(makeRequest({ today: TODAY }))
+    const json = await res.json()
+
+    expect(res.status).toBe(200)
+    expect(json.data.count).toBe(0)
+    expect(prisma.visitStreak.upsert).not.toHaveBeenCalled()
+  })
+
+  it('메시지로도 테이블 없음 감지(code 없이 "does not exist in the current database")', async () => {
+    mockSession('user-1')
+    vi.mocked(prisma.visitStreak.findUnique).mockRejectedValue(
+      new Error('The table VisitStreak does not exist in the current database.') as any
+    )
+    const res = await POST(makeRequest({ today: TODAY }))
+    expect(res.status).toBe(200)
+    const json = await res.json()
+    expect(json.data.count).toBe(0)
+  })
+
+  it('그 외 DB 에러는 삼키지 않고 그대로 전파(실 미들웨어가 500)', async () => {
+    mockSession('user-1')
+    vi.mocked(prisma.visitStreak.findUnique).mockRejectedValue(
+      Object.assign(new Error('connection reset'), { code: 'P1001' }) as any
+    )
+    // mock 미들웨어는 throw 를 잡지 않으므로 전파 = "삼키지 않음"의 증거.
+    await expect(POST(makeRequest({ today: TODAY }))).rejects.toThrow('connection reset')
+    expect(prisma.visitStreak.upsert).not.toHaveBeenCalled()
+  })
 })

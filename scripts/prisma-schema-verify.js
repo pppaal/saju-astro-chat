@@ -170,6 +170,29 @@ const REQUIRED_TABLES = [
     `,
   },
   {
+    // 방문 스트릭("N일째 확인 중" 칩의 서버 영속본). prod 에서 phantom-apply 로
+    // CREATE TABLE 이 누락돼 로그인 사용자가 /calendar 열 때마다 /api/me/streak
+    // 이 P2021("table VisitStreak does not exist")로 죽었다(관찰 2026-07-21).
+    // FK 는 ADD CONSTRAINT 가 idempotent 하지 않아 DO 블록(duplicate_object 무시)으로.
+    table: 'VisitStreak',
+    migration: '20260704000000_visit_streak',
+    createSql: `
+      CREATE TABLE IF NOT EXISTS "VisitStreak" (
+        "userId" TEXT NOT NULL,
+        "last" TEXT NOT NULL,
+        "count" INTEGER NOT NULL DEFAULT 1,
+        "longest" INTEGER NOT NULL DEFAULT 1,
+        "updatedAt" TIMESTAMP(3) NOT NULL,
+        CONSTRAINT "VisitStreak_pkey" PRIMARY KEY ("userId")
+      );
+      DO $$ BEGIN
+        ALTER TABLE "VisitStreak" ADD CONSTRAINT "VisitStreak_userId_fkey"
+          FOREIGN KEY ("userId") REFERENCES "User"("id")
+          ON DELETE CASCADE ON UPDATE CASCADE;
+      EXCEPTION WHEN duplicate_object THEN null; END $$;
+    `,
+  },
+  {
     // 크레딧 감사 테이블. prod (Supabase) 에서 phantom-apply 로 CREATE TABLE
     // 이 누락됐다 — 매 결제마다 addBonusCredits → creditTransaction.create 가
     // "table does not exist" 로 죽어 트랜잭션 전체 롤백("결제 됐는데 크레딧 0
