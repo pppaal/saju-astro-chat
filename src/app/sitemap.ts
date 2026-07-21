@@ -4,6 +4,7 @@ import { isBlockedBlogPost } from '@/data/blog/publicFilters'
 import { ENABLED_SERVICES } from '@/config/enabledServices'
 import { ALL_CARD_SLUGS } from '@/lib/tarot/cardPages'
 import { ZODIAC_ANIMALS } from '@/lib/fortune/zodiacDaily'
+import { allPairSlugs } from '@/lib/compatibility/zodiacCompat'
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://destinypal.com'
 
@@ -132,6 +133,24 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ),
   ]
 
+  // 띠 궁합 — 프로그램매틱 SEO 표면(허브 + 78개 정규 조합). 상시(evergreen)
+  // 콘텐츠라 changeFrequency monthly. 역순 슬러그는 canonical 로 정규를 가리키므로
+  // 사이트맵엔 정규 슬러그(allPairSlugs)만 올린다.
+  const zodiacCompatPages: MetadataRoute.Sitemap = [
+    ...localizedEntries('/compatibility/zodiac', {
+      lastModified: currentDate,
+      changeFrequency: 'monthly',
+      priority: 0.8,
+    }),
+    ...allPairSlugs().flatMap((slug) =>
+      localizedEntries(`/compatibility/zodiac/${slug}`, {
+        lastModified: currentDate,
+        changeFrequency: 'monthly',
+        priority: 0.7,
+      })
+    ),
+  ]
+
   // Blog posts (ko/en 본문이 같은 slug 에 공존 — 언어별 URL 로 각각 색인)
   const blogPages: MetadataRoute.Sitemap = blogPosts
     .filter((post) => !isBlockedBlogPost(post))
@@ -149,6 +168,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ...policyPages,
     ...fortunePages,
     ...tarotCardPages,
+    ...zodiacCompatPages,
     ...blogPages,
   ]
 }
