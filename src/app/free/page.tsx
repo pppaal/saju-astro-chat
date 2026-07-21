@@ -137,6 +137,18 @@ const FREE_TOOLS: readonly FreeTool[] = [
     },
   },
   {
+    href: '/compatibility/zodiac',
+    tint: '#e0568f',
+    bg: 'rgba(224,86,143,.1)',
+    bd: 'rgba(224,86,143,.26)',
+    svg: '<path d="M12 21s-7.5-4.6-9.7-9C1 9 2.6 5.5 6 5.5c2 0 3.2 1.2 4 2.3.8-1.1 2-2.3 4-2.3 3.4 0 5 3.5 3.7 6.5C19.5 16.4 12 21 12 21z"/>',
+    title: { ko: '우리 띠, 잘 맞을까', en: 'Do our signs match' },
+    desc: {
+      ko: '12띠 모든 조합의 궁합을 삼합·육합·충으로. 두 띠만 고르면 바로.',
+      en: 'Every pair of the 12 signs, from classical harmony & clash. Pick two.',
+    },
+  },
+  {
     href: '/tarot/cards',
     tint: '#8b5cf6',
     bg: 'rgba(139,92,246,.1)',
