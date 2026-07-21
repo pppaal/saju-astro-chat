@@ -57,19 +57,35 @@ export const POST = withApiMiddleware(
     }
 
     const userId = context.userId!
-    const prev = await prisma.visitStreak.findUnique({ where: { userId } })
-    const next = computeStreak(prev ? { last: prev.last, count: prev.count } : null, today)
-    const longest = Math.max(prev?.longest ?? 1, next.count)
+    try {
+      const prev = await prisma.visitStreak.findUnique({ where: { userId } })
+      const next = computeStreak(prev ? { last: prev.last, count: prev.count } : null, today)
+      const longest = Math.max(prev?.longest ?? 1, next.count)
 
-    const row = await prisma.visitStreak.upsert({
-      where: { userId },
-      create: { userId, last: next.last, count: next.count, longest },
-      update: { last: next.last, count: next.count, longest },
-      select: { count: true, longest: true },
-    })
+      const row = await prisma.visitStreak.upsert({
+        where: { userId },
+        create: { userId, last: next.last, count: next.count, longest },
+        update: { last: next.last, count: next.count, longest },
+        select: { count: true, longest: true },
+      })
 
-    logger.info('[streak] checkin', { userId, count: row.count })
-    return apiSuccess({ count: row.count, longest: row.longest })
+      logger.info('[streak] checkin', { userId, count: row.count })
+      return apiSuccess({ count: row.count, longest: row.longest })
+    } catch (err) {
+      // VisitStreak 테이블이 프로덕션 DB 에 아직 없을 수 있다(마이그레이션 드리프트).
+      // 스트릭은 과금 무관 코스메틱이라 500 으로 흐름을 깨지 않는다 — count 를 빼고
+      // graceful 성공을 돌려주면 StreakChip 이 원래 하던 localStorage 폴백을 그대로
+      // 타서 사용자 화면은 정상, error-level Sentry 스팸만 멎는다. (프로필 P2022
+      // 회복력과 같은 패턴 — code P2021 확인 + 메시지 매칭 둘 다.)
+      const code = (err as { code?: string })?.code
+      const msg = err instanceof Error ? err.message : String(err)
+      const isMissingTable = code === 'P2021' || /does not exist in the current database/i.test(msg)
+      if (!isMissingTable) throw err
+      logger.warn('[streak] VisitStreak table missing — degrading to client fallback', { code })
+      // count 0 = "서버 미영속" 센티널. StreakChip 은 count<1 이면 localStorage
+      // 폴백을 타므로(오프라인과 동일 경로) 사용자 스트릭은 정상 유지된다.
+      return apiSuccess({ count: 0, longest: 0 })
+    }
   },
   createAuthenticatedGuard({
     route: '/api/me/streak',
