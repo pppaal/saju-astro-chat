@@ -33,6 +33,7 @@ import type {
 } from '@/types/calendar'
 
 import { deriveLifePattern } from '@/lib/calendar-engine/derivers/lifePattern'
+import { buildSibsinRadar } from '@/lib/report/sibsinRadar'
 import { toDaewoon } from './toDaewoon'
 import { toLifeStages } from './toLifeStages'
 import { toMilestones } from './toMilestones'
@@ -272,6 +273,10 @@ export function toLifetime(natal: NatalContext, opts: ToLifetimeOptions): Destin
       }
     : undefined
 
+  // 타고난 능력치 레이더 — 십성 분포에서 정직하게(가짜 점수 아님). 근거 없으면
+  // undefined → 컴포넌트가 블록 자체를 렌더 안 함.
+  const sibsinRadar = buildSibsinRadar(natal.saju.analyses?.sibsin?.categoryCount) ?? undefined
+
   return {
     birthYear: opts.birthYear,
     currentYear: opts.currentYear,
@@ -285,5 +290,6 @@ export function toLifetime(natal: NatalContext, opts: ToLifetimeOptions): Destin
     zrFortuneChapters,
     lifePattern,
     lifeCurve: toDestinyLifeCurve(opts.lifeCurve, nowAge),
+    sibsinRadar,
   }
 }

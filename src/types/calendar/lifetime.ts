@@ -8,6 +8,7 @@
 
 import type { ZRPeriod, ZRStartLot } from '@/lib/astrology/foundation/zodiacalReleasing'
 import type { Ganji, NarrativeChip, SibsinKind } from './shared'
+import type { RadarAxis } from '@/lib/report/sibsinRadar'
 
 // ============================================================================
 // 대운 (Daewoon) — 10년 단위.
@@ -192,6 +193,8 @@ export interface DestinyLifetime {
    * 인생 스케일(일 화면 감사 #12로 일 화면에선 뺀 배경 교차의 원래 집). 시안 ⑧.
    */
   decadeCross?: DestinyDecadeCross[]
+  /** 타고난 능력치 레이더 — 십성 분포에서 뽑은 5축(정직 데이터). 근거 없으면 undefined. */
+  sibsinRadar?: RadarAxis[]
 }
 
 export interface DestinyThisYear {

@@ -38,6 +38,8 @@ import type {
 import styles from './LifetimeTier.module.css'
 import { useI18n } from '@/i18n/I18nProvider'
 import { ShareLifeButton } from '@/components/calendar/ShareLifeButton'
+import { LifeRadar } from '@/components/calendar/LifeRadar'
+import { dominantAxis } from '@/lib/report/sibsinRadar'
 import { ReferralInviteButton } from '@/components/referral/ReferralInviteButton'
 import { lifeShareHook } from '@/lib/share/shareHook'
 import { lifeTypeStyle } from '@/components/calendar/lifeTypeStyle'
@@ -102,6 +104,7 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
     lifeCurve,
     thisYear,
     decadeCross,
+    sibsinRadar,
   } = lifetime
 
   // lifeStages 빈 배열 가드 (adapter 실패 시 깨짐 방지) — 로딩.
@@ -412,6 +415,30 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
           </div>
         )}
       </header>
+
+      {/* ── B1.5 타고난 능력치 레이더 — 십성 분포에서 정직하게(가짜 점수 아님).
+          근거 없으면(sibsinRadar 없음) 블록 자체를 렌더 안 함. ── */}
+      {sibsinRadar && sibsinRadar.length > 0 && (
+        <section className={styles.sec}>
+          <div className={styles.secH}>
+            <span className={styles.secLbl}>{ko ? '타고난 능력치' : 'Natural strengths'}</span>
+            <span className={styles.secLn} />
+            <span className={styles.secLat}>STRENGTHS</span>
+          </div>
+          <LifeRadar axes={sibsinRadar} ko={ko} />
+          {(() => {
+            const dom = dominantAxis(sibsinRadar)
+            if (!dom) return null
+            return (
+              <p className={styles.novLine} style={{ textAlign: 'center', marginTop: 6 }}>
+                {ko
+                  ? `타고난 기운 중 '${dom.labelKo}'가 가장 두드러져요 — 이 강점을 살리는 쪽으로 판을 짜면 유리해요.`
+                  : `Your strongest natural thread is '${dom.labelEn}' — lean into it and the odds tilt your way.`}
+              </p>
+            )
+          })()}
+        </section>
+      )}
 
       {/* ── B2. 인생 굴곡 곡선 — 사주(대운·세운·충합) + 외행성 트랜짓 중첩 ── */}
       {curve && (
