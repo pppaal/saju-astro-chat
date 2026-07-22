@@ -801,30 +801,9 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
           </div>
         </header>
 
-        {/* 메타 */}
-        <div className={s.metaGrid}>
-          {[
-            [t('metaBirth'), `${input.calendar} ${input.date.replace(/-/g, '.')} · ${input.time}`],
-            [t('metaPlace'), input.place],
-            [
-              t('metaCoord'),
-              // 부호로 반구 분기 — 남반구(-lat)는 S, 서경(-lng)은 W (C7).
-              `${Math.abs(input.lat).toFixed(2)}°${input.lat < 0 ? 'S' : 'N'} · ${Math.abs(input.lng).toFixed(2)}°${input.lng < 0 ? 'W' : 'E'}`,
-            ],
-            [t('metaTz'), tzLabel(input.timeZone)],
-            [
-              t('metaHouse'),
-              `${houseSysLabel(A.houseSystem)} · ${A.sect === 'day' ? t('day') : t('night')}`,
-            ],
-          ].map(([k, v]) => (
-            <div className={s.metaCell} key={k}>
-              <span className={s.metaK}>{k}</span>
-              <span className={s.metaV}>{v}</span>
-            </div>
-          ))}
-        </div>
-        {/* 메타 그리드 안내 — 숫자·전문어가 겁주지 않게 한 줄. */}
-        <p className={s.metaNote}>{t('metaNote')}</p>
+        {/* 메타(좌표·타임존·하우스시스템)는 근거 자료 접이식으로 이동 — 상단은
+            훅→종합→테마로 흐르게 하고, 전문 데이터는 원하는 사람만 펼쳐 본다.
+            (이름·생일·장소는 위 헤더 우측에 이미 노출됨.) */}
 
         {/* 출생시각 미상 경고 — ASC/MC/하우스 의존 해석이 근사치임을 고지 */}
         {input.birthTimeUnknown && (
@@ -899,17 +878,20 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
           })()}
         </div>
 
-        {/* 오리엔테이션 — "이게 뭐고 어떻게 읽는지" 항상 보이게(초보자 길잡이). */}
+        {/* 본문(테마)을 훅·종합 바로 뒤에 붙여 "결론 먼저" 흐름을 지킨다.
+            초보자 길잡이(어떻게 읽나 + 용어)는 본문 뒤로 내려, 읽고 싶은 사람만
+            보게 한다 — 가르치기 전에 보여주기. */}
+        {themesSection}
+
+        {/* 오리엔테이션 — "이게 뭐고 어떻게 읽는지"(초보자 길잡이). 본문 뒤로 이동. */}
         <div className={s.howToRead}>
           <div className={s.howToReadTitle}>{t('howToReadTitle')}</div>
           <p className={s.howToReadBody}>{t('howToReadBody')}</p>
           <div className={s.howToReadJourney}>{t('howToReadJourney')}</div>
         </div>
 
-        {/* 입문 용어 풀이 — 사주팔자/천궁도가 뭔지부터 (도입부라 리드 없이 더보기만) */}
+        {/* 입문 용어 풀이 — 사주팔자/천궁도가 뭔지부터 (리드 없이 더보기만) */}
         <Explain section="intro" lang={lang} lead={false} />
-
-        {themesSection}
 
         {/* ── 근거 자료(접이식) — 명식·천궁도·어스펙트·하우스. 도표를 원하는 사람만
             펼쳐 본다. 테마별 풀이가 본문, 이건 그 근거. ── */}
@@ -919,6 +901,34 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
               ? '📊 The data behind it — chart, planets, aspects'
               : '📊 근거 자료 — 명식·천궁도·어스펙트'}
           </summary>
+
+          {/* 출생 메타(좌표·타임존·하우스시스템) — 상단에서 여기로 이동. 전문
+              데이터라 근거 자료를 펼친 사람에게만 보인다. */}
+          <div className={s.metaGrid}>
+            {[
+              [
+                t('metaBirth'),
+                `${input.calendar} ${input.date.replace(/-/g, '.')} · ${input.time}`,
+              ],
+              [t('metaPlace'), input.place],
+              [
+                t('metaCoord'),
+                // 부호로 반구 분기 — 남반구(-lat)는 S, 서경(-lng)은 W (C7).
+                `${Math.abs(input.lat).toFixed(2)}°${input.lat < 0 ? 'S' : 'N'} · ${Math.abs(input.lng).toFixed(2)}°${input.lng < 0 ? 'W' : 'E'}`,
+              ],
+              [t('metaTz'), tzLabel(input.timeZone)],
+              [
+                t('metaHouse'),
+                `${houseSysLabel(A.houseSystem)} · ${A.sect === 'day' ? t('day') : t('night')}`,
+              ],
+            ].map(([k, v]) => (
+              <div className={s.metaCell} key={k}>
+                <span className={s.metaK}>{k}</span>
+                <span className={s.metaV}>{v}</span>
+              </div>
+            ))}
+          </div>
+          <p className={s.metaNote}>{t('metaNote')}</p>
 
           {/* 01 사주 명식 */}
           <section className={s.section}>
