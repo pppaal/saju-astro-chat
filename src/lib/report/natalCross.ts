@@ -138,13 +138,15 @@ export function synthesize(
         : `, with all five fairly evenly spread — a well-balanced makeup.`)
   }
 
-  // 숫자만 던지면 "잘 맞는 게 5개"가 '무엇이' 맞는지 안 보인다 — 사주·점성을
-  // 여러 삶의 영역에서 맞대본 결과(영역 수)임을 문장 안에서 풀어 쓴다.
+  // "결론 먼저" — 유형(verdict)을 맨 앞에 두고, 근거(영역 수)는 뒤에 스캔 가능한
+  // 짧은 라벨 형태로. 예전엔 긴 카운팅 절 끝에 유형이 묻혀 "숫자로 시작하는
+  // 6문장 run-on"이라 결론이 결론처럼 안 읽혔다. 라벨(같은 방향/서로 보완/부딪힘)로
+  // '무엇이' 맞는지도 보존한다.
   return {
     tone,
     text: {
-      ko: `사주와 별자리를 여러 삶의 영역에서 나란히 맞대보면, 두 관점이 같은 방향을 가리키는 영역이 ${resonant}개, 서로 부족을 채워주는 영역이 ${complement}개, 부딪히는 영역이 ${tension}개예요 — ${labelKo} 사람이에요.${axisKo}${elabKo}${distKo}`,
-      en: `Lining up Saju and astrology across several areas of life, the two views point the same way in ${resonant}, fill each other's gaps in ${complement}, and pull against each other in ${tension} — a ${labelEn} identity.${axisEn}${elabEn}${distEn}`,
+      ko: `${labelKo} 사람이에요.${axisKo} 삶의 여러 영역에서 사주와 별자리를 맞대보면 같은 방향 ${resonant}곳 · 서로 보완 ${complement}곳 · 부딪힘 ${tension}곳이에요.${elabKo}${distKo}`,
+      en: `A ${labelEn} identity.${axisEn} Across several areas of life, Saju and astrology align in ${resonant}, complement in ${complement}, and clash in ${tension}.${elabEn}${distEn}`,
     },
   }
 }
