@@ -145,7 +145,7 @@ export function synthesize(
   return {
     tone,
     text: {
-      ko: `${labelKo} 사람이에요.${axisKo} 삶의 여러 영역에서 사주와 별자리를 맞대보면 같은 방향 ${resonant}곳 · 서로 보완 ${complement}곳 · 부딪힘 ${tension}곳이에요.${elabKo}${distKo}`,
+      ko: `${labelKo} 사람이에요.${axisKo} 삶의 여러 영역에서 사주와 별자리를 맞대보면 잘 맞는 ${resonant}곳 · 서로 돕는 ${complement}곳 · 부딪히는 ${tension}곳이에요.${elabKo}${distKo}`,
       en: `A ${labelEn} identity.${axisEn} Across several areas of life, Saju and astrology align in ${resonant}, complement in ${complement}, and clash in ${tension}.${elabEn}${distEn}`,
     },
   }
