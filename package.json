@@ -134,7 +134,9 @@
     },
     "axios": "^1.18.1",
     "js-yaml": "^4.3.0",
-    "brace-expansion": "^2.1.2"
+    "brace-expansion": "^2.1.2",
+    "fast-uri": "^3.1.4",
+    "sharp": "^0.35.3"
   },
   "dependencies": {
     "@ducanh2912/next-pwa": "^10.2.9",
