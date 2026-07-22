@@ -1118,16 +1118,18 @@
   color: var(--tc);
 }
 .themeReason {
-  font-size: 12.5px;
+  /* 핵심 해석 본문 — 예전 12.5px 는 페이지에서 제일 작은 글자라 위계가
+     거꾸로였다(장식 숫자 26px vs 본문 12.5px). 읽는 대상이므로 14px 로. */
+  font-size: 14px;
   color: var(--ink-2);
-  line-height: 1.6;
+  line-height: 1.65;
 }
 .themeCross {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
   margin-top: 10px;
-  font-size: 12px;
+  font-size: 12.5px;
 }
 .themeSide {
   flex: 1 1 140px;
