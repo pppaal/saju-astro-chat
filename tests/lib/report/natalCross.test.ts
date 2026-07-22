@@ -196,8 +196,8 @@ describe('natalCross — 종합', () => {
     expect(s?.tone).toBe('resonant')
     // "결론 먼저" 재작성: 유형(verdict)이 맨 앞, 개수는 스캔형 라벨로 뒤에.
     expect(s?.text.ko.startsWith('사주와 별자리가')).toBe(true)
-    expect(s?.text.ko).toContain('같은 방향 2곳')
-    expect(s?.text.ko).toContain('서로 보완 1곳')
+    expect(s?.text.ko).toContain('잘 맞는 2곳')
+    expect(s?.text.ko).toContain('서로 돕는 1곳')
   })
   it('판정 없으면 null', () => {
     expect(synthesize([])).toBeNull()
