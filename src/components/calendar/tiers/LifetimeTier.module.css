@@ -1032,3 +1032,74 @@
     transition: none;
   }
 }
+
+/* ── B2.5 "운을 내 편으로" — 전략 타일 2×2. 엔진값(용신·천을귀인·곡선저점·재성)을
+   행동으로 옮기는 카드. 근거 있는 타일만 렌더돼 1~4개로 유동적이라 auto-fit. ── */
+.stratGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+}
+.stratTile {
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 16px 16px 15px;
+  background: var(--surface);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+/* 주의 구간 — 어두운 crimson 톤(경고 위계). */
+.stratTileWarn {
+  border-color: var(--crimson-line);
+  background: var(--crimson-bg);
+}
+.stratHd {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.stratIcon {
+  font-size: 17px;
+  line-height: 1;
+}
+.stratLbl {
+  font-family: var(--m-serif);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--t1);
+}
+.stratTileWarn .stratLbl {
+  color: var(--crimson);
+}
+.stratVal {
+  font-family: var(--m-serif);
+  font-size: clamp(16px, 4.2vw, 19px);
+  font-weight: 400;
+  color: var(--t0);
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+}
+.stratSub {
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--t2);
+  word-break: keep-all;
+}
+/* 색 스와치(행운 색) — 텍스트 옆 작은 점. */
+.stratSwatch {
+  display: inline-flex;
+  gap: 5px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.stratChip {
+  display: inline-block;
+  padding: 3px 9px;
+  border-radius: 999px;
+  border: 1px solid var(--gold-line);
+  background: var(--gold-bg);
+  color: var(--gold-deep);
+  font-size: 13px;
+  font-weight: 500;
+}

@@ -34,6 +34,7 @@ import type {
 
 import { deriveLifePattern } from '@/lib/calendar-engine/derivers/lifePattern'
 import { buildSibsinRadar } from '@/lib/report/sibsinRadar'
+import { buildLifeStrategy } from '@/lib/report/lifeStrategy'
 import { toDaewoon } from './toDaewoon'
 import { toLifeStages } from './toLifeStages'
 import { toMilestones } from './toMilestones'
@@ -277,6 +278,23 @@ export function toLifetime(natal: NatalContext, opts: ToLifetimeOptions): Destin
   // undefined → 컴포넌트가 블록 자체를 렌더 안 함.
   const sibsinRadar = buildSibsinRadar(natal.saju.analyses?.sibsin?.categoryCount) ?? undefined
 
+  // "운을 내 편으로" — 엔진이 *이미* 계산했으나 프론트에 안 오던 값을 하나로 묶는다:
+  //  행운 요소(용신 색·방향·숫자), 귀인 띠(천을귀인), 주의 구간(곡선 저점, 재파생
+  //  없이 엔진 troughs 그대로), 재물 방식(재성). 근거 없는 타일은 생략, 전부 없으면
+  //  undefined → 블록 미노출.
+  const lifeStrategy =
+    buildLifeStrategy({
+      yongsin: natal.saju.analyses?.yongsin,
+      dayStemHanja: natal.saju.dayMaster?.name,
+      sibsinCount: natal.saju.analyses?.sibsin?.categoryCount,
+      curveTroughs: opts.lifeCurve?.troughs.map((t) => ({
+        age: t.age,
+        year: t.year,
+        value: t.value,
+      })),
+      nowAge,
+    }) ?? undefined
+
   return {
     birthYear: opts.birthYear,
     currentYear: opts.currentYear,
@@ -291,5 +309,6 @@ export function toLifetime(natal: NatalContext, opts: ToLifetimeOptions): Destin
     lifePattern,
     lifeCurve: toDestinyLifeCurve(opts.lifeCurve, nowAge),
     sibsinRadar,
+    lifeStrategy,
   }
 }

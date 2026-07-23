@@ -9,6 +9,7 @@
 import type { ZRPeriod, ZRStartLot } from '@/lib/astrology/foundation/zodiacalReleasing'
 import type { Ganji, NarrativeChip, SibsinKind } from './shared'
 import type { RadarAxis } from '@/lib/report/sibsinRadar'
+import type { LifeStrategy } from '@/lib/report/lifeStrategy'
 
 // ============================================================================
 // 대운 (Daewoon) — 10년 단위.
@@ -195,6 +196,12 @@ export interface DestinyLifetime {
   decadeCross?: DestinyDecadeCross[]
   /** 타고난 능력치 레이더 — 십성 분포에서 뽑은 5축(정직 데이터). 근거 없으면 undefined. */
   sibsinRadar?: RadarAxis[]
+  /**
+   * "운을 내 편으로" — 행운 요소(용신)·귀인 띠(천을귀인)·주의 구간(곡선 저점)·
+   * 재물 방식(재성). 엔진이 이미 계산했으나 프론트에 안 오던 값을 하나로 묶음.
+   * 각 타일은 근거 있을 때만, 전부 없으면 undefined.
+   */
+  lifeStrategy?: LifeStrategy
 }
 
 export interface DestinyThisYear {
