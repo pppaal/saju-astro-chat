@@ -46,9 +46,15 @@ jobs:
           #     자체가 없다.
           #   immutable: 위 swagger-ui-react 가 유일하게 끌어오는 전이 의존성(3.8.3).
           #     swagger 를 3.x 에 묶어 두므로 단독 상향 불가.
-          # 재점검: swagger-ui-react 가 패치를 내거나 /api-docs 를 제거하면 이 목록을
-          # 비운다. (등록일 2026-07-22.)
-          ALLOWLIST="swagger-ui-react immutable"
+          #   next: 안정판(latest=16.2.11)이 아직 취약 범위(… - 16.3.0-canary.5) 안이라
+          #     override 로 못 고친다 — 수정본은 16.3.0-preview.* 프리릴리스뿐이라
+          #     결제·인증 프로덕션 앱을 preview 로 올리는 게 더 위험. 노출도: 프로덕션
+          #     빌드는 `next build`+`next start`(Turbopack 아님, 커스텀 서버 아님)라
+          #     최고위험 2건(Turbopack 미들웨어/인증 우회, 커스텀서버 SSRF)이 비해당.
+          #     16.3.0 안정판 나오면 상향하고 이 항목 제거. (등록일 2026-07-23.)
+          # 재점검: swagger-ui-react 가 패치를 내거나 /api-docs 를 제거하면 · next 16.3.0
+          # 안정판이 나오면 해당 항목을 비운다. (등록일 2026-07-22.)
+          ALLOWLIST="swagger-ui-react immutable next"
 
           # 예외 목록에 없는 high/critical 만 센다 — 하나라도 있으면 차단.
           UNACCOUNTED=$(echo "$AUDIT_RESULT" | jq -r --arg allow "$ALLOWLIST" '

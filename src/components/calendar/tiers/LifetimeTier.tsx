@@ -105,6 +105,7 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
     thisYear,
     decadeCross,
     sibsinRadar,
+    lifeStrategy,
   } = lifetime
 
   // lifeStages 빈 배열 가드 (adapter 실패 시 깨짐 방지) — 로딩.
@@ -193,15 +194,7 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
   const bandForAge = (startAge: number): number =>
     decadeBandByAge.get(startAge) ?? daeunFavorByAge.get(startAge) ?? 0
 
-  // ── 계절 arc — 곡선 밴드(없으면 favor) 평균으로 Y 굴곡. now=stage.now. ──
-  const stageFavor = (ageFrom: number, ageTo: number): number => {
-    const daeun = lifePattern?.daeun ?? []
-    if (daeun.length === 0) return 0
-    const inStage = daeun.filter((d) => d.startAge >= ageFrom && d.startAge <= ageTo)
-    const pool = inStage.length > 0 ? inStage : daeun
-    return pool.reduce((a, d) => a + bandForAge(d.startAge), 0) / pool.length
-  }
-  const stageNowIndex = lifeStages.findIndex((s) => s.now)
+  // (제거) 계절 arc(stageFavor)·stageNowIndex — '인생의 네 계절' 섹션과 함께 삭제.
 
   // ── 인생의 큰 마디 — 연도순.
   //   감사 #2: 제목은 평이 meaning 이 주인공. astro/간지 원명(明王星·甲戌)은
@@ -533,6 +526,112 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
         </section>
       )}
 
+      {/* ── B2.5 "운을 내 편으로" — 엔진값(용신 행운요소·천을귀인 귀인·곡선 저점
+          주의구간·재성 재물)을 행동 카드로. 각 타일은 근거 있을 때만, 전부 없으면
+          블록 미노출. 흐름: 능력치(누구인가)→곡선(어떻게 흐르나)→여기(어떻게 편들까). ── */}
+      {lifeStrategy &&
+        (lifeStrategy.lucky ||
+          lifeStrategy.wealth ||
+          lifeStrategy.guin ||
+          lifeStrategy.caution) && (
+          <section className={styles.sec}>
+            <div className={styles.secH}>
+              <span className={styles.secLbl}>{ko ? '운을 내 편으로' : 'Odds in your favor'}</span>
+              <span className={styles.secLn} />
+              <span className={styles.secLat}>STRATEGY</span>
+            </div>
+            <div className={styles.stratGrid}>
+              {lifeStrategy.lucky && (
+                <div className={styles.stratTile}>
+                  <div className={styles.stratHd}>
+                    <span className={styles.stratIcon} aria-hidden>
+                      🎨
+                    </span>
+                    <span className={styles.stratLbl}>{ko ? '행운 요소' : 'Lucky elements'}</span>
+                  </div>
+                  {lifeStrategy.lucky.colors.length > 0 && (
+                    <div className={styles.stratSwatch}>
+                      {lifeStrategy.lucky.colors.map((c) => (
+                        <span key={c} className={styles.stratChip}>
+                          {c}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                  <div className={styles.stratSub}>
+                    {[
+                      lifeStrategy.lucky.direction
+                        ? `${ko ? '방향' : 'Direction'} · ${lifeStrategy.lucky.direction}`
+                        : '',
+                      lifeStrategy.lucky.numbers.length > 0
+                        ? `${ko ? '숫자' : 'Numbers'} · ${lifeStrategy.lucky.numbers.join(' · ')}`
+                        : '',
+                    ]
+                      .filter(Boolean)
+                      .join('    ')}
+                  </div>
+                </div>
+              )}
+
+              {lifeStrategy.guin && lifeStrategy.guin.animals.length > 0 && (
+                <div className={styles.stratTile}>
+                  <div className={styles.stratHd}>
+                    <span className={styles.stratIcon} aria-hidden>
+                      🤝
+                    </span>
+                    <span className={styles.stratLbl}>{ko ? '내 귀인' : 'Your allies'}</span>
+                  </div>
+                  <div className={styles.stratVal}>{lifeStrategy.guin.animals.join(' · ')}</div>
+                  <div className={styles.stratSub}>
+                    {ko
+                      ? '천을귀인 — 이 띠의 사람이 결정적일 때 힘이 돼요.'
+                      : 'Cheoneul benefactors — these signs help at the pivotal moments.'}
+                  </div>
+                </div>
+              )}
+
+              {lifeStrategy.wealth && (
+                <div className={styles.stratTile}>
+                  <div className={styles.stratHd}>
+                    <span className={styles.stratIcon} aria-hidden>
+                      💰
+                    </span>
+                    <span className={styles.stratLbl}>
+                      {ko ? '재물 방식' : 'How you build wealth'}
+                    </span>
+                  </div>
+                  <div className={styles.stratSub}>
+                    {ko ? lifeStrategy.wealth.styleKo : lifeStrategy.wealth.styleEn}
+                  </div>
+                </div>
+              )}
+
+              {lifeStrategy.caution && lifeStrategy.caution.years.length > 0 && (
+                <div className={`${styles.stratTile} ${styles.stratTileWarn}`}>
+                  <div className={styles.stratHd}>
+                    <span className={styles.stratIcon} aria-hidden>
+                      ⚠️
+                    </span>
+                    <span className={styles.stratLbl}>
+                      {ko ? '주의 구간' : 'Watch these years'}
+                    </span>
+                  </div>
+                  <div className={styles.stratVal}>
+                    {lifeStrategy.caution.years
+                      .map((y) => (ko ? `${y.age}세(${y.year})` : `age ${y.age} (${y.year})`))
+                      .join(' · ')}
+                  </div>
+                  <div className={styles.stratSub}>
+                    {ko
+                      ? '흐름이 가라앉는 구간 — 큰 결단·확장보다 지키기·정비에 유리해요.'
+                      : 'The flow dips here — better for consolidating than for big bets.'}
+                  </div>
+                </div>
+              )}
+            </div>
+          </section>
+        )}
+
       {lifeShare && (
         <div
           style={{
@@ -796,64 +895,9 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
         </div>
       </section>
 
-      {/* ── D. 인생의 계절 (4 stages) — 기본 유지 ── */}
-      <section className={styles.sec}>
-        <div className={styles.secH}>
-          <span className={styles.secLbl}>{ko ? '인생의 네 계절' : 'Four seasons of life'}</span>
-          <span className={styles.secLn} />
-          <span className={styles.secLat}>SEASONS</span>
-        </div>
-        <div className={styles.seasonRow}>
-          {lifeStages.map((s, i) => {
-            const favor = stageFavor(s.ageFrom, s.ageTo)
-            const future = stageNowIndex >= 0 && i > stageNowIndex
-            const past = stageNowIndex >= 0 && i < stageNowIndex
-            const cls = [
-              styles.seasonCard,
-              s.now && styles.seasonNow,
-              future && styles.seasonFuture,
-              past && styles.seasonPast,
-            ]
-              .filter(Boolean)
-              .join(' ')
-            const interactive = s.now
-            return (
-              <div
-                key={s.id}
-                className={cls}
-                style={{ '--season-favor': String(favor) } as CSSProperties}
-                role={interactive ? 'button' : undefined}
-                tabIndex={interactive ? 0 : undefined}
-                onClick={interactive ? onDive : undefined}
-                onKeyDown={
-                  interactive
-                    ? (e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                          e.preventDefault()
-                          onDive()
-                        }
-                      }
-                    : undefined
-                }
-              >
-                {s.now && <span className={styles.seasonNowTag}>{ko ? '지금' : 'now'}</span>}
-                {past && <span className={styles.seasonPastTag}>{ko ? '지나온' : 'past'}</span>}
-                <span className={styles.seasonName}>{ko ? s.name : (s.nameEn ?? s.name)}</span>
-                <span className={styles.seasonAge}>
-                  {s.ageFrom}–{s.ageTo}
-                  {ko ? '세' : ' yrs'}
-                </span>
-                <span className={styles.seasonTone}>{ko ? s.tone : (s.toneEn ?? s.tone)}</span>
-                {s.now && (
-                  <span className={styles.seasonHint}>
-                    {ko ? '탭하면 올해로 ↘' : 'Tap for this year ↘'}
-                  </span>
-                )}
-              </div>
-            )
-          })}
-        </div>
-      </section>
+      {/* ── (제거) 인생의 네 계절 — 인생 곡선(B2)이 이미 오르내림을 보여줘 중복.
+          혼잡 감소를 위해 뺐다(리디자인 결정 2026-07). 필요 시 git history 참조.
+          onDive(올해→캘린더)는 세운(H2) CTA 로 여전히 도달 가능. ── */}
 
       {/* ── E. 인생의 큰 마디 (milestones) — 기본 유지(평이) ── */}
       {turningItems.length > 0 && (

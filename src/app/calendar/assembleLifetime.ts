@@ -20,7 +20,6 @@ import { deriveLifetimeFlow } from '@/lib/calendar-engine/derivers/lifetimeFlow'
 import { deriveLifetimePivots } from '@/lib/calendar-engine/derivers/lifetimePivots'
 import { buildLifeCurve, computeTransitAstroSeries } from '@/lib/calendar-engine/derivers/lifeCurve'
 import { calculateOuterPlanetMilestones } from '@/lib/calendar-engine/lifecycle/outerMilestones'
-import type { LifecycleMilestoneOverride } from '@/lib/calendar-engine/lifecycle/astroLifecycle'
 import { currentManAge } from '@/lib/datetime/currentAge'
 import { toLifetime } from '@/components/calendar/adapters'
 import { assembleUserSummary, type AssembledUser } from './assembleUser'
@@ -51,8 +50,9 @@ export interface AssembleLifetimeInput {
    * 오늘의 evidence 셀(getFocusDayCell) — 대운(decadal) 층 사주×점성 교차 원천.
    * 없으면 decadeCross 생략(연 셀은 여전히 빌드 안 함 — 이 1일 셀만이 유일한
    * 셀 의존이고, /calendar 와 캐시 공유라 정상 사용에선 추가 빌드가 없다).
+   * Promise 로 넘기면 위 ephemeris 병렬 구간과 겹쳐 돌아 대기시간이 숨는다.
    */
-  focusDayCell?: CalendarCell | null
+  focusDayCell?: CalendarCell | null | Promise<CalendarCell | null>
   /** 세운(올해 간지) 기준 날짜 — 미지정 시 now. 입춘 SSOT 로 세운 결정. */
   todayIso?: string
 }
@@ -67,22 +67,24 @@ export async function assembleLifetime(input: AssembleLifetimeInput): Promise<As
   const { natal, lang, birthYear, targetYear, sex, birthDisplay, whoBirthLine, place } = input
   const now = input.now ?? new Date()
 
-  // 인생 곡선 — 실 외행성 트랜짓 시계열(프로세스 메모로 재방문 무료). 실패해도
-  // 곡선만 빠지고 나머지는 정상(assembleTiers 와 동일 폴백 규약).
-  let lifeCurve: ReturnType<typeof buildLifeCurve> = null
-  try {
-    const astroSeries = await computeTransitAstroSeries(natal, { span: 90, step: 3 })
-    lifeCurve = buildLifeCurve(natal, { now, span: 90, astroSeries })
-  } catch {
-    lifeCurve = null
-  }
+  // 두 무거운 ephemeris 호출(트랜짓 시계열·외행성 마디)은 서로 독립이라 병렬로.
+  //   예전엔 순차 await 라 콜드 스타트에서 (A+B) 만큼 다 기다렸다 → max(A,B) 로 단축.
+  //   각자 실패해도 나머지는 정상(개별 try/catch, 기존 폴백 규약 유지).
+  const [astroSeries, milestoneOverrides] = await Promise.all([
+    // 인생 곡선용 실 외행성 트랜짓 시계열(프로세스 메모로 재방문 무료).
+    computeTransitAstroSeries(natal, { span: 90, step: 3 }).catch(() => null),
+    // 외행성 마일스톤 실측(감사 A-3) — 실패 시 undefined → 평균 테이블 폴백.
+    calculateOuterPlanetMilestones(natal).catch(() => undefined),
+  ])
 
-  // 외행성 마일스톤 실측(감사 A-3) — 실패 시 undefined → 평균 테이블 폴백.
-  let milestoneOverrides: LifecycleMilestoneOverride[] | undefined
-  try {
-    milestoneOverrides = await calculateOuterPlanetMilestones(natal)
-  } catch {
-    milestoneOverrides = undefined
+  // 곡선 조립은 동기 — astroSeries 있을 때만. 실패(null)면 곡선만 빠지고 나머지 정상.
+  let lifeCurve: ReturnType<typeof buildLifeCurve> = null
+  if (astroSeries) {
+    try {
+      lifeCurve = buildLifeCurve(natal, { now, span: 90, astroSeries })
+    } catch {
+      lifeCurve = null
+    }
   }
 
   // 동일 now 주입 — "현재 단계"와 "현재 pivot"이 같은 날짜를 본다.
@@ -117,7 +119,9 @@ export async function assembleLifetime(input: AssembleLifetimeInput): Promise<As
   // ⑥ 올해 한 줄(세운) — 연 셀 없이 입춘 SSOT 로. 캘린더로 내려보내는 연결 고리.
   lifetime.thisYear = buildThisYear(natal, input.todayIso, now)
   // ⑧ 이 10년의 사주×점성 교차 — 1일 evidence 셀의 decadal 층만(연 셀 불필요).
-  lifetime.decadeCross = buildDecadeCross(input.focusDayCell ?? null)
+  //   Promise 로 왔으면 여기서 await — 이미 위 병렬 구간과 겹쳐 돌았으니 대개 즉시.
+  const focusDayCell = input.focusDayCell ? await input.focusDayCell : null
+  lifetime.decadeCross = buildDecadeCross(focusDayCell)
 
   const ilganHanja = user.ilgan.hanja || '辛'
   return { topbar: { whoBirthLine, place, ilganHanja }, user, lifetime }

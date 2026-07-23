@@ -319,7 +319,9 @@ export async function loadLifetimeData(
   const birthDisplay = formatBirthLine(BIRTH.birthDate, BIRTH.birthTime, guard.timeUnknown)
   // 오늘 1일 evidence 셀 — 대운층 사주×점성 교차 원천(연 셀은 여전히 안 빌드).
   // /calendar 와 같은 캐시(getFocusDayCell)라 두 화면 방문 시 공유된다.
-  const focusDayCell = await getFocusDayCell(BIRTH, natal, todayIso)
+  // await 하지 않고 Promise 로 넘겨 assembleLifetime 의 ephemeris 병렬 구간과 겹친다
+  // (콜드 스타트에서 순차 대기 제거). 실패는 null 폴백 → decadeCross 만 생략.
+  const focusDayCell = getFocusDayCell(BIRTH, natal, todayIso).catch(() => null)
 
   const assembled = await assembleLifetime({
     natal,
