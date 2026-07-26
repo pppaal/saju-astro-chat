@@ -251,14 +251,20 @@ describe('formatAstroSynastry — 하우스 오버레이 + ASC 라인', () => {
     expect(out).toMatch(/ASC A .+ \/ B/)
   })
 
-  it('외행성 오버레이는 카운트만 (omitted N generational outer-planet overlays)', () => {
-    // A 에 개인행성 1 + 외행성 1 → outerDiffCount>0 분기.
-    const a2 = chartA([planet('Venus', 190), planet('Jupiter', 10)])
+  it('외행성·목성도 오버레이 줄로 실린다 (하우스는 동세대 공통이 아님)', () => {
+    // 회귀 가드: 예전엔 개인행성 5개 밖은 "외행성 N건 생략"으로 버렸다. 그 결과
+    // 상대 8H 에 떨어지는 명왕성(커플 고유 신호)이 사라져 상담사가 8하우스
+    // 시너스트리를 "없다"고 답했다. 하우스는 *상대 출생 시각*이 정하므로
+    // 동세대 공통이 아니다 → 실려야 한다.
+    const a2 = chartA([planet('Venus', 190), planet('Jupiter', 10), planet('Pluto', 220)])
     const b2 = chartB([planet('Mars', 130)])
     const outKo = formatAstroSynastry({ ...baseInput, chartA: a2, chartB: b2, lang: 'ko' })
-    expect(outKo).toMatch(/외행성 1건 동세대 공통 생략/)
+    expect(outKo).toMatch(/A 명왕성 → B 8H \(깊은 결합·변환\)/)
+    expect(outKo).toMatch(/A 목성 → B 1H \(자아·인상\)/)
+    expect(outKo).not.toMatch(/동세대 공통 생략/)
     const outEn = formatAstroSynastry({ ...baseInput, chartA: a2, chartB: b2, lang: 'en' })
-    expect(outEn).toMatch(/omitted 1 generational outer-planet overlays/)
+    expect(outEn).toMatch(/A Pluto → B 8H \(deep merge·transformation\)/)
+    expect(outEn).not.toMatch(/omitted \d+ generational/)
   })
 })
 

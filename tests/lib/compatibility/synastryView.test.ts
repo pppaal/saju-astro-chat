@@ -245,8 +245,11 @@ describe('computeSynastryView — quincunx(엇박)는 TENSION 분류', () => {
   })
 })
 
-describe('computeSynastryView — overlay 매핑 (ko/en) + 비개인행성 제외', () => {
-  // A 개인행성(금성 190 → B 7H) + 외행성(목성 10) ; overlay 필터 검증.
+describe('computeSynastryView — overlay 매핑 (ko/en) + 개인행성 밖 포인트 포함', () => {
+  // 하우스 오버레이는 *상대 출생 시각*이 정하므로 동세대 공통이 아니다 —
+  // 개인행성 5개로 자르면 커플 고유 신호(상대 8H 의 명왕성/노드, 관계 무게를
+  // 보는 토성)가 통째로 사라진다. 목성(190→B 7H, 10→B 1H)도 1년/궁이라 애초에
+  // 동세대가 아니다. OVERLAY_POINTS SSOT 기준으로 전부 실린다.
   const a = {
     planets: [p('Venus', 190), p('Jupiter', 10)],
     ascendant: p('Ascendant', 0),
@@ -259,10 +262,11 @@ describe('computeSynastryView — overlay 매핑 (ko/en) + 비개인행성 제�
     mc: p('MC', 270),
     houses: houses(),
   }
-  it('ko: 개인행성만, 하우스 의미 한글', () => {
+  it('ko: 목성도 실린다(동세대 아님), 하우스 의미 한글', () => {
     const v = computeSynastryView(a, b, 'ko')!
     expect(v.overlaysAtoB).toEqual([
       { planet: '금성', planetKey: 'Venus', house: 7, meaning: '동반자·결혼' },
+      { planet: '목성', planetKey: 'Jupiter', house: 1, meaning: '자아·인상' },
     ])
     expect(v.overlaysBtoA).toEqual([
       { planet: '화성', planetKey: 'Mars', house: 5, meaning: '연애·즐거움' },
@@ -272,6 +276,7 @@ describe('computeSynastryView — overlay 매핑 (ko/en) + 비개인행성 제�
     const v = computeSynastryView(a, b, 'en')!
     expect(v.overlaysAtoB).toEqual([
       { planet: 'Venus', planetKey: 'Venus', house: 7, meaning: 'partner·marriage' },
+      { planet: 'Jupiter', planetKey: 'Jupiter', house: 1, meaning: 'self·image' },
     ])
     expect(v.overlaysBtoA).toEqual([
       { planet: 'Mars', planetKey: 'Mars', house: 5, meaning: 'romance·play' },
