@@ -7,6 +7,7 @@
 import { NextRequest } from 'next/server'
 import { buildCompatReport } from '@/lib/compatibility/compatReport'
 import type { SajuPillarInput } from '@/lib/compatibility/sajuSynastryFormatter'
+import { normalizeGender } from '@/lib/utils/gender'
 import {
   withApiMiddleware,
   createAstrologyGuard,
@@ -24,6 +25,9 @@ type Body = {
   pillarsB?: SajuPillarInput[] | null
   timeUnknownA?: boolean
   timeUnknownB?: boolean
+  /** 배우자성 판정용 성별(남=재성이 처, 여=관성이 부). 없으면 판정 불가로 양쪽 다 올림. */
+  genderA?: string
+  genderB?: string
   lang?: 'ko' | 'en'
 }
 
@@ -57,6 +61,17 @@ export function sanitizeAstro(v: unknown): unknown {
   }
 }
 
+/**
+ * 클라가 보낸 성별 문자열 → 배우자성 판정용 'male'|'female'|undefined.
+ * normalizeGender SSOT('M'/'Male'/'female' 등 전부 흡수) 통과 후, 배우자성은
+ * 남/여 이분(남=재성이 처, 여=관성이 부)만 판정 가능하므로 other·prefer_not 은
+ * undefined 로 떨군다(→ 재성·관성 모두 올려 한쪽으로 단정하지 않음).
+ */
+function toSpouseGender(v: unknown): 'male' | 'female' | undefined {
+  const g = normalizeGender(typeof v === 'string' ? v : undefined)
+  return g === 'male' || g === 'female' ? g : undefined
+}
+
 export const POST = withApiMiddleware(async (req: NextRequest, _context: ApiContext) => {
   let body: Body
   try {
@@ -72,6 +87,10 @@ export const POST = withApiMiddleware(async (req: NextRequest, _context: ApiCont
     pillarsB: sanitizePillars(body.pillarsB),
     timeUnknownA: body.timeUnknownA === true,
     timeUnknownB: body.timeUnknownB === true,
+    // 신뢰 경계 — 클라 문자열을 SSOT 정규화기에 통과시켜 male/female 만 취한다
+    // (other·prefer_not·미입력은 undefined → 배우자성 판정 불가로 양쪽 다 올림).
+    genderA: toSpouseGender(body.genderA),
+    genderB: toSpouseGender(body.genderB),
     lang: body.lang === 'en' ? 'en' : 'ko',
   })
 

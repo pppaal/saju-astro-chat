@@ -23,6 +23,8 @@ import {
   PILLAR_LABELS,
   TRI_HAP,
   BANG_HAP,
+  spouseStarsFor,
+  type SpouseStarGender,
 } from './sajuSynastryData'
 
 export interface SajuCompatDayMaster {
@@ -103,7 +105,6 @@ export interface SajuCompatFacts {
   elementBalance: SajuCompatElementBalance | null
 }
 
-const SPOUSE_STARS = new Set(['정재', '편재', '정관', '편관'])
 const SPOUSE_ROLE: Record<string, string> = {
   정재: '처성(안정·가정)',
   편재: '처성(활달·자유)',
@@ -155,8 +156,15 @@ export function computeSajuSynastryFacts(input: SajuSynastryInput): SajuCompatFa
   }
 
   // 2. 배우자성 — findSpouseSignals 와 동일 (stem + 지지 본기).
+  //    배우자성 집합은 *일간 주체의 성별*로 갈린다(남=재성, 여=관성) — spouseStarsFor SSOT.
   const spouseStars: SajuCompatSpouseStar[] = []
-  const collectSpouse = (from: 'A' | 'B', dayStem: string, other: SajuPillarInput[]) => {
+  const collectSpouse = (
+    from: 'A' | 'B',
+    dayStem: string,
+    other: SajuPillarInput[],
+    gender: SpouseStarGender
+  ) => {
+    const SPOUSE_STARS = spouseStarsFor(gender)
     other.forEach((p, idx) => {
       if (p.stem) {
         const s = sibseongFor(dayStem, p.stem)
@@ -190,8 +198,8 @@ export function computeSajuSynastryFacts(input: SajuSynastryInput): SajuCompatFa
     })
   }
   if (aDay?.stem && bDay?.stem) {
-    collectSpouse('A', aDay.stem, B)
-    collectSpouse('B', bDay.stem, A)
+    collectSpouse('A', aDay.stem, B, input.genderA)
+    collectSpouse('B', bDay.stem, A, input.genderB)
   }
 
   // 3. 기둥 관계 — 천간합/충 + 지지 합/충/형/자형/해/파 (동일 표·규칙).

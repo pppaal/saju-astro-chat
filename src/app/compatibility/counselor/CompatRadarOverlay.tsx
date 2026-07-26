@@ -2,6 +2,7 @@
 
 import React from 'react'
 import { AXES, deriveCounts, type Counts } from '@/components/report/ElementRadar'
+import { josaOnly } from '@/lib/utils/josa'
 
 /**
  * 궁합용 오행 비교 레이더. 한 오각형 위에 두 사람의 오행 균형을
@@ -167,7 +168,8 @@ export function CompatRadarOverlay({
             <span className="font-bold" style={{ color: sky }}>
               {nameB}
             </span>
-            는 <span className="font-bold text-[#a07a3c]">{domB.ko}</span>이(가) 가장 두드러져요.
+            는 <span className="font-bold text-[#a07a3c]">{domB.ko}</span>
+            {josaOnly(domB.ko, '이/가')} 가장 두드러져요.
           </>
         ) : (
           <>

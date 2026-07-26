@@ -11,7 +11,7 @@
  * (toChart 는 swisseph 파일에 있어 클라 import 불가라 여기서 가볍게 reshape.)
  */
 
-import { calculateSynastry } from '@/lib/astrology/foundation/synastry'
+import { calculateSynastry, OVERLAY_POINTS } from '@/lib/astrology/foundation/synastry'
 import type { Chart } from '@/lib/astrology/foundation/types'
 import { PLANET_KO as PLANET_KO_BASE } from '@/lib/calendar-engine/data/planetNames'
 
@@ -65,9 +65,9 @@ const HOUSE_MEANING_EN: Record<number, string> = {
   12: 'inner·secrets',
 }
 
-// 개인 행성 — 어스펙트/오버레이의 핵심. 외행성끼리는 동세대 노이즈라 비중↓.
+// 개인 행성 — *어스펙트*의 핵심. 외행성끼리는 동세대 노이즈라 비중↓.
+// (오버레이는 OVERLAY_POINTS SSOT — 하우스는 상대 출생 시각이 정해 동세대 공통이 아님.)
 const PERSONAL = new Set(['Sun', 'Moon', 'Mercury', 'Venus', 'Mars', 'Ascendant'])
-const PERSONAL_OVERLAY = new Set(['Sun', 'Moon', 'Mercury', 'Venus', 'Mars'])
 
 export type SynastryTone = 'harmony' | 'tension' | 'neutral'
 
@@ -184,10 +184,10 @@ export function computeSynastryView(
     meaning: houseMeaning[o.inHouse] ?? '',
   })
   const overlaysAtoB = result.houseOverlaysAtoB
-    .filter((o) => PERSONAL_OVERLAY.has(o.planet))
+    .filter((o) => OVERLAY_POINTS.has(o.planet))
     .map(mapOverlay)
   const overlaysBtoA = result.houseOverlaysBtoA
-    .filter((o) => PERSONAL_OVERLAY.has(o.planet))
+    .filter((o) => OVERLAY_POINTS.has(o.planet))
     .map(mapOverlay)
 
   return {

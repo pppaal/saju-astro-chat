@@ -18,6 +18,7 @@ import {
   type ZodiacAnimal,
   type DailyRelation,
 } from '@/lib/fortune/zodiacDaily'
+import { josa } from '@/lib/utils/josa'
 
 export interface LocalizedText {
   ko: string
@@ -168,7 +169,7 @@ function copyFor(
           en: `${a.en} and ${b.en}: one lifts the other`,
         },
         body: {
-          ko: `${a.ko}(${a.branch})와 ${b.ko}(${b.branch})는 오행 상생(相生) 관계입니다. ${elKo}이(가) 서로를 살려주는 흐름이라, 한쪽이 지칠 때 다른 쪽이 힘을 보태는 보완형 궁합입니다.`,
+          ko: `${a.ko}(${a.branch})와 ${b.ko}(${b.branch})는 오행 상생(相生) 관계입니다. ${josa(elKo, '이/가')} 서로를 살려주는 흐름이라, 한쪽이 지칠 때 다른 쪽이 힘을 보태는 보완형 궁합입니다.`,
           en: `${a.en} (${a.branch}) and ${b.en} (${b.branch}) sit in a "generating" (sheng) relationship. ${elEn} feed each other, so when one runs low the other tops them up — a complementary match.`,
         },
         good: {
@@ -226,7 +227,7 @@ function copyFor(
           en: `${a.en} and ${b.en}: a taut attraction`,
         },
         body: {
-          ko: `${a.ko}(${a.branch})와 ${b.ko}(${b.branch})는 오행 상극(相剋) 관계입니다. ${elKo}이(가) 서로를 누르는 힘이라 긴장이 있지만, 그 긴장이 끌림으로 바뀌면 누구보다 강렬한 관계가 됩니다.`,
+          ko: `${a.ko}(${a.branch})와 ${b.ko}(${b.branch})는 오행 상극(相剋) 관계입니다. ${josa(elKo, '이/가')} 서로를 누르는 힘이라 긴장이 있지만, 그 긴장이 끌림으로 바뀌면 누구보다 강렬한 관계가 됩니다.`,
           en: `${a.en} (${a.branch}) and ${b.en} (${b.branch}) are in a "controlling" (ke) relationship. ${elEn} press on each other, so there's tension — but if that tension turns to attraction, few pairs burn brighter.`,
         },
         good: {

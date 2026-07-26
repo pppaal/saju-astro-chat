@@ -15,7 +15,7 @@
  */
 
 import { extendChartWithExtraPoints } from '@/lib/astrology/foundation/extraPoints'
-import { calculateSynastry } from '@/lib/astrology/foundation/synastry'
+import { calculateSynastry, OVERLAY_POINTS } from '@/lib/astrology/foundation/synastry'
 import { SIGN_KO } from '@/lib/astrology/signLabels'
 import { PLANET_KO as PLANET_KO_BASE } from '@/lib/calendar-engine/data/planetNames'
 import type { AspectType, Chart, ExtraPoint, PlanetBase } from '@/lib/astrology/foundation/types'
@@ -298,9 +298,12 @@ export function formatAstroSynastry(input: AstroSynastryInput): string {
 
   // House overlay — 정통 점성 궁합의 핵심. "A 의 금성이 B 의 7번 하우스
   // (배우자궁) 에 떨어짐 = 결혼 매력" 식 절대적 신호. 이전 구현은 "양쪽
-  // 차이점만" 출력해서 본질을 놓침. 이제 개인 행성 5개(Sun/Moon/Venus/Mars/
-  // Mercury) 가 상대의 어느 하우스에 떨어지는지 + 그 하우스 의미까지 명시.
-  // 외행성은 동세대 공통이라 생략.
+  // 차이점만" 출력해서 본질을 놓침. 어느 행성이 상대의 어느 하우스에 떨어지는지
+  // + 그 하우스 의미까지 명시한다.
+  //
+  // 실을 포인트는 OVERLAY_POINTS(SSOT). 예전엔 개인 행성 5개만 남겼는데, 그건
+  // *애스펙트*용 동세대-노이즈 논리를 오버레이에 잘못 복붙한 것이었다. 하우스는
+  // 상대의 출생 시각이 정하므로 동세대 공통이 아니다 — 자세한 근거는 상수 주석.
   const HOUSE_MEANING_KO: Record<number, string> = {
     1: '자아·인상',
     2: '재물·가치',
@@ -315,17 +318,12 @@ export function formatAstroSynastry(input: AstroSynastryInput): string {
     11: '친구·미래',
     12: '내면·비밀',
   }
-  const PERSONAL_FOR_OVERLAY = new Set(['Sun', 'Moon', 'Mercury', 'Venus', 'Mars'])
   const overlayLinesAtoB: string[] = []
   const overlayLinesBtoA: string[] = []
-  let outerDiffCount = 0
   // overlay A→B 는 B 의 하우스 경계가 필요 → B 시각 미상이면 통째 제외.
   if (!input.timeUnknownB) {
     for (const o of synastry.houseOverlaysAtoB) {
-      if (!PERSONAL_FOR_OVERLAY.has(o.planet)) {
-        outerDiffCount++
-        continue
-      }
+      if (!OVERLAY_POINTS.has(o.planet)) continue
       overlayLinesAtoB.push(
         `${labelA} ${pk(o.planet)} → ${labelB} ${o.inHouse}H (${houseD(o.inHouse)})`
       )
@@ -334,7 +332,7 @@ export function formatAstroSynastry(input: AstroSynastryInput): string {
   // overlay B→A 는 A 의 하우스가 필요 → A 시각 미상이면 제외.
   if (!input.timeUnknownA) {
     for (const o of synastry.houseOverlaysBtoA) {
-      if (!PERSONAL_FOR_OVERLAY.has(o.planet)) continue
+      if (!OVERLAY_POINTS.has(o.planet)) continue
       overlayLinesBtoA.push(
         `${labelB} ${pk(o.planet)} → ${labelA} ${o.inHouse}H (${houseD(o.inHouse)})`
       )
@@ -373,13 +371,6 @@ export function formatAstroSynastry(input: AstroSynastryInput): string {
     out.push(`[CRITICAL · House overlay] ${ascLine}`)
     out.push(...overlayLinesAtoB)
     out.push(...overlayLinesBtoA)
-    if (outerDiffCount > 0)
-      out.push(
-        L(
-          `외행성 ${outerDiffCount}건 동세대 공통 생략`,
-          `omitted ${outerDiffCount} generational outer-planet overlays`
-        )
-      )
   }
 
   return out.join('\n')

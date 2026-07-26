@@ -19,6 +19,39 @@ export interface HouseOverlay {
   description: string
 }
 
+/**
+ * 하우스 오버레이에 실을 포인트 — SSOT.
+ *
+ * 애스펙트에서는 외행성끼리의 각도가 "동세대 공통 노이즈"(비슷한 나이면 누구나
+ * 천왕성-해왕성 합을 갖는다)라 개인 행성 위주로 거르는 게 맞다. 그러나 **하우스
+ * 오버레이는 동세대 공통이 아니다** — 어느 하우스에 떨어지느냐는 *상대의 출생
+ * 시각*(ASC/커스프)이 정하므로 커플마다 다르다. 같은 95년생 명왕성이라도 상대가
+ * 아침생이냐 저녁생이냐에 따라 1H 도 8H 도 된다.
+ *
+ * 예전엔 애스펙트용 "generational" 논리를 오버레이에 그대로 복붙해 개인 행성
+ * 5개만 남겼다. 그 결과 (1) 명왕성·노드가 상대 8H 에 떨어지는 커플 고유 신호가
+ * 통째로 사라지고, (2) 애초에 동세대가 아닌 **목성(1년/궁)·토성(2.5년/궁)**까지
+ * 휩쓸려 나갔다(토성 오버레이는 관계의 무게를 보는 핵심 신호).
+ *
+ * PartOfFortune·Vertex 는 본인 앵글에서 파생된 점이라 상대 하우스로의 오버레이가
+ * 표준 관행이 아니어서 제외한다.
+ */
+export const OVERLAY_POINTS: ReadonlySet<string> = new Set([
+  'Sun',
+  'Moon',
+  'Mercury',
+  'Venus',
+  'Mars',
+  'Jupiter',
+  'Saturn',
+  'Uranus',
+  'Neptune',
+  'Pluto',
+  'True Node',
+  'Mean Node',
+  'Chiron',
+])
+
 export interface SynastryResult {
   aspects: AspectHit[]
   houseOverlaysAtoB: HouseOverlay[] // A의 행성이 B의 하우스에
