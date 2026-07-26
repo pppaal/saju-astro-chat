@@ -44,6 +44,9 @@ interface CompatChartModalProps {
   timeUnknownB?: boolean
   nameA?: string
   nameB?: string
+  /** 배우자성 판정용 성별(남=재성이 처, 여=관성이 부). 서버가 정규화한다. */
+  genderA?: string
+  genderB?: string
   lang?: 'ko' | 'en'
 }
 
@@ -271,6 +274,8 @@ export function CompatChartModal({
   timeUnknownB = false,
   nameA = '',
   nameB = '',
+  genderA,
+  genderB,
   lang = 'ko',
 }: CompatChartModalProps) {
   const isKo = lang === 'ko'
@@ -301,6 +306,8 @@ export function CompatChartModal({
       pillarsB: sajuToPillars(unwrapSaju(person2Saju)),
       timeUnknownA,
       timeUnknownB,
+      genderA,
+      genderB,
       lang,
     }
     fetch('/api/compatibility/report', {
@@ -324,7 +331,18 @@ export function CompatChartModal({
     return () => {
       cancelled = true
     }
-  }, [open, person1Saju, person2Saju, person1Astro, person2Astro, timeUnknownA, timeUnknownB, lang])
+  }, [
+    open,
+    person1Saju,
+    person2Saju,
+    person1Astro,
+    person2Astro,
+    timeUnknownA,
+    timeUnknownB,
+    genderA,
+    genderB,
+    lang,
+  ])
 
   if (!open) return null
 

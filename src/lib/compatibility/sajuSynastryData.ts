@@ -160,6 +160,30 @@ export function sibseongFor(dayStem: string, targetStem: string): string {
   return getSibseong(day, tgt)
 }
 
+/**
+ * 배우자성(配偶星) — 성별에 따라 갈린다. SSOT.
+ *
+ * 정통 명리: **남자는 재성(財)이 처(妻), 여자는 관성(官)이 부(夫)**. 예전엔
+ * 재성·관성 4개를 성별 무관하게 전부 "배우자성"으로 올려, 남자에게 "부성(남편성)"
+ * 을, 여자에게 "처성(아내성)"을 팩트로 넘겼다(실측 7건 중 4건 모순). 상담사는 받은
+ * 팩트를 그대로 읽으므로 남자에게 "당신의 남편성" 같은 말이 나갔다.
+ *
+ * 성별 미상('other'·'prefer_not'·미입력)일 때는 판정 근거가 없으므로 양쪽을 모두
+ * 올린다 — 사주 계산 자체가 대운 순역에 성별을 쓰므로 실제 경로에선 대개 확정된다.
+ */
+export type SpouseStarGender = 'male' | 'female' | null | undefined
+
+const SPOUSE_STARS_MALE: ReadonlySet<string> = new Set(['정재', '편재'])
+const SPOUSE_STARS_FEMALE: ReadonlySet<string> = new Set(['정관', '편관'])
+const SPOUSE_STARS_UNKNOWN: ReadonlySet<string> = new Set(['정재', '편재', '정관', '편관'])
+
+/** 그 사람(일간 주체)의 성별에 맞는 배우자성 십성 집합. */
+export function spouseStarsFor(gender: SpouseStarGender): ReadonlySet<string> {
+  if (gender === 'male') return SPOUSE_STARS_MALE
+  if (gender === 'female') return SPOUSE_STARS_FEMALE
+  return SPOUSE_STARS_UNKNOWN
+}
+
 export const BRANCH_EL: Record<string, string> = {
   寅: '목',
   卯: '목',
@@ -296,6 +320,12 @@ export interface SajuSynastryInput {
   /** A/B 실명. 있으면 라벨·오행·극 방향을 이름에 고정해 모델이 뒤집지 못하게 한다. */
   nameA?: string | null
   nameB?: string | null
+  /**
+   * A/B 성별 — **배우자성 판정에 필수**(남=재성이 처, 여=관성이 부). 없으면 재성·
+   * 관성을 모두 올려(판정 불가) 남녀 모순 라벨이 섞일 수 있으니 가능한 넘긴다.
+   */
+  genderA?: SpouseStarGender
+  genderB?: SpouseStarGender
   /**
    * 출생 시각 미상 플래그. true 면 그 사람의 시주(時, index 3)는 정오 앵커(午시,
    * birthTimeAnchor SSOT) 가정으로 날조된 값이라 cross(합/충/형/신살/공망)에서

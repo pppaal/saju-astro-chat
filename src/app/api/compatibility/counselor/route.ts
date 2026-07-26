@@ -575,6 +575,10 @@ export async function POST(req: NextRequest) {
           nameB: (persons?.[1] as { name?: string } | undefined)?.name ?? null,
           timeUnknownA,
           timeUnknownB,
+          // 배우자성은 성별로 갈린다(남=재성이 처, 여=관성이 부). 안 넘기면 재성·관성이
+          // 다 올라가 남자에게 "부성", 여자에게 "처성" 이라는 모순 팩트가 섞인다.
+          genderA: person1Seed?.gender,
+          genderB: person2Seed?.gender,
           lang,
           // 용신 보완 cross — collectCompatSajuFacts 가 이미 계산해 둔 격국용신을
           // 그대로 전달(추가 연산 0). 상대가 내 용신 오행을 채워주나/기신 가중하나.

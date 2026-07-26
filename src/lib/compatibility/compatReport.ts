@@ -16,6 +16,7 @@ import {
   type SajuCompatPillarRel,
   type SajuCompatBranchCombo,
   type SajuCompatElementBalance,
+  type SpouseStarGender,
 } from './sajuSynastryFormatter'
 
 export interface CompatBandScores {
@@ -105,6 +106,12 @@ export interface CompatReportInput {
   /** 출생 시각 미상 — true 면 그 사람 시주(時)를 cross/배우자성/오행균형에서 제외. */
   timeUnknownA?: boolean
   timeUnknownB?: boolean
+  /**
+   * A/B 성별 — 배우자성 판정용(남=재성이 처, 여=관성이 부). 없으면 재성·관성이
+   * 모두 배우자성으로 올라가 남녀 모순 라벨이 섞인다.
+   */
+  genderA?: SpouseStarGender
+  genderB?: SpouseStarGender
   lang?: 'ko' | 'en'
 }
 
@@ -130,13 +137,30 @@ function balanceSpouseStars(all: SajuCompatSpouseStar[]): SajuCompatSpouseStar[]
 }
 
 export function buildCompatReport(input: CompatReportInput): CompatReport {
-  const { astroA, astroB, pillarsA, pillarsB, timeUnknownA, timeUnknownB, lang = 'ko' } = input
+  const {
+    astroA,
+    astroB,
+    pillarsA,
+    pillarsB,
+    timeUnknownA,
+    timeUnknownB,
+    genderA,
+    genderB,
+    lang = 'ko',
+  } = input
 
   const synView = computeSynastryView(astroA, astroB, lang, timeUnknownA, timeUnknownB)
 
   const sajuFacts =
     pillarsA && pillarsB
-      ? computeSajuSynastryFacts({ pillarsA, pillarsB, timeUnknownA, timeUnknownB })
+      ? computeSajuSynastryFacts({
+          pillarsA,
+          pillarsB,
+          timeUnknownA,
+          timeUnknownB,
+          genderA,
+          genderB,
+        })
       : null
 
   // 배우자성 — 일주(배우자궁) 우선, 두 사람 관점 균형 후 상위 4.

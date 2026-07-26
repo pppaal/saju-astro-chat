@@ -115,6 +115,8 @@ export function CompatCounselorModals({
         timeUnknownB={isBirthTimeUnknown(persons[1]?.time, persons[1]?.timeUnknown)}
         nameA={persons[0]?.name || ''}
         nameB={persons[1]?.name || ''}
+        genderA={persons[0]?.gender}
+        genderB={persons[1]?.gender}
         lang={isKo ? 'ko' : 'en'}
       />
 

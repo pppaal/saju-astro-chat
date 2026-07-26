@@ -404,6 +404,9 @@ export default function FreeCompatibilityPage() {
         // 플래그 미체크여도 시간이 빈 값이면 미상 — 앵커와 같은 판정(SSOT)으로 통일.
         timeUnknownA: resolveBirthTimeAnchor(personA.birthTime, personA.timeUnknown).timeUnknown,
         timeUnknownB: resolveBirthTimeAnchor(personB.birthTime, personB.timeUnknown).timeUnknown,
+        // 배우자성은 성별로 갈린다(남=재성이 처, 여=관성이 부) — 서버가 정규화한다.
+        genderA: personA.gender,
+        genderB: personB.gender,
         lang: locale,
       })
       const reportJson = (reportRes.ok ? await reportRes.json() : null) as {

@@ -42,6 +42,8 @@ import {
   PILLAR_LABELS,
   koreanize,
   stripAux,
+  spouseStarsFor,
+  type SpouseStarGender,
 } from './sajuSynastryData'
 
 export * from './sajuSynastryData'
@@ -593,9 +595,10 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
 
   // ── 배우자성 cross (sibsin) — 정통 명리 궁합의 핵심.
   // A 일간 시각 B 의 각 천간/지지 + B 일간 시각 A 의 각 천간/지지 매핑.
-  // 정재/편재(妻星) 와 정관/편관(夫星) 만 추출해 LLM 에 명시.
+  // 배우자성은 *일간 주체의 성별*로 갈린다 — 남=재성(정재/편재)이 처, 여=관성
+  // (정관/편관)이 부. 예전엔 4개를 성별 무관하게 다 올려 남자에게 "부성(남편성)",
+  // 여자에게 "처성(아내성)" 을 팩트로 넘겼고 상담사가 그대로 읽었다(spouseStarsFor SSOT).
   // 일주(=배우자궁) 에 잡히면 가장 강한 신호.
-  const spouseStars = new Set(['정재', '편재', '정관', '편관'])
   const spouseRoleLabel: Record<string, string> = {
     정재: '처성(안정·가정)',
     편재: '처성(활달·자유)',
@@ -614,8 +617,10 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
     fromLabel: string,
     fromDay: { stem: string },
     other: SajuPillarInput[],
-    otherLabel: string
+    otherLabel: string,
+    gender: SpouseStarGender
   ) => {
+    const spouseStars = spouseStarsFor(gender)
     const hits: string[] = []
     other.forEach((p, idx) => {
       if (!p.stem) return
@@ -652,8 +657,8 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
     }
   }
   if (aDay.stem && bDay.stem) {
-    findSpouseSignals(labelA, aDay, B, labelB)
-    findSpouseSignals(labelB, bDay, A, labelA)
+    findSpouseSignals(labelA, aDay, B, labelB, input.genderA)
+    findSpouseSignals(labelB, bDay, A, labelA, input.genderB)
   }
 
   // ── 신살 cross — 도화/홍염/백호/괴강. 정통 명리에 명시된 lookup table 로
