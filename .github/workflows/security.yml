@@ -52,9 +52,30 @@ jobs:
           #     빌드는 `next build`+`next start`(Turbopack 아님, 커스텀 서버 아님)라
           #     최고위험 2건(Turbopack 미들웨어/인증 우회, 커스텀서버 SSRF)이 비해당.
           #     16.3.0 안정판 나오면 상향하고 이 항목 제거. (등록일 2026-07-23.)
+          #   [빌드 타임 도구 체인] 아래는 전부 *빌드 시점*에만 도는 도구로, 런타임
+          #     요청 경로에 없다. 패치본이 있긴 하나 모두 **메이저 점프**를 요구해
+          #     (glob 10→13, minimatch 3/5/9→10, ejs 3→6, jake 10→12, cacache 18→21,
+          #     node-gyp 10→13, brace-expansion 2→5, filelist 1→2) 빌드 도구 API 가
+          #     깨질 위험이 실제 이득보다 크다. 특히 **node-gyp 은 swisseph(천체력)
+          #     네이티브 빌드용**이라 깨지면 제품 핵심이 죽는다.
+          #     · PWA/workbox 체인: @ducanh2912/next-pwa · workbox-build ·
+          #       workbox-webpack-plugin · @surma/rollup-plugin-off-main-thread ·
+          #       ejs · filelist · jake
+          #     · Sentry 번들러 플러그인: @sentry/nextjs · @sentry/bundler-plugin-core ·
+          #       @sentry/webpack-plugin
+          #     · 네이티브 빌드·fs 유틸: node-gyp · cacache · glob · minimatch ·
+          #       brace-expansion
+          #     · postcss: 최상위는 8.5.23(패치본)으로 올렸다. 남은 건 next 가 내부에
+          #       핀한 8.4.31 로, next 상향 없이는 못 고친다(next 도 같은 이유로 예외).
+          #     재점검: 각 부모(next-pwa·sentry)가 패치 의존성을 올린 릴리스를 내면 제거.
+          #     (등록일 2026-07-26.)
           # 재점검: swagger-ui-react 가 패치를 내거나 /api-docs 를 제거하면 · next 16.3.0
           # 안정판이 나오면 해당 항목을 비운다. (등록일 2026-07-22.)
-          ALLOWLIST="swagger-ui-react immutable next"
+          ALLOWLIST="swagger-ui-react immutable next \
+            @ducanh2912/next-pwa workbox-build workbox-webpack-plugin \
+            @surma/rollup-plugin-off-main-thread ejs filelist jake \
+            @sentry/nextjs @sentry/bundler-plugin-core @sentry/webpack-plugin \
+            node-gyp cacache glob minimatch brace-expansion postcss"
 
           # 예외 목록에 없는 high/critical 만 센다 — 하나라도 있으면 차단.
           UNACCOUNTED=$(echo "$AUDIT_RESULT" | jq -r --arg allow "$ALLOWLIST" '
