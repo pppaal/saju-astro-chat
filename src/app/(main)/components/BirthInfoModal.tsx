@@ -13,6 +13,7 @@ import {
 } from '../birthInfoStorage'
 import { BirthInfoFields, type BirthFieldsPatch } from '@/components/birth/BirthInfoFields'
 import { useFocusTrap } from '@/hooks/useFocusTrap'
+import { josa } from '@/lib/utils/josa'
 
 interface BirthInfoModalProps {
   open: boolean
@@ -280,7 +281,7 @@ export default function BirthInfoModal({
     if (!isValid) {
       setMissingNotice(
         isKo
-          ? `${missingFieldLabels.join(' · ')} 을(를) 입력해주세요`
+          ? `${josa(missingFieldLabels.join(' · '), '을/를')} 입력해주세요`
           : `Please fill in: ${missingFieldLabels.join(', ')}`
       )
       return

@@ -75,23 +75,11 @@ function ege(name: string): string {
 
 // 값의 마지막 한글 음절 종성(받침) 인덱스. 끝에 ")"·공백이 붙어 있어도 건너뛴다.
 // 0=받침없음, 8=ㄹ. 한글이 없으면 null.
-function lastJong(s: string): number | null {
-  for (let i = s.length - 1; i >= 0; i--) {
-    const c = s.charCodeAt(i)
-    if (c >= 0xac00 && c <= 0xd7a3) return (c - 0xac00) % 28
-  }
-  return null
-}
-export type JosaType = '과/와' | '이/가' | '을/를' | '은/는' | '으로/로'
+// 조사 처리는 SSOT(@/lib/utils/josa) — 로컬 사용 + 기존 export 계약 유지용 재노출.
+import { josa, type JosaType } from '@/lib/utils/josa'
+export { josa, type JosaType }
 // 값 뒤에 붙는 KO 조사를 받침에 맞게 골라 붙인다. 으로/로 는 ㄹ받침 예외 처리.
 // (무료 궁합 페이지의 헤드라인 한 줄에서도 재사용 — 조사 SSOT 가 갈리지 않게 export.)
-export function josa(value: string, type: JosaType): string {
-  const jong = lastJong(value)
-  const hasB = jong != null && jong !== 0
-  if (type === '으로/로') return value + (hasB && jong !== 8 ? '으로' : '로')
-  const [b, n] = type.split('/')
-  return value + (hasB ? b : n)
-}
 
 /** 밴드 키 중 "값이 클수록 좋은(조화)" vs 화면 표시 임계 — 50 기준 high/low. */
 const BAND_ORDER: Array<keyof NonNullable<CompatReport['band']>> = [
