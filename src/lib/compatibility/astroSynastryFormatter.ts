@@ -102,7 +102,10 @@ const HOUSE_MEANING_EN: Record<number, string> = {
   11: 'friends·future',
   12: 'inner·secrets',
 }
-const IMPORTANT_TOP = 12 // cap the orb≤5 tier so it doesn't sprawl to 30+ lines
+// orb≤5 티어 상한. 12 는 너무 빡빡해 2~4° 의 개인행성 접촉(상승점-토성 합 등)이
+// 통째로 잘렸다 — 관계 해석의 실질 신호라 18 로 넓힌다(잘린 나머지는 아래 [참고]
+// 줄로 존재를 알린다). 여전히 30+ 줄 sprawl 은 막는다.
+const IMPORTANT_TOP = 18
 const CRITICAL_TOP = 10 // keep CRITICAL tight; overflow(여전히 orb≤3)은 IMPORTANT로 강등
 
 const SIGNS_KO = [
@@ -146,6 +149,9 @@ const pko = (name: string) => PLANET_KO[name] ?? PLANET_LABEL[name] ?? name
 const PERSONAL_POINTS = new Set(['Sun', 'Moon', 'Mercury', 'Venus', 'Mars', 'Ascendant', 'MC'])
 // CRITICAL 승급 기준 점(루미너리·금성·화성·ASC).
 const CRITICAL_POINTS = new Set(['Sun', 'Moon', 'Venus', 'Mars', 'Ascendant'])
+// 근대 추가점 — 고전 행성/앵글/교점보다 관계 해석 비중이 낮다. 상한 있는 목록에서
+// 자리 경쟁 시 한 단계 뒤로 민다(카이런-수성 0.0° 가 달-토성 4.8° 를 밀어내던 문제).
+const EXTRA_POINTS = new Set(['Chiron', 'Lilith', 'PartOfFortune', 'Vertex'])
 
 function extraToPlanet(name: string, ep: ExtraPoint | undefined): PlanetBase | null {
   if (!ep) return null
@@ -265,8 +271,9 @@ export function formatAstroSynastry(input: AstroSynastryInput): string {
     `${labelA} ${pk(asp.from.name)} ${aspD(asp.type)} ${labelB} ${pk(asp.to.name)} ${asp.orb.toFixed(1)}°`
 
   // aspect를 티어로 분류 + generational 컨정션 묶음 + orb>5° 노이즈 drop
-  const critical: { line: string; orb: number }[] = []
-  const important: { line: string; orb: number }[] = []
+  type AspCand = { line: string; orb: number; personal: boolean; rank: number }
+  const critical: AspCand[] = []
+  const important: AspCand[] = []
   const generationalNames = new Set<string>()
   let generationalCount = 0
   for (const asp of synastry.aspects) {
@@ -286,15 +293,34 @@ export function formatAstroSynastry(input: AstroSynastryInput): string {
     if (asp.orb > 5) continue
     const isCritical =
       (CRITICAL_POINTS.has(asp.from.name) || CRITICAL_POINTS.has(asp.to.name)) && asp.orb <= 3
-    ;(isCritical ? critical : important).push({ line: aspLine(asp), orb: asp.orb })
+    // personal = 관계 해석의 무게가 실리는 점(개인행성·앵글)이 한쪽이라도 걸린 각.
+    // IMPORTANT 정렬 우선순위로 쓴다 — 아래 sort 주석 참고.
+    const personal = PERSONAL_POINTS.has(asp.from.name) || PERSONAL_POINTS.has(asp.to.name)
+    const hasExtra = EXTRA_POINTS.has(asp.from.name) || EXTRA_POINTS.has(asp.to.name)
+    // 표시 우선순위: 0 = 개인행성·고전점만 / 1 = 개인행성이지만 근대 특수점 낀 것 /
+    // 2 = 개인행성 없음. 같은 rank 안에서는 orb 오름차순.
+    const rank = personal ? (hasExtra ? 1 : 0) : 2
+    ;(isCritical ? critical : important).push({
+      line: aspLine(asp),
+      orb: asp.orb,
+      personal,
+      rank,
+    })
   }
   critical.sort((a, b) => a.orb - b.orb)
   // CRITICAL이 14줄까지 늘어 "반드시 해석" 무게가 흐려짐 → 타이트 상위 10만
   // CRITICAL로 두고, 넘치는 건(여전히 orb≤3) 버리지 않고 IMPORTANT로 강등.
   const criticalShown = critical.slice(0, CRITICAL_TOP)
   important.push(...critical.slice(CRITICAL_TOP))
-  important.sort((a, b) => a.orb - b.orb)
+  // 상한이 있는 목록이므로 *정렬이 곧 취사선택*이다. 예전엔 orb 만으로 정렬해
+  // "1.5° 외행성↔외행성"이 "2.7° 상승점-토성 합"을 밀어냈다 — 오차는 작아도 관계
+  // 해석에는 후자가 훨씬 무겁다. 개인행성·앵글이 걸린 각을 먼저 채우고 그 안에서
+  // orb 오름차순으로 둔다(같은 줄 수로 개인행성 포착이 늘어난다).
+  important.sort((a, b) => a.rank - b.rank || a.orb - b.orb)
   const importantShown = important.slice(0, IMPORTANT_TOP)
+  // 상한으로 잘린 나머지 — *조용히 버리지 않는다*. 안내가 없으면 모델이 목록을
+  // 전부로 믿고 "그런 접촉은 없다"고 단정한다(하우스 오버레이에서 실제로 났던 사고).
+  const omitted = important.slice(IMPORTANT_TOP)
 
   // House overlay — 정통 점성 궁합의 핵심. "A 의 금성이 B 의 7번 하우스
   // (배우자궁) 에 떨어짐 = 결혼 매력" 식 절대적 신호. 이전 구현은 "양쪽
@@ -357,6 +383,25 @@ export function formatAstroSynastry(input: AstroSynastryInput): string {
   if (importantShown.length) {
     out.push(`[IMPORTANT · orb≤5°]`)
     out.push(importantShown.map((c) => c.line).join('\n'))
+  }
+  // 상한 초과분 고지 — 조용히 버리면 모델이 "그런 접촉은 없다"고 단정한다.
+  // 정렬이 개인행성 우선이므로 생략분은 대부분 특수점·외행성 조합(비중 낮음)이다.
+  // 그 사실까지 밝혀야 모델이 "중요한 게 잘렸나?" 로 과민반응하지도 않는다.
+  if (omitted.length > 0) {
+    const omittedPersonal = omitted.filter((c) => c.personal).length
+    const detail =
+      omittedPersonal > 0
+        ? L(
+            `그중 개인행성 관련 ${omittedPersonal}건`,
+            `${omittedPersonal} of them involve personal points`
+          )
+        : L('전부 특수점·외행성 조합(비중 낮음)', 'all are outer/special-point pairs (low weight)')
+    out.push(
+      L(
+        `[참고] 표시 상한으로 ${omitted.length}건 생략 — ${detail}. 목록에 없다고 "그런 접촉은 없다"고 단정하지 말 것`,
+        `[NOTE] ${omitted.length} more aspects omitted by display cap — ${detail}. Do NOT conclude such a contact is absent merely because it is not listed`
+      )
+    )
   }
   if (generationalCount > 0) {
     out.push(
