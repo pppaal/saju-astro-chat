@@ -552,6 +552,271 @@ const OVERLAY_HOUSE_BASE: Record<number, Bi> = {
 }
 
 // 생성 OVERLAY_HOUSE 는 "1".."12" 문자열 키 → number 키로 변환해 병합.
+/** 하우스 짧은 이름 — 이미 설명한 자리를 다시 가리킬 때(반복 설명 금지). */
+export const HOUSE_SHORT: Record<number, Bi> = {
+  1: { ko: '자아·인상', en: 'self and image' },
+  2: { ko: '재물·가치', en: 'money and values' },
+  3: { ko: '소통·일상', en: 'talk and daily life' },
+  4: { ko: '가정·뿌리', en: 'home and roots' },
+  5: { ko: '연애·즐거움', en: 'romance and play' },
+  6: { ko: '일·습관', en: 'work and habits' },
+  7: { ko: '동반자·결혼', en: 'partnership and marriage' },
+  8: { ko: '깊은 결합·변환', en: 'depth and transformation' },
+  9: { ko: '신념·확장', en: 'belief and expansion' },
+  10: { ko: '커리어·지위', en: 'career and standing' },
+  11: { ko: '친구·미래', en: 'friends and the future' },
+  12: { ko: '내면·비밀', en: 'the inner and hidden' },
+}
+
+/**
+ * 행성 × 하우스 — 오버레이의 *고유* 의미. SSOT.
+ *
+ * OVERLAY_HOUSE 는 하우스 12개만 키로 가져서, 금성이 오든 토성이 오든 같은 문장이
+ * 나왔다("행성 이름만 불리고 의미엔 안 들어간다"). 고전 점성에서 조합 자체로 뚜렷한
+ * 읽기가 있는 것만 골라 넣는다 — 없으면 기존 하우스 설명으로 폴백하므로 전량(11×12)
+ * 을 채울 필요가 없다.
+ *
+ * 키: `${planetKey}|${house}` (planetKey 는 영문 — Venus, Mars …).
+ */
+export const PLANET_HOUSE: Record<string, Bi> = {
+  // ── 금성: 애정이 어느 무대에서 켜지는가 ──
+  'Venus|1': {
+    ko: '상대의 눈에 “예쁘게” 박히는 자리예요. 뭘 하지 않아도 호감부터 얹혀서, 첫인상이 실제보다 후하게 읽혀요.',
+    en: 'You land in their eye as *pleasing*. Goodwill attaches before you do anything, so first impressions read warmer than reality.',
+  },
+  'Venus|5': {
+    ko: '연애 감정이 가장 곧게 켜지는 배치예요. 설렘·데이트·장난기가 자연스럽게 살아나서, 관계가 “재미있는” 쪽으로 굴러가요.',
+    en: 'The most direct romance switch. Flirtation, dates, playfulness come easily — the bond rolls toward *fun*.',
+  },
+  'Venus|7': {
+    ko: '연애를 넘어 “짝”으로 보이게 만드는 자리예요. 곁에 두고 싶다는 마음이 구체적인 그림(약속·동거·결혼)으로 옮겨가요.',
+    en: 'This is what turns romance into *partner*. The wish to keep them near takes concrete shape — commitment, living together, marriage.',
+  },
+  'Venus|8': {
+    ko: '애정이 깊고 은밀해지는 자리예요. 가볍게 좋아하기가 어렵고, 좋아하면 소유·헌신·질투까지 한 묶음으로 따라와요.',
+    en: 'Affection turns deep and private. Liking lightly is hard here — fondness arrives bundled with possession, devotion, jealousy.',
+  },
+  'Venus|12': {
+    ko: '드러내지 못하는 애정의 자리예요. 마음은 분명한데 표현이 늦거나 숨겨지고, 그래서 더 아련하게 남아요.',
+    en: 'Love that stays unspoken. The feeling is clear but the expression lags or hides — which is exactly why it lingers.',
+  },
+  // ── 화성: 욕망·추진이 어디로 향하는가 ──
+  'Mars|1': {
+    ko: '상대를 자극해 움직이게 만드는 자리예요. 활력을 주기도, 성급하게 밀어붙인다는 인상을 주기도 해요.',
+    en: 'You prod them into motion — energizing at best, pushy at worst.',
+  },
+  'Mars|5': {
+    ko: '육체적 끌림과 연애 추진력이 붙는 배치예요. 밀당보다 직진에 가깝고, 관계 초반 속도가 빨라져요.',
+    en: 'Physical pull plus romantic drive. Less push-pull, more straight ahead — the early pace runs fast.',
+  },
+  'Mars|7': {
+    ko: '짝 자리를 직접 두드리는 배치예요. 끌림이 강한 만큼 부딪힘도 그 자리에서 나요 — 관계가 뜨겁거나 시끄럽거나 둘 다예요.',
+    en: 'It knocks straight on the partnership door. The pull is strong and so is the friction — hot, loud, or both.',
+  },
+  'Mars|8': {
+    ko: '욕망이 가장 깊은 곳을 건드려요. 육체적·정서적 밀착이 강하지만, 통제와 힘겨루기로 번지기도 쉬워요.',
+    en: 'Desire reaches the deepest layer. Intense closeness, but it slides easily into control and power struggle.',
+  },
+  // ── 달: 정서가 어디에 놓이는가 ──
+  'Moon|4': {
+    ko: '“집 같다”는 감각이 생기는 자리예요. 함께 있으면 긴장이 풀리고, 오래 머물고 싶어져요.',
+    en: 'The one that feels like *home*. Tension drops in their presence and you want to stay.',
+  },
+  'Moon|7': {
+    ko: '정서적으로 짝이라고 느끼는 배치예요. 감정이 편안해서, 연애보다 “같이 살 사람” 쪽으로 마음이 기울어요.',
+    en: 'Emotionally reads as *my person*. Feelings settle, and the mind drifts toward living alongside them.',
+  },
+  'Moon|8': {
+    ko: '감정이 가장 밑바닥까지 닿는 자리예요. 위로도 깊지만 상처도 깊게 남고, 서로의 취약함을 보게 돼요.',
+    en: 'Feeling reaches bedrock. Comfort runs deep and so do wounds — you end up seeing each other bare.',
+  },
+  'Moon|12': {
+    ko: '설명하기 힘든 정서적 끌림이에요. 가까운데 잡히지 않고, 상대의 기분이 이유 없이 옮아와요.',
+    en: "An emotional pull you can't articulate. Close yet ungraspable — their mood transfers without cause.",
+  },
+  // ── 태양: 정체성이 어디에서 빛나는가 ──
+  'Sun|1': {
+    ko: '상대의 자아 자체에 겹쳐지는 자리예요. 존재감이 크게 각인돼서, 상대가 자기를 보는 방식까지 흔들어요.',
+    en: 'You overlay their very sense of self. The imprint is large enough to shift how they see themselves.',
+  },
+  'Sun|7': {
+    ko: '“이 사람이 내 짝”이라는 그림이 또렷해지는 자리예요. 관계가 사회적으로도 성립하는 쪽으로 움직여요.',
+    en: 'The picture of *this is my partner* sharpens — and the bond moves toward something socially real.',
+  },
+  'Sun|10': {
+    ko: '상대의 커리어·평판에 영향을 주는 자리예요. 존경이 섞이고, 상대의 사회적 방향까지 바꿔놓기도 해요.',
+    en: 'You touch their career and public standing. Respect enters the mix — sometimes you redirect their path.',
+  },
+  // ── 토성: 무게·지속이 어디에 걸리는가 ──
+  'Saturn|7': {
+    ko: '관계에 무게와 책임이 실리는 배치예요. 설렘은 덜해도 오래 가는 구조라, 장기 관계의 뼈대가 돼요.',
+    en: 'Weight and duty settle onto the bond. Less flutter, more durability — this is what long relationships are built on.',
+  },
+  'Saturn|8': {
+    ko: '깊은 결합에 브레이크가 걸리는 자리예요. 신뢰가 쌓이기까지 오래 걸리고, 돈·소유 문제가 시험대가 돼요.',
+    en: 'A brake on deep merging. Trust takes long to build, and money or ownership becomes the test.',
+  },
+  'Saturn|10': {
+    ko: '상대의 사회적 자리에 무게를 더해요. 조언자·시험관 같은 역할이 되고, 때로 부담으로 느껴져요.',
+    en: 'You add gravity to their public role — mentor or examiner, and sometimes a weight they feel.',
+  },
+  // ── 명왕성: 변형이 어디에서 일어나는가 ──
+  'Pluto|5': {
+    ko: '연애가 강박적으로 짙어지는 자리예요. 가벼운 만남으로 시작해도 금세 전부를 걸게 돼요.',
+    en: 'Romance thickens into obsession. It may start light, but soon everything is on the table.',
+  },
+  'Pluto|7': {
+    ko: '관계 자체를 뒤바꾸는 배치예요. 만나기 전과 후의 “파트너십 기준”이 달라져요.',
+    en: 'It rewrites the partnership itself — your standard for what a partner is differs before and after.',
+  },
+  'Pluto|8': {
+    ko: '서로를 근본부터 바꾸는 자리예요. 끌림이 강렬한 만큼 통제·집착의 위험도 같이 커져요.',
+    en: 'You remake each other at the root. The pull is intense, and so is the risk of control and fixation.',
+  },
+  // ── 목성: 넓혀주는 자리 ──
+  'Jupiter|7': {
+    ko: '짝 자리를 넉넉하게 넓혀주는 배치예요. 관대함이 흘러서, 상대가 이 관계에서 숨통이 트인다고 느껴요.',
+    en: 'It widens the partnership space. Generosity flows, and they feel room to breathe in this bond.',
+  },
+  'Jupiter|9': {
+    ko: '세계관을 넓혀주는 자리예요. 같이 배우고 멀리 가는 그림이 잘 그려져요.',
+    en: 'You expand their worldview — learning together and going far comes naturally.',
+  },
+  // ── 실제 리포트에서 폴백 빈도가 높던 조합 보강 ──
+  'Mars|10': {
+    ko: '상대의 커리어에 불을 붙이는 자리예요. 야망을 자극하지만, 방향이 어긋나면 “왜 자꾸 밀어붙이냐”는 마찰이 돼요.',
+    en: 'You light a fire under their career. It fuels ambition — and when aims diverge, it reads as pushing.',
+  },
+  'Mars|12': {
+    ko: '욕망이 겉으로 안 드러나는 자리예요. 은근한 자극이 오가는데, 정작 무엇 때문에 불편한지 서로 말로 못 짚어요.',
+    en: 'Desire that stays under the surface. The charge is real, but neither of you can name what unsettles you.',
+  },
+  'Mars|4': {
+    ko: '집·가족 영역을 흔드는 자리예요. 생활 공간의 주도권이나 가족 문제에서 부딪히기 쉬워요.',
+    en: 'It stirs the home ground — friction shows up over living space or family matters.',
+  },
+  'Mars|6': {
+    ko: '일상의 리듬을 재촉하는 자리예요. 같이 움직이면 효율이 붙지만, 잔소리처럼 느껴질 수도 있어요.',
+    en: 'It quickens the daily rhythm — efficient together, but it can land as nagging.',
+  },
+  'Pluto|1': {
+    ko: '상대의 자아 자체를 압도하는 자리예요. 강한 인상을 남기고, 상대가 스스로를 다시 정의하게 만들기도 해요.',
+    en: 'You overwhelm their sense of self — a heavy imprint that can make them redefine who they are.',
+  },
+  'Pluto|2': {
+    ko: '가치관과 소유에 개입하는 자리예요. 돈·자원 문제가 관계의 힘겨루기로 번지기 쉬워요.',
+    en: 'You reach into their values and holdings — money and resources easily turn into a power contest.',
+  },
+  'Pluto|4': {
+    ko: '뿌리와 가족 기반을 흔드는 자리예요. 안정의 근원을 건드려서, 깊이 파고들되 불안도 함께 와요.',
+    en: 'You shake their roots — touching the source of safety brings depth and unease together.',
+  },
+  'Pluto|9': {
+    ko: '믿음과 세계관을 뒤집는 자리예요. 상대가 무엇을 옳다고 여기는지까지 바꿔놓아요.',
+    en: 'You overturn their beliefs — even what they hold as true starts to shift.',
+  },
+  'Moon|2': {
+    ko: '정서와 소유가 붙는 자리예요. 안정감을 물질로 확인하려는 마음이 생겨요.',
+    en: 'Feeling ties to having — comfort starts wanting material proof.',
+  },
+  'Moon|3': {
+    ko: '감정이 대화로 흐르는 자리예요. 사소한 말과 연락이 곧 애정 표현이 돼요.',
+    en: 'Emotion runs through talk — small messages become the love language.',
+  },
+  'Moon|10': {
+    ko: '사적인 감정이 공적인 자리에 얹히는 배치예요. 상대의 평판·커리어에 정서적으로 관여하게 돼요.',
+    en: 'Private feeling lands on public ground — you get emotionally invested in their standing.',
+  },
+  'Moon|11': {
+    ko: '친구처럼 편안한 정서예요. 연인보다 “내 사람들” 안에 두고 싶은 감각이 커요.',
+    en: 'Feelings settle into friendship — the pull is to keep them among *my people*.',
+  },
+  'Venus|3': {
+    ko: '말이 곧 애정이 되는 자리예요. 대화가 즐겁고, 연락이 끊기면 마음도 식기 쉬워요.',
+    en: 'Talk becomes affection — delightful conversation, and feelings cool when messages stop.',
+  },
+  'Venus|10': {
+    ko: '상대의 사회적 자리에 호감이 얹히는 배치예요. 존경 섞인 끌림이지만, 공적 이미지가 관계를 좌우하기도 해요.',
+    en: 'Charm attaches to their public role — admiration mixes in, and image can steer the bond.',
+  },
+  'Saturn|1': {
+    ko: '상대의 존재 방식에 제동을 거는 자리예요. 어른스럽게 잡아주기도, 위축시키기도 해요.',
+    en: 'You put a brake on how they show up — steadying at best, shrinking at worst.',
+  },
+  'Saturn|4': {
+    ko: '가정의 기반에 무게를 얹는 자리예요. 함께 살면 현실 문제가 먼저 오지만, 오래 버티는 토대도 돼요.',
+    en: 'Weight settles on the home base — practical burdens come first, but so does staying power.',
+  },
+  'Saturn|5': {
+    ko: '연애에 브레이크가 걸리는 자리예요. 설렘이 조심스러워지고, 즐거움 앞에서 자꾸 계산하게 돼요.',
+    en: 'A brake on romance — delight turns cautious and joy gets second-guessed.',
+  },
+  'Saturn|9': {
+    ko: '신념을 시험하는 자리예요. 세계관이 부딪히지만, 검증을 거친 생각은 훨씬 단단해져요.',
+    en: 'Beliefs get tested — worldviews clash, and what survives comes out sturdier.',
+  },
+  'Saturn|12': {
+    ko: '말 못 할 부담이 쌓이는 자리예요. 이유를 못 짚는 무거움이 관계 밑에 깔려요.',
+    en: 'Unspoken weight accumulates — a heaviness under the bond that neither can name.',
+  },
+  'Jupiter|1': {
+    ko: '상대를 크게 만들어주는 자리예요. 곁에 있으면 자신감이 붙고 시야가 넓어져요.',
+    en: 'You make them larger — confidence rises and horizons widen in your presence.',
+  },
+  'Jupiter|2': {
+    ko: '풍요를 더해주는 자리예요. 금전·자원 면에서 서로에게 여유를 만들어줘요.',
+    en: 'You add abundance — each of you loosens the other financially and materially.',
+  },
+  'Jupiter|4': {
+    ko: '가정에 온기를 더하는 자리예요. 함께 있는 공간이 넉넉하고 편안해져요.',
+    en: 'Warmth flows into the home — shared space feels generous and easy.',
+  },
+  'Jupiter|5': {
+    ko: '연애를 즐겁게 부풀리는 자리예요. 웃음이 많고, 함께하는 일이 놀이처럼 굴러가요.',
+    en: 'Romance inflates into fun — lots of laughter, and everything plays like a game.',
+  },
+  'Jupiter|10': {
+    ko: '상대의 사회적 성장을 밀어주는 자리예요. 기회를 물어다 주는 관계가 돼요.',
+    en: 'You push their public growth — this becomes a bond that brings opportunity.',
+  },
+  'Jupiter|12': {
+    ko: '보이지 않는 곳에서 지켜주는 자리예요. 티 안 나게 상대의 불안을 덜어줘요.',
+    en: 'Protection from behind the curtain — you ease their anxiety without it showing.',
+  },
+  'Sun|4': {
+    ko: '상대의 뿌리에 자리 잡는 배치예요. 가족처럼 익숙해지고, 함께 사는 그림이 자연스러워요.',
+    en: 'You settle into their roots — familiar as family, and living together comes easily.',
+  },
+  'Sun|5': {
+    ko: '연애 감정을 정면으로 켜는 자리예요. 상대가 당신을 “설레는 사람”으로 인식해요.',
+    en: 'It switches romance on directly — they register you as the one who makes their pulse jump.',
+  },
+  'Sun|8': {
+    ko: '정체성이 상대의 가장 깊은 곳에 닿는 자리예요. 가볍게 지나갈 수 없는 관계가 돼요.',
+    en: 'Your identity reaches their deepest layer — this cannot stay a passing thing.',
+  },
+  'Sun|12': {
+    ko: '드러나지 않는 곳에서 존재감이 큰 자리예요. 관계가 조용하거나 숨겨지기 쉬워요.',
+    en: 'Large presence in an unlit room — the bond tends to stay quiet or hidden.',
+  },
+  'True Node|1': {
+    ko: '만나야 할 사람처럼 느껴지는 자리예요. 상대의 자아 방향에 당신이 겹쳐 보여요.',
+    en: 'They read as someone you were meant to meet — you overlay the direction of their self.',
+  },
+  'True Node|5': {
+    ko: '연애가 곧 과제인 자리예요. 이 사람과의 설렘이 성장의 통로가 돼요.',
+    en: 'Romance doubles as the assignment — the flutter here becomes a route to growth.',
+  },
+  'True Node|9': {
+    ko: '함께 넓어지는 게 숙제인 자리예요. 같이 배우고 멀리 갈 때 관계가 제 역할을 해요.',
+    en: 'Expanding together is the task — the bond works best when you learn and travel far.',
+  },
+  'True Node|12': {
+    ko: '무의식에서 이어진 듯한 자리예요. 설명하기 힘든 기시감이 관계를 따라다녀요.',
+    en: 'A tie that feels made below awareness — an inexplicable familiarity trails the bond.',
+  },
+}
+
 export const OVERLAY_HOUSE: Record<number, Bi> = (() => {
   const out: Record<number, Bi> = { ...OVERLAY_HOUSE_BASE }
   for (const [k, v] of Object.entries(GENERATED.OVERLAY_HOUSE ?? {})) {

@@ -30,6 +30,8 @@ import {
   ELEMENT_BALANCE,
   INTRO,
   OVERLAY_HOUSE,
+  PLANET_HOUSE,
+  HOUSE_SHORT,
   PILLAR_REL,
   PLANET_FLAVOR,
   SECTION_META,
@@ -1637,18 +1639,50 @@ export function buildFreeCompatNarrative(
   if (report.synView) {
     // 같은 하우스에 행성이 여러 개 떨어지면 하우스 설명이 토씨까지 똑같이 반복된다
     // (평가단 지적). 하우스별로 묶어 행성을 나열하고 설명은 한 번만.
+    // 하우스 설명은 리포트 전체에서 한 번만 편다. 예전엔 방향별로 따로 만들어
+    // A→B 12H 와 B→A 12H 가 토씨까지 같은 문단을 두 번 냈다(실측 중복률 62%).
+    const describedHouses = new Set<number>()
     const overlayParas = (list: SynOverlayView[], fromName: string, toName: string): string[] => {
-      const byHouse = new Map<number, string[]>()
+      const byHouse = new Map<number, { names: string[]; keys: string[] }>()
       for (const o of list) {
-        if (!byHouse.has(o.house)) byHouse.set(o.house, [])
-        byHouse.get(o.house)!.push(planet(o.planetKey, o.planet))
+        if (!byHouse.has(o.house)) byHouse.set(o.house, { names: [], keys: [] })
+        const e = byHouse.get(o.house)!
+        e.names.push(planet(o.planetKey, o.planet))
+        e.keys.push(o.planetKey)
       }
-      return [...byHouse.entries()].map(([house, planets]) => {
+      return [...byHouse.entries()].map(([house, { names, keys }], idx) => {
+        const pls = names.join(', ')
+        // 도입부 문형을 번갈아 쓴다. 13문단이 전부 "…자리에 들어와요 —" 한 틀이라
+        // 리듬이 없어 읽다 지친다는 지적. 의미는 같고 어순만 바꿔 단조로움을 깬다.
+        // 결정론: 인덱스로만 고르므로 같은 입력 → 같은 문장.
+        const head = isKo
+          ? [
+              `${fromName}의 ${josa(pls, '이/가')} ${toName}의 ${house}번째 자리에 들어와요`,
+              `${toName}의 ${house}번째 자리에는 ${fromName}의 ${josa(pls, '이/가')} 놓여요`,
+              `${fromName}의 ${josa(pls, '은/는')} ${toName}에게 ${house}번째 자리로 가 닿아요`,
+            ][idx % 3]
+          : [
+              `${fromName}'s ${pls} land in ${toName}'s ${ORD_EN[house] ?? `${house}th`}`,
+              `In ${toName}'s ${ORD_EN[house] ?? `${house}th`} sits ${fromName}'s ${pls}`,
+              `${fromName}'s ${pls} reach ${toName} through the ${ORD_EN[house] ?? `${house}th`}`,
+            ][idx % 3]
+        // 행성이 하나뿐이고 그 조합에 고유 읽기가 있으면 그걸 쓴다 — 하우스 설명만
+        // 붙이면 금성이 오든 토성이 오든 같은 문장이 나온다.
+        const combo = keys.length === 1 ? PLANET_HOUSE[`${keys[0]}|${house}`] : undefined
+        if (combo) {
+          describedHouses.add(house)
+          return `${head} — ${t(combo)}`
+        }
+        // 이미 편 하우스면 설명을 반복하지 않고 짧게 잇는다.
+        if (describedHouses.has(house)) {
+          const short = t(HOUSE_SHORT[house] ?? { ko: '', en: '' })
+          return isKo
+            ? `${head} — 앞서 나온 ‘${short}’ 자리예요. 이번엔 방향이 반대라, 같은 무대를 서로 다른 각도에서 건드려요.`
+            : `${head} — the same “${short}” arena as above, now reversed: you each touch that stage from the other side.`
+        }
+        describedHouses.add(house)
         const arena = t(OVERLAY_HOUSE[house]) ?? ''
-        const pls = planets.join(', ')
-        return isKo
-          ? `${fromName}의 ${josa(pls, '이/가')} ${toName}의 ${house}번째 자리에 들어와요 — ${arena}`
-          : `${fromName}'s ${pls} land in ${toName}'s ${ORD_EN[house] ?? `${house}th`} — ${arena}`
+        return `${head} — ${arena}`
       })
     }
     const paras = [
