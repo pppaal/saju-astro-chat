@@ -1650,11 +1650,22 @@ export function buildFreeCompatNarrative(
         e.names.push(planet(o.planetKey, o.planet))
         e.keys.push(o.planetKey)
       }
-      return [...byHouse.entries()].map(([house, { names, keys }]) => {
+      return [...byHouse.entries()].map(([house, { names, keys }], idx) => {
         const pls = names.join(', ')
+        // 도입부 문형을 번갈아 쓴다. 13문단이 전부 "…자리에 들어와요 —" 한 틀이라
+        // 리듬이 없어 읽다 지친다는 지적. 의미는 같고 어순만 바꿔 단조로움을 깬다.
+        // 결정론: 인덱스로만 고르므로 같은 입력 → 같은 문장.
         const head = isKo
-          ? `${fromName}의 ${josa(pls, '이/가')} ${toName}의 ${house}번째 자리에 들어와요`
-          : `${fromName}'s ${pls} land in ${toName}'s ${ORD_EN[house] ?? `${house}th`}`
+          ? [
+              `${fromName}의 ${josa(pls, '이/가')} ${toName}의 ${house}번째 자리에 들어와요`,
+              `${toName}의 ${house}번째 자리에는 ${fromName}의 ${josa(pls, '이/가')} 놓여요`,
+              `${fromName}의 ${josa(pls, '은/는')} ${toName}에게 ${house}번째 자리로 가 닿아요`,
+            ][idx % 3]
+          : [
+              `${fromName}'s ${pls} land in ${toName}'s ${ORD_EN[house] ?? `${house}th`}`,
+              `In ${toName}'s ${ORD_EN[house] ?? `${house}th`} sits ${fromName}'s ${pls}`,
+              `${fromName}'s ${pls} reach ${toName} through the ${ORD_EN[house] ?? `${house}th`}`,
+            ][idx % 3]
         // 행성이 하나뿐이고 그 조합에 고유 읽기가 있으면 그걸 쓴다 — 하우스 설명만
         // 붙이면 금성이 오든 토성이 오든 같은 문장이 나온다.
         const combo = keys.length === 1 ? PLANET_HOUSE[`${keys[0]}|${house}`] : undefined

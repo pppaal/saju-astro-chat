@@ -16,7 +16,8 @@ describe('PLANET_HOUSE — 행성×하우스 고유 카피', () => {
     const keys = Object.keys(PLANET_HOUSE)
     expect(keys.length).toBeGreaterThan(0)
     for (const k of keys) {
-      expect(k).toMatch(/^[A-Za-z]+\|([1-9]|1[0-2])$/)
+      // 행성 키는 공백을 포함할 수 있다(True Node).
+      expect(k).toMatch(/^[A-Za-z][A-Za-z ]*\|([1-9]|1[0-2])$/)
       const v = PLANET_HOUSE[k]
       expect(v.ko.trim().length).toBeGreaterThan(10)
       expect(v.en.trim().length).toBeGreaterThan(10)
