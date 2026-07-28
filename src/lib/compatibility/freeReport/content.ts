@@ -248,6 +248,33 @@ export const ELEMENT_BALANCE = {
 // 빌더가 톤(조화/긴장/엇박)에 맞는 마무리를 덧붙인다.
 
 const ASPECT_PAIR_BASE: Record<string, Bi> = {
+  // ── 북교점(北交點) 조합 — 28쌍 실측에서 폴백 100%가 전부 이 6개였다.
+  //    교점은 "이 관계가 나를 어디로 데려가는가"(과제·방향)를 뜻해, 일반 폴백
+  //    문구로 뭉개면 궁합에서 가장 서사적인 신호가 통째로 밋밋해진다. ──
+  'Sun|True Node': {
+    ko: '한 사람의 "나 자신"이 상대의 인생 방향(북교점)과 맞물리는 자리예요. 만나면서 가고 싶은 길이 또렷해지는, 서로를 성장 쪽으로 미는 결이에요.',
+    en: "One person's core self locks onto the other's life direction (North Node). Paths clarify through knowing each other — a bond that pushes both toward growth.",
+  },
+  'Moon|True Node': {
+    ko: '감정(달)이 상대의 인생 과제(북교점)와 닿는 자리예요. 편안해서 끌리는 게 아니라, 이 사람 곁에서 마음이 자라야 할 방향으로 움직이는 결이에요.',
+    en: "Feeling (Moon) meets the other's life task (North Node). The draw isn't comfort — it's that your heart moves toward where it needs to grow.",
+  },
+  'True Node|Venus': {
+    ko: '애정(금성)이 상대의 인생 방향(북교점)과 겹치는 자리예요. 좋아하는 마음이 곧 "이 길로 가야 한다"는 감각과 붙어, 인연처럼 느껴지는 결이에요.',
+    en: "Affection (Venus) overlaps the other's North Node. Liking them fuses with a sense of *this is the way* — which is why it reads as fated.",
+  },
+  'Mars|True Node': {
+    ko: '추진력(화성)이 상대의 인생 방향(북교점)을 밀어주는 자리예요. 함께하면 미루던 일이 실제로 움직이는, 등을 떠미는 결이에요.',
+    en: "Drive (Mars) pushes the other's North Node along. Together, things that were being put off actually start moving.",
+  },
+  'Mercury|True Node': {
+    ko: '대화(수성)가 상대의 인생 방향(북교점)을 건드리는 자리예요. 나눈 말이 상대의 생각을 돌려놓고, 대화가 곧 이정표가 되는 결이에요.',
+    en: "Talk (Mercury) touches the other's North Node. Words exchanged turn their thinking — conversation itself becomes the signpost.",
+  },
+  'Ascendant|True Node': {
+    ko: '첫인상·태도(상승점)가 상대의 인생 방향(북교점)과 맞물리는 자리예요. 처음 마주친 순간부터 "이 사람은 그냥 지나칠 사람이 아니"라는 감각이 드는 결이에요.',
+    en: "Persona (Ascendant) meshes with the other's North Node. From the first meeting there's a sense that this one isn't someone you simply pass by.",
+  },
   'Moon|Sun': {
     ko: '한 사람의 "나 자신"과 다른 사람의 "감정"이 맞물리는, 궁합에서 가장 핵심인 자리예요. 해와 달이 만나듯 서로의 중심과 마음이 닿는 결이에요.',
     en: "One person's core self meets the other's feelings — the single most important spot in synastry. Like Sun and Moon meeting, your center and your heart touch here.",
@@ -814,6 +841,55 @@ export const PLANET_HOUSE: Record<string, Bi> = {
   'True Node|12': {
     ko: '무의식에서 이어진 듯한 자리예요. 설명하기 힘든 기시감이 관계를 따라다녀요.',
     en: 'A tie that feels made below awareness — an inexplicable familiarity trails the bond.',
+  },
+  // ── themes(실렌더) 경로 폴백 꼬리 보강 ──
+  'Moon|9': {
+    ko: '감정이 넓은 세계로 향하는 자리예요. 함께 배우거나 멀리 떠날 때 마음이 제일 편해져요.',
+    en: 'Feeling reaches for wider horizons — hearts settle most when you learn or travel together.',
+  },
+  'Mars|9': {
+    ko: '신념을 밀어붙이는 자리예요. 가치관 얘기에서 불이 붙기 쉬운데, 그만큼 함께 멀리 가기도 해요.',
+    en: 'Drive pushes on beliefs — value talk sparks easily, and that same fire takes you far together.',
+  },
+  'Mars|11': {
+    ko: '같은 미래를 향해 함께 움직이는 자리예요. 동지처럼 일을 벌이는 데 강해요.',
+    en: 'You move toward a shared future — strong as comrades who start things together.',
+  },
+  'Venus|11': {
+    ko: '친구에서 시작하는 애정이에요. 연인이 되기 전에 먼저 편한 사이가 돼요.',
+    en: 'Affection that begins as friendship — you become easy company before anything else.',
+  },
+  'Sun|6': {
+    ko: '일상과 건강에 존재감이 얹히는 자리예요. 함께 있으면 상대의 생활 리듬이 바뀌어요.',
+    en: 'Presence settles into daily life and health — their routine shifts around you.',
+  },
+  'Jupiter|3': {
+    ko: '대화를 넓혀주는 자리예요. 말이 통할 뿐 아니라 생각의 폭까지 커져요.',
+    en: 'Talk widens here — not just easy conversation, but thinking that grows in scope.',
+  },
+  'Jupiter|6': {
+    ko: '일상을 넉넉하게 만드는 자리예요. 매일의 루틴에 여유가 생겨요.',
+    en: 'Daily life loosens up — the routine gains breathing room.',
+  },
+  'Pluto|3': {
+    ko: '대화가 깊이 파고드는 자리예요. 가벼운 잡담이 어느새 속 얘기가 돼요.',
+    en: 'Conversation digs deep — small talk turns confessional before you notice.',
+  },
+  'Pluto|10': {
+    ko: '사회적 자리를 뒤바꾸는 자리예요. 상대의 커리어 방향이 이 관계로 달라져요.',
+    en: 'Public standing gets rewritten — their career direction shifts through this bond.',
+  },
+  'Uranus|1': {
+    ko: '상대의 자아를 흔들어 깨우는 자리예요. 익숙하던 자기 모습이 낯설어져요.',
+    en: 'You jolt their sense of self awake — the familiar version of them starts to feel strange.',
+  },
+  'Neptune|10': {
+    ko: '사회적 모습에 안개가 끼는 자리예요. 서로의 커리어를 이상화하거나 흐리게 봐요.',
+    en: "A haze settles over public image — you idealize or blur each other's career.",
+  },
+  'Neptune|12': {
+    ko: '가장 깊은 곳에서 녹아드는 자리예요. 경계가 흐려져 어디까지가 나인지 모호해져요.',
+    en: 'You dissolve into their deepest layer — boundaries blur until *mine* and *yours* lose their edge.',
   },
 }
 

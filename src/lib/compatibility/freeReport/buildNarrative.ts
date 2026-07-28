@@ -1934,7 +1934,12 @@ export function buildFreeCompatNarrative(
           `This part of life carries ${e.viewer}'s ${pl}.`,
         ]
         const oi = (seed + house) % 3
-        lead = isKo ? `${koOpeners[oi]} ${arena}` : `${enOpeners[oi]} ${arena}`
+        // 그 행성이 *그 하우스*에 왔을 때의 고유 읽기가 있으면 하우스 일반 설명
+        // (arena) 대신 그걸 쓴다. arena 만 붙이면 금성이 오든 토성이 오든 같은
+        // 문장이 나와 "행성 이름만 불리고 의미엔 안 들어간다"는 제네릭이 된다.
+        const combo = PLANET_HOUSE[`${e.key}|${house}`]
+        const body = combo ? t(combo) : arena
+        lead = isKo ? `${koOpeners[oi]} ${body}` : `${enOpeners[oi]} ${body}`
       } else {
         const names = arr.map((e) => (isKo ? `${e.viewer}의 ${e.disp}` : `${e.viewer}'s ${e.disp}`))
         lead = isKo
