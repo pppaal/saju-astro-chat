@@ -7,6 +7,11 @@ import { currentManAge } from '@/lib/datetime/currentAge'
 import { STEMS } from '@/lib/saju/constants'
 import { getSibseong } from '@/lib/saju/core/sibsin'
 import { ganjiToKorean, ganjiToRoman } from '@/lib/saju/ganjiKo'
+import {
+  MILESTONE_BODY,
+  natalHouseOf,
+  personalizeMilestoneMeaning,
+} from '@/lib/report/milestoneHouse'
 
 /**
  * 십신(十神) → 대운 한 줄 의미(ko/en). 점성 마일스톤이 meaning 을 들고 오듯,
@@ -175,16 +180,41 @@ export function deriveLifetimePivots(
     astroMilestoneOverrides,
     now
   ).events
-  const astroEvents = astroKoEvents.map((e, i) => ({
-    // 만 나이 SSOT — LifecycleEntry.age(실측/테이블 만 나이). 옛 `startYear −
-    // birthYear`(달력 나이)는 연말 출생자를 생일 전 +1 살 어긋나게 했다(감사 F2).
-    age: e.age,
-    year: e.startYear,
-    label: e.label, // ko
-    labelEn: astroEnEvents[i]?.label ?? e.label,
-    meaning: e.meaning, // ko
-    meaningEn: astroEnEvents[i]?.meaning,
-  }))
+  // 마디 뜻풀이 개인화 — 회귀는 본명에서 그 행성이 있는 하우스에서 일어나므로,
+  // 그 하우스를 붙이면 "누구나 같은 문장"이 그 사람 문장이 된다(실측: 인생총흐름
+  // 문장의 48%가 전원 공통이었고 그 절반이 이 마디 텍스트였다). 하우스를 못 읽으면
+  // 원문 그대로 — 없는 정보를 지어내지 않는다.
+  // 카이런은 chart.planets 가 아니라 extraPoints 에 있다 — 둘을 합쳐 봐야
+  // 카이런 회귀(50세)도 개인화된다(안 합치면 그 마디만 전원 공통으로 남는다).
+  const astroAny = natal.astro as
+    | {
+        chart?: { planets?: Array<{ name?: string; house?: number }> }
+        extraPoints?: Array<{ name?: string; house?: number }>
+      }
+    | undefined
+  const natalPlanets = [...(astroAny?.chart?.planets ?? []), ...(astroAny?.extraPoints ?? [])]
+  const houseFor = (kind: string): number | null => {
+    const body = MILESTONE_BODY[kind]
+    return body ? natalHouseOf(natalPlanets, body) : null
+  }
+  const astroEvents = astroKoEvents.map((e, i) => {
+    const h = houseFor(e.event)
+    return {
+      // 만 나이 SSOT — LifecycleEntry.age(실측/테이블 만 나이). 옛 `startYear −
+      // birthYear`(달력 나이)는 연말 출생자를 생일 전 +1 살 어긋나게 했다(감사 F2).
+      age: e.age,
+      year: e.startYear,
+      label: e.label, // ko
+      labelEn: astroEnEvents[i]?.label ?? e.label,
+      meaning: personalizeMilestoneMeaning(e.event, h, e.meaning, true), // ko
+      meaningEn: personalizeMilestoneMeaning(
+        e.event,
+        h,
+        astroEnEvents[i]?.meaning ?? e.meaning,
+        false
+      ),
+    }
+  })
 
   // 사주 대운 전환점 — ko/en 라벨 + 십신 한 줄 의미 모두 baked.
   const dayMaster = natal.saju?.dayMaster
