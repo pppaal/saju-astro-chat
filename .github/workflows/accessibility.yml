@@ -58,7 +58,7 @@ jobs:
       - name: 💬 Comment PR with a11y results
         if: github.event_name == 'pull_request' && always()
         continue-on-error: true
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             const fs = require('fs');
@@ -152,7 +152,7 @@ jobs:
       - name: 💬 Comment Lighthouse scores
         if: github.event_name == 'pull_request' && always()
         continue-on-error: true
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             const comment = `## 🔦 Lighthouse Accessibility Scores

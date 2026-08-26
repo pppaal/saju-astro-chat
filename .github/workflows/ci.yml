@@ -202,7 +202,7 @@ jobs:
         # 담당한다. 포크 PR 등 토큰 권한이 막힌 컨텍스트에서 코멘트 실패가
         # CI 전체를 빨갛게 만들지 않도록 소프트 실패 처리.
         continue-on-error: true
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             const fs = require('fs');
