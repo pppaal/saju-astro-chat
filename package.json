@@ -99,6 +99,8 @@
     "mobile:sync:ios": "npm run build && npx cap sync ios",
     "mobile:open:android": "npx cap open android",
     "mobile:open:ios": "npx cap open ios",
+    "mobile:assets:build": "node scripts/build-android-assets.mjs",
+    "mobile:assets:generate": "npm run mobile:assets:build && npx capacitor-assets generate --android",
     "security:audit": "npm audit --audit-level=high",
     "audit:api": "node scripts/audit-api-routes.mjs",
     "docs:stats": "node scripts/repo-stats.mjs",
@@ -139,6 +141,8 @@
     "sharp": "^0.35.3"
   },
   "dependencies": {
+    "@capacitor/android": "^8.0.2",
+    "@capacitor/core": "^8.0.2",
     "@ducanh2912/next-pwa": "^10.2.9",
     "@ffmpeg-installer/ffmpeg": "^1.1.0",
     "@prisma/adapter-pg": "^7.3.0",
@@ -197,6 +201,7 @@
     ]
   },
   "devDependencies": {
+    "@capacitor/assets": "^3.0.5",
     "@capacitor/cli": "^8.0.2",
     "@next/bundle-analyzer": "^16.1.6",
     "@playwright/test": "^1.58.1",

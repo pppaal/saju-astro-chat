@@ -48,15 +48,16 @@ Last audited: 2026-06-15 (Asia/Hong_Kong)
 
 ## Operations / Cost / UX Docs
 
-| Document                                      | Covers                                              | Audience               | Last audited |
-| --------------------------------------------- | --------------------------------------------------- | ---------------------- | ------------ |
-| `docs/AI_COST_MONITORING.md`                  | LLM cost picture (models, tokens, caching, credits) | Backend/SRE            | 2026-06-15   |
-| `docs/COUNSELOR_SESSION_SAVE_RACE_RUNBOOK.md` | Counselor session save race condition runbook       | On-call/backend        | 2026-03-11   |
-| `docs/CREDIT_ERROR_MESSAGES.md`               | Credit-related error copy contract                  | Frontend/product       | 2026-03-11   |
-| `docs/A_GRADE_CHECKLIST.md`                   | "A-grade" release readiness checklist               | Engineering leadership | 2026-03-11   |
-| `docs/TYPECHECK_OPS.md`                       | Typecheck hotspots and zero-error plan              | All engineers          | 2026-03-11   |
-| `docs/DEPLOYMENT.md`                          | Deployment notes                                    | DevOps                 | 2026-03-11   |
-| `docs/CEO_TECH_GLOSSARY.md`                   | Non-technical glossary for product reviews          | Product/leadership     | 2026-03-11   |
+| Document                                      | Covers                                               | Audience               | Last audited |
+| --------------------------------------------- | ---------------------------------------------------- | ---------------------- | ------------ |
+| `docs/AI_COST_MONITORING.md`                  | LLM cost picture (models, tokens, caching, credits)  | Backend/SRE            | 2026-06-15   |
+| `docs/COUNSELOR_SESSION_SAVE_RACE_RUNBOOK.md` | Counselor session save race condition runbook        | On-call/backend        | 2026-03-11   |
+| `docs/CREDIT_ERROR_MESSAGES.md`               | Credit-related error copy contract                   | Frontend/product       | 2026-03-11   |
+| `docs/A_GRADE_CHECKLIST.md`                   | "A-grade" release readiness checklist                | Engineering leadership | 2026-03-11   |
+| `docs/TYPECHECK_OPS.md`                       | Typecheck hotspots and zero-error plan               | All engineers          | 2026-03-11   |
+| `docs/DEPLOYMENT.md`                          | Deployment notes                                     | DevOps                 | 2026-03-11   |
+| `docs/PLAY_STORE_SUBMISSION.md`               | Android/Google Play packaging + submission checklist | Mobile/DevOps          | 2026-09-01   |
+| `docs/CEO_TECH_GLOSSARY.md`                   | Non-technical glossary for product reviews           | Product/leadership     | 2026-03-11   |
 
 ## Feature Subsystem Docs
 
