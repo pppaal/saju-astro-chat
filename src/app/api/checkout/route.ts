@@ -14,8 +14,10 @@ import { logger } from '@/lib/logger'
 import {
   getCreditPackPriceId,
   allowedCreditPackIds,
+  resolveCheckoutCurrency,
   type CreditPackKey,
 } from '@/lib/payments/prices'
+import { currencyForLocale } from '@/lib/config/pricing'
 import { checkoutRequestSchema } from '@/lib/api/zodValidation'
 import { getStripeOrNull } from '@/lib/stripe/client'
 import { isStarterEligible } from '@/lib/credits/starterPack'
@@ -88,9 +90,20 @@ export const POST = withApiMiddleware(
         return apiError(ErrorCodes.BAD_REQUEST, 'invalid_request')
       }
 
-      const creditPrice = getCreditPackPriceId(creditPack as CreditPackKey)
+      // 청구 통화는 **서버가** 로케일에서 정한다(클라이언트 입력 무신뢰).
+      // /pricing·CreditDepletedModal 도 같은 resolveCheckoutCurrency 결과로
+      // 가격을 표시하므로 표시 통화와 청구 통화가 갈릴 수 없다. 통화를 클라가
+      // 고르게 하면 KRW 가 USD 환산보다 싸서 통화 쇼핑이 생긴다.
+      const currency = resolveCheckoutCurrency(context.locale)
+      if (currencyForLocale(context.locale) !== currency) {
+        // USD Price 미설정 → KRW 폴백. 표시도 같이 폴백되므로 불일치는 아니지만,
+        // 해외 결제를 KRW 로 받고 있다는 뜻이라 관측 가능해야 한다.
+        recordCounter('stripe_checkout_currency_fallback', 1, { to: currency })
+      }
+
+      const creditPrice = getCreditPackPriceId(creditPack as CreditPackKey, currency)
       if (!creditPrice || !allowedCreditPackIds().includes(creditPrice)) {
-        logger.error('[checkout] credit pack price not allowed', { creditPack })
+        logger.error('[checkout] credit pack price not allowed', { creditPack, currency })
         recordCounter('stripe_checkout_price_error', 1, { type: 'credit_pack' })
         return apiError(ErrorCodes.BAD_REQUEST, 'invalid_credit_pack')
       }
@@ -116,6 +129,9 @@ export const POST = withApiMiddleware(
             creditPack: creditPack,
             userId: context.userId || '',
             source: 'web',
+            // 지급 크레딧은 creditPack 으로만 결정되므로(웹훅) 통화는 지급에
+            // 영향이 없다. 매출 집계·환불 대조용 기록.
+            currency,
           },
         },
         { idempotencyKey }

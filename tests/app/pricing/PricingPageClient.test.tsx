@@ -91,9 +91,14 @@ import PricingPageClient from '@/app/pricing/PricingPageClient'
 // initialCopy aligned to SSR_PRICING_KEYS ordering (values unused since hydrated).
 const initialCopy = SSR_PRICING_KEYS.map((k) => `ssr-${k}`)
 
-function renderPage(locale: 'en' | 'ko' = 'en') {
+// usdEnabled = 전 팩에 USD Stripe Price 가 있는지(서버 판정). 켜져 있을 때만
+// 영어 사용자에게 $ 를 보여준다 — /api/checkout 이 실제로 USD 로 청구할 수 있는
+// 경우에만 $ 를 표시해야 표시 통화와 청구 통화가 어긋나지 않는다.
+function renderPage(locale: 'en' | 'ko' = 'en', usdEnabled = true) {
   mockI18n.locale = locale
-  return render(<PricingPageClient initialLocale={locale} initialCopy={initialCopy} />)
+  return render(
+    <PricingPageClient initialLocale={locale} initialCopy={initialCopy} usdEnabled={usdEnabled} />
+  )
 }
 
 beforeEach(() => {
@@ -134,6 +139,38 @@ describe('PricingPageClient', () => {
       expect(screen.getByText(`₩${pack.pricing.krw.toLocaleString('ko-KR')}`)).toBeInTheDocument()
     }
     expect(screen.getAllByText('VAT 포함').length).toBe(5)
+  })
+
+  // 표시 통화 == 청구 통화. USD Stripe Price 가 없으면 /api/checkout 은 KRW 로
+  // 청구하므로(resolveCheckoutCurrency 폴백), 화면도 ₩ 를 보여야 한다. 예전엔
+  // 화면만 로케일로 갈라서 영어 방문자가 $9.99 를 보고 ₩12,900 을 결제했다.
+  it('falls back to KRW for en when USD prices are not configured', () => {
+    renderPage('en', false)
+    for (const id of ['mini', 'standard', 'plus', 'mega', 'ultimate'] as const) {
+      const pack = CREDIT_PACKS[id]
+      expect(screen.getByText(`₩${pack.pricing.krw.toLocaleString('ko-KR')}`)).toBeInTheDocument()
+      expect(screen.queryByText(`$${pack.pricing.usd.toFixed(2)}`)).not.toBeInTheDocument()
+    }
+    // 언어는 영어 그대로 — 통화만 폴백한다.
+    expect(screen.getAllByText('Tax included').length).toBe(5)
+  })
+
+  it('never shows KRW and USD amounts at the same time', () => {
+    for (const [locale, usdEnabled] of [
+      ['en', true],
+      ['en', false],
+      ['ko', true],
+      ['ko', false],
+    ] as const) {
+      renderPage(locale, usdEnabled)
+      const pack = CREDIT_PACKS.standard
+      const hasUsd = screen.queryByText(`$${pack.pricing.usd.toFixed(2)}`) !== null
+      const hasKrw = screen.queryByText(`₩${pack.pricing.krw.toLocaleString('ko-KR')}`) !== null
+      expect(hasUsd).toBe(!hasKrw)
+      // USD 는 영어 + USD Price 설정이 둘 다 참일 때만.
+      expect(hasUsd).toBe(locale === 'en' && usdEnabled)
+      cleanup()
+    }
   })
 
   it('marks the popular pack with the best-value badge', () => {

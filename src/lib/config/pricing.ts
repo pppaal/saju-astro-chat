@@ -97,6 +97,41 @@ export const CREDIT_PACKS: Record<CreditPackType, CreditPack> = {
  */
 export const BASE_CREDIT_PRICE_KRW = 492
 
+// ============================================================================
+// CURRENCY RESOLUTION (SSOT — 표시 통화 == 청구 통화)
+// ============================================================================
+
+/**
+ * 결제 기본 통화. 통화별 Stripe Price 가 없으면 여기로 폴백한다.
+ */
+export const DEFAULT_CURRENCY: Currency = 'KRW'
+
+/**
+ * 로케일 → 통화. **표시와 청구가 반드시 이 함수 하나만 보게 한다.**
+ *
+ * 예전 버그: /pricing 은 `locale === 'ko' ? krw : usd` 로 표시했는데
+ * /api/checkout 은 팩당 Stripe Price ID 를 하나만 넘겼다. Stripe Price 는 통화가
+ * 하나뿐이라, 영어 방문자가 `$9.99` 를 보고 결제창에서 `₩12,900` 을 받았다
+ * (국경 간 디지털재 장바구니 이탈의 최대 원인). 표시·청구가 같은 함수를
+ * 거치게 해서 구조적으로 어긋날 수 없게 한다 — 실제 청구 통화는
+ * `resolveCheckoutCurrency`(prices.ts)가 Price 설정 여부까지 보고 확정한다.
+ */
+export function currencyForLocale(locale: string | null | undefined): Currency {
+  return locale === 'ko' ? 'KRW' : 'USD'
+}
+
+/** 팩 정가 — 통화별. 표시와 청구가 같은 값을 읽는다. */
+export function packAmount(packId: CreditPackType, currency: Currency): number {
+  const p = CREDIT_PACKS[packId].pricing
+  return currency === 'KRW' ? p.krw : p.usd
+}
+
+/** 크레딧당 단가 — 통화별(그리드의 "1크레딧 ≈" 표시용). */
+export function packPerCredit(packId: CreditPackType, currency: Currency): number {
+  const p = CREDIT_PACKS[packId]
+  return currency === 'KRW' ? p.perCreditKrw : p.perCreditUsd
+}
+
 /**
  * Bonus credit expiration period in months
  */
