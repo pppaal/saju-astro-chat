@@ -224,3 +224,13 @@ export function iljuWithBranch(branch: string): IljuProfile[] {
     .map((g) => iljuProfile(g))
     .filter((p): p is IljuProfile => Boolean(p) && p!.dayBranch.han === branch)
 }
+
+/**
+ * 어떤 천간을 일간으로 갖는 일주들(6개) — 일간 궁합 페이지에서 일주 페이지로
+ * 교차 링크할 때 쓴다. 두 SEO 표면이 서로를 가리켜 링크 그래프가 된다.
+ */
+export function iljuWithStem(stem: string): IljuProfile[] {
+  return allIljuGanji()
+    .map((g) => iljuProfile(g))
+    .filter((p): p is IljuProfile => Boolean(p) && p!.dayStem.han === stem)
+}

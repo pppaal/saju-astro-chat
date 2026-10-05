@@ -63,6 +63,26 @@ describe('sitemap — 언어별 URL 쌍', () => {
     expect(detail).toHaveLength(120)
   })
 
+  it('일간 궁합은 **허브만** 올린다 — 상세 55쌍은 의도적 제외(thin content)', () => {
+    expect(urls.has(`${BASE}/compatibility/ilgan`)).toBe(true)
+    expect(urls.has(`${BASE}/ko/compatibility/ilgan`)).toBe(true)
+    // 실측에서 55쌍 중 서로 다른 사실집합이 15개뿐이었다(십성이 오행관계 ×
+    // 음양으로 결정돼 수렴). 40쌍이 사실상 중복이라 색인에 올리지 않고
+    // noindex + 사이트맵 제외로 둔다. 이 가드가 실수로 다시 들어오는 걸 막는다.
+    const pairs = entries.filter((e) => /\/compatibility\/ilgan\/[a-z]+-[a-z]+$/.test(e.url))
+    expect(pairs).toHaveLength(0)
+  })
+
+  it('십성 사전(허브 + 10개)이 en/ko 쌍으로 들어간다', () => {
+    expect(urls.has(`${BASE}/saju/sibsin`)).toBe(true)
+    expect(urls.has(`${BASE}/ko/saju/sibsin`)).toBe(true)
+    expect(urls.has(`${BASE}/saju/sibsin/jeongjae`)).toBe(true)
+    expect(urls.has(`${BASE}/ko/saju/sibsin/pyeongwan`)).toBe(true)
+    const detail = entries.filter((e) => /\/saju\/sibsin\/[a-z]+$/.test(e.url))
+    // 10개 × en/ko
+    expect(detail).toHaveLength(20)
+  })
+
   it('중복 URL 이 없다', () => {
     expect(urls.size).toBe(entries.length)
   })

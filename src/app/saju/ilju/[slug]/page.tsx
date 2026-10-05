@@ -17,6 +17,8 @@ import { notFound } from 'next/navigation'
 import { JsonLd } from '@/components/seo/JsonLd'
 import { generateJsonLd, generateLocalizedMetadata, getServerLocale } from '@/components/seo/SEO'
 import { ELEMENT_EN, iljuBySlug, iljuWithBranch, type IljuProfile } from '@/lib/saju/iljuProfile'
+import { ILGAN_ORDER, canonicalIlganSlug } from '@/lib/saju/ilganCompat'
+import { sibsinSlugOf } from '@/lib/saju/sibsinProfile'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -177,7 +179,21 @@ export default async function IljuDetailPage({ params }: Props) {
             label={isKo ? '일지 지장간 본기' : 'Hidden stem (main qi)'}
             value={p.dayBranch.hiddenStem}
           />
-          <Row label={isKo ? '배우자궁 십성' : 'Spouse palace reads as'} value={seat} />
+          <Row
+            label={isKo ? '배우자궁 십성' : 'Spouse palace reads as'}
+            value={
+              sibsinSlugOf(p.spouseSeat.sibsin) ? (
+                <Link
+                  href={`/saju/sibsin/${sibsinSlugOf(p.spouseSeat.sibsin)}`}
+                  style={{ color: '#8a6d3b' }}
+                >
+                  {seat}
+                </Link>
+              ) : (
+                seat
+              )
+            }
+          />
           <Row label={isKo ? '공망' : 'Void branches'} value={p.gongmang.join(' · ')} />
           <Row
             label={isKo ? '천을귀인' : 'Noble star (cheoneul)'}
@@ -249,6 +265,32 @@ export default async function IljuDetailPage({ params }: Props) {
           {p.relations.hae && <Row label={isKo ? '해' : 'Harm'} value={p.relations.hae} />}
           {p.relations.pa && <Row label={isKo ? '파' : 'Break'} value={p.relations.pa} />}
         </dl>
+      </section>
+
+      {/* 일간 궁합 표면으로 교차 링크 — 두 SEO 표면이 서로를 가리킨다. */}
+      <section style={{ marginBottom: 32 }}>
+        <h2 style={{ fontSize: 17, margin: '0 0 8px' }}>
+          {isKo ? `${p.dayStem.ko} 일간의 궁합` : `${p.dayStem.han} day-master pairs`}
+        </h2>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
+          {ILGAN_ORDER.map((other) => (
+            <Link
+              key={other}
+              href={`/compatibility/ilgan/${canonicalIlganSlug(p.dayStem.han, other)}`}
+              style={{
+                padding: '6px 11px',
+                borderRadius: 8,
+                border: '1px solid rgba(0,0,0,0.08)',
+                background: '#fff',
+                color: '#2f2b26',
+                fontSize: 13,
+              }}
+            >
+              {p.dayStem.han}
+              {other}
+            </Link>
+          ))}
+        </div>
       </section>
 
       <section

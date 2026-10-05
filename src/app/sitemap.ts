@@ -6,6 +6,7 @@ import { ALL_CARD_SLUGS } from '@/lib/tarot/cardPages'
 import { ZODIAC_ANIMALS } from '@/lib/fortune/zodiacDaily'
 import { allPairSlugs } from '@/lib/compatibility/zodiacCompat'
 import { allIljuSlugs } from '@/lib/saju/iljuProfile'
+import { allSibsinSlugs } from '@/lib/saju/sibsinProfile'
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://destinypal.com'
 
@@ -170,6 +171,38 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ),
   ]
 
+  // 일간 궁합 — **허브 1개만** 올린다.
+  //
+  // 상세 55쌍은 의도적으로 제외했다. 실측에서 55쌍 중 서로 다른 사실집합이
+  // 15개뿐이었다(십성이 오행관계 × 음양으로 결정돼 조합이 수렴). 40쌍이 사실상
+  // 중복인 상태로 색인에 올리면 thin content 가 되므로, 상세는 noindex 로 두고
+  // 허브 매트릭스에서 눌러 들어오는 사용자 깊이로만 남긴다.
+  // 허브 자체는 55쌍의 핵심 사실을 한 표에 담고 있어 단독으로 가치가 있다.
+  const ilganPages: MetadataRoute.Sitemap = localizedEntries('/compatibility/ilgan', {
+    lastModified: currentDate,
+    changeFrequency: 'monthly',
+    priority: 0.8,
+  })
+
+  // 십성 사전 — 허브 + 10개. 일주 60페이지가 쓰는 "배우자궁 ○○" 용어의
+  // 목적지라, 색인뿐 아니라 내부 링크 그래프의 빠진 노드를 메우는 표면이다.
+  // 일간 쌍(55개)과 달리 10개가 서로 완전히 다른 개념이라 수렴하지 않는다
+  // (실측: 사실집합 10/10 고유).
+  const sibsinPages: MetadataRoute.Sitemap = [
+    ...localizedEntries('/saju/sibsin', {
+      lastModified: currentDate,
+      changeFrequency: 'monthly',
+      priority: 0.8,
+    }),
+    ...allSibsinSlugs().flatMap((slug) =>
+      localizedEntries(`/saju/sibsin/${slug}`, {
+        lastModified: currentDate,
+        changeFrequency: 'monthly',
+        priority: 0.7,
+      })
+    ),
+  ]
+
   // Blog posts (ko/en 본문이 같은 slug 에 공존 — 언어별 URL 로 각각 색인)
   const blogPages: MetadataRoute.Sitemap = blogPosts
     .filter((post) => !isBlockedBlogPost(post))
@@ -189,6 +222,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ...tarotCardPages,
     ...zodiacCompatPages,
     ...iljuPages,
+    ...ilganPages,
+    ...sibsinPages,
     ...blogPages,
   ]
 }
