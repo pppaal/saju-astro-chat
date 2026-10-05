@@ -487,7 +487,12 @@ export async function addBonusCredits(
   userId: string,
   amount: number,
   source: 'purchase' | 'referral' | 'promotion' | 'gift' = 'purchase',
-  stripePaymentId?: string
+  stripePaymentId?: string,
+  // 실결제액 — Stripe Checkout Session 의 amount_total/currency 를 그대로.
+  // amountMinor 는 결제 통화의 최소 단위(KRW 1원 / USD 1센트)라 currency 없이는
+  // 해석할 수 없으므로 둘을 함께 받는다. 결제가 없는 지급(referral 등)은 생략.
+  // 매출 집계가 "크레딧 수량 → KRW 정가" 역산에서 실측으로 옮겨가는 근거 데이터.
+  payment?: { amountMinor: number; currency: string }
 ) {
   await getUserCredits(userId)
 
@@ -520,10 +525,16 @@ export async function addBonusCredits(
       source,
       stripePaymentId,
     }
+    // 실결제액 컬럼 — acknowledgedAt 과 같은 이유로 선택적으로 붙인다
+    // (마이그레이션 prod 미적용 환경에서 P2022 폴백 대상).
+    const paymentData: CreateData =
+      payment && Number.isFinite(payment.amountMinor) && payment.currency
+        ? { ...baseData, amountMinor: payment.amountMinor, currency: payment.currency }
+        : baseData
     let createdId: string | null = null
     try {
       const purchase = await tx.bonusCreditPurchase.create({
-        data: { ...baseData, acknowledgedAt },
+        data: { ...paymentData, acknowledgedAt },
         select: { id: true },
       })
       createdId = purchase.id
@@ -531,9 +542,12 @@ export async function addBonusCredits(
       const code = (err as { code?: string } | null)?.code
       const msg = (err as { message?: string } | null)?.message ?? ''
       const isMissingColumn =
-        code === 'P2022' || (/column .* does not exist/i.test(msg) && /acknowledged/i.test(msg))
+        code === 'P2022' ||
+        (/column .* does not exist/i.test(msg) && /acknowledged|amountMinor|currency/i.test(msg))
       if (!isMissingColumn) throw err
-      // 컬럼 없음. acknowledgedAt 빼고 재시도 → 적어도 row 는 생성.
+      // 컬럼 없음. 신규 컬럼 전부 빼고 재시도 → 적어도 row 는 생성.
+      // (크레딧 지급이 매출 기록용 컬럼 때문에 실패하면 "결제했는데 크레딧
+      //  없음" 이 되므로, 금액 기록보다 지급이 우선이다.)
       const purchase = await tx.bonusCreditPurchase.create({
         data: baseData,
         select: { id: true },

@@ -424,7 +424,9 @@ describe('Stripe Webhook API - POST /api/webhook/stripe', () => {
         'user-1',
         30,
         'purchase',
-        'pi_test_123'
+        'pi_test_123',
+        // 실결제액 — 매출 집계가 크레딧 수량 역산이 아니라 실측을 쓰게 하는 근거.
+        { amountMinor: 9900, currency: 'krw' }
       )
       // Verify success is recorded in event log
       expect(vi.mocked(prisma.stripeEventLog.update)).toHaveBeenCalledWith(
@@ -465,7 +467,8 @@ describe('Stripe Webhook API - POST /api/webhook/stripe', () => {
         'user-async',
         70,
         'purchase',
-        'pi_async_1'
+        'pi_async_1',
+        { amountMinor: 24900, currency: 'krw' }
       )
     })
 
@@ -513,7 +516,8 @@ describe('Stripe Webhook API - POST /api/webhook/stripe', () => {
           'u1',
           expectedCredits,
           'purchase',
-          `pi_${pack}`
+          `pi_${pack}`,
+          { amountMinor: 1000, currency: 'krw' }
         )
       }
     })
@@ -880,7 +884,8 @@ describe('Stripe Webhook API - POST /api/webhook/stripe', () => {
         'user-b1',
         12, // mini = 12 credits
         'purchase',
-        'pi_b1'
+        'pi_b1',
+        { amountMinor: 1900, currency: 'krw' }
       )
       // Success is recorded
       expect(vi.mocked(prisma.stripeEventLog.update)).toHaveBeenCalledWith(

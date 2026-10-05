@@ -20,6 +20,7 @@ import {
   type CreditPackType,
   type Currency,
 } from '@/lib/config/pricing'
+import { taxNote, type TaxBehavior } from '@/lib/payments/tax'
 import { fetchWithRetry } from '@/lib/http'
 import { SSR_PRICING_KEYS } from './pricingCopyKeys'
 import { RefundConsentModal } from '@/components/pricing/RefundConsentModal'
@@ -106,12 +107,20 @@ interface PricingPageClientProps {
   initialCopy: readonly string[]
   /** 전 팩에 USD Stripe Price 가 설정돼 있는지 (서버가 환경변수 보고 판정). */
   usdEnabled: boolean
+  /**
+   * 세금이 가격에 포함(inclusive)인지 결제 시 가산(exclusive)인지 — Stripe Price
+   * 의 tax_behavior 와 묶인 설정값이라 서버에서 내려준다. 예전엔 "VAT 포함" 을
+   * 무조건 렌더해서, Stripe Tax 를 exclusive 로 켜면 화면 금액보다 총액이 큰데도
+   * "포함"이라고 말하는 상태가 됐다.
+   */
+  taxBehavior: TaxBehavior
 }
 
 export default function PricingPageClient({
   initialLocale,
   initialCopy,
   usdEnabled,
+  taxBehavior,
 }: PricingPageClientProps) {
   const { locale: activeLocale, hydrated, t } = useI18n()
   const locale = activeLocale || initialLocale
@@ -121,6 +130,8 @@ export default function PricingPageClient({
   // 갈라서, USD 를 보여주고 KRW 를 청구하는 불일치가 났다. 로케일 토글은 locale
   // 쿠키를 쓰고 API 는 그 쿠키로 통화를 정하므로, 토글 직후에도 둘이 같이 움직인다.
   const currency: Currency = isKo || !usdEnabled ? 'KRW' : 'USD'
+  // 세금 문구 — 결제창에서 실제로 벌어지는 일을 말한다(taxNote SSOT).
+  const taxLabel = taxNote(isKo ? 'ko' : 'en', taxBehavior)
   const toast = useToast()
   // session.user.email 이 비어 있으면 결제 직전 EmailCollectionModal 을
   // 띄운다. update() 는 PATCH /api/me/email 성공 후 호출해 jwt 토큰을
@@ -356,7 +367,7 @@ export default function PricingPageClient({
                   <div className={styles.creditHeader}>
                     <h3 className={styles.creditName}>{pt(`creditPackNames.${pack.nameKey}`)}</h3>
                     <div className={styles.creditPrice}>{money(packAmount(pack.id, currency))}</div>
-                    <div className={styles.vatNote}>{isKo ? 'VAT 포함' : 'Tax included'}</div>
+                    <div className={styles.vatNote}>{taxLabel}</div>
                   </div>
                   <div className={styles.creditBody}>
                     <div className={styles.creditReadings}>
@@ -510,13 +521,13 @@ export default function PricingPageClient({
         <footer className={styles.footer}>
           <div className={styles.footerRef}>
             {isKo
-              ? `기준 단가: 1 크레딧 ≈ ${money(currency === 'KRW' ? BASE_CREDIT_PRICE_KRW : baseCreditPriceUsd)} (VAT 포함)`
-              : `Reference rate: 1 credit ≈ ${money(currency === 'KRW' ? BASE_CREDIT_PRICE_KRW : baseCreditPriceUsd)} (tax included)`}
+              ? `기준 단가: 1 크레딧 ≈ ${money(currency === 'KRW' ? BASE_CREDIT_PRICE_KRW : baseCreditPriceUsd)} (${taxLabel})`
+              : `Reference rate: 1 credit ≈ ${money(currency === 'KRW' ? BASE_CREDIT_PRICE_KRW : baseCreditPriceUsd)} (${taxLabel})`}
           </div>
           <div>
             {isKo
-              ? '© 2026 destinypal.com · 모든 가격 VAT 포함 · 크레딧은 구매일로부터 3개월 유효'
-              : '© 2026 destinypal.com · All prices include tax · Credits valid 3 months from purchase'}
+              ? `© 2026 destinypal.com · 모든 가격 ${taxLabel} · 크레딧은 구매일로부터 3개월 유효`
+              : `© 2026 destinypal.com · ${taxLabel} on all prices · Credits valid 3 months from purchase`}
           </div>
         </footer>
       </main>

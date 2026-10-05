@@ -606,6 +606,39 @@ describe('/api/checkout - Edge Cases (P1)', () => {
       expect(session.metadata.currency).toBe('KRW')
     })
 
+    it('세금이 꺼져 있으면 automatic_tax false + 주소 auto (기본)', async () => {
+      const req = new NextRequest('http://localhost:3000/api/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ creditPack: 'mini' }),
+      })
+      await POST(req)
+
+      const session = mockStripeCheckoutCreate.mock.calls.at(-1)?.[0]
+      expect(session.automatic_tax).toEqual({ enabled: false })
+      expect(session.billing_address_collection).toBe('auto')
+      expect(session.metadata.taxBehavior).toBe('inclusive')
+    })
+
+    it('세금을 켜면 automatic_tax 와 주소 필수가 세션에 실린다', async () => {
+      process.env.STRIPE_TAX_ENABLED = 'true'
+      try {
+        const req = new NextRequest('http://localhost:3000/api/checkout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ creditPack: 'mini' }),
+        })
+        await POST(req)
+
+        const session = mockStripeCheckoutCreate.mock.calls.at(-1)?.[0]
+        expect(session.automatic_tax).toEqual({ enabled: true })
+        expect(session.billing_address_collection).toBe('required')
+        expect(session.customer_creation).toBe('always')
+      } finally {
+        delete process.env.STRIPE_TAX_ENABLED
+      }
+    })
+
     it('그 통화에 Price 가 없으면 다른 통화로 청구하지 않고 거부한다', async () => {
       vi.mocked(resolveCheckoutCurrency).mockReturnValue('USD')
       vi.mocked(getCreditPackPriceId).mockReturnValue(null as unknown as string)

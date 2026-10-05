@@ -18,6 +18,7 @@ import {
   type CreditPackKey,
 } from '@/lib/payments/prices'
 import { currencyForLocale } from '@/lib/config/pricing'
+import { taxSessionParams, taxBehavior } from '@/lib/payments/tax'
 import { checkoutRequestSchema } from '@/lib/api/zodValidation'
 import { getStripeOrNull } from '@/lib/stripe/client'
 import { isStarterEligible } from '@/lib/credits/starterPack'
@@ -117,6 +118,12 @@ export const POST = withApiMiddleware(
         return apiError(ErrorCodes.BAD_REQUEST, 'starter_not_eligible')
       }
 
+      // 세금 — automatic_tax 를 켜면 Stripe 가 고객 소재지로 세율을 계산한다.
+      // 꺼져 있으면(기본) 기존 동작 그대로. 켤 때는 청구지 주소를 필수로 받고
+      // Customer 를 만들어 영수증·환불에 세금 정보가 붙게 한다. 화면의 세금
+      // 문구(taxNote)도 같은 설정에서 나오므로 표시와 청구가 갈리지 않는다.
+      const tax = taxSessionParams()
+
       const checkout = await stripe.checkout.sessions.create(
         {
           mode: 'payment',
@@ -124,6 +131,7 @@ export const POST = withApiMiddleware(
           success_url: `${base}/success?session_id={CHECKOUT_SESSION_ID}&pack=${creditPack}`,
           cancel_url: `${base}/pricing`,
           customer_email: email,
+          ...tax,
           metadata: {
             type: 'credit_pack',
             creditPack: creditPack,
@@ -132,6 +140,7 @@ export const POST = withApiMiddleware(
             // 지급 크레딧은 creditPack 으로만 결정되므로(웹훅) 통화는 지급에
             // 영향이 없다. 매출 집계·환불 대조용 기록.
             currency,
+            taxBehavior: taxBehavior(),
           },
         },
         { idempotencyKey }

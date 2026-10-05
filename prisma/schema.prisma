@@ -333,6 +333,19 @@ model BonusCreditPurchase {
   // (Postgres 의 nullable unique 동작).
   stripePaymentId String? @unique
 
+  // 실제 결제액 — **결제 통화의 최소 단위**(KRW 1원, USD 1센트)와 통화 코드.
+  // Stripe Checkout Session 의 amount_total/currency 를 그대로 받는다.
+  //
+  // 왜 필요한가: /api/admin/revenue 가 매출을 "크레딧 수량 → KRW 정가" 로
+  // 역산하고 있었다. USD 결제가 섞이면($9.99 를 ₩12,900 으로 계상) 오차가
+  // 커지고, 환불도 정가로 차감해 순매출이 양방향으로 틀어진다. 해외 매출이
+  // 실제로 됐는지 숫자로 볼 수 없으면 국제 런치를 판단할 수 없다.
+  //
+  // nullable — 기존 행과 referral/promotion/gift 처럼 결제가 없는 행은 NULL.
+  // revenue 집계는 NULL 이면 기존 정가 추정으로 폴백한다.
+  amountMinor Int?
+  currency    String?
+
   // 사용자에게 "+N 크레딧 받았어요" 모달을 보여주고 닫힌 시각.
   // null 이면 아직 모달 안 봤음 → 다음 페이지 진입/로그인 시 모달 노출.
   // source='purchase' (본인 결제) 는 Stripe success 페이지가 곧 acknowledgment
