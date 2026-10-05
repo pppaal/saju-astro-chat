@@ -1,9 +1,13 @@
 'use client'
 
 import { useState } from 'react'
+import { formatMinorUnits } from '@/lib/payments/stripeFees'
 
 interface RefundResult {
   success: boolean
+  /** 결제 통화(ISO 4217 소문자) — 아래 금액들의 단위를 정한다. */
+  currency?: string
+  /** 결제 통화의 최소 단위(KRW 1원 / USD 1센트). 이름은 레거시. */
   refundedKrw: number
   feeWithheld: number
   originalAmount: number
@@ -18,8 +22,10 @@ interface ApiError {
   message?: string
 }
 
-function formatKrw(n: number) {
-  return `₩${n.toLocaleString()}`
+// 금액은 결제 통화의 최소 단위라 ₩ 를 박아 찍으면 USD 환불에 "₩934"(실제
+// $9.34)가 나온다. 구버전 응답(currency 없음)은 KRW 폴백 — 기존 동작.
+function formatAmount(n: number, currency?: string) {
+  return formatMinorUnits(n, currency || 'krw')
 }
 
 export default function RefundClient({
@@ -73,9 +79,12 @@ export default function RefundClient({
     <div className={embedded ? '' : 'mx-auto max-w-xl px-5 py-10'}>
       {!embedded && (
         <header className="mb-6">
-          <h1 className="text-xl font-semibold tracking-tight text-stone-900">크레딧팩 환불 처리</h1>
+          <h1 className="text-xl font-semibold tracking-tight text-stone-900">
+            크레딧팩 환불 처리
+          </h1>
           <p className="mt-2 text-sm leading-relaxed text-stone-600">
-            Stripe 결제수수료(약 3.5% + ₩300)를 차감해 부분 환불하고, 남은 크레딧을 자동 회수합니다.
+            Stripe 결제수수료(약 3.5% + 결제 통화별 고정 수수료 — 원화 ₩300, 미화 $0.30)를 차감해
+            부분 환불하고, 남은 크레딧을 자동 회수합니다. 수수료는 실제 결제 통화로 계산됩니다.
             기본: 미사용 + 7일 이내만 가능 (관리자 강제 옵션 있음).
           </p>
         </header>
@@ -132,12 +141,16 @@ export default function RefundClient({
             <div className="font-semibold text-emerald-800">환불 완료</div>
             <dl className="grid grid-cols-2 gap-x-3 gap-y-1">
               <dt className="text-emerald-700">원 결제액</dt>
-              <dd className="text-right font-mono">{formatKrw(result.originalAmount)}</dd>
+              <dd className="text-right font-mono">
+                {formatAmount(result.originalAmount, result.currency)}
+              </dd>
               <dt className="text-emerald-700">차감(수수료)</dt>
-              <dd className="text-right font-mono">- {formatKrw(result.feeWithheld)}</dd>
+              <dd className="text-right font-mono">
+                - {formatAmount(result.feeWithheld, result.currency)}
+              </dd>
               <dt className="text-emerald-700">실제 환불액</dt>
               <dd className="text-right font-mono font-semibold">
-                {formatKrw(result.refundedKrw)}
+                {formatAmount(result.refundedKrw, result.currency)}
               </dd>
               <dt className="text-emerald-700">수수료 출처</dt>
               <dd className="text-right">

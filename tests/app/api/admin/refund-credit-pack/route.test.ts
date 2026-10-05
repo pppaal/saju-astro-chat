@@ -108,7 +108,12 @@ function setupHappyPath(overrides?: { used?: number; ageDays?: number }) {
     paymentIntents: {
       retrieve: vi.fn().mockResolvedValue({
         latest_charge: {
-          balance_transaction: { amount: 10000, fee: 350, object: 'balance_transaction' },
+          balance_transaction: {
+            amount: 10000,
+            fee: 350,
+            currency: 'krw',
+            object: 'balance_transaction',
+          },
         },
         amount_received: 10000,
       }),
@@ -243,6 +248,7 @@ describe('POST /api/admin/refund-credit-pack', () => {
       stripeMock.paymentIntents.retrieve.mockResolvedValue({
         latest_charge: { balance_transaction: null },
         amount_received: 10000,
+        currency: 'krw',
       })
       const res = await POST(makeRequest({ stripePaymentId: 'pi_1' }))
       const data = (await res.json()).data

@@ -16,16 +16,11 @@ import {
 } from '@/lib/credits/creditService'
 import { reverseReferralRewardOnRefund } from '@/lib/referral'
 import { getStripeOrNull } from '@/lib/stripe/client'
+import { formulaFeeMinorUnits } from '@/lib/payments/stripeFees'
 
 export const dynamic = 'force-dynamic'
 
-const STRIPE_FEE_PERCENT = Number(process.env.STRIPE_FEE_PERCENT || '3.5')
-const STRIPE_FEE_FIXED_KRW = Number(process.env.STRIPE_FEE_FIXED_KRW || '300')
 const REFUND_WINDOW_DAYS = 7
-
-function formulaFee(amount: number): number {
-  return Math.round(amount * (STRIPE_FEE_PERCENT / 100)) + STRIPE_FEE_FIXED_KRW
-}
 
 // 셀프서비스 환불 — 사용자가 자기 구매(미사용 + 7일 이내) 만 직접 환불.
 // 어드민 엔드포인트와 동일한 Stripe partial refund(수수료 차감) 로직 사용.
@@ -91,6 +86,9 @@ export const POST = withApiMiddleware(
     let originalAmount = 0
     let feeWithheld = 0
     let feeSource: 'balance_transaction' | 'formula' = 'formula'
+    // 결제 통화 — Stripe 에서 읽는다. 'krw' 를 기본값으로 두면 조회 실패 시
+    // 0-decimal 가정으로 돌아가므로, 실제 값을 못 읽으면 아래에서 거부한다.
+    let currency = ''
 
     try {
       const pi = await stripe.paymentIntents.retrieve(purchase.stripePaymentId, {
@@ -101,10 +99,14 @@ export const POST = withApiMiddleware(
       if (balanceTx && typeof balanceTx === 'object') {
         originalAmount = balanceTx.amount
         feeWithheld = balanceTx.fee
+        currency = balanceTx.currency || pi.currency || currency
         feeSource = 'balance_transaction'
       } else if (pi.amount_received) {
         originalAmount = pi.amount_received
-        feeWithheld = formulaFee(originalAmount)
+        // 통화를 넘긴다 — Stripe 금액은 결제 통화의 최소 단위이고 고정 수수료도
+        // 통화별이다. 예전엔 원화 300 을 그대로 더해 USD 결제에 $3.00 이 붙었다.
+        currency = pi.currency || currency
+        feeWithheld = formulaFeeMinorUnits(originalAmount, currency)
       } else {
         return apiError(ErrorCodes.INTERNAL_ERROR, 'payment_amount_unavailable')
       }
@@ -114,6 +116,13 @@ export const POST = withApiMiddleware(
         err,
       })
       return apiError(ErrorCodes.INTERNAL_ERROR, 'stripe_lookup_failed')
+    }
+
+    // 통화를 못 읽었으면 추측하지 않는다 — 0-decimal 여부를 틀리면 수수료가
+    // 100배/100분의1 로 어긋난다. Stripe 는 항상 currency 를 주므로 실제론 안 난다.
+    if (!currency) {
+      logger.error('[me/refund-credit-pack] payment currency unavailable', { purchaseId })
+      return apiError(ErrorCodes.INTERNAL_ERROR, 'payment_currency_unavailable')
     }
 
     const refundAmount = Math.max(0, originalAmount - feeWithheld)
@@ -233,6 +242,10 @@ export const POST = withApiMiddleware(
 
     return apiSuccess({
       success: true,
+      // refundedKrw/feeWithheld 는 **결제 통화의 최소 단위**다(KRW 1원, USD 1센트).
+      // 이름이 Krw 인 건 레거시 — 통화는 currency 로 판단해야 한다. 이 값을 ₩ 로
+      // 박아 찍으면 USD 환불에 "₩934"(실제 $9.34)가 나온다.
+      currency,
       refundedKrw: refundAmount,
       feeWithheld,
       originalAmount,

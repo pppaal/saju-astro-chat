@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Coins, Gift, Receipt } from 'lucide-react'
 import { logger } from '@/lib/logger'
+import { DISPLAY_FEE_PERCENT, formatMinorUnits } from '@/lib/payments/stripeFees'
 import {
   GOLD,
   type Locale,
@@ -30,10 +31,15 @@ export function PurchasesSection({ purchases, loading, locale, onRefunded }: Pro
   const [refundError, setRefundError] = useState<string | null>(null)
 
   const handleRefundPurchase = async (purchaseId: string, packAmount: number) => {
+    // 수수료 금액을 여기서 특정 통화로 적지 않는다. 구매 레코드에 통화 컬럼이
+    // 없어 이 화면은 그 결제가 KRW 였는지 USD 였는지 모르고, 예전엔 영문 문구가
+    // 미국 고객에게도 `~3.5% + ₩300` 이라고 원화로 고지했다. 실제 차감액은
+    // 서버가 결제 통화로 계산해 응답(feeWithheld)에 담아 주므로, 여기선 고정
+    // 수수료가 있다는 사실만 알린다.
     const ok = window.confirm(
       locale === 'ko'
-        ? `${packAmount} 크레딧 팩을 환불하시겠어요?\n• 결제수수료(약 3.5% + ₩300)는 차감 후 환불됩니다.\n• 남은 크레딧은 자동으로 회수됩니다.`
-        : `Refund ${packAmount}-credit pack?\n• Payment processing fee (~3.5% + ₩300) is withheld.\n• Remaining credits are automatically revoked.`
+        ? `${packAmount} 크레딧 팩을 환불하시겠어요?\n• 결제수수료(약 ${DISPLAY_FEE_PERCENT}% + 결제 통화별 고정 수수료)는 차감 후 환불됩니다.\n• 남은 크레딧은 자동으로 회수됩니다.`
+        : `Refund ${packAmount}-credit pack?\n• The payment-processing fee (~${DISPLAY_FEE_PERCENT}% plus a fixed fee in your payment currency) is withheld.\n• Remaining credits are automatically revoked.`
     )
     if (!ok) return
 
@@ -51,11 +57,21 @@ export function PurchasesSection({ purchases, loading, locale, onRefunded }: Pro
         setRefundError(String(errMsg))
         return
       }
-      const result = (data?.data || data) as { refundedKrw: number; feeWithheld: number }
+      const result = (data?.data || data) as {
+        refundedKrw: number
+        feeWithheld: number
+        currency?: string
+      }
+      // 금액은 결제 통화의 최소 단위이므로 통화를 받아 포맷한다 — ₩ 를 박아
+      // 찍으면 USD 환불에 "₩934"(실제 $9.34)가 나온다. 구버전 응답(currency
+      // 없음)은 KRW 로 폴백(기존 동작).
+      const cur = result.currency || 'krw'
+      const refunded = formatMinorUnits(result.refundedKrw, cur)
+      const fee = formatMinorUnits(result.feeWithheld, cur)
       window.alert(
         locale === 'ko'
-          ? `환불 완료\n실제 환불액: ₩${result.refundedKrw.toLocaleString()}\n차감 수수료: ₩${result.feeWithheld.toLocaleString()}`
-          : `Refunded\nAmount: ₩${result.refundedKrw.toLocaleString()}\nFee withheld: ₩${result.feeWithheld.toLocaleString()}`
+          ? `환불 완료\n실제 환불액: ${refunded}\n차감 수수료: ${fee}`
+          : `Refunded\nAmount: ${refunded}\nFee withheld: ${fee}`
       )
       await onRefunded()
     } catch (err) {
