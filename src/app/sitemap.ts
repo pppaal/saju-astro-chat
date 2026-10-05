@@ -5,6 +5,7 @@ import { ENABLED_SERVICES } from '@/config/enabledServices'
 import { ALL_CARD_SLUGS } from '@/lib/tarot/cardPages'
 import { ZODIAC_ANIMALS } from '@/lib/fortune/zodiacDaily'
 import { allPairSlugs } from '@/lib/compatibility/zodiacCompat'
+import { allIljuSlugs } from '@/lib/saju/iljuProfile'
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://destinypal.com'
 
@@ -151,6 +152,24 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ),
   ]
 
+  // 60갑자 일주 — 프로그램매틱 SEO 표면(허브 + 60개). 일주 2글자에서 전부
+  // 계산되는 상시 콘텐츠라 changeFrequency monthly. 영어 타로 카드 의미(포화
+  // 키워드)와 달리 이 표면은 사주 엔진 없이는 만들 수 없어 경쟁이 거의 없다.
+  const iljuPages: MetadataRoute.Sitemap = [
+    ...localizedEntries('/saju/ilju', {
+      lastModified: currentDate,
+      changeFrequency: 'monthly',
+      priority: 0.8,
+    }),
+    ...allIljuSlugs().flatMap((slug) =>
+      localizedEntries(`/saju/ilju/${slug}`, {
+        lastModified: currentDate,
+        changeFrequency: 'monthly',
+        priority: 0.7,
+      })
+    ),
+  ]
+
   // Blog posts (ko/en 본문이 같은 slug 에 공존 — 언어별 URL 로 각각 색인)
   const blogPages: MetadataRoute.Sitemap = blogPosts
     .filter((post) => !isBlockedBlogPost(post))
@@ -169,6 +188,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ...fortunePages,
     ...tarotCardPages,
     ...zodiacCompatPages,
+    ...iljuPages,
     ...blogPages,
   ]
 }

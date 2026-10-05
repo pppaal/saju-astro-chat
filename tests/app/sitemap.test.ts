@@ -52,6 +52,17 @@ describe('sitemap — 언어별 URL 쌍', () => {
     expect(cardEntries).toHaveLength(156)
   })
 
+  it('60갑자 일주(허브 + 60개)가 en/ko 쌍으로 들어간다', () => {
+    expect(urls.has(`${BASE}/saju/ilju`)).toBe(true)
+    expect(urls.has(`${BASE}/ko/saju/ilju`)).toBe(true)
+    // 실제 슬러그 샘플 — 엔진이 만드는 값과 사이트맵이 어긋나지 않는지
+    expect(urls.has(`${BASE}/saju/ilju/gapja`)).toBe(true)
+    expect(urls.has(`${BASE}/ko/saju/ilju/sinmi`)).toBe(true)
+    const detail = entries.filter((e) => /\/saju\/ilju\/[a-z]+$/.test(e.url))
+    // 60개 × en/ko
+    expect(detail).toHaveLength(120)
+  })
+
   it('중복 URL 이 없다', () => {
     expect(urls.size).toBe(entries.length)
   })
