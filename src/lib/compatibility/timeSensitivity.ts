@@ -29,21 +29,6 @@ import type { Chart } from '@/lib/astrology/foundation/types'
 
 /** 한 후보 시각에서 뽑은 사실들. 문자열로 비교해 변동 여부를 센다. */
 export interface SensitivityFacts {
-  /**
-   * 미상인 쪽의 **일주** 간지 — 사주에서 가장 중요한 기둥(일간=나, 일지=배우자궁).
-   *
-   * 감사에서 찾은 빈틈: 이 필드가 빠져 있었다. "사주 일간·일지는 생시와 무관"은
-   * **자시 경계에서 틀린다.** 진태양시 보정(서울 −32분) 때문에 00:00~00:31 출생은
-   * 전날 일주(야자시)이고 00:32 부터 당일(조자시)이다. 실측(여 1991-02-03):
-   *   00:00 → 일주 癸卯 (2/2)   00:32 → 일주 甲辰 (2/3)
-   * 일간이 바뀌면 십성 전체·배우자궁·공망·천을귀인·배우자성이 **전부** 바뀐다.
-   * ASC 가 바뀌는 것보다 훨씬 큰 변동이라 반드시 센다.
-   *
-   * (대운수는 같은 스윕에서 불변이었다 — 3일=1년 환산이라 24시간 차이가 약 4개월
-   *  이라 반올림이 같았다. 절입에 더 가까운 생일에선 변할 수 있어 "항상 불변"으로
-   *  주장하지 않는다.)
-   */
-  dayPillar: string
   /** 미상인 쪽의 시주 간지 — 2시간 지지 단위로 바뀐다. */
   hourPillar: string
   /** 미상인 쪽 ASC 사인. */
@@ -129,7 +114,6 @@ export function candidateTimes(stepHours = 1): { hour: number; minute: number }[
  */
 function flatten(f: SensitivityFacts): Map<string, string> {
   const m = new Map<string, string>()
-  m.set('dayPillar', f.dayPillar)
   m.set('hourPillar', f.hourPillar)
   m.set('ascSign', f.ascSign)
   m.set('spouseStarSeenByUnknown', String(f.spouseStarSeenByUnknown))
@@ -141,8 +125,6 @@ function flatten(f: SensitivityFacts): Map<string, string> {
 }
 
 function labelFor(key: string): { ko: string; en: string } {
-  if (key === 'dayPillar')
-    return { ko: '일주(日柱) — 일간·배우자궁', en: 'Day pillar — day master & spouse palace' }
   if (key === 'hourPillar') return { ko: '시주(時柱)', en: 'Hour pillar' }
   if (key === 'ascSign') return { ko: '상승점 별자리', en: 'Rising sign' }
   if (key === 'spouseStarSeenByUnknown')
@@ -208,16 +190,8 @@ export function classifySensitivity(samples: SensitivityFacts[]): TimeSensitivit
     else volatile.push(field)
   }
 
-  // 일주를 최우선으로, 그다음 변동이 큰 것부터. 일주는 값이 2가지뿐이어도
-  // 사주 해석 전체를 바꾸므로 고유값 수로 줄 세우면 안 된다(ASC 12가지보다
-  // 아래로 내려가면 가장 중요한 불확실성이 묻힌다).
-  const WEIGHT = (k: string) => (k === 'dayPillar' ? 0 : 1)
-  volatile.sort(
-    (a, b) =>
-      WEIGHT(a.key) - WEIGHT(b.key) ||
-      b.distinctValues - a.distinctValues ||
-      a.key.localeCompare(b.key)
-  )
+  // 변동이 큰 것부터 — 사용자에게 "이게 가장 불확실하다"를 먼저 보여준다.
+  volatile.sort((a, b) => b.distinctValues - a.distinctValues || a.key.localeCompare(b.key))
 
   return {
     sampleCount: samples.length,
@@ -233,14 +207,13 @@ export function classifySensitivity(samples: SensitivityFacts[]): TimeSensitivit
  *
  * @param unknownChart 미상인 쪽의 차트(그 후보 시각으로 계산된 것)
  * @param partnerPlanets 상대 행성 — 미상인 쪽 하우스에 떨어뜨릴 대상
- * @param pillars       미상인 쪽의 일주·시주 간지(그 후보 시각 기준). 일주는
- *                      자시 경계에서 바뀌므로 반드시 후보별로 다시 계산해 넘긴다.
+ * @param hourPillar    미상인 쪽의 시주 간지(그 후보 시각 기준)
  * @param spouseStars   양방향 배우자성 개수 — 상대가 보는 쪽이 생시에 따라 변한다
  */
 export function factsFor(
   unknownChart: Chart,
   partnerPlanets: ReadonlyArray<{ name?: string; longitude?: number }>,
-  pillars: { dayPillar: string; hourPillar: string },
+  hourPillar: string,
   spouseStars: { seenByUnknown: number; seenByPartner: number }
 ): SensitivityFacts {
   const cusps = unknownChart.houses?.map((h) => h.cusp) ?? []
@@ -251,8 +224,7 @@ export function factsFor(
     overlayHouses[p.name] = houseOfLongitude(cusps, p.longitude)
   }
   return {
-    dayPillar: pillars.dayPillar,
-    hourPillar: pillars.hourPillar,
+    hourPillar,
     ascSign: String(unknownChart.ascendant?.sign ?? ''),
     overlayHouses,
     spouseStarSeenByUnknown: spouseStars.seenByUnknown,

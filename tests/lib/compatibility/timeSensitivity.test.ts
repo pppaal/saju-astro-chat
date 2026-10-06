@@ -21,7 +21,6 @@ import {
 import type { Chart } from '@/lib/astrology/foundation/types'
 
 const facts = (over: Partial<SensitivityFacts> = {}): SensitivityFacts => ({
-  dayPillar: '甲辰',
   hourPillar: '甲子',
   ascSign: 'Scorpio',
   overlayHouses: { Sun: 4, Moon: 8 },
@@ -85,8 +84,8 @@ describe('classifySensitivity', () => {
     expect(r.volatileFields).toBe(0)
     expect(r.volatile).toHaveLength(0)
     expect(r.stable.length).toBe(r.totalFields)
-    // 일주·시주·ASC·배우자성 양방향 + 행성 2개 = 7
-    expect(r.totalFields).toBe(7)
+    // 시주·ASC·배우자성 양방향 + 행성 2개 = 6
+    expect(r.totalFields).toBe(6)
   })
 
   it('달라지는 필드만 volatile 로 분류한다', () => {
@@ -146,7 +145,7 @@ describe('classifySensitivity', () => {
     ])
     // Moon 은 한 샘플에만 있으므로 '' 와 '8' 두 값 → volatile
     expect(r.volatile.map((f) => f.key)).toContain('overlay:Moon')
-    expect(r.totalFields).toBe(7)
+    expect(r.totalFields).toBe(6)
   })
 
   it('모든 필드에 ko/en 라벨이 있다 — 키가 그대로 노출되지 않는다', () => {
@@ -157,30 +156,6 @@ describe('classifySensitivity', () => {
       expect(f.label.ko, f.key).not.toBe(f.key)
       expect(f.label.en, f.key).not.toMatch(/[가-힣]/)
     }
-  })
-
-  it('일주 변동을 ASC 보다 먼저 보여준다 — 값이 2가지뿐이어도 가장 중요하다', () => {
-    // 자시 경계(서울 −32분)에서 00:00~00:31 은 전날 일주다. 일간이 바뀌면
-    // 십성 전체·배우자궁·공망·천을귀인·배우자성이 전부 바뀐다 — ASC 가 12가지로
-    // 변하는 것보다 훨씬 큰 변동이라, 고유값 수로 줄 세우면 묻힌다.
-    const samples = [
-      facts({ dayPillar: '癸卯', ascSign: 'S1' }),
-      facts({ dayPillar: '甲辰', ascSign: 'S2' }),
-      facts({ dayPillar: '甲辰', ascSign: 'S3' }),
-      facts({ dayPillar: '甲辰', ascSign: 'S4' }),
-    ]
-    const r = classifySensitivity(samples)
-    expect(r.volatile[0].key).toBe('dayPillar')
-    expect(r.volatile[0].distinctValues).toBe(2)
-    // ASC 는 4가지로 더 많지만 뒤로 간다.
-    expect(r.volatile[1].key).toBe('ascSign')
-    expect(r.volatile[1].distinctValues).toBe(4)
-  })
-
-  it('일주가 고정이면 stable 로 — 경계에서 먼 생일은 불확실하지 않다', () => {
-    const r = classifySensitivity([facts({ ascSign: 'A' }), facts({ ascSign: 'B' })])
-    expect(r.stable.map((f) => f.key)).toContain('dayPillar')
-    expect(r.volatile.map((f) => f.key)).not.toContain('dayPillar')
   })
 
   it('stable + volatile = totalFields (누락 없음)', () => {
@@ -209,12 +184,11 @@ describe('factsFor', () => {
         { name: 'Sun', longitude: 95 },
         { name: 'Moon', longitude: 215 },
       ],
-      { dayPillar: '甲辰', hourPillar: '甲子' },
+      '甲子',
       { seenByUnknown: 2, seenByPartner: 1 }
     )
     expect(f.ascSign).toBe('Scorpio')
     expect(f.hourPillar).toBe('甲子')
-    expect(f.dayPillar).toBe('甲辰')
     expect(f.overlayHouses).toEqual({ Sun: 4, Moon: 8 })
     expect(f.spouseStarSeenByPartner).toBe(1)
   })
@@ -227,7 +201,7 @@ describe('factsFor', () => {
         { name: 'True Node', longitude: 10 },
         { name: 'Chiron', longitude: 10 },
       ],
-      { dayPillar: '甲辰', hourPillar: '甲子' },
+      '甲子',
       { seenByUnknown: 0, seenByPartner: 0 }
     )
     expect(Object.keys(f.overlayHouses)).toEqual(['Sun'])
@@ -237,7 +211,7 @@ describe('factsFor', () => {
     const f = factsFor(
       chart('Aries', cusps),
       [{ name: 'Sun' }, { name: 'Moon', longitude: 40 }],
-      { dayPillar: '甲辰', hourPillar: '甲子' },
+      '甲子',
       { seenByUnknown: 0, seenByPartner: 0 }
     )
     expect(f.overlayHouses).toEqual({ Moon: 2 })
