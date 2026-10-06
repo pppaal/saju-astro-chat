@@ -31,7 +31,25 @@
 - 한국(`Asia/Seoul`): LMT 보정 → 子 _시진_ 경계 = 23:30–01:30. (시진 경계일 뿐, 일주는 위처럼 민용일 기준.)
 - 비한국 / KMT 시대 / DST 보정 후: 정시 경계 → 子 시진 = 23:00–01:00.
 
-**위치:** 시진 경계 [`saju.ts`](./saju.ts) `LMT_HOUR_RANGES`(한국)/`PLAIN_HOUR_RANGES`(그 외), 일주 경계는 [`dayPillar.ts`](./dayPillar.ts)(민용일 JDN). 골든: `tests/lib/Saju/determinism-golden.test.ts`.
+**위치:** 시진 경계 [`saju.ts`](./saju.ts) `LMT_HOUR_RANGES`(한국)/`PLAIN_HOUR_RANGES`(그 외), 일주 경계는 [`dayPillar.ts`](./dayPillar.ts)(민용일 JDN). 골든: `tests/lib/Saju/determinism-golden.test.ts`, `tests/lib/Saju/doctrine-dayBoundary.test.ts`.
+
+> ⚠️ **미해결 모순 (2026-10 발견).** 위 "일주 = 민용일 경계" 규칙은 **`longitude` 를
+> 넘기지 않는 경로에서만** 성립한다. 넘기면 [`docs/SOLAR_TIME_CONVENTION.md`](../../../docs/SOLAR_TIME_CONVENTION.md)
+> §본명 보정(2026-06-06)이 출생 instant 자체를 옮겨 **일주 경계까지 LMT 만큼 밀린다**:
+>
+> | 입력                   | 기대(이 문서) | 실제(경도 넘김) |
+> | ---------------------- | ------------- | --------------- |
+> | `1991-01-01 00:01` KST | 日 辛未       | 日 庚午 ← 전날  |
+>
+> 영향: 서울 00:00–00:31(32분), 부산 24분, 인천 33분. 표준자오선 동쪽(도쿄 +19분)은
+> 반대로 자정 *직전*이 다음날이 된다. 하루 24~33분 ≈ 출생의 약 2.2%.
+> 기존 골든이 `longitude` 를 한 번도 넘기지 않아 4개월간 드러나지 않았다.
+>
+> **결정 대기** — 민용일(이 문서) 채택 시 `saju.ts` 일주 경로만 raw Y/M/D 를 쓰고
+> SOLAR_TIME_CONVENTION §52 를 수정한다. 보정 instant 채택 시 위 1번 규칙과 골든을
+> 수정하고 "자평파 민용일 미채택"을 명시해야 한다. 현행 동작은
+> `doctrine-dayBoundary.test.ts` 의 `PINNED` 블록에 고정돼 있어 결정 전까지
+> 추가 드리프트는 막힌다.
 
 **판단 근거:** 정통 자평파 다수설(야자시론 미채택). 일주가 민용일 기준이라 23시대 출생도 별도 야자시 룰 없이 자연 처리된다. 사용자 신고 시 *우리 코드는 자평파 + 민용일 일주 경계를 따른다*고 답한다.
 
