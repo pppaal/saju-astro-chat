@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { formatMinorUnits } from '@/lib/payments/stripeFees'
+import { asMinor } from '@/lib/payments/money'
 
 interface RefundResult {
   success: boolean
@@ -25,7 +26,8 @@ interface ApiError {
 // 금액은 결제 통화의 최소 단위라 ₩ 를 박아 찍으면 USD 환불에 "₩934"(실제
 // $9.34)가 나온다. 구버전 응답(currency 없음)은 KRW 폴백 — 기존 동작.
 function formatAmount(n: number, currency?: string) {
-  return formatMinorUnits(n, currency || 'krw')
+  // 서버가 최소 단위로 내려준 값 — 여기서 단위를 보증한다(asMinor).
+  return formatMinorUnits(asMinor(n), currency || 'krw')
 }
 
 export default function RefundClient({

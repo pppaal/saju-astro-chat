@@ -17,36 +17,20 @@
 // 전에 반드시 통화별로 갈라야 한다.
 //
 // 이 모듈은 금액을 **최소 단위 그대로** 다룬다(Stripe API 와 같은 단위).
-// 환산은 표시 직전에만 한다.
+// 환산은 표시 직전에만 한다. 단위는 타입으로 강제한다 — money.ts 참조.
 
-/**
- * 0-decimal 통화 — 최소 단위가 곧 기본 단위다(₩1 = 1, 하위 단위 없음).
- * Stripe 공식 목록. KRW·JPY 가 우리가 실제로 쓰는 것.
- * https://docs.stripe.com/currencies#zero-decimal
- */
-export const ZERO_DECIMAL_CURRENCIES: ReadonlySet<string> = new Set([
-  'bif',
-  'clp',
-  'djf',
-  'gnf',
-  'jpy',
-  'kmf',
-  'krw',
-  'mga',
-  'pyg',
-  'rwf',
-  'ugx',
-  'vnd',
-  'vuv',
-  'xaf',
-  'xof',
-  'xpf',
-])
+import {
+  addMinor,
+  asMajor,
+  asMinor,
+  formatMinor,
+  pctOfMinor,
+  toMinor,
+  type Minor,
+} from '@/lib/payments/money'
 
-/** 기본 단위 1 당 최소 단위 수 — KRW 1, USD 100. */
-export function minorUnitsPerUnit(currency: string): number {
-  return ZERO_DECIMAL_CURRENCIES.has(currency.toLowerCase()) ? 1 : 100
-}
+// 0-decimal 목록·단위 변환은 money.ts(금액 모듈)가 소유한다 — 재노출만 한다.
+export { ZERO_DECIMAL_CURRENCIES, minorPerMajor as minorUnitsPerUnit } from '@/lib/payments/money'
 
 /**
  * 고지 문구용 기본 요율 — **클라이언트에서도 쓸 수 있는 상수.**
@@ -68,12 +52,12 @@ export function feePercent(): number {
  * 최소 단위로 0.30 상당 — Stripe 표준 고정 수수료가 대체로 0.30 선이라
  * 과소도 과대도 아닌 쪽으로 둔다.
  */
-export function feeFixedMinorUnits(currency: string): number {
+export function feeFixedMinorUnits(currency: string): Minor {
   const code = currency.toUpperCase()
   const fromEnv = Number(process.env[`STRIPE_FEE_FIXED_${code}`])
-  if (Number.isFinite(fromEnv) && fromEnv >= 0) return Math.round(fromEnv)
-  if (code === 'KRW') return 300
-  return Math.round(0.3 * minorUnitsPerUnit(currency))
+  if (Number.isFinite(fromEnv) && fromEnv >= 0) return asMinor(Math.round(fromEnv))
+  if (code === 'KRW') return asMinor(300)
+  return toMinor(asMajor(0.3), currency)
 }
 
 /**
@@ -83,20 +67,13 @@ export function feeFixedMinorUnits(currency: string): number {
  * @param amountMinor 결제액(최소 단위)
  * @param currency    ISO 4217 (대소문자 무관)
  */
-export function formulaFeeMinorUnits(amountMinor: number, currency: string): number {
-  if (!Number.isFinite(amountMinor) || amountMinor <= 0) return 0
-  return Math.round(amountMinor * (feePercent() / 100)) + feeFixedMinorUnits(currency)
+export function formulaFeeMinorUnits(amountMinor: Minor, currency: string): Minor {
+  if (!Number.isFinite(amountMinor) || amountMinor <= 0) return asMinor(0)
+  return addMinor(pctOfMinor(amountMinor, feePercent()), feeFixedMinorUnits(currency))
 }
 
-/** 최소 단위 → 사람이 읽는 금액 문자열. KRW ₩1,234 / USD $12.34 */
-export function formatMinorUnits(amountMinor: number, currency: string): string {
-  const code = currency.toUpperCase()
-  const per = minorUnitsPerUnit(currency)
-  const value = amountMinor / per
-  if (code === 'KRW') return `₩${Math.round(value).toLocaleString('ko-KR')}`
-  if (code === 'USD') return `$${value.toFixed(2)}`
-  return `${value.toFixed(per === 1 ? 0 : 2)} ${code}`
-}
+/** 최소 단위 → 사람이 읽는 금액 문자열. money.ts 의 formatMinor 재노출. */
+export { formatMinor as formatMinorUnits } from '@/lib/payments/money'
 
 /**
  * 환불 수수료 고지 문구 — **계산과 같은 출처에서 만든다.**
@@ -107,6 +84,6 @@ export function formatMinorUnits(amountMinor: number, currency: string): string 
  */
 export function formatFeeDisclosure(currency: string, locale: 'ko' | 'en'): string {
   const pct = feePercent()
-  const fixed = formatMinorUnits(feeFixedMinorUnits(currency), currency)
+  const fixed = formatMinor(feeFixedMinorUnits(currency), currency)
   return locale === 'ko' ? `약 ${pct}% + ${fixed}` : `~${pct}% + ${fixed}`
 }

@@ -5,6 +5,8 @@
 // CURRENCY & LOCALE
 // ============================================================================
 
+import { asMajor, type Major } from '@/lib/payments/money'
+
 const CURRENCIES = {
   KRW: 'KRW',
   USD: 'USD',
@@ -120,16 +122,22 @@ export function currencyForLocale(locale: string | null | undefined): Currency {
   return locale === 'ko' ? 'KRW' : 'USD'
 }
 
-/** 팩 정가 — 통화별. 표시와 청구가 같은 값을 읽는다. */
-export function packAmount(packId: CreditPackType, currency: Currency): number {
+/**
+ * 팩 정가 — 통화별. 표시와 청구가 같은 값을 읽는다.
+ *
+ * **반환은 기본 단위(Major)다.** KRW 12900(=₩12,900), USD 9.99(=$9.99).
+ * Stripe 금액·환불 수수료는 최소 단위(Minor)라 섞으면 100배 틀린다 —
+ * 타입으로 막는다(money.ts). 최소 단위가 필요하면 `toMinor(...)` 를 거친다.
+ */
+export function packAmount(packId: CreditPackType, currency: Currency): Major {
   const p = CREDIT_PACKS[packId].pricing
-  return currency === 'KRW' ? p.krw : p.usd
+  return asMajor(currency === 'KRW' ? p.krw : p.usd)
 }
 
-/** 크레딧당 단가 — 통화별(그리드의 "1크레딧 ≈" 표시용). */
-export function packPerCredit(packId: CreditPackType, currency: Currency): number {
+/** 크레딧당 단가 — 통화별, 기본 단위(그리드의 "1크레딧 ≈" 표시용). */
+export function packPerCredit(packId: CreditPackType, currency: Currency): Major {
   const p = CREDIT_PACKS[packId]
-  return currency === 'KRW' ? p.perCreditKrw : p.perCreditUsd
+  return asMajor(currency === 'KRW' ? p.perCreditKrw : p.perCreditUsd)
 }
 
 /**

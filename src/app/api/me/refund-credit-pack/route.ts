@@ -17,6 +17,7 @@ import {
 import { reverseReferralRewardOnRefund } from '@/lib/referral'
 import { getStripeOrNull } from '@/lib/stripe/client'
 import { formulaFeeMinorUnits } from '@/lib/payments/stripeFees'
+import { asMinor } from '@/lib/payments/money'
 
 export const dynamic = 'force-dynamic'
 
@@ -106,7 +107,8 @@ export const POST = withApiMiddleware(
         // 통화를 넘긴다 — Stripe 금액은 결제 통화의 최소 단위이고 고정 수수료도
         // 통화별이다. 예전엔 원화 300 을 그대로 더해 USD 결제에 $3.00 이 붙었다.
         currency = pi.currency || currency
-        feeWithheld = formulaFeeMinorUnits(originalAmount, currency)
+        // Stripe 금액은 결제 통화의 최소 단위 — 여기서 단위를 보증한다(asMinor).
+        feeWithheld = formulaFeeMinorUnits(asMinor(originalAmount), currency)
       } else {
         return apiError(ErrorCodes.INTERNAL_ERROR, 'payment_amount_unavailable')
       }

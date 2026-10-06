@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Coins, Gift, Receipt } from 'lucide-react'
 import { logger } from '@/lib/logger'
 import { DISPLAY_FEE_PERCENT, formatMinorUnits } from '@/lib/payments/stripeFees'
+import { asMinor } from '@/lib/payments/money'
 import {
   GOLD,
   type Locale,
@@ -66,8 +67,9 @@ export function PurchasesSection({ purchases, loading, locale, onRefunded }: Pro
       // 찍으면 USD 환불에 "₩934"(실제 $9.34)가 나온다. 구버전 응답(currency
       // 없음)은 KRW 로 폴백(기존 동작).
       const cur = result.currency || 'krw'
-      const refunded = formatMinorUnits(result.refundedKrw, cur)
-      const fee = formatMinorUnits(result.feeWithheld, cur)
+      // 서버가 최소 단위로 내려준 값 — 여기서 단위를 보증한다(asMinor).
+      const refunded = formatMinorUnits(asMinor(result.refundedKrw), cur)
+      const fee = formatMinorUnits(asMinor(result.feeWithheld), cur)
       window.alert(
         locale === 'ko'
           ? `환불 완료\n실제 환불액: ${refunded}\n차감 수수료: ${fee}`
