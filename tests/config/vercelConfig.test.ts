@@ -16,9 +16,15 @@
  *     선언하지 않아 vercel.json 이 유일한 설정 경로였다).
  *   · includeFiles(swisseph 네이티브 .node 번들링)도 적용된 적이 없다.
  *
- * 같은 날 두 번째: crons 에 /api/cron/social-publish 가 **3번** 중복 등록돼
- * 있었다(22/03/10 UTC). Vercel 은 동일 path 중복을 설정 검증에서 거부한다.
- * 3개를 `0 3,10,22 * * *` 한 줄로 합쳐 발행 시각은 그대로 유지했다.
+ * 같은 날, 내가 만든 사고도 하나 기록해 둔다: /api/cron/social-publish 가
+ * 같은 path 로 3번 등록된 걸(22/03/10 UTC) "중복이라 거부당한다" 고 잘못
+ * 판단해 `0 3,10,22 * * *` 한 줄로 합쳤다. 중복 path 는 **허용된다**(7월에
+ * 동일 설정으로 배포 성공). 반대로 합친 표현식이 거부됐다:
+ *   Hobby accounts are limited to daily cron jobs. This cron expression
+ *   (0 3,10,22 * * *) would run more than once per day.
+ * 그래서 아래 가드는 "중복 금지" 가 아니라 **"한 엔트리는 하루 1회"** 를 본다.
+ * (Vercel 의 실제 에러 메시지는 PR 의 vercel[bot] 코멘트 본문에 들어온다 —
+ * 커밋 status 의 description 은 "Deployment failed." 뿐이라 쓸모가 없다.)
  *
  * glob 은 직접 구현한다 — fs.globSync 는 Node 22+ 전용이고(CI 는 Node 20),
  * fast-glob/tinyglobby 는 선언된 의존성이 아니라 전이 의존성이라 사라질 수 있다.
@@ -132,16 +138,23 @@ describe('vercel.json — crons', () => {
     expect(crons.length).toBeGreaterThan(0)
   })
 
-  it('동일 path 가 중복 등록되지 않는다 (Vercel 설정 검증에서 거부됨)', () => {
-    const seen = new Map<string, number>()
-    for (const c of crons) seen.set(c.path, (seen.get(c.path) ?? 0) + 1)
-    const dupes = [...seen.entries()].filter(([, n]) => n > 1).map(([p, n]) => `${p} ×${n}`)
-    expect(
-      dupes,
-      `cron path 중복 — Vercel 이 배포를 거부한다. 여러 시각에 돌려야 하면 ` +
-        `엔트리를 늘리지 말고 cron 식에 콤마 리스트를 쓴다(예: "0 3,10,22 * * *"): ` +
-        dupes.join(', ')
-    ).toEqual([])
+  // 같은 path 를 여러 시각에 돌릴 때는 **엔트리를 나눠야** 한다. 한 줄로 합쳐
+  // 콤마 리스트(`0 3,10,22 * * *`)를 쓰면 Vercel 이 "이 표현식은 하루 1회를
+  // 초과한다" 로 거부한다(Hobby 는 하루 1회 cron 만 허용). 2026-10-07 에
+  // 중복 path 가 문제라고 잘못 판단해 합쳤다가 배포가 이 메시지로 실패했다.
+  it.each(crons.map((c) => c.schedule))('schedule "%s" 은 하루 1회만 실행한다', (schedule) => {
+    const [minute, hour] = schedule.trim().split(/\s+/)
+    for (const [field, name] of [
+      [minute, 'minute'],
+      [hour, 'hour'],
+    ] as const) {
+      expect(
+        /[,/]/.test(field) || field === '*',
+        `cron "${schedule}" 의 ${name} 필드가 하루 여러 번 실행된다 — Hobby 플랜은 ` +
+          `하루 1회 cron 만 허용한다. 여러 시각이 필요하면 path 가 같아도 엔트리를 ` +
+          `따로 둔다(그건 허용된다).`
+      ).toBe(false)
+    }
   })
 
   it.each(crons.map((c) => c.path))('%s 에 대응하는 route.ts 가 존재한다', (cronPath) => {
@@ -162,11 +175,12 @@ describe('vercel.json — crons', () => {
     }
   })
 
-  // social-publish 는 라우트 주석이 "22/03/10 UTC" 를 명시한다. 중복 엔트리를
-  // 한 줄로 합칠 때 시각이 바뀌지 않았는지 고정한다.
-  it('social-publish 는 03/10/22 UTC 세 번 그대로 돈다', () => {
-    const sp = crons.filter((c) => c.path === '/api/cron/social-publish')
-    expect(sp).toHaveLength(1)
-    expect(sp[0].schedule).toBe('0 3,10,22 * * *')
+  // 라우트 주석이 "22/03/10 UTC" 를 명시한다 — 엔트리 3개로 유지돼야 한다.
+  it('social-publish 는 03/10/22 UTC 엔트리 3개로 돈다', () => {
+    const sp = crons
+      .filter((c) => c.path === '/api/cron/social-publish')
+      .map((c) => c.schedule)
+      .sort()
+    expect(sp).toEqual(['0 10 * * *', '0 22 * * *', '0 3 * * *'])
   })
 })
