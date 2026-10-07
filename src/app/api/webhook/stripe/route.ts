@@ -322,7 +322,14 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   // 않는다(환불된 구매에 추천 보상을 주던 누수 차단).
   let purchaseWasRevoked = false
   try {
-    await addBonusCredits(userId, creditAmount, 'purchase', paymentIntentId)
+    // 실결제액을 그대로 기록한다 — 매출 집계가 "크레딧 수량 → KRW 정가" 역산을
+    // 쓰면 USD 결제($9.99)를 ₩12,900 으로 계상해 해외 매출을 볼 수 없다.
+    // amount_total 은 세금 포함 최종 결제액(automatic_tax 적용분 포함).
+    const paidAmount =
+      typeof session.amount_total === 'number' && session.currency
+        ? { amountMinor: session.amount_total, currency: session.currency }
+        : undefined
+    await addBonusCredits(userId, creditAmount, 'purchase', paymentIntentId, paidAmount)
     logger.info(
       `[Stripe Webhook] Added ${creditAmount} bonus credits to user ${userId} (${creditPack} pack)`
     )

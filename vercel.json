@@ -21,12 +21,12 @@
     }
   },
   "functions": {
-    "app/api/calendar/route.ts": {
+    "src/app/api/calendar/day/route.ts": {
       "maxDuration": 60,
       "includeFiles": "node_modules/swisseph/build/Release/**/*.node",
       "excludeFiles": "{public/images/**,artifacts/**,qa-dumps/**,reports/**,tmp/**,htmlcov/**,playwright-report/**}"
     },
-    "app/api/astrology/**/*.ts": {
+    "src/app/api/astrology/**/*.ts": {
       "maxDuration": 60,
       "includeFiles": "node_modules/swisseph/build/Release/**/*.node",
       "excludeFiles": "{public/images/**,artifacts/**,qa-dumps/**,reports/**,tmp/**,htmlcov/**,playwright-report/**}"

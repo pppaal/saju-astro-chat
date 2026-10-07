@@ -157,4 +157,99 @@ describe('GET /api/admin/revenue', () => {
     vi.mocked(prisma.bonusCreditPurchase.findMany).mockRejectedValue(new Error('boom'))
     expect((await GET(req())).status).toBe(500)
   })
+
+  // 다통화 귀속 — 해외 매출이 보이는지. KRW 역산 폴백만 있던 시절엔 USD 결제가
+  // ₩정가로 계상돼 "해외에서 돈이 들어오는가"를 이 대시보드로 알 수 없었다.
+  describe('다통화 매출 귀속 (byCurrency)', () => {
+    function setupMultiCurrency() {
+      vi.mocked(getServerSession).mockResolvedValue(adminSession as any)
+      vi.mocked(isAdminUser).mockResolvedValue(true)
+      vi.mocked(prisma.bonusCreditPurchase.aggregate)
+        .mockResolvedValueOnce({ _sum: { amount: 1000 } } as any)
+        .mockResolvedValueOnce({ _sum: { amount: 300 } } as any)
+        .mockResolvedValueOnce({ _sum: { remaining: 400 } } as any)
+        .mockResolvedValueOnce({ _sum: { remaining: 50 } } as any)
+      vi.mocked(prisma.creditTransaction.aggregate).mockResolvedValue({
+        _sum: { amount: -620 },
+      } as any)
+      vi.mocked(prisma.creditTransaction.findMany).mockResolvedValue([] as any)
+    }
+
+    it('통화별로 최소 단위 그대로 분리하고 환율 환산을 하지 않는다', async () => {
+      setupMultiCurrency()
+      // USD 를 **먼저** 넣는다 — Map 삽입 순서가 [usd, krw] 가 되므로,
+      // 응답이 [krw, usd] 로 나오려면 grossMinor 내림차순 정렬이 실제로
+      // 돌아야 한다. (원소가 1개면 비교자가 아예 호출되지 않아 정렬 규약이
+      // 검증되지 않는다.)
+      vi.mocked(prisma.bonusCreditPurchase.findMany).mockResolvedValue([
+        // $9.99 — USD 는 2자리 통화라 최소 단위는 센트.
+        { amount: 70, createdAt: new Date(), amountMinor: 999, currency: 'usd' },
+        // ₩24,900 — KRW 는 zero-decimal 이라 최소 단위 == 원.
+        { amount: 70, createdAt: new Date(), amountMinor: 24900, currency: 'KRW' },
+      ] as any)
+
+      const data = (await (await GET(req('30'))).json()).data
+      expect(data.revenue.byCurrency).toEqual([
+        { currency: 'krw', grossMinor: 24900, refundedMinor: 0, netMinor: 24900, count: 1 },
+        { currency: 'usd', grossMinor: 999, refundedMinor: 0, netMinor: 999, count: 1 },
+      ])
+      // KRW 집계에 USD 가 섞이지 않는다 — 999센트가 999원으로 합산되면
+      // 매출이 소리 없이 틀어진다.
+      expect(data.revenue.windowKrw).toBe(24900)
+      expect(data.revenue.todayKrw).toBe(24900)
+      // 실결제액이 있으므로 정가 추정 건수는 0.
+      expect(data.revenue.estimatedCount).toBe(0)
+      // 건수는 통화와 무관하게 전부 센다.
+      expect(data.revenue.purchaseCount).toBe(2)
+    })
+
+    it('amountMinor 가 NULL 인 레거시 행은 KRW 정가 추정 + estimatedCount 로 센다', async () => {
+      setupMultiCurrency()
+      vi.mocked(prisma.bonusCreditPurchase.findMany).mockResolvedValue([
+        // 2026-10 마이그레이션 이전 행 — 실결제액이 없어 팩 정가로 역산한다.
+        { amount: 70, createdAt: new Date(), amountMinor: null, currency: null },
+        { amount: 140, createdAt: new Date(), amountMinor: 44900, currency: 'krw' },
+      ] as any)
+
+      const data = (await (await GET(req('30'))).json()).data
+      expect(data.revenue.estimatedCount).toBe(1)
+      // plus(70)=₩24,900 추정 + mega 실결제 ₩44,900
+      expect(data.revenue.windowKrw).toBe(24900 + 44900)
+      expect(data.revenue.byCurrency).toEqual([
+        {
+          currency: 'krw',
+          grossMinor: 24900 + 44900,
+          refundedMinor: 0,
+          netMinor: 24900 + 44900,
+          count: 2,
+        },
+      ])
+    })
+
+    it('USD 환불은 refundedKrw 를 건드리지 않고 해당 통화에서만 차감된다', async () => {
+      setupMultiCurrency()
+      vi.mocked(prisma.creditTransaction.findMany).mockResolvedValue([
+        { sourceRef: 'pi_usd', amount: -70 },
+      ] as any)
+      vi.mocked(prisma.bonusCreditPurchase.findMany)
+        .mockResolvedValueOnce([
+          { amount: 70, createdAt: new Date(), amountMinor: 999, currency: 'usd' },
+          { amount: 140, createdAt: new Date(), amountMinor: 44900, currency: 'krw' },
+        ] as any) // windowPurchases
+        .mockResolvedValueOnce([{ amount: 70, amountMinor: 999, currency: 'usd' }] as any) // refundedPurchases
+
+      const data = (await (await GET(req('30'))).json()).data
+      // KRW 순매출은 USD 환불과 무관해야 한다.
+      expect(data.revenue.refundedKrw).toBe(0)
+      expect(data.revenue.netKrw).toBe(44900)
+      const usd = data.revenue.byCurrency.find((c: { currency: string }) => c.currency === 'usd')
+      expect(usd).toEqual({
+        currency: 'usd',
+        grossMinor: 999,
+        refundedMinor: 999,
+        netMinor: 0,
+        count: 1,
+      })
+    })
+  })
 })

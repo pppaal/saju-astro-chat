@@ -72,6 +72,7 @@ vi.mock('@/lib/payments/prices', () => ({
     'price_pack_medium',
     'price_pack_large',
   ]),
+  resolveCheckoutCurrency: vi.fn(() => 'KRW'),
 }))
 
 vi.mock('@/lib/credits', () => ({

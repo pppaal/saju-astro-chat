@@ -69,13 +69,25 @@ jobs:
           #       핀한 8.4.31 로, next 상향 없이는 못 고친다(next 도 같은 이유로 예외).
           #     재점검: 각 부모(next-pwa·sentry)가 패치 의존성을 올린 릴리스를 내면 제거.
           #     (등록일 2026-07-26.)
+          #   braces · micromatch · fast-glob: 위 PWA/workbox 체인의 글롭 의존성
+          #     (@ducanh2912/next-pwa → fast-glob → micromatch → braces). 셋 다
+          #     **최신 배포판이 곧 취약 범위**라(braces 3.0.3 / micromatch 4.0.8 /
+          #     fast-glob 3.3.3, advisory range 가 각각 * · >=0.2.0 · *) override 로
+          #     올릴 상위 버전이 존재하지 않는다 — 위 "fixAvailable=false" 조건에
+          #     그대로 해당한다. npm 이 제시하는 유일한 경로는 next-pwa 10→6.1.0
+          #     **다운그레이드**뿐이라 수용 불가. 취약점은 깊게 중첩된 글롭 패턴에
+          #     대한 stack-exhaustion DoS 이고, 패턴은 우리 빌드 설정에서 오는
+          #     고정값이라 공격자 입력 경로가 없다(런타임 요청 경로 밖).
+          #     재점검: braces/micromatch 패치 릴리스 또는 next-pwa 가 fast-glob 을
+          #     버린 상위 릴리스가 나오면 제거. (등록일 2026-10-07.)
           # 재점검: swagger-ui-react 가 패치를 내거나 /api-docs 를 제거하면 · next 16.3.0
           # 안정판이 나오면 해당 항목을 비운다. (등록일 2026-07-22.)
           ALLOWLIST="swagger-ui-react immutable next \
             @ducanh2912/next-pwa workbox-build workbox-webpack-plugin \
             @surma/rollup-plugin-off-main-thread ejs filelist jake \
             @sentry/nextjs @sentry/bundler-plugin-core @sentry/webpack-plugin \
-            node-gyp cacache glob minimatch brace-expansion postcss"
+            node-gyp cacache glob minimatch brace-expansion postcss \
+            braces micromatch fast-glob"
 
           # 예외 목록에 없는 high/critical 만 센다 — 하나라도 있으면 차단.
           UNACCOUNTED=$(echo "$AUDIT_RESULT" | jq -r --arg allow "$ALLOWLIST" '

@@ -31,9 +31,20 @@
 - 한국(`Asia/Seoul`): LMT 보정 → 子 _시진_ 경계 = 23:30–01:30. (시진 경계일 뿐, 일주는 위처럼 민용일 기준.)
 - 비한국 / KMT 시대 / DST 보정 후: 정시 경계 → 子 시진 = 23:00–01:00.
 
-**위치:** 시진 경계 [`saju.ts`](./saju.ts) `LMT_HOUR_RANGES`(한국)/`PLAIN_HOUR_RANGES`(그 외), 일주 경계는 [`dayPillar.ts`](./dayPillar.ts)(민용일 JDN). 골든: `tests/lib/Saju/determinism-golden.test.ts`.
+**위치:** 시진 경계 [`saju.ts`](./saju.ts) `LMT_HOUR_RANGES`(한국)/`PLAIN_HOUR_RANGES`(그 외), 일주 경계는 [`dayPillar.ts`](./dayPillar.ts)(민용일 JDN). 골든: `tests/lib/Saju/determinism-golden.test.ts`, `tests/lib/Saju/doctrine-dayBoundary.test.ts`.
 
-**판단 근거:** 정통 자평파 다수설(야자시론 미채택). 일주가 민용일 기준이라 23시대 출생도 별도 야자시 룰 없이 자연 처리된다. 사용자 신고 시 *우리 코드는 자평파 + 민용일 일주 경계를 따른다*고 답한다.
+> ✅ **2026-10 수정 — 민용일 분리.** 2026-06-06 에 "네 기둥 모두 보정된 instant
+> 기준" 으로 통일한 변경이 일주까지 끌고 와 위 민용일 규칙을 깼다. 경도를 넘기면
+> LMT 만큼 일 경계가 밀려 위 골든(`1991-01-01 00:01 → 日 辛未`)이 日 庚午(전날)로
+> 나왔다. 영향 폭 = |LMT 보정| — 서울 32분 · 부산 24분 · 인천 33분, 표준자오선
+> 동쪽(도쿄 +19분)은 자정 직전. 하루 24~33분 ≈ 출생의 약 2.2%.
+>
+> 기존 골든이 `longitude` 를 한 번도 넘기지 않아 4개월간 안 잡혔다.
+>
+> **수정:** [`saju.ts`](./saju.ts) 가 일주만 민용일 `civilY/civilM/civilD` 를 쓰고,
+> **년·월·시는 보정된 `effectiveDateTime` 을 유지**한다 — 일주는 60갑자 *달력
+> 순환*이고 입춘·절기는 *천문 사건*이라는 구분이다.
+> 가드: `tests/lib/Saju/doctrine-dayBoundary.test.ts` (경도 × 하루 전수)
 
 ---
 
@@ -83,7 +94,8 @@ const sajuYear = birthDateTime < ipchunUTC ? year - 1 : year
 **선택:** 위 1번(자시)과 동일 표 기반. 한국 LMT +30분 보정 시진 경계.
 
 - 시간 미상(`birthTimeUnknown=true`): 시주 계산 skip, 다른 모듈은 ASC/MC 의존 정보(점성 하우스 등) 자동 마스킹
-- **시간 미상 계산 앵커 = 정오(12:00)** — SSOT [`birthTimeAnchor.ts`](./birthTimeAnchor.ts) (`resolveBirthTimeAnchor`/`isBirthTimeUnknown`). 자정 앵커는 진태양시 보정(서울 -32분)으로 출생 인스턴트가 전날로 밀려 **일주**(절입일엔 월주·년주까지)가 어긋난다 — 실제로 궁합/상담사/캘린더 세션 경로가 `'00:00'` 앵커를 써서 통합리포트(정오)와 다른 사주를 내던 버그의 원인. 시간 미상 입력을 엔진(사주·점성)에 넣는 모든 경로는 이 헬퍼를 거칠 것.
+- **시간 미상 계산 앵커 = 정오(12:00)** — SSOT [`birthTimeAnchor.ts`](./birthTimeAnchor.ts) (`resolveBirthTimeAnchor`/`isBirthTimeUnknown`). 자정 앵커는 진태양시 보정(서울 -32분)으로 출생 인스턴트가 전날로 밀려 **절입일엔 월주·년주**가 어긋난다 — 실제로 궁합/상담사/캘린더 세션 경로가 `'00:00'` 앵커를 써서 통합리포트(정오)와 다른 사주를 내던 버그의 원인. 정오는 ASC/하우스 범위의 중간값이기도 하다. 시간 미상 입력을 엔진(사주·점성)에 넣는 모든 경로는 이 헬퍼를 거칠 것.
+  - ℹ️ **2026-10 이후 일주는 앵커와 무관하다** (§1 민용일 분리). 예전엔 자정 앵커가 일주까지 전날로 밀었고 그게 정오 앵커 근거의 절반이었는데, 그 밀림 자체가 버그였다. 남은 근거(절입일 월주·ASC 중간값)로 정오 앵커는 유지한다. 가드: `tests/lib/Saju/birthTimeAnchor.test.ts`
 - **미상 판정은 tri-state** — 명시 플래그(`birthTimeUnknown`: UserProfile/SavedPerson DB 컬럼, URL `birthTimeUnknown=1|0`·`tu=1|0`, 폼 상태)가 boolean 이면 신뢰한다: `false` + `'00:00'` 은 **실제 자정 출생**(자정 그대로 계산, 시주 유효). 플래그 미보존(레거시 행/링크, NULL)은 `'00:00'`=미상 휴리스틱으로 폴백.
 
 **위치:** [`saju.ts:160-192`](./saju.ts#L160-L192) 및 호출처

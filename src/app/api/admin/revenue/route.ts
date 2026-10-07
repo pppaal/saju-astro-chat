@@ -26,9 +26,35 @@ export const dynamic = 'force-dynamic'
 
 // 구매 크레딧 수량 → 팩 정가(KRW). 정확히 일치하는 팩이 있으면 그 가격,
 // 없으면(과거 정책 등) 기본 단가로 보수적 추정.
+//
+// **실결제액(amountMinor/currency)이 있으면 그걸 쓴다.** 이 역산은 2026-10
+// 마이그레이션 이전 레거시 행 전용 폴백이다 — USD 결제가 섞이면 $9.99 를
+// ₩12,900 으로 계상해 해외 매출을 전혀 볼 수 없다.
 const PACK_BY_CREDITS = new Map(Object.values(CREDIT_PACKS).map((p) => [p.credits, p]))
 function creditsToKrw(credits: number): number {
   return PACK_BY_CREDITS.get(credits)?.pricing.krw ?? credits * BASE_CREDIT_PRICE_KRW
+}
+
+type PaidRow = { amount: number; amountMinor: number | null; currency: string | null }
+
+/**
+ * 한 구매의 매출 귀속 — 통화별로 **최소 단위 그대로** 쌓는다.
+ *
+ * 환율은 쓰지 않는다. 서로 다른 통화를 하나의 숫자로 합치려면 환율이 필요한데,
+ * 여기서 임의 환율을 박으면 "추정"이 "실측"으로 위장된다. 그래서 통화별로
+ * 분리해 내보내고, 합산 판단은 보는 사람이 한다.
+ *
+ * 레거시 행(amountMinor NULL)은 KRW 정가 추정으로 폴백하고 estimated 로 센다.
+ */
+function attributeRevenue(row: PaidRow): {
+  currency: string
+  minor: number
+  estimated: boolean
+} {
+  if (typeof row.amountMinor === 'number' && row.currency) {
+    return { currency: row.currency.toLowerCase(), minor: row.amountMinor, estimated: false }
+  }
+  return { currency: 'krw', minor: creditsToKrw(row.amount), estimated: true }
 }
 function packLabel(credits: number): string {
   const p = PACK_BY_CREDITS.get(credits)
@@ -68,7 +94,7 @@ export const GET = withApiMiddleware(
         // 기간 내 실결제 구매 (일별·팩별·매출 추정용)
         prisma.bonusCreditPurchase.findMany({
           where: { ...paidWhere, createdAt: { gte: since } },
-          select: { amount: true, createdAt: true },
+          select: { amount: true, createdAt: true, amountMinor: true, currency: true },
         }),
         // 크레딧 경제 스냅샷(전체 기간): 발행/잔여/만료
         Promise.all([
@@ -115,10 +141,17 @@ export const GET = withApiMiddleware(
       const refundedPurchases = refundedPaymentIds.length
         ? await prisma.bonusCreditPurchase.findMany({
             where: { stripePaymentId: { in: refundedPaymentIds } },
-            select: { amount: true },
+            select: { amount: true, amountMinor: true, currency: true },
           })
         : []
-      const refundedKrw = refundedPurchases.reduce((s, p) => s + creditsToKrw(p.amount), 0)
+      // 환불액도 실결제액 기준. 통화별로 분리하고, KRW 합계는 기존 필드 의미를
+      // 유지하기 위해 KRW 분만 담는다(USD 환불을 원화로 섞으면 순매출이 틀어짐).
+      const refundByCurrency = new Map<string, number>()
+      for (const rp of refundedPurchases) {
+        const a = attributeRevenue(rp)
+        refundByCurrency.set(a.currency, (refundByCurrency.get(a.currency) ?? 0) + a.minor)
+      }
+      const refundedKrw = refundByCurrency.get('krw') ?? 0
       const creditsRefunded = windowRefundTx.reduce((s, t) => s + Math.abs(t.amount), 0)
 
       // 일별 매출 (빈 날도 0 으로 채움). 오늘을 마지막 버킷으로 days 일치 채운다.
@@ -132,10 +165,23 @@ export const GET = withApiMiddleware(
         dailyMap.set(dayKey(d), { krw: 0, count: 0 })
       }
       const packMap = new Map<number, { count: number; krw: number }>()
+      // 통화별 총매출(최소 단위) — 환율을 쓰지 않고 분리 보고한다.
+      const grossByCurrency = new Map<string, { minor: number; count: number }>()
       let windowKrw = 0
       let todayKrw = 0
+      let estimatedCount = 0
       for (const p of windowPurchases) {
-        const krw = creditsToKrw(p.amount)
+        const a = attributeRevenue(p)
+        if (a.estimated) estimatedCount += 1
+
+        const bucket = grossByCurrency.get(a.currency) || { minor: 0, count: 0 }
+        bucket.minor += a.minor
+        bucket.count += 1
+        grossByCurrency.set(a.currency, bucket)
+
+        // 아래 KRW 집계(windowKrw·daily·pack)는 **원화 결제분만** 담는다.
+        // USD 결제를 임의 환율로 섞으면 추정을 실측으로 위장하게 된다.
+        const krw = a.currency === 'krw' ? a.minor : 0
         windowKrw += krw
         if (p.createdAt >= startOfToday) todayKrw += krw
         const k = dayKey(p.createdAt)
@@ -158,6 +204,21 @@ export const GET = withApiMiddleware(
           refundedKrw, // 기간 내 환불 처리된 결제의 정가 합(추정)
           todayKrw,
           purchaseCount: windowPurchases.length,
+          // 통화별 실결제 총액(최소 단위) + 환불액. 환율 환산은 하지 않는다 —
+          // 임의 환율을 넣으면 추정이 실측으로 위장된다. 해외 매출이 실제로
+          // 들어오는지 보려면 여기를 본다.
+          byCurrency: Array.from(grossByCurrency.entries())
+            .map(([currency, v]) => ({
+              currency,
+              grossMinor: v.minor,
+              refundedMinor: refundByCurrency.get(currency) ?? 0,
+              netMinor: v.minor - (refundByCurrency.get(currency) ?? 0),
+              count: v.count,
+            }))
+            .sort((a, b) => b.grossMinor - a.grossMinor),
+          // windowKrw/daily/pack 중 실결제액이 없어 정가로 추정한 건수.
+          // 2026-10 마이그레이션 이전 구매는 전부 여기 들어온다.
+          estimatedCount,
           daily: Array.from(dailyMap.entries()).map(([date, v]) => ({
             date,
             krw: v.krw,

@@ -42,8 +42,9 @@ A) UNUSED Credits (within 7 days of purchase):
 - A refund is available only if zero credits have been used.
 - The refund request must be submitted within 7 days of the purchase date.
 - After 7 days, even unused credits are non-refundable.
-- The payment-processing fee (~3.5% + ₩300) is withheld from the refund. This fee is not
-  returned by the payment processor (Stripe) on refunds.
+- The payment-processing fee is withheld from the refund: approximately 3.5% plus a fixed
+  fee in the currency you paid in (₩300 for KRW payments, $0.30 for USD payments). This fee
+  is not returned by the payment processor (Stripe) on refunds.
 
 B) PARTIALLY USED Credits:
 - Partially used credit packs are non-refundable.
@@ -72,7 +73,8 @@ A) 미사용 크레딧 (구매 후 7일 이내):
 - 크레딧을 하나도 사용하지 않은 경우에만 환불이 가능합니다.
 - 환불 요청은 구매일로부터 7일 이내에 접수해 주셔야 합니다.
 - 7일이 지난 후에는 사용하지 않은 크레딧도 환불되지 않습니다.
-- 환불 시 결제수수료(약 3.5% + ₩300)는 차감 후 환불됩니다. 이는 Stripe 등 결제대행사가 환불 시
+- 환불 시 결제수수료는 차감 후 환불됩니다 — 약 3.5% + 결제하신 통화의 고정 수수료
+  (원화 결제 ₩300, 미화 결제 $0.30). 이는 Stripe 등 결제대행사가 환불 시
   돌려주지 않는 비용으로, 부득이한 비용(전자상거래법 제17조 단서)에 해당합니다.
 
 B) 일부 사용한 크레딧:

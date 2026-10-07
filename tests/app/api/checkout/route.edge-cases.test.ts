@@ -42,6 +42,7 @@ vi.mock('@/lib/security/csrf', () => ({
 vi.mock('@/lib/payments/prices', () => ({
   getCreditPackPriceId: vi.fn(() => 'price_credit_456'),
   allowedCreditPackIds: vi.fn(() => ['price_credit_456']),
+  resolveCheckoutCurrency: vi.fn(() => 'KRW'),
 }))
 
 // 첫구매 스타터팩 자격 모듈 모킹 — prisma 체인을 끌어오지 않게 하고, 비-starter
@@ -105,6 +106,11 @@ vi.mock('stripe', () => {
 import { POST } from '@/app/api/checkout/route'
 import { getServerSession } from '@/lib/auth/session'
 import { rateLimit } from '@/lib/rateLimit'
+import {
+  getCreditPackPriceId,
+  allowedCreditPackIds,
+  resolveCheckoutCurrency,
+} from '@/lib/payments/prices'
 
 describe('/api/checkout - Edge Cases (P1)', () => {
   const originalEnv = process.env
@@ -552,6 +558,100 @@ describe('/api/checkout - Edge Cases (P1)', () => {
 
         expect(response.status).toBe(200)
       }
+    })
+  })
+
+  // 표시 통화 == 청구 통화. 예전엔 팩당 Price ID 가 하나뿐이라 /pricing 이
+  // $9.99 를 보여주고 Stripe 결제창이 ₩12,900 을 받았다.
+  describe('Checkout currency', () => {
+    it('해석된 통화의 Price ID 로 Stripe 세션을 만든다', async () => {
+      vi.mocked(resolveCheckoutCurrency).mockReturnValue('USD')
+      vi.mocked(getCreditPackPriceId).mockImplementation(
+        (pack: string, currency?: string) => `price_${pack}_${currency ?? 'KRW'}`
+      )
+      vi.mocked(allowedCreditPackIds).mockReturnValue(['price_mini_USD'])
+
+      const req = new NextRequest('http://localhost:3000/api/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ creditPack: 'mini' }),
+      })
+      const response = await POST(req)
+
+      expect(response.status).toBe(200)
+      expect(getCreditPackPriceId).toHaveBeenCalledWith('mini', 'USD')
+      const session = mockStripeCheckoutCreate.mock.calls.at(-1)?.[0]
+      expect(session.line_items[0].price).toBe('price_mini_USD')
+      expect(session.metadata.currency).toBe('USD')
+    })
+
+    it('한국어 사용자는 KRW Price 로 간다', async () => {
+      vi.mocked(resolveCheckoutCurrency).mockReturnValue('KRW')
+      vi.mocked(getCreditPackPriceId).mockImplementation(
+        (pack: string, currency?: string) => `price_${pack}_${currency ?? 'KRW'}`
+      )
+      vi.mocked(allowedCreditPackIds).mockReturnValue(['price_mini_KRW'])
+
+      const req = new NextRequest('http://localhost:3000/api/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ creditPack: 'mini' }),
+      })
+      const response = await POST(req)
+
+      expect(response.status).toBe(200)
+      expect(getCreditPackPriceId).toHaveBeenCalledWith('mini', 'KRW')
+      const session = mockStripeCheckoutCreate.mock.calls.at(-1)?.[0]
+      expect(session.line_items[0].price).toBe('price_mini_KRW')
+      expect(session.metadata.currency).toBe('KRW')
+    })
+
+    it('세금이 꺼져 있으면 automatic_tax false + 주소 auto (기본)', async () => {
+      const req = new NextRequest('http://localhost:3000/api/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ creditPack: 'mini' }),
+      })
+      await POST(req)
+
+      const session = mockStripeCheckoutCreate.mock.calls.at(-1)?.[0]
+      expect(session.automatic_tax).toEqual({ enabled: false })
+      expect(session.billing_address_collection).toBe('auto')
+      expect(session.metadata.taxBehavior).toBe('inclusive')
+    })
+
+    it('세금을 켜면 automatic_tax 와 주소 필수가 세션에 실린다', async () => {
+      process.env.STRIPE_TAX_ENABLED = 'true'
+      try {
+        const req = new NextRequest('http://localhost:3000/api/checkout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ creditPack: 'mini' }),
+        })
+        await POST(req)
+
+        const session = mockStripeCheckoutCreate.mock.calls.at(-1)?.[0]
+        expect(session.automatic_tax).toEqual({ enabled: true })
+        expect(session.billing_address_collection).toBe('required')
+        expect(session.customer_creation).toBe('always')
+      } finally {
+        delete process.env.STRIPE_TAX_ENABLED
+      }
+    })
+
+    it('그 통화에 Price 가 없으면 다른 통화로 청구하지 않고 거부한다', async () => {
+      vi.mocked(resolveCheckoutCurrency).mockReturnValue('USD')
+      vi.mocked(getCreditPackPriceId).mockReturnValue(null as unknown as string)
+
+      const req = new NextRequest('http://localhost:3000/api/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ creditPack: 'mini' }),
+      })
+      const response = await POST(req)
+
+      expect(response.status).toBe(400)
+      expect(mockStripeCheckoutCreate).not.toHaveBeenCalled()
     })
   })
 })

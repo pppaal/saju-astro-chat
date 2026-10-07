@@ -12,6 +12,16 @@ interface RevenueData {
     purchaseCount: number
     daily: { date: string; krw: number; count: number }[]
     byPack: { pack: string; credits: number; count: number; krw: number }[]
+    // 통화별 실결제액(최소 단위). 환율 환산 없음 — 해외 매출 확인용.
+    byCurrency?: {
+      currency: string
+      grossMinor: number
+      refundedMinor: number
+      netMinor: number
+      count: number
+    }[]
+    // windowKrw 중 실결제액이 없어 정가로 추정한 건수(레거시 행).
+    estimatedCount?: number
   }
   credits: {
     issuedPaid: number
@@ -26,6 +36,14 @@ interface RevenueData {
 function krw(n: number): string {
   if (typeof n !== 'number' || !Number.isFinite(n)) return '—'
   return `₩${n.toLocaleString('ko-KR')}`
+}
+// 최소 단위 → 표시. KRW 는 0-decimal, 그 외는 2-decimal.
+function minor(n: number, currency: string): string {
+  if (typeof n !== 'number' || !Number.isFinite(n)) return '—'
+  const c = currency.toUpperCase()
+  if (c === 'KRW') return `₩${n.toLocaleString('ko-KR')}`
+  if (c === 'USD') return `$${(n / 100).toFixed(2)}`
+  return `${(n / 100).toFixed(2)} ${c}`
 }
 function num(n: number): string {
   if (typeof n !== 'number' || !Number.isFinite(n)) return '—'
@@ -189,9 +207,57 @@ export default function RevenueClient() {
               <Stat label="구매 건수" value={num(data.revenue.purchaseCount)} />
             </div>
             <p className="mt-2 text-[12px] text-stone-400">
-              결제 금액 컬럼이 없어 크레딧팩 정가(pricing.ts)로 환산한 추정치입니다. 순매출은 기간
-              내 환불(크레딧팩 실결제 환불) 정가를 차감한 값입니다.
+              위 KRW 집계는 <strong>원화 결제분만</strong> 담습니다. 외화 결제를 임의 환율로 섞지
+              않기 때문입니다 — 통화별 실결제액은 아래를 보세요.
+              {typeof data.revenue.estimatedCount === 'number' &&
+                data.revenue.estimatedCount > 0 && (
+                  <>
+                    {' '}
+                    이 중 {num(data.revenue.estimatedCount)}건은 실결제액 기록 이전(2026-10
+                    마이그레이션) 구매로, 크레딧팩 정가(pricing.ts) 추정치입니다.
+                  </>
+                )}
             </p>
+
+            {/* 통화별 실결제액 — 국제 매출이 실제로 들어오는지 보는 유일한 지표.
+                환율 환산은 하지 않는다(임의 환율은 추정을 실측으로 위장한다). */}
+            {data.revenue.byCurrency && data.revenue.byCurrency.length > 0 && (
+              <div className="mt-4">
+                <h3 className="mb-2 text-[13px] font-semibold text-stone-700">
+                  통화별 실결제액 (환율 환산 없음)
+                </h3>
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="text-left text-[12px] text-stone-500">
+                      <th className="py-1">통화</th>
+                      <th className="py-1 text-right">총매출</th>
+                      <th className="py-1 text-right">환불</th>
+                      <th className="py-1 text-right">순매출</th>
+                      <th className="py-1 text-right">건수</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {data.revenue.byCurrency.map((row) => (
+                      <tr key={row.currency} className="border-t border-stone-100">
+                        <td className="py-1 font-mono uppercase">{row.currency}</td>
+                        <td className="py-1 text-right font-mono">
+                          {minor(row.grossMinor, row.currency)}
+                        </td>
+                        <td className="py-1 text-right font-mono text-stone-500">
+                          {row.refundedMinor > 0
+                            ? `−${minor(row.refundedMinor, row.currency)}`
+                            : '—'}
+                        </td>
+                        <td className="py-1 text-right font-mono font-semibold">
+                          {minor(row.netMinor, row.currency)}
+                        </td>
+                        <td className="py-1 text-right">{num(row.count)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </section>
 
           {data.revenue.daily.some((d) => d.krw > 0) && (

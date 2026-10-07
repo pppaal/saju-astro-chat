@@ -108,7 +108,12 @@ function setupHappyPath(overrides?: { used?: number; ageDays?: number }) {
     paymentIntents: {
       retrieve: vi.fn().mockResolvedValue({
         latest_charge: {
-          balance_transaction: { amount: 10000, fee: 350, object: 'balance_transaction' },
+          balance_transaction: {
+            amount: 10000,
+            fee: 350,
+            currency: 'krw',
+            object: 'balance_transaction',
+          },
         },
         amount_received: 10000,
       }),
@@ -147,6 +152,21 @@ describe('POST /api/admin/refund-credit-pack', () => {
 
     it('requires stripePaymentId', async () => {
       const res = await POST(makeRequest({}))
+      expect(res.status).toBe(422)
+      expect((await res.json()).error.message).toContain('stripePaymentId')
+    })
+
+    // 깨진 JSON 바디는 422 로 떨어져야 한다 — req.json() 의 catch 가 없으면
+    // 파싱 예외가 그대로 터져 500 이 된다. 돈 만지는 엔드포인트에서 500 은
+    // "서버가 고장났다"는 오해를 주고, 운영자가 재시도를 반복하게 만든다.
+    it('malformed JSON body → 422, not 500', async () => {
+      const res = await POST(
+        new NextRequest('http://localhost:3000/api/admin/refund-credit-pack', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json', 'user-agent': 'vitest' },
+          body: '{"stripePaymentId": ',
+        })
+      )
       expect(res.status).toBe(422)
       expect((await res.json()).error.message).toContain('stripePaymentId')
     })
@@ -243,6 +263,7 @@ describe('POST /api/admin/refund-credit-pack', () => {
       stripeMock.paymentIntents.retrieve.mockResolvedValue({
         latest_charge: { balance_transaction: null },
         amount_received: 10000,
+        currency: 'krw',
       })
       const res = await POST(makeRequest({ stripePaymentId: 'pi_1' }))
       const data = (await res.json()).data

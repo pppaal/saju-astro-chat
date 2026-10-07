@@ -15,18 +15,23 @@ import {
   CREDIT_PACKS,
   BASE_CREDIT_PRICE_KRW,
   getCreditPackDiscount,
+  packAmount,
+  packPerCredit,
   type CreditPackType,
+  type Currency,
 } from '@/lib/config/pricing'
+import { taxNote, type TaxBehavior } from '@/lib/payments/tax'
 import { fetchWithRetry } from '@/lib/http'
 import { SSR_PRICING_KEYS } from './pricingCopyKeys'
 import { RefundConsentModal } from '@/components/pricing/RefundConsentModal'
 import { EmailCollectionModal } from '@/components/pricing/EmailCollectionModal'
 
+// 금액은 여기 박지 않는다 — 렌더 시점에 packAmount(id, currency) 로 읽는다.
+// 통화별 금액을 미리 펼쳐두면 어느 쪽을 쓸지 호출처마다 다시 고르게 되고,
+// 그게 표시≠청구 버그의 원인이었다.
 interface CreditPackDisplay {
   id: CreditPackType
   nameKey: string
-  price: number
-  priceEn: number
   readings: number
   popular?: boolean
 }
@@ -36,8 +41,6 @@ const creditPacks: CreditPackDisplay[] = (
 ).map((packId) => ({
   id: packId,
   nameKey: packId,
-  price: CREDIT_PACKS[packId].pricing.krw,
-  priceEn: CREDIT_PACKS[packId].pricing.usd,
   readings: CREDIT_PACKS[packId].credits,
   popular: CREDIT_PACKS[packId].popular,
 }))
@@ -102,12 +105,33 @@ type Locale = 'en' | 'ko'
 interface PricingPageClientProps {
   initialLocale: Locale
   initialCopy: readonly string[]
+  /** 전 팩에 USD Stripe Price 가 설정돼 있는지 (서버가 환경변수 보고 판정). */
+  usdEnabled: boolean
+  /**
+   * 세금이 가격에 포함(inclusive)인지 결제 시 가산(exclusive)인지 — Stripe Price
+   * 의 tax_behavior 와 묶인 설정값이라 서버에서 내려준다. 예전엔 "VAT 포함" 을
+   * 무조건 렌더해서, Stripe Tax 를 exclusive 로 켜면 화면 금액보다 총액이 큰데도
+   * "포함"이라고 말하는 상태가 됐다.
+   */
+  taxBehavior: TaxBehavior
 }
 
-export default function PricingPageClient({ initialLocale, initialCopy }: PricingPageClientProps) {
+export default function PricingPageClient({
+  initialLocale,
+  initialCopy,
+  usdEnabled,
+  taxBehavior,
+}: PricingPageClientProps) {
   const { locale: activeLocale, hydrated, t } = useI18n()
   const locale = activeLocale || initialLocale
   const isKo = locale === 'ko'
+  // 표시 통화 — /api/checkout 의 resolveCheckoutCurrency(locale) 와 **같은 식**이다
+  // (currencyForLocale 을 Price 설정 여부로 게이트). 예전엔 표시만 `isKo` 로
+  // 갈라서, USD 를 보여주고 KRW 를 청구하는 불일치가 났다. 로케일 토글은 locale
+  // 쿠키를 쓰고 API 는 그 쿠키로 통화를 정하므로, 토글 직후에도 둘이 같이 움직인다.
+  const currency: Currency = isKo || !usdEnabled ? 'KRW' : 'USD'
+  // 세금 문구 — 결제창에서 실제로 벌어지는 일을 말한다(taxNote SSOT).
+  const taxLabel = taxNote(isKo ? 'ko' : 'en', taxBehavior)
   const toast = useToast()
   // session.user.email 이 비어 있으면 결제 직전 EmailCollectionModal 을
   // 띄운다. update() 는 PATCH /api/me/email 성공 후 호출해 jwt 토큰을
@@ -193,6 +217,8 @@ export default function PricingPageClient({ initialLocale, initialCopy }: Pricin
 
   const formatKrw = (value: number) => `₩${value.toLocaleString('ko-KR')}`
   const formatUsd = (value: number) => `$${value.toFixed(2)}`
+  /** 결정된 통화로 금액 포맷 — 표시 금액은 전부 이걸 거친다. */
+  const money = (value: number) => (currency === 'KRW' ? formatKrw(value) : formatUsd(value))
 
   // 결제 시도 진입점 — 사용자가 카드의 [구매] 누름.
   // 0) 비로그인(게스트) → 구글 로그인 먼저. 결제·크레딧은 계정에 묶이므로
@@ -340,10 +366,8 @@ export default function PricingPageClient({ initialLocale, initialCopy }: Pricin
                   )}
                   <div className={styles.creditHeader}>
                     <h3 className={styles.creditName}>{pt(`creditPackNames.${pack.nameKey}`)}</h3>
-                    <div className={styles.creditPrice}>
-                      {isKo ? formatKrw(pack.price) : formatUsd(pack.priceEn)}
-                    </div>
-                    <div className={styles.vatNote}>{isKo ? 'VAT 포함' : 'Tax included'}</div>
+                    <div className={styles.creditPrice}>{money(packAmount(pack.id, currency))}</div>
+                    <div className={styles.vatNote}>{taxLabel}</div>
                   </div>
                   <div className={styles.creditBody}>
                     <div className={styles.creditReadings}>
@@ -351,10 +375,7 @@ export default function PricingPageClient({ initialLocale, initialCopy }: Pricin
                       <span className={styles.creditLabel}>{pt('readings')}</span>
                     </div>
                     <div className={styles.perReading}>
-                      {pt('perReading')}{' '}
-                      {isKo
-                        ? `${formatKrw(CREDIT_PACKS[pack.id].perCreditKrw)}`
-                        : `${formatUsd(CREDIT_PACKS[pack.id].perCreditUsd)}`}
+                      {pt('perReading')} {money(packPerCredit(pack.id, currency))}
                       {discountPercent > 0 && (
                         <span className={styles.discountInline}>-{discountPercent}%</span>
                       )}
@@ -500,13 +521,13 @@ export default function PricingPageClient({ initialLocale, initialCopy }: Pricin
         <footer className={styles.footer}>
           <div className={styles.footerRef}>
             {isKo
-              ? `기준 단가: 1 크레딧 ≈ ${formatKrw(BASE_CREDIT_PRICE_KRW)} (VAT 포함)`
-              : `Reference rate: 1 credit ≈ ${formatUsd(baseCreditPriceUsd)} (tax included)`}
+              ? `기준 단가: 1 크레딧 ≈ ${money(currency === 'KRW' ? BASE_CREDIT_PRICE_KRW : baseCreditPriceUsd)} (${taxLabel})`
+              : `Reference rate: 1 credit ≈ ${money(currency === 'KRW' ? BASE_CREDIT_PRICE_KRW : baseCreditPriceUsd)} (${taxLabel})`}
           </div>
           <div>
             {isKo
-              ? '© 2026 destinypal.com · 모든 가격 VAT 포함 · 크레딧은 구매일로부터 3개월 유효'
-              : '© 2026 destinypal.com · All prices include tax · Credits valid 3 months from purchase'}
+              ? `© 2026 destinypal.com · 모든 가격 ${taxLabel} · 크레딧은 구매일로부터 3개월 유효`
+              : `© 2026 destinypal.com · ${taxLabel} on all prices · Credits valid 3 months from purchase`}
           </div>
         </footer>
       </main>
@@ -537,7 +558,7 @@ export default function PricingPageClient({ initialLocale, initialCopy }: Pricin
           if (!pendingPack) return null
           const pack = creditPacks.find((p) => p.id === pendingPack)
           if (!pack) return null
-          const price = isKo ? formatKrw(pack.price) : formatUsd(pack.priceEn)
+          const price = money(packAmount(pack.id, currency))
           const label = pt(`creditPackNames.${pack.nameKey}`)
           return isKo
             ? `${label} · ${pack.readings} 크레딧 · ${price}`

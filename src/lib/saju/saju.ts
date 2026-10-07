@@ -320,9 +320,10 @@ export function calculateSajuData(
     // instead of 1989. Use the Intl-formatted values everywhere — they
     // already powered the day-pillar JDN below.
     // ── 진경도(평균태양시) 보정 — longitude 있으면 출생 instant *자체*를 옮긴다.
-    //    예전엔 시주(時) lookup 에만 보정분을 더해, 자정·입춘·절기 경계에서 년/월/일은
-    //    보정 안 된 생(raw) 시각으로 계산되는 불일치가 있었다. 이제 네 기둥 모두 이
-    //    effectiveDateTime 한 기준에서 뽑는다 (시주 lookup 의 +correctionMin 과 동일 값).
+    //    예전엔 시주(時) lookup 에만 보정분을 더해, 입춘·절기 경계에서 년/월은
+    //    보정 안 된 생(raw) 시각으로 계산되는 불일치가 있었다. 지금은 **년·월·시**를
+    //    이 effectiveDateTime 기준으로 뽑는다 (시주 lookup 의 +correctionMin 과 동일 값).
+    //    **일주는 예외 — 민용일 기준이다**(아래 civilY/M/D, CONVENTIONS.md §1).
     //    longitude 없으면 보정 0 → effectiveDateTime == birthDateTime (옛 동작 보존).
     const solarCorrectionMin = solarTimeCorrectionMinutes(birthDateTime, longitude, timezone)
     const effectiveDateTime = new Date(birthDateTime.getTime() + solarCorrectionMin * 60_000)
@@ -334,6 +335,24 @@ export function calculateSajuData(
     const Y = fmtNum({ year: 'numeric' })
     const M = fmtNum({ month: '2-digit' })
     const D = fmtNum({ day: '2-digit' })
+
+    // ── 일주(日柱)만은 **민용일(civil day)** 기준이다 — CONVENTIONS.md §1.
+    //
+    //    왜 분리하나: 일주는 60갑자 *달력 순환*이고, 입춘·절기는 *천문 사건*이다.
+    //    2026-06-06 에 "네 기둥 모두 effectiveDateTime 한 기준에서" 로 통일한 건
+    //    절기 경계에선 옳았지만 일주까지 끌고 와 민용일 규칙을 깼다. 그 결과
+    //    경도를 넘기면 LMT 만큼 일 경계가 밀려, 문서화된 골든
+    //    (`1991-01-01 00:01 KST → 日 辛未`)이 日 庚午(전날)로 깨졌다.
+    //    영향 폭 = |LMT 보정| — 서울 32분 · 부산 24분 · 인천 33분, 표준자오선
+    //    동쪽(도쿄 +19분)은 반대로 자정 직전. 하루 24~33분 ≈ 출생의 약 2.2%.
+    //    기존 골든이 longitude 를 한 번도 넘기지 않아 4개월간 안 잡혔다.
+    //
+    //    가드: `tests/lib/Saju/doctrine-dayBoundary.test.ts`
+    const fmtCivil = (opt: Intl.DateTimeFormatOptions) =>
+      Number(new Intl.DateTimeFormat('en-US', { timeZone: timezone, ...opt }).format(birthDateTime))
+    const civilY = fmtCivil({ year: 'numeric' })
+    const civilM = fmtCivil({ month: '2-digit' })
+    const civilD = fmtCivil({ day: '2-digit' })
 
     const year = Y
     assertKasiYearInRange(year)
@@ -390,10 +409,11 @@ export function calculateSajuData(
     const monthPillar = { stem: STEMS[monthStemIndex], branch: BRANCHES[monthBranchIndex] }
 
     /* ---------------- 일기둥 ---------------- */
+    // 민용일 Y/M/D — 보정된 effectiveDateTime 이 아니라 생(raw) 시각 기준.
     const { stemIndex: dayStemIndex, branchIndex: dayBranchIndex } = computeDayPillarIndices(
-      Y,
-      M,
-      D
+      civilY,
+      civilM,
+      civilD
     )
     const dayPillar = { stem: STEMS[dayStemIndex], branch: BRANCHES[dayBranchIndex] }
     const dayMaster: StemBranchInfo = {

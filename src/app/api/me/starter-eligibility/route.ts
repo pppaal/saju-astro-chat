@@ -8,6 +8,8 @@ import {
   type ApiContext,
 } from '@/lib/api/middleware'
 import { isStarterEligible, STARTER_PACK } from '@/lib/credits/starterPack'
+import { resolveCheckoutCurrency } from '@/lib/payments/prices'
+import { packAmount } from '@/lib/config/pricing'
 import { logger } from '@/lib/logger'
 
 export const dynamic = 'force-dynamic'
@@ -18,12 +20,20 @@ export const GET = withApiMiddleware(
   async (_req: NextRequest, context: ApiContext) => {
     try {
       const eligible = await isStarterEligible(context.userId!)
+      // 통화·금액을 **서버가 확정해서** 내려준다. 예전엔 krw/usd 를 둘 다 내리고
+      // 모달이 `locale === 'en' ? usd : krw` 로 골라서, USD Price 가 없는데도
+      // $1.99 를 보여주고 ₩2,900 을 청구할 수 있었다. /api/checkout 과 같은
+      // resolveCheckoutCurrency 를 써서 표시 == 청구를 보장한다.
+      const currency = resolveCheckoutCurrency(context.locale)
       return apiSuccess({
         eligible,
         pack: eligible
           ? {
               id: STARTER_PACK.id,
               credits: STARTER_PACK.credits,
+              currency,
+              amount: packAmount(STARTER_PACK.id, currency),
+              // 레거시 클라이언트 호환 — 신규 코드는 currency/amount 를 쓴다.
               krw: STARTER_PACK.pricing.krw,
               usd: STARTER_PACK.pricing.usd,
             }
