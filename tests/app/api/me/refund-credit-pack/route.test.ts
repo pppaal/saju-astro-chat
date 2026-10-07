@@ -152,6 +152,22 @@ describe('POST /api/me/refund-credit-pack', () => {
       expect(res.status).toBe(422)
       expect((await res.json()).error.message).toContain('purchaseId')
     })
+
+    // 깨진 JSON 바디도 422 — req.json() 의 catch 가 없으면 파싱 예외가 그대로
+    // 터져 500 이 된다. 셀프서비스 환불에서 500 은 "환불이 안 되는 건가" 하는
+    // 오해를 주고 사용자가 재시도를 반복하게 만든다.
+    it('깨진 JSON 바디는 500 이 아니라 422', async () => {
+      setupHappyPath()
+      const res = await POST(
+        new NextRequest('http://localhost:3000/api/me/refund-credit-pack', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json', 'user-agent': 'vitest' },
+          body: '{"purchaseId": ',
+        })
+      )
+      expect(res.status).toBe(422)
+      expect((await res.json()).error.message).toContain('purchaseId')
+    })
   })
 
   describe('자격(eligibility) 분기', () => {

@@ -156,6 +156,21 @@ describe('POST /api/admin/refund-credit-pack', () => {
       expect((await res.json()).error.message).toContain('stripePaymentId')
     })
 
+    // 깨진 JSON 바디는 422 로 떨어져야 한다 — req.json() 의 catch 가 없으면
+    // 파싱 예외가 그대로 터져 500 이 된다. 돈 만지는 엔드포인트에서 500 은
+    // "서버가 고장났다"는 오해를 주고, 운영자가 재시도를 반복하게 만든다.
+    it('malformed JSON body → 422, not 500', async () => {
+      const res = await POST(
+        new NextRequest('http://localhost:3000/api/admin/refund-credit-pack', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json', 'user-agent': 'vitest' },
+          body: '{"stripePaymentId": ',
+        })
+      )
+      expect(res.status).toBe(422)
+      expect((await res.json()).error.message).toContain('stripePaymentId')
+    })
+
     it('returns 500 when Stripe is not configured', async () => {
       vi.mocked(getStripeOrNull).mockReturnValue(null)
       const res = await POST(makeRequest({ stripePaymentId: 'pi_1' }))
