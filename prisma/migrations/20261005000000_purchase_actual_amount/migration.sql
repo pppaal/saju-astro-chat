@@ -11,7 +11,14 @@
 -- 수 없으므로 항상 같이 기록한다.
 --
 -- referral/promotion/gift 처럼 결제가 없는 지급분은 계속 NULL 이다.
+--
+-- IF NOT EXISTS 필수 — 이 레포의 마이그레이션 규약이다(38개 중 31개가 이 패턴).
+-- scripts/prisma-schema-verify.js 가 "모든 마이그레이션이 idempotent" 라는 걸
+-- 전제로 알려진 컬럼을 ALTER TABLE 로 재시도해 phantom-apply(_prisma_migrations
+-- 에는 applied 인데 실제 SQL 은 안 돌아간 상태)를 자동 복구한다. 맨 ADD COLUMN
+-- 이면 재실행이 "column already exists" 로 죽어 그 복구 경로가 무력화되고,
+-- vercel-build 의 `prisma migrate deploy` 단계에서 배포 자체가 실패한다.
 
 -- AlterTable
-ALTER TABLE "BonusCreditPurchase" ADD COLUMN "amountMinor" INTEGER;
-ALTER TABLE "BonusCreditPurchase" ADD COLUMN "currency" TEXT;
+ALTER TABLE "BonusCreditPurchase" ADD COLUMN IF NOT EXISTS "amountMinor" INTEGER;
+ALTER TABLE "BonusCreditPurchase" ADD COLUMN IF NOT EXISTS "currency" TEXT;
