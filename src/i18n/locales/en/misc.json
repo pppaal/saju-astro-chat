@@ -1,4 +1,23 @@
 {
+  "footer": {
+    "about": "About",
+    "faq": "FAQ",
+    "contact": "Contact",
+    "terms": "Terms",
+    "privacy": "Privacy",
+    "refund": "Refund",
+    "explore": "Explore",
+    "dailyHoroscope": "Daily Horoscope",
+    "zodiacCompatibility": "Zodiac Compatibility",
+    "tarotCardMeanings": "Tarot Card Meanings",
+    "koreanZodiacToday": "Korean Zodiac Today",
+    "freeBirthChart": "Free Birth Chart",
+    "compatibilityReport": "Compatibility Report",
+    "todaysTarot": "Today's Tarot",
+    "guides": "Guides",
+    "howItWorks": "How it works",
+    "freeTools": "Free tools"
+  },
   "pricing": {
     "eyebrow": "Pricing",
     "heroTitle": "Simple, Pay-As-You-Go Pricing",

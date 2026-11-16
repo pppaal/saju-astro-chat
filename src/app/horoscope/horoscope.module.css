@@ -1,0 +1,333 @@
+/* Daily horoscope family — light "paper" editorial look shared by /horoscope and /horoscope/[sign]. */
+
+.page {
+  min-height: 100vh;
+  background:
+    radial-gradient(900px 620px at 25% 8%, rgba(99, 124, 200, 0.07), transparent 60%),
+    radial-gradient(820px 700px at 85% 100%, rgba(212, 181, 114, 0.16), transparent 60%),
+    linear-gradient(160deg, #fbf9f4 0%, #f4efe5 58%, #f8f5ee 100%);
+  color: #2a2722;
+}
+
+.wrap {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 40px 16px 96px;
+}
+
+.crumbs {
+  font-size: 13px;
+  color: #6c665b;
+  margin-bottom: 24px;
+}
+
+.crumbs a {
+  color: #6c665b;
+}
+
+.crumbCurrent {
+  color: #a9833b;
+}
+
+.h1 {
+  font-size: 30px;
+  line-height: 1.25;
+  margin: 0 0 6px;
+  font-weight: 700;
+}
+
+.meta {
+  font-size: 14px;
+  color: #8a8474;
+  margin: 0 0 20px;
+}
+
+.lead {
+  font-size: 17px;
+  line-height: 1.8;
+  margin: 0 0 22px;
+  color: #3c372c;
+}
+
+.h2 {
+  font-size: 18px;
+  font-weight: 700;
+  margin: 34px 0 12px;
+  color: #3c372c;
+}
+
+.h3 {
+  font-size: 14px;
+  font-weight: 700;
+  margin: 0 0 6px;
+  color: #7a6127;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.body {
+  font-size: 15.5px;
+  line-height: 1.75;
+  color: #3c372c;
+  margin: 0;
+}
+
+.muted {
+  font-size: 14px;
+  line-height: 1.7;
+  color: #6c665b;
+  margin: 0;
+}
+
+.gradeRow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 0 0 18px;
+}
+
+.pill {
+  display: inline-block;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 700;
+  border: 1px solid transparent;
+}
+
+.headline {
+  font-size: 20px;
+  font-weight: 700;
+  color: #2a2722;
+  margin: 0;
+}
+
+.card {
+  padding: 18px 20px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(169, 131, 59, 0.22);
+}
+
+.cardStack {
+  display: grid;
+  gap: 12px;
+}
+
+.twoCol {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+@media (max-width: 520px) {
+  .twoCol {
+    grid-template-columns: 1fr;
+  }
+}
+
+.callout {
+  margin: 0;
+  padding: 12px 16px;
+  border-radius: 10px;
+  background: rgba(169, 131, 59, 0.08);
+  border-left: 3px solid #a9833b;
+  font-size: 14.5px;
+  line-height: 1.7;
+  color: #55503f;
+}
+
+.receipt {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #55503f;
+}
+
+.receipt li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 0;
+  border-top: 1px solid rgba(169, 131, 59, 0.14);
+}
+
+.receipt li:first-child {
+  border-top: 0;
+}
+
+.weight {
+  flex: 0 0 auto;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  min-width: 36px;
+  text-align: right;
+}
+
+.weightPos {
+  color: #2f7d4f;
+}
+
+.weightNeg {
+  color: #a9683b;
+}
+
+.weightZero {
+  color: #8a8474;
+}
+
+.week {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.weekDay {
+  text-align: center;
+  padding: 10px 4px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.65);
+  border: 1px solid rgba(169, 131, 59, 0.16);
+  font-size: 12px;
+  color: #6c665b;
+}
+
+.weekToday {
+  border-color: #a9833b;
+  background: rgba(169, 131, 59, 0.1);
+}
+
+.weekGrade {
+  display: block;
+  font-size: 18px;
+  font-weight: 700;
+  margin-top: 4px;
+}
+
+.grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 10px;
+}
+
+.gridLink {
+  display: block;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(169, 131, 59, 0.18);
+  color: #2a2722;
+  text-decoration: none;
+  height: 100%;
+}
+
+.gridTitle {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.gridDates {
+  display: block;
+  font-size: 12px;
+  color: #8a8474;
+  margin-top: 2px;
+}
+
+.gridHeadline {
+  display: block;
+  margin-top: 6px;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: #6c665b;
+}
+
+.chips {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 13px;
+  background: rgba(255, 255, 255, 0.65);
+  border: 1px solid rgba(169, 131, 59, 0.18);
+  color: #55503f;
+  text-decoration: none;
+}
+
+.list {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 14.5px;
+  line-height: 1.7;
+  color: #3c372c;
+}
+
+.faq {
+  margin: 0;
+}
+
+.faq dt {
+  font-weight: 700;
+  font-size: 15px;
+  color: #3c372c;
+  margin: 14px 0 4px;
+}
+
+.faq dd {
+  margin: 0;
+  font-size: 14.5px;
+  line-height: 1.7;
+  color: #55503f;
+}
+
+.cta {
+  padding: 18px 20px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(169, 131, 59, 0.22);
+}
+
+.ctaLinks {
+  margin: 10px 0 0;
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  font-size: 14px;
+}
+
+.ctaLinks a {
+  color: #a9833b;
+  font-weight: 600;
+}
+
+.disclosure {
+  margin: 36px 0 0;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: #8a8474;
+}
+
+.inlineLink {
+  color: #a9833b;
+  font-weight: 600;
+}

@@ -99,18 +99,25 @@ export const metadata: Metadata = {
     process.env.NEXT_PUBLIC_BASE_URL ||
       (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://destinypal.com')
   ),
+  // 영어 우선(북미·인도) — 기본 title/description 은 사주로 시작하지 않고
+  // 검색량이 큰 "birth chart / daily horoscope / compatibility" 로 시작한다.
+  // 라우트별 metadata 가 없는 페이지가 이 기본값을 그대로 받는다.
   title: {
-    default: 'DestinyPal — AI Korean Astrology, Tarot, Compatibility & Fortune Calendar',
+    default: 'DestinyPal — Free Birth Chart, Daily Horoscope & Compatibility',
     template: '%s | DestinyPal',
   },
   description:
-    'AI reads your Saju (Four Pillars) and natal astrology together — daily counsel, tarot, compatibility, and a fortune calendar. See the flow and timing when you need to decide.',
+    'Free birth chart, daily horoscope, zodiac compatibility and tarot — computed from real planetary positions, then explained in plain English. Korean Four Pillars (Saju) included. No login needed for the free tools.',
   keywords: [
+    // English — primary (북미·인도 검색 우선)
+    'daily horoscope',
+    'birth chart calculator',
+    'zodiac compatibility',
     // Core brand
     'DestinyPal',
     'destinypal',
     '데스티니팔',
-    // English — primary (영어 시장 우선)
+    // English — secondary
     'ai saju',
     'saju reading',
     'four pillars of destiny',
@@ -121,7 +128,6 @@ export const metadata: Metadata = {
     'ai tarot reading',
     'free tarot online',
     'horoscope today',
-    'daily horoscope',
     'compatibility test',
     'astrology compatibility',
     'synastry chart',
@@ -167,23 +173,23 @@ export const metadata: Metadata = {
     alternateLocale: ['ko_KR'],
     url: '/',
     siteName: 'DestinyPal',
-    title: 'DestinyPal — AI Korean Astrology, Tarot & Fortune Calendar',
+    title: 'DestinyPal — Free Birth Chart, Daily Horoscope & Compatibility',
     description:
-      'AI reads your Saju and natal astrology together — daily counsel, tarot, compatibility, and a fortune calendar. See the flow and timing when you need to decide.',
+      'Free birth chart, daily horoscope, zodiac compatibility and tarot — computed from real planetary positions, then explained in plain English. Korean Four Pillars (Saju) included.',
     images: [
       {
         url: '/og-card-v2.png',
         width: 1200,
         height: 630,
-        alt: 'DestinyPal — AI Korean Astrology, Tarot & Fortune Calendar',
+        alt: 'DestinyPal — Free Birth Chart, Daily Horoscope & Compatibility',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'DestinyPal — AI Korean Astrology, Tarot & Fortune Calendar',
+    title: 'DestinyPal — Free Birth Chart, Daily Horoscope & Compatibility',
     description:
-      'AI reads your Saju and natal astrology together — daily counsel, tarot, compatibility, and a fortune calendar.',
+      'Free birth chart, daily horoscope, zodiac compatibility and tarot — computed from real planetary positions, then explained in plain English.',
     images: ['/og-card-v2.png'],
     creator: '@destinypal',
     site: '@destinypal',
@@ -199,16 +205,10 @@ export const metadata: Metadata = {
       'max-snippet': -1,
     },
   },
-  alternates: {
-    canonical: '/',
-    languages: {
-      // /ko 경로 프리픽스(proxy.ts 리라이트)로 한국어가 고유 URL 을 갖는다.
-      // 같은 URL 을 en/ko 가 공유하면 hreflang 이 무력해 서로 경쟁했다.
-      'en-US': '/',
-      'ko-KR': '/ko',
-      'x-default': '/',
-    },
-  },
+  // 루트에는 alternates(canonical/hreflang) 를 두지 않는다 — 여기 둔 canonical='/'
+  // 는 자기 metadata 가 없는 모든 라우트에 상속돼 "canonical=/" 로 새어 나갔다
+  // (그 페이지들이 전부 홈의 복제로 취급됨). canonical/hreflang 은 각 라우트의
+  // generateLocalizedMetadata / generateEnglishOnlyMetadata 가 책임진다.
   verification: {
     google: process.env.NEXT_PUBLIC_GOOGLE_VERIFICATION,
     yandex: process.env.NEXT_PUBLIC_YANDEX_VERIFICATION,
@@ -230,7 +230,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
     type: 'WebSite',
     name: 'DestinyPal',
     description:
-      'AI가 사주와 점성을 함께 분석해 운세 상담, 타로, 궁합, 캘린더, 리포트를 제공하는 AI 운세 플랫폼.',
+      'Free birth chart, daily horoscope, zodiac compatibility, tarot and a fortune calendar — readings computed from real planetary positions and Korean Four Pillars, then explained in plain English.',
   })
 
   const organizationJsonLd = generateJsonLd({

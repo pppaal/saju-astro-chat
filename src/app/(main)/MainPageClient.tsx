@@ -77,6 +77,16 @@ type MoreService = {
   desc: { ko: string; en: string }
   free?: boolean
 }
+/** 홈 하단 Explore 줄 — 영어권 SEO 허브로 가는 내부 링크(푸터 Explore 와 같은 대상). */
+const HOME_EXPLORE_LINKS: ReadonlyArray<{ href: string; label: { ko: string; en: string } }> = [
+  { href: '/horoscope', label: { ko: '오늘의 별자리 운세', en: 'Daily horoscope' } },
+  { href: '/compatibility/signs', label: { ko: '별자리 궁합', en: 'Zodiac compatibility' } },
+  { href: '/tarot/cards', label: { ko: '타로 카드 의미', en: 'Tarot card meanings' } },
+  { href: '/fortune', label: { ko: '오늘의 띠 운세', en: 'Korean zodiac today' } },
+  { href: '/blog', label: { ko: '가이드', en: 'Guides' } },
+  { href: '/method', label: { ko: '계산 방식', en: 'How it works' } },
+]
+
 const MORE_SERVICES: readonly MoreService[] = [
   {
     href: '/tarot',
@@ -391,7 +401,7 @@ export default function MainPageClient({ initialLocale }: MainPageClientProps) {
           <h1 id="home-headline" className={styles.homeHeadline}>
             {locale === 'ko'
               ? 'AI가 풀어내는 당신의 운명'
-              : 'Korean Astrology × Western Zodiac, Powered by AI'}
+              : 'Birth Chart, Daily Horoscope & Compatibility — Computed, Then Explained'}
           </h1>
           <p className={styles.homeSubline}>
             {locale === 'ko'
@@ -493,6 +503,25 @@ export default function MainPageClient({ initialLocale }: MainPageClientProps) {
             )}
           </AnimatePresence>
         </div>
+
+        {/* 크롤 가능한 Explore 줄 — 푸터는 고정 앱 셸인 홈에서 숨기므로, 홈→허브
+            (데일리 별자리·별자리 궁합·타로 의미·띠 운세·방법 페이지) 내부 링크를
+            여기서 싣는다. 서버 HTML 에 항상 포함(토글 없음). */}
+        <nav
+          className={styles.homeExploreNav}
+          aria-label={locale === 'ko' ? '둘러보기' : 'Explore'}
+        >
+          {HOME_EXPLORE_LINKS.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={styles.homeExploreLink}
+              prefetch={false}
+            >
+              {item.label[locale]}
+            </Link>
+          ))}
+        </nav>
 
         <HomeChatInput
           birthInfo={birthInfo}

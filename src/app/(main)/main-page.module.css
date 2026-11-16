@@ -1534,3 +1534,30 @@
  * design tokens "라이트 = 개인 데이터" 정책에 맞춰 base 룰을 직접 라이트
  * 톤으로 통일. compat PersonCard / ProfileEditModal 과 동일한 항상-흰색
  * 패턴. */
+
+/* ── Home Explore row — small, muted text links to the SEO hubs. Lives inside
+   the fixed home shell's scroll area (the global footer is hidden on home). ── */
+.homeExploreNav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.35rem 1.1rem;
+  width: 100%;
+  padding: 0.25rem 0 0;
+}
+
+.homeExploreLink {
+  font-size: 0.78rem;
+  letter-spacing: 0.01em;
+  color: rgba(226, 222, 255, 0.62);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: color 0.15s ease;
+}
+
+.homeExploreLink:hover,
+.homeExploreLink:focus-visible {
+  color: rgba(255, 255, 255, 0.95);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}

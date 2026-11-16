@@ -6,10 +6,11 @@ export default function robots(): MetadataRoute.Robots {
   // 비공개·기능 경로 — 모든 크롤러(AI 포함)에게 동일하게 차단.
   // /ko 경로 프리픽스(proxy.ts 리라이트)로도 같은 페이지가 열리므로
   // 각 항목의 /ko 변형도 함께 차단한다.
+  // '/_next/' 는 차단하지 않는다 — Google 이 CSS/JS 를 받아야 페이지를
+  // 렌더/색인할 수 있다(차단하면 "리소스 차단" 으로 모바일 친화성·CWV 평가가 깨진다).
   const privatePaths = [
     '/api/',
     '/admin/',
-    '/_next/',
     '/private/',
     '/auth/',
     '/profile/',

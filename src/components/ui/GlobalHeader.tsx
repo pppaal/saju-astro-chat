@@ -3,6 +3,7 @@
 import { Suspense, useState } from 'react'
 import { usePathname } from 'next/navigation'
 import { useI18n } from '@/i18n/I18nProvider'
+import { stripLocalePrefix } from '@/i18n/utils'
 import { AppHeader, AppHeaderIconButton } from './AppHeader'
 import { MenuDrawerPanel } from './MenuDrawerPanel'
 
@@ -14,7 +15,9 @@ import { MenuDrawerPanel } from './MenuDrawerPanel'
 
 function GlobalHeaderContent() {
   const { locale, setLocale } = useI18n()
-  const pathname = usePathname()
+  // usePathname() 은 브라우저 주소(/ko/blog) 를 그대로 주므로 /ko 프리픽스를
+  // 벗겨서 비교한다 — 한국어 URL 에서도 홈/몰입형/라이트 판정이 같아야 한다.
+  const pathname = stripLocalePrefix(usePathname())
   const [drawerOpen, setDrawerOpen] = useState(false)
 
   const isKo = locale === 'ko'

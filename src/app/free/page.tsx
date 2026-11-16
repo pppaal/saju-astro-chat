@@ -16,36 +16,56 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { headers } from 'next/headers'
 import { recordCounter } from '@/lib/metrics/index'
+import { generateLocalizedMetadata, getServerLocale } from '@/components/seo/SEO'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
+
+const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://destinypal.com'
 
 async function resolveLocale(): Promise<'ko' | 'en'> {
   const h = await headers()
   return h.get('x-locale') === 'en' ? 'en' : 'ko'
 }
 
+// SEO.tsx 의 공용 헬퍼로 낸다 — 루트 template("%s | DestinyPal") 이 한 번만 붙고,
+// canonical 은 로케일별(en 베어 ↔ /ko) 로, hreflang en/ko/x-default 가 함께 나간다.
+// (직전엔 title 에 "| DestinyPal" 을 직접 써서 두 번 붙었고 hreflang 이 없었다.)
 export async function generateMetadata(): Promise<Metadata> {
-  const isKo = (await resolveLocale()) === 'ko'
-  const title = isKo
-    ? '사주도 별자리도 너를 같은 사람이라 말해 — 무료 교차검증 | DestinyPal'
-    : 'Saju and the stars describe the same person — free cross-check | DestinyPal'
-  const description = isKo
-    ? '동양 사주와 서양 별자리를 따로가 아니라 겹쳐서. 두 체계가 같은 결론을 낸 지점만 골라 보여드려요. 생년월일 하나면 30초, 가입 없이 무료.'
-    : 'Korean astrology and Western astrology, read together — we surface only where both reach the same conclusion. Just your birth date, 30 seconds, free.'
-  return {
-    title,
-    description,
-    alternates: { canonical: '/free' },
-    openGraph: {
-      type: 'website',
-      url: '/free',
-      title,
-      description,
-      images: [{ url: '/og-card-v2.png', width: 1200, height: 630, alt: 'DestinyPal' }],
+  const locale = await getServerLocale()
+  return generateLocalizedMetadata(
+    {
+      en: {
+        title: 'Free Astrology Tools — Birth Chart, Life Curve, Compatibility & Daily Tarot',
+        description:
+          'Korean Four Pillars and Western astrology, read together — we surface only where both reach the same conclusion. Five free tools from one birth date: birth chart, life curve, timing calendar, compatibility and today’s tarot. No login.',
+        keywords: [
+          'free astrology tools',
+          'free birth chart',
+          'free compatibility',
+          'free daily tarot',
+          'saju and astrology',
+          'four pillars and birth chart',
+        ],
+      },
+      ko: {
+        title: '사주도 별자리도 너를 같은 사람이라 말해 — 무료 교차검증',
+        description:
+          '동양 사주와 서양 별자리를 따로가 아니라 겹쳐서. 두 체계가 같은 결론을 낸 지점만 골라 보여드려요. 생년월일 하나면 30초, 가입 없이 무료.',
+        keywords: [
+          '무료 사주',
+          '무료 운세',
+          '사주 별자리 교차검증',
+          '무료 궁합',
+          '오늘의 타로',
+          '무료 리포트',
+        ],
+      },
+      canonicalUrl: `${baseUrl}/free`,
+      ogImage: '/og-card-v2.png',
     },
-    twitter: { card: 'summary_large_image', title, description, images: ['/og-card-v2.png'] },
-  }
+    locale
+  )
 }
 
 // 무료 도구 카드 — 목업 최종 순서. 첫 카드는 첫 방문의 무게중심(인생총운·평생흐름),

@@ -59,6 +59,37 @@ describe('Pages Smoke Tests', () => {
     })
   })
 
+  describe('Free tool layouts (SEO metadata)', () => {
+    it('should have a route layout for every free tool that cannot export metadata itself', () => {
+      // 이 페이지들은 세션/쿼리 기반 서버 컴포넌트거나 'use client' 라 metadata 를
+      // page 에서 낼 수 없다 — 자기 canonical/hreflang 은 layout 이 책임진다.
+      assertPages([
+        'app/calendar/layout',
+        'app/destiny/layout',
+        'app/(main)/integrated-report/layout',
+        'app/tarot/daily/layout',
+        'app/compatibility/free/layout',
+      ])
+    })
+
+    it('every free tool layout exports generateMetadata with its own canonical', () => {
+      const layouts = [
+        ['app/calendar/layout', '/calendar'],
+        ['app/destiny/layout', '/destiny'],
+        ['app/(main)/integrated-report/layout', '/integrated-report'],
+        ['app/tarot/daily/layout', '/tarot/daily'],
+        ['app/compatibility/free/layout', '/compatibility/free'],
+      ] as const
+      for (const [modulePath, route] of layouts) {
+        const filePath = resolveModuleFile(modulePath)
+        if (!filePath) throw new Error(`Missing module file for ${modulePath}`)
+        const content = readFileSync(filePath, 'utf8')
+        expect(content).toMatch(/export\s+async\s+function\s+generateMetadata/)
+        expect(content).toContain(`canonicalUrl: \`\${baseUrl}${route}\``)
+      }
+    })
+  })
+
   describe('Compatibility Pages (2)', () => {
     it('should have compatibility pages', () => {
       assertPages(['app/compatibility/page', 'app/compatibility/counselor/page'])

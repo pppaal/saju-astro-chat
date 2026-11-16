@@ -1,4 +1,23 @@
 {
+  "footer": {
+    "about": "소개",
+    "faq": "자주 묻는 질문",
+    "contact": "문의",
+    "terms": "이용약관",
+    "privacy": "개인정보처리방침",
+    "refund": "환불 정책",
+    "explore": "둘러보기",
+    "dailyHoroscope": "오늘의 별자리 운세",
+    "zodiacCompatibility": "별자리 궁합",
+    "tarotCardMeanings": "타로 카드 의미",
+    "koreanZodiacToday": "띠별 오늘의 운세",
+    "freeBirthChart": "무료 출생 차트",
+    "compatibilityReport": "무료 궁합 리포트",
+    "todaysTarot": "오늘의 타로",
+    "guides": "가이드",
+    "howItWorks": "계산 방식",
+    "freeTools": "무료 도구"
+  },
   "pricing": {
     "eyebrow": "가격 안내",
     "heroTitle": "당신의 운명을 위한 가격",

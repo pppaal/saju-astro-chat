@@ -32,6 +32,19 @@
   .disclaimer {
     display: none;
   }
+  /* Explore 블록은 모바일에서도 남긴다(크롤러·사용자 모두 SEO 허브로 진입) —
+     두 칼럼 · 13px 로 컴팩트하게. */
+  .explore {
+    gap: 6px;
+    padding: 6px 4px 0;
+  }
+  .exploreList {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 2px 16px;
+  }
+  .exploreLink {
+    font-size: 13px;
+  }
   .mobileLegalOnly {
     display: flex;
     gap: 14px;
@@ -57,6 +70,55 @@
   flex-direction: column;
   align-items: center;
   gap: 16px;
+}
+
+/* Crawlable "Explore" block — SEO/GEO 패밀리(별자리 운세·궁합·타로 의미·띠별
+   운세·무료 도구·가이드·계산 방식)로 가는 플레인 링크. JS 없이도 따라갈 수 있다. */
+.explore {
+  width: 100%;
+  max-width: 760px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.exploreTitle {
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.exploreList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 6px 18px;
+  text-align: center;
+}
+
+.exploreLink {
+  display: inline-block;
+  color: rgba(255, 255, 255, 0.72);
+  text-decoration: none;
+  font-size: 13.5px;
+  line-height: 1.5;
+  padding: 2px 0;
+  transition: color 0.2s;
+}
+
+.exploreLink:hover {
+  color: rgba(255, 255, 255, 1);
+}
+
+.exploreLink:focus-visible {
+  outline: 2px solid rgba(212, 181, 114, 0.8);
+  outline-offset: 2px;
+  border-radius: 4px;
 }
 
 .links {

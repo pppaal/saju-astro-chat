@@ -2,11 +2,9 @@ import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
 import { JsonLd } from '@/components/seo/JsonLd'
 import {
-  generateJsonLd,
   generateLocalizedMetadata,
   generateServiceSchema,
   getServerLocale,
-  SERVICE_FAQS,
 } from '@/components/seo/SEO'
 
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://destinypal.com'
@@ -49,26 +47,20 @@ export async function generateMetadata(): Promise<Metadata> {
       canonicalUrl: `${baseUrl}/tarot`,
       ogImage: '/og-image.png',
     },
-    locale,
+    locale
   )
 }
 
 export default function TarotLayout({ children }: { children: ReactNode }) {
-  const pageJsonLd = generateJsonLd({
-    type: 'WebPage',
-    name: 'AI Tarot Reading',
-    description:
-      'AI tarot readings with 78 cards and curated spreads for love, career, and life guidance.',
-    url: `${baseUrl}/tarot`,
-  })
+  // Service schema only. The /tarot WebPage block lives in ./page.tsx so it
+  // does not leak into /tarot/cards/* and /tarot/daily, which emit their own
+  // WebPage. No FAQPage: nothing under /tarot renders a visible FAQ, and FAQ
+  // structured data that is not on the page is a Google spam-policy risk.
   const serviceJsonLd = generateServiceSchema('tarot')
-  const faqJsonLd = generateJsonLd({ type: 'FAQPage', faqs: SERVICE_FAQS.tarot })
 
   return (
     <>
-      <JsonLd data={pageJsonLd} />
       <JsonLd data={serviceJsonLd} />
-      <JsonLd data={faqJsonLd} />
       {children}
     </>
   )

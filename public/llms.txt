@@ -1,20 +1,35 @@
 # DestinyPal
 
-> DestinyPal is an AI-powered fortune and self-discovery service offering tarot readings, Korean Saju (Four Pillars), Western astrology, compatibility analysis, and a personalized destiny counselor — available in Korean and English.
+> DestinyPal computes birth charts, daily horoscopes, zodiac compatibility and Korean Four Pillars (Saju) readings from real planetary positions with a deterministic engine, then has an AI write the explanation in plain English. The free tools need no login. The site is in English; a Korean version lives under /ko.
 
-DestinyPal blends traditional divination (tarot, saju, astrology) with large language models to deliver conversational, personalized readings. Free-form questions are answered with concrete, card- and chart-grounded interpretations rather than generic horoscopes. Readings can be saved, revisited, and shared as images.
+How a reading is made: planetary positions come from the Swiss Ephemeris, using the tropical zodiac. A deterministic engine in code decides which factors matter, the scores and the dates, so the same birth data always gives the same chart and the same factors. The AI only turns those computed factors into readable prose; it does not decide the chart, the scores or the dates. The daily horoscope and sign-compatibility pages show a receipt of the factors behind each grade. Readings are for entertainment and self-reflection, not medical, legal or financial advice.
 
-## Core services
-- [Tarot reading](https://destinypal.com/tarot): AI tarot for free-form questions (love, career, money, decisions) with per-card and overall interpretation, follow-up questions, and clarifier cards.
-- [Destiny counselor](https://destinypal.com/destiny-counselor): An AI counselor chat grounded in Korean Saju (Four Pillars of Destiny) and astrology.
-- [Compatibility](https://destinypal.com/compatibility): Relationship compatibility between two people via saju and astrology.
-- [Calendar](https://destinypal.com/calendar): A personal timing guide highlighting meaningful dates.
+## Free tools (no login)
+- [Free birth chart](https://destinypal.com/integrated-report): Natal chart plus a Korean Four Pillars (Saju) report from birth date, time and place.
+- [Life curve](https://destinypal.com/destiny): A lifetime timing curve and one of 8 life types, from the birth chart.
+- [Daily calendar](https://destinypal.com/calendar): A personal timing calendar for this month, graded day by day.
+- [Free compatibility](https://destinypal.com/compatibility/free): A compatibility report for two birth dates.
+- [Today's tarot](https://destinypal.com/tarot/daily): One free tarot card per day with a short reading.
+
+## Reference
+- [Daily horoscope](https://destinypal.com/horoscope): Today's horoscope for all 12 zodiac signs, one page per sign (for example /horoscope/aries), computed from planetary positions at 12:00 UTC.
+- [Zodiac compatibility](https://destinypal.com/compatibility/signs): Sun-sign compatibility for all 78 sign pairs (for example /compatibility/signs/aries-leo), with a score and the rules behind it.
+- [Tarot card meanings](https://destinypal.com/tarot/cards): Meanings of the 78 Rider-Waite tarot cards.
+- [Korean zodiac](https://destinypal.com/fortune): Today's fortune for the 12 Korean zodiac animals, computed from the day pillar.
+- [Guides](https://destinypal.com/blog): Articles on astrology, Saju, tarot and compatibility.
+
+## Method
+- [How readings are computed](https://destinypal.com/method): Swiss Ephemeris positions, tropical zodiac, a deterministic engine for factors and scores, and an AI that writes the prose only.
+
+## Readings that use credits (one-time packs, no subscription)
+- [Tarot reading](https://destinypal.com/tarot): AI tarot for free-form questions with 78 cards and spreads.
+- [Destiny counselor](https://destinypal.com/destiny-counselor): An AI counselor chat grounded in Saju and astrology.
+- [Compatibility](https://destinypal.com/compatibility): Two-chart compatibility combining Saju and astrological synastry.
 
 ## Information
 - [About](https://destinypal.com/about)
 - [FAQ](https://destinypal.com/faq)
-- [Pricing](https://destinypal.com/pricing)
-- [Blog](https://destinypal.com/blog): Guides and articles on tarot, saju, and astrology.
+- [Pricing](https://destinypal.com/pricing): One-time credit packs; no subscription or auto-renewal.
 - [Contact](https://destinypal.com/contact)
 
 ## Policies

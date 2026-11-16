@@ -1,5 +1,26 @@
 export type I18nMessages = Record<string, unknown>
 
+/**
+ * `/ko` 로케일 프리픽스를 벗겨 베어(영어) 경로를 돌려준다.
+ *
+ * proxy.ts 가 `/ko/...` 를 실제 라우트로 리라이트하지만 클라이언트의
+ * `usePathname()` 은 브라우저 주소(`/ko/blog`) 를 그대로 돌려준다. 헤더/푸터가
+ * "지금 홈인가 / 몰입형 라우트인가" 를 경로로 판정할 때는 반드시 이 함수를
+ * 거쳐야 한국어 URL 에서도 같은 판정이 나온다.
+ *
+ *   '/ko'        → '/'
+ *   '/ko/'       → '/'
+ *   '/ko/blog/x' → '/blog/x'
+ *   '/korea'     → '/korea'   (프리픽스가 아닌 경로는 그대로)
+ *   null / ''    → '/'
+ */
+export function stripLocalePrefix(pathname: string | null | undefined): string {
+  if (!pathname) return '/'
+  if (pathname === '/ko' || pathname === '/ko/') return '/'
+  if (pathname.startsWith('/ko/')) return pathname.slice(3)
+  return pathname
+}
+
 export function toSafeFallbackText(path: string): string {
   const candidate = path.split('.').pop() || path
   const normalized = candidate

@@ -2,11 +2,9 @@ import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
 import { JsonLd } from '@/components/seo/JsonLd'
 import {
-  generateJsonLd,
   generateLocalizedMetadata,
   generateServiceSchema,
   getServerLocale,
-  SERVICE_FAQS,
 } from '@/components/seo/SEO'
 
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://destinypal.com'
@@ -44,21 +42,15 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default function CompatibilityLayout({ children }: { children: ReactNode }) {
-  const pageJsonLd = generateJsonLd({
-    type: 'WebPage',
-    name: 'Compatibility Analysis',
-    description:
-      'Discover your relationship compatibility with AI-powered analysis combining Eastern Saju and Western astrology.',
-    url: `${baseUrl}/compatibility`,
-  })
+  // Service schema only. /compatibility itself redirects to the counselor, and
+  // every indexable child (/compatibility/free, /zodiac/*, /signs/*) emits its
+  // own WebPage, so a layout-level WebPage would only leak a wrong URL into
+  // them. No FAQPage: nothing under /compatibility renders a visible FAQ.
   const serviceJsonLd = generateServiceSchema('compatibility')
-  const faqJsonLd = generateJsonLd({ type: 'FAQPage', faqs: SERVICE_FAQS.compatibility })
 
   return (
     <>
-      <JsonLd data={pageJsonLd} />
       <JsonLd data={serviceJsonLd} />
-      <JsonLd data={faqJsonLd} />
       {children}
     </>
   )

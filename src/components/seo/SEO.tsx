@@ -299,10 +299,12 @@ export function generateJsonLd(data: {
         image: data.image,
         datePublished: data.datePublished,
         dateModified: data.dateModified || data.datePublished,
+        // Site-authored guides are published by the organization, not a named writer.
         author: {
-          '@type': 'Person',
-          name: data.author?.name || 'Anonymous',
-          url: data.author?.url,
+          '@type':
+            !data.author?.name || data.author.name === 'DestinyPal' ? 'Organization' : 'Person',
+          name: data.author?.name || 'DestinyPal',
+          url: data.author?.url || baseUrl,
         },
         publisher: {
           '@type': 'Organization',

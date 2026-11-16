@@ -1,8 +1,8 @@
 // src/app/api/cron/indexnow/route.ts
 //
-// 매일 갱신되는 SEO 표면(띠별 운세 + 홈)을 IndexNow 로 푸시하는 크론.
-// 구글은 사이트맵/서치콘솔로 가고, 이 크론은 네이버·빙의 재색인을 크롤 대기
-// 없이 당긴다. 보안은 다른 cron 과 동일: IP 레이트리밋 → timing-safe
+// 매일 갱신되는 SEO 표면(띠별 운세 + 별자리 운세 + 홈)을 IndexNow 로 푸시하는
+// 크론. 구글은 사이트맵/서치콘솔로 가고, 이 크론은 네이버·빙의 재색인을 크롤
+// 대기 없이 당긴다. 보안은 다른 cron 과 동일: IP 레이트리밋 → timing-safe
 // CRON_SECRET. INDEXNOW_KEY 미설정이면 no-op(선택 기능).
 //
 // Vercel cron: vercel.json — 매일 22:30 UTC (daily-fortune 22:00 갱신 직후).
@@ -16,6 +16,7 @@ import { getClientIp } from '@/lib/request-ip'
 import { timingSafeCompare } from '@/lib/security/timingSafe'
 import { isIndexNowConfigured, pingIndexNow } from '@/lib/seo/indexnow'
 import { ZODIAC_ANIMALS } from '@/lib/fortune/zodiacDaily'
+import { SUN_SIGNS } from '@/lib/astrology/sunSigns'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -32,9 +33,17 @@ function validateCronSecret(request: Request): boolean {
 
 // 매일 내용이 바뀌는 페이지만 — 정적 페이지는 사이트맵이 커버한다.
 function dailyUrls(): string[] {
-  const paths = ['/', '/fortune', ...ZODIAC_ANIMALS.map((a) => `/fortune/${a.slug}`)]
-  // /ko 경로 프리픽스(proxy.ts 리라이트) 규약: 베어 경로 = en, /ko/... = ko.
-  return paths.flatMap((p) => [p, p === '/' ? '/ko' : `/ko${p}`])
+  // 한국어 UI 가 있는 bilingual 표면 — /ko 경로 프리픽스(proxy.ts 리라이트) 규약:
+  // 베어 경로 = en, /ko/... = ko. 둘 다 색인 대상이라 둘 다 핑한다.
+  const bilingualPaths = ['/', '/fortune', ...ZODIAC_ANIMALS.map((a) => `/fortune/${a.slug}`)]
+  const bilingualUrls = bilingualPaths.flatMap((p) => [p, p === '/' ? '/ko' : `/ko${p}`])
+
+  // 별자리 오늘의 운세(허브 + 12 별자리)는 영어 전용 — /ko 변형은 페이지가
+  // noindex,follow 로 선언하므로(generateEnglishOnlyMetadata) 베어 URL 만 핑한다.
+  // sitemap.ts 의 englishOnlyEntry 와 같은 규약.
+  const englishOnlyUrls = ['/horoscope', ...SUN_SIGNS.map((s) => `/horoscope/${s.slug}`)]
+
+  return [...bilingualUrls, ...englishOnlyUrls]
 }
 
 async function handle(request: Request): Promise<NextResponse> {

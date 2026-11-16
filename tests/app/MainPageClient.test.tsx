@@ -166,7 +166,7 @@ describe('MainPageClient', () => {
   it('renders the hero, header and chat input for a guest with no saved birth info', () => {
     renderPage()
     expect(
-      screen.getByRole('heading', { name: /Korean Astrology × Western Zodiac/i })
+      screen.getByRole('heading', { name: /Birth Chart, Daily Horoscope & Compatibility/i })
     ).toBeInTheDocument()
     expect(screen.getByTestId('app-header')).toBeInTheDocument()
     expect(screen.getByTestId('home-chat-input')).toBeInTheDocument()
