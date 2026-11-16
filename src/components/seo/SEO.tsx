@@ -87,6 +87,40 @@ export function toKoUrl(url: string, baseUrl: string): string {
   return url
 }
 
+/**
+ * 영어 전용 표면용 메타데이터 (예: /horoscope, /compatibility/signs, /method).
+ *
+ * proxy.ts 의 /ko 리라이트 때문에 모든 라우트는 /ko/... 로도 열린다. 영어
+ * 전용 페이지는 그 변형을 "같은 문서의 복제"로 선언해야 한다:
+ *   - canonical 은 로케일과 무관하게 항상 베어(영어) URL
+ *   - hreflang 은 en-US + x-default 만 (ko-KR 없음 — 한국어 본문이 없으므로)
+ *   - /ko 로 들어온 요청(locale === 'ko')은 noindex,follow — 복제 색인 방지
+ * sitemap.ts 는 이런 페이지를 베어 URL 하나만, ko alternate 없이 올린다.
+ */
+export function generateEnglishOnlyMetadata(
+  input: Omit<SEOProps, 'locale'>,
+  locale: 'ko' | 'en' = 'en'
+): Metadata {
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://destinypal.com'
+  const enUrl = input.canonicalUrl || baseUrl
+  const base = generateMetadata({ ...input, canonicalUrl: enUrl, locale: 'en' })
+  const openGraph =
+    base.openGraph && typeof base.openGraph === 'object'
+      ? { ...base.openGraph, alternateLocale: [] as string[] }
+      : base.openGraph
+  return {
+    ...base,
+    openGraph,
+    alternates: {
+      canonical: enUrl,
+      languages: { 'en-US': enUrl, 'x-default': enUrl },
+    },
+    ...(locale === 'ko'
+      ? { robots: { index: false, follow: true, googleBot: { index: false, follow: true } } }
+      : {}),
+  }
+}
+
 function generateMetadata({
   title,
   description,
