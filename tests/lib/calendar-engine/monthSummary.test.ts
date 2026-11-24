@@ -182,6 +182,33 @@ describe('deriveMonthSummary — 지배 테마(themePhrase)', () => {
     // 영문 테마는 'and' 로 연결된다(연결어 자체는 시드별로 달라짐).
     expect(s).toContain('Jupiter and Saturn')
   })
+
+  it("영문 위계 'in Domicile' 은 'at home' — 'Venus in at home' 이 되지 않는다", () => {
+    for (const seed of [0, 1, 2, 3]) {
+      const s = deriveMonthSummary({
+        ...base,
+        lang: 'en',
+        seed,
+        topReasons: [
+          'Venus in Domicile (home sign) (Libra) — operates at full natural strength',
+          'Saturn in Fall (Aries) — is weakened and out of place',
+        ],
+      })
+      expect(s).toContain('Venus at home and Saturn weakened')
+      expect(s).not.toContain('in at home')
+      expect(s).not.toMatch(/\bin weakened\b/)
+    }
+    const ex = deriveMonthSummary({
+      ...base,
+      lang: 'en',
+      topReasons: [
+        'Jupiter in Exaltation (Cancer) — is honoured and elevated — at its best',
+        'Mars in Detriment (Scorpio) — works against its nature — strained',
+      ],
+    })
+    expect(ex).toContain('Jupiter exalted and Mars out of place')
+    expect(ex).not.toMatch(/\bin (at its best|out of place)\b/)
+  })
 })
 
 describe('deriveMonthSummary — 가장 좋은 날', () => {

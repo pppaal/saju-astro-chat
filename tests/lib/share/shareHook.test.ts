@@ -49,6 +49,42 @@ describe('dayShareHook', () => {
     expect(en.headline).toMatch(/[A-Za-z]/)
   })
 
+  it('도박 비유(판·테이블) 후크가 없다 — 같은 자리를 교체해 풀 길이·회전은 그대로', () => {
+    const inputs = [
+      { tone: 'positive' as const, score: 90 },
+      { tone: 'positive' as const, score: 64 },
+      { tone: 'mixed' as const, score: 55 },
+      { tone: 'caution' as const, score: 30 },
+    ]
+    for (const { tone, score } of inputs) {
+      const heads = new Set<string>()
+      for (let seed = 0; seed < 64; seed++) {
+        for (const ko of [true, false]) {
+          const h = dayShareHook({ tone, score, seed, ko })
+          const line = `${h.headline} ${h.subline ?? ''}`
+          expect(line).not.toMatch(/tables you can win|Spectate/i)
+          expect(line).not.toMatch(/이길 판|구경만/)
+          if (ko) heads.add(h.headline)
+        }
+      }
+      if (tone === 'mixed') {
+        // mixed 풀 = 10 변형(교체 전과 동일) — 64 시드 회전으로 전부 드러난다.
+        expect(heads.size).toBe(10)
+        // 회전 주기도 그대로: seed 와 seed+10 은 같은 변형.
+        expect(dayShareHook({ tone, score, seed: 3, ko: true })).toEqual(
+          dayShareHook({ tone, score, seed: 13, ko: true })
+        )
+      }
+    }
+    // 교체된 자리(mixed 9번째 = index 8)는 새 비도박 문구.
+    expect(dayShareHook({ tone: 'mixed', score: 55, seed: 8, ko: false }).headline).toBe(
+      "Only take on what you can finish today. That's the skill."
+    )
+    expect(dayShareHook({ tone: 'mixed', score: 55, seed: 8, ko: true }).headline).toBe(
+      '오늘은 끝낼 수 있는 것만 골라 잡아. 그게 실력이야.'
+    )
+  })
+
   it('high 버킷은 score>=72 양수에서만', () => {
     const high = dayShareHook({ tone: 'positive', score: 80, seed: 0, ko: true })
     const good = dayShareHook({ tone: 'positive', score: 64, seed: 0, ko: true })

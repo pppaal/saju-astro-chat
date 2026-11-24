@@ -185,7 +185,7 @@ const TONE_POOL_EN: Record<MeaningTone, string[]> = {
     "don't ignore your body's signal",
     'delay the move and the big spend',
     'read the contract three times',
-    'put yourself first today',
+    'look after yourself first today',
     'skip the late round tonight',
     'pause so you miss nothing',
     'small slips grow — double-check',

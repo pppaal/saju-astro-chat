@@ -279,12 +279,12 @@ const DAY_POOL: Record<'high' | 'good' | 'mixed' | 'caution', HookVariant[]> = {
     },
     {
       ko: {
-        headline: '이길 판만 골라 앉아. 오늘은 그게 실력이야.',
-        subline: '안 되는 판은 구경만 해.',
+        headline: '오늘은 끝낼 수 있는 것만 골라 잡아. 그게 실력이야.',
+        subline: '나머지는 내일 목록으로.',
       },
       en: {
-        headline: 'Only sit at tables you can win today.',
-        subline: 'Spectate the rest.',
+        headline: "Only take on what you can finish today. That's the skill.",
+        subline: "The rest goes on tomorrow's list.",
       },
     },
     {

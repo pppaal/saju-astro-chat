@@ -100,6 +100,12 @@ function themePhrase(s: string): string {
     .replace(/디트리먼트\s*\([^)]*\)/g, '불리한 자리')
     .replace(/디트리먼트/g, '불리한 자리')
     .replace(/폴\s*\(추락\)/g, '약한 자리')
+    // EN 은 'Venus in Domicile …' 처럼 전치사 'in' 이 붙어 온다 — 맨단어 규칙만 돌면
+    // 'Venus in at home' 이 됐다. 'in X' 를 먼저 통째로 평이어로 바꾼다.
+    .replace(/\bin Domicile\b/g, 'at home')
+    .replace(/\bin Exaltation\b/g, 'exalted')
+    .replace(/\bin Detriment\b/g, 'out of place')
+    .replace(/\bin Fall\b/g, 'weakened')
     .replace(/\bExaltation\b/g, 'at its best')
     .replace(/\bDomicile\b/g, 'at home')
     .replace(/\bDetriment\b/g, 'out of place')
