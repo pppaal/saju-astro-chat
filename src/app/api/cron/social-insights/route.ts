@@ -8,11 +8,7 @@
 
 import { NextResponse } from 'next/server'
 import { logger } from '@/lib/logger'
-import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
-import { extractLocale } from '@/lib/api/middleware'
-import { rateLimit } from '@/lib/rateLimit'
-import { getClientIp } from '@/lib/request-ip'
-import { timingSafeCompare } from '@/lib/security/timingSafe'
+import { withCronAuth } from '@/lib/api/middleware/cronGuard'
 import { listDraftDates } from '@/lib/social/draftStore'
 import { insightsConfigured, refreshMetricsForDate } from '@/lib/social/insights'
 
@@ -22,30 +18,7 @@ export const maxDuration = 60
 
 const REFRESH_RECENT_DATES = 7
 
-function validateCronSecret(request: Request): boolean {
-  const authHeader = request.headers.get('authorization')
-  const cronSecret = process.env.CRON_SECRET
-  if (!cronSecret) {
-    logger.error('[Cron social-insights] CRON_SECRET not set - rejecting request')
-    return false
-  }
-  return timingSafeCompare(authHeader ?? '', `Bearer ${cronSecret}`)
-}
-
-async function handle(request: Request): Promise<NextResponse> {
-  const ip = getClientIp(request.headers)
-  const rl = await rateLimit(`cron:social-insights:${ip}`, { limit: 5, windowSeconds: 60 })
-  if (!rl.allowed) {
-    return createErrorResponse({
-      code: ErrorCodes.RATE_LIMITED,
-      locale: extractLocale(request),
-      route: 'cron/social-insights',
-    })
-  }
-  if (!validateCronSecret(request)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-
+async function handle(): Promise<NextResponse> {
   if (!insightsConfigured()) {
     return NextResponse.json({ success: true, skipped: 'not_configured' })
   }
@@ -70,9 +43,5 @@ async function handle(request: Request): Promise<NextResponse> {
   })
 }
 
-export async function GET(request: Request) {
-  return handle(request)
-}
-export async function POST(request: Request) {
-  return handle(request)
-}
+export const GET = withCronAuth('social-insights', handle)
+export const POST = GET
