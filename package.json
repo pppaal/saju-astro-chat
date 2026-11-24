@@ -109,7 +109,6 @@
     "mysql2": "^3.24.5"
   },
   "dependencies": {
-    "@ducanh2912/next-pwa": "^10.2.9",
     "@ffmpeg-installer/ffmpeg": "^1.1.0",
     "@prisma/adapter-pg": "^7.3.0",
     "@prisma/client": "^7.3.0",
@@ -178,10 +177,9 @@
     "@types/react-dom": "^19.2.3",
     "@types/tz-lookup": "^6.1.2",
     "@types/web-push": "^3.6.4",
-    "@typescript-eslint/eslint-plugin": "^8.45.0",
-    "@typescript-eslint/parser": "^8.45.0",
     "@vitest/coverage-v8": "^4.1.9",
     "autoprefixer": "^10.4.24",
+    "axe-core": "^4.11.1",
     "chalk": "^5.6.2",
     "cross-env": "^10.1.0",
     "eslint": "^9.39.2",
