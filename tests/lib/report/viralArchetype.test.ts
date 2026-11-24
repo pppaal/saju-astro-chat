@@ -2,10 +2,10 @@ import { describe, it, expect } from 'vitest'
 import {
   getArchetype,
   buildViralSummary,
-  pickHeadlineSibsin,
   ARCHETYPE_BY_STEM,
   PARTNER_BY_ELEMENT,
 } from '@/lib/report/viralArchetype'
+import { pickHeadlineSibsin } from '@/lib/report/crossType'
 
 const HANGUL = /[가-힣]/
 

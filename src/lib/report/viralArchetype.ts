@@ -4,6 +4,7 @@
  * 한자·전문용어 없이 평어로. ko/en 짝. IntegratedReport 의 ViralTopCard 가 소비.
  */
 import type { BiLabel } from './reportTypes'
+import { composeCrossTypeName, toStemHan } from './crossType'
 
 export interface Archetype {
   emoji: string
@@ -249,108 +250,18 @@ export function normalizeStrength(raw: string | null | undefined): StrengthState
   return 'balanced'
 }
 
-const STEM_KO_TO_HAN: Record<string, string> = {
-  갑: '甲',
-  을: '乙',
-  병: '丙',
-  정: '丁',
-  무: '戊',
-  기: '己',
-  경: '庚',
-  신: '辛',
-  임: '壬',
-  계: '癸',
-}
-
 /** 일간 글자(한자 甲 또는 한글 갑)로 유형을 찾는다. 매칭 없으면 null. */
 export function getArchetype(dayMaster: string): Archetype | null {
-  const key = ARCHETYPE_BY_STEM[dayMaster] ? dayMaster : STEM_KO_TO_HAN[dayMaster]
+  const key = toStemHan(dayMaster)
   return key ? (ARCHETYPE_BY_STEM[key] ?? null) : null
-}
-
-// 헤드라인 합성에 쓸 수 있는 십성 10종(정재·상관 등). count 키·라벨이 이 집합.
-const SIBSIN_NAMES = [
-  '비견',
-  '겁재',
-  '식신',
-  '상관',
-  '편재',
-  '정재',
-  '편관',
-  '정관',
-  '편인',
-  '정인',
-] as const
-
-/**
- * 헤드라인용 "주도 십성" 선택 — 바이럴 한 줄이 "완전 나"가 되려면 그 사람의
- * *정체*를 대표하는 십성이어야 한다. 일지(배우자궁) 십성은 관계 자리라 정체
- * 라벨엔 맞지 않으므로(C1), 명식 전체 십성 개수(count)의 최빈값을 쓴다.
- *   - count 최빈값이 2 이상이면 그것(정체를 지배하는 십성).
- *   - 동률이면 월간(월령 근접, 격국의 자리) 십성을 우선한다.
- *   - 지배(≥2)가 없으면(고른 명식) 월간 → 일지 십성 순으로 폴백.
- * 순수 함수 — 카운트 없으면(구데이터) 폴백만으로 동작, 매칭 없으면 null.
- */
-export function pickHeadlineSibsin(
-  count: Record<string, number> | null | undefined,
-  monthStemSibsin?: string | null,
-  dayBranchSibsin?: string | null
-): string | null {
-  if (count) {
-    let best: string | null = null
-    let bestN = 0
-    for (const n of SIBSIN_NAMES) {
-      const c = count[n] ?? 0
-      if (c > bestN || (c === bestN && c > 0 && n === monthStemSibsin)) {
-        bestN = c
-        best = n
-      }
-    }
-    if (best && bestN >= 2) return best
-  }
-  if (monthStemSibsin && (SIBSIN_NAMES as readonly string[]).includes(monthStemSibsin)) {
-    return monthStemSibsin
-  }
-  if (dayBranchSibsin && (SIBSIN_NAMES as readonly string[]).includes(dayBranchSibsin)) {
-    return dayBranchSibsin
-  }
-  return null
 }
 
 // ── 차트 합성 헤드라인 ─────────────────────────────────────────────────────
 // "완전 나"는 버킷 라벨이 아니라 그 사람만의 디테일에서 온다. 일간 archetype 을
 // 그 사람의 지배 십성(domSibsin)으로 합성해 헤드라인을 차트별로 가른다:
-//   name      = [십성 수식] + [일간 역할 명사]   (예: 판을 뒤집는 개척자)
+//   name      = [십성 수식] + [일간 역할 명사]   (예: 판을 뒤집는 개척자) — crossType.ts
 //   oneLiner  = [십성 결 한 줄] + [강약 결]
 //   edgeLine  = [십성 그림자 한 줄] — tension 이 있을 때만(없는 친화 차트엔 억지 X)
-
-// 일간 → 짧은 역할 명사(수식어가 앞에 붙어도 자연스럽게).
-const STEM_CORE: Record<string, BiLabel> = {
-  甲: { ko: '개척자', en: 'Trailblazer' },
-  乙: { ko: '생존가', en: 'Survivor' },
-  丙: { ko: '분위기메이커', en: 'Spark' },
-  丁: { ko: '장인', en: 'Craftsman' },
-  戊: { ko: '버팀목', en: 'Anchor' },
-  己: { ko: '살림꾼', en: 'Cultivator' },
-  庚: { ko: '승부사', en: 'Closer' },
-  辛: { ko: '완벽주의자', en: 'Perfectionist' },
-  壬: { ko: '자유인', en: 'Free Spirit' },
-  癸: { ko: '직관가', en: 'Seer' },
-}
-
-// 지배 십성 → 이름 수식어.
-const SIBSIN_MODIFIER: Record<string, BiLabel> = {
-  비견: { ko: '나란히 가는', en: 'shoulder-to-shoulder' },
-  겁재: { ko: '지지 않는', en: 'never-backing-down' },
-  식신: { ko: '여유로운', en: 'easygoing' },
-  상관: { ko: '판을 뒤집는', en: 'rule-bending' },
-  편재: { ko: '크게 굴리는', en: 'big-swinging' },
-  정재: { ko: '착실히 쌓는', en: 'steady-building' },
-  편관: { ko: '밀어붙이는', en: 'hard-charging' },
-  정관: { ko: '반듯한', en: 'straight-arrow' },
-  편인: { ko: '촉이 좋은', en: 'sharp-instinct' },
-  정인: { ko: '받쳐주는', en: 'steadying' },
-}
 
 // 지배 십성 → oneLiner 결 한 줄.
 const SIBSIN_LINE: Record<string, BiLabel> = {
@@ -479,11 +390,9 @@ export function buildViralSummary(input: {
   // 지배 십성이 사전에 있으면 합성, 없으면 일간 archetype 으로 폴백.
   const sib =
     input.dominantSibsin && SIBSIN_LINE[input.dominantSibsin] ? input.dominantSibsin : null
-  const stemHan = ARCHETYPE_BY_STEM[input.dayMaster]
-    ? input.dayMaster
-    : STEM_KO_TO_HAN[input.dayMaster]
-  const core = stemHan ? STEM_CORE[stemHan] : null
-  const name = sib && core ? `${SIBSIN_MODIFIER[sib][lang]} ${core[lang]}` : a.name[lang]
+  const stemHan = toStemHan(input.dayMaster)
+  // 사주 타입 이름 — crossType 이 단일 소스(사주 카드·Life 와 같은 이름). 없으면 archetype.
+  const name = (sib ? composeCrossTypeName(input.dayMaster, sib, lang) : null) ?? a.name[lang]
   const baseLine = sib ? SIBSIN_LINE[sib][lang] : a.oneLiner[lang]
   // 둘째 문장(tempo) — 지배 십성이 있으면 일간 오행×강약(15종, 직교축)으로, 없으면
   // 첫 문장이 archetype 이라 오행 tempo 와 겹칠 수 있어 강약 폴백(3종)만 쓴다.

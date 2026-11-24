@@ -72,11 +72,8 @@ import PlanetDetail from './detail/PlanetDetail'
 import HouseDetail from './detail/HouseDetail'
 import AspectDetail from './detail/AspectDetail'
 import ViralTopCard from './viral/ViralTopCard'
-import {
-  buildViralSummary,
-  normalizeStrength,
-  pickHeadlineSibsin,
-} from '@/lib/report/viralArchetype'
+import { buildViralSummary, normalizeStrength } from '@/lib/report/viralArchetype'
+import { pickHeadlineSibsin } from '@/lib/report/crossType'
 import { ShareReportButton } from './viral/ShareReportButton'
 
 export type { Lang } from '@/lib/report/integratedReportLabels'
