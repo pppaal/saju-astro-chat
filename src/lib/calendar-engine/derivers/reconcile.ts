@@ -150,6 +150,11 @@ export interface MonthVerdict {
   cautionN: number
   avoidN: number
   totalN: number
+  /**
+   * 평온(Calm) 날 수 = totalN − goodN − cautionN − avoidN (중간 밴드). 표면마다
+   * 따로 빼다 어긋나지 않게 여기서 한 번만 센다(음수는 0 으로).
+   */
+  calmN: number
 }
 
 /**
@@ -176,5 +181,6 @@ export function reconcileMonthTone(counts: MonthCounts): MonthVerdict {
           : 'volatile'
   const shareTone: MonthShareTone =
     tone === 'good' ? 'bright' : tone === 'care' ? 'careful' : tone === 'flat' ? 'steady' : 'mixed'
-  return { tone, shareTone, goodN, careN, cautionN, avoidN, totalN }
+  const calmN = Math.max(0, totalN - goodN - cautionN - avoidN)
+  return { tone, shareTone, goodN, careN, cautionN, avoidN, totalN, calmN }
 }
