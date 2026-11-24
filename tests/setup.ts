@@ -41,6 +41,13 @@ vi.mock('@/lib/auth/nextAuth', () => ({
 
 vi.mock('server-only', () => ({}))
 
+// next/font/local 은 Next 빌드의 SWC 변환이 호출을 폰트 객체로 바꿔 주는데,
+// vitest 엔 그 변환이 없어 모듈이 비어 있다(default 가 undefined → 호출 시 크래시).
+// v9 폰트(src/app/fonts/v9.ts)를 끌어오는 V9Root 등을 렌더해도 안전하도록 고정 목.
+vi.mock('next/font/local', () => ({
+  default: () => ({ className: 'f', variable: 'v', style: { fontFamily: 'f' } }),
+}))
+
 // Export mock session utilities for tests to configure
 export const mockUseSession = vi.fn(() => mockSession)
 export const setMockSession = (session: {
