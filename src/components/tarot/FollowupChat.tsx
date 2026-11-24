@@ -12,7 +12,10 @@ import ChatBubbleContent from '@/components/chat/ChatBubbleContent'
 import { useChatAutoScroll } from '@/hooks/useChatAutoScroll'
 import { useCreditModal } from '@/contexts/CreditModalContext'
 import { useRequireLogin } from '@/contexts/LoginModalContext'
-import type { ReadingResponse, InterpretationResult } from '../../../types'
+import type {
+  ReadingResponse,
+  InterpretationResult,
+} from '@/app/tarot/[categoryName]/[spreadId]/types'
 
 const ClarifierCardModal = dynamic(() => import('@/components/tarot/ClarifierCardModal'), {
   ssr: false,

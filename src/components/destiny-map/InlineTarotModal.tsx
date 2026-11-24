@@ -21,10 +21,7 @@ import type {
 // dynamic — 인라인 모달 자체가 lazy 인데 그 안의 클래리파이어 모달까지
 // 이중으로 lazy 로 펴기 위함.
 const FollowupChat = dynamic(
-  () =>
-    import('@/app/tarot/[categoryName]/[spreadId]/components/stages/ResultsStage/FollowupChat').then(
-      (m) => m.FollowupChat
-    ),
+  () => import('@/components/tarot/FollowupChat').then((m) => m.FollowupChat),
   { ssr: false }
 )
 

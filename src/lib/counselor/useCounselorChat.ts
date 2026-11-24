@@ -36,10 +36,7 @@ import {
 } from '@/lib/chat/pendingTurn'
 import { savePendingChat, clearPendingChat } from '@/lib/chat/pendingChat'
 import { useRecoverOnResume } from '@/hooks/useRecoverOnResume'
-import {
-  generateFollowUpQuestions,
-  isGenericFollowUp,
-} from '@/components/destiny-map/chat-followups'
+import { generateFollowUpQuestions, isGenericFollowUp } from '@/lib/counselor/followups'
 
 /** 두 상담사 메시지 타입의 공통 분모 (destiny 는 id/streaming 도 사용). */
 export interface CounselorChatMessageBase {

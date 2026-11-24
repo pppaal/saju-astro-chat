@@ -1,7 +1,7 @@
-// src/components/destiny-map/chat-followups.ts
+// src/lib/counselor/followups.ts
 // Follow-up questions data extracted from Chat component
 
-import type { LangKey } from './chat-i18n'
+import type { Lang as LangKey } from '@/lib/i18n/bi'
 import { shuffle } from '@/lib/utils/array'
 
 type FollowUpsByTheme = {

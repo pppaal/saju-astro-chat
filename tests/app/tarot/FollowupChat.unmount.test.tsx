@@ -85,7 +85,7 @@ vi.mock('@/lib/tarot/tarot-storage', () => ({
   updateRestorePayloadFollowup: vi.fn(),
 }))
 
-import { FollowupChat } from '@/app/tarot/[categoryName]/[spreadId]/components/stages/ResultsStage/FollowupChat'
+import { FollowupChat } from '@/components/tarot/FollowupChat'
 
 const readingResult = {
   spread: {
