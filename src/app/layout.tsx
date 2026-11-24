@@ -68,6 +68,9 @@ const lora = localFont({
   preload: false,
 })
 
+// `themeColor` drives the mobile status bar / browser chrome tint. The v9 paper
+// routes (/, /destiny, /calendar) override it with their own `viewport` export.
+//
 // `interactiveWidget: 'resizes-content'` tells the browser to shrink the
 // layout viewport when the on-screen keyboard opens instead of pushing fixed
 // elements upward. Without this, iOS Safari shifts Toast/CreditDepletedModal
@@ -81,6 +84,7 @@ export const viewport: Viewport & { interactiveWidget?: string } = {
   userScalable: true,
   viewportFit: 'cover',
   interactiveWidget: 'resizes-content',
+  themeColor: '#07091a',
 }
 
 export const metadata: Metadata = {
@@ -227,19 +231,15 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   })
 
   return (
-    <html
-      lang={serverLocale}
-      data-theme="dark"
-      data-scroll-behavior="smooth"
-      style={{ colorScheme: 'dark', backgroundColor: '#07091a' }}
-    >
+    // 배경/color-scheme 은 globals.css 의 html 규칙에 있다(인라인 style 은
+    // html:has([data-surface='paper']) 규칙까지 이겨 v9 화면을 navy 로 덮는다).
+    <html lang={serverLocale} data-theme="dark" data-scroll-behavior="smooth">
       <head>
         <link rel="manifest" href="/manifest.json" />
         <link rel="apple-touch-icon" href="/logo/logo.png" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="apple-mobile-web-app-title" content="DestinyPal" />
-        <meta name="theme-color" content="#07091a" />
         <JsonLd data={websiteJsonLd} />
         <JsonLd data={organizationJsonLd} />
       </head>

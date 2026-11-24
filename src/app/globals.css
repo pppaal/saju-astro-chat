@@ -207,7 +207,18 @@ html {
   color-scheme: dark;
   scrollbar-gutter: stable;
   overflow-y: scroll;
-  background-color: #050714;
+  /* 예전 layout.tsx <html> 인라인 style(#07091a)을 옮겨 왔다 — 인라인은 아래
+     paper 규칙까지 이겨 버리므로 CSS 로 둔다. */
+  background-color: #07091a;
+}
+
+/* v9 paper 화면(V9Root 의 data-surface="paper")이 DOM 에 있는 동안만 html·body
+   배경(오버스크롤 바운스·body safe-area 패딩 영역)과 color-scheme 을 paper/light
+   로. :has 는 Safari 15.4+ — 구형 브라우저는 navy 띠가 남는다. */
+html:has([data-surface='paper']),
+html:has([data-surface='paper']) body {
+  background-color: #f3efe7;
+  color-scheme: light;
 }
 
 body {

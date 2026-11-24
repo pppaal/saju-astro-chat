@@ -4,23 +4,44 @@ import { test, expect } from '@playwright/test'
  * Dark mode and theme tests
  */
 
+// v9 paper 화면(/, /destiny, /calendar)은 V9Root(data-surface="paper")가 렌더되면
+// html:has([data-surface='paper']) 규칙으로 light color-scheme 이 된다. 다크 기본값은
+// 그 밖의 라우트에서만 검증한다.
+const NON_V9_ROUTES = ['/pricing', '/tarot']
+const V9_ROUTES = ['/', '/destiny', '/calendar']
+
 test.describe('Dark Mode Default', () => {
-  test('should have dark theme by default', async ({ page }) => {
-    await page.goto('/', { waitUntil: 'domcontentloaded' })
+  for (const route of NON_V9_ROUTES) {
+    test(`should have dark theme by default on ${route}`, async ({ page }) => {
+      await page.goto(route, { waitUntil: 'domcontentloaded' })
 
-    const dataTheme = await page.locator('html').getAttribute('data-theme')
-    expect(dataTheme).toBe('dark')
-  })
-
-  test('should have dark color scheme', async ({ page }) => {
-    await page.goto('/', { waitUntil: 'domcontentloaded' })
-
-    const colorScheme = await page.evaluate(() => {
-      return window.getComputedStyle(document.documentElement).colorScheme
+      const dataTheme = await page.locator('html').getAttribute('data-theme')
+      expect(dataTheme).toBe('dark')
     })
 
-    expect(colorScheme).toContain('dark')
-  })
+    test(`should have dark color scheme on ${route}`, async ({ page }) => {
+      await page.goto(route, { waitUntil: 'domcontentloaded' })
+
+      const colorScheme = await page.evaluate(() => {
+        return window.getComputedStyle(document.documentElement).colorScheme
+      })
+
+      expect(colorScheme).toContain('dark')
+    })
+  }
+
+  for (const route of V9_ROUTES) {
+    test(`color scheme on ${route} follows the paper surface`, async ({ page }) => {
+      await page.goto(route, { waitUntil: 'domcontentloaded' })
+
+      const { hasPaper, colorScheme } = await page.evaluate(() => ({
+        hasPaper: document.querySelector('[data-surface="paper"]') !== null,
+        colorScheme: window.getComputedStyle(document.documentElement).colorScheme,
+      }))
+
+      expect(colorScheme).toContain(hasPaper ? 'light' : 'dark')
+    })
+  }
 
   test('should have dark background color', async ({ page }) => {
     await page.goto('/', { waitUntil: 'domcontentloaded' })
