@@ -4,11 +4,8 @@ import { withSentryConfig } from '@sentry/nextjs'
 import bundleAnalyzer from '@next/bundle-analyzer'
 // 파일 경로: next.config.ts
 //
-// PWA(오프라인/푸시): 예전엔 @ducanh2912/next-pwa(withPWA)로 sw.js 를 생성했으나,
-// 이 프로젝트의 `next build` 는 Turbopack 으로 돌고 next-pwa 는 webpack 플러그인
-// 이라 아무 sw.js 도 생성되지 않았다(설정만 있고 무효). 실제 오프라인 폴백·웹
-// 푸시는 정적 통합 SW(public/push-sw.js)를 ServiceWorkerStabilityGuard 가 등록해
-// 처리한다. 오도를 유발하던 죽은 withPWA 래퍼/설정은 제거했다.
+// PWA(오프라인 폴백·웹 푸시)는 정적 통합 SW(public/push-sw.js)를
+// ServiceWorkerStabilityGuard 가 등록해 처리한다. 여기서 SW 를 만들지 않는다.
 
 import path from 'path'
 import type { Configuration } from 'webpack'
@@ -47,12 +44,9 @@ const nextConfig = {
       './node_modules/swisseph/build/Release/**/*.node',
       './public/ephe/**/*',
     ],
+    // Keys are matched as substrings of the route, so this covers
+    // /api/calendar/day (natal build via loadTierData) and its share routes.
     '/app/api/calendar': ['./node_modules/swisseph/build/Release/**/*.node', './public/ephe/**/*'],
-    '/app/api/past-life': ['./node_modules/swisseph/build/Release/**/*.node', './public/ephe/**/*'],
-    '/app/api/precompute-chart': [
-      './node_modules/swisseph/build/Release/**/*.node',
-      './public/ephe/**/*',
-    ],
     // Counselor routes pull astrology in too: compat through
     // buildAutoAstroContext, destiny realtime through runFortuneWithRaw,
     // tarot through cross-mode + couple-reading natal cross. These were
@@ -428,8 +422,7 @@ const nextConfig = {
   },
 }
 
-// Apply wrappers: Bundle Analyzer + Sentry. (PWA 는 withPWA 대신 정적
-// public/push-sw.js + ServiceWorkerStabilityGuard 로 처리 — 상단 주석 참조.)
+// Apply wrappers: Bundle Analyzer + Sentry.
 export default withBundleAnalyzer(
   withSentryConfig(nextConfig, {
     org: 'destinypal',
