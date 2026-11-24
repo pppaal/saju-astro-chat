@@ -9,9 +9,7 @@ const roots = [
   'OVERVIEW.md',
   'docs/README.md',
   'docs/RUNBOOK.md',
-  'docs/RAG_AND_GRAPHRAG.md',
   'docs/DESTINY_MATRIX.md',
-  'docs/PDF_REPORTING.md',
   'docs/TESTING_AND_GUARDRAILS.md',
 ];
 

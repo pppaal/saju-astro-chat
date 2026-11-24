@@ -24,7 +24,9 @@ Root should contain only:
 - platform and toolchain config
 - deployment manifests
 
-Historical writeups and refactor reports should live under `docs/archive/`, not in root.
+Historical writeups and refactor reports should not live in root. There is no in-repo
+archive: delete superseded docs and rely on git history (the old `docs/archive/` tree was
+removed on 2026-11-24).
 Top-level `data/` should not be used for mixed test inputs and generated output.
 
 ## Reports vs Artifacts
