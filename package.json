@@ -99,7 +99,6 @@
     "swisseph": {
       "node-gyp": "^10.0.1"
     },
-    "axios": "^1.18.1",
     "js-yaml": "^4.3.0",
     "brace-expansion": "^2.1.2",
     "fast-uri": "^3.1.4",
@@ -137,7 +136,6 @@
     "resend": "^6.9.1",
     "server-only": "^0.0.1",
     "stripe": "^19.3.1",
-    "swagger-ui-react": "^5.31.0",
     "swisseph": "^0.5.17",
     "tailwind-merge": "^3.4.0",
     "tz-lookup": "^6.1.25",

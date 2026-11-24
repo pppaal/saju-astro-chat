@@ -41,11 +41,6 @@ jobs:
           # 업스트림 패치가 아직 없어(fixAvailable=false) override 로 못 고치는
           # 취약점만 예외 등록한다. 새로 뜨는 "다른" high/critical 은 그대로 게이트를
           # 막으므로 게이트는 여전히 유효하다. 각 항목은 사유 명시:
-          #   swagger-ui-react: 내부 API 문서 뷰어(/api-docs) 전용. robots 차단,
-          #     공개 노출 없음. 패키지 전체가 flagged(range=*) 라 업스트림 수정본
-          #     자체가 없다.
-          #   immutable: 위 swagger-ui-react 가 유일하게 끌어오는 전이 의존성(3.8.3).
-          #     swagger 를 3.x 에 묶어 두므로 단독 상향 불가.
           #   next: 안정판(latest=16.2.11)이 아직 취약 범위(… - 16.3.0-canary.5) 안이라
           #     override 로 못 고친다 — 수정본은 16.3.0-preview.* 프리릴리스뿐이라
           #     결제·인증 프로덕션 앱을 preview 로 올리는 게 더 위험. 노출도: 프로덕션
@@ -66,9 +61,8 @@ jobs:
           #       핀한 8.4.31 로, next 상향 없이는 못 고친다(next 도 같은 이유로 예외).
           #     재점검: 각 부모(sentry·node-gyp)가 패치 의존성을 올린 릴리스를 내면 제거.
           #     (등록일 2026-07-26.)
-          # 재점검: swagger-ui-react 가 패치를 내거나 /api-docs 를 제거하면 · next 16.3.0
-          # 안정판이 나오면 해당 항목을 비운다. (등록일 2026-07-22.)
-          ALLOWLIST="swagger-ui-react immutable next \
+          # 재점검: next 16.3.0 안정판이 나오면 해당 항목을 비운다. (등록일 2026-07-22.)
+          ALLOWLIST="next \
             @sentry/nextjs @sentry/bundler-plugin-core @sentry/webpack-plugin \
             node-gyp cacache glob minimatch brace-expansion postcss"
 

@@ -14,7 +14,6 @@ export default function robots(): MetadataRoute.Robots {
     '/auth/',
     '/profile/',
     '/success/',
-    '/api-docs/',
     '/offline/',
     '/tarot/history/',
   ]
