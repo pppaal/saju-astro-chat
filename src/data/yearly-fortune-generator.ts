@@ -1,4 +1,6 @@
-import { BlogPost } from './blog-posts'
+// 타입만 — './blog-posts' 를 값으로 import 하면 blog-posts > blog-posts-sync >
+// seo-posts/dayPillarPosts > 이 파일 > blog-posts 순환이 생긴다.
+import type { BlogPost } from './blog-posts-sync'
 import { iga, waGwa } from '@/lib/i18n/koParticle'
 
 // 천간 (Heavenly Stems)

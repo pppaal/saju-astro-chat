@@ -2,7 +2,7 @@
  * Synchronous blog posts loader (for compatibility)
  *
  * This file provides synchronous access to blog posts by reading markdown files
- * at build time. For runtime async loading, use src/data/blog/loader.ts
+ * at build time. For runtime async loading on the client, use src/data/blogPostLoader.ts
  */
 import { readFileSync } from 'fs'
 import path from 'path'
