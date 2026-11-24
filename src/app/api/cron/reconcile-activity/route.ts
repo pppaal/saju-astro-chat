@@ -3,10 +3,7 @@ import { findOrphanedCharges } from '@/lib/credits/reconcileActivity'
 import { captureException } from '@/lib/telemetry'
 import { logger } from '@/lib/logger'
 import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
-import { extractLocale } from '@/lib/api/middleware'
-import { rateLimit } from '@/lib/rateLimit'
-import { getClientIp } from '@/lib/request-ip'
-import { timingSafeCompare } from '@/lib/security/timingSafe'
+import { withCronAuth } from '@/lib/api/middleware/cronGuard'
 
 // 과금↔활동 정합성 cron — "크레딧은 차감됐는데 그 활동 레코드가 없음"(고아 과금)을
 // *매일 자동*으로 스캔해, 발견 시 Sentry 로 실시간 알림한다. 이전엔 reconciliation
@@ -21,37 +18,9 @@ export const dynamic = 'force-dynamic'
 const SCAN_DAYS = 2
 const SETTLE_MS = 60 * 60 * 1000 // 1h
 
-// CRON_SECRET 인증 (reset-credits 와 동일 패턴 — timing-safe 비교).
-function validateCronSecret(request: Request): boolean {
-  const authHeader = request.headers.get('authorization')
-  const cronSecret = process.env.CRON_SECRET
-  if (!cronSecret) {
-    logger.error('[Cron] CRON_SECRET not set - rejecting request')
-    return false
-  }
-  return timingSafeCompare(authHeader ?? '', `Bearer ${cronSecret}`)
-}
-
-export async function GET(request: Request) {
+// 인증은 withCronAuth — IP 레이트리밋 → timing-safe CRON_SECRET (fail-closed).
+async function handle(): Promise<NextResponse> {
   try {
-    const ip = getClientIp(request.headers)
-    const rl = await rateLimit(`cron:reconcile-activity:${ip}`, { limit: 5, windowSeconds: 60 })
-    if (!rl.allowed) {
-      return createErrorResponse({
-        code: ErrorCodes.RATE_LIMITED,
-        locale: extractLocale(request),
-        route: 'cron/reconcile-activity',
-      })
-    }
-
-    if (!validateCronSecret(request)) {
-      return createErrorResponse({
-        code: ErrorCodes.UNAUTHORIZED,
-        locale: extractLocale(request),
-        route: 'cron/reconcile-activity',
-      })
-    }
-
     const now = Date.now()
     const since = new Date(now - SCAN_DAYS * 24 * 60 * 60 * 1000)
     const until = new Date(now - SETTLE_MS)
@@ -108,7 +77,6 @@ export async function GET(request: Request) {
   }
 }
 
+export const GET = withCronAuth('reconcile-activity', handle)
 // POST 도 지원 (일부 cron 서비스는 POST 사용).
-export async function POST(request: Request) {
-  return GET(request)
-}
+export const POST = GET

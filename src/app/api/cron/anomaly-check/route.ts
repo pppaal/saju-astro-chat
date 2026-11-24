@@ -5,7 +5,7 @@
 // 넘으면 자동으로 GitHub 이슈를 만들고(에러 자동수정 루프와 동일 채널) 로그·
 // 카운터를 남긴다. 같은 유저·같은 종류는 하루 한 번만(Redis 디듀프).
 //
-// 보안은 다른 cron 과 동일: IP 레이트리밋 → timing-safe CRON_SECRET.
+// 보안은 다른 cron 과 동일(withCronAuth): IP 레이트리밋 → timing-safe CRON_SECRET.
 // 임계값은 env(ANOMALY_*), 미설정 시 합리적 기본값. GitHub 미설정이면 로그만.
 // Vercel cron: 매시간 정각.
 
@@ -13,11 +13,7 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/logger'
 import { recordCounter } from '@/lib/metrics/index'
-import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
-import { extractLocale } from '@/lib/api/middleware'
-import { rateLimit } from '@/lib/rateLimit'
-import { getClientIp } from '@/lib/request-ip'
-import { timingSafeCompare } from '@/lib/security/timingSafe'
+import { withCronAuth } from '@/lib/api/middleware/cronGuard'
 import { cacheGet, cacheSet } from '@/lib/cache/redis-cache'
 import { createGithubIssue, isGithubAutofixConfigured } from '@/lib/ops/githubIssue'
 
@@ -33,15 +29,6 @@ function num(name: string, fallback: number): number {
 // 같은 유저·종류는 하루 한 번만 경보.
 const DEDUPE_TTL_SECONDS = 24 * 60 * 60
 const dedupeKey = (kind: string, userId: string, day: string) => `anomaly:${kind}:${userId}:${day}`
-
-function validateCronSecret(request: Request): boolean {
-  const cronSecret = process.env.CRON_SECRET
-  if (!cronSecret) {
-    logger.error('[Cron anomaly-check] CRON_SECRET not set - rejecting request')
-    return false
-  }
-  return timingSafeCompare(request.headers.get('authorization') ?? '', `Bearer ${cronSecret}`)
-}
 
 interface Breach {
   kind: 'consume' | 'free_grant'
@@ -98,20 +85,7 @@ async function alertBreach(
   return filed
 }
 
-async function handle(request: Request): Promise<NextResponse> {
-  const ip = getClientIp(request.headers)
-  const rl = await rateLimit(`cron:anomaly-check:${ip}`, { limit: 5, windowSeconds: 60 })
-  if (!rl.allowed) {
-    return createErrorResponse({
-      code: ErrorCodes.RATE_LIMITED,
-      locale: extractLocale(request),
-      route: 'cron/anomaly-check',
-    })
-  }
-  if (!validateCronSecret(request)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-
+async function handle(): Promise<NextResponse> {
   const windowHours = num('ANOMALY_WINDOW_HOURS', 24)
   const consumeThreshold = num('ANOMALY_CONSUME_THRESHOLD', 1000)
   const freeThreshold = num('ANOMALY_FREE_THRESHOLD', 500)
@@ -177,9 +151,5 @@ async function handle(request: Request): Promise<NextResponse> {
   })
 }
 
-export async function GET(request: Request) {
-  return handle(request)
-}
-export async function POST(request: Request) {
-  return handle(request)
-}
+export const GET = withCronAuth('anomaly-check', handle)
+export const POST = GET

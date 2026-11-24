@@ -35,6 +35,8 @@ const rel = (f: string) => relative(ROOT, f).replace(/\\/g, '/')
 // mutating handler(POST/PUT/PATCH/DELETE)를 export 하는가.
 const MUTATING = /export\s+(?:async\s+function|const)\s+(?:POST|PUT|PATCH|DELETE)\b/
 
+const CRON_GUARDED = { reason: 'cron — withCronAuth', requires: /\bwithCronAuth\(/ }
+
 // 의도적으로 withApiMiddleware 를 우회하는 라우트 — 각 항목은 그 라우트가 반드시
 // 포함해야 하는 보호 토큰(정규식)을 명시한다. 'disabled' 는 전 메서드가 404 를
 // 돌려주는 스텁이라 보호가 필요 없음을 뜻한다.
@@ -63,12 +65,14 @@ const HANDROLLED: Record<string, { reason: string; requires: RegExp }> = {
     reason: 'advanced 점성 — rateLimit+requirePublicToken 수동 조립',
     requires: /requirePublicToken/,
   },
-  // cron 라우트 — 전부 CRON_SECRET 로 인가(Vercel Cron/GitHub Actions 만 호출).
-  'src/app/api/cron/anomaly-check/route.ts': { reason: 'cron', requires: /CRON_SECRET/ },
+  // cron 라우트 — 전부 CRON_SECRET 로 인가(Vercel Cron 만 호출). withCronAuth
+  // (src/lib/api/middleware/cronGuard.ts)가 IP 레이트리밋 + timing-safe 비교를 한 곳에서.
+  'src/app/api/cron/anomaly-check/route.ts': CRON_GUARDED,
   'src/app/api/cron/ig-token-refresh/route.ts': { reason: 'cron', requires: /CRON_SECRET/ },
   'src/app/api/cron/indexnow/route.ts': { reason: 'cron', requires: /CRON_SECRET/ },
   'src/app/api/cron/keyday-push/route.ts': { reason: 'cron', requires: /CRON_SECRET/ },
-  'src/app/api/cron/reconcile-activity/route.ts': { reason: 'cron', requires: /CRON_SECRET/ },
+  'src/app/api/cron/reconcile-activity/route.ts': CRON_GUARDED,
+  'src/app/api/cron/reset-credits/route.ts': CRON_GUARDED,
   'src/app/api/cron/social-drafts/route.ts': { reason: 'cron', requires: /CRON_SECRET/ },
   'src/app/api/cron/social-insights/route.ts': { reason: 'cron', requires: /CRON_SECRET/ },
   'src/app/api/cron/social-publish/route.ts': { reason: 'cron', requires: /CRON_SECRET/ },
