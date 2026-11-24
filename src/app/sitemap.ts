@@ -71,13 +71,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.9,
     }),
     // /destiny-counselor 는 ENABLED_SERVICES(servicePages)에서 이미 내보냄
-    // 무료 퍼널 허브 — 소셜(인스타/쓰레드/유튜브) 유입의 착지점. 색인되어
-    // 검색에서도 "무료 타로/궁합" 의도로 들어오게 한다. priority 높게.
-    ...localizedEntries('/free', {
-      lastModified: currentDate,
-      changeFrequency: 'weekly',
-      priority: 0.9,
-    }),
+    // /free 는 홈으로 308 통합됐으므로 싣지 않는다(next.config.ts redirects).
     ...localizedEntries('/compatibility/free', {
       lastModified: currentDate,
       changeFrequency: 'weekly',

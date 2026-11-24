@@ -17,11 +17,16 @@ describe('sitemap — 언어별 URL 쌍', () => {
     expect(urls.has(`${BASE}/ko`)).toBe(true)
   })
 
-  it('무료 허브 등 주요 페이지도 /ko 변형을 가진다', () => {
-    expect(urls.has(`${BASE}/free`)).toBe(true)
-    expect(urls.has(`${BASE}/ko/free`)).toBe(true)
+  it('가격·무료 궁합 등 주요 페이지도 /ko 변형을 가진다', () => {
     expect(urls.has(`${BASE}/pricing`)).toBe(true)
     expect(urls.has(`${BASE}/ko/pricing`)).toBe(true)
+    expect(urls.has(`${BASE}/compatibility/free`)).toBe(true)
+    expect(urls.has(`${BASE}/ko/compatibility/free`)).toBe(true)
+  })
+
+  it('홈으로 308 통합된 /free 는 싣지 않는다(리다이렉트 URL 색인 방지)', () => {
+    expect(urls.has(`${BASE}/free`)).toBe(false)
+    expect(urls.has(`${BASE}/ko/free`)).toBe(false)
   })
 
   it('alternates 는 en/ko 가 서로 다른 URL 을 가리킨다', () => {

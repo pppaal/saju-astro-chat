@@ -294,6 +294,19 @@ const nextConfig = {
         destination: '/ko/tarot',
         permanent: false,
       },
+      // 무료 퍼널 허브 /free 는 홈(/)으로 통합 — 페이지를 지우고 308 로 흡수한다.
+      // 소셜 바이오·QR·푸시 링크의 쿼리(?s=…, ?lang=…)는 Next 가 그대로 넘긴다.
+      // /ko/free 는 proxy 리라이트보다 redirects 가 먼저 돌므로 /ko 로 따로 보낸다.
+      {
+        source: '/free',
+        destination: '/',
+        permanent: true,
+      },
+      {
+        source: '/ko/free',
+        destination: '/ko',
+        permanent: true,
+      },
       {
         source: '/:path*',
         has: [{ type: 'host', value: 'www.destinypal.com' }],
