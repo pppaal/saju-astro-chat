@@ -21,7 +21,7 @@ import {
   buildCounselorHref,
   buildReportBirthQuery,
   type StoredBirthInfo,
-} from './birthInfoStorage'
+} from '@/lib/birth/storage'
 import { parseHourMinute } from '@/lib/saju/timeParse'
 import { isBirthTimeUnknown } from '@/lib/saju/birthTimeAnchor'
 import HexDPLogo from '@/components/branding/HexDPLogo'

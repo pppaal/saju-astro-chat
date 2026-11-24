@@ -12,7 +12,7 @@ vi.mock('@/lib/auth/detectPWA', () => ({
   isStandalonePWA: () => pwaState.standalone,
 }))
 
-vi.mock('@/app/(main)/birthInfoStorage', () => ({
+vi.mock('@/lib/birth/storage', () => ({
   getStoredBirthInfo: () =>
     pwaState.birthDate
       ? { birthDate: pwaState.birthDate, birthTime: '08:00', gender: 'male' }

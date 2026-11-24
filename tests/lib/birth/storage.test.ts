@@ -3,12 +3,12 @@ import {
   getStoredBirthInfo,
   saveBirthInfo,
   clearBirthInfo,
-  buildBirthQuery,
+  buildReportBirthQuery,
   buildCounselorHref,
   normGender,
   timeToState,
   type StoredBirthInfo,
-} from '@/app/(main)/birthInfoStorage'
+} from '@/lib/birth/storage'
 
 const HOME_KEY = 'destinypal:birthInfo:v1'
 const PROFILE_KEY = 'destinypal_user_profile'
@@ -29,7 +29,7 @@ function base(
   }
 }
 
-describe('birthInfoStorage', () => {
+describe('lib/birth/storage', () => {
   beforeEach(() => {
     window.localStorage.clear()
   })
@@ -184,70 +184,84 @@ describe('birthInfoStorage', () => {
     })
   })
 
-  describe('buildBirthQuery', () => {
-    it('returns empty string for null', () => {
-      expect(buildBirthQuery(null)).toBe('')
+  describe('buildReportBirthQuery', () => {
+    // 리포트·캘린더·운명 페이지 스키마(date/time/lat/lng/tz/gender/name/place).
+    // 상담사 스키마(buildCounselorHref)와 섞이면 안 된다.
+    it('returns only lang for null info', () => {
+      expect(buildReportBirthQuery(null, 'ko')).toBe('lang=ko')
+      expect(buildReportBirthQuery(null, 'en')).toBe('lang=en')
     })
 
-    it('builds a full query with all fields', () => {
+    it('builds the report schema with all fields', () => {
       const info: StoredBirthInfo = { ...base(), savedAt: '2020-01-01T00:00:00.000Z' }
-      const qs = buildBirthQuery(info)
-      const p = new URLSearchParams(qs)
-      expect(p.get('name')).toBe('Alice')
-      expect(p.get('birthDate')).toBe('1990-05-21')
-      expect(p.get('birthTime')).toBe('14:30')
-      expect(p.get('gender')).toBe('F')
-      expect(p.get('birthCity')).toBe('Seoul, KR')
+      const p = new URLSearchParams(buildReportBirthQuery(info, 'en'))
+      expect(p.get('lang')).toBe('en')
+      expect(p.get('date')).toBe('1990-05-21')
+      expect(p.get('time')).toBe('14:30')
       expect(p.get('lat')).toBe('37.5665')
-      expect(p.get('lon')).toBe('126.978')
-      expect(p.get('timeZone')).toBe('Asia/Seoul')
-      // birthTimeUnknown not set → absent
-      expect(p.get('birthTimeUnknown')).toBeNull()
+      expect(p.get('lng')).toBe('126.978')
+      expect(p.get('tz')).toBe('Asia/Seoul')
+      expect(p.get('gender')).toBe('female')
+      expect(p.get('name')).toBe('Alice')
+      expect(p.get('place')).toBe('Seoul, KR')
+      // legacy entry (no explicit flag) → no tu param
+      expect(p.get('tu')).toBeNull()
+      // counselor-schema keys never leak in
+      expect(p.get('birthDate')).toBeNull()
+      expect(p.get('lon')).toBeNull()
+      expect(p.get('timeZone')).toBeNull()
     })
 
-    it('maps male gender to M', () => {
+    it('keeps a real midnight birth (explicit flag false) and sends tu=0', () => {
       const info: StoredBirthInfo = {
-        ...base({ gender: 'male' }),
+        ...base({ birthTime: '00:00', birthTimeUnknown: false }),
         savedAt: '2020-01-01T00:00:00.000Z',
       }
-      const p = new URLSearchParams(buildBirthQuery(info))
-      expect(p.get('gender')).toBe('M')
+      const p = new URLSearchParams(buildReportBirthQuery(info, 'ko'))
+      expect(p.get('time')).toBe('00:00')
+      expect(p.get('tu')).toBe('0')
     })
 
-    it('sets birthTimeUnknown=1 only when flag is true', () => {
-      const info: StoredBirthInfo = {
+    it('omits time for unknown birth time (flag true or legacy 00:00)', () => {
+      const flagged: StoredBirthInfo = {
         ...base({ birthTimeUnknown: true }),
         savedAt: '2020-01-01T00:00:00.000Z',
       }
-      const p = new URLSearchParams(buildBirthQuery(info))
-      expect(p.get('birthTimeUnknown')).toBe('1')
-    })
+      const pf = new URLSearchParams(buildReportBirthQuery(flagged, 'ko'))
+      expect(pf.get('time')).toBeNull()
+      expect(pf.get('tu')).toBe('1')
 
-    it('omits optional fields when absent', () => {
-      const info: StoredBirthInfo = {
-        birthDate: '1990-05-21',
-        birthTime: '14:30',
-        gender: 'female',
+      const legacy: StoredBirthInfo = {
+        ...base({ birthTime: '00:00' }),
         savedAt: '2020-01-01T00:00:00.000Z',
       }
-      const p = new URLSearchParams(buildBirthQuery(info))
-      expect(p.get('name')).toBeNull()
-      expect(p.get('birthCity')).toBeNull()
-      expect(p.get('lat')).toBeNull()
-      expect(p.get('lon')).toBeNull()
-      expect(p.get('timeZone')).toBeNull()
-      // required fields still present
-      expect(p.get('birthDate')).toBe('1990-05-21')
+      const pl = new URLSearchParams(buildReportBirthQuery(legacy, 'ko'))
+      expect(pl.get('time')).toBeNull()
+      expect(pl.get('tu')).toBeNull()
     })
 
-    it('emits lat/lon when coordinates are 0 (typeof number, not falsy)', () => {
-      const info: StoredBirthInfo = {
+    it('emits lat/lng when coordinates are 0 and omits absent optionals', () => {
+      const zero: StoredBirthInfo = {
         ...base({ latitude: 0, longitude: 0 }),
         savedAt: '2020-01-01T00:00:00.000Z',
       }
-      const p = new URLSearchParams(buildBirthQuery(info))
-      expect(p.get('lat')).toBe('0')
-      expect(p.get('lon')).toBe('0')
+      const pz = new URLSearchParams(buildReportBirthQuery(zero, 'ko'))
+      expect(pz.get('lat')).toBe('0')
+      expect(pz.get('lng')).toBe('0')
+
+      const bare: StoredBirthInfo = {
+        birthDate: '1990-05-21',
+        birthTime: '14:30',
+        gender: 'male',
+        savedAt: '2020-01-01T00:00:00.000Z',
+      }
+      const pb = new URLSearchParams(buildReportBirthQuery(bare, 'ko'))
+      expect(pb.get('gender')).toBe('male')
+      expect(pb.get('name')).toBeNull()
+      expect(pb.get('place')).toBeNull()
+      expect(pb.get('lat')).toBeNull()
+      expect(pb.get('lng')).toBeNull()
+      expect(pb.get('tz')).toBeNull()
     })
   })
 
@@ -286,6 +300,26 @@ describe('birthInfoStorage', () => {
       const p = new URLSearchParams(buildCounselorHref(info, 'hi', 'en').split('?')[1])
       expect(p.get('gender')).toBe('M')
       expect(p.get('birthTimeUnknown')).toBe('1')
+    })
+
+    it('sends birthTimeUnknown=0 for an explicit known time (real midnight)', () => {
+      const info: StoredBirthInfo = {
+        ...base({ birthTime: '00:00', birthTimeUnknown: false }),
+        savedAt: '2020-01-01T00:00:00.000Z',
+      }
+      const p = new URLSearchParams(buildCounselorHref(info, 'q', 'ko').split('?')[1])
+      expect(p.get('birthTime')).toBe('00:00')
+      expect(p.get('birthTimeUnknown')).toBe('0')
+    })
+
+    it('emits lat/lon when coordinates are 0 (typeof number, not falsy)', () => {
+      const info: StoredBirthInfo = {
+        ...base({ latitude: 0, longitude: 0 }),
+        savedAt: '2020-01-01T00:00:00.000Z',
+      }
+      const p = new URLSearchParams(buildCounselorHref(info, 'q', 'ko').split('?')[1])
+      expect(p.get('lat')).toBe('0')
+      expect(p.get('lon')).toBe('0')
     })
 
     it('omits optional coordinates/city when absent', () => {
@@ -361,6 +395,12 @@ describe('birthInfoStorage', () => {
       expect(normGender('other')).toBe('')
       expect(normGender(123)).toBe('')
       expect(normGender('남')).toBe('')
+    })
+
+    it('trims surrounding whitespace like the shared normalizeGender', () => {
+      expect(normGender(' F ')).toBe('female')
+      expect(normGender('MALE')).toBe('male')
+      expect(normGender('prefer_not')).toBe('')
     })
   })
 

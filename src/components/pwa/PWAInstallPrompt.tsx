@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useI18n } from '@/i18n/I18nProvider'
 import { isStandalonePWA } from '@/lib/auth/detectPWA'
-import { getStoredBirthInfo } from '@/app/(main)/birthInfoStorage'
+import { getStoredBirthInfo } from '@/lib/birth/storage'
 
 /**
  * "앱으로 설치하기" 안내 배너.

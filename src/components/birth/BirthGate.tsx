@@ -7,7 +7,7 @@ import {
   getStoredBirthInfo,
   buildReportBirthQuery,
   type StoredBirthInfo,
-} from '@/app/(main)/birthInfoStorage'
+} from '@/lib/birth/storage'
 
 /**
  * 로그인 없이 열람 가능한 생일 기반 페이지(통합 리포트·운흐름 캘린더·운명)가

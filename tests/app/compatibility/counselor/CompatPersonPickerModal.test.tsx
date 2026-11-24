@@ -68,7 +68,7 @@ vi.mock('@/i18n/I18nProvider', () => ({
   }),
 }))
 
-vi.mock('@/app/(main)/birthInfoStorage', () => ({
+vi.mock('@/lib/birth/storage', () => ({
   getStoredBirthInfo: vi.fn(() => null),
   normGender: (g: unknown) => (g === 'M' ? 'male' : g === 'F' ? 'female' : ''),
   timeToState: (raw: unknown) => ({ birthTime: String(raw ?? ''), timeUnknown: false }),

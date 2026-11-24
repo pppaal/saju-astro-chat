@@ -126,7 +126,7 @@ vi.mock('@/components/ui/AppHeader', () => ({
 
 const mockGetStoredBirthInfo = vi.fn(() => null as any)
 const mockBuildCounselorHref = vi.fn(() => '/counselor?x=1')
-vi.mock('@/app/(main)/birthInfoStorage', () => ({
+vi.mock('@/lib/birth/storage', () => ({
   getStoredBirthInfo: () => mockGetStoredBirthInfo(),
   saveBirthInfo: vi.fn(),
   buildCounselorHref: (...args: any[]) => mockBuildCounselorHref(...args),

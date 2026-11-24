@@ -50,7 +50,7 @@ vi.mock('@/lib/saju/saju', () => ({
 
 // localStorage seed for profile fallback. Default: nothing stored.
 let mockStoredBirthInfo: Record<string, unknown> | null = null
-vi.mock('@/app/(main)/birthInfoStorage', () => ({
+vi.mock('@/lib/birth/storage', () => ({
   getStoredBirthInfo: () => mockStoredBirthInfo,
 }))
 

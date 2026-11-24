@@ -7,7 +7,7 @@
  * 미지정(레거시)이면 기존 휴리스틱('00:00'/빈값 = 미상)으로 폴백한다.
  */
 import { describe, it, expect } from 'vitest'
-import { timeToState } from '@/app/(main)/birthInfoStorage'
+import { timeToState } from '@/lib/birth/storage'
 
 describe('timeToState — tri-state', () => {
   it("레거시(플래그 미지정): 빈값/'00:00' 은 미상", () => {

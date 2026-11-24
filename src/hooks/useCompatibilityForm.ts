@@ -3,7 +3,7 @@ import { getUserTimezone } from '@/lib/saju/timezone'
 import { formatCityForDropdown, localizeStoredCity } from '@/lib/cities/formatter'
 import type { PersonForm, CityItem, Relation } from '@/app/compatibility/lib'
 import { makeEmptyPerson, getLatestPair } from '@/app/compatibility/lib'
-import { getStoredBirthInfo } from '@/app/(main)/birthInfoStorage'
+import { getStoredBirthInfo } from '@/lib/birth/storage'
 import { isBirthTimeUnknown } from '@/lib/saju/birthTimeAnchor'
 
 export function useCompatibilityForm(initialCount: number = 2, locale: 'ko' | 'en' = 'ko') {

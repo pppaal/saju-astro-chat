@@ -9,7 +9,7 @@ import type { Lang, ChartData, UserContext, CounselorContextResponse } from '@/t
 import { logger } from '@/lib/logger'
 import { withSpan } from '@/lib/telemetry'
 import { apiFetch } from '@/lib/api/client'
-import { getStoredBirthInfo } from '@/app/(main)/birthInfoStorage'
+import { getStoredBirthInfo } from '@/lib/birth/storage'
 
 type SearchParams = Record<string, string | string[] | undefined>
 const DEFAULT_LATITUDE = 37.5665

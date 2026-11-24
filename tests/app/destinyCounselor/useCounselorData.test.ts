@@ -47,7 +47,7 @@ vi.mock('@/lib/cache/chartDataCache', () => ({
 vi.mock('@/lib/saju/saju', () => ({ calculateSajuData: vi.fn(() => ({})) }))
 
 let mockStoredBirthInfo: Record<string, unknown> | null = null
-vi.mock('@/app/(main)/birthInfoStorage', () => ({
+vi.mock('@/lib/birth/storage', () => ({
   getStoredBirthInfo: () => mockStoredBirthInfo,
 }))
 

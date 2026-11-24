@@ -5,8 +5,11 @@
  * localStorage so they don't have to retype it across services.
  *
  * Used by:
- *   - The home page chat input ("@사주 추가" button)
- *   - The home recommendation chips (deeplinks pre-fill from this)
+ *   - BirthInfoModal (components/birth) — save / delete / prefill
+ *   - BirthGate — redirects a birth-gated page with the stored info
+ *   - Home deep links (buildReportBirthQuery) and the counselor entry
+ *     (buildCounselorHref)
+ *   - Compatibility forms and the counselor data hook — prefill "me"
  *
  * IMPORTANT: this module mirrors every write/clear into the canonical
  * `destinypal_user_profile` storage (see `src/lib/userProfile.ts`) so
@@ -22,6 +25,7 @@ import {
   type UserProfile,
 } from '@/lib/userProfile'
 import { isBirthTimeUnknown, resolveBirthTimeAnchor } from '@/lib/saju/birthTimeAnchor'
+import { normalizeGender } from '@/lib/utils/gender'
 
 export interface StoredBirthInfo {
   name?: string // 표시 이름 — 운명상담사/타로/궁합에 매핑
@@ -136,33 +140,10 @@ export function clearBirthInfo(): void {
   }
 }
 
-/** Build a query string with birth info to deep-link a service prefilled. */
-export function buildBirthQuery(info: StoredBirthInfo | null): string {
-  if (!info) return ''
-  const params = new URLSearchParams()
-  if (info.name) params.set('name', info.name)
-  params.set('birthDate', info.birthDate)
-  params.set('birthTime', info.birthTime)
-  params.set('gender', info.gender === 'male' ? 'M' : 'F')
-  if (info.city) params.set('birthCity', info.city)
-  // tri-state 보존: 명시 boolean 이면 '1'/'0' 로 싣는다 — '0'(앎)이 빠지면
-  // 실제 자정 출생('00:00')이 수신측 휴리스틱에서 "시간 모름"으로 오분류된다.
-  // 레거시(undefined)는 생략 → 수신측이 휴리스틱으로 판정.
-  if (typeof info.birthTimeUnknown === 'boolean')
-    params.set('birthTimeUnknown', info.birthTimeUnknown ? '1' : '0')
-  // useCounselorData reads sp.lat/sp.lon/sp.timeZone — without these it
-  // falls back to Seoul coords + the browser's current tz, so the hour
-  // pillar and houses come out wrong for anyone not in Asia/Seoul.
-  if (typeof info.latitude === 'number') params.set('lat', String(info.latitude))
-  if (typeof info.longitude === 'number') params.set('lon', String(info.longitude))
-  if (info.timeZone) params.set('timeZone', info.timeZone)
-  return params.toString()
-}
-
 /**
  * Birth query for the report/calendar/destiny pages. These read a DIFFERENT
  * param schema than the counselor (`date`/`time`/`lat`/`lng`/`tz` +
- * `gender=male|female`), so buildBirthQuery (counselor schema) must NOT be
+ * `gender=male|female`), so buildCounselorHref (counselor schema) must NOT be
  * reused here. Single source for MainPageClient's deep-links AND the
  * BirthGate redirect so the two can't drift. Empty info → just `lang`.
  */
@@ -213,7 +194,9 @@ export function buildCounselorHref(
   params.set('gender', info.gender === 'male' ? 'M' : 'F')
   // useCounselorData reads `city` (the redirect used to translate birthCity→city).
   if (info.city) params.set('city', info.city)
-  // tri-state 보존 — buildBirthQuery 와 동일('0' 이 실제 자정 출생을 지킨다).
+  // tri-state 보존: 명시 boolean 이면 '1'/'0' 로 싣는다 — '0'(앎)이 빠지면
+  // 실제 자정 출생('00:00')이 수신측 휴리스틱에서 "시간 모름"으로 오분류된다.
+  // 레거시(undefined)는 생략 → 수신측이 휴리스틱으로 판정.
   if (typeof info.birthTimeUnknown === 'boolean')
     params.set('birthTimeUnknown', info.birthTimeUnknown ? '1' : '0')
   if (typeof info.latitude === 'number') params.set('lat', String(info.latitude))
@@ -232,12 +215,14 @@ export function buildCounselorHref(
 // 옮길 때 똑같이 쓰던 두 함수. 'F'(한 글자) 매칭 누락 같은 회귀가 한쪽에만
 // 생기지 않도록 단일 출처로 둔다.
 
-/** 다양한 gender 표기를 폼 상태('male'|'female'|'') 로 정규화. */
+/**
+ * 다양한 gender 표기를 폼 상태('male'|'female'|'') 로 정규화. 판정은 공용
+ * normalizeGender(@/lib/utils/gender) 에 맡기고, 남/녀가 아니거나 문자열이
+ * 아니면 폼 기본값 '' (미선택)으로 둔다.
+ */
 export function normGender(g: unknown): 'male' | 'female' | '' {
-  const v = String(g ?? '').toLowerCase()
-  if (v === 'female' || v === 'f') return 'female'
-  if (v === 'male' || v === 'm') return 'male'
-  return ''
+  const n = normalizeGender(typeof g === 'string' ? g : undefined)
+  return n === 'male' || n === 'female' ? n : ''
 }
 
 /**

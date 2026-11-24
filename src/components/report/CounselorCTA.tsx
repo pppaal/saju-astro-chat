@@ -9,11 +9,7 @@
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { Sparkles } from 'lucide-react'
-import {
-  getStoredBirthInfo,
-  buildCounselorHref,
-  type StoredBirthInfo,
-} from '@/app/(main)/birthInfoStorage'
+import { getStoredBirthInfo, buildCounselorHref, type StoredBirthInfo } from '@/lib/birth/storage'
 import { trackFunnel, type FunnelEvent } from '@/lib/metrics/trackFunnel'
 
 interface CounselorCTAProps {

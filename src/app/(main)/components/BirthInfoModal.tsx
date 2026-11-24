@@ -10,7 +10,7 @@ import {
   normGender,
   timeToState,
   type StoredBirthInfo,
-} from '../birthInfoStorage'
+} from '@/lib/birth/storage'
 import { BirthInfoFields, type BirthFieldsPatch } from '@/components/birth/BirthInfoFields'
 import { useFocusTrap } from '@/hooks/useFocusTrap'
 import { josa } from '@/lib/utils/josa'
