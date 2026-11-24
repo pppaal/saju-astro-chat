@@ -94,7 +94,6 @@ export default defineConfig({
         'src/app/**/components/**',
         // App-level client features (NOT API routes) — covered by E2E
         'src/app/global-error.tsx',
-        'src/app/(main)/serviceConfig.ts',
         'src/app/about/**',
         'src/app/admin/refunds/**',
         'src/app/blog/**',
