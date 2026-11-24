@@ -37,6 +37,27 @@ const API_BARREL_PATHS = [
   },
 ]
 
+// 레이어링 — 공유 계층(lib · components · hooks)은 라우트 폴더(app/)를, lib 은 UI
+// (components/)를 런타임 import 하지 않는다. 공유 모듈이 라우트 폴더에 살면 라우트
+// 개편(예: 홈 재작성)이 BirthGate·상담사 같은 다른 화면을 깨뜨린다.
+// - '@typescript-eslint/no-restricted-imports' 를 쓴다: 위 core 'no-restricted-imports'
+//   블록들과 규칙 ID 가 달라 flat config 덮어쓰기가 일어나지 않고, allowTypeImports 로
+//   타입 전용 import(컴파일 시 지워짐)는 허용한다.
+// - app/fonts/* 는 예외: next/font 정의(app/fonts/v9.ts)는 폰트 변수만 내보내는 자산
+//   레지스트리이고 V9Root(components/v9/server)가 쓴다.
+const NO_APP_IMPORT_PATTERN = {
+  regex: '^@/app/(?!fonts/)',
+  allowTypeImports: true,
+  message:
+    "lib/components/hooks 에서 라우트 폴더('@/app/*') 런타임 import 금지 — 공유 모듈은 src/lib·src/components 로 옮기세요(타입 전용 import 는 허용).",
+}
+const NO_COMPONENTS_IMPORT_PATTERN = {
+  regex: '^@/components/',
+  allowTypeImports: true,
+  message:
+    "src/lib 에서 UI('@/components/*') 런타임 import 금지 — 순수 로직·데이터는 src/lib 로 옮기세요(타입 전용 import 는 허용).",
+}
+
 const TAROT_FULL_DECK_PATHS = [
   {
     name: '@/lib/tarot/data',
@@ -305,6 +326,48 @@ const config = [
         'error',
         {
           paths: [...TAROT_FULL_DECK_PATHS, ...RAW_NATAL_CHART_PATHS, ...API_BARREL_PATHS],
+        },
+      ],
+    },
+  },
+  {
+    // 레이어링: components · hooks → app 금지 (NO_APP_IMPORT_PATTERN 주석 참조).
+    files: ['src/components/**/*.{ts,tsx}', 'src/hooks/**/*.{ts,tsx}'],
+    rules: {
+      '@typescript-eslint/no-restricted-imports': ['error', { patterns: [NO_APP_IMPORT_PATTERN] }],
+    },
+  },
+  {
+    // 레이어링: lib → app, lib → components 금지.
+    files: ['src/lib/**/*.{ts,tsx}'],
+    rules: {
+      '@typescript-eslint/no-restricted-imports': [
+        'error',
+        { patterns: [NO_APP_IMPORT_PATTERN, NO_COMPONENTS_IMPORT_PATTERN] },
+      ],
+    },
+  },
+  {
+    // 임시 예외(lib → components) — app 금지는 유지한다. 옮기면 여기서 지울 것.
+    // - astrology/localization.ts: 행성·별자리 라벨을 components/astrology/constants
+    //   에서 가져온다. 라벨 SSOT 정리(R5)가 미뤄져 있어 그때 lib 로 옮긴다.
+    // - push/keyDay.ts: components/calendar/adapters/toDay 의 순수 함수를 쓴다.
+    //   adapters 를 src/lib/calendar-view 로 옮기는 단계(D4a)에서 해소된다.
+    files: ['src/lib/astrology/localization.ts', 'src/lib/push/keyDay.ts'],
+    rules: {
+      '@typescript-eslint/no-restricted-imports': ['error', { patterns: [NO_APP_IMPORT_PATTERN] }],
+    },
+  },
+  {
+    // 임시 예외(hooks → app) — 궁합 폼 헬퍼(makeEmptyPerson·getLatestPair)가 아직
+    // app/compatibility/lib 에 있다. 그 모듈 하나만 허용하고 나머지 app 금지는 유지.
+    // 헬퍼를 src/lib/compatibility 로 옮기면 이 블록을 지울 것.
+    files: ['src/hooks/useCompatibilityForm.ts'],
+    rules: {
+      '@typescript-eslint/no-restricted-imports': [
+        'error',
+        {
+          patterns: [{ ...NO_APP_IMPORT_PATTERN, regex: '^@/app/(?!fonts/|compatibility/lib$)' }],
         },
       ],
     },
