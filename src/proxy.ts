@@ -104,13 +104,23 @@ function buildCsp(nonce: string, allowEval = false): string {
   return `${_cspStaticPrefix}; ${scriptSrc}; ${_cspStaticSuffix}`
 }
 
+// 삭제된 서비스 prefix(/saju) 아래에서도 살아있는 공개 SEO 페이지 — 60갑자
+// 일주 사전과 십성 사전. sitemap.ts 가 이 URL 들을 광고하므로 홈 리다이렉트에서
+// 제외한다. 그 외 /saju, /saju/result, /saju/counselor 등은 계속 홈으로 보낸다.
+const LIVE_PATHS_UNDER_REMOVED_PREFIXES: readonly string[] = ['/saju/ilju', '/saju/sibsin']
+
+function isUnderPath(pathname: string, base: string): boolean {
+  return pathname === base || pathname.startsWith(`${base}/`)
+}
+
 function isBlockedServicePath(pathname: string): boolean {
   if (pathname.startsWith('/api/')) {
     return false
   }
-  return REMOVED_PUBLIC_SERVICE_PREFIXES.some(
-    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`)
-  )
+  if (LIVE_PATHS_UNDER_REMOVED_PREFIXES.some((base) => isUnderPath(pathname, base))) {
+    return false
+  }
+  return REMOVED_PUBLIC_SERVICE_PREFIXES.some((prefix) => isUnderPath(pathname, prefix))
 }
 
 // ── Locale detection ──
