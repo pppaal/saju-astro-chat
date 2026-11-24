@@ -369,7 +369,7 @@ function ctaPathFor(category: SocialCategory): string {
     case 'zodiac':
       return '/fortune'
     default:
-      return '/free'
+      return '/'
   }
 }
 

@@ -187,7 +187,7 @@ export default async function ZodiacFortunePage({ params }: Props) {
             <Link href="/calendar" style={{ color: '#a9833b', fontWeight: 600 }}>
               {isKo ? '📅 내 사주로 정확하게 보기 →' : '📅 My full-chart day reading →'}
             </Link>
-            <Link href="/free" style={{ color: '#a9833b', fontWeight: 600 }}>
+            <Link href="/" style={{ color: '#a9833b', fontWeight: 600 }}>
               {isKo ? '✨ 무료 도구 전체 →' : '✨ All free tools →'}
             </Link>
           </p>

@@ -33,12 +33,12 @@ function winbackPayload(locale: 'ko' | 'en', now: Date): PushPayload {
         {
           title: '오늘의 타로 한 장 🔮',
           body: '오랜만이에요. 오늘 당신을 위한 카드가 기다려요.',
-          url: '/free',
+          url: '/',
         },
         {
           title: '요즘 흐름이 궁금하다면 🌙',
           body: '무료로 오늘의 운세와 큰 날을 다시 확인해보세요.',
-          url: '/free',
+          url: '/',
         },
         {
           title: '궁합이 궁금한 사람 있나요? 💞',
@@ -50,12 +50,12 @@ function winbackPayload(locale: 'ko' | 'en', now: Date): PushPayload {
         {
           title: 'Your card for today 🔮',
           body: 'It’s been a while — a card is waiting for you.',
-          url: '/free',
+          url: '/',
         },
         {
           title: 'Curious about your flow? 🌙',
           body: 'Check today’s fortune and key days, free.',
-          url: '/free',
+          url: '/',
         },
         {
           title: 'Someone on your mind? 💞',

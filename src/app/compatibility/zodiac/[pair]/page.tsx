@@ -216,7 +216,7 @@ export default async function ZodiacCompatPage({ params }: Props) {
             <Link href="/compatibility/free" style={{ color: '#a9833b', fontWeight: 700 }}>
               {isKo ? '💕 우리 진짜 궁합 무료로 보기 →' : '💕 Our real compatibility, free →'}
             </Link>
-            <Link href="/free" style={{ color: '#a9833b', fontWeight: 600 }}>
+            <Link href="/" style={{ color: '#a9833b', fontWeight: 600 }}>
               {isKo ? '✨ 무료 도구 전체 →' : '✨ All free tools →'}
             </Link>
           </p>

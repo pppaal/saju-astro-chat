@@ -584,7 +584,7 @@ export default async function SharedReadingPage({ params }: PageProps) {
 
           <div style={{ marginTop: 44 }}>
             <Link
-              href="/free"
+              href="/"
               style={{
                 display: 'inline-block',
                 padding: '15px 30px',
@@ -939,7 +939,7 @@ export default async function SharedReadingPage({ params }: PageProps) {
 
           <div style={{ marginTop: 40 }}>
             <Link
-              href="/free"
+              href="/"
               style={{
                 display: 'inline-block',
                 padding: '15px 30px',
@@ -1093,7 +1093,7 @@ export default async function SharedReadingPage({ params }: PageProps) {
 
           <div style={{ marginTop: 40 }}>
             <Link
-              href="/free"
+              href="/"
               style={{
                 display: 'inline-block',
                 padding: '15px 30px',

@@ -185,7 +185,7 @@ export function ShareTarotButton({ data: shareData, language, body }: ShareTarot
   const onClickShare = async () => {
     setError(null)
     // 캡처 전에 QR 을 먼저 만들어 카드에 실어 보낸다(다음 렌더에 포함되게).
-    setQrDataUrl(await makeShareQr('/free?s=card'))
+    setQrDataUrl(await makeShareQr('/?s=card'))
     setPhase('rendering')
   }
 

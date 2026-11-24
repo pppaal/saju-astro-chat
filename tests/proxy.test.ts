@@ -243,21 +243,21 @@ describe('proxy — /ko 경로 프리픽스 (한국어 고유 URL)', () => {
   })
 
   it('/ko 하위 경로는 스트립된 실제 경로로 리라이트한다', () => {
-    const res = proxy(req('/ko/free', { headers: { accept: 'text/html' } }))
-    expect(res.headers.get('x-middleware-rewrite')).toContain('/free')
+    const res = proxy(req('/ko/pricing', { headers: { accept: 'text/html' } }))
+    expect(res.headers.get('x-middleware-rewrite')).toContain('/pricing')
     expect(res.headers.get('x-middleware-rewrite')).not.toContain('/ko/')
     expect(res.headers.get('Content-Language')).toBe('ko')
   })
 
   it('accept 가 text/html 이 아니어도 /ko 는 리라이트된다(크롤러 대응)', () => {
-    const res = proxy(req('/ko/free', { headers: { accept: '*/*' } }))
-    expect(res.headers.get('x-middleware-rewrite')).toContain('/free')
+    const res = proxy(req('/ko/pricing', { headers: { accept: '*/*' } }))
+    expect(res.headers.get('x-middleware-rewrite')).toContain('/pricing')
     expect(res.headers.get('Content-Language')).toBe('ko')
   })
 
   it('en 쿠키가 있어도 /ko URL 이 우선하고 쿠키를 ko 로 갱신한다', () => {
     const res = proxy(
-      req('/ko/free', { headers: { accept: 'text/html' }, cookies: { locale: 'en' } })
+      req('/ko/pricing', { headers: { accept: 'text/html' }, cookies: { locale: 'en' } })
     )
     expect(res.headers.get('Content-Language')).toBe('ko')
     expect(res.cookies.get('locale')?.value).toBe('ko')
@@ -265,7 +265,7 @@ describe('proxy — /ko 경로 프리픽스 (한국어 고유 URL)', () => {
 
   it('쿠키가 이미 ko 면 다시 굽지 않는다', () => {
     const res = proxy(
-      req('/ko/free', { headers: { accept: 'text/html' }, cookies: { locale: 'ko' } })
+      req('/ko/pricing', { headers: { accept: 'text/html' }, cookies: { locale: 'ko' } })
     )
     expect(res.headers.get('Content-Language')).toBe('ko')
     expect(res.cookies.get('locale')).toBeUndefined()
