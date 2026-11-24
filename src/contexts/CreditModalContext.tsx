@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from 'react'
 import CreditDepletedModal from '@/components/ui/CreditDepletedModal'
-import { CREDIT_MODAL_EVENT, type CreditModalKind } from '@/lib/api/ApiClient'
+import { CREDIT_MODAL_EVENT, type CreditModalKind } from '@/lib/api/client'
 
 interface CreditModalContextType {
   showDepleted: () => void
@@ -67,9 +67,7 @@ export function CreditModalProvider({ children }: { children: ReactNode }) {
   }, [showDepleted])
 
   return (
-    <CreditModalContext.Provider
-      value={{ showDepleted, showLowCredits, checkAndShowModal }}
-    >
+    <CreditModalContext.Provider value={{ showDepleted, showLowCredits, checkAndShowModal }}>
       {children}
       <CreditDepletedModal
         isOpen={isOpen}

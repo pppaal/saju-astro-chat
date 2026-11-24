@@ -12,7 +12,7 @@ import { useSession } from 'next-auth/react'
 import { Sparkles, Layers, X, MoonStar, ChevronRight, ChevronDown } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useI18n } from '@/i18n/I18nProvider'
-import { apiFetch } from '@/lib/api'
+import { apiFetch } from '@/lib/api/client'
 import { savePendingChat, loadPendingChat, clearPendingChat } from '@/lib/chat/pendingChat'
 import {
   DECK_STYLES,

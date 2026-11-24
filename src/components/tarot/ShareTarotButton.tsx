@@ -11,7 +11,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import * as htmlToImage from 'html-to-image'
 import { Share2, Download, Loader2, X, Link2, Check } from 'lucide-react'
-import { apiFetch } from '@/lib/api'
+import { apiFetch } from '@/lib/api/client'
 import { tarotLogger } from '@/lib/logger'
 import { makeShareQr } from '@/lib/share/qr'
 import { TarotShareCard, SHARE_CARD_SIZE, type ShareCardData } from './TarotShareCard'

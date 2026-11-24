@@ -13,7 +13,7 @@
 import { useCallback, useRef, useState } from 'react'
 import { useSession } from 'next-auth/react'
 import { Gift, Check, Loader2 } from 'lucide-react'
-import { apiFetch } from '@/lib/api'
+import { apiFetch } from '@/lib/api/client'
 import { trackFunnel } from '@/lib/metrics/trackFunnel'
 import { logger } from '@/lib/logger'
 import { REFERRER_CREDITS, REFEREE_CREDITS } from '@/lib/referral/rewards'

@@ -12,7 +12,7 @@ import { render, fireEvent, act } from '@testing-library/react'
 let abortedSignals = 0
 let resolveFetch: ((value: unknown) => void) | null = null
 
-vi.mock('@/lib/api', () => ({
+vi.mock('@/lib/api/client', () => ({
   apiFetch: vi.fn((_url: string, init?: RequestInit) => {
     const signal = init?.signal
     return new Promise((resolve, reject) => {

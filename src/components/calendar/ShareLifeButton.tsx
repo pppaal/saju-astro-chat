@@ -15,7 +15,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import * as htmlToImage from 'html-to-image'
 import { Share2, Check, Loader2, Users, Camera, Download, X } from 'lucide-react'
-import { apiFetch } from '@/lib/api'
+import { apiFetch } from '@/lib/api/client'
 import { trackFunnel } from '@/lib/metrics/trackFunnel'
 import { logger } from '@/lib/logger'
 import { LifeShareCard, LIFE_CARD_SIZE } from './LifeShareCard'

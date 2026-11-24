@@ -19,7 +19,7 @@
 //  패턴이 달라 단일 함수로 못 묶는 대신, 만족해야 할 불변식을 한 곳에서 강제한다.)
 //
 // 차감 라우트 목록은 src/lib/credits/chargingRoutes.ts(CHARGING_ROUTES)가 단일 출처다 —
-// 클라이언트 잔액 갱신(ApiClient)과 이 가드가 같은 목록을 본다. 완전성 가드가
+// 클라이언트 잔액 갱신(@/lib/api/client 의 apiFetch)과 이 가드가 같은 목록을 본다. 완전성 가드가
 // consumeCredits/checkAndConsumeCredits 를 *호출하는* route.ts 를 AST 로 전수 수집해
 // 목록과 정확히 일치하는지 강제하므로, 새 차감 라우트를 목록에 빠뜨리면 CI 가 잡는다.
 import { describe, it, expect } from 'vitest'

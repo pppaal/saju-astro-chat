@@ -1,6 +1,6 @@
 'use client'
 
-import { apiFetch } from '@/lib/api'
+import { apiFetch } from '@/lib/api/client'
 import { tarotThemes } from '@/lib/tarot/tarot-spreads-data'
 
 /**

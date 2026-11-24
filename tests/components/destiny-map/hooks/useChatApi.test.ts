@@ -27,7 +27,7 @@ vi.mock('@/contexts/CreditModalContext', () => ({
 
 // --- apiFetch (warm call + request) ------------------------------------
 const mockApiFetch = vi.fn()
-vi.mock('@/lib/api', () => ({
+vi.mock('@/lib/api/client', () => ({
   apiFetch: (...args: unknown[]) => mockApiFetch(...args),
 }))
 

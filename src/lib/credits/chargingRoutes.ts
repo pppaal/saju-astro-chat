@@ -1,7 +1,7 @@
 // src/lib/credits/chargingRoutes.ts
 //
 // 크레딧을 실제로 차감(실패 시 환불)하는 내부 API 라우트 — 단일 출처(SSOT).
-//  - 클라이언트: apiFetch(@/lib/api/ApiClient)가 이 apiPath 로 보낸 POST 응답을 받으면
+//  - 클라이언트: apiFetch(@/lib/api/client)가 이 apiPath 로 보낸 POST 응답을 받으면
 //    잔액 위젯 갱신 신호(CREDIT_UPDATE_EVENT)를 쏜다.
 //  - 가드: tests/paid-routes-money-guards.test.ts 가 file 의 소스를 읽어 환불 경로를
 //    강제하고, consumeCredits/checkAndConsumeCredits 를 부르는 route.ts 가 전부 이

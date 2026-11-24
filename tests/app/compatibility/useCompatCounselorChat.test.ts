@@ -47,7 +47,7 @@ vi.mock('@/lib/chat/pendingChat', () => ({
 }))
 
 const mockApiFetch = vi.fn()
-vi.mock('@/lib/api', () => ({
+vi.mock('@/lib/api/client', () => ({
   apiFetch: (...a: any[]) => mockApiFetch(...a),
 }))
 

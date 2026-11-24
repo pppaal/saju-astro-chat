@@ -25,7 +25,7 @@ vi.mock('next-auth/react', () => ({
 }))
 
 const apiFetch = vi.fn()
-vi.mock('@/lib/api', () => ({
+vi.mock('@/lib/api/client', () => ({
   apiFetch: (...args: unknown[]) => apiFetch(...args),
 }))
 

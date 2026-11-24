@@ -15,7 +15,7 @@ vi.mock('@/i18n/I18nProvider', () => ({
 }))
 
 const apiFetchMock = vi.fn()
-vi.mock('@/lib/api', () => ({
+vi.mock('@/lib/api/client', () => ({
   apiFetch: (...args: unknown[]) => apiFetchMock(...args),
 }))
 

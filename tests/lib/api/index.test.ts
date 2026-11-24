@@ -1,18 +1,18 @@
 // tests/lib/api/index.test.ts
-import { describe, it, expect } from 'vitest';
-import * as apiIndex from '../../../src/lib/api';
+import { describe, it, expect } from 'vitest'
+import * as apiIndex from '../../../src/lib/api'
 
 describe('lib/api/index - Module Exports', () => {
   describe('Error Handler Exports', () => {
     it('should export createErrorResponse function', () => {
-      expect(apiIndex.createErrorResponse).toBeDefined();
-      expect(typeof apiIndex.createErrorResponse).toBe('function');
-    });
+      expect(apiIndex.createErrorResponse).toBeDefined()
+      expect(typeof apiIndex.createErrorResponse).toBe('function')
+    })
 
     it('should export createSuccessResponse function', () => {
-      expect(apiIndex.createSuccessResponse).toBeDefined();
-      expect(typeof apiIndex.createSuccessResponse).toBe('function');
-    });
+      expect(apiIndex.createSuccessResponse).toBeDefined()
+      expect(typeof apiIndex.createSuccessResponse).toBe('function')
+    })
 
     // Removed exports (refactored or deprecated):
     //   withErrorHandler, validateFields, validateDestinyMapInput,
@@ -22,207 +22,110 @@ describe('lib/api/index - Module Exports', () => {
     // the live exports.
 
     it('should export ErrorCodes constant', () => {
-      expect(apiIndex.ErrorCodes).toBeDefined();
-      expect(typeof apiIndex.ErrorCodes).toBe('object');
-    });
-  });
+      expect(apiIndex.ErrorCodes).toBeDefined()
+      expect(typeof apiIndex.ErrorCodes).toBe('object')
+    })
+  })
 
-  describe('Zod Schema Exports', () => {
-    it('should export LocaleSchema', () => {
-      expect(apiIndex.LocaleSchema).toBeDefined();
-    });
+  describe('Validator Exports', () => {
+    it('should export ChatMessageSchema and ChatMessagesSchema', () => {
+      expect(apiIndex.ChatMessageSchema).toBeDefined()
+      expect(apiIndex.ChatMessagesSchema).toBeDefined()
+    })
+  })
 
-    it('should export DateStringSchema', () => {
-      expect(apiIndex.DateStringSchema).toBeDefined();
-    });
-
-    it('should export TimeStringSchema', () => {
-      expect(apiIndex.TimeStringSchema).toBeDefined();
-    });
-
-    it('should export TimezoneSchema', () => {
-      expect(apiIndex.TimezoneSchema).toBeDefined();
-    });
-
-    it('should export BirthDataSchema', () => {
-      expect(apiIndex.BirthDataSchema).toBeDefined();
-    });
-
-    it('should export GenderSchema', () => {
-      expect(apiIndex.GenderSchema).toBeDefined();
-    });
-
-    it('should export DestinyMapRequestSchema', () => {
-      expect(apiIndex.DestinyMapRequestSchema).toBeDefined();
-    });
-
-    it('should export TarotInterpretRequestSchema', () => {
-      expect(apiIndex.TarotInterpretRequestSchema).toBeDefined();
-    });
-
-    it('should export DreamRequestSchema', () => {
-      expect(apiIndex.DreamRequestSchema).toBeDefined();
-    });
-
-    it('should export IChingReadingRequestSchema', () => {
-      expect(apiIndex.IChingReadingRequestSchema).toBeDefined();
-    });
-
-    it('should export FeedbackRequestSchema', () => {
-      expect(apiIndex.FeedbackRequestSchema).toBeDefined();
-    });
-
-    it('should export ConsultationThemeSchema', () => {
-      expect(apiIndex.ConsultationThemeSchema).toBeDefined();
-    });
-
-    it('should export ApiErrorSchema', () => {
-      expect(apiIndex.ApiErrorSchema).toBeDefined();
-    });
-
-    it('should export ApiSuccessSchema', () => {
-      expect(apiIndex.ApiSuccessSchema).toBeDefined();
-    });
-
-    it('should export ApiFailureSchema', () => {
-      expect(apiIndex.ApiFailureSchema).toBeDefined();
-    });
-
-    it('should export ApiResponseSchema', () => {
-      expect(apiIndex.ApiResponseSchema).toBeDefined();
-    });
-
-    it('should export parseBody helper', () => {
-      expect(apiIndex.parseBody).toBeDefined();
-      expect(typeof apiIndex.parseBody).toBe('function');
-    });
-
-    it('should export safeParseBody helper', () => {
-      expect(apiIndex.safeParseBody).toBeDefined();
-      expect(typeof apiIndex.safeParseBody).toBe('function');
-    });
-
-    it('should export LIMITS constant', () => {
-      expect(apiIndex.LIMITS).toBeDefined();
-      expect(typeof apiIndex.LIMITS).toBe('object');
-    });
-  });
-
-  describe('API Client Exports', () => {
-    it('should export apiFetch function', () => {
-      expect(apiIndex.apiFetch).toBeDefined();
-      expect(typeof apiIndex.apiFetch).toBe('function');
-    });
-
-    it('should export ApiClient class', () => {
-      expect(apiIndex.ApiClient).toBeDefined();
-      expect(typeof apiIndex.ApiClient).toBe('function');
-    });
-
-    it('should export apiClient instance', () => {
-      expect(apiIndex.apiClient).toBeDefined();
-    });
-
-    it('should export createApiClient function', () => {
-      expect(apiIndex.createApiClient).toBeDefined();
-      expect(typeof apiIndex.createApiClient).toBe('function');
-    });
-  });
+  // 배럴은 서버 전용 — apiFetch/크레딧 이벤트는 @/lib/api/client 에서만 import 한다.
+  describe('Server-only barrel', () => {
+    it('should not export the client fetch wrapper or the removed ApiClient', () => {
+      const keys = Object.keys(apiIndex)
+      for (const name of [
+        'apiFetch',
+        'CREDIT_MODAL_EVENT',
+        'CREDIT_UPDATE_EVENT',
+        'ApiClient',
+        'apiClient',
+        'createApiClient',
+      ]) {
+        expect(keys).not.toContain(name)
+      }
+    })
+  })
 
   describe('Sanitizer Exports', () => {
     it('should export isRecord function', () => {
-      expect(apiIndex.isRecord).toBeDefined();
-      expect(typeof apiIndex.isRecord).toBe('function');
-    });
+      expect(apiIndex.isRecord).toBeDefined()
+      expect(typeof apiIndex.isRecord).toBe('function')
+    })
 
     it('should export cleanStringArray function', () => {
-      expect(apiIndex.cleanStringArray).toBeDefined();
-      expect(typeof apiIndex.cleanStringArray).toBe('function');
-    });
+      expect(apiIndex.cleanStringArray).toBeDefined()
+      expect(typeof apiIndex.cleanStringArray).toBe('function')
+    })
 
     it('should export normalizeMessages function', () => {
-      expect(apiIndex.normalizeMessages).toBeDefined();
-      expect(typeof apiIndex.normalizeMessages).toBe('function');
-    });
+      expect(apiIndex.normalizeMessages).toBeDefined()
+      expect(typeof apiIndex.normalizeMessages).toBe('function')
+    })
 
     it('should export sanitizeString function', () => {
-      expect(apiIndex.sanitizeString).toBeDefined();
-      expect(typeof apiIndex.sanitizeString).toBe('function');
-    });
+      expect(apiIndex.sanitizeString).toBeDefined()
+      expect(typeof apiIndex.sanitizeString).toBe('function')
+    })
 
     it('should export sanitizeNumber function', () => {
-      expect(apiIndex.sanitizeNumber).toBeDefined();
-      expect(typeof apiIndex.sanitizeNumber).toBe('function');
-    });
+      expect(apiIndex.sanitizeNumber).toBeDefined()
+      expect(typeof apiIndex.sanitizeNumber).toBe('function')
+    })
 
     it('should export sanitizeBoolean function', () => {
-      expect(apiIndex.sanitizeBoolean).toBeDefined();
-      expect(typeof apiIndex.sanitizeBoolean).toBe('function');
-    });
+      expect(apiIndex.sanitizeBoolean).toBeDefined()
+      expect(typeof apiIndex.sanitizeBoolean).toBe('function')
+    })
 
     it('should export sanitizeHtml function', () => {
-      expect(apiIndex.sanitizeHtml).toBeDefined();
-      expect(typeof apiIndex.sanitizeHtml).toBe('function');
-    });
+      expect(apiIndex.sanitizeHtml).toBeDefined()
+      expect(typeof apiIndex.sanitizeHtml).toBe('function')
+    })
 
     it('should export sanitizeEnum function', () => {
-      expect(apiIndex.sanitizeEnum).toBeDefined();
-      expect(typeof apiIndex.sanitizeEnum).toBe('function');
-    });
-  });
+      expect(apiIndex.sanitizeEnum).toBeDefined()
+      expect(typeof apiIndex.sanitizeEnum).toBe('function')
+    })
+  })
 
   describe('Module Integrity', () => {
     it('should have no undefined exports', () => {
-      const keys = Object.keys(apiIndex);
-      keys.forEach(key => {
-        expect(apiIndex[key as keyof typeof apiIndex]).toBeDefined();
-      });
-    });
+      const keys = Object.keys(apiIndex)
+      keys.forEach((key) => {
+        expect(apiIndex[key as keyof typeof apiIndex]).toBeDefined()
+      })
+    })
 
-    it('should export at least 30 items', () => {
-      const keys = Object.keys(apiIndex);
-      expect(keys.length).toBeGreaterThanOrEqual(30);
-    });
+    it('should export the server helpers (error handler, sanitizers, chat schemas)', () => {
+      const keys = Object.keys(apiIndex)
+      expect(keys.length).toBeGreaterThanOrEqual(14)
+    })
 
     it('should not export internal implementation details', () => {
-      const keys = Object.keys(apiIndex);
-      const internalPrefixes = ['_', '__'];
-      keys.forEach(key => {
-        const hasInternalPrefix = internalPrefixes.some(prefix => key.startsWith(prefix));
-        expect(hasInternalPrefix).toBe(false);
-      });
-    });
-  });
+      const keys = Object.keys(apiIndex)
+      const internalPrefixes = ['_', '__']
+      keys.forEach((key) => {
+        const hasInternalPrefix = internalPrefixes.some((prefix) => key.startsWith(prefix))
+        expect(hasInternalPrefix).toBe(false)
+      })
+    })
+  })
 
   describe('Type Exports', () => {
     it('should have ErrorCode type available', () => {
       // Type check - if this compiles, the type is exported
-      const _typeCheck: apiIndex.ErrorCode = 'UNAUTHORIZED';
-      expect(_typeCheck).toBeDefined();
-    });
+      const _typeCheck: apiIndex.ErrorCode = 'UNAUTHORIZED'
+      expect(_typeCheck).toBeDefined()
+    })
 
-    it('should have Locale type available', () => {
-      const _typeCheck: apiIndex.Locale = 'ko';
-      expect(_typeCheck).toBeDefined();
-    });
-
-    it('should have Gender type available', () => {
-      const _typeCheck: apiIndex.Gender = 'male';
-      expect(_typeCheck).toBeDefined();
-    });
-
-    it('should have BirthData type available', () => {
-      const _typeCheck: apiIndex.BirthData = {
-        year: 1990,
-        month: 1,
-        date: 1,
-        hour: 12,
-        minute: 0,
-        latitude: 37.5,
-        longitude: 127.0,
-        timezone: 'Asia/Seoul',
-      };
-      expect(_typeCheck).toBeDefined();
-    });
-  });
-});
+    it('should have ChatMessage type available', () => {
+      const _typeCheck: apiIndex.ChatMessage = { role: 'user', content: 'hi' }
+      expect(_typeCheck).toBeDefined()
+    })
+  })
+})

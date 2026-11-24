@@ -12,7 +12,7 @@ import type { TarotQuestionAnalysisSnapshot } from '@/lib/tarot/questionFlow'
 import { Spread, DrawnCard, DeckStyle } from '@/lib/tarot/tarot.types'
 import { buildTarotSaveRequest, flattenTarotGuidance } from '@/lib/tarot/tarot-save-request'
 import { saveReading, formatReadingForSave } from '@/lib/tarot/tarot-storage'
-import { apiFetch, type ApiFetchOptions } from '@/lib/api'
+import { apiFetch, type ApiFetchOptions } from '@/lib/api/client'
 import { tarotLogger } from '@/lib/logger'
 import {
   extractPartialOverall,

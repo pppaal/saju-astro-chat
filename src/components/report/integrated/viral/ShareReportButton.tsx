@@ -13,7 +13,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import * as htmlToImage from 'html-to-image'
 import { Share2, Download, Loader2, X, Link2, Check } from 'lucide-react'
-import { apiFetch } from '@/lib/api'
+import { apiFetch } from '@/lib/api/client'
 import { trackFunnel } from '@/lib/metrics/trackFunnel'
 import { logger } from '@/lib/logger'
 import { ReportShareCard, SHARE_CARD_SIZE, type ReportShareData } from './ReportShareCard'

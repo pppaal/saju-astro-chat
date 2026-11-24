@@ -1,5 +1,5 @@
 // src/lib/validation/index.ts
-// Re-export all validation utilities
+// Re-export the pattern-based validation utilities
 
 // Pattern-based validation (legacy, for backward compatibility)
 export {
@@ -24,54 +24,7 @@ export {
   validateMessages,
   // Types
   type BirthInfoValidation,
-} from "./patterns";
+} from './patterns'
 
-// Zod-based validation (recommended)
-export {
-  // Core validators
-  
-  
-  
-  
-  
-  
-  // Common schemas
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  // Composite schemas
-  
-  
-  
-  // Service-specific schemas
-  
-  
-  
-  
-  
-  
-  
-  
-  // Types
-  type ValidationError,
-  type ValidationResult,
-  type Locale,
-  type BirthData,
-  type Pagination,
-  type DestinyMapRequest,
-  type TarotRequest,
-  type TarotInterpretRequest,
-  type DreamRequest,
-  type IChingRequest,
-  type CalendarQuery,
-  type CompatibilityRequest,
-  type FeedbackRequest,
-  // Zod re-export
-  
-} from "@/lib/api/validator";
+// Zod-based request schemas live in @/lib/api/validator and @/lib/api/zodValidation
+// (server-side); this module only exposes the dependency-free patterns.

@@ -8,7 +8,7 @@ import { loadChartData, saveChartData } from '@/lib/cache/chartDataCache'
 import type { Lang, ChartData, UserContext, CounselorContextResponse } from '@/types/api'
 import { logger } from '@/lib/logger'
 import { withSpan } from '@/lib/telemetry'
-import { apiFetch } from '@/lib/api'
+import { apiFetch } from '@/lib/api/client'
 import { getStoredBirthInfo } from '@/app/(main)/birthInfoStorage'
 
 type SearchParams = Record<string, string | string[] | undefined>

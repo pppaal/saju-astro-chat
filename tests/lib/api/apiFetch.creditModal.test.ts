@@ -3,7 +3,7 @@
 // 붙이지 않아도 동일하게 안내가 뜬다 — 이 동작의 회귀 가드.
 
 import { describe, it, expect, vi, afterEach } from 'vitest'
-import { apiFetch, CREDIT_MODAL_EVENT } from '@/lib/api/ApiClient'
+import { apiFetch, CREDIT_MODAL_EVENT } from '@/lib/api/client'
 
 function mockFetchOnce(status: number, headers: Record<string, string> = {}) {
   vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('', { status, headers })))

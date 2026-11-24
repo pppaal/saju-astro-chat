@@ -11,7 +11,7 @@
 
 import { useCallback, useRef, useState } from 'react'
 import { Share2, Check, Loader2 } from 'lucide-react'
-import { apiFetch } from '@/lib/api'
+import { apiFetch } from '@/lib/api/client'
 import { logger } from '@/lib/logger'
 
 export interface CalendarShareData {

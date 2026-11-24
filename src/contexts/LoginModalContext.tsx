@@ -1,16 +1,9 @@
 'use client'
 
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useState,
-  type ReactNode,
-} from 'react'
+import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react'
 import { useSession } from 'next-auth/react'
 import LoginRequiredModal from '@/components/auth/LoginRequiredModal'
-import { CREDIT_MODAL_EVENT } from '@/lib/api/ApiClient'
+import { CREDIT_MODAL_EVENT } from '@/lib/api/client'
 
 interface LoginModalContextType {
   // 로그인 모달을 띄운다. callbackUrl 을 주면 로그인 후 그 경로로 복귀.
@@ -73,8 +66,12 @@ export function useRequireLogin() {
   const { showLogin } = useLoginModal()
   return useCallback(
     (callbackUrl?: string): boolean => {
-      if (status === 'authenticated') {return true}
-      if (status === 'unauthenticated') {showLogin(callbackUrl)}
+      if (status === 'authenticated') {
+        return true
+      }
+      if (status === 'unauthenticated') {
+        showLogin(callbackUrl)
+      }
       return false
     },
     [status, showLogin]

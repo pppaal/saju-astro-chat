@@ -91,31 +91,6 @@ export const mockRefundCredits = vi.fn()
 export const mockUpgradePlan = vi.fn()
 export const mockAddBonusCredits = vi.fn()
 
-// ============ Backend API Client Mock ============
-
-export interface MockBackendResponse {
-  ok: boolean
-  status: number
-  data?: unknown
-}
-
-export const mockApiClient = {
-  post: vi.fn(),
-  get: vi.fn(),
-  put: vi.fn(),
-  delete: vi.fn(),
-}
-
-export const mockBackendResponse = (
-  data: unknown,
-  ok = true,
-  status = 200
-): MockBackendResponse => ({
-  ok,
-  status,
-  data,
-})
-
 // ============ Setup Function ============
 
 /**
@@ -177,12 +152,6 @@ export function setupApiMocks() {
     upgradePlan: mockUpgradePlan,
     addBonusCredits: mockAddBonusCredits,
   }))
-
-  // Backend API Client
-  vi.mock('@/lib/api/ApiClient', () => ({
-    apiClient: mockApiClient,
-    ApiClient: vi.fn().mockImplementation(() => mockApiClient),
-  }))
 }
 
 /**
@@ -196,8 +165,6 @@ export function resetApiMocks() {
   mockGetServerSession.mockResolvedValue(null)
   mockCheckCredits.mockResolvedValue({ hasCredits: true, remaining: 10 })
   mockConsumeCredits.mockResolvedValue({ success: true })
-  mockApiClient.post.mockResolvedValue({ ok: true, status: 200, data: {} })
-  mockApiClient.get.mockResolvedValue({ ok: true, status: 200, data: {} })
 }
 
 // ============ Request Helpers ============

@@ -9,6 +9,47 @@ const localPlugin = {
   },
 }
 
+// no-restricted-imports path lists. In flat config a later block that sets the
+// same rule REPLACES the earlier options for the files it matches, so blocks
+// that overlap must repeat every list that should still apply to them.
+const RAW_NATAL_CHART_PATHS = [
+  {
+    name: '@/lib/astrology',
+    importNames: ['calculateNatalChart'],
+    message:
+      'raw calculateNatalChart 금지 — cachedCalculateNatalChart(@/lib/astrology/cached) 를 쓰세요. 본명 차트는 불변이라 캐시(Redis 30일+L1)를 반드시 거쳐야 합니다.',
+  },
+  {
+    name: '@/lib/astrology/foundation/astrologyService',
+    importNames: ['calculateNatalChart'],
+    message:
+      'raw calculateNatalChart 금지 — cachedCalculateNatalChart(@/lib/astrology/cached) 를 쓰세요.',
+  },
+]
+
+// '@/lib/api' 배럴은 서버 전용(errorHandler → metrics, validator → API 미들웨어 타입).
+// 클라이언트 코드는 apiFetch·크레딧 이벤트를 '@/lib/api/client' 에서만 import 한다.
+const API_BARREL_PATHS = [
+  {
+    name: '@/lib/api',
+    message:
+      "클라이언트 코드에서 '@/lib/api' 배럴(서버 전용) import 금지 — apiFetch·CREDIT_*_EVENT 는 '@/lib/api/client' 에서 import 하세요.",
+  },
+]
+
+const TAROT_FULL_DECK_PATHS = [
+  {
+    name: '@/lib/tarot/data',
+    message:
+      '히스토리/공유에서 전체 덱(~400KB) import 금지 — @/lib/tarot/cardNameIndex(이미지/이름) 를 쓰세요.',
+  },
+  {
+    name: '@/lib/tarot/findCardByName',
+    message:
+      '히스토리/공유에서 findCardByName(전체 덱 의존) 금지 — @/lib/tarot/cardNameIndex 의 findCardImageBySavedName 을 쓰세요.',
+  },
+]
+
 const config = [
   ...next,
   {
@@ -231,24 +272,23 @@ const config = [
       'scripts/**',
     ],
     rules: {
+      'no-restricted-imports': ['error', { paths: RAW_NATAL_CHART_PATHS }],
+    },
+  },
+  {
+    // 클라이언트 번들 경계 — 'use client' 트리는 서버 전용 '@/lib/api' 배럴을 import
+    // 하지 않는다(배럴 → validator → middleware 타입 → prisma/creditService 로 번들
+    // 경계가 새던 회귀 차단). 위 natal-chart 가드를 덮어쓰지 않도록 목록을 합친다.
+    files: [
+      'src/components/**/*.{ts,tsx}',
+      'src/app/**/*Client.tsx',
+      'src/hooks/**/*.{ts,tsx}',
+      'src/contexts/**/*.{ts,tsx}',
+    ],
+    rules: {
       'no-restricted-imports': [
         'error',
-        {
-          paths: [
-            {
-              name: '@/lib/astrology',
-              importNames: ['calculateNatalChart'],
-              message:
-                'raw calculateNatalChart 금지 — cachedCalculateNatalChart(@/lib/astrology/cached) 를 쓰세요. 본명 차트는 불변이라 캐시(Redis 30일+L1)를 반드시 거쳐야 합니다.',
-            },
-            {
-              name: '@/lib/astrology/foundation/astrologyService',
-              importNames: ['calculateNatalChart'],
-              message:
-                'raw calculateNatalChart 금지 — cachedCalculateNatalChart(@/lib/astrology/cached) 를 쓰세요.',
-            },
-          ],
-        },
+        { paths: [...RAW_NATAL_CHART_PATHS, ...API_BARREL_PATHS] },
       ],
     },
   },
@@ -258,23 +298,13 @@ const config = [
     // findCardByName 을 import 하면 클라 번들에 의미 전문이 다시 들어간다.
     // 경량 @/lib/tarot/cardNameIndex 만 쓰도록 강제(라이브 게임/해석은 제외 —
     // 그쪽은 해석에 의미가 필요해 전체 덱을 정당하게 쓴다).
+    // (클라이언트 파일이라 natal-chart·API 배럴 가드도 함께 유지한다.)
     files: ['src/app/tarot/history/**/*.{ts,tsx}', 'src/components/tarot/shareCardData.ts'],
     rules: {
       'no-restricted-imports': [
         'error',
         {
-          paths: [
-            {
-              name: '@/lib/tarot/data',
-              message:
-                '히스토리/공유에서 전체 덱(~400KB) import 금지 — @/lib/tarot/cardNameIndex(이미지/이름) 를 쓰세요.',
-            },
-            {
-              name: '@/lib/tarot/findCardByName',
-              message:
-                '히스토리/공유에서 findCardByName(전체 덱 의존) 금지 — @/lib/tarot/cardNameIndex 의 findCardImageBySavedName 을 쓰세요.',
-            },
-          ],
+          paths: [...TAROT_FULL_DECK_PATHS, ...RAW_NATAL_CHART_PATHS, ...API_BARREL_PATHS],
         },
       ],
     },

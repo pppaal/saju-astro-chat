@@ -11,7 +11,7 @@
 
 import React from 'react'
 import { logger } from '@/lib/logger'
-import { apiFetch } from '@/lib/api'
+import { apiFetch } from '@/lib/api/client'
 import { useCreditModal } from '@/contexts/CreditModalContext'
 import { CHAT_I18N, detectCrisis, type LangKey } from '../chat-i18n'
 import { CHAT_TIMINGS, CHAT_LIMITS, type Message, type ConnectionStatus } from '../chat-constants'

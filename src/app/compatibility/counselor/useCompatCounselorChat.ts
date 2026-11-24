@@ -11,7 +11,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { logger } from '@/lib/logger'
-import { apiFetch } from '@/lib/api'
+import { apiFetch } from '@/lib/api/client'
 import { getErrorMessage as getCounselorErrorMessage } from '@/lib/counselor/errorMessage'
 import { savePendingChat } from '@/lib/chat/pendingChat'
 import { useCreditModal } from '@/contexts/CreditModalContext'

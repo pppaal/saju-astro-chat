@@ -6,7 +6,7 @@ import { render, screen, fireEvent, waitFor, cleanup, act } from '@testing-libra
 
 // apiFetch is the share-link creation entry point.
 const apiFetch = vi.fn()
-vi.mock('@/lib/api', () => ({
+vi.mock('@/lib/api/client', () => ({
   apiFetch: (...args: unknown[]) => apiFetch(...args),
 }))
 

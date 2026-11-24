@@ -15,7 +15,7 @@ import {
   Sparkles,
 } from 'lucide-react'
 import { useI18n } from '@/i18n/I18nProvider'
-import { apiFetch } from '@/lib/api'
+import { apiFetch } from '@/lib/api/client'
 import { CosmicBackdrop } from '@/components/ui/CosmicBackdrop'
 // 히스토리는 카드 이미지/이름만 그린다 — 전체 덱(~400KB 의미 텍스트) 대신
 // 경량 인덱스로 매칭해 이 클라 페이지 번들에서 의미 전문을 뺀다.
