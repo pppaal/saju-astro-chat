@@ -15,7 +15,7 @@ status: auto-generated
 <!-- gen:api-routes -->
 <!-- 이 표는 자동 생성됩니다. 직접 수정하지 마세요 — `npm run docs:sync`. -->
 
-**총 90개 라우트** (원천: `src/app/api/**/route.ts`)
+**총 91개 라우트** (원천: `src/app/api/**/route.ts`)
 
 | 라우트                                | 메서드             |
 | ------------------------------------- | ------------------ |
@@ -55,6 +55,7 @@ status: auto-generated
 | `/api/compatibility/counselor/result` | GET                |
 | `/api/compatibility/report`           | POST               |
 | `/api/compatibility/share`            | GET, POST          |
+| `/api/compatibility/share/invite`     | POST               |
 | `/api/counselor/chat-history`         | GET, POST, PATCH   |
 | `/api/counselor/realtime`             | POST               |
 | `/api/counselor/realtime/result`      | GET                |
