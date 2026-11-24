@@ -49,7 +49,11 @@ import type { TarotQuestionAnalysisSnapshot } from '@/lib/tarot/questionFlow'
 import type { ReadingResponse, InterpretationResult } from '../../../types'
 import type { DeckStyle } from '@/lib/tarot/tarot.types'
 import type { CardColor } from '../../../constants'
-import { HorizontalCardsGrid, DetailedCardsSection, ActionButtons } from '../../index'
+// 형제 컴포넌트는 경로로 직접 import — components/index 배럴을 거치면
+// PageContent → stages → ResultsStage → components/index → PageContent 순환이 생긴다.
+import { HorizontalCardsGrid } from '../../ResultsView/HorizontalCardsGrid'
+import { DetailedCardsSection } from '../../ResultsView/DetailedCardsSection'
+import { ActionButtons } from '../../ActionButtons'
 import { ResultsHeader } from './ResultsHeader'
 import { GuidanceSection } from './GuidanceSection'
 import { FollowupChat } from './FollowupChat'

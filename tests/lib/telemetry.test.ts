@@ -9,9 +9,10 @@
  * JSON payload 를 파싱해 수행한다.
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { captureServerError, captureException, trackMetric } from '@/lib/telemetry'
+import { captureServerError, captureException } from '@/lib/telemetry'
 
-// Mock logger
+// Mock logger — telemetry 는 logger 를 import 하지 않지만(순환 방지), 재귀 회귀
+// 테스트가 logger.error 미호출을 확인하려고 남겨 둔다.
 vi.mock('@/lib/logger', () => ({
   logger: {
     error: vi.fn(),
@@ -25,7 +26,6 @@ vi.mock('@/lib/logger', () => ({
 vi.mock('@sentry/nextjs', () => ({
   captureException: vi.fn(),
   captureMessage: vi.fn(),
-  setMeasurement: vi.fn(),
 }))
 
 let consoleErrorSpy: ReturnType<typeof vi.spyOn>
@@ -131,24 +131,6 @@ describe('Telemetry', () => {
         (c) => c[0] === '[telemetry] Exception captured:'
       )
       expect(call).toBeDefined()
-    })
-  })
-
-  describe('trackMetric', () => {
-    it('should log metric with value', async () => {
-      trackMetric('api.latency', 150)
-
-      const { logger } = await import('@/lib/logger')
-      expect(logger.debug).toHaveBeenCalledWith('[Metric] api.latency: 150', '')
-    })
-
-    it('should log metric with tags', async () => {
-      trackMetric('api.latency', 150, { endpoint: '/api/tarot' })
-
-      const { logger } = await import('@/lib/logger')
-      expect(logger.debug).toHaveBeenCalledWith('[Metric] api.latency: 150', {
-        endpoint: '/api/tarot',
-      })
     })
   })
 

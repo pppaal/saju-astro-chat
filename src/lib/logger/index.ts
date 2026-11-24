@@ -5,6 +5,7 @@
  */
 
 import { redactSecrets } from '@/lib/security/logRedaction'
+import { captureToSentry } from './sentrySink'
 
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error'
 
@@ -164,7 +165,9 @@ class Logger {
   }
 
   private sendToSentry(entry: LogEntry) {
-    // captureServerError 사용 (서버 환경)
+    // 서버 환경에서만 Sentry 로 보낸다. 콘솔 출력은 log() 가 이미 했으므로
+    // sentrySink 로 바로 보낸다(telemetry 를 거치지 않음 — logger↔telemetry
+    // 순환 import 제거). sentrySink 는 실패를 삼키므로 로깅 루프가 없다.
     if (typeof window === 'undefined') {
       // Error 가 2번째 인자로 왔으면 entry.error, context 프로퍼티(`{ err }`)로
       // 왔으면 거기서 추출한다. 둘 다 없어도 error 레벨이면 message 로 합성 Error 를
@@ -172,15 +175,9 @@ class Logger {
       // 때만 — 순수 정보성 warn 으로 Sentry 를 오염시키지 않게.
       const err = entry.error ?? this.firstErrorInContext(entry.context)
       const toCapture = err ?? (entry.level === 'error' ? new Error(entry.message) : undefined)
-      import('@/lib/telemetry')
-        .then(({ captureServerError }) => {
-          if (toCapture) {
-            captureServerError(toCapture, entry.context)
-          }
-        })
-        .catch(() => {
-          // Sentry 전송 실패는 무시 (로깅 루프 방지)
-        })
+      if (toCapture) {
+        captureToSentry(toCapture, entry.context)
+      }
     }
   }
 

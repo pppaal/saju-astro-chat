@@ -38,8 +38,10 @@ Behavior:
 - Production: single-line JSON (`level`, `message`, `timestamp`, `context`, `error`)
   for log collectors.
 - `warn` and `error` in production are additionally forwarded to Sentry via
-  `@/lib/telemetry` (`captureServerError`). Forwarding failures are swallowed to
-  avoid a logging loop.
+  `@/lib/logger/sentrySink` (`captureToSentry`, server side only). Forwarding
+  failures are swallowed to avoid a logging loop. `@/lib/telemetry`
+  (`captureServerError`, `captureException`) uses the same sink and must not
+  import the logger, so there is no logger <-> telemetry import cycle.
 
 The logger writes to the console / Sentry only. It does **not** write to the
 database, and there is no `UserInteraction` (or destiny-envelope) write path.
