@@ -5,9 +5,12 @@ import PolicyDocument, {
   type PolicySection,
 } from '../_components/PolicyDocument'
 import { SUPPORT_EMAIL } from '@/lib/config/contact'
+import { CREDIT_PACKS } from '@/lib/config/pricing'
 
 const PSP_NAME = 'Stripe'
 const EFFECTIVE_DATE = '2026-05-27'
+// 환불 예시의 팩 크기는 pricing.ts(SSOT)에서 읽는다 — 팩 개편 때 문구가 낡지 않도록.
+const PLUS_CREDITS = CREDIT_PACKS.plus.credits
 
 const QUICK_SUMMARY: PolicyQuickSummary = {
   en: [
@@ -49,7 +52,7 @@ A) UNUSED Credits (within 7 days of purchase):
 B) PARTIALLY USED Credits:
 - Partially used credit packs are non-refundable.
 - Once even a single credit has been consumed, the entire pack becomes non-refundable.
-- Example: if you purchase a 50-credit Plus Pack and use 1 credit, the remaining 49 credits are not refundable.
+- Example: if you purchase a ${PLUS_CREDITS}-credit Plus Pack and use 1 credit, the remaining ${PLUS_CREDITS - 1} credits are not refundable.
 
 C) Credit Validity and Expiration:
 - Purchased credits are valid for 3 months from the purchase date.
@@ -80,7 +83,7 @@ A) 미사용 크레딧 (구매 후 7일 이내):
 B) 일부 사용한 크레딧:
 - 크레딧을 하나라도 사용한 팩은 환불되지 않습니다.
 - 단 1개라도 사용하면 해당 팩 전체가 환불 대상에서 제외됩니다.
-- 예시: 50크레딧 플러스팩을 구매한 후 1개를 사용했다면, 남은 49개에 대해서도 환불받을 수 없습니다.
+- 예시: ${PLUS_CREDITS}크레딧 플러스팩을 구매한 후 1개를 사용했다면, 남은 ${PLUS_CREDITS - 1}개에 대해서도 환불받을 수 없습니다.
 
 C) 크레딧 유효기간 및 만료:
 - 구매한 크레딧은 구매일로부터 3개월간 유효합니다.
