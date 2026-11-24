@@ -9,7 +9,7 @@ import {
 } from '@/lib/api/middleware'
 import { linkReferrer } from '@/lib/referral'
 import { prisma } from '@/lib/db/prisma'
-import { recordCounter } from '@/lib/metrics/index'
+import { recordCounter } from '@/lib/metrics'
 import { logger } from '@/lib/logger'
 
 export const dynamic = 'force-dynamic'

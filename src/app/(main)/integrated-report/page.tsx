@@ -18,7 +18,7 @@ import BirthGate from '@/components/birth/BirthGate'
 import { getServerLocale } from '@/components/seo/SEO'
 import { cookies } from 'next/headers'
 import { fromZonedTime } from 'date-fns-tz'
-import { recordCounter } from '@/lib/metrics/index'
+import { recordCounter } from '@/lib/metrics'
 
 export const dynamic = 'force-dynamic'
 

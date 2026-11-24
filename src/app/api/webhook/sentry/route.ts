@@ -11,7 +11,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { withApiMiddleware } from '@/lib/api/middleware'
 import { logger } from '@/lib/logger'
-import { recordCounter } from '@/lib/metrics/index'
+import { recordCounter } from '@/lib/metrics'
 import { cacheGet, cacheSet } from '@/lib/cache/redis-cache'
 import {
   verifySentrySignature,

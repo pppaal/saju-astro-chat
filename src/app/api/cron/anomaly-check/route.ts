@@ -12,7 +12,7 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/logger'
-import { recordCounter } from '@/lib/metrics/index'
+import { recordCounter } from '@/lib/metrics'
 import { withCronAuth } from '@/lib/api/middleware/cronGuard'
 import { cacheGet, cacheSet } from '@/lib/cache/redis-cache'
 import { createGithubIssue, isGithubAutofixConfigured } from '@/lib/ops/githubIssue'

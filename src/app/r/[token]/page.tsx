@@ -18,7 +18,7 @@ import {
   bumpShareViews,
 } from '@/lib/tarot/shareLink'
 import { buildCurveSvg, curveSvgDataUri } from '@/lib/share/curveSvg'
-import { recordCounter } from '@/lib/metrics/index'
+import { recordCounter } from '@/lib/metrics'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'

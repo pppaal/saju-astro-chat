@@ -53,7 +53,7 @@ vi.mock('@/lib/tarot/shareLink', () => ({
 
 const recordCounter = vi.fn()
 const bumpShareCreated = vi.fn(async () => undefined)
-vi.mock('@/lib/metrics/index', () => ({ recordCounter: (...a: any[]) => recordCounter(...a) }))
+vi.mock('@/lib/metrics', () => ({ recordCounter: (...a: any[]) => recordCounter(...a) }))
 vi.mock('@/lib/metrics/shareCounts', () => ({
   bumpShareCreated: (...a: any[]) => bumpShareCreated(...a),
 }))

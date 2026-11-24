@@ -14,7 +14,7 @@ import { initializeApiContext, createPublicStreamGuard, extractLocale } from '@/
 import { createSSEEvent, createSSEDoneEvent } from '@/lib/streaming'
 import { enforceBodySize } from '@/lib/http'
 import { logger } from '@/lib/logger'
-import { recordExternalCall } from '@/lib/metrics/index'
+import { recordExternalCall } from '@/lib/metrics'
 import { tarotInterpretStreamSchema, createValidationErrorResponse } from '@/lib/api/zodValidation'
 import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
 import { isClaudeAvailable } from '@/lib/llm/claude'

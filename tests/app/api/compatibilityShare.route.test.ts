@@ -60,7 +60,7 @@ vi.mock('@/lib/tarot/shareLink', () => ({
 }))
 
 const rateLimitFn = vi.fn(async () => ({ allowed: true }) as { allowed: boolean })
-vi.mock('@/lib/metrics/index', () => ({ recordCounter: vi.fn() }))
+vi.mock('@/lib/metrics', () => ({ recordCounter: vi.fn() }))
 vi.mock('@/lib/metrics/shareCounts', () => ({ bumpShareCreated: vi.fn(async () => undefined) }))
 vi.mock('@/lib/rateLimit', () => ({ rateLimit: (...a: any[]) => (rateLimitFn as any)(...a) }))
 vi.mock('@/lib/request-ip', () => ({ getClientIp: vi.fn(() => '127.0.0.1') }))

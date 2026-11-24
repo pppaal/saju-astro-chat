@@ -81,7 +81,7 @@ USD 비용은 `calculateUsdCost(model, input, output, cacheRead)` 가 위 표로
 LLM 토큰 비용과는 무관하다.
 
 LLM 비용 가시성은 **프로세스 메모리 내 메트릭 카운터**로만 존재한다
-(`src/lib/metrics.ts` — in-memory `counters`/`timings`/`gauges` 객체). 프로세스
+(`src/lib/metrics/core.ts` — in-memory `counters`/`timings`/`gauges` 객체). 프로세스
 재시작 시 초기화된다. 매 Claude 호출 후 emit 되는 카운터:
 
 ```

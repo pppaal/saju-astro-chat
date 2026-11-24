@@ -8,7 +8,7 @@
 
 import { fetchWithRetry } from '@/lib/http'
 import { logger } from '@/lib/logger'
-import { recordCounter, recordExternalCall } from '@/lib/metrics/index'
+import { recordCounter, recordExternalCall } from '@/lib/metrics'
 import { sanitizeForXmlTagBoundary } from '@/lib/llm/promptSafety'
 import { resolveLlmPolicy, type LlmFeature } from '@/lib/config/llm-policy'
 

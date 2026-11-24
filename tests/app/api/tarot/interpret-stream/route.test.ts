@@ -84,7 +84,7 @@ vi.mock('@/lib/constants/http', () => ({
 }))
 
 // Mock metrics
-vi.mock('@/lib/metrics/index', () => ({
+vi.mock('@/lib/metrics', () => ({
   recordExternalCall: vi.fn(),
 }))
 

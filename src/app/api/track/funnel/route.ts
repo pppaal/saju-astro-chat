@@ -19,7 +19,7 @@ import {
   apiSuccess,
   type ApiContext,
 } from '@/lib/api/middleware'
-import { recordCounter } from '@/lib/metrics/index'
+import { recordCounter } from '@/lib/metrics'
 
 export const dynamic = 'force-dynamic'
 

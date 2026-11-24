@@ -18,7 +18,7 @@ import {
   type ApiContext,
 } from '@/lib/api/middleware'
 import { createShareLink, siteBaseUrl, type CalendarShareLinkPayload } from '@/lib/tarot/shareLink'
-import { recordCounter } from '@/lib/metrics/index'
+import { recordCounter } from '@/lib/metrics'
 import { bumpShareCreated } from '@/lib/metrics/shareCounts'
 import { logger } from '@/lib/logger'
 

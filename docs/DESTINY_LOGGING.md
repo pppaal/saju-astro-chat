@@ -60,10 +60,10 @@ decision trace.
 
 ## In-Process Metrics
 
-`src/lib/metrics.ts` is an in-memory counter/timer/gauge registry
+`src/lib/metrics/core.ts` is an in-memory counter/timer/gauge registry
 (`recordCounter`, `recordTiming`, `recordGauge`, `getMetricsSnapshot`,
-`resetMetrics`, `toPrometheus`, `toOtlp`). `src/lib/metrics/index.ts` re-exports
-it and adds standardized helpers (`recordApiRequest`, `recordServiceOperation`,
+`resetMetrics`, `toPrometheus`, `toOtlp`). `src/lib/metrics/index.ts` (imported as
+`@/lib/metrics`) re-exports it and adds standardized helpers (`recordApiRequest`, `recordServiceOperation`,
 `recordAuthEvent`, `recordRateLimitHit`, `recordCreditUsage`, `recordExternalCall`,
 `recordCacheOperation`). `src/lib/metrics/schema.ts` defines the metric registry,
 standard labels, and SLA thresholds (p95 < 700ms, error rate < 0.5%).

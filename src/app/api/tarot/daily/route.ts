@@ -31,7 +31,7 @@ import { TAROT_REVERSED_BYTE_THRESHOLD } from '@/lib/tarot/reversedProbability'
 import type { Card } from '@/lib/tarot/tarot.types'
 import { callClaude, extractJsonObject, isClaudeAvailable } from '@/lib/llm/claude'
 import { cacheGet, cacheSet, cacheIncr } from '@/lib/cache/redis-cache'
-import { recordCounter } from '@/lib/metrics/index'
+import { recordCounter } from '@/lib/metrics'
 import { logger } from '@/lib/logger'
 
 export const dynamic = 'force-dynamic'

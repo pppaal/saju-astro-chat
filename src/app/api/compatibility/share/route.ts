@@ -25,7 +25,7 @@ import {
   siteBaseUrl,
   type CompatShareLinkPayload,
 } from '@/lib/tarot/shareLink'
-import { recordCounter } from '@/lib/metrics/index'
+import { recordCounter } from '@/lib/metrics'
 import { bumpShareCreated } from '@/lib/metrics/shareCounts'
 import { rateLimit } from '@/lib/rateLimit'
 import { getClientIp } from '@/lib/request-ip'

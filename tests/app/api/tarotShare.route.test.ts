@@ -80,7 +80,7 @@ vi.mock('@/lib/user/displayName', () => ({
 }))
 
 const recordCounter = vi.fn()
-vi.mock('@/lib/metrics/index', () => ({
+vi.mock('@/lib/metrics', () => ({
   recordCounter: (...a: any[]) => (recordCounter as any)(...a),
 }))
 
