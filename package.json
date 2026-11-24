@@ -32,7 +32,7 @@
     "ops:typecheck:gate": "node scripts/typecheck-gate.mjs",
     "ops:typecheck:update-baseline": "node scripts/typecheck-metrics.mjs --out reports/typecheck/baseline.json",
     "test": "vitest run",
-    "test:fast": "vitest run --exclude tests/app/api/astrology/advanced/routes.integration.test.ts",
+    "test:fast": "vitest run",
     "test:watch": "vitest watch",
     "test:coverage": "vitest run --coverage",
     "test:a11y": "vitest run tests/a11y",

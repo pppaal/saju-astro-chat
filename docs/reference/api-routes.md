@@ -15,109 +15,99 @@ status: auto-generated
 <!-- gen:api-routes -->
 <!-- 이 표는 자동 생성됩니다. 직접 수정하지 마세요 — `npm run docs:sync`. -->
 
-**총 100개 라우트** (원천: `src/app/api/**/route.ts`)
+**총 90개 라우트** (원천: `src/app/api/**/route.ts`)
 
-| 라우트                                 | 메서드             |
-| -------------------------------------- | ------------------ |
-| `/api/admin/active-users`              | GET                |
-| `/api/admin/anomalies`                 | GET                |
-| `/api/admin/audit-log`                 | GET                |
-| `/api/admin/automation-status`         | GET                |
-| `/api/admin/free-funnel`               | GET                |
-| `/api/admin/funnel`                    | GET                |
-| `/api/admin/grant-credits`             | POST               |
-| `/api/admin/metrics`                   | GET                |
-| `/api/admin/metrics/funnel`            | GET                |
-| `/api/admin/overview`                  | GET                |
-| `/api/admin/purchases`                 | GET                |
-| `/api/admin/push`                      | GET, POST          |
-| `/api/admin/reconcile-activity`        | GET                |
-| `/api/admin/reconcile-purchase`        | POST               |
-| `/api/admin/refund-credit-pack`        | POST               |
-| `/api/admin/revenue`                   | GET                |
-| `/api/admin/social/drafts`             | GET                |
-| `/api/admin/social/drafts/[id]`        | PATCH              |
-| `/api/admin/social/generate`           | POST               |
-| `/api/admin/social/insights`           | GET, POST          |
-| `/api/admin/social/publish/[id]`       | POST               |
-| `/api/admin/usage`                     | GET                |
-| `/api/admin/users`                     | GET                |
-| `/api/admin/users-by`                  | GET                |
-| `/api/admin/users/[id]`                | GET                |
-| `/api/admin/visitors`                  | GET                |
-| `/api/admin/webhook-events`            | GET                |
-| `/api/astrology`                       | POST               |
-| `/api/astrology/advanced/eclipses`     | POST               |
-| `/api/astrology/advanced/fixed-stars`  | POST               |
-| `/api/astrology/advanced/lunar-return` | POST               |
-| `/api/astrology/advanced/progressions` | POST               |
-| `/api/astrology/advanced/solar-return` | POST               |
-| `/api/auth/[...nextauth]`              | GET, POST          |
-| `/api/auth/revoke`                     | POST               |
-| `/api/calendar/day`                    | GET                |
-| `/api/calendar/day/share`              | POST               |
-| `/api/calendar/share`                  | POST               |
-| `/api/checkout`                        | POST               |
-| `/api/cities`                          | GET                |
-| `/api/compatibility/counselor`         | POST               |
-| `/api/compatibility/counselor/result`  | GET                |
-| `/api/compatibility/report`            | POST               |
-| `/api/compatibility/share`             | GET, POST          |
-| `/api/counselor/chat-history`          | GET, POST, PATCH   |
-| `/api/counselor/realtime`              | POST               |
-| `/api/counselor/realtime/result`       | GET                |
-| `/api/counselor/session/list`          | GET, PATCH, DELETE |
-| `/api/counselor/session/load`          | GET                |
-| `/api/counselor/session/save`          | POST               |
-| `/api/counselor/warm`                  | POST               |
-| `/api/cron/anomaly-check`              | GET, POST          |
-| `/api/cron/daily-fortune`              | GET, POST          |
-| `/api/cron/ig-token-refresh`           | GET, POST          |
-| `/api/cron/indexnow`                   | GET, POST          |
-| `/api/cron/keyday-push`                | GET, POST          |
-| `/api/cron/reconcile-activity`         | GET, POST          |
-| `/api/cron/reset-credits`              | GET, POST          |
-| `/api/cron/social-drafts`              | GET, POST          |
-| `/api/cron/social-insights`            | GET, POST          |
-| `/api/cron/social-publish`             | GET, POST          |
-| `/api/cron/threads-token-refresh`      | GET, POST          |
-| `/api/cron/winback-push`               | GET, POST          |
-| `/api/csp-report`                      | GET, POST          |
-| `/api/db-ping`                         | GET                |
-| `/api/life/share`                      | POST               |
-| `/api/me`                              | GET                |
-| `/api/me/account`                      | DELETE             |
-| `/api/me/circle`                       | GET, POST, DELETE  |
-| `/api/me/credit-rewards`               | GET, POST          |
-| `/api/me/credits`                      | GET, POST          |
-| `/api/me/credits/history`              | GET                |
-| `/api/me/email`                        | PATCH              |
-| `/api/me/legal-consent`                | GET, POST          |
-| `/api/me/profile`                      | GET, PATCH         |
-| `/api/me/purchases`                    | GET                |
-| `/api/me/push-subscription`            | POST, DELETE       |
-| `/api/me/refund-credit-pack`           | POST               |
-| `/api/me/starter-eligibility`          | GET                |
-| `/api/me/streak`                       | POST               |
-| `/api/me/upload-photo`                 | POST               |
-| `/api/referral/claim`                  | POST               |
-| `/api/referral/create-code`            | POST               |
-| `/api/referral/link`                   | POST               |
-| `/api/referral/me`                     | GET                |
-| `/api/report/share`                    | POST               |
-| `/api/saju`                            | POST               |
-| `/api/tarot`                           | POST               |
-| `/api/tarot/daily`                     | GET, POST          |
-| `/api/tarot/followup`                  | POST               |
-| `/api/tarot/interpret-stream`          | POST               |
-| `/api/tarot/interpret-stream/result`   | GET                |
-| `/api/tarot/prefetch`                  | POST               |
-| `/api/tarot/save`                      | GET, POST          |
-| `/api/tarot/save/[id]`                 | GET, PATCH, DELETE |
-| `/api/tarot/share`                     | POST               |
-| `/api/track/funnel`                    | POST               |
-| `/api/track/visit`                     | POST               |
-| `/api/webhook/sentry`                  | POST               |
-| `/api/webhook/stripe`                  | POST               |
+| 라우트                                | 메서드             |
+| ------------------------------------- | ------------------ |
+| `/api/admin/active-users`             | GET                |
+| `/api/admin/anomalies`                | GET                |
+| `/api/admin/audit-log`                | GET                |
+| `/api/admin/automation-status`        | GET                |
+| `/api/admin/free-funnel`              | GET                |
+| `/api/admin/funnel`                   | GET                |
+| `/api/admin/grant-credits`            | POST               |
+| `/api/admin/overview`                 | GET                |
+| `/api/admin/purchases`                | GET                |
+| `/api/admin/push`                     | GET, POST          |
+| `/api/admin/reconcile-activity`       | GET                |
+| `/api/admin/reconcile-purchase`       | POST               |
+| `/api/admin/refund-credit-pack`       | POST               |
+| `/api/admin/revenue`                  | GET                |
+| `/api/admin/social/drafts`            | GET                |
+| `/api/admin/social/drafts/[id]`       | PATCH              |
+| `/api/admin/social/generate`          | POST               |
+| `/api/admin/social/insights`          | GET, POST          |
+| `/api/admin/social/publish/[id]`      | POST               |
+| `/api/admin/usage`                    | GET                |
+| `/api/admin/users`                    | GET                |
+| `/api/admin/users-by`                 | GET                |
+| `/api/admin/users/[id]`               | GET                |
+| `/api/admin/visitors`                 | GET                |
+| `/api/admin/webhook-events`           | GET                |
+| `/api/astrology`                      | POST               |
+| `/api/auth/[...nextauth]`             | GET, POST          |
+| `/api/calendar/day`                   | GET                |
+| `/api/calendar/day/share`             | POST               |
+| `/api/calendar/share`                 | POST               |
+| `/api/checkout`                       | POST               |
+| `/api/cities`                         | GET                |
+| `/api/compatibility/counselor`        | POST               |
+| `/api/compatibility/counselor/result` | GET                |
+| `/api/compatibility/report`           | POST               |
+| `/api/compatibility/share`            | GET, POST          |
+| `/api/counselor/chat-history`         | GET, POST, PATCH   |
+| `/api/counselor/realtime`             | POST               |
+| `/api/counselor/realtime/result`      | GET                |
+| `/api/counselor/session/list`         | GET, PATCH, DELETE |
+| `/api/counselor/session/load`         | GET                |
+| `/api/counselor/session/save`         | POST               |
+| `/api/counselor/warm`                 | POST               |
+| `/api/cron/anomaly-check`             | GET, POST          |
+| `/api/cron/daily-fortune`             | GET, POST          |
+| `/api/cron/ig-token-refresh`          | GET, POST          |
+| `/api/cron/indexnow`                  | GET, POST          |
+| `/api/cron/keyday-push`               | GET, POST          |
+| `/api/cron/reconcile-activity`        | GET, POST          |
+| `/api/cron/reset-credits`             | GET, POST          |
+| `/api/cron/social-drafts`             | GET, POST          |
+| `/api/cron/social-insights`           | GET, POST          |
+| `/api/cron/social-publish`            | GET, POST          |
+| `/api/cron/threads-token-refresh`     | GET, POST          |
+| `/api/cron/winback-push`              | GET, POST          |
+| `/api/csp-report`                     | GET, POST          |
+| `/api/db-ping`                        | GET                |
+| `/api/life/share`                     | POST               |
+| `/api/me/account`                     | DELETE             |
+| `/api/me/circle`                      | GET, POST, DELETE  |
+| `/api/me/credit-rewards`              | GET, POST          |
+| `/api/me/credits`                     | GET, POST          |
+| `/api/me/email`                       | PATCH              |
+| `/api/me/legal-consent`               | GET, POST          |
+| `/api/me/profile`                     | GET, PATCH         |
+| `/api/me/purchases`                   | GET                |
+| `/api/me/push-subscription`           | POST, DELETE       |
+| `/api/me/refund-credit-pack`          | POST               |
+| `/api/me/starter-eligibility`         | GET                |
+| `/api/me/streak`                      | POST               |
+| `/api/me/upload-photo`                | POST               |
+| `/api/referral/claim`                 | POST               |
+| `/api/referral/create-code`           | POST               |
+| `/api/referral/link`                  | POST               |
+| `/api/referral/me`                    | GET                |
+| `/api/report/share`                   | POST               |
+| `/api/saju`                           | POST               |
+| `/api/tarot`                          | POST               |
+| `/api/tarot/daily`                    | GET, POST          |
+| `/api/tarot/followup`                 | POST               |
+| `/api/tarot/interpret-stream`         | POST               |
+| `/api/tarot/interpret-stream/result`  | GET                |
+| `/api/tarot/prefetch`                 | POST               |
+| `/api/tarot/save`                     | GET, POST          |
+| `/api/tarot/save/[id]`                | GET, PATCH, DELETE |
+| `/api/tarot/share`                    | POST               |
+| `/api/track/funnel`                   | POST               |
+| `/api/track/visit`                    | POST               |
+| `/api/webhook/sentry`                 | POST               |
+| `/api/webhook/stripe`                 | POST               |
 
 <!-- /gen:api-routes -->

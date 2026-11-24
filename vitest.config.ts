@@ -130,10 +130,7 @@ export default defineConfig({
         'src/lib/**/data/**',
         'src/lib/**/tarot-spreads-data.ts',
         'src/types/**',
-        // Advanced astrology routes — thin wrappers around foundation utilities
-        'src/app/api/astrology/advanced/**',
-        // Admin metrics & dashboard — internal tooling, covered by E2E
-        'src/app/api/admin/metrics/**',
+        // Admin dashboard — internal tooling, covered by E2E
         'src/app/admin/dashboard/**',
         // Counselor session routes — real-time chat infrastructure
         'src/app/api/counselor/**',

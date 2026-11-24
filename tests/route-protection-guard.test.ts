@@ -52,14 +52,6 @@ const HANDROLLED: Record<string, { reason: string; requires: RegExp }> = {
     reason: '스트리밍 과금 라우트 — initializeApiContext+createPublicStreamGuard 수동 조립',
     requires: /initializeApiContext|createPublicStreamGuard/,
   },
-  'src/app/api/astrology/advanced/progressions/route.ts': {
-    reason: 'advanced 점성 — rateLimit+requirePublicToken 수동 조립',
-    requires: /requirePublicToken/,
-  },
-  'src/app/api/astrology/advanced/solar-return/route.ts': {
-    reason: 'advanced 점성 — rateLimit+requirePublicToken 수동 조립',
-    requires: /requirePublicToken/,
-  },
   // cron 라우트 — 전부 CRON_SECRET 로 인가(Vercel Cron 만 호출). withCronAuth
   // (src/lib/api/middleware/cronGuard.ts)가 IP 레이트리밋 + timing-safe 비교를 한 곳에서.
   'src/app/api/cron/anomaly-check/route.ts': CRON_GUARDED,
