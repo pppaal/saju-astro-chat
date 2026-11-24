@@ -644,9 +644,10 @@ model NatalContextCache {
 //   sum(amount where userId=X) ==
 //     UserCredits.bonusCredits + (UserCredits.monthlyCredits - UserCredits.usedCredits)
 //     - 0  (CreditTransaction 가 도입된 시점부터의 변화량만 추적)
-// 백필 스크립트가 deploy 시점까지의 historical GRANT/REFUND 를 채워 넣고,
-// CONSUME 은 deploy 이후만 정확. 자세한 사항은
-// scripts/backfill-credit-transactions.ts 헤더 참조.
+// deploy 시점까지의 historical GRANT/REFUND 는 일회성 백필 대상이었다
+// (scripts/backfill-credit-transactions.ts — CreditRefundLog 모델 제거 후
+// 실행 불가라 삭제됨). 과거 CONSUME 은 누적 카운터라 복원 불가 — CONSUME 은
+// deploy 이후만 정확하고, 잔액(UserCredits) 자체는 정확하다.
 enum CreditTxnType {
   GRANT
   CONSUME
