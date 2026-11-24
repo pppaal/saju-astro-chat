@@ -267,5 +267,4 @@ describe('strengthScore', () => {
       expect(visibleScore.effectiveScore).toBeGreaterThan(hiddenScore.effectiveScore)
     })
   })
-
 })

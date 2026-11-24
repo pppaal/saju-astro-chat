@@ -16,7 +16,12 @@ describe('recommendSpreads — depth-based routing', () => {
   })
 
   it('only returns the 4 canonical spread IDs (1·3·5·10)', () => {
-    const allowed = new Set(['quick-reading', 'past-present-future', 'general-cross', 'celtic-cross'])
+    const allowed = new Set([
+      'quick-reading',
+      'past-present-future',
+      'general-cross',
+      'celtic-cross',
+    ])
     const recs = recommendSpreads('이직할까 어떻게 해야할지 모르겠어요', 4)
     for (const r of recs) {
       expect(allowed.has(r.spreadId), `unexpected spreadId: ${r.spreadId}`).toBe(true)
@@ -35,7 +40,9 @@ describe('recommendSpreads — depth-based routing', () => {
 
   it('decision/career/relationship → 5장 (general-cross)', () => {
     expect(recommendSpreads('이직할까 고민이 있어요', 1)[0].spreadId).toBe('general-cross')
-    expect(recommendSpreads('어떻게 풀어가면 좋을지 정말 모르겠어요', 1)[0].spreadId).toBe('general-cross')
+    expect(recommendSpreads('어떻게 풀어가면 좋을지 정말 모르겠어요', 1)[0].spreadId).toBe(
+      'general-cross'
+    )
   })
 
   it('life-level question → 7장 심층 리딩 (id: celtic-cross)', () => {

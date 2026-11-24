@@ -78,7 +78,10 @@ describe('Saju/index exports', () => {
       // 단일 인자로 받는다(일간은 day.stem 으로 내부 추론). calculateSajuData
       // 결과의 heavenlyStem/earthlyBranch.name 을 stem/branch 로 매핑.
       const sajuData = calculateSajuData('1990-05-15', '14:30', 'male', 'solar', 'Asia/Seoul')
-      const toSimple = (p: { heavenlyStem: { name: string }; earthlyBranch: { name: string } }) => ({
+      const toSimple = (p: {
+        heavenlyStem: { name: string }
+        earthlyBranch: { name: string }
+      }) => ({
         stem: p.heavenlyStem.name,
         branch: p.earthlyBranch.name,
       })

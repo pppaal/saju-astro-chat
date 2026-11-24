@@ -54,7 +54,12 @@ describe('questionFlow', () => {
     })
 
     it('only routes to one of the 4 canonical spread IDs', () => {
-      const allowed = new Set(['quick-reading', 'past-present-future', 'general-cross', 'celtic-cross'])
+      const allowed = new Set([
+        'quick-reading',
+        'past-present-future',
+        'general-cross',
+        'celtic-cross',
+      ])
       const cases = [
         '낼 뭐 먹어',
         '오늘 흐름 어때',

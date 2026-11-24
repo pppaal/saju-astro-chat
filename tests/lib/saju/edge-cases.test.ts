@@ -179,9 +179,7 @@ describe('Saju edge cases — time unknown / leap year / exact midnight', () => 
     expect([r.monthPillar.heavenlyStem.name, r.monthPillar.earthlyBranch.name]).toEqual(
       tc.expected.month
     )
-    expect([r.dayPillar.heavenlyStem.name, r.dayPillar.earthlyBranch.name]).toEqual(
-      tc.expected.day
-    )
+    expect([r.dayPillar.heavenlyStem.name, r.dayPillar.earthlyBranch.name]).toEqual(tc.expected.day)
     expect([r.timePillar.heavenlyStem.name, r.timePillar.earthlyBranch.name]).toEqual(
       tc.expected.time
     )
