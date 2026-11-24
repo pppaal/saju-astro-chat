@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { ChevronDown, Download } from 'lucide-react'
-import styles from '../main-page.module.css'
+import styles from './BirthInfoModal.module.css'
 import {
   saveBirthInfo,
   getStoredBirthInfo,

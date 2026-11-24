@@ -156,7 +156,7 @@ describe('궁합 timingBlock — 사주 시기 (세운/월운/일진) (#319)', (
 })
 
 describe('BirthInfoModal handleSave — DB sync (#306)', () => {
-  const modal = read('app/(main)/components/BirthInfoModal.tsx')
+  const modal = read('components/birth/BirthInfoModal.tsx')
 
   it('handleSave 가 async (PATCH await 필요)', () => {
     expect(modal).toMatch(/const handleSave = async \(\)/)

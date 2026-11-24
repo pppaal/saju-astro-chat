@@ -82,7 +82,7 @@ vi.mock('@/app/(main)/components/HomeChatInput', () => ({
 
 let savedHandler: ((info: any) => void) | null = null
 let deletedHandler: (() => void) | null = null
-vi.mock('@/app/(main)/components/BirthInfoModal', () => ({
+vi.mock('@/components/birth/BirthInfoModal', () => ({
   default: ({ open, onClose, onSaved, onDeleted }: any) => {
     savedHandler = onSaved
     deletedHandler = onDeleted

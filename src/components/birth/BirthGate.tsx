@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import BirthInfoModal from '@/app/(main)/components/BirthInfoModal'
+import BirthInfoModal from '@/components/birth/BirthInfoModal'
 import {
   getStoredBirthInfo,
   buildReportBirthQuery,

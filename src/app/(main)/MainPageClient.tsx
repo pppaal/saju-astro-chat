@@ -14,7 +14,7 @@ import PrefetchLinks from '@/components/PrefetchLinks'
 import { MenuDrawerPanel } from '@/components/ui/MenuDrawerPanel'
 import PWAInstallPrompt from '@/components/pwa/PWAInstallPrompt'
 import HomeChatInput from './components/HomeChatInput'
-import BirthInfoModal from './components/BirthInfoModal'
+import BirthInfoModal from '@/components/birth/BirthInfoModal'
 import {
   getStoredBirthInfo,
   saveBirthInfo,
