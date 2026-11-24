@@ -9,6 +9,8 @@ function sig(p: {
   source?: 'saju' | 'astro'
   name: string
   korean?: string
+  english?: string
+  module?: string
   layer: SignalLayer
   polarity: Polarity
   weight: number
@@ -22,6 +24,7 @@ function sig(p: {
     kind: p.kind,
     name: p.name,
     ...(p.korean ? { korean: p.korean } : {}),
+    ...(p.english ? { english: p.english } : {}),
     polarity: p.polarity,
     layer: p.layer,
     active: {
@@ -31,7 +34,7 @@ function sig(p: {
     },
     weight: p.weight,
     evidence: {
-      module: p.kind,
+      module: p.module ?? p.kind,
       detail: {},
       ...(p.sibsin ? { sibsin: p.sibsin } : {}),
       ...(p.planets ? { planets: p.planets } : {}),
@@ -258,5 +261,196 @@ describe('deriveEvidenceLadder', () => {
     expect(deriveEvidenceLadder(pillars, 'ko')).toEqual(deriveEvidenceLadder(pillars, 'ko'))
     const en = deriveEvidenceLadder(pillars, 'en')
     expect(en.map((r) => r.scaleLabel)).toEqual(['10-yr', 'This year', 'This month', 'Today'])
+  })
+})
+
+// astro-dignity 추출기 출력 모양 그대로(kind 'transit', name 에 한글 라벨, module 보존).
+const venusDomicile = sig({
+  id: 'astro.dignity.Venus|domicile|Libra.2026-07-01',
+  kind: 'transit',
+  module: 'astro-dignity',
+  name: 'Venus 도미사일 (자기 자리) in Libra',
+  korean: '금성 도미사일 (자기 자리) (천칭자리)',
+  english: 'Venus in Domicile (home sign) (Libra) — operates at full natural strength',
+  layer: 'monthly',
+  polarity: 2,
+  weight: 0.7,
+  planets: ['Venus'],
+})
+const saturnFall = sig({
+  id: 'astro.dignity.Saturn|fall|Aries.2026-07-01',
+  kind: 'transit',
+  module: 'astro-dignity',
+  name: 'Saturn 폴 (추락) in Aries',
+  korean: '토성 폴 (추락) (양자리)',
+  english: 'Saturn in Fall (Aries) — is weakened and out of place',
+  layer: 'yearly',
+  polarity: -3,
+  weight: 0.7,
+})
+const venusTriplicity = sig({
+  id: 'astro.dignity.Venus|triplicity|Libra.2026-07-01',
+  kind: 'transit',
+  module: 'astro-dignity',
+  name: 'Venus 트리플리시티 (Triplicity) in Libra',
+  korean: '금성 트리플리시티 (Triplicity) (천칭자리)',
+  english: 'Venus in minor dignity Triplicity (Libra) — a mild supportive placement',
+  layer: 'monthly',
+  polarity: 1,
+  weight: 0.5,
+})
+// 본명 Almuten — english 없음. module 이 빠져도(id 접두만으로) 위계로 인식돼야 한다.
+const natalAlmuten = sig({
+  id: 'astro.dignity.natal-almuten.Venus.Libra.triplicity-term',
+  kind: 'transit',
+  name: 'Natal Venus triplicity+term in Libra',
+  korean: '본명 금성 5-tier 디그니티 (천칭자리)',
+  layer: 'yearly',
+  polarity: 2,
+  weight: 0.4,
+})
+const marsConjMoon = sig({
+  id: 't-mars-moon',
+  kind: 'transit',
+  name: 'Mars ☌ Moon',
+  layer: 'monthly',
+  polarity: -1,
+  weight: 0.6,
+  planets: ['Mars', 'Moon'],
+  aspectType: 'conjunction',
+})
+const sajuMonthly = (polarity: Polarity) =>
+  sig({
+    id: `s-month-${polarity}`,
+    kind: 'pillar-sibsin',
+    name: polarity === 0 ? '戊子 (비견)' : '戊子 (편관)',
+    layer: 'monthly',
+    polarity,
+    weight: 0.7,
+    sibsin: polarity === 0 ? '비견' : '편관',
+  })
+
+const HANGUL = /[가-힣]/
+const ASPECT_GLYPH = /[☌☍△□✶⚻⚺⚼]/
+
+describe('deriveEvidenceLadder — 칩·결론 방향 일치 (B2 #7a)', () => {
+  it('사주 −2 칸엔 같은 부호 점성 칩만 — 더 무거운 금성 위계 +2 대신 화성 ☌ 달 −1', () => {
+    const sigs = [sajuMonthly(-2), venusDomicile, marsConjMoon]
+    const en = deriveEvidenceLadder(sigs, 'en', ['monthly'])[0]
+    expect(en.polarity).toBe(-2)
+    expect(en.chips.find((c) => c.source === 'astro')?.text).toBe('Mars ☌ Moon')
+    expect(en.chips.some((c) => /Venus/.test(c.text))).toBe(false)
+
+    const ko = deriveEvidenceLadder(sigs, 'ko', ['monthly'])[0]
+    expect(ko.chips.find((c) => c.source === 'astro')?.text).toBe('화성 ☌ 달')
+    expect(ko.chips.some((c) => c.text.includes('금성'))).toBe(false)
+  })
+
+  it('같은 부호 점성 후보가 없으면 점성 칩을 생략한다(반대 부호 칩 금지)', () => {
+    const rung = deriveEvidenceLadder([sajuMonthly(-2), venusDomicile], 'en', ['monthly'])[0]
+    expect(rung.polarity).toBe(-2)
+    expect(rung.chips.map((c) => c.source)).toEqual(['saju'])
+  })
+
+  it('사주 결론이 중립(0)일 때만 예전처럼 부호 무관 최강 점성(양보)', () => {
+    const sigs = [sajuMonthly(0), venusDomicile, marsConjMoon]
+    const rung = deriveEvidenceLadder(sigs, 'en', ['monthly'])[0]
+    expect(rung.polarity).toBe(2)
+    expect(rung.chips.find((c) => c.source === 'astro')?.text).toBe(
+      'Venus in Domicile (home sign) (Libra)'
+    )
+  })
+})
+
+describe('deriveEvidenceLadder — 위계(dignity) 칩 i18n (B2 #7b)', () => {
+  const sajuYearlyNeg = sig({
+    id: 's-year',
+    kind: 'pillar-sibsin',
+    name: '丙寅 (편관)',
+    layer: 'yearly',
+    polarity: -2,
+    weight: 0.85,
+    sibsin: '편관',
+  })
+  const cases: ActiveSignal[][] = [
+    [saturnFall],
+    [sajuYearlyNeg, saturnFall],
+    [venusDomicile],
+    [venusTriplicity],
+    [natalAlmuten],
+  ]
+
+  it('EN 칩·결론에 한글이 없다 — english 머리를 쓴다', () => {
+    for (const sigs of cases) {
+      const rungs = deriveEvidenceLadder(sigs, 'en')
+      expect(rungs.length).toBeGreaterThan(0)
+      for (const r of rungs) {
+        expect(r.conclusion).not.toMatch(HANGUL)
+        for (const c of r.chips) expect(c.text, c.text).not.toMatch(HANGUL)
+      }
+    }
+    const yearly = deriveEvidenceLadder([saturnFall], 'en', ['yearly'])[0]
+    expect(yearly.chips[0].text).toBe('Saturn in Fall (Aries)')
+    expect(yearly.conclusion).toBe('Saturn in Fall (Aries) sets the tone for this year')
+    expect(deriveEvidenceLadder([natalAlmuten], 'en')[0].chips[0].text).toBe(
+      'Natal Venus triplicity+term in Libra'
+    )
+  })
+
+  it('KO 칩은 글로스 괄호를 뗀 짧은 한글 라벨 — 영문이 섞이지 않는다', () => {
+    const koChip = (s: ActiveSignal) =>
+      deriveEvidenceLadder([s], 'ko')[0].chips.find((c) => c.source === 'astro')!.text
+    expect(koChip(saturnFall)).toBe('토성 폴 (양자리)')
+    expect(koChip(venusDomicile)).toBe('금성 도미사일 (천칭자리)')
+    expect(koChip(venusTriplicity)).toBe('금성 트리플리시티 (천칭자리)')
+    expect(koChip(natalAlmuten)).toBe('본명 금성 디그니티 (천칭자리)')
+    for (const s of [saturnFall, venusDomicile, venusTriplicity, natalAlmuten]) {
+      expect(koChip(s)).not.toMatch(/[A-Za-z]/)
+    }
+  })
+})
+
+describe('deriveEvidenceLadder — EN 결론은 각 기호를 말로 (FIX9b F10)', () => {
+  it("EN 결론은 'trine' — '△' 가 아니다(칩은 기호 유지)", () => {
+    const venusTrine = sig({
+      id: 't-vv',
+      kind: 'transit',
+      name: 'Venus △ Venus',
+      layer: 'daily',
+      polarity: 2,
+      weight: 0.6,
+      planets: ['Venus', 'Venus'],
+      aspectType: 'trine',
+    })
+    const en = deriveEvidenceLadder([venusTrine], 'en', ['daily'])[0]
+    expect(en.conclusion).toBe('Venus trine Venus sets the tone for today')
+    expect(en.conclusion).not.toMatch(ASPECT_GLYPH)
+    expect(en.chips[0].text).toBe('Venus △ Venus')
+    // KO 결론은 이번 변경 범위 밖 — 그대로.
+    expect(deriveEvidenceLadder([venusTrine], 'ko', ['daily'])[0].conclusion).toContain(
+      '금성 △ 금성'
+    )
+  })
+
+  it('evidence 가 빠진 월 셀(name 폴백)에서도 square·conjunct 로 푼다', () => {
+    const stripped = (name: string, polarity: Polarity) =>
+      sig({ id: `x-${name}`, kind: 'transit', name, layer: 'daily', polarity, weight: 0.6 })
+    expect(deriveEvidenceLadder([stripped('Saturn □ Sun', -2)], 'en')[0].conclusion).toBe(
+      'Saturn square Sun sets the tone for today'
+    )
+    expect(deriveEvidenceLadder([stripped('Mars ☌ Moon', -1)], 'en')[0].conclusion).toBe(
+      'Mars conjunct Moon sets the tone for today'
+    )
+  })
+})
+
+describe('deriveEvidenceLadder — 이달 마찰 꼬리 (B2 #7d)', () => {
+  it("EN 'a sticking point this month', KO 짝 '이달 걸리는 지점' — 'rough patch' 과장 없음", () => {
+    const en = deriveEvidenceLadder([sajuMonthly(-2)], 'en', ['monthly'])[0].conclusion
+    const ko = deriveEvidenceLadder([sajuMonthly(-2)], 'ko', ['monthly'])[0].conclusion
+    expect(en).toContain('a sticking point this month')
+    expect(en).not.toContain('rough patch')
+    expect(ko).toContain('이달 걸리는 지점')
+    expect(ko).not.toContain('삐걱')
   })
 })

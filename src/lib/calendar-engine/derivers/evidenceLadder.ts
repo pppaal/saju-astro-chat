@@ -159,30 +159,77 @@ const POINT_KO_EXTRA: Record<string, string> = {
 const planetKoOr = (name: string, lang: Lang): string =>
   lang === 'ko' ? (PLANET_KO[name] ?? POINT_KO_EXTRA[name] ?? name) : name
 
+/** name 의 영문 행성/포인트 토큰만 한글로. 긴 키부터(‘True Node’ 가 ‘Node’ 보다
+ *  먼저) 치환해 부분겹침 방지. */
+function koPointTokens(name: string): string {
+  let t = name
+  const map: Array<[string, string]> = [
+    ...Object.entries(PLANET_KO),
+    ...Object.entries(POINT_KO_EXTRA),
+  ].sort((a, b) => b[0].length - a[0].length)
+  for (const [en, ko] of map) {
+    t = t.replace(new RegExp(`\\b${en}\\b`, 'g'), ko)
+  }
+  return t
+}
+
+/**
+ * 위계(dignity) 신호 — astro-dignity 추출기가 kind 'transit' 으로 낸다. evidence 를
+ * 뺀 월 셀에서도 module 은 남으므로 module(또는 id 접두)로 가린다.
+ */
+const isDignitySignal = (s: ActiveSignal): boolean =>
+  s.evidence?.module === 'astro-dignity' || s.id.startsWith('astro.dignity.')
+
+/**
+ * 위계 칩 — name 은 'Saturn 폴 (추락) in Aries' 처럼 한글 라벨이 박혀 있어 EN 칩·결론에
+ * 한글이 샜다. EN 은 english 머리('Saturn in Fall (Aries)'), KO 는 korean 에서 글로스
+ * 괄호를 뗀 짧은 라벨('토성 폴 (양자리)') — 별자리 괄호만 남겨 EN 과 짝을 맞춘다.
+ */
+function dignityChipText(s: ActiveSignal, lang: Lang): string {
+  if (lang === 'en') return (s.english ?? s.name).split(' — ')[0].trim()
+  if (!s.korean) return koPointTokens(s.name)
+  return s.korean
+    .replace(/\s*[(（][^)）]*[)）](?=\s*[(（])/g, '') // 마지막(별자리) 괄호 앞의 글로스 괄호
+    .replace(/\b5-tier\s+/g, '') // 본명 Almuten 라벨의 영문 토막
+    .replace(/\s{2,}/g, ' ')
+    .trim()
+}
+
 /** 점성 지배신호 → 짧은 칩 라벨. transit 은 '금성 △ 금성', 그 외는 kind 라벨. */
 function astroChipText(s: ActiveSignal, lang: Lang): string {
   if (s.kind === 'transit') {
+    if (isDignitySignal(s)) return dignityChipText(s, lang)
     const planets = s.evidence?.planets
     const mark = ASPECT_MARK[s.evidence?.aspectType ?? ''] ?? '·'
     if (planets && planets.length >= 2) {
       return `${planetKoOr(planets[0], lang)} ${mark} ${planetKoOr(planets[1], lang)}`
     }
     // evidence 없으면 name('Venus △ Venus')의 영문 행성/포인트 토큰만 한글로.
-    // 긴 키부터(‘True Node’ 가 ‘Node’ 보다 먼저) 치환해 부분겹침 방지.
-    let t = s.name
-    if (lang === 'ko') {
-      const map: Array<[string, string]> = [
-        ...Object.entries(PLANET_KO),
-        ...Object.entries(POINT_KO_EXTRA),
-      ].sort((a, b) => b[0].length - a[0].length)
-      for (const [en, ko] of map) {
-        t = t.replace(new RegExp(`\\b${en}\\b`, 'g'), ko)
-      }
-    }
-    return t
+    return lang === 'ko' ? koPointTokens(s.name) : s.name
   }
   return ASTRO_KIND_CHIP[lang][s.kind] ?? s.kind
 }
+
+// EN 결론 문장에선 각 기호를 말로 푼다(칩은 기호 유지) — 사다리 문장 줄의 '△' 가
+// 판정 기호 옆에서 기호처럼 읽혔다(FIX9b F10). 공백으로 떨어진 토큰만 바꿔 'Q' 등이
+// 이름 일부를 건드리지 않게 한다.
+const ASPECT_WORD_EN: Record<string, string> = {
+  '☌': 'conjunct',
+  '☍': 'opposite',
+  '△': 'trine',
+  '□': 'square',
+  '✶': 'sextile',
+  '⚻': 'quincunx',
+  '⚺': 'semisextile',
+  '⚼': 'sesquiquadrate',
+  Q: 'quintile',
+  bQ: 'biquintile',
+}
+const spellAspectsEn = (t: string): string =>
+  t
+    .split(' ')
+    .map((tok) => ASPECT_WORD_EN[tok] ?? tok)
+    .join(' ')
 
 // 사주 결론 템플릿 — 전문어 0, 방향(부호)·시간층별. area/gloss 는 SIBSIN_DOMAIN.
 function sajuConclusion(sibsin: string, scale: LadderScale, polarity: number, lang: Lang): string {
@@ -203,7 +250,7 @@ function sajuConclusion(sibsin: string, scale: LadderScale, polarity: number, la
       const tail: Record<LadderScale, string> = {
         decadal: '긴 호흡의 시험대가 되는 10년',
         yearly: '올해 눌리기 쉬운 축',
-        monthly: '이달 삐걱이는 결',
+        monthly: '이달 걸리는 지점',
         daily: '오늘 조심할 지점',
       }
       return `${area} 쪽에 마찰 — ${tail[scale]}`
@@ -224,7 +271,8 @@ function sajuConclusion(sibsin: string, scale: LadderScale, polarity: number, la
     const tail: Record<LadderScale, string> = {
       decadal: 'a long-haul test over this 10-yr stretch',
       yearly: 'an axis that gets pressed this year',
-      monthly: 'a rough patch this month',
+      // 'a rough patch' 는 달 전체가 거칠다는 과장 — 한 축의 걸림으로 좁힌다(KO 짝 동일).
+      monthly: 'a sticking point this month',
       daily: 'a spot to watch today',
     }
     return `friction around ${area} — ${tail[scale]}`
@@ -237,7 +285,7 @@ function astroConclusion(s: ActiveSignal, scale: LadderScale, lang: Lang): strin
   const label = astroChipText(s, lang)
   return lang === 'ko'
     ? `${label} 흐름이 ${SCALE_LABEL.ko[scale]}의 결을 잡아요`
-    : `${label} sets the tone for ${SCALE_LABEL.en[scale].toLowerCase()}`
+    : `${spellAspectsEn(label)} sets the tone for ${SCALE_LABEL.en[scale].toLowerCase()}`
 }
 
 /**
@@ -264,7 +312,14 @@ export function deriveEvidenceLadder(
     const sajuFallback = sajuPrimary
       ? undefined
       : pickDominant(inScale.filter((s) => s.source === 'saju' && s.polarity !== 0))
-    const astroDom = pickDominant(inScale.filter((s) => s.source === 'astro' && s.polarity !== 0))
+    // 점성 칩은 사주 결론과 같은 방향에서만 고른다 — 사주가 마찰(−)이라 말하는 칸에
+    // 더 무거운 길(+) 트랜짓 칩이 붙어 칩과 결론이 서로 반대말을 했다. 같은 부호 후보가
+    // 없으면 칩을 생략한다. 사주 결론이 중립(0)일 때만 예전처럼 부호 무관 최강(양보용).
+    const astroCands = inScale.filter((s) => s.source === 'astro' && s.polarity !== 0)
+    const sajuDir = sajuPrimary ? Math.sign(sajuPrimary.polarity) : 0
+    const astroDom = pickDominant(
+      sajuDir !== 0 ? astroCands.filter((s) => Math.sign(s.polarity) === sajuDir) : astroCands
+    )
 
     if (!sajuPrimary && !sajuFallback && !astroDom) continue
 
