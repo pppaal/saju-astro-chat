@@ -73,13 +73,6 @@ jobs:
           NEXT_PUBLIC_API_TOKEN: ${{ secrets.NEXT_PUBLIC_API_TOKEN || 'ci-placeholder' }}
           NEXT_PUBLIC_VAPID_PUBLIC_KEY: ${{ secrets.NEXT_PUBLIC_VAPID_PUBLIC_KEY || 'ci-placeholder' }}
           VAPID_PRIVATE_KEY: ${{ secrets.VAPID_PRIVATE_KEY || 'ci-placeholder' }}
-          EMAIL_PROVIDER: ${{ secrets.EMAIL_PROVIDER || 'resend' }}
-          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY || 'ci-placeholder' }}
-          SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY || 'ci-placeholder' }}
-          SMTP_HOST: ${{ secrets.SMTP_HOST || 'ci-placeholder' }}
-          SMTP_PORT: ${{ secrets.SMTP_PORT || '587' }}
-          SMTP_USER: ${{ secrets.SMTP_USER || 'ci-placeholder' }}
-          SMTP_PASS: ${{ secrets.SMTP_PASS || 'ci-placeholder' }}
 
       - name: Lint
         run: npm run lint
