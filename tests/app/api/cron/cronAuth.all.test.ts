@@ -2,11 +2,12 @@
  * /api/cron/* 전 라우트의 인증 경계를 한 표로 고정한다.
  *
  * cron 은 withApiMiddleware 가 아니라 CRON_SECRET bearer(timing-safe) + IP
- * 레이트리밋으로만 보호된다. 그 경계가 라우트마다 따로 있으면 하나가 새도
- * 모른다 — 그래서 모든 cron 라우트 × GET/POST 에 같은 질문을 던진다:
- *   - 헤더 없음 / 틀린 시크릿 / Bearer 없는 시크릿 → 401, 핸들러 미도달
+ * 레이트리밋으로만 보호된다 — 전부 withCronAuth(src/lib/api/middleware/
+ * cronGuard.ts) 한 곳을 거친다. 라우트가 가드를 빠뜨리거나 우회하면 하나가
+ * 새도 모르므로, 모든 cron 라우트 × GET/POST 에 같은 질문을 던진다:
+ *   - 헤더 없음 / 틀린 시크릿 / Bearer 없는 시크릿 → 401 UNAUTHORIZED, 핸들러 미도달
  *   - CRON_SECRET 미설정·빈 문자열 → 401 (fail-closed) + 에러 로그
- *   - 레이트리밋 초과 → 시크릿이 맞아도 429, 핸들러 미도달
+ *   - 레이트리밋 초과 → 시크릿이 맞아도 429 RATE_LIMITED, 핸들러 미도달
  *   - 맞는 시크릿 → 핸들러 도달 + 200
  * "핸들러 도달" 은 라우트마다 인증 직후 처음 닿는 의존성(sentinel)으로 본다.
  * 하위 의존성은 전부 mock 이라 실제 DB/외부 호출은 없다.
@@ -171,6 +172,13 @@ function arrangeHappyPath() {
   m(configuredPlatforms).mockReturnValue([])
 }
 
+/** 401/429 는 전 라우트 공통 createErrorResponse 봉투 — { success:false, error:{ code } }. */
+async function expectErrorCode(res: Response, status: number, code: string) {
+  expect(res.status).toBe(status)
+  const body = await res.json()
+  expect(body).toMatchObject({ success: false, error: { code, status } })
+}
+
 function makeRequest(name: string, method: 'GET' | 'POST', authorization?: string) {
   const headers: Record<string, string> = { 'x-forwarded-for': CLIENT_IP }
   if (authorization !== undefined) headers.authorization = authorization
@@ -211,13 +219,13 @@ describe('cron 인증 매트릭스 — /api/cron/* 전 라우트', () => {
 
       it('Authorization 헤더가 없으면 401, 핸들러 미도달', async () => {
         const res = await call()
-        expect(res.status).toBe(401)
+        await expectErrorCode(res, 401, 'UNAUTHORIZED')
         expect(sentinel()).not.toHaveBeenCalled()
       })
 
       it('틀린 시크릿은 401 — 그 전에 IP 레이트리밋을 먼저 건다', async () => {
         const res = await call('Bearer wrong-secret')
-        expect(res.status).toBe(401)
+        await expectErrorCode(res, 401, 'UNAUTHORIZED')
         expect(sentinel()).not.toHaveBeenCalled()
         expect(rateLimit).toHaveBeenCalledWith(`cron:${name}:${CLIENT_IP}`, {
           limit: 5,
@@ -227,14 +235,14 @@ describe('cron 인증 매트릭스 — /api/cron/* 전 라우트', () => {
 
       it('Bearer 접두어 없는 시크릿은 401', async () => {
         const res = await call(SECRET)
-        expect(res.status).toBe(401)
+        await expectErrorCode(res, 401, 'UNAUTHORIZED')
         expect(sentinel()).not.toHaveBeenCalled()
       })
 
       it('CRON_SECRET 미설정이면 맞는 형식이어도 401 (fail-closed) + 에러 로그', async () => {
         delete process.env.CRON_SECRET
         const res = await call(`Bearer ${SECRET}`)
-        expect(res.status).toBe(401)
+        await expectErrorCode(res, 401, 'UNAUTHORIZED')
         expect(sentinel()).not.toHaveBeenCalled()
         expect(logger.error).toHaveBeenCalledWith(expect.stringContaining('CRON_SECRET not set'))
       })
@@ -242,14 +250,14 @@ describe('cron 인증 매트릭스 — /api/cron/* 전 라우트', () => {
       it('CRON_SECRET 이 빈 문자열이면 401 ("Bearer " 로 뚫리지 않음)', async () => {
         process.env.CRON_SECRET = ''
         const res = await call('Bearer ')
-        expect(res.status).toBe(401)
+        await expectErrorCode(res, 401, 'UNAUTHORIZED')
         expect(sentinel()).not.toHaveBeenCalled()
       })
 
       it('레이트리밋 초과면 시크릿이 맞아도 429, 핸들러 미도달', async () => {
         m(rateLimit).mockResolvedValueOnce({ allowed: false })
         const res = await call(`Bearer ${SECRET}`)
-        expect(res.status).toBe(429)
+        await expectErrorCode(res, 429, 'RATE_LIMITED')
         expect(sentinel()).not.toHaveBeenCalled()
       })
 
