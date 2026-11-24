@@ -5,7 +5,7 @@ import { CompatRadarOverlay } from '@/app/compatibility/counselor/CompatRadarOve
 
 /**
  * 궁합 오행 비교 레이더 — 두 사람 오행을 한 오각형에 겹쳐 그린다.
- * deriveCounts(@/components/report/ElementRadar) 로 사주에서 오행 수를 뽑으므로
+ * deriveCounts(@/lib/report/elementCounts) 로 사주에서 오행 수를 뽑으므로
  * fiveElements shape 를 그대로 props 로 넘긴다 (실제 데이터 형태 재사용).
  */
 

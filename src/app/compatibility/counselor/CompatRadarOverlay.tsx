@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react'
-import { AXES, deriveCounts, type Counts } from '@/components/report/ElementRadar'
+import { AXES, deriveCounts, type Counts } from '@/lib/report/elementCounts'
 import { josaOnly } from '@/lib/utils/josa'
 
 /**
