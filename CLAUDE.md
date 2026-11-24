@@ -27,7 +27,6 @@ architecture follows from that split — see `OVERVIEW.md` and
 | Payments  | Stripe one-time **credit packs** (no subscriptions)          |
 | Data      | Prisma 7 + Postgres (Supabase)                               |
 | Cache/RL  | Upstash Redis (in-memory fallback)                           |
-| Mobile    | Capacitor (iOS/Android)                                      |
 
 Node **20** (`.nvmrc`; `engines: >=20 <21`). Package manager: **npm** (`npm ci`).
 

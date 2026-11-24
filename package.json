@@ -73,11 +73,6 @@
     "dev:astro": "ts-node -P tsconfig.scripts.json -r tsconfig-paths/register scripts/dev-astro.ts",
     "check:env": "node scripts/validate-env.js",
     "check:all": "npm run lint && npm run lint:mojibake && npm run typecheck && npm test",
-    "mobile:sync": "npm run build && npx cap sync",
-    "mobile:sync:android": "npm run build && npx cap sync android",
-    "mobile:sync:ios": "npm run build && npx cap sync ios",
-    "mobile:open:android": "npx cap open android",
-    "mobile:open:ios": "npx cap open ios",
     "security:audit": "npm audit --audit-level=high",
     "audit:api": "node scripts/audit-api-routes.mjs",
     "docs:stats": "node scripts/repo-stats.mjs",
@@ -172,7 +167,6 @@
     ]
   },
   "devDependencies": {
-    "@capacitor/cli": "^8.0.2",
     "@next/bundle-analyzer": "^16.1.6",
     "@playwright/test": "^1.58.1",
     "@testing-library/jest-dom": "^6.9.1",
