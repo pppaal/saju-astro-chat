@@ -46,15 +46,6 @@ export async function getThreadsAccessToken(): Promise<string | null> {
   return envToken()
 }
 
-/** 저장된 갱신 상태(만료 예정일 표시용). 갱신본이 없으면 null. */
-export async function getThreadsTokenStatus(): Promise<{
-  refreshedAt: string
-  expiresAt: string
-} | null> {
-  const stored = await cacheGet<StoredToken>(STORE_KEY)
-  return stored ? { refreshedAt: stored.refreshedAt, expiresAt: stored.expiresAt } : null
-}
-
 /**
  * 토큰 갱신 — 현재 토큰으로 refresh_access_token 호출, 새 60일 토큰을 암호화
  * 저장. 성공 시 만료 예정일을 돌려준다.

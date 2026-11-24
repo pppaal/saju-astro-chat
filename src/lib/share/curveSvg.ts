@@ -189,8 +189,3 @@ export function buildGaugeSvg(opts: GaugeSvgOptions): string {
     `</svg>`
   )
 }
-
-/** 게이지 SVG 문자열을 <img> src 용 data-URI 로. (curveSvgDataUri 와 동일) */
-export function gaugeSvgDataUri(svg: string): string {
-  return curveSvgDataUri(svg)
-}

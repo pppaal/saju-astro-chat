@@ -574,12 +574,7 @@ ${year}년 ${colorAnimalKo}의 해는 ${traits.ko.slice(0, 2).join('과 ')}의 �
     `
 }
 
-// 현재 연도 가져오기
-export function getCurrentYear(): number {
-  return new Date().getFullYear()
-}
-
-// 현재 연도의 운세 글 생성
-export function generateCurrentYearFortuneBlogPost(): BlogPost {
-  return generateYearlyFortuneBlogPost(getCurrentYear())
+// 현재 연도의 운세 글 생성. now 는 테스트가 연도를 고정할 수 있게 주입 가능.
+export function generateCurrentYearFortuneBlogPost(now: Date = new Date()): BlogPost {
+  return generateYearlyFortuneBlogPost(now.getFullYear())
 }

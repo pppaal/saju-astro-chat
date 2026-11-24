@@ -13,8 +13,7 @@ import { PLANET_KO as PLANET_KO_BASE } from '@/lib/calendar-engine/data/planetNa
 import { STEM_KO, BRANCH_KO } from '@/lib/saju/ganjiKo'
 
 // ── 천간 / 지지 한자↔한글↔영문 ──────────────────────────────────────────────
-// 한자→한글 음은 정본(saju/ganjiKo) 재export. 복사본 두지 않음(드리프트 차단).
-export { STEM_KO as STEM_HAN_TO_KO, BRANCH_KO as BRANCH_HAN_TO_KO } from '@/lib/saju/ganjiKo'
+// 한자→한글 음은 정본(saju/ganjiKo)을 직접 쓴다. 복사본 두지 않음(드리프트 차단).
 export const STEM_HAN_TO_EN: Record<string, string> = {
   甲: 'gap',
   乙: 'eul',

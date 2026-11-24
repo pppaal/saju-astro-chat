@@ -126,11 +126,6 @@ export function shinsalEn(name: string): string {
   return SHINSAL_EN[name] ?? SHINSAL_EN[name.replace(/살$/, '')] ?? name
 }
 
-/** 격국 성패 단어 EN 치환 — 미상은 KO 그대로. */
-export function geokgukStatusEn(status: string): string {
-  return GEOKGUK_STATUS_EN[status] ?? status
-}
-
 // ============================================================================
 // '본명 상세' 접힘 섹션 — 지장간·12운성·응용격국 EN 치환.
 // 누락 5신호 노출용. 모두 결정론적 고정 맵(엔진 무수정).

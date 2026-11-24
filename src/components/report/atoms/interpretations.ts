@@ -182,14 +182,6 @@ export const ELEMENT_REMEDY: Record<
   },
 }
 
-// 헬퍼: 한자 → image
-export function imageOf(stemOrBranch: string | undefined): string | undefined {
-  if (!stemOrBranch) return undefined
-  return (
-    HEAVENLY_STEMS[stemOrBranch]?.image ?? EARTHLY_BRANCHES[stemOrBranch]?.meaning?.split('·')[0]
-  )
-}
-
 // 헬퍼: 한자 → 1줄 의미 (long-press tooltip 용)
 export function meaningOf(stemOrBranch: string | undefined): string | undefined {
   if (!stemOrBranch) return undefined
