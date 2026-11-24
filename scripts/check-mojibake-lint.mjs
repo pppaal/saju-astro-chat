@@ -5,20 +5,8 @@ const ROOTS = ['src/app', 'src/components', 'src/i18n', 'src/lib']
 const VALID_EXTENSIONS = new Set(['.ts', '.tsx', '.js', '.jsx', '.mdx', '.json', '.css'])
 
 const SKIP_FILES = new Set([
-  path.normalize('src/lib/destiny-matrix/ai-report/narrativeGeneratorCoreSupport.ts'),
-  // TODO: remove after legacy mojibake cleanup in counselor + ai-report modules
-  path.normalize('src/app/destiny-map/counselor/useCounselorData.ts'),
-  path.normalize('src/lib/destiny-matrix/ai-report/aiReportService.ts'),
-  path.normalize('src/lib/destiny-matrix/textRepair.ts'),
-  // Repair tables / legacy fallback banks intentionally contain mojibake tokens as match targets.
-  path.normalize('src/lib/destiny-matrix/ai-report/aiReportServiceRuntimeOutputSupport.ts'),
-  path.normalize('src/lib/destiny-matrix/ai-report/narrativeGeneratorBuildSupport.ts'),
-  path.normalize('src/lib/destiny-matrix/ai-report/signalSynthesizerClaimsSupport.ts'),
-  path.normalize('src/lib/destiny-matrix/core/adaptersPersonModelEventSupport.ts'),
-  path.normalize('src/lib/destiny-matrix/core/adaptersPersonModelProfileSupport.ts'),
   // Mojibake repair lib + guard intentionally use U+FFFD as a literal/match target.
   path.normalize('src/lib/text/mojibake.ts'),
-  path.normalize('src/app/api/calendar/lib/calendarMatrixEvidenceSupport.ts'),
 ])
 
 const SUSPICIOUS_PATTERNS = [

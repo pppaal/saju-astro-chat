@@ -174,14 +174,14 @@ These exist and run:
 - `npm run test`, `test:fast`, `test:coverage`, `test:a11y`, `test:integration`
 - `npm run test:e2e:browser`, `test:e2e:smoke:public`, `test:e2e:critical`,
   and the per-flow `test:e2e:*` Playwright specs
-- `npm run test:tarot*` (incl. `test:tarot:question-golden`,
-  `test:tarot:fallback-quality`, `test:tarot:interpret-quality`)
-- `npm run test:destiny-map` (destiny-map API/sanitize/calendar smoke)
+- `npm run test:tarot` (`tests/lib/Tarot`)
+- `npm run test:destiny-map` (report text sanitize/mask smoke,
+  `tests/destiny-map-sanitize.test.ts`)
 - `npm run test:ephemeris-golden`
-- `npm run qa:tarot:engine`, `qa:tarot:full`, `qa:counselor-calendar:report`
-- `npm run eval:strategy:batch`, `eval:deterministic:batch`, `eval:tarot:export`
-- `scripts/ops/qa-counselor-questions.ts` — **removed** (imported the removed
-  destiny-matrix engine); was not wired to any npm script.
+- `npm run qa:counselor-calendar:report`
+- Removed: `scripts/ops/qa-counselor-questions.ts` and the one-off
+  `qa:tarot:*` / `eval:*` batch scripts (they imported removed engines and
+  could no longer run).
 
 ## Failure Triage Order
 
