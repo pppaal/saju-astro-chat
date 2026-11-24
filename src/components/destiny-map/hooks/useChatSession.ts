@@ -1,5 +1,5 @@
-// @deprecated Use useChatSession from @/hooks/useChatSession.unified instead
-// This file is kept for backward compatibility only
+// 운명 상담사 Chat 의 세션 상태 훅 — 메시지, 세션 id, 히스토리 레일 목록과
+// 로드/삭제/이름 변경/새 채팅. Chat.tsx 가 쓰는 현행 구현이다.
 
 'use client'
 
@@ -7,7 +7,7 @@ import React from 'react'
 import { logger } from '@/lib/logger'
 import { emitSessionDeleted } from '@/lib/counselor/sessionEvents'
 import type { Message } from '../chat-constants'
-import type { SessionItem } from '../modals/HistoryModal'
+import type { SessionItem } from '../chat-types'
 
 interface UseChatSessionOptions {
   lang: string

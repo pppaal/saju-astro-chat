@@ -1,5 +1,5 @@
 // src/hooks/useSessionHistory.ts
-// Extracted session history CRUD operations from useChatSession.unified.ts
+// Session history CRUD operations (list / load / delete) for counselor chat
 
 'use client'
 
@@ -7,7 +7,7 @@ import { useState, useCallback } from 'react'
 import { logger } from '@/lib/logger'
 import { emitSessionDeleted } from '@/lib/counselor/sessionEvents'
 import type { ChatMessage } from '@/lib/api/validator'
-import type { SessionItem } from '@/hooks/useChatSession.unified'
+import type { SessionItem } from '@/components/destiny-map/chat-types'
 
 interface UseSessionHistoryOptions {
   setMessages: React.Dispatch<React.SetStateAction<ChatMessage[]>>

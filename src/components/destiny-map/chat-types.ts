@@ -11,6 +11,30 @@ export interface DestinySources {
   astro: boolean
 }
 
+// 상담 세션 목록 한 행 — /api/counselor/session/list 의 sessions[] 중 클라이언트가
+// 읽는 필드. Chat 히스토리 레일(useChatSession)과 CounselorSidebar 가 같이 쓴다.
+// meta 는 사이드바 부제 한 줄에 인물 이름을 띄워, 과거 채팅이 누구 정보로 본
+// 거였는지 한눈에 보이게 하는 데 쓰인다.
+export interface SessionMeta {
+  /** destiny 세션: 누구 사주로 본 채팅인지 */
+  profile?: { name?: string | null } | null
+  /** compat 세션: 두 사람 */
+  persons?: Array<{ name?: string | null }> | null
+}
+
+export interface SessionItem {
+  id: string
+  /** 사용자가 바꿀 수 있는 제목. 저장 전이거나 auto-titler 이전 행이면 null. */
+  title?: string | null
+  summary?: string | null
+  /** 제목이 없을 때 사이드바가 보여 주는 미리보기 */
+  preview?: string | null
+  messageCount?: number
+  /** ISO 문자열 (CounselorChatSession.updatedAt, 항상 존재) */
+  updatedAt: string
+  meta?: SessionMeta | null
+}
+
 // Profile type for chat component
 export interface ChatProfile {
   name?: string
