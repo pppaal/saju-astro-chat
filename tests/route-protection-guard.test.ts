@@ -68,16 +68,17 @@ const HANDROLLED: Record<string, { reason: string; requires: RegExp }> = {
   // cron 라우트 — 전부 CRON_SECRET 로 인가(Vercel Cron 만 호출). withCronAuth
   // (src/lib/api/middleware/cronGuard.ts)가 IP 레이트리밋 + timing-safe 비교를 한 곳에서.
   'src/app/api/cron/anomaly-check/route.ts': CRON_GUARDED,
+  'src/app/api/cron/daily-fortune/route.ts': CRON_GUARDED,
   'src/app/api/cron/ig-token-refresh/route.ts': { reason: 'cron', requires: /CRON_SECRET/ },
   'src/app/api/cron/indexnow/route.ts': { reason: 'cron', requires: /CRON_SECRET/ },
-  'src/app/api/cron/keyday-push/route.ts': { reason: 'cron', requires: /CRON_SECRET/ },
+  'src/app/api/cron/keyday-push/route.ts': CRON_GUARDED,
   'src/app/api/cron/reconcile-activity/route.ts': CRON_GUARDED,
   'src/app/api/cron/reset-credits/route.ts': CRON_GUARDED,
   'src/app/api/cron/social-drafts/route.ts': { reason: 'cron', requires: /CRON_SECRET/ },
   'src/app/api/cron/social-insights/route.ts': { reason: 'cron', requires: /CRON_SECRET/ },
   'src/app/api/cron/social-publish/route.ts': { reason: 'cron', requires: /CRON_SECRET/ },
   'src/app/api/cron/threads-token-refresh/route.ts': { reason: 'cron', requires: /CRON_SECRET/ },
-  'src/app/api/cron/winback-push/route.ts': { reason: 'cron', requires: /CRON_SECRET/ },
+  'src/app/api/cron/winback-push/route.ts': CRON_GUARDED,
 }
 
 describe('API 라우트 보호 커버리지 가드(=훅) — 무방비 라우트 재발 방지', () => {

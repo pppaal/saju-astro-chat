@@ -5,17 +5,14 @@
 // 보낸다. 엔진 빌드는 CPU 비용이 크므로 동시성 제한 + 동일 본명 1회 계산 +
 // 처리 상한으로 cron 시간을 가둔다.
 //
-// 보안은 다른 cron 과 동일: IP 레이트리밋 → timing-safe CRON_SECRET.
+// 보안은 다른 cron 과 동일(withCronAuth): IP 레이트리밋 → timing-safe CRON_SECRET.
 // Vercel cron: 매일 22:10 UTC (= 한국 아침 07:10 KST, 데일리 운세 직후).
 
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/logger'
-import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
-import { extractLocale } from '@/lib/api/middleware'
-import { rateLimit } from '@/lib/rateLimit'
-import { getClientIp } from '@/lib/request-ip'
-import { timingSafeCompare } from '@/lib/security/timingSafe'
+import { withCronAuth } from '@/lib/api/middleware/cronGuard'
+import { normalizeGender } from '@/lib/utils/gender'
 import { sendPushToTargets, type PushPayload, type PushTarget } from '@/lib/push/sender'
 import { buildKeyDayPayload, type KeyDayBirth } from '@/lib/push/keyDay'
 
@@ -28,34 +25,14 @@ const CONCURRENCY = 3
 // cron 시간을 가두기 위한 처리 상한(본명 기준). 넘으면 다음 날 처리.
 const MAX_BIRTHS = 400
 
-function validateCronSecret(request: Request): boolean {
-  const cronSecret = process.env.CRON_SECRET
-  if (!cronSecret) {
-    logger.error('[Cron keyday-push] CRON_SECRET not set - rejecting request')
-    return false
-  }
-  return timingSafeCompare(request.headers.get('authorization') ?? '', `Bearer ${cronSecret}`)
+// 엔진(KeyDayBirth)은 이분 성별만 받는다 — 공용 정규화기에서 female 로 읽히는
+// 값('f'·'female', 대소문자·공백 무관)만 female, 나머지(미입력·other 등)는 기존
+// 기본값 male.
+function keyDayGender(g: string | null | undefined): KeyDayBirth['gender'] {
+  return normalizeGender(g) === 'female' ? 'female' : 'male'
 }
 
-function normalizeGender(g: string | null | undefined): 'male' | 'female' {
-  const v = (g ?? '').trim().toLowerCase()
-  return v === 'female' || v === 'f' ? 'female' : 'male'
-}
-
-async function handle(request: Request): Promise<NextResponse> {
-  const ip = getClientIp(request.headers)
-  const rl = await rateLimit(`cron:keyday-push:${ip}`, { limit: 5, windowSeconds: 60 })
-  if (!rl.allowed) {
-    return createErrorResponse({
-      code: ErrorCodes.RATE_LIMITED,
-      locale: extractLocale(request),
-      route: 'cron/keyday-push',
-    })
-  }
-  if (!validateCronSecret(request)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-
+async function handle(): Promise<NextResponse> {
   const subs = await prisma.pushSubscription.findMany({
     select: {
       id: true,
@@ -97,7 +74,7 @@ async function handle(request: Request): Promise<NextResponse> {
 
   const birthKey = (s: Sub) => {
     const p = s.user!.profile!
-    return `${p.birthDate}|${p.birthTime}|${p.latitude}|${p.longitude}|${p.tzId}|${normalizeGender(p.gender)}`
+    return `${p.birthDate}|${p.birthTime}|${p.latitude}|${p.longitude}|${p.tzId}|${keyDayGender(p.gender)}`
   }
 
   // 본명 → 그 본명을 쓰는 구독들. (한 사람 여러 기기)
@@ -122,7 +99,7 @@ async function handle(request: Request): Promise<NextResponse> {
         const birth: KeyDayBirth = {
           birthDate: p.birthDate!,
           birthTime: p.birthTime!,
-          gender: normalizeGender(p.gender),
+          gender: keyDayGender(p.gender),
           latitude: p.latitude!,
           longitude: p.longitude!,
           timeZone: p.tzId!,
@@ -169,9 +146,5 @@ async function handle(request: Request): Promise<NextResponse> {
   return NextResponse.json({ success: true, ...summary, matched: payloadBySubId.size })
 }
 
-export async function GET(request: Request) {
-  return handle(request)
-}
-export async function POST(request: Request) {
-  return handle(request)
-}
+export const GET = withCronAuth('keyday-push', handle)
+export const POST = GET

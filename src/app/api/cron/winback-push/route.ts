@@ -5,17 +5,13 @@
 // 활동 신호로 쓰는 이유: 자동 지급/월 리셋(GRANT/SIGNUP_BONUS)에 오염되지
 // 않는 "진짜 사용"이기 때문. 과발송 방지로 Redis 마커(유저당 1회/창)를 둔다.
 //
-// 보안은 다른 cron 과 동일: IP 레이트리밋 → timing-safe CRON_SECRET.
+// 보안은 다른 cron 과 동일(withCronAuth): IP 레이트리밋 → timing-safe CRON_SECRET.
 // Vercel cron: 매일 04:00 UTC (= 한국 오후 13:00 KST, 점심 후 한가한 시간).
 
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/logger'
-import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
-import { extractLocale } from '@/lib/api/middleware'
-import { rateLimit } from '@/lib/rateLimit'
-import { getClientIp } from '@/lib/request-ip'
-import { timingSafeCompare } from '@/lib/security/timingSafe'
+import { withCronAuth } from '@/lib/api/middleware/cronGuard'
 import { cacheGetMany, cacheSet } from '@/lib/cache/redis-cache'
 import { sendPushToTargets, type PushPayload, type PushTarget } from '@/lib/push/sender'
 
@@ -28,15 +24,6 @@ const DORMANT_DAYS = 14
 // 같은 유저에게 윈백을 다시 보내기까지 최소 간격(마커 TTL).
 const WINBACK_COOLDOWN_DAYS = 21
 const markerKey = (userId: string) => `winback:sent:${userId}`
-
-function validateCronSecret(request: Request): boolean {
-  const cronSecret = process.env.CRON_SECRET
-  if (!cronSecret) {
-    logger.error('[Cron winback-push] CRON_SECRET not set - rejecting request')
-    return false
-  }
-  return timingSafeCompare(request.headers.get('authorization') ?? '', `Bearer ${cronSecret}`)
-}
 
 // 날짜로 도는 결정론 미끼 — LLM 없이 무료 도구로 유도.
 function winbackPayload(locale: 'ko' | 'en', now: Date): PushPayload {
@@ -81,20 +68,7 @@ function winbackPayload(locale: 'ko' | 'en', now: Date): PushPayload {
   return { ...variants[idx], tag: 'winback' }
 }
 
-async function handle(request: Request): Promise<NextResponse> {
-  const ip = getClientIp(request.headers)
-  const rl = await rateLimit(`cron:winback-push:${ip}`, { limit: 5, windowSeconds: 60 })
-  if (!rl.allowed) {
-    return createErrorResponse({
-      code: ErrorCodes.RATE_LIMITED,
-      locale: extractLocale(request),
-      route: 'cron/winback-push',
-    })
-  }
-  if (!validateCronSecret(request)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-
+async function handle(): Promise<NextResponse> {
   const now = new Date()
   const cutoff = new Date(now.getTime() - DORMANT_DAYS * 86_400_000)
 
@@ -184,9 +158,5 @@ async function handle(request: Request): Promise<NextResponse> {
   return NextResponse.json({ success: true, ...summary, dormant: dormantUserIds.length })
 }
 
-export async function GET(request: Request) {
-  return handle(request)
-}
-export async function POST(request: Request) {
-  return handle(request)
-}
+export const GET = withCronAuth('winback-push', handle)
+export const POST = GET
