@@ -105,7 +105,12 @@ describe('vercel.json — functions 패턴', () => {
   // 자기검증: 매처가 실제로 동작하는지. 매처가 망가져서 "전부 매칭됨" 이 되면
   // 아래 가드가 통과만 하고 아무것도 안 잡는다.
   it('glob 매처 자체가 동작한다', () => {
-    expect(matchPattern('src/app/api/astrology/**/*.ts').length).toBeGreaterThan(1)
+    // `**` 가 하위 디렉터리를 실제로 내려가는지 — 여러 깊이에 파일이 있는 디렉터리로 본다.
+    // (astrology/advanced/* 삭제 후 astrology 아래엔 route.ts 1개뿐이라 compatibility 로 확인)
+    const nested = matchPattern('src/app/api/compatibility/**/*.ts')
+    expect(nested.length).toBeGreaterThan(1)
+    expect(nested).toContain('src/app/api/compatibility/report/route.ts')
+    expect(nested).toContain('src/app/api/compatibility/counselor/result/route.ts')
     // zero-dir 케이스
     expect(matchPattern('src/app/api/astrology/**/*.ts')).toContain(
       'src/app/api/astrology/route.ts'
