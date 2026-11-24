@@ -3,6 +3,7 @@
 // The Python AI backend was removed — the singleton no longer points anywhere
 // by default; callers must pass an explicit baseUrl or use root-relative paths.
 
+import { CHARGING_ROUTES } from '@/lib/credits/chargingRoutes'
 import { logger } from '@/lib/logger'
 
 // ==========================================
@@ -40,13 +41,9 @@ export const CREDIT_UPDATE_EVENT = 'credit-update'
 
 // 크레딧을 차감/환불하는 내부 라우트. POST 응답이 오면 잔액이 변했을 수
 // 있으므로 CREDIT_UPDATE_EVENT 를 쏜다. 차감은 스트림 본문 전에 커밋되므로
-// 헤더 도착 시점이면 이미 반영돼 있다. (라우트 추가 시 여기에도 추가.)
-const CREDIT_MUTATING_ROUTES = [
-  '/api/tarot/interpret-stream',
-  '/api/tarot/followup',
-  '/api/counselor/realtime',
-  '/api/compatibility/counselor',
-]
+// 헤더 도착 시점이면 이미 반영돼 있다. 목록은 CHARGING_ROUTES(SSOT)에서 파생 —
+// 라우트 추가는 src/lib/credits/chargingRoutes.ts 에서만 한다.
+const CREDIT_MUTATING_ROUTES: readonly string[] = CHARGING_ROUTES.map((r) => r.apiPath)
 
 function notifyCreditBalanceMaybeChanged(url: string, method?: string): void {
   if (typeof window === 'undefined') return
