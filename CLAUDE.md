@@ -64,8 +64,8 @@ keys for those features. `BUILD_INSTRUCTIONS.md` has the deep setup/troubleshoot
 | `npm run db:studio`        | Prisma Studio                                            |
 
 CI additionally runs `ops:typecheck:gate` (no new type errors vs baseline) and
-the destiny quality/release gates. See `docs/TESTING_AND_GUARDRAILS.md` for the
-full gate list.
+the destiny release gate (`ops:destiny:release`). See
+`docs/TESTING_AND_GUARDRAILS.md` for the full gate list.
 
 ## Where things live
 

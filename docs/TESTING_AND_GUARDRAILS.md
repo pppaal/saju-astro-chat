@@ -55,17 +55,10 @@ see Status). This gate is enforced in CI on every non-draft PR (the
 `destiny-release-gate` job in `pr-checks.yml` and the `Destiny release gate` step
 in `ci.yml`).
 
-## Destiny Quality Gate
-
-`npm run ops:destiny:gate:quick` and `npm run ops:destiny:gate` run
-`scripts/ops/destiny-quality-gate.mjs`. Because the destiny-matrix engine was
-removed, this script now only runs **mojibake-lint + typecheck**. Its former
-golden/consistency suites imported the deleted engine and could no longer load,
-so they were intentionally dropped rather than pointed at missing modules. The
-`--quick` and `--full` flags are currently equivalent in effect.
-
-`npm run ops:destiny:nightly` chains a full Vitest shard with the full gate
-(`test:nightly:shard` + `ops:destiny:gate`).
+The old destiny _quality_ gate (`ops:destiny:gate`, `ops:destiny:gate:quick`,
+`ops:destiny:nightly`, `scripts/ops/destiny-quality-gate.mjs`) was removed
+(2026-11). After the destiny-matrix engine was deleted it only re-ran
+`lint:mojibake` + `typecheck`, which CI already runs as their own steps.
 
 ## Determinism Golden Tests
 
@@ -114,8 +107,8 @@ guard here so the _class_ closes, not just the instance.
 ### `ci.yml` (push to main, PRs)
 
 Single `build-and-test` job: token-encryption verify, `check:env`, `lint`,
-`lint:mojibake`, `typecheck`, `ops:typecheck:gate`, `ops:destiny:gate:quick`,
-`ops:destiny:release`, `test:destiny-map` (critical smoke), `test:a11y`,
+`lint:mojibake`, `typecheck`, `ops:typecheck:gate`, `ops:destiny:release`,
+`test:destiny-map` (critical smoke), `test:a11y`,
 coverage upload + threshold check (read from `vitest.config.ts`), `build`, SSR
 placeholder + mojibake smoke against a running server, bundle-size check, and an
 E2E API run (`test:e2e:api`).
@@ -127,7 +120,7 @@ E2E API run (`test:e2e:api`).
 - `test-matrix`: `unit` (`npm test`) and `integration` (`npm run test:integration`
   against a Postgres service).
 - `build-check`: `typecheck`, `test:ephemeris-golden`, `ops:typecheck:gate`,
-  `ops:destiny:gate:quick`, `build`, SSR placeholder gate, bundle-size budget.
+  `lint:mojibake`, `build`, SSR placeholder gate, bundle-size budget.
 - `destiny-release-gate`: `npm run ops:destiny:release`.
 - `security-check`: `npm audit` (moderate/high, non-blocking), `audit:unused`
   (knip), changed-file secret scan.
@@ -154,9 +147,8 @@ k6 load suites (`basic`/`stress`/`spike`/`realistic`).
 ### `destiny-nightly.yml` (nightly, manual)
 
 Three-shard full Vitest run (`test:nightly:shard`) with per-shard failure
-analysis (`scripts/ops/analyze-vitest-json.mjs`), a `Destiny Gate Nightly` job
-running `ops:destiny:gate`, and an aggregated summary that buckets failures by
-category and top files.
+analysis (`scripts/ops/analyze-vitest-json.mjs`) and an aggregated summary that
+buckets failures by category and top files.
 
 ## Coverage Floors
 

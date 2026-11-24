@@ -65,7 +65,7 @@ A PR must pass:
 - `lint`, `lint:mojibake`, `typecheck` (kept at **0 errors**)
 - `ops:typecheck:gate` — no new type errors vs the baseline
 - `test` (Vitest) — keep coverage above the floors in `vitest.config.ts`
-- the **destiny quality / release gates** (determinism goldens)
+- the **destiny release gate** (`ops:destiny:release`) and the determinism goldens
 
 Full details: `docs/TESTING_AND_GUARDRAILS.md`.
 

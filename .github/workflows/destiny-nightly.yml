@@ -70,52 +70,10 @@ jobs:
           if-no-files-found: ignore
           retention-days: 14
 
-  destiny-gate-nightly:
-    name: Destiny Gate Nightly
-    runs-on: ubuntu-latest
-    timeout-minutes: 60
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: npm
-
-      - name: Install dependencies
-        run: npm ci
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL || 'postgresql://placeholder:placeholder@localhost:5432/placeholder' }}
-
-      - name: Destiny full gate
-        run: npm run ops:destiny:gate
-
-      - name: Destiny gate summary
-        if: always()
-        run: |
-          echo "## Destiny nightly gate" >> "$GITHUB_STEP_SUMMARY"
-          echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "- Result: ${{ job.status }}" >> "$GITHUB_STEP_SUMMARY"
-          echo "- Command: npm run ops:destiny:gate" >> "$GITHUB_STEP_SUMMARY"
-
-      - name: Upload nightly vitest log placeholder
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: destiny-nightly-metadata
-          path: |
-            reports/ops/*.json
-            reports/ops/*.md
-          if-no-files-found: ignore
-          retention-days: 14
-
   nightly-summary:
     name: Destiny Nightly Summary
     runs-on: ubuntu-latest
-    needs: [vitest-nightly, destiny-gate-nightly]
+    needs: [vitest-nightly]
     if: always()
 
     steps:
@@ -132,7 +90,6 @@ jobs:
           echo "## Destiny nightly summary" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "- Vitest shards: ${{ needs.vitest-nightly.result }}" >> "$GITHUB_STEP_SUMMARY"
-          echo "- Destiny gate: ${{ needs.destiny-gate-nightly.result }}" >> "$GITHUB_STEP_SUMMARY"
           echo "- Workflow date: $(date -u +'%Y-%m-%d %H:%M UTC')" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
           node - <<'NODE' >> "$GITHUB_STEP_SUMMARY"
@@ -179,8 +136,8 @@ jobs:
           }
           NODE
 
-          if [ "${{ needs.vitest-nightly.result }}" != "success" ] || [ "${{ needs.destiny-gate-nightly.result }}" != "success" ]; then
+          if [ "${{ needs.vitest-nightly.result }}" != "success" ]; then
             echo "" >> "$GITHUB_STEP_SUMMARY"
-            echo "Nightly failed. Inspect the shard or gate job logs before the next release cut." >> "$GITHUB_STEP_SUMMARY"
+            echo "Nightly failed. Inspect the shard job logs before the next release cut." >> "$GITHUB_STEP_SUMMARY"
             exit 1
           fi

@@ -13,7 +13,7 @@ Keep the repository readable by separating long-lived source from disposable exe
 - `scripts/`: generation, audit, and maintenance entrypoints
 - `docs/`: durable human documentation
 - `reports/`: curated report outputs worth keeping
-- `tests/fixtures/`, `scripts/ops/fixtures/`: checked-in non-product inputs for evaluation and ops examples
+- `tests/fixtures/`: checked-in non-product inputs for evaluation
 - `artifacts/`, `qa-dumps/`, `tmp/`: disposable generated output, ignored by default
 
 ## Root Policy
