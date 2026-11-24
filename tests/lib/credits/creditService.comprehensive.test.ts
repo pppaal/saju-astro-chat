@@ -13,7 +13,6 @@ import {
   consumeCredits,
   addBonusCredits,
   expireBonusCredits,
-  canUseFeature,
 } from '@/lib/credits/creditService'
 
 // Mock Prisma
@@ -625,13 +624,6 @@ describe('Credit Service', () => {
   })
 
   // (옛 resetMonthlyCredits describe 블록 제거 — 월간 충전 모델 폐지로 함수 삭제됨.)
-
-  describe('canUseFeature', () => {
-    it('should always allow features in the credit-only model', async () => {
-      const result = await canUseFeature(mockUserId, 'priority')
-      expect(result).toBe(true)
-    })
-  })
 
   describe('Edge Cases', () => {
     it('should handle zero credits gracefully', async () => {

@@ -613,13 +613,4 @@ describe('Credit Service Functions with Mocked Prisma', () => {
       expect(result).toBe(0)
     })
   })
-
-  describe('canUseFeature', () => {
-    it('always allows features in the credit-only model', async () => {
-      const { canUseFeature } = await import('@/lib/credits/creditService')
-
-      expect(await canUseFeature('any-user', 'fullSaju')).toBe(true)
-      expect(await canUseFeature('any-user', 'anythingElse')).toBe(true)
-    })
-  })
 })

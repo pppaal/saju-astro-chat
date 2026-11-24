@@ -30,11 +30,6 @@ describe('Credits Module Exports', () => {
     const { addBonusCredits } = await import('@/lib/credits')
     expect(typeof addBonusCredits).toBe('function')
   })
-
-  it('should export canUseFeature function', async () => {
-    const { canUseFeature } = await import('@/lib/credits')
-    expect(typeof canUseFeature).toBe('function')
-  })
 })
 
 describe('withCredits Exports', () => {

@@ -91,7 +91,6 @@ vi.mock('@/lib/credits/creditService', async () => {
   return {
     getCreditBalance: vi.fn(),
     canUseCredits: vi.fn(),
-    canUseFeature: vi.fn(),
     PLAN_CONFIG,
   }
 })

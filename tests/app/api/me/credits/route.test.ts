@@ -96,7 +96,6 @@ vi.mock('@/lib/logger', () => ({
 vi.mock('@/lib/credits/creditService', () => ({
   getCreditBalance: vi.fn(),
   canUseCredits: vi.fn(),
-  canUseFeature: vi.fn(),
   PLAN_CONFIG: {
     free: {
       features: {

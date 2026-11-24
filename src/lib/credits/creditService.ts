@@ -7,9 +7,6 @@ import type { Prisma } from '@prisma/client'
 // 한도 없음(궁합·후속질문도 일반 크레딧 1개씩 소비), 기록 보관 기본값만 둔다.
 const DEFAULT_HISTORY_RETENTION_DAYS = 365
 
-// 기능 게이트도 플랜과 함께 폐지 — 크레딧만 있으면 모든 기능 사용 가능.
-export type FeatureType = string
-
 // 테스트용 크레딧 우회 — CREDITS_BYPASS=true *이고* 개발/테스트 환경일 때만 동작.
 // 운영(production)에서는 env 가 켜져 있어도 절대 우회하지 않는다 — env 하나
 // 잘못 켜서 전 기능이 무료가 되는 사고를 막는 과금 안전장치. (withCredits.ts 의
@@ -745,11 +742,6 @@ export async function expireBonusCredits(retryBackoffMs: number = EXPIRY_RETRY_B
     succeeded,
     failed,
   }
-}
-
-// 기능 사용 가능 여부 — 플랜 게이트 폐지, 크레딧만 있으면 모두 사용 가능.
-export async function canUseFeature(_userId: string, _feature: FeatureType): Promise<boolean> {
-  return true
 }
 
 // 전체 유저 기간 갱신 (cron job용)
