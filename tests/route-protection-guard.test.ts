@@ -38,8 +38,7 @@ const MUTATING = /export\s+(?:async\s+function|const)\s+(?:POST|PUT|PATCH|DELETE
 const CRON_GUARDED = { reason: 'cron — withCronAuth', requires: /\bwithCronAuth\(/ }
 
 // 의도적으로 withApiMiddleware 를 우회하는 라우트 — 각 항목은 그 라우트가 반드시
-// 포함해야 하는 보호 토큰(정규식)을 명시한다. 'disabled' 는 전 메서드가 404 를
-// 돌려주는 스텁이라 보호가 필요 없음을 뜻한다.
+// 포함해야 하는 보호 토큰(정규식)을 명시한다.
 const HANDROLLED: Record<string, { reason: string; requires: RegExp }> = {
   'src/app/api/auth/[...nextauth]/route.ts': {
     reason: 'Auth.js v5 프레임워크 핸들러(handlers) — 자체 보호',
@@ -52,10 +51,6 @@ const HANDROLLED: Record<string, { reason: string; requires: RegExp }> = {
   'src/app/api/tarot/interpret-stream/route.ts': {
     reason: '스트리밍 과금 라우트 — initializeApiContext+createPublicStreamGuard 수동 조립',
     requires: /initializeApiContext|createPublicStreamGuard/,
-  },
-  'src/app/api/tarot/couple-reading/route.ts': {
-    reason: '비활성 스텁 — 전 메서드 404',
-    requires: /couple_tarot_disabled|status:\s*404/,
   },
   'src/app/api/astrology/advanced/progressions/route.ts': {
     reason: 'advanced 점성 — rateLimit+requirePublicToken 수동 조립',

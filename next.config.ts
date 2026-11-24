@@ -49,7 +49,7 @@ const nextConfig = {
     '/app/api/calendar': ['./node_modules/swisseph/build/Release/**/*.node', './public/ephe/**/*'],
     // Counselor routes pull astrology in too: compat through
     // buildAutoAstroContext, destiny realtime through runFortuneWithRaw,
-    // tarot through cross-mode + couple-reading natal cross. These were
+    // tarot through cross-mode natal cross. These were
     // missing so the production serverless bundle couldn't find swisseph
     // at runtime and the LLM ended up with empty astro data — user
     // noticed because answers stopped citing astrology terms.
@@ -280,6 +280,19 @@ const nextConfig = {
         source: '/destiny-map/:path*',
         destination: '/destiny-counselor',
         permanent: true,
+      },
+      // 커플 타로 비활성화 — redirect 만 하던 /tarot/couple(/[readingId]) 페이지를
+      // 지우고 edge redirect 로 대체. 재활성화 여지가 있어 307(permanent: false) 유지.
+      // /ko 프리픽스는 proxy 리라이트보다 redirects 가 먼저 돌므로 따로 둔다.
+      {
+        source: '/tarot/couple/:path*',
+        destination: '/tarot',
+        permanent: false,
+      },
+      {
+        source: '/ko/tarot/couple/:path*',
+        destination: '/ko/tarot',
+        permanent: false,
       },
       {
         source: '/:path*',

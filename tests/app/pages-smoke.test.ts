@@ -107,14 +107,12 @@ describe('Pages Smoke Tests', () => {
     })
   })
 
-  describe('Tarot Pages (5)', () => {
+  describe('Tarot Pages (3)', () => {
     it('should have tarot pages', () => {
       assertPages([
         'app/tarot/page',
-        'app/tarot/couple/page',
         'app/tarot/history/page',
         'app/tarot/[categoryName]/[spreadId]/page',
-        'app/tarot/couple/[readingId]/page',
       ])
     })
   })
