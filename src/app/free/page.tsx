@@ -31,8 +31,8 @@ export async function generateMetadata(): Promise<Metadata> {
     ? '사주도 별자리도 너를 같은 사람이라 말해 — 무료 교차검증 | DestinyPal'
     : 'Saju and the stars describe the same person — free cross-check | DestinyPal'
   const description = isKo
-    ? '동양 사주와 서양 별자리를 따로가 아니라 겹쳐서. 두 체계가 같은 결론을 낸 지점만 골라 보여드려요. 생년월일 하나면 30초, 가입 없이 무료.'
-    : 'Korean astrology and Western astrology, read together — we surface only where both reach the same conclusion. Just your birth date, 30 seconds, free.'
+    ? '동양 사주와 서양 별자리를 따로가 아니라 겹쳐서. 사주와 별자리가 같은 결론을 낸 곳과 엇갈린 곳을 나눠 보여드려요. 생년월일 하나면 30초, 가입 없이 무료.'
+    : 'Read together, not apart: we show where Korean and Western astrology agree — and where they pull apart. Just your birth date, 30 seconds, free.'
   return {
     title,
     description,
@@ -309,7 +309,8 @@ export default async function FreeFunnelHub() {
             </span>
           </div>
 
-          {/* 교차검증 엔진 설명 — 후기가 아니라 엔진이 실제로 하는 일(사실 진술) */}
+          {/* 교차검증 엔진 설명 — 후기가 아니라 엔진이 실제로 하는 일(사실 진술).
+              엔진은 일치만 골라내지 않고 일치·엇갈림을 둘 다 보여준다 — "지점만" 류 과장 금지. */}
           <div className="fh-proofline">
             <span className="qq">
               {isKo ? '두 체계가 따로 계산해요.' : 'The two systems calculate separately.'}
@@ -317,11 +318,12 @@ export default async function FreeFunnelHub() {
             <br />
             {isKo ? (
               <>
-                사주와 별자리가 <b>같은 결론</b>을 낸 지점만 골라 보여드려요.
+                사주와 별자리가 <b>같은 결론</b>을 낸 곳과 <b>엇갈린 곳</b>을 나눠 보여드려요.
               </>
             ) : (
               <>
-                We surface only where Korean and Western astrology <b>reach the same conclusion</b>.
+                We show where Korean and Western astrology <b>agree</b> — and where they{' '}
+                <b>pull apart</b>.
               </>
             )}
             <br />
