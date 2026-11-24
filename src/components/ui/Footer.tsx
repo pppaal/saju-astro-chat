@@ -3,34 +3,22 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useI18n } from '@/i18n/I18nProvider'
+import { shouldShowFooter } from '@/lib/routing/chromeRoutes'
 import styles from './Footer.module.css'
 
-// Footer is hidden on the home page and on the 6 active service routes
-// (and their subpaths). The disclaimer/links appearing below the fold makes
-// every page feel "scrollable" on mobile even when the main content fits in
-// the viewport. Policy pages, /about, /faq, /contact, /pricing, /profile,
-// /auth, /admin, /blog still show the footer.
-const HIDE_FOOTER_PREFIXES = [
-  '/destiny-counselor',
-  '/tarot',
-  '/calendar', // canonical 캘린더(운흐름) route
-  '/destiny', // 인생 흐름(인생·대운·년) full-screen 줌 셸 (·-counselor·pal 도 포함)
-  '/destinypal', // legacy alias → /calendar (308 at edge)
-  '/compatibility',
-  '/report',
-  '/astrology/counselor',
-]
+// Footer is hidden on the v9 screens (home, /destiny, /calendar — they draw
+// their own footer) and on the active service routes (and their subpaths).
+// The disclaimer/links appearing below the fold makes every page feel
+// "scrollable" on mobile even when the main content fits in the viewport.
+// Policy pages, /about, /faq, /contact, /pricing, /profile, /auth, /admin,
+// /blog still show the footer. Route lists live in lib/routing/chromeRoutes.
 
 export default function Footer() {
   const { translate, locale } = useI18n()
   const pathname = usePathname()
   const isKo = locale === 'ko'
 
-  // Hide on home page (exact) and on service routes (prefix match).
-  if (pathname === '/' || pathname === '') return null
-  if (pathname && HIDE_FOOTER_PREFIXES.some((route) => pathname.startsWith(route))) {
-    return null
-  }
+  if (!shouldShowFooter(pathname)) return null
 
   return (
     <footer className={styles.footer}>

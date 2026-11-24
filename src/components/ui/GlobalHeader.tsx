@@ -3,6 +3,7 @@
 import { Suspense, useState } from 'react'
 import { usePathname } from 'next/navigation'
 import { useI18n } from '@/i18n/I18nProvider'
+import { normalizePath, shouldShowGlobalHeader } from '@/lib/routing/chromeRoutes'
 import { AppHeader, AppHeaderIconButton } from './AppHeader'
 import { MenuDrawerPanel } from './MenuDrawerPanel'
 
@@ -21,30 +22,18 @@ function GlobalHeaderContent() {
   const nextLocaleLabel = isKo ? 'EN' : 'KO'
   const localeAriaLabel = isKo ? 'Switch to English' : '한국어로 전환'
 
-  // 자기 상단 네비를 가진 페이지에서는 글로벌 헤더를 숨긴다 — 두 헤더가 겹쳐
-  // 보이는 사고 방지. 메인/타로/상담사 페이지가 여기에 해당.
-  const isMainPage = !pathname || pathname === '/' || pathname === ''
-  const hasCustomPageHeader = Boolean(
-    pathname &&
-    ['/destiny-counselor', '/astrology/counselor', '/compatibility/counselor', '/tarot'].includes(
-      pathname
-    )
-  )
-  const isAdminPage = Boolean(pathname && pathname.startsWith('/admin'))
-  // 캘린더(destinypal 5-tier)는 자체 상단 chrome(브랜드·EN 토글·티어 라벨)을
-  // 가진 몰입형 화면 — 글로벌 헤더의 "DestinyPal" 워드마크가 캘린더 토프바 위에
-  // 겹쳐 뜨므로 /calendar* 에선 글로벌 헤더를 숨긴다.
-  const isCalendarPage = Boolean(pathname && pathname.startsWith('/calendar'))
-  if (isMainPage || hasCustomPageHeader || isAdminPage || isCalendarPage) {
+  // 자기 상단 네비를 가진 페이지(홈·인생 흐름·캘린더 v9 화면, 타로·상담사, 관리자)
+  // 에서는 글로벌 헤더를 숨긴다 — 두 헤더가 겹쳐 보이는 사고 방지. 경로 목록과
+  // /ko 프리픽스 처리는 lib/routing/chromeRoutes 한곳에서 관리한다.
+  if (!shouldShowGlobalHeader(pathname)) {
     return null
   }
 
   // 라이트 페이지 위에 떴을 땐 ink 톤(흰 배경) 으로, 다크 cosmic 페이지에선
   // cosmic 변형(투명 배경). AppHeader 의 theme 토큰으로 직접 전달.
+  const path = normalizePath(pathname)
   const LIGHT_PAGE_PREFIXES = ['/profile', '/compatibility', '/policy', '/contact']
-  const isLightPage = Boolean(
-    pathname && LIGHT_PAGE_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`))
-  )
+  const isLightPage = LIGHT_PAGE_PREFIXES.some((p) => path === p || path.startsWith(`${p}/`))
   const theme: 'cosmic' | 'light' = isLightPage ? 'light' : 'cosmic'
   const drawerVariant: 'dark' | 'light' = isLightPage ? 'light' : 'dark'
 

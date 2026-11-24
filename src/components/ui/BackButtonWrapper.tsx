@@ -1,52 +1,15 @@
 'use client'
 
 import { usePathname } from 'next/navigation'
+import { shouldShowBackButton } from '@/lib/routing/chromeRoutes'
 import BackButton from './BackButton'
 
-// Pages that should hide the global back button
-// These pages either have their own back button or custom header navigation
-const PAGES_WITHOUT_BACK_BUTTON = [
-  '/', // Home page - no back button needed
-  '/tarot', // Tarot pages - have their own navigation
-  '/compatibility', // Uses ServicePageLayout with built-in back button
-  '/about', // Has custom back button in page
-  '/contact', // Has custom back button in page
-  '/faq', // Has custom back button in page
-  '/pricing', // Has custom navigation
-  '/policy', // Has custom back button in page
-  '/calendar', // 캘린더(운흐름) 5-tier view — own back affordance
-  '/destinypal', // legacy alias → /calendar (308 at edge)
-  '/profile', // Has custom navigation
-  '/auth', // Has custom header with back button
-  '/destiny-counselor', // Counselor pages have their own header/back button
-  '/blog', // Has custom back button
-  '/success', // Has custom back button
-  '/icp', // Has custom back button
-  '/admin', // Admin pages - no back button needed
-]
-
+// 홈·v9 화면과 자체 뒤로가기/커스텀 헤더를 가진 페이지에서는 전역 뒤로가기를
+// 숨긴다. 경로 목록(+ /ko 프리픽스 처리)은 lib/routing/chromeRoutes 에 있다.
 export default function BackButtonWrapper() {
   const pathname = usePathname()
 
-  // Always hide on home page
-  if (!pathname || pathname === '/') {
-    return null
-  }
-
-  // Hide on pages that have their own back button or navigation
-  const shouldHide = PAGES_WITHOUT_BACK_BUTTON.some((prefix) => {
-    // Exact match for root pages
-    if (prefix === pathname) {
-      return true
-    }
-    // Match child routes
-    if (pathname.startsWith(prefix + '/')) {
-      return true
-    }
-    return false
-  })
-
-  if (shouldHide) {
+  if (!shouldShowBackButton(pathname)) {
     return null
   }
   return <BackButton />
