@@ -1,4 +1,4 @@
-// tests/lib/Saju/unse.test.ts
+// tests/lib/saju/unse.test.ts
 // 대운/세운/월운/일진 계산 테스트
 
 import { beforeEach } from 'vitest'

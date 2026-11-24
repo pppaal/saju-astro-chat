@@ -1,4 +1,4 @@
-// tests/lib/Saju/yongsin.test.ts
+// tests/lib/saju/yongsin.test.ts
 // 용신(用神) 선정 모듈 테스트
 
 import {

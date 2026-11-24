@@ -1,4 +1,4 @@
-// tests/lib/Saju/doctrine-dayBoundary.test.ts
+// tests/lib/saju/doctrine-dayBoundary.test.ts
 //
 // 일주(日柱) 경계 교리 가드 — **문서와 코드가 조용히 갈라지는 걸 막는다.**
 //

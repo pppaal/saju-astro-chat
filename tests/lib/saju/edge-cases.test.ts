@@ -1,4 +1,4 @@
-// tests/lib/Saju/edge-cases.test.ts
+// tests/lib/saju/edge-cases.test.ts
 //
 // CONVENTIONS.md 컴플라이언스 + 회귀 갭 메우는 케이스들. 2026-06 audit 에서
 // 다음 분기가 *unfreezing* 임이 확인돼 fixture 로 잠근다:

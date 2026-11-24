@@ -31,7 +31,7 @@
 - 한국(`Asia/Seoul`): LMT 보정 → 子 _시진_ 경계 = 23:30–01:30. (시진 경계일 뿐, 일주는 위처럼 민용일 기준.)
 - 비한국 / KMT 시대 / DST 보정 후: 정시 경계 → 子 시진 = 23:00–01:00.
 
-**위치:** 시진 경계 [`saju.ts`](./saju.ts) `LMT_HOUR_RANGES`(한국)/`PLAIN_HOUR_RANGES`(그 외), 일주 경계는 [`dayPillar.ts`](./dayPillar.ts)(민용일 JDN). 골든: `tests/lib/Saju/determinism-golden.test.ts`, `tests/lib/Saju/doctrine-dayBoundary.test.ts`.
+**위치:** 시진 경계 [`saju.ts`](./saju.ts) `LMT_HOUR_RANGES`(한국)/`PLAIN_HOUR_RANGES`(그 외), 일주 경계는 [`dayPillar.ts`](./dayPillar.ts)(민용일 JDN). 골든: `tests/lib/saju/determinism-golden.test.ts`, `tests/lib/saju/doctrine-dayBoundary.test.ts`.
 
 > ✅ **2026-10 수정 — 민용일 분리.** 2026-06-06 에 "네 기둥 모두 보정된 instant
 > 기준" 으로 통일한 변경이 일주까지 끌고 와 위 민용일 규칙을 깼다. 경도를 넘기면
@@ -44,7 +44,7 @@
 > **수정:** [`saju.ts`](./saju.ts) 가 일주만 민용일 `civilY/civilM/civilD` 를 쓰고,
 > **년·월·시는 보정된 `effectiveDateTime` 을 유지**한다 — 일주는 60갑자 *달력
 > 순환*이고 입춘·절기는 *천문 사건*이라는 구분이다.
-> 가드: `tests/lib/Saju/doctrine-dayBoundary.test.ts` (경도 × 하루 전수)
+> 가드: `tests/lib/saju/doctrine-dayBoundary.test.ts` (경도 × 하루 전수)
 
 ---
 
@@ -59,7 +59,7 @@ const sajuYear = birthDateTime < ipchunUTC ? year - 1 : year
 
 **위치:** [`saju.ts:363-369`](./saju.ts#L363-L369)
 
-**경계 케이스:** 1985-02-04 06:00 KST 출생은 입춘(06:12 KST) 12분 전 → 사주년 1984년(甲子). [`tests/lib/Saju/determinism-golden.test.ts`](../../../tests/lib/Saju/determinism-golden.test.ts) 의 boundary cases 가 이 동작을 잠금.
+**경계 케이스:** 1985-02-04 06:00 KST 출생은 입춘(06:12 KST) 12분 전 → 사주년 1984년(甲子). [`tests/lib/saju/determinism-golden.test.ts`](../../../tests/lib/saju/determinism-golden.test.ts) 의 boundary cases 가 이 동작을 잠금.
 
 ---
 
@@ -85,7 +85,7 @@ const sajuYear = birthDateTime < ipchunUTC ? year - 1 : year
 
 **위치:** [`saju.ts:271-274`](./saju.ts#L271-L274) (longitude param), `dayPillar.ts` (JDN compute)
 
-**자정 경계 잠금:** [`determinism-golden.test.ts`](../../../tests/lib/Saju/determinism-golden.test.ts) — 1990-12-31 23:59 vs 1991-01-01 00:01 KST 두 케이스로 회귀 방지.
+**자정 경계 잠금:** [`determinism-golden.test.ts`](../../../tests/lib/saju/determinism-golden.test.ts) — 1990-12-31 23:59 vs 1991-01-01 00:01 KST 두 케이스로 회귀 방지.
 
 ---
 
@@ -95,7 +95,7 @@ const sajuYear = birthDateTime < ipchunUTC ? year - 1 : year
 
 - 시간 미상(`birthTimeUnknown=true`): 시주 계산 skip, 다른 모듈은 ASC/MC 의존 정보(점성 하우스 등) 자동 마스킹
 - **시간 미상 계산 앵커 = 정오(12:00)** — SSOT [`birthTimeAnchor.ts`](./birthTimeAnchor.ts) (`resolveBirthTimeAnchor`/`isBirthTimeUnknown`). 자정 앵커는 진태양시 보정(서울 -32분)으로 출생 인스턴트가 전날로 밀려 **절입일엔 월주·년주**가 어긋난다 — 실제로 궁합/상담사/캘린더 세션 경로가 `'00:00'` 앵커를 써서 통합리포트(정오)와 다른 사주를 내던 버그의 원인. 정오는 ASC/하우스 범위의 중간값이기도 하다. 시간 미상 입력을 엔진(사주·점성)에 넣는 모든 경로는 이 헬퍼를 거칠 것.
-  - ℹ️ **2026-10 이후 일주는 앵커와 무관하다** (§1 민용일 분리). 예전엔 자정 앵커가 일주까지 전날로 밀었고 그게 정오 앵커 근거의 절반이었는데, 그 밀림 자체가 버그였다. 남은 근거(절입일 월주·ASC 중간값)로 정오 앵커는 유지한다. 가드: `tests/lib/Saju/birthTimeAnchor.test.ts`
+  - ℹ️ **2026-10 이후 일주는 앵커와 무관하다** (§1 민용일 분리). 예전엔 자정 앵커가 일주까지 전날로 밀었고 그게 정오 앵커 근거의 절반이었는데, 그 밀림 자체가 버그였다. 남은 근거(절입일 월주·ASC 중간값)로 정오 앵커는 유지한다. 가드: `tests/lib/saju/birthTimeAnchor.test.ts`
 - **미상 판정은 tri-state** — 명시 플래그(`birthTimeUnknown`: UserProfile/SavedPerson DB 컬럼, URL `birthTimeUnknown=1|0`·`tu=1|0`, 폼 상태)가 boolean 이면 신뢰한다: `false` + `'00:00'` 은 **실제 자정 출생**(자정 그대로 계산, 시주 유효). 플래그 미보존(레거시 행/링크, NULL)은 `'00:00'`=미상 휴리스틱으로 폴백.
 
 **위치:** [`saju.ts:160-192`](./saju.ts#L160-L192) 및 호출처

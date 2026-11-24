@@ -1,4 +1,4 @@
-// tests/lib/Tarot/promptBuild.golden.test.ts
+// tests/lib/tarot/promptBuild.golden.test.ts
 //
 // Golden tests for the tarot interpret-stream prompt builders.
 //

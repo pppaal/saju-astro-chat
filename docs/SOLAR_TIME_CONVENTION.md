@@ -59,7 +59,7 @@
 > 2026-06-06 통일 변경이 일주까지 끌고 가 민용일 규칙을 깼고, 경도를 넘기면
 > 문서화된 골든(`1991-01-01 00:01 KST → 日 辛未`)이 日 庚午(전날)로 나왔다.
 > 영향: 서울 32분 · 부산 24분 · 인천 33분, 도쿄(+19분)는 자정 직전. 약 2.2%.
-> 가드: `tests/lib/Saju/doctrine-dayBoundary.test.ts`
+> 가드: `tests/lib/saju/doctrine-dayBoundary.test.ts`
 
 > **일진을 보정하지 않는 이유:** 본명은 *태어난 순간*이라 보정이 필요하지만, 달력의 "오늘의 일진"은 _날짜의 속성_(예: 甲子일)이라 날짜마다 고정값이다.
 
@@ -80,7 +80,7 @@
 ## SSOT 계약
 
 - 사주의 모든 시각 보정은 **`solarTimeCorrectionMinutes(instant, longitude, timeZone)` 하나만** 호출한다. 인라인으로 `(경도−자오선)×4` 를 복붙하지 말 것.
-- 회귀: [`tests/lib/Saju/solarTimeCorrection.test.ts`](../tests/lib/Saju/solarTimeCorrection.test.ts) 가 도시별 보정값을 고정.
+- 회귀: [`tests/lib/saju/solarTimeCorrection.test.ts`](../tests/lib/saju/solarTimeCorrection.test.ts) 가 도시별 보정값을 고정.
 - `longitude` 미상 시 보정 0 → 옛 동작(캐시 호환) 보존.
 
 ## 알려진 미정리 (TODO)

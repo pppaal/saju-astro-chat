@@ -71,15 +71,15 @@ so they were intentionally dropped rather than pointed at missing modules. The
 
 Astronomical determinism is locked by golden suites that pin exact outputs:
 
-- `tests/lib/Saju/determinism-golden.test.ts` — pins year/month/day/time
+- `tests/lib/saju/determinism-golden.test.ts` — pins year/month/day/time
   pillars, day master, and daeun start age/direction against
   `@/lib/saju/saju` (`calculateSajuData`).
 - `tests/lib/astrology/foundation/determinism-golden.test.ts` — pins
   astrology foundation output.
 
 Additional locked-value coverage lives in
-`tests/lib/Saju/saju-singlesource.daeun.test.ts` and
-`tests/lib/Saju/edge-cases.test.ts` (day-boundary / midnight transitions).
+`tests/lib/saju/saju-singlesource.daeun.test.ts` and
+`tests/lib/saju/edge-cases.test.ts` (day-boundary / midnight transitions).
 
 These run as part of `npm test` (the full Vitest suite). Separately,
 `npm run test:ephemeris-golden` (`scripts/ephemeris-golden.mts`) is a Swiss
@@ -174,7 +174,7 @@ These exist and run:
 - `npm run test`, `test:fast`, `test:coverage`, `test:a11y`, `test:integration`
 - `npm run test:e2e:browser`, `test:e2e:smoke:public`, `test:e2e:critical`,
   and the per-flow `test:e2e:*` Playwright specs
-- `npm run test:tarot` (`tests/lib/Tarot`)
+- `npm run test:tarot` (`tests/lib/tarot`)
 - `npm run test:destiny-map` (report text sanitize/mask smoke,
   `tests/destiny-map-sanitize.test.ts`)
 - `npm run test:ephemeris-golden`

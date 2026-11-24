@@ -347,7 +347,7 @@ export function calculateSajuData(
     //    동쪽(도쿄 +19분)은 반대로 자정 직전. 하루 24~33분 ≈ 출생의 약 2.2%.
     //    기존 골든이 longitude 를 한 번도 넘기지 않아 4개월간 안 잡혔다.
     //
-    //    가드: `tests/lib/Saju/doctrine-dayBoundary.test.ts`
+    //    가드: `tests/lib/saju/doctrine-dayBoundary.test.ts`
     const fmtCivil = (opt: Intl.DateTimeFormatOptions) =>
       Number(new Intl.DateTimeFormat('en-US', { timeZone: timezone, ...opt }).format(birthDateTime))
     const civilY = fmtCivil({ year: 'numeric' })

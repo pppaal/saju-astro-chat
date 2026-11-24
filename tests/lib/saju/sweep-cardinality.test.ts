@@ -1,4 +1,4 @@
-// tests/lib/Saju/sweep-cardinality.test.ts
+// tests/lib/saju/sweep-cardinality.test.ts
 //
 // 스윕 가드 — **파라미터 공간을 쓸어서 출력의 개수·분포가 말이 되는지 센다.**
 //

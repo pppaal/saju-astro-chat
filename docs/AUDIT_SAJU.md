@@ -5,7 +5,7 @@
 - Engine: `src/lib/saju/saju.ts`
 - Constants/solar terms: `src/lib/saju/constants.ts`
 - API entry: `src/app/api/saju/route.ts`
-- Determinism tests: `tests/lib/Saju/determinism-golden.test.ts`
+- Determinism tests: `tests/lib/saju/determinism-golden.test.ts`
 
 ## Entrypoints and Schema
 
@@ -19,7 +19,7 @@
 
 ## Determinism Evidence
 
-- Repeated-run determinism verified by `tests/lib/Saju/determinism-golden.test.ts` (6 tests, pass).
+- Repeated-run determinism verified by `tests/lib/saju/determinism-golden.test.ts` (6 tests, pass).
 - Golden cases assert fixed pillar stems/branches and daeun start/flow for 5 birth cases.
 - Invariants checked:
   - Daeun list length and +10 year step pattern

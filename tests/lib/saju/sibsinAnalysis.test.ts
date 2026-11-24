@@ -1,4 +1,4 @@
-// tests/lib/Saju/sibsinAnalysis.test.ts
+// tests/lib/saju/sibsinAnalysis.test.ts
 // 십신 분석 모듈 테스트
 
 import {

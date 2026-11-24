@@ -1,4 +1,4 @@
-// tests/lib/Saju/saju.test.ts
+// tests/lib/saju/saju.test.ts
 // 사주 핵심 계산 모듈 테스트
 
 import {

@@ -1,4 +1,4 @@
-// tests/lib/Saju/patternMatcher.test.ts
+// tests/lib/saju/patternMatcher.test.ts
 // 패턴 매칭 엔진 테스트
 
 import {
