@@ -126,9 +126,16 @@ export function createIdempotencyStore(routeName: string) {
     const ownerToken = owned.get(scopedKey)
     if (!ownerToken) return
     owned.delete(scopedKey)
+    // 실패해도 흐름은 그대로(best-effort) — 다만 락이 TTL 까지 남아 같은 키 재시도가
+    // replay 로 처리될 수 있으니 흔적은 남긴다.
     await prisma.requestIdempotencyLog
       .deleteMany({ where: { scopedKey, owner: ownerToken } })
-      .catch(() => {})
+      .catch((err: unknown) => {
+        logger.warn('[idempotency] release failed, claim row left until TTL', {
+          scopedKey,
+          err: err instanceof Error ? err.message : String(err),
+        })
+      })
   }
 
   function pruneMemoryIfNeeded() {

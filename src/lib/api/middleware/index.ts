@@ -151,7 +151,13 @@ export function withApiMiddleware<T>(handler: ApiHandler<T>, options: Middleware
       // 라우트에서만 attach 되며, refundCreditsOnError 는 요청당 1회 멱등이라
       // 핸들러가 이미 환불했어도 이중 환불되지 않는다. (미차감 시엔 no-op)
       if (activeContext?.refundCreditsOnError) {
-        await activeContext.refundCreditsOnError(e.message).catch(() => {})
+        await activeContext.refundCreditsOnError(e.message).catch((refundErr: unknown) => {
+          logger.warn('[API Error] refundCreditsOnError failed', {
+            route,
+            userId: activeContext?.userId ?? null,
+            err: refundErr instanceof Error ? refundErr.message : String(refundErr),
+          })
+        })
       }
 
       // Classify error

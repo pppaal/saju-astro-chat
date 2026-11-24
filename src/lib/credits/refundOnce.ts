@@ -112,7 +112,17 @@ export async function refundCreditsOnce(
   try {
     return await refundCredits(params)
   } catch (err) {
-    await prisma.requestIdempotencyLog.delete({ where: { scopedKey } }).catch(() => {})
+    // 락 해제 실패 시 이 turn 은 TTL 동안 "환불 완료"로 보여 재시도가 건너뛴다
+    // (무음 과금 위험). 흐름은 그대로 두고 reconciliation 이 잡도록 남긴다.
+    await prisma.requestIdempotencyLog
+      .delete({ where: { scopedKey } })
+      .catch((releaseErr: unknown) => {
+        logger.warn('[refundOnce] failed to release claim after refund error', {
+          scopedKey,
+          reason: params.reason,
+          err: releaseErr instanceof Error ? releaseErr.message : String(releaseErr),
+        })
+      })
     throw err
   }
 }
