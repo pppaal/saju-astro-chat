@@ -12,8 +12,9 @@
  * 풀네임이라 abbr() 로 약어 변환 후 룩업한다.
  */
 
-import { SIGN_META, type ReportData } from '../reportTypes'
-import { signLabel, elClass, type Lang } from '../integratedReportLabels'
+import { SIGN_META, type ReportData } from '@/lib/report/reportTypes'
+import { signLabel, type Lang } from '@/lib/report/integratedReportLabels'
+import { elClass } from '../elementClass'
 import { getHouseRich, type HouseNumber } from '@/lib/chart-dictionary'
 import s from './HouseDetail.module.css'
 

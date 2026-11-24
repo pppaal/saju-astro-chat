@@ -16,7 +16,7 @@ import {
   DIGNITY_TIER_FRIENDLY,
   DIGNITY_TIER_TOOLTIP,
   ASPECT_FRIENDLY,
-} from './reportTypes'
+} from '@/lib/report/reportTypes'
 import {
   getGeokgukRich,
   getSibsinCategory,
@@ -43,7 +43,6 @@ import {
   relationTypeLabel,
   SIGN_TRAIT,
   TONE_LABEL,
-  elClass,
   TONE_COLOR,
   stemEl,
   branchEl,
@@ -61,7 +60,8 @@ import {
   stageHover,
   elementLabel,
   signLabel,
-} from './integratedReportLabels'
+} from '@/lib/report/integratedReportLabels'
+import { elClass } from './elementClass'
 
 import { GLOSSARY, type GlossarySection } from './reportGlossary'
 import { groupByTheme, buildHealthCard, THEME_DEFS } from './reportThemes'
@@ -72,10 +72,14 @@ import PlanetDetail from './detail/PlanetDetail'
 import HouseDetail from './detail/HouseDetail'
 import AspectDetail from './detail/AspectDetail'
 import ViralTopCard from './viral/ViralTopCard'
-import { buildViralSummary, normalizeStrength, pickHeadlineSibsin } from './viral/viralArchetype'
+import {
+  buildViralSummary,
+  normalizeStrength,
+  pickHeadlineSibsin,
+} from '@/lib/report/viralArchetype'
 import { ShareReportButton } from './viral/ShareReportButton'
 
-export type { Lang } from './integratedReportLabels'
+export type { Lang } from '@/lib/report/integratedReportLabels'
 
 // 통합 교차 카테고리 → 평어 한 줄 뜻. 동·서양이 같이 가리키는 주제를 맨 위 훅과
 // §05 목록에서 "라벨 — 쉬운 뜻"으로 읽히게 한다. 사용자별 하드코딩이 아니라

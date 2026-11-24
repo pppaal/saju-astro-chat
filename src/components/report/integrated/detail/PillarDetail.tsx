@@ -6,10 +6,9 @@
  * 상태 없음 — native <details> 로 서버 렌더 + 모바일/접근성 친화.
  */
 
-import type { ReportData } from '../reportTypes'
+import type { ReportData } from '@/lib/report/reportTypes'
 import {
   type Lang,
-  elClass,
   stemEl,
   branchEl,
   hanjaHover,
@@ -18,7 +17,8 @@ import {
   stageHover,
   sibsinLabel,
   sibsinShort,
-} from '../integratedReportLabels'
+} from '@/lib/report/integratedReportLabels'
+import { elClass } from '../elementClass'
 import s from './PillarDetail.module.css'
 
 export interface PillarDetailProps {

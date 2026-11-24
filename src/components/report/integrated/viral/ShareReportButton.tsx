@@ -17,7 +17,7 @@ import { apiFetch } from '@/lib/api'
 import { trackFunnel } from '@/lib/metrics/trackFunnel'
 import { logger } from '@/lib/logger'
 import { ReportShareCard, SHARE_CARD_SIZE, type ReportShareData } from './ReportShareCard'
-import type { ViralSummary } from './viralArchetype'
+import type { ViralSummary } from '@/lib/report/viralArchetype'
 
 export interface ShareReportButtonProps {
   summary: ViralSummary

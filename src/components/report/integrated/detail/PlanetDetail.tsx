@@ -13,10 +13,10 @@ import {
   SIGN_TRAIT,
   signLabel,
   abbr,
-  elClass,
   planetHover,
-} from '../integratedReportLabels'
-import { SIGN_META, type ReportData } from '../reportTypes'
+} from '@/lib/report/integratedReportLabels'
+import { SIGN_META, type ReportData } from '@/lib/report/reportTypes'
+import { elClass } from '../elementClass'
 import { getPlanetCore, getHouseRich, type HouseNumber } from '@/lib/chart-dictionary'
 import s from './PlanetDetail.module.css'
 

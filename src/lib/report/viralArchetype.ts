@@ -3,7 +3,7 @@
  * 결정론 원칙: 모두 명식에서 도출(일간 10간 별명 / 용신 5오행 궁합)되는 고정 사전.
  * 한자·전문용어 없이 평어로. ko/en 짝. IntegratedReport 의 ViralTopCard 가 소비.
  */
-import type { BiLabel } from '../reportTypes'
+import type { BiLabel } from './reportTypes'
 
 export interface Archetype {
   emoji: string

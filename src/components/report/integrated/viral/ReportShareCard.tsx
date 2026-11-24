@@ -19,7 +19,7 @@
  */
 
 import React from 'react'
-import type { ViralSummary } from './viralArchetype'
+import type { ViralSummary } from '@/lib/report/viralArchetype'
 
 export const SHARE_CARD_SIZE = 1080
 

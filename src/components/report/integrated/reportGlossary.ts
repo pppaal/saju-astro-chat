@@ -4,7 +4,7 @@
  * 달리, 여기 내용은 "그 용어 자체가 무엇인가"를 설명하는 고정 글로서리다.
  * IntegratedReport 의 각 섹션 헤더 아래에 <Explain> 으로 렌더된다. ko/en 짝.
  */
-import type { BiLabel } from './reportTypes'
+import type { BiLabel } from '@/lib/report/reportTypes'
 
 export interface GlossaryEntry {
   term: BiLabel

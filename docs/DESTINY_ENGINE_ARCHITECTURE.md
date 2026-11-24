@@ -147,8 +147,10 @@ userId, lang): Promise<{ stableContext, dailyContext }>`. Caches both halves
 
 - `src/lib/report/local-report-generator.ts` -> `generateChartSummary(saju,
 astro, lang)` builds the deterministic chart summary text.
-- Integrated report page: `src/app/(main)/integrated-report/page.tsx` +
-  `buildReportContext.ts`.
+- Integrated report page: `src/app/(main)/integrated-report/page.tsx` ->
+  `src/lib/report/buildReportContext.ts` (natal context) ->
+  `src/lib/report/integratedAdapter.ts` (`natalToReportData`, `buildCrossRows`).
+  The Saju type name comes from `src/lib/report/crossType.ts` (`crossTypeName`).
 
 ## 7. LLM layer
 

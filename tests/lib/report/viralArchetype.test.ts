@@ -5,7 +5,7 @@ import {
   pickHeadlineSibsin,
   ARCHETYPE_BY_STEM,
   PARTNER_BY_ELEMENT,
-} from '@/components/report/integrated/viral/viralArchetype'
+} from '@/lib/report/viralArchetype'
 
 const HANGUL = /[가-힣]/
 

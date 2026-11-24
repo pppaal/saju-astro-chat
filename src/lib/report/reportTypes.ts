@@ -1,6 +1,6 @@
 /**
  * 통합 명식 리포트 뷰모델 타입 + chart.zip 샘플 데이터(TS 포팅).
- * 실제 데이터는 adapter.ts 가 우리 saju/astro 객체에서 이 shape 로 변환한다.
+ * 실제 데이터는 integratedAdapter.ts 가 우리 saju/astro 객체에서 이 shape 로 변환한다.
  */
 
 export interface ReportPillar {

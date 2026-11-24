@@ -4,7 +4,7 @@ import React from 'react'
 import { getHanjaRich } from '@/lib/chart-dictionary'
 import { HanjaBubble } from './atoms/HanjaBubble'
 import { SibsinChip } from './atoms/SibsinChip'
-import { SIBSIN_SHORT } from './atoms/interpretations'
+import { SIBSIN_SHORT } from '@/lib/report/integratedReportLabels'
 
 type FiveElement = '목' | '화' | '토' | '금' | '수' | string
 
@@ -332,4 +332,3 @@ export function SajuChart({ saju, lang = 'ko', theme = 'light', onPillarClick }:
     </div>
   )
 }
-

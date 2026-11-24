@@ -7,7 +7,7 @@
 import { describe, it, expect } from 'vitest'
 import { buildNatalContext } from '@/lib/calendar-engine/context/build'
 import { getTwelveStagesForPillars } from '@/lib/saju/shinsal'
-import { natalToReportData, buildCrossRows } from '@/components/report/integrated/adapter'
+import { natalToReportData, buildCrossRows } from '@/lib/report/integratedAdapter'
 import { getPlanetCore, getHouseRich } from '@/lib/chart-dictionary'
 import { getShinsalInterpretation, shinsalDisplayText } from '@/lib/saju/interpretations'
 import { evalRelations, planetTheme } from '@/lib/report/natalCross'
@@ -53,7 +53,9 @@ describe('통합 리포트 — 미성년 안전 모드 (C5)', () => {
     // 필터는 제거만 한다 — 미성년 행 수 ≤ 성인 행 수.
     expect(minor.rows.length).toBeLessThanOrEqual(adult.rows.length)
     // 성인 쪽에 연애/재물이 있었다면 미성년에선 사라진 것(제거된 만큼 차이).
-    const removed = adult.rows.filter((r) => ROMANCE.has(r.category) || WEALTH.has(r.category)).length
+    const removed = adult.rows.filter(
+      (r) => ROMANCE.has(r.category) || WEALTH.has(r.category)
+    ).length
     expect(adult.rows.length - minor.rows.length).toBe(removed)
   }, 30000)
 

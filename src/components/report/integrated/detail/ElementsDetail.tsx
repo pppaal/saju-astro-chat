@@ -6,8 +6,9 @@
  * EN 출력에는 한글을 절대 내보내지 않는다(한자 木火土金水 표기는 허용).
  */
 
-import { ELEMENTS, type ReportData } from '../reportTypes'
-import { elementLabel, elClass, type Lang } from '../integratedReportLabels'
+import { ELEMENTS, type ReportData } from '@/lib/report/reportTypes'
+import { elementLabel, type Lang } from '@/lib/report/integratedReportLabels'
+import { elClass } from '../elementClass'
 import { getElementInterpretation } from '@/lib/saju/interpretations'
 import s from './ElementsDetail.module.css'
 

@@ -5,7 +5,7 @@
 import { describe, it, expect } from 'vitest'
 import { buildNatalContext } from '@/lib/calendar-engine/context/build'
 import { getTwelveStagesForPillars } from '@/lib/saju/shinsal'
-import { natalToReportData, buildCrossRows } from '@/components/report/integrated/adapter'
+import { natalToReportData, buildCrossRows } from '@/lib/report/integratedAdapter'
 
 describe('통합 리포트 — 실데이터 파이프라인', () => {
   it('진짜 생년월일로 ReportData + 교차 생성', async () => {

@@ -1,4 +1,4 @@
-// src/app/(main)/integrated-report/buildReportContext.ts
+// src/lib/report/buildReportContext.ts
 //
 // 통합 리포트 *전용* 본명 컨텍스트 빌더 — Phase A (2026-06-06):
 // 정통 점성 깊이 (Almuten / Arabic Lots / dignity 5-tier / Chiron·Lilith /
@@ -26,7 +26,7 @@
 
 import { collectSajuFacts } from '@/lib/destiny/sajuFacts'
 import { collectAstroFacts } from '@/lib/destiny/astroFacts'
-import { performAnalyses } from '@/app/api/saju/services/analyses'
+import { performAnalyses } from '@/lib/saju/analyses'
 import { annotateShinsal, getTwelveStagesForPillars } from '@/lib/saju/shinsal'
 import { JIJANGGAN } from '@/lib/saju/constants'
 import { parseHourMinute } from '@/lib/saju/timeParse'
@@ -178,7 +178,7 @@ export async function buildReportContext(input: ReportContextInput): Promise<Nat
       fiveElements: raw.fiveElements,
       analyses,
       dayJijanggan,
-      // adapter.ts 가 stages 룩업 (`saju.twelveStages`) — page 가 직접 더하던
+      // integratedAdapter.ts 가 stages 룩업 (`saju.twelveStages`) — page 가 직접 더하던
       // 옛 패턴을 ctx 안으로 흡수. NatalContext type 에는 없지만 caller 가
       // 사용하므로 안전한 추가 필드로 둠.
       twelveStages,

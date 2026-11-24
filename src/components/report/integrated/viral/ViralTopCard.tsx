@@ -7,7 +7,7 @@
  */
 import s from './ViralTopCard.module.css'
 import { eulReul } from '@/lib/i18n/koParticle'
-import type { ViralSummary } from './viralArchetype'
+import type { ViralSummary } from '@/lib/report/viralArchetype'
 
 export interface ViralTopCardProps {
   summary: ViralSummary

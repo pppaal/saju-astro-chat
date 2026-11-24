@@ -7,9 +7,9 @@
  * 자기 전용 buildReportContext 호출. 안 쓰는 hellenistic 5개
  * (Profection/Lots/ZR/Almuten/5-tier dignity) 계산 안 함.
  */
-import { buildReportContext } from './buildReportContext'
+import { buildReportContext } from '@/lib/report/buildReportContext'
 import { resolveBirthTimeAnchor } from '@/lib/saju/birthTimeAnchor'
-import { natalToReportData, buildCrossRows } from '@/components/report/integrated/adapter'
+import { natalToReportData, buildCrossRows } from '@/lib/report/integratedAdapter'
 import { IntegratedReport } from '@/components/report/integrated/IntegratedReport'
 import CounselorCTA from '@/components/report/CounselorCTA'
 import ReferralInviteButton from '@/components/referral/ReferralInviteButton'

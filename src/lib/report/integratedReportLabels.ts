@@ -2,6 +2,8 @@
  * 통합 리포트 i18n 라벨/룩업 — UI 문자열 사전, 관계·톤·오행·십신·12운성·노스노드·
  * 어스펙트·디그니티 라벨과 hover 설명 헬퍼. JSX 없는 순수 데이터/함수만 모아
  * IntegratedReport(렌더)와 분리한다. 단일 소스라 차트·메인이 같은 라벨을 공유한다.
+ * CSS 의존(오행 색 클래스 elClass)은 components/report/integrated/elementClass.ts 에 둔다
+ * — 서버 코드(사주 카드·Life·홈 빌더)가 이 모듈을 그대로 import 할 수 있게.
  */
 
 import { type BiLabel, ELEMENTS, STEM_INFO, BRANCH_INFO, SIGN_META, SIGN_ABBR } from './reportTypes'
@@ -15,8 +17,6 @@ import {
   type DignityStatus,
 } from '@/lib/chart-dictionary'
 import { getSibsinInterpretation, getTwelveStageInterpretation } from '@/lib/saju/interpretations'
-import { SIBSIN_SHORT } from '../atoms/interpretations'
-import s from './IntegratedReport.module.css'
 
 export type Lang = 'ko' | 'en'
 
@@ -250,13 +250,6 @@ export const TONE_LABEL: Record<CrossRow['tone'], BiLabel> = {
 }
 
 // ── helpers ────────────────────────────────────────────────────────────
-export const elClass: Record<string, string> = {
-  wood: s.elWood,
-  fire: s.elFire,
-  earth: s.elEarth,
-  metal: s.elMetal,
-  water: s.elWater,
-}
 export const stemEl = (g: string) => STEM_INFO[g]?.el ?? ''
 export const branchEl = (b: string) => BRANCH_INFO[b]?.el ?? ''
 export const abbr = (sign: string) => SIGN_ABBR[sign] ?? sign
@@ -280,6 +273,20 @@ export const sibsinLabel = (name: string, lang: Lang): string => {
   if (lang === 'ko') return name
   if (!name || name === '日干') return name === '日干' ? 'Day Master' : name
   return getSibsinInterpretation(name as never)?.name_en ?? name
+}
+// 십성 → 한 줄(2~5자) plain 한국어 키워드. 셀 칩 밑에 inline 으로 노출해서
+// "비견 뭐지" 라는 인지 부담 제거. 명식 칩(SajuChart)과 '쉬운 풀이' 행이 공유한다.
+export const SIBSIN_SHORT: Record<string, string> = {
+  비견: '자존·동료',
+  겁재: '경쟁·라이벌',
+  식신: '표현·창의',
+  상관: '재능·개성',
+  편재: '기회·재물',
+  정재: '안정·재물',
+  편관: '권력·압박',
+  정관: '명예·규율',
+  편인: '직관·지식',
+  정인: '학문·보호',
 }
 // 십신 → 평이 한줄 글로스 (SIBSIN_SHORT 재사용). 명식 '쉬운 풀이' 행에 사용.
 export const sibsinShort = (name: string, lang: Lang): string => {
