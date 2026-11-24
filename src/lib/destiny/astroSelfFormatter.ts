@@ -8,7 +8,7 @@
  *   3. Current transit aspects (오늘 행성 → natal)
  *   4. Profection (해 단위 house — 나이 % 12)
  *
- * dev 검증: scripts/destiny-counselor-lines-example.ts.
+ * 검증: tests/lib/destiny/astroSelfFormatter.test.ts.
  */
 
 import { calculateTransitChart, findTransitAspects } from '@/lib/astrology/foundation/transit'

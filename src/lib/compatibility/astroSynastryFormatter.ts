@@ -10,8 +10,7 @@
  *   Partner A's Sun in the 4th Partner B's house
  *   Partner B's Sun in the 1st Partner A's house
  *
- * dev 검증: scripts/synastry-format.ts (95.02.09 06:40 男 + 91.02.03
- * 00:35 女 케이스에서 132 라인 출력 확인).
+ * 검증: tests/lib/compatibility/astroSynastryFormatter.test.ts.
  */
 
 import { extendChartWithExtraPoints } from '@/lib/astrology/foundation/extraPoints'

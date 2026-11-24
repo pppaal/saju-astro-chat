@@ -10,7 +10,7 @@
  *  - sajuSynastryFacts: 구조화 추출(computeSajuSynastryFacts) — 차트용
  * 이 파일은 그 둘을 재노출하고, 텍스트 라인 포맷(formatSajuSynastry)만 직접 보유한다.
  *
- * dev 검증: scripts/saju-synastry-format.ts.
+ * 검증: tests/lib/compatibility/sajuSynastryFormatter.test.ts.
  */
 
 import { HYEONG_PAIR_TRIO, BRANCH_HYEONG_PAIR, SELF_HYEONG, isHyeong } from '@/lib/saju/hyeong'
