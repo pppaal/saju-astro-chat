@@ -165,10 +165,13 @@ export default function FreeCompatibilityPage() {
   const [phase, setPhase] = useState<'input' | 'loading' | 'result'>('input')
   const [report, setReport] = useState<CompatReport | null>(null)
   // 초대 링크(?invite=)로 들어온 세션 표식 — 결과 완주 시 invite_converted 계측.
-  // ref 는 콜백(analyze/onReset)용, state 는 렌더용(공유 프롬프트를 "초대자에게
-  // 되돌려 보내기"로 프레이밍). 둘 다 초대 effect 에서 함께 세운다.
   const cameFromInviteRef = useRef(false)
-  const [cameFromInvite, setCameFromInvite] = useState(false)
+  // 초대 모드 — 공유자가 옵트인한 링크면 토큰과 표시용 이름만 쥔다. 공유자의
+  // 출생정보는 서버에만 있고, 받은 사람은 자기 정보(personB)만 넣는다. 궁합은
+  // /api/compatibility/share/invite 가 서버에서 계산해 결과만 돌려준다.
+  const [invite, setInvite] = useState<{ token: string; name: string } | null>(null)
+  // 서버 페어링 결과의 공유자 "시간 미상" 여부 — 추정 안내문용(시각 자체는 안 받는다).
+  const [inviterTimeUnknown, setInviterTimeUnknown] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   // ── 저장된 정보 불러오기 (로그인 시에만) ───────────────────────────────
@@ -282,38 +285,27 @@ export default function FreeCompatibilityPage() {
     }
   }, [status, isKo])
 
-  // 2-player 프리필 — 공유 링크(?invite=token)로 들어오면 공유자(personA)를 채워
-  // 받은 사람은 자기 생일(personB)만 넣으면 된다(바이럴 루프). 공유자가 옵트인한
-  // 경우에만 invite 가 있다(미동의면 평소대로 둘 다 입력).
+  // 2-player 초대 — 공유 링크(?invite=token)로 들어오면 공유자 이름만 받아 초대
+  // 모드로 전환하고, 받은 사람은 자기 생일(personB)만 넣으면 된다(바이럴 루프).
+  // 공유자가 옵트인한 경우에만 invite 가 있다(미동의면 평소대로 둘 다 입력).
+  // 공유자 출생정보는 이 GET 에 없다 — 공개 토큰으로 생일이 새지 않게.
   useEffect(() => {
     const token = new URLSearchParams(window.location.search).get('invite')
     if (!token) return
-    // 바이럴 퍼널 — 초대 링크로 실제 랜딩한 수(프리필 성공 여부와 별개).
+    // 바이럴 퍼널 — 초대 링크로 실제 랜딩한 수(초대 확인 성공 여부와 별개).
     trackFunnel('compat_free.invite_landed')
     cameFromInviteRef.current = true
-    setCameFromInvite(true)
     let cancelled = false
     void (async () => {
       try {
         const res = await fetch(`/api/compatibility/share?token=${encodeURIComponent(token)}`)
         if (!res.ok) return
         const inv = (await res.json())?.invite
-        const p = inv?.inviter
-        if (!p || cancelled) return
+        if (!inv || cancelled) return
         trackFunnel('compat_free.invite_prefilled')
-        setPersonA({
-          name: p.name || inv.nameA || '',
-          birthDate: p.birthDate || '',
-          birthTime: p.timeUnknown ? '' : p.birthTime || '',
-          timeUnknown: !!p.timeUnknown,
-          gender: p.gender === 'female' ? 'female' : 'male',
-          city: p.city || '',
-          latitude: typeof p.lat === 'number' ? p.lat : null,
-          longitude: typeof p.lon === 'number' ? p.lon : null,
-          timeZone: p.tz || null,
-        })
+        setInvite({ token, name: typeof inv.name === 'string' ? inv.name : '' })
       } catch {
-        /* ignore — 프리필 실패해도 사용자가 직접 입력 가능 */
+        /* ignore — 초대 확인 실패해도 사용자가 두 사람 다 직접 입력 가능 */
       }
     })()
     return () => {
@@ -349,16 +341,72 @@ export default function FreeCompatibilityPage() {
       timeZone: p.timeZone !== undefined ? p.timeZone : prev.timeZone,
     }))
 
-  const ready =
-    !!personA.birthDate &&
-    !!personB.birthDate &&
-    personA.latitude != null &&
-    personB.latitude != null
+  // 초대 모드에선 공유자 쪽이 서버에 있어 내 정보(personB)만 채우면 된다.
+  const ready = invite
+    ? !!personB.birthDate && personB.latitude != null
+    : !!personA.birthDate &&
+      !!personB.birthDate &&
+      personA.latitude != null &&
+      personB.latitude != null
 
   const analyze = useCallback(async () => {
     setError(null)
     setPhase('loading')
+    // 결과 반영 — 두 경로(초대 서버 페어링 / 수동 입력) 공통 종점.
+    const finish = (rep: CompatReport | null) => {
+      if (!rep) {
+        setError(
+          isKo
+            ? '궁합을 계산하지 못했어요. 입력을 확인하고 다시 시도해 주세요.'
+            : 'Could not compute compatibility. Check the inputs and try again.'
+        )
+        setPhase('input')
+        return
+      }
+      setReport(rep)
+      setPhase('result')
+      // 바이럴 퍼널 종점 — 초대받아 들어온 사람이 자기 결과까지 완주.
+      if (cameFromInviteRef.current) trackFunnel('compat_free.invite_converted')
+    }
     try {
+      const post = (url: string, body: unknown) =>
+        fetch(url, { method: 'POST', headers: apiHeaders, body: JSON.stringify(body) })
+
+      if (invite) {
+        // 초대 모드 — 내 출생정보(personB) + 토큰만 보내고, 서버가 공유자 정보를
+        // 꺼내 궁합 결과(리포트)만 돌려준다. 공유자 출생정보는 응답에도 없다.
+        const res = await post('/api/compatibility/share/invite', {
+          token: invite.token,
+          person: {
+            birthDate: personB.birthDate,
+            birthTime: personB.timeUnknown ? '' : personB.birthTime,
+            timeUnknown: personB.timeUnknown,
+            gender: personB.gender || undefined,
+            lat: personB.latitude ?? undefined,
+            lon: personB.longitude ?? undefined,
+            tz: personB.timeZone || undefined,
+          },
+          lang: locale,
+        })
+        if (res.status === 404) {
+          // 링크 만료(90일 TTL) — 초대 모드를 풀고 두 사람 직접 입력으로(내 정보는 유지).
+          setInvite(null)
+          setError(
+            isKo
+              ? '초대 링크가 만료됐어요. 두 사람 정보를 직접 넣어 주세요.'
+              : 'This invite link has expired. Please enter both people’s details.'
+          )
+          setPhase('input')
+          return
+        }
+        const json = (res.ok ? await res.json() : null) as {
+          data?: { report?: CompatReport; inviter?: { timeUnknown?: boolean } }
+        } | null
+        setInviterTimeUnknown(json?.data?.inviter?.timeUnknown === true)
+        finish(json?.data?.report ?? null)
+        return
+      }
+
       // 시간 모름 → 정오 앵커(SSOT: birthTimeAnchor). 예전 '00:00' 앵커는
       // 진태양시 보정(-32분)으로 일주가 전날로 밀려 통합리포트와 다른 사주가 나왔다.
       const anchorOf = (p: Person) => resolveBirthTimeAnchor(p.birthTime, p.timeUnknown).time
@@ -378,9 +426,6 @@ export default function FreeCompatibilityPage() {
         longitude: p.longitude ?? 126.978,
         timeZone: p.timeZone || DEFAULT_TZ,
       })
-
-      const post = (url: string, body: unknown) =>
-        fetch(url, { method: 'POST', headers: apiHeaders, body: JSON.stringify(body) })
 
       const [sajuA, sajuB, astroA, astroB] = await Promise.all([
         post('/api/saju', sajuPayload(personA)),
@@ -412,28 +457,16 @@ export default function FreeCompatibilityPage() {
       const reportJson = (reportRes.ok ? await reportRes.json() : null) as {
         data?: CompatReport
       } | null
-      const rep = reportJson?.data ?? null
-      if (!rep) {
-        setError(
-          isKo
-            ? '궁합을 계산하지 못했어요. 입력을 확인하고 다시 시도해 주세요.'
-            : 'Could not compute compatibility. Check the inputs and try again.'
-        )
-        setPhase('input')
-        return
-      }
-      setReport(rep)
-      setPhase('result')
-      // 바이럴 퍼널 종점 — 초대받아 들어온 사람이 자기 결과까지 완주.
-      if (cameFromInviteRef.current) trackFunnel('compat_free.invite_converted')
+      finish(reportJson?.data ?? null)
     } catch (e) {
       logger.error('[compat-free] analyze failed', e instanceof Error ? e : undefined)
       setError(isKo ? '네트워크 오류가 발생했어요.' : 'A network error occurred.')
       setPhase('input')
     }
-  }, [personA, personB, isKo, locale])
+  }, [personA, personB, isKo, locale, invite])
 
-  const labelA = personA.name.trim() || (isKo ? 'A' : 'A')
+  // 초대 모드면 A 는 서버에 있는 공유자 — 표시용 이름만 GET 으로 받았다.
+  const labelA = (invite ? invite.name : personA.name).trim() || (isKo ? 'A' : 'A')
   const labelB = personB.name.trim() || (isKo ? 'B' : 'B')
 
   // 결정적 신호 한 줄 — 일주 배우자성 우선, 없으면 가장 강한 시너스트리. (모달과 동일 결)
@@ -478,10 +511,14 @@ export default function FreeCompatibilityPage() {
             labelB={labelB}
             isKo={isKo}
             locale={locale}
-            timeUnknown={personA.timeUnknown || personB.timeUnknown}
-            cameFromInvite={cameFromInvite}
+            timeUnknown={(invite ? inviterTimeUnknown : personA.timeUnknown) || personB.timeUnknown}
+            cameFromInvite={invite !== null}
+            // 초대 모드에선 A 가 남(공유자)이라 "나와의 궁합 허용" 옵트인을 띄우지 않는다
+            // (공유자 출생정보는 클라에 없고, 남의 정보를 재공유할 수도 없게).
             inviter={
-              personA.birthDate && (personA.gender === 'male' || personA.gender === 'female')
+              !invite &&
+              personA.birthDate &&
+              (personA.gender === 'male' || personA.gender === 'female')
                 ? {
                     name: personA.name || (isKo ? 'A' : 'A'),
                     birthDate: personA.birthDate,
@@ -498,37 +535,59 @@ export default function FreeCompatibilityPage() {
             onReset={() => {
               setReport(null)
               // 재짝짓기(바이럴 K 배수) — "나"는 그대로 두고 상대만 비워, 두 번째
-              // 사람과 원탭으로 또 본다(내 생일 재입력 마찰 제거). 초대로 들어왔으면
-              // 내가 personB(상대=초대자=A), 아니면 내가 personA.
-              if (cameFromInviteRef.current) setPersonA(emptyPerson())
-              else setPersonB(emptyPerson())
+              // 사람과 원탭으로 또 본다(내 생일 재입력 마찰 제거). 초대 모드였으면
+              // 나는 personB 라 첫 칸으로 옮기고 초대(서버 페어링)를 끝내 평소 흐름으로.
+              if (invite) {
+                setPersonA(personB)
+                setInvite(null)
+              }
+              setPersonB(emptyPerson())
               setPhase('input')
             }}
           />
         ) : (
           <>
             <p className={s.lead}>
-              {isKo
-                ? '두 사람의 생년월일·출생지를 넣으면 사주와 별자리로 본 케미를 바로 보여드려요.'
-                : 'Enter both birth dates and places — see your chemistry from Saju and the stars.'}
+              {invite
+                ? isKo
+                  ? `${labelA}님이 궁합을 보자고 초대했어요. 내 생년월일·출생지만 넣으면 두 사람 궁합을 바로 보여드려요.`
+                  : `${labelA} invited you to a match. Add your own birth date and place to see your chemistry.`
+                : isKo
+                  ? '두 사람의 생년월일·출생지를 넣으면 사주와 별자리로 본 케미를 바로 보여드려요.'
+                  : 'Enter both birth dates and places — see your chemistry from Saju and the stars.'}
             </p>
 
+            {/* 초대 모드 — 공유자는 이름만. 출생정보는 서버에서 계산에만 쓰인다. */}
+            {invite ? (
+              <div className={s.personCard}>
+                <p className={s.personTitle} style={{ color: '#c2548a' }}>
+                  {isKo ? '초대한 사람' : 'Invited by'}
+                </p>
+                <p className={s.inviterName}>{labelA}</p>
+                <p className={s.inviterNote}>
+                  {isKo
+                    ? `${labelA}님의 출생 정보는 공개되지 않아요. 서버에서 궁합 계산에만 쓰이고, 여기엔 결과만 보여요.`
+                    : `${labelA}'s birth details stay private. They're used only on our server to compute the match, and you'll see just the result.`}
+                </p>
+              </div>
+            ) : (
+              <PersonForm
+                title={isKo ? '첫 번째 사람' : 'Person A'}
+                accent="#c2548a"
+                person={personA}
+                onName={(name) => setPersonA((p) => ({ ...p, name }))}
+                onChange={patch(setPersonA)}
+                locale={locale}
+                idPrefix="cf-a"
+                isAuthenticated={isAuthed}
+                loadOptions={loadOptions}
+                showDropdown={openDropdown === 'a'}
+                onToggleDropdown={() => setOpenDropdown((d) => (d === 'a' ? null : 'a'))}
+                onPickOption={(opt) => applyOption('a', opt)}
+              />
+            )}
             <PersonForm
-              title={isKo ? '첫 번째 사람' : 'Person A'}
-              accent="#c2548a"
-              person={personA}
-              onName={(name) => setPersonA((p) => ({ ...p, name }))}
-              onChange={patch(setPersonA)}
-              locale={locale}
-              idPrefix="cf-a"
-              isAuthenticated={isAuthed}
-              loadOptions={loadOptions}
-              showDropdown={openDropdown === 'a'}
-              onToggleDropdown={() => setOpenDropdown((d) => (d === 'a' ? null : 'a'))}
-              onPickOption={(opt) => applyOption('a', opt)}
-            />
-            <PersonForm
-              title={isKo ? '두 번째 사람' : 'Person B'}
+              title={invite ? (isKo ? '내 정보' : 'You') : isKo ? '두 번째 사람' : 'Person B'}
               accent="#3f7cae"
               person={personB}
               onName={(name) => setPersonB((p) => ({ ...p, name }))}
@@ -564,9 +623,13 @@ export default function FreeCompatibilityPage() {
             </button>
             {!ready ? (
               <p className={s.hint}>
-                {isKo
-                  ? '두 사람의 생년월일과 출생 도시(목록에서 선택)를 모두 채워주세요.'
-                  : 'Fill in both birth dates and pick each birth city from the list.'}
+                {invite
+                  ? isKo
+                    ? '내 생년월일과 출생 도시(목록에서 선택)를 채워주세요.'
+                    : 'Fill in your birth date and pick your birth city from the list.'
+                  : isKo
+                    ? '두 사람의 생년월일과 출생 도시(목록에서 선택)를 모두 채워주세요.'
+                    : 'Fill in both birth dates and pick each birth city from the list.'}
               </p>
             ) : null}
           </>

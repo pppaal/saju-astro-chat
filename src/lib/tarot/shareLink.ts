@@ -42,9 +42,11 @@ export interface TarotShareLinkPayload {
 export type CompatVerdictTone = 'aligned' | 'mixed' | 'tension' | 'neutral'
 
 /**
- * 옵트인 시에만 링크에 실리는 공유자(초대자)의 출생정보 — 받은 사람이 자기
- * 생일만 넣고 "우리 궁합"을 바로 보게 하는 2-player 프리필용. 프라이버시: 공유자가
- * "친구가 나와의 궁합을 보게 허용"에 동의했을 때만 채워진다(미동의면 undefined).
+ * 옵트인 시에만 공유 레코드에 저장되는 공유자(초대자)의 출생정보 — 받은 사람이
+ * 자기 생일만 넣고 "우리 궁합"을 바로 보게 하는 서버 페어링용
+ * (/api/compatibility/share/invite). 프라이버시: 공유자가 "친구가 나와의 궁합을
+ * 보게 허용"에 동의했을 때만 채워지고(기본 꺼짐, 미동의면 undefined), 서버 밖으로는
+ * 나가지 않는다 — 받은 사람은 궁합 결과만 받는다.
  */
 export interface CompatInviter {
   name: string
@@ -78,7 +80,7 @@ export interface CompatShareLinkPayload {
   score?: number
   /** 점수 등급 별명(선택) — "위험할 만큼 잘 맞아" 등. 점수 옆 배지. PII 아님. */
   grade?: string
-  /** 옵트인 2-player 프리필용 공유자 출생정보(미동의면 없음). */
+  /** 옵트인 서버 페어링용 공유자 출생정보(미동의면 없음). 공개 응답에 싣지 않는다. */
   inviter?: CompatInviter
 }
 

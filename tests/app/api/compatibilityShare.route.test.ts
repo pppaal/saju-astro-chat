@@ -144,7 +144,7 @@ describe('POST /api/compatibility/share — 점수/등급 왕복', () => {
     expect((await res.json()).error.message).toBe('share_create_failed')
   })
 
-  it('inviter 옵트인 시 페이로드에 inviter 가 실린다', async () => {
+  it('inviter 옵트인 시 공유 레코드(서버)에 inviter 가 저장된다', async () => {
     const withInviter = {
       ...valid,
       inviter: { name: '지민', birthDate: '1994-03-03', gender: 'female' as const },
@@ -162,17 +162,61 @@ function getReq(token?: string) {
   return new NextRequest(url, { method: 'GET' })
 }
 
-describe('GET /api/compatibility/share — 초대 프리필', () => {
-  it('opt-in inviter 가 있으면 invite 로 nameA·inviter 만 노출', async () => {
-    getShareLink.mockResolvedValue({
-      kind: 'compatibility',
-      nameA: '지민',
-      inviter: { birthDate: '1994-03-03', gender: 'female' },
-    })
+describe('GET /api/compatibility/share — 초대 확인(이름만)', () => {
+  // 공개 토큰으로 누구나 부를 수 있는 GET — 공유자 출생정보가 절대 나가면 안 된다.
+  const FULL_INVITER = {
+    name: '지민',
+    birthDate: '1994-03-03',
+    birthTime: '14:37',
+    timeUnknown: false,
+    gender: 'female',
+    city: 'Busan',
+    lat: 35.1796,
+    lon: 129.0756,
+    tz: 'Asia/Seoul',
+  }
+
+  it('opt-in inviter 가 있으면 invite 로 표시용 이름만 노출', async () => {
+    getShareLink.mockResolvedValue({ kind: 'compatibility', nameA: '지민', inviter: FULL_INVITER })
     const res = await GET(getReq('tok_cmp1'))
     const data = await res.json()
-    expect(data.invite.nameA).toBe('지민')
-    expect(data.invite.inviter.birthDate).toBe('1994-03-03')
+    expect(res.status).toBe(200)
+    expect(data).toEqual({ invite: { name: '지민' } })
+  })
+
+  it('GET 응답엔 생년월일·시각·성별·도시·좌표·타임존이 없다(예전 토큰 포함)', async () => {
+    getShareLink.mockResolvedValue({ kind: 'compatibility', nameA: '지민', inviter: FULL_INVITER })
+    const data = await (await GET(getReq('tok_cmp1'))).json()
+    const text = JSON.stringify(data)
+    for (const key of [
+      'birthDate',
+      'birthTime',
+      'timeUnknown',
+      'gender',
+      'city',
+      'lat',
+      'lon',
+      'tz',
+    ]) {
+      expect(text).not.toContain(`"${key}"`)
+    }
+    expect(text).not.toContain('inviter')
+    expect(text).not.toContain('1994-03-03')
+    expect(text).not.toContain('14:37')
+    expect(text).not.toContain('Busan')
+    expect(text).not.toContain('35.1796')
+    expect(text).not.toContain('129.0756')
+    expect(text).not.toContain('Asia/Seoul')
+  })
+
+  it('공유자 이름이 비면 nameA 로 표시', async () => {
+    getShareLink.mockResolvedValue({
+      kind: 'compatibility',
+      nameA: 'A',
+      inviter: { ...FULL_INVITER, name: '' },
+    })
+    const data = await (await GET(getReq('tok_cmp1'))).json()
+    expect(data.invite).toEqual({ name: 'A' })
   })
 
   it('inviter 미동의(없음)면 invite: null', async () => {
