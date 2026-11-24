@@ -1,4 +1,4 @@
-// src/lib/tarot/shareLink.ts
+// src/lib/share/shareLink.ts
 //
 // 공개 공유 링크 저장소 — /r/[token] 공개 페이지와 그 동적 OG 이미지가 쓰는
 // 공유 리딩 데이터를 Redis(데일리 카드와 동일한 cacheGet/cacheSet)에 담는다.
@@ -245,11 +245,6 @@ export async function getShareLink(token: string): Promise<ShareLinkPayload | nu
     logger.error('[shareLink] get failed', error)
     return null
   }
-}
-
-/** 표시·링크용 사이트 기본 URL — 운영 env, 없으면 .com 폴백. */
-export function siteBaseUrl(): string {
-  return (process.env.NEXT_PUBLIC_BASE_URL || 'https://destinypal.com').replace(/\/$/, '')
 }
 
 const viewsKey = (token: string) => `share:views:${token}`

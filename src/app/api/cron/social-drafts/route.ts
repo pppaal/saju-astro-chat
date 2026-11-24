@@ -13,7 +13,7 @@ import { withCronAuth } from '@/lib/api/middleware/cronGuard'
 import { ensureDrafts, updateDraft } from '@/lib/social/draftStore'
 import { generateDailyDrafts, todayKeyKST } from '@/lib/social/generateDrafts'
 import { isVideoConfigured, renderCardReel } from '@/lib/social/video'
-import { siteBaseUrl } from '@/lib/tarot/shareLink'
+import { siteBaseUrl } from '@/lib/share/site'
 import type { SocialPostDraft } from '@/lib/social/types'
 
 export const dynamic = 'force-dynamic'

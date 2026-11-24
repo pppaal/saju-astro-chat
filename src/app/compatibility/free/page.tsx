@@ -34,7 +34,7 @@ import {
   josa,
 } from '@/lib/compatibility/freeReport/buildNarrative'
 import type { FreeReportTheme } from '@/lib/compatibility/freeReport/types'
-import type { CompatInviter } from '@/lib/tarot/shareLink'
+import type { CompatInviter } from '@/lib/share/shareLink'
 import { trackFunnel } from '@/lib/metrics/trackFunnel'
 import { logger } from '@/lib/logger'
 import s from './freeCompat.module.css'

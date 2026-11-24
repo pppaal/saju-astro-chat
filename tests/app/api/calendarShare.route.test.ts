@@ -46,8 +46,10 @@ vi.mock('@/lib/api/middleware', () => ({
 
 const createShareLink = vi.fn(async () => 'tok_cal1' as string | null)
 const siteBaseUrl = vi.fn(() => 'https://destinypal.app')
-vi.mock('@/lib/tarot/shareLink', () => ({
+vi.mock('@/lib/share/shareLink', () => ({
   createShareLink: (...a: any[]) => (createShareLink as any)(...a),
+}))
+vi.mock('@/lib/share/site', () => ({
   siteBaseUrl: () => (siteBaseUrl as any)(),
 }))
 

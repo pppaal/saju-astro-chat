@@ -1,10 +1,10 @@
-// tests/lib/tarot/shareLinkStore.test.ts
+// tests/lib/share/shareLinkStore.test.ts
 //
-// shareLink 저장소 — 공유 종류 타입 가드·siteBaseUrl·createShareLink·
+// shareLink 저장소 — 공유 종류 타입 가드·createShareLink·
 // getShareLink(종류 분기·버전·타로 cards 검증·에러)·bumpShareViews 를 커버.
 // (compat/calendar/tarot 공유 라우트가 전부 이 모듈에 의존한다.)
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 
 const cacheGet = vi.fn<(k: string) => Promise<unknown>>()
 const cacheSet = vi.fn<(k: string, v: unknown, ttl: number) => Promise<boolean>>()
@@ -22,9 +22,8 @@ import {
   isReportShare,
   createShareLink,
   getShareLink,
-  siteBaseUrl,
   bumpShareViews,
-} from '@/lib/tarot/shareLink'
+} from '@/lib/share/shareLink'
 
 beforeEach(() => {
   vi.clearAllMocks()
@@ -44,22 +43,6 @@ describe('공유 종류 타입 가드', () => {
       expect(guard({ kind } as never)).toBe(true)
       expect(guard({ kind: 'tarot' } as never)).toBe(false)
     }
-  })
-})
-
-describe('siteBaseUrl', () => {
-  const prev = process.env.NEXT_PUBLIC_BASE_URL
-  afterEach(() => {
-    if (prev === undefined) delete process.env.NEXT_PUBLIC_BASE_URL
-    else process.env.NEXT_PUBLIC_BASE_URL = prev
-  })
-  it('env 없으면 .com 폴백', () => {
-    delete process.env.NEXT_PUBLIC_BASE_URL
-    expect(siteBaseUrl()).toBe('https://destinypal.com')
-  })
-  it('env 있으면 사용 + 끝 슬래시 제거', () => {
-    process.env.NEXT_PUBLIC_BASE_URL = 'https://my.app/'
-    expect(siteBaseUrl()).toBe('https://my.app')
   })
 })
 

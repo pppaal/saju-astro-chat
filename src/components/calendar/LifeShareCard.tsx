@@ -17,14 +17,13 @@
 
 import React from 'react'
 import { buildCurveSvg } from '@/lib/share/curveSvg'
+import { shareDomain } from '@/lib/share/site'
 import type { LifeShareData } from './ShareLifeButton'
 
 export const LIFE_CARD_SIZE = 1080
 
 // 이미지 공유는 클릭 불가라 받는 사람이 돌아올 경로(도메인)를 카드에 박는다.
-const SHARE_DOMAIN = (process.env.NEXT_PUBLIC_BASE_URL || 'https://destinypal.com')
-  .replace(/^https?:\/\//, '')
-  .replace(/\/$/, '')
+const SHARE_DOMAIN = shareDomain()
 
 // ── 따뜻한 앰버 팔레트 — /r 인생 OG(opengraph-image)와 같은 결 ─────────────
 const BG_GRAD = 'linear-gradient(160deg, #1c0f0a 0%, #2c130f 48%, #0c0708 100%)'

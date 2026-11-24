@@ -22,9 +22,9 @@ import {
   createShareLink,
   getShareLink,
   isCompatShare,
-  siteBaseUrl,
   type CompatShareLinkPayload,
-} from '@/lib/tarot/shareLink'
+} from '@/lib/share/shareLink'
+import { siteBaseUrl } from '@/lib/share/site'
 import { recordCounter } from '@/lib/metrics'
 import { bumpShareCreated } from '@/lib/metrics/shareCounts'
 import { rateLimit } from '@/lib/rateLimit'

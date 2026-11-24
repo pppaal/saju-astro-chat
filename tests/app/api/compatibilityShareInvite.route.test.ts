@@ -60,7 +60,7 @@ vi.mock('@/lib/cache/redis-cache', () => ({
 }))
 
 const getShareLink = vi.fn(async (_token: string): Promise<any> => null)
-vi.mock('@/lib/tarot/shareLink', () => ({
+vi.mock('@/lib/share/shareLink', () => ({
   getShareLink: (token: string) => getShareLink(token),
   isCompatShare: (p: any) => p?.kind === 'compatibility',
 }))

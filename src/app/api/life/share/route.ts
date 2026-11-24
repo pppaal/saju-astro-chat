@@ -16,7 +16,8 @@ import {
   ErrorCodes,
   type ApiContext,
 } from '@/lib/api/middleware'
-import { createShareLink, siteBaseUrl, type LifeShareLinkPayload } from '@/lib/tarot/shareLink'
+import { createShareLink, type LifeShareLinkPayload } from '@/lib/share/shareLink'
+import { siteBaseUrl } from '@/lib/share/site'
 import { recordCounter } from '@/lib/metrics'
 import { bumpShareCreated } from '@/lib/metrics/shareCounts'
 import { logger } from '@/lib/logger'

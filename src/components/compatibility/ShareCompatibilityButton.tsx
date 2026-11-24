@@ -21,7 +21,7 @@ import {
   COMPAT_SHARE_CARD_SIZE,
   type CompatShareCardData,
 } from './CompatShareCard'
-import type { CompatInviter } from '@/lib/tarot/shareLink'
+import type { CompatInviter } from '@/lib/share/shareLink'
 import { trackFunnel } from '@/lib/metrics/trackFunnel'
 
 export type CompatShareData = CompatShareCardData

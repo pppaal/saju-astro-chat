@@ -40,7 +40,7 @@ vi.mock('@/components/compatibility/CompatShareCard', () => {
 })
 
 import { ShareCompatibilityButton } from '@/components/compatibility/ShareCompatibilityButton'
-import type { CompatInviter } from '@/lib/tarot/shareLink'
+import type { CompatInviter } from '@/lib/share/shareLink'
 
 const baseData = {
   isKo: true,

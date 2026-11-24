@@ -9,7 +9,7 @@ import { ImageResponse } from 'next/og'
 import { loadOgFonts } from '@/lib/share/ogFont'
 import { isAllowedCardBg } from '@/lib/social/aiImage'
 import { SOCIAL_CATEGORIES, type SocialCategory } from '@/lib/social/types'
-import { siteBaseUrl } from '@/lib/tarot/shareLink'
+import { siteBaseUrl } from '@/lib/share/site'
 import { rateLimit } from '@/lib/rateLimit'
 import { getClientIp } from '@/lib/request-ip'
 

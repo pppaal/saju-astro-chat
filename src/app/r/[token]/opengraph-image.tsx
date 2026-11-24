@@ -17,9 +17,9 @@ import {
   isDayShare,
   isLifeShare,
   isReportShare,
-  siteBaseUrl,
   type ShareLinkPayload,
-} from '@/lib/tarot/shareLink'
+} from '@/lib/share/shareLink'
+import { shareDomain } from '@/lib/share/site'
 import { buildCurveSvg, curveSvgDataUri, buildGaugeSvg } from '@/lib/share/curveSvg'
 import { loadOgFonts } from '@/lib/share/ogFont'
 
@@ -89,9 +89,7 @@ export default async function Image({ params }: { params: Promise<{ token: strin
   const { token } = await params
   const reading: ShareLinkPayload | null = await getShareLink(token)
   const isKo = reading?.isKo ?? true
-  const displayDomain = siteBaseUrl()
-    .replace(/^https?:\/\//, '')
-    .replace(/\/$/, '')
+  const displayDomain = shareDomain()
 
   // ── 하루(일진) — 점수 + 한 줄 + 이달 흐름 곡선 ──
   if (reading && isDayShare(reading)) {

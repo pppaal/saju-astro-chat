@@ -52,10 +52,12 @@ vi.mock('@/lib/api/errorHandler', () => ({
 const createShareLink = vi.fn(async () => 'tok_cmp1')
 const siteBaseUrl = vi.fn(() => 'https://destinypal.app')
 const getShareLink = vi.fn(async (): Promise<any> => null)
-vi.mock('@/lib/tarot/shareLink', () => ({
+vi.mock('@/lib/share/shareLink', () => ({
   createShareLink: (...a: any[]) => (createShareLink as any)(...a),
   getShareLink: (...a: any[]) => (getShareLink as any)(...a),
   isCompatShare: (p: any) => p?.kind === 'compatibility',
+}))
+vi.mock('@/lib/share/site', () => ({
   siteBaseUrl: () => (siteBaseUrl as any)(),
 }))
 

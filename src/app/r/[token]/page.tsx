@@ -16,7 +16,7 @@ import {
   isLifeShare,
   isReportShare,
   bumpShareViews,
-} from '@/lib/tarot/shareLink'
+} from '@/lib/share/shareLink'
 import { buildCurveSvg, curveSvgDataUri } from '@/lib/share/curveSvg'
 import { recordCounter } from '@/lib/metrics'
 

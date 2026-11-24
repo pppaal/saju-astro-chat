@@ -20,14 +20,12 @@
 
 import React from 'react'
 import type { ViralSummary } from '@/lib/report/viralArchetype'
+import { shareDomain } from '@/lib/share/site'
 
 export const SHARE_CARD_SIZE = 1080
 
 // 이미지 공유는 클릭 불가라 받는 사람이 돌아올 경로(도메인)를 카드에 박는다.
-// NEXT_PUBLIC_ 이라 클라 번들에 인라인됨(서버 siteBaseUrl 과 동일 폴백).
-const SHARE_DOMAIN = (process.env.NEXT_PUBLIC_BASE_URL || 'https://destinypal.com')
-  .replace(/^https?:\/\//, '')
-  .replace(/\/$/, '')
+const SHARE_DOMAIN = shareDomain()
 
 export interface ReportShareData {
   summary: ViralSummary

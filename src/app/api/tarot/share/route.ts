@@ -17,7 +17,8 @@ import {
   ErrorCodes,
   type ApiContext,
 } from '@/lib/api/middleware'
-import { createShareLink, siteBaseUrl, type ShareLinkPayload } from '@/lib/tarot/shareLink'
+import { createShareLink, type ShareLinkPayload } from '@/lib/share/shareLink'
+import { siteBaseUrl } from '@/lib/share/site'
 import { getUserDisplayName } from '@/lib/user/displayName'
 import { recordCounter } from '@/lib/metrics'
 import { bumpShareCreated } from '@/lib/metrics/shareCounts'

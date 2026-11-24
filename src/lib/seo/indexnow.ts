@@ -12,7 +12,7 @@
 // 서버 전용. INDEXNOW_KEY 미설정이면 조용히 스킵(선택 기능).
 
 import { logger } from '@/lib/logger'
-import { siteBaseUrl } from '@/lib/tarot/shareLink'
+import { siteBaseUrl } from '@/lib/share/site'
 
 const INDEXNOW_ENDPOINT = 'https://api.indexnow.org/indexnow'
 // 프로토콜 상한은 10,000 — 방어적으로 훨씬 낮게 자른다(우리 일일 갱신은 ~30개).

@@ -62,7 +62,7 @@ vi.mock('@/lib/social/generateDrafts', () => ({
   todayKeyKST: vi.fn(),
 }))
 vi.mock('@/lib/social/video', () => ({ isVideoConfigured: vi.fn(), renderCardReel: vi.fn() }))
-vi.mock('@/lib/tarot/shareLink', () => ({ siteBaseUrl: vi.fn() }))
+vi.mock('@/lib/share/site', () => ({ siteBaseUrl: vi.fn() }))
 vi.mock('@/lib/social/insights', () => ({
   insightsConfigured: vi.fn(),
   refreshMetricsForDate: vi.fn(),

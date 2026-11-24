@@ -3,7 +3,7 @@
 // 발행 오케스트레이션 — 초안의 각 플랫폼 variant 를 해당 어댑터로 게시한다.
 // 설정된(키 있는) 플랫폼만 발행, 나머지는 스킵. 서버 전용.
 
-import { siteBaseUrl } from '@/lib/tarot/shareLink'
+import { siteBaseUrl } from '@/lib/share/site'
 import { updateDraft } from '../draftStore'
 import type { SocialPostDraft, SocialPlatform } from '../types'
 import type { PublishAdapter, PublishResult } from './types'

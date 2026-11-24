@@ -16,7 +16,7 @@
  */
 
 import React from 'react'
-import type { CompatVerdictTone } from '@/lib/tarot/shareLink'
+import type { CompatVerdictTone } from '@/lib/share/shareLink'
 
 const GOLD = '#e8c88c'
 const TEXT = '#f3f0ff'

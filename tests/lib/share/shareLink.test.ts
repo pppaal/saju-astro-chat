@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 
 const mockCacheGet = vi.fn()
 const mockCacheSet = vi.fn()
@@ -15,7 +15,6 @@ vi.mock('@/lib/logger', () => ({
 import {
   createShareLink,
   getShareLink,
-  siteBaseUrl,
   SHARE_TTL_SECONDS,
   isDayShare,
   isLifeShare,
@@ -24,7 +23,7 @@ import {
   type ShareLinkPayload,
   type DayShareLinkPayload,
   type LifeShareLinkPayload,
-} from '@/lib/tarot/shareLink'
+} from '@/lib/share/shareLink'
 
 const makePayload = (over: Partial<ShareLinkPayload> = {}): ShareLinkPayload => ({
   v: 1,
@@ -36,13 +35,10 @@ const makePayload = (over: Partial<ShareLinkPayload> = {}): ShareLinkPayload => 
   ...over,
 })
 
-describe('tarot shareLink', () => {
+describe('share link store', () => {
   beforeEach(() => {
     mockCacheGet.mockReset()
     mockCacheSet.mockReset()
-  })
-  afterEach(() => {
-    delete process.env.NEXT_PUBLIC_BASE_URL
   })
 
   describe('createShareLink', () => {
@@ -175,22 +171,6 @@ describe('tarot shareLink', () => {
       mockCacheGet.mockResolvedValue(noInviter)
       const fetched = await getShareLink('tok')
       expect(fetched && isCompatShare(fetched) && fetched.inviter).toBeUndefined()
-    })
-  })
-
-  describe('siteBaseUrl', () => {
-    it('env 없으면 .com 폴백', () => {
-      expect(siteBaseUrl()).toBe('https://destinypal.com')
-    })
-
-    it('env 사용 + 끝 슬래시 제거', () => {
-      process.env.NEXT_PUBLIC_BASE_URL = 'https://staging.example.com/'
-      expect(siteBaseUrl()).toBe('https://staging.example.com')
-    })
-
-    it('끝 슬래시 없으면 그대로', () => {
-      process.env.NEXT_PUBLIC_BASE_URL = 'https://x.io'
-      expect(siteBaseUrl()).toBe('https://x.io')
     })
   })
 

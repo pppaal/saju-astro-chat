@@ -24,7 +24,7 @@ import {
   latitudeSchema,
   longitudeSchema,
 } from '@/lib/api/zodValidation'
-import { getShareLink, isCompatShare } from '@/lib/tarot/shareLink'
+import { getShareLink, isCompatShare } from '@/lib/share/shareLink'
 import { computeInvitePairReport } from '@/lib/compatibility/invitePairing'
 
 export const dynamic = 'force-dynamic'
