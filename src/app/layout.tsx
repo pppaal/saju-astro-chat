@@ -2,7 +2,6 @@
 
 import type { Metadata, Viewport } from 'next'
 import './globals.css'
-import '../styles/mobile-touch.css'
 import StarrySky from '@/components/ui/StarrySky'
 import BackButtonWrapper from '@/components/ui/BackButtonWrapper'
 import Footer from '@/components/ui/Footer'
@@ -66,16 +65,6 @@ const lora = localFont({
   ],
   display: 'swap',
   variable: '--font-lora',
-  preload: false,
-})
-
-const merriweather = localFont({
-  src: [
-    { path: './fonts/merriweather-latin-400-normal.woff2', weight: '400', style: 'normal' },
-    { path: './fonts/merriweather-latin-700-normal.woff2', weight: '700', style: 'normal' },
-  ],
-  display: 'swap',
-  variable: '--font-merriweather',
   preload: false,
 })
 
@@ -260,7 +249,6 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
           ${notoKr.variable}
           ${cinzel.variable}
           ${lora.variable}
-          ${merriweather.variable}
         `}
         style={{
           fontFamily:
