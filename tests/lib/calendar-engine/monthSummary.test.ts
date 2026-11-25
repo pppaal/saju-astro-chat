@@ -236,6 +236,84 @@ describe('deriveMonthSummary — 가장 좋은 날', () => {
   })
 })
 
+// F3 — 최고의 날이 이미 지나 PUSH 가 앞으로 남은 첫 좋은 날로 대체되면(pickTryThis 폴백)
+// '가장 무게가 실리는 날' / 'carries the most weight' 는 과장이다 → 부드러운 대체일 문장.
+describe('deriveMonthSummary — 대체된 좋은 날(bestDayKind next-good)', () => {
+  const SEEDS = [0, 1, 2, 3, 7, 123456789]
+
+  it('어떤 시드든 ko 는 "가장"·"무게" 없이 앞으로 남은 날로 짚는다', () => {
+    for (const seed of SEEDS) {
+      const s = deriveMonthSummary({ ...base, seed, bestDay: '11-24', bestDayKind: 'next-good' })
+      expect(s).toContain('11월 24일')
+      expect(s).not.toContain('무게')
+      expect(s).not.toContain('가장')
+      expect(s).toMatch(/남은|앞으로|이제부터/)
+    }
+  })
+
+  it('어떤 시드든 en 은 "most weight"·"heaviest" 없이 앞으로의 날로 짚는다', () => {
+    for (const seed of SEEDS) {
+      const s = deriveMonthSummary({
+        ...base,
+        lang: 'en',
+        seed,
+        bestDay: '11-24',
+        bestDayKind: 'next-good',
+      })
+      expect(s).toContain('11/24')
+      expect(s).not.toMatch(/most weight|heaviest/)
+      expect(s).toMatch(/ahead|From here on|rest of the month/)
+    }
+  })
+
+  it('대체일에도 이유 꼬리(— 이유)와 행동 제안은 그대로 붙는다', () => {
+    const s = deriveMonthSummary({
+      ...base,
+      bestDay: '11-24',
+      bestDayKind: 'next-good',
+      bestDayReason: '비견 × 태양 — 디테일',
+    })
+    expect(s).toContain('11월 24일')
+    expect(s).toContain('— 비견 × 태양')
+    expect(s).not.toContain('디테일')
+    expect(s).toMatch(/미뤄둔|묵혀둔|보류해둔/)
+  })
+
+  it("기본값(bestDayKind 미지정)·'best' 는 종전 '가장 무게' 문장 그대로", () => {
+    for (const seed of SEEDS) {
+      const plain = deriveMonthSummary({ ...base, seed, bestDay: '11-24' })
+      const best = deriveMonthSummary({ ...base, seed, bestDay: '11-24', bestDayKind: 'best' })
+      expect(best).toBe(plain)
+      expect(plain).toContain('무게')
+      const en = deriveMonthSummary({ ...base, lang: 'en', seed, bestDay: '11-24' })
+      expect(en).toMatch(/most weight|heaviest weight/)
+    }
+  })
+
+  it('ko/en 은 같은 시드에서 같은 변형(한 쌍)을 고른다', () => {
+    // NEXT_GOOD_DAY 는 ko/en 이 한 항목 — 같은 index. 변형마다 고유한 표지로 짝을 확인.
+    const pairs: Array<[RegExp, RegExp]> = [
+      [/남은 날 가운데선/, /Of the days still ahead/],
+      [/앞으로 남은 날 중엔/, /Looking ahead/],
+      [/이제부터는/, /From here on/],
+      [/남은 기간에선/, /For the rest of the month/],
+    ]
+    for (let seed = 0; seed < 4; seed++) {
+      const ko = deriveMonthSummary({ ...base, seed, bestDay: '11-24', bestDayKind: 'next-good' })
+      const en = deriveMonthSummary({
+        ...base,
+        lang: 'en',
+        seed,
+        bestDay: '11-24',
+        bestDayKind: 'next-good',
+      })
+      const i = pairs.findIndex(([k]) => k.test(ko))
+      expect(i).toBeGreaterThanOrEqual(0)
+      expect(en).toMatch(pairs[i][1])
+    }
+  })
+})
+
 describe('deriveMonthSummary — 조심할 날 / 수렴일', () => {
   it('cautionDay 는 "다만" 으로 전환된다', () => {
     const s = deriveMonthSummary({ ...base, cautionDay: '03-20' })

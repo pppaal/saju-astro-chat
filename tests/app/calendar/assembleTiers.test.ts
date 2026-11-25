@@ -437,3 +437,50 @@ describe('assembleTiers — 이달 총평은 지난 날을 짚지 않는다 (계
     expect(checkedPast).toBeGreaterThan(0)
   }, 60000)
 })
+
+describe("assembleTiers — 최고의 날이 지나면 총평은 '가장 무게' 를 쓰지 않는다 (F3)", () => {
+  const MOST_KO = /가장 (큰 )?무게|무게가 가장/
+  const MOST_EN = /most weight|heaviest weight/
+  const summaryOf = (out: Awaited<ReturnType<typeof assembleTiers>>) =>
+    out.month.narrative.find((n) => n.tag === '이달 총평')
+
+  it('PUSH 가 최고의 날이면 종전 문장, 앞으로 남은 첫 좋은 날로 대체되면 부드러운 문장', async () => {
+    let checked = 0
+    for (const m of [TARGET_MONTH, 3, 9, 11, 1, 4]) {
+      const probe = await assembleTiers(monthInput(m, 1))
+      const best = probe.month.bestDay?.date
+      if (!best) continue
+      const bestD = Number(best.slice(3))
+      if (!probe.month.goodDays.some((d) => Number(d.slice(3)) > bestD)) continue
+
+      const [onBest, after] = await Promise.all([
+        assembleTiers(monthInput(m, bestD)),
+        assembleTiers(monthInput(m, bestD + 1)),
+      ])
+      const pushAfter = pickTryThis(
+        {
+          bestDay: after.month.bestDay?.date,
+          goodDays: after.month.goodDays,
+          cautionDays: after.month.cautionDays,
+          avoidDays: after.month.avoidDays,
+        },
+        toMMDD(after.month.ym, bestD + 1)
+      ).push
+      expect(pushAfter).not.toBeNull()
+      expect(pushAfter).not.toBe(best)
+
+      const a = summaryOf(onBest)!
+      expect(a.body).toMatch(MOST_KO)
+      expect(a.bodyEn).toMatch(MOST_EN)
+      const b = summaryOf(after)!
+      const [mm, dd] = pushAfter!.split('-').map(Number)
+      expect(b.body).toContain(`${mm}월 ${dd}일`)
+      expect(b.body).not.toMatch(MOST_KO)
+      expect(b.bodyEn).toContain(`${mm}/${dd}`)
+      expect(b.bodyEn ?? '').not.toMatch(MOST_EN)
+      checked++
+      if (checked >= 2) break
+    }
+    expect(checked, '최고의 날 뒤에 좋은 날이 남는 달이 fixture 에 있어야 한다').toBeGreaterThan(0)
+  }, 120000)
+})

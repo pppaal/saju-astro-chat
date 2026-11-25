@@ -37,6 +37,12 @@ export interface MonthSummaryInput {
   /** 최고일 'MM-DD' + 그날 한 줄 이유(있으면). */
   bestDay?: string
   bestDayReason?: string
+  /**
+   * bestDay 가 어떤 날인지. 'best'(기본) = 그 달 그리드 최고의 날. 'next-good' = 최고의
+   * 날이 이미 지나 앞으로 남은 첫 좋은 날로 대체됨(pickTryThis PUSH 폴백) — 이때는
+   * '가장 무게가 실리는 날' / 'carries the most weight' 대신 부드러운 문장(NEXT_GOOD_DAY).
+   */
+  bestDayKind?: 'best' | 'next-good'
   /** 첫 주의일 'MM-DD'(있으면). */
   cautionDay?: string
   /** 사주×점성 수렴일 'MM-DD'(있으면). */
@@ -233,6 +239,32 @@ const BEST_DAY_EN: ((date: string, whyTail: string) => string)[] = [
   (d, w) => `In particular, ${d} carries the heaviest weight of the month${w}.`,
 ]
 
+// 3a) 대체된 좋은 날 — 그 달 최고의 날이 이미 지나 PUSH 가 *앞으로 남은 첫 좋은 날*
+//     일 때(bestDayKind 'next-good'). 그 날은 이 달에서 가장 센 날이 아니므로 '가장
+//     무게' / 'most weight' 를 쓰지 않는다. ko/en 을 한 항목에 붙여(같은 index) 두
+//     로케일이 같은 변형을 고르고 번역이 어긋나지 않게 한다. {date}/{why} 슬롯 보존.
+const NEXT_GOOD_DAY: ReadonlyArray<{
+  ko: (date: string, whyTail: string) => string
+  en: (date: string, whyTail: string) => string
+}> = [
+  {
+    ko: (d, w) => `남은 날 가운데선 ${d} 무렵이 밀어보기 좋은 날이에요${w}.`,
+    en: (d, w) => `Of the days still ahead, ${d} is a good one to lean on${w}.`,
+  },
+  {
+    ko: (d, w) => `앞으로 남은 날 중엔 ${d} 언저리가 힘을 싣기 좋은 날이에요${w}.`,
+    en: (d, w) => `Looking ahead, ${d} is a good day to build on${w}.`,
+  },
+  {
+    ko: (d, w) => `이제부터는 ${d} 즈음이 한번 나서볼 만한 날이에요${w}.`,
+    en: (d, w) => `From here on, ${d} is a day worth stepping forward on${w}.`,
+  },
+  {
+    ko: (d, w) => `남은 기간에선 ${d} 무렵이 순하게 받쳐 주는 날이에요${w}.`,
+    en: (d, w) => `For the rest of the month, ${d} is a day that works in your favor${w}.`,
+  },
+]
+
 // 3b) 좋은 날 행동 제안 — 동적 슬롯 없음.
 const BEST_ACTION_KO: string[] = [
   ' 미뤄둔 일이 있다면 이때 앞당겨 잡아보세요.',
@@ -399,7 +431,8 @@ export function deriveMonthSummary(i: MonthSummaryInput): string {
     )
   }
 
-  // 3) 가장 좋은 날 — 날짜 + 이유. 앞 문장과 '그중'으로 연결.
+  // 3) 가장 좋은 날 — 날짜 + 이유. 앞 문장과 '그중'으로 연결. 최고의 날이 이미 지나
+  //    대체된 좋은 날(bestDayKind 'next-good')이면 '가장 무게' 대신 NEXT_GOOD_DAY.
   if (i.bestDay) {
     const why = i.bestDayReason ? coreReason(i.bestDayReason) : ''
     const date = fmtDate(i.bestDay, ko)
@@ -407,11 +440,13 @@ export function deriveMonthSummary(i: MonthSummaryInput): string {
     const action = ko
       ? pickBySeed(BEST_ACTION_KO, seed, KEY.bestAction)
       : pickBySeed(BEST_ACTION_EN, seed, KEY.bestAction)
-    parts.push(
-      (ko
-        ? pickBySeed(BEST_DAY_KO, seed, KEY.bestDay)(date, whyTail)
-        : pickBySeed(BEST_DAY_EN, seed, KEY.bestDay)(date, whyTail)) + action
-    )
+    const dayLine =
+      i.bestDayKind === 'next-good'
+        ? pickBySeed(NEXT_GOOD_DAY, seed, KEY.bestDay)[ko ? 'ko' : 'en'](date, whyTail)
+        : ko
+          ? pickBySeed(BEST_DAY_KO, seed, KEY.bestDay)(date, whyTail)
+          : pickBySeed(BEST_DAY_EN, seed, KEY.bestDay)(date, whyTail)
+    parts.push(dayLine + action)
   }
 
   // 4) 조심할 날 — '다만'으로 전환, 수렴일은 '또'로 덧붙임.

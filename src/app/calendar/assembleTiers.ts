@@ -349,6 +349,12 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
     avoidDays: month.avoidDays.length,
     totalDays: monthCells.length,
     bestDay: tryThis.push ?? undefined,
+    // PUSH 가 그리드 최고의 날이 아니면(최고일이 이미 지남 → 앞으로 남은 첫 좋은 날)
+    // 총평은 '가장 무게가 실리는 날' 대신 부드러운 대체일 문장을 쓴다.
+    bestDayKind:
+      tryThis.push && tryThis.push !== month.bestDay?.date
+        ? ('next-good' as const)
+        : ('best' as const),
     cautionDay: tryThis.hold ?? undefined,
   }
   // bestDayReason(keyDays meaning)은 서버 lang 으로만 산출돼 있어 그 로케일 요약에만
