@@ -365,7 +365,8 @@ function checkBaekho(dayStem: string, dayBranch: string): boolean {
 }
 // 도화(桃花·咸池) = 일지 三合국의 年殺 자리: 寅午戌→卯, 申子辰→酉, 巳酉丑→午,
 //   亥卯未→子. 12신살(일지 기준)과 같은 기준 지지라 도화 칸은 언제나 년살 칸과 같다
-//   (calendar/constants DOHWA_BY_YEAR_BRANCH · 궁합 sajuSynastryFormatter 와 동일 규칙).
+//   (calendar/constants DOHWA_BY_YEAR_BRANCH 는 이 표의 재export, 궁합 sajuSynastryFormatter 도
+//   이 표를 import 한다 — F2).
 //   예전엔 子午卯酉 전부를 도화로 쳐 사흘에 하루꼴로 모든 사용자에게 떴고, 같은 칸의
 //   12신살(재살·육해 등)과 모순됐다. 12신살 표에서 파생해 드리프트를 차단한다.
 export const DOHWA_BY_DAY_BRANCH: Readonly<Record<string, string>> = Object.fromEntries(

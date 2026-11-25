@@ -15,6 +15,7 @@ import {
   type SajuPillarInput,
 } from '@/lib/compatibility/sajuSynastryFormatter'
 import type { YongsinResult } from '@/lib/saju/yongsin'
+import { DOHWA_BY_DAY_BRANCH } from '@/lib/saju/shinsal'
 
 const P = (stem: string, branch: string): SajuPillarInput => ({ stem, branch })
 
@@ -287,5 +288,22 @@ describe('formatSajuSynastry', () => {
       expect(lines.length).toBeGreaterThan(0)
       for (const l of lines) expect(l).not.toMatch(/[가-힣]/)
     })
+  })
+})
+
+// F2: 궁합 도화 cross 는 정본 DOHWA_BY_DAY_BRANCH(삼합국 年殺 자리)를 쓴다 — 로컬 복제 금지.
+// (출력 본문은 한자 괄호를 걷어 내므로 줄 머리 'A 일지 기준 도화 자리' 로 판정.)
+describe('formatSajuSynastry — 도화 cross follows DOHWA_BY_DAY_BRANCH', () => {
+  const BRANCHES = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥']
+  it.each(BRANCHES)('A day branch %s: fires only on the canon 도화 seat', (db) => {
+    const seat = DOHWA_BY_DAY_BRANCH[db]
+    expect(seat).toBeDefined()
+    for (const target of BRANCHES) {
+      const out = formatSajuSynastry({
+        pillarsA: pillars(['甲', db], ['甲', db], ['甲', db], ['甲', db]),
+        pillarsB: pillars(['乙', target], ['乙', target], ['乙', target], ['乙', target]),
+      })
+      expect(out.includes('A 일지 기준 도화 자리'), `${db}→${target}`).toBe(target === seat)
+    }
   })
 })

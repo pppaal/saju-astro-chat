@@ -416,6 +416,8 @@ describe('도화(桃花) = 일지 三合국의 年殺 자리 (SD-06)', () => {
   it('표 = 인용 규칙 = calendar/constants DOHWA_BY_YEAR_BRANCH', () => {
     expect({ ...DOHWA_BY_DAY_BRANCH }).toEqual(DOHWA)
     expect({ ...DOHWA_BY_YEAR_BRANCH }).toEqual(DOHWA)
+    // F2: 캘린더 표는 정본의 재export — 같은 객체라 갈라질 수 없다.
+    expect(DOHWA_BY_YEAR_BRANCH).toBe(DOHWA_BY_DAY_BRANCH)
   })
   it('일진: 일지 × target 12×12 — 도화는 년살과 같은 날에만', () => {
     for (const db of BRANCH_NAMES)

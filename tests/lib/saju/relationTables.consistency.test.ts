@@ -335,3 +335,75 @@ describe('천간충 — 단일 모드(STEM_CLASH_MODE) 를 본명·운·캘린�
     expect(positives).toBe(8) // 4쌍 × 양방향
   })
 })
+
+// ─── saju-hyeongchung 추출기의 합·충·원진·방합·파·해 = canon (F2 / D8·E17 표 SSOT) ───
+// 추출기는 예전에 이 표들을 로컬 복제로 들고 있었다. 실제 출력(kindLabel·detail)을 canon
+// 에서 독립적으로 만든 기대값과 144 지지쌍·100 천간쌍 전부 비교해, 표가 어디서 오든 같은
+// 신호가 나는지 잠근다.
+describe('saju-hyeongchung 추출기 관계표 = relationTables canon (F2)', () => {
+  type Hit = { label: string; target: string; natal: string; detail: Record<string, unknown> }
+  const hits: Hit[] = []
+  for (const b of canon.ALL_BRANCHES) {
+    for (const s of hyeongchungExtractor.extract(natalCtx('甲', b, 12)) as ActiveSignal[]) {
+      const d = s.evidence.detail as Record<string, unknown>
+      if (d.natalPillar !== 'year' || typeof d.targetBranch !== 'string') continue
+      hits.push({ label: kindLabel(s) ?? '', target: d.targetBranch, natal: b, detail: d })
+    }
+  }
+  const branchHits = (label: string) =>
+    new Set(hits.filter((h) => h.label === label).map((h) => `${h.target}${h.natal}`))
+  const orderedPairs = (pairs: ReadonlyArray<canon.Pair>) =>
+    new Set(pairs.flatMap(([a, b]) => [`${a}${b}`, `${b}${a}`]))
+  const groupPairs = (groups: ReadonlyArray<{ members: readonly string[] }>) =>
+    new Set(
+      groups.flatMap(({ members }) =>
+        members.flatMap((x) => members.filter((y) => y !== x).map((y) => `${x}${y}`))
+      )
+    )
+
+  it.each([
+    ['육합', () => orderedPairs(canon.SIX_HARMONY.map((h) => h.pair))],
+    ['지지충', () => orderedPairs(canon.BRANCH_CLASH)],
+    ['원진', () => orderedPairs(canon.RESENTMENT_PAIRS)],
+    ['파', () => orderedPairs(canon.BREAK_PAIRS)],
+    ['해', () => orderedPairs(canon.HARM_PAIRS)],
+    ['삼합', () => groupPairs(canon.THREE_HARMONY)],
+    ['방합', () => groupPairs(canon.DIRECTIONAL_HARMONY)],
+  ] as const)('%s: 144 branch pairs match the canon', (label, expected) => {
+    expect(branchHits(label)).toEqual(expected())
+  })
+
+  it('삼합·방합 detail carries the canon group (and the season label for 방합)', () => {
+    const SEASON = { 동방: '봄', 남방: '여름', 서방: '가을', 북방: '겨울' } as const
+    for (const h of hits) {
+      if (h.label === '삼합') {
+        const t = canon.THREE_HARMONY.find((g) => g.members.includes(h.target))
+        expect(h.detail.samhapGroup).toEqual([...(t?.members ?? [])])
+      }
+      if (h.label === '방합') {
+        const g = canon.DIRECTIONAL_HARMONY.find((x) => x.members.includes(h.target))
+        expect(h.detail.banghapGroup).toEqual([...(g?.members ?? [])])
+        expect(h.detail.element).toBe(g?.element)
+        expect(h.detail.season).toBe(g ? SEASON[g.direction] : undefined)
+      }
+    }
+  })
+
+  it('천간합: 100 stem pairs match STEM_COMBINE, with the transformed element', () => {
+    const got = new Map<string, unknown>()
+    for (const b of ALL_STEMS) {
+      for (const s of hyeongchungExtractor.extract(natalCtx(b, '子', 10)) as ActiveSignal[]) {
+        const d = detailOf(s)
+        if (kindLabel(s) === '천간합' && d.natalPillar === 'year') {
+          got.set(`${d.targetStem}${b}`, d.transformed)
+        }
+      }
+    }
+    const want = new Map<string, unknown>()
+    for (const { pair, element } of canon.STEM_COMBINE) {
+      want.set(`${pair[0]}${pair[1]}`, element)
+      want.set(`${pair[1]}${pair[0]}`, element)
+    }
+    expect(got).toEqual(want)
+  })
+})

@@ -2,7 +2,19 @@ import { computeDayBranch, computeDayStem } from './saju-shinsal'
 import type { ActiveSignal, ExtractorContext, SignalExtractor, Polarity } from '../types'
 import type { PillarKind } from '@/lib/saju/types'
 import { getRelationMeaning, type RelationCategory } from '@/lib/chart-dictionary'
-import { STEM_CLASH } from '@/lib/saju/relationTables'
+import {
+  STEM_COMBINE,
+  STEM_CLASH,
+  SIX_HARMONY,
+  THREE_HARMONY,
+  DIRECTIONAL_HARMONY,
+  BRANCH_CLASH,
+  RESENTMENT_PAIRS,
+  BREAK_PAIRS,
+  HARM_PAIRS,
+  PUNISHMENT_TRIOS,
+  type Pair,
+} from '@/lib/saju/relationTables'
 import { isHyeong } from '@/lib/saju/hyeong'
 
 /**
@@ -15,96 +27,59 @@ import { isHyeong } from '@/lib/saju/hyeong'
  * 활성 윈도우: 해당 1일.
  */
 
-// ─── 천간합 (5쌍) ───
-const STEM_HAPS: Array<[string, string, string]> = [
-  ['甲', '己', '토'], // 갑기합화토
-  ['乙', '庚', '금'], // 을경합화금
-  ['丙', '辛', '수'], // 병신합화수
-  ['丁', '壬', '목'], // 정임합화목
-  ['戊', '癸', '화'], // 무계합화화
-]
+// 관계표는 전부 relationTables(SSOT)에서 파생한다 — 로컬 복제 금지. 예전 이 파일의
+// 천간합·육합·삼합·충·원진·방합·파·해 복제본은 canon 과 같은 값이었지만(F2 에서 출력
+// 동일성 확인) 한 곳만 고치면 갈라질 수 있었다. relationTables.consistency.test 가
+// 144 지지쌍·100 천간쌍 출력으로 잠근다.
 
-// ─── 천간충 — 엔진 공통 모드(relationTables STEM_CLASH, 4쌍)에서 파생 ───
+// ─── 천간합 (5쌍) — [a, b, 합화 오행] ───
+const STEM_HAPS: ReadonlyArray<readonly [string, string, string]> = STEM_COMBINE.map(
+  ({ pair: [a, b], element }) => [a, b, element] as const
+)
+
+// ─── 천간충 — 엔진 공통 모드(STEM_CLASH, 4쌍) ───
 // 본명 relations·운·궁합과 같은 쌍만 충으로 본다(SD-11).
-const STEM_CHUNGS: ReadonlyArray<readonly [string, string]> = STEM_CLASH
+const STEM_CHUNGS: ReadonlyArray<Pair> = STEM_CLASH
 
 // ─── 지지 육합 (6쌍) ───
-const BRANCH_YUKHAP: Array<[string, string]> = [
-  ['子', '丑'],
-  ['寅', '亥'],
-  ['卯', '戌'],
-  ['辰', '酉'],
-  ['巳', '申'],
-  ['午', '未'],
-]
+const BRANCH_YUKHAP: ReadonlyArray<Pair> = SIX_HARMONY.map((h) => h.pair)
 
-// ─── 지지 삼합 (4그룹) — 펼쳐서 페어 ───
-const BRANCH_SAMHAP_GROUPS = [
-  ['申', '子', '辰'], // 수국
-  ['亥', '卯', '未'], // 목국
-  ['寅', '午', '戌'], // 화국
-  ['巳', '酉', '丑'], // 금국
-]
+// ─── 지지 삼합 (4그룹: 申子辰 수 · 亥卯未 목 · 寅午戌 화 · 巳酉丑 금) ───
+const BRANCH_SAMHAP_GROUPS: ReadonlyArray<string[]> = THREE_HARMONY.map((t) => [...t.members])
 
 // ─── 지지충 (6쌍) ───
-const BRANCH_CHUNG: Array<[string, string]> = [
-  ['子', '午'],
-  ['丑', '未'],
-  ['寅', '申'],
-  ['卯', '酉'],
-  ['辰', '戌'],
-  ['巳', '亥'],
-]
+const BRANCH_CHUNG: ReadonlyArray<Pair> = BRANCH_CLASH
 
 // ─── 지지형 — hyeong.isHyeong 단일 교리(SD-07) ───
 // 寅巳·巳申·丑戌·戌未(삼형), 子卯(상형), 辰午酉亥 자형. 삼형 세트 안의 寅申·丑未 는
 // 충이지 형이 아니다 — 옛 로컬 표는 이 둘을 형으로 잡아 본명·상담사와 어긋났다.
 
-// ─── 원진 ───
-const BRANCH_WONJIN: Array<[string, string]> = [
-  ['子', '未'],
-  ['丑', '午'],
-  ['寅', '酉'],
-  ['卯', '申'],
-  ['辰', '亥'],
-  ['巳', '戌'],
-]
+// ─── 원진 (6쌍: 子未 丑午 寅酉 卯申 辰亥 巳戌) ───
+const BRANCH_WONJIN: ReadonlyArray<Pair> = RESENTMENT_PAIRS
 
-// ─── 지지 방합 (4그룹 — 계절 결의 모임) — 펼쳐서 페어 ───
-// 寅卯辰 봄(목), 巳午未 여름(화), 申酉戌 가을(금), 亥子丑 겨울(수)
-const BRANCH_BANGHAP_GROUPS: Array<{ branches: string[]; season: string; element: string }> = [
-  { branches: ['寅', '卯', '辰'], season: '봄', element: '목' },
-  { branches: ['巳', '午', '未'], season: '여름', element: '화' },
-  { branches: ['申', '酉', '戌'], season: '가을', element: '금' },
-  { branches: ['亥', '子', '丑'], season: '겨울', element: '수' },
-]
+// ─── 지지 방합 (4그룹 — 계절 결의 모임) ───
+// 寅卯辰 봄(목), 巳午未 여름(화), 申酉戌 가을(금), 亥子丑 겨울(수). 계절 이름만 표시용 라벨.
+const SEASON_BY_DIRECTION: Record<(typeof DIRECTIONAL_HARMONY)[number]['direction'], string> = {
+  동방: '봄',
+  남방: '여름',
+  서방: '가을',
+  북방: '겨울',
+}
+const BRANCH_BANGHAP_GROUPS: ReadonlyArray<{
+  branches: string[]
+  season: string
+  element: string
+}> = DIRECTIONAL_HARMONY.map((d) => ({
+  branches: [...d.members],
+  season: SEASON_BY_DIRECTION[d.direction],
+  element: d.element,
+}))
 
-// ─── 지지 파 (破 — 6쌍, 작은 깨짐) ───
-// 자유(子酉)·축진(丑辰)·인해(寅亥)·묘오(卯午)·진미(辰未)·사신(巳申)
-// 주의: 전통 파는 자유/축진/인해/묘오/진미/사신 — 위의 user 작업서 표기는
-// "자유·축술·인해·묘오·진미·사신"이지만, 정통 명리학에 일관되게 자유/축진/인해/묘오/진미/사신을 사용.
-// (축술은 형刑의 일종이며 별도 처리됨 — BRANCH_HYUNG에서 이미 잡힘)
-// 정통 六破: 子酉·卯午·辰丑·戌未·寅亥·巳申. (이전 辰未는 오기 — 辰은 丑과
-// 파를 이루고, 未는 戌과 파를 이룬다.)
-const BRANCH_PA: Array<[string, string]> = [
-  ['子', '酉'],
-  ['丑', '辰'],
-  ['寅', '亥'],
-  ['卯', '午'],
-  ['戌', '未'],
-  ['巳', '申'],
-]
+// ─── 지지 파 (破 — 정통 六破: 子酉 丑辰 寅亥 卯午 巳申 未戌, 작은 깨짐) ───
+const BRANCH_PA: ReadonlyArray<Pair> = BREAK_PAIRS
 
-// ─── 지지 해 (害 — 6쌍, 미세한 어긋남·방해) ───
-// 자미(子未)·축오(丑午)·인사(寅巳)·묘진(卯辰)·신해(申亥)·유술(酉戌)
-const BRANCH_HAE: Array<[string, string]> = [
-  ['子', '未'],
-  ['丑', '午'],
-  ['寅', '巳'],
-  ['卯', '辰'],
-  ['申', '亥'],
-  ['酉', '戌'],
-]
+// ─── 지지 해 (害 — 子未 丑午 寅巳 卯辰 申亥 酉戌, 미세한 어긋남·방해) ───
+const BRANCH_HAE: ReadonlyArray<Pair> = HARM_PAIRS
 
 const PILLAR_NAMES: Record<PillarKind, string> = {
   year: '년주',
@@ -367,18 +342,15 @@ interface MakeSignalArgs {
 }
 
 // 삼형(三刑) 페어 → 트리오 키. 지지형 사전 키는 trio(寅巳申·丑戌未)라
-// 일진-본명 2원소 페어로는 매치 안 됨 — 페어를 소속 트리오로 환원.
-// (寅申·丑未 는 isHyeong 상 형이 아니라 지지형 신호가 나지 않으므로 키가 없다.)
-const HYUNG_TRIO_KEY: Record<string, string> = {
-  寅巳: '寅巳申',
-  巳寅: '寅巳申',
-  巳申: '寅巳申',
-  申巳: '寅巳申',
-  丑戌: '丑戌未',
-  戌丑: '丑戌未',
-  戌未: '丑戌未',
-  未戌: '丑戌未',
-}
+// 일진-본명 2원소 페어로는 매치 안 됨 — 페어를 소속 트리오로 환원. canon(PUNISHMENT_TRIOS
+// × isHyeong)에서 파생: 寅申·丑未 는 형이 아니라 지지형 신호가 나지 않으므로 키가 없다.
+const HYUNG_TRIO_KEY: Record<string, string> = Object.fromEntries(
+  PUNISHMENT_TRIOS.flatMap((trio) =>
+    trio.flatMap((x) =>
+      trio.filter((y) => y !== x && isHyeong(x, y)).map((y) => [`${x}${y}`, trio.join('')])
+    )
+  )
+)
 
 // 추출기 kindLabel → chart-dictionary 의 RelationCategory 매핑.
 const REL_CATEGORY: Record<string, RelationCategory> = {

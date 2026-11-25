@@ -15,6 +15,7 @@
 
 import { HYEONG_PAIR_TRIO, BRANCH_HYEONG_PAIR, SELF_HYEONG, isHyeong } from '@/lib/saju/hyeong'
 import { ELEMENT_KO_TO_EN } from '@/lib/saju/constants'
+import { DOHWA_BY_DAY_BRANCH } from '@/lib/saju/shinsal'
 import { SIBSIN_EN } from '@/lib/saju/sibsinLabels'
 import {
   type SajuPillarInput,
@@ -663,24 +664,13 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
 
   // ── 신살 cross — 도화/홍염/백호/괴강. 정통 명리에 명시된 lookup table 로
   // 결정적으로 계산 (LLM 한테 personalShinsal 추측 맡기지 않음).
-  //   - 도화 (자오묘유): A 일지의 三合 마지막 지지가 B 의 지지에 있으면 자석 끌림.
+  //   - 도화 (자오묘유): A 일지 三合국의 年殺 자리(DOHWA_BY_DAY_BRANCH — 寅午戌→卯,
+  //     申子辰→酉, 巳酉丑→午, 亥卯未→子)가 B 의 지지에 있으면 자석 끌림. 정본 표를 쓴다
+  //     (예전 로컬 복제본과 같은 값 — F2 에서 확인 후 교체).
   //   - 홍염 (일간별 특정 지지): A 일간 홍염 지지가 B 지지에 있으면 색기·끌림.
   //   - 백호일주: 둘 다 백호 또는 한쪽 백호 + 상대 일지가 그 백호 일지와 충 → 격정.
   //   - 괴강일주: 둘 다 괴강이면 강력 충돌·자극.
-  const DOHWA: Record<string, string> = {
-    申: '酉',
-    子: '酉',
-    辰: '酉',
-    寅: '卯',
-    午: '卯',
-    戌: '卯',
-    巳: '午',
-    酉: '午',
-    丑: '午',
-    亥: '子',
-    卯: '子',
-    未: '子',
-  }
+  const DOHWA = DOHWA_BY_DAY_BRANCH
   const HONGYEOM: Record<string, string> = {
     甲: '午',
     乙: '午',
