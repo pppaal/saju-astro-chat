@@ -12,7 +12,7 @@
  * now 는 결정성을 위해 고정한다.
  */
 import { describe, it, expect, beforeAll } from 'vitest'
-import { formatAstroSelf, type AstroSelfInput } from '@/lib/destiny/astroSelfFormatter'
+import { formatAstroSelf, orbToDegMin, type AstroSelfInput } from '@/lib/destiny/astroSelfFormatter'
 import { collectAstroFacts } from '@/lib/destiny/astroFacts'
 import type { Chart, NatalInput } from '@/lib/astrology/foundation/types'
 
@@ -229,5 +229,19 @@ describe('formatAstroSelf — 결정성·now 폴백', () => {
     })
     expect(out).toContain('== 점성 ==')
     expect(out).toContain('요일 ruler:')
+  })
+})
+
+describe('orbToDegMin — 분 반올림 후 도로 올림 (엔진 감사 E5 ASTRO-14)', () => {
+  it('2.995° → "3°00\'" (옛 구현 "2°60\'")', () => {
+    expect(orbToDegMin(2.995)).toBe("3°00'")
+    expect(orbToDegMin(1.9999)).toBe("2°00'")
+  })
+
+  it('일반 값은 그대로', () => {
+    expect(orbToDegMin(0)).toBe("0°00'")
+    expect(orbToDegMin(1.5)).toBe("1°30'")
+    expect(orbToDegMin(0.25)).toBe("0°15'")
+    expect(orbToDegMin(1.991)).toBe("1°59'")
   })
 })

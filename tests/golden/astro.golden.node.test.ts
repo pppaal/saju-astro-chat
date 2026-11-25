@@ -48,12 +48,6 @@ type ExtractorArg = Parameters<typeof planetaryHourExtractor.extract>[0]
 
 /** Engine stage that corrects each value. Delete an entry when its stage lands. */
 const KNOWN_DEFECTS: Record<string, string> = {
-  'saturn return 1980-01-25': 'E5',
-  'saturn return 1957-03-20': 'E5',
-  'saturn return 1995-09-13': 'E5',
-  'saturn return 1953-07-17': 'E5',
-  'transit isoToJD honours Z': 'E5',
-  'transit chart at the instant': 'E5',
   'planetary hours Seoul 2026-11-23': 'E13',
   'void-of-course end Seoul 2026-11-05': 'E13',
   'sect by Sun altitude (polar)': 'E13',

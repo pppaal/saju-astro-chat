@@ -56,6 +56,10 @@ import type { CalendarCell, CalendarBuildOptions, CalendarRange } from './types'
 //     natal strength·yongsin 이 NatalContextCache 에 구워지고 사주 추출기 극성이 모두
 //     용신 기준이라 셀 점수가 바뀜)도 같은 미출시 릴리스라 v8 에 함께 실린다. E4 만
 //     따로 출시되면 그때 +1.
+//     점성 타이밍 교정(엔진 감사 E5 — 프로펙션 whole-sign, 진짜 Solar Arc·자기각
+//     제외, 토성·목성 회귀 정확 일시; profection·solar-arc 신호와 lifecycle 마디가
+//     셀·인생 흐름에 구워짐)도 같은 미출시 릴리스라 v8 에 함께 실린다. E5 만 따로
+//     출시되면 그때 +1. (트랜짓 차트 Redis 캐시는 ephe:transit:v3 로 별도 무효화.)
 // (export — dataRetention 스윕이 옛 버전 NatalContextCache 고아 행을 지우는 기준.)
 export const CALENDAR_ENGINE_VERSION = 'v8'
 

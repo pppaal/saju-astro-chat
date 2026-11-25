@@ -28,8 +28,9 @@ export async function getCachedTransitChart(args: {
   inMemoryCache: ExtractorCache
 }): Promise<Chart> {
   const { iso, latitude, longitude, timeZone, inMemoryCache } = args
-  // timeZone 은 키의 일부여야 한다 — iso 가 tz 없는 wall-clock 문자열이라
-  // calculateTransitChart(iso, timeZone) 가 tz 로 JD(행성 위치)를 정한다. 빼면
+  // timeZone 은 키의 일부여야 한다 — iso 가 tz 없는 wall-clock 문자열이면
+  // calculateTransitChart(iso, timeZone) 가 tz 로 JD(행성 위치)를 정한다
+  // ('Z'·±hh:mm 이 붙은 절대 순간이면 tz 는 하우스 위치에만 쓰인다). 빼면
   // 같은 iso+좌표·다른 tz 가 키 충돌 → 남의 tz 로 계산된 차트가 서빙됐다
   // (natalChart 키는 이미 timeZone 포함으로 고쳐졌던 동일 버그 클래스).
   const localKey = `transit-chart:${iso}:${latitude}:${longitude}:${timeZone}`
@@ -46,7 +47,10 @@ export async function getCachedTransitChart(args: {
   // 같은 위치의 같은 시각 차트는 영원히 결정적.
   // TRANSIT_CHART TTL은 1시간(짧음) — 우리는 결정적 데이터라 NATAL_CHART TTL(30일) 사용.
   // v2: timeZone 추가(위 버그 수정). 기존 tz-less Redis 엔트리는 키가 달라 자연 폐기.
-  const redisKey = `ephe:transit:v2:${iso}:${latitude.toFixed(4)}:${longitude.toFixed(4)}:${timeZone}`
+  // v3: isoToJD 가 'Z'·±hh:mm 접미사를 절대 순간으로 존중(엔진 감사 E5, ASTRO-4).
+  //     '…T12:00:00.000Z' 키(lifeCurve)는 예전엔 현지 12시 벽시계로 계산돼 저장됐다
+  //     — 같은 키가 이제 다른 순간을 뜻하므로 옛 엔트리를 버린다.
+  const redisKey = `ephe:transit:v3:${iso}:${latitude.toFixed(4)}:${longitude.toFixed(4)}:${timeZone}`
   const chartPromise = cacheOrCalculate(
     redisKey,
     async () => {

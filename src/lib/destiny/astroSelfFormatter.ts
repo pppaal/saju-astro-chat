@@ -78,9 +78,12 @@ const PLANET_LABEL: Record<string, string> = {
 const sign = (ko: string) => SIGN_KO_TO_EN[ko] ?? ko
 const label = (name: string) => PLANET_LABEL[name] ?? name
 
-function orbToDegMin(orb: number): string {
-  const deg = Math.floor(orb)
-  const min = Math.round((orb - deg) * 60)
+/** 오브(도) → "D°MM'". 총 분을 먼저 반올림한 뒤 도로 올림 — 2.995° 는 "3°00'"
+ *  ("2°60'" 금지 — 감사 ASTRO-14). */
+export function orbToDegMin(orb: number): string {
+  const totalMin = Math.round(Math.abs(orb) * 60)
+  const deg = Math.floor(totalMin / 60)
+  const min = totalMin % 60
   return `${deg}°${String(min).padStart(2, '0')}'`
 }
 
@@ -229,6 +232,9 @@ export async function formatAstroSelf(input: AstroSelfInput): Promise<string> {
 
   // Current transit aspects
   try {
+    // 'Z' 가 붙은 절대 순간 — isoToJD 가 접미사를 존중하므로 사용자 tz 가 시각을
+    // 다시 해석하지 않는다(옛 경로는 UTC 를 현지 벽시계로 읽어 서울 9시간 이르게,
+    // LA 8시간 늦게 계산 — 감사 ASTRO-4).
     const nowIso = (input.now ?? new Date()).toISOString()
     const transitChart = await calculateTransitChart({
       iso: nowIso,

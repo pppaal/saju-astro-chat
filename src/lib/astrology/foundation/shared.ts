@@ -136,16 +136,27 @@ export function jdToISO(jd: number): string {
   return `${year}-${pad(month)}-${pad(day)}T${pad(hour)}:${pad(minute)}:${pad(second)}Z`
 }
 
+/** 끝에 'Z' 또는 ±hh:mm 이 붙은 ISO = 절대 순간(시간대 인자와 무관). */
+const ABSOLUTE_ISO_SUFFIX = /(?:Z|[+-]\d{2}:\d{2})$/i
+
 /**
  * Convert ISO string to Julian Day
+ *
+ * - 'Z' 또는 ±hh:mm 이 붙은 문자열은 *절대 순간* 이라 그대로 존중한다 —
+ *   timeZone 인자는 무시. 옛 구현은 dayjs.tz(iso, tz) 가 접미사를 버리고 UTC
+ *   문자열을 tz 의 벽시계로 읽어, 서울 사용자의 '현재 트랜짓' 이 9시간 이르게
+ *   계산됐다(감사 ASTRO-4).
+ * - 접미사 없는 벽시계 문자열('YYYY-MM-DDTHH:mm:ss')만 timeZone 으로 해석한다.
+ *
  * @param iso - ISO datetime string
- * @param timeZone - Timezone string
+ * @param timeZone - IANA timezone for offset-less wall-clock strings
  * @returns Julian Day (UT)
  */
 export function isoToJD(iso: string, timeZone: string): number {
   const swisseph = getSwisseph()
 
-  const local = dayjs.tz(iso, timeZone)
+  const trimmed = iso.trim()
+  const local = ABSOLUTE_ISO_SUFFIX.test(trimmed) ? dayjs.utc(trimmed) : dayjs.tz(trimmed, timeZone)
   if (!local.isValid()) {
     throw new Error(`Invalid ISO datetime: ${iso}`)
   }

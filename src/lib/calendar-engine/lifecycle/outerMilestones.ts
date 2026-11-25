@@ -6,17 +6,31 @@
    가리켰다(감사 A-3). buildLifecycleTiming 의 override 훅은 처음부터 있었지만
    이 계산기가 없어 프로덕션이 항상 undefined 를 넘겼다 — 그 구현이 이 파일이다.
 
-   방법: 이벤트별 탐색 창(평균 나이 ±수년)을 매년 7/1 트랜짓 차트로 스캔해
-   "트랜짓 행성 − 본명 행성" 각도가 목표각(회귀 0°, 사각 90°, 마주봄 180°)을
-   지나는 해를 찾고, 이웃 해와의 선형 보간으로 월 단위 시점을 추정한다.
-   행성 연간 이동량 대비 오차가 크면(스캔 창 밖 등) null — 평균 테이블 폴백.
+   방법: 이벤트별 탐색 창(평균 나이 ±수년)에서 부호 있는 편차
+   f(t) = wrap180(λ_트랜짓(t) − λ_본명 − 목표각) 을 일 단위(토성·목성은 5일)로
+   스캔해 *첫 번째* 0 교차를 찾고, 이분법으로 분 단위까지 좁힌다. 그 순간이
+   exactDateISO, 나이는 그 순간의 만 나이(currentManAge — 출생 시간대 생일 기준).
+   교차가 창 안에 없으면 그 kind 는 빠지고 평균 테이블로 폴백.
 
-   비용: 창 합집합 ~60개 연도 차트(프로세스 메모로 본명당 1회). 진행달 회귀
+   옛 구현은 매년 7/1 샘플의 |wrap180| 에 포물선을 맞췄다 — 회귀는 |sep| 이 0 에
+   접할 뿐 부호가 안 바뀌어 V 자 곡선에 포물선을 씌운 셈이라 토성 회귀가 중앙값
+   155일·최대 334일 어긋나고 나이도 25명 중 10명 틀렸다(감사 ASTRO-3).
+
+   비용: 행성 1개 황경만 swe_calc_ut 로 직접 계산(트랜짓 차트·하우스 없음).
+   목표에서 먼 구간은 속도 상한으로 안전하게 건너뛰어(findFirstCrossingJD) 본명당
+   약 1~2천 회, 결과는 프로세스 메모로 본명당 1회. 진행달 회귀
    (progressed_lunar_1)는 트랜짓이 아니라 여기서 다루지 않는다(테이블 유지).
    ============================================================ */
 
-import { getCachedTransitChart } from '../ephe-cache'
-import { createCache } from '../cache'
+import { getSwisseph } from '@/lib/astrology/foundation/ephe'
+import {
+  extractSwissLongitude,
+  getPlanetList,
+  getSwissEphFlags,
+  natalToJD,
+  throwIfSwissEphError,
+} from '@/lib/astrology/foundation/shared'
+import { currentManAge } from '@/lib/datetime/currentAge'
 import { logger } from '@/lib/logger'
 import type { NatalContext } from '../context/types'
 import type { AstroLifecycleEventKind, LifecycleMilestoneOverride } from './astroLifecycle'
@@ -24,28 +38,114 @@ import type { AstroLifecycleEventKind, LifecycleMilestoneOverride } from './astr
 interface Target {
   kind: AstroLifecycleEventKind
   planet: string
-  /** 목표각 — 0 회귀 · 90 사각 · 180 마주봄. */
+  /** 목표각 (트랜짓 − 본명) — 0 회귀 · 90 상현 사각 · 180 마주봄. */
   angle: 0 | 90 | 180
-  /** 탐색 창(만 나이, inclusive). 평균 나이표 ± 여유. */
+  /** 탐색 창(만 나이, 창 끝 해 포함). 평균 나이표 ± 여유. */
   window: [number, number]
-  /** 연간 평균 이동량(°/yr) — 수용 오차 산정용. */
-  yearlyMotion: number
+  /** 목표각 근처 스캔 간격(일) — 토성·목성 5일, 느린 외행성 1일. */
+  stepDays: number
+  /** 지심 황경 속도 상한(°/일, 넉넉히) — 목표에서 먼 구간을 안전하게 건너뛰는 데 쓴다. */
+  maxRate: number
 }
 
 const TARGETS: Target[] = [
-  { kind: 'jupiter_return_1', planet: 'Jupiter', angle: 0, window: [9, 15], yearlyMotion: 30.3 },
-  { kind: 'jupiter_return_2', planet: 'Jupiter', angle: 0, window: [21, 27], yearlyMotion: 30.3 },
-  { kind: 'saturn_return_1', planet: 'Saturn', angle: 0, window: [26, 33], yearlyMotion: 12.2 },
-  { kind: 'jupiter_return_3', planet: 'Jupiter', angle: 0, window: [33, 39], yearlyMotion: 30.3 },
+  {
+    kind: 'jupiter_return_1',
+    planet: 'Jupiter',
+    angle: 0,
+    window: [9, 15],
+    stepDays: 5,
+    maxRate: 0.3,
+  },
+  {
+    kind: 'jupiter_return_2',
+    planet: 'Jupiter',
+    angle: 0,
+    window: [21, 27],
+    stepDays: 5,
+    maxRate: 0.3,
+  },
+  {
+    kind: 'saturn_return_1',
+    planet: 'Saturn',
+    angle: 0,
+    window: [26, 33],
+    stepDays: 5,
+    maxRate: 0.2,
+  },
+  {
+    kind: 'jupiter_return_3',
+    planet: 'Jupiter',
+    angle: 0,
+    window: [33, 39],
+    stepDays: 5,
+    maxRate: 0.3,
+  },
   // 명왕성 이심률 — 세대에 따라 실제 나이가 30대 초~40대 후반까지 벌어진다.
-  { kind: 'pluto_square_pluto', planet: 'Pluto', angle: 90, window: [30, 50], yearlyMotion: 2.4 },
-  { kind: 'uranus_opposition', planet: 'Uranus', angle: 180, window: [38, 45], yearlyMotion: 4.3 },
-  { kind: 'neptune_square', planet: 'Neptune', angle: 90, window: [38, 45], yearlyMotion: 2.2 },
-  { kind: 'chiron_return', planet: 'Chiron', angle: 0, window: [46, 54], yearlyMotion: 7 },
-  { kind: 'saturn_return_2', planet: 'Saturn', angle: 0, window: [55, 62], yearlyMotion: 12.2 },
-  { kind: 'jupiter_return_5', planet: 'Jupiter', angle: 0, window: [57, 63], yearlyMotion: 30.3 },
-  { kind: 'uranus_return', planet: 'Uranus', angle: 0, window: [80, 87], yearlyMotion: 4.3 },
+  {
+    kind: 'pluto_square_pluto',
+    planet: 'Pluto',
+    angle: 90,
+    window: [30, 50],
+    stepDays: 1,
+    maxRate: 0.06,
+  },
+  {
+    kind: 'uranus_opposition',
+    planet: 'Uranus',
+    angle: 180,
+    window: [38, 45],
+    stepDays: 1,
+    maxRate: 0.1,
+  },
+  {
+    kind: 'neptune_square',
+    planet: 'Neptune',
+    angle: 90,
+    window: [38, 45],
+    stepDays: 1,
+    maxRate: 0.06,
+  },
+  {
+    kind: 'chiron_return',
+    planet: 'Chiron',
+    angle: 0,
+    window: [46, 54],
+    stepDays: 1,
+    maxRate: 0.2,
+  },
+  {
+    kind: 'saturn_return_2',
+    planet: 'Saturn',
+    angle: 0,
+    window: [55, 62],
+    stepDays: 5,
+    maxRate: 0.2,
+  },
+  {
+    kind: 'jupiter_return_5',
+    planet: 'Jupiter',
+    angle: 0,
+    window: [57, 63],
+    stepDays: 5,
+    maxRate: 0.3,
+  },
+  {
+    kind: 'uranus_return',
+    planet: 'Uranus',
+    angle: 0,
+    window: [80, 87],
+    stepDays: 1,
+    maxRate: 0.1,
+  },
 ]
+
+const DAYS_PER_YEAR = 365.25
+/** 한 스캔 간격에 실제 0 교차라면 f 가 움직일 수 있는 최대 폭(°) — 목성 5일 ≈ 1.3°.
+ *  이보다 크게 부호가 바뀌면 ±180° 감김(wrap) 점프이지 교차가 아니다. */
+const MAX_STEP_JUMP_DEG = 10
+/** 이분법 종료 폭(일) — 약 1분. */
+const BISECT_EPS_DAYS = 1 / 1440
 
 /** (-180, 180] 로 감싼 각도차. */
 export function wrap180(deg: number): number {
@@ -55,76 +155,72 @@ export function wrap180(deg: number): number {
   return d
 }
 
-/** 목표각 대비 부호 있는 편차 — 0 을 지나는 해가 exact. */
+/**
+ * 목표각 대비 *부호 있는* 편차 — wrap180(트랜짓 − 본명 − 목표각).
+ * 트랜짓이 목표각을 지나는 순간 부호가 바뀐다(회귀도 마찬가지 — 옛 |sep| 기반
+ * 편차는 회귀에서 0 에 접만 하고 부호가 안 바뀌었다).
+ */
 export function signedErr(transitLon: number, natalLon: number, angle: 0 | 90 | 180): number {
-  const sep = Math.abs(wrap180(transitLon - natalLon)) // 0..180
-  return sep - angle
+  return wrap180(transitLon - natalLon - angle)
 }
 
 /**
- * 순수 파트 — 창 안 (age, err) 샘플에서 목표각 교차 시점을 찾아 override 로.
- * err = signedErr(트랜짓, 본명, 목표각). 부호 반전(교차) 구간을 선형 보간하고,
- * 반전이 없으면 |err| 최솟값이 연간 이동량 60% 이내일 때만 채택(창 밖 → null).
- * 에페메리스와 분리돼 테스트 가능(실 ephe 는 vitest 모의가 궤도 운동을 안 냄).
+ * 순수 파트 — [startJD, endJD] 를 stepDays 간격으로 스캔해 f 의 *첫* 0 교차를
+ * 찾고 이분법으로 좁힌 JD 를 돌려준다. 없으면 null.
+ * 부호가 바뀌어도 |f0 − f1| 가 MAX_STEP_JUMP_DEG 를 넘으면 ±180° 감김이라 건너뛴다.
+ *
+ * maxRate(°/일, f 변화율 상한)를 주면 목표에서 먼 구간을 건너뛴다: |f| 가 r 이면
+ * 0 에 닿기까지 최소 r/maxRate 일이 걸리므로 그 안엔 교차가 있을 수 없다(안전한
+ * 건너뛰기 — 목표 근처에선 다시 stepDays 간격). 결과는 일 단위 전수 스캔과 같다.
+ *
+ * 에페메리스와 분리돼 합성 함수로 테스트 가능(vitest 전역 ephe 모의는 궤도 운동을
+ * 내지 않는다).
  */
-export function resolveMilestoneFromSamples(args: {
-  kind: AstroLifecycleEventKind
-  samples: ReadonlyArray<{ age: number; err: number }>
-  yearlyMotion: number
-  birthYear: number
-  birthAnchorMs: number
-}): LifecycleMilestoneOverride | null {
-  const { kind, samples, yearlyMotion, birthYear, birthAnchorMs } = args
-  if (samples.length < 2) return null
-
-  let cross: { a0: number; e0: number; a1: number; e1: number } | null = null
-  for (let i = 0; i < samples.length - 1; i++) {
-    const s0 = samples[i]
-    const s1 = samples[i + 1]
-    if (s0.err === 0 || Math.sign(s0.err) !== Math.sign(s1.err)) {
-      cross = { a0: s0.age, e0: s0.err, a1: s1.age, e1: s1.err }
-      break
+export function findFirstCrossingJD(
+  f: (jd: number) => number,
+  startJD: number,
+  endJD: number,
+  stepDays: number,
+  maxRate?: number
+): number | null {
+  if (!(endJD > startJD) || !(stepDays > 0)) return null
+  let jd0 = startJD
+  let f0 = f(jd0)
+  if (f0 === 0) return jd0
+  while (jd0 < endJD) {
+    const safeSkip = maxRate && maxRate > 0 ? (0.9 * Math.abs(f0)) / maxRate : 0
+    const jd1 = Math.min(jd0 + Math.max(stepDays, safeSkip), endJD)
+    const f1 = f(jd1)
+    if (f1 === 0) return jd1
+    if (Math.sign(f0) !== Math.sign(f1) && Math.abs(f1 - f0) <= MAX_STEP_JUMP_DEG) {
+      let lo = jd0
+      let hi = jd1
+      const loSign = Math.sign(f0)
+      while (hi - lo > BISECT_EPS_DAYS) {
+        const mid = (lo + hi) / 2
+        const fm = f(mid)
+        if (fm === 0) return mid
+        if (Math.sign(fm) === loSign) lo = mid
+        else hi = mid
+      }
+      return (lo + hi) / 2
     }
+    jd0 = jd1
+    f0 = f1
   }
+  return null
+}
 
-  // 샘플은 매년 7/1 이므로 fracYear 는 "출생 후 경과년(7/1 기준)"의 소수부.
-  let baseAge: number
-  let fracYear: number
-  if (cross) {
-    // 사각(90°) 등 부호가 실제로 뒤집히는 각 — 두 샘플 사이 err=0 지점 선형 보간.
-    baseAge = cross.a0
-    fracYear = cross.e0 / (cross.e0 - cross.e1 || Number.EPSILON)
-  } else {
-    // 회귀(0°)·마주봄(180°)은 |sep| 기반 err 이 목표에서 0 에 *접(接)* 할 뿐
-    // 부호가 안 뒤집혀 교차가 없다(감사 F1). 예전엔 frac=0 → exactDateISO 가
-    // *항상 YYYY-07-01* 이 되는 조작값이었다. 최소 샘플 3점 포물선 꼭짓점으로
-    // sub-year 시점을 복원해 월 정밀도를 되살린다.
-    const bestIdx = samples.reduce(
-      (bi, s, i) => (Math.abs(s.err) < Math.abs(samples[bi].err) ? i : bi),
-      0
-    )
-    const best = samples[bestIdx]
-    if (Math.abs(best.err) > yearlyMotion * 0.6) return null
-    const ep = samples[bestIdx - 1]?.err
-    const en = samples[bestIdx + 1]?.err
-    let vertexFrac = 0
-    if (ep != null && en != null) {
-      const denom = ep - 2 * best.err + en
-      if (denom !== 0) vertexFrac = Math.max(-0.5, Math.min(0.5, (0.5 * (ep - en)) / denom))
-    }
-    baseAge = best.age
-    fracYear = vertexFrac
-  }
+const jdToMs = (jd: number) => (jd - 2440587.5) * 86_400_000
 
-  const eventMs = Date.UTC(birthYear + baseAge, 6, 1) + fracYear * 365.25 * 86_400_000
-  const eventDate = new Date(eventMs)
-  const age = Math.floor((eventMs - birthAnchorMs) / (365.25 * 86_400_000))
-  return {
-    kind,
-    startYear: eventDate.getUTCFullYear(),
-    age,
-    exactDateISO: eventDate.toISOString().slice(0, 10),
-  }
+/** 순간 → 출생 시간대 달력 날짜 'YYYY-MM-DD'. */
+function localDateISO(ms: number, timeZone: string): string {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(new Date(ms))
 }
 
 // 본명당 결과 메모 — 마일스톤은 본명 순수 함수(now 무관)라 프로세스 수명 동안 유효.
@@ -139,68 +235,84 @@ const _MEMO_MAX = 256
 export async function calculateOuterPlanetMilestones(
   natal: NatalContext
 ): Promise<LifecycleMilestoneOverride[]> {
-  const birthYear = natal.input?.year
+  const input = natal.input
+  const birthYear = input?.year
   const loc = natal.astro?.location
   const chart = natal.astro?.chart
   if (!birthYear || !loc || !chart) return []
+  const timeZone = loc.timeZone || input.timeZone
+  const birthMonth = input.month ?? 1
+  const birthDate = input.date ?? 1
 
   const lonSig = chart.planets.map((p) => `${p.name}:${Math.round(p.longitude)}`).join(',')
-  const memoKey = `${birthYear}|${loc.latitude},${loc.longitude}|${lonSig}`
+  const memoKey = `${birthYear}-${birthMonth}-${birthDate} ${input.hour ?? ''}:${input.minute ?? ''}|${timeZone}|${loc.latitude},${loc.longitude}|${lonSig}`
   const hit = _memo.get(memoKey)
   if (hit) return hit
 
-  const natalLonByPlanet = new Map(chart.planets.map((p) => [p.name, p.longitude]))
-  const cache = createCache()
-
-  // 필요한 나이 합집합만 샘플(중복 제거) — 이벤트 창들이 겹치면 차트 공유.
-  const agesNeeded = new Set<number>()
-  for (const t of TARGETS) {
-    if (!natalLonByPlanet.has(t.planet)) continue
-    for (let a = t.window[0]; a <= t.window[1]; a++) agesNeeded.add(a)
+  // 출생 순간(UT JD) — 차트 meta 가 있으면 그것, 없으면 본명 입력에서 환산.
+  let natalJD: number
+  let swisseph: ReturnType<typeof getSwisseph>
+  let flags: number
+  let planetIds: Record<string, number>
+  try {
+    swisseph = getSwisseph()
+    flags = getSwissEphFlags()
+    planetIds = getPlanetList()
+    natalJD =
+      chart.meta?.jdUT ??
+      natalToJD({
+        year: birthYear,
+        month: birthMonth,
+        date: birthDate,
+        hour: input.hour ?? 12,
+        minute: input.minute ?? 0,
+        latitude: loc.latitude,
+        longitude: loc.longitude,
+        timeZone,
+      })
+  } catch (err) {
+    logger.warn('[outerMilestones] ephemeris or natal instant unavailable — table fallback', err)
+    return []
   }
 
-  const lonByAge = new Map<number, Map<string, number>>()
-  await Promise.all(
-    [...agesNeeded].map(async (age) => {
-      try {
-        const tc = await getCachedTransitChart({
-          iso: `${birthYear + age}-07-01T12:00:00.000Z`,
-          latitude: loc.latitude,
-          longitude: loc.longitude,
-          timeZone: loc.timeZone,
-          inMemoryCache: cache,
-        })
-        lonByAge.set(age, new Map(tc.planets.map((p) => [p.name, p.longitude])))
-      } catch (err) {
-        logger.warn(`[outerMilestones] transit chart failed at age ${age} — skipping sample`, err)
-      }
-    })
-  )
-
-  // 만 나이 앵커 — 실제 생일. 이벤트 시각(연 실수) → 만 나이/연도 환산에 사용.
-  const birthAnchorMs = Date.UTC(birthYear, (natal.input?.month ?? 1) - 1, natal.input?.date ?? 1)
+  const natalLonByPlanet = new Map(chart.planets.map((p) => [p.name, p.longitude]))
 
   const out: LifecycleMilestoneOverride[] = []
   for (const t of TARGETS) {
     const natalLon = natalLonByPlanet.get(t.planet)
-    if (natalLon == null) continue
-
-    // 창 안 매년의 부호 편차 — 0 교차(부호 반전) 구간을 찾는다.
-    const samples: Array<{ age: number; err: number }> = []
-    for (let a = t.window[0]; a <= t.window[1]; a++) {
-      const lons = lonByAge.get(a)
-      const lon = lons?.get(t.planet)
-      if (lon == null) continue
-      samples.push({ age: a, err: signedErr(lon, natalLon, t.angle) })
+    const planetId = planetIds[t.planet]
+    if (natalLon == null || planetId == null) continue
+    try {
+      const lonAt = (jd: number) => {
+        const res = swisseph.swe_calc_ut(jd, planetId, flags)
+        throwIfSwissEphError(res, `${t.planet} longitude`)
+        return extractSwissLongitude(res)
+      }
+      const exactJD = findFirstCrossingJD(
+        (jd) => signedErr(lonAt(jd), natalLon, t.angle),
+        natalJD + t.window[0] * DAYS_PER_YEAR,
+        natalJD + (t.window[1] + 1) * DAYS_PER_YEAR,
+        t.stepDays,
+        t.maxRate
+      )
+      if (exactJD == null) continue
+      const ms = jdToMs(exactJD)
+      const exactDateISO = localDateISO(ms, timeZone)
+      out.push({
+        kind: t.kind,
+        startYear: Number(exactDateISO.slice(0, 4)),
+        age: currentManAge({
+          birthYear,
+          birthMonth,
+          birthDate,
+          birthTimeZone: timeZone,
+          now: new Date(ms),
+        }),
+        exactDateISO,
+      })
+    } catch (err) {
+      logger.warn(`[outerMilestones] ${t.kind} scan failed — table fallback`, err)
     }
-    const resolved = resolveMilestoneFromSamples({
-      kind: t.kind,
-      samples,
-      yearlyMotion: t.yearlyMotion,
-      birthYear,
-      birthAnchorMs,
-    })
-    if (resolved) out.push(resolved)
   }
 
   if (_memo.size >= _MEMO_MAX) {
