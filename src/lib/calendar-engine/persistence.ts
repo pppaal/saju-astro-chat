@@ -60,6 +60,10 @@ import type { CalendarCell, CalendarBuildOptions, CalendarRange } from './types'
 //     제외, 토성·목성 회귀 정확 일시; profection·solar-arc 신호와 lifecycle 마디가
 //     셀·인생 흐름에 구워짐)도 같은 미출시 릴리스라 v8 에 함께 실린다. E5 만 따로
 //     출시되면 그때 +1. (트랜짓 차트 Redis 캐시는 ephe:transit:v3 로 별도 무효화.)
+//     시간 미상 삼주 분석(엔진 감사 E7 — 미상이면 시주 없이 강약·용신·격국·신살·관계·
+//     오행, placeUnreliable 이면 ASC·MC·하우스 의존 신호 제외)도 같은 미출시 릴리스라
+//     v8 에 함께 실린다. 미상·출생지 미상 플래그는 birthKey 에도 접는다 — 정오 앵커
+//     '12:00' 이 실제 정오 출생과 같은 키로 섞이지 않게.
 // (export — dataRetention 스윕이 옛 버전 NatalContextCache 고아 행을 지우는 기준.)
 export const CALENDAR_ENGINE_VERSION = 'v8'
 
@@ -77,6 +81,8 @@ function birthKeyFor(input: BuildContextInput): string {
     input.gender,
     input.calendarType ?? 'solar',
     input.lunarLeap ? 'leap' : '',
+    input.birthTimeUnknown ? 'tu' : '',
+    input.birthCityUnknown ? 'cu' : '',
     CALENDAR_ENGINE_VERSION,
   ].join('|')
   return createHash('sha1').update(canonical).digest('hex').slice(0, 32)

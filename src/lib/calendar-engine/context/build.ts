@@ -13,9 +13,15 @@ import { performAnalyses } from '@/lib/saju/analyses'
 import { JIJANGGAN } from '@/lib/saju/constants'
 import { strengthClassOf } from '@/lib/saju/strengthScore'
 import { parseHourMinute } from '@/lib/saju/timeParse'
+import { TIME_UNKNOWN_ANCHOR } from '@/lib/saju/birthTimeAnchor'
 import { logger } from '@/lib/logger'
 import type { NatalContext, NatalDayJijanggan } from './types'
-import type { FiveElement, SajuPillarsInput, CalculateSajuDataResult } from '@/lib/saju/types'
+import type {
+  FiveElement,
+  MaybeTimeless,
+  SajuPillarsInput,
+  CalculateSajuDataResult,
+} from '@/lib/saju/types'
 import type { NatalInput, Chart } from '@/lib/astrology/foundation/types'
 import type { NatalChartData } from '@/lib/astrology/foundation/astrologyService'
 
@@ -28,6 +34,13 @@ export interface BuildContextInput {
   timeZone: string // IANA
   calendarType?: 'solar' | 'lunar'
   lunarLeap?: boolean
+  /**
+   * 출생시각 미상 — birthTime 은 정오 앵커. 사주는 삼주(년·월·일)로 판정하고
+   * (CONVENTIONS §5), 점성은 placeUnreliable 로 ASC·MC·하우스 의존 신호를 막는다.
+   */
+  birthTimeUnknown?: boolean
+  /** 출생지 미상 — 좌표가 기본값(서울). ASC·MC·하우스 의존 신호를 막는다. */
+  birthCityUnknown?: boolean
 }
 
 /**
@@ -54,7 +67,8 @@ export async function buildNatalContext(
   const [yearStr, monthStr, dayStr] = input.birthDate.split('-')
   // AM/PM('11:30 PM') 정확히 24h 정규화 — 직접 split(':') 하면 PM 12h 누락 + 분
   // NaN(Number('30 PM'))으로 시주·하우스가 깨졌다. 사주와 동일 파서 사용.
-  const { h: birthHour, m: birthMinute } = parseHourMinute(input.birthTime)
+  // 빈 시각은 시간 미상 앵커(정오) — 사주(calculateSajuData)·점성(astroFacts)과 같은 규약(F15).
+  const { h: birthHour, m: birthMinute } = parseHourMinute(input.birthTime || TIME_UNKNOWN_ANCHOR)
 
   const natalInput: NatalInput = {
     year: Number(yearStr),
@@ -76,6 +90,8 @@ export async function buildNatalContext(
     collectSajuFacts({
       birthDate: input.birthDate,
       birthTime: input.birthTime,
+      // 시간 미상 → 삼주 분석(CONVENTIONS §5). fiveElements 도 6글자.
+      birthTimeUnknown: input.birthTimeUnknown,
       gender: input.gender,
       timezone: input.timeZone,
       // 진태양시(진경도) 보정 — 출생지 경도 있으면 운세 차트와 동일.
@@ -83,14 +99,22 @@ export async function buildNatalContext(
       calendarType: input.calendarType,
       lunarLeap: input.lunarLeap,
     })._raw
-  const pillars = saju.pillars
+  // 시간 미상이면 시주를 뺀 삼주 — raw.pillars.time 은 정오 앵커 자리표시라 판정에도,
+  // 컨텍스트(시주 의존 추출기)에도 넣지 않는다.
+  const timeUnknown = input.birthTimeUnknown === true || saju.timeUnknown === true
+  const pillars: NatalContext['saju']['pillars'] = timeUnknown
+    ? { year: saju.pillars.year, month: saju.pillars.month, day: saju.pillars.day }
+    : saju.pillars
+  const timeSimple = pillars.time
+    ? { stem: pillars.time.heavenlyStem.name, branch: pillars.time.earthlyBranch.name }
+    : null
 
   // 용신·강약
-  const pillarsInput: SajuPillarsInput = {
+  const pillarsInput: MaybeTimeless<SajuPillarsInput> = {
     year: { stem: pillars.year.heavenlyStem.name, branch: pillars.year.earthlyBranch.name },
     month: { stem: pillars.month.heavenlyStem.name, branch: pillars.month.earthlyBranch.name },
     day: { stem: pillars.day.heavenlyStem.name, branch: pillars.day.earthlyBranch.name },
-    time: { stem: pillars.time.heavenlyStem.name, branch: pillars.time.earthlyBranch.name },
+    time: timeSimple,
   }
   const yongsinResult = determineYongsin(pillarsInput)
 
@@ -118,16 +142,16 @@ export async function buildNatalContext(
   const dayMasterStem = pillars.day.heavenlyStem.name
   const monthBranch = pillars.month.earthlyBranch.name
   const twelveStages = getTwelveStagesForPillars(pillars)
-  const simplePillarsForAdvanced: SajuPillarsInput = pillarsInput
   const pillarsWithHourForAdvanced = {
     year: pillarsInput.year,
     month: pillarsInput.month,
     day: pillarsInput.day,
-    hour: pillarsInput.time,
+    hour: timeSimple,
   }
   const simplePillarsWithHour = {
-    ...simplePillarsForAdvanced,
-    hour: pillarsInput.time,
+    ...pillarsInput,
+    time: timeSimple,
+    hour: timeSimple,
   }
   const fiveElementsRaw = (
     saju as unknown as { fiveElements: NatalContext['saju']['fiveElements'] }
@@ -171,6 +195,9 @@ export async function buildNatalContext(
     latitude: input.latitude,
     longitude: input.longitude,
     timezone: input.timeZone,
+    // 출생시각/출생지 미상 → natal.placeUnreliable (ASC·MC·하우스 신뢰 불가).
+    birthTimeUnknown: timeUnknown,
+    birthCityUnknown: input.birthCityUnknown,
     includeHellenistic: true,
   })
   if (!astroFacts) {
@@ -199,6 +226,9 @@ export async function buildNatalContext(
     dignities,
     almutenFiguris,
   } = astroFacts.hellenistic
+  // 출생시각/출생지 미상 — lot(ASC 기반)·ZR(행운점·정신점 시작)·Almuten(ASC hyleg)은
+  // 폴백 앵글의 산물이라 컨텍스트에 싣지 않는다(인생 흐름 ZR 챕터·lot 패널 누출 차단).
+  const placeUnreliable = astroFacts.natal.placeUnreliable === true
 
   // ─── 본명 일주 지장간 3층 ─────────────────────────────────────────────
   // JIJANGGAN SSOT (constants.ts) 룩업. 子·卯·午·酉 같은 왕지는 정기만 보유.
@@ -215,6 +245,7 @@ export async function buildNatalContext(
     input: natalInput,
     saju: {
       pillars,
+      ...(timeUnknown ? { timeUnknown: true } : {}),
       dayMaster: {
         name: pillars.day.heavenlyStem.name,
         element: pillars.day.heavenlyStem.element,
@@ -236,6 +267,9 @@ export async function buildNatalContext(
     },
     astro: {
       chart,
+      // 출생시각/출생지 미상 — buildCalendar 가 ASC·MC·하우스 의존 신호를 걸러 낸다
+      // (house-transit·angle-contact·profection·ZR·lot, ASC/MC 대상 어스펙트).
+      ...(placeUnreliable ? { placeUnreliable: true } : {}),
       extraPoints,
       sect,
       location: {
@@ -244,10 +278,10 @@ export async function buildNatalContext(
         timeZone: input.timeZone,
       },
       natalAspects,
-      zodiacalReleasing,
+      zodiacalReleasing: placeUnreliable ? { spirit: null, fortune: null } : zodiacalReleasing,
       dignities,
-      lots: lotsWithHouse,
-      almutenFiguris,
+      lots: placeUnreliable ? [] : lotsWithHouse,
+      almutenFiguris: placeUnreliable ? null : almutenFiguris,
     },
   }
 }

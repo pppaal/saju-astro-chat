@@ -18,6 +18,9 @@ const astroReturnExtractor: SignalExtractor = {
   async extract(ctx: ExtractorContext): Promise<ActiveSignal[]> {
     const { natal, range } = ctx
     const signals: ActiveSignal[] = []
+    // 출생시각/출생지 미상 — 회귀 차트의 ASC·MC 는 시각·장소에 기대므로 문구·근거에서 뺀다
+    // (CALCULATION_SPEC §6). 회귀 시점 자체는 남긴다.
+    const placeUnreliable = natal.astro.placeUnreliable === true
     const start = new Date(range.start)
     const end = new Date(range.end)
 
@@ -28,6 +31,7 @@ const astroReturnExtractor: SignalExtractor = {
       try {
         const sr = await calculateSolarReturn({ natal: natal.input, year })
         const exactDate = new Date(sr.exactReturnTime)
+        const ascKo = placeUnreliable ? '' : ` (ASC ${sr.ascendant.sign})`
         const nextYearExact =
           year + 1 <= endYear + 1
             ? new Date(Date.UTC(year + 1, exactDate.getUTCMonth(), exactDate.getUTCDate()))
@@ -38,8 +42,8 @@ const astroReturnExtractor: SignalExtractor = {
           source: 'astro',
           kind: 'solar-return',
           name: `Solar Return ${year}`,
-          korean: `${year}년 솔라리턴 — 올해 전체의 기본 톤을 여는 생일 차트예요 (ASC ${sr.ascendant.sign})`,
-          english: `${year} Solar Return — the birthday chart that sets the whole year's baseline tone (ASC ${sr.ascendant.sign})`,
+          korean: `${year}년 솔라리턴 — 올해 전체의 기본 톤을 여는 생일 차트예요${ascKo}`,
+          english: `${year} Solar Return — the birthday chart that sets the whole year's baseline tone${ascKo}`,
           polarity: 0,
           layer: 'yearly',
           active: {
@@ -50,12 +54,11 @@ const astroReturnExtractor: SignalExtractor = {
           weight: 0.85,
           evidence: {
             module: 'astro-return',
-            planets: ['Sun', sr.ascendant.name],
+            planets: placeUnreliable ? ['Sun'] : ['Sun', sr.ascendant.name],
             detail: {
               returnType: 'solar',
               exactReturnTime: sr.exactReturnTime,
-              ascSign: sr.ascendant.sign,
-              mcSign: sr.mc.sign,
+              ...(placeUnreliable ? {} : { ascSign: sr.ascendant.sign, mcSign: sr.mc.sign }),
             },
           },
         })
@@ -94,7 +97,7 @@ const astroReturnExtractor: SignalExtractor = {
             detail: {
               returnType: 'lunar',
               exactReturnTime: lr.exactReturnTime,
-              ascSign: lr.ascendant.sign,
+              ...(placeUnreliable ? {} : { ascSign: lr.ascendant.sign }),
             },
           },
         })

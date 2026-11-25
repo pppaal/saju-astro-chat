@@ -47,8 +47,10 @@ export interface BirthOverride {
   birthDate: string
   /** 계산 앵커 (HH:MM). 시간 미상이면 정오 — birthTimeAnchor SSOT. */
   birthTime: string
-  /** 시간 미상(?time= 생략/'00:00') — 표시에서 앵커 시각을 숨기는 용. */
+  /** 시간 미상(?time= 생략/'00:00') — 표시에서 앵커 시각을 숨기고 삼주로 판정. */
   timeUnknown: boolean
+  /** 출생지 미상(?lat/lng 없음·비숫자) — 좌표는 서울 기본, ASC·MC·하우스 의존 신호 제외. */
+  cityUnknown?: boolean
   gender: 'male' | 'female'
   latitude: number
   longitude: number
@@ -82,6 +84,7 @@ export function parseBirthOverride(sp: SP): BirthOverride | null {
     birthDate: date,
     birthTime: timeAnchor.time,
     timeUnknown: timeAnchor.timeUnknown,
+    cityUnknown: !Number.isFinite(lat) || !Number.isFinite(lng),
     gender: one(sp.gender) === 'female' ? 'female' : 'male',
     latitude: Number.isFinite(lat) ? lat : 37.5665,
     longitude: Number.isFinite(lng) ? lng : 126.978,
@@ -106,6 +109,10 @@ export interface BirthInput {
   latitude: number
   longitude: number
   timeZone: string
+  /** 출생시각 미상 — birthTime 은 정오 앵커, 사주는 삼주(CONVENTIONS §5). */
+  birthTimeUnknown?: boolean
+  /** 출생지 미상 — 좌표 기본값. 점성 ASC·MC·하우스 의존 신호 제외. */
+  birthCityUnknown?: boolean
 }
 
 export type SessionBirthResult =
@@ -163,6 +170,7 @@ export async function loadSessionBirth(): Promise<SessionBirthResult> {
       latitude: profile.latitude!,
       longitude: profile.longitude!,
       timeZone: profile.tzId!,
+      birthTimeUnknown: anchor.timeUnknown,
     },
     timeUnknown: anchor.timeUnknown,
     place: profile.birthCity || null,
@@ -205,6 +213,8 @@ async function resolveBirthGuard(
         latitude: override.latitude,
         longitude: override.longitude,
         timeZone: override.timeZone,
+        birthTimeUnknown: override.timeUnknown,
+        birthCityUnknown: override.cityUnknown,
       },
       timeUnknown: override.timeUnknown,
       place: override.place || (lang === 'en' ? 'Seoul' : '서울'),

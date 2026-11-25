@@ -720,7 +720,8 @@ function collectNatalStems(natal: {
       year: { heavenlyStem?: { name: string } }
       month: { heavenlyStem?: { name: string } }
       day: { heavenlyStem?: { name: string } }
-      time: { heavenlyStem?: { name: string } }
+      // 출생시각 미상이면 시주가 없다(삼주) — 그때는 시간(時干)을 건너뛴다.
+      time?: { heavenlyStem?: { name: string } } | null
     }
   }
 }): Array<{ pos: string; name: string; info: StemInfoLite }> {
@@ -729,7 +730,7 @@ function collectNatalStems(natal: {
     { pos: 'year', stem: natal.saju.pillars.year.heavenlyStem?.name },
     { pos: 'month', stem: natal.saju.pillars.month.heavenlyStem?.name },
     { pos: 'day', stem: natal.saju.pillars.day.heavenlyStem?.name },
-    { pos: 'time', stem: natal.saju.pillars.time.heavenlyStem?.name },
+    { pos: 'time', stem: natal.saju.pillars.time?.heavenlyStem?.name },
   ]
   for (const p of positions) {
     if (!p.stem) continue

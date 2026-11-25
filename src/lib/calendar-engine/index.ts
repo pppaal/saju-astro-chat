@@ -79,7 +79,12 @@ export async function buildCalendar(
 
   // 2) 모든 extractor 병렬 실행 → 신호 평탄화
   const signalArrays = await Promise.all(extractors.map((ex) => ex.extract(ctx)))
-  const allSignals = signalArrays.flat()
+  // 출생시각/출생지 미상 — ASC·MC·하우스(와 그로부터 계산한 lot)에 기대는 점성 신호는
+  // 정오/서울 폴백 차트의 날조라 뺀다(CALCULATION_SPEC §6). cross-activation 이 그
+  // 신호를 재료로 쓰지 않도록 post-pass 전에 거른다.
+  const allSignals = natal.astro.placeUnreliable
+    ? signalArrays.flat().filter((s) => !isPlaceDependentSignal(s))
+    : signalArrays.flat()
 
   // 2b) Cross-activation post-pass — 사주 × 점성 동시 활성 페어 (A등급 매핑) 합성.
   //     표준 extractor 와 달리 *다른 추출기들의 결과* 를 입력으로 받기 때문에
@@ -90,6 +95,35 @@ export async function buildCalendar(
 
   // 3) 시점별 그룹핑 + derivers
   return groupIntoCells(allSignals, range, options)
+}
+
+/**
+ * ASC·MC·하우스에 기대는 점성 신호 kind — 하우스 통과·앵글 접촉·프로펙션(ASC 기준
+ * whole-sign)·ZR(행운점·정신점 = ASC 기반 lot)·아라비안 lot.
+ */
+const PLACE_DEPENDENT_KINDS: ReadonlySet<string> = new Set([
+  'house-transit',
+  'angle-contact',
+  'profection',
+  'zodiacal-releasing',
+  'arabic-part',
+])
+/** 출생 시각·장소로 정해지는 앵글 — 트랜짓·월교점·진행·일식의 대상이면 그 신호도 뺀다. */
+const ANGLE_POINTS: ReadonlySet<string> = new Set([
+  'Ascendant',
+  'ASC',
+  'MC',
+  'Midheaven',
+  'Descendant',
+  'DSC',
+  'IC',
+])
+
+/** placeUnreliable(출생시각/출생지 미상) 일 때 버릴 신호인가. */
+export function isPlaceDependentSignal(s: ActiveSignal): boolean {
+  if (s.source !== 'astro') return false
+  if (PLACE_DEPENDENT_KINDS.has(s.kind)) return true
+  return (s.evidence?.planets ?? []).some((p) => ANGLE_POINTS.has(p))
 }
 
 /**

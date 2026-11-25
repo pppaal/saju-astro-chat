@@ -12,12 +12,14 @@ describe('parseBirthOverride — 쿼리파라미터 → 생일 override (로그�
     expect(parseBirthOverride({ date: 'nope' })).toBeNull()
   })
 
-  it('date 만 있으면 나머지는 안전 기본값(정오·서울·남) + 시간 미상 플래그', () => {
+  it('date 만 있으면 나머지는 안전 기본값(정오·서울·남) + 시간·출생지 미상 플래그', () => {
     const o = parseBirthOverride({ date: '1995-02-09' })
     expect(o).toEqual({
       birthDate: '1995-02-09',
       birthTime: '12:00',
       timeUnknown: true,
+      // 좌표가 없으면 서울 기본값 — 캘린더가 ASC·하우스 의존 신호를 막도록 표시(E7).
+      cityUnknown: true,
       gender: 'male',
       latitude: 37.5665,
       longitude: 126.978,
@@ -66,13 +68,15 @@ describe('parseBirthOverride — 쿼리파라미터 → 생일 override (로그�
       timeZone: 'America/New_York',
       name: 'Sam',
       place: 'New York',
+      cityUnknown: false,
     })
   })
 
-  it('숫자가 깨진 좌표는 서울 기본으로 폴백', () => {
+  it('숫자가 깨진 좌표는 서울 기본으로 폴백 + 출생지 미상', () => {
     const o = parseBirthOverride({ date: '2000-01-01', lat: 'abc', lng: '' })
     expect(o?.latitude).toBe(37.5665)
     expect(o?.longitude).toBe(126.978)
+    expect(o?.cityUnknown).toBe(true)
   })
 
   it('배열 파라미터(중복 쿼리)는 첫 값을 쓴다', () => {

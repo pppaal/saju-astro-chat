@@ -81,7 +81,9 @@ const sajuPatternExtractor: SignalExtractor = {
     }
 
     // ─── 패턴 매칭 (재성격·인수격·삼합격…) ───
-    const matches = matchAllPatterns(natal.saju.pillars)
+    // 패턴표는 4주 구조(시주 포함)라, 출생시각 미상이면 판정하지 않는다(CONVENTIONS §5).
+    const P = natal.saju.pillars
+    const matches = P.time ? matchAllPatterns({ ...P, time: P.time }) : []
     // 격국은 명리상 主格 1개가 원칙. matchAllPatterns는 matchScore >= 50인
     // 모든 패턴을 emit해 한 사주에 4개(삼합격·재성격·중화격·인수격) 동시 발화 가능.
     // 그 4개가 모두 lifetime decadal layer로 매일 +impact를 주면 사용자 점수

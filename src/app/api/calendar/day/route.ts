@@ -68,6 +68,9 @@ export const GET = withApiMiddleware(
         latitude: override.latitude,
         longitude: override.longitude,
         timeZone: override.timeZone,
+        // 시간·출생지 미상 — 삼주 판정 + ASC·MC·하우스 신호 제외(같은 birthKey 로 월 캐시 공유).
+        birthTimeUnknown: override.timeUnknown,
+        birthCityUnknown: override.cityUnknown,
       }
     } else {
       const resolved = await loadSessionBirth()

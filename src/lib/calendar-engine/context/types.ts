@@ -9,7 +9,14 @@ import type { ZRPeriod, ZRStartLot } from '@/lib/astrology/foundation/zodiacalRe
 import type { DignityTiers } from '@/lib/astrology/foundation/dignities'
 import type { ArabicLot } from '@/lib/astrology/foundation/arabicParts'
 import type { AlmutenFigurisResult } from '@/lib/astrology/foundation/almutenFiguris'
-import type { SajuPillars, FiveElement, ShinsalHit, RelationHit, DayMaster } from '@/lib/saju/types'
+import type {
+  SajuPillars,
+  FiveElement,
+  ShinsalHit,
+  RelationHit,
+  DayMaster,
+  MaybeTimeless,
+} from '@/lib/saju/types'
 import type { AnalysesResult } from '@/lib/saju/analyses'
 
 /**
@@ -89,7 +96,13 @@ export interface NatalContext {
 }
 
 export interface NatalSajuContext {
-  pillars: SajuPillars
+  /**
+   * 본명 기둥. 출생시각 미상이면 time 이 없다(삼주, CONVENTIONS §5) — 시주 의존
+   * 추출기는 time 이 없으면 그 기둥을 건너뛴다. 정오 앵커 시주는 싣지 않는다.
+   */
+  pillars: MaybeTimeless<SajuPillars>
+  /** 출생시각 미상(삼주 분석) — 강약·용신·격국·신살·관계·오행 모두 년·월·일 기준. */
+  timeUnknown?: boolean
   dayMaster: DayMaster
   yongsin: {
     primary: FiveElement
@@ -108,7 +121,7 @@ export interface NatalSajuContext {
     branch: string
   }>
   /**
-   * 오행 분포 — 사주 8글자가 가진 wood/fire/earth/metal/water 개수.
+   * 오행 분포 — 사주 8글자(시간 미상이면 6글자)가 가진 wood/fire/earth/metal/water 개수.
    * 운명/궁합 차트의 ElementRadar + PersonaCard 부족 오행 진단의 source.
    * 사주 raw에서 그대로 (별도 계산 X) — buildNatalContext가 sajuResult.fiveElements 직패스.
    */

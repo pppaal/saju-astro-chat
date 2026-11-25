@@ -123,8 +123,15 @@ const sajuHyeongchungExtractor: SignalExtractor = {
       { kind: 'year', stem: p.year.heavenlyStem.name, branch: p.year.earthlyBranch.name },
       { kind: 'month', stem: p.month.heavenlyStem.name, branch: p.month.earthlyBranch.name },
       { kind: 'day', stem: p.day.heavenlyStem.name, branch: p.day.earthlyBranch.name },
-      { kind: 'time', stem: p.time.heavenlyStem.name, branch: p.time.earthlyBranch.name },
     ]
+    // 출생시각 미상이면 시주가 없다(삼주, CONVENTIONS §5) — 시주와의 형충회합은 만들지 않는다.
+    if (p.time) {
+      natalPillars.push({
+        kind: 'time',
+        stem: p.time.heavenlyStem.name,
+        branch: p.time.earthlyBranch.name,
+      })
+    }
 
     const signals: ActiveSignal[] = []
     const start = new Date(range.start)
