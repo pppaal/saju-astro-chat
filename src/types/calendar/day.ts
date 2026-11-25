@@ -22,6 +22,7 @@ import type {
 import type { GeokgukStatus, GeokgukStatusResult } from '@/lib/saju/geokguk'
 import type { DayVerdict } from '@/lib/calendar-engine/derivers/reconcile'
 import type { EvidenceRung } from '@/lib/calendar-engine/derivers/evidenceLadder'
+import type { DestinyCalendarCell } from './month'
 
 // ============================================================================
 // 지장간 (Jijanggan) — 본명 일주(=일지) 의 정기·중기·여기 분해.
@@ -199,6 +200,13 @@ export interface DestinyDay extends DestinyIljinHeader {
   appliedPatterns: DestinyAppliedPattern[]
   /** Cross activation (응용 격국과 별개 — 사주·점성 페어). */
   crossActivations: DestinyCrossActivation[]
+  /**
+   * 그날 '왜 이런 날' 근거 — 월 리드아웃(month.calendar[].reason)과 *같은 함수·같은
+   * 월 셀*(crossPair.pickDayReason)에서 고른다. 그리드 마크 부호 게이트를 통과한
+   * 교차만(good·best=+, caution·avoid=−). 통과하는 교차가 없으면 생략.
+   * DayTier 의 맨 위 교차가 이것을 먼저 보여줘 월·일 화면이 같은 근거를 말한다.
+   */
+  reason?: DestinyCalendarCell['reason']
   /** 본명 4기둥(천간) × 일진 지지 12운성 (기둥별 실제값). */
   twelveStageMatrix: Array<{ pillar: string; stem: string; branch: string; stage: string }>
 

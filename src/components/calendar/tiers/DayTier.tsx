@@ -332,10 +332,37 @@ export function DayTier({ day, onRise, sex = '남', isToday = true }: DayTierPro
   // 인라인 마커("↑ 이달 · " / "↓ 오늘 · ")를 걷어내 쉬운말만 남긴다.
   const stripMarker = (s: string) => s.replace(/^[↑↓▲▼]\s*[^·]*·\s*/, '').trim()
 
-  // ── 가장 센 교차(절댓값) — 지금 일어나는 일에 한 줄 합류. ──
-  const crossSorted = [...(day.crossActivations ?? [])].sort(
+  // ── 맨 위 교차 — 그날 '왜' 근거(day.reason)가 있으면 *그 근거 자체* 를 맨 앞에.
+  //    월 리드아웃(cell.reason)과 같은 함수(pickDayReason)·같은 월 셀에서 골라, 월에서
+  //    본 "왜 이런 날일까요"와 일 화면 첫 교차가 같은 사실을 말한다(계획 B1 #4). 같은
+  //    페어의 다른 층 행(부호가 다를 수 있음)은 빼서 한 페어가 두 번·반대 부호로 뜨지
+  //    않게 한다. 근거가 없으면(마크와 부호가 맞는 교차 없음) 종전대로 |polarity| 순.
+  //    이 맨 위 행이 지금 일어나는 일 한 줄(strongestCross)·교차 카드 머리에 쓰인다.
+  type DayCross = DestinyDay['crossActivations'][number]
+  const crossByAbs = [...(day.crossActivations ?? [])].sort(
     (a, b) => Math.abs(b.polarity) - Math.abs(a.polarity)
   )
+  const reason = day.reason
+  const samePair = (c: DayCross) =>
+    !!reason &&
+    (c.sajuKo ?? c.sajuSide) === reason.saju &&
+    (c.astroKo ?? c.astroSide) === reason.astro
+  const reasonRow: DayCross | null = reason
+    ? {
+        id: `reason:${reason.saju}|${reason.astro}`,
+        sajuSide: ko ? reason.saju : reason.sajuEn,
+        astroSide: ko ? reason.astro : reason.astroEn,
+        sajuKo: reason.saju,
+        astroKo: reason.astro,
+        meaning: reason.meaning,
+        meaningEn: reason.meaningEn,
+        polarity: reason.polarity as Polarity,
+        weight: crossByAbs.find(samePair)?.weight ?? 0,
+      }
+    : null
+  const crossSorted = reasonRow
+    ? [reasonRow, ...crossByAbs.filter((c) => !samePair(c))]
+    : crossByAbs
   const strongestCross = crossSorted.find((c) => (ko ? c.meaning : (c.meaningEn ?? c.meaning)))
   const strongestCrossMeaning = strongestCross
     ? ko
@@ -472,6 +499,9 @@ export function DayTier({ day, onRise, sex = '남', isToday = true }: DayTierPro
   // ── 교차 카드 (▲/▼, cap 4, 절댓값 정렬). ──
   const crossCards = crossSorted.slice(0, 4)
   const heroCross = crossCards[0]
+  // 머리 카드가 '왜' 근거면 '가장 센' 대신 근거 표지 — 근거는 그날 고유 층 우선이라
+  // |polarity| 최대가 아닐 수 있다(거짓 '가장 센' 금지).
+  const heroIsReason = reasonRow != null && heroCross === reasonRow
 
   // ── 깊이 읽기 (fold 안). ──
   const peakHourSrc = [...(day.hourCrossings ?? [])].sort(
@@ -1091,7 +1121,10 @@ export function DayTier({ day, onRise, sex = '남', isToday = true }: DayTierPro
                   <span className={styles.clDn}>▼ {ko ? '부딪히는 흐름' : 'Clashing flow'}</span>
                 </div>
                 {crossCards.map((c, i) => {
-                  const isHero = heroCross != null && c === heroCross && Math.abs(c.polarity) >= 2
+                  const isHero =
+                    heroCross != null &&
+                    c === heroCross &&
+                    (heroIsReason || Math.abs(c.polarity) >= 2)
                   const poleSym = c.polarity > 0 ? '▲' : c.polarity < 0 ? '▼' : '·'
                   const poleCls =
                     c.polarity > 0 ? styles.poleUp : c.polarity < 0 ? styles.poleDn : ''
@@ -1130,7 +1163,13 @@ export function DayTier({ day, onRise, sex = '남', isToday = true }: DayTierPro
                         </span>
                         {isHero && (
                           <span className={styles.crossFlag}>
-                            {ko ? '가장 센 흐름' : 'Strongest'}
+                            {heroIsReason
+                              ? ko
+                                ? '왜 이런 날'
+                                : 'Why this day'
+                              : ko
+                                ? '가장 센 흐름'
+                                : 'Strongest'}
                           </span>
                         )}
                       </div>

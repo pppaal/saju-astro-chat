@@ -77,6 +77,86 @@ describe('DayTier (오늘의 일진 · LIGHT)', () => {
     expect(container.textContent).toContain('경쟁과 충동의 결이 두 배로')
   })
 
+  it("맨 위 교차는 day.reason — 월 리드아웃 '왜'와 같은 근거, 같은 페어의 반대 부호 행은 빠진다 (계획 B1 #4)", () => {
+    const d = {
+      ...day,
+      topReasons: [],
+      topReasonsEn: [],
+      cautions: [],
+      cautionsEn: [],
+      crossActivations: [
+        {
+          id: 'big',
+          sajuSide: '겁재',
+          astroSide: '화성',
+          sajuKo: '겁재',
+          astroKo: '화성',
+          meaning: '경쟁과 충동의 결이 두 배로 강해져요.',
+          meaningEn: 'Rivalry and impulse double up.',
+          polarity: -3,
+          weight: 0.9,
+          layer: 'monthly',
+        },
+        {
+          id: 'same-pair-opposite',
+          sajuSide: '식신',
+          astroSide: '금성',
+          sajuKo: '식신',
+          astroKo: '금성',
+          meaning: '같은 페어 반대 부호 행',
+          meaningEn: 'same pair, opposite sign',
+          polarity: -2,
+          weight: 0.8,
+          layer: 'monthly',
+        },
+      ],
+      reason: {
+        saju: '식신',
+        sajuEn: 'Eating God',
+        astro: '금성',
+        astroEn: 'Venus',
+        meaning: '즐기며 만드는 일에 손이 잘 붙는 날이에요.',
+        meaningEn: 'Making things you enjoy comes easily today.',
+        polarity: 1,
+      },
+    } as DestinyDay
+    const { container } = render(<DayTier day={d} onRise={noop} sex="남" />)
+    const cards = [...container.querySelectorAll('[class*="crossTop"]')]
+    expect(cards.length).toBe(2)
+    // 머리 카드 = 근거(식신 × 금성 ▲) + '왜 이런 날' 표지 — |polarity| 최대(겁재 −3)가 아님.
+    expect(cards[0].textContent).toContain('식신')
+    expect(cards[0].textContent).toContain('▲')
+    expect(cards[0].textContent).toContain('왜 이런 날')
+    expect(container.textContent).not.toContain('같은 페어 반대 부호 행')
+    // 지금 일어나는 일 한 줄도 근거(+)에서 — 받쳐주는 흐름으로.
+    expect(container.textContent).toContain('즐기며 만드는 일에 손이 잘 붙는')
+  })
+
+  it('day.reason 이 없으면 종전대로 |polarity| 최대가 머리, 강하면 "가장 센 흐름"', () => {
+    const d = {
+      ...day,
+      crossActivations: [
+        {
+          id: 'big',
+          sajuSide: '겁재',
+          astroSide: '화성',
+          sajuKo: '겁재',
+          astroKo: '화성',
+          meaning: '경쟁과 충동의 결이 두 배로 강해져요.',
+          meaningEn: 'Rivalry and impulse double up.',
+          polarity: -3,
+          weight: 0.9,
+          layer: 'daily',
+        },
+      ],
+      reason: undefined,
+    } as DestinyDay
+    const { container } = render(<DayTier day={d} onRise={noop} sex="남" />)
+    const cards = [...container.querySelectorAll('[class*="crossTop"]')]
+    expect(cards[0].textContent).toContain('겁재')
+    expect(cards[0].textContent).toContain('가장 센 흐름')
+  })
+
   it('fires onRise from the top zoom-out button', () => {
     const onRise = vi.fn()
     const { getAllByRole } = render(<DayTier day={day} onRise={onRise} sex="남" />)

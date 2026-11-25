@@ -322,3 +322,38 @@ describe('assembleTiers — 월 리드아웃 ↔ 일 티어 문장 통일', () =
     }
   })
 })
+
+// ── 계획 B1 (엔진 E10) ────────────────────────────────────────────────────────
+// 월 화면 assemble-layer: 그리드 마크 부호와 맞는 '왜'(#4).
+
+const pad2 = (n: number) => String(n).padStart(2, '0')
+
+function monthInput(month: number, day: number, overrides: Partial<AssembleTiersInput> = {}) {
+  return baseInput({
+    targetMonth: month,
+    targetDay: day,
+    targetDayIso: `${TARGET_YEAR}-${pad2(month)}-${pad2(day)}`,
+    ...overrides,
+  })
+}
+
+describe("assembleTiers — '왜' 부호 게이트 (계획 B1 #4)", () => {
+  it('caution·avoid 셀의 근거는 없거나 −, good·best 셀은 없거나 +', async () => {
+    let reasons = 0
+    for (const m of [3, 6, 11]) {
+      const out = await assembleTiers(monthInput(m, 15))
+      for (const c of out.month.calendar) {
+        if (!c.reason) continue
+        reasons++
+        expect(c.reason.polarity, `${m}/${c.d}`).not.toBe(0)
+        if (c.mark === 'caution' || c.mark === 'avoid') {
+          expect(c.reason.polarity, `${m}/${c.d} ${c.mark}`).toBeLessThan(0)
+        }
+        if (c.mark === 'good' || c.mark === 'best') {
+          expect(c.reason.polarity, `${m}/${c.d} ${c.mark}`).toBeGreaterThan(0)
+        }
+      }
+    }
+    expect(reasons).toBeGreaterThan(0)
+  }, 60000)
+})

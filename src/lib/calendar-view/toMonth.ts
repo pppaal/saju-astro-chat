@@ -78,6 +78,21 @@ export interface ToMonthOptions {
 }
 
 /**
+ * 점수 → 그리드 밴드 마크(best 크라운 전). toMonth 의 셀 색과, 같은 날의 '왜' 부호
+ * 게이트(assembleDayTier → pickDayReason)가 한 규칙을 읽게 하는 단일 소스.
+ * avoid <30 / caution 30~39 / 무색 40~59 / good ≥60 (CALENDAR_BANDS).
+ */
+export function bandMarkForScore(
+  score: number,
+  th: { avoid: number; caution: number; good: number } = CALENDAR_BANDS
+): 'avoid' | 'caution' | 'good' | null {
+  if (score < th.avoid) return 'avoid'
+  if (score < th.caution) return 'caution'
+  if (score >= th.good) return 'good'
+  return null
+}
+
+/**
  * CalendarCell[] → destinypal month + calendar[30].
  *
  * scoring:
@@ -120,17 +135,10 @@ export function toMonth(opts: ToMonthOptions): {
     // 마크는 일 카드 다이얼과 *같은 band(60/35)* 로 — tier 간 길/주의 표시가
     // 어긋나지 않게(예: favorScore 62 → 일 카드 '순풍'인데 월 grade2 라 무표시이던
     // 불일치 제거). low 밴드(<35) 안에서만 지키미(<22)/주의(22~35)로 깊이 구분.
-    let mark: DestinypalCalendarDay['mark'] = null
-    if (score < th.avoid) {
-      mark = 'avoid'
-      avoidDays.push(ds)
-    } else if (score < th.caution) {
-      mark = 'caution'
-      cautionDays.push(ds)
-    } else if (score >= th.good) {
-      mark = 'good'
-      goodDays.push(ds)
-    }
+    const mark: DestinypalCalendarDay['mark'] = bandMarkForScore(score, th)
+    if (mark === 'avoid') avoidDays.push(ds)
+    else if (mark === 'caution') cautionDays.push(ds)
+    else if (mark === 'good') goodDays.push(ds)
     if (score > bestScore) {
       bestScore = score
       bestDay = d

@@ -25,11 +25,11 @@ import { computeDayPillarIndices } from '@/lib/saju/dayPillar'
 import { STEM_NAMES, BRANCH_NAMES } from '@/lib/saju/constants'
 import { SIBSIN_EN } from '@/lib/saju/sibsinLabels'
 import { currentManAge } from '@/lib/datetime/currentAge'
-import { toUser, toDay } from '@/lib/calendar-view'
+import { toUser, toDay, bandMarkForScore } from '@/lib/calendar-view'
 import { reconcileCellOneLine, signalCat } from '@/lib/calendar-view/toDay'
 import { buildHourCrossings } from '@/lib/calendar-view/toHourCrossings'
 import { buildHourMoon } from '@/lib/calendar-view/toHourMoon'
-import { crossKeys, stripCrossPair, PLANET_EN_FROM_KO } from './crossPair'
+import { crossKeys, stripCrossPair, PLANET_EN_FROM_KO, pickDayReason } from './crossPair'
 
 import type { NatalContext } from '@/lib/calendar-engine/context/types'
 import type { CalendarCell } from '@/lib/calendar-engine/types'
@@ -253,6 +253,16 @@ export async function assembleDayTier(input: AssembleDayTierInput): Promise<Dest
     (a, b) => Math.abs(b.polarity) - Math.abs(a.polarity)
   )
 
+  // ── 그날 '왜' 근거 — 월 리드아웃(assembleTiers cell.reason)과 같은 함수·같은 월 셀.
+  //    부호 게이트의 마크는 월 그리드와 같은 점수(layered.daily)·같은 밴드 규칙
+  //    (bandMarkForScore)에서 — best 크라운은 good 과 같은 부호라 구분할 필요가 없다.
+  //    점수가 없으면(월 셀 없음) 무색 → 어느 부호든.
+  const reasonScore = layered.daily.get(targetDayIso)?.score
+  const dayReason = pickDayReason(
+    crossSourceCell,
+    reasonScore != null ? bandMarkForScore(reasonScore) : null
+  )
+
   // ── 타이밍 컨텍스트 (이달 흐름 추이 + 다가오는 7일) ──
   // 이달 일별 점수(추이선) — monthCells 순서대로, layered.daily 의 정규화 점수.
   const dayMonthScores = monthCells.map((c) => {
@@ -318,6 +328,7 @@ export async function assembleDayTier(input: AssembleDayTierInput): Promise<Dest
     },
     appliedPatterns: dayAppliedPatterns,
     crossActivations: dayCrossActivations,
+    ...(dayReason ? { reason: dayReason } : {}),
     shinsalActive: dayAdapter.shinsalActive,
     narrative: dayAdapter.narrative,
     topReasons: dayAdapter.topReasons,
@@ -355,6 +366,7 @@ export async function assembleDayTier(input: AssembleDayTierInput): Promise<Dest
     const rows = (xs: unknown): Array<Record<string, unknown>> =>
       (xs as Array<Record<string, unknown>>) ?? []
     for (const c of rows(day.crossActivations)) sanitizeCrossEntry(c, 'meaning', 'meaningEn')
+    if (day.reason) sanitizeCrossEntry(day.reason, 'meaning', 'meaningEn')
     for (const h of rows(day.hourCrossings)) {
       if (typeof h.narrative === 'string') h.narrative = minorSafeText(h.narrative, 'ko')
       if (typeof h.narrativeEn === 'string') h.narrativeEn = minorSafeText(h.narrativeEn, 'en')

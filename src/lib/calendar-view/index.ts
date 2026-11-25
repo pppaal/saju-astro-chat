@@ -22,7 +22,7 @@ export type { DestinypalDaewoonEntry, ToDaewoonOptions } from './toDaewoon'
 
 export type { DestinypalMilestone } from './toMilestones'
 
-export { toMonth } from './toMonth'
+export { toMonth, bandMarkForScore } from './toMonth'
 export type {
   DestinypalMonth,
   DestinypalMonthNarrativeItem,

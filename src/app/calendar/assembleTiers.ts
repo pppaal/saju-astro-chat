@@ -28,16 +28,11 @@ import { reconcileCellOneLine } from '@/lib/calendar-view/toDay'
 import { SIBSIN_EN } from '@/lib/saju/sibsinLabels'
 import { translateSignalLabel } from '@/lib/calendar-engine/derivers/signalI18n'
 import { assembleDayTier } from './assembleDayTier'
-import { crossKeys, stripCrossPair, PLANET_EN_FROM_KO } from './crossPair'
+import { crossKeys, stripCrossPair, PLANET_EN_FROM_KO, pickDayReason } from './crossPair'
 
 import type { NatalContext } from '@/lib/calendar-engine/context/types'
 import type { CalendarCell } from '@/lib/calendar-engine/types'
-import type {
-  DestinyUserSummary,
-  DestinyMonth,
-  DestinyCalendarCell,
-  DestinyDay,
-} from '@/types/calendar'
+import type { DestinyUserSummary, DestinyMonth, DestinyDay } from '@/types/calendar'
 
 export interface AssembleTiersInput {
   natal: NatalContext
@@ -260,49 +255,15 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
     .sort((a, b) => Math.abs(b.polarity) - Math.abs(a.polarity))
     .slice(0, 6)
 
-  // ── 날짜별 "근거" — 그날 가장 센 사주×점성 교차의 *쉬운 뜻* 을 각 calendar 셀에.
-  //    선택일 리드아웃이 topReasons(전문용어) 대신 이 plain meaning 을 쓴다.
-  //    교차 meaning(s.korean)은 이미 novice용 plain 문장이라 용어 누수가 없다.
-  //
-  //    *그날 고유*(daily/hourly/instant 층) 교차를 우선한다 — monthly 층 교차는 그 달
-  //    내내 모든 날 셀에 똑같이 깔려, 그게 제일 세면 매일 같은 근거가 떠 "월 전체
-  //    근거처럼" 보였다(감사). 같은 날짜 안에서 day-specific 이 month-background 를
-  //    항상 이기게 rank 에 큰 가산점을 주고, day-specific 이 없을 때만 background 로.
-  const DAY_LAYERS = new Set(['daily', 'hourly', 'instant'])
-  type DReason = NonNullable<DestinyCalendarCell['reason']>
-  const reasonByDs = new Map<string, DReason>()
-  for (const c of monthCells) {
-    const ds = c.datetime.slice(5, 10) // 'MM-DD'
-    let best: DReason | null = null
-    let bestRank = -1
-    for (const s of c.signals) {
-      if (s.kind !== 'cross-activation') continue
-      // 부호 충돌로 톤이 무력화된(polarity 0) 교차는 근거 슬롯에서 제외 — 층 가산점
-      // (+1000) 때문에 유의미한 길/흉 교차를 밀어내고 "왜 이런 날"에 중립 문구가
-      // 뜨던 문제(감사 #9). 그날 남는 교차가 없으면 근거 없이 두는 게 정직하다.
-      if (s.polarity === 0) continue
-      const { sajuKo, astroKo } = crossKeys(s)
-      if (!sajuKo || !astroKo) continue
-      const meaning = stripCrossPair(s.korean ?? '')
-      if (!meaning) continue
-      const impact = Math.abs(s.polarity) * (s.weight ?? 1)
-      const rank = (DAY_LAYERS.has(s.layer) ? 1000 : 0) + impact
-      if (rank <= bestRank) continue
-      bestRank = rank
-      best = {
-        saju: sajuKo,
-        sajuEn: SIBSIN_EN[sajuKo] ?? translateSignalLabel(sajuKo, 'en'),
-        astro: astroKo,
-        astroEn: PLANET_EN_FROM_KO[astroKo] ?? astroKo,
-        meaning,
-        meaningEn: stripCrossPair(s.english ?? ''),
-        polarity: s.polarity,
-      }
-    }
-    if (best) reasonByDs.set(ds, best)
-  }
+  // ── 날짜별 "근거"(왜 이런 날일까요) — 그날 가장 센 사주×점성 교차의 *쉬운 뜻* 을
+  //    각 calendar 셀에. 선택일 리드아웃이 topReasons(전문용어) 대신 이 plain meaning
+  //    을 쓴다. 고르는 규칙(그날 고유 층 우선·polarity 0 제외·마크 부호 게이트)은
+  //    crossPair.pickDayReason 한 곳 — 일 티어(assembleDayTier)가 같은 날짜의 같은
+  //    월 셀로 같은 함수를 불러 day.reason 을 만든다(월·일 근거 일치, 엔진 감사 X1).
+  //    부호 게이트: good·best 는 +, caution·avoid 는 −, 무색은 어느 쪽이든(계획 B1 #4).
+  const monthCellByDs = new Map(monthCells.map((c) => [c.datetime.slice(5, 10), c]))
   for (const cell of month.calendar) {
-    const r = reasonByDs.get(cell.ds)
+    const r = pickDayReason(monthCellByDs.get(cell.ds), cell.mark)
     if (r) cell.reason = r
   }
 
@@ -441,10 +402,15 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
   // 미성년 안전(감사 C3) — cross/시간 서술의 성인 도메인(결혼·공직·투자·삼각관계
   // 등)을 연령 적합 표현으로 치환. 만 나이(위에서 산출한 manAge)로 게이트 — 연-차가
   // 아닌 생일 통과 반영(C7 off-by-one 회피). day 쪽은 assembleDayTier 가 자체 처리.
+  // 셀 '왜' 근거(cell.reason)도 교차 meaning 이라 같이 정화 — 일 티어 day.reason 과
+  // 같은 문장이어야 한다.
   if (isMinorAge(manAge)) {
     const rows = (xs: unknown): Array<Record<string, unknown>> =>
       (xs as Array<Record<string, unknown>>) ?? []
     for (const c of rows(month.crossActivations)) sanitizeCrossEntry(c, 'meaning', 'meaningEn')
+    for (const cell of month.calendar) {
+      if (cell.reason) sanitizeCrossEntry(cell.reason, 'meaning', 'meaningEn')
+    }
   }
 
   return {
