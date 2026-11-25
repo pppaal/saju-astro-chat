@@ -107,6 +107,18 @@ const sajuYear = birthDateTime.getTime() < ipchunUTC.getTime() ? year - 1 : year
 
 **기본값:** `CALCULATION_STANDARDS.saju.useSolarTermsForMonthlyCycles = true` ([`config/calculationStandards`](../config/calculationStandards.ts))
 
+### 3.1 캘린더 날짜의 세운·월운 — 절입일 규칙 (재감사 G2)
+
+출생 instant 가 아니라 _날짜_(캘린더 셀, 상담사의 '오늘')에 세운·월운을 붙일 때는 한 규칙이다.
+
+- **날짜 = 출생지 시간대의 민용 날짜.** 캘린더 셀이 그렇고(`loadTierData` 의 오늘 = `getNowInTimezone(출생 tz)`), 창은 그 현지 벽시계에 `Z` 를 붙인 떠 있는 ISO 다(§1 시진과 같은 틀).
+- **절입일 규칙 — 節/立春 이 든 그 현지 날이 새 기둥을 받는다.** 날짜 하나는 그날이 _끝날 때_ 걸린 세운·월운을 싣는다(오너 결정 17 기본값). 절입은 하나의 절대 instant(§15)이고, 그 순간을 셀 시간대의 민용 날짜로 읽은 날이 경계다.
+- 立春 은 寅월을 여는 節이라 **세운과 월운이 같은 날 함께 바뀐다** — 한 날짜에 세운이 둘이거나, 새 세운에 옛 丑월이 붙지 않는다.
+- 예: 立春 2026-02-03T20:01:54Z = 서울 02-04 05:02 → 서울 02-03 은 乙巳년 己丑월, 02-04 부터 丙午년 庚寅월. 같은 순간이 LA 로는 02-03 12:02 → LA 는 02-03 부터 丙午년. 小寒 2025-01-05T02:32Z = LA 01-04 18:32 → LA 01-04 부터 丁丑월. 立冬 2026-11-07 18:52 KST → 서울 11-01~06 은 戊戌월, 11-07 부터 己亥월.
+- **대운 창 = 만 나이 생일 경계**(§14): 대운 칸은 시작 나이 민용 생일에 열리고 다음 칸 생일 전날 닫힌다(평년의 2/29 생은 3/1). 1/1·2/4 고정 창은 쓰지 않는다. 첫 대운 전에는 창이 없다.
+
+**SSOT:** [`calendar-engine/periodPillars.ts`](../calendar-engine/periodPillars.ts) — `pillarsForLocalDate(y, m, d, tz)`(날짜 하나의 세운·월운), `monthWindows`·`yearWindows`(절기월·사주년 창), `daeunWindows`(대운 창, 목록이 범위 끝 만 나이를 못 덮으면 `daeunCellsToCover` 로 잇는다). 간지 산술은 [`datePillars.ts`](./datePillars.ts) `yearPillarOfSajuYear`·`monthPillarOfTerm`. 캘린더 사주 기간 추출기(saju-pillar·twelve-stage·jijanggan·yongsin·johu-yongsin·gongmang·tonggeun·applied-pattern)와 월 티어 머리말(`woolun`·`woolunSpans`)이 이것만 읽는다. 예전엔 다섯 추출기가 양력 달마다 15일의 절기월을 1일~말일에 도장했고(1일~절입 전날이 다음 달 월운), 세운·월운 창을 UTC 날짜로 잘라 서반구는 절입 다음 날까지 옛 달, 동반구는 立春 전날에 세운 둘이었으며, 용신·통근 대운은 1/1 에 바뀌었다(재감사 TP-2·TP-3·TP-7). 가드: [`tests/lib/calendar-engine/periodPillars.test.ts`](../../../tests/lib/calendar-engine/periodPillars.test.ts) (서울·LA·시드니·호놀룰루·오클랜드 × 2025–2030 모든 節).
+
 ---
 
 ## 4. 일주(日柱) 자정 — 출생지 timezone 의 민용일
@@ -433,4 +445,5 @@ isForward = (yearStem이 양 && male) || (yearStem이 음 && female)
 - 2026-11: OD-5 — 시간 미상은 삼주(년·월·일) 분석. 정오 앵커는 년·월·일주 고정용, 빈 시각도 정오로 앵커, 오행 위치 가중은 0.80 으로 재정규화, 캘린더 placeUnreliable 이면 ASC·MC·하우스 의존 신호 제외 (§5, 엔진 감사 E7).
 - 2026-11: 문서 동기화 (엔진 감사 E15 · F6 · SD-14 · F16) — §4 일주 = 출생지 민용일(‘KST 자정·선택적 경도 보정’ 삭제), §6 지장간 구성표(문서-코드 대조 테스트), §2·§3·§9 줄 번호 참조를 심볼 참조로, §1 캘린더 시진 `hourSegmentsForCivilDay`, §13 대운수 floor 근거, 해결된 TODO 2건 삭제.
 - 2026-11: 재감사 G1 — 현재 대운은 끝없는 순서열의 만 나이 칸, 목록은 만 나이를 덮도록 늘어남(§14, SP-1·SI-5). 시간 미상이면 어떤 시각 문자열이든 정오 앵커(§5, SP-2·SDR-08). 두 번째 강약 알고리즘 `tonggeun.analyzeStrength` 삭제(§10·§11, SDR-07).
+- 2026-11: 재감사 G2 — 캘린더 날짜의 세운·월운은 출생지 민용 날짜 + 절입일 규칙(절입이 든 현지 날이 새 기둥), 사주 기간 추출기·월 티어 머리말이 `periodPillars` 하나를 읽고, 대운 창은 만 나이 생일 경계(§3.1, TP-2·TP-3·TP-7).
 - 2026-11: 재감사 G4 — 천라지망 짝 규칙·캘린더 짝 완성 활성, 괴강 일주 학파, 현침 글자 모양 규칙, 상담사 신살 화이트리스트 = 엔진 이름(§8.1, SDR-03~06). 캘린더 삼합·방합은 국 완성만·두 지지는 왕지 반합만, 띠 표면 민속 예외, 암합 화기 파합자 대칭(§8.2, SDR-01·02). 십신 음양 필수(§7, TP-1).

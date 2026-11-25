@@ -94,8 +94,14 @@ export interface DestinyMonth {
   label: string
   /** 'YYYY-MM'. */
   ym: string
-  /** 월운 간지 — '甲午'. */
+  /** 월운 간지 — '甲午'. 이 양력 달에 *시작하는* 절기월(15일이 든 쪽, 그 달 대부분). */
   woolun: Ganji
+  /**
+   * 이 양력 달이 실제로 걸친 절기월(월운)과 날짜 범위(1-31) — 1일~절입 전날은 앞 절기월,
+   * 절입이 든 현지 날부터 다음 절기월(calendar-engine/periodPillars, 재감사 G2). 셀 신호와
+   * 같은 규칙이라 그리드 첫 주와 머리말이 엇갈리지 않는다.
+   */
+  woolunSpans?: Array<{ woolun: Ganji; fromDay: number; toDay: number }>
   /** 월운 천간 십신. */
   woolunSibsin?: SibsinKind | string
   /** 주의일 'MM-DD' 리스트. */

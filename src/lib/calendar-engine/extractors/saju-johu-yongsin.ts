@@ -1,7 +1,7 @@
 import { getJohuYongsin } from '@/lib/saju/johuYongsin'
 import { iga } from '@/lib/i18n/koParticle'
 import { STEMS, ELEMENT_KO_TO_EN } from '@/lib/saju/constants'
-import { getMonthPillarForDate } from '@/lib/saju/datePillars'
+import { calendarTimeZone, monthWindows } from '../periodPillars'
 import type { ActiveSignal, ExtractorContext, SignalExtractor, Polarity } from '../types'
 import type { FiveElement } from '@/lib/saju/types'
 
@@ -34,9 +34,9 @@ const BRANCH_PINYIN: Record<string, string> = {
  * 본명 일간 + 그 달의 月支(월지)로 결정 — "내 일간이 이 달에 어느 오행이
  * 가장 필요한지". 매달 月支가 바뀌면 조후용신이 달라짐.
  *
- * 매달 月運 진입 시 신호 emit:
+ * 매 절기월(月運) 진입 시 신호 emit:
  *  - 그 달 月支 변동 → 조후용신 재평가
- *  - 활성 시 그 달 내내 활성 (monthly layer)
+ *  - 활성 시 그 절기월 내내 활성 (monthly layer, periodPillars 절기월 창)
  */
 const sajuJohuYongsinExtractor: SignalExtractor = {
   source: 'saju',
@@ -47,64 +47,48 @@ const sajuJohuYongsinExtractor: SignalExtractor = {
     if (!daymaster) return []
 
     const signals: ActiveSignal[] = []
-    const start = new Date(range.start)
-    const end = new Date(range.end)
 
-    // 매달 月支별로 조후용신 계산
-    const cursor = new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth(), 1))
-    while (cursor <= end) {
-      // 월주는 *그 달 중순(15일)* 기준으로 — 1일은 절기 경계 직전이라 전월 월지(예:
-      // 6/1 은 망종 전이라 巳)가 잡혀, 헤더/월운(15일=午)과 엇갈렸다. 중순 기준 통일.
-      const midMonth = new Date(Date.UTC(cursor.getUTCFullYear(), cursor.getUTCMonth(), 15))
-      const monthPillar = getMonthPillarForDate(midMonth)
-      const monthBranch = monthPillar.branch
+    // 절기월마다 月支별로 조후용신 계산 — 창은 절입이 든 현지 날 ~ 다음 절입 전날
+    // (periodPillars, 재감사 G2). 예전엔 양력 달마다 15일의 월지를 1일~말일에 도장해
+    // 1일~절입 전날이 다음 달 조후를 달았다(TP-2).
+    for (const w of monthWindows(range, calendarTimeZone(natal))) {
+      const monthBranch = w.branch
       const info = getJohuYongsin(daymaster, monthBranch)
+      if (!info) continue
 
-      if (info) {
-        const yongsinStem = STEMS.find((s) => s.element === info.primaryYongsin)
-        // polarity — rating 1~5 따라 +1 ~ +3
-        // (조후가 급할수록 그 용신 활성이 더 큰 의미)
-        const polarity: Polarity =
-          info.rating >= 4 ? 3 : info.rating >= 3 ? 2 : info.rating >= 2 ? 1 : 0
-        if (polarity > 0) {
-          const monthStart = new Date(cursor).toISOString()
-          const monthEnd = new Date(
-            Date.UTC(cursor.getUTCFullYear(), cursor.getUTCMonth() + 1, 0, 23, 59, 59)
-          ).toISOString()
-          const monthPeak = new Date(
-            Date.UTC(cursor.getUTCFullYear(), cursor.getUTCMonth(), 15)
-          ).toISOString()
+      const yongsinStem = STEMS.find((s) => s.element === info.primaryYongsin)
+      // polarity — rating 1~5 따라 +1 ~ +3
+      // (조후가 급할수록 그 용신 활성이 더 큰 의미)
+      const polarity: Polarity =
+        info.rating >= 4 ? 3 : info.rating >= 3 ? 2 : info.rating >= 2 ? 1 : 0
+      if (polarity <= 0) continue
 
-          signals.push({
-            id: `saju.johu-yongsin.${cursor.getUTCFullYear()}-${cursor.getUTCMonth() + 1}.${info.primaryYongsin}`,
-            source: 'saju',
-            kind: 'pillar-sibsin',
-            name: `조후용신 ${info.primaryYongsin} 활성`,
-            korean: `${monthPillar.branch}月 조후 — ${info.primaryYongsin}${iga(info.primaryYongsin)} ${info.climate} 균형에 필요`,
-            english: `${BRANCH_PINYIN[monthPillar.branch] ?? monthPillar.branch}-month climate balance — ${ELEMENT_EN_JOHU[info.primaryYongsin] ?? info.primaryYongsin} is needed to temper the season`,
-            polarity,
-            layer: 'monthly',
-            active: { start: monthStart, peak: monthPeak, end: monthEnd },
-            weight: 0.65,
-            evidence: {
-              module: 'saju-johu-yongsin',
-              element: info.primaryYongsin as FiveElement,
-              detail: {
-                daymaster,
-                monthBranch,
-                climate: info.climate,
-                primaryYongsin: info.primaryYongsin,
-                secondaryYongsin: info.secondaryYongsin,
-                rating: info.rating,
-                reasoning: info.reasoning,
-                yongsinStem: yongsinStem?.name,
-              },
-            },
-          })
-        }
-      }
-
-      cursor.setUTCMonth(cursor.getUTCMonth() + 1)
+      signals.push({
+        id: `saju.johu-yongsin.${w.startDate}.${info.primaryYongsin}`,
+        source: 'saju',
+        kind: 'pillar-sibsin',
+        name: `조후용신 ${info.primaryYongsin} 활성`,
+        korean: `${monthBranch}月 조후 — ${info.primaryYongsin}${iga(info.primaryYongsin)} ${info.climate} 균형에 필요`,
+        english: `${BRANCH_PINYIN[monthBranch] ?? monthBranch}-month climate balance — ${ELEMENT_EN_JOHU[info.primaryYongsin] ?? info.primaryYongsin} is needed to temper the season`,
+        polarity,
+        layer: 'monthly',
+        active: { start: w.start, peak: w.peak, end: w.end },
+        weight: 0.65,
+        evidence: {
+          module: 'saju-johu-yongsin',
+          element: info.primaryYongsin as FiveElement,
+          detail: {
+            daymaster,
+            monthBranch,
+            climate: info.climate,
+            primaryYongsin: info.primaryYongsin,
+            secondaryYongsin: info.secondaryYongsin,
+            rating: info.rating,
+            reasoning: info.reasoning,
+            yongsinStem: yongsinStem?.name,
+          },
+        },
+      })
     }
 
     return signals

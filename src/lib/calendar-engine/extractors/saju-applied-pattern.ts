@@ -1,5 +1,10 @@
-import { STEMS, BRANCHES, JIJANGGAN, getSolarTermKST } from '@/lib/saju/constants'
-import { getYearPillarForDate, getMonthPillarForDate } from '@/lib/saju/datePillars'
+import { STEMS, JIJANGGAN } from '@/lib/saju/constants'
+import {
+  calendarTimeZone,
+  daeunWindows,
+  pillarsForLocalDateString,
+  type DaeunWindow,
+} from '../periodPillars'
 import { computeDayStem } from './saju-shinsal'
 import { getSibsinFromStemInfo as getSibsin } from './shared/sibsin'
 import type {
@@ -32,8 +37,8 @@ import type { FiveElement, SibsinKind, YinYang } from '@/lib/saju/types'
  *
  * 시기 십신 수집:
  *  - 대운 천간 5년 / 대운 지지(본기) 5년: 신강 발현의 거시 흐름
- *  - 세운 천간: 입춘 경계 (yearly)
- *  - 월운 천간: 절기 절입 (monthly — datePillars 가 처리)
+ *  - 세운 천간: 입춘 경계 (yearly — periodPillars 절입일 규칙)
+ *  - 월운 천간: 절기 절입 (monthly — periodPillars 절입일 규칙)
  *  - 일진 천간: 일주 (daily)
  *  → 정통 4축(年·月·日·時) 중 일진 천간을 ‘오늘’ 십신으로 잡고,
  *    그 위에 활성 대운/세운/월운 stem 십신을 슈퍼셋으로 둔다.
@@ -80,32 +85,29 @@ interface ActiveSibsinSnapshot {
 /**
  * 한 날짜의 활성 사주 십신 스냅샷.
  * "오늘 활성된 십신 집합" 으로 응용 패턴 트리거를 평가한다.
+ *
+ * dayIso 는 셀 날짜(출생지 시간대의 민용 날짜). 대운·세운·월운은 periodPillars 한 규칙
+ * (재감사 G2): 대운은 만 나이 생일 경계 창, 세운·월운은 그날이 끝날 때 걸린 기둥(절입이 든
+ * 현지 날이 새 기둥). 예전엔 00:00Z 순간의 기둥이라 서반구 절입 다음 날이 옛 달을 달았다.
  */
 function activeSibsinForDay(
   date: Date,
+  dayIso: string,
   dayMaster: StemInfo,
-  daeunList: Array<{ startYear: number; stem: string; branch: string }>,
-  bMonth: number,
-  bDate: number,
+  daeun: readonly DaeunWindow[],
+  timeZone: string,
   cache: Map<string, ActiveSibsinSnapshot>
 ): ActiveSibsinSnapshot {
-  // 월/일 단위 캐시 — 일진은 매일 다르지만 대운/세운/월운은 정적이라
-  // 셀 N 일 만큼 lookup 만 발생.
-  const key = `${date.getUTCFullYear()}-${date.getUTCMonth()}-${date.getUTCDate()}`
-  const cached = cache.get(key)
+  const cached = cache.get(dayIso)
   if (cached) return cached
 
   const snap: ActiveSibsinSnapshot = {}
 
   // ── 대운 (천간 5년 / 지지 5년) ──
-  const t = date.getTime()
-  for (const d of daeunList) {
-    const baseStart = Date.UTC(d.startYear, bMonth, bDate)
-    const midPoint = Date.UTC(d.startYear + 5, bMonth, bDate)
-    const endPoint = Date.UTC(d.startYear + 10, bMonth, bDate) - 1
-    if (t < baseStart || t > endPoint) continue
+  for (const d of daeun) {
+    if (dayIso < d.startDate || dayIso > d.endDate) continue
 
-    if (t < midPoint) {
+    if (dayIso < d.midDate) {
       // 천간 5년
       const stemInfo = STEMS.find((s) => s.name === d.stem)
       if (stemInfo) {
@@ -124,17 +126,17 @@ function activeSibsinForDay(
     break
   }
 
+  const period = pillarsForLocalDateString(dayIso, timeZone)
+
   // ── 세운 천간 ──
-  const yp = getYearPillarForDate(date)
-  const yStem = STEMS.find((s) => s.name === yp.stem)
+  const yStem = STEMS.find((s) => s.name === period.year.stem)
   if (yStem) {
     const sibsin = getSibsin(dayMaster, yStem as StemInfo)
     if (sibsin) snap.seunStem = sibsin
   }
 
   // ── 월운 천간 ──
-  const mp = getMonthPillarForDate(date)
-  const mStem = STEMS.find((s) => s.name === mp.stem)
+  const mStem = STEMS.find((s) => s.name === period.month.stem)
   if (mStem) {
     const sibsin = getSibsin(dayMaster, mStem as StemInfo)
     if (sibsin) snap.wolunStem = sibsin
@@ -150,7 +152,7 @@ function activeSibsinForDay(
     }
   }
 
-  cache.set(key, snap)
+  cache.set(dayIso, snap)
   return snap
 }
 
@@ -405,23 +407,18 @@ const sajuAppliedPatternExtractor: SignalExtractor = {
     }
     const strength = natal.saju.strength
 
-    const bMonth = natal.input.month - 1
-    const bDate = natal.input.date
+    const daeun = daeunWindows(natal, range)
+    const timeZone = calendarTimeZone(natal)
 
     const snapCache = new Map<string, ActiveSibsinSnapshot>()
     const start = new Date(range.start)
     const end = new Date(range.end)
 
-    // 입춘 보장 — 세운/datePillars 는 내부적으로 처리하지만 폴백 보호.
-    // (직접 사용은 안 하지만 import 일관성 유지)
-    void getSolarTermKST
-    void BRANCHES
-
     for (let t = start.getTime(); t <= end.getTime(); t += 86_400_000) {
       const date = new Date(t)
-      const snap = activeSibsinForDay(date, dayMaster, natal.saju.daeun, bMonth, bDate, snapCache)
-      const active = snapshotSet(snap)
       const dayIso = date.toISOString().slice(0, 10)
+      const snap = activeSibsinForDay(date, dayIso, dayMaster, daeun, timeZone, snapCache)
+      const active = snapshotSet(snap)
 
       for (const pat of APPLIED_PATTERNS) {
         const detail = pat.evaluate(count, strength, active, snap)

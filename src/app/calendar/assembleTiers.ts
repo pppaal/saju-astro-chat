@@ -20,10 +20,15 @@ import { reconcileMonthTone } from '@/lib/calendar-engine/derivers/reconcile'
 import { personSeed } from '@/lib/calendar-engine/derivers/personSeed'
 import { deriveLayeredScores } from '@/lib/calendar-engine/derivers/layeredScore'
 import { pickTryThis, toMMDD } from '@/lib/calendar-engine/derivers/tryThis'
-import { getMonthPillarForDate } from '@/lib/saju/datePillars'
+import {
+  calendarTimeZone,
+  monthWindows,
+  pillarsForLocalDate,
+} from '@/lib/calendar-engine/periodPillars'
 import { getSibsinKo } from '@/lib/saju/cycleRelations'
 
 import { toMonth } from '@/lib/calendar-view'
+import { toGanji } from '@/lib/calendar-view/shared'
 import { assembleUserSummary } from './assembleUser'
 import { reconcileCellOneLine } from '@/lib/calendar-view/toDay'
 import { SIBSIN_EN } from '@/lib/saju/sibsinLabels'
@@ -135,14 +140,25 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
   const monthPrefix = `${TARGET_YEAR}-${String(TARGET_MONTH).padStart(2, '0')}`
   const monthCells = cells.filter((c) => c.datetime.slice(0, 7) === monthPrefix)
 
-  // ─── woolun(월운) 60갑자 (KASI 절기 룩업) ─────────────────────────────────
-  // 월운 기준 인스턴트는 *UTC* 로 만든다. tz-less `new Date('YYYY-MM-15T00:00:00')`
-  // 는 서버 로컬로 해석돼 절입(節入) 근처에서 서버 시간대별로 60갑자가 갈렸다
-  // (Honolulu↔Seoul ~19h 차). 15일이라 실제 플립은 드물지만 결정성 위반이라 고정.
-  // (extractor 경로 saju-pillar.ts 는 이미 UTC — 이 표시 경로만 회귀였다.)
-  const woolunRef = getMonthPillarForDate(new Date(Date.UTC(TARGET_YEAR, TARGET_MONTH - 1, 15)))
+  // ─── woolun(월운) — 셀과 같은 규칙(periodPillars, 재감사 G2 · TP-2) ─────────
+  // 양력 한 달은 절기월 둘에 걸친다 — 1일~절입 전날은 앞 절기월, 절입이 든 현지 날부터
+  // 다음 절기월(절입일 규칙, 출생지 시간대 민용 날짜). 머리말 간지(woolun)는 이 달에 *시작
+  // 하는* 절기월(15일이 든 쪽, 그 달 대부분)이고, woolunSpans 가 실제로 걸친 절기월과 날짜
+  // 범위를 함께 싣는다 — 예전엔 15일의 월운 하나만 달아 첫 주 그리드(앞 절기월)와 머리말이
+  // 엇갈렸다. 근거 사다리(toMonth)도 15일 셀을 대표로 읽어 이 간지와 같다.
+  const tz = calendarTimeZone(natal)
+  const woolunRef = pillarsForLocalDate(TARGET_YEAR, TARGET_MONTH, 15, tz).month
   const woolunStem = woolunRef.stem
   const woolunBranch = woolunRef.branch
+  const monthLastDay = new Date(Date.UTC(TARGET_YEAR, TARGET_MONTH, 0)).getUTCDate()
+  const monthLastIso = `${monthPrefix}-${String(monthLastDay).padStart(2, '0')}`
+  const woolunSpans = monthWindows({ start: `${monthPrefix}-01`, end: monthLastIso }, tz).map(
+    (w) => ({
+      woolun: toGanji(w.stem, w.branch),
+      fromDay: w.startDate < `${monthPrefix}-01` ? 1 : Number(w.startDate.slice(8, 10)),
+      toDay: w.endDate > monthLastIso ? monthLastDay : Number(w.endDate.slice(8, 10)),
+    })
+  )
 
   // ─── adapter 호출 (월/일 tier prop 어셈블) ───────────────────────────────
   // user 매핑은 assembleUser.ts 로 분리 — /destiny(assembleLifetime)와 공유.
@@ -207,6 +223,7 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
     label: monthAdapter.label,
     ym: monthAdapter.ym,
     woolun: monthAdapter.woolun ?? { hanja: '—', kr: '—', en: '—' },
+    woolunSpans,
     woolunSibsin: woolunStemSibsin,
     woolunStemSibsin,
     cautionDays: monthAdapter.cautionDays,

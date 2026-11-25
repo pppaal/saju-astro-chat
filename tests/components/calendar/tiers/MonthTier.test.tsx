@@ -107,6 +107,34 @@ describe('MonthTier (이 달의 모양 · LIGHT)', () => {
       expect(screen.getByText('甲午')).toBeInTheDocument()
       expect(screen.getByText('갑오월')).toBeInTheDocument()
     })
+
+    // 재감사 G2 · TP-2 — 양력 한 달은 절기월 둘에 걸친다. 머리말 간지는 이 달에 시작하는
+    // 절기월이고, 첫 주(1일~절입 전날)가 앞 절기월이라는 걸 한 줄로 밝힌다.
+    const spans: DestinyMonth['woolunSpans'] = [
+      { woolun: makeGanji('癸巳', '계사', 'gyesa'), fromDay: 1, toDay: 5 },
+      { woolun: makeGanji('甲午', '갑오', 'gabo'), fromDay: 6, toDay: 30 },
+    ]
+    it('states which 節-months the Gregorian month spans (ko)', () => {
+      render(<MonthTier month={makeMonth({ woolunSpans: spans })} onDive={noop} onRise={noop} />)
+      expect(
+        screen.getByText('6월 1~5일은 아직 癸巳(계사)월이고, 6일부터 甲午(갑오)월이에요.')
+      ).toBeInTheDocument()
+    })
+
+    it('states which 節-months the Gregorian month spans (en)', () => {
+      mockLocale = 'en'
+      render(<MonthTier month={makeMonth({ woolunSpans: spans })} onDive={noop} onRise={noop} />)
+      expect(
+        screen.getByText(
+          'June 1–5 is still the 癸巳 (Gyesa) month; the 甲午 (Gabo) month starts on June 6.'
+        )
+      ).toBeInTheDocument()
+    })
+
+    it('omits the span line when no spans are given', () => {
+      render(<MonthTier month={makeMonth()} onDive={noop} onRise={noop} />)
+      expect(screen.queryByText(/아직 .*월이고/)).toBeNull()
+    })
   })
 
   describe('novice basic view (surfaced content)', () => {

@@ -71,6 +71,26 @@ function baseInput(overrides: Partial<AssembleTiersInput> = {}): AssembleTiersIn
   }
 }
 
+describe('assembleTiers — 월운 머리말 = 셀과 같은 절기월 (재감사 G2 · TP-2)', () => {
+  it('woolun 은 이 달에 시작하는 절기월, woolunSpans 는 실제로 걸친 두 절기월', async () => {
+    const out = await assembleTiers(baseInput())
+    // 망종 2024-06-05 13:10 KST → 서울 06-05 부터 庚午월, 06-01~04 는 己巳월.
+    expect(out.month.woolun.hanja).toBe('庚午')
+    expect(out.month.woolunSpans).toEqual([
+      { woolun: { hanja: '己巳', kr: '기사', en: 'gisa' }, fromDay: 1, toDay: 4 },
+      { woolun: { hanja: '庚午', kr: '경오', en: 'gyeongo' }, fromDay: 5, toDay: 30 },
+    ])
+    // 그리드 첫 주의 saju-pillar 월운이 머리말 범위와 같다.
+    const wolunOf = (iso: string) =>
+      cells
+        .find((c) => c.datetime.startsWith(iso))!
+        .signals.filter((s) => s.id.startsWith('saju.pillar-sibsin.wolun.'))
+        .map((s) => s.name.slice(0, 2))
+    expect(wolunOf('2024-06-04')).toEqual(['己巳'])
+    expect(wolunOf('2024-06-05')).toEqual(['庚午'])
+  })
+})
+
 describe('assembleTiers — fixture sanity', () => {
   it('builds a non-empty year of day cells', () => {
     expect(cells.length).toBeGreaterThan(300)

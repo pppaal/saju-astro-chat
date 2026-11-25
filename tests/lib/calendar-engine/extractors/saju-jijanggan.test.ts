@@ -243,9 +243,9 @@ describe('sajuJijangganExtractor — 대운 / 세운 layer', () => {
     expect(layers.has('daily')).toBe(true)
   })
 
-  it('월운 월주는 그 달 중순(15일) 절기 기준 — 1일(전월 절기달) 아님', () => {
-    // 2026-06: 1일은 망종 전이라 巳월, 15일은 午월. 한 달 내내 day-15 의 午 를
-    // 써야 한다(직전엔 day-1 의 巳 가 한 달 전체에 도장됐다).
+  it('월운은 절기월 창 — 망종(06-06) 전은 巳월, 그날부터 午월 (재감사 G2 · TP-2)', () => {
+    // 망종 2026-06-06 00:48 KST → 서울(기본 존) 06-06 부터 午월. 예전 15일 표본 규칙은
+    // 06-01~05 에도 午 를 도장해 saju-pillar 의 癸巳 월운과 엇갈렸다.
     const out = run(
       ctx({
         day: STD,
@@ -254,10 +254,13 @@ describe('sajuJijangganExtractor — 대운 / 세운 layer', () => {
       })
     )
     const monthly = out.filter((s) => s.layer === 'monthly')
-    expect(monthly.length).toBeGreaterThan(0)
-    // 월운 signal id 는 `...wolun.2026-6.<월지>...` — 午(중순) 이어야 하고 巳 아님.
-    expect(monthly.every((s) => s.id.includes('.午'))).toBe(true)
-    expect(monthly.some((s) => s.id.includes('wolun.2026-6.巳'))).toBe(false)
+    const si = monthly.filter((s) => s.id.startsWith('saju.jijanggan.wolun.2026-05-05.巳.'))
+    const o = monthly.filter((s) => s.id.startsWith('saju.jijanggan.wolun.2026-06-06.午.'))
+    expect(si.length).toBeGreaterThan(0)
+    expect(o.length).toBeGreaterThan(0)
+    expect(si.length + o.length).toBe(monthly.length)
+    for (const s of si) expect(s.active.end).toBe('2026-06-05T23:59:59.999Z')
+    for (const s of o) expect(s.active.start).toBe('2026-06-06T00:00:00.000Z')
   })
 })
 

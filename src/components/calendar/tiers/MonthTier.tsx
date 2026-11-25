@@ -12,7 +12,7 @@
      · 큰 날 리스트 · 한 줄 총평(verdict + term-tag) · 겹치는 흐름 카드.
 
    PRESENTATION ONLY — 엔진/derivers/스코어링 미변경. 살아있는 데이터만 사용:
-     month.{ym,label,woolun,calendar[].{d,ds,mark,focus},focusDay,
+     month.{ym,label,woolun,woolunSpans,calendar[].{d,ds,mark,focus},focusDay,
             goodDays,cautionDays,avoidDays,bestDay,keyDays,narrative,
             woolunSibsin,crossActivations,seed}
    ============================================================ */
@@ -211,6 +211,20 @@ export function MonthTier({ month, onDive, onRise, showRise = true, onSelectDay 
   // ── 간지(甲午) — 표면에 노출(시안 의도). ──
   const ganjiHanja = month.woolun?.hanja ?? ''
   const ganjiRead = ko ? (month.woolun?.kr ?? '') : (month.woolun?.en ?? month.woolun?.kr ?? '')
+
+  // ── 이 양력 달이 걸친 절기월 — 1일~절입 전날은 앞 절기월, 절입일부터 다음 절기월(재감사
+  //    G2). 머리말 간지는 이 달에 시작하는 쪽이라, 첫 주가 앞 달 월운이라는 걸 한 줄로 밝힌다. ──
+  const spans = month.woolunSpans ?? []
+  const capFirst = (x: string) => (x ? x[0].toUpperCase() + x.slice(1) : x)
+  const woolunSpanLine = (() => {
+    if (spans.length !== 2) return ''
+    const [a, b] = spans
+    const range = a.fromDay === a.toDay ? `${a.fromDay}` : `${a.fromDay}~${a.toDay}`
+    const rangeEn = a.fromDay === a.toDay ? `${a.fromDay}` : `${a.fromDay}–${a.toDay}`
+    return ko
+      ? `${ymM ?? ''}월 ${range}일은 아직 ${a.woolun.hanja}(${a.woolun.kr})월이고, ${b.fromDay}일부터 ${b.woolun.hanja}(${b.woolun.kr})월이에요.`
+      : `${monthEn} ${rangeEn} is still the ${a.woolun.hanja} (${capFirst(a.woolun.en)}) month; the ${b.woolun.hanja} (${capFirst(b.woolun.en)}) month starts on ${monthEn} ${b.fromDay}.`
+  })()
 
   // ── 월운 십신(raw) — verdict-sub term-tag 에 그대로. ──
   const woolunSibsinRaw = month.woolunSibsin ? String(month.woolunSibsin) : ''
@@ -586,6 +600,7 @@ export function MonthTier({ month, onDive, onRise, showRise = true, onSelectDay 
             </div>
           )}
         </header>
+        {woolunSpanLine && <p className={styles.foldLede}>{woolunSpanLine}</p>}
       </details>
 
       {/* ── 인터랙션 힌트 — 날짜가 눌러진다는 걸 모르는 초보용. 오늘은 이미

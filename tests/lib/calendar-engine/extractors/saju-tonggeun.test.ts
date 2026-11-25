@@ -25,6 +25,8 @@ function ctx(
   })()
   return {
     natal: {
+      // 대운 창은 민용 생일 경계(periodPillars.daeunWindows) — 출생 연·월·일이 필요하다.
+      input: { year: 2000, month: 1, date: 1 },
       saju: {
         pillars: { day: { heavenlyStem: { name: dayStem } } },
         strength,
@@ -148,24 +150,59 @@ describe('sajuTonggeunExtractor — 신호 구조 / range 필터', () => {
     }
     const c = {
       natal: {
+        input: { year: 1980, month: 6, date: 15 },
         saju: {
           pillars: { day: { heavenlyStem: { name: '甲' } } },
           strength: 'weak',
           daeun: [
-            { startAge: 0, startYear: 1900, stem: '壬', branch: '子' }, // 1900~1910 → range 밖
-            { startAge: 10, startYear: 2050, stem: '壬', branch: '子' }, // range 안
+            { startAge: 10, startYear: 1990, stem: '壬', branch: '子' }, // 1990-06-15~2000-06-14 → range 밖
+            { startAge: 20, startYear: 2000, stem: '癸', branch: '丑' }, // 2000-06-15~2010-06-14 → range 안
           ],
         },
       },
       range: {
-        start: '2049-01-01T00:00:00.000Z',
-        end: '2055-12-31T23:59:59.999Z',
+        start: '2001-01-01T00:00:00.000Z',
+        end: '2005-12-31T23:59:59.999Z',
         granularity: 'day',
       },
       cache,
     } as unknown as ExtractorContext
     const out = run(c)
     expect(out.length).toBe(1)
-    expect(out[0].id).toContain('2050')
+    expect(out[0].id).toContain('2000')
+  })
+
+  // 재감사 TP-7 — 대운은 1/1 이 아니라 만 나이 생일(민용)에 바뀐다(daeunAge SSOT).
+  it('대운 창은 시작 나이 생일에 열리고 다음 대운 생일 전날 닫힌다', () => {
+    const c = {
+      natal: {
+        input: { year: 1990, month: 10, date: 20 },
+        saju: {
+          pillars: { day: { heavenlyStem: { name: '甲' } } },
+          strength: 'weak',
+          daeun: [
+            { startAge: 26, startYear: 2016, stem: '己', branch: '丑' },
+            { startAge: 36, startYear: 2026, stem: '庚', branch: '寅' },
+          ],
+        },
+      },
+      range: {
+        start: '2026-05-01T00:00:00.000Z',
+        end: '2026-05-01T23:59:59.999Z',
+        granularity: 'day',
+      },
+      cache: { get: () => undefined, set: () => undefined },
+    } as unknown as ExtractorContext
+    const out = run(c)
+    // 2026-05-01 은 만 35세 — 己丑 대운만, 庚寅(2026-10-20~)은 아직.
+    expect(out.map((s) => s.id)).toEqual(['saju.tonggeun-shift.2016.己'])
+    expect(out[0].active.start).toBe('2016-10-20T00:00:00.000Z')
+    expect(out[0].active.end).toBe('2026-10-19T23:59:59.999Z')
+    const next = run({
+      ...c,
+      range: { ...c.range, start: '2026-10-20T00:00:00.000Z', end: '2026-10-20T23:59:59.999Z' },
+    } as ExtractorContext)
+    expect(next.map((s) => s.id)).toEqual(['saju.tonggeun-shift.2026.庚'])
+    expect(next[0].active.start).toBe('2026-10-20T00:00:00.000Z')
   })
 })

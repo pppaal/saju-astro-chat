@@ -1,4 +1,5 @@
 import { STEMS, FIVE_ELEMENT_RELATIONS } from '@/lib/saju/constants'
+import { daeunAnniversaryIso, daeunWindows } from '../periodPillars'
 import type { ActiveSignal, ExtractorContext, SignalExtractor, Polarity } from '../types'
 import type { FiveElement } from '@/lib/saju/types'
 
@@ -16,7 +17,8 @@ import type { FiveElement } from '@/lib/saju/types'
  * - 신약자 → 인성·비겁 대운 = 회복
  * - 신강자 → 식상·재성·관성 대운 = 균형
  *
- * 활성 윈도우: 대운 10년 전체. polarity는 본명 강약 vs 대운 오행으로 결정.
+ * 활성 윈도우: 대운 10년 전체(시작 나이 생일 ~ 다음 대운 생일 전날). polarity는 본명 강약 vs
+ * 대운 오행으로 결정.
  */
 
 const sajuTonggeunExtractor: SignalExtractor = {
@@ -30,10 +32,11 @@ const sajuTonggeunExtractor: SignalExtractor = {
     const strength = natal.saju.strength
 
     const signals: ActiveSignal[] = []
-    const rangeStart = new Date(range.start)
-    const rangeEnd = new Date(range.end)
 
-    for (const d of natal.saju.daeun) {
+    // 대운 창은 만 나이 생일 경계(periodPillars.daeunWindows, daeunAge SSOT — 재감사 G2 ·
+    // TP-7). 예전엔 1/1~10년 뒤 12/31 이라 대운이 바뀌는 해의 1/1~생일 전날을 다음 대운
+    // 으로 불렀고, 첫 대운 전 아이에게도 첫 대운을 띄웠다(OD-12).
+    for (const d of daeunWindows(natal, range)) {
       const stemInfo = STEMS.find((s) => s.name === d.stem)
       if (!stemInfo) continue
       const daeunElement = stemInfo.element as FiveElement
@@ -42,12 +45,6 @@ const sajuTonggeunExtractor: SignalExtractor = {
       const polarity = polarityForShift(relation, strength)
       const label = labelFor(relation, strength)
       if (polarity === 0 && relation === 'same') continue // 비견은 큰 신호 아님 — skip
-
-      const startIso = new Date(Date.UTC(d.startYear, 0, 1)).toISOString()
-      const endIso = new Date(Date.UTC(d.startYear + 10, 0, 0, 23, 59, 59)).toISOString()
-      // range와 겹치는지
-      if (new Date(endIso) < rangeStart || new Date(startIso) > rangeEnd) continue
-      const peakIso = new Date(Date.UTC(d.startYear + 5, 0, 1)).toISOString()
 
       signals.push({
         id: `saju.tonggeun-shift.${d.startYear}.${d.stem}`,
@@ -58,7 +55,7 @@ const sajuTonggeunExtractor: SignalExtractor = {
         english: `${d.startYear} decade ${d.stem}${d.branch} → ${labelForEn(relation, strength)}`,
         polarity,
         layer: 'decadal',
-        active: { start: startIso, peak: peakIso, end: endIso },
+        active: { start: d.start, peak: daeunAnniversaryIso(d, 5), end: d.end },
         weight: 0.85,
         evidence: {
           module: 'saju-tonggeun',

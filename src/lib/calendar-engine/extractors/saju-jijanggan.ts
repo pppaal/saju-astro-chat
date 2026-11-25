@@ -1,5 +1,12 @@
-import { STEMS, BRANCHES, JIJANGGAN, getSolarTermKST, ELEMENT_KO_TO_EN } from '@/lib/saju/constants'
-import { getYearPillarForDate, getMonthPillarForDate } from '@/lib/saju/datePillars'
+import { STEMS, BRANCHES, JIJANGGAN, ELEMENT_KO_TO_EN } from '@/lib/saju/constants'
+import {
+  calendarTimeZone,
+  daeunAnniversaryIso,
+  daeunWindows,
+  monthWindows,
+  rangeDates,
+  yearWindows,
+} from '../periodPillars'
 import { STEM_CLASH, toPairKeySet } from '@/lib/saju/relationTables'
 import { computeDayBranch, computeDayStem } from './saju-shinsal'
 import { getSibsinFromStemInfo as getSibsin } from './shared/sibsin'
@@ -193,30 +200,27 @@ const sajuJijangganExtractor: SignalExtractor = {
 
     const signals: ActiveSignal[] = []
 
-    // 입춘 helper — 세운 경계.
-    const ipchun = (y: number): Date => getSolarTermKST(y, 2) ?? new Date(Date.UTC(y, 1, 4))
-    const bMonth = natal.input.month - 1
-    const bDate = natal.input.date
+    // 세운·월운·대운 창 — periodPillars 하나(재감사 G2 · TP-2/3/7): 셀 = 출생지 시간대의
+    // 민용 날짜, 절입이 든 현지 날이 새 기둥, 대운은 만 나이 생일 경계.
+    const tz = calendarTimeZone(natal)
     const rangeStart = new Date(range.start)
     const rangeEnd = new Date(range.end)
+    const { from, to } = rangeDates(range)
 
     // ─── 1) 대운 지지 — 후반 5년 ───
-    for (const d of natal.saju.daeun) {
-      const branch = d.branch
+    for (const w of daeunWindows(natal, range)) {
+      const branch = w.branch
       const jijanggan = JIJANGGAN[branch]
       if (!jijanggan) continue
-
-      const midPoint = Date.UTC(d.startYear + 5, bMonth, bDate)
-      const endPoint = Date.UTC(d.startYear + 10, bMonth, bDate) - 1
-      if (new Date(endPoint) < rangeStart || new Date(midPoint) > rangeEnd) continue
+      if (w.endDate < from || w.midDate > to) continue
 
       const active = {
-        start: new Date(midPoint).toISOString(),
-        peak: new Date(Date.UTC(d.startYear + 7, bMonth, Math.max(1, bDate))).toISOString(),
-        end: new Date(endPoint).toISOString(),
+        start: w.mid,
+        peak: daeunAnniversaryIso(w, 7),
+        end: w.end,
       }
       emitJijangganSignals(signals, {
-        idPrefix: `saju.jijanggan.daeun.${d.startYear}.${branch}`,
+        idPrefix: `saju.jijanggan.daeun.${w.startYear}.${branch}`,
         layer: 'decadal',
         branchName: branch,
         jijanggan,
@@ -233,26 +237,13 @@ const sajuJijangganExtractor: SignalExtractor = {
     }
 
     // ─── 2) 세운 지지 (yearly) ───
-    const startYear = rangeStart.getUTCFullYear()
-    const endYear = rangeEnd.getUTCFullYear()
-    for (let year = startYear - 1; year <= endYear; year++) {
-      const yStartDate = ipchun(year)
-      const yEndDate = new Date(ipchun(year + 1).getTime() - 1)
-      if (yEndDate < rangeStart || yStartDate > rangeEnd) continue
-      const refDate = new Date(yStartDate.getTime() + 86_400_000)
-      const yp = getYearPillarForDate(refDate)
-      const jijanggan = JIJANGGAN[yp.branch]
+    for (const w of yearWindows(range, tz)) {
+      const jijanggan = JIJANGGAN[w.branch]
       if (!jijanggan) continue
-
-      const active = {
-        start: yStartDate.toISOString(),
-        peak: new Date((yStartDate.getTime() + yEndDate.getTime()) / 2).toISOString(),
-        end: yEndDate.toISOString(),
-      }
       emitJijangganSignals(signals, {
-        idPrefix: `saju.jijanggan.seun.${year}.${yp.branch}`,
+        idPrefix: `saju.jijanggan.seun.${w.sajuYear}.${w.branch}`,
         layer: 'yearly',
-        branchName: yp.branch,
+        branchName: w.branch,
         jijanggan,
         dayMaster,
         dayElement,
@@ -261,45 +252,30 @@ const sajuJijangganExtractor: SignalExtractor = {
         natalStems,
         natalDayBranchJijanggan,
         monthElement,
-        active,
+        active: { start: w.start, peak: w.peak, end: w.end },
         baseWeight: 0.85,
       })
     }
 
-    // ─── 3) 월운 지지 (monthly) ───
-    const monthCursor = new Date(Date.UTC(rangeStart.getUTCFullYear(), rangeStart.getUTCMonth(), 1))
-    while (monthCursor <= rangeEnd) {
-      // 월주는 그 달 중순(15일) 기준 — 1일은 절입 직전이라 전월 절기달이 잡힌다.
-      const midMonth = new Date(
-        Date.UTC(monthCursor.getUTCFullYear(), monthCursor.getUTCMonth(), 15)
-      )
-      const mp = getMonthPillarForDate(midMonth)
-      const jijanggan = JIJANGGAN[mp.branch]
-      if (jijanggan) {
-        const mStart = new Date(monthCursor).toISOString()
-        const mEnd = new Date(
-          Date.UTC(monthCursor.getUTCFullYear(), monthCursor.getUTCMonth() + 1, 0, 23, 59, 59)
-        ).toISOString()
-        const mPeak = new Date(
-          Date.UTC(monthCursor.getUTCFullYear(), monthCursor.getUTCMonth(), 15)
-        ).toISOString()
-        emitJijangganSignals(signals, {
-          idPrefix: `saju.jijanggan.wolun.${monthCursor.getUTCFullYear()}-${monthCursor.getUTCMonth() + 1}.${mp.branch}`,
-          layer: 'monthly',
-          branchName: mp.branch,
-          jijanggan,
-          dayMaster,
-          dayElement,
-          strength,
-          yongsin,
-          natalStems,
-          natalDayBranchJijanggan,
-          monthElement,
-          active: { start: mStart, peak: mPeak, end: mEnd },
-          baseWeight: 0.7,
-        })
-      }
-      monthCursor.setUTCMonth(monthCursor.getUTCMonth() + 1)
+    // ─── 3) 월운 지지 (monthly) — 절기월 창 ───
+    for (const w of monthWindows(range, tz)) {
+      const jijanggan = JIJANGGAN[w.branch]
+      if (!jijanggan) continue
+      emitJijangganSignals(signals, {
+        idPrefix: `saju.jijanggan.wolun.${w.startDate}.${w.branch}`,
+        layer: 'monthly',
+        branchName: w.branch,
+        jijanggan,
+        dayMaster,
+        dayElement,
+        strength,
+        yongsin,
+        natalStems,
+        natalDayBranchJijanggan,
+        monthElement,
+        active: { start: w.start, peak: w.peak, end: w.end },
+        baseWeight: 0.7,
+      })
     }
 
     // ─── 4) 일진 지지 (daily) — 비용 큼, range 가 day 단위일 때만 ───

@@ -88,6 +88,8 @@ export { SAJU_ENGINE_VERSION }
 //     운명상담사 컨텍스트도 ENGINE_VERSION_TAG 로 함께 무효화.
 //     같은 웨이브(재감사 G4)의 캘린더 사주 신호 교정 — 반합·국 완성 삼합/방합, 암합 파합자
 //     대칭, 천라지망 짝 완성 활성, 현침·괴강 — 도 이 v14 에 함께 실린다(웨이브당 한 번).
+//     재감사 G2 의 사주 기간 창(셀 = 출생지 민용 날짜, 절입이 든 현지 날이 새 세운·월운,
+//     용신·통근 대운 = 만 나이 생일 경계, periodPillars)도 같은 v14 로 월 셀을 무효화한다.
 export const CALENDAR_ENGINE_VERSION = 'v14'
 
 /**
