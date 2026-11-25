@@ -15,6 +15,7 @@ import { buildCalendar } from '@/lib/calendar-engine'
 import { getTwelveStagesForPillars } from '@/lib/saju/shinsal'
 import { assembleTiers, type AssembleTiersInput } from '@/app/calendar/assembleTiers'
 import { pickNextBigDay } from '@/app/calendar/assembleDayTier'
+import { pickTryThis, toMMDD } from '@/lib/calendar-engine/derivers/tryThis'
 
 import type { NatalContext } from '@/lib/calendar-engine/context/types'
 import type { CalendarCell } from '@/lib/calendar-engine/types'
@@ -324,7 +325,8 @@ describe('assembleTiers — 월 리드아웃 ↔ 일 티어 문장 통일', () =
 })
 
 // ── 계획 B1 (엔진 E10) ────────────────────────────────────────────────────────
-// 월 화면 assemble-layer: 그리드 마크 부호와 맞는 '왜'(#4).
+// 월 화면 assemble-layer: 여는 날짜와 무관한 버킷(#2), 지난 날을 짚지 않는 총평(#3),
+// 그리드 마크 부호와 맞는 '왜'(#4).
 
 const pad2 = (n: number) => String(n).padStart(2, '0')
 
@@ -336,6 +338,50 @@ function monthInput(month: number, day: number, overrides: Partial<AssembleTiers
     ...overrides,
   })
 }
+
+/** 밴드 마크와 화해 톤이 어긋난 날(tense: good 밴드인데 톤≠positive / bright: 낮은 밴드인데 톤≠caution). */
+function isToneMismatch(c: { mark: string | null; tone?: string }): boolean {
+  if (c.mark === 'good' || c.mark === 'best') return c.tone !== undefined && c.tone !== 'positive'
+  if (c.mark === 'caution' || c.mark === 'avoid')
+    return c.tone !== undefined && c.tone !== 'caution'
+  return false
+}
+
+describe('assembleTiers — 월 버킷은 여는 날짜와 무관 (계획 B1 #2)', () => {
+  it('톤이 밴드와 어긋난 날을 열어도 good/caution/avoid·verdict·bestDay 가 같고, 포커스 셀은 밴드 마크를 지킨다', async () => {
+    // 그런 날이 있는 달을 찾는다(fixture 결정적).
+    let found: { month: number; day: number; mark: string } | null = null
+    for (const m of [6, 3, 9, 11, 1, 4, 7, 10, 12, 2, 5, 8]) {
+      const probe = await assembleTiers(monthInput(m, 15))
+      const cell = probe.month.calendar.find((c) => c.d !== 15 && isToneMismatch(c))
+      if (cell && cell.mark) {
+        found = { month: m, day: cell.d, mark: cell.mark }
+        break
+      }
+    }
+    expect(found, 'fixture 연도에 톤·밴드가 어긋난 날이 하나는 있어야 한다').not.toBeNull()
+    const { month, day, mark } = found!
+    const other = day === 15 ? 16 : 15
+
+    const [onIt, elsewhere] = await Promise.all([
+      assembleTiers(monthInput(month, day)),
+      assembleTiers(monthInput(month, other)),
+    ])
+    expect(onIt.month.goodDays).toEqual(elsewhere.month.goodDays)
+    expect(onIt.month.cautionDays).toEqual(elsewhere.month.cautionDays)
+    expect(onIt.month.avoidDays).toEqual(elsewhere.month.avoidDays)
+    expect(onIt.month.verdict).toEqual(elsewhere.month.verdict)
+    expect(onIt.month.bestDay).toEqual(elsewhere.month.bestDay)
+
+    const focusCell = onIt.month.calendar.find((c) => c.d === day)!
+    expect(focusCell.focus).toBe(true)
+    expect(focusCell.mark).toBe(mark)
+    // 그리드 마크도 포커스 링 외에는 같다.
+    const marks = (xs: typeof onIt.month.calendar) =>
+      xs.map((c) => (c.mark === 'focus' ? null : c.mark))
+    expect(marks(onIt.month.calendar)).toEqual(marks(elsewhere.month.calendar))
+  }, 60000)
+})
 
 describe("assembleTiers — '왜' 부호 게이트 (계획 B1 #4)", () => {
   it('caution·avoid 셀의 근거는 없거나 −, good·best 셀은 없거나 +', async () => {
@@ -355,5 +401,39 @@ describe("assembleTiers — '왜' 부호 게이트 (계획 B1 #4)", () => {
       }
     }
     expect(reasons).toBeGreaterThan(0)
+  }, 60000)
+})
+
+describe('assembleTiers — 이달 총평은 지난 날을 짚지 않는다 (계획 B1 #3)', () => {
+  const koDate = (mmdd: string) => {
+    const [m, d] = mmdd.split('-').map(Number)
+    return new RegExp(`(^|[^0-9])${m}월 ${d}일`)
+  }
+
+  it('기준일 이전의 조심·피할 날은 총평에 없고, 짚는 날은 pickTryThis 와 같다', async () => {
+    let checkedPast = 0
+    for (const day of [12, 20, 26]) {
+      const out = await assembleTiers(monthInput(TARGET_MONTH, day))
+      const body = out.month.narrative.find((n) => n.tag === '이달 총평')?.body ?? ''
+      expect(body.length).toBeGreaterThan(0)
+      const today = toMMDD(out.month.ym, day)
+      for (const d of [...out.month.cautionDays, ...out.month.avoidDays]) {
+        if (d >= today) continue
+        checkedPast++
+        expect(body, `총평이 지난 날 ${d} 을 짚었다 (기준 ${today})`).not.toMatch(koDate(d))
+      }
+      const tt = pickTryThis(
+        {
+          bestDay: out.month.bestDay?.date,
+          goodDays: out.month.goodDays,
+          cautionDays: out.month.cautionDays,
+          avoidDays: out.month.avoidDays,
+        },
+        today
+      )
+      if (tt.hold) expect(body).toMatch(koDate(tt.hold))
+      if (tt.push) expect(body).toMatch(koDate(tt.push))
+    }
+    expect(checkedPast).toBeGreaterThan(0)
   }, 60000)
 })

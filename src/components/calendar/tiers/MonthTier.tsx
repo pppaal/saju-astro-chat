@@ -26,6 +26,7 @@ import { sibsinArea, sibsinAreaEn, planetPlain } from '@/lib/calendar-engine/der
 import { ShareCalendarButton } from '@/components/calendar/ShareCalendarButton'
 import { monthShareHook } from '@/lib/share/shareHook'
 import { reconcileMonthTone } from '@/lib/calendar-engine/derivers/reconcile'
+import { pickTryThis, toMMDD } from '@/lib/calendar-engine/derivers/tryThis'
 
 const MONTH_EN = [
   'January',
@@ -92,8 +93,8 @@ export function MonthTier({ month, onDive, onRise, showRise = true, onSelectDay 
   const monthEn = MONTH_EN[(ymM ?? 1) - 1] ?? ''
   const flowTitle = ko ? `${ymM ?? ''}월의 모양` : `The shape of ${monthEn}`.trim()
 
-  // 월 verdict — 톤·카운트의 단일 권위. 서버(assembleTiers)가 중립화까지 끝낸 최종
-  // 카운트로 산출해 month.verdict 로 실어 준다. 없으면(직접 렌더/테스트) 같은
+  // 월 verdict — 톤·카운트의 단일 권위. 서버(assembleTiers)가 그리드 밴드 카운트
+  // (여는 날짜와 무관)로 산출해 month.verdict 로 실어 준다. 없으면(직접 렌더/테스트) 같은
   // 함수로 폴백 — 어느 경로든 히어로·총평·공유카드가 한 공식을 본다(감사 D-1).
   const verdict =
     month.verdict ??
@@ -119,17 +120,41 @@ export function MonthTier({ month, onDive, onRise, showRise = true, onSelectDay 
   )
   const cellToneToMeaningTone = (t: 'positive' | 'mixed' | 'caution'): MeaningTone =>
     t === 'positive' ? 'positive' : t === 'caution' ? 'negative' : 'neutral'
-  const verdictPrefix = (m: DestinyDayMark | null): string => {
-    if (m === 'best' || m === 'good') return ko ? '좋은 날' : 'Good day'
-    if (m === 'caution') return ko ? '조심할 날' : 'Caution'
-    if (m === 'avoid') return ko ? '피할 날' : 'Avoid'
-    return ko ? '잔잔한 날' : 'Calm day'
+  // ── 날 라벨 — 마크(점수 밴드) × 화해 톤의 *단일 결정*. 최고의 날 제목·큰 날 목록·
+  //    리드아웃 라벨·리드아웃 태그가 전부 이 하나를 읽는다. 화해 톤이 라벨을 정하고
+  //    (positive/caution/mixed), 같은 톤 안에서 마크가 세기를 가른다: positive+best
+  //    = 최고의 날, caution+avoid = 피할 날(계획 B1 #1 — 예전엔 큰 날 목록·태그에
+  //    Avoid 분기가 없어 피할 날이 '조심할 날'로 떴다). 톤이 없으면(구 캐시) 마크 폴백.
+  type DayKind = 'best' | 'good' | 'caution' | 'avoid' | 'mixed' | 'calm'
+  const dayKind = (
+    m: DestinyDayMark | null,
+    t: 'positive' | 'mixed' | 'caution' | undefined
+  ): DayKind => {
+    if (t === 'positive') return m === 'best' ? 'best' : 'good'
+    if (t === 'caution') return m === 'avoid' ? 'avoid' : 'caution'
+    if (t === 'mixed') return 'mixed'
+    if (m === 'best' || m === 'good' || m === 'caution' || m === 'avoid') return m
+    return 'calm'
   }
-  // 톤(positive/negative/neutral) → prefix. meaning 과 *같은 톤* 에서 뽑아야
-  // "잔잔한 날 · 부딪힘을 조심할 날" 식 모순이 안 난다.
-  const verdictPrefixForTone = (t: MeaningTone): string => {
-    if (t === 'positive') return ko ? '좋은 날' : 'Good day'
-    if (t === 'negative') return ko ? '조심할 날' : 'Caution'
+  // form 'label' = 리드아웃·목록 제목, 'tag' = 리드아웃 칩(짧은 표기, 범례와 같은 말).
+  const dayLabel = (
+    m: DestinyDayMark | null,
+    t: 'positive' | 'mixed' | 'caution' | undefined,
+    form: 'label' | 'tag' = 'label'
+  ): string => {
+    const k = dayKind(m, t)
+    if (form === 'tag') {
+      if (k === 'best' || k === 'good') return ko ? '좋은 날' : 'good'
+      if (k === 'caution') return ko ? '조심할 날' : 'caution'
+      if (k === 'avoid') return ko ? '피하는 날' : 'avoid'
+      if (k === 'mixed') return ko ? '기복 있는 날' : 'mixed'
+      return ko ? '잔잔한 날' : 'normal'
+    }
+    if (k === 'best') return ko ? '최고의 날' : 'Best day'
+    if (k === 'good') return ko ? '좋은 날' : 'Good day'
+    if (k === 'caution') return ko ? '조심할 날' : 'Caution'
+    if (k === 'avoid') return ko ? '피할 날' : 'Avoid'
+    if (k === 'mixed') return ko ? '기복 있는 날' : 'Mixed day'
     return ko ? '잔잔한 날' : 'Calm day'
   }
   const markToTone = (m: DestinyDayMark | null): MeaningTone => {
@@ -150,13 +175,8 @@ export function MonthTier({ month, onDive, onRise, showRise = true, onSelectDay 
   const bestDayTitle = (date: string): string => {
     const dn = parseInt(date.slice(-2), 10)
     const cellTone = toneByDs.get(date)
-    if (cellTone === 'mixed') {
-      return `${ko ? '기복 있는 날' : 'Mixed day'} · ${toneMeaningFor('neutral', dn, ko ? 'ko' : 'en', seed)}`
-    }
-    if (cellTone === 'caution') {
-      return `${verdictPrefixForTone('negative')} · ${toneMeaningFor('negative', dn, ko ? 'ko' : 'en', seed)}`
-    }
-    return `${ko ? '최고의 날' : 'Best day'} · ${toneMeaningFor('positive', dn, ko ? 'ko' : 'en', seed)}`
+    const tone: MeaningTone = cellTone ? cellToneToMeaningTone(cellTone) : 'positive'
+    return `${dayLabel('best', cellTone)} · ${toneMeaningFor(tone, dn, ko ? 'ko' : 'en', seed)}`
   }
   const keyDayItems: BigDay[] = [...(month.keyDays ?? [])].map((k) => {
     const mark = markByDs.get(k.date) ?? null
@@ -176,15 +196,8 @@ export function MonthTier({ month, onDive, onRise, showRise = true, onSelectDay 
       ? cellToneToMeaningTone(cellTone)
       : (k.tone ?? markToTone(mark))
     const meaning = toneMeaningFor(tone, dayNum, ko ? 'ko' : 'en', seed)
-    const prefix =
-      cellTone === 'mixed'
-        ? ko
-          ? '기복 있는 날'
-          : 'Mixed day'
-        : cellTone
-          ? verdictPrefixForTone(tone)
-          : verdictPrefix(mark)
-    return { when: k.date, title: `${prefix} · ${meaning}` }
+    // 라벨은 dayLabel 단일 결정 — 화해 톤 caution + 마크 avoid 면 '피할 날'.
+    return { when: k.date, title: `${dayLabel(mark, cellTone)} · ${meaning}` }
   })
   // best(최고)일이 큰 날 목록에 빠졌으면 채워 넣는다(화해 톤 반영 라벨).
   if (month.bestDay?.date && !keyDayItems.some((i) => i.when === month.bestDay.date)) {
@@ -308,13 +321,19 @@ export function MonthTier({ month, onDive, onRise, showRise = true, onSelectDay 
   }
   // ── 기본뷰 do/avoid 한 줄 — 그동안 share 카드에만 쓰이던 narrative[0] 의 행동 권유를
   //    구조화 필드(bestDay/cautionDays/avoidDays)에서 평이하게 재구성해 표면에 노출. ──
-  // bestDay 폴백은 *앞으로 남은* 초록일 우선 — goodDays 는 시간순이라 첫 항목이
-  // 이미 지난 날짜(예: 28일에 "7/2 추진")일 수 있다(감사). 남은 초록일이 없으면
-  // 첫 초록일 유지(회고성 안내보단 낫진 않지만 빈칸보단 정보가 있음).
-  const focusDayNum = month.focusDay ?? 0
-  const upcomingGood = month.goodDays?.find((d) => Number(d.slice(-2)) >= focusDayNum)
-  const doDate = month.bestDay?.date || upcomingGood || month.goodDays?.[0] || ''
-  const avoidDate = month.cautionDays?.[0] || month.avoidDays?.[0] || ''
+  // 날짜 선택은 pickTryThis 단일 소스(이달 총평과 같은 함수) — 기준일(focusDay, 보통
+  // 오늘) 이후만. PUSH = 앞으로의 최고일 → 앞으로의 첫 좋은 날, HOLD = 앞으로의 첫
+  // 피할 날 → 조심할 날(avoid-first). 남은 날이 없으면 그 절을 생략한다 — 예전엔
+  // HOLD 가 cautionDays[0] 이라 지난 날("11/8 무렵엔 미루세요")을 짚었다(계획 B1 #3).
+  const { push: doDate, hold: avoidDate } = pickTryThis(
+    {
+      bestDay: month.bestDay?.date,
+      goodDays: month.goodDays,
+      cautionDays: month.cautionDays,
+      avoidDays: month.avoidDays,
+    },
+    toMMDD(month.ym, month.focusDay)
+  )
   const doAvoidLine: string = (() => {
     if (!doDate && !avoidDate) return ''
     // 각 절이 단독으로도 완결되게 — 예전엔 avoid 없는 달에 "…추진하고"로 끝나는
@@ -362,27 +381,7 @@ export function MonthTier({ month, onDive, onRise, showRise = true, onSelectDay 
       ? ko
         ? '오늘'
         : 'Today'
-      : selTone === 'positive'
-        ? selMark === 'best'
-          ? ko
-            ? '최고의 날'
-            : 'Best day'
-          : ko
-            ? '좋은 날'
-            : 'Good day'
-        : selTone === 'caution'
-          ? selMark === 'avoid'
-            ? ko
-              ? '피할 날'
-              : 'Avoid'
-            : ko
-              ? '조심할 날'
-              : 'Caution'
-          : selTone === 'mixed'
-            ? ko
-              ? '기복 있는 날'
-              : 'Mixed day'
-            : verdictPrefix(selMark)
+      : dayLabel(selMark, selTone)
   // 그날의 화해된 한 줄 — 일(日) 티어 oneLine 과 같은 소스(셀에 서버가 실어 줌).
   // 줌인하면 이 문장이 일 화면 첫 줄로 그대로 이어진다. 없으면(구 캐시 등) 톤 풀 폴백.
   const selectedOneLine = ko
@@ -408,47 +407,16 @@ export function MonthTier({ month, onDive, onRise, showRise = true, onSelectDay 
     }
     return ''
   })()
-  // 태그 칩 — today 우선, 그다음 화해 톤(라벨·문장과 같은 축), 톤 없으면 mark 폴백.
-  const readoutTag = selToday
-    ? ko
-      ? '오늘'
-      : 'Today'
-    : selTone === 'positive'
-      ? ko
-        ? '좋은 날'
-        : 'good'
-      : selTone === 'caution'
-        ? ko
-          ? '조심할 날'
-          : 'caution'
-        : selTone === 'mixed'
-          ? ko
-            ? '기복 있는 날'
-            : 'mixed'
-          : selMark === 'best' || selMark === 'good'
-            ? ko
-              ? '좋은 날'
-              : 'good'
-            : selMark === 'caution'
-              ? ko
-                ? '조심할 날'
-                : 'caution'
-              : selMark === 'avoid'
-                ? ko
-                  ? '피하는 날'
-                  : 'avoid'
-                : ko
-                  ? '잔잔한 날'
-                  : 'normal'
+  // 태그 칩 — today 우선, 그다음 dayLabel(화해 톤 × 마크 — 라벨·문장과 같은 축).
+  const readoutTag = selToday ? (ko ? '오늘' : 'Today') : dayLabel(selMark, selTone, 'tag')
+  const selKind = dayKind(selMark, selTone)
   const readoutTagClass = selToday
     ? styles.rtagToday
-    : (selTone ?? markToTone(selMark)) === 'positive'
+    : selKind === 'best' || selKind === 'good'
       ? styles.rtagGood
-      : selTone === 'caution' && selMark === 'avoid'
+      : selKind === 'avoid'
         ? styles.rtagAvoid
-        : !selTone && selMark === 'avoid'
-          ? styles.rtagAvoid
-          : ''
+        : ''
 
   // 근거 사다리 — 10년→올해→이달 층별 지배신호(쉬운 결론 + 용어 칩).
   const monthLadder =

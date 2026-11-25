@@ -111,11 +111,11 @@ describe('MonthTier (이 달의 모양 · LIGHT)', () => {
 
   describe('novice basic view (surfaced content)', () => {
     it('surfaces the do/avoid action line from structured fields (ko)', () => {
-      // bestDay 06-06 → do, cautionDays[0] 06-20 → avoid
-      render(<MonthTier month={makeMonth()} onDive={noop} onRise={noop} />)
+      // 기준일 1일 — bestDay 06-06 → do, 앞으로의 첫 피할 날 06-25 → avoid(avoid-first).
+      render(<MonthTier month={makeMonth({ focusDay: 1 })} onDive={noop} onRise={noop} />)
       expect(screen.getByText('이렇게 해보세요')).toBeInTheDocument()
       expect(screen.getByText(/6\/6 무렵 미뤄둔 일을 추진하고/)).toBeInTheDocument()
-      expect(screen.getByText(/6\/20 무렵엔 큰 결정·이동을 미루세요/)).toBeInTheDocument()
+      expect(screen.getByText(/6\/25 무렵엔 큰 결정·이동을 미루세요/)).toBeInTheDocument()
     })
 
     it('shows the "tap a date" hint near the grid (ko)', () => {
@@ -346,8 +346,10 @@ describe('MonthTier (이 달의 모양 · LIGHT)', () => {
         ],
       })
       render(<MonthTier month={month} onDive={noop} onRise={noop} />)
-      // 수렴(positive) 라벨이 아니라 셀 화해 톤(caution) 라벨.
-      expect(screen.getByText(/조심할 날 · /)).toBeInTheDocument()
+      // 수렴(positive) 라벨이 아니라 셀 화해 톤(caution) 라벨 — 마크가 avoid 라
+      // '피할 날'(계획 B1 #1: 예전엔 Avoid 분기가 없어 '조심할 날').
+      expect(screen.getByText(/피할 날 · /)).toBeInTheDocument()
+      expect(screen.queryByText(/조심할 날 · /)).not.toBeInTheDocument()
       expect(screen.queryByText(/좋은 날 · 먼저 움직이면 이기는 날/)).not.toBeInTheDocument()
     })
 
@@ -374,6 +376,131 @@ describe('MonthTier (이 달의 모양 · LIGHT)', () => {
       // "Good day · 먼저 움직이면 이기는 날" 혼종이 나오면 안 된다.
       expect(screen.queryByText(/먼저 움직이면 이기는 날/)).not.toBeInTheDocument()
       expect(screen.getByText(/Good day · /)).toBeInTheDocument()
+    })
+  })
+
+  describe('이렇게 해보세요 — 지난 날을 짚지 않는다 (계획 B1 #3)', () => {
+    const doBox = (container: HTMLElement) =>
+      (container.querySelector('[class*="doText"]') as HTMLElement | null)?.textContent ?? ''
+
+    it('지난 최고일(6/6)은 건너뛰고 앞으로의 좋은 날(6/23), HOLD 는 앞으로의 피할 날', () => {
+      const month = makeMonth({
+        focusDay: 21,
+        bestDay: { date: '06-06', score: 92 },
+        goodDays: ['06-05', '06-06', '06-23'],
+        cautionDays: ['06-08', '06-20'],
+        avoidDays: ['06-25'],
+      })
+      const { container } = render(<MonthTier month={month} onDive={noop} onRise={noop} />)
+      const text = doBox(container)
+      expect(text).toContain('6/23 무렵 미뤄둔 일을 추진하고')
+      expect(text).toContain('6/25 무렵엔 큰 결정·이동을 미루세요')
+      expect(text).not.toMatch(/6\/6\b|6\/8\b|6\/20\b/)
+    })
+
+    it('HOLD 는 avoid-first — 앞으로의 조심할 날보다 피할 날을 먼저 짚는다', () => {
+      const month = makeMonth({
+        focusDay: 19,
+        bestDay: { date: '06-24', score: 88 },
+        goodDays: ['06-22', '06-24'],
+        cautionDays: ['06-08', '06-10', '06-14', '06-20'],
+        avoidDays: ['06-02', '06-11', '06-17', '06-29'],
+      })
+      const { container } = render(<MonthTier month={month} onDive={noop} onRise={noop} />)
+      const text = doBox(container)
+      expect(text).toContain('6/24 무렵 미뤄둔 일을 추진하고')
+      expect(text).toContain('6/29 무렵엔 큰 결정·이동을 미루세요')
+    })
+
+    it('남은 조심·피할 날이 없으면 HOLD 절 없이 PUSH 만', () => {
+      const month = makeMonth({
+        focusDay: 26,
+        bestDay: { date: '06-06', score: 92 },
+        goodDays: ['06-05', '06-06', '06-28'],
+        cautionDays: ['06-08', '06-20'],
+        avoidDays: ['06-25'],
+      })
+      const { container } = render(<MonthTier month={month} onDive={noop} onRise={noop} />)
+      const text = doBox(container)
+      expect(text).toBe('6/28 무렵 미뤄둔 일을 추진해 보세요.')
+      expect(text).not.toContain('미루세요')
+    })
+
+    it('앞으로 남은 날이 하나도 없으면 박스 자체를 숨긴다', () => {
+      const month = makeMonth({
+        focusDay: 30,
+        bestDay: { date: '06-06', score: 92 },
+        goodDays: ['06-05', '06-06'],
+        cautionDays: ['06-20'],
+        avoidDays: ['06-25'],
+      })
+      render(<MonthTier month={month} onDive={noop} onRise={noop} />)
+      expect(screen.queryByText('이렇게 해보세요')).not.toBeInTheDocument()
+    })
+  })
+
+  describe('날 라벨 — 화해 톤 caution + 마크 avoid = 피할 날 (계획 B1 #1)', () => {
+    const keyDay = (date: string) => ({
+      date,
+      meaning: '',
+      astro: [],
+      saju: [],
+      bothSystems: false,
+    })
+
+    it('EN 큰 날: avoid·caution 은 "Avoid ·", caution·mixed 는 "Mixed day ·"(톤이 라벨)', () => {
+      mockLocale = 'en'
+      const month = makeMonth({
+        bestDay: { date: '', score: 0 },
+        keyDays: [keyDay('06-14'), keyDay('06-17'), keyDay('06-29')],
+        calendar: [
+          makeCell({ d: 14, ds: '06-14', mark: 'caution', score: 35, tone: 'mixed' }),
+          makeCell({ d: 15, ds: '06-15', focus: true, score: 55 }),
+          makeCell({ d: 17, ds: '06-17', mark: 'avoid', score: 26, tone: 'caution' }),
+          makeCell({ d: 29, ds: '06-29', mark: 'avoid', score: 29, tone: 'mixed' }),
+        ],
+      })
+      const { container } = render(<MonthTier month={month} onDive={noop} onRise={noop} />)
+      const titles = [...container.querySelectorAll('[class*="bdName"]')].map(
+        (n) => n.textContent ?? ''
+      )
+      expect(titles).toHaveLength(3)
+      expect(titles[0]).toMatch(/^Mixed day · /)
+      expect(titles[1]).toMatch(/^Avoid · /)
+      expect(titles[2]).toMatch(/^Mixed day · /)
+      expect(titles.some((t) => t.startsWith('Caution · '))).toBe(false)
+    })
+
+    it('리드아웃 태그도 피하는 날 — 라벨(피할 날)·색(avoid)과 같은 판정', () => {
+      const month = makeMonth({
+        keyDays: [],
+        calendar: [
+          makeCell({ d: 5, ds: '06-05', mark: 'avoid', score: 20, tone: 'caution' }),
+          makeCell({ d: 15, ds: '06-15', focus: true, score: 55 }),
+        ],
+      })
+      const { container } = render(<MonthTier month={month} onDive={noop} onRise={noop} />)
+      fireEvent.click(screen.getByRole('button', { name: '5일 자세히 보기' }))
+      const tag = container.querySelector('[class*="rtag"]') as HTMLElement
+      expect(tag.textContent).toBe('피하는 날')
+      expect(tag.className).toMatch(/rtagAvoid/)
+      const label = container.querySelector('[class*="rlabel"]') as HTMLElement
+      expect(label.textContent).toBe('피할 날')
+    })
+
+    it('조심 마크 + caution 톤은 그대로 조심할 날', () => {
+      const month = makeMonth({
+        keyDays: [],
+        calendar: [
+          makeCell({ d: 5, ds: '06-05', mark: 'caution', score: 35, tone: 'caution' }),
+          makeCell({ d: 15, ds: '06-15', focus: true, score: 55 }),
+        ],
+      })
+      const { container } = render(<MonthTier month={month} onDive={noop} onRise={noop} />)
+      fireEvent.click(screen.getByRole('button', { name: '5일 자세히 보기' }))
+      const tag = container.querySelector('[class*="rtag"]') as HTMLElement
+      expect(tag.textContent).toBe('조심할 날')
+      expect(tag.className).not.toMatch(/rtagAvoid/)
     })
   })
 

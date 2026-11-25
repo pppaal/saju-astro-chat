@@ -19,6 +19,7 @@ import { deriveMonthSummary } from '@/lib/calendar-engine/derivers/monthSummary'
 import { reconcileMonthTone } from '@/lib/calendar-engine/derivers/reconcile'
 import { personSeed } from '@/lib/calendar-engine/derivers/personSeed'
 import { deriveLayeredScores } from '@/lib/calendar-engine/derivers/layeredScore'
+import { pickTryThis, toMMDD } from '@/lib/calendar-engine/derivers/tryThis'
 import { getMonthPillarForDate } from '@/lib/saju/datePillars'
 import { getSibsinKo } from '@/lib/saju/cycleRelations'
 
@@ -118,7 +119,7 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
   // ─── 일(日) 티어 — 분리 어셈블러로 *미리 발진* ───────────────────────────
   // /api/calendar/day(월 그리드에서 고른 날짜)와 같은 코드 경로. 내부의
   // 시진 달 ephemeris(12회)가 아래 어댑터 작업과 겹쳐 돌도록 여기서
-  // 시작하고, 포커스 셀 톤 정합 직전에 await 한다.
+  // 시작하고, 월 셀 근거·한 줄을 다 실은 뒤 await 한다.
   const dayP = assembleDayTier({
     natal,
     cells,
@@ -221,11 +222,6 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
     evidenceLadderEn: monthAdapter.evidenceLadderEn,
   }
 
-  // 이달 총평(deriveMonthSummary)은 여기서 만들지 않는다 — 포커스 셀 중립화
-  // (아래 toDay 이후 블록)가 good/caution/avoid 버킷과 bestDay 크라운을 *변경*하므로,
-  // 그 전에 생성하면 총평 문장이 지워진 최고일을 계속 추천하고 날수도 헤더와 1
-  // 어긋난다(감사: 순서 버그). 중립화 직후에 생성한다.
-
   // 이 달의 사주×점성 교차 — monthly 층 cross-activation 페어를 모아 카드 원료로.
   // 같은 페어가 그 달 여러 윈도우로 잡혀 id 는 달라도 의미는 같으므로 *페어* 기준
   // 중복 제거(가장 센 |polarity| 보존), |polarity| 상위 6개.
@@ -297,40 +293,13 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
   // 일 티어 수확 — 맨 위에서 미리 발진해 둔 분리 어셈블러 결과.
   const day = await dayP
 
-  // ── 포커스(오늘) 셀 톤 정합 ──
-  // 월 grid 의 셀 색은 *원점수 밴드*(60/35)인데, 일 카드 헤드라인은 toDay 가 화해한
-  // verdict(tense/bright)다. 밴드↔신호 톤이 어긋난 날(tense: 좋은밴드인데 흉신 우세 /
-  // bright: 낮은밴드인데 살릴 구석)은 같은 날 월=초록"좋음" vs 일=평이 로 모순됐다.
-  // 포커스일(양쪽에 동시에 보이는 유일한 날)만 화해와 어긋나는 밴드 바를 중립화해
-  // (mark→'focus': 바 없음, 오늘 링만) 두 화면의 톤을 일치시킨다. 비포커스일은
-  // 셀에 실린 화해 톤(cell.tone)이 리드아웃 태그·조언을 지배하므로(감사 #2 수정)
-  // 밴드 바(색=점수)는 그대로 둬도 문장·라벨과 축이 갈리지 않는다.
-  if (day.dayTone?.tense || day.dayTone?.bright) {
-    const focusCell = month.calendar.find((c) => c.focus)
-    if (focusCell && focusCell.mark && focusCell.mark !== 'focus') {
-      const wasBest = focusCell.mark === 'best'
-      focusCell.mark = 'focus'
-      // 밴드 바를 중립화한 날은 good/caution/avoid 버킷에서도 빼야 한다 —
-      // 안 그러면 헤더·총평의 카운트(goodN/cautionN/avoidN)가 그리드의 실제
-      // 색 셀보다 1 많아진다(off-by-one). MM-DD 키로 세 버킷에서 제거.
-      const focusDs = focusCell.ds
-      month.cautionDays = month.cautionDays.filter((d) => d !== focusDs)
-      month.goodDays = month.goodDays.filter((d) => d !== focusDs)
-      month.avoidDays = month.avoidDays.filter((d) => d !== focusDs)
-      // 오늘(포커스)이 이달 '최고의 날'인데 tense/bright 로 grid 바를 중립화(회색)
-      // 했다면, month.bestDay 를 그대로 두면 안 된다 — MonthTier 가 회색 셀에
-      // "최고의 날 ✦"·"그날 추진하세요"를 그려 그리드(회색)·일 티어(tense)와 모순된다
-      // (감사). 크라운을 비우면 doDate 는 goodDays[0](실제 초록일)로 폴백하고
-      // keyDates 에서도 빠진다.
-      if (wasBest && month.bestDay?.date === focusDs) {
-        month.bestDay = { date: '', score: 0 }
-      }
-    }
-  }
+  // (포커스 셀 중립화는 없다 — 계획 B1 #2. 예전엔 일 verdict 가 tense/bright 인
+  //  날 포커스 셀 마크를 'focus' 로 지우고 버킷·크라운에서 빼, 이달 좋은 날 수·
+  //  verdict·최고의 날이 *여는 날짜* 에 따라 달라졌다. 셀마다 화해 톤(cell.tone)이
+  //  리드아웃 태그·라벨·조언을 지배하므로 밴드 마크(색=점수)를 그대로 둬도 문장과
+  //  축이 갈리지 않는다. 오늘 링은 cell.focus 로만 그린다.)
 
   // 이달 총평 — 타이밍·톤·지배 테마를 이어지는 한 문단으로 합성(deriveMonthSummary).
-  // *반드시* 위 포커스 셀 중립화 이후에 생성 — 중립화가 버킷·bestDay 를 바꾸므로
-  // 먼저 만들면 총평이 지워진 최고일을 추천하고 날수도 헤더와 1 어긋난다(감사).
   // 양쪽 로케일 요약을 함께 만들어 보관 — 클라이언트 로케일 토글 시 서버언어로
   // 굳던 문제 해소. 정본 태그 '이달 총평', body=ko / bodyEn=en 를 MonthTier 가 고른다.
   const monthReasonsBy = (en: boolean): string[] =>
@@ -347,7 +316,7 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
       .slice(0, 4)
       .map((r) => r.body)
 
-  // ── 월 verdict — 톤의 단일 권위. 중립화까지 끝난 *최종* 카운트로 1회 산출해
+  // ── 월 verdict — 톤의 단일 권위. 그리드 밴드 카운트(여는 날짜와 무관)로 1회 산출해
   //    month.verdict 에 부착하고, 총평(deriveMonthSummary)에도 같은 톤을 주입한다.
   //    히어로 칩(MonthTier)·총평 문단·공유카드가 전부 이 하나를 읽어 어긋날 수 없다.
   const monthVerdict = reconcileMonthTone({
@@ -358,6 +327,18 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
   })
   month.verdict = monthVerdict
 
+  // 총평이 짚는 날(밀어붙일 날·미룰 날)은 MonthTier "이렇게 해보세요"와 같은
+  // pickTryThis 로 — 기준일(TARGET_DAY, 보통 오늘) 이후만. 예전엔 cautionDays[0]
+  // 이라 19일에 "11/8 무렵엔 미루세요"처럼 지난 날을 짚었다(계획 B1 #3).
+  const tryThis = pickTryThis(
+    {
+      bestDay: month.bestDay?.date,
+      goodDays: month.goodDays,
+      cautionDays: month.cautionDays,
+      avoidDays: month.avoidDays,
+    },
+    toMMDD(month.ym, TARGET_DAY)
+  )
   const summaryCommon = {
     woolunKr: month.woolun?.kr && month.woolun.kr !== '—' ? month.woolun.kr : undefined,
     goodDays: month.goodDays.length,
@@ -366,15 +347,14 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
     // avoid 를 안 넘겨 나쁜 달이 'bright'로 뒤집히고 날수에서 avoid 가 증발했다).
     avoidDays: month.avoidDays.length,
     totalDays: monthCells.length,
-    bestDay: month.bestDay?.date || undefined,
-    // caution 이 하나도 없고 avoid 만 있는 달도 '조심할 날'을 한 곳은 짚도록 폴백.
-    cautionDay: month.cautionDays[0] ?? month.avoidDays[0],
+    bestDay: tryThis.push ?? undefined,
+    cautionDay: tryThis.hold ?? undefined,
   }
   // bestDayReason(keyDays meaning)은 서버 lang 으로만 산출돼 있어 그 로케일 요약에만
   // 싣는다. 톤 게이트: 그 keyDay 의 수렴 톤이 negative 면 이유를 생략 — 총평의
   // 최고의 날 문장은 "추진해 보세요" 액션으로 닫히는데 부정 의미를 붙이면 한 문장
   // 안에서 자기모순("부딪힘 조심 — 추진해 보세요")이 된다(감사).
-  const bestKeyDay = monthKeyDays.find((k) => k.date === month.bestDay?.date)
+  const bestKeyDay = tryThis.push ? monthKeyDays.find((k) => k.date === tryThis.push) : undefined
   const bestDayReason =
     bestKeyDay && bestKeyDay.tone !== 'negative' ? bestKeyDay.meaning : undefined
   const summaryKo = deriveMonthSummary({
