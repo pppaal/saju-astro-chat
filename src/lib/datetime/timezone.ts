@@ -153,13 +153,19 @@ export function normalizeTimeZone(tz: string | null | undefined, fallback = 'Asi
  *
  * Defaults to DEFAULT_TIMEZONE(Asia/Seoul) when no timezone is supplied —
  * pass an explicit IANA name for user-facing values.
+ *
+ * `now` 주입점 — 기본은 호출 시점(new Date()). 결정론 경로(서버 로더 등)는 이미
+ * 읽은 인스턴트를 넘겨 시계를 한 번만 읽는다(같은 now 를 deriver 까지 흘림).
  */
-export function getNowInTimezone(tz?: string): {
+export function getNowInTimezone(
+  tz?: string,
+  now: Date = new Date()
+): {
   year: number
   month: number
   day: number
 } {
-  const { year, month, day } = getNowComponentsInTimezone(tz)
+  const { year, month, day } = getDateComponentsInTimezone(now, tz)
   return { year, month, day }
 }
 

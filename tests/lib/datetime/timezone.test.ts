@@ -71,6 +71,16 @@ describe('Timezone Utilities', () => {
       expect(result.month).toBe(seoul.month)
       expect(result.day).toBe(seoul.day)
     })
+
+    it('reads an injected now instead of the clock (결정론 주입점)', () => {
+      // 2026-11-30T15:30Z — UTC 로는 11-30, 서울(UTC+9)로는 12-01 00:30.
+      const at = new Date('2026-11-30T15:30:00Z')
+      expect(getNowInTimezone('Asia/Seoul', at)).toEqual({ year: 2026, month: 12, day: 1 })
+      expect(getNowInTimezone('UTC', at)).toEqual({ year: 2026, month: 11, day: 30 })
+      expect(getNowInTimezone('America/New_York', at)).toEqual({ year: 2026, month: 11, day: 30 })
+      // invalid tz → Asia/Seoul 폴백도 주입된 인스턴트 기준.
+      expect(getNowInTimezone('Invalid/Timezone', at)).toEqual({ year: 2026, month: 12, day: 1 })
+    })
   })
 
   describe('getDateInTimezone', () => {

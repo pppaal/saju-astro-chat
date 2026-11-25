@@ -1,14 +1,12 @@
 /* ============================================================
-   /calendar/preview — Phase F (adapters 완전 wire-up) 실데이터 검증 페이지
+   /calendar/preview — 공개 샘플 (로그인·본명 없이 캘린더 미리보기)
    ───────────────────────────────────────────────────────────
-   본명 1995-02-09 06:40 Asia/Seoul Male — 진짜 NatalContext +
-   2026년 CalendarCell 으로 5 tier UI 를 자동으로 채운다.
+   v9 디자인 샘플 본명 1997-03-21 14:30 Asia/Seoul 여 — 실존 인물 데이터가
+   아닌 합성 샘플이다. 포커스는 2026-11-19 로 고정해 언제 열어도 같은 화면
+   (디자인 목업과 일치)이 나온다 — "지금"도 그날 정오(서울)로 주입한다.
 
    tier 어셈블은 정식 라우트(/calendar/page.tsx)와 assembleTiers() 를 공유.
    본명·cells 계산은 DB 캐시(getOrBuildNatalContext / getOrBuildMonthCells) 우선.
-
-   임시 처리 / `as unknown as` 캐스팅 0건 — adapter 가 NatalContext →
-   destinypal tier props 까지 100% 책임.
    ============================================================ */
 
 import { detectServerLocale } from '@/i18n/server'
@@ -24,20 +22,22 @@ import { assembleTiers } from '../assembleTiers'
 // Server component: 빌드 비용(Swiss Ephemeris) 을 서버에서 한 번만 치름.
 export const dynamic = 'force-dynamic'
 
-// 본명 입력 — 1995-02-09 06:40 Asia/Seoul Male.
+// 샘플 본명 — 1997-03-21 14:30 Asia/Seoul 여 (v9 샘플, 합성 데이터).
 const BIRTH = {
-  birthDate: '1995-02-09',
-  birthTime: '06:40',
-  gender: 'male' as const,
+  birthDate: '1997-03-21',
+  birthTime: '14:30',
+  gender: 'female' as const,
   latitude: 37.5665,
   longitude: 126.978,
   timeZone: 'Asia/Seoul',
 }
 
-const BIRTH_YEAR = 1995
+const BIRTH_YEAR = 1997
 const TARGET_YEAR = 2026
-const TARGET_MONTH = 6 // 6월 — preview default focus month
-const TARGET_DAY_ISO = '2026-06-15' // preview default focus day
+const TARGET_MONTH = 11 // 11월 — 샘플 고정 포커스 월
+const TARGET_DAY_ISO = '2026-11-19' // 샘플 고정 포커스 일
+// 샘플의 "지금" — 포커스 일 정오(서울, UTC+9). 만 나이·일 티어 기준을 고정한다.
+const SAMPLE_NOW = new Date('2026-11-19T03:00:00Z')
 
 export default async function DestinypalPreview() {
   // 서버 로케일 — 헤더 → 쿠키 → Accept-Language 정식 해석(클라이언트 로케일과 일치).
@@ -61,11 +61,12 @@ export default async function DestinypalPreview() {
     targetMonth: TARGET_MONTH,
     targetDay: TARGET_DAY,
     targetDayIso: TARGET_DAY_ISO,
-    sex: '남',
-    birthDisplay: '1995-02-09 06:40',
-    whoBirthLine: '1995.2.9 06:40',
-    place: '서울',
+    sex: '여',
+    birthDisplay: '1997-03-21 14:30',
+    whoBirthLine: '1997.3.21 14:30',
+    place: lang === 'en' ? 'Seoul' : '서울',
     focusDayCell,
+    now: SAMPLE_NOW,
   })
 
   return (

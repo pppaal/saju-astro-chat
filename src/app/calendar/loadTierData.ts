@@ -6,8 +6,9 @@
    (/destiny)는 loadLifetimeData 로 life 티어를 받는다. (10년·1년 티어는 제거됨 —
    대운/세운 데이터는 인생 전체가 내부에서 소비.)
 
-   캘린더는 항상 '그 달'만 빌드한다(저비용). 인생 전체는 연 cells 풀빌드 없이
-   natal + focusDayCell 만 쓰는 loadLifetimeData 경로.
+   캘린더는 항상 '그 달'만 빌드한다(저비용) — 숨은 인생 티어는 계산하지 않는다.
+   인생 전체는 연 cells 풀빌드 없이 natal + focusDayCell 만 쓰는 loadLifetimeData 경로.
+   두 로더 모두 `now` 를 주입받아(기본 new Date()) 시계를 한 번만 읽는다.
    ============================================================ */
 
 import { headers } from 'next/headers'
@@ -226,8 +227,14 @@ async function resolveBirthGuard(
 /**
  * 로그인 + 본명 가드를 통과하면 어셈블된 tier 데이터를, 아니면 fallback 종류를
  * 반환한다. 서버 컴포넌트(page.tsx)는 결과 kind 로 분기만 하면 된다.
+ *
+ * `now` 주입점 — 기본은 호출 시점(new Date()). 프로덕션은 그대로, 테스트는 고정해
+ * 같은 입력이면 같은 결과가 나오게 한다(결정론 규약).
  */
-export async function loadTierData(override?: BirthOverride | null): Promise<LoadTierResult> {
+export async function loadTierData(
+  override?: BirthOverride | null,
+  now: Date = new Date()
+): Promise<LoadTierResult> {
   const lang = await detectServerLocale()
 
   const guard = await resolveBirthGuard(override, lang)
@@ -239,10 +246,11 @@ export async function loadTierData(override?: BirthOverride | null): Promise<Loa
   const BIRTH_YEAR = Number(BIRTH.birthDate.split('-')[0])
 
   // '오늘' — 사용자 출생 타임존 기준(서버 UTC 와 무관하게 날짜 일관).
-  // now 단일 기준: 같은 인스턴트를 deriver(currentManAge)까지 흘려 "현재 단계"가
-  // TARGET_* 와 같은 날짜를 보게 한다(currentManAge 가 birthTimeZone 으로 포맷).
-  const now = new Date()
-  const today = getNowInTimezone(BIRTH.timeZone)
+  // now 단일 기준: 주입된 같은 인스턴트로 '오늘'을 정하고 deriver(currentManAge)까지
+  // 흘려 "현재 단계"가 TARGET_* 와 같은 날짜를 보게 한다(currentManAge 가
+  // birthTimeZone 으로 포맷). 예전엔 new Date() 와 getNowInTimezone() 이 시계를
+  // 따로 읽어 자정 경계에서 둘이 다른 날을 볼 수 있었다.
+  const today = getNowInTimezone(BIRTH.timeZone, now)
   const TARGET_YEAR = today.year
   const TARGET_MONTH = today.month
   const TARGET_DAY = today.day
@@ -292,9 +300,12 @@ export async function loadTierData(override?: BirthOverride | null): Promise<Loa
  * 2.9s 계산 + ~39MB 캐시 행 왕복)를 냈지만, 인생 티어는 연 cells 를 전혀 쓰지
  * 않는다(감사 의존성 표) — 이 로더는 ~0.4s(콜드)/~0.1s(natal 웜)로 같은 화면을
  * 만든다. 결과는 birthKey 순수 파생이라 DB 캐시도 두지 않는다.
+ *
+ * `now` 주입점 — loadTierData 와 같은 규약(기본 new Date(), 테스트는 고정).
  */
 export async function loadLifetimeData(
-  override?: BirthOverride | null
+  override?: BirthOverride | null,
+  now: Date = new Date()
 ): Promise<LoadLifetimeResult> {
   const lang = await detectServerLocale()
 
@@ -306,8 +317,7 @@ export async function loadLifetimeData(
   const place = guard.place
   const BIRTH_YEAR = Number(BIRTH.birthDate.split('-')[0])
 
-  const now = new Date()
-  const today = getNowInTimezone(BIRTH.timeZone)
+  const today = getNowInTimezone(BIRTH.timeZone, now)
   const todayIso = formatDateString(today.year, today.month, today.day)
 
   const natal = await getOrBuildNatalContext(BIRTH)
