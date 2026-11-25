@@ -12,6 +12,7 @@ import {
   type GeokgukType,
   type SajuPillarsInput,
 } from '@/lib/saju/geokguk'
+import { calculateSajuData } from '@/lib/saju/saju'
 
 // Note: evaluateGeokgukStatus takes (geokguk, pillars) in that order
 // Note: evaluateHwagiGeokguk returns { possible, type, conditions, description }
@@ -363,11 +364,12 @@ describe('Geokguk Module', () => {
   })
 
   // ───────────────────────────────────────────────────────────────────────
-  // 화기격국 — checkHwagiGeokguk 경유 (종/비격/특수 모두 미해당)
+  // 화기격국 — evaluateHwagiGeokguk 엄격 규칙 (종격 다음, 비격·정격 전)
   // ───────────────────────────────────────────────────────────────────────
-  describe('화기격국 (checkHwagiGeokguk)', () => {
+  describe('화기격국 (evaluateHwagiGeokguk 엄격 규칙)', () => {
     it('갑기화토격 — 천간합이 화하는 격국 (medium confidence)', () => {
-      const p = createPillars('甲', '卯', '壬', '寅', '己', '巳', '甲', '巳')
+      // 甲 일간 + 월간 己(인접) + 丑월(토 월령) + 천간 목 1개(일간뿐) + 토 우세
+      const p = createPillars('丙', '子', '己', '丑', '甲', '申', '戊', '寅')
       const r = determineGeokguk(p)
       expect(r.primary).toBe('갑기화토격')
       expect(r.category).toBe('화기격국')
@@ -402,7 +404,8 @@ describe('Geokguk Module', () => {
     })
 
     it('정격 중화 — 용신 "격국에 맞는 용신", 기신 빈 문자열', () => {
-      const p = createPillars('辛', '未', '丁', '丑', '丁', '申', '己', '戌')
+      // E4 중심 보정 후 辛未 丁丑 丁申 己戌 은 30(신약). 중화(40~59) 정격으로 교체.
+      const p = createPillars('甲', '子', '壬', '辰', '庚', '戌', '癸', '未')
       const r = determineGeokguk(p)
       expect(r.category).toBe('정격')
       const score = getStrengthScore(p)
@@ -573,23 +576,54 @@ describe('Geokguk Module', () => {
   // ───────────────────────────────────────────────────────────────────────
   // evaluateHwagiGeokguk — 성립/미성립 4조건 전부
   // ───────────────────────────────────────────────────────────────────────
-  describe('evaluateHwagiGeokguk — 4조건 분기', () => {
-    it('을경화금격 성립 — 4조건 모두 충족', () => {
-      const p = createPillars('己', '丑', '乙', '酉', '庚', '戌', '戊', '辰')
+  describe('evaluateHwagiGeokguk — 6조건 분기', () => {
+    it('을경화금격 성립 — 6조건 모두 충족', () => {
+      // 庚 일간 + 월간 乙(인접) + 酉월 + 천간 화 0 + 금(庚辛 + 丑酉申巳 지장간) 6
+      const p = createPillars('己', '丑', '乙', '酉', '庚', '申', '辛', '巳')
       const r = evaluateHwagiGeokguk(p)
       expect(r.possible).toBe(true)
       expect(r.type).toBe('을경화금격')
       expect(r.conditions).toEqual({
         hasHap: true,
         isDaymasterPart: true,
+        adjacentPartner: true,
         monthSupport: true,
         noBreaker: true,
+        dominant: true,
       })
       expect(r.description).toContain('성립')
     })
 
-    it('병신화수격 성립 — 4조건 모두 충족', () => {
-      const p = createPillars('甲', '寅', '丙', '子', '辛', '酉', '壬', '子')
+    it('화신 미약 — 금이 천간+지장간 4 뿐이면 미성립 (dominant=false)', () => {
+      // 己丑 乙酉 庚戌 戊辰: 庚 + 丑·酉·戌 의 辛 = 4 < 5
+      const p = createPillars('己', '丑', '乙', '酉', '庚', '戌', '戊', '辰')
+      const r = evaluateHwagiGeokguk(p)
+      expect(r.conditions.dominant).toBe(false)
+      expect(r.possible).toBe(false)
+      expect(r.description).toContain('화신 오행 미약')
+    })
+
+    it('합 상대가 년간뿐 — adjacentPartner=false면 미성립 (年干 은 멀다)', () => {
+      // 辛酉 乙未 丙辰 戊戌: 丙 일간의 합 상대 辛 이 년간에만 (감사 SD-03 재현)
+      const p = createPillars('辛', '酉', '乙', '未', '丙', '辰', '戊', '戌')
+      const r = evaluateHwagiGeokguk(p)
+      expect(r.conditions.isDaymasterPart).toBe(true)
+      expect(r.conditions.adjacentPartner).toBe(false)
+      expect(r.possible).toBe(false)
+      expect(r.description).toContain('합 상대가 월간·시간에 없음')
+    })
+
+    it('일간의 합을 우선 평가 — 다른 합이 앞에 있어도 일간 합의 조건을 본다', () => {
+      // 甲·己(일간 무관) 와 丙·辛(일간 丙) 이 함께: 丙辛 을 평가해야 한다
+      const p = createPillars('甲', '亥', '辛', '子', '丙', '子', '己', '亥')
+      const r = evaluateHwagiGeokguk(p)
+      expect(r.conditions.isDaymasterPart).toBe(true)
+      expect(r.description).toContain('병신화수격')
+    })
+
+    it('병신화수격 성립 — 6조건 모두 충족', () => {
+      // 辛 일간 + 월간 丙(인접) + 子월 + 천간 토 0 + 수(壬癸 + 子子亥 지장간) 5
+      const p = createPillars('壬', '子', '丙', '子', '辛', '亥', '癸', '巳')
       const r = evaluateHwagiGeokguk(p)
       expect(r.possible).toBe(true)
       expect(r.type).toBe('병신화수격')
@@ -630,8 +664,10 @@ describe('Geokguk Module', () => {
       expect(r.conditions).toEqual({
         hasHap: false,
         isDaymasterPart: false,
+        adjacentPartner: false,
         monthSupport: false,
         noBreaker: false,
+        dominant: false,
       })
       expect(r.description).toBe('천간합 없음')
     })
@@ -678,5 +714,99 @@ describe('Geokguk Module', () => {
       const s = getStrengthScore(p)
       expect(s).toBeGreaterThanOrEqual(0)
     })
+  })
+})
+
+// ───────────────────────────────────────────────────────────────────────────
+// 엔진 감사 E4 — 화기격국은 엄격 규칙에서만 (SD-03)
+// ───────────────────────────────────────────────────────────────────────────
+
+const gzPillars = (gz: string): SajuPillarsInput => {
+  const p = gz.split(' ')
+  return createPillars(p[0][0], p[0][1], p[1][0], p[1][1], p[2][0], p[2][1], p[3][0], p[3][1])
+}
+const HWAGI_NAMES = ['갑기화토격', '을경화금격', '병신화수격', '정임화목격', '무계화화격']
+const PARTNER: Record<string, string> = {
+  甲: '己',
+  己: '甲',
+  乙: '庚',
+  庚: '乙',
+  丙: '辛',
+  辛: '丙',
+  丁: '壬',
+  壬: '丁',
+  戊: '癸',
+  癸: '戊',
+}
+
+describe('E4 화기격국 — 감사 재현 (SD-03)', () => {
+  it('壬辰 乙巳 壬申 丁未 → 화기격국 아님 (丁壬→木 인데 巳월은 화)', () => {
+    const g = determineGeokguk(gzPillars('壬辰 乙巳 壬申 丁未'))
+    expect(g.category).not.toBe('화기격국')
+    expect(g.primary).not.toBe('정임화목격')
+  })
+
+  it('辛酉 乙未 丙辰 戊戌 → 병신화수격 아님 (합 상대 辛 이 년간에만)', () => {
+    const g = determineGeokguk(gzPillars('辛酉 乙未 丙辰 戊戌'))
+    expect(g.primary).not.toBe('병신화수격')
+    expect(g.category).not.toBe('화기격국')
+  })
+
+  it('甲寅 戊辰 癸未 辛酉 → 무계화화격 아님 (辰월은 화를 지지하지 않음)', () => {
+    expect(determineGeokguk(gzPillars('甲寅 戊辰 癸未 辛酉')).primary).not.toBe('무계화화격')
+  })
+})
+
+describe('E4 화기격국 — 시드 400 실제 생일 불변식', () => {
+  let seed = 12345
+  const rnd = () => {
+    seed = (seed * 1103515245 + 12345) & 0x7fffffff
+    return seed / 0x7fffffff
+  }
+  const pad = (x: number) => String(x).padStart(2, '0')
+  const now = new Date('2026-11-24T00:00:00Z')
+  const charts: SajuPillarsInput[] = []
+  for (let i = 0; i < 400; i++) {
+    const date = `${1941 + Math.floor(rnd() * 108)}-${pad(1 + Math.floor(rnd() * 12))}-${pad(1 + Math.floor(rnd() * 28))}`
+    const time = `${pad(Math.floor(rnd() * 24))}:${pad(Math.floor(rnd() * 60))}`
+    const gender = rnd() < 0.5 ? 'male' : 'female'
+    const raw = calculateSajuData(
+      date,
+      time,
+      gender,
+      'solar',
+      'Asia/Seoul',
+      false,
+      126.978,
+      now
+    ) as unknown as {
+      pillars: Record<string, { heavenlyStem: { name: string }; earthlyBranch: { name: string } }>
+    }
+    const P = raw.pillars
+    const pick = (k: string) => ({ stem: P[k].heavenlyStem.name, branch: P[k].earthlyBranch.name })
+    charts.push({ year: pick('year'), month: pick('month'), day: pick('day'), time: pick('time') })
+  }
+  const results = charts.map((p) => ({ p, g: determineGeokguk(p) }))
+
+  it('화기격국 ⇒ evaluateHwagiGeokguk.possible + 합 상대가 인접 월간/시간', () => {
+    for (const { p, g } of results.filter((x) => x.g.category === '화기격국')) {
+      const h = evaluateHwagiGeokguk(p)
+      expect(h.possible).toBe(true)
+      expect(h.type).toBe(g.primary)
+      const partner = PARTNER[p.day.stem]
+      expect(p.month.stem === partner || p.time.stem === partner).toBe(true)
+    }
+  })
+
+  it('化氣 이름은 category 화기격국 으로만 나온다 (종격으로 새지 않음)', () => {
+    const leaked = results.filter(
+      ({ g }) => HWAGI_NAMES.includes(g.primary) && g.category !== '화기격국'
+    )
+    expect(leaked.map(({ g }) => `${g.primary}/${g.category}`)).toEqual([])
+  })
+
+  it('화기격국 비율 < 3% — 예전 느슨한 판정은 약 20%', () => {
+    const n = results.filter(({ g }) => g.category === '화기격국').length
+    expect(n / results.length).toBeLessThan(0.03)
   })
 })

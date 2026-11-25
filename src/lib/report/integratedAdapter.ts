@@ -34,6 +34,7 @@ import {
 import { getSouthNodeOppositeSign } from '@/lib/astrology/interpretations'
 import { SIGN_KO_TO_EN } from '@/lib/astrology/signLabels'
 import { getGongmang } from '@/lib/saju/pillarLookup'
+import { strengthClassOf } from '@/lib/saju/strengthScore'
 import { PLANET_KO as PLANET_KO_BASE } from '@/lib/calendar-engine/data/planetNames'
 import { currentManAge } from '@/lib/datetime/currentAge'
 
@@ -633,7 +634,11 @@ export function buildCrossRows(
     .filter((h: any) => Array.isArray(h.pillars) && h.pillars.includes('day'))
     .map((h: any) => String(h.kind ?? h.name))
   const stage = S.twelveStages?.day
-  const strength = adv.yongsin?.daymasterStrength ?? S.strength
+  // 강약 3분류 SSOT — ctx.saju.strength(strengthClassOf, 캘린더·리포트 공통). 용신의
+  // 5단계 라벨은 같은 점수에서 나오므로 3분류로 접은 값이 항상 같다(엔진 감사 SD-08).
+  const strength: string | undefined =
+    S.strength ??
+    (adv.yongsin?.daymasterStrength ? strengthClassOf(adv.yongsin.daymasterStrength) : undefined)
 
   // 공망 × South Node 교차용 데이터 — 공망 지지(advanced 우선, 없으면 top-level)
   // + North Node sign 으로부터 South Node sign 유도. 둘 다 비면 evalVoid 가 null

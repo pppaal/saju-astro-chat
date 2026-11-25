@@ -29,6 +29,7 @@ import { collectAstroFacts } from '@/lib/destiny/astroFacts'
 import { performAnalyses } from '@/lib/saju/analyses'
 import { annotateShinsal, getTwelveStagesForPillars } from '@/lib/saju/shinsal'
 import { JIJANGGAN } from '@/lib/saju/constants'
+import { strengthClassOf } from '@/lib/saju/strengthScore'
 import { parseHourMinute } from '@/lib/saju/timeParse'
 import { TIME_UNKNOWN_ANCHOR } from '@/lib/saju/birthTimeAnchor'
 import type { NatalContext, NatalDayJijanggan } from '@/lib/calendar-engine/context/types'
@@ -125,13 +126,6 @@ export async function buildReportContext(input: ReportContextInput): Promise<Nat
     branch: d.earthlyBranch,
   }))
 
-  // 사주 강약 라벨 변환 (사주 SSOT 의 한글 등급 → calendar-engine 의 영문 라벨).
-  const mapStrength = (s: string): 'strong' | 'medium' | 'weak' => {
-    if (s === '극신강' || s === '신강') return 'strong'
-    if (s === '극신약' || s === '신약') return 'weak'
-    return 'medium'
-  }
-
   // ─── 점성 분석 — astroFacts.hellenistic 가 다 만들어줌 ──────────────
   // includeHellenistic:true 로 collectAstroFacts 호출했으므로 정통 점성 정적
   // 분석 일체 (sect / extraPoints (Chiron·Lilith) / natalAspects major+minor
@@ -171,7 +165,8 @@ export async function buildReportContext(input: ReportContextInput): Promise<Nat
         ) as FiveElement[],
       },
       geokguk: sajuFacts.geokguk ?? undefined,
-      strength: mapStrength(sajuFacts.strength),
+      // 강약 3분류 SSOT(strengthClassOf) — 캘린더 build.ts 와 같은 함수. 중화 → medium.
+      strength: strengthClassOf(sajuFacts.strength),
       natalShinsal: shinsalAnnot.hits as never,
       natalRelations: sajuFacts.relations as never,
       daeun: daeunList,

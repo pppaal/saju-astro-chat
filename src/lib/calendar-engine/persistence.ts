@@ -52,6 +52,10 @@ import type { CalendarCell, CalendarBuildOptions, CalendarRange } from './types'
 //     같은 미출시 릴리스의 신살 canon(엔진 감사 E3 — 태극·귀문·천주·도화 교정, 본명
 //     삼재 제거; natalShinsal·일진 신살 점수가 바뀜)도 이 v8 에 함께 실린다. E3 만
 //     따로 출시되면 그때 +1.
+//     판단층 교정(엔진 감사 E4 — 강약 중심 보정, 용신 억부 정합, 화기격국 엄격 규칙;
+//     natal strength·yongsin 이 NatalContextCache 에 구워지고 사주 추출기 극성이 모두
+//     용신 기준이라 셀 점수가 바뀜)도 같은 미출시 릴리스라 v8 에 함께 실린다. E4 만
+//     따로 출시되면 그때 +1.
 // (export — dataRetention 스윕이 옛 버전 NatalContextCache 고아 행을 지우는 기준.)
 export const CALENDAR_ENGINE_VERSION = 'v8'
 

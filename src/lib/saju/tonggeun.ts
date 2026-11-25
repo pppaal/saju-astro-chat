@@ -6,6 +6,7 @@ import { FiveElement, YinYang, SajuPillarsInput } from './types'
 import { JIJANGGAN } from './constants'
 import { THREE_HARMONY, DIRECTIONAL_HARMONY } from './relationTables'
 import { getStemElement, getStemYinYang, getBranchElement } from './stemBranchUtils'
+import { JIJANGGAN_WEIGHTS } from './strengthScore'
 
 // Re-export for backward compatibility
 export type { SajuPillarsInput }
@@ -79,14 +80,18 @@ export interface TonggeunStrengthAnalysis {
 // ============ 통근 계산 ============
 
 /**
- * 지장간 강도 계산
- * 정기 > 중기 > 여기 순서로 힘이 강함
+ * 지장간 강도 — 정기 > 중기 > 여기.
+ * CONVENTIONS §6 의 강약·통근 행(strengthScore.JIJANGGAN_WEIGHTS 0.60/0.25/0.15)을
+ * 정기 = 100 으로 정규화해 쓴다(정기 100 · 중기 42 · 여기 25) — 통근력 0~200 스케일과
+ * 그 임계(100 단단 / 50 뚜렷)는 그대로. 예전 100/60/30 은 §6 이 금지한 *제3의
+ * 가중치*였다(엔진 감사 F8).
  */
-const JIJANGGAN_STRENGTH: Record<string, number> = {
-  정기: 100,
-  중기: 60,
-  여기: 30,
-}
+const JIJANGGAN_STRENGTH: Record<string, number> = Object.fromEntries(
+  Object.entries(JIJANGGAN_WEIGHTS).map(([k, w]) => [
+    k,
+    Math.round((100 * w) / JIJANGGAN_WEIGHTS.정기),
+  ])
+)
 
 /**
  * 기둥별 통근 강도 가중치
@@ -264,10 +269,12 @@ const SAMHAP: Array<{ branches: string[]; result: FiveElement }> = (
 /**
  * 방합 정의 — canon 파생
  */
-const BANGHAP: Array<{ branches: string[]; result: FiveElement }> = DIRECTIONAL_HARMONY.map((d) => ({
-  branches: [...d.members],
-  result: d.element,
-}))
+const BANGHAP: Array<{ branches: string[]; result: FiveElement }> = DIRECTIONAL_HARMONY.map(
+  (d) => ({
+    branches: [...d.members],
+    result: d.element,
+  })
+)
 
 /**
  * 반합(半合) 정의 - 삼합의 왕지 포함 인접 2지지. canon 파생, center=왕지(가운데).
@@ -363,12 +370,14 @@ const MONTH_ELEMENT_MAP: Record<string, FiveElement> = {
 }
 
 /**
- * 왕상휴수사 계산
- * 旺(100): 같은 오행
- * 相(80): 나를 생하는 오행
- * 休(0): 내가 생하는 오행
- * 囚(-50): 나를 극하는 오행
- * 死(-80): 내가 극하는 오행
+ * 왕상휴수사 계산 — 當令者旺 · 令生者相 · 生令者休 · 剋令者囚 · 令剋者死
+ * 旺(100): 월령이 같은 오행
+ * 相(80): 월령이 나를 생함
+ * 休(0): 내가 월령을 생함
+ * 囚(-50): 내가 월령을 극함 (剋令者囚 — 예: 甲 辰월)
+ * 死(-80): 월령이 나를 극함 (令剋者死 — 예: 甲 申월)
+ * 예전 표는 囚/死 를 다섯 행 모두 뒤바꿔 甲 申월을 '수령'(-50)으로 냈다
+ * (엔진 감사 SD-16). strengthScore.deukryeongScore 의 순서(극출 5 > 극입 0)와 같다.
  */
 export function calculateDeukryeong(daymaster: string, monthBranch: string): DeukryeongResult {
   const daymasterElement = getStemElement(daymaster)
@@ -383,36 +392,36 @@ export function calculateDeukryeong(daymaster: string, monthBranch: string): Deu
       목: { status: '득령', strength: 100, desc: '목왕절, 득령' },
       수: { status: '득령', strength: 80, desc: '수생목, 상령' },
       화: { status: '평령', strength: 0, desc: '목생화, 휴령' },
-      금: { status: '실령', strength: -50, desc: '금극목, 수령' },
-      토: { status: '실령', strength: -80, desc: '목극토, 사령' },
+      금: { status: '실령', strength: -80, desc: '금극목, 사령' },
+      토: { status: '실령', strength: -50, desc: '목극토, 수령' },
     },
     화: {
       화: { status: '득령', strength: 100, desc: '화왕절, 득령' },
       목: { status: '득령', strength: 80, desc: '목생화, 상령' },
       토: { status: '평령', strength: 0, desc: '화생토, 휴령' },
-      수: { status: '실령', strength: -50, desc: '수극화, 수령' },
-      금: { status: '실령', strength: -80, desc: '화극금, 사령' },
+      수: { status: '실령', strength: -80, desc: '수극화, 사령' },
+      금: { status: '실령', strength: -50, desc: '화극금, 수령' },
     },
     토: {
       토: { status: '득령', strength: 100, desc: '토왕절, 득령' },
       화: { status: '득령', strength: 80, desc: '화생토, 상령' },
       금: { status: '평령', strength: 0, desc: '토생금, 휴령' },
-      목: { status: '실령', strength: -50, desc: '목극토, 수령' },
-      수: { status: '실령', strength: -80, desc: '토극수, 사령' },
+      목: { status: '실령', strength: -80, desc: '목극토, 사령' },
+      수: { status: '실령', strength: -50, desc: '토극수, 수령' },
     },
     금: {
       금: { status: '득령', strength: 100, desc: '금왕절, 득령' },
       토: { status: '득령', strength: 80, desc: '토생금, 상령' },
       수: { status: '평령', strength: 0, desc: '금생수, 휴령' },
-      화: { status: '실령', strength: -50, desc: '화극금, 수령' },
-      목: { status: '실령', strength: -80, desc: '금극목, 사령' },
+      화: { status: '실령', strength: -80, desc: '화극금, 사령' },
+      목: { status: '실령', strength: -50, desc: '금극목, 수령' },
     },
     수: {
       수: { status: '득령', strength: 100, desc: '수왕절, 득령' },
       금: { status: '득령', strength: 80, desc: '금생수, 상령' },
       목: { status: '평령', strength: 0, desc: '수생목, 휴령' },
-      토: { status: '실령', strength: -50, desc: '토극수, 수령' },
-      화: { status: '실령', strength: -80, desc: '수극화, 사령' },
+      토: { status: '실령', strength: -80, desc: '토극수, 사령' },
+      화: { status: '실령', strength: -50, desc: '수극화, 수령' },
     },
   }
 

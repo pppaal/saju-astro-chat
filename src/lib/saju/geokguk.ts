@@ -311,20 +311,29 @@ function countSipsungWithJijanggan(pillars: SajuPillarsInput): Record<Sipsung, n
   return counts
 }
 
-// 천간합 정의 — 化氣格(化氣格) 흐름 판정용. checkHwagiGeokguk() 보다 엄격.
-// 일간이 합의 일부 + 합 상대가 월간/시간 (年干 은 멀어서 제외) + 화기 오행이
-// 사주에 우세 (≥ 5)할 때만 化氣 흐름으로 인정.
-const HAP_HWAGI_DEFS: Array<{
+// 천간합 → 화신(化神) 오행 → 화신을 지지하는 월령(月令). 化氣格 판정의 단일 표 —
+// evaluateHwagiGeokguk 만 쓴다 (예전 checkJonggyeok·checkHwagiGeokguk·evaluate
+// 세 곳에 따로 있던 쌍 표를 하나로).
+const HWAGI_DEFS: Array<{
   pair: [string, string]
   result: GeokgukType
   resultElement: FiveElement
+  supportBranches: string[]
 }> = [
-  { pair: ['甲', '己'], result: '갑기화토격', resultElement: '토' },
-  { pair: ['乙', '庚'], result: '을경화금격', resultElement: '금' },
-  { pair: ['丙', '辛'], result: '병신화수격', resultElement: '수' },
-  { pair: ['丁', '壬'], result: '정임화목격', resultElement: '목' },
-  { pair: ['戊', '癸'], result: '무계화화격', resultElement: '화' },
+  {
+    pair: ['甲', '己'],
+    result: '갑기화토격',
+    resultElement: '토',
+    supportBranches: ['辰', '戌', '丑', '未'],
+  },
+  { pair: ['乙', '庚'], result: '을경화금격', resultElement: '금', supportBranches: ['申', '酉'] },
+  { pair: ['丙', '辛'], result: '병신화수격', resultElement: '수', supportBranches: ['亥', '子'] },
+  { pair: ['丁', '壬'], result: '정임화목격', resultElement: '목', supportBranches: ['寅', '卯'] },
+  { pair: ['戊', '癸'], result: '무계화화격', resultElement: '화', supportBranches: ['巳', '午'] },
 ]
+
+/** 化神 우세 임계 — 화신 오행이 천간 + 지장간 전체(각 1점)에서 이 수 이상. */
+const HWAGI_DOMINANT_MIN = 5
 
 // 종격 판정 — 정통 적천수(滴天髓) 흐름 판정 + 수치 임계 OR 결합.
 //
@@ -338,8 +347,9 @@ const HAP_HWAGI_DEFS: Array<{
 //   2. 從官殺格 — weight<30, 관성(편관+정관) ≥ 4 → 일간이 관성을 따라감
 //   3. 從兒格  — weight<30, 식상(식신+상관) ≥ 4 → 일간이 식상을 따라감
 //   4. 從旺/從強 — weight>70, 비겁+인성 ≥ 5 → 일간이 너무 강해 따를 데 없음
-//   5. 化氣格 — 일간이 월간/시간과 천간합 + 화한 오행 카운트(지장간 합산) ≥ 5 +
-//              파합 요소(화기 오행을 극하는 오행) 1개 이하
+// (化氣格은 여기서 보지 않는다 — determineGeokguk 이 evaluateHwagiGeokguk 엄격
+//  규칙으로 종격 다음에 따로 판정. 예전엔 여기서 월령 지지 없이 化氣 이름을
+//  category '종격' 으로 내보냈다.)
 //
 // 옛 코드는 strength === '신강' (40-점 중간 임계) 만으로도 종격 후보가 되어
 // 부드러운 신강 사주가 종격으로 잘못 분류되는 경향이 있었고, 그 후 80/20 으로
@@ -405,43 +415,10 @@ function checkJonggyeok(pillars: SajuPillarsInput): GeokgukType | null {
     }
   }
 
-  // ─── 흐름 패턴 5 — 化氣格 (합화) ───
-  // 일간이 천간합으로 다른 오행으로 화. 정통 화기격은 (1) 일간이 합의 일부 +
-  // (2) 합 상대가 인접한 월간 또는 시간 (年干 은 멀어서 부적합) + (3) 화한 오행
-  // 카운트(지장간 합산)가 사주에서 우세 + (4) 화기 오행을 파(破)하는 극관계
-  // 오행이 거의 없어야 한다. checkHwagiGeokguk() 보다 엄격해, 단순히 스템에
-  // 갑+기가 있다고 모두 化土로 잡지 않는다.
-  const dayS = normalizeStem(pillars.day.stem)
-  const monthS = normalizeStem(pillars.month.stem)
-  const timeS = normalizeStem(pillars.time.stem)
-  const dayElement = getStemElement(dayS)
-
-  for (const def of HAP_HWAGI_DEFS) {
-    // (1) 일간이 합의 일부인가
-    if (!def.pair.includes(dayS)) continue
-    // (2) 합 상대가 월간 또는 시간 (年干 제외)
-    const partner = def.pair[0] === dayS ? def.pair[1] : def.pair[0]
-    const adjacentPartner = monthS === partner || timeS === partner
-    if (!adjacentPartner) continue
-    // 화기 오행이 일간 본래 오행과 같으면 化 의미 없음
-    if (def.resultElement === dayElement) continue
-
-    // (3) 화한 오행 카운트(지장간 합산) ≥ 5
-    const hwagiCount = countElementPresenceWithJijanggan(pillars, def.resultElement)
-    if (hwagiCount < 5) continue
-
-    // (4) 파합 요소 — 화기 오행을 극하는 오행 카운트(지장간 합산) ≤ 1
-    const breakerElement = FIVE_ELEMENT_RELATIONS.극받는관계[def.resultElement]
-    const breakerCount = countElementPresenceWithJijanggan(pillars, breakerElement)
-    if (breakerCount > 1) continue
-
-    return def.result
-  }
-
   return null
 }
 
-// 오행 존재감 합산 (지장간 정·중·여기 포함) — 化氣格 흐름 판정용.
+// 오행 존재감 합산 (지장간 정·중·여기 포함) — 化氣格 화신 우세 판정용.
 // 천간 4개 + 지지 본기 4개 + 지장간 중·여기까지 모두 1점씩 합산.
 function countElementPresenceWithJijanggan(
   pillars: SajuPillarsInput,
@@ -524,37 +501,6 @@ function checkBigyeok(pillars: SajuPillarsInput): GeokgukType | null {
   return null
 }
 
-// 화기격국 판정 (천간합 화)
-function checkHwagiGeokguk(pillars: SajuPillarsInput): GeokgukType | null {
-  const stems = [
-    normalizeStem(pillars.year.stem),
-    normalizeStem(pillars.month.stem),
-    normalizeStem(pillars.day.stem),
-    normalizeStem(pillars.time.stem),
-  ]
-
-  // 천간합 쌍
-  const hapPairs: Array<{ pair: [string, string]; result: GeokgukType }> = [
-    { pair: ['甲', '己'], result: '갑기화토격' },
-    { pair: ['乙', '庚'], result: '을경화금격' },
-    { pair: ['丙', '辛'], result: '병신화수격' },
-    { pair: ['丁', '壬'], result: '정임화목격' },
-    { pair: ['戊', '癸'], result: '무계화화격' },
-  ]
-
-  for (const { pair, result } of hapPairs) {
-    if (stems.includes(pair[0]) && stems.includes(pair[1])) {
-      // 일간이 합의 일부이고, 월령이 화한 오행을 도우면 성립
-      const dayS = normalizeStem(pillars.day.stem)
-      if (pair.includes(dayS)) {
-        return result
-      }
-    }
-  }
-
-  return null
-}
-
 // 특수격국 판정 (곡직격, 염상격 등)
 function checkSpecialGeokguk(pillars: SajuPillarsInput): GeokgukType | null {
   const counts = countElements(pillars)
@@ -611,7 +557,23 @@ export function determineGeokguk(pillars: SajuPillarsInput): GeokgukResult {
     }
   }
 
-  // 3. 비격 체크 (건록격, 양인격)
+  // 3. 화기격국 체크 — evaluateHwagiGeokguk 엄격 규칙 하나만 (엔진 감사 SD-03).
+  //    일간의 합 상대가 인접 월간/시간 + 월령이 화신 지지 + 파합 없음 + 화신 우세.
+  //    외격(外格)이라 내격(건록·양인·정격)보다 먼저 본다. 하나라도 빠지면 정격/월령
+  //    폴백으로 흘려보낸다 — 예전 checkHwagiGeokguk 은 두 천간이 *어디에든* 있고
+  //    일간이 끼면 성립시켜(월령·인접 무시) 사주의 약 20% 가 화기격국이었다.
+  const hwagi = evaluateHwagiGeokguk(pillars)
+  if (hwagi.possible && hwagi.type) {
+    return {
+      primary: hwagi.type,
+      category: '화기격국',
+      confidence: 'medium',
+      description: `${hwagi.type}: 천간합이 화(化)하는 격국`,
+      yongsin: '화한 오행',
+    }
+  }
+
+  // 4. 비격 체크 (건록격, 양인격)
   const bi = checkBigyeok(pillars)
   if (bi) {
     return {
@@ -621,18 +583,6 @@ export function determineGeokguk(pillars: SajuPillarsInput): GeokgukResult {
       description: `${bi}: 월지에 비겁이 있는 격국`,
       yongsin: '재성 또는 관성',
       gisin: '비겁/인성',
-    }
-  }
-
-  // 4. 화기격국 체크
-  const hwagi = checkHwagiGeokguk(pillars)
-  if (hwagi) {
-    return {
-      primary: hwagi,
-      category: '화기격국',
-      confidence: 'medium',
-      description: `${hwagi}: 천간합이 화(化)하는 격국`,
-      yongsin: '화한 오행',
     }
   }
 
@@ -956,7 +906,16 @@ export function evaluateGeokgukStatus(
 }
 
 /**
- * 화기격국 성립 조건 정밀 판정
+ * 화기격국(化氣格) 성립 판정 — 화기격국의 *유일한* 규칙 (determineGeokguk 이 사용).
+ *
+ * 성립 = 다음 모두:
+ *   hasHap          합을 이루는 두 천간이 모두 있다
+ *   isDaymasterPart 일간이 그 합의 한쪽이다
+ *   adjacentPartner 합 상대가 일간과 붙은 월간 또는 시간에 있다 (年干 은 멀어 불가)
+ *   monthSupport    월령(월지)이 화신 오행을 지지한다
+ *   noBreaker       화신을 극하는 오행이 천간에 2개 미만 (파합 없음)
+ *   dominant        화신 오행이 천간+지장간 전체에서 5 이상 (화신 우세)
+ * 일간이 낀 합이 있으면 그 합을 평가하고, 없으면 처음 발견된 합의 조건을 보고한다.
  */
 export function evaluateHwagiGeokguk(pillars: SajuPillarsInput): {
   possible: boolean
@@ -964,8 +923,10 @@ export function evaluateHwagiGeokguk(pillars: SajuPillarsInput): {
   conditions: {
     hasHap: boolean // 합이 있는지
     isDaymasterPart: boolean // 일간이 합의 일부인지
+    adjacentPartner: boolean // 합 상대가 인접 월간/시간인지
     monthSupport: boolean // 월령이 화신 지지하는지
     noBreaker: boolean // 파합 요소 없는지
+    dominant: boolean // 화신 오행이 우세한지
   }
   description: string
 } {
@@ -975,94 +936,67 @@ export function evaluateHwagiGeokguk(pillars: SajuPillarsInput): {
     normalizeStem(pillars.day.stem),
     normalizeStem(pillars.time.stem),
   ]
-  const dayS = normalizeStem(pillars.day.stem)
+  const dayS = stems[2]
   const monthB = normalizeBranch(pillars.month.branch)
 
-  // 천간합 정의 (합 → 화하는 오행 → 월령 지지 지지)
-  const hapDefs: Array<{
-    pair: [string, string]
-    result: GeokgukType
-    resultElement: FiveElement
-    supportBranches: string[]
-  }> = [
-    {
-      pair: ['甲', '己'],
-      result: '갑기화토격',
-      resultElement: '토',
-      supportBranches: ['辰', '戌', '丑', '未'],
-    },
-    {
-      pair: ['乙', '庚'],
-      result: '을경화금격',
-      resultElement: '금',
-      supportBranches: ['申', '酉'],
-    },
-    {
-      pair: ['丙', '辛'],
-      result: '병신화수격',
-      resultElement: '수',
-      supportBranches: ['亥', '子'],
-    },
-    {
-      pair: ['丁', '壬'],
-      result: '정임화목격',
-      resultElement: '목',
-      supportBranches: ['寅', '卯'],
-    },
-    {
-      pair: ['戊', '癸'],
-      result: '무계화화격',
-      resultElement: '화',
-      supportBranches: ['巳', '午'],
-    },
-  ]
+  const present = HWAGI_DEFS.filter((d) => stems.includes(d.pair[0]) && stems.includes(d.pair[1]))
+  const def = present.find((d) => d.pair.includes(dayS)) ?? present[0]
 
-  for (const def of hapDefs) {
-    const hasHap = stems.includes(def.pair[0]) && stems.includes(def.pair[1])
-    if (!hasHap) {
-      continue
-    }
-
-    const isDaymasterPart = def.pair.includes(dayS)
-    const monthSupport = def.supportBranches.includes(monthB)
-
-    // 파합 요소 체크 (극하는 오행이 많으면 파합)
-    const breakerElement = FIVE_ELEMENT_RELATIONS.극받는관계[def.resultElement]
-    let breakerCount = 0
-    for (const stem of stems) {
-      if (getStemElement(stem) === breakerElement) {
-        breakerCount++
-      }
-    }
-    const noBreaker = breakerCount < 2
-
-    const possible = hasHap && isDaymasterPart && monthSupport && noBreaker
-
+  if (!def) {
     return {
-      possible,
-      type: possible ? def.result : null,
+      possible: false,
+      type: null,
       conditions: {
-        hasHap,
-        isDaymasterPart,
-        monthSupport,
-        noBreaker,
+        hasHap: false,
+        isDaymasterPart: false,
+        adjacentPartner: false,
+        monthSupport: false,
+        noBreaker: false,
+        dominant: false,
       },
-      description: possible
-        ? `${def.result} 성립: 월령이 화신을 지지하고 파합 요소 없음`
-        : `${def.result} 미성립: ${!isDaymasterPart ? '일간이 합에 미포함' : ''} ${!monthSupport ? '월령 미지지' : ''} ${!noBreaker ? '파합 요소 존재' : ''}`,
+      description: '천간합 없음',
     }
   }
 
+  const hasHap = true
+  const isDaymasterPart = def.pair.includes(dayS)
+  const partner = def.pair[0] === dayS ? def.pair[1] : def.pair[0]
+  const adjacentPartner = isDaymasterPart && (stems[1] === partner || stems[3] === partner)
+  const monthSupport = def.supportBranches.includes(monthB)
+
+  // 파합 요소 체크 (화신을 극하는 오행이 천간에 많으면 파합)
+  const breakerElement = FIVE_ELEMENT_RELATIONS.극받는관계[def.resultElement]
+  const breakerCount = stems.filter((st) => getStemElement(st) === breakerElement).length
+  const noBreaker = breakerCount < 2
+
+  const dominant =
+    countElementPresenceWithJijanggan(pillars, def.resultElement) >= HWAGI_DOMINANT_MIN
+
+  const possible =
+    hasHap && isDaymasterPart && adjacentPartner && monthSupport && noBreaker && dominant
+
+  const reasons = [
+    !isDaymasterPart && '일간이 합에 미포함',
+    isDaymasterPart && !adjacentPartner && '합 상대가 월간·시간에 없음',
+    !monthSupport && '월령 미지지',
+    !noBreaker && '파합 요소 존재',
+    !dominant && '화신 오행 미약',
+  ].filter(Boolean)
+
   return {
-    possible: false,
-    type: null,
+    possible,
+    type: possible ? def.result : null,
     conditions: {
-      hasHap: false,
-      isDaymasterPart: false,
-      monthSupport: false,
-      noBreaker: false,
+      hasHap,
+      isDaymasterPart,
+      adjacentPartner,
+      monthSupport,
+      noBreaker,
+      dominant,
     },
-    description: '천간합 없음',
+    description: possible
+      ? `${def.result} 성립: 인접 합, 월령이 화신을 지지, 파합 요소 없음, 화신 우세`
+      : `${def.result} 미성립: ${reasons.join(', ')}`,
   }
 }
 

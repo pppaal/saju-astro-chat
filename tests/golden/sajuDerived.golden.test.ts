@@ -22,15 +22,7 @@ import { buildNatalContext } from '@/lib/calendar-engine/context/build'
 import golden from './engine-golden.json'
 
 /** Engine stage that corrects each value. Delete an entry when its stage lands. */
-const KNOWN_DEFECTS: Record<string, string> = {
-  'D10 hwagi': 'E4',
-  'Y01 primaryNotSupport': 'E4',
-  'Y02 secondaryNotKibsin': 'E4',
-  'Y03 primaryNotAvoid': 'E4',
-  'Y04 primarySupportOrJohu': 'E4',
-  'extreme weak strength score': 'E4',
-  'sample 3-class strength label': 'E4',
-}
+const KNOWN_DEFECTS: Record<string, string> = {}
 
 const SHOW_DEFECTS = process.env.GOLDEN_SHOW_DEFECTS === '1'
 const usedDefects = new Set<string>()
@@ -257,7 +249,11 @@ describe('one 3-class strength label across surfaces (E0 section D)', () => {
       yongsin: to3(determineYongsin(simple).daymasterStrength),
       calendar: to3(natal.saju?.strength as string | undefined),
     }
-    expect(labels).toEqual({ facts: 'medium', yongsin: 'medium', calendar: 'medium' })
+    // E0 의 기대값 'medium' 은 옛 스케일(중앙값 62.5)에서 40.5 → 중화였다. OD-7 중심
+    // 보정(일간 자기 비겁 제외 + 중앙값 50) 후 이 사주는 28 → 신약이다. 정통 판독도
+    // 같다: 壬 일간이 卯월(설기)에 나고 丑·戌·未 세 토(관살)와 두 丁(재성)에 둘러싸여
+    // 뿌리는 癸·丑中癸 뿐 — 신약. 핵심 불변식은 세 표면이 같은 3분류를 내는 것.
+    expect(labels).toEqual({ facts: 'weak', yongsin: 'weak', calendar: 'weak' })
   })
 })
 

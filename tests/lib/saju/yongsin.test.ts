@@ -15,6 +15,7 @@ import {
   type ElementStats,
   type SajuPillarsInput,
 } from '@/lib/saju/yongsin'
+import { calculateSajuData } from '@/lib/saju/saju'
 
 // 테스트용 사주 생성 헬퍼
 function createPillars(
@@ -614,12 +615,14 @@ describe('yongsin - 용신 선정 모듈', () => {
   // ============ 추가: 미커버 분기 ============
 
   describe('통관용신 - 모든 충돌 조합 (uncovered arms)', () => {
-    // 온화 월지(卯/辰/申/酉/戌)에서, 병약(특정 오행 ≥3)에 걸리지 않으면서
+    // 온화 월지(卯/辰/申/酉/戌)에서, 병약(억부상 과다 쪽 ≥3)에 걸리지 않으면서
     // 충돌 두 오행이 각각 ≥2 가 되도록 정밀하게 구성한 결정론적 fixture.
     // (브루트포스로 통관용신을 실제로 반환함을 확인한 케이스)
+    // E4: 통관 오행은 억부 허용 그룹이어야 한다 — 甲子 甲辰 丙巳 庚申(중화 편약 丙)의
+    // 수 통관은 기신(관살)이라 이제 건너뛴다. 신강 辛 의 수(식상) 통관으로 교체.
 
     it('목-금 충돌 시 수 통관 (금생수, 수생목)', () => {
-      const pillars = createPillars(['甲', '子'], ['甲', '辰'], ['丙', '巳'], ['庚', '申'])
+      const pillars = createPillars(['乙', '丑'], ['己', '卯'], ['辛', '巳'], ['庚', '申'])
       const result = determineYongsin(pillars)
       expect(result.yongsinType).toBe('통관용신')
       expect(result.primaryYongsin).toBe('수')
@@ -641,7 +644,9 @@ describe('yongsin - 용신 선정 모듈', () => {
     })
 
     it('금-화 충돌 시 토 통관 (화생토, 토생금)', () => {
-      const pillars = createPillars(['甲', '子'], ['丙', '辰'], ['戊', '巳'], ['庚', '申'])
+      // E4: 甲子 丙辰 戊巳 庚申 은 신강 戊 라 토(비겁) 통관이 억부와 충돌 → 억부로.
+      // 신약 庚 의 토(인성) 통관으로 교체.
+      const pillars = createPillars(['庚', '子'], ['丙', '寅'], ['庚', '午'], ['壬', '申'])
       const result = determineYongsin(pillars)
       expect(result.yongsinType).toBe('통관용신')
       expect(result.primaryYongsin).toBe('토')
@@ -729,5 +734,178 @@ describe('yongsin - 용신 선정 모듈', () => {
       }
       expect(result.primaryYongsin).toBeDefined()
     })
+  })
+})
+
+// ───────────────────────────────────────────────────────────────────────────
+// 엔진 감사 E4 — 용신은 강약과 모순되지 않고, 추천과 회피가 겹치지 않는다
+// (SD-04, F8, OD-8, CONVENTIONS §10 '억부 + 조후 함께')
+// ───────────────────────────────────────────────────────────────────────────
+
+const gz = (s: string): SajuPillarsInput => {
+  const p = s.split(' ')
+  return createPillars(
+    [p[0][0], p[0][1]],
+    [p[1][0], p[1][1]],
+    [p[2][0], p[2][1]],
+    [p[3][0], p[3][1]]
+  )
+}
+const STEM_EL: Record<string, string> = {
+  甲: '목',
+  乙: '목',
+  丙: '화',
+  丁: '화',
+  戊: '토',
+  己: '토',
+  庚: '금',
+  辛: '금',
+  壬: '수',
+  癸: '수',
+}
+const GEN: Record<string, string> = { 목: '화', 화: '토', 토: '금', 금: '수', 수: '목' }
+const CTL: Record<string, string> = { 목: '토', 토: '수', 수: '화', 화: '금', 금: '목' }
+const roleOf = (dm: string, e: string) =>
+  e === dm
+    ? '비겁'
+    : GEN[e] === dm
+      ? '인성'
+      : GEN[dm] === e
+        ? '식상'
+        : CTL[dm] === e
+          ? '재성'
+          : '관성'
+const isStrong = (s: string) => s === '극신강' || s === '신강'
+const isWeak = (s: string) => s === '극신약' || s === '신약'
+
+/** 시드 고정 실제 생일 400개 — 감사 스크립트와 같은 생성기 (seed 12345, 1941–2048, 서울). */
+function seededCharts(n: number): Array<{ label: string; pillars: SajuPillarsInput }> {
+  let seed = 12345
+  const rnd = () => {
+    seed = (seed * 1103515245 + 12345) & 0x7fffffff
+    return seed / 0x7fffffff
+  }
+  const pad = (x: number) => String(x).padStart(2, '0')
+  const now = new Date('2026-11-24T00:00:00Z')
+  const out: Array<{ label: string; pillars: SajuPillarsInput }> = []
+  for (let i = 0; i < n; i++) {
+    const date = `${1941 + Math.floor(rnd() * 108)}-${pad(1 + Math.floor(rnd() * 12))}-${pad(1 + Math.floor(rnd() * 28))}`
+    const time = `${pad(Math.floor(rnd() * 24))}:${pad(Math.floor(rnd() * 60))}`
+    const gender = rnd() < 0.5 ? 'male' : 'female'
+    const raw = calculateSajuData(
+      date,
+      time,
+      gender,
+      'solar',
+      'Asia/Seoul',
+      false,
+      126.978,
+      now
+    ) as unknown as {
+      pillars: Record<string, { heavenlyStem: { name: string }; earthlyBranch: { name: string } }>
+    }
+    const P = raw.pillars
+    const pick = (k: string) => ({ stem: P[k].heavenlyStem.name, branch: P[k].earthlyBranch.name })
+    out.push({
+      label: `${date} ${time}`,
+      pillars: { year: pick('year'), month: pick('month'), day: pick('day'), time: pick('time') },
+    })
+  }
+  return out
+}
+
+describe('E4 용신 — 감사 재현 차트 (SD-04)', () => {
+  it('丙戌 辛卯 乙未 壬午 (신강 乙): primary 는 목·수(비겁·인성)가 아니다', () => {
+    const r = determineYongsin(gz('丙戌 辛卯 乙未 壬午'))
+    expect(isStrong(r.daymasterStrength)).toBe(true)
+    expect(['목', '수']).not.toContain(r.primaryYongsin)
+  })
+
+  it('庚午 庚辰 戊申 辛酉: secondary ≠ kibsin', () => {
+    const r = determineYongsin(gz('庚午 庚辰 戊申 辛酉'))
+    expect(r.secondaryYongsin).not.toBe(r.kibsin)
+  })
+
+  it('辛未 癸巳 丁亥 戊申: primary ∉ {kibsin, gusin}', () => {
+    const r = determineYongsin(gz('辛未 癸巳 丁亥 戊申'))
+    expect([r.kibsin, r.gusin]).not.toContain(r.primaryYongsin)
+  })
+
+  it('甲寅 戊辰 癸未 辛酉 (신약 癸): primary ∈ {금,수} 또는 조후 override', () => {
+    const r = determineYongsin(gz('甲寅 戊辰 癸未 辛酉'))
+    expect(isWeak(r.daymasterStrength)).toBe(true)
+    expect(['금', '수'].includes(r.primaryYongsin) || r.yongsinType === '조후용신').toBe(true)
+  })
+})
+
+describe('E4 용신 — 억부 결과의 추천/회피 분리', () => {
+  it('신강 억부: 용 식상 · 희 재성 · 기 인성 · 구 비겁 (희신이 구신을 겸하지 않는다)', () => {
+    // 庚午 庚辰 戊申 辛酉 — 신강 戊, 조후·병약·통관 미해당 → 억부
+    const r = determineYongsin(gz('庚午 庚辰 戊申 辛酉'))
+    expect(r.yongsinType).toBe('억부용신')
+    expect(r.daymasterStrength).toBe('신강')
+    expect(r).toMatchObject({
+      primaryYongsin: '금',
+      secondaryYongsin: '수',
+      kibsin: '화',
+      gusin: '토',
+    })
+  })
+
+  it('병약 약(藥)은 억부 허용 그룹 — 신약 壬 의 관살(토) 병은 식상이 아니라 인성(금)으로', () => {
+    // 丁丑 癸卯 壬戌 丁未: 신약 壬, 토 4글자(丑戌未 + 관살) → 병=토, 약=금(살인상생)
+    const r = determineYongsin(gz('丁丑 癸卯 壬戌 丁未'))
+    expect(r.yongsinType).toBe('병약용신')
+    expect(isWeak(r.daymasterStrength)).toBe(true)
+    expect(r.kibsin).toBe('토')
+    expect(r.primaryYongsin).toBe('금')
+  })
+
+  it('병 개수는 드러난 8글자만 — 지장간 정기 +0.5 를 세지 않는다', () => {
+    // 甲辰 丙戌 庚子 壬午: 토는 辰·戌 두 글자뿐(드러난 8글자 각 오행 ≤ 2) → 병약 없음.
+    // 예전엔 지지 정기 +0.5 로 토 = 1.5 × 2 = 3 이 되어 병약(목)이 발동했다.
+    const r = determineYongsin(gz('甲辰 丙戌 庚子 壬午'))
+    expect(r.yongsinType).not.toBe('병약용신')
+  })
+})
+
+describe('E4 용신 — 시드 400 실제 생일 불변식', () => {
+  const charts = seededCharts(400)
+  const results = charts.map((c) => ({ ...c, r: determineYongsin(c.pillars) }))
+
+  it('primary·secondary ∉ {kibsin, gusin} — 같은 오행을 추천하고 피하지 않는다', () => {
+    const bad = results.filter(({ r }) => {
+      const avoid = [r.kibsin, r.gusin].filter(Boolean)
+      return (
+        avoid.includes(r.primaryYongsin) ||
+        (!!r.secondaryYongsin && avoid.includes(r.secondaryYongsin))
+      )
+    })
+    expect(bad.map((b) => `${b.label}: ${JSON.stringify(b.r)}`)).toEqual([])
+  })
+
+  it('조후가 아닌 용신은 억부를 따른다 — 신강에 인성·비겁, 신약에 식상·재성·관성 금지', () => {
+    const bad = results.filter(({ pillars, r }) => {
+      if (r.yongsinType === '조후용신') return false
+      const role = roleOf(STEM_EL[pillars.day.stem], r.primaryYongsin)
+      if (isStrong(r.daymasterStrength)) return role === '비겁' || role === '인성'
+      if (isWeak(r.daymasterStrength)) return role === '식상' || role === '재성' || role === '관성'
+      return false
+    })
+    expect(bad.map((b) => `${b.label}: ${b.r.yongsinType} ${b.r.primaryYongsin}`)).toEqual([])
+  })
+
+  it('억부용신에 도달한다 (share > 0) — 예전엔 0', () => {
+    expect(results.filter(({ r }) => r.yongsinType === '억부용신').length).toBeGreaterThan(0)
+  })
+
+  it('조후 R4 가드 유지 — 신약 일간에 관살 조후용신을 처방하지 않는다', () => {
+    const bad = results.filter(
+      ({ pillars, r }) =>
+        r.yongsinType === '조후용신' &&
+        isWeak(r.daymasterStrength) &&
+        roleOf(STEM_EL[pillars.day.stem], r.primaryYongsin) === '관성'
+    )
+    expect(bad.map((b) => b.label)).toEqual([])
   })
 })

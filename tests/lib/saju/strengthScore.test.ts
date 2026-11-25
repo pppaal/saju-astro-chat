@@ -3,11 +3,19 @@ import {
   calculateStrengthScore,
   calculateGeokgukScore,
   calculateYongsinFitScore,
+  computeStrengthScore,
+  toStrengthCoreInput,
+  strengthBandOf,
+  strengthClassOf,
+  STRENGTH_CENTER_OFFSET,
   type ScoreItem,
   type ElementScore,
   type StrengthScore,
 } from '@/lib/saju/strengthScore'
-import type { SajuPillars, PillarData } from '@/lib/saju/types'
+import type { SajuPillars, PillarData, SajuPillarsInput } from '@/lib/saju/types'
+import { calculateSajuData } from '@/lib/saju/saju'
+import { determineYongsin } from '@/lib/saju/yongsin'
+import { collectSajuFacts } from '@/lib/destiny/sajuFacts'
 
 // Helper to create mock pillar data
 function createPillarData(stem: string, branch: string): PillarData {
@@ -108,7 +116,7 @@ describe('strengthScore', () => {
       )
 
       const strongScore = calculateStrengthScore(strongPillars)
-      expect(['극강', '강', '중강']).toContain(strongScore.level)
+      expect(['극신강', '신강']).toContain(strongScore.level)
     })
 
     it('calculates balance as supportScore minus resistScore', () => {
@@ -267,4 +275,141 @@ describe('strengthScore', () => {
       expect(visibleScore.effectiveScore).toBeGreaterThan(hiddenScore.effectiveScore)
     })
   })
+})
+
+// ───────────────────────────────────────────────────────────────────────────
+// 엔진 감사 E4 — 강약 스케일 (SD-09, SD-08, OD-7)
+// ───────────────────────────────────────────────────────────────────────────
+
+const simpleOf = (gz: string): SajuPillarsInput => {
+  const p = gz.split(' ')
+  return {
+    year: { stem: p[0][0], branch: p[0][1] },
+    month: { stem: p[1][0], branch: p[1][1] },
+    day: { stem: p[2][0], branch: p[2][1] },
+    time: { stem: p[3][0], branch: p[3][1] },
+  }
+}
+const scoreOf = (gz: string) => computeStrengthScore(toStrengthCoreInput(simpleOf(gz)))
+
+/**
+ * 시드 고정 실제 생일 모집단 — 감사 스크립트(engine/vsd/r.ts)와 같은 생성기
+ * (seed 12345, 1941–2048, 서울, lon 126.978). STRENGTH_CENTER_OFFSET 보정 근거.
+ */
+function seededBirths(n: number) {
+  let seed = 12345
+  const rnd = () => {
+    seed = (seed * 1103515245 + 12345) & 0x7fffffff
+    return seed / 0x7fffffff
+  }
+  const pad = (x: number) => String(x).padStart(2, '0')
+  const out: Array<{ birthDate: string; birthTime: string; gender: 'male' | 'female' }> = []
+  for (let i = 0; i < n; i++) {
+    const y = 1941 + Math.floor(rnd() * 108)
+    const m = 1 + Math.floor(rnd() * 12)
+    const d = 1 + Math.floor(rnd() * 28)
+    const hh = Math.floor(rnd() * 24)
+    const mm = Math.floor(rnd() * 60)
+    const gender = rnd() < 0.5 ? 'male' : 'female'
+    out.push({ birthDate: `${y}-${pad(m)}-${pad(d)}`, birthTime: `${pad(hh)}:${pad(mm)}`, gender })
+  }
+  return out
+}
+const NOW = new Date('2026-11-24T00:00:00Z')
+function simpleFromBirth(b: { birthDate: string; birthTime: string; gender: 'male' | 'female' }) {
+  const raw = calculateSajuData(
+    b.birthDate,
+    b.birthTime,
+    b.gender,
+    'solar',
+    'Asia/Seoul',
+    false,
+    126.978,
+    NOW
+  ) as unknown as {
+    pillars: Record<string, { heavenlyStem: { name: string }; earthlyBranch: { name: string } }>
+  }
+  const P = raw.pillars
+  const pick = (k: string) => ({ stem: P[k].heavenlyStem.name, branch: P[k].earthlyBranch.name })
+  return { year: pick('year'), month: pick('month'), day: pick('day'), time: pick('time') }
+}
+
+describe('E4 강약 스케일 — 일간 자기 비겁 제외 + 중심 보정 (SD-09, OD-7)', () => {
+  it('일간 천간 자신은 비겁으로 세지 않는다 — 다른 목이 하나도 없으면 비겁 0', () => {
+    const s = scoreOf('庚申 庚申 甲申 庚申')
+    expect(s.items.find((i) => i.category === '비겁')!.score).toBe(0)
+  })
+
+  it('庚申 庚申 甲申 庚申 (목 없는 甲) → 극신약 (≤ 20)', () => {
+    const s = scoreOf('庚申 庚申 甲申 庚申')
+    expect(s.total).toBeLessThanOrEqual(20)
+    expect(s.level).toBe('극신약')
+  })
+
+  it('total = 50 + STRENGTH_CENTER_OFFSET + balance (clamp 전)', () => {
+    const s = scoreOf('丁丑 癸卯 壬戌 丁未')
+    expect(s.total).toBe(Math.max(0, Math.min(100, 50 + STRENGTH_CENTER_OFFSET + s.balance)))
+  })
+
+  it('시드 4000 실제 생일 모집단의 중앙값이 50±2, 강·약 꼬리가 둘 다 존재', () => {
+    const totals = seededBirths(4000).map(
+      (b) => computeStrengthScore(toStrengthCoreInput(simpleFromBirth(b))).total
+    )
+    const sorted = [...totals].sort((a, b) => a - b)
+    const median = (sorted[1999] + sorted[2000]) / 2
+    expect(Math.abs(median - 50)).toBeLessThanOrEqual(2)
+    const cls = totals.map((t) => strengthClassOf(strengthBandOf(t)))
+    const share = (c: string) => cls.filter((x) => x === c).length / totals.length
+    // 예전(중앙값 62.5): strong 54% / weak 13%. 보정 후 두 꼬리가 대칭에 가깝다.
+    expect(share('strong')).toBeLessThan(0.45)
+    expect(share('weak')).toBeGreaterThan(0.25)
+    expect(totals.filter((t) => t <= 20).length).toBeGreaterThan(0) // 극신약 도달 가능
+  }, 60_000)
+})
+
+describe('E4 5단계 단일 매핑 — strengthBandOf / strengthClassOf (SD-08)', () => {
+  it.each([
+    [100, '극신강'],
+    [80, '극신강'],
+    [79.5, '신강'],
+    [60, '신강'],
+    [59.5, '중화'],
+    [40, '중화'],
+    [39.5, '신약'],
+    [20.5, '신약'],
+    [20, '극신약'],
+    [0, '극신약'],
+  ])('%s → %s (CONVENTIONS §10 표)', (total, band) => {
+    expect(strengthBandOf(total)).toBe(band)
+  })
+
+  it('3분류: {극신강,신강}→strong · 중화→medium · {신약,극신약}→weak', () => {
+    expect(strengthClassOf('극신강')).toBe('strong')
+    expect(strengthClassOf('신강')).toBe('strong')
+    expect(strengthClassOf('중화')).toBe('medium')
+    expect(strengthClassOf('신약')).toBe('weak')
+    expect(strengthClassOf('극신약')).toBe('weak')
+    expect(strengthClassOf('')).toBe('medium')
+  })
+
+  it('StrengthScore.level 은 strengthBandOf(total) 와 같다', () => {
+    for (const gz of ['丁丑 癸卯 壬戌 丁未', '甲寅 甲卯 甲寅 甲卯', '庚申 庚申 甲申 庚申']) {
+      const s = scoreOf(gz)
+      expect(s.level).toBe(strengthBandOf(s.total))
+    }
+  })
+
+  it('시드 400 차트: sajuFacts.strength · yongsin.daymasterStrength · 캘린더(strengthClassOf) 3분류 일치', () => {
+    const KO = { strong: '신강', medium: '중화', weak: '신약' } as const
+    const bad: string[] = []
+    for (const b of seededBirths(400)) {
+      const facts = collectSajuFacts({ ...b, timezone: 'Asia/Seoul', longitude: 126.978, now: NOW })
+      const yong = determineYongsin(simpleFromBirth(b)).daymasterStrength
+      // 캘린더 build.ts 는 strengthClassOf(yongsin.daymasterStrength) 를 쓴다
+      const calendar = strengthClassOf(yong)
+      if (facts.strength !== KO[calendar])
+        bad.push(`${b.birthDate} ${b.birthTime}: facts ${facts.strength} vs ${yong}`)
+    }
+    expect(bad).toEqual([])
+  }, 60_000)
 })

@@ -27,10 +27,41 @@ export interface ElementScore {
   ratio: number // 비율 (0.0 ~ 1.0)
 }
 
+/**
+ * 일간 강약 5단계 — CONVENTIONS §10 의 *유일한* 점수→라벨 매핑.
+ * yongsin.DaymasterStrength 가 이 타입의 별칭이다.
+ */
+export type StrengthBand = '극신강' | '신강' | '중화' | '신약' | '극신약'
+
+/** 3분류 — {극신강,신강}→strong · 중화→medium · {신약,극신약}→weak. */
+export type StrengthClass = 'strong' | 'medium' | 'weak'
+
+/**
+ * 강약 점수(0~100) → 5단계 (CONVENTIONS §10 표):
+ *   ≥80 극신강 · 60–79 신강 · 40–59 중화 · 21–39 신약 · ≤20 극신약
+ * 리포트·상담사·캘린더·용신·격국이 모두 이 함수(또는 그 3분류)만 쓴다 —
+ * 예전엔 sajuFacts 가 별도 6단계 컷(85/70/55/40/25)을 써서 표면마다 라벨이
+ * 갈렸다(엔진 감사 SD-08).
+ */
+export function strengthBandOf(total: number): StrengthBand {
+  if (total >= 80) return '극신강'
+  if (total >= 60) return '신강'
+  if (total >= 40) return '중화'
+  if (total > 20) return '신약'
+  return '극신약'
+}
+
+/** 5단계(한글) → 3분류. 알 수 없는 값은 medium. */
+export function strengthClassOf(band: string | null | undefined): StrengthClass {
+  if (band === '극신강' || band === '신강') return 'strong'
+  if (band === '극신약' || band === '신약') return 'weak'
+  return 'medium'
+}
+
 /** 신강/신약 점수 */
 export interface StrengthScore {
   total: number // 종합 점수 (0 ~ 100)
-  level: '극강' | '강' | '중강' | '중약' | '약' | '극약'
+  level: StrengthBand // 5단계 (strengthBandOf)
   supportScore: number // 도움받는 점수 (비겁, 인성)
   resistScore: number // 설기되는 점수 (식상, 재성, 관성)
   balance: number // 균형도 (-50 ~ +50)
@@ -74,12 +105,15 @@ const STEM_BRANCH_WEIGHTS = {
   branch: 0.6, // 지지 (지장간 포함)
 }
 
-/** 지장간 가중치 */
-const JIJANGGAN_WEIGHTS = {
+/**
+ * 지장간 가중치 — CONVENTIONS §6 의 '강약·통근' 행. calculateElementScores 와
+ * tonggeun.calculateTonggeun(통근력) 이 공유한다. 다른 곳에서 복제 금지.
+ */
+export const JIJANGGAN_WEIGHTS = {
   정기: 0.6,
   중기: 0.25,
   여기: 0.15,
-}
+} as const
 
 /** 십성 카테고리별 가중치 */
 const SIBSIN_CATEGORY_WEIGHTS: Record<string, number> = {
@@ -158,8 +192,10 @@ export function calculateElementScores(pillars: SajuPillars): ElementScore[] {
 // 점수 기준:
 //   득령 (월령) 0~30점 — 일간이 월지와 같은 오행이면 30 (왕지)
 //   통근 (지지 근) 0~25점 — 지장간 정·중·여기에 일간 오행이 있으면 가산
-//   인성 지원 0~20점 / 비겁 지원 0~15점
+//   인성 지원 0~20점 / 비겁 지원 0~15점 (일간 천간 자신은 비겁에서 제외)
 //   설기·재성·관성 음수 — 일간을 소모/극하는 오행의 존재감
+//   total = 50 + STRENGTH_CENTER_OFFSET + support − resist (0~100 clamp)
+//   라벨은 strengthBandOf(total) 5단계 하나뿐 (CONVENTIONS §10)
 
 /** 코어 입력: 정규화(한자)된 4주의 천간·지지 이름. */
 export interface StrengthCoreInput {
@@ -246,8 +282,17 @@ function elementPresenceScore(
 // 깨져 있었다. 그 결과 support 상한 90 vs resist 상한 50 으로, 어떤 사주든
 // total = 50 + (support − resist) 가 강(强) 쪽으로 쏠려 신약/극신약이 사실상
 // 도달 불가능했다(18인 배치 최솟값 44). resist 측 존재감을 1.5배 해 유효 상한을
-// support(90)에 근접(≈78)시켜 50 을 진짜 중립으로 만든다. 결정론적 상수.
+// support(90)에 근접(≈78)시킨다. 결정론적 상수. (중립 50 맞춤은 아래 중심 보정.)
 const RESIST_PRESENCE_SCALE = 1.5
+
+// 중심 보정 상수 (OD-7, 엔진 감사 SD-09). 위 1.5 배율만으로는 50 이 중립이 되지
+// 않았다 — 시드 고정 실제 생일 4000건(1941–2048, 서울)에서 평균 64.1·중앙값 62.5,
+// 극신강 27%·신약 13%·극신약 0.75% 로 강 쪽에 쏠렸다. support 쪽 득령(≤30)·통근(≤25)
+// 은 resist 쪽에 대응 항목이 없는 *구조적 가산점*이라 배율로는 대칭이 안 맞는다.
+// 일간 자기 비겁(+3)을 뺀 뒤 같은 모집단의 중앙값이 59.5 라서, 하나의 가산 상수로
+// 중앙값을 50 에 맞춘다 (`total = 50 + STRENGTH_CENTER_OFFSET + support − resist`).
+// 가드: tests/lib/saju/strengthScore.test.ts 의 분포 테스트 (|중앙값 − 50| ≤ 2).
+export const STRENGTH_CENTER_OFFSET = -9.5
 
 /**
  * 강약 점수 SSOT 코어 — 정규화된 이름 배열을 받아 5요소 가중 합산.
@@ -297,8 +342,10 @@ export function computeStrengthScore(input: StrengthCoreInput): StrengthScore {
   })
   supportScore += inseongScore
 
-  // 4. 비겁 지원 점수 - 15점 만점
-  const bigyeobScore = elementPresenceScore(stems, branches, dayElement, 15)
+  // 4. 비겁 지원 점수 - 15점 만점. 일간(stems[2]) 자신은 자기 비겁이 아니다 —
+  //    예전엔 일간 천간도 세어 모든 사주가 +3 을 받았다(엔진 감사 SD-09).
+  const otherStems = stems.filter((_, i) => i !== 2)
+  const bigyeobScore = elementPresenceScore(otherStems, branches, dayElement, 15)
   items.push({
     category: '비겁',
     name: '비겁 지원',
@@ -362,29 +409,13 @@ export function computeStrengthScore(input: StrengthCoreInput): StrengthScore {
   })
   resistScore += gwanseongScore
 
-  // 종합 점수 계산
+  // 종합 점수 계산 — 50 + 중심 보정 + (support − resist), 0~100 clamp
   const balance = supportScore - resistScore
-  const total = Math.max(0, Math.min(100, 50 + balance))
-
-  // 레벨 결정
-  let level: StrengthScore['level']
-  if (total >= 85) {
-    level = '극강'
-  } else if (total >= 70) {
-    level = '강'
-  } else if (total >= 55) {
-    level = '중강'
-  } else if (total >= 40) {
-    level = '중약'
-  } else if (total >= 25) {
-    level = '약'
-  } else {
-    level = '극약'
-  }
+  const total = Math.max(0, Math.min(100, 50 + STRENGTH_CENTER_OFFSET + balance))
 
   return {
     total,
-    level,
+    level: strengthBandOf(total),
     supportScore,
     resistScore,
     balance,

@@ -481,12 +481,50 @@ describe('tonggeun', () => {
       expect(result.strength).toBe(100)
     })
 
-    it('returns 사령(-80) for controlled-by-me season (목 in 토월)', () => {
-      // 甲(목) in 辰/未/戌/丑(토월) → 목극토, 사령 -80
+    it('returns 수령(囚, -50) when the day master controls the season (목 in 토월)', () => {
+      // 剋令者囚 — 甲(목) in 辰/未/戌/丑(토월) → 목극토, 수령 -50 (엔진 감사 SD-16)
       const result = calculateDeukryeong('甲', '辰')
+      expect(result.status).toBe('실령')
+      expect(result.strength).toBe(-50)
+      expect(result.description).toContain('수령')
+    })
+
+    it('returns 사령(死, -80) when the season controls the day master (목 in 금월)', () => {
+      // 令剋者死 — 甲(목) in 申(금월) → 금극목, 사령 -80
+      const result = calculateDeukryeong('甲', '申')
       expect(result.status).toBe('실령')
       expect(result.strength).toBe(-80)
       expect(result.description).toContain('사령')
+    })
+
+    it('旺相休囚死 — 다섯 일간 오행 모두 令剋者死 < 剋令者囚 (strengthScore 득령 순서와 같다)', () => {
+      const REP: Record<string, string> = { 목: '甲', 화: '丙', 토: '戊', 금: '庚', 수: '壬' }
+      const SEASON: Record<string, string> = { 목: '寅', 화: '午', 토: '辰', 금: '申', 수: '子' }
+      const CTL: Record<string, string> = { 목: '토', 토: '수', 수: '화', 화: '금', 금: '목' }
+      const CTL_BY: Record<string, string> = { 목: '금', 금: '화', 화: '수', 수: '토', 토: '목' }
+      for (const el of Object.keys(REP)) {
+        const qiu = calculateDeukryeong(REP[el], SEASON[CTL[el]]) // 내가 월령을 극
+        const si = calculateDeukryeong(REP[el], SEASON[CTL_BY[el]]) // 월령이 나를 극
+        expect(qiu.description, el).toContain('수령')
+        expect(si.description, el).toContain('사령')
+        expect(si.strength).toBeLessThan(qiu.strength)
+      }
+    })
+  })
+
+  describe('calculateTonggeun — §6 강약·통근 가중치 (F8)', () => {
+    it('정기 100 · 중기 42 · 여기 25 (JIJANGGAN_WEIGHTS 0.60/0.25/0.15 를 정기=100 정규화) × 일지 1.0', () => {
+      // 甲 일간: 寅(정기 甲) / 亥(중기 甲) / 辰(여기 乙, 동기 50%) 를 일지에 두고 비교
+      const at = (branch: string) =>
+        calculateTonggeun(
+          '甲',
+          createPillarsInput(['庚', '申'], ['庚', '申'], ['甲', branch], ['庚', '申'])
+        )
+          .roots.filter((r) => r.pillar === 'day')
+          .map((r) => r.strength)
+      expect(at('寅')).toEqual([100])
+      expect(at('亥')).toEqual([42])
+      expect(at('辰')).toEqual([13]) // 여기 乙(같은 오행 다른 천간) → 25 × 0.5
     })
   })
 

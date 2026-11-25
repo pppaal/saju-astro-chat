@@ -11,7 +11,7 @@ import { calculateSajuData } from '@/lib/saju/saju'
 import type { CalculateSajuDataResult } from '@/lib/saju/types'
 import { determineYongsin, type YongsinResult } from '@/lib/saju/yongsin'
 import { determineGeokguk } from '@/lib/saju/geokguk'
-import { calculateStrengthScore } from '@/lib/saju/strengthScore'
+import { calculateStrengthScore, strengthClassOf } from '@/lib/saju/strengthScore'
 import { analyzeRelations, toAnalyzeInputFromSaju } from '@/lib/saju/relations'
 import { getJohuYongsin, type JohuYongsinInfo } from '@/lib/saju/johuYongsin'
 import { getGongmang } from '@/lib/saju/shinsal'
@@ -59,8 +59,12 @@ export interface SajuFacts {
     rooted: boolean // 지장간 어디에든 일간 오행이 박혀 있으면 true (통근)
   }
   fiveElements: { wood: number; fire: number; earth: number; metal: number; water: number }
-  /** 신강·신약 단순화 라벨. 계산 실패 시 빈 문자열. */
-  strength: '신강' | '신약' | ''
+  /**
+   * 일간 강약 3분류 라벨 — 강약 점수 SSOT 의 5단계(strengthBandOf, CONVENTIONS §10)를
+   * {극신강,신강}→신강 · 중화→중화 · {신약,극신약}→신약 으로 접은 것. 용신의
+   * daymasterStrength·캘린더 natal strength 와 항상 같은 3분류. 계산 실패 시 빈 문자열.
+   */
+  strength: '신강' | '중화' | '신약' | ''
   geokguk: string | null
   yongsin: YongsinResult | null
   relations: Array<{ kind: string; detail?: string; pillars?: string[] }>
@@ -160,11 +164,14 @@ export function collectSajuFacts(input: SajuFactsInput): SajuFacts {
     time: { stem: P.time.heavenlyStem.name, branch: P.time.earthlyBranch.name },
   }
 
-  // 신강·신약 단순화 라벨
-  let strengthLabel: '신강' | '신약' | '' = ''
+  // 일간 강약 3분류 — 5단계 단일 매핑에서 접는다. 예전엔 별도 6단계 컷(총점 ≥55 →
+  // 신강, 나머지 신약)이라 중화가 없었고, 같은 사주가 상담사·리포트는 신약인데
+  // 캘린더는 중화로 갈렸다(엔진 감사 SD-08).
+  const STRENGTH_KO = { strong: '신강', medium: '중화', weak: '신약' } as const
+  let strengthLabel: SajuFacts['strength'] = ''
   try {
     const s = calculateStrengthScore(raw.pillars as never)
-    strengthLabel = ['극강', '강', '중강'].includes(s.level) ? '신강' : '신약'
+    strengthLabel = STRENGTH_KO[strengthClassOf(s.level)]
   } catch {
     /* leave empty */
   }

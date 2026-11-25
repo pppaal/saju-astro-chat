@@ -2,8 +2,13 @@
 // 용신(用神) 선정 모듈 - 사주명리학 핵심 기능
 
 import { FiveElement, YinYang, SajuPillars, PillarData, SajuPillarsInput } from './types'
-import { STEMS, BRANCHES, JIJANGGAN, FIVE_ELEMENT_RELATIONS } from './constants'
-import { computeStrengthScore, toStrengthCoreInput } from './strengthScore'
+import { STEMS, BRANCHES, FIVE_ELEMENT_RELATIONS } from './constants'
+import {
+  computeStrengthScore,
+  toStrengthCoreInput,
+  strengthBandOf,
+  type StrengthBand,
+} from './strengthScore'
 import { JOHU_YONGSIN_DB } from './johuYongsinData'
 
 /**
@@ -16,9 +21,9 @@ import { JOHU_YONGSIN_DB } from './johuYongsinData'
 export type YongsinType = '억부용신' | '조후용신' | '통관용신' | '병약용신'
 
 /**
- * 일간 강약 상태
+ * 일간 강약 상태 — strengthScore.StrengthBand 의 별칭 (CONVENTIONS §10 5단계 단일 매핑)
  */
-export type DaymasterStrength = '극신강' | '신강' | '중화' | '신약' | '극신약'
+export type DaymasterStrength = StrengthBand
 
 /**
  * 월령 계절/기후 유형
@@ -80,7 +85,12 @@ function getYinYang(stem: string): YinYang | null {
 }
 
 /**
- * 사주 전체의 오행 개수 계산 (천간 + 지지 + 지장간 정기)
+ * 드러난 8글자(천간 4 + 지지 4)의 오행 개수 — 병약·통관 판정용.
+ *
+ * 예전엔 지장간 정기를 +0.5 더 세어 지지가 1.5배가 됐다. 그 결과 사주당 합계가
+ * 10 이라 최대값 ≥ 3 이 거의 확정이었고(병약이 늘 발동 → 억부 도달 0), §6 이
+ * 금지한 *제3의 지장간 가중치*였다(엔진 감사 SD-04·F8). 지장간은 강약 점수
+ * (computeStrengthScore)가 이미 반영하므로 여기서는 드러난 글자만 센다.
  */
 function countElements(pillars: SajuPillarsInput): ElementStats {
   const stats: ElementStats = { 목: 0, 화: 0, 토: 0, 금: 0, 수: 0 }
@@ -88,29 +98,53 @@ function countElements(pillars: SajuPillarsInput): ElementStats {
   const allPillars = [pillars.year, pillars.month, pillars.day, pillars.time]
 
   for (const pillar of allPillars) {
-    // 천간 오행
     const stemElement = getElement(pillar.stem)
     if (stemElement) {
       stats[stemElement]++
     }
-
-    // 지지 오행
     const branchElement = getElement(pillar.branch)
     if (branchElement) {
       stats[branchElement]++
     }
-
-    // 지장간 정기 오행 (가장 중요한 기운)
-    const jijanggan = JIJANGGAN[pillar.branch]
-    if (jijanggan?.정기) {
-      const jeonggiElement = getElement(jijanggan.정기)
-      if (jeonggiElement) {
-        stats[jeonggiElement] += 0.5
-      } // 가중치 0.5
-    }
   }
 
   return stats
+}
+
+/**
+ * 일간 기준 오행 역할 (억부 그룹 판정용).
+ */
+type Role = '비겁' | '인성' | '식상' | '재성' | '관성'
+function elementOfRole(dm: FiveElement, role: Role): FiveElement {
+  switch (role) {
+    case '비겁':
+      return dm
+    case '인성':
+      return FIVE_ELEMENT_RELATIONS.생받는관계[dm]
+    case '식상':
+      return FIVE_ELEMENT_RELATIONS.생하는관계[dm]
+    case '재성':
+      return FIVE_ELEMENT_RELATIONS.극하는관계[dm]
+    case '관성':
+      return FIVE_ELEMENT_RELATIONS.극받는관계[dm]
+  }
+}
+
+function isStrong(s: DaymasterStrength): boolean {
+  return s === '극신강' || s === '신강'
+}
+function isWeak(s: DaymasterStrength): boolean {
+  return s === '극신약' || s === '신약'
+}
+
+/**
+ * 억부가 허용하는 오행 — 신강: 식상·재성·관성 / 신약: 인성·비겁 / 중화: 제약 없음(null).
+ * 병약·통관 용신도 이 집합 안에서만 고른다 (CONVENTIONS §10 '억부 + 조후 함께').
+ */
+function eokbuAllowed(dm: FiveElement, s: DaymasterStrength): FiveElement[] | null {
+  if (isStrong(s)) return (['식상', '재성', '관성'] as Role[]).map((r) => elementOfRole(dm, r))
+  if (isWeak(s)) return (['인성', '비겁'] as Role[]).map((r) => elementOfRole(dm, r))
+  return null
 }
 
 /**
@@ -121,7 +155,8 @@ function countElements(pillars: SajuPillarsInput): ElementStats {
  * 0.8/0.4 + 월령 보정)을 별도로 썼는데, 이는 SSOT 5요소 가중 점수와 달라
  * 드리프트 원인이었다(§11 위반). 이제 SSOT 점수(0~100, 50 중심) → 5단계로 매핑한다.
  *
- * 점수 → 5단계 임계 (geokguk.getStrength/getStrengthExtreme 와 동일한 60/40·80/20):
+ * 점수 → 5단계는 strengthBandOf 하나만 쓴다 (CONVENTIONS §10 — geokguk.getStrength/
+ * getStrengthExtreme 와 같은 60/40·80/20):
  *   total ≥ 80           → 극신강
  *   60 ≤ total < 80      → 신강
  *   40 ≤ total < 60      → 중화
@@ -133,27 +168,18 @@ function assessDaymasterStrength(daymaster: string, pillars: SajuPillarsInput): 
   if (!daymasterElement) {
     return '중화'
   }
-
-  const total = computeStrengthScore(toStrengthCoreInput(pillars)).total
-
-  if (total >= 80) {
-    return '극신강'
-  }
-  if (total >= 60) {
-    return '신강'
-  }
-  if (total >= 40) {
-    return '중화'
-  }
-  if (total > 20) {
-    return '신약'
-  }
-  return '극신약'
+  return strengthBandOf(computeStrengthScore(toStrengthCoreInput(pillars)).total)
 }
 
 /**
  * 억부용신 선정
- * 일간이 강하면 설기/극하는 오행, 약하면 생하는 오행
+ * 일간이 강하면 설기/극하는 오행, 약하면 생하는 오행.
+ *
+ * 반환값의 추천(yongsin·heesin)과 회피(kibsin·gusin)는 서로 겹치지 않는다.
+ * 예전엔 `gusin` 한 필드가 희신(보조용신)과 구신(회피)을 겸해 — 신강은 재성,
+ * 신약은 비겁이 추천과 회피에 동시에 올랐다(엔진 감사 SD-04).
+ *   신강: 용 식상 · 희 재성 · 기 인성 · 구 비겁
+ *   신약: 용 인성 · 희 비겁 · 기 관살 · 구 재성(재생살)
  */
 function selectEokbuYongsin(
   daymaster: string,
@@ -166,7 +192,13 @@ function selectEokbuYongsin(
    * 억부 기신을 부여한다. *용신(primary)은 바꾸지 않는다* — 추천은 인성 유지.
    */
   junghwaLean?: boolean
-): { yongsin: FiveElement; gusin?: FiveElement; kibsin?: FiveElement; reasoning: string } {
+): {
+  yongsin: FiveElement
+  heesin?: FiveElement
+  gusin?: FiveElement
+  kibsin?: FiveElement
+  reasoning: string
+} {
   const daymasterElement = getElement(daymaster)
   if (!daymasterElement) {
     return { yongsin: '토', reasoning: '일간 정보 부족' }
@@ -177,20 +209,22 @@ function selectEokbuYongsin(
   const wealthElement = FIVE_ELEMENT_RELATIONS.극하는관계[daymasterElement] // 재성
   const controlElement = FIVE_ELEMENT_RELATIONS.극받는관계[daymasterElement] // 관살
 
-  if (strength === '극신강' || strength === '신강') {
-    // 신강: 식상(설기) > 재성 > 관살로 억제
+  if (isStrong(strength)) {
+    // 신강: 식상(설기) > 재성 > 관살로 억제. 인성·비겁은 더 강하게 만드는 회피 대상.
     return {
       yongsin: drainElement,
-      gusin: wealthElement,
+      heesin: wealthElement,
       kibsin: supportingElement, // 인성이 기신 (더 강하게 만듦)
+      gusin: daymasterElement, // 비겁이 구신
       reasoning: `일간이 ${strength}하므로 ${drainElement}(식상)으로 설기하여 조절`,
     }
-  } else if (strength === '극신약' || strength === '신약') {
-    // 신약: 인성(생) > 비겁으로 보강
+  } else if (isWeak(strength)) {
+    // 신약: 인성(생) > 비겁으로 보강. 관살·재성은 더 약하게 만드는 회피 대상.
     return {
       yongsin: supportingElement,
-      gusin: daymasterElement, // 비겁
+      heesin: daymasterElement, // 비겁이 희신
       kibsin: controlElement, // 관살이 기신
+      gusin: wealthElement, // 재성이 구신 (재생살)
       reasoning: `일간이 ${strength}하므로 ${supportingElement}(인성)으로 생조하여 보강`,
     }
   }
@@ -201,6 +235,7 @@ function selectEokbuYongsin(
   if (junghwaLean === true) {
     return {
       yongsin: supportingElement,
+      heesin: daymasterElement,
       gusin: wealthElement, // 재성(재생살로 약한 일간을 더 흔듦)
       kibsin: controlElement, // 관살이 기신(약한 일간을 극)
       reasoning: '일간이 중화(편약)하여 인성으로 보강, 관살을 기신으로',
@@ -236,91 +271,144 @@ function selectJohuYongsin(
 }
 
 /**
+ * 통관용신 후보 — 충돌하는 두 오행(각 2글자 이상)과 그 사이를 잇는 오행.
+ * 극하는 쪽 → 통관 → 극받는 쪽 (예: 금극목 → 수, 금생수·수생목).
+ */
+const TONGGWAN_PAIRS: Array<{
+  a: FiveElement
+  b: FiveElement
+  via: FiveElement
+  reasoning: string
+}> = [
+  {
+    a: '목',
+    b: '금',
+    via: '수',
+    reasoning: '목과 금이 충돌하여 수(水)가 통관용신 (금생수, 수생목)',
+  },
+  {
+    a: '화',
+    b: '수',
+    via: '목',
+    reasoning: '화와 수가 충돌하여 목(木)이 통관용신 (수생목, 목생화)',
+  },
+  {
+    a: '토',
+    b: '목',
+    via: '화',
+    reasoning: '토와 목이 충돌하여 화(火)가 통관용신 (목생화, 화생토)',
+  },
+  {
+    a: '금',
+    b: '화',
+    via: '토',
+    reasoning: '금과 화가 충돌하여 토(土)가 통관용신 (화생토, 토생금)',
+  },
+  {
+    a: '수',
+    b: '토',
+    via: '금',
+    reasoning: '수와 토가 충돌하여 금(金)이 통관용신 (토생금, 금생수)',
+  },
+]
+
+/**
  * 통관용신 선정
- * 충돌하는 두 오행 사이를 중재하는 오행 찾기
+ * 충돌하는 두 오행 사이를 중재하는 오행 찾기. 통관 오행이 억부와 어긋나면
+ * (신강인데 인성·비겁, 신약인데 식상·재성·관성) 그 쌍은 건너뛴다 — 예전엔
+ * 일간 강약을 보지 않아 통관 목 = 기신 목 같은 모순이 났다(엔진 감사 SD-04).
  */
 function selectTonggwanYongsin(
-  pillars: SajuPillarsInput
+  pillars: SajuPillarsInput,
+  allowed: FiveElement[] | null,
+  avoid: Array<FiveElement | undefined>
 ): { yongsin: FiveElement; reasoning: string } | null {
   const stats = countElements(pillars)
-
-  // 목-금 충돌 체크 (금극목)
-  if (stats.목 >= 2 && stats.금 >= 2) {
-    return {
-      yongsin: '수',
-      reasoning: '목과 금이 충돌하여 수(水)가 통관용신 (금생수, 수생목)',
-    }
+  for (const p of TONGGWAN_PAIRS) {
+    if (stats[p.a] < 2 || stats[p.b] < 2) continue
+    if (allowed && !allowed.includes(p.via)) continue
+    if (avoid.includes(p.via)) continue
+    return { yongsin: p.via, reasoning: p.reasoning }
   }
-
-  // 화-수 충돌 체크 (수극화)
-  if (stats.화 >= 2 && stats.수 >= 2) {
-    return {
-      yongsin: '목',
-      reasoning: '화와 수가 충돌하여 목(木)이 통관용신 (수생목, 목생화)',
-    }
-  }
-
-  // 토-목 충돌 체크 (목극토)
-  if (stats.토 >= 2 && stats.목 >= 2) {
-    return {
-      yongsin: '화',
-      reasoning: '토와 목이 충돌하여 화(火)가 통관용신 (목생화, 화생토)',
-    }
-  }
-
-  // 금-화 충돌 체크 (화극금)
-  if (stats.금 >= 2 && stats.화 >= 2) {
-    return {
-      yongsin: '토',
-      reasoning: '금과 화가 충돌하여 토(土)가 통관용신 (화생토, 토생금)',
-    }
-  }
-
-  // 수-토 충돌 체크 (토극수)
-  if (stats.수 >= 2 && stats.토 >= 2) {
-    return {
-      yongsin: '금',
-      reasoning: '수와 토가 충돌하여 금(金)이 통관용신 (토생금, 금생수)',
-    }
-  }
-
   return null
 }
 
+/** 병(病) 임계 — 드러난 8글자 중 이 수 이상이면 과다 (OD-8). */
+const BYEONG_MIN_COUNT = 3
+
 /**
- * 병약용신 선정
- * 사주에서 과다한 오행(병)을 억제하는 오행(약) 찾기
+ * 병약용신 선정 (OD-8)
+ * 병(病) = 억부상 *과다한 쪽*(신강: 비겁·인성 / 신약: 관성·재성·식상)에서 드러난
+ * 8글자 중 3글자 이상인 오행. 일간 천간 자신은 비겁 개수에서 뺀다(SD-09 와 같은
+ * 원칙). 약(藥)은 억부가 허용하는 그룹에서만 고른다 — 병을 극하는 오행, 그것이
+ * 억부에 어긋나면 병이 생하는(설기하는) 오행:
+ *   신강 병=비겁 → 관성 · 병=인성 → 재성
+ *   신약 병=식상 → 인성 · 병=재성 → 비겁 · 병=관성 → 인성(살인상생, 식상 제살은 신약에 불가)
+ * 중화는 억부상 과다한 쪽이 없으므로 병약을 쓰지 않는다(통관/억부로).
+ * 예전엔 지장간 정기 +0.5 를 더한 10단위 집계에서 최다 오행을 무조건 병으로 잡아,
+ * 신강 일간에 비겁·인성을, 신약 일간에 식상을 처방했다(엔진 감사 SD-04).
  */
 function selectByeongYakYongsin(
-  pillars: SajuPillarsInput
+  pillars: SajuPillarsInput,
+  dm: FiveElement,
+  strength: DaymasterStrength
 ): { yongsin: FiveElement; kibsin: FiveElement; reasoning: string } | null {
+  const allowed = eokbuAllowed(dm, strength)
+  if (!allowed) return null
+
   const stats = countElements(pillars)
+  // 드러난 8글자 중 일간 천간 자신은 비겁으로 세지 않는다
+  const countOf = (e: FiveElement) => stats[e] - (e === dm ? 1 : 0)
+  // 같은 개수면 앞 순서 우선 — 신강은 비겁, 신약은 관살이 가장 직접적인 병
+  const excessSide: Role[] = isStrong(strength) ? ['비겁', '인성'] : ['관성', '재성', '식상']
 
-  // 가장 과다한 오행 찾기
-  let maxElement: FiveElement = '목'
-  let maxCount = 0
-
-  for (const [element, count] of Object.entries(stats) as [FiveElement, number][]) {
-    if (count > maxCount) {
-      maxCount = count
-      maxElement = element
+  let byeong: FiveElement | null = null
+  let byeongCount = 0
+  for (const role of excessSide) {
+    const e = elementOfRole(dm, role)
+    const n = countOf(e)
+    if (n >= BYEONG_MIN_COUNT && n > byeongCount) {
+      byeong = e
+      byeongCount = n
     }
   }
+  if (!byeong) return null
 
-  // 과다(3개 이상)할 경우 병약용신 필요
-  if (maxCount >= 3) {
-    const controllingElement = FIVE_ELEMENT_RELATIONS.극받는관계[maxElement]
-    return {
-      yongsin: controllingElement,
-      kibsin: maxElement,
-      reasoning: `${maxElement}이 과다(병)하여 ${controllingElement}(약)으로 조절`,
-    }
+  const controller = FIVE_ELEMENT_RELATIONS.극받는관계[byeong]
+  const drain = FIVE_ELEMENT_RELATIONS.생하는관계[byeong]
+  const yak = allowed.includes(controller) ? controller : allowed.includes(drain) ? drain : null
+  if (!yak) return null
+
+  return {
+    yongsin: yak,
+    kibsin: byeong,
+    reasoning:
+      yak === controller
+        ? `${byeong}이 과다(병)하여 ${yak}(약)으로 조절`
+        : `${byeong}이 과다(병)하여 ${yak}(약)으로 화(化)하여 조절`,
   }
-
-  return null
 }
 
 // ============ 메인 함수 ============
+
+/**
+ * 추천(primary·secondary)과 회피(kibsin·gusin)를 서로소로 만든다.
+ * 추천에 오른 오행은 회피에서 빠지고, secondary 는 primary 와 같으면 비운다.
+ */
+function finalizeYongsin(r: YongsinResult): YongsinResult {
+  const secondary =
+    r.secondaryYongsin && r.secondaryYongsin !== r.primaryYongsin ? r.secondaryYongsin : undefined
+  const rec = [r.primaryYongsin, secondary]
+  const keep = (e: FiveElement | undefined) => (e && !rec.includes(e) ? e : undefined)
+  const kibsin = keep(r.kibsin)
+  const gusinRaw = keep(r.gusin)
+  return {
+    ...r,
+    secondaryYongsin: secondary,
+    kibsin,
+    gusin: gusinRaw && gusinRaw !== kibsin ? gusinRaw : undefined,
+  }
+}
 
 /**
  * 용신 선정 메인 함수
@@ -328,11 +416,14 @@ function selectByeongYakYongsin(
  * @param pillars 사주 4주
  * @returns 용신 선정 결과
  *
- * 용신 선정 우선순위:
- * 1. 조후용신 (한습/조열 계절 출생시 최우선)
- * 2. 병약용신 (특정 오행 과다시)
- * 3. 통관용신 (오행 충돌시)
+ * 용신 선정 우선순위 (CONVENTIONS §10 '억부 + 조후 함께'):
+ * 1. 조후용신 (한습/조열 계절 출생시 최우선 — R4 가드: 신약 일간에 관살 조후는 보류)
+ * 2. 병약용신 (억부상 과다한 쪽 오행이 드러난 8글자 중 3 이상, 약은 억부 허용 그룹)
+ * 3. 통관용신 (오행 충돌시, 통관 오행이 억부 허용 그룹일 때만)
  * 4. 억부용신 (기본)
+ *
+ * 불변식: primary·secondary ∉ {kibsin, gusin}. 조후가 아닌 용신은 신강 일간에
+ * 인성·비겁을, 신약 일간에 식상·재성·관성을 추천하지 않는다.
  */
 export function determineYongsin(pillars: SajuPillarsInput): YongsinResult {
   const daymaster = pillars.day.stem
@@ -343,6 +434,8 @@ export function determineYongsin(pillars: SajuPillarsInput): YongsinResult {
   // 950209: 총점 45 편약). selectEokbuYongsin 이 편약이면 관살 기신을 부여한다.
   const junghwaLean =
     strength === '중화' ? computeStrengthScore(toStrengthCoreInput(pillars)).total < 50 : undefined
+  const eokbuResult = selectEokbuYongsin(daymaster, strength, junghwaLean)
+  const eokbuAvoid = [eokbuResult.kibsin, eokbuResult.gusin]
 
   // 1. 조후용신 체크 (한습/조열 계절)
   const johuResult = selectJohuYongsin(pillars.month.branch, daymaster)
@@ -353,69 +446,69 @@ export function determineYongsin(pillars: SajuPillarsInput): YongsinResult {
   const dmControlledBy = daymasterElement
     ? FIVE_ELEMENT_RELATIONS.극받는관계[daymasterElement]
     : undefined
-  const dmIsWeak = strength === '신약' || strength === '극신약'
-  const johuAttacksWeakDm = !!johuResult && dmIsWeak && johuResult.yongsin === dmControlledBy
+  const johuAttacksWeakDm =
+    !!johuResult && isWeak(strength) && johuResult.yongsin === dmControlledBy
   if (johuResult && !johuAttacksWeakDm) {
-    const eokbuResult = selectEokbuYongsin(daymaster, strength, junghwaLean)
     // 조후용신이 우선되면 억부 시스템의 kibsin/gusin이 조후용신과 충돌
     // 할 수 있음 (예: 辛 신약 + 寅월 → johu=화, eokbu.kibsin=화 → 자기
-    // 자신이 기신). primary와 같은 오행은 avoid에서 제외해서 모순 해소.
-    const filterKibGu = (e: FiveElement | undefined): FiveElement | undefined =>
-      e && e !== johuResult.yongsin ? e : undefined
-    return {
+    // 자신이 기신). finalizeYongsin 이 추천과 같은 오행을 avoid 에서 뺀다.
+    return finalizeYongsin({
       primaryYongsin: johuResult.yongsin,
-      secondaryYongsin:
-        eokbuResult.yongsin !== johuResult.yongsin ? eokbuResult.yongsin : undefined,
+      secondaryYongsin: eokbuResult.yongsin,
       yongsinType: '조후용신',
       daymasterStrength: strength,
       reasoning: johuResult.reasoning,
-      kibsin: filterKibGu(eokbuResult.kibsin),
-      gusin: filterKibGu(eokbuResult.gusin),
-    }
+      kibsin: eokbuResult.kibsin,
+      gusin: eokbuResult.gusin,
+    })
   }
 
-  // 2. 병약용신 체크
-  const byeongYakResult = selectByeongYakYongsin(pillars)
+  // 2. 병약용신 체크 — 약은 억부 허용 그룹에서만
+  const byeongYakResult = daymasterElement
+    ? selectByeongYakYongsin(pillars, daymasterElement, strength)
+    : null
   if (byeongYakResult) {
-    const eokbuResult = selectEokbuYongsin(daymaster, strength, junghwaLean)
-    return {
+    // 기신 = 병, 구신 = 억부 회피 중 병이 아닌 쪽
+    const gusin = eokbuAvoid.find((e) => e && e !== byeongYakResult.kibsin)
+    return finalizeYongsin({
       primaryYongsin: byeongYakResult.yongsin,
       secondaryYongsin:
-        eokbuResult.yongsin !== byeongYakResult.yongsin ? eokbuResult.yongsin : undefined,
+        eokbuResult.yongsin !== byeongYakResult.yongsin ? eokbuResult.yongsin : eokbuResult.heesin,
       yongsinType: '병약용신',
       daymasterStrength: strength,
       reasoning: byeongYakResult.reasoning,
       kibsin: byeongYakResult.kibsin,
-    }
+      gusin,
+    })
   }
 
-  // 3. 통관용신 체크
-  const tonggwanResult = selectTonggwanYongsin(pillars)
+  // 3. 통관용신 체크 — 통관 오행이 억부 허용 그룹이고 억부 회피가 아닐 때만
+  const tonggwanResult = daymasterElement
+    ? selectTonggwanYongsin(pillars, eokbuAllowed(daymasterElement, strength), eokbuAvoid)
+    : null
   if (tonggwanResult) {
-    const eokbuResult = selectEokbuYongsin(daymaster, strength, junghwaLean)
-    return {
+    return finalizeYongsin({
       primaryYongsin: tonggwanResult.yongsin,
       secondaryYongsin:
-        eokbuResult.yongsin !== tonggwanResult.yongsin ? eokbuResult.yongsin : undefined,
+        eokbuResult.yongsin !== tonggwanResult.yongsin ? eokbuResult.yongsin : eokbuResult.heesin,
       yongsinType: '통관용신',
       daymasterStrength: strength,
       reasoning: tonggwanResult.reasoning,
       kibsin: eokbuResult.kibsin,
       gusin: eokbuResult.gusin,
-    }
+    })
   }
 
   // 4. 억부용신 (기본)
-  const eokbuResult = selectEokbuYongsin(daymaster, strength, junghwaLean)
-  return {
+  return finalizeYongsin({
     primaryYongsin: eokbuResult.yongsin,
-    secondaryYongsin: eokbuResult.gusin,
+    secondaryYongsin: eokbuResult.heesin,
     yongsinType: '억부용신',
     daymasterStrength: strength,
     reasoning: eokbuResult.reasoning,
     kibsin: eokbuResult.kibsin,
     gusin: eokbuResult.gusin,
-  }
+  })
 }
 
 /**

@@ -87,15 +87,11 @@ const SIBSIN_EN: Record<string, string> = {
 }
 // 오행 KO→EN — 공용 SSOT(constants.ELEMENT_KO_TO_EN)에서 파생(복붙 금지).
 const ELEM_EN = ELEMENT_KO_TO_EN
+// facts.strength 는 3분류(신강·중화·신약) — sajuFacts 가 5단계 SSOT 에서 접는다.
 const STRENGTH_EN: Record<string, string> = {
   신강: 'strong',
+  중화: 'balanced',
   신약: 'weak',
-  극강: 'very strong',
-  강: 'strong',
-  중강: 'mod. strong',
-  중약: 'mod. weak',
-  약: 'weak',
-  극약: 'very weak',
 }
 const YTYPE_EN: Record<string, string> = {
   조후용신: 'Climatic',

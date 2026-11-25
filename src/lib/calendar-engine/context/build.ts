@@ -11,6 +11,7 @@ import {
 import { analyzeRelations, toAnalyzeInputFromSaju } from '@/lib/saju/relations'
 import { performAnalyses } from '@/lib/saju/analyses'
 import { JIJANGGAN } from '@/lib/saju/constants'
+import { strengthClassOf } from '@/lib/saju/strengthScore'
 import { parseHourMinute } from '@/lib/saju/timeParse'
 import { logger } from '@/lib/logger'
 import type { NatalContext, NatalDayJijanggan } from './types'
@@ -225,7 +226,7 @@ export async function buildNatalContext(
         avoid: [yongsinResult.kibsin, yongsinResult.gusin].filter(Boolean) as FiveElement[],
       },
       geokguk,
-      strength: mapStrength(yongsinResult.daymasterStrength),
+      strength: strengthClassOf(yongsinResult.daymasterStrength),
       natalShinsal: shinsalAnnot.hits as unknown as NatalContext['saju']['natalShinsal'],
       natalRelations: relations,
       daeun,
@@ -249,10 +250,4 @@ export async function buildNatalContext(
       almutenFiguris,
     },
   }
-}
-
-function mapStrength(s: string): 'strong' | 'medium' | 'weak' {
-  if (s === '극신강' || s === '신강') return 'strong'
-  if (s === '극신약' || s === '신약') return 'weak'
-  return 'medium'
 }
