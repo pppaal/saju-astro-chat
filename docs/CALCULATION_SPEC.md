@@ -135,23 +135,108 @@ surfaces must not cite house / ASC / MC / timing when it is true.
 
 ## 4. Cross fusion
 
-`src/lib/cross/crossInterpret.ts`:
-
-- `lookupCross(saju, astro)` — find a `CrossMapping` for a saju key + astro key.
-- `crossMeaning(saju, astro, lang)` — the ko/en meaning string.
-- `rankActiveCrosses(...)` — rank the active correspondences.
-
-The correspondence dictionary used by the calendar engine is
+The Saju ↔ astrology correspondence dictionary is
 `src/lib/calendar-engine/data/saju-astro-mapping.ts`:
 
-- `SAJU_ASTRO_MAPPINGS: CrossMapping[]`.
-- A saju side key is a ten-god or shinsal name (`정관`, `도화`, `역마`, ...);
-  the astro side key is a single planet (`Sun`..`Pluto`).
-- Each mapping has a grade `A | B | C` and ko/en meanings. Only A-grade pairs
-  are emitted as `cross-activation` signals.
-- Pair model in the extractor:
-  `pair.polarity = sign(saju.polarity x astro.polarity) x |mapping.polarity|`,
-  `pair.weight = saju.weight x astro.weight x 0.6`.
+- `SAJU_ASTRO_MAPPINGS: CrossMapping[]` pairs a saju key (a ten-god or shinsal
+  name: `정관`, `도화`, `역마`, ...) with one planet (`Sun`..`Pluto`), and carries a
+  grade, a mapping polarity and ko/en meanings.
+- `lookupCrossMapping(sajuKey, astroKey)` is the index lookup (the Day tier's
+  hour crossings in `src/lib/calendar-view/toHourCrossings.ts` use it).
+- Grade A is a direct East/West correspondence whose two sides act in the same
+  polarity direction. Grade B is a supporting correspondence: outer-planet decade
+  rows and fast-planet nuance rows. Both grades are emitted; there is no grade
+  filter, only the layer band below.
+- A mapping sign must be reachable under the fixed parent polarities. Shinsal
+  polarity is fixed (`SHINSAL_POLARITY`: 도화 +1, 역마 0, 건록 +2, 양인 −2,
+  천을귀인 +3), so a row against it can never get agreeing parents and is retired
+  (도화 × Mars −1).
+- `crossOnly` rows are calendar coverage only. The report's one-planet-per-key
+  mapping (`src/lib/report/natalCrossShared.ts`) skips them.
+
+The calendar post-pass `extractCrossActivations`
+(`src/lib/calendar-engine/extractors/cross-activation.ts`) pairs co-active
+signals:
+
+- **Parents.** Saju: the ten-god of `saju-pillar` (대운, 세운, 월운, 일진) and
+  `saju-hour` signals, and the shinsal name of `saju-shinsal` /
+  `saju-shinsal-activation` signals. Derived lines (element flow, 지장간 통근) are
+  not keys. Astro: `evidence.planets[0]` of a planet moving in the sky. Excluded:
+  eclipses (the key would be the affected natal point), profection and zodiacal
+  releasing (time lords), planetary hours (the Chaldean hour ruler), and solar
+  arc, secondary progressions and the progressed Moon, including the progressed
+  lunar return milestone (symbolic directions).
+- **Window.** The intersection of the two parent windows. The peak is the
+  midpoint of the parent peaks, or the window centre if that falls outside.
+- **Layer.** The narrowest parent layer
+  (`instant < hourly < daily < monthly < yearly < decadal`), because the window
+  is the intersection. A cross with a 시진 parent stays `hourly`, so it stays out
+  of `TONE_LAYERS`. A `decadal` cross needs a 대운 parent and a decade-scale astro
+  parent.
+- **Band.** `CROSS_LAYER_BAND` lists the layers in which each planet may cross.
+  The cross layer (above) is checked against it, and a pair outside the band is
+  dropped.
+- **Polarity** (`combinePolarity`). The mapping sign is kept only when the
+  parents agree with it: both carry it, or one carries it and the other is 0.
+  A parent of the opposite sign, or two neutral parents, gives 0, and the meaning
+  is replaced by the neutral "cancel out" copy. A neutral mapping (0) always gives
+  0 and keeps its own meaning. The magnitude is the mapping's; a parent only
+  contributes its sign.
+- **Weight.** `saju.weight × astro.weight × 0.6`, clamped to [0, 1].
+- **Dedup.** Candidates with the same (pair, layer, window) keep the strongest.
+  After cell bucketing, `dedupeCrossSignals` keeps one cross per (cell, name,
+  layer), ranked by |polarity| × weight, then weight, then id.
+- **Id.** `cross.{saju}-x-{astro}.{layer}:{startDay}~{endDay}`.
+
+<!-- gen:cross-doctrine -->
+<!-- 이 표는 자동 생성됩니다. 직접 수정하지 마세요 — `npm run docs:sync`. -->
+
+**Source:** [`cross-activation.ts`](../src/lib/calendar-engine/extractors/cross-activation.ts) `crossPolarityTruthTable()` (the table the truth-table test reads) and [`saju-astro-mapping.ts`](../src/lib/calendar-engine/data/saju-astro-mapping.ts).
+
+#### Pair polarity (sign of `combinePolarity`)
+
+**Mapping +**
+
+|        | astro + | astro 0 | astro − |
+| ------ | ------- | ------- | ------- |
+| saju + | +       | +       | 0       |
+| saju 0 | +       | 0       | 0       |
+| saju − | 0       | 0       | 0       |
+
+**Mapping −**
+
+|        | astro + | astro 0 | astro − |
+| ------ | ------- | ------- | ------- |
+| saju + | 0       | 0       | 0       |
+| saju 0 | 0       | 0       | −       |
+| saju − | 0       | −       | −       |
+
+**Mapping 0**
+
+|        | astro + | astro 0 | astro − |
+| ------ | ------- | ------- | ------- |
+| saju + | 0       | 0       | 0       |
+| saju 0 | 0       | 0       | 0       |
+| saju − | 0       | 0       | 0       |
+
+#### Layer band (`CROSS_LAYER_BAND`, checked at the narrowest parent layer)
+
+| Planet    | Cross layers                   |
+| --------- | ------------------------------ |
+| `Moon`    | `hourly`, `daily`              |
+| `Sun`     | `hourly`, `daily`, `monthly`   |
+| `Mercury` | `hourly`, `daily`, `monthly`   |
+| `Venus`   | `hourly`, `daily`, `monthly`   |
+| `Mars`    | `hourly`, `daily`, `monthly`   |
+| `Jupiter` | `monthly`, `yearly`, `decadal` |
+| `Saturn`  | `yearly`, `decadal`            |
+| `Uranus`  | `decadal`                      |
+| `Neptune` | `decadal`                      |
+| `Pluto`   | `decadal`                      |
+
+Mappings: 57 (A 27 · B 30); every grade is emitted, gated only by the band.
+
+<!-- /gen:cross-doctrine -->
 
 Natal cross synthesis for the report: `src/lib/report/natalCross.ts`.
 
@@ -167,7 +252,8 @@ Promise<CalendarCell[]>`:
 2. ~25 extractors in `extractors/` (`saju-*`, `astro-*`) run in parallel and
    produce `ActiveSignal[]`.
 3. The `cross-activation` post-pass synthesizes Saju x Astrology co-active
-   pairs from the A-grade `SAJU_ASTRO_MAPPINGS`.
+   pairs from `SAJU_ASTRO_MAPPINGS` (grades A and B, gated by
+   `CROSS_LAYER_BAND`; §4).
 4. Signals are grouped into cells; derivers compute scores, salience, and
    patterns.
 

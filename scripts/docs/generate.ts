@@ -22,6 +22,11 @@ import { CALCULATION_STANDARDS } from '@/lib/config/calculationStandards'
 import { ENABLED_SERVICES, REMOVED_PUBLIC_SERVICE_PREFIXES } from '@/config/enabledServices'
 import { tarotThemes, tarotCreditCostFor } from '@/lib/tarot/tarot-spreads-data'
 import { tarotDeck } from '@/lib/tarot/data'
+import { crossPolarityTruthTable } from '@/lib/calendar-engine/extractors/cross-activation'
+import {
+  CROSS_LAYER_BAND,
+  SAJU_ASTRO_MAPPINGS,
+} from '@/lib/calendar-engine/data/saju-astro-mapping'
 
 const ROOT = process.cwd()
 const DOCS_DIR = path.join(ROOT, 'docs')
@@ -201,6 +206,57 @@ const GENERATORS: Record<string, () => string> = {
       '',
       '> 코드 품질 점수(테스트 통과율·버그·커버리지)는 이 표로 안 나옴 —',
       '> 별도 에이전트 감사 필요. 여기는 "인벤토리 + 보안 신호" 현황판.',
+    ].join('\n')
+  },
+
+  // 사주×점성 교차 교리 — cross-activation combinePolarity 진리표(진리표 테스트와 같은 표)
+  // + 층별 교차 밴드 + 등급 수. CALCULATION_SPEC §4 (엔진 감사 F5).
+  'cross-doctrine': () => {
+    const sym = (n: number) => (n > 0 ? '+' : n < 0 ? '−' : '0')
+    const rows = crossPolarityTruthTable()
+    const signs = [1, 0, -1] as const
+    const polarity: string[] = []
+    for (const mapping of [1, -1, 0] as const) {
+      const body = signs.map((saju) => [
+        `saju ${sym(saju)}`,
+        ...signs.map((astro) =>
+          sym(
+            rows.find((r) => r.mapping === mapping && r.saju === saju && r.astro === astro)!.result
+          )
+        ),
+      ])
+      polarity.push(
+        `**Mapping ${sym(mapping)}**`,
+        '',
+        table(['', 'astro +', 'astro 0', 'astro −'], body),
+        ''
+      )
+    }
+    const band = table(
+      ['Planet', 'Cross layers'],
+      Object.entries(CROSS_LAYER_BAND).map(([planet, layers]) => [
+        `\`${planet}\``,
+        layers.map((l) => `\`${l}\``).join(', '),
+      ])
+    )
+    const grades = ['A', 'B', 'C']
+      .map((g) => [g, SAJU_ASTRO_MAPPINGS.filter((m) => m.grade === g).length] as const)
+      .filter(([, n]) => n > 0)
+      .map(([g, n]) => `${g} ${n}`)
+      .join(' · ')
+    return [
+      STAMP,
+      '',
+      '**Source:** [`cross-activation.ts`](../src/lib/calendar-engine/extractors/cross-activation.ts) `crossPolarityTruthTable()` (the table the truth-table test reads) and [`saju-astro-mapping.ts`](../src/lib/calendar-engine/data/saju-astro-mapping.ts).',
+      '',
+      '#### Pair polarity (sign of `combinePolarity`)',
+      '',
+      ...polarity,
+      '#### Layer band (`CROSS_LAYER_BAND`, checked at the narrowest parent layer)',
+      '',
+      band,
+      '',
+      `Mappings: ${SAJU_ASTRO_MAPPINGS.length} (${grades}); every grade is emitted, gated only by the band.`,
     ].join('\n')
   },
 
