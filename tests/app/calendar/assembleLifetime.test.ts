@@ -100,19 +100,60 @@ describe('assembleLifetime', () => {
   it('대운 교차(decadeCross) — decadal 층만, 페어 중복 없음, polarity≠0', async () => {
     const { lifetime } = await run()
     const dc = lifetime.decadeCross ?? []
-    expect(dc.length).toBeGreaterThan(0)
-    // 페어 중복 없음.
-    const keys = dc.map((c) => `${c.saju}|${c.astro}`)
-    expect(new Set(keys).size).toBe(keys.length)
-    // 상충 무력화(0)는 제외 — 방향 있는 교차만.
-    for (const c of dc) {
-      expect(c.polarity).not.toBe(0)
-      expect(c.meaning.length).toBeGreaterThan(0)
-      // 페어 머리("정재 × 토성 —")는 stripCrossPair 로 제거돼 본문만 남는다.
-      expect(c.meaning.includes('×')).toBe(false)
+    // 실측 셀: 甲戌 정재 대운(−) × 첫 토성 회귀(−) 는 정재×토성(+1) 매핑에 부모가 동의하지
+    // 않아 0(엔진 감사 E11, OD-10) — 상충 0 은 제외되므로 이 날의 10년 교차 행은 없다.
+    const decadal = (focus?.signals ?? []).filter(
+      (s) => s.kind === 'cross-activation' && s.layer === 'decadal'
+    )
+    expect(decadal.map((s) => `${s.name}|${s.polarity}`)).toEqual(['정재 × 토성|0'])
+    expect(dc).toEqual([])
+  }, 60000)
+
+  it('대운 교차(decadeCross) 필터 — decadal·polarity≠0 만, 페어당 가장 센 1개', async () => {
+    const cross = (name: string, layer: CalendarCell['signals'][number]['layer'], pol: number) =>
+      ({
+        id: `cross.${name}.${layer}.${pol}`,
+        source: 'saju',
+        kind: 'cross-activation',
+        name,
+        korean: `${name} — 본문 ${pol}`,
+        english: `${name} — body ${pol}`,
+        polarity: pol,
+        layer,
+        active: {
+          start: '2026-07-06T00:00:00Z',
+          peak: '2026-07-06T12:00:00Z',
+          end: '2026-07-06T23:59:59Z',
+        },
+        weight: 0.5,
+        evidence: { module: 'cross-activation', detail: {} },
+      }) as CalendarCell['signals'][number]
+    const cell: CalendarCell = {
+      ...(focus as CalendarCell),
+      signals: [
+        cross('정재 × 토성', 'decadal', 1),
+        cross('정재 × 토성', 'decadal', 2), // 같은 페어 — 더 센 쪽
+        cross('편관 × 명왕성', 'decadal', 0), // 상충 0 — 제외
+        cross('정관 × 토성', 'yearly', 1), // 10년 층 아님 — 제외
+      ],
     }
-    // 甲戌 정재 대운이라 정재×토성 교차가 포함된다(실측).
-    expect(dc.some((c) => c.saju === '정재')).toBe(true)
+    const { lifetime } = await assembleLifetime({
+      natal,
+      lang: 'ko',
+      birthYear: 1995,
+      targetYear: 2026,
+      sex: '남',
+      birthDisplay: '1995.2.9 06:40',
+      whoBirthLine: '1995.2.9 06:40',
+      place: '서울',
+      now: NOW,
+      todayIso: '2026-07-06',
+      focusDayCell: cell,
+    })
+    const dc = lifetime.decadeCross ?? []
+    expect(dc.map((c) => `${c.saju}|${c.astro}|${c.polarity}`)).toEqual(['정재|토성|2'])
+    // 페어 머리("정재 × 토성 —")는 stripCrossPair 로 제거돼 본문만 남는다.
+    expect(dc[0].meaning).toBe('본문 2')
   }, 60000)
 
   it('focusDayCell 없으면 decadeCross 는 빈 배열(연 셀 빌드 안 함)', async () => {

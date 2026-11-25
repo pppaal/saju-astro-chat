@@ -1,12 +1,18 @@
 import { describe, it, expect } from 'vitest'
-import { extractCrossActivations } from '@/lib/calendar-engine/extractors/cross-activation'
+import {
+  extractCrossActivations,
+  combinePolarity,
+  crossPolarityTruthTable,
+  narrowestLayer,
+} from '@/lib/calendar-engine/extractors/cross-activation'
 import { dedupeCrossSignals, __bucketingInternals } from '@/lib/calendar-engine'
 import type { ActiveSignal } from '@/lib/calendar-engine/types'
 
 /**
  * cross-activation extractor — saju × astro 동시 활성 페어 합성.
  * cross-activation-band.test.ts 는 밴드 게이팅을 덮는다. 여기서는
- * combinePolarity arm, dedup(best-by-day), 키 추출/스킵 분기를 덮는다.
+ * combinePolarity 진리표(엔진 감사 X6·F5, OD-10), 좁은 부모 layer(X7), 부모 자격
+ * (X4·X5, OD-9), dedup, 키 추출/스킵 분기를 덮는다.
  *
  * 매핑 사전 페어 (data/saju-astro-mapping):
  *   정관 × Saturn (mapping polarity +1)
@@ -78,13 +84,36 @@ describe('combinePolarity (extractCrossActivations 경유)', () => {
     expect(out[0].name).toBe('정재 × 금성')
   })
 
-  it('둘 다 −면 (같은 방향) 매핑 polarity 그대로 (정재 × Venus = +2)', () => {
+  it('둘 다 −인데 매핑이 +면 0 + 상쇄 문구 (정재 × Venus = +2, OD-10)', () => {
+    // 예전엔 같은 방향이면 매핑 부호를 그대로 써 −− 부모에서 + 교차가 났다(엔진 감사 X6).
     const out = extractCrossActivations([
       sajuSig({ sibsin: '정재', polarity: -2 }),
       astroSig({ planet: 'Venus', polarity: -1 }),
     ])
     expect(out.length).toBe(1)
-    expect(out[0].polarity).toBe(2) // |mapping| 부호 유지
+    expect(out[0].polarity).toBe(0)
+    expect(out[0].korean).toContain('상쇄')
+    expect(out[0].english).toContain('cancel out')
+    expect(out[0].korean).toMatch(/^정재 × 금성 — /)
+  })
+
+  it('둘 다 +인데 매핑이 −면 0 (편관 × Mars = −2)', () => {
+    const out = extractCrossActivations([
+      sajuSig({ sibsin: '편관', polarity: 2 }),
+      astroSig({ planet: 'Mars', polarity: 1 }),
+    ])
+    expect(out.length).toBe(1)
+    expect(out[0].polarity).toBe(0)
+    expect(out[0].korean).toContain('상쇄')
+  })
+
+  it('둘 다 −이고 매핑도 −면 매핑 그대로 (편관 × Mars = −2)', () => {
+    const out = extractCrossActivations([
+      sajuSig({ sibsin: '편관', polarity: -1 }),
+      astroSig({ planet: 'Mars', polarity: -2 }),
+    ])
+    expect(out[0].polarity).toBe(-2)
+    expect(out[0].korean).not.toContain('상쇄되는 날')
   })
 
   it('부호가 어긋나면 (+ / −) → polarity 0 (의미 충돌 무력화)', () => {
@@ -132,13 +161,89 @@ describe('combinePolarity (extractCrossActivations 경유)', () => {
     expect(out[0].korean).toContain('편인 × 수성') // 매핑 원문
   })
 
-  it('한쪽 polarity=0 이면 매핑 polarity 그대로 (편관 × Mars = −2)', () => {
+  it('한쪽 0 · 다른 쪽 매핑 부호면 매핑 polarity (편관 × Mars = −2)', () => {
+    const out = extractCrossActivations([
+      sajuSig({ sibsin: '편관', polarity: 0 }),
+      astroSig({ planet: 'Mars', polarity: -1 }),
+    ])
+    expect(out.length).toBe(1)
+    expect(out[0].polarity).toBe(-2)
+  })
+
+  it('한쪽 0 · 다른 쪽 매핑과 반대면 0 — 0 부모가 매핑을 대신 정하지 않는다', () => {
     const out = extractCrossActivations([
       sajuSig({ sibsin: '편관', polarity: 0 }),
       astroSig({ planet: 'Mars', polarity: 2 }),
     ])
     expect(out.length).toBe(1)
-    expect(out[0].polarity).toBe(-2)
+    expect(out[0].polarity).toBe(0)
+    expect(out[0].korean).toContain('상쇄')
+  })
+
+  it('두 부모 모두 0 이면 0 — 매핑 문장을 뒷받침할 부모가 없다', () => {
+    const out = extractCrossActivations([
+      sajuSig({ sibsin: '정재', polarity: 0 }),
+      astroSig({ planet: 'Venus', polarity: 0 }),
+    ])
+    expect(out.length).toBe(1)
+    expect(out[0].polarity).toBe(0)
+    expect(out[0].korean).toContain('상쇄')
+  })
+})
+
+describe('combinePolarity 진리표 — 3×3 부모 부호 × 매핑 부호 (OD-10)', () => {
+  const table = crossPolarityTruthTable()
+
+  it('27줄 = 매핑 3 × 사주 3 × 점성 3', () => {
+    expect(table).toHaveLength(27)
+  })
+
+  it('비영 결과는 언제나 매핑 부호, 매핑과 반대 부호인 부모는 없다', () => {
+    for (const r of table) {
+      if (r.result === 0) continue
+      const label = JSON.stringify(r)
+      expect(r.result, label).toBe(r.mapping)
+      expect(r.saju === -r.mapping || r.astro === -r.mapping, label).toBe(false)
+      expect(r.saju === 0 && r.astro === 0, label).toBe(false)
+    }
+  })
+
+  it('동의하는 부모(둘 다 매핑 부호, 또는 하나 매핑 부호 + 하나 0)면 반드시 비영', () => {
+    for (const r of table) {
+      if (r.mapping === 0) {
+        expect(r.result).toBe(0)
+        continue
+      }
+      const agree =
+        (r.saju === r.mapping || r.saju === 0) &&
+        (r.astro === r.mapping || r.astro === 0) &&
+        (r.saju !== 0 || r.astro !== 0)
+      expect(r.result !== 0, JSON.stringify(r)).toBe(agree)
+    }
+  })
+
+  it('크기는 매핑 그대로 — 부모 크기는 부호만 쓴다', () => {
+    expect(combinePolarity(3, 1, -2 as never)).toBe(0)
+    expect(combinePolarity(-3, -1, -2 as never)).toBe(-2)
+    expect(combinePolarity(1, 0, 3 as never)).toBe(3)
+  })
+
+  it('추출기도 진리표 그대로 — 매핑 부호별 실제 페어로 27칸 대조', () => {
+    // 정재×Venus(+2) · 편관×Mars(−2) · 편인×Mercury(0) — 모두 Venus/Mars/Mercury 월 밴드.
+    const PAIRS: Record<string, [string, string]> = {
+      '1': ['정재', 'Venus'],
+      '-1': ['편관', 'Mars'],
+      '0': ['편인', 'Mercury'],
+    }
+    for (const r of table) {
+      const [sibsin, planet] = PAIRS[String(r.mapping)]
+      const out = extractCrossActivations([
+        sajuSig({ sibsin, polarity: r.saju }),
+        astroSig({ planet, polarity: r.astro }),
+      ])
+      expect(out, JSON.stringify(r)).toHaveLength(1)
+      expect(Math.sign(out[0].polarity), JSON.stringify(r)).toBe(r.result)
+    }
   })
 })
 
@@ -266,17 +371,50 @@ describe('교차 부모 자격 (엔진 감사 X4·X5)', () => {
   it('시진(saju-hour)·신살(saju-shinsal-activation) 은 교차 키', () => {
     const hour = sajuSig({ sibsin: '정재', polarity: 2, layer: 'hourly' })
     hour.evidence = { ...hour.evidence, module: 'saju-hour' }
-    expect(
-      extractCrossActivations([hour, astroSig({ planet: 'Venus', polarity: 2, layer: 'daily' })])
-    ).toHaveLength(1)
-    const act = sajuSig({ shinsalName: '천을귀인', polarity: 2, layer: 'daily' })
+    const fromHour = extractCrossActivations([
+      hour,
+      astroSig({ planet: 'Venus', polarity: 2, layer: 'daily' }),
+    ])
+    expect(fromHour).toHaveLength(1)
+    expect(fromHour[0].layer).toBe('hourly') // 좁은 부모 층(X7)
+    const act = sajuSig({ shinsalName: '도화', polarity: 1, layer: 'daily' })
     act.evidence = { ...act.evidence, module: 'saju-shinsal-activation' }
     const out = extractCrossActivations([
       act,
-      astroSig({ planet: 'Jupiter', polarity: 2, layer: 'monthly' }),
+      astroSig({ planet: 'Venus', polarity: 2, layer: 'monthly' }),
     ])
     expect(out).toHaveLength(1)
-    expect((out[0].evidence.detail as { sajuKey: string }).sajuKey).toBe('천을귀인')
+    expect((out[0].evidence.detail as { sajuKey: string }).sajuKey).toBe('도화')
+    expect(out[0].layer).toBe('daily')
+  })
+
+  it('솔라 아크·2차 진행·진행 달·진행 달 회귀(라이프사이클)는 교차 키가 아니다 (OD-9)', () => {
+    for (const kind of ['solar-arc', 'progression', 'progressed-moon'] as const) {
+      const directed = astroSig({ planet: 'Venus', polarity: 2, layer: 'monthly' })
+      directed.kind = kind
+      const out = extractCrossActivations([sajuSig({ sibsin: '정재', polarity: 2 }), directed])
+      expect(out, kind).toHaveLength(0)
+    }
+    const progLunar = astroSig({ planet: 'Moon', polarity: 0, layer: 'decadal' })
+    progLunar.kind = 'lifecycle'
+    progLunar.evidence = {
+      module: 'astro-lifecycle',
+      planets: ['Moon'],
+      detail: { event: 'progressed_lunar_1' },
+    }
+    const hour = sajuSig({ sibsin: '정인', polarity: 2, layer: 'hourly' })
+    hour.evidence = { ...hour.evidence, module: 'saju-hour' }
+    expect(extractCrossActivations([hour, progLunar])).toHaveLength(0)
+    // 실제 회귀(토성 회귀)는 하늘의 토성이 본명 토성에 돌아오는 사건 — 교차 키로 남는다.
+    const satReturn = astroSig({ planet: 'Saturn', polarity: 1, layer: 'decadal' })
+    satReturn.kind = 'lifecycle'
+    satReturn.evidence = {
+      module: 'astro-lifecycle',
+      planets: ['Saturn'],
+      detail: { event: 'saturn_return_1' },
+    }
+    const daeun = sajuSig({ sibsin: '정관', polarity: 1, layer: 'decadal' })
+    expect(extractCrossActivations([daeun, satReturn])).toHaveLength(1)
   })
 
   it('행성시(planetary-hour) Saturn 은 정관·정재와 교차를 만들지 않는다 — 시간의 지배성', () => {
@@ -316,31 +454,31 @@ describe('셀 단위 교차 dedup (엔진 감사 X2)', () => {
   })
 
   it('짧은 강한 교차와 같은 날 시작한 긴 교차가 둘 다 산다 — 시작일이 생존을 정하지 않는다', () => {
-    // 월운 정관(한 달) × 토성 라이프사이클(decadal) = decadal 교차(긴 창).
-    // 같은 날 시작하는 시진 정관 × 토성 트랜짓(yearly) = yearly 교차(더 셈, 짧은 창).
+    // 대운 정관(10년) × 토성 라이프사이클(decadal, 07-01 시작) = decadal 교차(긴 창).
+    // 같은 날 시작하는 세운 정관 × 토성 트랜짓(yearly) = yearly 교차(더 셈, 짧은 창).
     // 예전 dedup 키 (페어, 창 시작일)은 yearly 가 decadal 을 지워 이후 날에도 decadal 이 없었다.
-    const wolun = sajuSig({
+    // (교차 layer 는 좁은 부모 층 — 두 부모가 모두 10년 층이어야 decadal, 엔진 감사 X7.)
+    const daeun = sajuSig({
       sibsin: '정관',
       polarity: 2,
-      layer: 'monthly',
+      layer: 'decadal',
       weight: 0.7,
-      win: makeWin('2026-07-01T00:00:00Z', '2026-07-15T00:00:00Z', '2026-07-30T23:59:59Z'),
+      win: makeWin('2020-07-01T00:00:00Z', '2025-07-01T00:00:00Z', '2030-06-30T23:59:59Z'),
     })
-    const hour = sajuSig({
+    const seun = sajuSig({
       sibsin: '정관',
       polarity: 2,
-      layer: 'hourly',
+      layer: 'yearly',
       weight: 0.4,
-      win: makeWin('2026-07-01T09:00:00Z', '2026-07-01T10:00:00Z', '2026-07-01T11:00:00Z'),
+      win: makeWin('2026-07-01T00:00:00Z', '2026-12-31T00:00:00Z', '2027-06-30T23:59:59Z'),
     })
-    hour.id = 'saju.hour.정관'
-    hour.evidence = { ...hour.evidence, module: 'saju-hour' }
+    seun.id = 'saju.seun.정관'
     const lifecycle = astroSig({
       planet: 'Saturn',
       polarity: 2,
       layer: 'decadal',
       weight: 0.5,
-      win: makeWin('2026-01-01T00:00:00Z', '2026-07-01T00:00:00Z', '2027-12-31T00:00:00Z'),
+      win: makeWin('2026-07-01T00:00:00Z', '2027-01-01T00:00:00Z', '2027-12-31T00:00:00Z'),
     })
     const transit = astroSig({
       planet: 'Saturn',
@@ -350,7 +488,7 @@ describe('셀 단위 교차 dedup (엔진 감사 X2)', () => {
       win: makeWin('2026-06-01T12:00:00Z', '2026-07-01T12:00:00Z', '2026-07-01T12:00:00Z'),
     })
     transit.id = 'astro.transit.Saturn'
-    const signals = [wolun, hour, lifecycle, transit]
+    const signals = [daeun, seun, lifecycle, transit]
     const all = [...signals, ...extractCrossActivations(signals)]
     const cells = __bucketingInternals.groupIntoCells(
       all,
@@ -365,5 +503,44 @@ describe('셀 단위 교차 dedup (엔진 감사 X2)', () => {
     }
     const first = cells[0].signals.filter((s) => s.kind === 'cross-activation')
     expect(first.map((s) => s.layer).sort()).toEqual(['decadal', 'yearly'])
+  })
+})
+
+describe('교차 layer = 좁은 부모 층 (엔진 감사 X7, OD-10)', () => {
+  it('narrowestLayer — instant < hourly < daily < monthly < yearly < decadal', () => {
+    expect(narrowestLayer('decadal', 'hourly')).toBe('hourly')
+    expect(narrowestLayer('monthly', 'yearly')).toBe('monthly')
+    expect(narrowestLayer('daily', 'daily')).toBe('daily')
+    expect(narrowestLayer('instant', 'hourly')).toBe('instant')
+  })
+
+  it('시진 × 달(일) → hourly 교차 — daily 로 올라가 그날 톤에 섞이지 않는다', () => {
+    const hour = sajuSig({ sibsin: '정인', polarity: 2, layer: 'hourly' })
+    hour.evidence = { ...hour.evidence, module: 'saju-hour' }
+    const out = extractCrossActivations([
+      hour,
+      astroSig({ planet: 'Moon', polarity: 1, layer: 'daily' }),
+    ])
+    expect(out).toHaveLength(1)
+    expect(out[0].layer).toBe('hourly')
+    expect(out[0].id).toMatch(/^cross\.정인-x-Moon\.hourly:/)
+  })
+
+  it('시진 × 토성(세운 층 트랜짓) → hourly 라 토성 밴드 밖 — 2시간 창이 세운 교차가 되지 않는다', () => {
+    const hour = sajuSig({ sibsin: '정관', polarity: 2, layer: 'hourly' })
+    hour.evidence = { ...hour.evidence, module: 'saju-hour' }
+    const out = extractCrossActivations([
+      hour,
+      astroSig({ planet: 'Saturn', polarity: 2, layer: 'yearly' }),
+    ])
+    expect(out).toHaveLength(0)
+  })
+
+  it('대운 × 토성 트랜짓(yearly) → yearly, 대운 × 토성 회귀(decadal) → decadal', () => {
+    const daeun = sajuSig({ sibsin: '정관', polarity: 2, layer: 'decadal' })
+    const transit = astroSig({ planet: 'Saturn', polarity: 2, layer: 'yearly' })
+    expect(extractCrossActivations([daeun, transit]).map((s) => s.layer)).toEqual(['yearly'])
+    const ret = astroSig({ planet: 'Saturn', polarity: 2, layer: 'decadal' })
+    expect(extractCrossActivations([daeun, ret]).map((s) => s.layer)).toEqual(['decadal'])
   })
 })

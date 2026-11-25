@@ -8,6 +8,9 @@ import type { ActiveSignal, ExtractorContext, SignalExtractor } from '../types'
  * Lunar Return: 매월 달이 출생 시 위치로 돌아오는 순간. 차트는 1달 유효.
  *
  * 활성 윈도우는 다음 회귀 직전까지. peak는 회귀 정점.
+ * 범위 시작 *직전* 회귀(전년 솔라·전월 루나)도 만든다 — 그 창이 범위 첫머리를 덮기 때문이다.
+ * 예전엔 범위가 시작하는 해·달부터만 만들어, 같은 날이라도 빌드 범위(1일·한 달·앞뒤
+ * 3일)에 따라 루나리턴 신호와 그것을 부모로 한 교차가 생겼다 말았다(엔진 감사 X1 계열).
  * polarity는 0 (중립) — 회귀 차트의 ASC/MC sign이 톤을 결정하지만 별도 신호로 분리하지 않음.
  * "이 시기는 새 사이클 진입" 자체가 의미.
  */
@@ -24,8 +27,8 @@ const astroReturnExtractor: SignalExtractor = {
     const start = new Date(range.start)
     const end = new Date(range.end)
 
-    // ─── Solar Return — 매년 ───
-    const startYear = start.getUTCFullYear()
+    // ─── Solar Return — 매년 (범위 첫머리를 덮는 전년 회귀부터) ───
+    const startYear = start.getUTCFullYear() - 1
     const endYear = end.getUTCFullYear()
     for (let year = startYear; year <= endYear; year++) {
       try {
@@ -67,8 +70,8 @@ const astroReturnExtractor: SignalExtractor = {
       }
     }
 
-    // ─── Lunar Return — 매월 ───
-    let cursor = new Date(start)
+    // ─── Lunar Return — 매월 (범위 첫머리를 덮는 전월 회귀부터) ───
+    let cursor = new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth() - 1, 1))
     while (cursor <= end) {
       const year = cursor.getUTCFullYear()
       const month = cursor.getUTCMonth() + 1

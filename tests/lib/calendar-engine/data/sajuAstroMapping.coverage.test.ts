@@ -13,6 +13,7 @@ import {
   lookupCrossMapping,
   crossLayerAllowed,
 } from '@/lib/calendar-engine/data/saju-astro-mapping'
+import { SHINSAL_POLARITY } from '@/lib/calendar-engine/extractors/saju-shinsal'
 
 const SIBSIN_10 = [
   '비견',
@@ -82,6 +83,30 @@ describe('saju-astro-mapping — 무결성', () => {
     }
     expect(lookupCrossMapping('없는키', 'Venus')).toBeUndefined()
     expect(lookupCrossMapping(undefined, undefined)).toBeUndefined()
+  })
+
+  it('매핑 부호는 고정 극성 부모 아래 도달 가능 — 신살 극성과 반대 부호 행 없음 (엔진 감사 X6)', () => {
+    // 신살 부모는 극성이 고정(도화 +1·역마 0·건록 +2·양인 −2·천을귀인 +3)이라, 그와 반대
+    // 부호인 매핑은 두 부모가 동의할 수 없어 절대 부호가 서지 않는다(예: 은퇴한 도화×화성 −1).
+    for (const m of SAJU_ASTRO_MAPPINGS) {
+      const fixed = SHINSAL_POLARITY[m.saju]
+      if (fixed === undefined || fixed === 0 || m.polarity === 0) continue
+      expect(Math.sign(m.polarity), `${m.saju}×${m.astro}`).toBe(Math.sign(fixed))
+    }
+    expect(lookupCrossMapping('도화', 'Mars')).toBeUndefined()
+  })
+
+  it('신살(일 층 전용) × 일 밴드 없는 행성 — 캘린더에서 발화하지 않는 행은 이 둘뿐', () => {
+    // 교차 layer 는 좁은 부모 층이라(엔진 감사 X7) 신살(daily) × 목성(monthly~) 은 daily →
+    // 목성 밴드 밖. 건록×목성은 리포트 대표 매핑으로 쓰이고, 천을귀인×목성은 보류(오너 결정).
+    const shinsal = new Set(Object.keys(SHINSAL_POLARITY))
+    const dead = SAJU_ASTRO_MAPPINGS.filter(
+      (m) =>
+        shinsal.has(m.saju) &&
+        !crossLayerAllowed(m.astro, 'daily') &&
+        !crossLayerAllowed(m.astro, 'hourly')
+    ).map((m) => `${m.saju}|${m.astro}`)
+    expect(dead.sort()).toEqual(['건록|Jupiter', '천을귀인|Jupiter'])
   })
 
   it('외행성(천왕·해왕·명왕) 매핑은 장주기 전용 — 일/월 밴드 발화 금지', () => {

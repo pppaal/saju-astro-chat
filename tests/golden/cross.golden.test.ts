@@ -34,15 +34,13 @@ const { buildCalendar } = await import('@/lib/calendar-engine/index')
 const { buildReportContext } = await import('@/lib/report/buildReportContext')
 const { buildCrossRows } = await import('@/lib/report/integratedAdapter')
 const { evalVoid } = await import('@/lib/report/natalCrossEvaluators')
+const { crossLayerAllowed } = await import('@/lib/calendar-engine/data/saju-astro-mapping')
 
 type Cell = Awaited<ReturnType<typeof buildCalendar>>[number]
 type Signal = Cell['signals'][number]
 
 /** Engine stage that restores each invariant. Delete an entry when its stage lands. */
-const KNOWN_DEFECTS: Record<string, string> = {
-  'sign coherence with both parents': 'E11',
-  'cross layer = narrowest parent layer': 'E11',
-}
+const KNOWN_DEFECTS: Record<string, string> = {}
 
 const SHOW_DEFECTS = process.env.GOLDEN_SHOW_DEFECTS === '1'
 const usedDefects = new Set<string>()
@@ -184,12 +182,25 @@ describe.skipIf(!swissephAvailable)('calendar cross invariants (E0 section E)', 
     expect(bad.slice(0, 10)).toEqual([])
   })
 
-  golden_it('no element-flow / jijanggan / planetary-hour parents', () => {
+  // Symbolic astro keys (OD-9): planetary hours are time rulers; solar arc, secondary
+  // progressions and the progressed Moon (incl. the progressed lunar return milestone)
+  // are directed points, not planets moving in the sky.
+  const SYMBOLIC_ASTRO_KINDS = new Set([
+    'planetary-hour',
+    'solar-arc',
+    'progression',
+    'progressed-moon',
+  ])
+  golden_it('no element-flow / jijanggan / symbolic astro parents', () => {
     const bad: string[] = []
     eachCross((b, cell, s, byId) => {
       const [sajuId, astroId] = parentIds(s)
       const astroKind = byId.get(astroId)?.kind ?? s.evidence?.detail?.parentAstroKind
-      if (/^saju\.(element-flow|jijanggan)\./.test(sajuId ?? '') || astroKind === 'planetary-hour')
+      if (
+        /^saju\.(element-flow|jijanggan)\./.test(sajuId ?? '') ||
+        SYMBOLIC_ASTRO_KINDS.has(String(astroKind)) ||
+        (astroId ?? '').startsWith('astro.lifecycle.progressed_')
+      )
         bad.push(`${b.person.id} ${cell.datetime.slice(0, 10)} ${s.name} ← ${sajuId} × ${astroId}`)
     })
     expect(bad.slice(0, 10)).toEqual([])
@@ -237,6 +248,49 @@ describe.skipIf(!swissephAvailable)('calendar cross invariants (E0 section E)', 
         bad.push(
           `${b.person.id} ${cell.datetime.slice(0, 10)} ${s.name} ${s.layer} ← (${ps.map((p) => p!.layer)})`
         )
+    })
+    expect(bad.slice(0, 10)).toEqual([])
+  })
+
+  golden_it('an hourly parent keeps the cross hourly (out of TONE_LAYERS)', () => {
+    const bad: string[] = []
+    let hourly = 0
+    eachCross((b, cell, s, byId) => {
+      const ps = parentIds(s).map((id) => byId.get(id))
+      if (!ps.some((p) => p?.layer === 'hourly')) return
+      hourly++
+      if (s.layer !== 'hourly')
+        bad.push(`${b.person.id} ${cell.datetime.slice(0, 10)} ${s.name} ${s.layer}`)
+    })
+    expect(hourly).toBeGreaterThan(0)
+    expect(bad.slice(0, 10)).toEqual([])
+  })
+
+  golden_it('a decadal cross has a 대운 saju parent and a decade-scale astro parent', () => {
+    const bad: string[] = []
+    eachCross((b, cell, s, byId) => {
+      if (s.layer !== 'decadal') return
+      const [saju, astro] = parentIds(s).map((id) => byId.get(id))
+      if (!saju || !astro) return
+      if (
+        !/\.daeun-(stem|branch)\./.test(saju.id) ||
+        saju.layer !== 'decadal' ||
+        astro.layer !== 'decadal'
+      )
+        bad.push(
+          `${b.person.id} ${cell.datetime.slice(0, 10)} ${s.name} ← ${saju.id} × ${astro.id}`
+        )
+    })
+    expect(bad.slice(0, 10)).toEqual([])
+  })
+
+  golden_it('every cross carries a grade in {A, B} and a layer inside its planet band', () => {
+    const bad: string[] = []
+    eachCross((b, cell, s) => {
+      const astroKey = String(s.evidence?.detail?.astroKey ?? '')
+      const grade = s.evidence?.detail?.grade
+      if ((grade !== 'A' && grade !== 'B') || !crossLayerAllowed(astroKey, s.layer))
+        bad.push(`${b.person.id} ${cell.datetime.slice(0, 10)} ${s.name} ${grade} ${s.layer}`)
     })
     expect(bad.slice(0, 10)).toEqual([])
   })

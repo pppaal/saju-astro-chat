@@ -1,22 +1,29 @@
 /**
- * 사주-점성 의미 매핑 사전 (A등급).
+ * 사주-점성 의미 매핑 사전 (A/B등급).
  *
- * 사주 십신/신살과 서양 점성 행성 사이의 학파 검증된 의미 대응.
+ * 사주 십신/신살과 서양 점성 행성 사이의 의미 대응.
  * "동시 활성" 페어 중 의미상 자연스럽게 강화·간섭하는 조합만 골라
- * cross-activation 신호로 emit 한다.
+ * cross-activation 신호로 emit 한다. 등급 필터는 없다 — A·B 모두 emit 되고,
+ * 유일한 게이트는 층별 교차 밴드(CROSS_LAYER_BAND, 파일 끝)다.
  *
  * ── 등급 기준 ──
  * A등급: 동·서 양 학파 문헌에서 직접 등치되거나, symbolic correspondence
  *        가 강하고 (예: 정관 = 책임·법·구조 ↔ Saturn = 책임·구조·시간) 둘
  *        다 같은 polarity 방향으로 작동하는 경우.
+ * B등급: 상징 대응은 분명하나 직접 등치는 아닌 보조 대응 — 외행성 장주기
+ *        대응(대운 전용 밴드)과 일/월 근거 커버리지용 빠른 행성 nuance.
+ * 어느 등급이든 매핑 부호는 *부모 극성 관례 아래 도달 가능*해야 한다 — 신살처럼
+ * 극성이 고정된 부모(SHINSAL_POLARITY: 도화 +1·역마 0·건록 +2·양인 −2·천을귀인 +3)와
+ * 반대 부호인 행은 두 부모가 동의할 수 없어 은퇴시킨다(엔진 감사 X6 — 도화×화성 −1).
  *
  * 본 파일은 데이터만 보관 — 매칭 로직은 cross-activation extractor 에 분리.
  *
- * 페어 polarity 합산 모델 (extractor combinePolarity):
- *   - 두 부모 부호가 같은 방향(++ 또는 --) → mapping.polarity 를 **부호 그대로** 사용
- *     (예: 편관×Mars −2 는 둘 다 압력이면 −2 유지 — 흉을 더 키움. sign 곱이 아님).
- *   - 부호가 반대(+− / −+) → 0 (의미 충돌 — 톤 무력화).
- *   - 한쪽 polarity = 0 → mapping.polarity 그대로 (부호 정보 부재 시 매핑이 결정).
+ * 페어 polarity 합산 모델 (extractor combinePolarity, OD-10):
+ *   - 두 부모 모두 매핑 부호, 또는 한쪽 매핑 부호 + 다른 쪽 0 → mapping.polarity 를
+ *     **부호·크기 그대로** (예: 편관×Mars −2 는 둘 다 압력이면 −2 유지 — 흉을 더 키움).
+ *   - 어느 부모든 매핑과 반대 부호(+− 충돌, 매핑 + 에 −− 부모, 매핑 − 에 ++ 부모),
+ *     또는 두 부모 모두 0 → 0 ('상쇄' 중립 카피).
+ * pair.layer   = 두 부모 중 *좁은* 층 (창이 교집합) — 밴드도 그 층에서 검사.
  * pair.weight  = saju.weight × astro.weight × 0.6 (cross 신호 noise 방지)
  */
 
@@ -69,8 +76,9 @@ export interface CrossMapping {
    *   0: 중립적 자원형 (도화 × Venus — 매력·관계).
    *
    * 최종 페어 polarity 는 extractor combinePolarity 가 산출:
-   * 두 부모 부호가 같은 방향이면 이 값을 **부호 그대로** 채택(편관×Mars −2 → −2),
-   * 부호가 반대면 0, 한쪽이 0 이면 이 값을 그대로 — 본 값은 의미 톤의 *방향* 을 결정.
+   * 두 부모가 이 값의 방향에 동의하면(둘 다 같은 부호, 또는 한쪽 같은 부호 + 다른 쪽 0)
+   * 이 값을 **부호 그대로** 채택(편관×Mars −2 → −2), 그 밖은 0 — 본 값은 의미 톤의
+   * *방향* 을 결정하고, 부모는 그 방향을 *허락*할 뿐 뒤집지 못한다.
    */
   polarity: Polarity
   grade: CrossMappingGrade
@@ -87,7 +95,7 @@ export interface CrossMapping {
 }
 
 /**
- * A등급 매핑 — 학파 검증된 의미 대응.
+ * A/B등급 매핑 — 등급 기준은 파일 머리.
  *
  * 한 쌍의 (sajuKey, astroKey) 가 둘 다 활성인 셀에서만 cross-activation 신호가
  * 발화. 한 쪽이 missing 이면 emit 하지 않음 — 노이즈 차단.
@@ -378,6 +386,8 @@ export const SAJU_ASTRO_MAPPINGS: readonly CrossMapping[] = [
     grade: 'A',
     note: '양인(예봉·과열) ↔ Mars(blade·sudden injury). 양쪽 모두 첨예·과열축.',
   },
+  // 캘린더에선 발화하지 않는다 — 건록은 일 층 신살이고 목성 밴드는 월 층부터라, 좁은 부모
+  // 층(daily) 교차가 밴드 밖이다(엔진 감사 X7). 리포트의 건록 대표 매핑(natalCrossShared)으로 쓰인다.
   {
     saju: '건록',
     astro: 'Jupiter',
@@ -771,18 +781,8 @@ export const SAJU_ASTRO_MAPPINGS: readonly CrossMapping[] = [
     crossOnly: true,
     note: '비견(동배 경쟁) ↔ Mars(경쟁·열기). 겁재×Mars 의 완화판 — −1.',
   },
-  {
-    saju: '도화',
-    astro: 'Mars',
-    meaning: {
-      ko: '도화살 × 화성 — 끌림이 격정으로 달아오르는 결. 질투·성급한 고백은 하루 식히고.',
-      en: 'Peach Blossom × Mars — attraction heats into intensity. Cool jealousy and rushed confessions for a day.',
-    },
-    polarity: -1,
-    grade: 'B',
-    crossOnly: true,
-    note: '도화(끌림) ↔ Mars(격정·성급). 인연축의 과열 → −1.',
-  },
+  // 도화 × 화성(−1)은 은퇴(엔진 감사 X6) — 도화는 신살 극성이 +1 로 고정이라 두 부모가
+  // −1 에 동의할 수 없다. 옛 합성 규칙에선 화성이 길하거나 중립일 때만 −1 경고가 떴다(반전).
   {
     saju: '건록',
     astro: 'Mars',
@@ -797,6 +797,9 @@ export const SAJU_ASTRO_MAPPINGS: readonly CrossMapping[] = [
   },
 
   // ── 신살 길성 확장 ──
+  // 천을귀인 × 목성은 E11(좁은 부모 층) 뒤로 캘린더에서 발화하지 않는다 — 천을귀인은 일 층
+  // 신살, 목성 밴드는 월 층부터. crossOnly 라 리포트도 쓰지 않는다 — 빠른 길성(태양·금성)으로
+  // 옮길지, 은퇴할지 오너 결정 대기(data 테스트가 이 상태를 고정한다).
   {
     saju: '천을귀인',
     astro: 'Jupiter',
@@ -813,17 +816,19 @@ export const SAJU_ASTRO_MAPPINGS: readonly CrossMapping[] = [
 
 /**
  * 층별 교차 밴드 — 행성마다 *어느 시간 층에서* 교차신호를 낼 수 있는지.
- * 행성 속도에 맞춘다: 빠른 행성은 일/월에서만(긴 층에선 무의미), 느린/외행성은
+ * 행성 속도에 맞춘다: 빠른 행성은 시/일/월에서만(긴 층에선 무의미), 느린/외행성은
  * 대운/장주기에서만(짧은 층에선 노이즈 — 윈도우가 수개월~수년이라 상시 발화).
- * cross-activation 이 합성 신호의 layer 가 이 밴드에 없으면 emit 하지 않는다.
+ * cross-activation 이 합성 신호의 layer — 두 부모 중 *좁은* 층(엔진 감사 X7) — 가
+ * 이 밴드에 없으면 emit 하지 않는다. 시진(hourly) 부모의 교차는 hourly 층이라
+ * 빠른 행성(일 밴드가 있는 행성)과만 맞는다 — 2시간 시진 × 토성은 세운 교차가 아니다.
  * → "전부 켜기/끄기"가 아니라 *층마다 맞는 행성만* 교차.
  */
-const CROSS_LAYER_BAND: Record<AstroMatchKey, readonly SignalLayer[]> = {
-  Moon: ['daily'],
-  Sun: ['daily', 'monthly'],
-  Mercury: ['daily', 'monthly'],
-  Venus: ['daily', 'monthly'],
-  Mars: ['daily', 'monthly'],
+export const CROSS_LAYER_BAND: Readonly<Record<AstroMatchKey, readonly SignalLayer[]>> = {
+  Moon: ['hourly', 'daily'],
+  Sun: ['hourly', 'daily', 'monthly'],
+  Mercury: ['hourly', 'daily', 'monthly'],
+  Venus: ['hourly', 'daily', 'monthly'],
+  Mars: ['hourly', 'daily', 'monthly'],
   Jupiter: ['monthly', 'yearly', 'decadal'],
   Saturn: ['yearly', 'decadal'],
   Uranus: ['decadal'],

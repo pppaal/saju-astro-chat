@@ -92,7 +92,10 @@ describe('buildCalendar 결정론 골든', () => {
     // 밖까지 이어 진짜 run·최소 orb 로, 子時 민용일 두 조각, 교차 부모는 정통 기둥·시진·
     // 신살 × 실제 활성 행성(오행 흐름·지장간·행성시 제외), 교차 dedup (셀, name, layer).
     // 신호 weight·교차 구성이 바뀌어 digest 변경. 의도된 갱신.
-    const GOLDEN = '287f560d2c714837f1baede7606db9e1153bfdb3'
+    // 2026-11 갱신(v10, 엔진 감사 E11): 교차 교리 — 두 부모가 매핑 방향에 동의할 때만 부호,
+    // layer 는 좁은 부모 층(시진 교차 hourly)·밴드도 그 층, 솔라 아크·진행·진행 달 교차 키
+    // 제외, 도화×화성 은퇴, 회귀 추출기가 범위 직전 회귀부터. 교차 구성이 바뀌어 digest 변경.
+    const GOLDEN = 'f21520fa995d0b4521b15ba0561a86d8f542ab02'
     expect(digest(await build())).toBe(GOLDEN)
   }, 60_000)
 })

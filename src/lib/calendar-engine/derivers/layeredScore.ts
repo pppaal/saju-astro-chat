@@ -61,11 +61,11 @@ function linearMapper(values: number[]): (v: number) => number {
 
 /** 같은 id 신호 dedup (연중 같은 배경이 매일 반복 등장하므로).
  *
- * cross-activation 만 예외 — id 가 `cross.<십신>-x-<행성>.<날짜>` 라 같은 *페어* 가
- * 한 달 안에서도 날짜마다 다른 id 로 살아남아 월 signedSurprise 에 중복 합산됐다
- * (topK=8 로 상한은 있으나 실재 중복). 그래서 cross 는 날짜 접미사를 뗀 페어 키로
- * 묶고, 충돌 시 더 강한(|polarity|×weight) 인스턴스를 남긴다(동률은 id 사전순 —
- * 결정성 유지). 그 외 신호는 기존대로 id 우선(first-wins) — 동작 불변. */
+ * cross-activation 만 예외 — id 가 `cross.<십신>-x-<행성>.<layer>:<창 시작일>~<끝일>`
+ * 이라 같은 *페어* 가 한 달 안에서도 창마다 다른 id 로 살아남아 월 signedSurprise 에
+ * 중복 합산됐다 (topK=8 로 상한은 있으나 실재 중복). 그래서 cross 는 마지막 '.' 뒤
+ * (layer·창) 접미사를 뗀 페어 키로 묶고, 충돌 시 더 강한(|polarity|×weight) 인스턴스를
+ * 남긴다(동률은 id 사전순 — 결정성 유지). 그 외 신호는 기존대로 id 우선(first-wins). */
 function crossPairKey(id: string): string {
   const i = id.lastIndexOf('.')
   return i > 0 ? id.slice(0, i) : id
@@ -97,6 +97,8 @@ export function deriveLayeredScores(cells: CalendarCell[]): LayeredScores {
   const dailySigned: Array<{ date: string; signed: number }> = []
   for (const c of cells) {
     const date = c.datetime.slice(0, 10)
+    // 일 점수는 일진·시진(+정점) 층 — 시진 부모의 교차('hourly', 좁은 부모 층)도 시진처럼
+    // 점수에 든다. 톤(TONE_LAYERS)과 달리 점수는 그날 12시진 합을 원래 포함한다.
     const sigs = c.signals.filter((s) => DAY_LAYERS.has(s.layer))
     dailySigned.push({ date, signed: signedSurprise(sigs, rates) })
   }

@@ -329,6 +329,8 @@ export function toDay(opts: ToDayOptions): DestinypalDay {
   let reasonNet = 0
   // 화해(tense/bright) 판정용 — *그날 고유* 층(daily·instant)만. 월운·시진의
   // 상수 베이스가 그날 흉 신호를 덮어 bright 상시 발동하던 문제 교정(TONE_LAYERS).
+  // 교차도 layer 로만 거른다 — 시진 부모의 교차는 엔진이 'hourly' 로 내므로(좁은 부모
+  // 층, 엔진 감사 X7) 별도 kind 예외 없이 톤에서 빠진다.
   let toneNet = 0
 
   for (const s of cell.signals) {
@@ -721,6 +723,7 @@ export function reconcileCellOneLine(
   favorScore?: number
 ): { dayTone: DayVerdict; score: number; oneLine: string; oneLineEn: string } {
   // toDay 본문과 동일 산식 — reasonNet(문구 회전)·toneNet(화해 판정) 분리.
+  // 시진 부모 교차는 'hourly' 라 toneNet 밖(TONE_LAYERS) — toDay 본문과 같다.
   let reasonNet = 0
   let toneNet = 0
   for (const s of cell.signals) {

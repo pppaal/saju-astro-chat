@@ -64,7 +64,11 @@ export { SAJU_ENGINE_VERSION }
 //     時柱)으로, 교차 부모는 정통 기둥·시진·신살 × 실제 활성 행성만(오행 흐름·지장간·
 //     행성시 제외), 교차 dedup 은 (셀, name, layer). 월 셀·포커스 1일 셀('day:' 키 — birthKey
 //     를 접으므로 함께 무효화)에 구워지므로 bump.
-export const CALENDAR_ENGINE_VERSION = 'v9'
+// v10: 교차 교리(엔진 감사 E11 — X6·X7·X5·F5, OD-9·OD-10). 교차는 두 부모가 매핑 방향에
+//     동의할 때만 부호(반대 부모·0·0 부모는 0), layer 는 좁은 부모 층(시진 교차는 hourly 로
+//     남아 톤 밖)·밴드도 그 층에서, 솔라 아크·2차 진행·진행 달은 교차 키 아님, 도화×화성
+//     은퇴. 교차 신호가 셀에 구워지므로 bump.
+export const CALENDAR_ENGINE_VERSION = 'v10'
 
 /**
  * 본명 차트 Redis 캐시(CacheKeys.natalChart, `natal:v${N}:…`).

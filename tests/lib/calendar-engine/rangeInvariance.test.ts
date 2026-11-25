@@ -289,9 +289,19 @@ describe('인생 화면 10년 교차 = 월 셀 교차 (X1 — assembleLifetime)'
         todayIso: day,
         focusDayCell: cell,
       })
+    // 엔진 감사 E11 뒤로 10년 교차는 두 부모가 모두 10년 층일 때만 생긴다 — 표본은 그날
+    // 정재 대운 × 첫 토성 회귀 하나(부모가 매핑 방향에 동의하지 않아 0)라 decadeCross 는
+    // 비고(계획 B3 예상), 교차 신호 자체(0 포함)로 비어 있지 않음을 확인한다.
+    const decadal = (cell: CalendarCell) =>
+      cell.signals
+        .filter((s) => s.kind === 'cross-activation' && s.layer === 'decadal')
+        .map((s) => `${s.name}|${s.polarity}`)
+        .sort()
+    const monthCell = cellOf(sampleMonth, day)
+    expect(decadal(monthCell).length).toBeGreaterThan(0)
+    expect(decadal(focus)).toEqual(decadal(monthCell))
     const fromFocus = (await run(focus)).lifetime.decadeCross
-    const fromMonth = (await run(cellOf(sampleMonth, day))).lifetime.decadeCross
-    expect(fromMonth?.length ?? 0).toBeGreaterThan(0)
+    const fromMonth = (await run(monthCell)).lifetime.decadeCross
     expect(fromFocus).toEqual(fromMonth)
   }, 300_000)
 })
