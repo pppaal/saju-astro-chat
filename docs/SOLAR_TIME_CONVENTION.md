@@ -9,8 +9,12 @@
 ```
 보정분 = round((경도 − 표준자오선) × 4)
 표준자오선 = 그 시점 타임존 UTC offset(분) / 60 × 15   (KST=135°, 베이징=120°, EST=−75° …)
-평균태양시 = 시계 시각 + 보정분
+평균태양시 = 시계 시각 + 보정분  (= UT + 경도 × 4분)
 ```
+
+- **출생 instant** 는 [`resolveBirthInstant()`](../src/lib/datetime/resolveBirthInstant.ts) 하나로 정합니다(OD-3, RFC 5545 §3.3.5 — 사주·점성 공용). 서머타임 해제로 두 번 있는 벽시계는 _첫 번째_ instant, 서머타임 시작·표준시 변경으로 건너뛴 벽시계는 공백 _직전_ offset 으로 읽습니다. 예: 2021-11-07 01:30 뉴욕 → 05:30Z, 2021-03-14 02:30 뉴욕 → 07:30Z, 1987-05-10 02:30 서울 → 1987-05-09T17:30Z, 1961-08-10 00:15 서울 → 1961-08-09T15:45Z.
+- **경도 미상** 이면 존 기준 경도를 씁니다(OD-2): `Asia/Seoul` = 126.978(앱의 서울 기본값), 그 외 존 = tzdata `zone1970.tab` 대표 도시([`zoneReference.generated.ts`](../src/lib/saju/zoneReference.generated.ts), `node scripts/generate-zone-reference.mjs` 로 재생성), `Etc/*` = offset × 15. 호출부는 좌표가 없을 때 `defaultLongitudeFor(tz)`/`defaultLatitudeFor(tz)` 를 쓰고, 비한국 타임존에 맨 126.978 을 붙이지 않습니다.
+- **경도 sanity bound** (OD-14): 존 표준자오선에서 60° 넘게 떨어진 경도(정상 최대치는 Asia/Shanghai 아래 카슈가르 약 44°)는 잘못 짝지은 값으로 보고 버린 뒤 존 기준 경도를 씁니다(경고 로그).
 
 > ⚠️ 과거 이 문서는 "표준시 그대로, 보정 미적용"이라고 적혀 있었으나, 코드는 이미 평균태양시 보정을 적용하고 있었습니다. 이 문서는 2026-06-06 코드 실제 동작에 맞춰 다시 작성되었습니다.
 
@@ -44,12 +48,12 @@
 
 | RAW 요소                                  | 시각 기준                                              | 위치                   |
 | ----------------------------------------- | ------------------------------------------------------ | ---------------------- |
-| **본명 사주 — 시주 (時)**                 | 평균태양시 (시계 시각 + 보정분으로 시진 lookup)        | `saju.ts` `totalMin`   |
+| **본명 사주 — 시주 (時)**                 | 평균태양시 (UT + 경도 × 4분으로 시진 lookup)           | `meanSolarMinuteOfDay` |
 | **본명 사주 — 년주·월주·대운수**          | 생 UT 출생 instant vs 절입 instant (보정 미적용)       | `saju.ts` `birthMs`    |
-| **본명 사주 — 일주·만 나이 생일**         | 출생지 민용일 (보정 미적용)                            | `saju.ts` `civilY/M/D` |
+| **본명 사주 — 일주·만 나이 생일**         | 입력한 출생지 민용일 (보정·instant 재유도 없음)        | `saju.ts` `civilY/M/D` |
 | **달력 시진 (時)** — forecast 시각별 길흉 | 평균태양시 (시진 경계를 보정)                          | `saju-hour.ts`         |
 | **달력 일진 (日)** — 그 날짜의 일주       | 캘린더 날짜 기준 (날짜 = 그 날의 일진, 보정 대상 아님) | `computeDayStem`       |
-| **점성** (본명·트랜짓)                    | 실제 UTC 천문 위치 (보정 개념 없음)                    | Swiss Ephemeris        |
+| **점성** (본명·트랜짓)                    | 실제 UTC 천문 위치 (보정 개념 없음, 같은 출생 instant) | `natalToJD`            |
 
 > **본명 보정의 핵심 (2026-11, OD-1):** 보정은 **시주(時)만** 옮긴다. 절입은 태양
 > 시황경이 315°+30k° 에 닿는 _하나의 절대 instant_ 라서, 평균태양시 보정(벽시계
@@ -68,6 +72,11 @@
 > 약 0.07%, 대운수 ±1 약 0.7%). 같은 instant·경도에서도 timezone 라벨에 따라 답이
 > 갈렸다(2020-02-04T11:00Z · lon 75.99 → Asia/Shanghai 己亥, Asia/Urumqi 庚子).
 
+> **네 기둥의 시각 기준 정리:** 시주만 평균태양시, 년주·월주·대운수는 생 UT instant,
+> 일주는 입력한 민용일이다 — 네 기둥이 _한_ 보정된 instant 에서 나오지 않는다.
+> 자정에 걸친 서머타임 공백(1961-08-10 00:15 서울 → 乙亥, 2018-11-04 00:30 상파울루 →
+> 庚子, 2008-03-21 00:30 테헤란 → 庚申)도 일주는 입력한 날이다(엔진 감사 E8).
+
 > **일진을 보정하지 않는 이유:** 본명은 *태어난 순간*이라 보정이 필요하지만, 달력의 "오늘의 일진"은 _날짜의 속성_(예: 甲子일)이라 날짜마다 고정값이다.
 
 ---
@@ -80,15 +89,16 @@
 | **평균태양시 (경도 보정)** | 자평진전·강호 일부 | ✅             |
 | 진태양시 (+균시차)         | 적천수 일부        | (옵션, 미적용) |
 
-시 경계(子=23:30 등) 부근 출생자는 보정 여부로 시주가 바뀔 수 있어, 다른 만세력과 결과가 다를 수 있습니다.
+시 경계(서울 시계 子=23:32 등) 부근 출생자는 보정 여부로 시주가 바뀔 수 있어, 다른 만세력과 결과가 다를 수 있습니다. 한국 만세력에서 흔한 '+30분 고정'(子=23:30) 표와는 경계가 2분 다릅니다(서울 실제 경도 126.978°E = −32분).
 
 ---
 
 ## SSOT 계약
 
-- 사주의 모든 시각 보정은 **`solarTimeCorrectionMinutes(instant, longitude, timeZone)` 하나만** 호출한다. 인라인으로 `(경도−자오선)×4` 를 복붙하지 말 것.
-- 회귀: [`tests/lib/saju/solarTimeCorrection.test.ts`](../tests/lib/saju/solarTimeCorrection.test.ts) 가 도시별 보정값을 고정.
-- `longitude` 미상 시 보정 0 → 옛 동작(캐시 호환) 보존.
+- 사주의 모든 시각 보정은 **`solarTimeCorrectionMinutes(instant, longitude, timeZone)` 하나만** 호출한다. 인라인으로 `(경도−자오선)×4` 를 복붙하지 말 것. 본명 시주는 그 위의 `meanSolarMinuteOfDay` (instant 의 벽시계 + 보정분)로 읽는다.
+- 출생 벽시계 → UTC 는 **`resolveBirthInstant` 하나만** 쓴다(사주 `calculateSajuData`, 점성 `natalToJD`). `date-fns-tz`·`dayjs.tz` 로 출생 instant 를 따로 만들지 말 것.
+- 회귀: [`tests/lib/saju/solarTimeCorrection.test.ts`](../tests/lib/saju/solarTimeCorrection.test.ts) 가 도시별 보정값을, [`tests/lib/datetime/resolveBirthInstant.test.ts`](../tests/lib/datetime/resolveBirthInstant.test.ts) 가 공백·겹침 instant 와 사주=점성 계약을 고정.
+- `longitude` 미상 → 존 기준 경도(OD-2). 그래서 경도 없는 서울 출생과 126.978 을 넘긴 출생은 네 기둥·대운이 같다. 옛 '한국 LMT +30분' 표·한국 DST 윈도우·1월/7월 DST 추정은 2026-11(엔진 감사 E8) 삭제 — offset 이 이미 DST·KMT 를 담는다.
 
 ## 알려진 미정리 (TODO)
 

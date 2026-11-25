@@ -3,8 +3,9 @@
 이 문서는 **사주 계산 코드가 따르는 학파·관례**를 한 곳에 정리한 단일 출처(SSOT)다.
 새 코드를 추가하거나 외부 도구·만세력과 결과가 다를 때, *이 문서가 우리 코드의 정답 기준*이다.
 
-> **한 줄 요약:** 정통 자평파(子平命理) + 절기 기반(입춘=연시작, 12절기=월 전환) + 한국식 LMT +30분 시진 보정 +
-> 4길성 중심 신살(참고 수준) + 억부·조후 용신 + 양남음녀 순역행 + 글로벌 _만 나이_ 표시.
+> **한 줄 요약:** 정통 자평파(子平命理) + 절기 기반(입춘=연시작, 12절기=월 전환) + 평균태양시 시진(UT + 경도×4분,
+> 경도 미상은 존 기준 경도 — 서울 126.978) + 4길성 중심 신살(참고 수준) + 억부·조후 용신 + 양남음녀 순역행 +
+> 글로벌 _만 나이_ 표시.
 
 ---
 
@@ -28,10 +29,12 @@
   - 23:00–24:00 출생 → _그날_ 일주 유지 + 子時(時干은 그날 일간에서 도출)
   - 00:00–01:00 출생 → _다음날_ 일주 + 子時
   - 골든 예: `1990-12-31 23:59 KST → 日 庚午 · 時 丙子`, `1991-01-01 00:01 KST → 日 辛未 · 時 戊子`
-- 한국(`Asia/Seoul`): LMT 보정 → 子 _시진_ 경계 = 23:30–01:30. (시진 경계일 뿐, 일주는 위처럼 민용일 기준.)
-- 비한국 / KMT 시대 / DST 보정 후: 정시 경계 → 子 시진 = 23:00–01:00.
+- 시진 경계는 **평균태양시(= UT + 출생지 경도 × 4분)의 정시 경계** 하나다 — 子 = 23:00–01:00 평균태양시. 서울(126.978°E)은 시계로 子 = 23:32–01:32, 부산(129.08°E)은 23:24–01:24. (시진 경계일 뿐, 일주는 위처럼 민용일 기준.)
+- **경도 미상 = 존 기준 경도** (OD-2): `Asia/Seoul` = 126.978 (앱의 서울 기본값과 같아 경도 없는 서울 출생과 서울 기본값 출생이 _구조적으로_ 같은 시주), 그 외 존 = tzdata `zone1970.tab` 대표 도시, `Etc/*` = offset × 15. 존 표준자오선에서 60° 넘게 떨어진 경도(LA 타임존 + 서울 경도 같은 잘못된 짝)는 버리고 존 기준 경도를 쓴다(OD-14).
+- 서머타임·KMT(1954-03-21 ~ 1961-08-10, UTC+8:30)는 따로 보정하지 않는다 — 출생 instant 의 실제 UTC offset 이 이미 담고 있고, 평균태양시는 UT 에서 바로 나온다.
+- **출생 instant** = [`resolveBirthInstant`](../datetime/resolveBirthInstant.ts) (OD-3, RFC 5545 §3.3.5) — 사주와 점성(`natalToJD`)이 같은 함수를 쓴다. 겹치는 벽시계(서머타임 해제)는 첫 번째 instant, 없는 벽시계(서머타임 시작·표준시 변경 공백)는 공백 _직전_ offset 으로 읽는다. 일주는 이 instant 에서 다시 구하지 않고 **입력한 민용 날짜**다 — 자정에 걸친 공백(1961-08-10 00:15 서울 → 乙亥, 2018-11-04 00:30 상파울루 → 庚子)도 입력한 날의 일주.
 
-**위치:** 시진 경계 [`saju.ts`](./saju.ts) `LMT_HOUR_RANGES`(한국)/`PLAIN_HOUR_RANGES`(그 외), 일주 경계는 [`dayPillar.ts`](./dayPillar.ts)(민용일 JDN). 골든: `tests/lib/saju/determinism-golden.test.ts`, `tests/lib/saju/doctrine-dayBoundary.test.ts`.
+**위치:** 시진 경계 [`saju.ts`](./saju.ts) `HOUR_RANGES` + [`timezone.ts`](./timezone.ts) `meanSolarMinuteOfDay`·`solarTimeCorrectionMinutes`(보정 SSOT)·`zoneReferenceLongitude`, 일주 경계는 [`dayPillar.ts`](./dayPillar.ts)(민용일 JDN). 골든: `tests/lib/saju/determinism-golden.test.ts`, `tests/lib/saju/doctrine-dayBoundary.test.ts`, `tests/golden/saju.golden.test.ts` (G10·G12·G24–G26c·G28–G30).
 
 > ✅ **2026-10 수정 — 민용일 분리.** 2026-06-06 에 "네 기둥 모두 보정된 instant
 > 기준" 으로 통일한 변경이 일주까지 끌고 와 위 민용일 규칙을 깼다. 경도를 넘기면
@@ -53,11 +56,23 @@
 > 방향·대운수도 함께 바뀌었다. 답이 timezone 라벨에 의존하기까지 했다(같은 instant
 > 2020-02-04T11:00Z · lon 75.99 → Asia/Shanghai 己亥, Asia/Urumqi 庚子).
 >
-> **지금 규칙:** 시주 lookup 만 보정분(`solarCorrectionMin`)을 더한다. 년주·월주·
+> **지금 규칙:** 시주 lookup 만 평균태양시(`meanSolarMinuteOfDay`)를 쓴다. 년주·월주·
 > 대운수는 생 UT 출생 instant(`birthDateTime`)를 절입 instant 와 비교한다(§2·§3·§13·
 > §15). 일주와 만 나이 생일은 민용일(§14).
 > 가드: `tests/lib/saju/solarTermFrame.test.ts` (1940–2050 전 절기 ±5분),
 > `tests/golden/saju.golden.test.ts` (G03·G05·G06·G07·G21·G23·G25·G27)
+>
+> ✅ **2026-11 수정 — 출생 instant·시각 보정 한 경로 (엔진 감사 E8: F4·ASTRO-7·F7·F2·F3·
+> SAJU-2·SAJU-3·SAJU-6·SAJU-9).** 예전엔 경도가 없으면 시주가 별도 규칙을 탔다 — 한국은
+> 고정 'LMT +30분' 표(子=23:30–01:30), 손으로 적은 한국 DST 윈도우(1948–51·1987–88 은
+> DST 를 뺀 뒤 정시 경계라 KST 기준 LMT 를 잃었다), KMT 분기, 그리고 1월/7월 offset 중
+> 작은 쪽을 "표준시"로 잡는 DST 추정(서울 1954-01~03·1961-08~12, 모스크바 2014-11 처럼
+> 표준 offset 이 연중 바뀐 해에 가짜 DST 30~60분). 같은 서울 출생이 경도 유무에 따라
+> 시주·대운수가 달랐다(1995-06-10 23:31: 경도 없음 庚子 d8, 126.978 辛亥 d9). 사주
+> (date-fns-tz)와 점성(dayjs.tz)은 공백·겹침 시각을 서로 다르게 풀었고, dayjs 는 겹침
+> offset 을 서버의 현재 DST 상태로 골랐다. **수정:** 위 규칙 하나 — 출생 instant 는
+> `resolveBirthInstant`, 시주는 UT + 경도 × 4분(경도 미상은 존 기준 경도), 일주는 입력한
+> 민용일. 시각 문자열은 `parseHourMinute` 하나로 읽는다('9:05' ≡ '09:05').
 
 ---
 
@@ -109,7 +124,7 @@ const sajuYear = birthDateTime.getTime() < ipchunUTC.getTime() ? year - 1 : year
 
 ## 5. 시주(時柱) 경계
 
-**선택:** 위 1번(자시)과 동일 표 기반. 한국 LMT +30분 보정 시진 경계.
+**선택:** 위 1번(자시)과 같은 정시 경계를 평균태양시(UT + 경도 × 4분)에 적용한다. 경도 미상은 존 기준 경도(§1, OD-2). 옛 '한국 LMT +30분' 표는 2026-11 삭제(엔진 감사 E8).
 
 - **시간 미상(`birthTimeUnknown=true`) = 삼주(三柱) 분석** (OD-5, 엔진 감사 E7 · SAJU-4 · SD-10). 시주는 판정에 넣지 않는다:
   - `collectSajuFacts({ birthTimeUnknown })` → `facts.pillars.time = null`, `facts.timeUnknown = true`. `calculateSajuData(…, now, { timeUnknown })` 의 `fiveElements` 는 년·월·일 **6글자**이고, `timePillar` 는 정오 앵커로 채운 *자리표시*다(`result.timeUnknown = true`) — 판정·표시에 쓰지 말 것.
