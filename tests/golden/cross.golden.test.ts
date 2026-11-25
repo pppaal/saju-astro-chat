@@ -35,6 +35,8 @@ const { buildReportContext } = await import('@/lib/report/buildReportContext')
 const { buildCrossRows } = await import('@/lib/report/integratedAdapter')
 const { evalVoid } = await import('@/lib/report/natalCrossEvaluators')
 const { crossLayerAllowed } = await import('@/lib/calendar-engine/data/saju-astro-mapping')
+const { buildDecadeCross } = await import('@/app/calendar/assembleLifetime')
+const { crossKeys } = await import('@/app/calendar/crossPair')
 
 type Cell = Awaited<ReturnType<typeof buildCalendar>>[number]
 type Signal = Cell['signals'][number]
@@ -283,6 +285,57 @@ describe.skipIf(!swissephAvailable)('calendar cross invariants (E0 section E)', 
     })
     expect(bad.slice(0, 10)).toEqual([])
   })
+
+  // Life 'This decade's overlap' (plan B3 #8, audit X7): every row traces to a decadal cross
+  // whose saju parent is a 대운 pillar and whose astro parent is a decade-scale body (no
+  // 시진 / planetary-hour), both carrying the row's nonzero sign.
+  golden_it(
+    'Life decadeCross rows have a 대운 parent and a decade-scale astro parent of the same sign',
+    () => {
+      const bad: string[] = []
+      let rows = 0
+      for (const b of built) {
+        for (const cell of b.month) {
+          const byId = new Map(cell.signals.map((x) => [x.id, x]))
+          for (const row of buildDecadeCross(cell)) {
+            rows++
+            const sign = sgn(row.polarity)
+            const ok = cell.signals.some((s) => {
+              if (!isCross(s) || s.layer !== 'decadal' || s.polarity !== row.polarity) return false
+              const k = crossKeys(s)
+              if (k.sajuKo !== row.saju || k.astroKo !== row.astro) return false
+              const [saju, astro] = parentIds(s).map((id) => byId.get(id))
+              return (
+                !!saju &&
+                !!astro &&
+                /\.daeun-(stem|branch)\./.test(saju.id) &&
+                saju.layer === 'decadal' &&
+                astro.layer === 'decadal' &&
+                astro.kind !== 'planetary-hour' &&
+                sgn(saju.polarity) === sign &&
+                sgn(astro.polarity) === sign
+              )
+            })
+            if (sign === 0 || !ok)
+              bad.push(
+                `${b.person.id} ${cell.datetime.slice(0, 10)} ${row.saju} × ${row.astro} ${row.polarity}`
+              )
+          }
+        }
+      }
+      // The population has real rows (P05: 정인 × 목성 +2, 丁 대운 × third Jupiter return).
+      expect(rows).toBeGreaterThan(0)
+      expect(bad.slice(0, 10)).toEqual([])
+    }
+  )
+
+  golden_it(
+    'sample 2026-11-19 has no decade overlap (plan B3: 정재 × 토성 parents disagree)',
+    () => {
+      const sample = built.find((b) => b.person.id === X.sample.id)!
+      expect(buildDecadeCross(cellOf(sample, '2026-11-19'))).toEqual([])
+    }
+  )
 
   golden_it('every cross carries a grade in {A, B} and a layer inside its planet band', () => {
     const bad: string[] = []

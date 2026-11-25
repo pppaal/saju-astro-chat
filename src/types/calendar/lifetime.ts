@@ -192,6 +192,8 @@ export interface DestinyLifetime {
    * 이 10년의 사주×점성 교차 — 대운(decadal) 층 cross-activation. 1일 evidence
    * 셀에서 decadal 층만 필터(연 셀 불필요). 층마다 자기 티어에서 발화하는 구조의
    * 인생 스케일(일 화면 감사 #12로 일 화면에선 뺀 배경 교차의 원래 집). 시안 ⑧.
+   * 정직성 게이트(계획 B3 #8): 사주 부모가 대운이고, 점성 부모가 10년 층 천체이며,
+   * 두 부모가 모두 교차와 같은 비영 부호인 행만 — 없으면 빈 배열(섹션 미노출).
    */
   decadeCross?: DestinyDecadeCross[]
   /** 타고난 능력치 레이더 — 십성 분포에서 뽑은 5축(정직 데이터). 근거 없으면 undefined. */
@@ -228,7 +230,7 @@ export interface DestinyDecadeCross {
   /** 쉬운 뜻(ko) — stripCrossPair 로 페어 머리 제거된 본문. */
   meaning: string
   meaningEn: string
-  /** 합성 polarity(부호=길흉, 0=상충 무력화). */
+  /** 합성 polarity(부호=길흉). 게이트를 통과한 행만 오므로 언제나 ≠ 0. */
   polarity: number
 }
 

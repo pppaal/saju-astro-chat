@@ -50,6 +50,7 @@ export interface AssembleLifetimeInput {
    * 오늘의 evidence 셀(getFocusDayCell) — 대운(decadal) 층 사주×점성 교차 원천.
    * 없으면 decadeCross 생략(연 셀은 여전히 빌드 안 함 — 이 1일 셀만이 유일한
    * 셀 의존이고, /calendar 와 캐시 공유라 정상 사용에선 추가 빌드가 없다).
+   * evidence 포함 빌드여야 한다 — 교차의 부모(parentIds)를 이 셀에서 찾아 게이트한다.
    * Promise 로 넘기면 위 ephemeris 병렬 구간과 겹쳐 돌아 대기시간이 숨는다.
    */
   focusDayCell?: CalendarCell | null | Promise<CalendarCell | null>
@@ -118,7 +119,8 @@ export async function assembleLifetime(input: AssembleLifetimeInput): Promise<As
 
   // ⑥ 올해 한 줄(세운) — 연 셀 없이 입춘 SSOT 로. 캘린더로 내려보내는 연결 고리.
   lifetime.thisYear = buildThisYear(natal, input.todayIso, now)
-  // ⑧ 이 10년의 사주×점성 교차 — 1일 evidence 셀의 decadal 층만(연 셀 불필요).
+  // ⑧ 이 10년의 사주×점성 교차 — 1일 evidence 셀의 decadal 층 중 대운 부모와 10년 층
+  //   천체 부모가 교차와 같은 부호인 것만(정직성 게이트, 계획 B3 #8 — 연 셀 불필요).
   //   캘린더 엔진이 범위 불변이라(엔진 감사 X1·E9) 이 1일 셀의 교차는 같은 날 월 빌드
   //   셀의 교차와 같다 — /calendar 월·일 화면과 같은 사실을 말한다(rangeInvariance 테스트).
   //   Promise 로 왔으면 여기서 await — 이미 위 병렬 구간과 겹쳐 돌았으니 대개 즉시.
@@ -156,15 +158,49 @@ function buildThisYear(
   }
 }
 
-/** 대운(decadal) 층 사주×점성 교차 — 페어 기준 중복 제거(가장 센 |polarity|). */
-function buildDecadeCross(focusDayCell: CalendarCell | null): DestinyDecadeCross[] {
+type CellSignal = CalendarCell['signals'][number]
+
+/**
+ * 10년 겹침 정직성 게이트(계획 B3 #8, 엔진 감사 X7) — 교차의 두 부모를 셀 안에서
+ * evidence.detail.parentIds 로 찾아, 인생 스케일 카피("사주 대운과 외행성 트랜짓이 같은
+ * 방향을 가리킬 때만")가 사실일 때만 통과시킨다:
+ *  · 교차 layer 가 decadal 이고 polarity ≠ 0.
+ *  · 사주 부모 = 대운 기둥 신호(module 'saju-pillar', layer 'decadal'). 세운·월운·일진·
+ *    시진(hourly)·신살(daily) 부모는 10년 겹침이 아니다.
+ *  · 점성 부모 = 10년 층(decadal) 활성 천체 — 행성시(planetary-hour)·시간 층 금지.
+ *  · 두 부모 모두 교차와 *같은 비영 부호*. 한쪽이 0 이면 그 체계는 아무 말도 하지 않은
+ *    것이라 "같은 방향"이 아니다(엔진 교리는 (±,0) 도 부호를 주지만 인생 카피는 더 엄격).
+ * E11 뒤로 엔진은 decadal 교차를 두 부모가 모두 10년 층일 때만 만들고 부호도 동의할 때만
+ * 주므로, 앞의 세 조건은 엔진 불변식의 방어선(assertion)이다. 부모를 셀에서 찾지 못하면
+ * (evidence 가 비워진 셀 등) 근거를 확인할 수 없으니 올리지 않는다 — fail-closed.
+ */
+function decadeCrossParentsAgree(s: CellSignal, byId: ReadonlyMap<string, CellSignal>): boolean {
+  if (s.kind !== 'cross-activation' || s.layer !== 'decadal') return false
+  const sign = Math.sign(s.polarity)
+  if (sign === 0) return false
+  const ids = (s.evidence?.detail as { parentIds?: unknown } | undefined)?.parentIds
+  if (!Array.isArray(ids) || ids.length !== 2) return false
+  const saju = byId.get(String(ids[0]))
+  const astro = byId.get(String(ids[1]))
+  if (!saju || !astro) return false
+  const sajuIsDaeun =
+    saju.source === 'saju' && saju.layer === 'decadal' && saju.evidence?.module === 'saju-pillar'
+  const astroIsDecadal =
+    astro.source === 'astro' && astro.layer === 'decadal' && astro.kind !== 'planetary-hour'
+  if (!sajuIsDaeun || !astroIsDecadal) return false
+  return Math.sign(saju.polarity) === sign && Math.sign(astro.polarity) === sign
+}
+
+/**
+ * 대운(decadal) 층 사주×점성 교차 — 정직성 게이트(decadeCrossParentsAgree) 통과분만,
+ * 페어 기준 중복 제거(가장 센 |polarity|). 통과분이 없으면 빈 배열 — 화면은 섹션을 숨긴다.
+ */
+export function buildDecadeCross(focusDayCell: CalendarCell | null): DestinyDecadeCross[] {
   if (!focusDayCell) return []
+  const byId = new Map(focusDayCell.signals.map((s) => [s.id, s]))
   const byPair = new Map<string, DestinyDecadeCross>()
   for (const s of focusDayCell.signals) {
-    if (s.kind !== 'cross-activation' || s.layer !== 'decadal') continue
-    // 상충 무력화(polarity 0)는 인생 스케일 신뢰 카피("두 체계가 같은 말을 할
-    // 때만")와 어긋나므로 제외 — 방향이 있는 교차만 올린다.
-    if (s.polarity === 0) continue
+    if (!decadeCrossParentsAgree(s, byId)) continue
     const { sajuKo, astroKo } = crossKeys(s)
     if (!sajuKo || !astroKo) continue
     const key = `${sajuKo}|${astroKo}`
