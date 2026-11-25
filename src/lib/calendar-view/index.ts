@@ -26,7 +26,6 @@ export { toMonth } from './toMonth'
 export type {
   DestinypalMonth,
   DestinypalMonthNarrativeItem,
-  DestinypalMonthConvergence,
   DestinypalCalendarDay,
   ToMonthOptions,
 } from './toMonth'

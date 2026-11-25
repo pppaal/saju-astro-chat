@@ -1,10 +1,9 @@
 /**
- * 30일 CalendarCell aggregate + Convergence → destinypal `month` 객체 + `calendar[30]` adapter.
+ * 30일 CalendarCell aggregate → destinypal `month` 객체 + `calendar[30]` adapter.
  *
  * destinypal month:
  *   { label, ym, woolun, cautionDays[], goodDays[], bestDay{date,score},
- *     avoidDays[], themes[5], narrative[], converge{date,score,astro,saju,
- *     bothSystems,meaning}, focusDay }
+ *     avoidDays[], narrative[], focusDay, evidenceLadder }
  *
  * destinypal calendar[30]:
  *   Array<{ d, ds, intensity, mark, focus }>
@@ -14,7 +13,6 @@
  *   - CalendarCell[] (그 달의 30일 cells)
  *   - 월운 wolun ganji (선택)
  *   - 옵션 narrative (deriveMonthlyInterpretation 등 derive 결과 직주입)
- *   - convergence (heavy 또는 light) 결과
  */
 
 import type { CalendarCell } from '@/lib/calendar-engine/types'
@@ -31,20 +29,11 @@ export interface DestinypalMonthNarrativeItem {
   body: string
 }
 
-export interface DestinypalMonthConvergence {
-  date: string // "2026-06-30"
-  score: number
-  astro: string[]
-  saju: string[]
-  bothSystems: boolean
-  meaning?: string
-}
-
 export interface DestinypalCalendarDay {
   d: number
   ds: string // "06-15"
   intensity: number // 0..1
-  mark: 'caution' | 'avoid' | 'good' | 'best' | 'converge' | 'focus' | null
+  mark: 'caution' | 'avoid' | 'good' | 'best' | 'focus' | null
   focus: boolean
 }
 
@@ -57,7 +46,6 @@ export interface DestinypalMonth {
   bestDay?: { date: string; score: number } // date "06-04"
   avoidDays: string[]
   narrative: DestinypalMonthNarrativeItem[]
-  converge?: DestinypalMonthConvergence
   focusDay: number // 1..30
   /** 근거 사다리(10년→올해→이달) — 그 달 대표 셀 기준. */
   evidenceLadder?: EvidenceRung[]
@@ -77,8 +65,6 @@ export interface ToMonthOptions {
   woolunBranch?: string
   /** narrative — derive 결과 직주입. */
   narrative?: DestinypalMonthNarrativeItem[]
-  /** convergence — yearConvergence/heavy convergence 결과 직주입. */
-  converge?: DestinypalMonthConvergence
   /** focusDay — 어느 날을 펼쳐 보여줄지 (기본: bestDay 의 day). */
   focusDay?: number
   /** caution/avoid/good 임계값 (선택). */
@@ -181,20 +167,6 @@ export function toMonth(opts: ToMonthOptions): {
     }
   }
 
-  // converge 강조 — 현저도(✦/큰 날) 축이지 길흉(색) 축이 아니다. mark 를 'converge'
-  // 로 덮으면 그 날의 good/caution 색(그리고 cellMarkClass)이 사라져 그리드가 무채색이
-  // 되는데, goodDays/cautionDays 카운트엔 그대로 남아 헤더("좋은 날 N")와 그리드가
-  // 어긋난다(감사 U5). MonthTier 는 큰 날을 "제 색 유지 + ✦ 링"으로 그리므로(색=길흉,
-  // ✦=현저도 직교), 수렴일도 색은 밴드 그대로 두고 강도만 올린다. 수렴 자체의 현저도는
-  // keyDays·총평·✦ 링이 전한다.
-  if (opts.converge?.date) {
-    const convDay = parseInt(opts.converge.date.slice(8, 10), 10)
-    const c = calendar.find((c) => c.d === convDay)
-    if (c) {
-      c.intensity = Math.max(c.intensity, 0.9)
-    }
-  }
-
   // label fallback
   const label = opts.label ?? `${opts.ym.slice(0, 4)}년 ${parseInt(opts.ym.slice(5, 7), 10)}월`
 
@@ -235,7 +207,6 @@ export function toMonth(opts: ToMonthOptions): {
           : undefined,
       avoidDays,
       narrative: opts.narrative ?? [],
-      converge: opts.converge,
       focusDay,
       evidenceLadder,
       evidenceLadderEn,

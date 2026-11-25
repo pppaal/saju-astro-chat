@@ -23,7 +23,6 @@ export default async function DestinyLifePage({ searchParams }: { searchParams: 
   // ?date=&time=&lat=&lng=&tz=&gender= 가 있으면 로그인 없이 그 사람 기준으로.
   const override = parseBirthOverride(await searchParams)
   const data = await loadLifetimeData(override)
-  if (data.kind === 'login') return <BirthRequiredFallback reason="login" />
   if (data.kind === 'no-birth') return <BirthRequiredFallback reason="no-birth" />
   if (data.kind === 'rate-limited')
     return <BirthRequiredFallback reason="rate-limited" locale={data.lang} />

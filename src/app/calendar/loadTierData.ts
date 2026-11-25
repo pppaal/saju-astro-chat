@@ -27,7 +27,6 @@ import { getNowInTimezone, formatDateString } from '@/lib/datetime/timezone'
 import { resolveBirthTimeAnchor } from '@/lib/saju/birthTimeAnchor'
 
 export type LoadTierResult =
-  | { kind: 'login' }
   | { kind: 'no-birth' }
   // 익명 + 무입력 — 임의 샘플 대신 생년월일 입력 게이트를 띄운다(lang 전달).
   | { kind: 'guest'; lang: 'ko' | 'en' }
@@ -36,7 +35,6 @@ export type LoadTierResult =
   | ({ kind: 'ok'; lang: 'ko' | 'en' } & AssembledTiers)
 
 export type LoadLifetimeResult =
-  | { kind: 'login' }
   | { kind: 'no-birth' }
   | { kind: 'guest'; lang: 'ko' | 'en' }
   | { kind: 'rate-limited'; lang: 'ko' | 'en' }
@@ -282,9 +280,6 @@ export async function loadTierData(override?: BirthOverride | null): Promise<Loa
     place,
     focusDayCell,
     now,
-    // 캘린더는 항상 'month' — 인생 곡선(90년) 계산을 건너뛴다(진입 속도). 인생
-    // 전체는 별도 loadLifetimeData 경로가 담당.
-    scope: 'month',
     nextMonthCells,
   })
 

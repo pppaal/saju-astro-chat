@@ -12,7 +12,7 @@
    ============================================================ */
 
 import { detectServerLocale } from '@/i18n/server'
-import PreviewClient from './PreviewClient'
+import CalendarClient from '../CalendarClient'
 
 import {
   getOrBuildNatalContext,
@@ -52,7 +52,7 @@ export default async function DestinypalPreview() {
 
   // ─── 월/일 tier 어셈블 (정식 라우트와 공유) ───────────────────────────
   const TARGET_DAY = Number(TARGET_DAY_ISO.split('-')[2])
-  const { topbar, user, lifetime, month, day } = await assembleTiers({
+  const { topbar, user, month, day } = await assembleTiers({
     natal,
     cells,
     lang,
@@ -66,15 +66,12 @@ export default async function DestinypalPreview() {
     whoBirthLine: '1995.2.9 06:40',
     place: '서울',
     focusDayCell,
-    // 정식 라우트와 동일 규약 — 캘린더는 인생 곡선(90년) 계산 생략.
-    scope: 'month',
   })
 
   return (
-    <PreviewClient
+    <CalendarClient
       topbar={topbar}
       user={user}
-      lifetime={lifetime}
       month={month}
       day={day}
       // preview 는 세션이 아닌 고정 본명 — 일 티어 재빌드 fetch 도 같은 본명으로

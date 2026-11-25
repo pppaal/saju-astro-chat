@@ -3,39 +3,30 @@
    ───────────────────────────────────────────────────────────
    본명(생년월일·시·좌표) 정보가 부족할 때 보여주는 안내 카드.
 
-   두 가지 케이스:
-     · reason="login"     → 비로그인 — 로그인 안내 + signIn CTA
-     · reason="no-birth"  → 로그인 OK, 본명 미입력 — /profile 안내
+   두 가지 케이스 (비로그인 익명은 로더가 BirthGate 로 보낸다 — 여기 안 옴):
+     · reason="no-birth"     → 로그인 OK, 본명 미입력 — /profile 안내
+     · reason="rate-limited" → 익명 override 빌드 IP 한도 초과 — 재시도 안내
 
    둘 다 destinypal-ink 톤 (라이트 베이지 + 주사 + 쪽빛) 으로
-   동일 카드 레이아웃을 공유.  "1995 sample 보기" 링크는 항상 노출
-   (실데이터가 없어도 디자인을 미리 보고 싶은 사용자 배려).
+   동일 카드 레이아웃을 공유. no-birth 는 "샘플 먼저 보기"(/calendar/preview)
+   링크를 노출(실데이터가 없어도 디자인을 미리 보고 싶은 사용자 배려).
    ============================================================ */
 
 import Link from 'next/link'
 import styles from './birth-required.module.css'
 
-export type BirthRequiredReason = 'login' | 'no-birth' | 'rate-limited'
+export type BirthRequiredReason = 'no-birth' | 'rate-limited'
 
 export interface BirthRequiredFallbackProps {
   reason: BirthRequiredReason
-  /** 비로그인 시 signIn 후 돌아올 경로. 기본 /calendar */
-  callbackUrl?: string
   /** rate-limited 안내 문구 로케일. 기본 ko. */
   locale?: 'ko' | 'en'
 }
 
 export default function BirthRequiredFallback({
   reason,
-  callbackUrl = '/calendar',
   locale = 'ko',
 }: BirthRequiredFallbackProps) {
-  // signIn 진입 URL — buildSignInUrl 은 client only(window 의존) 라
-  // 서버에서 직접 만들지 못한다. 수동 구성.
-  const signinHref = `/auth/signin?callbackUrl=${encodeURIComponent(
-    `${callbackUrl}?authRefresh=1`
-  )}`
-
   if (reason === 'rate-limited') {
     return (
       <div className={styles.page}>
@@ -48,35 +39,6 @@ export default function BirthRequiredFallback({
             {locale === 'en'
               ? 'This chart view is being requested too quickly. Please wait a moment and try again.'
               : '잠시 사이에 너무 많은 차트 요청이 들어왔어요. 잠깐 기다렸다 다시 시도해 주세요.'}
-          </p>
-        </article>
-      </div>
-    )
-  }
-
-  if (reason === 'login') {
-    return (
-      <div className={styles.page}>
-        <article className={styles.card}>
-          <span className={styles.seal}>命 · 본명</span>
-          <h1 className={styles.title}>본명 정보가 필요합니다</h1>
-          <p className={styles.subtitle}>
-            destinypal 은 사용자의 사주 본명(생년월일·시·출생지) 을 기반으로 평생·연·월·일·대운 5
-            tier 흐름을 짜드립니다. 먼저 로그인하여 저장된 본명을 불러오세요.
-          </p>
-
-          <div className={styles.actions}>
-            <Link href={signinHref} className={styles.btnPrimary}>
-              로그인하고 본명 불러오기
-            </Link>
-            <Link href="/calendar/preview" className={styles.btnSecondary}>
-              1995 sample 미리보기
-            </Link>
-          </div>
-
-          <p className={styles.note}>
-            샘플은 1995-02-09 06:40 서울 출생 (남) 기준 — 디자인과 정보 구조를 그대로 둘러볼 수
-            있습니다.
           </p>
         </article>
       </div>
@@ -116,7 +78,7 @@ export default function BirthRequiredFallback({
             프로필에서 본명 입력하기
           </Link>
           <Link href="/calendar/preview" className={styles.btnSecondary}>
-            1995 sample 먼저 보기
+            샘플 먼저 보기
           </Link>
         </div>
 

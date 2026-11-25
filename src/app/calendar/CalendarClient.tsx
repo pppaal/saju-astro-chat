@@ -1,10 +1,11 @@
 'use client'
 
 /* ============================================================
-   /calendar/preview — client wrapper.
-   서버에서 빌드한 4 tier 데이터를 받아 Shell + Tiers render-prop 와
+   /calendar — client wrapper (/calendar · /calendar/preview 공용).
+   서버에서 빌드한 월/일 tier 데이터를 받아 Shell + Tiers render-prop 와
    결합. Shell 자체가 'use client' 라 render-prop 도 같이 클라이언트
-   에서 만들어야 한다 (RSC 가 함수 prop 직렬화 불가).
+   에서 만들어야 한다 (RSC 가 함수 prop 직렬화 불가). 인생 티어는
+   /destiny 전용이라 여기선 넘기지 않는다(셸 기본 가시 티어 = 월·일).
 
    일(日) 티어는 상태로 든다 — 서버가 준 '오늘' day 가 기본값이고, 월
    그리드에서 다른 날을 골라 줌인하면 /api/calendar/day 로 그 날짜의
@@ -16,26 +17,19 @@
 import { useCallback, useRef, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { DestinypalShell } from '@/components/calendar/shell'
-import { LifetimeTier } from '@/components/calendar/tiers/LifetimeTier'
 import { MonthTier } from '@/components/calendar/tiers/MonthTier'
 import { DayTier } from '@/components/calendar/tiers/DayTier'
 import { useI18n } from '@/i18n/I18nProvider'
 
-import type {
-  DestinyUserSummary,
-  DestinyLifetime,
-  DestinyMonth,
-  DestinyDay,
-} from '@/types/calendar'
+import type { DestinyUserSummary, DestinyMonth, DestinyDay } from '@/types/calendar'
 
-export interface PreviewClientProps {
+export interface CalendarClientProps {
   topbar: {
     whoBirthLine: string
     place: string
     ilganHanja: string
   }
   user: DestinyUserSummary & { gyeokgukStatus?: string; rootStatus?: string }
-  lifetime: DestinyLifetime
   month: DestinyMonth
   day: DestinyDay
   /**
@@ -46,14 +40,13 @@ export interface PreviewClientProps {
   dayFetchParams?: Record<string, string>
 }
 
-export default function PreviewClient({
+export default function CalendarClient({
   topbar,
   user,
-  lifetime,
   month,
   day,
   dayFetchParams,
-}: PreviewClientProps) {
+}: CalendarClientProps) {
   const { locale } = useI18n()
   const ko = locale === 'ko'
   const searchParams = useSearchParams()
@@ -125,7 +118,6 @@ export default function PreviewClient({
   return (
     <DestinypalShell
       topbar={topbar}
-      renderLife={({ onDive }) => <LifetimeTier user={user} lifetime={lifetime} onDive={onDive} />}
       renderMonth={({ onRise, onFocusDay, canRise }) => (
         <MonthTier
           month={month}

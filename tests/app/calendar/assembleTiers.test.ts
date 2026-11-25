@@ -1,12 +1,13 @@
 /**
- * assembleTiers — 5-tier 어셈블러 통합 테스트.
+ * assembleTiers — /calendar 월/일 어셈블러 통합 테스트.
  *
- * assembleTiers 는 NatalContext + 그 해 CalendarCell[] 을 받아 PreviewClient 가
- * 받는 { topbar, user, lifetime, month, day } 를 만든다. 순수
- * 변환 로직이지만 입력 fixture 가 무겁다(여러 deriver/adapter 가 실제
- * NatalContext 구조를 요구). 그래서 실제 buildNatalContext + buildCalendar 로
- * fixture 를 만든 뒤(Swiss Ephemeris 는 tests/setup.ts 가 mock), 어셈블 결과의
- * 구조·분기를 검증한다. now 를 고정해 lifetime pivot 등이 결정적이 되게 한다.
+ * assembleTiers 는 NatalContext + 그 해 CalendarCell[] 을 받아 CalendarClient 가
+ * 받는 { topbar, user, month, day } 를 만든다(인생 티어는 /destiny 의
+ * assembleLifetime 전용 — 캘린더는 계산·전송하지 않는다). 순수 변환 로직이지만
+ * 입력 fixture 가 무겁다(여러 deriver/adapter 가 실제 NatalContext 구조를 요구).
+ * 그래서 실제 buildNatalContext + buildCalendar 로 fixture 를 만든 뒤(Swiss
+ * Ephemeris 는 tests/setup.ts 가 mock), 어셈블 결과의 구조·분기를 검증한다.
+ * now 를 고정해 만 나이·일 티어가 결정적이 되게 한다.
  */
 import { describe, it, expect, beforeAll } from 'vitest'
 import { buildNatalContext } from '@/lib/calendar-engine/context/build'
@@ -77,13 +78,11 @@ describe('assembleTiers — fixture sanity', () => {
 })
 
 describe('assembleTiers — top-level shape', () => {
-  it('returns lifetime/month/day tiers + topbar (10년·1년 티어 제거됨)', async () => {
+  it('returns month/day tiers + topbar only (인생·10년·1년 티어 없음)', async () => {
     const out = await assembleTiers(baseInput())
-    expect(out).toHaveProperty('topbar')
-    expect(out).toHaveProperty('user')
-    expect(out).toHaveProperty('lifetime')
-    expect(out).toHaveProperty('month')
-    expect(out).toHaveProperty('day')
+    expect(Object.keys(out).sort()).toEqual(['day', 'month', 'topbar', 'user'])
+    // 인생 티어는 /destiny(assembleLifetime) 전용 — 캘린더는 숨은 life 를 싣지 않는다.
+    expect(out).not.toHaveProperty('lifetime')
     // 중간 티어는 제거 — 대운은 인생 흐름이, 세운은 인생 흐름 한 줄+캘린더가 커버.
     expect(out).not.toHaveProperty('decade')
     expect(out).not.toHaveProperty('year')
@@ -136,14 +135,12 @@ describe('assembleTiers — month tier', () => {
     expect(out.month.crossActivations!.length).toBeLessThanOrEqual(6)
   })
 
-  it('prepends a "이달 총평" summary tag when summary text exists (ko)', async () => {
+  it('narrative carries only the "이달 총평" summary (ko)', async () => {
     const out = await assembleTiers(baseInput({ lang: 'ko' }))
-    expect(out.month.narrative.length).toBeGreaterThan(0)
-    // first entry should be the synthesized monthly summary when present.
-    if (out.month.narrative[0]) {
-      // summary tag is either '이달 총평' (summary present) or '타고난 결' (intro).
-      expect(['이달 총평', '타고난 결', '이 달의 결']).toContain(out.month.narrative[0].tag)
-    }
+    expect(out.month.narrative.length).toBe(1)
+    // MonthTier 가 읽는 건 '이달 총평' 뿐 — 예전의 '타고난 결'·'이 달의 결' 항목은
+    // 표시되지 않던 페이로드라 더 이상 싣지 않는다.
+    expect(out.month.narrative.map((n) => n.tag)).toEqual(['이달 총평'])
   })
 
   it('keeps the canonical 이달 총평 tag and carries bodyEn in en mode', async () => {
@@ -288,30 +285,23 @@ describe('assembleTiers — day.nextBigDay 연결', () => {
 // (세운 입춘 경계 SSOT 는 이제 assembleLifetime.thisYear 가 담당 —
 //  assembleLifetime.test.ts 로 이관.)
 
-describe('assembleTiers — scope=month (캘린더: 인생 곡선 생략)', () => {
-  it('month 스코프도 lifetime/month/day shape 을 반환한다', async () => {
-    const out = await assembleTiers(baseInput({ scope: 'month' }))
-    expect(out.lifetime).toBeDefined()
-    expect(out.month).toBeDefined()
-    expect(out.day).toBeDefined()
+describe('assembleTiers — 캘린더는 숨은 인생 티어를 계산하지 않는다', () => {
+  it('user 에 인생 흐름 intro(lifetimeFlow) 가 실리지 않는다', async () => {
+    const out = await assembleTiers(baseInput())
+    // toUser 는 intro 미주입 시 빈 문자열 — lifetimeFlow 를 돌리지 않았다는 뜻.
+    expect(out.user.intro ?? '').toBe('')
   })
 
-  it('월/일 핵심 출력은 full 스코프와 동일하다(곡선은 상위 티어 전용)', async () => {
-    const [full, monthOnly] = await Promise.all([
-      assembleTiers(baseInput()),
-      assembleTiers(baseInput({ scope: 'month' })),
-    ])
-    // 일 티어 — 점수·한 줄·일진이 곡선 유무와 무관.
-    expect(monthOnly.day.score).toBe(full.day.score)
-    expect(monthOnly.day.oneLine).toBe(full.day.oneLine)
-    expect(monthOnly.day.iljin).toEqual(full.day.iljin)
-    // 월 그리드 — 셀 mark/점수 동일.
-    expect(monthOnly.month.calendar.map((c) => c.mark)).toEqual(
-      full.month.calendar.map((c) => c.mark)
-    )
-    expect(monthOnly.month.goodDays).toEqual(full.month.goodDays)
-    // 월 내러티브는 여전히 존재(타고난 결 intro 는 곡선 없이도 파생).
-    expect(monthOnly.month.narrative.length).toBeGreaterThan(0)
+  it('month 에 converge 자리표시자가 없다(미배선 plumbing 제거)', async () => {
+    const out = await assembleTiers(baseInput())
+    expect(out.month).not.toHaveProperty('converge')
+    expect(out.month.calendar.every((c) => c.mark !== ('converge' as never))).toBe(true)
+  })
+
+  it('같은 입력·같은 now 면 월/일 결과가 같다(결정론)', async () => {
+    const [a, b] = await Promise.all([assembleTiers(baseInput()), assembleTiers(baseInput())])
+    expect(b.month).toEqual(a.month)
+    expect(b.day).toEqual(a.day)
   })
 })
 

@@ -6,16 +6,13 @@
    와 동일"이 10번 넘게 박혀 있었고 실제로 한쪽만 고쳐진 버그(gender 매핑·signals
    투영 누락 등) 흔적이 있었다. 단일 함수로 모아 drift 를 끝낸다.
 
-   NatalContext + 그 달 cells + 표시용 입력을 받아 PreviewClient 가 받는
-   { topbar, user, lifetime, month, day } 를 만든다. (10년·1년 티어는 제거됨.)
+   NatalContext + 그 달 cells + 표시용 입력을 받아 CalendarClient 가 받는
+   { topbar, user, month, day } 를 만든다. (10년·1년 티어는 제거됨. 인생 티어는
+   /destiny 전용 assembleLifetime 이 만든다 — 캘린더는 숨은 인생 티어를 계산·전송
+   하지 않는다.)
    ============================================================ */
 
 import { deriveConvergence } from '@/lib/calendar-engine/derivers/convergence'
-import { deriveLifetimeFlow } from '@/lib/calendar-engine/derivers/lifetimeFlow'
-import { deriveLifetimePivots } from '@/lib/calendar-engine/derivers/lifetimePivots'
-import { buildLifeCurve, computeTransitAstroSeries } from '@/lib/calendar-engine/derivers/lifeCurve'
-import { calculateOuterPlanetMilestones } from '@/lib/calendar-engine/lifecycle/outerMilestones'
-import type { LifecycleMilestoneOverride } from '@/lib/calendar-engine/lifecycle/astroLifecycle'
 import { currentManAge } from '@/lib/datetime/currentAge'
 import { isMinorAge, sanitizeCrossEntry } from '@/lib/calendar-engine/minorSafe'
 import { deriveMonthSummary } from '@/lib/calendar-engine/derivers/monthSummary'
@@ -25,7 +22,7 @@ import { deriveLayeredScores } from '@/lib/calendar-engine/derivers/layeredScore
 import { getMonthPillarForDate } from '@/lib/saju/datePillars'
 import { getSibsinKo } from '@/lib/saju/cycleRelations'
 
-import { toLifetime, toMonth } from '@/lib/calendar-view'
+import { toMonth } from '@/lib/calendar-view'
 import { assembleUserSummary } from './assembleUser'
 import { reconcileCellOneLine } from '@/lib/calendar-view/toDay'
 import { SIBSIN_EN } from '@/lib/saju/sibsinLabels'
@@ -40,7 +37,6 @@ import type {
   DestinyMonth,
   DestinyCalendarCell,
   DestinyDay,
-  DestinyLifetime,
 } from '@/types/calendar'
 
 export interface AssembleTiersInput {
@@ -69,18 +65,10 @@ export interface AssembleTiersInput {
    */
   focusDayCell?: CalendarCell | null
   /**
-   * "지금" 주입점 — lifetime pivot 의 현재 나이/phase(past·current·upcoming)
-   * 기준. 미지정 시 호출 시점(new Date()). 프로덕션은 그대로, 테스트는 고정.
+   * "지금" 주입점 — 만 나이(미성년 게이트)와 일 티어의 현재 기준. 미지정 시
+   * 호출 시점(new Date()). 프로덕션은 그대로, 테스트는 고정.
    */
   now?: Date
-  /**
-   * 빌드 범위 — 'month'(캘린더: 월/일만 표시)면 숨은 인생/10년/연 티어의
-   * 무거운 인생 곡선(외행성 트랜짓 ephemeris ~31회 + 90년 CPU 합성)을
-   * 건너뛴다. 티어 객체 자체는 여전히 조립(타입·/destiny 호환)하되 곡선만
-   * 빠진다 — lifetimeFlow 는 곡선 없이도 동작(기존 ephemeris 실패 폴백 경로와
-   * 동일)해 월 총평의 '타고난 결' intro 는 유지된다. 기본 'year'(전체 계산).
-   */
-  scope?: 'month' | 'year'
   /**
    * 다음 달 cells(선택) — 월말에 "다가오는 7일"이 월 경계에서 잘리지 않게
    * assembleDayTier 로 그대로 전달(감사 #13). loadTierData 가 월말(±7일)일 때만
@@ -92,7 +80,6 @@ export interface AssembleTiersInput {
 export interface AssembledTiers {
   topbar: { whoBirthLine: string; place: string; ilganHanja: string }
   user: DestinyUserSummary & { gyeokgukStatus?: string; rootStatus?: string }
-  lifetime: DestinyLifetime
   month: DestinyMonth
   day: DestinyDay
 }
@@ -135,7 +122,7 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
 
   // ─── 일(日) 티어 — 분리 어셈블러로 *미리 발진* ───────────────────────────
   // /api/calendar/day(월 그리드에서 고른 날짜)와 같은 코드 경로. 내부의
-  // 시진 달 ephemeris(12회)가 아래 lifeCurve·어댑터 작업과 겹쳐 돌도록 여기서
+  // 시진 달 ephemeris(12회)가 아래 어댑터 작업과 겹쳐 돌도록 여기서
   // 시작하고, 포커스 셀 톤 정합 직전에 await 한다.
   const dayP = assembleDayTier({
     natal,
@@ -147,40 +134,6 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
     layered,
     nextMonthCells: args.nextMonthCells,
   })
-
-  // ─── 인생 굴곡 곡선 (사주 다층 + 실 외행성 트랜짓) ────────────────────────
-  // 외행성은 느려 step=3 샘플 + 보간이면 envelope 보존(ephemeris 호출 ~31회).
-  // 실패해도 곡선만 빠지고 나머지 티어는 정상. lifetimeFlow(단계 톤)·대운 1년운이
-  // 이 곡선을 valence 출처로 쓰므로 *먼저* 빌드한다.
-  //
-  // scope='month'(캘린더 — 인생/10년/연 티어 숨김)면 통째로 건너뛴다: 이 블록이
-  // 캘린더 요청의 최대 낭비였다(감사 — 결과가 클라이언트에서 버려지는데 매 방문
-  // ephemeris ~31회 + 90년 합성 CPU). 곡선 없는 경로는 ephemeris 실패 폴백과
-  // 동일해 이미 프로덕션에서 검증된 분기다.
-  let lifeCurve: ReturnType<typeof buildLifeCurve> = null
-  let milestoneOverrides: LifecycleMilestoneOverride[] | undefined
-  if (args.scope !== 'month') {
-    try {
-      const astroSeries = await computeTransitAstroSeries(natal, { span: 90, step: 3 })
-      lifeCurve = buildLifeCurve(natal, { now, span: 90, astroSeries })
-    } catch {
-      lifeCurve = null
-    }
-    // 외행성 마일스톤 실측(감사 A-3) — 고정 나이표 대신 실제 회귀/각 연도.
-    // 실패하면 undefined → buildLifecycleTiming 이 평균 테이블 폴백(종전 동작).
-    try {
-      milestoneOverrides = await calculateOuterPlanetMilestones(natal)
-    } catch {
-      milestoneOverrides = undefined
-    }
-  }
-
-  // ─── lifetimeFlow / lifetimePivots derivers ─────────────────────────────
-  // 두 deriver 에 동일한 now 를 주입 — "현재 단계"와 "현재 pivot"이 같은 날짜를
-  // 가리키도록(예전엔 flow 가 now 미주입으로 서버 시계를 읽어 둘이 어긋났다).
-  // 마일스톤 override 도 동일하게 양쪽에 — 단계 카드와 pivot 점이 같은 해를 본다.
-  const lifetimeFlow = deriveLifetimeFlow(natal, lang, milestoneOverrides, now, lifeCurve)
-  const lifetimePivots = deriveLifetimePivots(natal, lang, milestoneOverrides, now)
 
   // ─── month / day 슬라이스 ───────────────────────────────────────────────
   const monthPrefix = `${TARGET_YEAR}-${String(TARGET_MONTH).padStart(2, '0')}`
@@ -195,14 +148,9 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
   const woolunStem = woolunRef.stem
   const woolunBranch = woolunRef.branch
 
-  // ─── adapter 호출 (5 tier prop 자동 어셈블) ──────────────────────────────
+  // ─── adapter 호출 (월/일 tier prop 어셈블) ───────────────────────────────
   // user 매핑은 assembleUser.ts 로 분리 — /destiny(assembleLifetime)와 공유.
-  const user = assembleUserSummary(natal, {
-    birthDisplay,
-    place,
-    sex,
-    intro: lifetimeFlow?.intro,
-  })
+  const user = assembleUserSummary(natal, { birthDisplay, place, sex })
   // seed 계산 등에 쓰는 어댑터 원본 필드 일부는 user 로 충분하지만, ilgan 표기
   // 등 아래 로직이 참조하는 값은 전부 user 에 있다.
 
@@ -216,7 +164,7 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
     user.gangyak,
   ])
 
-  // ── 만 나이(SSOT) — 대운 매칭·프로펙션·미성년 게이트·인생 티어 공용 단일 출처 ──
+  // ── 만 나이(SSOT) — 미성년 게이트(아래 sanitizeCrossEntry)의 단일 출처 ──
   // 대운 startAge 는 만 나이(daeunAge.ts)이고 currentManAge 는 생일 통과까지 반영한
   // 만 나이다. 예전엔 대운/프로펙션을 TARGET_YEAR-BIRTH_YEAR(생일 전이면 +1 과다)로
   // 골라, 만 나이를 쓰는 인생 티어와 한 대운/하우스 어긋날 수 있었다(감사). 한
@@ -229,51 +177,16 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
     now,
   })
 
-  const lifetime = toLifetime(natal, {
-    birthYear: BIRTH_YEAR,
-    currentYear: TARGET_YEAR,
-    // 곡선 nowAge·lifePattern 시제·대운/ZR now 플래그의 만 나이 SSOT(감사 B1) —
-    // 예전엔 toLifetime 이 연차 나이를 자체 계산해 생일 전 사용자에게 "지금" 핀이
-    // milestones(만 나이)보다 1살 앞섰다.
-    manAge,
-    lifetimeFlow,
-    lifetimePivots,
-    lifeCurve: lifeCurve ?? undefined,
-  })
-  // (10년 대운·1년 세운 티어 제거 — 대운은 인생 흐름이, 세운은 인생 흐름 한 줄+
-  //  캘린더가 커버. sewoonNowPillar·decade/year 조립·yearScoreByYear 삭제.)
-
-  // 월 narrative — 타고난 결(lifetimeFlow.intro) + 그 달 상위 topReasons.
-  const monthNarrative: Array<{ tag: string; body: string }> = []
-  if (lifetimeFlow?.intro) {
-    monthNarrative.push({
-      tag: lang === 'ko' ? '타고난 결' : 'Innate grain',
-      body: lifetimeFlow.intro,
-    })
-  }
-  // monthly-layer 사유는 그 달 매일 동일 문자열 → 셀을 가로질러 모으면 같은 줄이
-  // 반복된다. body 기준 dedup 후 상위 4개만 (직전엔 dedup 없어 같은 줄 도배).
-  const monthTopReasons = dedupeByBody(
-    monthCells
-      .flatMap((c) =>
-        ((lang === 'en' ? c.topReasonsEn : c.topReasons) ?? []).map((r) => ({
-          score: c.derivedScore,
-          body: r,
-        }))
-      )
-      .sort((a, b) => b.score - a.score)
-  ).slice(0, 4)
-  const monthGrainTag = lang === 'ko' ? '이 달의 결' : "This month's grain"
-  for (const r of monthTopReasons) {
-    monthNarrative.push({ tag: monthGrainTag, body: r.body })
-  }
+  // (인생 티어 — lifetimeFlow·lifetimePivots·toLifetime·인생 곡선 — 은 캘린더에서
+  //  계산하지 않는다: 셸 기본 가시 티어가 월·일이라 결과가 버려졌다. /destiny 의
+  //  assembleLifetime 이 담당. 월 narrative 의 '타고난 결'·'이 달의 결' 항목도
+  //  MonthTier 가 '이달 총평' 만 읽어 표시되지 않던 페이로드라 뺐다.)
   const { month: monthAdapter, calendar } = toMonth({
     ym: monthPrefix,
     label: `${TARGET_YEAR}년 ${TARGET_MONTH}월`,
     cells: monthCells,
     woolunStem,
     woolunBranch,
-    narrative: monthNarrative,
     dayScores: layered.daily,
     // 펼침 기준일 — 보통 '오늘'. 안 주면 최고점수일로 펼쳐진다.
     focusDay: TARGET_DAY,
@@ -306,23 +219,6 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
     avoidDays: monthAdapter.avoidDays,
     narrative: monthAdapter.narrative,
     keyDays: monthKeyDays,
-    converge: monthAdapter.converge
-      ? {
-          date: monthAdapter.converge.date,
-          score: monthAdapter.converge.score,
-          astro: monthAdapter.converge.astro,
-          saju: monthAdapter.converge.saju,
-          bothSystems: monthAdapter.converge.bothSystems,
-          meaning: monthAdapter.converge.meaning ?? '',
-        }
-      : {
-          date: '',
-          score: 0,
-          astro: [],
-          saju: [],
-          bothSystems: false,
-          meaning: '',
-        },
     focusDay: monthAdapter.focusDay,
     calendar,
     seed,
@@ -450,12 +346,7 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
   // 밴드 바(색=점수)는 그대로 둬도 문장·라벨과 축이 갈리지 않는다.
   if (day.dayTone?.tense || day.dayTone?.bright) {
     const focusCell = month.calendar.find((c) => c.focus)
-    if (
-      focusCell &&
-      focusCell.mark &&
-      focusCell.mark !== 'focus' &&
-      focusCell.mark !== 'converge'
-    ) {
+    if (focusCell && focusCell.mark && focusCell.mark !== 'focus') {
       const wasBest = focusCell.mark === 'best'
       focusCell.mark = 'focus'
       // 밴드 바를 중립화한 날은 good/caution/avoid 버킷에서도 빼야 한다 —
@@ -517,15 +408,6 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
     bestDay: month.bestDay?.date || undefined,
     // caution 이 하나도 없고 avoid 만 있는 달도 '조심할 날'을 한 곳은 짚도록 폴백.
     cautionDay: month.cautionDays[0] ?? month.avoidDays[0],
-    // convergeDate 는 MM-DD 로 정규화 — bestDay/cautionDay 와 같은 포맷이어야
-    // deriveMonthSummary 의 동일-날짜 중복 가드(!==)와 fmtDate 가 작동한다.
-    // (현재 converge 는 미배선이라 '' 이지만, 배선 시 YYYY-MM-DD 가 그대로 오면
-    // 가드가 영영 안 맞고 "2026월 7일"로 렌더되는 잠복 버그 — 미리 차단.)
-    convergeDate: month.converge?.date
-      ? month.converge.date.length > 5
-        ? month.converge.date.slice(-5)
-        : month.converge.date
-      : undefined,
   }
   // bestDayReason(keyDays meaning)은 서버 lang 으로만 산출돼 있어 그 로케일 요약에만
   // 싣는다. 톤 게이트: 그 keyDay 의 수렴 톤이 negative 면 이유를 생략 — 총평의
@@ -568,7 +450,6 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
   return {
     topbar: { whoBirthLine, place, ilganHanja },
     user,
-    lifetime,
     month,
     day,
   }

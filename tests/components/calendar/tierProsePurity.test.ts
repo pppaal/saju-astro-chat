@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { calculateSajuData } from '@/lib/saju/saju'
 import { buildNatalContext } from '@/lib/calendar-engine/context/build'
 import { buildCalendar } from '@/lib/calendar-engine'
-import { assembleTiers } from '@/app/calendar/assembleTiers'
+import { assembleLifetime } from '@/app/calendar/assembleLifetime'
 
 /**
  * 표면 산문 무결성 가드레일 — "찾아도 또 나오는" 누수의 그물.
@@ -106,19 +106,19 @@ async function assembleFor(
     { start: '2026-06-15T00:00:00.000Z', end: '2026-06-15T23:59:59.000Z', granularity: 'day' },
     { includeEvidence: true }
   )
-  return assembleTiers({
+  // 인생 티어는 /destiny 전용 assembleLifetime 이 만든다 — /calendar 의 assembleTiers 는
+  // 더 이상 숨은 lifetime 을 싣지 않는다. now 는 그날 정오(서울)로 고정(결정론).
+  return assembleLifetime({
     natal,
-    cells,
     lang,
     birthYear: Number(date.slice(0, 4)),
     targetYear: 2026,
-    targetMonth: 6,
-    targetDay: 15,
-    targetDayIso: '2026-06-15',
     sex: gender === 'female' ? '여' : '남',
     birthDisplay: `${date} ${time}`,
     whoBirthLine: `${date} ${time}`,
     place: 'Seoul',
+    now: new Date('2026-06-15T03:00:00Z'),
+    todayIso: '2026-06-15',
     focusDayCell: cells[0] ?? null,
   })
 }
@@ -131,7 +131,8 @@ describe('티어 표면 산문 무결성 (가드레일)', () => {
         const t = await assembleFor(date, time, gender, lang)
         // novice 산문 무결성은 인생 티어 표면만 대상 — 월/일 티어는 일진·십신
         // 라벨에 raw 한자를 *의도적으로* 노출한다(각자 별도 규칙). (10년·1년 티어
-        // 제거로 lifetime 만 남음.)
+        // 제거로 lifetime 만 남음.) 빈 lifetime 으로 그물이 헛돌지 않게 존재부터 단언.
+        expect(t.lifetime).toBeDefined()
         collect({ lifetime: t.lifetime }, 'root', leaks)
       }
     }
