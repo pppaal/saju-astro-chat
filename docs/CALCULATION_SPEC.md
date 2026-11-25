@@ -233,6 +233,9 @@ The Saju ↔ astrology correspondence dictionary is
   polarity is fixed (`SHINSAL_POLARITY`: 도화 +1, 역마 0, 건록 +2, 양인 −2,
   천을귀인 +3), so a row against it can never get agreeing parents and is retired
   (도화 × Mars −1).
+- A calendar-only (`crossOnly`) row must be able to fire in some band. Shinsal
+  parents are daily, so 천을귀인 × Jupiter (Jupiter crosses from `monthly` up) is
+  retired; 건록 × Jupiter stays as the report's representative 건록 mapping.
 - `crossOnly` rows are calendar coverage only. The report's one-planet-per-key
   mapping (`src/lib/report/natalCrossShared.ts`) skips them.
 
@@ -245,9 +248,11 @@ signals:
   `saju-shinsal-activation` signals. Derived lines (element flow, 지장간 통근) are
   not keys. Astro: `evidence.planets[0]` of a planet moving in the sky. Excluded:
   eclipses (the key would be the affected natal point), profection and zodiacal
-  releasing (time lords), planetary hours (the Chaldean hour ruler), and solar
+  releasing (time lords), planetary hours (the Chaldean hour ruler), solar
   arc, secondary progressions and the progressed Moon, including the progressed
-  lunar return milestone (symbolic directions).
+  lunar return milestone (symbolic directions), and solar and lunar returns
+  (cycle periods; they stay standalone astro signals). Real planet returns
+  (Jupiter, Saturn, ... lifecycle milestones) remain keys.
 - **Window.** The intersection of the two parent windows. The peak is the
   midpoint of the parent peaks, or the window centre if that falls outside.
 - **Layer.** The narrowest parent layer
@@ -316,7 +321,7 @@ signals:
 | `Neptune` | `decadal`                      |
 | `Pluto`   | `decadal`                      |
 
-Mappings: 57 (A 27 · B 30); every grade is emitted, gated only by the band.
+Mappings: 56 (A 26 · B 30); every grade is emitted, gated only by the band.
 
 <!-- /gen:cross-doctrine -->
 
