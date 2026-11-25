@@ -29,12 +29,12 @@ Last audited: 2026-11-24 (Asia/Hong_Kong)
 
 ## Cross-Layer / Fortune Engine Docs
 
-| Document                              | Covers                                                                         | Audience             | Last audited |
-| ------------------------------------- | ------------------------------------------------------------------------------ | -------------------- | ------------ |
-| `docs/DESTINY_ENGINE_ARCHITECTURE.md` | End-to-end pipeline (input → saju → astro → facts → cross → surface)           | Backend/AI engineers | 2026-06-15   |
-| `docs/AUDIT_SAJU.md`                  | Saju calculation audit                                                         | Backend engineers    | 2026-03-11   |
-| `docs/AUDIT_ASTRO.md`                 | Astrology calculation audit                                                    | Backend engineers    | 2026-03-11   |
-| `docs/SOLAR_TIME_CONVENTION.md`       | Solar time policy (mean solar time; no equation-of-time) and boundary handling | Backend engineers    | 2026-06-06   |
+| Document                              | Covers                                                                                                                          | Audience             | Last audited |
+| ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- | -------------------- | ------------ |
+| `docs/DESTINY_ENGINE_ARCHITECTURE.md` | End-to-end pipeline (input → saju → astro → facts → cross → surface)                                                            | Backend/AI engineers | 2026-06-15   |
+| `docs/AUDIT_SAJU.md`                  | Saju calculation audit                                                                                                          | Backend engineers    | 2026-03-11   |
+| `docs/AUDIT_ASTRO.md`                 | Astrology calculation audit                                                                                                     | Backend engineers    | 2026-03-11   |
+| `docs/SOLAR_TIME_CONVENTION.md`       | Solar time policy (mean solar time for the hour pillar only; no equation-of-time); year/month/대운 from the raw instant vs 절입 | Backend engineers    | 2026-11-25   |
 
 ## Generated And Audit Docs
 
