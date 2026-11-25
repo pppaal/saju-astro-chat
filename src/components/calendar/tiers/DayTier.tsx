@@ -35,30 +35,7 @@ import type { EvidenceRung } from '@/lib/calendar-engine/derivers/evidenceLadder
 import styles from './DayTier.module.css'
 import { useI18n } from '@/i18n/I18nProvider'
 import { localizeLabel } from '@/lib/calendar-view/localizeLabel'
-import { minorSafeText } from '@/lib/calendar-engine/minorSafe'
-
-/**
- * 미성년 안전 — 파생 카피 객체의 모든 문자열을 재귀로 정화(감사 C3-hole). 키가
- * `...En` 이면 EN 어휘로, `...Ko`/그 외면 KO 어휘로 minorSafeText 적용. minorSafeText
- * 는 성인 도메인 토큰(결혼·투자·도박·배우자…)만 치환하므로 라벨·아이콘·키에 걸어도
- * 무해하다. isMinor=false 면 원본 그대로.
- */
-function deepMinorSafe<T>(v: T, en: boolean): T {
-  if (typeof v === 'string') return minorSafeText(v, en ? 'en' : 'ko') as unknown as T
-  if (Array.isArray(v)) return v.map((x) => deepMinorSafe(x, en)) as unknown as T
-  if (v && typeof v === 'object') {
-    const out: Record<string, unknown> = {}
-    for (const [k, val] of Object.entries(v)) {
-      const childEn = /En$/.test(k) ? true : /Ko$/.test(k) ? false : en
-      out[k] = deepMinorSafe(val, childEn)
-    }
-    return out as unknown as T
-  }
-  return v
-}
-function minorSafeAll<T>(o: T, isMinor: boolean): T {
-  return isMinor ? deepMinorSafe(o, false) : o
-}
+import { minorSafeAll } from '@/lib/calendar-engine/minorSafe'
 import { ShareDayButton } from '@/components/calendar/ShareDayButton'
 import { dayShareHook } from '@/lib/share/shareHook'
 import StreakChip from '@/components/calendar/StreakChip'

@@ -88,6 +88,31 @@ export function minorSafeText<T extends string | undefined>(text: T, lang: 'ko' 
   return out as T
 }
 
+/**
+ * 미성년 안전 — 파생 카피 객체의 모든 문자열을 재귀로 정화(감사 C3-hole). 키가
+ * `...En` 이면 EN 어휘로, `...Ko` 면 KO 어휘로, 그 외 키는 상위에서 물려받은 언어
+ * (최상위는 en 인자)로 minorSafeText 적용. minorSafeText 는 성인 도메인 토큰(결혼·투자·도박·배우자…)만
+ * 치환하므로 라벨·아이콘·키에 걸어도 무해하다. 입력은 바꾸지 않고 새 객체를 돌려준다.
+ */
+export function deepMinorSafe<T>(v: T, en: boolean): T {
+  if (typeof v === 'string') return minorSafeText(v, en ? 'en' : 'ko') as unknown as T
+  if (Array.isArray(v)) return v.map((x) => deepMinorSafe(x, en)) as unknown as T
+  if (v && typeof v === 'object') {
+    const out: Record<string, unknown> = {}
+    for (const [k, val] of Object.entries(v)) {
+      const childEn = /En$/.test(k) ? true : /Ko$/.test(k) ? false : en
+      out[k] = deepMinorSafe(val, childEn)
+    }
+    return out as unknown as T
+  }
+  return v
+}
+
+/** isMinor 면 deepMinorSafe(KO 기본, `...En` 키는 EN), 아니면 원본 그대로. */
+export function minorSafeAll<T>(o: T, isMinor: boolean): T {
+  return isMinor ? deepMinorSafe(o, false) : o
+}
+
 /** {ko,en} 두 필드를 한 번에 정화하는 헬퍼 — 객체 in-place 수정. */
 export function sanitizeCrossEntry(
   e: Record<string, unknown>,
