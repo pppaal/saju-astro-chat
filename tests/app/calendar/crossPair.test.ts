@@ -85,12 +85,49 @@ describe('pickDayReason', () => {
     expect(pickDayReason(cellOf(cross('정재', 'Moon', 0, 'daily', 1)), null)).toBeNull()
   })
 
-  it('그날 고유 층(daily·hourly·instant)이 monthly 배경을 이긴다 — 영향이 더 작아도', () => {
-    const r = pickDayReason(
-      cellOf(cross('편재', 'Mars', 3, 'monthly', 1), cross('식신', 'Venus', 1, 'hourly', 0.1)),
+  it('그날 일진·정점 층(daily·instant)이 monthly 배경을 이긴다 — 영향이 더 작아도', () => {
+    const daily = pickDayReason(
+      cellOf(cross('편재', 'Mars', 3, 'monthly', 1), cross('식신', 'Venus', 1, 'daily', 0.1)),
       'good'
     )
-    expect(r?.saju).toBe('식신')
+    expect(daily?.saju).toBe('식신')
+    const instant = pickDayReason(
+      cellOf(cross('편재', 'Mars', 3, 'monthly', 1), cross('정인', 'Moon', 1, 'instant', 0.1)),
+      'good'
+    )
+    expect(instant?.saju).toBe('정인')
+  })
+
+  // F3 — 2시간 시진 교차는 그날 '왜'의 머리에 서지 않는다(OD-10: 시진은 시진에 남는다).
+  it('부호가 맞는 daily·instant 교차가 있으면 시진(hourly) 교차는 근거가 아니다 — 영향이 더 커도', () => {
+    const r = pickDayReason(
+      cellOf(cross('편관', 'Mars', -2, 'hourly', 0.9), cross('정재', 'Mars', -1, 'daily', 0.1)),
+      'caution'
+    )
+    expect(r?.saju).toBe('정재')
+    const i = pickDayReason(
+      cellOf(cross('비견', 'Sun', 2, 'hourly', 0.9), cross('정인', 'Moon', 1, 'instant', 0.1)),
+      null
+    )
+    expect(i?.saju).toBe('정인')
+  })
+
+  it('daily 교차가 마크 게이트에 걸리면 그때만 시진 교차가 근거가 될 수 있다', () => {
+    const r = pickDayReason(
+      cellOf(cross('정관', 'Sun', 2, 'daily', 0.7), cross('편관', 'Mars', -2, 'hourly', 0.2)),
+      'avoid'
+    )
+    expect(r?.saju).toBe('편관')
+    // 시진 교차는 가산점이 없다 — 남은 monthly 배경과는 영향(|polarity|×weight)으로 겨룬다.
+    const vsMonthly = pickDayReason(
+      cellOf(
+        cross('정관', 'Sun', 2, 'daily', 0.7),
+        cross('편관', 'Mars', -2, 'hourly', 0.2),
+        cross('정재', 'Mars', -1, 'monthly', 0.47)
+      ),
+      'avoid'
+    )
+    expect(vsMonthly?.saju).toBe('정재')
   })
 
   it('그날 고유 교차가 게이트에 걸리면 monthly 배경으로 내려간다', () => {

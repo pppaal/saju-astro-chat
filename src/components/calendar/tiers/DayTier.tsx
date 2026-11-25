@@ -499,7 +499,7 @@ export function DayTier({ day, onRise, sex = '남', isToday = true }: DayTierPro
   // ── 교차 카드 (▲/▼, cap 4, 절댓값 정렬). ──
   const crossCards = crossSorted.slice(0, 4)
   const heroCross = crossCards[0]
-  // 머리 카드가 '왜' 근거면 '가장 센' 대신 근거 표지 — 근거는 그날 고유 층 우선이라
+  // 머리 카드가 '왜' 근거면 '가장 센' 대신 근거 표지 — 근거는 일진·정점 층 우선이라
   // |polarity| 최대가 아닐 수 있다(거짓 '가장 센' 금지).
   const heroIsReason = reasonRow != null && heroCross === reasonRow
 

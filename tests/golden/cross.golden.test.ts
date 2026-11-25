@@ -36,7 +36,10 @@ const { buildCrossRows } = await import('@/lib/report/integratedAdapter')
 const { evalVoid } = await import('@/lib/report/natalCrossEvaluators')
 const { crossLayerAllowed } = await import('@/lib/calendar-engine/data/saju-astro-mapping')
 const { buildDecadeCross } = await import('@/app/calendar/assembleLifetime')
-const { crossKeys } = await import('@/app/calendar/crossPair')
+const { crossKeys, pickDayReason, pickDayReasonSignal, reasonSignForMark } =
+  await import('@/app/calendar/crossPair')
+const { deriveLayeredScores } = await import('@/lib/calendar-engine/derivers/layeredScore')
+const { bandMarkForScore } = await import('@/lib/calendar-view/toMonth')
 
 type Cell = Awaited<ReturnType<typeof buildCalendar>>[number]
 type Signal = Cell['signals'][number]
@@ -336,6 +339,67 @@ describe.skipIf(!swissephAvailable)('calendar cross invariants (E0 section E)', 
       expect(buildDecadeCross(cellOf(sample, '2026-11-19'))).toEqual([])
     }
   )
+
+  // Day 'why' (stage F3, OD-10): a 2-hour 시진 cross never heads the day's reason while a
+  // daily or instant cross of the mark's sign exists. The mark is the grid band of the
+  // layered day score, as assembleDayTier computes it.
+  const dayMarkOf = (b: Built, date: string) => {
+    const score = deriveLayeredScores(b.month).daily.get(date)?.score
+    return score != null ? bandMarkForScore(score) : null
+  }
+
+  golden_it('sample 2026-11-19: the day reason is a daily cross, not a 시진 cross', () => {
+    const sample = built.find((b) => b.person.id === X.sample.id)!
+    const cell = cellOf(sample, '2026-11-19')
+    const mark = dayMarkOf(sample, '2026-11-19')
+    // Before F3 the hourly 편관 × 화성 −2 (己酉 시진 parent) headed the reason over the
+    // daily 정재 × 화성 −1 because hourly shared the day-layer bonus.
+    const strongHourly = cell.signals.some(
+      (s) => isCross(s) && s.layer === 'hourly' && s.name === '편관 × 화성' && s.polarity === -2
+    )
+    expect(strongHourly).toBe(true)
+    const sig = pickDayReasonSignal(cell, mark)
+    expect(sig?.layer).toBe('daily')
+    const reason = pickDayReason(cell, mark)
+    expect(mark).toBeNull()
+    expect({ saju: reason?.saju, astro: reason?.astro, polarity: reason?.polarity }).toEqual({
+      saju: '정재',
+      astro: '화성',
+      polarity: -1,
+    })
+  })
+
+  golden_it('a 시진 cross is the day reason only when no daily/instant cross agrees', () => {
+    const bad: string[] = []
+    let hourlyReasons = 0
+    let reasons = 0
+    for (const b of built) {
+      for (const cell of b.month) {
+        const date = cell.datetime.slice(0, 10)
+        const mark = dayMarkOf(b, date)
+        const sig = pickDayReasonSignal(cell, mark)
+        if (!sig) continue
+        reasons++
+        if (sig.layer !== 'hourly') continue
+        hourlyReasons++
+        const need = reasonSignForMark(mark)
+        const agreeing = cell.signals.find(
+          (s) =>
+            isCross(s) &&
+            (s.layer === 'daily' || s.layer === 'instant') &&
+            s.polarity !== 0 &&
+            (need === 0 || sgn(s.polarity) === need)
+        )
+        if (agreeing)
+          bad.push(
+            `${b.person.id} ${date} ${sig.name} hourly over ${agreeing.name} ${agreeing.layer}`
+          )
+      }
+    }
+    expect(reasons).toBeGreaterThan(0)
+    expect(hourlyReasons).toBeLessThan(reasons)
+    expect(bad.slice(0, 10)).toEqual([])
+  })
 
   golden_it('every cross carries a grade in {A, B} and a layer inside its planet band', () => {
     const bad: string[] = []

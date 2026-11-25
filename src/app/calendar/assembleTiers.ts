@@ -253,9 +253,10 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
 
   // ── 날짜별 "근거"(왜 이런 날일까요) — 그날 가장 센 사주×점성 교차의 *쉬운 뜻* 을
   //    각 calendar 셀에. 선택일 리드아웃이 topReasons(전문용어) 대신 이 plain meaning
-  //    을 쓴다. 고르는 규칙(그날 고유 층 우선·polarity 0 제외·마크 부호 게이트)은
-  //    crossPair.pickDayReason 한 곳 — 일 티어(assembleDayTier)가 같은 날짜의 같은
-  //    월 셀로 같은 함수를 불러 day.reason 을 만든다(월·일 근거 일치, 엔진 감사 X1).
+  //    을 쓴다. 고르는 규칙(일진·정점 층 우선·시진은 가산점 없음·polarity 0 제외·
+  //    마크 부호 게이트)은 crossPair.pickDayReason 한 곳 — 일 티어(assembleDayTier)가
+  //    같은 날짜의 같은 월 셀로 같은 함수를 불러 day.reason 을 만든다(월·일 근거 일치,
+  //    엔진 감사 X1).
   //    부호 게이트: good·best 는 +, caution·avoid 는 −, 무색은 어느 쪽이든(계획 B1 #4).
   const monthCellByDs = new Map(monthCells.map((c) => [c.datetime.slice(5, 10), c]))
   for (const cell of month.calendar) {
