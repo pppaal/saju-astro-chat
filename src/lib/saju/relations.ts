@@ -20,6 +20,7 @@ import {
 } from './relationTables'
 import { isHyeong } from './hyeong'
 import { getGongmang as getGongmangByPillar } from './pillarLookup'
+import { presentPillars } from './stemBranchUtils'
 
 /* ========== 옵션/유틸 ========== */
 export interface AnalyzeRelationsOptions {
@@ -101,12 +102,7 @@ function analyzeHeavenly(
   clashMode: AnalyzeRelationsOptions['heavenlyClashMode']
 ): RelationHit[] {
   const hits: RelationHit[] = []
-  const pairs: Array<[PillarKind, string]> = [
-    ['year', p.year.heavenlyStem],
-    ['month', p.month.heavenlyStem],
-    ['day', p.day.heavenlyStem],
-    ['time', p.time.heavenlyStem],
-  ]
+  const pairs: Array<[PillarKind, string]> = presentPillars(p).map(([k, x]) => [k, x.heavenlyStem])
   const CLASH = HEAVENLY_CLASH_SETS[clashMode || STEM_CLASH_MODE]
 
   for (let i = 0; i < pairs.length; i++) {
@@ -176,12 +172,10 @@ function analyzeEarthly(
   includeSelfPunish: boolean
 ): RelationHit[] {
   const hits: RelationHit[] = []
-  const pairs: Array<[PillarKind, string]> = [
-    ['year', normalizeBranchName(p.year.earthlyBranch)],
-    ['month', normalizeBranchName(p.month.earthlyBranch)],
-    ['day', normalizeBranchName(p.day.earthlyBranch)],
-    ['time', normalizeBranchName(p.time.earthlyBranch)],
-  ]
+  const pairs: Array<[PillarKind, string]> = presentPillars(p).map(([k, x]) => [
+    k,
+    normalizeBranchName(x.earthlyBranch),
+  ])
 
   const allBranches = pairs.map(([, v]) => v)
   // 국(局)은 서로 다른 세 지지가 모두 있어야 성립 — 같은 지지가 두 번 있어도 한 멤버다
@@ -309,12 +303,10 @@ function analyzeGongmang(
   }
   const [b1, b2] = gm
 
-  const map: Array<[PillarKind, string]> = [
-    ['year', normalizeBranchName(p.year.earthlyBranch)],
-    ['month', normalizeBranchName(p.month.earthlyBranch)],
-    ['day', normalizeBranchName(p.day.earthlyBranch)],
-    ['time', normalizeBranchName(p.time.earthlyBranch)],
-  ]
+  const map: Array<[PillarKind, string]> = presentPillars(p).map(([k, x]) => [
+    k,
+    normalizeBranchName(x.earthlyBranch),
+  ])
 
   for (const [k, v] of map) {
     if (v === b1 || v === b2) {
@@ -325,11 +317,12 @@ function analyzeGongmang(
 }
 
 /* ========== 외부 API ========== */
+/** 관계 분석 입력 — time 이 null/생략이면(출생시각 미상) 년·월·일 삼주끼리만 본다(CONVENTIONS §5). */
 export interface PillarInput {
   year: { heavenlyStem: string; earthlyBranch: string }
   month: { heavenlyStem: string; earthlyBranch: string }
   day: { heavenlyStem: string; earthlyBranch: string }
-  time: { heavenlyStem: string; earthlyBranch: string }
+  time?: { heavenlyStem: string; earthlyBranch: string } | null
 }
 export interface AnalyzeInput {
   pillars: PillarInput
@@ -364,12 +357,13 @@ export function analyzeRelations(input: AnalyzeInput): RelationHit[] {
 }
 
 /* ========== 어댑터: 기존 Pillars 구조 → AnalyzeInput ========== */
+// time 이 null/생략이면(출생시각 미상) 삼주 입력으로 넘긴다.
 export function toAnalyzeInputFromSaju(
   p: {
     year: { heavenlyStem: { name: string }; earthlyBranch: { name: string } }
     month: { heavenlyStem: { name: string }; earthlyBranch: { name: string } }
     day: { heavenlyStem: { name: string }; earthlyBranch: { name: string } }
-    time: { heavenlyStem: { name: string }; earthlyBranch: { name: string } }
+    time?: { heavenlyStem: { name: string }; earthlyBranch: { name: string } } | null
   },
   dayMasterStemName?: string,
   options?: Partial<AnalyzeRelationsOptions>
@@ -379,7 +373,9 @@ export function toAnalyzeInputFromSaju(
       year: { heavenlyStem: p.year.heavenlyStem.name, earthlyBranch: p.year.earthlyBranch.name },
       month: { heavenlyStem: p.month.heavenlyStem.name, earthlyBranch: p.month.earthlyBranch.name },
       day: { heavenlyStem: p.day.heavenlyStem.name, earthlyBranch: p.day.earthlyBranch.name },
-      time: { heavenlyStem: p.time.heavenlyStem.name, earthlyBranch: p.time.earthlyBranch.name },
+      time: p.time
+        ? { heavenlyStem: p.time.heavenlyStem.name, earthlyBranch: p.time.earthlyBranch.name }
+        : null,
     },
     dayMasterStem: dayMasterStemName,
     options,

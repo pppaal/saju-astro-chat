@@ -1,9 +1,10 @@
 // src/lib/Saju/shinsal.ts
 import { BRANCHES, STEMS, BRANCH_NAMES, JIJANGGAN, CHEONEUL_GWIIN_MAP } from './constants'
-import type { FiveElement, YinYang, PillarKind, TwelveStage } from './types'
+import type { FiveElement, YinYang, PillarKind, TwelveStage, MaybeTimeless } from './types'
 import { RESENTMENT_PAIRS, SIX_HARMONY, toBidiRecord } from './relationTables'
 import { getGongmang as getGongmangByPillar } from './pillarLookup'
 import { STEM_KO } from './ganjiKo'
+import { presentPillars } from './stemBranchUtils'
 
 export type { PillarKind, TwelveStage }
 
@@ -17,6 +18,17 @@ export interface SajuPillarsLike {
   month: PillarBase
   day: PillarBase
   time: PillarBase
+}
+
+/**
+ * 신살·12운성 입력 — time 이 null/생략이면(출생시각 미상) 년·월·일 삼주에서만
+ * 신살을 찾는다(CONVENTIONS §5, OD-5). 정오 앵커 시주에 신살을 붙이지 않는다.
+ */
+export type ShinsalPillarsInput = MaybeTimeless<SajuPillarsLike>
+
+/** 기둥별 12운성 — 시간 미상이면 time 이 없다. */
+export type TwelveStagesByPillar = { [K in Exclude<PillarKind, 'time'>]: TwelveStage } & {
+  time?: TwelveStage
 }
 
 // TwelveStage is re-exported from types.ts
@@ -69,7 +81,7 @@ export interface ShinsalHit {
 }
 
 export interface ShinsalAnnot {
-  twelveStage: { [K in PillarKind]: TwelveStage }
+  twelveStage: TwelveStagesByPillar
   hits: ShinsalHit[]
   byPillar?: {
     [K in PillarKind]: {
@@ -198,15 +210,25 @@ export function getTwelveStage(dayStemNameRaw: string, branchNameRaw: string): T
 }
 export function getTwelveStagesForPillars(
   p: SajuPillarsLike,
+  _basis?: 'day'
+): { [K in PillarKind]: TwelveStage }
+export function getTwelveStagesForPillars(
+  p: ShinsalPillarsInput,
+  _basis?: 'day'
+): TwelveStagesByPillar
+export function getTwelveStagesForPillars(
+  p: ShinsalPillarsInput,
   _basis: 'day' = 'day'
-): { [K in PillarKind]: TwelveStage } {
+): TwelveStagesByPillar {
   const dayStemName = normalizeStemName(p.day.heavenlyStem.name)
-  return {
+  const out: TwelveStagesByPillar = {
     year: getTwelveStage(dayStemName, p.year.earthlyBranch.name),
     month: getTwelveStage(dayStemName, p.month.earthlyBranch.name),
     day: getTwelveStage(dayStemName, p.day.earthlyBranch.name),
-    time: getTwelveStage(dayStemName, p.time.earthlyBranch.name),
   }
+  // 시간 미상이면 시주 12운성은 내지 않는다(정오 앵커 자리표시 기둥).
+  if (p.time) out.time = getTwelveStage(dayStemName, p.time.earthlyBranch.name)
+  return out
 }
 
 /* ===== 12신살 테이블 ===== */
@@ -919,7 +941,7 @@ export function getShinsalHitsForDailyTarget(
 
 /* ===== 신살 계산 ===== */
 export function getShinsalHits(
-  p: SajuPillarsLike,
+  p: ShinsalPillarsInput,
   options?: Partial<AnnotateOptions>
 ): ShinsalHit[] {
   const opt = { ...DEFAULT_ANNOTATE_OPTIONS, ...(options || {}) }
@@ -931,12 +953,12 @@ export function getShinsalHits(
   const monthBranch = normalizeBranchName(p.month.earthlyBranch.name)
   const yearBranch = normalizeBranchName(p.year.earthlyBranch.name)
 
-  const pairs: Array<[PillarKind, string]> = [
-    ['year', normalizeBranchName(p.year.earthlyBranch.name)],
-    ['month', normalizeBranchName(p.month.earthlyBranch.name)],
-    ['day', normalizeBranchName(p.day.earthlyBranch.name)],
-    ['time', normalizeBranchName(p.time.earthlyBranch.name)],
-  ]
+  // 시간 미상이면 시주를 건너뛴다(삼주) — presentPillars 단일 규칙.
+  const present = presentPillars(p)
+  const pairs: Array<[PillarKind, string]> = present.map(([k, x]) => [
+    k,
+    normalizeBranchName(x.earthlyBranch.name),
+  ])
 
   // 12신살: 각 기둥당 1개만
   if (opt.includeTwelveAll) {
@@ -1086,18 +1108,11 @@ export function getShinsalHits(
   // (申亥寅巳, 卯·午·酉·子월)이므로 각 기둥의 천간·지지 양쪽을 검사한다. 직전엔
   // 천간만 검사해 지지값 달의 천덕귀인이 전부 누락됐다. 월덕은 항상 천간값.
   if (opt.includeLuckyDetails) {
-    const stemPairs: Array<[PillarKind, string]> = [
-      ['year', normalizeStemName(p.year.heavenlyStem.name)],
-      ['month', normalizeStemName(p.month.heavenlyStem.name)],
-      ['day', normalizeStemName(p.day.heavenlyStem.name)],
-      ['time', normalizeStemName(p.time.heavenlyStem.name)],
-    ]
-    const branchPairs: Array<[PillarKind, string]> = [
-      ['year', normalizeBranchName(p.year.earthlyBranch.name)],
-      ['month', normalizeBranchName(p.month.earthlyBranch.name)],
-      ['day', normalizeBranchName(p.day.earthlyBranch.name)],
-      ['time', normalizeBranchName(p.time.earthlyBranch.name)],
-    ]
+    const stemPairs: Array<[PillarKind, string]> = present.map(([k, x]) => [
+      k,
+      normalizeStemName(x.heavenlyStem.name),
+    ])
+    const branchPairs = pairs
     for (const [kind, stem] of stemPairs) {
       if (isCheondeokGwiin(monthBranch, stem)) {
         hits.push({
@@ -1135,7 +1150,7 @@ export function getShinsalHits(
 }
 
 export function annotateShinsal(
-  p: SajuPillarsLike,
+  p: ShinsalPillarsInput,
   options?: Partial<AnnotateOptions>
 ): ShinsalAnnot {
   const opt = { ...DEFAULT_ANNOTATE_OPTIONS, ...(options || {}) }
@@ -1243,7 +1258,16 @@ export interface SajuPillarsAdapterInput {
     earthlyBranch: { name: string; element: FiveElement }
   }
 }
-export function toSajuPillarsLike(input: SajuPillarsAdapterInput): SajuPillarsLike {
+/** 시주가 없을 수 있는 어댑터 입력 — 출생시각 미상이면 timePillar 가 null/생략. */
+export type SajuPillarsAdapterInputMaybeTimeless = Omit<SajuPillarsAdapterInput, 'timePillar'> & {
+  timePillar?: SajuPillarsAdapterInput['timePillar'] | null
+}
+export function toSajuPillarsLike(input: SajuPillarsAdapterInput): SajuPillarsLike
+export function toSajuPillarsLike(input: SajuPillarsAdapterInputMaybeTimeless): ShinsalPillarsInput
+export function toSajuPillarsLike(
+  input: SajuPillarsAdapterInputMaybeTimeless
+): ShinsalPillarsInput {
+  const tp = input.timePillar
   return {
     year: {
       heavenlyStem: {
@@ -1275,16 +1299,18 @@ export function toSajuPillarsLike(input: SajuPillarsAdapterInput): SajuPillarsLi
         element: input.dayPillar.earthlyBranch.element,
       },
     },
-    time: {
-      heavenlyStem: {
-        name: normalizeStemName(input.timePillar.heavenlyStem.name),
-        element: input.timePillar.heavenlyStem.element,
-      },
-      earthlyBranch: {
-        name: normalizeBranchName(input.timePillar.earthlyBranch.name),
-        element: input.timePillar.earthlyBranch.element,
-      },
-    },
+    time: tp
+      ? {
+          heavenlyStem: {
+            name: normalizeStemName(tp.heavenlyStem.name),
+            element: tp.heavenlyStem.element,
+          },
+          earthlyBranch: {
+            name: normalizeBranchName(tp.earthlyBranch.name),
+            element: tp.earthlyBranch.element,
+          },
+        }
+      : null,
   }
 }
 

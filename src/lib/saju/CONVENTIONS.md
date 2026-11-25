@@ -111,12 +111,20 @@ const sajuYear = birthDateTime.getTime() < ipchunUTC.getTime() ? year - 1 : year
 
 **선택:** 위 1번(자시)과 동일 표 기반. 한국 LMT +30분 보정 시진 경계.
 
-- 시간 미상(`birthTimeUnknown=true`): 시주 계산 skip, 다른 모듈은 ASC/MC 의존 정보(점성 하우스 등) 자동 마스킹
-- **시간 미상 계산 앵커 = 정오(12:00)** — SSOT [`birthTimeAnchor.ts`](./birthTimeAnchor.ts) (`resolveBirthTimeAnchor`/`isBirthTimeUnknown`). 절입일엔 앵커 시각이 절입 전/후를 갈라 **월주·년주**가 달라진다(자정 앵커는 대개 절입 전) — 서비스마다 앵커가 다르면 같은 사람의 사주가 갈린다. 실제로 궁합/상담사/캘린더 세션 경로가 `'00:00'` 앵커를 써서 통합리포트(정오)와 다른 사주를 내던 버그의 원인. 정오는 ASC/하우스 범위의 중간값이기도 하다. 시간 미상 입력을 엔진(사주·점성)에 넣는 모든 경로는 이 헬퍼를 거칠 것.
+- **시간 미상(`birthTimeUnknown=true`) = 삼주(三柱) 분석** (OD-5, 엔진 감사 E7 · SAJU-4 · SD-10). 시주는 판정에 넣지 않는다:
+  - `collectSajuFacts({ birthTimeUnknown })` → `facts.pillars.time = null`, `facts.timeUnknown = true`. `calculateSajuData(…, now, { timeUnknown })` 의 `fiveElements` 는 년·월·일 **6글자**이고, `timePillar` 는 정오 앵커로 채운 *자리표시*다(`result.timeUnknown = true`) — 판정·표시에 쓰지 말 것.
+  - 오행 개수·강약·용신·격국·관계(합충형파해·원진·공망 hit)·신살·12운성·관살혼잡·통근·십성 개수 모두 **년·월·일 세 기둥**만 본다. 엔진 입력 타입 `MaybeTimeless<…>`(time 이 null/생략)과 순회 헬퍼 `presentPillars`(stemBranchUtils) 하나로 통일.
+  - 위치 가중(`strengthScore.POSITION_WEIGHTS`, 오행 점수)은 있는 기둥 합으로 재정규화한다: 0.15/0.30/0.35 ÷ 0.80.
+  - 글자 _수_ 합산(강약 코어 §11, 통근력, 병약·통관·종격·특수격·화신 우세 임계)은 재분배하지 않는다. 강약은 시드 고정 실제 생일 1000건에서 무보정 삼주 점수가 같은 날 12시진 평균에 가장 가깝다(평균절대오차 1.6, ×1.25 는 2.6). 개수 임계는 시주를 더해야 늘 뿐이라 삼주에서 성립한 외격은 어느 시주로도 성립한다(모르는 시주로 외격을 만들지 않는 보수 규칙).
+  - 화기격국의 인접 합 상대는 월간만 본다(시간 미상).
+  - 운(대운·세운·월운·일진)과 본명의 충·합·형 교차도 시주를 뺀다(`currentUnse`·상담사 교차·캘린더 `saju-hyeongchung`·`saju-jijanggan`). 4주 패턴표(`saju-pattern`)는 판정하지 않는다.
+  - 점성은 `placeUnreliable`(시각 _또는_ 출생지 미상)로 ASC·MC·하우스와 그 파생(프로펙션, lot·ZR, Almuten, 앵글 대상 어스펙트)을 막는다 — 캘린더는 `buildCalendar` 가 `isPlaceDependentSignal` 신호를 거르고 컨텍스트의 lot·ZR·Almuten 을 비운다(CALCULATION_SPEC §6).
+  - 가드: `tests/lib/destiny/sajuFacts.timeUnknown.test.ts`
+- **시간 미상 계산 앵커 = 정오(12:00)** — SSOT [`birthTimeAnchor.ts`](./birthTimeAnchor.ts) (`resolveBirthTimeAnchor`/`isBirthTimeUnknown`). 앵커는 **년·월·일주를 고정하는 데만** 쓴다(삼주 분석의 시주로 쓰지 않는다). 빈 시각 문자열도 정오로 앵커하고 미상으로 본다 — `calculateSajuData('1988-07-07', '')` 는 예전 00:00 앵커로 月 戊午 였으나 이제 '12:00' 과 같은 己未(엔진 감사 F15). 절입일엔 앵커 시각이 절입 전/후를 갈라 **월주·년주**가 달라진다(자정 앵커는 대개 절입 전) — 서비스마다 앵커가 다르면 같은 사람의 사주가 갈린다. 실제로 궁합/상담사/캘린더 세션 경로가 `'00:00'` 앵커를 써서 통합리포트(정오)와 다른 사주를 내던 버그의 원인. 정오는 ASC/하우스 범위의 중간값이기도 하다. 시간 미상 입력을 엔진(사주·점성)에 넣는 모든 경로는 이 헬퍼를 거칠 것.
   - ℹ️ **2026-10 이후 일주는 앵커와 무관하다** (§1 민용일 분리). 예전엔 자정 앵커가 일주까지 전날로 밀었고 그게 정오 앵커 근거의 절반이었는데, 그 밀림 자체가 버그였다. 남은 근거(절입일 월주·ASC 중간값)로 정오 앵커는 유지한다. 가드: `tests/lib/saju/birthTimeAnchor.test.ts`
 - **미상 판정은 tri-state** — 명시 플래그(`birthTimeUnknown`: UserProfile/SavedPerson DB 컬럼, URL `birthTimeUnknown=1|0`·`tu=1|0`, 폼 상태)가 boolean 이면 신뢰한다: `false` + `'00:00'` 은 **실제 자정 출생**(자정 그대로 계산, 시주 유효). 플래그 미보존(레거시 행/링크, NULL)은 `'00:00'`=미상 휴리스틱으로 폴백.
 
-**위치:** [`saju.ts:160-192`](./saju.ts#L160-L192) 및 호출처
+**위치:** [`saju.ts`](./saju.ts) 시기둥 블록·`CalculateSajuOptions`, [`sajuFacts.ts`](../destiny/sajuFacts.ts) 및 호출처
 
 ---
 
@@ -363,3 +371,4 @@ isForward = (yearStem이 양 && male) || (yearStem이 음 && female)
 - 2026-06: 최초 작성. 만 나이 통일 직후 시점 기준.
 - 2026-11: OD-1 — 년주·월주·대운수는 생 UT 출생 instant 와 절입 instant 비교, 진경도 보정은 시주에만, 만 나이는 민용 생일 (§1·§2·§3·§13·§14·§15, 엔진 감사 E1).
 - 2026-11: 판단층 (엔진 감사 E4, OD-7·OD-8) — 강약 점수에서 일간 자기 비겁 제외 + 중심 보정 −9.5(중앙값 50), 5단계 매핑 함수 하나(`strengthBandOf`/`strengthClassOf`)를 모든 표면이 공유, 용신 병약·통관은 억부 허용 그룹 안에서만·추천과 회피 서로소·병 = 드러난 8글자 3 이상, 화기격국은 `evaluateHwagiGeokguk` 엄격 규칙만, 득령 囚/死 교정, §6 午 3층·용도별 가중치 표 정정, 통근력은 §6 강약·통근 행 사용 (§6·§9·§10·§11).
+- 2026-11: OD-5 — 시간 미상은 삼주(년·월·일) 분석. 정오 앵커는 년·월·일주 고정용, 빈 시각도 정오로 앵커, 오행 위치 가중은 0.80 으로 재정규화, 캘린더 placeUnreliable 이면 ASC·MC·하우스 의존 신호 제외 (§5, 엔진 감사 E7).

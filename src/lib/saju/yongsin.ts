@@ -1,8 +1,16 @@
 // src/lib/Saju/yongsin.ts
 // 용신(用神) 선정 모듈 - 사주명리학 핵심 기능
 
-import { FiveElement, YinYang, SajuPillars, PillarData, SajuPillarsInput } from './types'
+import {
+  FiveElement,
+  YinYang,
+  SajuPillars,
+  PillarData,
+  SajuPillarsInput,
+  MaybeTimeless,
+} from './types'
 import { STEMS, BRANCHES, FIVE_ELEMENT_RELATIONS } from './constants'
+import { presentPillars } from './stemBranchUtils'
 import {
   computeStrengthScore,
   toStrengthCoreInput,
@@ -57,6 +65,9 @@ export interface ElementStats {
 // Re-export for backward compatibility
 export type { SajuPillarsInput }
 
+/** 시주가 없을 수 있는 입력 — 출생시각 미상이면 삼주(년·월·일)로 판정 (CONVENTIONS §5). */
+type YongsinPillars = MaybeTimeless<SajuPillarsInput>
+
 // ============ 헬퍼 함수들 ============
 
 /**
@@ -85,19 +96,19 @@ function getYinYang(stem: string): YinYang | null {
 }
 
 /**
- * 드러난 8글자(천간 4 + 지지 4)의 오행 개수 — 병약·통관 판정용.
+ * 드러난 8글자(천간 4 + 지지 4, 시간 미상이면 6글자)의 오행 개수 — 병약·통관 판정용.
+ * 임계(병 ≥3, 통관 쌍 각 ≥2)는 글자 수 그대로 둔다 — 비율로 환산해도(3/8→2.25/6,
+ * 2/8→1.5/6) 정수 임계가 같고, 삼주에서 성립하면 어떤 시주가 와도 성립한다.
  *
  * 예전엔 지장간 정기를 +0.5 더 세어 지지가 1.5배가 됐다. 그 결과 사주당 합계가
  * 10 이라 최대값 ≥ 3 이 거의 확정이었고(병약이 늘 발동 → 억부 도달 0), §6 이
  * 금지한 *제3의 지장간 가중치*였다(엔진 감사 SD-04·F8). 지장간은 강약 점수
  * (computeStrengthScore)가 이미 반영하므로 여기서는 드러난 글자만 센다.
  */
-function countElements(pillars: SajuPillarsInput): ElementStats {
+function countElements(pillars: YongsinPillars): ElementStats {
   const stats: ElementStats = { 목: 0, 화: 0, 토: 0, 금: 0, 수: 0 }
 
-  const allPillars = [pillars.year, pillars.month, pillars.day, pillars.time]
-
-  for (const pillar of allPillars) {
+  for (const [, pillar] of presentPillars(pillars)) {
     const stemElement = getElement(pillar.stem)
     if (stemElement) {
       stats[stemElement]++
@@ -163,7 +174,7 @@ function eokbuAllowed(dm: FiveElement, s: DaymasterStrength): FiveElement[] | nu
  *   20 <  total < 40     → 신약
  *   total ≤ 20           → 극신약
  */
-function assessDaymasterStrength(daymaster: string, pillars: SajuPillarsInput): DaymasterStrength {
+function assessDaymasterStrength(daymaster: string, pillars: YongsinPillars): DaymasterStrength {
   const daymasterElement = getElement(daymaster)
   if (!daymasterElement) {
     return '중화'
@@ -319,7 +330,7 @@ const TONGGWAN_PAIRS: Array<{
  * 일간 강약을 보지 않아 통관 목 = 기신 목 같은 모순이 났다(엔진 감사 SD-04).
  */
 function selectTonggwanYongsin(
-  pillars: SajuPillarsInput,
+  pillars: YongsinPillars,
   allowed: FiveElement[] | null,
   avoid: Array<FiveElement | undefined>
 ): { yongsin: FiveElement; reasoning: string } | null {
@@ -349,7 +360,7 @@ const BYEONG_MIN_COUNT = 3
  * 신강 일간에 비겁·인성을, 신약 일간에 식상을 처방했다(엔진 감사 SD-04).
  */
 function selectByeongYakYongsin(
-  pillars: SajuPillarsInput,
+  pillars: YongsinPillars,
   dm: FiveElement,
   strength: DaymasterStrength
 ): { yongsin: FiveElement; kibsin: FiveElement; reasoning: string } | null {
@@ -413,7 +424,7 @@ function finalizeYongsin(r: YongsinResult): YongsinResult {
 /**
  * 용신 선정 메인 함수
  *
- * @param pillars 사주 4주
+ * @param pillars 사주 4주 — 시주가 null/생략이면(출생시각 미상) 삼주로 판정
  * @returns 용신 선정 결과
  *
  * 용신 선정 우선순위 (CONVENTIONS §10 '억부 + 조후 함께'):
@@ -425,7 +436,7 @@ function finalizeYongsin(r: YongsinResult): YongsinResult {
  * 불변식: primary·secondary ∉ {kibsin, gusin}. 조후가 아닌 용신은 신강 일간에
  * 인성·비겁을, 신약 일간에 식상·재성·관성을 추천하지 않는다.
  */
-export function determineYongsin(pillars: SajuPillarsInput): YongsinResult {
+export function determineYongsin(pillars: YongsinPillars): YongsinResult {
   const daymaster = pillars.day.stem
   const daymasterElement = getElement(daymaster)
   const strength = assessDaymasterStrength(daymaster, pillars)

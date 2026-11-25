@@ -14,19 +14,21 @@ import { analyzeHyeongchung } from '@/lib/saju/hyeongchung'
 import { calculateTonggeun, calculateDeukryeong } from '@/lib/saju/tonggeun'
 import { analyzeSibsinComprehensive } from '@/lib/saju/sibsinAnalysis'
 
+// 시주(time/hour)가 null 이면 출생시각 미상 — 모든 분석을 년·월·일 삼주로 한다
+// (CONVENTIONS §5, OD-5). 정오 앵커 시주를 넘기지 말 것.
 export interface SimplePillars {
   year: { stem: string; branch: string }
   month: { stem: string; branch: string }
   day: { stem: string; branch: string }
-  time: { stem: string; branch: string }
-  hour: { stem: string; branch: string }
+  time: { stem: string; branch: string } | null
+  hour: { stem: string; branch: string } | null
 }
 
 export interface PillarsWithHour {
   year: { stem: string; branch: string }
   month: { stem: string; branch: string }
   day: { stem: string; branch: string }
-  hour: { stem: string; branch: string }
+  hour: { stem: string; branch: string } | null
 }
 
 export interface AnalysesResult {

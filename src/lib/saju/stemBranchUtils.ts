@@ -231,3 +231,28 @@ export function getBranchByIndex(index: number): StemBranchInfo {
 export function isCheoneulGwiin(dayMasterStemName: string, targetBranchName: string): boolean {
   return CHEONEUL_GWIIN_MAP[dayMasterStemName]?.includes(targetBranchName) ?? false
 }
+
+// ============================================================
+// 삼주(三柱) 순회 — 출생시각 미상이면 시주를 건너뛴다
+// ============================================================
+
+/**
+ * 실제로 있는 기둥만 [위치, 기둥] 쌍으로 (년·월·일[·시] 순).
+ * 출생시각 미상이면 time 이 null/생략이라 년·월·일 세 기둥만 돈다 —
+ * 정오 앵커 시주를 판정에 섞지 않는 단일 규칙(CONVENTIONS §5, OD-5).
+ * 강약·용신·격국·관계·신살 엔진이 같은 헬퍼로 기둥을 순회한다.
+ */
+export function presentPillars<P>(p: {
+  year: P
+  month: P
+  day: P
+  time?: P | null
+}): Array<['year' | 'month' | 'day' | 'time', P]> {
+  const out: Array<['year' | 'month' | 'day' | 'time', P]> = [
+    ['year', p.year],
+    ['month', p.month],
+    ['day', p.day],
+  ]
+  if (p.time) out.push(['time', p.time])
+  return out
+}

@@ -35,6 +35,7 @@ import { currentManAge } from '@/lib/datetime/currentAge'
 import { daysToDaeunAge } from '@/lib/saju/daeunAge'
 import { normalizeTimeZone } from '@/lib/datetime/timezone'
 import { solarTimeCorrectionMinutes, getDstAmountMinutes } from './timezone'
+import { TIME_UNKNOWN_ANCHOR } from './birthTimeAnchor'
 // 십신 / 정기 매핑은 core 모듈이 single source.
 import { getBranchMainStem, getSibseong } from './core/sibsin'
 
@@ -197,7 +198,9 @@ function getSajuCacheKey(
   // longitude 가 들어오면 진경도(진태양시) 보정이 켜져 시지/시간이 달라진다 — 캐시 키에 반영.
   longitude?: number,
   // 출생지-로컬 "오늘" (YYYY-MM-DD). 대운/세운/월운이 날짜 의존이라 키에 반영.
-  nowLocalDate?: string
+  nowLocalDate?: string,
+  // 시간 미상(삼주) — fiveElements 가 6글자로 바뀌므로 키에 반영.
+  timeUnknown?: boolean
 ): string {
   const sep = CACHE_KEY.SEPARATOR
   const params = [
@@ -209,8 +212,20 @@ function getSajuCacheKey(
     lunarLeap ?? '',
     typeof longitude === 'number' && Number.isFinite(longitude) ? longitude.toFixed(4) : '',
     nowLocalDate ?? '',
+    timeUnknown ? 'tu' : '',
   ]
   return `${CACHE_KEY.PREFIX.SAJU}${sep}${params.map((p) => JSON.stringify(p)).join(sep)}`
+}
+
+/** calculateSajuData 옵션 (위치 인자 뒤에 붙는 9번째 인자). */
+export interface CalculateSajuOptions {
+  /**
+   * 출생시각 미상 — 삼주(년·월·일) 분석(CONVENTIONS §5, OD-5). 계산 앵커는 정오
+   * (TIME_UNKNOWN_ANCHOR)로 년·월·일주만 고정하고, fiveElements 는 시주를 빼고
+   * 6글자로 센다. 결과의 timePillar 는 정오 앵커 자리표시이며 result.timeUnknown=true.
+   * birthTime 이 빈 문자열이면 이 옵션 없이도 미상으로 본다(isBirthTimeUnknown 규약).
+   */
+  timeUnknown?: boolean
 }
 
 /* ========== 메인 계산 ========== */
@@ -229,8 +244,15 @@ export function calculateSajuData(
   // 월운·만나이는 "지금"에 의존한다. 예전엔 그 경로가 new Date() 를 직접 읽어
   // 같은 입력도 날짜마다 결과가 달라지고(=결정론 누수) 골든 테스트도 불가능했다.
   // 기본값은 호출 시점이라 프로덕션 동작은 그대로, 테스트는 now 를 고정해 검증한다.
-  now: Date = new Date()
+  now: Date = new Date(),
+  opts: CalculateSajuOptions = {}
 ): CalculateSajuDataResult {
+  // 빈 시각 = 미상(birthTimeAnchor.isBirthTimeUnknown 과 같은 규약). 계산 앵커는 정오 —
+  // 예전엔 '' 가 00:00 으로 떨어져 절입일 월주가 정오 앵커(리포트·점성)와 갈렸다
+  // (1988-07-07: '' → 戊午, '12:00' → 己未; 엔진 감사 F15).
+  const blankTime = !String(birthTime ?? '').trim()
+  const timeUnknown = opts.timeUnknown === true || blankTime
+  if (blankTime) birthTime = TIME_UNKNOWN_ANCHOR
   // 잘못된 IANA 타임존(빈 문자열·레거시·손상 프로필 값)이 들어오면 아래
   // Intl.DateTimeFormat 이 RangeError 로 throw → 사주를 쓰는 모든 서비스가
   // 한꺼번에 죽는다. 유효하지 않으면 기본값으로 떨궈 계산은 진행되게 한다.
@@ -253,7 +275,8 @@ export function calculateSajuData(
     timezone,
     lunarLeap,
     longitude,
-    nowLocalDate
+    nowLocalDate,
+    timeUnknown
   )
   const cached = sajuCache.get(cacheKey)
   if (cached && Date.now() - cached.timestamp < SAJU_CACHE.TTL_MS) {
@@ -283,10 +306,8 @@ export function calculateSajuData(
 
     // ✅ 안전한 시간 문자열 처리
     const safeTime = (() => {
+      // 빈 값은 위에서 TIME_UNKNOWN_ANCHOR(정오)로 바꿔 두었다.
       const t = String(birthTime ?? '').trim()
-      if (!t) {
-        return '00:00:00'
-      }
       if (/^\d{1,2}:\d{2}$/.test(t)) {
         return `${t}:00`
       }
@@ -599,7 +620,12 @@ export function calculateSajuData(
       금: 0,
       수: 0,
     }
-    ;[yearPillar, monthPillar, dayPillar, timePillar].forEach((p) => {
+    // 시간 미상이면 삼주 6글자만 센다 — 정오 앵커 시주는 날짜를 고정하는 자리표시라
+    // 오행 분포에 넣으면 정오 추정(午시)이 판정을 좌우한다(엔진 감사 SAJU-4·SD-10).
+    const countedPillars = timeUnknown
+      ? [yearPillar, monthPillar, dayPillar]
+      : [yearPillar, monthPillar, dayPillar, timePillar]
+    countedPillars.forEach((p) => {
       fiveElementsCount[p.stem.element]++
       fiveElementsCount[p.branch.element]++
     })
@@ -723,6 +749,7 @@ export function calculateSajuData(
         water: fiveElementsCount['수'],
       },
       dayMaster,
+      ...(timeUnknown ? { timeUnknown: true } : {}),
     }
 
     // Cache the result (evict oldest if full)

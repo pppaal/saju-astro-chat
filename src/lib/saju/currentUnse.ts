@@ -10,7 +10,8 @@
 import { getIljinCalendar } from './unse'
 import { getMonthPillarForDate, getYearPillarForDate } from './datePillars'
 import { BRANCH_CLASH, SIX_HARMONY, STEM_CLASH, STEM_COMBINE, toPairKeySet } from './relationTables'
-import type { CalculateSajuDataResult, RelationHit, SajuPillars, PillarKind } from './types'
+import type { CalculateSajuDataResult, RelationHit, SajuPillars, MaybeTimeless } from './types'
+import { presentPillars } from './stemBranchUtils'
 
 // 충/합 키셋 — relationTables(SSOT)에서 파생. 로컬 하드코딩 복제 금지(드리프트
 // 방지). toPairKeySet 이 'a-b'/'b-a' 양방향 키를 만들어 .has 가 방향 무관.
@@ -18,17 +19,17 @@ const BRANCH_CHUNG = toPairKeySet(BRANCH_CLASH)
 const BRANCH_YUKHAP = toPairKeySet(SIX_HARMONY.map((h) => h.pair))
 const STEM_CHUNG = toPairKeySet(STEM_CLASH) // 엔진 공통 천간충 모드(4쌍)
 const STEM_HAP = toPairKeySet(STEM_COMBINE.map((s) => s.pair))
-const PILLAR_NAMES: PillarKind[] = ['year', 'month', 'day', 'time']
-
-/** 운(運)의 천간·지지가 본명 네 기둥과 이루는 충/합. */
+/**
+ * 운(運)의 천간·지지가 본명 네 기둥과 이루는 충/합. 시주가 null 이면(출생시각 미상)
+ * 년·월·일 세 기둥만 본다(CONVENTIONS §5).
+ */
 export function detectUnseRelations(
-  pillars: SajuPillars,
+  pillars: MaybeTimeless<SajuPillars>,
   unseStem: string,
   unseBranch: string
 ): RelationHit[] {
   const out: RelationHit[] = []
-  for (const name of PILLAR_NAMES) {
-    const p = pillars[name]
+  for (const [name, p] of presentPillars(pillars)) {
     const ns = p.heavenlyStem.name
     const nb = p.earthlyBranch.name
     if (STEM_CHUNG.has(`${unseStem}-${ns}`))
@@ -101,13 +102,15 @@ export function computeCurrentUnse(raw: CalculateSajuDataResult, queryDate: Date
   const wolun = pickWolun(queryDate)
   const iljin = pickIljin(raw, queryDate)
   const relations: CurrentUnse['relations'] = []
+  // 시간 미상이면 raw.pillars.time 은 정오 앵커 자리표시 — 운과의 충/합에서 뺀다.
+  const natal = raw.timeUnknown ? { ...raw.pillars, time: null } : raw.pillars
   for (const [sb, source] of [
     [seun, 'seun'],
     [wolun, 'wolun'],
     [iljin, 'iljin'],
   ] as const) {
     if (!sb) continue
-    for (const r of detectUnseRelations(raw.pillars, sb.stem, sb.branch)) {
+    for (const r of detectUnseRelations(natal, sb.stem, sb.branch)) {
       relations.push({ source, relation: r })
     }
   }

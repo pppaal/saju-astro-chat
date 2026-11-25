@@ -2,7 +2,7 @@
 // 통근(通根), 투출(透出), 회국(會局) 계산 모듈
 // 일간 및 오행의 실제 힘을 정밀하게 계산
 
-import { FiveElement, YinYang, SajuPillarsInput } from './types'
+import { FiveElement, YinYang, SajuPillarsInput, MaybeTimeless } from './types'
 import { JIJANGGAN } from './constants'
 import { THREE_HARMONY, DIRECTIONAL_HARMONY } from './relationTables'
 import { getStemElement, getStemYinYang, getBranchElement } from './stemBranchUtils'
@@ -105,9 +105,13 @@ const PILLAR_WEIGHT: Record<string, number> = {
 }
 
 /**
- * 천간의 통근 여부 및 강도 계산
+ * 천간의 통근 여부 및 강도 계산. 시주가 null/생략이면(출생시각 미상) 년·월·일 지지만 본다 —
+ * 통근력은 뿌리의 *존재* 합이라 모르는 시지 몫을 다른 기둥에 재분배하지 않는다.
  */
-export function calculateTonggeun(stem: string, pillars: SajuPillarsInput): TonggeunResult {
+export function calculateTonggeun(
+  stem: string,
+  pillars: MaybeTimeless<SajuPillarsInput>
+): TonggeunResult {
   const roots: TonggeunResult['roots'] = []
   let totalStrength = 0
 
@@ -115,8 +119,8 @@ export function calculateTonggeun(stem: string, pillars: SajuPillarsInput): Tong
     { key: 'year', branch: pillars.year.branch },
     { key: 'month', branch: pillars.month.branch },
     { key: 'day', branch: pillars.day.branch },
-    { key: 'time', branch: pillars.time.branch },
   ]
+  if (pillars.time) pillarEntries.push({ key: 'time', branch: pillars.time.branch })
 
   for (const { key, branch } of pillarEntries) {
     const jijanggan = JIJANGGAN[branch]

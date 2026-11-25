@@ -1,10 +1,19 @@
 // src/lib/Saju/strengthScore.ts
 // 사주 강약 종합 점수화 시스템 (200% 급 모듈)
 
-import { FiveElement, SajuPillars, PillarData, SibsinKind, SajuPillarsInput } from './types'
+import { FiveElement, SajuPillars, SibsinKind, SajuPillarsInput, MaybeTimeless } from './types'
 import { JIJANGGAN, FIVE_ELEMENT_RELATIONS } from './constants'
 import { BRANCH_CLASH, SIX_HARMONY, toBidiRecord } from './relationTables'
-import { getStemElement, getBranchElement, normalizeStem, normalizeBranch } from './stemBranchUtils'
+import {
+  getStemElement,
+  getBranchElement,
+  normalizeStem,
+  normalizeBranch,
+  presentPillars,
+} from './stemBranchUtils'
+
+/** 시주가 없을 수 있는 full 4주 (출생시각 미상 = 삼주, CONVENTIONS §5). */
+type FullPillars = MaybeTimeless<SajuPillars>
 
 // ============================================================
 // 타입 정의
@@ -91,7 +100,10 @@ export interface YongsinFitScore {
 // 점수 상수
 // ============================================================
 
-/** 위치별 가중치 */
+/**
+ * 위치별 가중치 — 합 1.0. 시간 미상(삼주)이면 있는 기둥의 합(0.80)으로 나눠
+ * 다시 1.0 으로 맞춘다(0.15/0.30/0.35 ÷ 0.80, OD-5).
+ */
 const POSITION_WEIGHTS = {
   year: 0.15, // 년주
   month: 0.3, // 월주 (가장 중요)
@@ -129,9 +141,9 @@ const SIBSIN_CATEGORY_WEIGHTS: Record<string, number> = {
 // ============================================================
 
 /**
- * 사주 팔자의 오행 점수 계산
+ * 사주 팔자의 오행 점수 계산. 시간 미상이면 삼주로, 위치 가중치는 있는 기둥 합으로 재정규화.
  */
-export function calculateElementScores(pillars: SajuPillars): ElementScore[] {
+export function calculateElementScores(pillars: FullPillars): ElementScore[] {
   const rawScores: Record<FiveElement, number> = {
     목: 0,
     화: 0,
@@ -140,15 +152,11 @@ export function calculateElementScores(pillars: SajuPillars): ElementScore[] {
     수: 0,
   }
 
-  const pillarEntries: Array<{ key: 'year' | 'month' | 'day' | 'time'; data: PillarData }> = [
-    { key: 'year', data: pillars.year },
-    { key: 'month', data: pillars.month },
-    { key: 'day', data: pillars.day },
-    { key: 'time', data: pillars.time },
-  ]
+  const pillarEntries = presentPillars(pillars)
+  const weightSum = pillarEntries.reduce((sum, [key]) => sum + POSITION_WEIGHTS[key], 0)
 
-  for (const { key, data } of pillarEntries) {
-    const weight = POSITION_WEIGHTS[key]
+  for (const [key, data] of pillarEntries) {
+    const weight = POSITION_WEIGHTS[key] / weightSum
 
     // 천간 점수
     const stemElement = getStemElement(data.heavenlyStem.name)
@@ -196,13 +204,18 @@ export function calculateElementScores(pillars: SajuPillars): ElementScore[] {
 //   설기·재성·관성 음수 — 일간을 소모/극하는 오행의 존재감
 //   total = 50 + STRENGTH_CENTER_OFFSET + support − resist (0~100 clamp)
 //   라벨은 strengthBandOf(total) 5단계 하나뿐 (CONVENTIONS §10)
+//
+// 시간 미상(삼주, OD-5): stems/branches 가 년·월·일 3개다. 이 코어는 위치 가중이 없는
+// *글자 수* 합산이라 시주 몫을 다른 기둥에 재분배(×1.25 등)하지 않는다 — 시드 고정
+// 실제 생일 1000건에서 무보정 삼주 점수가 같은 날 12시진 평균과 가장 가깝다
+// (평균절대오차 1.6 · 편향 +1.0, ×1.25 는 2.6, ×4/3 는 3.2).
 
-/** 코어 입력: 정규화(한자)된 4주의 천간·지지 이름. */
+/** 코어 입력: 정규화(한자)된 4주(시간 미상이면 3주)의 천간·지지 이름. */
 export interface StrengthCoreInput {
-  /** 년·월·일·시 순 천간 (한자) */
-  stems: [string, string, string, string]
-  /** 년·월·일·시 순 지지 (한자) */
-  branches: [string, string, string, string]
+  /** 년·월·일[·시] 순 천간 (한자). 시간 미상이면 3개 — 일간은 항상 index 2. */
+  stems: readonly string[]
+  /** 년·월·일[·시] 순 지지 (한자). 시간 미상이면 3개. */
+  branches: readonly string[]
   /** 일간 천간 (한자) — stems[2] 와 동일하지만 명시적으로 전달 */
   dayStem: string
   /** 월령 판정에 쓸 지지 override (없으면 branches[1] = 월지) */
@@ -228,7 +241,7 @@ function deukryeongScore(dayElement: FiveElement, monthElement: FiveElement): nu
   return 15 // 중립
 }
 
-function tonggeunScore(branches: string[], dayElement: FiveElement): number {
+function tonggeunScore(branches: readonly string[], dayElement: FiveElement): number {
   let score = 0
   for (const branch of branches) {
     const jijanggan = JIJANGGAN[branch]
@@ -246,8 +259,8 @@ function tonggeunScore(branches: string[], dayElement: FiveElement): number {
 }
 
 function elementPresenceScore(
-  stems: string[],
-  branches: string[],
+  stems: readonly string[],
+  branches: readonly string[],
   element: FiveElement,
   maxScore: number,
   scale = 1
@@ -423,23 +436,14 @@ export function computeStrengthScore(input: StrengthCoreInput): StrengthScore {
   }
 }
 
-/** SajuPillarsInput(simple) → 정규화된 코어 입력으로 변환. */
+/** SajuPillarsInput(simple) → 정규화된 코어 입력으로 변환. 시주가 없으면(미상) 3주. */
 export function toStrengthCoreInput(
-  pillars: SajuPillarsInput,
+  pillars: MaybeTimeless<SajuPillarsInput>,
   monthBranch?: string
 ): StrengthCoreInput {
-  const stems: [string, string, string, string] = [
-    normalizeStem(pillars.year.stem),
-    normalizeStem(pillars.month.stem),
-    normalizeStem(pillars.day.stem),
-    normalizeStem(pillars.time.stem),
-  ]
-  const branches: [string, string, string, string] = [
-    normalizeBranch(pillars.year.branch),
-    normalizeBranch(pillars.month.branch),
-    normalizeBranch(pillars.day.branch),
-    normalizeBranch(pillars.time.branch),
-  ]
+  const present = presentPillars(pillars)
+  const stems = present.map(([, p]) => normalizeStem(p.stem))
+  const branches = present.map(([, p]) => normalizeBranch(p.branch))
   return {
     stems,
     branches,
@@ -450,20 +454,12 @@ export function toStrengthCoreInput(
 
 /**
  * 신강/신약 점수 계산 (SajuPillars full). SSOT 코어 `computeStrengthScore` 위임.
+ * 시주가 없으면(출생시각 미상) 삼주로 계산한다.
  */
-export function calculateStrengthScore(pillars: SajuPillars, monthBranch?: string): StrengthScore {
-  const stems: [string, string, string, string] = [
-    normalizeStem(pillars.year.heavenlyStem.name),
-    normalizeStem(pillars.month.heavenlyStem.name),
-    normalizeStem(pillars.day.heavenlyStem.name),
-    normalizeStem(pillars.time.heavenlyStem.name),
-  ]
-  const branches: [string, string, string, string] = [
-    normalizeBranch(pillars.year.earthlyBranch.name),
-    normalizeBranch(pillars.month.earthlyBranch.name),
-    normalizeBranch(pillars.day.earthlyBranch.name),
-    normalizeBranch(pillars.time.earthlyBranch.name),
-  ]
+export function calculateStrengthScore(pillars: FullPillars, monthBranch?: string): StrengthScore {
+  const present = presentPillars(pillars)
+  const stems = present.map(([, p]) => normalizeStem(p.heavenlyStem.name))
+  const branches = present.map(([, p]) => normalizeBranch(p.earthlyBranch.name))
   return computeStrengthScore({
     stems,
     branches,
@@ -479,7 +475,7 @@ export function calculateStrengthScore(pillars: SajuPillars, monthBranch?: strin
 /**
  * 격국 순수도 및 안정도 점수 계산
  */
-export function calculateGeokgukScore(pillars: SajuPillars, geokgukType: string): GeokgukScore {
+export function calculateGeokgukScore(pillars: FullPillars, geokgukType: string): GeokgukScore {
   const items: ScoreItem[] = []
   let purity = 50
   let stability = 50
@@ -491,11 +487,9 @@ export function calculateGeokgukScore(pillars: SajuPillars, geokgukType: string)
   // 월지 정기 투출 여부
   if (jijanggan?.['정기']) {
     const jeonggi = jijanggan['정기']
-    const stems = [
-      pillars.year.heavenlyStem.name,
-      pillars.month.heavenlyStem.name,
-      pillars.time.heavenlyStem.name,
-    ]
+    const stems = presentPillars(pillars)
+      .filter(([k]) => k !== 'day')
+      .map(([, p]) => p.heavenlyStem.name)
 
     if (stems.includes(jeonggi)) {
       purity += 20
@@ -544,15 +538,10 @@ export function calculateGeokgukScore(pillars: SajuPillars, geokgukType: string)
   }
 }
 
-function checkChungPresence(pillars: SajuPillars): boolean {
+function checkChungPresence(pillars: FullPillars): boolean {
   const CHUNG_PAIRS: [string, string][] = BRANCH_CLASH.map((p) => [p[0], p[1]])
 
-  const branches = [
-    pillars.year.earthlyBranch.name,
-    pillars.month.earthlyBranch.name,
-    pillars.day.earthlyBranch.name,
-    pillars.time.earthlyBranch.name,
-  ]
+  const branches = presentPillars(pillars).map(([, p]) => p.earthlyBranch.name)
 
   for (const [a, b] of CHUNG_PAIRS) {
     if (branches.includes(a) && branches.includes(b)) {
@@ -562,15 +551,10 @@ function checkChungPresence(pillars: SajuPillars): boolean {
   return false
 }
 
-function checkHapPresence(pillars: SajuPillars): boolean {
+function checkHapPresence(pillars: FullPillars): boolean {
   const YUKHAP_PAIRS: [string, string][] = SIX_HARMONY.map((h) => [h.pair[0], h.pair[1]])
 
-  const branches = [
-    pillars.year.earthlyBranch.name,
-    pillars.month.earthlyBranch.name,
-    pillars.day.earthlyBranch.name,
-    pillars.time.earthlyBranch.name,
-  ]
+  const branches = presentPillars(pillars).map(([, p]) => p.earthlyBranch.name)
 
   for (const [a, b] of YUKHAP_PAIRS) {
     if (branches.includes(a) && branches.includes(b)) {
@@ -588,25 +572,16 @@ function checkHapPresence(pillars: SajuPillars): boolean {
  * 용신 적합도 점수 계산
  */
 export function calculateYongsinFitScore(
-  pillars: SajuPillars,
+  pillars: FullPillars,
   yongsin: FiveElement,
   strengthLevel: string
 ): YongsinFitScore {
   const items: ScoreItem[] = []
 
   // 용신 존재감 점수 — SSOT 코어와 동일한 elementPresenceScore 헬퍼 재사용
-  const fitStems = [
-    pillars.year.heavenlyStem.name,
-    pillars.month.heavenlyStem.name,
-    pillars.day.heavenlyStem.name,
-    pillars.time.heavenlyStem.name,
-  ]
-  const fitBranches = [
-    pillars.year.earthlyBranch.name,
-    pillars.month.earthlyBranch.name,
-    pillars.day.earthlyBranch.name,
-    pillars.time.earthlyBranch.name,
-  ]
+  const fitPillars = presentPillars(pillars)
+  const fitStems = fitPillars.map(([, p]) => p.heavenlyStem.name)
+  const fitBranches = fitPillars.map(([, p]) => p.earthlyBranch.name)
   const presenceScore = elementPresenceScore(fitStems, fitBranches, yongsin, 50) * 2
   items.push({
     category: '존재감',
@@ -619,12 +594,8 @@ export function calculateYongsinFitScore(
   // 용신 유효도 (통근, 투출 여부)
   let effectiveScore = 30 // 기본 점수
 
-  // 용신이 천간에 투출되었는지 확인
-  const stems = [
-    pillars.year.heavenlyStem.name,
-    pillars.month.heavenlyStem.name,
-    pillars.time.heavenlyStem.name,
-  ]
+  // 용신이 천간에 투출되었는지 확인 (일간 제외)
+  const stems = fitPillars.filter(([k]) => k !== 'day').map(([, p]) => p.heavenlyStem.name)
 
   for (const stem of stems) {
     if (getStemElement(stem) === yongsin) {

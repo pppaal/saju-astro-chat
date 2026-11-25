@@ -106,6 +106,15 @@ export interface SajuPillarsInput {
   time: SimplePillar
 }
 
+/**
+ * 시주가 없을 수 있는 4주 — 출생시각 미상이면 time 이 null(또는 생략)이고
+ * 판정은 년·월·일 세 기둥(삼주)으로 한다 (CONVENTIONS §5, OD-5).
+ * 강약·용신·격국·관계·신살 엔진의 입력 타입. 4주가 다 있는 값도 그대로 대입된다.
+ */
+export type MaybeTimeless<T extends { time: unknown }> = Omit<T, 'time'> & {
+  time?: T['time'] | null
+}
+
 // --- 공통 키 타입(관계/신살 등에서 사용) ---
 export type PillarKind = 'year' | 'month' | 'day' | 'time'
 
@@ -152,6 +161,13 @@ export interface CalculateSajuDataResult {
   }
 
   dayMaster: StemBranchInfo
+
+  /**
+   * 출생시각 미상(CONVENTIONS §5). true 면 fiveElements 는 년·월·일 6글자만 센 값이고,
+   * timePillar / pillars.time 은 정오 앵커로 채운 *자리표시* 기둥이다 — 판정·표시에
+   * 쓰지 말 것(sajuFacts 는 pillars.time 을 null 로 낸다). 시각을 알면 생략.
+   */
+  timeUnknown?: boolean
 }
 
 // --- 관계(합/충/형/파/해/원진/삼합/육합/방합/공망) 결과 타입 ---

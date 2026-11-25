@@ -35,7 +35,8 @@ interface SajuPillars {
   year: Pillar
   month: Pillar
   day: Pillar
-  hour: Pillar
+  /** 시주 — null/생략이면(출생시각 미상) 시간·시지장간을 세지 않는다(CONVENTIONS §5). */
+  hour?: Pillar | null
 }
 
 export interface SibsinPosition {
@@ -166,8 +167,8 @@ export function analyzeSibsinPositions(pillars: SajuPillars): SibsinPosition[] {
   const pillarData: { position: SibsinPosition['position']; stem: string }[] = [
     { position: '년간', stem: pillars.year.stem },
     { position: '월간', stem: pillars.month.stem },
-    { position: '시간', stem: pillars.hour.stem },
   ]
+  if (pillars.hour) pillarData.push({ position: '시간', stem: pillars.hour.stem })
 
   for (const p of pillarData) {
     positions.push({
@@ -183,8 +184,8 @@ export function analyzeSibsinPositions(pillars: SajuPillars): SibsinPosition[] {
     { position: '년지장간', branch: pillars.year.branch },
     { position: '월지장간', branch: pillars.month.branch },
     { position: '일지장간', branch: pillars.day.branch },
-    { position: '시지장간', branch: pillars.hour.branch },
   ]
+  if (pillars.hour) branchData.push({ position: '시지장간', branch: pillars.hour.branch })
 
   for (const b of branchData) {
     const jijangganData = JIJANGGAN[b.branch]

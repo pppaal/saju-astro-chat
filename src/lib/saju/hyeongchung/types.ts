@@ -64,5 +64,5 @@ export interface SajuPillarsInput {
   year: Pillar
   month: Pillar
   day: Pillar
-  hour?: Pillar
+  hour?: Pillar | null // null = 출생시각 미상(삼주, CONVENTIONS §5)
 }
