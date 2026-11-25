@@ -48,9 +48,6 @@ const KNOWN_DEFECTS: Record<string, string> = {
   '(name, layer) unique per cell': 'E9',
   'sign coherence with both parents': 'E11',
   'cross layer = narrowest parent layer': 'E11',
-  'karma row 1951-05-22 13:38 F Seoul': 'E6',
-  'growth row 1960-12-18 21:49 M Los Angeles': 'E6',
-  'evalVoid is order-invariant': 'E6',
 }
 
 const SHOW_DEFECTS = process.env.GOLDEN_SHOW_DEFECTS === '1'

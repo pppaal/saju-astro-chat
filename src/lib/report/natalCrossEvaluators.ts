@@ -23,6 +23,7 @@ import {
   planetTheme,
   AIR_TRAIT_OVERRIDE,
   AIR_ELEMENT_LABEL,
+  elementRelation,
   type CrossVerdict,
 } from './natalCrossShared'
 import { elementVerdict, ELEMENT_TRAIT, type DomainCtx } from './natalCrossVerdict'
@@ -165,6 +166,26 @@ export function evalNeeds(
           en: `You crave the ${tCrave.en} but actually need the ${tNeed.en} — chasing only what you want can crowd out what matters. It's not about cutting out what you love, but deliberately slotting a little ${tNeed.en} into your daily routine. That small correction alone eases a lot of the emptiness or burnout.`,
         },
       }
+    // 반대 방향 생극 — 필요(용신)가 끌림(달)을 생하거나 극하는 경우. 예전엔 이 두 갈래가
+    // 빠져 목(필요)×사자(火) 같은 상생 쌍이 '상관없음'(neutral)으로 읽혔다(plan B4 #9).
+    // 다른 오행 축(elementVerdict)과 같은 족: 생은 어느 방향이든 보완, 극은 어느 방향이든 긴장.
+    if (GENERATES[need] === moon)
+      return {
+        tone: 'complement',
+        reason: {
+          ko: `채워야 할 ${tNeed.ko} 기운이 평소 끌리는 ${tCrave.ko} 쪽을 자연스럽게 키워줘요 — 필요한 걸 채우면 좋아하는 일에도 힘이 붙는 구조예요. 끌림만 좇기보다 ${tNeed.ko} 쪽을 먼저 챙기면, 그 힘이 좋아하는 일로 흘러가 만족이 오래가요. 필요와 취향이 한 방향으로 이어져 있어 크게 어긋날 일은 적어요.`,
+          en: `The ${tNeed.en} energy you need naturally feeds the ${tCrave.en} side you're drawn to — fill what you need and what you love gains strength too. Rather than chasing the pull alone, tend the ${tNeed.en} side first and that energy flows into what you enjoy, so the satisfaction lasts. Need and taste run in one direction, so they rarely work against each other.`,
+        },
+      }
+    if (CONTROLS[need] === moon)
+      return {
+        tone: 'tension',
+        reason: {
+          ko: `정작 필요한 ${tNeed.ko} 기운이 평소 끌리는 ${tCrave.ko} 쪽을 눌러요 — 필요한 걸 채우려 하면 좋아하는 걸 참아야 하는 것처럼 느껴지는 구조예요. 둘 중 하나를 버리기보다, 필요한 ${tNeed.ko} 쪽은 하루 일과에 자리를 정해 두고 끌리는 일엔 따로 시간을 떼어 주면 서로 덜 부딪혀요. 그렇게 자리를 나눠 주면 허전함 없이 균형이 잡혀요.`,
+          en: `The ${tNeed.en} energy you actually need tends to press down on the ${tCrave.en} side you're drawn to — filling what you need can feel like giving up what you love. Rather than dropping either, fix a slot in your day for the ${tNeed.en} side and give what you crave its own separate time, and they clash less. Giving each its own place keeps you balanced without the emptiness.`,
+        },
+      }
+    // 다섯 오행은 같음·생·극 중 하나로 반드시 이어지므로, 여기는 매핑 밖 입력 방어용이다.
     return {
       tone: 'neutral',
       reason: {
@@ -905,10 +926,14 @@ export function evalKeyAspect(
 
 /**
  * 공망 × South Node — 둘 다 "이번 생에 자연스럽게 만들어지지 않는 영역"을
- * 가리키는 표상. 사주의 공망 지지(허虛한 자리)와 점성의 사우스노드 sign(과거
- * 카르마/익숙해서 자동으로 떨어지는 지점) 이 같은 오행을 가리키면 두 시스템이
- * 같은 카르마를 같은 방향으로 짚는 셈 — tension 으로 강하게 발현. 다른 오행을
- * 가리키면 카르마가 두 갈래로 흩어진 neutral.
+ * 가리키는 표상. 공망은 지지 *두 개*(旬空 한 쌍)이고, 6쌍 중 4쌍(戌亥·午未·辰巳·子丑)은
+ * 두 오행에 걸친다. 그래서 공망 오행 집합 = {두 지지의 본기 오행} 이고, 사우스노드
+ * sign(과거 카르마/익숙해서 자동으로 떨어지는 지점)의 오행이 그 집합에 들면 두 시스템이
+ * 같은 빈자리를 짚는 합의 — resonant(+karmaAxis). 판정은 배열 순서와 무관하다
+ * (예전엔 첫 지지만 봐 ['戌','亥'] 와 ['亥','戌'] 가 갈렸다 — 엔진 감사 X9).
+ * 집합 밖이면(생·극 포함) 카르마가 두 갈래로 흩어진 neutral — 공망은 '같은 자리냐'만
+ * 묻는 축이라 생극 족으로 세분하지 않는다. 어느 쪽이든 결핍(숙제) 축이라 karmaAxis 는
+ * 모든 반환에 붙는다(plan B4 #10).
  *
  * 지지 본기 오행 매핑 (子=水, 丑=土, 寅卯=木, 辰=土, 巳午=火, 未=土, 申酉=金,
  * 戌=土, 亥=水) — 인라인 상수로 두어 외부 의존 없음.
@@ -934,16 +959,23 @@ export function evalVoid(
 ): CrossVerdict | null {
   if (!gongmangBranches?.length || !southNodeSign) return null
 
-  const branches = gongmangBranches.slice(0, 2).join('·')
-  const branchEl = BRANCH_TO_ELEMENT[gongmangBranches[0]]
+  // 공망 오행 집합 — 두 지지 모두 본다. 오행 고정 순서(木火土金水)로 정렬해, 판정뿐
+  // 아니라 문구까지 입력 배열 순서와 무관하게 같게 한다.
+  const voidSet = new Set<SajuElement>()
+  for (const b of gongmangBranches.slice(0, 2)) {
+    const el = BRANCH_TO_ELEMENT[b]
+    if (el) voidSet.add(el)
+  }
+  const voidEls = SAJU_ELS.filter((e) => voidSet.has(e))
   // air→木 근사 포함, 모든 sign→오행 변환은 단일 경로(signToSajuElement)로 통일한다 —
   // 예전엔 여기서 변환을 손으로 복제(third path)해 계약이 엇나갈 위험이 있었다(ENGINE-AUDIT E7).
-  const sajuFromAstro = signToSajuElement(toEnSign(southNodeSign) ?? southNodeSign)
+  const snSign = toEnSign(southNodeSign) ?? southNodeSign
+  const sajuFromAstro = signToSajuElement(snSign)
   // 지지/사우스노드 sign 중 하나라도 오행으로 못 풀면 거짓 neutral 을 내지 말고 행 생략.
-  if (!branchEl || !sajuFromAstro) return null
-  const matches = sajuFromAstro === branchEl
+  if (voidEls.length === 0 || !sajuFromAstro) return null
 
-  if (matches) {
+  if (voidEls.includes(sajuFromAstro)) {
+    const el = sajuFromAstro
     // 둘 다 같은 자리를 가리키므로 두 시스템은 '합의'한다(resonant). 내용이 어렵다는
     // 것과 시스템이 어긋난다는 것(tension)은 다른 축이다 — 톤은 '같은 얘길 해요'로.
     return {
@@ -952,16 +984,22 @@ export function evalVoid(
       // '잘 맞아요' 집계엔 넣지 않도록 표식만 단다(톤·문구는 그대로).
       karmaAxis: true,
       reason: {
-        ko: `사주의 공망(空亡)이 ${EL_KO[branchEl]} 자리에 걸려 있는데 — 가졌어도 비어 도는 자리라 오행 개수와는 별개예요 — 별자리(사우스노드)도 똑같이 그 지점을 짚어요. 동·서양 둘 다 "이번 생엔 ${EL_KO[branchEl]} 영역이 자동으로는 안 채워진다"고 입을 모아요. 타고난 복이 아니라 의식적으로 만들어가야 하는 평생 과제라, 여기서 쌓은 건 온전히 자기 힘으로 얻은 거예요. 부족하다 느끼는 그 자리를 피하지 말고 작게라도 꾸준히 채워가면, 약점이 가장 단단한 강점으로 바뀌어요.`,
-        en: `Your chart's void (空亡) falls on the ${EL_EN[branchEl]} position — a seat that stays hollow even when occupied, separate from the raw element count — and the stars (South Node) point to the very same place. East and West agree this area "won't fill itself this life." It isn't an inborn gift but a lifelong task you build by hand, so whatever you earn here is fully your own. Don't avoid the spot that feels lacking; fill it in small, steady steps and the weak point becomes your most solid strength.`,
+        ko: `사주의 공망(空亡)이 ${EL_KO[el]} 자리에 걸려 있는데 — 가졌어도 비어 도는 자리라 오행 개수와는 별개예요 — 별자리(사우스노드)도 똑같이 그 지점을 짚어요. 동·서양 둘 다 "이번 생엔 ${EL_KO[el]} 영역이 자동으로는 안 채워진다"고 입을 모아요. 타고난 복이 아니라 의식적으로 만들어가야 하는 평생 과제라, 여기서 쌓은 건 온전히 자기 힘으로 얻은 거예요. 부족하다 느끼는 그 자리를 피하지 말고 작게라도 꾸준히 채워가면, 약점이 가장 단단한 강점으로 바뀌어요.`,
+        en: `Your chart's void (空亡) falls on the ${EL_EN[el]} position — a seat that stays hollow even when occupied, separate from the raw element count — and the stars (South Node) point to the very same place. East and West agree this area "won't fill itself this life." It isn't an inborn gift but a lifelong task you build by hand, so whatever you earn here is fully your own. Don't avoid the spot that feels lacking; fill it in small, steady steps and the weak point becomes your most solid strength.`,
       },
     }
   }
+  // 어긋남 — 양쪽이 짚는 오행을 이름으로 밝힌다(공망 두 오행 모두 + 사우스노드). 공기
+  // 별자리는 木 대신 '공기'로 표기(근사 혼동 방지).
+  const snLabel = signElementLabel(snSign) ?? { ko: EL_KO[sajuFromAstro], en: EL_EN[sajuFromAstro] }
+  const voidKo = voidEls.map((e) => EL_KO[e]).join('·')
+  const voidEn = voidEls.map((e) => EL_EN[e]).join(' and ')
   return {
     tone: 'neutral',
+    karmaAxis: true,
     reason: {
-      ko: `타고난 빈자리와 별자리가 짚는 빈자리가 서로 다른 영역을 가리켜요 — 풀어내야 할 과제가 두 갈래로 흩어져 있어요. 한 번에 하나씩 다루는 게 안전해요.`,
-      en: `Your makeup and the stars each flag a different empty area — karmic work is spread across two threads. Better to address one at a time.`,
+      ko: `타고난 빈자리(${voidKo})와 별자리가 짚는 빈자리(${snLabel.ko})가 서로 다른 영역을 가리켜요 — 풀어내야 할 과제가 두 갈래로 흩어져 있어요. 한 번에 하나씩 다루는 게 안전해요.`,
+      en: `Your makeup and the stars each flag a different empty area (${voidEn} vs. ${snLabel.en}) — karmic work is spread across two threads. Better to address one at a time.`,
     },
   }
 }
@@ -987,6 +1025,11 @@ function weakestSajuElementTied(
  * (결핍 = 채워야 할 것). 둘 다 "이번 생에 새로 키워가는 것"을 가리키는 표상이라,
  * 같은 오행을 가리키면 동·서양이 한 성장 방향을 또렷이 짚는 셈. evalVoid(공망 ×
  * 사우스노드 = 비움·과거)의 양(陽)짝.
+ *
+ * 톤은 다른 오행 축(elementVerdict)과 같은 족: 같음 → resonant, 생(어느 방향이든) →
+ * complement, 극(어느 방향이든) → tension. 예전엔 극도 complement('다르지만 서로 도와요')
+ * 로 내보내, 행 자체의 '서로 다른 두 갈래' 문구와 라벨이 어긋났다(엔진 감사 X8, OD-10).
+ * 결핍(숙제) 축이라 karmaAxis 는 모든 반환에 붙는다(plan B4 #10).
  */
 export function evalNorthNode(
   sajuCounts: Record<string, number> | undefined,
@@ -998,8 +1041,9 @@ export function evalNorthNode(
   if (!weak || !nn || !northNodeSign) return null
   const tw = ELEMENT_TRAIT[weak]
   const tn = signTraitOverride(northNodeSign) ?? ELEMENT_TRAIT[nn]
+  const rel = elementRelation(weak, nn)
   const v: CrossVerdict =
-    nn === weak
+    rel === 'same'
       ? {
           tone: 'resonant',
           // 결핍 수렴(가장 약한 오행 = 노스노드 방향)은 evalVoid 와 같은 부류의 '결핍 축'이다.
@@ -1011,16 +1055,20 @@ export function evalNorthNode(
             en: `Both systems point your growth the same way — toward the ${tw.en} — your weakest Saju element and your growth direction landing on the same spot, an unusually clear growth signal. It feels awkward and uncomfortable at first, so you keep avoiding it, but passing through exactly that discomfort is this life's core growth. Don't just repeat what you're good at — invest deliberate time in the ${tw.en} side and life opens to a new level.`,
           },
         }
-      : GENERATES[weak] === nn || GENERATES[nn] === weak
+      : rel === 'aGenB' || rel === 'bGenA'
         ? {
             tone: 'complement',
+            karmaAxis: true,
             reason: {
               ko: `사주가 채우라는 ${tw.ko} 결과 별자리가 가리키는 ${tn.ko} 방향이 서로 이어져요 — 두 성장 축이 생(生)으로 맞물려, 한쪽을 키우면 다른 쪽도 따라 자라요. 둘을 따로 떼어 부담스럽게 볼 필요 없이, ${tn.ko} 쪽을 입구 삼아 들어가면 ${tw.ko} 쪽도 자연스럽게 채워져요. 성장이 선순환으로 굴러가는, 비교적 수월한 배치예요.`,
               en: `The ${tw.en} energy your Saju asks you to fill and the ${tn.en} direction your chart points to feed each other — the two growth axes mesh as a generating cycle, so grow one and the other follows. No need to face them as two separate burdens; enter through the ${tn.en} door and the ${tw.en} side fills in naturally. A relatively easy layout where growth runs as a virtuous loop.`,
             },
           }
         : {
-            tone: 'complement',
+            // 극(剋) — 다섯 오행에선 같음·생 이 아니면 반드시 극이다(elementRelation 'none' 은
+            // 유효 오행 쌍에서 나오지 않는다). 두 성장 축이 서로 당기는 tension.
+            tone: 'tension',
+            karmaAxis: true,
             reason: {
               ko: `사주는 ${tw.ko} 기운을 채우라 하고, 별자리는 ${tn.ko} 방향을 가리켜요 — 성장 축이 서로 다른 두 갈래라 한 번에 둘 다 잡으려면 벅찰 수 있어요. 시기를 나눠 번갈아 키우는 게 핵심 — 한동안 ${tw.ko} 쪽에 집중했다가, 또 한동안 ${tn.ko} 쪽에 집중하는 식이면 둘 다 놓치지 않아요. 욕심내 동시에 밀어붙이기보다 리듬을 두는 게 멀리 가는 길이에요.`,
               en: `Saju asks you to build ${tw.en} energy while your chart's growth direction points to ${tn.en} — two separate growth directions, so chasing both at once can overwhelm. The key is to alternate by season: focus on ${tw.en} for a while, then on ${tn.en}, and you drop neither. Setting a rhythm rather than forcing both at once is how you go the distance.`,

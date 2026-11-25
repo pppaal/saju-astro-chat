@@ -60,18 +60,23 @@ describe('evalIdentity — ASC 첫인상 분기', () => {
   })
 })
 
-// ── evalNeeds — neutral arm + suffix 조합 ──────────────────────────────────
+// ── evalNeeds — 필요→끌림 방향 생극 arm + suffix 조합 ──────────────────────
 describe('evalNeeds — 미커버 arm', () => {
-  it('용신·달이 생극 무관계면 neutral', () => {
-    // 용신 금(metal), 달 사자(火). metal-fire: fire가 metal을 극(CONTROLS.fire=metal)
-    // → CONTROLS[moon=fire]===need(metal) → tension. 무관계 만들려면:
-    // 용신 금(metal), 달 게자리(水). metal→water(생), 즉 GENERATES[metal]=water=moon
-    // → GENERATES[need]===moon (반대). 위 코드는 GENERATES[moon]===need / CONTROLS[moon]===need 만 봄.
-    // moon=water: GENERATES[water]=wood(!=metal), CONTROLS[water]=fire(!=metal) → neutral.
+  it('용신이 달을 생하면 complement (plan B4 #9 — 예전엔 neutral)', () => {
+    // 용신 금(metal), 달 게자리(水): GENERATES[metal]=water=moon → 필요가 끌림을 키움.
     const v = evalNeeds('금', 'Cancer')!
-    expect(v.tone).toBe('neutral')
-    expect(v.reason.ko).toContain('따로 노는')
-    expect(v.reason.en).toContain('separate tracks')
+    expect(v.tone).toBe('complement')
+    expect(v.reason.ko).toContain('자연스럽게 키워줘요')
+    expect(v.reason.en).toContain('naturally feeds')
+    expect(HANGUL.test(v.reason.en)).toBe(false)
+  })
+  it('용신이 달을 극하면 tension (plan B4 #9 — 예전엔 neutral)', () => {
+    // 용신 수(water), 달 사자(火): CONTROLS[water]=fire=moon → 필요가 끌림을 누름.
+    const v = evalNeeds('수', 'Leo')!
+    expect(v.tone).toBe('tension')
+    expect(v.reason.ko).toContain('눌러요')
+    expect(v.reason.en).toContain('press down')
+    expect(HANGUL.test(v.reason.en)).toBe(false)
   })
   it('avoid 와 johu 가 동시에 붙는다(early-return 함정 없음)', () => {
     const v = evalNeeds('수', 'Cancer', '화', {
@@ -279,12 +284,31 @@ describe('evalVoid — 공망 × 사우스노드', () => {
     const v = evalVoid(['寅'], 'Gemini')!
     expect(v.tone).toBe('resonant')
   })
-  it('다른 오행 가리키면 neutral', () => {
+  it('다른 오행 가리키면 neutral — 양쪽 오행을 이름으로 밝힌다', () => {
     // 공망 子(water) + South Node 사자(fire) → mismatch
     const v = evalVoid(['子'], 'Leo')!
     expect(v.tone).toBe('neutral')
+    expect(v.karmaAxis).toBe(true)
     expect(v.reason.ko).toContain('다른 영역')
+    expect(v.reason.ko).toContain('(수)')
+    expect(v.reason.ko).toContain('(화)')
+    expect(v.reason.en).toContain('(Water vs. Fire)')
     expect(HANGUL.test(v.reason.en)).toBe(false)
+  })
+  it('공망 두 지지가 다른 오행이면 두 오행 모두 밝힌다, 공기 사우스노드는 "공기"로', () => {
+    // 子丑 = 수·토, South Node 쌍둥이(air→木 근사) → 집합 밖
+    const v = evalVoid(['子', '丑'], 'Gemini')!
+    expect(v.tone).toBe('neutral')
+    expect(v.reason.ko).toContain('(토·수)')
+    expect(v.reason.ko).toContain('(공기)')
+    expect(v.reason.en).toContain('(Earth and Water vs. Air)')
+  })
+  it('두 번째 지지의 오행과 맞아도 resonant (엔진 감사 X9)', () => {
+    // 子丑 + South Node 처녀(土) — 丑=土. 예전엔 첫 지지(子=水)만 봐 neutral.
+    const v = evalVoid(['子', '丑'], 'Virgo')!
+    expect(v.tone).toBe('resonant')
+    expect(v.karmaAxis).toBe(true)
+    expect(v.reason.ko).toContain('토 자리')
   })
   it('빈 입력 null', () => {
     expect(evalVoid([], 'Cancer')).toBeNull()
@@ -309,13 +333,61 @@ describe('evalNorthNode — 노스노드 × 결핍 오행', () => {
     expect(v.reason.ko).toContain('맞물려')
     expect(HANGUL.test(v.reason.en)).toBe(false)
   })
-  it('생도 같음도 아니면 complement (두 갈래)', () => {
-    // wood 결핍(0). NN 금(metal). metal ctrl wood (극) → 분기 → complement(두 갈래)
+  it('극(剋) 관계면 tension (두 갈래) — 엔진 감사 X8, OD-10', () => {
+    // wood 결핍(0). NN 염소(Capricorn=earth). wood ctrl earth → 극 → tension(두 갈래).
+    // 예전엔 극도 complement('다르지만 서로 도와요')라 행 문구와 라벨이 어긋났다.
     const v = evalNorthNode({ wood: 0, fire: 2, earth: 2, metal: 3, water: 2 }, 'Capricorn')
-    // Capricorn=earth. weakest=wood. wood↔earth: wood ctrl earth → 극.
-    // GENERATES[wood]=fire(!=earth), GENERATES[earth]=metal(!=wood) → divergent → complement
-    expect(v!.tone).toBe('complement')
+    expect(v!.tone).toBe('tension')
+    expect(v!.karmaAxis).toBe(true)
     expect(v!.reason.ko).toContain('두 갈래')
+  })
+  it('결핍 5 × 노스노드 4 원소 — elementVerdict 족과 같고 모든 칸에 karmaAxis', () => {
+    // 오행 관계 기준표(elementVerdict 와 독립 구현): 같음 → resonant, 생 → complement, 극 → tension.
+    const GEN: Record<string, string> = {
+      wood: 'fire',
+      fire: 'earth',
+      earth: 'metal',
+      metal: 'water',
+      water: 'wood',
+    }
+    const CTL: Record<string, string> = {
+      wood: 'earth',
+      fire: 'metal',
+      earth: 'water',
+      metal: 'wood',
+      water: 'fire',
+    }
+    const family = (a: string, b: string) =>
+      a === b
+        ? 'resonant'
+        : GEN[a] === b || GEN[b] === a
+          ? 'complement'
+          : CTL[a] === b || CTL[b] === a
+            ? 'tension'
+            : 'neutral'
+    // signToSajuElement 는 metal 을 내지 않는다(air→木) — NN 원소는 4종.
+    const NN: Record<string, string> = {
+      Gemini: 'wood',
+      Leo: 'fire',
+      Taurus: 'earth',
+      Cancer: 'water',
+    }
+    const ELS = ['wood', 'fire', 'earth', 'metal', 'water']
+    let tension = 0
+    const bad: string[] = []
+    for (const weak of ELS) {
+      const counts = Object.fromEntries(ELS.map((e) => [e, e === weak ? 0 : 2]))
+      for (const [sign, nn] of Object.entries(NN)) {
+        const v = evalNorthNode(counts, sign)!
+        const want = family(weak, nn)
+        if (v.tone !== want || v.karmaAxis !== true)
+          bad.push(`${weak}×${sign}: ${v.tone} karmaAxis=${v.karmaAxis} (want ${want})`)
+        if (v.tone === 'tension') tension++
+        expect(HANGUL.test(v.reason.en)).toBe(false)
+      }
+    }
+    expect(bad).toEqual([])
+    expect(tension).toBe(8)
   })
   it('데이터 부족 null', () => {
     expect(evalNorthNode(undefined, 'Cancer')).toBeNull()

@@ -51,9 +51,25 @@ export interface CrossVerdict {
   karmaAxis?: boolean
 }
 
+/**
+ * 교차 행 톤 집계 — 결핍(karmaAxis) 축을 뺀 나머지 행을 톤별로 센다. 리포트 도입부
+ * 문장(synthesize)과 톤 막대(IntegratedReport)가 같은 함수(tallyCrossRows)로 세어
+ * 두 숫자가 어긋나지 않게 한다. same=resonant · supportive=complement ·
+ * twoPulls=tension · unrelated=neutral, total=네 값의 합.
+ */
+export interface CrossTally {
+  same: number
+  supportive: number
+  twoPulls: number
+  unrelated: number
+  total: number
+}
+
 export interface NatalSynthesis {
   tone: CrossTone
   text: { ko: string; en: string }
+  /** 도입부 문장이 쓴 톤 집계(tallyCrossRows 결과) — UI 가 같은 숫자를 다시 셀 필요 없게. */
+  counts: CrossTally
 }
 
 // ── 라벨 사전 (공용 chartLabels 에서 파생 — 단일 소스) ──────────────────────
