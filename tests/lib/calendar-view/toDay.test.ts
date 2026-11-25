@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { toDay, ONE_LINE_POOL, reconcileCellOneLine } from '@/lib/calendar-view/toDay'
+import { toDay, ONE_LINE_POOL, reconcileCellOneLine, signalCat } from '@/lib/calendar-view/toDay'
 import { makeNatal, makeCell, makeSignal } from './_fixtures'
 
 // 본명 — 일간 甲, 일주 甲子 (공망 戌/亥), 지장간 미(己/乙/丁) 등.
@@ -591,5 +591,35 @@ describe('toDay — CalendarCell → destinypal day', () => {
       })
       expect(d.geokgukStatus).toBe('정관격 · 파격 (상관 견관)')
     })
+  })
+})
+
+describe('signalCat — signal.kind → 표시 카테고리 (toDay·assembleDayTier 공용)', () => {
+  it('표에 있는 kind 는 고정 카테고리', () => {
+    expect(signalCat('shinsal', 'saju')).toBe('saju/shinsal')
+    expect(signalCat('transit', 'astro')).toBe('astro/transit')
+    expect(signalCat('cross-activation', 'cross')).toBe('cross/activation')
+  })
+
+  it('표에 없는 kind 는 source/kind 로 폴백', () => {
+    expect(signalCat('planetary-hour', 'astro')).toBe('astro/planetary-hour')
+  })
+
+  it('toDay signals[].cat 도 같은 표를 쓴다 (transit 은 transits[] 로 평탄화돼 signals 에 없음)', () => {
+    const cell = makeCell({
+      datetime: '2026-06-15T00:00:00.000Z',
+      signals: [
+        makeSignal({ kind: 'pillar-sibsin', source: 'saju', name: '정관' }),
+        makeSignal({ kind: 'eclipse', source: 'astro', name: '일식' }),
+        makeSignal({ kind: 'transit', source: 'astro', name: '목성 트라인' }),
+      ],
+    })
+    const d = toDay({ cell, natal: natal() })
+    expect(d.signals.map((s) => s.cat)).toEqual([
+      signalCat('pillar-sibsin', 'saju'),
+      signalCat('eclipse', 'astro'),
+    ])
+    expect(d.signals.map((s) => s.cat)).toEqual(['saju/pillar-sibsin', 'astro/eclipse'])
+    expect(d.transits).toHaveLength(1)
   })
 })
