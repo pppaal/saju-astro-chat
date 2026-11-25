@@ -2,6 +2,8 @@ import { computeDayBranch, computeDayStem } from './saju-shinsal'
 import type { ActiveSignal, ExtractorContext, SignalExtractor, Polarity } from '../types'
 import type { PillarKind } from '@/lib/saju/types'
 import { getRelationMeaning, type RelationCategory } from '@/lib/chart-dictionary'
+import { STEM_CLASH } from '@/lib/saju/relationTables'
+import { isHyeong } from '@/lib/saju/hyeong'
 
 /**
  * 형충회합 (刑沖會合) 추출기 — 현재 일주(日柱) vs 본명 4기둥.
@@ -22,13 +24,9 @@ const STEM_HAPS: Array<[string, string, string]> = [
   ['戊', '癸', '화'], // 무계합화화
 ]
 
-// ─── 천간충 (4쌍) ───
-const STEM_CHUNGS: Array<[string, string]> = [
-  ['甲', '庚'],
-  ['乙', '辛'],
-  ['丙', '壬'],
-  ['丁', '癸'],
-]
+// ─── 천간충 — 엔진 공통 모드(relationTables STEM_CLASH, 4쌍)에서 파생 ───
+// 본명 relations·운·궁합과 같은 쌍만 충으로 본다(SD-11).
+const STEM_CHUNGS: ReadonlyArray<readonly [string, string]> = STEM_CLASH
 
 // ─── 지지 육합 (6쌍) ───
 const BRANCH_YUKHAP: Array<[string, string]> = [
@@ -58,20 +56,9 @@ const BRANCH_CHUNG: Array<[string, string]> = [
   ['巳', '亥'],
 ]
 
-// ─── 지지형 (간략) ───
-const BRANCH_HYUNG: Array<[string, string]> = [
-  ['寅', '巳'],
-  ['巳', '申'],
-  ['申', '寅'], // 寅巳申 삼형
-  ['丑', '戌'],
-  ['戌', '未'],
-  ['未', '丑'], // 丑戌未 삼형
-  ['子', '卯'], // 자묘 무례지형
-  ['辰', '辰'],
-  ['午', '午'],
-  ['酉', '酉'],
-  ['亥', '亥'], // 자형
-]
+// ─── 지지형 — hyeong.isHyeong 단일 교리(SD-07) ───
+// 寅巳·巳申·丑戌·戌未(삼형), 子卯(상형), 辰午酉亥 자형. 삼형 세트 안의 寅申·丑未 는
+// 충이지 형이 아니다 — 옛 로컬 표는 이 둘을 형으로 잡아 본명·상담사와 어긋났다.
 
 // ─── 원진 ───
 const BRANCH_WONJIN: Array<[string, string]> = [
@@ -255,22 +242,20 @@ const sajuHyeongchungExtractor: SignalExtractor = {
           }
         }
         // 지지형
-        for (const [a, b] of BRANCH_HYUNG) {
-          if ((targetBranch === a && np.branch === b) || (targetBranch === b && np.branch === a)) {
-            signals.push(
-              makeSignal({
-                dayIso,
-                startIso,
-                peakIso,
-                endIso,
-                kindLabel: '지지형',
-                polarity: -2,
-                weight: 0.6,
-                name: `지지형 ${targetBranch}-${np.branch} (${PILLAR_NAMES[np.kind]})`,
-                detail: { targetBranch, natalBranch: np.branch, natalPillar: np.kind },
-              })
-            )
-          }
+        if (isHyeong(targetBranch, np.branch)) {
+          signals.push(
+            makeSignal({
+              dayIso,
+              startIso,
+              peakIso,
+              endIso,
+              kindLabel: '지지형',
+              polarity: -2,
+              weight: 0.6,
+              name: `지지형 ${targetBranch}-${np.branch} (${PILLAR_NAMES[np.kind]})`,
+              detail: { targetBranch, natalBranch: np.branch, natalPillar: np.kind },
+            })
+          )
         }
         // 원진
         for (const [a, b] of BRANCH_WONJIN) {
@@ -376,19 +361,16 @@ interface MakeSignalArgs {
 
 // 삼형(三刑) 페어 → 트리오 키. 지지형 사전 키는 trio(寅巳申·丑戌未)라
 // 일진-본명 2원소 페어로는 매치 안 됨 — 페어를 소속 트리오로 환원.
+// (寅申·丑未 는 isHyeong 상 형이 아니라 지지형 신호가 나지 않으므로 키가 없다.)
 const HYUNG_TRIO_KEY: Record<string, string> = {
   寅巳: '寅巳申',
   巳寅: '寅巳申',
   巳申: '寅巳申',
   申巳: '寅巳申',
-  寅申: '寅巳申',
-  申寅: '寅巳申',
   丑戌: '丑戌未',
   戌丑: '丑戌未',
   戌未: '丑戌未',
   未戌: '丑戌未',
-  丑未: '丑戌未',
-  未丑: '丑戌未',
 }
 
 // 추출기 kindLabel → chart-dictionary 의 RelationCategory 매핑.

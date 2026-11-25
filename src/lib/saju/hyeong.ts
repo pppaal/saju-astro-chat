@@ -6,10 +6,11 @@
  * 형이 아니다. 자형(自刑)은 辰辰/午午/酉酉/亥亥 4쌍만, 상형은 子卯.
  *
  * 이전엔 이 교리가 destiny/counselorContext 와 compatibility/sajuSynastryFormatter
- * 두 곳에 똑같이 복붙돼 있어 한쪽만 고치면 드리프트가 났다. 엔진(saju/relations)
- * 은 삼형 세트의 임의 두 지지를 형으로 잡고(丑未/寅申 포함) 자형도 12지 전부를
- * 인정하는 다른(완화된) 동작을 하므로, 표시 계층은 이 모듈을 단일 소스로 써서
- * 일관된 보정 교리를 적용한다.
+ * 두 곳에 똑같이 복붙돼 있었고, 본명 엔진(saju/relations)은 삼형 세트의 임의 두
+ * 지지(丑未/寅申 포함)와 12지 전부의 자형을 형으로 잡는 별도 교리, 캘린더 추출기
+ * (saju-hyeongchung)는 또 다른 표를 써서 같은 사용자에게 표면마다 다른 형 목록이
+ * 나왔다(SD-07). 이제 본명 relations·캘린더 추출기·상담사·궁합 모두 isHyeong 을
+ * 쓴다 — relationTables.consistency.test 가 78쌍 전부의 일치를 잠근다.
  */
 
 import {
@@ -49,7 +50,5 @@ export const SELF_HYEONG = new Set(SELF_PUNISHMENT_STRICT)
 
 /** 두 지지(한자)가 형(자형 포함) 관계인지. a===b 면 자형 여부로 판정. */
 export function isHyeong(a: string, b: string): boolean {
-  return a === b
-    ? SELF_HYEONG.has(a)
-    : BRANCH_HYEONG_PAIR[a] === b || HYEONG_PAIR_TRIO.has(a + b)
+  return a === b ? SELF_HYEONG.has(a) : BRANCH_HYEONG_PAIR[a] === b || HYEONG_PAIR_TRIO.has(a + b)
 }

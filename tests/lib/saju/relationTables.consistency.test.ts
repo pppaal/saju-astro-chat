@@ -7,9 +7,14 @@
 import { describe, it, expect } from 'vitest'
 import * as canon from '@/lib/saju/relationTables'
 import { YUKHAP, CHUNG, SAMHAP, XING, HAI, PA } from '@/lib/saju/constants'
-import { BRANCH_HYEONG_PAIR, SELF_HYEONG } from '@/lib/saju/hyeong'
+import { BRANCH_HYEONG_PAIR, SELF_HYEONG, isHyeong } from '@/lib/saju/hyeong'
 import * as compat from '@/lib/compatibility/sajuSynastryData'
-import { CHEONEUL_GWIIN_MAP } from '@/lib/saju/constants'
+import { CHEONEUL_GWIIN_MAP, STEMS } from '@/lib/saju/constants'
+import { analyzeRelations, DEFAULT_RELATION_OPTIONS, type PillarInput } from '@/lib/saju/relations'
+import { detectUnseRelations } from '@/lib/saju/currentUnse'
+import type { SajuPillars } from '@/lib/saju/types'
+import hyeongchungExtractor from '@/lib/calendar-engine/extractors/saju-hyeongchung'
+import type { ActiveSignal, ExtractorContext } from '@/lib/calendar-engine/types'
 
 // 방향 무관 쌍 시그니처(두 글자를 정렬해 합침) 집합.
 const sig = (a: string, b: string) => [a, b].sort().join('')
@@ -118,7 +123,7 @@ describe('relationTables — 소비 모듈 ↔ canon 교차 일치', () => {
     expect(fromOtherRecord(compat.STEM_HAP)).toEqual(
       fromPairs(canon.STEM_COMBINE.map((s) => s.pair))
     )
-    expect(fromRecord(compat.STEM_CHUNG)).toEqual(fromPairs(canon.STEM_CLASH_4))
+    expect(fromRecord(compat.STEM_CHUNG)).toEqual(fromPairs(canon.STEM_CLASH))
     expect(fromOtherRecord(compat.BRANCH_HAP)).toEqual(
       fromPairs(canon.SIX_HARMONY.map((h) => h.pair))
     )
@@ -185,5 +190,137 @@ describe('삼재(三災) 골든 — 12지지 전체', () => {
   it('shinsal·calendar 소비처가 SSOT 와 참조 동일(드리프트 차단)', async () => {
     const calendar = await import('@/lib/calendar/constants')
     expect(calendar.SAMJAE_BY_YEAR_BRANCH).toBe(canon.SAMJAE_BY_YEAR_BRANCH)
+  })
+})
+
+// ─── 형(刑)·천간충 단일 교리 — 표면 간 동작 일치 (E2: SD-07 / SD-11) ───
+// 표(테이블) 비교가 아니라 실제 출력으로 잠근다: 본명 relations, hyeong.isHyeong,
+// 캘린더 saju-hyeongchung 추출기(일진 × 본명)가 같은 쌍에서 같은 답을 내야 한다.
+
+const ALL_STEMS = STEMS.map((s) => s.name)
+
+/** 네 기둥이 모두 같은 간지인 본명(추출기 입력). */
+function natalCtx(stem: string, branch: string, days: number): ExtractorContext {
+  const pillar = { heavenlyStem: { name: stem }, earthlyBranch: { name: branch } }
+  const end = new Date(Date.UTC(2026, 0, 1) + (days - 1) * 86_400_000)
+  const m = new Map<string, unknown>()
+  return {
+    natal: { saju: { pillars: { year: pillar, month: pillar, day: pillar, time: pillar } } },
+    range: {
+      start: '2026-01-01T00:00:00.000Z',
+      end: `${end.toISOString().slice(0, 10)}T23:59:59.999Z`,
+      granularity: 'day',
+    },
+    cache: {
+      get: <T>(k: string) => m.get(k) as T | undefined,
+      set: <T>(k: string, v: T) => void m.set(k, v),
+    },
+  } as unknown as ExtractorContext
+}
+const kindLabel = (s: ActiveSignal) => (s.evidence.detail as { kindLabel?: string }).kindLabel
+const detailOf = (s: ActiveSignal) => s.evidence.detail as Record<string, string>
+
+function twoPillars(a: [string, string], b: [string, string]): PillarInput {
+  // 비교 대상은 year·month 두 기둥 — day/time 은 year/month 복제(아래에서 pillars 로 필터)
+  return {
+    year: { heavenlyStem: a[0], earthlyBranch: a[1] },
+    month: { heavenlyStem: b[0], earthlyBranch: b[1] },
+    day: { heavenlyStem: a[0], earthlyBranch: a[1] },
+    time: { heavenlyStem: b[0], earthlyBranch: b[1] },
+  }
+}
+const isYearMonth = (p: string[]) => p.length === 2 && p[0] === 'year' && p[1] === 'month'
+
+describe('형(刑) — relations · hyeong · saju-hyeongchung 추출기 78쌍 일치 (SD-07)', () => {
+  // 추출기: 본명 지지 b 에 대해 12일 창(일진 지지 12개 전부)을 돌려 일진 지지 → 형 여부.
+  const extractorHyeong = new Map<string, boolean>()
+  for (const b of canon.ALL_BRANCHES) {
+    const signals = hyeongchungExtractor.extract(natalCtx('甲', b, 12)) as ActiveSignal[]
+    for (const s of signals) {
+      const d = detailOf(s)
+      if (d.natalPillar !== 'year' || !d.targetBranch) continue
+      if (kindLabel(s) === '지지형') extractorHyeong.set(`${d.targetBranch}${b}`, true)
+    }
+  }
+
+  it('the 12-day window covers all 12 daily branches', () => {
+    const covered = new Set<string>()
+    for (const b of canon.ALL_BRANCHES) {
+      for (const s of hyeongchungExtractor.extract(natalCtx('甲', b, 12)) as ActiveSignal[]) {
+        covered.add(detailOf(s).targetBranch)
+      }
+    }
+    expect([...covered].filter(Boolean).sort()).toEqual([...canon.ALL_BRANCHES].sort())
+  })
+
+  const pairs: Array<[string, string]> = []
+  canon.ALL_BRANCHES.forEach((a, i) =>
+    canon.ALL_BRANCHES.slice(i).forEach((b) => pairs.push([a, b]))
+  )
+
+  it('covers exactly 78 unordered branch pairs (66 distinct + 12 self)', () => {
+    expect(pairs).toHaveLength(78)
+  })
+
+  it.each(pairs)('%s-%s: same 형 verdict on every surface', (a, b) => {
+    const want = isHyeong(a, b)
+    expect(isHyeong(b, a)).toBe(want) // 대칭
+    for (const [x, y] of [
+      [a, b],
+      [b, a],
+    ]) {
+      const natal = analyzeRelations({
+        pillars: twoPillars(['甲', x], ['甲', y]),
+        options: { includeHeavenly: false, includeGongmang: false },
+      }).some((h) => h.kind === '지지형' && isYearMonth(h.pillars))
+      expect(natal).toBe(want)
+      expect(extractorHyeong.get(`${x}${y}`) ?? false).toBe(want)
+    }
+  })
+})
+
+describe('천간충 — 단일 모드(STEM_CLASH_MODE) 를 본명·운·캘린더·궁합이 공유 (SD-11)', () => {
+  it('the shared mode is the 4-pair base, and relations defaults to it', () => {
+    expect(canon.STEM_CLASH_MODE).toBe('4')
+    expect(canon.STEM_CLASH).toBe(canon.STEM_CLASH_BY_MODE[canon.STEM_CLASH_MODE])
+    expect(fromPairs(canon.STEM_CLASH)).toEqual(fromPairs(canon.STEM_CLASH_4))
+    expect(DEFAULT_RELATION_OPTIONS.heavenlyClashMode).toBe(canon.STEM_CLASH_MODE)
+  })
+
+  // 추출기: 본명 천간 b 에 대해 10일 창(일진 천간 10개 전부) → 일진 천간 → 충 여부.
+  const extractorClash = new Map<string, boolean>()
+  for (const b of ALL_STEMS) {
+    for (const s of hyeongchungExtractor.extract(natalCtx(b, '子', 10)) as ActiveSignal[]) {
+      const d = detailOf(s)
+      if (kindLabel(s) === '천간충' && d.natalPillar === 'year') {
+        extractorClash.set(`${d.targetStem}${b}`, true)
+      }
+    }
+  }
+  const clashSet = fromPairs(canon.STEM_CLASH)
+
+  it('all 100 stem pairs: relations = currentUnse = extractor = compat = canon', () => {
+    let positives = 0
+    for (const a of ALL_STEMS) {
+      for (const b of ALL_STEMS) {
+        const want = a !== b && clashSet.has(sig(a, b))
+        if (want) positives++
+        const natal = analyzeRelations({
+          pillars: twoPillars([a, '子'], [b, '丑']),
+          options: { includeEarthly: false, includeGongmang: false },
+        }).some((h) => h.kind === '천간충' && isYearMonth(h.pillars))
+        expect(natal, `relations ${a}-${b}`).toBe(want)
+        const pillar = { heavenlyStem: { name: b }, earthlyBranch: { name: '丑' } }
+        const unse = detectUnseRelations(
+          { year: pillar, month: pillar, day: pillar, time: pillar } as unknown as SajuPillars,
+          a,
+          '子'
+        ).some((h) => h.kind === '천간충' && h.pillars[0] === 'year')
+        expect(unse, `currentUnse ${a}-${b}`).toBe(want)
+        expect(extractorClash.get(`${a}${b}`) ?? false, `extractor ${a}-${b}`).toBe(want)
+        expect(compat.STEM_CHUNG[a] === b, `compat ${a}-${b}`).toBe(want)
+      }
+    }
+    expect(positives).toBe(8) // 4쌍 × 양방향
   })
 })

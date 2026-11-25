@@ -12,7 +12,7 @@ import { getSibseong, BRANCH_MAIN_QI } from '@/lib/saju/core/sibsin'
 import { STEMS, FIVE_ELEMENT_RELATIONS, CHEONEUL_GWIIN_MAP } from '@/lib/saju/constants'
 import type { FiveElement, YinYang } from '@/lib/saju/types'
 import type { YongsinResult } from '@/lib/saju/yongsin'
-import { RESENTMENT_PAIRS } from '@/lib/saju/relationTables'
+import { RESENTMENT_PAIRS, STEM_CLASH, toBidiRecord } from '@/lib/saju/relationTables'
 import { getYearPillarForDate, getSajuYearForDate } from '@/lib/saju/datePillars'
 
 export const STEM_HAP: Record<string, { other: string; element: string }> = {
@@ -28,16 +28,8 @@ export const STEM_HAP: Record<string, { other: string; element: string }> = {
   癸: { other: '戊', element: '화' },
 }
 
-export const STEM_CHUNG: Record<string, string> = {
-  甲: '庚',
-  庚: '甲',
-  乙: '辛',
-  辛: '乙',
-  丙: '壬',
-  壬: '丙',
-  丁: '癸',
-  癸: '丁',
-}
+// 천간충 — 엔진 공통 모드(relationTables STEM_CLASH, 4쌍)에서 파생. 본명·운·캘린더와 동일.
+export const STEM_CHUNG: Record<string, string> = toBidiRecord(STEM_CLASH)
 
 export const BRANCH_HAP: Record<string, { other: string; element: string }> = {
   子: { other: '丑', element: '토' },

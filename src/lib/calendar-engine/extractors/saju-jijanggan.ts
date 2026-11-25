@@ -1,5 +1,6 @@
 import { STEMS, BRANCHES, JIJANGGAN, getSolarTermKST, ELEMENT_KO_TO_EN } from '@/lib/saju/constants'
 import { getYearPillarForDate, getMonthPillarForDate } from '@/lib/saju/datePillars'
+import { STEM_CLASH, toPairKeySet } from '@/lib/saju/relationTables'
 import { computeDayBranch, computeDayStem } from './saju-shinsal'
 import { getSibsinFromStemInfo as getSibsin } from './shared/sibsin'
 import { iga, eulReul, waGwa } from '@/lib/i18n/koParticle'
@@ -92,16 +93,8 @@ const STEM_COMBINE: Record<string, { pair: string; transform: FiveElement }> = {
 // 丑-未, 辰-戌 본기는 동일 戊·己 (충 아님). 따라서 별도 지지충 테이블을 두지
 // 않고 본명 일지·시기 지지의 지장간 3층 매트릭스만 돌리면 정통 지지충 본기
 // 페어가 모두 자동 검출된다.
-const STEM_CLASH: Set<string> = new Set([
-  '甲-庚',
-  '庚-甲',
-  '乙-辛',
-  '辛-乙',
-  '丙-壬',
-  '壬-丙',
-  '丁-癸',
-  '癸-丁',
-])
+// 쌍 목록은 엔진 공통 천간충(relationTables STEM_CLASH, 4쌍)에서 파생한다.
+const STEM_CLASH_KEYS: Set<string> = toPairKeySet(STEM_CLASH)
 
 interface StemInfoLite {
   name: string
@@ -486,7 +479,7 @@ function emitJijangganSignals(out: ActiveSignal[], args: EmitArgs): void {
     //   정기↔중기 또는 중기↔정기 : -2, 0.80 — 한쪽이 본기인 비대칭 충
     //   중기↔중기 / 여기 포함 페어 : -1, 0.60 — 미세 잠재 충 (암충 餘衝)
     for (const [natalLayer, natalStem] of Object.entries(args.natalDayBranchJijanggan)) {
-      if (STEM_CLASH.has(`${stemName}-${natalStem}`)) {
+      if (STEM_CLASH_KEYS.has(`${stemName}-${natalStem}`)) {
         const ladder = chungLadder(layer, natalLayer)
         out.push({
           id: `${args.idPrefix}.chung.${layer}.${stemName}-${natalLayer}.${natalStem}`,

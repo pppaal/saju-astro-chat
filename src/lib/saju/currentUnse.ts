@@ -9,20 +9,14 @@
 
 import { getIljinCalendar } from './unse'
 import { getMonthPillarForDate, getYearPillarForDate } from './datePillars'
-import {
-  BRANCH_CLASH,
-  SIX_HARMONY,
-  STEM_CLASH_4,
-  STEM_COMBINE,
-  toPairKeySet,
-} from './relationTables'
+import { BRANCH_CLASH, SIX_HARMONY, STEM_CLASH, STEM_COMBINE, toPairKeySet } from './relationTables'
 import type { CalculateSajuDataResult, RelationHit, SajuPillars, PillarKind } from './types'
 
 // 충/합 키셋 — relationTables(SSOT)에서 파생. 로컬 하드코딩 복제 금지(드리프트
 // 방지). toPairKeySet 이 'a-b'/'b-a' 양방향 키를 만들어 .has 가 방향 무관.
 const BRANCH_CHUNG = toPairKeySet(BRANCH_CLASH)
 const BRANCH_YUKHAP = toPairKeySet(SIX_HARMONY.map((h) => h.pair))
-const STEM_CHUNG = toPairKeySet(STEM_CLASH_4)
+const STEM_CHUNG = toPairKeySet(STEM_CLASH) // 엔진 공통 천간충 모드(4쌍)
 const STEM_HAP = toPairKeySet(STEM_COMBINE.map((s) => s.pair))
 const PILLAR_NAMES: PillarKind[] = ['year', 'month', 'day', 'time']
 

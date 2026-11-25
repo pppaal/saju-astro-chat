@@ -290,7 +290,7 @@ const ASP_EN: Record<string, string> = {
   opposition: '[opposition]',
 }
 // 형(刑) 판정은 @/lib/saju/hyeong 의 isHyeong 단일 소스를 쓴다 — 본명 합충
-// 블록(아래 shown 필터)과 타이밍 교차 블록이 같은 보정 교리를 공유한다.
+// 블록(엔진 relations 가 isHyeong 으로 판정)과 타이밍 교차 블록이 같은 교리를 공유한다.
 // (이전엔 이 파일에 HYEONG_PAIR_TRIO/SELF_HYEONG/hyeongPair 가 복붙돼 있어
 //  compat sajuSynastryFormatter 의 동일 복사본과 드리프트할 위험이 있었음.)
 // 천간합 → 化 element (hangul) + fiveElements key
@@ -809,18 +809,9 @@ function buildSajuSection(
     const el = m ? (m[3] ?? '') : ''
     return { entities, word, el }
   }
-  const shown = rel.filter((r) => {
-    if (r.kind === '지지파') return false
-    // 엔진(relations.ts)은 삼형 세트의 임의 두 지지를 형으로 잡아 丑未/寅申
-    // (충 only)까지, 자형도 12지 전부를 형으로 표기한다. 타이밍 교차 블록과
-    // 동일한 보정 교리(isHyeong)로 본명 형도 걸러 두 블록이 일관되게 한다.
-    if (r.kind === '지지형') {
-      const bs = (r.detail || '').match(BRANCH_RE) ?? []
-      const [b0, b1] = bs
-      if (b0 != null && b1 != null && !isHyeong(b0, b1)) return false
-    }
-    return true
-  })
+  // 본명 형은 엔진(relations.ts)이 이미 isHyeong 단일 교리로 판정하므로 여기서
+  // 다시 거르지 않는다(SD-07). 타이밍 교차 블록도 같은 isHyeong 을 쓴다.
+  const shown = rel.filter((r) => r.kind !== '지지파')
   if (shown.length) {
     out.push(L('합충:', 'combos:'))
     const gong: string[] = [],

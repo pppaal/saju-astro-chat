@@ -75,6 +75,22 @@ export const STEM_CLASH_5_EXTRA: ReadonlyArray<Pair> = [
   ['己', '乙'],
 ]
 
+/**
+ * 천간충 판정 폭(모드). '4' = STEM_CLASH_4, '5' = +戊甲·己乙, '10' = 양간끼리/음간끼리 전부.
+ */
+export type StemClashMode = '4' | '5' | '10'
+
+/**
+ * 엔진 전 표면이 공유하는 천간충 모드 — 단일 상수.
+ *
+ * 본명 relations(analyzeRelations 기본값)·운 currentUnse·캘린더 추출기
+ * (saju-hyeongchung·saju-jijanggan)·궁합(sajuSynastryData)이 모두 이 모드의 쌍
+ * (STEM_CLASH)만 천간충으로 본다. 예전엔 본명만 '5'(戊甲·己乙 포함)를 써서 같은
+ * 사용자의 본명 리포트엔 甲-戊 충이 뜨고 운·캘린더·궁합엔 안 뜨는 모순이 있었다
+ * (SD-11). 5쌍/10쌍은 relations 의 heavenlyClashMode 옵션으로만 남는다.
+ */
+export const STEM_CLASH_MODE: StemClashMode = '4'
+
 /** 천간충 10: 양간끼리/음간끼리 상충 전부. */
 export const STEM_CLASH_10: ReadonlyArray<Pair> = [
   // 양간: 甲丙戊庚壬
@@ -100,6 +116,16 @@ export const STEM_CLASH_10: ReadonlyArray<Pair> = [
   ['己', '癸'],
   ['辛', '癸'],
 ]
+
+/** 모드별 천간충 쌍 목록. */
+export const STEM_CLASH_BY_MODE: Readonly<Record<StemClashMode, ReadonlyArray<Pair>>> = {
+  '4': STEM_CLASH_4,
+  '5': [...STEM_CLASH_4, ...STEM_CLASH_5_EXTRA],
+  '10': STEM_CLASH_10,
+}
+
+/** 엔진 공통 천간충 쌍 — STEM_CLASH_BY_MODE[STEM_CLASH_MODE]. 소비자는 이것만 쓴다. */
+export const STEM_CLASH: ReadonlyArray<Pair> = STEM_CLASH_BY_MODE[STEM_CLASH_MODE]
 
 /* ========================= 지지(地支) ========================= */
 
@@ -183,6 +209,8 @@ export const RESENTMENT_PAIRS: ReadonlyArray<Pair> = [
 ]
 
 /* --------- 형(刑) --------- */
+// 쌍 판정 규칙(삼형 세트 안의 寅申·丑未 는 충이지 형이 아님, 자형은 辰午酉亥 4지만)은
+// hyeong.ts isHyeong 이 단일 소스다. 본명 relations·캘린더 추출기·상담사 모두 그것을 쓴다.
 
 /** 삼형(三刑) 두 조: 寅巳申, 丑戌未. */
 export const PUNISHMENT_TRIOS: ReadonlyArray<readonly [string, string, string]> = [

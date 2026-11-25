@@ -11,6 +11,8 @@ import {
   type PillarInput,
   type AnalyzeRelationsOptions,
 } from '@/lib/saju/relations'
+import { STEM_CLASH_MODE, THREE_HARMONY, DIRECTIONAL_HARMONY } from '@/lib/saju/relationTables'
+import { calculateSajuData } from '@/lib/saju/saju'
 
 // Helper to create pillar input
 function makePillars(
@@ -71,7 +73,9 @@ describe('relations.ts', () => {
       expect(DEFAULT_RELATION_OPTIONS.includeTrineElementNote).toBe(true)
       expect(DEFAULT_RELATION_OPTIONS.includeSelfPunish).toBe(true)
       expect(DEFAULT_RELATION_OPTIONS.gongmangPolicy).toBe('dayPillar-60jiazi')
-      expect(DEFAULT_RELATION_OPTIONS.heavenlyClashMode).toBe('5')
+      // 엔진 공통 천간충 모드(STEM_CLASH_MODE) — 운·캘린더·궁합과 같은 4쌍 (SD-11)
+      expect(DEFAULT_RELATION_OPTIONS.heavenlyClashMode).toBe(STEM_CLASH_MODE)
+      expect(DEFAULT_RELATION_OPTIONS.heavenlyClashMode).toBe('4')
     })
   })
 
@@ -615,6 +619,187 @@ describe('relations.ts', () => {
       result.forEach((h) => {
         expect(h.kind).toMatch(/천간/)
       })
+    })
+  })
+})
+
+// ─── E2 관계 canon (SD-01 / SD-07 / SD-11 / SD-12 / SD-18) ───
+// 국(三合·方合)은 서로 다른 세 지지가 모두 있어야 성립, 형은 hyeong.isHyeong 단일 교리,
+// 천간충은 엔진 공통 4쌍. 아래 사주는 audit 재현 케이스(실제 생일에서 나온 원국)다.
+describe('relations canon — E2', () => {
+  const fromGanzhi = (gz: string): PillarInput => {
+    const [y, m, d, t] = gz.split(' ')
+    return makePillars([y[0], y[1]], [m[0], m[1]], [d[0], d[1]], [t[0], t[1]])
+  }
+  const rel = (gz: string) => analyzeRelations({ pillars: fromGanzhi(gz) })
+  const fullSamhap = (gz: string) =>
+    rel(gz).filter((h) => h.kind === '지지삼합' && h.detail.includes('삼합'))
+
+  describe('삼합 needs three distinct members (SD-01)', () => {
+    it('辛亥 丁酉 癸亥 己未 — two 亥 are one member: no 亥卯未 삼합, no 亥-未 반합', () => {
+      expect(fullSamhap('辛亥 丁酉 癸亥 己未')).toEqual([])
+      // 亥-未 에는 왕지(卯)가 없어 반합도 아니다
+      expect(rel('辛亥 丁酉 癸亥 己未').filter((h) => h.kind === '지지삼합')).toEqual([])
+    })
+
+    it('丙午 甲午 戊寅 戊午 — no 寅午戌 삼합 (no 戌), its 寅-午 반합 remain', () => {
+      expect(fullSamhap('丙午 甲午 戊寅 戊午')).toEqual([])
+      const halves = rel('丙午 甲午 戊寅 戊午').filter(
+        (h) => h.kind === '지지삼합' && h.detail.includes('반합')
+      )
+      expect(halves.length).toBe(3) // 午(year·month·time) × 寅(day)
+      for (const h of halves) expect(h.pillars).toContain('day')
+    })
+
+    it('戊戌 丙辰 戊寅 甲寅 — no 寅午戌 삼합 without 午', () => {
+      expect(fullSamhap('戊戌 丙辰 戊寅 甲寅')).toEqual([])
+    })
+
+    it('a doubled member still joins a complete 삼합: every holding pillar is listed', () => {
+      const hits = fullSamhap('甲申 丙子 庚子 壬辰')
+      expect(hits).toHaveLength(1)
+      expect(hits[0].detail).toBe('申·子·辰 삼합(수)')
+      expect(hits[0].pillars).toEqual(['year', 'month', 'day', 'time'])
+    })
+  })
+
+  describe('방합 detection (SD-12)', () => {
+    it.each([
+      ['甲午 乙亥 辛丑 戊子', '亥·子·丑 방합(수)', ['month', 'day', 'time']],
+      ['丁巳 己酉 丙戌 丙申', '申·酉·戌 방합(금)', ['month', 'day', 'time']],
+      ['丙午 甲午 己未 己巳', '巳·午·未 방합(화)', ['year', 'month', 'day', 'time']],
+    ])('%s → 지지방합 %s', (gz, detail, pillars) => {
+      const hits = rel(gz).filter((h) => h.kind === '지지방합')
+      expect(hits.map((h) => h.detail)).toEqual([detail])
+      expect(hits[0].pillars).toEqual(pillars)
+    })
+
+    it('omits the element note when includeTrineElementNote is false', () => {
+      const hits = analyzeRelations({
+        pillars: fromGanzhi('甲午 乙亥 辛丑 戊子'),
+        options: { includeTrineElementNote: false },
+      }).filter((h) => h.kind === '지지방합')
+      expect(hits.map((h) => h.detail)).toEqual(['亥·子·丑 방합'])
+    })
+
+    it('two members only (亥·亥·子) is not a 방합', () => {
+      expect(rel('辛亥 庚子 癸亥 甲寅').filter((h) => h.kind === '지지방합')).toEqual([])
+    })
+  })
+
+  describe('형 = hyeong.isHyeong (SD-07)', () => {
+    it('戊子 丁巳 丁未 庚子 — 子 is not a 自刑 branch', () => {
+      const hy = rel('戊子 丁巳 丁未 庚子').filter((h) => h.kind === '지지형')
+      expect(hy.some((h) => h.detail.includes('子-子'))).toBe(false)
+    })
+
+    it('丑未 and 寅申 are 충 only, not 형', () => {
+      const a = rel('乙丑 乙未 丙子 甲子')
+      expect(a.some((h) => h.kind === '지지충' && h.detail === '丑-未 충')).toBe(true)
+      expect(a.some((h) => h.kind === '지지형' && /丑|未/.test(h.detail))).toBe(false)
+      const b = rel('甲寅 甲申 丙子 戊子')
+      expect(b.some((h) => h.kind === '지지충' && h.detail === '寅-申 충')).toBe(true)
+      expect(b.some((h) => h.kind === '지지형' && /寅|申/.test(h.detail))).toBe(false)
+    })
+
+    it('寅巳·巳申·丑戌·戌未 and 子卯 remain 형; 辰午酉亥 自刑 remains', () => {
+      const hy = (gz: string) =>
+        rel(gz)
+          .filter((h) => h.kind === '지지형')
+          .map((h) => h.detail)
+      expect(hy('甲寅 乙巳 丙申 戊子')).toEqual(expect.arrayContaining(['寅-巳 형', '巳-申 형']))
+      expect(hy('乙丑 甲戌 丁未 丙午')).toEqual(expect.arrayContaining(['丑-戌 형', '戌-未 형']))
+      expect(hy('甲子 乙卯 丙寅 戊寅')).toEqual(['子-卯 형'])
+      for (const [b, s1, s2] of [
+        ['辰', '甲', '丙'],
+        ['午', '甲', '丙'],
+        ['酉', '乙', '丁'],
+        ['亥', '乙', '丁'],
+      ]) {
+        expect(hy(`${s1}${b} ${s2}${b} 丙子 丁丑`)).toContain(`${b}-${b} 형`)
+      }
+    })
+  })
+
+  describe('천간충 uses the shared 4-pair mode (SD-11)', () => {
+    it('丙午 甲午 戊寅 戊午 — 甲-戊 is not a 천간충 by default', () => {
+      expect(rel('丙午 甲午 戊寅 戊午').filter((h) => h.kind === '천간충')).toEqual([])
+    })
+
+    it('乙己 is not a 천간충 by default, 乙辛 is', () => {
+      const hits = rel('乙丑 己卯 辛巳 丙子').filter((h) => h.kind === '천간충')
+      expect(hits.map((h) => h.detail)).toEqual(['乙-辛 충'])
+    })
+  })
+
+  // 실제 날짜 400개(시드 고정)에서 나온 원국 — 국의 카디널리티 불변식 (SD-18).
+  // (오프라인 4000개 샘플: 방합 4.5%, 유령 삼합 15.6% 가 이 불변식 위반이었다.)
+  describe('property: 삼합/방합 cardinality over 400 seeded real birth dates', () => {
+    const NOW = new Date('2026-01-01T00:00:00Z')
+    let seed = 20261125
+    const rnd = () => (seed = (seed * 1103515245 + 12345) % 2147483648) / 2147483648
+    const span = Date.UTC(2048, 0, 1) - Date.UTC(1941, 0, 1)
+    const charts = Array.from({ length: 400 }, () => {
+      const date = new Date(Date.UTC(1941, 0, 1) + Math.floor(rnd() * span))
+        .toISOString()
+        .slice(0, 10)
+      const hh = String(Math.floor(rnd() * 24)).padStart(2, '0')
+      const mm = String(Math.floor(rnd() * 60)).padStart(2, '0')
+      const r = calculateSajuData(
+        date,
+        `${hh}:${mm}`,
+        'male',
+        'solar',
+        'Asia/Seoul',
+        false,
+        126.978,
+        NOW
+      )
+      const p = { year: r.yearPillar, month: r.monthPillar, day: r.dayPillar, time: r.timePillar }
+      const branches = [p.year, p.month, p.day, p.time].map((x) => x.earthlyBranch.name)
+      return {
+        branches,
+        hits: analyzeRelations(toAnalyzeInputFromSaju(p, p.day.heavenlyStem.name)),
+      }
+    })
+    const trios = [
+      ...THREE_HARMONY.map((t) => ({ kind: '지지삼합', members: t.members })),
+      ...DIRECTIONAL_HARMONY.map((d) => ({ kind: '지지방합', members: d.members })),
+    ]
+    const isFull = (h: { kind: string; detail: string }) =>
+      (h.kind === '지지삼합' && h.detail.includes('삼합')) || h.kind === '지지방합'
+
+    it('every 삼합/방합 hit names three distinct members, all present in the chart', () => {
+      const BRANCH = /[子丑寅卯辰巳午未申酉戌亥]/g
+      let seen = 0
+      for (const { branches, hits } of charts) {
+        for (const h of hits.filter(isFull)) {
+          seen++
+          const members = [...new Set(h.detail.match(BRANCH) ?? [])]
+          expect(members).toHaveLength(3)
+          for (const m of members) expect(branches).toContain(m)
+          // pillars 의 지지 집합도 정확히 그 세 멤버
+          const POS = ['year', 'month', 'day', 'time'] as const
+          const atPillars = new Set(h.pillars.map((k) => branches[POS.indexOf(k)]))
+          expect([...atPillars].sort()).toEqual([...members].sort())
+        }
+      }
+      expect(seen).toBeGreaterThan(20) // 불변식이 공허하게 통과하지 않도록
+    })
+
+    it('every complete distinct 三合/方合 in the chart is reported exactly once', () => {
+      let complete = 0
+      for (const { branches, hits } of charts) {
+        for (const t of trios) {
+          const want = t.members.every((m) => branches.includes(m))
+          const got = hits.filter(
+            (h) => isFull(h) && h.kind === t.kind && t.members.every((m) => h.detail.includes(m))
+          )
+          expect(got.length).toBe(want ? 1 : 0)
+          if (want) complete++
+        }
+      }
+      expect(complete).toBeGreaterThan(20)
     })
   })
 })
