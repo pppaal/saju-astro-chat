@@ -7,11 +7,10 @@ import {
   THREE_HARMONY,
   HARM_PAIRS,
   BREAK_PAIRS,
-  PUNISHMENT_TRIOS,
-  PUNISHMENT_PAIR,
-  SELF_PUNISHMENT_STRICT,
+  ALL_BRANCHES,
   toBidiRecord,
 } from './relationTables'
+import { isHyeong } from './hyeong'
 
 export const STEMS: StemBranchInfo[] = [
   { name: '甲', element: '목', yin_yang: '양' },
@@ -154,23 +153,13 @@ export const SAMHAP: Record<string, string[]> = Object.fromEntries(
   THREE_HARMONY.map((t) => [t.element, [...t.members]])
 )
 
-// 형 (刑) - 형벌, 장애 (복수 대상 가능). 삼형/상형/자형(표준 4지지)을 canon에서 조립.
-function buildXing(): Record<string, string[]> {
-  const r: Record<string, string[]> = {}
-  for (const trio of PUNISHMENT_TRIOS) {
-    for (const b of trio) {
-      r[b] = trio.filter((x) => x !== b)
-    }
-  }
-  const [pa, pb] = PUNISHMENT_PAIR
-  r[pa] = [pb]
-  r[pb] = [pa]
-  for (const b of SELF_PUNISHMENT_STRICT) {
-    r[b] = [b]
-  }
-  return r
-}
-export const XING: Record<string, string[]> = buildXing()
+// 형 (刑) - 형벌, 장애 (복수 대상 가능). hyeong.isHyeong(단일 형 canon)에서 파생 —
+// 삼형 세트 중 충 페어(寅申·丑未)는 충이지 형이 아니고, 자형은 辰午酉亥 4지지만.
+// 옛 표는 삼형 세트의 임의 두 지지를 형으로 잡아 XING['寅'] 에 申, XING['丑'] 에 未 가
+// 들어 있었다(본명 relations·캘린더 추출기·상담사는 E2 에서 이미 isHyeong — SD-07).
+export const XING: Record<string, string[]> = Object.fromEntries(
+  ALL_BRANCHES.map((b) => [b, ALL_BRANCHES.filter((x) => isHyeong(b, x))])
+)
 
 // 해 (害) - 서로 해침
 export const HAI: Record<string, string> = toBidiRecord(HARM_PAIRS)

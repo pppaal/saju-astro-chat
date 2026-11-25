@@ -227,9 +227,9 @@ describe('CHUNG (충)', () => {
 })
 
 describe('XING (형)', () => {
-  it('寅 punishes 巳 and 申', () => {
-    expect(XING['寅']).toContain('巳')
-    expect(XING['寅']).toContain('申')
+  // 寅申 은 충이지 형이 아니다(hyeong.isHyeong canon, SD-07).
+  it('寅 punishes 巳 only (寅申 is a clash)', () => {
+    expect(XING['寅']).toEqual(['巳'])
   })
 
   it('子 punishes 卯', () => {

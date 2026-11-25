@@ -346,9 +346,10 @@ describe('Saju Constants', () => {
 
   describe('XING (형)', () => {
     it('includes key branch interactions', () => {
-      // 무은지형: 寅巳申 interact with each other
-      expect(XING['寅']).toContain('巳')
-      expect(XING['寅']).toContain('申')
+      // 무은지형: 寅巳·巳申 — 寅申 은 충이지 형이 아니다(hyeong.isHyeong canon)
+      expect(XING['寅']).toEqual(['巳'])
+      expect(XING['巳']).toEqual(['寅', '申'])
+      expect(XING['申']).toEqual(['巳'])
 
       // 자형: self-punishment branches
       expect(XING['辰']).toContain('辰')

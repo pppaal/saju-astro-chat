@@ -14,6 +14,8 @@ import { analyzeRelations, DEFAULT_RELATION_OPTIONS, type PillarInput } from '@/
 import { detectUnseRelations } from '@/lib/saju/currentUnse'
 import type { SajuPillars } from '@/lib/saju/types'
 import hyeongchungExtractor from '@/lib/calendar-engine/extractors/saju-hyeongchung'
+import { isXing } from '@/lib/calendar/utils'
+import { relationForDay } from '@/lib/fortune/zodiacDaily'
 import type { ActiveSignal, ExtractorContext } from '@/lib/calendar-engine/types'
 
 // 방향 무관 쌍 시그니처(두 글자를 정렬해 합침) 집합.
@@ -103,10 +105,12 @@ describe('relationTables — 소비 모듈 ↔ canon 교차 일치', () => {
     for (const t of canon.THREE_HARMONY) {
       expect(new Set(SAMHAP[t.element])).toEqual(new Set(t.members))
     }
-    // 형: 자형·상형·삼형이 canon 빌딩블록을 반영
-    expect(XING['辰']).toContain('辰')
+    // 형: 자형·상형·삼형이 canon 빌딩블록을 반영. 충 페어(寅申·丑未)는 형이 아니다 —
+    // XING 은 hyeong.isHyeong 에서 파생(78쌍 일치는 아래 SD-07 블록).
+    expect(XING['辰']).toEqual(['辰'])
     expect(new Set(XING['子'])).toEqual(new Set(['卯']))
-    expect(new Set(XING['寅'])).toEqual(new Set(['巳', '申']))
+    expect(new Set(XING['寅'])).toEqual(new Set(['巳']))
+    expect(new Set(XING['丑'])).toEqual(new Set(['戌']))
   })
 
   // (옛 'compatibility/constants.ts ↔ canon' 교차 검증은 레거시 궁합 엔진
@@ -275,6 +279,13 @@ describe('형(刑) — relations · hyeong · saju-hyeongchung 추출기 78쌍 �
       }).some((h) => h.kind === '지지형' && isYearMonth(h.pillars))
       expect(natal).toBe(want)
       expect(extractorHyeong.get(`${x}${y}`) ?? false).toBe(want)
+      // 옛 XING 표(삼형 세트의 임의 두 지지 = 형)도 이제 isHyeong 파생 (F2).
+      expect(XING[x].includes(y)).toBe(want)
+      expect(isXing(x, y)).toBe(want)
+      // 띠 운세: 충이 먼저, 같은 지지는 'same' — 그 밖의 형 판정은 isHyeong 과 같다.
+      if (x !== y && CHUNG[x] !== y) {
+        expect(relationForDay(x, y) === 'xing').toBe(want)
+      }
     }
   })
 })

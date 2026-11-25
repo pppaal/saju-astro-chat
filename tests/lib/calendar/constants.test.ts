@@ -311,9 +311,8 @@ describe('destiny-map/calendar/constants', () => {
       })
     })
 
-    it('should map 寅 to 巳申', () => {
-      expect(XING['寅']).toContain('巳')
-      expect(XING['寅']).toContain('申')
+    it('should map 寅 to 巳 only (寅申 is a clash, not a punishment)', () => {
+      expect(XING['寅']).toEqual(['巳'])
     })
 
     it('should map self-punishment for 辰', () => {
