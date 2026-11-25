@@ -45,8 +45,12 @@ import type { CalendarCell, CalendarBuildOptions, CalendarRange } from './types'
 //     걸려, 매일 셀이 자기 자시 + 전날 자시 새벽 꼬리(다른 時柱 천간) 두 개를 갖고
 //     hourly 층을 이중 계상해 일점수를 부풀렸다. 각 셀은 그날 생성 시진만 남기도록
 //     dedup — 점수 골격이 이동하므로 웜 캐시가 옛 점수를 계속 내보내지 않게 bump.
+// v8: 절입 판정 기준 교정(엔진 감사 E1, OD-1) — 년·월주·대운수를 진경도 보정으로
+//     옮긴 instant 가 아니라 생 UT 출생 instant 와 절입 instant 비교로 정한다(보정은
+//     시주에만). 만 나이는 민용 생일. 본명 기둥·대운이 NatalContextCache 와 월 셀에
+//     구워지므로 절입 근처 출생의 웜 캐시가 옛 기둥을 내보내지 않게 bump.
 // (export — dataRetention 스윕이 옛 버전 NatalContextCache 고아 행을 지우는 기준.)
-export const CALENDAR_ENGINE_VERSION = 'v7'
+export const CALENDAR_ENGINE_VERSION = 'v8'
 
 /**
  * 본명 입력 → 안정적 캐시 키. 위치는 4자리(≈11m)로 라운딩해 부동소수 잡음으로

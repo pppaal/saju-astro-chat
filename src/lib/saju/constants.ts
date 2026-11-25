@@ -178,6 +178,16 @@ export const HAI: Record<string, string> = toBidiRecord(HARM_PAIRS)
 // 파 (破) - 깨뜨림
 export const PA: Record<string, string> = toBidiRecord(BREAK_PAIRS)
 
+/**
+ * 사주 엔진 산식 버전. 같은 입력의 calculateSajuData 결과(네 기둥·대운 등)가
+ * 바뀌는 엔진 변경마다 +1 — Redis 사주 캐시 키(CacheKeys.saju, `saju:v${N}:…`)에
+ * 접혀 옛 결과가 웜 캐시로 나가지 않게 한다. saju.ts 가 재-export 한다.
+ *   v2: lunarLeap + timezone 을 키에 추가.
+ *   v3: 년·월주·대운을 생 UT 출생 instant 와 절입 instant 비교로(OD-1, 엔진 감사 E1).
+ *       진경도 보정은 시주에만. 만 나이는 민용 생일.
+ */
+export const SAJU_ENGINE_VERSION = 3
+
 // 절기 데이터 지원 범위(연도)
 export const KASI_START_YEAR = 1940
 export const KASI_END_YEAR = 2050

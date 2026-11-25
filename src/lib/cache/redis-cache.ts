@@ -8,6 +8,7 @@
 import { Redis } from '@upstash/redis'
 import { logger } from '@/lib/logger'
 import type { CacheResult, CacheWriteResult } from './types'
+import { SAJU_ENGINE_VERSION } from '@/lib/saju/constants'
 
 let redis: Redis | null = null
 
@@ -308,9 +309,11 @@ export async function cacheDel(key: string): Promise<boolean> {
  * - Old cache entries become stale automatically
  */
 export const CacheKeys = {
+  // 버전 = SAJU_ENGINE_VERSION (src/lib/saju/constants.ts). 엔진 산식이 결과를
+  // 바꾸면 거기서 +1 → 이 prefix 가 바뀌어 옛 캐시는 자연 만료된다.
   // v2: lunarLeap + timezone 추가. v1 키는 (a) 윤4월/평4월 충돌 (b) 동일 lunar
-  // Y/M/D 서로 다른 타임존 사용자 충돌이 있어 정확성 회귀가 있었음. 키 형태가
-  // 바뀌므로 prefix 도 v1 → v2 로 bump. 이전 캐시는 자연 만료.
+  // Y/M/D 서로 다른 타임존 사용자 충돌이 있어 정확성 회귀가 있었음.
+  // v3: 년·월주·대운을 생 UT instant 기준 절입 비교로(엔진 감사 E1, OD-1).
   saju: (
     birthDate: string,
     birthTime: string,
@@ -322,7 +325,7 @@ export const CacheKeys = {
     // 다른 도시 사용자끼리 캐시가 섞이지 않는다. 경도 없으면 옛 키 형태 유지.
     longitude?: number
   ) =>
-    `saju:v2:${birthDate}:${birthTime}:${gender}:${calendar}:${timezone}:${lunarLeap ? 'L' : 'N'}` +
+    `saju:v${SAJU_ENGINE_VERSION}:${birthDate}:${birthTime}:${gender}:${calendar}:${timezone}:${lunarLeap ? 'L' : 'N'}` +
     (typeof longitude === 'number' && Number.isFinite(longitude)
       ? `:lon=${longitude.toFixed(4)}`
       : ''),

@@ -23,6 +23,8 @@ import {
   getSolarTermKST,
   assertKasiYearInRange,
 } from './constants'
+// 엔진 산식 버전(캐시 키 무효화용) — 정의는 constants.ts(의존성 없는 leaf).
+export { SAJU_ENGINE_VERSION } from './constants'
 import { toBranchId, toGanjiId, toSajuElementId, toStemId } from './graphIds'
 import { computeDayPillarIndices } from './dayPillar'
 // 연운/월운/일진 stem-branch 산술의 single source.
@@ -312,40 +314,36 @@ export function calculateSajuData(
       throw new Error('Invalid birthLocal date object')
     }
 
-    // Y, M, D — timezone-aware year/month/day at the birthplace. The
+    // civilY/M/D (below) — timezone-aware year/month/day at the birthplace. The
     // previous code read birthDateTime.getFullYear() / getMonth() which
     // returns the server's *UTC* year/month, so a birth at 1989-12-31
     // 23:30 LA (UTC-8) became 1990-01-01 once it landed on the UTC
     // server, and the year/month pillar was computed against 1990
     // instead of 1989. Use the Intl-formatted values everywhere — they
     // already powered the day-pillar JDN below.
-    // ── 진경도(평균태양시) 보정 — longitude 있으면 출생 instant *자체*를 옮긴다.
-    //    예전엔 시주(時) lookup 에만 보정분을 더해, 입춘·절기 경계에서 년/월은
-    //    보정 안 된 생(raw) 시각으로 계산되는 불일치가 있었다. 지금은 **년·월·시**를
-    //    이 effectiveDateTime 기준으로 뽑는다 (시주 lookup 의 +correctionMin 과 동일 값).
-    //    **일주는 예외 — 민용일 기준이다**(아래 civilY/M/D, CONVENTIONS.md §1).
-    //    longitude 없으면 보정 0 → effectiveDateTime == birthDateTime (옛 동작 보존).
+    // ── 절입(節入) 판정 = 생(raw) UT 출생 instant — CONVENTIONS.md §1·§2 (OD-1, 2026-11).
+    //    절입은 태양 시황경이 315°+30k° 에 닿는 *하나의 절대 instant* 다. 년주·월주와
+    //    대운수 일수는 birthDateTime 을 KASI_SOLAR_TERMS instant 와 그대로 비교한다.
+    //    평균태양시(진경도) 보정은 벽시계 라벨을 바꿀 뿐 출생을 절입 너머로 옮기지
+    //    못하므로 **시주(時) lookup 에만** 쓴다(아래 totalMin).
+    //    예전(2026-06~11)엔 이 보정분만큼 출생 instant 자체를 옮겨(effectiveDateTime)
+    //    절입과 비교했다. 그래서 서울(lon 126.978, −32분)은 절입 후 2~32분 출생이
+    //    전 월·전 년으로, 도쿄(+19분)는 절입 직전 출생이 다음 월로 뒤집혔고 대운 방향·
+    //    대운수까지 바뀌었다. 같은 instant·경도라도 timezone 라벨에 따라 답이 갈렸다
+    //    (2020-02-04T11:00Z lon 75.99 — Asia/Shanghai 己亥 vs Asia/Urumqi 庚子).
+    //    가드: tests/lib/saju/solarTermFrame.test.ts, tests/golden/saju.golden.test.ts
     const solarCorrectionMin = solarTimeCorrectionMinutes(birthDateTime, longitude, timezone)
-    const effectiveDateTime = new Date(birthDateTime.getTime() + solarCorrectionMin * 60_000)
 
-    const fmtNum = (opt: Intl.DateTimeFormatOptions) =>
-      Number(
-        new Intl.DateTimeFormat('en-US', { timeZone: timezone, ...opt }).format(effectiveDateTime)
-      )
-    const Y = fmtNum({ year: 'numeric' })
-    const M = fmtNum({ month: '2-digit' })
-    const D = fmtNum({ day: '2-digit' })
-
-    // ── 일주(日柱)만은 **민용일(civil day)** 기준이다 — CONVENTIONS.md §1.
+    // ── 민용일(civil day) Y/M/D — 출생지 timezone 의 벽시계 날짜(보정 없음).
+    //    절기 lookup 의 그레고리력 연·월, 일주(CONVENTIONS.md §1), 만 나이 생일(§14)이
+    //    모두 이 값을 쓴다.
     //
-    //    왜 분리하나: 일주는 60갑자 *달력 순환*이고, 입춘·절기는 *천문 사건*이다.
-    //    2026-06-06 에 "네 기둥 모두 effectiveDateTime 한 기준에서" 로 통일한 건
-    //    절기 경계에선 옳았지만 일주까지 끌고 와 민용일 규칙을 깼다. 그 결과
-    //    경도를 넘기면 LMT 만큼 일 경계가 밀려, 문서화된 골든
-    //    (`1991-01-01 00:01 KST → 日 辛未`)이 日 庚午(전날)로 깨졌다.
+    //    일주가 민용일인 이유: 일주는 60갑자 *달력 순환*이고, 입춘·절기는 *천문 사건*이다.
+    //    2026-06-06 에 "네 기둥 모두 보정된 instant 한 기준에서" 로 통일했을 때 일주까지
+    //    끌려가 민용일 규칙을 깼다. 경도를 넘기면 LMT 만큼 일 경계가 밀려, 문서화된
+    //    골든(`1991-01-01 00:01 KST → 日 辛未`)이 日 庚午(전날)로 깨졌다.
     //    영향 폭 = |LMT 보정| — 서울 32분 · 부산 24분 · 인천 33분, 표준자오선
     //    동쪽(도쿄 +19분)은 반대로 자정 직전. 하루 24~33분 ≈ 출생의 약 2.2%.
-    //    기존 골든이 longitude 를 한 번도 넘기지 않아 4개월간 안 잡혔다.
     //
     //    가드: `tests/lib/saju/doctrine-dayBoundary.test.ts`
     const fmtCivil = (opt: Intl.DateTimeFormatOptions) =>
@@ -354,16 +352,19 @@ export function calculateSajuData(
     const civilM = fmtCivil({ month: '2-digit' })
     const civilD = fmtCivil({ day: '2-digit' })
 
-    const year = Y
+    const year = civilY
+    // 범위 검사도 민용 연도로 — 보정된 연도를 검사하던 옛 코드는 경도가 있으면
+    // 1940-01-01 00:10 서울 출생을 1939 로 밀어 throw 했다(SAJU-5).
     assertKasiYearInRange(year)
-    const month = M
+    const month = civilM
+    const birthMs = birthDateTime.getTime()
 
     /* ---------------- 연기둥 ---------------- */
     const ipchunUTC = getSolarTermKST(year, 2)
     if (!ipchunUTC) {
       throw new Error(`Cannot determine Saju year: solar term data missing for ${year}`)
     }
-    const sajuYear = effectiveDateTime < ipchunUTC ? year - 1 : year
+    const sajuYear = birthMs < ipchunUTC.getTime() ? year - 1 : year
     const idx60Y = (sajuYear - 4 + 6000) % 60
     const yearPillar = { stem: STEMS[idx60Y % 10], branch: BRANCHES[idx60Y % 12] }
 
@@ -376,7 +377,7 @@ export function calculateSajuData(
     if (!termUTC_thisMonth) {
       throw new Error(`Cannot determine Saju month: solar term data missing for ${year}/${month}`)
     }
-    if (effectiveDateTime < termUTC_thisMonth) {
+    if (birthMs < termUTC_thisMonth.getTime()) {
       if (sajuMonth === 1) {
         sajuMonth = 12
         sajuTermYear = year - 1
@@ -409,7 +410,7 @@ export function calculateSajuData(
     const monthPillar = { stem: STEMS[monthStemIndex], branch: BRANCHES[monthBranchIndex] }
 
     /* ---------------- 일기둥 ---------------- */
-    // 민용일 Y/M/D — 보정된 effectiveDateTime 이 아니라 생(raw) 시각 기준.
+    // 민용일 Y/M/D — 진경도 보정 없는 출생지 벽시계 날짜.
     const { stemIndex: dayStemIndex, branchIndex: dayBranchIndex } = computeDayPillarIndices(
       civilY,
       civilM,
@@ -435,16 +436,15 @@ export function calculateSajuData(
      *     사용자/캐시와 결과 호환.
      */
     const { h: hour, m: minute } = parseHourMinute(birthTime)
-    const birthUtcMs = birthDateTime.getTime()
 
     let totalMin: number
     let ranges: typeof LMT_HOUR_RANGES
     if (typeof longitude === 'number' && Number.isFinite(longitude)) {
-      // 위에서 네 기둥 보정에 쓴 그 값(SSOT) 재사용 — 시·일 보정 분리 방지.
+      // 진경도 보정은 시주에만 적용된다(년·월·대운은 생 instant, 일주는 민용일).
       totalMin = hour * 60 + minute + solarCorrectionMin
       ranges = PLAIN_HOUR_RANGES
     } else {
-      const useLmtRanges = applyKoreanLmtCorrection(birthUtcMs, timezone)
+      const useLmtRanges = applyKoreanLmtCorrection(birthMs, timezone)
       // DST 를 *모든* 타임존에서 제거한 뒤 버킷팅한다 — DST 는 민간 시계 인공물로
       // 천문학적 의미가 없다. 한국 −60 케이스는 이제 이 일반 케이스에 흡수된다.
       // (이전엔 한국 외 DST 지역에서 DST 를 안 빼 여름 출생이 시지 한 칸씩 밀렸다.)
@@ -511,13 +511,12 @@ export function calculateSajuData(
       nextTermUTC = termUTC_current // 역행에서는 사용되지 않음
     }
 
-    // 대운수 거리는 절기 경계와 *같은 시간 기준*으로 재야 한다. sajuMonth/sajuYear
-    // 경계는 effectiveDateTime(평균태양시 보정)으로 정해지는데, 거리만 raw
-    // birthDateTime 으로 재면 경도 보정분(최대 ±수십 분)만큼 대운수가 어긋난다.
-    // 경도 없으면 effectiveDateTime == birthDateTime 이라 옛 동작 그대로 보존.
+    // 대운수 거리는 절기 경계와 *같은 시간 기준* — 생 UT instant(birthMs) 와 절입
+    // instant 의 차이다(OD-1). 경도 보정분을 섞으면 같은 출생의 대운수가 timezone
+    // 라벨에 따라 ±1 흔들린다(예: 1963-11-02 02:17 마드리드, 한로 후 24.03일 → 8).
     const diffToTermMs = isForward
-      ? nextTermUTC.getTime() - effectiveDateTime.getTime()
-      : effectiveDateTime.getTime() - prevTermUTC.getTime()
+      ? nextTermUTC.getTime() - birthMs
+      : birthMs - prevTermUTC.getTime()
     const daeWoonStartAge = daysToDaeunAge(diffToTermMs / 86400000)
 
     const daeWoonList: DaeunPillar[] = []
@@ -611,13 +610,14 @@ export function calculateSajuData(
     const mNowLocal = Number(
       new Intl.DateTimeFormat('en-US', { timeZone: timezone, month: 'numeric' }).format(now)
     )
-    // 만 나이 — 출생지 시간대 기준 (자정 경계 사용자에서 ±1 회귀 방지).
+    // 만 나이 — 출생지 시간대의 *민용* 생일 기준 (CONVENTIONS §14). 보정된 날짜를
+    // 넘기면 자정 직후 출생의 생일이 전날로 밀려 현재 대운이 하루 일찍 바뀌었다(F14).
     // currentManAge 가 SSOT — 사주/점성 전체가 만 나이 한 컨벤션이라 화면
     // 어디서나 동일 값 보장. 대운 list 의 d.age 도 만 나이라 비교 일관.
     const currentAge = currentManAge({
-      birthYear: Y,
-      birthMonth: M,
-      birthDate: D,
+      birthYear: civilY,
+      birthMonth: civilM,
+      birthDate: civilD,
       birthTimeZone: timezone,
       now,
     })

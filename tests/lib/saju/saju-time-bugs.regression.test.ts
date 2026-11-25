@@ -135,7 +135,7 @@ describe('Saju 진경도(진태양시) 보정 — longitude 옵션', () => {
   })
 })
 
-describe('Saju cache key v2 — lunarLeap + timezone 분리', () => {
+describe('Saju cache key — lunarLeap + timezone 분리, 엔진 버전 prefix', () => {
   it('CacheKeys.saju 는 lunarLeap 과 timezone 을 구분한다', async () => {
     const { CacheKeys } = await import('../../../src/lib/cache/redis-cache')
     const a = CacheKeys.saju('2020-04-15', '12:00', 'M', 'lunar', 'Asia/Seoul', false)
@@ -144,7 +144,10 @@ describe('Saju cache key v2 — lunarLeap + timezone 분리', () => {
     expect(a).not.toBe(b)
     expect(a).not.toBe(c)
     expect(b).not.toBe(c)
-    expect(a.startsWith('saju:v2:')).toBe(true)
+    // prefix 버전 = SAJU_ENGINE_VERSION (v3: 엔진 감사 E1 절입 instant 기준).
+    const { SAJU_ENGINE_VERSION } = await import('../../../src/lib/saju/saju')
+    expect(SAJU_ENGINE_VERSION).toBe(3)
+    expect(a.startsWith(`saju:v${SAJU_ENGINE_VERSION}:`)).toBe(true)
   })
 })
 

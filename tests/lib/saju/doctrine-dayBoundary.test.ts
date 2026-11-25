@@ -30,9 +30,11 @@
 // ## 결정 (2026-10): 민용일 채택
 //
 // 일주는 60갑자 **달력 순환**이고 입춘·절기는 **천문 사건**이다. 2026-06-06 에
-// "네 기둥 모두 보정된 instant 기준" 으로 통일한 건 절기 경계에선 옳았지만
-// 일주까지 끌고 와 민용일 규칙을 깼다. `saju.ts` 가 일주만 민용일 Y/M/D
-// (`civilY/M/D`)를 쓰도록 분리했고, 년·월·시는 보정된 instant 를 유지한다.
+// "네 기둥 모두 보정된 instant 기준" 으로 통일한 건 일주까지 끌고 와 민용일
+// 규칙을 깼다. `saju.ts` 가 일주만 민용일 Y/M/D (`civilY/M/D`)를 쓰도록 분리했다.
+// (2026-11, OD-1: 년·월주도 보정된 instant 가 아니라 생 UT instant 와 절입
+// instant 비교로 바뀌었다 — 진경도 보정은 시주에만. CONVENTIONS.md §1·§2,
+// `solarTermFrame.test.ts`.)
 //
 // 그래서 아래 테스트는 **경도 유무와 무관하게 민용일 일주**를 요구한다.
 // 부수 효과: 시간 미상 정오 앵커의 근거 절반(자정 앵커가 일주를 전날로
@@ -145,8 +147,9 @@ describe('일주는 경도와 무관하게 민용일 기준 (2026-10 수정)', (
     }
   })
 
-  it('년·월주는 보정된 instant 를 그대로 쓴다 — 절기는 천문 사건이므로', () => {
-    // 1988-07-07 은 소서(未월 절입)일. 자정 -32분이면 절입 전(戊午월).
+  it('년·월주는 생 UT instant 로 판정한다 — 절입은 하나의 천문 사건 (OD-1)', () => {
+    // 1988-07-07 은 소서(未월 절입 06:33 KST = 1988-07-06 21:33Z)일. 그날은 KDT(UTC+10).
+    // 자정(= 07-06 14:00Z)은 절입 전(戊午월), 정오는 절입 후(己未월) — 경도 보정과 무관.
     const month = (time: string, lon?: number) => {
       const r = calculateSajuData(
         '1988-07-07',
@@ -161,7 +164,12 @@ describe('일주는 경도와 무관하게 민용일 기준 (2026-10 수정)', (
       return `${r.monthPillar.heavenlyStem.name}${r.monthPillar.earthlyBranch.name}`
     }
     expect(month('12:00', SEOUL_LON)).toBe('己未')
-    expect(month('00:00', SEOUL_LON)).toBe('戊午') // 보정이 월주는 밀어야 한다
+    expect(month('00:00', SEOUL_LON)).toBe('戊午')
+    // 절입 전후 전 분: 진경도 보정(−32분)은 월주를 옮기지 않는다 — 경도 유무가 같다.
+    for (let m = 6 * 60; m <= 9 * 60; m++) {
+      const t = `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`
+      expect(month(t, SEOUL_LON), t).toBe(month(t))
+    }
   })
 })
 

@@ -1,9 +1,9 @@
 /**
  * 대운(大運) single-source 교차검증.
  *
- * STEP 2 consolidation: 대운은 calculateSajuData 가 LMT/진경도 보정된 출생
- * instant + 절기-연도 롤백 로직으로 산출한 sajuResult.daeWoon 한 곳만
- * 정답으로 둔다. (determinism-golden 으로 잠긴 값.)
+ * STEP 2 consolidation: 대운은 calculateSajuData 가 생 UT 출생 instant 와
+ * 절입 instant 비교(OD-1) + 절기-연도 롤백 로직으로 산출한 sajuResult.daeWoon
+ * 한 곳만 정답으로 둔다. (determinism-golden 으로 잠긴 값.)
  *
  * 이전 /api/saju 는 이 보정된 daeWoon 을 버리고 unse.getDaeunCycles 를
  * raw(보정 전) toDate instant 로 다시 호출해 서빙했다 → 절기 경계 출생자의
@@ -80,23 +80,23 @@ describe('대운 single-source — 라우트가 보정된 daeWoon 을 서빙', (
   })
 })
 
-describe('대운수 — 거리도 절기 경계와 같은 진태양시(effectiveDateTime) 기준', () => {
-  // 버그: sajuMonth/sajuYear 경계는 longitude 보정된 effectiveDateTime 으로
-  // 정해지는데, 대운수 거리(nextTerm - birth / birth - prevTerm)만 raw
-  // birthDateTime 으로 재고 있었다. 경도 보정분만큼 두 기준이 갈려, 절기 경계
-  // 근방 출생자의 대운수가 ±1 어긋났다.
-  // 회귀 잠금: 부산 서편 경도(124°E, ~-44분)를 넘긴 1990-03-06 10:15 출생은
-  // 보정 전이면 9, 거리도 effectiveDateTime 으로 재면 10 이 된다(경계 기준과 일치).
-  it('1990-03-06 10:15 KST @124°E: 대운수 = 10 (raw 거리였다면 9)', () => {
+describe('대운수 — 거리는 생 UT instant 와 절입 instant 사이 (OD-1, 경도 무관)', () => {
+  // 절입은 하나의 절대 instant 다. 대운수 일수 = |절입 − 생 UT 출생 instant| 이고,
+  // 진경도 보정은 시주에만 쓴다. 옛 코드(2026-06~11)는 보정분만큼 옮긴 instant 로
+  // 거리를 재, 부산 서편 경도(124°E, ~−44분)의 이 출생을 10 으로 냈다.
+  // 기준값(E0 골든 G27, tests/golden/engine-golden.json — astronomy-engine 절입):
+  // 1990-03-06 10:15 KST(01:15Z) → 청명까지 29.9986일 → floor(/3) = 9.
+  it('1990-03-06 10:15 KST @124°E: 대운수 = 9 (29.9986일)', () => {
     const r = calculateSajuData('1990-03-06', '10:15', 'male', 'solar', 'Asia/Seoul', false, 124.0)
     expect(r.daeWoon.isForward).toBe(true)
-    expect(r.daeWoon.startAge).toBe(10)
+    expect(r.daeWoon.startAge).toBe(9)
   })
 
-  it('경도 없으면 effectiveDateTime == birthDateTime → 보정 없는 옛 값 보존', () => {
-    // 같은 입력, 경도 미지정. 보정이 0 이므로 거리 기준이 어느 쪽이든 동일해야 한다.
+  it('경도 유무와 무관하게 같은 대운수 — 보정은 거리에 섞이지 않는다', () => {
     const a = calculateSajuData('1990-03-06', '10:15', 'male', 'solar', 'Asia/Seoul')
+    const b = calculateSajuData('1990-03-06', '10:15', 'male', 'solar', 'Asia/Seoul', false, 124.0)
     expect(a.daeWoon.startAge).toBe(9)
+    expect(b.daeWoon.startAge).toBe(a.daeWoon.startAge)
   })
 })
 
