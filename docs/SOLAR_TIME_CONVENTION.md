@@ -15,8 +15,10 @@
 - **출생 instant** 는 [`resolveBirthInstant()`](../src/lib/datetime/resolveBirthInstant.ts) 하나로 정합니다(OD-3, RFC 5545 §3.3.5 — 사주·점성 공용). 서머타임 해제로 두 번 있는 벽시계는 _첫 번째_ instant, 서머타임 시작·표준시 변경으로 건너뛴 벽시계는 공백 _직전_ offset 으로 읽습니다. 예: 2021-11-07 01:30 뉴욕 → 05:30Z, 2021-03-14 02:30 뉴욕 → 07:30Z, 1987-05-10 02:30 서울 → 1987-05-09T17:30Z, 1961-08-10 00:15 서울 → 1961-08-09T15:45Z.
 - **경도 미상** 이면 존 기준 경도를 씁니다(OD-2): `Asia/Seoul` = 126.978(앱의 서울 기본값), 그 외 존 = tzdata `zone1970.tab` 대표 도시([`zoneReference.generated.ts`](../src/lib/saju/zoneReference.generated.ts), `node scripts/generate-zone-reference.mjs` 로 재생성), `Etc/*` = offset × 15. 호출부는 좌표가 없을 때 `defaultLongitudeFor(tz)`/`defaultLatitudeFor(tz)` 를 쓰고, 비한국 타임존에 맨 126.978 을 붙이지 않습니다.
 - **경도 sanity bound** (OD-14): 존 표준자오선에서 60° 넘게 떨어진 경도(정상 최대치는 Asia/Shanghai 아래 카슈가르 약 44°)는 잘못 짝지은 값으로 보고 버린 뒤 존 기준 경도를 씁니다(경고 로그).
+- **절입표 범위**: 절입 instant 는 Swiss Ephemeris 로 만든 `KASI_SOLAR_TERMS`(1899–2051, KASI 와 분 단위 일치, astronomy-engine 과 ≤ 90초 교차검증)에서 읽고, 지원 출생 연도는 **1900–2050** 입니다(OD-4, API 검증 하한과 같음).
+- **시간 미상**: 정오(12:00) 앵커는 년·월·일주를 절입일에 고정하는 데만 씁니다. 시주는 만들지 않고 삼주로 풉니다(OD-5, CONVENTIONS §5).
 
-> ⚠️ 과거 이 문서는 "표준시 그대로, 보정 미적용"이라고 적혀 있었으나, 코드는 이미 평균태양시 보정을 적용하고 있었습니다. 이 문서는 2026-06-06 코드 실제 동작에 맞춰 다시 작성되었습니다.
+> ⚠️ 과거 이 문서는 "표준시 그대로, 보정 미적용"이라고 적혀 있었으나, 코드는 이미 평균태양시 보정을 적용하고 있었습니다. 2026-06-06 에 코드 동작에 맞춰 다시 썼고, 2026-11 엔진 감사(E1 절입 = 생 instant, E8 출생 instant·경도 미상 한 경로, F2 점성 instant, E15 문서 동기화)까지의 코드에 맞춰 갱신했습니다.
 
 ---
 
@@ -46,14 +48,14 @@
 
 ## 적용 범위 (RAW 계산 기준)
 
-| RAW 요소                                  | 시각 기준                                              | 위치                   |
-| ----------------------------------------- | ------------------------------------------------------ | ---------------------- |
-| **본명 사주 — 시주 (時)**                 | 평균태양시 (UT + 경도 × 4분으로 시진 lookup)           | `meanSolarMinuteOfDay` |
-| **본명 사주 — 년주·월주·대운수**          | 생 UT 출생 instant vs 절입 instant (보정 미적용)       | `saju.ts` `birthMs`    |
-| **본명 사주 — 일주·만 나이 생일**         | 입력한 출생지 민용일 (보정·instant 재유도 없음)        | `saju.ts` `civilY/M/D` |
-| **달력 시진 (時)** — forecast 시각별 길흉 | 평균태양시 (시진 경계를 보정)                          | `saju-hour.ts`         |
-| **달력 일진 (日)** — 그 날짜의 일주       | 캘린더 날짜 기준 (날짜 = 그 날의 일진, 보정 대상 아님) | `computeDayStem`       |
-| **점성** (본명·트랜짓)                    | 실제 UTC 천문 위치 (보정 개념 없음, 같은 출생 instant) | `natalToJD`            |
+| RAW 요소                                  | 시각 기준                                                                        | 위치                                     |
+| ----------------------------------------- | -------------------------------------------------------------------------------- | ---------------------------------------- |
+| **본명 사주 — 시주 (時)**                 | 평균태양시 (UT + 경도 × 4분으로 시진 lookup)                                     | `meanSolarMinuteOfDay`                   |
+| **본명 사주 — 년주·월주·대운수**          | 생 UT 출생 instant vs 절입 instant (보정 미적용)                                 | `saju.ts` `birthMs`                      |
+| **본명 사주 — 일주·만 나이 생일**         | 입력한 출생지 민용일 (보정·instant 재유도 없음)                                  | `saju.ts` `civilY/M/D`                   |
+| **달력 시진 (時)** — forecast 시각별 길흉 | 평균태양시 (시진 경계를 보정, 子時는 민용일 안 두 조각 — 둘 다 그날 일간의 時干) | `saju-hour.ts` `hourSegmentsForCivilDay` |
+| **달력 일진 (日)** — 그 날짜의 일주       | 캘린더 날짜 기준 (날짜 = 그 날의 일진, 보정 대상 아님)                           | `computeDayStem`                         |
+| **점성** (본명·트랜짓·회귀)               | 실제 UTC 천문 위치 (보정 개념 없음, 같은 출생 instant)                           | `natalToJD`·`isoToJD`                    |
 
 > **본명 보정의 핵심 (2026-11, OD-1):** 보정은 **시주(時)만** 옮긴다. 절입은 태양
 > 시황경이 315°+30k° 에 닿는 _하나의 절대 instant_ 라서, 평균태양시 보정(벽시계
@@ -96,7 +98,7 @@
 ## SSOT 계약
 
 - 사주의 모든 시각 보정은 **`solarTimeCorrectionMinutes(instant, longitude, timeZone)` 하나만** 호출한다. 인라인으로 `(경도−자오선)×4` 를 복붙하지 말 것. 본명 시주는 그 위의 `meanSolarMinuteOfDay` (instant 의 벽시계 + 보정분)로 읽는다.
-- 출생 벽시계 → UTC 는 **`resolveBirthInstant` 하나만** 쓴다(사주 `calculateSajuData`, 점성 `natalToJD`). `date-fns-tz`·`dayjs.tz` 로 출생 instant 를 따로 만들지 말 것.
+- 벽시계 → UTC 는 **`resolveBirthInstant` 하나만** 쓴다 — 사주 `calculateSajuData`, 점성 `natalToJD`(본명·태양/달 회귀), `isoToJD` 의 offset 없는 벽시계 문자열(`Z`·`±hh:mm` 이 붙은 문자열은 그 절대 순간 그대로), `/api/astrology` 입력 검증(없는 날짜 → 422), 행성시·택일의 현지 시각. `date-fns-tz`·`dayjs.tz` 로 instant 를 따로 만들지 말 것 — `date-fns-tz` 는 2026-11 의존성에서 지웠다(F2). 겹침 시각이 서버의 현재 DST 상태에 따라 달라지던 dayjs 경로도 없다.
 - 회귀: [`tests/lib/saju/solarTimeCorrection.test.ts`](../tests/lib/saju/solarTimeCorrection.test.ts) 가 도시별 보정값을, [`tests/lib/datetime/resolveBirthInstant.test.ts`](../tests/lib/datetime/resolveBirthInstant.test.ts) 가 공백·겹침 instant 와 사주=점성 계약을 고정.
 - `longitude` 미상 → 존 기준 경도(OD-2). 그래서 경도 없는 서울 출생과 126.978 을 넘긴 출생은 네 기둥·대운이 같다. 옛 '한국 LMT +30분' 표·한국 DST 윈도우·1월/7월 DST 추정은 2026-11(엔진 감사 E8) 삭제 — offset 이 이미 DST·KMT 를 담는다.
 

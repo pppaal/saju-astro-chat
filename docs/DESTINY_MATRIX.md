@@ -35,9 +35,17 @@ LLM only narrates the structured context it is handed.
 
 ### Cross fusion
 
-- `src/lib/cross/crossInterpret.ts` -> `lookupCross()`, `crossMeaning()`,
-  `rankActiveCrosses()`. Looks up Saju↔Astrology correspondences in the
-  mapping table and ranks the active ones.
+- `src/lib/calendar-engine/data/saju-astro-mapping.ts` -> `SAJU_ASTRO_MAPPINGS`
+  and `lookupCrossMapping(sajuKey, astroKey)`: the Saju↔Astrology
+  correspondence table (grades A and B, ko/en meanings).
+- `src/lib/calendar-engine/extractors/cross-activation.ts` ->
+  `extractCrossActivations()` pairs co-active calendar signals
+  (`combinePolarity`, narrowest-parent layer, `CROSS_LAYER_BAND`); the rules
+  are in `CALCULATION_SPEC.md` §4.
+- `src/app/calendar/crossPair.ts` -> `pickDayReason()` picks the day's
+  "why this day" cross.
+- `src/lib/report/natalCross.ts` (with `natalCrossEvaluators.ts`) -> the natal
+  cross rows of the integrated report and `tallyCrossRows()`.
 
 ### Compatibility
 

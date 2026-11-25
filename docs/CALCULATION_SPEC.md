@@ -1,6 +1,7 @@
 # Calculation Spec: Deterministic Saju + Astrology Pipeline
 
-Last audited: 2026-06-15 (Asia/Hong_Kong)
+Last audited: 2026-11-25 (engine audit E15 doc sync; saju rules in
+`src/lib/saju/CONVENTIONS.md`, time rules in `SOLAR_TIME_CONVENTION.md`)
 
 > Historical note: the `src/lib/destiny-matrix`
 > "Raw Input -> Feature -> Rule -> Pattern -> Scenario -> Verdict -> Evaluation"
@@ -25,40 +26,85 @@ surfaces (counselor, compatibility, tarot) are documented in
 
 ```
 calculateSajuData(
-  birthDate: string,           // 'YYYY-MM-DD'
-  birthTime: string,           // 'HH:MM' (AM/PM and bare-hour forms normalized)
+  birthDate: string,           // 'YYYY-MM-DD' (civil date in the birth timezone)
+  birthTime: string,           // 'HH:MM' (AM/PM and bare-hour forms normalized); '' = unknown
   gender: 'male' | 'female',
   calendarType: 'solar' | 'lunar',
-  timezone: string,
+  timezone: string,            // IANA; invalid/empty → CALCULATION_STANDARDS.saju.baseTimezone
   lunarLeap?: boolean,         // only meaningful when calendarType === 'lunar'
-  longitude?: number,          // true-solar-time (LMT) correction
+  longitude?: number,          // hour pillar only: mean solar time = UT + lon × 4 min;
+                               // missing → the zone's reference longitude
+  now: Date = new Date(),      // injectable clock for 대운/세운/월운 and age
+  opts: { timeUnknown?: boolean } = {},
 ): CalculateSajuDataResult
 ```
 
-Lunar input is converted to solar first; the result is LRU-cached on the full
-argument tuple.
+Lunar input is converted to solar first. The result is LRU-cached on the full
+argument tuple plus the birthplace-local date of `now` and the time-unknown flag.
+Natal pillars depend only on the birth input; only the timing fields read `now`.
+
+Pillar rules (`src/lib/saju/CONVENTIONS.md` is the canonical text):
+
+- **Birth instant:** `resolveBirthInstant` (RFC 5545: a repeated wall time is the
+  first occurrence, a skipped wall time uses the offset before the gap). The
+  astrology natal chart (`natalToJD`) uses the same function.
+- **Year, month and 대운 start age:** the raw UT birth instant compared with the
+  absolute 절입 instant (Swiss Ephemeris table, supported range **1900–2050**;
+  `KASI_SOLAR_TERMS` holds 1899–2051 for the boundary lookups). No longitude
+  correction (OD-1).
+- **Day:** the civil date as entered in the birth timezone, counted by JDN
+  (2000-01-01 = 戊午). Not KST midnight, no longitude correction.
+- **Hour:** mean solar time, `UT + longitude × 4 min`
+  (`meanSolarMinuteOfDay` / `solarTimeCorrectionMinutes`). A missing longitude
+  uses the zone's reference longitude (Asia/Seoul = 126.978; other zones from
+  tzdata, `zoneReference.generated.ts`). A longitude more than 60° from the zone
+  meridian is discarded for the zone reference (OD-14). No equation of time.
+- **대운:** direction 양남음녀 순행 / 음남양녀 역행 from the year stem;
+  start age = floor(days to the 절입 / 3), minimum 1
+  (`CALCULATION_STANDARDS.saju.daeunRounding`). The current 대운 is the last one
+  whose start age ≤ the 만 나이 at `now` (civil birthday); before the first one
+  `daeWoon.current = null` and `daeWoon.preDaeun = { startsAtAge }` (OD-12,
+  `daeunAge.currentDaeun`).
+- **Time unknown** (`opts.timeUnknown` or a blank `birthTime`): the calculation
+  anchors at 12:00 only to fix the year, month and day pillars. `fiveElements`
+  counts the 6 characters of the three known pillars, `timeUnknown = true`, and
+  `timePillar` is a placeholder that no judgment may read (삼주 analysis, OD-5).
 
 ### Output: `CalculateSajuDataResult` (`src/lib/saju/types.ts`)
 
 - `yearPillar` / `monthPillar` / `dayPillar` / `timePillar` (legacy flat) and
   `pillars: { year, month, day, time }` (nested) — each a `PillarData`.
-- `daeWoon: { startAge, isForward, current, list }`.
+- `daeWoon: { startAge, isForward, current, preDaeun?, list }` — `current` is
+  `null` before the first 대운.
 - `unse: { daeun[], annual[], monthly[] }`.
-- `fiveElements: { wood, fire, earth, metal, water }`.
+- `fiveElements: { wood, fire, earth, metal, water }` (sums to 8, or 6 when the
+  time is unknown).
+- `timeUnknown?: boolean`.
+- `meta?: { birthUtc, instantKind: 'normal' | 'gap' | 'overlap', civilBirthDate,
+timeZone }`.
 
-### Analysis helpers (re-exported from `src/lib/saju/index.ts`)
+### Analysis helpers (source modules; production code imports them directly)
 
-- `analyzeStrength` (`tonggeun.ts`) — body strength / 통근 rooting.
-- `determineGeokguk` (`geokguk.ts`) — structure (격국).
-- `determineYongsin` (`yongsin.ts`) — useful god (용신).
+- `computeStrengthScore` / `calculateStrengthScore` (`strengthScore.ts`) — the
+  strength score SSOT (0–100, 50 = neutral); `strengthBandOf` maps it to the
+  five steps (극신강·신강·중화·신약·극신약), `strengthClassOf` to three classes.
+- `analyzeStrength` (`tonggeun.ts`) — 통근 rooting and 득령 (旺相休囚死).
+- `determineGeokguk` (`geokguk.ts`) — structure (격국), strict 화기격국 via
+  `evaluateHwagiGeokguk`.
+- `determineYongsin` (`yongsin.ts`) — useful god (용신), consistent with 억부;
+  recommended and avoided elements never overlap.
 - `getTwelveStagesForPillars` and `annotateShinsal` (`shinsal.ts`) — 12 stages
   and shinsal annotation.
-- `analyzeRelations` (`relations.ts`) — branch relations (형충회합).
-- `getDaeunCycles` / `getAnnualCycles` / `getMonthlyCycles` /
-  `getIljinCalendar` (`unse.ts`) — luck cycles.
+- `analyzeRelations` (`relations.ts`) — 합·충·형·파·해·원진, 삼합·방합 (three
+  distinct branches), 형 from `hyeong.isHyeong`.
+- `currentDaeun` (`daeunAge.ts`) — current 대운 selection (pure).
+- `getAnnualCycles` / `getMonthlyCycles` / `getIljinCalendar` (`unse.ts`) —
+  luck cycles. The 대운 list comes only from `calculateSajuData`
+  (`unse.getDaeunCycles` was removed in 2026-06).
 
-Supporting data/util: `constants.ts`, `tonggeun.ts`, `dayPillar.ts`,
-`cycles.ts`, `johuYongsin.ts`.
+All of these accept a missing hour pillar (`MaybeTimeless<…>`) and then read the
+three known pillars only. Supporting data/util: `constants.ts`, `dayPillar.ts`,
+`cycles.ts`, `johuYongsin.ts`, `relationTables.ts`, `hyeong.ts`.
 
 ## 2. Astrology core
 
@@ -72,12 +118,26 @@ toChart(natal): Chart
 ```
 
 `NatalChartData` carries `planets` (name, sign, house, longitude, retrograde),
-ascendant/MC, and houses.
+ascendant/MC, and houses. The birth instant comes from `natalToJD`, which uses
+`resolveBirthInstant` like the saju engine. `isoToJD` treats a trailing `Z` or
+`±hh:mm` as an absolute instant and resolves an offset-less wall-clock string
+with `resolveBirthInstant` too. Tropical zodiac, true node, no solar-time
+correction.
 
 ### Supporting modules
 
-- Aspects: `aspects.ts` (`findNatalAspects`, etc.).
-- Houses: `houses.ts`. Extra points: `extraPoints.ts`. Dignities: `dignities.ts`.
+- Aspects: `aspects.ts` (`findNatalAspects`, `findAspects` — applying/separating
+  from the transit body's speed, the tightest aspect per pair).
+- Houses: `houses.ts` — `CALCULATION_STANDARDS.astrology.houseSystem` (Placidus).
+  Above the polar circle (|latitude| > 66.56°) Placidus is undefined, so the
+  chart falls back to Whole Sign and reports `houseSystem: 'WholeSign'`.
+- Extra points and sect: `extraPoints.ts` — `isDiurnalChart` is the sect SSOT
+  (day chart = Sun's true altitude > 0° via `swe_azalt`; the house rule is only
+  the fallback when the ephemeris cannot answer).
+- Dignities: `dignities.ts`.
+- Ephemeris: `ephe.ts` checks on the first `getSwisseph()` that the Swiss
+  Ephemeris files (not Moshier) are in use and that Chiron computes; a failure is
+  logged, not thrown.
 
 ### Advanced techniques (sibling files)
 
@@ -85,8 +145,20 @@ ascendant/MC, and houses.
 - `calculateSolarReturn` / `calculateLunarReturn` (`returns.ts`)
 - `calculateComposite` (`composite.ts`)
 - `calculateSynastry` (`synastry.ts`)
-- Plus profections, zodiacal releasing, eclipses, fixed stars, midpoints,
-  arabic parts, almuten figuris.
+- Profections (`profections.ts`) — whole-sign: the activated sign is the
+  ASC sign + age, house = (age mod 12) + 1; Placidus cusps are not read.
+- Solar arc (`progressions.ts`) — the true arc λ☉(natal JD + age days) −
+  λ☉(natal); no self-aspects.
+- Zodiacal releasing (`zodiacalReleasing.ts`) — L1 = years, L2 = 1/12 year,
+  L3 = 2.5 days (Valens 30-day month / 12), L4 = 5 hours (OD-11).
+- Planetary hours (`electional.ts`) — the planetary day runs from the real local
+  sunrise (`swe_rise_trans`); hours before sunrise belong to the previous day's
+  ruler; polar days with no sunrise or sunset have none.
+- Moon void of course ends at the Moon's real ingress into the next sign.
+- Outer milestones (`calendar-engine/lifecycle/outerMilestones.ts`) — Saturn,
+  Jupiter and Chiron returns and the waxing outer squares are exact instants
+  (scan + bisection, about 1 min).
+- Plus eclipses, fixed stars, midpoints, arabic parts, almuten figuris.
 
 ## 3. Fact collectors (the SSOT)
 
@@ -95,20 +167,25 @@ from. They return raw structured JSON; no text formatting, no LLM.
 
 ### `collectSajuFacts` (`src/lib/destiny/sajuFacts.ts`)
 
-Input `SajuFactsInput`: `birthDate`, `birthTime`, `gender`, `timezone?`,
-`longitude?`, `calendarType?`, `lunarLeap?`.
+Input `SajuFactsInput`: `birthDate`, `birthTime`, `birthTimeUnknown?`, `gender`,
+`timezone?` (default `CALCULATION_STANDARDS.saju.baseTimezone`), `longitude?`,
+`calendarType?`, `lunarLeap?`, `now?`.
 
 Output `SajuFacts`:
 
-- `pillars` — `year`/`month`/`day`/`time` facts.
+- `pillars` — `year`/`month`/`day` facts, and `time` (`null` when the time is
+  unknown).
+- `timeUnknown` — three-pillar reading flag.
 - `dayMaster` — `{ name, element, yinYang, rooted }` (`rooted` = 통근).
 - `fiveElements` — `{ wood, fire, earth, metal, water }`.
-- `strength` — simplified `신강` / `신약` label (empty if it cannot be computed).
+- `strength` — three-class `신강` / `중화` / `신약` label from
+  `strengthClassOf` (empty if it cannot be computed).
 - `geokguk` — structure label or `null`.
 - `yongsin` — `YongsinResult` or `null`.
 - `relations` — branch relations (형충회합).
 - `gwansalHonjap` — 관살혼잡 flag (정관 + 편관 together).
-- `daeun` — `{ current, list }`.
+- `daeun` — `{ current, list, preDaeun }` (`current` is `null` before the first
+  대운).
 - `johuYongsin` — seasonal-balance auxiliary yongsin or `null`.
 - `gongmang` — void branches (空亡).
 - `_raw` — original `calculateSajuData` result (escape hatch for callers, e.g.
@@ -117,21 +194,26 @@ Output `SajuFacts`:
 ### `collectAstroFacts` (`src/lib/destiny/astroFacts.ts`)
 
 Input `AstroFactsInput`: `birthDate`, `birthTime`, `latitude`, `longitude`,
-`timezone`, `birthTimeUnknown?`, `birthCityUnknown?`, `includeHellenistic?`.
+`timezone`, `birthTimeUnknown?`, `birthCityUnknown?`, `includeHellenistic?`;
+second argument `now` (profection age).
 
 Output `AstroFacts | null` (async; `null` on calculation failure):
 
 - `natal` — `{ planets, ascendant, mc, placeUnreliable }`. Each planet carries
-  sign, house, longitude, retrograde, dignity.
+  sign, house, longitude, retrograde, dignity. When `placeUnreliable`, planet
+  houses, `ascendant` and `mc` are `null`.
 - `aspects` — `{ strong, mid }` split by orb (0-2 deg / 2-5 deg), major types only.
 - `profection` — `{ age, activatedHouse, activatedSign, lordOfYear,
 lordPlacement }` or `null`.
 - When `includeHellenistic` is set: the richer Hellenistic dataset
   (Chiron/Lilith, arabic lots, zodiacal releasing, 5-tier dignities, almuten
-  figuris, minor aspects).
+  figuris, minor aspects). Sect comes from `isDiurnalChart`. When
+  `placeUnreliable`, `maskPlaceDependentHellenistic` empties lots, ZR and the
+  almuten, drops aspects to the angles and the aspect-end houses, and sets the
+  Chiron/Lilith houses to unknown.
 
 `placeUnreliable` is set when birth time or birth city is unknown. Downstream
-surfaces must not cite house / ASC / MC / timing when it is true.
+surfaces must not cite house / ASC / MC / timing when it is true (§6).
 
 ## 4. Cross fusion
 
@@ -239,6 +321,10 @@ Mappings: 57 (A 27 · B 30); every grade is emitted, gated only by the band.
 <!-- /gen:cross-doctrine -->
 
 Natal cross synthesis for the report: `src/lib/report/natalCross.ts`.
+Evaluators follow the element relation: same → resonant, 生 → complement,
+剋 → tension (OD-10; this includes the growth axis `evalNorthNode`). Karma and
+growth rows carry `karmaAxis` and are not counted in any tone; `tallyCrossRows`
+is the one tally that the intro and the tone bar both read.
 
 ## 5. Calendar engine signal model
 
@@ -290,13 +376,60 @@ Server-rendered only: `src/app/calendar/page.tsx` ->
 `CalendarCell[]` and assembles lifetime/decade/year/month/day tiers. There is
 no `/api/calendar` route.
 
+The engine is range-invariant: a 1-day build and a month build give the same
+signals for a day, so the Day tier reads its crosses from the month cell.
+
+**Day reason** ("왜 이런 날", `pickDayReasonSignal` in
+`src/app/calendar/crossPair.ts`, shared by the Monthly readout and the Daily hero):
+
+- Only cross signals with nonzero polarity whose sign passes the mark gate:
+  good/best need +, caution/avoid need −, an unmarked or focus day allows either.
+  If nothing passes, there is no reason.
+- Daily and instant crosses rank first (+1000). Hourly 시진 crosses get no bonus:
+  they lead only when no agreeing daily or instant cross exists, and then compete
+  on impact (|polarity| × weight) with monthly and wider crosses.
+- Ties keep the first signal in cell order.
+
+`deriveMonthSummary` takes `bestDayKind`: `'next-good'` when the month's best day
+has passed and the push day is the next good day, which switches the summary to
+the fallback wording.
+
 ## 6. Data-reliability rule
 
-When birth time or birth city is unknown, `collectAstroFacts` / the natal
-context set `placeUnreliable = true`. Every downstream surface (counselor
-context, calendar, report) must suppress house / ASC / MC / hour-pillar /
-iljin-window claims in that case, because the engine would otherwise fall back
-to a midnight/Seoul default and produce plausible-but-wrong houses.
+**Unknown birth time = three-pillar (삼주) saju** (OD-5, CONVENTIONS §5). The
+calculation anchors at 12:00 (`resolveBirthTimeAnchor`) only to fix the year,
+month and day pillars. Counts, strength, 용신, 격국, relations, shinsal, 12
+stages and luck-cycle relations read the three known pillars; position weights
+are renormalised over the present pillars. `collectSajuFacts` returns
+`pillars.time = null` and `timeUnknown = true`. `/api/saju` accepts
+`birthTimeUnknown: true` or a blank time and then returns `timePillar: null`,
+`table.byPillar.time: null`, `timeUnknown: true` and `fiveElements` summing to 6;
+a request with a non-blank time and no flag, including `'00:00'`, is a real
+birth time. The key-day push builds its natal the same way as the web calendar.
+
+**Unknown birth time or birth city = `placeUnreliable`.** The ASC, MC and houses
+of a noon-anchored or default-coordinate chart are fabricated, so everything that
+depends on them is dropped:
+
+- `collectAstroFacts`: planet houses, ASC and MC are `null`; the hellenistic
+  block is masked (`maskPlaceDependentHellenistic`: lots, ZR and almuten empty,
+  no aspects to the angles, no aspect-end houses, Chiron/Lilith house unknown).
+- Calendar engine: `buildCalendar` drops `isPlaceDependentSignal` signals
+  (house transits, angle contacts, profection, zodiacal releasing, arabic parts,
+  and any signal whose target is an angle) before the cross post-pass, and the
+  natal context empties lots, ZR and the almuten.
+- Calendar view: `toUser`, the lifetime flow and the hour crossings skip the
+  rising sign, MC and house personalisation.
+- Report: the integrated report hides houses, ASC/MC, lots, almuten and aspect
+  houses, and the identity axis gets no almuten winner.
+- Counselor context: no house / ASC / MC / profection-house claims.
+
+Sect (Sun altitude at the anchor) and the sect-based dignities stay visible; they
+depend on time and place but are not ASC/house items.
+
+Without coordinates, callers use the birth zone's reference point
+(`defaultLatitudeFor` / `defaultLongitudeFor(tz)`), never Seoul's for a
+non-Korean zone.
 
 ## 7. Verification
 
@@ -305,3 +438,8 @@ to a midnight/Seoul default and produce plausible-but-wrong houses.
 - `npm test`
 - `npm run ops:destiny:release` (typecheck + the integrated-report release
   tests)
+- `npm run docs:sync:check` — the generated blocks in this file (§4 cross
+  doctrine) and `docs/doctrine/calculation-standards.md` match the code; it also
+  fails when a `CALCULATION_STANDARDS` key has no reader in `src/`.
+- Goldens: `tests/golden/*.test.ts` (independent references: astronomy-engine
+  solar terms, JDN day pillar, mean solar time, astronomy-engine positions).

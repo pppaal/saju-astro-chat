@@ -79,13 +79,13 @@ export async function buildCalendar(
   // 2) 모든 extractor 병렬 실행 → 신호 평탄화
   const signalArrays = await Promise.all(extractors.map((ex) => ex.extract(ctx)))
   // 출생시각/출생지 미상 — ASC·MC·하우스(와 그로부터 계산한 lot)에 기대는 점성 신호는
-  // 정오/서울 폴백 차트의 날조라 뺀다(CALCULATION_SPEC §6). cross-activation 이 그
+  // 정오 앵커·기본 좌표 폴백 차트의 날조라 뺀다(CALCULATION_SPEC §6). cross-activation 이 그
   // 신호를 재료로 쓰지 않도록 post-pass 전에 거른다.
   const allSignals = natal.astro.placeUnreliable
     ? signalArrays.flat().filter((s) => !isPlaceDependentSignal(s))
     : signalArrays.flat()
 
-  // 2b) Cross-activation post-pass — 사주 × 점성 동시 활성 페어 (A등급 매핑) 합성.
+  // 2b) Cross-activation post-pass — 사주 × 점성 동시 활성 페어 (A·B등급 매핑) 합성.
   //     표준 extractor 와 달리 *다른 추출기들의 결과* 를 입력으로 받기 때문에
   //     extract 패스 이후에 1회 실행. emit 된 cross 신호는 일반 신호처럼 tagger·
   //     groupIntoCells 를 거쳐 cell.signals 에 그대로 들어간다 (matcher 가

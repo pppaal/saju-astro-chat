@@ -132,7 +132,7 @@ export interface CrossSignal extends SignalBase {
   sajuSide: string
   /** 점성측 원천 신호 라벨. */
   astroSide: string
-  /** A등급 매핑 의미 — '정관 ↔ Saturn (책임·구조)' 등. */
+  /** A·B등급 매핑 의미 — '정관 ↔ Saturn (책임·구조)' 등. */
   meaning: string
 }
 

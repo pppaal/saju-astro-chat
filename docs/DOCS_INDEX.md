@@ -1,6 +1,6 @@
 # Docs Index
 
-Last audited: 2026-11-24 (Asia/Hong_Kong)
+Last audited: 2026-11-25 (Asia/Hong_Kong)
 
 ## Core Docs
 
@@ -8,33 +8,35 @@ Last audited: 2026-11-24 (Asia/Hong_Kong)
 | ------------------------------- | --------------------------------------------------------------- | --------------------------- | ------------ |
 | `CLAUDE.md`                     | Orientation entry point for contributors & AI agents            | All engineers, AI agents    | 2026-06-16   |
 | `CONTRIBUTING.md`               | Setup, branch/PR workflow, pre-commit hooks, required checks    | All engineers               | 2026-06-16   |
-| `README.md`                     | Repo overview, architecture, quality engineering                | All engineers               | 2026-06-15   |
+| `README.md`                     | Repo overview, architecture, quality engineering                | All engineers               | 2026-11-25   |
 | `BUILD_INSTRUCTIONS.md`         | Prereqs, env setup, DB, build/test, deployment, troubleshooting | Developers, DevOps          | 2026-04-01   |
 | `OVERVIEW.md`                   | Architecture and runtime topology                               | Engineers, architects       | 2026-06-15   |
 | `docs/SECURITY_AUDIT_REPORT.md` | API security posture (historical route review) and open items   | Security, backend engineers | 2026-06-15   |
-| `ROADMAP.md`                    | Technical planning priorities                                   | Engineering leadership      | 2026-06-15   |
+| `ROADMAP.md`                    | Technical planning priorities                                   | Engineering leadership      | 2026-11-25   |
+| `ENGINE-AUDIT.md`               | Engine accuracy audit snapshot, with a 2026-11 status per item  | Backend/AI engineers        | 2026-11-25   |
 
 ## Canonical Destiny Docs
 
-| Document                         | Covers                                                                   | Audience                     | Last audited |
-| -------------------------------- | ------------------------------------------------------------------------ | ---------------------------- | ------------ |
-| `docs/README.md`                 | Docs hub and canonical vs historical guidance                            | All engineers                | 2026-04-01   |
-| `docs/REPO_STRUCTURE.md`         | Repo boundaries and storage policy for source vs generated output        | Maintainers, all engineers   | 2026-05-17   |
-| `docs/DESTINY_MATRIX.md`         | Current destiny architecture (saju/astro cores → facts → surfaces)       | Product/backend engineers    | 2026-06-15   |
-| `docs/CALCULATION_SPEC.md`       | Deterministic calculation pipeline (saju/astro/cross/calendar)           | Backend/AI engineers         | 2026-06-15   |
-| `docs/운흐름.md`                 | 운흐름(사주×점성 타이밍 캘린더) 단일 출처 — 데이터·5층·해석·라벨·v2 통합 | Product/backend/AI engineers | 2026-06-06   |
-| `docs/DESTINY_LOGGING.md`        | Current logging stack (logger + metrics; UserInteraction dormant)        | Backend/product engineers    | 2026-06-15   |
-| `docs/TESTING_AND_GUARDRAILS.md` | Required checks, CI gates, determinism goldens, release gate             | All engineers                | 2026-06-15   |
-| `docs/RUNBOOK.md`                | Operational runbook                                                      | On-call, platform engineers  | 2026-04-01   |
+| Document                         | Covers                                                                                | Audience                     | Last audited |
+| -------------------------------- | ------------------------------------------------------------------------------------- | ---------------------------- | ------------ |
+| `docs/README.md`                 | Docs hub and canonical vs historical guidance                                         | All engineers                | 2026-04-01   |
+| `docs/REPO_STRUCTURE.md`         | Repo boundaries and storage policy for source vs generated output                     | Maintainers, all engineers   | 2026-05-17   |
+| `docs/DESTINY_MATRIX.md`         | Current destiny architecture (saju/astro cores → facts → surfaces)                    | Product/backend engineers    | 2026-11-25   |
+| `docs/CALCULATION_SPEC.md`       | Deterministic calculation pipeline (saju/astro/cross/calendar), data-reliability rule | Backend/AI engineers         | 2026-11-25   |
+| `docs/운흐름.md`                 | 운흐름(사주×점성 타이밍 캘린더) 단일 출처 — 데이터·5층·해석·라벨·v2 통합              | Product/backend/AI engineers | 2026-11-25   |
+| `docs/DESTINY_LOGGING.md`        | Current logging stack (logger + metrics; UserInteraction dormant)                     | Backend/product engineers    | 2026-06-15   |
+| `docs/TESTING_AND_GUARDRAILS.md` | Required checks, CI gates, determinism goldens, release gate                          | All engineers                | 2026-06-15   |
+| `docs/RUNBOOK.md`                | Operational runbook                                                                   | On-call, platform engineers  | 2026-04-01   |
 
 ## Cross-Layer / Fortune Engine Docs
 
-| Document                              | Covers                                                                                                                          | Audience             | Last audited |
-| ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- | -------------------- | ------------ |
-| `docs/DESTINY_ENGINE_ARCHITECTURE.md` | End-to-end pipeline (input → saju → astro → facts → cross → surface)                                                            | Backend/AI engineers | 2026-06-15   |
-| `docs/AUDIT_SAJU.md`                  | Saju calculation audit                                                                                                          | Backend engineers    | 2026-03-11   |
-| `docs/AUDIT_ASTRO.md`                 | Astrology calculation audit                                                                                                     | Backend engineers    | 2026-03-11   |
-| `docs/SOLAR_TIME_CONVENTION.md`       | Solar time policy (mean solar time for the hour pillar only; no equation-of-time); year/month/대운 from the raw instant vs 절입 | Backend engineers    | 2026-11-25   |
+| Document                                                                                        | Covers                                                                                                                                                                                                                                          | Audience             | Last audited |
+| ----------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------- | ------------ |
+| `docs/DESTINY_ENGINE_ARCHITECTURE.md`                                                           | End-to-end pipeline (input → saju → astro → facts → cross → surface)                                                                                                                                                                            | Backend/AI engineers | 2026-11-25   |
+| `docs/AUDIT_SAJU.md`                                                                            | Saju calculation audit (2026-03 snapshot; 2026-11 status note)                                                                                                                                                                                  | Backend engineers    | 2026-11-25   |
+| `docs/AUDIT_ASTRO.md`                                                                           | Astrology calculation audit (2026-03 snapshot; 2026-11 status note)                                                                                                                                                                             | Backend engineers    | 2026-11-25   |
+| `docs/SOLAR_TIME_CONVENTION.md`                                                                 | Solar time policy (mean solar time for the hour pillar only; no equation-of-time); year/month/대운 from the raw instant vs 절입; one birth-instant resolver for saju and astrology                                                              | Backend engineers    | 2026-11-25   |
+| `docs/doctrine/saju.md`, `docs/doctrine/astrology.md`, `docs/doctrine/calculation-standards.md` | Doctrine vault: saju summary (canonical text in `src/lib/saju/CONVENTIONS.md`), astrology rules (polar Whole Sign, whole-sign profection, ZR units, sect by altitude, planetary hours), generated calculation standards with their code readers | Backend/AI engineers | 2026-11-25   |
 
 ## Generated And Audit Docs
 
@@ -62,12 +64,14 @@ Last audited: 2026-11-24 (Asia/Hong_Kong)
 
 ## Library Docs
 
-| Document                              | Covers                                     | Audience              | Last audited |
-| ------------------------------------- | ------------------------------------------ | --------------------- | ------------ |
-| `src/lib/api/README.md`               | API shared library layout and usage policy | Backend/API engineers | 2026-02-15   |
-| `src/lib/api/API_POLICY.md`           | API behavior and policy                    | Backend/API engineers | 2026-02-15   |
-| `src/lib/api/ERROR_RESPONSE_GUIDE.md` | Error contract details                     | Backend/API engineers | 2026-02-15   |
-| `src/lib/api/USAGE_EXAMPLES.md`       | Route implementation examples              | Backend/API engineers | 2026-02-15   |
+| Document                              | Covers                                                           | Audience              | Last audited |
+| ------------------------------------- | ---------------------------------------------------------------- | --------------------- | ------------ |
+| `src/lib/saju/CONVENTIONS.md`         | Saju doctrine SSOT (pillars, 지장간, 강약, 용신, 대운)           | Backend/AI engineers  | 2026-11-25   |
+| `src/lib/cache/CACHE_VERSIONING.md`   | Cache key versioning (`engineVersions.ts`, `ENGINE_VERSION_TAG`) | Backend engineers     | 2026-11-25   |
+| `src/lib/api/README.md`               | API shared library layout and usage policy                       | Backend/API engineers | 2026-02-15   |
+| `src/lib/api/API_POLICY.md`           | API behavior and policy                                          | Backend/API engineers | 2026-02-15   |
+| `src/lib/api/ERROR_RESPONSE_GUIDE.md` | Error contract details                                           | Backend/API engineers | 2026-02-15   |
+| `src/lib/api/USAGE_EXAMPLES.md`       | Route implementation examples                                    | Backend/API engineers | 2026-02-15   |
 
 ## Current Operating Notes
 
@@ -85,6 +89,8 @@ Last audited: 2026-11-24 (Asia/Hong_Kong)
 - 2026-06-06 캘린더 문서 통일: 흩어진 캘린더 문서 4개(`CALENDAR_LANGUAGE_GUIDE`, `calendar-display-design`, `calendar-v2-migration-gap`, `CALENDAR_GRADE_STRUCTURE_FOR_GPT`)를 단일 출처 **`docs/운흐름.md`** 로 통일하고 원본은 archive 이동. 제품/개념명을 destinypal → **운흐름** 으로 정리(코드 경로는 아직 `destinypal/`). 핵심 방향: 의미 매핑 확장이 아니라 **타이밍 수렴**.
 - 2026-06-15 docs cleanup (phase 2 — completed): rewrote the docs that still described the removed `src/lib/destiny-matrix` engine so they match the current code (saju/astro deterministic cores → facts → cross fusion → per-surface presenters; Claude over raw HTTP, no `@anthropic-ai/sdk`). Updated `README.md`, `OVERVIEW.md`, `ROADMAP.md`, `docs/DESTINY_MATRIX.md`, `docs/DESTINY_ENGINE_ARCHITECTURE.md`, `docs/CALCULATION_SPEC.md`, `docs/DESTINY_LOGGING.md`, `docs/TESTING_AND_GUARDRAILS.md`, `docs/AI_COST_MONITORING.md`, `docs/RUNBOOK.md`, `docs/운흐름.md`. Rewrote `docs/RAG_AND_GRAPHRAG.md` and `docs/PDF_REPORTING.md` as "removed feature" historical pointers (GraphRAG, PDF/AI premium report, and the `/api/calendar|destiny-map|destiny-matrix` routes are all gone). Flagged `docs/SECURITY_AUDIT_REPORT.md` as a historical 2026-02 snapshot. Refreshed README repo-snapshot numbers via `docs:stats`/`audit:api` (76 routes, 24 models, 548 test files; 90.8% guarded / 75.0% validated / 89.5% rate-limited).
 - 2026-11-24 docs cleanup (owner-approved deletion): deleted `docs/archive/**` (70 files, incl. `root-history/` and `unicorn-analysis/`), the removed-feature pointers `docs/RAG_AND_GRAPHRAG.md` and `docs/PDF_REPORTING.md`, the owner planning docs `docs/UNICORN_STRATEGY.md`, `docs/A_GRADE_CHECKLIST.md`, `docs/CALCULATION_ROADMAP.md`, `docs/CALCULATION_COVERAGE_AUDIT.md`, `docs/REPORT_UX_PLAN.md`, `docs/라이브러리_지도.md`, `docs/캘린더_리포트_정리계획.md`, and the root snapshots `PROJECT_EVALUATION.md`, `REPORT-CONTENT-AUDIT.md`, `SSOT-AUDIT.md`. `ENGINE-AUDIT.md` stays (cited from src comments). The Android/Capacitor shell (`android/`, `capacitor.config.ts`) was removed in the same pass.
+
+- 2026-11-25 engine doc sync (engine audit E15): `docs/CALCULATION_SPEC.md` (signature with `now`/`opts`, pillar rules, removed `getDaeunCycles`, astrology timing rules, day-reason rule, §6 three-pillar and `placeUnreliable` rule), `docs/SOLAR_TIME_CONVENTION.md` (resolver users, 1900–2050 table, time-unknown anchor), `docs/doctrine/*` (astrology timing rules and polar fallback; calculation standards now list each key's code readers and `docs:sync` fails on a key with none), `src/lib/saju/CONVENTIONS.md` (§4 civil day in the birth timezone, §6 지장간 table checked by `tests/lib/saju/conventions.docSync.test.ts`, §13 floor), `src/lib/cache/CACHE_VERSIONING.md`, `docs/운흐름.md` (57 mappings, agree-sign polarity, hourly band), stale `src/lib/cross/crossInterpret.ts` references removed from `DESTINY_MATRIX`/`DESTINY_ENGINE_ARCHITECTURE`/README/ROADMAP, and status notes on `ENGINE-AUDIT.md`, `docs/AUDIT_SAJU.md`, `docs/AUDIT_ASTRO.md`.
 
 ## Historical Docs
 

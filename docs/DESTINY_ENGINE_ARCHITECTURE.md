@@ -1,6 +1,7 @@
 # Destiny Engine Architecture
 
-Last audited: 2026-06-15 (Asia/Hong_Kong)
+Last audited: 2026-11-25 (§2–§4 synced with the engine audit E15; calculation rules in
+`CALCULATION_SPEC.md`)
 
 > Historical note: an earlier `src/lib/destiny-matrix` engine (the
 > "Feature -> Rule -> Pattern -> Scenario -> Verdict -> Evaluation" matrix
@@ -31,15 +32,19 @@ context it is handed; it does not compute astrology or saju.
 ### Saju core
 
 - Entry: `src/lib/saju/saju.ts` -> `calculateSajuData(birthDate, birthTime,
-gender, calendarType, timezone, lunarLeap?, longitude?)`. Returns
-  `CalculateSajuDataResult` (four pillars, `daeWoon`, `unse`, `fiveElements`,
-  etc.). Internally LRU-cached.
-- Barrel `src/lib/saju/index.ts` re-exports the analysis helpers:
-  `analyzeStrength` (`tonggeun.ts`), `determineGeokguk` (`geokguk.ts`),
-  `determineYongsin` (`yongsin.ts`), `getTwelveStagesForPillars` and
-  `annotateShinsal` (`shinsal.ts`), `analyzeRelations` (`relations.ts`), and
-  the cycle helpers `getDaeunCycles` / `getAnnualCycles` / `getMonthlyCycles` /
-  `getIljinCalendar` (`unse.ts`).
+gender, calendarType, timezone, lunarLeap?, longitude?, now = new Date(),
+opts?)`. Returns `CalculateSajuDataResult` (four pillars, `daeWoon`, `unse`,
+  `fiveElements`, `timeUnknown`, `meta`). Internally LRU-cached. `now` is the
+  injectable clock for 대운/세운/age; `opts.timeUnknown` (or a blank time) gives
+  the three-pillar reading.
+- Analysis helpers (imported from their source modules): `computeStrengthScore`
+  / `strengthBandOf` / `strengthClassOf` (`strengthScore.ts`), `analyzeStrength`
+  (`tonggeun.ts`), `determineGeokguk` (`geokguk.ts`), `determineYongsin`
+  (`yongsin.ts`), `getTwelveStagesForPillars` and `annotateShinsal`
+  (`shinsal.ts`), `analyzeRelations` (`relations.ts`), `currentDaeun`
+  (`daeunAge.ts`), and the cycle helpers `getAnnualCycles` / `getMonthlyCycles`
+  / `getIljinCalendar` (`unse.ts`). The 대운 list comes only from
+  `calculateSajuData` (`unse.getDaeunCycles` was removed in 2026-06).
 - Supporting data/util: `constants.ts`, `tonggeun.ts`, `dayPillar.ts`,
   `cycles.ts`, `johuYongsin.ts`.
 
@@ -64,7 +69,7 @@ read from. They return raw structured JSON with no text formatting.
 
 - `src/lib/destiny/sajuFacts.ts` -> `collectSajuFacts(input): SajuFacts`.
   Runs `calculateSajuData()` and flattens it into `SajuFacts`: `pillars`,
-  `dayMaster` (with `rooted`/통근), `fiveElements`, `strength` (신강/신약 label),
+  `dayMaster` (with `rooted`/통근), `fiveElements`, `strength` (신강/중화/신약),
   `geokguk`, `yongsin`, `relations`, `gwansalHonjap`, `daeun`, `johuYongsin`,
   `gongmang`, plus a `_raw` escape hatch carrying the original
   `calculateSajuData` result.
@@ -81,13 +86,18 @@ the chart cannot be trusted.
 
 ## 4. Cross fusion
 
-- `src/lib/cross/crossInterpret.ts` -> `lookupCross(saju, astro)`,
-  `crossMeaning(saju, astro, lang)`, `rankActiveCrosses(...)`. Looks up
-  Saju <-> Astrology correspondences and ranks the active ones.
-- The correspondence dictionary used by the calendar engine lives at
+- The correspondence dictionary lives at
   `src/lib/calendar-engine/data/saju-astro-mapping.ts` (`SAJU_ASTRO_MAPPINGS`,
-  `CrossMapping` with A/B/C grade and ko/en meanings). It maps a saju side key
-  (ten-god or shinsal name) to a single planet name.
+  `CrossMapping` with grade A or B and ko/en meanings; `lookupCrossMapping(sajuKey,
+astroKey)` is the lookup). It maps a saju side key (ten-god or shinsal name) to
+  a single planet name.
+- The calendar post-pass `extractCrossActivations`
+  (`src/lib/calendar-engine/extractors/cross-activation.ts`) pairs co-active
+  signals. A cross is signed only when both parents agree with the mapping, it
+  takes the narrowest parent layer, and `CROSS_LAYER_BAND` gates it
+  (`CALCULATION_SPEC.md` §4 has the generated truth table).
+- The day's "why this day" reason is `pickDayReason` in
+  `src/app/calendar/crossPair.ts`.
 - Natal cross synthesis for the report lives at
   `src/lib/report/natalCross.ts`.
 

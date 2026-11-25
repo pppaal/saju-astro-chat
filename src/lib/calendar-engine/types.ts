@@ -37,7 +37,7 @@ export type AstroSignalKind =
   | 'draconic' // 드라코닉 차트 (영혼 결) 트랜짓 컨택
   | 'harmonic' // 하모닉 차트 (특정 결 패턴 — 4/5/7/9) 트랜짓 컨택
 
-export type CrossSignalKind = 'cross-activation' // 사주-점성 동시 활성 페어 (A등급 매핑 사전 기반 의미 신호)
+export type CrossSignalKind = 'cross-activation' // 사주-점성 동시 활성 페어 (A·B등급 매핑 사전 기반 의미 신호)
 
 export type SignalKind = SajuSignalKind | AstroSignalKind | CrossSignalKind
 

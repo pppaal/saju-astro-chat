@@ -9,8 +9,9 @@ This roadmap is a planning document. It is not a source of truth for current imp
 - Core app stack: Next.js + Prisma + Claude via the Anthropic Messages API over
   raw HTTP (no `@anthropic-ai/sdk`; Python backend retired 2026-05-06)
 - Deterministic engine: Saju core (`src/lib/saju`) + astrology core
-  (`src/lib/astrology`) + fact/cross layers (`src/lib/destiny`, `src/lib/cross`) +
-  calendar engine (`src/lib/calendar-engine`). The old `src/lib/destiny-matrix`
+  (`src/lib/astrology`) + fact/cross layers (`src/lib/destiny`, `src/lib/report`
+  natal cross) + calendar engine (`src/lib/calendar-engine`, incl. the saju × astro
+  cross post-pass). The old `src/lib/destiny-matrix`
   and `src/lib/fortune/cross-rules` engines were removed in the 2026-06 restructure.
 - API routes (current): 76 (`npm run audit:api`); 41 app pages, 24 Prisma models,
   548 test files (`npm run docs:stats`)

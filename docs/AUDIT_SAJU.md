@@ -1,5 +1,17 @@
 # Audit SAJU
 
+> **Status (2026-11-25, engine audit E15):** this is a point-in-time audit; line
+> numbers below are from that time. Since then: the supported range is
+> **1900–2050** (the solar-term table was regenerated from Swiss Ephemeris and
+> cross-checked against astronomy-engine, risk 1); `toDate` (date-fns-tz) was
+> replaced by the RFC 5545 resolver `resolveBirthInstant`, shared with astrology
+> (risk 4; date-fns-tz is no longer a dependency); an unknown birth time is a
+> three-pillar reading with a noon anchor, covered by
+> `tests/lib/destiny/sajuFacts.timeUnknown.test.ts` (risk 3); 대운 start age is
+> floor(days / 3), documented in `src/lib/saju/CONVENTIONS.md` §13 (risk 6); and
+> independent goldens live in `tests/golden/`. Current rules:
+> `src/lib/saju/CONVENTIONS.md` and `docs/CALCULATION_SPEC.md`.
+
 ## Scope
 
 - Engine: `src/lib/saju/saju.ts`

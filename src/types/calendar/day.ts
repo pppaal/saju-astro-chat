@@ -136,7 +136,7 @@ export interface DestinyCrossActivation {
   sajuKo?: string
   /** 점성측 행성 raw(KO) — 분야 라우팅용. */
   astroKo?: string
-  /** A등급 매핑 의미(KO) — '정관 ↔ Saturn (책임·구조)'. */
+  /** A·B등급 매핑 의미(KO) — '정관 ↔ Saturn (책임·구조)'. */
   meaning: string
   /** 의미 영문 — 클라이언트 로케일 토글 시 서버언어 고정 방지(양쪽 보관). */
   meaningEn?: string

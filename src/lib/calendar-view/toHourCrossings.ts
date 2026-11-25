@@ -11,8 +11,9 @@
  * '교차'의 정직성: 시진 십신 × 상승궁 룰러가 *의미 매핑 사전*(saju-astro-mapping)
  * 에 있고, 방향(길흉)이 시진 폴라리티와 모순되지 않을 때만 진짜 교차
  * (matched=true, crossMeaning 에 사전 해석). 그 밖엔 같은 시각의 두 사실 병치 —
- * UI 는 '×' 대신 '·' 로 구분해 과장하지 않는다. (엔진 cross-activation 이
- * hourly 를 지원하지 않아 어댑터에서 같은 사전으로 게이팅.)
+ * UI 는 '×' 대신 '·' 로 구분해 과장하지 않는다. (엔진 cross-activation 도 이제
+ * 시진 × 빠른 행성 교차를 hourly 로 내지만 — 엔진 감사 E11 — 상승궁은 엔진의 교차 키가
+ * 아니라서 이 시진 × 상승궁 룰러 짝은 어댑터에서 같은 사전으로 게이팅한다.)
  */
 
 import type { CalendarCell } from '@/lib/calendar-engine/types'
