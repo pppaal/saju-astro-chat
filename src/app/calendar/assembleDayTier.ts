@@ -56,6 +56,29 @@ export function pickNextBigDay(
   return dDay >= 1 ? { date: best.date, dDay, score: best.score } : null
 }
 
+const LAYER_RANK: Record<string, number> = {
+  hourly: 0,
+  instant: 1,
+  daily: 2,
+  monthly: 3,
+  yearly: 4,
+  decadal: 5,
+}
+
+/** 같은 페어 교차 행 중 무엇을 남길지 — |polarity| → weight → 짧은 layer 순. */
+function crossRowOutranks(
+  a: { polarity: number; weight?: number; layer?: string },
+  b: { polarity: number; weight?: number; layer?: string }
+): boolean {
+  if (Math.abs(a.polarity) !== Math.abs(b.polarity)) {
+    return Math.abs(a.polarity) > Math.abs(b.polarity)
+  }
+  const wa = a.weight ?? 0
+  const wb = b.weight ?? 0
+  if (wa !== wb) return wa > wb
+  return (LAYER_RANK[a.layer ?? ''] ?? 9) < (LAYER_RANK[b.layer ?? ''] ?? 9)
+}
+
 export interface AssembleDayTierInput {
   natal: NatalContext
   /** 대상 달(또는 그 해) CalendarCell — 점수 정규화·추이선·다가오는 며칠의 모집단. */
@@ -196,15 +219,21 @@ export async function assembleDayTier(input: AssembleDayTierInput): Promise<Dest
   // name("편관 × 화성")에서 파싱 — detail.sajuName/astroName 은 존재하지 않는 필드라
   // 양쪽이 늘 빈 ↔ 로 떴다. name 파싱 + korean/english 로 교정. 같은 페어가 여러
   // 층(daily/monthly…)에서 잡혀 중복되므로 페어 기준 1개(가장 센 것)만 남긴다.
+  // 원천은 *월 빌드 셀*(monthPopCell) — 월 리드아웃(assembleTiers)의 '왜' 와 같은 교차
+  // 사실(엔진 감사 X1). 엔진이 범위 불변이라 포커스 1일 셀과 교차는 같지만, 같은 셀을
+  // 직접 읽어 두 화면이 구조적으로 못 갈리게 한다. evidence 가 빠진 월 셀도 crossKeys 가
+  // name 파싱으로 페어를 복원한다. 월 셀이 없을 때만 포커스 셀.
+  const crossSourceCell = monthPopCell ?? dayCell
   const dayCrossByPair = new Map<string, DestinyDay['crossActivations'][number]>()
-  for (const s of dayCell.signals) {
+  for (const s of crossSourceCell.signals) {
     if (s.kind !== 'cross-activation') continue
-    // 포커스일 셀은 evidence.detail 이 살아 있어 구조화 키를 직접 쓴다(견고).
+    // detail 이 살아 있으면 구조화 키, 없으면(월 캐시 셀) name 파싱.
     const { sajuKo, astroKo } = crossKeys(s)
     if (!sajuKo || !astroKo) continue
     const key = `${sajuKo}|${astroKo}`
     const prev = dayCrossByPair.get(key)
-    if (prev && Math.abs(prev.polarity) >= Math.abs(s.polarity)) continue
+    // 전순서(|polarity| → weight → layer) — 셀 안 신호 순서와 무관하게 같은 페어 행을 고른다.
+    if (prev && !crossRowOutranks(s, prev)) continue
     const ko = lang === 'ko'
     dayCrossByPair.set(key, {
       id: s.id,

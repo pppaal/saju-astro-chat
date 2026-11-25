@@ -147,6 +147,12 @@ export async function getOrBuildMonthCells(
  * 범위로 evidence 포함 빌드한다. (점수는 월 layered map 에서 오므로 이 1일 빌드의
  * 점수는 쓰지 않는다.)
  *
+ * 1일 범위로 빌드해도 그날 셀의 신호·교차는 월 빌드의 그날 셀과 같다 — 엔진이 범위
+ * 불변이다(트랜짓·품위·달 위상 창을 범위 밖까지 잇고, 子時는 민용일 안에서 나누고,
+ * 교차는 셀 단위로 dedup; 엔진 감사 X1·E9, tests/lib/calendar-engine/rangeInvariance).
+ * 다른 것은 셀 묶음 모집단에 대한 상대값(derivedScore·salience)뿐이다. 그래서 일 화면
+ * 교차·인생 화면 10년 교차가 월 리드아웃과 같은 사실을 말한다.
+ *
  * 이 하루(보통 '오늘')는 같은 유저가 반복 방문하므로, 1일치 evidence(작은 블롭)는
  * `day:${dateIso}` 키로 따로 캐싱한다 — 매 방문 Swiss Ephemeris 재계산 방지.
  */

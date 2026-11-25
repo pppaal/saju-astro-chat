@@ -119,6 +119,8 @@ export async function assembleLifetime(input: AssembleLifetimeInput): Promise<As
   // ⑥ 올해 한 줄(세운) — 연 셀 없이 입춘 SSOT 로. 캘린더로 내려보내는 연결 고리.
   lifetime.thisYear = buildThisYear(natal, input.todayIso, now)
   // ⑧ 이 10년의 사주×점성 교차 — 1일 evidence 셀의 decadal 층만(연 셀 불필요).
+  //   캘린더 엔진이 범위 불변이라(엔진 감사 X1·E9) 이 1일 셀의 교차는 같은 날 월 빌드
+  //   셀의 교차와 같다 — /calendar 월·일 화면과 같은 사실을 말한다(rangeInvariance 테스트).
   //   Promise 로 왔으면 여기서 await — 이미 위 병렬 구간과 겹쳐 돌았으니 대개 즉시.
   const focusDayCell = input.focusDayCell ? await input.focusDayCell : null
   lifetime.decadeCross = buildDecadeCross(focusDayCell)
