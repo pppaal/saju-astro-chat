@@ -86,8 +86,10 @@ export async function ensureCounselorContext(
   // sources(사주만/점성만/둘 다)도 키에 포함 — 소스 토글마다 컨텍스트 바이트가
   // 달라, 안 넣으면 "사주만"으로 빌드된 캐시가 "둘 다" 요청에 잘못 hit 한다.
   const srcTag = `s${sources.saju ? 1 : 0}${sources.astro ? 1 : 0}`
-  const stableCtxKey = `counselor:ctx:stable:v13:${lang}:${srcTag}:${userId}:${birthFingerprint(body)}:${hourUnknown ? 'tU' : 'tK'}:${cityUnknown ? 'cU' : 'cK'}:${userTz}`
-  const dailyCtxKey = `counselor:ctx:daily:v13:${lang}:${srcTag}:${userId}:${birthFingerprint(body)}:${hourUnknown ? 'tU' : 'tK'}:${cityUnknown ? 'cU' : 'cK'}:${userTz}:${localDateKey}`
+  // v13→v14: 2026-11 엔진 정합(절입 순간·관계·신살·강약/용신·프로펙션·교차)으로
+  // 컨텍스트 내용이 바뀌어 무효화. stable 은 TTL 30일이라 안 올리면 옛 판정이 남는다.
+  const stableCtxKey = `counselor:ctx:stable:v14:${lang}:${srcTag}:${userId}:${birthFingerprint(body)}:${hourUnknown ? 'tU' : 'tK'}:${cityUnknown ? 'cU' : 'cK'}:${userTz}`
+  const dailyCtxKey = `counselor:ctx:daily:v14:${lang}:${srcTag}:${userId}:${birthFingerprint(body)}:${hourUnknown ? 'tU' : 'tK'}:${cityUnknown ? 'cU' : 'cK'}:${userTz}:${localDateKey}`
 
   // 두 키는 독립 — Redis 왕복을 병렬로 (직렬 대비 ~5ms, 매 상담 메시지 hot path).
   const [cachedStable, cachedDaily] = await Promise.all([
