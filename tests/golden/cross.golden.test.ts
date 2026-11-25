@@ -438,12 +438,13 @@ async function reportFor(i: ReportInput) {
     longitude: i.longitude,
     timeZone: i.timeZone,
   })) as Ctx & Record<string, unknown>
+  // ctx.input 은 computeIsMinor 가 읽는 숫자 꼴(year·month·date)을 유지한다 — 예전엔
+  // date 를 'YYYY-MM-DD' 문자열로 덮어써 미성년 판정이 늘 false 였다(F5).
   ;(ctx as Record<string, unknown>).input = {
     ...((ctx as Record<string, unknown>).input as object),
     gender: i.gender,
     birthDate: i.birthDate,
     birthTime: i.birthTime,
-    date: i.birthDate,
   }
   const S = (ctx as Record<string, any>).saju ?? {}
   const A = (ctx as Record<string, any>).astro ?? {}
@@ -535,6 +536,33 @@ describeRealEphemeris('report cross rows (E0 section F)', () => {
     expect(need).toBeTruthy()
     const row = r.rows.find((x) => x.key === 'needs')
     expect(row?.tone).toBe(elementTone(need!, R.needs.moonElement))
+  }, 30_000)
+
+  // 미성년 마스킹 경로 — 만 14세 미만이면 연애·재물 행을 내지 않는다(MINOR_AGE_THRESHOLD).
+  // 같은 출생 정보를 성인 생년으로 바꾼 대조군은 연애·재물 행을 낼 수 있고, ctx.input 은
+  // 숫자 꼴이라 computeIsMinor 가 실제로 판정한다.
+  it('minor chart 2015-06-10 08:20 F Seoul hides romance and wealth rows', async () => {
+    const minor = {
+      ...R.needs.input,
+      birthDate: '2015-06-10',
+      birthTime: '08:20',
+      gender: 'female',
+    }
+    const r = await reportFor(minor as ReportInput)
+    const input = (r.ctx as Record<string, any>).input
+    expect([input.year, input.month, input.date]).toEqual([2015, 6, 10])
+    const keys = r.rows.map((x) => x.key)
+    expect(keys.length).toBeGreaterThan(0)
+    expect(keys).not.toContain('romance')
+    expect(keys).not.toContain('wealth')
+    // 대조군 — 같은 차트를 성인 생년으로 판정하면 연애·재물 행이 나온다(마스킹 경로가
+    // 실제로 행을 가렸다는 뜻). 예전 helper 는 date 문자열 때문에 늘 이 꼴이었다.
+    const asAdult = buildCrossRows(
+      { ...(r.ctx as Record<string, any>), input: { ...input, year: 1990 } } as never,
+      'en',
+      NOW
+    ).rows.map((x) => x.key)
+    expect(asAdult.filter((k) => k === 'romance' || k === 'wealth').length).toBeGreaterThan(0)
   }, 30_000)
 })
 
