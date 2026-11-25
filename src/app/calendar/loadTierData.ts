@@ -26,6 +26,7 @@ import { assembleTiers, type AssembledTiers } from './assembleTiers'
 import { assembleLifetime, type AssembledLifetime } from './assembleLifetime'
 import { getNowInTimezone, formatDateString } from '@/lib/datetime/timezone'
 import { resolveBirthTimeAnchor } from '@/lib/saju/birthTimeAnchor'
+import { profileToCalendarBirth } from '@/lib/calendar-engine/profileBirth'
 import { defaultLatitudeFor, defaultLongitudeFor } from '@/lib/saju/timezone'
 
 export type LoadTierResult =
@@ -98,14 +99,6 @@ export function parseBirthOverride(sp: SP): BirthOverride | null {
   }
 }
 
-// DB UserProfile.gender → 'male' | 'female'. canonical 'female'/'male' 저장,
-// 레거시 'F'/'M'/'U' 도 대소문자 무시 처리. 미상/기타는 male 기본.
-function normalizeGender(g: string | null | undefined): 'male' | 'female' {
-  const v = (g ?? '').trim().toLowerCase()
-  if (v === 'female' || v === 'f') return 'female'
-  return 'male'
-}
-
 export interface BirthInput {
   birthDate: string
   birthTime: string
@@ -150,33 +143,20 @@ export async function loadSessionBirth(): Promise<SessionBirthResult> {
     },
   })
   const profile = userRow?.profile
-  const isBirthComplete =
-    !!profile?.birthDate &&
-    !!profile?.birthTime &&
-    typeof profile?.latitude === 'number' &&
-    typeof profile?.longitude === 'number' &&
-    !!profile?.tzId
-  if (!isBirthComplete || !profile) return { kind: 'no-birth' }
-
+  // 프로필 → 본명 입력 단일 규칙(profileToCalendarBirth) — "오늘의 큰 날" 푸시
+  // (cron/keyday-push)와 같은 함수라 두 경로의 본명·birthKey 가 같다(엔진 감사 F1).
   // 시간 모름 → 정오 앵커(SSOT: birthTimeAnchor, tri-state). DB 명시 플래그가
   // 있으면 신뢰(false + '00:00' = 실제 자정 출생), NULL(레거시 행)이면
   // '00:00'=미상 휴리스틱. 예전엔 프로필 '00:00' 이 그대로 계산돼, 같은
   // 사용자가 딥링크(정오 폴백)로 들어오면 당일 일주·세션 진입이면 전날 일주를
   // 보는 자기모순이 있었다.
-  const anchor = resolveBirthTimeAnchor(profile.birthTime, profile.birthTimeUnknown)
+  const birth = profileToCalendarBirth(profile)
+  if (!birth || !profile) return { kind: 'no-birth' }
 
   return {
     kind: 'ok',
-    birth: {
-      birthDate: profile.birthDate!,
-      birthTime: anchor.time,
-      gender: normalizeGender(profile.gender),
-      latitude: profile.latitude!,
-      longitude: profile.longitude!,
-      timeZone: profile.tzId!,
-      birthTimeUnknown: anchor.timeUnknown,
-    },
-    timeUnknown: anchor.timeUnknown,
+    birth,
+    timeUnknown: birth.birthTimeUnknown === true,
     place: profile.birthCity || null,
   }
 }

@@ -14,16 +14,15 @@ import { getOrBuildNatalContext, getOrBuildMonthCells } from '@/lib/calendar-eng
 import { deriveLayeredScores } from '@/lib/calendar-engine/derivers/layeredScore'
 import { reconcileCellOneLine } from '@/lib/calendar-view/toDay'
 import { getNowInTimezone, formatDateString } from '@/lib/datetime/timezone'
+import type { CalendarBirth } from '@/lib/calendar-engine/profileBirth'
 import type { PushPayload } from './sender'
 
-export interface KeyDayBirth {
-  birthDate: string
-  birthTime: string
-  gender: 'male' | 'female'
-  latitude: number
-  longitude: number
-  timeZone: string
-}
+/**
+ * 푸시 본명 — 웹 캘린더와 같은 엔진 입력(profileToCalendarBirth). 시간 미상이면
+ * birthTime 은 정오 앵커이고 birthTimeUnknown=true(삼주 + placeUnreliable) — 이 플래그가
+ * birthKey 에 접혀야 웹 캘린더와 같은 캐시·같은 본명을 본다(엔진 감사 F1).
+ */
+export type KeyDayBirth = CalendarBirth
 
 // 이달 salience 상위 몇 위까지를 "큰 날"로 볼지. 3이면 한 달에 약 3번.
 const TOP_K = 3
@@ -34,10 +33,12 @@ const TOP_K = 3
  */
 export async function buildKeyDayPayload(
   birth: KeyDayBirth,
-  locale: 'ko' | 'en'
+  locale: 'ko' | 'en',
+  // 현재 시각 주입점 — cron 경계에서 한 번 읽어 넘긴다(CLAUDE.md 결정론).
+  now: Date = new Date()
 ): Promise<PushPayload | null> {
   const natal = await getOrBuildNatalContext(birth)
-  const today = getNowInTimezone(birth.timeZone)
+  const today = getNowInTimezone(birth.timeZone, now)
   const cells = await getOrBuildMonthCells(birth, natal, today.year, today.month)
   if (cells.length === 0) return null
 
