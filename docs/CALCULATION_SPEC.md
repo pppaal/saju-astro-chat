@@ -78,6 +78,11 @@ Pillar rules (`src/lib/saju/CONVENTIONS.md` is the canonical text):
   result. `fiveElements` counts the 6 characters of the three known pillars,
   `timeUnknown = true`, and `timePillar` is a placeholder that no judgment may
   read (삼주 analysis, OD-5).
+- **Lunar input** (`calendarType: 'lunar'`): converted with `korean-lunar-calendar`
+  (lunar 1000-01-01 … 2050-11-18). A lunar date that does not exist (day 30 of a
+  29-day month, a leap month the year does not have) is a validation error at
+  the API (`sajuCalculationRequestSchema`, HTTP 422 `VALIDATION_ERROR`) and an
+  `InvalidLunarDateError` in the engine.
 
 ### Output: `CalculateSajuDataResult` (`src/lib/saju/types.ts`)
 

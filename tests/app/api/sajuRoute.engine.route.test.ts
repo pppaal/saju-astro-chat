@@ -363,3 +363,41 @@ describe('POST /api/saju — 100세+ 의 현재 대운 (재감사 SP-1 · SI-5)'
     expect(second.daeun.list.slice(0, 10)).toEqual(first.daeun.list)
   })
 })
+
+describe('POST /api/saju — 없는 음력 날짜는 422, 엔진 미호출 (재감사 SP-3)', () => {
+  const lunar = (birthDate: string, lunarLeap?: boolean) =>
+    post({
+      birthDate,
+      birthTime: '10:00',
+      gender: 'male',
+      calendarType: 'lunar',
+      timezone: 'Asia/Seoul',
+      ...(lunarLeap === undefined ? {} : { lunarLeap }),
+    })
+
+  it('음력 1990-01-30 (1월은 29일) → 422 VALIDATION_ERROR, 500 아님', async () => {
+    const res = await lunar('1990-01-30')
+    const json = await res.json()
+    expect(res.status).toBe(422)
+    expect(json.error.code).toBe('VALIDATION_ERROR')
+    expect(json.error.message).toContain('This lunar date does not exist')
+    expect(computeCount).toBe(0)
+  })
+
+  it('없는 윤달(2023 윤3월) → 422', async () => {
+    const res = await lunar('2023-03-01', true)
+    expect(res.status).toBe(422)
+    expect(computeCount).toBe(0)
+  })
+
+  it('음력 1990-02-30 (양력엔 없지만 음력엔 있음) → 200, 민용 생일 = 양력 1990-03-26', async () => {
+    const res = await lunar('1990-02-30')
+    const json = await res.json()
+    expect(res.status, JSON.stringify(json.error)).toBe(200)
+    expect(computeCount).toBe(1)
+    // 일주는 양력 민용일(1990-03-26)의 JDN — 참조와 같다.
+    expect(gz(json.data.dayPillar)).toBe(
+      referencePillars('1990-03-26', '10:00', 'Asia/Seoul', 126.978)[2]
+    )
+  })
+})

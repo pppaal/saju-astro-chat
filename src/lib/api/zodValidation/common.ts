@@ -24,36 +24,48 @@ function isValidTimezone(tz: string): boolean {
 
 // ============ Primitive Schemas ============
 
+const DATE_FORMAT_RE = /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/
+const DATE_FORMAT_MESSAGE = 'Date must be in YYYY-MM-DD format'
+const DATE_RANGE_MESSAGE = 'Date must be between 1900 and the current year'
+
+/** 'YYYY-MM-DD' 가 실제 그레고리력(양력) 날짜인가 — 2월 30일·4월 31일 등은 false. */
+export function isValidGregorianDate(date: string): boolean {
+  const [year, month, day] = date.split('-').map(Number)
+  const parsed = new Date(year, month - 1, day)
+  return (
+    parsed.getFullYear() === year && parsed.getMonth() === month - 1 && parsed.getDate() === day
+  )
+}
+
+// Reject obviously nonsensical birth dates (year 1800 or 2099). The astro
+// and saju engines accept them silently and produce meaningless output,
+// which then anchors the entire counselor session.
+// 하한 1900 = 사주 엔진 절입표 지원 시작(KASI_START_YEAR, src/lib/saju/constants.ts).
+// 둘이 어긋나면 검증을 통과한 출생이 엔진에서 throw → 500 이 된다(엔진 감사 SAJU-5:
+// 1900–1939 가 그랬다 — E14 에서 절입표를 1900 까지 생성해 맞춤). 가드:
+// tests/sajuIntegrity.test.ts (KASI_START_YEAR === 1900), tests/app/api/sajuRoute.engine.route.test.ts.
+function isBirthYearInRange(date: string): boolean {
+  const year = Number(date.slice(0, 4))
+  const currentYear = new Date().getUTCFullYear()
+  return year >= 1900 && year <= currentYear
+}
+
 export const dateSchema = z
   .string()
-  .regex(/^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/, {
-    message: 'Date must be in YYYY-MM-DD format',
-  })
-  .refine(
-    (date) => {
-      const [year, month, day] = date.split('-').map(Number)
-      const parsed = new Date(year, month - 1, day)
-      return (
-        parsed.getFullYear() === year && parsed.getMonth() === month - 1 && parsed.getDate() === day
-      )
-    },
-    { message: 'Invalid date' }
-  )
-  // Reject obviously nonsensical birth dates (year 1800 or 2099). The astro
-  // and saju engines accept them silently and produce meaningless output,
-  // which then anchors the entire counselor session.
-  // 하한 1900 = 사주 엔진 절입표 지원 시작(KASI_START_YEAR, src/lib/saju/constants.ts).
-  // 둘이 어긋나면 검증을 통과한 출생이 엔진에서 throw → 500 이 된다(엔진 감사 SAJU-5:
-  // 1900–1939 가 그랬다 — E14 에서 절입표를 1900 까지 생성해 맞춤). 가드:
-  // tests/sajuIntegrity.test.ts (KASI_START_YEAR === 1900), tests/app/api/sajuRoute.engine.route.test.ts.
-  .refine(
-    (date) => {
-      const year = Number(date.slice(0, 4))
-      const currentYear = new Date().getUTCFullYear()
-      return year >= 1900 && year <= currentYear
-    },
-    { message: 'Date must be between 1900 and the current year' }
-  )
+  .regex(DATE_FORMAT_RE, { message: DATE_FORMAT_MESSAGE })
+  .refine(isValidGregorianDate, { message: 'Invalid date' })
+  .refine(isBirthYearInRange, { message: DATE_RANGE_MESSAGE })
+
+/**
+ * 달력 종류와 무관한 출생일 문자열 — 형식(YYYY-MM-DD)과 연도(1900..올해)만 본다.
+ * 그 날짜가 실제로 있는지는 calendarType 을 아는 스키마가 판정한다: 양력은
+ * isValidGregorianDate, 음력은 isExistingLunarDate(@/lib/saju/lunarDate — 엔진과 같은
+ * 변환기). 음력엔 양력 검사를 쓰면 안 된다 — 음력 1990-02-30 은 있는 날짜다(재감사 SP-3).
+ */
+export const calendarDateStringSchema = z
+  .string()
+  .regex(DATE_FORMAT_RE, { message: DATE_FORMAT_MESSAGE })
+  .refine(isBirthYearInRange, { message: DATE_RANGE_MESSAGE })
 
 export const timeSchema = z.string().regex(/^([01]?\d|2[0-3]):([0-5]\d)(\s?(AM|PM))?$/i, {
   message: 'Time must be in HH:MM or HH:MM AM/PM format',

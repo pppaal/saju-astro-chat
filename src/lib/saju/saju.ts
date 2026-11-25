@@ -1,6 +1,5 @@
 // src/lib/Saju/saju.ts
 
-import Calendar from 'korean-lunar-calendar'
 import { logger } from '@/lib/logger'
 import { parseHourMinute } from './timeParse'
 import {
@@ -42,6 +41,7 @@ import { CALCULATION_STANDARDS } from '@/lib/config/calculationStandards'
 import { meanSolarMinuteOfDay } from './timezone'
 import { resolveBirthInstantFromDate } from '@/lib/datetime/resolveBirthInstant'
 import { TIME_UNKNOWN_ANCHOR } from './birthTimeAnchor'
+import { InvalidLunarDateError, lunarDateToSolarString } from './lunarDate'
 // 십신 / 정기 매핑은 core 모듈이 single source.
 import { getBranchMainStem, getSibseong } from './core/sibsin'
 
@@ -264,20 +264,11 @@ export function calculateSajuData(
     let solarBirthDateStr = birthDate
 
     if (calendarType === 'lunar') {
-      const calendar = new Calendar()
-      const [y, m, d] = birthDate.split('-').map(Number)
-      const ok = calendar.setLunarDate(y, m, d, !!lunarLeap)
-      const solar = calendar.getSolarCalendar()
-      // L1 fix: korean-lunar-calendar 가 범위 밖 (현재 2050-12-27 이후) lunar
-      // 입력에 대해 ok=false 와 (0/0/0) 을 반환. 옛 코드는 그걸 무시해
-      // `"0-00-00"` 문자열로 계산하다 "Invalid birthLocal date object" 로 throw 했다.
-      // 명시적으로 사용자 친화적 에러로.
-      if (!ok || !solar.year) {
-        throw new Error(
-          `음력 ${y}-${m}-${d} 변환 실패: 지원 범위(현재 ~2050-12-27 음력) 밖 입니다.`
-        )
-      }
-      solarBirthDateStr = `${solar.year}-${String(solar.month).padStart(2, '0')}-${String(solar.day).padStart(2, '0')}`
+      // 음력 → 양력 — lunarDate.ts 하나가 판정한다(API 검증과 같은 함수). 없는 날짜(작은달
+      // 30일, 그해에 없는 윤달)와 지원 범위(음력 ~2050-11-18) 밖을 구분해
+      // InvalidLunarDateError 로 던진다 — 예전엔 둘 다 "지원 범위 밖" 이라 했고(틀린 상한
+      // ~2050-12-27 포함), 없는 윤달은 조용히 평달로 계산했다(재감사 SP-3).
+      solarBirthDateStr = lunarDateToSolarString(birthDate, !!lunarLeap)
     }
 
     // 시각 문자열 → 24h 시·분 (단일 파서). '9:05'·'0:10'·'11:30 PM' 모두 같은 길.
@@ -655,6 +646,9 @@ export function calculateSajuData(
 
     return result
   } catch (error) {
+    // 없는 음력 날짜는 입력 오류다 — 타입·메시지를 그대로 올려 미들웨어가 VALIDATION_ERROR 로
+    // 분류하게 한다(엔진 내부 오류로 감싸면 500).
+    if (error instanceof InvalidLunarDateError) throw error
     logger.error('[saju.ts] Error during Saju data calculation:', error)
     throw new Error(
       `Error during calculation: ${error instanceof Error ? error.message : String(error)}`

@@ -5,6 +5,8 @@
 import { z } from 'zod'
 import {
   dateSchema,
+  calendarDateStringSchema,
+  isValidGregorianDate,
   timeSchema,
   timezoneSchema,
   latitudeSchema,
@@ -30,6 +32,7 @@ import {
   transitAspectSchema,
   extraPointSchema,
 } from './domains/astro-domain'
+import { isExistingLunarDate } from '@/lib/saju/lunarDate'
 
 // ============ Saju API Schema ============
 
@@ -45,22 +48,45 @@ export const sajuRequestSchema = z.object({
 
 export type SajuRequest = z.infer<typeof sajuRequestSchema>
 
-export const sajuCalculationRequestSchema = z.object({
-  birthDate: dateSchema,
-  // 빈 문자열 = 출생시각 미상(isBirthTimeUnknown 규약) — 라우트가 정오 앵커 + 삼주 분석.
-  birthTime: z.union([timeSchema, z.literal('')]),
-  // 명시적 "시간 모름" 플래그 — true 면 시각이 남아 있어도 미상(삼주, CONVENTIONS §5).
-  birthTimeUnknown: z.boolean().nullable().optional(),
-  gender: genderSchema,
-  calendarType: z.enum(['solar', 'lunar']),
-  timezone: timezoneSchema,
-  userTimezone: timezoneSchema.optional(),
-  latitude: latitudeSchema.optional(),
-  longitude: longitudeSchema.optional(),
-  // 음력 윤달 여부. calendarType==='lunar' 일 때만 의미 있음.
-  // 윤4월 vs 평4월처럼 같은 Y/M/D에서 분기되는 케이스를 정확히 분리하기 위함.
-  lunarLeap: z.boolean().optional(),
-})
+export const sajuCalculationRequestSchema = z
+  .object({
+    // 형식·연도만 — 날짜가 실제로 있는지는 아래 superRefine 이 calendarType 별로 본다.
+    birthDate: calendarDateStringSchema,
+    // 빈 문자열 = 출생시각 미상(isBirthTimeUnknown 규약) — 라우트가 정오 앵커 + 삼주 분석.
+    birthTime: z.union([timeSchema, z.literal('')]),
+    // 명시적 "시간 모름" 플래그 — true 면 시각이 남아 있어도 미상(삼주, CONVENTIONS §5).
+    birthTimeUnknown: z.boolean().nullable().optional(),
+    gender: genderSchema,
+    calendarType: z.enum(['solar', 'lunar']),
+    timezone: timezoneSchema,
+    userTimezone: timezoneSchema.optional(),
+    latitude: latitudeSchema.optional(),
+    longitude: longitudeSchema.optional(),
+    // 음력 윤달 여부. calendarType==='lunar' 일 때만 의미 있음.
+    // 윤4월 vs 평4월처럼 같은 Y/M/D에서 분기되는 케이스를 정확히 분리하기 위함.
+    lunarLeap: z.boolean().optional(),
+  })
+  // 날짜 실재 검사 — 양력은 그레고리력, 음력은 엔진과 같은 변환기(lunarDate.ts). 없는 음력
+  // 날짜(작은달 30일·그해에 없는 윤달·음력 2050-11-18 이후)는 엔진의 500 대신 여기서
+  // VALIDATION_ERROR 로 막는다(재감사 SP-3).
+  .superRefine((v, ctx) => {
+    // 형식이 틀린 날짜는 birthDate 필드 검사가 이미 이슈를 냈다 — 중복 메시지를 내지 않는다.
+    if (!calendarDateStringSchema.safeParse(v.birthDate).success) return
+    if (v.calendarType === 'lunar') {
+      if (!isExistingLunarDate(v.birthDate, v.lunarLeap === true)) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['birthDate'],
+          message:
+            v.lunarLeap === true
+              ? 'This lunar date does not exist (check the day and the leap month)'
+              : 'This lunar date does not exist',
+        })
+      }
+    } else if (!isValidGregorianDate(v.birthDate)) {
+      ctx.addIssue({ code: 'custom', path: ['birthDate'], message: 'Invalid date' })
+    }
+  })
 
 export type SajuCalculationRequestValidated = z.infer<typeof sajuCalculationRequestSchema>
 
