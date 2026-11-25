@@ -295,6 +295,8 @@ const astroZRExtractor: SignalExtractor = {
   kind: 'zodiacal-releasing',
   extract(ctx: ExtractorContext): ActiveSignal[] {
     const { natal, range } = ctx
+    // 섹트 미상(OD-5) — Spirit/Fortune lot(ZR 시작점)이 낮/밤 공식이라 계산하지 않는다.
+    if (natal.astro.sect === null) return []
     const isDayChart = natal.astro.sect === 'day'
     const lots = calculateArabicLots(natal.astro.chart, isDayChart)
     const spirit = lots.find((l) => l.name === 'Spirit')

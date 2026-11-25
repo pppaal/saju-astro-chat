@@ -1261,10 +1261,13 @@ export function evalWealth(
   }
 }
 
-/** 음양 리듬: 일간 음양(陽발산·외향 / 陰수용·내향) ↔ 출생 sect(주간=바깥 무대 / 야간=안 무대). */
+/**
+ * 음양 리듬: 일간 음양(陽발산·외향 / 陰수용·내향) ↔ 출생 sect(주간=바깥 무대 / 야간=안 무대).
+ * 섹트를 정할 수 없으면(null/undefined — 출생시각 미상 등, OD-5) 판정 없음(null) — 행이 빠진다.
+ */
 export function evalYinYang(
   dayMasterYy: string | undefined,
-  sect: string | undefined
+  sect: string | null | undefined
 ): CrossVerdict | null {
   const yy = dayMasterYy === '陽' ? 'yang' : dayMasterYy === '陰' ? 'yin' : undefined
   const s = sect === 'day' ? 'day' : sect === 'night' ? 'night' : undefined

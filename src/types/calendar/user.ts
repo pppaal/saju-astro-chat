@@ -159,8 +159,8 @@ export interface DestinyUserSummary {
   dignities: DestinyDignityEntry[]
   /** Almuten Figuris (선택 — Hellenistic 정통 누락 5신호 중 하나). */
   almutenFiguris: DestinyAlmutenFiguris
-  /** sect — 낮/밤. */
-  sect: Sect
+  /** sect — 낮/밤. null = 정할 수 없음(출생시각 미상 등, OD-5). */
+  sect: Sect | null
   /** 7대 Arabic Lots. */
   lots: DestinyArabicLot[]
 

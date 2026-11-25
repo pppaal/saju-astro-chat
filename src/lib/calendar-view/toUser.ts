@@ -77,8 +77,12 @@ export interface DestinypalUser {
   geokgukStatus?: string
   /** 일간 뿌리 정통화 한 줄 — "월령 寅 실령 · 통근 얇음" */
   rootStatus?: string
-  /** 섹트 (낮/밤) — DestinyUserSummary.sect (literal 'day'|'night') 와 호환. tier 가 직접 읽음. */
-  sectKind: 'day' | 'night'
+  /**
+   * 섹트 (낮/밤) — DestinyUserSummary.sect 와 호환. tier 가 직접 읽음.
+   * null = 정할 수 없음(출생시각 미상 등 — NatalContext.astro.sect 가 null, OD-5).
+   * 정오 앵커로 'day' 를 지어내지 않는다.
+   */
+  sectKind: 'day' | 'night' | null
   /**
    * Almuten Figuris — DestinyAlmutenFiguris shape (planet + score + runnerUps).
    * 본명 5점 합산 dignity 점수 — UI 가 직접 읽음.
@@ -230,11 +234,13 @@ const LOT_KO: Record<ArabicLotName, string> = {
 
 /**
  * NatalContext.astro.lots (house 포함) → DestinyArabicLot[].
- * sect 는 NatalContext.astro.sect 그대로.
+ * sect 는 NatalContext.astro.sect 그대로. 섹트 미상이면 lot 공식(낮/밤)을 고를 수 없어
+ * 빈 배열(컨텍스트의 lots 도 이미 비어 있다 — 방어).
  */
 function deriveLotsFull(natal: NatalContext): DestinyArabicLot[] {
   const list = natal.astro.lots ?? []
   const sect = natal.astro.sect
+  if (sect === null) return []
   return list.map((lot) => ({
     name: lot.name,
     sign: lot.sign,
@@ -406,7 +412,7 @@ export function toUser(natal: NatalContext, opts: ToUserOptions = {}): Destinypa
     introEn: opts.introEn ?? '',
     geokgukStatus,
     rootStatus,
-    sectKind: natal.astro.sect,
+    sectKind: natal.astro.sect ?? null,
     almutenFiguris: deriveAlmutenFigurisFull(natal),
     dignities: deriveDignitiesFull(natal),
     lotsFull: deriveLotsFull(natal),

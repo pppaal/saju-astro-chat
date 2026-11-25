@@ -60,7 +60,8 @@ export interface ReportData {
     johuYongsin?: { primary: string; rating: number } | null // 조후용신 (계절 균형)
   }
   astro: {
-    sect: string
+    // 'day' | 'night' — 섹트를 정할 수 없으면(출생시각 미상 등, OD-5) null.
+    sect: string | null
     houseSystem: string
     // 출생시각/출생지 미상(placeUnreliable) 시 ASC·MC 는 산출 불가 → null.
     // 미상 앵커 폴백 각을 가짜로 채우지 않는다(astroFacts 의 의도적 null-out 을 그대로 보존).

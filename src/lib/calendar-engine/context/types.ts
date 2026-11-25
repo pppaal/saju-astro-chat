@@ -158,8 +158,12 @@ export interface NatalAstroContext {
   /** 본명 추가 천체(카이런·릴리스 등) — 트랜짓이 본명 점으로 참조. 차트 planets를
    *  오염시키지 않으려 별도 보관(dignity 등 다른 extractor엔 안 들어감). */
   extraPoints?: PlanetBase[]
-  /** 섹트 (낮/밤 출생) — 헬레니즘 계산에 필요 */
-  sect: 'day' | 'night'
+  /**
+   * 섹트 (낮/밤 출생) — 헬레니즘 계산에 필요. null = 정할 수 없음(출생시각 미상, 또는
+   * 출생지 미상 + 존 기준점의 태양이 지평선 근처 — astroFacts.sectUnreliable, OD-5).
+   * null 이면 lot·ZR 추출기는 신호를 내지 않고 품위 추출기는 참여 삼분성만 센다.
+   */
+  sect: 'day' | 'night' | null
   /** 사용자 정착 — Solar Return 등 일부 계산은 latitude/longitude 필요 */
   location: {
     latitude: number

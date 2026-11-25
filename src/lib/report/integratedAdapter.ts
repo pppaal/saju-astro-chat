@@ -483,7 +483,9 @@ export function natalToReportData(
           : null,
     },
     astro: {
-      sect: A.sect ?? 'day',
+      // 섹트 미상(출생시각 미상 등 — astroFacts 가 null, OD-5)이면 null 그대로. 예전엔
+      // 'day' 로 채워 정오 앵커 섹트를 지어냈다.
+      sect: A.sect === 'day' || A.sect === 'night' ? A.sect : null,
       houseSystem: A.houseSystem ?? 'Placidus',
       // placeUnreliable(출생시각/출생지 미상) 면 facts 가 ascendant/mc 를 null 로 비워 보낸다
       // → 미상 앵커 폴백 각을 'Virgo'/'Gemini'/lon 0 으로 가짜로 채우지 않고 그대로 null 을 보존한다.
@@ -789,6 +791,8 @@ export function buildCrossRows(
     ],
     ['karma', evalVoid(gongmangBranches, southNodeSign)],
     ['growth', evalNorthNode(S.fiveElements, northNode?.sign)],
+    // 섹트 미상(null)이면 evalYinYang 이 판정 없음(null)을 돌려 행이 빠진다 — MC 미상의
+    // socialRole 처럼, 지어낸 섹트로 음양 리듬을 말하지 않는다(OD-5).
     ['yinYang', evalYinYang(STEM_INFO[S.dayMaster?.name ?? '']?.yy, A.sect)],
   ]
   const visibleItems = isMinor

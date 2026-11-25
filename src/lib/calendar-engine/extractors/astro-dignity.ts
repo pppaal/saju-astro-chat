@@ -62,7 +62,7 @@ function tierActive(
   planet: string,
   sign: string,
   degree: number,
-  dayBirth: boolean,
+  dayBirth: boolean | null,
   dignity?: string
 ): boolean {
   switch (tier) {
@@ -91,7 +91,7 @@ function dignityRunBounds(args: {
   segEndDay: string
   firstDay: string
   lastDay: string
-  dayBirth: boolean
+  dayBirth: boolean | null
   timeZone: string
 }): { startDay: string; endDay: string } {
   const { tier, planet, sign, dignity, dayBirth, timeZone } = args
@@ -218,7 +218,9 @@ const astroDignityExtractor: SignalExtractor = {
     const { natal, range, cache } = ctx
     const start = new Date(range.start)
     const end = new Date(range.end)
+    // 섹트 미상(null, OD-5)이면 낮/밤 삼분성 지배성을 고를 수 없다 — 참여 지배성만 센다.
     const sect = natal.astro.sect
+    const dayBirth: boolean | null = sect === null ? null : sect === 'day'
 
     // 매일 정오의 차트에서 각 행성의 dignity 추출 → 연속 구간 묶기
     type Hit = {
@@ -260,7 +262,7 @@ const astroDignityExtractor: SignalExtractor = {
         if (DIGNITY_BLOCKED.has(p.name)) continue
         if (!TRADITIONAL_PLANETS.has(p.name)) continue
         const d = dignityOf(p.name, sign)
-        const trip = triplicityOf(p.name, sign, sect === 'day') !== null
+        const trip = triplicityOf(p.name, sign, dayBirth) !== null
         const term = termOf(p.name, sign, p.degree) !== null
         const face = faceOf(p.name, sign, p.degree) !== null
         // peregrine + no minor tier match → skip (truly no rulership)
@@ -292,7 +294,6 @@ const astroDignityExtractor: SignalExtractor = {
     const firstDay = days[0]
     const lastDay = days[days.length - 1]
     const timeZone = natal.astro.location.timeZone
-    const dayBirth = sect === 'day'
     const runOf = (
       seg: Hit[],
       tier: DignityTier,

@@ -185,17 +185,21 @@ const SIGN_ELEMENT: Record<SignKey, 'fire' | 'earth' | 'air' | 'water'> = {
  * - 'night' — planet rules the triplicity by night, and dayBirth = false
  * - 'participating' — planet is the cooperating (3rd) ruler regardless of sect
  * - null    — planet is not a triplicity ruler of this sign
+ *
+ * `dayBirth === null` means the sect is unknown (birth time unknown, or the Sun
+ * too close to the horizon at an assumed birthplace — OD-5). The day/night ruler
+ * cannot be chosen then, so only the sect-independent participating ruler counts.
  */
 export function triplicityOf(
   planet: string,
   sign: string,
-  dayBirth: boolean
+  dayBirth: boolean | null
 ): 'day' | 'night' | 'participating' | null {
   const key = toSignKey(sign)
   if (!key) return null
   const t = TRIPLICITY[SIGN_ELEMENT[key]]
-  if (dayBirth && t.day === planet) return 'day'
-  if (!dayBirth && t.night === planet) return 'night'
+  if (dayBirth === true && t.day === planet) return 'day'
+  if (dayBirth === false && t.night === planet) return 'night'
   if (t.participating === planet) return 'participating'
   return null
 }
@@ -385,17 +389,18 @@ export interface DignityTiers {
 /**
  * Combined 5-tier evaluation. Pass the planet's within-sign degree
  * (0..30) and the natal sect ('day'|'night') for triplicity scoring.
+ * `sect === null` (sect unknown) scores only the participating triplicity ruler.
  */
 export function dignityTiers(
   planet: string,
   sign: string,
   degree: number,
-  sect: 'day' | 'night'
+  sect: 'day' | 'night' | null
 ): DignityTiers {
   return {
     domicile: DOMICILE[planet]?.includes(sign) ?? false,
     exaltation: EXALTATION[planet]?.includes(sign) ?? false,
-    triplicity: triplicityOf(planet, sign, sect === 'day') !== null,
+    triplicity: triplicityOf(planet, sign, sect === null ? null : sect === 'day') !== null,
     term: termOf(planet, sign, degree) !== null,
     face: faceOf(planet, sign, degree) !== null,
     detriment: DETRIMENT[planet]?.includes(sign) ?? false,

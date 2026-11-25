@@ -53,6 +53,8 @@ const astroArabicPartExtractor: SignalExtractor = {
   kind: 'arabic-part',
   async extract(ctx: ExtractorContext): Promise<ActiveSignal[]> {
     const { natal, range, cache } = ctx
+    // 섹트 미상(OD-5) — lot 공식이 낮/밤으로 갈리므로 지어낸 섹트로 계산하지 않는다.
+    if (natal.astro.sect === null) return []
     const isDayChart = natal.astro.sect === 'day'
     const natalLots = calculateArabicLots(natal.astro.chart, isDayChart)
 

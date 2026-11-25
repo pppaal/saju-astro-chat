@@ -15,12 +15,18 @@ import { cachedCalculateNatalChart } from '@/lib/astrology/cached'
 import { cacheOrCalculate, CACHE_TTL } from '@/lib/cache/redis-cache'
 import { HELLENISTIC_CACHE_VERSION } from '@/lib/cache/engineVersions'
 import { findNatalAspects } from '@/lib/astrology/foundation/aspects'
-import { dignityOf, dignityTiers, dignityScore } from '@/lib/astrology/foundation/dignities'
+import {
+  dignityOf,
+  dignityTiers,
+  dignityScore,
+  triplicityOf,
+} from '@/lib/astrology/foundation/dignities'
 import { calculateProfection } from '@/lib/astrology/foundation/profections'
 import {
   calculateChiron,
   calculateLilith,
   isDiurnalChart,
+  sunTrueAltitude,
 } from '@/lib/astrology/foundation/extraPoints'
 import { natalToJD, matchHouseForCusps, UNKNOWN_HOUSE } from '@/lib/astrology/foundation/shared'
 import { calculateZodiacalReleasing } from '@/lib/astrology/foundation/zodiacalReleasing'
@@ -110,9 +116,15 @@ export interface AstroFacts {
   }
   profection: {
     age: number
-    activatedHouse: number
-    activatedSign: string
-    lordOfYear: string
+    /**
+     * 활성 하우스·사인·연주(Lord of the Year) — whole-sign 이라 ASC 사인에서 센다.
+     * placeUnreliable(출생시각/출생지 미상)이면 ASC 가 정오 앵커·기본 좌표 폴백이라
+     * 셋 다 null(OD-5 — 정오 앵커로 아무것도 지어내지 않는다). 소비자(상담사·캘린더·
+     * 리포트)는 null 이면 프로펙션 줄을 생략한다.
+     */
+    activatedHouse: number | null
+    activatedSign: string | null
+    lordOfYear: string | null
     /** 군주 행성의 현재 위치 (placeUnreliable 시 null). */
     lordPlacement: { sign: string; house?: number } | null
   } | null
@@ -138,8 +150,13 @@ export interface AstroFacts {
 }
 
 export interface AstroHellenisticFacts {
-  /** Sun 의 하우스 기반 day/night 분기 (sect-aware 계산 입력). */
-  sect: 'day' | 'night'
+  /**
+   * 섹트 — 태양 고도(isDiurnalChart) 기반 day/night (sect-aware 계산 입력).
+   * null = 섹트를 정할 수 없음(OD-5): 출생시각 미상이면 정오 앵커의 산물이라 언제나 null,
+   * 출생지만 미상이면 존 기준점의 태양 고도가 |고도| < SECT_HORIZON_MARGIN_DEG 일 때 null.
+   * null 이면 삼분성은 섹트와 무관한 참여 지배성만 센다(dignities), lot·ZR·Almuten 은 비운다.
+   */
+  sect: 'day' | 'night' | null
   /** Chiron + Lilith — 차트 planets 에 없는 천체 (트랜짓 입력용). */
   extraPoints?: ReturnType<typeof calculateChiron>[]
   /** 본명 aspects (major + minor, orb 3°). */
@@ -247,9 +264,9 @@ export async function collectAstroFacts(
   const strong = allAspects.filter((a) => a.orb <= 2).sort((x, y) => x.orb - y.orb)
   const mid = allAspects.filter((a) => a.orb > 2 && a.orb < 5).sort((x, y) => x.orb - y.orb)
 
-  // Profection — 만 나이 기반 활성 하우스 + 군주 행성.
-  // activatedHouse 는 나이만으로 결정 → 항상 신뢰 가능.
-  // 군주 행성 placement 는 ASC 의존 → placeUnreliable 면 null.
+  // Profection — 만 나이 기반 활성 하우스 + 군주 행성. whole-sign 이라 활성 사인·연주는
+  // ASC 사인에서 세고, 활성 하우스의 뜻도 그 사인 위에 선다 → placeUnreliable 면 셋 다 null
+  // (나이만 남김, OD-5). 군주 행성 placement 도 ASC 의존 → placeUnreliable 면 null.
   let profection: AstroFacts['profection'] = null
   try {
     // 주입된 now 를 그대로 넘긴다 — 예전엔 void now 로 버려 currentManAge 가
@@ -263,6 +280,8 @@ export async function collectAstroFacts(
       now,
     })
     const prof = calculateProfection(chart, manAge)
+    // whole-sign 프로펙션은 ASC 사인에서 센다 — placeUnreliable 이면 ASC 가 폴백 각이라
+    // 활성 하우스·사인·연주 모두 날조다(OD-5). 나이만 남긴다.
     const lordPlanet = placeUnreliable
       ? null
       : (chart.planets.find((p) => p.name === prof.lordOfYear) as
@@ -270,9 +289,9 @@ export async function collectAstroFacts(
           | undefined)
     profection = {
       age: prof.age,
-      activatedHouse: prof.activatedHouse,
-      activatedSign: prof.activatedSign,
-      lordOfYear: prof.lordOfYear,
+      activatedHouse: placeUnreliable ? null : prof.activatedHouse,
+      activatedSign: placeUnreliable ? null : prof.activatedSign,
+      lordOfYear: placeUnreliable ? null : prof.lordOfYear,
       lordPlacement: lordPlanet?.sign ? { sign: lordPlanet.sign, house: lordPlanet.house } : null,
     }
   } catch {
@@ -304,10 +323,13 @@ export async function collectAstroFacts(
         CACHE_TTL.NATAL_CHART
       )
     : undefined
-  const hellenistic =
-    hellenisticRaw && placeUnreliable
-      ? maskPlaceDependentHellenistic(hellenisticRaw)
-      : hellenisticRaw
+  // 섹트도 같은 방식(캐시 뒤 마스킹)으로 — 시간 미상이면 정오 앵커의 산물, 출생지만
+  // 미상이면 존 기준점의 태양이 지평선 근처일 때 좌표 오차로 뒤집힐 수 있다(OD-5).
+  let hellenistic = hellenisticRaw
+  if (hellenistic && placeUnreliable) hellenistic = maskPlaceDependentHellenistic(hellenistic)
+  if (hellenistic && sectUnreliable(input, natal.meta?.jdUT)) {
+    hellenistic = maskSectDependentHellenistic(hellenistic)
+  }
 
   return {
     natal: {
@@ -337,7 +359,8 @@ const ANGLE_NAMES = new Set(['Ascendant', 'ASC', 'MC', 'Midheaven', 'IC', 'Desce
  *  - lots(7 Arabic Parts — ASC 기준식)·ZR(Spirit/Fortune lot 시작)·Almuten(ASC hyleg) → 비움
  *  - natalAspects 는 행성-행성만 남기고(각 대상은 제거) 끝점의 house 를 지운다
  *  - Chiron·Lilith 의 house 는 UNKNOWN_HOUSE(0)
- * 섹트·존엄(삼분성)은 태양 고도 기반으로 시각에 기대지만 ASC·하우스 항목이 아니라 둔다.
+ * 섹트·존엄(삼분성)은 ASC·하우스 항목이 아니라 여기서 두고, 섹트를 믿을 수 없을 때
+ * maskSectDependentHellenistic 이 따로 가린다.
  */
 export function maskPlaceDependentHellenistic(h: AstroHellenisticFacts): AstroHellenisticFacts {
   const dropHouse = <T extends { house?: number }>(end: T): Omit<T, 'house'> => {
@@ -351,6 +374,50 @@ export function maskPlaceDependentHellenistic(h: AstroHellenisticFacts): AstroHe
     natalAspects: h.natalAspects
       .filter((a) => !ANGLE_NAMES.has(a.from.name) && !ANGLE_NAMES.has(a.to.name))
       .map((a) => ({ ...a, from: dropHouse(a.from), to: dropHouse(a.to) })),
+    lots: [],
+    zodiacalReleasing: { spirit: null, fortune: null },
+    almutenFiguris: null,
+  }
+}
+
+/**
+ * 출생지만 미상일 때 섹트를 믿는 태양 고도 여유(°). 존 기준점과 실제 출생지는 경도·위도가
+ * 수 도 어긋날 수 있어, 지평선에서 이보다 가까운 태양은 낮/밤이 뒤집힐 수 있다.
+ */
+export const SECT_HORIZON_MARGIN_DEG = 3
+
+/**
+ * 섹트를 정할 수 없는가(OD-5 — 정오 앵커·기본 좌표로 아무것도 지어내지 않는다).
+ *  - 출생시각 미상 → 언제나 true (정오 앵커의 태양은 거의 늘 낮).
+ *  - 출생지만 미상(시각은 앎) → 넘겨받은 좌표(존 기준점)의 태양 참고도가
+ *    |고도| < SECT_HORIZON_MARGIN_DEG 이거나 고도를 구할 수 없으면 true.
+ *  - 둘 다 앎 → false.
+ */
+export function sectUnreliable(
+  input: Pick<AstroFactsInput, 'birthTimeUnknown' | 'birthCityUnknown' | 'latitude' | 'longitude'>,
+  jdUT: number | undefined
+): boolean {
+  if (input.birthTimeUnknown) return true
+  if (!input.birthCityUnknown) return false
+  const alt =
+    typeof jdUT === 'number' ? sunTrueAltitude(jdUT, input.latitude, input.longitude) : null
+  return alt === null || Math.abs(alt) < SECT_HORIZON_MARGIN_DEG
+}
+
+/**
+ * 섹트를 정할 수 없을 때(sectUnreliable) 섹트에 기대는 Hellenistic 항목을 가린다:
+ *  - sect → null
+ *  - dignities 의 삼분성은 섹트와 무관한 참여(participating) 지배성만 다시 센다(점수 재계산)
+ *  - lots(낮/밤 공식)·ZR(Spirit/Fortune lot 시작)·Almuten(섹트 가중) → 비움
+ */
+export function maskSectDependentHellenistic(h: AstroHellenisticFacts): AstroHellenisticFacts {
+  return {
+    ...h,
+    sect: null,
+    dignities: h.dignities.map((d) => {
+      const tiers = { ...d.tiers, triplicity: triplicityOf(d.planet, d.sign, null) !== null }
+      return { ...d, tiers, score: dignityScore(tiers) }
+    }),
     lots: [],
     zodiacalReleasing: { spirit: null, fortune: null },
     almutenFiguris: null,

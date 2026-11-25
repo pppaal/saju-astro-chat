@@ -591,14 +591,17 @@ export async function buildDestinyContext(
       })
       const cur = slimAstroSelf(block, { locale, year }).trim()
 
-      // Profection — facts.profection 에서 raw 값 받아 포매팅만.
+      // Profection — facts.profection 에서 raw 값 받아 포매팅만. whole-sign 이라 ASC 사인에서
+      // 세므로 placeUnreliable 이면 astroFacts 가 활성 하우스·연주를 null 로 비운다(OD-5) —
+      // 그때는 프로펙션 줄 자체를 내지 않는다(formatAstroSelf 의 skipAngles 와 같은 규칙).
       const prof = aFacts.profection
       let profLine = ''
-      if (prof) {
+      if (prof && prof.activatedHouse !== null) {
         const lp = prof.lordPlacement
         const lordRes = lp?.sign ? ` (${sgn(lp.sign)}${lp.house ? ` H${lp.house}` : ''})` : ''
-        const lordKo = placeUnreliable ? '' : `, Lord ${pkA(prof.lordOfYear, 'ko')}${lordRes}`
-        const lordEn = placeUnreliable ? '' : `, Lord ${prof.lordOfYear}${lordRes}`
+        const lord = placeUnreliable ? null : prof.lordOfYear
+        const lordKo = lord ? `, Lord ${pkA(lord, 'ko')}${lordRes}` : ''
+        const lordEn = lord ? `, Lord ${lord}${lordRes}` : ''
         profLine = L(
           `프로펙션 (만 ${prof.age}세 기준): H${prof.activatedHouse} 활성 (${HOUSE_THEME_KO[prof.activatedHouse]})${lordKo}`,
           `Profection (age ${prof.age} basis): H${prof.activatedHouse} active (${HOUSE_THEME_EN[prof.activatedHouse]})${lordEn}`

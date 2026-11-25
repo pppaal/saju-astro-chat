@@ -918,7 +918,10 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
               [t('metaTz'), tzLabel(input.timeZone)],
               [
                 t('metaHouse'),
-                `${houseSysLabel(A.houseSystem)} · ${A.sect === 'day' ? t('day') : t('night')}`,
+                // 섹트 미상(null — 출생시각 미상 등)이면 낮/밤을 붙이지 않는다(OD-5).
+                A.sect === 'day' || A.sect === 'night'
+                  ? `${houseSysLabel(A.houseSystem)} · ${A.sect === 'day' ? t('day') : t('night')}`
+                  : houseSysLabel(A.houseSystem),
               ],
             ].map(([k, v]) => (
               <div className={s.metaCell} key={k}>
@@ -1421,10 +1424,12 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
                         </div>
                       )
                     })}
-                    <div className={s.axisItem}>
-                      <span>{t('sectLab')}</span>
-                      <b>{A.sect === 'day' ? t('sectDay') : t('sectNight')}</b>
-                    </div>
+                    {(A.sect === 'day' || A.sect === 'night') && (
+                      <div className={s.axisItem}>
+                        <span>{t('sectLab')}</span>
+                        <b>{A.sect === 'day' ? t('sectDay') : t('sectNight')}</b>
+                      </div>
+                    )}
                     <div className={s.axisItem}>
                       <span>{t('houseLab')}</span>
                       <b>{houseSysLabel(A.houseSystem)}</b>
