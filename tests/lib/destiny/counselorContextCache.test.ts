@@ -117,7 +117,7 @@ describe('ensureCounselorContext (운명상담사 컨텍스트 캐시)', () => {
     const dailyKey = getKeys.find((k) => k.includes(':daily:'))!
     expect(stableKey).toContain(':en:')
     expect(stableKey).toContain('user-keys')
-    expect(stableKey).toContain('v13')
+    expect(stableKey).toContain('v14')
     expect(dailyKey).toContain(':en:')
     // daily 키는 localDateKey(YYYY-M-D) 가 붙어 stable 보다 segment 가 많다.
     expect(dailyKey.split(':').length).toBeGreaterThan(stableKey.split(':').length)
