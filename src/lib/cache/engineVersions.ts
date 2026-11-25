@@ -87,6 +87,8 @@ export const NATAL_CHART_CACHE_VERSION = 3
  * 트랜짓 차트 Redis 캐시(calendar-engine/ephe-cache, `ephe:transit:v${N}:…`).
  *   v2: timeZone 을 키에 추가.
  *   v3: isoToJD 가 'Z'·±hh:mm 접미사를 절대 순간으로 존중(엔진 감사 E5, ASTRO-4).
+ *       접미사 없는 벽시계 경로도 natalToJD 와 같은 RFC 5545 resolver 로(F2 — 겹침 시각이
+ *       서버 날짜와 무관하게 첫 번째 instant)는 같은 미출시 릴리스라 v3 에 함께 실린다.
  */
 export const TRANSIT_CHART_CACHE_VERSION = 3
 

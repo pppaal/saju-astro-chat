@@ -18,7 +18,14 @@ import {
 } from '@/lib/datetime/resolveBirthInstant'
 import { buildBirthInstant } from '@/lib/datetime'
 import { calculateSajuData } from '@/lib/saju/saju'
-import { natalToJD } from '@/lib/astrology/foundation/shared'
+import {
+  natalToJD,
+  isoToJD,
+  extractSwissLongitude,
+  getSwissEphFlags,
+} from '@/lib/astrology/foundation/shared'
+import { calculateSolarReturn } from '@/lib/astrology/foundation/returns'
+import { getSwisseph } from '@/lib/astrology/foundation/ephe'
 
 const iso = (dateStr: string, h: number, m: number, tz: string) =>
   resolveBirthInstantFromDate(dateStr, h, m, tz)
@@ -137,4 +144,98 @@ describe('사주 출생 instant = 점성 natalToJD instant — 서버 시계 무
       }
     })
   }
+})
+
+// F2 — 점성 foundation 의 나머지 벽시계 경로(isoToJD 접미사 없는 문자열, 회귀 차트 검색
+// 시작점)도 natalToJD 와 같은 resolver 를 쓴다. 옛 isoToJD 는 dayjs.tz 라 겹침 시각 offset 을
+// 서버의 현재 DST 상태로 골랐다(1월 서버 = 두 번째, 7월 서버 = 첫 번째).
+describe('isoToJD · 회귀 차트도 natalToJD 와 같은 instant — 공백·겹침, 서버 시계 무관 (F2)', () => {
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
+  const SERVER_CLOCKS = ['2026-01-15T12:00:00Z', '2026-07-15T12:00:00Z']
+  const CASES = [
+    { date: '2021-11-07', time: '01:30', tz: 'America/New_York', utc: '2021-11-07T05:30:00.000Z' },
+    { date: '2021-03-14', time: '02:30', tz: 'America/New_York', utc: '2021-03-14T07:30:00.000Z' },
+    { date: '2000-03-26', time: '02:30', tz: 'Australia/Sydney', utc: '2000-03-25T15:30:00.000Z' },
+    { date: '1987-05-10', time: '02:30', tz: 'Asia/Seoul', utc: '1987-05-09T17:30:00.000Z' },
+  ]
+  const natalOf = (c: (typeof CASES)[number]) => {
+    const [year, month, date] = c.date.split('-').map(Number)
+    const [hour, minute] = c.time.split(':').map(Number)
+    return { year, month, date, hour, minute, latitude: 40.7, longitude: -74, timeZone: c.tz }
+  }
+  const jdMsOf = (jd: number) => (jd - 2440587.5) * 86_400_000
+
+  for (const c of CASES) {
+    it(`isoToJD('${c.date}T${c.time}:00', ${c.tz}) = natalToJD = ${c.utc}`, () => {
+      for (const clock of SERVER_CLOCKS) {
+        vi.useFakeTimers({ toFake: ['Date'] })
+        vi.setSystemTime(new Date(clock))
+        const viaIso = isoToJD(`${c.date}T${c.time}:00`, c.tz)
+        const viaSpace = isoToJD(`${c.date} ${c.time}`, c.tz)
+        const viaNatal = natalToJD(natalOf(c))
+        vi.useRealTimers()
+        expect(viaIso, `server ${clock}`).toBe(viaNatal)
+        expect(viaSpace, `server ${clock}`).toBe(viaNatal)
+        expect(Math.abs(jdMsOf(viaIso) - Date.parse(c.utc)), `server ${clock}`).toBeLessThan(1000)
+      }
+    })
+  }
+
+  it('절대 순간(Z·±hh:mm)은 zone 인자와 무관하고 벽시계 경로와 같은 JD', () => {
+    const ref = natalToJD(natalOf(CASES[0]))
+    expect(isoToJD('2021-11-07T05:30:00Z', 'Asia/Seoul')).toBe(ref)
+    expect(isoToJD('2021-11-07T01:30:00-04:00', 'UTC')).toBe(ref)
+    expect(isoToJD('2021-11-07T14:30:00+0900', 'America/Los_Angeles')).toBe(ref)
+  })
+
+  it('형식이 틀리거나 없는 날짜·타임존이면 throw', () => {
+    expect(() => isoToJD('invalid-date', 'UTC')).toThrow(/Invalid ISO datetime/)
+    expect(() => isoToJD('2021-02-30T12:00:00', 'UTC')).toThrow(/Invalid ISO datetime/)
+    expect(() => isoToJD('2021-02-10T12:00:00', 'Bad/Zone')).toThrow(/Invalid ISO datetime/)
+    expect(() => isoToJD('2021-02-10T12:00:00+25:00', 'UTC')).toThrow(/Invalid ISO datetime/)
+  })
+
+  it('Solar Return: 공백·겹침 출생도 natalToJD 의 태양으로 돌아오고, 서버 시계와 무관', async () => {
+    const sw = getSwisseph()
+    const sunAt = (jd: number) =>
+      extractSwissLongitude(sw.swe_calc_ut(jd, sw.SE_SUN, getSwissEphFlags()))
+    for (const c of CASES.slice(0, 2)) {
+      const natal = natalOf(c)
+      const natalSun = sunAt(natalToJD(natal))
+      const results: string[] = []
+      for (const clock of SERVER_CLOCKS) {
+        vi.useFakeTimers({ toFake: ['Date'] })
+        vi.setSystemTime(new Date(clock))
+        const ret = await calculateSolarReturn({ natal, year: 2030 })
+        vi.useRealTimers()
+        results.push(ret.exactReturnTime ?? '')
+      }
+      expect(results[0]).toBe(results[1])
+      const diff = Math.abs(((sunAt(isoToJD(results[0], 'UTC')) - natalSun + 540) % 360) - 180)
+      expect(diff, c.date).toBeLessThan(0.01)
+    }
+  })
+
+  it('Solar Return: 2/29 출생은 평년엔 2/28 근처에서, 윤년엔 2/29 근처에서 찾는다', async () => {
+    const natal = {
+      year: 2000,
+      month: 2,
+      date: 29,
+      hour: 12,
+      minute: 0,
+      latitude: 37.57,
+      longitude: 126.98,
+      timeZone: 'Asia/Seoul',
+    }
+    const plain = await calculateSolarReturn({ natal, year: 2023 })
+    const leap = await calculateSolarReturn({ natal, year: 2024 })
+    const day = (iso: string | undefined) => Date.parse(iso ?? '')
+    expect(day(plain.exactReturnTime)).toBeGreaterThan(Date.parse('2023-02-26T00:00:00Z'))
+    expect(day(plain.exactReturnTime)).toBeLessThan(Date.parse('2023-03-03T00:00:00Z'))
+    expect(day(leap.exactReturnTime)).toBeGreaterThan(Date.parse('2024-02-26T00:00:00Z'))
+    expect(day(leap.exactReturnTime)).toBeLessThan(Date.parse('2024-03-03T00:00:00Z'))
+  })
 })

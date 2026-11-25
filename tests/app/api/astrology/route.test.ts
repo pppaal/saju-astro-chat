@@ -382,7 +382,7 @@ describe('Astrology API - POST /api/astrology', () => {
     })
 
     it('should return error for invalid date/time/timezone combination', async () => {
-      // dayjs.tz throws for completely invalid timezone strings; middleware catches this
+      // resolveBirthInstant (RFC 5545 resolver, natalToJD 와 같은 함수) rejects it → 422
       vi.mocked(validateRequestBody).mockResolvedValue({
         success: true as const,
         data: {
@@ -400,6 +400,22 @@ describe('Astrology API - POST /api/astrology', () => {
       // Either returns validation error (422) or caught by middleware (500)
       expect([422, 500]).toContain(response.status)
     })
+
+    // F2: 옛 dayjs.tz 검증은 2/30 을 3/2 로 넘겨 '유효' 로 통과시켰고, natalToJD 에서
+    // throw → 500 이었다. 이제 같은 resolver 로 검증해 422.
+    it('rejects a non-existent calendar date (Feb 30) with 422', async () => {
+      vi.mocked(validateRequestBody).mockResolvedValue({
+        success: true as const,
+        data: { ...validBody, date: '2023-02-30', latitude: 37.5, longitude: 126.9 },
+      })
+
+      const response = await POST(makeRequest({ ...validBody, date: '2023-02-30' }))
+      const data = await response.json()
+
+      expect(response.status).toBe(422)
+      expect(data.error.code).toBe('VALIDATION_ERROR')
+      expect(calculateNatalChart).not.toHaveBeenCalled()
+    })
   })
 
   // ---- Successful Operations ----
@@ -407,6 +423,25 @@ describe('Astrology API - POST /api/astrology', () => {
     beforeEach(() => {
       vi.mocked(getServerSession).mockResolvedValue(null)
       setupSuccessfulCalculation()
+    })
+
+    // F2: ZR 나이는 출생 instant(1990-05-15 14:30 KST = 05:30Z)부터 지금까지. 옛 식은
+    // 출생 벽시계의 연·월을 써서 늘 0 이었다(현재 ZR = 출생 구간).
+    it('computes the ZR age from the birth instant to now (not 0)', async () => {
+      vi.useFakeTimers({ toFake: ['Date'] })
+      vi.setSystemTime(new Date('2026-11-25T05:30:00Z'))
+      try {
+        const response = await POST(makeRequest(validBody))
+        const data = await response.json()
+        const expected =
+          (Date.parse('2026-11-25T05:30:00Z') - Date.parse('1990-05-15T05:30:00Z')) /
+          (365.25 * 86_400_000)
+        expect(response.status).toBe(200)
+        expect(data.data.natalAdvanced.zr.currentAge).toBeCloseTo(expected, 6)
+        expect(data.data.natalAdvanced.zr.currentAge).toBeGreaterThan(36)
+      } finally {
+        vi.useRealTimers()
+      }
     })
 
     it('should calculate natal chart and return full response', async () => {

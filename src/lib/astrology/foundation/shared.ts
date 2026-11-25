@@ -1,12 +1,6 @@
 // src/lib/astrology/foundation/shared.ts
 // Shared utilities for astrology calculations - prevents code duplication
 
-import dayjs from 'dayjs'
-import utc from 'dayjs/plugin/utc'
-import timezone from 'dayjs/plugin/timezone'
-dayjs.extend(utc)
-dayjs.extend(timezone)
-
 import { getSwisseph } from './ephe'
 import { NatalInput, PlanetBase, House } from './types'
 import { formatLongitude, normalize360 } from './utils'
@@ -135,8 +129,44 @@ export function jdToISO(jd: number): string {
   return `${year}-${pad(month)}-${pad(day)}T${pad(hour)}:${pad(minute)}:${pad(second)}Z`
 }
 
-/** 끝에 'Z' 또는 ±hh:mm 이 붙은 ISO = 절대 순간(시간대 인자와 무관). */
-const ABSOLUTE_ISO_SUFFIX = /(?:Z|[+-]\d{2}:\d{2})$/i
+/**
+ * 'YYYY-MM-DD' + 선택적 [T 또는 공백]HH:mm[:ss[.fff]] + 선택적 'Z' / ±hh:mm(±hhmm).
+ * 소수 초는 버린다 — swe_utc_to_jd 에 정수 초만 넘기던 옛 동작과 같다.
+ */
+const ISO_DATETIME =
+  /^(\d{4})-(\d{2})-(\d{2})(?:[T ](\d{2}):(\d{2})(?::(\d{2})(?:\.\d+)?)?)?(Z|[+-]\d{2}:?\d{2})?$/i
+
+/** ISO 문자열 → UTC instant. 형식·날짜가 틀리면 null. */
+function parseIsoInstant(iso: string, timeZone: string): Date | null {
+  const m = ISO_DATETIME.exec(iso.trim())
+  if (!m) return null
+  const wall = {
+    year: Number(m[1]),
+    month: Number(m[2]),
+    day: Number(m[3]),
+    hour: Number(m[4] ?? 0),
+    minute: Number(m[5] ?? 0),
+    second: Number(m[6] ?? 0),
+  }
+  const suffix = m[7]
+  try {
+    if (!suffix) {
+      // 접미사 없는 벽시계 — 출생 시각과 같은 resolver(RFC 5545 공백·겹침, 서버 시계 무관).
+      return resolveBirthInstant(wall, timeZone).utc
+    }
+    // 절대 순간: 벽시계를 UTC 로 읽고 offset 만큼 되돌린다(timeZone 인자는 무시).
+    const asUtc = resolveBirthInstant(wall, 'UTC').utc.getTime()
+    if (suffix.toUpperCase() === 'Z') return new Date(asUtc)
+    const sign = suffix[0] === '-' ? -1 : 1
+    const digits = suffix.slice(1).replace(':', '')
+    const offH = Number(digits.slice(0, 2))
+    const offM = Number(digits.slice(2, 4))
+    if (offH > 23 || offM > 59) return null
+    return new Date(asUtc - sign * (offH * 60 + offM) * 60_000)
+  } catch {
+    return null
+  }
+}
 
 /**
  * Convert ISO string to Julian Day
@@ -145,7 +175,9 @@ const ABSOLUTE_ISO_SUFFIX = /(?:Z|[+-]\d{2}:\d{2})$/i
  *   timeZone 인자는 무시. 옛 구현은 dayjs.tz(iso, tz) 가 접미사를 버리고 UTC
  *   문자열을 tz 의 벽시계로 읽어, 서울 사용자의 '현재 트랜짓' 이 9시간 이르게
  *   계산됐다(감사 ASTRO-4).
- * - 접미사 없는 벽시계 문자열('YYYY-MM-DDTHH:mm:ss')만 timeZone 으로 해석한다.
+ * - 접미사 없는 벽시계 문자열('YYYY-MM-DD[THH:mm[:ss]]')만 timeZone 으로 해석하며,
+ *   natalToJD 와 같은 resolveBirthInstant 를 쓴다(OD-3 — 공백은 직전 offset, 겹침은
+ *   첫 번째). 옛 dayjs.tz 는 겹침 offset 을 서버의 현재 DST 상태로 골랐다(ASTRO-7·F4).
  *
  * @param iso - ISO datetime string
  * @param timeZone - IANA timezone for offset-less wall-clock strings
@@ -154,13 +186,10 @@ const ABSOLUTE_ISO_SUFFIX = /(?:Z|[+-]\d{2}:\d{2})$/i
 export function isoToJD(iso: string, timeZone: string): number {
   const swisseph = getSwisseph()
 
-  const trimmed = iso.trim()
-  const local = ABSOLUTE_ISO_SUFFIX.test(trimmed) ? dayjs.utc(trimmed) : dayjs.tz(trimmed, timeZone)
-  if (!local.isValid()) {
+  const utcDate = parseIsoInstant(iso, timeZone)
+  if (!utcDate) {
     throw new Error(`Invalid ISO datetime: ${iso}`)
   }
-
-  const utcDate = local.utc().toDate()
 
   const jdResult = swisseph.swe_utc_to_jd(
     utcDate.getUTCFullYear(),
