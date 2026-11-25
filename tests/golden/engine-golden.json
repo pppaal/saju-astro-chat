@@ -1,0 +1,2009 @@
+{
+  "schema": 1,
+  "provenance": {
+    "generator": "scripts/golden/build-engine-golden.mts",
+    "generatorCommit": "cce7856",
+    "astronomyEngine": "2.1.19",
+    "tzdata": "2026e",
+    "icu": "78.3",
+    "node": "v22.23.4",
+    "kasiCrossCheck": { "terms": 255, "maxDeviationSec": 46.6 },
+    "decisions": {
+      "OD-1": "proposed: year/month/대운 from the absolute 절입 instant; current: longitude-shifted instant",
+      "OD-2": "proposed: no longitude → zone reference longitude (Asia/Seoul 126.978); current: Seoul LMT +30 table",
+      "OD-3": "proposed: gap → pre-transition offset, overlap → earlier instant (RFC 5545); no written current doctrine",
+      "OD-12": "proposed: no current 대운 before the first one starts"
+    }
+  },
+  "saju": {
+    "now": "2026-11-24T03:00:00Z",
+    "seoulReferenceLon": 126.978,
+    "cases": [
+      {
+        "id": "G01",
+        "label": "product sample",
+        "input": {
+          "date": "1997-03-21",
+          "time": "14:30",
+          "tz": "Asia/Seoul",
+          "lon": 126.978,
+          "gender": "female",
+          "now": "2026-11-24T03:00:00Z"
+        },
+        "instant": { "utc": "1997-03-21T05:30:00.000Z", "kind": "normal" },
+        "proposed": {
+          "pillars": ["丁丑", "癸卯", "壬戌", "丁未"],
+          "hourBoundaryDistanceMin": 57.91,
+          "daeun": {
+            "forward": true,
+            "startAge": 4,
+            "days": 14.5183,
+            "first3": ["甲辰", "乙巳", "丙午"],
+            "current": { "pillar": "丙午", "age": 24 },
+            "manAge": 29
+          }
+        },
+        "noLon": {
+          "proposed": {
+            "pillars": ["丁丑", "癸卯", "壬戌", "丁未"],
+            "hourBoundaryDistanceMin": 57.91,
+            "daeun": {
+              "forward": true,
+              "startAge": 4,
+              "days": 14.5183,
+              "first3": ["甲辰", "乙巳", "丙午"],
+              "current": { "pillar": "丙午", "age": 24 },
+              "manAge": 29
+            }
+          }
+        }
+      },
+      {
+        "id": "G02",
+        "label": "Seoul 1990",
+        "input": {
+          "date": "1990-05-15",
+          "time": "10:30",
+          "tz": "Asia/Seoul",
+          "lon": 126.978,
+          "gender": "male",
+          "now": "2026-11-24T03:00:00Z"
+        },
+        "instant": { "utc": "1990-05-15T01:30:00.000Z", "kind": "normal" },
+        "proposed": {
+          "pillars": ["庚午", "辛巳", "庚辰", "辛巳"],
+          "hourBoundaryDistanceMin": 57.91,
+          "daeun": {
+            "forward": true,
+            "startAge": 7,
+            "days": 21.8864,
+            "first3": ["壬午", "癸未", "甲申"],
+            "current": { "pillar": "甲申", "age": 27 },
+            "manAge": 36
+          }
+        },
+        "noLon": {
+          "proposed": {
+            "pillars": ["庚午", "辛巳", "庚辰", "辛巳"],
+            "hourBoundaryDistanceMin": 57.91,
+            "daeun": {
+              "forward": true,
+              "startAge": 7,
+              "days": 21.8864,
+              "first3": ["壬午", "癸未", "甲申"],
+              "current": { "pillar": "甲申", "age": 27 },
+              "manAge": 36
+            }
+          }
+        }
+      },
+      {
+        "id": "G03",
+        "label": "입춘 2024, 13 min after (lon)",
+        "input": {
+          "date": "2024-02-04",
+          "time": "17:40",
+          "tz": "Asia/Seoul",
+          "lon": 126.978,
+          "gender": "female",
+          "now": "2026-11-24T03:00:00Z"
+        },
+        "instant": { "utc": "2024-02-04T08:40:00.000Z", "kind": "normal" },
+        "proposed": {
+          "pillars": ["甲辰", "丙寅", "戊戌", "辛酉"],
+          "hourBoundaryDistanceMin": 7.91,
+          "daeun": {
+            "forward": false,
+            "startAge": 1,
+            "days": 0.0091,
+            "first3": ["乙丑", "甲子", "癸亥"],
+            "current": { "pillar": "乙丑", "age": 1 },
+            "manAge": 2
+          }
+        },
+        "noLon": {
+          "proposed": {
+            "pillars": ["甲辰", "丙寅", "戊戌", "辛酉"],
+            "hourBoundaryDistanceMin": 7.91,
+            "daeun": {
+              "forward": false,
+              "startAge": 1,
+              "days": 0.0091,
+              "first3": ["乙丑", "甲子", "癸亥"],
+              "current": { "pillar": "乙丑", "age": 1 },
+              "manAge": 2
+            }
+          }
+        },
+        "current": {
+          "year": "癸卯",
+          "month": "乙丑",
+          "daeun": {
+            "forward": true,
+            "startAge": 1,
+            "days": 0.0131,
+            "first3": ["丙寅", "丁卯", "戊辰"]
+          },
+          "correctionMin": -32,
+          "decision": "OD-1"
+        }
+      },
+      {
+        "id": "G04",
+        "label": "입춘 2024, 7 min before",
+        "input": {
+          "date": "2024-02-04",
+          "time": "17:20",
+          "tz": "Asia/Seoul",
+          "lon": 126.978,
+          "gender": "female",
+          "now": "2026-11-24T03:00:00Z"
+        },
+        "instant": { "utc": "2024-02-04T08:20:00.000Z", "kind": "normal" },
+        "proposed": {
+          "pillars": ["癸卯", "乙丑", "戊戌", "庚申"],
+          "hourBoundaryDistanceMin": 12.09,
+          "daeun": {
+            "forward": true,
+            "startAge": 1,
+            "days": 0.0047,
+            "first3": ["丙寅", "丁卯", "戊辰"],
+            "current": { "pillar": "丙寅", "age": 1 },
+            "manAge": 2
+          }
+        },
+        "noLon": {
+          "proposed": {
+            "pillars": ["癸卯", "乙丑", "戊戌", "庚申"],
+            "hourBoundaryDistanceMin": 12.09,
+            "daeun": {
+              "forward": true,
+              "startAge": 1,
+              "days": 0.0047,
+              "first3": ["丙寅", "丁卯", "戊辰"],
+              "current": { "pillar": "丙寅", "age": 1 },
+              "manAge": 2
+            }
+          }
+        }
+      },
+      {
+        "id": "G05",
+        "label": "Tokyo, before 입춘",
+        "input": {
+          "date": "2020-02-04",
+          "time": "17:50",
+          "tz": "Asia/Tokyo",
+          "lon": 139.69,
+          "gender": "male",
+          "now": "2026-11-24T03:00:00Z"
+        },
+        "instant": { "utc": "2020-02-04T08:50:00.000Z", "kind": "normal" },
+        "proposed": {
+          "pillars": ["己亥", "丁丑", "丁丑", "己酉"],
+          "hourBoundaryDistanceMin": 51.24,
+          "daeun": {
+            "forward": false,
+            "startAge": 9,
+            "days": 29.472,
+            "first3": ["丙子", "乙亥", "甲戌"],
+            "current": null,
+            "manAge": 6
+          }
+        },
+        "current": {
+          "year": "庚子",
+          "month": "戊寅",
+          "daeun": {
+            "forward": true,
+            "startAge": 9,
+            "days": 29.7418,
+            "first3": ["己卯", "庚辰", "辛巳"]
+          },
+          "correctionMin": 19,
+          "decision": "OD-1"
+        }
+      },
+      {
+        "id": "G06",
+        "label": "Kashgar (Shanghai zone), after 입춘",
+        "input": {
+          "date": "2020-02-04",
+          "time": "19:00",
+          "tz": "Asia/Shanghai",
+          "lon": 75.99,
+          "gender": "male",
+          "now": "2026-11-24T03:00:00Z"
+        },
+        "instant": { "utc": "2020-02-04T11:00:00.000Z", "kind": "normal" },
+        "proposed": {
+          "pillars": ["庚子", "戊寅", "丁丑", "戊申"],
+          "hourBoundaryDistanceMin": 56.04,
+          "daeun": {
+            "forward": true,
+            "startAge": 9,
+            "days": 29.6648,
+            "first3": ["己卯", "庚辰", "辛巳"],
+            "current": null,
+            "manAge": 6
+          }
+        },
+        "current": {
+          "year": "己亥",
+          "month": "丁丑",
+          "daeun": {
+            "forward": false,
+            "startAge": 9,
+            "days": 29.4401,
+            "first3": ["丙子", "乙亥", "甲戌"]
+          },
+          "correctionMin": -176,
+          "decision": "OD-1"
+        }
+      },
+      {
+        "id": "G07",
+        "label": "Madrid 대운 count",
+        "input": {
+          "date": "1963-11-02",
+          "time": "02:17",
+          "tz": "Europe/Madrid",
+          "lon": -3.7,
+          "gender": "male",
+          "now": "2026-11-24T03:00:00Z"
+        },
+        "instant": { "utc": "1963-11-02T01:17:00.000Z", "kind": "normal" },
+        "proposed": {
+          "pillars": ["癸卯", "壬戌", "己酉", "乙丑"],
+          "hourBoundaryDistanceMin": 2.2,
+          "daeun": {
+            "forward": false,
+            "startAge": 8,
+            "days": 24.0283,
+            "first3": ["辛酉", "庚申", "己未"],
+            "current": { "pillar": "丙辰", "age": 58 },
+            "manAge": 63
+          }
+        },
+        "current": {
+          "year": "癸卯",
+          "month": "壬戌",
+          "daeun": {
+            "forward": false,
+            "startAge": 7,
+            "days": 23.9762,
+            "first3": ["辛酉", "庚申", "己未"]
+          },
+          "correctionMin": -75,
+          "decision": "OD-1"
+        }
+      },
+      {
+        "id": "G08",
+        "label": "civil day 00:01 (CONVENTIONS §1 golden)",
+        "input": {
+          "date": "1991-01-01",
+          "time": "00:01",
+          "tz": "Asia/Seoul",
+          "lon": 126.978,
+          "gender": "male",
+          "now": "2026-11-24T03:00:00Z"
+        },
+        "instant": { "utc": "1990-12-31T15:01:00.000Z", "kind": "normal" },
+        "proposed": {
+          "pillars": ["庚午", "戊子", "辛未", "戊子"],
+          "hourBoundaryDistanceMin": 28.91,
+          "daeun": {
+            "forward": true,
+            "startAge": 1,
+            "days": 5.2271,
+            "first3": ["己丑", "庚寅", "辛卯"],
+            "current": { "pillar": "壬辰", "age": 31 },
+            "manAge": 35
+          }
+        },
+        "noLon": {
+          "proposed": {
+            "pillars": ["庚午", "戊子", "辛未", "戊子"],
+            "hourBoundaryDistanceMin": 28.91,
+            "daeun": {
+              "forward": true,
+              "startAge": 1,
+              "days": 5.2271,
+              "first3": ["己丑", "庚寅", "辛卯"],
+              "current": { "pillar": "壬辰", "age": 31 },
+              "manAge": 35
+            }
+          }
+        }
+      },
+      {
+        "id": "G09",
+        "label": "civil day 23:59 (CONVENTIONS §1 golden)",
+        "input": {
+          "date": "1990-12-31",
+          "time": "23:59",
+          "tz": "Asia/Seoul",
+          "lon": 126.978,
+          "gender": "male",
+          "now": "2026-11-24T03:00:00Z"
+        },
+        "instant": { "utc": "1990-12-31T14:59:00.000Z", "kind": "normal" },
+        "proposed": {
+          "pillars": ["庚午", "戊子", "庚午", "丙子"],
+          "hourBoundaryDistanceMin": 26.91,
+          "daeun": {
+            "forward": true,
+            "startAge": 1,
+            "days": 5.2285,
+            "first3": ["己丑", "庚寅", "辛卯"],
+            "current": { "pillar": "壬辰", "age": 31 },
+            "manAge": 35
+          }
+        },
+        "noLon": {
+          "proposed": {
+            "pillars": ["庚午", "戊子", "庚午", "丙子"],
+            "hourBoundaryDistanceMin": 26.91,
+            "daeun": {
+              "forward": true,
+              "startAge": 1,
+              "days": 5.2285,
+              "first3": ["己丑", "庚寅", "辛卯"],
+              "current": { "pillar": "壬辰", "age": 31 },
+              "manAge": 35
+            }
+          }
+        }
+      },
+      {
+        "id": "G10",
+        "label": "KDT 1987",
+        "input": {
+          "date": "1987-07-01",
+          "time": "12:15",
+          "tz": "Asia/Seoul",
+          "lon": 126.978,
+          "gender": "male",
+          "now": "2026-11-24T03:00:00Z"
+        },
+        "instant": { "utc": "1987-07-01T02:15:00.000Z", "kind": "normal" },
+        "proposed": {
+          "pillars": ["丁卯", "丙午", "辛亥", "癸巳"],
+          "hourBoundaryDistanceMin": 17.09,
+          "daeun": {
+            "forward": false,
+            "startAge": 8,
+            "days": 24.8723,
+            "first3": ["乙巳", "甲辰", "癸卯"],
+            "current": { "pillar": "壬寅", "age": 38 },
+            "manAge": 39
+          }
+        },
+        "noLon": {
+          "proposed": {
+            "pillars": ["丁卯", "丙午", "辛亥", "癸巳"],
+            "hourBoundaryDistanceMin": 17.09,
+            "daeun": {
+              "forward": false,
+              "startAge": 8,
+              "days": 24.8723,
+              "first3": ["乙巳", "甲辰", "癸卯"],
+              "current": { "pillar": "壬寅", "age": 38 },
+              "manAge": 39
+            }
+          },
+          "current": { "hour": "甲午", "decision": "OD-2" }
+        }
+      },
+      {
+        "id": "G11",
+        "label": "KMT 1957",
+        "input": {
+          "date": "1957-11-15",
+          "time": "23:15",
+          "tz": "Asia/Seoul",
+          "lon": 126.978,
+          "gender": "male",
+          "now": "2026-11-24T03:00:00Z"
+        },
+        "instant": { "utc": "1957-11-15T14:45:00.000Z", "kind": "normal" },
+        "proposed": {
+          "pillars": ["丁酉", "辛亥", "辛卯", "戊子"],
+          "hourBoundaryDistanceMin": 12.91,
+          "daeun": {
+            "forward": false,
+            "startAge": 2,
+            "days": 7.9341,
+            "first3": ["庚戌", "己酉", "戊申"],
+            "current": { "pillar": "甲辰", "age": 62 },
+            "manAge": 69
+          }
+        },
+        "noLon": {
+          "proposed": {
+            "pillars": ["丁酉", "辛亥", "辛卯", "戊子"],
+            "hourBoundaryDistanceMin": 12.91,
+            "daeun": {
+              "forward": false,
+              "startAge": 2,
+              "days": 7.9341,
+              "first3": ["庚戌", "己酉", "戊申"],
+              "current": { "pillar": "甲辰", "age": 62 },
+              "manAge": 69
+            }
+          }
+        }
+      },
+      {
+        "id": "G12",
+        "label": "pre-KMT 1954",
+        "input": {
+          "date": "1954-03-01",
+          "time": "07:35",
+          "tz": "Asia/Seoul",
+          "lon": 126.978,
+          "gender": "male",
+          "now": "2026-11-24T03:00:00Z"
+        },
+        "instant": { "utc": "1954-02-28T22:35:00.000Z", "kind": "normal" },
+        "proposed": {
+          "pillars": ["甲午", "丙寅", "丙辰", "壬辰"],
+          "hourBoundaryDistanceMin": 2.91,
+          "daeun": {
+            "forward": true,
+            "startAge": 1,
+            "days": 5.1759,
+            "first3": ["丁卯", "戊辰", "己巳"],
+            "current": { "pillar": "甲戌", "age": 71 },
+            "manAge": 72
+          }
+        },
+        "noLon": {
+          "proposed": {
+            "pillars": ["甲午", "丙寅", "丙辰", "壬辰"],
+            "hourBoundaryDistanceMin": 2.91,
+            "daeun": {
+              "forward": true,
+              "startAge": 1,
+              "days": 5.1759,
+              "first3": ["丁卯", "戊辰", "己巳"],
+              "current": { "pillar": "甲戌", "age": 71 },
+              "manAge": 72
+            }
+          }
+        }
+      },
+      {
+        "id": "G13",
+        "label": "New York EDT",
+        "input": {
+          "date": "2000-06-15",
+          "time": "23:15",
+          "tz": "America/New_York",
+          "lon": -74.006,
+          "gender": "male",
+          "now": "2026-11-24T03:00:00Z"
+        },
+        "instant": { "utc": "2000-06-16T03:15:00.000Z", "kind": "normal" },
+        "proposed": {
+          "pillars": ["庚辰", "壬午", "甲辰", "乙亥"],
+          "hourBoundaryDistanceMin": 41.02,
+          "daeun": {
+            "forward": true,
+            "startAge": 6,
+            "days": 20.6659,
+            "first3": ["癸未", "甲申", "乙酉"],
+            "current": { "pillar": "乙酉", "age": 26 },
+            "manAge": 26
+          }
+        }
+      },
+      {
+        "id": "G14",
+        "label": "Los Angeles",
+        "input": {
+          "date": "1990-06-15",
+          "time": "14:30",
+          "tz": "America/Los_Angeles",
+          "lon": -118.2437,
+          "gender": "male",
+          "now": "2026-11-24T03:00:00Z"
+        },
+        "instant": { "utc": "1990-06-15T21:30:00.000Z", "kind": "normal" },
+        "proposed": {
+          "pillars": ["庚午", "壬午", "辛亥", "乙未"],
+          "hourBoundaryDistanceMin": 37.03,
+          "daeun": {
+            "forward": true,
+            "startAge": 7,
+            "days": 21.4795,
+            "first3": ["癸未", "甲申", "乙酉"],
+            "current": { "pillar": "乙酉", "age": 27 },
+            "manAge": 36
+          }
+        }
+      },
+      {
+        "id": "G15",
+        "label": "Urumqi (Shanghai zone)",
+        "input": {
+          "date": "1975-03-21",
+          "time": "02:00",
+          "tz": "Asia/Shanghai",
+          "lon": 87.6,
+          "gender": "male",
+          "now": "2026-11-24T03:00:00Z"
+        },
+        "instant": { "utc": "1975-03-20T18:00:00.000Z", "kind": "normal" },
+        "proposed": {
+          "pillars": ["乙卯", "己卯", "丙寅", "戊子"],
+          "hourBoundaryDistanceMin": 50.4,
+          "daeun": {
+            "forward": false,
+            "startAge": 4,
+            "days": 14.5375,
+            "first3": ["戊寅", "丁丑", "丙子"],
+            "current": { "pillar": "甲戌", "age": 44 },
+            "manAge": 51
+          }
+        }
+      },
+      {
+        "id": "G16",
+        "label": "Sydney",
+        "input": {
+          "date": "1980-12-21",
+          "time": "12:00",
+          "tz": "Australia/Sydney",
+          "lon": 151.2093,
+          "gender": "female",
+          "now": "2026-11-24T03:00:00Z"
+        },
+        "instant": { "utc": "1980-12-21T01:00:00.000Z", "kind": "normal" },
+        "proposed": {
+          "pillars": ["庚申", "戊子", "戊辰", "戊午"],
+          "hourBoundaryDistanceMin": 4.84,
+          "daeun": {
+            "forward": false,
+            "startAge": 4,
+            "days": 14.0824,
+            "first3": ["丁亥", "丙戌", "乙酉"],
+            "current": { "pillar": "癸未", "age": 44 },
+            "manAge": 45
+          }
+        }
+      },
+      {
+        "id": "G17",
+        "label": "Tromsø (polar)",
+        "input": {
+          "date": "1993-06-21",
+          "time": "03:00",
+          "tz": "Europe/Oslo",
+          "lon": 18.9553,
+          "gender": "male",
+          "now": "2026-11-24T03:00:00Z"
+        },
+        "instant": { "utc": "1993-06-21T01:00:00.000Z", "kind": "normal" },
+        "proposed": {
+          "pillars": ["癸酉", "戊午", "癸酉", "癸丑"],
+          "hourBoundaryDistanceMin": 44.18,
+          "daeun": {
+            "forward": false,
+            "startAge": 5,
+            "days": 15.3642,
+            "first3": ["丁巳", "丙辰", "乙卯"],
+            "current": { "pillar": "乙卯", "age": 25 },
+            "manAge": 33
+          }
+        }
+      },
+      {
+        "id": "G18",
+        "label": "Tokyo 00:15",
+        "input": {
+          "date": "2010-01-01",
+          "time": "00:15",
+          "tz": "Asia/Tokyo",
+          "lon": 139.6503,
+          "gender": "male",
+          "now": "2026-11-24T03:00:00Z"
+        },
+        "instant": { "utc": "2009-12-31T15:15:00.000Z", "kind": "normal" },
+        "proposed": {
+          "pillars": ["己丑", "丙子", "辛亥", "戊子"],
+          "hourBoundaryDistanceMin": 26.4,
+          "daeun": {
+            "forward": false,
+            "startAge": 8,
+            "days": 24.6409,
+            "first3": ["乙亥", "甲戌", "癸酉"],
+            "current": { "pillar": "乙亥", "age": 8 },
+            "manAge": 16
+          }
+        }
+      },
+      {
+        "id": "G19",
+        "label": "Busan",
+        "input": {
+          "date": "2001-07-22",
+          "time": "04:10",
+          "tz": "Asia/Seoul",
+          "lon": 129.0756,
+          "gender": "male",
+          "now": "2026-11-24T03:00:00Z"
+        },
+        "instant": { "utc": "2001-07-21T19:10:00.000Z", "kind": "normal" },
+        "proposed": {
+          "pillars": ["辛巳", "乙未", "丙戌", "庚寅"],
+          "hourBoundaryDistanceMin": 46.3,
+          "daeun": {
+            "forward": false,
+            "startAge": 4,
+            "days": 14.7523,
+            "first3": ["甲午", "癸巳", "壬辰"],
+            "current": { "pillar": "壬辰", "age": 24 },
+            "manAge": 25
+          }
+        },
+        "noLon": {
+          "proposed": {
+            "pillars": ["辛巳", "乙未", "丙戌", "庚寅"],
+            "hourBoundaryDistanceMin": 37.91,
+            "daeun": {
+              "forward": false,
+              "startAge": 4,
+              "days": 14.7523,
+              "first3": ["甲午", "癸巳", "壬辰"],
+              "current": { "pillar": "壬辰", "age": 24 },
+              "manAge": 25
+            }
+          }
+        }
+      },
+      {
+        "id": "G20",
+        "label": "節 month 1988",
+        "input": {
+          "date": "1988-07-07",
+          "time": "06:50",
+          "tz": "Asia/Seoul",
+          "lon": 126.978,
+          "gender": "male",
+          "now": "2026-11-24T03:00:00Z"
+        },
+        "instant": { "utc": "1988-07-06T20:50:00.000Z", "kind": "normal" },
+        "proposed": {
+          "pillars": ["戊辰", "戊午", "癸亥", "乙卯"],
+          "hourBoundaryDistanceMin": 17.91,
+          "daeun": {
+            "forward": true,
+            "startAge": 1,
+            "days": 0.0298,
+            "first3": ["己未", "庚申", "辛酉"],
+            "current": { "pillar": "壬戌", "age": 31 },
+            "manAge": 38
+          }
+        },
+        "noLon": {
+          "proposed": {
+            "pillars": ["戊辰", "戊午", "癸亥", "乙卯"],
+            "hourBoundaryDistanceMin": 17.91,
+            "daeun": {
+              "forward": true,
+              "startAge": 1,
+              "days": 0.0298,
+              "first3": ["己未", "庚申", "辛酉"],
+              "current": { "pillar": "壬戌", "age": 31 },
+              "manAge": 38
+            }
+          }
+        }
+      },
+      {
+        "id": "G21",
+        "label": "current 대운 on the civil birthday",
+        "input": {
+          "date": "1990-05-17",
+          "time": "00:10",
+          "tz": "Asia/Seoul",
+          "lon": 126.978,
+          "gender": "male",
+          "now": "2026-05-16T03:00:00Z"
+        },
+        "instant": { "utc": "1990-05-16T15:10:00.000Z", "kind": "normal" },
+        "proposed": {
+          "pillars": ["庚午", "辛巳", "壬午", "庚子"],
+          "hourBoundaryDistanceMin": 37.91,
+          "daeun": {
+            "forward": true,
+            "startAge": 6,
+            "days": 20.317,
+            "first3": ["壬午", "癸未", "甲申"],
+            "current": { "pillar": "甲申", "age": 26 },
+            "manAge": 35
+          }
+        },
+        "noLon": {
+          "proposed": {
+            "pillars": ["庚午", "辛巳", "壬午", "庚子"],
+            "hourBoundaryDistanceMin": 37.91,
+            "daeun": {
+              "forward": true,
+              "startAge": 6,
+              "days": 20.317,
+              "first3": ["壬午", "癸未", "甲申"],
+              "current": { "pillar": "甲申", "age": 26 },
+              "manAge": 35
+            }
+          }
+        }
+      },
+      {
+        "id": "G22",
+        "label": "child before the first 대운",
+        "input": {
+          "date": "2022-06-15",
+          "time": "10:00",
+          "tz": "Asia/Seoul",
+          "lon": 126.978,
+          "gender": "male",
+          "now": "2026-11-24T03:00:00Z"
+        },
+        "instant": { "utc": "2022-06-15T01:00:00.000Z", "kind": "normal" },
+        "proposed": {
+          "pillars": ["壬寅", "丙午", "己亥", "己巳"],
+          "hourBoundaryDistanceMin": 27.91,
+          "daeun": {
+            "forward": true,
+            "startAge": 7,
+            "days": 22.0679,
+            "first3": ["丁未", "戊申", "己酉"],
+            "current": null,
+            "manAge": 4
+          }
+        },
+        "noLon": {
+          "proposed": {
+            "pillars": ["壬寅", "丙午", "己亥", "己巳"],
+            "hourBoundaryDistanceMin": 27.91,
+            "daeun": {
+              "forward": true,
+              "startAge": 7,
+              "days": 22.0679,
+              "first3": ["丁未", "戊申", "己酉"],
+              "current": null,
+              "manAge": 4
+            }
+          }
+        }
+      },
+      {
+        "id": "G23",
+        "label": "New-year birthday 만 나이",
+        "input": {
+          "date": "1962-01-01",
+          "time": "00:10",
+          "tz": "Asia/Seoul",
+          "lon": 126.978,
+          "gender": "male",
+          "now": "1979-12-31T03:00:00Z"
+        },
+        "instant": { "utc": "1961-12-31T15:10:00.000Z", "kind": "normal" },
+        "proposed": {
+          "pillars": ["辛丑", "庚子", "己亥", "甲子"],
+          "hourBoundaryDistanceMin": 37.91,
+          "daeun": {
+            "forward": false,
+            "startAge": 8,
+            "days": 24.2805,
+            "first3": ["己亥", "戊戌", "丁酉"],
+            "current": { "pillar": "己亥", "age": 8 },
+            "manAge": 17
+          }
+        },
+        "noLon": {
+          "proposed": {
+            "pillars": ["辛丑", "庚子", "己亥", "甲子"],
+            "hourBoundaryDistanceMin": 37.91,
+            "daeun": {
+              "forward": false,
+              "startAge": 8,
+              "days": 24.2805,
+              "first3": ["己亥", "戊戌", "丁酉"],
+              "current": { "pillar": "己亥", "age": 8 },
+              "manAge": 17
+            }
+          }
+        }
+      },
+      {
+        "id": "G24",
+        "label": "KDT gap 1987 (wall time does not exist)",
+        "input": {
+          "date": "1987-05-10",
+          "time": "02:30",
+          "tz": "Asia/Seoul",
+          "lon": 126.978,
+          "gender": "male",
+          "now": "2026-11-24T03:00:00Z"
+        },
+        "instant": { "utc": "1987-05-09T17:30:00.000Z", "kind": "gap" },
+        "proposed": {
+          "pillars": ["丁卯", "乙巳", "己未", "乙丑"],
+          "hourBoundaryDistanceMin": 57.91,
+          "daeun": {
+            "forward": false,
+            "startAge": 1,
+            "days": 3.6838,
+            "first3": ["甲辰", "癸卯", "壬寅"],
+            "current": { "pillar": "辛丑", "age": 31 },
+            "manAge": 39
+          }
+        },
+        "noLon": {
+          "proposed": {
+            "pillars": ["丁卯", "乙巳", "己未", "乙丑"],
+            "hourBoundaryDistanceMin": 57.91,
+            "daeun": {
+              "forward": false,
+              "startAge": 1,
+              "days": 3.6838,
+              "first3": ["甲辰", "癸卯", "壬寅"],
+              "current": { "pillar": "辛丑", "age": 31 },
+              "manAge": 39
+            }
+          }
+        }
+      },
+      {
+        "id": "G25",
+        "label": "New York overlap (fall back)",
+        "input": {
+          "date": "2021-11-07",
+          "time": "01:30",
+          "tz": "America/New_York",
+          "lon": -74.006,
+          "gender": "male",
+          "now": "2026-11-24T03:00:00Z"
+        },
+        "instant": { "utc": "2021-11-07T05:30:00.000Z", "kind": "overlap" },
+        "proposed": {
+          "pillars": ["辛丑", "己亥", "己未", "甲子"],
+          "hourBoundaryDistanceMin": 26.02,
+          "daeun": {
+            "forward": false,
+            "startAge": 1,
+            "days": 0.0216,
+            "first3": ["戊戌", "丁酉", "丙申"],
+            "current": { "pillar": "戊戌", "age": 1 },
+            "manAge": 5
+          }
+        },
+        "current": {
+          "year": "辛丑",
+          "month": "戊戌",
+          "daeun": {
+            "forward": false,
+            "startAge": 10,
+            "days": 30.1214,
+            "first3": ["丁酉", "丙申", "乙未"]
+          },
+          "correctionMin": -56,
+          "decision": "OD-1"
+        }
+      },
+      {
+        "id": "G26",
+        "label": "KMT→KST midnight gap 1961",
+        "input": {
+          "date": "1961-08-10",
+          "time": "00:15",
+          "tz": "Asia/Seoul",
+          "lon": 126.978,
+          "gender": "male",
+          "now": "2026-11-24T03:00:00Z"
+        },
+        "instant": { "utc": "1961-08-09T15:45:00.000Z", "kind": "gap" },
+        "proposed": {
+          "pillars": ["辛丑", "丙申", "乙亥", "丙子"],
+          "hourBoundaryDistanceMin": 47.09,
+          "daeun": {
+            "forward": false,
+            "startAge": 1,
+            "days": 1.8725,
+            "first3": ["乙未", "甲午", "癸巳"],
+            "current": { "pillar": "己丑", "age": 61 },
+            "manAge": 65
+          }
+        },
+        "noLon": {
+          "proposed": {
+            "pillars": ["辛丑", "丙申", "乙亥", "丙子"],
+            "hourBoundaryDistanceMin": 47.09,
+            "daeun": {
+              "forward": false,
+              "startAge": 1,
+              "days": 1.8725,
+              "first3": ["乙未", "甲午", "癸巳"],
+              "current": { "pillar": "己丑", "age": 61 },
+              "manAge": 65
+            }
+          }
+        }
+      },
+      {
+        "id": "G26b",
+        "label": "São Paulo midnight DST gap",
+        "input": {
+          "date": "2018-11-04",
+          "time": "00:30",
+          "tz": "America/Sao_Paulo",
+          "lon": -46.6333,
+          "gender": "male",
+          "now": "2026-11-24T03:00:00Z"
+        },
+        "instant": { "utc": "2018-11-04T03:30:00.000Z", "kind": "gap" },
+        "dayOnly": true,
+        "proposed": {
+          "pillars": ["戊戌", "壬戌", "庚子", "丙子"],
+          "hourBoundaryDistanceMin": 36.53,
+          "daeun": {
+            "forward": true,
+            "startAge": 1,
+            "days": 3.3344,
+            "first3": ["癸亥", "甲子", "乙丑"],
+            "current": { "pillar": "癸亥", "age": 1 },
+            "manAge": 8
+          }
+        }
+      },
+      {
+        "id": "G26c",
+        "label": "Tehran midnight DST gap",
+        "input": {
+          "date": "2008-03-21",
+          "time": "00:30",
+          "tz": "Asia/Tehran",
+          "lon": 51.389,
+          "gender": "male",
+          "now": "2026-11-24T03:00:00Z"
+        },
+        "instant": { "utc": "2008-03-20T21:00:00.000Z", "kind": "gap" },
+        "dayOnly": true,
+        "proposed": {
+          "pillars": ["戊子", "乙卯", "庚申", "丙子"],
+          "hourBoundaryDistanceMin": 34.44,
+          "daeun": {
+            "forward": true,
+            "startAge": 4,
+            "days": 14.5316,
+            "first3": ["丙辰", "丁巳", "戊午"],
+            "current": { "pillar": "丁巳", "age": 14 },
+            "manAge": 18
+          }
+        }
+      },
+      {
+        "id": "G27",
+        "label": "대운 9 not 10 (29.9986 days)",
+        "input": {
+          "date": "1990-03-06",
+          "time": "10:15",
+          "tz": "Asia/Seoul",
+          "lon": 126.978,
+          "gender": "male",
+          "now": "2026-11-24T03:00:00Z"
+        },
+        "instant": { "utc": "1990-03-06T01:15:00.000Z", "kind": "normal" },
+        "proposed": {
+          "pillars": ["庚午", "己卯", "庚午", "辛巳"],
+          "hourBoundaryDistanceMin": 42.91,
+          "daeun": {
+            "forward": true,
+            "startAge": 9,
+            "days": 29.9986,
+            "first3": ["庚辰", "辛巳", "壬午"],
+            "current": { "pillar": "壬午", "age": 29 },
+            "manAge": 36
+          }
+        },
+        "noLon": {
+          "proposed": {
+            "pillars": ["庚午", "己卯", "庚午", "辛巳"],
+            "hourBoundaryDistanceMin": 42.91,
+            "daeun": {
+              "forward": true,
+              "startAge": 9,
+              "days": 29.9986,
+              "first3": ["庚辰", "辛巳", "壬午"],
+              "current": { "pillar": "壬午", "age": 29 },
+              "manAge": 36
+            }
+          }
+        },
+        "current": {
+          "year": "庚午",
+          "month": "己卯",
+          "daeun": {
+            "forward": true,
+            "startAge": 10,
+            "days": 30.0208,
+            "first3": ["庚辰", "辛巳", "壬午"]
+          },
+          "correctionMin": -32,
+          "decision": "OD-1"
+        }
+      },
+      {
+        "id": "G28",
+        "label": "KDT 1949 no-lon hour",
+        "input": {
+          "date": "1949-07-14",
+          "time": "08:12",
+          "tz": "Asia/Seoul",
+          "lon": 126.978,
+          "gender": "female",
+          "now": "2026-11-24T03:00:00Z"
+        },
+        "instant": { "utc": "1949-07-13T22:12:00.000Z", "kind": "normal" },
+        "proposed": {
+          "pillars": ["己丑", "辛未", "乙巳", "己卯"],
+          "hourBoundaryDistanceMin": 20.09,
+          "daeun": {
+            "forward": true,
+            "startAge": 8,
+            "days": 24.9604,
+            "first3": ["壬申", "癸酉", "甲戌"],
+            "current": { "pillar": "戊寅", "age": 68 },
+            "manAge": 77
+          }
+        },
+        "noLon": {
+          "proposed": {
+            "pillars": ["己丑", "辛未", "乙巳", "己卯"],
+            "hourBoundaryDistanceMin": 20.09,
+            "daeun": {
+              "forward": true,
+              "startAge": 8,
+              "days": 24.9604,
+              "first3": ["壬申", "癸酉", "甲戌"],
+              "current": { "pillar": "戊寅", "age": 68 },
+              "manAge": 77
+            }
+          },
+          "current": { "hour": "庚辰", "decision": "OD-2" }
+        }
+      },
+      {
+        "id": "G29",
+        "label": "1954-01 no-lon hour",
+        "input": {
+          "date": "1954-01-15",
+          "time": "09:45",
+          "tz": "Asia/Seoul",
+          "lon": 126.978,
+          "gender": "male",
+          "now": "2026-11-24T03:00:00Z"
+        },
+        "instant": { "utc": "1954-01-15T00:45:00.000Z", "kind": "normal" },
+        "proposed": {
+          "pillars": ["癸巳", "乙丑", "辛未", "癸巳"],
+          "hourBoundaryDistanceMin": 12.91,
+          "daeun": {
+            "forward": false,
+            "startAge": 3,
+            "days": 9.1662,
+            "first3": ["甲子", "癸亥", "壬戌"],
+            "current": { "pillar": "戊午", "age": 63 },
+            "manAge": 72
+          }
+        },
+        "noLon": {
+          "proposed": {
+            "pillars": ["癸巳", "乙丑", "辛未", "癸巳"],
+            "hourBoundaryDistanceMin": 12.91,
+            "daeun": {
+              "forward": false,
+              "startAge": 3,
+              "days": 9.1662,
+              "first3": ["甲子", "癸亥", "壬戌"],
+              "current": { "pillar": "戊午", "age": 63 },
+              "manAge": 72
+            }
+          }
+        }
+      },
+      {
+        "id": "G30",
+        "label": "1961-10 no-lon hour",
+        "input": {
+          "date": "1961-10-01",
+          "time": "13:40",
+          "tz": "Asia/Seoul",
+          "lon": 126.978,
+          "gender": "male",
+          "now": "2026-11-24T03:00:00Z"
+        },
+        "instant": { "utc": "1961-10-01T04:40:00.000Z", "kind": "normal" },
+        "proposed": {
+          "pillars": ["辛丑", "丁酉", "丁卯", "丁未"],
+          "hourBoundaryDistanceMin": 7.91,
+          "daeun": {
+            "forward": false,
+            "startAge": 7,
+            "days": 23.299,
+            "first3": ["丙申", "乙未", "甲午"],
+            "current": { "pillar": "辛卯", "age": 57 },
+            "manAge": 65
+          }
+        },
+        "noLon": {
+          "proposed": {
+            "pillars": ["辛丑", "丁酉", "丁卯", "丁未"],
+            "hourBoundaryDistanceMin": 7.91,
+            "daeun": {
+              "forward": false,
+              "startAge": 7,
+              "days": 23.299,
+              "first3": ["丙申", "乙未", "甲午"],
+              "current": { "pillar": "辛卯", "age": 57 },
+              "manAge": 65
+            }
+          }
+        }
+      }
+    ]
+  },
+  "astro": {
+    "tolerance": { "planetDeg": 0.02, "nodeDeg": 0.02, "angleDeg": 0.02, "cuspDeg": 0.03 },
+    "charts": [
+      {
+        "id": "R01",
+        "input": {
+          "date": "1990-05-15",
+          "time": "10:30",
+          "tz": "Asia/Seoul",
+          "lat": 37.5665,
+          "lon": 126.978
+        },
+        "utc": "1990-05-15T01:30:00.000Z",
+        "houseSystem": "Placidus",
+        "planets": {
+          "Sun": { "lon": 53.974, "sign": "Taurus", "house": 10, "retrograde": false },
+          "Moon": { "lon": 291.7782, "sign": "Capricorn", "house": 6, "retrograde": false },
+          "Mercury": { "lon": 38.0719, "sign": "Taurus", "house": 10, "retrograde": true },
+          "Venus": { "lon": 12.3195, "sign": "Aries", "house": 9, "retrograde": false },
+          "Mars": { "lon": 348.0091, "sign": "Pisces", "house": 8, "retrograde": false },
+          "Jupiter": { "lon": 99.4592, "sign": "Cancer", "house": 12, "retrograde": false },
+          "Saturn": { "lon": 295.2566, "sign": "Capricorn", "house": 6, "retrograde": true },
+          "Uranus": { "lon": 279.1933, "sign": "Capricorn", "house": 6, "retrograde": true },
+          "Neptune": { "lon": 284.359, "sign": "Capricorn", "house": 6, "retrograde": true },
+          "Pluto": { "lon": 226.1802, "sign": "Scorpio", "house": 4, "retrograde": true }
+        },
+        "trueNode": { "lon": 310.2699, "sign": "Aquarius" },
+        "ascendant": { "lon": 125.0215, "sign": "Leo" },
+        "mc": { "lon": 23.7706, "sign": "Aries" },
+        "cusps": [
+          125.0215, 146.4281, 172.1615, 203.7706, 239.6417, 274.5352, 305.0215, 326.4281, 352.1615,
+          23.7706, 59.6417, 94.5352
+        ]
+      },
+      {
+        "id": "R07",
+        "input": {
+          "date": "1987-07-01",
+          "time": "12:15",
+          "tz": "Asia/Seoul",
+          "lat": 37.5665,
+          "lon": 126.978
+        },
+        "utc": "1987-07-01T02:15:00.000Z",
+        "houseSystem": "Placidus",
+        "planets": {
+          "Sun": { "lon": 98.7482, "sign": "Cancer", "house": 10, "retrograde": false },
+          "Moon": { "lon": 151.8328, "sign": "Virgo", "house": 12, "retrograde": false },
+          "Mercury": { "lon": 103.5315, "sign": "Cancer", "house": 10, "retrograde": true },
+          "Venus": { "lon": 84.2181, "sign": "Gemini", "house": 10, "retrograde": false },
+          "Mars": { "lon": 116.4171, "sign": "Cancer", "house": 11, "retrograde": false },
+          "Jupiter": { "lon": 25.9489, "sign": "Aries", "house": 8, "retrograde": false },
+          "Saturn": { "lon": 256.3156, "sign": "Sagittarius", "house": 3, "retrograde": true },
+          "Uranus": { "lon": 264.1405, "sign": "Sagittarius", "house": 4, "retrograde": true },
+          "Neptune": { "lon": 276.5612, "sign": "Capricorn", "house": 4, "retrograde": true },
+          "Pluto": { "lon": 217.2311, "sign": "Scorpio", "house": 2, "retrograde": true }
+        },
+        "trueNode": { "lon": 6.4251, "sign": "Aries" },
+        "ascendant": { "lon": 171.2883, "sign": "Virgo" },
+        "mc": { "lon": 80.1988, "sign": "Gemini" },
+        "cusps": [
+          171.2883, 197.1968, 227.2706, 260.1988, 293.3432, 324.1126, 351.2883, 17.1968, 47.2706,
+          80.1988, 113.3432, 144.1126
+        ]
+      },
+      {
+        "id": "R11",
+        "input": {
+          "date": "1990-06-15",
+          "time": "14:30",
+          "tz": "America/Los_Angeles",
+          "lat": 34.0522,
+          "lon": -118.2437
+        },
+        "utc": "1990-06-15T21:30:00.000Z",
+        "houseSystem": "Placidus",
+        "planets": {
+          "Sun": { "lon": 84.5075, "sign": "Gemini", "house": 9, "retrograde": false },
+          "Moon": { "lon": 350.6757, "sign": "Pisces", "house": 6, "retrograde": false },
+          "Mercury": { "lon": 66.3736, "sign": "Gemini", "house": 8, "retrograde": false },
+          "Venus": { "lon": 49.2429, "sign": "Taurus", "house": 8, "retrograde": false },
+          "Mars": { "lon": 11.3256, "sign": "Aries", "house": 6, "retrograde": false },
+          "Jupiter": { "lon": 105.9753, "sign": "Cancer", "house": 9, "retrograde": false },
+          "Saturn": { "lon": 294.0086, "sign": "Capricorn", "house": 4, "retrograde": true },
+          "Uranus": { "lon": 278.1485, "sign": "Capricorn", "house": 3, "retrograde": true },
+          "Neptune": { "lon": 283.7069, "sign": "Capricorn", "house": 3, "retrograde": true },
+          "Pluto": { "lon": 225.3942, "sign": "Scorpio", "house": 2, "retrograde": true }
+        },
+        "trueNode": { "lon": 308.1256, "sign": "Aquarius" },
+        "ascendant": { "lon": 195.2811, "sign": "Libra" },
+        "mc": { "lon": 106.7466, "sign": "Cancer" },
+        "cusps": [
+          195.2811, 223.2524, 254.0903, 286.7466, 319.2273, 349.2142, 15.2811, 43.2524, 74.0903,
+          106.7466, 139.2273, 169.2142
+        ]
+      },
+      {
+        "id": "R13",
+        "input": {
+          "date": "1980-12-21",
+          "time": "12:00",
+          "tz": "Australia/Sydney",
+          "lat": -33.8688,
+          "lon": 151.2093
+        },
+        "utc": "1980-12-21T01:00:00.000Z",
+        "houseSystem": "Placidus",
+        "planets": {
+          "Sun": { "lon": 269.324, "sign": "Sagittarius", "house": 10, "retrograde": false },
+          "Moon": { "lon": 79.7367, "sign": "Gemini", "house": 4, "retrograde": false },
+          "Mercury": { "lon": 263.4753, "sign": "Sagittarius", "house": 10, "retrograde": false },
+          "Venus": { "lon": 243.4604, "sign": "Sagittarius", "house": 9, "retrograde": false },
+          "Mars": { "lon": 292.268, "sign": "Capricorn", "house": 11, "retrograde": false },
+          "Jupiter": { "lon": 188.5462, "sign": "Libra", "house": 7, "retrograde": false },
+          "Saturn": { "lon": 189.0516, "sign": "Libra", "house": 7, "retrograde": false },
+          "Uranus": { "lon": 237.832, "sign": "Scorpio", "house": 9, "retrograde": false },
+          "Neptune": { "lon": 262.6422, "sign": "Sagittarius", "house": 10, "retrograde": false },
+          "Pluto": { "lon": 203.9504, "sign": "Libra", "house": 8, "retrograde": false }
+        },
+        "trueNode": { "lon": 131.5714, "sign": "Leo" },
+        "ascendant": { "lon": 348.1632, "sign": "Pisces" },
+        "mc": { "lon": 257.0834, "sign": "Sagittarius" },
+        "cusps": [
+          348.1632, 14.5449, 44.6706, 77.0834, 109.6007, 140.3292, 168.1632, 194.5449, 224.6706,
+          257.0834, 289.6007, 320.3292
+        ]
+      },
+      {
+        "id": "R14",
+        "input": {
+          "date": "1993-06-21",
+          "time": "03:00",
+          "tz": "Europe/Oslo",
+          "lat": 69.6492,
+          "lon": 18.9553
+        },
+        "utc": "1993-06-21T01:00:00.000Z",
+        "houseSystem": "WholeSign",
+        "planets": {
+          "Sun": { "lon": 89.6819, "sign": "Gemini", "house": 12, "retrograde": false },
+          "Moon": { "lon": 101.8423, "sign": "Cancer", "house": 1, "retrograde": false },
+          "Mercury": { "lon": 114.0712, "sign": "Cancer", "house": 1, "retrograde": false },
+          "Venus": { "lon": 44.2805, "sign": "Taurus", "house": 11, "retrograde": false },
+          "Mars": { "lon": 148.6897, "sign": "Leo", "house": 2, "retrograde": false },
+          "Jupiter": { "lon": 185.3444, "sign": "Libra", "house": 4, "retrograde": false },
+          "Saturn": { "lon": 330.232, "sign": "Pisces", "house": 9, "retrograde": true },
+          "Uranus": { "lon": 291.0459, "sign": "Capricorn", "house": 7, "retrograde": true },
+          "Neptune": { "lon": 290.3206, "sign": "Capricorn", "house": 7, "retrograde": true },
+          "Pluto": { "lon": 233.1967, "sign": "Scorpio", "house": 5, "retrograde": true }
+        },
+        "trueNode": { "lon": 252.1748, "sign": "Sagittarius" },
+        "ascendant": { "lon": 119.0932, "sign": "Cancer" },
+        "mc": { "lon": 300.9794, "sign": "Aquarius" },
+        "cusps": [90, 120, 150, 180, 210, 240, 270, 300, 330, 0, 30, 60]
+      },
+      {
+        "id": "R16",
+        "input": {
+          "date": "1997-03-21",
+          "time": "14:30",
+          "tz": "Asia/Seoul",
+          "lat": 37.5665,
+          "lon": 126.978
+        },
+        "utc": "1997-03-21T05:30:00.000Z",
+        "houseSystem": "Placidus",
+        "planets": {
+          "Sun": { "lon": 0.6448, "sign": "Aries", "house": 9, "retrograde": false },
+          "Moon": { "lon": 148.2836, "sign": "Leo", "house": 1, "retrograde": false },
+          "Mercury": { "lon": 10.0582, "sign": "Aries", "house": 9, "retrograde": false },
+          "Venus": { "lon": 357.5149, "sign": "Pisces", "house": 8, "retrograde": false },
+          "Mars": { "lon": 175.2423, "sign": "Virgo", "house": 2, "retrograde": true },
+          "Jupiter": { "lon": 312.9959, "sign": "Aquarius", "house": 7, "retrograde": false },
+          "Saturn": { "lon": 9.035, "sign": "Aries", "house": 9, "retrograde": false },
+          "Uranus": { "lon": 307.5474, "sign": "Aquarius", "house": 6, "retrograde": false },
+          "Neptune": { "lon": 299.4884, "sign": "Capricorn", "house": 6, "retrograde": false },
+          "Pluto": { "lon": 245.5571, "sign": "Sagittarius", "house": 4, "retrograde": true }
+        },
+        "trueNode": { "lon": 178.7492, "sign": "Virgo" },
+        "ascendant": { "lon": 130.0432, "sign": "Leo" },
+        "mc": { "lon": 30.3589, "sign": "Taurus" },
+        "cusps": [
+          130.0432, 151.8805, 178.2874, 210.3589, 245.9587, 280.1044, 310.0432, 331.8805, 358.2874,
+          30.3589, 65.9587, 100.1044
+        ]
+      },
+      {
+        "id": "R18",
+        "input": {
+          "date": "2023-05-01",
+          "time": "12:00",
+          "tz": "Asia/Seoul",
+          "lat": 37.5665,
+          "lon": 126.978
+        },
+        "utc": "2023-05-01T03:00:00.000Z",
+        "houseSystem": "Placidus",
+        "planets": {
+          "Sun": { "lon": 40.5027, "sign": "Taurus", "house": 10, "retrograde": false },
+          "Moon": { "lon": 166.0871, "sign": "Virgo", "house": 2, "retrograde": false },
+          "Mercury": { "lon": 41.8756, "sign": "Taurus", "house": 10, "retrograde": true },
+          "Venus": { "lon": 82.8138, "sign": "Gemini", "house": 11, "retrograde": false },
+          "Mars": { "lon": 109.0663, "sign": "Cancer", "house": 12, "retrograde": false },
+          "Jupiter": { "lon": 26.3603, "sign": "Aries", "house": 9, "retrograde": false },
+          "Saturn": { "lon": 335.4129, "sign": "Pisces", "house": 8, "retrograde": false },
+          "Uranus": { "lon": 48.4334, "sign": "Taurus", "house": 10, "retrograde": false },
+          "Neptune": { "lon": 356.7376, "sign": "Pisces", "house": 8, "retrograde": false },
+          "Pluto": { "lon": 300.3637, "sign": "Aquarius", "house": 6, "retrograde": false }
+        },
+        "trueNode": { "lon": 34.0291, "sign": "Taurus" },
+        "ascendant": { "lon": 132.0597, "sign": "Leo" },
+        "mc": { "lon": 32.9793, "sign": "Taurus" },
+        "cusps": [
+          132.0597, 154.0828, 180.7529, 212.9793, 248.4516, 282.3177, 312.0597, 334.0828, 0.7529,
+          32.9793, 68.4516, 102.3177
+        ]
+      }
+    ]
+  },
+  "timing": {
+    "profection": {
+      "source": "Valens, Anthology IV.11; Brennan 2017 ch. 11 (whole-sign annual profection)",
+      "input": {
+        "utc": "1990-10-09T14:18:00.000Z",
+        "lat": 37.5665,
+        "lon": 126.978,
+        "timeZone": "UTC"
+      },
+      "ascendant": { "lon": 106.526, "sign": "Cancer" },
+      "ages": [
+        { "age": 0, "sign": "Cancer", "lord": "Moon" },
+        { "age": 1, "sign": "Leo", "lord": "Sun" },
+        { "age": 2, "sign": "Virgo", "lord": "Mercury" },
+        { "age": 3, "sign": "Libra", "lord": "Venus" },
+        { "age": 4, "sign": "Scorpio", "lord": "Mars" },
+        { "age": 5, "sign": "Sagittarius", "lord": "Jupiter" },
+        { "age": 6, "sign": "Capricorn", "lord": "Saturn" },
+        { "age": 7, "sign": "Aquarius", "lord": "Saturn" },
+        { "age": 8, "sign": "Pisces", "lord": "Jupiter" },
+        { "age": 9, "sign": "Aries", "lord": "Mars" },
+        { "age": 10, "sign": "Taurus", "lord": "Venus" },
+        { "age": 11, "sign": "Gemini", "lord": "Mercury" }
+      ]
+    },
+    "solarArc": {
+      "source": "Solar arc = Sun(birth + age days) − natal Sun (secondary progression), majors at orb 0.5°",
+      "input": {
+        "date": "1960-07-04",
+        "time": "12:00",
+        "tz": "Asia/Seoul",
+        "lat": 37.5665,
+        "lon": 126.978,
+        "utc": "1960-07-04T02:30:00.000Z"
+      },
+      "toleranceDeg": 0.01,
+      "arcs": [
+        { "age": 20, "arc": 19.0766 },
+        { "age": 40, "arc": 38.222 },
+        { "age": 60, "arc": 57.5058 }
+      ],
+      "age60": {
+        "orb": 0.5,
+        "hits": [
+          "Moon trine Pluto",
+          "Neptune trine Pluto",
+          "Sun trine Mars",
+          "True Node sextile Saturn",
+          "True Node trine Venus"
+        ]
+      }
+    },
+    "saturnReturn": {
+      "source": "First exact transit of Saturn over natal Saturn (daily scan + bisection)",
+      "toleranceDays": 2,
+      "cases": [
+        {
+          "birth": {
+            "date": "1980-01-25",
+            "time": "12:00",
+            "tz": "Asia/Seoul",
+            "lat": 37.5665,
+            "lon": 126.978,
+            "utc": "1980-01-25T03:00:00.000Z"
+          },
+          "natalSaturn": 176.7194,
+          "firstExactPass": "2009-10-01T16:23:22.726Z",
+          "age": 29
+        },
+        {
+          "birth": {
+            "date": "1957-03-20",
+            "time": "12:00",
+            "tz": "Asia/Seoul",
+            "lat": 37.5665,
+            "lon": 126.978,
+            "utc": "1957-03-20T03:30:00.000Z"
+          },
+          "natalSaturn": 254.2951,
+          "firstExactPass": "1986-12-22T10:14:12.418Z",
+          "age": 29
+        },
+        {
+          "birth": {
+            "date": "1995-09-13",
+            "time": "12:00",
+            "tz": "Asia/Seoul",
+            "lat": 37.5665,
+            "lon": 126.978,
+            "utc": "1995-09-13T03:00:00.000Z"
+          },
+          "natalSaturn": 351.454,
+          "firstExactPass": "2025-03-07T05:52:41.060Z",
+          "age": 29
+        },
+        {
+          "birth": {
+            "date": "1953-07-17",
+            "time": "12:00",
+            "tz": "Asia/Seoul",
+            "lat": 37.5665,
+            "lon": 126.978,
+            "utc": "1953-07-17T03:00:00.000Z"
+          },
+          "natalSaturn": 201.0017,
+          "firstExactPass": "1981-12-24T07:30:07.935Z",
+          "age": 28
+        }
+      ]
+    },
+    "transit": {
+      "source": "astronomy-engine at the absolute instant; a trailing Z must win over the zone argument",
+      "instant": "2026-11-24T05:00:00.000Z",
+      "moon": { "lon": 56.1563, "sign": "Taurus" },
+      "seoulAscendant": { "lon": 352.0916, "sign": "Pisces" }
+    },
+    "planetaryHours": {
+      "source": "Planetary day starts at sunrise; 12 unequal day and night hours; Chaldean order (astronomy-engine rise/set)",
+      "location": { "lat": 37.5665, "lon": 126.978, "tz": "Asia/Seoul" },
+      "date": "2026-11-23",
+      "sunriseUtc": "2026-11-22T22:19:42.535Z",
+      "sunsetUtc": "2026-11-23T08:16:44.241Z",
+      "hours": [
+        { "localHour": 0, "rulerAtHalfPast": "Saturn", "wholeClockHour": false },
+        { "localHour": 1, "rulerAtHalfPast": "Jupiter", "wholeClockHour": false },
+        { "localHour": 2, "rulerAtHalfPast": "Jupiter", "wholeClockHour": false },
+        { "localHour": 3, "rulerAtHalfPast": "Mars", "wholeClockHour": false },
+        { "localHour": 4, "rulerAtHalfPast": "Sun", "wholeClockHour": false },
+        { "localHour": 5, "rulerAtHalfPast": "Venus", "wholeClockHour": true },
+        { "localHour": 6, "rulerAtHalfPast": "Mercury", "wholeClockHour": false },
+        { "localHour": 7, "rulerAtHalfPast": "Moon", "wholeClockHour": false },
+        { "localHour": 8, "rulerAtHalfPast": "Saturn", "wholeClockHour": false },
+        { "localHour": 9, "rulerAtHalfPast": "Jupiter", "wholeClockHour": false },
+        { "localHour": 10, "rulerAtHalfPast": "Mars", "wholeClockHour": false },
+        { "localHour": 11, "rulerAtHalfPast": "Venus", "wholeClockHour": false },
+        { "localHour": 12, "rulerAtHalfPast": "Mercury", "wholeClockHour": false },
+        { "localHour": 13, "rulerAtHalfPast": "Moon", "wholeClockHour": false },
+        { "localHour": 14, "rulerAtHalfPast": "Saturn", "wholeClockHour": false },
+        { "localHour": 15, "rulerAtHalfPast": "Jupiter", "wholeClockHour": false },
+        { "localHour": 16, "rulerAtHalfPast": "Sun", "wholeClockHour": false },
+        { "localHour": 17, "rulerAtHalfPast": "Venus", "wholeClockHour": false },
+        { "localHour": 18, "rulerAtHalfPast": "Mercury", "wholeClockHour": false },
+        { "localHour": 19, "rulerAtHalfPast": "Mercury", "wholeClockHour": false },
+        { "localHour": 20, "rulerAtHalfPast": "Moon", "wholeClockHour": false },
+        { "localHour": 21, "rulerAtHalfPast": "Saturn", "wholeClockHour": false },
+        { "localHour": 22, "rulerAtHalfPast": "Jupiter", "wholeClockHour": true },
+        { "localHour": 23, "rulerAtHalfPast": "Mars", "wholeClockHour": false }
+      ],
+      "pinned": [
+        { "localTime": "03:30", "ruler": "Mars" },
+        { "localTime": "05:30", "ruler": "Venus" },
+        { "localTime": "10:30", "ruler": "Mars" }
+      ]
+    },
+    "voidOfCourse": {
+      "source": "Moon sign ingress after the local-noon chart instant (astronomy-engine)",
+      "location": { "lat": 37.5665, "lon": 126.978, "tz": "Asia/Seoul" },
+      "date": "2026-11-05",
+      "chartInstant": "2026-11-05T03:00:00.000Z",
+      "ingressUtc": "2026-11-05T14:38:11.619Z",
+      "enteredSign": "Libra",
+      "toleranceMin": 5
+    },
+    "sect": {
+      "source": "Sect = Sun above the horizon (geometric altitude, astronomy-engine)",
+      "input": {
+        "utc": "1920-03-24T01:38:00.000Z",
+        "lat": 67.12,
+        "lon": -91.36,
+        "timeZone": "UTC"
+      },
+      "sunAltitude": -7.04,
+      "sect": "night"
+    },
+    "zodiacalReleasing": {
+      "source": "Valens, Anthology IV; Brennan, Hellenistic Astrology (2017) ch. 17",
+      "minorYears": {
+        "Aries": 15,
+        "Taurus": 8,
+        "Gemini": 20,
+        "Cancer": 25,
+        "Leo": 19,
+        "Virgo": 20,
+        "Libra": 8,
+        "Scorpio": 15,
+        "Sagittarius": 12,
+        "Capricorn": 27,
+        "Aquarius": 30,
+        "Pisces": 12
+      },
+      "l3UnitDays": 2.5,
+      "marsL3Days": 37.5,
+      "l3LoosingMinL2Months": 17.33
+    }
+  },
+  "sajuDerived": {
+    "source": {
+      "samhap": "三命通會 論三合: 申子辰 水, 亥卯未 木, 寅午戌 火, 巳酉丑 金 — all three distinct members",
+      "banghap": "方合: 寅卯辰 木, 巳午未 火, 申酉戌 金, 亥子丑 水",
+      "selfPunish": "三命通會: 自刑 = 辰辰 午午 酉酉 亥亥",
+      "stemClash": "天干沖 4쌍: 甲庚 乙辛 丙壬 丁癸 (relationTables canon)",
+      "taegeuk": "三命通會 太極貴人: 甲乙 子午 / 丙丁 卯酉 / 戊己 辰戌丑未 / 庚辛 寅亥 / 壬癸 巳申 (day stem)",
+      "gwimun": "鬼門關: 子酉 丑午 寅未 卯申 辰亥 巳戌, read from 日支 and 年支",
+      "dohwa": "桃花 = 年殺 of the 日支 三合 group: 寅午戌→卯 申子辰→酉 巳酉丑→午 亥卯未→子",
+      "hwagi": "化氣格: DM 合 partner in the adjacent month/hour stem and 月令 of the 化神 element",
+      "yongsin": "CONVENTIONS §10 억부: strong DM → not 인성/비겁; weak DM → 인성/비겁 unless a flagged 조후 override"
+    },
+    "cases": [
+      {
+        "id": "D01",
+        "pillars": "辛亥 丁酉 癸亥 己未",
+        "checks": ["samhap"],
+        "note": "亥卯未 needs 卯; two 亥 are not two members",
+        "expected": { "samhap": [] }
+      },
+      {
+        "id": "D02",
+        "pillars": "甲午 乙亥 辛丑 戊子",
+        "checks": ["banghap"],
+        "expected": { "banghap": [{ "members": "亥子丑", "element": "수" }] }
+      },
+      {
+        "id": "D03",
+        "pillars": "戊子 丁巳 丁未 庚子",
+        "checks": ["selfPunish"],
+        "note": "子 is not a 自刑 branch",
+        "expected": { "selfPunish": [] }
+      },
+      {
+        "id": "D04",
+        "pillars": "丙午 甲午 戊寅 戊午",
+        "checks": ["stemClash", "samhap"],
+        "note": "甲-戊 is not a 天干沖; 寅午戌 needs 戌",
+        "expected": { "stemClash": [], "samhap": [] }
+      },
+      {
+        "id": "D05",
+        "pillars": "戊辰 癸亥 庚午 甲申",
+        "checks": ["taegeuk"],
+        "expected": { "taegeuk": [{ "pillar": "month", "branch": "亥" }] }
+      },
+      {
+        "id": "D06",
+        "pillars": "辛未 辛丑 壬寅 庚戌",
+        "checks": ["taegeuk"],
+        "expected": { "taegeuk": [] }
+      },
+      {
+        "id": "D07",
+        "pillars": "丙申 庚子 己未 己巳",
+        "checks": ["gwimun"],
+        "expected": { "gwimun": [] }
+      },
+      {
+        "id": "D08",
+        "pillars": "丁未 丙午 丙寅 戊戌",
+        "checks": ["gwimun"],
+        "expected": { "gwimun": ["寅-未"] }
+      },
+      {
+        "id": "D09",
+        "pillars": "癸酉 戊午 癸未 壬戌",
+        "checks": ["dohwa"],
+        "expected": { "dohwa": [] }
+      },
+      {
+        "id": "D10",
+        "pillars": "壬辰 乙巳 壬申 丁未",
+        "checks": ["hwagi"],
+        "note": "丁壬→木 but 月令 巳 is fire",
+        "expected": {
+          "hwagi": { "partner": "time:丁", "element": "목", "monthSupport": false, "formed": false }
+        }
+      }
+    ],
+    "yongsin": [
+      {
+        "id": "Y01",
+        "pillars": "丙戌 辛卯 乙未 壬午",
+        "strength": "strong",
+        "check": "primaryNotSupport",
+        "dayMasterElement": "목",
+        "supportElements": ["수", "목"]
+      },
+      {
+        "id": "Y02",
+        "pillars": "庚午 庚辰 戊申 辛酉",
+        "strength": null,
+        "check": "secondaryNotKibsin",
+        "dayMasterElement": "토",
+        "supportElements": ["화", "토"]
+      },
+      {
+        "id": "Y03",
+        "pillars": "辛未 癸巳 丁亥 戊申",
+        "strength": null,
+        "check": "primaryNotAvoid",
+        "dayMasterElement": "화",
+        "supportElements": ["목", "화"]
+      },
+      {
+        "id": "Y04",
+        "pillars": "甲寅 戊辰 癸未 辛酉",
+        "strength": "weak",
+        "check": "primarySupportOrJohu",
+        "dayMasterElement": "수",
+        "supportElements": ["금", "수"]
+      }
+    ],
+    "extremeWeak": {
+      "pillars": "庚申 庚申 甲申 庚申",
+      "maxScore": 20,
+      "note": "甲 day master with seven metal characters: 극신약 band (≤ 20) of the §10 five-step scale"
+    }
+  },
+  "cross": {
+    "seed": 20261124,
+    "month": { "start": "2026-11-01T00:00:00.000Z", "end": "2026-11-30T23:59:59.999Z" },
+    "sample": {
+      "id": "SAMPLE",
+      "birthDate": "1997-03-21",
+      "birthTime": "14:30",
+      "gender": "female",
+      "latitude": 37.5665,
+      "longitude": 126.978,
+      "timeZone": "Asia/Seoul",
+      "dates": ["2026-11-02", "2026-11-19", "2026-11-24"]
+    },
+    "births": [
+      {
+        "id": "P01",
+        "birthDate": "1960-12-18",
+        "birthTime": "21:49",
+        "gender": "male",
+        "latitude": 51.5074,
+        "longitude": -0.1278,
+        "timeZone": "Europe/London",
+        "dates": ["2026-11-16", "2026-11-20", "2026-11-24"]
+      },
+      {
+        "id": "P02",
+        "birthDate": "1954-11-09",
+        "birthTime": "13:53",
+        "gender": "female",
+        "latitude": 40.7128,
+        "longitude": -74.006,
+        "timeZone": "America/New_York",
+        "dates": ["2026-11-08", "2026-11-14", "2026-11-15"]
+      },
+      {
+        "id": "P03",
+        "birthDate": "1951-05-22",
+        "birthTime": "13:38",
+        "gender": "female",
+        "latitude": 37.5665,
+        "longitude": 126.978,
+        "timeZone": "Asia/Seoul",
+        "dates": ["2026-11-03", "2026-11-05", "2026-11-17"]
+      },
+      {
+        "id": "P04",
+        "birthDate": "1965-08-11",
+        "birthTime": "11:55",
+        "gender": "female",
+        "latitude": 51.5074,
+        "longitude": -0.1278,
+        "timeZone": "Europe/London",
+        "dates": ["2026-11-12", "2026-11-15", "2026-11-24"]
+      },
+      {
+        "id": "P05",
+        "birthDate": "1989-09-15",
+        "birthTime": "22:04",
+        "gender": "female",
+        "latitude": 34.0522,
+        "longitude": -118.2437,
+        "timeZone": "America/Los_Angeles",
+        "dates": ["2026-11-01", "2026-11-24", "2026-11-25"]
+      },
+      {
+        "id": "P06",
+        "birthDate": "2001-01-24",
+        "birthTime": "00:00",
+        "gender": "female",
+        "latitude": -33.8688,
+        "longitude": 151.2093,
+        "timeZone": "Australia/Sydney",
+        "dates": ["2026-11-08", "2026-11-10", "2026-11-12"]
+      },
+      {
+        "id": "P07",
+        "birthDate": "1961-08-14",
+        "birthTime": "02:11",
+        "gender": "male",
+        "latitude": -33.8688,
+        "longitude": 151.2093,
+        "timeZone": "Australia/Sydney",
+        "dates": ["2026-11-06", "2026-11-23", "2026-11-27"]
+      },
+      {
+        "id": "P08",
+        "birthDate": "1997-10-23",
+        "birthTime": "04:28",
+        "gender": "male",
+        "latitude": 40.7128,
+        "longitude": -74.006,
+        "timeZone": "America/New_York",
+        "dates": ["2026-11-24", "2026-11-25", "2026-11-30"]
+      },
+      {
+        "id": "P09",
+        "birthDate": "1975-11-28",
+        "birthTime": "21:33",
+        "gender": "male",
+        "latitude": 1.3521,
+        "longitude": 103.8198,
+        "timeZone": "Asia/Singapore",
+        "dates": ["2026-11-03", "2026-11-04", "2026-11-16"]
+      },
+      {
+        "id": "P10",
+        "birthDate": "1990-06-06",
+        "birthTime": "22:02",
+        "gender": "female",
+        "latitude": 1.3521,
+        "longitude": 103.8198,
+        "timeZone": "Asia/Singapore",
+        "dates": ["2026-11-01", "2026-11-15", "2026-11-19"]
+      },
+      {
+        "id": "P11",
+        "birthDate": "1981-10-01",
+        "birthTime": "02:04",
+        "gender": "female",
+        "latitude": 1.3521,
+        "longitude": 103.8198,
+        "timeZone": "Asia/Singapore",
+        "dates": ["2026-11-15", "2026-11-16", "2026-11-24"]
+      },
+      {
+        "id": "P12",
+        "birthDate": "1995-05-18",
+        "birthTime": "19:52",
+        "gender": "female",
+        "latitude": 1.3521,
+        "longitude": 103.8198,
+        "timeZone": "Asia/Singapore",
+        "dates": ["2026-11-04", "2026-11-05", "2026-11-23"]
+      },
+      {
+        "id": "P13",
+        "birthDate": "1963-03-06",
+        "birthTime": "04:14",
+        "gender": "male",
+        "latitude": 37.5665,
+        "longitude": 126.978,
+        "timeZone": "Asia/Seoul",
+        "dates": ["2026-11-12", "2026-11-25", "2026-11-26"]
+      },
+      {
+        "id": "P14",
+        "birthDate": "1972-01-13",
+        "birthTime": "22:13",
+        "gender": "female",
+        "latitude": 51.5074,
+        "longitude": -0.1278,
+        "timeZone": "Europe/London",
+        "dates": ["2026-11-01", "2026-11-06", "2026-11-16"]
+      },
+      {
+        "id": "P15",
+        "birthDate": "1994-12-07",
+        "birthTime": "18:45",
+        "gender": "male",
+        "latitude": 35.6762,
+        "longitude": 139.6503,
+        "timeZone": "Asia/Tokyo",
+        "dates": ["2026-11-04", "2026-11-08", "2026-11-23"]
+      },
+      {
+        "id": "P16",
+        "birthDate": "1977-05-01",
+        "birthTime": "04:01",
+        "gender": "male",
+        "latitude": 34.0522,
+        "longitude": -118.2437,
+        "timeZone": "America/Los_Angeles",
+        "dates": ["2026-11-04", "2026-11-07", "2026-11-30"]
+      },
+      {
+        "id": "P17",
+        "birthDate": "1969-04-07",
+        "birthTime": "12:02",
+        "gender": "male",
+        "latitude": 40.7128,
+        "longitude": -74.006,
+        "timeZone": "America/New_York",
+        "dates": ["2026-11-06", "2026-11-07", "2026-11-26"]
+      },
+      {
+        "id": "P18",
+        "birthDate": "1981-08-18",
+        "birthTime": "01:00",
+        "gender": "male",
+        "latitude": 35.6762,
+        "longitude": 139.6503,
+        "timeZone": "Asia/Tokyo",
+        "dates": ["2026-11-19", "2026-11-20", "2026-11-21"]
+      },
+      {
+        "id": "P19",
+        "birthDate": "1991-03-15",
+        "birthTime": "12:51",
+        "gender": "female",
+        "latitude": -33.8688,
+        "longitude": 151.2093,
+        "timeZone": "Australia/Sydney",
+        "dates": ["2026-11-12", "2026-11-18", "2026-11-28"]
+      },
+      {
+        "id": "P20",
+        "birthDate": "1976-02-15",
+        "birthTime": "16:16",
+        "gender": "female",
+        "latitude": 35.6762,
+        "longitude": 139.6503,
+        "timeZone": "Asia/Tokyo",
+        "dates": ["2026-11-07", "2026-11-11", "2026-11-26"]
+      }
+    ],
+    "ziHour": {
+      "source": "CONVENTIONS §1: 00:00–01:00 belongs to the civil day, whose stem gives the 子時 stem (五鼠遁)",
+      "date": "2026-11-02",
+      "dayPillar": "庚辰",
+      "hourPillar": "丙子",
+      "windowLocal": { "start": "00:00", "end": "01:32" },
+      "previousDay": { "date": "2026-11-01", "dayPillar": "己卯", "ziHourPillar": "甲子" }
+    }
+  },
+  "report": {
+    "source": "Five-element verdict family (same → resonant, 生 → complement, 剋 → tension); 旬空 from the day pillar; signs → saju elements with air → wood (natalCrossShared.signToSajuElement convention)",
+    "now": "2026-11-24T00:00:00Z",
+    "karma": {
+      "input": {
+        "birthDate": "1951-05-22",
+        "birthTime": "13:38",
+        "timeZone": "Asia/Seoul",
+        "latitude": 37.5665,
+        "longitude": 126.978,
+        "gender": "female"
+      },
+      "utc": "1951-05-22T03:38:00.000Z",
+      "pillars": ["辛卯", "癸巳", "壬戌", "丙午"],
+      "gongmang": ["子", "丑"],
+      "visibleCounts": { "wood": 1, "fire": 3, "earth": 1, "metal": 1, "water": 2 },
+      "northNode": "Pisces",
+      "southNode": "Virgo",
+      "moon": "Sagittarius",
+      "expected": { "tone": "resonant", "karmaAxis": true }
+    },
+    "growth": {
+      "input": {
+        "birthDate": "1960-12-18",
+        "birthTime": "21:49",
+        "timeZone": "America/Los_Angeles",
+        "latitude": 34.0522,
+        "longitude": -118.2437,
+        "gender": "male"
+      },
+      "utc": "1960-12-19T05:49:00.000Z",
+      "pillars": ["庚子", "戊子", "庚辰", "丁亥"],
+      "gongmang": ["申", "酉"],
+      "visibleCounts": { "wood": 0, "fire": 1, "earth": 2, "metal": 2, "water": 3 },
+      "northNode": "Virgo",
+      "southNode": "Pisces",
+      "moon": "Capricorn",
+      "weakest": ["wood"],
+      "expected": { "tone": "tension" }
+    },
+    "needs": {
+      "input": {
+        "birthDate": "1997-03-21",
+        "birthTime": "14:30",
+        "timeZone": "Asia/Seoul",
+        "latitude": 37.5665,
+        "longitude": 126.978,
+        "gender": "female"
+      },
+      "utc": "1997-03-21T05:30:00.000Z",
+      "pillars": ["丁丑", "癸卯", "壬戌", "丁未"],
+      "gongmang": ["子", "丑"],
+      "visibleCounts": { "wood": 1, "fire": 2, "earth": 3, "metal": 0, "water": 2 },
+      "northNode": "Virgo",
+      "southNode": "Pisces",
+      "moon": "Leo",
+      "moonElement": "fire",
+      "rule": "needs tone = elementTone(용신 primary element, Moon sign element)"
+    },
+    "voidCases": [
+      { "pair": ["戌", "亥"], "southNode": "Taurus", "expected": "resonant" },
+      { "pair": ["戌", "亥"], "southNode": "Cancer", "expected": "resonant" },
+      { "pair": ["午", "未"], "southNode": "Leo", "expected": "resonant" },
+      { "pair": ["午", "未"], "southNode": "Taurus", "expected": "resonant" },
+      { "pair": ["辰", "巳"], "southNode": "Taurus", "expected": "resonant" },
+      { "pair": ["辰", "巳"], "southNode": "Leo", "expected": "resonant" },
+      { "pair": ["寅", "卯"], "southNode": "Gemini", "expected": "resonant" },
+      { "pair": ["子", "丑"], "southNode": "Cancer", "expected": "resonant" },
+      { "pair": ["子", "丑"], "southNode": "Taurus", "expected": "resonant" }
+    ]
+  }
+}
