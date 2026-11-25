@@ -17,6 +17,7 @@ import {
   relationForDay,
   ZODIAC_ANIMALS,
 } from '@/lib/fortune/zodiacDaily'
+import { THREE_HARMONY, halfHarmonyPairs } from '@/lib/saju/relationTables'
 
 // KST 정오 — 날짜 경계 이슈 없이 해당 달력일을 가리킨다
 const GAPJA_DAY = new Date('1984-01-31T12:00:00+09:00')
@@ -104,5 +105,40 @@ describe('유틸', () => {
     expect(relationForDay('子', '卯')).toBe('xing')
     // 寅巳 는 형(삼형) — 삼합(寅午戌 아님) 간섭 없음
     expect(relationForDay('寅', '巳')).toBe('xing')
+  })
+})
+
+// G4 · SDR-02 — 띠 표면의 '삼합'은 민속 띠궁합 관례(CONVENTIONS §8 '띠 표면 예외'):
+// 같은 삼합국의 두 띠 전부. 명리 정본(왕지 낀 반합 8쌍)보다 넓은 것은 정확히 生-墓 4쌍뿐이고,
+// 표는 relationTables.THREE_HARMONY 하나에서 온다.
+describe('띠 삼합 — 민속 관례 vs relationTables 정본', () => {
+  const ordered = (pairs: Array<readonly [string, string]>) =>
+    new Set(pairs.flatMap(([a, b]) => [`${a}${b}`, `${b}${a}`]))
+  const branches = ZODIAC_ANIMALS.map((a) => a.branch)
+  const samhap = new Set<string>()
+  for (const d of branches)
+    for (const a of branches) if (relationForDay(d, a) === 'samhap') samhap.add(`${d}${a}`)
+
+  it("'samhap' = any two distinct members of one THREE_HARMONY trio (24 ordered pairs)", () => {
+    const want = new Set(
+      THREE_HARMONY.flatMap(({ members }) =>
+        members.flatMap((x) => members.filter((y) => y !== x).map((y) => `${x}${y}`))
+      )
+    )
+    expect(samhap).toEqual(want)
+  })
+
+  it('the only pairs beyond the canon 반합 are the four 生-墓 pairs (申辰 亥未 寅戌 巳丑)', () => {
+    const canon = ordered(halfHarmonyPairs().map((h) => h.pair))
+    for (const p of canon) expect(samhap.has(p), p).toBe(true)
+    const extra = [...samhap].filter((p) => !canon.has(p))
+    expect(new Set(extra)).toEqual(
+      ordered([
+        ['申', '辰'],
+        ['亥', '未'],
+        ['寅', '戌'],
+        ['巳', '丑'],
+      ])
+    )
   })
 })

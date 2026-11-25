@@ -40,6 +40,7 @@ const SAJU_REL_EN: Record<string, string> = {
   암합: 'hidden combine',
   육합: 'six-combine',
   삼합: 'three-combine',
+  반합: 'half-combine',
   방합: 'directional combine',
   회국: 'gathering combination',
   월지: 'month branch',

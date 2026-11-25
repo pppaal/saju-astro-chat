@@ -260,3 +260,156 @@ describe('sajuJijangganExtractor — 대운 / 세운 layer', () => {
     expect(monthly.some((s) => s.id.includes('wolun.2026-6.巳'))).toBe(false)
   })
 })
+
+// ─── G4 · SDR-01 — 암합 化氣 파합자 대칭 ───
+// 합을 이루는 본명 천간 그 한 자리는 파합자가 아니다(합에 묶여 파합 못함). 甲己→토 의 甲,
+// 戊癸→화 의 癸 가 자기 합을 깨던 버그 때문에, 같은 합이 어느 쪽이 본명이냐에 따라 극성이
+// 갈렸다. 5 천간합 × 12 월령 × 양쪽에서 거울 차트가 같은 결과를 내는지, 그리고 그 결과가
+// 월령 관계표(독립 계산)와 같은지 잠근다. 다른 자리의 두 번째 甲/癸 는 여전히 파합자다.
+describe('sajuJijangganExtractor — 암합 化氣 파합자 대칭 (G4 · SDR-01)', () => {
+  const BR = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥']
+  // 2026-01-06 = 庚辰 일(JDN 독립 앵커) → 2026-01-n 의 일지.
+  const dayWithBranch = (b: string) => {
+    for (let n = 1; n <= 12; n++) if (BR[(((4 + n - 6) % 12) + 12) % 12] === b) return DAY(n)
+    throw new Error(b)
+  }
+  // 각 천간이 정기(본기)인 지지 — 두 쪽 모두 같은 층(정기)에서 만나야 무게까지 비교된다.
+  const MAIN_QI_BRANCH: Record<string, string> = {
+    甲: '寅',
+    乙: '卯',
+    丙: '巳',
+    丁: '午',
+    戊: '辰',
+    己: '未',
+    庚: '申',
+    辛: '酉',
+    壬: '亥',
+    癸: '子',
+  }
+  const BRANCH_EL: Record<string, string> = {
+    子: '수',
+    亥: '수',
+    寅: '목',
+    卯: '목',
+    巳: '화',
+    午: '화',
+    申: '금',
+    酉: '금',
+    辰: '토',
+    戌: '토',
+    丑: '토',
+    未: '토',
+  }
+  const SHENG: Record<string, string> = { 목: '화', 화: '토', 토: '금', 금: '수', 수: '목' }
+  const KE: Record<string, string> = { 목: '토', 토: '수', 수: '화', 화: '금', 금: '목' }
+  const BREAKERS: Record<string, string[]> = {
+    토: ['甲', '乙'],
+    금: ['丙', '丁'],
+    수: ['戊', '己'],
+    목: ['庚', '辛'],
+    화: ['壬', '癸'],
+  }
+  const PAIRS: Array<[string, string, string]> = [
+    ['甲', '己', '토'],
+    ['乙', '庚', '금'],
+    ['丙', '辛', '수'],
+    ['丁', '壬', '목'],
+    ['戊', '癸', '화'],
+  ]
+  const STEMS10 = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸']
+  // 월령 관계로만 정해지는 기대 상태(파합자 없음).
+  const expectedStatus = (monthEl: string, t: string) => {
+    if (monthEl === t) return 'full'
+    if (KE[monthEl] === t) return 'failed'
+    return 'partial'
+  }
+
+  // 본명 일간 natalDay 가 일진 지장간 partner(정기)와 맺는 daily 암합 신호 하나.
+  // 나머지 세 천간은 filler(파합자가 아닌 천간), 용신은 합화 오행 → 성립 +2 · failed 0.
+  function dayAmhap(
+    natalDay: string,
+    partner: string,
+    monthBranch: string,
+    filler: string,
+    t: string
+  ) {
+    const out = run(
+      ctx({
+        year: { stem: filler, branch: '子' },
+        month: { stem: filler, branch: monthBranch },
+        day: { stem: natalDay, branch: '子' },
+        time: { stem: filler, branch: '子' },
+        yongsin: { primary: t, avoid: [] },
+        ...dayWithBranch(MAIN_QI_BRANCH[partner]),
+      })
+    )
+    const hits = out.filter((s) => {
+      const d = s.evidence.detail as { mode: string; natalStemPos?: string; jijangganStem?: string }
+      return (
+        s.layer === 'daily' &&
+        d.mode === 'amhap' &&
+        d.natalStemPos === 'day' &&
+        d.jijangganStem === partner
+      )
+    })
+    expect(hits, `${natalDay}+${partner} month ${monthBranch}`).toHaveLength(1)
+    const d = hits[0].evidence.detail as { hwagiStatus: string; hwagiReasons: string[] }
+    return {
+      status: d.hwagiStatus,
+      reasons: d.hwagiReasons,
+      polarity: hits[0].polarity,
+      weight: hits[0].weight,
+    }
+  }
+
+  it.each(PAIRS)('%s%s → %s: mirror charts agree in all 12 months', (x, y, t) => {
+    const filler = STEMS10.find((s) => s !== x && s !== y && !BREAKERS[t].includes(s))!
+    for (const month of BR) {
+      const a = dayAmhap(x, y, month, filler, t) // 본명 x, 일진 지장간 y
+      const b = dayAmhap(y, x, month, filler, t) // 거울: 본명 y, 일진 지장간 x
+      const want = expectedStatus(BRANCH_EL[month], t)
+      expect(a.status, `${x}${y} natal ${x} month ${month}`).toBe(want)
+      expect(b.status, `${x}${y} natal ${y} month ${month}`).toBe(want)
+      expect(a.reasons.some((r) => r.startsWith('breaker='))).toBe(false)
+      expect(a.polarity).toBe(b.polarity)
+      expect(a.polarity).toBe(want === 'failed' ? 0 : 2)
+      expect(a.weight).toBeCloseTo(b.weight, 12)
+    }
+  })
+
+  it('repro: 甲日 午月 on a 未 day ≡ 己日 午月 on a 寅 day (partial, +2)', () => {
+    const a = dayAmhap('甲', '己', '午', '丙', '토')
+    const b = dayAmhap('己', '甲', '午', '丙', '토')
+    expect(a.status).toBe('partial')
+    expect(b.status).toBe('partial')
+    expect(a.polarity).toBe(2)
+    expect(b.polarity).toBe(2)
+    expect(a.weight).toBeCloseTo(b.weight, 12)
+  })
+
+  it('a second 甲 in another pillar still breaks 甲己→토 (爭合·妒合)', () => {
+    const out = run(
+      ctx({
+        year: { stem: '甲', branch: '子' },
+        month: { stem: '丙', branch: '丑' },
+        day: { stem: '甲', branch: '子' },
+        time: { stem: '丙', branch: '子' },
+        yongsin: { primary: '토', avoid: [] },
+        ...dayWithBranch('未'),
+      })
+    )
+    const hit = out.find((s) => {
+      const d = s.evidence.detail as { mode: string; natalStemPos?: string; jijangganStem?: string }
+      return (
+        s.layer === 'daily' &&
+        d.mode === 'amhap' &&
+        d.natalStemPos === 'day' &&
+        d.jijangganStem === '己'
+      )
+    })!
+    const d = hit.evidence.detail as { hwagiStatus: string; hwagiReasons: string[] }
+    // 월령 丑(토)=합화 → full, 다른 자리 甲 이 파합자 → partial 로 강등.
+    expect(d.hwagiStatus).toBe('partial')
+    expect(d.hwagiReasons).toContain('breaker=甲')
+  })
+})

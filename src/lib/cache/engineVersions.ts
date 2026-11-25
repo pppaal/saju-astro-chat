@@ -86,6 +86,8 @@ export { SAJU_ENGINE_VERSION }
 //     이상인 출생은 NatalContext.saju.daeun 에 지금 대운이 들어가 대운 창·Life 현재 대운이
 //     생긴다(그 외 출생은 출력이 같다). NatalContextCache·월 셀에 구워지므로 bump.
 //     운명상담사 컨텍스트도 ENGINE_VERSION_TAG 로 함께 무효화.
+//     같은 웨이브(재감사 G4)의 캘린더 사주 신호 교정 — 반합·국 완성 삼합/방합, 암합 파합자
+//     대칭, 천라지망 짝 완성 활성, 현침·괴강 — 도 이 v14 에 함께 실린다(웨이브당 한 번).
 export const CALENDAR_ENGINE_VERSION = 'v14'
 
 /**

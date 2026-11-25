@@ -336,10 +336,11 @@ describe('천간충 — 단일 모드(STEM_CLASH_MODE) 를 본명·운·캘린�
   })
 })
 
-// ─── saju-hyeongchung 추출기의 합·충·원진·방합·파·해 = canon (F2 / D8·E17 표 SSOT) ───
+// ─── saju-hyeongchung 추출기의 합·충·원진·반합·파·해 = canon (F2 / D8·E17 표 SSOT) ───
 // 추출기는 예전에 이 표들을 로컬 복제로 들고 있었다. 실제 출력(kindLabel·detail)을 canon
 // 에서 독립적으로 만든 기대값과 144 지지쌍·100 천간쌍 전부 비교해, 표가 어디서 오든 같은
-// 신호가 나는지 잠근다.
+// 신호가 나는지 잠근다. 2지지 삼합 관계는 왕지 낀 반합 쌍만(G4·SDR-02) — 본명 지지 하나로는
+// 삼합·방합 국이 완성될 수 없으므로 이 144쌍 창에선 삼합·방합 신호가 0 이어야 한다.
 describe('saju-hyeongchung 추출기 관계표 = relationTables canon (F2)', () => {
   type Hit = { label: string; target: string; natal: string; detail: Record<string, unknown> }
   const hits: Hit[] = []
@@ -354,38 +355,47 @@ describe('saju-hyeongchung 추출기 관계표 = relationTables canon (F2)', () 
     new Set(hits.filter((h) => h.label === label).map((h) => `${h.target}${h.natal}`))
   const orderedPairs = (pairs: ReadonlyArray<canon.Pair>) =>
     new Set(pairs.flatMap(([a, b]) => [`${a}${b}`, `${b}${a}`]))
-  const groupPairs = (groups: ReadonlyArray<{ members: readonly string[] }>) =>
-    new Set(
-      groups.flatMap(({ members }) =>
-        members.flatMap((x) => members.filter((y) => y !== x).map((y) => `${x}${y}`))
-      )
-    )
-
   it.each([
     ['육합', () => orderedPairs(canon.SIX_HARMONY.map((h) => h.pair))],
     ['지지충', () => orderedPairs(canon.BRANCH_CLASH)],
     ['원진', () => orderedPairs(canon.RESENTMENT_PAIRS)],
     ['파', () => orderedPairs(canon.BREAK_PAIRS)],
     ['해', () => orderedPairs(canon.HARM_PAIRS)],
-    ['삼합', () => groupPairs(canon.THREE_HARMONY)],
-    ['방합', () => groupPairs(canon.DIRECTIONAL_HARMONY)],
+    ['반합', () => orderedPairs(canon.halfHarmonyPairs().map((h) => h.pair))],
+    ['삼합', () => new Set<string>()],
+    ['방합', () => new Set<string>()],
   ] as const)('%s: 144 branch pairs match the canon', (label, expected) => {
     expect(branchHits(label)).toEqual(expected())
   })
 
-  it('삼합·방합 detail carries the canon group (and the season label for 방합)', () => {
-    const SEASON = { 동방: '봄', 남방: '여름', 서방: '가을', 북방: '겨울' } as const
+  it('반합 = the 8 왕지 pairs only: 生-墓 pairs (申辰·亥未·寅戌·巳丑) never combine', () => {
+    const half = branchHits('반합')
+    expect(half.size).toBe(16)
+    for (const [a, b] of [
+      ['申', '辰'],
+      ['亥', '未'],
+      ['寅', '戌'],
+      ['巳', '丑'],
+    ]) {
+      expect(half.has(`${a}${b}`) || half.has(`${b}${a}`)).toBe(false)
+    }
+    for (const pair of half) {
+      expect(
+        ['子', '午', '卯', '酉'].some((w) => pair.includes(w)),
+        pair
+      ).toBe(true)
+    }
+  })
+
+  it('반합 detail carries the element and the trio, with pair-level text (not the full-trio text)', () => {
     for (const h of hits) {
-      if (h.label === '삼합') {
-        const t = canon.THREE_HARMONY.find((g) => g.members.includes(h.target))
-        expect(h.detail.samhapGroup).toEqual([...(t?.members ?? [])])
-      }
-      if (h.label === '방합') {
-        const g = canon.DIRECTIONAL_HARMONY.find((x) => x.members.includes(h.target))
-        expect(h.detail.banghapGroup).toEqual([...(g?.members ?? [])])
-        expect(h.detail.element).toBe(g?.element)
-        expect(h.detail.season).toBe(g ? SEASON[g.direction] : undefined)
-      }
+      if (h.label !== '반합') continue
+      const t = canon.THREE_HARMONY.find(
+        (g) => g.members.includes(h.target) && g.members.includes(h.natal)
+      )
+      expect(h.detail.element).toBe(t?.element)
+      expect(h.detail.trio).toEqual([...(t?.members ?? [])])
+      expect(h.detail.samhapGroup).toBeUndefined()
     }
   })
 

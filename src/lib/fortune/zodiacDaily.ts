@@ -93,6 +93,10 @@ export interface ZodiacDailyFortune {
 
 // ── 관계 판정 ──
 
+// 띠 삼합 = 민속 띠궁합 관례(CONVENTIONS §8 '띠 표면 예외'): 같은 삼합국(SAMHAP =
+// relationTables.THREE_HARMONY)의 두 띠면 生-墓 쌍(申辰·亥未·寅戌·巳丑)까지 '삼합띠'로 본다.
+// 본명·캘린더의 명리 정본(왕지 낀 반합만, 국은 세 멤버)과 일부러 다르다 — 띠 표면은 年支
+// 하나끼리의 민속 궁합이라 사주 원국 해석과 섞지 않는다. 표는 relationTables 에서만 온다.
 function samhapTrioOf(branch: string): string[] | null {
   for (const members of Object.values(SAMHAP)) {
     if (members.includes(branch)) return members

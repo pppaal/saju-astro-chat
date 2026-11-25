@@ -13,6 +13,7 @@ import {
   BREAK_PAIRS,
   HARM_PAIRS,
   PUNISHMENT_TRIOS,
+  halfHarmonyPairs,
   type Pair,
 } from '@/lib/saju/relationTables'
 import { isHyeong } from '@/lib/saju/hyeong'
@@ -22,7 +23,12 @@ import { isHyeong } from '@/lib/saju/hyeong'
  *
  * 매일 일진의 천간/지지가 본명 4기둥의 천간/지지와 어떤 관계를 맺는지 검사.
  * - 천간합/충
- * - 지지 육합/삼합/방합/충/형/파/해/원진
+ * - 지지 육합/반합/삼합/방합/충/형/파/해/원진
+ *
+ * 삼합·방합은 본명 relations 와 같은 정본(CALCULATION_SPEC §1, CONVENTIONS §8)을 따른다:
+ * - 삼합·방합 = 일진 지지 + 본명 지지로 서로 다른 세 멤버가 모두 모였을 때만(국 완성).
+ * - 두 지지만 만나면 왕지(子午卯酉)를 낀 반합 쌍(halfHarmonyPairs)일 때만 '반합'.
+ *   生-墓 쌍(申辰·亥未·寅戌·巳丑)은 합이 아니고, 2지지 방합은 없다.
  *
  * 활성 윈도우: 해당 1일.
  */
@@ -46,6 +52,24 @@ const BRANCH_YUKHAP: ReadonlyArray<Pair> = SIX_HARMONY.map((h) => h.pair)
 
 // ─── 지지 삼합 (4그룹: 申子辰 수 · 亥卯未 목 · 寅午戌 화 · 巳酉丑 금) ───
 const BRANCH_SAMHAP_GROUPS: ReadonlyArray<string[]> = THREE_HARMONY.map((t) => [...t.members])
+
+// ─── 지지 반합 (8쌍 — 삼합 트리오에서 왕지를 낀 두 지지) ───
+// 申子·子辰 / 亥卯·卯未 / 寅午·午戌 / 巳酉·酉丑. 生-墓 쌍은 반합이 아니다.
+const BRANCH_BANHAP: ReadonlyArray<{
+  pair: Pair
+  element: string
+  trio: readonly string[]
+  missing: string
+}> = halfHarmonyPairs().map(({ pair, element }) => {
+  const trio = THREE_HARMONY.find((t) => t.members.includes(pair[0]) && t.members.includes(pair[1]))
+  const members = trio ? trio.members : pair
+  return {
+    pair,
+    element,
+    trio: members,
+    missing: members.find((m) => m !== pair[0] && m !== pair[1]) ?? '',
+  }
+})
 
 // ─── 지지충 (6쌍) ───
 const BRANCH_CHUNG: ReadonlyArray<Pair> = BRANCH_CLASH
@@ -108,6 +132,7 @@ const sajuHyeongchungExtractor: SignalExtractor = {
       })
     }
 
+    const natalBranches = new Set(natalPillars.map((np) => np.branch))
     const signals: ActiveSignal[] = []
     const start = new Date(range.start)
     const end = new Date(range.end)
@@ -122,6 +147,60 @@ const sajuHyeongchungExtractor: SignalExtractor = {
       const startIso = `${dayIso}T00:00:00.000Z`
       const endIso = `${dayIso}T23:59:59.999Z`
       const peakIso = `${dayIso}T12:00:00.000Z`
+
+      // 국(局) 완성 — 일진 지지 + 본명 지지로 서로 다른 세 멤버가 모두 모인 삼합·방합.
+      // 일진 지지를 뺀 나머지 두 멤버가 본명에 있어야 한다(같은 지지 반복은 한 멤버).
+      const othersOf = (group: readonly string[]) => group.filter((m) => m !== targetBranch)
+      const completes = (group: readonly string[]) =>
+        group.includes(targetBranch) && othersOf(group).every((m) => natalBranches.has(m))
+      const completedSamhap = BRANCH_SAMHAP_GROUPS.filter(completes)
+      for (const group of completedSamhap) {
+        const holders = natalPillars.filter((np) => othersOf(group).includes(np.branch))
+        signals.push(
+          makeSignal({
+            dayIso,
+            startIso,
+            peakIso,
+            endIso,
+            kindLabel: '삼합',
+            polarity: 3,
+            weight: 0.7,
+            name: `삼합 ${targetBranch}-${othersOf(group).join('-')} (${group.join('')})`,
+            detail: {
+              targetBranch,
+              natalBranches: othersOf(group),
+              natalPillar: holders[0]?.kind,
+              natalPillars: holders.map((np) => np.kind),
+              samhapGroup: group,
+            },
+          })
+        )
+      }
+      for (const group of BRANCH_BANGHAP_GROUPS) {
+        if (!completes(group.branches)) continue
+        const holders = natalPillars.filter((np) => othersOf(group.branches).includes(np.branch))
+        signals.push(
+          makeSignal({
+            dayIso,
+            startIso,
+            peakIso,
+            endIso,
+            kindLabel: '방합',
+            polarity: 1,
+            weight: 0.55,
+            name: `방합 ${targetBranch}-${othersOf(group.branches).join('-')} (${group.branches.join('')} ${group.season})`,
+            detail: {
+              targetBranch,
+              natalBranches: othersOf(group.branches),
+              natalPillar: holders[0]?.kind,
+              natalPillars: holders.map((np) => np.kind),
+              banghapGroup: group.branches,
+              season: group.season,
+              element: group.element,
+            },
+          })
+        )
+      }
 
       for (const np of natalPillars) {
         // 천간합
@@ -178,32 +257,35 @@ const sajuHyeongchungExtractor: SignalExtractor = {
             )
           }
         }
-        // 지지 삼합 (target과 natal이 같은 삼합국에 속하면)
-        for (const group of BRANCH_SAMHAP_GROUPS) {
-          if (
-            group.includes(targetBranch) &&
-            group.includes(np.branch) &&
-            targetBranch !== np.branch
-          ) {
-            signals.push(
-              makeSignal({
-                dayIso,
-                startIso,
-                peakIso,
-                endIso,
-                kindLabel: '삼합',
-                polarity: 3,
-                weight: 0.7,
-                name: `삼합 ${targetBranch}-${np.branch} (${group.join('')})`,
-                detail: {
-                  targetBranch,
-                  natalBranch: np.branch,
-                  natalPillar: np.kind,
-                  samhapGroup: group,
-                },
-              })
-            )
-          }
+        // 지지 반합 — 왕지를 낀 2지지 쌍만. 같은 날 그 삼합국이 완성되면 아래 삼합 신호가
+        // 대신한다(본명 relations 와 같은 중복 숨김).
+        for (const half of BRANCH_BANHAP) {
+          const [a, b] = half.pair
+          if (!((targetBranch === a && np.branch === b) || (targetBranch === b && np.branch === a)))
+            continue
+          if (completedSamhap.some((g) => g.join('') === half.trio.join(''))) continue
+          signals.push(
+            makeSignal({
+              dayIso,
+              startIso,
+              peakIso,
+              endIso,
+              kindLabel: '반합',
+              polarity: 2,
+              weight: 0.6,
+              name: `반합 ${targetBranch}-${np.branch} (${half.trio.join('')} ${half.element})`,
+              detail: {
+                targetBranch,
+                natalBranch: np.branch,
+                natalPillar: np.kind,
+                banhapPair: [a, b],
+                trio: [...half.trio],
+                element: half.element,
+              },
+              korean: banhapMeaning(half, 'ko'),
+              english: banhapMeaning(half, 'en'),
+            })
+          )
         }
         // 지지충
         for (const [a, b] of BRANCH_CHUNG) {
@@ -253,35 +335,6 @@ const sajuHyeongchungExtractor: SignalExtractor = {
                 weight: 0.55,
                 name: `원진 ${targetBranch}-${np.branch} (${PILLAR_NAMES[np.kind]})`,
                 detail: { targetBranch, natalBranch: np.branch, natalPillar: np.kind },
-              })
-            )
-          }
-        }
-        // 방합 (같은 계절 결의 모임) — target과 natal이 같은 방합국에 속하면
-        for (const group of BRANCH_BANGHAP_GROUPS) {
-          if (
-            group.branches.includes(targetBranch) &&
-            group.branches.includes(np.branch) &&
-            targetBranch !== np.branch
-          ) {
-            signals.push(
-              makeSignal({
-                dayIso,
-                startIso,
-                peakIso,
-                endIso,
-                kindLabel: '방합',
-                polarity: 1,
-                weight: 0.55,
-                name: `방합 ${targetBranch}-${np.branch} (${group.branches.join('')} ${group.season})`,
-                detail: {
-                  targetBranch,
-                  natalBranch: np.branch,
-                  natalPillar: np.kind,
-                  banghapGroup: group.branches,
-                  season: group.season,
-                  element: group.element,
-                },
               })
             )
           }
@@ -339,6 +392,9 @@ interface MakeSignalArgs {
   weight: number
   name: string
   detail: Record<string, unknown>
+  /** 사전에 없는 관계(반합)의 짝 단위 해석문 — 있으면 사전 조회 대신 쓴다. */
+  korean?: string
+  english?: string
 }
 
 // 삼형(三刑) 페어 → 트리오 키. 지지형 사전 키는 trio(寅巳申·丑戌未)라
@@ -393,18 +449,55 @@ function relationMeaning(
   return undefined
 }
 
+// 반합 짝 해석문 — chart-dictionary 는 삼합을 트리오 키로만 들고 있어 2지지용 문장이 없다.
+// 국이 완성된 것처럼 말하지 않게, 반쯤 모인 상태와 빠진 세 번째 지지를 그대로 적는다.
+const BRANCH_ANIMAL: Record<string, { ko: string; en: string }> = {
+  子: { ko: '쥐', en: 'Rat' },
+  丑: { ko: '소', en: 'Ox' },
+  寅: { ko: '호랑이', en: 'Tiger' },
+  卯: { ko: '토끼', en: 'Rabbit' },
+  辰: { ko: '용', en: 'Dragon' },
+  巳: { ko: '뱀', en: 'Snake' },
+  午: { ko: '말', en: 'Horse' },
+  未: { ko: '양', en: 'Goat' },
+  申: { ko: '원숭이', en: 'Monkey' },
+  酉: { ko: '닭', en: 'Rooster' },
+  戌: { ko: '개', en: 'Dog' },
+  亥: { ko: '돼지', en: 'Pig' },
+}
+const BANHAP_ELEMENT: Record<string, { ko: string; en: string }> = {
+  수: { ko: '물', en: 'Water' },
+  목: { ko: '나무', en: 'Wood' },
+  화: { ko: '불', en: 'Fire' },
+  금: { ko: '쇠', en: 'Metal' },
+}
+function banhapMeaning(
+  half: { pair: Pair; element: string; missing: string },
+  lang: 'ko' | 'en'
+): string | undefined {
+  const [a, b] = half.pair.map((x) => BRANCH_ANIMAL[x])
+  const miss = BRANCH_ANIMAL[half.missing]
+  const el = BANHAP_ELEMENT[half.element]
+  if (!a || !b || !miss || !el) return undefined
+  // 해석문에는 한자를 넣지 않는다(초보 표면·EN 문장) — 동물 이름과 오행 말로만.
+  return lang === 'ko'
+    ? `${a.ko}·${b.ko}의 반합 — ${el.ko} 기운이 반쯤 모이는 흐름이에요. 세 번째 지지인 ${miss.ko}까지 모여야 삼합으로 완성돼요.`
+    : `${a.en} and ${b.en} — a half-trine: ${el.en} energy half-gathers, and it only completes as a trine if the ${miss.en} joins.`
+}
+
 function makeSignal(args: MakeSignalArgs): ActiveSignal {
   const a = (args.detail.targetBranch ?? args.detail.targetStem) as string | undefined
   const b = (args.detail.natalBranch ?? args.detail.natalStem) as string | undefined
-  // 삼합/방합 그룹 트리오 키 (있으면 사전 trio 조회에 사용).
+  // 삼합/방합 그룹 트리오 키 (있으면 사전 trio 조회에 사용). 반합은 samhapGroup 을 싣지
+  // 않고 짝 해석문(args.korean/english)을 따로 넘긴다 — 트리오 문구('셋이 모여…') 금지.
   const samhap = args.detail.samhapGroup as string[] | undefined
   const banghap = args.detail.banghapGroup as string[] | undefined
   const groupKey =
     samhap?.join('') ??
     banghap?.join('') ??
     (args.kindLabel === '지지형' && a && b ? HYUNG_TRIO_KEY[`${a}${b}`] : undefined)
-  const korean = relationMeaning(args.kindLabel, a, b, groupKey, 'ko')
-  const english = relationMeaning(args.kindLabel, a, b, groupKey, 'en')
+  const korean = args.korean ?? relationMeaning(args.kindLabel, a, b, groupKey, 'ko')
+  const english = args.english ?? relationMeaning(args.kindLabel, a, b, groupKey, 'en')
   return {
     id: `saju.hyeongchung.${args.kindLabel}.${args.dayIso}.${args.detail.natalPillar}.${args.detail.targetBranch ?? args.detail.targetStem}`,
     source: 'saju',

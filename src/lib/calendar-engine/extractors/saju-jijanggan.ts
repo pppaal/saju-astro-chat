@@ -186,11 +186,10 @@ const sajuJijangganExtractor: SignalExtractor = {
     const natalStems = collectNatalStems(natal)
     // 본명 일지(日支)의 지장간 — 충 검출용 (정통은 일지 지장간이 충 기준).
     const natalDayBranchJijanggan = JIJANGGAN[dayPillar.earthlyBranch?.name ?? ''] ?? {}
-    // 합화(化氣) 게이트 입력 — 월령 지지 오행 / 본명 천간 집합 (파합자 검출용).
+    // 합화(化氣) 게이트 입력 — 월령 지지 오행 (파합자는 natalStems 에서 합 자리만 빼고 센다).
     const monthBranchName = natal.saju.pillars.month?.earthlyBranch?.name ?? ''
     const monthBranchInfo = BRANCHES.find((b) => b.name === monthBranchName)
     const monthElement: FiveElement | undefined = monthBranchInfo?.element
-    const natalStemNames = natalStems.map((s) => s.name)
 
     const signals: ActiveSignal[] = []
 
@@ -226,7 +225,6 @@ const sajuJijangganExtractor: SignalExtractor = {
         strength,
         yongsin,
         natalStems,
-        natalStemNames,
         natalDayBranchJijanggan,
         monthElement,
         active,
@@ -261,7 +259,6 @@ const sajuJijangganExtractor: SignalExtractor = {
         strength,
         yongsin,
         natalStems,
-        natalStemNames,
         natalDayBranchJijanggan,
         monthElement,
         active,
@@ -296,7 +293,6 @@ const sajuJijangganExtractor: SignalExtractor = {
           strength,
           yongsin,
           natalStems,
-          natalStemNames,
           natalDayBranchJijanggan,
           monthElement,
           active: { start: mStart, peak: mPeak, end: mEnd },
@@ -324,7 +320,6 @@ const sajuJijangganExtractor: SignalExtractor = {
         strength,
         yongsin,
         natalStems,
-        natalStemNames,
         natalDayBranchJijanggan,
         monthElement,
         active: {
@@ -350,7 +345,6 @@ interface EmitArgs {
   strength: 'strong' | 'medium' | 'weak'
   yongsin: { primary: FiveElement; secondary?: FiveElement; avoid: FiveElement[] }
   natalStems: Array<{ pos: string; name: string; info: StemInfoLite }>
-  natalStemNames: string[]
   natalDayBranchJijanggan: { [key: string]: string }
   monthElement?: FiveElement
   active: { start: string; peak: string; end: string }
@@ -409,10 +403,12 @@ function emitJijangganSignals(out: ActiveSignal[], args: EmitArgs): void {
     if (combineDef) {
       for (const ns of args.natalStems) {
         if (ns.name === combineDef.pair) {
+          // 파합자 후보 = 본명 천간에서 이 합을 이루는 그 한 자리(ns.pos)만 뺀 나머지.
+          // 같은 글자가 다른 자리에 또 있으면(爭合·妒合) 그 글자는 여전히 파합자다.
           const gate = isHwagiEstablished(
             combineDef.transform,
             args.monthElement,
-            args.natalStemNames,
+            args.natalStems.filter((s) => s.pos !== ns.pos).map((s) => s.name),
             ns.pos
           )
           const basePolarity = polarityForAmhap(combineDef.transform, args.yongsin)
@@ -591,7 +587,7 @@ interface HwagiGate {
 function isHwagiEstablished(
   transform: FiveElement,
   monthElement: FiveElement | undefined,
-  natalStemNames: string[],
+  otherNatalStems: string[],
   natalPairPos: string
 ): HwagiGate {
   const reasons: string[] = []
@@ -626,22 +622,19 @@ function isHwagiEstablished(
     reasons.push('month-unknown')
   }
 
-  // 2) 파합자 검출 — 합 페어 본인은 제외.
+  // 2) 파합자 검출 — otherNatalStems 는 합 페어 본인(본명 합 천간 그 한 자리)을 이미 뺀
+  //    나머지 본명 천간이다. 시기 지장간은 본명 천간 목록에 없으니 따로 뺄 것이 없다.
+  //    (甲己→토 의 甲, 戊癸→화 의 癸 가 자기 합을 깨지 않게 — 거울 차트와 대칭.)
   const breakerStems = HWAGI_BREAKERS[transform] ?? []
-  const pairSelfNames = new Set<string>() // 합 페어 본인 (본명 천간) — 시기 지장간은 본명 천간 set 에 없으니 굳이 안 빼도 됨.
-  // natalPairPos 의 천간이 breaker 후보에 있으면 자체 소거 (합에 묶여서 파합 못함).
   for (const breaker of breakerStems) {
-    if (natalStemNames.includes(breaker)) {
-      // 파합자 발견 — 단, 그 파합자가 본명에서 합 페어 천간 본인이면 합에 묶여 무력.
-      if (!pairSelfNames.has(breaker)) {
-        reasons.push(`breaker=${breaker}`)
-        if (status === 'full') {
-          status = 'partial' // full → partial 강등
-        } else if (status === 'partial') {
-          status = 'failed' // partial + 파합자 = 실패
-        }
-        break
+    if (otherNatalStems.includes(breaker)) {
+      reasons.push(`breaker=${breaker}`)
+      if (status === 'full') {
+        status = 'partial' // full → partial 강등
+      } else if (status === 'partial') {
+        status = 'failed' // partial + 파합자 = 실패
       }
+      break
     }
   }
 
