@@ -78,7 +78,7 @@ describe('Saju Core Integration', () => {
     })
 
     it('should expose tonggeun module', () => {
-      assertNamedExports('lib/saju/tonggeun', ['calculateTonggeun', 'analyzeStrength'])
+      assertNamedExports('lib/saju/tonggeun', ['calculateTonggeun', 'calculateDeukryeong'])
     })
 
     // healthCareer (analyzeHealthCareer) 모듈 제거됨 — 해당 export 검증 삭제.

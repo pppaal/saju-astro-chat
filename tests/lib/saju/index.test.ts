@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
+import * as SajuBarrel from '@/lib/saju'
 import {
   calculateSajuData,
-  analyzeStrength,
   STEMS,
   BRANCHES,
   getPillarInfo,
@@ -68,34 +68,9 @@ describe('Saju/index exports', () => {
     })
   })
 
-  describe('analyzeStrength', () => {
-    it('should be a function', () => {
-      expect(typeof analyzeStrength).toBe('function')
-    })
-
-    it('should analyze strength for given pillars', () => {
-      // analyzeStrength 는 SajuPillarsInput({year,month,day,time}: {stem,branch})
-      // 단일 인자로 받는다(일간은 day.stem 으로 내부 추론). calculateSajuData
-      // 결과의 heavenlyStem/earthlyBranch.name 을 stem/branch 로 매핑.
-      const sajuData = calculateSajuData('1990-05-15', '14:30', 'male', 'solar', 'Asia/Seoul')
-      const toSimple = (p: {
-        heavenlyStem: { name: string }
-        earthlyBranch: { name: string }
-      }) => ({
-        stem: p.heavenlyStem.name,
-        branch: p.earthlyBranch.name,
-      })
-      const pillars = {
-        year: toSimple(sajuData.pillars.year),
-        month: toSimple(sajuData.pillars.month),
-        day: toSimple(sajuData.pillars.day),
-        time: toSimple(sajuData.pillars.time),
-      }
-
-      const result = analyzeStrength(pillars)
-
-      expect(result).toBeDefined()
-      expect(typeof result.score).toBe('number')
+  describe('analyzeStrength (삭제됨 — 재감사 SDR-07)', () => {
+    it('barrel 이 두 번째 강약 알고리즘을 내보내지 않는다 — 강약은 strengthScore SSOT 하나', () => {
+      expect((SajuBarrel as Record<string, unknown>).analyzeStrength).toBeUndefined()
     })
   })
 

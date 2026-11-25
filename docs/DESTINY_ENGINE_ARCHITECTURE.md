@@ -38,8 +38,9 @@ opts?)`. Returns `CalculateSajuDataResult` (four pillars, `daeWoon`, `unse`,
   injectable clock for 대운/세운/age; `opts.timeUnknown` (or a blank time) gives
   the three-pillar reading.
 - Analysis helpers (imported from their source modules): `computeStrengthScore`
-  / `strengthBandOf` / `strengthClassOf` (`strengthScore.ts`), `analyzeStrength`
-  (`tonggeun.ts`), `determineGeokguk` (`geokguk.ts`), `determineYongsin`
+  / `strengthBandOf` / `strengthClassOf` (`strengthScore.ts`),
+  `calculateTonggeun` / `calculateDeukryeong` (`tonggeun.ts`),
+  `determineGeokguk` (`geokguk.ts`), `determineYongsin`
   (`yongsin.ts`), `getTwelveStagesForPillars` and `annotateShinsal`
   (`shinsal.ts`), `analyzeRelations` (`relations.ts`), `currentDaeun`
   (`daeunAge.ts`), and the cycle helpers `getAnnualCycles` / `getMonthlyCycles`

@@ -2,10 +2,10 @@
 // 통근(通根), 투출(透出), 회국(會局) 계산 모듈
 // 일간 및 오행의 실제 힘을 정밀하게 계산
 
-import { FiveElement, YinYang, SajuPillarsInput, MaybeTimeless } from './types'
+import { FiveElement, SajuPillarsInput, MaybeTimeless } from './types'
 import { JIJANGGAN } from './constants'
 import { THREE_HARMONY, DIRECTIONAL_HARMONY } from './relationTables'
-import { getStemElement, getStemYinYang, getBranchElement } from './stemBranchUtils'
+import { getStemElement } from './stemBranchUtils'
 import { JIJANGGAN_WEIGHTS } from './strengthScore'
 
 // Re-export for backward compatibility
@@ -61,20 +61,6 @@ export interface DeukryeongResult {
   status: '득령' | '실령' | '평령'
   strength: number // 득령 강도 (-100 ~ 100)
   description: string
-}
-
-/**
- * 종합 세력 분석 결과 (통근/득령/회국 기반)
- */
-export interface TonggeunStrengthAnalysis {
-  daymaster: string
-  daymasterElement: FiveElement
-  tonggeun: TonggeunResult
-  deukryeong: DeukryeongResult
-  hoeguk: HoegukResult[]
-  elementStrengths: Record<FiveElement, number>
-  finalStrength: '극신강' | '신강' | '중화' | '신약' | '극신약'
-  score: number // -100 ~ 100
 }
 
 // ============ 통근 계산 ============
@@ -297,12 +283,13 @@ const BANHAP: Array<{ branches: string[]; result: FiveElement; center: string }>
 /**
  * 회국 계산
  */
-export function calculateHoeguk(pillars: SajuPillarsInput): HoegukResult[] {
+export function calculateHoeguk(pillars: MaybeTimeless<SajuPillarsInput>): HoegukResult[] {
+  // 시간 미상(삼주)이면 시지 없이 년·월·일 세 지지만 본다(CONVENTIONS §5).
   const branches = [
     pillars.year.branch,
     pillars.month.branch,
     pillars.day.branch,
-    pillars.time.branch,
+    ...(pillars.time ? [pillars.time.branch] : []),
   ]
   const results: HoegukResult[] = []
 
@@ -444,160 +431,14 @@ export function calculateDeukryeong(daymaster: string, monthBranch: string): Deu
   }
 }
 
-// ============ 종합 세력 분석 ============
-
-/**
- * 오행별 힘 계산
- */
-export function calculateElementStrengths(pillars: SajuPillarsInput): Record<FiveElement, number> {
-  const strengths: Record<FiveElement, number> = { 목: 0, 화: 0, 토: 0, 금: 0, 수: 0 }
-
-  // 천간 기본 힘 (각 10점)
-  const stems = [pillars.year.stem, pillars.month.stem, pillars.day.stem, pillars.time.stem]
-  for (const stem of stems) {
-    const element = getStemElement(stem)
-    strengths[element] += 10
-  }
-
-  // 지지 기본 힘 (각 15점)
-  const branches = [
-    pillars.year.branch,
-    pillars.month.branch,
-    pillars.day.branch,
-    pillars.time.branch,
-  ]
-  for (const branch of branches) {
-    const element = getBranchElement(branch)
-    strengths[element] += 15
-  }
-
-  // 지장간 힘 (정기 10, 중기 5, 여기 3)
-  for (const branch of branches) {
-    const jijanggan = JIJANGGAN[branch]
-    if (!jijanggan) {
-      continue
-    }
-
-    if (jijanggan.정기) {
-      strengths[getStemElement(jijanggan.정기)] += 10
-    }
-    if (jijanggan.중기) {
-      strengths[getStemElement(jijanggan.중기)] += 5
-    }
-    if (jijanggan.여기) {
-      strengths[getStemElement(jijanggan.여기)] += 3
-    }
-  }
-
-  // 회국 보너스
-  const hoeguk = calculateHoeguk(pillars)
-  for (const hg of hoeguk) {
-    if (hg.complete) {
-      strengths[hg.resultElement] += 30
-    } else {
-      strengths[hg.resultElement] += 15
-    }
-  }
-
-  return strengths
-}
-
-/**
- * 종합 세력 분석
- */
-export function analyzeStrength(pillars: SajuPillarsInput): TonggeunStrengthAnalysis {
-  const daymaster = pillars.day.stem
-  const daymasterElement = getStemElement(daymaster)
-
-  // 통근 계산
-  const tonggeun = calculateTonggeun(daymaster, pillars)
-
-  // 득령 계산
-  const deukryeong = calculateDeukryeong(daymaster, pillars.month.branch)
-
-  // 회국 계산
-  const hoeguk = calculateHoeguk(pillars)
-
-  // 오행별 힘 계산
-  const elementStrengths = calculateElementStrengths(pillars)
-
-  // 일간을 돕는 힘 (비겁 + 인성)
-  const supportElement = {
-    목: '수',
-    화: '목',
-    토: '화',
-    금: '토',
-    수: '금',
-  }[daymasterElement] as FiveElement
-
-  const supportPower = elementStrengths[daymasterElement] + elementStrengths[supportElement]
-
-  // 일간을 약하게 하는 힘 (식상 + 재성 + 관성)
-  const drainElement = {
-    목: '화',
-    화: '토',
-    토: '금',
-    금: '수',
-    수: '목',
-  }[daymasterElement] as FiveElement
-  const wealthElement = {
-    목: '토',
-    화: '금',
-    토: '수',
-    금: '목',
-    수: '화',
-  }[daymasterElement] as FiveElement
-  const officerElement = {
-    목: '금',
-    화: '수',
-    토: '목',
-    금: '화',
-    수: '토',
-  }[daymasterElement] as FiveElement
-
-  const weakenPower =
-    elementStrengths[drainElement] +
-    elementStrengths[wealthElement] +
-    elementStrengths[officerElement]
-
-  // 종합 점수 계산
-  let score = 0
-
-  // 통근 점수 (최대 40점)
-  score += Math.min(tonggeun.totalStrength / 5, 40)
-
-  // 득령 점수 (최대 30점)
-  score += deukryeong.strength * 0.3
-
-  // 비겁+인성 vs 식상+재성+관성 비교 (최대 30점)
-  const ratio = (supportPower - weakenPower) / (supportPower + weakenPower + 1)
-  score += ratio * 30
-
-  // 강약 판정
-  let finalStrength: TonggeunStrengthAnalysis['finalStrength']
-  if (score > 50) {
-    finalStrength = '극신강'
-  } else if (score > 20) {
-    finalStrength = '신강'
-  } else if (score > -20) {
-    finalStrength = '중화'
-  } else if (score > -50) {
-    finalStrength = '신약'
-  } else {
-    finalStrength = '극신약'
-  }
-
-  return {
-    daymaster,
-    daymasterElement,
-    tonggeun,
-    deukryeong,
-    hoeguk,
-    elementStrengths,
-    finalStrength,
-    score: Math.round(score),
-  }
-}
+// ============ 종합 세력 분석 — 삭제됨 ============
+//
+// 옛 analyzeStrength / calculateElementStrengths 는 *두 번째 강약 알고리즘*이었다:
+// 통근/5 + 득령×0.3 + 오행 세력비(천간 10·지지 15·지장간 10/5/3 — CONVENTIONS §6 이
+// 금지한 제4의 가중치)로 −100..100 점수를 만들고 >50/>20/>−20/>−50 으로 5단계 라벨을
+// 붙였다. 강약 SSOT(computeStrengthScore → strengthBandOf, CONVENTIONS §10·§11)와 3분류로
+// 약 22% 차트에서 갈렸고, 시주가 없으면 throw 했다. 프로덕션 호출자가 없어 2026-11 에
+// 지웠다(재감사 SDR-07). 일간 강약은 strengthScore.ts 하나만 쓴다.
 
 /**
  * 특정 천간의 힘 평가 (격국 판정용)

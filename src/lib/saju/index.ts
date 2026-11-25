@@ -9,6 +9,5 @@
 
 export * from './constants' // STEMS, BRANCHES, STEM_LABELS, BRANCH_LABELS, …
 export { calculateSajuData } from './saju'
-export { analyzeStrength } from './tonggeun'
 export { getPillarInfo } from './pillarLookup'
 export { analyzeSibsinPositions } from './sibsinAnalysis'

@@ -4,8 +4,6 @@ import {
   getMonthBranchTransparency,
   calculateHoeguk,
   calculateDeukryeong,
-  calculateElementStrengths,
-  analyzeStrength,
   evaluateStemPower,
   type SajuPillarsInput,
 } from '@/lib/saju/tonggeun'
@@ -294,92 +292,6 @@ describe('tonggeun', () => {
     })
   })
 
-  describe('calculateElementStrengths', () => {
-    it('calculates strength for all five elements', () => {
-      const pillars = createPillarsInput(['甲', '寅'], ['丙', '午'], ['戊', '辰'], ['庚', '申'])
-
-      const strengths = calculateElementStrengths(pillars)
-
-      expect(strengths).toHaveProperty('목')
-      expect(strengths).toHaveProperty('화')
-      expect(strengths).toHaveProperty('토')
-      expect(strengths).toHaveProperty('금')
-      expect(strengths).toHaveProperty('수')
-    })
-
-    it('gives higher strength to dominant elements', () => {
-      // All wood pillars
-      const pillars = createPillarsInput(['甲', '寅'], ['乙', '卯'], ['甲', '寅'], ['乙', '卯'])
-
-      const strengths = calculateElementStrengths(pillars)
-
-      expect(strengths['목']).toBeGreaterThan(strengths['화'])
-      expect(strengths['목']).toBeGreaterThan(strengths['금'])
-    })
-
-    it('adds hoeguk bonus to element strength', () => {
-      // 寅午戌 화국 삼합
-      const pillarsWithHoeguk = createPillarsInput(
-        ['甲', '寅'],
-        ['丙', '午'],
-        ['戊', '戌'],
-        ['庚', '子']
-      )
-
-      const pillarsWithoutHoeguk = createPillarsInput(
-        ['甲', '寅'],
-        ['丙', '午'],
-        ['戊', '辰'],
-        ['庚', '子']
-      )
-
-      const withHoeguk = calculateElementStrengths(pillarsWithHoeguk)
-      const withoutHoeguk = calculateElementStrengths(pillarsWithoutHoeguk)
-
-      expect(withHoeguk['화']).toBeGreaterThan(withoutHoeguk['화'])
-    })
-  })
-
-  describe('analyzeStrength', () => {
-    it('returns complete strength analysis', () => {
-      const pillars = createPillarsInput(['甲', '寅'], ['丙', '午'], ['戊', '辰'], ['庚', '申'])
-
-      const analysis = analyzeStrength(pillars)
-
-      expect(analysis.daymaster).toBe('戊')
-      expect(analysis.daymasterElement).toBe('토')
-      expect(analysis.tonggeun).toBeDefined()
-      expect(analysis.deukryeong).toBeDefined()
-      expect(analysis.hoeguk).toBeInstanceOf(Array)
-      expect(analysis.elementStrengths).toBeDefined()
-      expect(analysis.finalStrength).toBeDefined()
-      expect(typeof analysis.score).toBe('number')
-    })
-
-    it('determines correct final strength level', () => {
-      const pillars = createPillarsInput(['甲', '寅'], ['丙', '午'], ['戊', '辰'], ['庚', '申'])
-
-      const analysis = analyzeStrength(pillars)
-
-      expect(['극신강', '신강', '중화', '신약', '극신약']).toContain(analysis.finalStrength)
-    })
-
-    it('considers tonggeun in score calculation', () => {
-      // Strong root case
-      const strongRootPillars = createPillarsInput(
-        ['戊', '辰'],
-        ['戊', '戌'],
-        ['戊', '辰'], // 戊土 with many 土 roots
-        ['戊', '戌']
-      )
-
-      const analysis = analyzeStrength(strongRootPillars)
-
-      expect(analysis.tonggeun.hasRoot).toBe(true)
-      expect(analysis.tonggeun.totalStrength).toBeGreaterThan(0)
-    })
-  })
-
   describe('evaluateStemPower', () => {
     it('returns stem power evaluation', () => {
       const pillars = createPillarsInput(['甲', '寅'], ['丙', '午'], ['戊', '辰'], ['庚', '申'])
@@ -528,36 +440,24 @@ describe('tonggeun', () => {
     })
   })
 
-  describe('analyzeStrength - finalStrength 밴드', () => {
-    it('극신강 for heavily self-supported chart (score > 50)', () => {
-      // 甲 일간 + 목/수로 도배
-      const pillars = createPillarsInput(['壬', '子'], ['甲', '寅'], ['甲', '卯'], ['乙', '辰'])
-      const analysis = analyzeStrength(pillars)
-      expect(['극신강', '신강']).toContain(analysis.finalStrength)
-      if (analysis.score > 50) {
-        expect(analysis.finalStrength).toBe('극신강')
-      }
+  describe('두 번째 강약 알고리즘 삭제 (재감사 SDR-07)', () => {
+    it('analyzeStrength / calculateElementStrengths 를 내보내지 않는다 — 강약은 strengthScore 하나', async () => {
+      const mod = (await import('@/lib/saju/tonggeun')) as Record<string, unknown>
+      expect(mod.analyzeStrength).toBeUndefined()
+      expect(mod.calculateElementStrengths).toBeUndefined()
     })
 
-    it('극신약/신약 for heavily controlled chart (score <= -20)', () => {
-      // 甲 일간을 금/토로 강하게 억제, 월지도 실령(申금월)
-      const pillars = createPillarsInput(['庚', '申'], ['辛', '酉'], ['甲', '戌'], ['庚', '申'])
-      const analysis = analyzeStrength(pillars)
-      expect(['신약', '극신약']).toContain(analysis.finalStrength)
-      if (analysis.score <= -50) {
-        expect(analysis.finalStrength).toBe('극신약')
+    it('calculateHoeguk 은 시간 미상(삼주)에서 throw 하지 않고 세 지지만 본다', () => {
+      // 寅午戌 화국 — 시지 戌 이 없으면 삼합이 아니라 寅午 반합만 남는다.
+      const timeless = {
+        year: { stem: '甲', branch: '寅' },
+        month: { stem: '丙', branch: '午' },
+        day: { stem: '戊', branch: '辰' },
+        time: null,
       }
-    })
-
-    it('중화 band achievable for balanced chart (-20 < score <= 20)', () => {
-      const candidates: SajuPillarsInput[] = [
-        createPillarsInput(['甲', '辰'], ['乙', '戌'], ['庚', '辰'], ['辛', '戌']),
-        createPillarsInput(['壬', '辰'], ['甲', '戌'], ['丙', '辰'], ['戊', '戌']),
-      ]
-      for (const p of candidates) {
-        const a = analyzeStrength(p)
-        expect(['극신강', '신강', '중화', '신약', '극신약']).toContain(a.finalStrength)
-      }
+      const hits = calculateHoeguk(timeless)
+      expect(hits.some((h) => h.type === '삼합')).toBe(false)
+      expect(hits.some((h) => h.type === '반합' && h.resultElement === '화')).toBe(true)
     })
   })
 

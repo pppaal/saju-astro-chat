@@ -105,7 +105,10 @@ timeZone }`.
 - `computeStrengthScore` / `calculateStrengthScore` (`strengthScore.ts`) — the
   strength score SSOT (0–100, 50 = neutral); `strengthBandOf` maps it to the
   five steps (극신강·신강·중화·신약·극신약), `strengthClassOf` to three classes.
-- `analyzeStrength` (`tonggeun.ts`) — 통근 rooting and 득령 (旺相休囚死).
+- `calculateTonggeun` / `calculateDeukryeong` (`tonggeun.ts`) — 통근 rooting and
+  득령 (旺相休囚死) facts for the analyses block. They do not label strength:
+  the strength score and its 5-step label come only from `strengthScore.ts`
+  (the second algorithm `analyzeStrength` was removed, SDR-07).
 - `determineGeokguk` (`geokguk.ts`) — structure (격국), strict 화기격국 via
   `evaluateHwagiGeokguk`.
 - `determineYongsin` (`yongsin.ts`) — useful god (용신), consistent with 억부;
