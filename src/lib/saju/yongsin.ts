@@ -560,33 +560,63 @@ export function getKibsinDescription(kibsin: FiveElement): string {
 }
 
 /**
- * 오행별 개운 색상
+ * 오행별 개운 색상 — ko/en 한 쌍으로 한곳에(EN 표면이 한글 색 이름을 찍지 않게, 계획 B3).
  */
-export function getLuckyColors(yongsin: FiveElement): string[] {
-  const colors: Record<FiveElement, string[]> = {
-    목: ['초록', '청록', '연두'],
-    화: ['빨강', '주황', '보라'],
-    토: ['노랑', '갈색', '베이지'],
-    금: ['흰색', '은색', '금색'],
-    수: ['검정', '파랑', '남색'],
-  }
+const LUCKY_COLORS: Readonly<Record<FiveElement, ReadonlyArray<{ ko: string; en: string }>>> = {
+  목: [
+    { ko: '초록', en: 'Green' },
+    { ko: '청록', en: 'Teal' },
+    { ko: '연두', en: 'Light green' },
+  ],
+  화: [
+    { ko: '빨강', en: 'Red' },
+    { ko: '주황', en: 'Orange' },
+    { ko: '보라', en: 'Purple' },
+  ],
+  토: [
+    { ko: '노랑', en: 'Yellow' },
+    { ko: '갈색', en: 'Brown' },
+    { ko: '베이지', en: 'Beige' },
+  ],
+  금: [
+    { ko: '흰색', en: 'White' },
+    { ko: '은색', en: 'Silver' },
+    { ko: '금색', en: 'Gold' },
+  ],
+  수: [
+    { ko: '검정', en: 'Black' },
+    { ko: '파랑', en: 'Blue' },
+    { ko: '남색', en: 'Navy' },
+  ],
+}
 
-  return colors[yongsin]
+/** 개운 색상 한→영 — getLuckyColors 가 내는 한글 색 이름 전부. */
+export const LUCKY_COLOR_EN: Readonly<Record<string, string>> = Object.fromEntries(
+  Object.values(LUCKY_COLORS).flatMap((cs) => cs.map((c) => [c.ko, c.en]))
+)
+
+export function getLuckyColors(yongsin: FiveElement): string[] {
+  return LUCKY_COLORS[yongsin]?.map((c) => c.ko) ?? []
 }
 
 /**
- * 오행별 개운 방향
+ * 오행별 개운 방향 — ko/en 한 쌍.
  */
-export function getLuckyDirection(yongsin: FiveElement): string {
-  const directions: Record<FiveElement, string> = {
-    목: '동쪽',
-    화: '남쪽',
-    토: '중앙',
-    금: '서쪽',
-    수: '북쪽',
-  }
+const LUCKY_DIRECTIONS: Readonly<Record<FiveElement, { ko: string; en: string }>> = {
+  목: { ko: '동쪽', en: 'East' },
+  화: { ko: '남쪽', en: 'South' },
+  토: { ko: '중앙', en: 'Center' },
+  금: { ko: '서쪽', en: 'West' },
+  수: { ko: '북쪽', en: 'North' },
+}
 
-  return directions[yongsin]
+/** 개운 방향 한→영 — getLuckyDirection 이 내는 한글 방향 전부. */
+export const LUCKY_DIRECTION_EN: Readonly<Record<string, string>> = Object.fromEntries(
+  Object.values(LUCKY_DIRECTIONS).map((d) => [d.ko, d.en])
+)
+
+export function getLuckyDirection(yongsin: FiveElement): string {
+  return LUCKY_DIRECTIONS[yongsin]?.ko ?? ''
 }
 
 /**

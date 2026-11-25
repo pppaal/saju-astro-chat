@@ -131,6 +131,13 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
   const currentYear = lifetime.currentYear
   const lifeSpanTo = birthYear + 84
 
+  // ── "운을 내 편으로" 로케일 값 — EN 은 엔진 ko→en 표의 영문 필드만(한글 색·방향·띠 금지,
+  //    계획 B3). 영문이 없는 항목은 비어 타일·칩이 생략된다.
+  const luckyColors = (ko ? lifeStrategy?.lucky?.colors : lifeStrategy?.lucky?.colorsEn) ?? []
+  const luckyDirection =
+    (ko ? lifeStrategy?.lucky?.direction : lifeStrategy?.lucky?.directionEn) ?? ''
+  const guinAnimals = (ko ? lifeStrategy?.guin?.animals : lifeStrategy?.guin?.animalsEn) ?? []
+
   // ── 정체성 — 일간 / 인생패턴 (lifePattern 옵셔널 가드). ──
   const ilganHanja = user.ilgan.hanja
   const ilganRead = ko ? user.ilgan.kr : (user.ilgan.en ?? user.ilgan.kr)
@@ -532,7 +539,7 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
       {lifeStrategy &&
         (lifeStrategy.lucky ||
           lifeStrategy.wealth ||
-          lifeStrategy.guin ||
+          guinAnimals.length > 0 ||
           lifeStrategy.caution) && (
           <section className={styles.sec}>
             <div className={styles.secH}>
@@ -549,9 +556,9 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
                     </span>
                     <span className={styles.stratLbl}>{ko ? '행운 요소' : 'Lucky elements'}</span>
                   </div>
-                  {lifeStrategy.lucky.colors.length > 0 && (
+                  {luckyColors.length > 0 && (
                     <div className={styles.stratSwatch}>
-                      {lifeStrategy.lucky.colors.map((c) => (
+                      {luckyColors.map((c) => (
                         <span key={c} className={styles.stratChip}>
                           {c}
                         </span>
@@ -560,9 +567,7 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
                   )}
                   <div className={styles.stratSub}>
                     {[
-                      lifeStrategy.lucky.direction
-                        ? `${ko ? '방향' : 'Direction'} · ${lifeStrategy.lucky.direction}`
-                        : '',
+                      luckyDirection ? `${ko ? '방향' : 'Direction'} · ${luckyDirection}` : '',
                       lifeStrategy.lucky.numbers.length > 0
                         ? `${ko ? '숫자' : 'Numbers'} · ${lifeStrategy.lucky.numbers.join(' · ')}`
                         : '',
@@ -573,7 +578,7 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
                 </div>
               )}
 
-              {lifeStrategy.guin && lifeStrategy.guin.animals.length > 0 && (
+              {guinAnimals.length > 0 && (
                 <div className={styles.stratTile}>
                   <div className={styles.stratHd}>
                     <span className={styles.stratIcon} aria-hidden>
@@ -581,7 +586,7 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
                     </span>
                     <span className={styles.stratLbl}>{ko ? '내 귀인' : 'Your allies'}</span>
                   </div>
-                  <div className={styles.stratVal}>{lifeStrategy.guin.animals.join(' · ')}</div>
+                  <div className={styles.stratVal}>{guinAnimals.join(' · ')}</div>
                   <div className={styles.stratSub}>
                     {ko
                       ? '천을귀인 — 이 띠의 사람이 결정적일 때 힘이 돼요.'

@@ -183,6 +183,39 @@ describe('LifetimeTier (인생 전체 · LIGHT)', () => {
     expect(screen.queryByText('이 10년의 겹침')).not.toBeInTheDocument()
   })
 
+  // ── "운을 내 편으로" EN — 계획 B3: EN 화면에 한글 색·방향·띠 금지 ──
+  const STRATEGY: NonNullable<DestinyLifetime['lifeStrategy']> = {
+    lucky: {
+      element: { ko: '금', hanja: '金', en: 'Metal' },
+      colors: ['흰색', '은색', '금색'],
+      colorsEn: ['White', 'Silver', 'Gold'],
+      direction: '서쪽',
+      directionEn: 'West',
+      numbers: [4, 9],
+    },
+    guin: { branches: ['卯', '巳'], animals: ['토끼띠', '뱀띠'], animalsEn: ['Rabbit', 'Snake'] },
+    wealth: { styleKo: '큰 한 방보다 꾸준함이 무기', styleEn: 'Steady beats big swings' },
+    caution: { years: [{ year: 2031, age: 34 }] },
+  }
+
+  it('운을 내 편으로 — EN 은 영문 색·방향·띠만, 섹션 안 한글 0', () => {
+    mockLocale = 'en'
+    renderTierWith({ lifeStrategy: STRATEGY })
+    const section = screen.getByText('Odds in your favor').closest('section')!
+    expect(section.textContent).toContain('White')
+    expect(section.textContent).toContain('Direction · West')
+    expect(section.textContent).toContain('Rabbit · Snake')
+    expect(section.textContent).not.toMatch(/[가-힣]/)
+  })
+
+  it('운을 내 편으로 — KO 는 한글 색·방향·띠 그대로', () => {
+    renderTierWith({ lifeStrategy: STRATEGY })
+    const section = screen.getByText('운을 내 편으로').closest('section')!
+    expect(section.textContent).toContain('흰색')
+    expect(section.textContent).toContain('방향 · 서쪽')
+    expect(section.textContent).toContain('토끼띠 · 뱀띠')
+  })
+
   it('세운 한 줄 + 캘린더 퍼널 CTA', () => {
     renderTierWith({
       thisYear: { gz: '丙午', sibsin: '정관', area: '일·책임', areaEn: 'duty & standing' },

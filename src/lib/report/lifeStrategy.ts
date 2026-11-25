@@ -8,18 +8,32 @@
 // 각 타일은 근거가 있을 때만 채운다 — 없으면 undefined(그 타일을 렌더 안 함).
 // 전부 없으면 null. 순수·결정론: 같은 입력 → 같은 결과.
 
-import { CHEONEUL_GWIIN_MAP } from '@/lib/saju/constants'
+import { CHEONEUL_GWIIN_MAP, ELEMENT_KO_TO_EN } from '@/lib/saju/constants'
+import { ELEMENT_HANJA } from '@/lib/saju/relationTables'
+import { LUCKY_COLOR_EN, LUCKY_DIRECTION_EN } from '@/lib/saju/yongsin'
 import { ZODIAC_ANIMALS } from '@/lib/fortune/zodiacDaily'
 import type { SibsinCategoryCount } from '@/lib/saju/sibsinAnalysis'
+import type { FiveElement } from '@/lib/saju/types'
 
 export interface LifeStrategyLucky {
+  /** 행운 요소의 근거 오행(주용신) — { ko:'금', hanja:'金', en:'Metal' }. 모르면 생략. */
+  element?: { ko: string; hanja: string; en: string }
+  /** 행운 색(ko) — 엔진 getLuckyColors 값 그대로. */
   colors: string[]
+  /** 행운 색(en) — colors 의 영문(번역 없는 항목은 빠진다, 한글 금지). */
+  colorsEn: string[]
   direction: string
+  /** 방향(en) — 'East'. 번역 없으면 빈 문자열. */
+  directionEn: string
   numbers: number[]
 }
 export interface LifeStrategyGuin {
+  /** 천을귀인 지지(한자) — 예: ['寅','午']. */
+  branches: string[]
   /** 천을귀인 띠(한글) — 예: ['호랑이띠','말띠']. */
   animals: string[]
+  /** 천을귀인 띠(en) — 예: ['Tiger','Horse']. */
+  animalsEn: string[]
 }
 export interface LifeStrategyCaution {
   /** 곡선 저점(주의) 구간 — 미래 우선, 최대 2개. */
@@ -37,9 +51,7 @@ export interface LifeStrategy {
   wealth?: LifeStrategyWealth
 }
 
-const BRANCH_TO_ANIMAL_KO: Record<string, string> = Object.fromEntries(
-  ZODIAC_ANIMALS.map((a) => [a.branch, a.ko])
-)
+const ANIMAL_BY_BRANCH = new Map(ZODIAC_ANIMALS.map((a) => [a.branch, a]))
 
 // 일간 한글 → 한자. 엔진 dayMaster.name 은 소스에 따라 한글("신") 또는 한자("辛")
 // 로 온다 — 천을귀인 맵 키는 한자라 한글이면 변환한다(이미 한자면 그대로 통과).
@@ -57,7 +69,13 @@ const STEM_KO_TO_HAN: Record<string, string> = {
 }
 
 export interface BuildLifeStrategyInput {
-  yongsin?: { luckyColors?: string[]; luckyDirection?: string; luckyNumbers?: number[] } | null
+  yongsin?: {
+    /** 주용신 오행(ko) — lucky.element 의 근거. */
+    primaryYongsin?: string
+    luckyColors?: string[]
+    luckyDirection?: string
+    luckyNumbers?: number[]
+  } | null
   /** 일간 — 한자('辛') 또는 한글('신'). 천을귀인 조회용(내부에서 한자 정규화). */
   dayStemHanja?: string
   sibsinCount?: SibsinCategoryCount | null
@@ -67,6 +85,14 @@ export interface BuildLifeStrategyInput {
    */
   curveTroughs?: Array<{ age: number; year: number; value: number }> | null
   nowAge?: number
+}
+
+/** 주용신 오행(ko) → { ko, hanja, en }. 오행이 아니면 undefined. */
+function luckyElement(el: string | undefined): LifeStrategyLucky['element'] {
+  if (!el) return undefined
+  const hanja = ELEMENT_HANJA[el as FiveElement]
+  const en = ELEMENT_KO_TO_EN[el]
+  return hanja && en ? { ko: el, hanja, en } : undefined
 }
 
 /** 엔진 저점(마디)에서 "주의 구간"을 뽑는다. 미래(now 이후) 우선, 깊은 순 2개. */
@@ -116,22 +142,36 @@ function wealthStyle(cc: SibsinCategoryCount): { styleKo: string; styleEn: strin
 export function buildLifeStrategy(input: BuildLifeStrategyInput): LifeStrategy | null {
   const out: LifeStrategy = {}
 
-  // 행운 요소 — 엔진 값 그대로(수동 매핑 없음).
+  // 행운 요소 — 엔진 값 그대로(수동 매핑 없음). EN 은 엔진 어휘 옆의 ko→en 표로만.
   const y = input.yongsin
   if (y && (y.luckyColors?.length || y.luckyDirection || y.luckyNumbers?.length)) {
+    const colors = (y.luckyColors ?? []).slice(0, 3)
+    const direction = y.luckyDirection ?? ''
+    const element = luckyElement(y.primaryYongsin)
     out.lucky = {
-      colors: (y.luckyColors ?? []).slice(0, 3),
-      direction: y.luckyDirection ?? '',
+      ...(element ? { element } : {}),
+      colors,
+      colorsEn: colors.map((c) => LUCKY_COLOR_EN[c]).filter((c): c is string => !!c),
+      direction,
+      directionEn: LUCKY_DIRECTION_EN[direction] ?? '',
       numbers: (y.luckyNumbers ?? []).slice(0, 4),
     }
   }
 
-  // 귀인 띠 — 천을귀인(일간→귀인 지지 SSOT) → 띠. 한글 일간이면 한자로 정규화.
+  // 귀인 띠 — 천을귀인(일간→귀인 지지 SSOT) → 띠(ko/en). 한글 일간이면 한자로 정규화.
   const rawStem = (input.dayStemHanja ?? '').trim()
   const stem = STEM_KO_TO_HAN[rawStem] ?? rawStem
   const gwiinBranches = stem ? (CHEONEUL_GWIIN_MAP[stem] ?? []) : []
-  const animals = gwiinBranches.map((b) => BRANCH_TO_ANIMAL_KO[b]).filter(Boolean)
-  if (animals.length > 0) out.guin = { animals }
+  const gwiin = gwiinBranches
+    .map((b) => ANIMAL_BY_BRANCH.get(b))
+    .filter((a): a is NonNullable<typeof a> => !!a)
+  if (gwiin.length > 0) {
+    out.guin = {
+      branches: gwiin.map((a) => a.branch),
+      animals: gwiin.map((a) => a.ko),
+      animalsEn: gwiin.map((a) => a.en),
+    }
+  }
 
   // 주의 구간 — 엔진 곡선 저점(마디) 그대로.
   if (input.curveTroughs && input.curveTroughs.length > 0) {
