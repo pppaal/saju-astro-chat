@@ -10,10 +10,9 @@ import { logger } from '@/lib/logger'
 import { withSpan } from '@/lib/telemetry'
 import { apiFetch } from '@/lib/api/client'
 import { getStoredBirthInfo } from '@/lib/birth/storage'
+import { defaultLatitudeFor, defaultLongitudeFor } from '@/lib/saju/timezone'
 
 type SearchParams = Record<string, string | string[] | undefined>
-const DEFAULT_LATITUDE = 37.5665
-const DEFAULT_LONGITUDE = 126.978
 
 interface ProfileFallback {
   name?: string
@@ -226,16 +225,6 @@ export function useCounselorData(sp: SearchParams) {
     (Array.isArray(sp.lon) ? sp.lon[0] : sp.lon) ??
     (Array.isArray(sp.longitude) ? sp.longitude[0] : sp.longitude)
 
-  const latitude = latStr ? Number(latStr) : NaN
-  const longitude = lonStr ? Number(lonStr) : NaN
-  // URL 좌표 > localStorage 폴백 좌표 > 서울 기본값.
-  const resolvedLatitude = Number.isFinite(latitude)
-    ? latitude
-    : (birthSource.latitude ?? DEFAULT_LATITUDE)
-  const resolvedLongitude = Number.isFinite(longitude)
-    ? longitude
-    : (birthSource.longitude ?? DEFAULT_LONGITUDE)
-
   // Honor the birth-place timezone when the home modal forwarded one
   // (URL or server profile). Falling back to the browser's tz is wrong
   // for users who travel — Seoul-born user opening the counselor from
@@ -245,6 +234,17 @@ export function useCounselorData(sp: SearchParams) {
     (Array.isArray(sp.tz) ? sp.tz[0] : sp.tz)
   const browserTz = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Asia/Seoul'
   const resolvedTimeZone = urlTimeZone || birthSource.tzId || browserTz
+
+  const latitude = latStr ? Number(latStr) : NaN
+  const longitude = lonStr ? Number(lonStr) : NaN
+  // URL 좌표 > localStorage 폴백 좌표 > 출생 타임존 기준점(Asia/Seoul = 서울 기본값).
+  // 비한국 tz 에 서울 경도를 붙이면 시주가 ~15시간 밀렸다(엔진 감사 SAJU-9, OD-2).
+  const resolvedLatitude = Number.isFinite(latitude)
+    ? latitude
+    : (birthSource.latitude ?? defaultLatitudeFor(resolvedTimeZone))
+  const resolvedLongitude = Number.isFinite(longitude)
+    ? longitude
+    : (birthSource.longitude ?? defaultLongitudeFor(resolvedTimeZone))
   // 'F' / 'Female' / 'female' / 'f' / 'M' / 'Male' 다 처리. 기존
   // `lowercase === 'female'` 패턴은 'F'(한 글자) → 'f' 로 떨어져 매칭 실패
   // → 여자 사용자가 'male' 로 분류돼 대운 순/역행이 거꾸로 가던 회귀.

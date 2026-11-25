@@ -16,13 +16,13 @@ import { resolveBirthTimeAnchor } from '@/lib/saju/birthTimeAnchor'
 import { parseHourMinute } from '@/lib/saju/timeParse'
 import { cachedCalculateNatalChart } from '@/lib/astrology/cached'
 import { logger } from '@/lib/logger'
+import { defaultLatitudeFor, defaultLongitudeFor } from '@/lib/saju/timezone'
 import { buildCompatReport, type CompatReport } from './compatReport'
 import type { SajuPillarInput } from './sajuSynastryFormatter'
 
 // 수동 입력 경로(무료 궁합 페이지)의 폴백과 같은 값 — 둘이 갈리면 리포트가 달라진다.
+// 좌표 미상은 출생 타임존 기준점(defaultLatitudeFor/defaultLongitudeFor, OD-2).
 const DEFAULT_TZ = 'Asia/Seoul'
-const DEFAULT_LAT = 37.5665
-const DEFAULT_LON = 126.978
 
 /** 한 사람의 출생 입력 — 공유 레코드의 inviter 와 받은 사람 요청 본문이 같은 모양. */
 interface PairPersonInput {
@@ -56,8 +56,8 @@ function resolvePerson(p: PairPersonInput): ResolvedPerson {
     time: anchor.time,
     timeUnknown: anchor.timeUnknown,
     gender: p.gender,
-    lat: typeof p.lat === 'number' ? p.lat : DEFAULT_LAT,
-    lon: typeof p.lon === 'number' ? p.lon : DEFAULT_LON,
+    lat: typeof p.lat === 'number' ? p.lat : defaultLatitudeFor(p.tz || DEFAULT_TZ),
+    lon: typeof p.lon === 'number' ? p.lon : defaultLongitudeFor(p.tz || DEFAULT_TZ),
     tz: p.tz || DEFAULT_TZ,
   }
 }

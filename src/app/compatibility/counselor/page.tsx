@@ -29,6 +29,7 @@ import { CompatCounselorModals } from './CompatCounselorModals'
 import { ProfileStickyBar } from './ProfileStickyBar'
 import type { DestinySources } from '@/components/destiny-map/chat-types'
 import type { ChatMessage, PersonData } from './types'
+import { defaultLatitudeFor, defaultLongitudeFor } from '@/lib/saju/timezone'
 
 // (타이프라이터 placeholder 제거 — 사용자 요청으로 운명·궁합 입력창은 움직이는
 // 문구 없이 정적 placeholder 로 통일. 메인 홈 입력창만 순환 타이프라이터 유지.)
@@ -362,16 +363,18 @@ function CompatibilityCounselorContent() {
         gender: normalizeGender(p.gender) === 'female' ? 'female' : 'male',
         calendarType: 'solar' as const,
         timezone: p.timeZone || 'Asia/Seoul',
-        latitude: p.latitude || 37.5665,
-        longitude: p.longitude || 126.978,
+        // 좌표 미상 → 출생 타임존 기준점(OD-2·SAJU-9). '??' — '||' 는 경도 0(그리니치)까지
+        // 서울로 바꿨다.
+        latitude: p.latitude ?? defaultLatitudeFor(p.timeZone),
+        longitude: p.longitude ?? defaultLongitudeFor(p.timeZone),
       })
       // timeZone은 /api/astrology Zod 스키마에서 필수(min 1). 빠뜨리면
       // 검증 400으로 떨어져 점성 데이터가 영영 안 들어온다.
       const astroPayload = (p: PersonData) => ({
         date: p.date,
         time: resolveBirthTimeAnchor(p.time, p.timeUnknown).time,
-        latitude: p.latitude || 37.5665,
-        longitude: p.longitude || 126.978,
+        latitude: p.latitude ?? defaultLatitudeFor(p.timeZone),
+        longitude: p.longitude ?? defaultLongitudeFor(p.timeZone),
         timeZone: p.timeZone || 'Asia/Seoul',
       })
 

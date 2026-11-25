@@ -17,7 +17,9 @@ import ReportInviteTracker from '@/components/report/integrated/viral/ReportInvi
 import BirthGate from '@/components/birth/BirthGate'
 import { getServerLocale } from '@/components/seo/SEO'
 import { cookies } from 'next/headers'
-import { fromZonedTime } from 'date-fns-tz'
+import { resolveBirthInstantFromDate } from '@/lib/datetime/resolveBirthInstant'
+import { parseHourMinute } from '@/lib/saju/timeParse'
+import { defaultLatitudeFor, defaultLongitudeFor } from '@/lib/saju/timezone'
 import { recordCounter } from '@/lib/metrics'
 
 export const dynamic = 'force-dynamic'
@@ -76,14 +78,16 @@ export default async function IntegratedReportPage({
   const rawLng = one(sp.lng)
   // 좌표 파싱 — 존재만 보면 ?lat=abc 같은 비숫자가 Number()→NaN 으로 엔진의
   // Swiss Ephemeris 앵글/하우스 계산까지 흘러간다(공유·수기편집 URL로 도달 가능).
-  // 유한수가 아니면 서울 기본값 + 미상 처리로 폴백해 NaN 주입을 막는다.
+  // 유한수가 아니면 타임존 기본값 + 미상 처리로 폴백해 NaN 주입을 막는다.
   const parsedLat = Number(rawLat)
   const parsedLng = Number(rawLng)
   const hasValidCoords = Number.isFinite(parsedLat) && Number.isFinite(parsedLng)
   const birthCityUnknown = !hasValidCoords
-  const latitude = hasValidCoords ? parsedLat : 37.5665
-  const longitude = hasValidCoords ? parsedLng : 126.978
   const timeZone = one(sp.tz) ?? 'Asia/Seoul'
+  // 좌표 미상 → 출생 타임존 기준점(Asia/Seoul = 서울 기본값, OD-2). 비한국 tz + 서울
+  // 경도 조합은 시주를 ~15시간 밀었다(SAJU-9).
+  const latitude = hasValidCoords ? parsedLat : defaultLatitudeFor(timeZone)
+  const longitude = hasValidCoords ? parsedLng : defaultLongitudeFor(timeZone)
   const gender = one(sp.gender) === 'female' ? 'female' : 'male'
 
   const ctx = (await buildReportContext({
@@ -108,8 +112,10 @@ export default async function IntegratedReportPage({
     timeZone,
     isoUTC: (() => {
       try {
-        // 출생 현지시각(birthDate+birthTime, timeZone) → UTC 환산 표시.
-        const utc = fromZonedTime(`${birthDate}T${(birthTime || '00:00').slice(0, 5)}:00`, timeZone)
+        // 출생 현지시각(birthDate+birthTime, timeZone) → UTC 환산 표시. 엔진과 같은
+        // resolver(OD-3) — 서머타임 공백·겹침 시각도 사주·점성과 같은 순간을 보여 준다.
+        const { h, m } = parseHourMinute(birthTime || '00:00')
+        const utc = resolveBirthInstantFromDate(birthDate, h, m, timeZone).utc
         return `${utc.toISOString().slice(0, 16).replace('T', ' ')} UTC`
       } catch {
         return ''

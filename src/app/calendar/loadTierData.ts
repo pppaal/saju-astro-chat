@@ -26,6 +26,7 @@ import { assembleTiers, type AssembledTiers } from './assembleTiers'
 import { assembleLifetime, type AssembledLifetime } from './assembleLifetime'
 import { getNowInTimezone, formatDateString } from '@/lib/datetime/timezone'
 import { resolveBirthTimeAnchor } from '@/lib/saju/birthTimeAnchor'
+import { defaultLatitudeFor, defaultLongitudeFor } from '@/lib/saju/timezone'
 
 export type LoadTierResult =
   | { kind: 'no-birth' }
@@ -67,7 +68,7 @@ const one = (v: string | string[] | undefined): string | undefined => (Array.isA
 export function parseBirthOverride(sp: SP): BirthOverride | null {
   const date = one(sp.date)
   if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) return null
-  // 빈 문자열/비숫자 좌표는 NaN 으로 떨궈 서울 기본으로 폴백(빈칸 → Number('')=0
+  // 빈 문자열/비숫자 좌표는 NaN 으로 떨궈 타임존 기본으로 폴백(빈칸 → Number('')=0
   // 같은 잘못된 (0,0) 좌표 방지).
   const latRaw = one(sp.lat)
   const lngRaw = one(sp.lng)
@@ -80,15 +81,18 @@ export function parseBirthOverride(sp: SP): BirthOverride | null {
   const tuRaw = one(sp.tu)
   const tuFlag = tuRaw === '1' ? true : tuRaw === '0' ? false : undefined
   const timeAnchor = resolveBirthTimeAnchor(one(sp.time), tuFlag)
+  const timeZone = one(sp.tz) || 'Asia/Seoul'
   return {
     birthDate: date,
     birthTime: timeAnchor.time,
     timeUnknown: timeAnchor.timeUnknown,
     cityUnknown: !Number.isFinite(lat) || !Number.isFinite(lng),
     gender: one(sp.gender) === 'female' ? 'female' : 'male',
-    latitude: Number.isFinite(lat) ? lat : 37.5665,
-    longitude: Number.isFinite(lng) ? lng : 126.978,
-    timeZone: one(sp.tz) || 'Asia/Seoul',
+    // 좌표 미상 → 출생 타임존의 기준점(Asia/Seoul = 서울 기본값). 비한국 tz 에 서울
+    // 경도를 붙이면 시주가 ~15시간 밀렸다(엔진 감사 SAJU-9, OD-2).
+    latitude: Number.isFinite(lat) ? lat : defaultLatitudeFor(timeZone),
+    longitude: Number.isFinite(lng) ? lng : defaultLongitudeFor(timeZone),
+    timeZone,
     place: one(sp.place) || undefined,
     name: one(sp.name) || undefined,
   }

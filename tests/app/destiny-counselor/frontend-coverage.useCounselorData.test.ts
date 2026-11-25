@@ -148,15 +148,20 @@ describe('useCounselorData — URL param parsing', () => {
     expect(renderHook(() => useCounselorData({})).result.current.parsedParams.gender).toBe('male')
   })
 
-  it('resolves coordinates: URL lat/lon win, else Seoul defaults', () => {
+  it('resolves coordinates: URL lat/lon win, else the birth timezone reference point', () => {
     const withCoords = renderHook(() => useCounselorData({ lat: '48.85', lon: '2.35' }))
     expect(withCoords.result.current.parsedParams.latitude).toBeCloseTo(48.85)
     expect(withCoords.result.current.parsedParams.longitude).toBeCloseTo(2.35)
 
-    const noCoords = renderHook(() => useCounselorData({}))
-    // DEFAULT_LATITUDE / DEFAULT_LONGITUDE (Seoul)
+    // 좌표 없음 + Asia/Seoul → 서울 기본값 (defaultLatitudeFor/defaultLongitudeFor)
+    const noCoords = renderHook(() => useCounselorData({ tz: 'Asia/Seoul' }))
     expect(noCoords.result.current.parsedParams.latitude).toBeCloseTo(37.5665)
     expect(noCoords.result.current.parsedParams.longitude).toBeCloseTo(126.978)
+
+    // 좌표 없음 + 비한국 tz → 그 존의 기준점(뉴욕), 서울 경도를 붙이지 않는다(SAJU-9)
+    const noCoordsNy = renderHook(() => useCounselorData({ tz: 'America/New_York' }))
+    expect(noCoordsNy.result.current.parsedParams.latitude).toBeCloseTo(40.71, 1)
+    expect(noCoordsNy.result.current.parsedParams.longitude).toBeCloseTo(-74.01, 1)
   })
 
   it('accepts latitude/longitude aliases for lat/lon', () => {

@@ -14,6 +14,7 @@ import { normalizeGender } from '@/lib/utils/gender'
 import { resolveBirthTimeAnchor, TIME_UNKNOWN_ANCHOR } from '@/lib/saju/birthTimeAnchor'
 import { cacheGet, cacheSet, CACHE_TTL } from '@/lib/cache/redis-cache'
 import { logger } from '@/lib/logger'
+import { defaultLatitudeFor, defaultLongitudeFor } from '@/lib/saju/timezone'
 
 export interface CounselorBirthInput {
   birthDate?: string
@@ -148,8 +149,8 @@ async function buildAndCacheContext(
   // body 는 ensureCounselorContext 에서 앵커 정규화 완료 — 이 폴백은 방어용.
   const birthTime = body.birthTime ?? TIME_UNKNOWN_ANCHOR
   const gender: 'male' | 'female' = normalizeGender(body.gender) === 'female' ? 'female' : 'male'
-  const latitude = body.latitude ?? 37.5665
-  const longitude = body.longitude ?? 126.978
+  const latitude = body.latitude ?? defaultLatitudeFor(tz)
+  const longitude = body.longitude ?? defaultLongitudeFor(tz)
   const birthTimeUnknown = hourUnknown
   const birthCityUnknown = cityUnknown
 

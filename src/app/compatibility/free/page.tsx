@@ -37,6 +37,7 @@ import type { FreeReportTheme } from '@/lib/compatibility/freeReport/types'
 import type { CompatInviter } from '@/lib/share/shareLink'
 import { trackFunnel } from '@/lib/metrics/trackFunnel'
 import { logger } from '@/lib/logger'
+import { defaultLatitudeFor, defaultLongitudeFor } from '@/lib/saju/timezone'
 import s from './freeCompat.module.css'
 
 // 서울 폴백 — 도시 미선택 시 좌표가 없으면 계산이 깨지므로 검증에서 막는다.
@@ -416,14 +417,15 @@ export default function FreeCompatibilityPage() {
         gender: p.gender === 'female' ? 'female' : 'male',
         calendarType: 'solar' as const,
         timezone: p.timeZone || DEFAULT_TZ,
-        latitude: p.latitude ?? 37.5665,
-        longitude: p.longitude ?? 126.978,
+        // 좌표 미상 → 출생 타임존 기준점(Asia/Seoul = 서울 기본값, OD-2·SAJU-9).
+        latitude: p.latitude ?? defaultLatitudeFor(p.timeZone || DEFAULT_TZ),
+        longitude: p.longitude ?? defaultLongitudeFor(p.timeZone || DEFAULT_TZ),
       })
       const astroPayload = (p: Person) => ({
         date: p.birthDate,
         time: anchorOf(p),
-        latitude: p.latitude ?? 37.5665,
-        longitude: p.longitude ?? 126.978,
+        latitude: p.latitude ?? defaultLatitudeFor(p.timeZone || DEFAULT_TZ),
+        longitude: p.longitude ?? defaultLongitudeFor(p.timeZone || DEFAULT_TZ),
         timeZone: p.timeZone || DEFAULT_TZ,
       })
 

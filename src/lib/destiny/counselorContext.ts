@@ -26,6 +26,7 @@ import { PLANET_KO as PLANET_KO_BASE } from '@/lib/calendar-engine/data/planetNa
 import { koStructuralLabels } from '@/lib/llm/koStructuralLabels'
 import { SIGN_KO } from '@/lib/astrology/signLabels'
 import type { DestinySources } from '@/lib/destiny/counselorRequest'
+import { defaultLatitudeFor, defaultLongitudeFor } from '@/lib/saju/timezone'
 
 const ALL_SOURCES: DestinySources = { saju: true, astro: true }
 
@@ -462,9 +463,11 @@ export async function buildDestinyContext(
   // birth identity header 는 [Meta] 와 중복이라 제거 (route.ts 에서 [Meta]
   // 가 birthDate/birthTime/gender/location/tz/flags 단일 source 로 출력).
   // tz 는 점성 계산용으로만 사용.
-  const lat = birth.latitude ?? 37.5665
-  const lon = birth.longitude ?? 126.978
   const tz = birth.timezone ?? 'Asia/Seoul'
+  // 좌표 미상 → 출생 타임존 기준점(Asia/Seoul = 서울 기본값, OD-2). 사주 쪽은 경도
+  // 미상을 같은 존 기준 경도로 풀어(solarTimeCorrectionMinutes) 두 계산이 같은 위치다.
+  const lat = birth.latitude ?? defaultLatitudeFor(tz)
+  const lon = birth.longitude ?? defaultLongitudeFor(tz)
   const pad = (n: number) => String(n).padStart(2, '0')
   const today = `${localNow.year}-${pad(localNow.month)}-${pad(localNow.day)}`
 
@@ -662,6 +665,7 @@ function buildSajuSection(
     birthTimeUnknown: birth.birthTimeUnknown,
     gender: birth.gender,
     timezone: tz,
+    // 미상이면 엔진이 존 기준 경도(defaultLongitudeFor 와 같은 값)를 쓴다 — 점성 쪽과 일치.
     longitude: birth.longitude,
     now,
   })

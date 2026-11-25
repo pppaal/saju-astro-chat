@@ -1,6 +1,7 @@
 import { normalizeGender } from '@/lib/utils/gender'
 import { currentManAge } from '@/lib/datetime/currentAge'
 import { resolveBirthTimeAnchor } from '@/lib/saju/birthTimeAnchor'
+import { defaultLatitudeFor, defaultLongitudeFor } from '@/lib/saju/timezone'
 import type { ChatMessage } from '@/lib/api'
 
 function clampMessages(messages: ChatMessage[], max = 8) {
@@ -66,11 +67,12 @@ function buildPersonSeed(person: Record<string, unknown> | null | undefined): Pe
   const latRaw = typeof person.latitude === 'number' ? person.latitude : null
   const lonRaw = typeof person.longitude === 'number' ? person.longitude : null
   const hasLocation = latRaw !== null && lonRaw !== null
-  const latitude = hasLocation ? latRaw : 37.5665
-  const longitude = hasLocation ? lonRaw : 126.978
 
   const tzRaw = typeof person.timeZone === 'string' ? person.timeZone.trim() : ''
   const timeZone = tzRaw.length > 0 ? tzRaw : 'Asia/Seoul'
+  // 좌표 미상 → 출생 타임존 기준점(Asia/Seoul = 서울 기본값, OD-2·SAJU-9).
+  const latitude = hasLocation ? latRaw : defaultLatitudeFor(timeZone)
+  const longitude = hasLocation ? lonRaw : defaultLongitudeFor(timeZone)
 
   // 공용 normalizer — 'F' / 'Female' / 'female' / 'f' / 'M' / 'Male' 다 처리.
   // 이전 `lowercase === 'female'` 패턴은 'F' 가 'f' 로 떨어져 매칭 실패 →
