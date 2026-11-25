@@ -1,6 +1,7 @@
 import { STEMS, BRANCHES, TIME_STEM_LOOKUP } from '@/lib/saju/constants'
 import { solarTimeCorrectionMinutes } from '@/lib/saju/timezone'
 import { normalizeTimeZone } from '@/lib/datetime/timezone'
+import { CALCULATION_STANDARDS } from '@/lib/config/calculationStandards'
 import { computeDayStem } from './saju-shinsal'
 import type { ActiveSignal, ExtractorContext, SignalExtractor, Polarity } from '../types'
 import type { FiveElement, SibsinKind, YinYang } from '@/lib/saju/types'
@@ -93,11 +94,11 @@ const sajuHourExtractor: SignalExtractor = {
     // 진태양시(眞太陽時) 보정용 출생지 경도·타임존. 본명 시주(build.ts/saju.ts)와
     // *동일 공식*으로 forecast 시진 경계도 시계↔태양 차를 반영한다(전세계 일관).
     // 경도 미상이면 solarTimeCorrectionMinutes 가 존 기준 경도(Asia/Seoul = 126.978)를
-    // 쓰고, 타임존 미상이면 본명 사주와 같은 기본 존(normalizeTimeZone → Asia/Seoul) —
+    // 쓰고, 타임존 미상이면 본명 사주와 같은 기본 존(CALCULATION_STANDARDS.saju.baseTimezone) —
     // 본명 시주와 같은 기본값(OD-2). 예전엔 둘 중 하나라도 없으면 보정 0(시계 시각)이었다.
     const loc = natal.astro?.location
     const longitude = typeof loc?.longitude === 'number' ? loc.longitude : undefined
-    const timeZone = normalizeTimeZone(loc?.timeZone)
+    const timeZone = normalizeTimeZone(loc?.timeZone, CALCULATION_STANDARDS.saju.baseTimezone)
 
     const signals: ActiveSignal[] = []
     const start = new Date(range.start)

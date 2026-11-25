@@ -5,7 +5,11 @@ export type DaeunRoundingPolicy = 'round' | 'ceil' | 'floor'
 
 export const CALCULATION_STANDARDS = {
   saju: {
+    // 사주 입력에 쓸 수 있는 timezone 이 없을 때(누락·잘못된 IANA 이름) 계산이 기대는
+    // 기준 존. calculateSajuData·collectSajuFacts·캘린더 saju-hour 추출기가 읽는다.
+    // 경도도 없으면 이 존의 기준 경도(서울 126.978)로 시주를 정한다(CONVENTIONS §1, OD-2).
     baseTimezone: 'Asia/Seoul',
+    // 대운수 = days/3 의 내림(최소 1). daeunAge.daysToDaeunAge 가 읽는다(CONVENTIONS §13).
     daeunRounding: 'floor' as DaeunRoundingPolicy,
     // 월운 경계를 12절기로 전환(입춘=寅월 … 소한=丑월). 도큐트린(saju/CONVENTIONS.md
     // §3 월주 전환)이 절기 기반을 정본으로 규정하고, 양력월 그대로 쓰는 방식은

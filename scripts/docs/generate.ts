@@ -66,6 +66,47 @@ function auditSummaryLines(): string[] {
 
 const STAMP = '<!-- 이 표는 자동 생성됩니다. 직접 수정하지 마세요 — `npm run docs:sync`. -->'
 
+// CALCULATION_STANDARDS 키마다 그 값을 읽는 src 파일 (정의 파일 제외). 키에 읽는 곳이
+// 하나도 없으면 throw — 'docs 가 말하는 정책 값을 코드가 실제로 읽는다'를 docs:sync(:check)
+// 가 강제한다 (엔진 감사 F16: baseTimezone 이 읽히지 않던 일).
+const CALC_STANDARDS_FILE = path.join('src', 'lib', 'config', 'calculationStandards.ts')
+function listSourceFiles(dir: string): string[] {
+  const out: string[] = []
+  for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+    const full = path.join(dir, e.name)
+    if (e.isDirectory()) out.push(...listSourceFiles(full))
+    else if (/\.(ts|tsx)$/.test(e.name)) out.push(full)
+  }
+  return out
+}
+// 주석 속 언급은 읽는 곳이 아니다 (대략적인 제거 — 판정용이라 충분).
+function stripComments(src: string): string {
+  return src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:])\/\/.*$/gm, '$1')
+}
+function calculationStandardReaders(group: string, key: string): string[] {
+  const pattern = new RegExp(`CALCULATION_STANDARDS\\.${group}\\.${key}\\b`)
+  return listSourceFiles(path.join(ROOT, 'src'))
+    .map((f) => path.relative(ROOT, f))
+    .filter((rel) => rel !== CALC_STANDARDS_FILE)
+    .filter((rel) => pattern.test(stripComments(fs.readFileSync(path.join(ROOT, rel), 'utf8'))))
+    .map((rel) => rel.split(path.sep).join('/'))
+    .sort()
+}
+function standardsTable(group: 'saju' | 'astrology'): string {
+  return table(
+    ['항목', '값', '읽는 곳'],
+    Object.entries(CALCULATION_STANDARDS[group]).map(([k, v]) => {
+      const readers = calculationStandardReaders(group, k)
+      if (readers.length === 0) {
+        throw new Error(
+          `[docs:sync] CALCULATION_STANDARDS.${group}.${k} 를 읽는 src 코드가 없다 — 연결하거나 키를 지울 것`
+        )
+      }
+      return [`\`${k}\``, `\`${String(v)}\``, readers.map((r) => `\`${r}\``).join('<br>')]
+    })
+  )
+}
+
 function table(headers: string[], rows: string[][]): string {
   const head = `| ${headers.join(' | ')} |`
   const sep = `| ${headers.map(() => '---').join(' | ')} |`
@@ -77,15 +118,8 @@ function table(headers: string[], rows: string[][]): string {
 const GENERATORS: Record<string, () => string> = {
   // 계산 표준(교리) — calculationStandards.ts 가 코드 SSOT
   'calculation-standards': () => {
-    const s = CALCULATION_STANDARDS
-    const saju = table(
-      ['항목', '값'],
-      Object.entries(s.saju).map(([k, v]) => [`\`${k}\``, `\`${String(v)}\``])
-    )
-    const astro = table(
-      ['항목', '값'],
-      Object.entries(s.astrology).map(([k, v]) => [`\`${k}\``, `\`${String(v)}\``])
-    )
+    const saju = standardsTable('saju')
+    const astro = standardsTable('astrology')
     return [
       STAMP,
       '',

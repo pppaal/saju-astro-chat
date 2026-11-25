@@ -8,6 +8,7 @@
 // 본 모듈은 **포매팅 0**. locale 무관. text 0. JSON-able 객체만 반환.
 
 import { calculateSajuData } from '@/lib/saju/saju'
+import { CALCULATION_STANDARDS } from '@/lib/config/calculationStandards'
 import type { CalculateSajuDataResult } from '@/lib/saju/types'
 import { determineYongsin, type YongsinResult } from '@/lib/saju/yongsin'
 import { determineGeokguk } from '@/lib/saju/geokguk'
@@ -155,7 +156,7 @@ const BRANCH_ELEMENT: Record<string, string> = {
  * 자기 포매팅만 하면 됨.
  */
 export function collectSajuFacts(input: SajuFactsInput): SajuFacts {
-  const tz = input.timezone ?? 'Asia/Seoul'
+  const tz = input.timezone ?? CALCULATION_STANDARDS.saju.baseTimezone
   // 출생시각 미상 — 명시 플래그 또는 빈 시각. ('00:00' 레거시 휴리스틱은 호출자가
   // resolveBirthTimeAnchor 로 이미 풀어 플래그로 넘긴다 — 여기서 다시 추정하면 실제
   // 자정 출생자가 미상으로 오분류된다.)
