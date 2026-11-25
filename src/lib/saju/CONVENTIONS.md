@@ -59,7 +59,7 @@
 > **지금 규칙:** 시주 lookup 만 평균태양시(`meanSolarMinuteOfDay`)를 쓴다. 년주·월주·
 > 대운수는 생 UT 출생 instant(`birthDateTime`)를 절입 instant 와 비교한다(§2·§3·§13·
 > §15). 일주와 만 나이 생일은 민용일(§14).
-> 가드: `tests/lib/saju/solarTermFrame.test.ts` (1940–2050 전 절기 ±5분),
+> 가드: `tests/lib/saju/solarTermFrame.test.ts` (1900–2050 전 절기 ±5분),
 > `tests/golden/saju.golden.test.ts` (G03·G05·G06·G07·G21·G23·G25·G27)
 >
 > ✅ **2026-11 수정 — 출생 instant·시각 보정 한 경로 (엔진 감사 E8: F4·ASTRO-7·F7·F2·F3·
@@ -352,7 +352,9 @@ isForward = (yearStem이 양 && male) || (yearStem이 음 && female)
 
 ## 15. 절기(節氣) 데이터 — KASI 기반
 
-**선택:** 한국천문연구원(KASI) 공식 절기표 (1939-2051, KST, 분 단위 정확도, Swiss Ephemeris 검증됨).
+**선택:** 한국천문연구원(KASI) 공식값과 분 단위로 일치하는 Swiss Ephemeris 절기표 (1899–2051, UTC+9 고정 표기, 분 단위). 지원 범위는 **1900–2050** — API 검증 하한(`dateSchema` year ≥ 1900)과 같다(OD-4, 엔진 감사 E14 · SAJU-5). 1899·2051 은 범위 첫·끝 출생의 경계 lookup 용.
+
+**생성:** 1899–1938 행은 [`scripts/golden/build-solar-terms.mts`](../../../scripts/golden/build-solar-terms.mts) 가 Swiss Ephemeris(`public/ephe`)로 만들고 astronomy-engine 과 ≤ 90 초 교차검증한다. 손으로 적지 않는다. 가드: [`tests/lib/saju/kasiSolarTerms.crosscheck.test.ts`](../../../tests/lib/saju/kasiSolarTerms.crosscheck.test.ts) (표 전체 ↔ astronomy-engine ≤ 90 초).
 
 **위치:** [`constants.ts:KASI_SOLAR_TERMS`](./constants.ts) — 테이블. `getSolarTermKST(year, month)` lookup 함수 동일 파일.
 

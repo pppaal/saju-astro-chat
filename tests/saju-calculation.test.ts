@@ -351,10 +351,12 @@ describe('Saju Calculation: Edge Cases', () => {
     expect(newyork).toBeDefined()
   })
 
-  it('handles very old dates (1900s) - throws error for unsupported range', () => {
-    // 1940-2050 범위 밖의 날짜는 에러를 발생시켜야 함
-    expect(() => calculateSajuData('1900-01-01', '12:00', 'male', 'solar', 'Asia/Seoul')).toThrow(
-      'Supported solar-term year range is 1940–2050'
+  it('handles very old dates — 1900 is supported, 1899 throws (range 1900–2050, E14 · OD-4)', () => {
+    // 절입표가 1899(경계)–2051 이라 엔진 범위 = API 검증 하한(1900)과 같다.
+    const old = calculateSajuData('1900-01-01', '12:00', 'male', 'solar', 'Asia/Seoul')
+    expect(old.yearPillar).toBeDefined()
+    expect(() => calculateSajuData('1899-12-31', '12:00', 'male', 'solar', 'Asia/Seoul')).toThrow(
+      'Supported solar-term year range is 1900–2050'
     )
   })
 

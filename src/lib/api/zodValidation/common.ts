@@ -42,6 +42,10 @@ export const dateSchema = z
   // Reject obviously nonsensical birth dates (year 1800 or 2099). The astro
   // and saju engines accept them silently and produce meaningless output,
   // which then anchors the entire counselor session.
+  // 하한 1900 = 사주 엔진 절입표 지원 시작(KASI_START_YEAR, src/lib/saju/constants.ts).
+  // 둘이 어긋나면 검증을 통과한 출생이 엔진에서 throw → 500 이 된다(엔진 감사 SAJU-5:
+  // 1900–1939 가 그랬다 — E14 에서 절입표를 1900 까지 생성해 맞춤). 가드:
+  // tests/sajuIntegrity.test.ts (KASI_START_YEAR === 1900), tests/app/api/sajuRoute.engine.route.test.ts.
   .refine(
     (date) => {
       const year = Number(date.slice(0, 4))

@@ -1,8 +1,8 @@
 /**
  * KASI 절기표 ↔ 독립 태양황경 계산 교차검증.
  *
- * KASI_SOLAR_TERMS 는 1939~2051 의 24절기 중 12절(節)을 분 단위로 손으로 들고 있는
- * ~110년치 표다. 경계 *동작*(입춘/datePillars)은 몇몇 날짜로 잠겼지만, 표 자체의
+ * KASI_SOLAR_TERMS 는 1899~2051 의 24절기 중 12절(節)을 분 단위로 들고 있는
+ * ~150년치 표다(1899–1938 은 scripts/golden/build-solar-terms.mts 로 생성, 엔진 감사 E14). 경계 *동작*(입춘/datePillars)은 몇몇 날짜로 잠겼지만, 표 자체의
  * 전사(轉寫) 오류는 무방비였다 — 한 해의 한 절기가 어긋나면 그 시기 출생자의 연/월주가
  * 통째로 틀어진다. 여기서는 표의 각 절기 시각에 태양 황경을 *독립적으로* 계산해, 그
  * 절기의 정통 황경(定氣)과 일치하는지 검증한다.
@@ -15,9 +15,10 @@
  *   小寒285 立春315 驚蟄345 清明15 立夏45 芒種75 小暑105 立秋135 白露165 寒露195 立冬225 大雪255.
  */
 import { describe, it, expect } from 'vitest'
-import { getSolarTermKST } from '@/lib/saju/constants'
+import * as Astronomy from 'astronomy-engine'
+import { getSolarTermKST, KASI_SOLAR_TERMS } from '@/lib/saju/constants'
 
-const SAMPLE_YEARS = [1945, 1960, 1975, 1990, 2000, 2012, 2024, 2036, 2050]
+const SAMPLE_YEARS = [1905, 1920, 1935, 1945, 1960, 1975, 1990, 2000, 2012, 2024, 2036, 2050]
 const MONTHS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
 
 const expectedLongitude = (m: number): number => (285 + (m - 1) * 30) % 360
@@ -73,5 +74,56 @@ describe('KASI_SOLAR_TERMS ↔ 독립 태양황경(Meeus) 교차검증', () => {
     const d = getSolarTermKST(2000, 2)
     expect(d).not.toBeNull()
     if (d) expect(angularDiff(sunApparentLongitude(d), 315)).toBeLessThan(0.1)
+  })
+})
+
+/**
+ * 표 전체 ↔ astronomy-engine (OD-4, OD-13) — 각 節 instant 가 astronomy-engine
+ * SearchSunLongitude(겉보기 황경, 진춘분점 of date)와 90 초 안. 위 Meeus 검사(0.1° ≈ 2.4 시간)는
+ * 전사 오류만 잡고, 이 검사는 생성 정밀도를 잠근다. 1899–1939 는 생성기가 같은 기준으로
+ * 검증했고(최대 49 초), 1940–2051 은 E0 골든 생성기 기준 최대 47 초였다.
+ */
+describe('KASI_SOLAR_TERMS ↔ astronomy-engine (≤ 90 초) — 표 전체', () => {
+  const MAX_DEV_SEC = 90
+  const years = Object.keys(KASI_SOLAR_TERMS)
+    .map(Number)
+    .sort((a, b) => a - b)
+
+  it('표는 1899(경계)–2051(경계) 를 빠짐없이 갖는다', () => {
+    expect(years[0]).toBe(1899)
+    expect(years[years.length - 1]).toBe(2051)
+    expect(years).toHaveLength(2051 - 1899 + 1)
+  })
+
+  it('1899–2051 모든 절기가 astronomy-engine 과 90 초 안 (1900–1939 포함)', () => {
+    const bad: string[] = []
+    let checked = 0
+    for (const year of years) {
+      for (const m of MONTHS) {
+        const termDate = getSolarTermKST(year, m)
+        if (!termDate) {
+          bad.push(`${year}-${m}: 표에 없음`)
+          continue
+        }
+        const ae = Astronomy.SearchSunLongitude(
+          expectedLongitude(m),
+          new Date(Date.UTC(year, m - 1, 1)),
+          13
+        )
+        if (!ae) {
+          bad.push(`${year}-${m}: astronomy-engine 탐색 실패`)
+          continue
+        }
+        const dev = Math.abs(ae.date.getTime() - termDate.getTime()) / 1000
+        if (dev > MAX_DEV_SEC) {
+          bad.push(
+            `${year}-${m}: 표 ${termDate.toISOString()} vs ${ae.date.toISOString()} (${dev.toFixed(1)}s)`
+          )
+        }
+        checked++
+      }
+    }
+    expect(bad).toEqual([])
+    expect(checked).toBe(years.length * 12)
   })
 })

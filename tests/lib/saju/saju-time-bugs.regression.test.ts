@@ -249,7 +249,7 @@ describe('한국 DST 전환 순간 출생 — 출생 instant 회귀', () => {
 })
 
 /**
- * supported range(1940-2050) 경계 회귀.
+ * supported range(1900-2050) 경계 회귀.
  *
  * 옛 버그: 1940-01-XX 입춘 이전 출생자는 大運 시작점 계산에서 1939/12 大雪 절기
  * lookup 이 필요한데 KASI 데이터가 1940 부터라 `Cannot determine Daeun: solar
@@ -257,9 +257,20 @@ describe('한국 DST 전환 순간 출생 — 출생 instant 회귀', () => {
  * 첫 5일 정도가 사용 불가였다.
  *
  * 2050-12-08 이후도 같은 패턴으로 2051/01 lookup 필요. 1939, 2051 전체 절기를
- * Swiss Ephemeris 로 계산해 데이터에 보강. 입력 검증 범위는 그대로.
+ * Swiss Ephemeris 로 계산해 데이터에 보강.
+ *
+ * 2026-11 (엔진 감사 E14, SAJU-5, OD-4): API 검증은 1900 부터 받는데 엔진은 1940 부터라
+ * 1935 출생이 500 이었다. 절입표를 1899(경계)–1939 까지 생성해 엔진 범위를 1900–2050 으로.
  */
-describe('지원 연도 경계 — 1940/2050 첫/끝 출생 회귀', () => {
+describe('지원 연도 경계 — 1900/2050 첫/끝 출생 회귀', () => {
+  it('1900-01-01 출생 — throw 없이 계산 (소한 이전, 1899/12 大雪 lookup)', () => {
+    const r = calculateSajuData('1900-01-01', '12:00', 'male', 'solar', 'Asia/Seoul')
+    // 1900-01-01 은 1900 소한(1/6) 이전 → 子월, 입춘 이전 → 己亥년.
+    expect(r.yearPillar.heavenlyStem.name + r.yearPillar.earthlyBranch.name).toBe('己亥')
+    expect(r.monthPillar.earthlyBranch.name).toBe('子')
+    expect(r.daeWoon?.startAge).toBeGreaterThan(0)
+  })
+
   it('1940-01-01 출생 — throw 없이 계산', () => {
     const r = calculateSajuData('1940-01-01', '12:00', 'male', 'solar', 'Asia/Seoul')
     expect(r.daeWoon?.startAge).toBeGreaterThan(0)
@@ -275,10 +286,12 @@ describe('지원 연도 경계 — 1940/2050 첫/끝 출생 회귀', () => {
     expect(r.daeWoon?.startAge).toBeGreaterThan(0)
   })
 
-  it('1939 / 2051 은 범위 밖 — 명시적 throw', async () => {
+  it('1899 / 2051 은 범위 밖 — 명시적 throw (1939 는 이제 범위 안)', async () => {
     const { assertKasiYearInRange } = await import('../../../src/lib/saju/constants')
-    expect(() => assertKasiYearInRange(1939)).toThrow(/range/)
+    expect(() => assertKasiYearInRange(1899)).toThrow(/range/)
     expect(() => assertKasiYearInRange(2051)).toThrow(/range/)
+    expect(() => assertKasiYearInRange(1900)).not.toThrow()
+    expect(() => assertKasiYearInRange(1939)).not.toThrow()
   })
 })
 

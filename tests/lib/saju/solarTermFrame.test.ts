@@ -89,9 +89,10 @@ for (let year = KASI_START_YEAR; year <= KASI_END_YEAR; year++) {
   }
 }
 
-describe('절입 판정 = 생 UT instant vs 절입 instant (OD-1) — 1940–2050 전 절기', () => {
+describe('절입 판정 = 생 UT instant vs 절입 instant (OD-1) — 1900–2050 전 절기', () => {
   it(`표 범위 전체(${(KASI_END_YEAR - KASI_START_YEAR + 1) * 12}개 절기)를 순회한다`, () => {
-    expect(TERMS).toHaveLength(1332)
+    // 1900–1939 는 엔진 감사 E14(SAJU-5, OD-4)에서 생성해 붙인 행.
+    expect(TERMS).toHaveLength(1812)
   })
 
   it('서울 절입 +5분 출생 (lon 126.978): 절입 후 기둥이고, 무경도 결과와 같다', () => {
