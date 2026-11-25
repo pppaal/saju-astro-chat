@@ -193,9 +193,12 @@ export function deriveLifetimePivots(
       }
     | undefined
   const natalPlanets = [...(astroAny?.chart?.planets ?? []), ...(astroAny?.extraPoints ?? [])]
+  // 출생시각/출생지 미상(placeUnreliable)이면 하우스는 정오 앵커·기본 좌표 폴백이라
+  // 못 읽은 것으로 본다 — 원문 그대로(엔진 감사 F1, CONVENTIONS §5).
+  const placeUnreliable = natal.astro?.placeUnreliable === true
   const houseFor = (kind: string): number | null => {
     const body = MILESTONE_BODY[kind]
-    return body ? natalHouseOf(natalPlanets, body) : null
+    return body && !placeUnreliable ? natalHouseOf(natalPlanets, body) : null
   }
   const astroEvents = astroKoEvents.map((e, i) => {
     const h = houseFor(e.event)

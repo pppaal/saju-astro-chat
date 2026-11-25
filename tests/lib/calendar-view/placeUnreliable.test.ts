@@ -7,11 +7,13 @@
  *  - toUser.deriveAstro (프로필 카드의 상승궁·MC)
  *  - deriveLifetimeFlow intro 의 astroId ('… rising', 'MC in …')
  *  - buildHourCrossings (시진별 그 시각 상승궁 + 룰러 교차)
+ *  - deriveLifetimePivots (인생 마디 뜻풀이를 본명 하우스로 개인화)
  */
 import { describe, it, expect } from 'vitest'
 import { toUser } from '@/lib/calendar-view/toUser'
 import { buildHourCrossings } from '@/lib/calendar-view/toHourCrossings'
 import { deriveLifetimeFlow } from '@/lib/calendar-engine/derivers/lifetimeFlow'
+import { deriveLifetimePivots } from '@/lib/calendar-engine/derivers/lifetimePivots'
 import type { NatalContext } from '@/lib/calendar-engine/context/types'
 import { makeNatal, makeChart, makePlanet, makeCell, makeSignal } from './_fixtures'
 
@@ -153,5 +155,45 @@ describe('buildHourCrossings — placeUnreliable', () => {
       expect(r.risingSignEn).not.toBe('')
       expect(r.rulerEn).not.toBe('')
     }
+  })
+})
+
+describe('deriveLifetimePivots — placeUnreliable', () => {
+  const NOW = new Date('2026-11-25T00:00:00Z')
+  // 토성·목성이 하우스에 앉은 본명 — 회귀 마디 뜻풀이에 '특히 …에서' 가 붙는 조건.
+  const natalOf = (placeUnreliable: boolean) => {
+    const natal = makeNatal({
+      chart: makeChart({
+        planets: [
+          makePlanet('Sun', 'Aquarius', 5),
+          makePlanet('Jupiter', 'Leo', 10),
+          makePlanet('Saturn', 'Libra', 7),
+        ],
+      }),
+      daeun: [
+        { startAge: 5, startYear: 1995, stem: '丁', branch: '丑' },
+        { startAge: 15, startYear: 2005, stem: '丙', branch: '子' },
+        { startAge: 25, startYear: 2015, stem: '乙', branch: '亥' },
+      ],
+    })
+    return placeUnreliable ? unreliable(natal) : natal
+  }
+  const meanings = (natal: NatalContext) =>
+    deriveLifetimePivots(natal, 'ko', undefined, NOW)
+      .pivots.filter((p) => p.astro)
+      .flatMap((p) => [p.meaning ?? '', p.meaningEn ?? ''])
+
+  it('미상이면 하우스 개인화 문구를 붙이지 않는다(폴백 하우스 날조 금지)', () => {
+    const ms = meanings(natalOf(true))
+    expect(ms.length).toBeGreaterThan(0)
+    for (const m of ms) {
+      expect(m).not.toContain('특히')
+      expect(m).not.toContain('It shows most clearly')
+    }
+  })
+
+  it('신뢰 가능하면 하우스로 개인화한다(대조군)', () => {
+    const ms = meanings(natalOf(false))
+    expect(ms.some((m) => m.includes('특히') || m.includes('It shows most clearly'))).toBe(true)
   })
 })
