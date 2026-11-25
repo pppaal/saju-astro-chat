@@ -45,8 +45,9 @@
  *    신살(saju-shinsal·saju-shinsal-activation)의 evidence.shinsalName 만. 오행 흐름·지장간
  *    통근 같은 *파생 라인*도 sibsin 을 달고 있지만 용신과 무관한 고정 극성이라(같은 일진
  *    십신이 +3 과 −1 로 갈림) 교차 부모가 아니다 — evidenceLadder 의 정통 십신 규칙과 같다.
- *  - 점성: 하늘에서 실제로 움직이는 활성 행성만. 식(eclipse)·프로펙션·ZR·행성시(지정)와
- *    솔라 아크·2차 진행·진행 달(상징 방향 — 라이프사이클의 진행 달 회귀 포함)은 제외.
+ *  - 점성: 하늘에서 실제로 움직이는 활성 행성만. 식(eclipse)·프로펙션·ZR·행성시(지정),
+ *    솔라 아크·2차 진행·진행 달(상징 방향 — 라이프사이클의 진행 달 회귀 포함), 솔라·루나
+ *    리턴(회귀 차트가 여는 1년·1달 주기 구간 — 오너 결정 15)은 제외.
  *
  * ── dedup ──
  * 같은 셀 안에서 (교차 name, layer) 당 가장 센 1개 — buildCalendar 의 groupIntoCells 가
@@ -96,7 +97,7 @@ function extractSajuKey(s: ActiveSignal): string | undefined {
 /**
  * Astro 신호에서 매칭 키 (단일 행성명) 를 추출.
  * 대부분의 astro extractor 가 evidence.planets[0] 에 *트랜짓(활성) 행성* 을 박음
- * (transit, dignity, house-transit, return, fixed-star 등).
+ * (transit, dignity, house-transit, lifecycle 행성 회귀, fixed-star 등).
  *
  * 단, eclipse 는 planets[0] 에 *본명 피영향점*(affectedPoint, 예: 본명 금성)을
  * 넣는다 — 활성 주체(식의 광체)가 아니다. 그대로 키로 쓰면 "토성 식이 본명 금성을
@@ -117,6 +118,13 @@ function extractSajuKey(s: ActiveSignal): string | undefined {
  * 솔라 아크(solar-arc)·2차 진행(progression)·진행 달(progressed-moon)은 *상징 방향*이다
  * (OD-9) — planets[0] 은 "하루 = 1년" 식으로 옮긴 가상의 점이지 지금 하늘에서 움직이는
  * 행성이 아니다. 예전엔 '세운 정관 × Solar Arc Jupiter' 가 10년 교차로 인생 화면에 떴다.
+ *
+ * 솔라 리턴(solar-return)·루나 리턴(lunar-return)도 교차 키가 아니다(오너 결정 15). 신호는
+ * 회귀 순간부터 다음 회귀까지 1년·1달 *주기 구간*이고 planets[0]='Sun'/'Moon' 은 그 구간을
+ * 연 광체의 이름표다 — 프로펙션·상징 주기와 같은 범주라, 구간 안의 모든 일진·시진과 겹쳐
+ * '비견 × 태양'·'정인 × 달' 같은 교차를 냈다(2026-11 표본+시드 20명: 교차의 16.6%).
+ * 회귀 신호 자체는 단독 점성 신호로 남는다. 실제 행성 회귀(목성·토성 등 라이프사이클)는
+ * 하늘의 그 행성이 본명 자리로 돌아오는 사건이라 그대로 교차 키다.
  */
 const NON_ACTIVE_ASTRO_KINDS: ReadonlySet<string> = new Set([
   'eclipse',
@@ -126,6 +134,8 @@ const NON_ACTIVE_ASTRO_KINDS: ReadonlySet<string> = new Set([
   'solar-arc',
   'progression',
   'progressed-moon',
+  'solar-return',
+  'lunar-return',
 ])
 /**
  * 라이프사이클 마디 중 진행 달 회귀(progressed_lunar_*)도 같은 상징 방향이다 — kind 는
@@ -139,7 +149,7 @@ function isProgressedLifecycle(s: ActiveSignal): boolean {
 }
 function extractAstroKey(s: ActiveSignal): string | undefined {
   if (s.source !== 'astro') return undefined
-  // affectedPoint(본명점)·상징적 지배성·상징 방향이라 활성 주체 아님 — 교차 제외.
+  // affectedPoint(본명점)·상징적 지배성·상징 방향·회귀 주기 구간이라 활성 주체 아님 — 교차 제외.
   if (NON_ACTIVE_ASTRO_KINDS.has(s.kind) || isProgressedLifecycle(s)) return undefined
   const planets = s.evidence?.planets ?? []
   return planets[0]

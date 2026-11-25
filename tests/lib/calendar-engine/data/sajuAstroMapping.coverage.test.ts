@@ -50,8 +50,8 @@ describe('saju-astro-mapping — 커버리지', () => {
     expect(crossLayerAllowed('Moon', 'monthly')).toBe(false)
   })
 
-  it('전체 57쌍 이상 유지(축소 회귀 방지)', () => {
-    expect(SAJU_ASTRO_MAPPINGS.length).toBeGreaterThanOrEqual(57)
+  it('전체 56쌍 이상 유지(축소 회귀 방지 — 천을귀인×목성 은퇴 뒤, 오너 결정 14)', () => {
+    expect(SAJU_ASTRO_MAPPINGS.length).toBeGreaterThanOrEqual(56)
   })
 })
 
@@ -96,17 +96,25 @@ describe('saju-astro-mapping — 무결성', () => {
     expect(lookupCrossMapping('도화', 'Mars')).toBeUndefined()
   })
 
-  it('신살(일 층 전용) × 일 밴드 없는 행성 — 캘린더에서 발화하지 않는 행은 이 둘뿐', () => {
+  it('신살(일 층 전용) × 일 밴드 없는 행성 — 캘린더에서 발화하지 않는 행은 리포트 대표 매핑 건록×목성뿐', () => {
     // 교차 layer 는 좁은 부모 층이라(엔진 감사 X7) 신살(daily) × 목성(monthly~) 은 daily →
-    // 목성 밴드 밖. 건록×목성은 리포트 대표 매핑으로 쓰이고, 천을귀인×목성은 보류(오너 결정).
+    // 목성 밴드 밖. 건록×목성은 리포트 대표 매핑(crossOnly 아님)으로 남는다. 천을귀인×목성은
+    // crossOnly 라 캘린더 전용이었는데 캘린더에서 발화할 수 없어 은퇴했다(오너 결정 14).
     const shinsal = new Set(Object.keys(SHINSAL_POLARITY))
     const dead = SAJU_ASTRO_MAPPINGS.filter(
       (m) =>
         shinsal.has(m.saju) &&
         !crossLayerAllowed(m.astro, 'daily') &&
         !crossLayerAllowed(m.astro, 'hourly')
-    ).map((m) => `${m.saju}|${m.astro}`)
-    expect(dead.sort()).toEqual(['건록|Jupiter', '천을귀인|Jupiter'])
+    )
+    expect(dead.map((m) => `${m.saju}|${m.astro}`)).toEqual(['건록|Jupiter'])
+    // 캘린더에서 죽은 행이 남는다면 리포트가 읽는 행이어야 한다 — crossOnly(캘린더 전용) 금지.
+    for (const m of dead) expect(m.crossOnly, `${m.saju}|${m.astro}`).not.toBe(true)
+  })
+
+  it('천을귀인 × 목성은 캘린더 매핑에 없다 — 대체 페어도 없음 (오너 결정 14)', () => {
+    expect(lookupCrossMapping('천을귀인', 'Jupiter')).toBeUndefined()
+    expect(SAJU_ASTRO_MAPPINGS.filter((m) => m.saju === '천을귀인')).toEqual([])
   })
 
   it('외행성(천왕·해왕·명왕) 매핑은 장주기 전용 — 일/월 밴드 발화 금지', () => {

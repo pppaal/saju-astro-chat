@@ -174,12 +174,15 @@ describeRealEphemeris('calendar cross invariants (E0 section E)', () => {
 
   // Symbolic astro keys (OD-9): planetary hours are time rulers; solar arc, secondary
   // progressions and the progressed Moon (incl. the progressed lunar return milestone)
-  // are directed points, not planets moving in the sky.
+  // are directed points, not planets moving in the sky. Solar and lunar returns are
+  // cycle periods (owner decision 15): standalone astro signals, never cross parents.
   const SYMBOLIC_ASTRO_KINDS = new Set([
     'planetary-hour',
     'solar-arc',
     'progression',
     'progressed-moon',
+    'solar-return',
+    'lunar-return',
   ])
   it('no element-flow / jijanggan / symbolic astro parents', () => {
     const bad: string[] = []
@@ -193,6 +196,31 @@ describeRealEphemeris('calendar cross invariants (E0 section E)', () => {
       )
         bad.push(`${b.person.id} ${cell.datetime.slice(0, 10)} ${s.name} ← ${sajuId} × ${astroId}`)
     })
+    expect(bad.slice(0, 10)).toEqual([])
+  })
+
+  it('return signals stay standalone: present in the build, never a cross parent (decision 15)', () => {
+    const returnKinds = new Set(['solar-return', 'lunar-return'])
+    const seen = new Set<string>()
+    const bad: string[] = []
+    for (const b of built) {
+      for (const cell of b.month) {
+        const byId = new Map(cell.signals.map((x) => [x.id, x]))
+        for (const s of cell.signals) {
+          if (returnKinds.has(s.kind)) seen.add(s.kind)
+          if (!isCross(s)) continue
+          const astroId = parentIds(s)[1]
+          const astroKind = byId.get(astroId)?.kind ?? s.evidence?.detail?.parentAstroKind
+          if (
+            returnKinds.has(String(astroKind)) ||
+            /^astro\.(solar|lunar)-return\./.test(astroId ?? '')
+          )
+            bad.push(`${b.person.id} ${cell.datetime.slice(0, 10)} ${s.name} ← ${astroId}`)
+        }
+      }
+    }
+    // The build really carries both return kinds, so the check is not vacuous.
+    expect([...seen].sort()).toEqual(['lunar-return', 'solar-return'])
     expect(bad.slice(0, 10)).toEqual([])
   })
 

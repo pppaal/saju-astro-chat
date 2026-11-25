@@ -45,7 +45,6 @@ export type SajuMatchKey =
   | '역마'
   | '건록'
   | '양인'
-  | '천을귀인'
 
 /** 점성 측의 매칭 키 — 단일 행성명. astro extractor 가 evidence.planets[0] 에 박는 명칭과 일치. */
 export type AstroMatchKey =
@@ -796,22 +795,9 @@ export const SAJU_ASTRO_MAPPINGS: readonly CrossMapping[] = [
     note: '건록(실력·자리) ↔ Mars(추진). 실력의 승부축 → +1.',
   },
 
-  // ── 신살 길성 확장 ──
-  // 천을귀인 × 목성은 E11(좁은 부모 층) 뒤로 캘린더에서 발화하지 않는다 — 천을귀인은 일 층
-  // 신살, 목성 밴드는 월 층부터. crossOnly 라 리포트도 쓰지 않는다 — 빠른 길성(태양·금성)으로
-  // 옮길지, 은퇴할지 오너 결정 대기(data 테스트가 이 상태를 고정한다).
-  {
-    saju: '천을귀인',
-    astro: 'Jupiter',
-    meaning: {
-      ko: '천을귀인 × 목성 — 귀인이 실제로 움직이는 결. 부탁·소개 요청·멘토 연락을 미루지 말 것.',
-      en: 'Heavenly Benefactor × Jupiter — your helpers are actually in motion. Don’t postpone the ask, the intro request, or that message to a mentor.',
-    },
-    polarity: 2,
-    grade: 'A',
-    crossOnly: true,
-    note: '천을귀인(최상 길성·조력자) ↔ Jupiter(greater benefic·귀인운). 동·서 길성 아키타입 직접 등치 — A.',
-  },
+  // 천을귀인 × 목성은 은퇴(오너 결정 14) — 천을귀인은 일 층 신살이고 목성 밴드는 월 층부터라
+  // 교차가 좁은 부모 층(엔진 감사 X7)에서 발화할 수 없었다. crossOnly 라 리포트 대표 매핑
+  // (natalCrossShared)에도 쓰이지 않았다 — 대체 페어는 만들지 않는다.
 ]
 
 /**

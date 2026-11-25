@@ -417,6 +417,53 @@ describe('교차 부모 자격 (엔진 감사 X4·X5)', () => {
     expect(extractCrossActivations([daeun, satReturn])).toHaveLength(1)
   })
 
+  it('솔라·루나 리턴은 교차 키가 아니다 — 회귀 주기 구간, 단독 신호로만 (오너 결정 15)', () => {
+    // 실제 astro-return 추출기 모양: solar-return = planets ['Sun', ASC], yearly ·
+    // lunar-return = planets ['Moon'], monthly, 둘 다 polarity 0. 매핑(비견×태양 +1,
+    // 정인×달 +1)과 밴드(daily·hourly 좁은 층)가 모두 맞는 부모를 붙여도 교차가 없어야 한다.
+    const solarReturn = astroSig({
+      planet: 'Sun',
+      polarity: 0,
+      layer: 'yearly',
+      win: makeWin('2026-03-20T00:00:00Z', '2026-03-20T00:00:00Z', '2027-03-20T00:00:00Z'),
+    })
+    solarReturn.kind = 'solar-return'
+    solarReturn.evidence = {
+      module: 'astro-return',
+      planets: ['Sun', 'Leo'],
+      detail: { returnType: 'solar' },
+    }
+    const lunarReturn = astroSig({
+      planet: 'Moon',
+      polarity: 0,
+      layer: 'monthly',
+      win: makeWin('2026-07-01T00:00:00Z', '2026-07-01T00:00:00Z', '2026-07-29T00:00:00Z'),
+    })
+    lunarReturn.kind = 'lunar-return'
+    lunarReturn.evidence = {
+      module: 'astro-return',
+      planets: ['Moon'],
+      detail: { returnType: 'lunar' },
+    }
+    const day = makeWin('2026-07-05T00:00:00Z', '2026-07-05T12:00:00Z', '2026-07-05T23:59:59Z')
+    const bigyeonDay = sajuSig({ sibsin: '비견', polarity: 1, layer: 'daily', win: day })
+    const jeonginDay = sajuSig({ sibsin: '정인', polarity: 1, layer: 'daily', win: day })
+    const jeonginHour = sajuSig({ sibsin: '정인', polarity: 1, layer: 'hourly', win: day })
+    jeonginHour.evidence = { ...jeonginHour.evidence, module: 'saju-hour' }
+    const withReturns = [bigyeonDay, jeonginDay, jeonginHour, solarReturn, lunarReturn]
+    expect(extractCrossActivations(withReturns)).toEqual([])
+
+    // 대조군 — 같은 부모가 실제 트랜짓 태양·달과 겹치면 교차가 선다(제외는 kind 때문).
+    const sunTransit = astroSig({ planet: 'Sun', polarity: 1, layer: 'daily', win: day })
+    const moonTransit = astroSig({ planet: 'Moon', polarity: 1, layer: 'daily', win: day })
+    const control = extractCrossActivations([...withReturns, sunTransit, moonTransit])
+    expect(control.length).toBeGreaterThan(0)
+    for (const c of control) {
+      const kind = (c.evidence.detail as { parentAstroKind?: string }).parentAstroKind
+      expect(kind, c.id).toBe('transit')
+    }
+  })
+
   it('행성시(planetary-hour) Saturn 은 정관·정재와 교차를 만들지 않는다 — 시간의 지배성', () => {
     const satHour = astroSig({ planet: 'Saturn', polarity: -1, layer: 'hourly' })
     satHour.kind = 'planetary-hour'

@@ -73,7 +73,11 @@ export { SAJU_ENGINE_VERSION }
 //     에서만), 택일 classifyAspects 는 순서 없는 서로 다른 쌍(택일 신호가 처음 발화),
 //     섹트는 태양 고도(극권 출생의 lot·ZR 시작·삼분성 교정), VoC 끝은 실제 달 진입 시각,
 //     카이런 회귀 실측. 셀·NatalContext 에 구워지므로 bump.
-export const CALENDAR_ENGINE_VERSION = 'v11'
+// v12: 교차 키 정리(오너 결정 14·15) — 솔라·루나 리턴은 교차 키가 아니다(회귀 주기 구간,
+//     단독 점성 신호로만 남음 — 2026-11 표본+시드 20명에서 교차의 16.6% 가 회귀 부모였다),
+//     천을귀인×목성 매핑 은퇴(일 층 신살 × 월 밴드라 발화 불가였음 — 출력 영향 없음).
+//     교차 신호가 셀에 구워지므로 bump. 운명상담사 컨텍스트 키는 ENGINE_VERSION_TAG 로 따라온다.
+export const CALENDAR_ENGINE_VERSION = 'v12'
 
 /**
  * 본명 차트 Redis 캐시(CacheKeys.natalChart, `natal:v${N}:…`).
@@ -101,7 +105,7 @@ export const HELLENISTIC_CACHE_VERSION = 2
 
 /**
  * 엔진 버전 묶음 태그 — 여러 엔진 결과를 함께 캐시하는 키에 넣는다.
- * 예: 's4.cv11.n3.t3.h2'. 어느 값이 올라가도 태그가 바뀐다.
+ * 예: 's4.cv12.n3.t3.h2'. 어느 값이 올라가도 태그가 바뀐다.
  */
 export const ENGINE_VERSION_TAG = [
   `s${SAJU_ENGINE_VERSION}`,

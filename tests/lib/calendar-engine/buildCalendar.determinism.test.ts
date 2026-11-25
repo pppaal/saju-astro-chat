@@ -36,7 +36,7 @@ const RANGE = {
 }
 
 /** 셀 수치 골격 digest — 의도적 산식/룰 변경 때만 갱신(아래 갱신 이력). */
-const GOLDEN = 'bc0ee8365684e53bc23c7ef6a5ab7ba738e0af6b'
+const GOLDEN = 'd23763acc2a2e9ee13efd4a56ad8120d986001b3'
 
 /** 대운 기준 시각 — 빌드 범위 첫날(2026-06-01 KST 정오). */
 const NOW = new Date('2026-06-01T03:00:00Z')
@@ -129,6 +129,9 @@ describeRealEphemeris('buildCalendar 결정론 골든 (real ephemeris)', () => {
     // 2026-11 갱신(엔진 감사 E16): 전역 목 → 진짜 천체력. 트랜짓·달·품위·행성시·VoC 가
     // 실제 위치로 계산되고, 사주 대운 기준 시각을 NOW 로 주입. 산식 변화 없음 — 측정
     // 대상(목 → 실제 천체력)이 바뀐 갱신. 이후 이 digest 는 실제 하늘 위의 값을 잠근다.
+    // 2026-11 갱신(v12, 오너 결정 15): 솔라·루나 리턴은 교차 키가 아니다 — 회귀 주기 구간을
+    // 부모로 한 교차(비견×태양·정인×달 등)가 빠져 점수 골격 이동. 천을귀인×목성 은퇴(결정 14)는
+    // 발화 불가 행이라 digest 영향 없음(따로 확인). 의도된 갱신.
     expect(digest(await build())).toBe(GOLDEN)
   }, 60_000)
 
