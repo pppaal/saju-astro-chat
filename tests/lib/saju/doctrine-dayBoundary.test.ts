@@ -10,33 +10,31 @@
 // (`determinism-golden.test.ts`)이 **longitude 인자를 한 번도 넘기지 않아서**
 // 4개월간 아무도 몰랐다.
 //
-// ## 지금 문서 두 개가 서로 모순이다
+// ## 지금 규칙 (CONVENTIONS.md §1·§4)
 //
-//   src/lib/saju/CONVENTIONS.md:27,31
-//     "일주(日柱)는 자정(00:00, 민용일 civil day) 경계로 바뀐다."
-//     "한국: LMT 보정 → 子 *시진* 경계 = 23:30–01:30.
-//      (시진 경계일 뿐, 일주는 위처럼 민용일 기준.)"
-//     골든: 1990-12-31 23:59 KST → 日 庚午 · 時 丙子
-//           1991-01-01 00:01 KST → 日 辛未 · 時 戊子
+// 일주는 **출생지 timezone 의 민용일(입력한 날짜) 자정**에 바뀐다 — JDN 으로 세고,
+// KST 자정도 진경도(평균태양시) 보정도 쓰지 않는다. 경도는 시주에만 들어간다.
+//   골든: 1990-12-31 23:59 KST → 日 庚午 · 時 丙子
+//         1991-01-01 00:01 KST → 日 辛未 · 時 戊子
+//         1990-06-15 14:30 America/Los_Angeles → 日 辛亥 (KST 날짜 06-16 이면 壬子)
+// 그래서 아래 테스트는 **경도 유무·timezone 과 무관하게 현지 민용일 일주**를 요구한다.
 //
-//   docs/SOLAR_TIME_CONVENTION.md:52
-//     "보정은 *시(時)만*이 아니라 출생 instant 자체를 옮긴다. 그래서 자정·입춘·
-//      절기 경계 출생자는 일주·월주·년주까지 올바르게 이동한다." (2026-06-06)
+// ## 지난 모순과 결정 (기록)
 //
-// 코드(`saju.ts:328` effectiveDateTime → Y/M/D → 일주 JDN)는 후자를 따르고
-// **전자의 골든을 깨뜨린다.** 경도를 넘기면 1991-01-01 00:01 이 日 庚午(전날)로
-// 나온다.
+// 2026-06-06 에 docs/SOLAR_TIME_CONVENTION.md 가 "보정은 출생 instant 자체를 옮긴다 —
+// 자정·입춘·절기 경계 출생자는 일주·월주·년주까지 이동한다" 로 바뀌었고, 코드
+// (당시 saju.ts 의 effectiveDateTime → Y/M/D → 일주 JDN)가 그걸 따르면서 CONVENTIONS
+// §1 의 민용일 골든을 깼다 — 경도를 넘기면 1991-01-01 00:01 이 日 庚午(전날)로 나왔다.
 //
-// ## 결정 (2026-10): 민용일 채택
+// 2026-10 결정: 민용일 채택. 일주는 60갑자 **달력 순환**이고 입춘·절기는 **천문
+// 사건**이다. `saju.ts` 가 일주만 민용일 Y/M/D (`civilY/M/D`)를 쓰도록 분리했다.
+// 2026-11 (OD-1, 엔진 감사 E1): 년·월주·대운수도 보정된 instant 가 아니라 생 UT
+// instant 와 절입 instant 비교 — 진경도 보정은 시주에만 (`solarTermFrame.test.ts`).
+// 2026-11 (엔진 감사 E8): 출생 instant 는 `resolveBirthInstant` 하나, 경도 미상은 존
+// 기준 경도. 일주는 instant 에서 다시 읽지 않는다(자정 서머타임 공백도 입력한 날).
+// 2026-11 (엔진 감사 E15 · F6): CONVENTIONS §4 의 옛 'KST 자정 + 선택적 경도 보정'
+// 문구를 출생지 민용일로 고쳤다 — 코드는 2026-10 이후 이미 그랬다.
 //
-// 일주는 60갑자 **달력 순환**이고 입춘·절기는 **천문 사건**이다. 2026-06-06 에
-// "네 기둥 모두 보정된 instant 기준" 으로 통일한 건 일주까지 끌고 와 민용일
-// 규칙을 깼다. `saju.ts` 가 일주만 민용일 Y/M/D (`civilY/M/D`)를 쓰도록 분리했다.
-// (2026-11, OD-1: 년·월주도 보정된 instant 가 아니라 생 UT instant 와 절입
-// instant 비교로 바뀌었다 — 진경도 보정은 시주에만. CONVENTIONS.md §1·§2,
-// `solarTermFrame.test.ts`.)
-//
-// 그래서 아래 테스트는 **경도 유무와 무관하게 민용일 일주**를 요구한다.
 // 부수 효과: 시간 미상 정오 앵커의 근거 절반(자정 앵커가 일주를 전날로
 // 밀던 것)이 사라졌다 — 그건 버그였고, 지금은 앵커와 무관하게 일주가 같다
 // (`birthTimeAnchor.test.ts`). 정오 앵커는 절입일 월주·ASC 중간값 근거로 유지.
@@ -75,7 +73,7 @@ function pillars(date: string, time: string, opts: { lon?: number; tz?: string }
 // 1) 문서화된 골든 — 경도 없는 경로. 이쪽은 CONVENTIONS.md 와 일치한다.
 // ─────────────────────────────────────────────────────────────────────────────
 
-describe('CONVENTIONS.md:30 골든 — 경도 없는 경로 (문서와 일치)', () => {
+describe('CONVENTIONS.md §1 골든 — 경도 없는 경로', () => {
   it('1990-12-31 23:59 KST → 日 庚午 · 時 丙子 (그날 일주 유지 + 子時)', () => {
     expect(pillars('1990-12-31', '23:59')).toEqual({ day: '庚午', time: '丙子' })
   })
@@ -170,6 +168,61 @@ describe('일주는 경도와 무관하게 민용일 기준 (2026-10 수정)', (
       const t = `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`
       expect(month(t, SEOUL_LON), t).toBe(month(t))
     }
+  })
+})
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 2b) 일주 = 출생지 timezone 의 민용일 JDN — KST 자정이 아니다 (CONVENTIONS §4, F6).
+//     기대값은 엔진이 아니라 그레고리력 → JDN → 60갑자(2000-01-01 = 戊午) 독립 계산.
+// ─────────────────────────────────────────────────────────────────────────────
+
+const STEM_CHARS = '甲乙丙丁戊己庚辛壬癸'
+const BRANCH_CHARS = '子丑寅卯辰巳午未申酉戌亥'
+
+function jdn(y: number, m: number, d: number): number {
+  const a = Math.floor((14 - m) / 12)
+  const yy = y + 4800 - a
+  const mm = m + 12 * a - 3
+  return (
+    d +
+    Math.floor((153 * mm + 2) / 5) +
+    365 * yy +
+    Math.floor(yy / 4) -
+    Math.floor(yy / 100) +
+    Math.floor(yy / 400) -
+    32045
+  )
+}
+
+/** 현지 민용 날짜의 일주 — 2000-01-01 = 戊午(60갑자 54번째) 기준. */
+function civilDayPillar(date: string): string {
+  const [y, m, d] = date.split('-').map(Number)
+  const idx = (((jdn(y, m, d) - jdn(2000, 1, 1) + 54) % 60) + 60) % 60
+  return `${STEM_CHARS[idx % 10]}${BRANCH_CHARS[idx % 12]}`
+}
+
+describe('일주 = 출생지 timezone 의 민용일 (KST 아님, CONVENTIONS §4)', () => {
+  it('독립 JDN 앵커 확인 — 1991-01-01 = 辛未, 1990-12-31 = 庚午', () => {
+    expect(civilDayPillar('1991-01-01')).toBe('辛未')
+    expect(civilDayPillar('1990-12-31')).toBe('庚午')
+  })
+
+  it('LA 1990-06-15 14:30 → 辛亥 (LA 민용일) — KST 날짜(06-16)의 壬子 가 아니다', () => {
+    const p = pillars('1990-06-15', '14:30', { tz: 'America/Los_Angeles' })
+    expect(p.day).toBe('辛亥')
+    expect(p.day).toBe(civilDayPillar('1990-06-15'))
+    expect(p.day).not.toBe(civilDayPillar('1990-06-16'))
+  })
+
+  it.each([
+    { tz: 'Asia/Tokyo', date: '1995-03-10', time: '23:50', lon: 139.69 },
+    { tz: 'Asia/Tokyo', date: '2010-12-31', time: '23:50', lon: undefined },
+    { tz: 'America/Los_Angeles', date: '1990-06-15', time: '22:00', lon: -118.24 },
+    { tz: 'America/Los_Angeles', date: '2003-11-30', time: '22:00', lon: undefined },
+  ])('$tz $date $time (lon $lon) → 현지 민용일 JDN', ({ tz, date, time, lon }) => {
+    // 도쿄 23:50 은 KST 로도 같은 날이지만 보정 +19분이면 평균태양시가 자정을 넘는다.
+    // LA 22:00 은 KST 로 다음날 오후다. 둘 다 일주는 입력한 현지 날짜.
+    expect(pillars(date, time, { tz, lon }).day).toBe(civilDayPillar(date))
   })
 })
 

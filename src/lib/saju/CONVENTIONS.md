@@ -34,7 +34,7 @@
 - 서머타임·KMT(1954-03-21 ~ 1961-08-10, UTC+8:30)는 따로 보정하지 않는다 — 출생 instant 의 실제 UTC offset 이 이미 담고 있고, 평균태양시는 UT 에서 바로 나온다.
 - **출생 instant** = [`resolveBirthInstant`](../datetime/resolveBirthInstant.ts) (OD-3, RFC 5545 §3.3.5) — 사주와 점성(`natalToJD`)이 같은 함수를 쓴다. 겹치는 벽시계(서머타임 해제)는 첫 번째 instant, 없는 벽시계(서머타임 시작·표준시 변경 공백)는 공백 _직전_ offset 으로 읽는다. 일주는 이 instant 에서 다시 구하지 않고 **입력한 민용 날짜**다 — 자정에 걸친 공백(1961-08-10 00:15 서울 → 乙亥, 2018-11-04 00:30 상파울루 → 庚子)도 입력한 날의 일주.
 
-**위치:** 시진 경계 [`saju.ts`](./saju.ts) `HOUR_RANGES` + [`timezone.ts`](./timezone.ts) `meanSolarMinuteOfDay`·`solarTimeCorrectionMinutes`(보정 SSOT)·`zoneReferenceLongitude`, 일주 경계는 [`dayPillar.ts`](./dayPillar.ts)(민용일 JDN). 골든: `tests/lib/saju/determinism-golden.test.ts`, `tests/lib/saju/doctrine-dayBoundary.test.ts`, `tests/golden/saju.golden.test.ts` (G10·G12·G24–G26c·G28–G30).
+**위치:** 시진 경계 [`saju.ts`](./saju.ts) `HOUR_RANGES` + [`timezone.ts`](./timezone.ts) `meanSolarMinuteOfDay`·`solarTimeCorrectionMinutes`(보정 SSOT)·`zoneReferenceLongitude`, 일주 경계는 [`dayPillar.ts`](./dayPillar.ts)(민용일 JDN). 캘린더 시진 신호([`calendar-engine/extractors/saju-hour.ts`](../calendar-engine/extractors/saju-hour.ts) `hourSegmentsForCivilDay`)도 같은 규칙이다 — 같은 `solarTimeCorrectionMinutes` 로 민용일 하루 [00:00, 24:00) 를 시진으로 자르고, 자정을 넘는 子時는 이른·늦은 두 조각으로 나눠 _둘 다 그날 일간_ 의 時干(五鼠遁)을 쓴다(엔진 감사 E9 · X3). 골든: `tests/lib/saju/determinism-golden.test.ts`, `tests/lib/saju/doctrine-dayBoundary.test.ts`, `tests/golden/saju.golden.test.ts` (G10·G12·G24–G26c·G28–G30).
 
 > ✅ **2026-10 수정 — 민용일 분리.** 2026-06-06 에 "네 기둥 모두 보정된 instant
 > 기준" 으로 통일한 변경이 일주까지 끌고 와 위 민용일 규칙을 깼다. 경도를 넘기면
@@ -89,7 +89,7 @@ const ipchunUTC = getSolarTermKST(year, 2)
 const sajuYear = birthDateTime.getTime() < ipchunUTC.getTime() ? year - 1 : year
 ```
 
-**위치:** [`saju.ts:362-369`](./saju.ts#L362-L369)
+**위치:** [`saju.ts`](./saju.ts) `calculateSajuData` 의 '연기둥' 블록 (`sajuYear`)
 
 **경계 케이스:** 1985-02-04 06:00 KST 출생은 입춘(06:12 KST) 12분 전 → 사주년 1984년(甲子). [`tests/lib/saju/determinism-golden.test.ts`](../../../tests/lib/saju/determinism-golden.test.ts) 의 boundary cases 가 이 동작을 잠금. 경도를 넘겨도 같다 — 2024-02-04 17:40 서울(입춘 17:27 + 13분, lon 126.978) → 甲辰년 丙寅월, 역행 대운 乙丑부터 (골든 G03).
 
@@ -103,22 +103,24 @@ const sajuYear = birthDateTime.getTime() < ipchunUTC.getTime() ? year - 1 : year
 - 통과 전이면 사주월은 _이전 절기-월_
 - 통과 여부는 §2 와 같이 **생 UT 출생 instant vs 절입 instant** 로 판정 (경도 보정 미적용)
 
-**위치:** [`saju.ts:371-410`](./saju.ts#L371-L410), [`unse.ts:getMonthlyCycles`](./unse.ts) (`useSolarTerms` 플래그)
+**위치:** [`saju.ts`](./saju.ts) `calculateSajuData` 의 '월기둥' 블록 (`sajuMonth`·`sajuTermYear`), [`unse.ts:getMonthlyCycles`](./unse.ts) (`useSolarTerms` 플래그)
 
 **기본값:** `CALCULATION_STANDARDS.saju.useSolarTermsForMonthlyCycles = true` ([`config/calculationStandards`](../config/calculationStandards.ts))
 
 ---
 
-## 4. 일주(日柱) 자정 — KST 자정 (선택적 경도 보정)
+## 4. 일주(日柱) 자정 — 출생지 timezone 의 민용일
 
-**선택:** **KST(Asia/Seoul) 자정**이 일주 전환선. Julian Day Number(JDN) 기반 결정적 계산.
+**선택:** 일주는 **출생지 timezone 의 민용일(civil day) 자정**에 바뀐다 — 입력한 출생 날짜 그대로를 Julian Day Number(JDN)로 센다(2000-01-01 = 戊午 기준, 결정적). KST 자정이 아니고, 진경도(평균태양시) 보정도 넣지 않는다(§1, OD-1). 출생 instant 에서 날짜를 다시 읽지도 않는다 — 자정에 걸친 서머타임 공백도 입력한 날의 일주다(§1).
 
-- `longitude` 인자가 들어오면 평균태양시(mean solar time) 보정 적용 가능 — 출생지 경도로 분 단위 시각 조정. 균시차 미적용 ([docs/SOLAR_TIME_CONVENTION.md](../../../docs/SOLAR_TIME_CONVENTION.md))
-- 기본은 KST 자정 (한국 표준 사주)
+- 예: `1990-06-15 14:30 America/Los_Angeles` → 日 辛亥 (LA 민용일 06-15). 같은 instant 는 KST 로 06-16 06:30 이라 'KST 자정' 규칙이면 壬子 가 된다 — 그 규칙은 쓰지 않는다.
+- 경도(`longitude`)는 시주에만 들어간다(§1·§5). 서울 00:00–00:32 출생도 경도와 무관하게 그날 일주.
 
-**위치:** [`saju.ts:271-274`](./saju.ts#L271-L274) (longitude param), `dayPillar.ts` (JDN compute)
+**위치:** [`saju.ts`](./saju.ts) `calculateSajuData` 의 '일기둥' 블록 (`computeDayPillarIndices(civilY, civilM, civilD)`), [`dayPillar.ts`](./dayPillar.ts) (JDN 계산)
 
-**자정 경계 잠금:** [`determinism-golden.test.ts`](../../../tests/lib/saju/determinism-golden.test.ts) — 1990-12-31 23:59 vs 1991-01-01 00:01 KST 두 케이스로 회귀 방지.
+**자정 경계 잠금:** [`determinism-golden.test.ts`](../../../tests/lib/saju/determinism-golden.test.ts) — 1990-12-31 23:59 vs 1991-01-01 00:01 KST 두 케이스, LA 1990-06-15 14:30 → 辛亥. [`doctrine-dayBoundary.test.ts`](../../../tests/lib/saju/doctrine-dayBoundary.test.ts) — 경도 × 하루 전수, 도쿄 23:50·LA 22:00 이 현지 민용일 JDN 과 같음.
+
+> ℹ️ 2026-11 이전 이 절은 'KST 자정 + 선택적 경도 보정'이라고 적혀 있었다. 코드는 2026-10 수정(§1) 이후 줄곧 출생지 민용일이었고, 문서만 남아 있었다(엔진 감사 F6).
 
 ---
 
@@ -145,7 +147,24 @@ const sajuYear = birthDateTime.getTime() < ipchunUTC.getTime() ? year - 1 : year
 
 ## 6. 지장간(地藏干) — 정기·중기·여기 3층
 
-**선택:** 정통 12지지 지장간. 子·卯·酉 = 정기만(왕지 단순화), 午 = 丙(여기)·己(중기)·丁(정기) 3층, 나머지 8지지 = 3층.
+**선택:** 정통 12지지 지장간. 子·卯·酉 = 정기만(왕지 단순화), 午 = 丙(여기)·己(중기)·丁(정기) 3층(왕지지만 己土 중기를 품는 정통 구성), 나머지 8지지 = 3층.
+
+<!-- 이 표는 tests/lib/saju/conventions.docSync.test.ts 가 constants.ts JIJANGGAN 과 대조한다. 코드와 함께 고칠 것. -->
+
+| 지지 | 여기 | 중기 | 정기 | 층수 |
+| ---- | ---- | ---- | ---- | ---- |
+| 子   | —    | —    | 癸   | 1    |
+| 丑   | 癸   | 辛   | 己   | 3    |
+| 寅   | 戊   | 丙   | 甲   | 3    |
+| 卯   | —    | —    | 乙   | 1    |
+| 辰   | 乙   | 癸   | 戊   | 3    |
+| 巳   | 戊   | 庚   | 丙   | 3    |
+| 午   | 丙   | 己   | 丁   | 3    |
+| 未   | 丁   | 乙   | 己   | 3    |
+| 申   | 戊   | 壬   | 庚   | 3    |
+| 酉   | —    | —    | 辛   | 1    |
+| 戌   | 辛   | 丁   | 戊   | 3    |
+| 亥   | 戊   | 甲   | 壬   | 3    |
 
 **구성·정기 lookup:** [`constants.ts:JIJANGGAN, JIJANGGAN_ORDERED`](./constants.ts) — 어느 지지가 어떤 천간들을 품는지(정기/중기/여기 라벨)는 _전체 코드 공유 단일 출처_.
 
@@ -190,6 +209,8 @@ const sajuYear = birthDateTime.getTime() < ipchunUTC.getTime() ? year - 1 : year
 
 **위치:** [`calendar-engine/extractors/saju-shinsal.ts`](../calendar-engine/extractors/saju-shinsal.ts) — `SHINSAL_GRADE` / `gradeOf` (`ShinsalGrade`) 단일 출처. `saju-shinsal-activation` 추출기와 `calendar-view` `capShinsalPolarity`(classical-noble 만 ±3)가 이 표를 import 한다 — 복제 금지.
 
+**관련 표 단일 출처:** 도화 위치표는 [`shinsal.ts`](./shinsal.ts) `DOHWA_BY_DAY_BRANCH`(일지 삼합의 년살 자리) 하나다 — `calendar/constants` 의 `DOHWA_BY_YEAR_BRANCH` 는 그 재export 이고 궁합 포맷터도 이 표를 읽는다. 형(刑) 판정은 [`hyeong.ts`](./hyeong.ts) `isHyeong` 하나 — 본명 관계(`relations.ts`), 캘린더 `saju-hyeongchung` 추출기, 띠 운세의 `constants.XING` 이 모두 여기서 파생한다(寅申·丑未 는 충이지 형이 아님). 합·충·파·해·원진·방합 표는 [`relationTables.ts`](./relationTables.ts).
+
 **원칙:** 신살은 본명 사주의 _보조 색채_. 강약·격국·용신 위에 _얹어서_ 톤을 더할 뿐, 신살만으로 판단을 내리지 않는다 (신살파가 아닌 자평파 노선).
 
 ---
@@ -202,7 +223,7 @@ const sajuYear = birthDateTime.getTime() < ipchunUTC.getTime() ? year - 1 : year
 - **종격(5)**: 종강·종왕·종아·종재·종살
 - **비격(4)**, 화기격국(5), 특수격국(5)
 
-**위치:** [`geokguk.ts:14-42`](./geokguk.ts#L14-L42)
+**위치:** [`geokguk.ts`](./geokguk.ts) `GeokgukType`
 
 **판정 순서:** 특수격국 → 종격 → **화기격국** → 비격(건록·양인·월겁) → 정격(월지 정기 투출 우선, 다음 중기/여기) → 잡기격 → 월령 용사 폴백.
 
@@ -330,7 +351,7 @@ isForward = (yearStem이 양 && male) || (yearStem이 음 && female)
 
 **일수 = |절입 instant − 생 UT 출생 instant|** (OD-1, §2 와 같은 기준). 진경도 보정분을 섞지 않는다 — 예: 1990-03-06 10:15 KST 는 경도와 무관하게 청명까지 29.9986일 → 9 (골든 G27). 옛 보정 거리로는 lon 124° 에서 10 이었다.
 
-**라운딩:** `CALCULATION_STANDARDS.saju.daeunRounding` (ceil / floor / round 중)
+**라운딩:** **내림(floor)** — `CALCULATION_STANDARDS.saju.daeunRounding = 'floor'` ([`config/calculationStandards`](../config/calculationStandards.ts)). 3일 = 1년의 환산에서 남은 일수(1~2일 = 4~8개월)는 다음 해로 올리지 않는다 — 대운수는 '그 나이를 다 채운 뒤 시작'으로 읽는다. 예: 29.9986일 → 9 (G27), 24.03일 → 8 (G07). 골든 생성기(`scripts/golden/build-engine-golden.mts`)도 독립적으로 floor(days/3), 최소 1 로 계산한다. `ceil`·`round` 는 정책 값으로 남아 있지만 쓰지 않는다.
 
 **위치:** [`daeunAge.ts`](./daeunAge.ts) — _단일 출처_.
 
@@ -380,16 +401,10 @@ isForward = (yearStem이 양 && male) || (yearStem이 음 && female)
 
 ---
 
-## 추가가 필요한 항목 (TODO)
-
-- **평균태양시 보정 정책 기본값** — 현재 longitude 가 옵션 인자. ON/OFF 정책 결정 + 문서화 필요.
-- **`CALCULATION_STANDARDS.saju.daeunRounding` 의 현행 값** — config 파일 링크 + 결정 근거 메모.
-
----
-
 ## 변경 이력
 
 - 2026-06: 최초 작성. 만 나이 통일 직후 시점 기준.
 - 2026-11: OD-1 — 년주·월주·대운수는 생 UT 출생 instant 와 절입 instant 비교, 진경도 보정은 시주에만, 만 나이는 민용 생일 (§1·§2·§3·§13·§14·§15, 엔진 감사 E1).
 - 2026-11: 판단층 (엔진 감사 E4, OD-7·OD-8) — 강약 점수에서 일간 자기 비겁 제외 + 중심 보정 −9.5(중앙값 50), 5단계 매핑 함수 하나(`strengthBandOf`/`strengthClassOf`)를 모든 표면이 공유, 용신 병약·통관은 억부 허용 그룹 안에서만·추천과 회피 서로소·병 = 드러난 8글자 3 이상, 화기격국은 `evaluateHwagiGeokguk` 엄격 규칙만, 득령 囚/死 교정, §6 午 3층·용도별 가중치 표 정정, 통근력은 §6 강약·통근 행 사용 (§6·§9·§10·§11).
 - 2026-11: OD-5 — 시간 미상은 삼주(년·월·일) 분석. 정오 앵커는 년·월·일주 고정용, 빈 시각도 정오로 앵커, 오행 위치 가중은 0.80 으로 재정규화, 캘린더 placeUnreliable 이면 ASC·MC·하우스 의존 신호 제외 (§5, 엔진 감사 E7).
+- 2026-11: 문서 동기화 (엔진 감사 E15 · F6 · SD-14 · F16) — §4 일주 = 출생지 민용일(‘KST 자정·선택적 경도 보정’ 삭제), §6 지장간 구성표(문서-코드 대조 테스트), §2·§3·§9 줄 번호 참조를 심볼 참조로, §1 캘린더 시진 `hourSegmentsForCivilDay`, §13 대운수 floor 근거, 해결된 TODO 2건 삭제.

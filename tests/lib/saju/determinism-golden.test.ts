@@ -174,7 +174,8 @@ const BOUNDARY_CASES: GoldenCase[] = [
       daeunForward: true,
     },
   },
-  // 비KST timezone — 같은 instant가 다른 timezone에서 어떻게 보이는지
+  // 비KST timezone — 일주는 출생지 timezone 의 민용일(LA 06-15 → 辛亥), KST 날짜(06-16 → 壬子)가
+  // 아니다 (CONVENTIONS §4, 엔진 감사 F6).
   {
     birthDate: '1990-06-15',
     birthTime: '14:30',
