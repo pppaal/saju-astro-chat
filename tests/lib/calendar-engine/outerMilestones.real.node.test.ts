@@ -181,4 +181,27 @@ describe.skipIf(!swissephAvailable)('calculateOuterPlanetMilestones — real eph
     expect(b?.exactDateISO?.slice(0, 7)).toBe('1986-12')
     expect(b?.age).toBe(29)
   })
+
+  // 카이런은 차트 행성 목록에 없는 소행성이라 예전엔 늘 평균 테이블로 떨어졌다(E13 carryover).
+  // astronomy-engine 에 카이런이 없어 독립 기준 대신, 그 순간 트랜짓 카이런이 본명 자리에
+  // 있는지(swe, seas_18.se1)와 나이 창으로 확인한다.
+  it('chiron_return is computed (seas_18.se1): transit Chiron on natal Chiron, age 48–52', async () => {
+    const { getSwisseph } = await import('@/lib/astrology/foundation/ephe')
+    const sw = getSwisseph()
+    const chironLon = (ms: number) => {
+      const r = sw.swe_calc_ut(ms / DAY_MS + 2440587.5, sw.SE_CHIRON, sw.SEFLG_SWIEPH)
+      if ('error' in r) throw new Error(r.error)
+      return r.longitude
+    }
+    for (const date of ['1953-07-17', '1966-01-08', '1975-04-28']) {
+      const { birthMs, milestones } = await milestonesFor(date)
+      const m = milestones.find((x) => x.kind === 'chiron_return')
+      expect(m?.exactDateISO, date).toBeTruthy()
+      expect(m!.age!).toBeGreaterThanOrEqual(48)
+      expect(m!.age!).toBeLessThanOrEqual(52)
+      const atMs = Date.parse(`${m!.exactDateISO}T12:00:00+09:00`)
+      // 카이런 하루 이동은 많아야 ~0.15° — 그 날 정오 기준 0.2° 안.
+      expect(Math.abs(wrap180(chironLon(atMs) - chironLon(birthMs))), date).toBeLessThan(0.2)
+    }
+  })
 })

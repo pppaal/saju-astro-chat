@@ -276,11 +276,25 @@ export async function calculateOuterPlanetMilestones(
   }
 
   const natalLonByPlanet = new Map(chart.planets.map((p) => [p.name, p.longitude]))
+  // Chiron 은 차트 행성 목록(getPlanetList)에 없는 소행성이라 본명 위치를 여기서 직접 잰다
+  // (seas_18.se1). 예전엔 목록에 없어 chiron_return 이 늘 평균 테이블(49~51세)로 떨어졌다.
+  // 소행성 파일이 없으면 계산 실패 → 그 kind 만 테이블 폴백(나이 범위 표기 그대로).
+  const extraIds: Record<string, number | undefined> = { Chiron: swisseph.SE_CHIRON }
+  for (const [name, id] of Object.entries(extraIds)) {
+    if (natalLonByPlanet.has(name) || typeof id !== 'number') continue
+    try {
+      const res = swisseph.swe_calc_ut(natalJD, id, flags)
+      throwIfSwissEphError(res, `natal ${name} longitude`)
+      natalLonByPlanet.set(name, extractSwissLongitude(res))
+    } catch (err) {
+      logger.warn(`[outerMilestones] natal ${name} unavailable — table fallback`, err)
+    }
+  }
 
   const out: LifecycleMilestoneOverride[] = []
   for (const t of TARGETS) {
     const natalLon = natalLonByPlanet.get(t.planet)
-    const planetId = planetIds[t.planet]
+    const planetId = planetIds[t.planet] ?? extraIds[t.planet]
     if (natalLon == null || planetId == null) continue
     try {
       const lonAt = (jd: number) => {

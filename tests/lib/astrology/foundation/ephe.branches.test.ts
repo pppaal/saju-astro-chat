@@ -105,6 +105,55 @@ describe('ephe.ts getSwisseph — 실제 분기 (unmocked + injected)', () => {
     expect(mock.swe_set_ephe_path).toHaveBeenCalledTimes(1)
   })
 
+  // 엔진 감사 ASTRO-12 — 첫 호출의 천체력 출처 점검.
+  it('logs an error when the Sun falls back to Moshier (no SEFLG_SWIEPH) / Moshier 대체 경보', async () => {
+    const mock = {
+      swe_set_ephe_path: vi.fn(),
+      // rflag 4 = SEFLG_MOSEPH (파일을 못 찾음), Chiron 은 소행성 파일 없음 오류.
+      swe_calc_ut: vi.fn((_jd: number, ipl: number) =>
+        ipl === 15 ? { error: "SwissEph file 'seas_18.se1' not found" } : { rflag: 4 }
+      ),
+      SE_SUN: 0,
+      SE_CHIRON: 15,
+      SEFLG_SWIEPH: 2,
+    }
+    g.__SWISSEPH__ = mock
+    process.env.EPHE_PATH = '/nonexistent'
+    const { logger } = await import('@/lib/logger')
+    const spy = vi.spyOn(logger, 'error').mockImplementation(() => {})
+    const { getSwisseph } = await import('@/lib/astrology/foundation/ephe')
+    getSwisseph()
+    getSwisseph() // 점검은 첫 호출에서 한 번만
+    expect(spy).toHaveBeenCalledTimes(1)
+    expect(spy).toHaveBeenCalledWith(
+      expect.stringContaining('[ephe]'),
+      expect.objectContaining({ ephePath: '/nonexistent', planets: false, asteroids: false })
+    )
+    spy.mockRestore()
+  })
+
+  it('stays quiet when the Sun and Chiron come from the Swiss Ephemeris files / 정상이면 조용', async () => {
+    const mock = {
+      swe_set_ephe_path: vi.fn(),
+      swe_calc_ut: vi.fn(() => ({ rflag: 2 })),
+      SE_SUN: 0,
+      SE_CHIRON: 15,
+      SEFLG_SWIEPH: 2,
+    }
+    g.__SWISSEPH__ = mock
+    const { logger } = await import('@/lib/logger')
+    const spy = vi.spyOn(logger, 'error').mockImplementation(() => {})
+    const { getSwisseph, checkEphemerisSource } = await import('@/lib/astrology/foundation/ephe')
+    getSwisseph()
+    expect(spy).not.toHaveBeenCalled()
+    expect(checkEphemerisSource(mock as never, '/x')).toMatchObject({
+      planets: true,
+      asteroids: true,
+      unchecked: false,
+    })
+    spy.mockRestore()
+  })
+
   it('wraps require failure and rethrows cached error / require 실패 래핑+캐시 rethrow', async () => {
     // 주입 swisseph 없음 + jsdom 아닌 node 환경에서 require('swisseph') 가
     // 네이티브 바인딩 부재로 실패할 수 있다. 그러나 환경에 따라 실제로 로드될
