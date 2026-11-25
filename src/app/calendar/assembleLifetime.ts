@@ -162,8 +162,8 @@ type CellSignal = CalendarCell['signals'][number]
 
 /**
  * 10년 겹침 정직성 게이트(계획 B3 #8, 엔진 감사 X7) — 교차의 두 부모를 셀 안에서
- * evidence.detail.parentIds 로 찾아, 인생 스케일 카피("사주 대운과 외행성 트랜짓이 같은
- * 방향을 가리킬 때만")가 사실일 때만 통과시킨다:
+ * evidence.detail.parentIds 로 찾아, 인생 스케일 카피("사주 대운과 긴 주기 천체 흐름이
+ * 같은 방향을 가리킬 때만")가 사실일 때만 통과시킨다:
  *  · 교차 layer 가 decadal 이고 polarity ≠ 0.
  *  · 사주 부모 = 대운 기둥 신호(module 'saju-pillar', layer 'decadal'). 세운·월운·일진·
  *    시진(hourly)·신살(daily) 부모는 10년 겹침이 아니다.

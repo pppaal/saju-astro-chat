@@ -680,10 +680,12 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
               )
             })}
           </div>
+          {/* 겹침 행의 점성 부모는 10년 층 인생 마디(토성·목성 회귀 등 — buildDecadeCross
+              게이트)라 '외행성 트랜짓'이 아니다(목성은 외행성이 아님) — 긴 주기 천체 흐름. */}
           <p className={styles.crossNote}>
             {ko
-              ? '사주 대운과 외행성 트랜짓이 같은 방향을 가리킬 때만 여기 올라와요.'
-              : 'These surface only when your saju decade and outer-planet transits point the same way.'}
+              ? '사주 대운과 긴 주기 천체 흐름이 같은 방향을 가리킬 때만 여기 올라와요.'
+              : 'These surface only when your saju decade and long planetary cycles point the same way.'}
           </p>
         </section>
       )}

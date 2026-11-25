@@ -174,8 +174,35 @@ describe('LifetimeTier (인생 전체 · LIGHT)', () => {
     const row = meaning.closest('div')!
     expect(row.textContent).toContain('정재')
     expect(row.textContent).toContain('토성')
-    // 신뢰 카피 — "같은 방향을 가리킬 때만".
-    expect(screen.getByText(/같은 방향을 가리킬 때만/)).toBeInTheDocument()
+    // 신뢰 카피 — "같은 방향을 가리킬 때만". 점성 부모는 10년 층 인생 마디(목성 회귀
+    // 포함)라 '외행성 트랜짓'이 아니라 '긴 주기 천체 흐름'(F3).
+    expect(
+      screen.getByText('사주 대운과 긴 주기 천체 흐름이 같은 방향을 가리킬 때만 여기 올라와요.')
+    ).toBeInTheDocument()
+    expect(screen.queryByText(/외행성 트랜짓이 같은 방향/)).not.toBeInTheDocument()
+  })
+
+  it('EN 겹침 안내는 long planetary cycles — outer-planet transits 아님 (F3)', () => {
+    mockLocale = 'en'
+    renderTierWith({
+      decadeCross: [
+        {
+          saju: '정인',
+          sajuEn: 'Direct Resource',
+          astro: '목성',
+          astroEn: 'Jupiter',
+          meaning: '배움이 길을 여는 10년이에요.',
+          meaningEn: 'A decade where learning opens the road.',
+          polarity: 2,
+        },
+      ],
+    })
+    expect(
+      screen.getByText(
+        'These surface only when your saju decade and long planetary cycles point the same way.'
+      )
+    ).toBeInTheDocument()
+    expect(screen.queryByText(/outer-planet transits point/)).not.toBeInTheDocument()
   })
 
   it('교차가 없으면 블록 자체가 렌더되지 않는다', () => {
