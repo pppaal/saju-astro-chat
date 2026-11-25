@@ -9,7 +9,12 @@
  *
  * Reference: astronomy-engine (independent of Swiss Ephemeris), first zero of
  * the signed separation found by a 5-day scan plus bisection, starting from
- * the same UT birth instant. The global setup mocks swisseph, so this file
+ * the same UT birth instant.
+ *
+ * Stage G6 (re-audit AC-1, AC-5): the Pluto square is searched over a human
+ * lifespan (25–100 years — it falls anywhere from the mid-30s to the late 80s),
+ * the progressed lunar return is the exact day-for-a-year instant, and every
+ * milestone carries its retrograde pass cluster and 1° pass window. The global setup mocks swisseph, so this file
  * unmocks it and runs under node. Without native swisseph it skips locally but
  * fails in CI and in the destiny release gate (tests/helpers/realEphemeris.ts, E16).
  *
@@ -65,7 +70,9 @@ const wrap180 = (d: number) => {
   return x
 }
 
-function lonAt(body: 'Saturn' | 'Jupiter', ms: number): number {
+type Body = 'Saturn' | 'Jupiter' | 'Uranus' | 'Neptune' | 'Pluto'
+
+function lonAt(body: Body, ms: number): number {
   return Astronomy.Ecliptic(Astronomy.GeoVector(body as Astronomy.Body, new Date(ms), true)).elon
 }
 
@@ -97,17 +104,18 @@ function firstExactPass(
   throw new Error(`no ${body} pass in window`)
 }
 
-async function milestonesFor(date: string) {
+async function milestonesFor(date: string, time = '12:00', place = SEOUL) {
   const [year, month, day] = date.split('-').map(Number)
+  const [hour, minute] = time.split(':').map(Number)
   const input = {
     year,
     month,
     date: day,
-    hour: 12,
-    minute: 0,
-    latitude: SEOUL.lat,
-    longitude: SEOUL.lon,
-    timeZone: SEOUL.tz,
+    hour,
+    minute,
+    latitude: place.lat,
+    longitude: place.lon,
+    timeZone: place.tz,
   }
   const raw = await calculateNatalChart(input)
   const birthMs = (raw.meta!.jdUT - 2440587.5) * DAY_MS
@@ -115,11 +123,54 @@ async function milestonesFor(date: string) {
     input,
     astro: {
       chart: toChart(raw),
-      location: { latitude: SEOUL.lat, longitude: SEOUL.lon, timeZone: SEOUL.tz },
+      location: { latitude: place.lat, longitude: place.lon, timeZone: place.tz },
     },
   } as unknown as NatalArg
   return { birthMs, year, month, day, milestones: await calculateOuterPlanetMilestones(natal) }
 }
+
+/** Every zero of wrap180(λ(t) − λ₀ − angle) in [fromMs, toMs] (5-day scan + bisection). */
+function allExactPasses(body: Body, natalLon: number, angle: number, fromMs: number, toMs: number) {
+  const f = (ms: number) => wrap180(lonAt(body, ms) - natalLon - angle)
+  const out: number[] = []
+  let t0 = fromMs
+  let f0 = f(t0)
+  for (let t1 = t0 + 5 * DAY_MS; t1 <= toMs; t1 += 5 * DAY_MS) {
+    const f1 = f(t1)
+    if (Math.sign(f0) !== Math.sign(f1) && Math.abs(f1 - f0) < 10) {
+      let lo = t0
+      let hi = t1
+      for (let i = 0; i < 40; i++) {
+        const mid = (lo + hi) / 2
+        if (Math.sign(f(mid)) === Math.sign(f0)) lo = mid
+        else hi = mid
+      }
+      out.push((lo + hi) / 2)
+    }
+    t0 = t1
+    f0 = f1
+  }
+  return out
+}
+
+/** Independent progressed lunar return: Moon(birth + T d) = natal Moon, at birth + T × 365.25 d. */
+function progressedLunarReturnMs(birthMs: number): number {
+  const moon = (ms: number) => Astronomy.EclipticGeoMoon(new Date(ms)).lon
+  const natal = moon(birthMs)
+  let lo = birthMs + 25 * DAY_MS
+  let hi = birthMs + 30 * DAY_MS
+  for (let i = 0; i < 50; i++) {
+    const mid = (lo + hi) / 2
+    if (wrap180(moon(mid) - natal) < 0) lo = mid
+    else hi = mid
+  }
+  return birthMs + ((lo - birthMs) / DAY_MS) * YEAR_MS
+}
+
+const TOKYO = { lat: 35.68, lon: 139.69, tz: 'Asia/Tokyo' }
+const BERLIN = { lat: 52.52, lon: 13.4, tz: 'Europe/Berlin' }
+const NEW_YORK = { lat: 40.71, lon: -74.0, tz: 'America/New_York' }
+const CHICAGO = { lat: 41.88, lon: -87.63, tz: 'America/Chicago' }
 
 const CASES: Array<{
   kind: 'saturn_return_1' | 'jupiter_return_2'
@@ -201,4 +252,129 @@ describeRealEphemeris('calculateOuterPlanetMilestones — real ephemeris', () =>
       expect(Math.abs(wrap180(chironLon(atMs) - chironLon(birthMs))), date).toBeLessThan(0.2)
     }
   })
+
+  // ── G6 · AC-1: the Pluto square over a whole lifespan, every pass in the 1° window ──
+  // Pluto's eccentric orbit puts the waxing square anywhere from the mid-30s (1965–75 births)
+  // to the late 80s (2050 births). The old [30, 50] search window missed births from ~2000 on
+  // and before ~1926, and Life fell back to the mean table (age 36).
+  for (const date of ['1930-06-15', '1965-08-20', '2000-01-03', '2030-10-01']) {
+    it(`pluto_square_pluto ${date}: first pass, all passes and the 1° window vs an independent scan`, async () => {
+      const { birthMs, year, month, day, milestones } = await milestonesFor(date)
+      const natalLon = lonAt('Pluto', birthMs)
+      const passes = allExactPasses(
+        'Pluto',
+        natalLon,
+        90,
+        birthMs + 20 * YEAR_MS,
+        birthMs + 100 * YEAR_MS
+      )
+      expect(passes.length).toBeGreaterThan(0)
+      const m = milestones.find((x) => x.kind === 'pluto_square_pluto')!
+      expect(m, date).toBeDefined()
+      // first exact pass (date at Seoul noon, within 2 days)
+      expect(Math.abs(Date.parse(m.exactAt) - passes[0]) / DAY_MS).toBeLessThan(2)
+      expect(m.age).toBe(
+        currentManAge({
+          birthYear: year,
+          birthMonth: month,
+          birthDate: day,
+          birthTimeZone: SEOUL.tz,
+          now: new Date(passes[0]),
+        })
+      )
+      // the retrograde cluster: same pass count, every pass inside the window
+      const cluster = passes.filter((p) => p - passes[0] < 4 * YEAR_MS)
+      expect(m.passCount).toBe(cluster.length)
+      expect(
+        Math.abs(Date.parse(m.lastExactAt) - cluster[cluster.length - 1]) / DAY_MS
+      ).toBeLessThan(2)
+      const w0 = Date.parse(m.window.start)
+      const w1 = Date.parse(m.window.end)
+      for (const p of cluster) {
+        expect(p).toBeGreaterThan(w0)
+        expect(p).toBeLessThan(w1)
+      }
+      // window edges sit at the 1° orb on the independent ephemeris
+      const err = (ms: number) => Math.abs(wrap180(lonAt('Pluto', ms) - natalLon - 90))
+      expect(err(w0)).toBeCloseTo(1, 1)
+      expect(err(w1)).toBeCloseTo(1, 1)
+    })
+  }
+
+  it('AC-1 golden: 2002-01-03 12:00 Tokyo → Pluto square 2055-04-09 (Tokyo date), age 53', async () => {
+    const { milestones } = await milestonesFor('2002-01-03', '12:00', TOKYO)
+    const m = milestones.find((x) => x.kind === 'pluto_square_pluto')!
+    expect(m.exactDateISO).toBe('2055-04-09')
+    expect(m.startYear).toBe(2055)
+    expect(m.age).toBe(53)
+  })
+
+  it('Uranus opposition and Neptune square: every pass inside the 1° window, 6 births 1900–2050', async () => {
+    const cases: Array<[string, Body, number, 'uranus_opposition' | 'neptune_square']> = []
+    for (const date of [
+      '1903-02-11',
+      '1931-07-30',
+      '1958-12-02',
+      '1987-04-19',
+      '2016-09-08',
+      '2049-11-27',
+    ]) {
+      cases.push(
+        [date, 'Uranus', 180, 'uranus_opposition'],
+        [date, 'Neptune', 90, 'neptune_square']
+      )
+    }
+    const misses: string[] = []
+    for (const [date, body, angle, kind] of cases) {
+      const { birthMs, milestones } = await milestonesFor(date)
+      const natalLon = lonAt(body, birthMs)
+      const passes = allExactPasses(
+        body,
+        natalLon,
+        angle,
+        birthMs + 30 * YEAR_MS,
+        birthMs + 55 * YEAR_MS
+      )
+      const m = milestones.find((x) => x.kind === kind)
+      if (!m) {
+        misses.push(`${date} ${kind}: missing`)
+        continue
+      }
+      // first pass: the engine's instant is exact on the independent ephemeris (robust near stations)
+      const sep = Math.abs(wrap180(lonAt(body, Date.parse(m.exactAt)) - natalLon - angle))
+      if (sep > 0.01) misses.push(`${date} ${kind}: ${sep.toFixed(4)}° off at exactAt`)
+      const cluster = passes.filter((p) => p - passes[0] < 3 * YEAR_MS)
+      if (m.passCount !== cluster.length)
+        misses.push(`${date} ${kind}: ${m.passCount} vs ${cluster.length} passes`)
+      const w0 = Date.parse(m.window.start) - DAY_MS
+      const w1 = Date.parse(m.window.end) + DAY_MS
+      if (!cluster.every((p) => p >= w0 && p <= w1))
+        misses.push(`${date} ${kind}: pass outside window`)
+    }
+    expect(misses).toEqual([])
+  })
+
+  // ── G6 · AC-5: progressed lunar return = birth + T × 365.25 d (T ≈ 27.2–27.5 d) ──
+  // birthYear + 27 was a year early for births from about late August on.
+  const PROG: Array<[string, string, typeof SEOUL, number]> = [
+    ['1990-03-10', '08:00', NEW_YORK, 2017], // before late August → birthYear + 27
+    ['1978-12-27', '10:00', SEOUL, 2006], // after → birthYear + 28
+    ['1984-09-23', '21:44', BERLIN, 2012],
+    ['1994-12-28', '20:02', CHICAGO, 2022],
+  ]
+  for (const [date, time, place, year] of PROG) {
+    it(`progressed_lunar_1 ${date} ${time} ${place.tz}: year ${year}, age 27, vs an independent bisection`, async () => {
+      const { birthMs, milestones } = await milestonesFor(date, time, place)
+      const m = milestones.find((x) => x.kind === 'progressed_lunar_1')!
+      expect(m, date).toBeDefined()
+      const ref = progressedLunarReturnMs(birthMs)
+      // one minute of progressed time is ~6 hours of real time — allow half a day
+      expect(Math.abs(Date.parse(m.exactAt) - ref) / DAY_MS).toBeLessThan(0.5)
+      expect(m.startYear).toBe(year)
+      expect(m.age).toBe(27)
+      expect(m.passCount).toBe(1)
+      expect(Date.parse(m.window.start)).toBeLessThan(Date.parse(m.exactAt))
+      expect(Date.parse(m.window.end)).toBeGreaterThan(Date.parse(m.exactAt))
+    })
+  }
 })

@@ -9,19 +9,20 @@
 //   • calendar-engine/extractors/astro-lifecycle.ts — buildLifecycleTiming()
 //   • calendar-engine/derivers/lifetimeFlow.ts / lifetimePivots.ts
 
+// Real first-pass ages for births 1900–2050 (Swiss Ephemeris sweep, G6) in comments.
 export type AstroLifecycleEventKind =
-  | 'jupiter_return_1' // 12yr
-  | 'jupiter_return_2' // 24yr
-  | 'progressed_lunar_1' // ~28-29yr
-  | 'saturn_return_1' // 29-30yr
-  | 'jupiter_return_3' // 36yr
-  | 'pluto_square_pluto' // 36-40yr
-  | 'uranus_opposition' // 40-43yr
-  | 'neptune_square' // 41-43yr
-  | 'chiron_return' // 50-51yr
-  | 'saturn_return_2' // 58-60yr
-  | 'jupiter_return_5' // 60yr
-  | 'uranus_return' // 83-84yr
+  | 'jupiter_return_1' // 11.3–12.0
+  | 'jupiter_return_2' // 23.2–23.9
+  | 'progressed_lunar_1' // 27.2–27.5 (secondary progression, day = year)
+  | 'saturn_return_1' // 28.4–29.9
+  | 'jupiter_return_3' // 35.2–35.9
+  | 'pluto_square_pluto' // 35.6–88.1 (Pluto's eccentric orbit)
+  | 'uranus_opposition' // 38.7–44.5
+  | 'neptune_square' // 38.7–42.1
+  | 'chiron_return' // 48.4–50.9
+  | 'saturn_return_2' // 58.2–59.0
+  | 'jupiter_return_5' // 58.5–59.8
+  | 'uranus_return' // 82.4–84.0
 
 export interface AstroLifecycleEvent {
   kind: AstroLifecycleEventKind
@@ -233,6 +234,27 @@ export interface LifecycleMilestoneOverride {
   /** Optional — 외행성 transit 의 정확 일시 ISO. lifetimeFlow 가 단계 카드에
    *  "토성 회귀 2024년 3월" 식으로 월까지 표기할 때 사용. 없으면 연도만. */
   exactDateISO?: string | null
+}
+
+/**
+ * calculateOuterPlanetMilestones 가 내는 완전한 실측 마디 — 인생 화면(마디·단계 카드)과
+ * 캘린더(라이프사이클 신호·교차·10년 겹침)가 *같은* 순간을 읽는 단일 출처.
+ */
+export interface LifecycleMilestone extends LifecycleMilestoneOverride {
+  startYear: number
+  age: number
+  exactDateISO: string
+  /** 첫 정확 통과 순간(UTC ISO). exactDateISO 는 이 순간의 출생지 날짜. */
+  exactAt: string
+  /** 같은 역행 묶음의 마지막 정확 통과(UTC ISO) — 한 번만 지나면 exactAt 과 같다. */
+  lastExactAt: string
+  /** 그 묶음의 정확 통과 횟수(역행이면 3·5·7). */
+  passCount: number
+  /**
+   * 통과 창(UTC ISO) — 첫 통과로 이어지는 접근에서 정확각 1° 안에 든 순간부터 마지막
+   * 통과 뒤 1° 밖으로 나가는 순간까지(LIFECYCLE_ORB_DEG). 캘린더 신호의 활성 창.
+   */
+  window: { start: string; end: string }
 }
 
 export function buildLifecycleTiming(

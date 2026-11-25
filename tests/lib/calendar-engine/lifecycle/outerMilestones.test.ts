@@ -13,6 +13,9 @@ import {
   wrap180,
   signedErr,
   findFirstCrossingJD,
+  findPassClusterJD,
+  findOrbEdgeJD,
+  LIFECYCLE_ORB_DEG,
 } from '@/lib/calendar-engine/lifecycle/outerMilestones'
 import { buildLifecycleTiming } from '@/lib/calendar-engine/lifecycle/astroLifecycle'
 
@@ -68,7 +71,7 @@ describe('findFirstCrossingJD — 첫 0 교차 스캔 + 이분법', () => {
     expect(Math.abs(jd! - 300)).toBeLessThan(1 / 1440)
   })
 
-  it('창 안에 교차가 없으면 null (테이블 폴백)', () => {
+  it('창 안에 교차가 없으면 null (그 마디는 빠진다)', () => {
     expect(findFirstCrossingJD(() => 5, 0, 100, 5)).toBeNull()
     expect(findFirstCrossingJD((x) => x + 1, 0, 100, 5)).toBeNull()
   })
@@ -99,6 +102,53 @@ describe('findFirstCrossingJD — 첫 0 교차 스캔 + 이분법', () => {
     expect(full).not.toBeNull()
     expect(Math.abs(skip! - full!)).toBeLessThan(1 / 1440) // same crossing, to bisection width
     expect(skipCalls).toBeLessThan(fullCalls / 5)
+  })
+})
+
+describe('findPassClusterJD — 같은 역행 묶음의 모든 통과', () => {
+  it('역행 루프의 세 통과(10, 40, 70)를 첫 통과에서 모두 모은다', () => {
+    const f = (x: number) => (x - 10) * (x - 40) * (x - 70) * 1e-4
+    const first = findFirstCrossingJD(f, 0, 100, 1)!
+    const passes = findPassClusterJD(f, first, 1)
+    expect(passes).toHaveLength(3)
+    expect(passes.map((p) => Math.round(p))).toEqual([10, 40, 70])
+  })
+
+  it('다음 통과가 500일 넘게 떨어지면 다른 묶음(다음 회귀)이라 모으지 않는다', () => {
+    // 근 10, 40 (한 묶음) 과 900 (다음 회귀) — 40 뒤로는 음수로 머물다 900 에서 교차.
+    const f = (x: number) => (x < 60 ? Math.sin((Math.PI * (x - 10)) / 30) : (x - 900) * 1e-3)
+    const passes = findPassClusterJD(f, 10, 1)
+    expect(passes.map((p) => Math.round(p))).toEqual([10, 40])
+  })
+
+  it('한 번만 지나면 [첫 통과]', () => {
+    const passes = findPassClusterJD((x) => 0.3 * (x - 1000.37), 1000.37, 5)
+    expect(passes).toHaveLength(1)
+  })
+})
+
+describe('findOrbEdgeJD — 1° 통과 창 가장자리', () => {
+  it('통과 창 오브는 1°', () => {
+    expect(LIFECYCLE_ORB_DEG).toBe(1)
+  })
+
+  it('하루 0.1° 로 움직이면 통과 ±10일이 1° 경계(1분 이내)', () => {
+    const f = (x: number) => 0.1 * (x - 500)
+    expect(Math.abs(findOrbEdgeJD(f, 500, -1, 1, 1) - 490)).toBeLessThan(1 / 1440)
+    expect(Math.abs(findOrbEdgeJD(f, 500, 1, 1, 1, 0.15) - 510)).toBeLessThan(1 / 1440)
+  })
+
+  it('이어진 1° 구간의 끝 — 앞선 접근이 1° 를 스쳤다 물러난 것은 창에 넣지 않는다', () => {
+    // x<300: 0.5° 까지 다가왔다 물러남(|f|≥0.5), 300~400: 1° 밖, 400 이후 다시 접근해 500 통과.
+    const f = (x: number) =>
+      x < 300 ? 0.5 + Math.abs(x - 200) * 0.01 : x < 400 ? 2 : 0.1 * (x - 500)
+    const start = findOrbEdgeJD(f, 500, -1, 1, 1)
+    expect(start).toBeGreaterThan(400)
+    expect(Math.abs(start - 490)).toBeLessThan(1 / 1440)
+  })
+
+  it('한도 안에 1° 밖으로 못 나가면 한도', () => {
+    expect(findOrbEdgeJD(() => 0.2, 0, 1, 1, 1, undefined, 50)).toBe(50)
   })
 })
 
