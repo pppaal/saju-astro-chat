@@ -1318,7 +1318,16 @@ export function toSajuPillarsLike(
 export function getTwelveShinsalSingleByPillar(
   p: SajuPillarsLike,
   options?: Partial<AnnotateOptions>
-): { year: string; month: string; day: string; time: string } {
+): { year: string; month: string; day: string; time: string }
+// 시간 미상(삼주)이면 time 키 없이 년·월·일만 — 정오 앵커 시주에 12신살을 붙이지 않는다.
+export function getTwelveShinsalSingleByPillar(
+  p: ShinsalPillarsInput,
+  options?: Partial<AnnotateOptions>
+): { year: string; month: string; day: string; time?: string }
+export function getTwelveShinsalSingleByPillar(
+  p: ShinsalPillarsInput,
+  options?: Partial<AnnotateOptions>
+): { year: string; month: string; day: string; time?: string } {
   const opt = { ...DEFAULT_ANNOTATE_OPTIONS, ...(options || {}) }
 
   const dayBranch = normalizeBranchName(p.day.earthlyBranch.name)
@@ -1332,7 +1341,7 @@ export function getTwelveShinsalSingleByPillar(
   }
 
   return {
-    time: pick(p.time.earthlyBranch.name),
+    ...(p.time ? { time: pick(p.time.earthlyBranch.name) } : {}),
     day: pick(p.day.earthlyBranch.name),
     month: pick(p.month.earthlyBranch.name),
     year: pick(p.year.earthlyBranch.name),

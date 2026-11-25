@@ -47,7 +47,10 @@ export type SajuRequest = z.infer<typeof sajuRequestSchema>
 
 export const sajuCalculationRequestSchema = z.object({
   birthDate: dateSchema,
-  birthTime: timeSchema,
+  // 빈 문자열 = 출생시각 미상(isBirthTimeUnknown 규약) — 라우트가 정오 앵커 + 삼주 분석.
+  birthTime: z.union([timeSchema, z.literal('')]),
+  // 명시적 "시간 모름" 플래그 — true 면 시각이 남아 있어도 미상(삼주, CONVENTIONS §5).
+  birthTimeUnknown: z.boolean().nullable().optional(),
   gender: genderSchema,
   calendarType: z.enum(['solar', 'lunar']),
   timezone: timezoneSchema,

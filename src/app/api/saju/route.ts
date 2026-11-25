@@ -11,7 +11,8 @@ import { getNowInTimezone } from '@/lib/datetime'
 // (unse.getDaeunCycles)는 2026-06 제거. 현재 대운만 요청마다 currentDaeun 으로 다시 고른다.
 import { getAnnualCycles, getMonthlyCycles, getIljinCalendar } from '@/lib/saju/unse'
 import { currentDaeun, parseCivilDate } from '@/lib/saju/daeunAge'
-import type { SajuPillars } from '@/lib/saju/types'
+import { resolveBirthTimeAnchor } from '@/lib/saju/birthTimeAnchor'
+import type { MaybeTimeless, SajuPillars } from '@/lib/saju/types'
 import {
   getShinsalHits,
   getTwelveStagesForPillars,
@@ -66,6 +67,7 @@ export const POST = withApiMiddleware(async (req: NextRequest, context: ApiConte
   const {
     birthDate: birthDateString,
     birthTime: birthTimeRaw,
+    birthTimeUnknown: birthTimeUnknownFlag,
     gender,
     calendarType,
     timezone,
@@ -93,7 +95,15 @@ export const POST = withApiMiddleware(async (req: NextRequest, context: ApiConte
   // 요청 시각 — 경계(라우트)에서 한 번 읽어 엔진·운세 계산에 주입한다(CLAUDE.md 결정론).
   const now = new Date()
   const effectiveUserTz = userTimezone || timezone
-  const adjustedBirthTime = String(birthTimeRaw)
+  // 출생시각 미상 — 앱 나머지와 같은 규약: 빈 시각 또는 명시 플래그(birthTimeUnknown).
+  // 계산 앵커는 정오(TIME_UNKNOWN_ANCHOR)로 년·월·일주만 고정하고, 시주는 응답에 내지
+  // 않으며 오행·신살·12운성·관계·고급 분석은 년·월·일 삼주로 한다(CONVENTIONS §5, OD-5).
+  // 클라이언트는 resolveBirthTimeAnchor 로 tri-state 를 이미 풀어 플래그를 보내므로,
+  // 여기서는 '00:00' 레거시 휴리스틱을 다시 적용하지 않는다(실제 자정 출생 보호).
+  const { time: adjustedBirthTime, timeUnknown } = resolveBirthTimeAnchor(
+    String(birthTimeRaw ?? ''),
+    birthTimeUnknownFlag === true
+  )
 
   // 'F' / 'Female' / 'female' / 'f' 다 처리하는 공용 normalizer 사용.
   // 기존 `gender.toLowerCase() === 'female'` 패턴은 'F'(한 글자) 가 'f' 로
@@ -113,8 +123,11 @@ export const POST = withApiMiddleware(async (req: NextRequest, context: ApiConte
     typeof longitude === 'number' && Number.isFinite(longitude)
       ? `:lon=${longitude.toFixed(4)}`
       : ''
+  // 시간 미상은 정오 앵커라 실제 정오 출생과 키가 같아진다 — 결과(6글자 오행)가 다르므로
+  // :tu segment 로 분리한다.
+  const tuKey = timeUnknown ? ':tu' : ''
   const sajuResult = await cacheOrCalculate(
-    `${CacheKeys.saju(birthDateString, adjustedBirthTime, sajuGender, calendarType, timezone, lunarLeap)}${lonKey}`,
+    `${CacheKeys.saju(birthDateString, adjustedBirthTime, sajuGender, calendarType, timezone, lunarLeap)}${lonKey}${tuKey}`,
     // Span: Swiss-Ephemeris/사주 핵심 계산. cacheOrCalculate 콜백이라 캐시
     // 미스(=실제 계산)일 때만 실행되어 compute 비용만 정확히 잡힌다.
     async () =>
@@ -127,14 +140,16 @@ export const POST = withApiMiddleware(async (req: NextRequest, context: ApiConte
           timezone,
           lunarLeap,
           longitude,
-          now
+          now,
+          { timeUnknown }
         )
       ),
     CACHE_TTL.NATAL_CHART
   )
 
-  // 4. Build Saju pillars
-  const sajuPillars: SajuPillars = {
+  // 4. Build Saju pillars — 시간 미상이면 time 이 null(정오 앵커 시주는 날짜 고정용 자리표시라
+  // 신살·12운성·관계 입력으로 흘리지 않는다).
+  const sajuPillars: MaybeTimeless<SajuPillars> = {
     year: {
       heavenlyStem: withYY(sajuResult.yearPillar.heavenlyStem),
       earthlyBranch: toBranch(sajuResult.yearPillar.earthlyBranch),
@@ -150,11 +165,13 @@ export const POST = withApiMiddleware(async (req: NextRequest, context: ApiConte
       earthlyBranch: toBranch(sajuResult.dayPillar.earthlyBranch),
       jijanggan: sajuResult.dayPillar.jijanggan,
     },
-    time: {
-      heavenlyStem: withYY(sajuResult.timePillar.heavenlyStem),
-      earthlyBranch: toBranch(sajuResult.timePillar.earthlyBranch),
-      jijanggan: sajuResult.timePillar.jijanggan,
-    },
+    time: timeUnknown
+      ? null
+      : {
+          heavenlyStem: withYY(sajuResult.timePillar.heavenlyStem),
+          earthlyBranch: toBranch(sajuResult.timePillar.earthlyBranch),
+          jijanggan: sajuResult.timePillar.jijanggan,
+        },
   }
 
   // 5. Calculate fortune cycles (운세)
@@ -189,7 +206,7 @@ export const POST = withApiMiddleware(async (req: NextRequest, context: ApiConte
   const wolun = getMonthlyCycles(userNow.year, sajuResult.dayMaster)
   const iljin = getIljinCalendar(userNow.year, userNow.month, sajuResult.dayMaster)
 
-  // 6. Calculate 12운성/신살/길성
+  // 6. Calculate 12운성/신살/길성 — 시간 미상이면 년·월·일 삼주만(시주 키 없음).
   const twelveStages = getTwelveStagesForPillars(sajuPillars)
 
   // ruleSet 'your' 는 현침 한 칸(일간 辛 → 未)만 바꾼다. 귀문관은 룰셋과 무관하게
@@ -209,6 +226,7 @@ export const POST = withApiMiddleware(async (req: NextRequest, context: ApiConte
   // 7. Build display data by pillar
   const dayMasterStem = sajuResult.dayPillar.heavenlyStem.name
 
+  // 시주 칸은 시각을 알 때만 만든다(아래 byPillar) — 미상이면 byPillar.time = null.
   const buildPillar = (pillar: 'time' | 'day' | 'month' | 'year') => {
     const p = sajuResult[`${pillar}Pillar` as const]
     const jgRaw = buildJijangganRaw(p.jijanggan)
@@ -245,29 +263,31 @@ export const POST = withApiMiddleware(async (req: NextRequest, context: ApiConte
   }
 
   const byPillar = {
-    time: buildPillar('time'),
+    time: timeUnknown ? null : buildPillar('time'),
     day: buildPillar('day'),
     month: buildPillar('month'),
     year: buildPillar('year'),
   }
 
-  // 8. Analyze relations
+  // 8. Analyze relations — 시간 미상이면 시주 없이(삼주) 합충형파해·원진·공망을 찾는다.
   const relationsInput = toAnalyzeInputFromSaju(
     {
       year: sajuResult.yearPillar,
       month: sajuResult.monthPillar,
       day: sajuResult.dayPillar,
-      time: sajuResult.timePillar,
+      time: timeUnknown ? null : sajuResult.timePillar,
     },
     sajuResult.dayPillar.heavenlyStem.name
   )
   const relations = analyzeRelations(relationsInput)
 
-  // 9. Advanced analysis
-  const timePillarSimple = {
-    stem: sajuResult.timePillar.heavenlyStem.name,
-    branch: sajuResult.timePillar.earthlyBranch.name,
-  }
+  // 9. Advanced analysis — 격국·용신·형충·통근·십신을 시간 미상이면 삼주(time/hour = null)로.
+  const timePillarSimple = timeUnknown
+    ? null
+    : {
+        stem: sajuResult.timePillar.heavenlyStem.name,
+        branch: sajuResult.timePillar.earthlyBranch.name,
+      }
   const simplePillars = {
     year: {
       stem: sajuResult.yearPillar.heavenlyStem.name,
@@ -314,10 +334,12 @@ export const POST = withApiMiddleware(async (req: NextRequest, context: ApiConte
     birthDate: birthDateString,
     analysisDate,
     userTimezone: effectiveUserTz,
+    // 시간 미상 — 시주는 null(정오 앵커 시주를 지어내지 않는다), fiveElements 는 6글자.
+    timeUnknown,
     yearPillar: sajuResult.yearPillar,
     monthPillar: sajuResult.monthPillar,
     dayPillar: sajuResult.dayPillar,
-    timePillar: sajuResult.timePillar,
+    timePillar: timeUnknown ? null : sajuResult.timePillar,
     fiveElements: sajuResult.fiveElements,
     dayMaster: sajuResult.dayMaster,
     daeun: daeunInfo,

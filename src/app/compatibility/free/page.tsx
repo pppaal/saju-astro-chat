@@ -414,6 +414,8 @@ export default function FreeCompatibilityPage() {
       const sajuPayload = (p: Person) => ({
         birthDate: p.birthDate,
         birthTime: anchorOf(p),
+        // 미상이면 /api/saju 가 삼주로 분석하고 시주를 null 로 낸다(CONVENTIONS §5).
+        birthTimeUnknown: resolveBirthTimeAnchor(p.birthTime, p.timeUnknown).timeUnknown,
         gender: p.gender === 'female' ? 'female' : 'male',
         calendarType: 'solar' as const,
         timezone: p.timeZone || DEFAULT_TZ,

@@ -32,15 +32,31 @@ describe('SajuChart', () => {
       expect(screen.getByText('Saju data is not ready yet.')).toBeInTheDocument()
     })
 
-    it('shows empty message when pillars are incomplete (missing time)', () => {
+    it('shows empty message when pillars are incomplete (missing day)', () => {
       const incomplete = {
         yearPillar: makePillar(),
         monthPillar: makePillar(),
-        dayPillar: makePillar(),
-        // no time / hour pillar
+        timePillar: makePillar(),
+        // no day pillar
       }
       render(<SajuChart saju={incomplete} />)
       expect(screen.getByText('사주 정보가 아직 계산되지 않았습니다.')).toBeInTheDocument()
+    })
+
+    // 출생시각 미상(삼주) — /api/saju 가 timePillar: null 을 낸다. 세 기둥은 그리고 時 칸만
+    // 빈 셀('·')로 둔다(정오 앵커 시주를 지어내지 않는다, CONVENTIONS §5).
+    it('renders three pillars with an empty 時 cell when the hour pillar is null', () => {
+      const timeless = {
+        yearPillar: makePillar(),
+        monthPillar: makePillar(),
+        dayPillar: makePillar(),
+        timePillar: null,
+      }
+      const { container } = render(<SajuChart saju={timeless} />)
+      expect(screen.queryByText('사주 정보가 아직 계산되지 않았습니다.')).not.toBeInTheDocument()
+      // 3 기둥 × (천간 甲 + 지지 子) = 甲 3개, 時 칸 2셀은 '·'
+      expect(screen.getAllByText('甲')).toHaveLength(3)
+      expect(screen.getAllByText('·')).toHaveLength(2)
     })
   })
 

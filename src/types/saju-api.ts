@@ -185,11 +185,12 @@ export interface SajuApiResponse {
   analysisDate: string
   userTimezone: string
 
-  // Pillars (legacy format)
+  // Pillars (legacy format) — 출생시각 미상이면 timeUnknown=true, timePillar=null(삼주 분석)
+  timeUnknown?: boolean
   yearPillar: PillarData
   monthPillar: PillarData
   dayPillar: PillarData
-  timePillar: PillarData
+  timePillar: PillarData | null
 
   // Core data
   fiveElements: {

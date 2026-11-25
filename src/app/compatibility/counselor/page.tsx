@@ -357,6 +357,8 @@ function CompatibilityCounselorContent() {
       const sajuPayload = (p: PersonData) => ({
         birthDate: p.date,
         birthTime: resolveBirthTimeAnchor(p.time, p.timeUnknown).time,
+        // 미상이면 /api/saju 가 삼주로 분석하고 시주를 null 로 낸다(CONVENTIONS §5).
+        birthTimeUnknown: resolveBirthTimeAnchor(p.time, p.timeUnknown).timeUnknown,
         // 공용 normalizer — 'M'/'F'/'Male'/'Female'/'male'/'female' 다 처리.
         // 이전 `.toLowerCase().startsWith('f')` 도 known input 에선 동작
         // 했지만 다른 normalizer 호출처와 시그니처/시맨틱 통일.

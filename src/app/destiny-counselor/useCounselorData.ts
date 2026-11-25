@@ -272,7 +272,13 @@ export function useCounselorData(sp: SearchParams) {
     // 예전 '00:00' 앵커는 진태양시 보정(-32분)으로 일주가 전날로 밀려, 상담사
     // 차트가 통합리포트와 다른 사주를 보여줬다. 캐시 키에도 앵커를 써서 옛
     // '00:00' 캐시와 자연 분리한다.
-    const anchoredBirthTime = resolveBirthTimeAnchor(birthTime, birthTimeUnknown).time
+    const { time: anchoredBirthTime, timeUnknown: anchoredTimeUnknown } = resolveBirthTimeAnchor(
+      birthTime,
+      birthTimeUnknown
+    )
+    // 차트 캐시 키의 시각 칸 — 미상은 빈 칸. 정오 앵커를 그대로 쓰면 실제 정오 출생(네 기둥)과
+    // 시간 미상(삼주, /api/saju 시주 null)이 같은 캐시를 나눠 쓴다.
+    const chartCacheTime = anchoredTimeUnknown ? '' : anchoredBirthTime
 
     // Guard against stale async writes: if the effect re-runs (birth data /
     // location / locale change) or the component unmounts before a fetch
@@ -296,7 +302,7 @@ export function useCounselorData(sp: SearchParams) {
     let advancedAstro: Record<string, unknown> | null = null
 
     // Try to load from cache with birth data validation
-    const cached = loadChartData(birthDate, anchoredBirthTime, resolvedLatitude, resolvedLongitude)
+    const cached = loadChartData(birthDate, chartCacheTime, resolvedLatitude, resolvedLongitude)
     if (cached) {
       logger.warn('[CounselorPage] Using cached chart data')
       saju = cached.saju ?? null
@@ -331,6 +337,8 @@ export function useCounselorData(sp: SearchParams) {
             body: JSON.stringify({
               birthDate,
               birthTime: anchoredBirthTime,
+              // 미상이면 /api/saju 가 삼주로 분석하고 시주를 null 로 낸다(CONVENTIONS §5).
+              birthTimeUnknown: anchoredTimeUnknown,
               gender: normalizedGender,
               calendarType: 'solar',
               timezone: resolvedTimeZone,
@@ -363,7 +371,7 @@ export function useCounselorData(sp: SearchParams) {
             advancedAstro: prev?.advancedAstro,
           }))
           try {
-            saveChartData(birthDate, anchoredBirthTime, resolvedLatitude, resolvedLongitude, {
+            saveChartData(birthDate, chartCacheTime, resolvedLatitude, resolvedLongitude, {
               saju: richSaju,
               astro: (astro as Record<string, unknown>) || undefined,
               advancedAstro: (advancedAstro as Record<string, unknown>) || undefined,
@@ -423,7 +431,7 @@ export function useCounselorData(sp: SearchParams) {
           }))
           // 캐시에 저장해서 다음 방문 때 즉시 hit
           try {
-            saveChartData(birthDate, anchoredBirthTime, resolvedLatitude, resolvedLongitude, {
+            saveChartData(birthDate, chartCacheTime, resolvedLatitude, resolvedLongitude, {
               saju: (saju as Record<string, unknown>) || undefined,
               astro: astroWithAspects,
               advancedAstro: (advancedAstro as Record<string, unknown>) || undefined,
