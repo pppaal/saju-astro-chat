@@ -67,7 +67,9 @@ describe('astro-aspect-unify: findTransitAspects numeric output is unchanged', (
   it('square at exactly the orb boundary: orb=5, score=0', () => {
     const transit = chart([planet('Mars', 95, 0.5)])
     const natal = chart([planet('Sun', 0, 1)])
-    const hits = findTransitAspects(transit, natal, ['square']).filter((h) => h.natalPoint === 'Sun')
+    const hits = findTransitAspects(transit, natal, ['square']).filter(
+      (h) => h.natalPoint === 'Sun'
+    )
     expect(hits).toHaveLength(1)
     expect(hits[0].orb).toBe(5)
     expect(hits[0].score).toBe(0)
@@ -188,8 +190,7 @@ describe('astro-aspect-unify: both engines share the core algorithm', () => {
       const absSep = Math.abs(signedSep)
       const target = 0
       if (absSep === target) return false
-      if (absSep > target)
-        return (signedSep > 0 && relSpeed < 0) || (signedSep < 0 && relSpeed > 0)
+      if (absSep > target) return (signedSep > 0 && relSpeed < 0) || (signedSep < 0 && relSpeed > 0)
       return (signedSep > 0 && relSpeed > 0) || (signedSep < 0 && relSpeed < 0)
     },
     computeScore: ({ orb, limit }) => 1 - orb / limit,
@@ -202,7 +203,16 @@ describe('astro-aspect-unify: both engines share the core algorithm', () => {
     const lonB = 0
     const relSpeed = -0.5
 
-    const core = evaluateAspect('Mars', lonA, 'Sun', lonB, 1, relSpeed, 'conjunction', minimalConfig)
+    const core = evaluateAspect(
+      'Mars',
+      lonA,
+      'Sun',
+      lonB,
+      1,
+      relSpeed,
+      'conjunction',
+      minimalConfig
+    )
     expect(core.applying).toBe(true)
     expect(core.orb).toBe(1)
 
