@@ -100,7 +100,7 @@ export interface AnnotateOptions {
   includeGeneralShinsal?: boolean
   includeLuckyDetails?: boolean
 
-  /** 'your' 는 현침(일간 辛 → 未) 한 칸만 바꾼다. 귀문관은 룰셋과 무관한 정통 6쌍. */
+  /** 'your' 는 현침 지지에 未 를 더하는 학파(卯午申 → 卯午申未)만 바꾼다. 귀문관은 룰셋과 무관한 정통 6쌍. */
   ruleSet?: 'standard' | 'your'
 }
 
@@ -352,10 +352,16 @@ const YANGIN_BY_DAY_STEM: Record<string, string> = {
   庚: '酉',
   壬: '子',
 }
-// 괴강(魁罡) — 정통 5종: 庚辰, 庚戌, 壬辰, 壬戌, 戊戌
+// 괴강(魁罡) — 정통 5종: 庚辰, 庚戌, 壬辰, 壬戌, 戊戌. 괴강은 간지 한 쌍(기둥) 자체의
+// 성질이고, 엔진은 일주 학파다(CONVENTIONS §8): 본명 괴강은 일주가 이 5간지일 때 일주
+// 한 칸에만 붙는다. 예전엔 일지와 지지만 같으면 다른 기둥(丙辰·甲戌·丙戌…)에도 붙였다(SDR-04).
 const GWAEGANG_DAY_PAIRS = new Set(['庚辰', '庚戌', '壬辰', '壬戌', '戊戌'])
+function isGwaegangPillar(stem: string, branch: string): boolean {
+  return GWAEGANG_DAY_PAIRS.has(stem + branch)
+}
+// 일진 활성(캘린더): 괴강 일주인 사람에게 일진 지지가 일지를 되풀이하는 날(伏吟).
 function checkGwaegang(dayStem: string, dayBranch: string, targetBranch: string): boolean {
-  return GWAEGANG_DAY_PAIRS.has(dayStem + dayBranch) && targetBranch === dayBranch
+  return isGwaegangPillar(dayStem, dayBranch) && targetBranch === dayBranch
 }
 
 // 백호(白虎) — 정통 7종: 戊辰, 丁丑, 丙戌, 乙未, 甲辰, 癸丑, 壬戌
@@ -394,35 +400,23 @@ function isGwimun(basisBranch: string, targetBranch: string): boolean {
   return GWIMUN_PARTNER[basisBranch] === targetBranch
 }
 
-const HYEONCHIM_BY_STEM: Record<string, string> = {
-  甲: '酉',
-  乙: '酉',
-  丙: '子',
-  丁: '子',
-  戊: '卯',
-  己: '卯',
-  庚: '午',
-  辛: '午',
-  壬: '卯',
-  癸: '卯',
-}
-// 'your' 룰셋 현침 오버라이드(일간 辛 → 未). 예전엔 applyYourOverrides() 가
-// 모듈 전역 HYEONCHIM_BY_STEM 을 복원 없이 변이시켜, /api/saju 가 한 번
-// ruleSet:'your' 로 호출된 뒤엔 표준 룰 소비자(상담 컨텍스트·궁합 facts·
-// 캘린더 일진)까지 오염된 값을 읽어 같은 입력이 요청 순서에 따라 다른 결과를
-// 내는 결정론 위반이 있었다. 이제 전역을 건드리지 않고 read-time 에 ruleSet 로
-// 분기한다.
-const HYEONCHIM_BY_STEM_YOUR: Record<string, string> = {
-  ...HYEONCHIM_BY_STEM,
-  辛: '未',
-}
+// 현침(懸針) — 글자 모양 규칙(G4 · SDR-05, CONVENTIONS §8). 懸針은 서예의 '현침수(懸針豎)',
+// 바늘처럼 아래로 곧게 내리긋는 획이다. 그 획을 가진 글자가 현침 글자다: 천간 甲·辛, 지지
+// 卯·午·申. 엔진 기준(문서화된 임계값): 일간이 현침 천간(甲·辛)이고, 보이는 지지(시간
+// 미상이면 년·월·일 삼주) 가운데 현침 지지가 있으면 그 지지를 가진 기둥마다 현침 —
+// 甲午·甲申·辛卯 일주는 언제나 현침(대표형). 'your' 룰셋은 未 를 더하는 학파 선택지다.
+// 예전 표(일간마다 지지 하나: 甲乙→酉, 丙丁→子 …)는 어느 학파에도 없는 표라 酉·子 처럼
+// 현침 글자가 아닌 지지에 붙고 甲申 일주를 놓쳤다.
+const HYEONCHIM_STEMS: ReadonlySet<string> = new Set(['甲', '辛'])
+const HYEONCHIM_BRANCHES: ReadonlySet<string> = new Set(['卯', '午', '申'])
+const HYEONCHIM_BRANCHES_WITH_MI: ReadonlySet<string> = new Set(['卯', '午', '申', '未'])
 function isHyeonchim(
   dayStem: string,
   branch: string,
   ruleSet: 'standard' | 'your' = 'standard'
 ): boolean {
-  const table = ruleSet === 'your' ? HYEONCHIM_BY_STEM_YOUR : HYEONCHIM_BY_STEM
-  return table[dayStem] === branch
+  if (!HYEONCHIM_STEMS.has(dayStem)) return false
+  return (ruleSet === 'your' ? HYEONCHIM_BRANCHES_WITH_MI : HYEONCHIM_BRANCHES).has(branch)
 }
 // 고신(孤神): 월지 三合 그룹의 다음 지지
 //   寅卯辰 (春) → 巳    巳午未 (夏) → 申
@@ -575,11 +569,21 @@ function isHongyeomsal(dayStem: string, targetBranch: string): boolean {
   return HONGYEOM_BY_DAY_STEM[dayStem] === targetBranch
 }
 
-// 천라지망(天羅地網): 辰~巳는 천라, 戌~亥는 지망
-function isCheonraJimang(branch: string): '천라지망' | null {
-  if (['辰', '巳', '戌', '亥'].includes(branch)) {
-    return '천라지망'
-  }
+// 천라지망(天羅地網) — 두 지지가 짝으로 있어야 성립한다(三命通會 論天羅地網: 戌亥爲天羅,
+// 辰巳爲地網). 戌+亥 = 천라(天羅), 辰+巳 = 지망(地網). 지지 하나만으로는 천라지망이 아니다
+// (G4 · SDR-03 — 예전엔 辰巳戌亥 중 하나만 있어도 붙여 약 80% 차트에 떴다).
+const CHEONRA_JIMANG_PARTNER: Readonly<Record<string, string>> = toBidiRecord([
+  ['戌', '亥'],
+  ['辰', '巳'],
+])
+/** 천라지망 짝 지지(戌↔亥, 辰↔巳) — 없으면 null. 캘린더 활성(시기 지지가 짝 완성)도 쓴다. */
+export function cheonraJimangPartner(branch: string): string | null {
+  return CHEONRA_JIMANG_PARTNER[branch] ?? null
+}
+/** 짝 이름 — 戌亥 는 천라(天羅), 辰巳 는 지망(地網). */
+export function cheonraJimangNet(branch: string): '천라' | '지망' | null {
+  if (branch === '戌' || branch === '亥') return '천라'
+  if (branch === '辰' || branch === '巳') return '지망'
   return null
 }
 
@@ -934,7 +938,7 @@ export function getShinsalHitsForDailyTarget(
 }
 
 // 'your' 룰 오버라이드는 이제 read-time 분기로 처리한다:
-//  - 현침: isHyeonchim(dayStem, branch, ruleSet) 이 HYEONCHIM_BY_STEM_YOUR 참조.
+//  - 현침: isHyeonchim(dayStem, branch, ruleSet) — 'your' 는 현침 지지에 未 를 더한다.
 //  - 12신살 未-row 오버라이드: 런타임 12신살 계산은 SAMHAP_LEADER/
 //    TWELVE_BY_OFFSET_KO 를 쓰고 TWELVE_SHINSAL_BY_DAY_BRANCH 는 모듈 init 시점
 //    inverse-view 스냅샷에만 쓰여, 예전의 런타임 변이는 아무 소비자도 읽지 않는
@@ -1031,7 +1035,7 @@ export function getShinsalHits(
         if (isGosin(monthBranch, br)) {
           hits.push({ kind: '고신', pillars: [kind], target: br })
         }
-        if (checkGwaegang(dayStem, dayBranch, br)) {
+        if (kind === 'day' && isGwaegangPillar(dayStem, dayBranch)) {
           hits.push({ kind: '괴강', pillars: [kind], target: br })
         }
         if (kind === 'day' && checkBaekho(dayStem, dayBranch)) {
@@ -1053,8 +1057,17 @@ export function getShinsalHits(
         if (isHongyeomsal(dayStem, br)) {
           hits.push({ kind: '홍염살', pillars: [kind], target: br })
         }
-        if (isCheonraJimang(br)) {
-          hits.push({ kind: '천라지망', pillars: [kind], target: br })
+        // 천라지망 — 이 기둥 지지의 짝(戌↔亥, 辰↔巳)이 다른 보이는 기둥에 있을 때만,
+        // 짝을 이룬 기둥마다 하나. 같은 지지 두 개(戌·戌)는 짝이 아니다.
+        const netPartner = cheonraJimangPartner(br)
+        if (netPartner && pairs.some(([k2, b2]) => k2 !== kind && b2 === netPartner)) {
+          const net = cheonraJimangNet(br)
+          hits.push({
+            kind: '천라지망',
+            pillars: [kind],
+            target: br,
+            detail: net === '천라' ? '천라(戌·亥 짝)' : '지망(辰·巳 짝)',
+          })
         }
         if (isWonjin(dayBranch, br)) {
           hits.push({ kind: '원진', pillars: [kind], target: br })

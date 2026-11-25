@@ -219,7 +219,7 @@ export const POST = withApiMiddleware(async (req: NextRequest, context: ApiConte
   // 6. Calculate 12운성/신살/길성 — 시간 미상이면 년·월·일 삼주만(시주 키 없음).
   const twelveStages = getTwelveStagesForPillars(sajuPillars)
 
-  // ruleSet 'your' 는 현침 한 칸(일간 辛 → 未)만 바꾼다. 귀문관은 룰셋과 무관하게
+  // ruleSet 'your' 는 현침 지지에 未 를 더하는 학파(卯午申 → 卯午申未)만 바꾼다. 귀문관은 룰셋과 무관하게
   // 정통 6쌍(일지·년지 기준) 하나 — 예전 'your' 귀문 변형(월지 삼합국)은 제거됐다.
   const twelveShinsalSingle = getTwelveShinsalSingleByPillar(sajuPillars, {
     includeTwelveAll: true,
