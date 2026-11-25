@@ -23,8 +23,8 @@ describe('DEFAULT_ANNOTATE_OPTIONS', () => {
     expect(DEFAULT_ANNOTATE_OPTIONS.includeTwelveAll).toBe(true)
   })
 
-  it('has useMonthCompletion set to false by default', () => {
-    expect(DEFAULT_ANNOTATE_OPTIONS.useMonthCompletion).toBe(false)
+  it('has no month-completion option (the wrong 월지 보완 table was removed — SD-16)', () => {
+    expect('useMonthCompletion' in DEFAULT_ANNOTATE_OPTIONS).toBe(false)
   })
 
   it('has includeGeneralShinsal set to true by default', () => {

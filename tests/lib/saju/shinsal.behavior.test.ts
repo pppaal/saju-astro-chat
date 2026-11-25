@@ -128,12 +128,12 @@ describe('pickTwelveSingle (12신살 단일)', () => {
 })
 
 describe('getShinsalHits (full 4-pillar scan)', () => {
-  // day stem 甲, day branch 卯 (양인), branches include 도화 자오묘유
+  // day stem 甲, day branch 卯 (양인; 亥卯未 → 도화 = 子), branches include 午·子·卯
   const c = chart('甲', '午', '丙', '子', '甲', '卯', '庚', '申')
 
-  it('always surfaces 삼재 anchored on the year pillar', () => {
+  it('never surfaces a natal 삼재 (삼재 is a period shinsal — SD-17)', () => {
     const hits = getShinsalHits(c)
-    expect(hits.some((h) => h.kind === '삼재' && h.pillars.includes('year'))).toBe(true)
+    expect(hits.some((h) => h.kind === '삼재')).toBe(false)
   })
 
   it('detects 양인 on the matching branch for the day stem', () => {
@@ -142,10 +142,10 @@ describe('getShinsalHits (full 4-pillar scan)', () => {
     expect(hits.some((h) => h.kind === '양인' && h.target === '卯')).toBe(true)
   })
 
-  it('detects 도화 on 자/오/묘/유 branches', () => {
+  it('detects 도화 only at the 日支 三合 年殺 position (卯 → 子), not on every 자오묘유', () => {
     const hits = getShinsalHits(c)
     const dohwa = hits.filter((h) => h.kind === '도화').map((h) => h.target)
-    expect(dohwa).toEqual(expect.arrayContaining(['午', '子', '卯']))
+    expect(dohwa).toEqual(['子'])
   })
 
   it('honors the includeGeneralShinsal=false option (no 삼재/도화)', () => {
@@ -157,12 +157,14 @@ describe('getShinsalHits (full 4-pillar scan)', () => {
     expect(hits.some((h) => h.kind === '도화')).toBe(false)
   })
 
-  it('covers the month-completion and simple-table branches', () => {
-    const hits = getShinsalHits(c, {
-      includeTwelveAll: false,
-      useMonthCompletion: true,
-    })
-    expect(Array.isArray(hits)).toBe(true)
+  it('covers the simple-table branch (same 12신살 verdicts as includeTwelveAll)', () => {
+    const twelveKinds = new Set(['겁살', '재살', '천살', '지살', '년살', '월살'])
+    const pick = (hits: ReturnType<typeof getShinsalHits>) =>
+      hits
+        .filter((h) => twelveKinds.has(h.kind) || /^(장성|반안|역마|육해|화개|망신)$/.test(h.kind))
+        .map((h) => `${h.pillars.join('+')}:${h.kind}`)
+        .sort()
+    expect(pick(getShinsalHits(c, { includeTwelveAll: false }))).toEqual(pick(getShinsalHits(c)))
   })
 
   it('runs the "your" rule overrides without throwing', () => {
@@ -209,9 +211,11 @@ describe('getShinsalHits (full 4-pillar scan)', () => {
 })
 
 describe('getShinsalHitsForDailyTarget (calendar daily scan)', () => {
-  it('fires 도화 when the target branch is a 자오묘유 day', () => {
-    const hits = getShinsalHitsForDailyTarget('甲', '子', '午')
-    expect(hits.some((h) => h.kind === '도화')).toBe(true)
+  it("fires 도화 only on the natal day branch's 年殺 day (子 → 酉), not on every 자오묘유", () => {
+    expect(getShinsalHitsForDailyTarget('甲', '子', '酉').some((h) => h.kind === '도화')).toBe(true)
+    expect(getShinsalHitsForDailyTarget('甲', '子', '午').some((h) => h.kind === '도화')).toBe(
+      false
+    )
   })
 
   it('fires the 12신살 single for the natal day branch', () => {
@@ -242,8 +246,11 @@ describe('annotateShinsal', () => {
     expect(annot.byPillar).toBeDefined()
     // 양인 is a general/흉성 → labelled '양인살' on the day pillar
     expect(annot.byPillar?.day.generalShinsal).toContain('양인살')
-    // 삼재 anchored on year, labelled '삼재살'
-    expect(annot.byPillar?.year.generalShinsal).toContain('삼재살')
+    // 12신살: 일지 卯(장성 卯) — 년지 午 = 육해 → '육해살', 월지 子 = 년살 → '년살'(이중 '살' 없음)
+    expect(annot.byPillar?.year.twelveShinsal).toEqual(['육해살'])
+    expect(annot.byPillar?.month.twelveShinsal).toEqual(['년살'])
+    // 삼재는 본명에 붙지 않는다
+    expect(annot.byPillar?.year.generalShinsal).not.toContain('삼재살')
   })
 })
 
@@ -284,14 +291,12 @@ describe('getTwelveShinsalSingleByPillar', () => {
     expect(single.day.endsWith('살')).toBe(true)
   })
 
-  it('covers the simple-table + month-completion branch', () => {
+  it('covers the simple-table branch', () => {
     const c = chart('甲', '子', '丙', '寅', '甲', '寅', '庚', '申')
-    const single = getTwelveShinsalSingleByPillar(c, {
-      includeTwelveAll: false,
-      useMonthCompletion: true,
-    })
-    // 월지 寅 → 申 = 역마 (month-completion table)
+    const single = getTwelveShinsalSingleByPillar(c, { includeTwelveAll: false })
+    // 일지 寅(寅午戌, 장성 午) → 申 = 역마; 子 = 재살(이미 '살' 로 끝나 그대로)
     expect(single.time).toBe('역마살')
+    expect(single.year).toBe('재살')
   })
 })
 

@@ -95,22 +95,6 @@ const PA: Record<string, string> = toBidiRecord(BREAK_PAIRS)
 /** 원진 (怨嗔) — 표준 6쌍(canon). 과거 해(害) 표로 잘못 복제되던 버그를 SSOT로 제거. */
 const WONJIN: Record<string, string> = toBidiRecord(RESENTMENT_PAIRS)
 
-/** 귀문관살 (鬼門關殺) */
-const GWIMUN: Record<string, string> = {
-  子: '巳',
-  丑: '午',
-  寅: '未',
-  卯: '申',
-  辰: '酉',
-  巳: '戌',
-  午: '亥',
-  未: '子',
-  申: '丑',
-  酉: '寅',
-  戌: '卯',
-  亥: '辰',
-}
-
 // ============ 유틸리티 함수 ============
 
 function getPillarDistance(p1: PillarPosition, p2: PillarPosition): number {

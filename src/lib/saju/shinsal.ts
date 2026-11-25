@@ -1,12 +1,7 @@
 // src/lib/Saju/shinsal.ts
 import { BRANCHES, STEMS, BRANCH_NAMES, JIJANGGAN, CHEONEUL_GWIIN_MAP } from './constants'
 import type { FiveElement, YinYang, PillarKind, TwelveStage } from './types'
-import {
-  RESENTMENT_PAIRS,
-  SIX_HARMONY,
-  toBidiRecord,
-  SAMJAE_BY_YEAR_BRANCH,
-} from './relationTables'
+import { RESENTMENT_PAIRS, SIX_HARMONY, toBidiRecord } from './relationTables'
 import { getGongmang as getGongmangByPillar } from './pillarLookup'
 import { STEM_KO } from './ganjiKo'
 
@@ -89,11 +84,11 @@ export interface AnnotateOptions {
   twelveStageBasis?: 'day'
 
   includeTwelveAll?: boolean
-  useMonthCompletion?: boolean
 
   includeGeneralShinsal?: boolean
   includeLuckyDetails?: boolean
 
+  /** 'your' 는 현침(일간 辛 → 未) 한 칸만 바꾼다. 귀문관은 룰셋과 무관한 정통 6쌍. */
   ruleSet?: 'standard' | 'your'
 }
 
@@ -101,7 +96,6 @@ export const DEFAULT_ANNOTATE_OPTIONS: Required<AnnotateOptions> = {
   twelveStageBasis: 'day',
 
   includeTwelveAll: true,
-  useMonthCompletion: false,
 
   includeGeneralShinsal: true,
   includeLuckyDetails: true,
@@ -318,19 +312,10 @@ const SHINSAL_SIMPLE_BY_DAY_BRANCH: Record<
   return out
 })()
 
-/* ===== 월지 보완 ===== */
-const YEARMONTH_SHINSAL_BY_MONTH_BRANCH: Record<
-  string,
-  Partial<Record<string, ShinsalHit['kind']>>
-> = {
-  寅: { 申: '역마', 午: '반안', 戌: '반안' },
-  申: { 寅: '역마', 子: '반안', 辰: '반안' },
-  巳: { 亥: '역마', 酉: '반안', 丑: '반안' },
-  亥: { 巳: '역마', 卯: '반안', 未: '반안' },
-  辰: { 戌: '화개' },
-  戌: { 辰: '화개' },
-  丑: { 未: '화개' },
-  未: { 丑: '화개' },
+/* 12신살 라벨: kind 에 '살' 을 붙이되 이미 '살' 로 끝나면(겁살·재살·천살·지살·
+ * 년살·월살) 그대로 — '천살살'·'년살살' 같은 이중 접미 방지. */
+function twelveShinsalLabel(kind: string): string {
+  return kind.endsWith('살') ? kind : kind + '살'
 }
 
 /* ===== 일반 신살/길성 ===== */
@@ -356,38 +341,34 @@ const BAEKHO_DAY_PAIRS = new Set(['戊辰', '丁丑', '丙戌', '乙未', '甲�
 function checkBaekho(dayStem: string, dayBranch: string): boolean {
   return BAEKHO_DAY_PAIRS.has(dayStem + dayBranch)
 }
-const DOHWA_SET = new Set(['子', '午', '卯', '酉'])
-function getDohwaOn(branch: string): boolean {
-  return DOHWA_SET.has(branch)
+// 도화(桃花·咸池) = 일지 三合국의 年殺 자리: 寅午戌→卯, 申子辰→酉, 巳酉丑→午,
+//   亥卯未→子. 12신살(일지 기준)과 같은 기준 지지라 도화 칸은 언제나 년살 칸과 같다
+//   (calendar/constants DOHWA_BY_YEAR_BRANCH · 궁합 sajuSynastryFormatter 와 동일 규칙).
+//   예전엔 子午卯酉 전부를 도화로 쳐 사흘에 하루꼴로 모든 사용자에게 떴고, 같은 칸의
+//   12신살(재살·육해 등)과 모순됐다. 12신살 표에서 파생해 드리프트를 차단한다.
+export const DOHWA_BY_DAY_BRANCH: Readonly<Record<string, string>> = Object.fromEntries(
+  Object.entries(TWELVE_SHINSAL_BY_DAY_BRANCH).map(([dayBranch, row]) => [dayBranch, row.년살])
+)
+function isDohwa(dayBranch: string, targetBranch: string): boolean {
+  return DOHWA_BY_DAY_BRANCH[dayBranch] === targetBranch
 }
 
-/* 귀문관: standard는 고정 세트, your는 삼합(방국) 기준으로 '좁게' */
-const GWIMUN_MONTH_SET = new Set(['戌', '亥', '子', '丑'])
-function getGwimunOn(
-  monthBranch: string,
-  targetBranch: string,
-  ruleSet: 'standard' | 'your' = 'standard'
-): boolean {
-  if (ruleSet === 'your') {
-    // 표 사이트 특례: 필요한 케이스 우선 허용
-    if (
-      (monthBranch === '寅' && targetBranch === '未') ||
-      (monthBranch === '亥' && targetBranch === '卯')
-    ) {
-      return true
-    }
-
-    // 기본: 삼합(방국) 내부에서만 귀문관 허용
-    const triads: string[][] = [
-      ['申', '子', '辰'],
-      ['寅', '午', '戌'],
-      ['巳', '酉', '丑'],
-      ['亥', '卯', '未'],
-    ]
-    const group = triads.find((g) => g.includes(monthBranch))
-    return !!group && group.includes(targetBranch)
-  }
-  return GWIMUN_MONTH_SET.has(monthBranch) && GWIMUN_MONTH_SET.has(targetBranch)
+// 귀문관살(鬼門關殺) — 정통 6쌍: 子酉 丑午 寅未 卯申 辰亥 巳戌. 일지(와 년지)를
+//   기준으로 나머지 지지와 짝을 본다. 6쌍에 자기쌍이 없어 한 지지가 자기 자신과
+//   짝이 되는 일은 없다. 예전엔 세 정의가 공존했다 — 'standard'(월지·대상 모두
+//   戌亥子丑), 'your'(월지와 같은 삼합국), hyeongchung.ts 의 branch+5 표 — 셋 다
+//   정통 6쌍이 아니어서 월지가 자기 자신으로 귀문을 일으키기도 했다.
+const GWIMUN_PAIRS: ReadonlyArray<readonly [string, string]> = [
+  ['子', '酉'],
+  ['丑', '午'],
+  ['寅', '未'],
+  ['卯', '申'],
+  ['辰', '亥'],
+  ['巳', '戌'],
+]
+const GWIMUN_PARTNER: Record<string, string> = toBidiRecord(GWIMUN_PAIRS)
+function isGwimun(basisBranch: string, targetBranch: string): boolean {
+  return GWIMUN_PARTNER[basisBranch] === targetBranch
 }
 
 const HYEONCHIM_BY_STEM: Record<string, string> = {
@@ -448,17 +429,20 @@ function isGosin(monthBranch: string, target: string): boolean {
 //   辛     → 寅午  (六辛逢馬虎)
 // 천을귀인은 constants.CHEONEUL_GWIIN_MAP(SSOT)에서 가져온다. 로컬 복제 금지.
 const CHEONEUL_BY_DAY_STEM: Record<string, string[]> = CHEONEUL_GWIIN_MAP
+// 태극귀인(太極貴人) — 三命通會: 甲乙生人子午中, 丙丁雞兔定亨通, 戊己兩干臨四季,
+//   庚辛寅亥祿豐隆, 壬癸巳申偏喜美. 즉 甲乙 子午 / 丙丁 卯酉 / 戊己 辰戌丑未 /
+//   庚辛 寅亥 / 壬癸 巳申. (예전 표는 戊己 丑未 누락, 庚辛 丑未·壬癸 寅申 오기였다.)
 const TAEGEUK_BY_DAY_STEM: Record<string, string[]> = {
   甲: ['子', '午'],
   乙: ['子', '午'],
   丙: ['卯', '酉'],
   丁: ['卯', '酉'],
-  戊: ['辰', '戌'],
-  己: ['辰', '戌'],
-  庚: ['丑', '未'],
-  辛: ['丑', '未'],
-  壬: ['寅', '申'],
-  癸: ['寅', '申'],
+  戊: ['辰', '戌', '丑', '未'],
+  己: ['辰', '戌', '丑', '未'],
+  庚: ['寅', '亥'],
+  辛: ['寅', '亥'],
+  壬: ['巳', '申'],
+  癸: ['巳', '申'],
 }
 function isGeumYeoseong(dayStem: string, branch: string): boolean {
   return GEUMYEO_BY_DAY_STEM[dayStem] === branch
@@ -583,23 +567,6 @@ function isWonjin(dayBranch: string, targetBranch: string): boolean {
   return WONJIN_PAIRS[dayBranch] === targetBranch
 }
 
-// 천주귀인(天廚貴人): 일간 기준
-const CHEONJU_BY_DAY_STEM: Record<string, string> = {
-  甲: '巳',
-  乙: '午',
-  丙: '巳',
-  丁: '午',
-  戊: '巳',
-  己: '午',
-  庚: '亥',
-  辛: '子',
-  壬: '亥',
-  癸: '子',
-}
-function isCheonjuGwiin(dayStem: string, targetBranch: string): boolean {
-  return CHEONJU_BY_DAY_STEM[dayStem] === targetBranch
-}
-
 // 건록(建祿): 일간의 록지
 const GEONROK_BY_DAY_STEM: Record<string, string> = {
   甲: '寅',
@@ -615,6 +582,18 @@ const GEONROK_BY_DAY_STEM: Record<string, string> = {
 }
 function isGeonrok(dayStem: string, targetBranch: string): boolean {
   return GEONROK_BY_DAY_STEM[dayStem] === targetBranch
+}
+
+// 천주귀인(天廚貴人) — 식신(食神)의 건록(祿): CHEONJU[s] = GEONROK[식신(s)].
+//   甲巳 乙午 丙巳 丁午 戊申 己酉 庚亥 辛子 壬寅 癸卯 (OD-6 기본 학파).
+//   식신 = 일간이 生하는 같은 음양의 천간 = 천간 순서 +2 (甲→丙, 壬→甲).
+//   예전 표는 戊巳 己午 壬亥 癸子 로 일간 자신의 祿이 섞여 어느 학파와도 맞지 않았다.
+const STEM_NAME_ORDER = STEMS.map((s) => s.name)
+const CHEONJU_BY_DAY_STEM: Record<string, string> = Object.fromEntries(
+  STEM_NAME_ORDER.map((stem, i) => [stem, GEONROK_BY_DAY_STEM[STEM_NAME_ORDER[(i + 2) % 10]]])
+)
+function isCheonjuGwiin(dayStem: string, targetBranch: string): boolean {
+  return CHEONJU_BY_DAY_STEM[dayStem] === targetBranch
 }
 
 // 암록(暗祿): 정통 = 건록(祿)의 육합신(合). 건록 지지의 六合 짝.
@@ -657,12 +636,9 @@ function isJewang(dayStem: string, targetBranch: string): boolean {
   return JEWANG_BY_DAY_STEM[dayStem] === targetBranch
 }
 
-// 삼재(三災): 년지 기준 3년 주기의 불운. 정통 교리값은 relationTables(SSOT)에서
-// THREE_HARMONY × BRANCH_CLASH × DIRECTIONAL_HARMONY 로 파생한다(드리프트 차단).
-function isSamjae(yearBranch: string, currentYearBranch: string): boolean {
-  const samjaeBranches = SAMJAE_BY_YEAR_BRANCH[yearBranch]
-  return samjaeBranches?.includes(currentYearBranch) ?? false
-}
+// 삼재(三災)는 시기 신살이다 — 그해 세운 지지가 띠의 삼재 3지(relationTables
+// SAMJAE_BY_YEAR_BRANCH) 안에 있을 때만 해당한다. 본명 신살이 아니므로 여기서는
+// 내지 않는다(예전엔 모든 차트의 년주에 '삼재'를 붙였다).
 
 // 천덕귀인(天德貴人): 월지 기준
 const CHEONDEOK_BY_MONTH_BRANCH: Record<string, string> = {
@@ -817,9 +793,9 @@ export function getShinsalHitsForDailyTarget(
     hits.push({ kind: twelve, basis: `일지(${natalDayBranch})` })
   }
 
-  // ─── 도화 (자오묘유 중 본인 일지의 三合 도화 자리) ───
-  if (DOHWA_SET.has(targetBranch)) {
-    hits.push({ kind: '도화', basis: `target=${targetBranch}` })
+  // ─── 도화 (본인 일지 三合국의 年殺 자리 — 년살과 같은 날) ───
+  if (isDohwa(natalDayBranch, targetBranch)) {
+    hits.push({ kind: '도화', basis: `일지(${natalDayBranch})` })
   }
 
   // ─── 일간 기준 길성·흉성 ───
@@ -890,6 +866,10 @@ export function getShinsalHitsForDailyTarget(
   if (isWonjin(natalDayBranch, targetBranch)) {
     hits.push({ kind: '원진', basis: `일지(${natalDayBranch})` })
   }
+  // 귀문관 (예민·직관·꿈) — 일지와 정통 6쌍
+  if (isGwimun(natalDayBranch, targetBranch)) {
+    hits.push({ kind: '귀문관', basis: `일지(${natalDayBranch})` })
+  }
   // 괴강 (추진력·강한 결단)
   if (checkGwaegang(natalDayStem, natalDayBranch, targetBranch)) {
     hits.push({ kind: '괴강', basis: `일주(${natalDayStem}${natalDayBranch})` })
@@ -900,10 +880,6 @@ export function getShinsalHitsForDailyTarget(
     // 천의성 (치유·돌봄)
     if (isCheonuiseong(natalMonthBranch, targetBranch)) {
       hits.push({ kind: '천의성', basis: `월지(${natalMonthBranch})` })
-    }
-    // 귀문관 (예민·직관·꿈)
-    if (getGwimunOn(natalMonthBranch, targetBranch, undefined)) {
-      hits.push({ kind: '귀문관', basis: `월지(${natalMonthBranch})` })
     }
   }
 
@@ -953,6 +929,7 @@ export function getShinsalHits(
   const dayBranch = normalizeBranchName(p.day.earthlyBranch.name)
   const dayStem = normalizeStemName(p.day.heavenlyStem.name)
   const monthBranch = normalizeBranchName(p.month.earthlyBranch.name)
+  const yearBranch = normalizeBranchName(p.year.earthlyBranch.name)
 
   const pairs: Array<[PillarKind, string]> = [
     ['year', normalizeBranchName(p.year.earthlyBranch.name)],
@@ -989,22 +966,6 @@ export function getShinsalHits(
     }
   }
 
-  // 월지 보완(옵션)
-  if (opt.useMonthCompletion) {
-    const monthRule = YEARMONTH_SHINSAL_BY_MONTH_BRANCH[monthBranch] || {}
-    for (const [kind, br] of pairs) {
-      const hitKind = monthRule[br]
-      if (hitKind) {
-        hits.push({
-          kind: hitKind,
-          pillars: [kind],
-          target: br,
-          detail: '월지(' + monthBranch + ') 기준',
-        })
-      }
-    }
-  }
-
   // 일반 신살/길성
   if (opt.includeGeneralShinsal || opt.includeLuckyDetails) {
     // 공망 계산 (일주 기준)
@@ -1012,11 +973,34 @@ export function getShinsalHits(
 
     for (const [kind, br] of pairs) {
       if (opt.includeGeneralShinsal) {
-        if (getDohwaOn(br)) {
-          hits.push({ kind: '도화', pillars: [kind], target: br })
+        if (isDohwa(dayBranch, br)) {
+          hits.push({
+            kind: '도화',
+            pillars: [kind],
+            target: br,
+            detail: '일지(' + dayBranch + ') 기준',
+          })
         }
-        if (getGwimunOn(monthBranch, br, opt.ruleSet)) {
-          hits.push({ kind: '귀문관', pillars: [kind], target: br })
+        // 귀문관: 이 기둥 지지가 일지(또는 년지)와 6쌍을 이루면 한 쌍당 hit 하나.
+        // pillars = [이 기둥, 짝이 된 기준 기둥], target = 이 기둥 지지(pillars[0]).
+        // 일지↔년지 쌍은 년주 차례에 일지 기준으로 한 번만 낸다(일주 차례엔 생략).
+        if (kind !== 'day') {
+          const partners: PillarKind[] = []
+          if (isGwimun(dayBranch, br)) partners.push('day')
+          if (kind !== 'year' && isGwimun(yearBranch, br)) partners.push('year')
+          if (partners.length > 0) {
+            hits.push({
+              kind: '귀문관',
+              pillars: [kind, ...partners],
+              target: br,
+              detail:
+                partners
+                  .map((pk) =>
+                    pk === 'day' ? '일지(' + dayBranch + ')' : '년지(' + yearBranch + ')'
+                  )
+                  .join('·') + ' 짝',
+            })
+          }
         }
         if (isHyeonchim(dayStem, br, opt.ruleSet)) {
           hits.push({ kind: '현침', pillars: [kind], target: br })
@@ -1145,18 +1129,7 @@ export function getShinsalHits(
     }
   }
 
-  // 삼재: 년지 기준 (현재 연도 기준으로 판단하려면 추가 파라미터 필요)
-  // 기본적으로 사주 내 년지만 표시 (실제 삼재 시기 판단은 운세 모듈에서)
-  const yearBranch = normalizeBranchName(p.year.earthlyBranch.name)
-  const samjaeBranches = SAMJAE_BY_YEAR_BRANCH[yearBranch]
-  if (samjaeBranches && opt.includeGeneralShinsal) {
-    hits.push({
-      kind: '삼재',
-      pillars: ['year'],
-      target: samjaeBranches.join(','),
-      detail: `${yearBranch}띠 삼재 지지: ${samjaeBranches.join(',')}`,
-    })
-  }
+  // 삼재는 시기 신살이라 본명 hit 로 내지 않는다(위 '삼재' 주석 참고).
 
   return hits
 }
@@ -1195,8 +1168,9 @@ export function annotateShinsal(
           '화개',
         ].includes(h.kind)
       ) {
-        if (!byPillar[k].twelveShinsal.includes(h.kind + '살')) {
-          byPillar[k].twelveShinsal.push(h.kind + '살')
+        const label = twelveShinsalLabel(h.kind)
+        if (!byPillar[k].twelveShinsal.includes(label)) {
+          byPillar[k].twelveShinsal.push(label)
         }
       }
       // 길성 (기존 + 확장 + 추가)
@@ -1322,27 +1296,13 @@ export function getTwelveShinsalSingleByPillar(
   const opt = { ...DEFAULT_ANNOTATE_OPTIONS, ...(options || {}) }
 
   const dayBranch = normalizeBranchName(p.day.earthlyBranch.name)
-  const monthBranch = normalizeBranchName(p.month.earthlyBranch.name)
-  const monthRule = YEARMONTH_SHINSAL_BY_MONTH_BRANCH[monthBranch] || {}
 
   const pick = (branchNameRaw: string) => {
     const b = normalizeBranchName(branchNameRaw)
-    if (opt.includeTwelveAll) {
-      const single = pickTwelveSingle(dayBranch, b)
-      return single ? single + '살' : ''
-    } else {
-      const fromDay = SHINSAL_SIMPLE_BY_DAY_BRANCH[dayBranch]?.[b]
-      if (fromDay) {
-        return fromDay + '살'
-      }
-    }
-    if (opt.useMonthCompletion) {
-      const fromMonth = monthRule[b]
-      if (fromMonth) {
-        return fromMonth + '살'
-      }
-    }
-    return ''
+    const single = opt.includeTwelveAll
+      ? pickTwelveSingle(dayBranch, b)
+      : SHINSAL_SIMPLE_BY_DAY_BRANCH[dayBranch]?.[b]
+    return single ? twelveShinsalLabel(single) : ''
   }
 
   return {

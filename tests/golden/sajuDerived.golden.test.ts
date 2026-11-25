@@ -23,11 +23,6 @@ import golden from './engine-golden.json'
 
 /** Engine stage that corrects each value. Delete an entry when its stage lands. */
 const KNOWN_DEFECTS: Record<string, string> = {
-  'D05 taegeuk': 'E3',
-  'D06 taegeuk': 'E3',
-  'D07 gwimun': 'E3',
-  'D08 gwimun': 'E3',
-  'D09 dohwa': 'E3',
   'D10 hwagi': 'E4',
   'Y01 primaryNotSupport': 'E4',
   'Y02 secondaryNotKibsin': 'E4',
