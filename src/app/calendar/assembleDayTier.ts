@@ -344,7 +344,10 @@ export async function assembleDayTier(input: AssembleDayTierInput): Promise<Dest
     monthScores: dayMonthScores,
     upcoming,
     nextBigDay,
-    hourCrossings: buildHourCrossings(dayCell, targetDayIso, natal.astro.location),
+    // 출생시각/출생지 미상이면 그 시각 상승궁을 구하지 않는다(좌표 폴백) — 사주 시진만.
+    hourCrossings: buildHourCrossings(dayCell, targetDayIso, natal.astro.location, {
+      placeUnreliable: natal.astro.placeUnreliable === true,
+    }),
     // 시(時)별 달 정밀 — 그날 12 시진 달을 재계산해 달×본명 어스펙트 절정 시각.
     // (위에서 미리 발진한 promise 를 여기서 수확.)
     hourMoon: await hourMoonP,

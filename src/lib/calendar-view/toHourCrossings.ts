@@ -118,12 +118,17 @@ interface HourSignalDetail {
  * @param dayCell      포커스 일자의 CalendarCell (signals 에 hourly 시진 포함)
  * @param focusDayIso  'YYYY-MM-DD'
  * @param loc          본명 위치(상승점은 위·경도·tz 의존) — natal.astro.location
+ * @param opts.placeUnreliable  출생시각/출생지 미상(natal.astro.placeUnreliable) — 좌표가
+ *   기본값 폴백이라 그 시각 상승궁·룰러를 구하지 않는다. 시진은 사주 한 줄만 남고
+ *   교차(matched)·사전 해석은 붙지 않는다(엔진 감사 F1).
  */
 export function buildHourCrossings(
   dayCell: CalendarCell,
   focusDayIso: string,
-  loc: { latitude: number; longitude: number; timeZone: string }
+  loc: { latitude: number; longitude: number; timeZone: string },
+  opts: { placeUnreliable?: boolean } = {}
 ): HourCrossItem[] {
+  const placeUnreliable = opts.placeUnreliable === true
   const [year, month, date] = focusDayIso.split('-').map(Number)
   if (!year || !month || !date) return []
 
@@ -164,6 +169,7 @@ export function buildHourCrossings(
     let ruler = ''
     let rulerEn = ''
     try {
+      if (placeUnreliable) throw new Error('place unreliable — no rising sign')
       const jd = natalToJD({
         year,
         month,
@@ -181,11 +187,12 @@ export function buildHourCrossings(
       rulerEn = SIGN_RULER[sign]
       ruler = PLANET_KO[rulerEn] ?? rulerEn
     } catch {
-      // 상승점 계산 실패(고위도·ephemeris) 시 사주만으로 한 줄은 유지.
+      // 상승점 계산 실패(고위도·ephemeris) 또는 출생지 미상 시 사주만으로 한 줄은 유지.
     }
 
     // 의미사전 게이팅 — 십신 × 룰러 매핑이 있고, 매핑 길흉 방향이 시진 폴라리티와
     // 모순(한쪽 길·한쪽 흉)이 아니면 진짜 교차. 엔진 combinePolarity 와 같은 원칙.
+    // 룰러가 없으면(상승궁 미산출) 매핑이 없어 교차가 아니다.
     const mapping = lookupCrossMapping(sibsin, rulerEn)
     const matched = !!mapping && (mapping.polarity === 0 || mapping.polarity > 0 === s.polarity > 0)
 

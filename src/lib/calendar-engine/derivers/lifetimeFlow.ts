@@ -948,10 +948,17 @@ export function deriveLifetimeFlow(
     yongEnList.length === 2 ? `${yongEnList[0]} or ${yongEnList[1]}` : (yongEnList[0] ?? '')
 
   // ── astro identity (Sun / Asc / MC) ──
+  // 출생시각/출생지 미상(placeUnreliable)이면 상승궁·MC 는 정오 앵커·기본 좌표 폴백이라
+  // 소개 문장에 넣지 않는다 — 태양 별자리만(CONVENTIONS §5, 엔진 감사 F1).
+  const placeUnreliable = natal.astro?.placeUnreliable === true
   const planets = (natal.astro?.chart?.planets ?? []) as Array<{ name?: string; sign?: string }>
   const sunSign = planets.find((p) => p.name === 'Sun')?.sign
-  const ascSign = (natal.astro?.chart?.ascendant as { sign?: string } | undefined)?.sign
-  const mcSign = (natal.astro?.chart?.mc as { sign?: string } | undefined)?.sign
+  const ascSign = placeUnreliable
+    ? undefined
+    : (natal.astro?.chart?.ascendant as { sign?: string } | undefined)?.sign
+  const mcSign = placeUnreliable
+    ? undefined
+    : (natal.astro?.chart?.mc as { sign?: string } | undefined)?.sign
   const astroIdParts: string[] = []
   if (isEn) {
     if (sunSign) astroIdParts.push(`Sun in ${SIGN[sunSign] ?? sunSign}`)

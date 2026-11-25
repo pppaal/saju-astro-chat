@@ -203,8 +203,11 @@ function huisinTriad(natal: NatalContext) {
 function deriveAstro(natal: NatalContext): DestinypalUserAstro {
   const chart = natal.astro.chart
   const sun = chart.planets.find((p) => p.name === 'Sun')
-  const asc = chart.ascendant
-  const mc = chart.mc
+  // 출생시각/출생지 미상(placeUnreliable) — chart 의 ASC·MC 는 정오 앵커·기본 좌표 폴백이라
+  // 상승궁·MC 를 내보내지 않는다(태양 별자리는 시각·장소 의존이 미미해 유지; CONVENTIONS §5).
+  const placeUnreliable = natal.astro.placeUnreliable === true
+  const asc = placeUnreliable ? undefined : chart.ascendant
+  const mc = placeUnreliable ? undefined : chart.mc
   return {
     sun: sun ? SIGN_KO[sun.sign] : undefined,
     asc: asc ? SIGN_KO[asc.sign] : undefined,
@@ -369,16 +372,21 @@ export function toUser(natal: NatalContext, opts: ToUserOptions = {}): Destinypa
   const tgStrength = advanced?.tonggeun?.totalStrength
   const rootStatus = rootLine(monthBranch, drStatus, tgStrength)
 
-  // birth strings
+  // birth strings — 출생시각 미상이면 시각 칸을 뺀다(input 의 시각은 정오 앵커라 실제 출생
+  // 시각처럼 보여주지 않는다; loadTierData.formatBirthLine 과 같은 규약).
   const inp = natal.input
+  const timeUnknown = natal.saju.timeUnknown === true
+  const hhmm = inp
+    ? timeUnknown
+      ? ''
+      : ` ${String(inp.hour).padStart(2, '0')}:${String(inp.minute).padStart(2, '0')}`
+    : ''
   const birth =
     opts.birthDisplay ??
     (inp
-      ? `${inp.year}-${String(inp.month).padStart(2, '0')}-${String(inp.date).padStart(2, '0')} ${String(inp.hour).padStart(2, '0')}:${String(inp.minute).padStart(2, '0')}`
+      ? `${inp.year}-${String(inp.month).padStart(2, '0')}-${String(inp.date).padStart(2, '0')}${hhmm}`
       : '')
-  const birthKo = inp
-    ? `${inp.year}년 ${inp.month}월 ${inp.date}일 ${String(inp.hour).padStart(2, '0')}:${String(inp.minute).padStart(2, '0')}`
-    : ''
+  const birthKo = inp ? `${inp.year}년 ${inp.month}월 ${inp.date}일${hhmm}` : ''
 
   return {
     birth,
