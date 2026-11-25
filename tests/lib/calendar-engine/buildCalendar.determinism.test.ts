@@ -1,19 +1,31 @@
-import { describe, it, expect } from 'vitest'
-import { createHash } from 'node:crypto'
-import { calculateSajuData } from '@/lib/saju/saju'
-import { buildNatalContext } from '@/lib/calendar-engine/context/build'
-import { buildCalendar } from '@/lib/calendar-engine'
-import type { CalendarCell } from '@/lib/calendar-engine/types'
-
 /**
- * buildCalendar 결정론 골든.
+ * buildCalendar 결정론 골든 — 진짜 천체력 (destiny release gate).
  *
  * 엔진은 순수·재현가능해야 한다(CLAUDE.md) — 같은 본명·같은 범위·같은 now 면
  * 셀 출력이 byte-identical. 이 테스트가 그 불변식을 못 깨게 잠근다:
  *   (1) 같은 입력 2회 빌드 → 셀 digest 동일(비결정성 회귀 차단)
  *   (2) digest 가 고정 golden 과 일치(의도치 않은 산식 변화 감지 — 의도 변경 시 갱신)
  *   (3) 점수 분포 invariant(0~100 범위 + 변별력 있음)
+ *
+ * 예전엔 전역 swisseph 목(행성 고정·swe_rise_trans 없음) 위의 digest 라 점성 신호는
+ * 가짜 위치였고 행성시는 아예 빠졌다(엔진 감사 F11). 이제 node 환경에서 목을 풀고 진짜
+ * 천체력으로 빌드한다. 사주 대운은 주입한 now 로 고정해 digest 가 시계에 새지 않는다.
+ * native swisseph 가 없으면 로컬에선 skip, CI·release gate 에선 실패한다
+ * (tests/helpers/realEphemeris.ts).
+ *
+ * @vitest-environment node
  */
+import { it, expect, vi } from 'vitest'
+import { createHash } from 'node:crypto'
+import type { CalendarCell } from '@/lib/calendar-engine/types'
+
+vi.unmock('swisseph')
+vi.unmock('@/lib/astrology/foundation/ephe')
+
+const { describeRealEphemeris } = await import('../../helpers/realEphemeris')
+const { calculateSajuData } = await import('@/lib/saju/saju')
+const { buildNatalContext } = await import('@/lib/calendar-engine/context/build')
+const { buildCalendar } = await import('@/lib/calendar-engine')
 
 const LOC = { lat: 37.5665, lon: 126.978, tz: 'Asia/Seoul' }
 const BIRTH = { birthDate: '1990-05-15', birthTime: '10:30', gender: 'male' as const }
@@ -23,8 +35,23 @@ const RANGE = {
   granularity: 'day' as const,
 }
 
+/** 셀 수치 골격 digest — 의도적 산식/룰 변경 때만 갱신(아래 갱신 이력). */
+const GOLDEN = 'bc0ee8365684e53bc23c7ef6a5ab7ba738e0af6b'
+
+/** 대운 기준 시각 — 빌드 범위 첫날(2026-06-01 KST 정오). */
+const NOW = new Date('2026-06-01T03:00:00Z')
+
 async function build(): Promise<CalendarCell[]> {
-  const saju = calculateSajuData(BIRTH.birthDate, BIRTH.birthTime, BIRTH.gender, 'solar', LOC.tz)
+  const saju = calculateSajuData(
+    BIRTH.birthDate,
+    BIRTH.birthTime,
+    BIRTH.gender,
+    'solar',
+    LOC.tz,
+    false,
+    LOC.lon,
+    NOW
+  )
   const natal = await buildNatalContext(
     {
       birthDate: BIRTH.birthDate,
@@ -50,7 +77,7 @@ function digest(cells: CalendarCell[]): string {
   return createHash('sha1').update(JSON.stringify(skeleton)).digest('hex')
 }
 
-describe('buildCalendar 결정론 골든', () => {
+describeRealEphemeris('buildCalendar 결정론 골든 (real ephemeris)', () => {
   it('같은 입력 2회 빌드 → 셀 수치 골격 동일 (결정론)', async () => {
     const a = await build()
     const b = await build()
@@ -99,7 +126,19 @@ describe('buildCalendar 결정론 골든', () => {
     // 기준(전역 모의 천체력엔 swe_rise_trans 가 없어 이 테스트에선 행성시가 빠진다), ZR L3 는
     // L2 의 1/12(2.5일), 택일 classifyAspects 는 순서 없는 서로 다른 쌍, VoC 끝은 달 진입 시각.
     // 신호 구성이 바뀌어 digest 변경. 의도된 갱신.
-    const GOLDEN = '61adf62214a298670b3968e7d90d1f49cca038af'
+    // 2026-11 갱신(엔진 감사 E16): 전역 목 → 진짜 천체력. 트랜짓·달·품위·행성시·VoC 가
+    // 실제 위치로 계산되고, 사주 대운 기준 시각을 NOW 로 주입. 산식 변화 없음 — 측정
+    // 대상(목 → 실제 천체력)이 바뀐 갱신. 이후 이 digest 는 실제 하늘 위의 값을 잠근다.
     expect(digest(await build())).toBe(GOLDEN)
+  }, 60_000)
+
+  it('digest 가 서버 시계와 무관하다 (now 주입)', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    try {
+      vi.setSystemTime(new Date('2031-01-15T12:00:00Z'))
+      expect(digest(await build())).toBe(GOLDEN)
+    } finally {
+      vi.useRealTimers()
+    }
   }, 60_000)
 })

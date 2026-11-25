@@ -220,6 +220,30 @@ export default defineConfig({
                 branches: 82,
                 statements: 91,
               },
+              // 2026-11-25 (엔진 감사 E16, F10): 예전엔 거의 전부 전역 swisseph 목 위에서만
+              // 돌던 점성 타이밍 세 파일(감사 시점 lines almuten 0% · profections 58% ·
+              // outerMilestones 49%). 진짜 천체력 스위트(npm run test:destiny:release 묶음)만
+              // 돌린 로컬 실측 L/S/F/B — almuten 94.6/93.9/100/86.4, profections
+              // 88.2/88.9/100/60.0, outerMilestones 91.9/84.3/100/69.8 — 에서 ~2pt 아래로 고정.
+              // 전체 스위트는 목 기반 단위 테스트가 더해져 이보다 높다.
+              'src/lib/astrology/foundation/almutenFiguris.ts': {
+                lines: 92,
+                functions: 99,
+                branches: 84,
+                statements: 91,
+              },
+              'src/lib/astrology/foundation/profections.ts': {
+                lines: 86,
+                functions: 99,
+                branches: 58,
+                statements: 86,
+              },
+              'src/lib/calendar-engine/lifecycle/outerMilestones.ts': {
+                lines: 89,
+                functions: 99,
+                branches: 67,
+                statements: 82,
+              },
               'src/app/api/**': {
                 // 2026-06-23: re-baselined to restore the floor<actual invariant.
                 // The 2026-06-21 ratchet set api floors (88/88/86/72) above the

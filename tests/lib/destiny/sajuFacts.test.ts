@@ -1,6 +1,7 @@
 // tests/lib/destiny/sajuFacts.test.ts
 import { describe, it, expect } from 'vitest'
-import { collectSajuFacts } from '@/lib/destiny/sajuFacts'
+import { collectSajuFacts, type SajuFacts } from '@/lib/destiny/sajuFacts'
+import { calculateStrengthScore, strengthBandOf, type StrengthBand } from '@/lib/saju/strengthScore'
 
 // 본 테스트의 기준 출생 = destinypal preview 가 쓰는 1995-02-09 06:40 KST 남자.
 // 1995 = 乙亥'년'(음년), 일주는 辛未 → 일간(日干)=辛(음금). calculateSajuData
@@ -49,9 +50,26 @@ describe('collectSajuFacts — 순수 facts 계산', () => {
     expect(sum).toBeGreaterThan(0)
   })
 
-  it('strength — 신강/신약/빈 문자열 셋 중 하나', () => {
+  it('strength — 강약 점수 5단계(strengthBandOf)를 접은 3분류 신강/중화/신약', () => {
     const f = collectSajuFacts(BIRTH)
-    expect(['신강', '신약', '']).toContain(f.strength)
+    // 5단계 → 3분류 (CONVENTIONS §10, 엔진 감사 E4·SD-08). 예전 테스트는 중화를 몰랐다.
+    const FOLD: Record<StrengthBand, SajuFacts['strength']> = {
+      극신강: '신강',
+      신강: '신강',
+      중화: '중화',
+      신약: '신약',
+      극신약: '신약',
+    }
+    const P = f._raw.pillars
+    const s = calculateStrengthScore({
+      year: P.year,
+      month: P.month,
+      day: P.day,
+      time: P.time,
+    } as never)
+    expect(s.level).toBe(strengthBandOf(s.total))
+    expect(f.strength).toBe(FOLD[s.level])
+    expect(['신강', '중화', '신약']).toContain(f.strength)
   })
 
   it('geokguk — null 또는 격국명 (예: 정관격)', () => {

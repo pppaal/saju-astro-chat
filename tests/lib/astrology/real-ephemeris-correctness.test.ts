@@ -1,58 +1,81 @@
 /**
  * 실제 천체력(real swisseph) 정확성 회귀 테스트.
  *
- * 다른 점성 테스트는 전부 tests/setup.ts 의 swisseph/ephe mock 을 통해
- * *가짜* 행성 위치를 받는다(태양이 늘 ~쌍둥이 9°). 그 mock 은 구조/배선
- * 테스트엔 쓸모 있지만 *천문 정확성*은 전혀 검증하지 못한다 — 천체력이
- * 통째로 망가져도(또는 mock 이 garbage 를 줘도) 아무도 못 잡는다.
+ * 다른 점성 테스트 대부분은 tests/setup.ts 의 swisseph/ephe mock 을 통해 *가짜* 행성
+ * 위치를 받는다(태양이 늘 같은 자리). 그 mock 은 구조/배선 테스트엔 쓸모 있지만 *천문
+ * 정확성*은 전혀 검증하지 못한다.
  *
- * 이 파일만 mock 을 풀고(vi.unmock) node 환경에서 실제 swisseph +
- * public/ephe 데이터로 계산해, 알려진 계절별 태양 위치를 단언한다.
- * "전부 같은 별자리로 나오는" 류의 회귀를 잡는 최후의 그물.
+ * 이 파일은 mock 을 풀고(vi.unmock) node 환경에서 실제 swisseph + public/ephe 로 계산한
+ * 본명 차트를 독립 천체력(astronomy-engine, 진황도·겉보기 위치 — scripts/golden 생성기와
+ * 같은 정의)과 0.02° 안에서 맞춘다. 예전엔 태양이 30° 폭 계절 띠 안에 있는지만 봤다
+ * (엔진 감사 F10). 정밀 골든 전체(ASC/MC·커스프·하우스·교점)는
+ * tests/golden/astro.golden.node.test.ts 가 맡는다.
+ *
+ * native swisseph 가 없으면 로컬에선 skip, CI·release gate 에선 실패한다
+ * (tests/helpers/realEphemeris.ts).
  *
  * @vitest-environment node
  */
-import { describe, it, expect, vi } from 'vitest'
+import { it, expect, vi } from 'vitest'
+import * as Astronomy from 'astronomy-engine'
 
 // 전역 setup 의 mock 두 개를 이 파일에서만 해제 → 진짜 모듈을 쓴다.
 vi.unmock('swisseph')
 vi.unmock('@/lib/astrology/foundation/ephe')
 
-// CI 러너 등 native swisseph 바이너리가 로드되지 않는 환경(ABI/rebuild 불일치)
-// 에서는 진짜 천체력을 못 쓰므로 hard-fail 대신 skip 한다. ephe.ts 도 swisseph
-// 미탑재를 정상 상태로 취급. swisseph 가 로드되면 평소대로 실제 단언을 돈다.
-const swissephAvailable = await import('swisseph')
-  .then(() => true)
-  .catch(() => false)
-const describeWithEphemeris = swissephAvailable ? describe : describe.skip
+const { describeRealEphemeris } = await import('../../helpers/realEphemeris')
+const { calculateNatalChart } = await import('@/lib/astrology/foundation/astrologyService')
 
-async function sunLongitude(year: number, month: number, date: number): Promise<number> {
-  const { calculateNatalChart } = await import('@/lib/astrology/foundation/astrologyService')
-  const natal = await calculateNatalChart({
-    year, month, date, hour: 12, minute: 0,
-    latitude: 37.5665, longitude: 126.978, timeZone: 'Asia/Seoul',
-  })
-  const sun = natal.planets.find((p) => p.name === 'Sun')
-  if (!sun) throw new Error('Sun not found in natal chart')
-  return sun.longitude
+const TOL_DEG = 0.02
+const angDiff = (a: number, b: number) => Math.abs(((a - b + 540) % 360) - 180)
+
+/** 독립 기준 — astronomy-engine 겉보기 지심 황경(진황도). */
+function referenceLon(name: string, t: Date): number {
+  if (name === 'Sun') return Astronomy.SunPosition(t).elon
+  if (name === 'Moon') return Astronomy.EclipticGeoMoon(t).lon
+  return Astronomy.Ecliptic(Astronomy.GeoVector(name as Astronomy.Body, t, true)).elon
 }
 
-describeWithEphemeris('real ephemeris 정확성 (mock 없이 node 환경)', () => {
-  it('태양 황경이 출생 계절과 일치한다 (전부-쌍둥이 mock 버그를 잡는 그물)', async () => {
-    // 황경: 물병 300~330 / 게 90~120 / 전갈 210~240
-    const feb = await sunLongitude(1995, 2, 9) // 물병 (≈320)
-    const jul = await sunLongitude(2000, 7, 15) // 게 (≈113)
-    const nov = await sunLongitude(1985, 11, 20) // 전갈 (≈238)
+// 서울 정오(KST = UTC+9, 세 날짜 모두 서머타임 없음) — 계절별 태양 사인 포함.
+const CASES = [
+  { date: [1995, 2, 9], utc: '1995-02-09T03:00:00Z', sunSign: 'Aquarius' },
+  { date: [2000, 7, 15], utc: '2000-07-15T03:00:00Z', sunSign: 'Cancer' },
+  { date: [1985, 11, 20], utc: '1985-11-20T03:00:00Z', sunSign: 'Scorpio' },
+] as const
+const BODIES = ['Sun', 'Moon', 'Mercury', 'Mars', 'Saturn'] as const
 
-    expect(feb).toBeGreaterThan(300)
-    expect(feb).toBeLessThan(330)
-    expect(jul).toBeGreaterThan(95)
-    expect(jul).toBeLessThan(125)
-    expect(nov).toBeGreaterThan(225)
-    expect(nov).toBeLessThan(250)
+async function natal([year, month, date]: readonly [number, number, number]) {
+  return calculateNatalChart({
+    year,
+    month,
+    date,
+    hour: 12,
+    minute: 0,
+    latitude: 37.5665,
+    longitude: 126.978,
+    timeZone: 'Asia/Seoul',
+  })
+}
 
-    // 날짜가 다르면 위치도 명백히 달라야 한다 (mock 은 전부 ~45° 였다).
-    expect(Math.abs(feb - jul)).toBeGreaterThan(60)
-    expect(Math.abs(jul - nov)).toBeGreaterThan(60)
+describeRealEphemeris('real ephemeris 정확성 (mock 없이 node 환경)', () => {
+  for (const c of CASES) {
+    it(`${c.utc} 서울 정오 — 행성 황경이 독립 천체력과 ${TOL_DEG}° 안`, async () => {
+      const n = await natal(c.date)
+      const t = new Date(c.utc)
+      for (const body of BODIES) {
+        const p = n.planets.find((x) => x.name === body)
+        expect(p, body).toBeDefined()
+        expect(angDiff(p!.longitude, referenceLon(body, t)), body).toBeLessThanOrEqual(TOL_DEG)
+      }
+      expect(n.planets.find((x) => x.name === 'Sun')!.sign).toBe(c.sunSign)
+    })
+  }
+
+  it('날짜가 다르면 태양 위치도 크게 다르다 (전부-같은-자리 mock 버그를 잡는 그물)', async () => {
+    const suns = await Promise.all(
+      CASES.map(async (c) => (await natal(c.date)).planets.find((p) => p.name === 'Sun')!.longitude)
+    )
+    expect(angDiff(suns[0], suns[1])).toBeGreaterThan(60)
+    expect(angDiff(suns[1], suns[2])).toBeGreaterThan(60)
   })
 })
