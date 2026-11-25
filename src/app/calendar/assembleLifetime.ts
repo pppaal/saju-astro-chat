@@ -6,7 +6,7 @@
    loadTierData('year')를 공유해 1년 풀빌드(~3s 계산, 캐시 행 ~39MB)를
    통째로 내고 산출물 대부분을 버렸다. 이 어셈블러는 그 경로를 끊는다:
 
-     · lifeCurve + 실측 외행성 마일스톤(outerMilestones)
+     · lifeCurve + 실측 생애 마디(outerMilestones — 캘린더 라이프사이클 신호와 같은 순간)
      · lifetimeFlow / lifetimePivots (동일 now 주입)
      · toLifetime (만 나이 SSOT)
      · user 요약 (assembleUserSummary — /calendar 와 공유)
@@ -74,8 +74,10 @@ export async function assembleLifetime(input: AssembleLifetimeInput): Promise<As
   const [astroSeries, milestoneOverrides] = await Promise.all([
     // 인생 곡선용 실 외행성 트랜짓 시계열(프로세스 메모로 재방문 무료).
     computeTransitAstroSeries(natal, { span: 90, step: 3 }).catch(() => null),
-    // 외행성 마일스톤 실측(감사 A-3) — 실패 시 undefined → 평균 테이블 폴백.
-    calculateOuterPlanetMilestones(natal).catch(() => undefined),
+    // 생애 마디 실측(감사 A-3, G6) — 캘린더 라이프사이클 신호(→ 아래 10년 겹침의 부모)와
+    // 같은 함수·같은 메모라 인생 마디와 겹침이 같은 순간을 읽는다. 실패 시 [] → 마디 없음
+    // (평균 나이표로 채우지 않는다).
+    calculateOuterPlanetMilestones(natal).catch(() => []),
   ])
 
   // 곡선 조립은 동기 — astroSeries 있을 때만. 실패(null)면 곡선만 빠지고 나머지 정상.
@@ -121,6 +123,8 @@ export async function assembleLifetime(input: AssembleLifetimeInput): Promise<As
   lifetime.thisYear = buildThisYear(natal, input.todayIso, now)
   // ⑧ 이 10년의 사주×점성 교차 — 1일 evidence 셀의 decadal 층 중 대운 부모와 10년 층
   //   천체 부모가 교차와 같은 부호인 것만(정직성 게이트, 계획 B3 #8 — 연 셀 불필요).
+  //   생애 마디 부모(astro.lifecycle.*)의 창은 위 milestoneOverrides 의 통과 창 그대로라
+  //   (astro-lifecycle 추출기, G6) 겹침 행과 마디 날짜가 서로 어긋나지 않는다.
   //   캘린더 엔진이 범위 불변이라(엔진 감사 X1·E9) 이 1일 셀의 교차는 같은 날 월 빌드
   //   셀의 교차와 같다 — /calendar 월·일 화면과 같은 사실을 말한다(rangeInvariance 테스트).
   //   Promise 로 왔으면 여기서 await — 이미 위 병렬 구간과 겹쳐 돌았으니 대개 즉시.

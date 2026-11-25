@@ -124,7 +124,8 @@ function extractSajuKey(s: ActiveSignal): string | undefined {
  * 연 광체의 이름표다 — 프로펙션·상징 주기와 같은 범주라, 구간 안의 모든 일진·시진과 겹쳐
  * '비견 × 태양'·'정인 × 달' 같은 교차를 냈다(2026-11 표본+시드 20명: 교차의 16.6%).
  * 회귀 신호 자체는 단독 점성 신호로 남는다. 실제 행성 회귀(목성·토성 등 라이프사이클)는
- * 하늘의 그 행성이 본명 자리로 돌아오는 사건이라 그대로 교차 키다.
+ * 하늘의 그 행성이 본명 자리로 돌아오는 사건이라 그대로 교차 키다 — 창은 평균 나이표가
+ * 아니라 그 사건의 실측 통과 창이다(calculateOuterPlanetMilestones, G6 · 재감사 CC-1).
  */
 const NON_ACTIVE_ASTRO_KINDS: ReadonlySet<string> = new Set([
   'eclipse',
@@ -139,8 +140,9 @@ const NON_ACTIVE_ASTRO_KINDS: ReadonlySet<string> = new Set([
 ])
 /**
  * 라이프사이클 마디 중 진행 달 회귀(progressed_lunar_*)도 같은 상징 방향이다 — kind 는
- * 'lifecycle' 이지만 planets[0]='Moon' 은 진행 차트의 달이라, 2년짜리 decadal 창이
- * 시진·일진과 만나 '정인 × 달' 같은 교차를 냈다. 실제 회귀(목성·토성 등)는 그대로 둔다.
+ * 'lifecycle' 이지만 planets[0]='Moon' 은 진행 차트의 달이라, 그 decadal 창이 시진·일진과
+ * 만나 '정인 × 달' 같은 교차를 냈다. 실제 회귀(목성·토성 등)는 그대로 키로 두며, 그 창은
+ * 인생 마디와 같은 실측 통과 창이다(astro-lifecycle, G6).
  */
 function isProgressedLifecycle(s: ActiveSignal): boolean {
   if (s.kind !== 'lifecycle') return false

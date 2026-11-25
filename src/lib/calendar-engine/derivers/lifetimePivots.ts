@@ -164,22 +164,20 @@ export function deriveLifetimePivots(
         ? 'upcoming'
         : 'current'
 
-  // 점성 라이프사이클 마일스톤 (출생~90세) — 이름 있는 핵심 전환들, 절대 누락 금지.
-  // ko/en 두 번 산출해 병행 baked(같은 TABLE 순서라 인덱스로 1:1 zip).
-  const astroKoEvents = buildLifecycleTiming(
-    birthYear,
-    birthYear + 90,
-    true,
-    astroMilestoneOverrides,
-    now
-  ).events
-  const astroEnEvents = buildLifecycleTiming(
-    birthYear,
-    birthYear + 90,
-    false,
-    astroMilestoneOverrides,
-    now
-  ).events
+  // 점성 라이프사이클 마일스톤 (출생~90세) — 이름 있는 핵심 전환들. 실측 순간
+  // (calculateOuterPlanetMilestones)이 있는 마디만 싣는다: 평균 나이표 값은 사실이
+  // 아니라 쓰지 않는다(G6 — 예전엔 실측이 없으면 '명왕성 사각 36세'를 표에서 채웠다).
+  // ko/en 두 번 산출해 병행 baked(같은 TABLE 순서·같은 실측 집합이라 인덱스로 1:1 zip).
+  const astroKoEvents = buildLifecycleTiming(astroMilestoneOverrides, {
+    endYear: birthYear + 90,
+    isKo: true,
+    now,
+  }).events
+  const astroEnEvents = buildLifecycleTiming(astroMilestoneOverrides, {
+    endYear: birthYear + 90,
+    isKo: false,
+    now,
+  }).events
   // 마디 뜻풀이 개인화 — 회귀는 본명에서 그 행성이 있는 하우스에서 일어나므로,
   // 그 하우스를 붙이면 "누구나 같은 문장"이 그 사람 문장이 된다(실측: 인생총흐름
   // 문장의 48%가 전원 공통이었고 그 절반이 이 마디 텍스트였다). 하우스를 못 읽으면

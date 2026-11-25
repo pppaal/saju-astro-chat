@@ -15,6 +15,7 @@ import { buildHourCrossings } from '@/lib/calendar-view/toHourCrossings'
 import { deriveLifetimeFlow } from '@/lib/calendar-engine/derivers/lifetimeFlow'
 import { deriveLifetimePivots } from '@/lib/calendar-engine/derivers/lifetimePivots'
 import type { NatalContext } from '@/lib/calendar-engine/context/types'
+import type { LifecycleMilestoneOverride } from '@/lib/calendar-engine/lifecycle/astroLifecycle'
 import { makeNatal, makeChart, makePlanet, makeCell, makeSignal } from './_fixtures'
 
 function unreliable(natal: NatalContext): NatalContext {
@@ -178,8 +179,13 @@ describe('deriveLifetimePivots — placeUnreliable', () => {
     })
     return placeUnreliable ? unreliable(natal) : natal
   }
+  // 실측 마디 픽스처 — 마디는 실측 순간에서만 온다(평균 나이표 폴백 없음, G6).
+  const MILESTONES: LifecycleMilestoneOverride[] = [
+    { kind: 'jupiter_return_2', startYear: 2013, age: 23, exactDateISO: '2013-08-08' },
+    { kind: 'saturn_return_1', startYear: 2019, age: 29, exactDateISO: '2019-03-02' },
+  ]
   const meanings = (natal: NatalContext) =>
-    deriveLifetimePivots(natal, 'ko', undefined, NOW)
+    deriveLifetimePivots(natal, 'ko', MILESTONES, NOW)
       .pivots.filter((p) => p.astro)
       .flatMap((p) => [p.meaning ?? '', p.meaningEn ?? ''])
 

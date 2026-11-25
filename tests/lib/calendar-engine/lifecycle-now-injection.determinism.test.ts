@@ -1,7 +1,10 @@
 import { describe, it, expect } from 'vitest'
 import { calculateSajuData } from '@/lib/saju/saju'
 import { buildNatalContext } from '@/lib/calendar-engine/context/build'
-import { buildLifecycleTiming } from '@/lib/calendar-engine/lifecycle/astroLifecycle'
+import {
+  buildLifecycleTiming,
+  type LifecycleMilestoneOverride,
+} from '@/lib/calendar-engine/lifecycle/astroLifecycle'
 import { deriveLifetimePivots } from '@/lib/calendar-engine/derivers/lifetimePivots'
 
 /**
@@ -22,34 +25,26 @@ const P = {
   timeZone: 'Asia/Seoul',
 }
 
+// 1990-05-15 출생의 실측 마디 픽스처(모의 천체력이라 calculateOuterPlanetMilestones 대신).
+const MILESTONES: LifecycleMilestoneOverride[] = [
+  { kind: 'jupiter_return_1', startYear: 2001, age: 11, exactDateISO: '2001-08-20' },
+  { kind: 'saturn_return_1', startYear: 2019, age: 29, exactDateISO: '2019-03-02' },
+  { kind: 'pluto_square_pluto', startYear: 2030, age: 40, exactDateISO: '2030-01-11' },
+  { kind: 'uranus_return', startYear: 2074, age: 84, exactDateISO: '2074-03-01' },
+]
+
 describe('lifecycle now-injection 결정성', () => {
   it('buildLifecycleTiming: 같은 now → 동일 출력, 다른 now → 플래그만 결정론적으로 이동', () => {
     const birthYear = 1990
+    const at = (iso: string) =>
+      buildLifecycleTiming(MILESTONES, { endYear: birthYear + 90, now: new Date(iso) })
 
-    const at2020a = buildLifecycleTiming(
-      birthYear,
-      birthYear + 90,
-      true,
-      undefined,
-      new Date('2020-06-15T00:00:00Z')
-    )
-    const at2020b = buildLifecycleTiming(
-      birthYear,
-      birthYear + 90,
-      true,
-      undefined,
-      new Date('2020-12-31T23:59:59Z')
-    )
+    const at2020a = at('2020-06-15T00:00:00Z')
+    const at2020b = at('2020-12-31T23:59:59Z')
     // 같은 기준 연도(2020) → isPast/isCurrent/isUpcoming 까지 완전 동일
     expect(at2020a).toEqual(at2020b)
 
-    const at2050 = buildLifecycleTiming(
-      birthYear,
-      birthYear + 90,
-      true,
-      undefined,
-      new Date('2050-06-15T00:00:00Z')
-    )
+    const at2050 = at('2050-06-15T00:00:00Z')
     // 30년 뒤 기준이면 더 많은 마일스톤이 과거가 되어 있어야 한다 (시점에 따라 결정론적으로 이동).
     const pastAt2020 = at2020a.events.filter((e) => e.isPast).length
     const pastAt2050 = at2050.events.filter((e) => e.isPast).length
@@ -60,15 +55,8 @@ describe('lifecycle now-injection 결정성', () => {
   })
 
   it('buildLifecycleTiming: now 미지정 시에도 프로덕션 동작(기본 new Date()) 유지', () => {
-    const birthYear = 1990
-    const withDefault = buildLifecycleTiming(birthYear, birthYear + 90)
-    const withExplicitNow = buildLifecycleTiming(
-      birthYear,
-      birthYear + 90,
-      true,
-      undefined,
-      new Date()
-    )
+    const withDefault = buildLifecycleTiming(MILESTONES, { endYear: 2080 })
+    const withExplicitNow = buildLifecycleTiming(MILESTONES, { endYear: 2080, now: new Date() })
     // 기본값 경로와 명시 now=오늘 경로의 연/라벨 정의는 동일.
     expect(withDefault.events.map((e) => [e.event, e.startYear])).toEqual(
       withExplicitNow.events.map((e) => [e.event, e.startYear])
@@ -100,8 +88,8 @@ describe('lifecycle now-injection 결정성', () => {
     const natal = await buildNatalContext(P, { saju })
 
     // 서버 render lang 과 무관하게 동일한 양방향 라벨이 나와야 한다.
-    const ko = deriveLifetimePivots(natal, 'ko', undefined, new Date('2020-06-15T12:00:00Z'))
-    const en = deriveLifetimePivots(natal, 'en', undefined, new Date('2020-06-15T12:00:00Z'))
+    const ko = deriveLifetimePivots(natal, 'ko', MILESTONES, new Date('2020-06-15T12:00:00Z'))
+    const en = deriveLifetimePivots(natal, 'en', MILESTONES, new Date('2020-06-15T12:00:00Z'))
     expect(en.pivots).toEqual(ko.pivots)
 
     // 모든 pivot 은 label(ko) 과 labelEn(en) 을 항상 들고 있다.

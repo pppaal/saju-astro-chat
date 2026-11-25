@@ -152,42 +152,15 @@ describe('findOrbEdgeJD — 1° 통과 창 가장자리', () => {
   })
 })
 
-describe('F2: LifecycleEntry.age — 만 나이 노출', () => {
-  it('override 면 실측 만 나이, 아니면 테이블 나이를 age 로 노출', () => {
+describe('buildLifecycleTiming — 실측 배선(평균표 폴백 없음)', () => {
+  it('실측 kind 는 실측 연도·만 나이, 실측이 없는 kind 는 빠진다', () => {
     const { events } = buildLifecycleTiming(
-      1990,
-      2080,
-      true,
-      [{ kind: 'saturn_return_1', startYear: 2019, age: 28, exactDateISO: '2019-11-02' }],
-      new Date('2026-07-07T00:00:00Z')
+      [{ kind: 'saturn_return_1', startYear: 2023, age: 28, exactDateISO: '2023-11-02' }],
+      { endYear: BIRTH_YEAR + 90, isKo: true, now: new Date('2026-07-06T00:00:00Z') }
     )
-    expect(events.find((e) => e.event === 'saturn_return_1')!.age).toBe(28)
-    expect(events.find((e) => e.event === 'jupiter_return_1')!.age).toBe(12)
-  })
-})
-
-describe('buildLifecycleTiming — override 배선', () => {
-  it('override 가 있으면 그 연도로, 없으면 birthYear+표나이로', () => {
-    const overrides = [
-      { kind: 'saturn_return_1' as const, startYear: 2023, age: 28, exactDateISO: '2023-11-02' },
-    ]
-    const withOv = buildLifecycleTiming(
-      BIRTH_YEAR,
-      BIRTH_YEAR + 90,
-      true,
-      overrides,
-      new Date('2026-07-06T00:00:00Z')
-    )
-    const withoutOv = buildLifecycleTiming(
-      BIRTH_YEAR,
-      BIRTH_YEAR + 90,
-      true,
-      undefined,
-      new Date('2026-07-06T00:00:00Z')
-    )
-    const w = withOv.events.find((e) => e.event === 'saturn_return_1')!
-    const t = withoutOv.events.find((e) => e.event === 'saturn_return_1')!
-    expect(w.startYear).toBe(2023) // 실측 override
-    expect(t.startYear).toBe(BIRTH_YEAR + 29) // 표 폴백(고정 29)
+    expect(events.map((e) => [e.event, e.startYear, e.age])).toEqual([
+      ['saturn_return_1', 2023, 28],
+    ])
+    expect(events.find((e) => e.event === 'jupiter_return_1')).toBeUndefined()
   })
 })

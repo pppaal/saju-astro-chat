@@ -9,16 +9,16 @@
  *   사주  ─ 대운(10년 베이스) + 세운(1년 출렁임) + 세운×원국/대운 충·합(스파이크)
  *   점성  ─ 외행성 인생 마디(토성/목성/천왕성/명왕성/카이런…)를 오브 벨커브로 연속화
  *
- * 결정론적·순수: natal 입력 + now(테스트 고정) 만. 점성층은 일단 age-table 기반
- * lifecycle 마디(buildLifecycleTiming)를 연속화한 1차 근사 — 실 트랜짓 ephemeris
- * 연동은 다음 단계.
+ * 결정론적·순수: natal 입력 + now(테스트 고정) 만. 점성층은 실 트랜짓 시계열
+ * (computeTransitAstroSeries)을 쓰고, 시계열이 없을 때만 평균 나이표(typicalLifecycleAges)
+ * 마디를 연속화한 벨 근사로 대신한다(근사 곡선일 뿐 마디 날짜·나이로 내보내지 않는다).
  */
 import { annualStemBranch } from '@/lib/saju/cycles'
 import { getStemElement, getBranchElement } from '@/lib/saju/stemBranchUtils'
 import { FIVE_ELEMENT_RELATIONS } from '@/lib/saju/constants'
 import { favorOf, type YongsinLike } from './cycleTone'
 import {
-  buildLifecycleTiming,
+  typicalLifecycleAges,
   type AstroLifecycleEventKind,
 } from '@/lib/calendar-engine/lifecycle/astroLifecycle'
 import { getCachedTransitChart } from '../ephe-cache'
@@ -164,6 +164,7 @@ function movingAvg(xs: number[], half: number): number[] {
 export function buildLifeCurve(
   natal: NatalContext,
   opts: {
+    /** 받기만 한다 — 곡선은 본명만의 함수라 now 와 무관(호출부 호환). */
     now?: Date
     span?: number
     sajuWeight?: number
@@ -171,7 +172,6 @@ export function buildLifeCurve(
     astroSeries?: number[]
   } = {}
 ): LifeCurve | null {
-  const now = opts.now ?? new Date()
   const span = opts.span ?? 90
   const sajuW = opts.sajuWeight ?? 0.6
   const astroW = 1 - sajuW
@@ -203,17 +203,13 @@ export function buildLifeCurve(
     return f
   }
 
-  // 점성 마디 (age-table 기반) → {age, polarity}. 실 트랜짓 시계열이 주어지면 불필요.
+  // 점성 마디 (평균 나이표 기반 벨 근사) → {age, polarity}. 실 트랜짓 시계열이 주어지면
+  // 불필요 — 프로덕션(assembleLifetime)은 늘 시계열을 넘기고, 시계열이 없으면 곡선 자체를
+  // 그리지 않는다. 이 근사 곡선은 날짜·나이를 사실로 내보내지 않는다(마디 날짜는 실측만, G6).
   const astroEvents = opts.astroSeries
     ? []
-    : buildLifecycleTiming(birthYear, birthYear + span, false, undefined, now)
-        .events.map((e) => ({
-          // 만 나이 SSOT — LifecycleEntry.age(감사 F2 parity). 지금은 overrides
-          // 미주입이라 startYear−birthYear 와 같지만, 향후 override 배선 시 다른
-          // 티어(만 나이)와 곡선 Gaussian 중심이 어긋나지 않도록 e.age 로 통일.
-          age: e.age,
-          pol: ASTRO_POLARITY[e.event] ?? 0,
-        }))
+    : typicalLifecycleAges()
+        .map((e) => ({ age: e.ageStart, pol: ASTRO_POLARITY[e.kind] ?? 0 }))
         .filter((e) => e.pol !== 0)
 
   // ── 연 단위 raw 시계열 ──

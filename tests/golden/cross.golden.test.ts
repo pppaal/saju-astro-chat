@@ -337,8 +337,12 @@ describeRealEphemeris('calendar cross invariants (E0 section E)', () => {
         }
       }
     }
-    // The population has real rows (P05: 정인 × 목성 +2, 丁 대운 × third Jupiter return).
-    expect(rows).toBeGreaterThan(0)
+    // No honest row in this November-2026 population. P05's former 정인 × 목성 +2 row came
+    // from the mean-age window of the third Jupiter return (2025-01-01..2027-01-01); the real
+    // return was exact on 2025-07-14 and its 1° pass window closed on 2025-07-19 (re-audit
+    // CC-1, stage G6). A real lifecycle row (정인 × 목성 +2 inside the second Jupiter return's
+    // pass window) is pinned in tests/lib/calendar-engine/lifecycleCalendar.real.node.test.ts.
+    expect(rows).toBe(0)
     expect(bad.slice(0, 10)).toEqual([])
   })
 

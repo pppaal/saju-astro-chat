@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { calculateSajuData } from '@/lib/saju/saju'
 import { buildNatalContext } from '@/lib/calendar-engine/context/build'
 import { buildCalendar } from '@/lib/calendar-engine'
-import { buildLifecycleTiming } from '@/lib/calendar-engine/lifecycle/astroLifecycle'
+import { typicalLifecycleAges } from '@/lib/calendar-engine/lifecycle/astroLifecycle'
 
 /**
  * 타이밍(시점 정확도) 회귀 — 사주·점성 해석이 "맞는 날짜/나이"에 붙는지.
@@ -55,31 +55,26 @@ describe('타이밍 회귀', () => {
   it('일진 십신은 그날 천간 × 본명 일간(辛)으로 정확 — 丙=정관, 丁=편관, 戊=정인', async () => {
     const saju = calculateSajuData(P.birthDate, P.birthTime, P.gender, 'solar', P.timeZone)
     const natal = await buildNatalContext(P, { saju })
-    const expected: Record<string, string> = { '2026-06-01': '정관', '2026-06-02': '편관', '2026-06-03': '정인' }
+    const expected: Record<string, string> = {
+      '2026-06-01': '정관',
+      '2026-06-02': '편관',
+      '2026-06-03': '정인',
+    }
     for (const [d, sib] of Object.entries(expected)) {
       const g = await iljinGanji(natal, d)
       expect(g?.sibsin, `${d} 십신`).toBe(sib)
     }
   })
 
-  it('점성 라이프사이클 나이가 표준값 — 토성회귀~28/57, 목성회귀 12배수 근방, 명왕성사각~36', () => {
-    const events = buildLifecycleTiming(1995, 1995 + 90, true).events
-    const at = (kindKo: string) => events.find((e) => e.label.includes(kindKo))
-    // 토성 회귀: 28~30세 (실제 ~29.5y)
-    const saturn1 = events.find((e) => e.label.includes('토성 회귀') && e.startYear - 1995 < 40)
-    expect(saturn1).toBeDefined()
-    expect(saturn1!.startYear - 1995).toBeGreaterThanOrEqual(27)
-    expect(saturn1!.startYear - 1995).toBeLessThanOrEqual(31)
-    // 명왕성 사각: 35~40세
-    const pluto = at('명왕성')
-    expect(pluto).toBeDefined()
-    expect(pluto!.startYear - 1995).toBeGreaterThanOrEqual(34)
-    expect(pluto!.startYear - 1995).toBeLessThanOrEqual(42)
-    // 첫 목성 회귀: 11~13세
-    const jup = events.find((e) => e.label.includes('목성 회귀'))
-    expect(jup).toBeDefined()
-    expect(jup!.startYear - 1995).toBeGreaterThanOrEqual(11)
-    expect(jup!.startYear - 1995).toBeLessThanOrEqual(13)
+  it('점성 라이프사이클 평균 나이(탐색 씨앗)가 표준값 — 토성회귀~29, 목성회귀 12배수, 명왕성사각~36', () => {
+    // 평균 나이표는 이제 실측 탐색의 씨앗일 뿐 날짜로 쓰지 않는다(G6) — 씨앗 값 자체만 잠근다.
+    const age = (kind: string) => typicalLifecycleAges().find((e) => e.kind === kind)!.ageStart
+    expect(age('saturn_return_1')).toBeGreaterThanOrEqual(27)
+    expect(age('saturn_return_1')).toBeLessThanOrEqual(31)
+    expect(age('pluto_square_pluto')).toBeGreaterThanOrEqual(34)
+    expect(age('pluto_square_pluto')).toBeLessThanOrEqual(42)
+    expect(age('jupiter_return_1')).toBeGreaterThanOrEqual(11)
+    expect(age('jupiter_return_1')).toBeLessThanOrEqual(13)
   })
 
   it('세운·월운 십신이 그 해/달 간지로 정확 — 2026=병오(정관), 6월=계사(식상)', async () => {

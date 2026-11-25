@@ -1216,14 +1216,12 @@ export function deriveLifetimeFlow(
   // bilingual: 날짜 문자열을 KO/EN 양쪽으로 baked (kind 매핑 존재 판정은 KO 테이블
   // 기준 — 두 테이블 키가 동일).
   // 외행성 마디(토성/목성 회귀·천왕성 대립 등)를 단계 카드의 `outer` 로 채운다.
-  // 예전엔 astroMilestoneOverrides 만 직접 읽어, 그게 미지정(현재 전 경로)이면
-  // milestoneFacts 가 비어 `outer` 가 *항상 []* 였다(감사 CRITICAL — lifeStages 에서
-  // 외행성 마디 전체 누락). lifetimePivots 와 동일하게 buildLifecycleTiming 을 거쳐
-  // (override 있으면 실제 transit, 없으면 평균 테이블) 일관되게 채운다.
+  // lifetimePivots 와 동일하게 buildLifecycleTiming 을 거친다 — 실측 순간
+  // (calculateOuterPlanetMilestones)이 있는 마디만, 평균 나이표로 채우지 않는다(G6).
   const overrideByKind = new Map<string, LifecycleMilestoneOverride>()
   for (const o of astroMilestoneOverrides ?? []) overrideByKind.set(o.kind, o)
   const milestoneFacts: Array<{ kind: string; age: number; dateStrKo: string; dateStrEn: string }> =
-    buildLifecycleTiming(birthYear, birthYear + 90, true, astroMilestoneOverrides, now)
+    buildLifecycleTiming(astroMilestoneOverrides, { endYear: birthYear + 90, isKo: true, now })
       .events.filter((e) => MILESTONE_SHORT_KO[e.event])
       .map((e) => {
         const ov = overrideByKind.get(e.event)

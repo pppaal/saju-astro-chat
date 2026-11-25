@@ -177,9 +177,31 @@ correction.
   sunrise (`swe_rise_trans`); hours before sunrise belong to the previous day's
   ruler; polar days with no sunrise or sunset have none.
 - Moon void of course ends at the Moon's real ingress into the next sign.
-- Outer milestones (`calendar-engine/lifecycle/outerMilestones.ts`) — Saturn,
-  Jupiter and Chiron returns and the waxing outer squares are exact instants
-  (scan + bisection, about 1 min).
+- Life-cycle milestones (`calendar-engine/lifecycle/outerMilestones.ts`,
+  `calculateOuterPlanetMilestones`) — every milestone is an exact instant from
+  the sky (scan + bisection, about 1 min): Jupiter, Saturn, Chiron and Uranus
+  returns, the waxing Pluto and Neptune squares, the Uranus opposition, and the
+  progressed lunar return (secondary progression, one day = one year of
+  365.25 days: the instant is birth + T × 365.25 days, where the Moon returns to
+  its natal longitude T ≈ 27.2–27.5 days after birth).
+  - **Milestone date.** The first exact pass: `exactDateISO` is its date in the
+    birth time zone, `age` the completed age at that instant.
+  - **Search ranges** (completed age) cover the real first-pass ages of births
+    1900–2050: Pluto square 25–100 (real 35.6–88.1), Uranus opposition and
+    Neptune square 33–50, Chiron return 44–56, Uranus return 76–90, progressed
+    lunar return 25–30, Jupiter and Saturn returns about ±3 years around the
+    typical age.
+  - **Pass window.** The other passes of the same retrograde cluster (each within
+    500 days of the previous) give the last pass. The window runs from the moment
+    the approach that ends in the first pass comes within 1° of the exact angle
+    to the moment the planet leaves 1° after the last pass.
+  - **No table facts.** No hit inside the range, or an ephemeris failure, omits
+    the milestone. The mean-age table in `astroLifecycle.ts` is only a search
+    seed; `buildLifecycleTiming` takes exact milestones only.
+  - **One source.** Life milestones and stage lines, the calendar `lifecycle`
+    signal (window = pass window, peak = first pass, layer `decadal`), crosses
+    with a lifecycle parent, and the Life decade overlap all read the same
+    result, memoised per natal chart.
 - Plus eclipses, fixed stars, midpoints, arabic parts, almuten figuris.
 
 ## 3. Fact collectors (the SSOT)
@@ -281,7 +303,8 @@ signals:
   arc, secondary progressions and the progressed Moon, including the progressed
   lunar return milestone (symbolic directions), and solar and lunar returns
   (cycle periods; they stay standalone astro signals). Real planet returns
-  (Jupiter, Saturn, ... lifecycle milestones) remain keys.
+  (Jupiter, Saturn, ... lifecycle milestones) remain keys, active over the
+  milestone's pass window (§2).
 - **Window.** The intersection of the two parent windows. The peak is the
   midpoint of the parent peaks, or the window centre if that falls outside.
 - **Layer.** The narrowest parent layer
