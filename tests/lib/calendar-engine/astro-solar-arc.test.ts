@@ -4,20 +4,28 @@ import astroSolarArcExtractor from '@/lib/calendar-engine/extractors/astro-solar
 import {
   calculateSolarArcChart,
   findSolarArcAspects,
+  solarArcDegrees,
 } from '@/lib/astrology/foundation/progressions'
+import { natalToJD } from '@/lib/astrology/foundation/shared'
 import type { Chart, PlanetBase, ZodiacKo } from '@/lib/astrology/foundation/types'
-import type {
-  ExtractorContext,
-  ExtractorCache,
-  CalendarRange,
-} from '@/lib/calendar-engine/types'
+import type { ExtractorContext, ExtractorCache, CalendarRange } from '@/lib/calendar-engine/types'
 import type { NatalContext } from '@/lib/calendar-engine/context/types'
 
 // ─── helpers ──────────────────────────────────────────────────────────────
 
 const SIGNS: ZodiacKo[] = [
-  'Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo',
-  'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces',
+  'Aries',
+  'Taurus',
+  'Gemini',
+  'Cancer',
+  'Leo',
+  'Virgo',
+  'Libra',
+  'Scorpio',
+  'Sagittarius',
+  'Capricorn',
+  'Aquarius',
+  'Pisces',
 ]
 
 function makePlanet(name: string, longitude: number, house = 1): PlanetBase {
@@ -85,7 +93,7 @@ function makeNatalContext(chart: Chart): NatalContext {
 // ─── tests ────────────────────────────────────────────────────────────────
 
 describe('calculateSolarArcChart', () => {
-  it('shifts every planet by ageInYears × 1°', () => {
+  it('shifts every planet by the given arc (degrees)', () => {
     const natal = makeChart([
       ['Sun', 0],
       ['Moon', 90],
@@ -124,6 +132,19 @@ describe('calculateSolarArcChart', () => {
 })
 
 describe('findSolarArcAspects', () => {
+  it('excludes self-aspects at every arc (ASTRO-9)', () => {
+    const natal = makeChart([
+      ['Sun', 12],
+      ['Moon', 101],
+      ['Mars', 230],
+      ['Saturn', 305],
+    ])
+    for (let arcDeg = 0; arcDeg < 360; arcDeg += 0.5) {
+      const hits = findSolarArcAspects(natal, calculateSolarArcChart(natal, arcDeg), 0.5)
+      expect(hits.filter((h) => h.arcPlanet === h.natalPlanet)).toEqual([])
+    }
+  })
+
   it('detects exact conjunction within orb', () => {
     const natal = makeChart([
       ['Sun', 100],
@@ -183,15 +204,21 @@ describe('astroSolarArcExtractor', () => {
   })
 
   it('emits solar-arc signals when arc aspects hit natal planets', async () => {
-    // Construct a chart where age-30 solar arc moves natal Sun (0°) onto
-    // natal Mars (30°) → exact conjunction.
+    // The extractor takes the arc from the ephemeris (solarArcDegrees), not
+    // age × 1°. Compute the same arc it will use for the 2025-02 cursor (the
+    // global swisseph mock gives a non-physical Sun, so the value itself is
+    // arbitrary) and put natal Mars exactly one arc ahead of natal Sun.
+    const ctxNatal = makeNatalContext(makeChart([]))
+    const natalJD = natalToJD(ctxNatal.input)
+    const cursorJD = Date.UTC(2025, 1, 1) / 86_400_000 + 2440587.5
+    const arc = solarArcDegrees(natalJD, (cursorJD - natalJD) / 365.25)
     const natal = makeChart([
       ['Sun', 0],
-      ['Mars', 30],
+      ['Mars', arc],
       ['Saturn', 200],
     ])
     const ctx: ExtractorContext = {
-      natal: makeNatalContext(natal),
+      natal: { ...ctxNatal, astro: { ...ctxNatal.astro, chart: natal } },
       // Natal year 1995 → age 30 lands on 2025-02-09; pick a Feb 2025 window.
       range: {
         start: '2025-02-01T00:00:00.000Z',
@@ -217,6 +244,29 @@ describe('astroSolarArcExtractor', () => {
     expect(arcSunOnMars!.weight).toBeGreaterThan(0)
     expect(arcSunOnMars!.weight).toBeLessThanOrEqual(0.7)
     expect(arcSunOnMars!.name).toMatch(/Solar Arc Sun conjunction natal Mars/)
+    // evidence carries the ephemeris arc, not the age
+    expect((arcSunOnMars!.evidence.detail as { arcDegrees: number }).arcDegrees).toBeCloseTo(arc, 3)
+  })
+
+  it('never emits a body aspecting its own natal place (ASTRO-9)', async () => {
+    const natal = makeChart([
+      ['Sun', 0],
+      ['Moon', 47],
+      ['Mars', 133],
+    ])
+    const ctx: ExtractorContext = {
+      natal: makeNatalContext(natal),
+      range: {
+        start: '1995-03-01T00:00:00.000Z',
+        end: '2085-12-31T23:59:59.000Z',
+        granularity: 'month',
+      } as CalendarRange,
+      cache: makeCache(),
+    }
+    const signals = await astroSolarArcExtractor.extract(ctx)
+    expect(signals.length).toBeGreaterThan(0) // non-vacuous: other pairs do hit
+    const selfHits = signals.filter((s) => s.evidence.planets?.[0] === s.evidence.planets?.[1])
+    expect(selfHits).toEqual([])
   })
 
   it('caches solar arc chart per month (no double calculation)', async () => {
@@ -266,7 +316,10 @@ describe('astroSolarArcExtractor', () => {
   })
 
   it('skips months before birth (ageInYears < 0)', async () => {
-    const natal = makeChart([['Sun', 0], ['Mars', 30]])
+    const natal = makeChart([
+      ['Sun', 0],
+      ['Mars', 30],
+    ])
     const ctx: ExtractorContext = {
       natal: makeNatalContext(natal),
       // Range entirely before 1995-02-09 birth → no signals expected.

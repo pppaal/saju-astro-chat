@@ -1,22 +1,27 @@
 import {
   calculateSolarArcChart,
   findSolarArcAspects,
+  solarArcDegrees,
+  sunLongitudeAt,
   type SolarArcAspect,
 } from '@/lib/astrology/foundation/progressions'
+import { natalToJD } from '@/lib/astrology/foundation/shared'
 import type { Chart } from '@/lib/astrology/foundation/types'
+import { logger } from '@/lib/logger'
 import type { ActiveSignal, ExtractorContext, Polarity, SignalExtractor } from '../types'
 import { aspectFlowLine, pointKo } from '../data/astroFlow'
 
 /**
  * Solar Arc Directions 추출기.
  *
- * Solar Arc = 본명 행성을 전부 같은 각도 (= 진행 태양의 본명 태양 대비 이동량,
- * 1년 ≈ 1°) 으로 직접 이동시키는 헬레니즘+현대 점성 핵심 예측 기법.
+ * Solar Arc = 본명 행성을 전부 같은 각도 (= 진행 태양의 본명 태양 대비 이동량:
+ * λ☉(natalJD + ageInYears 일) − λ☉(natalJD)) 으로 직접 이동시키는 예측 기법.
  *
- * 본 추출기는 캐시된 본명 차트 + 매월 1일 ageInYears 로 Solar Arc 차트를
- * 한 번 계산하고, 그 차트가 본명 행성에 닿는 메이저 5 어스펙트
+ * 본 추출기는 매월 1일의 ageInYears 로 ephemeris 진짜 아크를 1회 구해
+ * (solarArcDegrees — "1년 = 1°" 근사 금지, 감사 ASTRO-2) Solar Arc 차트를 만들고,
+ * 그 차트가 *다른* 본명 행성에 닿는 메이저 5 어스펙트
  * (conjunction / sextile / square / trine / opposition) 를 orb 0.5° 이내로
- * 잡아 신호로 발행한다.
+ * 잡아 신호로 발행한다(자기 자신과의 각은 제외 — 감사 ASTRO-9).
  *
  * - layer: 'decadal' (느린 변화 — 한 번 닿으면 ±수개월 활성)
  * - weight: 0.7
@@ -52,21 +57,35 @@ const astroSolarArcExtractor: SignalExtractor = {
     const natalChart = natal.astro.chart
     if (!natalChart?.planets?.length) return signals
 
+    // 출생 순간(UT JD)과 본명 태양 — 아크의 기준점. 차트 meta 가 있으면 그 JD 를,
+    // 없으면(calendar 컨텍스트의 toChart 차트) 본명 입력에서 같은 방식으로 환산.
+    let natalJD: number
+    let natalSunLon: number
+    try {
+      natalJD = natalChart.meta?.jdUT ?? natalToJD(natal.input)
+      natalSunLon = sunLongitudeAt(natalJD)
+    } catch (err) {
+      logger.warn('[astro-solar-arc] natal instant unavailable — skipping solar arc', err)
+      return signals
+    }
+
     // 매월 1일을 cursor 로 잡아 그 달의 ageInYears 로 Solar Arc 차트 계산.
-    // 같은 (chart, age) 키로 cache 해 동일 달 재요청 시 재계산 회피.
+    // 같은 (월, age) 키로 cache 해 동일 달 재요청 시 재계산 회피.
     let cursor = new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth(), 1))
     const endMs = end.getTime()
 
     while (cursor.getTime() <= endMs) {
       const monthIso = cursor.toISOString().slice(0, 7) // YYYY-MM
-      const ageInYears = computeAgeInYears(natal.input, cursor)
+      const ageInYears = computeAgeInYears(natalJD, cursor)
       if (ageInYears >= 0) {
         const cacheKey = `solar-arc:${monthIso}:age=${ageInYears.toFixed(3)}`
-        let arcChart = cache.get<Chart>(cacheKey)
-        if (!arcChart) {
-          arcChart = calculateSolarArcChart(natalChart, ageInYears)
-          cache.set(cacheKey, arcChart)
+        let cached = cache.get<{ arc: number; chart: Chart }>(cacheKey)
+        if (!cached) {
+          const arc = solarArcDegrees(natalJD, ageInYears, natalSunLon)
+          cached = { arc, chart: calculateSolarArcChart(natalChart, arc) }
+          cache.set(cacheKey, cached)
         }
+        const { arc: arcDegrees, chart: arcChart } = cached
         const hits = findSolarArcAspects(natalChart, arcChart, ORB_DEG)
 
         // 활성 윈도우: 그 달 전체 — Solar Arc 는 느린 변화라 한 달 내내 활성.
@@ -117,7 +136,7 @@ const astroSolarArcExtractor: SignalExtractor = {
               planets: [hit.arcPlanet, hit.natalPlanet],
               detail: {
                 progressionType: 'solarArc',
-                arcDegrees: Number((ageInYears * 1).toFixed(3)),
+                arcDegrees: Number(arcDegrees.toFixed(3)),
                 ageInYears: Number(ageInYears.toFixed(3)),
                 exactAngle: Number(hit.exactAngle.toFixed(3)),
               },
@@ -134,13 +153,12 @@ const astroSolarArcExtractor: SignalExtractor = {
 }
 
 /**
- * 본명 input + 임의 시점 → years 단위 나이 (소수점 유지).
- * timezone 무관하게 일자 차로 근사 (Solar Arc 는 일 단위가 의미 없을 만큼 느림).
+ * 출생 순간(UT JD) + 임의 시점 → years 단위 나이 (소수점 유지).
+ * calculateSolarArcDirections 와 같은 기준 — 일수차 / 365.25.
  */
-function computeAgeInYears(natal: { year: number; month: number; date: number }, at: Date): number {
-  const natalUTC = Date.UTC(natal.year, natal.month - 1, natal.date)
-  const days = (at.getTime() - natalUTC) / 86_400_000
-  return days / 365.2425
+function computeAgeInYears(natalJD: number, at: Date): number {
+  const atJD = at.getTime() / 86_400_000 + 2440587.5
+  return (atJD - natalJD) / 365.25
 }
 
 export default astroSolarArcExtractor

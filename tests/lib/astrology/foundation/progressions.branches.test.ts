@@ -6,7 +6,7 @@
 //    targetDate 누락, 유효하지 않은 natal) → createFallbackProgressedChart
 //  - getProgressedMoonPhase 8개 위상 arm 전부
 //  - findProgressedToNatalAspects / Internal / Moon(없음 분기)
-//  - calculateSolarArcChart (1년≈1° 근사) + findSolarArcAspects (break/orb)
+//  - calculateSolarArcChart (주어진 아크만큼 평행 이동) + findSolarArcAspects (break/orb/자기각 제외)
 // swisseph 는 전역 mock(@/lib/astrology/foundation/ephe)로 결정적.
 import { describe, it, expect } from 'vitest'
 import {
@@ -243,9 +243,9 @@ describe('findProgressedToNatalAspects / Internal / Moon', () => {
 })
 
 describe('calculateSolarArcChart + findSolarArcAspects', () => {
-  it('shifts all planets and angles by ~1°/yr / 모든 점을 1°/년 전진', () => {
+  it('shifts all planets and angles by the arc / 모든 점을 아크만큼 전진', () => {
     const natal = baseChart([planet('Sun', 100), planet('Moon', 200)])
-    const arc = calculateSolarArcChart(natal, 10) // 10년 → +10°
+    const arc = calculateSolarArcChart(natal, 10) // 아크 10° → +10°
     expect(arc.planets.find((p) => p.name === 'Sun')!.longitude).toBeCloseTo(110, 5)
     expect(arc.planets.find((p) => p.name === 'Moon')!.longitude).toBeCloseTo(210, 5)
     expect(arc.ascendant.longitude).toBeCloseTo(10, 5)
@@ -283,5 +283,18 @@ describe('calculateSolarArcChart + findSolarArcAspects', () => {
     const natal = baseChart([planet('Sun', 100)])
     const arc = calculateSolarArcChart(natal, 5)
     expect(findSolarArcAspects(natal, arc, 0.5)).toEqual([])
+  })
+
+  it('skips self-aspects / 자기 자신의 본명 자리와의 각은 제외 (ASTRO-9)', () => {
+    // 아크 60° → 모든 천체가 자기 본명 자리와 sextile — 옛 구현은 전부 발행했다.
+    const natal = baseChart([planet('Sun', 100), planet('Moon', 10), planet('Mars', 250)])
+    const hits = findSolarArcAspects(natal, calculateSolarArcChart(natal, 60), 0.5)
+    expect(hits.filter((h) => h.arcPlanet === h.natalPlanet)).toEqual([])
+    // 다른 천체 쌍은 그대로 — Moon(10+60=70) 은 Sun(100) 과 30°(비메이저), Mars(250)와 180°
+    expect(
+      hits.some(
+        (h) => h.arcPlanet === 'Moon' && h.natalPlanet === 'Mars' && h.aspect === 'opposition'
+      )
+    ).toBe(true)
   })
 })

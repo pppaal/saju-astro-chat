@@ -400,15 +400,43 @@ export function findProgressedAspectKeywords() {
 }
 
 /**
- * Solar Arc 차트 (간이) — 본명 차트의 모든 행성을 ageInYears × 1°만큼
- * 동일하게 전진시킨 차트. 진짜 진행된 태양 위치를 다시 계산하지 않고
- * 근사(1년 = 1°)를 적용해 ephe 호출 없이 빠르게 만든다.
- *
- * extractor 가 매월 호출하는 캐시 친화적 진입점. 정밀이 필요한 모듈은
- * 기존 `calculateSolarArcDirections` (ephemeris 기반)을 그대로 사용.
+ * 태양 황경 (ephemeris, 0..360) — Solar Arc 의 양 끝점 계산용.
  */
-export function calculateSolarArcChart(natalChart: Chart, ageInYears: number): Chart {
-  const arcDegrees = ageInYears * 1 // 1년 ≈ 1°
+export function sunLongitudeAt(jdUT: number): number {
+  const swisseph = getSwisseph()
+  const res = swisseph.swe_calc_ut(jdUT, swisseph.SE_SUN, getSwissEphFlags())
+  throwIfSwissEphError(res, 'Solar Arc Sun error')
+  return normalize360(extractSwissLongitude(res))
+}
+
+/**
+ * 진짜 Solar Arc (도) = λ☉(natalJD + ageInYears 일) − λ☉(natalJD).
+ *
+ * 2차 진행 태양의 본명 태양 대비 이동량(1일 = 1년) — calculateSolarArcDirections
+ * 와 같은 정의. 옛 calendar 경로는 "1년 = 1°" 근사를 썼는데, 태양의 실제 일일
+ * 이동은 0.95°~1.02° 라 여름 출생은 60세에 +2.5° (≈2.6년) 어긋나 orb 0.5° 의
+ * 신호가 전혀 다른 해에 떴다(감사 ASTRO-2).
+ *
+ * @param natalSunLon 본명 태양 황경 — 매월 반복 호출 시 1회 계산해 넘기면 ephe
+ *                    호출이 절반으로 준다. 생략 시 natalJD 에서 계산.
+ */
+export function solarArcDegrees(
+  natalJD: number,
+  ageInYears: number,
+  natalSunLon: number = sunLongitudeAt(natalJD)
+): number {
+  return normalize360(sunLongitudeAt(natalJD + ageInYears) - natalSunLon)
+}
+
+/**
+ * Solar Arc 차트 — 본명 차트의 모든 행성·앵글을 같은 arcDegrees 만큼 전진시킨
+ * 차트. arcDegrees 는 solarArcDegrees(natalJD, age) 로 구한 *진짜* 아크를 넘긴다
+ * (나이를 그대로 넘기면 1년 = 1° 근사가 되어 틀린다 — 감사 ASTRO-2).
+ *
+ * extractor 가 매월 호출하는 캐시 친화적 진입점(아크 1회 ephe + 순수 이동).
+ * 진행 날짜·하우스까지 필요한 모듈은 `calculateSolarArcDirections` 를 사용.
+ */
+export function calculateSolarArcChart(natalChart: Chart, arcDegrees: number): Chart {
   const shift = (lon: number) => normalize360(lon + arcDegrees)
 
   const planets: PlanetBase[] = natalChart.planets.map((p) => {
@@ -483,6 +511,10 @@ export function findSolarArcAspects(
   const hits: SolarArcAspect[] = []
   for (const arc of solarArcChart.planets) {
     for (const nat of natalChart.planets) {
+      // 자기 자신의 본명 자리와의 각은 아크 자체(60°·90°…)를 되풀이할 뿐 행성별
+      // 의미가 없다 — 옛 구현은 아크 60° 에 11개 천체 전부 "자기 sextile" 을 1년 내내
+      // 발행했다(감사 ASTRO-9).
+      if (arc.name === nat.name) continue
       const diff = normalize360(arc.longitude - nat.longitude)
       const angle = Math.min(diff, 360 - diff)
       for (const cand of SOLAR_ARC_MAJOR_ASPECTS) {

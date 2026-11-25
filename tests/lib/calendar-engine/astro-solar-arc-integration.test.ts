@@ -1,8 +1,17 @@
 // @vitest-environment node
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { calculateSajuData } from '@/lib/saju/saju'
 import { buildNatalContext } from '@/lib/calendar-engine/context/build'
 import { buildCalendar } from '@/lib/calendar-engine'
+
+// The global swisseph mock gives a non-physical Sun (45.5° + jd%365 × 0.1), so
+// the ephemeris arc it yields says nothing about wiring. Stand in a 1°/yr arc
+// here; the true arc is checked against the real ephemeris in
+// astro-solar-arc.real.node.test.ts.
+vi.mock('@/lib/astrology/foundation/progressions', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/lib/astrology/foundation/progressions')>()),
+  solarArcDegrees: (_natalJD: number, ageInYears: number) => ageInYears,
+}))
 
 /**
  * Solar Arc 추출기 회로 검증 — 실제 buildCalendar 파이프라인을 통과한 응답에
@@ -27,7 +36,7 @@ describe('astro-solar-arc end-to-end through buildCalendar', () => {
       profile.timeZone
     )
     const natal = await buildNatalContext(profile, { saju })
-    // 1년 윈도우 — 그 안에 1년치 1° 누적 결과로 어스펙트가 거의 항상 잡힘.
+    // 1년 윈도우 — 그 안에 1년치(대역 1°/년) 아크 누적으로 어스펙트가 거의 항상 잡힘.
     const cells = await buildCalendar(
       natal,
       {
@@ -47,9 +56,7 @@ describe('astro-solar-arc end-to-end through buildCalendar', () => {
     expect(sample.source).toBe('astro')
     expect(sample.layer).toBe('decadal')
     expect(sample.evidence.module).toBe('astro-solar-arc')
-    expect(sample.evidence.aspectType).toMatch(
-      /conjunction|sextile|square|trine|opposition/
-    )
+    expect(sample.evidence.aspectType).toMatch(/conjunction|sextile|square|trine|opposition/)
     expect((sample.evidence.detail as { progressionType?: string }).progressionType).toBe(
       'solarArc'
     )

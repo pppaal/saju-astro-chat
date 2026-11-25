@@ -28,7 +28,7 @@ const swissephAvailable = await import('swisseph').then(
 
 const { calculateNatalChart, toChart } = await import('@/lib/astrology/foundation/astrologyService')
 const { calculateProfection } = await import('@/lib/astrology/foundation/profections')
-const { calculateSolarArcChart, findSolarArcAspects } =
+const { calculateSolarArcChart, findSolarArcAspects, solarArcDegrees } =
   await import('@/lib/astrology/foundation/progressions')
 const { calculateTransitChart } = await import('@/lib/astrology/foundation/transit')
 const { isoToJD } = await import('@/lib/astrology/foundation/shared')
@@ -48,9 +48,6 @@ type ExtractorArg = Parameters<typeof planetaryHourExtractor.extract>[0]
 
 /** Engine stage that corrects each value. Delete an entry when its stage lands. */
 const KNOWN_DEFECTS: Record<string, string> = {
-  'profection ages 0-11': 'E5',
-  'solar arc at ages 20/40/60': 'E5',
-  'solar arc age-60 hit set': 'E5',
   'saturn return 1980-01-25': 'E5',
   'saturn return 1957-03-20': 'E5',
   'saturn return 1995-09-13': 'E5',
@@ -191,6 +188,12 @@ describe.skipIf(!swissephAvailable)('timing goldens — classical definitions (E
   })
 
   const solarArcNatal = async () => toChart(await natalOf(T.solarArc.input))
+  // the directed chart takes the arc in degrees; the arc itself comes from the ephemeris
+  const solarArcChartAt = async (age: number) => {
+    const raw = await natalOf(T.solarArc.input)
+    const natal = toChart(raw)
+    return { natal, arc: calculateSolarArcChart(natal, solarArcDegrees(raw.meta!.jdUT, age)) }
+  }
 
   golden_it('solar arc natal instant', async () => {
     const n = await natalOf(T.solarArc.input)
@@ -201,9 +204,7 @@ describe.skipIf(!swissephAvailable)('timing goldens — classical definitions (E
     const natal = await solarArcNatal()
     const sun0 = natal.planets.find((p) => p.name === 'Sun')!.longitude
     for (const { age, arc } of T.solarArc.arcs) {
-      const sun = calculateSolarArcChart(natal, age).planets.find(
-        (p) => p.name === 'Sun'
-      )!.longitude
+      const sun = (await solarArcChartAt(age)).arc.planets.find((p) => p.name === 'Sun')!.longitude
       expect(Math.abs(n360(sun - sun0) - arc), `age ${age}`).toBeLessThanOrEqual(
         T.solarArc.toleranceDeg
       )
@@ -211,8 +212,8 @@ describe.skipIf(!swissephAvailable)('timing goldens — classical definitions (E
   })
 
   golden_it('solar arc age-60 hit set', async () => {
-    const natal = await solarArcNatal()
-    const hits = findSolarArcAspects(natal, calculateSolarArcChart(natal, 60), T.solarArc.age60.orb)
+    const { natal, arc } = await solarArcChartAt(60)
+    const hits = findSolarArcAspects(natal, arc, T.solarArc.age60.orb)
     const keys = [...new Set(hits.map((h) => `${h.arcPlanet} ${h.aspect} ${h.natalPlanet}`))].sort()
     expect(keys).toEqual(T.solarArc.age60.hits)
   })
