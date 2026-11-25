@@ -7,9 +7,8 @@
  * canon, 化氣格 conditions — encoded there, never copied from src/lib/saju.
  * The 용신 cases are invariants of CONVENTIONS §10 (억부), not pinned picks.
  *
- * Known defects: a value that a later engine stage corrects is listed in
- * KNOWN_DEFECTS with that stage id and runs as `it.fails` until the stage lands
- * and deletes the entry. Run with GOLDEN_SHOW_DEFECTS=1 to see the real diffs.
+ * Every value passes since engine stages E2–E4; tests/golden/goldenMarkers.guard.test.ts
+ * keeps expected-failure and known-defect markers out (stage E16).
  */
 import { describe, it, expect } from 'vitest'
 import { analyzeRelations, toAnalyzeInputFromSaju } from '@/lib/saju/relations'
@@ -20,19 +19,6 @@ import { calculateStrengthScore } from '@/lib/saju/strengthScore'
 import { collectSajuFacts } from '@/lib/destiny/sajuFacts'
 import { buildNatalContext } from '@/lib/calendar-engine/context/build'
 import golden from './engine-golden.json'
-
-/** Engine stage that corrects each value. Delete an entry when its stage lands. */
-const KNOWN_DEFECTS: Record<string, string> = {}
-
-const SHOW_DEFECTS = process.env.GOLDEN_SHOW_DEFECTS === '1'
-const usedDefects = new Set<string>()
-function golden_it(key: string, fn: () => unknown) {
-  const defect = KNOWN_DEFECTS[key]
-  if (!defect) return it(key, fn)
-  usedDefects.add(key)
-  const name = `${key} [knownDefect:${defect}]`
-  return SHOW_DEFECTS ? it(name, fn) : it.fails(name, fn)
-}
 
 const POS = ['year', 'month', 'day', 'time'] as const
 type Pos = (typeof POS)[number]
@@ -158,7 +144,7 @@ const CHECKS: Record<string, (c: DerivedCase) => void> = {
 describe('derived saju goldens — cited classical tables (E0 section D)', () => {
   for (const c of CASES) {
     describe(`${c.id} ${c.pillars}`, () => {
-      for (const check of c.checks) golden_it(`${c.id} ${check}`, () => CHECKS[check](c))
+      for (const check of c.checks) it(`${c.id} ${check}`, () => CHECKS[check](c))
     })
   }
 })
@@ -173,7 +159,7 @@ type YongsinCase = {
 
 describe('용신 invariants — CONVENTIONS §10 억부 (E0 section D)', () => {
   for (const y of D.yongsin as unknown as YongsinCase[]) {
-    golden_it(`${y.id} ${y.check}`, () => {
+    it(`${y.id} ${y.check}`, () => {
       const r = determineYongsin(pillarsOf(y.pillars).simple)
       const avoid = [r.kibsin, r.gusin].filter(Boolean)
       switch (y.check) {
@@ -203,7 +189,7 @@ describe('용신 invariants — CONVENTIONS §10 억부 (E0 section D)', () => {
     })
   }
 
-  golden_it('extreme weak strength score', () => {
+  it('extreme weak strength score', () => {
     const ew = D.extremeWeak
     const s = calculateStrengthScore(
       pillarsOf(ew.pillars).full as unknown as Parameters<typeof calculateStrengthScore>[0]
@@ -221,7 +207,7 @@ describe('one 3-class strength label across surfaces (E0 section D)', () => {
     if (/중화|중강|중약/.test(label)) return 'medium'
     return label
   }
-  golden_it('sample 3-class strength label', async () => {
+  it('sample 3-class strength label', async () => {
     const s = golden.cross.sample
     const now = new Date('2026-11-24T03:00:00Z')
     const facts = collectSajuFacts({
@@ -254,11 +240,5 @@ describe('one 3-class strength label across surfaces (E0 section D)', () => {
     // 같다: 壬 일간이 卯월(설기)에 나고 丑·戌·未 세 토(관살)와 두 丁(재성)에 둘러싸여
     // 뿌리는 癸·丑中癸 뿐 — 신약. 핵심 불변식은 세 표면이 같은 3분류를 내는 것.
     expect(labels).toEqual({ facts: 'weak', yongsin: 'weak', calendar: 'weak' })
-  })
-})
-
-describe('knownDefect bookkeeping', () => {
-  it('every KNOWN_DEFECTS key names a test in this file', () => {
-    expect(Object.keys(KNOWN_DEFECTS).filter((k) => !usedDefects.has(k))).toEqual([])
   })
 })

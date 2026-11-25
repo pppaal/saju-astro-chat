@@ -7,9 +7,8 @@
  * mean-solar-time hour, 대운 = floor(days / 3) from the raw UT instant). Never
  * regenerate them from engine output.
  *
- * Known defects: a value that a later engine stage corrects is listed in
- * KNOWN_DEFECTS with that stage id and runs as `it.fails` until the stage lands
- * and deletes the entry. Run with GOLDEN_SHOW_DEFECTS=1 to see the real diffs.
+ * Every value passes since engine stages E1–E14; tests/golden/goldenMarkers.guard.test.ts
+ * keeps expected-failure and known-defect markers out (stage E16).
  * Owner decisions: tests read `proposed` (OD-1 absolute 절입 instant, OD-2 zone
  * reference longitude, OD-3 RFC 5545 gap/overlap, OD-12 no 대운 before the first).
  */
@@ -43,20 +42,6 @@ type SajuCase = {
 }
 const CASES = golden.saju.cases as unknown as SajuCase[]
 
-/** Engine stage that corrects each value. Delete an entry when its stage lands. */
-const KNOWN_DEFECTS: Record<string, string> = {}
-
-const SHOW_DEFECTS = process.env.GOLDEN_SHOW_DEFECTS === '1'
-const usedDefects = new Set<string>()
-/** `it`, or `it.fails` while the value is a tagged known defect. */
-function golden_it(key: string, fn: () => void) {
-  const defect = KNOWN_DEFECTS[key]
-  if (!defect) return it(key, fn)
-  usedDefects.add(key)
-  const name = `${key} [knownDefect:${defect}]`
-  return SHOW_DEFECTS ? it(name, fn) : it.fails(name, fn)
-}
-
 const fmt = (p: { heavenlyStem: { name: string }; earthlyBranch: { name: string } }) =>
   p.heavenlyStem.name + p.earthlyBranch.name
 
@@ -87,15 +72,15 @@ function engine(c: SajuCase, lon: number | undefined) {
 
 function pathTests(c: SajuCase, path: 'lon' | 'noLon', exp: Expect, lon: number | undefined) {
   if (c.dayOnly) {
-    golden_it(`${c.id} ${path} day`, () => {
+    it(`${c.id} ${path} day`, () => {
       expect(engine(c, lon).pillars[2]).toBe(exp.pillars[2])
     })
     return
   }
-  golden_it(`${c.id} ${path} pillars`, () => {
+  it(`${c.id} ${path} pillars`, () => {
     expect(engine(c, lon).pillars).toEqual(exp.pillars)
   })
-  golden_it(`${c.id} ${path} daeun`, () => {
+  it(`${c.id} ${path} daeun`, () => {
     const d = engine(c, lon).daeun
     expect({ forward: d.forward, startAge: d.startAge, first3: d.first3 }).toEqual({
       forward: exp.daeun.forward,
@@ -103,7 +88,7 @@ function pathTests(c: SajuCase, path: 'lon' | 'noLon', exp: Expect, lon: number 
       first3: exp.daeun.first3,
     })
   })
-  golden_it(`${c.id} ${path} current`, () => {
+  it(`${c.id} ${path} current`, () => {
     expect(engine(c, lon).daeun.current).toEqual(exp.daeun.current)
   })
 }
@@ -125,7 +110,7 @@ describe('astrology birth instant agrees with the saju instant (OD-3, RFC 5545)'
   // natalToJD must not depend on the server clock (ASTRO-7): check with "now" in January and July.
   const SERVER_DATES = ['2026-01-15T12:00:00Z', '2026-07-15T12:00:00Z']
   for (const c of CASES.filter((x) => x.instant.kind !== 'normal' && !x.dayOnly)) {
-    golden_it(`${c.id} natalToJD`, () => {
+    it(`${c.id} natalToJD`, () => {
       const [year, month, date] = c.input.date.split('-').map(Number)
       const [hour, minute] = c.input.time.split(':').map(Number)
       const expectedJd = Date.parse(c.instant.utc) / 86_400_000 + 2440587.5
@@ -147,10 +132,4 @@ describe('astrology birth instant agrees with the saju instant (OD-3, RFC 5545)'
       }
     })
   }
-})
-
-describe('knownDefect bookkeeping', () => {
-  it('every KNOWN_DEFECTS key names a test in this file', () => {
-    expect(Object.keys(KNOWN_DEFECTS).filter((k) => !usedDefects.has(k))).toEqual([])
-  })
 })

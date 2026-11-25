@@ -6,9 +6,10 @@
  * tests/golden/engine-golden.json, written by scripts/golden/build-engine-golden.mts
  * from astronomy-engine and classical definitions only, never from engine output.
  *
- * Known defects: a value that a later engine stage corrects is listed in
- * KNOWN_DEFECTS with that stage id and runs as `it.fails` until the stage lands
- * and deletes the entry. Run with GOLDEN_SHOW_DEFECTS=1 to see the real diffs.
+ * Every value passes since engine stages E5, E8 and E13. Without native swisseph the
+ * blocks skip locally but fail in CI and in the destiny release gate
+ * (tests/helpers/realEphemeris.ts); tests/golden/goldenMarkers.guard.test.ts keeps
+ * expected-failure and known-defect markers out (stage E16).
  *
  * @vitest-environment node
  */
@@ -18,13 +19,7 @@ import golden from './engine-golden.json'
 vi.unmock('swisseph')
 vi.unmock('@/lib/astrology/foundation/ephe')
 
-// Native swisseph may fail to load on a runner with an ABI mismatch; the gate
-// that requires it is E16. Until then the block is skipped there, as in
-// tests/lib/astrology/real-ephemeris-correctness.test.ts.
-const swissephAvailable = await import('swisseph').then(
-  () => true,
-  () => false
-)
+const { describeRealEphemeris } = await import('../helpers/realEphemeris')
 
 const { calculateNatalChart, toChart } = await import('@/lib/astrology/foundation/astrologyService')
 const { calculateProfection } = await import('@/lib/astrology/foundation/profections')
@@ -45,19 +40,6 @@ const { collectAstroFacts } = await import('@/lib/destiny/astroFacts')
 
 type NatalArg = Parameters<typeof calculateOuterPlanetMilestones>[0]
 type ExtractorArg = Parameters<typeof planetaryHourExtractor.extract>[0]
-
-/** Engine stage that corrects each value. Delete an entry when its stage lands. */
-const KNOWN_DEFECTS: Record<string, string> = {}
-
-const SHOW_DEFECTS = process.env.GOLDEN_SHOW_DEFECTS === '1'
-const usedDefects = new Set<string>()
-function golden_it(key: string, fn: () => unknown, timeout?: number) {
-  const defect = KNOWN_DEFECTS[key]
-  if (!defect) return it(key, fn, timeout)
-  usedDefects.add(key)
-  const name = `${key} [knownDefect:${defect}]`
-  return SHOW_DEFECTS ? it(name, fn, timeout) : it.fails(name, fn, timeout)
-}
 
 const n360 = (x: number) => ((x % 360) + 360) % 360
 const angDiff = (a: number, b: number) => Math.abs(((a - b + 540) % 360) - 180)
@@ -94,10 +76,10 @@ async function natalOf(i: { date: string; time: string; tz: string; lat: number;
   })
 }
 
-describe.skipIf(!swissephAvailable)('astro goldens — real ephemeris (E0 section B)', () => {
+describeRealEphemeris('astro goldens — real ephemeris (E0 section B)', () => {
   for (const c of CHARTS) {
     describe(`${c.id} ${c.input.date} ${c.input.time} ${c.input.tz}`, () => {
-      golden_it(`${c.id} instant, house system, angles`, async () => {
+      it(`${c.id} instant, house system, angles`, async () => {
         const n = await natalOf(c.input)
         expect(Math.abs(n.meta!.jdUT - jdOf(c.utc)) * 86_400).toBeLessThan(1)
         expect(n.meta!.houseSystem).toBe(c.houseSystem)
@@ -106,7 +88,7 @@ describe.skipIf(!swissephAvailable)('astro goldens — real ephemeris (E0 sectio
         expect(angDiff(n.mc.longitude, c.mc.lon)).toBeLessThanOrEqual(TOL.angleDeg)
         expect(n.mc.sign).toBe(c.mc.sign)
       })
-      golden_it(`${c.id} planets: longitude, sign, house, retrograde`, async () => {
+      it(`${c.id} planets: longitude, sign, house, retrograde`, async () => {
         const n = await natalOf(c.input)
         for (const [name, ref] of Object.entries(c.planets)) {
           const p = n.planets.find((x) => x.name === name)
@@ -117,14 +99,14 @@ describe.skipIf(!swissephAvailable)('astro goldens — real ephemeris (E0 sectio
           expect(p!.retrograde, `${name} retrograde`).toBe(ref.retrograde)
         }
       })
-      golden_it(`${c.id} true node`, async () => {
+      it(`${c.id} true node`, async () => {
         const n = await natalOf(c.input)
         const node = n.planets.find((x) => x.name === 'True Node')
         expect(node).toBeDefined()
         expect(angDiff(node!.longitude, c.trueNode.lon)).toBeLessThanOrEqual(TOL.nodeDeg)
         expect(node!.sign).toBe(c.trueNode.sign)
       })
-      golden_it(`${c.id} house cusps`, async () => {
+      it(`${c.id} house cusps`, async () => {
         const n = await natalOf(c.input)
         expect(n.houses).toHaveLength(12)
         n.houses.forEach((h, i) => {
@@ -135,8 +117,8 @@ describe.skipIf(!swissephAvailable)('astro goldens — real ephemeris (E0 sectio
   }
 })
 
-describe.skipIf(!swissephAvailable)('timing goldens — classical definitions (E0 section C)', () => {
-  golden_it('profection ascendant sign', async () => {
+describeRealEphemeris('timing goldens — classical definitions (E0 section C)', () => {
+  it('profection ascendant sign', async () => {
     const p = T.profection
     const d = new Date(p.input.utc)
     const n = await calculateNatalChart({
@@ -153,7 +135,7 @@ describe.skipIf(!swissephAvailable)('timing goldens — classical definitions (E
     expect(angDiff(n.ascendant.longitude, p.ascendant.lon)).toBeLessThanOrEqual(TOL.angleDeg)
   })
 
-  golden_it('profection ages 0-11', async () => {
+  it('profection ages 0-11', async () => {
     const p = T.profection
     const d = new Date(p.input.utc)
     const chart = toChart(
@@ -183,12 +165,12 @@ describe.skipIf(!swissephAvailable)('timing goldens — classical definitions (E
     return { natal, arc: calculateSolarArcChart(natal, solarArcDegrees(raw.meta!.jdUT, age)) }
   }
 
-  golden_it('solar arc natal instant', async () => {
+  it('solar arc natal instant', async () => {
     const n = await natalOf(T.solarArc.input)
     expect(Math.abs(n.meta!.jdUT - jdOf(T.solarArc.input.utc)) * 86_400).toBeLessThan(1)
   })
 
-  golden_it('solar arc at ages 20/40/60', async () => {
+  it('solar arc at ages 20/40/60', async () => {
     const natal = await solarArcNatal()
     const sun0 = natal.planets.find((p) => p.name === 'Sun')!.longitude
     for (const { age, arc } of T.solarArc.arcs) {
@@ -199,7 +181,7 @@ describe.skipIf(!swissephAvailable)('timing goldens — classical definitions (E
     }
   })
 
-  golden_it('solar arc age-60 hit set', async () => {
+  it('solar arc age-60 hit set', async () => {
     const { natal, arc } = await solarArcChartAt(60)
     const hits = findSolarArcAspects(natal, arc, T.solarArc.age60.orb)
     const keys = [...new Set(hits.map((h) => `${h.arcPlanet} ${h.aspect} ${h.natalPlanet}`))].sort()
@@ -207,7 +189,7 @@ describe.skipIf(!swissephAvailable)('timing goldens — classical definitions (E
   })
 
   for (const sr of T.saturnReturn.cases) {
-    golden_it(`saturn return ${sr.birth.date}`, async () => {
+    it(`saturn return ${sr.birth.date}`, async () => {
       const raw = await natalOf(sr.birth)
       const chart = toChart(raw)
       const [year, month, date] = sr.birth.date.split('-').map(Number)
@@ -229,14 +211,14 @@ describe.skipIf(!swissephAvailable)('timing goldens — classical definitions (E
     })
   }
 
-  golden_it('transit isoToJD honours Z', () => {
+  it('transit isoToJD honours Z', () => {
     for (const tz of ['Asia/Seoul', 'America/Los_Angeles', 'UTC']) {
       const jd = isoToJD(T.transit.instant, tz)
       expect(Math.abs(jd - jdOf(T.transit.instant)) * 86_400, tz).toBeLessThan(1)
     }
   })
 
-  golden_it('transit chart at the instant', async () => {
+  it('transit chart at the instant', async () => {
     const chart = await calculateTransitChart({
       iso: T.transit.instant,
       latitude: 37.5665,
@@ -251,7 +233,7 @@ describe.skipIf(!swissephAvailable)('timing goldens — classical definitions (E
     )
   })
 
-  golden_it('planetary hours Seoul 2026-11-23', () => {
+  it('planetary hours Seoul 2026-11-23', () => {
     const ph = T.planetaryHours
     const signals = planetaryHourExtractor.extract({
       natal: {
@@ -279,7 +261,7 @@ describe.skipIf(!swissephAvailable)('timing goldens — classical definitions (E
     }
   })
 
-  golden_it('void-of-course end Seoul 2026-11-05', async () => {
+  it('void-of-course end Seoul 2026-11-05', async () => {
     const v = T.voidOfCourse
     const signals = (await moonPhaseVocExtractor.extract({
       natal: {
@@ -323,7 +305,7 @@ describe.skipIf(!swissephAvailable)('timing goldens — classical definitions (E
     expect(errMin).toBeLessThanOrEqual(v.toleranceMin)
   })
 
-  golden_it('sect by Sun altitude (polar)', async () => {
+  it('sect by Sun altitude (polar)', async () => {
     const s = T.sect
     const d = new Date(s.input.utc)
     const facts = await collectAstroFacts(
@@ -345,7 +327,7 @@ describe.skipIf(!swissephAvailable)('timing goldens — classical definitions (E
     Parameters<typeof calculateZodiacalReleasing>[0]
   >
 
-  golden_it('zodiacal releasing Mars L3 = 37.5 d', () => {
+  it('zodiacal releasing Mars L3 = 37.5 d', () => {
     const l1 = calculateZodiacalReleasing('Capricorn' as (typeof SIGNS)[number], 60)
     const l2 = calculateZRSubPeriods(l1[0])
     // skip the first and last L3 of each L2 (a parent boundary can truncate them)
@@ -355,7 +337,7 @@ describe.skipIf(!swissephAvailable)('timing goldens — classical definitions (E
     for (const p of mars) expect(p.durationYears * 365.25).toBeCloseTo(zr.marsL3Days, 1)
   })
 
-  golden_it('zodiacal releasing no L3 loosing in L2 < 17 months', () => {
+  it('zodiacal releasing no L3 loosing in L2 < 17 months', () => {
     const offenders: string[] = []
     for (const start of SIGNS) {
       const l1s = calculateZodiacalReleasing(start, 60)
@@ -369,12 +351,5 @@ describe.skipIf(!swissephAvailable)('timing goldens — classical definitions (E
       }
     }
     expect(offenders).toEqual([])
-  })
-})
-
-describe('knownDefect bookkeeping', () => {
-  it('every KNOWN_DEFECTS key names a test in this file', () => {
-    if (!swissephAvailable) return
-    expect(Object.keys(KNOWN_DEFECTS).filter((k) => !usedDefects.has(k))).toEqual([])
   })
 })

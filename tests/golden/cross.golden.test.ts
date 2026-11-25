@@ -12,9 +12,10 @@
  * 旬空 from the day pillar, and the five-element verdict family.
  * Population size is capped (21 births × 1 month) for the 4-vCPU CI.
  *
- * Known defects: an invariant that a later engine stage restores is listed in
- * KNOWN_DEFECTS with that stage id and runs as `it.fails` until the stage lands
- * and deletes the entry. Run with GOLDEN_SHOW_DEFECTS=1 to see the real diffs.
+ * Every invariant holds since engine stages E6–E13 and F3. Without native swisseph the
+ * blocks skip locally but fail in CI and in the destiny release gate
+ * (tests/helpers/realEphemeris.ts); tests/golden/goldenMarkers.guard.test.ts keeps
+ * expected-failure and known-defect markers out (stage E16).
  *
  * @vitest-environment node
  */
@@ -24,10 +25,7 @@ import golden from './engine-golden.json'
 vi.unmock('swisseph')
 vi.unmock('@/lib/astrology/foundation/ephe')
 
-const swissephAvailable = await import('swisseph').then(
-  () => true,
-  () => false
-)
+const { describeRealEphemeris } = await import('../helpers/realEphemeris')
 
 const { buildNatalContext } = await import('@/lib/calendar-engine/context/build')
 const { buildCalendar } = await import('@/lib/calendar-engine/index')
@@ -43,19 +41,6 @@ const { bandMarkForScore } = await import('@/lib/calendar-view/toMonth')
 
 type Cell = Awaited<ReturnType<typeof buildCalendar>>[number]
 type Signal = Cell['signals'][number]
-
-/** Engine stage that restores each invariant. Delete an entry when its stage lands. */
-const KNOWN_DEFECTS: Record<string, string> = {}
-
-const SHOW_DEFECTS = process.env.GOLDEN_SHOW_DEFECTS === '1'
-const usedDefects = new Set<string>()
-function golden_it(key: string, fn: () => unknown, timeout?: number) {
-  const defect = KNOWN_DEFECTS[key]
-  if (!defect) return it(key, fn, timeout)
-  usedDefects.add(key)
-  const name = `${key} [knownDefect:${defect}]`
-  return SHOW_DEFECTS ? it(name, fn, timeout) : it.fails(name, fn, timeout)
-}
 
 const X = golden.cross
 type Birth = (typeof X.births)[number]
@@ -76,7 +61,7 @@ const LAYER_RANK: Record<string, number> = {
 type Built = { person: Birth; month: Cell[]; days: Map<string, Cell> }
 const built: Built[] = []
 
-describe.skipIf(!swissephAvailable)('calendar cross invariants (E0 section E)', () => {
+describeRealEphemeris('calendar cross invariants (E0 section E)', () => {
   beforeAll(async () => {
     for (const person of PEOPLE) {
       const natal = await buildNatalContext({
@@ -123,7 +108,7 @@ describe.skipIf(!swissephAvailable)('calendar cross invariants (E0 section E)', 
     expect(crosses).toBeGreaterThan(0)
   })
 
-  golden_it('range invariance: 1-day build = month cell', () => {
+  it('range invariance: 1-day build = month cell', () => {
     const key = (c: Cell) =>
       [
         ...new Set(c.signals.filter(isCross).map((s) => `${s.name}|${s.layer}|${s.polarity}`)),
@@ -145,7 +130,7 @@ describe.skipIf(!swissephAvailable)('calendar cross invariants (E0 section E)', 
 
   // Hour windows are floating local time (local wall clock written with a Z).
   const zi = X.ziHour
-  golden_it('子時 2026-11-02 00:00–01:32 is 丙子', () => {
+  it('子時 2026-11-02 00:00–01:32 is 丙子', () => {
     const t = Date.parse(`${zi.date}T00:30:00.000Z`)
     const covering: string[] = []
     for (const b of built) {
@@ -161,7 +146,7 @@ describe.skipIf(!swissephAvailable)('calendar cross invariants (E0 section E)', 
     expect(covering.filter((x) => !x.includes(zi.hourPillar))).toEqual([])
   })
 
-  golden_it('no previous-day 子時 parent on 2026-11-02', () => {
+  it('no previous-day 子時 parent on 2026-11-02', () => {
     const bad: string[] = []
     for (const b of built) {
       for (const s of cellOf(b, zi.date).signals) {
@@ -175,7 +160,7 @@ describe.skipIf(!swissephAvailable)('calendar cross invariants (E0 section E)', 
     expect(bad).toEqual([])
   })
 
-  golden_it('cross parents resolve inside the cell', () => {
+  it('cross parents resolve inside the cell', () => {
     const bad: string[] = []
     eachCross((b, cell, s, byId) => {
       const missing = parentIds(s).filter((id) => !byId.has(id))
@@ -196,7 +181,7 @@ describe.skipIf(!swissephAvailable)('calendar cross invariants (E0 section E)', 
     'progression',
     'progressed-moon',
   ])
-  golden_it('no element-flow / jijanggan / symbolic astro parents', () => {
+  it('no element-flow / jijanggan / symbolic astro parents', () => {
     const bad: string[] = []
     eachCross((b, cell, s, byId) => {
       const [sajuId, astroId] = parentIds(s)
@@ -211,7 +196,7 @@ describe.skipIf(!swissephAvailable)('calendar cross invariants (E0 section E)', 
     expect(bad.slice(0, 10)).toEqual([])
   })
 
-  golden_it('(name, layer) unique per cell', () => {
+  it('(name, layer) unique per cell', () => {
     const bad: string[] = []
     for (const b of built) {
       for (const cell of b.month) {
@@ -227,7 +212,7 @@ describe.skipIf(!swissephAvailable)('calendar cross invariants (E0 section E)', 
     expect(bad.slice(0, 10)).toEqual([])
   })
 
-  golden_it('sign coherence with both parents', () => {
+  it('sign coherence with both parents', () => {
     // A nonzero cross needs a nonzero parent, and every nonzero parent shares its sign.
     const bad: string[] = []
     eachCross((b, cell, s, byId) => {
@@ -243,7 +228,7 @@ describe.skipIf(!swissephAvailable)('calendar cross invariants (E0 section E)', 
     expect(bad.slice(0, 10)).toEqual([])
   })
 
-  golden_it('cross layer = narrowest parent layer', () => {
+  it('cross layer = narrowest parent layer', () => {
     const bad: string[] = []
     eachCross((b, cell, s, byId) => {
       const ps = parentIds(s).map((id) => byId.get(id))
@@ -257,7 +242,7 @@ describe.skipIf(!swissephAvailable)('calendar cross invariants (E0 section E)', 
     expect(bad.slice(0, 10)).toEqual([])
   })
 
-  golden_it('an hourly parent keeps the cross hourly (out of TONE_LAYERS)', () => {
+  it('an hourly parent keeps the cross hourly (out of TONE_LAYERS)', () => {
     const bad: string[] = []
     let hourly = 0
     eachCross((b, cell, s, byId) => {
@@ -271,7 +256,7 @@ describe.skipIf(!swissephAvailable)('calendar cross invariants (E0 section E)', 
     expect(bad.slice(0, 10)).toEqual([])
   })
 
-  golden_it('a decadal cross has a 대운 saju parent and a decade-scale astro parent', () => {
+  it('a decadal cross has a 대운 saju parent and a decade-scale astro parent', () => {
     const bad: string[] = []
     eachCross((b, cell, s, byId) => {
       if (s.layer !== 'decadal') return
@@ -292,53 +277,47 @@ describe.skipIf(!swissephAvailable)('calendar cross invariants (E0 section E)', 
   // Life 'This decade's overlap' (plan B3 #8, audit X7): every row traces to a decadal cross
   // whose saju parent is a 대운 pillar and whose astro parent is a decade-scale body (no
   // 시진 / planetary-hour), both carrying the row's nonzero sign.
-  golden_it(
-    'Life decadeCross rows have a 대운 parent and a decade-scale astro parent of the same sign',
-    () => {
-      const bad: string[] = []
-      let rows = 0
-      for (const b of built) {
-        for (const cell of b.month) {
-          const byId = new Map(cell.signals.map((x) => [x.id, x]))
-          for (const row of buildDecadeCross(cell)) {
-            rows++
-            const sign = sgn(row.polarity)
-            const ok = cell.signals.some((s) => {
-              if (!isCross(s) || s.layer !== 'decadal' || s.polarity !== row.polarity) return false
-              const k = crossKeys(s)
-              if (k.sajuKo !== row.saju || k.astroKo !== row.astro) return false
-              const [saju, astro] = parentIds(s).map((id) => byId.get(id))
-              return (
-                !!saju &&
-                !!astro &&
-                /\.daeun-(stem|branch)\./.test(saju.id) &&
-                saju.layer === 'decadal' &&
-                astro.layer === 'decadal' &&
-                astro.kind !== 'planetary-hour' &&
-                sgn(saju.polarity) === sign &&
-                sgn(astro.polarity) === sign
-              )
-            })
-            if (sign === 0 || !ok)
-              bad.push(
-                `${b.person.id} ${cell.datetime.slice(0, 10)} ${row.saju} × ${row.astro} ${row.polarity}`
-              )
-          }
+  it('Life decadeCross rows have a 대운 parent and a decade-scale astro parent of the same sign', () => {
+    const bad: string[] = []
+    let rows = 0
+    for (const b of built) {
+      for (const cell of b.month) {
+        const byId = new Map(cell.signals.map((x) => [x.id, x]))
+        for (const row of buildDecadeCross(cell)) {
+          rows++
+          const sign = sgn(row.polarity)
+          const ok = cell.signals.some((s) => {
+            if (!isCross(s) || s.layer !== 'decadal' || s.polarity !== row.polarity) return false
+            const k = crossKeys(s)
+            if (k.sajuKo !== row.saju || k.astroKo !== row.astro) return false
+            const [saju, astro] = parentIds(s).map((id) => byId.get(id))
+            return (
+              !!saju &&
+              !!astro &&
+              /\.daeun-(stem|branch)\./.test(saju.id) &&
+              saju.layer === 'decadal' &&
+              astro.layer === 'decadal' &&
+              astro.kind !== 'planetary-hour' &&
+              sgn(saju.polarity) === sign &&
+              sgn(astro.polarity) === sign
+            )
+          })
+          if (sign === 0 || !ok)
+            bad.push(
+              `${b.person.id} ${cell.datetime.slice(0, 10)} ${row.saju} × ${row.astro} ${row.polarity}`
+            )
         }
       }
-      // The population has real rows (P05: 정인 × 목성 +2, 丁 대운 × third Jupiter return).
-      expect(rows).toBeGreaterThan(0)
-      expect(bad.slice(0, 10)).toEqual([])
     }
-  )
+    // The population has real rows (P05: 정인 × 목성 +2, 丁 대운 × third Jupiter return).
+    expect(rows).toBeGreaterThan(0)
+    expect(bad.slice(0, 10)).toEqual([])
+  })
 
-  golden_it(
-    'sample 2026-11-19 has no decade overlap (plan B3: 정재 × 토성 parents disagree)',
-    () => {
-      const sample = built.find((b) => b.person.id === X.sample.id)!
-      expect(buildDecadeCross(cellOf(sample, '2026-11-19'))).toEqual([])
-    }
-  )
+  it('sample 2026-11-19 has no decade overlap (plan B3: 정재 × 토성 parents disagree)', () => {
+    const sample = built.find((b) => b.person.id === X.sample.id)!
+    expect(buildDecadeCross(cellOf(sample, '2026-11-19'))).toEqual([])
+  })
 
   // Day 'why' (stage F3, OD-10): a 2-hour 시진 cross never heads the day's reason while a
   // daily or instant cross of the mark's sign exists. The mark is the grid band of the
@@ -348,7 +327,7 @@ describe.skipIf(!swissephAvailable)('calendar cross invariants (E0 section E)', 
     return score != null ? bandMarkForScore(score) : null
   }
 
-  golden_it('sample 2026-11-19: the day reason is a daily cross, not a 시진 cross', () => {
+  it('sample 2026-11-19: the day reason is a daily cross, not a 시진 cross', () => {
     const sample = built.find((b) => b.person.id === X.sample.id)!
     const cell = cellOf(sample, '2026-11-19')
     const mark = dayMarkOf(sample, '2026-11-19')
@@ -369,7 +348,7 @@ describe.skipIf(!swissephAvailable)('calendar cross invariants (E0 section E)', 
     })
   })
 
-  golden_it('a 시진 cross is the day reason only when no daily/instant cross agrees', () => {
+  it('a 시진 cross is the day reason only when no daily/instant cross agrees', () => {
     const bad: string[] = []
     let hourlyReasons = 0
     let reasons = 0
@@ -401,7 +380,7 @@ describe.skipIf(!swissephAvailable)('calendar cross invariants (E0 section E)', 
     expect(bad.slice(0, 10)).toEqual([])
   })
 
-  golden_it('every cross carries a grade in {A, B} and a layer inside its planet band', () => {
+  it('every cross carries a grade in {A, B} and a layer inside its planet band', () => {
     const bad: string[] = []
     eachCross((b, cell, s) => {
       const astroKey = String(s.evidence?.detail?.astroKey ?? '')
@@ -483,46 +462,30 @@ const elementTone = (a: string, b: string) =>
         ? 'tension'
         : 'neutral'
 
-describe.skipIf(!swissephAvailable)('report cross rows (E0 section F)', () => {
-  golden_it(
-    'karma inputs match the reference (旬空, North Node)',
-    async () => {
-      const r = await reportFor(R.karma.input)
-      expect([...r.gongmang].sort()).toEqual([...R.karma.gongmang].sort())
-      expect(r.northNode).toBe(R.karma.northNode)
-    },
-    30_000
-  )
+describeRealEphemeris('report cross rows (E0 section F)', () => {
+  it('karma inputs match the reference (旬空, North Node)', async () => {
+    const r = await reportFor(R.karma.input)
+    expect([...r.gongmang].sort()).toEqual([...R.karma.gongmang].sort())
+    expect(r.northNode).toBe(R.karma.northNode)
+  }, 30_000)
 
-  golden_it(
-    'karma row 1951-05-22 13:38 F Seoul',
-    async () => {
-      const row = (await reportFor(R.karma.input)).rows.find((x) => x.key === 'karma')
-      expect({ tone: row?.tone, karmaAxis: row?.karmaAxis }).toEqual(R.karma.expected)
-    },
-    30_000
-  )
+  it('karma row 1951-05-22 13:38 F Seoul', async () => {
+    const row = (await reportFor(R.karma.input)).rows.find((x) => x.key === 'karma')
+    expect({ tone: row?.tone, karmaAxis: row?.karmaAxis }).toEqual(R.karma.expected)
+  }, 30_000)
 
-  golden_it(
-    'growth inputs match the reference (North Node)',
-    async () => {
-      const r = await reportFor(R.growth.input)
-      expect(r.northNode).toBe(R.growth.northNode)
-    },
-    30_000
-  )
+  it('growth inputs match the reference (North Node)', async () => {
+    const r = await reportFor(R.growth.input)
+    expect(r.northNode).toBe(R.growth.northNode)
+  }, 30_000)
 
-  golden_it(
-    'growth row 1960-12-18 21:49 M Los Angeles',
-    async () => {
-      expect(R.growth.expected).not.toBeNull()
-      const row = (await reportFor(R.growth.input)).rows.find((x) => x.key === 'growth')
-      expect(row?.tone).toBe(R.growth.expected!.tone)
-    },
-    30_000
-  )
+  it('growth row 1960-12-18 21:49 M Los Angeles', async () => {
+    expect(R.growth.expected).not.toBeNull()
+    const row = (await reportFor(R.growth.input)).rows.find((x) => x.key === 'growth')
+    expect(row?.tone).toBe(R.growth.expected!.tone)
+  }, 30_000)
 
-  golden_it('evalVoid is order-invariant', () => {
+  it('evalVoid is order-invariant', () => {
     const bad: string[] = []
     for (const v of R.voidCases) {
       for (const pair of [v.pair, [...v.pair].reverse()]) {
@@ -534,32 +497,20 @@ describe.skipIf(!swissephAvailable)('report cross rows (E0 section F)', () => {
     expect(bad).toEqual([])
   })
 
-  golden_it(
-    'needs inputs match the reference (Moon sign)',
-    async () => {
-      expect((await reportFor(R.needs.input)).moon).toBe(R.needs.moon)
-    },
-    30_000
-  )
+  it('needs inputs match the reference (Moon sign)', async () => {
+    expect((await reportFor(R.needs.input)).moon).toBe(R.needs.moon)
+  }, 30_000)
 
-  golden_it(
-    'sample needs row follows the element relation',
-    async () => {
-      const r = await reportFor(R.needs.input)
-      const need = KO_EN[r.yongsin ?? ''] ?? r.yongsin
-      expect(need).toBeTruthy()
-      const row = r.rows.find((x) => x.key === 'needs')
-      expect(row?.tone).toBe(elementTone(need!, R.needs.moonElement))
-    },
-    30_000
-  )
+  it('sample needs row follows the element relation', async () => {
+    const r = await reportFor(R.needs.input)
+    const need = KO_EN[r.yongsin ?? ''] ?? r.yongsin
+    expect(need).toBeTruthy()
+    const row = r.rows.find((x) => x.key === 'needs')
+    expect(row?.tone).toBe(elementTone(need!, R.needs.moonElement))
+  }, 30_000)
 })
 
-describe('knownDefect bookkeeping', () => {
-  it('every KNOWN_DEFECTS key names a test in this file', () => {
-    if (!swissephAvailable) return
-    expect(Object.keys(KNOWN_DEFECTS).filter((k) => !usedDefects.has(k))).toEqual([])
-  })
+describe('golden fixture sanity', () => {
   it('population dates sit inside the built month', () => {
     const lo = Date.parse(X.month.start)
     const hi = Date.parse(X.month.end)
