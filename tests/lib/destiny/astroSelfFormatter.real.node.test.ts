@@ -11,19 +11,17 @@
  * findTransitAspects calls, and the printed block for what it must not say.
  *
  * The global setup mocks swisseph, so this file unmocks it and runs under node;
- * it is skipped where the native module cannot load (E16).
+ * without native swisseph it skips locally but fails in CI and in the destiny release
+ * gate (tests/helpers/realEphemeris.ts, E16).
  *
  * @vitest-environment node
  */
-import { describe, it, expect, vi } from 'vitest'
+import { it, expect, vi } from 'vitest'
 
 vi.unmock('swisseph')
 vi.unmock('@/lib/astrology/foundation/ephe')
 
-const swissephAvailable = await import('swisseph').then(
-  () => true,
-  () => false
-)
+const { describeRealEphemeris } = await import('../../helpers/realEphemeris')
 
 const { calculateNatalChart, toChart } = await import('@/lib/astrology/foundation/astrologyService')
 const { formatAstroSelf } = await import('@/lib/destiny/astroSelfFormatter')
@@ -42,7 +40,7 @@ const R16 = {
 }
 const NOW = new Date('2026-11-24T05:00:00.000Z')
 
-describe.skipIf(!swissephAvailable)('formatAstroSelf transits — real ephemeris', () => {
+describeRealEphemeris('formatAstroSelf transits — real ephemeris', () => {
   for (const timeZone of ['Asia/Seoul', 'America/Los_Angeles']) {
     it(`uses the absolute instant for a ${timeZone} viewer`, async () => {
       const chart = toChart(await calculateNatalChart(R16))

@@ -16,10 +16,7 @@ import { describe, it, expect, vi } from 'vitest'
 vi.unmock('swisseph')
 vi.unmock('@/lib/astrology/foundation/ephe')
 
-const swissephAvailable = await import('swisseph').then(
-  () => true,
-  () => false
-)
+const { describeRealEphemeris } = await import('../../helpers/realEphemeris')
 
 const { tallyCrossRows, synthesize } = await import('@/lib/report/natalCross')
 const { buildReportContext } = await import('@/lib/report/buildReportContext')
@@ -94,7 +91,7 @@ const SAMPLE = {
 }
 const NOW = new Date('2026-11-24T00:00:00Z')
 
-describe.skipIf(!swissephAvailable)('buildCrossRows 샘플 — 도입부와 막대가 같은 집계', () => {
+describeRealEphemeris('buildCrossRows 샘플 — 도입부와 막대가 같은 집계', () => {
   it('1997-03-21 14:30 서울 여성: 7·6·3·0 (총 16), 도입부 숫자 = tallyCrossRows', async () => {
     const ctx = await buildReportContext(SAMPLE)
     const ko = buildCrossRows(ctx, 'ko', NOW)

@@ -10,21 +10,18 @@
  * Reference: astronomy-engine (independent of Swiss Ephemeris), first zero of
  * the signed separation found by a 5-day scan plus bisection, starting from
  * the same UT birth instant. The global setup mocks swisseph, so this file
- * unmocks it and runs under node; it is skipped where the native module cannot
- * load (E16).
+ * unmocks it and runs under node. Without native swisseph it skips locally but
+ * fails in CI and in the destiny release gate (tests/helpers/realEphemeris.ts, E16).
  *
  * @vitest-environment node
  */
-import { describe, it, expect, vi } from 'vitest'
+import { it, expect, vi } from 'vitest'
 import * as Astronomy from 'astronomy-engine'
 
 vi.unmock('swisseph')
 vi.unmock('@/lib/astrology/foundation/ephe')
 
-const swissephAvailable = await import('swisseph').then(
-  () => true,
-  () => false
-)
+const { describeRealEphemeris } = await import('../../helpers/realEphemeris')
 
 const { calculateNatalChart, toChart } = await import('@/lib/astrology/foundation/astrologyService')
 const { calculateOuterPlanetMilestones } =
@@ -133,7 +130,7 @@ const CASES: Array<{
   { kind: 'jupiter_return_2', body: 'Jupiter', window: [21, 28] },
 ]
 
-describe.skipIf(!swissephAvailable)('calculateOuterPlanetMilestones — real ephemeris', () => {
+describeRealEphemeris('calculateOuterPlanetMilestones — real ephemeris', () => {
   for (const c of CASES) {
     it(`${c.kind}: |exactDateISO − first exact pass| ≤ 2 d and age = completed years, 20 births`, async () => {
       const misses: string[] = []

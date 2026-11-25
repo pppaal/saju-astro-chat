@@ -13,21 +13,19 @@
  *
  * References come from astronomy-engine (an independent ephemeris) or from the real orb
  * trend, never from engine output. The global test setup mocks swisseph, so this file
- * unmocks it and runs under node; it is skipped where the native module cannot load (E16).
+ * unmocks it and runs under node. Without native swisseph it skips locally but fails in
+ * CI and in the destiny release gate (tests/helpers/realEphemeris.ts, E16).
  *
  * @vitest-environment node
  */
-import { describe, it, expect, vi } from 'vitest'
+import { it, expect, vi } from 'vitest'
 import * as Astronomy from 'astronomy-engine'
 import golden from '../../../golden/engine-golden.json'
 
 vi.unmock('swisseph')
 vi.unmock('@/lib/astrology/foundation/ephe')
 
-const swissephAvailable = await import('swisseph').then(
-  () => true,
-  () => false
-)
+const { describeRealEphemeris } = await import('../../../helpers/realEphemeris')
 
 const { calculateNatalChart, toChart } = await import('@/lib/astrology/foundation/astrologyService')
 const { calculateTransitChart } = await import('@/lib/astrology/foundation/transit')
@@ -73,7 +71,7 @@ function rng(seed: number) {
   }
 }
 
-describe.skipIf(!swissephAvailable)('planetary day — real sunrise (ASTRO-5)', () => {
+describeRealEphemeris('planetary day — real sunrise (ASTRO-5)', () => {
   const PH = golden.timing.planetaryHours
 
   it('the Seoul 2026-11-23 frame matches the astronomy-engine sunrise and sunset', () => {
@@ -152,7 +150,7 @@ describe.skipIf(!swissephAvailable)('planetary day — real sunrise (ASTRO-5)', 
   })
 })
 
-describe.skipIf(!swissephAvailable)('electional — unordered distinct pairs (ASTRO-8)', () => {
+describeRealEphemeris('electional — unordered distinct pairs (ASTRO-8)', () => {
   it('classifyAspects never self-aspects and never lists a pair twice', async () => {
     for (let d = 0; d < 365; d += 7) {
       const day = new Date(Date.UTC(2026, 0, 1) + d * DAY_MS).toISOString().slice(0, 10)
@@ -179,7 +177,7 @@ describe.skipIf(!swissephAvailable)('electional — unordered distinct pairs (AS
   }, 120_000)
 })
 
-describe.skipIf(!swissephAvailable)('sect by the Sun altitude (ASTRO-10)', () => {
+describeRealEphemeris('sect by the Sun altitude (ASTRO-10)', () => {
   /** astronomy-engine geometric altitude of the Sun (no refraction). */
   function referenceAltitude(ms: number, lat: number, lon: number): number {
     const obs = new Astronomy.Observer(lat, lon, 0)
@@ -259,7 +257,7 @@ describe.skipIf(!swissephAvailable)('sect by the Sun altitude (ASTRO-10)', () =>
   })
 })
 
-describe.skipIf(!swissephAvailable)('void-of-course window (ASTRO-11)', () => {
+describeRealEphemeris('void-of-course window (ASTRO-11)', () => {
   it('a VoC that ends after midnight is in every later day’s one-day build it reaches', async () => {
     // December 2026 (Seoul): the 12-11 noon VoC runs to 12-13 01:02, past two midnights.
     const month = (await astroMoonPhaseVocExtractor.extract(
@@ -289,7 +287,7 @@ describe.skipIf(!swissephAvailable)('void-of-course window (ASTRO-11)', () => {
   }, 60_000)
 })
 
-describe.skipIf(!swissephAvailable)('transit→natal applying (ASTRO-13)', () => {
+describeRealEphemeris('transit→natal applying (ASTRO-13)', () => {
   it('the applying flag matches the real orb trend for ≥99% of hits', async () => {
     const rnd = rng(13)
     const DESIRED: Record<string, number> = {
@@ -333,7 +331,7 @@ describe.skipIf(!swissephAvailable)('transit→natal applying (ASTRO-13)', () =>
   }, 120_000)
 })
 
-describe.skipIf(!swissephAvailable)('ephemeris source check (ASTRO-12)', () => {
+describeRealEphemeris('ephemeris source check (ASTRO-12)', () => {
   it('the bundled files are in use: Sun has SEFLG_SWIEPH and Chiron computes', () => {
     const sw = getSwisseph()
     const r = checkEphemerisSource(sw, 'public/ephe')

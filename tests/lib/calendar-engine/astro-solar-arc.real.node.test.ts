@@ -8,20 +8,18 @@
  * tests/golden/engine-golden.json (astronomy-engine, never engine output).
  *
  * The global test setup mocks swisseph, so this file unmocks it and runs under
- * the node environment; it is skipped where the native module cannot load (E16).
+ * the node environment. Without native swisseph it skips locally but fails in CI and
+ * in the destiny release gate (tests/helpers/realEphemeris.ts, E16).
  *
  * @vitest-environment node
  */
-import { describe, it, expect, vi } from 'vitest'
+import { it, expect, vi } from 'vitest'
 import golden from '../../golden/engine-golden.json'
 
 vi.unmock('swisseph')
 vi.unmock('@/lib/astrology/foundation/ephe')
 
-const swissephAvailable = await import('swisseph').then(
-  () => true,
-  () => false
-)
+const { describeRealEphemeris } = await import('../../helpers/realEphemeris')
 
 const { calculateNatalChart, toChart } = await import('@/lib/astrology/foundation/astrologyService')
 const { solarArcDegrees } = await import('@/lib/astrology/foundation/progressions')
@@ -43,7 +41,7 @@ const INPUT = {
   timeZone: SA.input.tz,
 }
 
-describe.skipIf(!swissephAvailable)('astro-solar-arc — real ephemeris', () => {
+describeRealEphemeris('astro-solar-arc — real ephemeris', () => {
   it('solarArcDegrees matches the progressed-Sun arc at ages 20/40/60', async () => {
     const raw = await calculateNatalChart(INPUT)
     for (const { age, arc } of SA.arcs) {
