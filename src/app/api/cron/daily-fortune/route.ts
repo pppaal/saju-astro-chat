@@ -24,6 +24,7 @@ import { withCronAuth } from '@/lib/api/middleware/cronGuard'
 import { getWebPush } from '@/lib/push/webPush'
 import { buildDailyFortuneMessage } from '@/lib/push/dailyFortuneMessage'
 import { getNowInTimezone } from '@/lib/datetime/timezone'
+import { resolveViewerTimezone } from '@/lib/datetime/resolveTimezone'
 
 export const dynamic = 'force-dynamic'
 
@@ -76,7 +77,12 @@ async function handle(request: Request): Promise<NextResponse> {
           // 07:00)에 돌므로 `now`(UTC 달력)를 그대로 주면 어제 일진으로 작성돼
           // 웹 캘린더(getNowInTimezone 기준)와 다른 날을 설명한다(감사 #4).
           // keyday 푸시(keyDay.ts)와 같은 기준으로 정렬.
-          const tz = sub.user?.profile?.tzId || 'Asia/Seoul'
+          // 수신자 기기 tz 는 저장돼 있지 않다 — 보는 사람 resolver 가 출생 tz(profile.tzId)
+          // → 사주 기준 존 순으로 고른다.
+          const tz = resolveViewerTimezone(
+            { birth: { timezone: sub.user?.profile?.tzId } },
+            { context: 'cron/daily-fortune' }
+          )
           const t = getNowInTimezone(tz)
           const message = buildDailyFortuneMessage({
             birthDate: sub.user?.profile?.birthDate ?? null,

@@ -11,6 +11,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from '@/lib/auth/session'
 import { ensureCounselorContext } from '@/lib/destiny/counselorContextCache'
+import { resolveBirthTimezone } from '@/lib/datetime/resolveTimezone'
 import { streamClaudeAsSSE } from '@/lib/llm/claudeSSE'
 import { sanitizeForXmlTagBoundary, sanitizePriorTurns } from '@/lib/llm/promptSafety'
 import { logger } from '@/lib/logger'
@@ -441,7 +442,15 @@ export async function POST(req: NextRequest) {
             birthYear: aby,
             birthMonth: abm,
             birthDate: abd,
-            birthTimeZone: body.timezone ?? 'Asia/Seoul',
+            // 상담사 컨텍스트와 같은 출생 타임존 resolver(명시 tz → 출생 좌표의 tz → 기준 존).
+            birthTimeZone: resolveBirthTimezone(
+              {
+                timezone: body.timezone,
+                latitude: body.birthCityUnknown ? undefined : body.latitude,
+                longitude: body.birthCityUnknown ? undefined : body.longitude,
+              },
+              { context: 'counselor/realtime' }
+            ),
           })
         : null
     const metaParts: string[] = []

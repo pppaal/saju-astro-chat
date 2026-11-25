@@ -9,6 +9,7 @@ import { Redis } from '@upstash/redis'
 import { logger } from '@/lib/logger'
 import type { CacheResult, CacheWriteResult } from './types'
 import { NATAL_CHART_CACHE_VERSION, SAJU_ENGINE_VERSION } from '@/lib/cache/engineVersions'
+import { CALCULATION_STANDARDS } from '@/lib/config/calculationStandards'
 
 let redis: Redis | null = null
 
@@ -321,7 +322,9 @@ export const CacheKeys = {
     birthTime: string,
     gender: string,
     calendar: string = 'solar',
-    timezone: string = 'Asia/Seoul',
+    // 호출자는 출생 타임존을 넘긴다(resolveBirthTimezone). 기본값은 사주 기준 존 —
+    // 하드코딩 'Asia/Seoul' 대신 CALCULATION_STANDARDS 단일 출처(값은 같아 키 불변).
+    timezone: string = CALCULATION_STANDARDS.saju.baseTimezone,
     lunarLeap: boolean = false,
     // 진태양시(진경도) 보정 경도. 도시별로 시주가 달라지므로 키에 포함해야
     // 다른 도시 사용자끼리 캐시가 섞이지 않는다. 경도 없으면 옛 키 형태 유지.

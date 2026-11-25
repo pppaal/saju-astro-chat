@@ -20,6 +20,7 @@ import { cookies } from 'next/headers'
 import { resolveBirthInstantFromDate } from '@/lib/datetime/resolveBirthInstant'
 import { parseHourMinute } from '@/lib/saju/timeParse'
 import { defaultLatitudeFor, defaultLongitudeFor } from '@/lib/saju/timezone'
+import { resolveBirthTimezone } from '@/lib/datetime/resolveTimezone'
 import { recordCounter } from '@/lib/metrics'
 
 export const dynamic = 'force-dynamic'
@@ -83,7 +84,15 @@ export default async function IntegratedReportPage({
   const parsedLng = Number(rawLng)
   const hasValidCoords = Number.isFinite(parsedLat) && Number.isFinite(parsedLng)
   const birthCityUnknown = !hasValidCoords
-  const timeZone = one(sp.tz) ?? 'Asia/Seoul'
+  // 출생 타임존 resolver — ?tz → 출생 좌표(?lat·?lng)의 tz → 사주 기준 존.
+  const timeZone = resolveBirthTimezone(
+    {
+      timezone: one(sp.tz),
+      latitude: hasValidCoords ? parsedLat : undefined,
+      longitude: hasValidCoords ? parsedLng : undefined,
+    },
+    { context: 'integrated-report' }
+  )
   // 좌표 미상 → 출생 타임존 기준점(Asia/Seoul = 서울 기본값, OD-2). 비한국 tz + 서울
   // 경도 조합은 시주를 ~15시간 밀었다(SAJU-9).
   const latitude = hasValidCoords ? parsedLat : defaultLatitudeFor(timeZone)

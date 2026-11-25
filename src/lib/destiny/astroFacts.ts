@@ -32,7 +32,7 @@ import {
   type AlmutenFigurisResult,
 } from '@/lib/astrology/foundation/almutenFiguris'
 import { currentManAge } from '@/lib/datetime/currentAge'
-import { normalizeTimeZone } from '@/lib/datetime/timezone'
+import { resolveBirthTimezone } from '@/lib/datetime/resolveTimezone'
 import { logger } from '@/lib/logger'
 import type { Chart, AspectHit, ZodiacKo } from '@/lib/astrology/foundation/types'
 import type {
@@ -182,8 +182,13 @@ export async function collectAstroFacts(
 
   // 잘못된 IANA 타임존이면 natalToJD 의 tz 변환이 throw → 여기서 null 반환 →
   // buildNatalContext 가 하드 throw → 리포트·캘린더·운명이 모두 죽는다.
-  // 유효하지 않으면 기본값으로 떨궈 차트는 계산되게 한다.
-  const safeTz = normalizeTimeZone(input.timezone)
+  // 유효하지 않으면 출생 타임존 resolver(명시 tz → 출생 좌표의 tz → 사주 기준 존)로
+  // 떨궈 차트는 계산되게 한다.
+  const safeTz = resolveBirthTimezone({
+    timezone: input.timezone,
+    latitude: input.latitude,
+    longitude: input.longitude,
+  })
   // 본명 차트는 출생정보가 같으면 불변 — Redis 30일 캐시(cachedCalculateNatalChart)
   // 를 거쳐 리포트·캘린더·운명이 매 로드마다 Swiss Ephemeris 풀계산(~500ms)을
   // 반복하지 않게 한다. 캐시 없거나 미스면 cacheOrCalculate 가 그대로 계산(graceful).
@@ -254,7 +259,7 @@ export async function collectAstroFacts(
       birthYear: Y,
       birthMonth: M,
       birthDate: D,
-      birthTimeZone: input.timezone,
+      birthTimeZone: safeTz,
       now,
     })
     const prof = calculateProfection(chart, manAge)
@@ -294,7 +299,7 @@ export async function collectAstroFacts(
             mi,
             lat: input.latitude,
             lon: input.longitude,
-            tz: input.timezone,
+            tz: safeTz,
           }),
         CACHE_TTL.NATAL_CHART
       )

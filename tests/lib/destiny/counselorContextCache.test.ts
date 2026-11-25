@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 
 const mockCacheGet = vi.fn()
 const mockCacheSet = vi.fn()
@@ -285,5 +285,73 @@ describe('ensureCounselorContext (운명상담사 컨텍스트 캐시)', () => {
     // 두 번째 호출은 캐시 miss 시 새 빌드를 돈다(끝난 promise 재사용 금지).
     expect(mockBuildDestinyContext).toHaveBeenCalledTimes(2)
     expect(second.dailyContext).toBe('d2')
+  })
+})
+
+describe("ensureCounselorContext — '오늘'은 보는 사람 tz (resolveViewerTimezone, F5)", () => {
+  // 2026-11-24 20:00 UTC = 뉴욕 11-24 15:00, 서울 11-25 05:00 — 두 날짜가 갈린다.
+  const AT = new Date('2026-11-24T20:00:00Z')
+  const NY_NOON = Date.UTC(2026, 10, 24, 12)
+  const SEOUL_NOON = Date.UTC(2026, 10, 25, 12)
+  const nyBirth = {
+    birthDate: '1990-05-15',
+    birthTime: '08:30',
+    gender: 'female',
+    latitude: 40.7128,
+    longitude: -74.006,
+  }
+
+  beforeEach(() => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(AT)
+    mockCacheGet.mockReset()
+    mockCacheSet.mockReset()
+    mockBuildDestinyContext.mockReset()
+    mockCacheGet.mockResolvedValue(null)
+    mockCacheSet.mockResolvedValue(true)
+    mockBuildDestinyContext.mockResolvedValue({ stable: 's', daily: 'd' })
+  })
+  afterEach(() => vi.useRealTimers())
+
+  const lastBuild = () => {
+    const [birth, now, , userTz] = mockBuildDestinyContext.mock.calls.at(-1)!
+    return { birth: birth as { timezone: string }, now: (now as Date).getTime(), userTz }
+  }
+  const dailyKey = () =>
+    mockCacheGet.mock.calls.map((c) => c[0] as string).find((k) => k.includes(':daily:'))!
+
+  it('뉴욕 출생 tz + 기기 tz 없음 → 뉴욕 오늘(서울 아님)', async () => {
+    await ensureCounselorContext({ ...nyBirth, timezone: 'America/New_York' }, 'u-ny1', 'en')
+    const b = lastBuild()
+    expect(b.now).toBe(NY_NOON)
+    expect(b.userTz).toBe('America/New_York')
+    expect(dailyKey().endsWith(':America/New_York:2026-11-24')).toBe(true)
+  })
+
+  it('tz 없이 뉴욕 좌표만 → 출생 tz·오늘 모두 뉴욕 (예전엔 서울 존·서울 날짜)', async () => {
+    const res = await ensureCounselorContext(nyBirth, 'u-ny2', 'en')
+    const b = lastBuild()
+    expect(b.birth.timezone).toBe('America/New_York')
+    expect(b.now).toBe(NY_NOON)
+    expect(res.stableContext).toContain('timezone: America/New_York')
+  })
+
+  it('기기 tz 가 있으면 그것이 오늘의 기준', async () => {
+    await ensureCounselorContext(
+      { ...nyBirth, timezone: 'America/New_York', userTimezone: 'Asia/Seoul' },
+      'u-ny3',
+      'en'
+    )
+    expect(lastBuild().now).toBe(SEOUL_NOON)
+  })
+
+  it('tz·좌표·기기 tz 모두 없으면 기준 존(서울) — 출생지 미상', async () => {
+    const { latitude: _la, longitude: _lo, ...noPlace } = nyBirth
+    void _la
+    void _lo
+    await ensureCounselorContext(noPlace, 'u-none', 'en')
+    const b = lastBuild()
+    expect(b.birth.timezone).toBe('Asia/Seoul')
+    expect(b.now).toBe(SEOUL_NOON)
   })
 })

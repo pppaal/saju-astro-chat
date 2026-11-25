@@ -2,6 +2,7 @@ import { normalizeGender } from '@/lib/utils/gender'
 import { currentManAge } from '@/lib/datetime/currentAge'
 import { resolveBirthTimeAnchor } from '@/lib/saju/birthTimeAnchor'
 import { defaultLatitudeFor, defaultLongitudeFor } from '@/lib/saju/timezone'
+import { resolveBirthTimezone, resolveBirthTimezoneDetailed } from '@/lib/datetime/resolveTimezone'
 import type { ChatMessage } from '@/lib/api'
 
 function clampMessages(messages: ChatMessage[], max = 8) {
@@ -69,7 +70,16 @@ function buildPersonSeed(person: Record<string, unknown> | null | undefined): Pe
   const hasLocation = latRaw !== null && lonRaw !== null
 
   const tzRaw = typeof person.timeZone === 'string' ? person.timeZone.trim() : ''
-  const timeZone = tzRaw.length > 0 ? tzRaw : 'Asia/Seoul'
+  // 출생 타임존 resolver — 명시 tz → 출생 좌표의 tz → 사주 기준 존.
+  const tzResolved = resolveBirthTimezoneDetailed(
+    {
+      timezone: tzRaw,
+      latitude: hasLocation ? latRaw : undefined,
+      longitude: hasLocation ? lonRaw : undefined,
+    },
+    { context: 'compatibility/counselor' }
+  )
+  const timeZone = tzResolved.timeZone
   // 좌표 미상 → 출생 타임존 기준점(Asia/Seoul = 서울 기본값, OD-2·SAJU-9).
   const latitude = hasLocation ? latRaw : defaultLatitudeFor(timeZone)
   const longitude = hasLocation ? lonRaw : defaultLongitudeFor(timeZone)
@@ -91,7 +101,8 @@ function buildPersonSeed(person: Record<string, unknown> | null | undefined): Pe
     timeZone,
     source: {
       usedDefaultLocation: !hasLocation,
-      usedDefaultTimezone: tzRaw.length === 0,
+      // 명시 tz 도 출생 좌표도 없어 기준 존으로 떨어졌을 때만 '기본값 사용'.
+      usedDefaultTimezone: tzResolved.source === 'base',
       // normalizer 가 'male'/'female' 둘 다 확정 못 한 경우 = 입력이 빠지거나
       // 알 수 없는 포맷 → 'male' fallback 을 썼다는 의미.
       usedDefaultGender: normalized !== 'male' && normalized !== 'female',
@@ -102,8 +113,11 @@ function buildPersonSeed(person: Record<string, unknown> | null | undefined): Pe
 // 만 나이는 currentManAge(SSOT)에 위임. 예전엔 `new Date(date)`(=UTC 자정)와
 // 서버-로컬 `new Date()` 필드를 섞어, 생일·연말 경계에서 ±1 어긋날 수 있었고
 // 상담사/대운 화면이 쓰는 만나이와 기준이 갈렸다. birthTimeZone 을 주면 그
-// 시간대 기준으로 계산(없으면 'Asia/Seoul' — buildPersonSeed 기본 tz 와 동일).
-function getAgeFromBirthDate(date?: string, birthTimeZone = 'Asia/Seoul'): number {
+// 시간대 기준으로 계산(없으면 출생 타임존 resolver 의 기준 존 — buildPersonSeed 와 같은 규칙).
+function getAgeFromBirthDate(
+  date?: string,
+  birthTimeZone: string = resolveBirthTimezone({}, { context: 'compatibility/age' })
+): number {
   const parsed = parseDateString(date)
   if (!parsed) return 30
   const [y, m, d] = parsed.split('-').map(Number)

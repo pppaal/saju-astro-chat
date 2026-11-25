@@ -27,6 +27,7 @@ import { koStructuralLabels } from '@/lib/llm/koStructuralLabels'
 import { SIGN_KO } from '@/lib/astrology/signLabels'
 import type { DestinySources } from '@/lib/destiny/counselorRequest'
 import { defaultLatitudeFor, defaultLongitudeFor } from '@/lib/saju/timezone'
+import { resolveBirthTimezone } from '@/lib/datetime/resolveTimezone'
 
 const ALL_SOURCES: DestinySources = { saju: true, astro: true }
 
@@ -330,6 +331,21 @@ export interface DestinyBirth {
   birthCityUnknown?: boolean
 }
 
+/**
+ * 상담사 본명 계산의 출생 타임존 — 사주·점성 섹션이 같은 resolver 를 거쳐 같은 존을 쓴다.
+ * 출생지 미상이면 좌표는 출생지가 아니라 폴백이라 tz 조회에 쓰지 않는다.
+ */
+function birthTimezoneOf(birth: DestinyBirth): string {
+  return resolveBirthTimezone(
+    {
+      timezone: birth.timezone,
+      latitude: birth.birthCityUnknown ? undefined : birth.latitude,
+      longitude: birth.birthCityUnknown ? undefined : birth.longitude,
+    },
+    { context: 'counselorContext' }
+  )
+}
+
 export interface CurrentPeriod {
   seun?: { stem: string; branch: string } | null
   wolun?: { stem: string; branch: string } | null
@@ -462,8 +478,9 @@ export async function buildDestinyContext(
 
   // birth identity header 는 [Meta] 와 중복이라 제거 (route.ts 에서 [Meta]
   // 가 birthDate/birthTime/gender/location/tz/flags 단일 source 로 출력).
-  // tz 는 점성 계산용으로만 사용.
-  const tz = birth.timezone ?? 'Asia/Seoul'
+  // tz 는 점성 계산용으로만 사용 — 출생 타임존 resolver(명시 tz → 출생 좌표의 tz →
+  // 사주 기준 존). 예전엔 tz 가 없으면 좌표가 뉴욕이어도 서울 존으로 계산했다.
+  const tz = birthTimezoneOf(birth)
   // 좌표 미상 → 출생 타임존 기준점(Asia/Seoul = 서울 기본값, OD-2). 사주 쪽은 경도
   // 미상을 같은 존 기준 경도로 풀어(solarTimeCorrectionMinutes) 두 계산이 같은 위치다.
   const lat = birth.latitude ?? defaultLatitudeFor(tz)
@@ -650,7 +667,7 @@ function buildSajuSection(
   // 일치하고 테스트로 고정 가능하다. 없으면 호출 시점(new Date()).
   now: Date = new Date()
 ): { natal: string; timing: string; iljinWindow: string; dayMasterName: string } {
-  const tz = birth.timezone ?? 'Asia/Seoul'
+  const tz = birthTimezoneOf(birth)
   // ── 재료 준비실 ──
   // 옛 코드는 raw 호출(calculateSajuData/Strength/Geokguk/Yongsin/Relations) +
   // 텍스트 포매팅을 한 함수에서 다 했음. 2026-06-06 분리:

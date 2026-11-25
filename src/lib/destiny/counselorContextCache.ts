@@ -16,6 +16,7 @@ import { cacheGet, cacheSet, CACHE_TTL } from '@/lib/cache/redis-cache'
 import { ENGINE_VERSION_TAG } from '@/lib/cache/engineVersions'
 import { logger } from '@/lib/logger'
 import { defaultLatitudeFor, defaultLongitudeFor } from '@/lib/saju/timezone'
+import { resolveBirthTimezone } from '@/lib/datetime/resolveTimezone'
 
 export interface CounselorBirthInput {
   birthDate?: string
@@ -38,7 +39,8 @@ function birthFingerprint(b: CounselorBirthInput): string {
     // 차트/Meta 와 같은 정규화 값으로 — 'F'/'female'/'FEMALE' 이 서로 다른 캐시
     // 키로 갈려 같은 사람이 중복 빌드되던 fragmentation 방지.
     normalizeGender(b.gender) === 'female' ? 'female' : 'male',
-    b.timezone ?? 'Asia/Seoul',
+    // ensureCounselorContext 가 출생 타임존 resolver 로 이미 채운 값.
+    b.timezone ?? '',
     b.latitude ?? '',
     b.longitude ?? '',
   ].join('|')
@@ -70,7 +72,23 @@ export async function ensureCounselorContext(
   // 읽었다. '00:00' 입력도 미상으로 취급(프로필 저장 규약) — hourUnknown 판정과
   // 계산 앵커가 같은 헬퍼에서 나와 갈리지 않는다.
   const anchor = resolveBirthTimeAnchor(body.birthTime, body.birthTimeUnknown)
-  body = { ...body, birthTime: anchor.time, birthTimeUnknown: anchor.timeUnknown }
+  // 출생 타임존도 여기서 한 번 확정한다(resolveBirthTimezone — 명시 tz → 출생 좌표의 tz →
+  // 사주 기준 존). 키·Meta·차트·'오늘'이 모두 같은 존을 본다. 예전엔 tz 가 없으면
+  // 좌표가 뉴욕이어도 'Asia/Seoul' 로 계산하고 서울 날짜를 '오늘'로 잡았다.
+  const birthTz = resolveBirthTimezone(
+    {
+      timezone: body.timezone,
+      latitude: body.birthCityUnknown ? undefined : body.latitude,
+      longitude: body.birthCityUnknown ? undefined : body.longitude,
+    },
+    { context: 'counselorContextCache' }
+  )
+  body = {
+    ...body,
+    birthTime: anchor.time,
+    birthTimeUnknown: anchor.timeUnknown,
+    timezone: birthTz,
+  }
   const hourUnknown = anchor.timeUnknown
   // 좌표가 없으면 도시 미상으로 본다 — timezone 이 있든 없든. 예전엔 timezone 이
   // 있으면(&& !body.timezone) cityUnknown=false 라, 좌표 없이 timezone 만 온
@@ -148,7 +166,8 @@ async function buildAndCacheContext(
   // 누수가 있었다. 유저-tz 날짜의 UTC 정오로 고정한다(computeCurrentUnse 를
   // 부르는 counselorContext.ts:659 와 동일 패턴 — main 2c20428).
   const queryDate = new Date(Date.UTC(localNow.year, localNow.month - 1, localNow.day, 12, 0, 0))
-  const tz = body.timezone ?? 'Asia/Seoul'
+  // ensureCounselorContext 가 출생 타임존 resolver 로 채운 값 — 이 폴백은 방어용.
+  const tz = body.timezone ?? resolveBirthTimezone({}, { context: 'counselorContextCache' })
   const birthDate = body.birthDate ?? ''
   // body 는 ensureCounselorContext 에서 앵커 정규화 완료 — 이 폴백은 방어용.
   const birthTime = body.birthTime ?? TIME_UNKNOWN_ANCHOR
@@ -174,7 +193,7 @@ async function buildAndCacheContext(
   // 성별을 반대로 읽었다(대운 방향은 성별 의존). 차트와 같은 정규화 값을 쓴다.
   const genderTag = gender === 'female' ? 'F' : 'M'
   parts.push(
-    `[Meta] birthDate: ${body.birthDate} | birthTime: ${timeTag} | gender: ${genderTag} | location: ${locTag} | timezone: ${body.timezone ?? 'Asia/Seoul'} | birthTimeUnknown: ${birthTimeUnknown ? 'true' : 'false'} | birthCityUnknown: ${birthCityUnknown ? 'true' : 'false'}`
+    `[Meta] birthDate: ${body.birthDate} | birthTime: ${timeTag} | gender: ${genderTag} | location: ${locTag} | timezone: ${tz} | birthTimeUnknown: ${birthTimeUnknown ? 'true' : 'false'} | birthCityUnknown: ${birthCityUnknown ? 'true' : 'false'}`
   )
   if (birthTimeUnknown)
     parts.push(

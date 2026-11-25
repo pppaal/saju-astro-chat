@@ -204,13 +204,20 @@ Output `AstroFacts | null` (async; `null` on calculation failure):
   houses, `ascendant` and `mc` are `null`.
 - `aspects` — `{ strong, mid }` split by orb (0-2 deg / 2-5 deg), major types only.
 - `profection` — `{ age, activatedHouse, activatedSign, lordOfYear,
-lordPlacement }` or `null`.
+lordPlacement }` or `null`. When `placeUnreliable`, `activatedHouse`,
+  `activatedSign`, `lordOfYear` and `lordPlacement` are `null` (whole-sign counts
+  from the ASC sign); only `age` stays.
 - When `includeHellenistic` is set: the richer Hellenistic dataset
   (Chiron/Lilith, arabic lots, zodiacal releasing, 5-tier dignities, almuten
   figuris, minor aspects). Sect comes from `isDiurnalChart`. When
   `placeUnreliable`, `maskPlaceDependentHellenistic` empties lots, ZR and the
   almuten, drops aspects to the angles and the aspect-end houses, and sets the
-  Chiron/Lilith houses to unknown.
+  Chiron/Lilith houses to unknown. When `sectUnreliable` (see §6),
+  `maskSectDependentHellenistic` sets `sect: null`, rescores the dignities with
+  only the participating triplicity ruler, and empties lots, ZR and the almuten.
+- The birth timezone goes through `resolveBirthTimezone`
+  (`src/lib/datetime/resolveTimezone.ts`): explicit zone → zone of the birth
+  coordinates → `CALCULATION_STANDARDS.saju.baseTimezone` with a warning.
 
 `placeUnreliable` is set when birth time or birth city is unknown. Downstream
 surfaces must not cite house / ASC / MC / timing when it is true (§6).
@@ -427,10 +434,17 @@ depends on them is dropped:
   rising sign, MC and house personalisation.
 - Report: the integrated report hides houses, ASC/MC, lots, almuten and aspect
   houses, and the identity axis gets no almuten winner.
-- Counselor context: no house / ASC / MC / profection-house claims.
+- Counselor context: no house / ASC / MC claims and no profection line.
 
-Sect (Sun altitude at the anchor) and the sect-based dignities stay visible; they
-depend on time and place but are not ASC/house items.
+**Sect is not fabricated either (OD-5).** With an unknown birth time the sect is
+`null` everywhere (`astroFacts.hellenistic.sect`, `NatalContext.astro.sect`, the
+calendar user card, the report): the noon anchor would make almost every such
+chart diurnal. With a known time and an unknown birth city the sect stays (Sun
+altitude at the zone reference point) unless `|altitude| < 3°`
+(`SECT_HORIZON_MARGIN_DEG`), then it is `null`. A `null` sect means: triplicity
+counts only the participating ruler (`triplicityOf(…, null)`), lot and ZR
+extractors emit nothing, the report omits the yin-yang cross row (like the social
+role row without an MC) and shows no day/night label.
 
 Without coordinates, callers use the birth zone's reference point
 (`defaultLatitudeFor` / `defaultLongitudeFor(tz)`), never Seoul's for a

@@ -15,8 +15,11 @@ status: auto-generated
 
 **키의 뜻**
 
-- `saju.baseTimezone` — 사주 입력에 쓸 수 있는 timezone 이 없을 때(누락·잘못된 IANA 이름) 계산이
-  기대는 기준 존. 경도도 없으면 이 존의 기준 경도로 시주를 정한다([[saju|사주 교리]], CONVENTIONS §1).
+- `saju.baseTimezone` — 쓸 수 있는 timezone 이 없을 때(누락·잘못된 IANA 이름) 계산이 기대는
+  마지막 기준 존. 출생·보는 사람 타임존은 `src/lib/datetime/resolveTimezone.ts` 한 곳에서 고른다:
+  출생 tz = 명시 출생 tz → 출생 좌표의 tz(tz-lookup) → 이 값(경고 로그), 보는 사람 tz('오늘'·일진·
+  푸시 날짜) = 요청의 기기 tz → 출생 tz → 이 값. 경도도 없으면 이 존의 기준 경도로 시주를
+  정한다([[saju|사주 교리]], CONVENTIONS §1).
 - `saju.daeunRounding` — 대운수 = 절입까지 일수 ÷ 3 의 **내림**, 최소 1 (CONVENTIONS §13).
 - `saju.useSolarTermsForMonthlyCycles` — 월운 경계를 12절기로 (CONVENTIONS §3).
 - `astrology.houseSystem` — 기본 하우스 시스템. |위도| > 66.56° 에선 Placidus 가 정의되지 않아
@@ -32,11 +35,11 @@ status: auto-generated
 
 ### 사주 (Saju)
 
-| 항목                            | 값           | 읽는 곳                                                                                                       |
-| ------------------------------- | ------------ | ------------------------------------------------------------------------------------------------------------- |
-| `baseTimezone`                  | `Asia/Seoul` | `src/lib/calendar-engine/extractors/saju-hour.ts`<br>`src/lib/destiny/sajuFacts.ts`<br>`src/lib/saju/saju.ts` |
-| `daeunRounding`                 | `floor`      | `src/lib/saju/daeunAge.ts`                                                                                    |
-| `useSolarTermsForMonthlyCycles` | `true`       | `src/lib/saju/unse.ts`                                                                                        |
+| 항목                            | 값           | 읽는 곳                                                                                                                                                                                                                    |
+| ------------------------------- | ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `baseTimezone`                  | `Asia/Seoul` | `src/lib/cache/redis-cache.ts`<br>`src/lib/calendar-engine/extractors/saju-hour.ts`<br>`src/lib/datetime/resolveTimezone.ts`<br>`src/lib/datetime/timezone.ts`<br>`src/lib/destiny/sajuFacts.ts`<br>`src/lib/saju/saju.ts` |
+| `daeunRounding`                 | `floor`      | `src/lib/saju/daeunAge.ts`                                                                                                                                                                                                 |
+| `useSolarTermsForMonthlyCycles` | `true`       | `src/lib/saju/unse.ts`                                                                                                                                                                                                     |
 
 ### 점성 (Astrology)
 

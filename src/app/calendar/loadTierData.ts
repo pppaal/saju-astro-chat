@@ -28,6 +28,7 @@ import { getNowInTimezone, formatDateString } from '@/lib/datetime/timezone'
 import { resolveBirthTimeAnchor } from '@/lib/saju/birthTimeAnchor'
 import { profileToCalendarBirth } from '@/lib/calendar-engine/profileBirth'
 import { defaultLatitudeFor, defaultLongitudeFor } from '@/lib/saju/timezone'
+import { resolveBirthTimezone } from '@/lib/datetime/resolveTimezone'
 
 export type LoadTierResult =
   | { kind: 'no-birth' }
@@ -82,7 +83,15 @@ export function parseBirthOverride(sp: SP): BirthOverride | null {
   const tuRaw = one(sp.tu)
   const tuFlag = tuRaw === '1' ? true : tuRaw === '0' ? false : undefined
   const timeAnchor = resolveBirthTimeAnchor(one(sp.time), tuFlag)
-  const timeZone = one(sp.tz) || 'Asia/Seoul'
+  // 출생 타임존 resolver — ?tz → 출생 좌표(?lat·?lng)의 tz → 사주 기준 존.
+  const timeZone = resolveBirthTimezone(
+    {
+      timezone: one(sp.tz),
+      latitude: Number.isFinite(lat) ? lat : undefined,
+      longitude: Number.isFinite(lng) ? lng : undefined,
+    },
+    { context: 'calendar' }
+  )
   return {
     birthDate: date,
     birthTime: timeAnchor.time,
