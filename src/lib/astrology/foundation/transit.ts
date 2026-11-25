@@ -106,6 +106,21 @@ const PLANET_ORB_MULTIPLIER: Record<string, number> = {
 }
 
 /**
+ * 트랜짓 오브 한도(°) — findTransitAspects 의 수락 조건(orb ≤ 한도)과 같은 값.
+ * transit 행성 배율만 본다(natal 쪽은 안 봄). calendar-engine 이 범위 밖 run 을 이을 때
+ * 같은 한도를 써야 정오 샘플과 판정이 갈리지 않는다.
+ */
+export function transitOrbLimit(
+  transitPlanet: string,
+  aspect: AspectType,
+  orbMultiplier: number = 1.0
+): number {
+  const baseOrb = TRANSIT_ORBS[aspect]
+  const planetMultiplier = PLANET_ORB_MULTIPLIER[transitPlanet] ?? 1.0
+  return baseOrb * planetMultiplier * orbMultiplier
+}
+
+/**
  * 트랜짓 차트와 네이탈 차트 간의 애스펙트 찾기
  * @param transitChart 트랜짓 (현재) 차트
  * @param natalChart 네이탈 (출생) 차트
@@ -145,11 +160,7 @@ export function findTransitAspects(
     // 돌려준다. ~2.8e-14 의 fp 차이는 sep 가 작을 때(orb≈180)만 나타나는데 그건
     // 어떤 orb 한도(<=8.4°)보다도 커서 항상 reject 되므로 기록값에 영향 없음.
     computeOrb: (sep, target) => Math.abs(sep - target),
-    computeLimit: (aName, _bName, aspect) => {
-      const baseOrb = TRANSIT_ORBS[aspect]
-      const planetMultiplier = PLANET_ORB_MULTIPLIER[aName] ?? 1.0
-      return baseOrb * planetMultiplier * orbMultiplier
-    },
+    computeLimit: (aName, _bName, aspect) => transitOrbLimit(aName, aspect, orbMultiplier),
     // relSpeed 슬롯에 transitSpeed 를 흘려준다 (트랜짓은 transit 행성 속도만 사용).
     isApplying: (lonA, lonB, transitSpeed, targetAngle) =>
       determineApplying(lonA, lonB, transitSpeed, targetAngle),

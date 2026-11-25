@@ -26,11 +26,25 @@
  * ── 페어 weight ──
  * saju.weight × astro.weight × 0.6 (cross 신호 noise 방지 목적의 보수 계수).
  *
+ * ── 부모 자격 ── (엔진 감사 X4·X5)
+ *  - 사주: 정통 기둥 십신(saju-pillar: 대운·세운·월운·일진)·시진(saju-hour)의 evidence.sibsin,
+ *    신살(saju-shinsal·saju-shinsal-activation)의 evidence.shinsalName 만. 오행 흐름·지장간
+ *    통근 같은 *파생 라인*도 sibsin 을 달고 있지만 용신과 무관한 고정 극성이라(같은 일진
+ *    십신이 +3 과 −1 로 갈림) 교차 부모가 아니다 — evidenceLadder 의 정통 십신 규칙과 같다.
+ *  - 점성: 하늘에서 실제로 움직이는 활성 행성만. 식(eclipse)·프로펙션·ZR·행성시는 제외.
+ *
+ * ── dedup ──
+ * 같은 셀 안에서 (교차 name, layer) 당 가장 센 1개 — buildCalendar 의 groupIntoCells 가
+ * 셀 버킷 뒤에 고른다(index.ts dedupeCrossSignals). 여기서는 *같은 셀들을 덮는* 후보,
+ * 즉 (페어, layer, 교집합 창)이 정확히 같은 후보끼리만 가장 센 것을 남긴다 —
+ * 어느 셀에서도 진 쪽이 살아남을 수 없으니 손실이 없다. 예전 키 (페어, 창 시작일)은
+ * 시작일만 같으면 창이 다른 후보까지 지웠고, 그 결과가 빌드 범위에 따라 달라졌다(X1·X2).
+ *
  * ── id ──
- * `cross.{saju}-x-{astro}.{YYYY-MM-DD}` — 같은 날 같은 페어는 한 번만.
+ * `cross.{saju}-x-{astro}.{layer}:{시작일}~{끝일}` — 살아남은 교차끼리 유일.
  */
 
-import type { ActiveSignal, ActiveWindow, Polarity, SignalEvidence } from '../types'
+import type { ActiveSignal, ActiveWindow, Polarity, SignalEvidence, SignalLayer } from '../types'
 import {
   SAJU_ASTRO_MAPPINGS,
   crossLayerAllowed,
@@ -41,15 +55,26 @@ import { PLANET_KO } from '../data/planetNames'
 
 /**
  * Saju 신호에서 매칭 키 (십신명 또는 신살명) 를 추출.
- * 매핑 사전 키와 동일해야 매치 — saju-pillar 는 evidence.sibsin, saju-shinsal 은
- * evidence.shinsalName 에 박는다.
+ * 매핑 사전 키와 동일해야 매치 — saju-pillar·saju-hour 는 evidence.sibsin, 신살은
+ * evidence.shinsalName 에 박는다. 그 외 모듈(오행 흐름·지장간 통근 등)의 sibsin 은
+ * 파생 라인이라 키로 쓰지 않는다(파일 머리 '부모 자격').
  */
+const SIBSIN_KEY_MODULES: ReadonlySet<string> = new Set(['saju-pillar', 'saju-hour'])
+const SHINSAL_KEY_MODULES: ReadonlySet<string> = new Set([
+  'saju-shinsal',
+  'saju-shinsal-activation',
+])
 function extractSajuKey(s: ActiveSignal): string | undefined {
   if (s.source !== 'saju') return undefined
-  const sibsin = s.evidence?.sibsin as string | undefined
-  if (sibsin) return sibsin
-  const shinsalName = s.evidence?.shinsalName as string | undefined
-  if (shinsalName) return shinsalName
+  const mod = s.evidence?.module ?? ''
+  if (SIBSIN_KEY_MODULES.has(mod)) {
+    const sibsin = s.evidence?.sibsin as string | undefined
+    if (sibsin) return sibsin
+  }
+  if (SHINSAL_KEY_MODULES.has(mod)) {
+    const shinsalName = s.evidence?.shinsalName as string | undefined
+    if (shinsalName) return shinsalName
+  }
   return undefined
 }
 
@@ -69,18 +94,26 @@ function extractSajuKey(s: ActiveSignal): string | undefined {
  * "planets[0] = 트랜짓(활성) 행성" 불변식과 어긋나, 실제 천문 활성 없이 명칭만으로
  * 교차 신호를 발화시킨다 — eclipse 제외와 같은 선례. (그 룰러가 실제로 트랜짓하면
  * transit/dignity 추출기가 별도로 활성 신호를 내고, 그게 교차의 정당한 키가 된다.)
+ *
+ * 행성시(planetary-hour)도 같은 범주다 — planets[0] 은 칼데아 순서로 요일·시각에 배정된
+ * 시간의 지배성일 뿐 하늘의 활성이 아니다. 예전엔 한 시간짜리 'Saturn hour' 가 대운
+ * 정재와 만나 10년 층 '정재 × 토성' 을 만들었다(엔진 감사 X5).
  */
+const NON_ACTIVE_ASTRO_KINDS: ReadonlySet<string> = new Set([
+  'eclipse',
+  'profection',
+  'zodiacal-releasing',
+  'planetary-hour',
+])
 function extractAstroKey(s: ActiveSignal): string | undefined {
   if (s.source !== 'astro') return undefined
-  // affectedPoint(본명점) 또는 상징적 룰러라 활성 주체 아님 — 교차 제외.
-  if (s.kind === 'eclipse' || s.kind === 'profection' || s.kind === 'zodiacal-releasing') {
-    return undefined
-  }
+  // affectedPoint(본명점) 또는 상징적 지배성이라 활성 주체 아님 — 교차 제외.
+  if (NON_ACTIVE_ASTRO_KINDS.has(s.kind)) return undefined
   const planets = s.evidence?.planets ?? []
   return planets[0]
 }
 
-/** ISO day 키 (YYYY-MM-DD) — 동일 페어 동일 날 dedup. */
+/** ISO day 키 (YYYY-MM-DD) — 교차 id 의 창 시작·끝일. */
 function isoDay(iso: string): string {
   return iso.slice(0, 10)
 }
@@ -141,7 +174,6 @@ function buildCrossSignal(
   const baseWeight = (sajuSig.weight ?? 0) * (astroSig.weight ?? 0) * 0.6
   // cross 신호는 부수적 — 단일 신호 weight 최대값(1.0) 이하로 cap.
   const weight = Math.max(0, Math.min(1, baseWeight))
-  const day = isoDay(window.start)
   const name = `${mapping.saju} × ${PLANET_KO[mapping.astro] ?? mapping.astro}`
   // 부호 충돌(polarity 0)이면 톤만 무력화하고 강한 길/흉 원문을 그대로 두면
   // "중립 마커(·) + 강한 경고문" 모순이 난다(감사 #9). 문구도 중립으로 교체 —
@@ -174,22 +206,24 @@ function buildCrossSignal(
       parentAstroKind: astroSig.kind,
     },
   }
+  const layer: SignalLayer =
+    sajuSig.layer === 'decadal' || astroSig.layer === 'decadal'
+      ? 'decadal'
+      : sajuSig.layer === 'yearly' || astroSig.layer === 'yearly'
+        ? 'yearly'
+        : sajuSig.layer === 'monthly' || astroSig.layer === 'monthly'
+          ? 'monthly'
+          : 'daily'
   return {
-    id: `cross.${mapping.saju}-x-${mapping.astro}.${day}`,
+    // id 에 layer·창 시작~끝일 — (셀, name, layer) dedup 뒤 살아남은 교차끼리 유일하다.
+    id: `cross.${mapping.saju}-x-${mapping.astro}.${layer}:${isoDay(window.start)}~${isoDay(window.end)}`,
     source: 'saju', // hybrid 표시 — tagger 가 source 별 라우팅에 안전. (cross-activation kind 로 식별)
     kind: 'cross-activation',
     name,
     korean: koMeaning,
     english: enMeaning,
     polarity,
-    layer:
-      sajuSig.layer === 'decadal' || astroSig.layer === 'decadal'
-        ? 'decadal'
-        : sajuSig.layer === 'yearly' || astroSig.layer === 'yearly'
-          ? 'yearly'
-          : sajuSig.layer === 'monthly' || astroSig.layer === 'monthly'
-            ? 'monthly'
-            : 'daily',
+    layer,
     active: window,
     weight,
     evidence,
@@ -197,10 +231,11 @@ function buildCrossSignal(
 }
 
 /**
- * 입력 신호 배열에서 사주 × 점성 동시 활성 페어 → cross-activation 신호 emit.
+ * 입력 신호 배열에서 사주 × 점성 동시 활성 페어 → cross-activation 후보 신호 emit.
  *
- * 동일 페어 (sajuKey × astroKey) 가 한 날에 한 번만 등장하도록 dedup.
- * 같은 페어가 여러 부모 조합에서 매칭되면 가장 강한 (weight desc) 한 쌍만 보존.
+ * 같은 (페어, layer, 교집합 창) 후보 — 정확히 같은 셀들을 덮는 후보 — 끼리는
+ * 가장 센 1개만 남긴다(손실 없음). 셀 단위 (name, layer) 1개 규칙은 셀 버킷 뒤
+ * index.ts dedupeCrossSignals 가 같은 전순서(strength → weight → id)로 적용한다.
  */
 export function extractCrossActivations(signals: readonly ActiveSignal[]): ActiveSignal[] {
   // 1) saju/astro 로 split + 매칭 키 추출.
@@ -225,8 +260,8 @@ export function extractCrossActivations(signals: readonly ActiveSignal[]): Activ
   }
 
   // 2) 매핑 사전 순회 — 양쪽 모두 활성인 페어만 처리.
-  // dedup: (mapping key + day) 가 동일하면 가장 강한 (weight desc) 한 쌍만.
-  const bestByDay = new Map<string, { sig: ActiveSignal; strength: number }>()
+  // dedup: 같은 (페어, layer, 교집합 창) 후보 — 같은 셀 집합 — 중 가장 센 1개.
+  const bestByWindow = new Map<string, ActiveSignal>()
 
   // 신호당 경계 1회 파싱 캐시 — 페어 루프의 Date.parse 폭증 제거.
   const boundsCache = new Map<ActiveSignal, Bounds>()
@@ -261,15 +296,27 @@ export function extractCrossActivations(signals: readonly ActiveSignal[]): Activ
         // 층별 교차 밴드 — 합성 신호의 layer 가 그 행성 밴드 밖이면 버린다.
         // (외행성은 대운에서만, 빠른 행성은 일/월에서만 — 스케일 불일치 교차 차단.)
         if (!crossLayerAllowed(mapping.astro, crossSig.layer)) continue
-        const dayKey = `${mapping.saju}|${mapping.astro}|${isoDay(window.start)}`
-        const strength = Math.abs(crossSig.weight * crossSig.polarity)
-        const existing = bestByDay.get(dayKey)
-        if (!existing || strength > existing.strength) {
-          bestByDay.set(dayKey, { sig: crossSig, strength })
-        }
+        // 정확히 같은 창(ms)이면 같은 셀 집합(일·시 셀 모두) — 진 쪽은 어디서도 못 남는다.
+        const key = `${crossSig.id}|${window.start}|${window.end}`
+        const existing = bestByWindow.get(key)
+        if (!existing || crossOutranks(crossSig, existing)) bestByWindow.set(key, crossSig)
       }
     }
   }
 
-  return Array.from(bestByDay.values()).map((x) => x.sig)
+  return Array.from(bestByWindow.values())
+}
+
+/**
+ * 교차 후보 전순서 — strength(|polarity|×weight) → weight → 부모 id 문자열.
+ * 같은 창의 후보끼리만 비교하므로 마지막 tie-break 는 부모 쌍으로 결정론을 지킨다.
+ */
+function crossOutranks(a: ActiveSignal, b: ActiveSignal): boolean {
+  const sa = Math.abs(a.weight * a.polarity)
+  const sb = Math.abs(b.weight * b.polarity)
+  if (sa !== sb) return sa > sb
+  if (a.weight !== b.weight) return a.weight > b.weight
+  const pa = String((a.evidence.detail as { parentIds?: string[] }).parentIds ?? '')
+  const pb = String((b.evidence.detail as { parentIds?: string[] }).parentIds ?? '')
+  return pa < pb
 }

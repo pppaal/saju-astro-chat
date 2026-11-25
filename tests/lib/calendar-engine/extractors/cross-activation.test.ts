@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { extractCrossActivations } from '@/lib/calendar-engine/extractors/cross-activation'
+import { dedupeCrossSignals, __bucketingInternals } from '@/lib/calendar-engine'
 import type { ActiveSignal } from '@/lib/calendar-engine/types'
 
 /**
@@ -36,7 +37,8 @@ function sajuSig(p: {
       p.win ?? makeWin('2026-07-01T00:00:00Z', '2026-07-05T00:00:00Z', '2026-07-10T00:00:00Z'),
     weight: p.weight ?? 0.6,
     evidence: {
-      module: 'test',
+      // 교차 키는 정통 기둥 십신(saju-pillar)·신살 모듈에서만 나온다(엔진 감사 X4).
+      module: p.sibsin ? 'saju-pillar' : 'saju-shinsal',
       detail: {},
       sibsin: p.sibsin as never,
       shinsalName: p.shinsalName,
@@ -163,17 +165,17 @@ describe('extractCrossActivations — 구조 / weight / layer', () => {
     expect(out[0].weight).toBeCloseTo(0.5 * 0.4 * 0.6, 6)
   })
 
-  it('id 에 날짜(YYYY-MM-DD) 가 들어가 같은 날 같은 페어는 한 번만', () => {
+  it('id = cross.<십신>-x-<행성>.<layer>:<창 시작일>~<끝일> — 살아남은 교차끼리 유일', () => {
     const out = extractCrossActivations([
       sajuSig({ sibsin: '정재', polarity: 2 }),
       astroSig({ planet: 'Venus', polarity: 2 }),
     ])
-    expect(out[0].id.startsWith('cross.정재-x-Venus.')).toBe(true)
+    expect(out[0].id).toBe('cross.정재-x-Venus.monthly:2026-07-01~2026-07-10')
   })
 })
 
 describe('extractCrossActivations — dedup / 키 추출 / 스킵', () => {
-  it('같은 페어·같은 날 여러 부모 조합이면 가장 강한 한 쌍만 보존', () => {
+  it('같은 페어·같은 창의 여러 부모 조합이면 가장 강한 한 쌍만 보존', () => {
     const win = makeWin('2026-07-01T00:00:00Z', '2026-07-05T00:00:00Z', '2026-07-10T00:00:00Z')
     const weakSaju = sajuSig({ sibsin: '정재', polarity: 2, weight: 0.3, win })
     const strongSaju = sajuSig({ sibsin: '정재', polarity: 2, weight: 0.9, win })
@@ -248,5 +250,120 @@ describe('extractCrossActivations — dedup / 키 추출 / 스킵', () => {
       const detail = out[0].evidence.detail as Record<string, unknown>
       expect(detail.sajuKey).toBe('양인')
     }
+  })
+})
+
+describe('교차 부모 자격 (엔진 감사 X4·X5)', () => {
+  it('오행 흐름·지장간 통근 같은 파생 라인의 sibsin 은 교차 키가 아니다', () => {
+    for (const mod of ['saju-element-flow', 'saju-jijanggan']) {
+      const derived = sajuSig({ sibsin: '정재', polarity: -1 })
+      derived.evidence = { ...derived.evidence, module: mod }
+      const out = extractCrossActivations([derived, astroSig({ planet: 'Venus', polarity: -1 })])
+      expect(out, mod).toHaveLength(0)
+    }
+  })
+
+  it('시진(saju-hour)·신살(saju-shinsal-activation) 은 교차 키', () => {
+    const hour = sajuSig({ sibsin: '정재', polarity: 2, layer: 'hourly' })
+    hour.evidence = { ...hour.evidence, module: 'saju-hour' }
+    expect(
+      extractCrossActivations([hour, astroSig({ planet: 'Venus', polarity: 2, layer: 'daily' })])
+    ).toHaveLength(1)
+    const act = sajuSig({ shinsalName: '천을귀인', polarity: 2, layer: 'daily' })
+    act.evidence = { ...act.evidence, module: 'saju-shinsal-activation' }
+    const out = extractCrossActivations([
+      act,
+      astroSig({ planet: 'Jupiter', polarity: 2, layer: 'monthly' }),
+    ])
+    expect(out).toHaveLength(1)
+    expect((out[0].evidence.detail as { sajuKey: string }).sajuKey).toBe('천을귀인')
+  })
+
+  it('행성시(planetary-hour) Saturn 은 정관·정재와 교차를 만들지 않는다 — 시간의 지배성', () => {
+    const satHour = astroSig({ planet: 'Saturn', polarity: -1, layer: 'hourly' })
+    satHour.kind = 'planetary-hour'
+    const out = extractCrossActivations([
+      sajuSig({ sibsin: '정관', polarity: 2, layer: 'decadal' }),
+      sajuSig({ sibsin: '정재', polarity: 2, layer: 'decadal' }),
+      satHour,
+    ])
+    expect(out).toHaveLength(0)
+  })
+})
+
+describe('셀 단위 교차 dedup (엔진 감사 X2)', () => {
+  const cross = (id: string, name: string, layer: ActiveSignal['layer'], pol: number, w: number) =>
+    ({
+      id,
+      source: 'saju',
+      kind: 'cross-activation',
+      name,
+      polarity: pol as ActiveSignal['polarity'],
+      layer,
+      active: makeWin('2026-07-01T00:00:00Z', '2026-07-01T12:00:00Z', '2026-07-01T23:00:00Z'),
+      weight: w,
+      evidence: { module: 'cross-activation', detail: {} },
+    }) as ActiveSignal
+
+  it('(name, layer) 당 가장 센 1개 — 다른 layer 는 따로 남는다', () => {
+    const out = dedupeCrossSignals([
+      cross('a', '정재 × 금성', 'daily', 2, 0.2),
+      cross('b', '정재 × 금성', 'daily', 2, 0.3),
+      cross('c', '정재 × 금성', 'monthly', 2, 0.1),
+      sajuSig({ sibsin: '정재', polarity: 2 }),
+    ])
+    expect(out.map((s) => s.id)).toEqual(['b', 'c', 'saju.정재.x'])
+  })
+
+  it('짧은 강한 교차와 같은 날 시작한 긴 교차가 둘 다 산다 — 시작일이 생존을 정하지 않는다', () => {
+    // 월운 정관(한 달) × 토성 라이프사이클(decadal) = decadal 교차(긴 창).
+    // 같은 날 시작하는 시진 정관 × 토성 트랜짓(yearly) = yearly 교차(더 셈, 짧은 창).
+    // 예전 dedup 키 (페어, 창 시작일)은 yearly 가 decadal 을 지워 이후 날에도 decadal 이 없었다.
+    const wolun = sajuSig({
+      sibsin: '정관',
+      polarity: 2,
+      layer: 'monthly',
+      weight: 0.7,
+      win: makeWin('2026-07-01T00:00:00Z', '2026-07-15T00:00:00Z', '2026-07-30T23:59:59Z'),
+    })
+    const hour = sajuSig({
+      sibsin: '정관',
+      polarity: 2,
+      layer: 'hourly',
+      weight: 0.4,
+      win: makeWin('2026-07-01T09:00:00Z', '2026-07-01T10:00:00Z', '2026-07-01T11:00:00Z'),
+    })
+    hour.id = 'saju.hour.정관'
+    hour.evidence = { ...hour.evidence, module: 'saju-hour' }
+    const lifecycle = astroSig({
+      planet: 'Saturn',
+      polarity: 2,
+      layer: 'decadal',
+      weight: 0.5,
+      win: makeWin('2026-01-01T00:00:00Z', '2026-07-01T00:00:00Z', '2027-12-31T00:00:00Z'),
+    })
+    const transit = astroSig({
+      planet: 'Saturn',
+      polarity: 2,
+      layer: 'yearly',
+      weight: 1,
+      win: makeWin('2026-06-01T12:00:00Z', '2026-07-01T12:00:00Z', '2026-07-01T12:00:00Z'),
+    })
+    transit.id = 'astro.transit.Saturn'
+    const signals = [wolun, hour, lifecycle, transit]
+    const all = [...signals, ...extractCrossActivations(signals)]
+    const cells = __bucketingInternals.groupIntoCells(
+      all,
+      { start: '2026-07-01T00:00:00.000Z', end: '2026-07-10T23:59:59.999Z', granularity: 'day' },
+      { includeEvidence: true }
+    )
+    for (const c of cells) {
+      const crosses = c.signals.filter((s) => s.kind === 'cross-activation')
+      const keys = crosses.map((s) => `${s.name}|${s.layer}`)
+      expect(new Set(keys).size, c.datetime).toBe(keys.length)
+      expect(keys, c.datetime).toContain('정관 × 토성|decadal')
+    }
+    const first = cells[0].signals.filter((s) => s.kind === 'cross-activation')
+    expect(first.map((s) => s.layer).sort()).toEqual(['decadal', 'yearly'])
   })
 })

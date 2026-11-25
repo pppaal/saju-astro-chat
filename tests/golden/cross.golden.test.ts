@@ -40,12 +40,6 @@ type Signal = Cell['signals'][number]
 
 /** Engine stage that restores each invariant. Delete an entry when its stage lands. */
 const KNOWN_DEFECTS: Record<string, string> = {
-  'range invariance: 1-day build = month cell': 'E9',
-  '子時 2026-11-02 00:00–01:32 is 丙子': 'E9',
-  'no previous-day 子時 parent on 2026-11-02': 'E9',
-  'cross parents resolve inside the cell': 'E9',
-  'no element-flow / jijanggan / planetary-hour parents': 'E9',
-  '(name, layer) unique per cell': 'E9',
   'sign coherence with both parents': 'E11',
   'cross layer = narrowest parent layer': 'E11',
 }

@@ -6,6 +6,7 @@ import {
 import type { Chart } from '@/lib/astrology/foundation/types'
 import type { ActiveSignal, ExtractorContext, SignalExtractor, Polarity } from '../types'
 import { getCachedTransitChart } from '../ephe-cache'
+import { noonPlanetPosition, rangeDays, shiftDay } from './shared/noonRuns'
 
 /**
  * 달 위상(Moon Phase) + 보이드 오브 코스(Void of Course) 추출기.
@@ -25,9 +26,15 @@ import { getCachedTransitChart } from '../ephe-cache'
  *    의도적으로 점수에 반영하려면 키를 맞춰야 함 — 지금은 VoC 만 실효.
  *
  * 활성 윈도우:
- *  - Moon Phase: 그 단계 동안 (보통 3~4일)
+ *  - Moon Phase: 그 단계 동안 (보통 3~4일) — 첫 정오가 그 위상인 날 00:00 ~ 마지막 날
+ *    23:59:59.999. 범위 가장자리의 위상은 천체력으로 범위 밖까지 이어 진짜 시작·끝을
+ *    찾는다(엔진 감사 X1). 예전엔 범위 안에서 위상이 *바뀔 때만* 신호를 내, 1일 빌드엔
+ *    위상 신호가 없고 월 빌드도 마지막 위상을 빠뜨렸다.
  *  - VoC: 다음 sign 진입까지 (수시간)
  */
+
+/** 위상 run 을 범위 밖으로 찾을 때의 상한(일) — 한 위상은 길어야 ~5일. */
+const PHASE_SCAN_CAP_DAYS = 10
 
 // 달 위상별 흐름 한 줄 (getMoonPhase snake_case 키와 일치).
 const PHASE_MEANING: Record<string, string> = {
@@ -70,9 +77,20 @@ const astroMoonPhaseVocExtractor: SignalExtractor = {
     const signals: ActiveSignal[] = []
     const start = new Date(range.start)
     const end = new Date(range.end)
+    const timeZone = natal.astro.location.timeZone
 
-    let lastPhase: string | null = null
-    let phaseStartIso: string | null = null
+    // 날짜별 정오 위상 — 범위 안은 차트, 범위 밖은 같은 계산의 단일 행성 위치.
+    const phaseByDay = new Map<string, string>()
+    const phaseOn = (dayIso: string): string | null => {
+      const known = phaseByDay.get(dayIso)
+      if (known) return known
+      const sun = noonPlanetPosition('Sun', dayIso, timeZone)
+      const moon = noonPlanetPosition('Moon', dayIso, timeZone)
+      if (!sun || !moon) return null
+      const phase = getMoonPhase(sun.longitude, moon.longitude)
+      phaseByDay.set(dayIso, phase)
+      return phase
+    }
 
     for (let t = start.getTime(); t <= end.getTime(); t += 86_400_000) {
       const noonIso = new Date(t).toISOString().slice(0, 10) + 'T12:00:00'
@@ -93,38 +111,8 @@ const astroMoonPhaseVocExtractor: SignalExtractor = {
       const moon = chart.planets.find((p) => p.name === 'Moon')
       if (!sun || !moon) continue
 
-      const phase = getMoonPhase(sun.longitude, moon.longitude)
       const dayIso = new Date(t).toISOString().slice(0, 10)
-
-      // Moon Phase 변경 감지
-      if (lastPhase !== phase) {
-        if (lastPhase && phaseStartIso) {
-          // 이전 phase 마감 → signal 생성
-          signals.push({
-            id: `astro.moon-phase.${phaseStartIso.slice(0, 10)}.${lastPhase}`,
-            source: 'astro',
-            kind: 'moon-phase',
-            name: `달 위상: ${getMoonPhaseName(lastPhase as never)}`,
-            korean: `${getMoonPhaseName(lastPhase as never)} — ${PHASE_MEANING[lastPhase as string] ?? '달 주기의 한 국면이에요'}`,
-            english: `Moon phase — ${PHASE_MEANING_EN[lastPhase as string] ?? 'a stage of the lunar cycle'}`,
-            polarity: PHASE_POLARITY[lastPhase] ?? 0,
-            layer: 'monthly', // 한 위상이 약 3~4일이지만 "월" 사이클의 일부
-            active: {
-              start: phaseStartIso,
-              peak: new Date((new Date(phaseStartIso).getTime() + t) / 2).toISOString(),
-              end: new Date(t).toISOString(),
-            },
-            weight: 0.4,
-            evidence: {
-              module: 'astro-moon-phase-voc',
-              planets: ['Moon', 'Sun'],
-              detail: { phase: lastPhase },
-            },
-          })
-        }
-        lastPhase = phase
-        phaseStartIso = new Date(t).toISOString()
-      }
+      phaseByDay.set(dayIso, getMoonPhase(sun.longitude, moon.longitude))
 
       // Void of Course
       const voc = checkVoidOfCourse(chart)
@@ -158,6 +146,61 @@ const astroMoonPhaseVocExtractor: SignalExtractor = {
           },
         })
       }
+    }
+
+    // Moon Phase — 범위 안 날들의 위상 run 을 모아, 가장자리 run 은 범위 밖으로 잇는다.
+    const days = rangeDays(range)
+    let i = 0
+    while (i < days.length) {
+      const phase = phaseByDay.get(days[i])
+      if (!phase) {
+        i++
+        continue
+      }
+      let j = i
+      while (j + 1 < days.length && phaseByDay.get(days[j + 1]) === phase) j++
+      // 진짜 첫날 — 범위 첫날이면 뒤로 같은 위상이 끝날 때까지.
+      let firstDay = days[i]
+      if (i === 0) {
+        for (let k = 1; k <= PHASE_SCAN_CAP_DAYS; k++) {
+          const prev = shiftDay(days[0], -k)
+          if (phaseOn(prev) !== phase) break
+          firstDay = prev
+        }
+      }
+      // 다음 위상 첫날 — 범위 끝이면 앞으로 위상이 바뀌는 날까지.
+      let nextDay = shiftDay(days[j], 1)
+      if (j === days.length - 1) {
+        for (let k = 1; k <= PHASE_SCAN_CAP_DAYS; k++) {
+          nextDay = shiftDay(days[j], k)
+          if (phaseOn(nextDay) !== phase) break
+        }
+      }
+      // 끝은 다음 위상 첫날 직전(…T23:59:59.999Z) — 다음 날 셀에 걸리지 않게(하루 끝 관례).
+      const startMs = Date.parse(`${firstDay}T00:00:00.000Z`)
+      const endMs = Date.parse(`${nextDay}T00:00:00.000Z`) - 1
+      signals.push({
+        id: `astro.moon-phase.${firstDay}.${phase}`,
+        source: 'astro',
+        kind: 'moon-phase',
+        name: `달 위상: ${getMoonPhaseName(phase as never)}`,
+        korean: `${getMoonPhaseName(phase as never)} — ${PHASE_MEANING[phase] ?? '달 주기의 한 국면이에요'}`,
+        english: `Moon phase — ${PHASE_MEANING_EN[phase] ?? 'a stage of the lunar cycle'}`,
+        polarity: PHASE_POLARITY[phase] ?? 0,
+        layer: 'monthly', // 한 위상이 약 3~4일이지만 "월" 사이클의 일부
+        active: {
+          start: new Date(startMs).toISOString(),
+          peak: new Date((startMs + endMs) / 2).toISOString(),
+          end: new Date(endMs).toISOString(),
+        },
+        weight: 0.4,
+        evidence: {
+          module: 'astro-moon-phase-voc',
+          planets: ['Moon', 'Sun'],
+          detail: { phase },
+        },
+      })
+      i = j + 1
     }
 
     return signals

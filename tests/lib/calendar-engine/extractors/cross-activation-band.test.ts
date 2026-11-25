@@ -25,7 +25,13 @@ function sajuSig(p: {
     layer: p.layer,
     active: W,
     weight: 0.6,
-    evidence: { module: 'test', detail: {}, sibsin: p.sibsin as never, shinsalName: p.shinsalName },
+    evidence: {
+      // 교차 키는 정통 기둥 십신(saju-pillar)·신살 모듈에서만 나온다(엔진 감사 X4).
+      module: p.sibsin ? 'saju-pillar' : 'saju-shinsal',
+      detail: {},
+      sibsin: p.sibsin as never,
+      shinsalName: p.shinsalName,
+    },
   }
 }
 

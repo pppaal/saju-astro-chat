@@ -109,6 +109,7 @@ interface HourSignalDetail {
   startHour?: number
   windowLabel?: string
   hourBranch?: string
+  hourStem?: string
 }
 
 /**
@@ -129,8 +130,21 @@ export function buildHourCrossings(
   const hourSigs = dayCell.signals.filter((s) => s.kind === 'pillar-sibsin' && s.layer === 'hourly')
 
   const rows: Array<HourCrossItem & { startHour: number }> = []
-  for (const s of hourSigs) {
+  // 자정을 감싸는 시진(보통 子)은 엔진이 민용일 안에서 두 조각(00시대·23시대)으로 낸다
+  // (CONVENTIONS §1). 같은 時柱라 한 줄만 — 시각순 첫 조각(자정 직후)을 남긴다.
+  const seenPillar = new Set<string>()
+  const ordered = [...hourSigs].sort(
+    (a, b) =>
+      (((a.evidence?.detail ?? {}) as HourSignalDetail).startHour ?? 0) -
+      (((b.evidence?.detail ?? {}) as HourSignalDetail).startHour ?? 0)
+  )
+  for (const s of ordered) {
     const det = (s.evidence?.detail ?? {}) as HourSignalDetail
+    if (det.hourBranch && det.hourStem) {
+      const pillarKey = `${det.hourStem}${det.hourBranch}`
+      if (seenPillar.has(pillarKey)) continue
+      seenPillar.add(pillarKey)
+    }
     const startHour = typeof det.startHour === 'number' ? det.startHour : 0
     const when = det.windowLabel ?? `${startHour}시`
     const sibsin = s.evidence?.sibsin ?? ''

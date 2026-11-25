@@ -1,5 +1,6 @@
-import { findTransitAspects } from '@/lib/astrology/foundation/transit'
-import type { AspectType, Chart } from '@/lib/astrology/foundation/types'
+import { findTransitAspects, transitOrbLimit } from '@/lib/astrology/foundation/transit'
+import { ASPECT_ANGLES, type AspectType, type Chart } from '@/lib/astrology/foundation/types'
+import { angleDiff } from '@/lib/astrology/foundation/utils'
 import type {
   ActiveSignal,
   ExtractorContext,
@@ -10,6 +11,16 @@ import type {
 import { inferAspectPolarity } from '../aspect-polarity'
 import { getCachedTransitChart } from '../ephe-cache'
 import { aspectFlowLine } from '../data/astroFlow'
+import {
+  dayDiff,
+  extendRun,
+  maxDailyAccel,
+  maxDailyMotion,
+  minOverRun,
+  noonPlanetPosition,
+  rangeDays,
+  type RunSample,
+} from './shared/noonRuns'
 
 // Hellenistic 정통화 (Phase 2): minor aspect 5종 (semisextile/quincunx/
 // quintile/biquintile/sesquiquadrate) 은 비정통 (Kepler 이후 modern). 추출기에서
@@ -41,6 +52,12 @@ const MINOR_POLARITY_OVERRIDE: Record<string, Polarity> = {
  * 매일 정오의 트랜짓 차트를 계산하고 본명 차트와 어스펙트 검사.
  * 같은 (transitPlanet, natalPoint, aspectType) 짝이 연속된 날에 잡히면 하나의 신호로 묶음
  * → 활성 윈도우 = 첫날~마지막날, peak = 가장 타이트한 날.
+ *
+ * 창은 *오브 안에 든 연속 정오 전체*다 — 범위 가장자리에 닿은 구간은 천체력으로 범위
+ * 밖까지 이어 진짜 진입·이탈 정오를 찾고, weight·peak 는 그 전체 구간의 최소 orb 로
+ * 정한다(shared/noonRuns). 그래야 1일 빌드와 월 빌드가 같은 날에 같은 신호·교차를
+ * 낸다(엔진 감사 X1 — 예전엔 범위에서 잘려 1일 빌드에선 한 달짜리 트랜짓이 정오 한
+ * 순간·약한 weight 가 됐다).
  *
  * Swiss Ephemeris 호출 비용이 크므로 매일 1회만 (정오 UTC) 호출하고 캐시.
  * 'hour' granularity로 가도 행성 위치 변화는 미미해 daily 캐시 재사용.
@@ -87,6 +104,7 @@ const astroTransitExtractor: SignalExtractor = {
     type Hit = {
       iso: string
       orb: number
+      lon: number
       transitPlanet: string
       natalPoint: string
       aspectType: string
@@ -102,6 +120,7 @@ const astroTransitExtractor: SignalExtractor = {
         arr.push({
           iso,
           orb: a.orb,
+          lon: a.from.longitude,
           transitPlanet: a.transitPlanet,
           natalPoint: a.natalPoint,
           aspectType: a.type,
@@ -110,18 +129,72 @@ const astroTransitExtractor: SignalExtractor = {
       }
     }
 
-    // 3) 각 그룹을 하나의 ActiveSignal로 변환
+    // 3) 각 그룹을 하나의 ActiveSignal로 변환 — 범위 가장자리에 닿은 구간은 범위 밖으로
+    //    이어 진짜 run(첫 정오 ~ 마지막 정오)과 그 run 의 최소 orb 를 찾는다.
+    const days = rangeDays(range)
+    const firstDay = days[0]
+    const lastDay = days[days.length - 1]
+    const timeZone = natal.astro.location.timeZone
+    const natalPoints = [...natalChart.planets, natalChart.ascendant, natalChart.mc]
     const signals: ActiveSignal[] = []
     for (const [key, hits] of hitsByKey) {
       hits.sort((a, b) => a.iso.localeCompare(b.iso))
+      const sample = hits[0]
+      const natalLon = natalPoints.find((p) => p?.name === sample.natalPoint)?.longitude
+      const angle = ASPECT_ANGLES[sample.aspectType as AspectType]
+      const limit = transitOrbLimit(sample.transitPlanet, sample.aspectType as AspectType)
+      const vmax = maxDailyMotion(sample.transitPlanet)
+      const bound = {
+        vmax,
+        acc: maxDailyAccel(sample.transitPlanet),
+        orbOfLon: (lon: number) =>
+          typeof natalLon === 'number' ? Math.abs(angleDiff(lon, natalLon) - angle) : 0,
+      }
+      // findTransitAspects 와 같은 판정 — orb = |angleDiff − 목표각|, orb ≤ 한도면 켜짐.
+      const orbOn = (dayIso: string): RunSample | null => {
+        if (typeof natalLon !== 'number') return null
+        const pos = noonPlanetPosition(sample.transitPlanet, dayIso, timeZone)
+        if (!pos) return null
+        const orb = Math.abs(angleDiff(pos.longitude, natalLon) - angle)
+        return orb <= limit ? { day: dayIso, value: orb, lon: pos.longitude } : null
+      }
       // 연속 구간 분리 (트랜짓이 빠져나갔다가 역행으로 다시 오면 별개 신호)
-      const segments = splitConsecutive(hits)
-      for (let i = 0; i < segments.length; i++) {
-        const seg = segments[i]
-        const tightest = seg.reduce((best, h) => (h.orb < best.orb ? h : best), seg[0])
-        const startIso = seg[0].iso
-        const endIso = seg[seg.length - 1].iso
-        const sample = seg[0]
+      for (const seg of splitConsecutive(hits)) {
+        const known: RunSample[] = seg.map((h) => ({
+          day: h.iso.slice(0, 10),
+          value: h.orb,
+          lon: h.lon,
+        }))
+        const first = known[0]
+        const last = known[known.length - 1]
+        let startDay = first.day
+        let endDay = last.day
+        if (startDay === firstDay) {
+          const edge = extendRun({
+            anchor: first,
+            direction: -1,
+            vmax,
+            sampleOn: orbOn,
+            marginOf: (x) => limit - x.value,
+          })
+          startDay = edge.edgeDay
+          known.push(...edge.samples.slice(1))
+        }
+        if (endDay === lastDay) {
+          const edge = extendRun({
+            anchor: last,
+            direction: 1,
+            vmax,
+            sampleOn: orbOn,
+            marginOf: (x) => limit - x.value,
+          })
+          endDay = edge.edgeDay
+          known.push(...edge.samples.slice(1))
+        }
+        const tightest = minOverRun(known, bound, orbOn)
+        const startIso = `${startDay}T12:00:00.000Z`
+        const endIso = `${endDay}T12:00:00.000Z`
+        const peakIso = `${tightest.day}T12:00:00.000Z`
         // 마이너 어스펙트는 task spec 의 fixed polarity 사용. 메이저는 행성
         // benefic/malefic 와 angle harmony 를 본 inferAspectPolarity.
         const polarity: Polarity = MINOR_ASPECT_SET.has(sample.aspectType)
@@ -130,7 +203,7 @@ const astroTransitExtractor: SignalExtractor = {
         const layer: SignalLayer = transitLayer(sample.transitPlanet)
 
         signals.push({
-          id: `astro.transit.${key}.${startIso.slice(0, 10)}`,
+          id: `astro.transit.${key}.${startDay}`,
           source: 'astro',
           kind: 'transit',
           name: `${sample.transitPlanet} ${aspectSymbol(sample.aspectType)} ${sample.natalPoint}`,
@@ -142,14 +215,14 @@ const astroTransitExtractor: SignalExtractor = {
             `${sample.transitPlanet} ${aspectSymbol(sample.aspectType)} natal ${sample.natalPoint}`,
           polarity,
           layer,
-          active: { start: startIso, peak: tightest.iso, end: endIso },
-          weight: weightForTransit(sample.transitPlanet, sample.aspectType, tightest.orb),
+          active: { start: startIso, peak: peakIso, end: endIso },
+          weight: weightForTransit(sample.transitPlanet, sample.aspectType, tightest.value),
           evidence: {
             module: 'astro-transit',
             aspectType: sample.aspectType,
-            orbDegrees: tightest.orb,
+            orbDegrees: tightest.value,
             planets: [sample.transitPlanet, sample.natalPoint],
-            detail: { segmentDays: seg.length, segmentIndex: i, totalSegments: segments.length },
+            detail: { segmentDays: dayDiff(startDay, endDay) + 1 },
           },
         })
       }
@@ -159,17 +232,9 @@ const astroTransitExtractor: SignalExtractor = {
   },
 }
 
-function splitConsecutive(
-  hits: Array<{
-    iso: string
-    orb: number
-    transitPlanet: string
-    natalPoint: string
-    aspectType: string
-  }>
-) {
-  const segments: (typeof hits)[] = []
-  let current: typeof hits = []
+function splitConsecutive<T extends { iso: string }>(hits: T[]): T[][] {
+  const segments: T[][] = []
+  let current: T[] = []
   for (const h of hits) {
     if (current.length === 0) {
       current.push(h)

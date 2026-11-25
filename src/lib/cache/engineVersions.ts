@@ -59,7 +59,12 @@ export { SAJU_ENGINE_VERSION }
 //     같은 미출시 릴리스라 v8 에 함께 실린다. E8 만 따로 출시되면 그때 +1.
 //     (E14 의 첫 대운 전 current=null 은 캘린더와 무관 — 캘린더 대운 창은 이미
 //     startYear 부터라 bump 없음. 1900–1939 출생은 예전엔 throw 라 캐시된 행이 없다.)
-export const CALENDAR_ENGINE_VERSION = 'v8'
+// v9: 교차 범위 불변(엔진 감사 E9 — X1·X2·X3·F1·X4·X5·X10). 트랜짓·품위·달 위상 창을
+//     범위 밖까지 이어 진짜 run 과 그 run 의 최소 orb 로, 子時를 민용일 안 두 조각(같은
+//     時柱)으로, 교차 부모는 정통 기둥·시진·신살 × 실제 활성 행성만(오행 흐름·지장간·
+//     행성시 제외), 교차 dedup 은 (셀, name, layer). 월 셀·포커스 1일 셀('day:' 키 — birthKey
+//     를 접으므로 함께 무효화)에 구워지므로 bump.
+export const CALENDAR_ENGINE_VERSION = 'v9'
 
 /**
  * 본명 차트 Redis 캐시(CacheKeys.natalChart, `natal:v${N}:…`).
@@ -81,7 +86,7 @@ export const HELLENISTIC_CACHE_VERSION = 1
 
 /**
  * 엔진 버전 묶음 태그 — 여러 엔진 결과를 함께 캐시하는 키에 넣는다.
- * 예: 's4.cv8.n3.t3.h1'. 어느 값이 올라가도 태그가 바뀐다.
+ * 예: 's4.cv9.n3.t3.h1'. 어느 값이 올라가도 태그가 바뀐다.
  */
 export const ENGINE_VERSION_TAG = [
   `s${SAJU_ENGINE_VERSION}`,

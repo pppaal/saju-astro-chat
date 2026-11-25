@@ -119,7 +119,13 @@ const astroPlanetaryHourExtractor: SignalExtractor = {
           active: {
             start: `${dayIso}T${hh}:00:00.000Z`,
             peak: `${dayIso}T${hh}:30:00.000Z`,
-            end: `${dayIso}T${String((h + 1) % 24).padStart(2, '0')}:00:00.000Z`,
+            // 23시 창은 그날 23:59:59.999 에서 닫는다 — `(h+1)%24` 는 같은 날 00:00 이라
+            // end < start 가 돼 교차·시간 셀에서 빠졌다(엔진 감사 X10). 다음 날 00:00 으로
+            // 열어 두면 day 셀 버킷이 다음 날까지 걸리므로 하루 끝 관례(…T23:59:59.999Z)를 쓴다.
+            end:
+              h === 23
+                ? `${dayIso}T23:59:59.999Z`
+                : `${dayIso}T${String(h + 1).padStart(2, '0')}:00:00.000Z`,
           },
           weight: 0.4,
           evidence: {

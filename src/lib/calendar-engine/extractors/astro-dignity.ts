@@ -16,6 +16,16 @@ import type {
 } from '../types'
 import { getCachedTransitChart } from '../ephe-cache'
 import { PLANET_KO } from '../data/planetNames'
+import { formatLongitude } from '@/lib/astrology/foundation/utils'
+import {
+  dayDiff,
+  extendRun,
+  maxDailyMotion,
+  noonPlanetPosition,
+  rangeDays,
+  shiftDay,
+  type RunSample,
+} from './shared/noonRuns'
 import { SIGN_KO } from '@/lib/astrology/signLabels'
 
 /** 영문 행성/별자리 → 한글 (없으면 원문). ko 라벨에 영어가 새지 않게. */
@@ -37,7 +47,116 @@ const koSign = (s: string): string => SIGN_KO[s] ?? s
  *
  * 본명 행성(natal planets)도 한 번 평가해 본명 5-tier Almuten 스냅샷 신호로
  * 같이 내보낸다 (layer: 'yearly', 활성 윈도우 = 전체 range).
+ *
+ * 창은 그 품위가 이어지는 *연속 정오 전체*다 — 범위 가장자리에 닿은 구간은 천체력으로
+ * 범위 밖까지 이어 사인·텀·데칸 진입/이탈 정오를 찾는다(shared/noonRuns, 엔진 감사 X1).
+ * 예전엔 범위에서 잘려 1일 빌드에서 한 달짜리 품위가 정오 한 순간이 돼, 그날 다른 시진과
+ * 만드는 교차가 월 빌드와 갈렸다.
  */
+
+type DignityTier = 'major' | 'triplicity' | 'term' | 'face'
+
+/** 그 사인·도(정수)에서 이 행성의 tier 가 켜져 있나 — 인-범위 판정과 같은 함수. */
+function tierActive(
+  tier: DignityTier,
+  planet: string,
+  sign: string,
+  degree: number,
+  dayBirth: boolean,
+  dignity?: string
+): boolean {
+  switch (tier) {
+    case 'major':
+      return dignityOf(planet, sign) === dignity
+    case 'triplicity':
+      return triplicityOf(planet, sign, dayBirth) !== null
+    case 'term':
+      return termOf(planet, sign, degree) !== null
+    case 'face':
+      return faceOf(planet, sign, degree) !== null
+  }
+}
+
+/**
+ * 범위 가장자리에 닿은 품위 구간을 범위 밖으로 잇는다 — (startDay, endDay).
+ * 같은 사인 안에서 그 tier 가 켜진 정수 도 구간이 '영역'이고(경계는 모두 정수 도),
+ * 행성이 영역 경계까지 남은 각도 / 하루 최대 이동 일수만큼 한 번에 건너뛴다.
+ */
+function dignityRunBounds(args: {
+  tier: DignityTier
+  planet: string
+  sign: string
+  dignity?: string
+  segStartDay: string
+  segEndDay: string
+  firstDay: string
+  lastDay: string
+  dayBirth: boolean
+  timeZone: string
+}): { startDay: string; endDay: string } {
+  const { tier, planet, sign, dignity, dayBirth, timeZone } = args
+  let startDay = args.segStartDay
+  let endDay = args.segEndDay
+  if (startDay !== args.firstDay && endDay !== args.lastDay) return { startDay, endDay }
+
+  const vmax = maxDailyMotion(planet)
+  // 그 날 정오에 이 tier·사인이 켜져 있으면 황경, 아니면 null.
+  const lonOn = (dayIso: string): RunSample | null => {
+    const pos = noonPlanetPosition(planet, dayIso, timeZone)
+    if (!pos) return null
+    const f = formatLongitude(pos.longitude)
+    if (f.sign !== sign) return null
+    return tierActive(tier, planet, f.sign, f.degree, dayBirth, dignity)
+      ? { day: dayIso, value: f.norm }
+      : null
+  }
+  const regionOf = (anchorLon: number): { lo: number; hi: number } => {
+    const signIdx = Math.floor(anchorLon / 30)
+    const deg = Math.floor(anchorLon - signIdx * 30)
+    let dLo = deg
+    let dHi = deg
+    while (dLo > 0 && tierActive(tier, planet, sign, dLo - 1, dayBirth, dignity)) dLo--
+    while (dHi < 29 && tierActive(tier, planet, sign, dHi + 1, dayBirth, dignity)) dHi++
+    return { lo: signIdx * 30 + dLo, hi: signIdx * 30 + dHi + 1 }
+  }
+  const extend = (anchorDay: string, direction: -1 | 1): string => {
+    const anchor = lonOn(anchorDay)
+    if (anchor === null) return anchorDay
+    const { lo, hi } = regionOf(anchor.value)
+    return extendRun({
+      anchor,
+      direction,
+      vmax,
+      sampleOn: lonOn,
+      marginOf: (x) => Math.min(x.value - lo, hi - x.value),
+    }).edgeDay
+  }
+  if (startDay === args.firstDay) startDay = extend(startDay, -1)
+  if (endDay === args.lastDay) endDay = extend(endDay, 1)
+  return { startDay, endDay }
+}
+
+/** 날짜순 hit 을 하루 간격(≤1.5일)으로 이어진 구간들로 나눈다. */
+function splitDaily<T extends { iso: string }>(group: T[]): T[][] {
+  group.sort((a, b) => a.iso.localeCompare(b.iso))
+  const segments: T[][] = []
+  let current: T[] = []
+  for (const h of group) {
+    if (current.length === 0) {
+      current.push(h)
+      continue
+    }
+    const gap =
+      (new Date(h.iso).getTime() - new Date(current[current.length - 1].iso).getTime()) / 86_400_000
+    if (gap <= 1.5) current.push(h)
+    else {
+      segments.push(current)
+      current = [h]
+    }
+  }
+  if (current.length) segments.push(current)
+  return segments
+}
 
 const DIGNITY_POLARITY: Record<string, Polarity> = {
   domicile: 2,
@@ -169,34 +288,49 @@ const astroDignityExtractor: SignalExtractor = {
       byKey.set(key, arr)
     }
 
+    const days = rangeDays(range)
+    const firstDay = days[0]
+    const lastDay = days[days.length - 1]
+    const timeZone = natal.astro.location.timeZone
+    const dayBirth = sect === 'day'
+    const runOf = (
+      seg: Hit[],
+      tier: DignityTier,
+      dignity?: string
+    ): { startIso: string; endIso: string; peakIso: string; days: number } => {
+      const { startDay, endDay } = dignityRunBounds({
+        tier,
+        planet: seg[0].planet,
+        sign: seg[0].sign,
+        dignity,
+        segStartDay: seg[0].iso.slice(0, 10),
+        segEndDay: seg[seg.length - 1].iso.slice(0, 10),
+        firstDay,
+        lastDay,
+        dayBirth,
+        timeZone,
+      })
+      const len = dayDiff(startDay, endDay) + 1
+      return {
+        startIso: `${startDay}T12:00:00.000Z`,
+        endIso: `${endDay}T12:00:00.000Z`,
+        peakIso: `${shiftDay(startDay, Math.floor(len / 2))}T12:00:00.000Z`,
+        days: len,
+      }
+    }
+
     const signals: ActiveSignal[] = []
     for (const [key, group] of byKey) {
-      group.sort((a, b) => a.iso.localeCompare(b.iso))
-      const segments: Hit[][] = []
-      let current: Hit[] = []
-      for (const h of group) {
-        if (current.length === 0) {
-          current.push(h)
-          continue
-        }
-        const gap =
-          (new Date(h.iso).getTime() - new Date(current[current.length - 1].iso).getTime()) /
-          86_400_000
-        if (gap <= 1.5) current.push(h)
-        else {
-          segments.push(current)
-          current = [h]
-        }
-      }
-      if (current.length) segments.push(current)
-
-      for (const seg of segments) {
+      for (const seg of splitDaily(group)) {
         const sample = seg[0]
-        const startIso = seg[0].iso
-        const endIso = seg[seg.length - 1].iso
-        const peakIso = seg[Math.floor(seg.length / 2)].iso
         const polarity = DIGNITY_POLARITY[sample.dignity] ?? 0
         if (polarity === 0) continue
+        const {
+          startIso,
+          endIso,
+          peakIso,
+          days: durationDays,
+        } = runOf(seg, 'major', sample.dignity)
 
         signals.push({
           id: `astro.dignity.${key}.${startIso.slice(0, 10)}`,
@@ -215,7 +349,7 @@ const astroDignityExtractor: SignalExtractor = {
             detail: {
               dignity: sample.dignity,
               sign: sample.sign,
-              durationDays: seg.length,
+              durationDays,
             },
           },
         })
@@ -234,30 +368,9 @@ const astroDignityExtractor: SignalExtractor = {
         tierKey.set(key, arr)
       }
       for (const [key, group] of tierKey) {
-        group.sort((a, b) => a.iso.localeCompare(b.iso))
-        const segments: Hit[][] = []
-        let current: Hit[] = []
-        for (const h of group) {
-          if (current.length === 0) {
-            current.push(h)
-            continue
-          }
-          const gap =
-            (new Date(h.iso).getTime() - new Date(current[current.length - 1].iso).getTime()) /
-            86_400_000
-          if (gap <= 1.5) current.push(h)
-          else {
-            segments.push(current)
-            current = [h]
-          }
-        }
-        if (current.length) segments.push(current)
-
-        for (const seg of segments) {
+        for (const seg of splitDaily(group)) {
           const sample = seg[0]
-          const startIso = seg[0].iso
-          const endIso = seg[seg.length - 1].iso
-          const peakIso = seg[Math.floor(seg.length / 2)].iso
+          const { startIso, endIso, peakIso, days: durationDays } = runOf(seg, tier)
           const polarity: Polarity = 1 // minor positive — +1 step (실 값은 weight 로 조절)
           const weight = tier === 'triplicity' ? 0.5 : tier === 'term' ? 0.3 : 0.2
           const label =
@@ -286,7 +399,7 @@ const astroDignityExtractor: SignalExtractor = {
               detail: {
                 dignity: tier,
                 sign: sample.sign,
-                durationDays: seg.length,
+                durationDays,
               },
             },
           })

@@ -23,7 +23,6 @@ import sajuElementFlowExtractor from './extractors/saju-element-flow'
 import sajuIljuArchetypeExtractor from './extractors/saju-ilju-archetype'
 import sajuJohuYongsinExtractor from './extractors/saju-johu-yongsin'
 import sajuShinsalActivationExtractor from './extractors/saju-shinsal-activation'
-import sajuNatalBranchRelationExtractor from './extractors/saju-natal-branch-relation'
 import sajuElementBalanceExtractor from './extractors/saju-element-balance'
 import sajuJijangganExtractor from './extractors/saju-jijanggan'
 import sajuGeokgukExtractor from './extractors/saju-geokguk'
@@ -147,13 +146,6 @@ function getRegisteredExtractors(): SignalExtractor[] {
     sajuJohuYongsinExtractor,
     // ── 본명 fact-layer 활성화 (natalShinsal / natalRelations / fiveElements) ──
     sajuShinsalActivationExtractor,
-    // sajuNatalBranchRelationExtractor — 등록 해제(2026-06). saju-hyeongchung 의
-    // strict subset 이었다: 일진 지지 vs 본명 4지지의 충/육합/삼합/형을 *더 약한*
-    // polarity·weight 로 재발화(충 -2 vs hyeongchung -3 등)해 같은 사실을 두 번
-    // 점수에 얹고(이중계산) 라인도 중복시켰다. hyeongchung 이 같은 4관계를 자형
-    // (辰辰/午午/酉酉/亥亥)까지 포함해 본명 4지지 전체에 대해 이미 잡으므로 커버리지
-    // 손실 0. 코드/파일은 보존(향후 분화 대비) — 등록만 끔.
-    // sajuNatalBranchRelationExtractor,
     sajuElementBalanceExtractor,
     sajuJijangganExtractor,
     sajuGeokgukExtractor,
@@ -245,22 +237,16 @@ function groupIntoCells(
     cell.signals = dedupeShinsalSignals(cell.signals)
   }
 
-  // 자시(子時) 이중계상 dedup — 시진 신호는 활성 윈도우로 셀에 붙는데(위 groupIntoCells),
-  // 자시는 23:00~다음날 01:00 로 자정을 넘겨 *두* 날 셀에 걸린다. 그래서 매일 셀이
-  // 자기 자시(그날 23시 시작) + 전날 자시의 새벽 꼬리(00~01시), 두 개의 子時 신호를
-  // 갖고 — 둘은 시주(時柱) 천간이 달라(일간 의존) 톤·근거가 갈리는 데다 hourly 층을
-  // 이중 계상해 일점수를 부풀렸다(감사 C2). 각 셀은 *그날 생성된* 시진만 남긴다
-  // (id 의 dayIso 로 판별) — 새벽 꼬리(전날 소속)는 걷어내 하루당 자시 1개로 고정.
-  // day 그래뉼래리티에서만 유효(hour 셀은 자정 넘김이 애초에 다른 셀).
-  if (range.granularity === 'day') {
-    for (const cell of cells.values()) {
-      const cellDay = cell.datetime.slice(0, 10)
-      cell.signals = cell.signals.filter((s) => {
-        if (!s.id.startsWith('saju.hour.')) return true
-        // 'saju.hour.' (10자) 뒤 10자가 생성일(YYYY-MM-DD). 그날 셀에만 남긴다.
-        return s.id.slice(10, 20) === cellDay
-      })
-    }
+  // 자시(子時) — saju-hour 가 민용일 안에서 子 를 두 조각(자정 직후·직전)으로 내므로
+  // 어느 시진 창도 자정을 넘지 않는다(CONVENTIONS §1, 엔진 감사 X3·F1). 예전의 '그날 생성
+  // 시진만 남기는' 꼬리 필터(감사 C2)는 시진 신호만 걷어 내고 그 꼬리로 만든 교차는 남겨,
+  // 셀에 없는 부모를 가리키는 교차가 생겼다 — 원인을 없앴으니 필터도 지운다.
+
+  // 교차 dedup — (셀, 교차 name, layer) 당 가장 센 1개(cross-activation 문서). 교차는
+  // 부모 창의 교집합이라 여러 날에 걸쳐 각 셀에 들어오는데, 같은 페어가 다른 부모 조합
+  // 으로 한 셀에 여러 번 붙어 toneNet·top-k 에 이중 합산됐다(엔진 감사 X2).
+  for (const cell of cells.values()) {
+    cell.signals = dedupeCrossSignals(cell.signals)
   }
 
   // derivers — 점수·패턴·요약 계산 (점수는 부산물)
@@ -383,6 +369,45 @@ function dedupeShinsalSignals(signals: ActiveSignal[]): ActiveSignal[] {
     out.push(best.get(k)!)
   }
   return out
+}
+
+/**
+ * 한 셀 안 교차(kind 'cross-activation')를 (name, layer) 당 1개로 — 가장 센 것
+ * (|polarity|×weight, 동점이면 weight, 그다음 id). 순서는 셀마다 같은 전순서라 같은
+ * 후보 묶음이면 어느 범위로 빌드해도 같은 교차가 남는다(범위 불변). 교차가 아닌 신호는
+ * 순서·내용 그대로 통과.
+ */
+export function dedupeCrossSignals(signals: ActiveSignal[]): ActiveSignal[] {
+  const best = new Map<string, ActiveSignal>()
+  for (const s of signals) {
+    if (s.kind !== 'cross-activation') continue
+    const k = `${s.name}|${s.layer}`
+    const cur = best.get(k)
+    if (!cur || crossOutranks(s, cur)) best.set(k, s)
+  }
+  if (best.size === 0) return signals
+  const emitted = new Set<string>()
+  const out: ActiveSignal[] = []
+  for (const s of signals) {
+    if (s.kind !== 'cross-activation') {
+      out.push(s)
+      continue
+    }
+    const k = `${s.name}|${s.layer}`
+    if (emitted.has(k)) continue
+    emitted.add(k)
+    out.push(best.get(k)!)
+  }
+  return out
+}
+
+/** 교차 전순서 — strength(|polarity|×weight) → weight → id. */
+function crossOutranks(a: ActiveSignal, b: ActiveSignal): boolean {
+  const sa = Math.abs(a.polarity * a.weight)
+  const sb = Math.abs(b.polarity * b.weight)
+  if (sa !== sb) return sa > sb
+  if (a.weight !== b.weight) return a.weight > b.weight
+  return a.id < b.id
 }
 
 /**
