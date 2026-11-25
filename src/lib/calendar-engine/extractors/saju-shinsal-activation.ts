@@ -1,45 +1,12 @@
-import { computeDayBranch, SHINSAL_POLARITY } from './saju-shinsal'
+import { computeDayBranch, gradeOf, SHINSAL_POLARITY } from './saju-shinsal'
 import { getShinsalInterpretation } from '@/lib/saju/interpretations'
 import type { ActiveSignal, ExtractorContext, SignalExtractor, Polarity } from '../types'
 import type { ShinsalHit } from '@/lib/saju/types'
 import type { ShinsalGrade } from './saju-shinsal'
 
-/**
- * 신살 등급 분류 — saju-shinsal.ts 의 SHINSAL_GRADE 와 일관 doctrine 으로 유지.
- * 정통 4길성(classical-noble) → 록·마(rok-ma) → 도화·화개(dohwa-hwagae) → 속명(common).
- */
-const SHINSAL_GRADE_LOCAL: Record<string, ShinsalGrade> = {
-  // classical-noble: 정통 4길성
-  천을귀인: 'classical-noble',
-  천덕귀인: 'classical-noble',
-  월덕귀인: 'classical-noble',
-  태극귀인: 'classical-noble',
-
-  // rok-ma: 록·마·문창류
-  건록: 'rok-ma',
-  역마: 'rok-ma',
-  역마살: 'rok-ma',
-  금여성: 'rok-ma',
-  문창: 'rok-ma',
-  문곡: 'rok-ma',
-  학당귀인: 'rok-ma',
-  암록: 'rok-ma',
-  천주귀인: 'rok-ma',
-  천의성: 'rok-ma',
-  천문성: 'rok-ma',
-  제왕: 'rok-ma',
-
-  // dohwa-hwagae: 도화·화개·홍염
-  도화: 'dohwa-hwagae',
-  년살: 'dohwa-hwagae',
-  홍염살: 'dohwa-hwagae',
-  화개: 'dohwa-hwagae',
-  화개살: 'dohwa-hwagae',
-}
-
-function gradeOf(name: string): ShinsalGrade {
-  return SHINSAL_GRADE_LOCAL[name] ?? 'common'
-}
+// 신살 등급(classical-noble → rok-ma → dohwa-hwagae → common)은 saju-shinsal.ts 의
+// SHINSAL_GRADE/gradeOf 단일 출처를 쓴다. (직전엔 같은 표를 SHINSAL_GRADE_LOCAL 로
+// 복제해 들고 있었다.)
 
 /**
  * 본명 신살 일진 활성 추출기 (natalShinsal × daily branch).

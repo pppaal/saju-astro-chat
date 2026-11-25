@@ -10,6 +10,7 @@
 
 import type { ZodiacKo } from '@/lib/astrology/foundation/types'
 import { PLANET_KO as PLANET_KO_BASE } from '@/lib/calendar-engine/data/planetNames'
+import { gradeOf } from '@/lib/calendar-engine/extractors/saju-shinsal'
 import { STEM_KO, BRANCH_KO } from '@/lib/saju/ganjiKo'
 
 // ── 천간 / 지지 한자↔한글↔영문 ──────────────────────────────────────────────
@@ -195,23 +196,13 @@ export function pad2(n: number): string {
 
 // ── 신살 polarity 캡 (audit 보완) ──────────────────────────────────────────
 /**
- * 신살 polarity cap — common 등급 ±2, classical-noble 등급 ±3.
- *  - 천을귀인/천덕귀인/월덕귀인/문창귀인/학당귀인/금여(성)/금여 = classical-noble
- *  - 그 외(도화/역마/양인/공망/겁살/망신/백호/지살/년살/월살/반안(살)/장성(살)/
- *    화개(살)/재살/천살/육해(살)) = common
+ * 신살 polarity cap — classical-noble 등급(정통 4길성: 천을·천덕·월덕·태극귀인) ±3,
+ * 그 외 등급 ±2. 등급은 calendar-engine saju-shinsal 의 gradeOf(CONVENTIONS §8
+ * 단일 출처)에서 읽는다 — 예전 로컬 집합은 문창·학당·금여를 4길성으로 잘못 넣고
+ * 태극귀인을 빠뜨렸다.
  */
-const CLASSICAL_NOBLE = new Set([
-  '천을귀인',
-  '천덕귀인',
-  '월덕귀인',
-  '문창귀인',
-  '문창',
-  '학당귀인',
-  '금여',
-  '금여성',
-])
 export function capShinsalPolarity(name: string, raw: number): number {
-  const cap = CLASSICAL_NOBLE.has(name) ? 3 : 2
+  const cap = gradeOf(name) === 'classical-noble' ? 3 : 2
   if (raw > cap) return cap
   if (raw < -cap) return -cap
   return raw

@@ -111,8 +111,9 @@ export const SHINSAL_POLARITY: Record<string, Polarity> = {
 }
 
 /**
- * 신살 등급 분류.
- * 정통 doctrine 상의 길성·흉살 위계를 한 곳에 정의.
+ * 신살 등급 분류 — 단일 출처(CONVENTIONS §8).
+ * 정통 doctrine 상의 길성·흉살 위계를 한 곳에 정의. saju-shinsal-activation 추출기와
+ * calendar-view capShinsalPolarity 도 이 표(gradeOf)를 import 한다 — 복제 금지.
  */
 export type ShinsalGrade =
   | 'classical-noble' // 정통 4길성 (천을·천덕·월덕·태극귀인) — 최상위
@@ -120,7 +121,7 @@ export type ShinsalGrade =
   | 'dohwa-hwagae' // 도화·화개·홍염류 — 인연·예술
   | 'common' // 속명 흉살 / 12신살 잡살 — 부차
 
-const SHINSAL_GRADE: Record<string, ShinsalGrade> = {
+export const SHINSAL_GRADE: Readonly<Record<string, ShinsalGrade>> = {
   // classical-noble: 정통 4길성
   천을귀인: 'classical-noble',
   천덕귀인: 'classical-noble',
@@ -160,7 +161,7 @@ const GRADE_WEIGHT: Record<ShinsalGrade, number> = {
   common: 0.35,
 }
 
-function gradeOf(shinsalName: string): ShinsalGrade {
+export function gradeOf(shinsalName: string): ShinsalGrade {
   return SHINSAL_GRADE[shinsalName] ?? 'common'
 }
 

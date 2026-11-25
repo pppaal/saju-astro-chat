@@ -162,7 +162,7 @@ const sajuYear = birthDateTime.getTime() < ipchunUTC.getTime() ? year - 1 : year
 | dohwa-hwagae            | 도화·화개                           |
 | common                  | 그 외 (공망·고진·과숙 …)            |
 
-**위치:** [`calendar-engine/extractors/saju-shinsal.ts:19-26, 87-105`](../calendar-engine/extractors/saju-shinsal.ts) — `ShinsalGrade` 등급
+**위치:** [`calendar-engine/extractors/saju-shinsal.ts`](../calendar-engine/extractors/saju-shinsal.ts) — `SHINSAL_GRADE` / `gradeOf` (`ShinsalGrade`) 단일 출처. `saju-shinsal-activation` 추출기와 `calendar-view` `capShinsalPolarity`(classical-noble 만 ±3)가 이 표를 import 한다 — 복제 금지.
 
 **원칙:** 신살은 본명 사주의 _보조 색채_. 강약·격국·용신 위에 _얹어서_ 톤을 더할 뿐, 신살만으로 판단을 내리지 않는다 (신살파가 아닌 자평파 노선).
 
