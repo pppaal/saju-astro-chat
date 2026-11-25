@@ -56,7 +56,10 @@ describe('운명상담사 (route.ts) — system prompt + cachedUserContext', () 
     expect(route).toMatch(/\[Meta\] birthDate: \$\{body\.birthDate\}/)
     expect(route).toMatch(/birthTime: \$\{timeTag\}/)
     expect(route).toMatch(/location: \$\{locTag\}/)
-    expect(route).toMatch(/timezone: \$\{body\.timezone/)
+    // timezone 은 ensureCounselorContext 가 resolveBirthTimezone 으로 확정한 출생 tz
+    // (body.timezone → 출생 좌표 → 기준 존). 키·차트와 같은 값이 [Meta] 에 실린다.
+    expect(route).toMatch(/timezone: \$\{tz\}/)
+    expect(route).toMatch(/const tz = body\.timezone \?\?/)
   })
 
   it('birthCityUnknown 시 위치 의존 결론 금지 — prompt rule (#298)', () => {
