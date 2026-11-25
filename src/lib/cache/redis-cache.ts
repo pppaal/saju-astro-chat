@@ -8,7 +8,7 @@
 import { Redis } from '@upstash/redis'
 import { logger } from '@/lib/logger'
 import type { CacheResult, CacheWriteResult } from './types'
-import { SAJU_ENGINE_VERSION } from '@/lib/saju/constants'
+import { NATAL_CHART_CACHE_VERSION, SAJU_ENGINE_VERSION } from '@/lib/cache/engineVersions'
 
 let redis: Redis | null = null
 
@@ -314,6 +314,8 @@ export const CacheKeys = {
   // v2: lunarLeap + timezone 추가. v1 키는 (a) 윤4월/평4월 충돌 (b) 동일 lunar
   // Y/M/D 서로 다른 타임존 사용자 충돌이 있어 정확성 회귀가 있었음.
   // v3: 년·월주·대운을 생 UT instant 기준 절입 비교로(엔진 감사 E1, OD-1).
+  // v4: 첫 대운 전 current=null + preDaeun, meta.civilBirthDate·timeZone(엔진 감사 E14).
+  //     캐시 값의 daeWoon.current 는 계산 시점 값이라 /api/saju 가 요청마다 다시 고른다.
   saju: (
     birthDate: string,
     birthTime: string,
@@ -382,7 +384,8 @@ export const CacheKeys = {
     // 번째가 첫 번째의 잘못된 차트를 받는다. v1→v2 로 기존(누락) 캐시 무효화.
     // v3: natalToJD 가 사주와 같은 RFC 5545 resolver 를 쓴다(엔진 감사 E8) — 서머타임
     //     공백·겹침 시각의 차트가 1시간 옮겨 가므로 옛 차트를 버린다.
-    `natal:v3:${birthDate}:${birthTime}:${latitude.toFixed(2)}:${longitude.toFixed(2)}:${timeZone}`,
+    //     버전 = NATAL_CHART_CACHE_VERSION (@/lib/cache/engineVersions).
+    `natal:v${NATAL_CHART_CACHE_VERSION}:${birthDate}:${birthTime}:${latitude.toFixed(2)}:${longitude.toFixed(2)}:${timeZone}`,
 } as const
 
 /**

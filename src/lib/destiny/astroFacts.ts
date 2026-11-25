@@ -13,6 +13,7 @@
 import { toChart, type NatalChartData } from '@/lib/astrology/foundation/astrologyService'
 import { cachedCalculateNatalChart } from '@/lib/astrology/cached'
 import { cacheOrCalculate, CACHE_TTL } from '@/lib/cache/redis-cache'
+import { HELLENISTIC_CACHE_VERSION } from '@/lib/cache/engineVersions'
 import { findNatalAspects } from '@/lib/astrology/foundation/aspects'
 import { dignityOf, dignityTiers, dignityScore } from '@/lib/astrology/foundation/dignities'
 import { calculateProfection } from '@/lib/astrology/foundation/profections'
@@ -276,7 +277,7 @@ export async function collectAstroFacts(
   // 데이터라 JSON 직렬화 안전.
   const hellenistic = input.includeHellenistic
     ? await cacheOrCalculate(
-        `hellenistic:v1:${input.birthDate}:${input.birthTime || ''}:${input.latitude.toFixed(2)}:${input.longitude.toFixed(2)}:${safeTz}`,
+        `hellenistic:v${HELLENISTIC_CACHE_VERSION}:${input.birthDate}:${input.birthTime || ''}:${input.latitude.toFixed(2)}:${input.longitude.toFixed(2)}:${safeTz}`,
         async () =>
           buildHellenistic(chart, natal, {
             Y,

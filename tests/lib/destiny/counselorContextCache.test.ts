@@ -123,6 +123,30 @@ describe('ensureCounselorContext (운명상담사 컨텍스트 캐시)', () => {
     expect(dailyKey.split(':').length).toBeGreaterThan(stableKey.split(':').length)
   })
 
+  it('키가 엔진 버전 묶음(ENGINE_VERSION_TAG)을 접는다 — 엔진이 올라가면 키가 저절로 바뀐다 (E14)', async () => {
+    const {
+      ENGINE_VERSION_TAG,
+      SAJU_ENGINE_VERSION,
+      CALENDAR_ENGINE_VERSION,
+      NATAL_CHART_CACHE_VERSION,
+      TRANSIT_CHART_CACHE_VERSION,
+      HELLENISTIC_CACHE_VERSION,
+    } = await import('@/lib/cache/engineVersions')
+    expect(ENGINE_VERSION_TAG).toBe(
+      `s${SAJU_ENGINE_VERSION}.c${CALENDAR_ENGINE_VERSION}.n${NATAL_CHART_CACHE_VERSION}` +
+        `.t${TRANSIT_CHART_CACHE_VERSION}.h${HELLENISTIC_CACHE_VERSION}`
+    )
+    mockCacheGet.mockResolvedValue(null)
+    mockBuildDestinyContext.mockResolvedValue({ stable: 's', daily: 'd' })
+    await ensureCounselorContext(fullBody, 'user-tag', 'ko')
+
+    const getKeys = mockCacheGet.mock.calls.map((c) => c[0] as string)
+    const stableKey = getKeys.find((k) => k.includes(':stable:'))!
+    const dailyKey = getKeys.find((k) => k.includes(':daily:'))!
+    expect(stableKey).toContain(`:${ENGINE_VERSION_TAG}:`)
+    expect(dailyKey).toContain(`:${ENGINE_VERSION_TAG}:`)
+  })
+
   it('부분 hit(stable만) → 다시 빌드 (둘 다 있어야 hit)', async () => {
     mockCacheGet.mockImplementation(async (key: string) =>
       key.includes(':stable:') ? 'ONLY_STABLE' : null

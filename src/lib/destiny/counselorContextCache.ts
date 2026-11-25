@@ -13,6 +13,7 @@ import { getNowInTimezone } from '@/lib/datetime'
 import { normalizeGender } from '@/lib/utils/gender'
 import { resolveBirthTimeAnchor, TIME_UNKNOWN_ANCHOR } from '@/lib/saju/birthTimeAnchor'
 import { cacheGet, cacheSet, CACHE_TTL } from '@/lib/cache/redis-cache'
+import { ENGINE_VERSION_TAG } from '@/lib/cache/engineVersions'
 import { logger } from '@/lib/logger'
 import { defaultLatitudeFor, defaultLongitudeFor } from '@/lib/saju/timezone'
 
@@ -89,8 +90,11 @@ export async function ensureCounselorContext(
   const srcTag = `s${sources.saju ? 1 : 0}${sources.astro ? 1 : 0}`
   // v13→v14: 2026-11 엔진 정합(절입 순간·관계·신살·강약/용신·프로펙션·교차)으로
   // 컨텍스트 내용이 바뀌어 무효화. stable 은 TTL 30일이라 안 올리면 옛 판정이 남는다.
-  const stableCtxKey = `counselor:ctx:stable:v14:${lang}:${srcTag}:${userId}:${birthFingerprint(body)}:${hourUnknown ? 'tU' : 'tK'}:${cityUnknown ? 'cU' : 'cK'}:${userTz}`
-  const dailyCtxKey = `counselor:ctx:daily:v14:${lang}:${srcTag}:${userId}:${birthFingerprint(body)}:${hourUnknown ? 'tU' : 'tK'}:${cityUnknown ? 'cU' : 'cK'}:${userTz}:${localDateKey}`
+  // 그 뒤로는 엔진 버전 묶음(ENGINE_VERSION_TAG — 사주·캘린더·본명·트랜짓·hellenistic)을
+  // 키에 접는다(엔진 감사 E14): 엔진이 올라가면 키가 저절로 바뀐다. v14 는 이제
+  // *컨텍스트 포맷*(이 파일·counselorContext 의 조립 규칙) 버전만 뜻한다.
+  const stableCtxKey = `counselor:ctx:stable:v14:${ENGINE_VERSION_TAG}:${lang}:${srcTag}:${userId}:${birthFingerprint(body)}:${hourUnknown ? 'tU' : 'tK'}:${cityUnknown ? 'cU' : 'cK'}:${userTz}`
+  const dailyCtxKey = `counselor:ctx:daily:v14:${ENGINE_VERSION_TAG}:${lang}:${srcTag}:${userId}:${birthFingerprint(body)}:${hourUnknown ? 'tU' : 'tK'}:${cityUnknown ? 'cU' : 'cK'}:${userTz}:${localDateKey}`
 
   // 두 키는 독립 — Redis 왕복을 병렬로 (직렬 대비 ~5ms, 매 상담 메시지 hot path).
   const [cachedStable, cachedDaily] = await Promise.all([

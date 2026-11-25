@@ -6,12 +6,11 @@ import { normalizeGender } from '@/lib/utils/gender'
 import { cacheOrCalculate, CacheKeys, CACHE_TTL } from '@/lib/cache/redis-cache'
 import { getCreditBalance } from '@/lib/credits/creditService'
 import { getNowInTimezone } from '@/lib/datetime'
-// 대운(daeun) single source 는 calculateSajuData 가 LMT/진경도 보정된 출생
-// instant 로 산출한 sajuResult.daeWoon (determinism-golden 으로 잠긴 정답).
-// 옛 코드는 raw(보정 전) instant 를 unse.getDaeunCycles 에 넘겨 절기 경계
-// 출생자의 대운수가 ±1 어긋나고, 음력 출생은 solar 변환 전 날짜로 계산되는
-// divergence 가 있었다 — 그 raw 경로(getDaeunCycles)는 2026-06 제거.
+// 대운(daeun) single source 는 calculateSajuData 의 sajuResult.daeWoon — 생 UT 출생
+// instant 와 절입 instant 비교(OD-1)로 산출해 골든으로 잠긴 값이다. 옛 별도 경로
+// (unse.getDaeunCycles)는 2026-06 제거. 현재 대운만 요청마다 currentDaeun 으로 다시 고른다.
 import { getAnnualCycles, getMonthlyCycles, getIljinCalendar } from '@/lib/saju/unse'
+import { currentDaeun, parseCivilDate } from '@/lib/saju/daeunAge'
 import type { SajuPillars } from '@/lib/saju/types'
 import {
   getShinsalHits,
@@ -91,6 +90,8 @@ export const POST = withApiMiddleware(async (req: NextRequest, context: ApiConte
   }
 
   // 3. Calculate Saju
+  // 요청 시각 — 경계(라우트)에서 한 번 읽어 엔진·운세 계산에 주입한다(CLAUDE.md 결정론).
+  const now = new Date()
   const effectiveUserTz = userTimezone || timezone
   const adjustedBirthTime = String(birthTimeRaw)
 
@@ -100,9 +101,12 @@ export const POST = withApiMiddleware(async (req: NextRequest, context: ApiConte
   // 순/역행이 거꾸로 가던 회귀.
   const sajuGender: 'male' | 'female' = normalizeGender(gender) === 'female' ? 'female' : 'male'
   // 사주 결과 Redis 캐시 — 생년월일·시간·성별·달력타입 같으면 같은 사주.
-  // 30일 TTL (NATAL_CHART) — 사주 데이터는 immutable. 캐시 hit 시 Swiss
+  // 30일 TTL (NATAL_CHART) — 원국(네 기둥·대운 목록)은 immutable. 캐시 hit 시 Swiss
   // Ephemeris / 절기 lookup 등 ~150ms CPU 일 통째 절약. 이벤트 트래픽 시
   // 동일 사용자 재방문 / 가족 같은 생년월일 등에서 95%+ hit 기대.
+  // 키 prefix 에 SAJU_ENGINE_VERSION(CacheKeys.saju) — 엔진 산식이 바뀌면 옛 결과를 안 쓴다.
+  // 캐시 값 중 now 에 의존하는 daeWoon.current 는 아래 5단계에서 요청마다 다시 고른다
+  // (엔진 감사 E14 · SAJU-8 — 예전엔 30일 동안 대운 경계 생일을 넘겨도 옛 current 가 나갔다).
   // longitude 가 캐시 키에 들어가야 — 진경도 보정 결과가 도시별로 다르기 때문.
   // 옛 키(longitude 없음) 도 그대로 hit 되도록 별도 segment 로 추가.
   const lonKey =
@@ -122,7 +126,8 @@ export const POST = withApiMiddleware(async (req: NextRequest, context: ApiConte
           calendarType,
           timezone,
           lunarLeap,
-          longitude
+          longitude,
+          now
         )
       ),
     CACHE_TTL.NATAL_CHART
@@ -153,30 +158,30 @@ export const POST = withApiMiddleware(async (req: NextRequest, context: ApiConte
   }
 
   // 5. Calculate fortune cycles (운세)
-  // 대운: single source = sajuResult.daeWoon. calculateSajuData 안에서
-  // LMT/진경도 보정된 출생 instant + 절기-연도 롤백 로직으로 산출되어
-  // determinism-golden 테스트로 잠긴 정답이다. 옛 코드는 여기서 별도 raw(보정
-  // 전) instant 경로(제거된 unse.getDaeunCycles)로 다시 호출해 같은 사람에게
-  // 두 개의 대운수가 존재했고(절기 경계 ±1, 음력 solar 변환 누락), 서빙되는
-  // 값은 보정 안 된 쪽이었다. 이제 보정된 daeWoon 하나만 서빙한다.
-  //
-  // 응답 shape 호환: 기존 소비자는 daeun.list (DaeunTimeline/CrossRefTable),
-  // daeunsu(startAge) 를 읽는다. daeWoon 은 startAge/isForward/current/list
-  // 를 갖고 있으므로 cycles/daeunsu 별칭만 추가해 모든 reader 를 만족시킨다.
-  const userNow = getNowInTimezone(effectiveUserTz)
+  // 대운: single source = sajuResult.daeWoon (목록·대운수·방향). 응답 shape 호환 —
+  // 기존 소비자는 daeun.list (DaeunTimeline/CrossRefTable), daeunsu(startAge) 를 읽으므로
+  // cycles/daeunsu 별칭을 둔다.
+  const userNow = getNowInTimezone(effectiveUserTz, now)
 
-  // daeWoon.current 는 saju.ts 에서 currentManAge(SSOT, 출생 타임존 기준
-  // 만 나이, now 주입식)로 이미 정확히 선택된 canonical 값이다(CONVENTIONS
-  // §14). 옛 route 코드는 여기서 한국식 나이(현재연도 - 출생연도 + 1)로
-  // current 를 재선택해 §14 를 위반하고 정상 canonical current 를 덮어써
-  // 대운 경계에서 1년 빨리 넘어갔다. 이제 canonical current 를 그대로 서빙한다.
+  // 현재 대운은 캐시된 값(계산 시점의 now)을 쓰지 않고 요청 시각으로 다시 고른다 —
+  // 엔진과 같은 순수 함수 currentDaeun(출생지 민용 생일 기준 만 나이, CONVENTIONS §14).
+  // 첫 대운 전이면 current = null + preDaeun {startsAtAge}(OD-12). 민용 생일은 엔진이
+  // meta.civilBirthDate 로 싣는다(음력 입력이면 변환된 양력). meta 가 없는 옛 결과는
+  // 양력 입력만 입력 날짜로 다시 고르고, 음력이면 캐시된 current 를 그대로 둔다.
   const daeunList = sajuResult.daeWoon.list
+  const civilBirth =
+    parseCivilDate(sajuResult.meta?.civilBirthDate ?? '') ??
+    (calendarType === 'solar' ? parseCivilDate(birthDateString) : null)
+  const daeunNow = civilBirth
+    ? currentDaeun(daeunList, civilBirth, sajuResult.meta?.timeZone ?? timezone, now)
+    : { current: sajuResult.daeWoon.current, preDaeun: sajuResult.daeWoon.preDaeun ?? null }
 
   const daeunInfo = {
     startAge: sajuResult.daeWoon.startAge,
     daeunsu: sajuResult.daeWoon.startAge,
     isForward: sajuResult.daeWoon.isForward,
-    current: sajuResult.daeWoon.current,
+    current: daeunNow.current,
+    preDaeun: daeunNow.preDaeun,
     list: daeunList,
     cycles: daeunList,
   }

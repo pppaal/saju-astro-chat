@@ -1,6 +1,7 @@
 import { calculateTransitChart } from '@/lib/astrology/foundation/transit'
 import type { Chart } from '@/lib/astrology/foundation/types'
 import { cacheOrCalculate, CACHE_TTL } from '@/lib/cache/redis-cache'
+import { TRANSIT_CHART_CACHE_VERSION } from '@/lib/cache/engineVersions'
 import type { ExtractorCache } from './types'
 
 /**
@@ -50,7 +51,8 @@ export async function getCachedTransitChart(args: {
   // v3: isoToJD 가 'Z'·±hh:mm 접미사를 절대 순간으로 존중(엔진 감사 E5, ASTRO-4).
   //     '…T12:00:00.000Z' 키(lifeCurve)는 예전엔 현지 12시 벽시계로 계산돼 저장됐다
   //     — 같은 키가 이제 다른 순간을 뜻하므로 옛 엔트리를 버린다.
-  const redisKey = `ephe:transit:v3:${iso}:${latitude.toFixed(4)}:${longitude.toFixed(4)}:${timeZone}`
+  //     버전 = TRANSIT_CHART_CACHE_VERSION (@/lib/cache/engineVersions).
+  const redisKey = `ephe:transit:v${TRANSIT_CHART_CACHE_VERSION}:${iso}:${latitude.toFixed(4)}:${longitude.toFixed(4)}:${timeZone}`
   const chartPromise = cacheOrCalculate(
     redisKey,
     async () => {
