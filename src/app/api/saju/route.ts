@@ -1,16 +1,16 @@
 // src/app/api/saju/route.ts
 
 import { NextRequest } from 'next/server'
-import { calculateSajuData } from '@/lib/saju/saju'
+import { calculateSajuData, daeunSeedOf, resolveDaeunAt } from '@/lib/saju/saju'
 import { normalizeGender } from '@/lib/utils/gender'
 import { cacheOrCalculate, CacheKeys, CACHE_TTL } from '@/lib/cache/redis-cache'
 import { getCreditBalance } from '@/lib/credits/creditService'
 import { getNowInTimezone } from '@/lib/datetime'
 // 대운(daeun) single source 는 calculateSajuData 의 sajuResult.daeWoon — 생 UT 출생
 // instant 와 절입 instant 비교(OD-1)로 산출해 골든으로 잠긴 값이다. 옛 별도 경로
-// (unse.getDaeunCycles)는 2026-06 제거. 현재 대운만 요청마다 currentDaeun 으로 다시 고른다.
+// (unse.getDaeunCycles)는 2026-06 제거. 목록·현재 대운은 요청마다 resolveDaeunAt 으로 다시 맞춘다.
 import { getAnnualCycles, getMonthlyCycles, getIljinCalendar } from '@/lib/saju/unse'
-import { currentDaeun, parseCivilDate } from '@/lib/saju/daeunAge'
+import { parseCivilDate } from '@/lib/saju/daeunAge'
 import { resolveBirthTimeAnchor } from '@/lib/saju/birthTimeAnchor'
 import type { MaybeTimeless, SajuPillars } from '@/lib/saju/types'
 import {
@@ -180,18 +180,28 @@ export const POST = withApiMiddleware(async (req: NextRequest, context: ApiConte
   // cycles/daeunsu 별칭을 둔다.
   const userNow = getNowInTimezone(effectiveUserTz, now)
 
-  // 현재 대운은 캐시된 값(계산 시점의 now)을 쓰지 않고 요청 시각으로 다시 고른다 —
-  // 엔진과 같은 순수 함수 currentDaeun(출생지 민용 생일 기준 만 나이, CONVENTIONS §14).
-  // 첫 대운 전이면 current = null + preDaeun {startsAtAge}(OD-12). 민용 생일은 엔진이
+  // 현재 대운은 캐시된 값(계산 시점의 now)을 쓰지 않고 요청 시각으로 다시 맞춘다 —
+  // 엔진과 같은 resolveDaeunAt(출생지 민용 생일 기준 만 나이, CONVENTIONS §14): 목록을
+  // 지금 걸린 대운까지 늘리고(100세+, 재감사 SP-1) currentDaeun 으로 고른다. 첫 대운
+  // 전이면 current = null + preDaeun {startsAtAge}(OD-12). 민용 생일은 엔진이
   // meta.civilBirthDate 로 싣는다(음력 입력이면 변환된 양력). meta 가 없는 옛 결과는
-  // 양력 입력만 입력 날짜로 다시 고르고, 음력이면 캐시된 current 를 그대로 둔다.
-  const daeunList = sajuResult.daeWoon.list
+  // 양력 입력만 입력 날짜로 다시 고르고, 음력이면 캐시된 목록·current 를 그대로 둔다.
   const civilBirth =
     parseCivilDate(sajuResult.meta?.civilBirthDate ?? '') ??
     (calendarType === 'solar' ? parseCivilDate(birthDateString) : null)
   const daeunNow = civilBirth
-    ? currentDaeun(daeunList, civilBirth, sajuResult.meta?.timeZone ?? timezone, now)
-    : { current: sajuResult.daeWoon.current, preDaeun: sajuResult.daeWoon.preDaeun ?? null }
+    ? resolveDaeunAt(
+        daeunSeedOf(sajuResult),
+        civilBirth,
+        sajuResult.meta?.timeZone ?? timezone,
+        now
+      )
+    : {
+        list: sajuResult.daeWoon.list,
+        current: sajuResult.daeWoon.current,
+        preDaeun: sajuResult.daeWoon.preDaeun ?? null,
+      }
+  const daeunList = daeunNow.list
 
   const daeunInfo = {
     startAge: sajuResult.daeWoon.startAge,

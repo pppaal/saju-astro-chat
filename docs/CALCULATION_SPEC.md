@@ -61,14 +61,23 @@ Pillar rules (`src/lib/saju/CONVENTIONS.md` is the canonical text):
   meridian is discarded for the zone reference (OD-14). No equation of time.
 - **대운:** direction 양남음녀 순행 / 음남양녀 역행 from the year stem;
   start age = floor(days to the 절입 / 3), minimum 1
-  (`CALCULATION_STANDARDS.saju.daeunRounding`). The current 대운 is the last one
-  whose start age ≤ the 만 나이 at `now` (civil birthday); before the first one
-  `daeWoon.current = null` and `daeWoon.preDaeun = { startsAtAge }` (OD-12,
-  `daeunAge.currentDaeun`).
+  (`CALCULATION_STANDARDS.saju.daeunRounding`). Decade _i_ starts at
+  `startAge + 10i` and the sequence never ends; the current 대운 is the one whose
+  `[startAge + 10i, startAge + 10i + 10)` range holds the 만 나이 at `now` (civil
+  birthday). The list has at least 10 entries and grows to the running decade
+  when the 만 나이 is past `startAge + 100` (`daeunAge.daeunListLength`), so no
+  surface ever calls a finished decade current. Before the first one
+  `daeWoon.current = null` and `daeWoon.preDaeun = { startsAtAge }` (OD-12).
+  One SSOT: `saju.resolveDaeunAt` (list + `daeunAge.currentDaeun`), used by
+  `calculateSajuData` and `/api/saju`; the Life tier reads the same rule
+  (`daeunAge.runningDaeunIndex`).
 - **Time unknown** (`opts.timeUnknown` or a blank `birthTime`): the calculation
-  anchors at 12:00 only to fix the year, month and day pillars. `fiveElements`
-  counts the 6 characters of the three known pillars, `timeUnknown = true`, and
-  `timePillar` is a placeholder that no judgment may read (삼주 analysis, OD-5).
+  anchors at 12:00 only to fix the year, month and day pillars and the 대운. Any
+  `birthTime` string passed with `opts.timeUnknown` (or `collectSajuFacts`'s
+  `birthTimeUnknown`) is ignored — `'03:00'`, `'23:30'` and `''` give the same
+  result. `fiveElements` counts the 6 characters of the three known pillars,
+  `timeUnknown = true`, and `timePillar` is a placeholder that no judgment may
+  read (삼주 analysis, OD-5).
 
 ### Output: `CalculateSajuDataResult` (`src/lib/saju/types.ts`)
 
@@ -76,7 +85,10 @@ Pillar rules (`src/lib/saju/CONVENTIONS.md` is the canonical text):
   `pillars: { year, month, day, time }` (nested) — each a `PillarData`.
 - `daeWoon: { startAge, isForward, current, preDaeun?, list }` — `current` is
   `null` before the first 대운.
-- `unse: { daeun[], annual[], monthly[] }`.
+- `unse: { daeun[], annual[] }`. (The raw `unse.monthly` array was removed:
+  it labelled every Gregorian month with the following 節-month. 월운 comes from
+  `datePillars.getMonthPillarForDate` / `currentUnse`, and `/api/saju` returns
+  `wolun` from `unse.getMonthlyCycles`.)
 - `fiveElements: { wood, fire, earth, metal, water }` (sums to 8, or 6 when the
   time is unknown).
 - `timeUnknown?: boolean`.
@@ -97,7 +109,9 @@ timeZone }`.
   and shinsal annotation.
 - `analyzeRelations` (`relations.ts`) — 합·충·형·파·해·원진, 삼합·방합 (three
   distinct branches), 형 from `hyeong.isHyeong`.
-- `currentDaeun` (`daeunAge.ts`) — current 대운 selection (pure).
+- `currentDaeun` (`daeunAge.ts`) — current 대운 selection (pure);
+  `resolveDaeunAt` (`saju.ts`) — the list long enough for `now` plus the
+  current 대운.
 - `getAnnualCycles` / `getMonthlyCycles` / `getIljinCalendar` (`unse.ts`) —
   luck cycles. The 대운 list comes only from `calculateSajuData`
   (`unse.getDaeunCycles` was removed in 2026-06).

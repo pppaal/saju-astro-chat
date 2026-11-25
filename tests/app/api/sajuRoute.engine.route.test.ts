@@ -279,3 +279,87 @@ describe('POST /api/saju — 캐시 hit 이어도 현재 대운은 요청 시각
     expect(after.daeun.preDaeun).toBeNull()
   })
 })
+
+/** 독립 참조 — 지금 걸린 대운(끝없는 순서열의 만 나이 칸). astronomy-engine 節 + Intl 민용 생일. */
+function referenceCurrentDaeun(
+  date: string,
+  time: string,
+  tz: string,
+  gender: 'male' | 'female',
+  now: Date
+): { pillar: string; age: number } {
+  const X = wallToUt(date, time, tz)
+  const yU = new Date(X).getUTCFullYear()
+  const lichun = Astronomy.SearchSunLongitude(315, new Date(Date.UTC(yU, 0, 25)), 20)!.date
+  const Y = X >= lichun.getTime() ? yU : yU - 1
+  const ys = (((Y - 4) % 10) + 10) % 10
+  const k = Math.floor(n360(Astronomy.SunPosition(new Date(X)).elon - 315) / 30)
+  const forward = (ys % 2 === 0) === (gender === 'male')
+  const days = forward
+    ? (Astronomy.SearchSunLongitude(n360(315 + 30 * (k + 1)), new Date(X), 40)!.date.getTime() -
+        X) /
+      DAY_MS
+    : (X -
+        Astronomy.SearchSunLongitude(
+          n360(315 + 30 * k),
+          new Date(X - 40 * DAY_MS),
+          40
+        )!.date.getTime()) /
+      DAY_MS
+  const start = Math.max(1, Math.floor(days / 3))
+  const [by, bm, bd] = date.split('-').map(Number)
+  const [ny, nm, nd] = new Intl.DateTimeFormat('en-CA', { timeZone: tz })
+    .format(now)
+    .split('-')
+    .map(Number)
+  const age = ny - by - (nm < bm || (nm === bm && nd < bd) ? 1 : 0)
+  const idx = Math.floor((age - start) / 10)
+  const dir = forward ? 1 : -1
+  return {
+    pillar: pillarName((ys % 5) * 2 + 2 + k + dir * (idx + 1), 2 + k + dir * (idx + 1)),
+    age: start + 10 * idx,
+  }
+}
+
+describe('POST /api/saju — 100세+ 의 현재 대운 (재감사 SP-1 · SI-5)', () => {
+  const body = {
+    birthDate: '1920-03-01',
+    birthTime: '10:00',
+    gender: 'male',
+    calendarType: 'solar',
+    timezone: 'Asia/Seoul',
+  }
+
+  it('1920-03-01 M 서울, 2026-11-24: current = 참조(己丑@101), 목록이 그 대운까지 11칸', async () => {
+    const now = new Date('2026-11-24T03:00:00Z')
+    const ref = referenceCurrentDaeun('1920-03-01', '10:00', 'Asia/Seoul', 'male', now)
+    expect(ref).toEqual({ pillar: '己丑', age: 101 })
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(now)
+    const d = (await (await post(body)).json()).data
+    expect(dgz(d.daeun.current)).toBe(ref.pillar)
+    expect(d.daeun.current.age).toBe(ref.age)
+    expect(d.daeun.list).toHaveLength(11)
+    expect(dgz(d.daeun.list[10])).toBe('己丑')
+    expect(d.daeun.cycles).toEqual(d.daeun.list)
+  })
+
+  it('만 99세 때 Redis 에 캐시된 10칸 결과도 요청 시각(만 106세)으로 다시 맞춘다 — 끝난 戊子@91 아님', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date('2020-02-28T03:00:00Z')) // 서울 2/28 — 100번째 생일 전
+    const first = (await (await post(body)).json()).data
+    expect(computeCount).toBe(1)
+    expect(first.daeun.list).toHaveLength(10)
+    expect(dgz(first.daeun.current)).toBe('戊子')
+    expect(first.daeun.current.age).toBe(91)
+
+    const now = new Date('2026-11-24T03:00:00Z')
+    vi.setSystemTime(now)
+    const second = (await (await post(body)).json()).data
+    expect(computeCount).toBe(1) // 캐시 hit
+    const ref = referenceCurrentDaeun('1920-03-01', '10:00', 'Asia/Seoul', 'male', now)
+    expect(dgz(second.daeun.current)).toBe(ref.pillar)
+    expect(second.daeun.current.age).toBe(ref.age)
+    expect(second.daeun.list.slice(0, 10)).toEqual(first.daeun.list)
+  })
+})

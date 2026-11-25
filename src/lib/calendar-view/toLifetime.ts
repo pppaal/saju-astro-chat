@@ -33,6 +33,12 @@ import type {
 } from '@/types/calendar'
 
 import { deriveLifePattern } from '@/lib/calendar-engine/derivers/lifePattern'
+import {
+  daeunCellsToCover,
+  runningDaeunIndex,
+  DAEUN_LIST_MIN_LENGTH,
+  DAEUN_SPAN_YEARS,
+} from '@/lib/saju/daeunAge'
 import { buildSibsinRadar } from '@/lib/report/sibsinRadar'
 import { buildLifeStrategy } from '@/lib/report/lifeStrategy'
 import { toDaewoon } from './toDaewoon'
@@ -148,6 +154,32 @@ function zrPeriodsToChapters(
 }
 
 /**
+ * 본명 컨텍스트의 대운 목록이 만 나이를 덮지 못하면 같은 순서열로 이어 붙인 사본을
+ * 돌려준다(덮으면 원본 그대로). 만 나이를 모르면 손대지 않는다.
+ */
+function withDaeunCovering(
+  natal: NatalContext,
+  manAge: number | undefined,
+  fallbackBirthYear: number
+): NatalContext {
+  const list = natal.saju?.daeun
+  if (manAge == null || !list?.length) return natal
+  const extra = daeunCellsToCover(list, manAge)
+  if (!extra.length) return natal
+  const birthYear =
+    typeof list[0].startYear === 'number' && Number.isFinite(list[0].startYear)
+      ? list[0].startYear - list[0].startAge
+      : fallbackBirthYear
+  return {
+    ...natal,
+    saju: {
+      ...natal.saju,
+      daeun: [...list, ...extra.map((c) => ({ ...c, startYear: birthYear + c.startAge }))],
+    },
+  }
+}
+
+/**
  * NatalContext + derivers → DestinyLifetime.
  *
  * 모든 5 필드 (daewoon / lifeStages / milestones / zrSpirit / zrFortune) 가
@@ -160,19 +192,38 @@ export function toLifetime(natal: NatalContext, opts: ToLifetimeOptions): Destin
   // 만 나이 SSOT — milestones(lifetimePivots)·lifeStages(lifetimeFlow)와 같은 축.
   const nowAge = opts.manAge ?? opts.currentYear - opts.birthYear
 
-  const daewoon: DestinyDaewoon[] = toDaewoon(natal).map((d) => ({
+  // 대운 — 현재 대운 SSOT(daeunAge, CONVENTIONS §14)와 같은 규칙. 영구 캐시된 본명
+  // 컨텍스트의 목록이 만 나이를 덮지 못하면(시작 나이 + 100세 이상) 같은 순서열로 이어
+  // 붙이고(daeunCellsToCover), 지금 칸은 runningDaeunIndex 가 고른다 — /api/saju·상담사·
+  // 궁합과 같은 대운을 '지금'이라 한다(재감사 SI-5: 예전엔 nowAge < startAge+10 경계로
+  // 10칸 뒤의 100세+ 에게 현재 대운이 없었다).
+  const natalForDaewoon = withDaeunCovering(natal, opts.manAge, opts.birthYear)
+  const daewoonAll = toDaewoon(natalForDaewoon)
+  const runningIdx =
+    opts.manAge != null
+      ? runningDaeunIndex(
+          daewoonAll.map((d) => d.startAge),
+          nowAge
+        )
+      : null
+  const daewoonRows: DestinyDaewoon[] = daewoonAll.map((d, i) => ({
     gz: d.gz,
     start: d.start,
     end: d.end,
     startAge: d.startAge,
-    endAge: d.startAge + 10,
+    endAge: d.startAge + DAEUN_SPAN_YEARS,
     sibsin: d.sibsin,
     known: d.known,
     now:
       opts.manAge != null
-        ? nowAge >= d.startAge && nowAge < d.startAge + 10
+        ? runningIdx === i
         : opts.currentYear >= d.start && opts.currentYear < d.end,
   }))
+  // 막대 줄은 10칸 격자다 — 목록이 10칸을 넘으면(100세+) 지금 대운으로 끝나는 10칸만
+  // 보여 준다(가장 이른 대운부터 뺀다). 일부러 자른다: '지금' 칸이 늘 보인다.
+  const windowEnd = runningIdx != null && runningIdx >= 0 ? runningIdx + 1 : daewoonRows.length
+  const windowStart = Math.max(0, windowEnd - DAEUN_LIST_MIN_LENGTH)
+  const daewoon = daewoonRows.slice(windowStart, windowStart + DAEUN_LIST_MIN_LENGTH)
 
   const lifeStagesRaw = toLifeStages(opts.lifetimeFlow, { birthYear: opts.birthYear })
   // adapter 의 DestinypalLifeStage 와 DestinyLifeStage 는 detail 만 살짝 다름:

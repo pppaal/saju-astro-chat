@@ -181,8 +181,11 @@ export const PA: Record<string, string> = toBidiRecord(BREAK_PAIRS)
  *   v4: 첫 대운 전에는 daeWoon.current = null + preDaeun {startsAtAge}(OD-12, 엔진 감사
  *       E14 · SAJU-7). meta 에 civilBirthDate·timeZone 을 실어 /api/saju 가 캐시된 결과의
  *       current 를 요청마다 다시 고른다(SAJU-8). 절입표 1900–1939 확장(SAJU-5, OD-4).
+ *   v5: 대운 목록이 만 나이를 덮도록 늘어난다(최소 10칸, 시작 나이 + 100세 이상이면 지금
+ *       대운까지 — 재감사 SP-1·SI-5; 예전엔 끝난 91세 대운이 current 였다). opts.timeUnknown
+ *       이면 어떤 시각 문자열이든 정오 앵커(SP-2·SDR-08). 엉터리 unse.monthly 삭제(TP-10).
  */
-export const SAJU_ENGINE_VERSION = 4
+export const SAJU_ENGINE_VERSION = 5
 
 // 절기 데이터 지원 범위(연도). API 검증 하한(dateSchema: year ≥ 1900)과 같다 —
 // 1900 미만은 zod 가 4xx 로 막고, 엔진은 범위 밖이면 RangeError.

@@ -115,6 +115,14 @@ const fakeSajuResult = {
 
 vi.mock('@/lib/saju/saju', () => ({
   calculateSajuData: vi.fn(() => fakeSajuResult),
+  // 대운 목록·현재 대운 재조정(resolveDaeunAt) — 이 스위트는 라우트 배선만 보므로 가짜
+  // 결과의 목록을 그대로 돌려준다(실제 산술은 sajuRoute.engine / daeunAge 테스트가 본다).
+  daeunSeedOf: vi.fn(() => ({})),
+  resolveDaeunAt: vi.fn(() => ({
+    list: fakeSajuResult.daeWoon.list,
+    current: fakeSajuResult.daeWoon.current,
+    preDaeun: null,
+  })),
 }))
 
 vi.mock('@/lib/utils/gender', () => ({

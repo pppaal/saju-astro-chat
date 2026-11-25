@@ -109,8 +109,11 @@ describe('currentDaeun — 순수 함수', () => {
     expect(at('2013-03-09T15:00:00Z').preDaeun).toBeNull()
   })
 
-  it('마지막 대운 이후에도 마지막 대운', () => {
-    expect(at('2060-01-01T00:00:00Z').current?.gz).toBe('C')
+  it('마지막 칸은 10년만 맡는다 — 그 안이면 마지막 대운, 넘으면 끝난 대운을 current 로 부르지 않는다', () => {
+    // 칸 C 는 만 23~32세. 2032-03-10 (만 32세) 은 C, 2033-03-10 (만 33세) 은 목록 밖.
+    expect(at('2032-06-01T00:00:00Z').current?.gz).toBe('C')
+    // 재감사 SP-1: 예전엔 목록이 끝나면 마지막 칸(이미 끝난 대운)을 '현재'라 했다.
+    expect(at('2060-01-01T00:00:00Z')).toEqual({ current: null, preDaeun: null })
   })
 
   it('빈 목록 → current·preDaeun 모두 null', () => {

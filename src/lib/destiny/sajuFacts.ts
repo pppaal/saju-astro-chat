@@ -16,6 +16,7 @@ import { calculateStrengthScore, strengthClassOf } from '@/lib/saju/strengthScor
 import { analyzeRelations, toAnalyzeInputFromSaju } from '@/lib/saju/relations'
 import { getJohuYongsin, type JohuYongsinInfo } from '@/lib/saju/johuYongsin'
 import { getGongmang } from '@/lib/saju/shinsal'
+import { TIME_UNKNOWN_ANCHOR } from '@/lib/saju/birthTimeAnchor'
 
 export interface SajuFactsInput {
   birthDate: string // 'YYYY-MM-DD'
@@ -163,9 +164,11 @@ export function collectSajuFacts(input: SajuFactsInput): SajuFacts {
   const timeUnknown = input.birthTimeUnknown === true || !String(input.birthTime ?? '').trim()
   // longitude 진태양시 보정. 출생 시간대 + 경도로 본명·운기 모두 동일 기준.
   // calendarType / lunarLeap 은 buildNatalContext (음력 입력) 호환용.
+  // 미상이면 넘어온 시각 문자열('03:00' 등)이 아니라 정오 앵커로 — 년·월·일주·대운은 앵커가
+  // 고정한다(CONVENTIONS §5, 재감사 SP-2·SDR-08). calculateSajuData 도 같은 규칙을 지킨다.
   const raw = calculateSajuData(
     input.birthDate,
-    input.birthTime,
+    timeUnknown ? TIME_UNKNOWN_ANCHOR : input.birthTime,
     input.gender,
     input.calendarType ?? 'solar',
     tz,

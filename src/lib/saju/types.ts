@@ -156,7 +156,6 @@ export interface CalculateSajuDataResult {
       ganji: string
     }>
     annual: AnnualCycleData[]
-    monthly: MonthlyCycleData[]
   }
 
   fiveElements: {
@@ -266,17 +265,6 @@ export interface DaeunPillar {
 // 연운 사이클 데이터
 export interface AnnualCycleData {
   year: number
-  ganji?: string
-  heavenlyStem?: string
-  earthlyBranch?: string
-  element?: FiveElement
-  sibsin?: { cheon: string; ji: string }
-}
-
-// 월운 사이클 데이터
-export interface MonthlyCycleData {
-  year: number
-  month: number
   ganji?: string
   heavenlyStem?: string
   earthlyBranch?: string

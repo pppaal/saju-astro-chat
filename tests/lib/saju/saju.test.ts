@@ -154,10 +154,10 @@ describe('saju - Core Calculation', () => {
 
       expect(result.unse).toHaveProperty('daeun')
       expect(result.unse).toHaveProperty('annual')
-      expect(result.unse).toHaveProperty('monthly')
+      // 엉터리 양력월 라벨 unse.monthly 는 삭제됐다(재감사 TP-10).
+      expect(result.unse).not.toHaveProperty('monthly')
       expect(result.unse.daeun.length).toBe(10)
       expect(result.unse.annual.length).toBe(6)
-      expect(result.unse.monthly.length).toBe(12)
     })
 
     it('should handle various time formats', () => {

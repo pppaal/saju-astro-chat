@@ -444,7 +444,7 @@ describe('Redis Cache - Edge Cases and Security', () => {
 
       // Cache keys are just Redis key strings — they don't execute SQL.
       // The key contains the raw input because it is safe as a Redis key.
-      expect(key).toContain('saju:v4:')
+      expect(key).toContain('saju:v5:')
       expect(typeof key).toBe('string')
     })
 

@@ -153,9 +153,10 @@ describe('Saju cache key — lunarLeap + timezone 분리, 엔진 버전 prefix',
     expect(a).not.toBe(c)
     expect(b).not.toBe(c)
     // prefix 버전 = SAJU_ENGINE_VERSION (v3: 엔진 감사 E1 절입 instant 기준,
-    // v4: E14 첫 대운 전 current=null·meta.civilBirthDate·1900–1939 절입표).
+    // v4: E14 첫 대운 전 current=null·meta.civilBirthDate·1900–1939 절입표,
+    // v5: G1 대운 목록이 만 나이를 덮음·미상 정오 앵커·없는 음력 날짜 에러).
     const { SAJU_ENGINE_VERSION } = await import('../../../src/lib/saju/saju')
-    expect(SAJU_ENGINE_VERSION).toBe(4)
+    expect(SAJU_ENGINE_VERSION).toBe(5)
     expect(a.startsWith(`saju:v${SAJU_ENGINE_VERSION}:`)).toBe(true)
   })
 })

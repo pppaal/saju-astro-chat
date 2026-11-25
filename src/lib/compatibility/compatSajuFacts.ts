@@ -55,15 +55,17 @@ export interface CompatSajuFacts {
  */
 export function collectCompatSajuFacts(
   seedA: CompatPersonSeed,
-  seedB: CompatPersonSeed
+  seedB: CompatPersonSeed,
+  // 주입된 "지금" — 현재 대운(만 나이)의 기준. 미지정 시 호출 시점(collectSajuFacts 폴백).
+  now?: Date
 ): CompatSajuFacts {
   return {
-    a: collectOne(seedA),
-    b: collectOne(seedB),
+    a: collectOne(seedA, now),
+    b: collectOne(seedB, now),
   }
 }
 
-function collectOne(seed: CompatPersonSeed): PersonCompatSajuFacts {
+function collectOne(seed: CompatPersonSeed, now?: Date): PersonCompatSajuFacts {
   const base = collectSajuFacts({
     birthDate: seed.birthDate,
     birthTime: seed.birthTime,
@@ -71,6 +73,7 @@ function collectOne(seed: CompatPersonSeed): PersonCompatSajuFacts {
     gender: seed.gender,
     timezone: seed.timezone,
     longitude: seed.longitude,
+    now,
   })
 
   // 시간 미상이면 시주가 null — 시나스트리 기둥도 년·월·일 3개만.

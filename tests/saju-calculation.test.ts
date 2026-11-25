@@ -263,19 +263,11 @@ describe('Saju Calculation: Unse (운세)', () => {
     })
   })
 
-  it('generates monthly cycles', () => {
+  it('raw unse.monthly 는 없다 — 월운은 절기 기준 getMonthPillarForDate (재감사 TP-10)', () => {
+    // 옛 unse.monthly 는 양력월 m 을 사주월 m(寅=1)으로 퉁쳐 12칸 모두 한 달 앞 간지였다
+    // (2026-11 → 庚子, 실제 己亥). 읽는 곳이 없어 삭제했다.
     const result = calculateSajuData('1990-05-15', '10:30', 'male', 'solar', 'Asia/Seoul')
-
-    expect(result.unse.monthly).toBeDefined()
-    expect(result.unse.monthly.length).toBe(12)
-
-    result.unse.monthly.forEach((cycle) => {
-      expect(cycle.year).toBeGreaterThan(0)
-      expect(cycle.month).toBeGreaterThanOrEqual(1)
-      expect(cycle.month).toBeLessThanOrEqual(12)
-      expect(cycle.ganji).toBeTruthy()
-      expect(cycle.element).toMatch(/^(목|화|토|금|수)$/)
-    })
+    expect(result.unse).not.toHaveProperty('monthly')
   })
 })
 

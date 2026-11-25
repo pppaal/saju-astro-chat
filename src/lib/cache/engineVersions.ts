@@ -82,7 +82,11 @@ export { SAJU_ENGINE_VERSION }
 //     일 때 null. 섹트가 null 이면 품위 추출기의 삼분성은 참여 지배성만 센다(트랜짓 품위·본명
 //     Almuten 신호가 바뀜). NatalContextCache·월 셀에 구워지므로 bump — 시각·출생지를 아는
 //     출생은 출력이 같다. 운명상담사 컨텍스트(프로펙션 줄 생략)도 ENGINE_VERSION_TAG 로 함께 무효화.
-export const CALENDAR_ENGINE_VERSION = 'v13'
+// v14: 대운 목록이 만 나이를 덮도록 늘어난다(재감사 SP-1·SI-5, G1) — 시작 나이 + 100세
+//     이상인 출생은 NatalContext.saju.daeun 에 지금 대운이 들어가 대운 창·Life 현재 대운이
+//     생긴다(그 외 출생은 출력이 같다). NatalContextCache·월 셀에 구워지므로 bump.
+//     운명상담사 컨텍스트도 ENGINE_VERSION_TAG 로 함께 무효화.
+export const CALENDAR_ENGINE_VERSION = 'v14'
 
 /**
  * 본명 차트 Redis 캐시(CacheKeys.natalChart, `natal:v${N}:…`).

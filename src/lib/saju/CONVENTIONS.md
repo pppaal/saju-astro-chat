@@ -137,7 +137,7 @@ const sajuYear = birthDateTime.getTime() < ipchunUTC.getTime() ? year - 1 : year
   - 운(대운·세운·월운·일진)과 본명의 충·합·형 교차도 시주를 뺀다(`currentUnse`·상담사 교차·캘린더 `saju-hyeongchung`·`saju-jijanggan`). 4주 패턴표(`saju-pattern`)는 판정하지 않는다.
   - 점성은 `placeUnreliable`(시각 _또는_ 출생지 미상)로 ASC·MC·하우스와 그 파생(프로펙션, lot·ZR, Almuten, 앵글 대상 어스펙트)을 막는다 — 캘린더는 `buildCalendar` 가 `isPlaceDependentSignal` 신호를 거르고 컨텍스트의 lot·ZR·Almuten 을 비운다(CALCULATION_SPEC §6).
   - 가드: `tests/lib/destiny/sajuFacts.timeUnknown.test.ts`
-- **시간 미상 계산 앵커 = 정오(12:00)** — SSOT [`birthTimeAnchor.ts`](./birthTimeAnchor.ts) (`resolveBirthTimeAnchor`/`isBirthTimeUnknown`). 앵커는 **년·월·일주를 고정하는 데만** 쓴다(삼주 분석의 시주로 쓰지 않는다). 빈 시각 문자열도 정오로 앵커하고 미상으로 본다 — `calculateSajuData('1988-07-07', '')` 는 예전 00:00 앵커로 月 戊午 였으나 이제 '12:00' 과 같은 己未(엔진 감사 F15). 절입일엔 앵커 시각이 절입 전/후를 갈라 **월주·년주**가 달라진다(자정 앵커는 대개 절입 전) — 서비스마다 앵커가 다르면 같은 사람의 사주가 갈린다. 실제로 궁합/상담사/캘린더 세션 경로가 `'00:00'` 앵커를 써서 통합리포트(정오)와 다른 사주를 내던 버그의 원인. 정오는 ASC/하우스 범위의 중간값이기도 하다. 시간 미상 입력을 엔진(사주·점성)에 넣는 모든 경로는 이 헬퍼를 거칠 것.
+- **시간 미상 계산 앵커 = 정오(12:00)** — SSOT [`birthTimeAnchor.ts`](./birthTimeAnchor.ts) (`resolveBirthTimeAnchor`/`isBirthTimeUnknown`). 앵커는 **년·월·일주와 대운을 고정하는 데만** 쓴다(삼주 분석의 시주로 쓰지 않는다). **미상이면 넘어온 시각 문자열은 무시한다** — `calculateSajuData(…, { timeUnknown: true })` 와 `collectSajuFacts({ birthTimeUnknown: true })` 는 `'03:00'`·`'23:30'`·`''` 모두 정오로 바꿔 계산한다(재감사 SP-2 · SDR-08: 예전엔 빈 문자열만 바꿔, 1988-07-07 서울 남자 `'03:00'`+미상이 小暑 전으로 떨어져 月 戊午·대운수 1, 정오는 己未·대운수 10). 빈 시각 문자열도 정오로 앵커하고 미상으로 본다 — `calculateSajuData('1988-07-07', '')` 는 예전 00:00 앵커로 月 戊午 였으나 이제 '12:00' 과 같은 己未(엔진 감사 F15). 절입일엔 앵커 시각이 절입 전/후를 갈라 **월주·년주**가 달라진다(자정 앵커는 대개 절입 전) — 서비스마다 앵커가 다르면 같은 사람의 사주가 갈린다. 실제로 궁합/상담사/캘린더 세션 경로가 `'00:00'` 앵커를 써서 통합리포트(정오)와 다른 사주를 내던 버그의 원인. 정오는 ASC/하우스 범위의 중간값이기도 하다. 시간 미상 입력을 엔진(사주·점성)에 넣는 모든 경로는 이 헬퍼를 거칠 것.
   - ℹ️ **2026-10 이후 일주는 앵커와 무관하다** (§1 민용일 분리). 예전엔 자정 앵커가 일주까지 전날로 밀었고 그게 정오 앵커 근거의 절반이었는데, 그 밀림 자체가 버그였다. 남은 근거(절입일 월주·ASC 중간값)로 정오 앵커는 유지한다. 가드: `tests/lib/saju/birthTimeAnchor.test.ts`
 - **미상 판정은 tri-state** — 명시 플래그(`birthTimeUnknown`: UserProfile/SavedPerson DB 컬럼, URL `birthTimeUnknown=1|0`·`tu=1|0`, 폼 상태)가 boolean 이면 신뢰한다: `false` + `'00:00'` 은 **실제 자정 출생**(자정 그대로 계산, 시주 유효). 플래그 미보존(레거시 행/링크, NULL)은 `'00:00'`=미상 휴리스틱으로 폴백.
 
@@ -369,9 +369,17 @@ isForward = (yearStem이 양 && male) || (yearStem이 음 && female)
 
 **생일 = 출생지 시간대의 민용 날짜** (진경도 보정 전). 보정된 날짜를 넘기면 자정 직후 출생(서울 00:00–00:32)의 생일이 전날로 밀려 현재 대운이 하루 일찍 바뀐다 — 예: 1962-01-01 00:10 서울 출생은 1979-12-31 에 만 17세, 현재 대운 己亥@8 (골든 G23).
 
-**현재 대운 = 만 나이 ≥ 시작 나이인 마지막 대운. 첫 대운 전에는 없다** (OD-12, 2026-11 엔진 감사 E14 · SAJU-7). 첫 대운 전에는 월주(月柱)가 그 시기를 맡으므로 `daeWoon.current = null`, `daeWoon.preDaeun = { startsAtAge }` 다 — 예: 2022-06-15 10:00 서울 남자는 2026-11-24 에 만 4세라 대운 전(7세부터 丁未), 2029-07-01 에 丁未@7 (골든 G22). 예전엔 `|| list[0]` 폴백으로 첫 대운을 '현재'라 했다.
+**현재 대운 = 만 나이가 든 대운 칸. 칸 i 는 `[시작 나이 + 10i, 시작 나이 + 10i + 10)` 을 맡고, 순서열은 끝이 없다. 첫 대운 전에는 없다** (OD-12, 2026-11 엔진 감사 E14 · SAJU-7; 재감사 SP-1 · SI-5). 첫 대운 전에는 월주(月柱)가 그 시기를 맡으므로 `daeWoon.current = null`, `daeWoon.preDaeun = { startsAtAge }` 다 — 예: 2022-06-15 10:00 서울 남자는 2026-11-24 에 만 4세라 대운 전(7세부터 丁未), 2029-07-01 에 丁未@7 (골든 G22). 예전엔 `|| list[0]` 폴백으로 첫 대운을 '현재'라 했다.
 
-**SSOT:** [`daeunAge.ts:currentDaeun(list, civilBirth, tz, now)`](./daeunAge.ts) — 순수 함수. `calculateSajuData` 와 `/api/saju` 가 같은 함수를 쓴다. `/api/saju` 는 Redis 에 캐시된 결과(계산 시점의 now)의 current 를 버리고 요청 시각으로 다시 고른다(SAJU-8) — 민용 생일·타임존은 결과의 `meta.civilBirthDate`·`meta.timeZone`.
+**대운 목록은 만 나이를 덮는다.** 목록은 최소 10칸이고, 만 나이가 `시작 나이 + 100` 이상이면 지금 걸린 대운까지 늘어난다(`daeunAge.daeunListLength`). 예: 1920-03-01 10:00 서울 남자(庚申년 戊寅월, 순행, 대운수 1)는 2026-11-24 에 만 106세 → 11번째 대운 己丑@101(101–110세). 예전엔 목록이 10칸에서 끊겨 `currentDaeun` 이 마지막 칸(이미 끝난 戊子@91)을 '현재'라 했고(/api/saju·상담사·궁합), Life 티어는 `nowAge < startAge + 10` 경계로 현재 대운을 아예 못 찾았다 — 표면마다 답이 달랐다. 목록이 만 나이를 덮지 못하면(옛·캐시된 목록) `currentDaeun` 은 끝난 대운을 고르지 않고 `current = null` 을 돌려준다.
+
+**SSOT (한 규칙, 모든 표면):**
+
+- [`daeunAge.ts`](./daeunAge.ts) — `currentDaeun(list, civilBirth, tz, now)`(현재 칸 선택, 순수), `runningDaeunIndex(startAges, age)`(칸 규칙), `daeunListLength(startAge, age)`(목록 길이), `daeunCellsToCover(cells, age)`(캐시된 목록을 같은 순서열로 잇기).
+- [`saju.ts:resolveDaeunAt(seed, civilBirth, tz, now)`](./saju.ts) — 목록 + current/preDaeun. `calculateSajuData` 와 `/api/saju` 가 같은 함수를 쓴다. `/api/saju` 는 Redis 에 캐시된 결과(계산 시점의 now)의 목록·current 를 버리고 요청 시각으로 다시 맞춘다(SAJU-8) — 민용 생일·타임존은 결과의 `meta.civilBirthDate`·`meta.timeZone`, 순서열 seed 는 `daeunSeedOf(result)`(월주·대운수·방향·일간).
+- 상담사(`sajuFacts.daeun`)·궁합(`compatSajuFacts.currentDaeun`)은 엔진 결과의 current/list 를 그대로 읽는다.
+- Life 티어(`calendar-view/toLifetime`)는 영구 캐시된 본명 컨텍스트 목록을 `daeunCellsToCover` 로 잇고 now 플래그를 `runningDaeunIndex` 로 고른다. 막대 줄은 10칸 격자라 목록이 10칸을 넘으면 지금 대운으로 끝나는 10칸만 보인다.
+- 가드: `tests/lib/saju/daeunCoverage.test.ts`, `tests/lib/destiny/currentDaeunParity.test.ts`, `tests/app/api/sajuRoute.engine.route.test.ts`.
 
 ---
 
@@ -408,3 +416,4 @@ isForward = (yearStem이 양 && male) || (yearStem이 음 && female)
 - 2026-11: 판단층 (엔진 감사 E4, OD-7·OD-8) — 강약 점수에서 일간 자기 비겁 제외 + 중심 보정 −9.5(중앙값 50), 5단계 매핑 함수 하나(`strengthBandOf`/`strengthClassOf`)를 모든 표면이 공유, 용신 병약·통관은 억부 허용 그룹 안에서만·추천과 회피 서로소·병 = 드러난 8글자 3 이상, 화기격국은 `evaluateHwagiGeokguk` 엄격 규칙만, 득령 囚/死 교정, §6 午 3층·용도별 가중치 표 정정, 통근력은 §6 강약·통근 행 사용 (§6·§9·§10·§11).
 - 2026-11: OD-5 — 시간 미상은 삼주(년·월·일) 분석. 정오 앵커는 년·월·일주 고정용, 빈 시각도 정오로 앵커, 오행 위치 가중은 0.80 으로 재정규화, 캘린더 placeUnreliable 이면 ASC·MC·하우스 의존 신호 제외 (§5, 엔진 감사 E7).
 - 2026-11: 문서 동기화 (엔진 감사 E15 · F6 · SD-14 · F16) — §4 일주 = 출생지 민용일(‘KST 자정·선택적 경도 보정’ 삭제), §6 지장간 구성표(문서-코드 대조 테스트), §2·§3·§9 줄 번호 참조를 심볼 참조로, §1 캘린더 시진 `hourSegmentsForCivilDay`, §13 대운수 floor 근거, 해결된 TODO 2건 삭제.
+- 2026-11: 재감사 G1 — 현재 대운은 끝없는 순서열의 만 나이 칸, 목록은 만 나이를 덮도록 늘어남(§14, SP-1·SI-5). 시간 미상이면 어떤 시각 문자열이든 정오 앵커(§5, SP-2·SDR-08).

@@ -11,7 +11,6 @@ import {
   StemBranchInfo,
   PillarData,
   AnnualCycleData,
-  MonthlyCycleData,
 } from './types'
 import {
   STEMS,
@@ -27,10 +26,17 @@ export { SAJU_ENGINE_VERSION } from './constants'
 import { toBranchId, toGanjiId, toSajuElementId, toStemId } from './graphIds'
 import { computeDayPillarIndices } from './dayPillar'
 // 연운/월운/일진 stem-branch 산술의 single source.
-import { annualStemBranch, sajuMonthStemBranch } from './cycles'
+import { annualStemBranch, stepStemBranch } from './cycles'
 import { getSajuYearForDate } from './datePillars'
 import { SAJU_CACHE, CACHE_KEY } from '@/lib/constants/cache'
-import { currentDaeun, daysToDaeunAge } from '@/lib/saju/daeunAge'
+import {
+  currentDaeun,
+  daeunListLength,
+  daeunManAge,
+  daysToDaeunAge,
+  DAEUN_SPAN_YEARS,
+  type CurrentDaeunResult,
+} from '@/lib/saju/daeunAge'
 import { normalizeTimeZone } from '@/lib/datetime/timezone'
 import { CALCULATION_STANDARDS } from '@/lib/config/calculationStandards'
 import { meanSolarMinuteOfDay } from './timezone'
@@ -120,11 +126,77 @@ function getSajuCacheKey(
 export interface CalculateSajuOptions {
   /**
    * 출생시각 미상 — 삼주(년·월·일) 분석(CONVENTIONS §5, OD-5). 계산 앵커는 정오
-   * (TIME_UNKNOWN_ANCHOR)로 년·월·일주만 고정하고, fiveElements 는 시주를 빼고
+   * (TIME_UNKNOWN_ANCHOR)로 년·월·일주·대운만 고정하고, fiveElements 는 시주를 빼고
    * 6글자로 센다. 결과의 timePillar 는 정오 앵커 자리표시이며 result.timeUnknown=true.
+   * 이 옵션이 true 면 birthTime 문자열('03:00' 등)은 무시된다 — 정오 앵커가 대신한다.
    * birthTime 이 빈 문자열이면 이 옵션 없이도 미상으로 본다(isBirthTimeUnknown 규약).
    */
   timeUnknown?: boolean
+}
+
+/* ========== 대운 목록 · 현재 대운 (SSOT) ========== */
+
+/** 대운 순서열을 정하는 원국 값 — 월주 간지, 대운수(시작 만 나이), 방향, 일간. */
+export interface DaeunSeed {
+  monthStem: string
+  monthBranch: string
+  startAge: number
+  isForward: boolean
+  dayMaster: DayMaster
+}
+
+/** calculateSajuData 결과에서 대운 seed 를 꺼낸다(캐시된 결과를 요청 시각으로 다시 맞출 때). */
+export function daeunSeedOf(result: CalculateSajuDataResult): DaeunSeed {
+  return {
+    monthStem: result.monthPillar.heavenlyStem.name,
+    monthBranch: result.monthPillar.earthlyBranch.name,
+    startAge: result.daeWoon.startAge,
+    isForward: result.daeWoon.isForward,
+    dayMaster: result.dayMaster,
+  }
+}
+
+/**
+ * 대운 목록 length 칸 — 칸 i 는 월주에서 (i+1) 칸 순행/역행한 간지, 시작 만 나이
+ * startAge + 10i. 십신은 일간 기준(지지는 정기).
+ */
+function buildDaeunList(seed: DaeunSeed, length: number): DaeunPillar[] {
+  const out: DaeunPillar[] = []
+  const dir = seed.isForward ? 1 : -1
+  for (let i = 0; i < length; i++) {
+    const sb = stepStemBranch(seed.monthStem, seed.monthBranch, dir * (i + 1))
+    if (!sb) {
+      throw new Error(`Cannot build Daeun: bad month pillar ${seed.monthStem}${seed.monthBranch}`)
+    }
+    const mainForB = getBranchMainStem(sb.branch.name)
+    out.push({
+      age: seed.startAge + i * DAEUN_SPAN_YEARS,
+      heavenlyStem: sb.stem.name,
+      earthlyBranch: sb.branch.name,
+      sibsin: {
+        cheon: getSibseong(seed.dayMaster, sb.stem),
+        ji: getSibseong(seed.dayMaster, mainForB ?? sb.branch),
+      },
+    })
+  }
+  return out
+}
+
+/**
+ * now 기준 대운 — 목록(최소 10칸, 만 나이가 그 너머면 지금 걸린 대운까지 — daeunListLength)과
+ * currentDaeun 의 current/preDaeun. calculateSajuData 와 /api/saju(30일 캐시된 결과를 요청
+ * 시각으로 다시 맞춤)가 이 함수 하나를 쓴다 — 어느 표면도 끝난 대운을 '현재'라 하지 않는다
+ * (재감사 SP-1·SI-5, CONVENTIONS §14). 만 나이 < 시작 나이 + 100 이면 목록은 늘 10칸이다.
+ */
+export function resolveDaeunAt(
+  seed: DaeunSeed,
+  civilBirth: { year: number; month: number; day: number },
+  birthTimeZone: string,
+  now: Date = new Date()
+): { list: DaeunPillar[] } & CurrentDaeunResult<DaeunPillar> {
+  const age = daeunManAge(civilBirth, birthTimeZone, now)
+  const list = buildDaeunList(seed, daeunListLength(seed.startAge, age))
+  return { list, ...currentDaeun(list, civilBirth, birthTimeZone, now) }
 }
 
 /* ========== 메인 계산 ========== */
@@ -149,9 +221,13 @@ export function calculateSajuData(
   // 빈 시각 = 미상(birthTimeAnchor.isBirthTimeUnknown 과 같은 규약). 계산 앵커는 정오 —
   // 예전엔 '' 가 00:00 으로 떨어져 절입일 월주가 정오 앵커(리포트·점성)와 갈렸다
   // (1988-07-07: '' → 戊午, '12:00' → 己未; 엔진 감사 F15).
+  // 미상이면 *어떤* 시각 문자열이 와도 정오 앵커로 바꾼다 — 플래그가 우선(tri-state 규약:
+  // "시각이 남아 있어도 미상 우선"). 예전엔 빈 문자열만 바꿔, 저장된 시각 + 미상 플래그를
+  // 넘기면 그 시각으로 절입을 판정해 년·월주·대운이 갈렸다(재감사 SP-2·SDR-08:
+  // 1988-07-07 '03:00'+미상 → 戊午·대운 1, 정오 → 己未·대운 10). 캐시 키도 앵커 시각으로.
   const blankTime = !String(birthTime ?? '').trim()
   const timeUnknown = opts.timeUnknown === true || blankTime
-  if (blankTime) birthTime = TIME_UNKNOWN_ANCHOR
+  if (timeUnknown) birthTime = TIME_UNKNOWN_ANCHOR
   // 잘못된 IANA 타임존(빈 문자열·레거시·손상 프로필 값)이 들어오면 아래
   // Intl.DateTimeFormat 이 RangeError 로 throw → 사주를 쓰는 모든 서비스가
   // 한꺼번에 죽는다. 유효하지 않으면 사주 기준 timezone(CALCULATION_STANDARDS.saju.baseTimezone)
@@ -331,7 +407,8 @@ export function calculateSajuData(
      * 평균태양시 한 경로: 출생 instant 의 출생지 벽시계 + solarTimeCorrectionMinutes
      * (= UT + 경도 × 4분). 경도 미상이면 존 기준 경도(OD-2). 년·월·대운은 생 instant,
      * 일주는 민용일이라 이 보정은 시주에만 들어간다(OD-1).
-     *   예: 부산 (129.07°E, KST) → 보정 −23분 → 시계 11:00 = 평균태양시 10:37 → 巳
+     *   예: 부산 (129.07°E, KST) → 보정 round((129.07−135)×4) = round(−23.72) = −24분
+     *       → 시계 11:00 = 평균태양시 10:36 → 巳
      */
     const solarMinuteOfDay = meanSolarMinuteOfDay(birthDateTime, longitude, timezone)
     const candidates = [solarMinuteOfDay, solarMinuteOfDay + 24 * 60]
@@ -399,24 +476,29 @@ export function calculateSajuData(
       : birthMs - prevTermUTC.getTime()
     const daeWoonStartAge = daysToDaeunAge(diffToTermMs / 86400000)
 
-    const daeWoonList: DaeunPillar[] = []
-    const direction = isForward ? 1 : -1
-    let curStemIdx = monthStemIndex
-    let curBranchIdx = monthBranchIndex
-    for (let i = 0; i < 10; i++) {
-      const age = i * 10 + daeWoonStartAge
-      curStemIdx = (curStemIdx + direction + 10) % 10
-      curBranchIdx = (curBranchIdx + direction + 12) % 12
-      const s = STEMS[curStemIdx]
-      const b = BRANCHES[curBranchIdx]
-      const mainForB = getBranchMainStem(b.name)
-      daeWoonList.push({
-        age,
-        heavenlyStem: s.name,
-        earthlyBranch: b.name,
-        sibsin: { cheon: getSibseong(dayMaster, s), ji: getSibseong(dayMaster, mainForB ?? b) },
-      })
-    }
+    // 대운 목록·현재 대운 — resolveDaeunAt 하나가 정한다(/api/saju 도 같은 함수). 목록은
+    // 최소 10칸, 만 나이가 시작 나이 + 100 을 넘으면 지금 걸린 대운까지 늘어난다
+    // (재감사 SP-1 — 예전엔 10칸에서 끊겨 100세+ 에게 끝난 91세 대운을 '현재'라 했다).
+    // 만 나이는 출생지 시간대의 *민용* 생일 기준(CONVENTIONS §14, currentManAge) — 보정된
+    // 날짜를 넘기면 자정 직후 출생의 생일이 전날로 밀려 현재 대운이 하루 일찍 바뀌었다(F14).
+    // 첫 대운 전에는 월주가 그 시기를 맡으므로 current = null + preDaeun {startsAtAge}
+    // (OD-12, SAJU-7) — 예전엔 `|| daeWoonList[0]` 폴백으로 만 4세에게 7세 대운을 '현재'라 했다.
+    const {
+      list: daeWoonList,
+      current: currentLuckPillar,
+      preDaeun,
+    } = resolveDaeunAt(
+      {
+        monthStem: monthPillar.stem.name,
+        monthBranch: monthPillar.branch.name,
+        startAge: daeWoonStartAge,
+        isForward,
+        dayMaster,
+      },
+      { year: civilY, month: civilM, day: civilD },
+      timezone,
+      now
+    )
 
     /* ---------------- 결과 구성 ---------------- */
     const pillars = { yearPillar, monthPillar, dayPillar, timePillar } as const
@@ -489,30 +571,11 @@ export function calculateSajuData(
       fiveElementsCount[p.branch.element]++
     })
 
-    const yNowLocal = Number(
-      new Intl.DateTimeFormat('en-US', { timeZone: timezone, year: 'numeric' }).format(now)
-    )
-    const mNowLocal = Number(
-      new Intl.DateTimeFormat('en-US', { timeZone: timezone, month: 'numeric' }).format(now)
-    )
-    // 현재 대운 — 순수 함수 currentDaeun(daeunAge.ts) 하나가 고른다. /api/saju 도 캐시된
-    // 결과에 같은 함수를 요청마다 다시 적용한다(SAJU-8). 만 나이는 출생지 시간대의 *민용*
-    // 생일 기준(CONVENTIONS §14, currentManAge) — 보정된 날짜를 넘기면 자정 직후 출생의
-    // 생일이 전날로 밀려 현재 대운이 하루 일찍 바뀌었다(F14). 첫 대운 전에는 월주가 그
-    // 시기를 맡으므로 current = null + preDaeun {startsAtAge}(OD-12, SAJU-7) — 예전엔
-    // `|| daeWoonList[0]` 폴백으로 만 4세에게 7세 대운을 '현재'라 했다.
-    const { current: currentLuckPillar, preDaeun } = currentDaeun(
-      daeWoonList,
-      { year: civilY, month: civilM, day: civilD },
-      timezone,
-      now
-    )
-
     // 연운 (현재 사주연도부터 6년치) — stem-branch 산술은 cycles.ts(single source) 위임.
     // baseAllDataPrompt/어댑터가 기대하는 wide shape(ganji/element 포함) 으로 매핑.
     // 세운은 1/1 이 아니라 *입춘*에 바뀐다 — getSajuYearForDate(입춘-aware)로 base 를
     // 잡아야 1/1~입춘 구간이 다음 해 세운으로 잘못 뜨지 않는다(currentUnse·생일차트와
-    // 동일 convention). 직전엔 그레고리력 연도(yNowLocal)라 이 구간이 한 해 어긋났다.
+    // 동일 convention). 직전엔 그레고리력 연도라 이 구간이 한 해 어긋났다.
     const baseSajuYear = getSajuYearForDate(now)
     const annualCycles: AnnualCycleData[] = []
     for (let i = 0; i < 6; i++) {
@@ -533,40 +596,10 @@ export function calculateSajuData(
       })
     }
 
-    // 월운 (현재 월부터 12개월치) — 사주월(寅-first) 산술은 cycles.ts 위임.
-    //
-    // ⚠️ 정확도 한계: 이 배열은 (연, 양력월)만으로 간지를 매기며 절기 경계(월
-    // 전환이 매월 4~6일경)를 반영하지 않아, 양력월 라벨과 사주월 간지가 최대 한
-    // 칸 어긋날 수 있다(예: 양력 7월에 未월 대신 申월). 사용자에게 노출하는
-    // "현재 월운"의 권위 있는 값은 절기 기준으로 계산하는 currentUnse
-    // (computeCurrentUnse)를 쓴다 — 이 raw 배열을 직접 소비하지 말 것. 현재 활성
-    // 소비자는 없으며(프롬프트/리포트/캘린더 모두 currentUnse 또는 getMonthlyCycles
-    // 를 사용) 하위호환 shape 유지용으로만 남긴다.
-    const monthlyCycles: MonthlyCycleData[] = []
-    for (let i = 0; i < 12; i++) {
-      let yr = yNowLocal
-      let mo = mNowLocal + i
-      if (mo > 12) {
-        mo -= 12
-        yr += 1
-      }
-      const { stem, branch } = sajuMonthStemBranch(yr, mo - 1)
-      const mainForB = getBranchMainStem(branch.name)
-      monthlyCycles.push({
-        year: yr,
-        month: mo,
-        ganji: `${stem.name}${branch.name}`,
-        heavenlyStem: stem.name,
-        earthlyBranch: branch.name,
-        element: stem.element,
-        sibsin: {
-          cheon: getSibseong(dayMaster, stem),
-          ji: getSibseong(dayMaster, mainForB ?? branch),
-        },
-      })
-    }
-
-    // unse 구조 (baseAllDataPrompt.ts가 기대하는 형식)
+    // unse 구조 (baseAllDataPrompt.ts가 기대하는 형식). 옛 unse.monthly(양력월 라벨 12칸)는
+    // 2026-11 삭제 — 양력월 m 을 사주월 m(寅=1)으로 퉁쳐 12칸 모두 한 달 앞 간지였고
+    // (재감사 TP-10) 읽는 곳도 없었다. 월운은 절기 기준 getMonthPillarForDate(currentUnse,
+    // 캘린더) 또는 /api/saju 의 wolun(unse.getMonthlyCycles)을 쓴다.
     const unse = {
       daeun: daeWoonList.map((d) => ({
         age: d.age,
@@ -575,7 +608,6 @@ export function calculateSajuData(
         ganji: `${d.heavenlyStem}${d.earthlyBranch}`,
       })),
       annual: annualCycles,
-      monthly: monthlyCycles,
     }
 
     const result: CalculateSajuDataResult = {

@@ -464,7 +464,6 @@ export const sajuResultSchema = z.object({
     .object({
       daeun: z.array(daeunDataSchema),
       annual: z.array(annualCycleDataSchema),
-      monthly: z.array(monthlyCycleDataSchema),
     })
     .optional(),
 
