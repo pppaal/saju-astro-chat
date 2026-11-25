@@ -436,8 +436,8 @@ non-Korean zone.
 - `npm run typecheck`
 - `npm run lint`
 - `npm test`
-- `npm run ops:destiny:release` (typecheck + the integrated-report release
-  tests)
+- `npm run ops:destiny:release` (typecheck + the real-ephemeris release gate:
+  engine goldens, report cross-row pins, calendar digest)
 - `npm run docs:sync:check` — the generated blocks in this file (§4 cross
   doctrine) and `docs/doctrine/calculation-standards.md` match the code; it also
   fails when a `CALCULATION_STANDARDS` key has no reader in `src/`.

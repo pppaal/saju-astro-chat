@@ -238,5 +238,5 @@ with:
 - `npm run typecheck`
 - `npm run lint`
 - `npm test`
-- `npm run ops:destiny:release` (typecheck + the integrated-report release
-  tests)
+- `npm run ops:destiny:release` (typecheck + the real-ephemeris release gate:
+  engine goldens, report cross-row pins, calendar digest)

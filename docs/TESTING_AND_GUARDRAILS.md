@@ -1,6 +1,6 @@
 # Testing And Guardrails
 
-Last audited: 2026-06-15 (Asia/Hong_Kong)
+Last audited: 2026-11-25 (release gate and real-ephemeris tests, engine audit E16)
 
 ## Status
 
@@ -41,19 +41,53 @@ For destiny/report changes, also run the release gate (below).
 npm run typecheck && npm run test:destiny:release
 ```
 
-`test:destiny:release` runs the integrated-report regression suite:
+`test:destiny:release` pins real values on the real Swiss Ephemeris (engine audit
+F10/F11, stage E16), not counts on the mocked one:
 
 ```
-vitest run tests/lib/report/integratedReport.real.test.ts \
-            tests/lib/report/integratedReport.render.test.ts \
-            --pool forks --poolOptions.forks.singleFork --testTimeout 120000
+vitest run tests/golden/ real.node \
+  tests/lib/report/integratedReport.real.test.ts \
+  tests/lib/report/integratedReport.render.test.ts \
+  tests/lib/calendar-engine/buildCalendar.determinism.test.ts \
+  tests/lib/astrology/real-ephemeris-correctness.test.ts
 ```
 
-Both test files exist and are the surviving guard for the report stack. The gate
-does **not** run the old `qa-destiny-three-services.ts` script (it was removed,
-see Status). This gate is enforced in CI on every non-draft PR (the
-`destiny-release-gate` job in `pr-checks.yml` and the `Destiny release gate` step
-in `ci.yml`).
+- `tests/golden/` — the engine golden set (`engine-golden.json`, written by
+  `npm run golden:build` from independent references only: astronomy-engine,
+  KASI-checked 節 instants, the JDN day pillar, cited classical tables). Saju
+  pillars and 대운, derived saju (relations, shinsal, 화기격국, 용신 invariants),
+  astrology positions, angles, cusps and houses, timing (profection, solar arc,
+  returns, planetary hours, VoC, sect, ZR), calendar cross invariants and report
+  cross rows. `goldenMarkers.guard.test.ts` keeps expected-failure, skip and
+  known-defect markers out of `tests/golden` and checks that this script still
+  lists the real-ephemeris suites.
+- `*.real.node.test.ts` — real-ephemeris astrology and calendar checks
+  (planetary day by real sunrise, sect by Sun altitude, VoC, outer-planet
+  milestones, solar arc, transit formatter).
+- `integratedReport.real.test.ts` — the production report path
+  (`buildReportContext` → `natalToReportData` / `buildCrossRows`) with exact
+  pillars, planet signs and houses, ASC/MC and all cross-row tones for a sample
+  chart and for the reference charts R01, R06, R11, R13, R16 and R17. The five
+  element-family rows (identity, needs, karma, growth, yin-yang) are recomputed
+  from independent inputs (golden pillars, astronomy-engine Sun, Moon, true node
+  and sect).
+- `buildCalendar.determinism.test.ts` — the calendar cell digest on the real
+  ephemeris, with an injected `now`, and a check that it does not depend on the
+  server clock.
+- `real-ephemeris-correctness.test.ts` — planet longitudes against
+  astronomy-engine within 0.02°.
+
+Real-ephemeris files run under `@vitest-environment node` with
+`vi.unmock('swisseph')` and `vi.unmock('@/lib/astrology/foundation/ephe')`, and
+wrap their blocks in `describeRealEphemeris` (`tests/helpers/realEphemeris.ts`).
+Without native swisseph they skip on a developer machine but **fail** in CI
+(`CI=true`), in `test:destiny:release`, or with `REQUIRE_SWISSEPH=1`. CI jobs that
+run tests build and load native swisseph right after `npm ci` ("Build and verify
+native swisseph" step) and fail when it does not load.
+
+This gate is enforced in CI on every non-draft PR (the `destiny-release-gate` job
+in `pr-checks.yml` and the `Destiny release gate` step in `ci.yml`). It takes about
+20 s on a 4-vCPU machine after typecheck.
 
 The old destiny _quality_ gate (`ops:destiny:gate`, `ops:destiny:gate:quick`,
 `ops:destiny:nightly`, `scripts/ops/destiny-quality-gate.mjs`) was removed
@@ -62,7 +96,9 @@ The old destiny _quality_ gate (`ops:destiny:gate`, `ops:destiny:gate:quick`,
 
 ## Determinism Golden Tests
 
-Astronomical determinism is locked by golden suites that pin exact outputs:
+Astronomical determinism is locked by golden suites that pin exact outputs. The
+independent-reference set lives in `tests/golden/` and runs in the release gate
+(above); the older suites below pin engine output:
 
 - `tests/lib/saju/determinism-golden.test.ts` — pins year/month/day/time
   pillars, day master, and daeun start age/direction against
@@ -75,10 +111,11 @@ Additional locked-value coverage lives in
 `tests/lib/saju/edge-cases.test.ts` (day-boundary / midnight transitions).
 
 These run as part of `npm test` (the full Vitest suite). Separately,
-`npm run test:ephemeris-golden` (`scripts/ephemeris-golden.mts`) is a Swiss
-Ephemeris golden run — Vitest mocks the ephemeris, so raw astronomical accuracy
-is only verified by this script. It is enforced in the `pr-checks.yml`
-`build-check` job.
+`npm run test:ephemeris-golden` (`scripts/ephemeris-golden.mts`) checks the real
+Swiss Ephemeris outside Vitest against the independent astro charts in
+`tests/golden/engine-golden.json` (planets, node, ASC/MC, cusps, houses and
+retrograde flags, with the golden tolerances). It is enforced in the
+`pr-checks.yml` `build-check` job.
 
 ## Recurrence Guards (source-level invariants)
 
@@ -154,10 +191,15 @@ buckets failures by category and top files.
 
 Coverage thresholds are enforced **only** on `npm run test:coverage`
 (`vitest.config.ts`, gated on `npm_lifecycle_event === 'test:coverage'`). Current
-global floors: lines 61, statements 61, branches 77, functions 85. Per-path
+global floors: lines 87, functions 83, branches 71, statements 85. Per-path
 floors: `src/lib/auth/**`, `src/lib/credits/**`, `src/lib/payments/**`,
-`src/lib/security/**`, and `src/app/api/**` (50/45/50). CI reads these same
-values from `vitest.config.ts` so the gate never drifts from the config.
+`src/lib/security/**`, `src/lib/api/idempotency.ts`, `src/lib/referral/**`,
+`src/lib/stripe/**`, `src/app/api/**`, and the astrology timing files that used to
+run only on the mocked ephemeris — `almutenFiguris.ts`, `profections.ts` and
+`calendar-engine/lifecycle/outerMilestones.ts` — whose floors sit ~2 points under
+what the real-ephemeris release-gate suites alone reach (E16). The exact values
+are in `vitest.config.ts`; CI reads them from there so the gate never drifts from
+the config.
 
 ## Other Real Test/QA Scripts
 

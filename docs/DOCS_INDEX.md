@@ -25,7 +25,7 @@ Last audited: 2026-11-25 (Asia/Hong_Kong)
 | `docs/CALCULATION_SPEC.md`       | Deterministic calculation pipeline (saju/astro/cross/calendar), data-reliability rule | Backend/AI engineers         | 2026-11-25   |
 | `docs/운흐름.md`                 | 운흐름(사주×점성 타이밍 캘린더) 단일 출처 — 데이터·5층·해석·라벨·v2 통합              | Product/backend/AI engineers | 2026-11-25   |
 | `docs/DESTINY_LOGGING.md`        | Current logging stack (logger + metrics; UserInteraction dormant)                     | Backend/product engineers    | 2026-06-15   |
-| `docs/TESTING_AND_GUARDRAILS.md` | Required checks, CI gates, determinism goldens, release gate                          | All engineers                | 2026-06-15   |
+| `docs/TESTING_AND_GUARDRAILS.md` | Required checks, CI gates, determinism goldens, release gate                          | All engineers                | 2026-11-25   |
 | `docs/RUNBOOK.md`                | Operational runbook                                                                   | On-call, platform engineers  | 2026-04-01   |
 
 ## Cross-Layer / Fortune Engine Docs
@@ -75,7 +75,7 @@ Last audited: 2026-11-25 (Asia/Hong_Kong)
 
 ## Current Operating Notes
 
-- Current destiny release gate (in package.json `ops:destiny:release`) is `typecheck` + `test:destiny:release`. It does **not** invoke `qa-destiny-three-services` (that script was removed in this cleanup — it imported the removed destiny-matrix engine, as did `qa-counselor-questions`; neither was wired to any npm script or workflow).
+- Current destiny release gate (in package.json `ops:destiny:release`) is `typecheck` + `test:destiny:release` (since 2026-11-25, engine audit E16: `tests/golden/`, `*.real.node`, integrated-report real/render, calendar determinism digest and real-ephemeris correctness, all on the real Swiss Ephemeris; see `docs/TESTING_AND_GUARDRAILS.md`). It does **not** invoke `qa-destiny-three-services` (that script was removed in this cleanup — it imported the removed destiny-matrix engine, as did `qa-counselor-questions`; neither was wired to any npm script or workflow).
 - 2026-05-18 verification snapshot:
   - `npm run docs:check-links` -> **PASS** (8 markdown files)
   - `npx tsc -p tsconfig.json --noEmit` -> **PASS** (0 errors, after `prisma generate` with any dummy `DATABASE_URL`)

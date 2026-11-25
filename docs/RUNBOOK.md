@@ -25,8 +25,10 @@ could no longer run.)
 npm run ops:destiny:release
 ```
 
-Runs `typecheck` + `test:destiny:release` (the integrated-report real/render
-regression bundle). See `docs/TESTING_AND_GUARDRAILS.md` for the full gate list.
+Runs `typecheck` + `test:destiny:release` (the engine goldens in `tests/golden/`,
+the `*.real.node` suites, the integrated-report real/render tests, the calendar
+determinism digest and the real-ephemeris correctness check — all on the real Swiss
+Ephemeris; they fail rather than skip when native swisseph is missing). See `docs/TESTING_AND_GUARDRAILS.md` for the full gate list.
 
 ## Database
 
