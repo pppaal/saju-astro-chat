@@ -215,6 +215,10 @@ function resolveAspectList(rules: AspectRules) {
 
 /**
  * 🌟 안전하게 비어 있는 차트 데이터를 허용하는 findAspects 함수
+ *
+ * 트랜짓(또는 상대) 차트 → 본명 차트 겹침 전용이다 — 본명점은 고정이라 applying 은 트랜짓
+ * 속도만으로 정하고, 쌍마다 가장 타이트한 각 하나를 낸다. 한 차트 안 행성끼리의 각은
+ * findNatalAspects 를 쓴다(같은 차트를 두 번 넘기면 자기 합·거울 중복이 생긴다 — ASTRO-8).
  */
 export function findAspects(natal: Chart, transit: Chart, rules: AspectRules = {}): AspectHit[] {
   const aspects = resolveAspectList(rules)
@@ -307,8 +311,14 @@ export function findAspects(natal: Chart, transit: Chart, rules: AspectRules = {
   for (const t of transitSources) {
     for (const n of natalTargets) {
       const sep = shortestAngle(t.longitude, n.longitude)
-      const relSpeed = (t.speed ?? 0) - (('speed' in n ? n.speed : 0) ?? 0)
+      // 본명점은 고정이다 — 접근/분리는 트랜짓 속도만으로(transit.ts determineApplying 과 같은
+      // 규칙). 예전엔 본명 행성의 *출생 당시* 속도를 빼서 트랜짓→본명 겹침의 applying 이
+      // 실제 orb 추세와 27% 어긋났다(엔진 감사 ASTRO-13).
+      const relSpeed = t.speed ?? 0
       currentSourceSpeed = t.speed ?? 0
+      // 쌍마다 가장 타이트한(orb 최소) 각 — findNatalAspects 와 같은 규칙. 예전엔 aspects
+      // 순서의 첫 accepted 에서 멈춰, orb 창이 겹치면 더 느슨한 각이 잡혔다.
+      let best: AspectHit | null = null
       for (const a of aspects) {
         // Hellenistic whole-sign: sign 거리만 보고 accept. orb=0 으로 보고.
         if (useWholeSign) {
@@ -349,12 +359,8 @@ export function findAspects(natal: Chart, transit: Chart, rules: AspectRules = {
           config
         )
 
-        if (evalResult.accepted) {
-          const orb = evalResult.orb
-          const applying = evalResult.applying
-          const score = evalResult.score
-
-          hits.push({
+        if (evalResult.accepted && (best === null || evalResult.orb < best.orb)) {
+          best = {
             from: {
               name: t.name,
               kind: 'transit',
@@ -370,12 +376,18 @@ export function findAspects(natal: Chart, transit: Chart, rules: AspectRules = {
               sign: 'sign' in n ? n.sign : undefined,
             },
             type: a,
-            orb: Number(orb.toFixed(2)),
-            applying,
-            score: Number(score.toFixed(3)),
-          })
-          break
+            orb: evalResult.orb,
+            applying: evalResult.applying,
+            score: evalResult.score,
+          }
         }
+      }
+      if (best) {
+        hits.push({
+          ...best,
+          orb: Number(best.orb.toFixed(2)),
+          score: Number((best.score ?? 0).toFixed(3)),
+        })
       }
     }
   }

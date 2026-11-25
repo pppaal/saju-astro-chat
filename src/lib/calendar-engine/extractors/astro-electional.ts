@@ -1,4 +1,4 @@
-import { analyzeElection } from '@/lib/astrology/foundation/electional'
+import { analyzeElection, planetaryDayFrame } from '@/lib/astrology/foundation/electional'
 import type { Chart } from '@/lib/astrology/foundation/types'
 import type { ElectionalEventType } from '@/lib/astrology/foundation/electional'
 import type { ActiveSignal, ExtractorContext, SignalExtractor, Polarity } from '../types'
@@ -9,6 +9,8 @@ import { getCachedTransitChart } from '../ephe-cache'
  *
  * 점성술의 "이 일을 시작하기 좋은 날"을 매일 평가.
  * 37개 이벤트 중 핵심 6개만 매일 점수화 → 점수 ≥ 70인 날만 신호 생성 (signal 폭발 방지).
+ * (classifyAspects 가 자기 합·거울 중복을 세던 동안엔 최고점 65 라 한 번도 발화하지 못했다 —
+ *  엔진 감사 ASTRO-8. 임계 70 은 그대로다.)
  *
  * 활성 윈도우: 그 1일.
  */
@@ -70,8 +72,33 @@ const astroElectionalExtractor: SignalExtractor = {
       }
 
       const dayIso = new Date(t).toISOString().slice(0, 10)
+      // 평가 순간 = 그 날 현지 정오 차트의 실제 instant, 행성시 = 그 날 실제 일출·일몰 틀
+      // (엔진 감사 ASTRO-8 — 예전엔 UTC 00:00 과 06/18 UTC 기본값이라 행성시가 요일의 함수).
+      // 극지 날(틀 없음)은 analyzeElection 의 기본 틀로 둔다.
+      const instant = chart.meta
+        ? new Date((chart.meta.jdUT - 2440587.5) * 86_400_000)
+        : new Date(t)
+      const frame = planetaryDayFrame(
+        dayIso,
+        natal.astro.location.latitude,
+        natal.astro.location.longitude,
+        natal.astro.location.timeZone
+      )
       for (const event of KEY_EVENTS) {
-        const analysis = analyzeElection(chart, event, new Date(t))
+        const analysis = frame
+          ? analyzeElection(
+              chart,
+              event,
+              instant,
+              new Date(frame.sunrise),
+              new Date(frame.sunset),
+              {
+                dayOfWeek: frame.dayOfWeek,
+                prevSunset: new Date(frame.prevSunset),
+                nextSunrise: new Date(frame.nextSunrise),
+              }
+            )
+          : analyzeElection(chart, event, instant)
         const score = analysis.score.total
         if (score < SCORE_THRESHOLD) continue
 

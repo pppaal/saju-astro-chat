@@ -95,7 +95,11 @@ describe('buildCalendar 결정론 골든', () => {
     // 2026-11 갱신(v10, 엔진 감사 E11): 교차 교리 — 두 부모가 매핑 방향에 동의할 때만 부호,
     // layer 는 좁은 부모 층(시진 교차 hourly)·밴드도 그 층, 솔라 아크·진행·진행 달 교차 키
     // 제외, 도화×화성 은퇴, 회귀 추출기가 범위 직전 회귀부터. 교차 구성이 바뀌어 digest 변경.
-    const GOLDEN = 'f21520fa995d0b4521b15ba0561a86d8f542ab02'
+    // 2026-11 갱신(v11, 엔진 감사 E13): 점성 일관성 — 행성시는 실제 일출(swe_rise_trans)
+    // 기준(전역 모의 천체력엔 swe_rise_trans 가 없어 이 테스트에선 행성시가 빠진다), ZR L3 는
+    // L2 의 1/12(2.5일), 택일 classifyAspects 는 순서 없는 서로 다른 쌍, VoC 끝은 달 진입 시각.
+    // 신호 구성이 바뀌어 digest 변경. 의도된 갱신.
+    const GOLDEN = '61adf62214a298670b3968e7d90d1f49cca038af'
     expect(digest(await build())).toBe(GOLDEN)
   }, 60_000)
 })

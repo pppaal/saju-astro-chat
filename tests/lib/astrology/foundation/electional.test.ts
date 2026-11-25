@@ -338,6 +338,34 @@ describe('calculatePlanetaryHour', () => {
     expect(result.startTime).toBeInstanceOf(Date)
     expect(result.endTime).toBeInstanceOf(Date)
   })
+
+  // 엔진 감사 ASTRO-5 — 일출 전 시각은 전날 행성일의 밤이다(전날 요일의 지배성).
+  it('before sunrise belongs to the previous planetary day (Monday 03:30 → Sunday night)', () => {
+    const sunrise = new Date('2026-11-23T07:20:00Z')
+    const sunset = new Date('2026-11-23T17:16:00Z')
+    const prevSunset = new Date('2026-11-22T17:17:00Z')
+    const result = calculatePlanetaryHour(new Date('2026-11-23T03:30:00Z'), 37.5, sunrise, sunset, {
+      dayOfWeek: 1, // Monday
+      prevSunset,
+    })
+    expect(result.dayRuler).toBe('Sun')
+    expect(result.isDay).toBe(false)
+    // Sunday night: hour index 12 + floor((03:30 − 17:17) / (14h03m / 12)) = 20 → Mars
+    expect(result.planet).toBe('Mars')
+    expect(result.startTime.getTime()).toBeLessThanOrEqual(Date.parse('2026-11-23T03:30:00Z'))
+    expect(result.endTime.getTime()).toBeGreaterThan(Date.parse('2026-11-23T03:30:00Z'))
+  })
+
+  it('after sunrise the first hour is the day ruler (Monday → Moon)', () => {
+    const sunrise = new Date('2026-11-23T07:20:00Z')
+    const sunset = new Date('2026-11-23T17:16:00Z')
+    const result = calculatePlanetaryHour(new Date('2026-11-23T07:25:00Z'), 37.5, sunrise, sunset, {
+      dayOfWeek: 1,
+    })
+    expect(result.dayRuler).toBe('Moon')
+    expect(result.planet).toBe('Moon')
+    expect(result.isDay).toBe(true)
+  })
 })
 
 // ============================================================

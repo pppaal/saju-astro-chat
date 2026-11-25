@@ -68,7 +68,12 @@ export { SAJU_ENGINE_VERSION }
 //     동의할 때만 부호(반대 부모·0·0 부모는 0), layer 는 좁은 부모 층(시진 교차는 hourly 로
 //     남아 톤 밖)·밴드도 그 층에서, 솔라 아크·2차 진행·진행 달은 교차 키 아님, 도화×화성
 //     은퇴. 교차 신호가 셀에 구워지므로 bump.
-export const CALENDAR_ENGINE_VERSION = 'v10'
+// v11: 점성 일관성(엔진 감사 E13 — ASTRO-5·6·8·10·11·13·12). 행성시는 실제 일출(swe_rise_trans)
+//     기준·일출 전은 전날 행성일, ZR L3/L4 는 위 층의 1/12(2.5일·5시간 — L3 결 풀림이 긴 L2
+//     에서만), 택일 classifyAspects 는 순서 없는 서로 다른 쌍(택일 신호가 처음 발화),
+//     섹트는 태양 고도(극권 출생의 lot·ZR 시작·삼분성 교정), VoC 끝은 실제 달 진입 시각,
+//     카이런 회귀 실측. 셀·NatalContext 에 구워지므로 bump.
+export const CALENDAR_ENGINE_VERSION = 'v11'
 
 /**
  * 본명 차트 Redis 캐시(CacheKeys.natalChart, `natal:v${N}:…`).
@@ -85,12 +90,16 @@ export const NATAL_CHART_CACHE_VERSION = 3
  */
 export const TRANSIT_CHART_CACHE_VERSION = 3
 
-/** Hellenistic 정적 분석 Redis 캐시(destiny/astroFacts, `hellenistic:v${N}:…`). */
-export const HELLENISTIC_CACHE_VERSION = 1
+/**
+ * Hellenistic 정적 분석 Redis 캐시(destiny/astroFacts, `hellenistic:v${N}:…`).
+ *   v2: 섹트를 태양 고도로(엔진 감사 E13, ASTRO-10) — 섹트가 lot·ZR 시작·삼분성을 정하므로
+ *       극권 출생의 옛 결과를 버린다. ZR L3/L4 단위(OD-11)도 함께.
+ */
+export const HELLENISTIC_CACHE_VERSION = 2
 
 /**
  * 엔진 버전 묶음 태그 — 여러 엔진 결과를 함께 캐시하는 키에 넣는다.
- * 예: 's4.cv9.n3.t3.h1'. 어느 값이 올라가도 태그가 바뀐다.
+ * 예: 's4.cv11.n3.t3.h2'. 어느 값이 올라가도 태그가 바뀐다.
  */
 export const ENGINE_VERSION_TAG = [
   `s${SAJU_ENGINE_VERSION}`,

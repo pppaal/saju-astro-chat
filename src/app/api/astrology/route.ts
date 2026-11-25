@@ -13,6 +13,7 @@ import {
   buildEngineMeta,
 } from '@/lib/astrology'
 import { calculateArabicLots } from '@/lib/astrology/foundation/arabicParts'
+import { isDiurnalChart } from '@/lib/astrology/foundation/extraPoints'
 import {
   calculateZodiacalReleasing,
   getActiveZRSub,
@@ -208,8 +209,18 @@ export const POST = withApiMiddleware(async (req: NextRequest, context: ApiConte
   try {
     const chartFull = chart as Chart
     const sun = chartFull.planets.find((p) => p.name === 'Sun')
-    // sect — Sun 이 지평선 위 (house 7..12) 이면 day. NatalContext.build 와 같은 규칙.
-    const sect: 'day' | 'night' = sun && (sun.house ?? 0) >= 7 ? 'day' : 'night'
+    // sect — 태양이 지평선 위(참고도 > 0°)면 day. isDiurnalChart SSOT(astroFacts·NatalContext
+    // 와 같은 함수). 하우스 번호 규칙은 극권 Whole Sign 폴백에서 뒤집혔다(엔진 감사 ASTRO-10).
+    const sect: 'day' | 'night' = isDiurnalChart({
+      jdUT: natalMeta?.jdUT,
+      latitude,
+      longitude,
+      sunHouse: sun?.house,
+      sunLongitude: sun?.longitude,
+      ascLongitude: chartFull.ascendant?.longitude,
+    })
+      ? 'day'
+      : 'night'
 
     let lots: ReturnType<typeof calculateArabicLots> = []
     try {

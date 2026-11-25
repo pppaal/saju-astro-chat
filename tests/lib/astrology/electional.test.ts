@@ -6,9 +6,9 @@
 import { vi } from 'vitest'
 import type { Chart, PlanetBase, ZodiacKo } from '@/lib/astrology/foundation/types'
 
-// Mock findAspects
+// Mock findNatalAspects (classifyAspects 는 한 차트 안 순서 없는 쌍 — ASTRO-8)
 vi.mock('@/lib/astrology/foundation/aspects', () => ({
-  findAspects: vi.fn(() => []),
+  findNatalAspects: vi.fn(() => []),
 }))
 
 import {
@@ -24,7 +24,7 @@ import {
   type MoonPhase,
   type ElectionalEventType,
 } from '@/lib/astrology/foundation/electional'
-import { findAspects } from '@/lib/astrology/foundation/aspects'
+import { findNatalAspects } from '@/lib/astrology/foundation/aspects'
 
 // Helper to create mock planet
 function createPlanet(
@@ -273,11 +273,11 @@ describe('electional.ts', () => {
 
   describe('classifyAspects', () => {
     beforeEach(() => {
-      vi.mocked(findAspects).mockReset()
+      vi.mocked(findNatalAspects).mockReset()
     })
 
     it('returns empty arrays when no aspects', () => {
-      vi.mocked(findAspects).mockReturnValue([])
+      vi.mocked(findNatalAspects).mockReturnValue([])
       const chart = createChart([createPlanet('Sun', 0, 'Aries')])
 
       const result = classifyAspects(chart)
@@ -287,7 +287,7 @@ describe('electional.ts', () => {
     })
 
     it('classifies benefic trine as benefic', () => {
-      vi.mocked(findAspects).mockReturnValue([
+      vi.mocked(findNatalAspects).mockReturnValue([
         {
           from: { name: 'Venus', kind: 'natal', longitude: 0 },
           to: { name: 'Jupiter', kind: 'natal', longitude: 120 },
@@ -308,7 +308,7 @@ describe('electional.ts', () => {
     })
 
     it('classifies malefic square as malefic', () => {
-      vi.mocked(findAspects).mockReturnValue([
+      vi.mocked(findNatalAspects).mockReturnValue([
         {
           from: { name: 'Mars', kind: 'natal', longitude: 0 },
           to: { name: 'Saturn', kind: 'natal', longitude: 90 },
@@ -328,7 +328,7 @@ describe('electional.ts', () => {
     })
 
     it('classifies benefic conjunction as benefic', () => {
-      vi.mocked(findAspects).mockReturnValue([
+      vi.mocked(findNatalAspects).mockReturnValue([
         {
           from: { name: 'Venus', kind: 'natal', longitude: 50 },
           to: { name: 'Sun', kind: 'natal', longitude: 52 },
@@ -349,7 +349,7 @@ describe('electional.ts', () => {
 
   describe('analyzeElection', () => {
     beforeEach(() => {
-      vi.mocked(findAspects).mockReturnValue([])
+      vi.mocked(findNatalAspects).mockReturnValue([])
     })
 
     it('returns complete analysis structure', () => {
@@ -468,7 +468,7 @@ describe('electional.ts', () => {
 
   describe('findBestDates', () => {
     beforeEach(() => {
-      vi.mocked(findAspects).mockReturnValue([])
+      vi.mocked(findNatalAspects).mockReturnValue([])
     })
 
     it('sorts results by score descending', () => {
@@ -603,7 +603,7 @@ describe('electional.ts', () => {
 
   describe('edge cases', () => {
     beforeEach(() => {
-      vi.mocked(findAspects).mockReturnValue([])
+      vi.mocked(findNatalAspects).mockReturnValue([])
     })
 
     it('requires Sun in chart for analysis', () => {

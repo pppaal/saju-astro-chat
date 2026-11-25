@@ -13,8 +13,8 @@
 // 본 모듈:
 //  - L1 period (years)
 //  - L2 sub-period (months — 같은 숫자값을 month 단위로)
-//  - L3 sub-sub-period (days)
-//  - L4 sub-sub-sub-period (hours)
+//  - L3 sub-sub-period (행성년 1 = 2.5일 — 층마다 1/12, OD-11)
+//  - L4 sub-sub-sub-period (행성년 1 = 5시간)
 //  - Peak / Loosing-of-Bond 이벤트 (L1 sign 기준 angular / 7th sign 진입)
 
 import type { ZodiacKo } from './types'
@@ -63,7 +63,7 @@ function periodYearsForSign(sign: ZodiacKo): number {
   return PLANET_YEARS[SIGN_RULERS[sign]]
 }
 
-/** ZR period level. L1=year, L2=month, L3=day, L4=hour-ish. */
+/** ZR period level. L1=year, L2=month, L3=2.5-day unit, L4=5-hour unit. */
 export type ZRLevel = 1 | 2 | 3 | 4
 
 /** ZR period 시작점 — Spirit (영혼·진로) 또는 Fortune (물질·몸). */
@@ -80,10 +80,10 @@ export interface ZRPeriod {
 }
 
 /**
- * Sub-period (L2/L3/L4) — L1 안에서 같은 비율 (시간 단위만 다름).
- *  - L2: month
- *  - L3: day
- *  - L4: hour
+ * Sub-period (L2/L3/L4) — L1 안에서 같은 비율 (시간 단위만 다름, 층마다 1/12).
+ *  - L2: month (행성년 1 = 1/12 년)
+ *  - L3: 2.5 days (행성년 1 = 30일/12)
+ *  - L4: 5 hours (L3/12)
  * start/end 는 본명 출생 기준 연 단위 (실수) 로 저장 — calendar 매핑은 birth + years.
  */
 export interface ZRSubPeriod {
@@ -199,7 +199,7 @@ export function getActiveZRPeriod(periods: ZRPeriod[], age: number): ZRPeriod | 
 
 /**
  * 한 L1 period (또는 sub-period) 의 시작 sign 부터, 황도 순서로 하위 period 를 펼침.
- * 단위는 unitYears (월=1/12, 일=1/365.25, 시간=1/8766) 로 곱해진다.
+ * 단위는 unitYears (L2 = 1/12 년, L3 = 2.5일, L4 = 5시간 — 층마다 1/12) 로 곱해진다.
  *
  * 부모 sign 기준 angular(1/4/7/10) 위치 → peak.
  *
@@ -217,7 +217,7 @@ function expandSubPeriods(args: {
   parentDurationYears: number
   level: ZRLevel
   parentLevel: ZRLevel
-  unitYears: number // L2: 1/12, L3: 1/365.25, L4: 1/8766
+  unitYears: number // L2: 1/12 년, L3: 2.5일, L4: 5시간
 }): ZRSubPeriod[] {
   const { parentSign, parentStartYear, parentDurationYears, level, parentLevel, unitYears } = args
   const out: ZRSubPeriod[] = []
@@ -265,9 +265,20 @@ function expandSubPeriods(args: {
   return out
 }
 
-const UNIT_YEARS_L2 = 1 / 12 // ~30.4 days per month (avg)
-const UNIT_YEARS_L3 = 1 / 365.25 // 1 day
-const UNIT_YEARS_L4 = 1 / (365.25 * 24) // 1 hour
+/**
+ * 하위 단위 — 각 층은 위 층의 1/12 (Valens, Anthology IV; Brennan 2017 ch.17, OD-11).
+ *  - L2: 행성년 1 = 1/12 년(평균 달 ≈ 30.44일).
+ *  - L3: 행성년 1 = Valens 의 30일 달 / 12 = 2.5일 (예: 화성 15 → 37.5일, 염소 27 → 67.5일).
+ *  - L4: L3 / 12 = 5시간.
+ * 예전엔 L3 = 1일·L4 = 1시간이라 L2→L3 비율이 30.44, L3→L4 가 24 로 자기유사가 아니었고,
+ * 한 바퀴(211단위)가 211일이라 거의 모든 L2 안에서 L3 결 풀림(LB)이 났다(엔진 감사 ASTRO-6,
+ * 60년 576/576 L2). 이제 L3 한 바퀴 = 211 × 2.5일 ≈ 17.33개월이라, 그보다 긴 L2(사자·쌍둥이·
+ * 처녀·게·염소·물병)에서만 L3 LB 가 난다.
+ */
+const UNIT_YEARS_L2 = 1 / 12
+const VALENS_MONTH_DAYS = 30
+const UNIT_YEARS_L3 = VALENS_MONTH_DAYS / 12 / 365.25 // 2.5일
+const UNIT_YEARS_L4 = UNIT_YEARS_L3 / 12 // 5시간
 
 /**
  * L1 period 한 개를 받아 L2 sub-period 12개 펼침 (월 단위).
@@ -284,7 +295,7 @@ export function calculateZRSubPeriods(parent: ZRPeriod): ZRSubPeriod[] {
 }
 
 /**
- * L2 sub-period 한 개를 받아 L3 펼침 (일 단위).
+ * L2 sub-period 한 개를 받아 L3 펼침 (행성년 1 = 2.5일).
  */
 export function calculateZRSubPeriodsL3(parent: ZRSubPeriod): ZRSubPeriod[] {
   return expandSubPeriods({
@@ -298,7 +309,7 @@ export function calculateZRSubPeriodsL3(parent: ZRSubPeriod): ZRSubPeriod[] {
 }
 
 /**
- * L3 sub-period 한 개를 받아 L4 펼침 (시간 단위).
+ * L3 sub-period 한 개를 받아 L4 펼침 (행성년 1 = 5시간).
  */
 export function calculateZRSubPeriodsL4(parent: ZRSubPeriod): ZRSubPeriod[] {
   return expandSubPeriods({

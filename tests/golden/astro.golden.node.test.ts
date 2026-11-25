@@ -47,13 +47,7 @@ type NatalArg = Parameters<typeof calculateOuterPlanetMilestones>[0]
 type ExtractorArg = Parameters<typeof planetaryHourExtractor.extract>[0]
 
 /** Engine stage that corrects each value. Delete an entry when its stage lands. */
-const KNOWN_DEFECTS: Record<string, string> = {
-  'planetary hours Seoul 2026-11-23': 'E13',
-  'void-of-course end Seoul 2026-11-05': 'E13',
-  'sect by Sun altitude (polar)': 'E13',
-  'zodiacal releasing Mars L3 = 37.5 d': 'E13',
-  'zodiacal releasing no L3 loosing in L2 < 17 months': 'E13',
-}
+const KNOWN_DEFECTS: Record<string, string> = {}
 
 const SHOW_DEFECTS = process.env.GOLDEN_SHOW_DEFECTS === '1'
 const usedDefects = new Set<string>()
@@ -311,7 +305,21 @@ describe.skipIf(!swissephAvailable)('timing goldens — classical definitions (E
       (s) => s.kind === 'void-of-course' && s.active.start.startsWith(v.date)
     )
     expect(voc).toBeDefined()
-    const errMin = Math.abs(Date.parse(voc!.active.end) - Date.parse(v.ingressUtc)) / 60_000
+    // Calendar keys are floating local wall-clock ISO strings (…Z = local time), so the
+    // ingress instant is compared in the location's wall clock.
+    const wall = new Intl.DateTimeFormat('en-CA', {
+      timeZone: v.location.tz,
+      hourCycle: 'h23',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+    }).formatToParts(new Date(v.ingressUtc))
+    const part = (t: string) => wall.find((p) => p.type === t)!.value
+    const ingressLocalKey = `${part('year')}-${part('month')}-${part('day')}T${part('hour')}:${part('minute')}:${part('second')}.000Z`
+    const errMin = Math.abs(Date.parse(voc!.active.end) - Date.parse(ingressLocalKey)) / 60_000
     expect(errMin).toBeLessThanOrEqual(v.toleranceMin)
   })
 
@@ -340,11 +348,9 @@ describe.skipIf(!swissephAvailable)('timing goldens — classical definitions (E
   golden_it('zodiacal releasing Mars L3 = 37.5 d', () => {
     const l1 = calculateZodiacalReleasing('Capricorn' as (typeof SIGNS)[number], 60)
     const l2 = calculateZRSubPeriods(l1[0])
-    const l3 = l2.flatMap((p) => calculateZRSubPeriodsL3(p))
     // skip the first and last L3 of each L2 (a parent boundary can truncate them)
-    const mars = l3.filter(
-      (p, i) => ['Aries', 'Scorpio'].includes(p.sign) && i > 0 && i < l3.length - 1
-    )
+    const l3 = l2.flatMap((p) => calculateZRSubPeriodsL3(p).slice(1, -1))
+    const mars = l3.filter((p) => ['Aries', 'Scorpio'].includes(p.sign))
     expect(mars.length).toBeGreaterThan(0)
     for (const p of mars) expect(p.durationYears * 365.25).toBeCloseTo(zr.marsL3Days, 1)
   })

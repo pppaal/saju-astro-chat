@@ -119,7 +119,8 @@ describe('astro-aspect-unify: findAspects numeric output is unchanged', () => {
   // Transit Mars exact conjunction to natal Sun. Both at 100.
   // limit = max(orb(Mars)=6, orb(Sun)=8)=8; speedFactor for Mars speed=1 -> 1.
   // orb=0 -> orbWeight=1; aspectWeight(conj)=1; speedWeight=clamp(|relSpeed|/1.2,..).
-  // relSpeed = 1 - 1 = 0 -> speedWeight clamped to 0.6.
+  // 본명점은 고정 → relSpeed = 트랜짓 속도 1 (엔진 감사 ASTRO-13 — 예전엔 본명 출생 속도를
+  // 빼 1 − 1 = 0) -> speedWeight = clamp(1/1.2, 0.6, 1.2) = 0.8333.
   // score = 0.5*1 + 0.4*1 + 0.1*(applying? sw : sw*0.95).
   it('exact conjunction: orb 0 and hand-computed score', () => {
     const natal = chart([planet('Sun', 100, 1)])
@@ -130,7 +131,7 @@ describe('astro-aspect-unify: findAspects numeric output is unchanged', () => {
     expect(hits).toHaveLength(1)
     expect(hits[0].orb).toBe(0)
     // applying for exact aspect (absSep === target === 0) -> false branch.
-    const sw = 0.6 // clamp(0/1.2,0.6,1.2)
+    const sw = 1 / 1.2 // clamp(|transit speed 1|/1.2,0.6,1.2)
     const expected = Number((0.5 * 1 + 0.4 * 1 + 0.1 * (sw * 0.95)).toFixed(3))
     expect(hits[0].score).toBe(expected)
     expect(hits[0].applying).toBe(false)

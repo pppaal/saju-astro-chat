@@ -14,6 +14,12 @@ declare module 'swisseph' {
   export const SE_GREG_CAL: number
   export const SEFLG_SPEED: number
   export const SEFLG_SWIEPH: number
+  export const SEFLG_MOSEPH: number
+
+  // swe_rise_trans / swe_azalt flags
+  export const SE_CALC_RISE: number
+  export const SE_CALC_SET: number
+  export const SE_ECL2HOR: number
 
   // Extra points
   export const SE_TRUE_NODE: number
@@ -118,6 +124,36 @@ declare module 'swisseph' {
   ): SwissEphHousesResult | SwissEphErrorResult
 
   export function swe_set_ephe_path(path: string): void
+
+  // Rise / set / meridian transit (transitTime = UT JD; -2 = circumpolar, no event)
+  type SwissEphRiseTransResult = { name: string; transitTime: number } | SwissEphErrorResult
+  export function swe_rise_trans(
+    tjd_ut: number,
+    ipl: number,
+    starname: string,
+    epheflag: number,
+    rsmi: number,
+    longitude: number,
+    latitude: number,
+    height: number,
+    atpress: number,
+    attemp: number
+  ): SwissEphRiseTransResult
+
+  // Ecliptic/equatorial → horizontal (azimuth, true and apparent altitude in degrees)
+  type SwissEphAzaltResult = { azimuth: number; trueAltitude: number; apparentAltitude: number }
+  export function swe_azalt(
+    tjd_ut: number,
+    calc_flag: number,
+    longitude: number,
+    latitude: number,
+    height: number,
+    atpress: number,
+    attemp: number,
+    bodyX: number,
+    bodyY: number,
+    bodyZ: number
+  ): SwissEphAzaltResult
 
   export function swe_version(): string
 

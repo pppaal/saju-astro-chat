@@ -17,7 +17,11 @@ import { HELLENISTIC_CACHE_VERSION } from '@/lib/cache/engineVersions'
 import { findNatalAspects } from '@/lib/astrology/foundation/aspects'
 import { dignityOf, dignityTiers, dignityScore } from '@/lib/astrology/foundation/dignities'
 import { calculateProfection } from '@/lib/astrology/foundation/profections'
-import { calculateChiron, calculateLilith } from '@/lib/astrology/foundation/extraPoints'
+import {
+  calculateChiron,
+  calculateLilith,
+  isDiurnalChart,
+} from '@/lib/astrology/foundation/extraPoints'
 import { natalToJD, matchHouseForCusps, UNKNOWN_HOUSE } from '@/lib/astrology/foundation/shared'
 import { calculateZodiacalReleasing } from '@/lib/astrology/foundation/zodiacalReleasing'
 import { calculateArabicLots, type ArabicLot } from '@/lib/astrology/foundation/arabicParts'
@@ -328,26 +332,51 @@ function buildHellenistic(
   natal: NatalChartData,
   meta: HellenisticInput
 ): AstroHellenisticFacts {
-  // 섹트 결정 — Sun 이 7~12궁 (지평선 위) 이면 day, 아니면 night.
-  const sun = chart.planets.find((p) => p.name === 'Sun')
-  const sect: 'day' | 'night' = sun && sun.house >= 7 ? 'day' : 'night'
+  // 출생 순간(UT JD) — 섹트(태양 고도)와 Chiron·Lilith 가 쓴다.
+  let utJd: number | undefined = natal.meta?.jdUT
+  if (utJd === undefined) {
+    try {
+      utJd = natalToJD({
+        year: meta.Y,
+        month: meta.M,
+        date: meta.D,
+        hour: meta.h,
+        minute: meta.mi,
+        latitude: meta.lat,
+        longitude: meta.lon,
+        timeZone: meta.tz,
+      })
+    } catch {
+      utJd = undefined
+    }
+  }
 
-  // Chiron + Lilith — 차트 planets 에 없는 천체. 실패해도 무시.
+  // 섹트 — 태양이 지평선 위(참고도 > 0°)면 day (isDiurnalChart SSOT). 극권 Whole Sign
+  // 폴백에서 하우스 번호로 정하던 섹트가 ~25% 뒤집혔다(엔진 감사 ASTRO-10).
+  const sun = chart.planets.find((p) => p.name === 'Sun')
+  const sect: 'day' | 'night' = isDiurnalChart({
+    jdUT: utJd,
+    latitude: meta.lat,
+    longitude: meta.lon,
+    sunHouse: sun?.house,
+    sunLongitude: sun?.longitude,
+    ascLongitude: chart.ascendant?.longitude,
+  })
+    ? 'day'
+    : 'night'
+
+  // Chiron + Lilith — 차트 planets 에 없는 천체(seas_18.se1 소행성 파일). 실패하면 빠지되
+  // 조용히 삼키지 않는다 — 배포에서 public/ephe 가 빠지면 리포트·트랜짓에서 Chiron 이
+  // 소리 없이 사라졌다(엔진 감사 ASTRO-12).
   let extraPoints: ReturnType<typeof calculateChiron>[] | undefined
   try {
-    const utJd = natalToJD({
-      year: meta.Y,
-      month: meta.M,
-      date: meta.D,
-      hour: meta.h,
-      minute: meta.mi,
-      latitude: meta.lat,
-      longitude: meta.lon,
-      timeZone: meta.tz,
-    })
+    if (utJd === undefined) throw new Error('natal instant unavailable')
     const houseCusps = chart.houses.map((h) => h.cusp)
     extraPoints = [calculateChiron(utJd, houseCusps), calculateLilith(utJd, houseCusps)]
-  } catch {
+  } catch (err) {
+    logger.warn('[astroFacts] Chiron/Lilith calc failed — extra points omitted', {
+      err: err instanceof Error ? err.message : String(err),
+    })
     extraPoints = undefined
   }
 
