@@ -47,20 +47,8 @@ const CASES = golden.saju.cases as unknown as SajuCase[]
 const KNOWN_DEFECTS: Record<string, string> = {
   'G05 lon current': 'E14',
   'G06 lon current': 'E14',
-  'G10 noLon pillars': 'E8',
-  'G12 noLon pillars': 'E8',
   'G22 lon current': 'E14',
   'G22 noLon current': 'E14',
-  'G25 natalToJD': 'E8',
-  'G26 lon pillars': 'E8',
-  'G26 noLon pillars': 'E8',
-  'G26b lon day': 'E8',
-  'G26b noLon day': 'E8',
-  'G26c lon day': 'E8',
-  'G26c noLon day': 'E8',
-  'G28 noLon pillars': 'E8',
-  'G29 noLon pillars': 'E8',
-  'G30 noLon pillars': 'E8',
 }
 
 const SHOW_DEFECTS = process.env.GOLDEN_SHOW_DEFECTS === '1'

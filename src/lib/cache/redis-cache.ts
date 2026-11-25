@@ -380,7 +380,9 @@ export const CacheKeys = {
     // timeZone 은 현지시각→UT 변환(natalToJD)에 들어가 모든 행성·ASC·MC·하우스를
     // 바꾼다. 키에서 빠지면 같은 날짜/시각/좌표라도 tz 다른 두 요청이 충돌해 두
     // 번째가 첫 번째의 잘못된 차트를 받는다. v1→v2 로 기존(누락) 캐시 무효화.
-    `natal:v2:${birthDate}:${birthTime}:${latitude.toFixed(2)}:${longitude.toFixed(2)}:${timeZone}`,
+    // v3: natalToJD 가 사주와 같은 RFC 5545 resolver 를 쓴다(엔진 감사 E8) — 서머타임
+    //     공백·겹침 시각의 차트가 1시간 옮겨 가므로 옛 차트를 버린다.
+    `natal:v3:${birthDate}:${birthTime}:${latitude.toFixed(2)}:${longitude.toFixed(2)}:${timeZone}`,
 } as const
 
 /**

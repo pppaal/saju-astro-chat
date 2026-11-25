@@ -185,6 +185,9 @@ export const PA: Record<string, string> = toBidiRecord(BREAK_PAIRS)
  *   v2: lunarLeap + timezone 을 키에 추가.
  *   v3: 년·월주·대운을 생 UT 출생 instant 와 절입 instant 비교로(OD-1, 엔진 감사 E1).
  *       진경도 보정은 시주에만. 만 나이는 민용 생일.
+ *       같은 미출시 릴리스의 출생 instant 단일화(엔진 감사 E8 — RFC 5545 공백·겹침
+ *       resolver, 경도 미상 = 존 기준 경도, 옛 'LMT +30' 표·DST 추정 삭제, 일주는 입력
+ *       민용일)도 v3 에 함께 실린다(v2 가 마지막 출시 키). E8 만 따로 출시되면 그때 +1.
  */
 export const SAJU_ENGINE_VERSION = 3
 

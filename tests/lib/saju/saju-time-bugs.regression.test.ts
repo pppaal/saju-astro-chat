@@ -9,10 +9,12 @@
  * - B2: lunar 2020 윤4월 15일 → solar 2020-06-06 변환이 lunarLeap=true 전달되어야 함.
  *       (lunarLeap 무시 시 평4월로 해석되어 solar 2020-05-07 로 잘못 변환된다.)
  *       → 일주(日柱) 가 평4월 해석 vs 윤4월 해석 사이에서 달라야 한다.
- * - B3: 시지(時支) 산정의 한국 LMT(+30분) 보정이 적절한 케이스에서만 적용되는지.
- *   · 1957-09-15 23:15 Asia/Seoul (KMT 시대) → 子時
+ * - B3: 경도 없는 시지(時支) — 존 기준 경도의 평균태양시(UT + 경도 × 4분, OD-2).
+ *   offset 이 KMT·DST 를 이미 담아 시대별 분기가 없다(엔진 감사 E8: 옛 '한국 LMT
+ *   +30분' 표·DST 윈도우·1월/7월 DST 추정 삭제).
+ *   · 1957-11-15 23:15 Asia/Seoul (KMT 시대) → 子時
  *   · 1987-08-15 01:45 Asia/Seoul (KDT 시대) → 子時
- *   · 2000-06-15 23:15 America/New_York → 子時
+ *   · 2000-06-15 23:15 America/New_York → 亥時
  * - 회귀 보호: 1990-05-15 10:00 Asia/Seoul (평범한 현대 한국 출생) → 巳時.
  */
 
@@ -45,49 +47,55 @@ describe('Saju time/date 4 bugs — 회귀 테스트', () => {
     })
   })
 
-  describe('B3: 시지 한국 LMT 보정 분기', () => {
+  describe('B3: 경도 없는 시지 — 존 기준 경도 평균태양시', () => {
     it('1957-11-15 23:15 Asia/Seoul (KMT 시대, 비-DST) → 子時', () => {
       // 주의: 원래 audit 노트는 "1957-09-15" 였으나, IANA 데이터상 1957-09-15 는
       // 1957 한국 DST(1957-05-05 ~ 1957-09-22) 기간에 속한다. KMT 와 DST 가
       // 중첩된 케이스의 정답은 현장에서 갈리므로(전통가들이 DST 무시 vs IANA
       // 일관 분기), 보수적으로 "KMT 만, DST 외부" 인 11월 사례로 회귀를 잠근다.
-      // 1957-11-15 23:15 KMT(UTC+8:30, DST 비활성) → 시계 = 127.5°E 태양시 →
-      // plain 子=23:00-01:00 범위 → 23:15 → 子.
-      // (구버전: 무조건 LMT +30 → 子=23:30-01:30 → 23:15 → 亥)
+      // 1957-11-15 23:15 KMT(UTC+8:30, DST 비활성) → 자오선 127.5°E, 서울 126.978°E
+      // → 보정 −2분 → 평균태양시 23:13 → 子(23:00-01:00).
       const r = calculateSajuData('1957-11-15', '23:15', 'male', 'solar', 'Asia/Seoul')
       expect(r.timePillar.earthlyBranch.name).toBe('子')
     })
 
     it('1987-08-15 01:45 Asia/Seoul (KDT 시대) → 子時', () => {
       const r = calculateSajuData('1987-08-15', '01:45', 'male', 'solar', 'Asia/Seoul')
-      // 1987 한국 DST(KDT, UTC+10) 기간. 시계 01:45 → 실제 KST 00:45.
-      // DST 보정(-60min) 후 LMT 또는 plain 子 범위 (00:45) → 子.
-      // (구버전: 보정 없이 LMT 子=23:30-01:30 → 01:45 → 丑)
+      // 1987 한국 DST(KDT, UTC+10) 기간. 시계 01:45 = 15:45Z → 서울 평균태양시
+      // (UT + 126.978×4분) 00:13 → 子.
       expect(r.timePillar.earthlyBranch.name).toBe('子')
     })
 
     it('2000-06-15 23:15 America/New_York (EDT) → 亥時 (DST 제거)', () => {
       const r = calculateSajuData('2000-06-15', '23:15', 'male', 'solar', 'America/New_York')
-      // 6월 뉴욕은 EDT(DST). DST 는 천문학적 의미 없는 시계 인공물이므로 시지
-      // 산정 전에 -60min 제거: 시계 23:15 → 표준 22:15 → plain 亥=21-23 → 亥.
-      // 미국 출생에 한국 +30 LMT 를 적용하지 않는 것도 그대로 유지된다.
-      // (구버전: DST 미제거로 23:15 → 子 로 한 칸 밀림.)
+      // 6월 뉴욕은 EDT(UTC-4). 시계 23:15 = 03:15Z → 뉴욕 존 기준 경도(−74.01°)
+      // 평균태양시 22:19 → 亥(21-23). DST 는 offset 에 들어 있어 따로 뺄 필요가 없다.
       expect(r.timePillar.earthlyBranch.name).toBe('亥')
     })
 
     it('회귀 보호: 1990-05-15 10:00 Asia/Seoul (평범한 현대 한국) → 巳時', () => {
       const r = calculateSajuData('1990-05-15', '10:00', 'female', 'solar', 'Asia/Seoul')
-      // 현대 한국, 비-DST, 비-KMT → LMT(+30) 적용 → 巳=09:30-11:30 → 10:00 → 巳.
+      // 서울 평균태양시 = 시계 − 32분 → 09:28 → 巳(09-11).
       expect(r.timePillar.earthlyBranch.name).toBe('巳')
     })
   })
 })
 
 describe('Saju 진경도(진태양시) 보정 — longitude 옵션', () => {
-  it('longitude 미전달 시 기존 한국 LMT 동작 보존 (회귀 보호)', () => {
-    // longitude 없으면 옛 동작 그대로. 1990-05-15 10:00 KST → 巳.
+  it('longitude 미전달 = 존 기준 경도(Asia/Seoul 126.978) 전달과 같다 (OD-2)', () => {
+    // 1990-05-15 10:00 KST → 巳. 경도 없는 경로와 서울 기본값 경로가 구조적으로 같다.
     const r = calculateSajuData('1990-05-15', '10:00', 'female', 'solar', 'Asia/Seoul')
     expect(r.timePillar.earthlyBranch.name).toBe('巳')
+    const withLon = calculateSajuData(
+      '1990-05-15',
+      '10:00',
+      'female',
+      'solar',
+      'Asia/Seoul',
+      false,
+      126.978
+    )
+    expect(withLon.timePillar).toEqual(r.timePillar)
   })
 
   it('longitude 같이 전달하면 도시별로 시지가 달라질 수 있다 (서울 vs 부산)', () => {
@@ -162,12 +170,18 @@ describe('Saju cache key — lunarLeap + timezone 분리, 엔진 버전 prefix',
  * 우리 구현 = 子正派 (한국에서 가장 일반적). 다른 학파 도구와 다른 결과가 나올 수
  * 있는데, 이걸 명시적으로 잠가둔다. 누가 子初派로 바꾸려 하면 이 테스트가 깨진다.
  */
-describe('자시(子時) 일주 경계 — 子正派 회귀 (한국 LMT 보정 포함)', () => {
-  it('1990-05-15 23:30 KST → 5/15 일주(庚辰) + 子시 (자정 안 넘음)', () => {
-    const r = calculateSajuData('1990-05-15', '23:30', 'male', 'solar', 'Asia/Seoul')
+describe('자시(子時) 일주 경계 — 子正派 회귀 (서울 평균태양시 −32분 포함)', () => {
+  it('1990-05-15 23:40 KST → 5/15 일주(庚辰) + 子시 (자정 안 넘음)', () => {
+    const r = calculateSajuData('1990-05-15', '23:40', 'male', 'solar', 'Asia/Seoul')
     expect(r.dayPillar.heavenlyStem.name).toBe('庚')
     expect(r.dayPillar.earthlyBranch.name).toBe('辰')
     expect(r.timePillar.earthlyBranch.name).toBe('子')
+  })
+
+  it('1990-05-15 23:30 KST → 아직 亥시 (평균태양시 22:58, 子는 23:32 부터)', () => {
+    const r = calculateSajuData('1990-05-15', '23:30', 'male', 'solar', 'Asia/Seoul')
+    expect(r.dayPillar.heavenlyStem.name).toBe('庚')
+    expect(r.timePillar.earthlyBranch.name).toBe('亥')
   })
 
   it('1990-05-16 00:00 KST → 5/16 일주(辛巳) + 子시 (자정 넘음)', () => {
@@ -186,42 +200,51 @@ describe('자시(子時) 일주 경계 — 子正派 회귀 (한국 LMT 보정 �
 })
 
 /**
- * 한국 DST(KDT) 시대 전환 순간 회귀.
+ * 한국 DST(KDT) 시대 전환 순간 회귀 — 출생 instant 를 직접 확인한다(meta.birthUtc).
  *
  * 1987 한국 DST 기간: 1987-05-10 ~ 1987-10-11.
  *  - 봄 전환 (1987-05-10): 02:00 KST → 03:00 KDT (1시간 점프, "건너뛴 시각")
  *  - 가을 전환 (1987-10-11): 03:00 KDT → 02:00 KST (1시간 중복, "모호한 시각")
  *
- * 전환 순간 자체에 출생 신고가 들어왔을 때 사주가 깨지지 않고 일관되게 계산되어야
- * 한다. 정확한 "철학적 정답" 보다 — 일관/안정 동작을 잠그는 목적.
+ * 규칙(OD-3, RFC 5545 §3.3.5): 건너뛴 시각은 직전 offset(KST)으로, 모호한 시각은
+ * 첫 번째(KDT)로 푼다. 점성 natalToJD 도 같은 resolver 라 두 차트가 같은 순간이다.
  */
-describe('한국 DST 전환 순간 출생 — 일관성 회귀', () => {
-  it('1987-05-10 01:30 (DST 시작 직전 KST) 계산 성공', () => {
-    const r = calculateSajuData('1987-05-10', '01:30', 'male', 'solar', 'Asia/Seoul')
-    expect(r.dayPillar.heavenlyStem.name).toBeDefined()
-    expect(r.timePillar.earthlyBranch.name).toBeDefined()
+describe('한국 DST 전환 순간 출생 — 출생 instant 회귀', () => {
+  const at = (date: string, time: string) =>
+    calculateSajuData(date, time, 'male', 'solar', 'Asia/Seoul').meta
+
+  it('1987-05-10 01:30 (DST 시작 직전 KST) → 1987-05-09T16:30Z', () => {
+    expect(at('1987-05-10', '01:30')).toEqual({
+      birthUtc: '1987-05-09T16:30:00.000Z',
+      instantKind: 'normal',
+    })
   })
 
-  it('1987-05-10 03:30 (DST 점프 직후 KDT) 계산 성공 + 일주 일관', () => {
-    const before = calculateSajuData('1987-05-10', '01:30', 'male', 'solar', 'Asia/Seoul')
+  it('1987-05-10 02:30 (건너뛴 시각) → 직전 offset KST 로 17:30Z = 03:30 KDT 와 같은 순간', () => {
+    expect(at('1987-05-10', '02:30')).toEqual({
+      birthUtc: '1987-05-09T17:30:00.000Z',
+      instantKind: 'gap',
+    })
+    const gap = calculateSajuData('1987-05-10', '02:30', 'male', 'solar', 'Asia/Seoul')
     const after = calculateSajuData('1987-05-10', '03:30', 'male', 'solar', 'Asia/Seoul')
-    // 같은 날 출생이라 일주 동일.
-    expect(after.dayPillar.heavenlyStem.name).toBe(before.dayPillar.heavenlyStem.name)
-    expect(after.dayPillar.earthlyBranch.name).toBe(before.dayPillar.earthlyBranch.name)
+    expect(after.meta?.birthUtc).toBe('1987-05-09T17:30:00.000Z')
+    expect(gap.timePillar).toEqual(after.timePillar)
+    // 같은 날 출생이라 일주 동일 — 일주는 입력한 민용일.
+    expect(gap.dayPillar).toEqual(after.dayPillar)
   })
 
-  it('1987-10-11 02:30 (DST 종료 모호 시각) throw 안 되고 결정적으로 계산', () => {
-    const r1 = calculateSajuData('1987-10-11', '02:30', 'male', 'solar', 'Asia/Seoul')
-    const r2 = calculateSajuData('1987-10-11', '02:30', 'male', 'solar', 'Asia/Seoul')
-    // 같은 입력 두 번 호출 시 결정적이어야 함 (랜덤/시드 의존 X).
-    expect(r1.dayPillar.heavenlyStem.name).toBe(r2.dayPillar.heavenlyStem.name)
-    expect(r1.timePillar.earthlyBranch.name).toBe(r2.timePillar.earthlyBranch.name)
+  it('1987-10-11 02:30 (DST 종료 모호 시각) → 첫 번째(KDT) 16:30Z', () => {
+    expect(at('1987-10-11', '02:30')).toEqual({
+      birthUtc: '1987-10-10T16:30:00.000Z',
+      instantKind: 'overlap',
+    })
   })
 
-  it('1987-10-11 03:30 (DST 종료 후 KST) 계산 성공', () => {
-    const r = calculateSajuData('1987-10-11', '03:30', 'male', 'solar', 'Asia/Seoul')
-    expect(r.dayPillar.heavenlyStem.name).toBeDefined()
-    expect(r.timePillar.earthlyBranch.name).toBeDefined()
+  it('1987-10-11 03:30 (DST 종료 후 KST) → 18:30Z', () => {
+    expect(at('1987-10-11', '03:30')).toEqual({
+      birthUtc: '1987-10-10T18:30:00.000Z',
+      instantKind: 'normal',
+    })
   })
 })
 

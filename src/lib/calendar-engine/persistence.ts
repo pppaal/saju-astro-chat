@@ -64,6 +64,9 @@ import type { CalendarCell, CalendarBuildOptions, CalendarRange } from './types'
 //     오행, placeUnreliable 이면 ASC·MC·하우스 의존 신호 제외)도 같은 미출시 릴리스라
 //     v8 에 함께 실린다. 미상·출생지 미상 플래그는 birthKey 에도 접는다 — 정오 앵커
 //     '12:00' 이 실제 정오 출생과 같은 키로 섞이지 않게.
+//     출생 instant 단일화(엔진 감사 E8 — 사주·점성 공용 RFC 5545 resolver, 경도 미상 =
+//     존 기준 경도, 옛 'LMT +30' 표·DST 추정 삭제; 본명 시주와 시진 경계가 바뀜)도
+//     같은 미출시 릴리스라 v8 에 함께 실린다. E8 만 따로 출시되면 그때 +1.
 // (export — dataRetention 스윕이 옛 버전 NatalContextCache 고아 행을 지우는 기준.)
 export const CALENDAR_ENGINE_VERSION = 'v8'
 

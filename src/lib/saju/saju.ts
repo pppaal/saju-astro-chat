@@ -1,6 +1,5 @@
 // src/lib/Saju/saju.ts
 
-import { toDate } from 'date-fns-tz'
 import Calendar from 'korean-lunar-calendar'
 import { logger } from '@/lib/logger'
 import { parseHourMinute } from './timeParse'
@@ -34,7 +33,8 @@ import { SAJU_CACHE, CACHE_KEY } from '@/lib/constants/cache'
 import { currentManAge } from '@/lib/datetime/currentAge'
 import { daysToDaeunAge } from '@/lib/saju/daeunAge'
 import { normalizeTimeZone } from '@/lib/datetime/timezone'
-import { solarTimeCorrectionMinutes, getDstAmountMinutes } from './timezone'
+import { meanSolarMinuteOfDay } from './timezone'
+import { resolveBirthInstantFromDate } from '@/lib/datetime/resolveBirthInstant'
 import { TIME_UNKNOWN_ANCHOR } from './birthTimeAnchor'
 // 십신 / 정기 매핑은 core 모듈이 single source.
 import { getBranchMainStem, getSibseong } from './core/sibsin'
@@ -49,123 +49,22 @@ type DayMaster = { name: string; element: FiveElement; yin_yang: YinYang }
 
 // 천을귀인 helper now lives in stemBranchUtils — see import block above.
 
-/* ========== 한국 LMT(평균태양시) 보정 + DST/KMT 분기 ==========
+/* ========== 시지(時支) — 평균태양시 한 경로 ==========
  *
- * 사주 시지(時支) 산정은 "출생지의 태양시"를 기준으로 한다.
- * 한국(Asia/Seoul) 표준시는 UTC+9(135°E 자오선) — 서울(~127°E)은 시계상
- * 약 +32분 늦게 정오를 맞는다. 전통 사주에서 자주 쓰는 단순화로
- * 30분 보정을 적용한다 (子=23:30-01:30 등).
+ * 시주는 출생지의 평균태양시(= UT + 경도 × 4분)로 정한다. 보정분은
+ * solarTimeCorrectionMinutes(timezone.ts) 하나만 계산한다(SOLAR_TIME_CONVENTION.md).
+ * 경도가 없으면 존 기준 경도(Asia/Seoul = 126.978, 그 외 tzdata 대표 도시)를 쓴다
+ * (OD-2) — 그래서 경도 없는 서울 출생과 서울 기본값 출생이 같은 시주를 낸다.
  *
- * 그러나 (A) KMT 기간(1954-03-21 ~ 1961-08-10, UTC+8:30)에는 시계 자체가
- * 127.5°E 자오선을 따랐으므로 추가 30분 보정이 필요 없다. (B) 한국 DST
- * 기간에는 시계가 1시간 앞당겨져 있으므로, 시지 산정 전에 60분을
- * 빼서 평상시 시계로 환원한 뒤 LMT 보정을 적용한다.
- *
- * 한국 외 타임존에서 태어난 경우엔 한국 LMT를 적용해선 안 된다 → 평범한
- * 정시 경계(子=23:00-01:00)를 사용.
- *
- * 참고 출처: IANA tz database (zone Asia/Seoul, Rule ROK).
- *   https://github.com/eggert/tz/blob/main/asia
+ * 옛 '한국 LMT +30분' 표(子=23:30-01:30), 손으로 적은 한국 DST 윈도우, KMT 분기,
+ * 1월/7월 offset 으로 DST 를 추정하던 경로는 2026-11(엔진 감사 E8: F7·F2·F3·SAJU-2·
+ * SAJU-3)에 모두 지웠다. 타임존 offset 이 이미 DST·KMT(+8:30)를 담고 있으므로
+ * UT + 경도 × 4분 하나로 모든 시대·지역이 같은 규칙을 따른다. 시진 경계는 정시
+ * 경계(子=23:00-01:00) 하나다 — 평균태양시 기준.
  */
 
-const SEOUL_TZ = 'Asia/Seoul'
-
-// KMT 시대: 1954-03-21 ~ 1961-08-10 (IANA tz Asia/Seoul). 둘 다 wall-clock 자정 기준.
-// epoch ms 비교를 위해 UTC 시각으로 변환 — KMT 진입 직전 KST=UTC+9, 종료 시 KMT=UTC+8:30.
-const KMT_START_UTC_MS = Date.UTC(1954, 2, 20, 15, 0, 0) // 1954-03-21 00:00 KST (UTC+9)
-const KMT_END_UTC_MS = Date.UTC(1961, 7, 9, 15, 30, 0) // 1961-08-10 00:00 KMT (UTC+8:30)
-
-/**
- * 한국 DST(Daylight Saving Time) 윈도우. IANA tz 데이터(Rule ROK)에서 직접 도출.
- * 각 항목은 [startUtcMs, endUtcMs) 반개구간. 시작/종료는 모두 wall-clock 자정 기준
- * (종료는 24:00 standard time = 다음 날 00:00).
- *
- * 시작/종료 시점의 UTC offset:
- * - 1948-1951: KST(UTC+9). KDT=UTC+10.
- * - 1955-1960: KMT 기간 → 시작 전 KMT(UTC+8:30), 시작 후 KDT(UTC+9:30).
- * - 1987-1988: KST(UTC+9). KDT=UTC+10. 시작 02:00 KST → 03:00 KDT,
- *              종료 03:00 KDT → 02:00 KST (보수적으로 자정 경계로 단순화).
- */
-type DstWindow = { startUtcMs: number; endUtcMs: number }
-const KOREAN_DST_WINDOWS: ReadonlyArray<DstWindow> = [
-  // 1948: Jun 1 00:00 KST → Sep 13 00:00 KST (Sep 12 24:00 S)
-  { startUtcMs: Date.UTC(1948, 4, 31, 15, 0), endUtcMs: Date.UTC(1948, 8, 12, 15, 0) },
-  // 1949: Apr 3 00:00 KST → Sep 11 00:00 KST (Sat>=7 = Sep 10, 24:00 S)
-  { startUtcMs: Date.UTC(1949, 3, 2, 15, 0), endUtcMs: Date.UTC(1949, 8, 10, 15, 0) },
-  // 1950: Apr 1 00:00 KST → Sep 10 00:00 KST (Sep 9 24:00)
-  { startUtcMs: Date.UTC(1950, 2, 31, 15, 0), endUtcMs: Date.UTC(1950, 8, 9, 15, 0) },
-  // 1951: May 6 00:00 KST → Sep 9 00:00 KST (Sep 8 24:00)
-  { startUtcMs: Date.UTC(1951, 4, 5, 15, 0), endUtcMs: Date.UTC(1951, 8, 8, 15, 0) },
-  // 1955: May 5 00:00 KMT → Sep 9 00:00 KMT (Sep 8 24:00). KMT=UTC+8:30
-  { startUtcMs: Date.UTC(1955, 4, 4, 15, 30), endUtcMs: Date.UTC(1955, 8, 8, 15, 30) },
-  // 1956: May 20 00:00 KMT → Sep 30 00:00 KMT (Sep 29 24:00)
-  { startUtcMs: Date.UTC(1956, 4, 19, 15, 30), endUtcMs: Date.UTC(1956, 8, 29, 15, 30) },
-  // 1957: Sun>=1 May = May 5 → Sat>=17 Sep = Sep 21 24:00 = Sep 22 00:00 KMT
-  { startUtcMs: Date.UTC(1957, 4, 4, 15, 30), endUtcMs: Date.UTC(1957, 8, 21, 15, 30) },
-  // 1958: May 4 → Sep 20 24:00 = Sep 21 00:00
-  { startUtcMs: Date.UTC(1958, 4, 3, 15, 30), endUtcMs: Date.UTC(1958, 8, 20, 15, 30) },
-  // 1959: May 3 → Sep 19 24:00 = Sep 20 00:00
-  { startUtcMs: Date.UTC(1959, 4, 2, 15, 30), endUtcMs: Date.UTC(1959, 8, 19, 15, 30) },
-  // 1960: May 1 → Sep 17 24:00 = Sep 18 00:00
-  { startUtcMs: Date.UTC(1960, 3, 30, 15, 30), endUtcMs: Date.UTC(1960, 8, 17, 15, 30) },
-  // 1987: May 10 02:00 KST → Oct 11 03:00 KDT (단순화: 자정 경계 기반 윈도우)
-  { startUtcMs: Date.UTC(1987, 4, 9, 17, 0), endUtcMs: Date.UTC(1987, 9, 10, 17, 0) },
-  // 1988: May 8 02:00 KST → Oct 9 03:00 KDT
-  { startUtcMs: Date.UTC(1988, 4, 7, 17, 0), endUtcMs: Date.UTC(1988, 9, 8, 17, 0) },
-]
-
-function isInKmtEra(birthUtcMs: number): boolean {
-  return birthUtcMs >= KMT_START_UTC_MS && birthUtcMs < KMT_END_UTC_MS
-}
-
-function isInKoreanDst(birthUtcMs: number): boolean {
-  for (const w of KOREAN_DST_WINDOWS) {
-    if (birthUtcMs >= w.startUtcMs && birthUtcMs < w.endUtcMs) {
-      return true
-    }
-  }
-  return false
-}
-
-/**
- * 한국 LMT(평균태양시) +30분 보정을 적용할지 결정.
- * (a) 타임존이 Asia/Seoul 이고
- * (b) KMT 시대(1954-03-21 ~ 1961-08-10)가 아니며
- * (c) 한국 DST 윈도우가 아닐 때만 true.
- */
-function applyKoreanLmtCorrection(birthUtcMs: number, timezone: string): boolean {
-  if (timezone !== SEOUL_TZ) {
-    return false
-  }
-  if (isInKmtEra(birthUtcMs)) {
-    return false
-  }
-  if (isInKoreanDst(birthUtcMs)) {
-    return false
-  }
-  return true
-}
-
-// 시지 범위 — 두 가지 변형.
-// LMT_HOUR_RANGES: 한국 LMT(+30) 보정 적용 — 子=23:30-01:30 등 (현행 동작).
-// PLAIN_HOUR_RANGES: 평범한 정시 경계 — 子=23:00-01:00. KMT 시대 / 비한국 /
-//                    DST 보정 후 사용.
 type HourRange = { idx: number; start: number; end: number }
-const LMT_HOUR_RANGES: ReadonlyArray<HourRange> = [
-  { idx: 0, start: 23 * 60 + 30, end: 24 * 60 + 60 + 30 },
-  { idx: 1, start: 1 * 60 + 30, end: 3 * 60 + 30 },
-  { idx: 2, start: 3 * 60 + 30, end: 5 * 60 + 30 },
-  { idx: 3, start: 5 * 60 + 30, end: 7 * 60 + 30 },
-  { idx: 4, start: 7 * 60 + 30, end: 9 * 60 + 30 },
-  { idx: 5, start: 9 * 60 + 30, end: 11 * 60 + 30 },
-  { idx: 6, start: 11 * 60 + 30, end: 13 * 60 + 30 },
-  { idx: 7, start: 13 * 60 + 30, end: 15 * 60 + 30 },
-  { idx: 8, start: 15 * 60 + 30, end: 17 * 60 + 30 },
-  { idx: 9, start: 17 * 60 + 30, end: 19 * 60 + 30 },
-  { idx: 10, start: 19 * 60 + 30, end: 21 * 60 + 30 },
-  { idx: 11, start: 21 * 60 + 30, end: 23 * 60 + 30 },
-]
-const PLAIN_HOUR_RANGES: ReadonlyArray<HourRange> = [
+const HOUR_RANGES: ReadonlyArray<HourRange> = [
   { idx: 0, start: 23 * 60, end: 25 * 60 }, // 子 23-25(=01)
   { idx: 1, start: 1 * 60, end: 3 * 60 },
   { idx: 2, start: 3 * 60, end: 5 * 60 },
@@ -236,9 +135,9 @@ export function calculateSajuData(
   calendarType: 'solar' | 'lunar',
   timezone: string,
   lunarLeap?: boolean,
-  // 진경도(진태양시) 보정용. 도시의 lon 을 넘기면 timezone 표준 자오선과의 차이만큼
-  // 분 단위로 시지 룩업을 보정한다. 전세계 사용자에게 일관된 정통 사주학.
-  // 없으면 한국 평균 LMT(+30분) 기존 동작 유지 — 옛 결과와 호환.
+  // 진경도(평균태양시) 보정용 출생지 경도. 시주만 UT + 경도 × 4분으로 정한다.
+  // 없으면 존 기준 경도(Asia/Seoul = 126.978 — 서울 기본값과 같은 시주, OD-2).
+  // 존 자오선에서 60° 넘게 떨어진 경도는 버리고 존 기준 경도(OD-14).
   longitude?: number,
   // 현재 시각 주입점. 원국(네 기둥)은 birthDate/Time 만으로 결정되지만 대운/세운/
   // 월운·만나이는 "지금"에 의존한다. 예전엔 그 경로가 new Date() 를 직접 읽어
@@ -294,8 +193,8 @@ export function calculateSajuData(
       const solar = calendar.getSolarCalendar()
       // L1 fix: korean-lunar-calendar 가 범위 밖 (현재 2050-12-27 이후) lunar
       // 입력에 대해 ok=false 와 (0/0/0) 을 반환. 옛 코드는 그걸 무시해
-      // `"0-00-00"` 문자열을 만들고 toDate() 가 Invalid Date → "Invalid birthLocal
-      // date object" 로 throw. 명시적으로 사용자 친화적 에러로.
+      // `"0-00-00"` 문자열로 계산하다 "Invalid birthLocal date object" 로 throw 했다.
+      // 명시적으로 사용자 친화적 에러로.
       if (!ok || !solar.year) {
         throw new Error(
           `음력 ${y}-${m}-${d} 변환 실패: 지원 범위(현재 ~2050-12-27 음력) 밖 입니다.`
@@ -304,74 +203,57 @@ export function calculateSajuData(
       solarBirthDateStr = `${solar.year}-${String(solar.month).padStart(2, '0')}-${String(solar.day).padStart(2, '0')}`
     }
 
-    // ✅ 안전한 시간 문자열 처리
-    const safeTime = (() => {
-      // 빈 값은 위에서 TIME_UNKNOWN_ANCHOR(정오)로 바꿔 두었다.
-      const t = String(birthTime ?? '').trim()
-      if (/^\d{1,2}:\d{2}$/.test(t)) {
-        return `${t}:00`
-      }
-      if (/^\d{1,2}$/.test(t)) {
-        return `${t.padStart(2, '0')}:00:00`
-      }
-      // AM/PM 등 비표준 표기 — parseHourMinute 로 24h 정규화. 이게 없으면
-      // SajuTimeSchema 가 허용하는 "11:30 PM" 같은 값이 그대로 ISO 문자열에
-      // 들어가 toDate → Invalid Date → 전체 계산이 throw 하던 버그.
-      const { h, m } = parseHourMinute(t)
-      return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:00`
-    })()
+    // 시각 문자열 → 24h 시·분 (단일 파서). '9:05'·'0:10'·'11:30 PM' 모두 같은 길.
+    // 예전엔 'H:MM' 을 0 채움 없이 ISO 에 넣어 Invalid Date 로 throw 했다(SAJU-6).
+    const { h: hour, m: minute } = parseHourMinute(birthTime)
 
-    const isoString = `${solarBirthDateStr}T${safeTime}`
-    const birthDateTime = toDate(isoString, { timeZone: timezone })
-    const birthLocal = toDate(isoString, { timeZone: timezone })
-
-    if (isNaN(birthLocal.getTime())) {
+    // 출생 instant — 사주·점성 공용 resolver(OD-3, RFC 5545). 서머타임 공백 시각은
+    // 직전 offset 으로, 겹침 시각은 첫 번째로 푼다. natalToJD 도 같은 함수를 쓴다(F4).
+    let resolved: ReturnType<typeof resolveBirthInstantFromDate>
+    try {
+      resolved = resolveBirthInstantFromDate(solarBirthDateStr, hour, minute, timezone)
+    } catch (e) {
       logger.error('[saju.ts] ❌ Invalid birthLocal:', {
         birthDate,
         birthTime,
-        isoString,
+        solarBirthDateStr,
         timezone,
+        error: e instanceof Error ? e.message : String(e),
       })
       throw new Error('Invalid birthLocal date object')
     }
+    const birthDateTime = resolved.utc
 
-    // civilY/M/D (below) — timezone-aware year/month/day at the birthplace. The
-    // previous code read birthDateTime.getFullYear() / getMonth() which
-    // returns the server's *UTC* year/month, so a birth at 1989-12-31
-    // 23:30 LA (UTC-8) became 1990-01-01 once it landed on the UTC
-    // server, and the year/month pillar was computed against 1990
-    // instead of 1989. Use the Intl-formatted values everywhere — they
-    // already powered the day-pillar JDN below.
+    // civilY/M/D (below) — the birthplace calendar date as entered. Older code
+    // read birthDateTime.getFullYear() / getMonth(), i.e. the server's *UTC*
+    // year/month, so a birth at 1989-12-31 23:30 LA (UTC-8) became 1990-01-01
+    // on a UTC server and the year/month pillar used 1990 instead of 1989.
     // ── 절입(節入) 판정 = 생(raw) UT 출생 instant — CONVENTIONS.md §1·§2 (OD-1, 2026-11).
     //    절입은 태양 시황경이 315°+30k° 에 닿는 *하나의 절대 instant* 다. 년주·월주와
     //    대운수 일수는 birthDateTime 을 KASI_SOLAR_TERMS instant 와 그대로 비교한다.
     //    평균태양시(진경도) 보정은 벽시계 라벨을 바꿀 뿐 출생을 절입 너머로 옮기지
-    //    못하므로 **시주(時) lookup 에만** 쓴다(아래 totalMin).
+    //    못하므로 **시주(時) lookup 에만** 쓴다(아래 meanSolarMinuteOfDay).
     //    예전(2026-06~11)엔 이 보정분만큼 출생 instant 자체를 옮겨(effectiveDateTime)
     //    절입과 비교했다. 그래서 서울(lon 126.978, −32분)은 절입 후 2~32분 출생이
     //    전 월·전 년으로, 도쿄(+19분)는 절입 직전 출생이 다음 월로 뒤집혔고 대운 방향·
     //    대운수까지 바뀌었다. 같은 instant·경도라도 timezone 라벨에 따라 답이 갈렸다
     //    (2020-02-04T11:00Z lon 75.99 — Asia/Shanghai 己亥 vs Asia/Urumqi 庚子).
     //    가드: tests/lib/saju/solarTermFrame.test.ts, tests/golden/saju.golden.test.ts
-    const solarCorrectionMin = solarTimeCorrectionMinutes(birthDateTime, longitude, timezone)
 
-    // ── 민용일(civil day) Y/M/D — 출생지 timezone 의 벽시계 날짜(보정 없음).
-    //    절기 lookup 의 그레고리력 연·월, 일주(CONVENTIONS.md §1), 만 나이 생일(§14)이
+    // ── 민용일(civil day) Y/M/D — *입력한* 출생지 날짜 그대로(보정·instant 재유도 없음).
+    //    절기 lookup 의 그레고리력 연·월, 일주(CONVENTIONS §1), 만 나이 생일(§14)이
     //    모두 이 값을 쓴다.
     //
     //    일주가 민용일인 이유: 일주는 60갑자 *달력 순환*이고, 입춘·절기는 *천문 사건*이다.
     //    2026-06-06 에 "네 기둥 모두 보정된 instant 한 기준에서" 로 통일했을 때 일주까지
     //    끌려가 민용일 규칙을 깼다. 경도를 넘기면 LMT 만큼 일 경계가 밀려, 문서화된
     //    골든(`1991-01-01 00:01 KST → 日 辛未`)이 日 庚午(전날)로 깨졌다.
-    //    영향 폭 = |LMT 보정| — 서울 32분 · 부산 24분 · 인천 33분, 표준자오선
-    //    동쪽(도쿄 +19분)은 반대로 자정 직전. 하루 24~33분 ≈ 출생의 약 2.2%.
+    //    instant 에서 다시 읽지도 않는다 — 자정에 걸친 서머타임 공백(1961-08-10 00:15 서울,
+    //    2018-11-04 00:30 상파울루)은 instant 를 어느 쪽으로 풀든 벽시계 날짜가 입력과
+    //    달라질 수 있어 일주가 전날로 밀렸다(엔진 감사 E8, 골든 G26).
     //
-    //    가드: `tests/lib/saju/doctrine-dayBoundary.test.ts`
-    const fmtCivil = (opt: Intl.DateTimeFormatOptions) =>
-      Number(new Intl.DateTimeFormat('en-US', { timeZone: timezone, ...opt }).format(birthDateTime))
-    const civilY = fmtCivil({ year: 'numeric' })
-    const civilM = fmtCivil({ month: '2-digit' })
-    const civilD = fmtCivil({ day: '2-digit' })
+    //    가드: `tests/lib/saju/doctrine-dayBoundary.test.ts`, 골든 G26·G26b·G26c
+    const [civilY, civilM, civilD] = solarBirthDateStr.trim().split('-').map(Number)
 
     const year = civilY
     // 범위 검사도 민용 연도로 — 보정된 연도를 검사하던 옛 코드는 경도가 있으면
@@ -445,40 +327,16 @@ export function calculateSajuData(
     }
 
     /* ---------------- 시기둥 ----------------
-     * 두 가지 모드:
-     *
-     *  A) longitude 있음 — 진경도(진태양시) 보정. 전세계 일관 정통 사주학.
-     *     보정 분 = (longitude - 표준자오선) × 4. 표준자오선은 timezone 의
-     *     UTC offset × 15 (KST = +9h → 135°E, JST = +9h → 135°E, 동남아 +7h
-     *     → 105°E, 미동부 -5h → -75°E …). PLAIN_HOUR_RANGES (정시 경계).
-     *     예: 부산 (129.07°E, KST) → 보정 -23분 → 시계시 11:00 = 진태양시 10:37
-     *
-     *  B) longitude 없음 — 옛 동작 보존 (한국 LMT +30 / KMT / DST 분기). 옛
-     *     사용자/캐시와 결과 호환.
+     * 평균태양시 한 경로: 출생 instant 의 출생지 벽시계 + solarTimeCorrectionMinutes
+     * (= UT + 경도 × 4분). 경도 미상이면 존 기준 경도(OD-2). 년·월·대운은 생 instant,
+     * 일주는 민용일이라 이 보정은 시주에만 들어간다(OD-1).
+     *   예: 부산 (129.07°E, KST) → 보정 −23분 → 시계 11:00 = 평균태양시 10:37 → 巳
      */
-    const { h: hour, m: minute } = parseHourMinute(birthTime)
-
-    let totalMin: number
-    let ranges: typeof LMT_HOUR_RANGES
-    if (typeof longitude === 'number' && Number.isFinite(longitude)) {
-      // 진경도 보정은 시주에만 적용된다(년·월·대운은 생 instant, 일주는 민용일).
-      totalMin = hour * 60 + minute + solarCorrectionMin
-      ranges = PLAIN_HOUR_RANGES
-    } else {
-      const useLmtRanges = applyKoreanLmtCorrection(birthMs, timezone)
-      // DST 를 *모든* 타임존에서 제거한 뒤 버킷팅한다 — DST 는 민간 시계 인공물로
-      // 천문학적 의미가 없다. 한국 −60 케이스는 이제 이 일반 케이스에 흡수된다.
-      // (이전엔 한국 외 DST 지역에서 DST 를 안 빼 여름 출생이 시지 한 칸씩 밀렸다.)
-      const dstMin = getDstAmountMinutes(birthDateTime, timezone)
-      totalMin = hour * 60 + minute - dstMin
-      ranges = useLmtRanges ? LMT_HOUR_RANGES : PLAIN_HOUR_RANGES
-    }
-    // candidate 보정 — totalMin 이 음수일 수 있으므로 양수로 정규화 후 [0, 1440) 범위로 회수.
-    const normTotalMin = ((totalMin % 1440) + 1440) % 1440
-    const candidates = [normTotalMin, normTotalMin + 24 * 60]
+    const solarMinuteOfDay = meanSolarMinuteOfDay(birthDateTime, longitude, timezone)
+    const candidates = [solarMinuteOfDay, solarMinuteOfDay + 24 * 60]
     let hourBranchIndex = 0
     outer: for (const t of candidates) {
-      for (const r of ranges) {
+      for (const r of HOUR_RANGES) {
         if (t >= r.start && t < r.end) {
           hourBranchIndex = r.idx
           break outer
@@ -750,6 +608,7 @@ export function calculateSajuData(
       },
       dayMaster,
       ...(timeUnknown ? { timeUnknown: true } : {}),
+      meta: { birthUtc: birthDateTime.toISOString(), instantKind: resolved.kind },
     }
 
     // Cache the result (evict oldest if full)

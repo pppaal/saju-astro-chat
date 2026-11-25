@@ -207,14 +207,18 @@ describe('경도 경로 결정론 (교리와 무관)', () => {
   })
 
   it('시주는 경도 보정된 시진 경계를 따른다 — 이건 양쪽 교리가 합의한 부분', () => {
-    // CONVENTIONS.md:31 "한국: LMT 보정 → 子 시진 경계 = 23:30–01:30"
-    // 보정 -32분이면 시계 23:32 부터 子時.
+    // CONVENTIONS.md §1: 시주 = 평균태양시(UT + 경도 × 4분), 子 = 23:00–01:00 평균태양시.
+    // 서울(126.978°E) 보정 -32분이면 시계 23:32 부터 子時.
     expect(pillars('1991-02-02', '23:31', { lon: SEOUL_LON }).time).toMatch(/亥$/)
     expect(pillars('1991-02-02', '23:32', { lon: SEOUL_LON }).time).toMatch(/子$/)
   })
 
-  it('경도 없으면 한국 LMT(+30) 기존 동작 — 子時 = 23:30~', () => {
-    expect(pillars('1991-02-02', '23:29').time).toMatch(/亥$/)
-    expect(pillars('1991-02-02', '23:30').time).toMatch(/子$/)
+  it('경도 없으면 존 기준 경도(Asia/Seoul = 126.978, OD-2) — 子時 = 23:32~, 경도 경로와 같다', () => {
+    // 옛 '한국 LMT +30분' 표(23:30~)는 엔진 감사 E8(F7)에서 지웠다.
+    expect(pillars('1991-02-02', '23:31').time).toMatch(/亥$/)
+    expect(pillars('1991-02-02', '23:32').time).toMatch(/子$/)
+    for (const t of ['23:31', '23:32']) {
+      expect(pillars('1991-02-02', t)).toEqual(pillars('1991-02-02', t, { lon: SEOUL_LON }))
+    }
   })
 })

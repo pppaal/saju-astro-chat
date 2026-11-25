@@ -18,14 +18,20 @@ import { buildCalendar } from '@/lib/calendar-engine'
 
 const DATE = '2030-04-20' // 중국·한국 DST 없음 → tzOffset 고정, 분 결정론
 
-async function maoWindow(loc: { latitude: number; longitude: number; timeZone: string }) {
-  const natal = await buildNatalContext({
+type Natal = Awaited<ReturnType<typeof buildNatalContext>>
+
+async function maoWindow(
+  loc: { latitude: number; longitude: number; timeZone: string },
+  patch?: (natal: Natal) => Natal
+) {
+  const built = await buildNatalContext({
     birthDate: '1995-02-09',
     birthTime: '06:40',
     gender: 'male',
     calendarType: 'solar',
     ...loc,
   })
+  const natal = patch ? patch(built) : built
   const cells = await buildCalendar(
     natal,
     { start: DATE, end: DATE, granularity: 'hour' },
@@ -51,11 +57,23 @@ describe('saju-hour 진태양시 보정 (전세계 일관)', () => {
     )
   }, 60000)
 
-  it('경도 없으면 보정 0 — 시계 시각 그대로(05:00)', async () => {
-    // longitude 누락 시 옛 동작 보존. (buildNatalContext 는 lat/lon 필수라 직접 보장이
-    //  어려워, 보정 공식의 경계만 확인: 표준자오선 위 도시는 보정 0.)
-    // 동경 135°(KST 표준자오선) 정위치 가상도시 → correction 0 → 05:00.
+  it('표준자오선 정위치(135°E, KST) 가상도시 → 보정 0 → 05:00', async () => {
     expect(await maoWindow({ latitude: 35, longitude: 135, timeZone: 'Asia/Seoul' })).toBe('05:00')
+  }, 60000)
+
+  it('경도 미상이면 본명 시주와 같은 기본값 — 존 기준 경도(서울 126.978 → 05:32, OD-2)', async () => {
+    // 예전엔 경도·타임존이 없으면 보정 0(시계 05:00)이라 본명 시주(서울 −32분)와 갈렸다.
+    const seoul = { latitude: 37.57, longitude: 126.98, timeZone: 'Asia/Seoul' }
+    const noLon = await maoWindow(seoul, (n) => ({
+      ...n,
+      astro: { ...n.astro, location: { ...n.astro.location, longitude: undefined as never } },
+    }))
+    expect(noLon).toBe('05:32')
+    const noLocation = await maoWindow(seoul, (n) => ({
+      ...n,
+      astro: { ...n.astro, location: undefined as never },
+    }))
+    expect(noLocation).toBe('05:32')
   }, 60000)
 })
 

@@ -165,12 +165,16 @@ describe('saju - Core Calculation', () => {
       const result1 = calculateSajuData('1990-05-15', '10:30', 'male', 'solar', 'Asia/Seoul')
       expect(result1.timePillar).toBeDefined()
 
-      // HH:MM 형식 (09:30 - 앞에 0 포함)
-      const result2 = calculateSajuData('1990-05-15', '09:30', 'male', 'solar', 'Asia/Seoul')
+      // HH:MM 형식 (09:45 - 앞에 0 포함)
+      const result2 = calculateSajuData('1990-05-15', '09:45', 'male', 'solar', 'Asia/Seoul')
       expect(result2.timePillar).toBeDefined()
 
-      // 두 결과가 같은 시주를 가져야 함 (시간대가 같으므로)
+      // 두 결과가 같은 시주를 가져야 함 — 서울 평균태양시(−32분) 09:58 / 09:13 둘 다 巳
       expect(result1.timePillar.heavenlyStem.name).toBe(result2.timePillar.heavenlyStem.name)
+
+      // H:MM 형식 (앞 0 없음) — '09:45' 와 같은 결과(SAJU-6: 예전엔 throw)
+      const result3 = calculateSajuData('1990-05-15', '9:45', 'male', 'solar', 'Asia/Seoul')
+      expect(result3.timePillar).toEqual(result2.timePillar)
     })
 
     it('should handle different hours correctly', () => {

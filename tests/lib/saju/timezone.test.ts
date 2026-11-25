@@ -4,28 +4,72 @@ import {
   getOffsetMinutes,
   formatOffset,
   solarTimeCorrectionMinutes,
-  getDstAmountMinutes,
+  zoneReferenceLongitude,
+  zoneReferencePoint,
+  defaultLongitudeFor,
+  defaultLatitudeFor,
+  meanSolarMinuteOfDay,
+  SEOUL_DEFAULT_LOCATION,
 } from '@/lib/saju/timezone'
 
 describe('Saju Timezone Utils', () => {
-  describe('getDstAmountMinutes', () => {
-    it('returns 60 during Northern-hemisphere DST (New York, July)', () => {
-      // EDT: 표준 EST(-300) 대비 +60.
-      expect(getDstAmountMinutes(new Date('2000-07-15T12:00:00Z'), 'America/New_York')).toBe(60)
+  // 옛 getDstAmountMinutes(1월/7월 offset 으로 DST 추정)는 엔진 감사 E8(SAJU-3·F2)에서
+  // 지웠다 — 표준 offset 이 연중 바뀐 해(서울 1954·1961, 모스크바 2014)에 가짜 DST 를
+  // 만들었다. 경도 없는 시주는 이제 존 기준 경도 평균태양시 한 경로다.
+  describe('zoneReferenceLongitude / defaultLongitudeFor (OD-2)', () => {
+    it('Asia/Seoul = 제품 기본 경도 126.978 (별칭 ROK 포함)', () => {
+      expect(zoneReferenceLongitude('Asia/Seoul')).toBe(126.978)
+      expect(zoneReferenceLongitude('ROK')).toBe(126.978)
+      expect(zoneReferencePoint('Asia/Seoul')).toEqual(SEOUL_DEFAULT_LOCATION)
     })
-    it('returns 0 during Northern-hemisphere standard time (New York, January)', () => {
-      expect(getDstAmountMinutes(new Date('2000-01-15T12:00:00Z'), 'America/New_York')).toBe(0)
+    it('그 외 존은 tzdata zone1970.tab 대표 도시', () => {
+      expect(zoneReferenceLongitude('America/Los_Angeles')).toBeCloseTo(-118.24, 2)
+      expect(zoneReferenceLongitude('America/New_York')).toBeCloseTo(-74.01, 2)
+      expect(zoneReferenceLongitude('Asia/Shanghai')).toBeCloseTo(121.47, 2)
+      expect(zoneReferenceLongitude('Asia/Tokyo')).toBeCloseTo(139.74, 1)
+      // zone.tab 이 따로 둔 존(Amsterdam), 링크(Calcutta → Kolkata)
+      expect(zoneReferenceLongitude('Europe/Amsterdam')).toBeCloseTo(4.9, 2)
+      expect(zoneReferenceLongitude('Asia/Calcutta')).toBe(zoneReferenceLongitude('Asia/Kolkata'))
     })
-    it('returns 60 during Southern-hemisphere DST (Sydney, January)', () => {
-      // AEDT: 표준 AEST(+600) 대비 +60. min(jan,jul) 로 표준을 잡아야 성립.
-      expect(getDstAmountMinutes(new Date('2000-01-15T00:00:00Z'), 'Australia/Sydney')).toBe(60)
+    it('Etc/*·UTC 는 offset × 15', () => {
+      expect(zoneReferenceLongitude('UTC')).toBe(0)
+      expect(zoneReferenceLongitude('Etc/GMT+5')).toBe(-75)
+      expect(zoneReferenceLongitude('Etc/GMT-9')).toBe(135)
     })
-    it('returns 0 during Southern-hemisphere standard time (Sydney, July)', () => {
-      expect(getDstAmountMinutes(new Date('2000-07-15T00:00:00Z'), 'Australia/Sydney')).toBe(0)
+    it('런타임이 지원하는 모든 IANA 존에 기준점이 있다 (60° 경계 안)', () => {
+      const zones =
+        typeof Intl.supportedValuesOf === 'function' ? Intl.supportedValuesOf('timeZone') : []
+      const jan = new Date(Date.UTC(2024, 0, 15, 12))
+      for (const tz of zones) {
+        const lon = zoneReferenceLongitude(tz)
+        expect(Number.isFinite(lon), tz).toBe(true)
+        expect(Math.abs(lon), tz).toBeLessThanOrEqual(180)
+        // 기준 경도 자체가 sanity bound 를 넘지 않는다 → 보정이 그대로 쓰인다.
+        const corr = solarTimeCorrectionMinutes(jan, lon, tz)
+        expect(corr, tz).toBe(solarTimeCorrectionMinutes(jan, undefined, tz))
+      }
     })
-    it('returns 0 for a zone without DST (Seoul, any month)', () => {
-      expect(getDstAmountMinutes(new Date('2000-07-15T03:00:00Z'), 'Asia/Seoul')).toBe(0)
-      expect(getDstAmountMinutes(new Date('2000-01-15T03:00:00Z'), 'Asia/Seoul')).toBe(0)
+    it('defaultLongitudeFor / defaultLatitudeFor — 빈·잘못된 존은 Asia/Seoul', () => {
+      expect(defaultLongitudeFor('Asia/Seoul')).toBe(126.978)
+      expect(defaultLatitudeFor('Asia/Seoul')).toBe(37.5665)
+      expect(defaultLongitudeFor(undefined)).toBe(126.978)
+      expect(defaultLongitudeFor('')).toBe(126.978)
+      expect(defaultLongitudeFor('Not/AZone')).toBe(126.978)
+      expect(defaultLongitudeFor('America/Los_Angeles')).toBeCloseTo(-118.24, 2)
+      expect(defaultLatitudeFor('America/Los_Angeles')).toBeCloseTo(34.05, 2)
+    })
+  })
+
+  describe('meanSolarMinuteOfDay — UT + 경도 × 4분', () => {
+    it('서울 2000-01-15 10:00 KST(01:00Z) → 09:28', () => {
+      expect(meanSolarMinuteOfDay(new Date('2000-01-15T01:00:00Z'), 126.978, 'Asia/Seoul')).toBe(
+        9 * 60 + 28
+      )
+    })
+    it('DST 시각도 UT 기준이라 offset 과 무관 (뉴욕 EDT 12:00 = 16:00Z → 11:04)', () => {
+      expect(meanSolarMinuteOfDay(new Date('2000-07-15T16:00:00Z'), -74, 'America/New_York')).toBe(
+        11 * 60 + 4
+      )
     })
   })
 
@@ -181,8 +225,10 @@ describe('Saju Timezone Utils', () => {
   describe('solarTimeCorrectionMinutes - 추가 분기 (timezone.test)', () => {
     it('invalid timezone → standardMeridian 0 → correction = round(lon*4)', () => {
       const instant = new Date(Date.UTC(2024, 0, 1, 12, 0, 0))
-      // getOffsetMinutes가 0 반환 → standardMeridian 0 → round(120 * 4)
-      expect(solarTimeCorrectionMinutes(instant, 120, 'Invalid/Zone')).toBe(480)
+      // getOffsetMinutes가 0 반환 → standardMeridian 0 → round(30 * 4)
+      expect(solarTimeCorrectionMinutes(instant, 30, 'Invalid/Zone')).toBe(120)
+      // 자오선(0°)에서 60° 넘게 떨어진 120° 는 버린다(OD-14) → 존 기준(offset×15 = 0) → 0
+      expect(solarTimeCorrectionMinutes(instant, 120, 'Invalid/Zone')).toBe(0)
     })
 
     it('returns 0 for non-finite longitude', () => {

@@ -50,11 +50,12 @@ describe('Saju Calculation: Basic Pillar Calculation', () => {
     expect(result.timePillar.earthlyBranch.name).toBe('午')
   })
 
-  it('handles boundary time (23:30) correctly', () => {
-    const result = calculateSajuData('1990-05-15', '23:30', 'female', 'solar', 'Asia/Seoul')
-
-    // 23:30부터 다음날 자시 시작
+  it('handles boundary time (23:32) correctly', () => {
+    // 서울 평균태양시(경도 미상 → 126.978, −32분) — 시계 23:32 부터 子시, 23:31 은 亥시.
+    const result = calculateSajuData('1990-05-15', '23:32', 'female', 'solar', 'Asia/Seoul')
     expect(result.timePillar.earthlyBranch.name).toBe('子')
+    const before = calculateSajuData('1990-05-15', '23:31', 'female', 'solar', 'Asia/Seoul')
+    expect(before.timePillar.earthlyBranch.name).toBe('亥')
   })
 })
 

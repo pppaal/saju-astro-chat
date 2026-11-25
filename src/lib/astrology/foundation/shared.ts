@@ -13,6 +13,7 @@ import { formatLongitude, normalize360 } from './utils'
 import { toAstroPlanetId, toAstroPointId } from '../graphIds'
 import { CALCULATION_STANDARDS } from '@/lib/config/calculationStandards'
 import { logger } from '@/lib/logger'
+import { resolveBirthInstant } from '@/lib/datetime/resolveBirthInstant'
 
 // ============================================================
 // Planet List (cached singleton)
@@ -70,35 +71,33 @@ export function getPlanetList(): Record<string, number> {
  */
 export function natalToJD(natal: NatalInput): number {
   const swisseph = getSwisseph()
-  const pad = (v: number) => String(v).padStart(2, '0')
-
   if (natal.hour < 0 || natal.hour > 23 || natal.minute < 0 || natal.minute > 59) {
     throw new Error(
       `Invalid natal datetime: ${natal.year}-${natal.month}-${natal.date} ${natal.hour}:${natal.minute}`
     )
   }
 
-  const local = dayjs.tz(
-    `${natal.year}-${pad(natal.month)}-${pad(natal.date)}T${pad(natal.hour)}:${pad(natal.minute)}:00`,
-    natal.timeZone
-  )
-
-  if (!local.isValid()) {
+  // 출생 instant — 사주(calculateSajuData)와 같은 resolver(OD-3, RFC 5545). 서머타임
+  // 공백은 직전 offset, 겹침은 첫 번째. 옛 dayjs.tz 는 겹침 offset 을 *서버의 현재* DST
+  // 상태로 골라 서버 날짜에 따라 JD 가 1시간 흔들렸고(ASTRO-7), 공백 시각은 사주와
+  // 1시간 다른 순간을 냈다(F4).
+  let utcDate: Date
+  try {
+    utcDate = resolveBirthInstant(
+      {
+        year: natal.year,
+        month: natal.month,
+        day: natal.date,
+        hour: natal.hour,
+        minute: natal.minute,
+      },
+      natal.timeZone
+    ).utc
+  } catch {
     throw new Error(
       `Invalid natal datetime: ${natal.year}-${natal.month}-${natal.date} ${natal.hour}:${natal.minute}`
     )
   }
-  if (
-    local.year() !== natal.year ||
-    local.month() + 1 !== natal.month ||
-    local.date() !== natal.date
-  ) {
-    throw new Error(
-      `Invalid natal datetime: ${natal.year}-${natal.month}-${natal.date} ${natal.hour}:${natal.minute}`
-    )
-  }
-
-  const utcDate = local.utc().toDate()
 
   const jdResult = swisseph.swe_utc_to_jd(
     utcDate.getUTCFullYear(),

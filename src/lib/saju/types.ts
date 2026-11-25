@@ -168,6 +168,16 @@ export interface CalculateSajuDataResult {
    * 쓰지 말 것(sajuFacts 는 pillars.time 을 null 로 낸다). 시각을 알면 생략.
    */
   timeUnknown?: boolean
+
+  /**
+   * 출생 instant — resolveBirthInstant(OD-3, RFC 5545) 결과. 점성(natalToJD)이 같은
+   * 입력에서 같은 instant 를 쓴다(엔진 감사 F4). instantKind: 'gap' = 없는 벽시계
+   * (서머타임 공백), 'overlap' = 두 번 있는 벽시계(첫 번째로 해석).
+   */
+  meta?: {
+    birthUtc: string
+    instantKind: 'normal' | 'gap' | 'overlap'
+  }
 }
 
 // --- 관계(합/충/형/파/해/원진/삼합/육합/방합/공망) 결과 타입 ---
