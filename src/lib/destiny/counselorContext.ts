@@ -654,14 +654,21 @@ function buildSajuSection(
   //   - collectSajuFacts → 순수 데이터 객체 (다른 서비스도 같이 받아씀)
   //   - 아래 코드는 그 facts 를 텍스트로 포매팅하는 부분만 담당
   // daeWoon / shinsal 은 아직 facts 에 없어 raw saju 한 번 더 가져옴 (LRU cache hit).
+  // 출생시각 미상 → 삼주 분석(CONVENTIONS §5, OD-5): facts.pillars.time 은 null 이고
+  // 강약·용신·격국·관계·신살은 세 기둥 기준. 정오 앵커는 년·월·일주 고정용.
   const facts = collectSajuFacts({
     birthDate: birth.birthDate,
     birthTime: birth.birthTime,
+    birthTimeUnknown: birth.birthTimeUnknown,
     gender: birth.gender,
     timezone: tz,
     longitude: birth.longitude,
     now,
   })
+  // 판정·표시에 쓰는 기둥 — 시간 미상이면 시주 없이 년·월·일.
+  const pillarKeys = facts.pillars.time
+    ? (['year', 'month', 'day', 'time'] as const)
+    : (['year', 'month', 'day'] as const)
   // 현재 운(세운/월운/일진 + 본명 대비 충/합) — fusion 우회 없이 facts._raw 에서
   // 직접 계산. _raw 는 longitude 진경도 보정이 적용된 결과라, 현재 운도 본명과
   // 같은 평균태양시 기준이 된다. (예전엔 route 가 fusion saju adapter 로 만들어
@@ -775,18 +782,22 @@ function buildSajuSection(
   out.push(L('기둥:', 'pillars:'))
   const bareSib = (t?: string | null) =>
     !t || t === '-' ? (t ?? '-') : locale === 'en' ? (SIBSIN_EN[t] ?? t) : t
-  for (const k of ['year', 'month', 'day', 'time'] as const) {
+  for (const k of pillarKeys) {
     const p = facts.pillars[k]
+    if (!p) continue
     const ss = k === 'day' ? (locale === 'en' ? 'Self' : '일간') : bareSib(p.stemSibsin)
     out.push(`  ${plab[k]} ${p.stem}${p.branch} ${ss}/${bareSib(p.branchSibsin)}`)
   }
+  // 시간 미상 — 시주 칸을 비워 두고 명시한다(LLM 이 시주를 지어내지 않게).
+  if (!facts.pillars.time)
+    out.push(`  ${plab.time} ${L('미상 (삼주 분석)', 'unknown (three-pillar reading)')}`)
   out.push('')
 
   // 지장간 (stems only)
   out.push(L('지장간:', 'hidden_stems:'))
-  for (const k of ['year', 'month', 'day', 'time'] as const) {
+  for (const k of pillarKeys) {
     const p = facts.pillars[k]
-    if (p.jijanggan.length) out.push(`  ${p.branch}: ${p.jijanggan.join('·')}`)
+    if (p?.jijanggan.length) out.push(`  ${p.branch}: ${p.jijanggan.join('·')}`)
   }
   out.push('')
 
@@ -870,7 +881,8 @@ function buildSajuSection(
       yearPillar: factPillarToShinsalInput(facts.pillars.year),
       monthPillar: factPillarToShinsalInput(facts.pillars.month),
       dayPillar: factPillarToShinsalInput(facts.pillars.day),
-      timePillar: factPillarToShinsalInput(facts.pillars.time),
+      // 시간 미상이면 null — 신살·12운성을 삼주에서만 찾는다.
+      timePillar: facts.pillars.time ? factPillarToShinsalInput(facts.pillars.time) : null,
     })
     const allHits = getShinsalHits(pillarsLike, {
       includeGeneralShinsal: true,
@@ -968,15 +980,17 @@ function buildSajuSection(
       yearPillar: factPillarToShinsalInput(facts.pillars.year),
       monthPillar: factPillarToShinsalInput(facts.pillars.month),
       dayPillar: factPillarToShinsalInput(facts.pillars.day),
-      timePillar: factPillarToShinsalInput(facts.pillars.time),
+      // 시간 미상이면 null — 신살·12운성을 삼주에서만 찾는다.
+      timePillar: facts.pillars.time ? factPillarToShinsalInput(facts.pillars.time) : null,
     })
     const stages = getTwelveStagesForPillars(pillarsLike, 'day')
     if (stages) {
       // EN 로케일에선 단계명도 영어로 — 이전엔 stages[k] (장생/목욕…) 와
       // 괄호 anchor '(일간 X 기준)' 가 한국어 그대로 영어 컨텍스트에 새었다.
       const stg = (s: string) => (locale === 'en' ? (STAGE_EN[s] ?? s) : s)
-      const parts = (['year', 'month', 'day', 'time'] as const)
-        .map((k) => `${plab[k]}${stg(stages[k])}`)
+      const parts = pillarKeys
+        .filter((k) => !!stages[k])
+        .map((k) => `${plab[k]}${stg(stages[k] as string)}`)
         .join('·')
       out.push(
         `${L('12운성', '12-stages')}${L(`(일간 ${day} 기준)`, `(rel. to day master ${day})`)}: ${parts}`
@@ -992,8 +1006,9 @@ function buildSajuSection(
   // 기둥 라인에서도 "일 辛未 일간/편인" 처럼 일간 라벨이 비견 아님.
   try {
     const tally: Record<string, number> = {}
-    for (const k of ['year', 'month', 'day', 'time'] as const) {
+    for (const k of pillarKeys) {
       const p = facts.pillars[k]
+      if (!p) continue
       if (k !== 'day') {
         const s = sibsinOf(day, p.stem)
         if (s && s !== '-') tally[s] = (tally[s] ?? 0) + 1
@@ -1075,8 +1090,9 @@ function buildSajuSection(
       ['년', facts.pillars.year.branch],
       ['월', facts.pillars.month.branch],
       ['일', facts.pillars.day.branch],
-      ['시', facts.pillars.time.branch],
     ]
+    // 시간 미상이면 시지와의 형 교차를 만들지 않는다.
+    if (facts.pillars.time) natalBr.push(['시', facts.pillars.time.branch])
     const sp = locale === 'en' ? ' ' : ''
     const arrow = (s: string) =>
       locale === 'en'

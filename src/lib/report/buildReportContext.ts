@@ -33,7 +33,7 @@ import { strengthClassOf } from '@/lib/saju/strengthScore'
 import { parseHourMinute } from '@/lib/saju/timeParse'
 import { TIME_UNKNOWN_ANCHOR } from '@/lib/saju/birthTimeAnchor'
 import type { NatalContext, NatalDayJijanggan } from '@/lib/calendar-engine/context/types'
-import type { FiveElement, SajuPillarsInput } from '@/lib/saju/types'
+import type { FiveElement, MaybeTimeless, SajuPillarsInput } from '@/lib/saju/types'
 
 export interface ReportContextInput {
   birthDate: string // 'YYYY-MM-DD' (solar)
@@ -51,9 +51,12 @@ export interface ReportContextInput {
 
 export async function buildReportContext(input: ReportContextInput): Promise<NatalContext> {
   // ─── raw 정제 ─────────────────────────────────────────────────────────
+  // 출생시각 미상 → 삼주 분석(CONVENTIONS §5, OD-5). 정오 앵커는 년·월·일주만 고정하고
+  // 오행·강약·용신·격국·관계·신살은 시주 없이 판정한다.
   const sajuFacts = collectSajuFacts({
     birthDate: input.birthDate,
     birthTime: input.birthTime,
+    birthTimeUnknown: input.birthTimeUnknown,
     gender: input.gender,
     timezone: input.timeZone,
     longitude: input.longitude,
@@ -77,23 +80,34 @@ export async function buildReportContext(input: ReportContextInput): Promise<Nat
     throw new Error('buildReportContext: collectAstroFacts returned null')
   }
   const raw = sajuFacts._raw
-  const pillars = raw.pillars
+  const timeUnknown = sajuFacts.timeUnknown
+  // 시간 미상이면 시주를 뺀 삼주 — raw.pillars.time 은 정오 앵커 자리표시라 ctx 로도
+  // 흘리지 않는다(리포트 명식의 時 칸은 '?', 신살·12운성·십성 개수도 삼주).
+  const pillars = timeUnknown
+    ? { year: raw.pillars.year, month: raw.pillars.month, day: raw.pillars.day }
+    : raw.pillars
   const chart = astroFacts._chart
 
   // ─── 사주 분석 (page 가 자기 책임으로 호출) ──────────────────────────
-  const pillarsInput: SajuPillarsInput = {
+  const timeSimple = timeUnknown
+    ? null
+    : {
+        stem: raw.pillars.time.heavenlyStem.name,
+        branch: raw.pillars.time.earthlyBranch.name,
+      }
+  const pillarsInput: MaybeTimeless<SajuPillarsInput> = {
     year: { stem: pillars.year.heavenlyStem.name, branch: pillars.year.earthlyBranch.name },
     month: { stem: pillars.month.heavenlyStem.name, branch: pillars.month.earthlyBranch.name },
     day: { stem: pillars.day.heavenlyStem.name, branch: pillars.day.earthlyBranch.name },
-    time: { stem: pillars.time.heavenlyStem.name, branch: pillars.time.earthlyBranch.name },
+    time: timeSimple,
   }
   const pillarsWithHour = {
     year: pillarsInput.year,
     month: pillarsInput.month,
     day: pillarsInput.day,
-    hour: pillarsInput.time,
+    hour: timeSimple,
   }
-  const simplePillarsWithHour = { ...pillarsInput, hour: pillarsInput.time }
+  const simplePillarsWithHour = { ...pillarsInput, time: timeSimple, hour: timeSimple }
   const analyses = performAnalyses(
     simplePillarsWithHour,
     pillarsWithHour,

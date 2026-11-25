@@ -457,7 +457,10 @@ export function natalToReportData(
           .filter((x: string | null): x is string => !!x),
       },
       pillars: {
-        hour: mapPillar(pillars.time, stages, 'time'),
+        // 시간 미상이면 ctx 에 시주가 없다(삼주 분석) — 정오 앵커 기둥 대신 '?' 칸.
+        hour: pillars.time
+          ? mapPillar(pillars.time, stages, 'time')
+          : { ...mapPillar(null, stages, 'time'), stem: '?', branch: '?', twelveStage: '' },
         day: mapPillar(pillars.day, stages, 'day', true),
         month: mapPillar(pillars.month, stages, 'month'),
         year: mapPillar(pillars.year, stages, 'year'),

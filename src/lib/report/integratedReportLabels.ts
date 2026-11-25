@@ -98,13 +98,16 @@ export const UI: Record<string, BiLabel> = {
     ko: '내 생일 글자들이 서로 손을 잡거나(합) 부딪히는(충) 방식이에요.',
     en: 'How your birth-letters team up or bump into each other.',
   },
+  // 시간 미상 안내 — 삼주(년·월·일) 분석임을 정직하게 알린다(CONVENTIONS §5, OD-5).
+  // 예전 문구는 "사주 풀이는 그대로 정확"이라 했지만, 강약·용신·격국은 시주에 따라
+  // 달라질 수 있다(엔진 감사 SAJU-4).
   timeUnknownTitle: {
-    ko: '결과는 그대로 또렷해요 (태어난 시각만 몰라요)',
-    en: "Your result is still clear (we just don't know your birth time)",
+    ko: '태어난 시각을 몰라 세 기둥으로 풀었어요',
+    en: 'No birth time, so we read three pillars',
   },
   timeUnknownBody: {
-    ko: '태어난 시각을 몰라서 낮 12시를 기준으로 계산했는데, 이건 전혀 문제가 아니에요. "내가 어떤 사람인지"를 보여주는 큰 그림과 사주·별자리 풀이는 그대로 정확하고, 첫인상이나 분야별 강조처럼 아주 작은 부분만 살짝 흐릿할 뿐이에요.',
-    en: "We didn't know your birth time, so we used noon — and that's totally fine. The big picture of who you are, your Saju, and your star placements are all still accurate; only a few small things like your first impression or which life-areas stand out are a little fuzzy.",
+    ko: '태어난 시각을 몰라서 사주는 시주를 빼고 년·월·일 세 기둥(삼주)으로 풀었어요. 낮 12시는 날짜를 정확히 잡는 데만 썼어요. 일간과 큰 성향은 그대로 읽히지만, 오행 균형·강약 같은 판단은 시각을 알면 달라질 수 있어요. 달의 별자리도 바뀔 수 있고, 상승점·하우스처럼 시각에 기대는 항목은 보여드리지 않아요.',
+    en: "We didn't know your birth time, so your Saju is read from three pillars (year, month, day) without the hour pillar; noon was used only to pin down the date. Your day master and core temperament still hold, but judgments like element balance and strength could shift once the time is known. Your Moon sign may differ too, and time-dependent items like the Ascendant and houses are left out.",
   },
   day: { ko: '주간', en: 'diurnal' },
   night: { ko: '야간', en: 'nocturnal' },

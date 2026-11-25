@@ -18,6 +18,8 @@ import { logger } from '@/lib/logger'
 export interface CompatPersonSeed {
   birthDate: string // 'YYYY-MM-DD' (solar)
   birthTime: string // 'HH:MM'
+  /** 출생시각 미상 — 그 사람은 삼주(년·월·일)로 판정(CONVENTIONS §5). */
+  timeUnknown?: boolean
   gender: 'male' | 'female'
   timezone: string
   longitude: number
@@ -32,7 +34,7 @@ export interface SynastryPillar {
 export interface PersonCompatSajuFacts {
   /** 운명 상담사와 공유하는 표준 사주 facts (일간/오행/대운 등 풀세트). */
   base: SajuFacts
-  /** [년·월·일·시] 4기둥 평면 — formatSajuSynastry input 그대로 매핑. */
+  /** [년·월·일·시] 4기둥 평면 — formatSajuSynastry input 그대로 매핑. 시간 미상이면 3기둥. */
   synastryPillars: SynastryPillar[]
   /** 현재 대운 (synastry cross 용). 출생연도 없으면 null. */
   currentDaeun: { stem: string; branch: string; age?: number } | null
@@ -65,17 +67,21 @@ function collectOne(seed: CompatPersonSeed): PersonCompatSajuFacts {
   const base = collectSajuFacts({
     birthDate: seed.birthDate,
     birthTime: seed.birthTime,
+    birthTimeUnknown: seed.timeUnknown,
     gender: seed.gender,
     timezone: seed.timezone,
     longitude: seed.longitude,
   })
 
-  const synastryPillars: SynastryPillar[] = (['year', 'month', 'day', 'time'] as const).map(
-    (k) => ({
-      stem: base.pillars[k].stem,
-      branch: base.pillars[k].branch,
-    })
-  )
+  // 시간 미상이면 시주가 null — 시나스트리 기둥도 년·월·일 3개만.
+  const synastryPillars: SynastryPillar[] = [
+    base.pillars.year,
+    base.pillars.month,
+    base.pillars.day,
+    base.pillars.time,
+  ]
+    .filter((p): p is SajuPillarFact => !!p)
+    .map((p) => ({ stem: p.stem, branch: p.branch }))
 
   const cur = base.daeun.current
   const currentDaeun = cur
@@ -91,7 +97,7 @@ function collectOne(seed: CompatPersonSeed): PersonCompatSajuFacts {
       yearPillar: factPillarToShinsalInput(base.pillars.year),
       monthPillar: factPillarToShinsalInput(base.pillars.month),
       dayPillar: factPillarToShinsalInput(base.pillars.day),
-      timePillar: factPillarToShinsalInput(base.pillars.time),
+      timePillar: base.pillars.time ? factPillarToShinsalInput(base.pillars.time) : null,
     })
     shinsal = getShinsalHits(pillarsLike, {
       includeGeneralShinsal: true,

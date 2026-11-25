@@ -18,7 +18,14 @@ import { getGongmang } from '@/lib/saju/shinsal'
 
 export interface SajuFactsInput {
   birthDate: string // 'YYYY-MM-DD'
-  birthTime: string // 'HH:MM'
+  /** 'HH:MM'. 출생시각 미상이면 정오 앵커(TIME_UNKNOWN_ANCHOR)나 빈 문자열. */
+  birthTime: string
+  /**
+   * 출생시각 미상 — 삼주(년·월·일) 분석(CONVENTIONS §5, OD-5). pillars.time 은 null,
+   * 오행·강약·용신·격국·관계·신살·관살혼잡·통근은 세 기둥만 본다. 앵커 시각은 년·월·일주를
+   * 절입일에 고정하는 데만 쓴다. 빈 birthTime 도 미상으로 본다(isBirthTimeUnknown 규약).
+   */
+  birthTimeUnknown?: boolean
   gender: 'male' | 'female'
   timezone?: string
   longitude?: number
@@ -51,13 +58,17 @@ export interface SajuPillarFact {
 }
 
 export interface SajuFacts {
-  pillars: Record<'year' | 'month' | 'day' | 'time', SajuPillarFact>
+  /** 4기둥 — 출생시각 미상이면 time 은 null (정오 앵커 시주를 내보내지 않는다). */
+  pillars: Record<'year' | 'month' | 'day', SajuPillarFact> & { time: SajuPillarFact | null }
+  /** 출생시각 미상(삼주 분석) 여부 — true 면 아래 판정은 모두 년·월·일 세 기둥 기준. */
+  timeUnknown: boolean
   dayMaster: {
     name: string
     element: string | null
     yinYang: '음' | '양' | null
     rooted: boolean // 지장간 어디에든 일간 오행이 박혀 있으면 true (통근)
   }
+  /** 오행 개수 — 8글자(시간 미상이면 6글자) 합. */
   fiveElements: { wood: number; fire: number; earth: number; metal: number; water: number }
   /**
    * 일간 강약 3분류 라벨 — 강약 점수 SSOT 의 5단계(strengthBandOf, CONVENTIONS §10)를
@@ -140,6 +151,10 @@ const BRANCH_ELEMENT: Record<string, string> = {
  */
 export function collectSajuFacts(input: SajuFactsInput): SajuFacts {
   const tz = input.timezone ?? 'Asia/Seoul'
+  // 출생시각 미상 — 명시 플래그 또는 빈 시각. ('00:00' 레거시 휴리스틱은 호출자가
+  // resolveBirthTimeAnchor 로 이미 풀어 플래그로 넘긴다 — 여기서 다시 추정하면 실제
+  // 자정 출생자가 미상으로 오분류된다.)
+  const timeUnknown = input.birthTimeUnknown === true || !String(input.birthTime ?? '').trim()
   // longitude 진태양시 보정. 출생 시간대 + 경도로 본명·운기 모두 동일 기준.
   // calendarType / lunarLeap 은 buildNatalContext (음력 입력) 호환용.
   const raw = calculateSajuData(
@@ -150,18 +165,31 @@ export function collectSajuFacts(input: SajuFactsInput): SajuFacts {
     tz,
     input.lunarLeap,
     input.longitude,
-    input.now // 주입된 "지금" — 대운/세운/월운·만나이 결정론. 미지정 시 new Date().
+    input.now, // 주입된 "지금" — 대운/세운/월운·만나이 결정론. 미지정 시 new Date().
+    { timeUnknown }
   ) as unknown as RawSajuShape
 
   const P = raw.pillars
   const day = P.day.heavenlyStem.name
+  // 판정에 쓰는 기둥 — 시간 미상이면 시주 없이 삼주(정오 앵커 시주는 날짜 고정용 자리표시).
+  const scoped = {
+    year: P.year,
+    month: P.month,
+    day: P.day,
+    time: timeUnknown ? null : P.time,
+  }
+  const presentKeys = timeUnknown
+    ? (['year', 'month', 'day'] as const)
+    : (['year', 'month', 'day', 'time'] as const)
 
-  // simple 4 기둥 평면 (yongsin / geokguk 입력용)
+  // simple 기둥 평면 (yongsin / geokguk 입력용) — 미상이면 time: null
   const simple = {
     year: { stem: P.year.heavenlyStem.name, branch: P.year.earthlyBranch.name },
     month: { stem: P.month.heavenlyStem.name, branch: P.month.earthlyBranch.name },
     day: { stem: P.day.heavenlyStem.name, branch: P.day.earthlyBranch.name },
-    time: { stem: P.time.heavenlyStem.name, branch: P.time.earthlyBranch.name },
+    time: timeUnknown
+      ? null
+      : { stem: P.time.heavenlyStem.name, branch: P.time.earthlyBranch.name },
   }
 
   // 일간 강약 3분류 — 5단계 단일 매핑에서 접는다. 예전엔 별도 6단계 컷(총점 ≥55 →
@@ -170,7 +198,7 @@ export function collectSajuFacts(input: SajuFactsInput): SajuFacts {
   const STRENGTH_KO = { strong: '신강', medium: '중화', weak: '신약' } as const
   let strengthLabel: SajuFacts['strength'] = ''
   try {
-    const s = calculateStrengthScore(raw.pillars as never)
+    const s = calculateStrengthScore(scoped as never)
     strengthLabel = STRENGTH_KO[strengthClassOf(s.level)]
   } catch {
     /* leave empty */
@@ -196,22 +224,22 @@ export function collectSajuFacts(input: SajuFactsInput): SajuFacts {
   // 합·충·형 관계
   let relations: SajuFacts['relations'] = []
   try {
-    relations = analyzeRelations(toAnalyzeInputFromSaju(P as never, day)) as SajuFacts['relations']
+    relations = analyzeRelations(toAnalyzeInputFromSaju(scoped, day)) as SajuFacts['relations']
   } catch {
     relations = []
   }
 
-  // 관살혼잡 (정관 + 편관 둘 다 있음)
-  const allSibsin = (['year', 'month', 'day', 'time'] as const).flatMap((k) => [
+  // 관살혼잡 (정관 + 편관 둘 다 있음) — 있는 기둥만
+  const allSibsin = presentKeys.flatMap((k) => [
     P[k].heavenlyStem.sibsin ?? null,
     P[k].earthlyBranch.sibsin ?? null,
   ])
   const gwansalHonjap = allSibsin.includes('정관') && allSibsin.includes('편관')
 
-  // 통근 — 4기둥 지장간 어디에든 일간 오행이 있으면 true
+  // 통근 — 있는 기둥(4기둥, 미상이면 3기둥) 지장간 어디에든 일간 오행이 있으면 true
   const dayEl = STEM_ELEMENT[day] ?? null
   const rooted = dayEl
-    ? (['year', 'month', 'day', 'time'] as const).some((k) => {
+    ? presentKeys.some((k) => {
         const jg = P[k].jijanggan
         return [jg?.chogi?.name, jg?.junggi?.name, jg?.jeonggi?.name].some(
           (s) => !!s && STEM_ELEMENT[s] === dayEl
@@ -224,8 +252,9 @@ export function collectSajuFacts(input: SajuFactsInput): SajuFacts {
       year: pillarToFact(P.year),
       month: pillarToFact(P.month),
       day: pillarToFact(P.day),
-      time: pillarToFact(P.time),
+      time: timeUnknown ? null : pillarToFact(P.time),
     },
+    timeUnknown,
     dayMaster: {
       name: raw.dayMaster.name,
       element: raw.dayMaster.element ?? null,

@@ -551,6 +551,8 @@ export async function POST(req: NextRequest) {
             {
               birthDate: person1Seed.date,
               birthTime: person1Seed.time,
+              // 시간 미상 → 그쪽 사주는 삼주 판정(용신·신살에 정오 앵커 시주 불포함).
+              timeUnknown: timeUnknownA,
               gender: person1Seed.gender,
               timezone: person1Seed.timeZone,
               longitude: person1Seed.longitude,
@@ -558,6 +560,7 @@ export async function POST(req: NextRequest) {
             {
               birthDate: person2Seed.date,
               birthTime: person2Seed.time,
+              timeUnknown: timeUnknownB,
               gender: person2Seed.gender,
               timezone: person2Seed.timeZone,
               longitude: person2Seed.longitude,
