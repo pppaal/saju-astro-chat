@@ -99,9 +99,33 @@ export function getSajuYearForDate(date: Date): number {
  * 60갑자: idx = (sajuYear - 4) mod 10 / 12.
  */
 export function getYearPillarForDate(date: Date): { stem: string; branch: string } {
-  const { sajuYear } = getMonthRefForDate(date)
-  const idx60 = (sajuYear - 4 + 6000) % 60
+  return yearPillarOfSajuYear(getMonthRefForDate(date).sajuYear)
+}
+
+/**
+ * 사주년 번호 → 세운 간지. 60갑자: idx = (sajuYear - 4) mod 60. getYearPillarForDate 와
+ * 캘린더 기간 창(calendar-engine/periodPillars)이 같은 산술을 쓴다.
+ */
+export function yearPillarOfSajuYear(sajuYear: number): { stem: string; branch: string } {
+  const idx60 = (((sajuYear - 4) % 60) + 60) % 60
   return { stem: STEMS[idx60 % 10], branch: BRANCHES[idx60 % 12] }
+}
+
+/**
+ * 사주년 + 그 달을 연 절(節) 번호(1=소한 … 12=대설) → 월주 간지. 寅월 천간은 연간에서
+ * 五虎遁(MONTH_STEM_LOOKUP)으로, 이후 달은 한 칸씩. 소한(丑월)은 사주년의 마지막 달이다
+ * (sajuYear 는 소한이 든 양력 연도 − 1). getMonthPillarForDate 와 periodPillars 가 공유.
+ */
+export function monthPillarOfTerm(
+  sajuYear: number,
+  termIndex: number
+): { stem: string; branch: string } {
+  const yearPillar = yearPillarOfSajuYear(sajuYear)
+  const firstStemIdx = STEMS.indexOf(MONTH_STEM_LOOKUP[yearPillar.stem])
+  // sajuMonthIndex 1=寅 → offset 0; 2=卯 → offset 1; … 12=丑 → offset 11.
+  const sajuMonthIndex = termIndex === 1 ? 12 : termIndex - 1
+  const monthStemIdx = (firstStemIdx + sajuMonthIndex - 1 + 10) % 10
+  return { stem: STEMS[monthStemIdx], branch: MONTH_BRANCHES_BY_TERM[termIndex] }
 }
 
 /**
@@ -115,6 +139,7 @@ export function getMonthPillarForDate(date: Date): { stem: string; branch: strin
   const firstMonthStem = MONTH_STEM_LOOKUP[yearPillar.stem]
   const firstStemIdx = STEMS.indexOf(firstMonthStem)
   // sajuMonthIndex 1=寅 → offset 0; 2=卯 → offset 1; … 12=丑 → offset 11.
+  // (표 밖 폴백의 양력 근사 branch 를 그대로 쓰려고 monthPillarOfTerm 대신 직접 센다.)
   const offsetFromTiger = ref.sajuMonthIndex - 1
   const monthStemIdx = (firstStemIdx + offsetFromTiger + 10) % 10
   return { stem: STEMS[monthStemIdx], branch: ref.branch }
