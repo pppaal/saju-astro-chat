@@ -137,7 +137,14 @@ export interface CalculateSajuDataResult {
   daeWoon: {
     startAge: number
     isForward: boolean
+    /**
+     * 지금 걸린 대운 — calculateSajuData 의 now 기준(daeunAge.currentDaeun). 첫 대운 전
+     * (만 나이 < startAge)이면 null 이고 preDaeun 이 채워진다(OD-12, 엔진 감사 E14).
+     * now 에 의존하므로 캐시된 결과에서 그대로 쓰지 말고 currentDaeun 으로 다시 고른다.
+     */
     current: DaeunData | null
+    /** 첫 대운 전 상태 — '{startsAtAge}세부터 첫 대운'. 대운이 이미 시작했으면 null. */
+    preDaeun?: { startsAtAge: number } | null
     list: DaeunData[]
   }
 
@@ -177,6 +184,13 @@ export interface CalculateSajuDataResult {
   meta?: {
     birthUtc: string
     instantKind: 'normal' | 'gap' | 'overlap'
+    /**
+     * 출생지 민용 날짜(양력 'YYYY-MM-DD' — 음력 입력이면 변환된 양력)와 계산에 쓴
+     * (정규화된) IANA 타임존. 만 나이·현재 대운을 캐시된 결과에서 다시 고를 때 쓴다
+     * (/api/saju → daeunAge.currentDaeun, 엔진 감사 E14).
+     */
+    civilBirthDate?: string
+    timeZone?: string
   }
 }
 

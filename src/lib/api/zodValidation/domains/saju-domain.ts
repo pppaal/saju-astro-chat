@@ -430,6 +430,11 @@ export const daeunInfoSchema = z.object({
   startAge: z.number().int().min(0).max(20),
   isForward: z.boolean(),
   current: daeunDataSchema.nullable().optional(),
+  // 첫 대운 전(current = null)이면 '{startsAtAge}세부터 첫 대운'(OD-12, 엔진 감사 E14).
+  preDaeun: z
+    .object({ startsAtAge: z.number().int().min(0).max(120) })
+    .nullable()
+    .optional(),
   list: z.array(daeunDataSchema),
   cycles: z.array(daeunDataSchema).optional(),
 })

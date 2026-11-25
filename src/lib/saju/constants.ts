@@ -181,15 +181,19 @@ export const PA: Record<string, string> = toBidiRecord(BREAK_PAIRS)
 /**
  * 사주 엔진 산식 버전. 같은 입력의 calculateSajuData 결과(네 기둥·대운 등)가
  * 바뀌는 엔진 변경마다 +1 — Redis 사주 캐시 키(CacheKeys.saju, `saju:v${N}:…`)에
- * 접혀 옛 결과가 웜 캐시로 나가지 않게 한다. saju.ts 가 재-export 한다.
+ * 접혀 옛 결과가 웜 캐시로 나가지 않게 한다. saju.ts 가 재-export 한다. 상담사
+ * 컨텍스트 캐시 키(counselor:ctx:*)도 이 값을 접는다(@/lib/cache/engineVersions ENGINE_VERSION_TAG).
  *   v2: lunarLeap + timezone 을 키에 추가.
  *   v3: 년·월주·대운을 생 UT 출생 instant 와 절입 instant 비교로(OD-1, 엔진 감사 E1).
  *       진경도 보정은 시주에만. 만 나이는 민용 생일.
  *       같은 미출시 릴리스의 출생 instant 단일화(엔진 감사 E8 — RFC 5545 공백·겹침
  *       resolver, 경도 미상 = 존 기준 경도, 옛 'LMT +30' 표·DST 추정 삭제, 일주는 입력
  *       민용일)도 v3 에 함께 실린다(v2 가 마지막 출시 키). E8 만 따로 출시되면 그때 +1.
+ *   v4: 첫 대운 전에는 daeWoon.current = null + preDaeun {startsAtAge}(OD-12, 엔진 감사
+ *       E14 · SAJU-7). meta 에 civilBirthDate·timeZone 을 실어 /api/saju 가 캐시된 결과의
+ *       current 를 요청마다 다시 고른다(SAJU-8). 절입표 1900–1939 확장(SAJU-5, OD-4).
  */
-export const SAJU_ENGINE_VERSION = 3
+export const SAJU_ENGINE_VERSION = 4
 
 // 절기 데이터 지원 범위(연도). API 검증 하한(dateSchema: year ≥ 1900)과 같다 —
 // 1900 미만은 zod 가 4xx 로 막고, 엔진은 범위 밖이면 RangeError.

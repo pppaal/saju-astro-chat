@@ -348,6 +348,10 @@ isForward = (yearStem이 양 && male) || (yearStem이 음 && female)
 
 **생일 = 출생지 시간대의 민용 날짜** (진경도 보정 전). 보정된 날짜를 넘기면 자정 직후 출생(서울 00:00–00:32)의 생일이 전날로 밀려 현재 대운이 하루 일찍 바뀐다 — 예: 1962-01-01 00:10 서울 출생은 1979-12-31 에 만 17세, 현재 대운 己亥@8 (골든 G23).
 
+**현재 대운 = 만 나이 ≥ 시작 나이인 마지막 대운. 첫 대운 전에는 없다** (OD-12, 2026-11 엔진 감사 E14 · SAJU-7). 첫 대운 전에는 월주(月柱)가 그 시기를 맡으므로 `daeWoon.current = null`, `daeWoon.preDaeun = { startsAtAge }` 다 — 예: 2022-06-15 10:00 서울 남자는 2026-11-24 에 만 4세라 대운 전(7세부터 丁未), 2029-07-01 에 丁未@7 (골든 G22). 예전엔 `|| list[0]` 폴백으로 첫 대운을 '현재'라 했다.
+
+**SSOT:** [`daeunAge.ts:currentDaeun(list, civilBirth, tz, now)`](./daeunAge.ts) — 순수 함수. `calculateSajuData` 와 `/api/saju` 가 같은 함수를 쓴다. `/api/saju` 는 Redis 에 캐시된 결과(계산 시점의 now)의 current 를 버리고 요청 시각으로 다시 고른다(SAJU-8) — 민용 생일·타임존은 결과의 `meta.civilBirthDate`·`meta.timeZone`.
+
 ---
 
 ## 15. 절기(節氣) 데이터 — KASI 기반

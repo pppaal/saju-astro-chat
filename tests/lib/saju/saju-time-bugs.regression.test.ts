@@ -152,9 +152,10 @@ describe('Saju cache key — lunarLeap + timezone 분리, 엔진 버전 prefix',
     expect(a).not.toBe(b)
     expect(a).not.toBe(c)
     expect(b).not.toBe(c)
-    // prefix 버전 = SAJU_ENGINE_VERSION (v3: 엔진 감사 E1 절입 instant 기준).
+    // prefix 버전 = SAJU_ENGINE_VERSION (v3: 엔진 감사 E1 절입 instant 기준,
+    // v4: E14 첫 대운 전 current=null·meta.civilBirthDate·1900–1939 절입표).
     const { SAJU_ENGINE_VERSION } = await import('../../../src/lib/saju/saju')
-    expect(SAJU_ENGINE_VERSION).toBe(3)
+    expect(SAJU_ENGINE_VERSION).toBe(4)
     expect(a.startsWith(`saju:v${SAJU_ENGINE_VERSION}:`)).toBe(true)
   })
 })
@@ -210,8 +211,11 @@ describe('자시(子時) 일주 경계 — 子正派 회귀 (서울 평균태양
  * 첫 번째(KDT)로 푼다. 점성 natalToJD 도 같은 resolver 라 두 차트가 같은 순간이다.
  */
 describe('한국 DST 전환 순간 출생 — 출생 instant 회귀', () => {
-  const at = (date: string, time: string) =>
-    calculateSajuData(date, time, 'male', 'solar', 'Asia/Seoul').meta
+  // birthUtc·instantKind 만 본다 — meta 의 civilBirthDate·timeZone 은 입력 그대로다.
+  const at = (date: string, time: string) => {
+    const m = calculateSajuData(date, time, 'male', 'solar', 'Asia/Seoul').meta
+    return { birthUtc: m?.birthUtc, instantKind: m?.instantKind }
+  }
 
   it('1987-05-10 01:30 (DST 시작 직전 KST) → 1987-05-09T16:30Z', () => {
     expect(at('1987-05-10', '01:30')).toEqual({

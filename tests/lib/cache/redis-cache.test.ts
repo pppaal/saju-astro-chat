@@ -74,8 +74,8 @@ describe('Redis Cache', () => {
   describe('CacheKeys', () => {
     it('generates saju cache key', () => {
       const key = CacheKeys.saju('1990-01-01', '12:00', 'M')
-      // v3 = SAJU_ENGINE_VERSION (E1 절입 instant 기준). lunarLeap + timezone 은 v2 부터.
-      expect(key).toBe('saju:v3:1990-01-01:12:00:M:solar:Asia/Seoul:N')
+      // v4 = SAJU_ENGINE_VERSION (v3 E1 절입 instant, v4 E14 첫 대운 전 current=null). lunarLeap + timezone 은 v2 부터.
+      expect(key).toBe('saju:v4:1990-01-01:12:00:M:solar:Asia/Seoul:N')
     })
 
     it('saju cache key separates lunarLeap and timezone', () => {

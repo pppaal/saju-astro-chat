@@ -81,9 +81,14 @@ export interface SajuFacts {
   relations: Array<{ kind: string; detail?: string; pillars?: string[] }>
   /** 정관 AND 편관 같이 있는 관살혼잡 형국. */
   gwansalHonjap: boolean
-  /** 대운 (10년 단위) — current 진입 단계 + 전체 리스트. 출생연도 미정 시 null. */
+  /**
+   * 대운 (10년 단위) — current 진입 단계 + 전체 리스트. 첫 대운 전(만 나이 < 첫 대운
+   * 나이)이면 current 는 null 이고 preDaeun 이 '{startsAtAge}세부터 첫 대운'을 알린다
+   * (OD-12, 엔진 감사 E14 — 그 시기는 월주가 맡는다).
+   */
   daeun: {
     current: DaeunEntry | null
+    preDaeun: { startsAtAge: number } | null
     list: DaeunEntry[]
   }
   /**
@@ -287,6 +292,7 @@ export function collectSajuFacts(input: SajuFactsInput): SajuFacts {
               : null,
           }
         : null,
+      preDaeun: raw.daeWoon?.preDaeun ? { startsAtAge: raw.daeWoon.preDaeun.startsAtAge } : null,
       list: (raw.daeWoon?.list ?? []).map((d) => ({
         age: d.age ?? 0,
         heavenlyStem: d.heavenlyStem ?? '',
@@ -324,6 +330,7 @@ interface RawSajuShape {
       age?: number
       sibsin?: { cheon?: string | null; ji?: string | null }
     } | null
+    preDaeun?: { startsAtAge: number } | null
     list?: Array<{
       age?: number
       heavenlyStem?: string

@@ -30,8 +30,7 @@ import { computeDayPillarIndices } from './dayPillar'
 import { annualStemBranch, sajuMonthStemBranch } from './cycles'
 import { getSajuYearForDate } from './datePillars'
 import { SAJU_CACHE, CACHE_KEY } from '@/lib/constants/cache'
-import { currentManAge } from '@/lib/datetime/currentAge'
-import { daysToDaeunAge } from '@/lib/saju/daeunAge'
+import { currentDaeun, daysToDaeunAge } from '@/lib/saju/daeunAge'
 import { normalizeTimeZone } from '@/lib/datetime/timezone'
 import { meanSolarMinuteOfDay } from './timezone'
 import { resolveBirthInstantFromDate } from '@/lib/datetime/resolveBirthInstant'
@@ -494,22 +493,18 @@ export function calculateSajuData(
     const mNowLocal = Number(
       new Intl.DateTimeFormat('en-US', { timeZone: timezone, month: 'numeric' }).format(now)
     )
-    // 만 나이 — 출생지 시간대의 *민용* 생일 기준 (CONVENTIONS §14). 보정된 날짜를
-    // 넘기면 자정 직후 출생의 생일이 전날로 밀려 현재 대운이 하루 일찍 바뀌었다(F14).
-    // currentManAge 가 SSOT — 사주/점성 전체가 만 나이 한 컨벤션이라 화면
-    // 어디서나 동일 값 보장. 대운 list 의 d.age 도 만 나이라 비교 일관.
-    const currentAge = currentManAge({
-      birthYear: civilY,
-      birthMonth: civilM,
-      birthDate: civilD,
-      birthTimeZone: timezone,
-      now,
-    })
-    const currentLuckPillar =
-      daeWoonList
-        .slice()
-        .reverse()
-        .find((d) => currentAge >= d.age) || daeWoonList[0]
+    // 현재 대운 — 순수 함수 currentDaeun(daeunAge.ts) 하나가 고른다. /api/saju 도 캐시된
+    // 결과에 같은 함수를 요청마다 다시 적용한다(SAJU-8). 만 나이는 출생지 시간대의 *민용*
+    // 생일 기준(CONVENTIONS §14, currentManAge) — 보정된 날짜를 넘기면 자정 직후 출생의
+    // 생일이 전날로 밀려 현재 대운이 하루 일찍 바뀌었다(F14). 첫 대운 전에는 월주가 그
+    // 시기를 맡으므로 current = null + preDaeun {startsAtAge}(OD-12, SAJU-7) — 예전엔
+    // `|| daeWoonList[0]` 폴백으로 만 4세에게 7세 대운을 '현재'라 했다.
+    const { current: currentLuckPillar, preDaeun } = currentDaeun(
+      daeWoonList,
+      { year: civilY, month: civilM, day: civilD },
+      timezone,
+      now
+    )
 
     // 연운 (현재 사주연도부터 6년치) — stem-branch 산술은 cycles.ts(single source) 위임.
     // baseAllDataPrompt/어댑터가 기대하는 wide shape(ganji/element 포함) 으로 매핑.
@@ -596,6 +591,7 @@ export function calculateSajuData(
         startAge: daeWoonStartAge,
         isForward,
         current: currentLuckPillar,
+        preDaeun,
         list: daeWoonList,
       },
       unse,
@@ -608,7 +604,12 @@ export function calculateSajuData(
       },
       dayMaster,
       ...(timeUnknown ? { timeUnknown: true } : {}),
-      meta: { birthUtc: birthDateTime.toISOString(), instantKind: resolved.kind },
+      meta: {
+        birthUtc: birthDateTime.toISOString(),
+        instantKind: resolved.kind,
+        civilBirthDate: `${civilY}-${String(civilM).padStart(2, '0')}-${String(civilD).padStart(2, '0')}`,
+        timeZone: timezone,
+      },
     }
 
     // Cache the result (evict oldest if full)

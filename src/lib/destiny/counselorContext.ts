@@ -1060,6 +1060,16 @@ function buildSajuSection(
         : gz
     })
     timing.push(`${L('대운', 'daeun')}: ${tl.join(' / ')}`)
+    // 첫 대운 전(OD-12) — 현재 대운이 없다는 걸 데이터로 못박는다. 안 적으면 LLM 이
+    // 목록 첫 대운을 '지금 대운'으로 읽는다(옛 엔진의 list[0] 폴백과 같은 오류).
+    const pre = facts.daeun.preDaeun
+    if (!cur && pre) {
+      timing.push(
+        locale === 'en'
+          ? `before the first daeun: it starts at age ${pre.startsAtAge}; until then the month pillar governs`
+          : `첫 대운 전: ${pre.startsAtAge}세부터 첫 대운 — 그 전까지는 월주가 시기를 맡음`
+      )
+    }
   } else if (cur) {
     const endAge = typeof cur.age === 'number' ? `${cur.age}~${cur.age + 9}${ys}` : `?${ys}`
     timing.push(

@@ -44,12 +44,7 @@ type SajuCase = {
 const CASES = golden.saju.cases as unknown as SajuCase[]
 
 /** Engine stage that corrects each value. Delete an entry when its stage lands. */
-const KNOWN_DEFECTS: Record<string, string> = {
-  'G05 lon current': 'E14',
-  'G06 lon current': 'E14',
-  'G22 lon current': 'E14',
-  'G22 noLon current': 'E14',
-}
+const KNOWN_DEFECTS: Record<string, string> = {}
 
 const SHOW_DEFECTS = process.env.GOLDEN_SHOW_DEFECTS === '1'
 const usedDefects = new Set<string>()
