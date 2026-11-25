@@ -240,6 +240,15 @@ const KIND_TO_CAT: Record<string, string> = {
   'cross-activation': 'cross/activation',
 }
 
+/**
+ * signal.kind → 표시 카테고리('saju/shinsal' · 'astro/transit' · 'cross/activation' …).
+ * 표에 없는 kind 는 `${source}/${kind}` 로 폴백. toDay 의 DestinypalDaySignal 과
+ * assembleDayTier 의 allSignals projection 이 같은 표를 쓰도록 여기 한 곳에 둔다.
+ */
+export function signalCat(kind: string, source: string): string {
+  return KIND_TO_CAT[kind] ?? `${source}/${kind}`
+}
+
 // 한국어 어스펙트 (transit signal 의 evidence.aspectType → 한글 라벨).
 // 칩·짧은 라벨 슬롯이라 한 단어 평어 — '긴장각/대립각' 류 각(角) 조어는 용어투라
 // 교체(감사 갭 #4). 긴 문장 슬롯의 관계 묘사는 humanizeReason.ASPECT_PLAIN 담당.
@@ -330,7 +339,7 @@ export function toDay(opts: ToDayOptions): DestinypalDay {
         toneNet += s.polarity * s.weight * (LAYER_WEIGHT[s.layer] ?? 0.5)
       }
     }
-    const cat = KIND_TO_CAT[s.kind] ?? s.source + '/' + s.kind
+    const cat = signalCat(s.kind, s.source)
 
     // transit → DayTransit 평탄화
     if (s.kind === 'transit') {

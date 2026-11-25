@@ -26,7 +26,7 @@ import { STEM_NAMES, BRANCH_NAMES } from '@/lib/saju/constants'
 import { SIBSIN_EN } from '@/lib/saju/sibsinLabels'
 import { currentManAge } from '@/lib/datetime/currentAge'
 import { toUser, toDay } from '@/lib/calendar-view'
-import { reconcileCellOneLine } from '@/lib/calendar-view/toDay'
+import { reconcileCellOneLine, signalCat } from '@/lib/calendar-view/toDay'
 import { buildHourCrossings } from '@/lib/calendar-view/toHourCrossings'
 import { buildHourMoon } from '@/lib/calendar-view/toHourMoon'
 import { crossKeys, stripCrossPair, PLANET_EN_FROM_KO } from './crossPair'
@@ -34,40 +34,6 @@ import { crossKeys, stripCrossPair, PLANET_EN_FROM_KO } from './crossPair'
 import type { NatalContext } from '@/lib/calendar-engine/context/types'
 import type { CalendarCell } from '@/lib/calendar-engine/types'
 import type { DestinyDay } from '@/types/calendar'
-
-const SIG_KIND_TO_CAT: Record<string, string> = {
-  shinsal: 'saju/shinsal',
-  hyeongchung: 'saju/hyeongchung',
-  'pillar-sibsin': 'saju/pillar-sibsin',
-  'tonggeun-shift': 'saju/tonggeun-shift',
-  'saju-pattern': 'saju/saju-pattern',
-  jijanggan: 'saju/jijanggan',
-  'geokguk-status': 'saju/geokguk-status',
-  gongmang: 'saju/gongmang',
-  'applied-pattern': 'saju/applied-pattern',
-  transit: 'astro/transit',
-  eclipse: 'astro/eclipse',
-  progression: 'astro/progression',
-  'progressed-moon': 'astro/progressed-moon',
-  'solar-return': 'astro/solar-return',
-  'lunar-return': 'astro/lunar-return',
-  profection: 'astro/profection',
-  'zodiacal-releasing': 'astro/zodiacal-releasing',
-  lifecycle: 'astro/lifecycle',
-  electional: 'astro/electional',
-  'moon-phase': 'astro/moon-phase',
-  'void-of-course': 'astro/void-of-course',
-  'fixed-star': 'astro/fixed-star',
-  'arabic-part': 'astro/arabic-part',
-  'house-transit': 'astro/house-transit',
-  'angle-contact': 'astro/angle-contact',
-  midpoint: 'astro/midpoint',
-  asteroid: 'astro/asteroid',
-  'solar-arc': 'astro/solar-arc',
-  draconic: 'astro/draconic',
-  harmonic: 'astro/harmonic',
-  'cross-activation': 'cross/activation',
-}
 
 /**
  * 다가오는 '큰 날' — upcoming(대상일 다음날~7일, 일점수) 중 '좋은 날'(band 기준)의
@@ -181,7 +147,7 @@ export async function assembleDayTier(input: AssembleDayTierInput): Promise<Dest
   const allDaySignals: DSig[] = dayCell.signals.map((s) => {
     const base = {
       id: s.id,
-      cat: SIG_KIND_TO_CAT[s.kind] ?? `${s.source}/${s.kind}`,
+      cat: signalCat(s.kind, s.source),
       label: s.name,
       // 엔진이 EN 라벨을 별도 방출했으면(있을 때만) 보존 — DayTier 신호 스트림이
       // EN 로케일에서 s.english 우선 사용(없으면 localizeLabel 폴백, KO 유지).
