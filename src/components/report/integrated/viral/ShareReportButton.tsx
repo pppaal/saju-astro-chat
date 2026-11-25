@@ -21,8 +21,6 @@ import type { ViralSummary } from '@/lib/report/viralArchetype'
 
 export interface ShareReportButtonProps {
   summary: ViralSummary
-  name: string
-  dateLabel: string
   isKo: boolean
 }
 
@@ -41,7 +39,7 @@ async function preloadImages(srcs: string[]): Promise<void> {
   )
 }
 
-export function ShareReportButton({ summary, name, dateLabel, isKo }: ShareReportButtonProps) {
+export function ShareReportButton({ summary, isKo }: ShareReportButtonProps) {
   const cardRef = useRef<HTMLDivElement>(null)
   // 'idle' | 'rendering'(캡처 중) | 'preview'(모달)
   const [phase, setPhase] = useState<'idle' | 'rendering' | 'preview'>('idle')
@@ -55,7 +53,8 @@ export function ShareReportButton({ summary, name, dateLabel, isKo }: ShareRepor
   const [linkError, setLinkError] = useState<string | null>(null)
   const linkBusyRef = useRef(false)
 
-  const shareData: ReportShareData = { summary, name, dateLabel, isKo }
+  // 이름·생년월일은 받지도 싣지도 않는다 — 공유 PNG 는 유형 요약만(ReportShareCard 참고).
+  const shareData: ReportShareData = { summary, isKo }
 
   const shareLink = useCallback(async () => {
     if (linkBusyRef.current) return
@@ -181,7 +180,8 @@ export function ShareReportButton({ summary, name, dateLabel, isKo }: ShareRepor
     setBlob(null)
   }
 
-  const filename = `destinypal-type-${dateLabel.replace(/[^0-9a-zA-Z]+/g, '-')}.png`
+  // 파일명에도 생년월일을 넣지 않는다(공유 시트·메신저에 그대로 노출됨).
+  const filename = 'destinypal-type.png'
 
   const handleNativeShare = async () => {
     if (!blob) return

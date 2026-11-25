@@ -27,12 +27,12 @@ export const SHARE_CARD_SIZE = 1080
 // 이미지 공유는 클릭 불가라 받는 사람이 돌아올 경로(도메인)를 카드에 박는다.
 const SHARE_DOMAIN = shareDomain()
 
+/**
+ * 공유 PNG 에 싣는 값 — 유형 요약만. 이름·생년월일은 싣지 않는다: 이미지는 한번
+ * 퍼지면 회수할 수 없고, 생년월일은 사주 전체를 복원하는 개인정보다(plan B4 privacy).
+ */
 export interface ReportShareData {
   summary: ViralSummary
-  /** 출생자 이름 — 카드 상단에 옅게. */
-  name: string
-  /** 표시용 생년월일 — ko 는 '1990년 1월 1일', en 은 '1990-01-01'. */
-  dateLabel: string
   isKo: boolean
 }
 
@@ -52,7 +52,7 @@ const SANS = "'Gowun Dodum', 'Noto Sans KR', 'Apple SD Gothic Neo', system-ui, s
 
 export const ReportShareCard = React.forwardRef<HTMLDivElement, { data: ReportShareData }>(
   function ReportShareCard({ data }, ref) {
-    const { summary, name, dateLabel, isKo } = data
+    const { summary, isKo } = data
     const hashtags = summary.hashtags.filter(Boolean).slice(0, 3)
     const resonant = summary.resonant.filter(Boolean)
 
@@ -89,21 +89,9 @@ export const ReportShareCard = React.forwardRef<HTMLDivElement, { data: ReportSh
           }}
         />
 
-        {/* 상단 — 이름·생년월일 (옅게) */}
-        <div
-          style={{
-            zIndex: 1,
-            width: '100%',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'baseline',
-            fontSize: 22,
-            color: TEXT_MUTE,
-          }}
-        >
-          <span style={{ fontFamily: SERIF, letterSpacing: '0.02em' }}>{name}</span>
-          <span style={{ letterSpacing: '0.04em' }}>{dateLabel}</span>
-        </div>
+        {/* 상단 여백 — 예전 이름·생년월일 줄 자리. 개인정보라 빼되, space-between
+            배치가 그대로 유지되도록 같은 높이의 빈 줄만 남긴다. */}
+        <div aria-hidden style={{ zIndex: 1, width: '100%', height: 26 }} />
 
         {/* 본체 — 유형 */}
         <div

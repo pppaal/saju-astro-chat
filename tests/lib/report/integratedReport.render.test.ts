@@ -17,6 +17,11 @@ import { buildNatalContext } from '@/lib/calendar-engine/context/build'
 import { getTwelveStagesForPillars } from '@/lib/saju/shinsal'
 import { natalToReportData, buildCrossRows } from '@/lib/report/integratedAdapter'
 import { IntegratedReport } from '@/components/report/integrated/IntegratedReport'
+import {
+  ReportShareCard,
+  type ReportShareData,
+} from '@/components/report/integrated/viral/ReportShareCard'
+import { buildViralSummary } from '@/lib/report/viralArchetype'
 
 describe('통합 리포트 — 정적 HTML 렌더', () => {
   it('실데이터로 HTML 파일 생성', async () => {
@@ -57,4 +62,27 @@ describe('통합 리포트 — 정적 HTML 렌더', () => {
     writeFileSync(resolve(process.cwd(), 'report-render.html'), html, 'utf8')
     expect(markup.length).toBeGreaterThan(1000)
   }, 30000)
+
+  it('공유 카드(PNG) 에는 이름·생년월일이 없다 — 넘겨도 그리지 않는다 (plan B4 privacy)', () => {
+    const summary = buildViralSummary({
+      dayMaster: '壬',
+      strengths: ['통찰'],
+      resonant: ['자아'],
+      yongsinElement: 'metal',
+      lang: 'ko',
+    })!
+    expect(summary).toBeTruthy()
+    // 예전 필드(name/dateLabel)를 억지로 실어도 카드에 새지 않아야 한다.
+    const legacy = {
+      summary,
+      isKo: true,
+      name: '홍길동',
+      dateLabel: '1997년 3월 21일',
+    } as unknown as ReportShareData
+    const markup = renderToStaticMarkup(React.createElement(ReportShareCard, { data: legacy }))
+    expect(markup).toContain(summary.name)
+    for (const pii of ['홍길동', '1997년 3월 21일', '1997-03-21', '1997']) {
+      expect(markup).not.toContain(pii)
+    }
+  })
 })

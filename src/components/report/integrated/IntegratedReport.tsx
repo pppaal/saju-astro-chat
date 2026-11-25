@@ -74,6 +74,7 @@ import AspectDetail from './detail/AspectDetail'
 import ViralTopCard from './viral/ViralTopCard'
 import { buildViralSummary, normalizeStrength } from '@/lib/report/viralArchetype'
 import { pickHeadlineSibsin } from '@/lib/report/crossType'
+import { tallyCrossRows } from '@/lib/report/natalCross'
 import { ShareReportButton } from './viral/ShareReportButton'
 
 export type { Lang } from '@/lib/report/integratedReportLabels'
@@ -166,10 +167,10 @@ const CATEGORY_MEANING: Record<string, BiLabel> = {
 }
 
 // 카르마/성장 축은 resonant·tension 같은 '톤'이 아니라 평생 숙제 축이라, 톤 막대·
-// 톤별 조언·바이럴 요약에서 모두 빼야 한다. cross row 의 `karmaAxis` 플래그는
-// 매칭 분기에서만 켜져 중립 카르마 행을 놓치므로, 카테고리 기반으로 일관 판정한다.
-const KARMA_CATEGORIES = new Set(['공망/카르마', '성장 방향', 'Void / Karma', 'Growth Direction'])
-const isKarmaRow = (r: { category: string }) => KARMA_CATEGORIES.has(r.category)
+// 톤별 조언·바이럴 요약에서 모두 빼야 한다. 엔진(evalVoid·evalNorthNode)이 두 축의
+// 모든 분기에 `karmaAxis` 를 달아 주므로, 그 플래그 하나로 판정한다 — 표시 라벨(ko/en)
+// 문자열에 기대던 카테고리 목록은 도입부 집계(synthesize)와 규칙이 갈라졌었다.
+const isKarmaRow = (r: { karmaAxis?: boolean }) => r.karmaAxis === true
 // 엇갈림(clash) 훅 선택 우선순위 — 서술자(left/right)를 내는 교차 축은 욕망(needs)·
 // 기질(temperament)·정체성(identity) 셋뿐이다. 정체성은 tension 이 가장 흔해 그대로
 // 두면 clash 가 '정체성'으로 몰린다(친구끼리 훅 겹침). 더 개인적이고 서로 독립적인
@@ -612,7 +613,8 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
     // 차트 합성 헤드라인 — 명식 전체 주도 십성으로 사람마다 다른 유형/한 줄, 마찰 있으면
     // 콕 집는 줄. 일지(배우자궁)가 아니라 최빈 십성을 써야 "완전 나"가 정체와 맞는다(C1).
     dominantSibsin: headlineSibsin,
-    hasTension: (cross?.rows ?? []).some((r) => r.tone === 'tension'),
+    // 결핍(카르마/성장) 축의 tension 은 동·서양 '엇갈림'이 아니라 숙제 축이라 제외.
+    hasTension: (cross?.rows ?? []).some((r) => r.tone === 'tension' && !isKarmaRow(r)),
     // 일주(60갑자) 별명 — 십성×강약만으론 친구끼리 카드 문장이 겹쳐 60-way 축 추가.
     iljuCharacter: ilju?.character ?? null,
     // 동·서양이 실제로 엇갈린 지점(우선순위로 고른 tension) — 카드 ⚡ 현실 모순 훅.
@@ -639,13 +641,16 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
         </div>
         <p className={s.chapterLead}>{t('sec05Lead')}</p>
         <Explain section="s05" lang={lang} />
-        {/* 톤 분포 막대 — 사주×별자리가 얼마나 같은/다른 결인지 한눈에. */}
+        {/* 톤 분포 막대 — 사주×별자리가 얼마나 같은/다른 결인지 한눈에.
+            도입부 문장(synthesize)과 같은 tallyCrossRows 로 세어 숫자가 일치한다. */}
         {(() => {
-          const counts = { resonant: 0, complement: 0, tension: 0, neutral: 0 }
-          cross.rows.forEach((r) => {
-            if (isKarmaRow(r)) return
-            counts[r.tone]++
-          })
+          const tally = tallyCrossRows(cross.rows)
+          const counts = {
+            resonant: tally.same,
+            complement: tally.supportive,
+            tension: tally.twoPulls,
+            neutral: tally.unrelated,
+          }
           const segs = (['resonant', 'complement', 'tension', 'neutral'] as const).filter(
             (k) => counts[k] > 0
           )
@@ -820,14 +825,7 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
           <ViralTopCard
             summary={viral}
             lang={lang}
-            action={
-              <ShareReportButton
-                summary={viral}
-                name={input.name}
-                dateLabel={input.date}
-                isKo={lang === 'ko'}
-              />
-            }
+            action={<ShareReportButton summary={viral} isKo={lang === 'ko'} />}
           />
         )}
 
