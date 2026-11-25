@@ -5,7 +5,7 @@
  *
  * Increment ①: SAJU section.
  */
-import { ELEMENT_KO_TO_EN } from '@/lib/saju/constants'
+import { ELEMENT_KO_TO_EN, STEMS } from '@/lib/saju/constants'
 import { STEM_HANJA_TO_HANGUL } from '@/lib/saju/graphIds'
 import { collectSajuFacts } from '@/lib/destiny/sajuFacts'
 import { computeCurrentUnse, type CurrentUnse } from '@/lib/saju/currentUnse'
@@ -157,6 +157,71 @@ const GEOKGUK_SPECIAL_EN: Record<string, string> = {
 
 const WEEKDAY_KO = ['일', '월', '화', '수', '목', '금', '토']
 const WEEKDAY_EN = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+
+/**
+ * 상담사 컨텍스트 신살 화이트리스트(KO 라벨) — 키는 엔진이 실제로 내는 신살 이름
+ * (shinsal.ts ShinsalHit['kind']) 그대로여야 한다. 예전 '문창귀인'·'과숙' 키는 엔진이
+ * 내지 않는 이름이라 문창이 상담사에서만 조용히 빠졌다(SDR-06). 테스트가 키 ⊆ 엔진 이름을 잠근다.
+ */
+export const COUNSELOR_SHINSAL_LABEL: Readonly<Record<string, string>> = {
+  도화: '매력·이성',
+  홍염살: '색기·끌림',
+  백호: '격정·강렬',
+  괴강: '카리스마·강고',
+  양인: '날카로움·과격',
+  귀문관: '집착·예민',
+  원진: '미묘한 반감',
+  고신: '고독 기질',
+  금여성: '배우자 복·기품',
+  천덕귀인: '보호·덕',
+  월덕귀인: '보호·덕',
+  천을귀인: '귀인 보호',
+  태극귀인: '숨은 길성',
+  암록: '숨은 부조',
+  문창: '학문·창작',
+  학당귀인: '학문',
+  문곡: '글재능',
+  천주귀인: '의식주 안정',
+  건록: '자기 기반',
+  제왕: '정점·고집',
+  화개: '예술·종교·고독',
+  역마: '이동·변동',
+  장성: '권력·리더',
+  지살: '이동',
+  망신: '관재·구설',
+  천라지망: '걸림·답답',
+  // 공망은 [합충] 에 이미 출력 → 여기선 skip
+}
+// EN locale: 한국어 신살명은 영어 사용자에게 의미가 없으니 이름은 음역,
+// 라벨은 영어 뜻으로 — 한국어가 영어 응답에 새지 않게.
+export const COUNSELOR_SHINSAL_EN: Readonly<Record<string, { name: string; mean: string }>> = {
+  도화: { name: 'Dohwa', mean: 'charm, allure' },
+  홍염살: { name: 'Hongyeom', mean: 'sensual magnetism' },
+  백호: { name: 'Baekho', mean: 'intense, fierce' },
+  괴강: { name: 'Goegang', mean: 'charisma, force' },
+  양인: { name: 'Yangin', mean: 'sharp, aggressive' },
+  귀문관: { name: 'Gwimun', mean: 'obsessive, sensitive' },
+  원진: { name: 'Wonjin', mean: 'subtle aversion' },
+  고신: { name: 'Gosin', mean: 'solitary streak' },
+  금여성: { name: 'Geumyeo', mean: 'spouse fortune, grace' },
+  천덕귀인: { name: 'Cheondeok', mean: 'protection, virtue' },
+  월덕귀인: { name: 'Woldeok', mean: 'protection, virtue' },
+  천을귀인: { name: 'Cheoneul', mean: 'noble protection' },
+  태극귀인: { name: 'Taegeuk', mean: 'hidden fortune' },
+  암록: { name: 'Amrok', mean: 'hidden support' },
+  문창: { name: 'Munchang', mean: 'study, creativity' },
+  학당귀인: { name: 'Hakdang', mean: 'scholarship' },
+  문곡: { name: 'Mungok', mean: 'writing talent' },
+  천주귀인: { name: 'Cheonju', mean: 'material stability' },
+  건록: { name: 'Geollok', mean: 'self-foundation' },
+  제왕: { name: 'Jewang', mean: 'peak, stubborn' },
+  화개: { name: 'Hwagae', mean: 'art, spirituality, solitude' },
+  역마: { name: 'Yeokma', mean: 'movement, change' },
+  장성: { name: 'Jangseong', mean: 'authority, leadership' },
+  지살: { name: 'Jisal', mean: 'relocation' },
+  망신: { name: 'Mangsin', mean: 'legal/gossip trouble' },
+  천라지망: { name: 'Cheollajimang', mean: 'entanglement, stuck' },
+}
 
 /**
  * 오늘(로컬 날짜) 포함 N일치 일진 간지. queryDate 의 서버(UTC) 날짜가 아니라
@@ -912,84 +977,23 @@ function buildSajuSection(
       includeGeneralShinsal: true,
       includeLuckyDetails: true,
     }) as Array<{ kind?: string; pillars?: string[] }>
-    const SHINSAL_LABEL: Record<string, string> = {
-      도화: '매력·이성',
-      홍염살: '색기·끌림',
-      백호: '격정·강렬',
-      괴강: '카리스마·강고',
-      양인: '날카로움·과격',
-      귀문관: '집착·예민',
-      원진: '미묘한 반감',
-      고신: '고독 기질',
-      과숙: '고독 기질(여)',
-      금여성: '배우자 복·기품',
-      천덕귀인: '보호·덕',
-      월덕귀인: '보호·덕',
-      천을귀인: '귀인 보호',
-      태극귀인: '숨은 길성',
-      암록: '숨은 부조',
-      문창귀인: '학문·창작',
-      학당귀인: '학문',
-      문곡: '글재능',
-      천주귀인: '의식주 안정',
-      건록: '자기 기반',
-      제왕: '정점·고집',
-      화개: '예술·종교·고독',
-      역마: '이동·변동',
-      장성: '권력·리더',
-      지살: '이동',
-      망신: '관재·구설',
-      천라지망: '걸림·답답',
-      // 공망은 [합충] 에 이미 출력 → 여기선 skip
-    }
-    // EN locale: 한국어 신살명은 영어 사용자에게 의미가 없으니 이름은 음역,
-    // 라벨은 영어 뜻으로 — 한국어가 영어 응답에 새지 않게.
-    const SHINSAL_EN: Record<string, { name: string; mean: string }> = {
-      도화: { name: 'Dohwa', mean: 'charm, allure' },
-      홍염살: { name: 'Hongyeom', mean: 'sensual magnetism' },
-      백호: { name: 'Baekho', mean: 'intense, fierce' },
-      괴강: { name: 'Goegang', mean: 'charisma, force' },
-      양인: { name: 'Yangin', mean: 'sharp, aggressive' },
-      귀문관: { name: 'Gwimun', mean: 'obsessive, sensitive' },
-      원진: { name: 'Wonjin', mean: 'subtle aversion' },
-      고신: { name: 'Gosin', mean: 'solitary streak' },
-      과숙: { name: 'Gwasuk', mean: 'solitary streak (female)' },
-      금여성: { name: 'Geumyeo', mean: 'spouse fortune, grace' },
-      천덕귀인: { name: 'Cheondeok', mean: 'protection, virtue' },
-      월덕귀인: { name: 'Woldeok', mean: 'protection, virtue' },
-      천을귀인: { name: 'Cheoneul', mean: 'noble protection' },
-      태극귀인: { name: 'Taegeuk', mean: 'hidden fortune' },
-      암록: { name: 'Amrok', mean: 'hidden support' },
-      문창귀인: { name: 'Munchang', mean: 'study, creativity' },
-      학당귀인: { name: 'Hakdang', mean: 'scholarship' },
-      문곡: { name: 'Mungok', mean: 'writing talent' },
-      천주귀인: { name: 'Cheonju', mean: 'material stability' },
-      건록: { name: 'Geollok', mean: 'self-foundation' },
-      제왕: { name: 'Jewang', mean: 'peak, stubborn' },
-      화개: { name: 'Hwagae', mean: 'art, spirituality, solitude' },
-      역마: { name: 'Yeokma', mean: 'movement, change' },
-      장성: { name: 'Jangseong', mean: 'authority, leadership' },
-      지살: { name: 'Jisal', mean: 'relocation' },
-      망신: { name: 'Mangsin', mean: 'legal/gossip trouble' },
-      천라지망: { name: 'Cheollajimang', mean: 'entanglement, stuck' },
-    }
     const POS_EN: Record<string, string> = { year: 'Y', month: 'M', day: 'D', time: 'H' }
     const isEn = locale === 'en'
     const SKIP = new Set(['공망', '삼재']) // 삼재 는 시기성 신살, 본명 컨텍스트 약함
     const hits: string[] = []
     for (const h of allHits) {
       const kind = h?.kind
-      if (!kind || SKIP.has(kind) || !(kind in SHINSAL_LABEL)) continue
+      if (!kind || SKIP.has(kind) || !(kind in COUNSELOR_SHINSAL_LABEL)) continue
       const loc = (h.pillars ?? [])
         .map((p) =>
           isEn ? (POS_EN[p] ?? p) : ({ year: '년', month: '월', day: '일', time: '시' }[p] ?? p)
         )
         .join('·')
       if (isEn) {
-        const en = SHINSAL_EN[kind]
+        const en = COUNSELOR_SHINSAL_EN[kind]
         hits.push(en ? `${en.name}(${loc}, ${en.mean})` : `${kind}(${loc})`)
       } else {
-        hits.push(`${kind}(${loc}, ${SHINSAL_LABEL[kind]})`)
+        hits.push(`${kind}(${loc}, ${COUNSELOR_SHINSAL_LABEL[kind]})`)
       }
     }
     if (hits.length) out.push(`${L('신살', 'sinsal')}: ${hits.join(' / ')}`)
@@ -1210,9 +1214,12 @@ function buildSajuSection(
     }
   }
 
-  const iljinWindow = localNow
-    ? buildIljinWindowBlock(facts.dayMaster as unknown as DayMaster, localNow, 7, locale)
-    : ''
+  // 일진 십신은 일간의 음양이 있어야 한다 — facts.dayMaster 는 {name, element, yinYang}
+  // 이라 getSibseong 이 읽는 yin_yang 이 없어 같은 음양 십신(비견·식신·편재·편관·편인)을
+  // 늘 반대쪽으로 냈다(TP-1). 천간 SSOT(STEMS)에서 일간 객체를 그대로 가져온다.
+  const dayMasterStem = STEMS.find((st) => st.name === facts.dayMaster.name)
+  const iljinWindow =
+    localNow && dayMasterStem ? buildIljinWindowBlock(dayMasterStem, localNow, 7, locale) : ''
 
   return {
     natal:
