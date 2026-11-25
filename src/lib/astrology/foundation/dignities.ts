@@ -100,25 +100,46 @@ export function dignityOf(planet: string, sign: string): DignityStatus {
 // ============================================================================
 
 type SignKey =
-  | 'Aries' | 'Taurus' | 'Gemini' | 'Cancer'
-  | 'Leo' | 'Virgo' | 'Libra' | 'Scorpio'
-  | 'Sagittarius' | 'Capricorn' | 'Aquarius' | 'Pisces'
+  | 'Aries'
+  | 'Taurus'
+  | 'Gemini'
+  | 'Cancer'
+  | 'Leo'
+  | 'Virgo'
+  | 'Libra'
+  | 'Scorpio'
+  | 'Sagittarius'
+  | 'Capricorn'
+  | 'Aquarius'
+  | 'Pisces'
 
 /** English-or-Korean name → canonical English key. Returns null if unrecognised. */
 function toSignKey(sign: string): SignKey | null {
   const map: Record<string, SignKey> = {
-    Aries: 'Aries', '양자리': 'Aries',
-    Taurus: 'Taurus', '황소자리': 'Taurus',
-    Gemini: 'Gemini', '쌍둥이자리': 'Gemini',
-    Cancer: 'Cancer', '게자리': 'Cancer',
-    Leo: 'Leo', '사자자리': 'Leo',
-    Virgo: 'Virgo', '처녀자리': 'Virgo',
-    Libra: 'Libra', '천칭자리': 'Libra',
-    Scorpio: 'Scorpio', '전갈자리': 'Scorpio',
-    Sagittarius: 'Sagittarius', '사수자리': 'Sagittarius',
-    Capricorn: 'Capricorn', '염소자리': 'Capricorn',
-    Aquarius: 'Aquarius', '물병자리': 'Aquarius',
-    Pisces: 'Pisces', '물고기자리': 'Pisces',
+    Aries: 'Aries',
+    양자리: 'Aries',
+    Taurus: 'Taurus',
+    황소자리: 'Taurus',
+    Gemini: 'Gemini',
+    쌍둥이자리: 'Gemini',
+    Cancer: 'Cancer',
+    게자리: 'Cancer',
+    Leo: 'Leo',
+    사자자리: 'Leo',
+    Virgo: 'Virgo',
+    처녀자리: 'Virgo',
+    Libra: 'Libra',
+    천칭자리: 'Libra',
+    Scorpio: 'Scorpio',
+    전갈자리: 'Scorpio',
+    Sagittarius: 'Sagittarius',
+    사수자리: 'Sagittarius',
+    Capricorn: 'Capricorn',
+    염소자리: 'Capricorn',
+    Aquarius: 'Aquarius',
+    물병자리: 'Aquarius',
+    Pisces: 'Pisces',
+    물고기자리: 'Pisces',
   }
   return map[sign] ?? null
 }
@@ -129,22 +150,33 @@ function toSignKey(sign: string): SignKey | null {
  * ruler. We expose day/night because that's what most modern sect-based
  * scoring engines reference.
  */
-export const TRIPLICITY: Record<'fire' | 'earth' | 'air' | 'water', {
-  day: string
-  night: string
-  participating: string
-}> = {
-  fire: { day: 'Sun', night: 'Jupiter', participating: 'Saturn' },     // Aries / Leo / Sagittarius
-  earth: { day: 'Venus', night: 'Moon', participating: 'Mars' },        // Taurus / Virgo / Capricorn
-  air: { day: 'Saturn', night: 'Mercury', participating: 'Jupiter' },   // Gemini / Libra / Aquarius
-  water: { day: 'Venus', night: 'Mars', participating: 'Moon' },        // Cancer / Scorpio / Pisces
+export const TRIPLICITY: Record<
+  'fire' | 'earth' | 'air' | 'water',
+  {
+    day: string
+    night: string
+    participating: string
+  }
+> = {
+  fire: { day: 'Sun', night: 'Jupiter', participating: 'Saturn' }, // Aries / Leo / Sagittarius
+  earth: { day: 'Venus', night: 'Moon', participating: 'Mars' }, // Taurus / Virgo / Capricorn
+  air: { day: 'Saturn', night: 'Mercury', participating: 'Jupiter' }, // Gemini / Libra / Aquarius
+  water: { day: 'Venus', night: 'Mars', participating: 'Moon' }, // Cancer / Scorpio / Pisces
 }
 
 const SIGN_ELEMENT: Record<SignKey, 'fire' | 'earth' | 'air' | 'water'> = {
-  Aries: 'fire', Leo: 'fire', Sagittarius: 'fire',
-  Taurus: 'earth', Virgo: 'earth', Capricorn: 'earth',
-  Gemini: 'air', Libra: 'air', Aquarius: 'air',
-  Cancer: 'water', Scorpio: 'water', Pisces: 'water',
+  Aries: 'fire',
+  Leo: 'fire',
+  Sagittarius: 'fire',
+  Taurus: 'earth',
+  Virgo: 'earth',
+  Capricorn: 'earth',
+  Gemini: 'air',
+  Libra: 'air',
+  Aquarius: 'air',
+  Cancer: 'water',
+  Scorpio: 'water',
+  Pisces: 'water',
 }
 
 /**
@@ -157,7 +189,7 @@ const SIGN_ELEMENT: Record<SignKey, 'fire' | 'earth' | 'air' | 'water'> = {
 export function triplicityOf(
   planet: string,
   sign: string,
-  dayBirth: boolean,
+  dayBirth: boolean
 ): 'day' | 'night' | 'participating' | null {
   const key = toSignKey(sign)
   if (!key) return null
@@ -177,18 +209,90 @@ export function triplicityOf(
  * Degrees are within-sign 0..30.
  */
 const EGYPTIAN_TERMS: Record<SignKey, Array<[number, string]>> = {
-  Aries:       [[6, 'Jupiter'], [12, 'Venus'],   [20, 'Mercury'], [25, 'Mars'],    [30, 'Saturn']],
-  Taurus:      [[8, 'Venus'],   [14, 'Mercury'], [22, 'Jupiter'], [27, 'Saturn'],  [30, 'Mars']],
-  Gemini:      [[6, 'Mercury'], [12, 'Jupiter'], [17, 'Venus'],   [24, 'Mars'],    [30, 'Saturn']],
-  Cancer:      [[7, 'Mars'],    [13, 'Venus'],   [19, 'Mercury'], [26, 'Jupiter'], [30, 'Saturn']],
-  Leo:         [[6, 'Jupiter'], [11, 'Venus'],   [18, 'Saturn'],  [24, 'Mercury'], [30, 'Mars']],
-  Virgo:       [[7, 'Mercury'], [17, 'Venus'],   [21, 'Jupiter'], [28, 'Mars'],    [30, 'Saturn']],
-  Libra:       [[6, 'Saturn'],  [14, 'Mercury'], [21, 'Jupiter'], [28, 'Venus'],   [30, 'Mars']],
-  Scorpio:     [[7, 'Mars'],    [11, 'Venus'],   [19, 'Mercury'], [24, 'Jupiter'], [30, 'Saturn']],
-  Sagittarius: [[12, 'Jupiter'],[17, 'Venus'],   [21, 'Mercury'], [26, 'Saturn'],  [30, 'Mars']],
-  Capricorn:   [[7, 'Mercury'], [14, 'Jupiter'], [22, 'Venus'],   [26, 'Saturn'],  [30, 'Mars']],
-  Aquarius:    [[7, 'Mercury'], [13, 'Venus'],   [20, 'Jupiter'], [25, 'Mars'],    [30, 'Saturn']],
-  Pisces:      [[12, 'Venus'],  [16, 'Jupiter'], [19, 'Mercury'], [28, 'Mars'],    [30, 'Saturn']],
+  Aries: [
+    [6, 'Jupiter'],
+    [12, 'Venus'],
+    [20, 'Mercury'],
+    [25, 'Mars'],
+    [30, 'Saturn'],
+  ],
+  Taurus: [
+    [8, 'Venus'],
+    [14, 'Mercury'],
+    [22, 'Jupiter'],
+    [27, 'Saturn'],
+    [30, 'Mars'],
+  ],
+  Gemini: [
+    [6, 'Mercury'],
+    [12, 'Jupiter'],
+    [17, 'Venus'],
+    [24, 'Mars'],
+    [30, 'Saturn'],
+  ],
+  Cancer: [
+    [7, 'Mars'],
+    [13, 'Venus'],
+    [19, 'Mercury'],
+    [26, 'Jupiter'],
+    [30, 'Saturn'],
+  ],
+  Leo: [
+    [6, 'Jupiter'],
+    [11, 'Venus'],
+    [18, 'Saturn'],
+    [24, 'Mercury'],
+    [30, 'Mars'],
+  ],
+  Virgo: [
+    [7, 'Mercury'],
+    [17, 'Venus'],
+    [21, 'Jupiter'],
+    [28, 'Mars'],
+    [30, 'Saturn'],
+  ],
+  Libra: [
+    [6, 'Saturn'],
+    [14, 'Mercury'],
+    [21, 'Jupiter'],
+    [28, 'Venus'],
+    [30, 'Mars'],
+  ],
+  Scorpio: [
+    [7, 'Mars'],
+    [11, 'Venus'],
+    [19, 'Mercury'],
+    [24, 'Jupiter'],
+    [30, 'Saturn'],
+  ],
+  Sagittarius: [
+    [12, 'Jupiter'],
+    [17, 'Venus'],
+    [21, 'Mercury'],
+    [26, 'Saturn'],
+    [30, 'Mars'],
+  ],
+  Capricorn: [
+    [7, 'Mercury'],
+    [14, 'Jupiter'],
+    [22, 'Venus'],
+    [26, 'Saturn'],
+    [30, 'Mars'],
+  ],
+  Aquarius: [
+    [7, 'Mercury'],
+    [13, 'Venus'],
+    [20, 'Jupiter'],
+    [25, 'Mars'],
+    [30, 'Saturn'],
+  ],
+  Pisces: [
+    [12, 'Venus'],
+    [16, 'Jupiter'],
+    [19, 'Mercury'],
+    [28, 'Mars'],
+    [30, 'Saturn'],
+  ],
 }
 
 /**
@@ -228,18 +332,18 @@ export function termRulerAt(sign: string, degree: number): string | null {
  * starting from Mars at 0° Aries.
  */
 const CHALDEAN_FACES: Record<SignKey, [string, string, string]> = {
-  Aries:       ['Mars',    'Sun',     'Venus'],
-  Taurus:      ['Mercury', 'Moon',    'Saturn'],
-  Gemini:      ['Jupiter', 'Mars',    'Sun'],
-  Cancer:      ['Venus',   'Mercury', 'Moon'],
-  Leo:         ['Saturn',  'Jupiter', 'Mars'],
-  Virgo:       ['Sun',     'Venus',   'Mercury'],
-  Libra:       ['Moon',    'Saturn',  'Jupiter'],
-  Scorpio:     ['Mars',    'Sun',     'Venus'],
-  Sagittarius: ['Mercury', 'Moon',    'Saturn'],
-  Capricorn:   ['Jupiter', 'Mars',    'Sun'],
-  Aquarius:   ['Venus',   'Mercury', 'Moon'],
-  Pisces:      ['Saturn',  'Jupiter', 'Mars'],
+  Aries: ['Mars', 'Sun', 'Venus'],
+  Taurus: ['Mercury', 'Moon', 'Saturn'],
+  Gemini: ['Jupiter', 'Mars', 'Sun'],
+  Cancer: ['Venus', 'Mercury', 'Moon'],
+  Leo: ['Saturn', 'Jupiter', 'Mars'],
+  Virgo: ['Sun', 'Venus', 'Mercury'],
+  Libra: ['Moon', 'Saturn', 'Jupiter'],
+  Scorpio: ['Mars', 'Sun', 'Venus'],
+  Sagittarius: ['Mercury', 'Moon', 'Saturn'],
+  Capricorn: ['Jupiter', 'Mars', 'Sun'],
+  Aquarius: ['Venus', 'Mercury', 'Moon'],
+  Pisces: ['Saturn', 'Jupiter', 'Mars'],
 }
 
 /**
@@ -269,13 +373,13 @@ export function faceRulerAt(sign: string, degree: number): string | null {
 // ============================================================================
 
 export interface DignityTiers {
-  domicile: boolean      // classical +5 → polarity +1
-  exaltation: boolean    // +4 → +1
-  triplicity: boolean    // +3 → +0.5
-  term: boolean          // +2 → +0.3
-  face: boolean          // +1 → +0.2
-  detriment: boolean     // → -1
-  fall: boolean          // → -1
+  domicile: boolean // classical +5 → polarity +1
+  exaltation: boolean // +4 → +1
+  triplicity: boolean // +3 → +0.5
+  term: boolean // +2 → +0.3
+  face: boolean // +1 → +0.2
+  detriment: boolean // → -1
+  fall: boolean // → -1
 }
 
 /**
@@ -286,16 +390,16 @@ export function dignityTiers(
   planet: string,
   sign: string,
   degree: number,
-  sect: 'day' | 'night',
+  sect: 'day' | 'night'
 ): DignityTiers {
   return {
-    domicile:   DOMICILE[planet]?.includes(sign) ?? false,
+    domicile: DOMICILE[planet]?.includes(sign) ?? false,
     exaltation: EXALTATION[planet]?.includes(sign) ?? false,
     triplicity: triplicityOf(planet, sign, sect === 'day') !== null,
-    term:       termOf(planet, sign, degree) !== null,
-    face:       faceOf(planet, sign, degree) !== null,
-    detriment:  DETRIMENT[planet]?.includes(sign) ?? false,
-    fall:       FALL[planet]?.includes(sign) ?? false,
+    term: termOf(planet, sign, degree) !== null,
+    face: faceOf(planet, sign, degree) !== null,
+    detriment: DETRIMENT[planet]?.includes(sign) ?? false,
+    fall: FALL[planet]?.includes(sign) ?? false,
   }
 }
 
