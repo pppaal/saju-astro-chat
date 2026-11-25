@@ -279,7 +279,10 @@ export async function collectAstroFacts(
   // 매 요청 ZR×2·Almuten·7 Arabic Lots·행성별 5단계 존엄을 재계산하던 것을
   // Redis 30일 캐시로 막는다(미스/Redis 없으면 graceful 재계산). 결과는 순수
   // 데이터라 JSON 직렬화 안전.
-  const hellenistic = input.includeHellenistic
+  // placeUnreliable 이면 캐시에서 꺼낸 뒤 ASC·하우스 의존 항목을 가린다(단일 출처 —
+  // 리포트·캘린더 컨텍스트가 각자 가리지 않아도 된다). 캐시 값 자체는 출생정보만의
+  // 함수라 키·버전은 그대로.
+  const hellenisticRaw = input.includeHellenistic
     ? await cacheOrCalculate(
         `hellenistic:v${HELLENISTIC_CACHE_VERSION}:${input.birthDate}:${input.birthTime || ''}:${input.latitude.toFixed(2)}:${input.longitude.toFixed(2)}:${safeTz}`,
         async () =>
@@ -296,6 +299,10 @@ export async function collectAstroFacts(
         CACHE_TTL.NATAL_CHART
       )
     : undefined
+  const hellenistic =
+    hellenisticRaw && placeUnreliable
+      ? maskPlaceDependentHellenistic(hellenisticRaw)
+      : hellenisticRaw
 
   return {
     natal: {
@@ -313,6 +320,35 @@ export async function collectAstroFacts(
     _chart: chart,
     _natalRaw: natal,
     ...(hellenistic ? { hellenistic } : {}),
+  }
+}
+
+/** 각(angle) 이름 — 본명 aspects 에 끼면 ASC/MC 의존. */
+const ANGLE_NAMES = new Set(['Ascendant', 'ASC', 'MC', 'Midheaven', 'IC', 'Descendant', 'DSC'])
+
+/**
+ * 출생시각/출생지 미상(placeUnreliable) — ASC·하우스가 정오 앵커·기본 좌표 폴백이라
+ * 그에 기대는 Hellenistic 항목을 가린다(엔진 감사 F1, CONVENTIONS §5):
+ *  - lots(7 Arabic Parts — ASC 기준식)·ZR(Spirit/Fortune lot 시작)·Almuten(ASC hyleg) → 비움
+ *  - natalAspects 는 행성-행성만 남기고(각 대상은 제거) 끝점의 house 를 지운다
+ *  - Chiron·Lilith 의 house 는 UNKNOWN_HOUSE(0)
+ * 섹트·존엄(삼분성)은 태양 고도 기반으로 시각에 기대지만 ASC·하우스 항목이 아니라 둔다.
+ */
+export function maskPlaceDependentHellenistic(h: AstroHellenisticFacts): AstroHellenisticFacts {
+  const dropHouse = <T extends { house?: number }>(end: T): Omit<T, 'house'> => {
+    const { house: _house, ...rest } = end
+    void _house
+    return rest
+  }
+  return {
+    ...h,
+    extraPoints: h.extraPoints?.map((p) => ({ ...p, house: UNKNOWN_HOUSE })),
+    natalAspects: h.natalAspects
+      .filter((a) => !ANGLE_NAMES.has(a.from.name) && !ANGLE_NAMES.has(a.to.name))
+      .map((a) => ({ ...a, from: dropHouse(a.from), to: dropHouse(a.to) })),
+    lots: [],
+    zodiacalReleasing: { spirit: null, fortune: null },
+    almutenFiguris: null,
   }
 }
 

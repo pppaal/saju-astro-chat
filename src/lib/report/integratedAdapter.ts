@@ -409,7 +409,9 @@ export function natalToReportData(
     .slice(0, 8)
 
   // Arabic Lots — 정통 7 lots (Fortune/Spirit/Eros/Necessity/Courage/Victory/
-  // Nemesis). facts.hellenistic.lots 에서 받음.
+  // Nemesis). facts.hellenistic.lots 에서 받음. placeUnreliable 이면 astroFacts 가
+  // 단일 출처에서 lots·ZR·Almuten 을 비우고 aspects 하우스·각 대상을 지워 보낸다
+  // (maskPlaceDependentHellenistic, 엔진 감사 F1) — 여기선 받은 그대로 렌더.
   const lots = (A.lots ?? []).map((l: any) => ({
     name: l.name,
     sign: toAbbr(l.sign),
