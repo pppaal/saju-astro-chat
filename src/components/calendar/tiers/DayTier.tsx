@@ -34,7 +34,7 @@ import { reconcileDayTone, type DayVerdict } from '@/lib/calendar-engine/deriver
 import type { EvidenceRung } from '@/lib/calendar-engine/derivers/evidenceLadder'
 import styles from './DayTier.module.css'
 import { useI18n } from '@/i18n/I18nProvider'
-import { localizeLabel } from '@/components/calendar/adapters/localizeLabel'
+import { localizeLabel } from '@/lib/calendar-view/localizeLabel'
 import { minorSafeText } from '@/lib/calendar-engine/minorSafe'
 
 /**
@@ -69,7 +69,7 @@ import {
   twelveStageEn,
   appliedPatternEn,
   geokgukStatusLineEn,
-} from '@/components/calendar/adapters/dayTierEnMaps'
+} from '@/lib/calendar-view/dayTierEnMaps'
 import { CALENDAR_BANDS } from '@/lib/calendar-engine/derivers/constants'
 
 // ============================================================================

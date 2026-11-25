@@ -25,9 +25,9 @@ import { deriveLayeredScores } from '@/lib/calendar-engine/derivers/layeredScore
 import { getMonthPillarForDate } from '@/lib/saju/datePillars'
 import { getSibsinKo } from '@/lib/saju/cycleRelations'
 
-import { toLifetime, toMonth } from '@/components/calendar/adapters'
+import { toLifetime, toMonth } from '@/lib/calendar-view'
 import { assembleUserSummary } from './assembleUser'
-import { reconcileCellOneLine } from '@/components/calendar/adapters/toDay'
+import { reconcileCellOneLine } from '@/lib/calendar-view/toDay'
 import { SIBSIN_EN } from '@/lib/saju/sibsinLabels'
 import { translateSignalLabel } from '@/lib/calendar-engine/derivers/signalI18n'
 import { assembleDayTier } from './assembleDayTier'

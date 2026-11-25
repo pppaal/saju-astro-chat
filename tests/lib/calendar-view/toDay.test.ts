@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { toDay, ONE_LINE_POOL, reconcileCellOneLine } from '@/components/calendar/adapters/toDay'
+import { toDay, ONE_LINE_POOL, reconcileCellOneLine } from '@/lib/calendar-view/toDay'
 import { makeNatal, makeCell, makeSignal } from './_fixtures'
 
 // 본명 — 일간 甲, 일주 甲子 (공망 戌/亥), 지장간 미(己/乙/丁) 등.

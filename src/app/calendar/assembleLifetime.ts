@@ -21,7 +21,7 @@ import { deriveLifetimePivots } from '@/lib/calendar-engine/derivers/lifetimePiv
 import { buildLifeCurve, computeTransitAstroSeries } from '@/lib/calendar-engine/derivers/lifeCurve'
 import { calculateOuterPlanetMilestones } from '@/lib/calendar-engine/lifecycle/outerMilestones'
 import { currentManAge } from '@/lib/datetime/currentAge'
-import { toLifetime } from '@/components/calendar/adapters'
+import { toLifetime } from '@/lib/calendar-view'
 import { assembleUserSummary, type AssembledUser } from './assembleUser'
 import { getYearPillarForDate } from '@/lib/saju/datePillars'
 import { getSibsinKo } from '@/lib/saju/cycleRelations'

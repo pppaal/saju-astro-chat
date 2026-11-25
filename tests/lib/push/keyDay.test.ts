@@ -6,7 +6,7 @@
  * 톤 = reconcileCellOneLine(...).dayTone.tone, 본문 = 그 oneLine 그대로여야 한다.
  */
 import { describe, it, expect, vi } from 'vitest'
-import { makeCell, makeSignal } from '../../components/calendar/adapters/_fixtures'
+import { makeCell, makeSignal } from '../calendar-view/_fixtures'
 
 // 2026-06 월 cells — 오늘(6/15)이 salience 1위(큰 날)가 되게 구성.
 const cells = [
@@ -50,7 +50,7 @@ vi.mock('@/lib/datetime/timezone', async (importOriginal) => {
 
 import { buildKeyDayPayload } from '@/lib/push/keyDay'
 import { deriveLayeredScores } from '@/lib/calendar-engine/derivers/layeredScore'
-import { reconcileCellOneLine } from '@/components/calendar/adapters/toDay'
+import { reconcileCellOneLine } from '@/lib/calendar-view/toDay'
 
 const BIRTH = {
   birthDate: '1995-02-09',

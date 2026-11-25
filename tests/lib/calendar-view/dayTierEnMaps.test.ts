@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { geokgukStatusLineEn, GEOKGUK_NAME_EN } from '@/components/calendar/adapters/dayTierEnMaps'
+import { geokgukStatusLineEn, GEOKGUK_NAME_EN } from '@/lib/calendar-view/dayTierEnMaps'
 
 /**
  * geokgukStatusLineEn — 격국 상태 한 줄을 EN 로케일용 '이름 · 상태'로 재구성.

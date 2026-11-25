@@ -351,9 +351,7 @@ const config = [
     // 임시 예외(lib → components) — app 금지는 유지한다. 옮기면 여기서 지울 것.
     // - astrology/localization.ts: 행성·별자리 라벨을 components/astrology/constants
     //   에서 가져온다. 라벨 SSOT 정리(R5)가 미뤄져 있어 그때 lib 로 옮긴다.
-    // - push/keyDay.ts: components/calendar/adapters/toDay 의 순수 함수를 쓴다.
-    //   adapters 를 src/lib/calendar-view 로 옮기는 단계(D4a)에서 해소된다.
-    files: ['src/lib/astrology/localization.ts', 'src/lib/push/keyDay.ts'],
+    files: ['src/lib/astrology/localization.ts'],
     rules: {
       '@typescript-eslint/no-restricted-imports': ['error', { patterns: [NO_APP_IMPORT_PATTERN] }],
     },

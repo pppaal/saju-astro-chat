@@ -7,7 +7,7 @@
  * 사용자에게 "지금" 위치가 milestones(만 나이)보다 1살 앞섰다.
  */
 import { describe, it, expect } from 'vitest'
-import { toLifetime } from '@/components/calendar/adapters/toLifetime'
+import { toLifetime } from '@/lib/calendar-view/toLifetime'
 import { makeNatal } from './_fixtures'
 import type { LifeCurve } from '@/lib/calendar-engine/derivers/lifeCurve'
 

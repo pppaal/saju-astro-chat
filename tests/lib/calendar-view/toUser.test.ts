@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { toUser } from '@/components/calendar/adapters/toUser'
+import { toUser } from '@/lib/calendar-view/toUser'
 import { makeNatal, makeChart, makePlanet } from './_fixtures'
 
 describe('toUser — NatalContext → destinypal user', () => {

@@ -12,7 +12,7 @@
 
 import { getOrBuildNatalContext, getOrBuildMonthCells } from '@/lib/calendar-engine/persistence'
 import { deriveLayeredScores } from '@/lib/calendar-engine/derivers/layeredScore'
-import { reconcileCellOneLine } from '@/components/calendar/adapters/toDay'
+import { reconcileCellOneLine } from '@/lib/calendar-view/toDay'
 import { getNowInTimezone, formatDateString } from '@/lib/datetime/timezone'
 import type { PushPayload } from './sender'
 

@@ -26,7 +26,16 @@ export interface DestinypalMilestone {
   label: string
   /** 라벨 영문 — 클라이언트 언어 토글용. 미지정 시 label 폴백. */
   labelEn?: string
-  kind: 'jupiter' | 'saturn' | 'uranus' | 'neptune' | 'pluto' | 'chiron' | 'progressed' | 'daewoon' | 'saju'
+  kind:
+    | 'jupiter'
+    | 'saturn'
+    | 'uranus'
+    | 'neptune'
+    | 'pluto'
+    | 'chiron'
+    | 'progressed'
+    | 'daewoon'
+    | 'saju'
   now?: boolean
   /** 추가 컨텍스트: bothSystems flag — 사주·점성 동시 가리킬 때 강조 */
   bothSystems?: boolean

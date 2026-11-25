@@ -4,7 +4,7 @@
    십신×행성 페어를 복원한다.
    ============================================================ */
 
-import { PLANET_KO } from '@/components/calendar/adapters/shared'
+import { PLANET_KO } from '@/lib/calendar-view/shared'
 
 // cross-activation 페어 파서 — 연 셀(경량 캐시)은 evidence.detail 을 비우므로
 // detail.sajuKey/astroKey 가 없을 수 있다. 신호 name("편관 × 화성")은 항상 살아남아

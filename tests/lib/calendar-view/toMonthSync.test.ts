@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { toMonth } from '@/components/calendar/adapters/toMonth'
+import { toMonth } from '@/lib/calendar-view/toMonth'
 import { scoreToGrade } from '@/lib/calendar-engine/derivers/grade'
 import { scoreToBand } from '@/lib/calendar-engine/derivers/reconcile'
 import { CALENDAR_BANDS } from '@/lib/calendar-engine/derivers/constants'

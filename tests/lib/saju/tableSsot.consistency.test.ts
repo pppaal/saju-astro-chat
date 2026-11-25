@@ -112,7 +112,7 @@ type Case = {
 const CASES: Case[] = [
   // 천간 → 오행 (한글 '목')
   {
-    files: ['src/lib/calendar-view/toDay.ts', 'src/components/calendar/adapters/toDay.ts'],
+    files: ['src/lib/calendar-view/toDay.ts'],
     name: 'STEM_TO_ELEMENT',
     kind: 'record',
     expected: STEM_ELEMENT_KO,
