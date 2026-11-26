@@ -1,7 +1,8 @@
 /**
- * astroDetail — '왜' 근거의 점성 부모 구조. 월 셀(evidence 비움)은 살아남은 부모 이름·id 로,
- * 오늘 셀(evidence)은 parentIds 로 부모를 찾는다. 실제 천체력 값(11-17 Sun □ Moon, 11-19 트랜짓
- * 태양 전갈자리)은 calendarSample.real.node.test.ts 가 본다.
+ * astroDetail — '왜' 근거의 점성 부모 구조. 교차가 싣고 온 엔진의 부모 참조(crossParents)를
+ * 그대로 옮긴다 — 월 셀(evidence 비움)·오늘 셀 모두 같은 값, 이름·창으로 추정하는 길은 없다.
+ * 실제 천체력 값(11-17 Sun □ Moon, 11-19 트랜짓 태양 전갈자리)과 표본 30일 전부의 참조는
+ * calendarSample.real.node.test.ts 가 본다.
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import type { ActiveSignal } from '@/lib/calendar-engine/types'
@@ -11,16 +12,16 @@ vi.mock('@/lib/calendar-engine/ephe-cache', () => ({
   getCachedTransitChart: (args: { iso: string }) => chartFor(args),
 }))
 
+const astroDetailModule = await import('@/lib/calendar-view/astroDetail')
 const {
   parseTransitName,
   astroPlanetOf,
-  findAstroParent,
   reasonAstroDetail,
   withReasonDetail,
   withTransitPositions,
   astroDetailSub,
   planetGlyph,
-} = await import('@/lib/calendar-view/astroDetail')
+} = astroDetailModule
 
 const stripped = { module: 'astro-transit', detail: {} }
 
@@ -41,7 +42,10 @@ function sig(p: Partial<ActiveSignal> & Pick<ActiveSignal, 'id' | 'name'>): Acti
   }
 }
 
-/** 2026-11-17 월 셀 모양(stripEvidence) — 상관 × 태양 daily 교차와 태양 후보들. */
+/**
+ * 2026-11-17 월 셀 모양(stripEvidence) — 상관 × 태양 daily 교차와 태양 후보들. 교차는 evidence 가
+ * 비어도 최상위 crossParents(엔진이 적은 부모 참조)를 싣고 있다.
+ */
 const CROSS_17 = sig({
   id: 'cross.상관-x-Sun.daily:2026-11-17~2026-11-17',
   name: '상관 × 태양',
@@ -54,6 +58,16 @@ const CROSS_17 = sig({
     end: '2026-11-17T23:59:59.999Z',
   },
   evidence: { module: 'cross-activation', detail: {} },
+  crossParents: {
+    saju: 'saju.pillar.daily.2026-11-17',
+    astro: 'astro.transit.Sun|Moon|square.2026-11-16',
+    planet: 'Sun',
+    kind: 'transit',
+    layer: 'daily',
+    aspect: 'square',
+    natal: 'Moon',
+    orb: 0.49,
+  },
 })
 const CELL_17 = {
   signals: [
@@ -147,18 +161,18 @@ describe('signal readers', () => {
   })
 })
 
-describe('findAstroParent / reasonAstroDetail — 월 셀(evidence 없음)', () => {
-  it('11-17 상관 × 태양 ▼ → 부모 Sun □ Moon (부호 반대 · 행성시 · 다른 행성은 후보 아님)', () => {
-    expect(findAstroParent(CELL_17, CROSS_17)?.name).toBe('Sun □ Moon')
-    expect(reasonAstroDetail(CELL_17, CROSS_17)).toEqual({
+describe('reasonAstroDetail — 엔진의 부모 참조(crossParents)를 그대로', () => {
+  it('11-17 상관 × 태양 ▼ → Sun □ Moon 의 구조(evidence 없는 월 셀에서도 orb 까지)', () => {
+    expect(reasonAstroDetail(CROSS_17)).toEqual({
       transitPlanet: 'Sun',
       sourceKind: 'transit',
       aspect: 'square',
       natalPoint: 'Moon',
+      orb: 0.49,
     })
   })
 
-  it('부호 0 부모도 허용(combinePolarity — 한쪽 0 이면 매핑 부호)', () => {
+  it('트랜짓이 아닌 부모(하우스 오버레이·품위)는 행성·종류만', () => {
     const cross = sig({
       id: 'cross.편재-x-Mars.daily:2026-11-08~2026-11-08',
       name: '편재 × 화성',
@@ -166,76 +180,33 @@ describe('findAstroParent / reasonAstroDetail — 월 셀(evidence 없음)', () 
       kind: 'cross-activation',
       polarity: -1,
       evidence: { module: 'cross-activation', detail: {} },
-    })
-    const cell = {
-      signals: [
-        sig({
-          id: 'astro.dignity.Mars|face|Leo.2026-11-04',
-          name: 'Mars 페이스 (Face/Decan) in Leo',
-          polarity: 1,
-          layer: 'monthly',
-          evidence: { module: 'astro-dignity', detail: {} },
-        }),
-        sig({
-          id: 'astro.house-transit.Mars.1.2026-10-16',
-          name: 'Mars in 1H',
-          kind: 'house-transit',
-          layer: 'monthly',
-          polarity: 0,
-          active: {
-            start: '2026-10-16T00:00:00.000Z',
-            peak: '2026-11-01T00:00:00.000Z',
-            end: '2026-11-30T23:59:59.999Z',
-          },
-        }),
-        cross,
-      ],
-    }
-    expect(reasonAstroDetail(cell, cross)).toEqual({
-      transitPlanet: 'Mars',
-      sourceKind: 'house-transit',
-    })
-  })
-
-  it('창이 교차 창을 덮지 않거나 층이 교차보다 좁은 후보는 부모가 아니다', () => {
-    const cross = { ...CROSS_17, id: 'cross.상관-x-Sun.daily:2026-11-12~2026-11-12' }
-    expect(findAstroParent(CELL_17, cross)).toBeNull()
-    expect(reasonAstroDetail(CELL_17, cross)).toEqual({
-      transitPlanet: 'Sun',
-      sourceKind: 'unknown',
-    })
-  })
-})
-
-describe('reasonAstroDetail — 오늘 셀(evidence 포함): parentIds 로 정확히, orb 까지', () => {
-  it('evidence 셀의 같은 교차 id → parentIds[1] 부모의 orb', () => {
-    const parent = sig({
-      id: 'astro.transit.Sun|Moon|square.2026-11-16',
-      name: 'Sun □ Moon',
-      polarity: -1,
-      evidence: {
-        module: 'astro-transit',
-        planets: ['Sun', 'Moon'],
-        aspectType: 'square',
-        orbDegrees: 0.4866,
-        detail: {},
+      crossParents: {
+        saju: 'saju.pillar.daily.2026-11-08',
+        astro: 'astro.house-transit.Mars.1.2026-10-16',
+        planet: 'Mars',
+        kind: 'house-transit',
+        layer: 'monthly',
       },
     })
-    const evCross = {
-      ...CROSS_17,
-      evidence: {
-        module: 'cross-activation',
-        detail: { parentIds: ['saju.x', parent.id], astroKey: 'Sun' },
-      },
-    }
-    const detail = reasonAstroDetail(CELL_17, CROSS_17, { signals: [parent, evCross] })
-    expect(detail).toEqual({
-      transitPlanet: 'Sun',
-      sourceKind: 'transit',
-      aspect: 'square',
-      natalPoint: 'Moon',
-      orb: 0.49,
-    })
+    expect(reasonAstroDetail(cross)).toEqual({ transitPlanet: 'Mars', sourceKind: 'house-transit' })
+    expect(
+      reasonAstroDetail({
+        crossParents: {
+          ...cross.crossParents!,
+          kind: 'dignity',
+          astro: 'astro.dignity.Mars|face|Leo.2026-11-04',
+        },
+      })
+    ).toEqual({ transitPlanet: 'Mars', sourceKind: 'dignity' })
+  })
+
+  it('참조 없는 교차는 null — 이름·창으로 부모를 추정하지 않는다(엔진 버그는 지어내지 않음)', () => {
+    const { crossParents: _drop, ...bare } = CROSS_17
+    void _drop
+    expect(reasonAstroDetail(bare)).toBeNull()
+    // 셀에 그럴듯한 태양 트랜짓이 있어도 읽지 않는다 — 셀을 받는 길 자체가 없다.
+    expect(reasonAstroDetail.length).toBe(1)
+    expect(Object.keys(astroDetailModule)).not.toContain('findAstroParent')
   })
 
   it('withReasonDetail — 십신 한자(신살은 없음) + 구조, 입력은 그대로', () => {
@@ -248,13 +219,15 @@ describe('reasonAstroDetail — 오늘 셀(evidence 포함): parentIds 로 정�
       meaningEn: 'm',
       polarity: -2,
     }
-    const out = withReasonDetail(reason, CELL_17, CROSS_17)
+    const out = withReasonDetail(reason, CROSS_17)
     expect(out.sajuHanja).toBe('傷官')
     expect(out.astroDetail?.natalPoint).toBe('Moon')
+    expect(out.astroDetail?.orb).toBe(0.49)
     expect(reason).not.toHaveProperty('sajuHanja')
-    expect(
-      withReasonDetail({ ...reason, saju: '도화' }, CELL_17, CROSS_17).sajuHanja
-    ).toBeUndefined()
+    expect(withReasonDetail({ ...reason, saju: '도화' }, CROSS_17).sajuHanja).toBeUndefined()
+    const { crossParents: _drop, ...bare } = CROSS_17
+    void _drop
+    expect(withReasonDetail(reason, bare)).not.toHaveProperty('astroDetail')
   })
 })
 

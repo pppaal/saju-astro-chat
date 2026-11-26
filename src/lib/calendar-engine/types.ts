@@ -74,6 +74,36 @@ export interface ActiveSignal {
   active: ActiveWindow
   weight: number // 0~1 — layer 가중치 × intrinsic 강도
   evidence: SignalEvidence
+  /**
+   * 교차(kind 'cross-activation')만 — 두 부모의 작은 참조. cross-activation 이 부모 신호에서
+   * 직접 적는다(추정·이름 역해석 없음). evidence 와 달리 최상위 필드라 월 셀 캐시
+   * (stripEvidence — evidence 를 비움)에도 남는다. 교차가 아닌 신호에는 없다.
+   */
+  crossParents?: CrossParentRef
+}
+
+/**
+ * 교차 신호의 부모 참조 — 사주·점성 부모 id 와 점성 부모의 구조(행성·종류·층, 트랜짓이면
+ * 어스펙트·본명 접점·orb). 전체 evidence 가 아니라 '왜' 근거의 STARS 칸이 쓰는 값만 — 월 셀
+ * 캐시에 교차마다 실리므로 키를 짧게 둔다.
+ */
+export interface CrossParentRef {
+  /** 사주 부모 신호 id. */
+  saju: string
+  /** 점성 부모 신호 id. */
+  astro: string
+  /** 점성 부모의 하늘에서 움직이는 행성 — 교차의 점성 키 'Sun'. */
+  planet: string
+  /** 점성 부모 종류 — 신호 kind('transit' · 'lifecycle' · 'house-transit' …), 트랜짓 품위는 'dignity'. */
+  kind: string
+  /** 점성 부모 층. */
+  layer: SignalLayer
+  /** 트랜짓 부모만 — 어스펙트 키 'square'. */
+  aspect?: string
+  /** 트랜짓 부모만 — 본명 접점 'Moon'. */
+  natal?: string
+  /** 트랜짓 부모만 — 그 트랜짓 구간의 가장 좁은 orb(°, 소수 둘째 자리). */
+  orb?: number
 }
 
 /**

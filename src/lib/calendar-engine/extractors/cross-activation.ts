@@ -59,9 +59,23 @@
  *
  * ── id ──
  * `cross.{saju}-x-{astro}.{layer}:{시작일}~{끝일}` — 살아남은 교차끼리 유일.
+ *
+ * ── 부모 참조 ── (crossParents, G14)
+ * 모든 교차는 두 부모 id 와 점성 부모의 구조(행성·종류·층, 트랜짓이면 어스펙트·본명
+ * 접점·orb)를 최상위 crossParents 에 싣는다. 월 셀 캐시는 evidence 를 비우지만
+ * (stripEvidence) 이 필드는 남아, 화면이 교차의 하늘 쪽 근거를 이름으로 추정하지 않고
+ * 엔진이 적은 값을 그대로 읽는다(calendar-view/astroDetail). evidence.detail.parentIds 는
+ * evidence 셀(포커스 1일·디버그)용으로 그대로 둔다.
  */
 
-import type { ActiveSignal, ActiveWindow, Polarity, SignalEvidence, SignalLayer } from '../types'
+import type {
+  ActiveSignal,
+  ActiveWindow,
+  CrossParentRef,
+  Polarity,
+  SignalEvidence,
+  SignalLayer,
+} from '../types'
 import {
   SAJU_ASTRO_MAPPINGS,
   crossLayerAllowed,
@@ -266,9 +280,42 @@ export function narrowestLayer(a: SignalLayer, b: SignalLayer): SignalLayer {
   return LAYER_SPAN[a] <= LAYER_SPAN[b] ? a : b
 }
 
+/** 트랜짓 품위(astro-dignity) — kind 는 'transit' 이지만 어스펙트가 아니다. */
+const DIGNITY_MODULE = 'astro-dignity'
+
+/**
+ * 교차의 부모 참조(파일 머리 '부모 참조') — 두 부모 id + 점성 부모의 행성·종류·층, 트랜짓
+ * 부모(품위 제외)면 evidence 의 어스펙트·본명 접점·orb. planet 은 교차가 매칭된 점성 키.
+ * 값이 없으면 그 필드를 비운다(지어내지 않는다).
+ */
+export function crossParentRef(
+  sajuSig: ActiveSignal,
+  astroSig: ActiveSignal,
+  planet: string
+): CrossParentRef {
+  const dignity = astroSig.evidence?.module === DIGNITY_MODULE
+  const ref: CrossParentRef = {
+    saju: sajuSig.id,
+    astro: astroSig.id,
+    planet,
+    kind: dignity ? 'dignity' : astroSig.kind,
+    layer: astroSig.layer,
+  }
+  if (astroSig.kind === 'transit' && !dignity) {
+    const ev = astroSig.evidence
+    if (ev?.aspectType) ref.aspect = ev.aspectType
+    const natal = ev?.planets?.[1]
+    if (natal) ref.natal = natal
+    const orb = ev?.orbDegrees
+    if (typeof orb === 'number' && Number.isFinite(orb)) ref.orb = Math.round(orb * 100) / 100
+  }
+  return ref
+}
+
 /**
  * 한 페어를 ActiveSignal 로 합성.
- * 부모 두 신호 id 를 evidence.detail.parentIds 에 보존 — UI/디버그에서 인과 추적.
+ * 부모 두 신호 id 를 evidence.detail.parentIds 에 보존 — UI/디버그에서 인과 추적 — 하고,
+ * 월 셀 캐시에도 남는 작은 부모 참조를 crossParents 에 싣는다.
  */
 function buildCrossSignal(
   sajuSig: ActiveSignal,
@@ -325,6 +372,7 @@ function buildCrossSignal(
     active: window,
     weight,
     evidence,
+    crossParents: crossParentRef(sajuSig, astroSig, mapping.astro),
   }
 }
 

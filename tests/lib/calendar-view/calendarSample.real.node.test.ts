@@ -25,6 +25,10 @@ const { buildDayViewModel } = await import('@/lib/calendar-view/dayViewModel')
 const { withTransitPositions } = await import('@/lib/calendar-view/astroDetail')
 
 type Assembled = Awaited<ReturnType<typeof assembleTiers>>
+type MonthCells = Awaited<ReturnType<typeof buildCalendar>>
+
+/** 마지막 assembleSample 의 월 셀(evidence 없음 — 프로덕션 월 캐시 모양). */
+let sampleMonthCells: MonthCells = []
 
 const NOW_ISO = '2026-11-19T03:00:00.000Z'
 const BIRTH = {
@@ -47,6 +51,7 @@ async function assembleSample(lang: 'ko' | 'en'): Promise<Assembled> {
     { start: '2026-11-01T00:00:00.000Z', end: '2026-11-30T23:59:59.999Z', granularity: 'day' },
     { includeEvidence: false }
   )
+  sampleMonthCells = cells
   const [focusDayCell] = await buildCalendar(
     natal,
     { start: '2026-11-19T00:00:00.000Z', end: '2026-11-19T23:59:59.999Z', granularity: 'day' },
@@ -119,7 +124,7 @@ describeRealEphemeris('v9.2 캘린더 샘플(1997-03-21 14:30 여 · 서울, 202
     }
   })
 
-  it("11-17 '왜' 근거 — 상관(傷官) × 태양 ▼, 점성 부모 Sun □ Moon(월 셀 이름에서)", () => {
+  it("11-17 '왜' 근거 — 상관(傷官) × 태양 ▼, 점성 부모 Sun □ Moon(교차의 엔진 부모 참조에서)", () => {
     const r = en.month.calendar.find((c) => c.d === 17)!.reason!
     expect(r.saju).toBe('상관')
     expect(r.sajuHanja).toBe('傷官')
@@ -130,8 +135,32 @@ describeRealEphemeris('v9.2 캘린더 샘플(1997-03-21 14:30 여 · 서울, 202
       aspect: 'square',
       natalPoint: 'Moon',
     })
-    // 월 셀엔 evidence 가 없어 orb 를 지어내지 않는다.
-    expect(r.astroDetail).not.toHaveProperty('orb')
+    // evidence 없는 월 셀에서도 orb 는 엔진이 적은 값(그 트랜짓 구간의 가장 좁은 orb).
+    expect(r.astroDetail?.orb).toEqual(expect.any(Number))
+    expect(r.astroDetail!.orb!).toBeLessThan(10)
+  })
+
+  it('부모 참조 — 월 셀(evidence 없음)의 모든 교차가 crossParents 를 싣고, 근거가 있는 날은 전부 점성 구조', () => {
+    expect(sampleMonthCells).toHaveLength(30)
+    const missing: string[] = []
+    let crosses = 0
+    for (const cell of sampleMonthCells) {
+      for (const s of cell.signals) {
+        if (s.kind !== 'cross-activation') continue
+        crosses++
+        expect(s.evidence.detail).toEqual({}) // 월 캐시 모양 — evidence 는 비어 있다
+        const ids = new Set(cell.signals.map((x) => x.id))
+        const ref = s.crossParents
+        if (!ref || !ids.has(ref.saju) || !ids.has(ref.astro))
+          missing.push(`${cell.datetime.slice(0, 10)} ${s.id}`)
+      }
+    }
+    expect(crosses).toBeGreaterThan(0)
+    expect(missing).toEqual([])
+    const withReason = en.month.calendar.filter((c) => c.reason)
+    expect(withReason.length).toBeGreaterThan(0)
+    expect(withReason.filter((c) => !c.reason!.astroDetail).map((c) => c.d)).toEqual([])
+    expect(withReason.filter((c) => c.reason!.astroDetail!.sourceKind === 'unknown')).toEqual([])
   })
 
   it('오늘 근거는 evidence 셀로 — orb 와 트랜짓 위치, 월 셀과 일 티어가 같은 근거', () => {

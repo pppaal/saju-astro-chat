@@ -3,17 +3,15 @@
  *
  * v9 캘린더의 교차 행 STARS 칸은 "Transit ☉ · 24° Scorpio"처럼 트랜짓 행성·어스펙트·본명
  * 접점·그날 트랜짓 위치를 보여 준다. 교차 신호 자체는 '상관 × 태양' 페어 이름뿐이라, 그
- * 교차를 만든 점성 부모 신호를 셀 안에서 찾아 읽는다.
+ * 교차를 만든 점성 부모의 구조가 필요하다.
  *
- * ── 부모 찾기 ──
- * · evidence 가 있는 셀(오늘 — getFocusDayCell)은 교차의 detail.parentIds[1] 이 부모 id 다.
- * · 월 셀은 evidence 를 비워 캐시한다(stripEvidence) — id·이름·층·부호·창은 남는다. 교차
- *   추출기(cross-activation)의 규칙을 그대로 거꾸로 읽는다: 부모는 활성(하늘에서 움직이는)
- *   점성 신호이고, 그 행성이 교차의 점성 키이며, 부호가 교차와 반대가 아니고(combinePolarity —
- *   부호 있는 교차의 부모는 매핑 부호이거나 0), 층은 교차 층보다 좁지 않고(교차 층 = 좁은 부모 층),
- *   창이 교차 창(id 의 '~' 구간)을 덮는다. 후보가 여럿이면 |polarity|×weight → id 순.
- * · aspect·natalPoint 는 트랜짓 부모의 이름('Sun □ Moon')에서 — 트랜짓 추출기의 이름 규약
- *   `${transit} ${기호} ${natal}` 을 거꾸로 읽는다. orb 는 evidence 가 있을 때만(지어내지 않는다).
+ * ── 부모 = 엔진이 적은 참조 ── (G14)
+ * cross-activation 이 모든 교차에 부모 참조(ActiveSignal.crossParents — 두 부모 id, 점성 부모의
+ * 행성·종류·층, 트랜짓이면 어스펙트·본명 접점·orb)를 싣는다. 최상위 필드라 evidence 를 비운
+ * 월 셀(stripEvidence)에도 남는다. 여기서는 그 값을 그대로 옮길 뿐 — 이름·id·창으로 부모를
+ * 추정하지 않는다(예전 findAstroParent 휴리스틱은 표본 30일 중 1일을 'unknown' 으로 냈다).
+ * 참조가 없는 교차는 엔진 버그다 — 근거에 점성 구조를 붙이지 않는다(지어내지 않는다).
+ * orb 는 그 트랜짓 구간의 가장 좁은 orb 다(트랜짓 추출기의 orbDegrees).
  *
  * ── 트랜짓 위치 ──
  * withTransitPositions 가 그날 현지 정오 트랜짓 차트(getCachedTransitChart — 트랜짓 추출기가
@@ -23,17 +21,12 @@
  * 순수 함수(withTransitPositions 만 캐시 읽기 비동기). 시계를 읽지 않는다.
  */
 
-import type { ActiveSignal, CalendarCell, SignalLayer } from '@/lib/calendar-engine/types'
+import type { ActiveSignal } from '@/lib/calendar-engine/types'
 import type { DestinyDayReason, ReasonAstroDetail } from '@/types/calendar/month'
 import { getCachedTransitChart } from '@/lib/calendar-engine/ephe-cache'
 import { createCache } from '@/lib/calendar-engine/cache'
 import { SIBSIN_HANJA } from '@/lib/saju/sibsinLabels'
-import {
-  astroPlanetOf,
-  isDignitySignal,
-  parseTransitName,
-  planetKoOr,
-} from '@/lib/calendar-engine/derivers/evidenceLadder'
+import { planetKoOr } from '@/lib/calendar-engine/derivers/evidenceLadder'
 import { SIGN_KO } from '@/lib/astrology/signLabels'
 import type { PlanetGlyph } from '@/components/v9/Glyph'
 import { logger } from '@/lib/logger'
@@ -45,97 +38,19 @@ export {
   parseTransitName,
 } from '@/lib/calendar-engine/derivers/evidenceLadder'
 
-const LAYER_RANK: Record<SignalLayer, number> = {
-  instant: 0,
-  hourly: 1,
-  daily: 2,
-  monthly: 3,
-  yearly: 4,
-  decadal: 5,
-}
-
-/** 교차 id 끝의 창 'layer:YYYY-MM-DD~YYYY-MM-DD' → 첫·마지막 날짜. */
-function crossWindowDays(cross: ActiveSignal): { from: string; to: string } {
-  const m = /:(\d{4}-\d{2}-\d{2})~(\d{4}-\d{2}-\d{2})$/.exec(cross.id)
-  if (m) return { from: m[1], to: m[2] }
-  return { from: cross.active.start.slice(0, 10), to: cross.active.end.slice(0, 10) }
-}
-
-/** 교차의 점성 키(영문 행성) — 구조 detail 우선, 없으면 id 'cross.{saju}-x-{Planet}.' 에서. */
-function crossAstroKey(cross: ActiveSignal): string | undefined {
-  const d = cross.evidence?.detail
-  if (typeof d?.astroKey === 'string' && d.astroKey) return d.astroKey
-  const m = /^cross\.[^.]*-x-([^.]+)\./.exec(cross.id)
-  return m ? m[1] : undefined
-}
-
-const impact = (s: ActiveSignal) => Math.abs(s.polarity) * s.weight
-
 /**
- * 교차 신호의 점성 부모 — evidence 가 있으면 parentIds, 없으면 교차 규칙을 거꾸로 읽은
- * 후보 중 가장 센 것(모듈 주석). 못 찾으면 null.
- */
-export function findAstroParent(
-  cell: Pick<CalendarCell, 'signals'>,
-  cross: ActiveSignal
-): ActiveSignal | null {
-  const parentIds = cross.evidence?.detail?.parentIds
-  if (Array.isArray(parentIds) && typeof parentIds[1] === 'string') {
-    const byId = cell.signals.find((s) => s.id === parentIds[1])
-    if (byId) return byId
-  }
-  const planet = crossAstroKey(cross)
-  if (!planet) return null
-  const sign = Math.sign(cross.polarity)
-  const { from, to } = crossWindowDays(cross)
-  let best: ActiveSignal | null = null
-  for (const s of cell.signals) {
-    if (s.source !== 'astro' || astroPlanetOf(s) !== planet) continue
-    // 부호: 교차 부호와 반대인 부모는 없다(combinePolarity — 한쪽 0 은 허용).
-    if (sign !== 0 && Math.sign(s.polarity) === -sign) continue
-    if (LAYER_RANK[s.layer] < LAYER_RANK[cross.layer]) continue
-    if (s.active.start.slice(0, 10) > from || s.active.end.slice(0, 10) < to) continue
-    if (
-      !best ||
-      impact(s) > impact(best) ||
-      (impact(s) === impact(best) &&
-        (s.weight > best.weight || (s.weight === best.weight && s.id < best.id)))
-    ) {
-      best = s
-    }
-  }
-  return best
-}
-
-/**
- * 교차 근거의 점성 구조 — 부모 신호에서 트랜짓 행성·어스펙트·본명 접점(·orb).
- * evidenceCell(오늘의 evidence 포함 셀)을 주면 그 안의 같은 교차(id)로 부모를 정확히 찾고
- * orb 를 싣는다. 부모를 못 찾으면 교차의 점성 키만으로 { transitPlanet } (sourceKind 'unknown').
+ * 교차 근거의 점성 구조 — 교차의 부모 참조(crossParents)에서 행성·종류(·어스펙트·본명
+ * 접점·orb). 참조가 없으면 null.
  */
 export function reasonAstroDetail(
-  cell: Pick<CalendarCell, 'signals'>,
-  cross: ActiveSignal,
-  evidenceCell?: Pick<CalendarCell, 'signals'> | null
+  cross: Pick<ActiveSignal, 'crossParents'>
 ): ReasonAstroDetail | null {
-  const evCross = evidenceCell?.signals.find((s) => s.id === cross.id) ?? null
-  const parent =
-    (evCross && evidenceCell ? findAstroParent(evidenceCell, evCross) : null) ??
-    findAstroParent(cell, cross)
-  const planet = (parent && astroPlanetOf(parent)) ?? crossAstroKey(cross)
-  if (!planet) return null
-  const out: ReasonAstroDetail = {
-    transitPlanet: planet,
-    sourceKind: parent ? (isDignitySignal(parent) ? 'dignity' : parent.kind) : 'unknown',
-  }
-  if (parent && parent.kind === 'transit' && !isDignitySignal(parent)) {
-    const parsed = parseTransitName(parent.name)
-    const aspect = parent.evidence?.aspectType ?? parsed?.aspect
-    const natal = parent.evidence?.planets?.[1] ?? parsed?.natalPoint
-    if (aspect) out.aspect = aspect
-    if (natal) out.natalPoint = natal
-    const orb = parent.evidence?.orbDegrees
-    if (typeof orb === 'number' && Number.isFinite(orb)) out.orb = Math.round(orb * 100) / 100
-  }
+  const ref = cross.crossParents
+  if (!ref) return null
+  const out: ReasonAstroDetail = { transitPlanet: ref.planet, sourceKind: ref.kind }
+  if (ref.aspect) out.aspect = ref.aspect
+  if (ref.natal) out.natalPoint = ref.natal
+  if (typeof ref.orb === 'number') out.orb = ref.orb
   return out
 }
 
@@ -145,14 +60,12 @@ export function reasonAstroDetail(
  */
 export function withReasonDetail(
   reason: DestinyDayReason,
-  cell: Pick<CalendarCell, 'signals'>,
-  signal: ActiveSignal,
-  evidenceCell?: Pick<CalendarCell, 'signals'> | null
+  signal: Pick<ActiveSignal, 'crossParents'>
 ): DestinyDayReason {
   const out: DestinyDayReason = { ...reason }
   const hanja = SIBSIN_HANJA[reason.saju]
   if (hanja) out.sajuHanja = hanja
-  const detail = reasonAstroDetail(cell, signal, evidenceCell)
+  const detail = reasonAstroDetail(signal)
   if (detail) out.astroDetail = detail
   return out
 }
@@ -264,7 +177,7 @@ export function planetGlyph(name: string | undefined): PlanetGlyph | undefined {
 
 /**
  * 근거 STARS 칸 보조 줄 — 'Transit · 24° Scorpio · square natal Moon · orb 0.4°'.
- * 위치는 있을 때만(큰 날·오늘), orb 는 evidence 가 있는 날만(지어내지 않는다).
+ * 위치는 있을 때만(큰 날·오늘), orb 는 트랜짓 부모일 때만(엔진 참조에 있을 때).
  */
 export function astroDetailSub(detail: ReasonAstroDetail, lang: Lang): string {
   const ko = lang === 'ko'

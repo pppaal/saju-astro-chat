@@ -262,6 +262,82 @@ describe('extractCrossActivations — 구조 / weight / layer', () => {
     expect(out[0].source).toBe('saju')
   })
 
+  it('부모 참조(crossParents) — 두 부모 id + 트랜짓 부모의 행성·종류·층·어스펙트·본명 접점·orb', () => {
+    const saju = sajuSig({ sibsin: '정재', polarity: 2, layer: 'daily' })
+    const astro: ActiveSignal = {
+      ...astroSig({ planet: 'Venus', polarity: 2, layer: 'daily' }),
+      id: 'astro.transit.Venus|Moon|trine.2026-07-01',
+      name: 'Venus △ Moon',
+      evidence: {
+        module: 'astro-transit',
+        planets: ['Venus', 'Moon'],
+        aspectType: 'trine',
+        orbDegrees: 0.4866,
+        detail: {},
+      },
+    }
+    const [cross] = extractCrossActivations([saju, astro])
+    expect(cross.crossParents).toEqual({
+      saju: saju.id,
+      astro: astro.id,
+      planet: 'Venus',
+      kind: 'transit',
+      layer: 'daily',
+      aspect: 'trine',
+      natal: 'Moon',
+      orb: 0.49,
+    })
+  })
+
+  it('부모 참조 — 트랜짓 품위는 dignity, 트랜짓이 아닌 부모는 어스펙트·orb 없이(지어내지 않음)', () => {
+    const saju = sajuSig({ sibsin: '정재', polarity: 2, layer: 'daily' })
+    const dignity: ActiveSignal = {
+      ...astroSig({ planet: 'Venus', polarity: 2, layer: 'monthly' }),
+      id: 'astro.dignity.Venus|domicile|Libra.2026-07-01',
+      evidence: { module: 'astro-dignity', planets: ['Venus'], detail: {} },
+    }
+    expect(extractCrossActivations([saju, dignity])[0].crossParents).toEqual({
+      saju: saju.id,
+      astro: dignity.id,
+      planet: 'Venus',
+      kind: 'dignity',
+      layer: 'monthly',
+    })
+    const overlay: ActiveSignal = {
+      ...astroSig({ planet: 'Venus', polarity: 1, layer: 'monthly' }),
+      id: 'astro.house-transit.Venus.7.2026-06-20',
+      kind: 'house-transit',
+      evidence: { module: 'astro-house-transit', planets: ['Venus'], orbDegrees: 3, detail: {} },
+    }
+    expect(extractCrossActivations([saju, overlay])[0].crossParents).toEqual({
+      saju: saju.id,
+      astro: overlay.id,
+      planet: 'Venus',
+      kind: 'house-transit',
+      layer: 'monthly',
+    })
+  })
+
+  it('부모 참조는 월 셀 캐시(evidence 비움)에도 남는다 — parentIds 와 같은 부모', () => {
+    const saju = sajuSig({ sibsin: '정재', polarity: 2 })
+    const astro = astroSig({ planet: 'Venus', polarity: 2 })
+    const all = [saju, astro, ...extractCrossActivations([saju, astro])]
+    const [cell] = __bucketingInternals.groupIntoCells(
+      all,
+      { start: '2026-07-03T00:00:00.000Z', end: '2026-07-03T23:59:59.999Z', granularity: 'day' },
+      { includeEvidence: false }
+    )
+    const cross = cell.signals.find((s) => s.kind === 'cross-activation')!
+    expect(cross.evidence.detail).toEqual({})
+    expect(cross.crossParents).toMatchObject({
+      saju: saju.id,
+      astro: astro.id,
+      planet: 'Venus',
+    })
+    // 교차가 아닌 신호에는 없다.
+    expect(cell.signals.filter((s) => s.kind !== 'cross-activation' && s.crossParents)).toEqual([])
+  })
+
   it('weight = saju.w × astro.w × 0.6, [0,1] clamp', () => {
     const out = extractCrossActivations([
       sajuSig({ sibsin: '정재', polarity: 2, weight: 0.5 }),

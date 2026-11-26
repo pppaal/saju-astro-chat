@@ -112,7 +112,11 @@ export { SAJU_ENGINE_VERSION }
 //     'Blade Edge')을 쓴다 — topReasonsEn 줄이 바뀐다. 월 셀·포커스 1일 셀에 구워지므로 bump.
 //     격국 EN 이름 단일 표(saju/geokgukNameEn)로 운명상담사 컨텍스트의 격국 줄도 바뀌며
 //     ENGINE_VERSION_TAG 로 함께 무효화된다.
-export const CALENDAR_ENGINE_VERSION = 'v16'
+// v17: 교차 신호가 부모 참조를 싣는다(G14 — ActiveSignal.crossParents: 두 부모 id, 점성 부모의
+//     행성·종류·층, 트랜짓이면 어스펙트·본명 접점·orb). evidence 를 비운 월 셀에도 남아 '왜'
+//     근거의 점성 구조를 이름으로 추정하지 않는다(calendar-view/astroDetail). 신호 판정·점수는
+//     그대로지만 셀 모양이 바뀌므로 월 셀·포커스 1일 셀 캐시를 무효화한다.
+export const CALENDAR_ENGINE_VERSION = 'v17'
 
 /**
  * 본명 차트 Redis 캐시(CacheKeys.natalChart, `natal:v${N}:…`).

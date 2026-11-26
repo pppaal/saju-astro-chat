@@ -172,6 +172,44 @@ describeRealEphemeris('calendar cross invariants (E0 section E)', () => {
     expect(bad.slice(0, 10)).toEqual([])
   })
 
+  // G14: every cross carries the engine's parent reference (crossParents), so the calendar
+  // view never guesses a cross's astro parent from names. The reference names the same
+  // parents as evidence.detail.parentIds and copies the astro parent's structure.
+  it('every cross carries a parent reference that matches its parents', () => {
+    const bad: string[] = []
+    let checked = 0
+    eachCross((b, cell, s, byId) => {
+      checked++
+      const at = `${b.person.id} ${cell.datetime.slice(0, 10)} ${s.name}`
+      const ref = s.crossParents
+      if (!ref) {
+        bad.push(`${at}: no crossParents`)
+        return
+      }
+      const [sajuId, astroId] = parentIds(s)
+      if (ref.saju !== sajuId || ref.astro !== astroId) bad.push(`${at}: ids differ`)
+      const astro = byId.get(ref.astro)
+      if (!astro) return // covered by 'cross parents resolve inside the cell'
+      const dignity = astro.evidence?.module === 'astro-dignity'
+      const want: Record<string, unknown> = {
+        saju: sajuId,
+        astro: astroId,
+        planet: astro.evidence?.planets?.[0],
+        kind: dignity ? 'dignity' : astro.kind,
+        layer: astro.layer,
+      }
+      if (astro.kind === 'transit' && !dignity) {
+        want.aspect = astro.evidence?.aspectType
+        want.natal = astro.evidence?.planets?.[1]
+        want.orb = Math.round((astro.evidence?.orbDegrees ?? NaN) * 100) / 100
+      }
+      if (JSON.stringify(ref) !== JSON.stringify(want))
+        bad.push(`${at}: ${JSON.stringify(ref)} ≠ ${JSON.stringify(want)}`)
+    })
+    expect(checked).toBeGreaterThan(0)
+    expect(bad.slice(0, 10)).toEqual([])
+  })
+
   // Symbolic astro keys (OD-9): planetary hours are time rulers; solar arc, secondary
   // progressions and the progressed Moon (incl. the progressed lunar return milestone)
   // are directed points, not planets moving in the sky. Solar and lunar returns are

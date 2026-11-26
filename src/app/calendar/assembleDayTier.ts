@@ -277,12 +277,12 @@ export async function assembleDayTier(input: AssembleDayTierInput): Promise<Dest
   const reasonMark = reasonScore != null ? bandMarkForScore(reasonScore) : null
   const reasonBase = pickDayReason(crossSourceCell, reasonMark)
   const reasonSig = pickDayReasonSignal(crossSourceCell, reasonMark)
-  // 근거에 십신 한자 + 점성 부모 구조(evidence 셀이면 orb 까지) + 그날 현지 정오의 트랜짓
-  // 위치(별자리·도 — 트랜짓 추출기와 같은 캐시 키, 조회 1회). 월 셀 근거와 같은 규칙(astroDetail.ts).
+  // 근거에 십신 한자 + 점성 부모 구조(교차의 부모 참조 crossParents — orb 까지) + 그날 현지
+  // 정오의 트랜짓 위치(별자리·도 — 트랜짓 추출기와 같은 캐시 키, 조회 1회). 월 셀 근거와 같은
+  // 규칙(astroDetail.ts).
   let dayReason = reasonBase
   if (reasonBase && reasonSig) {
-    const evidenceCell = focusDayCell ?? null
-    dayReason = withReasonDetail(reasonBase, crossSourceCell, reasonSig, evidenceCell)
+    dayReason = withReasonDetail(reasonBase, reasonSig)
     if (dayReason.astroDetail) {
       const [placed] = await withTransitPositions(
         [{ dateIso: targetDayIso, detail: dayReason.astroDetail }],

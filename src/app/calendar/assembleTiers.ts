@@ -274,8 +274,8 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
   //    같은 날짜의 같은 월 셀로 같은 함수를 불러 day.reason 을 만든다(월·일 근거 일치,
   //    엔진 감사 X1).
   //    부호 게이트: good·best 는 +, caution·avoid 는 −, 무색은 어느 쪽이든(계획 B1 #4).
-  //    근거에는 십신 한자와 점성 부모의 구조(트랜짓 행성·어스펙트·본명 접점)를 붙인다 —
-  //    오늘은 evidence 셀(focusDayCell)로 부모를 정확히 찾고 orb 까지(astroDetail.ts).
+  //    근거에는 십신 한자와 점성 부모의 구조(트랜짓 행성·어스펙트·본명 접점·orb)를 붙인다 —
+  //    교차가 싣고 온 엔진의 부모 참조(crossParents)에서, 월 셀·오늘 모두 같은 값(astroDetail.ts).
   const monthCellByDs = new Map(monthCells.map((c) => [c.datetime.slice(5, 10), c]))
   const todayDs = targetDayIso.slice(5, 10)
   for (const cell of month.calendar) {
@@ -283,7 +283,7 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
     const r = pickDayReason(src, cell.mark)
     const sig = pickDayReasonSignal(src, cell.mark)
     if (r && src && sig) {
-      cell.reason = withReasonDetail(r, src, sig, cell.ds === todayDs ? focusDayCell : null)
+      cell.reason = withReasonDetail(r, sig)
     } else if (r) {
       cell.reason = r
     }
