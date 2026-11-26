@@ -177,14 +177,14 @@ export default function PWAInstallPrompt(_props: { locale: 'ko' | 'en' }) {
                 {t('pwa.installButton', 'Install')}
               </button>
             )}
-            {/* 모바일 전역 터치 규칙(globals.css ≤768px, 특이도 0,3,1)이 padding 10px 16px 를 넣어
-                'Later' 가 글 칸보다 16px 들여 써진다 — 44px 터치 높이는 두고 좌우 여백만 0(QA R-VH-5).
-                Tailwind 클래스는 그 규칙을 못 이겨 인라인으로. */}
+            {/* 모바일 전역 터치 규칙(globals.css ≤768px, 특이도 0,3,1)이 padding 10px 16px · min-width
+                44px 를 넣어 'Later' 가 글 칸보다 들여 써진다 — 44px 터치 칸은 두고 좌우 여백만 0, 글자는
+                칸 왼쪽에 붙인다(QA R-VH-5). Tailwind 클래스는 그 규칙을 못 이겨 인라인으로. */}
             <button
               type="button"
               onClick={dismiss}
               className="text-[11px] font-medium text-[#6e695f] hover:text-[#1b1916]"
-              style={{ paddingLeft: 0, paddingRight: 0 }}
+              style={{ paddingLeft: 0, paddingRight: 0, textAlign: 'left' }}
             >
               {t('common.later', 'Later')}
             </button>
