@@ -35,6 +35,7 @@ import {
   type StoredBirthInfo,
 } from '@/lib/birth/storage'
 import { formatBirthStamp } from '@/lib/birth/format'
+import { safeNextPath } from '@/lib/security/safeNext'
 import { trackFunnel } from '@/lib/metrics/trackFunnel'
 import { CREDIT_COSTS } from '@/lib/config/creditCosts'
 import { shareDomain } from '@/lib/share/site'
@@ -60,12 +61,6 @@ interface MainPageClientProps {
 
 /** 출생 모달을 연 까닭 — 저장 뒤 동작이 갈린다. */
 type BirthIntent = 'cta' | 'edit' | null
-
-/** 같은 사이트 내부 경로만 — '//evil.com' · '/\evil.com' 같은 오픈 리다이렉트 변종을 막는다. */
-function safeNext(next: string | null): string | null {
-  if (!next || !next.startsWith('/') || next.startsWith('//') || next.startsWith('/\\')) return null
-  return next
-}
 
 function reportHrefFor(info: StoredBirthInfo, locale: Lang): string {
   return `/integrated-report?${buildReportBirthQuery(info, locale)}`
@@ -196,7 +191,10 @@ export default function MainPageClient({ initialLocale, dial, backYear }: MainPa
     if (typeof window === 'undefined') return
 
     // 다른 서비스가 ?next= 로 보냈으면 그리로 돌아간다(같은 사이트 경로만).
-    const next = safeNext(new URLSearchParams(window.location.search).get('next'))
+    const next = safeNextPath(
+      new URLSearchParams(window.location.search).get('next'),
+      window.location.origin
+    )
     if (next) {
       window.location.assign(next)
       return
