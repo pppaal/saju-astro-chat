@@ -13,6 +13,11 @@ import type { DestinyDay } from '@/types/calendar'
 import { makeV9Day, dayRungs, TODAY_REASON } from './_v9Month'
 
 const HANGUL = /[ㄱ-ㆎ가-힣]/
+/** 줄바꿈 없는 공백(U+00A0) — STARS 보조 줄의 값 조각 안(QA VC-8). */
+const NB = '\u00A0'
+const nb = (t: string) => t.replace(/ /g, NB)
+/** ' · ' 로 나눈 조각마다 공백을 NBSP 로(astroDetailSub 모양). */
+const sub = (...parts: string[]) => parts.map(nb).join(' · ')
 
 describe('buildDayViewModel', () => {
   it("히어로·'왜'·사다리·DO/EASE·분야별·교차 — 한 화면 데이터", () => {
@@ -89,7 +94,7 @@ describe('toTimingRow — 근거 → 교차 행', () => {
       stars: {
         glyph: 'sun',
         text: 'Sun',
-        sub: 'Transit · 26° Scorpio · trine natal Venus · orb 0.3°',
+        sub: sub('Transit', '26° Scorpio', 'trine natal Venus', 'orb 0.3°'),
       },
       mark: 'up',
       note: 'Favours recognition from above, promotion, and the formal stage',
@@ -97,7 +102,7 @@ describe('toTimingRow — 근거 → 교차 행', () => {
     })
     const ko = toTimingRow(TODAY_REASON, 'ko')
     expect(ko.saju.text).toBe('정관')
-    expect(ko.stars.sub).toBe('트랜짓 · 전갈자리 26° · 본명 금성 트라인 · 오브 0.3°')
+    expect(ko.stars.sub).toBe(sub('트랜짓', '전갈자리 26°', '본명 금성 트라인', '오브 0.3°'))
   })
 
   it('부호 0 근거는 마크 없음(합의·방향을 지어내지 않는다)', () => {
@@ -115,20 +120,26 @@ describe('toLadderRows — 사다리 칸', () => {
       ['Today', '11.19'],
     ])
     expect(rows[0].saju).toEqual({ hanja: '正財', text: 'Direct Wealth' })
+    // ZR — 랏마다 한 줄, 별자리 뒤에 그 별자리의 전통 지배 행성 기호(황소 ♀ · 물병 ♄ — FIX9b F7, VC-9).
+    // 랏 이름·별자리는 한 덩어리(줄바꿈 없는 공백, VC-8) — 줄은 기호 뒤 기간 앞에서만 갈린다.
     expect(rows[0].stars).toEqual({
       text: 'Zodiacal releasing',
-      sub: 'Spirit in Taurus 2024–32 · Fortune in Aquarius 2024–54',
+      sub: `${nb('Spirit in Taurus')} 2024–32 · ${nb('Fortune in Aquarius')} 2024–54`,
+      subLines: [
+        { text: nb('Spirit in Taurus'), glyph: 'venus', tail: '2024–32' },
+        { text: nb('Fortune in Aquarius'), glyph: 'saturn', tail: '2024–54' },
+      ],
     })
     expect(rows[1].stars).toEqual({
       glyph: 'saturn',
       text: 'Saturn',
-      sub: 'In fall · in Aries · First Saturn return',
+      sub: `${nb('In fall')} · ${nb('in Aries')} · First Saturn return`,
     })
     expect(rows[2].stars).toBeNull()
     expect(rows[3].stars).toEqual({
       glyph: 'sun',
       text: 'Sun △ Venus',
-      sub: 'Transit Sun · natal Venus',
+      sub: sub('Transit Sun', 'natal Venus'),
     })
     expect(rows[3].now).toBe(true)
     expect(HANGUL.test(JSON.stringify(rows))).toBe(false)
@@ -138,10 +149,28 @@ describe('toLadderRows — 사다리 칸', () => {
     const rows = toLadderRows(dayRungs('ko'), 'ko')
     expect(rows[0]).toMatchObject({ label: '10년 대운', range: '2021–2030' })
     expect(rows[0].saju).toEqual({ hanja: '正財', text: '정재' })
-    expect(rows[0].stars?.sub).toBe('영혼 황소자리 2024–32 · 운명 물병자리 2024–54')
+    expect(rows[0].stars?.sub).toBe(
+      `${nb('영혼 황소자리')} 2024–32 · ${nb('운명 물병자리')} 2024–54`
+    )
+    expect(rows[0].stars?.subLines?.map((l) => l.glyph)).toEqual(['venus', 'saturn'])
     expect(rows[1].stars?.sub).toBe('폴(추락) · 양자리 · 첫 토성 회귀')
     expect(rows[2].range).toBe('2026년 11월')
-    expect(rows[3].stars).toMatchObject({ text: '태양 △ 금성', sub: '트랜짓 태양 · 본명 금성' })
+    expect(rows[3].stars).toMatchObject({
+      text: '태양 △ 금성',
+      sub: sub('트랜짓 태양', '본명 금성'),
+    })
+  })
+
+  it("오늘이 아닌 날 — 일 칸 'This day' / '이날', NOW 점 없음, 결론의 '오늘'은 그날 말로(QA VC-3)", () => {
+    const en = toLadderRows(dayRungs('en'), 'en', { isToday: false })
+    expect(en[3]).toMatchObject({ label: 'This day', range: '11.19', now: false })
+    expect(en[3].sentence).not.toMatch(/\btoday\b/i)
+    expect(en.some((r) => r.now)).toBe(false)
+    // 다른 칸은 그대로.
+    expect(en.slice(0, 3).map((r) => r.label)).toEqual(['10-yr cycle', 'This year', 'This month'])
+    const ko = toLadderRows(dayRungs('ko'), 'ko', { isToday: false })
+    expect(ko[3]).toMatchObject({ label: '이날', now: false })
+    expect(ko[3].sentence).not.toContain('오늘')
   })
 
   it('10년 기간 = 대운이 시작하는 해부터 열 해(창 끝은 range.end), 기간이 없으면 빈 라벨', () => {
@@ -205,6 +234,7 @@ describe('buildDayViewModel — 공유 재료 · 시진 줄 · 상담 질문 (A7
     const vm = buildDayViewModel(day, { lang: 'en', sex: '여' })
     expect(vm.hero.share).toEqual({
       dateLabel: 'November 19 2026',
+      shortDate: 'Nov 19',
       score: 44,
       tone: 'mixed',
       headline: vm.hero.headline,
@@ -263,5 +293,187 @@ describe('buildDayViewModel — 공유 재료 · 시진 줄 · 상담 질문 (A7
       isToday: false,
     })
     expect(other.cta.question).toBe('11월 24일의 운 흐름을 더 자세히 봐주세요.')
+  })
+})
+
+/** 뷰모델 안의 모든 문자열 값(키 이름 제외). */
+function stringsOf(x: unknown, out: string[] = []): string[] {
+  if (typeof x === 'string') out.push(x)
+  else if (Array.isArray(x)) x.forEach((v) => stringsOf(v, out))
+  else if (x && typeof x === 'object') Object.values(x).forEach((v) => stringsOf(v, out))
+  return out
+}
+
+describe("오늘이 아닌 날의 일간 — '오늘'이라 부르지 않는다 (QA VC-3 · CODE-3 · COPY-1)", () => {
+  // 지난 날 11.24 를 오늘(11.26)이 아닌 날로 연 화면 — 엔진 문장에 '오늘'이 든 날이 되게 여러 시드.
+  const MOON_DAY: Partial<DestinyDay> = {
+    date: '2026-11-24',
+    transits: [
+      { body: 'Moon', aspect: '사각', target: '본명 Mars', polarity: -2 } as never,
+      { body: 'Venus', aspect: '삼각', target: '본명 Sun', polarity: 2 } as never,
+    ],
+    hourMoon: [
+      {
+        when: '11:32–13:32 (오시)',
+        whenEn: '11:32–13:32 (Horse hour)',
+        hour: 12,
+        moonSignKo: '양자리',
+        moonSignEn: 'Aries',
+        aspectKo: '삼각',
+        aspectEn: 'trine',
+        natalPointKo: '금성',
+        natalPointEn: 'Venus',
+        body: 'Venus',
+        polarity: 2,
+        tone: 'good',
+        meaning: '',
+        meaningEn: '',
+      },
+    ] as DestinyDay['hourMoon'],
+  }
+
+  it('EN — 어떤 문자열에도 today/tomorrow 가 없다(후크 · 한 끗 · DO/EASE · 분야 · 교차 · 사다리)', () => {
+    for (const seed of [0, 1, 2, 3, 5, 8, 13, 21]) {
+      for (const tone of ['positive', 'mixed', 'caution'] as const) {
+        const vm = buildDayViewModel(
+          makeV9Day({
+            ...MOON_DAY,
+            seed,
+            dayTone: { band: 'mid', tone, tense: false, bright: false, flavor: 'flat', score: 70 },
+          }),
+          { lang: 'en', sex: '여', isToday: false }
+        )
+        const leaks = stringsOf(vm).filter((t) => /\b(today|tomorrow)\b/i.test(t))
+        expect(leaks).toEqual([])
+      }
+    }
+  })
+
+  it("KO — '오늘' · '내일'이 없다", () => {
+    for (const seed of [0, 1, 2, 3, 5, 8, 13, 21]) {
+      for (const tone of ['positive', 'mixed', 'caution'] as const) {
+        const vm = buildDayViewModel(
+          makeV9Day({
+            ...MOON_DAY,
+            seed,
+            dayTone: { band: 'mid', tone, tense: false, bright: false, flavor: 'flat', score: 70 },
+          }),
+          { lang: 'ko', sex: '여', isToday: false }
+        )
+        const leaks = stringsOf(vm).filter((t) => /오늘|내일/.test(t))
+        expect(leaks).toEqual([])
+      }
+    }
+  })
+
+  it('오늘을 열면 예전 문구 그대로(오늘 풀 · 오늘 라벨)', () => {
+    const vm = buildDayViewModel(makeV9Day(MOON_DAY), { lang: 'en', sex: '여', isToday: true })
+    expect(vm.ladder[3]).toMatchObject({ label: 'Today', now: true })
+    expect(vm.hero.label.startsWith('Today · ')).toBe(true)
+    // 같은 날을 오늘로 열면 엔진 문장의 'today' 가 남는다 — 위 두 검사가 빈 검사가 아니다.
+    expect(stringsOf(vm).filter((t) => /\btoday\b/i.test(t)).length).toBeGreaterThan(0)
+  })
+
+  it('공유 시트 제목의 짧은 날짜 — Nov 24 / 11월 24일', () => {
+    const en = buildDayViewModel(makeV9Day(MOON_DAY), { lang: 'en', sex: '여', isToday: false })
+    expect(en.hero.share.shortDate).toBe('Nov 24')
+    const ko = buildDayViewModel(makeV9Day(MOON_DAY), { lang: 'ko', sex: '여', isToday: false })
+    expect(ko.hero.share.shortDate).toBe('11월 24일')
+  })
+})
+
+describe('분야별 — 달 절정 시각 클로즈 없음, 두 천체 이름 (결정 QA-4 · QA COPY-12)', () => {
+  const day = makeV9Day({
+    transits: [{ body: 'Moon', aspect: '사각', target: '본명 Mars', polarity: -3 } as never],
+    hourMoon: [
+      {
+        when: '15:32–17:32 (신시)',
+        whenEn: '15:32–17:32 (Monkey hour)',
+        hour: 16,
+        moonSignKo: '양자리',
+        moonSignEn: 'Aries',
+        aspectKo: '삼각',
+        aspectEn: 'trine',
+        natalPointKo: '금성',
+        natalPointEn: 'Venus',
+        body: 'Venus',
+        polarity: 2,
+        tone: 'good',
+        meaning: '',
+        meaningEn: '',
+      },
+    ] as DestinyDay['hourMoon'],
+  })
+
+  it('본문에 시진 창(15:32–17:32)을 싣지 않는다 — 시각은 시진별 줄 하나에서만', () => {
+    for (const lang of ['en', 'ko'] as const) {
+      const vm = buildDayViewModel(day, { lang, sex: '여' })
+      const bodies = vm.byArea!.areas.map((a) => a.body).join(' ')
+      expect(bodies).not.toMatch(/\d{2}:\d{2}/)
+    }
+  })
+
+  it("강한 트랜짓 산문은 두 천체를 이름한다 — 'the Moon–Mars square' / '달–화성 사각'", () => {
+    const en = buildDayViewModel(day, { lang: 'en', sex: '여' })
+    expect(en.byArea!.areas.map((a) => a.body).join(' ')).toContain('the Moon–Mars square')
+    const ko = buildDayViewModel(day, { lang: 'ko', sex: '여' })
+    expect(ko.byArea!.areas.map((a) => a.body).join(' ')).toContain('달–화성 사각')
+  })
+
+  it('DO · EASE 항목은 대문자로 시작한다(EN)', () => {
+    const vm = buildDayViewModel(day, { lang: 'en', sex: '여' })
+    for (const t of [...vm.tryThis!.do, ...vm.tryThis!.ease]) expect(t[0]).toBe(t[0].toUpperCase())
+  })
+})
+
+describe('시진 줄 — 중립 시진도 줄로(결정 QA-4)', () => {
+  it("tone 'neutral' 은 그대로 싣고 절정이 되지 않는다", () => {
+    const neutral = {
+      when: '11:15–13:15 (오시)',
+      whenEn: '11:15–13:15 (Horse hour)',
+      clockStart: '11:15',
+      clockEnd: '13:15',
+      sibsin: '',
+      tone: 'neutral' as const,
+      risingSignKo: '사수자리',
+      risingSignEn: 'Sagittarius',
+      strength: 0,
+    }
+    const vm = buildDayViewModel(makeV9Day({ hourCrossings: [neutral] }), {
+      lang: 'en',
+      sex: '여',
+    })
+    expect(vm.hours).toEqual([
+      {
+        window: '11:15–13:15',
+        name: 'Horse hour',
+        rising: 'Sagittarius rising',
+        tone: 'neutral',
+        peak: false,
+        narrative: '',
+      },
+    ])
+  })
+})
+
+describe('겹치는 흐름 — STARS 보조 줄(QA VC-5)', () => {
+  it('교차 행의 점성 구조가 있으면 왜 행과 같은 보조 줄', () => {
+    const day = makeV9Day()
+    day.crossActivations[1] = {
+      ...day.crossActivations[1],
+      astroDetail: {
+        transitPlanet: 'Mars',
+        sourceKind: 'transit',
+        aspect: 'square',
+        natalPoint: 'Moon',
+        transitSign: 'Leo',
+        transitDeg: 27,
+        orb: 1.12,
+      },
+    }
+    const vm = buildDayViewModel(day, { lang: 'en', sex: '여' })
+    const mars = vm.crossings.find((c) => c.stars.text === 'Mars')!
+    expect(mars.stars.sub).toBe(sub('Transit', '27° Leo', 'square natal Moon', 'orb 1.1°'))
+    expect(mars.astroDetail?.natalPoint).toBe('Moon')
   })
 })

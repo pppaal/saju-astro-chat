@@ -164,3 +164,41 @@ describe('buildHourCrossings — 시진 × 상승궁은 교차가 아니다 (own
     }
   })
 })
+
+describe('buildHourCrossings — 12 시진 전부(결정 QA-4)', () => {
+  it('신호가 없는 시진도 같은 창·같은 자리의 중립 줄 — 엔진 점수 필터는 그대로', () => {
+    for (const [loc, day] of [
+      [SEOUL, '2026-11-26'],
+      [MADRID, '2026-07-15'],
+      [{ latitude: 40.71, longitude: -74.006, timeZone: 'America/New_York' }, '2026-03-08'],
+    ] as const) {
+      const full = cellFor(day, loc.longitude, loc.timeZone)
+      const all = buildHourCrossings(full, day, loc)
+      expect(all).toHaveLength(12)
+      // 子 · 寅 · 辰 … 반만 신호로 남긴다(중립 시진은 extractor 가 내지 않는 모양).
+      const keep = new Set(['子', '寅', '辰', '午', '申', '戌'])
+      const partial = {
+        ...full,
+        signals: full.signals.filter((s) => keep.has(String(s.evidence.detail?.hourBranch))),
+      }
+      housesJd.length = 0
+      const rows = buildHourCrossings(partial, day, loc)
+      expect(rows).toHaveLength(12)
+      // 창·순서는 신호가 다 있을 때와 같다.
+      expect(rows.map((r) => r.when)).toEqual(all.map((r) => r.when))
+      const neutral = rows.filter((r) => r.tone === 'neutral')
+      expect(neutral).toHaveLength(6)
+      for (const r of neutral) {
+        expect(r).toMatchObject({ sibsin: '', strength: 0 })
+        expect(r.narrative).toBeUndefined()
+        expect(r.risingSignEn).toBe('Leo') // 상승궁도 그 창 한가운데에서
+      }
+      expect(housesJd).toHaveLength(12)
+    }
+  })
+
+  it('시진 신호가 하나도 없으면(일간 미상) 중립 줄을 지어내지 않는다', () => {
+    const full = cellFor('2026-11-26', SEOUL.longitude, SEOUL.timeZone)
+    expect(buildHourCrossings({ ...full, signals: [] }, '2026-11-26', SEOUL)).toEqual([])
+  })
+})

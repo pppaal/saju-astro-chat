@@ -7,7 +7,11 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import { readdirSync, readFileSync } from 'node:fs'
 import path from 'node:path'
-import { buildMonthViewModel, gridTapIntent } from '@/lib/calendar-view/monthViewModel'
+import {
+  buildMonthViewModel,
+  pickAxisTicks,
+  gridTapIntent,
+} from '@/lib/calendar-view/monthViewModel'
 import { toLadderRows } from '@/lib/calendar-view/dayViewModel'
 import { makeV9Month, makeV9Day, dayRungs, TODAY } from './_v9Month'
 
@@ -62,6 +66,23 @@ describe('buildMonthViewModel — 막대·그리드·범례', () => {
       { d: 24, today: false, best: true },
       { d: 30, today: false, best: false },
     ])
+  })
+
+  it('축 눈금은 이웃 칸(하루 차이)에 두 개를 두지 않는다 — 오늘 > 최고 > 1·8·15·끝(QA VC-6)', () => {
+    // 오늘 25 · 최고 24 — 최고 눈금은 빠진다('BEST · 24' 상자가 이름한다).
+    expect(pickAxisTicks({ lastDay: 30, today: 25, best: 24 })).toEqual([1, 8, 15, 25, 30])
+    // 오늘 2 → 1 이 빠진다. 오늘 14 → 15 가 빠진다. 오늘 29 → 30 이 빠진다.
+    expect(pickAxisTicks({ lastDay: 30, today: 2, best: 24 })).toEqual([2, 8, 15, 24, 30])
+    expect(pickAxisTicks({ lastDay: 30, today: 14, best: 24 })).toEqual([1, 8, 14, 24, 30])
+    expect(pickAxisTicks({ lastDay: 30, today: 29, best: 24 })).toEqual([1, 8, 15, 24, 29])
+    // 최고 16 → 15 가 빠진다(최고가 1·8·15 보다 앞선다).
+    expect(pickAxisTicks({ lastDay: 30, today: 0, best: 16 })).toEqual([1, 8, 16, 30])
+    // Nov 2026(최고 24)에서 오늘이 어느 날이든 이웃 눈금이 없다.
+    for (let t = 1; t <= 30; t++) {
+      const ticks = pickAxisTicks({ lastDay: 30, today: t, best: 24 })
+      expect(ticks).toContain(t)
+      for (let i = 1; i < ticks.length; i++) expect(ticks[i] - ticks[i - 1]).toBeGreaterThan(1)
+    }
   })
 
   it('그리드: 1일 앞 빈칸(2026-11-01 일요일 = 0), 요일 머리, 최고의 날 표지', () => {
@@ -137,6 +158,15 @@ describe('buildMonthViewModel — 큰 날·제목·해 볼 것', () => {
     expect(vm.h2.best).toBe('')
     expect(vm.bestAnnotation).toBeNull()
     expect(vm.h2.lead).toBe('Five key days.')
+  })
+
+  it("큰 날이 하나도 없는 달은 머리말이 비어 있다 — 'Zero key days.' 아님(QA CODE-8)", () => {
+    const month = makeV9Month({ keyDays: [], bestDay: { date: '', score: 0 } })
+    for (const lang of ['en', 'ko'] as const) {
+      const vm = buildMonthViewModel(month, makeV9Day(), { lang })
+      expect(vm.keyDays).toEqual([])
+      expect(vm.h2).toEqual({ lead: '', best: '' })
+    }
   })
 
   it('해 볼 것 — PUSH 24(최고의 날), HOLD 29(avoid-first, 지난 날 제외)', () => {

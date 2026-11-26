@@ -145,4 +145,29 @@ describe('GET /api/calendar/day — override 쿼리 zod 검증(422, 500 아님)'
     expect(status).toBe(401)
     expect(getOrBuildNatalContext).not.toHaveBeenCalled()
   })
+
+  it('today= 가 있으면 isToday 의 기준 — 서버 시계 대신 화면의 오늘(QA CODE-4)', async () => {
+    const { buildDayViewModel } = await import('@/lib/calendar-view/dayViewModel')
+    const vmMock = vi.mocked(buildDayViewModel)
+    vmMock.mockClear()
+    const tomorrow = new Date(Date.now() + 86_400_000).toISOString().slice(0, 10)
+    // day = 오늘(서버), today = 내일 — 화면의 오늘이 아니므로 isToday false.
+    let r = await call({ ...BASE, day: TODAY, today: tomorrow })
+    expect(r.status).toBe(200)
+    expect(vmMock.mock.calls.at(-1)?.[1]).toMatchObject({ isToday: false })
+    // day 와 today 가 같으면 true.
+    r = await call({ ...BASE, day: tomorrow, today: tomorrow })
+    expect(r.status).toBe(200)
+    expect(vmMock.mock.calls.at(-1)?.[1]).toMatchObject({ isToday: true })
+  })
+
+  it('today= 가 잘못되면 422 invalid_today, 엔진은 부르지 않는다', async () => {
+    for (const bad of ['2026-02-31', '1850-01-01', 'yesterday']) {
+      getOrBuildNatalContext.mockClear()
+      const r = await call({ ...BASE, today: bad })
+      expect(r.status).toBe(422)
+      expect(r.body.error.message).toBe('invalid_today')
+      expect(getOrBuildNatalContext).not.toHaveBeenCalled()
+    }
+  })
 })

@@ -208,7 +208,9 @@ describeRealEphemeris('v9.2 캘린더 샘플(1997-03-21 14:30 여 · 서울, 202
     near(det.orb, 1.1)
     expect(en.day.reason?.astroDetail).toEqual(det)
     const dayVm = buildDayViewModel(en.day, { lang: 'en', sex: '여', isToday: true })
-    expect(dayVm.why?.stars?.sub).toBe('Transit · 27° Leo · conjunct natal Moon · orb 1.1°')
+    expect(dayVm.why?.stars?.sub?.replace(/\u00A0/g, ' ')).toBe(
+      'Transit · 27° Leo · conjunct natal Moon · orb 1.1°'
+    )
   })
 
   it('11-29 화성 ☌ 본명 달 — 정오 1° 처녀자리 · orb ≈2.9°(큰 날 행 문구까지)', () => {
@@ -223,7 +225,9 @@ describeRealEphemeris('v9.2 캘린더 샘플(1997-03-21 14:30 여 · 서울, 202
     near(det.orb, 2.9)
     const vm = buildMonthViewModel(en.month, en.day, { lang: 'en', nowIso: NOW_ISO })
     const row = vm.keyDays.find((k) => k.ds === '11-29')
-    expect(JSON.stringify(row)).toContain('Transit · 1° Virgo · conjunct natal Moon · orb 2.9°')
+    expect(row?.why?.stars.sub?.replace(/\u00A0/g, ' ')).toBe(
+      'Transit · 1° Virgo · conjunct natal Moon · orb 2.9°'
+    )
   })
 
   it('11-24 태양 △ 본명 태양 — 정오 1° 사수자리 · orb ≈1.2°', () => {
@@ -283,7 +287,7 @@ describeRealEphemeris('v9.2 캘린더 샘플(1997-03-21 14:30 여 · 서울, 202
       kind: 'saturn_return_1',
       en: 'First Saturn return',
     })
-    expect(vm.ladder[1].stars?.sub).toMatch(/First Saturn return/)
+    expect(vm.ladder[1].stars?.sub?.replace(/\u00A0/g, ' ')).toMatch(/First Saturn return/)
     const shown = rungs.map((r) => ({
       ...r,
       saju: r.saju && { en: r.saju.en, hanja: r.saju.hanja },

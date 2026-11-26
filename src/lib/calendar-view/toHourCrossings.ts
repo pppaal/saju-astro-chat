@@ -3,7 +3,10 @@
  *
  * 사주 측: 그 날 12 시진 중 의미 있는(용신 부합/기피) 시진 — 일진 cell 안에
  *   이미 들어있는 hourly pillar-sibsin 신호(sajuHourExtractor)에서 그대로 뽑는다.
- *   (polarity 0 중립은 extractor 가 미리 걸러냄 → '켜지는 시간'만 남음.)
+ *   polarity 0 중립은 extractor 가 걸러 점수에 넣지 않지만(그대로), 화면 '시진별' 줄은 12 시진
+ *   전부를 보여 준다(결정 QA-4) — 신호가 없는 시진은 extractor 와 같은 창 계산
+ *   (hourSegmentsForLocalDay)으로 창·상승궁만 채운 tone 'neutral' 줄. 예전엔 중립 시진이
+ *   말없이 빠져 '시진별' 목록이 8칸뿐인데 분야 본문은 목록에 없는 시각을 말했다(QA VC-4).
  * 점성 측: 그 시진 한가운데 순간의 상승궁(Ascendant) — 나란히 보여 주는 사실일 뿐이다.
  *
  * 시각 (재감사 TP-8): 줄의 시각은 엔진 시진 창 그대로 — 평균태양시라 출생지 경도·그날 UTC
@@ -28,6 +31,10 @@ import {
   HOUR_BRANCH_NARRATIVE,
   pickHourNarrative,
 } from '@/lib/calendar-engine/data/hourBranchNarrative'
+import { hourSegmentsForLocalDay } from '@/lib/calendar-engine/extractors/saju-hour'
+import { BRANCHES } from '@/lib/saju/constants'
+import { normalizeTimeZone } from '@/lib/datetime/timezone'
+import { CALCULATION_STANDARDS } from '@/lib/config/calculationStandards'
 import { SIGN_KO } from './shared'
 
 // HOUR_BRANCH_NARRATIVE 키(한글 시지) — 원본 Branch 타입이 미노출이라 동형 재정의.
@@ -72,8 +79,8 @@ export interface HourCrossItem {
   clockEnd: string
   /** 시주 천간의 일간 기준 십신. */
   sibsin: string
-  /** 용신 부합(길) / 기피(주의). */
-  tone: 'good' | 'caution'
+  /** 용신 부합(길) / 기피(주의) / 중립(신호 없음 — 화면에만, 결정 QA-4). */
+  tone: 'good' | 'caution' | 'neutral'
   /** 그 시진 한가운데 순간의 상승궁 한글 — '게자리'. 출생지 미상이면 ''. */
   risingSignKo: string
   /** 그 시진 한가운데 순간의 상승궁 영문 — 'Cancer'. 출생지 미상이면 ''. */
@@ -124,7 +131,35 @@ export function buildHourCrossings(
     .filter((s) => s.kind === 'pillar-sibsin' && s.layer === 'hourly')
     .sort((a, b) => Date.parse(a.active.start) - Date.parse(b.active.start))
 
+  // 그 시진 한가운데 순간의 상승궁 — 엔진의 평균태양시 한가운데 instant(centerUtc). 구 셀
+  // (centerUtc 없음)은 이 조각 peak 의 벽시계로. 출생지 미상·계산 실패면 '' (사주 한 줄은 유지).
+  const risingAt = (centerUtc: string | undefined, peakIso?: string) => {
+    try {
+      if (placeUnreliable) throw new Error('place unreliable — no rising sign')
+      const jd = centerUtc
+        ? isoToJD(centerUtc, 'UTC')
+        : natalToJD({
+            year,
+            month,
+            date,
+            hour: Number((peakIso ?? '').slice(11, 13)),
+            minute: Number((peakIso ?? '').slice(14, 16)),
+            latitude: loc.latitude,
+            longitude: loc.longitude,
+            timeZone: loc.timeZone,
+          })
+      const houses = calcHouses(jd, loc.latitude, loc.longitude)
+      const sign = formatLongitude(houses.ascendant).sign as ZodiacKo
+      // formatLongitude.sign 은 영문('Cancer').
+      return { ko: SIGN_KO[sign] ?? sign, en: sign as string }
+    } catch {
+      return { ko: '', en: '' }
+    }
+  }
+
   const rows: HourCrossItem[] = []
+  /** 신호 줄의 시지(한자) — 중립 시진을 채울 때 이미 있는 시진을 건너뛴다. */
+  const rowBranch: Array<string | undefined> = []
   // 자정을 감싸는 시진(보통 子)은 엔진이 민용일 안에서 두 조각(00시대·23시대)으로 낸다
   // (CONVENTIONS §1). 같은 時柱·같은 창이라 한 줄만 — 시각순 첫 조각(자정 직후)을 남긴다.
   const seenPillar = new Set<string>()
@@ -147,32 +182,7 @@ export function buildHourCrossings(
     // 시지가 사전에 매핑되면 시진 narrative 를, 아니면(미매핑 한자) KO 가 s.korean 을
     // 쓰는 것과 대칭으로 s.english 로 폴백 — EN narrative 가 비지 않게 한다.
     const narrativeEn = branchHangul ? pickHourNarrative(branchHangul, s.polarity, 'en') : s.english
-
-    // 그 시진 한가운데 순간의 상승궁 — 엔진의 평균태양시 한가운데 instant(centerUtc).
-    // 구 셀(centerUtc 없음)은 이 조각 peak 의 벽시계로.
-    let risingSignKo = ''
-    let risingSignEn = ''
-    try {
-      if (placeUnreliable) throw new Error('place unreliable — no rising sign')
-      const jd = det.centerUtc
-        ? isoToJD(det.centerUtc, 'UTC')
-        : natalToJD({
-            year,
-            month,
-            date,
-            hour: Number(s.active.peak.slice(11, 13)),
-            minute: Number(s.active.peak.slice(14, 16)),
-            latitude: loc.latitude,
-            longitude: loc.longitude,
-            timeZone: loc.timeZone,
-          })
-      const houses = calcHouses(jd, loc.latitude, loc.longitude)
-      const sign = formatLongitude(houses.ascendant).sign as ZodiacKo
-      risingSignKo = SIGN_KO[sign] ?? sign
-      risingSignEn = sign // formatLongitude.sign 은 영문('Cancer')
-    } catch {
-      // 상승점 계산 실패(고위도·ephemeris) 또는 출생지 미상 시 사주만으로 한 줄은 유지.
-    }
+    const rising = risingAt(det.centerUtc, s.active.peak)
 
     rows.push({
       when,
@@ -181,13 +191,51 @@ export function buildHourCrossings(
       clockEnd,
       sibsin,
       tone: s.polarity > 0 ? 'good' : 'caution',
-      risingSignKo,
-      risingSignEn,
+      risingSignKo: rising.ko,
+      risingSignEn: rising.en,
       narrative: s.korean,
       narrativeEn,
       strength: Math.abs(s.polarity),
     })
+    rowBranch.push(det.hourBranch)
   }
 
-  return rows
+  // 신호가 하나도 없으면(일간 미상 등 사주 결을 못 구한 날) 중립 줄을 지어내지 않는다. 구 셀처럼
+  // 시지를 모르는 줄이 있으면 시진을 맞출 수 없어 신호 줄만 둔다.
+  if (rows.length === 0 || rowBranch.some((b) => !b)) return rows
+
+  // 12 시진 전부(결정 QA-4) — extractor 와 같은 입력(출생지 경도·시간대, 같은 기본값)으로 같은 창.
+  const longitude = typeof loc.longitude === 'number' ? loc.longitude : undefined
+  const timeZone = normalizeTimeZone(loc.timeZone, CALCULATION_STANDARDS.saju.baseTimezone)
+  const byBranch = new Map(rowBranch.map((b, i) => [b!, rows[i]]))
+  const out: HourCrossItem[] = []
+  const seenBranch = new Set<number>()
+  for (const seg of hourSegmentsForLocalDay(focusDayIso, longitude, timeZone)) {
+    if (seenBranch.has(seg.branchIdx)) continue // 자정에서 나뉜 지지 — 첫 조각 자리에 한 줄
+    seenBranch.add(seg.branchIdx)
+    const hanja = BRANCHES[seg.branchIdx]?.name
+    if (!hanja) continue
+    const signalRow = byBranch.get(hanja)
+    if (signalRow) {
+      out.push(signalRow)
+      continue
+    }
+    const branchHangul = HANJA_TO_HANGUL[hanja]
+    const nar = branchHangul ? HOUR_BRANCH_NARRATIVE[branchHangul] : undefined
+    const span = `${seg.clockStart}–${seg.clockEnd}`
+    const rising = risingAt(new Date(seg.occStartUtc + 60 * 60_000).toISOString())
+    out.push({
+      when: nar ? `${span} (${nar.nameKo})` : span,
+      whenEn: nar ? `${span} (${nar.nameEn})` : span,
+      clockStart: seg.clockStart,
+      clockEnd: seg.clockEnd,
+      sibsin: '',
+      tone: 'neutral',
+      risingSignKo: rising.ko,
+      risingSignEn: rising.en,
+      strength: 0,
+    })
+  }
+  // 창 계산이 신호와 어긋나 신호 줄이 빠졌다면(있어선 안 됨) 신호 줄만 — 사실을 잃지 않는다.
+  return out.length >= rows.length && rows.every((r) => out.includes(r)) ? out : rows
 }

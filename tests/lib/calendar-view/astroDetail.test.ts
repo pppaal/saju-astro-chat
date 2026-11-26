@@ -7,6 +7,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import type { ActiveSignal } from '@/lib/calendar-engine/types'
 
+/** 줄바꿈 없는 공백(값 조각 안, VC-8)을 보통 공백으로 — 글자 비교용. */
+const spaced = (t: string) => t.replace(/\u00A0/g, ' ')
+
 const chartFor = vi.fn()
 vi.mock('@/lib/calendar-engine/ephe-cache', () => ({
   getCachedTransitChart: (args: { iso: string }) => chartFor(args),
@@ -23,7 +26,10 @@ const {
   orbAtInstant,
   astroDetailSub,
   planetGlyph,
+  MOON_PHASE_WORD,
 } = astroDetailModule
+const { getMoonPhaseName } = await import('@/lib/astrology/foundation/electional')
+type MoonPhase = Parameters<typeof getMoonPhaseName>[0]
 
 const stripped = { module: 'astro-transit', detail: {} }
 
@@ -199,7 +205,51 @@ describe('reasonAstroDetail — 엔진의 부모 참조(crossParents)를 그대�
           astro: 'astro.dignity.Mars|face|Leo.2026-11-04',
         },
       })
-    ).toEqual({ transitPlanet: 'Mars', sourceKind: 'dignity' })
+      // 품위 부모는 부모 id 의 품위 키를 성격으로(QA VC-5 — 같은 행성의 두 교차를 구별).
+    ).toEqual({ transitPlanet: 'Mars', sourceKind: 'dignity', qualifier: 'face' })
+  })
+
+  it('어스펙트 없는 부모의 성격 — 품위 · 달 위상 키는 부모 id 에서만(QA VC-5)', () => {
+    const ref = (astro: string, kind: string, extra: Record<string, unknown> = {}) => ({
+      crossParents: {
+        saju: 'saju.pillar.daily.2026-11-24',
+        astro,
+        planet: 'Moon',
+        kind,
+        layer: 'monthly' as const,
+        ...extra,
+      },
+    })
+    expect(
+      reasonAstroDetail(ref('astro.moon-phase.2026-11-22.waxing_gibbous', 'moon-phase'))
+    ).toEqual({ transitPlanet: 'Moon', sourceKind: 'moon-phase', qualifier: 'waxing_gibbous' })
+    expect(
+      reasonAstroDetail(ref('astro.dignity.Moon|exaltation|Taurus.2026-11-23', 'dignity'))
+        ?.qualifier
+    ).toBe('exaltation')
+    // 모르는 키·다른 모양의 id 는 성격 없음(지어내지 않는다).
+    expect(
+      reasonAstroDetail(ref('astro.moon-phase.2026-11-22.blue_moon', 'moon-phase'))
+    ).not.toHaveProperty('qualifier')
+    expect(
+      reasonAstroDetail(ref('astro.dignity.natal-almuten.Moon.Taurus.x.2026', 'dignity'))
+    ).not.toHaveProperty('qualifier')
+    // 트랜짓(어스펙트) 부모는 성격을 싣지 않는다 — 어스펙트·본명 접점이 그 자리.
+    expect(
+      reasonAstroDetail(
+        ref('astro.moon-phase.2026-11-22.full_moon', 'transit', {
+          aspect: 'square',
+          natal: 'Mars',
+        })
+      )
+    ).not.toHaveProperty('qualifier')
+  })
+
+  it('달 위상 KO 말 = 엔진 위상 이름(getMoonPhaseName)', () => {
+    for (const phase of Object.keys(MOON_PHASE_WORD.en)) {
+      expect(MOON_PHASE_WORD.ko[phase]).toBe(getMoonPhaseName(phase as MoonPhase))
+    }
+    expect(Object.keys(MOON_PHASE_WORD.ko).sort()).toEqual(Object.keys(MOON_PHASE_WORD.en).sort())
   })
 
   it('참조 없는 교차는 null — 이름·창으로 부모를 추정하지 않는다(엔진 버그는 지어내지 않음)', () => {
@@ -300,7 +350,9 @@ describe('withTransitPositions — 그날 현지 정오 트랜짓 차트(트랜�
       transitDeg: 1,
       orb: 2.95,
     })
-    expect(astroDetailSub(out, 'en')).toBe('Transit · 1° Virgo · conjunct natal Moon · orb 3.0°')
+    expect(spaced(astroDetailSub(out, 'en'))).toBe(
+      'Transit · 1° Virgo · conjunct natal Moon · orb 3.0°'
+    )
     expect(detail.orb).toBe(0.1) // 입력은 그대로
   })
 
@@ -380,12 +432,28 @@ describe('표시 — STARS 칸 보조 줄', () => {
     transitDeg: 24,
   }
   it('en / ko — 위치·어스펙트·본명 접점, orb 는 있을 때만', () => {
-    expect(astroDetailSub(detail, 'en')).toBe('Transit · 24° Scorpio · square natal Moon')
-    expect(astroDetailSub({ ...detail, orb: 0.42 }, 'en')).toBe(
+    expect(spaced(astroDetailSub(detail, 'en'))).toBe('Transit · 24° Scorpio · square natal Moon')
+    expect(spaced(astroDetailSub({ ...detail, orb: 0.42 }, 'en'))).toBe(
       'Transit · 24° Scorpio · square natal Moon · orb 0.4°'
     )
-    expect(astroDetailSub(detail, 'ko')).toBe('트랜짓 · 전갈자리 24° · 본명 달 스퀘어')
+    // 조각 안은 줄바꿈 없는 공백 — ' · ' 만 줄이 갈리는 자리(QA VC-8).
+    expect(astroDetailSub({ ...detail, orb: 0.42 }, 'en')).toBe(
+      ['Transit', '24° Scorpio', 'square natal Moon', 'orb 0.4°']
+        .map((p) => p.replace(/ /g, '\u00A0'))
+        .join(' · ')
+    )
+    expect(spaced(astroDetailSub(detail, 'ko'))).toBe('트랜짓 · 전갈자리 24° · 본명 달 스퀘어')
     expect(astroDetailSub({ transitPlanet: 'Venus', sourceKind: 'dignity' }, 'en')).toBe('Transit')
+  })
+  it('어스펙트 없는 부모 — 품위 · 달 위상 말로 두 ☾ 달 교차가 갈린다(QA VC-5)', () => {
+    const moon = { transitPlanet: 'Moon', transitSign: 'Taurus', transitDeg: 24 }
+    const dig = { ...moon, sourceKind: 'dignity', qualifier: 'exaltation' }
+    const ph = { ...moon, sourceKind: 'moon-phase', qualifier: 'waxing_gibbous' }
+    expect(spaced(astroDetailSub(dig, 'en'))).toBe('Transit · 24° Taurus · exalted')
+    expect(spaced(astroDetailSub(ph, 'en'))).toBe('Transit · 24° Taurus · waxing gibbous')
+    expect(spaced(astroDetailSub(dig, 'ko'))).toBe('트랜짓 · 황소자리 24° · 엑잘테이션(고양)')
+    expect(spaced(astroDetailSub(ph, 'ko'))).toBe('트랜짓 · 황소자리 24° · 차오르는 달')
+    expect(astroDetailSub(dig, 'en')).not.toBe(astroDetailSub(ph, 'en'))
   })
   it('planetGlyph — 기호가 있는 천체만', () => {
     expect(planetGlyph('Sun')).toBe('sun')

@@ -12,6 +12,10 @@
 // 입력:
 //   · day=YYYY-MM-DD (필수) — 빌드할 날짜. 오늘 기준 ±370일로 제한(캐시 행
 //     증식·무한 풀빌드 방지 — 캘린더 UI 는 그 달만 보여주므로 충분).
+//   · today=YYYY-MM-DD (선택) — 그 화면의 '오늘'(QA CODE-4). /calendar/preview 는 표본 날(11.19)에
+//     고정돼 있어, 서버 시계로 '오늘'을 정하면 실제 오늘을 열 때 일간이 'Today'라 하고 그리드는 19일을
+//     오늘로 그렸다. 주면 isToday = (day === today), 없을 때만 출생지 시간대의 서버 시계. day 와 같은
+//     검사(실재 날짜 · ±370일), 걸리면 422.
 //   · 생일 override(date/time/lat/lng/tz/gender) — /calendar 페이지와 동일
 //     규약·동일 zod 검사(parseBirthOverrideQuery: 공용 date/lat/lng/tz 스키마). 검사에
 //     걸리면 422 — 범위 밖 입력(1850년 · lat=999)이 엔진 RangeError 500 으로 새지 않는다.
@@ -65,6 +69,11 @@ export const GET = withApiMiddleware(
     const dayIso = typeof sp.day === 'string' ? sp.day : ''
     if (!validDayIso(dayIso)) {
       return apiError(ErrorCodes.VALIDATION_ERROR, 'invalid_day')
+    }
+    // 화면의 '오늘'(선택) — 있으면 그 값이 기준, 없을 때만 서버 시계(아래).
+    const refIso = typeof sp.today === 'string' ? sp.today : undefined
+    if (refIso !== undefined && !validDayIso(refIso)) {
+      return apiError(ErrorCodes.VALIDATION_ERROR, 'invalid_today')
     }
 
     // 생일 — override 쿼리(익명 '다른 사람 보기') 우선, 없으면 세션 본명.
@@ -125,9 +134,14 @@ export const GET = withApiMiddleware(
       nextMonthCells,
     })
 
-    // 그날이 출생지 시간대의 오늘이면 '오늘' 라벨(페이지 렌더와 같은 기준).
-    const now = getNowInTimezone(birth.timeZone, new Date())
-    const isToday = dayIso === formatDateString(now.year, now.month, now.day)
+    // 그날이 그 화면의 오늘이면 '오늘' 라벨 — 클라이언트가 준 기준일(today=), 없으면 출생지
+    // 시간대의 서버 시계(페이지 렌더와 같은 기준).
+    let todayIso = refIso
+    if (!todayIso) {
+      const now = getNowInTimezone(birth.timeZone, new Date())
+      todayIso = formatDateString(now.year, now.month, now.day)
+    }
+    const isToday = dayIso === todayIso
     const vm = buildDayViewModel(day, {
       lang,
       sex: birth.gender === 'female' ? '여' : '남',

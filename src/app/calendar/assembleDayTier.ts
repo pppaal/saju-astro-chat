@@ -29,6 +29,7 @@ import { buildHourCrossings } from '@/lib/calendar-view/toHourCrossings'
 import { buildHourMoon } from '@/lib/calendar-view/toHourMoon'
 import {
   natalPointLongitudes,
+  reasonAstroDetail,
   withReasonDetail,
   withTransitPositions,
 } from '@/lib/calendar-view/astroDetail'
@@ -255,6 +256,7 @@ export async function assembleDayTier(input: AssembleDayTierInput): Promise<Dest
     // 전순서(|polarity| → weight → layer) — 셀 안 신호 순서와 무관하게 같은 페어 행을 고른다.
     if (prev && !crossRowOutranks(s, prev)) continue
     const ko = lang === 'ko'
+    const crossDetail = reasonAstroDetail(s)
     dayCrossByPair.set(key, {
       id: s.id,
       sajuSide: ko ? sajuKo : crossSajuEn(sajuKo),
@@ -267,6 +269,7 @@ export async function assembleDayTier(input: AssembleDayTierInput): Promise<Dest
       polarity: s.polarity,
       weight: s.weight,
       layer: s.layer,
+      ...(crossDetail ? { astroDetail: crossDetail } : {}),
     })
   }
   const dayCrossActivations: DestinyDay['crossActivations'] = [...dayCrossByPair.values()].sort(
@@ -285,17 +288,24 @@ export async function assembleDayTier(input: AssembleDayTierInput): Promise<Dest
   // 위치(별자리·도 — 트랜짓 추출기와 같은 캐시 키, 조회 1회)와 같은 차트에서 잰 orb(본명 황경은
   // 이미 지은 본명 차트에서, QA-3). 월 셀 근거와 같은 규칙(astroDetail.ts) — /api/calendar/day 도
   // 이 경로.
+  // 일간 '겹치는 흐름' 행도 같은 경로(QA VC-5) — 근거와 교차 행을 한 번에 넘겨, 같은 날짜의 트랜짓
+  // 차트는 한 호출 안에서 한 번만 읽는다(withTransitPositions 의 호출별 메모리 캐시).
   let dayReason = reasonBase
-  if (reasonBase && reasonSig) {
-    dayReason = withReasonDetail(reasonBase, reasonSig)
-    if (dayReason.astroDetail) {
-      const [placed] = await withTransitPositions(
-        [{ dateIso: targetDayIso, detail: dayReason.astroDetail }],
-        natal.astro.location,
-        natalPointLongitudes(natal.astro)
-      )
-      dayReason = { ...dayReason, astroDetail: placed }
-    }
+  if (reasonBase && reasonSig) dayReason = withReasonDetail(reasonBase, reasonSig)
+  const crossesWithDetail = dayCrossActivations.filter((c) => c.astroDetail)
+  const toPlace = [
+    ...(dayReason?.astroDetail ? [dayReason.astroDetail] : []),
+    ...crossesWithDetail.map((c) => c.astroDetail!),
+  ]
+  if (toPlace.length > 0) {
+    const placed = await withTransitPositions(
+      toPlace.map((detail) => ({ dateIso: targetDayIso, detail })),
+      natal.astro.location,
+      natalPointLongitudes(natal.astro)
+    )
+    let i = 0
+    if (dayReason?.astroDetail) dayReason = { ...dayReason, astroDetail: placed[i++] }
+    for (const c of crossesWithDetail) c.astroDetail = placed[i++]
   }
 
   // ── 타이밍 컨텍스트 (이달 흐름 추이 + 다가오는 7일) ──

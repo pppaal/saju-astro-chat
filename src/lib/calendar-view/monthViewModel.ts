@@ -246,9 +246,28 @@ function countsLine(goodN: number, careN: number, lang: Lang): string {
     : `${goodN} day${goodN === 1 ? '' : 's'} flow · ${careN} to ease off`
 }
 
+/** 큰 날 수 머리말 — 0 이면 ''(화면은 머리말을 그리지 않는다, 'Zero key days.' 금지 · QA CODE-8). */
 function h2Lead(n: number, lang: Lang): string {
+  if (n <= 0) return ''
   if (lang === 'ko') return `큰 날 ${n}일.`
   return n === 1 ? 'One key day.' : `${numberWordEn(n)} key days.`
+}
+
+/**
+ * 막대 축 눈금 — 1 · 8 · 15 · 오늘 · 최고 · 끝날. 이웃 칸(하루 차이)의 두 자리 숫자는 390 에서 맞닿고
+ * 320 에서 겹친다('2425', QA VC-6 · FIX9 규칙 5) — 그래서 우선순위(오늘 > 최고 > 1·8·15·끝)로 넣고,
+ * 이미 넣은 눈금과 하루 차이면 뺀다. 오늘 옆의 최고는 'BEST · d' 상자가 이미 이름한다.
+ */
+export function pickAxisTicks(opts: { lastDay: number; today: number; best: number }): number[] {
+  const { lastDay, today, best } = opts
+  const inRange = (d: number) => d > 0 && d <= lastDay
+  const out: number[] = []
+  for (const d of [today, best, 1, 8, 15, lastDay]) {
+    if (!inRange(d) || out.includes(d)) continue
+    if (out.some((t) => Math.abs(t - d) === 1)) continue
+    out.push(d)
+  }
+  return out.sort((a, b) => a - b)
 }
 
 function h2Best(bestDay: number, lang: Lang): string {
@@ -396,12 +415,11 @@ export function buildMonthViewModel(
     }
   })
   const lastDay = calendar.length ? calendar[calendar.length - 1].d : 0
-  const tickDays = [1, 8, 15, isCurrentMonth ? refDay : 0, bestD, lastDay].filter(
-    (d) => d > 0 && d <= lastDay
-  )
-  const axisTicks = [...new Set(tickDays)]
-    .sort((a, b) => a - b)
-    .map((d) => ({ d, today: isCurrentMonth && d === refDay, best: d === bestD }))
+  const axisTicks = pickAxisTicks({
+    lastDay,
+    today: isCurrentMonth ? refDay : 0,
+    best: bestD,
+  }).map((d) => ({ d, today: isCurrentMonth && d === refDay, best: d === bestD }))
 
   // ── 오늘·사다리 — 이번 달이고 오늘의 일 티어가 그 날이면 그 4칸 사다리. ──
   const todayIso = isCurrentMonth ? `${ym}-${String(refDay).padStart(2, '0')}` : ''

@@ -58,7 +58,69 @@ export function reasonAstroDetail(
   if (ref.aspect) out.aspect = ref.aspect
   if (ref.natal) out.natalPoint = ref.natal
   if (typeof ref.orb === 'number') out.orb = ref.orb
+  const q = ref.aspect ? undefined : parentQualifier(ref.astro)
+  if (q) out.qualifier = q
   return out
+}
+
+/**
+ * 어스펙트 없는 점성 부모의 성격 — 엔진이 적은 부모 id 에서 읽는다(추정 아님): 품위
+ * 'astro.dignity.{행성}|{품위}|{별자리}.{날}' → 품위 키, 달 위상 'astro.moon-phase.{날}.{위상}' →
+ * 위상 키. 그 밖(이름에 성격이 없는 부모)은 undefined.
+ */
+function parentQualifier(astroId: string | undefined): string | undefined {
+  if (!astroId) return undefined
+  const dignity = /^astro\.dignity\.[^|]+\|([a-z]+)\|/.exec(astroId)
+  if (dignity && DIGNITY_WORD.en[dignity[1]]) return dignity[1]
+  const phase = /^astro\.moon-phase\.\d{4}-\d{2}-\d{2}\.([a-z_]+)$/.exec(astroId)
+  if (phase && MOON_PHASE_WORD.en[phase[1]]) return phase[1]
+  return undefined
+}
+
+/** 품위 말 — 근거 사다리 STARS 칸과 교차 행 보조 줄이 같은 말(astro-dignity 라벨과 같은 KO). */
+export const DIGNITY_WORD: Record<Lang, Record<string, string>> = {
+  en: {
+    domicile: 'In domicile',
+    exaltation: 'Exalted',
+    detriment: 'In detriment',
+    fall: 'In fall',
+    triplicity: 'In triplicity',
+    term: 'In its terms',
+    face: 'In its face',
+  },
+  ko: {
+    domicile: '도미사일(자기 자리)',
+    exaltation: '엑잘테이션(고양)',
+    detriment: '디트리먼트(반대 자리)',
+    fall: '폴(추락)',
+    triplicity: '트리플리시티',
+    term: '텀',
+    face: '페이스',
+  },
+}
+
+/** 달 위상 말 — KO 는 엔진 위상 이름(electional getMoonPhaseName)과 같다(테스트로 고정). */
+export const MOON_PHASE_WORD: Record<Lang, Record<string, string>> = {
+  en: {
+    new_moon: 'new moon',
+    waxing_crescent: 'waxing crescent',
+    first_quarter: 'first quarter',
+    waxing_gibbous: 'waxing gibbous',
+    full_moon: 'full moon',
+    waning_gibbous: 'waning gibbous',
+    last_quarter: 'last quarter',
+    waning_crescent: 'waning crescent',
+  },
+  ko: {
+    new_moon: '삭 (새달)',
+    waxing_crescent: '초승달',
+    first_quarter: '상현달',
+    waxing_gibbous: '차오르는 달',
+    full_moon: '보름달',
+    waning_gibbous: '기우는 달',
+    last_quarter: '하현달',
+    waning_crescent: '그믐달',
+  },
 }
 
 /**
@@ -242,6 +304,8 @@ export function planetGlyph(name: string | undefined): PlanetGlyph | undefined {
 /**
  * 근거 STARS 칸 보조 줄 — 'Transit · 24° Scorpio · square natal Moon · orb 0.4°'.
  * 위치는 있을 때만, orb 는 트랜짓 부모일 때 그 위치와 같은 순간의 값만(withTransitPositions).
+ * 조각 안의 낱말은 줄바꿈 없는 공백(U+00A0)으로 잇는다 — ' · ' 만 줄이 갈리는 자리라 '1° |
+ * Sagittarius', 'orb | 0.1°' 처럼 값이 쪼개지지 않는다(QA VC-8, base_v9 .nw 와 같은 규칙).
  */
 export function astroDetailSub(detail: ReasonAstroDetail, lang: Lang): string {
   const ko = lang === 'ko'
@@ -254,9 +318,14 @@ export function astroDetailSub(detail: ReasonAstroDetail, lang: Lang): string {
     const natal = planetLabel(detail.natalPoint, lang)
     const asp = aspectWord(detail.aspect, lang)
     parts.push(ko ? `본명 ${natal} ${asp}` : `${asp} natal ${natal}`)
+  } else if (detail.qualifier) {
+    // 어스펙트 없는 부모 — 품위·달 위상 말('exalted' · 'waxing gibbous'). 같은 행성의 두 교차가
+    // 같은 줄로 보이지 않게(QA VC-5).
+    const word = DIGNITY_WORD[lang][detail.qualifier] ?? MOON_PHASE_WORD[lang][detail.qualifier]
+    if (word) parts.push(ko ? word : word.toLowerCase())
   }
   if (typeof detail.orb === 'number') {
     parts.push(ko ? `오브 ${detail.orb.toFixed(1)}°` : `orb ${detail.orb.toFixed(1)}°`)
   }
-  return parts.join(' · ')
+  return parts.map((p) => p.replace(/ /g, '\u00A0')).join(' · ')
 }

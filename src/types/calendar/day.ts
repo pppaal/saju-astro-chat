@@ -22,7 +22,7 @@ import type {
 import type { GeokgukStatus, GeokgukStatusResult } from '@/lib/saju/geokguk'
 import type { DayVerdict } from '@/lib/calendar-engine/derivers/reconcile'
 import type { EvidenceRung } from '@/lib/calendar-engine/derivers/evidenceLadder'
-import type { DestinyCalendarCell } from './month'
+import type { DestinyCalendarCell, ReasonAstroDetail } from './month'
 
 // ============================================================================
 // 지장간 (Jijanggan) — 본명 일주(=일지) 의 정기·중기·여기 분해.
@@ -149,6 +149,11 @@ export interface DestinyCrossActivation {
    * 배경. 일 심층읽기("오늘의 흐름" 프레임)는 daily/monthly 만 쓴다(감사 #12).
    */
   layer?: string
+  /**
+   * 점성 부모 구조(교차의 crossParents) + 그날 현지 정오 트랜짓 위치·같은 순간의 orb — 일간
+   * '겹치는 흐름' STARS 칸 보조 줄(QA VC-5). '왜' 근거(reason.astroDetail)와 같은 경로.
+   */
+  astroDetail?: ReasonAstroDetail
 }
 
 // ============================================================================
@@ -267,7 +272,8 @@ export interface DestinyDay extends DestinyIljinHeader {
   dayTone?: DayVerdict
   /**
    * 시진별 하루 리듬 — 시진(십신) 과 그 시진 한가운데 상승궁을 *나란히*(교차 아님, owner
-   * 결정 19). 시각은 엔진 시진 창 그대로(평균태양시, 재감사 TP-8). 시각순.
+   * 결정 19). 시각은 엔진 시진 창 그대로(평균태양시, 재감사 TP-8). 시각순. 12 시진 전부 —
+   * 결이 없는 시진은 tone 'neutral'(strength 0, 서술 없음 · 결정 QA-4).
    */
   hourCrossings?: Array<{
     when: string // '07:15–09:15 (묘시)'
@@ -275,7 +281,7 @@ export interface DestinyDay extends DestinyIljinHeader {
     clockStart: string // '07:15'
     clockEnd: string // '09:15'
     sibsin: string
-    tone: 'good' | 'caution'
+    tone: 'good' | 'caution' | 'neutral'
     risingSignKo: string
     risingSignEn: string
     narrative?: string

@@ -20,8 +20,8 @@ import type {
 import { ASPECT_SYMBOL } from '@/lib/calendar-engine/derivers/evidenceLadder'
 import { deepMinorSafe } from '@/lib/calendar-engine/minorSafe'
 import type { PlanetGlyph } from '@/components/v9/Glyph'
-import { buildDayHero, buildDayDomains, type DayCross } from './dayHero'
-import { astroDetailSub, planetGlyph, planetLabel, signLabel } from './astroDetail'
+import { buildDayHero, buildDayDomains, retimeDayText, type DayCross } from './dayHero'
+import { astroDetailSub, DIGNITY_WORD, planetGlyph, planetLabel, signLabel } from './astroDetail'
 import {
   dotDate,
   dotMonthDay,
@@ -33,6 +33,7 @@ import {
   type Lang,
 } from './dateLabels'
 import { SIBSIN_HANJA } from '@/lib/saju/sibsinLabels'
+import { SIGN_RULERS_BY_SIGN } from '@/lib/astrology/foundation/dignities'
 // 교차 사주 키 EN — 일 페이로드의 sajuSide 는 서버 언어로 구워져 있어 로케일 토글 시 원어 키에서
 // 월·일 교차 카드와 같은 함수로 다시 고른다.
 import { crossSajuEn } from '@/lib/calendar-engine/derivers/signalI18n'
@@ -54,6 +55,11 @@ export interface StarsCellVM {
   glyph?: PlanetGlyph
   text: string
   sub?: string
+  /**
+   * 보조 줄을 줄 단위로 — 줄마다 글 + 행성 기호 + 꼬리(조디악 릴리싱 '영혼 황소자리 ♀ 2024–32',
+   * FIX9b F7 · QA VC-9). 있으면 화면은 sub 대신 이것을 그린다(sub 는 같은 글, 기호 없이).
+   */
+  subLines?: Array<{ text: string; glyph?: PlanetGlyph; tail?: string }>
 }
 
 /** 타이밍 교차 행 — 두 부모가 같은 부호일 때만 mark(E11). 0 이면 mark 없음. */
@@ -78,7 +84,7 @@ export interface LadderRowVM {
   polarity: number
   saju: SajuCellVM | null
   stars: StarsCellVM | null
-  /** 오늘 칸(daily). */
+  /** 오늘 칸 — daily 이고 그날이 오늘일 때만(빨간 NOW 점, SPEC9 규칙 3). */
   now: boolean
 }
 
@@ -118,13 +124,21 @@ export function crossToTimingRow(c: DayCross, lang: Lang): TimingRowVM {
   const planetEn = PLANET_EN_BY_KO[astroKo] ?? astroKo
   const hanja = SIBSIN_HANJA[sajuKo]
   const glyph = planetGlyph(planetEn)
+  // STARS 보조 줄 — 교차의 점성 부모 구조 + 그날 정오 위치·같은 순간의 orb(QA VC-5, '왜' 행과 같은
+  // astroDetailSub). 구조가 없으면(구 페이로드) 보조 줄 없이.
+  const detail = c.astroDetail
   const row: TimingRowVM = {
     saju: { ...(hanja ? { hanja } : {}), text: ko ? sajuKo : crossSajuEn(sajuKo) },
-    stars: { ...(glyph ? { glyph } : {}), text: ko ? astroKo : planetEn },
+    stars: {
+      ...(glyph ? { glyph } : {}),
+      text: ko ? astroKo : planetEn,
+      ...(detail ? { sub: astroDetailSub(detail, lang) } : {}),
+    },
     note: ko ? c.meaning : capitalize(c.meaningEn || c.meaning),
   }
   const mark = markOf(c.polarity)
   if (mark) row.mark = mark
+  if (detail) row.astroDetail = detail
   return row
 }
 
@@ -135,32 +149,17 @@ const SCALE_LABEL: Record<Lang, Record<LadderScale, string>> = {
   ko: { decadal: '10년 대운', yearly: '올해', monthly: '이달', daily: '오늘' },
 }
 
+/** 오늘이 아닌 날의 일 칸 라벨(QA VC-3) — 일간 화면에서 지난 날·다가올 날을 열었을 때. */
+const OTHER_DAY_LABEL: Record<Lang, string> = { en: 'This day', ko: '이날' }
+
+/** 줄바꿈 없는 공백 — 값 한 덩어리('1° Sagittarius', 'natal Mars') 안에서 줄이 갈리지 않게(VC-8). */
+const NBSP = '\u00A0'
+const glue = (t: string) => t.replace(/ /g, NBSP)
+
 /** 사다리 위 한 줄(FIX9b F7). */
 export const LADDER_CAPTION: Record<Lang, string> = {
   en: 'Each scale has its own driver — a rough month can still hold a favorable day.',
   ko: '시간대마다 가장 센 근거가 따로 있어요 — 거친 달에도 좋은 날은 있어요.',
-}
-
-const DIGNITY_WORD: Record<Lang, Record<string, string>> = {
-  en: {
-    domicile: 'In domicile',
-    exaltation: 'Exalted',
-    detriment: 'In detriment',
-    fall: 'In fall',
-    triplicity: 'In triplicity',
-    term: 'In its terms',
-    face: 'In its face',
-  },
-  // astro-dignity 라벨과 같은 말.
-  ko: {
-    domicile: '도미사일(자기 자리)',
-    exaltation: '엑잘테이션(고양)',
-    detriment: '디트리먼트(반대 자리)',
-    fall: '폴(추락)',
-    triplicity: '트리플리시티',
-    term: '텀',
-    face: '페이스',
-  },
 }
 
 /** '2024-03-21'~'2032-03-21' → '2024–32'. */
@@ -211,28 +210,42 @@ function starsOf(astro: RungAstro, chipText: string, lang: Lang): StarsCellVM {
       const N = astro.natalPoint ? planetLabel(astro.natalPoint, lang) : ''
       const sym = astro.aspect ? (ASPECT_SYMBOL[astro.aspect] ?? '') : ''
       const text = [P, sym, N].filter(Boolean).join(' ')
+      // 짧은 값 조각('Transit Moon', 'natal Mars') 안은 줄바꿈 없는 공백 — ' · ' 만 줄이 갈린다(VC-8).
       const sub = ko
-        ? join(`트랜짓 ${P}`, N && `본명 ${N}`)
-        : join(`Transit ${P}`, N && `natal ${N}`)
+        ? join(glue(`트랜짓 ${P}`), N && glue(`본명 ${N}`))
+        : join(glue(`Transit ${P}`), N && glue(`natal ${N}`))
       return cell(text || chipText, join(sub, eventSuffix(astro, lang)))
     }
     case 'dignity': {
       const dig = astro.dignity ? (DIGNITY_WORD[lang][astro.dignity] ?? astro.dignity) : ''
       const sign = astro.sign ? signLabel(astro.sign, lang) : ''
-      const sub = ko ? join(dig, sign) : join(dig, sign && `in ${sign}`)
+      const sub = ko ? join(glue(dig), glue(sign)) : join(glue(dig), sign && glue(`in ${sign}`))
       return cell(P || chipText, join(sub, eventSuffix(astro, lang)))
     }
     case 'zodiacal-releasing': {
-      const lots = (astro.lots ?? []).map((l) => {
+      // 랏마다 한 줄 — 별자리 뒤에 그 별자리의 전통 지배 행성 기호(FIX9b F7 'SPIRIT IN TAURUS ♀
+      // 2024–32', QA VC-9). 문자열 sub 는 같은 글(기호 없이).
+      const lines = (astro.lots ?? []).map((l) => {
         const sign = signLabel(l.sign, lang)
         const yrs = shortYears(l.range.start, l.range.end)
-        return ko
-          ? `${l.lot === 'spirit' ? '영혼' : '운명'} ${sign} ${yrs}`
-          : `${l.lot === 'spirit' ? 'Spirit' : 'Fortune'} in ${sign} ${yrs}`
+        // 랏 이름 · 별자리는 한 덩어리(줄바꿈 없는 공백, VC-8) — 줄이 갈리면 기호 뒤 기간 앞에서.
+        const text = glue(
+          ko
+            ? `${l.lot === 'spirit' ? '영혼' : '운명'} ${sign}`
+            : `${l.lot === 'spirit' ? 'Spirit' : 'Fortune'} in ${sign}`
+        )
+        const ruler = planetGlyph(SIGN_RULERS_BY_SIGN[l.sign])
+        return { text, ...(ruler ? { glyph: ruler } : {}), tail: yrs }
       })
+      const lotsText = lines.map((x) => `${x.text} ${x.tail}`)
       const chapter = astro.sign ? join(signLabel(astro.sign, lang), P) : ''
-      const sub = join(lots.length ? lots.join(' · ') : chapter, eventSuffix(astro, lang))
-      return { text: ko ? '조디악 릴리싱' : 'Zodiacal releasing', ...(sub ? { sub } : {}) }
+      const event = eventSuffix(astro, lang)
+      const sub = join(lotsText.length ? lotsText.join(' · ') : chapter, event)
+      return {
+        text: ko ? '조디악 릴리싱' : 'Zodiacal releasing',
+        ...(sub ? { sub } : {}),
+        ...(lines.length && !event ? { subLines: lines } : {}),
+      }
     }
     case 'lifecycle':
       return cell(P || chipText, eventSuffix(astro, lang))
@@ -241,9 +254,17 @@ function starsOf(astro: RungAstro, chipText: string, lang: Lang): StarsCellVM {
   }
 }
 
-/** 근거 사다리 칸 → 화면 행(라벨·기간·결론·SAJU·STARS). */
-export function toLadderRows(rungs: readonly EvidenceRung[], lang: Lang): LadderRowVM[] {
+/**
+ * 근거 사다리 칸 → 화면 행(라벨·기간·결론·SAJU·STARS). isToday=false(일간에서 지난 날·다가올 날을
+ * 연 경우)면 일 칸이 '이날'/'This day', NOW 점 없음, 결론의 '오늘'은 그날 말로(QA VC-3 · CODE-3).
+ */
+export function toLadderRows(
+  rungs: readonly EvidenceRung[],
+  lang: Lang,
+  opts: { isToday?: boolean } = {}
+): LadderRowVM[] {
   const ko = lang === 'ko'
+  const isToday = opts.isToday ?? true
   return rungs.map((r) => {
     const astroChip = r.chips.find((c) => c.source === 'astro')?.text ?? ''
     const sajuChip = r.chips.find((c) => c.source === 'saju')?.text ?? ''
@@ -260,15 +281,16 @@ export function toLadderRows(rungs: readonly EvidenceRung[], lang: Lang): Ladder
       : astroChip
         ? { text: astroChip }
         : null
+    const otherDay = r.scale === 'daily' && !isToday
     return {
       scale: r.scale,
-      label: SCALE_LABEL[lang][r.scale],
+      label: otherDay ? OTHER_DAY_LABEL[lang] : SCALE_LABEL[lang][r.scale],
       range: ladderRangeLabel(r, lang),
-      sentence: r.conclusion,
+      sentence: otherDay ? retimeDayText(r.conclusion, ko) : r.conclusion,
       polarity: r.polarity,
       saju,
       stars,
-      now: r.scale === 'daily',
+      now: r.scale === 'daily' && isToday,
     }
   })
 }
@@ -312,6 +334,8 @@ export interface DayShareVM {
   curve?: number[]
   /** 곡선에서 그날의 자리. */
   markerIndex?: number
+  /** 공유 시트 제목의 짧은 날짜 — 'Nov 24' / '11월 24일'(오늘이 아닌 날 제목). */
+  shortDate: string
 }
 
 function dayShareOf(
@@ -329,6 +353,7 @@ function dayShareOf(
   const markerIndex = scores.findIndex((s) => s.today)
   return {
     dateLabel,
+    shortDate: mdLabel(iso, lang),
     score: day.score,
     tone: hero.verdict.tone,
     headline: hero.hook.headline,
@@ -359,9 +384,14 @@ export function buildTodaySection(
     toneWord: hero.heroToneWord,
     line: hero.oneLine,
     why: hero.why,
-    reason: day.reason ? toTimingRow(day.reason, lang) : null,
+    reason: day.reason ? retimeRow(toTimingRow(day.reason, lang), lang, isToday) : null,
     share: dayShareOf(day, lang, hero),
   }
+}
+
+/** 오늘이 아닌 날 — 교차 행 엔진 문장의 '오늘'을 그날 말로(QA COPY-1). */
+function retimeRow(row: TimingRowVM, lang: Lang, isToday: boolean): TimingRowVM {
+  return isToday ? row : { ...row, note: retimeDayText(row.note, lang === 'ko') }
 }
 
 // ─── 시진 줄(결정 19) — 시진 창과 그 한가운데 상승궁을 나란히. 교차가 아니다(배지·교차 톤 없음). ───
@@ -373,8 +403,11 @@ export interface HourRowVM {
   name: string
   /** 그 창 한가운데의 상승궁 — 'Leo rising' / '상승궁 사자자리'. 출생지를 모르면 ''. */
   rising: string
-  /** 그 시진의 사주 결(십신) — 좋음/조심. 교차 방향이 아니다. */
-  tone: 'good' | 'caution'
+  /**
+   * 그 시진의 사주 결(십신) — 좋음/조심/중립. 교차 방향이 아니다. 중립 시진도 줄로 남긴다 — 12 시진
+   * 전부(결정 QA-4). 엔진 점수는 여전히 결이 있는 시진만 센다(sajuHourExtractor).
+   */
+  tone: 'good' | 'caution' | 'neutral'
   /** 그날 가장 센 좋은 시진·조심 시진(같으면 이른 시각). */
   peak: boolean
   /** 생활 문장 — 절정 시진에만. */
@@ -479,7 +512,15 @@ export function buildDayViewModel(day: DestinyDay, opts: DayViewModelOptions): D
   const isToday = opts.isToday ?? true
   const hero = buildDayHero(day, { lang, isToday })
   const today = buildTodaySection(day, lang, { isToday })
-  const domains = buildDayDomains(day, { lang, sex: opts.sex ?? '남', dayBand: hero.dayBand })
+  // 분야 본문 — 달 절정 시각 클로즈 없이(결정 QA-4: 같은 화면의 '시진별' 줄과 다른 한 체계라 같은
+  // 창에 반대 동사가 붙었다). 오늘이 아닌 날은 '오늘'을 그날 말로.
+  const domains = buildDayDomains(day, {
+    lang,
+    sex: opts.sex ?? '남',
+    dayBand: hero.dayBand,
+    isToday,
+    moonTime: false,
+  })
   const rungs = (ko ? day.evidenceLadder : day.evidenceLadderEn) ?? day.evidenceLadder ?? []
 
   const vm: DayViewModel = {
@@ -494,7 +535,7 @@ export function buildDayViewModel(day: DestinyDay, opts: DayViewModelOptions): D
     },
     why: today.reason,
     ladderCaption: LADDER_CAPTION[lang],
-    ladder: toLadderRows(rungs, lang),
+    ladder: toLadderRows(rungs, lang, { isToday }),
     tryThis: hero.actions
       ? {
           do: ko ? hero.actions.do : hero.actions.doEn,
@@ -517,9 +558,13 @@ export function buildDayViewModel(day: DestinyDay, opts: DayViewModelOptions): D
     crossings: hero.crossRows
       .slice(0, 4)
       .map((c, i) =>
-        i === 0 && hero.reasonRow && c === hero.reasonRow && day.reason
-          ? toTimingRow(day.reason, lang)
-          : crossToTimingRow(c, lang)
+        retimeRow(
+          i === 0 && hero.reasonRow && c === hero.reasonRow && day.reason
+            ? toTimingRow(day.reason, lang)
+            : crossToTimingRow(c, lang),
+          lang,
+          isToday
+        )
       ),
     hours: hourRows(day, lang),
     cta: { question: dayCtaQuestion(day, lang, isToday) },
