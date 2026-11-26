@@ -88,8 +88,9 @@
   letter-spacing: -0.035em;
   color: var(--on-dark);
   overflow-wrap: anywhere;
-  /* 줄을 고르게 — 한 낱말만 남는 마지막 줄(QA VC-10, FIX9 C3 'sensible break'). */
-  text-wrap: balance;
+  /* 한 낱말만 남는 마지막 줄을 피한다(QA VC-10, FIX9 C3 'sensible break'). balance 는 줄을 고르게
+     좁혀 가운데 한 낱말 줄('someone')이나 '—' 로 여는 줄을 만들었다 — pretty 는 끝줄만 다듬는다(R-VC-7). */
+  text-wrap: pretty;
 }
 .h2 {
   margin: 16px 0 0;
@@ -134,13 +135,16 @@
   color: var(--ink);
 }
 
-/* 모서리 줄 — 계산 블록을 연다: 왼쪽 블록 이름, 오른쪽 범위. 오른쪽이 길면 말줄임. */
+/* 모서리 줄 — 계산 블록을 연다: 왼쪽 블록 이름, 오른쪽 범위. 한 줄에 둘이 안 들어가면(320) 오른쪽
+   값을 말줄임('11.27' → '1…') 대신 다음 줄 오른쪽으로 내린다(QA R-VC-2). 값 하나가 줄보다 길 때만 말줄임. */
 .lr {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  height: 24px;
+  column-gap: 12px;
+  row-gap: 0;
+  min-height: 24px;
   border-bottom: 1px solid var(--line);
   font-family: var(--mono);
   font-size: 10px;
@@ -158,6 +162,7 @@
 }
 .lr > span:last-child {
   min-width: 0;
+  margin-left: auto;
   overflow: hidden;
   text-overflow: ellipsis;
 }

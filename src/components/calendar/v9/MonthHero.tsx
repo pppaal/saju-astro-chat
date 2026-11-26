@@ -21,6 +21,14 @@ interface HeroBandProps {
   children?: ReactNode
 }
 
+/**
+ * 대시(—) 앞 공백을 줄바꿈 없는 공백으로 — 줄이 '— today turns…' 처럼 대시로 열리지 않고 대시가 앞
+ * 낱말 끝에 붙는다(QA R-VC-7). 후크 문장 원본(shareHook)은 공유 카드와 같이 쓰니 화면에서만 붙인다.
+ */
+function glueDash(text: string): string {
+  return text.replace(/ —/g, '\u00a0—')
+}
+
 /** 먹 띠 히어로 — 월간 · 일간 공용 틀. */
 export function HeroBand({ corner, headline, subline, locale, section, children }: HeroBandProps) {
   return (
@@ -41,9 +49,9 @@ export function HeroBand({ corner, headline, subline, locale, section, children 
       </div>
       {/* tabIndex -1 — 보기가 갈아끼워지면 CalendarClient 가 여기로 초점을 옮긴다(QA A11Y-1). */}
       <h1 id="cal-h1" className={s.h1} tabIndex={-1}>
-        {headline}
+        {glueDash(headline)}
       </h1>
-      {subline ? <p className={s.lede}>{subline}</p> : null}
+      {subline ? <p className={s.lede}>{glueDash(subline)}</p> : null}
       {children}
     </section>
   )

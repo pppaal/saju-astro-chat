@@ -79,9 +79,15 @@
   color: var(--mute);
 }
 
-/* 보조 줄의 점 하나 = 한 줄(기호 + 'Sun 0°38′ Aries'), 점 안에서는 줄을 가르지 않는다. */
+/* 보조 줄의 점 하나 = 한 줄(기호 + 'Sun 0°38′ Aries'). 칸이 좁으면 천체 이름 뒤에서 한 번만 접고
+   (도 · 분 + 별자리는 .ptRest 한 덩어리), 접힌 줄은 기호 폭(10 + 4px)만큼 내어 쓴다(QA R-VL-2 —
+   320 에서 'MOON 29°59′ SAGITTARIUS' 가 칸과 화면 밖으로 넘치던 nowrap). */
 .pt {
   display: block;
+  padding-left: 14px;
+  text-indent: -14px;
+}
+.ptRest {
   white-space: nowrap;
 }
 .pt + .pt {

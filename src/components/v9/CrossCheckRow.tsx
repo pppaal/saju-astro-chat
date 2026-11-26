@@ -130,6 +130,21 @@ function SajuSys({ cell, locale }: { cell: SajuCell; locale: Lang }) {
   )
 }
 
+/**
+ * 점 한 줄 — 첫 낱말(천체: Sun · Moon · ASC / 태양 · 달 · 상승) 뒤에서만 줄을 꺾을 수 있다.
+ * 나머지(도 · 분 + 별자리)는 한 덩어리 — 좁은 화면(320)에서 'MOON 29°59′ SAGITTARIUS' 가 칸을
+ * 넘지 않고 'MOON / 29°59′ SAGITTARIUS' 로 접힌다(QA R-VL-2).
+ */
+function PointText({ text }: { text: string }) {
+  const cut = text.indexOf(' ')
+  if (cut < 0) return <>{text}</>
+  return (
+    <>
+      {text.slice(0, cut)} <span className={s.ptRest}>{text.slice(cut + 1)}</span>
+    </>
+  )
+}
+
 function StarsSys({ cell, locale }: { cell: StarsCell; locale: Lang }) {
   return (
     <span className={s.sys} data-cell="stars">
@@ -144,7 +159,7 @@ function StarsSys({ cell, locale }: { cell: StarsCell; locale: Lang }) {
           {cell.points.map((p, i) => (
             <span key={`${p.text}-${i}`} className={s.pt}>
               {p.glyph ? <Glyph name={p.glyph} className={s.pg} /> : null}
-              {p.text}
+              <PointText text={p.text} />
             </span>
           ))}
         </span>

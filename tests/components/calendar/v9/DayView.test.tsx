@@ -162,6 +162,36 @@ describe('DayView', () => {
     expect(section.textContent).toContain('Words run ahead of you.')
   })
 
+  it('시진 결(좋은 · 쉬어갈 · 보통) 보조 라벨은 시진 이름 칸 밖 — 좁은 폭에서 이름이 접혀도 남는다(QA R-VC-4)', () => {
+    const vm = buildDayViewModel(dayOf(), { lang: 'en', sex: '여', isToday: true })
+    const { container } = render(<DayView vm={vm} locale="en" />)
+    const rows = Array.from(container.querySelectorAll('[data-hour-tone]'))
+    const TONE = { good: 'Good hour', caution: 'Ease off', neutral: 'Neutral' } as const
+    for (const row of rows) {
+      const tone = row.getAttribute('data-hour-tone') as keyof typeof TONE
+      const kids = Array.from(row.children)
+      // 결 라벨은 li 의 직계 자식(이름 span 안이 아니다)
+      expect(kids.some((k) => k.textContent?.trim() === TONE[tone])).toBe(true)
+      const name = kids.find(
+        (k) => /hour$/.test(k.textContent ?? '') && k.textContent !== TONE[tone]
+      )
+      expect(name?.textContent).not.toContain(TONE[tone])
+    }
+    expect(rows[1].textContent).toContain('Dragon hour')
+  })
+
+  it('히어로 H1 — 대시(—) 앞 공백은 줄바꿈 없는 공백(줄이 대시로 열리지 않게, QA R-VC-7)', () => {
+    const vm = buildDayViewModel(dayOf(), { lang: 'en', sex: '여', isToday: true })
+    const dashed = {
+      ...vm,
+      hero: { ...vm.hero, headline: 'On the fence — today turns on your call.' },
+    }
+    const { container } = render(<DayView vm={dashed} locale="en" />)
+    expect(container.querySelector('h1')?.textContent).toBe(
+      'On the fence\u00a0— today turns on your call.'
+    )
+  })
+
   it('오늘이 아닌 날 — 라벨은 요일만, 연속 방문 칩 없음, 공유 줄은 이날', () => {
     const vm = buildDayViewModel(dayOf({ date: '2026-11-24' }), {
       lang: 'en',

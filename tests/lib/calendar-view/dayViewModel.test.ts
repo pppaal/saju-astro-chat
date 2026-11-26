@@ -17,8 +17,10 @@ const HANGUL = /[ㄱ-ㆎ가-힣]/
 /** 줄바꿈 없는 공백(U+00A0) — STARS 보조 줄의 값 조각 안(QA VC-8). */
 const NB = '\u00A0'
 const nb = (t: string) => t.replace(/ /g, NB)
-/** ' · ' 로 나눈 조각마다 공백을 NBSP 로(astroDetailSub 모양). */
-const sub = (...parts: string[]) => parts.map(nb).join(' · ')
+/** 조각 사이 구분 — 점 앞은 NBSP, 뒤는 보통 공백(줄이 '·' 로 열리지 않게, QA R-VC-6). */
+const SEP = `${NB}· `
+/** 조각마다 공백을 NBSP 로, 조각 사이는 SEP(astroDetailSub 모양). */
+const sub = (...parts: string[]) => parts.map(nb).join(SEP)
 
 describe('buildDayViewModel', () => {
   it("히어로·'왜'·사다리·DO/EASE·분야별·교차 — 한 화면 데이터", () => {
@@ -125,7 +127,7 @@ describe('toLadderRows — 사다리 칸', () => {
     // 랏 이름·별자리는 한 덩어리(줄바꿈 없는 공백, VC-8) — 줄은 기호 뒤 기간 앞에서만 갈린다.
     expect(rows[0].stars).toEqual({
       text: 'Zodiacal releasing',
-      sub: `${nb('Spirit in Taurus')} 2024–32 · ${nb('Fortune in Aquarius')} 2024–54`,
+      sub: `${nb('Spirit in Taurus')} 2024–32${SEP}${nb('Fortune in Aquarius')} 2024–54`,
       subLines: [
         { text: nb('Spirit in Taurus'), glyph: 'venus', tail: '2024–32' },
         { text: nb('Fortune in Aquarius'), glyph: 'saturn', tail: '2024–54' },
@@ -134,7 +136,7 @@ describe('toLadderRows — 사다리 칸', () => {
     expect(rows[1].stars).toEqual({
       glyph: 'saturn',
       text: 'Saturn',
-      sub: `${nb('In fall')} · ${nb('in Aries')} · First Saturn return`,
+      sub: `${nb('In fall')}${SEP}${nb('in Aries')}${SEP}First Saturn return`,
     })
     expect(rows[2].stars).toBeNull()
     expect(rows[3].stars).toEqual({
@@ -151,10 +153,10 @@ describe('toLadderRows — 사다리 칸', () => {
     expect(rows[0]).toMatchObject({ label: '10년 대운', range: '2021–2030' })
     expect(rows[0].saju).toEqual({ hanja: '正財', text: '정재' })
     expect(rows[0].stars?.sub).toBe(
-      `${nb('영혼 황소자리')} 2024–32 · ${nb('운명 물병자리')} 2024–54`
+      `${nb('영혼 황소자리')} 2024–32${SEP}${nb('운명 물병자리')} 2024–54`
     )
     expect(rows[0].stars?.subLines?.map((l) => l.glyph)).toEqual(['venus', 'saturn'])
-    expect(rows[1].stars?.sub).toBe('폴(추락) · 양자리 · 첫 토성 회귀')
+    expect(rows[1].stars?.sub).toBe(`폴(추락)${SEP}양자리${SEP}첫 토성 회귀`)
     expect(rows[2].range).toBe('2026년 11월')
     expect(rows[3].stars).toMatchObject({
       text: '태양 △ 금성',

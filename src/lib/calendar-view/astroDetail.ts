@@ -318,6 +318,12 @@ export function planetGlyph(name: string | undefined): PlanetGlyph | undefined {
 }
 
 /**
+ * 보조 줄 조각 사이 구분 — 점 앞은 줄바꿈 없는 공백, 뒤는 보통 공백. 줄은 점 뒤에서만 갈려
+ * '· orb 2.9°' 처럼 점으로 여는 줄이 생기지 않는다(QA R-VC-6, base_v9 .nw 의 의도).
+ */
+export const SUB_SEP = '\u00A0· '
+
+/**
  * 근거 STARS 칸 보조 줄 — 'Transit · 24° Scorpio · square natal Moon · orb 0.4°'.
  * 위치는 있을 때만, orb 는 트랜짓 부모일 때 그 위치와 같은 순간의 값만(withTransitPositions).
  * 조각 안의 낱말은 줄바꿈 없는 공백(U+00A0)으로 잇는다 — ' · ' 만 줄이 갈리는 자리라 '1° |
@@ -345,5 +351,5 @@ export function astroDetailSub(detail: ReasonAstroDetail, lang: Lang): string {
   if (typeof detail.orb === 'number') {
     parts.push(ko ? `오브 ${detail.orb.toFixed(1)}°` : `orb ${detail.orb.toFixed(1)}°`)
   }
-  return parts.map((p) => p.replace(/ /g, '\u00A0')).join(' · ')
+  return parts.map((p) => p.replace(/ /g, '\u00A0')).join(SUB_SEP)
 }

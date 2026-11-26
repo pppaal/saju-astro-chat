@@ -21,7 +21,14 @@ import { ASPECT_SYMBOL } from '@/lib/calendar-engine/derivers/evidenceLadder'
 import { deepMinorSafe } from '@/lib/calendar-engine/minorSafe'
 import type { PlanetGlyph } from '@/components/v9/Glyph'
 import { buildDayHero, buildDayDomains, retimeDayText, type DayCross } from './dayHero'
-import { astroDetailSub, DIGNITY_WORD, planetGlyph, planetLabel, signLabel } from './astroDetail'
+import {
+  astroDetailSub,
+  DIGNITY_WORD,
+  planetGlyph,
+  planetLabel,
+  signLabel,
+  SUB_SEP,
+} from './astroDetail'
 import {
   dotDate,
   dotMonthDay,
@@ -199,7 +206,8 @@ function starsOf(astro: RungAstro, chipText: string, lang: Lang): StarsCellVM {
   const ko = lang === 'ko'
   const P = astro.planet ? planetLabel(astro.planet, lang) : ''
   const glyph = planetGlyph(astro.planet)
-  const join = (...xs: string[]) => xs.filter(Boolean).join(' · ')
+  // 점 앞은 줄바꿈 없는 공백(SUB_SEP) — 줄이 '· …' 로 열리지 않게(R-VC-6).
+  const join = (...xs: string[]) => xs.filter(Boolean).join(SUB_SEP)
   const cell = (text: string, sub: string): StarsCellVM => ({
     ...(glyph ? { glyph } : {}),
     text,
@@ -240,7 +248,7 @@ function starsOf(astro: RungAstro, chipText: string, lang: Lang): StarsCellVM {
       const lotsText = lines.map((x) => `${x.text} ${x.tail}`)
       const chapter = astro.sign ? join(signLabel(astro.sign, lang), P) : ''
       const event = eventSuffix(astro, lang)
-      const sub = join(lotsText.length ? lotsText.join(' · ') : chapter, event)
+      const sub = join(lotsText.length ? lotsText.join(SUB_SEP) : chapter, event)
       return {
         text: ko ? '조디악 릴리싱' : 'Zodiacal releasing',
         ...(sub ? { sub } : {}),

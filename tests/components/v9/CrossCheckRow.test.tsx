@@ -152,6 +152,12 @@ describe('CrossCheckRow trait', () => {
     expect(pts.children[0].querySelector('[data-glyph="sun"]')).not.toBeNull()
     expect(pts.children[1].querySelector('[data-glyph="asc"]')).not.toBeNull()
     expect(pts.children[0].textContent).toBe('Sun 0°38′ Aries')
+    // 좁은 칸에선 천체 이름 뒤에서만 접힌다 — 도 · 분 + 별자리는 한 덩어리(QA R-VL-2).
+    const rest = pts.children[0].querySelector(':scope > span:not([data-glyph])') as HTMLElement
+    expect(rest.textContent).toBe('0°38′ Aries')
+    expect(pts.children[1].querySelector(':scope > span:not([data-glyph])')?.textContent).toBe(
+      '10°02′ Leo'
+    )
     // 같은 내용을 sub 문자열로 한 번 더 그리지 않는다.
     expect(stars.textContent).not.toContain(' · ASC')
   })

@@ -443,11 +443,12 @@ describe('표시 — STARS 칸 보조 줄', () => {
     expect(spaced(astroDetailSub({ ...detail, orb: 0.42 }, 'en'))).toBe(
       'Transit · 24° Scorpio · square natal Moon · orb 0.4°'
     )
-    // 조각 안은 줄바꿈 없는 공백 — ' · ' 만 줄이 갈리는 자리(QA VC-8).
+    // 조각 안은 줄바꿈 없는 공백 — 점 뒤만 줄이 갈리는 자리(QA VC-8). 점 앞도 줄바꿈 없는
+    // 공백이라 줄이 '· orb 0.4°' 로 열리지 않는다(QA R-VC-6).
     expect(astroDetailSub({ ...detail, orb: 0.42 }, 'en')).toBe(
       ['Transit', '24° Scorpio', 'square natal Moon', 'orb 0.4°']
         .map((p) => p.replace(/ /g, '\u00A0'))
-        .join(' · ')
+        .join('\u00A0· ')
     )
     expect(spaced(astroDetailSub(detail, 'ko'))).toBe('트랜짓 · 전갈자리 24° · 본명 달 스퀘어')
     expect(astroDetailSub({ transitPlanet: 'Venus', sourceKind: 'dignity' }, 'en')).toBe('Transit')

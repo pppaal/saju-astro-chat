@@ -182,10 +182,10 @@ export default function DayView({ vm, locale, onBackToMonth, showCounselor = tru
               >
                 <i className={swatchClass(HOUR_SWATCH[h.tone])} aria-hidden="true" />
                 <span className={d.win}>{h.window}</span>
-                <span className={d.hname}>
-                  {h.name}
-                  <span className={s.sr}> {pick(HOUR_LABEL[h.tone], locale)}</span>
-                </span>
+                <span className={d.hname}>{h.name}</span>
+                {/* 결(좋은 · 쉬어갈 · 보통 시진)은 시진 이름 밖 — 이름 칸이 좁은 화면에서 접혀도 보조기기엔
+                    늘 남는다(QA R-VC-4). sr 은 절대 배치라 격자 칸을 차지하지 않는다. */}
+                <span className={s.sr}> {pick(HOUR_LABEL[h.tone], locale)}</span>
                 <span className={d.rise}>{h.rising}</span>
                 {h.narrative ? <p className={d.narr}>{h.narrative}</p> : null}
               </li>

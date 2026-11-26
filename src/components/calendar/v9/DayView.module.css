@@ -199,11 +199,27 @@
   align-items: center;
   gap: 7px;
 }
+/* 좁은 폭(≤359, 400% 확대 리플로 폭 320 포함) — 시진 이름을 숨기지 않고 창 아래로 내린다(QA R-VC-4).
+   창 · 상승궁이 첫 줄, 이름이 둘째 줄, 절정 문장이 그 아래. */
 @media (max-width: 359px) {
   .hour {
     grid-template-columns: 11px minmax(0, 1fr) auto;
+    row-gap: 2px;
+  }
+  .win {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  .rise {
+    grid-column: 3;
+    grid-row: 1;
   }
   .hname {
-    display: none;
+    grid-column: 2 / -1;
+    grid-row: 2;
+    font-size: 12.5px;
+  }
+  .narr {
+    grid-column: 2 / -1;
   }
 }
