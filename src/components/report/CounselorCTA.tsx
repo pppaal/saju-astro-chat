@@ -10,11 +10,16 @@
  *   (/integrated-report · /calendar).
  * - 'v9': v9 paper 화면(인생 흐름)의 검은 알약(CSS 모듈 클래스) + 캡션 + 가격 줄. 가격은
  *   PriceLine 이 SSOT(CREDIT_COSTS · creditsFromLabel)에서만 읽는다 — 숫자를 여기 적지 않는다.
+ *
+ * subject — 질문이 화면에 그린 차트의 판단(예: 그 달의 PUSH · HOLD 날짜)을 담을 때 그 차트의 본명.
+ * 상담은 저장된 본명으로 열리므로, 저장된 본명이 subject.birth 와 같을 때만 question 을 싣고 아니면
+ * subject.genericQuestion 을 싣는다(QA-8 — 남의 차트를 전제로 한 유료 질문 방지). 마운트 전에도 일반 질문.
  */
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { Sparkles } from 'lucide-react'
 import { getStoredBirthInfo, buildCounselorHref, type StoredBirthInfo } from '@/lib/birth/storage'
+import { isSameBirth, type BirthSubject } from '@/lib/birth/sameBirth'
 import { trackFunnel, type FunnelEvent } from '@/lib/metrics/trackFunnel'
 import PriceLine from '@/components/v9/PriceLine'
 import s from './CounselorCTA.module.css'
@@ -23,6 +28,8 @@ interface CounselorCTAProps {
   lang: 'ko' | 'en'
   /** 상담 채팅에 미리 채울 첫 질문(ko/en). */
   question?: { ko: string; en: string }
+  /** question 이 이 본명의 차트 판단을 담는다 — 저장된 본명과 다르면 genericQuestion 을 싣는다. */
+  subject?: { birth: BirthSubject; genericQuestion: { ko: string; en: string } }
   /** 퍼널 집계용 이벤트 — 지정 시 CTA 클릭을 비콘으로 보낸다(서버 컴포넌트도 문자열로 전달 가능). */
   funnelEvent?: FunnelEvent
   variant?: 'gold' | 'v9'
@@ -63,6 +70,7 @@ function ArrowIcon() {
 export default function CounselorCTA({
   lang,
   question,
+  subject,
   funnelEvent,
   variant = 'gold',
   className,
@@ -72,7 +80,8 @@ export default function CounselorCTA({
     setInfo(getStoredBirthInfo())
   }, [])
 
-  const q = question ? question[lang] : ''
+  const chosen = subject && !isSameBirth(subject.birth, info) ? subject.genericQuestion : question
+  const q = chosen ? chosen[lang] : ''
   const href = info
     ? buildCounselorHref(info, q, lang)
     : `/destiny-counselor?lang=${lang}${q ? `&q=${encodeURIComponent(q)}` : ''}`

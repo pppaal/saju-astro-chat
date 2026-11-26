@@ -79,6 +79,15 @@ function dayOf(over: Partial<DestinyDay> = {}, lang: 'ko' | 'en' = 'en') {
 const text = (el: Element | null) => (el?.textContent ?? '').replace(/\u00a0/g, ' ')
 
 describe('DayView', () => {
+  it('상담사 CTA — 기본은 그리고, showCounselor={false}(공개 샘플)면 없다(QA-8)', () => {
+    const vm = buildDayViewModel(dayOf(), { lang: 'en', sex: '여', isToday: true })
+    const on = render(<DayView vm={vm} locale="en" />)
+    expect(on.container.querySelector('[data-counselor-cta]')).not.toBeNull()
+    on.unmount()
+    const off = render(<DayView vm={vm} locale="en" showCounselor={false} />)
+    expect(off.container.querySelector('[data-counselor-cta]')).toBeNull()
+  })
+
   it("'왜 이런 날' 행 = 월간 오늘의 '왜' 행(같은 day.reason)", () => {
     const day = dayOf()
     const dayVm = buildDayViewModel(day, { lang: 'en', sex: '여', isToday: true })

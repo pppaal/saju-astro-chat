@@ -9,6 +9,9 @@
  * 위 카드에 있어 뺀다) → 04 시진별(시진 창과 상승궁을 나란히 — 교차 아님, 결정 19) → 05 근거 사다리 →
  * 상담사 CTA → 이달 전체 보기.
  *
+ * 상담사 CTA: 공개 샘플은 showCounselor={false} 로 숨긴다(QA-8). 일 질문은 날짜만 담고 이 차트의 판단을
+ * 담지 않아('오늘을 더 자세히' / '11월 24일을 더 자세히') override 보기에서도 그대로 싣는다.
+ *
  * 이모지 없음(분야 아이콘은 그리지 않는다). 계산하지 않는다 — 뷰모델이 이미 언어·순서·정화를 정했다.
  */
 
@@ -32,9 +35,11 @@ interface DayViewProps {
   locale: Lang
   /** 이달 전체 보기(월간 탭으로). */
   onBackToMonth?: () => void
+  /** 유료 상담사 CTA 를 그린다(기본 true) — 공개 샘플은 false. */
+  showCounselor?: boolean
 }
 
-export default function DayView({ vm, locale, onBackToMonth }: DayViewProps) {
+export default function DayView({ vm, locale, onBackToMonth, showCounselor = true }: DayViewProps) {
   const { hero } = vm
   // '왜' 행은 톤 카드에 이미 있다 — 교차 목록 맨 위가 같은 근거면 뺀다(뷰모델: 맨 위 = '왜').
   const crossings = vm.why ? vm.crossings.slice(1) : vm.crossings
@@ -197,14 +202,16 @@ export default function DayView({ vm, locale, onBackToMonth }: DayViewProps) {
         locale={locale}
       />
 
-      <div className={s.cta}>
-        <CounselorCTA
-          lang={locale}
-          variant="v9"
-          funnelEvent="calendar.counselor_cta"
-          question={{ ko: vm.cta.question, en: vm.cta.question }}
-        />
-      </div>
+      {showCounselor ? (
+        <div className={s.cta}>
+          <CounselorCTA
+            lang={locale}
+            variant="v9"
+            funnelEvent="calendar.counselor_cta"
+            question={{ ko: vm.cta.question, en: vm.cta.question }}
+          />
+        </div>
+      ) : null}
 
       {onBackToMonth ? (
         <div className={s.share}>

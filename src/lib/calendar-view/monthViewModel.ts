@@ -172,8 +172,11 @@ export interface MonthViewModel {
   /** 'day' = 오늘의 4칸 사다리(이번 달), 'month' = 15일 대표 셀 3칸(다른 달). */
   ladderSource: 'day' | 'month'
   ladder: LadderRowVM[]
-  /** 상담사에게 이어 물을 질문(입력창 미리 채움). */
-  cta: { question: string }
+  /**
+   * 상담사에게 이어 물을 질문(입력창 미리 채움). question 은 이 차트의 PUSH · HOLD 날짜를 담고,
+   * generic 은 날짜 판단이 없는 같은 달 질문 — 화면의 본명이 저장된 본명과 다를 때 쓴다(QA-8).
+   */
+  cta: { question: string; generic: string }
   /** 이달 공유 링크 재료. */
   share: MonthShareVM
 }
@@ -441,7 +444,10 @@ export function buildMonthViewModel(
     ladderCaption: LADDER_CAPTION[lang],
     ladderSource,
     ladder: toLadderRows(ladderSource === 'day' ? dayRungs : monthRungs, lang),
-    cta: { question: ctaQuestion(ym, push, hold, lang) },
+    cta: {
+      question: ctaQuestion(ym, push, hold, lang),
+      generic: ctaQuestion(ym, null, null, lang),
+    },
     share: {
       periodLabel: monthYearLong(ym, lang),
       headline: hook.headline,

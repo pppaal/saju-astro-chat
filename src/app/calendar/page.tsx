@@ -52,6 +52,21 @@ export default async function DestinypalPage({ searchParams }: { searchParams: P
         folioStamp={formatBirthStamp(birthStamp, lang)}
         folioRight={shareDomain()}
         dayMaster={stem && element ? { stem, element } : undefined}
+        // override 보기(?date=…)는 다른 사람일 수 있다 — 저장된 본명과 같을 때만 차트 질문(QA-8).
+        ctaSubject={
+          override
+            ? {
+                birthDate: override.birthDate,
+                birthTime: override.birthTime,
+                timeUnknown: override.timeUnknown,
+                gender: override.gender,
+                ...(override.cityUnknown
+                  ? {}
+                  : { latitude: override.latitude, longitude: override.longitude }),
+                timeZone: override.timeZone,
+              }
+            : undefined
+        }
       />
       {/* 매일 아침 오늘의 운세 푸시 옵트인 — VAPID 미설정/미지원이면 스스로 숨음 */}
       <DailyFortunePushBanner locale={lang} />

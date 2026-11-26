@@ -5,7 +5,7 @@
 // 재탭 줌인(gridTapIntent) · '하루 전체 보기' — 옛 MonthTier 동작 가드를 v9 화면으로 옮겼다
 // (규칙 자체는 tests/lib/calendar-view/monthViewModel.test.ts 가 본다).
 
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, afterEach } from 'vitest'
 import { render, fireEvent, within } from '@testing-library/react'
 import MonthView from '@/components/calendar/v9/MonthView'
 import { buildMonthViewModel } from '@/lib/calendar-view/monthViewModel'
@@ -197,5 +197,66 @@ describe('MonthView — 그리드 탭(재탭 줌인)', () => {
     fireEvent.click(cellOf(container, 24))
     fireEvent.click(container.querySelector('[data-cal-selected] [data-open-day]') as HTMLElement)
     expect(onOpenDay).toHaveBeenLastCalledWith('2026-11-24')
+  })
+})
+
+describe('MonthView — 상담사 CTA(QA-8: 샘플 숨김 · 다른 사람 차트는 일반 질문)', () => {
+  const STORED_KEY = 'destinypal:birthInfo:v1'
+  const SUBJECT = {
+    birthDate: '1997-03-21',
+    birthTime: '14:30',
+    timeUnknown: false,
+    gender: 'female' as const,
+    latitude: 37.5665,
+    longitude: 126.978,
+    timeZone: 'Asia/Seoul',
+  }
+  const store = (info: Record<string, unknown>) =>
+    window.localStorage.setItem(STORED_KEY, JSON.stringify({ savedAt: '2026-11-01', ...info }))
+  /** CTA 링크에 실린 첫 질문(q). */
+  const ctaQuestion = (c: HTMLElement) => {
+    const a = c.querySelector('[data-counselor-cta] a') as HTMLAnchorElement | null
+    if (!a) return null
+    return new URL(a.getAttribute('href') ?? '', 'https://x.test').searchParams.get('q')
+  }
+
+  afterEach(() => window.localStorage.clear())
+
+  it('showCounselor={false} — 공개 샘플엔 유료 CTA 가 없다', () => {
+    const { container } = renderMonth('en', { showCounselor: false })
+    expect(container.querySelector('[data-counselor-cta]')).toBeNull()
+    expect(container.textContent).not.toContain('Ask the destiny counselor')
+  })
+
+  it('세션 보기(ctaSubject 없음) — 이 달 PUSH · HOLD 질문', () => {
+    const { container, vm } = renderMonth('en')
+    expect(vm.cta.question).toBe('What should I push on Nov 24, and what should I watch on Nov 29?')
+    expect(ctaQuestion(container)).toBe(vm.cta.question)
+  })
+
+  it('override 보기 — 저장된 본명이 다른 사람이면 일반 질문(날짜 판단 없음)', () => {
+    store({ birthDate: '1990-05-05', birthTime: '09:00', gender: 'male' })
+    const { container, vm } = renderMonth('en', { ctaSubject: SUBJECT })
+    expect(vm.cta.generic).not.toMatch(/Nov \d/)
+    expect(ctaQuestion(container)).toBe(vm.cta.generic)
+  })
+
+  it('override 보기 — 저장된 본명이 없어도 일반 질문', () => {
+    const { container, vm } = renderMonth('ko', { ctaSubject: SUBJECT })
+    expect(ctaQuestion(container)).toBe(vm.cta.generic)
+  })
+
+  it('override 보기 — 저장된 본명과 같으면 차트 질문을 그대로', () => {
+    store({
+      birthDate: '1997-03-21',
+      birthTime: '14:30',
+      birthTimeUnknown: false,
+      gender: 'female',
+      latitude: 37.5665,
+      longitude: 126.978,
+      timeZone: 'Asia/Seoul',
+    })
+    const { container, vm } = renderMonth('en', { ctaSubject: SUBJECT })
+    expect(ctaQuestion(container)).toBe(vm.cta.question)
   })
 })

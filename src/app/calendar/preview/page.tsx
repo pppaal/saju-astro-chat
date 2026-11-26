@@ -7,7 +7,7 @@
 
    tier 어셈블은 정식 라우트(/calendar/page.tsx)와 assembleTiers() 를, 뷰모델은
    buildMonthViewModel · buildDayViewModel 을 공유(서버에서 만든다). 폴리오 오른쪽은
-   'Sample'. 본명·cells 계산은 DB 캐시(getOrBuildNatalContext / getOrBuildMonthCells) 우선.
+   'Sample'. 유료 상담사 CTA 는 없다(QA-8). 본명·cells 계산은 DB 캐시(getOrBuildNatalContext / getOrBuildMonthCells) 우선.
    ============================================================ */
 
 import { detectServerLocale } from '@/i18n/server'
@@ -96,6 +96,9 @@ export default async function DestinypalPreview() {
       folioStamp={formatBirthStamp(stamp, lang)}
       folioRight={pick(PROVENANCE.sample, lang)}
       dayMaster={stem && element ? { stem, element } : undefined}
+      // 공개 샘플 — 유료 상담사 CTA 를 그리지 않는다. 상담은 보는 사람의 본명으로 열리는데 질문은
+      // 샘플의 PUSH · HOLD 날짜를 담아, 남의 차트를 전제로 크레딧을 쓰게 된다(QA-8).
+      showCounselor={false}
       // preview 는 세션이 아닌 고정 본명 — 일 재빌드 fetch 도 같은 본명으로
       // (override 쿼리 규약). 없으면 세션 본명/401 로 새서 다른 사람 하루가 뜬다.
       dayFetchParams={{

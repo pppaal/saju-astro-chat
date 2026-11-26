@@ -29,6 +29,7 @@ import { CAL_COPY } from '@/components/calendar/v9/calendarCopy'
 import s from '@/components/calendar/v9/calendar.module.css'
 import type { MonthViewModel } from '@/lib/calendar-view/monthViewModel'
 import type { DayViewModel } from '@/lib/calendar-view/dayViewModel'
+import type { BirthSubject } from '@/lib/birth/sameBirth'
 
 export type CalendarTab = 'month' | 'day'
 
@@ -74,6 +75,13 @@ export interface CalendarClientProps {
    */
   dayFetchParams?: Record<string, string>
   backHref?: string
+  /** 유료 상담사 CTA(월간 · 일간) — 공개 샘플(/calendar/preview)은 false(QA-8). 기본 true. */
+  showCounselor?: boolean
+  /**
+   * override 보기(?date=…)의 본명 — 저장된 본명과 다르면 월간 CTA 가 이 차트의 PUSH · HOLD 대신
+   * 일반 질문을 싣는다(상담은 저장된 본명으로 열린다). 세션 보기는 생략.
+   */
+  ctaSubject?: BirthSubject
 }
 
 export default function CalendarClient({
@@ -86,6 +94,8 @@ export default function CalendarClient({
   dayMaster,
   dayFetchParams,
   backHref = '/',
+  showCounselor = true,
+  ctaSubject,
 }: CalendarClientProps) {
   const searchParams = useSearchParams()
   const [tab, setTab] = useState<CalendarTab>('month')
@@ -239,9 +249,16 @@ export default function CalendarClient({
             locale={locale}
             onSelectDay={handleSelectDay}
             onOpenDay={openDay}
+            showCounselor={showCounselor}
+            ctaSubject={ctaSubject}
           />
         ) : (
-          <DayView vm={dayData} locale={locale} onBackToMonth={backToMonth} />
+          <DayView
+            vm={dayData}
+            locale={locale}
+            onBackToMonth={backToMonth}
+            showCounselor={showCounselor}
+          />
         )}
       </main>
 

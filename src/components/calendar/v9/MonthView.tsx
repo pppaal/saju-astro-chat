@@ -8,6 +8,9 @@
  * 네 칸) → 해 볼 것(PUSH · HOLD) → 01 하루씩(제목 · 30일 막대 · 그리드 · 범례 · 캡션 · 고른 날 읽기)
  * → 02 큰 날 → 03 오늘 → 04 근거 사다리 → 상담사 CTA(가격 줄 포함) → 이달 공유하기.
  *
+ * 상담사 CTA(QA-8): 공개 샘플(/calendar/preview)은 showCounselor={false} 로 숨긴다. override 보기
+ * (ctaSubject = 화면의 본명)는 저장된 본명과 같을 때만 이 달 PUSH · HOLD 질문을, 아니면 일반 질문을 싣는다.
+ *
  * 그리드 탭: 처음엔 오늘이 골라져 있다. 다른 날을 누르면 고른 날 읽기가 열리고(onSelectDay —
  * 호출자가 그날 일 데이터를 미리 받는다), 고른 날을 한 번 더 누르면 하루 전체로(gridTapIntent → dive
  * → onOpenDay). 오늘 블록·고른 날 읽기의 '하루 전체 보기'도 onOpenDay.
@@ -15,6 +18,7 @@
 
 import { useState } from 'react'
 import CounselorCTA from '@/components/report/CounselorCTA'
+import type { BirthSubject } from '@/lib/birth/sameBirth'
 import CrossCheckRow from '@/components/v9/CrossCheckRow'
 import { pick, type Lang } from '@/components/v9/v9Copy'
 import type { MonthGridCellVM, MonthViewModel } from '@/lib/calendar-view/monthViewModel'
@@ -41,6 +45,10 @@ interface MonthViewProps {
   onSelectDay?: (iso: string) => void
   /** 하루 전체로('YYYY-MM-DD') — 재탭 · '하루 전체 보기'. */
   onOpenDay: (iso: string) => void
+  /** 유료 상담사 CTA 를 그린다(기본 true) — 공개 샘플은 false. */
+  showCounselor?: boolean
+  /** override 보기의 본명 — 저장된 본명과 다르면 CTA 가 일반 질문을 싣는다. */
+  ctaSubject?: BirthSubject
 }
 
 /** 고른 날 읽기 — 큰 날 행과 같은 말(그리드 마크 판정 · 엔진 한 줄 · '왜' 행) + '하루 전체 보기'. */
@@ -89,7 +97,14 @@ function SelectedRead({
   )
 }
 
-export default function MonthView({ vm, locale, onSelectDay, onOpenDay }: MonthViewProps) {
+export default function MonthView({
+  vm,
+  locale,
+  onSelectDay,
+  onOpenDay,
+  showCounselor = true,
+  ctaSubject,
+}: MonthViewProps) {
   const todayCell = vm.grid.cells.find((c) => c.isToday)
   const [selected, setSelected] = useState<number>(todayCell?.d ?? 0)
   const isoOf = (d: number) => `${vm.ym}-${String(d).padStart(2, '0')}`
@@ -184,14 +199,24 @@ export default function MonthView({ vm, locale, onSelectDay, onOpenDay }: MonthV
         locale={locale}
       />
 
-      <div className={s.cta}>
-        <CounselorCTA
-          lang={locale}
-          variant="v9"
-          funnelEvent="calendar.counselor_cta"
-          question={{ ko: vm.cta.question, en: vm.cta.question }}
-        />
-      </div>
+      {showCounselor ? (
+        <div className={s.cta}>
+          <CounselorCTA
+            lang={locale}
+            variant="v9"
+            funnelEvent="calendar.counselor_cta"
+            question={{ ko: vm.cta.question, en: vm.cta.question }}
+            subject={
+              ctaSubject
+                ? {
+                    birth: ctaSubject,
+                    genericQuestion: { ko: vm.cta.generic, en: vm.cta.generic },
+                  }
+                : undefined
+            }
+          />
+        </div>
+      ) : null}
       <div className={s.share}>
         <ShareCalendarButton data={{ isKo: locale === 'ko', ...vm.share }} />
       </div>
