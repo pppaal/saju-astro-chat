@@ -2,8 +2,10 @@
 //
 // 운흐름 캘린더 — 선택한 날짜의 일(日) 티어 데이터.
 //
-// 월 그리드에서 오늘이 아닌 날을 골라 줌인하면 클라이언트(CalendarClient)가
-// 이 라우트로 그 날짜의 day 객체를 받아 DayTier 를 갈아끼운다. 어셈블은
+// 월 그리드에서 오늘이 아닌 날을 골라 들어가면 클라이언트(CalendarClient)가
+// 이 라우트로 그 날짜의 일 뷰모델(vm)을 받아 Daily 탭을 갈아끼운다. 뷰모델은
+// 여기(서버)서 만든다 — buildDayViewModel 은 천체력 캐시·절기표를 끌고 와 클라이언트
+// 번들에 넣지 않는다(페이지 렌더와 같은 함수·같은 lang). 어셈블은
 // 서버 렌더와 *동일한* assembleDayTier 경로 — 월 그리드 점수(밴드 색)와
 // 일 티어 점수가 같은 layered.daily 척도라 두 화면이 어긋나지 않는다.
 //
@@ -29,6 +31,8 @@ import {
 } from '@/lib/calendar-engine/persistence'
 import { assembleDayTier } from '@/app/calendar/assembleDayTier'
 import { parseBirthOverride, loadSessionBirth, type BirthInput } from '@/app/calendar/loadTierData'
+import { buildDayViewModel } from '@/lib/calendar-view/dayViewModel'
+import { getNowInTimezone, formatDateString } from '@/lib/datetime/timezone'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -111,7 +115,17 @@ export const GET = withApiMiddleware(
       nextMonthCells,
     })
 
-    return apiSuccess({ day })
+    // 그날이 출생지 시간대의 오늘이면 '오늘' 라벨(페이지 렌더와 같은 기준).
+    const now = getNowInTimezone(birth.timeZone, new Date())
+    const isToday = dayIso === formatDateString(now.year, now.month, now.day)
+    const vm = buildDayViewModel(day, {
+      lang,
+      sex: birth.gender === 'female' ? '여' : '남',
+      isToday,
+    })
+
+    // 화면은 뷰모델만 그린다 — 원 페이로드(신호 전체)는 보내지 않는다.
+    return apiSuccess({ vm })
   },
   // 서버 렌더의 override 한도(IP 당 20/분)와 동일 결. 날짜 탐색은 클라이언트
   // 캐시(같은 날짜 재요청 없음)가 있어 정상 사용은 분당 수 회.

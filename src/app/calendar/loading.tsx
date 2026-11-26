@@ -1,8 +1,8 @@
-import DestinyShellSkeleton from '@/components/calendar/DestinyShellSkeleton'
+import V9Skeleton from '@/components/v9/V9Skeleton'
 
-// 운흐름 캘린더(월/일)는 서버 컴포넌트가 Swiss Ephemeris + 사주/점성 빌드를
-// 동기로 수행해 cold 진입이 느릴 수 있다. 흰 깜빡임 대신 셸 결을 미리 잡는
-// 스켈레톤을 Suspense fallback 으로 보여 흐름을 끊지 않는다.
+// 운세 달력(월·일)은 서버 컴포넌트가 Swiss Ephemeris + 사주/점성 빌드를 마친 뒤 그린다 —
+// cold 진입의 기다림 동안 종이 뼈대(상단 바 · 폴리오 · 제목 · 블록)를 Suspense fallback 으로.
+// layout(V9Root) 안에서 렌더되므로 토큰을 그대로 쓴다.
 export default function Loading() {
-  return <DestinyShellSkeleton />
+  return <V9Skeleton variant="page" />
 }

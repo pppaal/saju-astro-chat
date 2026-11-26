@@ -12,6 +12,8 @@
 
    SSR 안전: 마운트 전(count=null)엔 아무것도 안 그린다(hydration mismatch 회피).
    1일째는 숨기고 2일째부터 노출(동기부여가 생기는 지점).
+
+   v9.2: 운세 달력 일간 히어로(먹 띠) 안의 mono 칩 — 이모지 없이 LED 점 하나.
    ============================================================ */
 
 import { useEffect, useState } from 'react'
@@ -88,7 +90,7 @@ export default function StreakChip({ ko }: { ko: boolean }) {
       className={styles.chip}
       aria-label={ko ? `${count}일 연속 확인 중` : `${count}-day check-in streak`}
     >
-      <span aria-hidden>🔥</span>
+      <i className={styles.led} aria-hidden="true" />
       <span>{ko ? `${count}일째 확인 중` : `Day ${count} streak`}</span>
     </div>
   )

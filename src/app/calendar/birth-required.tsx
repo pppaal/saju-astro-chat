@@ -1,91 +1,107 @@
 /* ============================================================
-   /calendar — BirthRequiredFallback
+   /calendar · /destiny — BirthRequiredFallback (v9.2 종이 안내)
    ───────────────────────────────────────────────────────────
-   본명(생년월일·시·좌표) 정보가 부족할 때 보여주는 안내 카드.
-
-   두 가지 케이스 (비로그인 익명은 로더가 BirthGate 로 보낸다 — 여기 안 옴):
+   본명(생년월일·시·출생지)이 부족할 때 보여주는 안내. 두 경우
+   (비로그인 익명은 로더가 BirthGate 로 보낸다 — 여기 안 옴):
      · reason="no-birth"     → 로그인 OK, 본명 미입력 — /profile 안내
      · reason="rate-limited" → 익명 override 빌드 IP 한도 초과 — 재시도 안내
 
-   둘 다 destinypal-ink 톤 (라이트 베이지 + 주사 + 쪽빛) 으로
-   동일 카드 레이아웃을 공유. no-birth 는 "샘플 먼저 보기"(/calendar/preview)
-   링크를 노출(실데이터가 없어도 디자인을 미리 보고 싶은 사용자 배려).
+   두 라우트 모두 V9Root(layout) 안이라 v9 토큰을 쓴다. 문구는 ko/en 한 쌍 — locale 을
+   안 넘기면 서버 로케일(detectServerLocale)을 읽는다. no-birth 는 공개 샘플
+   (/calendar/preview) 링크를 함께 둔다.
    ============================================================ */
 
 import Link from 'next/link'
+import { detectServerLocale } from '@/i18n/server'
+import type { Bi } from '@/lib/i18n/bi'
 import styles from './birth-required.module.css'
 
 export type BirthRequiredReason = 'no-birth' | 'rate-limited'
 
 export interface BirthRequiredFallbackProps {
   reason: BirthRequiredReason
-  /** rate-limited 안내 문구 로케일. 기본 ko. */
+  /** 문구 로케일 — 없으면 서버 로케일. */
   locale?: 'ko' | 'en'
 }
 
-export default function BirthRequiredFallback({
+const COPY = {
+  corner: { ko: '출생 정보', en: 'Birth details' },
+  limitedCorner: { ko: '잠시 후 다시', en: 'Try again shortly' },
+  limitedTitle: { ko: '요청이 많아요', en: 'Too many requests' },
+  limitedBody: {
+    ko: '잠시 사이에 너무 많은 차트 요청이 들어왔어요. 잠깐 기다렸다 다시 시도해 주세요.',
+    en: 'This chart view is being requested too quickly. Please wait a moment and try again.',
+  },
+  title: { ko: '출생 정보를 넣으면 시작돼요', en: 'Start with your birth details' },
+  body: {
+    ko: '계정은 확인했어요. 차트를 계산하려면 생년월일, 태어난 시각, 태어난 곳이 필요해요. 프로필에 한 번 저장해 두면 운세 달력 · 인생 흐름 · 상담사가 모두 같은 정보로 이어져요.',
+    en: 'We found your account. To compute your chart we need your date of birth, birth time and birthplace. Save them once in your profile and the calendar, Life flow and counselor all use the same details.',
+  },
+  needLabel: { ko: '필요한 정보', en: 'What we need' },
+  needDate: { ko: '생년월일 (YYYY-MM-DD)', en: 'Date of birth (YYYY-MM-DD)' },
+  needTime: {
+    ko: '태어난 시각 (HH:mm) — 모르면 비워 두세요. 세 기둥으로 읽어요',
+    en: 'Birth time (HH:mm) — leave it blank if unknown; we read three pillars',
+  },
+  needPlace: {
+    ko: '태어난 곳 — 도시를 고르면 좌표 · 시간대가 채워져요',
+    en: 'Birthplace — pick a city and the coordinates and time zone fill in',
+  },
+  toProfile: { ko: '프로필에서 출생 정보 넣기', en: 'Add birth details in my profile' },
+  toSample: { ko: '샘플 먼저 보기', en: 'See a sample first' },
+  note: {
+    ko: '태어난 시각은 태어난 곳의 태양시로 바꿔 시주에만 써요. 같은 정보를 운세 달력 · 인생 흐름 · 상담사가 함께 써요.',
+    en: 'Your birth time is converted to the local solar time of your birthplace for the hour pillar only. The calendar, Life flow and counselor share the same details.',
+  },
+} as const satisfies Record<string, Bi>
+
+export default async function BirthRequiredFallback({
   reason,
-  locale = 'ko',
+  locale,
 }: BirthRequiredFallbackProps) {
+  const lang = locale ?? (await detectServerLocale())
+  const t = (b: Bi) => b[lang]
+
   if (reason === 'rate-limited') {
     return (
-      <div className={styles.page}>
+      <div className={styles.page} lang={lang} data-birth-required="rate-limited">
         <article className={styles.card}>
-          <span className={styles.seal}>命 · 본명</span>
-          <h1 className={styles.title}>
-            {locale === 'en' ? 'Too many requests' : '요청이 많아요'}
-          </h1>
-          <p className={styles.subtitle}>
-            {locale === 'en'
-              ? 'This chart view is being requested too quickly. Please wait a moment and try again.'
-              : '잠시 사이에 너무 많은 차트 요청이 들어왔어요. 잠깐 기다렸다 다시 시도해 주세요.'}
-          </p>
+          <div className={styles.lr}>
+            <span>{t(COPY.limitedCorner)}</span>
+          </div>
+          <h1 className={styles.title}>{t(COPY.limitedTitle)}</h1>
+          <p className={styles.body}>{t(COPY.limitedBody)}</p>
         </article>
       </div>
     )
   }
 
-  // reason === 'no-birth'
   return (
-    <div className={styles.page}>
+    <div className={styles.page} lang={lang} data-birth-required="no-birth">
       <article className={styles.card}>
-        <span className={styles.seal}>命 · 본명</span>
-        <h1 className={styles.title}>본명을 입력하면 시작됩니다</h1>
-        <p className={styles.subtitle}>
-          계정은 확인했어요. 다만 사주를 세우려면 <strong>생년월일</strong>,
-          <strong> 출생 시각</strong>, <strong>출생지 좌표</strong> 가 필요합니다. 프로필에서 한
-          번만 저장해두면 destinypal 의 모든 tier 가 자동으로 연결됩니다.
-        </p>
+        <div className={styles.lr}>
+          <span>{t(COPY.corner)}</span>
+        </div>
+        <h1 className={styles.title}>{t(COPY.title)}</h1>
+        <p className={styles.body}>{t(COPY.body)}</p>
 
-        <hr className={styles.hr} />
-        <p className={styles.helper}>필요한 정보</p>
-        <ul
-          style={{
-            margin: 0,
-            paddingLeft: 18,
-            fontSize: 14,
-            lineHeight: 1.75,
-            color: '#4d4334',
-          }}
-        >
-          <li>생년월일 (YYYY-MM-DD)</li>
-          <li>출생 시각 (HH:mm) — 모르면 12:00 으로 우선 진행 가능</li>
-          <li>출생지 — 도시 자동완성에서 선택 (좌표·시간대 자동 채움)</li>
+        <p className={styles.needLabel}>{t(COPY.needLabel)}</p>
+        <ul className={styles.need}>
+          <li>{t(COPY.needDate)}</li>
+          <li>{t(COPY.needTime)}</li>
+          <li>{t(COPY.needPlace)}</li>
         </ul>
 
-        <div className={styles.actions} style={{ marginTop: 22 }}>
-          <Link href="/profile" className={styles.btnPrimary}>
-            프로필에서 본명 입력하기
+        <div className={styles.actions}>
+          <Link href="/profile" className={styles.btnDark}>
+            {t(COPY.toProfile)}
           </Link>
-          <Link href="/calendar/preview" className={styles.btnSecondary}>
-            샘플 먼저 보기
+          <Link href="/calendar/preview" className={styles.btnLine}>
+            {t(COPY.toSample)}
           </Link>
         </div>
 
-        <p className={styles.note}>
-          본명은 진태양시(진경도) 보정에 사용되며, destinypal·calendar·counselor 전체에서 동일하게
-          재사용됩니다.
-        </p>
+        <p className={styles.note}>{t(COPY.note)}</p>
       </article>
     </div>
   )

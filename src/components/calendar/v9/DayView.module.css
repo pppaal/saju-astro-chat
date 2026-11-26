@@ -1,0 +1,208 @@
+/* 일간(Daily) 탭 — 히어로 띠 · 톤 카드 · DO/EASE · 분야별 · 겹치는 흐름 · 시진별 · 사다리.
+   공용 글자·띠·판독·패널은 calendar.module.css. */
+
+/* 연속 방문 칩 자리(히어로 띠 안). */
+.streak {
+  margin-top: 16px;
+}
+
+/* ---- 01 해 볼 것 — DO / EASE 두 칸 + 한 끗 ---- */
+.tryGrid {
+  margin-top: 14px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+  overflow: hidden;
+}
+.tryCol {
+  min-width: 0;
+  padding: 12px 14px 14px;
+}
+.tryCol + .tryCol {
+  border-left: 1px solid var(--line);
+}
+.tryK {
+  display: block;
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--mute);
+}
+.tryList {
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.tryList li {
+  position: relative;
+  padding-left: 12px;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--ink);
+}
+.tryList li + li {
+  margin-top: 6px;
+}
+.tryList li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.62em;
+  width: 5px;
+  height: 1.5px;
+  background: var(--ink);
+}
+.ease li::before {
+  background: var(--mute);
+}
+@media (max-width: 359px) {
+  .tryGrid {
+    grid-template-columns: 1fr;
+  }
+  .tryCol + .tryCol {
+    border-left: 0;
+    border-top: 1px solid var(--line);
+  }
+}
+
+/* ---- 02 분야별 ---- */
+.areaNote {
+  margin: 12px 0 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--body);
+}
+.areas {
+  margin: 14px 0 0;
+  padding: 0;
+  list-style: none;
+  border-bottom: 1px solid var(--line);
+}
+.area {
+  padding: 12px 0 13px;
+  border-top: 1px solid var(--line);
+}
+.areaHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.areaLabel {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.012em;
+  color: var(--ink);
+}
+.focus {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  height: 19px;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: var(--ink);
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--on-dark);
+}
+.areaBody {
+  margin: 4px 0 0;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--body);
+}
+
+/* ---- 03 겹치는 흐름 ---- */
+.xlist {
+  margin-top: 4px;
+  border-bottom: 1px solid var(--line);
+}
+
+/* ---- 04 시진별 — 창 · 시진 이름 · 상승궁(나란히, 교차 아님) ---- */
+.hours {
+  margin: 14px 0 0;
+  padding: 0;
+  list-style: none;
+  border-bottom: 1px solid var(--line);
+}
+.hour {
+  display: grid;
+  grid-template-columns: 11px 88px minmax(0, 1fr) auto;
+  column-gap: 10px;
+  align-items: center;
+  padding: 9px 0;
+  border-top: 1px solid var(--line);
+  font-size: 13.5px;
+  line-height: 1.35;
+  color: var(--body);
+}
+.hour:first-child {
+  border-top: 0;
+}
+.win {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: var(--ink);
+  white-space: nowrap;
+}
+.hname {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.rise {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--mute);
+  white-space: nowrap;
+}
+.peak .hname {
+  font-weight: 600;
+  color: var(--ink);
+}
+.narr {
+  grid-column: 2 / -1;
+  margin: 4px 0 0;
+  font-size: 13.5px;
+  line-height: 1.45;
+  color: var(--body);
+}
+.hourKey {
+  margin-top: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  font-family: var(--mono);
+  font-size: 9.5px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--mute);
+}
+.hourKey span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+@media (max-width: 359px) {
+  .hour {
+    grid-template-columns: 11px minmax(0, 1fr) auto;
+  }
+  .hname {
+    display: none;
+  }
+}

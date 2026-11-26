@@ -9,7 +9,7 @@ import { test, expect } from '@playwright/test'
 // 까지 함께 스모크해 전용 스펙과 중복됐음 — 해당 섹션 제거하고 타로 전용으로 축소.
 //   Dream        → dream-flow.spec.ts
 //   I-Ching      → iching-flow.spec.ts
-//   Calendar     → calendar-flow.spec.ts
+//   Calendar     → life-calendar-smoke.spec.ts
 //   Compatibility→ pages-load / chat-interactions / form-validation 등
 
 test.describe('Tarot Flow', () => {

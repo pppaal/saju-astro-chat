@@ -1,0 +1,188 @@
+/* 30일 막대 — 차트 판(모눈은 판 안에서만). 그리드와 같은 부호(좋음 먹 채움 · 조심 paper-2 + 먹 테 ·
+   피함 빗금 · 잔잔 paper-2 · 최고 = 좋음 + 바깥 고리). 별(큰 날) · LED(오늘)는 막대 위. 지난 날은 45%.
+   막대 띠는 깨끗한 surface — 판의 모눈은 6px 둘레에서 멈춘다(FIX9b F7). 원본 base_v9 .chart/.dbars/.db. */
+
+.plate {
+  position: relative;
+  margin-top: 18px;
+  padding: 50px 12px 30px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--grid), var(--surface);
+  overflow: hidden;
+}
+
+.cl {
+  position: absolute;
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--mute);
+  white-space: nowrap;
+  line-height: 1;
+}
+.a {
+  top: 10px;
+  left: 12px;
+}
+.b {
+  top: 10px;
+  right: 12px;
+}
+.c {
+  bottom: 10px;
+  left: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.d {
+  bottom: 10px;
+  right: 12px;
+}
+
+.wrap {
+  position: relative;
+}
+/* BEST · 24 — 상자 주석, 그 막대 위에(막대 칸 가운데). 가장자리에선 판 안으로 당긴다. */
+.ann {
+  position: absolute;
+  top: -25px;
+  transform: translateX(-50%);
+  display: inline-flex;
+  align-items: center;
+  height: 16px;
+  padding: 0 5px;
+  background: var(--surface);
+  box-shadow: inset 0 0 0 1px var(--ink);
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  color: var(--ink);
+  white-space: nowrap;
+  line-height: 1;
+}
+
+.bars {
+  height: 72px;
+  display: grid;
+  column-gap: 3px;
+  align-items: end;
+  background: var(--surface);
+  box-shadow: 0 0 0 6px var(--surface);
+}
+.col {
+  min-width: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+}
+.past {
+  opacity: 0.45;
+}
+
+.db {
+  display: block;
+  width: 100%;
+  border-radius: 1.5px;
+  background: var(--paper-2);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+.good {
+  background: var(--ink);
+  box-shadow: none;
+}
+.best {
+  background: var(--ink);
+  box-shadow:
+    0 0 0 1px var(--surface),
+    0 0 0 2px var(--ink);
+}
+.caution {
+  background: var(--paper-2);
+  box-shadow: inset 0 0 0 1px var(--ink);
+}
+.avoid {
+  background: var(--hatch), var(--surface);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+/* 오늘 — 잔잔·조심·피함은 surface 위 1.5px 먹 테, 좋음·최고는 채움 그대로 바깥 고리. */
+.today {
+  box-shadow: inset 0 0 0 1.5px var(--ink);
+}
+.calm.today {
+  background: var(--surface);
+}
+.good.today,
+.best.today {
+  box-shadow:
+    0 0 0 1px var(--surface),
+    0 0 0 2.5px var(--ink);
+}
+
+.kd {
+  display: block;
+  width: 7px;
+  height: 7px;
+  flex-shrink: 0;
+  background: var(--ink);
+  clip-path: var(--star);
+}
+.led {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--seal);
+  flex-shrink: 0;
+}
+
+.axis {
+  margin-top: 8px;
+  display: grid;
+  column-gap: 3px;
+  font-family: var(--mono);
+  font-size: 9.5px;
+  font-weight: 500;
+  color: var(--mute);
+}
+.axis span {
+  min-width: 0;
+  display: flex;
+  justify-content: center;
+  white-space: nowrap;
+}
+.td {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+@media (max-width: 359px) {
+  .plate {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+  .bars,
+  .axis {
+    column-gap: 2px;
+  }
+  .a,
+  .c {
+    left: 8px;
+  }
+  .b,
+  .d {
+    right: 8px;
+  }
+}
+@media (min-width: 720px) {
+  .bars {
+    height: 96px;
+  }
+}

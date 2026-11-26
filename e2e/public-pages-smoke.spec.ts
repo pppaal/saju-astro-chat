@@ -26,6 +26,8 @@ const PUBLIC_ROUTES = [
   '/fortune/horse',
   '/tarot/cards',
   '/tarot/cards/the-fool',
+  // v9.2 운세 달력 공개 샘플(고정 본명 · 2026-11-19) — 로그인·본명 없이 서버 렌더.
+  '/calendar/preview',
 ]
 
 const KEY_LEAK_PATTERNS = [

@@ -5,12 +5,19 @@
    아닌 합성 샘플이다. 포커스는 2026-11-19 로 고정해 언제 열어도 같은 화면
    (디자인 목업과 일치)이 나온다 — "지금"도 그날 정오(서울)로 주입한다.
 
-   tier 어셈블은 정식 라우트(/calendar/page.tsx)와 assembleTiers() 를 공유.
-   본명·cells 계산은 DB 캐시(getOrBuildNatalContext / getOrBuildMonthCells) 우선.
+   tier 어셈블은 정식 라우트(/calendar/page.tsx)와 assembleTiers() 를, 뷰모델은
+   buildMonthViewModel · buildDayViewModel 을 공유(서버에서 만든다). 폴리오 오른쪽은
+   'Sample'. 본명·cells 계산은 DB 캐시(getOrBuildNatalContext / getOrBuildMonthCells) 우선.
    ============================================================ */
 
 import { detectServerLocale } from '@/i18n/server'
 import CalendarClient from '../CalendarClient'
+import { buildMonthViewModel } from '@/lib/calendar-view/monthViewModel'
+import { buildDayViewModel } from '@/lib/calendar-view/dayViewModel'
+import { formatBirthStamp } from '@/lib/birth/format'
+import { PROVENANCE, pick } from '@/components/v9/v9Copy'
+import { KO_TO_SAJU_ELEMENT } from '@/lib/saju/elementBridge'
+import { getStemElement } from '@/lib/saju/stemBranchUtils'
 
 import {
   getOrBuildNatalContext,
@@ -70,13 +77,26 @@ export default async function DestinypalPreview() {
     now: SAMPLE_NOW,
   })
 
+  const monthVm = buildMonthViewModel(month, day, {
+    lang,
+    isMinor: !!day.isMinor,
+    nowIso: TARGET_DAY_ISO,
+  })
+  const dayVm = buildDayViewModel(day, { lang, sex: user.sex, isToday: true })
+  const stamp = { birthDate: BIRTH.birthDate, birthTime: BIRTH.birthTime, city: 'Seoul' }
+  const stem = user.ilgan?.hanja || topbar.ilganHanja
+  const element = stem ? KO_TO_SAJU_ELEMENT[getStemElement(stem)] : undefined
+
   return (
     <CalendarClient
-      topbar={topbar}
-      user={user}
-      month={month}
-      day={day}
-      // preview 는 세션이 아닌 고정 본명 — 일 티어 재빌드 fetch 도 같은 본명으로
+      locale={lang}
+      monthVm={monthVm}
+      dayVm={dayVm}
+      chipStamp={formatBirthStamp(stamp, lang, { time: false })}
+      folioStamp={formatBirthStamp(stamp, lang)}
+      folioRight={pick(PROVENANCE.sample, lang)}
+      dayMaster={stem && element ? { stem, element } : undefined}
+      // preview 는 세션이 아닌 고정 본명 — 일 재빌드 fetch 도 같은 본명으로
       // (override 쿼리 규약). 없으면 세션 본명/401 로 새서 다른 사람 하루가 뜬다.
       dayFetchParams={{
         date: BIRTH.birthDate,

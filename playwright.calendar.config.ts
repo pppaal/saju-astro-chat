@@ -8,7 +8,7 @@ const distDir = process.env.NEXT_DIST_DIR || 'tmp/.next-playwright-calendar'
 export default defineConfig({
   testDir: './e2e',
   outputDir: 'tmp/test-results/calendar',
-  testMatch: ['calendar-flow.spec.ts', 'calendar-check.spec.ts'],
+  testMatch: ['life-calendar-smoke.spec.ts', 'calendar-check.spec.ts'],
   fullyParallel: false,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,

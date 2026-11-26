@@ -3,26 +3,30 @@ import { calculateSajuData } from '@/lib/saju/saju'
 import { buildNatalContext } from '@/lib/calendar-engine/context/build'
 import { buildCalendar } from '@/lib/calendar-engine'
 import { assembleTiers } from '@/app/calendar/assembleTiers'
-import { plainReason, isPlainReason } from '@/lib/calendar-engine/derivers/plainLanguage'
+import { isPlainReason } from '@/lib/calendar-engine/derivers/plainLanguage'
+import { buildDayHero } from '@/lib/calendar-view/dayHero'
 
 /**
- * 일 카드 "지금 일어나는 일 / 조심할 것" 쉬운말 가드레일.
+ * 일 카드 "받쳐 주는 흐름 / 조심할 흐름" 쉬운말 가드레일.
  *
- * 그 리스트는 day.topReasons/cautions 를 plainReason 후 isPlainReason 으로 거른
- * 결과다(전문용어·한자 사유는 drop-on-doubt). 실제 하루를 조립해, 화면에 나갈
+ * 그 리스트는 day.topReasons/cautions(+ 맨 위 교차 뜻)를 plainReason 후 isPlainReason 으로 거른
+ * 결과다(전문용어·한자 사유는 drop-on-doubt). 일 히어로의 '왜' 한 줄이 이 두 목록에서만
+ * 합성된다. 실제 하루를 조립해, 화면 쪽 순수 파생(buildDayHero — 일 뷰모델과 같은 함수)이 내는
  * 최종 라인에 한자·사주/점성 전문용어가 0 임을 단언한다.
  */
-
-// DayTier 가 적용하는 변환을 그대로 재현(인라인 마커 제거 → plainReason → 필터).
-const stripMarker = (s: string) => s.replace(/^[↑↓▲▼]\s*[^·]*·\s*/, '').trim()
-function displayLines(reasons: string[] | undefined, ko: boolean): string[] {
-  return (reasons ?? []).map((r) => plainReason(stripMarker(r), ko)).filter(isPlainReason)
+function displayLines(day: Parameters<typeof buildDayHero>[0], lang: 'ko' | 'en'): string[] {
+  const hero = buildDayHero(day, { lang })
+  return [...hero.happeningLines, ...hero.cautionLines]
 }
 
 function hasHanja(s: string): boolean {
   for (const ch of s) {
     const c = ch.codePointAt(0) ?? 0
-    if ((c >= 0x3400 && c <= 0x4dbf) || (c >= 0x4e00 && c <= 0x9fff) || (c >= 0xf900 && c <= 0xfaff))
+    if (
+      (c >= 0x3400 && c <= 0x4dbf) ||
+      (c >= 0x4e00 && c <= 0x9fff) ||
+      (c >= 0xf900 && c <= 0xfaff)
+    )
       return true
   }
   return false
@@ -95,14 +99,13 @@ describe('일 카드 사유 쉬운말 무결성', () => {
       for (const iso of DAYS) {
         for (const lang of ['ko', 'en'] as const) {
           const t = await assembleDay(date, time, gender, iso, lang)
-          const reasons = lang === 'ko' ? t.day.topReasons : (t.day.topReasonsEn ?? t.day.topReasons)
-          const cautions = lang === 'ko' ? t.day.cautions : (t.day.cautionsEn ?? t.day.cautions)
-          for (const line of [...displayLines(reasons, lang === 'ko'), ...displayLines(cautions, lang === 'ko')]) {
+          for (const line of displayLines(t.day, lang)) {
             lineCount++
             if (hasHanja(line)) leaks.push(`${date} ${iso}/${lang} 한자: "${line}"`)
             if (!isPlainReason(line)) leaks.push(`${date} ${iso}/${lang} 전문어: "${line}"`)
             // EN 화면에 한글이 섞이면 = english 누락으로 한국어 폴백된 것.
-            if (lang === 'en' && hasHangul(line)) leaks.push(`${date} ${iso}/en 한글누수: "${line}"`)
+            if (lang === 'en' && hasHangul(line))
+              leaks.push(`${date} ${iso}/en 한글누수: "${line}"`)
           }
         }
       }

@@ -113,8 +113,9 @@ describe('useShareLink 로 옮긴 버튼들', () => {
         }}
       />
     )
+    // v9 row(운세 달력 '오늘 공유하기' 줄) — 문구는 calendarCopy.
     fireEvent.click(screen.getByRole('button', { name: 'Share today' }))
-    await screen.findByRole('button', { name: 'Link copied!' })
+    await screen.findByRole('button', { name: 'Link copied' })
     const [url, init] = apiFetch.mock.calls[0]
     expect(url).toBe('/api/calendar/day/share')
     expect(JSON.parse(init.body)).toEqual({
@@ -139,8 +140,9 @@ describe('useShareLink 로 옮긴 버튼들', () => {
         }}
       />
     )
-    fireEvent.click(screen.getByRole('button', { name: '이달 흐름 공유하기' }))
-    await screen.findByRole('button', { name: '링크 복사됨!' })
+    // v9 line(운세 달력 '이달 공유하기') — 문구는 calendarCopy.
+    fireEvent.click(screen.getByRole('button', { name: '이달 공유하기' }))
+    await screen.findByRole('button', { name: '링크를 복사했어요' })
     const [url, init] = apiFetch.mock.calls[0]
     expect(url).toBe('/api/calendar/share')
     expect(JSON.parse(init.body).highlights).toEqual(['a', 'b', 'c', 'd', 'e'])

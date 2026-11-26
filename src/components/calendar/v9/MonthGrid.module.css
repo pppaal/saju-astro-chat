@@ -1,0 +1,198 @@
+/* 달력 그리드 — 막대와 같은 한 부호(base_v9 .day). 좋음 = 먹 채움 + 종이 숫자 · 조심 = paper-2 + 1px 먹
+   테 · 피함 = 빗금 위 작은 종이 알약 · 잔잔 = surface + 실선 · 최고 = 좋음 + 2px 떨어진 먹 고리 + 칸 아래
+   BEST · 오늘 = 1.5px 먹 고리 + 오른쪽 위 LED(조심 테 대신 오늘 고리) · 큰 날 = 별 · 지난 날 = 45%.
+   고른 날 = 칸 아래 먹 막대(오늘 고리 · 최고 고리와 겹치지 않는 다른 모양). */
+
+.days {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  justify-items: center;
+  row-gap: 10px;
+  margin-top: 22px;
+}
+.wd {
+  height: 12px;
+  font-family: var(--mono);
+  font-size: 9.5px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  line-height: 12px;
+  color: var(--mute);
+}
+.pad {
+  display: block;
+}
+
+/* !important 는 padding · min-* 에만: globals.css 모바일(≤768px) 터치 규칙
+   `button:not(.btn-primary):not(.btn-ghost):not(.btn-soft)`(특이도 0,3,1)이 min-width 44px ·
+   padding 10px 16px 로 칸을 부풀려 280px 에서 그리드가 넘친다(ShareLinkButton 과 같은 처리). */
+.day {
+  position: relative;
+  width: 100%;
+  max-width: 36px;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  aspect-ratio: 1;
+  margin: 0;
+  padding: 0 !important;
+  border: 0;
+  border-radius: 9px;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1;
+  color: var(--ink);
+  background: var(--surface);
+  box-shadow: inset 0 0 0 1px var(--line);
+  cursor: pointer;
+}
+.num {
+  position: relative;
+}
+.good {
+  background: var(--ink);
+  color: var(--on-dark);
+  box-shadow: none;
+}
+.caution {
+  background: var(--paper-2);
+  box-shadow: inset 0 0 0 1px var(--ink);
+}
+/* 오늘이 조심 날이면 채움만 — 테는 오늘 고리가 맡는다. */
+.cautionToday {
+  background: var(--paper-2);
+}
+/* 종이 알약 = 22 × 14 캡슐(7px 원 둘 + 8px 다리)을 빗금 위, 숫자 뒤 가운데에. */
+.avoid {
+  background:
+    radial-gradient(circle at calc(50% - 4px) 50%, var(--surface) 0 6.6px, transparent 7.2px),
+    radial-gradient(circle at calc(50% + 4px) 50%, var(--surface) 0 6.6px, transparent 7.2px),
+    linear-gradient(var(--surface), var(--surface)) 50% 50% / 8px 13.4px no-repeat,
+    var(--hatch),
+    var(--surface);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+.best {
+  background: var(--ink);
+  color: var(--on-dark);
+  box-shadow:
+    0 0 0 2px var(--paper),
+    0 0 0 3.5px var(--ink);
+}
+.calm {
+  background: var(--surface);
+}
+.today {
+  box-shadow: inset 0 0 0 1.5px var(--ink);
+}
+.good.today {
+  box-shadow:
+    0 0 0 1.5px var(--ink),
+    inset 0 0 0 1.5px var(--paper);
+}
+.best.today {
+  box-shadow:
+    0 0 0 2px var(--paper),
+    0 0 0 3.5px var(--ink),
+    inset 0 0 0 1.5px var(--paper);
+}
+.past {
+  opacity: 0.45;
+}
+
+.led {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--seal);
+}
+.kd {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  width: 7px;
+  height: 7px;
+  background: var(--ink);
+  clip-path: var(--star);
+}
+.good .kd,
+.best .kd {
+  background: var(--on-dark);
+}
+.today .kd {
+  right: auto;
+  left: 3px;
+}
+/* BEST — 칸 아래(흐름 밖이라 숫자는 가운데 그대로). 9px 이상. */
+.bl {
+  position: absolute;
+  left: 50%;
+  top: calc(100% + 7px);
+  transform: translateX(-50%);
+  display: block;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  line-height: 1;
+  text-transform: uppercase;
+  color: var(--ink);
+  white-space: nowrap;
+}
+/* 고른 날 — 칸 아래 먹 막대. */
+.sel::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -6px;
+  width: 16px;
+  height: 2px;
+  border-radius: 1px;
+  background: var(--ink);
+  transform: translateX(-50%);
+}
+.best.sel::after {
+  bottom: -8px;
+}
+.best.sel .bl {
+  top: calc(100% + 11px);
+}
+
+/* 최고의 날이 든 줄은 아래에 BEST 자리를 남긴다(다음 줄 칸과 겹치지 않게). */
+.bestRow {
+  margin-bottom: 10px;
+}
+
+/* 범례 — 다섯 상태 + 큰 날 + 오늘 + 지난 날(흐린 견본). */
+.legend {
+  margin-top: 18px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: 15px;
+  row-gap: 9px;
+  font-family: var(--mono);
+  font-size: 9.5px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--mute);
+}
+.legend > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+@media (min-width: 720px) {
+  .day {
+    max-width: 44px;
+    font-size: 13px;
+  }
+}

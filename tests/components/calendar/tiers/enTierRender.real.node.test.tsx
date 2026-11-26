@@ -1,8 +1,9 @@
 /**
  * EN 티어 렌더에 한글이 없다 — 실제 천체력 (재감사 SI-1·SI-2·CC-4·SI-3·SI-4, destiny release gate).
  *
- * 엔진 → 어셈블러(assembleTiers·assembleLifetime) → 컴포넌트(LifeFlow(v9.2 인생 흐름)·MonthTier·DayTier)
- * 전 경로를 EN 로케일로 정적 렌더해, 영어가 와야 할 자리에 한글이 새지 않는지 본다.
+ * 엔진 → 어셈블러(assembleTiers·assembleLifetime) → 뷰모델 → 컴포넌트(LifeFlow(v9.2 인생 흐름) ·
+ * MonthView · DayView(v9.2 운세 달력)) 전 경로를 EN 로케일로 정적 렌더해, 영어가 와야 할 자리에
+ * 한글이 새지 않는지 본다.
  *  - 한자(간지·强/弱·財生官·長生)는 허용 — 글리프 자리다. 한글(가-힣)은 어디에도 없어야 한다.
  *  - 차트는 1997-03-21 14:30 F 서울(샘플, 상관격·신약·건록 교차 달), 1951-09-07 01:26 M LA
  *    (건록격·성격), 시간 미상 1988-08-08 시드니, 1975-12-30 05:10 M 뉴욕.
@@ -31,16 +32,20 @@ const { assembleTiers } = await import('@/app/calendar/assembleTiers')
 const { assembleLifetime } = await import('@/app/calendar/assembleLifetime')
 const { default: LifeFlow } = await import('@/app/destiny/LifeFlow')
 const { buildLifetimeViewModel } = await import('@/lib/calendar-view/lifetimeViewModel')
-const { MonthTier } = await import('@/components/calendar/tiers/MonthTier')
-const { DayTier } = await import('@/components/calendar/tiers/DayTier')
+const { default: MonthView } = await import('@/components/calendar/v9/MonthView')
+const { default: DayView } = await import('@/components/calendar/v9/DayView')
+const { buildMonthViewModel } = await import('@/lib/calendar-view/monthViewModel')
+const { buildDayViewModel } = await import('@/lib/calendar-view/dayViewModel')
 
-const { twelveStageHanja } = await import('@/lib/calendar-view/dayTierEnMaps')
+const { twelveStageHanja, appliedPatternEn } = await import('@/lib/calendar-view/dayTierEnMaps')
 const { monthThemeCandidates, selectMonthThemes } =
   await import('@/lib/calendar-engine/derivers/monthSummary')
 
 const NOW = new Date('2026-11-25T03:00:00.000Z')
 /** 차트·포커스일별 렌더 HTML — 샘플 재현 셀의 구체 문구를 아래에서 확인한다. */
 const rendered = new Map<string, { month: string; day: string }>()
+/** 차트·포커스일별 응용격국 id — 샘플 재현 셀의 SI-3 확인용(v9 일간 탭은 본명 풀이를 그리지 않는다). */
+const patterns = new Map<string, Array<{ id: string; name: string }>>()
 const noop = () => {}
 
 interface Chart {
@@ -228,34 +233,45 @@ describeRealEphemeris('EN 티어 렌더 — 한글 없음 (실제 천체력)', (
         expect(summary?.body ?? '').not.toMatch(/오늘 |조후|ZR/)
         expect(summary?.bodyEn ?? '').not.toMatch(/active today|climate balance|ZR/)
 
-        // 렌더 — 월은 포커스일이 선택된 그리드(그 날의 '왜 이런 날' 칩 포함), 일은 그 날.
+        // 렌더 — 월은 포커스일이 오늘인 월간 탭('03 / 오늘'의 '왜 이런 날' 행 포함), 일은 그 날.
+        const monthVm = buildMonthViewModel(t.month, t.day, { lang: 'en' })
         const monthHtml = renderToStaticMarkup(
-          <MonthTier month={t.month} onDive={noop} onRise={noop} />
+          <MonthView vm={monthVm} locale="en" onOpenDay={noop} />
         )
+        expect(monthHtml.length).toBeGreaterThan(2000)
         expect(hangulLeaks(monthHtml), `${c.label} Month ${ym}`).toEqual([])
-        const dayHtml = renderToStaticMarkup(
-          <DayTier day={t.day} onRise={noop} sex={sex} isToday={false} />
-        )
+        const dayVm = buildDayViewModel(t.day, { lang: 'en', sex, isToday: false })
+        const dayHtml = renderToStaticMarkup(<DayView vm={dayVm} locale="en" />)
         expect(dayHtml.length).toBeGreaterThan(2000)
         expect(hangulLeaks(dayHtml), `${c.label} Day ${di}`).toEqual([])
-        // 본명 풀이 12운성 칩의 보조 글리프는 한자(SI-3).
+        // 데이터 층 — 12운성 보조 글리프는 한자, 응용격국은 영문 이름·글로스(SI-3). v9 일간 탭은
+        // 본명 풀이 접이식을 그리지 않으므로 표시용 지도가 영문·한자만 내는지를 직접 본다.
         for (const st of t.day.twelveStageMatrix ?? []) {
-          if (st.stage !== '—') expect(dayHtml).toContain(twelveStageHanja(st.stage))
+          if (st.stage !== '—') expect(twelveStageHanja(st.stage)).not.toMatch(HANGUL)
+        }
+        for (const p of t.day.appliedPatterns ?? []) {
+          const en = appliedPatternEn(String(p.id))
+          if (en) expect(`${en.name} ${en.gloss}`, `${di} pattern ${p.id}`).not.toMatch(HANGUL)
         }
         rendered.set(`${c.birthDate}|${di}`, { month: monthHtml, day: dayHtml })
+        patterns.set(
+          `${c.birthDate}|${di}`,
+          (t.day.appliedPatterns ?? []).map((p) => ({ id: String(p.id), name: String(p.name) }))
+        )
       }
     }, 120_000)
   }
 
   it('샘플 재현 셀 — 건록 교차는 Established Stipend, 재생관은 영문 이름 + 財生官', () => {
-    // 2026-10-04: '왜 이런 날' = 건록 × 태양(재감사 CC-4) — 월 칩과 일 교차 카드 모두 영문.
+    // 2026-10-04: '왜 이런 날' = 건록 × 태양(재감사 CC-4) — 월간 '03 / 오늘'의 '왜' 행과 일간 카드 모두 영문.
     const oct = rendered.get('1997-03-21|2026-10-04')
     expect(oct?.month).toContain('Established Stipend')
     expect(oct?.day).toContain('Established Stipend')
-    // 2026-11-25: 응용격국 재생관(SI-3) — EN 이름·글로스, 보조 글리프는 한자만.
-    const nov = rendered.get('1997-03-21|2026-11-25')
-    expect(nov?.day).toContain('Wealth generates Officer')
-    expect(nov?.day).toContain('財生官')
-    expect(nov?.day).not.toContain('財生官 (')
+    // 2026-11-25: 응용격국 재생관(SI-3) — EN 이름(표시용 지도), 보조 글리프는 한자 이름만.
+    const list = patterns.get('1997-03-21|2026-11-25') ?? []
+    const jsg = list.find((p) => appliedPatternEn(p.id)?.name === 'Wealth generates Officer')
+    expect(jsg, `patterns ${list.map((p) => p.id).join(',')}`).toBeTruthy()
+    expect(jsg?.name).toContain('財生官')
+    expect(jsg?.name).not.toContain('財生官 (')
   })
 })

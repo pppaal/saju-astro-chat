@@ -1,0 +1,643 @@
+/* ============================================================
+   v9.2 운세 달력(/calendar) — 화면 공용 배치·글자. 부품(상단 바 · 폴리오 · 갈래 스위치 · 교차 행 ·
+   범례 · 가격 줄 · 푸터)의 모양은 components/v9 의 각 모듈이, 막대 · 그리드 · 큰 날 · 사다리 ·
+   일간 블록은 이 폴더의 각 모듈이 갖는다.
+   디자인 원본: calendar9.tpl.html + base_v9.css(.band.hero · .hby · .lr · .rd · .ros · .sec · .h2 ·
+   .cap · .panel · .lrow · .kk · .voice · .sw · .kd · .led · .cta). 토큰만 쓴다(원색 hex 금지).
+   폭: 390 기준 20px 여백, 359 아래 16px. 720 이상은 가운데 680px 한 칸 문서(인생 흐름과 같은 틀).
+   ============================================================ */
+
+.page {
+  --gutter: 20px;
+  position: relative;
+  width: 100%;
+  max-width: 680px;
+  margin: 0 auto;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: clip;
+}
+.page a {
+  color: inherit;
+  text-decoration: none;
+}
+@media (max-width: 359px) {
+  .page {
+    --gutter: 16px;
+  }
+}
+/* 한국어 — 어절 단위 줄바꿈, 제목 줄 간격을 조금 연다. */
+.ko {
+  word-break: keep-all;
+}
+.ko .h1,
+.ko .h2 {
+  line-height: 1.16;
+}
+
+.folio,
+.foot {
+  margin-left: var(--gutter);
+  margin-right: var(--gutter);
+}
+
+/* 월간 · 일간 스위치 — 상태 알약이 아니라 조작부. 40px 판 안의 버튼은 globals.css 모바일 터치
+   규칙(min-height 44px · padding 10px 16px, 특이도 0,3,1)이 부풀리지 않게 되돌린다. */
+.seg {
+  margin: 14px var(--gutter) 0;
+}
+.seg button {
+  min-width: 0 !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+}
+
+/* 보기 영역 — 일 데이터를 받는 동안 흐리게. */
+.view {
+  display: block;
+}
+.view[aria-busy='true'] > :not(.status) {
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+/* ---- 스크린 리더 전용 ---- */
+.sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---- 공용 글자 ---- */
+.nw {
+  white-space: nowrap;
+}
+.h1 {
+  margin: 16px 0 0;
+  font-weight: 600;
+  font-size: 34px;
+  line-height: 1.04;
+  letter-spacing: -0.035em;
+  color: var(--on-dark);
+  overflow-wrap: anywhere;
+}
+.h2 {
+  margin: 16px 0 0;
+  font-weight: 600;
+  font-size: 29px;
+  line-height: 1.06;
+  letter-spacing: -0.03em;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+.lt {
+  display: block;
+  font-weight: 400;
+  color: var(--mute);
+}
+.h3 {
+  margin: 0;
+  font-weight: 600;
+  font-size: 20px;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+.sub {
+  margin: 8px 0 0;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--body);
+}
+.cap {
+  margin: 12px 0 0;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--mute);
+}
+.cap span {
+  display: block;
+}
+.em {
+  font-weight: 700;
+  color: var(--ink);
+}
+
+/* 모서리 줄 — 계산 블록을 연다: 왼쪽 블록 이름, 오른쪽 범위. 오른쪽이 길면 말줄임. */
+.lr {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  height: 24px;
+  border-bottom: 1px solid var(--line);
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--mute);
+  white-space: nowrap;
+}
+.lr > span:first-child {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+.lr > span:last-child {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.lr > span:only-child {
+  overflow: visible;
+}
+.ko .lr {
+  letter-spacing: 0.04em;
+}
+.lrDark {
+  border-bottom-color: var(--line-dark);
+  color: var(--on-dark-3);
+}
+
+/* ---- 계산 블록 ---- */
+.sec {
+  margin: 44px var(--gutter) 0;
+}
+.lr + .h2 {
+  margin-top: 16px;
+}
+.xlegend {
+  margin-top: 12px;
+}
+
+/* ---- LED · 큰 날 별 ---- */
+.led {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--seal);
+  flex-shrink: 0;
+}
+.kd {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  background: var(--ink);
+  clip-path: var(--star);
+  flex-shrink: 0;
+}
+
+/* ---- 날 상태 견본(.sw) — 그리드 · 막대와 같은 부호 ---- */
+.sw {
+  position: relative;
+  display: inline-block;
+  width: 11px;
+  height: 11px;
+  border-radius: 3px;
+  background: var(--surface);
+  box-shadow: inset 0 0 0 1px var(--line);
+  flex-shrink: 0;
+}
+.swGood {
+  background: var(--ink);
+  box-shadow: none;
+}
+.swCaution {
+  background: var(--paper-2);
+  box-shadow: inset 0 0 0 1px var(--ink);
+}
+.swAvoid {
+  background: var(--hatch), var(--surface);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+.swBest {
+  background: var(--ink);
+  box-shadow:
+    0 0 0 1.5px var(--paper),
+    0 0 0 2.5px var(--ink);
+}
+.swNow {
+  box-shadow: inset 0 0 0 1.5px var(--ink);
+}
+.swNow .led {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 5px;
+  height: 5px;
+  box-shadow: 0 0 0 1px var(--paper);
+}
+.swKd {
+  width: 9px;
+  height: 9px;
+  border-radius: 0;
+  background: var(--ink);
+  box-shadow: none;
+  clip-path: var(--star);
+  margin: 0 1px;
+}
+.swPast {
+  opacity: 0.45;
+}
+/* 먹 위 견본 — 좋음 = 채운 칸 하나 · 조심 = 진한 테 · 피함 = 빗금 · 잔잔 = 옅은 실선만 */
+.swDark {
+  width: 9px;
+  height: 9px;
+  border-radius: 2px;
+  background: transparent;
+  box-shadow: inset 0 0 0 1px var(--on-dark-4);
+}
+.swDark.swGood {
+  background: var(--on-dark);
+  box-shadow: none;
+}
+.swDark.swCaution {
+  background: var(--line-dark);
+  box-shadow: inset 0 0 0 1px var(--on-dark);
+}
+.swDark.swAvoid {
+  background: var(--hatch-dark);
+  box-shadow: inset 0 0 0 1px var(--on-dark-3);
+}
+
+/* ---- 히어로 — 먹 띠(12px 여백 · 반경 28) ---- */
+.band {
+  margin: 12px 12px 0;
+  padding: 20px 22px 22px;
+  border-radius: 28px;
+  background: var(--ink);
+  color: var(--on-dark);
+}
+@media (max-width: 359px) {
+  .band {
+    margin-left: 8px;
+    margin-right: 8px;
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+}
+.hby {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 13.5px;
+  line-height: 1.2;
+  color: var(--on-dark-2);
+}
+.av {
+  flex-shrink: 0;
+  color: var(--on-dark);
+}
+.stamp {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--on-dark-2);
+  white-space: nowrap;
+}
+.seal {
+  width: 24px;
+  height: 24px;
+  border-radius: 3px;
+  background: var(--seal);
+  color: var(--paper);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--hanja);
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.hby + .lr {
+  margin-top: 28px;
+}
+.lede {
+  margin: 14px 0 0;
+  font-size: 17px;
+  line-height: 1.45;
+  color: var(--on-dark-2);
+}
+
+/* 한 달 · 하루 읽기 — 판독 줄(mono 라벨 + 20px 산세리프 한 줄) */
+.read {
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid var(--line-dark);
+}
+.rdL {
+  display: block;
+  font-family: var(--mono);
+  font-size: 9.5px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--on-dark-3);
+  white-space: nowrap;
+}
+.rdV {
+  display: block;
+  margin-top: 6px;
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+  color: var(--on-dark);
+}
+.rdNote {
+  display: block;
+  margin-top: 8px;
+  font-size: 14.5px;
+  line-height: 1.45;
+  color: var(--on-dark-2);
+}
+
+/* 날 수 판독 — 좋음 · 조심 · 피함 · 잔잔 네 칸(좁은 화면은 두 줄). */
+.cnt {
+  margin-top: 24px;
+}
+.counts {
+  margin: 12px 0 0;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  border: 1px solid var(--line-dark);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.count {
+  min-width: 0;
+  padding: 10px 10px 11px;
+  border-left: 1px solid var(--line-dark);
+}
+.count:first-child {
+  border-left: 0;
+}
+.countL {
+  display: block;
+  margin: 0;
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--on-dark-3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ko .countL {
+  letter-spacing: 0.02em;
+}
+.countV {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 8px 0 0;
+  font-weight: 600;
+  font-size: 30px;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  color: var(--on-dark);
+  white-space: nowrap;
+}
+@media (max-width: 359px) {
+  .counts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .count:nth-child(3) {
+    border-left: 0;
+  }
+  .count:nth-child(n + 3) {
+    border-top: 1px solid var(--line-dark);
+  }
+  .countV {
+    font-size: 26px;
+  }
+}
+
+/* ---- 해 볼 것 — 두 칸 판독(빈 쪽은 숨긴다) ---- */
+.try {
+  margin: 24px var(--gutter) 0;
+}
+.ros {
+  margin-top: 12px;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+  overflow: hidden;
+}
+.ro {
+  min-width: 0;
+  padding: 10px 12px 11px;
+  border-left: 1px solid var(--line);
+}
+.ro:first-child {
+  border-left: 0;
+}
+.roL {
+  display: block;
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--mute);
+  white-space: nowrap;
+}
+.roV {
+  display: block;
+  margin-top: 8px;
+  font-weight: 600;
+  font-size: 30px;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  color: var(--ink);
+  white-space: nowrap;
+}
+.ko .roV {
+  font-size: 26px;
+}
+.roNt {
+  display: block;
+  margin-top: 6px;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--body);
+}
+@media (max-width: 359px) {
+  .roV,
+  .ko .roV {
+    font-size: 22px;
+  }
+}
+
+/* ---- 패널 · 줄 링크 ---- */
+.panel {
+  margin-top: 18px;
+  padding: 18px 18px 0;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface);
+}
+@media (max-width: 359px) {
+  .panel {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+}
+.why {
+  margin-top: 20px;
+}
+.lr + .xrow,
+.why > .lr + * {
+  margin-top: 4px;
+}
+/* lrow — 라벨 + 보조 한 줄 + 끝 화살표. 버튼·링크 공용. padding · min-* 의 !important 는
+   globals.css 모바일 터치 규칙(button:not(...) — 특이도 0,3,1, padding 10px 16px)을 이기기 위해. */
+.lrow {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  padding: 14px 0 15px !important;
+  border: 0;
+  border-top: 1px solid var(--line);
+  background: transparent;
+  font: inherit;
+  text-align: left;
+  color: var(--ink);
+  cursor: pointer;
+}
+.lrow b {
+  display: block;
+  font-size: 15px;
+  font-weight: 600;
+}
+.lrow .s {
+  display: block;
+  margin-top: 2px;
+  font-size: 12.5px;
+  color: var(--mute);
+}
+.lrow svg {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+}
+.lrowBare {
+  margin-top: 18px;
+  border-bottom: 1px solid var(--line);
+}
+
+/* 고른 날 읽기 — 판정 견본 + 판정 단어. */
+.selVerdict {
+  margin-top: 14px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+/* ---- 까치 한 줄 — 24px 먹 마크 + 세리프 이탤릭 한 줄(허용된 두 자리 중 하나) ---- */
+.kk {
+  margin-top: 18px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+.kkAv {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: var(--ink);
+}
+.voice {
+  margin: 0;
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 17px;
+  line-height: 1.25;
+  color: var(--ink);
+}
+/* 한국어는 가짜 기울임 대신 바로 선 산세리프. */
+.ko .voice {
+  font-family: var(--sans);
+  font-style: normal;
+  font-size: 15.5px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+/* ---- 상담사 CTA · 공유 ---- */
+.cta {
+  margin: 28px var(--gutter) 0;
+}
+.share {
+  margin: 14px var(--gutter) 0;
+}
+
+/* ---- 상태(일 데이터 받는 중 · 실패) ---- */
+.status {
+  margin: 18px var(--gutter) 0;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px dashed var(--line-2);
+  border-radius: 12px;
+  background: var(--surface);
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--body);
+}
+.retry {
+  flex-shrink: 0;
+  height: 32px;
+  min-height: 0 !important;
+  padding: 0 14px !important;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  box-shadow: inset 0 0 0 1.5px var(--ink);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+/* ---- 넓은 화면 — 가운데 한 칸 문서 ---- */
+@media (min-width: 720px) {
+  .band {
+    margin-left: var(--gutter);
+    margin-right: var(--gutter);
+    padding: 26px 30px 28px;
+  }
+  .h1 {
+    font-size: 40px;
+  }
+}

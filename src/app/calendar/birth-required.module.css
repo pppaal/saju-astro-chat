@@ -1,158 +1,134 @@
 /* ============================================================
-   /calendar — BirthRequiredFallback (비로그인 / 본명 미입력)
-   destinypal-ink (라이트 베이지 + 주사 + 쪽빛) 톤.
+   /calendar · /destiny — BirthRequiredFallback (v9.2 종이 안내).
+   V9Root 토큰만 쓴다(원색 hex · 이름 글꼴 없음): 종이 바탕, surface 카드, 모서리 줄,
+   검은 알약 + 선 알약. 390 기준 20px 여백, 359 아래 16px.
    ============================================================ */
 
 .page {
-  background: #ece2cd;
-  background-image:
-    radial-gradient(60% 80% at 30% 20%, rgba(255, 251, 242, 0.45) 0%, rgba(255, 251, 242, 0) 60%),
-    radial-gradient(50% 70% at 75% 80%, rgba(176, 58, 34, 0.1) 0%, rgba(176, 58, 34, 0) 60%);
-  color: #2a2318;
-  min-height: 100vh;
-  font-family: 'Gowun Dodum', 'Noto Sans KR', system-ui, sans-serif;
-  display: grid;
-  place-items: center;
-  padding: 32px 16px;
+  min-height: 100dvh;
+  padding: 40px 20px 48px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--sans);
+  word-break: keep-all;
+}
+@media (max-width: 359px) {
+  .page {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
 }
 
 .card {
-  background: rgba(255, 251, 242, 0.74);
-  border: 1px solid rgba(58, 46, 28, 0.18);
-  border-radius: 10px;
-  padding: 36px 32px;
-  max-width: 480px;
   width: 100%;
-  box-shadow:
-    0 1px 0 rgba(58, 46, 28, 0.06),
-    0 10px 30px rgba(58, 46, 28, 0.08);
+  max-width: 480px;
+  padding: 18px 20px 22px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface);
 }
 
-.seal {
-  display: inline-block;
-  font-family: 'Gowun Batang', 'Noto Serif KR', serif;
-  font-size: 14px;
-  letter-spacing: 0.24em;
-  color: #b03a22;
-  border: 1px solid #b03a22;
-  padding: 4px 10px;
-  border-radius: 4px;
-  margin-bottom: 18px;
+/* 모서리 줄 — 블록 이름(mono 캡스). */
+.lr {
+  display: flex;
+  align-items: center;
+  height: 24px;
+  border-bottom: 1px solid var(--line);
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--mute);
+  white-space: nowrap;
 }
 
 .title {
-  font-family: 'Gowun Batang', 'Noto Serif KR', serif;
-  font-size: 24px;
+  margin: 16px 0 0;
+  font-size: 29px;
   font-weight: 600;
-  margin: 0 0 12px;
-  color: #2a2318;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  color: var(--ink);
 }
 
-.subtitle {
+.body {
+  margin: 12px 0 0;
   font-size: 15px;
-  line-height: 1.65;
-  color: #4d4334;
-  margin: 0 0 24px;
+  line-height: 1.55;
+  color: var(--body);
 }
 
-.hr {
-  border: 0;
-  border-top: 1px dashed rgba(58, 46, 28, 0.18);
-  margin: 20px 0;
+.needLabel {
+  margin: 22px 0 0;
+  font-family: var(--mono);
+  font-size: 9.5px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--mute);
 }
 
-.helper {
-  font-size: 13px;
-  color: #82745c;
-  margin: 0 0 10px;
+.need {
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+  border-bottom: 1px solid var(--line);
+}
+.need li {
+  padding: 10px 0;
+  border-top: 1px solid var(--line);
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--ink);
 }
 
 .actions {
+  margin-top: 22px;
   display: flex;
   flex-direction: column;
   gap: 10px;
-  margin-top: 8px;
 }
 
-.btnPrimary {
-  display: inline-flex;
+.btnDark,
+.btnLine {
+  height: 54px;
+  padding: 0 22px;
+  border-radius: 999px;
+  display: flex;
   align-items: center;
   justify-content: center;
-  height: 44px;
-  padding: 0 18px;
-  background: #b03a22;
-  color: #fffbf2;
-  border: 1px solid #b03a22;
-  border-radius: 6px;
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 600;
-  letter-spacing: 0.02em;
+  letter-spacing: -0.01em;
   text-decoration: none;
-  transition:
-    background 0.15s ease,
-    transform 0.05s ease;
-  font-family: inherit;
+  text-align: center;
 }
-
-.btnPrimary:hover {
-  background: #c8492c;
+.btnDark {
+  background: var(--ink);
+  color: var(--on-dark);
 }
-
-.btnPrimary:active {
-  transform: translateY(1px);
-}
-
-.btnSecondary {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  height: 44px;
-  padding: 0 18px;
+.btnLine {
   background: transparent;
-  color: #34406f;
-  border: 1px solid rgba(52, 64, 111, 0.45);
-  border-radius: 6px;
-  font-size: 14px;
-  font-weight: 500;
-  text-decoration: none;
-  transition:
-    background 0.15s ease,
-    border-color 0.15s ease;
-  font-family: inherit;
+  color: var(--ink);
+  box-shadow: inset 0 0 0 1.5px var(--ink);
 }
-
-.btnSecondary:hover {
-  background: rgba(52, 64, 111, 0.08);
-  border-color: #34406f;
-}
-
-.btnGhost {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  height: 38px;
-  padding: 0 14px;
-  background: transparent;
-  color: #82745c;
-  border: 0;
-  font-size: 13px;
-  font-family: inherit;
-  text-decoration: underline;
-  text-underline-offset: 4px;
-  text-decoration-color: rgba(130, 116, 92, 0.45);
-}
-
-.btnGhost:hover {
-  color: #4d4334;
+@media (max-width: 359px) {
+  .btnDark,
+  .btnLine {
+    height: auto;
+    min-height: 50px;
+    padding: 12px 18px;
+    font-size: 15px;
+  }
 }
 
 .note {
-  margin-top: 18px;
-  padding: 12px 14px;
-  background: rgba(52, 64, 111, 0.06);
-  border-left: 3px solid #34406f;
-  border-radius: 4px;
-  font-size: 13px;
-  line-height: 1.55;
-  color: #4d4334;
+  margin: 18px 0 0;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--mute);
 }

@@ -1,39 +1,18 @@
 /* ============================================================
    /calendar/* — 라우트 전용 layout.
-   destinypal 5-tier UI 는 hanji + 먹 톤이라 root layout 의 다크
-   cosmic 폰트(Montserrat / Noto Sans KR) 와 별개로 4 종 필요:
-     - Newsreader   (serif headline / 영문 lead)
-     - Gowun Batang (한글 serif — 본문)
-     - Gowun Dodum  (한글 sans  — chrome, chip, label)
-     - IBM Plex Mono (mono — eyebrow, range, scale 표기)
-
-   루트 layout 은 self-hosted next/font/local 만 쓴다 (CI 가
-   fonts.googleapis.com 빌드 페치에 실패해 막힌 적이 있어). 여기서는
-   runtime CDN link 만 주입해 destinypal 라우트에서만 4 종이 깨끗하게
-   적용되도록 한다. preconnect 2 줄로 1st paint cost 도 최소화.
+   운세 달력은 v9.2 종이 문서 — V9Root(v9 글꼴 변수 + 토큰 + data-surface="paper")로 감싼다.
+   글꼴은 루트처럼 self-hosted next/font/local(src/app/fonts/v9.ts)만 쓴다 — 옛 줌 셸의
+   런타임 Google Fonts CDN <link>(Newsreader · Gowun · IBM Plex Mono)는 걷어냈다(그 글꼴을
+   이름으로 부르던 CSS 는 이 단계에서 모두 지워지거나 v9 토큰으로 바뀌었다). 브라우저
+   UI(주소창 · 상태 막대)도 종이 색.
    ============================================================ */
 
 import type { ReactNode } from 'react'
+import type { Viewport } from 'next'
+import V9Root from '@/components/v9/server/V9Root'
 
-export default function DestinypalLayout({ children }: { children: ReactNode }) {
-  return (
-    <>
-      <link rel="preconnect" href="https://fonts.googleapis.com" />
-      <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-      <link
-        rel="stylesheet"
-        href={
-          'https://fonts.googleapis.com/css2?' +
-          [
-            'family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;0,6..72,700;1,6..72,400',
-            'family=Gowun+Batang:wght@400;700',
-            'family=Gowun+Dodum',
-            'family=IBM+Plex+Mono:wght@400;500;600',
-            'display=swap',
-          ].join('&')
-        }
-      />
-      {children}
-    </>
-  )
+export const viewport: Viewport = { themeColor: '#F3EFE7' }
+
+export default function CalendarLayout({ children }: { children: ReactNode }) {
+  return <V9Root>{children}</V9Root>
 }

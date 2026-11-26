@@ -5,12 +5,13 @@
  * 링크(/r/[token])로 만들어 Web Share API 또는 클립보드 복사로 내보낸다.
  * 서버엔 점수·요약 텍스트·곡선 숫자만 저장(개인 원국/생년월일은 안 보냄).
  *
- * 흐름은 useShareLink, 버튼은 ShareLinkButton(pill) — OG 이미지는
- * /r/[token]/opengraph-image 가 동적 생성(점수 + 곡선).
+ * 흐름은 useShareLink, 버튼은 ShareLinkButton(v9 row — 'Share today' 줄 링크) — OG 이미지는
+ * /r/[token]/opengraph-image 가 동적 생성(점수 + 곡선). 재료는 일 뷰모델의 share.
  */
 
 import { ShareLinkButton } from '@/components/share/ShareLinkButton'
 import type { UseShareLinkOptions } from '@/lib/share/useShareLink'
+import { CAL_COPY } from '@/components/calendar/v9/calendarCopy'
 
 export interface DayShareData {
   isKo: boolean
@@ -45,13 +46,25 @@ export function dayShareLinkOptions(data: DayShareData): UseShareLinkOptions {
   }
 }
 
-export function ShareDayButton({ data }: { data: DayShareData }) {
-  const isKo = data.isKo
+export function ShareDayButton({
+  data,
+  isToday = true,
+  className,
+}: {
+  data: DayShareData
+  /** 오늘이 아닌 날이면 'Share this day'. */
+  isToday?: boolean
+  className?: string
+}) {
+  const lang = data.isKo ? 'ko' : 'en'
   return (
     <ShareLinkButton
+      variant="row"
       link={dayShareLinkOptions(data)}
-      label={isKo ? '오늘 점수 공유하기' : 'Share today'}
-      copiedLabel={isKo ? '링크 복사됨!' : 'Link copied!'}
+      label={(isToday ? CAL_COPY.shareToday : CAL_COPY.shareDay)[lang]}
+      copiedLabel={CAL_COPY.copied[lang]}
+      creatingLabel={CAL_COPY.creating[lang]}
+      className={className}
     />
   )
 }
