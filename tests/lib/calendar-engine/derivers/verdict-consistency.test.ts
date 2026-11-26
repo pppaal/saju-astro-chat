@@ -38,7 +38,6 @@ describe('월 verdict ⟺ 총평 일치 (모든 카운트 조합)', () => {
         cautionDays: cautionN,
         avoidDays: avoidN,
         totalDays: 30,
-        topReasons: [],
         monthTone: verdict.tone,
         lang: 'ko',
       })

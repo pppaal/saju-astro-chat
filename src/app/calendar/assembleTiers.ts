@@ -15,7 +15,10 @@
 import { deriveConvergence } from '@/lib/calendar-engine/derivers/convergence'
 import { currentManAge } from '@/lib/datetime/currentAge'
 import { isMinorAge, sanitizeCrossEntry } from '@/lib/calendar-engine/minorSafe'
-import { deriveMonthSummary } from '@/lib/calendar-engine/derivers/monthSummary'
+import {
+  deriveMonthSummary,
+  monthThemeCandidates,
+} from '@/lib/calendar-engine/derivers/monthSummary'
 import { reconcileMonthTone } from '@/lib/calendar-engine/derivers/reconcile'
 import { personSeed } from '@/lib/calendar-engine/derivers/personSeed'
 import { deriveLayeredScores } from '@/lib/calendar-engine/derivers/layeredScore'
@@ -87,19 +90,6 @@ export interface AssembledTiers {
   user: DestinyUserSummary & { gyeokgukStatus?: string; rootStatus?: string }
   month: DestinyMonth
   day: DestinyDay
-}
-
-/** 동일 문구 중복 제거(순서 보존). monthly-layer 사유는 그 달 매일 동일 문자열로
- *  떠서, 셀을 가로질러 모으면 같은 줄이 반복된다 — body 기준 1회만 남긴다. */
-function dedupeByBody<T extends { body: string }>(rows: T[]): T[] {
-  const seen = new Set<string>()
-  const out: T[] = []
-  for (const r of rows) {
-    if (seen.has(r.body)) continue
-    seen.add(r.body)
-    out.push(r)
-  }
-  return out
 }
 
 export async function assembleTiers(args: AssembleTiersInput): Promise<AssembledTiers> {
@@ -324,19 +314,10 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
   // 이달 총평 — 타이밍·톤·지배 테마를 이어지는 한 문단으로 합성(deriveMonthSummary).
   // 양쪽 로케일 요약을 함께 만들어 보관 — 클라이언트 로케일 토글 시 서버언어로
   // 굳던 문제 해소. 정본 태그 '이달 총평', body=ko / bodyEn=en 를 MonthTier 가 고른다.
-  const monthReasonsBy = (en: boolean): string[] =>
-    dedupeByBody(
-      monthCells
-        .flatMap((c) =>
-          ((en ? c.topReasonsEn : c.topReasons) ?? []).map((r) => ({
-            score: c.derivedScore,
-            body: r,
-          }))
-        )
-        .sort((a, b) => b.score - a.score)
-    )
-      .slice(0, 4)
-      .map((r) => r.body)
+  // 지배 테마는 *신호 id* 로 한 번 고른 후보 목록(월 층 우호 신호, 그 달 영향 순)을 두
+  // 로케일에 똑같이 넘긴다 — 예전엔 로케일별 topReasons 문자열(점수 높은 날의 일진 사유 포함)을
+  // 따로 모아 KO·EN 이 다른 테마를 말하고 '오늘 천을귀인' 이 월 테마가 됐다(재감사 SI-4).
+  const monthThemes = monthThemeCandidates(monthCells)
 
   // ── 월 verdict — 톤의 단일 권위. 그리드 밴드 카운트(여는 날짜와 무관)로 1회 산출해
   //    month.verdict 에 부착하고, 총평(deriveMonthSummary)에도 같은 톤을 주입한다.
@@ -387,7 +368,7 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
     bestKeyDay && bestKeyDay.tone !== 'negative' ? bestKeyDay.meaning : undefined
   const summaryKo = deriveMonthSummary({
     ...summaryCommon,
-    topReasons: monthReasonsBy(false),
+    themes: monthThemes,
     bestDayReason: lang === 'ko' ? bestDayReason : undefined,
     monthTone: monthVerdict.tone,
     lang: 'ko',
@@ -395,7 +376,7 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
   })
   const summaryEn = deriveMonthSummary({
     ...summaryCommon,
-    topReasons: monthReasonsBy(true),
+    themes: monthThemes,
     bestDayReason: lang === 'en' ? bestDayReason : undefined,
     monthTone: monthVerdict.tone,
     lang: 'en',

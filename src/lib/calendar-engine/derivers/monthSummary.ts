@@ -16,6 +16,18 @@
 
 import { pickBySeed } from './personSeed'
 import type { MonthTone } from './reconcile'
+import { STATIC_NATAL_KINDS } from '../signalTaxonomy'
+import type { ActiveSignal, CalendarCell } from '../types'
+
+/**
+ * 이 달의 지배 테마 후보 한 개 — *신호 하나*에서 뽑은 KO·EN 라벨 짝. id 는 엔진 신호 id
+ * (로케일 무관)라, 테마 선택은 한 번만 하고 두 로케일이 같은 신호를 말한다(재감사 SI-4).
+ */
+export interface MonthTheme {
+  id: string
+  ko: string
+  en: string
+}
 
 export interface MonthSummaryInput {
   /** 월운 한글 (예: '갑오') — 없으면 생략. */
@@ -32,8 +44,13 @@ export interface MonthSummaryInput {
    */
   avoidDays?: number
   totalDays: number
-  /** 그 달 지배 신호(이미 정제·로컬라이즈된 topReasons 본문) 상위 몇 개. */
-  topReasons: string[]
+  /**
+   * 그 달 지배 테마 후보(monthThemeCandidates — 신호 id 단위, 강한 순). ko·en 두 요약에
+   * *같은 목록*을 넘긴다 — 두 라벨이 모두 테마로 쓸 만한 후보만 위에서부터 1~2개 고르므로
+   * KO·EN 이 같은 테마를 말한다. 예전엔 로케일별 topReasons 문자열을 따로 받아 각 언어
+   * 필터가 서로 다른 신호를 골랐다(KO '寅午戌 불' vs EN 'Hai-month climate balance').
+   */
+  themes?: readonly MonthTheme[]
   /** 최고일 'MM-DD' + 그날 한 줄 이유(있으면). */
   bestDay?: string
   bestDayReason?: string
@@ -77,21 +94,51 @@ function fmtDate(mmdd: string, ko: boolean): string {
   return ko ? `${m}월 ${d}일` : `${m}/${d}`
 }
 
-/** topReason 본문에서 핵심구만 — 선행 마크·라벨·'— 설명' 꼬리 제거. */
+/** topReason 본문에서 핵심구만 — 선행 마크·라벨·'— 설명' 꼬리·하루 범위 표지 제거. */
 function coreReason(s: string): string {
-  return s
-    .replace(/^[↑↓·\s]+/, '')
-    .replace(/^\[[^\]]*\]\s*/, '')
-    .replace(/^(이달|오늘|month|day|year|decade|hour|peak)\s·\s/i, '')
-    .split('—')[0]
-    .split(' — ')[0]
-    .trim()
+  return (
+    s
+      .replace(/^[↑↓·\s]+/, '')
+      .replace(/^\[[^\]]*\]\s*/, '')
+      .replace(/^(month|day|year|decade|hour|peak)\s·\s/i, '')
+      // '오늘 천을귀인 — …'(saju-shinsal 흐름 줄)처럼 '·' 없이 붙는 하루/이달 표지도 뗀다.
+      // 예전엔 ' · ' 가 있을 때만 떼 월 문단에 '오늘 천을귀인 흐름이…' 이 섰다(재감사 SI-4).
+      .replace(/^(이달|오늘)(\s*·\s*|\s+)/, '')
+      .split('—')[0]
+      .split(' — ')[0]
+      .trim()
+      // EN 짝 — 'Heavenly Benefactor active today — …' 의 하루 표지.
+      .replace(/\s+active today$/i, '')
+      .trim()
+  )
 }
+
+/**
+ * 트랜짓·진행 흐름 줄의 EN 동사(astroFlow ASPECT_VERB) → 동명사. 'Jupiter flows easily with natal
+ * Moon' 같은 절을 테마 명사구('Jupiter flowing easily with natal Moon')로 바꾸는 데만 쓴다.
+ */
+const ASPECT_VERB_GERUND: Record<string, string> = {
+  fuses: 'fusing',
+  opens: 'opening',
+  flows: 'flowing',
+  tensions: 'tensioning',
+  pulls: 'pulling',
+  adjusts: 'adjusting',
+  grazes: 'grazing',
+  rubs: 'rubbing',
+  irritates: 'irritating',
+  sparks: 'sparking',
+  ripens: 'ripening',
+}
+const ASPECT_CLAUSE = new RegExp(
+  `^(.+?) ((?:[a-z]+ly )?)(${Object.keys(ASPECT_VERB_GERUND).join('|')}) (.*\\bnatal\\b.*)$`
+)
 
 /**
  * 산문(총평)에 박을 테마 문구 정리 — 기술적 괄호 주석을 떼어 읽기 쉽게.
  * 신호 라벨이 "목성 가장 좋은 자리(고양) (게자리)"처럼 (글로스)·(별자리) 괄호를
  * 달고 오는데, 한 문단 산문에선 거슬린다. 괄호 그룹을 모두 제거하고 공백 정리.
+ * 테마로 부적합하면 '' (문장형·전문어·한자 라벨).
  */
 function themePhrase(s: string): string {
   let out = coreReason(s)
@@ -129,13 +176,101 @@ function themePhrase(s: string): string {
       .replace(/\s*흐름이에요\.?$/, '')
       .trim()
     if (/(이에요|예요|어요|아요|해요|세요|네요|다|요)\.?$/.test(out)) return ''
-  } else if (out.split(/\s+/).length > 6 || /\b(runs?|run|defines?|sets?|through)\b/.test(out)) {
-    return '' // EN 문장형 절은 테마 부적합
+  } else {
+    // EN 짝의 명사화 — 월운 줄 'X runs through the month' 는 KO '…흐르는 한 달이에요' 와 같은
+    // 틀이라 같이 뗀다. 트랜짓 절 'Jupiter flows easily with natal Moon' 은 동명사구로
+    // ('Jupiter flowing easily with natal Moon') — 'X and Y set the grain' 의 주어가 된다.
+    out = out.replace(/\s+runs through the month\.?$/i, '').trim()
+    const clause = ASPECT_CLAUSE.exec(out)
+    if (clause) out = `${clause[1]} ${clause[2]}${ASPECT_VERB_GERUND[clause[3]]} ${clause[4]}`
+    if (out.split(/\s+/).length > 6 || /\b(runs?|run|defines?|sets?|through)\b/.test(out)) {
+      return '' // EN 문장형 절은 테마 부적합
+    }
   }
   // raw 한자(午月·간지)·saju 전문어(조후/통근/월령/득령/운성/격국/용신)를 단 차트
   // 메커닉 라벨은 사용자 테마로 부적합 — 제외(감사 jargon). 평이 테마만 남긴다.
   if (/[㐀-鿿]/.test(out)) return ''
   if (/조후|통근|월령|득령|운성|격국|용신/.test(out)) return ''
+  return out
+}
+
+/**
+ * 테마가 될 수 없는 신호 — 차트 메커닉(조후·12운성 행렬·지장간·ZR·랏)은 KO·EN 어느 쪽 라벨로도
+ * 사용자 테마가 아니다. 예전엔 KO 만 한자·전문어 정규식으로 거르고 EN 은 'Hai-month climate
+ * balance'·'Fortune ZR L2 …' 를 그대로 테마로 써, 두 로케일이 다른 신호를 말했다(재감사 SI-4).
+ * 이제 *신호 종류*로 한 번 거른다.
+ */
+const THEME_EXCLUDED_KINDS: ReadonlySet<string> = new Set([
+  'zodiacal-releasing',
+  'jijanggan',
+  'arabic-part',
+])
+const THEME_EXCLUDED_ID_PREFIXES: readonly string[] = ['saju.johu-yongsin', 'saju.twelve-stage']
+/** 위계는 본 자리·고양(제자리/고양)만 테마 — 소위계(트리플리시티·텀·페이스)는 음역 전문어다. */
+const MINOR_DIGNITY_ID = /^astro\.dignity\.[^.]*\|(triplicity|term|face)\|/
+
+function isThemeSignal(s: ActiveSignal): boolean {
+  if (s.polarity <= 0) return false
+  // 하루 범위(일진·시진·정점) 신호는 월 테마가 될 수 없다 — '오늘 천을귀인' 이 이 달 전체의
+  // 결을 이끈다고 말하던 문제(재감사 SI-4). 월 테마 = 그 달 층(월운·월 트랜짓·월 교차).
+  if (s.layer !== 'monthly') return false
+  if (STATIC_NATAL_KINDS.has(s.kind)) return false
+  if (THEME_EXCLUDED_KINDS.has(s.kind)) return false
+  if (MINOR_DIGNITY_ID.test(s.id)) return false
+  return !THEME_EXCLUDED_ID_PREFIXES.some((p) => s.id.startsWith(p))
+}
+
+/**
+ * 이 달의 지배 테마 후보 — 그 달 셀들의 *월 층 우호 신호*를 신호 id 로 묶어 그 달 동안의 영향
+ * (polarity × weight 의 날짜 합)이 큰 순으로. 한 달 내내 켜진 신호가 사흘짜리 신호를 이긴다.
+ * 동점은 처음 나온 순서(셀·신호 순서) — 결정적. 순수 함수.
+ */
+export function monthThemeCandidates(
+  cells: ReadonlyArray<Pick<CalendarCell, 'signals'>>
+): MonthTheme[] {
+  const acc = new Map<string, { theme: MonthTheme; impact: number; order: number }>()
+  for (const c of cells) {
+    for (const s of c.signals) {
+      if (!isThemeSignal(s)) continue
+      const prev = acc.get(s.id)
+      const impact = s.polarity * (s.weight ?? 1)
+      if (prev) {
+        prev.impact += impact
+        continue
+      }
+      acc.set(s.id, {
+        theme: { id: s.id, ko: s.korean ?? s.name, en: s.english ?? '' },
+        impact,
+        order: acc.size,
+      })
+    }
+  }
+  return [...acc.values()]
+    .sort((a, b) => b.impact - a.impact || a.order - b.order)
+    .map((x) => x.theme)
+}
+
+/**
+ * 테마 후보 → 문단에 넣을 1~2개 (KO·EN 짝). 두 라벨이 *모두* 테마로 쓸 만해야(themePhrase 가
+ * 비지 않고 EN 에 한글이 없어야) 뽑힌다 — 한쪽만 통과하면 둘 다 버린다. 그래서 같은 후보
+ * 목록이면 두 로케일이 언제나 같은 신호를 테마로 말한다. 같은 문구(다른 창의 같은 위계 등)는 1회.
+ */
+export function selectMonthThemes(
+  candidates: readonly MonthTheme[],
+  limit = 2
+): Array<{ id: string; ko: string; en: string }> {
+  const out: Array<{ id: string; ko: string; en: string }> = []
+  const seen = new Set<string>()
+  for (const c of candidates) {
+    if (out.length >= limit) break
+    const ko = themePhrase(c.ko)
+    const en = themePhrase(c.en)
+    if (!ko || !en || /[가-힣]/.test(en)) continue
+    if (seen.has(ko) || seen.has(en)) continue
+    seen.add(ko)
+    seen.add(en)
+    out.push({ id: c.id, ko, en })
+  }
   return out
 }
 
@@ -217,11 +352,13 @@ const THEME_KO: ((themes: string) => string)[] = [
   (th) => `이 달의 결을 이끄는 건 단연 ${th} 흐름이에요.`,
 ]
 
-const THEME_EN: ((themes: string) => string)[] = [
-  (th) => `Above all, ${th} set the grain of the month.`,
-  (th) => `More than anything, ${th} set the grain of the month.`,
-  (th) => `At the heart of it, ${th} shape the grain of the month.`,
-  (th) => `Above all, ${th} define how the month runs.`,
+// 동사 수 일치 — 테마 하나면 단수(sets/shapes/defines), 둘이면 복수. 예전엔 늘 복수형이라
+// 'At the heart of it, Venus at home shape the grain…' 이 됐다.
+const THEME_EN: ((themes: string, many: boolean) => string)[] = [
+  (th, many) => `Above all, ${th} ${many ? 'set' : 'sets'} the grain of the month.`,
+  (th, many) => `More than anything, ${th} ${many ? 'set' : 'sets'} the grain of the month.`,
+  (th, many) => `At the heart of it, ${th} ${many ? 'shape' : 'shapes'} the grain of the month.`,
+  (th, many) => `Above all, ${th} ${many ? 'define' : 'defines'} how the month runs.`,
 ]
 
 // 3) 가장 좋은 날 — {date}/{why} 슬롯 보존.
@@ -420,14 +557,19 @@ export function deriveMonthSummary(i: MonthSummaryInput): string {
     parts.push(pickBySeed(TONE_OPEN_EN[tone], seed, KEY.toneOpen) + countEn)
   }
 
-  // 2) 지배 테마 — 그 달 가장 센 신호 1~2개. 톤에 맞춰 자연스럽게 이어 붙임.
-  const themes = i.topReasons.map(themePhrase).filter(Boolean).slice(0, 2)
+  // 2) 지배 테마 — 그 달 가장 센 월 층 신호 1~2개(selectMonthThemes — 두 로케일이 같은 신호).
+  //    KO 템플릿은 끝에 '흐름이…' 를 붙인다. 트랜짓 줄처럼 명사 '흐름'으로 끝나는 테마는 *마지막*
+  //    것만 그 '흐름'을 떼어 템플릿 '흐름'과 합친다('… 흐름 흐름이' 방지, 재감사 SI-4). 앞 테마의
+  //    '흐름'은 남겨 관형절이 명사 없이 ' · ' 앞에 걸리지 않게 한다.
+  const themes = selectMonthThemes(i.themes ?? []).map((t) => (ko ? t.ko : t.en))
   if (themes.length) {
-    const joined = ko ? themes.join(' · ') : themes.join(' and ')
+    const joined = ko
+      ? [...themes.slice(0, -1), themes[themes.length - 1].replace(/\s*흐름$/, '')].join(' · ')
+      : themes.join(' and ')
     parts.push(
       ko
         ? pickBySeed(THEME_KO, seed, KEY.theme)(joined)
-        : pickBySeed(THEME_EN, seed, KEY.theme)(joined)
+        : pickBySeed(THEME_EN, seed, KEY.theme)(joined, themes.length > 1)
     )
   }
 

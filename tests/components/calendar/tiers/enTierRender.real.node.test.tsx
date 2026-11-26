@@ -1,0 +1,251 @@
+/**
+ * EN 티어 렌더에 한글이 없다 — 실제 천체력 (재감사 SI-1·SI-2·CC-4·SI-3·SI-4, destiny release gate).
+ *
+ * 엔진 → 어셈블러(assembleTiers·assembleLifetime) → 컴포넌트(LifetimeTier·MonthTier·DayTier)
+ * 전 경로를 EN 로케일로 정적 렌더해, 영어가 와야 할 자리에 한글이 새지 않는지 본다.
+ *  - 한자(간지·强/弱·財生官·長生)는 허용 — 글리프 자리다. 한글(가-힣)은 어디에도 없어야 한다.
+ *  - 차트는 1997-03-21 14:30 F 서울(샘플, 상관격·신약·건록 교차 달), 1951-09-07 01:26 M LA
+ *    (건록격·성격), 시간 미상 1988-08-08 시드니, 1975-12-30 05:10 M 뉴욕.
+ *  - 월은 샘플의 건록 교차가 '왜 이런 날' 칩에 서는 2026-10/11(재감사 재현 셀)을 포함한다.
+ *
+ * 전역 setup 이 swisseph 를 목으로 바꾸므로 여기서 풀고 node 로 돈다. native swisseph 가 없으면
+ * 로컬에선 skip, CI·release gate 에선 실패한다(tests/helpers/realEphemeris.ts).
+ *
+ * @vitest-environment node
+ */
+import React from 'react'
+import { renderToStaticMarkup } from 'react-dom/server'
+import { it, expect, vi } from 'vitest'
+
+vi.unmock('swisseph')
+vi.unmock('@/lib/astrology/foundation/ephe')
+vi.mock('@/i18n/I18nProvider', () => ({
+  useI18n: () => ({ locale: 'en' }),
+  I18nProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+}))
+
+const { describeRealEphemeris } = await import('../../../helpers/realEphemeris')
+const { buildNatalContext } = await import('@/lib/calendar-engine/context/build')
+const { buildCalendar } = await import('@/lib/calendar-engine')
+const { assembleTiers } = await import('@/app/calendar/assembleTiers')
+const { assembleLifetime } = await import('@/app/calendar/assembleLifetime')
+const { LifetimeTier } = await import('@/components/calendar/tiers/LifetimeTier')
+const { MonthTier } = await import('@/components/calendar/tiers/MonthTier')
+const { DayTier } = await import('@/components/calendar/tiers/DayTier')
+
+const { twelveStageHanja } = await import('@/lib/calendar-view/dayTierEnMaps')
+const { monthThemeCandidates, selectMonthThemes } =
+  await import('@/lib/calendar-engine/derivers/monthSummary')
+
+const NOW = new Date('2026-11-25T03:00:00.000Z')
+/** 차트·포커스일별 렌더 HTML — 샘플 재현 셀의 구체 문구를 아래에서 확인한다. */
+const rendered = new Map<string, { month: string; day: string }>()
+const noop = () => {}
+
+interface Chart {
+  label: string
+  birthDate: string
+  birthTime: string
+  birthTimeUnknown?: boolean
+  gender: 'male' | 'female'
+  latitude: number
+  longitude: number
+  timeZone: string
+  /** [YYYY-MM, focus day] */
+  months: Array<[string, number]>
+}
+
+const CHARTS: Chart[] = [
+  {
+    label: 'sample 1997-03-21 14:30 F Seoul',
+    birthDate: '1997-03-21',
+    birthTime: '14:30',
+    gender: 'female',
+    latitude: 37.5665,
+    longitude: 126.978,
+    timeZone: 'Asia/Seoul',
+    // 10-04 = 건록 × 태양 근거일(재감사 CC-4), 11-21 = 건록 × 태양(SI-2), 11-25 = 재생관(SI-3).
+    months: [
+      ['2026-10', 4],
+      ['2026-11', 25],
+    ],
+  },
+  {
+    label: '1951-09-07 01:26 M Los Angeles (건록격)',
+    birthDate: '1951-09-07',
+    birthTime: '01:26',
+    gender: 'male',
+    latitude: 34.2555,
+    longitude: -118.3346,
+    timeZone: 'America/Los_Angeles',
+    months: [['2026-11', 21]],
+  },
+  {
+    label: '1988-08-08 time unknown F Sydney',
+    birthDate: '1988-08-08',
+    birthTime: '',
+    birthTimeUnknown: true,
+    gender: 'female',
+    latitude: -33.8688,
+    longitude: 151.2093,
+    timeZone: 'Australia/Sydney',
+    months: [['2026-03', 10]],
+  },
+  {
+    label: '1975-12-30 05:10 M New York',
+    birthDate: '1975-12-30',
+    birthTime: '05:10',
+    gender: 'male',
+    latitude: 40.7128,
+    longitude: -74.006,
+    timeZone: 'America/New_York',
+    months: [['2026-07', 15]],
+  },
+]
+
+const HANGUL = /[가-힣ㄱ-ㅎㅏ-ㅣ]/
+
+/** 렌더된 HTML 의 *보이는 텍스트*(태그 밖)와 title/aria-label 속성에서 한글 조각을 모은다. */
+function hangulLeaks(html: string): string[] {
+  const out: string[] = []
+  const text = html.replace(/<[^>]*>/g, '\u0000')
+  for (const chunk of text.split('\u0000')) {
+    if (HANGUL.test(chunk)) out.push(chunk.trim())
+  }
+  for (const m of html.matchAll(/\s(?:title|aria-label|alt)="([^"]*)"/g)) {
+    if (HANGUL.test(m[1])) out.push(`@attr ${m[1]}`)
+  }
+  return out
+}
+
+function lastDay(ym: string): number {
+  return new Date(Date.UTC(+ym.slice(0, 4), +ym.slice(5, 7), 0)).getUTCDate()
+}
+
+async function natalOf(c: Chart) {
+  return buildNatalContext({
+    birthDate: c.birthDate,
+    birthTime: c.birthTime,
+    birthTimeUnknown: c.birthTimeUnknown,
+    gender: c.gender,
+    latitude: c.latitude,
+    longitude: c.longitude,
+    timeZone: c.timeZone,
+  })
+}
+
+describeRealEphemeris('EN 티어 렌더 — 한글 없음 (실제 천체력)', () => {
+  for (const c of CHARTS) {
+    it(`${c.label}: Life / Month / Day`, async () => {
+      const natal = await natalOf(c)
+      const birthYear = +c.birthDate.slice(0, 4)
+      const sex = c.gender === 'female' ? '여' : '남'
+
+      const life = await assembleLifetime({
+        natal,
+        lang: 'en',
+        birthYear,
+        targetYear: 2026,
+        sex,
+        birthDisplay: c.birthDate,
+        whoBirthLine: c.birthDate,
+        place: 'x',
+        now: NOW,
+        todayIso: '2026-11-25',
+      })
+      const lifeHtml = renderToStaticMarkup(
+        <LifetimeTier user={life.user} lifetime={life.lifetime} onDive={noop} />
+      )
+      expect(lifeHtml.length).toBeGreaterThan(2000)
+      expect(hangulLeaks(lifeHtml), `${c.label} Life`).toEqual([])
+      // 머리말 — 격국·강약·상태 태그가 영문으로(SI-1).
+      expect(life.user.gyeokgukEn).not.toMatch(HANGUL)
+      expect(life.user.gangyakEn ?? '').toMatch(/^(Very strong|Strong|Balanced|Weak|Very weak) \(/)
+
+      for (const [ym, focus] of c.months) {
+        const y = +ym.slice(0, 4)
+        const m = +ym.slice(5, 7)
+        const cells = await buildCalendar(
+          natal,
+          {
+            start: `${ym}-01T00:00:00.000Z`,
+            end: `${ym}-${lastDay(ym)}T23:59:59.999Z`,
+            granularity: 'day',
+          },
+          { includeEvidence: false }
+        )
+        const di = `${ym}-${String(focus).padStart(2, '0')}`
+        const [focusCell] = await buildCalendar(
+          natal,
+          { start: `${di}T00:00:00.000Z`, end: `${di}T23:59:59.999Z`, granularity: 'day' },
+          { includeEvidence: true }
+        )
+        const t = await assembleTiers({
+          natal,
+          cells,
+          lang: 'en',
+          birthYear,
+          targetYear: y,
+          targetMonth: m,
+          targetDay: focus,
+          targetDayIso: di,
+          sex,
+          birthDisplay: c.birthDate,
+          whoBirthLine: c.birthDate,
+          place: 'x',
+          focusDayCell: focusCell,
+          now: NOW,
+        })
+
+        // 데이터 층 — 교차 사주 키 EN(SI-2·CC-4), 이달 총평 EN(SI-4).
+        for (const cell of t.month.calendar) {
+          if (cell.reason) expect(cell.reason.sajuEn, `${ym}-${cell.d} reason`).not.toMatch(HANGUL)
+        }
+        for (const x of t.day.crossActivations ?? []) {
+          expect(x.sajuSide, `${di} cross`).not.toMatch(HANGUL)
+        }
+        const summary = t.month.narrative.find((n) => n.tag === '이달 총평')
+        expect(summary?.bodyEn ?? '').not.toMatch(HANGUL)
+        expect(summary?.body ?? '').not.toContain('흐름 흐름')
+        // 이달 총평 테마 — 신호 id 로 한 번 고른 같은 테마를 KO·EN 이 함께 말한다(SI-4).
+        const monthCells = cells.filter((x) => x.datetime.slice(0, 7) === ym)
+        const themes = selectMonthThemes(monthThemeCandidates(monthCells))
+        expect(themes.length, `${ym} themes`).toBeGreaterThan(0)
+        for (const th of themes) {
+          expect(summary?.body ?? '').toContain(th.ko.replace(/\s*흐름$/, ''))
+          expect(summary?.bodyEn ?? '').toContain(th.en)
+        }
+        expect(summary?.body ?? '').not.toMatch(/오늘 |조후|ZR/)
+        expect(summary?.bodyEn ?? '').not.toMatch(/active today|climate balance|ZR/)
+
+        // 렌더 — 월은 포커스일이 선택된 그리드(그 날의 '왜 이런 날' 칩 포함), 일은 그 날.
+        const monthHtml = renderToStaticMarkup(
+          <MonthTier month={t.month} onDive={noop} onRise={noop} />
+        )
+        expect(hangulLeaks(monthHtml), `${c.label} Month ${ym}`).toEqual([])
+        const dayHtml = renderToStaticMarkup(
+          <DayTier day={t.day} onRise={noop} sex={sex} isToday={false} />
+        )
+        expect(dayHtml.length).toBeGreaterThan(2000)
+        expect(hangulLeaks(dayHtml), `${c.label} Day ${di}`).toEqual([])
+        // 본명 풀이 12운성 칩의 보조 글리프는 한자(SI-3).
+        for (const st of t.day.twelveStageMatrix ?? []) {
+          if (st.stage !== '—') expect(dayHtml).toContain(twelveStageHanja(st.stage))
+        }
+        rendered.set(`${c.birthDate}|${di}`, { month: monthHtml, day: dayHtml })
+      }
+    }, 120_000)
+  }
+
+  it('샘플 재현 셀 — 건록 교차는 Established Stipend, 재생관은 영문 이름 + 財生官', () => {
+    // 2026-10-04: '왜 이런 날' = 건록 × 태양(재감사 CC-4) — 월 칩과 일 교차 카드 모두 영문.
+    const oct = rendered.get('1997-03-21|2026-10-04')
+    expect(oct?.month).toContain('Established Stipend')
+    expect(oct?.day).toContain('Established Stipend')
+    // 2026-11-25: 응용격국 재생관(SI-3) — EN 이름·글로스, 보조 글리프는 한자만.
+    const nov = rendered.get('1997-03-21|2026-11-25')
+    expect(nov?.day).toContain('Wealth generates Officer')
+    expect(nov?.day).toContain('財生官')
+    expect(nov?.day).not.toContain('財生官 (')
+  })
+})

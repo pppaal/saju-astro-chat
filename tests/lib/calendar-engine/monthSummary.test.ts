@@ -1,8 +1,15 @@
 import { describe, it, expect } from 'vitest'
 import {
   deriveMonthSummary,
+  monthThemeCandidates,
+  selectMonthThemes,
   type MonthSummaryInput,
+  type MonthTheme,
 } from '@/lib/calendar-engine/derivers/monthSummary'
+import type { ActiveSignal } from '@/lib/calendar-engine/types'
+
+/** 테마 후보 — KO·EN 라벨 짝(id 는 테스트용). */
+const th = (ko: string, en: string, id = `t.${ko}`): MonthTheme => ({ id, ko, en })
 
 /**
  * deriveMonthSummary — 월 데이터 조각을 한 문단 총평으로 합성하는 순수 함수.
@@ -12,7 +19,6 @@ const base: MonthSummaryInput = {
   goodDays: 5,
   cautionDays: 5,
   totalDays: 30,
-  topReasons: [],
   lang: 'ko',
 }
 
@@ -142,10 +148,14 @@ describe('deriveMonthSummary — 날수/우룬 문구', () => {
 })
 
 describe('deriveMonthSummary — 지배 테마(themePhrase)', () => {
-  it('topReasons 가 있으면 테마 문장이 들어간다(상위 2개)', () => {
+  it('themes 가 있으면 테마 문장이 들어간다(상위 2개)', () => {
     const s = deriveMonthSummary({
       ...base,
-      topReasons: ['목성 좋은 자리(고양) (게자리)', '토성 압박', '추가 신호'],
+      themes: [
+        th('목성 좋은 자리(고양) (게자리)', 'Jupiter at its best (Cancer)'),
+        th('토성 압박', 'Saturn pressure'),
+        th('추가 신호', 'extra signal'),
+      ],
     })
     // 연결어(무엇보다/그 중심에는…)는 시드별로 달라지지만 '이 달의 결'은 모든 변형 공통.
     expect(s).toContain('이 달의 결')
@@ -157,15 +167,15 @@ describe('deriveMonthSummary — 지배 테마(themePhrase)', () => {
     expect(s).not.toContain('추가 신호')
   })
 
-  it('topReasons 가 비면 테마 문장이 생략된다', () => {
-    const s = deriveMonthSummary({ ...base, topReasons: [] })
-    expect(s).not.toContain('무엇보다')
+  it('themes 가 비면 테마 문장이 생략된다', () => {
+    expect(deriveMonthSummary({ ...base, themes: [] })).not.toContain('무엇보다')
+    expect(deriveMonthSummary(base)).not.toContain('무엇보다')
   })
 
   it('선행 마크·라벨·꼬리(— 설명)는 coreReason 으로 정리된다', () => {
     const s = deriveMonthSummary({
       ...base,
-      topReasons: ['↑ [month] 이달 · 강한 재성 흐름 — 자세한 설명'],
+      themes: [th('↑ [month] 이달 · 강한 재성 흐름 — 자세한 설명', 'strong wealth — detail')],
     })
     expect(s).toContain('강한 재성 흐름')
     expect(s).not.toContain('자세한 설명')
@@ -173,14 +183,36 @@ describe('deriveMonthSummary — 지배 테마(themePhrase)', () => {
   })
 
   it('정리 후 빈 문자열이 되는 테마는 필터된다', () => {
-    const s = deriveMonthSummary({ ...base, topReasons: ['(글로스만)', '실제 테마'] })
+    const s = deriveMonthSummary({
+      ...base,
+      themes: [th('(글로스만)', '(gloss only)'), th('실제 테마', 'real theme')],
+    })
     expect(s).toContain('실제 테마')
   })
 
-  it('영문 테마는 and 로 연결된다', () => {
-    const s = deriveMonthSummary({ ...base, lang: 'en', topReasons: ['Jupiter', 'Saturn'] })
-    // 영문 테마는 'and' 로 연결된다(연결어 자체는 시드별로 달라짐).
-    expect(s).toContain('Jupiter and Saturn')
+  it('영문 테마는 and 로 연결되고 동사는 복수형', () => {
+    for (const seed of [0, 1, 2, 3]) {
+      const s = deriveMonthSummary({
+        ...base,
+        lang: 'en',
+        seed,
+        themes: [th('목성', 'Jupiter'), th('토성', 'Saturn')],
+      })
+      expect(s).toContain('Jupiter and Saturn')
+      expect(s).toMatch(/Jupiter and Saturn (set|shape|define) /)
+    }
+  })
+
+  it('영문 테마가 하나면 동사는 단수형(sets/shapes/defines) — "Venus at home shape" 금지', () => {
+    for (const seed of [0, 1, 2, 3, 4, 5, 6, 7]) {
+      const s = deriveMonthSummary({
+        ...base,
+        lang: 'en',
+        seed,
+        themes: [th('금성 도미사일 (자기 자리)', 'Venus in Domicile (home sign) (Libra)')],
+      })
+      expect(s).toMatch(/Venus at home (sets|shapes|defines) /)
+    }
   })
 
   it("영문 위계 'in Domicile' 은 'at home' — 'Venus in at home' 이 되지 않는다", () => {
@@ -189,9 +221,12 @@ describe('deriveMonthSummary — 지배 테마(themePhrase)', () => {
         ...base,
         lang: 'en',
         seed,
-        topReasons: [
-          'Venus in Domicile (home sign) (Libra) — operates at full natural strength',
-          'Saturn in Fall (Aries) — is weakened and out of place',
+        themes: [
+          th(
+            '금성 도미사일 (자기 자리) (천칭자리)',
+            'Venus in Domicile (home sign) (Libra) — operates at full natural strength'
+          ),
+          th('토성 폴 (추락) (양자리)', 'Saturn in Fall (Aries) — is weakened and out of place'),
         ],
       })
       expect(s).toContain('Venus at home and Saturn weakened')
@@ -201,13 +236,188 @@ describe('deriveMonthSummary — 지배 테마(themePhrase)', () => {
     const ex = deriveMonthSummary({
       ...base,
       lang: 'en',
-      topReasons: [
-        'Jupiter in Exaltation (Cancer) — is honoured and elevated — at its best',
-        'Mars in Detriment (Scorpio) — works against its nature — strained',
+      themes: [
+        th('목성 엑잘테이션 (고양) (게자리)', 'Jupiter in Exaltation (Cancer) — is honoured'),
+        th('화성 디트리먼트 (전갈자리)', 'Mars in Detriment (Scorpio) — works against its nature'),
       ],
     })
     expect(ex).toContain('Jupiter exalted and Mars out of place')
     expect(ex).not.toMatch(/\bin (at its best|out of place)\b/)
+  })
+})
+
+// 재감사 SI-4 — 이달 총평 테마: 신호 id 로 한 번 고르고 두 로케일이 같은 테마를 말한다.
+describe('이달 총평 테마 — 로케일 무관 선택 + 문구 (재감사 SI-4)', () => {
+  const sig = (over: Partial<ActiveSignal> & { id: string }): ActiveSignal =>
+    ({
+      source: 'astro',
+      kind: 'transit',
+      name: over.id,
+      polarity: 1,
+      weight: 0.5,
+      layer: 'monthly',
+      active: {
+        start: '2026-11-01T00:00:00Z',
+        peak: '2026-11-15T00:00:00Z',
+        end: '2026-11-30T00:00:00Z',
+      },
+      ...over,
+    }) as ActiveSignal
+
+  const JUP_MOON = sig({
+    id: 'astro.transit.Jupiter|Moon|conjunction.2026-10-14',
+    korean: '목성이 본명 달과 정면으로 겹쳐 드는 흐름 — 두 행성이 한 자리에 겹쳐요.',
+    english: 'Jupiter fuses directly with natal Moon — Two planets sit on the same spot.',
+    weight: 0.75,
+  })
+  const VENUS_HOME = sig({
+    id: 'astro.dignity.Venus|domicile|Libra.2026-10-26',
+    korean: '금성 도미사일 (자기 자리) (천칭자리)',
+    english: 'Venus in Domicile (home sign) (Libra) — operates at full natural strength',
+    polarity: 2,
+    weight: 0.7,
+  })
+  const JOHU = sig({
+    id: 'saju.johu-yongsin.2026-11-07.화',
+    source: 'saju',
+    kind: 'pillar-sibsin',
+    korean: '亥月 조후 — 화가 한 균형에 필요',
+    english: 'Hai-month climate balance — Fire is needed to temper the season',
+    polarity: 3,
+    weight: 0.65,
+  })
+  const ZR = sig({
+    id: 'astro.zr.fortune.l2.Aquarius.1.Pisces',
+    kind: 'zodiacal-releasing',
+    korean: '운명 ZR L2 Peak — Pisces',
+    english: 'Fortune ZR L2 Peak — Pisces',
+    polarity: 2,
+    weight: 0.9,
+  })
+  const TODAY_SHINSAL = sig({
+    id: 'saju.shinsal.천을귀인.2026-11-12',
+    source: 'saju',
+    kind: 'shinsal',
+    layer: 'daily',
+    korean: '오늘 천을귀인 — 귀인의 도움',
+    english: 'Heavenly Benefactor active today — help arrives',
+    polarity: 3,
+    weight: 0.9,
+  })
+  const FIRE_TRINE = sig({
+    id: 'saju.hyeongchung.samhap.寅午戌.2026-11-12',
+    source: 'saju',
+    kind: 'hyeongchung',
+    layer: 'daily',
+    korean: '호랑이·말·개가 모여 활활 타오르는 불을 이루는 흐름 — 열정의 합국',
+    english: 'Tiger, Horse and Dog gather into a blazing fire — a trine of passion',
+    polarity: 2,
+    weight: 0.9,
+  })
+  const MINOR_DIGNITY = sig({
+    id: 'astro.dignity.Mars|triplicity|Leo.2026-11-04',
+    korean: '화성 트리플리시티 (Triplicity) (사자자리)',
+    english: 'Mars in minor dignity Triplicity (Leo) — a mild supportive placement',
+    polarity: 2,
+    weight: 0.9,
+  })
+
+  // 셀 30개 — 한 달 내내 켜진 월 신호 + 그 달 하루짜리 신호(점수 높은 날)
+  const cells = Array.from({ length: 30 }, (_, i) => ({
+    signals: [
+      JOHU,
+      ZR,
+      MINOR_DIGNITY,
+      VENUS_HOME,
+      JUP_MOON,
+      ...(i === 11 ? [TODAY_SHINSAL, FIRE_TRINE] : []),
+    ],
+  }))
+
+  it('월 층 우호 신호만, 그 달 영향(polarity×weight 날짜 합) 순 — 하루 신호·메커닉·소위계는 후보가 아니다', () => {
+    const ids = monthThemeCandidates(cells).map((t) => t.id)
+    expect(ids).toEqual([VENUS_HOME.id, JUP_MOON.id])
+  })
+
+  it('한 달 내내 켜진 신호가 사흘짜리 신호를 이긴다(날짜 합)', () => {
+    const MOON_HOME = sig({
+      id: 'astro.dignity.Moon|domicile|Cancer.2026-11-01',
+      korean: '달 도미사일 (자기 자리) (게자리)',
+      english: 'Moon in Domicile (home sign) (Cancer)',
+      polarity: 2,
+      weight: 0.7,
+    })
+    const mixed = cells.map((c, i) => ({ signals: i < 3 ? [MOON_HOME, ...c.signals] : c.signals }))
+    expect(monthThemeCandidates(mixed)[0].id).toBe(VENUS_HOME.id)
+    expect(monthThemeCandidates(mixed).map((t) => t.id)).toContain(MOON_HOME.id)
+  })
+
+  it('KO·EN 이 같은 두 테마를 말한다 — "흐름 흐름" 없음, 오늘/today·조후·ZR 없음', () => {
+    const themes = monthThemeCandidates(cells)
+    for (let seed = 0; seed < 8; seed++) {
+      const ko = deriveMonthSummary({ ...base, seed, themes })
+      const en = deriveMonthSummary({ ...base, lang: 'en', seed, themes })
+      expect(ko).toContain('금성 제자리 · 목성이 본명 달과 정면으로 겹쳐 드는 흐름이')
+      expect(en).toContain('Venus at home and Jupiter fusing directly with natal Moon')
+      expect(ko).not.toContain('흐름 흐름')
+      for (const bad of ['오늘', '천을귀인', '조후', 'ZR', '亥', '트리플리시티']) {
+        expect(ko).not.toContain(bad)
+      }
+      for (const bad of ['today', 'Benefactor', 'climate', 'ZR', 'Triplicity']) {
+        expect(en).not.toContain(bad)
+      }
+    }
+  })
+
+  it('selectMonthThemes — 한쪽 라벨이 테마로 부적합하면 두 로케일 모두에서 뺀다', () => {
+    const picked = selectMonthThemes([
+      // EN 이 7단어 절 → 둘 다 탈락
+      th('긴 영문 짝', 'progressed Mercury flows easily with natal North Node'),
+      // KO 가 서술문 → 둘 다 탈락
+      th('흐름이 좋아요', 'good flow'),
+      // EN 에 한글 → 둘 다 탈락
+      th('목성 고양', '목성 exalted'),
+      th('금성 제자리', 'Venus at home'),
+    ])
+    expect(picked.map((p) => [p.ko, p.en])).toEqual([['금성 제자리', 'Venus at home']])
+  })
+
+  it('하루 표지 정리 — "오늘 X — …" / "X active today — …" 는 X 만 남는다', () => {
+    const [p] = selectMonthThemes([
+      th('오늘 천을귀인 — 귀인의 도움', 'Heavenly Benefactor active today — help arrives'),
+    ])
+    expect(p).toEqual({
+      id: 't.오늘 천을귀인 — 귀인의 도움',
+      ko: '천을귀인',
+      en: 'Heavenly Benefactor',
+    })
+  })
+
+  it("명사 '흐름'으로 끝나는 KO 테마 — 마지막 테마만 템플릿 '흐름'과 합친다(앞 테마는 명사 유지)", () => {
+    const flowFirst = [
+      th(
+        '목성이 본명 달과 정면으로 겹쳐 드는 흐름 — 설명',
+        'Jupiter fuses directly with natal Moon — detail'
+      ),
+      th('금성 도미사일 (자기 자리)', 'Venus in Domicile (home sign)'),
+    ]
+    const ko = deriveMonthSummary({ ...base, themes: flowFirst })
+    expect(ko).toContain('목성이 본명 달과 정면으로 겹쳐 드는 흐름 · 금성 제자리 흐름이')
+    expect(ko).not.toContain('흐름 흐름')
+    const single = deriveMonthSummary({ ...base, themes: flowFirst.slice(0, 1) })
+    expect(single).toContain('정면으로 겹쳐 드는 흐름이')
+    expect(single).not.toContain('흐름 흐름')
+  })
+
+  it("EN 월운 줄 'X runs through the month' 은 명사구 X 로(KO '…흐르는 한 달이에요' 와 짝)", () => {
+    const [p] = selectMonthThemes([
+      th(
+        '배움과 도움이 들어오는 기운이 흐르는 한 달이에요 — 결',
+        'learning and support coming in runs through the month — grain'
+      ),
+    ])
+    expect(p.ko).toBe('배움과 도움이 들어오는 기운')
+    expect(p.en).toBe('learning and support coming in')
   })
 })
 
@@ -392,7 +602,7 @@ describe('deriveMonthSummary — 통합 출력', () => {
       goodDays: 12,
       cautionDays: 4,
       totalDays: 30,
-      topReasons: ['목성 확장', '재성 강세'],
+      themes: [th('목성 확장', 'Jupiter expanding'), th('재성 강세', 'strong wealth')],
       bestDay: '03-15',
       bestDayReason: '절정',
       cautionDay: '03-20',
@@ -416,7 +626,7 @@ describe('deriveMonthSummary — 개인화 시드(seed)', () => {
     goodDays: 12,
     cautionDays: 4,
     totalDays: 30,
-    topReasons: ['목성 확장', '재성 강세'],
+    themes: [th('목성 확장', 'Jupiter expanding'), th('재성 강세', 'strong wealth')],
     bestDay: '03-15',
     bestDayReason: '절정',
     cautionDay: '03-20',
