@@ -45,6 +45,8 @@ export const FUNNEL_EVENTS = [
   'home.explore.compat',
   'home.explore.report',
   'home.explore.counselor',
+  // 홈 카드 바로 다음의 상담사 CTA(오너 결정 1 — 고정 입력창을 대신한 유료 진입).
+  'home.counselor_cta',
   // v9 인생 흐름(/destiny)·캘린더 — 유료 상담사로 가는 CTA.
   'destiny.counselor_cta',
   'calendar.counselor_cta',

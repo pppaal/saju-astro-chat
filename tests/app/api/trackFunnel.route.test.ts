@@ -78,6 +78,7 @@ describe('POST /api/track/funnel', () => {
       'home.explore.compat',
       'home.explore.report',
       'home.explore.counselor',
+      'home.counselor_cta',
       'destiny.counselor_cta',
       'calendar.counselor_cta',
     ] as const satisfies readonly FunnelEvent[]

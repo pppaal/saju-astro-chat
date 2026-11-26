@@ -12,8 +12,10 @@ interface MenuDrawerPanelProps {
   open: boolean
   onClose: () => void
   locale: 'en' | 'ko'
-  /** 'dark' = 다크 cosmic (기본), 'light' = 흰 배경 (메인 premium-white). */
+  /** 'dark' = 다크 cosmic (기본), 'light' = 흰 배경 (v9 홈 등 밝은 화면). */
   variant?: 'dark' | 'light'
+  /** 열릴 때 로그인 패널을 바로 펼친다(홈 'Sign in' 알약). 기본 false. */
+  initialLoginOpen?: boolean
 }
 
 /**
@@ -26,6 +28,7 @@ export function MenuDrawerPanel({
   onClose,
   locale,
   variant = 'dark',
+  initialLoginOpen = false,
 }: MenuDrawerPanelProps) {
   const [loginPanelOpen, setLoginPanelOpen] = useState(false)
   const [profileName, setProfileName] = useState<string | null>(null)
@@ -33,17 +36,15 @@ export function MenuDrawerPanel({
   const pathname = usePathname()
   const isAuthed = status === 'authenticated'
   const userName =
-    profileName ||
-    session?.user?.name ||
-    session?.user?.email ||
-    (isAuthed ? 'Account' : null)
+    profileName || session?.user?.name || session?.user?.email || (isAuthed ? 'Account' : null)
   const isKo = locale === 'ko'
   const isInTarot = pathname?.startsWith('/tarot') ?? false
   const isLight = variant === 'light'
 
+  // 닫히면 로그인 패널을 접고, 열릴 때는 호출자가 원하면(홈 'Sign in') 바로 펼친다.
   useEffect(() => {
-    if (!open) setLoginPanelOpen(false)
-  }, [open])
+    setLoginPanelOpen(open && initialLoginOpen)
+  }, [open, initialLoginOpen])
 
   // session.user.name 은 OAuth cache 라 사용자가 프로필에서 이름 바꿔도
   // 안 갱신됨. drawer 열릴 때 /api/me/profile 의 최신 user.name 가져오기.
@@ -100,9 +101,7 @@ export function MenuDrawerPanel({
     ? 'text-stone-500 hover:text-stone-900 hover:bg-stone-100'
     : 'text-white/85 hover:text-white hover:bg-white/10'
 
-  const authRowClass = isLight
-    ? 'bg-stone-100 text-stone-800'
-    : 'bg-white/[0.04] text-white/90'
+  const authRowClass = isLight ? 'bg-stone-100 text-stone-800' : 'bg-white/[0.04] text-white/90'
 
   const authBtnClass = isLight
     ? 'bg-stone-100 text-stone-800 hover:bg-stone-200'
