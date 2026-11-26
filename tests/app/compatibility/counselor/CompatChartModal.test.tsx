@@ -162,6 +162,20 @@ describe('CompatChartModal', () => {
       expect(init.method).toBe('POST')
     })
 
+    it('sends the city-unknown flags with the time flags (G8, CS-2)', async () => {
+      mockFetchResolving(fullReport)
+      render(<CompatChartModal open {...baseProps} timeUnknownB cityUnknownA />)
+      await waitFor(() => expect(global.fetch).toHaveBeenCalled())
+      const [, init] = (global.fetch as ReturnType<typeof vi.fn>).mock.calls[0]
+      const body = JSON.parse(init.body as string)
+      expect(body).toMatchObject({
+        timeUnknownA: false,
+        timeUnknownB: true,
+        cityUnknownA: true,
+        cityUnknownB: false,
+      })
+    })
+
     it('handles a null report (fetch returns no data) without crashing', async () => {
       mockFetchResolving(null)
       render(<CompatChartModal open {...baseProps} />)

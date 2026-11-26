@@ -380,6 +380,11 @@ export async function POST(req: NextRequest) {
     // seed 가 null(생일 미파싱)이면 사주/점성 블록 자체가 안 만들어지므로 true 로 폴백.
     const timeUnknownA = person1Seed?.timeUnknown ?? true
     const timeUnknownB = person2Seed?.timeUnknown ?? true
+    // 도시 미상 — 좌표 없이 타임존 기준점으로 계산됐다. 점성 앵글·하우스·컴포지트 앵글은
+    // 시간 미상과 같은 마스크(placeMask: 시간 *또는* 도시 미상, 재감사 CS-2). 시주 마스크는
+    // 시간만 본다. [Meta] 줄도 같은 값을 쓴다.
+    const cityUnknownA = !!person1Seed?.source?.usedDefaultLocation
+    const cityUnknownB = !!person2Seed?.source?.usedDefaultLocation
 
     // Phase E (2026-06-06): stale 모니터링 정리.
     // Phase A/B 후 사주/점성 시나스트리 블록은 compatSajuFacts /
@@ -607,6 +612,7 @@ export async function POST(req: NextRequest) {
               latitude: person1Seed.latitude,
               longitude: person1Seed.longitude,
               timezone: person1Seed.timeZone,
+              timeUnknown: timeUnknownA,
             },
             {
               birthDate: person2Seed.date,
@@ -614,6 +620,7 @@ export async function POST(req: NextRequest) {
               latitude: person2Seed.latitude,
               longitude: person2Seed.longitude,
               timezone: person2Seed.timeZone,
+              timeUnknown: timeUnknownB,
             }
           )
         : null
@@ -632,6 +639,8 @@ export async function POST(req: NextRequest) {
           nameB: nB,
           timeUnknownA,
           timeUnknownB,
+          cityUnknownA,
+          cityUnknownB,
           lang,
         })
         // Composite chart — 두 차트의 entity 톤 (관계 자체). synastry 가
@@ -644,6 +653,8 @@ export async function POST(req: NextRequest) {
           nameB: nB,
           timeUnknownA,
           timeUnknownB,
+          cityUnknownA,
+          cityUnknownB,
         })
       } catch (err) {
         logger.warn('[compat counselor] astro synastry failed', {
@@ -660,7 +671,7 @@ export async function POST(req: NextRequest) {
       if (!seed) return
       const label = i === 0 ? 'A' : 'B'
       const timeUnknown = i === 0 ? timeUnknownA : timeUnknownB
-      const cityUnknown = !!seed.source?.usedDefaultLocation
+      const cityUnknown = i === 0 ? cityUnknownA : cityUnknownB
       // location/timezone 은 LLM 한테 직접 의미 없음 (이미 사주/점성 계산이
       // 적용된 결과만 전달). unknown 플래그만 가드 룰 위해 명시.
       metaLines.push(`[Meta] ${label}: timeUnknown=${timeUnknown}, cityUnknown=${cityUnknown}`)

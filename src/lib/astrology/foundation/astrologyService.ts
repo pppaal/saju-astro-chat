@@ -1,5 +1,5 @@
 // src/lib/astrology/foundation/astrologyService.ts
-import { Chart, ZodiacKo } from './types'
+import type { Chart, ChartMeta, HouseSystem, ZodiacKo } from './types'
 import { formatLongitude } from './utils'
 import { calcHouses, inferHouseOf } from './houses'
 import { getSwisseph } from './ephe'
@@ -135,8 +135,39 @@ export async function calculateNatalChart(input: NatalChartInput): Promise<Natal
   }
 }
 
-// 차트 포맷 변환
-export function toChart(n: NatalChartData): Chart {
+/**
+ * NatalChartData.meta → Chart.meta. 출생 순간(jdUT)과 좌표가 모두 숫자일 때만 — 하나라도 없으면
+ * undefined(추가점 계산이 엉뚱한 순간·좌표를 쓰지 않게).
+ */
+function toChartMeta(m: NatalChartData['meta']): ChartMeta | undefined {
+  if (!m) return undefined
+  const { jdUT, latitude, longitude } = m
+  if (![jdUT, latitude, longitude].every((v) => typeof v === 'number' && Number.isFinite(v))) {
+    return undefined
+  }
+  return {
+    jdUT,
+    // JD 2440587.5 = 1970-01-01T00:00Z — 천체력 호출 없이 산술로(실패 경로 없음).
+    isoUTC: m.isoUTC ?? new Date((jdUT - 2440587.5) * 86_400_000).toISOString(),
+    timeZone: m.timeZone ?? '',
+    latitude: latitude as number,
+    longitude: longitude as number,
+    houseSystem:
+      (m.houseSystem as HouseSystem | undefined) ?? CALCULATION_STANDARDS.astrology.houseSystem,
+  }
+}
+
+/**
+ * 차트 포맷 변환.
+ *
+ * opts.withMeta — 출생 순간·좌표(meta)를 함께 싣는다. 시너스트리 추가점(카이런·릴리스·
+ * 행운점·버텍스 — extendChartWithExtraPoints 가 jdUT 를 요구)을 돌리는 궁합 경로가 쓴다
+ * (재감사 CS-5 — 예전엔 toChart 가 meta 를 늘 버려 추가점이 한 번도 계산되지 않았다).
+ * 기본은 예전처럼 meta 없음: 리포트·캘린더·운명상담사의 _chart 는 meta 유무로 경로가
+ * 갈리는 소비자(택일·솔라 아크·추가점)가 있어, 이 스테이지에서 출력이 바뀌지 않게 둔다.
+ */
+export function toChart(n: NatalChartData, opts: { withMeta?: boolean } = {}): Chart {
+  const meta = opts.withMeta ? toChartMeta(n.meta) : undefined
   return {
     planets: n.planets.map((p) => ({
       name: p.name,
@@ -168,5 +199,6 @@ export function toChart(n: NatalChartData): Chart {
         graphId: h.graphId ?? toAstroHouseId(i + 1) ?? undefined,
       }
     }),
+    ...(meta ? { meta } : {}),
   }
 }

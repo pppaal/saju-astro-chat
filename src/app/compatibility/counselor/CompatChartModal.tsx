@@ -42,6 +42,12 @@ interface CompatChartModalProps {
   /** 출생 시각 미상 — true 면 그 사람 시주(時)를 차트 cross 에서 제외(상담사와 동일). */
   timeUnknownA?: boolean
   timeUnknownB?: boolean
+  /**
+   * 출생 도시 미상(좌표 없이 타임존 기준점으로 계산) — 그 사람의 ASC·MC·하우스 오버레이를
+   * 시너스트리 뷰에서 뺀다(상담사와 같은 placeMask 규칙, 재감사 CS-2).
+   */
+  cityUnknownA?: boolean
+  cityUnknownB?: boolean
   nameA?: string
   nameB?: string
   /** 배우자성 판정용 성별(남=재성이 처, 여=관성이 부). 서버가 정규화한다. */
@@ -272,6 +278,8 @@ export function CompatChartModal({
   person2Astro,
   timeUnknownA = false,
   timeUnknownB = false,
+  cityUnknownA = false,
+  cityUnknownB = false,
   nameA = '',
   nameB = '',
   genderA,
@@ -306,6 +314,8 @@ export function CompatChartModal({
       pillarsB: sajuToPillars(unwrapSaju(person2Saju)),
       timeUnknownA,
       timeUnknownB,
+      cityUnknownA,
+      cityUnknownB,
       genderA,
       genderB,
       lang,
@@ -339,6 +349,8 @@ export function CompatChartModal({
     person2Astro,
     timeUnknownA,
     timeUnknownB,
+    cityUnknownA,
+    cityUnknownB,
     genderA,
     genderB,
     lang,

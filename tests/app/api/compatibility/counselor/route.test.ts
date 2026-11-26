@@ -540,6 +540,33 @@ describe('Compatibility Counselor API - POST', () => {
       expect(callArg.userPrompt).toContain('How is our compatibility?')
     })
 
+    it('city-unknown person: [Meta] carries cityUnknown per person and the paid answer still streams in full (G8, CS-2)', async () => {
+      const req = createRequest({
+        persons: [
+          { name: 'Ann', date: '1992-03-14', time: '06:40', timeZone: 'America/Los_Angeles' },
+          {
+            name: 'Bob',
+            date: '1990-09-02',
+            time: '21:15',
+            timeZone: 'America/New_York',
+            latitude: 40.71,
+            longitude: -74.01,
+            relation: 'partner',
+          },
+        ],
+        messages: [{ role: 'user', content: 'How is our compatibility?' }],
+        lang: 'en',
+      })
+      const response = await POST(req)
+
+      expect(response.headers.get('Content-Type')).toBe('text/event-stream')
+      expect(streamClaudeAsSSE).toHaveBeenCalledTimes(1)
+      const callArg = vi.mocked(streamClaudeAsSSE).mock.calls[0][0]
+      expect(callArg.cachedUserContext).toContain('[Meta] A: timeUnknown=false, cityUnknown=true')
+      expect(callArg.cachedUserContext).toContain('[Meta] B: timeUnknown=false, cityUnknown=false')
+      expect(callArg.userPrompt).toContain('How is our compatibility?')
+    })
+
     it('should return SSE stream response on successful AI call', async () => {
       const req = createRequest({
         persons: validPersons,

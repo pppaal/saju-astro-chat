@@ -42,6 +42,8 @@ interface ResolvedPerson {
   gender?: 'male' | 'female'
   lat: number
   lon: number
+  /** 좌표가 없어 타임존 기준점으로 떨어졌다 — ASC·MC·하우스를 가린다(재감사 CS-2). */
+  cityUnknown: boolean
   tz: string
 }
 
@@ -58,6 +60,7 @@ function resolvePerson(p: PairPersonInput): ResolvedPerson {
     gender: p.gender,
     lat: typeof p.lat === 'number' ? p.lat : defaultLatitudeFor(p.tz || DEFAULT_TZ),
     lon: typeof p.lon === 'number' ? p.lon : defaultLongitudeFor(p.tz || DEFAULT_TZ),
+    cityUnknown: typeof p.lat !== 'number' || typeof p.lon !== 'number',
     tz: p.tz || DEFAULT_TZ,
   }
 }
@@ -131,6 +134,8 @@ export async function computeInvitePairReport(input: {
     pillarsB: sajuPillarsOf(b, now),
     timeUnknownA: a.timeUnknown,
     timeUnknownB: b.timeUnknown,
+    cityUnknownA: a.cityUnknown,
+    cityUnknownB: b.cityUnknown,
     genderA: a.gender,
     genderB: b.gender,
     lang: input.lang,
