@@ -203,6 +203,17 @@ export function typicalLifecycleAges(): ReadonlyArray<{
   return TABLE.map(({ kind, ageStart, ageEnd }) => ({ kind, ageStart, ageEnd }))
 }
 
+/**
+ * First sentence of a ko/en line — up to and including the first '.', '!', '?' (or '。')
+ * that ends the text or is followed by whitespace. A line with no sentence end is
+ * returned whole (trimmed).
+ */
+export function firstSentence(text: string): string {
+  const t = text.trim()
+  const m = /^(.+?[.!?。])(?=\s|$)/u.exec(t)
+  return m ? m[1] : t
+}
+
 export interface LifecycleEntry {
   /** Milestone kind. */
   event: AstroLifecycleEventKind
@@ -223,6 +234,12 @@ export interface LifecycleEntry {
   isUpcoming: boolean
   /** Locale-resolved meaning. */
   meaning: string
+  /**
+   * The meaning's first sentence (locale-resolved) — the short line a screen can quote
+   * on its own ('The last expansion window before midlife.'). Same table text, never
+   * the house-personalised tail that lifetimePivots appends.
+   */
+  meaningCore: string
   /** Locale-resolved advice. */
   advice: string
 }
@@ -305,6 +322,7 @@ export function buildLifecycleTiming(
       isCurrent: currentYear === startYear,
       isUpcoming: currentYear < startYear && startYear <= endYear,
       meaning: isKo ? evt.meaningKo : evt.meaningEn,
+      meaningCore: firstSentence(isKo ? evt.meaningKo : evt.meaningEn),
       advice: isKo ? evt.adviceKo : evt.adviceEn,
     })
   }

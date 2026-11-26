@@ -1,5 +1,6 @@
 import {
   buildLifecycleTiming,
+  firstSentence,
   type LifecycleMilestoneOverride,
 } from '@/lib/calendar-engine/lifecycle/astroLifecycle'
 import type { NatalContext } from '../context/types'
@@ -117,6 +118,9 @@ export interface LifePivot {
   meaning?: string // 점성 마일스톤 한 줄 의미(KO)
   /** 한 줄 의미 영문 — 미지정 시 클라이언트가 meaning 으로 폴백. */
   meaningEn?: string
+  /** 의미의 첫 문장(마디 정의 그대로 — 하우스 개인화 꼬리 없음). 화면이 단독 인용. */
+  meaningCore?: string
+  meaningCoreEn?: string
   bothSystems: boolean // 점성·사주가 같은 시기 (진짜 큰 전환)
   phase: 'past' | 'current' | 'upcoming'
 }
@@ -214,6 +218,8 @@ export function deriveLifetimePivots(
         astroEnEvents[i]?.meaning ?? e.meaning,
         false
       ),
+      meaningCore: e.meaningCore,
+      meaningCoreEn: astroEnEvents[i]?.meaningCore ?? e.meaningCore,
     }
   })
 
@@ -231,6 +237,8 @@ export function deriveLifetimePivots(
       // 제목으로 쓰기 때문(LifetimeTier mMeaning). 干支 원명은 hover tag 로만 남는다.
       meaning: m?.ko ?? GENERIC_DAEUN_MEANING.ko,
       meaningEn: m?.en ?? GENERIC_DAEUN_MEANING.en,
+      meaningCore: firstSentence(m?.ko ?? GENERIC_DAEUN_MEANING.ko),
+      meaningCoreEn: firstSentence(m?.en ?? GENERIC_DAEUN_MEANING.en),
     }
   })
 
@@ -259,6 +267,8 @@ export function deriveLifetimePivots(
       saju: matched?.label,
       meaning: a.meaning,
       meaningEn: a.meaningEn,
+      meaningCore: a.meaningCore,
+      meaningCoreEn: a.meaningCoreEn,
       bothSystems: Boolean(matched),
       phase: phaseOf(a.age),
     }
@@ -281,6 +291,8 @@ export function deriveLifetimePivots(
       saju: d.label,
       meaning: d.meaning, // 십신 한 줄 의미 — 빈 라벨 방지
       meaningEn: d.meaningEn,
+      meaningCore: d.meaningCore,
+      meaningCoreEn: d.meaningCoreEn,
       bothSystems: false,
       phase: phaseOf(d.age),
     })

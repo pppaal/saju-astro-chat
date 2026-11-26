@@ -43,6 +43,9 @@ export interface DestinypalMilestone {
   meaning?: string
   /** 한 줄 의미 영문 — 클라이언트 언어 토글용. 미지정 시 meaning 폴백. */
   meaningEn?: string
+  /** 의미의 첫 문장(마디 정의 그대로). */
+  meaningCore?: string
+  meaningCoreEn?: string
 }
 
 function deriveKind(p: LifePivot): DestinypalMilestone['kind'] {
@@ -77,5 +80,7 @@ export function toMilestones(pivots: LifetimePivots | undefined): DestinypalMile
     bothSystems: p.bothSystems || undefined,
     meaning: p.meaning,
     meaningEn: p.meaningEn,
+    meaningCore: p.meaningCore,
+    meaningCoreEn: p.meaningCoreEn,
   }))
 }

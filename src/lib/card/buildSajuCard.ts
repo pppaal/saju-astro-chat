@@ -68,7 +68,8 @@ export interface SajuCardReading {
 
 const elementOf = (ko: string): ElementKey => KO_TO_SAJU_ELEMENT[ko] ?? 'earth'
 
-function cardPillar(p: ReportPillar): CardPillar {
+/** 기둥(천간 · 지지) → 카드 기둥(오행 · 로마자 · 한글). Life 화면 미니 카드도 같은 함수. */
+export function cardPillar(p: Pick<ReportPillar, 'stem' | 'branch'>): CardPillar {
   return {
     stem: p.stem,
     branch: p.branch,
@@ -87,8 +88,11 @@ function signBi(sign: string | null | undefined): Bi | null {
   return { ko: SIGN_KO[sign], en: sign }
 }
 
-/** 사주 타입 이름 — 리포트 바이럴 카드와 같은 규칙(crossTypeName, 없으면 일간 유형 이름). */
-function typeNameOf(input: Parameters<typeof crossTypeName>[0]): Bi {
+/**
+ * 사주 타입 이름 — 리포트 바이럴 카드와 같은 규칙(crossTypeName, 없으면 일간 유형 이름).
+ * Life 공유 블록(assembleLifetime)도 이 함수를 쓴다 — 홈 카드 · Life 카드가 같은 이름.
+ */
+export function typeNameOf(input: Parameters<typeof crossTypeName>[0]): Bi {
   const ko = crossTypeName(input, 'ko')
   const en = crossTypeName(input, 'en')
   if (ko && en) return { ko, en }

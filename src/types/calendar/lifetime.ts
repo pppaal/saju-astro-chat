@@ -10,6 +10,9 @@ import type { ZRPeriod, ZRStartLot } from '@/lib/astrology/foundation/zodiacalRe
 import type { Ganji, NarrativeChip, SibsinKind } from './shared'
 import type { RadarAxis } from '@/lib/report/sibsinRadar'
 import type { LifeStrategy } from '@/lib/report/lifeStrategy'
+import type { LifeCrossCheck } from '@/lib/report/lifeCrossCheck'
+import type { CardPillar } from '@/lib/card/types'
+import type { Bi } from '@/lib/i18n/bi'
 
 // ============================================================================
 // 대운 (Daewoon) — 10년 단위.
@@ -129,6 +132,12 @@ export interface DestinyMilestone {
   meaning?: string
   /** 한 줄 의미 영문 — 클라이언트 토글용. 미지정 시 meaning 폴백. */
   meaningEn?: string
+  /**
+   * 의미의 첫 문장 — 마디 정의 그대로(하우스 개인화 꼬리 없음). 히어로 'NEXT LIFE TURN'
+   * 처럼 한 줄만 인용하는 자리용('The last expansion window before midlife.').
+   */
+  meaningCore?: string
+  meaningCoreEn?: string
   /** 시각화 카테고리 — 색상·아이콘 분기 키. */
   kind: DestinyMilestoneKind
   /** 현재 시점에 가장 가까운 마일스톤 표시. */
@@ -204,6 +213,41 @@ export interface DestinyLifetime {
    * 각 타일은 근거 있을 때만, 전부 없으면 undefined.
    */
   lifeStrategy?: LifeStrategy
+  /**
+   * 다음 인생 마디 — 생애 마디(milestones) 중 올해(currentYear) 다음 첫 항목. 대운 경계가
+   * 아니라 인생 마디 목록에서 고른다(FIX9b E7). 없으면 생략.
+   */
+  nextLifeTurn?: DestinyNextLifeTurn
+  /**
+   * 사주 × 별자리, 축별로 — 통합 리포트와 같은 교차 판정(LLM 없음, 읽는 시점 보강).
+   * 다섯 축 · 집계 · 리포트 링크. 판정할 수 없으면 생략.
+   */
+  crossCheck?: LifeCrossCheck
+  /**
+   * Life 공유 블록 재료 — 사주 타입(홈 카드와 같은 규칙) · 인생 모양 · 화면 카드용 기둥.
+   * screenPillars(연 · 월 · 일)는 화면의 미니 카드에만 쓴다 — 공유 이미지 · 링크엔 싣지 않는다.
+   */
+  share?: DestinyLifeShare
+}
+
+export interface DestinyNextLifeTurn {
+  year: number
+  /** 만 나이. */
+  age: number
+  label: string
+  labelEn: string
+  /** 그 마디 의미의 첫 문장(ko/en). */
+  meaningCore: string
+  meaningCoreEn: string
+}
+
+export interface DestinyLifeShare {
+  /** 사주 타입 이름('steady-building Free Spirit') — 홈 사주 카드의 typeName 과 같은 값. */
+  crossType: Bi
+  /** 인생 모양(lifePattern 이름) — 없으면 null. */
+  lifeShape: Bi | null
+  /** 화면 미니 카드의 연 · 월 · 일주(시주 없음). 공유 페이로드 · 이미지엔 넣지 않는다. */
+  screenPillars: CardPillar[]
 }
 
 export interface DestinyThisYear {
@@ -224,14 +268,33 @@ export interface DestinyDecadeCross {
   /** 사주측 십신(ko) — '정재'. */
   saju: string
   sajuEn: string
+  /** 십신 한자 — '正財'. 십신이 아닌 키면 없음. */
+  sajuHanja?: string
+  /** 사주 부모 — 대운 기둥의 천간/지지 어느 쪽인지와 그 대운 간지. */
+  sajuSource?: { pillar: 'daeun'; part: 'stem' | 'branch'; gz: string }
   /** 점성측 행성(ko) — '토성'. */
   astro: string
   astroEn: string
+  /** 점성 부모가 생애 마디면 그 이름(짧은 꼴) — '첫 토성 회귀' / 'First Saturn return'. */
+  astroEvent?: Bi
+  /** 그 행성의 본명 자리 — 별자리(영문 키) · 도 · 분. */
+  natal?: DestinyChartPoint
+  /** 그 행성의 본명 품위 — 본명 dignities 에서(본궁 · 고양 · 손상 · 추락 중 하나). */
+  dignity?: 'domicile' | 'exaltation' | 'detriment' | 'fall'
+  /** 오늘(주입된 now 의 출생지 날짜, 현지 정오) 트랜짓 자리. */
+  transit?: DestinyChartPoint
   /** 쉬운 뜻(ko) — stripCrossPair 로 페어 머리 제거된 본문. */
   meaning: string
   meaningEn: string
   /** 합성 polarity(부호=길흉). 게이트를 통과한 행만 오므로 언제나 ≠ 0. */
   polarity: number
+}
+
+/** 차트 위 한 점 — 별자리 영문 키('Aries') · 별자리 안의 도 · 분. */
+export interface DestinyChartPoint {
+  sign: string
+  deg: number
+  min: number
 }
 
 /** 인생 곡선의 한 점 — value 는 렌더용 0..1 정규화(거시 굴곡). */
@@ -271,10 +334,20 @@ export interface DestinyLifePattern {
   ko: string
   /** 영문 유형명. */
   en?: string
-  /** 한 줄 서사(ko). */
+  /** 한 줄 서사(ko) — 상담사 · 캘린더용(lead + body + 정점 절). */
   line: string
   /** 한 줄 서사(en). */
   lineEn?: string
+  /** 서사 첫 문장(인용 머리) · 나머지 — v9 Life Reading. */
+  lead?: string
+  leadEn?: string
+  body?: string
+  bodyEn?: string
+  /** 한 줄 태그 — 'Blooms late, lasts long'. */
+  tagline?: string
+  taglineEn?: string
+  /** 서사가 가리키는 정점(나이 · 연도 · 그 절 문장) — 정점 절을 붙였을 때만. */
+  peak?: { age: number; year: number; past: boolean; note: string; noteEn: string }
   /** 대운별 우호 방향 (−2~+2). */
   daeun: Array<{ startAge: number; gz: string; favor: number }>
 }

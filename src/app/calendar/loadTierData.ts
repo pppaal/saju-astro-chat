@@ -183,7 +183,15 @@ type BirthGuardResult =
   | { kind: 'guest' }
   | { kind: 'no-birth' }
   | { kind: 'rate-limited' }
-  | { kind: 'ok'; birth: BirthInput; timeUnknown: boolean; place: string }
+  | {
+      kind: 'ok'
+      birth: BirthInput
+      timeUnknown: boolean
+      /** 표시용 출생지 — 없으면 언어별 기본값('Seoul' / '서울' / '미입력'). */
+      place: string
+      /** 실제 출생지 이름(입력값) — 없으면 undefined. 리포트 링크는 이것만 싣는다. */
+      birthPlace?: string
+    }
 
 async function resolveBirthGuard(
   override: BirthOverride | null | undefined,
@@ -211,6 +219,7 @@ async function resolveBirthGuard(
       },
       timeUnknown: override.timeUnknown,
       place: override.place || (lang === 'en' ? 'Seoul' : '서울'),
+      birthPlace: override.place || undefined,
     }
   }
   const resolved = await loadSessionBirth()
@@ -224,6 +233,7 @@ async function resolveBirthGuard(
     birth: resolved.birth,
     timeUnknown: resolved.timeUnknown,
     place: resolved.place || (lang === 'en' ? 'Seoul' : '미입력'),
+    birthPlace: resolved.place || undefined,
   }
 }
 
@@ -345,6 +355,21 @@ export async function loadLifetimeData(
     now,
     todayIso,
     focusDayCell,
+    // 축별 교차(리포트와 같은 판정)의 읽는 시점 보강 — 본명 캐시엔 없는 사람 정보.
+    gender: BIRTH.gender,
+    timeUnknown: guard.timeUnknown,
+    cityUnknown: BIRTH.birthCityUnknown === true,
+    birth: {
+      birthDate: BIRTH.birthDate,
+      birthTime: BIRTH.birthTime,
+      timeUnknown: guard.timeUnknown,
+      cityUnknown: BIRTH.birthCityUnknown === true,
+      latitude: BIRTH.latitude,
+      longitude: BIRTH.longitude,
+      timeZone: BIRTH.timeZone,
+      gender: BIRTH.gender,
+      place: guard.birthPlace,
+    },
   })
 
   return { kind: 'ok', lang, ...assembled }

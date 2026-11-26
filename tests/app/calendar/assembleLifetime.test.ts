@@ -162,7 +162,33 @@ describe('assembleLifetime', () => {
 
   it('focusDayCell 의 결과는 같은 셀의 buildDecadeCross 와 같다(게이트 한 곳)', async () => {
     const { lifetime } = await run()
-    expect(lifetime.decadeCross).toEqual(buildDecadeCross(focus))
+    // 오늘 트랜짓 자리만 assembleLifetime 이 얹는다 — 나머지(부모 구조 포함)는 같은 함수.
+    expect(lifetime.decadeCross?.map(({ transit: _t, ...row }) => row)).toEqual(
+      buildDecadeCross(focus, natal)
+    )
+    expect(buildDecadeCross(focus).length).toBe(lifetime.decadeCross?.length)
+  }, 60000)
+
+  it('v9.2 Life 필드 — 축별 교차 · 공유 · 다음 인생 마디 · 상단 줄 (A4)', async () => {
+    const { lifetime, topbar } = await run()
+    // 축별 교차: 다섯 축 이하 · 집계 합 = total · 리포트 링크는 그 사람의 출생 쿼리.
+    const cc = lifetime.crossCheck!
+    expect(cc.rows.ko.map((r) => r.key)).toEqual(cc.rows.en.map((r) => r.key))
+    expect(cc.rows.en.length).toBeGreaterThan(0)
+    const t = cc.tally
+    expect(t.same + t.supportive + t.twoPulls + t.unrelated).toBe(t.total)
+    expect(cc.fullReportHref).toMatch(/^\/integrated-report\?lang=ko&date=1995-02-09&time=06%3A40/)
+    expect(cc.fullReportHref).toContain('gender=male') // sex '남' → male
+    // 공유: 사주 타입 ko/en · 화면 카드 기둥 3개(시주 없음).
+    expect(lifetime.share?.crossType.en).toBeTruthy()
+    expect(lifetime.share?.screenPillars).toHaveLength(3)
+    expect(lifetime.share?.lifeShape?.ko).toBe(lifetime.lifePattern?.ko)
+    // 다음 인생 마디 = 마디 중 올해(2026) 다음 첫 항목.
+    const next = lifetime.milestones.find((m) => m.year > 2026)
+    expect(lifetime.nextLifeTurn?.year).toBe(next?.year)
+    // 상단 줄: 날짜만 / 출생 줄.
+    expect(topbar.birthDate).toBe('1995.2.9')
+    expect(topbar.birthLine).toBe('1995.2.9 06:40')
   }, 60000)
 
   it('focusDayCell 없으면 decadeCross 는 빈 배열(연 셀 빌드 안 함)', async () => {
@@ -350,5 +376,57 @@ describe('buildDecadeCross — 정직성 게이트', () => {
 
   it('셀 없으면 빈 배열', () => {
     expect(buildDecadeCross(null)).toEqual([])
+  })
+
+  it('natal 을 넘기면 부모 구조 — 대운 천간 · 생애 마디 이름 · 본명 자리 · 품위 (A4)', () => {
+    const natalStub = {
+      saju: {},
+      astro: {
+        chart: { planets: [{ name: 'Saturn', sign: 'Aries', degree: 9, minute: 2 }] },
+        dignities: [
+          {
+            planet: 'Saturn',
+            sign: 'Aries',
+            degree: 9,
+            score: -1,
+            tiers: { fall: true, domicile: false, exaltation: false, detriment: false },
+          },
+        ],
+      },
+    } as unknown as NatalContext
+    const DAEUN_STEM = {
+      ...sajuParent('saju.pillar-sibsin.daeun-stem.2021.丙', 'decadal', 1),
+      evidence: {
+        module: 'saju-pillar',
+        sibsin: '정재',
+        pillars: ['丙午'],
+        detail: { phase: 'stem-half' },
+      },
+    } as Sig
+    const SAT_RETURN = {
+      ...SAT_P,
+      evidence: {
+        module: 'astro-lifecycle',
+        planets: ['Saturn'],
+        detail: { event: 'saturn_return_1' },
+      },
+    } as Sig
+    const [row] = buildDecadeCross(
+      cellWith([
+        DAEUN_STEM,
+        SAT_RETURN,
+        crossOf('daeun', 'sat', 'decadal', 2, [DAEUN_STEM.id, SAT_RETURN.id]),
+      ]),
+      natalStub
+    )
+    expect(row).toMatchObject({
+      saju: '정재',
+      sajuHanja: '正財',
+      sajuSource: { pillar: 'daeun', part: 'stem', gz: '丙午' },
+      astroEvent: { ko: '첫 토성 회귀', en: 'First Saturn return' },
+      natal: { sign: 'Aries', deg: 9, min: 2 },
+      dignity: 'fall',
+    })
+    expect(row.transit).toBeUndefined() // 트랜짓은 assembleLifetime 이 얹는다
   })
 })

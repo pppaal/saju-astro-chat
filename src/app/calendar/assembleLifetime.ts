@@ -11,6 +11,13 @@
      · toLifetime (만 나이 SSOT)
      · user 요약 (assembleUserSummary — /calendar 와 공유)
 
+   v9.2 Life 데이터(A4) — 같은 natal 에서 LLM 없이:
+     · crossCheck  축별 교차(리포트 buildCrossRows 그대로 — lib/report/lifeCrossCheck)
+     · share       사주 타입(홈 카드 typeNameOf) · 인생 모양 · 화면 카드 기둥
+     · nextLifeTurn 생애 마디 중 올해 다음 첫 항목
+     · decadeCross 부모 구조(대운 천간/지지 · 생애 마디 · 본명 자리 · 품위 · 오늘 트랜짓)
+   추가 천체력은 10년 겹침 행이 있을 때만 트랜짓 차트 1회(캐시 키 공유).
+
    결과는 { topbar, user, lifetime } — /destiny 가 렌더하는 전부.
    비용: natal 캐시 히트 후 ~100ms 수준이라 DB 캐시도 두지 않는다(감사:
    DB 왕복이 계산보다 비쌈).
@@ -30,10 +37,27 @@ import { ganjiToKorean, ganjiToRoman } from '@/lib/saju/ganjiKo'
 import { sibsinArea, sibsinAreaEn } from '@/lib/calendar-engine/derivers/plainLanguage'
 import { crossKeys, stripCrossPair, PLANET_EN_FROM_KO } from './crossPair'
 import { crossSajuEn } from '@/lib/calendar-engine/derivers/signalI18n'
+import { SIBSIN_HANJA } from '@/lib/saju/sibsinLabels'
+import {
+  lifecycleEventDef,
+  type AstroLifecycleEventKind,
+} from '@/lib/calendar-engine/lifecycle/astroLifecycle'
+import { getCachedTransitChart } from '@/lib/calendar-engine/ephe-cache'
+import { createCache } from '@/lib/calendar-engine/cache'
+import { buildLifeCrossCheck, type ReportBirthRef } from '@/lib/report/lifeCrossCheck'
+import { cardPillar, typeNameOf } from '@/lib/card/buildSajuCard'
+import { logger } from '@/lib/logger'
 
 import type { NatalContext } from '@/lib/calendar-engine/context/types'
 import type { CalendarCell } from '@/lib/calendar-engine/types'
-import type { DestinyLifetime, DestinyThisYear, DestinyDecadeCross } from '@/types/calendar'
+import type {
+  DestinyChartPoint,
+  DestinyLifetime,
+  DestinyLifeShare,
+  DestinyNextLifeTurn,
+  DestinyThisYear,
+  DestinyDecadeCross,
+} from '@/types/calendar'
 
 export interface AssembleLifetimeInput {
   natal: NatalContext
@@ -59,10 +83,26 @@ export interface AssembleLifetimeInput {
    * 미지정 시 now 를 그 시간대로 읽은 날짜. 캘린더 셀과 같은 절입일 규칙으로 세운 결정.
    */
   todayIso?: string
+  /** 성별 — 미지정이면 sex('여' → 'female'). 축별 교차의 배우자성 · 자식성 분기. */
+  gender?: 'male' | 'female'
+  /** 출생시각 미상(로더 가드 guard.timeUnknown) — 미지정이면 natal.saju.timeUnknown. */
+  timeUnknown?: boolean
+  /** 출생지 미상 — 좌표가 시간대 기준점. 상승궁 · 하우스를 말하지 않는다. */
+  cityUnknown?: boolean
+  /** 리포트 링크용 출생 정보(guard.birth + 실제 출생지). 없으면 natal 입력에서 만든다. */
+  birth?: ReportBirthRef
 }
 
 export interface AssembledLifetime {
-  topbar: { whoBirthLine: string; place: string; ilganHanja: string }
+  topbar: {
+    whoBirthLine: string
+    place: string
+    ilganHanja: string
+    /** 날짜만 — '1997.3.21'(시각은 싣지 않는다 · 상단 칩용). */
+    birthDate: string
+    /** 출생 줄 — '1997.3.21 14:30', 시간 미상이면 날짜만(폴리오용). */
+    birthLine: string
+  }
   user: AssembledUser
   lifetime: DestinyLifetime
 }
@@ -126,10 +166,108 @@ export async function assembleLifetime(input: AssembleLifetimeInput): Promise<As
   //   셀의 교차와 같다 — /calendar 월·일 화면과 같은 사실을 말한다(rangeInvariance 테스트).
   //   Promise 로 왔으면 여기서 await — 이미 위 병렬 구간과 겹쳐 돌았으니 대개 즉시.
   const focusDayCell = input.focusDayCell ? await input.focusDayCell : null
-  lifetime.decadeCross = buildDecadeCross(focusDayCell)
+  const todayIso = input.todayIso ?? localDateIso(natal, now)
+  lifetime.decadeCross = await withDecadeTransit(
+    buildDecadeCross(focusDayCell, natal),
+    natal,
+    todayIso
+  )
+
+  // ⑨ 다음 인생 마디 — 생애 마디 목록에서 올해 다음 첫 항목(대운 경계가 아니다, FIX9b E7).
+  const nextLifeTurn = pickNextLifeTurn(lifetime.milestones, targetYear)
+  if (nextLifeTurn) lifetime.nextLifeTurn = nextLifeTurn
+
+  // ⑩ 축별 교차 — 리포트와 같은 판정(읽는 시점 보강, 캐시 행 그대로).
+  const gender = input.gender ?? (sex === '여' ? 'female' : 'male')
+  const timeUnknown = input.timeUnknown ?? natal.saju.timeUnknown === true
+  const cityUnknown = input.cityUnknown === true
+  try {
+    lifetime.crossCheck = buildLifeCrossCheck(natal, {
+      gender,
+      timeUnknown,
+      cityUnknown,
+      now,
+      lang,
+      birth: input.birth,
+    })
+  } catch (err) {
+    logger.warn('[assembleLifetime] cross-check unavailable — section omitted', err)
+  }
+
+  // ⑪ 공유 블록 재료 — 사주 타입(홈 카드와 같은 규칙) · 인생 모양 · 화면 카드 기둥.
+  const share = buildLifeShare(natal, lifetime)
+  if (share) lifetime.share = share
 
   const ilganHanja = user.ilgan.hanja || '辛'
-  return { topbar: { whoBirthLine, place, ilganHanja }, user, lifetime }
+  return {
+    topbar: {
+      whoBirthLine,
+      place,
+      ilganHanja,
+      birthDate: `${natal.input.year}.${natal.input.month}.${natal.input.date}`,
+      birthLine: birthDisplay,
+    },
+    user,
+    lifetime,
+  }
+}
+
+/** now 를 출생지 시간대로 읽은 민용 날짜 'YYYY-MM-DD'. */
+function localDateIso(natal: NatalContext, now: Date): string {
+  const local = getDateComponentsInTimezone(now, calendarTimeZone(natal))
+  return `${local.year}-${String(local.month).padStart(2, '0')}-${String(local.day).padStart(2, '0')}`
+}
+
+/** 생애 마디 중 올해 다음 첫 항목 → 다음 인생 마디. 없으면 undefined. */
+export function pickNextLifeTurn(
+  milestones: DestinyLifetime['milestones'],
+  currentYear: number
+): DestinyNextLifeTurn | undefined {
+  const m = milestones.find((x) => x.year > currentYear)
+  if (!m) return undefined
+  return {
+    year: m.year,
+    age: m.age,
+    label: m.label,
+    labelEn: m.labelEn ?? m.label,
+    meaningCore: m.meaningCore ?? m.meaning ?? m.label,
+    meaningCoreEn: m.meaningCoreEn ?? m.meaningEn ?? m.labelEn ?? m.label,
+  }
+}
+
+/**
+ * Life 공유 블록 — 사주 타입은 홈 사주 카드(buildSajuCard.typeNameOf)와 같은 입력 · 같은 규칙
+ * (명식 십성 개수 · 월간 십신 · 일지 십신 · 일간). 인생 모양 = lifetime.lifePattern 이름.
+ * 화면 카드 기둥은 연 · 월 · 일(시주 없음). 실패하면 undefined.
+ */
+function buildLifeShare(
+  natal: NatalContext,
+  lifetime: DestinyLifetime
+): DestinyLifeShare | undefined {
+  try {
+    const P = natal.saju.pillars
+    // 리포트 어댑터(natalToReportData.sibsinCount)와 같은 칸 — analyses.sibsin.count.
+    const count = natal.saju.analyses?.sibsin?.count as unknown as
+      | Record<string, number>
+      | undefined
+    const crossType = typeNameOf({
+      sibsinCount: count,
+      monthStemSibsin: P.month.heavenlyStem.sibsin,
+      dayBranchSibsin: P.day.earthlyBranch.sibsin,
+      dayStem: P.day.heavenlyStem.name,
+    })
+    const lp = lifetime.lifePattern
+    return {
+      crossType,
+      lifeShape: lp ? { ko: lp.ko, en: lp.en ?? lp.ko } : null,
+      screenPillars: [P.year, P.month, P.day].map((p) =>
+        cardPillar({ stem: p.heavenlyStem.name, branch: p.earthlyBranch.name })
+      ),
+    }
+  } catch (err) {
+    logger.warn('[assembleLifetime] share block unavailable', err)
+    return undefined
+  }
 }
 
 /**
@@ -173,10 +311,16 @@ function buildThisYear(
 
 type CellSignal = CalendarCell['signals'][number]
 
+/** 10년 겹침 행의 두 부모 신호 — 사주(대운 기둥) · 점성(10년 층 천체). */
+interface DecadeParents {
+  saju: CellSignal
+  astro: CellSignal
+}
+
 /**
  * 10년 겹침 정직성 게이트(계획 B3 #8, 엔진 감사 X7) — 교차의 두 부모를 셀 안에서
  * evidence.detail.parentIds 로 찾아, 인생 스케일 카피("사주 대운과 긴 주기 천체 흐름이
- * 같은 방향을 가리킬 때만")가 사실일 때만 통과시킨다:
+ * 같은 방향을 가리킬 때만")가 사실일 때만 그 두 부모를 돌려준다(아니면 null):
  *  · 교차 layer 가 decadal 이고 polarity ≠ 0.
  *  · 사주 부모 = 대운 기둥 신호(module 'saju-pillar', layer 'decadal'). 세운·월운·일진·
  *    시진(hourly)·신살(daily) 부모는 10년 겹침이 아니다.
@@ -187,49 +331,154 @@ type CellSignal = CalendarCell['signals'][number]
  * 주므로, 앞의 세 조건은 엔진 불변식의 방어선(assertion)이다. 부모를 셀에서 찾지 못하면
  * (evidence 가 비워진 셀 등) 근거를 확인할 수 없으니 올리지 않는다 — fail-closed.
  */
-function decadeCrossParentsAgree(s: CellSignal, byId: ReadonlyMap<string, CellSignal>): boolean {
-  if (s.kind !== 'cross-activation' || s.layer !== 'decadal') return false
+function decadeCrossParents(
+  s: CellSignal,
+  byId: ReadonlyMap<string, CellSignal>
+): DecadeParents | null {
+  if (s.kind !== 'cross-activation' || s.layer !== 'decadal') return null
   const sign = Math.sign(s.polarity)
-  if (sign === 0) return false
+  if (sign === 0) return null
   const ids = (s.evidence?.detail as { parentIds?: unknown } | undefined)?.parentIds
-  if (!Array.isArray(ids) || ids.length !== 2) return false
+  if (!Array.isArray(ids) || ids.length !== 2) return null
   const saju = byId.get(String(ids[0]))
   const astro = byId.get(String(ids[1]))
-  if (!saju || !astro) return false
+  if (!saju || !astro) return null
   const sajuIsDaeun =
     saju.source === 'saju' && saju.layer === 'decadal' && saju.evidence?.module === 'saju-pillar'
   const astroIsDecadal =
     astro.source === 'astro' && astro.layer === 'decadal' && astro.kind !== 'planetary-hour'
-  if (!sajuIsDaeun || !astroIsDecadal) return false
-  return Math.sign(saju.polarity) === sign && Math.sign(astro.polarity) === sign
+  if (!sajuIsDaeun || !astroIsDecadal) return null
+  if (Math.sign(saju.polarity) !== sign || Math.sign(astro.polarity) !== sign) return null
+  return { saju, astro }
+}
+
+/** 대운 기둥 신호(saju-pillar decadal) → 천간/지지 어느 쪽 · 그 대운 간지. */
+function daeunSourceOf(saju: CellSignal): DestinyDecadeCross['sajuSource'] {
+  const detail = saju.evidence?.detail as { phase?: unknown } | undefined
+  const part =
+    detail?.phase === 'stem-half' || saju.id.includes('.daeun-stem.')
+      ? 'stem'
+      : detail?.phase === 'branch-half' || saju.id.includes('.daeun-branch.')
+        ? 'branch'
+        : null
+  const gz = saju.evidence?.pillars?.[0]
+  return part && gz ? { pillar: 'daeun', part, gz } : undefined
+}
+
+/** 점성 부모가 생애 마디면 그 이름(짧은 꼴 — ko 는 ' — ' 앞, en 은 라벨 그대로). */
+function lifecycleEventOf(astro: CellSignal): DestinyDecadeCross['astroEvent'] {
+  if (astro.kind !== 'lifecycle') return undefined
+  const kind = (astro.evidence?.detail as { event?: unknown } | undefined)?.event
+  if (typeof kind !== 'string') return undefined
+  try {
+    const def = lifecycleEventDef(kind as AstroLifecycleEventKind)
+    return { ko: def.labelKo.split(' — ')[0], en: def.labelEn }
+  } catch {
+    return undefined
+  }
+}
+
+/** 본명 차트에서 그 행성의 자리 — 행성 목록 다음 추가 천체(카이런 등). */
+function natalPointOf(natal: NatalContext, planet: string): DestinyChartPoint | undefined {
+  // 출생시각 미상이면 달은 정오 앵커 자리(하루 ±6°)라 도를 말하지 않는다.
+  if (planet === 'Moon' && natal.saju.timeUnknown === true) return undefined
+  const body =
+    natal.astro.chart.planets.find((p) => p.name === planet) ??
+    natal.astro.extraPoints?.find((p) => p.name === planet)
+  if (!body?.sign || typeof body.degree !== 'number' || typeof body.minute !== 'number')
+    return undefined
+  return { sign: body.sign, deg: body.degree, min: body.minute }
+}
+
+/** 본명 품위 — 본궁 · 고양 · 손상 · 추락 중 해당하는 첫 칸(dignities SSOT). */
+function natalDignityOf(natal: NatalContext, planet: string): DestinyDecadeCross['dignity'] {
+  const t = natal.astro.dignities?.find((d) => d.planet === planet)?.tiers
+  if (!t) return undefined
+  if (t.domicile) return 'domicile'
+  if (t.exaltation) return 'exaltation'
+  if (t.detriment) return 'detriment'
+  if (t.fall) return 'fall'
+  return undefined
 }
 
 /**
- * 대운(decadal) 층 사주×점성 교차 — 정직성 게이트(decadeCrossParentsAgree) 통과분만,
- * 페어 기준 중복 제거(가장 센 |polarity|). 통과분이 없으면 빈 배열 — 화면은 섹션을 숨긴다.
+ * 대운(decadal) 층 사주×점성 교차 — 정직성 게이트(decadeCrossParents) 통과분만,
+ * 페어 기준 중복 제거(가장 센 |polarity|). 통과분이 없으면 빈 배열 — 화면은 빈 상태를 보인다
+ * (오너 결정 13). natal 을 넘기면 행마다 부모 구조(대운 천간/지지 · 생애 마디 · 본명 자리 ·
+ * 품위)를 싣는다 — 셀 안의 부모 신호와 본명 차트에서 읽을 뿐 다시 판정하지 않는다.
  */
-export function buildDecadeCross(focusDayCell: CalendarCell | null): DestinyDecadeCross[] {
+export function buildDecadeCross(
+  focusDayCell: CalendarCell | null,
+  natal?: NatalContext
+): DestinyDecadeCross[] {
   if (!focusDayCell) return []
   const byId = new Map(focusDayCell.signals.map((s) => [s.id, s]))
   const byPair = new Map<string, DestinyDecadeCross>()
   for (const s of focusDayCell.signals) {
-    if (!decadeCrossParentsAgree(s, byId)) continue
+    const parents = decadeCrossParents(s, byId)
+    if (!parents) continue
     const { sajuKo, astroKo } = crossKeys(s)
     if (!sajuKo || !astroKo) continue
     const key = `${sajuKo}|${astroKo}`
     const prev = byPair.get(key)
     if (prev && Math.abs(prev.polarity) >= Math.abs(s.polarity)) continue
-    byPair.set(key, {
+    const astroEn = PLANET_EN_FROM_KO[astroKo] ?? astroKo
+    const row: DestinyDecadeCross = {
       saju: sajuKo,
       sajuEn: crossSajuEn(sajuKo),
       astro: astroKo,
-      astroEn: PLANET_EN_FROM_KO[astroKo] ?? astroKo,
+      astroEn,
       meaning: stripCrossPair(s.korean ?? ''),
       meaningEn: stripCrossPair(s.english ?? ''),
       polarity: s.polarity,
-    })
+    }
+    if (natal) {
+      const hanja = SIBSIN_HANJA[sajuKo]
+      if (hanja) row.sajuHanja = hanja
+      const source = daeunSourceOf(parents.saju)
+      if (source) row.sajuSource = source
+      const event = lifecycleEventOf(parents.astro)
+      if (event) row.astroEvent = event
+      const planet = s.crossParents?.planet ?? astroEn
+      const point = natalPointOf(natal, planet)
+      if (point) row.natal = point
+      const dignity = natalDignityOf(natal, planet)
+      if (dignity) row.dignity = dignity
+    }
+    byPair.set(key, row)
   }
   return [...byPair.values()]
     .sort((a, b) => Math.abs(b.polarity) - Math.abs(a.polarity))
     .slice(0, 4)
+}
+
+/**
+ * 10년 겹침 행에 오늘의 트랜짓 자리를 얹는다 — 주입된 now 의 출생지 날짜 현지 정오 차트
+ * (getCachedTransitChart → calculateTransitChart; 트랜짓 추출기 · 캘린더 근거와 같은 키라 대개
+ * 캐시 적중). 행이 없으면 천체력을 부르지 않는다. 실패하면 트랜짓 없이 그대로(fail-soft).
+ */
+async function withDecadeTransit(
+  rows: DestinyDecadeCross[],
+  natal: NatalContext,
+  todayIso: string
+): Promise<DestinyDecadeCross[]> {
+  if (rows.length === 0) return rows
+  try {
+    const chart = await getCachedTransitChart({
+      iso: `${todayIso}T12:00:00`,
+      latitude: natal.input.latitude,
+      longitude: natal.input.longitude,
+      timeZone: natal.input.timeZone,
+      inMemoryCache: createCache(),
+    })
+    return rows.map((r) => {
+      const body = chart.planets.find((p) => p.name === r.astroEn)
+      if (!body?.sign || typeof body.degree !== 'number' || typeof body.minute !== 'number')
+        return r
+      return { ...r, transit: { sign: body.sign, deg: body.degree, min: body.minute } }
+    })
+  } catch (err) {
+    logger.warn('[assembleLifetime] transit position unavailable — overlap without transit', err)
+    return rows
+  }
 }

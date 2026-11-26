@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import {
   buildLifecycleTiming,
+  firstSentence,
   lifecycleEventDef,
   typicalLifecycleAges,
   type AstroLifecycleEventKind,
@@ -135,5 +136,29 @@ describe('lifecycleEventDef / typicalLifecycleAges', () => {
       expect(Object.keys(s).sort()).toEqual(['ageEnd', 'ageStart', 'kind'])
       expect(s.ageEnd).toBeGreaterThanOrEqual(s.ageStart)
     }
+  })
+})
+
+describe('meaningCore — 의미의 첫 문장(A4)', () => {
+  it('항목마다 마디 정의 의미의 첫 문장(ko/en)', () => {
+    const ko = buildLifecycleTiming(EXACT, { endYear: 2100, now: NOW }).events
+    const en = buildLifecycleTiming(EXACT, { endYear: 2100, isKo: false, now: NOW }).events
+    for (const e of [...ko, ...en]) {
+      expect(e.meaningCore).toBe(firstSentence(e.meaning))
+      expect(e.meaning.startsWith(e.meaningCore)).toBe(true)
+    }
+    const j3 = buildLifecycleTiming([{ kind: 'jupiter_return_3', startYear: 2033, age: 35 }], {
+      endYear: 2100,
+      isKo: false,
+      now: NOW,
+    }).events[0]
+    expect(j3.meaningCore).toBe('The last expansion window before midlife.')
+  })
+
+  it('firstSentence — 첫 문장 끝(. ! ? 。 + 공백/끝)까지, 없으면 전체', () => {
+    expect(firstSentence('A one. Two.')).toBe('A one.')
+    expect(firstSentence('하나예요. 둘이에요.')).toBe('하나예요.')
+    expect(firstSentence('v1.2 works? yes.')).toBe('v1.2 works?')
+    expect(firstSentence('  no end  ')).toBe('no end')
   })
 })

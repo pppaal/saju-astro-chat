@@ -11,7 +11,8 @@
  *    (오너 결정 13). 실제 첫 토성 회귀일엔 그 신호가 있고(창 = 마일스톤 창), 대운 천간 부모가
  *    토성 매핑에 없어 겹침 행은 여전히 없다.
  *  - 1990-05-15 06:40 서울, 2013-08-08(두 번째 목성 회귀): Life 겹침 = 정인 × 목성 +2 한 행 —
- *    assembleLifetime 이 그 셀의 buildDecadeCross 와 같은 행을 ko/en 으로 싣는다.
+ *    assembleLifetime 이 그 셀의 buildDecadeCross 와 같은 행을 ko/en 으로 싣고, 부모 구조
+ *    (대운 지지 · 생애 마디 · 본명 자리 · 품위)와 오늘 트랜짓 자리를 붙인다(A4).
  *
  * 실제 Swiss Ephemeris(node 환경, swisseph unmock). native swisseph 가 없으면 로컬에선 skip,
  * CI·destiny 릴리스 게이트(ops:destiny:release — 'real.node' 패턴)에선 실패한다.
@@ -109,8 +110,21 @@ describeRealEphemeris('assembleLifetime — decade overlap on the real sky', () 
     const cell = await dayCell(natal, day)
     const ko = await life(natal, cell, day, 1990, 'ko')
     const en = await life(natal, cell, day, 1990, 'en')
-    expect(ko.decadeCross).toEqual(buildDecadeCross(cell))
+    // 행 = 그 셀의 buildDecadeCross(부모 구조 포함) + 오늘 트랜짓 자리(assembleLifetime 이 얹음).
+    expect(ko.decadeCross?.map(({ transit: _t, ...row }) => row)).toEqual(
+      buildDecadeCross(cell, natal)
+    )
     expect(en.decadeCross).toEqual(ko.decadeCross)
+    // 부모 구조(A4) — 대운 癸未 지지(정인) × 두 번째 목성 회귀, 본명 목성 게자리 고양,
+    // 오늘 트랜짓 목성이 본명 자리 위(회귀).
+    expect(ko.decadeCross?.[0]).toMatchObject({
+      sajuHanja: '正印',
+      sajuSource: { pillar: 'daeun', part: 'branch', gz: '癸未' },
+      astroEvent: { ko: '두 번째 목성 회귀', en: 'Second Jupiter return' },
+      dignity: 'exaltation',
+      natal: { sign: 'Cancer', deg: 9, min: 25 },
+      transit: { sign: 'Cancer', deg: 9, min: 27 },
+    })
     expect(ko.decadeCross).toEqual([
       expect.objectContaining({
         saju: '정인',

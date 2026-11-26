@@ -287,6 +287,8 @@ export function toLifetime(natal: NatalContext, opts: ToLifetimeOptions): Destin
     labelEn: m.labelEn,
     meaning: m.meaning,
     meaningEn: m.meaningEn,
+    meaningCore: m.meaningCore,
+    meaningCoreEn: m.meaningCoreEn,
     kind: m.kind,
     now: m.now,
   }))
@@ -316,13 +318,22 @@ export function toLifetime(natal: NatalContext, opts: ToLifetimeOptions): Destin
         en: lp.en,
         line: lp.line,
         lineEn: lp.lineEn,
+        lead: lp.lead,
+        leadEn: lp.leadEn,
+        body: lp.body,
+        bodyEn: lp.bodyEn,
+        tagline: lp.tagline,
+        taglineEn: lp.taglineEn,
+        ...(lp.peak ? { peak: lp.peak } : {}),
         daeun: lp.daeun.map((d) => ({ startAge: d.startAge, gz: d.gz, favor: d.favor })),
       }
     : undefined
 
   // 타고난 능력치 레이더 — 십성 분포에서 정직하게(가짜 점수 아님). 근거 없으면
-  // undefined → 컴포넌트가 블록 자체를 렌더 안 함.
-  const sibsinRadar = buildSibsinRadar(natal.saju.analyses?.sibsin?.categoryCount) ?? undefined
+  // undefined → 컴포넌트가 블록 자체를 렌더 안 함. 축마다 그 원국 글자(chars — 일간 제외,
+  // 시주 없으면 세 기둥 · estimated)를 엔진 기둥의 십신에서 그대로 싣는다(v9 강점 표).
+  const sibsinRadar =
+    buildSibsinRadar(natal.saju.analyses?.sibsin?.categoryCount, natal.saju.pillars) ?? undefined
 
   // "운을 내 편으로" — 엔진이 *이미* 계산했으나 프론트에 안 오던 값을 하나로 묶는다:
   //  행운 요소(용신 색·방향·숫자), 귀인 띠(천을귀인), 주의 구간(곡선 저점, 재파생
