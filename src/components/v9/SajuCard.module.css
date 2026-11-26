@@ -311,6 +311,9 @@
   letter-spacing: -0.01em;
   color: var(--ink);
   overflow-wrap: anywhere;
+  /* 두 줄이면 고르게 — 'steady-building / Free Spirit'(디자인), 'Free / Spirit' 처럼 끝 단어 하나가
+     혼자 남지 않게. */
+  text-wrap: balance;
 }
 .ls {
   display: flex;
@@ -356,7 +359,12 @@
   border-top: 1px solid var(--line);
 }
 
-/* ---- export — 공유 PNG: 기둥·ASC 없이 머리말 + 타입 띠(결정: 공유 개인정보) ---- */
+/* ---- export — 공유 PNG: 기둥·ASC 없이 머리말 + 타입 띠(결정: 공유 개인정보). 띠가 둘뿐이라
+   포토카드 높이(473)면 가운데가 빈 포일로 남는다 — 카드를 낮춰(306 × 320) 포일은 띠 사이의
+   숨 쉴 자리만 남긴다. 캡처 틀(LifeFlow .exportCard)이 같은 크기를 쓴다. ---- */
+.export {
+  height: 320px;
+}
 .export .tn {
   padding: 12px 12px 13px;
 }
@@ -383,7 +391,7 @@
 }
 .mini .cwm {
   gap: 4px;
-  font-size: 11px;
+  font-size: 10px;
 }
 .mini .cwm svg {
   width: 12px;
@@ -428,6 +436,32 @@
   display: block;
   margin-top: 3px;
   font-size: 11px;
+}
+
+/* ---- ko — 한글 타입 이름은 바로 선 산세리프(가짜 기울임 없음, 인생 흐름 .ko .type i 와 같은 처리),
+   mono 라벨은 한글이 벌어져 보이지 않게 자간 0.02em. ---- */
+.ko .nm {
+  font-family: var(--sans);
+  font-style: normal;
+  font-weight: 600;
+  font-size: 30px;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+}
+.ko.export .nm {
+  font-size: 34px;
+}
+.ko.mini .nm {
+  font-size: 15px;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+.ko .cl,
+.ko .k,
+.ko .pc b,
+.ko .hook,
+.ko .ascTag {
+  letter-spacing: 0.02em;
 }
 
 /* 스크린 리더 전용 */

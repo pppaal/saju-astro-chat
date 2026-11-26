@@ -9,8 +9,9 @@
  * - kind 'trait': 원국 축 하나의 판정 — 축 이름 + 행 끝 mono 판정(SAME · SUPPORTIVE ·
  *   TWO PULLS · UNRELATED). 판정 키는 리포트 교차 행과 같은 tone(resonant…neutral).
  *
- * 칸: SAJU = 라벨 + 한자 + 값(+ 둘째 줄 w). STARS = 라벨 + 행성 기호 + 값 + mono sub.
- * 값 문구는 호출자가 locale 에 맞춰 넘긴다. 서버·클라이언트 공용.
+ * 칸: SAJU = 라벨 + 한자 + 값(+ 둘째 줄 w) + mono sub('Day master 壬'). STARS = 라벨 + 행성 기호 +
+ * 값 + mono sub — points 가 있으면 점마다 기호 한 줄(life9 정체성 행: ☉ Sun 0°38′ Aries / ☾ Moon … /
+ * ASC …). 값 문구는 호출자가 locale 에 맞춰 넘긴다. 한자는 lang="ko"(WCAG 3.1.2). 서버·클라이언트 공용.
  */
 
 import type { ReactNode } from 'react'
@@ -33,14 +34,45 @@ export interface SajuCell {
   text: string
   /** 둘째 줄 설명(trait: 'fluid and permeating'). */
   w?: string
+  /** mono 보조 줄(trait 정체성: 'Day master 壬' / '일간 壬'). */
+  sub?: string
+}
+
+export interface StarPoint {
+  glyph?: PlanetGlyph
+  /** 'Sun 0°38′ Aries' / '태양 양자리 0°38′'. */
+  text: string
 }
 
 export interface StarsCell {
   glyph?: PlanetGlyph
   text: string
-  /** mono 보조 줄(SATURN RETURN · 9° ARIES · 2026). */
+  /** mono 보조 줄(SATURN RETURN · 9° ARIES · 2026). points 가 있으면 그것을 대신 그린다. */
   sub?: string
+  /** 보조 줄을 점마다 기호 한 줄로(정체성: 태양 · 달 · 상승). */
+  points?: readonly StarPoint[]
   w?: string
+}
+
+const HANJA_RUN = /([㐀-鿿]+)/
+
+/** 보조 줄 속 한자 묶음(壬)에 lang="ko" 를 단다 — 영어 음성이 코드 포인트를 읽지 않게. */
+function SubText({ text }: { text: string }) {
+  const parts = text.split(HANJA_RUN)
+  if (parts.length === 1) return <>{text}</>
+  return (
+    <>
+      {parts.map((p, i) =>
+        i % 2 === 1 ? (
+          <span key={i} className={s.subHj} lang="ko">
+            {p}
+          </span>
+        ) : (
+          p
+        )
+      )}
+    </>
+  )
 }
 
 interface BaseProps {
@@ -79,12 +111,21 @@ function SajuSys({ cell, locale }: { cell: SajuCell; locale: Lang }) {
     <span className={s.sys} data-cell="saju">
       <span className={s.lbl}>
         {pick(SYSTEMS.saju, locale)}
-        {cell.hanja ? <span className={s.hj}>{cell.hanja}</span> : null}
+        {cell.hanja ? (
+          <span className={s.hj} lang="ko">
+            {cell.hanja}
+          </span>
+        ) : null}
       </span>
       <span className={s.val}>
         {cell.text}
         {cell.w ? <span className={s.w}> {cell.w}</span> : null}
       </span>
+      {cell.sub ? (
+        <span className={s.sub}>
+          <SubText text={cell.sub} />
+        </span>
+      ) : null}
     </span>
   )
 }
@@ -98,14 +139,30 @@ function StarsSys({ cell, locale }: { cell: StarsCell; locale: Lang }) {
         {cell.text}
         {cell.w ? <span className={s.w}> {cell.w}</span> : null}
       </span>
-      {cell.sub ? <span className={s.sub}>{cell.sub}</span> : null}
+      {cell.points?.length ? (
+        <span className={s.sub} data-star-points={cell.points.length}>
+          {cell.points.map((p, i) => (
+            <span key={`${p.text}-${i}`} className={s.pt}>
+              {p.glyph ? <Glyph name={p.glyph} className={s.pg} /> : null}
+              {p.text}
+            </span>
+          ))}
+        </span>
+      ) : cell.sub ? (
+        <span className={s.sub}>{cell.sub}</span>
+      ) : null}
     </span>
   )
 }
 
 export default function CrossCheckRow(props: CrossCheckRowProps) {
   const { theme = 'light', first = false, locale, className } = props
-  const base = [s.row, first ? s.first : '', theme === 'dark' ? s.dark : '']
+  const base = [
+    s.row,
+    first ? s.first : '',
+    theme === 'dark' ? s.dark : '',
+    locale === 'ko' ? s.ko : '',
+  ]
 
   if (props.kind === 'trait') {
     const v = TONE_TO_VERDICT[props.verdict]

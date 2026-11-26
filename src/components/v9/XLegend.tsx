@@ -18,7 +18,9 @@ export default function XLegend({
 }) {
   return (
     <p
-      className={[s.legend, theme === 'dark' ? s.dark : '', className].filter(Boolean).join(' ')}
+      className={[s.legend, theme === 'dark' ? s.dark : '', locale === 'ko' ? s.ko : '', className]
+        .filter(Boolean)
+        .join(' ')}
       data-legend=""
     >
       <span>{pick(LEGEND.timing, locale)}</span>

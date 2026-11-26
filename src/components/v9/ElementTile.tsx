@@ -1,7 +1,8 @@
 /**
  * 오행 타일 — 천간·지지 한자를 그 오행 색(--wood/--fire/--earth/--metal/--water) 위에 쓴다.
  * 사주 카드 기둥, 일간, 강점 표가 같은 타일을 쓴다. hidden 이면 같은 크기의 점선 빈 칸
- * (시간 미상·숨긴 시주). 서버·클라이언트 공용.
+ * (시간 미상·숨긴 시주). 서버·클라이언트 공용. 글자는 lang="ko" — 영어 화면에서도 한국어
+ * 음으로 읽히게(WCAG 3.1.2, 간지는 한국 사주의 한자 표기).
  */
 
 import type { ElementKey } from './v9Copy'
@@ -45,6 +46,7 @@ export default function ElementTile({
         .filter(Boolean)
         .join(' ')}
       data-tile={element}
+      lang="ko"
     >
       {char}
     </span>

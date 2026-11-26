@@ -4,7 +4,7 @@
  * 그 함수에 있다 — 여기서 다시 세지 않는다).
  *
  * - Tally: 4칸 비례 막대 + mono 범례(SAME 7 · SUPPORTIVE 5 · TWO PULLS 1 · UNRELATED 2).
- * - AgreeLine: 카드의 한 줄 — 'Saju × stars line up on 13 of 16 traits' + 얇은 막대.
+ * - AgreeLine: 카드의 한 줄 — 'Saju × stars line up on **13 of 16** traits' + 얇은 막대.
  *   맞는 수 = 같음 + 서로 도움(결정: 카드 합의 줄).
  * 서버·클라이언트 공용.
  */
@@ -38,7 +38,13 @@ export default function Tally({
   const cols = shown.map((k) => `${counts[k]}fr`).join(' ') || '1fr'
   return (
     <div
-      className={[s.tally, size === 'sm' ? s.sm : '', theme === 'dark' ? s.dark : '', className]
+      className={[
+        s.tally,
+        size === 'sm' ? s.sm : '',
+        theme === 'dark' ? s.dark : '',
+        locale === 'ko' ? s.ko : '',
+        className,
+      ]
         .filter(Boolean)
         .join(' ')}
       data-total={total}
@@ -73,9 +79,9 @@ interface AgreeLineProps {
 export function AgreeLine({ lineUp, total, locale, className }: AgreeLineProps) {
   const n = Math.max(0, Math.min(lineUp, total))
   const rest = Math.max(0, total - n)
-  const template = pick(CARD.agree, locale)
-  // 숫자만 굵게 — 템플릿을 '{n}' 앞뒤로 나눠 그린다.
-  const [before, after] = fill(template, { m: total }).split('{n}')
+  // 몫('13 of 16' / '16가지 중 13가지')을 통째로 굵게 — 템플릿을 '{frac}' 앞뒤로 나눠 그린다.
+  const [before, after] = pick(CARD.agree, locale).split('{frac}')
+  const frac = fill(pick(CARD.agreeFrac, locale), { n, m: total })
   const barStyle: CSSProperties = {
     gridTemplateColumns:
       [n > 0 ? `${n}fr` : '', rest > 0 ? `${rest}fr` : ''].filter(Boolean).join(' ') || '1fr',
@@ -84,7 +90,7 @@ export function AgreeLine({ lineUp, total, locale, className }: AgreeLineProps) 
     <div className={[s.one, className].filter(Boolean).join(' ')} data-agree={`${n}/${total}`}>
       <span className={s.t}>
         {before}
-        <b>{n}</b>
+        <b>{frac}</b>
         {after}
       </span>
       <span

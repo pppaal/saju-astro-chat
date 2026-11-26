@@ -50,7 +50,8 @@ describe('AgreeLine', () => {
     const bar = container.querySelector('[data-ratio]') as HTMLElement
     expect(bar.getAttribute('data-ratio')).toBe('0.467')
     expect(bar.style.gridTemplateColumns).toBe('7fr 8fr')
-    expect(container.querySelector('b')?.textContent).toBe('7')
+    // 몫 전체를 굵게 — 디자인 home9 '<b>12 of 15</b>'(QA VH-9).
+    expect(container.querySelector('b')?.textContent).toBe('7 of 15')
   })
 
   it('전부 맞거나 0 이어도 빈 칸이 없다 · 범위 밖은 자른다', () => {
@@ -70,5 +71,6 @@ describe('AgreeLine', () => {
   it('ko 문장', () => {
     const { container } = render(<AgreeLine lineUp={13} total={16} locale="ko" />)
     expect(container.textContent).toBe('사주와 별자리가 16가지 중 13가지에서 맞아요')
+    expect(container.querySelector('b')?.textContent).toBe('16가지 중 13가지')
   })
 })

@@ -105,11 +105,13 @@ export const CARD = {
   moon: { ko: '달', en: 'Moon' },
   lifeShape: { ko: '인생 모양', en: 'Life shape' },
   identity: { ko: '정체성', en: 'Identity' },
-  /** '{n}' = 맞는 수(같음 + 서로 도움), '{m}' = 전체 축 수. */
+  /** '{frac}' = agreeFrac(굵게 그리는 몫 — 디자인 home9 '<b>12 of 15</b>'). */
   agree: {
-    ko: '사주와 별자리가 {m}가지 중 {n}가지에서 맞아요',
-    en: 'Saju × stars line up on {n} of {m} traits',
+    ko: '사주와 별자리가 {frac}에서 맞아요',
+    en: 'Saju × stars line up on {frac} traits',
   },
+  /** '{n}' = 맞는 수(같음 + 서로 도움), '{m}' = 전체 축 수. */
+  agreeFrac: { ko: '{m}가지 중 {n}가지', en: '{n} of {m}' },
   /** 카드 전체의 스크린 리더 이름. */
   aria: { ko: '사주 카드', en: 'Saju Card' },
 } as const satisfies Record<string, Bi>

@@ -77,6 +77,27 @@ describe('SajuCard full', () => {
     expect(asc.getAttribute('data-asc')).toBe('unknown')
   })
 
+  it("빅 쓰리 구분점은 앞 항목 끝에 붙는다 — 줄바꿈된 줄이 '·' 로 시작하지 않는다(QA VH-8)", () => {
+    const ko = render(<SajuCard data={sampleCard()} locale="ko" />).container
+    const items = [...q(ko, '[data-big-three]')!.children] as HTMLElement[]
+    expect(items).toHaveLength(3)
+    expect(items[0].textContent?.trim().endsWith('·')).toBe(true)
+    expect(items[1].textContent?.trim().endsWith('·')).toBe(true)
+    for (const it of items) expect(it.textContent?.trim().startsWith('·')).toBe(false)
+    expect(items[2].textContent).not.toContain('·')
+  })
+
+  it('ko 카드엔 ko 클래스(한글 타입 이름 = 바로 선 산세리프, 자간 좁힘) · 한자 타일은 lang="ko"', () => {
+    const ko = render(<SajuCard data={sampleCard()} locale="ko" />).container
+    const en = render(<SajuCard data={sampleCard()} locale="en" />).container
+    const koCard = q(ko, 'article')!
+    const enCard = q(en, 'article')!
+    expect(koCard.className.split(/\s+/).length).toBe(enCard.className.split(/\s+/).length + 1)
+    const tiles = [...en.querySelectorAll('[data-tile]:not([data-tile="hidden"])')]
+    expect(tiles.length).toBeGreaterThan(0)
+    for (const t of tiles) expect(t.getAttribute('lang')).toBe('ko')
+  })
+
   it('세리프 타입 이름 + 사주 타입 라벨 + 인생 모양', () => {
     const { container } = render(<SajuCard data={sampleCard()} locale="en" />)
     const type = q(container, '[data-card-type]')!
@@ -172,6 +193,12 @@ describe('SajuCard mini / export', () => {
     expect(q(container, '[data-card-pillars]')).not.toBeNull()
     expect(q(container, '[data-type-name]')?.textContent).toBe('steady-building Free Spirit')
     expect(q(container, '[data-card-back]')).toBeNull()
+  })
+
+  it('mini 머리말도 도메인 워드마크(디자인 life9 .card.mini)', () => {
+    vi.stubEnv('NEXT_PUBLIC_BASE_URL', 'https://destinypal.com/')
+    const { container } = render(<SajuCard data={sampleCard()} variant="mini" locale="en" />)
+    expect(q(container, '[data-card-header]')?.textContent).toContain('destinypal.com')
   })
 
   it('export — 기둥·ASC·빅 쓰리·뒷면 연도 없음, 타입 이름과 인생 모양만', () => {

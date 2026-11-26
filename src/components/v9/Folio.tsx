@@ -27,7 +27,13 @@ export default function Folio({
   locale,
   className,
 }: FolioProps) {
-  const cls = [s.folio, position === 'end' ? s.end : '', theme === 'dark' ? s.dark : '', className]
+  const cls = [
+    s.folio,
+    position === 'end' ? s.end : '',
+    theme === 'dark' ? s.dark : '',
+    locale === 'ko' ? s.ko : '',
+    className,
+  ]
     .filter(Boolean)
     .join(' ')
   return (

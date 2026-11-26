@@ -135,3 +135,8 @@
     transparent calc(100% / var(--cells) - 1.5px) calc(100% / var(--cells))
   );
 }
+
+/* 한국어 — 범례의 라틴 대문자 자간은 한글('서로 도움')을 한 자씩 벌린다. */
+.ko .tk {
+  letter-spacing: 0.02em;
+}

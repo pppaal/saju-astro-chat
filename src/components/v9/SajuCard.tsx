@@ -52,12 +52,13 @@ type ColKey = 'hour' | 'day' | 'month' | 'year'
 const COLS: ColKey[] = ['hour', 'day', 'month', 'year']
 
 function Header({ locale, variant }: { locale: Lang; variant: SajuCardVariant }) {
-  const domain = shareDomain()
+  // 머리말 워드마크는 세 변형 모두 도메인(디자인 life9 .card.mini 도 'destinypal.com') — mini 는
+  // 글자를 줄여 算 도장과 겹치지 않게 한다(CSS .mini .cwm).
   return (
     <div className={`${s.strip} ${s.ch}`} data-card-header="">
       <span className={s.cwm}>
         <KkachiMark size={variant === 'mini' ? 12 : 16} />
-        {variant === 'mini' ? 'destinypal' : domain}
+        {shareDomain()}
       </span>
       <span className={s.chr}>
         {variant === 'mini' ? null : <span className={s.hook}>{pick(CARD.hook, locale)}</span>}
@@ -139,25 +140,26 @@ function DayMasterBigThree({ data, locale }: { data: SajuCardData; locale: Lang 
       </span>
       <span className={s.c}>
         <span className={s.cl}>{pick(CARD.bigThree, locale)}</span>
-        {/* 셋을 한 줄에, 좁으면(한국어 별자리 이름) 항목 단위로 줄바꿈 — 글자를 자르지 않는다. */}
+        {/* 셋을 한 줄에, 좁으면(한국어 별자리 이름) 항목 단위로 줄바꿈 — 글자를 자르지 않는다.
+            구분점은 앞 항목의 끝에 붙인다 — 줄바꿈된 줄이 '·' 로 시작하지 않게(QA VH-8). */}
         <span className={`${s.v} ${s.b3}`} data-big-three="">
           <span className={s.it}>
             <Glyph name="sun" className={s.pg} />
             <span className={s.sr}>{pick(CARD.sun, locale)} </span>
             {pick(sun, locale)}
-          </span>
-          <span className={s.it}>
             <span className={s.dot} aria-hidden="true">
               ·
             </span>
+          </span>
+          <span className={s.it}>
             <Glyph name="moon" className={s.pg} />
             <span className={s.sr}>{pick(CARD.moon, locale)} </span>
             {pick(moon, locale)}
-          </span>
-          <span className={s.it}>
             <span className={s.dot} aria-hidden="true">
               ·
             </span>
+          </span>
+          <span className={s.it}>
             <span className={s.ascTag}>{pick(CARD.asc, locale)}</span>
             <span data-asc={asc ? '' : 'unknown'}>{asc ? pick(asc, locale) : '—'}</span>
           </span>
@@ -278,7 +280,14 @@ export default function SajuCard({
   typeLabel = 'plain',
   className,
 }: SajuCardProps) {
-  const cardClass = [s.card, variant === 'mini' ? s.mini : '', variant === 'export' ? s.export : '']
+  // ko: 타입 이름을 바로 선 산세리프로(Instrument Serif 엔 한글이 없어 기울임이 가짜가 된다),
+  // mono 라벨의 자간을 한글에 맞게 좁힌다(QA VH-3 · VL-6 · VL-7).
+  const cardClass = [
+    s.card,
+    variant === 'mini' ? s.mini : '',
+    variant === 'export' ? s.export : '',
+    locale === 'ko' ? s.ko : '',
+  ]
     .filter(Boolean)
     .join(' ')
   const label = `${pick(CARD.aria, locale)} · ${pick(SYSTEMS.pair, locale)}`

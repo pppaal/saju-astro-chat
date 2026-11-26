@@ -111,6 +111,63 @@ describe('CrossCheckRow trait', () => {
     expect(k.textContent).toContain('한 줄')
   })
 
+  it('SAJU sub(\'Day master 壬\') 를 그린다 — 한자는 lang="ko" (QA VL-3 · A11Y-5)', () => {
+    const { container } = render(
+      <CrossCheckRow
+        kind="trait"
+        axis="Identity"
+        verdict="tension"
+        saju={{ text: 'Water', w: 'fluid and permeating', sub: 'Day master 壬' }}
+        stars={{ text: 'Fire', w: 'expressive and fiery' }}
+        locale="en"
+      />
+    )
+    const saju = container.querySelector('[data-cell="saju"]') as HTMLElement
+    expect(saju.textContent).toContain('Day master 壬')
+    expect(saju.querySelector('[lang="ko"]')?.textContent).toBe('壬')
+  })
+
+  it('STARS points — 점마다 기호 한 줄(life9 정체성 행: ☉ Sun / ASC), sub 문자열 대신', () => {
+    const { container } = render(
+      <CrossCheckRow
+        kind="trait"
+        axis="Identity"
+        verdict="tension"
+        saju={{ text: 'Water' }}
+        stars={{
+          text: 'Fire',
+          sub: 'Sun 0°38′ Aries · ASC 10°02′ Leo',
+          points: [
+            { glyph: 'sun', text: 'Sun 0°38′ Aries' },
+            { glyph: 'asc', text: 'ASC 10°02′ Leo' },
+          ],
+        }}
+        locale="en"
+      />
+    )
+    const stars = container.querySelector('[data-cell="stars"]') as HTMLElement
+    const pts = stars.querySelector('[data-star-points]') as HTMLElement
+    expect(pts.getAttribute('data-star-points')).toBe('2')
+    expect(pts.children).toHaveLength(2)
+    expect(pts.children[0].querySelector('[data-glyph="sun"]')).not.toBeNull()
+    expect(pts.children[1].querySelector('[data-glyph="asc"]')).not.toBeNull()
+    expect(pts.children[0].textContent).toBe('Sun 0°38′ Aries')
+    // 같은 내용을 sub 문자열로 한 번 더 그리지 않는다.
+    expect(stars.textContent).not.toContain(' · ASC')
+  })
+
+  it('ko 행엔 ko 클래스(한글 mono 라벨 자간 좁힘)', () => {
+    const en = row(
+      render(<CrossCheckRow kind="trait" axis="A" verdict="resonant" phrase="x" locale="en" />)
+        .container
+    )
+    const ko = row(
+      render(<CrossCheckRow kind="trait" axis="A" verdict="resonant" phrase="x" locale="ko" />)
+        .container
+    )
+    expect(ko.className.split(/\s+/).length).toBe(en.className.split(/\s+/).length + 1)
+  })
+
   it('trait 행엔 방향 마크가 없다', () => {
     const r = row(
       render(

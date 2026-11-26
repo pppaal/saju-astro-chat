@@ -37,3 +37,8 @@
 .dark .k {
   color: var(--on-dark);
 }
+
+/* 한국어 — 라틴 대문자 자간은 한글을 한 자씩 벌린다. */
+.legend.ko {
+  letter-spacing: 0.02em;
+}

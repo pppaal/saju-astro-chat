@@ -1,6 +1,7 @@
-/* 폴리오 — 화면당 정확히 두 번: 내비/상단 바 바로 아래, 그리고 푸터 바로 위. 섹션 사이엔 없다. */
+/* 폴리오 — 화면당 정확히 두 번: 내비/상단 바 바로 아래, 그리고 푸터 바로 위. 섹션 사이엔 없다.
+   좌우 여백은 화면의 --gutter(없으면 20px) — 푸터와 같은 세로선. */
 .folio {
-  margin: 0 20px;
+  margin: 0 var(--gutter, 20px);
   min-height: 28px;
   display: flex;
   align-items: center;
@@ -45,4 +46,9 @@
 .dark .left b,
 .dark .right b {
   color: var(--on-dark);
+}
+
+/* 한국어 — 라틴 대문자 자간은 한글('계산됨 · 1997년 3월 21일')을 한 자씩 벌린다. */
+.folio.ko {
+  letter-spacing: 0.02em;
 }
