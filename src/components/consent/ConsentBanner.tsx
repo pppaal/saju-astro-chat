@@ -2,7 +2,9 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import { useSession } from 'next-auth/react'
+import { isOwnChromeRoute } from '@/lib/routing/chromeRoutes'
 import { useConsent } from '@/contexts/ConsentContext'
 import { useI18n } from '@/i18n/I18nProvider'
 import styles from './consentBanner.module.css'
@@ -11,6 +13,9 @@ export function ConsentBanner() {
   const { status, grant, deny } = useConsent()
   const { status: authStatus } = useSession()
   const { t } = useI18n()
+  // v9 paper 화면(홈 · 인생 흐름 · 캘린더)에선 종이 판(.paper) — 남색·금색 옛 테마가 카드 위에
+  // 뜨지 않게(QA VH-5). 경로 판정은 전역 chrome 과 같은 목록(chromeRoutes).
+  const paper = isOwnChromeRoute(usePathname())
   const [visible, setVisible] = useState(false)
   const [legalNeedsConsent, setLegalNeedsConsent] = useState<boolean | null>(null)
 
@@ -47,7 +52,8 @@ export function ConsentBanner() {
 
   return (
     <div
-      className={styles.banner}
+      className={[styles.banner, paper ? styles.paper : ''].filter(Boolean).join(' ')}
+      data-consent-theme={paper ? 'paper' : 'dark'}
       role="dialog"
       aria-live="polite"
       aria-labelledby="consent-banner-title"

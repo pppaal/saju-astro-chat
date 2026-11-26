@@ -242,3 +242,81 @@
     border-color: rgba(255, 255, 255, 0.5);
   }
 }
+
+/* =============================================================
+   v9 paper variant — 홈(/) · 인생 흐름(/destiny) · 캘린더(/calendar).
+   배너는 루트 레이아웃에 걸려 V9Root(토큰 클래스) 바깥이라 v9 토큰을 읽을 수 없다 —
+   같은 값을 여기 지역 변수로 둔다(styles/v9/tokens.module.css 의 --surface · --line ·
+   --ink · --body · --on-dark). 종이 판 + 먹 글자, 버튼은 v7 알약 둘.
+   EDPB 규칙은 그대로: 'OK' 와 'No thanks' 는 크기 · 굵기 · 모양이 같고 채움만 다르다.
+   390 이하에선 제목을 설명 앞에 이어 쓰고 알약을 낮춰 카드를 덜 가린다.
+   ============================================================= */
+.banner.banner.paper {
+  --cb-surface: #fbf9f4;
+  --cb-line: #ded7cb;
+  --cb-ink: #1b1916;
+  --cb-body: #46413a;
+  --cb-on-ink: #f3efe7;
+  background: var(--cb-surface);
+  color: var(--cb-ink);
+  border: 1px solid var(--cb-line);
+  border-radius: 18px;
+  box-shadow: 0 18px 36px -18px rgba(27, 25, 22, 0.45);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+.paper .title {
+  color: var(--cb-ink);
+}
+.paper .description {
+  color: var(--cb-body);
+}
+.paper .policyLink,
+.paper .policyLink:hover,
+.paper .policyLink:focus-visible {
+  color: var(--cb-ink);
+}
+.paper .policyLink:focus-visible,
+.paper .actions button:focus-visible {
+  outline-color: var(--cb-ink);
+}
+.paper .actions button {
+  border-radius: 999px;
+  font-weight: 600;
+  border: 0;
+}
+/* 채움만 다르다 — 먹 채움 · 먹 테. */
+.paper .primary,
+.paper .primary:hover {
+  background: var(--cb-ink);
+  color: var(--cb-on-ink);
+  box-shadow: inset 0 0 0 1.5px var(--cb-ink);
+}
+.paper .secondary,
+.paper .secondary:hover {
+  background: transparent;
+  color: var(--cb-ink);
+  box-shadow: inset 0 0 0 1.5px var(--cb-ink);
+}
+@media (max-width: 640px) {
+  .banner.banner.paper {
+    gap: 0.625rem;
+    padding: 0.75rem 0.875rem;
+    border-radius: 16px;
+  }
+}
+@media (max-width: 420px) {
+  .paper .title {
+    display: inline;
+    margin: 0 0.35em 0 0;
+    font-size: 0.8125rem;
+  }
+  .paper .description {
+    display: inline;
+    font-size: 0.75rem;
+  }
+  .paper .actions button {
+    min-height: 36px;
+    padding: 0.4rem 0.75rem;
+  }
+}

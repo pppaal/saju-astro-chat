@@ -4,9 +4,59 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { signOut, useSession } from 'next-auth/react'
-import { ENABLED_SERVICES } from '@/config/enabledServices'
+import { ENABLED_SERVICES, type EnabledServiceId } from '@/config/enabledServices'
 import GoogleLoginPanel from '@/components/auth/GoogleLoginPanel'
 import { clearClientCacheAndSignOut } from '@/lib/auth/clearClientCache'
+
+type AccountIcon = 'user' | 'key' | 'tarotHistory' | 'credits' | 'logout'
+type RowIcon = AccountIcon | EnabledServiceId
+
+/** 'dark' 변형(우주 테마 화면)이 쓰는 기존 이모지 — 서비스 행은 enabledServices 의 icon. */
+const ACCOUNT_EMOJI: Record<AccountIcon, string> = {
+  user: '👤',
+  key: '🔑',
+  tarotHistory: '🔮',
+  credits: '💳',
+  logout: '🚪',
+}
+
+/** 'light' 변형(v9 종이 홈) — 이모지 대신 선 기호(16px 격자 · 1.5 선 · currentColor, SPEC9 규칙 10). */
+const ROW_PATH: Record<RowIcon, string> = {
+  user: 'M8 8.1a2.6 2.6 0 1 0 0-5.2 2.6 2.6 0 0 0 0 5.2ZM3 14c.6-2.8 2.6-4.2 5-4.2s4.4 1.4 5 4.2',
+  key: 'M5.5 13.5a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM7.6 8.4l5.9-5.9M11 5l1.6 1.6',
+  tarotHistory: 'M4 2h8v12H4zM8 5.5 10 8l-2 2.5L6 8z',
+  credits: 'M2 4h12v8.5H2zM2 7h12M4.5 10H7',
+  logout: 'M9.5 3H4v10h5.5M7.5 8h6M11.5 6l2 2-2 2',
+  destinyMap: 'M3 3.5h10v7H7.5L4.5 13v-2.5H3z',
+  tarot: 'M4 2h8v12H4zM8 5.5 10 8l-2 2.5L6 8z',
+  calendar: 'M2.5 3.5h11v10h-11zM2.5 6.5h11M5.5 2v3M10.5 2v3',
+  compatibility:
+    'M6 11.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7ZM10 11.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z',
+}
+
+function RowGlyph({ icon, light, emoji }: { icon: RowIcon; light: boolean; emoji?: string }) {
+  return (
+    <span aria-hidden="true" className="inline-flex w-5 items-center justify-center text-base">
+      {light ? (
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 16 16"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          focusable="false"
+        >
+          <path d={ROW_PATH[icon]} />
+        </svg>
+      ) : (
+        (emoji ?? ACCOUNT_EMOJI[icon as AccountIcon])
+      )}
+    </span>
+  )
+}
 
 interface MenuDrawerPanelProps {
   open: boolean
@@ -21,7 +71,8 @@ interface MenuDrawerPanelProps {
 /**
  * 사이트 전체에서 공유하는 햄버거 드로어 패널.
  * 메뉴 항목은 어디서나 동일. 단, 타로 컨텍스트일 때만 '타로 리딩 기록' 노출.
- * 패널 색은 variant 로만 결정 — 로그인 상태에 따른 자동 색 변화 없음.
+ * 패널 색은 variant 로만 결정 — 로그인 상태에 따른 자동 색 변화 없음. 'light'(v9 종이 홈)는 행 아이콘을
+ * 이모지 대신 선 기호로 그린다(RowGlyph).
  */
 export function MenuDrawerPanel({
   open,
@@ -188,9 +239,7 @@ export function MenuDrawerPanel({
           <div className="px-2 pb-2">
             {isAuthed ? (
               <div className={`flex items-center gap-3 px-3 py-2.5 rounded-xl ${authRowClass}`}>
-                <span aria-hidden="true" className="inline-flex w-5 items-center justify-center">
-                  👤
-                </span>
+                <RowGlyph icon="user" light={isLight} />
                 <span className="text-sm truncate">{userName}</span>
               </div>
             ) : !loginPanelOpen ? (
@@ -202,9 +251,7 @@ export function MenuDrawerPanel({
                 className={`flex w-full items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer
                   transition-colors text-left ${authBtnClass}`}
               >
-                <span aria-hidden="true" className="inline-flex w-5 items-center justify-center">
-                  🔑
-                </span>
+                <RowGlyph icon="key" light={isLight} />
                 <span className="text-sm">{isKo ? '로그인' : 'Login'}</span>
               </button>
             ) : (
@@ -230,12 +277,7 @@ export function MenuDrawerPanel({
               onClick={onClose}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors ${linkClass}`}
             >
-              <span
-                aria-hidden="true"
-                className="inline-flex w-5 items-center justify-center text-base"
-              >
-                {service.icon}
-              </span>
+              <RowGlyph icon={service.id} light={isLight} emoji={service.icon} />
               <span className="text-sm">{isKo ? service.label.ko : service.label.en}</span>
             </Link>
           ))}
@@ -250,9 +292,7 @@ export function MenuDrawerPanel({
             onClick={onClose}
             className={`flex items-center gap-3 px-3 py-2.5 rounded-xl ${linkClass}`}
           >
-            <span aria-hidden="true" className="inline-flex w-5 items-center justify-center">
-              👤
-            </span>
+            <RowGlyph icon="user" light={isLight} />
             <span className="text-sm">{isKo ? '내 정보' : 'My Info'}</span>
           </Link>
           {isAuthed && isInTarot && (
@@ -261,9 +301,7 @@ export function MenuDrawerPanel({
               onClick={onClose}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-xl ${linkClass}`}
             >
-              <span aria-hidden="true" className="inline-flex w-5 items-center justify-center">
-                🔮
-              </span>
+              <RowGlyph icon="tarotHistory" light={isLight} />
               <span className="text-sm">{isKo ? '타로 리딩 기록' : 'My Tarot Readings'}</span>
             </Link>
           )}
@@ -272,9 +310,7 @@ export function MenuDrawerPanel({
             onClick={onClose}
             className={`flex items-center gap-3 px-3 py-2.5 rounded-xl ${linkClass}`}
           >
-            <span aria-hidden="true" className="inline-flex w-5 items-center justify-center">
-              💳
-            </span>
+            <RowGlyph icon="credits" light={isLight} />
             <span className="text-sm">{isKo ? '크레딧 충전' : 'Recharge Credits'}</span>
           </Link>
           {isAuthed && (
@@ -288,9 +324,7 @@ export function MenuDrawerPanel({
               }}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer text-left ${linkClass}`}
             >
-              <span aria-hidden="true" className="inline-flex w-5 items-center justify-center">
-                🚪
-              </span>
+              <RowGlyph icon="logout" light={isLight} />
               <span className="text-sm">{isKo ? '로그아웃' : 'Logout'}</span>
             </button>
           )}
