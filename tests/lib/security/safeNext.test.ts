@@ -64,6 +64,68 @@ describe('safeNextPath — ?next= open redirect guard (PMS-1)', () => {
     expect(safeNextPath('/a/../calendar', ORIGIN)).toBe('/calendar')
   })
 
+  // R-PMS-1 — 파서가 점 세그먼트를 지우면 '/.//evil.com' 의 pathname 이 '//evil.com'(프로토콜 상대)이 된다.
+  it.each([
+    ['/.//evil.com'],
+    ['/..//evil.com'],
+    ['/%2e%2e//evil.com'],
+    ['/%2e//evil.com'],
+    ['/foo/..//evil.com'],
+    ['/a/..//evil.com'],
+    ['/.//evil.com/login?x=1#h'],
+    ['/%2e%2e//evil.com/x?y=1#h'],
+  ])('rejects dot-segment value %s that normalises to a protocol-relative path', (raw) => {
+    expect(safeNextPath(raw, ORIGIN)).toBeNull()
+  })
+
+  it.each([
+    ['/.//evil.com'],
+    ['/..//evil.com'],
+    ['%2F.%2F%2Fevil.com'],
+    ['/%2e//evil.com'],
+    ['/%252e//evil.com'],
+    ['/a/..//evil.com'],
+    ['/./%2F/evil.com'],
+  ])('rejects query-encoded dot-segment value next=%s', (raw) => {
+    expect(safeNextPath(fromQuery(raw), ORIGIN)).toBeNull()
+  })
+
+  it('a raw encoded slash stays encoded and same-origin', () => {
+    // 디코딩되지 않은 '%2F' 는 파서가 경로 구분자로 보지 않는다 — 같은 사이트 경로로 남는다.
+    expect(safeNextPath('/./%2F/evil.com', ORIGIN)).toBe('/%2F/evil.com')
+  })
+
+  it('every accepted input re-resolves to the same origin', () => {
+    const inputs = [
+      '/calendar?x=1',
+      '/destiny?x=1#h',
+      '/destiny?date=1997-03-21#life',
+      '/',
+      '/a/../calendar',
+      '/./calendar',
+      '/%2e/calendar',
+      '/calendar/preview',
+      '/.//evil.com',
+      '/..//evil.com',
+      '/%2e%2e//evil.com',
+      '/%2e//evil.com',
+      '/foo/..//evil.com',
+      '/./%2F/evil.com',
+      '//evil.com',
+    ]
+    const accepted: string[] = []
+    for (const raw of inputs) {
+      const out = safeNextPath(raw, ORIGIN)
+      if (out === null) continue
+      accepted.push(out)
+      expect(out.startsWith('/')).toBe(true)
+      expect(/^\/[\/\\]/.test(out)).toBe(false)
+      expect(new URL(out, ORIGIN).origin).toBe(ORIGIN)
+    }
+    expect(accepted).toContain('/destiny?x=1#h')
+    expect(accepted).toContain('/calendar/preview')
+  })
+
   it('compares against the origin only (a full page URL works as the base)', () => {
     expect(safeNextPath('/calendar', 'https://destinypal.com/some/page?q=1')).toBe('/calendar')
   })
