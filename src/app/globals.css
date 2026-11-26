@@ -298,6 +298,23 @@ select:disabled {
   cursor: not-allowed;
 }
 
+/* iOS 자동 확대 방지 — iOS Safari(iPad 포함)는 input/textarea/select 의
+   font-size 가 16px 미만이면 포커스 때 화면을 확대하고 돌아오지 않는다.
+   예전에는 BirthInfoModal.module.css 의 :global(input…) 이 이 모듈을 불러오는
+   화면(홈 · BirthGate · 운명 상담사)에 걸었는데, 한 번 불러온 스타일시트는
+   클라이언트 이동 뒤에도 남아 사실상 전역이었고, 지역 클래스 없는 선택자라
+   webpack(next dev --webpack)이 거부했다. 그래서 전역 규칙으로 여기 둔다. */
+input[type='text'],
+input[type='email'],
+input[type='number'],
+input[type='tel'],
+input[type='date'],
+input[type='time'],
+textarea,
+select {
+  font-size: 16px !important;
+}
+
 /* Selection color */
 ::selection {
   background: var(--interactive-focus);

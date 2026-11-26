@@ -142,20 +142,38 @@ describe('BirthInfoModal.module.css', () => {
     }
   })
 
-  it('keeps the iOS 16px input rule (no Safari zoom-in on focus)', () => {
+  it('keeps the iOS 16px rule on its own input and buttons (no Safari zoom-in on focus)', () => {
     const rule = css.match(/\.modalInput,[\s\S]*?\{\s*font-size:\s*16px !important;\s*\}/)
     expect(rule).not.toBeNull()
     const selectors = rule![0]
-    for (const sel of [
-      '.modalCancel',
-      '.modalSave',
-      ":global(input[type='text'])",
-      ":global(input[type='date'])",
-      ":global(input[type='time'])",
-      ':global(textarea)',
-      ':global(select)',
-    ]) {
+    for (const sel of ['.modalCancel', '.modalSave']) {
       expect(selectors).toContain(sel)
+    }
+  })
+
+  // webpack(next dev --webpack)의 CSS 모듈은 지역 클래스 없는 선택자를 '불순'으로
+  // 거부한다. 화면 전체 input 16px 규칙은 globals.css 가 소유한다.
+  it('has no pure-global selectors (webpack CSS modules reject them)', () => {
+    const rules = css.replace(/\/\*[\s\S]*?\*\//g, '')
+    expect(rules).not.toMatch(/(^|[,}])\s*:global\(/m)
+  })
+
+  it('globals.css owns the page-wide iOS 16px input rule', () => {
+    const globals = read('app/globals.css')
+    const rule = globals.match(
+      /input\[type='text'\],[\s\S]*?\{\s*font-size:\s*16px !important;\s*\}/
+    )
+    expect(rule).not.toBeNull()
+    for (const sel of [
+      "input[type='email']",
+      "input[type='number']",
+      "input[type='tel']",
+      "input[type='date']",
+      "input[type='time']",
+      'textarea',
+      'select',
+    ]) {
+      expect(rule![0]).toContain(sel)
     }
   })
 })

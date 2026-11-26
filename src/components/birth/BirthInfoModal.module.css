@@ -3,24 +3,15 @@
    옮겨, 홈 개편이 BirthGate·상담사 모달 스타일을 깨지 않게 분리했다. */
 
 /* iOS Safari 는 input/textarea/select 의 font-size 가 16px 미만이면
-   포커스 시 자동으로 확대(zoom-in) 후 원래대로 안 돌아옴. BirthInfoModal
-   이나 chat input 에서 매번 발생하던 거슬림.
-   iPad Safari (>=768px) 도 같은 자동 줌인이 일어나기 때문에 미디어 쿼리
-   밖으로 빼서 모든 너비에 적용한다.
-   :global 이라 이 모듈을 불러오는 화면(홈·BirthGate·운명 상담사) 전체의
-   입력 요소에 걸린다 — 홈 CSS(main-page.module.css)에 있던 것을 모달과 함께
-   옮겼다. */
+   포커스 시 자동으로 확대(zoom-in) 후 원래대로 안 돌아옴. iPad Safari
+   (>=768px) 도 같은 자동 줌인이 일어나기 때문에 미디어 쿼리 없이 모든 너비에
+   적용한다. 모달 자신의 입력·버튼은 여기서, 화면 전체의 input/textarea/select
+   16px 규칙은 globals.css('iOS 자동 확대 방지')가 소유한다 — CSS 모듈 안의
+   :global(input…) 은 지역 클래스가 없는 '불순' 선택자라 webpack 빌드
+   (next dev --webpack)가 거부한다. */
 .modalInput,
 .modalCancel,
-.modalSave,
-:global(input[type='text']),
-:global(input[type='email']),
-:global(input[type='number']),
-:global(input[type='tel']),
-:global(input[type='date']),
-:global(input[type='time']),
-:global(textarea),
-:global(select) {
+.modalSave {
   font-size: 16px !important;
 }
 
