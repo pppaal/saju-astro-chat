@@ -59,7 +59,8 @@ describe('BirthGate', () => {
     render(<BirthGate base="/calendar" locale="ko" />)
     await waitFor(() => expect(screen.getByRole('dialog')).toBeTruthy())
     expectModalChrome()
-    expect(screen.getByRole('heading', { name: '생년월일 입력' })).toBeTruthy()
+    // 한 이름 '출생 정보'(결정 QA-5, COPY-9).
+    expect(screen.getByRole('heading', { name: '출생 정보 입력' })).toBeTruthy()
     expect(router.replace).not.toHaveBeenCalled()
   })
 
