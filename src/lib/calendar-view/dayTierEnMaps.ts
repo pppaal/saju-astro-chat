@@ -1,9 +1,10 @@
 /**
- * dayTierEnMaps — 사주 표시 용어(격국 성패 단어·신살 이름·12운성 단계·응용격국)의 KO→EN 치환 맵.
+ * dayTierEnMaps — 사주 표시 용어(격국 이름·신살 이름·12운성 단계·응용격국)의 KO→EN 치환 맵.
  * 처음엔 옛 DayTier '자세히 보기' 전문가 섹션용이었고(v9.2 에서 삭제), 지금은 toUser(격국
- * 이름 · 성패 줄)가 읽고 나머지 표는 엔진 EN 커버리지 테스트가 지킨다.
+ * 이름)가 읽고 나머지 표는 엔진 EN 커버리지 테스트가 지킨다. (EN 격국 성패 줄 · 뿌리 줄 ·
+ * 5단계 강약은 v9.2 화면이 읽지 않아 페이로드에서 뺐다 — D30.)
  *
- * EN 로케일에서 격국 성패 단어·신살 이름·12운성 단계가 한국어로 새던 것을
+ * EN 로케일에서 격국 이름·신살 이름·12운성 단계가 한국어로 새던 것을
  * 영문화한다(엔진/공유데이터 무수정 — 컴포넌트 렌더 직전 best-effort 치환).
  * 영문값은 src/lib/saju/data/interpretations.json 의 name_en 들과 일치시켰다.
  * 미상 키는 호출부에서 KO 로 폴백 → KO 로케일·미상 라벨엔 영향 없음.
@@ -12,31 +13,12 @@
 import { shinsalNameEn } from '@/lib/calendar-engine/derivers/signalI18n'
 import { GEOKGUK_NAME_EN as GEOKGUK_NAME_EN_SSOT } from '@/lib/saju/geokgukNameEn'
 
-/** 격국 성패 단어 — 성격/파격/반성반파. */
-const GEOKGUK_STATUS_EN: Record<string, string> = {
-  성격: 'Formed',
-  파격: 'Broken',
-  반성반파: 'Mixed',
-}
-
 /**
  * 격국 이름 KO→EN (GeokgukType 전체 29종 + 미정) — 정본은 중립 모듈 saju/geokgukNameEn.ts.
  * 캘린더 표면(Life 머리말·Day 본명 풀이)과 상담사 컨텍스트가 같은 표를 읽는다(G13 — 예전엔
  * 상담사만 'Established-rank (Geollok)' 같은 다른 표기를 들고 있었다). 여기선 재노출만.
  */
 export const GEOKGUK_NAME_EN: Readonly<Record<string, string>> = GEOKGUK_NAME_EN_SSOT
-
-/**
- * 격국 상태 한 줄 EN — '정인격 · 반성반파 (+투출 / -합거)' 같은 한국어 전용 줄을
- * '이름 · 상태'로 영문화한다. 성패 요인(투출/합거 등)은 수십 개 자유서술 구라
- * EN 맵을 두지 않고 EN 에선 생략(핵심 정보 = 격국명 + 성패는 보존, 한국어 누수 제거).
- * 미상 이름/상태는 각 맵에서 KO 폴백.
- */
-export function geokgukStatusLineEn(name: string, status?: string): string {
-  const n = GEOKGUK_NAME_EN[name] ?? name
-  const s = status ? (GEOKGUK_STATUS_EN[status] ?? status) : ''
-  return s ? `${n} · ${s}` : n
-}
 
 /** 신살 EN 치환 — 트레일링 '살' 을 떼고도 재시도, 미상은 KO 그대로. */
 export function shinsalEn(name: string): string {

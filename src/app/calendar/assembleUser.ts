@@ -13,11 +13,7 @@ import type { DestinyUserSummary } from '@/types/calendar'
 
 export type AssembledUser = DestinyUserSummary & {
   gyeokgukStatus?: string
-  /** EN 격국 성패 — 'Sanggwan (Hurting-officer) · Formed'. */
-  gyeokgukStatusEn?: string
   rootStatus?: string
-  /** EN 뿌리 한 줄 — 'Month branch 卯 · mid-season · thinly rooted'. */
-  rootStatusEn?: string
 }
 
 export function assembleUserSummary(
@@ -59,7 +55,6 @@ export function assembleUserSummary(
     gyeokguk: userBase.gyeokguk,
     gyeokgukEn: userBase.gyeokgukEn,
     gangyak: userBase.gangyak,
-    gangyakEn: userBase.gangyakEn,
     dominantSibsin: userBase.dominantSibsin,
     elements: userBase.elements,
     astro: {
@@ -75,9 +70,7 @@ export function assembleUserSummary(
     intro: userBase.intro,
     introEn: userBase.introEn,
     gyeokgukStatus: userBase.geokgukStatus,
-    gyeokgukStatusEn: userBase.geokgukStatusEn,
     rootStatus: userBase.rootStatus,
-    rootStatusEn: userBase.rootStatusEn,
     iljuArchetype: userBase.iljuArchetype,
   }
 }

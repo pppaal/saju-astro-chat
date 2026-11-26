@@ -21,9 +21,8 @@ import type { NatalContext } from '@/lib/calendar-engine/context/types'
 import type { ZodiacKo } from '@/lib/astrology/foundation/types'
 import type { DestinyAlmutenFiguris } from '@/types/calendar'
 import { getIljuArchetype } from '@/lib/chart-dictionary'
-import { strengthClassOf, type StrengthBand } from '@/lib/saju/strengthScore'
-import { ELEMENT_KO, ELEMENT_EN, SIGN_KO, geokgukStatusLine, rootLine, rootLineEn } from './shared'
-import { GEOKGUK_NAME_EN, geokgukStatusLineEn } from './dayTierEnMaps'
+import { ELEMENT_KO, ELEMENT_EN, SIGN_KO, geokgukStatusLine, rootLine } from './shared'
+import { GEOKGUK_NAME_EN } from './dayTierEnMaps'
 
 interface DestinypalUserElements {
   목: number
@@ -69,8 +68,6 @@ export interface DestinypalUser {
   /** EN 격국명 — 한글 접두 없이(GEOKGUK_NAME_EN, 29종 + 미정): "Jeongin (Direct-resource)". */
   gyeokgukEn: string
   gangyak: string // "강(强)" | "약(弱)" | "중화(中和)" — personSeed 입력이라 값 고정
-  /** EN 강약 — 5단계(極强…極弱): "Very strong (强)" | "Strong (强)" | "Balanced (中和)" | "Weak (弱)" | "Very weak (弱)". */
-  gangyakEn: string
   dominantSibsin: { name: string; pct: number }
   elements: DestinypalUserElements
   astro: DestinypalUserAstro
@@ -80,12 +77,8 @@ export interface DestinypalUser {
   // ── Phase 3 정통화 신규 ──
   /** 격국 성패 라인 — "정인격 · 반성반파 (+편인 보호 / -재성 분탈)" */
   geokgukStatus?: string
-  /** EN 격국 성패 — "Jeongin (Direct-resource) · Mixed" (성패 요인은 EN 에서 생략). */
-  geokgukStatusEn?: string
   /** 일간 뿌리 정통화 한 줄 — "월령 寅 실령 · 통근 얇음" */
   rootStatus?: string
-  /** EN 뿌리 한 줄 — "Month branch 寅 · out of season · thinly rooted". */
-  rootStatusEn?: string
   /**
    * 섹트 (낮/밤) — DestinyUserSummary.sect 와 호환. tier 가 직접 읽음.
    * null = 정할 수 없음(출생시각 미상 등 — NatalContext.astro.sect 가 null, OD-5).
@@ -151,33 +144,6 @@ const GANGYAK_HANJA: Record<string, string> = {
   strong: '강(强)',
   weak: '약(弱)',
   medium: '중화(中和)',
-}
-
-/** EN 강약 — 5단계 밴드(strengthScore SSOT). 한자는 KO 표기와 같은 글리프. */
-const GANGYAK_BAND_EN: Record<StrengthBand, string> = {
-  극신강: 'Very strong (强)',
-  신강: 'Strong (强)',
-  중화: 'Balanced (中和)',
-  신약: 'Weak (弱)',
-  극신약: 'Very weak (弱)',
-}
-const GANGYAK_CLASS_EN: Record<string, string> = {
-  strong: 'Strong (强)',
-  medium: 'Balanced (中和)',
-  weak: 'Weak (弱)',
-}
-
-/**
- * EN 강약 라벨. 5단계 밴드는 분석(analyses.yongsin.daymasterStrength)에서 — 그 밴드를 접은
- * 3분류가 컨텍스트 strength 와 같을 때만 쓴다(두 출처가 어긋나면 3분류 라벨로, 표면끼리
- * 강/약이 엇갈리지 않게).
- */
-function gangyakEnOf(natal: NatalContext): string {
-  const band = natal.saju.analyses?.yongsin?.daymasterStrength as StrengthBand | undefined
-  if (band && GANGYAK_BAND_EN[band] && strengthClassOf(band) === natal.saju.strength) {
-    return GANGYAK_BAND_EN[band]
-  }
-  return GANGYAK_CLASS_EN[natal.saju.strength] ?? 'Balanced (中和)'
 }
 
 function fiveElements(natal: NatalContext): DestinypalUserElements {
@@ -330,16 +296,15 @@ export function toUser(natal: NatalContext, opts: ToUserOptions = {}): Destinypa
     }
   }
 
-  // gangyak (강약) — KO 는 3분류 표기(personSeed 입력이라 그대로), EN 은 5단계.
+  // gangyak (강약) — 3분류 표기(personSeed 입력이라 그대로).
   const gangyak = GANGYAK_HANJA[natal.saju.strength] ?? '중화(中和)'
-  const gangyakEn = gangyakEnOf(natal)
 
   // gyeokguk — EN 은 한글 접두 없이 한 표에서(미상 이름도 한글을 내보내지 않는다).
   const gPrimary = advanced?.geokguk?.primary ?? '미정'
   const gyeokguk = gPrimary
   const gyeokgukEn = GEOKGUK_NAME_EN[gPrimary] ?? GEOKGUK_NAME_EN['미정']
 
-  // geokguk status (Phase 3 — 정통화 보완). EN 은 이름 · 성패만(요인 자유서술은 생략).
+  // geokguk status (Phase 3 — 정통화 보완).
   const statusResult = advanced?.geokguk?.statusResult
   const geokgukStatus = geokgukStatusLine(
     gPrimary !== '미정' ? gPrimary : undefined,
@@ -347,17 +312,12 @@ export function toUser(natal: NatalContext, opts: ToUserOptions = {}): Destinypa
     statusResult?.factors?.positive,
     statusResult?.factors?.negative
   )
-  const geokgukStatusEn =
-    gPrimary !== '미정' && GEOKGUK_NAME_EN[gPrimary]
-      ? geokgukStatusLineEn(gPrimary, statusResult?.status)
-      : undefined
 
   // root (월령 + 통근)
   const monthBranch = natal.saju.pillars?.month?.earthlyBranch?.name
   const drStatus = advanced?.deukryeong?.status
   const tgStrength = advanced?.tonggeun?.totalStrength
   const rootStatus = rootLine(monthBranch, drStatus, tgStrength)
-  const rootStatusEn = rootLineEn(monthBranch, drStatus, tgStrength)
 
   // birth strings — 출생시각 미상이면 시각 칸을 뺀다(input 의 시각은 정오 앵커라 실제 출생
   // 시각처럼 보여주지 않는다; loadTierData.formatBirthLine 과 같은 규약).
@@ -386,16 +346,13 @@ export function toUser(natal: NatalContext, opts: ToUserOptions = {}): Destinypa
     gyeokguk,
     gyeokgukEn,
     gangyak,
-    gangyakEn,
     dominantSibsin,
     elements: fiveElements(natal),
     astro: deriveAstro(natal),
     intro: opts.intro ?? '',
     introEn: opts.introEn ?? '',
     geokgukStatus,
-    geokgukStatusEn,
     rootStatus,
-    rootStatusEn,
     sectKind: natal.astro.sect ?? null,
     almutenFiguris: deriveAlmutenFigurisFull(natal),
     iljuArchetype: deriveIljuArchetype(natal),

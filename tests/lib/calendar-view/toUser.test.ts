@@ -105,28 +105,17 @@ describe('toUser — NatalContext → destinypal user', () => {
       expect(toUser(natal).gangyak).toBe(expected)
     })
 
-    // 재감사 SI-1 — EN 강약은 5단계 밴드(분석의 daymasterStrength)에서, 한글 없이.
+    // 5단계 밴드가 있어도 표기(personSeed 입력)는 3분류 그대로. EN 5단계 라벨은 v9.2 화면이
+    // 읽지 않아 페이로드에서 뺐다(D30).
     it.each([
-      ['극신강', 'strong', 'Very strong (强)'],
-      ['신강', 'strong', 'Strong (强)'],
-      ['중화', 'medium', 'Balanced (中和)'],
-      ['신약', 'weak', 'Weak (弱)'],
-      ['극신약', 'weak', 'Very weak (弱)'],
-    ] as const)('band=%s → gangyakEn %s', (band, strength, expected) => {
+      ['극신강', 'strong'],
+      ['중화', 'medium'],
+      ['극신약', 'weak'],
+    ] as const)('band=%s → 3분류 표기, gangyakEn 없음', (band, strength) => {
       const natal = makeNatal({ strength, analyses: { yongsin: { daymasterStrength: band } } })
       const u = toUser(natal)
-      expect(u.gangyakEn).toBe(expected)
-      // KO 표기(personSeed 입력)는 3분류 그대로.
       expect(u.gangyak).toBe({ strong: '강(强)', medium: '중화(中和)', weak: '약(弱)' }[strength])
-    })
-
-    it('밴드가 없거나 3분류와 어긋나면 3분류 EN 라벨로(표면끼리 강/약이 갈리지 않게)', () => {
-      expect(toUser(makeNatal({ strength: 'weak', analyses: {} })).gangyakEn).toBe('Weak (弱)')
-      const mismatch = makeNatal({
-        strength: 'medium',
-        analyses: { yongsin: { daymasterStrength: '극신강' } },
-      })
-      expect(toUser(mismatch).gangyakEn).toBe('Balanced (中和)')
+      expect(u).not.toHaveProperty('gangyakEn')
     })
   })
 
@@ -144,7 +133,6 @@ describe('toUser — NatalContext → destinypal user', () => {
       expect(u.gyeokguk).toBe('미정')
       expect(u.gyeokgukEn).toBe('Undetermined')
       expect(u.geokgukStatus).toBeUndefined()
-      expect(u.geokgukStatusEn).toBeUndefined()
     })
 
     // 재감사 SI-1 — 엔진이 낼 수 있는 격국 전부(정격·종격·비격·화기격·특수격)가 EN 이름을 갖는다.
@@ -162,7 +150,7 @@ describe('toUser — NatalContext → destinypal user', () => {
       expect(u.gyeokgukEn).not.toMatch(/[가-힣]/)
     })
 
-    it('EN 격국 상태는 이름 · 성패(요인 자유서술 없이), 한글 없음', () => {
+    it('격국 상태 줄은 이름 · 성패(요인) — EN 짝은 싣지 않는다(D30)', () => {
       const natal = makeNatal({
         analyses: {
           geokguk: {
@@ -173,7 +161,7 @@ describe('toUser — NatalContext → destinypal user', () => {
       })
       const u = toUser(natal)
       expect(u.geokgukStatus).toBe('건록격 · 성격 (관성이 비겁 제어)')
-      expect(u.geokgukStatusEn).toBe('Geonrok (Officer stipend) · Formed')
+      expect(u).not.toHaveProperty('geokgukStatusEn')
     })
   })
 
@@ -226,26 +214,12 @@ describe('toUser — NatalContext → destinypal user', () => {
       })
       const u = toUser(natal)
       expect(u.rootStatus).toBe('월령 寅 실령 · 통근 얇음')
-      // EN 짝 — 같은 단계 경계, 월지 글리프만 한자(SI-1).
-      expect(u.rootStatusEn).toBe('Month branch 寅 · out of season · thinly rooted')
-    })
-
-    it.each([
-      ['득령', 120, 'Month branch 申 · in season · deeply rooted'],
-      ['평령', 60, 'Month branch 申 · mid-season · well rooted'],
-      ['실령', 0, 'Month branch 申 · out of season · rootless'],
-    ] as const)('rootStatusEn %s / 통근 %d → %s', (dr, tg, expected) => {
-      const natal = makeNatal({
-        pillars: { month: { earthlyBranch: { name: '申' } } },
-        analyses: { deukryeong: { status: dr }, tonggeun: { totalStrength: tg } },
-      })
-      expect(toUser(natal).rootStatusEn).toBe(expected)
+      expect(u).not.toHaveProperty('rootStatusEn')
     })
 
     it('월령/통근 정보가 전혀 없으면 rootStatus undefined', () => {
       const natal = makeNatal({ analyses: {} })
       expect(toUser(natal).rootStatus).toBeUndefined()
-      expect(toUser(natal).rootStatusEn).toBeUndefined()
     })
   })
 

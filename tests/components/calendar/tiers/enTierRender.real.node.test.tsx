@@ -171,9 +171,9 @@ describeRealEphemeris('EN 티어 렌더 — 한글 없음 (실제 천체력)', (
       )
       expect(lifeHtml.length).toBeGreaterThan(2000)
       expect(hangulLeaks(lifeHtml), `${c.label} Life`).toEqual([])
-      // 머리말 — 격국·강약·상태 태그가 영문으로(SI-1).
+      // 머리말 — 격국 이름이 영문으로(SI-1). EN 강약 · 상태 줄은 페이로드에 없다(D30).
       expect(life.user.gyeokgukEn).not.toMatch(HANGUL)
-      expect(life.user.gangyakEn ?? '').toMatch(/^(Very strong|Strong|Balanced|Weak|Very weak) \(/)
+      expect(life.user).not.toHaveProperty('gangyakEn')
 
       for (const [ym, focus] of c.months) {
         const y = +ym.slice(0, 4)
