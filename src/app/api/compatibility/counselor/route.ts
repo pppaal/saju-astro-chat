@@ -65,6 +65,7 @@ import { koStructuralLabels } from '@/lib/llm/koStructuralLabels'
 import { collectCompatSajuFacts } from '@/lib/compatibility/compatSajuFacts'
 import { collectCompatAstroFacts } from '@/lib/compatibility/compatAstroFacts'
 import { getUserDisplayName } from '@/lib/user/displayName'
+import { formatPersonalShinsal } from '@/lib/compatibility/personalShinsal'
 import {
   BIRTH_TIMEZONE_REQUIRED_MESSAGE,
   resolveBirthTimezoneStrict,
@@ -75,64 +76,6 @@ export const runtime = 'nodejs'
 export const maxDuration = 90
 
 import { clampMessages, buildPersonSeed, getAgeFromBirthDate } from './routeSupport'
-
-// 개별(self) 신살 — 각자 타고난 신살은 extras.shinsal에 이미 계산돼 있으나
-// self 블록이 voided라 궁합 프롬프트엔 안 들어가던 신호. 단, 전부 쏟으면
-// 다시 노이즈가 되므로 *관계 해석에 유효한 특수 신살만* 화이트리스트로
-// 큐레이션 + 짧은 뜻을 붙인다. 12신살(자리)은 synastry [12신살] cross가,
-// 도화·홍염살·백호·괴강·천을귀인은 sajuSynastryFormatter 의 신살 cross
-// 블록이 양방향 deterministic 으로 다루므로 self 중복 제거 — 여기엔
-// 오직 *cross 가 없는* personality-only 신살만 남긴다.
-const PILLAR_KO: Record<string, string> = { year: '년', month: '월', day: '일', time: '시' }
-const PERSONAL_SHINSAL_KEEP: Record<string, string> = {
-  양인: '날카로움·과격',
-  귀문관: '집착·예민',
-  원진: '미묘한 반감',
-  고신: '고독 기질',
-  금여성: '배우자 복·기품',
-  천덕귀인: '보호·덕',
-  월덕귀인: '보호·덕',
-}
-// EN: 한국어 신살명은 영어 사용자에게 의미 없으니 음역 + 영어 뜻 (영어 응답 누수 방지).
-const PILLAR_EN: Record<string, string> = { year: 'Y', month: 'M', day: 'D', time: 'H' }
-const PERSONAL_SHINSAL_KEEP_EN: Record<string, { name: string; mean: string }> = {
-  양인: { name: 'Yangin', mean: 'sharp, aggressive' },
-  귀문관: { name: 'Gwimun', mean: 'obsessive, sensitive' },
-  원진: { name: 'Wonjin', mean: 'subtle aversion' },
-  고신: { name: 'Gosin', mean: 'solitary streak' },
-  금여성: { name: 'Geumyeo', mean: 'spouse fortune, grace' },
-  천덕귀인: { name: 'Cheondeok', mean: 'protection, virtue' },
-  월덕귀인: { name: 'Woldeok', mean: 'protection, virtue' },
-}
-
-function formatPersonalShinsal(
-  label: string,
-  shinsal: unknown,
-  lang: 'ko' | 'en' = 'ko'
-): string | null {
-  if (!Array.isArray(shinsal) || shinsal.length === 0) return null
-  const en = lang === 'en'
-  const byKind = new Map<string, Set<string>>()
-  for (const raw of shinsal) {
-    const h = raw as { kind?: string; pillars?: string[] }
-    if (!h?.kind || !(h.kind in PERSONAL_SHINSAL_KEEP)) continue
-    const set = byKind.get(h.kind) ?? new Set<string>()
-    for (const p of h.pillars ?? []) set.add((en ? PILLAR_EN[p] : PILLAR_KO[p]) ?? p)
-    byKind.set(h.kind, set)
-  }
-  if (byKind.size === 0) return null
-  const parts = [...byKind.entries()].map(([kind, ps]) => {
-    const loc = [...ps].join('·')
-    if (en) {
-      const e = PERSONAL_SHINSAL_KEEP_EN[kind]
-      const nm = e ? e.name : kind
-      const mn = e ? e.mean : ''
-      return `${nm}(${loc ? `${loc}, ` : ''}${mn})`
-    }
-    return `${kind}(${loc ? `${loc}, ` : ''}${PERSONAL_SHINSAL_KEEP[kind]})`
-  })
-  return `${label}: ${parts.join(' · ')}`
-}
 
 export async function POST(req: NextRequest) {
   // Hoisted to function scope so the outer catch can refund a credit that was
