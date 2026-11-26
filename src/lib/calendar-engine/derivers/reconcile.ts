@@ -140,7 +140,7 @@ export interface MonthCounts {
 }
 
 export interface MonthVerdict {
-  /** 히어로·톤워드·총평·공유카드가 다 따라야 할 단일 월 톤. */
+  /** 히어로·톤워드·공유카드가 다 따라야 할 단일 월 톤. */
   tone: MonthTone
   /** 공유/후크용 별칭(tone→map). */
   shareTone: MonthShareTone
@@ -159,8 +159,8 @@ export interface MonthVerdict {
 
 /**
  * 월 카운트 → 단일 월 verdict. 예전엔 이 4분류 공식이 옛 MonthTier(noviceTone)와
- * monthSummary(tone+isFlat) 두 곳에 복붙돼 주석으로만 "동일 공식"을 강제했다
- * (감사 D-1: 한쪽 임계만 바뀌면 히어로 칩과 총평 문단이 조용히 어긋남). 여기 한
+ * 옛 monthSummary(tone+isFlat, D9 에서 삭제) 두 곳에 복붙돼 주석으로만 "동일 공식"을
+ * 강제했다(감사 D-1: 한쪽 임계만 바뀌면 히어로 칩과 총평 문단이 조용히 어긋남). 여기 한
  * 곳에서만 판정한다.
  *
  * good  : 좋은날이 조심날의 2배 이상(그리고 >0) — 확실히 순한 달.

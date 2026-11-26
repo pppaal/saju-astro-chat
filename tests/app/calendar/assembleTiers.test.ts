@@ -15,7 +15,6 @@ import { buildCalendar } from '@/lib/calendar-engine'
 import { getTwelveStagesForPillars } from '@/lib/saju/shinsal'
 import { assembleTiers, type AssembleTiersInput } from '@/app/calendar/assembleTiers'
 import { pickNextBigDay } from '@/app/calendar/assembleDayTier'
-import { pickTryThis, toMMDD } from '@/lib/calendar-engine/derivers/tryThis'
 
 import type { NatalContext } from '@/lib/calendar-engine/context/types'
 import type { CalendarCell } from '@/lib/calendar-engine/types'
@@ -72,15 +71,12 @@ function baseInput(overrides: Partial<AssembleTiersInput> = {}): AssembleTiersIn
 }
 
 describe('assembleTiers — 월운 머리말 = 셀과 같은 절기월 (재감사 G2 · TP-2)', () => {
-  it('woolun 은 이 달에 시작하는 절기월, woolunSpans 는 실제로 걸친 두 절기월', async () => {
+  it('woolun 은 이 달에 시작하는 절기월, 셀의 월운은 절입일에 바뀐다', async () => {
     const out = await assembleTiers(baseInput())
     // 망종 2024-06-05 13:10 KST → 서울 06-05 부터 庚午월, 06-01~04 는 己巳월.
     expect(out.month.woolun.hanja).toBe('庚午')
-    expect(out.month.woolunSpans).toEqual([
-      { woolun: { hanja: '己巳', kr: '기사', en: 'gisa' }, fromDay: 1, toDay: 4 },
-      { woolun: { hanja: '庚午', kr: '경오', en: 'gyeongo' }, fromDay: 5, toDay: 30 },
-    ])
-    // 그리드 첫 주의 saju-pillar 월운이 머리말 범위와 같다.
+    // (옛 woolunSpans 는 옛 MonthTier 머리말만 읽어 D9 에서 뺐다 — 셀 신호가 정본.)
+    // 그리드 첫 주의 saju-pillar 월운이 절입일 규칙을 따른다.
     const wolunOf = (iso: string) =>
       cells
         .find((c) => c.datetime.startsWith(iso))!
@@ -156,25 +152,14 @@ describe('assembleTiers — month tier', () => {
     expect(out.month.crossActivations!.length).toBeLessThanOrEqual(6)
   })
 
-  it('narrative carries only the "이달 총평" summary (ko)', async () => {
-    const out = await assembleTiers(baseInput({ lang: 'ko' }))
-    expect(out.month.narrative.length).toBe(1)
-    // MonthTier 가 읽는 건 '이달 총평' 뿐 — 예전의 '타고난 결'·'이 달의 결' 항목은
-    // 표시되지 않던 페이로드라 더 이상 싣지 않는다.
-    expect(out.month.narrative.map((n) => n.tag)).toEqual(['이달 총평'])
-  })
-
-  it('keeps the canonical 이달 총평 tag and carries bodyEn in en mode', async () => {
-    // The summary now uses a locale-independent tag ('이달 총평') so the client
-    // locale toggle can find it; localization is via body(ko)/bodyEn(en), with
-    // MonthTier rendering a localized label. So even in en mode the tag stays
-    // canonical and the English text rides on bodyEn.
-    const out = await assembleTiers(baseInput({ lang: 'en' }))
-    const summary = out.month.narrative.find((n) => n.tag === '이달 총평')
-    if (summary) {
-      expect(summary.tag).toBe('이달 총평')
-      expect(typeof summary.bodyEn).toBe('string')
-    }
+  it('D9: 옛 MonthTier · YearTier 만 읽던 narrative · woolunSpans · user.dignities 는 싣지 않는다', async () => {
+    const out = await assembleTiers(baseInput())
+    const month = out.month as unknown as Record<string, unknown>
+    expect(month).not.toHaveProperty('narrative')
+    expect(month).not.toHaveProperty('woolunSpans')
+    expect(out.user as unknown as Record<string, unknown>).not.toHaveProperty('dignities')
+    // 월 verdict(톤의 단일 권위)는 그대로 — monthViewModel · 공유 카드가 읽는다.
+    expect(out.month.verdict?.tone).toBeTruthy()
   })
 })
 
@@ -182,16 +167,17 @@ describe('assembleTiers — day tier', () => {
   it('assembles the focus day with iljin + signal partitions', async () => {
     const out = await assembleTiers(baseInput())
     expect(out.day.iljin).toBeTruthy()
-    expect(Array.isArray(out.day.allSignals)).toBe(true)
     expect(Array.isArray(out.day.transits)).toBe(true)
     expect(Array.isArray(out.day.signals)).toBe(true)
-    expect(Array.isArray(out.day.crossSignals)).toBe(true)
-    // partitions must be disjoint subsets of allSignals.
-    const total = out.day.transits.length + out.day.signals.length + out.day.crossSignals.length
-    expect(total).toBe(out.day.allSignals.length)
-    // no transit leaks into the saju signal bucket.
+    // no transit leaks into the saju signal bucket, no cross pair into either.
     expect(out.day.signals.every((s) => s.kind !== 'transit')).toBe(true)
-    expect(out.day.crossSignals.every((s) => s.kind === 'cross-activation')).toBe(true)
+    expect(out.day.signals.every((s) => s.kind !== 'cross-activation')).toBe(true)
+    expect(out.day.transits.every((s) => s.kind === 'transit')).toBe(true)
+    // D9: 옛 DayTier 만 읽던 allSignals · crossSignals · jijanggan · narrative 는 페이로드에 없다.
+    const day = out.day as unknown as Record<string, unknown>
+    for (const k of ['allSignals', 'crossSignals', 'jijanggan', 'narrative']) {
+      expect(day, k).not.toHaveProperty(k)
+    }
   })
 
   it('day.geokgukStatus carries a name and a status', async () => {
@@ -224,8 +210,9 @@ describe('assembleTiers — focusDayCell fallback', () => {
     const explicit = cells.find((c) => c.datetime.slice(0, 10) === TARGET_DAY_ISO) ?? cells[0]
     const out = await assembleTiers(baseInput({ focusDayCell: explicit }))
     expect(out.day.iljin).toBeTruthy()
-    // all day signals come from the supplied cell.
-    expect(out.day.allSignals.length).toBe(explicit.signals.length)
+    // all day signals come from the supplied cell (saju + transits + cross pairs).
+    const crossN = explicit.signals.filter((s) => s.kind === 'cross-activation').length
+    expect(out.day.signals.length + out.day.transits.length + crossN).toBe(explicit.signals.length)
   })
 })
 
@@ -422,85 +409,4 @@ describe("assembleTiers — '왜' 부호 게이트 (계획 B1 #4)", () => {
     }
     expect(reasons).toBeGreaterThan(0)
   }, 60000)
-})
-
-describe('assembleTiers — 이달 총평은 지난 날을 짚지 않는다 (계획 B1 #3)', () => {
-  const koDate = (mmdd: string) => {
-    const [m, d] = mmdd.split('-').map(Number)
-    return new RegExp(`(^|[^0-9])${m}월 ${d}일`)
-  }
-
-  it('기준일 이전의 조심·피할 날은 총평에 없고, 짚는 날은 pickTryThis 와 같다', async () => {
-    let checkedPast = 0
-    for (const day of [12, 20, 26]) {
-      const out = await assembleTiers(monthInput(TARGET_MONTH, day))
-      const body = out.month.narrative.find((n) => n.tag === '이달 총평')?.body ?? ''
-      expect(body.length).toBeGreaterThan(0)
-      const today = toMMDD(out.month.ym, day)
-      for (const d of [...out.month.cautionDays, ...out.month.avoidDays]) {
-        if (d >= today) continue
-        checkedPast++
-        expect(body, `총평이 지난 날 ${d} 을 짚었다 (기준 ${today})`).not.toMatch(koDate(d))
-      }
-      const tt = pickTryThis(
-        {
-          bestDay: out.month.bestDay?.date,
-          goodDays: out.month.goodDays,
-          cautionDays: out.month.cautionDays,
-          avoidDays: out.month.avoidDays,
-        },
-        today
-      )
-      if (tt.hold) expect(body).toMatch(koDate(tt.hold))
-      if (tt.push) expect(body).toMatch(koDate(tt.push))
-    }
-    expect(checkedPast).toBeGreaterThan(0)
-  }, 60000)
-})
-
-describe("assembleTiers — 최고의 날이 지나면 총평은 '가장 무게' 를 쓰지 않는다 (F3)", () => {
-  const MOST_KO = /가장 (큰 )?무게|무게가 가장/
-  const MOST_EN = /most weight|heaviest weight/
-  const summaryOf = (out: Awaited<ReturnType<typeof assembleTiers>>) =>
-    out.month.narrative.find((n) => n.tag === '이달 총평')
-
-  it('PUSH 가 최고의 날이면 종전 문장, 앞으로 남은 첫 좋은 날로 대체되면 부드러운 문장', async () => {
-    let checked = 0
-    for (const m of [TARGET_MONTH, 3, 9, 11, 1, 4]) {
-      const probe = await assembleTiers(monthInput(m, 1))
-      const best = probe.month.bestDay?.date
-      if (!best) continue
-      const bestD = Number(best.slice(3))
-      if (!probe.month.goodDays.some((d) => Number(d.slice(3)) > bestD)) continue
-
-      const [onBest, after] = await Promise.all([
-        assembleTiers(monthInput(m, bestD)),
-        assembleTiers(monthInput(m, bestD + 1)),
-      ])
-      const pushAfter = pickTryThis(
-        {
-          bestDay: after.month.bestDay?.date,
-          goodDays: after.month.goodDays,
-          cautionDays: after.month.cautionDays,
-          avoidDays: after.month.avoidDays,
-        },
-        toMMDD(after.month.ym, bestD + 1)
-      ).push
-      expect(pushAfter).not.toBeNull()
-      expect(pushAfter).not.toBe(best)
-
-      const a = summaryOf(onBest)!
-      expect(a.body).toMatch(MOST_KO)
-      expect(a.bodyEn).toMatch(MOST_EN)
-      const b = summaryOf(after)!
-      const [mm, dd] = pushAfter!.split('-').map(Number)
-      expect(b.body).toContain(`${mm}월 ${dd}일`)
-      expect(b.body).not.toMatch(MOST_KO)
-      expect(b.bodyEn).toContain(`${mm}/${dd}`)
-      expect(b.bodyEn ?? '').not.toMatch(MOST_EN)
-      checked++
-      if (checked >= 2) break
-    }
-    expect(checked, '최고의 날 뒤에 좋은 날이 남는 달이 fixture 에 있어야 한다').toBeGreaterThan(0)
-  }, 120000)
 })

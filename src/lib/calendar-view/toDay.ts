@@ -5,7 +5,7 @@
  *   { date, dateKo, iljin, iljinSibsin, score, themes[5], totalSignals,
  *     oneLine, signals[], transits[], shinsalActive[],
  *     // Phase 3 신규
- *     appliedPatterns, crossActivations, gongmang, jijanggan, geokgukStatus }
+ *     appliedPatterns, crossActivations, gongmang, geokgukStatus }
  *
  * 입력:
  *   - 대상 날짜 CalendarCell (그 날의 모든 ActiveSignal + derivedScore + themeScores)
@@ -15,7 +15,6 @@
  *   - appliedPatterns: kind === 'applied-pattern' (상관견관·식신제살 등)
  *   - crossActivations: kind === 'cross-activation' (사주×점성 동시 페어)
  *   - gongmang: kind === 'gongmang'
- *   - jijanggan: kind === 'jijanggan' (지장간 3층 활성)
  *   - geokgukStatus: 본명 격국 status (그 날 active 인지 + 이유)
  *
  * 정통화 보완:
@@ -33,7 +32,6 @@ import {
   ymdFromIso,
 } from './shared'
 import { getSibsinKo } from '@/lib/saju/cycleRelations'
-import { STEM_ELEMENT_KO } from '@/lib/saju/constants'
 import { getGongmang, getTwelveStage } from '@/lib/saju/shinsal'
 import { humanizeReason } from './humanizeReason'
 import {
@@ -108,29 +106,6 @@ export interface DestinypalDayGongmang {
   reason?: string
 }
 
-export interface DestinypalDayJijangganLayer {
-  /** 그 층의 천간 한자. */
-  stem: string
-  /** 일간 기준 십신. */
-  sibsin: string
-  /** 5원소 — '목'/'화'/'토'/'금'/'수'. */
-  element: '목' | '화' | '토' | '금' | '수'
-  /** 지장간 강도 라벨. */
-  layer: '정기' | '중기' | '여기'
-}
-
-/**
- * destinypal Day 의 지장간 3층 — 본명 일주(=일지) 의 정기·중기·여기.
- *
- * 백엔드 NatalContext.saju.dayJijanggan (정기/중기/여기 한자) 를 그대로 받아
- * 일간 기준 십신 + 오행 lookup 으로 한 번에 평탄화.
- */
-export interface DestinypalDayJijangganObj {
-  jeonggi: DestinypalDayJijangganLayer
-  junggi?: DestinypalDayJijangganLayer
-  yeogi?: DestinypalDayJijangganLayer
-}
-
 export interface DestinypalDay {
   date: string // "2026-06-15"
   dateKo: string // "2026년 6월 15일"
@@ -153,22 +128,7 @@ export interface DestinypalDay {
    * destinypal DestinyGongmang shape 과 호환.
    */
   gongmang: DestinypalDayGongmang
-  /**
-   * 본명 일주(=일지) 지장간 — 정기/중기/여기 객체 shape.
-   * 옛 DayTier 가 `jijanggan.jeonggi / .junggi / .yeogi` 로 읽던 필드 — v9.2 일간 화면
-   * (dayViewModel)은 아직 읽지 않는다.
-   */
-  jijanggan: DestinypalDayJijangganObj
   geokgukStatus?: string
-
-  // ── 옛 DayTier 용 컬렉션 — adapter 가 빈 배열로라도 채운다. v9.2 일간 화면은 아래
-  //    crossSignals · allSignals · narrative 를 아직 읽지 않는다(페이로드에만 실린다). ──
-  /** cross-activation 페어 (DestinyCrossActivation 호환 — 일단 빈 배열로 prefill). */
-  crossSignals: DestinypalDayCrossActivation[]
-  /** 모든 신호 — 옛 DayTier 가 .allSignals?.length 로 fallback 분기하던 필드. */
-  allSignals: DestinypalDaySignal[]
-  /** narrative chip 묶음 — 옛 DayTier 가 .map 하던 필드. */
-  narrative: Array<{ tag: string; body: string }>
   /** 상위 우호 사유(KO). */
   topReasons: string[]
   /** 상위 우호 사유(EN) — 토글용. */
@@ -234,7 +194,7 @@ const KIND_TO_CAT: Record<string, string> = {
 /**
  * signal.kind → 표시 카테고리('saju/shinsal' · 'astro/transit' · 'cross/activation' …).
  * 표에 없는 kind 는 `${source}/${kind}` 로 폴백. toDay 의 DestinypalDaySignal 과
- * assembleDayTier 의 allSignals projection 이 같은 표를 쓰도록 여기 한 곳에 둔다.
+ * assembleDayTier 의 신호 projection(signals · transits)이 같은 표를 쓰도록 여기 한 곳에 둔다.
  */
 export function signalCat(kind: string, source: string): string {
   return KIND_TO_CAT[kind] ?? `${source}/${kind}`
@@ -314,7 +274,6 @@ export function toDay(opts: ToDayOptions): DestinypalDay {
   const shinsalActiveSet = new Set<string>()
   const appliedPatterns: DestinypalDayAppliedPattern[] = []
   const crossActivations: DestinypalDayCrossActivation[] = []
-  // cell.signals 의 jijanggan signal 활성 layer 표시용 (보조). primary 는 natal.dayJijanggan.
   let gongmangActiveFromSignal: { branches: string[]; reason?: string } | null = null
   // 문구 회전용 — 큐레이션 사유 층(월·일·시·정점)의 impact net.
   let reasonNet = 0
@@ -422,9 +381,6 @@ export function toDay(opts: ToDayOptions): DestinypalDay {
     statusResult?.factors?.negative
   )
 
-  // ── 본명 일주 지장간 3층 (정기/중기/여기) 객체 빌드 ──
-  const jijanggan = buildJijangganObj(natal)
-
   // ── 공망 — 본명 일주에서 산출 + cell.signals 의 gongmang signal 활성 분 합쳐 정리 ──
   const gongmang = buildGongmang(natal, gongmangActiveFromSignal)
 
@@ -489,12 +445,7 @@ export function toDay(opts: ToDayOptions): DestinypalDay {
     appliedPatterns,
     crossActivations,
     gongmang,
-    jijanggan,
     geokgukStatus,
-    // 빈 컬렉션 — 옛 DayTier 가 .map() / .length 로 무조건 읽던 자리(타입 호환용).
-    crossSignals: [],
-    allSignals: signals,
-    narrative: [],
     topReasons,
     topReasonsEn,
     cautions,
@@ -503,40 +454,6 @@ export function toDay(opts: ToDayOptions): DestinypalDay {
     evidenceLadderEn,
     twelveStageMatrix,
     dayTone,
-  }
-}
-
-/**
- * NatalContext.saju.dayJijanggan (정기/중기/여기 한자) → 객체 shape.
- *
- * 각 층마다 일간 기준 십신 + STEM_ELEMENT_KO(정본 파생 표) 룩업으로 오행 채움.
- * jeonggi 가 없으면 '—' 폴백 단일층으로 채움 (UI 가 jeonggi 를 무조건 읽음).
- */
-function buildJijangganObj(natal: NatalContext): DestinypalDayJijangganObj {
-  const dm = natal.saju?.dayMaster?.name ?? ''
-  const dj = natal.saju.dayJijanggan
-  function buildLayer(
-    stem: string | undefined,
-    layer: '정기' | '중기' | '여기'
-  ): DestinypalDayJijangganLayer | undefined {
-    if (!stem) return undefined
-    return {
-      stem,
-      sibsin: dm ? safeSibsin(dm, stem) : '—',
-      element: STEM_ELEMENT_KO[stem] ?? '토',
-      layer,
-    }
-  }
-  const jeonggi = buildLayer(dj?.jeonggi, '정기') ?? {
-    stem: '—',
-    sibsin: '—',
-    element: '토' as const,
-    layer: '정기' as const,
-  }
-  return {
-    jeonggi,
-    junggi: buildLayer(dj?.junggi, '중기'),
-    yeogi: buildLayer(dj?.yeogi, '여기'),
   }
 }
 

@@ -38,8 +38,6 @@ const { buildMonthViewModel } = await import('@/lib/calendar-view/monthViewModel
 const { buildDayViewModel } = await import('@/lib/calendar-view/dayViewModel')
 
 const { twelveStageHanja, appliedPatternEn } = await import('@/lib/calendar-view/dayTierEnMaps')
-const { monthThemeCandidates, selectMonthThemes } =
-  await import('@/lib/calendar-engine/derivers/monthSummary')
 
 const NOW = new Date('2026-11-25T03:00:00.000Z')
 /** 차트·포커스일별 렌더 HTML — 샘플 재현 셀의 구체 문구를 아래에서 확인한다. */
@@ -212,26 +210,13 @@ describeRealEphemeris('EN 티어 렌더 — 한글 없음 (실제 천체력)', (
           now: NOW,
         })
 
-        // 데이터 층 — 교차 사주 키 EN(SI-2·CC-4), 이달 총평 EN(SI-4).
+        // 데이터 층 — 교차 사주 키 EN(SI-2·CC-4). (이달 총평 SI-4 는 D9 에서 페이로드째 삭제.)
         for (const cell of t.month.calendar) {
           if (cell.reason) expect(cell.reason.sajuEn, `${ym}-${cell.d} reason`).not.toMatch(HANGUL)
         }
         for (const x of t.day.crossActivations ?? []) {
           expect(x.sajuSide, `${di} cross`).not.toMatch(HANGUL)
         }
-        const summary = t.month.narrative.find((n) => n.tag === '이달 총평')
-        expect(summary?.bodyEn ?? '').not.toMatch(HANGUL)
-        expect(summary?.body ?? '').not.toContain('흐름 흐름')
-        // 이달 총평 테마 — 신호 id 로 한 번 고른 같은 테마를 KO·EN 이 함께 말한다(SI-4).
-        const monthCells = cells.filter((x) => x.datetime.slice(0, 7) === ym)
-        const themes = selectMonthThemes(monthThemeCandidates(monthCells))
-        expect(themes.length, `${ym} themes`).toBeGreaterThan(0)
-        for (const th of themes) {
-          expect(summary?.body ?? '').toContain(th.ko.replace(/\s*흐름$/, ''))
-          expect(summary?.bodyEn ?? '').toContain(th.en)
-        }
-        expect(summary?.body ?? '').not.toMatch(/오늘 |조후|ZR/)
-        expect(summary?.bodyEn ?? '').not.toMatch(/active today|climate balance|ZR/)
 
         // 렌더 — 월은 포커스일이 오늘인 월간 탭('03 / 오늘'의 '왜 이런 날' 행 포함), 일은 그 날.
         const monthVm = buildMonthViewModel(t.month, t.day, { lang: 'en' })

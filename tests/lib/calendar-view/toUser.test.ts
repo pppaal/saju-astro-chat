@@ -305,17 +305,15 @@ describe('toUser — NatalContext → destinypal user', () => {
     })
   })
 
-  describe('dignities passthrough', () => {
-    it('natal.astro.dignities 를 DestinyDignityEntry[] 로 그대로 통과', () => {
+  describe('dignities (D9)', () => {
+    it('본명 품위 목록은 user 에 싣지 않는다 — 읽는 화면이 없고 Life 는 natal 에서 직접 읽는다', () => {
       const natal = makeNatal({
         dignities: [
           { planet: 'Mars', sign: 'Aries', degree: 5, tiers: { domicile: true }, score: 5 },
         ],
       })
-      const u = toUser(natal)
-      expect(u.dignities).toEqual([
-        { planet: 'Mars', sign: 'Aries', degree: 5, tiers: { domicile: true }, score: 5 },
-      ])
+      const u = toUser(natal) as unknown as Record<string, unknown>
+      expect(u).not.toHaveProperty('dignities')
     })
   })
 

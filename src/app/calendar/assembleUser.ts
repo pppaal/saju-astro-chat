@@ -70,7 +70,6 @@ export function assembleUserSummary(
       ascEn: userBase.astro.ascEn!,
       mcEn: userBase.astro.mcEn!,
     },
-    dignities: userBase.dignities,
     almutenFiguris: userBase.almutenFiguris,
     sect: userBase.sectKind,
     intro: userBase.intro,

@@ -15,23 +15,13 @@
 import { deriveConvergence } from '@/lib/calendar-engine/derivers/convergence'
 import { currentManAge } from '@/lib/datetime/currentAge'
 import { isMinorAge, sanitizeCrossEntry } from '@/lib/calendar-engine/minorSafe'
-import {
-  deriveMonthSummary,
-  monthThemeCandidates,
-} from '@/lib/calendar-engine/derivers/monthSummary'
 import { reconcileMonthTone } from '@/lib/calendar-engine/derivers/reconcile'
 import { personSeed } from '@/lib/calendar-engine/derivers/personSeed'
 import { deriveLayeredScores } from '@/lib/calendar-engine/derivers/layeredScore'
-import { pickTryThis, toMMDD } from '@/lib/calendar-engine/derivers/tryThis'
-import {
-  calendarTimeZone,
-  monthWindows,
-  pillarsForLocalDate,
-} from '@/lib/calendar-engine/periodPillars'
+import { calendarTimeZone, pillarsForLocalDate } from '@/lib/calendar-engine/periodPillars'
 import { getSibsinKo } from '@/lib/saju/cycleRelations'
 
 import { toMonth } from '@/lib/calendar-view'
-import { toGanji } from '@/lib/calendar-view/shared'
 import { assembleUserSummary } from './assembleUser'
 import { reconcileCellOneLine } from '@/lib/calendar-view/toDay'
 import {
@@ -143,23 +133,14 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
 
   // ─── woolun(월운) — 셀과 같은 규칙(periodPillars, 재감사 G2 · TP-2) ─────────
   // 양력 한 달은 절기월 둘에 걸친다 — 1일~절입 전날은 앞 절기월, 절입이 든 현지 날부터
-  // 다음 절기월(절입일 규칙, 출생지 시간대 민용 날짜). 머리말 간지(woolun)는 이 달에 *시작
-  // 하는* 절기월(15일이 든 쪽, 그 달 대부분)이고, woolunSpans 가 실제로 걸친 절기월과 날짜
-  // 범위를 함께 싣는다 — 예전엔 15일의 월운 하나만 달아 첫 주 그리드(앞 절기월)와 머리말이
-  // 엇갈렸다. 근거 사다리(toMonth)도 15일 셀을 대표로 읽어 이 간지와 같다.
+  // 다음 절기월(절입일 규칙, 출생지 시간대 민용 날짜). month.woolun 은 이 달에 *시작하는*
+  // 절기월(15일이 든 쪽, 그 달 대부분)이다. 근거 사다리(toMonth)도 15일 셀을 대표로 읽어
+  // 이 간지와 같다. (실제로 걸친 두 절기월의 날짜 범위 woolunSpans 는 옛 MonthTier 머리말만
+  // 읽던 필드라 D9 에서 뺐다 — 셀마다의 월운은 셀 신호가 정본.)
   const tz = calendarTimeZone(natal)
   const woolunRef = pillarsForLocalDate(TARGET_YEAR, TARGET_MONTH, 15, tz).month
   const woolunStem = woolunRef.stem
   const woolunBranch = woolunRef.branch
-  const monthLastDay = new Date(Date.UTC(TARGET_YEAR, TARGET_MONTH, 0)).getUTCDate()
-  const monthLastIso = `${monthPrefix}-${String(monthLastDay).padStart(2, '0')}`
-  const woolunSpans = monthWindows({ start: `${monthPrefix}-01`, end: monthLastIso }, tz).map(
-    (w) => ({
-      woolun: toGanji(w.stem, w.branch),
-      fromDay: w.startDate < `${monthPrefix}-01` ? 1 : Number(w.startDate.slice(8, 10)),
-      toDay: w.endDate > monthLastIso ? monthLastDay : Number(w.endDate.slice(8, 10)),
-    })
-  )
 
   // ─── adapter 호출 (월/일 tier prop 어셈블) ───────────────────────────────
   // user 매핑은 assembleUser.ts 로 분리 — /destiny(assembleLifetime)와 공유.
@@ -192,8 +173,8 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
 
   // (인생 티어 — lifetimeFlow·lifetimePivots·toLifetime·인생 곡선 — 은 캘린더에서
   //  계산하지 않는다: 셸 기본 가시 티어가 월·일이라 결과가 버려졌다. /destiny 의
-  //  assembleLifetime 이 담당. 월 narrative 의 '타고난 결'·'이 달의 결' 항목도
-  //  옛 MonthTier 가 '이달 총평' 만 읽어 표시되지 않던 페이로드라 뺐다.)
+  //  assembleLifetime 이 담당. 월 narrative('이달 총평' deriveMonthSummary 포함)는 옛
+  //  MonthTier 만 읽던 페이로드라 D9 에서 뺐다 — v9.2 월간 화면은 monthViewModel 이 직접 쓴다.)
   const { month: monthAdapter, calendar } = toMonth({
     ym: monthPrefix,
     label: `${TARGET_YEAR}년 ${TARGET_MONTH}월`,
@@ -226,14 +207,12 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
     label: monthAdapter.label,
     ym: monthAdapter.ym,
     woolun: monthAdapter.woolun ?? { hanja: '—', kr: '—', en: '—' },
-    woolunSpans,
     woolunSibsin: woolunStemSibsin,
     woolunStemSibsin,
     cautionDays: monthAdapter.cautionDays,
     goodDays: monthAdapter.goodDays,
     bestDay: monthAdapter.bestDay ?? { date: '', score: 0 },
     avoidDays: monthAdapter.avoidDays,
-    narrative: monthAdapter.narrative,
     keyDays: monthKeyDays,
     focusDay: monthAdapter.focusDay,
     calendar,
@@ -357,81 +336,15 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
   //  리드아웃 태그·라벨·조언을 지배하므로 밴드 마크(색=점수)를 그대로 둬도 문장과
   //  축이 갈리지 않는다. 오늘 링은 cell.focus 로만 그린다.)
 
-  // 이달 총평 — 타이밍·톤·지배 테마를 이어지는 한 문단으로 합성(deriveMonthSummary).
-  // 양쪽 로케일 요약을 함께 만들어 보관 — 클라이언트 로케일 토글 시 서버언어로
-  // 굳던 문제 해소. 정본 태그 '이달 총평', body=ko / bodyEn=en. (옛 MonthTier 가 이 문단을
-  // 그렸고, v9.2 월간 화면(monthViewModel)은 아직 읽지 않는다 — 페이로드에만 실린다.)
-  // 지배 테마는 *신호 id* 로 한 번 고른 후보 목록(월 층 우호 신호, 그 달 영향 순)을 두
-  // 로케일에 똑같이 넘긴다 — 예전엔 로케일별 topReasons 문자열(점수 높은 날의 일진 사유 포함)을
-  // 따로 모아 KO·EN 이 다른 테마를 말하고 '오늘 천을귀인' 이 월 테마가 됐다(재감사 SI-4).
-  const monthThemes = monthThemeCandidates(monthCells)
-
   // ── 월 verdict — 톤의 단일 권위. 그리드 밴드 카운트(여는 날짜와 무관)로 1회 산출해
-  //    month.verdict 에 부착하고, 총평(deriveMonthSummary)에도 같은 톤을 주입한다.
-  //    월간 히어로·날 수(monthViewModel)·총평 문단·공유카드가 전부 이 하나를 읽어 어긋날 수 없다.
-  const monthVerdict = reconcileMonthTone({
+  //    month.verdict 에 부착한다. 월간 히어로·날 수(monthViewModel)·공유카드가 전부 이
+  //    하나를 읽어 어긋날 수 없다.
+  month.verdict = reconcileMonthTone({
     goodN: month.goodDays.length,
     cautionN: month.cautionDays.length,
     avoidN: month.avoidDays.length,
     totalN: monthCells.length,
   })
-  month.verdict = monthVerdict
-
-  // 총평이 짚는 날(밀어붙일 날·미룰 날)은 월간 '해 볼 것'(monthViewModel → TryThis)과 같은
-  // pickTryThis 로 — 기준일(TARGET_DAY, 보통 오늘) 이후만. 예전엔 cautionDays[0]
-  // 이라 19일에 "11/8 무렵엔 미루세요"처럼 지난 날을 짚었다(계획 B1 #3).
-  const tryThis = pickTryThis(
-    {
-      bestDay: month.bestDay?.date,
-      goodDays: month.goodDays,
-      cautionDays: month.cautionDays,
-      avoidDays: month.avoidDays,
-    },
-    toMMDD(month.ym, TARGET_DAY)
-  )
-  const summaryCommon = {
-    woolunKr: month.woolun?.kr && month.woolun.kr !== '—' ? month.woolun.kr : undefined,
-    goodDays: month.goodDays.length,
-    cautionDays: month.cautionDays.length,
-    // 나쁜 날(<30)을 deriveMonthSummary 의 주의-측 톤·날수에 합산(감사: 예전엔
-    // avoid 를 안 넘겨 나쁜 달이 'bright'로 뒤집히고 날수에서 avoid 가 증발했다).
-    avoidDays: month.avoidDays.length,
-    totalDays: monthCells.length,
-    bestDay: tryThis.push ?? undefined,
-    // PUSH 가 그리드 최고의 날이 아니면(최고일이 이미 지남 → 앞으로 남은 첫 좋은 날)
-    // 총평은 '가장 무게가 실리는 날' 대신 부드러운 대체일 문장을 쓴다.
-    bestDayKind:
-      tryThis.push && tryThis.push !== month.bestDay?.date
-        ? ('next-good' as const)
-        : ('best' as const),
-    cautionDay: tryThis.hold ?? undefined,
-  }
-  // bestDayReason(keyDays meaning)은 서버 lang 으로만 산출돼 있어 그 로케일 요약에만
-  // 싣는다. 톤 게이트: 그 keyDay 의 수렴 톤이 negative 면 이유를 생략 — 총평의
-  // 최고의 날 문장은 "추진해 보세요" 액션으로 닫히는데 부정 의미를 붙이면 한 문장
-  // 안에서 자기모순("부딪힘 조심 — 추진해 보세요")이 된다(감사).
-  const bestKeyDay = tryThis.push ? monthKeyDays.find((k) => k.date === tryThis.push) : undefined
-  const bestDayReason =
-    bestKeyDay && bestKeyDay.tone !== 'negative' ? bestKeyDay.meaning : undefined
-  const summaryKo = deriveMonthSummary({
-    ...summaryCommon,
-    themes: monthThemes,
-    bestDayReason: lang === 'ko' ? bestDayReason : undefined,
-    monthTone: monthVerdict.tone,
-    lang: 'ko',
-    seed,
-  })
-  const summaryEn = deriveMonthSummary({
-    ...summaryCommon,
-    themes: monthThemes,
-    bestDayReason: lang === 'en' ? bestDayReason : undefined,
-    monthTone: monthVerdict.tone,
-    lang: 'en',
-    seed,
-  })
-  if (summaryKo || summaryEn) {
-    month.narrative = [{ tag: '이달 총평', body: summaryKo, bodyEn: summaryEn }, ...month.narrative]
-  }
 
   const ilganHanja = user.ilgan.hanja || '辛'
 

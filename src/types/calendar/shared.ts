@@ -126,19 +126,6 @@ export interface AstroSignal extends SignalBase {
   glyph?: string
 }
 
-export interface CrossSignal extends SignalBase {
-  source: 'cross'
-  /** 사주측 원천 신호 라벨. */
-  sajuSide: string
-  /** 점성측 원천 신호 라벨. */
-  astroSide: string
-  /** A·B등급 매핑 의미 — '정관 ↔ Saturn (책임·구조)' 등. */
-  meaning: string
-}
-
-/** 5-tier UI 가 그리는 모든 신호의 discriminated union. */
-export type DestinySignal = SajuSignal | AstroSignal | CrossSignal
-
 // ============================================================================
 // 자리 (Position) — 점성 객체의 sign/degree/house 묶음.
 // ============================================================================
@@ -171,14 +158,4 @@ export interface NarrativeChip {
   bodyEn?: string
   /** 부가 메타 — 색상 / 아이콘 키. (jupiter / saturn / daewoon / neptune 등). */
   kind?: string
-}
-
-/**
- * data.js narrative[] 와 동형 — 태그 + 본문 1줄.
- */
-export interface TaggedNarrative {
-  tag: string
-  body: string
-  /** 본문 영문 — 영문 로케일에서 사용. 미지정 시 body 로 폴백. */
-  bodyEn?: string
 }

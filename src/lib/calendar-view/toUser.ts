@@ -19,7 +19,7 @@
 
 import type { NatalContext } from '@/lib/calendar-engine/context/types'
 import type { ZodiacKo } from '@/lib/astrology/foundation/types'
-import type { DestinyDignityEntry, DestinyAlmutenFiguris } from '@/types/calendar'
+import type { DestinyAlmutenFiguris } from '@/types/calendar'
 import { getIljuArchetype } from '@/lib/chart-dictionary'
 import { strengthClassOf, type StrengthBand } from '@/lib/saju/strengthScore'
 import { ELEMENT_KO, ELEMENT_EN, SIGN_KO, geokgukStatusLine, rootLine, rootLineEn } from './shared'
@@ -97,11 +97,6 @@ export interface DestinypalUser {
    * 본명 5점 합산 dignity 점수 — UI 가 직접 읽음.
    */
   almutenFiguris: DestinyAlmutenFiguris
-  /**
-   * 본명 행성 dignities — DestinyDignityEntry[].
-   * 옛 YearTier 가 dignity 칩/도트를 그릴 때 읽던 필드 — v9.2 화면은 아직 읽지 않는다.
-   */
-  dignities: DestinyDignityEntry[]
   /**
    * 본명 일주 아키타입(ilju-60) 한 줄 — character(인생 흐름 히어로). 일주 간지 결손/DB 미스 시
    * undefined (옵셔널 · 가드).
@@ -244,20 +239,6 @@ function deriveAstro(natal: NatalContext): DestinypalUserAstro {
     ascEn: asc?.sign,
     mcEn: mc?.sign,
   }
-}
-
-/**
- * NatalContext.astro.dignities → DestinyDignityEntry[] (shape 동일 — passthrough).
- */
-function deriveDignitiesFull(natal: NatalContext): DestinyDignityEntry[] {
-  const list = natal.astro.dignities ?? []
-  return list.map((d) => ({
-    planet: d.planet,
-    sign: d.sign,
-    degree: d.degree,
-    tiers: d.tiers,
-    score: d.score,
-  }))
 }
 
 /**
@@ -417,7 +398,6 @@ export function toUser(natal: NatalContext, opts: ToUserOptions = {}): Destinypa
     rootStatusEn,
     sectKind: natal.astro.sect ?? null,
     almutenFiguris: deriveAlmutenFigurisFull(natal),
-    dignities: deriveDignitiesFull(natal),
     iljuArchetype: deriveIljuArchetype(natal),
   }
 }

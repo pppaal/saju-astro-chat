@@ -8,7 +8,6 @@
 
 import type { ZodiacKo } from '@/lib/astrology/foundation/types'
 import type { AstroPlanetName } from '@/lib/astrology/interpretations'
-import type { DignityTiers } from '@/lib/astrology/foundation/dignities'
 import type { ElementCounts, FiveElement } from './shared'
 
 // ============================================================================
@@ -60,24 +59,6 @@ export interface DestinyAstroBasic {
   sunEn: ZodiacKo
   ascEn: ZodiacKo
   mcEn: ZodiacKo
-}
-
-// ============================================================================
-// 본명 dignities — 행성별 5-tier (domicile/exaltation/triplicity/term/face).
-// destinypal 본명 카드에서 "본명 행성 위계" 칩 묶음 그리는 데 사용.
-// ============================================================================
-
-export interface DestinyDignityEntry {
-  /** 행성 이름 — Sun/Moon/Mercury... */
-  planet: AstroPlanetName | string
-  /** 행성이 자리한 sign. */
-  sign: ZodiacKo
-  /** within-sign degree, 0..30. */
-  degree: number
-  /** 5-tier boolean snapshot. */
-  tiers: DignityTiers
-  /** Almuten-ish 점수 (dignityScore). */
-  score: number
 }
 
 // ============================================================================
@@ -136,8 +117,6 @@ export interface DestinyUserSummary {
 
   // ── 점성 본명 ──
   astro: DestinyAstroBasic
-  /** 본명 dignity 묶음 — 본명 카드 dignity 칩 줄. */
-  dignities: DestinyDignityEntry[]
   /** Almuten Figuris (선택 — Hellenistic 정통 누락 5신호 중 하나). */
   almutenFiguris: DestinyAlmutenFiguris
   /** sect — 낮/밤. null = 정할 수 없음(출생시각 미상 등, OD-5). */

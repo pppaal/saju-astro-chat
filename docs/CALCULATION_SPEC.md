@@ -455,18 +455,11 @@ depend only on the person and the date (1-day = month = year builds,
 **Natal-static signals are not scored.** `STATIC_NATAL_KINDS`
 (`signalTaxonomy.ts`: `saju-pattern`, `geokguk-status`, `natal-dignity`) are fixed
 facts of the birth chart, not events of the day. `derivedScore`, patterns,
-`topReasons`/`cautions`, the evidence ladder, convergence (big days), salience
-and month-summary themes skip them; they stay in `cell.signals` for the narrative
+`topReasons`/`cautions`, the evidence ladder, convergence (big days) and salience
+skip them; they stay in `cell.signals` for the narrative
 and detail cards. The natal almuten snapshot (`astro-dignity`,
 `evidence.detail.dignity === 'natal-almuten'`) has kind `natal-dignity`; it is
 also never a cross parent (docs/운흐름.md §0.5.8).
-
-**Month summary themes** (`deriveMonthSummary`) come from
-`monthThemeCandidates` / `selectMonthThemes` (`derivers/monthSummary.ts`): the
-month's monthly-layer favorable signals, grouped by signal id and ranked by their
-summed impact (polarity × weight over the month's days); ties keep first-seen
-order. A KO/EN pair is used only when both labels are usable, so both locales
-name the same theme.
 
 **Day reason** ("왜 이런 날", `pickDayReasonSignal` in
 `src/app/calendar/crossPair.ts`, shared by the Monthly readout and the Daily hero):
@@ -478,10 +471,6 @@ name the same theme.
   they lead only when no agreeing daily or instant cross exists, and then compete
   on impact (|polarity| × weight) with monthly and wider crosses.
 - Ties keep the first signal in cell order.
-
-`deriveMonthSummary` takes `bestDayKind`: `'next-good'` when the month's best day
-has passed and the push day is the next good day, which switches the summary to
-the fallback wording.
 
 ## 6. Data-reliability rule
 

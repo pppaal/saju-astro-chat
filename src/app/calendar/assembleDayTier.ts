@@ -174,11 +174,11 @@ export async function assembleDayTier(input: AssembleDayTierInput): Promise<Dest
   const statusResult = advanced?.geokguk?.statusResult
   const geokgukName = advanced?.geokguk?.primary ?? '미정'
 
-  // ── 일진 cell.signals → DestinySignal[] 풀세트 projection ──
-  // adapter 의 DestinypalDaySignal 은 id/weight/layer/source 를 버린다. 이 풀세트는 옛 DayTier 의
-  // signal stream + FixedStarRow + ArabicLotRow 가 읽었고, v9.2 일간 화면(dayViewModel)은
-  // 아직 읽지 않는다 — 페이로드에만 실린다.
-  type DSig = DestinyDay['allSignals'][number]
+  // ── 일진 cell.signals → 사주·점성 신호 projection (signals · transits) ──
+  // adapter 의 DestinypalDaySignal 은 id/weight/layer/source 를 버린다. 풀세트(옛 allSignals)와
+  // 교차 신호 배열(옛 crossSignals)은 옛 DayTier 만 읽던 페이로드라 D9 에서 뺐다 — 교차는
+  // crossActivations 가, 신호 풀세트는 셀이 정본.
+  type DSig = DestinyDay['signals'][number] | DestinyDay['transits'][number]
   const allDaySignals: DSig[] = dayCell.signals.map((s) => {
     const base = {
       id: s.id,
@@ -208,9 +208,6 @@ export async function assembleDayTier(input: AssembleDayTierInput): Promise<Dest
   const daySajuSignals = allDaySignals.filter(
     (s) => s.kind !== 'transit' && s.kind !== 'cross-activation'
   ) as DestinyDay['signals']
-  const dayCrossSignals = allDaySignals.filter(
-    (s) => s.kind === 'cross-activation'
-  ) as DestinyDay['crossSignals']
   // 응용격국 — id 는 *패턴 id*('jae-saeng-gwan', 신호 id 의 날짜 꼬리 없이)라 표시층 EN 맵
   // (appliedPatternEn)이 그대로 찾는다. name 은 한자 라벨('財生官')만 — 신호 name 은
   // '財生官 (재생관)' 이라 EN 화면 보조 글리프에 한글이 샜다(재감사 SI-3). evidence 가 빠진
@@ -357,9 +354,6 @@ export async function assembleDayTier(input: AssembleDayTierInput): Promise<Dest
     totalSignals: dayAdapter.totalSignals,
     signals: daySajuSignals,
     transits: dayTransits,
-    crossSignals: dayCrossSignals,
-    allSignals: allDaySignals,
-    jijanggan: dayAdapter.jijanggan,
     geokgukStatus: {
       name: geokgukName,
       status: statusResult?.status ?? '반성반파',
@@ -376,7 +370,6 @@ export async function assembleDayTier(input: AssembleDayTierInput): Promise<Dest
     crossActivations: dayCrossActivations,
     ...(dayReason ? { reason: dayReason } : {}),
     shinsalActive: dayAdapter.shinsalActive,
-    narrative: dayAdapter.narrative,
     topReasons: dayAdapter.topReasons,
     topReasonsEn: dayAdapter.topReasonsEn,
     cautions: dayAdapter.cautions,

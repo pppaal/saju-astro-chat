@@ -33,7 +33,6 @@ function monthWithMarks(
     goodDays: [],
     avoidDays: [],
     bestDay: { date: best ? ds(best) : '', score: best ? 79 : 0 },
-    narrative: [],
     keyDays: days
       .filter((d) => marks[d] !== 'best')
       .map((d) => ({ date: ds(d), astro: [], saju: [], bothSystems: true })),

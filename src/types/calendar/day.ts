@@ -1,54 +1,18 @@
 // src/types/destinypal/day.ts
 //
 // destinypal Day(1일 일진) 카드 prop.
-// data.js window.DESTINY.day 와 동형 + 누락 5신호 (지장간 / 격국 성패 /
-// 공망 / 응용격국 / cross-activation) 전부 포함.
+// data.js window.DESTINY.day 와 동형 + 누락 신호 (격국 성패 / 공망 / 응용격국 /
+// cross-activation) 포함.
 //
 // 5-tier 의 최하위 layer — 가장 풍부한 신호 묶음을 그리는 카드.
 // 백엔드 CalendarCell (한 datetime 의 signals[] + derivedScore + matched
 // patterns) 가 그대로 매핑.
 
-import type {
-  Ganji,
-  TaggedNarrative,
-  DestinySignal,
-  SajuSignal,
-  AstroSignal,
-  CrossSignal,
-  SibsinKind,
-  FiveElement,
-  Polarity,
-} from './shared'
+import type { Ganji, SajuSignal, AstroSignal, SibsinKind, Polarity } from './shared'
 import type { GeokgukStatus, GeokgukStatusResult } from '@/lib/saju/geokguk'
 import type { DayVerdict } from '@/lib/calendar-engine/derivers/reconcile'
 import type { EvidenceRung } from '@/lib/calendar-engine/derivers/evidenceLadder'
 import type { DestinyCalendarCell, ReasonAstroDetail } from './month'
-
-// ============================================================================
-// 지장간 (Jijanggan) — 본명 일주(=일지) 의 정기·중기·여기 분해.
-// 누락 5신호 #1 — 본명 일주 3층.
-// 백엔드 PillarData.jijanggan + 일간 기준 십신.
-// ============================================================================
-
-export interface DestinyJijangganLayer {
-  /** 한자 — '戊' 등. */
-  stem: string
-  /** 일간 기준 십신. */
-  sibsin: SibsinKind | string
-  /** 5원소. */
-  element: FiveElement
-  /** 지장간 강도 라벨 (정기/중기/여기). */
-  layer: '정기' | '중기' | '여기'
-}
-
-export interface DestinyJijanggan {
-  /** 정기 (本氣) — 가장 강한 층. */
-  jeonggi: DestinyJijangganLayer
-  /** 중기 (中氣) — 중간 층. 일부 지지는 없음. */
-  junggi?: DestinyJijangganLayer
-  /** 여기 (餘氣) — 가장 약한 층. 일부 지지는 없음. */
-  yeogi?: DestinyJijangganLayer
-}
 
 // ============================================================================
 // 격국 성패 (Geokguk Status) — 정인격 반성반파 등.
@@ -189,14 +153,10 @@ export interface DestinyDay extends DestinyIljinHeader {
   signals: SajuSignal[]
   /** data.js day.transits[] — 점성측 트랜짓 신호. */
   transits: AstroSignal[]
-  /** cross-activation 페어. data.js 에 명시 없음 — 신규. */
-  crossSignals: CrossSignal[]
-  /** 모든 신호 (signals + transits + crossSignals) flatten — UI 정렬·필터용. */
-  allSignals: DestinySignal[]
+  // (옛 crossSignals · allSignals · jijanggan · narrative 는 v9.2 화면·API·상담사·푸시 어디서도
+  //  읽지 않아 D9 에서 뺐다 — 교차는 crossActivations, 신호 풀세트는 셀이 정본.)
 
-  // ── 누락 5신호 ──
-  /** 본명 일주 지장간 3층. */
-  jijanggan: DestinyJijanggan
+  // ── 누락 신호 ──
   /** 본명 격국 성패. */
   geokgukStatus: DestinyGeokgukStatus
   /** 공망 활성. */
@@ -247,8 +207,6 @@ export interface DestinyDay extends DestinyIljinHeader {
   // ── 부속 (기존 destinypal data.js) ──
   /** 활성 신살 한글 이름들 — ['천을귀인','도화','역마']. */
   shinsalActive: string[]
-  /** narrative chip 묶음 (옵션). */
-  narrative?: TaggedNarrative[]
   /** 상위 우호 사유 3..5 (백엔드 CalendarCell.topReasons). KO. */
   topReasons?: string[]
   /** 상위 우호 사유 영문 — 토글용. */

@@ -3,10 +3,9 @@
 // destinypal Month(1달 월운) 카드 prop.
 // data.js window.DESTINY.month + window.DESTINY.calendar 와 동형.
 //
-// /calendar 월 티어 — 30일 캘린더 강도 그라프 + 이달 총평 narrative + 이달의 큰 날
-// (keyDays) + 사주×점성 교차 통합.
+// /calendar 월 티어 — 30일 캘린더 강도 그라프 + 이달의 큰 날 (keyDays) + 사주×점성 교차 통합.
 
-import type { Ganji, TaggedNarrative, SibsinKind } from './shared'
+import type { Ganji, SibsinKind } from './shared'
 import type { MonthVerdict } from '@/lib/calendar-engine/derivers/reconcile'
 import type { EvidenceRung } from '@/lib/calendar-engine/derivers/evidenceLadder'
 
@@ -143,12 +142,6 @@ export interface DestinyMonth {
   ym: string
   /** 월운 간지 — '甲午'. 이 양력 달에 *시작하는* 절기월(15일이 든 쪽, 그 달 대부분). */
   woolun: Ganji
-  /**
-   * 이 양력 달이 실제로 걸친 절기월(월운)과 날짜 범위(1-31) — 1일~절입 전날은 앞 절기월,
-   * 절입이 든 현지 날부터 다음 절기월(calendar-engine/periodPillars, 재감사 G2). 셀 신호와
-   * 같은 규칙이라 그리드 첫 주와 머리말이 엇갈리지 않는다.
-   */
-  woolunSpans?: Array<{ woolun: Ganji; fromDay: number; toDay: number }>
   /** 월운 천간 십신. */
   woolunSibsin?: SibsinKind | string
   /** 주의일 'MM-DD' 리스트. */
@@ -164,8 +157,6 @@ export interface DestinyMonth {
   }
   /** 피하기 'MM-DD' 리스트. */
   avoidDays: string[]
-  /** narrative — '이달 총평'(body=ko / bodyEn=en). */
-  narrative: TaggedNarrative[]
   /** 이달의 큰 날 리스트 (convergence keyDays — 윈도우+신뢰도). */
   keyDays?: DestinyMonthKeyDay[]
   /** 사용자 다이브 일자 (1..31). */

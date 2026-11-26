@@ -19,12 +19,7 @@ export type { DestinypalDaewoonEntry, ToDaewoonOptions } from './toDaewoon'
 export type { DestinypalMilestone } from './toMilestones'
 
 export { toMonth, bandMarkForScore } from './toMonth'
-export type {
-  DestinypalMonth,
-  DestinypalMonthNarrativeItem,
-  DestinypalCalendarDay,
-  ToMonthOptions,
-} from './toMonth'
+export type { DestinypalMonth, DestinypalCalendarDay, ToMonthOptions } from './toMonth'
 
 export { toDay } from './toDay'
 export type {
@@ -34,7 +29,6 @@ export type {
   DestinypalDayAppliedPattern,
   DestinypalDayCrossActivation,
   DestinypalDayGongmang,
-  DestinypalDayJijangganLayer,
   ToDayOptions,
 } from './toDay'
 

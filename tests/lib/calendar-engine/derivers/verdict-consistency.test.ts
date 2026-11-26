@@ -5,7 +5,6 @@ import {
   scoreToBand,
   type MonthTone,
 } from '@/lib/calendar-engine/derivers/reconcile'
-import { deriveMonthSummary } from '@/lib/calendar-engine/derivers/monthSummary'
 
 /**
  * 교차 표면 일치 불변식 — verdict 단일 권위가 실제로 어긋남을 막는지 잠근다.
@@ -18,8 +17,8 @@ import { deriveMonthSummary } from '@/lib/calendar-engine/derivers/monthSummary'
  * 이 불변식을 깨면 즉시 빨간불.
  */
 
-// ── 월: reconcileMonthTone 이 monthSummary 를 지배한다 ────────────────────────
-describe('월 verdict ⟺ 총평 일치 (모든 카운트 조합)', () => {
+// ── 월: reconcileMonthTone 불변식 (옛 총평 deriveMonthSummary 는 D9 에서 삭제) ───
+describe('월 verdict 불변식 (모든 카운트 조합)', () => {
   // 좋은/조심/피하는 날 수를 넓게 훑어 4분류 전 구간을 커버.
   const COMBOS: Array<[number, number, number]> = []
   for (const g of [0, 1, 2, 4, 8, 12]) {
@@ -29,38 +28,6 @@ describe('월 verdict ⟺ 총평 일치 (모든 카운트 조합)', () => {
       }
     }
   }
-
-  it('총평 여는 문장이 verdict.tone 과 반대말을 하지 않는다', () => {
-    for (const [goodN, cautionN, avoidN] of COMBOS) {
-      const verdict = reconcileMonthTone({ goodN, cautionN, avoidN, totalN: 30 })
-      const ko = deriveMonthSummary({
-        goodDays: goodN,
-        cautionDays: cautionN,
-        avoidDays: avoidN,
-        totalDays: 30,
-        monthTone: verdict.tone,
-        lang: 'ko',
-      })
-      const tag = `g${goodN}c${cautionN}a${avoidN} tone=${verdict.tone}`
-
-      if (verdict.tone === 'flat') {
-        // 평이한 달 — "고르게" 로 열고, 없는 좋은/조심 날을 겨냥한 mixed 문구 금지.
-        expect(ko, tag).toContain('고르게 흐르는 달')
-        expect(ko, tag).not.toContain('굴곡이 또렷한')
-        expect(ko, tag).not.toContain('조심할 날엔 쉬어')
-      } else if (verdict.tone === 'good') {
-        expect(ko, tag).toContain('순하게')
-        expect(ko, tag).not.toContain('고르게 흐르는 달')
-      } else if (verdict.tone === 'care') {
-        expect(ko, tag).toContain('조심스러운 결')
-        expect(ko, tag).not.toContain('고르게 흐르는 달')
-      } else {
-        // volatile → mixed 문단("굴곡이 또렷한")
-        expect(ko, tag).toContain('굴곡이 또렷한')
-        expect(ko, tag).not.toContain('고르게 흐르는 달')
-      }
-    }
-  })
 
   it('careN = cautionN + avoidN, shareTone 은 tone 과 1:1', () => {
     const map: Record<MonthTone, string> = {

@@ -131,7 +131,6 @@ export function makeV9Month(overrides: Partial<DestinyMonth> = {}): DestinyMonth
     goodDays,
     avoidDays,
     bestDay: { date: ds(BEST), score: 79 },
-    narrative: [],
     keyDays: KEY_DAY_DS.map((date) => ({
       date,
       meaning: 'server meaning',
@@ -268,9 +267,6 @@ export function makeV9Day(overrides: Partial<DestinyDay> = {}): DestinyDay {
     totalSignals: 0,
     signals: [],
     transits: [],
-    crossSignals: [],
-    allSignals: [],
-    jijanggan: {} as DestinyDay['jijanggan'],
     geokgukStatus: {
       name: '상관격',
       status: '반성반파',
@@ -307,7 +303,6 @@ export function makeV9Day(overrides: Partial<DestinyDay> = {}): DestinyDay {
     ],
     reason: TODAY_REASON,
     shinsalActive: [],
-    narrative: [],
     topReasons: [],
     topReasonsEn: [],
     cautions: ['부딪히는 기운이 깔림'],

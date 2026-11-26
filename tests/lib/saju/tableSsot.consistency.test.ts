@@ -167,7 +167,8 @@ const CASES: Case[] = [
     name: 'STEM_TO_ELEMENT',
     kind: 'record',
     expected: STEM_ELEMENT_KO,
-    via: 'STEM_ELEMENT_KO',
+    // E17 에서 STEM_ELEMENT_KO 로 바꿨고, D9 에서 읽던 day.jijanggan 페이로드째 지웠다
+    removed: true,
   },
   {
     files: ['src/lib/destiny/sajuFacts.ts'],

@@ -3,7 +3,7 @@
  *
  * destinypal month:
  *   { label, ym, woolun, cautionDays[], goodDays[], bestDay{date,score},
- *     avoidDays[], narrative[], focusDay, evidenceLadder }
+ *     avoidDays[], focusDay, evidenceLadder }
  *
  * destinypal calendar[30]:
  *   Array<{ d, ds, intensity, mark, focus }>
@@ -12,7 +12,6 @@
  *   - month 표시 라벨 (예: "2026년 6월", ym "2026-06")
  *   - CalendarCell[] (그 달의 30일 cells)
  *   - 월운 wolun ganji (선택)
- *   - 옵션 narrative (deriveMonthlyInterpretation 등 derive 결과 직주입)
  */
 
 import type { CalendarCell } from '@/lib/calendar-engine/types'
@@ -24,11 +23,6 @@ import {
   type LadderRange,
 } from '@/lib/calendar-engine/derivers/evidenceLadder'
 import { toGanji, type Ganji, pad2 } from './shared'
-
-export interface DestinypalMonthNarrativeItem {
-  tag: string
-  body: string
-}
 
 export interface DestinypalCalendarDay {
   d: number
@@ -46,7 +40,6 @@ export interface DestinypalMonth {
   goodDays: string[]
   bestDay?: { date: string; score: number } // date "06-04"
   avoidDays: string[]
-  narrative: DestinypalMonthNarrativeItem[]
   focusDay: number // 1..30
   /** 근거 사다리(10년→올해→이달) — 그 달 대표 셀 기준. */
   evidenceLadder?: EvidenceRung[]
@@ -64,8 +57,6 @@ export interface ToMonthOptions {
   /** 월운 ganji (선택). */
   woolunStem?: string
   woolunBranch?: string
-  /** narrative — derive 결과 직주입. */
-  narrative?: DestinypalMonthNarrativeItem[]
   /** focusDay — 어느 날을 펼쳐 보여줄지 (기본: bestDay 의 day). */
   focusDay?: number
   /** caution/avoid/good 임계값 (선택). */
@@ -221,7 +212,6 @@ export function toMonth(opts: ToMonthOptions): {
           ? { date: bestDs, score: Math.round(bestScore) }
           : undefined,
       avoidDays,
-      narrative: opts.narrative ?? [],
       focusDay,
       evidenceLadder,
       evidenceLadderEn,

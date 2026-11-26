@@ -75,7 +75,7 @@ describe('toDay — CalendarCell → destinypal day', () => {
       expect(d.signals[0].cat).toBe('astro/totally-unknown')
     })
 
-    it('totalSignals / allSignals 미러', () => {
+    it('totalSignals = 셀 신호 수', () => {
       const cell = makeCell({
         datetime: '2026-06-15T00:00:00.000Z',
         signals: [
@@ -85,7 +85,7 @@ describe('toDay — CalendarCell → destinypal day', () => {
       })
       const d = toDay({ cell, natal: natal() })
       expect(d.totalSignals).toBe(2)
-      expect(d.allSignals).toBe(d.signals)
+      expect(d.signals).toHaveLength(2)
     })
   })
 
@@ -213,10 +213,12 @@ describe('toDay — CalendarCell → destinypal day', () => {
       ])
     })
 
-    it('crossSignals / narrative 는 항상 빈 배열로 prefill', () => {
+    it('옛 DayTier 용 crossSignals · allSignals · narrative · jijanggan 은 싣지 않는다 (D9)', () => {
       const d = toDay({ cell: makeCell({ datetime: '2026-06-15T00:00:00.000Z' }), natal: natal() })
-      expect(d.crossSignals).toEqual([])
-      expect(d.narrative).toEqual([])
+      const rec = d as unknown as Record<string, unknown>
+      for (const k of ['crossSignals', 'allSignals', 'narrative', 'jijanggan']) {
+        expect(rec, k).not.toHaveProperty(k)
+      }
     })
   })
 
@@ -276,41 +278,6 @@ describe('toDay — CalendarCell → destinypal day', () => {
       })
       const d = toDay({ cell, natal: natal() })
       expect(d.signals[0].polarity).toBe(3)
-    })
-  })
-
-  describe('지장간 객체', () => {
-    it('정기/중기/여기 3층 + 십신 + 오행', () => {
-      const d = toDay({ cell: makeCell({ datetime: '2026-06-15T00:00:00.000Z' }), natal: natal() })
-      // 일간 甲: 己=정재, 乙=겁재, 丁=상관
-      expect(d.jijanggan.jeonggi).toEqual({
-        stem: '己',
-        sibsin: '정재',
-        element: '토',
-        layer: '정기',
-      })
-      expect(d.jijanggan.junggi).toEqual({
-        stem: '乙',
-        sibsin: '겁재',
-        element: '목',
-        layer: '중기',
-      })
-      expect(d.jijanggan.yeogi).toEqual({
-        stem: '丁',
-        sibsin: '상관',
-        element: '화',
-        layer: '여기',
-      })
-    })
-
-    it('지장간 결손 시 정기 "—" 폴백, 중기/여기 undefined', () => {
-      const d = toDay({
-        cell: makeCell({ datetime: '2026-06-15T00:00:00.000Z' }),
-        natal: natal({ dayJijanggan: {} }),
-      })
-      expect(d.jijanggan.jeonggi).toEqual({ stem: '—', sibsin: '—', element: '토', layer: '정기' })
-      expect(d.jijanggan.junggi).toBeUndefined()
-      expect(d.jijanggan.yeogi).toBeUndefined()
     })
   })
 
