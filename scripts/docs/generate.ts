@@ -23,6 +23,8 @@ import { ENABLED_SERVICES, REMOVED_PUBLIC_SERVICE_PREFIXES } from '@/config/enab
 import { tarotThemes, tarotCreditCostFor } from '@/lib/tarot/tarot-spreads-data'
 import { tarotDeck } from '@/lib/tarot/data'
 import { crossPolarityTruthTable } from '@/lib/calendar-engine/extractors/cross-activation'
+import { transitOrbLimit } from '@/lib/astrology/foundation/transit'
+import type { AspectType } from '@/lib/astrology/foundation/types'
 import {
   CROSS_LAYER_BAND,
   SAJU_ASTRO_MAPPINGS,
@@ -291,6 +293,51 @@ const GENERATORS: Record<string, () => string> = {
       band,
       '',
       `Mappings: ${SAJU_ASTRO_MAPPINGS.length} (${grades}); every grade is emitted, gated only by the band.`,
+    ].join('\n')
+  },
+
+  // 트랜짓 오브 — transit.ts transitOrbLimit(TRANSIT_ORBS × PLANET_ORB_MULTIPLIER, 트랜짓 천체
+  // 배율만). 캘린더 추출기·상담사·인생 곡선이 같은 한도를 읽는다(재감사 DOC-1).
+  'transit-orbs': () => {
+    const aspects: [AspectType, string][] = [
+      ['conjunction', '합 ☌'],
+      ['opposition', '대립 ☍'],
+      ['trine', '삼분 △'],
+      ['square', '사분 □'],
+      ['sextile', '육분 ⚹'],
+    ]
+    const bodies = [
+      'Sun',
+      'Moon',
+      'Mercury',
+      'Venus',
+      'Mars',
+      'Jupiter',
+      'Saturn',
+      'Uranus',
+      'Neptune',
+      'Pluto',
+      'True Node',
+    ]
+    const num = (n: number) => String(Number(n.toFixed(2)))
+    // 배율 표에 없는 천체는 1.0 — 빈 이름의 한도가 곧 기본 오브다.
+    const base = (a: AspectType) => transitOrbLimit('', a)
+    const rows = bodies.map((b) => [
+      b,
+      `× ${num(transitOrbLimit(b, 'conjunction') / base('conjunction'))}`,
+      ...aspects.map(([a]) => `${num(transitOrbLimit(b, a))}°`),
+    ])
+    return [
+      STAMP,
+      '',
+      '**출처:** [`transit.ts`](../../src/lib/astrology/foundation/transit.ts) `transitOrbLimit` — `TRANSIT_ORBS[애스펙트] × PLANET_ORB_MULTIPLIER[트랜짓 천체]`.',
+      '',
+      table(
+        ['트랜짓 천체', '배율', ...aspects.map(([a, label]) => `${label} (기본 ${num(base(a))}°)`)],
+        rows
+      ),
+      '',
+      '표에 없는 천체(카이런 등)는 배율 1.0. 본명 쪽 배율은 쓰지 않는다.',
     ].join('\n')
   },
 

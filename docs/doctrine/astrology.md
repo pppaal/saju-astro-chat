@@ -70,6 +70,46 @@ status: living
 - **천체력 점검:** 첫 `getSwisseph()` 에서 Swiss Ephemeris 파일(Moshier 아님)과 카이런 계산을 확인하고,
   실패는 로그로 남긴다(throw 하지 않음 — [`ephe.ts`](../../src/lib/astrology/foundation/ephe.ts)).
 
+## 트랜짓 어스펙트 (캘린더·상담사·인생 곡선)
+
+출생 차트·시너스트리 애스펙트(`aspects.ts`, 헬레니즘 moiety 쌍 평균)와 **다른 규칙**이다. 캘린더
+트랜짓 추출기·상담사 트랜짓 줄·인생 곡선이 모두 [`transit.ts`](../../src/lib/astrology/foundation/transit.ts)
+`findTransitAspects`·`transitOrbLimit` 를 읽는다.
+
+- **애스펙트:** 메이저 5개(합·육분·사분·삼분·대립)만 — 마이너는 캘린더 추출기가 막는다. 각도는
+  `ASPECT_ANGLES`([`types.ts`](../../src/lib/astrology/foundation/types.ts)).
+- **오브 한도:** 기본 오브 × _트랜짓 천체_ 배율(아래 표). 본명 쪽 배율은 쓰지 않는다. 오브 = |분리각 −
+  애스펙트 각| ≤ 한도.
+- **본명 대상:** 행성 + ASC·MC(캘린더 추출기는 본명 카이런·릴리스도).
+- **접근/분리:** 트랜짓 천체의 속도로, 두 정확 지점 중 가까운 쪽을 향하는지로 판정.
+- **캘린더 창:** 현지 정오 샘플. 한 신호 = 오브 안 _연속_ 정오 전체이고, 범위 가장자리에 닿은 구간은
+  천체력으로 범위 밖까지 잇는다(빌드 범위와 무관). peak = 가장 타이트한 정오. 역행으로 오브를 나갔다
+  다시 들어오면 별개 신호다. 층: 토성~명왕성 yearly, 목성·화성 monthly, 나머지 daily. 극성은
+  [`aspect-polarity.ts`](../../src/lib/calendar-engine/aspect-polarity.ts) `inferAspectPolarity`.
+
+<!-- gen:transit-orbs -->
+<!-- 이 표는 자동 생성됩니다. 직접 수정하지 마세요 — `npm run docs:sync`. -->
+
+**출처:** [`transit.ts`](../../src/lib/astrology/foundation/transit.ts) `transitOrbLimit` — `TRANSIT_ORBS[애스펙트] × PLANET_ORB_MULTIPLIER[트랜짓 천체]`.
+
+| 트랜짓 천체 | 배율  | 합 ☌ (기본 6°) | 대립 ☍ (기본 6°) | 삼분 △ (기본 5°) | 사분 □ (기본 5°) | 육분 ⚹ (기본 4°) |
+| ----------- | ----- | -------------- | ---------------- | ---------------- | ---------------- | ---------------- |
+| Sun         | × 1   | 6°             | 6°               | 5°               | 5°               | 4°               |
+| Moon        | × 1.2 | 7.2°           | 7.2°             | 6°               | 6°               | 4.8°             |
+| Mercury     | × 0.9 | 5.4°           | 5.4°             | 4.5°             | 4.5°             | 3.6°             |
+| Venus       | × 0.9 | 5.4°           | 5.4°             | 4.5°             | 4.5°             | 3.6°             |
+| Mars        | × 1   | 6°             | 6°               | 5°               | 5°               | 4°               |
+| Jupiter     | × 1.1 | 6.6°           | 6.6°             | 5.5°             | 5.5°             | 4.4°             |
+| Saturn      | × 1.2 | 7.2°           | 7.2°             | 6°               | 6°               | 4.8°             |
+| Uranus      | × 1.3 | 7.8°           | 7.8°             | 6.5°             | 6.5°             | 5.2°             |
+| Neptune     | × 1.3 | 7.8°           | 7.8°             | 6.5°             | 6.5°             | 5.2°             |
+| Pluto       | × 1.4 | 8.4°           | 8.4°             | 7°               | 7°               | 5.6°             |
+| True Node   | × 1   | 6°             | 6°               | 5°               | 5°               | 4°               |
+
+표에 없는 천체(카이런 등)는 배율 1.0. 본명 쪽 배율은 쓰지 않는다.
+
+<!-- /gen:transit-orbs -->
+
 ## 출생 시각·장소 미상 (`placeUnreliable`)
 
 출생 시각 또는 출생지를 모르면 ASC·MC·하우스가 정오 앵커·기본 좌표의 날조가 된다. 그래서 하우스·ASC·MC,
@@ -83,7 +123,8 @@ status: living
 
 - 표준 값: [`src/lib/config/calculationStandards.ts`](../../src/lib/config/calculationStandards.ts)
 - 차트/하우스: [`src/lib/astrology/foundation/astrologyService.ts`](../../src/lib/astrology/foundation/astrologyService.ts)
-- 어스펙트 orb/각도: [`src/lib/astrology/foundation/aspects.ts`](../../src/lib/astrology/foundation/aspects.ts)
+- 출생 차트·시너스트리 어스펙트 orb(moiety)/각도: [`src/lib/astrology/foundation/aspects.ts`](../../src/lib/astrology/foundation/aspects.ts)
+- 트랜짓 어스펙트 orb(`TRANSIT_ORBS × PLANET_ORB_MULTIPLIER`): [`src/lib/astrology/foundation/transit.ts`](../../src/lib/astrology/foundation/transit.ts) — 위 표
 - 디그니티/알무텐: [`src/lib/astrology/foundation/dignities.ts`](../../src/lib/astrology/foundation/dignities.ts), [`almutenFiguris.ts`](../../src/lib/astrology/foundation/almutenFiguris.ts)
 - 하우스·극권 폴백: [`src/lib/astrology/foundation/houses.ts`](../../src/lib/astrology/foundation/houses.ts)
 
@@ -95,5 +136,5 @@ status: living
 
 이 교리를 소비하는 서비스: [[destiny-counselor|운명 상담사]]
 
-> TODO(교리 산문): orb 값·디그니티 가중치의 "왜"를 여기로 끌어와 사주 교리와
-> 서술 깊이를 맞춘다.
+> TODO(교리 산문): 출생 차트 moiety orb 값·디그니티 가중치의 "왜"를 여기로 끌어와 사주
+> 교리와 서술 깊이를 맞춘다(트랜짓 orb 표는 위 자동 섹션).
