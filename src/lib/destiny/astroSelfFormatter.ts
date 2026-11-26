@@ -169,6 +169,12 @@ export interface AstroSelfInput {
   skipAngles?: boolean
 }
 
+/** 순간 at 의 timeZone 민용 날짜 'YYYY-MM-DD'. */
+function localDateIn(at: Date, timeZone: string): string {
+  const p = getDateComponentsInTimezone(at, timeZone)
+  return `${p.year}-${String(p.month).padStart(2, '0')}-${String(p.day).padStart(2, '0')}`
+}
+
 export async function formatAstroSelf(input: AstroSelfInput): Promise<string> {
   if (!input.chart) return ''
   const chart = expandChart(input.chart, input.latitude, input.longitude)
@@ -234,7 +240,8 @@ export async function formatAstroSelf(input: AstroSelfInput): Promise<string> {
   try {
     // 'Z' 가 붙은 절대 순간 — isoToJD 가 접미사를 존중하므로 사용자 tz 가 시각을
     // 다시 해석하지 않는다(옛 경로는 UTC 를 현지 벽시계로 읽어 서울 9시간 이르게,
-    // LA 8시간 늦게 계산 — 감사 ASTRO-4).
+    // LA 8시간 늦게 계산 — 감사 ASTRO-4). 운명상담사는 그 날짜의 출생 tz 정오
+    // (counselorDayAnchor — 캘린더 셀의 트랜짓 표본과 같은 순간)를 넘긴다(재감사 CNS-1).
     const nowIso = (input.now ?? new Date()).toISOString()
     const transitChart = await calculateTransitChart({
       iso: nowIso,
@@ -249,7 +256,11 @@ export async function formatAstroSelf(input: AstroSelfInput): Promise<string> {
       2.0
     ).slice(0, 30)
     if (transitAspects.length > 0) {
-      out.push(`[Current transits — 행성 (오늘) → natal, ${nowIso.slice(0, 10)}]`)
+      // 머리말 날짜는 그 순간의 차트 tz 날짜 — UTC 날짜(toISOString)는 UTC+12..+14 의
+      // 현지 정오에서 전날이다.
+      out.push(
+        `[Current transits — 행성 (오늘) → natal, ${localDateIn(new Date(nowIso), input.timeZone)}]`
+      )
       // transit chart의 행성 sign 매핑
       const transitSignByName = new Map<string, string>()
       for (const pl of [...transitChart.planets, transitChart.ascendant, transitChart.mc]) {
@@ -354,10 +365,10 @@ export async function formatAstroSelf(input: AstroSelfInput): Promise<string> {
   // ── Secondary Progression — natalInput 있으면 ────────────────
   if (input.natalInput) {
     try {
-      const nowDate = input.now ?? new Date()
+      // 진행 목표일 = 그 순간의 차트 tz 날짜(UTC 날짜는 UTC+12..+14 정오에서 하루 이르다).
       const prog = await calculateSecondaryProgressions({
         natal: input.natalInput,
-        targetDate: nowDate.toISOString().slice(0, 10),
+        targetDate: localDateIn(input.now ?? new Date(), input.timeZone),
       })
       // 주요 행성만 (Sun~Mars + Asc + MC)
       const major = ['Sun', 'Moon', 'Mercury', 'Venus', 'Mars']

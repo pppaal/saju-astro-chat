@@ -23,7 +23,8 @@ import { calculateOuterPlanetMilestones } from '@/lib/calendar-engine/lifecycle/
 import { currentManAge } from '@/lib/datetime/currentAge'
 import { toLifetime } from '@/lib/calendar-view'
 import { assembleUserSummary, type AssembledUser } from './assembleUser'
-import { getYearPillarForDate } from '@/lib/saju/datePillars'
+import { calendarTimeZone, pillarsForLocalDate } from '@/lib/calendar-engine/periodPillars'
+import { getDateComponentsInTimezone } from '@/lib/datetime/timezone'
 import { getSibsinKo } from '@/lib/saju/cycleRelations'
 import { ganjiToKorean, ganjiToRoman } from '@/lib/saju/ganjiKo'
 import { sibsinArea, sibsinAreaEn } from '@/lib/calendar-engine/derivers/plainLanguage'
@@ -54,7 +55,10 @@ export interface AssembleLifetimeInput {
    * Promise 로 넘기면 위 ephemeris 병렬 구간과 겹쳐 돌아 대기시간이 숨는다.
    */
   focusDayCell?: CalendarCell | null | Promise<CalendarCell | null>
-  /** 세운(올해 간지) 기준 날짜 — 미지정 시 now. 입춘 SSOT 로 세운 결정. */
+  /**
+   * 세운(올해 간지) 기준 날짜 'YYYY-MM-DD' — 출생지 시간대의 민용 날짜(캘린더 셀 날짜).
+   * 미지정 시 now 를 그 시간대로 읽은 날짜. 캘린더 셀과 같은 절입일 규칙으로 세운 결정.
+   */
   todayIso?: string
 }
 
@@ -119,7 +123,7 @@ export async function assembleLifetime(input: AssembleLifetimeInput): Promise<As
     lifeCurve: lifeCurve ?? undefined,
   })
 
-  // ⑥ 올해 한 줄(세운) — 연 셀 없이 입춘 SSOT 로. 캘린더로 내려보내는 연결 고리.
+  // ⑥ 올해 한 줄(세운) — 연 셀 없이, 캘린더 셀과 같은 날짜별 헬퍼로. 캘린더로 내려보내는 연결 고리.
   lifetime.thisYear = buildThisYear(natal, input.todayIso, now)
   // ⑧ 이 10년의 사주×점성 교차 — 1일 evidence 셀의 decadal 층 중 대운 부모와 10년 층
   //   천체 부모가 교차와 같은 부호인 것만(정직성 게이트, 계획 B3 #8 — 연 셀 불필요).
@@ -135,14 +139,26 @@ export async function assembleLifetime(input: AssembleLifetimeInput): Promise<As
   return { topbar: { whoBirthLine, place, ilganHanja }, user, lifetime }
 }
 
-/** 세운(올해 간지) 한 줄 — getYearPillarForDate(입춘 SSOT) + 일간 기준 십신. */
+/**
+ * 세운(올해 간지) 한 줄 — 그 날짜의 세운 + 일간 기준 십신. 세운은 캘린더 셀·상담사와 같은
+ * pillarsForLocalDate(출생지 시간대 민용 날짜 — 立春 이 든 그 현지 날이 새 세운)로 고른다
+ * (재감사 TP-4 · G3). 예전엔 `${todayIso}T12:00Z` 순간을 立春 순간과 비교해, 立春 날에
+ * 캘린더 셀과 세운이 갈릴 수 있었다.
+ */
 function buildThisYear(
   natal: NatalContext,
   todayIso: string | undefined,
   now: Date
 ): DestinyThisYear {
-  const ref = todayIso ? new Date(`${todayIso}T12:00:00.000Z`) : now
-  const yp = getYearPillarForDate(ref)
+  const tz = calendarTimeZone(natal)
+  let y: number, m: number, d: number
+  if (todayIso) {
+    ;[y, m, d] = todayIso.split('-').map(Number)
+  } else {
+    const local = getDateComponentsInTimezone(now, tz)
+    ;[y, m, d] = [local.year, local.month, local.day]
+  }
+  const yp = pillarsForLocalDate(y, m, d, tz).year
   const dm =
     (natal.saju?.dayMaster as { name?: string } | undefined)?.name ??
     (natal.saju?.pillars as { day?: { heavenlyStem?: { name?: string } } } | undefined)?.day

@@ -99,6 +99,41 @@ describe('assembleLifetime', () => {
     expect(lifetime.thisYear?.gz).toBe('癸卯')
   }, 60000)
 
+  it('立春 이 든 현지 날 = 캘린더 셀과 같은 새 세운 (재감사 TP-4 · G3, 오너 결정 17)', async () => {
+    // 立春 2025-02-03T14:10Z = 서울 02-03 23:10 → 서울 02-03 셀부터 乙巳. 예전 Life 는
+    // `${todayIso}T12:00Z`(=서울 21:00, 立春 전)로 甲辰 을 말해 캘린더 셀과 갈렸다.
+    const thisYearOn = async (todayIso: string) =>
+      (
+        await assembleLifetime({
+          natal,
+          lang: 'ko',
+          birthYear: 1995,
+          targetYear: 2025,
+          sex: '남',
+          birthDisplay: '1995.2.9 06:40',
+          whoBirthLine: '1995.2.9 06:40',
+          place: '서울',
+          now: new Date(`${todayIso}T03:00:00Z`),
+          todayIso,
+          focusDayCell: null,
+        })
+      ).lifetime.thisYear?.gz
+    const cells = await buildCalendar(
+      natal,
+      { start: '2025-02-02T00:00:00.000Z', end: '2025-02-03T23:59:59.999Z', granularity: 'day' },
+      { includeEvidence: false, enabledExtractors: ['pillar-sibsin'] }
+    )
+    const cellYear = (date: string) =>
+      cells
+        .find((c) => c.datetime.startsWith(date))!
+        .signals.filter((s) => s.id.startsWith('saju.pillar-sibsin.') && s.layer === 'yearly')
+        .map((s) => s.name.split(' ')[0])
+    expect(await thisYearOn('2025-02-02')).toBe('甲辰')
+    expect(cellYear('2025-02-02')).toEqual(['甲辰'])
+    expect(await thisYearOn('2025-02-03')).toBe('乙巳')
+    expect(cellYear('2025-02-03')).toEqual(['乙巳'])
+  }, 60000)
+
   it('대운 교차(decadeCross) — decadal 층만, 페어 중복 없음, polarity≠0', async () => {
     const { lifetime } = await run()
     const dc = lifetime.decadeCross ?? []

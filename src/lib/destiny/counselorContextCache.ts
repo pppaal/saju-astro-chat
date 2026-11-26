@@ -160,11 +160,11 @@ async function buildAndCacheContext(
   }
 ): Promise<{ stableContext: string; dailyContext: string }> {
   const { stableCtxKey, dailyCtxKey, localNow, hourUnknown, cityUnknown, userTz, sources } = opts
-  // 기준 시각(=buildDestinyContext 의 now)은 서버 TZ 와 무관해야 한다. 예전엔
-  // 서버-로컬 정오(new Date(y,m,d,12))라 UTC 서버와 KST 서버가 9h 어긋나,
-  // 트랜짓 어스펙트 목록·절기 경계 판정이 배포 환경에 따라 달라지는 결정론
-  // 누수가 있었다. 유저-tz 날짜의 UTC 정오로 고정한다(computeCurrentUnse 를
-  // 부르는 counselorContext.ts:659 와 동일 패턴 — main 2c20428).
+  // 보는 사람의 '오늘'(현지 민용 날짜)을 실어 나르는 Date — buildDestinyContext 는 이
+  // 값의 *UTC 필드(연·월·일)만* 읽는다(서버 TZ 무관). 순간으로 쓰지 않는다: 대운·세운·월운·
+  // 트랜짓은 그 안에서 그 날짜로 다시 정한다 — 세운·월운은 캘린더와 같은 pillarsForLocalDate,
+  // 순간이 필요한 계산은 출생 tz 의 그날 정오(counselorDayAnchor). 예전엔 이 UTC 정오를
+  // 그대로 순간으로 써서 UTC+12..+14 에선 다음 현지 날을 읽었다(재감사 TP-5 · CNS-1).
   const queryDate = new Date(Date.UTC(localNow.year, localNow.month - 1, localNow.day, 12, 0, 0))
   // ensureCounselorContext 가 출생 타임존 resolver 로 채운 값 — 이 폴백은 방어용.
   const tz = body.timezone ?? resolveBirthTimezone({}, { context: 'counselorContextCache' })

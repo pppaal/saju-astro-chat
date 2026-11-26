@@ -8,8 +8,9 @@
 import { ELEMENT_KO_TO_EN, STEMS } from '@/lib/saju/constants'
 import { STEM_HANJA_TO_HANGUL } from '@/lib/saju/graphIds'
 import { collectSajuFacts } from '@/lib/destiny/sajuFacts'
-import { computeCurrentUnse, type CurrentUnse } from '@/lib/saju/currentUnse'
-import { getSajuYearForDate } from '@/lib/saju/datePillars'
+import { computeCurrentUnse, type CivilDay, type CurrentUnse } from '@/lib/saju/currentUnse'
+import { pillarsForLocalDate } from '@/lib/calendar-engine/periodPillars'
+import { resolveBirthInstant } from '@/lib/datetime/resolveBirthInstant'
 import { collectAstroFacts } from '@/lib/destiny/astroFacts'
 import { getShinsalHits, getTwelveStagesForPillars, toSajuPillarsLike } from '@/lib/saju/shinsal'
 import { formatAstroSelf } from '@/lib/destiny/astroSelfFormatter'
@@ -411,6 +412,21 @@ function birthTimezoneOf(birth: DestinyBirth): string {
   )
 }
 
+/**
+ * 상담사 '오늘'의 기준 순간 — 그 현지 날짜의 정오를 출생 타임존 벽시계로 읽은 순간
+ * (재감사 G3 · TP-5 · CNS-1). 캘린더 셀이 트랜짓을 재는 순간(isoToJD(`${날짜}T12:00:00`,
+ * 출생 tz) — 같은 resolver)과 같고, 출생 tz 로 읽으면 그 날짜다. 그래서 대운(만 나이 —
+ * 출생 tz 민용 생일)·프로펙션·솔라 리턴 연도·트랜짓이 모두 캘린더의 그 날짜 셀과 같은 날을
+ * 본다. 예전엔 'UTC 정오'를 썼는데, UTC+12..+14 에선 그게 이미 다음 현지 날(오클랜드 00–01시,
+ * 키리티마티 02시)이라 대운이 생일 하루 전에 바뀌고 트랜짓은 내일 하늘이었다.
+ */
+export function counselorDayAnchor(day: CivilDay, timeZone: string): Date {
+  return resolveBirthInstant(
+    { year: day.year, month: day.month, day: day.day, hour: 12, minute: 0 },
+    timeZone
+  ).utc
+}
+
 export interface CurrentPeriod {
   seun?: { stem: string; branch: string } | null
   wolun?: { stem: string; branch: string } | null
@@ -516,9 +532,12 @@ export interface DestinyContextSplit {
 
 export async function buildDestinyContext(
   birth: DestinyBirth,
-  now: Date,
+  // 보는 사람의 '오늘'(현지 민용 날짜)을 실은 Date — *UTC 필드(연·월·일)만* 읽고 시각은
+  // 버린다. ensureCounselorContext 가 보는 사람 tz 의 오늘로 Date.UTC(y, m-1, d, 12) 를
+  // 만들어 넘긴다. 순간이 필요한 계산(대운·프로펙션·트랜짓·리턴)은 아래 dayAnchor 를 쓴다.
+  todayCarrier: Date,
   locale: Locale = 'ko',
-  // displayTz 는 더 이상 사용 안 함 — "오늘"은 주입된 now 에서 직접 뽑는다(아래
+  // displayTz 는 더 이상 사용 안 함 — "오늘"은 todayCarrier 에서 직접 뽑는다(아래
   // localNow). 호출부 호환을 위해 시그니처에는 남겨 둔다.
   _displayTz?: string,
   // 이번 답변에 넣을 데이터 소스(사주만/점성만/둘 다). 선택 안 된 시스템은
@@ -526,26 +545,26 @@ export async function buildDestinyContext(
   sources: DestinySources = ALL_SOURCES
 ): Promise<DestinyContextSplit> {
   const L = (ko: string, en: string) => (locale === 'ko' ? ko : en)
-  // "오늘"은 주입된 now 에서 직접 뽑는다. now 는 ensureCounselorContext 가 사용자
-  // tz 기준 그날의 *UTC 정오*(Date.UTC(...,12,0,0)) 로 만든 Date 라, UTC 필드가
-  // 곧 사용자-tz 날짜다. 예전엔 서버-로컬 필드(getFullYear/Month/Date)를 읽어,
-  // UTC+13/+14 호스트(예: Pacific/Auckland DST)에선 UTC 정오가 로컬 다음날
-  // 01~02시가 돼 "# 오늘" 앵커·일진 창·사주 연도 라벨이 하루 밀렸다. 서버-tz
-  // 의존을 없애려 getUTC* 로 읽는다(buildIljinWindowBlock 이 이미 getUTC* 사용).
-  const localNow = {
-    year: now.getUTCFullYear(),
-    month: now.getUTCMonth() + 1,
-    day: now.getUTCDate(),
+  // "오늘" = todayCarrier 의 UTC 필드(보는 사람 tz 의 민용 날짜 — TP-6 판정대로 보는 사람
+  // 기준을 유지). 서버-로컬 필드(getFullYear…)는 서버 TZ 에 따라 하루 밀리므로 getUTC* 로.
+  const localNow: CivilDay = {
+    year: todayCarrier.getUTCFullYear(),
+    month: todayCarrier.getUTCMonth() + 1,
+    day: todayCarrier.getUTCDate(),
   }
   const year = localNow.year
+  // 출생 타임존 resolver(명시 tz → 출생 좌표의 tz → 사주 기준 존) — 캘린더 셀과 같은 존
+  // (loadTierData 도 같은 resolver). 예전엔 tz 가 없으면 좌표가 뉴욕이어도 서울 존이었다.
+  const tz = birthTimezoneOf(birth)
+  // 그 날짜의 기준 순간 = 출생 tz 의 그날 정오(캘린더 셀의 트랜짓 표본 순간과 같다).
+  // 대운·만 나이·프로펙션·트랜짓·리턴이 모두 이 순간 하나를 읽는다 — 예전의 'UTC 정오'는
+  // UTC+12..+14 에서 이미 다음 현지 날이었다(재감사 TP-5 · CNS-1).
+  const dayAnchor = counselorDayAnchor(localNow, tz)
   // 사주 미선택이면 아예 빌드하지 않는다(원국·타이밍·일진 전부 스킵).
-  const saju = sources.saju ? buildSajuSection(birth, locale, year, localNow, now) : null
+  const saju = sources.saju ? buildSajuSection(birth, locale, localNow, dayAnchor, tz) : null
 
   // birth identity header 는 [Meta] 와 중복이라 제거 (route.ts 에서 [Meta]
   // 가 birthDate/birthTime/gender/location/tz/flags 단일 source 로 출력).
-  // tz 는 점성 계산용으로만 사용 — 출생 타임존 resolver(명시 tz → 출생 좌표의 tz →
-  // 사주 기준 존). 예전엔 tz 가 없으면 좌표가 뉴욕이어도 서울 존으로 계산했다.
-  const tz = birthTimezoneOf(birth)
   // 좌표 미상 → 출생 타임존 기준점(Asia/Seoul = 서울 기본값, OD-2). 사주 쪽은 경도
   // 미상을 같은 존 기준 경도로 풀어(solarTimeCorrectionMinutes) 두 계산이 같은 위치다.
   const lat = birth.latitude ?? defaultLatitudeFor(tz)
@@ -584,7 +603,7 @@ export async function buildDestinyContext(
           birthTimeUnknown: birth.birthTimeUnknown,
           birthCityUnknown: birth.birthCityUnknown,
         },
-        now
+        dayAnchor
       )
       if (!aFacts) throw new Error('astro facts unavailable')
 
@@ -635,7 +654,8 @@ export async function buildDestinyContext(
         latitude: lat,
         longitude: lon,
         timeZone: tz,
-        now,
+        // 트랜짓·식·리턴·진행 = 그 날짜의 출생 tz 정오(캘린더 셀과 같은 하늘).
+        now: dayAnchor,
         natalInput: {
           year: Y,
           month: M,
@@ -727,15 +747,15 @@ export async function buildDestinyContext(
 
 function buildSajuSection(
   birth: DestinyBirth,
-  locale: Locale = 'ko',
-  year?: number,
-  localNow?: { year: number; month: number; day: number },
-  // 주입된 "지금" — 대운/세운/월운·만나이 계산의 기준. collectSajuFacts →
-  // calculateSajuData 로 끝까지 전달돼야 원국을 제외한 시간 의존 값이 now 와
-  // 일치하고 테스트로 고정 가능하다. 없으면 호출 시점(new Date()).
-  now: Date = new Date()
+  locale: Locale,
+  // 보는 사람의 '오늘'(현지 민용 날짜) — 세운·월운·일진·일진 창의 날짜.
+  localNow: CivilDay,
+  // 그 날짜의 기준 순간(counselorDayAnchor — 출생 tz 정오). collectSajuFacts →
+  // calculateSajuData 로 끝까지 전달돼 대운(만 나이)이 그 날짜로 정해진다.
+  dayAnchor: Date,
+  // 출생 타임존(birthTimezoneOf) — 캘린더 셀과 같은 존.
+  tz: string
 ): { natal: string; timing: string; iljinWindow: string; dayMasterName: string } {
-  const tz = birthTimezoneOf(birth)
   // ── 재료 준비실 ──
   // 옛 코드는 raw 호출(calculateSajuData/Strength/Geokguk/Yongsin/Relations) +
   // 텍스트 포매팅을 한 함수에서 다 했음. 2026-06-06 분리:
@@ -752,26 +772,21 @@ function buildSajuSection(
     timezone: tz,
     // 미상이면 엔진이 존 기준 경도(defaultLongitudeFor 와 같은 값)를 쓴다 — 점성 쪽과 일치.
     longitude: birth.longitude,
-    now,
+    now: dayAnchor,
   })
   // 판정·표시에 쓰는 기둥 — 시간 미상이면 시주 없이 년·월·일.
   const pillarKeys = facts.pillars.time
     ? (['year', 'month', 'day', 'time'] as const)
     : (['year', 'month', 'day'] as const)
-  // 현재 운(세운/월운/일진 + 본명 대비 충/합) — fusion 우회 없이 facts._raw 에서
-  // 직접 계산. _raw 는 longitude 진경도 보정이 적용된 결과라, 현재 운도 본명과
-  // 같은 평균태양시 기준이 된다. (예전엔 route 가 fusion saju adapter 로 만들어
-  // 주입했고, 그건 longitude 를 안 넘겨 KST LMT 로 떨어지던 불일치가 있었다.)
-  // 세운/월운/일진의 절기 경계 판정 인스턴트는 서버 TZ 와 무관해야 한다 — 예전엔
-  // 서버-로컬 정오(new Date(y,m,d,12))라, UTC 서버와 KST 서버가 절입 경계 근처에서
-  // 다른 간지를 냈다(ENGINE-AUDIT). 유저-tz 날짜의 UTC 정오로 고정(절기 비교는
-  // getTime, 일진은 getUTC* 로 통일 — currentUnse).
-  const current: CurrentUnse | null = localNow
-    ? computeCurrentUnse(
-        facts._raw,
-        new Date(Date.UTC(localNow.year, localNow.month - 1, localNow.day, 12, 0, 0))
-      )
-    : null
+  // 현재 운(세운/월운/일진 + 본명 대비 충/합) — fusion 우회 없이 직접 계산. 본명 기둥·일간은
+  // facts._raw(상담사 본명과 같은 결과)에서 읽는다. (예전엔 route 가 fusion saju adapter 로
+  // 만들어 주입했고, 그건 longitude 를 안 넘겨 본명과 다른 기준이던 불일치가 있었다.)
+  // 세운·월운은 캘린더 셀과 *같은 헬퍼·같은 존*으로 그 날짜에서 고른다(재감사 G3 · TP-4 ·
+  // TP-5): pillarsForLocalDate(오늘, 출생 tz) — 節/立春 이 든 그 현지 날이 새 기둥. 예전엔
+  // '그 날짜의 UTC 정오' 순간을 절입 순간과 비교해, 절입일 절반가량에서 캘린더와 월운·세운이
+  // 갈렸고 UTC+12..+14 에선 하루 일찍 바뀌었다.
+  const period = pillarsForLocalDate(localNow.year, localNow.month, localNow.day, tz)
+  const current: CurrentUnse = computeCurrentUnse(facts._raw, localNow, period)
   // 옛 코드는 calculateSajuData 를 sajuFacts 안에서 한 번 + 여기서 daeWoon/
   // pillars 위한 raw 한 번 = 두 번 호출했음 (LRU cache hit 으로 무료지만 코드
   // 스멜). Phase C(2026-06-06): facts.pillars/dayMaster/fiveElements/daeun
@@ -1112,11 +1127,11 @@ function buildSajuSection(
       ' '
     )
   }
-  // 세운 라벨의 연도는 절기 기준 사주연(getSajuYearForDate)이라야 간지와 맞는다.
-  // current.seun 간지는 입춘 경계로 산출되는데(currentUnse), 라벨만 Gregorian
-  // year 를 쓰면 1/1~입춘 구간에서 "2026 乙巳(=2025 간지)" 처럼 어긋났다.
+  // 세운 라벨의 연도는 그 세운의 사주년(입춘 기준 — period.year.sajuYear)이라야 간지와
+  // 맞는다. 라벨만 Gregorian year 를 쓰면 1/1~입춘 구간에서 "2026 乙巳(=2025 간지)" 처럼
+  // 어긋났다.
   if (current?.seun)
-    timing.push(periodLine(L('세운', 'Annual'), current.seun, getSajuYearForDate(now)))
+    timing.push(periodLine(L('세운', 'Annual'), current.seun, period.year.sajuYear))
   if (current?.wolun) timing.push(periodLine(L('월운', 'Monthly'), current.wolun))
   // 일진 standalone 라인은 `## 일진 8일` 블록 첫 줄(`05-28(오늘) X (X/X)`)
   // 과 동일 정보라 잉여. 교차 lines (`일진X ↔ ...`) 는 인라인으로 branch 를
@@ -1218,8 +1233,7 @@ function buildSajuSection(
   // 이라 getSibseong 이 읽는 yin_yang 이 없어 같은 음양 십신(비견·식신·편재·편관·편인)을
   // 늘 반대쪽으로 냈다(TP-1). 천간 SSOT(STEMS)에서 일간 객체를 그대로 가져온다.
   const dayMasterStem = STEMS.find((st) => st.name === facts.dayMaster.name)
-  const iljinWindow =
-    localNow && dayMasterStem ? buildIljinWindowBlock(dayMasterStem, localNow, 7, locale) : ''
+  const iljinWindow = dayMasterStem ? buildIljinWindowBlock(dayMasterStem, localNow, 7, locale) : ''
 
   return {
     natal:
