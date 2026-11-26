@@ -147,6 +147,17 @@ describe('ensureCounselorContext (운명상담사 컨텍스트 캐시)', () => {
     expect(dailyKey).toContain(`:${ENGINE_VERSION_TAG}:`)
   })
 
+  it('CACHE_VERSIONING.md · engineVersions 주석의 현재 값이 코드와 같다(D31 — v13 에 멈춰 있었다)', async () => {
+    const { ENGINE_VERSION_TAG, CALENDAR_ENGINE_VERSION } =
+      await import('@/lib/cache/engineVersions')
+    const { readFileSync } = await import('node:fs')
+    const doc = readFileSync('src/lib/cache/CACHE_VERSIONING.md', 'utf8')
+    expect(doc).toContain(`\`'${CALENDAR_ENGINE_VERSION}'\` today`)
+    expect(doc).toContain(`e.g. \`${ENGINE_VERSION_TAG}\``)
+    const src = readFileSync('src/lib/cache/engineVersions.ts', 'utf8')
+    expect(src).toContain(`예: '${ENGINE_VERSION_TAG}'(현재 값)`)
+  })
+
   it('부분 hit(stable만) → 다시 빌드 (둘 다 있어야 hit)', async () => {
     mockCacheGet.mockImplementation(async (key: string) =>
       key.includes(':stable:') ? 'ONLY_STABLE' : null

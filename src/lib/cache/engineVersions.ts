@@ -147,7 +147,7 @@ export const HELLENISTIC_CACHE_VERSION = 2
 
 /**
  * 엔진 버전 묶음 태그 — 여러 엔진 결과를 함께 캐시하는 키에 넣는다.
- * 예: 's4.cv13.n3.t3.h2'. 어느 값이 올라가도 태그가 바뀐다.
+ * 예: 's5.cv17.n3.t3.h2'(현재 값). 어느 값이 올라가도 태그가 바뀐다.
  */
 export const ENGINE_VERSION_TAG = [
   `s${SAJU_ENGINE_VERSION}`,

@@ -16,11 +16,11 @@ Engine versions live in one dependency-free leaf module,
 | Constant                      | Key it versions                                                                       | Bump when                                                                                               |
 | ----------------------------- | ------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
 | `SAJU_ENGINE_VERSION`         | `saju:v{N}:…` (`CacheKeys.saju`, `/api/saju`)                                         | `calculateSajuData` output changes (pillars, 대운, strength, …). Defined in `src/lib/saju/constants.ts` |
-| `CALENDAR_ENGINE_VERSION`     | calendar `birthKey` → `NatalContextCache`, `CalendarBuildCache`, `day:` focus entries | any extractor or deriver output changes (`'v13'` today; history in the file)                            |
+| `CALENDAR_ENGINE_VERSION`     | calendar `birthKey` → `NatalContextCache`, `CalendarBuildCache`, `day:` focus entries | any extractor or deriver output changes (`'v17'` today; history in the file)                            |
 | `NATAL_CHART_CACHE_VERSION`   | `natal:v{N}:…` (`CacheKeys.natalChart`)                                               | the natal chart for the same input changes                                                              |
 | `TRANSIT_CHART_CACHE_VERSION` | `ephe:transit:v{N}:…` (`calendar-engine/ephe-cache.ts`)                               | the transit chart behind an ISO key changes (e.g. `isoToJD` instant rules)                              |
 | `HELLENISTIC_CACHE_VERSION`   | `hellenistic:v{N}:…` (`destiny/astroFacts.ts`)                                        | lots, ZR, sect, almuten or other hellenistic output changes                                             |
-| `ENGINE_VERSION_TAG`          | `counselor:ctx:stable` / `counselor:ctx:daily` (`destiny/counselorContextCache.ts`)   | never by hand: it is built from the five values above, e.g. `s4.cv13.n3.t3.h2`                          |
+| `ENGINE_VERSION_TAG`          | `counselor:ctx:stable` / `counselor:ctx:daily` (`destiny/counselorContextCache.ts`)   | never by hand: it is built from the five values above, e.g. `s5.cv17.n3.t3.h2`                          |
 
 Rules:
 
