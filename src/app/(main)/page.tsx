@@ -40,18 +40,18 @@ export async function generateMetadata({
   ]
 
   // 문구 원칙: 판단(사주·별자리 계산과 교차 검증)은 엔진이 하고, 말은 상담사에서만 AI 가 한다.
-  // 'AI 가 사주를 풀어 준다' 류 표현을 쓰지 않는다.
+  // 'AI 가 사주를 풀어 준다' 류 표현을 쓰지 않는다. meta description 은 155자 이하(검색 스니펫 잘림, e2e/seo.spec).
   const en = isReferral
     ? {
         title: 'Join me on DestinyPal — your free Saju Card',
         description:
-          "I'm on DestinyPal. It computes your saju and your birth chart from the same birth data and shows where they agree. Open the link for your own free Saju Card.",
+          "I'm on DestinyPal. It computes your saju and birth chart from the same birth data and shows where they agree. Open the link for your own free Saju Card.",
         keywords: enKeywords,
       }
     : {
         title: 'DestinyPal — Saju and the stars, computed and cross-checked',
         description:
-          'Get your free Saju Card. Our engine computes your saju (Korean four pillars) and your birth chart separately, then shows where they agree and where they pull apart. Life flow, a fortune calendar, tarot and compatibility — and an AI counselor that puts it into words.',
+          'Free Saju Card: we compute your saju and birth chart separately and show where they agree or pull apart. Life flow, fortune calendar, tarot, AI counselor.',
         keywords: enKeywords,
       }
 

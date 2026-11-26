@@ -235,7 +235,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
     // html:has([data-surface='paper']) 규칙까지 이겨 v9 화면을 navy 로 덮는다).
     <html lang={serverLocale} data-theme="dark" data-scroll-behavior="smooth">
       <head>
-        <link rel="manifest" href="/manifest.json" />
+        {/* manifest 링크는 metadata.manifest 가 낸다 — 손으로 또 쓰면 <link rel="manifest"> 가 두 개 */}
         <link rel="apple-touch-icon" href="/logo/logo.png" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
