@@ -1010,6 +1010,14 @@ const PILLAR_REL_BASE: Record<string, SignalCopy> = {
       en: 'Your branches go slightly out of true. Nothing breaks hard, but a small crack forms — a signal of minor rupture.',
     },
   },
+  // 원진 — 상담사 포매터·차트 모달과 같은 facts 태그(재감사 CS-3). 子未·丑午 는 해와 겹친다.
+  원진: {
+    feel: { ko: '이유 모를 서운함', en: 'a hurt with no clear cause' },
+    blurb: {
+      ko: "두 사람의 지지가 '원진'으로 엮이는 자리예요. 크게 다툰 일이 없어도 이유 없이 서운함이 쌓이고 마음이 살짝 엇나가기 쉬운, 미묘한 반감의 신호예요. 일지(배우자 자리)에 걸리면 더 또렷하게 느껴져요.",
+      en: "Your branches meet in what Saju calls 'wonjin' (resentment). No big fight is needed — small hurts still pile up for no clear reason, and your moods drift slightly out of step. A signal of subtle resentment, felt most clearly when it lands on the day-branch (the spouse seat).",
+    },
+  },
 }
 
 export const PILLAR_REL = mergeRec(PILLAR_REL_BASE, GENERATED.PILLAR_REL)

@@ -26,6 +26,12 @@ describe('koStructuralLabels', () => {
       ['(t)', '(현재)'],
       ['Sun', '태양'],
       ['Moon', '달'],
+      ['square', '긴장'],
+      ['trine', '조화'],
+      ['opposition', '대립'],
+      ['conjunction', '결합'],
+      ['sextile', '협력'], // 재감사 CS-6 — 예전엔 sextile 만 영어로 남았다
+      ['[sextile]', '[협력]'],
       ['timeUnknown=false', '시간미상=거짓'],
       ['cityUnknown=true', '도시미상=참'],
       ['[Meta]', '[메타]'],

@@ -104,7 +104,20 @@ const BAND_HIGH_THRESHOLD: Partial<Record<keyof NonNullable<CompatReport['band']
 }
 
 // 기둥 관계 태그 우선순위 — 한 페어에 여러 태그면 가장 의미 큰 것 하나만 풀이.
-const TAG_PRIORITY = ['충', '천간충', '형', '자형', '천간합', '삼합', '육합', '방합', '해', '파']
+// 해+원진(子未·丑午)은 원진 풀이를 쓴다(상담사 포매터 note 순서와 같다).
+const TAG_PRIORITY = [
+  '충',
+  '천간충',
+  '형',
+  '자형',
+  '천간합',
+  '삼합',
+  '육합',
+  '방합',
+  '원진',
+  '해',
+  '파',
+]
 
 // 사주 글자(천간·지지) 한글 음 — 한자가 음·뜻 없이 노출되면 한국인도 못 읽고
 // 막힌다(평가단 8/8 최다 지적). "酉" → "유(酉)"로 음을 앞세운다.
@@ -529,7 +542,7 @@ const THEME_HOOK: Record<ThemeId, Record<HookKey, Bi>> = {
     },
   },
 }
-// 기둥 작용(태그) → 테마 (합 계열=인연·미래, 충·형·해·파=부딪힘)
+// 기둥 작용(태그) → 테마 (합 계열=인연·미래, 충·형·해·파·원진=부딪힘)
 const PILLAR_THEME: Record<string, ThemeId> = {
   천간합: 'future',
   육합: 'future',
@@ -541,6 +554,7 @@ const PILLAR_THEME: Record<string, ThemeId> = {
   자형: 'friction',
   해: 'friction',
   파: 'friction',
+  원진: 'friction',
 }
 
 // 테마별 "기본 결" 문단 — 훅 뒤, 신호별 본문 앞에 깔아 빈약한 테마도 풍부하게.

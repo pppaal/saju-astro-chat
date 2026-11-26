@@ -31,6 +31,7 @@ export const TAG_EN: Record<string, string> = {
   자형: 'self-punishment',
   해: 'harm',
   파: 'break',
+  원진: 'resentment',
 }
 export const tagLabel = (tag: string, isKo: boolean): string => (isKo ? tag : (TAG_EN[tag] ?? tag))
 

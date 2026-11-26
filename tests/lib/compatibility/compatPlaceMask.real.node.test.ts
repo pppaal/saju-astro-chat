@@ -179,7 +179,8 @@ describeRealEphemeris('compat counselor — city-unknown person (CS-2)', () => {
     expect(synastry).toContain('A(Ann) Ascendant [square] B(Bob) Uranus 0.8°')
     expect(synastry).toContain('A(Ann) MC [conjunction] B(Bob) Uranus 1.8°')
     expect(synastry).toMatch(/B\(Bob\) Venus → A\(Ann\) 5H/)
-    expect(composite).toContain('[C] Sun sextile Ascendant 0.0°')
+    // 컴포지트 어스펙트 라벨은 시너스트리와 같은 [..] 범례(재감사 CS-6, G9).
+    expect(composite).toContain('[C] Sun [sextile] Ascendant 0.0°')
   })
 
   it('both directions: a city-unknown B loses its angles and the overlays into B', async () => {

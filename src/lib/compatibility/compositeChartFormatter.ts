@@ -12,7 +12,7 @@
  * Sun-Moon, Mars-Venus 같은 *관계 entity 자체* 의 톤을 보여줌.
  */
 
-import type { Chart, PlanetBase, ZodiacKo } from '@/lib/astrology/foundation/types'
+import type { AspectType, Chart, PlanetBase, ZodiacKo } from '@/lib/astrology/foundation/types'
 import { findNatalAspects } from '@/lib/astrology/foundation/aspects'
 import { PLANET_KO } from '@/lib/calendar-engine/data/planetNames'
 import { isPlaceUnreliable } from '@/lib/astrology/foundation/placeMask'
@@ -24,23 +24,25 @@ const COMPOSITE_POINTS = new Set(['Sun', 'Moon', 'Mercury', 'Venus', 'Mars', 'As
 // 한글 행성명 — 캘린더 엔진 공용 정본(PLANET_KO) 재사용. composite 는 루미너리+
 // 개인 행성+ASC/MC 만 인덱싱하지만 superset 표를 그대로 써도 안전.
 
-// aspect 심볼 (synastry formatter 와 동일).
+// aspect 라벨 (synastry formatter 와 동일).
 // 기호 대신 한국어 뜻 직접 노출 — 깨진 □ 박스 + LLM 디코드 오역 방지
-// (synastry formatter 와 동일 정책).
-const ASP_SYM: Record<string, string> = {
-  Conjunction: '[결합]',
-  Opposition: '[대립]',
-  Trine: '[조화]',
-  Square: '[긴장]',
-  Sextile: '[협력]',
+// (synastry formatter 와 동일 정책). 키는 findNatalAspects 가 내는 소문자 AspectType —
+// 예전엔 'Conjunction' 처럼 대문자 키라 한 번도 매칭되지 않아, EN 은 범례 없는 맨
+// 영어('conjunction'), KO 는 영어 'sextile' 이 그대로 새었다(재감사 CS-6).
+const ASP_SYM: Partial<Record<AspectType, string>> = {
+  conjunction: '[결합]',
+  opposition: '[대립]',
+  trine: '[조화]',
+  square: '[긴장]',
+  sextile: '[협력]',
 }
 // EN locale — 한국어 관계어가 영어 응답에 새지 않게.
-const ASP_EN: Record<string, string> = {
-  Conjunction: '[conjunction]',
-  Opposition: '[opposition]',
-  Trine: '[trine]',
-  Square: '[square]',
-  Sextile: '[sextile]',
+const ASP_EN: Partial<Record<AspectType, string>> = {
+  conjunction: '[conjunction]',
+  opposition: '[opposition]',
+  trine: '[trine]',
+  square: '[square]',
+  sextile: '[sextile]',
 }
 
 // ZodiacKo 타입은 영어 12 zodiac (Aries..Pisces). 한글 노출용 별도 매핑.
@@ -202,7 +204,10 @@ export function formatCompositeChart(input: CompositeInput): string {
   const L = (ko: string, e: string) => (en ? e : ko)
   const pk = (n: string) => (en ? n : (PLANET_KO[n] ?? n))
   const zk = (sg: ZodiacKo) => (en ? sg : ZODIAC_KO_LABEL[sg])
-  const aspD = (t: string) => (en ? (ASP_EN[t] ?? t) : (ASP_SYM[t] ?? t))
+  const aspD = (t: string) => {
+    const k = t.toLowerCase() as AspectType
+    return en ? (ASP_EN[k] ?? t) : (ASP_SYM[k] ?? t)
+  }
 
   const critical: string[] = []
   const important: string[] = []

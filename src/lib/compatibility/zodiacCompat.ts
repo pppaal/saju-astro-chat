@@ -11,7 +11,9 @@
 // 같은 삼합국의 두 띠 전부(生-墓 쌍 포함) — CONVENTIONS §8 '띠 표면 예외'.
 //
 // URL 대칭: 궁합은 A×B = B×A 이므로 정규 슬러그(지지 순서 오름차순)로 모은다.
-// 역순 슬러그도 파싱은 되지만 canonical 은 정규 순서를 가리킨다(중복 색인 방지).
+// computeZodiacCompat 은 입력을 정규 순서로 정렬해 계산하므로 (A,B)·(B,A) 의 점수·등급·
+// 관계·본문이 완전히 같다(재감사 CS-4 — 예전엔 시드·방향별 기준점이 순서를 탔다).
+// 역순 슬러그는 [pair] 페이지가 정규 슬러그로 308 리다이렉트한다.
 
 import {
   ZODIAC_ANIMALS,
@@ -59,8 +61,10 @@ const ELEMENT_EN: Record<Element, string> = {
 }
 
 export interface ZodiacCompat {
+  /** 정규 순서(지지 순서가 빠른 쪽)의 첫 띠 — 입력 순서와 무관. */
   a: ZodiacAnimal
   b: ZodiacAnimal
+  /** a→b 기준 관계(seng-in/out 등 방향은 정규 순서 기준). */
   relation: DailyRelation
   /** 0~100 궁합 점수(결정론). */
   score: number
@@ -290,9 +294,18 @@ function branchIndex(a: ZodiacAnimal): number {
   return ZODIAC_ANIMALS.findIndex((z) => z.slug === a.slug)
 }
 
+/** 정규 순서 — 지지 순서가 빠른 쪽을 a 로. A×B=B×A 대칭을 하나로 모은다. */
+export function canonicalPair(
+  x: ZodiacAnimal,
+  y: ZodiacAnimal
+): { a: ZodiacAnimal; b: ZodiacAnimal } {
+  return branchIndex(x) <= branchIndex(y) ? { a: x, b: y } : { a: y, b: x }
+}
+
 /** 정규 슬러그 — 지지 순서가 빠른 쪽을 앞에. A×B=B×A 대칭을 하나로 모은다. */
 export function canonicalPairSlug(x: ZodiacAnimal, y: ZodiacAnimal): string {
-  return branchIndex(x) <= branchIndex(y) ? `${x.slug}-${y.slug}` : `${y.slug}-${x.slug}`
+  const { a, b } = canonicalPair(x, y)
+  return `${a.slug}-${b.slug}`
 }
 
 /** "rat-ox" 류 슬러그 → 두 동물(순서 무관). 잘못된 슬러그면 null. */
@@ -319,11 +332,16 @@ export function allPairSlugs(): string[] {
   return out
 }
 
-/** 두 띠의 궁합을 계산한다(결정론). */
-export function computeZodiacCompat(a: ZodiacAnimal, b: ZodiacAnimal): ZodiacCompat {
+/**
+ * 두 띠의 궁합을 계산한다(결정론·대칭). 입력 순서와 무관하게 정규 순서(canonicalPair)로
+ * 계산해, computeZodiacCompat(A,B) 와 (B,A) 는 같은 객체 값을 낸다. 시드와 방향별 기준점
+ * (seng-in/out·geuk-in/out)은 정규 순서에서만 읽으므로 정규 슬러그의 기존 점수는 그대로다.
+ */
+export function computeZodiacCompat(x: ZodiacAnimal, y: ZodiacAnimal): ZodiacCompat {
+  const { a, b } = canonicalPair(x, y)
   const relation = relationForDay(a.branch, b.branch)
   const base = RELATION_BASE[relation]
-  // 쌍 인덱스 시드로 ±3 결정론 흔들기 — 같은 관계라도 점수 다양화.
+  // 쌍 인덱스 시드로 ±3 결정론 흔들기 — 같은 관계라도 점수 다양화(정규 순서 기준).
   const seed = (branchIndex(a) * 12 + branchIndex(b)) % 7
   const score = Math.max(0, Math.min(100, base + (seed - 3)))
   const copy = copyFor(relation, a, b)
