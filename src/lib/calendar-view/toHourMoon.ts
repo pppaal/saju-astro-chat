@@ -2,39 +2,75 @@
  * 시(時)별 달 흐름 — Day tier '시 정밀' 원료 (점성).
  *
  * 일(日) 티어 본계산은 하루 *정오 1회* 스냅샷이라, 하루 12~13° 움직이는 달은
- * 시각별 정밀도가 떨어진다(±6° orb). 이 어댑터는 그날 **12 시진 한가운데 시각마다
+ * 시각별 정밀도가 떨어진다(±6° orb). 이 어댑터는 그날 **12 시진 한가운데 순간마다
  * 달 위치를 다시 계산**(Swiss Ephemeris)해서, 달이 본명 점과 맺는 메이저 어스펙트의
  * *절정 시각*(가장 타이트한 시진)을 뽑는다 — "오늘 몇 시쯤 감정/연애 흐름이 켜지나".
  *
  * 달 외 행성은 하루 변화가 작아 정오 계산으로 충분 → 여기선 달만 시각별로 본다.
  * 각 (본명점 × 어스펙트) 짝마다 가장 가까운(orb 최소) 시진 한 개만 남겨 절정으로.
+ *
+ * 시진 창 (재감사 TP-8 carry-over): 표본 시각과 라벨은 saju-hour 와 같은 *실제* 시진 창
+ * (hourSegmentsForLocalDay — 평균태양시, 출생지 경도·그날 UTC offset·서머타임 반영)에서
+ * 온다. 표본 = 그 창의 한가운데 instant, 라벨 = '13:32–15:32 (미시)' / '(Goat hour)'. 예전엔
+ * 명목 창('13-15시 (미시)')과 명목 시각(14:00)을 써서, 서울 밖에선 Day 의 시진 리듬 줄과
+ * 30분~2시간 넘게 다른 시각을 말했다.
  */
 
 import { getCachedTransitChart } from '@/lib/calendar-engine/ephe-cache'
 import { createCache } from '@/lib/calendar-engine/cache'
 import { findTransitAspects } from '@/lib/astrology/foundation/transit'
 import { inferAspectPolarity } from '@/lib/calendar-engine/aspect-polarity'
+import { hourSegmentsForLocalDay } from '@/lib/calendar-engine/extractors/saju-hour'
+import { HOUR_BRANCH_NARRATIVE } from '@/lib/calendar-engine/data/hourBranchNarrative'
 import type { AspectType, Chart, ZodiacKo } from '@/lib/astrology/foundation/types'
 import type { NatalContext } from '@/lib/calendar-engine/context/types'
 import { SIGN_KO, PLANET_KO } from './shared'
 
 const MAJOR: AspectType[] = ['conjunction', 'sextile', 'square', 'trine', 'opposition']
 
-// 12 시진 — rep hour(시계 한가운데), 한자 시지, KO/EN 창 라벨.
-const SIJIN: Array<{ hour: number; ko: string; en: string }> = [
-  { hour: 0, ko: '23-01시 (자시)', en: '11pm–1am (Rat)' },
-  { hour: 2, ko: '01-03시 (축시)', en: '1–3am (Ox)' },
-  { hour: 4, ko: '03-05시 (인시)', en: '3–5am (Tiger)' },
-  { hour: 6, ko: '05-07시 (묘시)', en: '5–7am (Rabbit)' },
-  { hour: 8, ko: '07-09시 (진시)', en: '7–9am (Dragon)' },
-  { hour: 10, ko: '09-11시 (사시)', en: '9–11am (Snake)' },
-  { hour: 12, ko: '11-13시 (오시)', en: '11am–1pm (Horse)' },
-  { hour: 14, ko: '13-15시 (미시)', en: '1–3pm (Goat)' },
-  { hour: 16, ko: '15-17시 (신시)', en: '3–5pm (Monkey)' },
-  { hour: 18, ko: '17-19시 (유시)', en: '5–7pm (Rooster)' },
-  { hour: 20, ko: '19-21시 (술시)', en: '7–9pm (Dog)' },
-  { hour: 22, ko: '21-23시 (해시)', en: '9–11pm (Pig)' },
-]
+// 시진 지지 순서(branchIdx 0 = 子) — HOUR_BRANCH_NARRATIVE 키(한글 시지).
+const BRANCH_HANGUL = [
+  '자',
+  '축',
+  '인',
+  '묘',
+  '진',
+  '사',
+  '오',
+  '미',
+  '신',
+  '유',
+  '술',
+  '해',
+] as const
+
+/** 그날 시진 12개 — 실제 창(자정에서 나뉜 子 는 한 번만), 시작 시각 순. */
+interface SijinSample {
+  /** 0..11 (子..亥) — 정렬·동점 순서용. */
+  branchIdx: number
+  /** 창 한가운데 instant (UTC ISO, 'Z') — 그 순간의 달을 계산한다. */
+  centerIso: string
+  ko: string
+  en: string
+}
+
+function sijinSamples(focusDayIso: string, longitude: number, timeZone: string): SijinSample[] {
+  const seen = new Set<number>()
+  const out: SijinSample[] = []
+  for (const seg of hourSegmentsForLocalDay(focusDayIso, longitude, timeZone)) {
+    if (seen.has(seg.branchIdx)) continue
+    seen.add(seg.branchIdx)
+    const nar = HOUR_BRANCH_NARRATIVE[BRANCH_HANGUL[seg.branchIdx]]
+    const span = `${seg.clockStart}–${seg.clockEnd}`
+    out.push({
+      branchIdx: seg.branchIdx,
+      centerIso: new Date(seg.occStartUtc + 60 * 60 * 1000).toISOString(),
+      ko: nar ? `${span} (${nar.nameKo})` : span,
+      en: nar ? `${span} (${nar.nameEn})` : span,
+    })
+  }
+  return out.sort((a, b) => a.branchIdx - b.branchIdx)
+}
 
 const ASPECT_KO: Record<string, string> = {
   conjunction: '합',
@@ -125,10 +161,10 @@ function moonMeaning(natalPoint: string, good: boolean): { ko: string; en: strin
 }
 
 export interface HourMoonEvent {
-  /** 시진 창 라벨 ko — '13-15시 (미시)'. */
+  /** 시진 창 라벨 ko — 실제 창 '13:32–15:32 (미시)' (en '13:32–15:32 (Goat hour)'). */
   when: string
   whenEn: string
-  /** rep hour(0,2,…,22) — 정렬용. */
+  /** 시진 순번 시각(子=0, 丑=2, … 亥=22) — 정렬용. 실제 시계 시각은 when 의 창. */
   hour: number
   /** 그 시각 달 별자리. */
   moonSignKo: string
@@ -176,12 +212,17 @@ export async function buildHourMoon(
   // Redis(히트 시) 호출 12번이 직렬로 쌓였다(시각별 키라 정오 스냅샷 캐시와도 별개라
   // 항상 새로). getCachedTransitChart 는 in-flight 프로미스를 캐시해 동시 호출이
   // 한 계산을 공유하므로, Promise.all 로 묶으면 직렬 12회 → 1배치 round-trip.
+  let sijin: SijinSample[]
+  try {
+    sijin = sijinSamples(focusDayIso, loc.longitude, loc.timeZone)
+  } catch {
+    return [] // 시간대 해석 실패 — 시진 창을 정할 수 없으면 시별 달도 없다.
+  }
   const charts = await Promise.all(
-    SIJIN.map(async (sj): Promise<Chart | null> => {
-      const iso = `${focusDayIso}T${String(sj.hour).padStart(2, '0')}:00:00`
+    sijin.map(async (sj): Promise<Chart | null> => {
       try {
         return await getCachedTransitChart({
-          iso,
+          iso: sj.centerIso,
           latitude: loc.latitude,
           longitude: loc.longitude,
           timeZone: loc.timeZone,
@@ -193,10 +234,9 @@ export async function buildHourMoon(
     })
   )
 
-  // peak 선택은 SIJIN 순서(이른 시각 우선)로 — 직전 직렬 루프와 동일한 동점
-  // tie-break(같은 orb 면 먼저 본 이른 시진 유지)를 보존해 출력이 바뀌지 않게 한다.
-  for (let i = 0; i < SIJIN.length; i++) {
-    const sj = SIJIN[i]
+  // peak 선택은 시진 순서(子 → 亥)로 — 같은 orb 면 먼저 본 시진을 유지하는 결정적 tie-break.
+  for (let i = 0; i < sijin.length; i++) {
+    const sj = sijin[i]
     const chart = charts[i]
     if (!chart) continue
     const moon = chart.planets.find((p) => p.name === 'Moon')
@@ -210,7 +250,7 @@ export async function buildHourMoon(
       if (!prev || a.orb < prev.orb) {
         peak.set(key, {
           orb: a.orb,
-          hour: sj.hour,
+          hour: sj.branchIdx * 2,
           sign: moon.sign,
           type: a.type,
           natalPoint: a.natalPoint,
@@ -220,7 +260,7 @@ export async function buildHourMoon(
     }
   }
 
-  const byHour = new Map(SIJIN.map((s) => [s.hour, s]))
+  const byHour = new Map(sijin.map((s) => [s.branchIdx * 2, s]))
   return (
     [...peak.values()]
       .map((b): HourMoonEvent => {

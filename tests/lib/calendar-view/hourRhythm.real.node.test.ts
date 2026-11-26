@@ -7,6 +7,8 @@
  *    황도경사로 직접 구한다 — 엔진 출력이 아니다.
  *  - 시진 × 상승궁 룰러는 교차가 아니다(owner 결정 19): 줄에 교차 필드가 없고, 같은 셀의 엔진
  *    hourly 교차는 CROSS_LAYER_BAND.hourly 행성(달·태양·수성·금성·화성)과만 맺는다.
+ *  - 시별 달(toHourMoon, G11 carry-over)도 같은 실제 시진 창으로 라벨한다('07:15–09:15 (묘시)' /
+ *    '(Rabbit hour)') — 예전엔 명목 창 '5–7am (Rabbit)' 과 명목 시각 표본이었다.
  *
  * 전역 setup 이 swisseph 를 목으로 바꾸므로 여기서 풀고 node 로 돈다. native swisseph 가 없으면
  * 로컬에선 skip, CI·release gate 에선 실패한다(tests/helpers/realEphemeris.ts).
@@ -23,6 +25,7 @@ const { describeRealEphemeris } = await import('../../helpers/realEphemeris')
 const { buildNatalContext } = await import('@/lib/calendar-engine/context/build')
 const { buildCalendar } = await import('@/lib/calendar-engine')
 const { buildHourCrossings } = await import('@/lib/calendar-view/toHourCrossings')
+const { buildHourMoon } = await import('@/lib/calendar-view/toHourMoon')
 const { CROSS_LAYER_BAND } = await import('@/lib/calendar-engine/data/saju-astro-mapping')
 
 const SIGNS = [
@@ -187,6 +190,33 @@ describeRealEphemeris('Day 시진 리듬 줄 — 실제 창 + 한가운데 상�
         const astro = (s.evidence.detail as { astroKey?: string } | undefined)?.astroKey
         expect(astro, s.id).toBeDefined()
         expect(hourlyBand, s.id).toContain(astro)
+      }
+    }, 60_000)
+  }
+})
+
+const BRANCH_KO = ['자', '축', '인', '묘', '진', '사', '오', '미', '신', '유', '술', '해']
+
+describeRealEphemeris('Day 시별 달 — 실제 시진 창 라벨 (G11 · TP-8 carry-over)', () => {
+  for (const c of CASES) {
+    it(`${c.name} ${c.day}: 달 절정 시각의 창 = 평균태양시 시진 창(시진 리듬 줄과 같은 라벨)`, async () => {
+      const natal = await buildNatalContext({ ...c.birth, calendarType: 'solar', ...c.loc })
+      const events = await buildHourMoon(c.day, natal)
+      expect(events.length).toBeGreaterThan(0)
+      const offset =
+        (wallToUtc(c.day, 0, c.loc.timeZone) - Date.parse(`${c.day}T00:00:00.000Z`)) / -60_000
+      const corr = Math.round(c.loc.longitude * 4) - offset
+      for (const e of events) {
+        const b = ANIMALS.indexOf(/\((\w+) hour\)$/.exec(e.whenEn)?.[1] ?? '')
+        expect(b, e.whenEn).toBeGreaterThanOrEqual(0)
+        const solarStart = b === 0 ? -60 : (2 * b - 1) * 60
+        const span = `${hhmm(solarStart - corr)}–${hhmm(solarStart + 120 - corr)}`
+        expect(e.whenEn).toBe(`${span} (${ANIMALS[b]} hour)`)
+        expect(e.when).toBe(`${span} (${BRANCH_KO[b]}시)`)
+        expect(e.hour).toBe(b * 2)
+        // 명목 라벨('5–7am', '05-07시') 잔재가 없다.
+        expect(e.whenEn).not.toMatch(/am|pm/)
+        expect(e.when).not.toMatch(/^\d\d-\d\d시/)
       }
     }, 60_000)
   }
