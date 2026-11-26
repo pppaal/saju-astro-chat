@@ -76,9 +76,6 @@ interface ChatInputAreaProps {
   chart?: ChatInputAreaToolOverride
   /** 타이프라이터 프롬프트 오버라이드. 기본은 운명 상담사용 lang별 리스트. */
   placeholderPrompts?: readonly string[]
-  /** 타이프라이터를 계속 순환(여러 문구를 치고 지우고 반복)할지. 메인 홈
-   *  입력창처럼 살아있는 느낌을 줄 때 true. 기본 false(첫 문구 1회 후 정지). */
-  loopPlaceholder?: boolean
   /** input[type=file] accept 확장자. 기본 txt/md/csv/pdf. */
   fileAccept?: string
   /**
@@ -136,7 +133,6 @@ export const ChatInputArea = React.memo(function ChatInputArea({
   tarot,
   chart,
   placeholderPrompts,
-  loopPlaceholder = false,
   fileAccept = '.txt,.md,.csv,.pdf',
   styles: stylesOverride,
   autoFocus = false,
@@ -148,9 +144,9 @@ export const ChatInputArea = React.memo(function ChatInputArea({
 }: ChatInputAreaProps) {
   const textareaRef = React.useRef<HTMLTextAreaElement>(null)
   const styles = stylesOverride ?? internalStyles
+  // 첫 문구를 한 번 치고 멈춘다(순환하던 홈 입력창은 v9 홈에서 사라졌다).
   const animatedPlaceholder = useTypewriterPlaceholder(
-    placeholderPrompts ?? DEFAULT_TYPEWRITER_PROMPTS[lang] ?? DEFAULT_TYPEWRITER_PROMPTS.en,
-    { loop: loopPlaceholder }
+    placeholderPrompts ?? DEFAULT_TYPEWRITER_PROMPTS[lang] ?? DEFAULT_TYPEWRITER_PROMPTS.en
   )
 
   // 좌상단 ⋮ 도구 메뉴 — 파일/타로/차트를 인라인 아이콘 줄 대신 하나의

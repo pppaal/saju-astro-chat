@@ -1,5 +1,11 @@
+// tests/app/MainPageClient.test.tsx
+//
+// v9.2 홈 — #home-headline 하나, 손님 CTA → 출생 모달, CTA 에서 저장하면 리포트로(상담사 아님),
+// 저장된 출생 정보 → 'Open my full card' 링크 + 'Edit birth info', 삭제하면 손님 CTA 로,
+// 로그인 사용자 프로필 동기화, 언어 토글, Sign in / Menu 드로어, 띠 범례 한 번 · 다이얼 = 주입한 now.
+
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor, cleanup, within } from '@testing-library/react'
 
 // --- Mocks -----------------------------------------------------------------
 
@@ -19,128 +25,86 @@ vi.mock('@/i18n/I18nProvider', () => ({
   useI18n: () => mockI18n,
 }))
 
-// framer-motion → plain DOM elements so AnimatePresence children render
-// synchronously without animation timers.
-vi.mock('framer-motion', () => {
-  const React = require('react')
-  const passthrough = (tag: string) => {
-    const Motion = React.forwardRef(({ children, ...props }: any, ref: any) => {
-      // Drop motion-only props that React would warn about on DOM nodes.
-      const { animate, initial, exit, transition, whileHover, whileTap, layout, ...rest } = props
-      return React.createElement(tag, { ...rest, ref }, children)
-    })
-    Motion.displayName = `motion.${tag}`
-    return Motion
-  }
-  return {
-    motion: new Proxy({}, { get: (_t, tag: string) => passthrough(tag) }),
-    AnimatePresence: ({ children }: any) => React.createElement(React.Fragment, null, children),
-  }
-})
-
 vi.mock('@vercel/speed-insights/next', () => ({ SpeedInsights: () => null }))
-
-// CSS module — return identity proxy so className lookups never crash.
-vi.mock('@/app/(main)/main-page.module.css', () => ({
-  default: new Proxy({}, { get: (_t, k: string) => k }),
-}))
-
-// Heavy / browser-only children mocked to lightweight stand-ins that expose
-// the props the page wires into them so we can assert behavior.
-vi.mock('@/app/(main)/components', () => ({
-  ParticleCanvas: () => <div data-testid="particle-canvas" />,
-}))
-
 vi.mock('@/components/PrefetchLinks', () => ({ default: () => <div data-testid="prefetch" /> }))
+vi.mock('@/components/pwa/PWAInstallPrompt', () => ({
+  default: () => <div data-testid="pwa-prompt" />,
+}))
 
 vi.mock('@/components/ui/MenuDrawerPanel', () => ({
-  MenuDrawerPanel: ({ open, onClose }: any) => (
-    <div data-testid="menu-drawer" data-open={String(open)}>
+  MenuDrawerPanel: ({ open, onClose, initialLoginOpen, variant }: any) => (
+    <div
+      data-testid="menu-drawer"
+      data-open={String(open)}
+      data-login={String(!!initialLoginOpen)}
+      data-variant={variant}
+    >
       <button onClick={onClose}>close-drawer</button>
     </div>
   ),
 }))
 
-vi.mock('@/components/pwa/PWAInstallPrompt', () => ({
-  default: () => <div data-testid="pwa-prompt" />,
-}))
-
-const mockOnRequireBirth = vi.fn()
-const mockOnOpenBirth = vi.fn()
-vi.mock('@/app/(main)/components/HomeChatInput', () => ({
-  default: ({ onRequireBirth, onOpenBirth, birthInfo, lightMode }: any) => (
-    <div
-      data-testid="home-chat-input"
-      data-light={String(lightMode)}
-      data-has-birth={String(!!birthInfo)}
-    >
-      <button onClick={() => onRequireBirth('what is my fortune')}>require-birth</button>
-      <button onClick={() => onOpenBirth()}>chat-open-birth</button>
+vi.mock('@/components/birth/BirthInfoModal', () => ({
+  default: ({ open, onClose, onSaved, onDeleted }: any) => (
+    <div data-testid="birth-modal" data-open={String(open)}>
+      <button onClick={onClose}>modal-close</button>
+      <button
+        onClick={() =>
+          onSaved({
+            birthDate: '1995-02-09',
+            birthTime: '06:40',
+            birthTimeUnknown: false,
+            gender: 'male',
+            city: 'Busan, KR',
+            latitude: 35.1796,
+            longitude: 129.0756,
+            timeZone: 'Asia/Seoul',
+            savedAt: '2026-01-01T00:00:00.000Z',
+          })
+        }
+      >
+        modal-save
+      </button>
+      <button onClick={onDeleted}>modal-delete</button>
     </div>
   ),
 }))
 
-let savedHandler: ((info: any) => void) | null = null
-let deletedHandler: (() => void) | null = null
-vi.mock('@/components/birth/BirthInfoModal', () => ({
-  default: ({ open, onClose, onSaved, onDeleted }: any) => {
-    savedHandler = onSaved
-    deletedHandler = onDeleted
-    return (
-      <div data-testid="birth-modal" data-open={String(open)}>
-        <button onClick={onClose}>modal-close</button>
-        <button
-          onClick={() =>
-            onSaved({
-              birthDate: '1995-02-09',
-              birthTime: '06:40',
-              gender: 'male',
-              savedAt: '2026-01-01T00:00:00.000Z',
-            })
-          }
-        >
-          modal-save
-        </button>
-        <button onClick={onDeleted}>modal-delete</button>
-      </div>
-    )
-  },
-}))
-
-vi.mock('@/components/branding/HexDPLogo', () => ({ default: () => <div data-testid="logo" /> }))
-
-vi.mock('@/components/ui/AppHeader', () => ({
-  AppHeader: ({ onMenuClick, rightSlot, centerSlot }: any) => (
-    <header data-testid="app-header">
-      <button onClick={onMenuClick}>menu</button>
-      <span>{centerSlot}</span>
-      {rightSlot}
-    </header>
-  ),
-  AppHeaderIconButton: ({ onClick, children, label }: any) => (
-    <button onClick={onClick} aria-label={label}>
-      {children}
-    </button>
-  ),
+const mockTrackFunnel = vi.fn()
+vi.mock('@/lib/metrics/trackFunnel', () => ({
+  trackFunnel: (e: string) => mockTrackFunnel(e),
 }))
 
 const mockGetStoredBirthInfo = vi.fn(() => null as any)
-const mockBuildCounselorHref = vi.fn(() => '/counselor?x=1')
-vi.mock('@/lib/birth/storage', () => ({
-  getStoredBirthInfo: () => mockGetStoredBirthInfo(),
-  saveBirthInfo: vi.fn(),
-  buildCounselorHref: (...args: any[]) => mockBuildCounselorHref(...args),
-  // buildBirthHref(서비스 딥링크)가 쓰는 헬퍼 — 쿼리 문자열만 만들면 충분.
-  buildReportBirthQuery: (info: any, locale: string) =>
-    info ? `date=${info.birthDate}&gender=${info.gender}&lang=${locale}` : `lang=${locale}`,
-}))
+const mockBuildCounselorHref = vi.fn()
+vi.mock('@/lib/birth/storage', async () => {
+  const actual = await vi.importActual<typeof import('@/lib/birth/storage')>('@/lib/birth/storage')
+  return {
+    ...actual,
+    getStoredBirthInfo: () => mockGetStoredBirthInfo(),
+    saveBirthInfo: vi.fn(),
+    buildCounselorHref: (...args: Parameters<typeof actual.buildCounselorHref>) => {
+      mockBuildCounselorHref(...args)
+      return actual.buildCounselorHref(...args)
+    },
+  }
+})
 
 import MainPageClient from '@/app/(main)/MainPageClient'
+import { buildHomeDial } from '@/app/(main)/home/homeDial'
 
-const baseMessages = {} as any
+const STORED = {
+  birthDate: '1995-02-09',
+  birthTime: '06:40',
+  birthTimeUnknown: false,
+  gender: 'male' as const,
+  city: 'Busan, KR',
+  savedAt: '2026-01-01T00:00:00.000Z',
+}
 
-function renderPage() {
-  return render(<MainPageClient initialLocale="en" initialMessages={baseMessages} />)
+function renderPage(nowIso = '2026-11-19T03:00:00.000Z', timeZone = 'Asia/Seoul') {
+  const home = buildHomeDial({ now: new Date(nowIso), timeZone })
+  return render(<MainPageClient initialLocale="en" dial={home.dial} backYear={home.backYear} />)
 }
 
 beforeEach(() => {
@@ -149,8 +113,9 @@ beforeEach(() => {
   mockGetStoredBirthInfo.mockReturnValue(null)
   mockRouterPush.mockReset()
   mockBuildCounselorHref.mockClear()
-  savedHandler = null
-  deletedHandler = null
+  mockTrackFunnel.mockClear()
+  mockSetLocale.mockClear()
+  window.history.replaceState(null, '', '/')
   ;(global.fetch as any) = vi.fn().mockResolvedValue({
     ok: true,
     status: 200,
@@ -162,152 +127,195 @@ afterEach(() => {
   cleanup()
 })
 
-describe('MainPageClient', () => {
-  it('renders the hero, header and chat input for a guest with no saved birth info', () => {
-    renderPage()
-    expect(
-      screen.getByRole('heading', { name: /Korean Astrology × Western Zodiac/i })
-    ).toBeInTheDocument()
-    expect(screen.getByTestId('app-header')).toBeInTheDocument()
-    expect(screen.getByTestId('home-chat-input')).toBeInTheDocument()
-    // Guest, no birth → cosmic (not light) surface and CTA prompt visible.
-    expect(screen.getByText(/Start by entering your birth details/i)).toBeInTheDocument()
-    expect(screen.getByTestId('home-chat-input')).toHaveAttribute('data-light', 'false')
+describe('MainPageClient — v9.2 home', () => {
+  it('renders one #home-headline with the v9 hook and the guest CTA (en)', () => {
+    const { container } = renderPage()
+    expect(container.querySelectorAll('#home-headline')).toHaveLength(1)
+    expect(screen.getByRole('heading', { level: 1 }).textContent).toBe(
+      'Saju and the stars, strangely, describe the same person — you.'
+    )
+    expect(screen.getByRole('button', { name: /Get my free Saju Card/ })).toBeInTheDocument()
+    // 고정 입력창(채팅 바)은 없다.
+    expect(container.querySelector('textarea')).toBeNull()
+    // 샘플 폴리오 — 스탬프 + Sample, 화면에 두 번(위 · 푸터 위).
+    expect(container.querySelectorAll('[data-folio]')).toHaveLength(2)
+    expect(container.querySelector('[data-folio="top"]')!.textContent).toContain(
+      '1997.3.21 14:30 · Seoul'
+    )
+    expect(container.querySelector('[data-folio="top"]')!.textContent).toContain('Sample')
   })
 
   it('renders Korean copy when locale is ko', () => {
     mockI18n.locale = 'ko'
-    renderPage()
-    expect(screen.getByRole('heading', { name: /AI가 풀어내는 당신의 운명/ })).toBeInTheDocument()
-    expect(screen.getByText(/먼저 생년월일을 입력하세요/)).toBeInTheDocument()
+    const { container } = renderPage()
+    expect(screen.getByRole('heading', { level: 1 }).textContent).toBe(
+      '사주도 별자리도, 이상하게 너를 같은 사람이라 말해.'
+    )
+    expect(screen.getByRole('button', { name: /내 무료 사주 카드 받기/ })).toBeInTheDocument()
+    expect(container.querySelector('[data-folio="top"]')!.textContent).toContain(
+      '1997년 3월 21일 14:30 · 서울'
+    )
+    expect(screen.getByRole('button', { name: '로그인' })).toBeInTheDocument()
   })
 
-  it('toggles locale via the header EN/KO button', () => {
-    // locale=en → next label KO, aria '한국어로 전환'.
+  it('the guest CTA opens the birth modal and tracks home.cta_clicked', () => {
+    renderPage()
+    expect(screen.getByTestId('birth-modal')).toHaveAttribute('data-open', 'false')
+    fireEvent.click(screen.getByRole('button', { name: /Get my free Saju Card/ }))
+    expect(screen.getByTestId('birth-modal')).toHaveAttribute('data-open', 'true')
+    expect(mockTrackFunnel).toHaveBeenCalledWith('home.cta_clicked')
+  })
+
+  it('saving from the CTA pushes the report URL with the birth query, not the counselor', async () => {
+    renderPage()
+    fireEvent.click(screen.getByRole('button', { name: /Get my free Saju Card/ }))
+    fireEvent.click(screen.getByText('modal-save'))
+    await waitFor(() => expect(mockRouterPush).toHaveBeenCalledTimes(1))
+    const url = mockRouterPush.mock.calls[0][0] as string
+    expect(url.startsWith('/integrated-report?')).toBe(true)
+    const p = new URLSearchParams(url.split('?')[1])
+    expect(p.get('date')).toBe('1995-02-09')
+    expect(p.get('time')).toBe('06:40')
+    expect(p.get('tz')).toBe('Asia/Seoul')
+    expect(p.get('gender')).toBe('male')
+    expect(p.get('lang')).toBe('en')
+    // 상담사로 보내지 않는다 — 상담사 주소는 카드 다음 CTA 링크(렌더)에만 쓰인다.
+    expect(mockRouterPush).not.toHaveBeenCalledWith(expect.stringContaining('/destiny-counselor'))
+    expect(mockTrackFunnel).toHaveBeenCalledWith('home.birth_saved')
+  })
+
+  it('stored birth info shows "Open my full card" and "Edit birth info"', async () => {
+    mockGetStoredBirthInfo.mockReturnValue(STORED)
+    renderPage()
+    const open = await screen.findByRole('link', { name: /Open my full card/ })
+    const href = open.getAttribute('href')!
+    expect(href.startsWith('/integrated-report?')).toBe(true)
+    expect(href).toContain('date=1995-02-09')
+    expect(screen.getByRole('button', { name: 'Edit birth info' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Get my free Saju Card/ })).toBeNull()
+    // formatBirthStamp — 24시간 · 도시 첫 마디.
+    expect(screen.getByText('1995.2.9 06:40 · Busan')).toBeInTheDocument()
+  })
+
+  it('editing stored birth info stays on the page', async () => {
+    mockGetStoredBirthInfo.mockReturnValue(STORED)
+    renderPage()
+    fireEvent.click(await screen.findByRole('button', { name: 'Edit birth info' }))
+    expect(screen.getByTestId('birth-modal')).toHaveAttribute('data-open', 'true')
+    fireEvent.click(screen.getByText('modal-save'))
+    await waitFor(() =>
+      expect(screen.getByTestId('birth-modal')).toHaveAttribute('data-open', 'false')
+    )
+    expect(mockRouterPush).not.toHaveBeenCalled()
+    expect(mockTrackFunnel).not.toHaveBeenCalledWith('home.birth_saved')
+  })
+
+  it('deleting birth info resets to the guest CTA', async () => {
+    mockGetStoredBirthInfo.mockReturnValue(STORED)
+    renderPage()
+    await screen.findByRole('button', { name: 'Edit birth info' })
+    fireEvent.click(screen.getByText('modal-delete'))
+    expect(await screen.findByRole('button', { name: /Get my free Saju Card/ })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Edit birth info' })).toBeNull()
+  })
+
+  it('?openBirth=1 opens the birth modal on mount', async () => {
+    window.history.replaceState(null, '', '/?openBirth=1')
+    renderPage()
+    await waitFor(() =>
+      expect(screen.getByTestId('birth-modal')).toHaveAttribute('data-open', 'true')
+    )
+  })
+
+  it('authenticated users trigger the /api/me/profile sync and see Menu', async () => {
+    mockUseSession.mockReturnValue({ status: 'authenticated' })
+    renderPage()
+    await waitFor(() =>
+      expect(global.fetch).toHaveBeenCalledWith('/api/me/profile', expect.any(Object))
+    )
+    expect(screen.queryByRole('button', { name: 'Sign in' })).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: 'Menu' }))
+    const drawer = screen.getByTestId('menu-drawer')
+    expect(drawer).toHaveAttribute('data-open', 'true')
+    expect(drawer).toHaveAttribute('data-login', 'false')
+    expect(drawer).toHaveAttribute('data-variant', 'light')
+  })
+
+  it('the Sign in pill opens the drawer on the login panel for guests', () => {
+    renderPage()
+    expect(screen.getByTestId('menu-drawer')).toHaveAttribute('data-open', 'false')
+    fireEvent.click(screen.getByRole('button', { name: 'Sign in' }))
+    const drawer = screen.getByTestId('menu-drawer')
+    expect(drawer).toHaveAttribute('data-open', 'true')
+    expect(drawer).toHaveAttribute('data-login', 'true')
+    expect(mockTrackFunnel).toHaveBeenCalledWith('home.signin_clicked')
+    fireEvent.click(screen.getByText('close-drawer'))
+    expect(screen.getByTestId('menu-drawer')).toHaveAttribute('data-open', 'false')
+  })
+
+  it('the locale toggle calls setLocale (en → ko, ko → en)', () => {
     renderPage()
     fireEvent.click(screen.getByRole('button', { name: '한국어로 전환' }))
     expect(mockSetLocale).toHaveBeenCalledWith('ko')
-  })
-
-  it('toggles locale to en when current locale is ko', () => {
+    cleanup()
     mockI18n.locale = 'ko'
     renderPage()
     fireEvent.click(screen.getByRole('button', { name: 'Switch to English' }))
     expect(mockSetLocale).toHaveBeenCalledWith('en')
   })
 
-  it('opens the menu drawer and closes it', () => {
-    renderPage()
-    const drawer = screen.getByTestId('menu-drawer')
-    expect(drawer).toHaveAttribute('data-open', 'false')
-    fireEvent.click(screen.getByRole('button', { name: 'menu' }))
-    expect(screen.getByTestId('menu-drawer')).toHaveAttribute('data-open', 'true')
-    fireEvent.click(screen.getByText('close-drawer'))
-    expect(screen.getByTestId('menu-drawer')).toHaveAttribute('data-open', 'false')
+  it('header nav carries an <a> (wordmark) — homepage.spec counts nav/header links', () => {
+    const { container } = renderPage()
+    expect(container.querySelectorAll('header nav a').length).toBeGreaterThan(0)
   })
 
-  it('opens birth modal from the CTA button', () => {
-    renderPage()
-    expect(screen.getByTestId('birth-modal')).toHaveAttribute('data-open', 'false')
-    fireEvent.click(screen.getByText(/Start by entering your birth details/i))
-    expect(screen.getByTestId('birth-modal')).toHaveAttribute('data-open', 'true')
+  it('explore rows link to the products and track their funnel event', () => {
+    const { container } = renderPage()
+    const hrefOf = (id: string) =>
+      container.querySelector(`[data-explore="${id}"]`)!.getAttribute('href')
+    expect(hrefOf('life')).toBe('/destiny?lang=en')
+    expect(hrefOf('calendar')).toBe('/calendar?lang=en')
+    expect(hrefOf('tarot')).toBe('/tarot')
+    expect(hrefOf('compat')).toBe('/compatibility/free')
+    expect(hrefOf('report')).toBe('/integrated-report?lang=en')
+    expect(hrefOf('counselor')).toBe('/destiny-counselor')
+    fireEvent.click(container.querySelector('[data-explore="tarot"]')!)
+    expect(mockTrackFunnel).toHaveBeenCalledWith('home.explore.tarot')
   })
 
-  it('renders all MORE_SERVICES entries (list open by default) and collapses on toggle', () => {
-    renderPage()
-    // 리포트 목록은 메인에서 기본 펼침(servicesOpen=true).
-    const toggle = screen.getByRole('button', { name: /Explore readings/i })
-    expect(toggle).toHaveAttribute('aria-expanded', 'true')
-    expect(screen.getByText('Tarot Counselor')).toBeInTheDocument()
-    expect(screen.getByText('Compatibility Report')).toBeInTheDocument()
-    expect(screen.getByText('Fortune Calendar')).toBeInTheDocument()
-    expect(screen.getByText('Saju · Astrology Report')).toBeInTheDocument()
-    // Report link with no saved birth → bare /integrated-report deep link.
-    const reportLink = screen.getByText('Saju · Astrology Report').closest('a')
-    expect(reportLink?.getAttribute('href')).toContain('/integrated-report')
-    expect(reportLink?.getAttribute('href')).toContain('lang=en')
-    // 토글을 누르면 접힌다. (리렌더 후 노드를 새로 조회)
-    fireEvent.click(toggle)
-    expect(screen.getByRole('button', { name: /Explore readings/i })).toHaveAttribute(
-      'aria-expanded',
-      'false'
-    )
+  it('keeps a paid counselor entry after the card, with SSOT prices', async () => {
+    mockGetStoredBirthInfo.mockReturnValue(STORED)
+    const { container } = renderPage()
+    const cta = container.querySelector('[data-home-counselor]') as HTMLAnchorElement
+    expect(cta.textContent).toBe('Ask the destiny counselor')
+    await waitFor(() => expect(cta.getAttribute('href')).toContain('/destiny-counselor?'))
+    expect(cta.getAttribute('href')).toContain('birthDate=1995-02-09')
+    expect(mockBuildCounselorHref).toHaveBeenCalled()
+    const price = cta.parentElement!.querySelector('[data-price-line]')!
+    expect(price.textContent).toContain('From 1 credit')
+    expect(price.textContent).toMatch(/Credits from \$\d/)
+    fireEvent.click(cta)
+    expect(mockTrackFunnel).toHaveBeenCalledWith('home.counselor_cta')
   })
 
-  it('clicking a service link collapses the list', () => {
-    renderPage()
-    // 기본 펼침 상태 → 서비스 링크를 누르면 목록이 접힌다.
-    const tarotLink = screen.getByText('Tarot Counselor').closest('a')!
-    fireEvent.click(tarotLink)
-    expect(screen.getByRole('button', { name: /Explore readings/i })).toHaveAttribute(
-      'aria-expanded',
-      'false'
-    )
+  it('the band shows the timing legend exactly once and the sample trait rows without marks', () => {
+    const { container } = renderPage()
+    expect(container.querySelectorAll('[data-legend]')).toHaveLength(1)
+    const step3 = container.querySelector('[data-step="03"]') as HTMLElement
+    const rows = step3.querySelectorAll('[data-kind="trait"]')
+    expect(rows).toHaveLength(2)
+    expect(within(step3).getByText('Identity')).toBeInTheDocument()
+    expect(within(step3).getByText('Temperament')).toBeInTheDocument()
+    expect(step3.querySelectorAll('[data-kind="timing"]')).toHaveLength(0)
   })
 
-  it('shows the premium-white surface and birth chip when birth info is stored', async () => {
-    mockGetStoredBirthInfo.mockReturnValue({
-      birthDate: '1995-02-09',
-      birthTime: '06:40',
-      gender: 'male',
-      savedAt: '2026-01-01T00:00:00.000Z',
-    })
-    renderPage()
-    // useEffect hydrates birthInfo from storage after mount.
-    await waitFor(() =>
-      expect(screen.getByTestId('home-chat-input')).toHaveAttribute('data-light', 'true')
-    )
-    // Chip shows the formatted subject (am time, gender).
-    expect(screen.getByText(/Client:/)).toBeInTheDocument()
-    expect(screen.getByText(/1995-02-09 6:40am \(M\)/)).toBeInTheDocument()
-  })
-
-  it('treats an authenticated user as premium-white and syncs the profile', async () => {
-    mockUseSession.mockReturnValue({ status: 'authenticated' })
-    renderPage()
-    await waitFor(() =>
-      expect(screen.getByTestId('home-chat-input')).toHaveAttribute('data-light', 'true')
-    )
-    await waitFor(() =>
-      expect(global.fetch).toHaveBeenCalledWith('/api/me/profile', expect.any(Object))
-    )
-  })
-
-  it('routes to the counselor after saving birth info that came from a pending question', async () => {
-    renderPage()
-    // Fire the chat "require birth" path → remembers the question + opens modal.
-    fireEvent.click(screen.getByText('require-birth'))
-    expect(screen.getByTestId('birth-modal')).toHaveAttribute('data-open', 'true')
-    // Now save in the modal → should push to the counselor href.
-    fireEvent.click(screen.getByText('modal-save'))
-    await waitFor(() => expect(mockBuildCounselorHref).toHaveBeenCalled())
-    expect(mockRouterPush).toHaveBeenCalledWith('/counselor?x=1')
-  })
-
-  it('saving birth info opened via edit (no pending question) stays on the page', async () => {
-    renderPage()
-    fireEvent.click(screen.getByText(/Start by entering your birth details/i))
-    fireEvent.click(screen.getByText('modal-save'))
-    // No pending question → no router push to counselor.
-    await waitFor(() =>
-      expect(screen.getByTestId('home-chat-input')).toHaveAttribute('data-has-birth', 'true')
-    )
-    expect(mockBuildCounselorHref).not.toHaveBeenCalled()
-    expect(mockRouterPush).not.toHaveBeenCalled()
-  })
-
-  it('clearing birth info removes the chip and resets to the CTA', async () => {
-    mockGetStoredBirthInfo.mockReturnValue({
-      birthDate: '1995-02-09',
-      birthTime: '06:40',
-      gender: 'male',
-      savedAt: '2026-01-01T00:00:00.000Z',
-    })
-    renderPage()
-    await waitFor(() => expect(screen.getByText(/Client:/)).toBeInTheDocument())
-    fireEvent.click(screen.getByText('modal-delete'))
-    await waitFor(() =>
-      expect(screen.getByText(/Start by entering your birth details/i)).toBeInTheDocument()
-    )
+  it('the dial and the card back come from the injected now (立春 2027-02-04 in Seoul)', () => {
+    const before = renderPage('2027-02-03T03:00:00.000Z')
+    expect(before.container.querySelector('[data-dial]')!.getAttribute('data-dial')).toBe('丙午')
+    expect(before.container.querySelector('[data-card-back]')!.textContent).toContain('丙午 · 2026')
+    cleanup()
+    const after = renderPage('2027-02-04T03:00:00.000Z')
+    expect(after.container.querySelector('[data-dial]')!.getAttribute('data-dial')).toBe('丁未')
+    expect(after.container.querySelector('[data-card-back]')!.textContent).toContain('丁未 · 2027')
   })
 })

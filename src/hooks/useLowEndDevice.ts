@@ -16,7 +16,6 @@ import { useEffect, useState } from 'react'
  * Browser-only. SSR 중엔 false (= 일반) — hydration mismatch 회피.
  *
  * 사용처:
- *   - `ParticleCanvas` — 저사양엔 아예 렌더 X
  *   - `StarrySky` — 별 개수 줄임 / 끔
  *   - 기타 무거운 인터랙션 컴포넌트
  */

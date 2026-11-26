@@ -8,7 +8,9 @@ import { test, expect } from '@playwright/test'
 // html:has([data-surface='paper']) 규칙으로 light color-scheme 이 된다. 다크 기본값은
 // 그 밖의 라우트에서만 검증한다.
 const NON_V9_ROUTES = ['/pricing', '/tarot']
-const V9_ROUTES = ['/', '/destiny', '/calendar']
+// 홈(/)은 v9.2 로 바뀌어 언제나 paper 다. /destiny · /calendar 는 v9 화면이 들어오는 중이라
+// paper 루트가 있을 때만 light 를 기대한다.
+const V9_ROUTES = ['/destiny', '/calendar']
 
 test.describe('Dark Mode Default', () => {
   for (const route of NON_V9_ROUTES) {
@@ -43,7 +45,19 @@ test.describe('Dark Mode Default', () => {
     })
   }
 
-  test('should have dark background color', async ({ page }) => {
+  test('home (/) is the v9 paper surface with a light color scheme', async ({ page }) => {
+    await page.goto('/', { waitUntil: 'domcontentloaded' })
+
+    const { hasPaper, colorScheme } = await page.evaluate(() => ({
+      hasPaper: document.querySelector('[data-surface="paper"]') !== null,
+      colorScheme: window.getComputedStyle(document.documentElement).colorScheme,
+    }))
+
+    expect(hasPaper).toBe(true)
+    expect(colorScheme).toContain('light')
+  })
+
+  test('should have a background color', async ({ page }) => {
     await page.goto('/', { waitUntil: 'domcontentloaded' })
 
     const bgColor = await page.evaluate(() => {
@@ -72,7 +86,7 @@ test.describe('Theme Attributes', () => {
 })
 
 test.describe('Color Contrast', () => {
-  test('text should be visible on dark background', async ({ page }) => {
+  test('text should be visible on the page background', async ({ page }) => {
     await page.goto('/', { waitUntil: 'domcontentloaded' })
 
     const bodyText = await page.locator('body').textContent()

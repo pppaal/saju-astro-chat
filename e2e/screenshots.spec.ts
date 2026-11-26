@@ -14,10 +14,10 @@ import { test, expect } from '@playwright/test'
  * id, etc.), pass a `mask` array to toHaveScreenshot. Keep the masked
  * set small — masking too much defeats the point of the snapshot.
  *
- * Why reducedMotion: the home page has a canvas particle layer + chat
- * input typewriter prompt + chip pulse animations. They never settle
- * to a stable pixel state, so without disabling motion the screenshot
- * test flakes on every run.
+ * Why reducedMotion: animated pages (tarot card flips, typewriter
+ * prompts, pulses) never settle to a stable pixel state, so without
+ * disabling motion the screenshot test flakes. The v9 home is static
+ * apart from the Saju Card tilt, which reduced motion also removes.
  */
 
 const HOME_ROUTE = '/'
@@ -40,8 +40,8 @@ test.describe('Visual regression — high-traffic routes', () => {
     await page.goto(HOME_ROUTE, { waitUntil: 'domcontentloaded' })
     await settle(page)
 
-    // The hex DP logo is the most stable above-the-fold anchor — wait
-    // for it before snapping so we don't catch a half-painted hero.
+    // The hero headline (#home-headline) is the most stable above-the-fold
+    // anchor — wait for it before snapping so we don't catch a half-painted hero.
     await expect(page.locator('[id="home-headline"]')).toBeVisible()
 
     await expect(page).toHaveScreenshot('home.png', {
