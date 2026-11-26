@@ -678,3 +678,50 @@ describe('deriveEvidenceLadder — 구조 칸(v9.2 A6): range · saju · astro',
     expect(ladderDaeunRange({ ...natal, saju: { daeun: [] } }, '2026-11-19')).toBeUndefined()
   })
 })
+
+describe('deriveEvidenceLadder — 항성 합은 별 이름을 싣는다 (R-VC-3)', () => {
+  // astro-fixed-star 추출기와 같은 모양 — 이름엔 한글 별 이름, detail 엔 영문·한글 이름.
+  const fixedStar = (withEvidence: boolean): ActiveSignal => {
+    const s = sig({
+      id: 'astro.fixed-star.Regulus.Mars.2026-11-27',
+      kind: 'fixed-star',
+      source: 'astro',
+      name: 'Mars ☌ 레굴루스 (왕의 별)',
+      korean: '화성이 레굴루스와 합',
+      english: 'Mars conjunct the fixed star Regulus — its symbolism flares briefly (orb 0.40°)',
+      module: 'astro-fixed-star',
+      layer: 'daily',
+      polarity: 2,
+      weight: 0.6,
+      ...(withEvidence ? { planets: ['Mars'], aspectType: 'conjunction' } : {}),
+    })
+    if (withEvidence) {
+      s.evidence.detail = {
+        starName: 'Regulus',
+        starKorean: '레굴루스 (왕의 별)',
+        starMagnitude: 1.4,
+      }
+    }
+    return s
+  }
+
+  it.each([
+    ['evidence 있음(오늘 셀)', true],
+    ['evidence 비움(월 셀 — id · 이름 폴백)', false],
+  ])('%s — 칩 · 결론 · 구조에 별 이름', (_label, withEvidence) => {
+    const [en] = deriveEvidenceLadder([fixedStar(withEvidence)], 'en', ['daily'])
+    expect(en.chips).toEqual([{ text: 'Mars ☌ Regulus', source: 'astro' }])
+    expect(en.conclusion).toBe('Mars conjunct Regulus sets the tone for today')
+    expect(en.astro).toEqual({
+      kind: 'fixed-star',
+      planet: 'Mars',
+      star: { en: 'Regulus', ko: '레굴루스' },
+    })
+    expect(`${en.conclusion} ${en.chips[0].text}`).not.toMatch(/[가-힣]/)
+    expect(en.conclusion).not.toMatch(/fixed star sets/i)
+
+    const [ko] = deriveEvidenceLadder([fixedStar(withEvidence)], 'ko', ['daily'])
+    expect(ko.chips).toEqual([{ text: '화성 ☌ 레굴루스', source: 'astro' }])
+    expect(ko.conclusion).toBe('화성 컨정션 레굴루스 흐름이 오늘의 결을 잡아요')
+  })
+})

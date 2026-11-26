@@ -97,6 +97,14 @@ export interface RungAstro {
   lots?: RungLot[]
   /** 그날 활성인 행성 회귀(올해 칸). */
   event?: RungEvent
+  /** 항성 합의 별 이름 — {en: 'Regulus', ko: '레굴루스'}(kind 'fixed-star'). */
+  star?: RungStar
+}
+
+/** 항성 이름 — EN 은 카탈로그 영문명, KO 는 한글명에서 글로스 괄호를 뗀 것. */
+interface RungStar {
+  en: string
+  ko: string
 }
 
 export interface EvidenceRung {
@@ -428,6 +436,27 @@ function lifecycleEvent(s: ActiveSignal): RungEvent | null {
 }
 
 /**
+ * 항성 합 신호 → 별 이름. evidence.detail(starName · starKorean)이 있으면 그것을, 월 셀처럼
+ * evidence 가 비었으면 id('astro.fixed-star.{Star}.{Planet}.{date}')와 이름
+ * ('Mars ☌ 레굴루스 (왕의 별)')에서 읽는다. 글로스 괄호('(왕의 별)')는 칩에 싣지 않는다(R-VC-3).
+ */
+function fixedStarName(s: ActiveSignal): RungStar | null {
+  if (s.kind !== 'fixed-star') return null
+  const detail = (s.evidence?.detail ?? {}) as { starName?: unknown; starKorean?: unknown }
+  const en =
+    (typeof detail.starName === 'string' && detail.starName) ||
+    /^astro\.fixed-star\.([^.]+)\./.exec(s.id)?.[1] ||
+    ''
+  if (!en) return null
+  const koRaw =
+    (typeof detail.starKorean === 'string' && detail.starKorean) ||
+    /☌\s*(.+)$/.exec(s.name)?.[1] ||
+    ''
+  const ko = koRaw.replace(/\s*[(（][^)）]*[)）]\s*$/, '').trim()
+  return { en, ko: ko && !/^[\x00-\x7F]+$/.test(ko) ? ko : en }
+}
+
+/**
  * 점성 지배신호 → 칸 구조. lots 는 같은 셀의 ZR L1 들(10년 칸이 ZR 일 때만).
  */
 function astroStructure(s: ActiveSignal, live: readonly ActiveSignal[]): RungAstro {
@@ -468,7 +497,10 @@ function astroStructure(s: ActiveSignal, live: readonly ActiveSignal[]): RungAst
     return ev ? { kind: 'lifecycle', planet: ev.planet, event: ev } : { kind: 'lifecycle' }
   }
   const planet = astroPlanetOf(s) ?? s.evidence?.planets?.[0]
-  return planet ? { kind: s.kind, planet } : { kind: s.kind }
+  const out: RungAstro = planet ? { kind: s.kind, planet } : { kind: s.kind }
+  const star = fixedStarName(s)
+  if (star) out.star = star
+  return out
 }
 
 /** 그날 활성인 행성 회귀 중 가장 무거운 것(weight → id). */
@@ -533,6 +565,14 @@ function astroChipText(s: ActiveSignal, lang: Lang): string {
     }
     // evidence 없으면 name('Venus △ Venus')의 영문 행성/포인트 토큰만 한글로.
     return lang === 'ko' ? koPointTokens(s.name) : s.name
+  }
+  // 항성 합 — 'fixed star' 만 쓰면 어느 별인지 사라지고 행성 기호가 별처럼 읽혔다(R-VC-3).
+  // EN 은 영문 별 이름(이름 문자열엔 한글 별 이름이 박혀 있다), KO 는 한글 별 이름.
+  const star = fixedStarName(s)
+  if (star) {
+    const planet = astroPlanetOf(s)
+    const starText = lang === 'ko' ? star.ko : star.en
+    return planet ? `${planetKoOr(planet, lang)} ☌ ${starText}` : starText
   }
   return ASTRO_KIND_CHIP[lang][s.kind] ?? s.kind
 }

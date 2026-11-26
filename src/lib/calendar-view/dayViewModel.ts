@@ -247,6 +247,16 @@ function starsOf(astro: RungAstro, chipText: string, lang: Lang): StarsCellVM {
         ...(lines.length && !event ? { subLines: lines } : {}),
       }
     }
+    case 'fixed-star': {
+      // 항성 합 — 행성 ☌ 별 이름, 보조 줄 '트랜짓 화성 · 항성 레굴루스'(R-VC-3). 별을 모르면 칩 폴백.
+      const star = astro.star ? (ko ? astro.star.ko : astro.star.en) : ''
+      if (!star) return cell(chipText || P, eventSuffix(astro, lang))
+      const text = [P, '☌', star].filter(Boolean).join(' ')
+      const sub = ko
+        ? join(P && glue(`트랜짓 ${P}`), glue(`항성 ${star}`))
+        : join(P && glue(`Transit ${P}`), glue(`fixed star ${star}`))
+      return cell(text, join(sub, eventSuffix(astro, lang)))
+    }
     case 'lifecycle':
       return cell(P || chipText, eventSuffix(astro, lang))
     default:

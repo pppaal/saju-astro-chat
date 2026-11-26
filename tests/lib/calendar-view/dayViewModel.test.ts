@@ -10,6 +10,7 @@ import {
   ladderRangeLabel,
 } from '@/lib/calendar-view/dayViewModel'
 import type { DestinyDay } from '@/types/calendar'
+import type { EvidenceRung } from '@/lib/calendar-engine/derivers/evidenceLadder'
 import { makeV9Day, dayRungs, TODAY_REASON } from './_v9Month'
 
 const HANGUL = /[ㄱ-ㆎ가-힣]/
@@ -475,5 +476,45 @@ describe('겹치는 흐름 — STARS 보조 줄(QA VC-5)', () => {
     const mars = vm.crossings.find((c) => c.stars.text === 'Mars')!
     expect(mars.stars.sub).toBe(sub('Transit', '27° Leo', 'square natal Moon', 'orb 1.1°'))
     expect(mars.astroDetail?.natalPoint).toBe('Moon')
+  })
+})
+
+describe('toLadderRows — 항성 합 STARS 칸 (R-VC-3)', () => {
+  const rung = (lang: 'ko' | 'en'): EvidenceRung => ({
+    scale: 'daily',
+    scaleLabel: lang === 'ko' ? '오늘' : 'Today',
+    conclusion:
+      lang === 'ko'
+        ? '화성 컨정션 레굴루스 흐름이 오늘의 결을 잡아요'
+        : 'Mars conjunct Regulus sets the tone for today',
+    polarity: 2,
+    chips: [{ text: lang === 'ko' ? '화성 ☌ 레굴루스' : 'Mars ☌ Regulus', source: 'astro' }],
+    range: { start: '2026-11-27', end: '2026-11-27' },
+    astro: { kind: 'fixed-star', planet: 'Mars', star: { en: 'Regulus', ko: '레굴루스' } },
+  })
+
+  it('en — 행성 ☌ 별 + 보조 줄(트랜짓 행성 · 항성 이름)', () => {
+    const [row] = toLadderRows([rung('en')], 'en')
+    expect(row.stars).toEqual({
+      glyph: 'mars',
+      text: 'Mars ☌ Regulus',
+      sub: sub('Transit Mars', 'fixed star Regulus'),
+    })
+    expect(JSON.stringify(row.stars)).not.toMatch(HANGUL)
+  })
+
+  it('ko — 같은 구조를 한글로', () => {
+    const [row] = toLadderRows([rung('ko')], 'ko')
+    expect(row.stars).toEqual({
+      glyph: 'mars',
+      text: '화성 ☌ 레굴루스',
+      sub: sub('트랜짓 화성', '항성 레굴루스'),
+    })
+  })
+
+  it('별 이름이 없는 옛 구조는 칩 폴백', () => {
+    const r = rung('en')
+    const [row] = toLadderRows([{ ...r, astro: { kind: 'fixed-star', planet: 'Mars' } }], 'en')
+    expect(row.stars).toEqual({ glyph: 'mars', text: 'Mars ☌ Regulus' })
   })
 })
