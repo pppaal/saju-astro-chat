@@ -4,15 +4,8 @@
 // 천간/지지 한자→한글 음 — 정본(saju/ganjiKo) 재export. 복사본 두지 않음(드리프트 차단).
 export { STEM_KO as STEM_KOREAN, BRANCH_KO as BRANCH_KOREAN } from '@/lib/saju/ganjiKo'
 
-/**
- * 천간 배열 (순서대로)
- */
-export const STEM_ORDER = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸']
-
-/**
- * 지지 배열 (순서대로)
- */
-export const BRANCH_ORDER = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥']
+// 천간/지지 순서 배열 — 정본 STEM_NAMES / BRANCH_NAMES(saju/constants) 재export (plan D8).
+export { STEM_NAMES as STEM_ORDER, BRANCH_NAMES as BRANCH_ORDER } from '@/lib/saju/constants'
 
 /**
  * 60갑자 순서 배열

@@ -28,9 +28,7 @@ import {
   sibseongFor,
   spouseStarsFor,
 } from '@/lib/compatibility/sajuSynastryData'
-
-const STEMS = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'] as const
-const BRANCHES = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'] as const
+import { STEM_NAMES, BRANCH_NAMES, ELEMENT_KO_TO_EN } from '@/lib/saju/constants'
 
 /** 천간 — 한글 음 / 로마자 / 음양. 음양은 순서(짝수=양)로 정해진다. */
 const STEM_READ: Record<string, { ko: string; ro: string }> = {
@@ -62,14 +60,8 @@ const BRANCH_READ: Record<string, { ko: string; ro: string; animalKo: string; an
     亥: { ko: '해', ro: 'hae', animalKo: '돼지', animalEn: 'Pig' },
   }
 
-/** 오행 한글 → 영문. */
-export const ELEMENT_EN: Record<string, string> = {
-  목: 'Wood',
-  화: 'Fire',
-  토: 'Earth',
-  금: 'Metal',
-  수: 'Water',
-}
+/** 오행 한글 → 영문('Wood'). 정본 ELEMENT_KO_TO_EN(constants) 재노출 — 표 복사 금지. */
+export const ELEMENT_EN: Record<string, string> = ELEMENT_KO_TO_EN
 
 export interface IljuRelations {
   /** 육합 — 일지와 짝을 이루는 지지(끌림). */
@@ -124,14 +116,13 @@ export interface IljuProfile {
   relations: IljuRelations
 }
 
-const yinYangOf = (stem: string): '양' | '음' =>
-  STEMS.indexOf(stem as (typeof STEMS)[number]) % 2 === 0 ? '양' : '음'
+const yinYangOf = (stem: string): '양' | '음' => (STEM_NAMES.indexOf(stem) % 2 === 0 ? '양' : '음')
 
 /** 60갑자 전체 — 甲子(1) ~ 癸亥(60). 천간 10 × 지지 12 의 최소공배수 순환. */
 export function allIljuGanji(): string[] {
   const out: string[] = []
   for (let i = 0; i < 60; i++) {
-    out.push(`${STEMS[i % 10]}${BRANCHES[i % 12]}`)
+    out.push(`${STEM_NAMES[i % 10]}${BRANCH_NAMES[i % 12]}`)
   }
   return out
 }

@@ -1,4 +1,4 @@
-import { STEMS, BRANCHES } from '@/lib/saju/constants'
+import { STEMS, BRANCHES, ELEMENT_KO_TO_KEY } from '@/lib/saju/constants'
 import { computeDayBranch, computeDayStem } from './saju-shinsal'
 import type { ActiveSignal, ExtractorContext, SignalExtractor } from '../types'
 import type { FiveElement } from '@/lib/saju/types'
@@ -21,13 +21,7 @@ import type { FiveElement } from '@/lib/saju/types'
 
 type ElementKey = 'wood' | 'fire' | 'earth' | 'metal' | 'water'
 
-const ELEMENT_KO_TO_EN: Record<FiveElement, ElementKey> = {
-  목: 'wood',
-  화: 'fire',
-  토: 'earth',
-  금: 'metal',
-  수: 'water',
-}
+// 오행 한글 → 소문자 키('목' → 'wood')는 정본 파생 표 ELEMENT_KO_TO_KEY(saju/constants) — 복사 금지.
 
 const ELEMENT_KO: Record<ElementKey, FiveElement> = {
   wood: '목',
@@ -90,8 +84,8 @@ const sajuElementBalanceExtractor: SignalExtractor = {
       const branchInfo = BRANCHES.find((b) => b.name === branchName)
       if (!stemInfo || !branchInfo) continue
 
-      const stemEl = ELEMENT_KO_TO_EN[stemInfo.element as FiveElement]
-      const branchEl = ELEMENT_KO_TO_EN[branchInfo.element as FiveElement]
+      const stemEl = ELEMENT_KO_TO_KEY[stemInfo.element as FiveElement]
+      const branchEl = ELEMENT_KO_TO_KEY[branchInfo.element as FiveElement]
 
       // 일진 stem + branch 오행 set — 둘이 같으면 한번만 평가.
       const dayElements = new Set<ElementKey>([stemEl, branchEl])

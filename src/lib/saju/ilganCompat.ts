@@ -23,9 +23,10 @@ import {
   sibseongFor,
   spouseStarsFor,
 } from '@/lib/compatibility/sajuSynastryData'
+import { STEM_NAMES } from '@/lib/saju/constants'
 
-/** 천간 10개 — 정규 순서(60갑자 순). 슬러그 정규화의 기준이기도 하다. */
-export const ILGAN_ORDER = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'] as const
+/** 천간 10개 — 정규 순서(60갑자 순). 슬러그 정규화의 기준이기도 하다. 정본 STEM_NAMES. */
+export const ILGAN_ORDER: readonly string[] = STEM_NAMES
 
 const READ: Record<string, { ko: string; ro: string }> = {
   甲: { ko: '갑', ro: 'gap' },
@@ -92,8 +93,7 @@ export interface IlganCompat {
   stemChung: boolean
 }
 
-const yinYangOf = (stem: string): '양' | '음' =>
-  ILGAN_ORDER.indexOf(stem as (typeof ILGAN_ORDER)[number]) % 2 === 0 ? '양' : '음'
+const yinYangOf = (stem: string): '양' | '음' => (ILGAN_ORDER.indexOf(stem) % 2 === 0 ? '양' : '음')
 
 function sideOf(stem: string): IlganSide | null {
   const r = READ[stem]
@@ -126,8 +126,8 @@ function elementRelation(elA: string, elB: string): ElementRelation {
 
 /** 정규 슬러그 — ILGAN_ORDER 순서로 고정. 역순 입력도 같은 값을 돌려준다. */
 export function canonicalIlganSlug(a: string, b: string): string {
-  const ia = ILGAN_ORDER.indexOf(a as (typeof ILGAN_ORDER)[number])
-  const ib = ILGAN_ORDER.indexOf(b as (typeof ILGAN_ORDER)[number])
+  const ia = ILGAN_ORDER.indexOf(a)
+  const ib = ILGAN_ORDER.indexOf(b)
   if (ia < 0 || ib < 0) return ''
   const [x, y] = ia <= ib ? [a, b] : [b, a]
   return `${READ[x].ro}-${READ[y].ro}`
@@ -135,8 +135,8 @@ export function canonicalIlganSlug(a: string, b: string): string {
 
 /** 한자 두 일간 → 궁합. 정규 순서로 정렬해 반환한다. */
 export function ilganCompat(aStem: string, bStem: string): IlganCompat | null {
-  const ia = ILGAN_ORDER.indexOf(aStem as (typeof ILGAN_ORDER)[number])
-  const ib = ILGAN_ORDER.indexOf(bStem as (typeof ILGAN_ORDER)[number])
+  const ia = ILGAN_ORDER.indexOf(aStem)
+  const ib = ILGAN_ORDER.indexOf(bStem)
   if (ia < 0 || ib < 0) return null
   // 정규 순서로 스왑 — 같은 쌍이 두 페이지가 되지 않게.
   const [x, y] = ia <= ib ? [aStem, bStem] : [bStem, aStem]

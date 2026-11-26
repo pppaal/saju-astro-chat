@@ -1,6 +1,8 @@
 // src/lib/Saju/constants.ts
 
 import { FiveElement, StemBranchInfo } from './types'
+import type { SajuElement } from './elementBridge'
+import { STEM_KO, BRANCH_KO } from './ganjiKo'
 import {
   SIX_HARMONY,
   BRANCH_CLASH,
@@ -43,6 +45,11 @@ export const BRANCHES: StemBranchInfo[] = [
 // Simple name arrays for convenience
 export const STEM_NAMES = STEMS.map((s) => s.name)
 export const BRANCH_NAMES = BRANCHES.map((b) => b.name)
+
+// 한글 음 배열 — 정본 순서(갑…계 / 자…해). 음은 ganjiKo(STEM_KO / BRANCH_KO)가 정본.
+// 소비처가 인덱스(stemIndex·branchIndex)로 읽는 배열이라 리터럴로 복사하지 말고 이걸 쓴다.
+export const STEM_HANGUL: readonly string[] = STEM_NAMES.map((s) => STEM_KO[s])
+export const BRANCH_HANGUL: readonly string[] = BRANCH_NAMES.map((b) => BRANCH_KO[b])
 
 // 지장간: 여기(餘氣)=잔여기운, 중기(中氣)=과도기, 정기(正氣)=본기
 // 자/묘/유(왕지)는 정기만 두는 단순화 유지. 오(午)·해(亥) 및 나머지는 정통대로
@@ -2477,6 +2484,39 @@ export const ELEMENT_KO_TO_EN: Record<string, string> = {
   금: 'Metal',
   수: 'Water',
 }
+
+// ============================================
+// 파생 표 — 정본 STEMS/BRANCHES · ELEMENT_KO_TO_EN 에서만 만든다 (plan D8)
+// ============================================
+// 소비처마다 리터럴로 복사해 두던 천간/지지 → 오행 표를 여기서 한 번만 파생한다.
+// 키는 한자만(甲…癸 / 子…亥) — 한글 키(갑·자)도 받는 STEM_TO_ELEMENT 류와는 다른 표다.
+// 오행 표기는 두 벌: 정본 ELEMENT_KO_TO_EN 은 'Wood', 캘린더·리포트 계층은 소문자 키 'wood'.
+// 정합 잠금: tests/lib/saju/tableSsot.consistency.test.ts.
+
+/** 오행 한글 → 소문자 키 ('목' → 'wood'). 정본 ELEMENT_KO_TO_EN 의 소문자 표기. */
+export const ELEMENT_KO_TO_KEY = Object.fromEntries(
+  Object.entries(ELEMENT_KO_TO_EN).map(([ko, en]) => [ko, en.toLowerCase()])
+) as Record<FiveElement, SajuElement>
+
+/** 천간(한자) → 오행 한글 ('甲' → '목'). */
+export const STEM_ELEMENT_KO: Record<string, FiveElement> = Object.fromEntries(
+  STEMS.map((s) => [s.name, s.element])
+)
+
+/** 지지(한자) → 오행 한글 ('子' → '수'). */
+export const BRANCH_ELEMENT_KO: Record<string, FiveElement> = Object.fromEntries(
+  BRANCHES.map((b) => [b.name, b.element])
+)
+
+/** 천간(한자) → 오행 소문자 키 ('甲' → 'wood'). */
+export const STEM_ELEMENT_KEY: Record<string, SajuElement> = Object.fromEntries(
+  STEMS.map((s) => [s.name, ELEMENT_KO_TO_KEY[s.element]])
+)
+
+/** 지지(한자) → 오행 소문자 키 ('子' → 'water'). */
+export const BRANCH_ELEMENT_KEY: Record<string, SajuElement> = Object.fromEntries(
+  BRANCHES.map((b) => [b.name, ELEMENT_KO_TO_KEY[b.element]])
+)
 
 // ============================================
 // 영어 오행 매핑 (English element keys)

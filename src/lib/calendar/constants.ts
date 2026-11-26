@@ -9,13 +9,7 @@
  *  (삼재·역마·건록·십신표·오행관계·황도 12궁·영역 설정)만 로컬로 둔다.
  */
 
-import {
-  STEM_NAMES,
-  BRANCH_NAMES,
-  STEMS as SAJU_STEMS,
-  BRANCHES as SAJU_BRANCHES,
-  SAMHAP as SAJU_SAMHAP,
-} from '@/lib/saju/constants'
+import { STEM_NAMES, BRANCH_NAMES, SAMHAP as SAJU_SAMHAP } from '@/lib/saju/constants'
 
 // 합충형해·천을귀인·지장간은 정본을 그대로 재export (동일 객체 → 갈라질 수 없음).
 export { CHEONEUL_GWIIN_MAP, JIJANGGAN, YUKHAP, CHUNG, XING, HAI } from '@/lib/saju/constants'
@@ -26,21 +20,13 @@ export { CHEONEUL_GWIIN_MAP, JIJANGGAN, YUKHAP, CHUNG, XING, HAI } from '@/lib/s
 export const STEMS = [...STEM_NAMES]
 export const BRANCHES = [...BRANCH_NAMES]
 
-// 오행 영문 표기 — 캘린더 레이어는 wood/fire/earth/metal/water 를 쓴다. 정본의
-// 한글 오행을 1:1 로 매핑해 파생(값은 동일, 표기만 영문).
-const ELEMENT_KO_TO_EN: Record<string, string> = {
-  목: 'wood',
-  화: 'fire',
-  토: 'earth',
-  금: 'metal',
-  수: 'water',
-}
-export const STEM_TO_ELEMENT: Record<string, string> = Object.fromEntries(
-  SAJU_STEMS.map((s) => [s.name, ELEMENT_KO_TO_EN[s.element]])
-)
-export const BRANCH_TO_ELEMENT: Record<string, string> = Object.fromEntries(
-  SAJU_BRANCHES.map((b) => [b.name, ELEMENT_KO_TO_EN[b.element]])
-)
+// 오행 영문 표기 — 캘린더 레이어는 wood/fire/earth/metal/water 를 쓴다. 정본 파생 표
+// (saju/constants STEM_ELEMENT_KEY / BRANCH_ELEMENT_KEY = 한글 오행 → ELEMENT_KO_TO_KEY)를
+// 그대로 재export (값은 동일, 표기만 영문 소문자). 한자 키만 있다.
+export {
+  STEM_ELEMENT_KEY as STEM_TO_ELEMENT,
+  BRANCH_ELEMENT_KEY as BRANCH_TO_ELEMENT,
+} from '@/lib/saju/constants'
 
 // 삼합(三合) — 정본은 한글 오행 키(수/목/화/금), 캘린더는 영문 키. 키만 매핑(값 동일).
 export const SAMHAP: Record<string, string[]> = {

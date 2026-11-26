@@ -9,7 +9,13 @@
 // just (date) → pillar values. The caller can layer profile-specific
 // computations (sibsin, sinsals, johu, yongsin alignment) on top.
 
-import { getSolarTermKST, MONTH_STEM_LOOKUP, STEM_NAMES, BRANCH_NAMES } from './constants'
+import {
+  getSolarTermKST,
+  MONTH_STEM_LOOKUP,
+  STEM_NAMES,
+  BRANCH_NAMES,
+  BRANCH_ELEMENT_KEY,
+} from './constants'
 
 // 천간/지지 이름 배열은 constants SSOT 에서 파생(복사 금지) — 예전엔 여기·cycleRelations·
 // shinsal 이 같은 배열을 따로 들고 있어 한쪽만 바뀌면 조용히 어긋났다.
@@ -149,23 +155,8 @@ export function getMonthPillarForDate(date: Date): { stem: string; branch: strin
  * Branch → 오행. 寅卯=목, 巳午=화, 申酉=금, 亥子=수, 辰未戌丑=토.
  * Avoids the Gregorian-month aliasing where May 1 (still 辰月/봄/목)
  * and May 31 (巳月/초여름/화) were both treated as 'wood' by month-based
- * mapping.
+ * mapping. 표는 정본 파생 BRANCH_ELEMENT_KEY(constants) — 리터럴 복사본 금지(plan D8).
  */
-const BRANCH_TO_ELEMENT: Record<string, 'wood' | 'fire' | 'earth' | 'metal' | 'water'> = {
-  寅: 'wood',
-  卯: 'wood',
-  巳: 'fire',
-  午: 'fire',
-  申: 'metal',
-  酉: 'metal',
-  亥: 'water',
-  子: 'water',
-  辰: 'earth',
-  未: 'earth',
-  戌: 'earth',
-  丑: 'earth',
-}
-
 function elementOfBranch(branch: string): 'wood' | 'fire' | 'earth' | 'metal' | 'water' {
-  return BRANCH_TO_ELEMENT[branch] || 'earth'
+  return BRANCH_ELEMENT_KEY[branch] || 'earth'
 }

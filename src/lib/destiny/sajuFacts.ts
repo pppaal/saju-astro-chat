@@ -17,6 +17,7 @@ import { analyzeRelations, toAnalyzeInputFromSaju } from '@/lib/saju/relations'
 import { getJohuYongsin, type JohuYongsinInfo } from '@/lib/saju/johuYongsin'
 import { getGongmang } from '@/lib/saju/shinsal'
 import { TIME_UNKNOWN_ANCHOR } from '@/lib/saju/birthTimeAnchor'
+import { STEM_ELEMENT_KO, BRANCH_ELEMENT_KO } from '@/lib/saju/constants'
 
 export interface SajuFactsInput {
   birthDate: string // 'YYYY-MM-DD'
@@ -124,32 +125,7 @@ export interface DaeunEntry {
   sibsin: { cheon: string | null; ji: string | null } | null
 }
 
-const STEM_ELEMENT: Record<string, string> = {
-  甲: '목',
-  乙: '목',
-  丙: '화',
-  丁: '화',
-  戊: '토',
-  己: '토',
-  庚: '금',
-  辛: '금',
-  壬: '수',
-  癸: '수',
-}
-const BRANCH_ELEMENT: Record<string, string> = {
-  子: '수',
-  丑: '토',
-  寅: '목',
-  卯: '목',
-  辰: '토',
-  巳: '화',
-  午: '화',
-  未: '토',
-  申: '금',
-  酉: '금',
-  戌: '토',
-  亥: '수',
-}
+// 천간/지지 → 오행 한글은 정본 파생 표(constants.STEM_ELEMENT_KO / BRANCH_ELEMENT_KO) — 복사 금지.
 
 /**
  * birth 정보로 사주 raw 한 번 계산하고 derived 까지 다 채워서 반환.
@@ -246,12 +222,12 @@ export function collectSajuFacts(input: SajuFactsInput): SajuFacts {
   const gwansalHonjap = allSibsin.includes('정관') && allSibsin.includes('편관')
 
   // 통근 — 있는 기둥(4기둥, 미상이면 3기둥) 지장간 어디에든 일간 오행이 있으면 true
-  const dayEl = STEM_ELEMENT[day] ?? null
+  const dayEl = STEM_ELEMENT_KO[day] ?? null
   const rooted = dayEl
     ? presentKeys.some((k) => {
         const jg = P[k].jijanggan
         return [jg?.chogi?.name, jg?.junggi?.name, jg?.jeonggi?.name].some(
-          (s) => !!s && STEM_ELEMENT[s] === dayEl
+          (s) => !!s && STEM_ELEMENT_KO[s] === dayEl
         )
       })
     : false
@@ -353,8 +329,8 @@ function pillarToFact(p: RawSajuPillar): SajuPillarFact {
   return {
     stem: p.heavenlyStem.name,
     branch: p.earthlyBranch.name,
-    stemElement: STEM_ELEMENT[p.heavenlyStem.name] ?? '',
-    branchElement: BRANCH_ELEMENT[p.earthlyBranch.name] ?? '',
+    stemElement: STEM_ELEMENT_KO[p.heavenlyStem.name] ?? '',
+    branchElement: BRANCH_ELEMENT_KO[p.earthlyBranch.name] ?? '',
     stemSibsin: p.heavenlyStem.sibsin ?? null,
     branchSibsin: p.earthlyBranch.sibsin ?? null,
     jijanggan: stems,

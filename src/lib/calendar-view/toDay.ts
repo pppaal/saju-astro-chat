@@ -33,6 +33,7 @@ import {
   ymdFromIso,
 } from './shared'
 import { getSibsinKo } from '@/lib/saju/cycleRelations'
+import { STEM_ELEMENT_KO } from '@/lib/saju/constants'
 import { getGongmang, getTwelveStage } from '@/lib/saju/shinsal'
 import { humanizeReason } from './humanizeReason'
 import {
@@ -56,20 +57,6 @@ import { pickBySeed } from '@/lib/calendar-engine/derivers/personSeed'
 // 12운성은 twelveStageMatrix 에서 따로 보여주므로 '활성 신살' 칩에는 중복 노출하지
 // 않는다(예: 제왕·건록이 신살 목록에 잘못 끼던 문제).
 const TWELVE_STAGE_NAMES = new Set(['건록', '제왕'])
-
-// 천간(한자) → 5원소 룩업. destinypal Day 의 jijanggan layer element 산출.
-const STEM_TO_ELEMENT: Record<string, '목' | '화' | '토' | '금' | '수'> = {
-  甲: '목',
-  乙: '목',
-  丙: '화',
-  丁: '화',
-  戊: '토',
-  己: '토',
-  庚: '금',
-  辛: '금',
-  壬: '수',
-  癸: '수',
-}
 
 export interface DestinypalDaySignal {
   cat: string // 'saju/shinsal' | 'saju/pillar-sibsin' | 'astro/transit' | …
@@ -522,7 +509,7 @@ export function toDay(opts: ToDayOptions): DestinypalDay {
 /**
  * NatalContext.saju.dayJijanggan (정기/중기/여기 한자) → 객체 shape.
  *
- * 각 층마다 일간 기준 십신 + STEM_TO_ELEMENT 룩업으로 오행 채움.
+ * 각 층마다 일간 기준 십신 + STEM_ELEMENT_KO(정본 파생 표) 룩업으로 오행 채움.
  * jeonggi 가 없으면 '—' 폴백 단일층으로 채움 (UI 가 jeonggi 를 무조건 읽음).
  */
 function buildJijangganObj(natal: NatalContext): DestinypalDayJijangganObj {
@@ -536,7 +523,7 @@ function buildJijangganObj(natal: NatalContext): DestinypalDayJijangganObj {
     return {
       stem,
       sibsin: dm ? safeSibsin(dm, stem) : '—',
-      element: STEM_TO_ELEMENT[stem] ?? '토',
+      element: STEM_ELEMENT_KO[stem] ?? '토',
       layer,
     }
   }
