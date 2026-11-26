@@ -8,7 +8,7 @@
  *  - 코어 타입 위반(messages 가 문자열 배열, birthDate 가 숫자 등)만 422.
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { NextRequest, NextResponse } from 'next/server'
 import { getUserDisplayName } from '@/lib/user/displayName'
 
@@ -342,5 +342,58 @@ describe('/api/counselor/realtime POST — 검증', () => {
     )
     expect(res.status).toBe(200)
     expect(mockEnsureCounselorContext.mock.calls[0][3]).toEqual({ saju: true, astro: true })
+  })
+})
+
+// ── [Age today] = 상담사의 그 날짜 D (G12) ─────────────────────────────────
+// 상담사 컨텍스트는 보는 사람 tz 의 오늘 D 를, 출생 tz 의 D 정오(counselorDayAnchor)로 읽어
+// 대운 '(now)'·프로펙션 나이를 정한다. [Age today] 도 같은 순간이어야 셋이 같은 나이다.
+// 예전엔 실제 시계를 출생 tz 로 읽어, 두 tz 의 날짜가 갈리는 생일 경계에서 한 살 어긋났다.
+describe('/api/counselor/realtime — [Age today] 는 상담사 날짜 D 기준', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    mockGetServerSession.mockResolvedValue({ user: { id: 'user-A' } })
+    mockRateLimit.mockResolvedValue({ allowed: true, headers: new Headers() })
+    mockCanUseCredits.mockResolvedValue({ allowed: true })
+    mockConsumeCredits.mockResolvedValue({ success: true })
+    mockKeyFor.mockReturnValue(null)
+    mockClaim.mockResolvedValue(true)
+    mockRelease.mockResolvedValue(undefined)
+    mockCacheGet.mockResolvedValue(null)
+    mockCacheSet.mockResolvedValue(undefined)
+    mockEnsureCounselorContext.mockResolvedValue({ stableContext: 'stable', dailyContext: 'daily' })
+    mockStreamClaudeAsSSE.mockResolvedValue(new NextResponse('stream-ok'))
+    // 2026-05-15T03:00Z = 서울 05-15 12:00 · LA 05-14 20:00 — 생일(05-15) 경계.
+    vi.useFakeTimers({ toFake: ['Date'], now: new Date('2026-05-15T03:00:00Z') })
+  })
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
+  const agePrompt = async (body: Record<string, unknown>) => {
+    const { POST } = await importRoute()
+    const res = await POST(makeReq({ ...realClientPayload, ...body }))
+    expect(res.status).toBe(200)
+    return mockStreamClaudeAsSSE.mock.calls[0][0].userPrompt as string
+  }
+
+  it('서울 출생, LA 에서 봄(D = 05-14, 생일 전날) → 35 (실제 서울 시계로는 36)', async () => {
+    const p = await agePrompt({ userTimezone: 'America/Los_Angeles' })
+    expect(p).toContain('[오늘 기준 만나이] 35세 (한국 36세)')
+  })
+
+  it('서울 출생, 서울에서 봄(D = 05-15, 생일) → 36', async () => {
+    const p = await agePrompt({ userTimezone: 'Asia/Seoul' })
+    expect(p).toContain('[오늘 기준 만나이] 36세 (한국 37세)')
+  })
+
+  it('LA 출생, 서울에서 봄(D = 05-15, 생일) → 36 (실제 LA 시계로는 아직 35) — en', async () => {
+    const p = await agePrompt({
+      lang: 'en',
+      latitude: 34.0522,
+      longitude: -118.2437,
+      userTimezone: 'Asia/Seoul',
+    })
+    expect(p).toContain('[Age today] 36 ')
   })
 })

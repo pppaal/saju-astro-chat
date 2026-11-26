@@ -10,6 +10,7 @@ import { STEM_HANJA_TO_HANGUL } from '@/lib/saju/graphIds'
 import { collectSajuFacts } from '@/lib/destiny/sajuFacts'
 import { computeCurrentUnse, type CivilDay, type CurrentUnse } from '@/lib/saju/currentUnse'
 import { pillarsForLocalDate } from '@/lib/calendar-engine/periodPillars'
+import { DAEUN_SPAN_YEARS } from '@/lib/saju/daeunAge'
 import { resolveBirthInstant } from '@/lib/datetime/resolveBirthInstant'
 import { collectAstroFacts } from '@/lib/destiny/astroFacts'
 import { getShinsalHits, getTwelveStagesForPillars, toSajuPillarsLike } from '@/lib/saju/shinsal'
@@ -1091,16 +1092,20 @@ function buildSajuSection(
   // 나이 표기는 시작~끝 범위로. 단순 `32甲戌` 이면 LLM 이 "현재 32세 갑술
   // 대운 중" 으로 오인용 (compat 의 동일 버그와 같은 클래스). 10년 cycle
   // 임을 데이터 자체로 명시.
+  // 마지막(지금 흐르는) 대운도 끝을 닫는다 — 대운 칸은 [시작, 시작+10) 이라(daeunAge SSOT,
+  // DAEUN_SPAN_YEARS) 다음 칸이 목록에 없어도 끝 나이가 정해져 있다. 예전엔 '101~ 庚寅' 처럼
+  // 열어 둬, LLM 이 그 대운이 끝없이 이어진다고 읽을 수 있었다(G12).
   const ys = locale === 'en' ? '' : '세' // age suffix — EN 은 만나이 숫자만(한국어 '세' 누수 방지)
   if (dlist.length) {
     const tl = dlist.map((d, i) => {
       const nextAge = dlist[i + 1]?.age
-      const ageLabel =
-        typeof d.age === 'number'
-          ? typeof nextAge === 'number'
-            ? `${d.age}~${nextAge - 1}${ys}`
-            : `${d.age}${ys}~`
-          : `?${ys}`
+      const endAge =
+        typeof nextAge === 'number'
+          ? nextAge - 1
+          : typeof d.age === 'number'
+            ? d.age + DAEUN_SPAN_YEARS - 1
+            : null
+      const ageLabel = typeof d.age === 'number' ? `${d.age}~${endAge}${ys}` : `?${ys}`
       const gz = `${ageLabel} ${d.heavenlyStem}${d.earthlyBranch}`
       return cur && d.age === cur.age
         ? `${gz}(${L('현재 ', 'now ')}${sib1(d.sibsin?.cheon)}/${sib1(d.sibsin?.ji)})`
@@ -1118,7 +1123,8 @@ function buildSajuSection(
       )
     }
   } else if (cur) {
-    const endAge = typeof cur.age === 'number' ? `${cur.age}~${cur.age + 9}${ys}` : `?${ys}`
+    const endAge =
+      typeof cur.age === 'number' ? `${cur.age}~${cur.age + DAEUN_SPAN_YEARS - 1}${ys}` : `?${ys}`
     timing.push(
       `${L('대운', 'daeun')} ${endAge}: ${cur.heavenlyStem}${cur.earthlyBranch} ${sib1(cur.sibsin?.cheon)}/${sib1(cur.sibsin?.ji)}`
     )
