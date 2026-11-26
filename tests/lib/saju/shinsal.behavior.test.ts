@@ -173,10 +173,9 @@ describe('getShinsalHits (full 4-pillar scan)', () => {
   })
 
   it('"your" ruleSet does not pollute a subsequent "standard" call (현침 determinism)', () => {
-    // 辛 일간의 현침: 표준=午, your=未. 예전엔 applyYourOverrides() 가 모듈 전역
-    // HYEONCHIM_BY_STEM 을 복원 없이 변이시켜, 한 번 your 로 호출하면 이후 표준
-    // 호출까지 未 로 오염됐다(요청 순서 의존 = 결정론 위반). read-time 분기로
-    // 바꾼 뒤엔 순서와 무관하게 표준은 항상 午, your 는 항상 未 여야 한다.
+    // 예전엔 applyYourOverrides() 가 모듈 전역 HYEONCHIM_BY_STEM 을 복원 없이 변이시켜,
+    // 한 번 your 로 호출하면 이후 표준 호출까지 未 로 오염됐다(요청 순서 의존 = 결정론
+    // 위반). 지금은 룰셋과 무관한 한 규칙(결정 18)이라 순서와 무관하게 표준은 항상 午.
     // 辛 일간 + 午 시지 차트: 표준에서 현침이 午 에서 발동.
     const hyeonStd = chart('甲', '子', '甲', '子', '辛', '巳', '甲', '午')
 
@@ -198,15 +197,15 @@ describe('getShinsalHits (full 4-pillar scan)', () => {
     expect(hyeonAt(before)).not.toContain('未')
   })
 
-  it('"your" ruleSet 현침 is 未 for 辛 (override still applied at read-time)', () => {
-    // 辛 일간 + 未 시지: your 룰에서만 현침 발동.
+  it('"your" ruleSet 현침 = standard 현침 for 辛 + 未 (owner decision 18, no 未 school)', () => {
+    // 辛 일간 + 未 시지: 예전엔 your 룰에서만 현침이 未 에 발동했다(G12 에서 제거).
     const c2 = chart('甲', '子', '甲', '子', '辛', '巳', '甲', '未')
     const your = getShinsalHits(c2, { ruleSet: 'your' })
     const std = getShinsalHits(c2, { ruleSet: 'standard' })
     const hyeonYour = your.filter((h) => h.kind === '현침').flatMap((h) => h.target ?? [])
     const hyeonStd = std.filter((h) => h.kind === '현침').flatMap((h) => h.target ?? [])
-    expect(hyeonYour).toContain('未')
-    expect(hyeonStd).not.toContain('未')
+    expect(hyeonYour).toEqual(hyeonStd)
+    expect(hyeonYour).not.toContain('未')
   })
 })
 

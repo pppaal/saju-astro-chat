@@ -6,7 +6,7 @@ import { z } from 'zod'
 import {
   dateSchema,
   calendarDateStringSchema,
-  isValidGregorianDate,
+  refineCalendarBirthDate,
   timeSchema,
   timezoneSchema,
   latitudeSchema,
@@ -32,19 +32,22 @@ import {
   transitAspectSchema,
   extraPointSchema,
 } from './domains/astro-domain'
-import { isExistingLunarDate } from '@/lib/saju/lunarDate'
 
 // ============ Saju API Schema ============
 
-export const sajuRequestSchema = z.object({
-  birthDate: dateSchema,
-  birthTime: timeSchema,
-  gender: genderSchema,
-  calendarType: z.enum(['solar', 'lunar']),
-  timezone: timezoneSchema,
-  userTimezone: timezoneSchema.optional(),
-  locale: localeSchema.optional(),
-})
+export const sajuRequestSchema = z
+  .object({
+    // 형식·연도만 — 날짜 실재는 calendarType 별로 refineCalendarBirthDate 가 본다.
+    birthDate: calendarDateStringSchema,
+    birthTime: timeSchema,
+    gender: genderSchema,
+    calendarType: z.enum(['solar', 'lunar']),
+    lunarLeap: z.boolean().optional(),
+    timezone: timezoneSchema,
+    userTimezone: timezoneSchema.optional(),
+    locale: localeSchema.optional(),
+  })
+  .superRefine(refineCalendarBirthDate)
 
 export type SajuRequest = z.infer<typeof sajuRequestSchema>
 
@@ -68,25 +71,8 @@ export const sajuCalculationRequestSchema = z
   })
   // 날짜 실재 검사 — 양력은 그레고리력, 음력은 엔진과 같은 변환기(lunarDate.ts). 없는 음력
   // 날짜(작은달 30일·그해에 없는 윤달·음력 2050-11-18 이후)는 엔진의 500 대신 여기서
-  // VALIDATION_ERROR 로 막는다(재감사 SP-3).
-  .superRefine((v, ctx) => {
-    // 형식이 틀린 날짜는 birthDate 필드 검사가 이미 이슈를 냈다 — 중복 메시지를 내지 않는다.
-    if (!calendarDateStringSchema.safeParse(v.birthDate).success) return
-    if (v.calendarType === 'lunar') {
-      if (!isExistingLunarDate(v.birthDate, v.lunarLeap === true)) {
-        ctx.addIssue({
-          code: 'custom',
-          path: ['birthDate'],
-          message:
-            v.lunarLeap === true
-              ? 'This lunar date does not exist (check the day and the leap month)'
-              : 'This lunar date does not exist',
-        })
-      }
-    } else if (!isValidGregorianDate(v.birthDate)) {
-      ctx.addIssue({ code: 'custom', path: ['birthDate'], message: 'Invalid date' })
-    }
-  })
+  // VALIDATION_ERROR 로 막는다(재감사 SP-3). calendarType 을 받는 모든 스키마가 같은 검사.
+  .superRefine(refineCalendarBirthDate)
 
 export type SajuCalculationRequestValidated = z.infer<typeof sajuCalculationRequestSchema>
 
@@ -219,16 +205,20 @@ export type PrecomputeChartRequestValidated = z.infer<typeof precomputeChartRequ
 
 // ============ Destiny Map Schemas ============
 
-export const destinyMapRequestSchema = z.object({
-  birthDate: dateSchema,
-  birthTime: timeSchema,
-  gender: genderSchema,
-  calendarType: z.enum(['solar', 'lunar']).optional().default('solar'),
-  timezone: timezoneSchema,
-  locale: localeSchema.optional(),
-  latitude: latitudeSchema.optional(),
-  longitude: longitudeSchema.optional(),
-})
+export const destinyMapRequestSchema = z
+  .object({
+    // 형식·연도만 — 날짜 실재는 calendarType 별로 refineCalendarBirthDate 가 본다.
+    birthDate: calendarDateStringSchema,
+    birthTime: timeSchema,
+    gender: genderSchema,
+    calendarType: z.enum(['solar', 'lunar']).optional().default('solar'),
+    lunarLeap: z.boolean().optional(),
+    timezone: timezoneSchema,
+    locale: localeSchema.optional(),
+    latitude: latitudeSchema.optional(),
+    longitude: longitudeSchema.optional(),
+  })
+  .superRefine(refineCalendarBirthDate)
 
 export type DestinyMapRequestValidated = z.infer<typeof destinyMapRequestSchema>
 
@@ -510,31 +500,24 @@ export const compatibilityChatRequestSchema = z.object({
 
 export type CompatibilityChatRequestValidated = z.infer<typeof compatibilityChatRequestSchema>
 
+// 궁합 한 사람 — 형식·연도만 필드에서, 날짜 실재는 calendarType 별로(refineCalendarBirthDate).
+const compatibilityPersonSchema = z
+  .object({
+    birthDate: calendarDateStringSchema,
+    birthTime: timeSchema,
+    latitude: latitudeSchema,
+    longitude: longitudeSchema,
+    timezone: timezoneSchema,
+    gender: genderSchema.optional(),
+    calendarType: z.enum(['solar', 'lunar']).optional(),
+    lunarLeap: z.boolean().optional(),
+    userTimezone: timezoneSchema.optional(),
+  })
+  .superRefine(refineCalendarBirthDate)
+
 export const compatibilityAnalysisSchema = z.object({
-  person1: z.lazy(() =>
-    z.object({
-      birthDate: dateSchema,
-      birthTime: timeSchema,
-      latitude: latitudeSchema,
-      longitude: longitudeSchema,
-      timezone: timezoneSchema,
-      gender: genderSchema.optional(),
-      calendarType: z.enum(['solar', 'lunar']).optional(),
-      userTimezone: timezoneSchema.optional(),
-    })
-  ),
-  person2: z.lazy(() =>
-    z.object({
-      birthDate: dateSchema,
-      birthTime: timeSchema,
-      latitude: latitudeSchema,
-      longitude: longitudeSchema,
-      timezone: timezoneSchema,
-      gender: genderSchema.optional(),
-      calendarType: z.enum(['solar', 'lunar']).optional(),
-      userTimezone: timezoneSchema.optional(),
-    })
-  ),
+  person1: z.lazy(() => compatibilityPersonSchema),
+  person2: z.lazy(() => compatibilityPersonSchema),
   analysisType: z.enum(['romantic', 'friendship', 'business', 'family']).optional(),
   locale: localeSchema.optional(),
 })

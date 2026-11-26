@@ -175,11 +175,21 @@ describe('현침 — 글자 모양 규칙: 甲·辛 일간 × 卯·午·申 지�
     }
   })
 
-  it("'your' ruleSet is the 未-inclusive school", () => {
+  // 오너 결정 18 (G12): 현침은 모든 룰셋에서 같은 글자 모양 규칙 — 'your'(/api/saju)도 未 를
+  // 더하지 않는다. 예전엔 'your' 만 未 학파라 사주 화면에만 辛未 일주의 현침이 떴다.
+  it("'your' ruleSet has the same 현침 as standard (no 未 school)", () => {
     const c = chart('丙子', '丙子', '辛未', '丙子')
     expect(getShinsalHits(c).filter((h) => h.kind === '현침')).toEqual([])
-    const your = getShinsalHits(c, { ruleSet: 'your' }).filter((h) => h.kind === '현침')
-    expect(your.map((h) => h.target)).toEqual(['未'])
+    expect(getShinsalHits(c, { ruleSet: 'your' }).filter((h) => h.kind === '현침')).toEqual([])
+  })
+
+  it('property (3,000 charts): 현침 hits are identical on every ruleSet', () => {
+    const hyeon = (c: ReturnType<typeof chart>, ruleSet: 'standard' | 'your') =>
+      getShinsalHits(c, { ruleSet }).filter((h) => h.kind === '현침')
+    for (const [y, m, d, t] of sampleCharts(3000)) {
+      const c = chart(y, m, d, t)
+      expect(hyeon(c, 'your'), `${y} ${m} ${d} ${t}`).toEqual(hyeon(c, 'standard'))
+    }
   })
 
   it('daily: 10 day stems × 12 day branches fire iff stem ∈ {甲,辛} and branch ∈ {卯,午,申}', () => {

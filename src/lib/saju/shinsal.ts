@@ -100,7 +100,12 @@ export interface AnnotateOptions {
   includeGeneralShinsal?: boolean
   includeLuckyDetails?: boolean
 
-  /** 'your' 는 현침 지지에 未 를 더하는 학파(卯午申 → 卯午申未)만 바꾼다. 귀문관은 룰셋과 무관한 정통 6쌍. */
+  /**
+   * 호출부 호환용 룰셋 선택지 — 지금은 어떤 신살 판정도 룰셋에 따라 갈리지 않는다.
+   * 현침은 오너 결정 18 의 글자 모양 규칙 하나(천간 甲·辛, 지지 卯·午·申)로 모든 룰셋이 같고
+   * (예전 'your' 의 未 포함 학파는 G12 에서 제거 — /api/saju 만 未 를 더해 사주 화면과
+   * 상담사·리포트·캘린더가 갈렸다), 귀문관은 룰셋과 무관한 정통 6쌍이다.
+   */
   ruleSet?: 'standard' | 'your'
 }
 
@@ -420,19 +425,15 @@ function isGwimun(basisBranch: string, targetBranch: string): boolean {
 // 바늘처럼 아래로 곧게 내리긋는 획이다. 그 획을 가진 글자가 현침 글자다: 천간 甲·辛, 지지
 // 卯·午·申. 엔진 기준(문서화된 임계값): 일간이 현침 천간(甲·辛)이고, 보이는 지지(시간
 // 미상이면 년·월·일 삼주) 가운데 현침 지지가 있으면 그 지지를 가진 기둥마다 현침 —
-// 甲午·甲申·辛卯 일주는 언제나 현침(대표형). 'your' 룰셋은 未 를 더하는 학파 선택지다.
+// 甲午·甲申·辛卯 일주는 언제나 현침(대표형). 오너 결정 18 — 이 규칙 하나가 모든 룰셋에
+// 같다(G12). 예전 'your' 룰셋은 未 를 더하는 학파였는데 /api/saju 만 그걸 써서, 甲·辛 일간에
+// 未 지지가 있는 차트는 사주 화면에만 현침이 떴다(상담사·리포트·캘린더엔 없음).
 // 예전 표(일간마다 지지 하나: 甲乙→酉, 丙丁→子 …)는 어느 학파에도 없는 표라 酉·子 처럼
 // 현침 글자가 아닌 지지에 붙고 甲申 일주를 놓쳤다.
 const HYEONCHIM_STEMS: ReadonlySet<string> = new Set(['甲', '辛'])
 const HYEONCHIM_BRANCHES: ReadonlySet<string> = new Set(['卯', '午', '申'])
-const HYEONCHIM_BRANCHES_WITH_MI: ReadonlySet<string> = new Set(['卯', '午', '申', '未'])
-function isHyeonchim(
-  dayStem: string,
-  branch: string,
-  ruleSet: 'standard' | 'your' = 'standard'
-): boolean {
-  if (!HYEONCHIM_STEMS.has(dayStem)) return false
-  return (ruleSet === 'your' ? HYEONCHIM_BRANCHES_WITH_MI : HYEONCHIM_BRANCHES).has(branch)
+function isHyeonchim(dayStem: string, branch: string): boolean {
+  return HYEONCHIM_STEMS.has(dayStem) && HYEONCHIM_BRANCHES.has(branch)
 }
 // 고신(孤神): 월지 三合 그룹의 다음 지지
 //   寅卯辰 (春) → 巳    巳午未 (夏) → 申
@@ -953,8 +954,8 @@ export function getShinsalHitsForDailyTarget(
   return hits
 }
 
-// 'your' 룰 오버라이드는 이제 read-time 분기로 처리한다:
-//  - 현침: isHyeonchim(dayStem, branch, ruleSet) — 'your' 는 현침 지지에 未 를 더한다.
+// 'your' 룰 오버라이드는 남은 것이 없다:
+//  - 현침: 모든 룰셋이 같은 isHyeonchim(dayStem, branch) — 오너 결정 18 (G12 에서 未 학파 제거).
 //  - 12신살 未-row 오버라이드: 런타임 12신살 계산은 SAMHAP_LEADER/
 //    TWELVE_BY_OFFSET_KO 를 쓰고 TWELVE_SHINSAL_BY_DAY_BRANCH 는 모듈 init 시점
 //    inverse-view 스냅샷에만 쓰여, 예전의 런타임 변이는 아무 소비자도 읽지 않는
@@ -1045,7 +1046,7 @@ export function getShinsalHits(
             })
           }
         }
-        if (isHyeonchim(dayStem, br, opt.ruleSet)) {
+        if (isHyeonchim(dayStem, br)) {
           hits.push({ kind: '현침', pillars: [kind], target: br })
         }
         if (isGosin(monthBranch, br)) {

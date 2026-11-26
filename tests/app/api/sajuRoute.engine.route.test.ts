@@ -401,3 +401,63 @@ describe('POST /api/saju — 없는 음력 날짜는 422, 엔진 미호출 (재�
     )
   })
 })
+
+// 오너 결정 18 (G12): 현침은 모든 룰셋에서 같은 글자 모양 규칙(甲·辛 × 卯·午·申). /api/saju 는
+// ruleSet 'your' 를 넘기는데, 예전 'your' 는 未 를 더하는 학파라 甲·辛 일간 + 未 지지 차트는
+// 사주 화면에만 현침이 떴다. 이제 사주 화면(라우트)·리포트(buildReportContext)·캘린더(본명
+// buildNatalContext · 일진 getShinsalHitsForDailyTarget)가 같은 기둥에 같은 현침을 낸다.
+describe('POST /api/saju — 현침은 모든 표면에서 같다 (오너 결정 18, G12)', () => {
+  const surfaces = async (birthDate: string) => {
+    const res = await post({
+      birthDate,
+      birthTime: '10:00',
+      gender: 'male',
+      calendarType: 'solar',
+      timezone: 'Asia/Seoul',
+      latitude: 37.5665,
+      longitude: 126.978,
+    })
+    const json = await res.json()
+    expect(res.status, JSON.stringify(json.error)).toBe(200)
+    const byPillar = json.data.table.byPillar as Record<string, { shinsal: string[] } | null>
+    const page = (['year', 'month', 'day', 'time'] as const)
+      .filter((k) => byPillar[k]?.shinsal.includes('현침'))
+      .sort()
+    const input = {
+      birthDate,
+      birthTime: '10:00',
+      gender: 'male' as const,
+      latitude: 37.5665,
+      longitude: 126.978,
+      timeZone: 'Asia/Seoul',
+    }
+    const hyeonPillars = (hits: Array<{ kind: string; pillars?: string[] }>) =>
+      hits
+        .filter((h) => h.kind === '현침')
+        .flatMap((h) => h.pillars ?? [])
+        .sort()
+    const { buildReportContext } = await import('@/lib/report/buildReportContext')
+    const { buildNatalContext } = await import('@/lib/calendar-engine/context/build')
+    const report = hyeonPillars((await buildReportContext(input)).saju.natalShinsal as never)
+    const calendar = hyeonPillars((await buildNatalContext(input)).saju.natalShinsal as never)
+    return { page, report, calendar }
+  }
+
+  it('1991-03-02 (辛未 庚寅 辛未 癸巳) — 辛 일간 + 未 지지: 어느 표면에도 현침 없음', async () => {
+    const s = await surfaces('1991-03-02')
+    expect(s.page).toEqual([])
+    expect(s.report).toEqual([])
+    expect(s.calendar).toEqual([])
+    const { getShinsalHitsForDailyTarget } = await import('@/lib/saju/shinsal')
+    expect(getShinsalHitsForDailyTarget('辛', '未', '未').some((h) => h.kind === '현침')).toBe(
+      false
+    )
+  }, 60000)
+
+  it('1991-03-15 (辛未 辛卯 甲申 己巳) — 卯·申 기둥만, 未 년주는 아님, 세 표면 동일', async () => {
+    const s = await surfaces('1991-03-15')
+    expect(s.page).toEqual(['day', 'month'])
+    expect(s.report).toEqual(s.page)
+    expect(s.calendar).toEqual(s.page)
+  }, 60000)
+})
