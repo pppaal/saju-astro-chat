@@ -1,7 +1,7 @@
 /**
  * EN 티어 렌더에 한글이 없다 — 실제 천체력 (재감사 SI-1·SI-2·CC-4·SI-3·SI-4, destiny release gate).
  *
- * 엔진 → 어셈블러(assembleTiers·assembleLifetime) → 컴포넌트(LifetimeTier·MonthTier·DayTier)
+ * 엔진 → 어셈블러(assembleTiers·assembleLifetime) → 컴포넌트(LifeFlow(v9.2 인생 흐름)·MonthTier·DayTier)
  * 전 경로를 EN 로케일로 정적 렌더해, 영어가 와야 할 자리에 한글이 새지 않는지 본다.
  *  - 한자(간지·强/弱·財生官·長生)는 허용 — 글리프 자리다. 한글(가-힣)은 어디에도 없어야 한다.
  *  - 차트는 1997-03-21 14:30 F 서울(샘플, 상관격·신약·건록 교차 달), 1951-09-07 01:26 M LA
@@ -29,7 +29,8 @@ const { buildNatalContext } = await import('@/lib/calendar-engine/context/build'
 const { buildCalendar } = await import('@/lib/calendar-engine')
 const { assembleTiers } = await import('@/app/calendar/assembleTiers')
 const { assembleLifetime } = await import('@/app/calendar/assembleLifetime')
-const { LifetimeTier } = await import('@/components/calendar/tiers/LifetimeTier')
+const { default: LifeFlow } = await import('@/app/destiny/LifeFlow')
+const { buildLifetimeViewModel } = await import('@/lib/calendar-view/lifetimeViewModel')
 const { MonthTier } = await import('@/components/calendar/tiers/MonthTier')
 const { DayTier } = await import('@/components/calendar/tiers/DayTier')
 
@@ -153,8 +154,17 @@ describeRealEphemeris('EN 티어 렌더 — 한글 없음 (실제 천체력)', (
         now: NOW,
         todayIso: '2026-11-25',
       })
+      const lifeVm = buildLifetimeViewModel(life, { lang: 'en', todayIso: '2026-11-25' })
       const lifeHtml = renderToStaticMarkup(
-        <LifetimeTier user={life.user} lifetime={life.lifetime} onDive={noop} />
+        <LifeFlow
+          vm={lifeVm}
+          locale="en"
+          dayMaster={{ stem: life.user.ilgan.hanja, element: 'water' }}
+          chipStamp={c.birthDate}
+          folioStamp={c.birthDate}
+          folioRight="destinypal.com"
+          river={null}
+        />
       )
       expect(lifeHtml.length).toBeGreaterThan(2000)
       expect(hangulLeaks(lifeHtml), `${c.label} Life`).toEqual([])

@@ -42,7 +42,19 @@ export type LoadLifetimeResult =
   | { kind: 'no-birth' }
   | { kind: 'guest'; lang: 'ko' | 'en' }
   | { kind: 'rate-limited'; lang: 'ko' | 'en' }
-  | ({ kind: 'ok'; lang: 'ko' | 'en' } & AssembledLifetime)
+  | ({
+      kind: 'ok'
+      lang: 'ko' | 'en'
+      /** 오늘 — 출생지 시간대의 민용 날짜 'YYYY-MM-DD'(겹침 캡션의 날짜). */
+      todayIso: string
+      /** 출생 스탬프 재료(lib/birth/format) — 도시는 입력된 이름만(기본값 'Seoul' 아님). */
+      birthStamp: {
+        birthDate: string
+        birthTime: string
+        birthTimeUnknown: boolean
+        city: string | null
+      }
+    } & AssembledLifetime)
 
 // 쿼리파라미터로 들어온 생일 — 로그인 없이도 캘린더/인생흐름을 그 사람 기준으로
 // 빌드한다(통합 리포트와 같은 규약: date/time/lat/lng/tz/gender).
@@ -372,5 +384,16 @@ export async function loadLifetimeData(
     },
   })
 
-  return { kind: 'ok', lang, ...assembled }
+  return {
+    kind: 'ok',
+    lang,
+    todayIso,
+    birthStamp: {
+      birthDate: BIRTH.birthDate,
+      birthTime: BIRTH.birthTime,
+      birthTimeUnknown: guard.timeUnknown,
+      city: guard.birthPlace ?? null,
+    },
+    ...assembled,
+  }
 }

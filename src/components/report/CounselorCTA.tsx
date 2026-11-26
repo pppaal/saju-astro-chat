@@ -3,14 +3,21 @@
 /**
  * 리포트 → 운명 상담사 연결 CTA. 사주·점성 리포트 / 운흐름 캘린더 / 인생 흐름
  * 하단에 붙어, 저장된 생일(localStorage)을 그대로 실어 상담 채팅으로 이어준다
- * (없으면 그냥 /destiny-counselor 로). 페이지 테마와 무관하게 읽히도록 골드
- * 그라데이션 버튼 + 색 상속 캡션으로 테마 중립 디자인.
+ * (없으면 그냥 /destiny-counselor 로).
+ *
+ * variant
+ * - 'gold'(기본): 페이지 테마와 무관하게 읽히는 골드 그라데이션 버튼 + 색 상속 캡션
+ *   (/integrated-report · /calendar).
+ * - 'v9': v9 paper 화면(인생 흐름)의 검은 알약(CSS 모듈 클래스) + 캡션 + 가격 줄. 가격은
+ *   PriceLine 이 SSOT(CREDIT_COSTS · creditsFromLabel)에서만 읽는다 — 숫자를 여기 적지 않는다.
  */
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { Sparkles } from 'lucide-react'
 import { getStoredBirthInfo, buildCounselorHref, type StoredBirthInfo } from '@/lib/birth/storage'
 import { trackFunnel, type FunnelEvent } from '@/lib/metrics/trackFunnel'
+import PriceLine from '@/components/v9/PriceLine'
+import s from './CounselorCTA.module.css'
 
 interface CounselorCTAProps {
   lang: 'ko' | 'en'
@@ -18,9 +25,48 @@ interface CounselorCTAProps {
   question?: { ko: string; en: string }
   /** 퍼널 집계용 이벤트 — 지정 시 CTA 클릭을 비콘으로 보낸다(서버 컴포넌트도 문자열로 전달 가능). */
   funnelEvent?: FunnelEvent
+  variant?: 'gold' | 'v9'
+  className?: string
 }
 
-export default function CounselorCTA({ lang, question, funnelEvent }: CounselorCTAProps) {
+const COPY = {
+  label: { ko: '운명 상담사에게 물어보기', en: 'Ask the destiny counselor' },
+  goldSub: {
+    ko: '내 사주·별자리를 기억한 채로 바로 대화가 이어져요 · 크레딧으로 이용해요',
+    en: 'Picks up with your chart already in context · uses credits',
+  },
+  v9Sub: {
+    ko: '내 차트를 기억한 채로 바로 대화가 이어져요',
+    en: 'Picks up with your chart already in context',
+  },
+} as const
+
+function ArrowIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width="18"
+      height="18"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <path d="M5 12h14M13 6l6 6-6 6" />
+    </svg>
+  )
+}
+
+export default function CounselorCTA({
+  lang,
+  question,
+  funnelEvent,
+  variant = 'gold',
+  className,
+}: CounselorCTAProps) {
   const [info, setInfo] = useState<StoredBirthInfo | null>(null)
   useEffect(() => {
     setInfo(getStoredBirthInfo())
@@ -30,12 +76,20 @@ export default function CounselorCTA({ lang, question, funnelEvent }: CounselorC
   const href = info
     ? buildCounselorHref(info, q, lang)
     : `/destiny-counselor?lang=${lang}${q ? `&q=${encodeURIComponent(q)}` : ''}`
+  const onClick = funnelEvent ? () => trackFunnel(funnelEvent) : undefined
 
-  const label = lang === 'ko' ? '운명 상담사에게 물어보기 →' : 'Ask the destiny counselor →'
-  const sub =
-    lang === 'ko'
-      ? '내 사주·별자리를 기억한 채로 바로 대화가 이어져요 · 크레딧으로 이용해요'
-      : 'Picks up with your chart already in context · uses credits'
+  if (variant === 'v9') {
+    return (
+      <div className={[s.cta, className].filter(Boolean).join(' ')} data-counselor-cta="v9">
+        <Link href={href} prefetch={false} onClick={onClick} className={s.pill}>
+          {COPY.label[lang]}
+          <ArrowIcon />
+        </Link>
+        <p className={s.cap}>{COPY.v9Sub[lang]}</p>
+        <PriceLine locale={lang} showLink={false} className={s.price} />
+      </div>
+    )
+  }
 
   return (
     <div
@@ -44,7 +98,7 @@ export default function CounselorCTA({ lang, question, funnelEvent }: CounselorC
       <Link
         href={href}
         prefetch={false}
-        onClick={funnelEvent ? () => trackFunnel(funnelEvent) : undefined}
+        onClick={onClick}
         style={{
           display: 'inline-flex',
           alignItems: 'center',
@@ -60,9 +114,11 @@ export default function CounselorCTA({ lang, question, funnelEvent }: CounselorC
         }}
       >
         <Sparkles className="w-4 h-4" />
-        {label}
+        {`${COPY.label[lang]} →`}
       </Link>
-      <p style={{ marginTop: 10, fontSize: 12.5, lineHeight: 1.6, opacity: 0.7 }}>{sub}</p>
+      <p style={{ marginTop: 10, fontSize: 12.5, lineHeight: 1.6, opacity: 0.7 }}>
+        {COPY.goldSub[lang]}
+      </p>
     </div>
   )
 }
