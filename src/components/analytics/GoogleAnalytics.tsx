@@ -4,6 +4,7 @@ import Script from 'next/script'
 import { useEffect } from 'react'
 import { usePathname, useSearchParams } from 'next/navigation'
 import { useConsent } from '@/contexts/ConsentContext'
+import { gaBootstrapScript, sanitizeAnalyticsUrl } from '@/lib/security/analyticsUrl'
 
 type WindowWithGtag = Window & {
   gtag?: (...args: unknown[]) => void
@@ -32,11 +33,16 @@ export function GoogleAnalytics({ gaId, nonce }: { gaId: string; nonce?: string 
 
     const url = pathname + (searchParams?.toString() ? `?${searchParams.toString()}` : '')
 
-    // Send pageview with custom URL
+    // Send pageview — birth-query URLs (?date=&time=&lat=…) must never reach GA, so page_path and
+    // page_location keep only allowlisted query keys (QA-7). gtag('set') makes later events
+    // (web vitals, trackEvent) inherit the sanitized location instead of document.location.
     const gtag = getGtag()
-    if (gtag) {
+    const page = sanitizeAnalyticsUrl(url, window.location.origin)
+    if (gtag && page) {
+      gtag('set', { page_location: page.location, page_path: page.path })
       gtag('config', gaId, {
-        page_path: url,
+        page_path: page.path,
+        page_location: page.location,
       })
     }
   }, [pathname, searchParams, gaId, consentGranted, isGaIdValid])
@@ -75,23 +81,8 @@ export function GoogleAnalytics({ gaId, nonce }: { gaId: string; nonce?: string 
         id="google-analytics"
         strategy="afterInteractive"
         nonce={nonce}
-        dangerouslySetInnerHTML={{
-          __html: `
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('consent', 'update', {
-              ad_storage: 'granted',
-              analytics_storage: 'granted',
-              ad_user_data: 'granted',
-              ad_personalization: 'granted',
-            });
-            gtag('js', new Date());
-
-            gtag('config', '${gaId}', {
-              page_path: window.location.pathname,
-            });
-          `,
-        }}
+        // First config: same allowlist sanitizer, inlined (page_location defaults to the full URL).
+        dangerouslySetInnerHTML={{ __html: gaBootstrapScript(gaId) }}
       />
     </>
   )
@@ -137,18 +128,15 @@ export const analytics = {
   startTrial: () => trackEvent('begin_checkout'),
 
   // Free → Premium conversion funnel
-  freeResultView: (source: string = 'destiny-map') =>
-    trackEvent('free_result_view', { source }),
+  freeResultView: (source: string = 'destiny-map') => trackEvent('free_result_view', { source }),
   premiumCtaClick: (
     location: string,
     target: 'comprehensive' | 'themed' | 'pricing' | 'monthly' | 'yearly'
   ) => trackEvent('premium_cta_click', { location, target }),
   premiumThemeSelect: (theme: string, period?: string) =>
     trackEvent('premium_theme_select', { theme, period: period || 'none' }),
-  premiumReportStart: (
-    type: 'comprehensive' | 'themed' | 'monthly' | 'yearly',
-    theme?: string
-  ) => trackEvent('premium_report_start', { type, theme: theme || 'none' }),
+  premiumReportStart: (type: 'comprehensive' | 'themed' | 'monthly' | 'yearly', theme?: string) =>
+    trackEvent('premium_report_start', { type, theme: theme || 'none' }),
 
   // Purchase events (for GA4 conversion tracking)
   purchase: (params: { transaction_id: string; value: number; currency: string; plan: string }) =>
