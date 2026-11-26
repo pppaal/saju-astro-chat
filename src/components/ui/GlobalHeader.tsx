@@ -53,12 +53,14 @@ function GlobalHeaderContent() {
           menuLabel={isKo ? '메뉴 열기' : 'Open menu'}
           centerSlot="DestinyPal"
           rightSlot={
-            <AppHeaderIconButton
-              onClick={() => setLocale(isKo ? 'en' : 'ko')}
-              label={localeAriaLabel}
-              isText
-            >
+            // 접근성 이름 = 보이는 글자(KO/EN) + 숨긴 설명(HomeNav 와 같은 규칙) — 음성 제어로 'KO' 를
+            // 불러도 눌리고(WCAG 2.5.3), 설명은 바꿀 언어로 읽히게 lang 을 단다(3.1.2, QA R-CA-6).
+            <AppHeaderIconButton onClick={() => setLocale(isKo ? 'en' : 'ko')} isText>
               {nextLocaleLabel}
+              <span className="sr-only" lang={isKo ? 'en' : 'ko'}>
+                {' '}
+                {localeAriaLabel}
+              </span>
             </AppHeaderIconButton>
           }
         />

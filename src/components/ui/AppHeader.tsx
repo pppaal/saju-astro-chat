@@ -109,7 +109,11 @@ export function AppHeader({
 export const AppHeaderIconButton = React.forwardRef<
   HTMLButtonElement,
   Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'aria-label'> & {
-    label: string
+    /**
+     * 아이콘 버튼의 접근성 이름(aria-label · title). 보이는 글자가 이름인 버튼(예: 'KO' + 숨긴 설명)은
+     * 생략한다 — aria-label 이 보이는 글자를 덮으면 음성 제어로 못 누른다(WCAG 2.5.3).
+     */
+    label?: string
     /** 텍스트 글리프(예: "EN") 면 살짝 작게 — boolean. */
     isText?: boolean
   }
@@ -118,7 +122,13 @@ export const AppHeaderIconButton = React.forwardRef<
     .filter(Boolean)
     .join(' ')
   return (
-    <button ref={ref} type="button" aria-label={label} title={label} className={cls} {...rest}>
+    <button
+      ref={ref}
+      type="button"
+      {...(label ? { 'aria-label': label, title: label } : {})}
+      className={cls}
+      {...rest}
+    >
       {children}
     </button>
   )

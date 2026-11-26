@@ -68,6 +68,18 @@ describe('Accessibility: GlobalHeader', () => {
       const localeToggle = getByRole('button', { name: /switch to english/i })
       expect(localeToggle).toBeInTheDocument()
     })
+
+    it('locale toggle name contains the visible label, and the description carries its lang (WCAG 2.5.3 / 3.1.2)', () => {
+      const { getByRole } = render(<GlobalHeader />)
+      const toggle = getByRole('button', { name: /switch to english/i })
+      const visible = toggle.textContent?.trim().split(/\s+/)[0] ?? ''
+      expect(['EN', 'KO']).toContain(visible)
+      // aria-label 이 보이는 글자를 덮지 않는다 — 이름은 내용에서 온다.
+      expect(toggle.hasAttribute('aria-label')).toBe(false)
+      const desc = toggle.querySelector('[lang]')
+      expect(desc?.textContent?.trim()).toMatch(/switch to english|한국어로 전환/i)
+      expect(desc?.getAttribute('lang')).toBe(visible === 'EN' ? 'en' : 'ko')
+    })
   })
 
   describe('Authenticated state', () => {
