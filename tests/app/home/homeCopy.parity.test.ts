@@ -19,10 +19,13 @@ const pairs: Array<[string, { ko: string; en: string }]> = [
   ]),
 ]
 
+// en H1 은 밑줄 안에 마침표까지 넣어('you.') 뒤 조각이 비어 있다 — 그 키만 en 빈 값을 허용한다.
+const EN_MAY_BE_EMPTY = new Set(['h1After'])
+
 describe('homeCopy parity', () => {
-  it.each(pairs)('%s — ko · en 둘 다 비어 있지 않다', (_k, bi) => {
+  it.each(pairs)('%s — ko · en 둘 다 비어 있지 않다', (k, bi) => {
     expect(bi.ko.trim().length).toBeGreaterThan(0)
-    expect(bi.en.trim().length).toBeGreaterThan(0)
+    if (!EN_MAY_BE_EMPTY.has(k)) expect(bi.en.trim().length).toBeGreaterThan(0)
   })
 
   it.each(pairs)('%s — 영어 문구에 한글이 없다', (_k, bi) => {
@@ -47,7 +50,7 @@ describe('homeCopy parity', () => {
     expect(HOME_COPY.magpieEyebrow.ko).toBe('까치')
   })
 
-  it('언어 토글은 기존 접근성 이름을 유지한다', () => {
+  it('언어 토글의 숨긴 설명은 기존 접근성 이름 그대로(이름 = 보이는 글자 + 설명)', () => {
     expect(LOCALE_TOGGLE.aria.en).toBe('한국어로 전환')
     expect(LOCALE_TOGGLE.aria.ko).toBe('Switch to English')
   })

@@ -4,7 +4,14 @@
 // 그날부터 새 세운), 태어난 해·인생 전환 색인, gen9.py 배치와 같은 좌표, 결정성(시계 무관).
 
 import { describe, it, expect, vi, afterEach } from 'vitest'
-import { dialModel, ganjiIndex60, ganjiIndexOf, DIAL_LABELS } from '@/lib/v9/sixtyDial'
+import {
+  dialModel,
+  ganjiIndex60,
+  ganjiIndexOf,
+  labelBox,
+  DIAL_LABELS,
+  LABEL_GAP,
+} from '@/lib/v9/sixtyDial'
 import { cardBackRing, yearRingIndex, DIAL_LABELS as RING_LABELS } from '@/lib/v9/ring'
 import { pillarsForLocalDateString } from '@/lib/calendar-engine/periodPillars'
 import { yearPillarOfSajuYear } from '@/lib/saju/datePillars'
@@ -191,6 +198,68 @@ describe('dialModel — 표시와 기하 (gen9.py dial)', () => {
     expect(en.ariaLabel).toBe(
       '60-year cycle: NOW 丙午 2026 (43 of 60) · BORN · 丁丑 1997 · LIFE TURN 2032'
     )
+  })
+
+  // QA VH-4 — 홈 샘플(인생 전환 2033)에서 EN 'LIFE TURN' 이 오른쪽 끝 고정으로 x 238 → 230 에 밀려
+  // 사각(226–232)의 'L' 을 덮었다. 이제 어느 언어 · 어느 전환 해든 라벨 상자는 표시와 LABEL_GAP 이상.
+  it('인생 전환 라벨은 사각 표시에 닿지 않는다 (en · ko, 홈 샘플 2033 포함)', () => {
+    const apart = (a: { x: number; y: number; w: number; h: number }, b: typeof a) =>
+      a.x >= b.x + b.w + LABEL_GAP ||
+      b.x >= a.x + a.w + LABEL_GAP ||
+      a.y >= b.y + b.h + LABEL_GAP ||
+      b.y >= a.y + a.h + LABEL_GAP
+    for (const locale of ['en', 'ko'] as const) {
+      for (let year = 2027; year <= 2085; year++) {
+        const m = dialModel({
+          nowDate: '2026-11-26',
+          timeZone: SEOUL,
+          bornYear: 1997,
+          turn: { year },
+          locale,
+        })
+        if (!m.turn) continue
+        const rect = {
+          x: Number(m.turn.rect.x),
+          y: Number(m.turn.rect.y),
+          w: m.turn.rect.size,
+          h: m.turn.rect.size,
+        }
+        const turnLabels = m.labels.filter(
+          (l) => l.text === String(year) || l.text === DIAL_LABELS.lifeTurn[locale]
+        )
+        expect(turnLabels).toHaveLength(2)
+        for (const l of turnLabels) expect(apart(labelBox(l), rect)).toBe(true)
+      }
+    }
+    // 홈 샘플: EN 은 같은 정렬로 사각 위에 쌓인다(x 230 start, 사각 위쪽).
+    const en = dialModel({
+      nowDate: '2026-11-26',
+      timeZone: SEOUL,
+      bornYear: 1997,
+      turn: { year: 2033 },
+    })
+    expect(en.turn?.rect).toEqual({ x: '226.0', y: '59.3', size: 6 })
+    expect(en.labels[1]).toMatchObject({ text: '2033', x: '230.0', y: '36.3', anchor: 'start' })
+    expect(en.labels[2]).toMatchObject({
+      text: 'LIFE TURN',
+      x: '230.0',
+      y: '50.3',
+      anchor: 'start',
+    })
+    // ko '인생 전환' 은 원래 자리(옆)에 들어간다.
+    const ko = dialModel({
+      nowDate: '2026-11-26',
+      timeZone: SEOUL,
+      bornYear: 1997,
+      turn: { year: 2033 },
+      locale: 'ko',
+    })
+    expect(ko.labels[2]).toMatchObject({
+      text: '인생 전환',
+      x: '238.0',
+      y: '68.3',
+      anchor: 'start',
+    })
   })
 
   it('영어 라벨에 한글이 없다', () => {

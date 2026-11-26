@@ -25,17 +25,22 @@ export const HOME_COPY = {
   sampleCity: { ko: '서울', en: 'Seoul' },
 
   // ─── 히어로 ───
+  /** 구분점(·)은 양옆을 줄바꿈 없는 공백으로 묶는다 — 좁은 화면에서 '·' 가 줄 끝이나 줄 앞에 혼자 남지 않게. */
   eyebrow: {
-    ko: '사주 · 서양 점성술 · 타로',
-    en: 'Korean saju · Western astrology · Tarot',
+    ko: '사주\u00a0·\u00a0서양 점성술\u00a0·\u00a0타로',
+    en: 'Korean saju\u00a0·\u00a0Western astrology\u00a0·\u00a0Tarot',
   },
-  /** H1 — 앞 · 밑줄(강조) · 뒤. ko 는 옛 /free 훅. */
+  /**
+   * H1 — 앞 · 밑줄(강조) · 뒤. ko 는 옛 /free 훅. en 밑줄은 디자인(home9)처럼 마침표까지 'you.',
+   * '—' 와 'you.' 는 줄바꿈 없는 공백으로 묶어 'you.' 가 혼자 줄에 남지 않게 한다.
+   */
   h1Before: {
     ko: '사주도 별자리도, 이상하게 ',
-    en: 'Saju and the stars, strangely, describe the same person — ',
+    en: 'Saju and the stars, strangely, describe the same person —\u00a0',
   },
-  h1Em: { ko: '너를 같은 사람', en: 'you' },
-  h1After: { ko: '이라 말해.', en: '.' },
+  h1Em: { ko: '너를 같은 사람', en: 'you.' },
+  /** en 은 비어 있다(마침표는 밑줄 안). */
+  h1After: { ko: '이라 말해.', en: '' },
   lede: {
     ko: '엔진이 사주와 출생 차트를 따로 계산해요. 같은 생년월일이면 언제나 같은 답이고, 두 체계가 어디서 맞고 어디서 갈리는지 그대로 보여 줘요.',
     en: 'Our engine computes your saju and your birth chart separately — same birth data, same answer, every time — then shows where they agree and where they pull apart.',
@@ -43,8 +48,8 @@ export const HOME_COPY = {
   cta: { ko: '내 무료 사주 카드 받기', en: 'Get my free Saju Card' },
   ctaOpen: { ko: '내 전체 카드 보기', en: 'Open my full card' },
   /** 저장된 출생 정보 줄 — mono 라벨. */
-  savedBirth: { ko: '내 출생 정보', en: 'Your birth data' },
-  editBirth: { ko: '생년월일 정보 수정', en: 'Edit birth info' },
+  savedBirth: { ko: '내 출생 정보', en: 'Your birth details' },
+  editBirth: { ko: '출생 정보 수정', en: 'Edit birth details' },
 
   // ─── 판독 띠(COST · ACCOUNT · TIME) ───
   roCost: { ko: '비용', en: 'Cost' },
@@ -60,7 +65,16 @@ export const HOME_COPY = {
   cardEyebrow: { ko: '나의 무료 사주 카드', en: 'Your free Saju Card' },
   cardCaption: {
     ko: '네 기둥, 빅 쓰리, 사주 타입 — 태어난 한 순간으로 계산하고, 바로 공유할 수 있어요.',
-    en: 'Your four pillars, your big three and your saju type — computed from one birth moment, ready to share.',
+    en: 'Your four pillars, your big three and your Saju type — computed from one birth moment, ready to share.',
+  },
+  /**
+   * 출생 정보가 저장된 사람 — 카드는 여전히 엔진 샘플이라(오너 결정 5 · QA-1) '내 카드'라고 하지
+   * 않는다. 내 카드는 위 'Open my full card' 링크(리포트)에서 연다.
+   */
+  cardEyebrowSample: { ko: '샘플 사주 카드', en: 'Sample Saju Card' },
+  cardCaptionSample: {
+    ko: '샘플 카드예요 — 내 카드는 위에서 열어 보세요.',
+    en: 'A sample card — open yours above.',
   },
 
   // ─── 상담사 CTA(오너 결정 1 — 카드 바로 다음의 유료 진입) ───
@@ -68,7 +82,7 @@ export const HOME_COPY = {
 
   // ─── 둘러보기 ───
   exploreEyebrow: { ko: '둘러보기', en: 'Explore' },
-  exploreH2a: { ko: '나를 읽는 세 가지 방법.', en: 'Three ways to read you.' },
+  exploreH2a: { ko: '나를 읽는 세 가지 방법.', en: 'Three ways to read\u00a0you.' },
   exploreH2b: { ko: '카드는 하나.', en: 'One card.' },
   exploreSubLead: {
     ko: '무료로 시작하고, 원할 때 더 깊이.',
@@ -121,11 +135,12 @@ export const HOME_COPY = {
 export type HomeCopyKey = keyof typeof HOME_COPY
 
 /**
- * 언어 토글 — 바꿀 언어로 쓴다(기존 홈 헤더 · GlobalHeader 와 같은 접근성 이름). 보는 언어와
- * 반대 언어의 글자라 HOME_COPY 의 언어 순도 검사 밖에 둔다(aria-label 은 화면 글자가 아니다).
+ * 언어 토글 — 설명은 바꿀 언어로 쓴다(기존 홈 헤더 · GlobalHeader 와 같은 말). 보는 언어와
+ * 반대 언어의 글자라 HOME_COPY 의 언어 순도 검사 밖에 둔다(화면 밖 설명이다). 버튼의 접근성 이름은
+ * 보이는 글자 + 이 설명('KO 한국어로 전환') — HomeNav.
  */
 export const LOCALE_TOGGLE = {
-  /** 지금 locale → 접근성 이름. */
+  /** 지금 locale → 숨긴 설명(바꿀 언어의 lang 으로 읽힌다). */
   aria: { ko: 'Switch to English', en: '한국어로 전환' },
   /** 지금 locale → 보이는 글자(바꿀 언어). */
   short: { ko: 'EN', en: 'KO' },

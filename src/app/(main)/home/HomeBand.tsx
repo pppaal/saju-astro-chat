@@ -4,7 +4,8 @@
  *
  * 3단계 행: 샘플의 이 10년 겹침(타이밍 행)이 있으면 그것을 ▲/▼ 마크와 함께, 없으면(지금의
  * 샘플 — E12 정직성 게이트 뒤 빈 목록) 축 행 둘(정체성 · 기질)을 마크 없이 판정 라벨로
- * 그린다. 합의나 방향을 지어내지 않는다. 범례는 블록 맨 아래 한 번.
+ * 그린다. 합의나 방향을 지어내지 않는다. ▲/▼ 범례는 타이밍 행이 있을 때만 블록 맨 아래 한 번 —
+ * 축 행엔 마크가 없으므로 범례도 없다(parts9 축 목록 규칙 'No ▲/▼ here').
  *
  * 다이얼 모델은 서버(page.tsx → homeDial)가 보는 사람의 날짜로 만든다 — 여기서는 그리기만.
  */
@@ -134,14 +135,17 @@ export default function HomeBand({ locale, dial, timing, traits }: HomeBandProps
               <span>{timing.length > 0 ? t('step3Timing') : t('step3Traits')}</span>
             </div>
             <StepRows locale={locale} timing={timing} traits={traits} />
-            <XLegend theme="dark" locale={locale} />
+            {timing.length > 0 ? <XLegend theme="dark" locale={locale} /> : null}
           </div>
         </li>
       </ol>
       <div className={s.bandAside}>
         <div className={s.lr}>
           <span>
-            {t('dialCorner')} · <span className={s.hj}>六十甲子</span>
+            {t('dialCorner')} ·{' '}
+            <span className={s.hj} lang="ko">
+              六十甲子
+            </span>
           </span>
           <span>{t('dialUnit')}</span>
         </div>

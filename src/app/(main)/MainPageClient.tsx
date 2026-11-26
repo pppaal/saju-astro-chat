@@ -10,7 +10,9 @@
  * 남긴 것: 출생 정보 모달, 로그인 사용자 프로필 동기화, ?openBirth=1 자동 열기, 같은 사이트
  * ?next= 복귀, 삭제 처리, SpeedInsights · PWA 설치 안내 · PrefetchLinks.
  * 카드는 샘플(SAMPLE_CARD — 엔진이 만든 체크인 값)이고, 뒷면 세운과 다이얼은 서버가 보는 사람의
- * 날짜로 만든 모델을 그대로 그린다(시계를 읽지 않는다).
+ * 날짜로 만든 모델을 그대로 그린다(시계를 읽지 않는다). 출생 정보가 저장된 사람에게도 카드는
+ * 샘플이므로(오너 결정 5) 눈썹 · 캡션을 'Sample Saju Card' 로 바꾸고, 두 폴리오 모두 SAMPLE 표시를
+ * 단다(QA-1) — 남의 기둥을 '내 카드'라고 부르지 않는다.
  */
 
 import { SpeedInsights } from '@vercel/speed-insights/next'
@@ -251,11 +253,13 @@ export default function MainPageClient({ initialLocale, dial, backYear }: MainPa
               <SajuCard data={{ ...SAMPLE_CARD, backYear }} variant="full" locale={locale} />
             </div>
           </div>
-          <div className={s.wcap}>
+          <div className={s.wcap} data-home-card-label={saved ? 'sample' : 'yours'}>
             <span id="home-card" className={s.eyebrow}>
-              {pick(HOME_COPY.cardEyebrow, locale)}
+              {pick(saved ? HOME_COPY.cardEyebrowSample : HOME_COPY.cardEyebrow, locale)}
             </span>
-            <p className={s.cap}>{pick(HOME_COPY.cardCaption, locale)}</p>
+            <p className={s.cap}>
+              {pick(saved ? HOME_COPY.cardCaptionSample : HOME_COPY.cardCaption, locale)}
+            </p>
           </div>
         </section>
       </div>
@@ -290,9 +294,15 @@ export default function MainPageClient({ initialLocale, dial, backYear }: MainPa
 
       <HomeMagpie locale={locale} />
 
+      {/* 끝 폴리오도 샘플 스탬프라 SAMPLE 을 단다. 도메인은 넓은 화면에서만 곁에(좁으면 스탬프를 자르지 않게). */}
       <Folio
         stamp={sampleStamp}
-        right={shareDomain()}
+        right={
+          <>
+            {pick(PROVENANCE.sample, locale)}
+            <span className={s.folioDomain}> · {shareDomain()}</span>
+          </>
+        }
         position="end"
         locale={locale}
         className={s.folio}

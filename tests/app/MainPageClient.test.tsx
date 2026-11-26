@@ -1,7 +1,7 @@
 // tests/app/MainPageClient.test.tsx
 //
 // v9.2 홈 — #home-headline 하나, 손님 CTA → 출생 모달, CTA 에서 저장하면 리포트로(상담사 아님),
-// 저장된 출생 정보 → 'Open my full card' 링크 + 'Edit birth info', 삭제하면 손님 CTA 로,
+// 저장된 출생 정보 → 'Open my full card' 링크 + 'Edit birth details', 삭제하면 손님 CTA 로,
 // 로그인 사용자 프로필 동기화, 언어 토글, Sign in / Menu 드로어, 띠 범례 한 번 · 다이얼 = 주입한 now.
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -131,9 +131,11 @@ describe('MainPageClient — v9.2 home', () => {
   it('renders one #home-headline with the v9 hook and the guest CTA (en)', () => {
     const { container } = renderPage()
     expect(container.querySelectorAll('#home-headline')).toHaveLength(1)
+    // '—' 와 'you.' 는 줄바꿈 없는 공백으로 묶였다(QA VH-7), 밑줄은 마침표까지(VH-9).
     expect(screen.getByRole('heading', { level: 1 }).textContent).toBe(
-      'Saju and the stars, strangely, describe the same person — you.'
+      'Saju and the stars, strangely, describe the same person —\u00a0you.'
     )
+    expect(container.querySelector('#home-headline span')?.textContent).toBe('you.')
     expect(screen.getByRole('button', { name: /Get my free Saju Card/ })).toBeInTheDocument()
     // 고정 입력창(채팅 바)은 없다.
     expect(container.querySelector('textarea')).toBeNull()
@@ -143,6 +145,13 @@ describe('MainPageClient — v9.2 home', () => {
       '1997.3.21 14:30 · Seoul'
     )
     expect(container.querySelector('[data-folio="top"]')!.textContent).toContain('Sample')
+    // 끝 폴리오도 샘플 스탬프라 SAMPLE 을 단다(QA-1).
+    expect(container.querySelector('[data-folio="end"]')!.textContent).toContain('Sample')
+    // 손님에겐 디자인 그대로 'Your free Saju Card'.
+    expect(
+      container.querySelector('[data-home-card-label]')!.getAttribute('data-home-card-label')
+    ).toBe('yours')
+    expect(screen.getByText('Your free Saju Card')).toBeInTheDocument()
   })
 
   it('renders Korean copy when locale is ko', () => {
@@ -184,23 +193,45 @@ describe('MainPageClient — v9.2 home', () => {
     expect(mockTrackFunnel).toHaveBeenCalledWith('home.birth_saved')
   })
 
-  it('stored birth info shows "Open my full card" and "Edit birth info"', async () => {
+  it('stored birth info shows "Open my full card" and "Edit birth details"', async () => {
     mockGetStoredBirthInfo.mockReturnValue(STORED)
     renderPage()
     const open = await screen.findByRole('link', { name: /Open my full card/ })
     const href = open.getAttribute('href')!
     expect(href.startsWith('/integrated-report?')).toBe(true)
     expect(href).toContain('date=1995-02-09')
-    expect(screen.getByRole('button', { name: 'Edit birth info' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Edit birth details' })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /Get my free Saju Card/ })).toBeNull()
     // formatBirthStamp — 24시간 · 도시 첫 마디.
     expect(screen.getByText('1995.2.9 06:40 · Busan')).toBeInTheDocument()
   })
 
+  it('stored birth info: the card is labelled as a sample, never as "your" card (QA-1)', async () => {
+    mockGetStoredBirthInfo.mockReturnValue(STORED)
+    const { container } = renderPage()
+    await screen.findByRole('link', { name: /Open my full card/ })
+    const label = container.querySelector('[data-home-card-label]')!
+    expect(label.getAttribute('data-home-card-label')).toBe('sample')
+    expect(label.textContent).toContain('Sample Saju Card')
+    expect(label.textContent).toContain('A sample card — open yours above.')
+    expect(label.textContent).not.toContain('Your free Saju Card')
+    // 두 폴리오 모두 샘플 스탬프 + SAMPLE.
+    for (const pos of ['top', 'end']) {
+      const folio = container.querySelector(`[data-folio="${pos}"]`)!
+      expect(folio.textContent).toContain('1997.3.21 14:30 · Seoul')
+      expect(folio.textContent).toContain('Sample')
+    }
+    cleanup()
+    mockI18n.locale = 'ko'
+    const ko = renderPage().container
+    await screen.findByRole('link', { name: /내 전체 카드 보기/ })
+    expect(ko.querySelector('[data-home-card-label]')!.textContent).toContain('샘플 사주 카드')
+  })
+
   it('editing stored birth info stays on the page', async () => {
     mockGetStoredBirthInfo.mockReturnValue(STORED)
     renderPage()
-    fireEvent.click(await screen.findByRole('button', { name: 'Edit birth info' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Edit birth details' }))
     expect(screen.getByTestId('birth-modal')).toHaveAttribute('data-open', 'true')
     fireEvent.click(screen.getByText('modal-save'))
     await waitFor(() =>
@@ -213,10 +244,10 @@ describe('MainPageClient — v9.2 home', () => {
   it('deleting birth info resets to the guest CTA', async () => {
     mockGetStoredBirthInfo.mockReturnValue(STORED)
     renderPage()
-    await screen.findByRole('button', { name: 'Edit birth info' })
+    await screen.findByRole('button', { name: 'Edit birth details' })
     fireEvent.click(screen.getByText('modal-delete'))
     expect(await screen.findByRole('button', { name: /Get my free Saju Card/ })).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: 'Edit birth info' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Edit birth details' })).toBeNull()
   })
 
   it('?openBirth=1 opens the birth modal on mount', async () => {
@@ -253,14 +284,19 @@ describe('MainPageClient — v9.2 home', () => {
     expect(screen.getByTestId('menu-drawer')).toHaveAttribute('data-open', 'false')
   })
 
-  it('the locale toggle calls setLocale (en → ko, ko → en)', () => {
+  it('the locale toggle calls setLocale (en → ko, ko → en); its name starts with the visible label', () => {
     renderPage()
-    fireEvent.click(screen.getByRole('button', { name: '한국어로 전환' }))
+    // WCAG 2.5.3 — 이름이 보이는 글자 'KO' 로 시작하고, 설명은 바꿀 언어의 lang 으로.
+    const toKo = screen.getByRole('button', { name: 'KO 한국어로 전환' })
+    expect(toKo.querySelector('[lang="ko"]')?.textContent?.trim()).toBe('한국어로 전환')
+    fireEvent.click(toKo)
     expect(mockSetLocale).toHaveBeenCalledWith('ko')
     cleanup()
     mockI18n.locale = 'ko'
     renderPage()
-    fireEvent.click(screen.getByRole('button', { name: 'Switch to English' }))
+    const toEn = screen.getByRole('button', { name: 'EN Switch to English' })
+    expect(toEn.querySelector('[lang="en"]')).not.toBeNull()
+    fireEvent.click(toEn)
     expect(mockSetLocale).toHaveBeenCalledWith('en')
   })
 
@@ -298,9 +334,10 @@ describe('MainPageClient — v9.2 home', () => {
     expect(mockTrackFunnel).toHaveBeenCalledWith('home.counselor_cta')
   })
 
-  it('the band shows the timing legend exactly once and the sample trait rows without marks', () => {
+  it('the band shows the sample trait rows without marks and no ▲/▼ legend (QA VH-2)', () => {
     const { container } = renderPage()
-    expect(container.querySelectorAll('[data-legend]')).toHaveLength(1)
+    // 축 행엔 마크가 없으므로 타이밍 범례도 없다(parts9 'No ▲/▼ here').
+    expect(container.querySelectorAll('[data-legend]')).toHaveLength(0)
     const step3 = container.querySelector('[data-step="03"]') as HTMLElement
     const rows = step3.querySelectorAll('[data-kind="trait"]')
     expect(rows).toHaveLength(2)
