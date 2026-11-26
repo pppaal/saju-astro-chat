@@ -157,6 +157,47 @@ describe('DayTier (오늘의 일진 · LIGHT)', () => {
     expect(cards[0].textContent).toContain('가장 센 흐름')
   })
 
+  it('하루 리듬은 실제 시진 창과 그 시진 한가운데 상승궁을 나란히 보여 준다 (TP-8 · 결정 19)', () => {
+    const ko = render(<DayTier day={day} onRise={noop} sex="남" />).container
+    // 가장 센 좋은 시각 = 子 23:32–01:32(서울 실제 창), 명목 '23-1시' 아님.
+    expect(ko.textContent).toContain('23:32–01:32')
+    expect(ko.textContent).toContain('상승궁 물고기자리')
+    expect(ko.textContent).not.toMatch(/23-1시|1-3시/)
+    // 곡선 축 = 실제 시작 시각.
+    const axis = [...ko.querySelectorAll('svg text')].map((t) => t.textContent)
+    expect(axis).toEqual(expect.arrayContaining(['23:32', '01:32', '19:32']))
+
+    mockLocale = 'en'
+    const en = render(<DayTier day={day} onRise={noop} sex="남" />).container
+    expect(en.textContent).toContain('23:32–01:32')
+    expect(en.textContent).toContain('Pisces rising')
+    expect(en.textContent).not.toMatch(/11pm-1am|1-3am/)
+  })
+
+  it('시진 × 상승궁 룰러는 교차가 아니다 — 옛 matched·교차 해석이 실려 와도 쓰지 않는다 (CC-3)', () => {
+    const stale = (day.hourCrossings ?? []).map((h, i) => ({
+      ...h,
+      ...(i === 4
+        ? {
+            strength: 2,
+            matched: true,
+            crossMeaning: '편관 × 토성 — 책임과 구조가 단단해지는 결.',
+            crossMeaningEn: 'Indirect Officer × Saturn — responsibility firms up.',
+          }
+        : {}),
+    }))
+    for (const loc of ['ko', 'en'] as const) {
+      mockLocale = loc
+      const { container } = render(
+        <DayTier day={{ ...day, hourCrossings: stale } as DestinyDay} onRise={noop} sex="남" />
+      )
+      expect(container.textContent).not.toContain('× 토성')
+      expect(container.textContent).not.toContain('× Saturn')
+      // 매칭 우선이 없으니 가장 센 좋은 시각은 시각순 첫 강(2) 시진 — 子.
+      expect(container.textContent).toContain('23:32–01:32')
+    }
+  })
+
   it('fires onRise from the top zoom-out button', () => {
     const onRise = vi.fn()
     const { getAllByRole } = render(<DayTier day={day} onRise={onRise} sex="남" />)

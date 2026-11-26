@@ -35,11 +35,11 @@ status: auto-generated
 
 ### 사주 (Saju)
 
-| 항목                            | 값           | 읽는 곳                                                                                                                                                                                                                    |
-| ------------------------------- | ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `baseTimezone`                  | `Asia/Seoul` | `src/lib/cache/redis-cache.ts`<br>`src/lib/calendar-engine/extractors/saju-hour.ts`<br>`src/lib/datetime/resolveTimezone.ts`<br>`src/lib/datetime/timezone.ts`<br>`src/lib/destiny/sajuFacts.ts`<br>`src/lib/saju/saju.ts` |
-| `daeunRounding`                 | `floor`      | `src/lib/saju/daeunAge.ts`                                                                                                                                                                                                 |
-| `useSolarTermsForMonthlyCycles` | `true`       | `src/lib/saju/unse.ts`                                                                                                                                                                                                     |
+| 항목                            | 값           | 읽는 곳                                                                                                                                                                                                                                                                  |
+| ------------------------------- | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `baseTimezone`                  | `Asia/Seoul` | `src/lib/cache/redis-cache.ts`<br>`src/lib/calendar-engine/extractors/saju-hour.ts`<br>`src/lib/calendar-engine/periodPillars.ts`<br>`src/lib/datetime/resolveTimezone.ts`<br>`src/lib/datetime/timezone.ts`<br>`src/lib/destiny/sajuFacts.ts`<br>`src/lib/saju/saju.ts` |
+| `daeunRounding`                 | `floor`      | `src/lib/saju/daeunAge.ts`                                                                                                                                                                                                                                               |
+| `useSolarTermsForMonthlyCycles` | `true`       | `src/lib/saju/unse.ts`                                                                                                                                                                                                                                                   |
 
 ### 점성 (Astrology)
 

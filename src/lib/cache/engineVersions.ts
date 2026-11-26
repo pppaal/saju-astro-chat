@@ -90,6 +90,8 @@ export { SAJU_ENGINE_VERSION }
 //     대칭, 천라지망 짝 완성 활성, 현침·괴강 — 도 이 v14 에 함께 실린다(웨이브당 한 번).
 //     재감사 G2 의 사주 기간 창(셀 = 출생지 민용 날짜, 절입이 든 현지 날이 새 세운·월운,
 //     용신·통근 대운 = 만 나이 생일 경계, periodPillars)도 같은 v14 로 월 셀을 무효화한다.
+//     재감사 G5 — 서머타임 전환일의 시진 창(경계 = 절대 instant), 시진 신호의 실제 시계 창
+//     (detail.clockStart·clockEnd·centerUtc), 고위도 여름 자정 직후 행성시 — 도 이 v14 에 실린다.
 export const CALENDAR_ENGINE_VERSION = 'v14'
 
 /**

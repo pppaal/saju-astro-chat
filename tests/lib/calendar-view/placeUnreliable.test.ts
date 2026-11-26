@@ -127,35 +127,27 @@ describe('buildHourCrossings — placeUnreliable', () => {
         evidence: {
           module: 'saju-hour',
           sibsin: '정재',
-          detail: { startHour: h, windowLabel: `${h}-${h + 2}시` },
+          detail: { clockStart: `${h}:15`, clockEnd: `${h + 2}:15` },
         } as never,
       })
     ),
   })
   const loc = { latitude: 37.5665, longitude: 126.978, timeZone: 'Asia/Seoul' }
 
-  it('미상이면 상승궁·룰러를 구하지 않고 교차(matched)·사전 해석도 없다 — 사주 시진 한 줄은 유지', () => {
+  it('미상이면 상승궁을 구하지 않는다 — 사주 시진 한 줄은 유지', () => {
     const rows = buildHourCrossings(cell, '2026-06-15', loc, { placeUnreliable: true })
     expect(rows).toHaveLength(3)
     for (const r of rows) {
       expect(r.risingSignKo).toBe('')
       expect(r.risingSignEn).toBe('')
-      expect(r.ruler).toBe('')
-      expect(r.rulerEn).toBe('')
-      expect(r.matched).toBe(false)
-      expect(r.crossMeaning).toBeUndefined()
-      expect(r.crossMeaningEn).toBeUndefined()
       expect(r.narrative).toMatch(/^시진 /)
     }
   })
 
-  it('신뢰 가능하면 시진마다 상승궁·룰러를 단다(대조군)', () => {
+  it('신뢰 가능하면 시진마다 상승궁을 단다(대조군)', () => {
     const rows = buildHourCrossings(cell, '2026-06-15', loc)
     expect(rows).toHaveLength(3)
-    for (const r of rows) {
-      expect(r.risingSignEn).not.toBe('')
-      expect(r.rulerEn).not.toBe('')
-    }
+    for (const r of rows) expect(r.risingSignEn).not.toBe('')
   })
 })
 

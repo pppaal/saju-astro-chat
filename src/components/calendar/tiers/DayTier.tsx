@@ -172,7 +172,13 @@ function HourGraph({
   hours,
   ko,
 }: {
-  hours: Array<{ when: string; whenEn: string; tone: string; strength: number }>
+  hours: Array<{
+    when: string
+    whenEn: string
+    clockStart?: string
+    tone: string
+    strength: number
+  }>
   ko: boolean
 }) {
   const n = hours.length
@@ -243,7 +249,8 @@ function HourGraph({
         />
       ))}
       {hours.map((h, i) => {
-        const label = (ko ? h.when : h.whenEn).replace(/\s*\(.*\)/, '').trim()
+        // 축 라벨 = 그 시진의 실제 시작 시각('07:15') — 창 전체('07:15–09:15')는 12개면 겹친다.
+        const label = h.clockStart ?? (ko ? h.when : h.whenEn).replace(/\s*\(.*\)/, '').trim()
         return (
           <text
             key={`t-${i}`}
@@ -504,9 +511,8 @@ export function DayTier({ day, onRise, sex = '남', isToday = true }: DayTierPro
   const heroIsReason = reasonRow != null && heroCross === reasonRow
 
   // ── 깊이 읽기 (fold 안). ──
-  const peakHourSrc = [...(day.hourCrossings ?? [])].sort(
-    (a, b) => Number(b.matched) - Number(a.matched) || b.strength - a.strength
-  )[0]
+  // 시진 × 상승궁은 교차가 아니라(owner 결정 19) '매칭 우선' 없이 가장 센 시진 — 같으면 이른 시각.
+  const peakHourSrc = [...(day.hourCrossings ?? [])].sort((a, b) => b.strength - a.strength)[0]
   const deepRead = minorSafeAll(
     deriveDayDeepRead({
       iljinKr: day.iljin.kr,
@@ -565,12 +571,9 @@ export function DayTier({ day, onRise, sex = '남', isToday = true }: DayTierPro
   const geok = day.geokgukStatus
 
   // ── 시간대 하늘 (fold) + 하루 리듬(표면). ──
-  const hourAll = day.hourCrossings ?? []
-  const hourSorted = [...hourAll].sort((a, b) => {
-    const ah = parseInt((a.when.match(/\d+/) ?? ['0'])[0], 10)
-    const bh = parseInt((b.when.match(/\d+/) ?? ['0'])[0], 10)
-    return ah - bh
-  })
+  // 어댑터(buildHourCrossings)가 이미 실제 시각순(그날 첫 조각 기준)으로 준다. 예전엔 명목
+  // 라벨의 첫 숫자로 다시 정렬해, 실제 창('23:32–01:32')이 붙은 子 줄이 맨 뒤로 갔다(TP-8).
+  const hourSorted = day.hourCrossings ?? []
   // 하루 리듬(시간대) ↔ 일 톤 정합 — 둘은 *다른 축*(전체 하루 vs 그 안의 상대 리듬)
   // 이라 어긋날 수 있다(순풍 날인데 ↓ 막대가 많거나 그 반대). 어긋나면 한 줄로
   // "그날 안에서의 상대 리듬"임을 밝혀 "좋은 날인데 왜 다 주황?" 혼동을 막는다.
@@ -578,8 +581,8 @@ export function DayTier({ day, onRise, sex = '남', isToday = true }: DayTierPro
   const hourDn = hourSorted.length - hourUp
 
   // ── 시진 생활 문장 표면화 — 가장 센 좋은/조심 시각 각 1줄. ──
-  // hourBranchNarrative/crossMeaning 은 계산돼 오면서도 그래프(점·라벨)만 그려져
-  // 버려지고 있었다(감사 갭 #2). 교차 해석(crossMeaning)이 더 구체적이라 우선.
+  // hourBranchNarrative 는 계산돼 오면서도 그래프(점·라벨)만 그려져 버려지고 있었다(감사
+  // 갭 #2). 그 시진의 상승궁은 *나란히* 둔다 — 교차 배지·해석 없음(owner 결정 19, CC-3).
   const peakOf = (tone: 'good' | 'caution') =>
     [...hourSorted].filter((h) => h.tone === tone).sort((a, b) => b.strength - a.strength)[0]
   const rhythmPeaks = [peakOf('good'), peakOf('caution')]
@@ -587,7 +590,8 @@ export function DayTier({ day, onRise, sex = '남', isToday = true }: DayTierPro
     .map((h) => ({
       when: (ko ? h.when : h.whenEn).replace(/\s*\(.*\)/, '').trim(),
       tone: h.tone,
-      text: ko ? (h.crossMeaning ?? h.narrative ?? '') : (h.crossMeaningEn ?? h.narrativeEn ?? ''),
+      rising: h.risingSignEn ? (ko ? `상승궁 ${h.risingSignKo}` : `${h.risingSignEn} rising`) : '',
+      text: ko ? (h.narrative ?? '') : (h.narrativeEn ?? ''),
     }))
     .filter((p) => p.text)
   const rhythmCoherenceNote =
@@ -966,7 +970,10 @@ export function DayTier({ day, onRise, sex = '남', isToday = true }: DayTierPro
                       {p.tone === 'good' ? '▲' : '▼'}
                     </span>
                     <b className={styles.rpWhen}>{p.when}</b>
-                    <span className={styles.rpText}>{p.text}</span>
+                    <span className={styles.rpText}>
+                      {p.rising && <span className={styles.rpRise}>{p.rising}</span>}
+                      {p.text}
+                    </span>
                   </div>
                 ))}
               </div>

@@ -95,6 +95,14 @@ function offsetMsAt(instantMs: number, timeZone: string): number {
   return local - floored
 }
 
+/**
+ * instantMs 시점의 timeZone UTC offset(분, 초 단위 LMT 면 소수) — 캐시된 Intl 포매터라
+ * 하루에 여러 번 읽는 호출자(캘린더 시진 경계)용. 잘못된 타임존이면 Intl 의 RangeError.
+ */
+export function utcOffsetMinutesAt(instantMs: number, timeZone: string): number {
+  return offsetMsAt(instantMs, timeZone) / 60_000
+}
+
 function assertWallClock(w: WallClockInput): void {
   const second = w.second ?? 0
   const ok =

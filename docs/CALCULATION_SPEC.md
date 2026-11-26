@@ -274,8 +274,7 @@ The Saju ↔ astrology correspondence dictionary is
 - `SAJU_ASTRO_MAPPINGS: CrossMapping[]` pairs a saju key (a ten-god or shinsal
   name: `정관`, `도화`, `역마`, ...) with one planet (`Sun`..`Pluto`), and carries a
   grade, a mapping polarity and ko/en meanings.
-- `lookupCrossMapping(sajuKey, astroKey)` is the index lookup (the Day tier's
-  hour crossings in `src/lib/calendar-view/toHourCrossings.ts` use it).
+- `lookupCrossMapping(sajuKey, astroKey)` is the index lookup.
 - Grade A is a direct East/West correspondence whose two sides act in the same
   polarity direction. Grade B is a supporting correspondence: outer-planet decade
   rows and fast-planet nuance rows. Both grades are emitted; there is no grade
@@ -302,7 +301,10 @@ signals:
   releasing (time lords), planetary hours (the Chaldean hour ruler), solar
   arc, secondary progressions and the progressed Moon, including the progressed
   lunar return milestone (symbolic directions), and solar and lunar returns
-  (cycle periods; they stay standalone astro signals). Real planet returns
+  (cycle periods; they stay standalone astro signals). The Ascendant ruler of an
+  hour is not a key either (owner decision 19): the Day tier's 시진 rows
+  (`src/lib/calendar-view/toHourCrossings.ts`) show the 시진 and the rising sign at
+  the 시진's centre side by side, with no cross flag or cross meaning. Real planet returns
   (Jupiter, Saturn, ... lifecycle milestones) remain keys, active over the
   milestone's pass window (§2).
 - **Window.** The intersection of the two parent windows. The peak is the

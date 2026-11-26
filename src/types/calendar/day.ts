@@ -265,24 +265,22 @@ export interface DestinyDay extends DestinyIljinHeader {
    * 산출. 점수는 그대로 두고 *서술 톤만* 조정한다. (reconcile.ts)
    */
   dayTone?: DayVerdict
-  /** 시간별 사주 × 점성 교차 — 시진(십신) × 그 시각 상승궁. */
+  /**
+   * 시진별 하루 리듬 — 시진(십신) 과 그 시진 한가운데 상승궁을 *나란히*(교차 아님, owner
+   * 결정 19). 시각은 엔진 시진 창 그대로(평균태양시, 재감사 TP-8). 시각순.
+   */
   hourCrossings?: Array<{
-    when: string // '5-7시 (묘시)'
-    whenEn: string // '5-7am (Rabbit hour)'
+    when: string // '07:15–09:15 (묘시)'
+    whenEn: string // '07:15–09:15 (Rabbit hour)'
+    clockStart: string // '07:15'
+    clockEnd: string // '09:15'
     sibsin: string
     tone: 'good' | 'caution'
     risingSignKo: string
     risingSignEn: string
-    ruler: string
-    rulerEn: string
     narrative?: string
     narrativeEn?: string
     strength: number
-    /** 십신 × 상승궁 룰러가 의미사전에 매칭되는 진짜 교차인지 (아니면 병치). */
-    matched: boolean
-    /** matched 일 때 사전 해석 한 줄. */
-    crossMeaning?: string
-    crossMeaningEn?: string
   }>
   /** 시(時)별 달 정밀 — 12 시진 달 재계산으로 뽑은 달×본명 어스펙트 절정 시각. */
   hourMoon?: Array<{

@@ -690,6 +690,12 @@
 .rpText {
   min-width: 0;
 }
+/* 그 시진 한가운데 상승궁 — 시진 문장과 나란히 놓는 사실(교차 배지 아님). */
+.rpRise {
+  margin-right: 6px;
+  color: var(--t2);
+  white-space: nowrap;
+}
 .rhythmRow {
   display: grid;
   grid-auto-flow: column;
