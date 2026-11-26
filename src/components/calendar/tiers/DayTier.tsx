@@ -21,23 +21,18 @@ import {
   sibsinArea,
   sibsinAreaEn,
   planetPlain,
-  plainReason,
-  isPlainReason,
   twelveStagePlain,
   geokgukStatusPlain,
 } from '@/lib/calendar-engine/derivers/plainLanguage'
-import { deriveDayDomains } from '@/lib/calendar-engine/derivers/dayDomains'
-import { deriveDayActions } from '@/lib/calendar-engine/derivers/dayActions'
 import { deriveDayDeepRead } from '@/lib/calendar-engine/derivers/dayDeepRead'
 import { dayStrength } from '@/lib/calendar-engine/derivers/dayStrength'
-import { reconcileDayTone, type DayVerdict } from '@/lib/calendar-engine/derivers/reconcile'
 import type { EvidenceRung } from '@/lib/calendar-engine/derivers/evidenceLadder'
 import styles from './DayTier.module.css'
 import { useI18n } from '@/i18n/I18nProvider'
 import { localizeLabel } from '@/lib/calendar-view/localizeLabel'
+import { buildDayHero, buildDayDomains } from '@/lib/calendar-view/dayHero'
 import { minorSafeAll } from '@/lib/calendar-engine/minorSafe'
 import { ShareDayButton } from '@/components/calendar/ShareDayButton'
-import { dayShareHook } from '@/lib/share/shareHook'
 import StreakChip from '@/components/calendar/StreakChip'
 import {
   shinsalEn,
@@ -286,41 +281,23 @@ export function DayTier({ day, onRise, sex = '남', isToday = true }: DayTierPro
   // "오늘" 라벨 치환어 — 선택한 다른 날이면 '이날'/'this day' 로.
   const dayWord = ko ? (isToday ? '오늘' : '이날') : isToday ? 'today' : 'this day'
 
-  // ── 톤 권위 — day.dayTone 우선, 없으면 reconcile 폴백. ──
-  const verdict: DayVerdict =
-    day.dayTone ??
-    reconcileDayTone({
-      score: day.score,
-      reasonNet: 0,
-      hasGoodReason: (day.topReasons ?? []).length > 0,
-      hasCautionReason: (day.cautions ?? []).length > 0,
-    })
-  const dayBand: 'good' | 'mid' | 'low' =
-    verdict.tone === 'positive' ? 'good' : verdict.tone === 'caution' ? 'low' : 'mid'
-  // 점수 *색*은 월 그리드와 같은 축(점수 밴드) — verdict.band 를 그대로 쓴다(=
-  // scoreToBand(shownScore), 단일 산출). 톤이 화해로 낮춰진 날(예: 65점 tense)에
-  // 그리드는 초록인데 여기 점수만 회색이던 어긋남 제거. 말(toneWord·hero)은 톤을,
-  // 숫자 색은 점수(밴드)를 따른다 — 시스템 전체에서 색=점수, 문장=톤.
-  const scoreBand = verdict.band
-
-  // mixed 는 결(flavor)로 갈린다 — 변동성(기복) vs 평이(잔잔). verdict 에 실린 단일
-  // flavor 를 읽어(표면 재계산 금지) "평이 ↔ 기복" 모순을 없앤다(감사 U1·#2).
-  const volatile = verdict.tone === 'mixed' && verdict.flavor === 'volatile'
-  const toneWord = ko
-    ? verdict.tone === 'positive'
-      ? '순풍'
-      : verdict.tone === 'caution'
-        ? '역풍'
-        : volatile
-          ? '변덕'
-          : '잔잔'
-    : verdict.tone === 'positive'
-      ? 'Tailwind'
-      : verdict.tone === 'caution'
-        ? 'Headwind'
-        : volatile
-          ? 'Shifting'
-          : 'Calm'
+  // ── 히어로 파생(톤 권위·바람 단어·후크·평이 근거·'왜'·행동) — 순수 함수 buildDayHero 한 곳.
+  //    v9 뷰모델(monthViewModel 오늘 · dayViewModel)이 같은 함수를 읽어 화면마다 어긋나지 않는다.
+  const hero = buildDayHero(day, { lang: ko ? 'ko' : 'en', isToday })
+  const {
+    verdict,
+    dayBand,
+    scoreBand,
+    toneWord,
+    heroToneWord: novToneWord,
+    hook: dayHook,
+    crossRows: crossSorted,
+    reasonRow,
+    happeningLines,
+    cautionLines,
+    why: novWhy,
+    actions: dayActions,
+  } = hero
 
   const strength = dayStrength(day.score)
   const sibsinRaw = String(day.iljinSibsin)
@@ -333,179 +310,13 @@ export function DayTier({ day, onRise, sex = '남', isToday = true }: DayTierPro
   const monthEn = MONTH_EN[(Number(mm) || 1) - 1] ?? ''
   const titleLatin = `${monthEn} ${Number(dd) || ''} ${yyyy ?? ''}`.trim()
 
-  // ── 한 줄 총평 + 분야/근거. ──
+  // ── 한 줄 총평(원문 — 표면에서 localizeLabel). ──
   const dayOneLine = ko ? day.oneLine : (day.oneLineEn ?? day.oneLine)
-  const dayReasons = ko ? (day.topReasons ?? []) : (day.topReasonsEn ?? day.topReasons ?? [])
-  const dayCautions = ko ? (day.cautions ?? []) : (day.cautionsEn ?? day.cautions ?? [])
   // 근거 사다리 — 10년→올해→이달→오늘 층별 지배신호(쉬운 결론 + 용어 칩).
   const dayLadder = (ko ? day.evidenceLadder : day.evidenceLadderEn) ?? day.evidenceLadder ?? []
 
-  // 인라인 마커("↑ 이달 · " / "↓ 오늘 · ")를 걷어내 쉬운말만 남긴다.
-  const stripMarker = (s: string) => s.replace(/^[↑↓▲▼]\s*[^·]*·\s*/, '').trim()
-
-  // ── 맨 위 교차 — 그날 '왜' 근거(day.reason)가 있으면 *그 근거 자체* 를 맨 앞에.
-  //    월 리드아웃(cell.reason)과 같은 함수(pickDayReason)·같은 월 셀에서 골라, 월에서
-  //    본 "왜 이런 날일까요"와 일 화면 첫 교차가 같은 사실을 말한다(계획 B1 #4). 같은
-  //    페어의 다른 층 행(부호가 다를 수 있음)은 빼서 한 페어가 두 번·반대 부호로 뜨지
-  //    않게 한다. 근거가 없으면(마크와 부호가 맞는 교차 없음) 종전대로 |polarity| 순.
-  //    이 맨 위 행이 지금 일어나는 일 한 줄(strongestCross)·교차 카드 머리에 쓰인다.
-  type DayCross = DestinyDay['crossActivations'][number]
-  const crossByAbs = [...(day.crossActivations ?? [])].sort(
-    (a, b) => Math.abs(b.polarity) - Math.abs(a.polarity)
-  )
-  const reason = day.reason
-  const samePair = (c: DayCross) =>
-    !!reason &&
-    (c.sajuKo ?? c.sajuSide) === reason.saju &&
-    (c.astroKo ?? c.astroSide) === reason.astro
-  const reasonRow: DayCross | null = reason
-    ? {
-        id: `reason:${reason.saju}|${reason.astro}`,
-        sajuSide: ko ? reason.saju : reason.sajuEn,
-        astroSide: ko ? reason.astro : reason.astroEn,
-        sajuKo: reason.saju,
-        astroKo: reason.astro,
-        meaning: reason.meaning,
-        meaningEn: reason.meaningEn,
-        polarity: reason.polarity as Polarity,
-        weight: crossByAbs.find(samePair)?.weight ?? 0,
-      }
-    : null
-  const crossSorted = reasonRow
-    ? [reasonRow, ...crossByAbs.filter((c) => !samePair(c))]
-    : crossByAbs
-  const strongestCross = crossSorted.find((c) => (ko ? c.meaning : (c.meaningEn ?? c.meaning)))
-  const strongestCrossMeaning = strongestCross
-    ? ko
-      ? strongestCross.meaning
-      : (strongestCross.meaningEn ?? strongestCross.meaning)
-    : ''
-
-  // 사유는 쉬운말만 — 전문용어(통근·공망·상관견관·한자…)는 drop-on-doubt 로 뺀다.
-  // 교차 meaning 은 이미 plain 이라 *부호에 맞는 목록*에 합류 — 예전엔 부호 무시로
-  // 무조건 happening 에 넣어, 흉 교차 경고문이 "받쳐주는 흐름" 헤더 밑에 뜨는
-  // 모순이 있었다(감사 #8). 흉(−)이면 조심 목록으로. 전문 사유는 '자세한 신호'
-  // 폴드에서 따로 본다.
-  const plainHappening = dayReasons
-    .map((r) => plainReason(stripMarker(r), ko))
-    .filter(isPlainReason)
-    .map((r) => localizeLabel(r, ko))
-  const crossLine =
-    strongestCrossMeaning && isPlainReason(strongestCrossMeaning)
-      ? localizeLabel(plainReason(strongestCrossMeaning, ko), ko)
-      : ''
-  const crossPositive = (strongestCross?.polarity ?? 0) > 0
-  const happeningLines = [
-    ...plainHappening.slice(0, 2),
-    ...(crossLine && crossPositive ? [crossLine] : []),
-  ].slice(0, 3)
-  const cautionLines = [
-    ...dayCautions
-      .map((c) => plainReason(stripMarker(c), ko))
-      .filter(isPlainReason)
-      .map((c) => localizeLabel(c, ko)),
-    ...(crossLine && (strongestCross?.polarity ?? 0) < 0 ? [crossLine] : []),
-  ].slice(0, 2)
-
-  // ── novice hero: 톤 워드는 결론(oneLine)과 어긋나지 않게. ──
-  // *verdict*(폴백 포함 화해 톤)를 쓴다 — 예전엔 day.dayTone 원시값을 읽어 구 캐시
-  // (dayTone 없는) 응답에서 히어로만 dayHook·바람·점수색과 어긋났다(감사 U2).
-  // mixed 는 결(flavor)로 갈라 변동성=기복 / 평이=무난 (감사 U1).
-  const novToneWord = ko
-    ? verdict.tone === 'positive'
-      ? '좋은 날'
-      : verdict.tone === 'caution'
-        ? '조심할 날'
-        : volatile
-          ? '기복 있는 날'
-          : '무난한 날'
-    : verdict.tone === 'positive'
-      ? 'A good day'
-      : verdict.tone === 'caution'
-        ? 'A careful day'
-        : volatile
-          ? 'A mixed day'
-          : 'A steady day'
-
-  // ── 인앱 후크 헤드라인 — 점수/톤에서만 뽑는 도발적 한 줄(Co-Star 식). 예전엔
-  //    공유 카드에만 쓰고 인앱엔 차분한 결론만 노출해 "열어볼 이유"가 약했다(감사).
-  //    hero 최상단에 후크를 얹어 재방문·클릭을 끌고, 아래 차분한 결론은 그대로 둔다.
-  //    같은 소스를 공유 카드와 공유(본명 시드 고정 → 인앱·카드 문구 일치).
-  const dayHook = dayShareHook({
-    tone: verdict.tone,
-    // 후크 72점 컷도 verdict.score(=보여주는 점수) 단일 소스에서 — 별도 day.score
-    // 읽기를 없애 밴드·후크가 한 점수를 본다(감사 #3).
-    score: verdict.score,
-    seed: day.seed ?? 0,
-    // 날짜(일-of-month)를 섞어 같은 톤이어도 날마다 다른 후크 → 매일 같은 헤드라인
-    // 이 뜨던 문제(감사) 해소. day.date 는 'YYYY-MM-DD'.
-    daySalt: Number(day.date?.slice(8, 10)) || 0,
-    ko,
-  })
-
-  // ── novice hero "왜?" 한 줄 — 기존 평이 근거(받쳐줌/부딪힘)에서만 합성, 용어 0. ──
-  const hasSupport = happeningLines.length > 0
-  const hasFriction = cautionLines.length > 0
-  const novWhy = ko
-    ? hasSupport && hasFriction
-      ? '부딪히는 기운이 좀 있지만 받쳐주는 흐름도 같이 와요.'
-      : hasFriction
-        ? `${dayWord}은 살짝 거스르는 기운이 깔려 있어요.`
-        : hasSupport
-          ? '받쳐주는 흐름이 같이 와요.'
-          : ''
-    : hasSupport && hasFriction
-      ? 'A bit of friction, but a supporting flow comes with it.'
-      : hasFriction
-        ? `There's a slightly rough current underneath ${dayWord}.`
-        : hasSupport
-          ? 'A supporting flow comes with it.'
-          : ''
-
-  // ── 행동 처방. (미성년이면 성인 도메인 카피 정화 — 감사 C3-hole) ──
-  const dayActions = minorSafeAll(
-    deriveDayActions({
-      iljinSibsin: sibsinRaw,
-      scoreBand: dayBand,
-      seed: day.seed ?? 0,
-    }),
-    !!day.isMinor
-  )
-
-  // ── 분야별 오늘. ──
-  const dayDomains = minorSafeAll(
-    deriveDayDomains({
-      iljinSibsin: sibsinRaw,
-      sex,
-      scoreBand: dayBand,
-      ko,
-      seed: day.seed ?? 0,
-      evidence: {
-        transits: (day.transits ?? []).map((t) => ({
-          body: (t as { body?: string }).body,
-          aspect: (t as { aspect?: string }).aspect,
-          polarity: t.polarity,
-        })),
-        shinsal: day.shinsalActive ?? [],
-        crossActivations: (day.crossActivations ?? []).map((c) => ({
-          sajuSide: c.sajuSide,
-          astroSide: c.astroSide,
-          route: `${c.sajuKo ?? c.sajuSide} ${c.astroKo ?? c.astroSide}`,
-          meaning: c.meaning,
-          polarity: c.polarity,
-        })),
-        moon: (day.hourMoon ?? []).map((m) => ({
-          body: m.body,
-          aspectKo: m.aspectKo,
-          aspectEn: m.aspectEn,
-          when: m.when,
-          whenEn: m.whenEn,
-          polarity: m.polarity,
-        })),
-      },
-    }),
-    !!day.isMinor
-  )
+  // ── 분야별 오늘(그날 실제 신호를 근거로 — buildDayDomains, 미성년 정화 포함). ──
+  const dayDomains = buildDayDomains(day, { lang: ko ? 'ko' : 'en', sex, dayBand })
 
   // ── 교차 카드 (▲/▼, cap 4, 절댓값 정렬). ──
   const crossCards = crossSorted.slice(0, 4)
