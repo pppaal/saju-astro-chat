@@ -90,17 +90,6 @@ test.describe('Compatibility Analysis Flow', () => {
     }
   })
 
-  test('should navigate to compatibility insights page', async ({ page }) => {
-    await page.goto('/compatibility/insights', { waitUntil: 'domcontentloaded' })
-    await expect(page.locator('body')).toBeVisible()
-
-    const bodyText = await page.textContent('body')
-    const hasInsights =
-      bodyText?.includes('insight') || bodyText?.includes('분석') || bodyText?.includes('궁합')
-
-    expect(hasInsights).toBe(true)
-  })
-
   test('should show different compatibility aspects', async ({ page }) => {
     await page.goto('/compatibility', { waitUntil: 'domcontentloaded' })
 
@@ -142,32 +131,6 @@ test.describe('Compatibility Analysis Flow', () => {
       bodyText?.includes('상담') || bodyText?.includes('counselor') || bodyText?.includes('채팅')
 
     expect(hasCounselor).toBe(true)
-  })
-
-  test('should handle compatibility chat messages', async ({ page }) => {
-    await page.goto('/compatibility/chat', { waitUntil: 'domcontentloaded' })
-    await expect(page.locator('body')).toBeVisible()
-
-    const chatInput = page.locator('textarea, input').first()
-    if (await chatInput.isVisible({ timeout: 3000 }).catch(() => false)) {
-      await chatInput.fill('How compatible are we in terms of communication?')
-
-      const sendButton = page
-        .locator('button:has-text("전송"), button:has-text("Send"), button[type="submit"]')
-        .first()
-
-      if (await sendButton.isVisible({ timeout: 2000 }).catch(() => false)) {
-        await sendButton.click()
-
-        await page.waitForTimeout(8000)
-
-        // Check for AI response
-        const messageCount = await page
-          .locator('.message, .chat-message, [data-testid*="message"]')
-          .count()
-        expect(messageCount).toBeGreaterThanOrEqual(1)
-      }
-    }
   })
 
   test("should validate both persons' information is required", async ({ page }) => {

@@ -24,28 +24,6 @@ test.describe('Admin Pages', () => {
     })
   })
 
-  test.describe('Admin Feedback Page', () => {
-    test('should load feedback page', async ({ page }) => {
-      await page.goto('/admin/feedback', { waitUntil: 'domcontentloaded' })
-      await expect(page.locator('body')).toBeVisible()
-
-      const bodyText = await page.locator('body').textContent()
-      expect(bodyText!.length).toBeGreaterThan(50)
-    })
-
-    test('should display feedback content or login redirect', async ({ page }) => {
-      await page.goto('/admin/feedback', { waitUntil: 'domcontentloaded' })
-
-      const bodyText = await page.locator('body').textContent()
-      const hasContent =
-        bodyText!.includes('피드백') ||
-        bodyText!.includes('Feedback') ||
-        bodyText!.includes('로그인') ||
-        bodyText!.includes('관리')
-      expect(hasContent).toBe(true)
-    })
-  })
-
   test.describe('Admin Refunds Page', () => {
     test('should load refunds page', async ({ page }) => {
       await page.goto('/admin/refunds', { waitUntil: 'domcontentloaded' })
@@ -84,14 +62,6 @@ test.describe('Admin Pages', () => {
         bodyText!.includes('로그인') ||
         bodyText!.includes('관리자')
       expect(isProtected).toBe(true)
-    })
-
-    test('should handle unauthorized access to feedback page', async ({ page }) => {
-      await page.goto('/admin/feedback', { waitUntil: 'domcontentloaded' })
-
-      await expect(page.locator('body')).toBeVisible()
-      const bodyText = await page.locator('body').textContent()
-      expect(bodyText!.length).toBeGreaterThan(50)
     })
   })
 

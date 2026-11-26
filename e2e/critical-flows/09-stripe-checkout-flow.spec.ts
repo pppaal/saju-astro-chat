@@ -110,7 +110,10 @@ test.describe('Credit-pack checkout — pricing page (UI)', () => {
     page,
   }) => {
     await page.goto('/pricing', { waitUntil: 'domcontentloaded' })
-    await expect(page.getByTestId(`buy-pack-mini`)).toBeVisible({ timeout: 15000 })
+    // 하이드레이션 순간 숨은 사본이 잠깐 같이 잡힐 수 있어 보이는 것만 본다(strict 위반 방지).
+    await expect(page.getByTestId(`buy-pack-mini`).filter({ visible: true })).toBeVisible({
+      timeout: 15000,
+    })
 
     const bodyText = (await page.textContent('body')) ?? ''
     expect(bodyText).toMatch(/크레딧|credit/i)

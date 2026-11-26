@@ -33,7 +33,8 @@ test.describe('Home — first screen on small phones', () => {
   test('header with the Sign in pill is inside the first viewport', async ({ page }) => {
     await page.goto('/', { waitUntil: 'domcontentloaded' })
 
-    const header = page.locator('header').first()
+    // :visible — 스트리밍 교체 순간 숨은 사본이 잠깐 같이 있을 수 있다(strict 위반 방지).
+    const header = page.locator('header:visible').first()
     await expectInFirstViewport(page, header)
 
     // Guests see "Sign in" / "로그인" (signed-in users would see "Menu").
@@ -44,14 +45,14 @@ test.describe('Home — first screen on small phones', () => {
   test('the main CTA is inside the first viewport', async ({ page }) => {
     await page.goto('/', { waitUntil: 'domcontentloaded' })
 
-    await expect(page.locator('#home-headline')).toBeVisible()
+    await expect(page.locator('#home-headline:visible')).toBeVisible()
     const cta = page.getByRole('button', { name: /Get my free Saju Card|내 무료 사주 카드 받기/ })
     await expectInFirstViewport(page, cta)
   })
 
   test('no horizontal overflow', async ({ page }) => {
     await page.goto('/', { waitUntil: 'domcontentloaded' })
-    await expect(page.locator('#home-headline')).toBeVisible()
+    await expect(page.locator('#home-headline:visible')).toBeVisible()
     const { scrollWidth, innerWidth } = await page.evaluate(() => ({
       scrollWidth: Math.max(document.documentElement.scrollWidth, document.body.scrollWidth),
       innerWidth: window.innerWidth,

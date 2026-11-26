@@ -27,28 +27,6 @@ test.describe('About Pages', () => {
     })
   })
 
-  test.describe('About Features Page', () => {
-    test('should load features page', async ({ page }) => {
-      await page.goto('/about/features', { waitUntil: 'domcontentloaded' })
-      await expect(page.locator('body')).toBeVisible()
-
-      const bodyText = await page.locator('body').textContent()
-      expect(bodyText!.length).toBeGreaterThan(50)
-    })
-
-    test('should display feature content', async ({ page }) => {
-      await page.goto('/about/features', { waitUntil: 'domcontentloaded' })
-
-      const bodyText = await page.locator('body').textContent()
-      const hasFeatureContent =
-        bodyText!.includes('기능') ||
-        bodyText!.includes('Feature') ||
-        bodyText!.includes('사주') ||
-        bodyText!.includes('타로')
-      expect(hasFeatureContent).toBe(true)
-    })
-  })
-
   test.describe('FAQ Page', () => {
     test('should load FAQ page with content', async ({ page }) => {
       await page.goto('/faq', { waitUntil: 'domcontentloaded' })

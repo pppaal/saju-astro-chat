@@ -8,10 +8,10 @@ const ROUTES = [
   '/contact',
   '/blog',
   '/tarot',
-  '/numerology',
-  '/destiny-map',
-  '/astrology',
-  '/dream',
+  '/destiny-counselor',
+  '/destiny',
+  '/calendar',
+  '/compatibility',
 ]
 const FORBIDDEN_PATTERNS = [
   /\bheroTitle\b/,

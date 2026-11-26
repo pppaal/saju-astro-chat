@@ -58,13 +58,14 @@ test.describe('Core product smoke', () => {
     expect(hasFormInput).toBe(true)
   })
 
-  test('destiny-map renders required form fields', async ({ page }) => {
-    await page.goto('/destiny-map', { waitUntil: 'domcontentloaded' })
+  test('destiny-counselor renders the birth info fields', async ({ page }) => {
+    await page.goto('/destiny-counselor', { waitUntil: 'domcontentloaded' })
     await page.waitForLoadState('networkidle', { timeout: 6000 }).catch(() => {})
 
+    // 상담사는 채팅 + 출생 정보 패널(년·월·일 · 시각 · 성별) — 옛 destiny-map 의 required 폼은 없다.
     await expect(page.locator('h1').first()).toBeVisible()
-    await expect(page.locator('input[type="time"]').first()).toBeVisible()
-    await expect(page.locator('input[required]').first()).toBeVisible()
+    await expect(page.locator('input[type="time"]').first()).toBeVisible({ timeout: 30000 })
+    await expect(page.getByRole('combobox', { name: /^(Year|년|연도)$/ }).first()).toBeVisible()
 
     const bodyText = await page.locator('body').innerText()
     expect(bodyText).not.toContain('Loading...')

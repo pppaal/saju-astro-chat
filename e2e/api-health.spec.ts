@@ -35,15 +35,6 @@ test.describe('Page Load Performance', () => {
     expect(loadTime).toBeLessThan(30000)
     await expect(page.locator('body')).toBeVisible()
   })
-
-  test('saju page should load within reasonable time', async ({ page }) => {
-    const startTime = Date.now()
-    await page.goto('/saju', { waitUntil: 'domcontentloaded' })
-    const loadTime = Date.now() - startTime
-
-    expect(loadTime).toBeLessThan(30000)
-    await expect(page.locator('body')).toBeVisible()
-  })
 })
 
 test.describe('Error Handling', () => {

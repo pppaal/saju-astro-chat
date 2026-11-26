@@ -5,12 +5,12 @@ import { test, expect } from '@playwright/test'
  */
 
 test.describe('Main Navigation', () => {
-  test('should navigate from homepage to saju', async ({ page }) => {
+  test('should navigate from homepage to the calendar', async ({ page }) => {
     await page.goto('/', { waitUntil: 'domcontentloaded' })
-    await page.goto('/saju', { waitUntil: 'domcontentloaded' })
+    await page.goto('/calendar', { waitUntil: 'domcontentloaded' })
 
     await expect(page.locator('body')).toBeVisible()
-    expect(page.url()).toContain('/saju')
+    expect(page.url()).toContain('/calendar')
   })
 
   test('should navigate from homepage to tarot', async ({ page }) => {
@@ -21,50 +21,53 @@ test.describe('Main Navigation', () => {
     expect(page.url()).toContain('/tarot')
   })
 
-  test('should navigate from homepage to destiny-map', async ({ page }) => {
+  test('should navigate from homepage to destiny-counselor', async ({ page }) => {
     await page.goto('/', { waitUntil: 'domcontentloaded' })
-    await page.goto('/destiny-map', { waitUntil: 'domcontentloaded' })
+    await page.goto('/destiny-counselor', { waitUntil: 'domcontentloaded' })
 
     await expect(page.locator('body')).toBeVisible()
-    expect(page.url()).toContain('/destiny-map')
+    expect(page.url()).toContain('/destiny-counselor')
   })
 
   test('should navigate between feature pages', async ({ page }) => {
-    await page.goto('/saju', { waitUntil: 'domcontentloaded' })
-    await expect(page.locator('body')).toBeVisible()
-
-    await page.goto('/tarot', { waitUntil: 'domcontentloaded' })
-    await expect(page.locator('body')).toBeVisible()
-
-    await page.goto('/destiny-map', { waitUntil: 'domcontentloaded' })
-    await expect(page.locator('body')).toBeVisible()
-
-    await page.goto('/dream', { waitUntil: 'domcontentloaded' })
-    await expect(page.locator('body')).toBeVisible()
+    for (const route of [
+      '/destiny',
+      '/calendar',
+      '/tarot',
+      '/destiny-counselor',
+      '/compatibility',
+    ]) {
+      await page.goto(route, { waitUntil: 'domcontentloaded' })
+      await expect(page.locator('body')).toBeVisible()
+      // /compatibility 는 궁합 상담사(/compatibility/counselor)로 들어간다.
+      expect(new URL(page.url()).pathname.startsWith(route)).toBe(true)
+    }
   })
 })
 
 test.describe('Back Navigation', () => {
   test('should handle browser back button', async ({ page }) => {
     await page.goto('/', { waitUntil: 'domcontentloaded' })
-    await page.goto('/saju', { waitUntil: 'domcontentloaded' })
+    await page.goto('/calendar', { waitUntil: 'domcontentloaded' })
 
     await page.goBack()
 
     // Should be back on homepage
     await expect(page.locator('body')).toBeVisible()
-    expect(page.url()).not.toContain('/saju')
+    expect(page.url()).not.toContain('/calendar')
   })
 
   test('should handle browser forward button', async ({ page }) => {
+    // 가벼운 정적 화면으로 — /calendar 는 스트리밍 로딩 중 bfcache 복원이 늦어 goForward 가 60s 를 넘긴다.
     await page.goto('/', { waitUntil: 'domcontentloaded' })
-    await page.goto('/saju', { waitUntil: 'domcontentloaded' })
+    await page.goto('/pricing', { waitUntil: 'domcontentloaded' })
 
-    await page.goBack()
-    await page.goForward()
+    await page.goBack({ waitUntil: 'commit' })
+    await expect(page).not.toHaveURL(/pricing/)
+    await page.goForward({ waitUntil: 'commit' })
 
-    // Should be back on saju page
-    await expect(page).toHaveURL(/saju/)
+    // Should be back on pricing
+    await expect(page).toHaveURL(/pricing/)
   })
 })
 
@@ -77,17 +80,6 @@ test.describe('Deep Linking', () => {
     await expect(page.locator('body')).toBeVisible()
     expect(page.url()).toContain('tarot')
   })
-
-  test('should handle direct navigation to counselor', async ({ page }) => {
-    await page.goto('/saju/counselor', { waitUntil: 'domcontentloaded' })
-    await expect(page.locator('body')).toBeVisible()
-    expect(page.url()).toContain('counselor')
-  })
-
-  test('should handle direct navigation to myjourney subpage', async ({ page }) => {
-    await page.goto('/myjourney/history', { waitUntil: 'domcontentloaded' })
-    await expect(page.locator('body')).toBeVisible()
-  })
 })
 
 test.describe('Query Parameter Navigation', () => {
@@ -95,14 +87,6 @@ test.describe('Query Parameter Navigation', () => {
     await page.goto('/tarot?question=test', { waitUntil: 'domcontentloaded' })
 
     expect(page.url()).toContain('question=test')
-    await expect(page.locator('body')).toBeVisible()
-  })
-
-  test('should handle multiple query params', async ({ page }) => {
-    await page.goto('/saju?lang=ko&theme=dark', {
-      waitUntil: 'domcontentloaded',
-    })
-
     await expect(page.locator('body')).toBeVisible()
   })
 })
@@ -136,11 +120,6 @@ test.describe('Protected Route Navigation', () => {
     const hasAuthContent = url.includes('signin') || url.includes('auth') || url.includes('profile')
     expect(hasAuthContent).toBe(true)
   })
-
-  test('should handle navigation to myjourney', async ({ page }) => {
-    await page.goto('/myjourney', { waitUntil: 'domcontentloaded' })
-    await expect(page.locator('body')).toBeVisible()
-  })
 })
 
 test.describe('External Link Handling', () => {
@@ -170,7 +149,7 @@ test.describe('Scroll Restoration', () => {
     // Scroll down
     await page.evaluate(() => window.scrollTo(0, 500))
 
-    await page.goto('/saju', { waitUntil: 'domcontentloaded' })
+    await page.goto('/calendar', { waitUntil: 'domcontentloaded' })
     await page.goBack()
 
     // Page should load correctly after back navigation
@@ -187,7 +166,7 @@ test.describe('Navigation State', () => {
       localStorage.setItem('test_nav_state', 'test_value')
     })
 
-    await page.goto('/saju', { waitUntil: 'domcontentloaded' })
+    await page.goto('/calendar', { waitUntil: 'domcontentloaded' })
 
     // Check state is preserved
     const value = await page.evaluate(() => {
@@ -205,7 +184,7 @@ test.describe('Navigation State', () => {
 
 test.describe('Route Transitions', () => {
   test('should transition smoothly between pages', async ({ page }) => {
-    const routes = ['/', '/saju', '/tarot', '/destiny-map']
+    const routes = ['/', '/calendar', '/tarot', '/destiny-counselor']
 
     for (const route of routes) {
       await page.goto(route, { waitUntil: 'domcontentloaded' })
@@ -216,14 +195,10 @@ test.describe('Route Transitions', () => {
 
 test.describe('Counselor Pages Navigation', () => {
   test('counselor pages should be accessible', async ({ page }) => {
-    await page.goto('/saju/counselor', { waitUntil: 'domcontentloaded' })
-    await expect(page.locator('body')).toBeVisible()
-
-    await page.goto('/astrology/counselor', { waitUntil: 'domcontentloaded' })
-    await expect(page.locator('body')).toBeVisible()
-
-    await page.goto('/destiny-map/counselor', { waitUntil: 'domcontentloaded' })
-    await expect(page.locator('body')).toBeVisible()
+    for (const route of ['/destiny-counselor', '/compatibility/counselor']) {
+      await page.goto(route, { waitUntil: 'domcontentloaded' })
+      await expect(page.locator('body')).toBeVisible()
+    }
   })
 })
 

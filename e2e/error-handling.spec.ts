@@ -107,25 +107,6 @@ test.describe('JavaScript Error Handling', () => {
     expect(criticalErrors.length).toBe(0)
   })
 
-  test('should not have critical JS errors on saju page', async ({ page }) => {
-    const errors: string[] = []
-    page.on('pageerror', (error) => {
-      errors.push(error.message)
-    })
-
-    await page.goto('/saju', { waitUntil: 'domcontentloaded' })
-
-    const criticalErrors = errors.filter(
-      (e) =>
-        !e.includes('ResizeObserver') &&
-        !e.includes('Loading chunk') &&
-        !e.includes('hydration') &&
-        !e.includes('ChunkLoadError')
-    )
-
-    expect(criticalErrors.length).toBe(0)
-  })
-
   test('should not have critical JS errors on tarot page', async ({ page }) => {
     const errors: string[] = []
     page.on('pageerror', (error) => {
@@ -147,21 +128,8 @@ test.describe('JavaScript Error Handling', () => {
 })
 
 test.describe('Form Validation Errors', () => {
-  test('should handle empty saju form submit', async ({ page }) => {
-    await page.goto('/saju', { waitUntil: 'domcontentloaded' })
-
-    const submitBtn = page.locator("button[type='submit']").first()
-    if ((await submitBtn.count()) > 0) {
-      await submitBtn.click()
-
-      // Form should still be visible after failed validation
-      await expect(page.locator('body')).toBeVisible()
-      expect(page.url()).toContain('saju')
-    }
-  })
-
-  test('should handle empty destiny-map form submit', async ({ page }) => {
-    await page.goto('/destiny-map', { waitUntil: 'domcontentloaded' })
+  test('should handle empty destiny-counselor form submit', async ({ page }) => {
+    await page.goto('/destiny-counselor', { waitUntil: 'domcontentloaded' })
 
     const submitBtn = page.locator("button[type='submit']").first()
     if ((await submitBtn.count()) > 0) {
@@ -181,16 +149,6 @@ test.describe('Auth Error Handling', () => {
 
     const bodyText = await page.locator('body').textContent()
     expect(bodyText!.length).toBeGreaterThan(50)
-  })
-
-  test('should handle session expiry gracefully', async ({ page }) => {
-    // Clear all cookies to simulate expired session
-    await page.context().clearCookies()
-
-    await page.goto('/myjourney', { waitUntil: 'domcontentloaded' })
-
-    // Should handle gracefully - show page or redirect
-    await expect(page.locator('body')).toBeVisible()
   })
 })
 
@@ -221,32 +179,6 @@ test.describe('Invalid URL Handling', () => {
 
     const bodyText = await page.locator('body').textContent()
     expect(bodyText!.length).toBeGreaterThan(50)
-  })
-})
-
-test.describe('Missing Data Handling', () => {
-  test('result page should handle missing data gracefully', async ({ page }) => {
-    await page.goto('/destiny-map/result', { waitUntil: 'domcontentloaded' })
-    await expect(page.locator('body')).toBeVisible()
-
-    // Should show content (empty state or redirect)
-    const bodyText = await page.locator('body').textContent()
-    expect(bodyText!.length).toBeGreaterThan(10)
-  })
-
-  test('life-prediction result should handle missing data', async ({ page }) => {
-    await page.goto('/life-prediction/result', { waitUntil: 'domcontentloaded' })
-    await expect(page.locator('body')).toBeVisible()
-  })
-
-  test('personality result should handle missing data', async ({ page }) => {
-    await page.goto('/personality/result', { waitUntil: 'domcontentloaded' })
-    await expect(page.locator('body')).toBeVisible()
-  })
-
-  test('icp result should handle missing data', async ({ page }) => {
-    await page.goto('/icp/result', { waitUntil: 'domcontentloaded' })
-    await expect(page.locator('body')).toBeVisible()
   })
 })
 

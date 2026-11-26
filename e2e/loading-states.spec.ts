@@ -2,29 +2,9 @@ import { test, expect } from '@playwright/test'
 
 test.describe('Loading States & Transitions', () => {
   test.describe('Page Loading States', () => {
-    test('should load saju page within acceptable time', async ({ page }) => {
+    test('should load destiny-counselor page within acceptable time', async ({ page }) => {
       const startTime = Date.now()
-      await page.goto('/saju', { waitUntil: 'domcontentloaded' })
-
-      const loadTime = Date.now() - startTime
-      expect(loadTime).toBeLessThan(10000)
-
-      await expect(page.locator('body')).toBeVisible()
-
-      const bodyText = await page.locator('body').textContent()
-      expect(bodyText!.length).toBeGreaterThan(50)
-
-      // 사주 관련 콘텐츠 확인
-      const hasSajuContent =
-        bodyText!.includes('사주') ||
-        bodyText!.includes('운세') ||
-        bodyText!.includes('분석')
-      expect(hasSajuContent).toBe(true)
-    })
-
-    test('should load destiny-map page within acceptable time', async ({ page }) => {
-      const startTime = Date.now()
-      await page.goto('/destiny-map', { waitUntil: 'domcontentloaded' })
+      await page.goto('/destiny-counselor', { waitUntil: 'domcontentloaded' })
 
       const loadTime = Date.now() - startTime
       expect(loadTime).toBeLessThan(10000)
@@ -50,24 +30,6 @@ test.describe('Loading States & Transitions', () => {
   })
 
   test.describe('Form Submission Loading', () => {
-    test('should handle form submit on saju page', async ({ page }) => {
-      await page.goto('/saju', { waitUntil: 'domcontentloaded' })
-
-      const submitButton = page.locator('button[type="submit"]').first()
-      if ((await submitButton.count()) > 0 && (await submitButton.isVisible())) {
-        const buttonText = await submitButton.textContent()
-        expect(buttonText).toBeTruthy()
-
-        await submitButton.click()
-        await page.waitForTimeout(500)
-
-        // 페이지가 정상 작동해야 함
-        await expect(page.locator('body')).toBeVisible()
-        const bodyText = await page.locator('body').textContent()
-        expect(bodyText!.length).toBeGreaterThan(50)
-      }
-    })
-
     test('should handle form submit on contact page', async ({ page }) => {
       await page.goto('/contact', { waitUntil: 'domcontentloaded' })
 
@@ -86,7 +48,7 @@ test.describe('Loading States & Transitions', () => {
 
   test.describe('Chat Loading States', () => {
     test('should load counselor page with chat interface', async ({ page }) => {
-      await page.goto('/destiny-map/counselor', { waitUntil: 'domcontentloaded' })
+      await page.goto('/destiny-counselor', { waitUntil: 'domcontentloaded' })
 
       await expect(page.locator('body')).toBeVisible()
 
@@ -101,23 +63,8 @@ test.describe('Loading States & Transitions', () => {
       expect(hasChat || bodyText!.length > 100).toBe(true)
     })
 
-    test('should load saju counselor page with chat interface', async ({ page }) => {
-      await page.goto('/saju/counselor', { waitUntil: 'domcontentloaded' })
-
-      await expect(page.locator('body')).toBeVisible()
-
-      const bodyText = await page.locator('body').textContent()
-      expect(bodyText!.length).toBeGreaterThan(50)
-
-      // 채팅 요소 확인
-      const chatElements = page.locator('[class*="chat"], [class*="message"], textarea')
-      const count = await chatElements.count()
-
-      expect(count > 0 || bodyText!.length > 100).toBe(true)
-    })
-
     test('should accept message input in counselor', async ({ page }) => {
-      await page.goto('/destiny-map/counselor', { waitUntil: 'domcontentloaded' })
+      await page.goto('/destiny-counselor', { waitUntil: 'domcontentloaded' })
 
       const input = page.locator('textarea, input[type="text"]').first()
       if ((await input.count()) > 0 && (await input.isVisible())) {
@@ -164,15 +111,6 @@ test.describe('Loading States & Transitions', () => {
   })
 
   test.describe('Data Fetching States', () => {
-    test('should load myjourney history page with content', async ({ page }) => {
-      await page.goto('/myjourney/history', { waitUntil: 'domcontentloaded' })
-
-      await expect(page.locator('body')).toBeVisible()
-
-      const bodyText = await page.locator('body').textContent()
-      expect(bodyText!.length).toBeGreaterThan(10)
-    })
-
     test('should load tarot history page with content', async ({ page }) => {
       await page.goto('/tarot/history', { waitUntil: 'domcontentloaded' })
 
@@ -197,11 +135,11 @@ test.describe('Loading States & Transitions', () => {
       await page.goto('/', { waitUntil: 'domcontentloaded' })
       await expect(page.locator('body')).toBeVisible()
 
-      await page.goto('/saju', { waitUntil: 'domcontentloaded' })
+      await page.goto('/calendar', { waitUntil: 'domcontentloaded' })
       await expect(page.locator('body')).toBeVisible()
 
-      const sajuBodyText = await page.locator('body').textContent()
-      expect(sajuBodyText!.length).toBeGreaterThan(50)
+      const calendarBodyText = await page.locator('body').textContent()
+      expect(calendarBodyText!.length).toBeGreaterThan(50)
 
       await page.goto('/tarot', { waitUntil: 'domcontentloaded' })
       await expect(page.locator('body')).toBeVisible()
@@ -214,7 +152,7 @@ test.describe('Loading States & Transitions', () => {
 
     test('should handle back navigation gracefully', async ({ page }) => {
       await page.goto('/', { waitUntil: 'domcontentloaded' })
-      await page.goto('/saju', { waitUntil: 'domcontentloaded' })
+      await page.goto('/calendar', { waitUntil: 'domcontentloaded' })
 
       await page.goBack()
       await expect(page.locator('body')).toBeVisible()
@@ -225,13 +163,13 @@ test.describe('Loading States & Transitions', () => {
 
     test('should handle forward navigation gracefully', async ({ page }) => {
       await page.goto('/', { waitUntil: 'domcontentloaded' })
-      await page.goto('/saju', { waitUntil: 'domcontentloaded' })
+      await page.goto('/calendar', { waitUntil: 'domcontentloaded' })
 
       await page.goBack()
       await page.goForward()
 
       await expect(page.locator('body')).toBeVisible()
-      expect(page.url()).toContain('saju')
+      expect(page.url()).toContain('calendar')
     })
   })
 
@@ -280,24 +218,9 @@ test.describe('Loading States & Transitions', () => {
   })
 
   test.describe('Loading Mobile Experience', () => {
-    test('should load saju page on mobile viewport', async ({ page }) => {
-      await page.setViewportSize({ width: 375, height: 667 })
-      await page.goto('/saju', { waitUntil: 'domcontentloaded' })
-
-      await expect(page.locator('body')).toBeVisible()
-
-      const bodyText = await page.locator('body').textContent()
-      expect(bodyText!.length).toBeGreaterThan(50)
-
-      // 모바일에서 수평 스크롤 없어야 함
-      const bodyWidth = await page.evaluate(() => document.body.scrollWidth)
-      const viewportWidth = await page.evaluate(() => window.innerWidth)
-      expect(bodyWidth).toBeLessThanOrEqual(viewportWidth + 20)
-    })
-
     test('should be interactive on mobile', async ({ page }) => {
       await page.setViewportSize({ width: 375, height: 667 })
-      await page.goto('/destiny-map', { waitUntil: 'domcontentloaded' })
+      await page.goto('/destiny-counselor', { waitUntil: 'domcontentloaded' })
 
       const interactable = page.locator('button, a, input').first()
       if ((await interactable.count()) > 0 && (await interactable.isVisible())) {
@@ -368,15 +291,6 @@ test.describe('Loading States & Transitions', () => {
   })
 
   test.describe('Loading Performance', () => {
-    test('should load dream page within acceptable time', async ({ page }) => {
-      const startTime = Date.now()
-      await page.goto('/dream', { waitUntil: 'domcontentloaded' })
-      const loadTime = Date.now() - startTime
-
-      expect(loadTime).toBeLessThan(10000)
-      await expect(page.locator('body')).toBeVisible()
-    })
-
     test('should load tarot page within acceptable time', async ({ page }) => {
       const startTime = Date.now()
       await page.goto('/tarot', { waitUntil: 'domcontentloaded' })
