@@ -1,6 +1,6 @@
 /**
  * 02 축별 교차 — 리포트와 같은 판정(buildCrossRows · tallyCrossRows)을 LLM 없이: 4칸 집계
- * 막대 + 축 행(판정은 행 끝 mono 라벨) + 전체 리포트 링크('N traits in your full report →',
+ * 막대 + 축 행(판정은 행 끝 mono 라벨) + (시각 미상 · 달 별자리가 바뀌는 날이면 안내 캡션) + 전체 리포트 링크('N traits in your full report →',
  * N 은 리포트의 축 수 — 결핍 축 포함). 서버 컴포넌트.
  */
 
@@ -41,6 +41,11 @@ export default function LifeTraitTally({ traits, locale }: { traits: LifeTraitsV
           />
         ))}
       </CrossCheckList>
+      {traits.caveat ? (
+        <p className={s.cap} data-life-caveat="">
+          {traits.caveat}
+        </p>
+      ) : null}
       <Link href={traits.fullReportHref} className={s.xmore} prefetch={false}>
         <span>{traits.moreLabel}</span>
         <ArrowIcon />

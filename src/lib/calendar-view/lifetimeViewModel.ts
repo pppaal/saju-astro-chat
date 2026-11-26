@@ -28,6 +28,7 @@ import type { CrossTally } from '@/lib/report/natalCrossShared'
 import type { CrossToneKey } from '@/lib/report/toneLabel'
 import type { LifeStarPoint } from '@/lib/report/lifeCrossCheck'
 import type { RadarChar } from '@/lib/report/sibsinRadar'
+import { UI } from '@/lib/report/integratedReportLabels'
 import type { SajuElement } from '@/lib/saju/elementBridge'
 import type { PlanetGlyph } from '@/components/v9/Glyph'
 import { KO_TO_SAJU_ELEMENT } from '@/lib/saju/elementBridge'
@@ -108,6 +109,8 @@ export interface LifeTraitsVM {
   reportTraitCount: number
   /** '18 traits in your full report'. */
   moreLabel: string
+  /** 출생시각 미상 + 출생일 안에 달이 별자리를 바꿀 때의 안내(리포트와 같은 말). 아니면 null. */
+  caveat: string | null
 }
 
 export type LifeStrengthKey = 'wealth' | 'status' | 'support' | 'creativity' | 'drive'
@@ -400,10 +403,14 @@ export function splitLastWord(label: string): { lead: string; last: string } {
   return { lead: words.join(' '), last }
 }
 
-/** 본명 점 한 줄 — 'Sun 0°38′ Aries' / '태양 양자리 0°38′'. 상승은 'ASC' / '상승'. */
+/**
+ * 본명 점 한 줄 — 'Sun 0°38′ Aries' / '태양 양자리 0°38′'. 상승은 'ASC' / '상승'.
+ * 도 · 분이 없으면(출생시각 미상) 별자리만 — 'Moon Leo' / '달 사자자리'.
+ */
 function pointText(p: LifeStarPoint, lang: Lang): string {
   const body = p.body === 'Ascendant' ? (lang === 'ko' ? '상승' : 'ASC') : planetLabel(p.body, lang)
   const sign = signLabel(p.sign, lang)
+  if (typeof p.deg !== 'number' || typeof p.min !== 'number') return `${body} ${sign}`
   const dm = `${p.deg}°${mm(p.min)}′`
   return lang === 'ko' ? `${body} ${sign} ${dm}` : `${body} ${dm} ${sign}`
 }
@@ -537,6 +544,7 @@ function buildTraits(lifetime: DestinyLifetime, lang: Lang): LifeTraitsVM | null
     fullReportHref: cc.fullReportHref,
     reportTraitCount: cc.reportTraitCount,
     moreLabel: pick(COPY.traitMore(cc.reportTraitCount), lang),
+    caveat: cc.moonSignMayDiffer ? pick(UI.moonSignMayDiffer, lang) : null,
   }
 }
 

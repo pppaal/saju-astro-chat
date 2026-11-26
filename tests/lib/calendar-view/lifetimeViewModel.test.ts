@@ -122,6 +122,59 @@ describeRealEphemeris('Life 데이터 층 — 샘플 (real ephemeris)', () => {
     expect(first.topbar.birthDate).toBe('1997.3.21')
   }, 120000)
 
+  it('시간 미상(QA-2): 태양 · 달은 별자리만(°′ 없음) · 그날 달이 사자→처녀라 리포트와 같은 안내 · 판정 그대로', async () => {
+    const { first } = await sampleLife({ timeUnknown: true })
+    const cc = first.lifetime.crossCheck!
+    // 정오 앵커의 달은 사자자리 27°(14:30 이면 28°17′) — 현지 18시 무렵 처녀자리로 넘어간다.
+    expect(cc.moonSignMayDiffer).toBe(true)
+    expect(cc.rows.en.find((r) => r.key === 'identity')?.starsSub).toEqual([
+      { body: 'Sun', sign: 'Aries' },
+    ])
+    expect(cc.rows.en.find((r) => r.key === 'needs')?.starsSub).toEqual([
+      { body: 'Moon', sign: 'Leo' },
+    ])
+    // 판정 · 집계는 그대로 — evalNeeds 는 정오 앵커 달 별자리(CALCULATION_SPEC §6).
+    expect(cc.rows.en.find((r) => r.key === 'needs')?.verdict).toBeTruthy()
+    const t = cc.tally
+    expect(t.same + t.supportive + t.twoPulls + t.unrelated).toBe(t.total)
+
+    const en = buildLifetimeViewModel(first, { lang: 'en' }).traits!
+    const ko = buildLifetimeViewModel(first, { lang: 'ko' }).traits!
+    expect(en.rows.find((r) => r.key === 'identity')?.stars?.sub).toBe('Sun Aries')
+    expect(en.rows.find((r) => r.key === 'needs')?.stars?.sub).toBe('Moon Leo')
+    expect(ko.rows.find((r) => r.key === 'identity')?.stars?.sub).toBe('태양 양자리')
+    expect(ko.rows.find((r) => r.key === 'needs')?.stars?.sub).toBe('달 사자자리')
+    for (const vm of [en, ko]) {
+      const subs = vm.rows.flatMap((r) => [
+        r.stars?.sub ?? '',
+        ...(r.stars?.points ?? []).map((p) => p.text),
+      ])
+      expect(subs.join(' | ')).not.toMatch(/\d+°/)
+    }
+    expect(en.caveat).toBe('Without a birth time, your Moon sign may differ.')
+    expect(ko.caveat).toBe('태어난 시각을 몰라 달의 별자리도 바뀔 수 있어요.')
+  }, 120000)
+
+  it('시각을 알면 도 · 분 그대로이고 안내 없음', async () => {
+    const { first } = await sampleLife()
+    expect(first.lifetime.crossCheck?.moonSignMayDiffer).toBeUndefined()
+    expect(buildLifetimeViewModel(first, { lang: 'en' }).traits?.caveat).toBeNull()
+  }, 120000)
+
+  it('moonChangesSignOnBirthDay — 1997-03-21 서울은 바뀌고(사자→처녀), 1997-03-22 는 하루 내내 처녀', async () => {
+    const { moonChangesSignOnBirthDay } = await import('@/lib/report/lifeCrossCheck')
+    const natalOn = (birthDate: string) =>
+      buildNatalContext({
+        ...SAMPLE,
+        birthDate,
+        birthTime: '12:00',
+        birthTimeUnknown: true,
+        now: NOW,
+      })
+    expect(moonChangesSignOnBirthDay(await natalOn('1997-03-21'))).toBe(true)
+    expect(moonChangesSignOnBirthDay(await natalOn('1997-03-22'))).toBe(false)
+  }, 120000)
+
   it("다음 인생 마디 {2033, 35} — 'The last expansion window before midlife.', 홈 다이얼과 같음", async () => {
     const { first } = await sampleLife()
     const turn = first.lifetime.nextLifeTurn

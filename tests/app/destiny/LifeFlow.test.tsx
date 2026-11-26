@@ -140,6 +140,25 @@ describe('LifeFlow — 샘플(en)', () => {
     expect(more.getAttribute('href')).toBe(vm.traits!.fullReportHref)
   })
 
+  it('시각 미상 · 달 별자리가 바뀌는 날 — 축별 교차 아래 안내 캡션(QA-2), 아니면 없음', () => {
+    const plain = renderLife('en')
+    expect(plain.container.querySelector('[data-life-caveat]')).toBeNull()
+    cleanup()
+    const lifetime = {
+      ...SAMPLE.lifetime,
+      crossCheck: { ...SAMPLE.lifetime.crossCheck, moonSignMayDiffer: true },
+    } as DestinyLifetime
+    for (const [lang, text] of [
+      ['en', 'Without a birth time, your Moon sign may differ.'],
+      ['ko', '태어난 시각을 몰라 달의 별자리도 바뀔 수 있어요.'],
+    ] as const) {
+      const { container } = renderLife(lang, lifetime)
+      const cap = container.querySelector('[data-life-section="traits"] [data-life-caveat]')
+      expect(cap?.textContent).toBe(text)
+      cleanup()
+    }
+  })
+
   it("'두 체계가 같을 때만' 범례는 블록당 최대 하나", () => {
     const { container } = renderLife('en')
     for (const sec of container.querySelectorAll('[data-life-section]')) {

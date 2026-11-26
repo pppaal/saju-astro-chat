@@ -1,5 +1,5 @@
 // src/lib/astrology/foundation/astrologyService.ts
-import type { Chart, ChartMeta, HouseSystem, ZodiacKo } from './types'
+import type { Chart, ChartMeta, HouseSystem, NatalInput, ZodiacKo } from './types'
 import { formatLongitude } from './utils'
 import { calcHouses, inferHouseOf } from './houses'
 import { getSwisseph } from './ephe'
@@ -46,6 +46,23 @@ export interface NatalChartData {
     longitude?: number
     houseSystem?: string
   }
+}
+
+/**
+ * 한 천체의 황경(도) — 본명 차트(calculateNatalChart)와 같은 경로: natalToJD(출생 instant
+ * resolver) → swe_calc_ut(SEFLG_SPEED). 시각 미상 출생일의 하루 범위(현지 00:00 · 23:59)처럼
+ * 차트 전체가 필요 없는 점검용. 결정론(시계를 읽지 않는다).
+ */
+export function bodyLongitudeAt(input: NatalInput, body: string): number {
+  const swisseph = getSwisseph()
+  const planetId = getPlanetList()[body]
+  if (planetId === undefined) throw new Error(`Unknown body: ${body}`)
+  const res = swisseph.swe_calc_ut(natalToJD(input), planetId, swisseph.SEFLG_SPEED)
+  if ('error' in res) {
+    throw new Error(`Swiss Ephemeris Error (swe_calc_ut for ${body}): ${res.error}`)
+  }
+  if (!('longitude' in res)) throw new Error(`Unexpected coordinate system for ${body}.`)
+  return res.longitude
 }
 
 // --- 메인 차트 계산 ---

@@ -16,12 +16,19 @@
  * 그다음 판정은 리포트의 buildCrossRows 그대로 — 다시 판정하지 않는다. 그래서 행 · 톤 · 집계가
  * 리포트와 깊은 비교로 같다(tests/lib/report/lifeCrossCheck.parity.test.ts).
  *
+ * 시각 미상(QA-2): 태양 · 달 보조 줄은 별자리만(도 · 분 없음 — 정오 앵커의 도는 거짓 정밀도). 출생일
+ * 현지 00:00 과 23:59 의 달 별자리가 다르면 moonSignMayDiffer 를 세워 화면이 리포트와 같은 안내를
+ * 붙이게 한다. 판정(evalNeeds)과 집계는 그대로 — 달 별자리는 정오 앵커로 남긴다(CALCULATION_SPEC §6,
+ * placeMask: 행성 경도는 시각 미상이어도 날짜가 맞으면 남긴다).
+ *
  * 순수 · 결정론: 시계를 읽지 않는다. now 는 호출자가 주입한다(미성년 판정 · collectSajuFacts).
  */
 
 import { collectSajuFacts } from '@/lib/destiny/sajuFacts'
 import { getTwelveStagesForPillars } from '@/lib/saju/shinsal'
 import { UNKNOWN_HOUSE } from '@/lib/astrology/foundation/shared'
+import { bodyLongitudeAt } from '@/lib/astrology/foundation/astrologyService'
+import { logger } from '@/lib/logger'
 import type { NatalContext } from '@/lib/calendar-engine/context/types'
 import type { Lang } from '@/lib/i18n/bi'
 import { buildCrossRows, type CrossRowOut } from './integratedAdapter'
@@ -115,8 +122,9 @@ export interface LifeStarPoint {
   body: 'Sun' | 'Moon' | 'Ascendant'
   /** 영문 별자리 키('Aries'). */
   sign: string
-  deg: number
-  min: number
+  /** 별자리 안 도 · 분 — 출생시각 미상이면 없다(별자리만 말한다, QA-2). */
+  deg?: number
+  min?: number
 }
 
 export interface LifeCrossRow {
@@ -143,6 +151,11 @@ export interface LifeCrossCheck {
   reportTraitCount: number
   /** 그 사람의 전체 리포트 — /integrated-report?{출생 쿼리}. */
   fullReportHref: string
+  /**
+   * 출생시각 미상이고 출생일(현지) 안에 달이 별자리를 바꾼다 — 화면은 '달의 별자리도 바뀔 수
+   * 있어요' 안내를 붙인다(리포트 timeUnknownBody 와 같은 말). 판정은 정오 앵커 그대로.
+   */
+  moonSignMayDiffer?: boolean
 }
 
 /** 리포트 링크용 출생 정보 — 로더의 본명 가드(guard.birth)와 같은 값. */
@@ -190,10 +203,33 @@ function cellOf(s: string | undefined): LifeCrossCell | undefined {
 
 function pointOf(
   body: LifeStarPoint['body'],
-  p: { sign?: string; degree?: number; minute?: number } | undefined
+  p: { sign?: string; degree?: number; minute?: number } | undefined,
+  signOnly = false
 ): LifeStarPoint | null {
   if (!p?.sign || typeof p.degree !== 'number' || typeof p.minute !== 'number') return null
+  // 시각 미상 — 정오 앵커의 도 · 분은 말하지 않는다(달은 하루 ±6°, 태양도 ±30′).
+  if (signOnly) return { body, sign: p.sign }
   return { body, sign: p.sign, deg: p.degree, min: p.minute }
+}
+
+const signIndex = (lon: number) => Math.floor((((lon % 360) + 360) % 360) / 30)
+
+/**
+ * 출생일(본명 컨텍스트의 양력 날짜 · 출생 시간대) 현지 00:00 과 23:59 에 달의 별자리가 다른가 —
+ * 본명 차트와 같은 천체력 경로(bodyLongitudeAt). 계산이 안 되면 undefined(안내를 붙이지 않는다).
+ */
+export function moonChangesSignOnBirthDay(natal: NatalContext): boolean | undefined {
+  const { year, month, date, latitude, longitude, timeZone } = natal.input
+  const moonSignAt = (hour: number, minute: number) =>
+    signIndex(
+      bodyLongitudeAt({ year, month, date, hour, minute, latitude, longitude, timeZone }, 'Moon')
+    )
+  try {
+    return moonSignAt(0, 0) !== moonSignAt(23, 59)
+  } catch (err) {
+    logger.warn('[lifeCrossCheck] moon day-range check unavailable — no caveat', err)
+    return undefined
+  }
 }
 
 function lifeRows(
@@ -240,13 +276,17 @@ export function buildLifeCrossCheck(
 
   const chart = ctx.astro.chart
   const placeUnreliable = ctx.astro.placeUnreliable === true
+  // toCrossContext 와 같은 판정 — 출생시각 미상(호출자 플래그 또는 본명의 삼주).
+  const timeUnknown = opts.timeUnknown || natal.saju.timeUnknown === true
   const sun = pointOf(
     'Sun',
-    chart.planets.find((p) => p.name === 'Sun')
+    chart.planets.find((p) => p.name === 'Sun'),
+    timeUnknown
   )
   const moon = pointOf(
     'Moon',
-    chart.planets.find((p) => p.name === 'Moon')
+    chart.planets.find((p) => p.name === 'Moon'),
+    timeUnknown
   )
   // 상승궁은 출생시각 · 출생지를 알 때만 — 교차 판정(buildCrossRows)과 같은 가림.
   const asc = placeUnreliable ? null : pointOf('Ascendant', chart.ascendant)
@@ -268,10 +308,14 @@ export function buildLifeCrossCheck(
     gender: opts.gender,
   }
 
-  return {
+  const out: LifeCrossCheck = {
     rows: { ko: lifeRows(ko, subs), en: lifeRows(en, subs) },
     tally: tallyCrossRows(en),
     reportTraitCount: en.length,
     fullReportHref: `/integrated-report?${reportBirthQuery(birth, opts.lang)}`,
   }
+  if (timeUnknown && moon && moonChangesSignOnBirthDay(natal) === true) {
+    out.moonSignMayDiffer = true
+  }
+  return out
 }

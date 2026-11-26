@@ -110,6 +110,12 @@ export const UI: Record<string, BiLabel> = {
     ko: '태어난 시각을 몰라서 사주는 시주를 빼고 년·월·일 세 기둥(삼주)으로 풀었어요. 낮 12시는 날짜를 정확히 잡는 데만 썼어요. 일간과 큰 성향은 그대로 읽히지만, 오행 균형·강약 같은 판단은 시각을 알면 달라질 수 있어요. 달의 별자리도 바뀔 수 있고, 상승점·하우스처럼 시각에 기대는 항목은 보여드리지 않아요.',
     en: "We didn't know your birth time, so your Saju is read from three pillars (year, month, day) without the hour pillar; noon was used only to pin down the date. Your day master and core temperament still hold, but judgments like element balance and strength could shift once the time is known. Your Moon sign may differ too, and time-dependent items like the Ascendant and houses are left out.",
   },
+  // 시각 미상 + 출생일(현지) 안에 달이 별자리를 바꿈 — 인생 흐름 축별 교차의 짧은 안내.
+  // timeUnknownBody 의 달 문장과 같은 말(QA-2: '달의 별자리도 바뀔 수 있어요').
+  moonSignMayDiffer: {
+    ko: '태어난 시각을 몰라 달의 별자리도 바뀔 수 있어요.',
+    en: 'Without a birth time, your Moon sign may differ.',
+  },
   // 출생지 미상(시각은 앎) 안내 — 시간대 기준 좌표로 계산했고 하우스·상승점은 뺐다고
   // 정직하게 알린다(CALCULATION_SPEC §6, 감사 CR-5: 예전엔 배너 없이 '0H'·빈 하우스가 나갔다).
   cityUnknownTitle: {
