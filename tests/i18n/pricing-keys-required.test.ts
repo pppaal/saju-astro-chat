@@ -14,6 +14,12 @@ const REQUIRED_PUBLIC_KEYS = [
   'ui.subtitleAstrology',
   'services.destinyMap.desc',
   'services.tarot.desc',
+  // 동의 배너 — 키가 없으면 t() 가 영어 기본값으로 떨어져 KO 배너 끝에 'Privacy Policy' 가 찍힌다(QA R-VH-1).
+  'consent.title',
+  'consent.description',
+  'consent.reject',
+  'consent.accept',
+  'consent.policyLink',
 ]
 
 function loadLocale(locale: 'en' | 'ko'): JsonObject {
@@ -47,4 +53,11 @@ describe('i18n public required keys', () => {
       }
     })
   }
+})
+
+describe('consent banner policy link', () => {
+  it('KO 는 한국어 라벨, EN 은 영어 라벨', () => {
+    expect(getPathValue(loadLocale('ko'), 'consent.policyLink')).toBe('개인정보처리방침')
+    expect(getPathValue(loadLocale('en'), 'consent.policyLink')).toBe('Privacy Policy')
+  })
 })

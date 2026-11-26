@@ -271,6 +271,11 @@
 .paper .description {
   color: var(--cb-body);
 }
+/* 한국어 — 어절 단위로 줄바꿈('분/석해서' 처럼 낱말 안에서 끊지 않게). 배너는 루트 레이아웃에
+   걸려 홈 · 달력의 .ko keep-all 범위 밖이라 여기서 따로 건다. html lang 은 서버 로캘. */
+.paper .text:lang(ko) {
+  word-break: keep-all;
+}
 .paper .policyLink,
 .paper .policyLink:hover,
 .paper .policyLink:focus-visible {
@@ -306,6 +311,12 @@
   }
 }
 @media (max-width: 420px) {
+  /* 제목 · 설명을 한 줄 흐름(inline)으로 이을 때 줄 상자는 부모 .text 의 strut 이 정한다 —
+     루트 16px × 1.5 = 24px 줄 간격이 12px 글자에 걸리지 않게 부모 글자 크기 · 행간을 맞춘다. */
+  .paper .text {
+    font-size: 0.75rem;
+    line-height: 1.5;
+  }
   .paper .title {
     display: inline;
     margin: 0 0.35em 0 0;

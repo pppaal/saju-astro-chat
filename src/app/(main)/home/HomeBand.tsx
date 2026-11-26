@@ -105,7 +105,10 @@ export default function HomeBand({ locale, dial, timing, traits }: HomeBandProps
     { n: '02', title: t('step2Title'), text: t('step2Text') },
   ]
   return (
-    <section className={s.band} aria-labelledby="home-band">
+    <section
+      className={timing.length > 0 ? s.band : `${s.band} ${s.bandNoLegend}`}
+      aria-labelledby="home-band"
+    >
       <div className={s.bandHead}>
         <span className={s.eyebrow}>{t('bandEyebrow')}</span>
         <h2 id="home-band" className={s.h2}>

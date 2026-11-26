@@ -25,10 +25,14 @@ export const HOME_COPY = {
   sampleCity: { ko: '서울', en: 'Seoul' },
 
   // ─── 히어로 ───
-  /** 구분점(·)은 양옆을 줄바꿈 없는 공백으로 묶는다 — 좁은 화면에서 '·' 가 줄 끝이나 줄 앞에 혼자 남지 않게. */
+  /**
+   * 항목 안의 공백과 구분점(·) 뒤는 줄바꿈 없는 공백 — 줄은 '·' 앞에서만 꺾인다. 그래서 한 항목이
+   * 두 줄로 갈리지 않고('WESTERN / ASTROLOGY'), '·' 가 줄 끝에 혼자 매달리지도 않는다(QA R-VH-6).
+   * 320 EN: 'KOREAN SAJU · WESTERN ASTROLOGY' / '· TAROT'.
+   */
   eyebrow: {
-    ko: '사주\u00a0·\u00a0서양 점성술\u00a0·\u00a0타로',
-    en: 'Korean saju\u00a0·\u00a0Western astrology\u00a0·\u00a0Tarot',
+    ko: '사주 ·\u00a0서양\u00a0점성술 ·\u00a0타로',
+    en: 'Korean\u00a0saju ·\u00a0Western\u00a0astrology ·\u00a0Tarot',
   },
   /**
    * H1 — 앞 · 밑줄(강조) · 뒤. ko 는 옛 /free 훅. en 밑줄은 디자인(home9)처럼 마침표까지 'you.',
