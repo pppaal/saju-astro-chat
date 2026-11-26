@@ -70,7 +70,7 @@ the destiny release gate (`ops:destiny:release`). See
 
 ```
 src/
-  app/                 Next.js App Router — pages + ~100 API route handlers (api/**/route.ts; exact list: docs/reference/api-routes.md)
+  app/                 Next.js App Router — pages + ~90 API route handlers (api/**/route.ts; exact list: docs/reference/api-routes.md)
   components/          React UI
   lib/
     saju/              Saju four-pillars engine (deterministic) — ~50 files
@@ -87,7 +87,7 @@ src/
     config/            pricing.ts (SSOT for credit packs) + other constants
 docs/                  canonical docs — start at docs/DOCS_INDEX.md
 prisma/                schema (24 models) + migrations
-tests/ e2e/            ~730 test files; e2e/critical-flows are the money paths
+tests/ e2e/            ~850 test files; e2e/critical-flows are the money paths
 ```
 
 `docs/REPO_STRUCTURE.md` defines source-vs-generated boundaries.

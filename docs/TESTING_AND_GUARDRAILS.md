@@ -1,6 +1,6 @@
 # Testing And Guardrails
 
-Last audited: 2026-11-25 (release gate and real-ephemeris tests, engine audit E16)
+Last audited: 2026-11-26 (D9 final sweep: knip production run, madge cycle check, e2e jobs)
 
 ## Status
 
@@ -27,9 +27,12 @@ npm test
 ```
 
 `npm run check:all` runs exactly that bundle (`lint && lint:mojibake &&
-typecheck && test`). The PR `quick-checks` job also rejects any newly added
-`console.log`/`console.debug` outside `src/lib/logger/` and `scripts/` — use the
-structured logger instead.
+typecheck && test`). ESLint's `no-console` is an error everywhere in `src`
+(no `warn`/`error` allowance); the only exceptions are the logger sink itself and
+two documented lines (the telemetry recursion terminal and the edge proxy's CSRF
+rejection log), each with an inline reason. The PR `quick-checks` job also rejects
+any newly added `console.log`/`console.debug` outside `src/lib/logger/` and
+`scripts/` — use the structured logger instead.
 
 For destiny/report changes, also run the release gate (below).
 
@@ -162,7 +165,10 @@ guard here so the _class_ closes, not just the instance.
 ### `ci.yml` (push to main, PRs)
 
 Single `build-and-test` job: token-encryption verify, `check:env`, `lint`,
-`lint:mojibake`, `typecheck`, `ops:typecheck:gate`, `ops:destiny:release`,
+`lint:mojibake`, `typecheck`, `ops:typecheck:gate`, a runtime import-cycle check
+(`npx madge@8.0.0 --circular --extensions ts,tsx --ts-config tsconfig.json src`,
+type-only imports skipped via `madge_detectiveOptions__*__skipTypeImports`),
+`ops:destiny:release`,
 `test:destiny-map` (critical smoke), `test:a11y`,
 coverage upload + threshold check (read from `vitest.config.ts`), `build`, SSR
 placeholder + mojibake smoke against a running server, bundle-size check, and an
@@ -178,7 +184,10 @@ E2E API run (`test:e2e:api`).
   `lint:mojibake`, `build`, SSR placeholder gate, bundle-size budget.
 - `destiny-release-gate`: `npm run ops:destiny:release`.
 - `security-check`: `npm audit` (moderate/high, non-blocking), `audit:unused`
-  (knip), changed-file secret scan.
+  (knip, normal graph: tests/e2e/scripts are entries), `knip --production`
+  (production graph only — the `!` entries in `knip.json`; informational, it lists
+  src modules that only tests import), changed-file secret scan. All three are
+  `continue-on-error`.
 - `coverage`: `test:coverage` + PR comment.
 
 ### `security.yml` (PRs, weekly, manual)
@@ -187,9 +196,27 @@ Production-only `npm audit` (fails on critical) plus a secret scan.
 
 ### `e2e-browser.yml` (PRs, push to main, manual)
 
-Builds and runs the public smoke suite via Playwright
-(`playwright.ci.config.ts e2e/public-pages-smoke.spec.ts`) across `chromium`
-and `mobile-chrome`.
+Builds the app, starts `next start`, and runs two jobs against it:
+
+- `test` (blocking): `playwright.ci.config.ts e2e/public-pages-smoke.spec.ts
+e2e/critical-flows/09-stripe-checkout-flow.spec.ts` across `chromium` and
+  `mobile-chrome` (the money-path minimum: auth wall 401, SSOT pack grid, guest
+  login modal — deterministic without a DB).
+- `mobile-layout` (matrix, `continue-on-error`): the `mobile-visibility`
+  (iPhone SE 375×667), `narrow-viewport` (Galaxy Z Fold outer 280×653) and
+  `reduced-motion` (390×844, `prefers-reduced-motion: reduce`) projects, all on
+  chromium emulation (`e2e/mobile-visibility.spec.ts`, `e2e/reduced-motion.spec.ts`).
+
+Every other spec in `e2e/` runs only locally/manually. The v9.2 Life · Calendar
+smoke (`e2e/life-calendar-smoke.spec.ts` + `calendar-check.spec.ts`,
+`npm run test:e2e:calendar` → `playwright.calendar.config.ts`) checks
+`/calendar/preview`, `/destiny?…` and `/calendar?…` overrides at 390 and 280 px:
+an h1, no horizontal overflow, no lingering "Loading...". Specs that only targeted
+removed routes (`/saju` form, `/dream`, `/iching`, `/numerology`, `/myjourney`,
+`/astrology`, `/personality`, `/icp`, `/premium-reports`, `/shared/*`,
+`/destiny-map/result`, …) were deleted in D9; `/destiny-map` tests now open
+`/destiny-counselor`, which the old URL redirects to.
+`PLAYWRIGHT_CHROMIUM_EXECUTABLE` overrides the chromium binary for local runs.
 
 ### `performance-tests.yml` (PRs touching `src/**`, weekly, manual)
 
@@ -225,7 +252,8 @@ These exist and run:
 
 - `npm run test`, `test:fast`, `test:coverage`, `test:a11y`, `test:integration`
 - `npm run test:e2e:browser`, `test:e2e:smoke:public`, `test:e2e:critical`,
-  and the per-flow `test:e2e:*` Playwright specs
+  `test:e2e:calendar` (Life · Calendar smoke), and the per-flow `test:e2e:*`
+  Playwright specs
 - `npm run test:tarot` (`tests/lib/tarot`)
 - `npm run test:destiny-map` (report text sanitize/mask smoke,
   `tests/destiny-map-sanitize.test.ts`)
