@@ -5,6 +5,7 @@ import { Chart, PlanetBase, ZodiacKo, AspectType } from './types'
 import { normalize360, shortestAngle } from './utils'
 import { findNatalAspects } from './aspects'
 import { getSwisseph } from './ephe'
+import { getPlanetList, extractSwissLongitude } from './shared'
 import { resolveBirthInstant } from '@/lib/datetime/resolveBirthInstant'
 
 export type MoonPhase =
@@ -311,10 +312,85 @@ export function getMoonPhaseName(phase: MoonPhase): string {
 }
 
 /**
- * Void of Course Moon 확인
- * 달이 현재 사인에서 마지막 주요 애스펙트 이후 상태인지 확인
+ * VoC 애스펙트 대상 — 태양~명왕성 9행성. 노드(True/Mean Node)·ASC/MC·lot 같은 *점* 은 대상이
+ * 아니다(전통·현대 정의 모두 행성만 — 재감사 AC-4: True Node 대립을 애스펙트로 세어 2026년
+ * 보이드 정오의 약 1/5 을 놓쳤다).
  */
-export function checkVoidOfCourse(chart: Chart): VoidOfCourseInfo {
+export const VOC_ASPECT_TARGETS = [
+  'Sun',
+  'Mercury',
+  'Venus',
+  'Mars',
+  'Jupiter',
+  'Saturn',
+  'Uranus',
+  'Neptune',
+  'Pluto',
+] as const
+
+/** 천체 황경 함수 — jdUT 순간의 황경(°). 모르면 null. */
+export type BodyLongitudeAt = (planet: string, jdUT: number) => number | null
+
+/** VoC 판정 애스펙트 — 프톨레마이오스 5각(0/60/90/120/180), 달 − 행성 분리각 기준 8개 지점. */
+const VOC_ASPECT_POINTS: { angle: number; type: AspectType }[] = [
+  { angle: 0, type: 'conjunction' },
+  { angle: 60, type: 'sextile' },
+  { angle: 90, type: 'square' },
+  { angle: 120, type: 'trine' },
+  { angle: 180, type: 'opposition' },
+  { angle: 240, type: 'trine' },
+  { angle: 270, type: 'square' },
+  { angle: 300, type: 'sextile' },
+]
+
+/** 달의 최저 황경 속도(°/일) — 실측 최저 ~11.75 에 여유. 진입 탐색 상한을 정한다. */
+const MOON_MIN_SPEED = 11.5
+/** 진입 이분법 정밀도(일) — 1초. */
+const INGRESS_TOLERANCE_DAYS = 1 / 86_400
+/** 천체력 위치가 차트의 달과 이 각도(°) 넘게 다르면 차트가 그 순간의 것이 아니다 → 선형. */
+const EPHEMERIS_AGREEMENT_DEG = 0.05
+const JD_TO_MS = (jd: number) => (jd - 2440587.5) * 86_400_000
+
+/** calculateTransitChart 와 같은 호출(swe_calc_ut, SEFLG_SPEED) — 값이 차트와 비트 단위로 같다. */
+function ephemerisLongitudeAt(): BodyLongitudeAt | null {
+  try {
+    const sw = getSwisseph()
+    if (typeof sw.swe_calc_ut !== 'function') return null
+    const ids = getPlanetList()
+    return (planet, jdUT) => {
+      const id = ids[planet]
+      if (typeof id !== 'number') return null
+      const res = sw.swe_calc_ut(jdUT, id, sw.SEFLG_SPEED) as unknown
+      if (!res || typeof res !== 'object') return null
+      if (typeof (res as { error?: unknown }).error === 'string') return null
+      try {
+        return extractSwissLongitude(res)
+      } catch {
+        return null
+      }
+    }
+  } catch {
+    return null
+  }
+}
+
+/**
+ * Void of Course Moon 확인 (교리: docs/doctrine/astrology.md — 보이드 오브 코스).
+ *
+ * 차트 순간부터 달이 다음 사인에 *실제로* 들어갈 때까지, 달이 태양~명왕성(VOC_ASPECT_TARGETS)
+ * 과 프톨레마이오스 애스펙트를 하나도 완성하지 않으면 보이드다.
+ *  - 위치는 움직인다: 차트에 meta.jdUT 가 있고 천체력이 그 순간의 달을 재현하면 Swiss Ephemeris
+ *    로 그 시각의 실제 위치를 읽는다(예전엔 행성을 정오 위치에 얼려 진입 직후 완성되는 애스펙트를
+ *    진입 전으로 셌다). 천체력이 없거나 차트가 그 순간의 것이 아니면 차트 속도로 선형 이동.
+ *  - 진입 = 달 황경이 다음 30° 배수에 닿는 순간, 이분법(1초). 예전엔 정오 속도로 선형 외삽해
+ *    최대 44분 어긋났다(재감사 AC-4).
+ *  - 애스펙트 완성 판정: 달은 어느 행성보다 빠르다(달 ≥ 11.7°/일, 행성 ≤ 2.8°/일) — 달 − 행성
+ *    분리각이 차트 순간~진입 사이에서 단조 증가하므로, 두 끝의 실제 분리각 사이에 애스펙트 각이
+ *    있으면 그 사이에 정확히 한 번 완성된다.
+ *
+ * @param longitudeAt 위치 함수 주입(테스트). 생략하면 Swiss Ephemeris.
+ */
+export function checkVoidOfCourse(chart: Chart, longitudeAt?: BodyLongitudeAt): VoidOfCourseInfo {
   const moon = chart.planets.find((p) => p.name === 'Moon')
   if (!moon) {
     return {
@@ -327,43 +403,77 @@ export function checkVoidOfCourse(chart: Chart): VoidOfCourseInfo {
   }
 
   const moonSign = moon.sign
-  const moonLongitude = moon.longitude
-  const moonSpeed = moon.speed || 13 // 평균 달 속도 (도/일)
+  const signStart = Math.floor(moon.longitude / 30) * 30
+  const t0 = chart.meta?.jdUT
+  const base = t0 ?? 0
 
-  // 달이 현재 사인을 벗어날 때까지 남은 도수 계산
-  const signStart = Math.floor(moonLongitude / 30) * 30
-  const signEnd = signStart + 30
-  const degreesToSignEnd = signEnd - moonLongitude
-  const hoursToSignChange = (degreesToSignEnd / moonSpeed) * 24
+  // 차트 속도로 선형 이동 — 천체력을 못 쓸 때의 폴백(달 속도가 없으면 평균 13°/일).
+  const moonSpeed = typeof moon.speed === 'number' && moon.speed > 0 ? moon.speed : 13
+  const linear: BodyLongitudeAt = (planet, jd) => {
+    const p = planet === 'Moon' ? moon : chart.planets.find((x) => x.name === planet)
+    if (!p) return null
+    const speed = planet === 'Moon' ? moonSpeed : (p.speed ?? 0)
+    return normalize360(p.longitude + speed * (jd - base))
+  }
 
-  // 다른 행성들과의 주요 애스펙트 확인
-  const majorAspects: { angle: number; type: AspectType }[] = [
-    { angle: 0, type: 'conjunction' },
-    { angle: 60, type: 'sextile' },
-    { angle: 90, type: 'square' },
-    { angle: 120, type: 'trine' },
-    { angle: 180, type: 'opposition' },
-  ]
-  const otherPlanets = chart.planets.filter((p) => p.name !== 'Moon')
+  /** 달이 사인 시작에서 나아간 각도(°) — 진입 순간 30. */
+  const progressOf = (at: BodyLongitudeAt, jd: number): number => {
+    const lon = at('Moon', jd)
+    return lon === null ? Number.NaN : normalize360(lon - signStart)
+  }
+  /** 다음 사인 진입 jd — 이분법. 달이 상한 안에 30° 를 못 채우면(위치 함수 이상) null. */
+  const ingressOf = (at: BodyLongitudeAt, minSpeed: number): number | null => {
+    const d0 = moon.longitude - signStart
+    let lo = base
+    let hi = base + (30 - d0) / minSpeed + 1 / 24
+    const pHi = progressOf(at, hi)
+    if (!(pHi >= 30 && pHi < 180)) return null
+    while (hi - lo > INGRESS_TOLERANCE_DAYS) {
+      const mid = (lo + hi) / 2
+      if (progressOf(at, mid) >= 30) hi = mid
+      else lo = mid
+    }
+    return hi
+  }
 
-  let closestFutureAspect: { planet: string; degrees: number; type: AspectType } | null = null
+  let at: BodyLongitudeAt = linear
+  let ingressJd: number | null = null
+  if (t0 !== undefined) {
+    const eph = longitudeAt ?? ephemerisLongitudeAt()
+    const moonNow = eph ? eph('Moon', t0) : null
+    if (
+      eph &&
+      moonNow !== null &&
+      shortestAngle(moonNow, moon.longitude) <= EPHEMERIS_AGREEMENT_DEG
+    ) {
+      ingressJd = ingressOf(eph, MOON_MIN_SPEED)
+      if (ingressJd !== null) at = eph
+    }
+  }
+  if (ingressJd === null) {
+    at = linear
+    ingressJd = base + (30 - (moon.longitude - signStart)) / moonSpeed
+  }
+  const hoursToSignChange = (ingressJd - base) * 24
 
-  for (const planet of otherPlanets) {
-    for (const { angle: aspectAngle, type: aspectType } of majorAspects) {
-      // 달이 이동하면서 이 행성과 애스펙트를 형성할 도수 계산
-      const targetLon = normalize360(planet.longitude + aspectAngle)
-      const targetLon2 = normalize360(planet.longitude - aspectAngle)
-
-      for (const target of [targetLon, targetLon2]) {
-        // 같은 사인 내에서 애스펙트가 형성되는지 확인
-        if (target >= signStart && target < signEnd && target > moonLongitude) {
-          const degreesToAspect = target - moonLongitude
-          if (!closestFutureAspect || degreesToAspect < closestFutureAspect.degrees) {
-            closestFutureAspect = {
-              planet: planet.name,
-              degrees: degreesToAspect,
-              type: aspectType,
-            }
+  // 차트 순간~진입 사이에 완성되는 첫 애스펙트(달 − 행성 분리각이 애스펙트 각을 지나는 것).
+  const moonEnd = at('Moon', ingressJd)
+  let closestFutureAspect: { planet: string; fraction: number; type: AspectType } | null = null
+  for (const name of VOC_ASPECT_TARGETS) {
+    const planet = chart.planets.find((p) => p.name === name)
+    if (!planet || moonEnd === null) continue
+    const planetEnd = at(name, ingressJd)
+    if (planetEnd === null) continue
+    const rel0 = normalize360(moon.longitude - planet.longitude)
+    // 진입까지 분리각이 늘어난 양 — 달이 더 빨라 늘 양수(< 180).
+    const advance = normalize360(moonEnd - planetEnd - rel0 + 540) - 180
+    if (!(advance > 0)) continue
+    for (const { angle, type } of VOC_ASPECT_POINTS) {
+      for (const x of [angle, angle + 360]) {
+        if (x > rel0 && x < rel0 + advance) {
+          const fraction = (x - rel0) / advance
+          if (!closestFutureAspect || fraction < closestFutureAspect.fraction) {
+            closestFutureAspect = { planet: name, fraction, type }
           }
         }
       }
@@ -378,6 +488,10 @@ export function checkVoidOfCourse(chart: Chart): VoidOfCourseInfo {
     lastAspect: closestFutureAspect
       ? { planet: closestFutureAspect.planet, type: closestFutureAspect.type }
       : null,
+    // 보이드의 끝 = 실제 사인 진입 순간(차트 순간을 알 때만).
+    ...(isVoid && t0 !== undefined
+      ? { voidEndTime: new Date(Math.round(JD_TO_MS(ingressJd))) }
+      : {}),
     hoursRemaining: Number(hoursToSignChange.toFixed(2)),
     description: isVoid
       ? `달이 ${moonSign}에서 공전 중 (Void of Course) - ${Math.round(hoursToSignChange)}시간 후 사인 변경`

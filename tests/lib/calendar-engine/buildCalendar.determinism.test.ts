@@ -36,7 +36,7 @@ const RANGE = {
 }
 
 /** 셀 수치 골격 digest — 의도적 산식/룰 변경 때만 갱신(아래 갱신 이력). */
-const GOLDEN = '3af5b4f2b4b2abcf3d8529d738f4e763bffd428c'
+const GOLDEN = '17223a843c3ca6f1855e9e8dd21d28e283c5e48d'
 
 /** 대운 기준 시각 — 빌드 범위 첫날(2026-06-01 KST 정오). */
 const NOW = new Date('2026-06-01T03:00:00Z')
@@ -143,6 +143,10 @@ describeRealEphemeris('buildCalendar 결정론 골든 (real ephemeris)', () => {
     // 돈다 — 월운 신호는 절기월 창(망종 2026-06-06 전 06-01~05 는 癸巳월, 예전엔 12운성·
     // 지장간·용신·조후·공망이 한 달 내내 甲午), 용신·통근 대운은 1/1 이 아니라 만 나이 생일.
     // 6월 첫 닷새의 월 신호와 점수 골격이 이동. 의도된 갱신.
+    // 2026-11 갱신(v15, 재감사 G7 AC-4·STAR-1·STAR-2): VoC 는 태양~명왕성(노드 제외)·움직이는
+    // 위치·실제 달 진입으로(노드 대립 때문에 빠지던 보이드 날이 −1 신호를 얻고 택일
+    // moonNotVoid 가 바뀜), 항성 표는 카탈로그 값(Castor·Pollux·Alioth·분 오기 정정), 트랜짓
+    // ASC·MC 는 항성 합 대상 아님. 신호 구성이 바뀌어 점수 골격 이동. 의도된 갱신.
     expect(digest(await build())).toBe(GOLDEN)
   }, 60_000)
 

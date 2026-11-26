@@ -6,7 +6,9 @@ import { getCachedTransitChart } from '../ephe-cache'
 /**
  * 항성 (Fixed Stars) 컨정션 추출기.
  *
- * 매일 트랜짓 행성과 50+ 주요 항성의 컨정션 검사 (orb ≤ 1°).
+ * 매일 현지 정오 트랜짓 행성(transitChart.planets)과 주요 항성 47개의 컨정션 검사 (orb ≤ 1°).
+ * 트랜짓 ASC·MC 는 대상이 아니다 — ASC 는 매일 모든 항성을 지나고 정오 MC 는 태양을 따라갈
+ * 뿐이라, 정오 샘플 순간의 위치는 그 날의 사실이 아니다(재감사 STAR-2).
  * 항성은 본질적으로 길흉 강도 큰 신호 — Algol(흉) / Regulus(길) / Spica(길) 등.
  *
  * 활성 윈도우: 컨정션 당일 (orb 1° 이내).
@@ -56,7 +58,9 @@ const astroFixedStarExtractor: SignalExtractor = {
         continue
       }
 
-      const conjunctions = findFixedStarConjunctions(transitChart, year, ORB_DEG)
+      const conjunctions = findFixedStarConjunctions(transitChart, year, ORB_DEG, {
+        includeAngles: false,
+      })
       const dayIso = date.toISOString().slice(0, 10)
 
       for (const conj of conjunctions) {

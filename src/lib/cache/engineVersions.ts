@@ -92,7 +92,13 @@ export { SAJU_ENGINE_VERSION }
 //     용신·통근 대운 = 만 나이 생일 경계, periodPillars)도 같은 v14 로 월 셀을 무효화한다.
 //     재감사 G5 — 서머타임 전환일의 시진 창(경계 = 절대 instant), 시진 신호의 실제 시계 창
 //     (detail.clockStart·clockEnd·centerUtc), 고위도 여름 자정 직후 행성시 — 도 이 v14 에 실린다.
-export const CALENDAR_ENGINE_VERSION = 'v14'
+// v15: 점성 신호를 실제 하늘로(재감사 G7). VoC 는 태양~명왕성(노드 제외)·움직이는 위치·실제 달
+//     진입(이분법)으로(보이드 날 약 1/5 이 새로 잡히고 끝 시각이 최대 44분 바뀜 — 택일 점수의
+//     moonNotVoid 도), 항성 표를 카탈로그 RA·Dec 에서 다시 만듦(Castor·Pollux 30°, Alioth 10°,
+//     분→소수 오기 0.07–0.4° 정정 — 항성 합 날짜 이동), 트랜짓 ASC·MC 는 항성 합 대상 아님.
+//     월 셀·포커스 1일 셀에 구워지므로 bump. 운명상담사 컨텍스트(본명 항성 블록)도
+//     ENGINE_VERSION_TAG 로 함께 무효화.
+export const CALENDAR_ENGINE_VERSION = 'v15'
 
 /**
  * 본명 차트 Redis 캐시(CacheKeys.natalChart, `natal:v${N}:…`).

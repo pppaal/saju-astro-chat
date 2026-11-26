@@ -283,6 +283,96 @@ describe('checkVoidOfCourse', () => {
 })
 
 // ============================================================
+// checkVoidOfCourse — targets, moving positions, ingress (re-audit AC-4)
+// ============================================================
+
+describe('checkVoidOfCourse — planets only, moving positions, real ingress (AC-4)', () => {
+  const JD0 = 2461347.625 // 2026-11-03T03:00:00Z
+  const body = (name: string, longitude: number, speed: number) =>
+    ({
+      name,
+      longitude,
+      speed,
+      sign: 'Leo',
+      degree: Math.floor(longitude % 30),
+      minute: 0,
+      formatted: '',
+      house: 1,
+      retrograde: speed < 0,
+    }) as Chart['planets'][number]
+  const chartOf = (planets: Chart['planets']): Chart => ({
+    planets,
+    houses: [],
+    ascendant: body('Ascendant', 0, 0),
+    mc: body('MC', 270, 0),
+    meta: {
+      jdUT: JD0,
+      isoUTC: '2026-11-03T12:00:00',
+      timeZone: 'Asia/Seoul',
+      latitude: 37.5665,
+      longitude: 126.978,
+      houseSystem: 'Placidus',
+    },
+  })
+  /** Linear positions from a table — stands in for the ephemeris. */
+  const linearAt =
+    (table: Record<string, { lon: number; speed: number }>) => (planet: string, jd: number) =>
+      table[planet]
+        ? (((table[planet].lon + table[planet].speed * (jd - JD0)) % 360) + 360) % 360
+        : null
+
+  it('a True Node opposition ahead is not an aspect: the Moon stays void', () => {
+    // Seoul 2026-11-03 noon: Moon 146.91° Leo, True Node 326.94° (opposition 0.02° ahead).
+    const table = {
+      Moon: { lon: 146.914, speed: 13.588 },
+      Sun: { lon: 220.6, speed: 1.0 },
+      Jupiter: { lon: 144.58, speed: 0.05 },
+      'True Node': { lon: 326.935, speed: -0.05 },
+    }
+    const chart = chartOf(Object.entries(table).map(([n, v]) => body(n, v.lon, v.speed)))
+    const result = checkVoidOfCourse(chart, linearAt(table))
+    expect(result.isVoid).toBe(true)
+    expect(result.lastAspect).toBeNull()
+  })
+
+  it('an aspect that perfects only after the ingress (the planet moves away) does not count', () => {
+    // Moon 29° Aries (12°/day), Mercury 329.9°: Moon − Mercury = 59.1°. With Mercury frozen
+    // the sextile (60°) perfects at Moon 29.9°, inside Aries. With Mercury moving 2°/day
+    // the separation only reaches 59.93° by the ingress (1/12 day later).
+    const frozen = chartOf([body('Moon', 29.0, 12), body('Mercury', 329.9, 0)])
+    expect(checkVoidOfCourse({ ...frozen, meta: undefined }).isVoid).toBe(false)
+    const moving = checkVoidOfCourse(
+      frozen,
+      linearAt({ Moon: { lon: 29.0, speed: 12 }, Mercury: { lon: 329.9, speed: 2 } })
+    )
+    expect(moving.isVoid).toBe(true)
+  })
+
+  it('the end is the bisected ingress, not noon + degrees ÷ noon speed', () => {
+    // The chart's instantaneous speed (13°/day) would extrapolate the ingress to +0.2308 day;
+    // the position function reaches 150° at +0.25 day, and that is the end.
+    const moonAt = (planet: string, jd: number) => {
+      if (planet !== 'Moon') return null
+      const dt = jd - JD0
+      return 147 + 12 * dt // 3° to go → ingress at +0.25 day
+    }
+    const chart = chartOf([body('Moon', 147, 13)])
+    const result = checkVoidOfCourse(chart, moonAt)
+    expect(result.isVoid).toBe(true)
+    const expected = (JD0 + 0.25 - 2440587.5) * 86_400_000
+    expect(Math.abs(result.voidEndTime!.getTime() - expected)).toBeLessThan(2_000)
+    expect(result.hoursRemaining).toBe(6)
+  })
+
+  it('falls back to chart speeds when the position function does not reproduce the chart', () => {
+    const chart = chartOf([body('Moon', 147, 12)])
+    const wrong = () => 10 // not the chart's Moon
+    const result = checkVoidOfCourse(chart, wrong)
+    expect(result.hoursRemaining).toBe(6) // 3° ÷ 12°/day
+  })
+})
+
+// ============================================================
 // Test Suite: calculatePlanetaryHour
 // ============================================================
 

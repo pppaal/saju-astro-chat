@@ -19,9 +19,12 @@ import { noonPlanetPosition, rangeDays, shiftDay } from './shared/noonRuns'
  *  - 달 위상 분류 (삭/상현/보름/하현) — 위상 변경 시점에 monthly 신호 (kind: moon-phase)
  *  - 그날 VoC 여부 — daily 신호 (kind: void-of-course; timing-void-of-course-moon 룰이 사용)
  *
+ * VoC 판정(checkVoidOfCourse, 재감사 AC-4): 애스펙트 대상은 태양~명왕성(노드 제외), 위치는
+ * 정오에 얼리지 않고 진입까지 실제로 움직이며, 끝은 달의 실제 사인 진입(이분법, 1초).
+ *
  * 주의(알려진 한계):
- *  - 위상/VoC 는 정오 1회 샘플 — 시간 단위 정밀도 아님. VoC 의
- *    hoursRemaining 도 정오 스냅샷 기준 근사치.
+ *  - 위상/VoC 는 정오 1회 샘플 — 그 날 정오에 보이드인지를 본다(보이드가 정오 뒤에
+ *    시작하는 날은 신호가 없다).
  *  - PHASE_POLARITY 키가 snake_case getMoonPhase 결과(new_moon 등)와
  *    불일치(camelCase)라 달 위상 polarity 는 현재 항상 0(사실상 비활성).
  *    의도적으로 점수에 반영하려면 키를 맞춰야 함 — 지금은 VoC 만 실효.
@@ -31,8 +34,8 @@ import { noonPlanetPosition, rangeDays, shiftDay } from './shared/noonRuns'
  *    23:59:59.999. 범위 가장자리의 위상은 천체력으로 범위 밖까지 이어 진짜 시작·끝을
  *    찾는다(엔진 감사 X1). 예전엔 범위 안에서 위상이 *바뀔 때만* 신호를 내, 1일 빌드엔
  *    위상 신호가 없고 월 빌드도 마지막 위상을 빠뜨렸다.
- *  - VoC: 그 날 00:00(명목) ~ 달의 다음 sign 진입. 진입 = 정오 차트의 *실제 instant* +
- *    hoursRemaining 을 현지 벽시계로 옮긴 떠 있는 키(YYYY-MM-DDTHH:mm:ssZ = 현지 시각).
+ *  - VoC: 그 날 00:00(명목) ~ 달의 다음 sign 진입. 진입 = checkVoidOfCourse 의 voidEndTime
+ *    (실제 진입 instant)을 현지 벽시계로 옮긴 떠 있는 키(YYYY-MM-DDTHH:mm:ssZ = 현지 시각).
  *    예전엔 hoursRemaining 을 `${day}T00:00Z` 에 더해, 정오에서 잰 시간을 자정에 붙인 셈이라
  *    모든 타임존에서 12시간 일찍 끝났다(엔진 감사 ASTRO-11 — 다음 날 아침에 걸치는 VoC 를
  *    놓쳤다). 진입이 다음 날로 넘어가면 그 날 셀에도 걸린다 — 그래서 범위 앞 며칠의 VoC 도
@@ -57,7 +60,10 @@ function floatingLocalIso(instantMs: number, timeZone: string): string {
   return `${String(c.year).padStart(4, '0')}-${p2(c.month)}-${p2(c.day)}T${p2(c.hour)}:${p2(c.minute)}:${p2(c.second)}.000Z`
 }
 
-/** checkVoidOfCourse 와 같은 hoursRemaining — 정오 달 위치·속도만으로(차트 없이). */
+/**
+ * 정오 달 위치·속도로 외삽한 진입까지 시간 — 범위 앞 VoC 를 차트 없이 거르는 사전 필터일 뿐
+ * (선형 외삽 오차 ≤ ~45분 < VOC_LOOKBACK_MARGIN_MS). 실제 끝은 checkVoidOfCourse 가 정한다.
+ */
 function noonHoursToSignChange(dayIso: string, timeZone: string): number | null {
   const moon = noonPlanetPosition('Moon', dayIso, timeZone)
   if (!moon) return null
@@ -141,11 +147,9 @@ const astroMoonPhaseVocExtractor: SignalExtractor = {
       const voc = checkVoidOfCourse(chart)
       if (!voc.isVoid) return null
       const hoursRemaining = voc.hoursRemaining ?? 12
-      const ingressIso = chart.meta
-        ? floatingLocalIso(
-            (chart.meta.jdUT - 2440587.5) * 86_400_000 + hoursRemaining * 3600_000,
-            timeZone
-          )
+      // 끝 = 달의 실제 사인 진입(checkVoidOfCourse 의 이분법 instant)을 현지 벽시계 키로.
+      const ingressIso = voc.voidEndTime
+        ? floatingLocalIso(voc.voidEndTime.getTime(), timeZone)
         : new Date(Date.parse(`${dayIso}T12:00:00.000Z`) + hoursRemaining * 3600_000).toISOString()
       return {
         id: `astro.voc.${dayIso}`,
