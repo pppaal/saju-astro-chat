@@ -34,7 +34,11 @@ import { toMonth } from '@/lib/calendar-view'
 import { toGanji } from '@/lib/calendar-view/shared'
 import { assembleUserSummary } from './assembleUser'
 import { reconcileCellOneLine } from '@/lib/calendar-view/toDay'
-import { withReasonDetail, withTransitPositions } from '@/lib/calendar-view/astroDetail'
+import {
+  natalPointLongitudes,
+  withReasonDetail,
+  withTransitPositions,
+} from '@/lib/calendar-view/astroDetail'
 import { ladderDaeunRange } from '@/lib/calendar-engine/derivers/evidenceLadder'
 import { assembleDayTier } from './assembleDayTier'
 import {
@@ -277,7 +281,6 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
   //    근거에는 십신 한자와 점성 부모의 구조(트랜짓 행성·어스펙트·본명 접점·orb)를 붙인다 —
   //    교차가 싣고 온 엔진의 부모 참조(crossParents)에서, 월 셀·오늘 모두 같은 값(astroDetail.ts).
   const monthCellByDs = new Map(monthCells.map((c) => [c.datetime.slice(5, 10), c]))
-  const todayDs = targetDayIso.slice(5, 10)
   for (const cell of month.calendar) {
     const src = monthCellByDs.get(cell.ds)
     const r = pickDayReason(src, cell.mark)
@@ -328,41 +331,24 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
   // 일 티어 수확 — 맨 위에서 미리 발진해 둔 분리 어셈블러 결과.
   const day = await dayP
 
-  // ── 근거의 트랜짓 위치(별자리·도) — 큰 날(최대 6: 수렴 keyDays 5 + 최고의 날) 만 그날 현지
-  //    정오 트랜짓 차트(트랜짓 추출기와 같은 Redis 키)에서. 오늘은 일 티어(assembleDayTier)가
-  //    이미 같은 차트로 구한 위치를 그대로 쓴다 — 같은 근거·같은 위치, 조회 1회.
-  const positionDs = [
-    ...new Set([...monthKeyDays.map((k) => k.date), month.bestDay?.date].filter(Boolean)),
-  ].slice(0, 6) as string[]
-  const positionCells = positionDs
-    .map((ds) => month.calendar.find((c) => c.ds === ds))
-    .filter((c): c is NonNullable<typeof c> => !!c?.reason?.astroDetail && c.ds !== todayDs)
+  // ── 근거의 트랜짓 위치(별자리·도)와 그 순간의 orb — 근거가 있는 모든 날(큰 날 · 고른 날 읽기 ·
+  //    오늘)을 그날 현지 정오 트랜짓 차트(트랜짓 추출기와 같은 Redis 키)에서. orb 는 같은 차트에서
+  //    본명 황경(이미 지은 본명 차트)과 다시 잰다 — 도와 orb 가 같은 순간을 말한다(QA-3). 오늘은
+  //    일 티어(assembleDayTier)와 같은 키 · 같은 식이라 같은 값이다. 뷰 층 계산 — 월 cells 캐시는
+  //    그대로(버전 변경 없음).
+  const positionCells = month.calendar.filter((c) => !!c.reason?.astroDetail)
   if (positionCells.length > 0) {
     const placed = await withTransitPositions(
       positionCells.map((c) => ({
         dateIso: `${monthPrefix}-${c.ds.slice(3, 5)}`,
         detail: c.reason!.astroDetail!,
       })),
-      natal.astro.location
+      natal.astro.location,
+      natalPointLongitudes(natal.astro)
     )
     positionCells.forEach((c, i) => {
       c.reason = { ...c.reason!, astroDetail: placed[i] }
     })
-  }
-  const todayCell = month.calendar.find((c) => c.ds === todayDs)
-  const dayDetail = day.reason?.astroDetail
-  if (todayCell?.reason?.astroDetail && dayDetail?.transitSign) {
-    const sameParent = dayDetail.transitPlanet === todayCell.reason.astroDetail.transitPlanet
-    if (sameParent) {
-      todayCell.reason = {
-        ...todayCell.reason,
-        astroDetail: {
-          ...todayCell.reason.astroDetail,
-          transitSign: dayDetail.transitSign,
-          transitDeg: dayDetail.transitDeg,
-        },
-      }
-    }
   }
 
   // (포커스 셀 중립화는 없다 — 계획 B1 #2. 예전엔 일 verdict 가 tense/bright 인

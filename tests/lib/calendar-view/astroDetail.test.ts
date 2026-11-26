@@ -19,6 +19,8 @@ const {
   reasonAstroDetail,
   withReasonDetail,
   withTransitPositions,
+  natalPointLongitudes,
+  orbAtInstant,
   astroDetailSub,
   planetGlyph,
 } = astroDetailModule
@@ -232,6 +234,20 @@ describe('reasonAstroDetail — 엔진의 부모 참조(crossParents)를 그대�
 })
 
 describe('withTransitPositions — 그날 현지 정오 트랜짓 차트(트랜짓 추출기와 같은 키)', () => {
+  // 본명 — 샘플(1997-03-21 14:30 서울)의 태양 0°38′ 양자리 · 달 28°17′ 사자자리.
+  const NATAL = natalPointLongitudes({
+    chart: {
+      planets: [
+        { name: 'Sun', longitude: 0.633 },
+        { name: 'Moon', longitude: 148.283 },
+      ],
+      ascendant: { name: 'Ascendant', longitude: 130.03 },
+      mc: { name: 'MC', longitude: 40.5 },
+    },
+    extraPoints: [{ name: 'Chiron', longitude: 190.1 }],
+  })
+  const loc = { latitude: 37.5665, longitude: 126.978, timeZone: 'Asia/Seoul' }
+
   beforeEach(() => {
     chartFor.mockReset()
   })
@@ -243,13 +259,13 @@ describe('withTransitPositions — 그날 현지 정오 트랜짓 차트(트랜�
         { name: 'Mars', sign: 'Leo', degree: 27, minute: 3, longitude: 147.05 },
       ],
     })
-    const loc = { latitude: 37.5665, longitude: 126.978, timeZone: 'Asia/Seoul' }
     const [sun, mars] = await withTransitPositions(
       [
         { dateIso: '2026-11-19', detail: { transitPlanet: 'Sun', sourceKind: 'transit' } },
         { dateIso: '2026-11-19', detail: { transitPlanet: 'Mars', sourceKind: 'transit' } },
       ],
-      loc
+      loc,
+      NATAL
     )
     expect(chartFor).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -262,15 +278,95 @@ describe('withTransitPositions — 그날 현지 정오 트랜짓 차트(트랜�
     expect(mars).toMatchObject({ transitSign: 'Leo', transitDeg: 27 })
   })
 
-  it('차트 실패는 위치 없이 둔다(fail-soft)', async () => {
-    chartFor.mockRejectedValue(new Error('ephe down'))
-    const detail = { transitPlanet: 'Sun', sourceKind: 'transit' }
-    const [out] = await withTransitPositions([{ dateIso: '2026-11-19', detail }], {
-      latitude: 0,
-      longitude: 0,
-      timeZone: 'UTC',
+  it('orb 는 같은 정오 차트에서 다시 잰다 — 구간 최소 orb(정확일 값)를 덮어쓴다(QA-3)', async () => {
+    // 11-29 정오 화성 1°14′ 처녀자리 — 본명 달 28°17′ 사자자리와 2.9° 떨어져 있다.
+    chartFor.mockResolvedValue({
+      planets: [{ name: 'Mars', sign: 'Virgo', degree: 1, minute: 14, longitude: 151.233 }],
     })
-    expect(out).toEqual(detail)
+    const detail = {
+      transitPlanet: 'Mars',
+      sourceKind: 'transit',
+      aspect: 'conjunction',
+      natalPoint: 'Moon',
+      orb: 0.1, // 엔진 참조 — 그 구간의 가장 좁은 orb(다른 날)
+    }
+    const [out] = await withTransitPositions([{ dateIso: '2026-11-29', detail }], loc, NATAL)
+    expect(out).toEqual({
+      transitPlanet: 'Mars',
+      sourceKind: 'transit',
+      aspect: 'conjunction',
+      natalPoint: 'Moon',
+      transitSign: 'Virgo',
+      transitDeg: 1,
+      orb: 2.95,
+    })
+    expect(astroDetailSub(out, 'en')).toBe('Transit · 1° Virgo · conjunct natal Moon · orb 3.0°')
+    expect(detail.orb).toBe(0.1) // 입력은 그대로
+  })
+
+  it('어스펙트 각을 뺀다 — 트라인(120°) 태양 1°50′ 사수자리 vs 본명 태양 0°38′ 양자리 = 1.2°', async () => {
+    chartFor.mockResolvedValue({
+      planets: [{ name: 'Sun', sign: 'Sagittarius', degree: 1, minute: 50, longitude: 241.833 }],
+    })
+    const [out] = await withTransitPositions(
+      [
+        {
+          dateIso: '2026-11-24',
+          detail: {
+            transitPlanet: 'Sun',
+            sourceKind: 'transit',
+            aspect: 'trine',
+            natalPoint: 'Sun',
+            orb: 0.2,
+          },
+        },
+      ],
+      loc,
+      NATAL
+    )
+    expect(out.orb).toBe(1.2)
+  })
+
+  it('위치를 못 구하면(차트 실패 · 행성 없음) 위치도 orb 도 없이 — 어긋난 숫자를 남기지 않는다', async () => {
+    const detail = {
+      transitPlanet: 'Sun',
+      sourceKind: 'transit',
+      aspect: 'square',
+      natalPoint: 'Moon',
+      orb: 0.4,
+    }
+    const { orb: _o, ...bare } = detail
+    void _o
+    chartFor.mockRejectedValue(new Error('ephe down'))
+    const [failed] = await withTransitPositions([{ dateIso: '2026-11-19', detail }], loc, NATAL)
+    expect(failed).toEqual(bare)
+    chartFor.mockResolvedValue({ planets: [] })
+    const [missing] = await withTransitPositions([{ dateIso: '2026-11-19', detail }], loc, NATAL)
+    expect(missing).toEqual(bare)
+  })
+
+  it('트랜짓 부모가 아니면(어스펙트 없음) 위치만, orb 없음', async () => {
+    chartFor.mockResolvedValue({
+      planets: [{ name: 'Venus', sign: 'Libra', degree: 3, minute: 0, longitude: 183 }],
+    })
+    const [out] = await withTransitPositions(
+      [{ dateIso: '2026-11-19', detail: { transitPlanet: 'Venus', sourceKind: 'dignity' } }],
+      loc,
+      NATAL
+    )
+    expect(out).toEqual({
+      transitPlanet: 'Venus',
+      sourceKind: 'dignity',
+      transitSign: 'Libra',
+      transitDeg: 3,
+    })
+  })
+
+  it('natalPointLongitudes — 트랜짓 추출기와 같은 점 집합(행성 · 추가 점 · ASC · MC)', () => {
+    expect([...NATAL.keys()]).toEqual(['Sun', 'Moon', 'Chiron', 'Ascendant', 'MC'])
+    expect(orbAtInstant({ aspect: 'opposition', natalPoint: 'Chiron' }, 12.1, NATAL)).toBe(2)
+    expect(orbAtInstant({ aspect: 'square', natalPoint: 'Vertex' }, 0, NATAL)).toBeUndefined()
+    expect(orbAtInstant({ natalPoint: 'Moon' }, 0, NATAL)).toBeUndefined()
   })
 })
 

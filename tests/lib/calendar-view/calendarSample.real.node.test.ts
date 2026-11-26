@@ -22,13 +22,17 @@ const { buildCalendar } = await import('@/lib/calendar-engine')
 const { assembleTiers } = await import('@/app/calendar/assembleTiers')
 const { buildMonthViewModel } = await import('@/lib/calendar-view/monthViewModel')
 const { buildDayViewModel } = await import('@/lib/calendar-view/dayViewModel')
-const { withTransitPositions } = await import('@/lib/calendar-view/astroDetail')
+const { withTransitPositions, natalPointLongitudes } =
+  await import('@/lib/calendar-view/astroDetail')
+const { assembleDayTier } = await import('@/app/calendar/assembleDayTier')
 
 type Assembled = Awaited<ReturnType<typeof assembleTiers>>
 type MonthCells = Awaited<ReturnType<typeof buildCalendar>>
 
 /** 마지막 assembleSample 의 월 셀(evidence 없음 — 프로덕션 월 캐시 모양). */
 let sampleMonthCells: MonthCells = []
+/** 마지막 assembleSample 의 본명 컨텍스트. */
+let sampleNatal: Awaited<ReturnType<typeof buildNatalContext>>
 
 const NOW_ISO = '2026-11-19T03:00:00.000Z'
 const BIRTH = {
@@ -45,6 +49,7 @@ const HANGUL = /[ㄱ-ㆎ가-힣]/
 async function assembleSample(lang: 'ko' | 'en'): Promise<Assembled> {
   const now = new Date(NOW_ISO)
   const natal = await buildNatalContext({ ...BIRTH, now })
+  sampleNatal = natal
   // 프로덕션(loadTierData)과 같은 모집단 — 그 달 cells 만(evidence 없음) + 오늘 셀(evidence).
   const cells = await buildCalendar(
     natal,
@@ -135,7 +140,7 @@ describeRealEphemeris('v9.2 캘린더 샘플(1997-03-21 14:30 여 · 서울, 202
       aspect: 'square',
       natalPoint: 'Moon',
     })
-    // evidence 없는 월 셀에서도 orb 는 엔진이 적은 값(그 트랜짓 구간의 가장 좁은 orb).
+    // evidence 없는 월 셀에서도 orb — 그날 정오 차트에서 잰 값(QA-3, 아래 테스트).
     expect(r.astroDetail?.orb).toEqual(expect.any(Number))
     expect(r.astroDetail!.orb!).toBeLessThan(10)
   })
@@ -175,11 +180,97 @@ describeRealEphemeris('v9.2 캘린더 샘플(1997-03-21 14:30 여 · 서울, 202
   it('11-19 현지 정오 트랜짓 태양은 전갈자리(트랜짓 추출기와 같은 차트 키)', async () => {
     const [sun] = await withTransitPositions(
       [{ dateIso: '2026-11-19', detail: { transitPlanet: 'Sun', sourceKind: 'transit' } }],
-      SEOUL
+      SEOUL,
+      natalPointLongitudes(sampleNatal.astro)
     )
     expect(sun.transitSign).toBe('Scorpio')
     expect(sun.transitDeg).toBe(26)
   })
+
+  // ── QA-3 / VC-1: STARS 보조 줄의 orb 는 보여 주는 트랜짓 도와 같은 순간(그날 현지 정오) ──
+  // 본명 달 28°17′ 사자자리 · 본명 태양 0°38′ 양자리(FIX9b E1). 예전엔 구간 최소 orb 를 붙여
+  // 19일 · 29일 모두 'orb 0.1°', 24일 'orb 0.2°' 였다.
+  const near = (v: number | undefined, want: number) => {
+    expect(v).toEqual(expect.any(Number))
+    expect(Math.abs((v as number) - want)).toBeLessThanOrEqual(0.1)
+  }
+  const cellDetail = (d: number) => en.month.calendar.find((c) => c.d === d)!.reason!.astroDetail!
+
+  it('11-19 화성 ☌ 본명 달 — 정오 27° 사자자리 · orb ≈1.1°(월 셀 = 일 티어)', () => {
+    const det = cellDetail(19)
+    expect(det).toMatchObject({
+      transitPlanet: 'Mars',
+      aspect: 'conjunction',
+      natalPoint: 'Moon',
+      transitSign: 'Leo',
+      transitDeg: 27,
+    })
+    near(det.orb, 1.1)
+    expect(en.day.reason?.astroDetail).toEqual(det)
+    const dayVm = buildDayViewModel(en.day, { lang: 'en', sex: '여', isToday: true })
+    expect(dayVm.why?.stars?.sub).toBe('Transit · 27° Leo · conjunct natal Moon · orb 1.1°')
+  })
+
+  it('11-29 화성 ☌ 본명 달 — 정오 1° 처녀자리 · orb ≈2.9°(큰 날 행 문구까지)', () => {
+    const det = cellDetail(29)
+    expect(det).toMatchObject({
+      transitPlanet: 'Mars',
+      aspect: 'conjunction',
+      natalPoint: 'Moon',
+      transitSign: 'Virgo',
+      transitDeg: 1,
+    })
+    near(det.orb, 2.9)
+    const vm = buildMonthViewModel(en.month, en.day, { lang: 'en', nowIso: NOW_ISO })
+    const row = vm.keyDays.find((k) => k.ds === '11-29')
+    expect(JSON.stringify(row)).toContain('Transit · 1° Virgo · conjunct natal Moon · orb 2.9°')
+  })
+
+  it('11-24 태양 △ 본명 태양 — 정오 1° 사수자리 · orb ≈1.2°', () => {
+    const det = cellDetail(24)
+    expect(det).toMatchObject({
+      transitPlanet: 'Sun',
+      aspect: 'trine',
+      natalPoint: 'Sun',
+      transitSign: 'Sagittarius',
+      transitDeg: 1,
+    })
+    near(det.orb, 1.2)
+  })
+
+  it('같은 트랜짓 구간(화성 ☌ 달)이라도 날마다 orb 가 다르다 — 구간 최소값 한 개가 아니다', () => {
+    const marsMoon = en.month.calendar
+      .filter((c) => c.d >= 18 && c.reason?.astroDetail?.transitPlanet === 'Mars')
+      .filter((c) => c.reason!.astroDetail!.natalPoint === 'Moon')
+      .map((c) => c.reason!.astroDetail!.orb)
+    expect(marsMoon.length).toBeGreaterThanOrEqual(4)
+    expect(new Set(marsMoon).size).toBe(marsMoon.length)
+    // 근거가 있는 모든 날(고른 날 읽기 포함) — 트랜짓 부모면 위치와 orb 를 함께 싣는다.
+    for (const c of en.month.calendar) {
+      const det = c.reason?.astroDetail
+      if (!det?.aspect) continue
+      expect(det.transitSign, c.ds).toEqual(expect.any(String))
+      expect(det.orb, c.ds).toEqual(expect.any(Number))
+    }
+  })
+
+  it('/api/calendar/day 경로(assembleDayTier 단독) — 11-29 근거의 orb 도 같은 순간 ≈2.9°', async () => {
+    const [focus] = await buildCalendar(
+      sampleNatal,
+      { start: '2026-11-29T00:00:00.000Z', end: '2026-11-29T23:59:59.999Z', granularity: 'day' },
+      { includeEvidence: true }
+    )
+    const day = await assembleDayTier({
+      natal: sampleNatal,
+      cells: sampleMonthCells,
+      lang: 'en',
+      targetDayIso: '2026-11-29',
+      focusDayCell: focus,
+      now: new Date(NOW_ISO),
+    })
+    expect(day.reason?.astroDetail).toEqual(cellDetail(29))
+    near(day.reason?.astroDetail?.orb, 2.9)
+  }, 120_000)
 
   it('사다리 — 이번 달은 오늘의 4칸, 10년 = 대운 2021–2030, 올해 칸에 첫 토성 회귀, EN 칸에 한글 없음', () => {
     const vm = buildMonthViewModel(en.month, en.day, { lang: 'en', nowIso: NOW_ISO })
