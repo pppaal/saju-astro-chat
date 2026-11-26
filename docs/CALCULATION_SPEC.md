@@ -444,9 +444,29 @@ The engine is range-invariant: a 1-day build and a month build give the same
 signals for a day, so the Day tier reads its crosses from the month cell. Runs
 that touch the build range's edge (transits, dignities, moon phases, house
 overlays, angle contacts, node conjunctions) are extended past it on the
-ephemeris to their real first and last noon, and the natal almuten snapshot is
-windowed per civil year, so signal and cross ids and windows depend only on the
-person and the date.
+ephemeris to their real first and last noon. Natal-static signals (the natal
+almuten snapshot, the 격국 name, the matched pattern and the 일주 archetype) are
+windowed per civil year (`extractors/shared/natalWindows.ts`: window
+`YYYY-01-01..YYYY-12-31`, id ends with the year), and the 격국 status signal is
+emitted per civil date the range touches, so signal and cross ids and windows
+depend only on the person and the date (1-day = month = year builds,
+`tests/lib/calendar-engine/rangeInvariance.test.ts`).
+
+**Natal-static signals are not scored.** `STATIC_NATAL_KINDS`
+(`signalTaxonomy.ts`: `saju-pattern`, `geokguk-status`, `natal-dignity`) are fixed
+facts of the birth chart, not events of the day. `derivedScore`, patterns,
+`topReasons`/`cautions`, the evidence ladder, convergence (big days), salience
+and month-summary themes skip them; they stay in `cell.signals` for the narrative
+and detail cards. The natal almuten snapshot (`astro-dignity`,
+`evidence.detail.dignity === 'natal-almuten'`) has kind `natal-dignity`; it is
+also never a cross parent (docs/운흐름.md §0.5.8).
+
+**Month summary themes** (`deriveMonthSummary`) come from
+`monthThemeCandidates` / `selectMonthThemes` (`derivers/monthSummary.ts`): the
+month's monthly-layer favorable signals, grouped by signal id and ranked by their
+summed impact (polarity × weight over the month's days); ties keep first-seen
+order. A KO/EN pair is used only when both labels are usable, so both locales
+name the same theme.
 
 **Day reason** ("왜 이런 날", `pickDayReasonSignal` in
 `src/app/calendar/crossPair.ts`, shared by the Monthly readout and the Daily hero):
@@ -490,8 +510,17 @@ depends on them is dropped:
 - Calendar view: `toUser`, the lifetime flow and the hour crossings skip the
   rising sign, MC and house personalisation.
 - Report: the integrated report hides houses, ASC/MC, lots, almuten and aspect
-  houses, and the identity axis gets no almuten winner.
+  houses, and the identity axis gets no almuten winner. Life-domain cross rows get
+  house counts = `null` (no row built from fallback houses).
+- Compatibility (synastry, composite, chart modal, invite report): one helper,
+  `placeMask` (`src/lib/astrology/foundation/placeMask.ts`), decides what to drop
+  for a person whose time _or_ city is unknown — their ASC/MC aspects, overlays
+  into their houses, their ASC sign and the composite ASC/MC. Aspects from their
+  planets to the other, known person's angles stay.
 - Counselor context: no house / ASC / MC claims and no profection line.
+
+The 12운성 synonyms (임관 = 건록, 왕지 = 제왕, 양생 = 장생) normalise through one
+SSOT, `canonicalTwelveStage` (`src/lib/saju/shinsal.ts`).
 
 **Sect is not fabricated either (OD-5).** With an unknown birth time the sect is
 `null` everywhere (`astroFacts.hellenistic.sect`, `NatalContext.astro.sect`, the
