@@ -136,7 +136,9 @@ describe('LifeFlow — 샘플(en)', () => {
     expect(container.textContent).toContain(`Saju × stars · ${total} traits`)
     // 더 보기 — 리포트의 축 수(결핍 축 포함), 리포트 링크.
     const more = container.querySelector('[data-life-section="traits"] a')!
-    expect(more.textContent).toContain(`${vm.traits!.reportTraitCount} traits in your full report`)
+    expect(more.textContent).toContain(
+      `All ${vm.traits!.reportTraitCount} traits, incl. karma & growth, in your full report`
+    )
     expect(more.getAttribute('href')).toBe(vm.traits!.fullReportHref)
   })
 

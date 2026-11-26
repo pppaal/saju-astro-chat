@@ -37,10 +37,16 @@ export default function LifeStrengths({
     <section className={s.sec} data-life-section="strengths" aria-labelledby="life-strengths">
       <div className={s.lr}>
         <span>
-          {pick(LIFE_COPY.strengthsLabel, locale)} · <span className={s.hj}>十神</span>
+          {pick(LIFE_COPY.strengthsLabel, locale)} ·{' '}
+          <span className={s.hj} lang="ko">
+            十神
+          </span>
         </span>
         <span>
-          {pick(LIFE_COPY.dayMaster, locale)} <span className={s.hj}>{strengths.dayMaster}</span>
+          {pick(LIFE_COPY.dayMaster, locale)}{' '}
+          <span className={s.hj} lang="ko">
+            {strengths.dayMaster}
+          </span>
         </span>
       </div>
       <h2 id="life-strengths" className={s.h2}>
@@ -68,7 +74,12 @@ export default function LifeStrengths({
             >
               <div className={s.nm}>
                 {r.label}
-                {r.hanja ? <span className={s.nmHj}>{r.hanja}</span> : null}
+                {/* 묶음 한자(官)는 바로 앞 이름(Status)과 같은 말 — 스크린 리더엔 한 번만. */}
+                {r.hanja ? (
+                  <span className={s.nmHj} lang="ko" aria-hidden="true">
+                    {r.hanja}
+                  </span>
+                ) : null}
                 {top ? <span className={s.st}>{pick(LIFE_COPY.strongest, locale)}</span> : null}
               </div>
               <span className={s.tiles}>

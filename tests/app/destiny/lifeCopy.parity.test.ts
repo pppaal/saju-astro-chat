@@ -11,7 +11,10 @@ import { LIFE_COPY } from '@/app/destiny/lifeCopy'
 const KO_FORBIDDEN = ['Pricing', 'Get started', "Today's", 'Members', 'Total Visitors']
 const HANGUL = /[가-힣]/
 const EMOJI = /\p{Extended_Pictographic}/u
-const placeholders = (s: string) => (s.match(/\{\w+\}/g) ?? []).sort()
+// ko 전용 조사 자리('{irae}' — 받침에 맞춘 '이래'/'래', koParticle)는 en 에 없다.
+const KO_ONLY = new Set(['{irae}'])
+const placeholders = (s: string) =>
+  (s.match(/\{\w+\}/g) ?? []).filter((p) => !KO_ONLY.has(p)).sort()
 
 const pairs = Object.entries(LIFE_COPY) as Array<[string, { ko: string; en: string }]>
 

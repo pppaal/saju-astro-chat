@@ -12,7 +12,7 @@ import type { Bi } from '@/lib/i18n/bi'
 export const LIFE_COPY = {
   // ─── 상단 바 · 폴리오 ───
   title: { ko: '인생 흐름', en: 'Life flow' },
-  whoLabel: { ko: '내 출생 정보', en: 'Your birth info' },
+  whoLabel: { ko: '내 출생 정보', en: 'Your birth details' },
 
   // ─── 히어로 ───
   byline: { ko: '까치가 물어 왔어요', en: 'Kkachi brought this' },
@@ -20,7 +20,8 @@ export const LIFE_COPY = {
   lifeShape: { ko: '인생 모양', en: 'Your life shape' },
   lifetimeRead: { ko: '인생 읽기 · {range}', en: 'Lifetime read · {range}' },
   now: { ko: '지금', en: 'Now' },
-  nextLifeTurn: { ko: '다음 인생 마디', en: 'Next life turn' },
+  /** 한 사건 한 이름 — 다이얼 · 시간표 표지와 같은 '인생 전환'(FIX9b E7 · QA-5). */
+  nextLifeTurn: { ko: '다음 인생 전환', en: 'Next life turn' },
   age: { ko: '{n}세', en: 'Age {n}' },
   dayMasterAria: { ko: '일간 {stem}', en: 'Day master {stem}' },
 
@@ -84,15 +85,17 @@ export const LIFE_COPY = {
 
   // ─── 공유 ───
   shareEyebrow: { ko: '내 타입 공유하기', en: 'Share your type' },
-  shareTitleA: { ko: '친구는', en: 'What’s your' },
-  shareTitleB: { ko: '무슨 타입일까?', en: 'friend’s type?' },
+  /** 두 줄 — ko 는 '친구는 무슨 / 타입일까?'(390 의 좁은 글 칸에서도 두 줄로 끝나게, QA VL-9). */
+  shareTitleA: { ko: '친구는 무슨', en: 'What’s your' },
+  shareTitleB: { ko: '타입일까?', en: 'friend’s type?' },
   shareImage: { ko: '이미지 카드로 공유', en: 'Share as image card' },
   shareLink: { ko: '링크 공유', en: 'Share link' },
   shareCopied: { ko: '링크를 복사했어요', en: 'Link copied' },
-  shareMaking: { ko: '만드는 중…', en: 'Making…' },
+  shareMaking: { ko: '만드는 중…', en: 'Creating…' },
   shareSheetTitle: { ko: 'destinypal 사주 타입', en: 'My Saju type · destinypal' },
+  /** '{irae}' = 타입 이름의 받침에 맞춘 '이래' / '래'(koParticle.irae — QA COPY-4). */
   shareSheetText: {
-    ko: '내 사주 타입은 ‘{type}’래. 너는 뭐야?',
+    ko: '내 사주 타입은 ‘{type}’{irae}. 너는 뭐야?',
     en: 'My Saju type is “{type}”. What’s yours?',
   },
   shareImageHint: {

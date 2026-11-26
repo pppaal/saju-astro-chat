@@ -20,7 +20,10 @@ export default function LifeDecades({ decades, locale }: { decades: LifeDecadesV
     <section className={s.sec} data-life-section="decades" aria-labelledby="life-decades">
       <div className={s.lr}>
         <span>
-          {pick(LIFE_COPY.decadesLabel, locale)} · <span className={s.hj}>大運</span>
+          {pick(LIFE_COPY.decadesLabel, locale)} ·{' '}
+          <span className={s.hj} lang="ko" aria-hidden="true">
+            大運
+          </span>
         </span>
         {decades.rangeLabel ? <span>{decades.rangeLabel}</span> : null}
       </div>
@@ -45,7 +48,10 @@ export default function LifeDecades({ decades, locale }: { decades: LifeDecadesV
               <i className={`${s.rail} ${s[`rail_${r.element}`]}`} />
             </span>
             <span className={s.yr}>{r.years}</span>
-            <span className={s.gz}>{r.gz}</span>
+            {/* 간지는 바로 옆 읽는 법(r.roman)과 같은 말 — 스크린 리더엔 한 번만. */}
+            <span className={s.gz} lang="ko" aria-hidden="true">
+              {r.gz}
+            </span>
             <div className={s.tcell}>
               {r.state === 'now' ? (
                 <span className={s.here}>{pick(LIFE_COPY.youAreHere, locale)}</span>

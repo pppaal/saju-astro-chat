@@ -12,7 +12,9 @@ import s from '../LifeFlow.module.css'
 export default function LifeReading({ reading, locale }: { reading: LifeReadingVM; locale: Lang }) {
   return (
     <section className={`${s.sec} ${s.read}`} data-life-section="reading">
-      <div className={s.lr}>
+      {/* 출처 줄은 이 화면에서 '계산했다'를 말하는 유일한 자리 — 말줄임으로 자르지 않고, 좁으면
+          오른쪽 칸을 다음 줄로 내린다(.lrWrap, QA VL-4). */}
+      <div className={`${s.lr} ${s.lrWrap}`}>
         <span>{pick(LIFE_COPY.readingLabel, locale)}</span>
         <span>{pick(LIFE_COPY.readingNote, locale)}</span>
       </div>

@@ -5,7 +5,7 @@
  *
  * ── 단일 권위(다시 계산하지 않는다) ──
  *  · 인생 모양 · 서사 머리/본문 · 정점 = lifetime.lifePattern(lifePattern.ts — 곡선 파이프라인).
- *  · 다음 인생 마디 = lifetime.nextLifeTurn(생애 마디 중 올해 다음 첫 항목 — 대운 경계 아님).
+ *  · 다음 인생 전환 = lifetime.nextLifeTurn(생애 마디 중 올해 다음 첫 항목 — 대운 경계 아님).
  *  · 겹침 = lifetime.decadeCross(정직성 게이트 통과분만). 없으면 빈 상태(오너 결정 13).
  *  · 축별 교차 · 집계 = lifetime.crossCheck(리포트 buildCrossRows · tallyCrossRows 그대로).
  *  · 강점 = lifetime.sibsinRadar(엔진 categoryCount · 원국 글자).
@@ -34,6 +34,7 @@ import type { PlanetGlyph } from '@/components/v9/Glyph'
 import { KO_TO_SAJU_ELEMENT } from '@/lib/saju/elementBridge'
 import { getBranchElement, getStemElement } from '@/lib/saju/stemBranchUtils'
 import { sibsinArea, sibsinAreaEn } from '@/lib/calendar-engine/derivers/plainLanguage'
+import { lifePatternLede } from '@/lib/calendar-engine/derivers/lifePattern'
 import { eulReul, eunNeun } from '@/lib/i18n/koParticle'
 import { pick, type Bi } from '@/lib/i18n/bi'
 import { planetGlyph, planetLabel, signLabel } from './astroDetail'
@@ -63,7 +64,7 @@ export interface LifeHeroVM {
   h1: { lead: string; last: string }
   /** 인생 읽기 범위 — 출생 해 ~ +84. */
   range: { from: number; to: number; label: string }
-  /** 리드 = 유형 태그('Blooms late, lasts long.'). */
+  /** 리드 = 유형의 홀로 서는 한 줄('Blooms late, lasts long.' / '늦게 피어 오래가요.'). */
   lede: string
   now: { age: number; year: number; note: string }
   /** 다음 인생 마디 — 없으면 null. */
@@ -116,7 +117,7 @@ export interface LifeTraitsVM {
   fullReportHref: string
   /** 전체 리포트의 축 수(결핍 축 포함). */
   reportTraitCount: number
-  /** '18 traits in your full report'. */
+  /** 'All 18 traits, incl. karma & growth, in your full report'. */
   moreLabel: string
   /** 출생시각 미상 + 출생일 안에 달이 별자리를 바꿀 때의 안내(리포트와 같은 말). 아니면 null. */
   caveat: string | null
@@ -258,10 +259,27 @@ const COPY = {
     en: `Saju × stars · ${n} traits`,
     ko: `사주 × 별자리 · ${n}가지`,
   }),
-  traitMore: (n: number): Bi => ({
-    en: `${n} traits in your full report`,
-    ko: `전체 리포트의 ${n}가지 축`,
-  }),
+  /**
+   * 더 보기 링크 — 집계('16 traits')보다 큰 리포트 수(18)가 무엇을 더 담는지 말한다(QA-6). 차이는
+   * 집계에서 빠지는 결핍 축(karmaAxis — 공망 카르마 · 북교점 성장)뿐이다.
+   */
+  traitMore: (n: number, tallied: number): Bi => {
+    const extra = n - tallied
+    if (extra >= 2)
+      return {
+        en: `All ${n} traits, incl. karma & growth, in your full report`,
+        ko: `카르마·성장까지 ${n}가지 특성은 전체 리포트에서`,
+      }
+    if (extra === 1)
+      return {
+        en: `All ${n} traits, incl. karma, in your full report`,
+        ko: `카르마까지 ${n}가지 특성은 전체 리포트에서`,
+      }
+    return {
+      en: `All ${n} traits in your full report`,
+      ko: `${n}가지 특성 모두 전체 리포트에서`,
+    }
+  },
   dayMaster: (h: string): Bi => ({ en: `Day master ${h}`, ko: `일간 ${h}` }),
   stageNote: (name: string, nameEn: string): Bi => ({
     en: `Living your ${nameEn.toLowerCase()}`,
@@ -331,8 +349,9 @@ const COPY = {
     ko: `행운의 색 · ${ko} ${hanja}`,
   }),
   luckyLabelBare: { en: 'Lucky colors', ko: '행운의 색' },
+  // EN 신살 이름은 G14 정본 하나('Heavenly Benefactor', signalI18n SHINSAL_NAME_EN).
   alliesNote: {
-    en: 'Cheoneul benefactors 天乙 — these signs help at the pivotal moments.',
+    en: 'Heavenly Benefactor 天乙 — these signs help at the pivotal moments.',
     ko: '천을귀인 天乙 — 결정적인 순간에 힘이 되어 주는 띠예요.',
   },
   watchNote: {
@@ -447,7 +466,10 @@ function currentDaewoon(daewoon: DestinyDaewoon[]): DestinyDaewoon | undefined {
 function buildHero(lifetime: DestinyLifetime, lang: Lang): LifeHeroVM {
   const lp = lifetime.lifePattern
   const shape = lp ? (lang === 'ko' ? lp.ko : (lp.en ?? lp.ko)) : ''
+  // 리드는 이름 아래 홀로 서는 문장 — ko 태그는 이름 앞 꾸밈꼴이라 서술형 리드를 쓴다(QA VL-2).
+  // 키를 모르는 옛 페이로드면 태그로 물러선다.
   const tagline = lp ? (lang === 'ko' ? lp.tagline : lp.taglineEn) : undefined
+  const lede = lifePatternLede(lp?.key)
   const nowAge = lifetime.nowAge ?? lifetime.currentYear - lifetime.birthYear
   const from = lifetime.birthYear
   const to = lifetime.birthYear + lifeReadYears(nowAge)
@@ -458,7 +480,7 @@ function buildHero(lifetime: DestinyLifetime, lang: Lang): LifeHeroVM {
     shape,
     h1: splitLastWord(shape),
     range: { from, to, label: `${from}–${to}` },
-    lede: tagline ? (lang === 'en' ? `${tagline}.` : tagline) : '',
+    lede: lede ? pick(lede, lang) : tagline ? (lang === 'en' ? `${tagline}.` : tagline) : '',
     now: {
       age: nowAge,
       year: lifetime.currentYear,
@@ -561,7 +583,7 @@ function buildTraits(lifetime: DestinyLifetime, lang: Lang): LifeTraitsVM | null
     rows,
     fullReportHref: cc.fullReportHref,
     reportTraitCount: cc.reportTraitCount,
-    moreLabel: pick(COPY.traitMore(cc.reportTraitCount), lang),
+    moreLabel: pick(COPY.traitMore(cc.reportTraitCount, cc.tally.total), lang),
     caveat: cc.moonSignMayDiffer ? pick(UI.moonSignMayDiffer, lang) : null,
   }
 }

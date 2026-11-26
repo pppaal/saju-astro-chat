@@ -128,6 +128,12 @@ interface PatternCopy {
   /** 한 줄 태그 — '늦게 피어 오래가는' / 'Blooms late, lasts long'. */
   tagline: string
   taglineEn: string
+  /**
+   * 홀로 서는 한 줄(ko) — Life 히어로 리드처럼 유형 이름 아래 따로 놓일 때. tagline 은 이름 앞에
+   * 붙는 꾸밈꼴('오르내림이 무기인 굴곡형')이라 혼자 두면 끊긴 말이 된다(QA VL-2). en 은
+   * taglineEn + '.' 이 이미 완결된 문장이라 따로 두지 않는다.
+   */
+  ledeKo: string
 }
 
 const PATTERN_KO: Record<LifePatternKey, PatternCopy> = {
@@ -141,6 +147,7 @@ const PATTERN_KO: Record<LifePatternKey, PatternCopy> = {
       'But you’re simply built to land late. You don’t pop off early — yet once you settle in, you don’t waver. Your real worth shows more with age.',
     tagline: '늦게 피어 오래가는',
     taglineEn: 'Blooms late, lasts long',
+    ledeKo: '늦게 피어 오래가요.',
   },
   'early-peak': {
     ko: '초년발복형',
@@ -153,6 +160,7 @@ const PATTERN_KO: Record<LifePatternKey, PatternCopy> = {
       'Later on, you grow steadier by protecting and refining what you grabbed then rather than starting new things.',
     tagline: '일찍부터 두각',
     taglineEn: 'Ahead from the start',
+    ledeKo: '일찍부터 두각을 드러내요.',
   },
   'youth-peak': {
     ko: '청년절정형',
@@ -164,6 +172,7 @@ const PATTERN_KO: Record<LifePatternKey, PatternCopy> = {
       'While others are still warming up, you’ve already grabbed your thing and started running. Ride that momentum well and what you build then carries the rest of your life.',
     tagline: '이십·삼십대가 전성기',
     taglineEn: 'Peaks in your 20s–30s',
+    ledeKo: '이십·삼십대가 전성기예요.',
   },
   'midlife-peak': {
     ko: '중년절정형',
@@ -175,6 +184,7 @@ const PATTERN_KO: Record<LifePatternKey, PatternCopy> = {
       'You’re the type whose early groundwork all pays off at once in midlife. Make your move at that crossing and it truly carries far.',
     tagline: '한가운데가 절정',
     taglineEn: 'Peaks at the middle',
+    ledeKo: '인생 한가운데가 절정이에요.',
   },
   'steady-rise': {
     ko: '점진상승형',
@@ -185,6 +195,7 @@ const PATTERN_KO: Record<LifePatternKey, PatternCopy> = {
     bodyEn: 'It can feel slow, but never once stalling is exactly your strength.',
     tagline: '멈춘 적 없이 오르는',
     taglineEn: 'Never stops climbing',
+    ledeKo: '멈춘 적 없이 올라요.',
   },
   smooth: {
     ko: '순탄형',
@@ -196,6 +207,7 @@ const PATTERN_KO: Record<LifePatternKey, PatternCopy> = {
       'There’s little dramatic reversal — and that’s exactly what lets you keep going far, unshaken.',
     tagline: '큰 파도 없이 멀리',
     taglineEn: 'Calm and far-reaching',
+    ledeKo: '큰 파도 없이 멀리 가요.',
   },
   hard: {
     ko: '인고형',
@@ -207,6 +219,7 @@ const PATTERN_KO: Record<LifePatternKey, PatternCopy> = {
     bodyEn: 'But all that enduring gave you a solidness ordinary troubles can’t shake.',
     tagline: '버틴 만큼 단단한',
     taglineEn: 'Forged by endurance',
+    ledeKo: '버틴 만큼 단단해져요.',
   },
   undulating: {
     ko: '굴곡형',
@@ -218,6 +231,7 @@ const PATTERN_KO: Record<LifePatternKey, PatternCopy> = {
       'The ups and downs are real — but once you learn to read that rhythm, it becomes a weapon others don’t have.',
     tagline: '오르내림이 무기인',
     taglineEn: 'Rides the waves',
+    ledeKo: '오르내림을 무기로 삼아요.',
   },
 }
 
@@ -231,6 +245,18 @@ export function lifePatternTagline(key: string | undefined): { ko: string; en: s
       ? PATTERN_KO[key as LifePatternKey]
       : undefined
   return c ? { ko: c.tagline, en: c.taglineEn } : null
+}
+
+/**
+ * 유형 리드(ko/en) — 이름 아래 홀로 서는 완결된 한 줄. ko 는 서술형('오르내림을 무기로 삼아요.'),
+ * en 은 태그 + 마침표('Rides the waves.'). 미정의 키면 null.
+ */
+export function lifePatternLede(key: string | undefined): { ko: string; en: string } | null {
+  const c =
+    key && Object.prototype.hasOwnProperty.call(PATTERN_KO, key)
+      ? PATTERN_KO[key as LifePatternKey]
+      : undefined
+  return c ? { ko: c.ledeKo, en: `${c.taglineEn}.` } : null
 }
 
 /** 정점 시점을 단정하는 유형 — favor 가 없어도 곡선 마루 시점만이라도 붙여 화면

@@ -7,6 +7,7 @@
 import { describe, it, expect } from 'vitest'
 import {
   deriveLifePattern,
+  lifePatternLede,
   lifePatternTagline,
   type LifePatternKey,
 } from '@/lib/calendar-engine/derivers/lifePattern'
@@ -135,5 +136,27 @@ describe('lifePattern — lead / body / tagline / peak', () => {
     }
     expect(lifePatternTagline('toString')).toBeNull()
     expect(lifePatternTagline('nope')).toBeNull()
+  })
+
+  // QA VL-2 — Life 히어로 리드는 이름 아래 홀로 서는 문장. ko 태그 넷은 이름 앞 꾸밈꼴(-는/-인/-한)이라
+  // 따로 서술형을 둔다. en 은 태그 + 마침표.
+  it('리드(ko 서술형 · en 태그 + 마침표) — 꾸밈꼴로 끝나지 않는다', () => {
+    const expected: Record<LifePatternKey, [string, string]> = {
+      'late-bloomer': ['늦게 피어 오래가요.', 'Blooms late, lasts long.'],
+      'youth-peak': ['이십·삼십대가 전성기예요.', 'Peaks in your 20s–30s.'],
+      'early-peak': ['일찍부터 두각을 드러내요.', 'Ahead from the start.'],
+      'midlife-peak': ['인생 한가운데가 절정이에요.', 'Peaks at the middle.'],
+      'steady-rise': ['멈춘 적 없이 올라요.', 'Never stops climbing.'],
+      smooth: ['큰 파도 없이 멀리 가요.', 'Calm and far-reaching.'],
+      hard: ['버틴 만큼 단단해져요.', 'Forged by endurance.'],
+      undulating: ['오르내림을 무기로 삼아요.', 'Rides the waves.'],
+    }
+    for (const [key, [ko, en]] of Object.entries(expected)) {
+      const lede = lifePatternLede(key)!
+      expect(lede).toEqual({ ko, en })
+      expect(lede.ko).not.toMatch(/[는인한]\.?$/)
+    }
+    expect(lifePatternLede('toString')).toBeNull()
+    expect(lifePatternLede(undefined)).toBeNull()
   })
 })

@@ -288,9 +288,15 @@ describeRealEphemeris('Life 데이터 층 — 샘플 (real ephemeris)', () => {
       sub: 'Day master 壬',
     })
     expect(identity.stars?.sub).toBe('Sun 0°38′ Aries · ASC 10°02′ Leo')
+    // 기호를 그리는 화면용 점(CrossCheckRow 가 점마다 한 줄로 그린다).
+    expect(identity.stars?.points).toEqual([
+      { glyph: 'sun', text: 'Sun 0°38′ Aries' },
+      { glyph: 'asc', text: 'ASC 10°02′ Leo' },
+    ])
     expect(vm.traits!.rows[4].stars?.sub).toBe('Moon 28°17′ Leo')
     expect(vm.traits!.rows[2].phrase).toBe('Unions in your saju, soft aspects in your chart.')
-    expect(vm.traits?.moreLabel).toBe('18 traits in your full report')
+    // QA-6 — 집계는 16, 더 보기는 리포트의 18(결핍 축 둘 — 카르마 · 성장)을 그렇다고 말한다.
+    expect(vm.traits?.moreLabel).toBe('All 18 traits, incl. karma & growth, in your full report')
 
     // 강점
     expect(vm.strengths?.heading).toBe('Your strongest thread is Status.')
@@ -360,6 +366,10 @@ describeRealEphemeris('Life 데이터 층 — 샘플 (real ephemeris)', () => {
       numbers: '4 · 9',
     })
     expect(vm.strategy?.allies?.animals).toBe('Rabbit · Snake')
+    // EN 신살 이름은 G14 정본 하나(QA-5).
+    expect(vm.strategy?.allies?.note).toBe(
+      'Heavenly Benefactor 天乙 — these signs help at the pivotal moments.'
+    )
     expect(vm.strategy?.allies?.tiles).toEqual([
       { ch: '卯', el: 'wood' },
       { ch: '巳', el: 'fire' },
@@ -375,6 +385,9 @@ describeRealEphemeris('Life 데이터 층 — 샘플 (real ephemeris)', () => {
     const { first } = await sampleLife()
     const vm = buildLifetimeViewModel(first, { lang: 'ko' })
     expect(vm.hero.now.note).toBe('청년기를 지나는 중')
+    // 리드는 이름 아래 홀로 서는 서술형(QA VL-2) — 꾸밈꼴 태그('오르내림이 무기인')가 아니다.
+    expect(vm.hero.lede).toBe('오르내림을 무기로 삼아요.')
+    expect(vm.traits?.moreLabel).toBe('카르마·성장까지 18가지 특성은 전체 리포트에서')
     expect(vm.decades.rows.find((r) => r.lifeTurn)?.lifeTurn?.label).toBe('인생 전환')
     expect(vm.decades.caption).toBe('주제는 그 10년의 화제를 말할 뿐, 좋고 나쁨을 말하지 않아요.')
     expect(vm.overlap.empty).toMatch(/^이번 10년엔 겹치는 신호가 없어요\./)

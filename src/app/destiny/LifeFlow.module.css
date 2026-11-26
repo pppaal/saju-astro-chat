@@ -104,12 +104,13 @@
   color: var(--ink);
 }
 
-/* 모서리 줄 — 계산 블록을 연다: 왼쪽 블록 이름, 오른쪽 범위. 오른쪽이 길면 말줄임. */
+/* 모서리 줄 — 계산 블록을 연다: 왼쪽 블록 이름, 오른쪽 범위. 오른쪽이 길면 말줄임. 두 칸 사이는
+   좁은 틈만(디자인 base_v9 .lr 은 틈 없이 양 끝 정렬) — 12px 이면 390 EN 출처 줄이 잘렸다. */
 .lr {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 6px;
   height: 24px;
   border-bottom: 1px solid var(--line);
   font-family: var(--mono);
@@ -135,8 +136,35 @@
   font-size: 11px;
   letter-spacing: 0.04em;
 }
-.ko .lr {
-  letter-spacing: 0.04em;
+/* 출처 줄(읽기) — 자르지 않는다: 좁으면 오른쪽 칸이 다음 줄 오른쪽 끝으로 내려간다. */
+.lrWrap {
+  flex-wrap: wrap;
+  height: auto;
+  min-height: 24px;
+  padding: 3px 0 2px;
+  row-gap: 0;
+}
+.lrWrap > span:last-child {
+  margin-left: auto;
+  overflow: visible;
+}
+/* 한국어 — mono · 대문자 라벨의 라틴 자간(0.08–0.12em)은 한글을 한 자씩 벌려 놓는다. */
+.ko .lr,
+.ko .eyebrow,
+.ko .stamp,
+.ko .l,
+.ko .sth,
+.ko .st,
+.ko .stf,
+.ko .cl,
+.ko .legend,
+.ko .tth,
+.ko .rm,
+.ko .turn,
+.ko .here,
+.ko .lk,
+.ko .k {
+  letter-spacing: 0.02em;
 }
 
 /* ---- 계산 블록 ---- */
@@ -1078,8 +1106,8 @@
   left: 50%;
   top: 50%;
   width: 306px;
-  height: 473px;
-  transform: translate(-50%, -50%) scale(2.5);
+  height: 320px;
+  transform: translate(-50%, -50%) scale(2.8);
 }
 
 /* ---- 상담사 CTA ---- */

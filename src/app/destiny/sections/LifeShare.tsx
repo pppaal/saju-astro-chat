@@ -17,6 +17,7 @@ import { ShareImageModal } from '@/components/share/ShareImageModal'
 import { useShareCardImage } from '@/lib/share/useShareCardImage'
 import { useShareLink } from '@/lib/share/useShareLink'
 import { trackFunnel } from '@/lib/metrics/trackFunnel'
+import { irae } from '@/lib/i18n/koParticle'
 import { fill, pick, type Lang } from '@/components/v9/v9Copy'
 import type { CardPillar, SajuCardData } from '@/lib/card/types'
 import { LIFE_COPY } from '../lifeCopy'
@@ -61,7 +62,10 @@ export default function LifeShare(props: LifeShareProps) {
   const isKo = locale === 'ko'
   const frameRef = useRef<HTMLDivElement>(null)
   const title = pick(LIFE_COPY.shareSheetTitle, locale)
-  const text = fill(pick(LIFE_COPY.shareSheetText, locale), { type: typeName })
+  const text = fill(pick(LIFE_COPY.shareSheetText, locale), {
+    type: typeName,
+    irae: irae(typeName),
+  })
 
   const card = cardData(props)
 
