@@ -145,9 +145,14 @@ test.describe('User Registration and Authentication Flow', () => {
     await page.goto('/', { waitUntil: 'domcontentloaded' })
     await expect(page.locator('body')).toBeVisible()
 
-    // 로그아웃 버튼이 있는지 또는 로그인 링크가 있는지 확인
-    const logoutButton = page.locator('button:has-text("로그아웃"), button:has-text("Logout"), a:has-text("로그아웃")')
-    const loginLink = page.locator('a:has-text("로그인"), a:has-text("Sign in"), button:has-text("로그인")')
+    // 로그아웃 버튼이 있는지 또는 로그인 진입점이 있는지 확인. v9.2 홈 내비의 손님
+    // 진입점은 링크가 아니라 'Sign in' / '로그인' 버튼이다(메뉴 드로어의 로그인 패널을 연다).
+    const logoutButton = page.locator(
+      'button:has-text("로그아웃"), button:has-text("Logout"), button:has-text("Sign out"), a:has-text("로그아웃")'
+    )
+    const loginLink = page.locator(
+      'a:has-text("로그인"), a:has-text("Sign in"), button:has-text("로그인"), button:has-text("Sign in")'
+    )
 
     const hasLogout = (await logoutButton.count()) > 0
     const hasLogin = (await loginLink.count()) > 0
@@ -179,8 +184,7 @@ test.describe('User Registration and Authentication Flow', () => {
 
     // OAuth 기반이므로 비밀번호 관련 UI가 없어야 함
     const bodyText = await page.textContent('body')
-    const hasPasswordUI =
-      bodyText?.includes('비밀번호') || bodyText?.includes('Password')
+    const hasPasswordUI = bodyText?.includes('비밀번호') || bodyText?.includes('Password')
 
     // OAuth 인증에서는 비밀번호 UI가 없어야 함
     expect(hasPasswordUI).toBeFalsy()

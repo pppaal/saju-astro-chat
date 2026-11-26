@@ -119,13 +119,15 @@ test.describe('Main Feature Pages', () => {
   })
 
   test('should load calendar page with calendar elements', async ({ page }) => {
+    // v9.2 운세 달력 — 출생 정보가 없는 손님의 /calendar 는 종이 화면의 안내(BirthGate)를,
+    // 샘플(/calendar/preview)은 월 그리드를 그린다. 해시된 CSS 모듈 클래스 대신 data-* 로 찾는다.
     await page.goto('/calendar', { waitUntil: 'domcontentloaded' })
     await expect(page.locator('body')).toBeVisible()
+    await expect(page.locator('[data-surface="paper"]').first()).toBeAttached()
 
-    // Should have calendar-related elements
-    const calendarElements = page.locator('[class*="calendar"], [class*="month"], [class*="day"]')
-    const count = await calendarElements.count()
-    expect(count).toBeGreaterThan(0)
+    await page.goto('/calendar/preview', { waitUntil: 'domcontentloaded' })
+    const dayCells = page.locator('[data-mark]')
+    expect(await dayCells.count()).toBeGreaterThan(0)
   })
 
   test('should load life-prediction page with content', async ({ page }) => {
@@ -179,7 +181,6 @@ test.describe('Compatibility Pages', () => {
     await expect(page.locator('body')).toBeVisible()
   })
 })
-
 
 test.describe('User Account Pages', () => {
   test('should load profile page', async ({ page }) => {
@@ -293,14 +294,13 @@ test.describe('Static & Info Pages', () => {
     expect(bodyText!.length).toBeGreaterThan(100)
   })
 
-  test('should load contact page with form', async ({ page }) => {
+  test('should load contact page with an email link', async ({ page }) => {
     await page.goto('/contact', { waitUntil: 'domcontentloaded' })
     await expect(page.locator('body')).toBeVisible()
 
-    // Should have contact form or info
-    const formElements = page.locator('form, input, textarea')
-    const count = await formElements.count()
-    expect(count).toBeGreaterThan(0)
+    // 문의 폼은 없다 — 지원 메일 링크(mailto:)가 있다.
+    const mailLinks = page.locator('a[href^="mailto:"]')
+    expect(await mailLinks.count()).toBeGreaterThan(0)
   })
 
   test('should load blog page', async ({ page }) => {

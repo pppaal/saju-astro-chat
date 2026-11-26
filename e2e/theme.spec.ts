@@ -113,8 +113,9 @@ test.describe('Color Contrast', () => {
 })
 
 test.describe('Theme Consistency Across Pages', () => {
-  test('saju page should have dark theme', async ({ page }) => {
-    await page.goto('/saju', { waitUntil: 'domcontentloaded' })
+  // /saju · /dream 은 삭제된 서비스(홈으로 리다이렉트)라 살아 있는 비-v9 화면을 본다.
+  test('compatibility page should have dark theme', async ({ page }) => {
+    await page.goto('/compatibility', { waitUntil: 'domcontentloaded' })
 
     const dataTheme = await page.locator('html').getAttribute('data-theme')
     expect(dataTheme).toBe('dark')
@@ -127,8 +128,8 @@ test.describe('Theme Consistency Across Pages', () => {
     expect(dataTheme).toBe('dark')
   })
 
-  test('destiny-map page should have dark theme', async ({ page }) => {
-    await page.goto('/destiny-map', { waitUntil: 'domcontentloaded' })
+  test('destiny-counselor page should have dark theme', async ({ page }) => {
+    await page.goto('/destiny-counselor', { waitUntil: 'domcontentloaded' })
 
     const dataTheme = await page.locator('html').getAttribute('data-theme')
     expect(dataTheme).toBe('dark')
@@ -146,14 +147,18 @@ test.describe('CSS Variables', () => {
   test('should have CSS custom properties', async ({ page }) => {
     await page.goto('/', { waitUntil: 'domcontentloaded' })
 
-    // CSS 커스텀 속성이 정의되어 있는지 확인
-    const fontValue = await page.evaluate(() => {
-      const styles = window.getComputedStyle(document.documentElement)
-      return styles.getPropertyValue('--font-montserrat')
+    // next/font 변수 — 공용 글꼴(--font-montserrat 등)은 layout.tsx 가 <body> 에,
+    // v9 글꼴(--font-v9-sans/mono/serif)은 V9Root(data-surface="paper")가 단다.
+    const { bodyFont, v9Font } = await page.evaluate(() => {
+      const paper = document.querySelector('[data-surface="paper"]')
+      return {
+        bodyFont: window.getComputedStyle(document.body).getPropertyValue('--font-montserrat'),
+        v9Font: paper ? window.getComputedStyle(paper).getPropertyValue('--font-v9-sans') : '',
+      }
     })
 
-    // 폰트 CSS 변수가 정의되어 있어야 함
-    expect(fontValue.length).toBeGreaterThan(0)
+    expect(bodyFont.trim().length).toBeGreaterThan(0)
+    expect(v9Font.trim().length).toBeGreaterThan(0)
   })
 })
 
@@ -252,7 +257,7 @@ test.describe('Icon Visibility', () => {
 
 test.describe('Form Elements in Dark Mode', () => {
   test('input fields should be visible', async ({ page }) => {
-    await page.goto('/saju', { waitUntil: 'domcontentloaded' })
+    await page.goto('/compatibility', { waitUntil: 'domcontentloaded' })
 
     const inputs = page.locator('input')
     const count = await inputs.count()
@@ -269,7 +274,7 @@ test.describe('Form Elements in Dark Mode', () => {
   })
 
   test('textarea should be visible', async ({ page }) => {
-    await page.goto('/dream', { waitUntil: 'domcontentloaded' })
+    await page.goto('/destiny-counselor', { waitUntil: 'domcontentloaded' })
 
     const textareas = page.locator('textarea')
     const count = await textareas.count()
