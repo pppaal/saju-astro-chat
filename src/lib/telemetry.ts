@@ -40,6 +40,7 @@ export function captureServerError(error: unknown, context?: Record<string, unkn
   // logger.sendToSentry → … → logger.error 무한 상호 재귀로 이벤트 루프가
   // 고정돼 인스턴스 전체가 wedge 된다(cron 라우트가 영영 안 끝나던 CI 실패의
   // 근본 원인). 콘솔 직행이 재귀의 종단점(recursion terminal).
+  // eslint-disable-next-line no-console -- 재귀 종단점: logger 를 부르면 무한 상호 재귀(위 주석)
   console.error('[telemetry] Server error:', JSON.stringify(payload))
 
   // Send to Sentry for real-time alerts (server-side only)
@@ -57,6 +58,7 @@ export function captureException(error: unknown, context?: Record<string, unknow
 
   // captureServerError 와 동일 — logger.error 재진입 금지(무한 상호 재귀).
   // 콘솔 직행이 재귀의 종단점(recursion terminal).
+  // eslint-disable-next-line no-console -- 재귀 종단점: logger 를 부르면 무한 상호 재귀(위 주석)
   console.error(
     '[telemetry] Exception captured:',
     error instanceof Error ? error.message : String(error),

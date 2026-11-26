@@ -159,11 +159,13 @@ const config = [
       'react-hooks/preserve-manual-memoization': 'off',
       'react-hooks/exhaustive-deps': 'error',
       // Code quality
-      'no-console': ['error', { allow: ['warn', 'error'] }],
+      // console 은 @/lib/logger 로 — 예외는 logger 싱크 자체(파일 머리 disable)와 telemetry 재귀
+      // 종단점 · edge proxy CSRF 기록(각 줄의 eslint-disable 주석에 이유).
+      'no-console': 'error',
       'prefer-const': 'error',
       'no-var': 'error',
-      'eqeqeq': ['warn', 'always', { null: 'ignore' }],
-      'curly': ['warn', 'all'],
+      eqeqeq: ['warn', 'always', { null: 'ignore' }],
+      curly: ['warn', 'all'],
       'import/no-anonymous-default-export': 'off', // Allow anonymous exports
       // 시각 파싱 SSOT 가드 — birthTime 을 split(':') 로 직접 파싱하면 'HH:MM PM'
       // 이 12시간 어긋나거나(시주/SR/LR) NaN 으로 떨어져 유효 생시가 걸러진다.
@@ -197,26 +199,6 @@ const config = [
     rules: {
       '@typescript-eslint/no-unused-vars': 'off', // More lenient for lib files
       '@typescript-eslint/no-explicit-any': 'error',
-    },
-  },
-  {
-    // Core engine contract: prevent role drift into ai-report layer
-    files: [
-      'src/lib/destiny-matrix/core/runDestinyCore.ts',
-      'src/lib/destiny-matrix/core/patternEngine.ts',
-      'src/lib/destiny-matrix/core/scenarioEngine.ts',
-      'src/lib/destiny-matrix/core/decisionEngine.ts',
-      'src/lib/destiny-matrix/core/canonical.ts',
-      'src/lib/destiny-matrix/core/types.ts',
-      'src/lib/destiny-matrix/core/index.ts',
-    ],
-    rules: {
-      'no-restricted-imports': [
-        'error',
-        {
-          patterns: ['@/lib/destiny-matrix/ai-report/*'],
-        },
-      ],
     },
   },
   {
@@ -280,15 +262,13 @@ const config = [
     // 과거 리포트·캘린더·궁합이 raw calculateNatalChart 를 직접 불러 매 로드
     // Swiss Ephemeris 풀계산(~500ms)을 반복하던 회귀의 *구조적* 재발 차단.
     // 허용: 래퍼(cached.ts)·엔진(foundation)·배럴(index)·인라인 캐시 라우트
-    // (api/astrology)·테스트·스크립트. destiny-matrix core 는 자체 no-restricted
-    // -imports 를 갖고 있어 ignore(룰 클로버 방지).
+    // (api/astrology)·테스트·스크립트.
     files: ['**/*.{ts,tsx}'],
     ignores: [
       'src/lib/astrology/cached.ts',
       'src/lib/astrology/index.ts',
       'src/lib/astrology/foundation/**',
       'src/app/api/astrology/route.ts',
-      'src/lib/destiny-matrix/core/**',
       'tests/**',
       'scripts/**',
     ],

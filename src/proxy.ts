@@ -209,7 +209,9 @@ export function proxy(request: NextRequest) {
 
     // Validate origin (shared validator — see src/lib/security/csrf.ts)
     if (!validateOrigin(request.headers)) {
-      // Log the failed attempt (will appear in Vercel logs)
+      // Log the failed attempt (will appear in Vercel logs). proxy 는 edge 런타임이라 Node 전용
+      // 싱크(Sentry 등)를 끄는 logger 대신 콘솔로 바로 남긴다.
+      // eslint-disable-next-line no-console -- edge proxy 의 CSRF 거부 기록(Vercel 로그)
       console.warn(`[CSRF] Origin validation failed: ${pathname}`, {
         origin: request.headers.get('origin'),
         referer: request.headers.get('referer'),
