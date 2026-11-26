@@ -339,6 +339,19 @@ const SIBSIN_EDGE: Record<string, BiLabel> = {
   정인: { ko: '남 챙기다 정작 내 걸 놓치는 편이고요.', en: 'You mind others and drop your own.' },
 }
 
+/**
+ * 사주 타입 라벨(결정 2) — 유형 이름은 사주만으로 계산되므로 "사주 × 별자리 유형"이 아니라
+ * "사주 타입"이다. 리포트 카드(ViralTopCard)·공유 PNG(ReportShareCard)·공유 페이지(/r)·링크
+ * 미리보기(OG)가 이 한 표를 쓴다(감사 CR-6). 동·서양이 실제로 함께 가리키는 줄(일치 수·
+ * 엇갈림)은 교차 값이라 각자 자기 라벨을 유지한다.
+ */
+export const SAJU_TYPE_LABEL = {
+  /** 카드 eyebrow — "My Saju type" / "나의 사주 타입". */
+  mine: { ko: '나의 사주 타입', en: 'My Saju type' },
+  /** 공유 페이지·OG eyebrow(대문자 표기) — "SAJU TYPE" / "사주 타입". */
+  plain: { ko: '사주 타입', en: 'SAJU TYPE' },
+} as const
+
 // ── 화면/공유 카드가 함께 쓰는 언어-해석 완료 요약 ──────────────────────────
 export interface ViralSummary {
   emoji: string
@@ -354,6 +367,10 @@ export interface ViralSummary {
   hashtags: string[]
   /** 동·서양이 둘 다 가리키는 주제(최대 3) — 우리만의 신뢰 훅. */
   resonant: string[]
+  /** 동·서양이 같은 결로 보는 교차 행의 *전체* 수(tallyCrossRows.same — 리포트 톤 막대·
+   *  도입부 "align in N" 과 같은 수). resonant 는 3개로 잘리므로 개수를 셀 땐 이 값을 쓴다
+   *  (감사 CR-3: 공유 미리보기가 잘린 길이 3 을 "3가지 일치"로 말했다). */
+  resonantCount: number
   /** 궁합 한 줄(용신 기반) — 이미 lang 해석됨. 없으면 null. */
   partner: string | null
   /** 일주(60갑자) 캐릭터 별명 구절 — 십성×강약(30조합)만으로는 친구끼리 카드
@@ -370,6 +387,8 @@ export function buildViralSummary(input: {
   ascTrait?: string | null
   strengths: string[]
   resonant: string[]
+  /** 교차 행 중 '같은 결' 전체 수(tallyCrossRows(rows).same). 없으면 resonant 길이. */
+  resonantCount?: number
   yongsinElement?: string | null
   /** 일간 강약 — 'strong' | 'weak' | (그 외=중화). 헤드라인 결(subtype)을 가른다. */
   strength?: string | null
@@ -392,6 +411,8 @@ export function buildViralSummary(input: {
     input.dominantSibsin && SIBSIN_LINE[input.dominantSibsin] ? input.dominantSibsin : null
   const stemHan = toStemHan(input.dayMaster)
   // 사주 타입 이름 — crossType 이 단일 소스(사주 카드·Life 와 같은 이름). 없으면 archetype.
+  // 이름·이모지·결(subtype)은 사주 입력(일간·지배 십성·강약)만으로 정해진다 — 점성 입력은
+  // outer/resonant/clash 줄에만 쓰인다. 그래서 모든 표면의 라벨은 "사주 타입"(결정 2, 감사 CR-6).
   const name = (sib ? composeCrossTypeName(input.dayMaster, sib, lang) : null) ?? a.name[lang]
   const baseLine = sib ? SIBSIN_LINE[sib][lang] : a.oneLiner[lang]
   // 둘째 문장(tempo) — 지배 십성이 있으면 일간 오행×강약(15종, 직교축)으로, 없으면
@@ -410,6 +431,10 @@ export function buildViralSummary(input: {
     outer: input.ascTrait ?? null,
     hashtags: input.strengths.filter(Boolean).slice(0, 3),
     resonant: input.resonant.filter(Boolean).slice(0, 3),
+    resonantCount:
+      typeof input.resonantCount === 'number' && Number.isFinite(input.resonantCount)
+        ? Math.max(0, Math.round(input.resonantCount))
+        : input.resonant.filter(Boolean).length,
     partner: input.yongsinElement
       ? (PARTNER_BY_ELEMENT[input.yongsinElement]?.[lang] ?? null)
       : null,

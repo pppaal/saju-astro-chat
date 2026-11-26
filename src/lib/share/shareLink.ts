@@ -164,8 +164,11 @@ export interface ReportShareLinkPayload {
   typeName: string
   /** 소름 한 줄 — 더 읽을거리. */
   oneLiner: string
-  /** 동·서양이 둘 다 가리키는 주제 몇 개(선택) — 신뢰 훅. */
+  /** 동·서양이 둘 다 가리키는 주제 몇 개(선택, 최대 3) — 신뢰 훅. */
   resonant?: string[]
+  /** 동·서양 '같은 결' 교차 행의 전체 수(tallyCrossRows.same, 선택) — 리포트의 "align in N"
+   *  과 같은 수. 미리보기의 일치 개수는 이것만 쓴다; 없으면(옛 링크) 숫자를 말하지 않는다(CR-3). */
+  resonantCount?: number
   /** 일주(60갑자) 별명 구절(선택) — 유형명(30조합)보다 촘촘한 개인화 줄. PII 아님. */
   iljuLine?: string
   /** 동·서양이 엇갈린 지점(선택) — 링크를 연 사람의 "내 것도 궁금"을 만드는 훅. */

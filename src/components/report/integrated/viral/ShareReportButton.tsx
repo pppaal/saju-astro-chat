@@ -75,6 +75,8 @@ export function ShareReportButton({ summary, isKo }: ShareReportButtonProps) {
             ? `${summary.oneLiner} 🔪 ${summary.edgeLine}`
             : summary.oneLiner,
           resonant: summary.resonant?.slice(0, 3),
+          // 리포트 톤 막대·도입부와 같은 '같은 결' 전체 수 — 미리보기 "N가지 일치"의 N(CR-3).
+          resonantCount: summary.resonantCount,
           // 일주 별명 + 엇갈림 — 랜딩/OG 를 카드처럼 차트-고유하게 만드는 훅.
           iljuLine: summary.iljuLine ?? undefined,
           clash: summary.clash ?? undefined,

@@ -19,7 +19,8 @@
  */
 
 import React from 'react'
-import type { ViralSummary } from '@/lib/report/viralArchetype'
+import { SAJU_TYPE_LABEL, type ViralSummary } from '@/lib/report/viralArchetype'
+import { eulReul } from '@/lib/i18n/koParticle'
 import { shareDomain } from '@/lib/share/site'
 
 export const SHARE_CARD_SIZE = 1080
@@ -55,6 +56,7 @@ export const ReportShareCard = React.forwardRef<HTMLDivElement, { data: ReportSh
     const { summary, isKo } = data
     const hashtags = summary.hashtags.filter(Boolean).slice(0, 3)
     const resonant = summary.resonant.filter(Boolean)
+    const joinedResonant = resonant.join(' · ')
 
     return (
       <div
@@ -116,7 +118,8 @@ export const ReportShareCard = React.forwardRef<HTMLDivElement, { data: ReportSh
               wordBreak: 'keep-all',
             }}
           >
-            {isKo ? '나의 사주 × 별자리 유형' : 'My Korean Astrology × Zodiac type'}
+            {/* 유형 이름은 사주만으로 계산된다 → "사주 타입"(결정 2, 감사 CR-6). */}
+            {SAJU_TYPE_LABEL.mine[isKo ? 'ko' : 'en']}
           </div>
 
           {/* emoji */}
@@ -271,9 +274,10 @@ export const ReportShareCard = React.forwardRef<HTMLDivElement, { data: ReportSh
                 wordBreak: 'keep-all',
               }}
             >
+              {/* 목적격 조사는 마지막 음절 받침으로(관계를·강점을) — 화면 카드와 같은 eulReul(CR-8). */}
               {isKo
-                ? `🔮 사주와 별자리가 ${resonant.join(' · ')}을 둘 다 가리켜요`
-                : `🔮 Saju & astrology both point to ${resonant.join(' · ')}`}
+                ? `🔮 사주와 별자리가 ${joinedResonant}${eulReul(joinedResonant)} 둘 다 가리켜요`
+                : `🔮 Saju & astrology both point to ${joinedResonant}`}
             </div>
           )}
 

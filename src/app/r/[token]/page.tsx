@@ -19,6 +19,7 @@ import {
 } from '@/lib/share/shareLink'
 import { buildCurveSvg, curveSvgDataUri } from '@/lib/share/curveSvg'
 import { recordCounter } from '@/lib/metrics'
+import { SAJU_TYPE_LABEL } from '@/lib/report/viralArchetype'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -664,7 +665,8 @@ export default async function SharedReadingPage({ params }: PageProps) {
               color: GOLD_SOFT,
             }}
           >
-            {isKo ? '사주 × 별자리 유형' : 'KOREAN ASTROLOGY × ZODIAC'}
+            {/* 유형 이름은 사주만으로 계산된다 → "사주 타입"(결정 2, 감사 CR-6). */}
+            {SAJU_TYPE_LABEL.plain[isKo ? 'ko' : 'en']}
           </p>
           <p style={{ marginTop: 16, fontSize: 52, lineHeight: 1 }}>{reading.emoji}</p>
           <h1

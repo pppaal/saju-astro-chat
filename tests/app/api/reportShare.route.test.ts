@@ -5,7 +5,7 @@
  * 한 줄, PII 아님) 토큰을 만들어 공개 URL 을 돌려준다.
  *
  * 커버: invalid_json / 검증 실패 / 정상(게스트·유저) / emoji 기본값 /
- *       createShareLink null → share_create_failed.
+ *       resonantCount(전체 일치 수) 저장·검증 / createShareLink null → share_create_failed.
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest'
@@ -153,6 +153,32 @@ describe('POST /api/report/share', () => {
     ctxOverride.userId = 'user_9'
     await POST(makeReq(valid))
     expect(recordCounter).toHaveBeenCalledWith('report.share.created', 1, { source: 'user' })
+  })
+
+  // 감사 CR-3: resonant 는 3개로 잘리므로 미리보기의 "N가지 일치"는 별도 정수 resonantCount
+  // (리포트의 tallyCrossRows.same)를 저장해 쓴다.
+  it('resonantCount(전체 일치 수)를 받아 그대로 저장한다', async () => {
+    const res = await POST(
+      makeReq({ ...valid, resonant: ['재물', '인연', '강점'], resonantCount: 7 })
+    )
+    expect(res.status).toBe(200)
+    const payload = createShareLink.mock.calls[0][0] as any
+    expect(payload.resonant).toHaveLength(3)
+    expect(payload.resonantCount).toBe(7)
+  })
+
+  it('resonantCount 가 없으면(옛 클라이언트) 저장값에도 없다 — 미리보기는 숫자를 말하지 않는다', async () => {
+    await POST(makeReq(valid))
+    const payload = createShareLink.mock.calls[0][0] as any
+    expect(payload.resonantCount).toBeUndefined()
+  })
+
+  it('resonantCount 가 정수가 아니거나 범위를 넘으면 invalid_share_payload', async () => {
+    for (const bad of [2.5, -1, 31, '7']) {
+      const res = await POST(makeReq({ ...valid, resonantCount: bad }))
+      expect(res.status).toBe(422)
+    }
+    expect(createShareLink).not.toHaveBeenCalled()
   })
 
   it('createShareLink null → share_create_failed', async () => {

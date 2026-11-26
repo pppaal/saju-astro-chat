@@ -7,7 +7,7 @@
  */
 import s from './ViralTopCard.module.css'
 import { eulReul } from '@/lib/i18n/koParticle'
-import type { ViralSummary } from '@/lib/report/viralArchetype'
+import { SAJU_TYPE_LABEL, type ViralSummary } from '@/lib/report/viralArchetype'
 
 export interface ViralTopCardProps {
   summary: ViralSummary
@@ -23,9 +23,8 @@ export default function ViralTopCard({ summary, lang, action }: ViralTopCardProp
     <div className={s.card}>
       <div className={s.aura} aria-hidden />
       <div className={s.inner}>
-        <span className={s.eyebrow}>
-          {ko ? '나의 사주 × 별자리 유형' : 'My Korean Astrology × Zodiac type'}
-        </span>
+        {/* 유형 이름은 사주만으로 계산된다 → "사주 타입"(결정 2, 감사 CR-6). */}
+        <span className={s.eyebrow}>{SAJU_TYPE_LABEL.mine[lang]}</span>
 
         <div className={s.medallion}>
           <span className={s.emoji}>{summary.emoji}</span>

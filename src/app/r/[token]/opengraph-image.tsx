@@ -22,6 +22,7 @@ import {
 import { shareDomain } from '@/lib/share/site'
 import { buildCurveSvg, curveSvgDataUri, buildGaugeSvg } from '@/lib/share/curveSvg'
 import { loadOgFonts } from '@/lib/share/ogFont'
+import { SAJU_TYPE_LABEL } from '@/lib/report/viralArchetype'
 
 export const runtime = 'nodejs'
 export const size = { width: 1200, height: 630 }
@@ -541,15 +542,17 @@ export default async function Image({ params }: { params: Promise<{ token: strin
     context = reading.highlights?.length ? clamp(reading.highlights[0], 70) : ''
     cta = isKo ? `내 운흐름도 무료로 · ${displayDomain}` : `See your timing free · ${displayDomain}`
   } else if (reading && isReportShare(reading)) {
-    // resonant(동·서양이 둘 다 가리키는 주제 수)가 2개 이상이면 eyebrow 를 "일치"
-    // 훅으로 — 링크 미리보기에서 typeName 만 있던 밋밋함을 신뢰/호기심 신호로 보강.
-    const rc = reading.resonant?.length ?? 0
+    // 동·서양 '같은 결' 교차 행 수가 2개 이상이면 eyebrow 를 "일치" 훅으로. 수는 리포트의
+    // 톤 막대·도입부("align in N")와 같은 resonantCount(tallyCrossRows.same)만 쓴다 — 3개로
+    // 잘린 resonant 목록 길이를 세면 "3가지"로 줄어 리포트와 어긋났다(감사 CR-3). 수가 없는
+    // 옛 링크는 숫자 없이 사주 타입 라벨로(유형 이름은 사주만으로 계산 — 결정 2, CR-6).
+    const rc = typeof reading.resonantCount === 'number' ? reading.resonantCount : null
     eyebrow =
-      rc >= 2
+      rc !== null && rc >= 2
         ? isKo
           ? `🔮 사주 × 별자리가 ${rc}가지에서 일치`
           : `🔮 Korean astrology × zodiac agree on ${rc} things`
-        : `${reading.emoji}  ${isKo ? '사주 × 별자리 유형' : 'KOREAN ASTROLOGY × ZODIAC'}`
+        : `${reading.emoji}  ${SAJU_TYPE_LABEL.plain[isKo ? 'ko' : 'en']}`
     headline = clamp(reading.typeName, 40)
     // 엇갈림(clash)이 있으면 그게 가장 차트-고유한 클릭 훅 — oneLiner 보다 우선.
     context = reading.clash

@@ -216,6 +216,9 @@ export const UI: Record<string, BiLabel> = {
   synthLabel: { ko: '🧬 종합 정체성', en: '🧬 Synthesis' },
   sajuSide: { ko: '사주가 보는 결', en: 'Your Saju side' },
   astroSide: { ko: '점성이 보는 결', en: 'Your astrology side' },
+  // 체질 경향 카드 — 사주(오행·용신)만으로 만든 카드라 교차 톤 배지·'점성이 보는 결'
+  // 대신 사주 단독 배지를 단다(감사 CR-4, 결정 2 와 같은 원칙).
+  healthBadge: { ko: '오행 균형 · 사주', en: 'Five-element balance · Saju' },
   footBrain: {
     ko: '동·서양 통합 분석 엔진',
     en: 'East–West integrated analysis',

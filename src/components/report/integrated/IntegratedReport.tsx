@@ -612,6 +612,8 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
     resonant: (cross?.rows ?? [])
       .filter((r) => r.tone === 'resonant' && !isKarmaRow(r))
       .map((r) => r.category),
+    // 공유 미리보기의 "N가지 일치"가 톤 막대·도입부와 같은 수를 말하도록 전체 수를 함께(CR-3).
+    resonantCount: tallyCrossRows(cross?.rows ?? []).same,
     yongsinElement: S.yongsin.primary,
     strength: S.strength,
     // 차트 합성 헤드라인 — 명식 전체 주도 십성으로 사람마다 다른 유형/한 줄, 마찰 있으면
@@ -635,6 +637,9 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
     left?: string
     right?: string
     reason: string
+    /** 사주 단독 카드(체질 경향) — 교차 톤 배지·사주/점성 쌍 대신 사실 한 줄. */
+    sajuOnly?: boolean
+    facts?: string
   }
   const themesSection =
     cross && cross.rows.length > 0 ? (
@@ -682,7 +687,9 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
             </div>
           )
         })()}
-        {/* 테마 그룹 — 6개 큰 주제로 묶고, 건강은 오행 기반 카드로 합류. */}
+        {/* 테마 그룹 — 6개 큰 주제로 묶고, 건강은 오행 기반 카드로 합류. 체질 경향 카드는
+            사주(오행·용신)만으로 만든 사주 단독 카드라 교차 톤 배지·'점성이 보는 결' 없이
+            사실 한 줄로 그린다(감사 CR-4) — 보이는 교차 톤 배지는 교차 행에서만 나온다. */}
         {(() => {
           const groups = groupByTheme(cross.rows)
           const health = buildHealthCard(S.fiveElements, S.yongsin?.primary, lang)
@@ -711,9 +718,16 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
                           <span className={s.themeGloss}>{categoryMeaning(r.category, lang)}</span>
                         )}
                       </span>
-                      <span className={s.themeBadge}>{TONE_LABEL[r.tone][lang]}</span>
+                      <span className={s.themeBadge}>
+                        {r.sajuOnly ? t('healthBadge') : TONE_LABEL[r.tone][lang]}
+                      </span>
                     </div>
-                    {r.left && r.right && (
+                    {r.sajuOnly && r.facts && (
+                      <div className={s.themeSideV} style={{ marginTop: 6 }}>
+                        {r.facts}
+                      </div>
+                    )}
+                    {!r.sajuOnly && r.left && r.right && (
                       <div className={s.themeCross}>
                         <div className={s.themeSide}>
                           <div className={s.themeSideK}>{t('sajuSide')}</div>
