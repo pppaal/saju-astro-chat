@@ -124,8 +124,12 @@ preComputed?)` builds the `NatalContext` the engine consumes. It reuses
     and `topReasons` / `cautions` (+ `*En`).
 - Rendered server-side: `src/app/calendar/page.tsx` ->
   `src/app/calendar/assembleTiers.ts` (`assembleTiers`) consumes
-  `CalendarCell[]` and assembles lifetime/decade/year/month/day tiers using
-  the calendar-engine derivers. The day tier is assembled by the shared
+  `CalendarCell[]` and assembles the month and day payloads
+  (`{ topbar, user, month, day }`) using the calendar-engine derivers;
+  `CalendarClient` renders them through `monthViewModel` / `dayViewModel`
+  (`src/components/calendar/v9/`). The lifetime payload for `/destiny`
+  (LifeFlow) is assembled separately by `src/app/calendar/assembleLifetime.ts`.
+  The day payload is assembled by the shared
   `src/app/calendar/assembleDayTier.ts`, which `GET /api/calendar/day` also
   uses to rebuild the day view for a date picked in the month grid — the
   two views can't drift because they run the same code on the same
@@ -212,8 +216,10 @@ astro, lang)` builds the deterministic chart summary text.
 
 ### Calendar
 
-- Server-rendered only via `src/app/calendar/page.tsx` -> `assembleTiers()`.
-  No API route.
+- Server-rendered via `src/app/calendar/page.tsx` -> `assembleTiers()`. The
+  only calendar API is `GET /api/calendar/day` (rebuilds the day view for a
+  date picked in the month grid, sharing `assembleDayTier`) plus the
+  share-link POST routes.
 
 ### Report
 

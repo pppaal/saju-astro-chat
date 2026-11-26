@@ -126,8 +126,10 @@ locale, displayTz?): Promise<{ stable, daily }>` assembles the natal
 
 - Rendered server-side via `src/app/calendar/page.tsx` ->
   `assembleTiers()`. `assembleTiers` consumes `CalendarCell[]` produced by
-  `buildCalendar()` and assembles lifetime/decade/year/month/day tiers using
-  the calendar-engine derivers.
+  `buildCalendar()` and assembles the month and day payloads using the
+  calendar-engine derivers; `CalendarClient` renders them through
+  `monthViewModel` / `dayViewModel`. The `/destiny` lifetime payload
+  (LifeFlow) comes from `assembleLifetime()`.
 
 ### Report
 
