@@ -49,6 +49,14 @@ export const COMPAT_GLOSSARY: GlossaryDef[] = [
       en: 'This is how Saju characters act on each other. Union pulls together and binds; clash collides head-on. Punishment, harm, and break are finer forms of friction and misalignment. They show you which spots bond and which ones get shaken.',
     },
   },
+  // 원진 — PILLAR_REL.원진(content.ts)과 같은 뜻: 이유 모를 서운함·미묘한 반감, 일지에서 가장 또렷.
+  {
+    term: { ko: '원진 (이유 모를 서운함)', en: 'Wonjin (resentment)' },
+    body: {
+      ko: '서로 껄끄럽게 엮이는 지지 짝이에요(子未·丑午·寅酉·卯申·辰亥·巳戌). 크게 다툰 일이 없어도 이유 없이 서운함이 쌓이고 마음이 살짝 엇나가기 쉬운, 미묘한 반감의 신호죠. 일지(배우자 자리)에 걸리면 더 또렷하게 느껴져요.',
+      en: "A pair of branches that grate on each other (Rat–Goat, Ox–Horse, Tiger–Rooster, Rabbit–Monkey, Dragon–Pig, Snake–Dog). No big fight is needed — small hurts still pile up for no clear reason, and your moods drift slightly out of step. It's a signal of subtle resentment, felt most clearly when it lands on the day-branch (the spouse seat).",
+    },
+  },
   {
     term: {
       ko: '배우자성 (짝으로 보이는 결)',

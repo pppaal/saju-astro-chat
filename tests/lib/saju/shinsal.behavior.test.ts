@@ -167,45 +167,30 @@ describe('getShinsalHits (full 4-pillar scan)', () => {
     expect(pick(getShinsalHits(c, { includeTwelveAll: false }))).toEqual(pick(getShinsalHits(c)))
   })
 
-  it('runs the "your" rule overrides without throwing', () => {
-    const hits = getShinsalHits(c, { ruleSet: 'your' })
-    expect(Array.isArray(hits)).toBe(true)
-  })
-
-  it('"your" ruleSet does not pollute a subsequent "standard" call (현침 determinism)', () => {
-    // 예전엔 applyYourOverrides() 가 모듈 전역 HYEONCHIM_BY_STEM 을 복원 없이 변이시켜,
-    // 한 번 your 로 호출하면 이후 표준 호출까지 未 로 오염됐다(요청 순서 의존 = 결정론
-    // 위반). 지금은 룰셋과 무관한 한 규칙(결정 18)이라 순서와 무관하게 표준은 항상 午.
-    // 辛 일간 + 午 시지 차트: 표준에서 현침이 午 에서 발동.
+  it('현침 is deterministic across repeated calls (no module-global override state)', () => {
+    // 예전엔 'your' 룰셋 오버라이드가 모듈 전역 현침 표를 복원 없이 변이시켜 이후 호출까지
+    // 未 로 오염됐다(요청 순서 의존 = 결정론 위반). 룰셋 옵션은 G13 에서 지웠고 현침은 한 규칙
+    // (결정 18). 辛 일간 + 午 시지 차트: 현침이 午 에서 발동, 몇 번을 불러도 같다.
     const hyeonStd = chart('甲', '子', '甲', '子', '辛', '巳', '甲', '午')
-
-    const before = getShinsalHits(hyeonStd, { ruleSet: 'standard' })
-    // your 호출로 과거엔 전역이 오염됐다.
-    getShinsalHits(hyeonStd, { ruleSet: 'your' })
-    const after = getShinsalHits(hyeonStd, { ruleSet: 'standard' })
-
     const hyeonAt = (hits: ReturnType<typeof getShinsalHits>) =>
       hits
         .filter((h) => h.kind === '현침')
         .flatMap((h) => h.target ?? [])
         .sort()
-
-    // 표준 결과가 your 호출 전후로 동일해야 한다(오염 없음).
+    const before = getShinsalHits(hyeonStd)
+    getShinsalHits(hyeonStd, { includeTwelveAll: false })
+    const after = getShinsalHits(hyeonStd)
     expect(hyeonAt(after)).toEqual(hyeonAt(before))
-    // 그리고 표준에서 현침은 午 에서 발동(未 아님).
     expect(hyeonAt(before)).toContain('午')
     expect(hyeonAt(before)).not.toContain('未')
   })
 
-  it('"your" ruleSet 현침 = standard 현침 for 辛 + 未 (owner decision 18, no 未 school)', () => {
-    // 辛 일간 + 未 시지: 예전엔 your 룰에서만 현침이 未 에 발동했다(G12 에서 제거).
+  it('辛 + 未 has no 현침 on 未 (owner decision 18, no 未 school)', () => {
     const c2 = chart('甲', '子', '甲', '子', '辛', '巳', '甲', '未')
-    const your = getShinsalHits(c2, { ruleSet: 'your' })
-    const std = getShinsalHits(c2, { ruleSet: 'standard' })
-    const hyeonYour = your.filter((h) => h.kind === '현침').flatMap((h) => h.target ?? [])
-    const hyeonStd = std.filter((h) => h.kind === '현침').flatMap((h) => h.target ?? [])
-    expect(hyeonYour).toEqual(hyeonStd)
-    expect(hyeonYour).not.toContain('未')
+    const hyeon = getShinsalHits(c2)
+      .filter((h) => h.kind === '현침')
+      .flatMap((h) => h.target ?? [])
+    expect(hyeon).not.toContain('未')
   })
 })
 

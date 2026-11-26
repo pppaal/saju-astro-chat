@@ -738,68 +738,40 @@ function shortDateEn(iso: string): string {
 
 // ─────────────────────────────────────────────────────────────
 // 격국 KO/EN — advancedAnalysis.geokguk.primary (한국어 명) 를 받아
-// EN 표시명과 한 줄 함축 설명을 만든다. description 은 advancedAnalysis 가
+// 한 줄 함축 설명을 만든다. description 은 advancedAnalysis 가
 // 한국어로만 주므로 KO 는 그대로, EN 은 여기 매핑 테이블에서 가져온다.
 // ─────────────────────────────────────────────────────────────
-const GEOKGUK_EN: Record<string, { name: string; short: string }> = {
-  식신격: { name: 'Eating-god (Siksin) pattern', short: 'creativity feeds wealth' },
-  상관격: { name: 'Hurting-officer (Sanggwan) pattern', short: 'free, original, talent-driven' },
-  편재격: { name: 'Indirect-wealth (Pyeonjae) pattern', short: 'enterprising, dynamic with money' },
-  정재격: { name: 'Direct-wealth (Jeongjae) pattern', short: 'steady, faithful accumulation' },
-  편관격: { name: 'Indirect-officer (Pyeongwan) pattern', short: 'decisive, willing to push hard' },
-  정관격: {
-    name: 'Direct-officer (Jeonggwan) pattern',
-    short: 'orderly, principled responsibility',
-  },
-  편인격: {
-    name: 'Indirect-resource (Pyeonin) pattern',
-    short: 'unconventional thinker, lone-wolf learner',
-  },
-  정인격: {
-    name: 'Direct-resource (Jeongin) pattern',
-    short: 'studious, dignified, well-supported',
-  },
-  종왕격: { name: 'Following-prosperity (Jongwang) pattern', short: 'rides one dominant force' },
-  종강격: {
-    name: 'Following-strength (Jonggang) pattern',
-    short: 'leans on support that overwhelms the chart',
-  },
-  종아격: {
-    name: 'Following-output (Jong‑a) pattern',
-    short: 'goes all-in on expression and output',
-  },
-  종재격: {
-    name: 'Following-wealth (Jongjae) pattern',
-    short: 'follows the dominant wealth force',
-  },
-  종살격: {
-    name: 'Following-officer (Jongsal) pattern',
-    short: 'follows overpowering authority/pressure',
-  },
-  건록격: { name: 'Established-rank (Geollok) pattern', short: 'born standing on your own feet' },
-  양인격: { name: 'Yang-blade (Yangin) pattern', short: 'sharp, intense, high-stakes drive' },
-  월겁격: { name: 'Month-rob (Wolgeop) pattern', short: 'strong peers, competition shapes you' },
-  잡기격: { name: 'Mixed (Japgi) pattern', short: 'mixed signals — multi-track development' },
-  곡직격: { name: 'Curving-straight (Gokjik) pattern', short: 'all-Wood — growth and uprightness' },
-  염상격: { name: 'Blazing-up (Yeomsang) pattern', short: 'all-Fire — bright, radiant force' },
-  가색격: { name: 'Sowing-reaping (Gasaek) pattern', short: 'all-Earth — fertile, gathering' },
-  종혁격: {
-    name: 'Following-reform (Jonghyeok) pattern',
-    short: 'all-Metal — sharp, refining force',
-  },
-  윤하격: { name: 'Flowing-down (Yunha) pattern', short: 'all-Water — fluid, deep, adaptive' },
-  갑기화토격: { name: 'Gap-gi Earth transformation pattern', short: 'two stems fuse into Earth' },
-  을경화금격: {
-    name: 'Eul-gyeong Metal transformation pattern',
-    short: 'two stems fuse into Metal',
-  },
-  병신화수격: {
-    name: 'Byeong-sin Water transformation pattern',
-    short: 'two stems fuse into Water',
-  },
-  정임화목격: { name: 'Jeong-im Wood transformation pattern', short: 'two stems fuse into Wood' },
-  무계화화격: { name: 'Mu-gye Fire transformation pattern', short: 'two stems fuse into Fire' },
-  미정: { name: 'Undetermined pattern', short: 'no clean pattern lock' },
+// EN 한 줄 함축(평이) — 격국 *이름* EN 은 saju/geokgukNameEn(GEOKGUK_NAME_EN) 단일 표가 맡는다
+// (G13: 예전 여기 name 필드는 쓰이지 않는 세 번째 표기 'Established-rank (Geollok) pattern' 이었다).
+const GEOKGUK_SHORT_EN: Record<string, string> = {
+  식신격: 'creativity feeds wealth',
+  상관격: 'free, original, talent-driven',
+  편재격: 'enterprising, dynamic with money',
+  정재격: 'steady, faithful accumulation',
+  편관격: 'decisive, willing to push hard',
+  정관격: 'orderly, principled responsibility',
+  편인격: 'unconventional thinker, lone-wolf learner',
+  정인격: 'studious, dignified, well-supported',
+  종왕격: 'rides one dominant force',
+  종강격: 'leans on support that overwhelms the chart',
+  종아격: 'goes all-in on expression and output',
+  종재격: 'follows the dominant wealth force',
+  종살격: 'follows overpowering authority/pressure',
+  건록격: 'born standing on your own feet',
+  양인격: 'sharp, intense, high-stakes drive',
+  월겁격: 'strong peers, competition shapes you',
+  잡기격: 'mixed signals — multi-track development',
+  곡직격: 'all-Wood — growth and uprightness',
+  염상격: 'all-Fire — bright, radiant force',
+  가색격: 'all-Earth — fertile, gathering',
+  종혁격: 'all-Metal — sharp, refining force',
+  윤하격: 'all-Water — fluid, deep, adaptive',
+  갑기화토격: 'two stems fuse into Earth',
+  을경화금격: 'two stems fuse into Metal',
+  병신화수격: 'two stems fuse into Water',
+  정임화목격: 'two stems fuse into Wood',
+  무계화화격: 'two stems fuse into Fire',
+  미정: 'no clean pattern lock',
 }
 // 한국어 1줄 함축 — geokguk.ts 의 description 은 본문에 가까운 한 문장이라
 // intro 한 줄에 박기엔 살짝 길다. 짧은 핵심만 적는다.
@@ -987,14 +959,14 @@ export function deriveLifetimeFlow(
   let geokgukIntroEn = ''
   if (geokgukPrimary && geokgukPrimary !== '미정') {
     const shortKo = GEOKGUK_SHORT_KO[geokgukPrimary] ?? ''
-    const en = GEOKGUK_EN[geokgukPrimary]
+    const shortEn = GEOKGUK_SHORT_EN[geokgukPrimary]
     // 평이 우선 — raw 격국명(정인격/종재격/병신화수격…)을 빼고 평이 결만 쓴다(감사
     // jargon + 화格 모순 노출 회피). 격국 라벨 자체는 expert fold/태그에만.
     if (shortKo) {
       geokgukIntroKo = `타고난 큰 틀로 보면 ${shortKo}.`
     }
-    if (en) {
-      geokgukIntroEn = `By your core make-up, ${en.short}.`
+    if (shortEn) {
+      geokgukIntroEn = `By your core make-up, ${shortEn}.`
     }
   }
 

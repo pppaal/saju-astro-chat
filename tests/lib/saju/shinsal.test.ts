@@ -35,8 +35,8 @@ describe('DEFAULT_ANNOTATE_OPTIONS', () => {
     expect(DEFAULT_ANNOTATE_OPTIONS.includeLuckyDetails).toBe(true)
   })
 
-  it('has ruleSet set to standard by default', () => {
-    expect(DEFAULT_ANNOTATE_OPTIONS.ruleSet).toBe('standard')
+  it('has no ruleSet option (removed in G13 — no shinsal differs by rule set)', () => {
+    expect(Object.keys(DEFAULT_ANNOTATE_OPTIONS)).not.toContain('ruleSet')
   })
 })
 
@@ -236,14 +236,6 @@ describe('AnnotateOptions interface', () => {
       includeLuckyDetails: true,
     }
     expect(options.includeLuckyDetails).toBe(true)
-  })
-
-  it('can change ruleSet', () => {
-    const standardOptions: AnnotateOptions = { ruleSet: 'standard' }
-    const yourOptions: AnnotateOptions = { ruleSet: 'your' }
-
-    expect(standardOptions.ruleSet).toBe('standard')
-    expect(yourOptions.ruleSet).toBe('your')
   })
 })
 

@@ -402,9 +402,9 @@ describe('POST /api/saju — 없는 음력 날짜는 422, 엔진 미호출 (재�
   })
 })
 
-// 오너 결정 18 (G12): 현침은 모든 룰셋에서 같은 글자 모양 규칙(甲·辛 × 卯·午·申). /api/saju 는
-// ruleSet 'your' 를 넘기는데, 예전 'your' 는 未 를 더하는 학파라 甲·辛 일간 + 未 지지 차트는
-// 사주 화면에만 현침이 떴다. 이제 사주 화면(라우트)·리포트(buildReportContext)·캘린더(본명
+// 오너 결정 18 (G12): 현침은 글자 모양 규칙 하나(甲·辛 × 卯·午·申). /api/saju 는 예전에 룰셋
+// 'your' 를 넘겼고, 그 'your' 는 未 를 더하는 학파라 甲·辛 일간 + 未 지지 차트는 사주 화면에만
+// 현침이 떴다(룰셋 옵션은 G13 에서 지움). 이제 사주 화면(라우트)·리포트(buildReportContext)·캘린더(본명
 // buildNatalContext · 일진 getShinsalHitsForDailyTarget)가 같은 기둥에 같은 현침을 낸다.
 describe('POST /api/saju — 현침은 모든 표면에서 같다 (오너 결정 18, G12)', () => {
   const surfaces = async (birthDate: string) => {
@@ -459,5 +459,25 @@ describe('POST /api/saju — 현침은 모든 표면에서 같다 (오너 결정
     expect(s.page).toEqual(['day', 'month'])
     expect(s.report).toEqual(s.page)
     expect(s.calendar).toEqual(s.page)
+  }, 60000)
+
+  it('옛 클라이언트가 ruleSet 을 보내도 200 — 스키마 밖 필드라 무시된다 (룰셋 옵션 제거, G13)', async () => {
+    const body = {
+      birthDate: '1991-03-15',
+      birthTime: '10:00',
+      gender: 'male',
+      calendarType: 'solar',
+      timezone: 'Asia/Seoul',
+      latitude: 37.5665,
+      longitude: 126.978,
+    }
+    const res = await post({ ...body, ruleSet: 'your' })
+    const json = await res.json()
+    expect(res.status, JSON.stringify(json.error)).toBe(200)
+    const byPillar = json.data.table.byPillar as Record<string, { shinsal: string[] } | null>
+    const page = (['year', 'month', 'day', 'time'] as const)
+      .filter((k) => byPillar[k]?.shinsal.includes('현침'))
+      .sort()
+    expect(page).toEqual(['day', 'month'])
   }, 60000)
 })

@@ -356,7 +356,7 @@ export const SAJU_ASTRO_MAPPINGS: readonly CrossMapping[] = [
     astro: 'Mars',
     meaning: {
       ko: '역마살 × 화성 — 떠나려는 충동·추진이 두 배. 출장·이주·도전엔 동력, 다만 서두른 운전·일정은 한 박자 늦추기.',
-      en: 'Travelling Horse × Mars — the urge to move and push runs twice as hard. Drive for trips, relocation, and bold moves; just slow rushed driving and schedules by a beat.',
+      en: 'Traveling Horse × Mars — the urge to move and push runs twice as hard. Drive for trips, relocation, and bold moves; just slow rushed driving and schedules by a beat.',
     },
     polarity: 0,
     grade: 'A',
@@ -368,7 +368,7 @@ export const SAJU_ASTRO_MAPPINGS: readonly CrossMapping[] = [
     astro: 'Mercury',
     meaning: {
       ko: '역마살 × 수성 — 이동·소통·정보 결이 두 배. 출장·교섭·매체 활용에 우호.',
-      en: 'Travelling Horse × Mercury — movement, messages, and information all run twice as strong. Favours travel, negotiation, and media work.',
+      en: 'Traveling Horse × Mercury — movement, messages, and information all run twice as strong. Favours travel, negotiation, and media work.',
     },
     polarity: 1,
     grade: 'A',
@@ -379,7 +379,7 @@ export const SAJU_ASTRO_MAPPINGS: readonly CrossMapping[] = [
     astro: 'Mars',
     meaning: {
       ko: '양인살 × 화성 — 직진·과열·돌발이 한 시기에 몰리는 결. 칼·차·운동에 평소보다 주의.',
-      en: 'Yang Blade × Mars — headlong drive, overheating, and sudden moves all pile up. Take extra care with blades, vehicles, and intense exercise.',
+      en: 'Blade Edge × Mars — headlong drive, overheating, and sudden moves all pile up. Take extra care with blades, vehicles, and intense exercise.',
     },
     polarity: -2,
     grade: 'A',

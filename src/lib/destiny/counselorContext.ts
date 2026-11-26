@@ -30,6 +30,7 @@ import { SIGN_KO } from '@/lib/astrology/signLabels'
 import type { DestinySources } from '@/lib/destiny/counselorRequest'
 import { defaultLatitudeFor, defaultLongitudeFor } from '@/lib/saju/timezone'
 import { resolveBirthTimezone } from '@/lib/datetime/resolveTimezone'
+import { GEOKGUK_NAME_EN } from '@/lib/saju/geokgukNameEn'
 
 const ALL_SOURCES: DestinySources = { saju: true, astro: true }
 
@@ -129,33 +130,9 @@ const STAGE_EN: Record<string, string> = {
   태: 'conception',
   양: 'nurture',
 }
-// 격국(格局) 영어 라벨 — EN 로케일에서 한글이 새지 않게. 정격 8종은
-// SIBSIN_EN strip(식신격→Eating God)으로 충분하지만, 종격/비격/화기격/특수격
-// (GeokgukType 의 나머지 19종 + 미정)은 십성이 아니라 strip 으로 못 잡아
-// 한글 그대로 샜다(예: "양인격" → "양인 structure"). 특수격만 명시 매핑.
-// 라벨은 lifetimeFlow.GEOKGUK_EN 의 표기와 일치시킨다.
-const GEOKGUK_SPECIAL_EN: Record<string, string> = {
-  종왕격: 'Following-prosperity (Jongwang)',
-  종강격: 'Following-strength (Jonggang)',
-  종아격: 'Following-output (Jong-a)',
-  종재격: 'Following-wealth (Jongjae)',
-  종살격: 'Following-officer (Jongsal)',
-  건록격: 'Established-rank (Geollok)',
-  양인격: 'Yang-blade (Yangin)',
-  월겁격: 'Month-rob (Wolgeop)',
-  잡기격: 'Mixed (Japgi)',
-  갑기화토격: 'Gap-gi Earth-transformation',
-  을경화금격: 'Eul-gyeong Metal-transformation',
-  병신화수격: 'Byeong-sin Water-transformation',
-  정임화목격: 'Jeong-im Wood-transformation',
-  무계화화격: 'Mu-gye Fire-transformation',
-  곡직격: 'Curving-straight (Gokjik)',
-  염상격: 'Blazing-up (Yeomsang)',
-  가색격: 'Sowing-reaping (Gasaek)',
-  종혁격: 'Following-reform (Jonghyeok)',
-  윤하격: 'Flowing-down (Yunha)',
-  미정: 'undetermined',
-}
+// 격국(格局) 영어 라벨 — 캘린더 화면과 같은 단일 표(saju/geokgukNameEn, 27종 + 미정).
+// 예전 이 파일엔 특수격 전용 영어 표가 따로 있어 건록격이 화면('Geonrok (Officer stipend)')과
+// 다른 이름으로 LLM 에 갔다(G13).
 
 const WEEKDAY_KO = ['일', '월', '화', '수', '목', '금', '토']
 const WEEKDAY_EN = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
@@ -874,9 +851,9 @@ function buildSajuSection(
     )
   }
   if (geok) {
-    // 특수격(GEOKGUK_SPECIAL_EN) 우선, 없으면 정격(십성)으로 strip.
+    // 캘린더 화면과 같은 EN 이름(GEOKGUK_NAME_EN). 표 밖 이름(없어야 정상)은 십성 strip 폴백.
     const bare = geok.replace(/격$/, '')
-    const geokEn = `${GEOKGUK_SPECIAL_EN[geok] ?? SIBSIN_EN[bare] ?? bare} structure`
+    const geokEn = `${GEOKGUK_NAME_EN[geok] ?? SIBSIN_EN[bare] ?? bare} structure`
     out.push(`${L('격국', 'geokguk')}: ${locale === 'en' ? geokEn : geok}`)
   }
   if (gwansalHonjap)

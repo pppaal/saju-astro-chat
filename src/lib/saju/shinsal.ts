@@ -99,14 +99,9 @@ export interface AnnotateOptions {
 
   includeGeneralShinsal?: boolean
   includeLuckyDetails?: boolean
-
-  /**
-   * 호출부 호환용 룰셋 선택지 — 지금은 어떤 신살 판정도 룰셋에 따라 갈리지 않는다.
-   * 현침은 오너 결정 18 의 글자 모양 규칙 하나(천간 甲·辛, 지지 卯·午·申)로 모든 룰셋이 같고
-   * (예전 'your' 의 未 포함 학파는 G12 에서 제거 — /api/saju 만 未 를 더해 사주 화면과
-   * 상담사·리포트·캘린더가 갈렸다), 귀문관은 룰셋과 무관한 정통 6쌍이다.
-   */
-  ruleSet?: 'standard' | 'your'
+  // 룰셋 선택지('standard' | 'your')는 G13 에서 지웠다 — 오너 결정 18 뒤로 어떤 신살도 룰셋에
+  // 따라 갈리지 않았다(현침 = 글자 모양 규칙 하나: 천간 甲·辛, 지지 卯·午·申 / 귀문관 = 정통
+  // 6쌍). 모든 표면(사주 화면·상담사·리포트·캘린더)이 같은 한 규칙을 돈다.
 }
 
 export const DEFAULT_ANNOTATE_OPTIONS: Required<AnnotateOptions> = {
@@ -116,8 +111,6 @@ export const DEFAULT_ANNOTATE_OPTIONS: Required<AnnotateOptions> = {
 
   includeGeneralShinsal: true,
   includeLuckyDetails: true,
-
-  ruleSet: 'standard',
 }
 
 const _stemByName = (name: string) => STEMS.find((s) => s.name === name)

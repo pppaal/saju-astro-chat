@@ -8,6 +8,7 @@
  */
 
 import { SHINSAL_NAME_EN, shinsalNameEn } from '@/lib/calendar-engine/derivers/signalI18n'
+import { GEOKGUK_NAME_EN as GEOKGUK_NAME_EN_SSOT } from '@/lib/saju/geokgukNameEn'
 
 /** 격국 성패 단어 — 성격/파격/반성반파. */
 export const GEOKGUK_STATUS_EN: Record<string, string> = {
@@ -17,47 +18,11 @@ export const GEOKGUK_STATUS_EN: Record<string, string> = {
 }
 
 /**
- * 격국 이름 KO→EN (GeokgukType 전체 29종 + 미정) — 캘린더 표면(Life 머리말·Day 본명
- * 풀이)의 단일 출처. 종격·비격·화기격·특수격까지 포함해 EN 로케일에서 격국명이 한국어로
- * 새지 않게 한다(재감사 SI-1: Life 는 예전 toUser 의 정격 8종 복사본만 써서 건록격·종격이
- * 한글로 떴다). 고전 격국 어휘라 사실상 불변.
+ * 격국 이름 KO→EN (GeokgukType 전체 29종 + 미정) — 정본은 중립 모듈 saju/geokgukNameEn.ts.
+ * 캘린더 표면(Life 머리말·Day 본명 풀이)과 상담사 컨텍스트가 같은 표를 읽는다(G13 — 예전엔
+ * 상담사만 'Established-rank (Geollok)' 같은 다른 표기를 들고 있었다). 여기선 재노출만.
  */
-export const GEOKGUK_NAME_EN: Record<string, string> = {
-  // 정격 8
-  식신격: 'Siksin (Eating-god)',
-  상관격: 'Sanggwan (Hurting-officer)',
-  편재격: 'Pyeonjae (Indirect-wealth)',
-  정재격: 'Jeongjae (Direct-wealth)',
-  편관격: 'Pyeongwan (Indirect-officer)',
-  정관격: 'Jeonggwan (Direct-officer)',
-  편인격: 'Pyeonin (Indirect-resource)',
-  정인격: 'Jeongin (Direct-resource)',
-  // 종격 5
-  종왕격: 'Jongwang (Dominant self)',
-  종강격: 'Jonggang (Dominant resource)',
-  종아격: 'Jongah (Dominant output)',
-  종재격: 'Jongjae (Dominant wealth)',
-  종살격: 'Jongsal (Dominant officer)',
-  // 비격 4
-  건록격: 'Geonrok (Officer stipend)',
-  양인격: 'Yangin (Blade edge)',
-  월겁격: 'Wolgeop (Monthly rob)',
-  잡기격: 'Japgi (Mixed storage)',
-  // 화기격국 5
-  갑기화토격: 'Gap-Gi Earth transformation',
-  을경화금격: 'Eul-Gyeong Metal transformation',
-  병신화수격: 'Byeong-Sin Water transformation',
-  정임화목격: 'Jeong-Im Wood transformation',
-  무계화화격: 'Mu-Gye Fire transformation',
-  // 특수격국 5
-  곡직격: 'Gokjik (Curved-straight Wood)',
-  염상격: 'Yeomsang (Blazing Fire)',
-  가색격: 'Gasaek (Sowing-reaping Earth)',
-  종혁격: 'Jonghyeok (Reforming Metal)',
-  윤하격: 'Yunha (Flowing Water)',
-  // 미정
-  미정: 'Undetermined',
-}
+export const GEOKGUK_NAME_EN: Readonly<Record<string, string>> = GEOKGUK_NAME_EN_SSOT
 
 /**
  * 격국 상태 한 줄 EN — '정인격 · 반성반파 (+투출 / -합거)' 같은 한국어 전용 줄을
