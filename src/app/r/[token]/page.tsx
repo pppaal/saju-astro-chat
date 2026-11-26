@@ -518,7 +518,7 @@ export default async function SharedReadingPage({ params }: PageProps) {
               color: MUTE,
             }}
           >
-            {isKo ? '운흐름 캘린더' : 'DESTINY CALENDAR'}
+            {isKo ? '운세 달력' : 'Fortune calendar'}
           </p>
           <p style={{ marginTop: 12, fontSize: 18, fontWeight: 700, color: INK }}>
             {reading.periodLabel}
@@ -1087,8 +1087,8 @@ export default async function SharedReadingPage({ params }: PageProps) {
             </Link>
             <p style={{ marginTop: 14, fontSize: 12, color: MUTE }}>
               {isKo
-                ? '생년월일만 넣으면 돼요 · 무료 · 가입 필요 없어요.'
-                : 'Just your birth date — free, no sign-up.'}
+                ? '출생 정보만 넣으면 돼요 · 무료 · 가입 필요 없어요.'
+                : 'Just your birth details — free, no sign-up.'}
             </p>
           </div>
         </div>

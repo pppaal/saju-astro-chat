@@ -62,7 +62,7 @@ export const EXPLORE_ROWS: readonly ExploreRow[] = [
     id: 'calendar',
     href: '/calendar',
     birthLink: true,
-    title: { ko: '운흐름 캘린더', en: 'Fortune calendar' },
+    title: { ko: '운세 달력', en: 'Fortune calendar' },
     desc: {
       ko: '이번 달 좋은 날을 사주와 별자리로.',
       en: 'Your good days this month, from saju and the stars.',

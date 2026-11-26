@@ -30,7 +30,7 @@ const COPY = {
   limitedTitle: { ko: '요청이 많아요', en: 'Too many requests' },
   limitedBody: {
     ko: '잠시 사이에 너무 많은 차트 요청이 들어왔어요. 잠깐 기다렸다 다시 시도해 주세요.',
-    en: 'This chart view is being requested too quickly. Please wait a moment and try again.',
+    en: 'Too many chart requests in a short time. Wait a moment and try again.',
   },
   title: { ko: '출생 정보를 넣으면 시작돼요', en: 'Start with your birth details' },
   body: {

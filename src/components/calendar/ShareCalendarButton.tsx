@@ -35,7 +35,8 @@ export function calendarShareLinkOptions(data: CalendarShareData): UseShareLinkO
       curve: data.curve?.length ? data.curve.map((n) => Math.round(n)) : undefined,
       markerIndex: data.markerIndex,
     }),
-    title: isKo ? 'DestinyPal 운흐름' : 'DestinyPal Calendar',
+    // 제품 이름은 한 가지 — '운세 달력' / 'Fortune calendar'(QA-5, 달력 화면 제목과 같다).
+    title: isKo ? 'DestinyPal 운세 달력' : 'DestinyPal · Fortune calendar',
     text: data.headline || data.periodLabel,
     isKo,
     logTag: '[ShareCalendar]',

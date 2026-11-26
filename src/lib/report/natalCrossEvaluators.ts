@@ -309,6 +309,8 @@ export function evalFortune(
   const tk = planetTheme(mapping.astro, 'ko')
   const te = planetTheme(mapping.astro, 'en')
   // 행 요지(gist) — 칸이 없는 축이라 행에서 reason 대신 보여 줄 한 문장. 갈래마다 고정.
+  // EN 은 주제 목록('expansion, faith and luck')을 형용사가 아니라 목적어로 둔다 — 관사('A
+  // expansion') · 수 일치('Action, desire and drive runs')가 깨지지 않게(QA COPY-3).
   const Te = te.charAt(0).toUpperCase() + te.slice(1)
   // polarity 0 은 길도 흉도 아닌 '중립 자원'(도화×Venus 매력, 비견×Saturn 자립 등)이다.
   // 예전엔 polarity>=0 으로 0 을 '복'에 묶어 거짓 긍정을 냈다(ENGINE-AUDIT) → 별도 분기.
@@ -329,11 +331,11 @@ export function evalFortune(
           tone: 'neutral',
           gist: {
             ko: `사주엔 ${tk} 자원, 별자리에선 잔잔해요.`,
-            en: `${Te} in your saju, quiet in your chart.`,
+            en: `Your saju holds ${te} as a resource; your chart is quiet there.`,
           },
           reason: {
             ko: `사주엔 ${tk} 자원이 있는데 별자리에선 그 자리가 잔잔해요 — 길흉의 문제가 아니라 아직 깨우지 않은 중립 자원이에요. 의식적으로 꺼내 쓸 자리에 데려다 놓으면 그제야 제 몫을 해요.`,
-            en: `Your Saju carries a ${te} resource while that spot is quiet in your chart — not a fortune question but a neutral resource not yet awakened. Bring it deliberately into places where it gets used and it starts to pull its weight.`,
+            en: `Your Saju holds ${te} as a resource while that spot is quiet in your chart — not a fortune question but a neutral resource not yet awakened. Bring it deliberately into places where it gets used and it starts to pull its weight.`,
           },
         }
   }
@@ -352,11 +354,11 @@ export function evalFortune(
           tone: 'complement',
           gist: {
             ko: `사주엔 ${tk} 복, 별자리에선 잔잔해요.`,
-            en: `A ${te} blessing in your saju, quieter in your chart.`,
+            en: `Your saju favors ${te}; your chart is quieter there.`,
           },
           reason: {
             ko: `사주엔 ${tk} 기운의 복이 또렷한데, 별자리에선 그 자리가 잔잔해요 — 타고난 복이 자동으로 터지기보다 의식적으로 살려야 빛나는 구조예요. 가만히 기다리기보다 그 기운을 쓸 자리에 스스로를 데려다 놓으면, 잠재된 복이 현실의 결과로 바뀌어요. 있는 복을 안 쓰고 묵히지 않는 게 핵심이에요.`,
-            en: `Your Saju carries a clear ${te} blessing, while that spot is quieter in your chart — the luck shines when you activate it on purpose rather than waiting for it to fire by itself. Instead of sitting still, put yourself where that energy gets used and the latent blessing turns into real results. The key is not to let good fortune sit idle.`,
+            en: `Your Saju clearly favors ${te}, while that spot is quieter in your chart — the luck shines when you activate it on purpose rather than waiting for it to fire by itself. Instead of sitting still, put yourself where that energy gets used and the latent blessing turns into real results. The key is not to let good fortune sit idle.`,
           },
         }
   }
@@ -365,7 +367,7 @@ export function evalFortune(
         tone: 'tension',
         gist: {
           ko: `${tk} 쪽 센 기운이 양쪽에서 커져요.`,
-          en: `${Te} runs strong on both sides.`,
+          en: `Both sides push hard on ${te}.`,
         },
         reason: {
           ko: `타고난 강한 추진력이 향하는 ${tk} 쪽이 별자리에서도 도드라져요 — 추진력과 승부욕이 양쪽에서 증폭돼 힘이 두 배가 되는 자리예요. 잘 쓰면 누구도 못 따라오는 돌파력이 되지만, 욱하거나 과속하면 그 힘이 자기를 향하기 쉬워요. 센 기운일수록 '한 박자 쉬는' 안전장치를 미리 정해두면 강점만 남아요.`,
@@ -376,7 +378,7 @@ export function evalFortune(
         tone: 'complement',
         gist: {
           ko: `사주의 센 ${tk} 기운을 별자리가 눌러 줘요.`,
-          en: `${Te} runs strong in your saju, tempered by your chart.`,
+          en: `Your saju pushes hard on ${te}; your chart tempers it.`,
         },
         reason: {
           ko: `사주엔 추진력·승부욕의 센 기운이 있는데, 별자리에선 그 자리가 약해 거친 결이 한결 눌려요 — 안에선 뜨거운데 겉으론 차분해 보이는, 속도 조절이 되는 구조예요. 그 내면의 힘을 너무 억누르기만 하면 동력이 줄 수 있으니, 안전한 통로(운동·도전·목표)로 풀어주는 게 좋아요. 센 기운을 길들여 쓰는 데 유리한 조합이에요.`,

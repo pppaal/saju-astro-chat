@@ -13,7 +13,7 @@ import type { Bi } from '@/lib/i18n/bi'
 export const CAL_COPY = {
   // ─── 상단 바 · 갈래 스위치 ───
   title: { ko: '운세 달력', en: 'Fortune calendar' },
-  whoLabel: { ko: '내 출생 정보', en: 'Your birth info' },
+  whoLabel: { ko: '내 출생 정보', en: 'Your birth details' },
   segAria: { ko: '달력 보기', en: 'Calendar view' },
   monthly: { ko: '월간', en: 'Monthly' },
   daily: { ko: '일간', en: 'Daily' },

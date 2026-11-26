@@ -127,6 +127,31 @@ describe('evalFortune — polarity·강조 매트릭스', () => {
     expect(evalFortune([], new Set())).toBeNull()
     expect(evalFortune(undefined)).toBeNull()
   })
+
+  // QA COPY-3 — 주제 목록은 목적어로: 'A expansion…' · 'Action, desire and drive runs' 가 없다.
+  it('EN 요지는 갈래마다 문법이 맞다 (목성 = 모음으로 시작하는 주제)', () => {
+    const all = new Set(['Jupiter', 'Mars', 'Venus'])
+    expect(evalFortune(['건록'], new Set())!.gist!.en).toBe(
+      'Your saju favors expansion, faith and luck; your chart is quieter there.'
+    )
+    expect(evalFortune(['건록'], all)!.gist!.en).toBe(
+      'Expansion, faith and luck favored on both sides.'
+    )
+    expect(evalFortune(['양인'], new Set())!.gist!.en).toBe(
+      'Your saju pushes hard on action, desire and drive; your chart tempers it.'
+    )
+    expect(evalFortune(['양인'], all)!.gist!.en).toBe(
+      'Both sides push hard on action, desire and drive.'
+    )
+    for (const s of ['건록', '양인', '도화', '역마']) {
+      for (const emph of [new Set<string>(), all]) {
+        const v = evalFortune([s], emph)!
+        expect(v.gist!.en).not.toMatch(/\bA [aeiou]/i)
+        expect(v.gist!.en).not.toMatch(/runs strong|blessing in your/)
+        expect(v.reason.en).not.toMatch(/\ba (expansion|action|love|mind|self)\b/i)
+      }
+    }
+  })
 })
 
 // ── evalRelations — complement arm + child-present/absent ko/en ─────────────

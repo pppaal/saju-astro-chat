@@ -36,11 +36,11 @@ export default function CalendarError({
   return (
     <ErrorScreen
       variant="dark"
-      title={isKo ? '운흐름을 불러오지 못했어요' : "Couldn't load your timeline"}
+      title={isKo ? '운세 달력을 불러오지 못했어요' : "Couldn't load your fortune calendar"}
       message={
         isKo
-          ? '운흐름 캘린더를 계산하는 중 문제가 생겼어요. 생년월일·시간·태어난 곳이 정확히 입력됐는지 확인하고 다시 시도해 주세요.'
-          : 'Something went wrong building your fortune timeline. Check that your birth date, time, and place are entered correctly, then try again.'
+          ? '운세 달력을 계산하는 중 문제가 생겼어요. 생년월일·시간·태어난 곳이 정확히 입력됐는지 확인하고 다시 시도해 주세요.'
+          : 'Something went wrong building your fortune calendar. Check that your birth date, time, and place are entered correctly, then try again.'
       }
       primaryAction={{
         label: isKo ? '다시 시도' : 'Try again',
