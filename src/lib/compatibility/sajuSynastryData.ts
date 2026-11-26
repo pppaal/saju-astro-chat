@@ -9,7 +9,13 @@ import { getGongmang as getGongmangByPillar } from '@/lib/saju/pillarLookup'
 import { pickTwelveSingle } from '@/lib/saju/shinsal'
 import { STEM_KO, BRANCH_KO } from '@/lib/saju/ganjiKo'
 import { getSibseong, BRANCH_MAIN_QI } from '@/lib/saju/core/sibsin'
-import { STEMS, FIVE_ELEMENT_RELATIONS, CHEONEUL_GWIIN_MAP } from '@/lib/saju/constants'
+import {
+  STEMS,
+  STEM_ELEMENT_KO,
+  BRANCH_ELEMENT_KO,
+  FIVE_ELEMENT_RELATIONS,
+  CHEONEUL_GWIIN_MAP,
+} from '@/lib/saju/constants'
 import type { FiveElement, YinYang } from '@/lib/saju/types'
 import type { YongsinResult } from '@/lib/saju/yongsin'
 import { RESENTMENT_PAIRS, STEM_CLASH, toBidiRecord } from '@/lib/saju/relationTables'
@@ -119,18 +125,8 @@ export const BANG_HAP = [
   { branches: ['亥', '子', '丑'], element: '수' },
 ]
 
-export const STEM_EL: Record<string, string> = {
-  甲: '목',
-  乙: '목',
-  丙: '화',
-  丁: '화',
-  戊: '토',
-  己: '토',
-  庚: '금',
-  辛: '금',
-  壬: '수',
-  癸: '수',
-}
+// 천간(한자) → 오행 한글 — 정본 파생 표 STEM_ELEMENT_KO(saju/constants) 재노출. 표 중복 금지.
+export const STEM_EL: Record<string, string> = STEM_ELEMENT_KO
 
 // 지지 본기 천간 (지지를 천간 시각으로 보는 매핑) — 지지 십성 계산용.
 // SSOT(@/lib/saju/core/sibsin.BRANCH_MAIN_QI) 재노출. 표 중복 금지.
@@ -177,20 +173,8 @@ export function spouseStarsFor(gender: SpouseStarGender): ReadonlySet<string> {
   return SPOUSE_STARS_UNKNOWN
 }
 
-export const BRANCH_EL: Record<string, string> = {
-  寅: '목',
-  卯: '목',
-  巳: '화',
-  午: '화',
-  辰: '토',
-  戌: '토',
-  丑: '토',
-  未: '토',
-  申: '금',
-  酉: '금',
-  子: '수',
-  亥: '수',
-}
+// 지지(한자) → 오행 한글 — 정본 파생 표 BRANCH_ELEMENT_KO(saju/constants) 재노출. 표 중복 금지.
+export const BRANCH_EL: Record<string, string> = BRANCH_ELEMENT_KO
 
 // 오행 극(克) 방향 — SSOT FIVE_ELEMENT_RELATIONS.극하는관계 재노출. 표 중복 금지.
 export const EL_CONTROLS: Record<string, string> = FIVE_ELEMENT_RELATIONS.극하는관계
@@ -212,8 +196,6 @@ export const SIBSIN_GLOSS: Record<string, string> = {
 // 천을귀인 — constants.CHEONEUL_GWIIN_MAP(SSOT) 재사용. 로컬 복제 금지(드리프트
 // 방지). 소비처는 .includes 로만 보므로 두 지지의 순서는 무관.
 export const CHEONULGWIIN: Record<string, string[]> = CHEONEUL_GWIIN_MAP
-
-const STEM_ORDER = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸']
 
 // 상담사 '오늘'의 세운 간지 — 두 사람 공통 시기축. 날짜 D 는 보는 사람의 현지 민용 날짜,
 // timeZone 은 기둥을 재는 출생 tz. 운명상담사·캘린더와 같은 헬퍼(pillarsForLocalDate)라

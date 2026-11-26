@@ -212,12 +212,14 @@ const CASES: Case[] = [
     name: 'BRANCH_TO_ELEMENT',
     kind: 'record',
     expected: BRANCH_ELEMENT_KEY,
+    via: 'BRANCH_ELEMENT_KEY',
   },
   {
     files: ['src/lib/compatibility/zodiacCompat.ts'],
     name: 'BRANCH_ELEMENT',
     kind: 'record',
     expected: BRANCH_ELEMENT_KEY,
+    via: 'BRANCH_ELEMENT_KEY',
   },
   // 천간·지지 이름 배열
   {
@@ -239,18 +241,21 @@ const CASES: Case[] = [
     name: 'STEM_CHARS',
     kind: 'array',
     expected: STEM_NAMES,
+    via: 'STEM_NAMES',
   },
   {
     files: ['src/components/report/atoms/interpretations.ts'],
     name: 'BRANCH_CHARS',
     kind: 'array',
     expected: BRANCH_NAMES,
+    via: 'BRANCH_NAMES',
   },
   {
     files: ['src/lib/compatibility/sajuSynastryData.ts'],
     name: 'STEM_ORDER',
     kind: 'array',
     expected: STEM_NAMES,
+    removed: true, // 아무도 읽지 않던 복사본 — 교체 대신 삭제
   },
   // 한글 음 배열
   {
@@ -258,12 +263,14 @@ const CASES: Case[] = [
     name: 'STEM_HANGUL',
     kind: 'array',
     expected: STEM_HANGUL,
+    via: 'STEM_HANGUL',
   },
   {
     files: ['src/lib/social/generateDrafts.ts'],
     name: 'BRANCH_HANGUL',
     kind: 'array',
     expected: BRANCH_HANGUL,
+    via: 'BRANCH_HANGUL',
   },
   // 오행 한글 → 소문자 영문 키 (정본은 'Wood' 대문자 — 표기 두 벌)
   {
@@ -286,12 +293,14 @@ const CASES: Case[] = [
     name: 'STEM_EL',
     kind: 'record',
     expected: STEM_ELEMENT_KO,
+    via: 'STEM_ELEMENT_KO',
   },
   {
     files: ['src/lib/compatibility/sajuSynastryData.ts'],
     name: 'BRANCH_EL',
     kind: 'record',
     expected: BRANCH_ELEMENT_KO,
+    via: 'BRANCH_ELEMENT_KO',
   },
   {
     files: ['src/lib/saju/iljuProfile.ts'],
@@ -305,6 +314,7 @@ const CASES: Case[] = [
     name: 'ELEMENT_EN',
     kind: 'record',
     expected: ELEMENT_KO_TO_EN,
+    via: 'ELEMENT_KO_TO_EN',
   },
   // export 된 이름 배열 — 아래 값 비교에 더해, 소스에 리터럴이 없는지도 본다
   {
@@ -321,7 +331,20 @@ const CASES: Case[] = [
     expected: STEM_NAMES,
     via: 'STEM_NAMES',
   },
-
+  {
+    files: ['src/data/yearly-fortune-generator.ts'],
+    name: 'HEAVENLY_STEMS',
+    kind: 'array',
+    expected: STEM_NAMES,
+    via: 'STEMS',
+  },
+  {
+    files: ['src/data/yearly-fortune-generator.ts'],
+    name: 'EARTHLY_BRANCHES',
+    kind: 'array',
+    expected: BRANCH_NAMES,
+    via: 'BRANCHES',
+  },
   {
     files: ['src/lib/saju/pillar-lookup/constants.ts'],
     name: 'BRANCH_ORDER',
@@ -442,6 +465,13 @@ describe('table SSOT — 소스 지역 복사본이 정본과 같다 (D8 1·2단
       }
     })
   }
+
+  it('D8 2단계 완료 — 목록의 복사본이 전부 정본 import 로 바뀌었거나 지워졌다', () => {
+    const pending = CASES.filter((c) => !c.via && !c.removed && !c.kept).map(
+      (c) => `${c.files[c.files.length - 1]} ${c.name}`
+    )
+    expect(pending).toEqual([])
+  })
 
   it('saju.ts / unse.ts G_BRANCH (양력월 → 지지) 는 정본 지지 순서의 1칸 회전', () => {
     for (const rel of ['src/lib/saju/saju.ts', 'src/lib/saju/unse.ts']) {

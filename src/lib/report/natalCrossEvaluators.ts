@@ -9,6 +9,7 @@ import { GENERATES, CONTROLS, type SajuElement } from '@/lib/saju/elementBridge'
 import { type CrossMapping } from '@/lib/calendar-engine/data/saju-astro-mapping'
 import { dignityOf } from '@/lib/astrology/foundation/dignities'
 import { canonicalTwelveStage } from '@/lib/saju/shinsal'
+import { BRANCH_ELEMENT_KEY } from '@/lib/saju/constants'
 import { PLANET_LABEL } from './chartLabels'
 import {
   EL_KO,
@@ -986,22 +987,8 @@ export function evalKeyAspect(
  * 모든 반환에 붙는다(plan B4 #10).
  *
  * 지지 본기 오행 매핑 (子=水, 丑=土, 寅卯=木, 辰=土, 巳午=火, 未=土, 申酉=金,
- * 戌=土, 亥=水) — 인라인 상수로 두어 외부 의존 없음.
+ * 戌=土, 亥=水) — 정본 파생 표 BRANCH_ELEMENT_KEY(saju/constants)를 쓴다(복사 금지).
  */
-const BRANCH_TO_ELEMENT: Record<string, SajuElement> = {
-  子: 'water',
-  丑: 'earth',
-  寅: 'wood',
-  卯: 'wood',
-  辰: 'earth',
-  巳: 'fire',
-  午: 'fire',
-  未: 'earth',
-  申: 'metal',
-  酉: 'metal',
-  戌: 'earth',
-  亥: 'water',
-}
 
 export function evalVoid(
   gongmangBranches: string[] | undefined,
@@ -1013,7 +1000,7 @@ export function evalVoid(
   // 아니라 문구까지 입력 배열 순서와 무관하게 같게 한다.
   const voidSet = new Set<SajuElement>()
   for (const b of gongmangBranches.slice(0, 2)) {
-    const el = BRANCH_TO_ELEMENT[b]
+    const el = BRANCH_ELEMENT_KEY[b]
     if (el) voidSet.add(el)
   }
   const voidEls = SAJU_ELS.filter((e) => voidSet.has(e))

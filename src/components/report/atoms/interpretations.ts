@@ -13,23 +13,8 @@
  */
 
 import { getHanjaRich } from '@/lib/chart-dictionary'
-
-// ── 한자 풀(stem / branch 순서) ───────────────────────────────────────────────
-const STEM_CHARS = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'] as const
-const BRANCH_CHARS = [
-  '子',
-  '丑',
-  '寅',
-  '卯',
-  '辰',
-  '巳',
-  '午',
-  '未',
-  '申',
-  '酉',
-  '戌',
-  '亥',
-] as const
+// 한자 풀(stem / branch 순서) — 정본 STEM_NAMES / BRANCH_NAMES(saju/constants). 복사 금지.
+import { STEM_NAMES, BRANCH_NAMES } from '@/lib/saju/constants'
 
 // hanja-rich 의 image 필드는 "큰 나무·동량목(棟梁木) — 곧게 위로 자라는 거목" 형태.
 // 기존 atoms 시그니처는 짧은 자연 image("큰 나무") 만 노출 → 첫 ·/— 앞만 추출.
@@ -47,7 +32,7 @@ export const HEAVENLY_STEMS: Record<
     string,
     { ko: string; yinYang: '양' | '음'; element: string; image: string; meaning: string }
   > = {}
-  for (const c of STEM_CHARS) {
+  for (const c of STEM_NAMES) {
     const entry = getHanjaRich(c, 'ko')
     if (!entry || !('yinYang' in entry)) continue
     map[c] = {
@@ -67,7 +52,7 @@ export const EARTHLY_BRANCHES: Record<
   { ko: string; animal: string; element: string; meaning: string }
 > = (() => {
   const map: Record<string, { ko: string; animal: string; element: string; meaning: string }> = {}
-  for (const c of BRANCH_CHARS) {
+  for (const c of BRANCH_NAMES) {
     const entry = getHanjaRich(c, 'ko')
     if (!entry || !('animal' in entry)) continue
     map[c] = {

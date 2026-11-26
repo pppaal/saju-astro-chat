@@ -14,7 +14,13 @@ import { cardSlug } from '@/lib/tarot/cardPages'
 import { TAROT_REVERSED_BYTE_THRESHOLD } from '@/lib/tarot/reversedProbability'
 import type { Card } from '@/lib/tarot/tarot.types'
 import { computeDayPillarIndices } from '@/lib/saju/dayPillar'
-import { STEMS, BRANCHES } from '@/lib/saju/constants'
+import {
+  STEMS,
+  BRANCHES,
+  STEM_HANGUL,
+  BRANCH_HANGUL,
+  ELEMENT_KO_TO_EN as ELEMENT_EN,
+} from '@/lib/saju/constants'
 import { computeAllZodiacDaily } from '@/lib/fortune/zodiacDaily'
 import { callClaude, extractJsonObject, isClaudeAvailable } from '@/lib/llm/claude'
 import { siteBaseUrl } from '@/lib/share/site'
@@ -116,8 +122,8 @@ function zodiacSubject(date: string): Subject {
 }
 
 // 사주 — 실제 엔진의 일진(日辰) 계산. 오늘의 간지 + 오행/음양.
-const STEM_HANGUL = ['갑', '을', '병', '정', '무', '기', '경', '신', '임', '계']
-const BRANCH_HANGUL = ['자', '축', '인', '묘', '진', '사', '오', '미', '신', '유', '술', '해']
+// 한글 음(STEM_HANGUL/BRANCH_HANGUL)과 오행 영문(ELEMENT_EN = ELEMENT_KO_TO_EN)은 saju/constants
+// 정본에서 import — 리터럴 복사본 금지(plan D8).
 const BRANCH_ANIMAL_KO = [
   '쥐',
   '소',
@@ -132,13 +138,6 @@ const BRANCH_ANIMAL_KO = [
   '개',
   '돼지',
 ]
-const ELEMENT_EN: Record<string, string> = {
-  목: 'Wood',
-  화: 'Fire',
-  토: 'Earth',
-  금: 'Metal',
-  수: 'Water',
-}
 // 지지 → 영어 띠 동물. "Water-Snake day (癸巳)" 처럼 영어 독자용 일진 명칭에 쓴다.
 const BRANCH_ANIMAL_EN = [
   'Rat',

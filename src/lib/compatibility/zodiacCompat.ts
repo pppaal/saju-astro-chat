@@ -23,28 +23,16 @@ import {
   type DailyRelation,
 } from '@/lib/fortune/zodiacDaily'
 import { josa } from '@/lib/utils/josa'
+import { BRANCH_ELEMENT_KEY } from '@/lib/saju/constants'
 
 export interface LocalizedText {
   ko: string
   en: string
 }
 
-// 십이지 → 오행(년지 기준). "왜 이 궁합인가"의 근거로 쓴다.
+// 십이지 → 오행(년지 기준). "왜 이 궁합인가"의 근거로 쓴다 — 정본 파생 표
+// BRANCH_ELEMENT_KEY(saju/constants)에서 읽는다(복사 금지).
 type Element = 'wood' | 'fire' | 'earth' | 'metal' | 'water'
-const BRANCH_ELEMENT: Record<string, Element> = {
-  子: 'water',
-  丑: 'earth',
-  寅: 'wood',
-  卯: 'wood',
-  辰: 'earth',
-  巳: 'fire',
-  午: 'fire',
-  未: 'earth',
-  申: 'metal',
-  酉: 'metal',
-  戌: 'earth',
-  亥: 'water',
-}
 const ELEMENT_KO: Record<Element, string> = {
   wood: '목(木)',
   fire: '화(火)',
@@ -123,8 +111,8 @@ function copyFor(
   a: ZodiacAnimal,
   b: ZodiacAnimal
 ): { headline: LocalizedText; body: LocalizedText; good: LocalizedText; watch: LocalizedText } {
-  const aEl = BRANCH_ELEMENT[a.branch]
-  const bEl = BRANCH_ELEMENT[b.branch]
+  const aEl: Element = BRANCH_ELEMENT_KEY[a.branch]
+  const bEl: Element = BRANCH_ELEMENT_KEY[b.branch]
   const elKo = `${ELEMENT_KO[aEl]}·${ELEMENT_KO[bEl]}`
   const elEn = `${ELEMENT_EN[aEl]} & ${ELEMENT_EN[bEl]}`
 
