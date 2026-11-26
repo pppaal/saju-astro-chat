@@ -13,7 +13,7 @@
 import { translateSignalLabel } from './signalI18n'
 import { hashStringToInt, pickBySeed } from './personSeed'
 import { PLANET_KO as PLANET_KO_BASE } from '@/lib/calendar-engine/data/planetNames'
-import { planetKoOr } from './evidenceLadder'
+import { ASPECT_KO, planetKoOr } from './evidenceLadder'
 
 /** ko/en 한 쌍. */
 type Pair = { ko: string; en: string }
@@ -970,25 +970,18 @@ const PLANET_DOMAINS: Record<string, string[]> = {
 }
 // 행성 한글 라벨 — 공용 SSOT(planetNames)에서 파생(앵글 키는 안 쓰지만 무해).
 const PLANET_KO_SHORT: Record<string, string> = { ...PLANET_KO_BASE }
-// 엔진 신호의 aspectType 은 영문('trine'…)이라, KO 표시는 영문→한글로 옮긴다.
-// (일부 경로는 한글일 수 있어 양방향 폴백.)
+// 엔진 신호의 aspectType 은 영문('trine'…)이라, KO 표시는 영문→한글로 옮긴다 — 이름은 엔진의 한 표
+// (evidenceLadder ASPECT_KO: 컨정션 · 스퀘어 · 트라인 …), STARS 보조 줄 · 사다리와 같은 이름(QA R-CA-4).
+// 일부 옛 경로는 한글 이름일 수 있어 한글 → 영문 키 폴백을 둔다(옛 평어 이름 포함).
 const ASPECT_EN: Record<string, string> = {
+  ...Object.fromEntries(Object.entries(ASPECT_KO).map(([key, ko]) => [ko, key])),
   합: 'conjunction',
   사각: 'square',
   삼각: 'trine',
   대립: 'opposition',
-  섹스타일: 'sextile',
-  퀸컹스: 'quincunx',
+  육각: 'sextile',
   반섹스타일: 'semisextile',
-}
-const ASPECT_KO: Record<string, string> = {
-  conjunction: '합',
-  square: '사각',
-  trine: '삼각',
-  opposition: '대립',
-  sextile: '육각',
-  quincunx: '퀸컹스',
-  semisextile: '반육각',
+  반육각: 'semisextile',
 }
 
 // 신살 이름(부분일치) → 분야. 명리 표준 의미.
@@ -1097,8 +1090,9 @@ function classifyEvidence(input: DayEvidenceInput, ko: boolean): Record<string, 
     // 두 천체를 다 이름한다 — 'Moon square' 처럼 대상이 잘린 산문(QA COPY-12) 대신
     // 'the Moon–Mars square' / '달–화성 사각'. 대상을 모르면(구 페이로드) 예전 모양.
     const natal = (t.target ?? '').replace(/^본명\s*/, '').trim()
-    const aspKo = ASPECT_KO[aspect] ?? aspect
-    const aspEn = ASPECT_EN[aspect] ?? aspect
+    // 영문 키로 맞춘 뒤 한 표에서 KO 이름을 읽는다(옛 한글 이름이 와도 같은 이름으로).
+    const aspEn = aspect in ASPECT_KO ? aspect : (ASPECT_EN[aspect] ?? aspect)
+    const aspKo = ASPECT_KO[aspEn] ?? aspect
     const bodyKo = PLANET_KO_SHORT[body] ?? body
     // EN 관사 — 어스펙트 없는 한 천체는 'the Moon' · 'the Sun'(그 밖의 행성은 이름 그대로), 대상 없는
     // 어스펙트는 'a Moon square'. 'Today, Moon is the signal …' 같은 관사 빠진 산문 대신(QA COPY-12).
@@ -1139,7 +1133,7 @@ function classifyEvidence(input: DayEvidenceInput, ko: boolean): Record<string, 
     const doms = MOON_POINT_DOMAINS[mn.body]
     if (!doms) continue
     const short = (ko ? mn.when : mn.whenEn).replace(/\s*\(.*\)/, '').trim()
-    const text = ko ? `${short} 달${mn.aspectKo}` : `${short} Moon ${mn.aspectEn}`
+    const text = ko ? `${short} 달 ${mn.aspectKo}` : `${short} Moon ${mn.aspectEn}`
     for (const d of doms)
       out[d].push({ text, polarity: mn.polarity, kind: 'moon', when: mn.when, whenEn: mn.whenEn })
   }

@@ -20,6 +20,8 @@ import { getCachedTransitChart } from '@/lib/calendar-engine/ephe-cache'
 import { createCache } from '@/lib/calendar-engine/cache'
 import { findTransitAspects } from '@/lib/astrology/foundation/transit'
 import { inferAspectPolarity } from '@/lib/calendar-engine/aspect-polarity'
+// 어스펙트 KO 이름 — 엔진의 한 표(STARS 보조 줄 · 분야별 본문 · 사다리와 같은 이름, QA R-CA-4).
+import { ASPECT_KO } from '@/lib/calendar-engine/derivers/evidenceLadder'
 import { hourSegmentsForLocalDay } from '@/lib/calendar-engine/extractors/saju-hour'
 import { HOUR_BRANCH_NARRATIVE } from '@/lib/calendar-engine/data/hourBranchNarrative'
 // 시진 지지 한글 음(branchIdx 0 = 子) — HOUR_BRANCH_NARRATIVE 키. 정본 파생 표(D8).
@@ -57,14 +59,6 @@ function sijinSamples(focusDayIso: string, longitude: number, timeZone: string):
     })
   }
   return out.sort((a, b) => a.branchIdx - b.branchIdx)
-}
-
-const ASPECT_KO: Record<string, string> = {
-  conjunction: '합',
-  sextile: '육각',
-  square: '사각',
-  trine: '삼각',
-  opposition: '대립',
 }
 
 function natalPointKo(name: string): string {

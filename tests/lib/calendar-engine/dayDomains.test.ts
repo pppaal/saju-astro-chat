@@ -4,6 +4,7 @@ import {
   type DayEvidenceInput,
   type DayScoreBand,
 } from '@/lib/calendar-engine/derivers/dayDomains'
+import { ASPECT_KO } from '@/lib/calendar-engine/derivers/evidenceLadder'
 
 /**
  * deriveDayDomains — 일진 십신을 6개 생활 분야 조언으로 푸는 deriver.
@@ -190,8 +191,8 @@ describe('classifyEvidence — 트랜짓 라우팅', () => {
     const study = find(res, 'study')
     const merc = study.evidence.filter((e) => e.kind === 'astro' && e.text.startsWith('수성'))
     expect(merc.length).toBe(1)
-    // 가장 센(폴라리티 3, trine=삼각) 칩이 남는다.
-    expect(merc[0].text).toContain('삼각')
+    // 가장 센(폴라리티 3, trine=트라인) 칩이 남는다.
+    expect(merc[0].text).toContain('트라인')
   })
 
   it('빈 aspect 도 처리한다(공백 trim)', () => {
@@ -285,7 +286,7 @@ describe('classifyEvidence — 시별 달(moon) 절정', () => {
     const moonChip = love.evidence.find((e) => e.kind === 'moon')!
     expect(moonChip).toBeDefined()
     expect(moonChip.text).toContain('13-15시')
-    expect(moonChip.text).toContain('달삼각')
+    expect(moonChip.text).toContain('달 삼각')
     expect(moonChip.when).toBe('13-15시 (미시)')
   })
 
@@ -342,6 +343,30 @@ describe('classifyEvidence — 시별 달(moon) 절정', () => {
     expect(bodies).not.toMatch(/Today, Moon\b/)
   })
 
+  it('KO 어스펙트 이름은 엔진의 한 표(STARS 보조 줄 · 사다리와 같음) — 맨 합 없음(QA R-CA-4)', () => {
+    const body = (aspect: string) =>
+      deriveDayDomains({
+        iljinSibsin: '비견',
+        sex: '남',
+        scoreBand: 'good',
+        ko: true,
+        evidence: {
+          transits: [{ body: 'Pluto', aspect, target: '본명 Moon', polarity: -3 }],
+          shinsal: [],
+          crossActivations: [],
+        },
+      })!
+        .domains.map((d) => d.body)
+        .join(' ')
+    for (const [key, ko] of Object.entries(ASPECT_KO)) {
+      if (!['conjunction', 'square', 'trine', 'opposition', 'sextile'].includes(key)) continue
+      expect(body(key)).toContain(`명왕성–달 ${ko}`)
+    }
+    expect(body('conjunction')).not.toMatch(/달 합/)
+    // 옛 한글 이름이 와도 같은 이름으로 맞춘다.
+    expect(body('사각')).toContain(`명왕성–달 ${ASPECT_KO.square}`)
+  })
+
   it('KO 본명 접점은 한글 — 카이런, 한글 이름이 없는 점은 접점 없이(라틴 글자 누출 없음)', () => {
     const run = (target: string) =>
       deriveDayDomains({
@@ -357,9 +382,9 @@ describe('classifyEvidence — 시별 달(moon) 절정', () => {
       })!
         .domains.map((d) => d.body)
         .join(' ')
-    expect(run('본명 Chiron')).toContain('명왕성–카이런 사각')
+    expect(run('본명 Chiron')).toContain('명왕성–카이런 스퀘어')
     const unknown = run('본명 Pallas')
-    expect(unknown).toContain('명왕성 사각')
+    expect(unknown).toContain('명왕성 스퀘어')
     expect(unknown).not.toMatch(/[A-Za-z]/)
   })
 

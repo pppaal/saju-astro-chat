@@ -37,7 +37,12 @@ import { sibsinArea, sibsinAreaEn } from '@/lib/calendar-engine/derivers/plainLa
 import { lifePatternLede } from '@/lib/calendar-engine/derivers/lifePattern'
 import { eulReul, eunNeun } from '@/lib/i18n/koParticle'
 import { pick, type Bi } from '@/lib/i18n/bi'
-import { planetGlyph, planetLabel, signLabel } from './astroDetail'
+import {
+  DIGNITY_WORD as STARS_DIGNITY_WORD,
+  planetGlyph,
+  planetLabel,
+  signLabel,
+} from './astroDetail'
 import type { SajuCellVM, StarsCellVM, TimingRowVM } from './dayViewModel'
 import type { Lang } from './dateLabels'
 
@@ -360,15 +365,13 @@ const COPY = {
   },
 } as const
 
-/** 본명 품위 — STARS 칸 보조 줄(문장 중간이라 en 소문자). */
-const DIGNITY_WORD: Record<Lang, Record<string, string>> = {
-  en: {
-    domicile: 'in domicile',
-    exaltation: 'exalted',
-    detriment: 'in detriment',
-    fall: 'in fall',
-  },
-  ko: { domicile: '자기 자리', exaltation: '고양', detriment: '반대 자리', fall: '추락' },
+/**
+ * 본명 품위 — STARS 칸 보조 줄. 달력 STARS 칸과 한 표(astroDetail DIGNITY_WORD, QA R-CA-5 — 한 것에
+ * 한 이름), 문장 중간이라 en 은 소문자.
+ */
+function dignityWord(key: string, lang: Lang): string {
+  const word = STARS_DIGNITY_WORD[lang][key] ?? key
+  return lang === 'en' ? word.toLowerCase() : word
 }
 
 /** 십성 묶음 → 화면 키(영문 슬러그 — en 화면 데이터에 한글 키를 남기지 않는다). */
@@ -518,7 +521,7 @@ function buildOverlap(
     if (c.sajuHanja) saju.hanja = c.sajuHanja
     const subParts: string[] = []
     if (c.astroEvent) subParts.push(pick(c.astroEvent, lang))
-    if (c.dignity) subParts.push(DIGNITY_WORD[lang][c.dignity])
+    if (c.dignity) subParts.push(dignityWord(c.dignity, lang))
     if (c.natal) {
       const sign = signLabel(c.natal.sign, lang)
       subParts.push(lang === 'ko' ? `${sign} ${c.natal.deg}°` : `${c.natal.deg}° ${sign}`)

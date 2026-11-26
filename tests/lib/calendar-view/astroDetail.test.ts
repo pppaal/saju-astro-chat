@@ -27,6 +27,7 @@ const {
   astroDetailSub,
   planetGlyph,
   MOON_PHASE_WORD,
+  DIGNITY_WORD,
 } = astroDetailModule
 const { getMoonPhaseName } = await import('@/lib/astrology/foundation/electional')
 type MoonPhase = Parameters<typeof getMoonPhaseName>[0]
@@ -459,9 +460,14 @@ describe('표시 — STARS 칸 보조 줄', () => {
     const ph = { ...moon, sourceKind: 'moon-phase', qualifier: 'waxing_gibbous' }
     expect(spaced(astroDetailSub(dig, 'en'))).toBe('Transit · 24° Taurus · exalted')
     expect(spaced(astroDetailSub(ph, 'en'))).toBe('Transit · 24° Taurus · waxing gibbous')
-    expect(spaced(astroDetailSub(dig, 'ko'))).toBe('트랜짓 · 황소자리 24° · 엑잘테이션(고양)')
+    expect(spaced(astroDetailSub(dig, 'ko'))).toBe('트랜짓 · 황소자리 24° · 가장 좋은 자리(고양)')
     expect(spaced(astroDetailSub(ph, 'ko'))).toBe('트랜짓 · 황소자리 24° · 차오르는 달')
     expect(astroDetailSub(dig, 'en')).not.toBe(astroDetailSub(ph, 'en'))
+  })
+  it('KO 품위 말은 음역 없이 쉬운 말(QA R-CA-5) — EN 과 같은 키를 다 갖는다', () => {
+    const TRANSLIT = /엑잘|도미사일|디트리먼트|폴\(|트리플리시티|^텀$|^페이스$/
+    for (const word of Object.values(DIGNITY_WORD.ko)) expect(word).not.toMatch(TRANSLIT)
+    expect(Object.keys(DIGNITY_WORD.ko).sort()).toEqual(Object.keys(DIGNITY_WORD.en).sort())
   })
   it('로트 접촉 부모 — 위치 뒤에 로트 이름(R-VC-8)', () => {
     const lot = {

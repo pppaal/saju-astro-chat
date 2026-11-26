@@ -156,7 +156,8 @@ describe('toLadderRows — 사다리 칸', () => {
       `${nb('영혼 황소자리')} 2024–32${SEP}${nb('운명 물병자리')} 2024–54`
     )
     expect(rows[0].stars?.subLines?.map((l) => l.glyph)).toEqual(['venus', 'saturn'])
-    expect(rows[1].stars?.sub).toBe(`폴(추락)${SEP}양자리${SEP}첫 토성 회귀`)
+    // 품위는 음역(폴) 대신 쉬운 말 + 괄호 용어(QA R-CA-5).
+    expect(rows[1].stars?.sub).toBe(`${nb('약한 자리(추락)')}${SEP}양자리${SEP}첫 토성 회귀`)
     expect(rows[2].range).toBe('2026년 11월')
     expect(rows[3].stars).toMatchObject({
       text: '태양 △ 금성',
@@ -416,11 +417,12 @@ describe('분야별 — 달 절정 시각 클로즈 없음, 두 천체 이름 (�
     }
   })
 
-  it("강한 트랜짓 산문은 두 천체를 이름한다 — 'the Moon–Mars square' / '달–화성 사각'", () => {
+  it("강한 트랜짓 산문은 두 천체를 이름한다 — 'the Moon–Mars square' / '달–화성 스퀘어'", () => {
     const en = buildDayViewModel(day, { lang: 'en', sex: '여' })
     expect(en.byArea!.areas.map((a) => a.body).join(' ')).toContain('the Moon–Mars square')
     const ko = buildDayViewModel(day, { lang: 'ko', sex: '여' })
-    expect(ko.byArea!.areas.map((a) => a.body).join(' ')).toContain('달–화성 사각')
+    // 같은 화면의 STARS 보조 줄 · 사다리와 같은 이름(QA R-CA-4 — 한 것에 한 이름).
+    expect(ko.byArea!.areas.map((a) => a.body).join(' ')).toContain('달–화성 스퀘어')
   })
 
   it('DO · EASE 항목은 대문자로 시작한다(EN)', () => {

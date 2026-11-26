@@ -474,7 +474,8 @@ describe('lifetimeViewModel — 순수', () => {
     )
     expect(strings(en).filter((s) => HANGUL.test(s))).toEqual([])
     const ko = buildLifetimeViewModel({ lifetime, user }, { lang: 'ko', todayIso: '2026-11-19' })
-    expect(ko.overlap.rows[0].stars.sub).toBe('첫 토성 회귀 · 추락 · 양자리 9°')
+    // 품위 말은 달력 STARS 칸과 한 표(QA R-CA-5).
+    expect(ko.overlap.rows[0].stars.sub).toBe('첫 토성 회귀 · 약한 자리(추락) · 양자리 9°')
     expect(ko.overlap.caption).toBe(
       '트랜짓 토성은 양자리 8°21′(2026년 11월 19일), 본명 토성은 양자리 9°02′에 있어요.'
     )

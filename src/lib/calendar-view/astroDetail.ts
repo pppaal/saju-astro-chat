@@ -33,7 +33,7 @@ import type { DestinyDayReason, ReasonAstroDetail } from '@/types/calendar/month
 import { getCachedTransitChart } from '@/lib/calendar-engine/ephe-cache'
 import { createCache } from '@/lib/calendar-engine/cache'
 import { SIBSIN_HANJA } from '@/lib/saju/sibsinLabels'
-import { planetKoOr } from '@/lib/calendar-engine/derivers/evidenceLadder'
+import { ASPECT_KO, planetKoOr } from '@/lib/calendar-engine/derivers/evidenceLadder'
 import { SIGN_KO } from '@/lib/astrology/signLabels'
 import { LOT_EN, LOT_KO } from '@/lib/calendar-engine/extractors/astro-arabic-part'
 import type { PlanetGlyph } from '@/components/v9/Glyph'
@@ -93,7 +93,11 @@ function lotWord(qualifier: string, lang: Lang): string | undefined {
   return en ? `on ${en}` : undefined
 }
 
-/** 품위 말 — 근거 사다리 STARS 칸과 교차 행 보조 줄이 같은 말(astro-dignity 라벨과 같은 KO). */
+/**
+ * 품위 말 — 근거 사다리 STARS 칸 · 교차 행 보조 줄 · 인생 흐름(10년 겹침) 보조 줄이 같은 말.
+ * KO 는 음역(엑잘테이션 · 폴 · 트리플리시티 …) 대신 쉬운 말, 고전 용어는 괄호로(QA R-CA-5 — 다른
+ * 표시 경로 humanizeReason · localizeLabel 의 '가장 좋은 자리' 규칙과 같은 결).
+ */
 export const DIGNITY_WORD: Record<Lang, Record<string, string>> = {
   en: {
     domicile: 'In domicile',
@@ -105,13 +109,13 @@ export const DIGNITY_WORD: Record<Lang, Record<string, string>> = {
     face: 'In its face',
   },
   ko: {
-    domicile: '도미사일(자기 자리)',
-    exaltation: '엑잘테이션(고양)',
-    detriment: '디트리먼트(반대 자리)',
-    fall: '폴(추락)',
-    triplicity: '트리플리시티',
-    term: '텀',
-    face: '페이스',
+    domicile: '자기 자리',
+    exaltation: '가장 좋은 자리(고양)',
+    detriment: '불리한 자리',
+    fall: '약한 자리(추락)',
+    triplicity: '삼분 품위',
+    term: '경계 품위',
+    face: '얼굴 품위',
   },
 }
 
@@ -266,19 +270,8 @@ const ASPECT_WORD: Record<Lang, Record<string, string>> = {
     biquintile: 'biquintile',
     sesquiquadrate: 'sesquiquadrate',
   },
-  // astro-transit aspectKorean 과 같은 말.
-  ko: {
-    conjunction: '컨정션',
-    opposition: '어포지션',
-    trine: '트라인',
-    square: '스퀘어',
-    sextile: '섹스타일',
-    quincunx: '퀸컹스',
-    semisextile: '세미섹스타일',
-    quintile: '퀸타일',
-    biquintile: '바이퀸타일',
-    sesquiquadrate: '세스퀴쿼드러트',
-  },
+  // KO 는 엔진의 한 표(evidenceLadder ASPECT_KO) — 분야별 본문 · 사다리와 같은 이름(QA R-CA-4).
+  ko: ASPECT_KO,
 }
 
 /** 어스펙트 말 — 'square' / '스퀘어'. */

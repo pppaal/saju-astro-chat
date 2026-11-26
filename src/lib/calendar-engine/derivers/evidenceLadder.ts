@@ -297,6 +297,25 @@ export const ASPECT_SYMBOL: Readonly<Record<string, string>> = Object.fromEntrie
 )
 
 /**
+ * 어스펙트 키 → KO 이름 — v9 화면의 한 이름(결정 QA-5 '한 것에 한 이름'). STARS 보조 줄
+ * (calendar-view astroDetail) · 분야별 본문(dayDomains) · 사다리 결론(아래) · 시진별 달(toHourMoon)이
+ * 모두 이 표를 쓴다. 음역(컨정션 · 스퀘어 …)은 astro-transit aspectKorean 과 같다. 맨 '합' 은 쓰지
+ * 않는다 — 같은 화면의 사주 合 과 부딪친다(QA R-CA-4).
+ */
+export const ASPECT_KO: Readonly<Record<string, string>> = {
+  conjunction: '컨정션',
+  opposition: '어포지션',
+  trine: '트라인',
+  square: '스퀘어',
+  sextile: '섹스타일',
+  quincunx: '퀸컹스',
+  semisextile: '세미섹스타일',
+  quintile: '퀸타일',
+  biquintile: '바이퀸타일',
+  sesquiquadrate: '세스퀴쿼드러트',
+}
+
+/**
  * 트랜짓 이름('Sun □ Moon', 'Neptune ☍ True Node') → 트랜짓 행성·어스펙트 키·본명 접점.
  * 이름 규약은 astro-transit 의 `${transit} ${기호} ${natal}`. 기호 토큰이 없으면 null.
  */
@@ -598,19 +617,10 @@ const spellAspectsEn = (t: string): string =>
     .map((tok) => ASPECT_WORD_EN[tok] ?? tok)
     .join(' ')
 // KO 결론도 같은 규칙(FIX9b F10 은 로케일을 가리지 않는다 · QA VC-7) — '달 □ 화성' → '달 스퀘어 화성'.
-// 말은 astro-transit aspectKorean · calendar-view ASPECT_WORD.ko 와 같다.
-const ASPECT_WORD_KO: Record<string, string> = {
-  '☌': '컨정션',
-  '☍': '어포지션',
-  '△': '트라인',
-  '□': '스퀘어',
-  '✶': '섹스타일',
-  '⚻': '퀸컹스',
-  '⚺': '세미섹스타일',
-  '⚼': '세스퀴쿼드러트',
-  Q: '퀸타일',
-  bQ: '바이퀸타일',
-}
+// 말은 위 ASPECT_KO 한 표에서(기호 → 키 → 이름).
+const ASPECT_WORD_KO: Record<string, string> = Object.fromEntries(
+  Object.entries(ASPECT_KEY_BY_SYMBOL).map(([sym, key]) => [sym, ASPECT_KO[key] ?? key])
+)
 const spellAspectsKo = (t: string): string =>
   t
     .split(' ')
