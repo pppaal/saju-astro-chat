@@ -828,8 +828,12 @@ function buildSajuSection(
   // 처럼 같은 오행의 인접 천간을 헷갈려 "庚(신금)" 같은 오독을 낸다(실제 발생).
   // ko 만 붙인다(en 사용자는 한글 음 불필요).
   const stemKo = locale === 'en' ? '' : (STEM_HANJA_TO_HANGUL[dm.name] ?? '')
+  // ko 는 붙여 쓰는 게 자연스럽고(壬임(양수)), en 은 띄어 쓴다(壬 (yang Water)) — 예전엔
+  // en 도 붙여 'yangWater' 가 LLM 답에 그대로 새었다(재감사 SI-6).
   out.push(
-    `${L('일간', 'day_master')}: ${dm.name}${stemKo}(${yinyang}${dmElDisp}) ${strLab} ${rootLab}`
+    locale === 'en'
+      ? `day_master: ${dm.name} (${yinyang} ${dmElDisp}) ${strLab} ${rootLab}`
+      : `일간: ${dm.name}${stemKo}(${yinyang}${dmElDisp}) ${strLab} ${rootLab}`
   )
   const fe = facts.fiveElements
   out.push(
@@ -1030,13 +1034,16 @@ function buildSajuSection(
     if (stages) {
       // EN 로케일에선 단계명도 영어로 — 이전엔 stages[k] (장생/목욕…) 와
       // 괄호 anchor '(일간 X 기준)' 가 한국어 그대로 영어 컨텍스트에 새었다.
+      // ko 는 '년쇠·월사' 처럼 붙여 쓰고, en 은 기둥 코드와 단계를 띄운다('Y decline · M death')
+      // — 예전엔 en 도 붙여 'Ydecline·Mdeath' 가 됐다(재감사 SI-6). 기둥 코드는 위 기둥 줄
+      // ('Y 丁丑')과 같은 Y/M/D/H.
       const stg = (s: string) => (locale === 'en' ? (STAGE_EN[s] ?? s) : s)
       const parts = pillarKeys
         .filter((k) => !!stages[k])
-        .map((k) => `${plab[k]}${stg(stages[k] as string)}`)
-        .join('·')
+        .map((k) => `${plab[k]}${L('', ' ')}${stg(stages[k] as string)}`)
+        .join(L('·', ' · '))
       out.push(
-        `${L('12운성', '12-stages')}${L(`(일간 ${day} 기준)`, `(rel. to day master ${day})`)}: ${parts}`
+        L(`12운성(일간 ${day} 기준): ${parts}`, `12 stages (rel. to day master ${day}): ${parts}`)
       )
     }
   } catch {
