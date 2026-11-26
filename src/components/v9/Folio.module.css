@@ -1,0 +1,48 @@
+/* 폴리오 — 화면당 정확히 두 번: 내비/상단 바 바로 아래, 그리고 푸터 바로 위. 섹션 사이엔 없다. */
+.folio {
+  margin: 0 20px;
+  min-height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  font-family: var(--mono);
+  font-size: 9.5px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--mute);
+  white-space: nowrap;
+}
+
+.left {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.left b,
+.right b {
+  font-weight: 500;
+  color: var(--ink);
+}
+
+.right {
+  flex-shrink: 0;
+}
+
+.end {
+  margin-top: 44px;
+}
+
+.dark {
+  margin: 0;
+  border-color: var(--line-dark);
+  color: var(--on-dark-3);
+}
+.dark .left b,
+.dark .right b {
+  color: var(--on-dark);
+}

@@ -276,13 +276,8 @@ export const SIGN_TRAIT: Record<string, BiLabel> = {
   Pis: { ko: '섬세하고 상상력 넘치는', en: 'sensitive and imaginative' },
 }
 
-// 교차 tone → 라벨 (이중언어). "사주·점성 두 시스템이 같은/다른 얘길 하는가" 관점.
-export const TONE_LABEL: Record<CrossRow['tone'], BiLabel> = {
-  resonant: { ko: '둘 다 같은 얘길 해요', en: 'Both say the same' },
-  complement: { ko: '다르지만 서로 도와요', en: 'Different but supportive' },
-  tension: { ko: '서로 다른 두 결', en: 'Two pulls in you' },
-  neutral: { ko: '서로 상관없어요', en: 'Unrelated' },
-}
+// 교차 tone → 라벨 (이중언어) — 잎 모듈 toneLabel.ts 가 SSOT(v9 홈 카드가 이 무거운 모듈 없이 읽는다).
+export { TONE_LABEL } from './toneLabel'
 
 // ── helpers ────────────────────────────────────────────────────────────
 export const stemEl = (g: string) => STEM_INFO[g]?.el ?? ''

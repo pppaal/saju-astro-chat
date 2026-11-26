@@ -1,0 +1,69 @@
+/* 오행 타일 — 한자를 그 오행 색 위에. 색은 데이터일 때만(작은 면적, 단색, 틴트 금지). */
+.tile {
+  width: 24px;
+  height: 24px;
+  border-radius: 5px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-family: var(--hanja);
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 1;
+  color: var(--on-dark);
+}
+
+.wood {
+  background: var(--wood);
+}
+.fire {
+  background: var(--fire);
+}
+.earth {
+  background: var(--earth);
+  color: var(--ink);
+}
+.metal {
+  background: var(--metal);
+  color: var(--ink);
+  box-shadow: inset 0 0 0 1px var(--metal-key);
+}
+.water {
+  background: var(--water);
+}
+/* 먹 바탕 위의 水 — 안쪽 테로 타일 윤곽을 살린다. */
+.keyRing.water {
+  box-shadow: inset 0 0 0 1px var(--water-key);
+}
+
+.xs {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+.md {
+  width: 36px;
+  height: 36px;
+  border-radius: 7px;
+  font-size: 22px;
+}
+.card {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  font-size: 24px;
+}
+.lg {
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  font-size: 26px;
+}
+
+/* 숨긴 시주 — 점선 빈 칸(같은 크기). */
+.hidden {
+  background: transparent;
+  border: 1px dashed var(--ink-50);
+}

@@ -1,0 +1,27 @@
+/* 60갑자 다이얼 — 먹 띠(dark) 위가 기본. 가운데 정렬, 200–220px. 색 없음(지금 LED 만 인주). */
+.dial {
+  display: flex;
+  justify-content: center;
+  margin: 0;
+}
+.dial svg {
+  display: block;
+  width: 100%;
+  max-width: 220px;
+  height: auto;
+}
+.dark {
+  color: var(--on-dark);
+}
+.light {
+  color: var(--ink);
+}
+.led {
+  fill: var(--seal);
+}
+.mono {
+  font-family: var(--mono);
+}
+.hanja {
+  font-family: var(--hanja);
+}

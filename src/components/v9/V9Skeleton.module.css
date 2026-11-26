@@ -1,0 +1,88 @@
+/* paper 로딩 뼈대 — 내비 · 폴리오 · 제목 두 줄 · 버튼 · 카드 자리. 움직임은 줄인 움직임에서 끈다. */
+.sk {
+  min-height: 100dvh;
+  padding: 0 20px 40px;
+  background: var(--paper);
+}
+.bar {
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.block {
+  display: block;
+  border-radius: 8px;
+  background: var(--paper-2);
+  animation: pulse 1.6s ease-in-out infinite;
+}
+.mark {
+  width: 120px;
+  height: 18px;
+}
+.pill {
+  width: 76px;
+  height: 34px;
+  border-radius: 999px;
+}
+.folio {
+  height: 28px;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+.h1 {
+  margin-top: 28px;
+  height: 34px;
+}
+.h1b {
+  margin-top: 10px;
+  width: 72%;
+  height: 34px;
+}
+.lede {
+  margin-top: 18px;
+  width: 88%;
+  height: 14px;
+}
+.btn {
+  margin-top: 26px;
+  height: 54px;
+  border-radius: 999px;
+}
+.card {
+  margin: 28px auto 0;
+  width: min(306px, 100%);
+  aspect-ratio: 55 / 85;
+  border-radius: 16px;
+}
+.panel {
+  margin-top: 28px;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  border-radius: 16px;
+}
+.sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .block {
+    animation: none;
+  }
+}

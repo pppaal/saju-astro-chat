@@ -1,0 +1,451 @@
+/* ---- 사주 카드 — 55:85 포토카드(306 × 473). 포일(--foil + --foil-lines)이 재질이자 화면의 유일한
+   그라디언트. 작은 글자는 절대 포일 위에 두지 않는다 — 종이 띠(.strip) 위 먹 글자, mono ≥ 9px.
+   띠 ≤ 5: 머리말 · 기둥 · 일간 + 빅 쓰리 · 타입 이름(+ 인생 모양) · 정체성 + 합의 줄.
+   기울기 ≤ 2°, 줄인 움직임에서는 0. ---- */
+
+/* 뒷면이 있을 때의 무대 — 앞면(0,4) · 뒷면(30,0). 뒷면은 오른쪽 가장자리만 비친다. */
+.stage {
+  position: relative;
+  width: 336px;
+  max-width: 100%;
+  height: 490px;
+  margin: 0;
+}
+.stage .card {
+  position: absolute;
+  left: 0;
+  top: 6px;
+}
+
+.back {
+  position: absolute;
+  left: 30px;
+  top: 0;
+  width: 306px;
+  height: 473px;
+  border-radius: 16px;
+  overflow: hidden;
+  background: var(--ink);
+  color: var(--on-dark);
+  transform: rotate(5deg);
+}
+.back svg {
+  position: absolute;
+  left: 4px;
+  top: 70px;
+  display: block;
+  opacity: 0.5;
+}
+.bt {
+  position: absolute;
+  right: 11px;
+  top: 26px;
+  writing-mode: vertical-rl;
+  text-orientation: sideways;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  line-height: 1;
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--on-dark-3);
+}
+
+.card {
+  position: relative;
+  width: 306px;
+  height: 473px;
+  border-radius: 16px;
+  overflow: hidden;
+  flex-shrink: 0;
+  background-image: var(--foil-lines), var(--foil);
+  background-size:
+    auto,
+    210% 210%;
+  background-position:
+    0 0,
+    38% 82%;
+  transform: rotate(-2deg);
+  box-shadow: var(--card-shadow);
+  color: var(--ink);
+  font-family: var(--sans);
+}
+.in {
+  position: relative;
+  height: 100%;
+  padding: 11px;
+  display: flex;
+  flex-direction: column;
+}
+.in > * {
+  flex-shrink: 0;
+}
+
+/* 종이 띠 — 카드의 모든 글자가 사는 곳 */
+.strip {
+  background: var(--surface);
+  border-radius: 7px;
+  box-shadow: inset 0 0 0 1px var(--line);
+  color: var(--ink);
+}
+
+/* 머리말: 까치 + 도메인 · 훅 + 算 도장 */
+.ch {
+  height: 26px;
+  padding: 0 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.cwm {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  white-space: nowrap;
+}
+.cwm svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+.chr {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.hook {
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--mute);
+  white-space: nowrap;
+}
+.seal {
+  width: 18px;
+  height: 18px;
+  border-radius: 2px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: var(--seal);
+  color: var(--paper);
+  font-family: var(--hanja);
+  font-weight: 700;
+  font-size: 11px;
+  line-height: 1;
+}
+
+/* 기둥 — 시 · 일(나) · 월 · 연, 천간 위 · 지지 아래 */
+.pil {
+  margin-top: 10px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  justify-items: center;
+}
+.col {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+/* 일주 한 칸에만 테 하나(타일마다 링 없음) */
+.col.you {
+  margin: -5px;
+  padding: 5px;
+  border-radius: 11px;
+  box-shadow: inset 0 0 0 1.5px var(--ink);
+  background: color-mix(in srgb, var(--surface) 35%, transparent);
+}
+
+/* 기둥 캡션 띠 — 칸 이름 위, 읽는 법 아래 */
+.pc {
+  margin-top: 8px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  padding: 6px 2px 7px;
+}
+.pc > span {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.01em;
+  color: var(--body);
+  white-space: nowrap;
+}
+.pc b {
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--mute);
+}
+.pc .pcYou {
+  color: var(--ink);
+}
+.pc .pcYou b {
+  font-weight: 600;
+  color: var(--ink);
+}
+.pc .pcHid {
+  font-weight: 500;
+  color: var(--mute);
+}
+
+/* 일간 + 빅 쓰리 — 두 판독 칸, 실선으로 나눔 */
+.dmb {
+  margin-top: auto;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  padding: 7px 10px 8px;
+}
+.c {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+.c + .c {
+  margin-left: 11px;
+  padding-left: 11px;
+  border-left: 1px solid var(--line);
+}
+.cl {
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  line-height: 1.2;
+  text-transform: uppercase;
+  color: var(--mute);
+  white-space: nowrap;
+}
+.v {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 20px;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  color: var(--ink);
+  white-space: nowrap;
+}
+.b3 {
+  flex-wrap: wrap;
+  column-gap: 0;
+  row-gap: 4px;
+  font-size: 13.5px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  white-space: normal;
+}
+.it {
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+}
+.pg {
+  width: 12px;
+  height: 12px;
+  margin-right: 3px;
+  flex-shrink: 0;
+}
+.dot {
+  margin: 0 6px;
+  font-weight: 400;
+  color: var(--mute);
+}
+.ascTag {
+  margin-right: 4px;
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  color: var(--mute);
+}
+
+/* 타입 이름 — 카드의 주 이름: 라벨 줄, 세리프 이탤릭 이름, 인생 모양 줄 */
+.tn {
+  margin-top: auto;
+  padding: 8px 10px 9px;
+}
+.k {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  line-height: 1.2;
+  text-transform: uppercase;
+  color: var(--mute);
+  white-space: nowrap;
+}
+.nm {
+  margin: 6px 0 0;
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 34px;
+  line-height: 0.95;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+.ls {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-top: 9px;
+  padding-top: 7px;
+  border-top: 1px solid var(--line);
+  white-space: nowrap;
+}
+.ls .v {
+  min-height: 0;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.1;
+}
+
+/* 정체성 + 합의 — 마지막 띠, 카드 발치에 */
+.ia {
+  margin-top: auto;
+  padding: 8px 10px 10px;
+}
+.idl {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: 7px;
+  row-gap: 2px;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+.idl .s {
+  font-weight: 400;
+  color: var(--mute);
+}
+.agree {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--line);
+}
+
+/* ---- export — 공유 PNG: 기둥·ASC 없이 머리말 + 타입 띠(결정: 공유 개인정보) ---- */
+.export .tn {
+  padding: 12px 12px 13px;
+}
+.export .nm {
+  font-size: 40px;
+}
+
+/* ---- mini — 공유 블록 크기의 같은 물건: 머리말 · 기둥 · 타입 띠 하나. 150 × 232, mono ≥ 9px ---- */
+.mini {
+  width: 150px;
+  height: 232px;
+  border-radius: 11px;
+  box-shadow: var(--card-shadow-sm);
+}
+.mini .in {
+  padding: 8px;
+}
+.mini .strip {
+  border-radius: 5px;
+}
+.mini .ch {
+  height: 22px;
+  padding: 0 6px;
+}
+.mini .cwm {
+  gap: 4px;
+  font-size: 11px;
+}
+.mini .cwm svg {
+  width: 12px;
+  height: 12px;
+}
+.mini .seal {
+  width: 14px;
+  height: 14px;
+  font-size: 9px;
+}
+.mini .pil {
+  margin-top: 9px;
+}
+.mini .col {
+  gap: 3px;
+}
+.mini .col.you {
+  margin: -3px;
+  padding: 3px;
+  border-radius: 6px;
+  box-shadow: inset 0 0 0 1px var(--ink);
+}
+.mini .tn {
+  margin-top: auto;
+  padding: 6px 7px 7px;
+}
+.mini .nm {
+  margin-top: 5px;
+  font-size: 18px;
+  line-height: 0.98;
+}
+.mini .ls {
+  display: block;
+  margin-top: 6px;
+  padding-top: 5px;
+}
+.mini .ls .cl {
+  display: block;
+  line-height: 1;
+}
+.mini .ls .v {
+  display: block;
+  margin-top: 3px;
+  font-size: 11px;
+}
+
+/* 스크린 리더 전용 */
+.sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card,
+  .back {
+    transform: none;
+  }
+}
