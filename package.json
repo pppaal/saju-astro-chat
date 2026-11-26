@@ -42,7 +42,7 @@
     "test:tarot": "vitest run tests/lib/tarot",
     "test:ephemeris-golden": "tsx scripts/ephemeris-golden.mts",
     "golden:build": "tsx scripts/golden/build-engine-golden.mts",
-    "test:destiny:release": "vitest run tests/golden/ real.node tests/lib/report/integratedReport.real.test.ts tests/lib/report/integratedReport.render.test.ts tests/lib/calendar-engine/buildCalendar.determinism.test.ts tests/lib/astrology/real-ephemeris-correctness.test.ts",
+    "test:destiny:release": "vitest run tests/golden/ real.node tests/lib/report/integratedReport.real.test.ts tests/lib/report/integratedReport.render.test.ts tests/lib/calendar-engine/buildCalendar.determinism.test.ts tests/lib/astrology/real-ephemeris-correctness.test.ts tests/lib/card/",
     "test:nightly:shard": "node scripts/ops/run-vitest-shard.mjs",
     "test:destiny-map": "vitest run tests/destiny-map-sanitize.test.ts",
     "test:performance": "vitest run tests/performance/web-vitals.test.ts --reporter=verbose",

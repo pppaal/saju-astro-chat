@@ -6,7 +6,8 @@
  * 무색·focus=어느 쪽이든. 통과하는 교차가 없으면 null.
  */
 import { describe, it, expect } from 'vitest'
-import { crossSajuEn, pickDayReason, reasonSignForMark } from '@/app/calendar/crossPair'
+import { pickDayReason, reasonSignForMark } from '@/app/calendar/crossPair'
+import { crossSajuEn } from '@/lib/calendar-engine/derivers/signalI18n'
 import { SAJU_ASTRO_MAPPINGS } from '@/lib/calendar-engine/data/saju-astro-mapping'
 import { SIBSIN_EN } from '@/lib/saju/sibsinLabels'
 import type { ActiveSignal, Polarity, SignalLayer } from '@/lib/calendar-engine/types'

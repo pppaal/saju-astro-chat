@@ -39,12 +39,12 @@ import { ladderDaeunRange } from '@/lib/calendar-engine/derivers/evidenceLadder'
 import { assembleDayTier } from './assembleDayTier'
 import {
   crossKeys,
-  crossSajuEn,
   stripCrossPair,
   PLANET_EN_FROM_KO,
   pickDayReason,
   pickDayReasonSignal,
 } from './crossPair'
+import { crossSajuEn } from '@/lib/calendar-engine/derivers/signalI18n'
 
 import type { NatalContext } from '@/lib/calendar-engine/context/types'
 import type { CalendarCell } from '@/lib/calendar-engine/types'

@@ -44,7 +44,8 @@ export default async function DestinypalPreview() {
   const lang = await detectServerLocale()
 
   // ─── NatalContext + 그 달 cells (DB 캐시 우선) ────────────────────────
-  const natal = await getOrBuildNatalContext(BIRTH)
+  // 본명도 샘플의 "지금"으로 — 현재 대운·만 나이가 서버 시계가 아니라 SAMPLE_NOW 기준(결정론).
+  const natal = await getOrBuildNatalContext({ ...BIRTH, now: SAMPLE_NOW })
   const [cells, focusDayCell] = await Promise.all([
     getOrBuildMonthCells(BIRTH, natal, TARGET_YEAR, TARGET_MONTH, { includeEvidence: false }),
     getFocusDayCell(BIRTH, natal, TARGET_DAY_ISO),

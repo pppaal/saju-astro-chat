@@ -81,7 +81,7 @@ const ASTRO_EN: Record<string, string> = {
 
 // 신살 이름 KO→EN — 캘린더가 낼 수 있는 신살 전부(saju-shinsal SHINSAL_POLARITY 키 =
 // 엔진 ShinsalHit kind)와 그 '~살' 별칭. 영문은 interpretations.json shinsal name_en(정본).
-// 단일 출처: dayTierEnMaps.shinsalEn·교차 사주 키 라벨(crossPair.crossSajuEn)이 이 표를 쓴다.
+// 단일 출처: dayTierEnMaps.shinsalEn·교차 사주 키 라벨(crossSajuEn — 이 파일)이 이 표를 쓴다.
 // 예전엔 11개만 있어 EN 화면에 '건록'·'문창'·'금여성' 등이 한글로 샜고(재감사 SI-2·CC-4),
 // '육해' 는 관계어 '해'만 치환돼 '육harm' 이 됐다.
 const SHINSAL_BASE_EN: Record<string, string> = {
@@ -203,4 +203,16 @@ export function translateSignalLabel(koLabel: string, lang: 'ko' | 'en'): string
     }
   }
   return out
+}
+
+/**
+ * 교차 사주 키(십신 또는 신살 — SajuMatchKey) → EN 표시명. 월 '왜 이런 날' 칩·월 교차 카드·
+ * 일 교차 카드·일 뷰모델 교차 행·인생 10년 교차가 모두 이 한 함수를 쓴다(G14 — 예전엔
+ * app/calendar/crossPair 에 있고 dayViewModel 이 같은 규칙을 따로 복사해 썼다). 십신은
+ * SIBSIN_EN(saju/sibsinLabels), 신살은 정본 신살 표(SHINSAL_NAME_EN — 건록 'Established
+ * Stipend'), 그 밖은 용어 치환 폴백. 예전 폴백(SIBSIN_EN ?? translateSignalLabel)은 신살 표에
+ * 건록이 없어 EN 화면에 '건록 × Sun' 이 떴다(재감사 SI-2·CC-4).
+ */
+export function crossSajuEn(sajuKo: string): string {
+  return SIBSIN_EN_BASE[sajuKo] ?? shinsalNameEn(sajuKo) ?? translateSignalLabel(sajuKo, 'en')
 }

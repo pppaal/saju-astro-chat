@@ -6,8 +6,7 @@
    ============================================================ */
 
 import { PLANET_KO } from '@/lib/calendar-view/shared'
-import { SIBSIN_EN } from '@/lib/saju/sibsinLabels'
-import { shinsalNameEn, translateSignalLabel } from '@/lib/calendar-engine/derivers/signalI18n'
+import { crossSajuEn } from '@/lib/calendar-engine/derivers/signalI18n'
 
 import type { ActiveSignal, CalendarCell, SignalLayer } from '@/lib/calendar-engine/types'
 import type { DestinyCalendarCell, DestinyDayMark } from '@/types/calendar'
@@ -18,17 +17,6 @@ import type { DestinyCalendarCell, DestinyDayMark } from '@/types/calendar'
 export const PLANET_EN_FROM_KO: Record<string, string> = Object.fromEntries(
   Object.entries(PLANET_KO).map(([en, ko]) => [ko, en])
 )
-
-/**
- * 교차 사주 키(십신 또는 신살 — SajuMatchKey) → EN 표시명. 월 '왜 이런 날' 칩·월 교차 카드·
- * 일 교차 카드·인생 10년 교차가 모두 이 한 함수를 쓴다. 십신은 SIBSIN_EN, 신살은 정본 신살
- * 표(interpretations name_en — 건록 'Established Stipend'), 그 밖은 용어 치환 폴백.
- * 예전 폴백(SIBSIN_EN ?? translateSignalLabel)은 신살 표에 건록이 없어 EN 화면에 '건록 ×
- * Sun' 이 떴다(재감사 SI-2·CC-4). 테스트가 매핑의 사주 키 전부를 잠근다.
- */
-export function crossSajuEn(sajuKo: string): string {
-  return SIBSIN_EN[sajuKo] ?? shinsalNameEn(sajuKo) ?? translateSignalLabel(sajuKo, 'en')
-}
 
 export function parseCrossName(name: string | undefined): { sajuKo: string; astroKo: string } {
   const parts = (name ?? '').split('×').map((x) => x.trim())

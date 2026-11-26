@@ -30,12 +30,12 @@ import { buildHourMoon } from '@/lib/calendar-view/toHourMoon'
 import { withReasonDetail, withTransitPositions } from '@/lib/calendar-view/astroDetail'
 import {
   crossKeys,
-  crossSajuEn,
   stripCrossPair,
   PLANET_EN_FROM_KO,
   pickDayReason,
   pickDayReasonSignal,
 } from './crossPair'
+import { crossSajuEn } from '@/lib/calendar-engine/derivers/signalI18n'
 
 import type { NatalContext } from '@/lib/calendar-engine/context/types'
 import type { CalendarCell } from '@/lib/calendar-engine/types'

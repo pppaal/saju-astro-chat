@@ -23,8 +23,10 @@ import type { PlanetGlyph } from '@/components/v9/Glyph'
 import { buildDayHero, buildDayDomains, type DayCross } from './dayHero'
 import { astroDetailSub, planetGlyph, planetLabel, signLabel } from './astroDetail'
 import { dotDate, dotMonthDay, monthYearShort, weekdayLong, type Lang } from './dateLabels'
-import { SIBSIN_EN, SIBSIN_HANJA } from '@/lib/saju/sibsinLabels'
-import { shinsalNameEn, translateSignalLabel } from '@/lib/calendar-engine/derivers/signalI18n'
+import { SIBSIN_HANJA } from '@/lib/saju/sibsinLabels'
+// 교차 사주 키 EN — 일 페이로드의 sajuSide 는 서버 언어로 구워져 있어 로케일 토글 시 원어 키에서
+// 월·일 교차 카드와 같은 함수로 다시 고른다.
+import { crossSajuEn } from '@/lib/calendar-engine/derivers/signalI18n'
 import { PLANET_KO } from './shared'
 
 /** 행성 한글 → 영문 키(교차 행 ko 표기에서 기호를 고를 때). */
@@ -99,14 +101,6 @@ export function toTimingRow(reason: DestinyDayReason, lang: Lang): TimingRowVM {
   return row
 }
 
-/**
- * 교차 사주 키 → EN 표시명 — app/calendar/crossPair.crossSajuEn 과 같은 순서(십신 → 정본 신살 →
- * 용어 치환). 일 페이로드의 sajuSide 는 서버 언어로 구워져 있어 로케일 토글 시 원어 키에서 다시 고른다.
- */
-function sajuKeyEn(sajuKo: string): string {
-  return SIBSIN_EN[sajuKo] ?? shinsalNameEn(sajuKo) ?? translateSignalLabel(sajuKo, 'en')
-}
-
 /** 일 교차 카드 행(day.crossActivations) → 타이밍 교차 행(원어 키에서 요청 로케일로). */
 export function crossToTimingRow(c: DayCross, lang: Lang): TimingRowVM {
   const ko = lang === 'ko'
@@ -116,7 +110,7 @@ export function crossToTimingRow(c: DayCross, lang: Lang): TimingRowVM {
   const hanja = SIBSIN_HANJA[sajuKo]
   const glyph = planetGlyph(planetEn)
   const row: TimingRowVM = {
-    saju: { ...(hanja ? { hanja } : {}), text: ko ? sajuKo : sajuKeyEn(sajuKo) },
+    saju: { ...(hanja ? { hanja } : {}), text: ko ? sajuKo : crossSajuEn(sajuKo) },
     stars: { ...(glyph ? { glyph } : {}), text: ko ? astroKo : planetEn },
     note: ko ? c.meaning : capitalize(c.meaningEn || c.meaning),
   }

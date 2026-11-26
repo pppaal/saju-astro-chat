@@ -86,6 +86,23 @@ describe('dialModel — 지금', () => {
     }
   })
 
+  // G14 — 보는 사람 시간대가 없거나 깨졌으면 UTC(서울 아님). 2027 立春 = 2027-02-04T01:4xZ 라
+  // 2027-02-03T20:00Z 는 서울(02-04 05:00)로는 立春 날이지만 UTC 로는 아직 02-03 — 丙午.
+  it('시간대가 없거나 깨졌으면 UTC — 서울 기준 존으로 읽지 않는다', () => {
+    const at = new Date('2027-02-03T20:00:00Z')
+    expect(dialModel({ nowDate: at, timeZone: SEOUL }).centre.ganji).toBe('丁未')
+    for (const tz of [undefined, null, '', 'Not/AZone']) {
+      expect(dialModel({ nowDate: at, timeZone: tz }).now).toEqual(
+        dialModel({ nowDate: at, timeZone: 'UTC' }).now
+      )
+      expect(dialModel({ nowDate: at, timeZone: tz }).centre.ganji).toBe('丙午')
+    }
+    // 'YYYY-MM-DD' 입력도 같은 시간대 규칙으로 節 경계 날짜를 본다.
+    expect(dialModel({ nowDate: '2027-02-03', timeZone: 'Not/AZone' }).now).toEqual(
+      dialModel({ nowDate: '2027-02-03', timeZone: 'UTC' }).now
+    )
+  })
+
   it('시계를 읽지 않는다 — 시스템 시각을 바꿔도 같은 모델', () => {
     const input = { nowDate: atSeoulNoon('2026-11-19'), timeZone: SEOUL, bornYear: 1997 }
     const a = dialModel(input)

@@ -166,8 +166,17 @@ export function getAllCreditPackIds(): CreditPackType[] {
 }
 
 /**
- * Format price for display
+ * 가격 표기 — 숫자 모양은 'en-US' 묶음(쉼표 천 단위)으로 고정한다: KRW '₩5,900', USD '$4.99'.
+ * 실행 환경의 기본 로케일을 읽지 않는다(G14) — 예전엔 toLocaleString() 을 로케일 없이 불러,
+ * 서버 렌더한 PriceLine 이 de-DE 브라우저에서 '₩5.900' 으로 하이드레이트돼 달라졌다.
+ * ko/en 화면 모두 같은 숫자 모양(한국어도 쉼표 묶음)이고, locale 은 0원의 '무료'/'Free' 만 고른다.
  */
+const KRW_DIGITS = new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 })
+const USD_DIGITS = new Intl.NumberFormat('en-US', {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+})
+
 export function formatPrice(
   amount: number,
   currency: Currency,
@@ -178,9 +187,9 @@ export function formatPrice(
   }
 
   if (currency === 'KRW') {
-    return `₩${amount.toLocaleString()}`
+    return `₩${KRW_DIGITS.format(amount)}`
   }
-  return `$${amount.toFixed(2)}`
+  return `$${USD_DIGITS.format(amount)}`
 }
 
 // ============================================================================

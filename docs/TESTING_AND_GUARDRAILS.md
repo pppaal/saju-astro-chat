@@ -49,7 +49,8 @@ vitest run tests/golden/ real.node \
   tests/lib/report/integratedReport.real.test.ts \
   tests/lib/report/integratedReport.render.test.ts \
   tests/lib/calendar-engine/buildCalendar.determinism.test.ts \
-  tests/lib/astrology/real-ephemeris-correctness.test.ts
+  tests/lib/astrology/real-ephemeris-correctness.test.ts \
+  tests/lib/card/
 ```
 
 - `tests/golden/` — the engine golden set (`engine-golden.json`, written by
@@ -76,6 +77,10 @@ vitest run tests/golden/ real.node \
   server clock.
 - `real-ephemeris-correctness.test.ts` — planet longitudes against
   astronomy-engine within 0.02°.
+- `tests/lib/card/` — the Saju Card builder (`buildSajuCardData`: pillars, big
+  three, Saju type, identity verdict with the Western element on the stars side,
+  agreement line) and the home sample card golden (`sampleCard.ts` = engine
+  output for the fixed sample and `now`).
 
 Real-ephemeris files run under `@vitest-environment node` with
 `vi.unmock('swisseph')` and `vi.unmock('@/lib/astrology/foundation/ephe')`, and

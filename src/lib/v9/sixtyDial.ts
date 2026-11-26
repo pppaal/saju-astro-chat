@@ -22,7 +22,6 @@ import { pillarsForLocalDate, pillarsForLocalDateString } from '@/lib/calendar-e
 import { yearPillarOfSajuYear } from '@/lib/saju/datePillars'
 import { STEM_NAMES, BRANCH_NAMES } from '@/lib/saju/constants'
 import { getDateComponentsInTimezone, normalizeTimeZone } from '@/lib/datetime/timezone'
-import { CALCULATION_STANDARDS } from '@/lib/config/calculationStandards'
 import type { Lang } from '@/lib/i18n/bi'
 import { DIAL_LABELS, type DialLine } from './ring'
 
@@ -127,7 +126,11 @@ export interface DialInput {
    * 이미 그 사람의 현지 날짜로 보고 그대로 쓴다.
    */
   nowDate: Date | string
-  /** 보는 사람의 IANA 시간대(Date 일 때만 쓴다). 없거나 깨졌으면 사주 기준 존. */
+  /**
+   * 보는 사람의 IANA 시간대 — Date 를 그 민용 날짜로 읽고, 節/立春 순간이 어느 현지 날짜에
+   * 드는지 정한다. 없거나 깨졌으면 UTC(서울 아님 — 글로벌 제품, greetingTemplates ·
+   * useCounselorData 와 같은 규칙, G13).
+   */
   timeZone?: string | null
   /** 태어난 해의 사주년(원국 연주의 해, 입춘 기준). 없으면 표시 안 함. */
   bornYear?: number | null
@@ -137,8 +140,8 @@ export interface DialInput {
 }
 
 function localPillars(nowDate: Date | string, timeZone?: string | null) {
-  if (typeof nowDate === 'string') return pillarsForLocalDateString(nowDate.slice(0, 10))
-  const tz = normalizeTimeZone(timeZone, CALCULATION_STANDARDS.saju.baseTimezone)
+  const tz = normalizeTimeZone(timeZone, 'UTC')
+  if (typeof nowDate === 'string') return pillarsForLocalDateString(nowDate.slice(0, 10), tz)
   const c = getDateComponentsInTimezone(nowDate, tz)
   return pillarsForLocalDate(c.year, c.month, c.day, tz)
 }
