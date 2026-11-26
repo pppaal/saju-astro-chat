@@ -217,6 +217,7 @@ const KIND_TO_CAT: Record<string, string> = {
   gongmang: 'saju/gongmang',
   'applied-pattern': 'saju/applied-pattern',
   transit: 'astro/transit',
+  'natal-dignity': 'astro/natal-dignity',
   eclipse: 'astro/eclipse',
   progression: 'astro/progression',
   'progressed-moon': 'astro/progressed-moon',

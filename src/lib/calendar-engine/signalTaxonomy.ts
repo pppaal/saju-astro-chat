@@ -43,9 +43,15 @@ export const TONE_LAYERS: ReadonlySet<SignalLayer> = new Set<SignalLayer>(['dail
  * 계산에서 빼되, 일 tier 전체 signal stream(cell.signals)에는 남아 카드에서 확인 가능.
  *  - 'saju-pattern'   : 본명 격국명·일주 archetype (decadal 배경)
  *  - 'geokguk-status' : 본명 격국 성패(±1, daily emit)
+ *  - 'natal-dignity'  : 본명 5-tier Almuten 스냅샷(astro-dignity). 예전엔 kind 'transit' 이라
+ *                       느린 트랜짓처럼 일 점수·근거 사다리·수렴 무게에 매일 같은 값으로 들어갔다
+ *                       (docs/운흐름.md §0.5.8 '일부러 제외: dignity(본명) · Almuten').
+ * 점수(index.ts)·근거 사다리(evidenceLadder)·수렴(convergence)·현저도(surprise)·월 요약은
+ * 이 Set 으로 거르고, 서사/근거 카드(cell.signals)에는 남는다.
  * docs/운흐름.md §0.5.8 / RAW_DISTRIBUTION.md §2.5 참조.
  */
 export const STATIC_NATAL_KINDS: ReadonlySet<string> = new Set<string>([
   'saju-pattern',
   'geokguk-status',
+  'natal-dignity',
 ])

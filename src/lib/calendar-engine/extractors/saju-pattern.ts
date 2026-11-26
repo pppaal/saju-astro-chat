@@ -1,6 +1,7 @@
 import { matchAllPatterns } from '@/lib/saju/patternMatcher'
 import { getGeokgukRich } from '@/lib/chart-dictionary'
 import type { ActiveSignal, ExtractorContext, SignalExtractor, Polarity } from '../types'
+import { civilYearWindows } from './shared/natalWindows'
 
 /**
  * 본명 사주 패턴 (격국·구조) 추출기.
@@ -13,6 +14,11 @@ import type { ActiveSignal, ExtractorContext, SignalExtractor, Polarity } from '
  *
  * 추가로 natal.saju.geokguk (격국명, build.ts가 determineGeokguk으로 채움)이
  * 있으면 별도 신호로 emit — 명리상 主格 라벨을 카드/내러티브에 노출.
+ *
+ * 창·id 는 (본명, 민용 연도) 만의 함수다 — 범위가 닿는 해마다 한 신호, 창은 그 해 1/1~12/31
+ * (출생일 이전·120세 이후는 자름), id 는 연도로 끝난다(shared/natalWindows, G13). 예전엔
+ * 창 = 빌드 범위라 1일 빌드와 월 빌드의 창이 갈렸다. 정적 본명(STATIC_NATAL_KINDS)이라
+ * 점수에는 들지 않는다.
  */
 
 // 격국명이 geokguk-rich 에 없는 구조 패턴(상호작용·음양격)의 EN 라벨.
@@ -39,17 +45,15 @@ const sajuPatternExtractor: SignalExtractor = {
     const { natal, range } = ctx
     const signals: ActiveSignal[] = []
 
+    // 평생 구간(출생일 ~ 120세 되는 해 직전) 안의 민용 연도 창 — 범위와 무관한 규칙.
     const lifetimeStart = new Date(
       Date.UTC(natal.input.year, natal.input.month - 1, natal.input.date)
-    ).toISOString()
-    const lifetimeEnd = new Date(Date.UTC(natal.input.year + 120, 0, 1)).toISOString()
-    const rangeStart = new Date(range.start).toISOString()
-    const rangeEnd = new Date(range.end).toISOString()
-    const activeWindow = {
-      start: rangeStart > lifetimeStart ? rangeStart : lifetimeStart,
-      peak: rangeStart,
-      end: rangeEnd < lifetimeEnd ? rangeEnd : lifetimeEnd,
-    }
+    )
+      .toISOString()
+      .slice(0, 10)
+    const lifetimeEnd = `${String(natal.input.year + 119).padStart(4, '0')}-12-31`
+    const years = civilYearWindows(range, { from: lifetimeStart, to: lifetimeEnd })
+    if (years.length === 0) return signals
 
     // ─── 격국명 (build.ts → context.saju.geokguk) ───
     // 명리 主格(primary structure)은 매칭된 sibsin 패턴(재성격·인수격…)과 별개
@@ -58,26 +62,27 @@ const sajuPatternExtractor: SignalExtractor = {
     // 자기 격국명을 바로 확인할 수 있게 한다.
     const geokguk = natal.saju.geokguk
     if (geokguk) {
-      signals.push({
-        id: `saju.pattern.geokguk.${geokguk}`,
-        source: 'saju',
-        kind: 'saju-pattern',
-        name: geokguk,
-        // 격국 정통 한 줄(tagline) 을 chart-dictionary 에서 — 없으면 이름 폴백.
-        korean: getGeokgukRich(geokguk, 'ko')?.tagline ?? geokguk,
-        english: getGeokgukRich(geokguk, 'en')?.tagline ?? geokguk,
-        polarity: 1, // 격국 자체는 본질 라벨 — 약한 + 톤만 부여
-        layer: 'decadal',
-        active: activeWindow,
-        weight: 0.9, // 명리 主格이라 강한 가중. 단일 발화라 inflate 위험 낮음.
-        evidence: {
-          module: 'saju-pattern',
-          detail: {
-            geokguk,
-            kind: 'geokguk',
+      for (const w of years)
+        signals.push({
+          id: `saju.pattern.geokguk.${geokguk}.${w.year}`,
+          source: 'saju',
+          kind: 'saju-pattern',
+          name: geokguk,
+          // 격국 정통 한 줄(tagline) 을 chart-dictionary 에서 — 없으면 이름 폴백.
+          korean: getGeokgukRich(geokguk, 'ko')?.tagline ?? geokguk,
+          english: getGeokgukRich(geokguk, 'en')?.tagline ?? geokguk,
+          polarity: 1, // 격국 자체는 본질 라벨 — 약한 + 톤만 부여
+          layer: 'decadal',
+          active: { start: w.start, peak: w.peak, end: w.end },
+          weight: 0.9, // 명리 主格이라 강한 가중. 단일 발화라 inflate 위험 낮음.
+          evidence: {
+            module: 'saju-pattern',
+            detail: {
+              geokguk,
+              kind: 'geokguk',
+            },
           },
-        },
-      })
+        })
     }
 
     // ─── 패턴 매칭 (재성격·인수격·삼합격…) ───
@@ -93,38 +98,39 @@ const sajuPatternExtractor: SignalExtractor = {
       .sort((a, b) => b.matchScore - a.matchScore)[0]
 
     if (top) {
-      signals.push({
-        id: `saju.pattern.${top.patternId}`,
-        source: 'saju' as const,
-        kind: 'saju-pattern' as const,
-        name: top.patternName,
-        // 격국 tagline 우선, 없으면 패턴 자체 해석문(interpretation/description) 폴백.
-        korean:
-          getGeokgukRich(top.patternName, 'ko')?.tagline ??
-          top.interpretation ??
-          top.description ??
-          top.patternName,
-        english:
-          getGeokgukRich(top.patternName, 'en')?.tagline ??
-          PATTERN_NAME_EN[top.patternId] ??
-          top.patternName,
-        polarity: polarityForPattern(top.rarity, top.matchScore),
-        layer: 'decadal' as const, // 평생 배경 → decadal에 매핑 (가장 긴 레이어)
-        active: activeWindow,
-        weight: Math.min(1, 0.5 + top.matchScore / 200), // 50점=0.75, 100점=1.0
-        evidence: {
-          module: 'saju-pattern',
-          detail: {
-            patternId: top.patternId,
-            category: top.category,
-            rarity: top.rarity,
-            matchScore: top.matchScore,
-            keywords: top.keywords,
-            description: top.description,
-            interpretation: top.interpretation,
+      for (const w of years)
+        signals.push({
+          id: `saju.pattern.${top.patternId}.${w.year}`,
+          source: 'saju' as const,
+          kind: 'saju-pattern' as const,
+          name: top.patternName,
+          // 격국 tagline 우선, 없으면 패턴 자체 해석문(interpretation/description) 폴백.
+          korean:
+            getGeokgukRich(top.patternName, 'ko')?.tagline ??
+            top.interpretation ??
+            top.description ??
+            top.patternName,
+          english:
+            getGeokgukRich(top.patternName, 'en')?.tagline ??
+            PATTERN_NAME_EN[top.patternId] ??
+            top.patternName,
+          polarity: polarityForPattern(top.rarity, top.matchScore),
+          layer: 'decadal' as const, // 평생 배경 → decadal에 매핑 (가장 긴 레이어)
+          active: { start: w.start, peak: w.peak, end: w.end },
+          weight: Math.min(1, 0.5 + top.matchScore / 200), // 50점=0.75, 100점=1.0
+          evidence: {
+            module: 'saju-pattern',
+            detail: {
+              patternId: top.patternId,
+              category: top.category,
+              rarity: top.rarity,
+              matchScore: top.matchScore,
+              keywords: top.keywords,
+              description: top.description,
+              interpretation: top.interpretation,
+            },
           },
-        },
-      })
+        })
     }
 
     return signals

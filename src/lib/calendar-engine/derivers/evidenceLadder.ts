@@ -174,7 +174,8 @@ function koPointTokens(name: string): string {
 }
 
 /**
- * 위계(dignity) 신호 — astro-dignity 추출기가 kind 'transit' 으로 낸다. evidence 를
+ * 위계(dignity) 신호 — astro-dignity 추출기가 트랜짓 품위는 kind 'transit', 본명 Almuten
+ * 스냅샷은 kind 'natal-dignity'(정적 본명 — 사다리 입력에서 빠짐)로 낸다. evidence 를
  * 뺀 월 셀에서도 module 은 남으므로 module(또는 id 접두)로 가린다.
  */
 const isDignitySignal = (s: ActiveSignal): boolean =>
@@ -197,8 +198,8 @@ function dignityChipText(s: ActiveSignal, lang: Lang): string {
 
 /** 점성 지배신호 → 짧은 칩 라벨. transit 은 '금성 △ 금성', 그 외는 kind 라벨. */
 function astroChipText(s: ActiveSignal, lang: Lang): string {
+  if (isDignitySignal(s)) return dignityChipText(s, lang)
   if (s.kind === 'transit') {
-    if (isDignitySignal(s)) return dignityChipText(s, lang)
     const planets = s.evidence?.planets
     const mark = ASPECT_MARK[s.evidence?.aspectType ?? ''] ?? '·'
     if (planets && planets.length >= 2) {

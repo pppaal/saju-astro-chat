@@ -105,7 +105,14 @@ export { SAJU_ENGINE_VERSION }
 //     트랜짓·일식이 본명 ASC/MC·행운점·버텍스를 대상으로 잡지 않고 식점 하우스를 달지 않으며,
 //     시간 미상이면 남은 시각 문자열이 아니라 정오 앵커로 NatalContext.input(리턴·진행 입력)을
 //     만든다. 운명상담사 컨텍스트 키는 ENGINE_VERSION_TAG 로 따라온다.
-export const CALENDAR_ENGINE_VERSION = 'v15'
+// v16: 본명 Almuten 스냅샷이 정적 본명 kind 'natal-dignity'(STATIC_NATAL_KINDS)라 일 점수·근거
+//     사다리·수렴 무게에서 빠진다(G13, docs/운흐름.md §0.5.8 '일부러 제외'). 본명 격국명·패턴·
+//     일주 archetype 신호의 창·id 가 민용 연도 단위(빌드 범위와 무관), 격국 성패는 범위가 닿는
+//     민용 날짜마다. 교차 매핑 meaning.en 머리가 칩 정본 이름(역마 'Traveling Horse', 양인
+//     'Blade Edge')을 쓴다 — topReasonsEn 줄이 바뀐다. 월 셀·포커스 1일 셀에 구워지므로 bump.
+//     격국 EN 이름 단일 표(saju/geokgukNameEn)로 운명상담사 컨텍스트의 격국 줄도 바뀌며
+//     ENGINE_VERSION_TAG 로 함께 무효화된다.
+export const CALENDAR_ENGINE_VERSION = 'v16'
 
 /**
  * 본명 차트 Redis 캐시(CacheKeys.natalChart, `natal:v${N}:…`).

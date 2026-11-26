@@ -26,6 +26,10 @@ import { hourSegmentsForCivilDay } from '@/lib/calendar-engine/extractors/saju-h
 import { computeDayStem } from '@/lib/calendar-engine/extractors/saju-shinsal'
 import { assembleDayTier } from '@/app/calendar/assembleDayTier'
 import { assembleLifetime } from '@/app/calendar/assembleLifetime'
+import { STATIC_NATAL_KINDS } from '@/lib/calendar-engine/signalTaxonomy'
+import { deriveScore } from '@/lib/calendar-engine/derivers/score'
+import { deriveEvidenceLadder } from '@/lib/calendar-engine/derivers/evidenceLadder'
+import { deriveConvergence } from '@/lib/calendar-engine/derivers/convergence'
 import type { NatalContext } from '@/lib/calendar-engine/context/types'
 import type { ActiveSignal, CalendarCell } from '@/lib/calendar-engine/types'
 
@@ -60,16 +64,28 @@ function crossSet(cell: CalendarCell): string[] {
     .sort()
 }
 
-/** 하우스 오버레이·앵글 컨택·본명 Almuten 신호의 id·창 — 빌드 범위와 무관해야 한다(CC-7). */
+/**
+ * 하우스 오버레이·앵글 컨택·정적 본명 신호(본명 Almuten·격국명·패턴·일주 archetype·격국 성패)
+ * 의 id·창 — 빌드 범위와 무관해야 한다(CC-7, G13).
+ */
 function staticWindowSet(cell: CalendarCell): string[] {
   return cell.signals
     .filter(
       (s) =>
         s.kind === 'house-transit' ||
         s.kind === 'angle-contact' ||
+        STATIC_NATAL_KINDS.has(s.kind) ||
         s.evidence.detail?.dignity === 'natal-almuten'
     )
     .map((s) => `${s.id}|${s.active.start}|${s.active.peak}|${s.active.end}`)
+    .sort()
+}
+
+/** 정적 본명 신호만 — 1일·월·연 빌드 비교용(G13). */
+function natalStaticSet(cell: CalendarCell | undefined): string[] {
+  return (cell?.signals ?? [])
+    .filter((s) => STATIC_NATAL_KINDS.has(s.kind))
+    .map((s) => `${s.kind}|${s.id}|${s.active.start}|${s.active.peak}|${s.active.end}`)
     .sort()
 }
 
@@ -179,6 +195,95 @@ describe('교차 범위 불변 — 1일 = 월 = D±3 (X1)', () => {
   }, 600_000)
 })
 
+const yearRange = (y: string) => dayRange(`${y}-01-01`, `${y}-12-31`)
+/** 정적 본명 추출기만 — 연 빌드도 가볍게(격국명·패턴·일주 archetype·격국 성패·본명 Almuten). */
+const STATIC_ONLY = {
+  includeEvidence: true,
+  enabledExtractors: ['saju-pattern', 'geokguk-status', 'natal-dignity'] as never[],
+}
+
+async function expectNatalStaticInvariant(natal: NatalContext, days: string[], label: string) {
+  const years = new Map<string, CalendarCell[]>()
+  const months = new Map<string, CalendarCell[]>()
+  for (const d of days) {
+    const y = d.slice(0, 4)
+    const ym = d.slice(0, 7)
+    if (!years.has(y)) years.set(y, await buildCalendar(natal, yearRange(y), STATIC_ONLY))
+    if (!months.has(ym)) months.set(ym, await buildCalendar(natal, monthRange(ym), STATIC_ONLY))
+    const year = natalStaticSet(cellOf(years.get(y)!, d))
+    const month = natalStaticSet(cellOf(months.get(ym)!, d))
+    const one = natalStaticSet(cellOf(await buildCalendar(natal, dayRange(d, d), STATIC_ONLY), d))
+    expect(year.length, `${label} ${d}: 정적 본명 신호 없음`).toBeGreaterThan(0)
+    expect(month, `${label} ${d}: 월 빌드 ≠ 연 빌드`).toEqual(year)
+    expect(one, `${label} ${d}: 1일 빌드 ≠ 연 빌드`).toEqual(year)
+    // 연 단위 창은 그 해 안에 있고, id 는 연도(또는 날짜)로 끝난다.
+    for (const row of year) {
+      const [, id, start, , end] = row.split('|')
+      expect(start.slice(0, 4), row).toBe(y)
+      expect(end.slice(0, 4), row).toBe(y)
+      expect(id.endsWith(`.${y}`) || id.includes(`.${d}.`), row).toBe(true)
+    }
+  }
+}
+
+describe('정적 본명 신호 id·창 범위 불변 — 1일 = 월 = 연 (G13)', () => {
+  it('표본 1997-03-21 14:30 F 서울 — 격국명·일주 archetype·격국 성패·본명 Almuten', async () => {
+    await expectNatalStaticInvariant(
+      sample,
+      ['2026-01-01', '2026-02-04', '2026-11-19', '2026-12-31'],
+      '표본'
+    )
+    const cell = cellOf(sampleMonth, '2026-11-19')
+    const ids = cell.signals.filter((s) => STATIC_NATAL_KINDS.has(s.kind)).map((s) => s.id)
+    expect(ids.some((id) => id.startsWith('saju.ilju-archetype.') && id.endsWith('.2026'))).toBe(
+      true
+    )
+    expect(ids.some((id) => id.startsWith('saju.pattern.geokguk.') && id.endsWith('.2026'))).toBe(
+      true
+    )
+    expect(ids.some((id) => id.startsWith('astro.dignity.natal-almuten.'))).toBe(true)
+  }, 120_000)
+
+  it('시드 출생 20명 × 3일 (연 경계 포함)', async () => {
+    let seed = 20261126
+    const rnd = () => {
+      seed = (seed * 1664525 + 1013904223) >>> 0
+      return seed / 2 ** 32
+    }
+    const CITIES = [
+      [37.5665, 126.978, 'Asia/Seoul'],
+      [34.0522, -118.2437, 'America/Los_Angeles'],
+      [51.5074, -0.1278, 'Europe/London'],
+      [-33.8688, 151.2093, 'Australia/Sydney'],
+      [40.7128, -74.006, 'America/New_York'],
+    ] as const
+    for (let i = 0; i < 20; i++) {
+      const y = 1950 + Math.floor(rnd() * 60)
+      const m = 1 + Math.floor(rnd() * 12)
+      const d = 1 + Math.floor(rnd() * 28)
+      const hh = Math.floor(rnd() * 24)
+      const mm = Math.floor(rnd() * 60)
+      const [latitude, longitude, timeZone] = CITIES[Math.floor(rnd() * CITIES.length)]
+      const birth = {
+        birthDate: `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`,
+        birthTime: `${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')}`,
+        gender: (rnd() < 0.5 ? 'male' : 'female') as 'male' | 'female',
+        latitude,
+        longitude,
+        timeZone,
+      }
+      const natal = await natalFor(birth)
+      const year = String(2025 + Math.floor(rnd() * 3))
+      const mid = `${year}-${String(2 + Math.floor(rnd() * 10)).padStart(2, '0')}-15`
+      await expectNatalStaticInvariant(
+        natal,
+        [`${year}-01-01`, mid, `${year}-12-31`],
+        `${birth.birthDate} ${birth.birthTime} ${timeZone}`
+      )
+    }
+  }, 600_000)
+})
+
 describe('셀 교차의 부모·dedup (X2·X3·X4·X5)', () => {
   it('교차의 parentIds 는 모두 그 셀 안 신호다 — 전날 子時 꼬리 부모 금지', () => {
     for (const cell of sampleMonth) {
@@ -253,6 +358,33 @@ describe('셀 교차의 부모·dedup (X2·X3·X4·X5)', () => {
 })
 
 describe('본명 고정 사실과 하우스 오버레이 (재감사 CC-2·CC-7)', () => {
+  it('본명 Almuten 은 정적 본명(natal-dignity) — 점수·근거 사다리·수렴 밖, 서사(cell.signals)엔 남는다 (G13)', () => {
+    let scoreMoved = 0
+    for (const cell of sampleMonth) {
+      const almuten = cell.signals.filter((s) => s.evidence.detail?.dignity === 'natal-almuten')
+      expect(almuten.length, cell.datetime).toBeGreaterThan(0)
+      for (const s of almuten) expect(s.kind, s.id).toBe('natal-dignity')
+      const live = cell.signals.filter((s) => !STATIC_NATAL_KINDS.has(s.kind))
+      expect(cell.derivedScore, cell.datetime).toBe(deriveScore(live, cell.matchedPatterns))
+      // 대조군 — 본명 Almuten 을 점수에 넣으면(옛 kind 'transit') 점수가 달라지는 날이 있다.
+      const withAlmuten = [...live, ...almuten]
+      if (deriveScore(withAlmuten, cell.matchedPatterns) !== cell.derivedScore) scoreMoved++
+      for (const lang of ['ko', 'en'] as const) {
+        for (const rung of deriveEvidenceLadder(cell.signals, lang)) {
+          for (const chip of rung.chips)
+            expect(chip.text, chip.text).not.toMatch(/^Natal |디그니티/)
+        }
+      }
+    }
+    expect(scoreMoved).toBeGreaterThan(0)
+    for (const lang of ['ko', 'en'] as const) {
+      for (const day of deriveConvergence(sampleMonth, 31, lang).keyDays) {
+        for (const chip of day.astro)
+          expect(chip, `${day.date} ${chip}`).not.toMatch(/^Natal |디그니티/)
+      }
+    }
+  })
+
   it('본명 Almuten 은 교차 부모가 아니다 — 단독 배경 신호로만 남는다', () => {
     let almutenCells = 0
     for (const cell of sampleMonth) {

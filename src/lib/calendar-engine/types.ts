@@ -15,6 +15,7 @@ export type SajuSignalKind =
 
 export type AstroSignalKind =
   | 'transit' // 트랜짓 어스펙트 (본명 → 트랜짓 행성)
+  | 'natal-dignity' // 본명 5-tier Almuten 스냅샷 — 정적 본명(STATIC_NATAL_KINDS), 점수 제외
   | 'eclipse' // 일식·월식 임팩트
   | 'progression' // 2차 진행 + Solar Arc
   | 'progressed-moon' // 진행 달 어스펙트

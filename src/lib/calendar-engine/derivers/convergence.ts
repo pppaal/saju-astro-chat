@@ -8,6 +8,7 @@ import {
 } from './convergence-heavy'
 import { toneMeaningFor, type MeaningTone } from './toneMeaning'
 import { toUtcMs } from '../timeUtc'
+import { STATIC_NATAL_KINDS } from '../signalTaxonomy'
 
 /**
  * 수렴(convergence) 디라이버 — "큰 날" 탐지.
@@ -237,6 +238,8 @@ export function deriveConvergence(
     let astroPolNet = 0
     let sajuPolNet = 0
     for (const s of c.signals) {
+      // 정적 본명(본명 Almuten·격국 표지)은 그날의 사건이 아니다 — 점수 파이프라인과 같은 기준.
+      if (STATIC_NATAL_KINDS.has(s.kind)) continue
       const imp = Math.abs(s.polarity) * s.weight
       if (imp < MIN_IMPACT) continue
       const heavyAstro = isHeavyAstro(s)

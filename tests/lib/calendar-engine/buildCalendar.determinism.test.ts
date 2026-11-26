@@ -36,7 +36,7 @@ const RANGE = {
 }
 
 /** 셀 수치 골격 digest — 의도적 산식/룰 변경 때만 갱신(아래 갱신 이력). */
-const GOLDEN = '17223a843c3ca6f1855e9e8dd21d28e283c5e48d'
+const GOLDEN = '8d45eb9b441c16689ee9a2f6caf2870e1339c702'
 
 /** 대운 기준 시각 — 빌드 범위 첫날(2026-06-01 KST 정오). */
 const NOW = new Date('2026-06-01T03:00:00Z')
@@ -147,6 +147,11 @@ describeRealEphemeris('buildCalendar 결정론 골든 (real ephemeris)', () => {
     // 위치·실제 달 진입으로(노드 대립 때문에 빠지던 보이드 날이 −1 신호를 얻고 택일
     // moonNotVoid 가 바뀜), 항성 표는 카탈로그 값(Castor·Pollux·Alioth·분 오기 정정), 트랜짓
     // ASC·MC 는 항성 합 대상 아님. 신호 구성이 바뀌어 점수 골격 이동. 의도된 갱신.
+    // 2026-11 갱신(v16, G13): 본명 Almuten 스냅샷이 kind 'natal-dignity'(STATIC_NATAL_KINDS)
+    // 라 일 점수에서 빠진다(docs/운흐름.md §0.5.8 '일부러 제외'). 예전엔 kind 'transit' 이라
+    // 매일 같은 본명 품위가 yearly 층 평균에 들어갔다. 격국명·패턴·일주 archetype 창의 연 단위
+    // 전환은 digest 에 영향 없음(정적 본명은 원래 점수 밖 — kind 를 'transit' 으로 되돌리면
+    // 옛 골든과 같음을 따로 확인). 의도된 갱신.
     expect(digest(await build())).toBe(GOLDEN)
   }, 60_000)
 

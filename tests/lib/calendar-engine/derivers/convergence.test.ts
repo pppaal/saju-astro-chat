@@ -281,3 +281,42 @@ describe('deriveConvergence — 정렬·다양성·topN', () => {
     expect(dates).toContain('2026-06-25')
   })
 })
+
+describe('deriveConvergence — 정적 본명(natal-dignity)은 큰 날 무게가 아니다 (G13)', () => {
+  // 본명 목성 Almuten 스냅샷 — 예전엔 kind 'transit' + planets[0]='Jupiter' 라 '느린 트랜짓'
+  // 으로 읽혀 매일 무거운 점성(imp 0.8) 이 됐다. docs/운흐름.md §0.5.8 '일부러 제외'.
+  const natalJupiter = (kind: ActiveSignal['kind']): ActiveSignal => ({
+    id: `astro.dignity.natal-almuten.Jupiter.Sagittarius.triplicity.2026`,
+    source: 'astro',
+    kind,
+    name: 'Natal Jupiter triplicity in Sagittarius',
+    polarity: 2,
+    layer: 'yearly',
+    active: win('2026-01-01T00:00:00.000Z', '2026-01-01T00:00:00.000Z', '2026-12-31T23:59:59.999Z'),
+    weight: 0.4,
+    evidence: { module: 'astro-dignity', planets: ['Jupiter'], detail: {} },
+  })
+  const sajuHeavy = sig({
+    source: 'saju',
+    kind: 'hyeongchung',
+    polarity: 2,
+    weight: 0.6,
+    active: win('2026-07-12T00:00:00Z', '2026-07-14T00:00:00Z', '2026-07-18T00:00:00Z'),
+  })
+
+  it('natal-dignity 만 있는 날은 큰 날이 아니다 — 같은 모양의 transit 은 큰 날', () => {
+    const asTransit = deriveConvergence([cell('2026-07-14', [natalJupiter('transit')])])
+    expect(asTransit.keyDays).toHaveLength(1) // 대조군: 느린 트랜짓 모양이면 무겁다
+    const asNatal = deriveConvergence([cell('2026-07-14', [natalJupiter('natal-dignity')])])
+    expect(asNatal.keyDays).toHaveLength(0)
+  })
+
+  it('사주 무거운 신호와 같은 날에도 양 체계 수렴(bothSystems)을 만들지 않는다', () => {
+    const { keyDays } = deriveConvergence([
+      cell('2026-07-14', [natalJupiter('natal-dignity'), sajuHeavy]),
+    ])
+    expect(keyDays).toHaveLength(1)
+    expect(keyDays[0].bothSystems).toBe(false)
+    expect(keyDays[0].astro).toEqual([])
+  })
+})

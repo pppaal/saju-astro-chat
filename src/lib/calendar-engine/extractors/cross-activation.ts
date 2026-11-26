@@ -152,12 +152,13 @@ function isProgressedLifecycle(s: ActiveSignal): boolean {
 }
 /**
  * 본명 Almuten 스냅샷(astro-dignity 의 natal-almuten)도 교차 키가 아니다(재감사 CC-2) —
- * kind 는 'transit' 이지만 planets[0] 은 *본명* 행성이고 품위는 출생 차트의 고정 사실이라,
+ * planets[0] 은 *본명* 행성이고 품위는 출생 차트의 고정 사실이라, 예전(kind 'transit')엔
  * 하늘의 그 행성이 몰락(fall)인 날에도 매일 '비견 × 태양 ▲' 같은 교차를 만들었다
- * (CALCULATION_SPEC §4 — 점성 부모는 하늘에서 움직이는 행성). 단독 배경 신호로는 남는다.
+ * (CALCULATION_SPEC §4 — 점성 부모는 하늘에서 움직이는 행성). 지금은 kind 'natal-dignity'
+ * (정적 본명)로 나오고, evidence 표지도 함께 본다. 단독 배경 신호로는 남는다.
  */
 function isNatalDignitySnapshot(s: ActiveSignal): boolean {
-  return s.evidence?.detail?.dignity === 'natal-almuten'
+  return s.kind === 'natal-dignity' || s.evidence?.detail?.dignity === 'natal-almuten'
 }
 function extractAstroKey(s: ActiveSignal): string | undefined {
   if (s.source !== 'astro') return undefined

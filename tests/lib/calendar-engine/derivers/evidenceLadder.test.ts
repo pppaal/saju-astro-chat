@@ -299,10 +299,11 @@ const venusTriplicity = sig({
   polarity: 1,
   weight: 0.5,
 })
-// 본명 Almuten — english 없음. module 이 빠져도(id 접두만으로) 위계로 인식돼야 한다.
+// 본명 Almuten — 추출기 출력 그대로 kind 'natal-dignity'(정적 본명, G13). english 없음.
 const natalAlmuten = sig({
   id: 'astro.dignity.natal-almuten.Venus.Libra.triplicity-term',
-  kind: 'transit',
+  kind: 'natal-dignity',
+  source: 'astro',
   name: 'Natal Venus triplicity+term in Libra',
   korean: '본명 금성 5-tier 디그니티 (천칭자리)',
   layer: 'yearly',
@@ -377,7 +378,6 @@ describe('deriveEvidenceLadder — 위계(dignity) 칩 i18n (B2 #7b)', () => {
     [sajuYearlyNeg, saturnFall],
     [venusDomicile],
     [venusTriplicity],
-    [natalAlmuten],
   ]
 
   it('EN 칩·결론에 한글이 없다 — english 머리를 쓴다', () => {
@@ -392,9 +392,15 @@ describe('deriveEvidenceLadder — 위계(dignity) 칩 i18n (B2 #7b)', () => {
     const yearly = deriveEvidenceLadder([saturnFall], 'en', ['yearly'])[0]
     expect(yearly.chips[0].text).toBe('Saturn in Fall (Aries)')
     expect(yearly.conclusion).toBe('Saturn in Fall (Aries) sets the tone for this year')
-    expect(deriveEvidenceLadder([natalAlmuten], 'en')[0].chips[0].text).toBe(
-      'Natal Venus triplicity+term in Libra'
-    )
+  })
+
+  it('본명 Almuten(natal-dignity)은 정적 본명 — 사다리에 안 뜨고 다른 칩도 밀어내지 않는다', () => {
+    expect(deriveEvidenceLadder([natalAlmuten], 'en')).toHaveLength(0)
+    expect(deriveEvidenceLadder([natalAlmuten], 'ko')).toHaveLength(0)
+    // 같은 층(yearly)의 진짜 하늘 신호(토성 폴)가 그대로 칩이 된다 — 본명 +2 가 끼어들지 않는다.
+    const yearly = deriveEvidenceLadder([natalAlmuten, saturnFall], 'en', ['yearly'])[0]
+    expect(yearly.chips.map((c) => c.text)).toEqual(['Saturn in Fall (Aries)'])
+    expect(yearly.polarity).toBe(-3)
   })
 
   it('KO 칩은 글로스 괄호를 뗀 짧은 한글 라벨 — 영문이 섞이지 않는다', () => {
@@ -403,8 +409,7 @@ describe('deriveEvidenceLadder — 위계(dignity) 칩 i18n (B2 #7b)', () => {
     expect(koChip(saturnFall)).toBe('토성 폴 (양자리)')
     expect(koChip(venusDomicile)).toBe('금성 도미사일 (천칭자리)')
     expect(koChip(venusTriplicity)).toBe('금성 트리플리시티 (천칭자리)')
-    expect(koChip(natalAlmuten)).toBe('본명 금성 디그니티 (천칭자리)')
-    for (const s of [saturnFall, venusDomicile, venusTriplicity, natalAlmuten]) {
+    for (const s of [saturnFall, venusDomicile, venusTriplicity]) {
       expect(koChip(s)).not.toMatch(/[A-Za-z]/)
     }
   })
