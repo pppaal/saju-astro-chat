@@ -4,9 +4,11 @@
  * 일간 탭이 같은 부품을 쓴다. 서버·클라이언트 공용(훅 없음).
  */
 
+import { Fragment } from 'react'
 import type { LadderRowVM, SajuCellVM, StarsCellVM } from '@/lib/calendar-view/dayViewModel'
 import { Glyph } from '@/components/v9/Glyph'
 import { pick, SYSTEMS, type Lang } from '@/components/v9/v9Copy'
+import { CAL_COPY } from './calendarCopy'
 import s from './calendar.module.css'
 import l from './EvidenceLadderV9.module.css'
 
@@ -51,7 +53,32 @@ function StarsCell({ cell, locale }: { cell: StarsCellVM | null; locale: Lang })
         {cell?.glyph ? <Glyph name={cell.glyph} className={l.pg} /> : null}
         {cell?.text || '—'}
       </span>
-      {cell?.sub ? <span className={l.sub}>{keepRanges(cell.sub)}</span> : null}
+      {cell?.subLines?.length ? (
+        // 줄마다 글 + 행성 기호 + 꼬리(조디악 릴리싱 '영혼 황소자리 ♀ 2024–32' — FIX9b F7).
+        <span className={l.sub}>
+          {cell.subLines.map((line, i) => (
+            <Fragment key={i}>
+              {i > 0 ? <br /> : null}
+              {line.text}
+              {line.glyph ? (
+                <>
+                  {'\u00A0'}
+                  <Glyph name={line.glyph} className={l.sg} />
+                </>
+              ) : null}
+              {line.tail ? (
+                // 보통 공백 — 줄이 갈리면 여기서(줄 머리에 들여쓰기가 남지 않게), 기간은 한 덩어리.
+                <>
+                  {' '}
+                  <span className={l.nw}>{keepRanges(line.tail)}</span>
+                </>
+              ) : null}
+            </Fragment>
+          ))}
+        </span>
+      ) : cell?.sub ? (
+        <span className={l.sub}>{keepRanges(cell.sub)}</span>
+      ) : null}
     </span>
   )
 }
@@ -66,8 +93,9 @@ export default function EvidenceLadderV9({
   if (rows.length === 0) return null
   return (
     <section className={s.sec} data-cal-section="ladder">
+      <h2 className={s.sr}>{pick(CAL_COPY.secLadder, locale)}</h2>
       <div className={s.lr}>
-        <span>{label}</span>
+        <span aria-hidden="true">{label}</span>
         <span>{range}</span>
       </div>
       <p className={s.cap}>{caption}</p>

@@ -1,7 +1,10 @@
 /* 달력 그리드 — 막대와 같은 한 부호(base_v9 .day). 좋음 = 먹 채움 + 종이 숫자 · 조심 = paper-2 + 1px 먹
    테 · 피함 = 빗금 위 작은 종이 알약 · 잔잔 = surface + 실선 · 최고 = 좋음 + 2px 떨어진 먹 고리 + 칸 아래
    BEST · 오늘 = 1.5px 먹 고리 + 오른쪽 위 LED(조심 테 대신 오늘 고리) · 큰 날 = 별 · 지난 날 = 45%.
-   고른 날 = 칸 아래 먹 막대(오늘 고리 · 최고 고리와 겹치지 않는 다른 모양). */
+   고른 날 = 칸 아래 먹 막대(오늘 고리 · 최고 고리와 겹치지 않는 다른 모양).
+
+   칸의 채움·테·고리는 ::before 한 장(--tile-bg · --tile-sh)에 그린다 — 지난 날 흐림(45%)을 버튼이
+   아니라 그 채움과 숫자·표지에만 걸어, 키보드 초점 고리는 흐려지지 않는다(QA A11Y-3). */
 
 .days {
   display: grid;
@@ -27,6 +30,8 @@
    `button:not(.btn-primary):not(.btn-ghost):not(.btn-soft)`(특이도 0,3,1)이 min-width 44px ·
    padding 10px 16px 로 칸을 부풀려 280px 에서 그리드가 넘친다(ShareLinkButton 과 같은 처리). */
 .day {
+  --tile-bg: var(--surface);
+  --tile-sh: inset 0 0 0 1px var(--line);
   position: relative;
   width: 100%;
   max-width: 36px;
@@ -46,62 +51,69 @@
   font-weight: 500;
   line-height: 1;
   color: var(--ink);
-  background: var(--surface);
-  box-shadow: inset 0 0 0 1px var(--line);
+  background: transparent;
   cursor: pointer;
+}
+.day::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--tile-bg);
+  box-shadow: var(--tile-sh);
 }
 .num {
   position: relative;
 }
 .good {
-  background: var(--ink);
+  --tile-bg: var(--ink);
+  --tile-sh: none;
   color: var(--on-dark);
-  box-shadow: none;
 }
 .caution {
-  background: var(--paper-2);
-  box-shadow: inset 0 0 0 1px var(--ink);
+  --tile-bg: var(--paper-2);
+  --tile-sh: inset 0 0 0 1px var(--ink);
 }
 /* 오늘이 조심 날이면 채움만 — 테는 오늘 고리가 맡는다. */
 .cautionToday {
-  background: var(--paper-2);
+  --tile-bg: var(--paper-2);
 }
 /* 종이 알약 = 22 × 14 캡슐(7px 원 둘 + 8px 다리)을 빗금 위, 숫자 뒤 가운데에. */
 .avoid {
-  background:
+  --tile-bg:
     radial-gradient(circle at calc(50% - 4px) 50%, var(--surface) 0 6.6px, transparent 7.2px),
     radial-gradient(circle at calc(50% + 4px) 50%, var(--surface) 0 6.6px, transparent 7.2px),
-    linear-gradient(var(--surface), var(--surface)) 50% 50% / 8px 13.4px no-repeat,
-    var(--hatch),
+    linear-gradient(var(--surface), var(--surface)) 50% 50% / 8px 13.4px no-repeat, var(--hatch),
     var(--surface);
-  box-shadow: inset 0 0 0 1px var(--line);
+  --tile-sh: inset 0 0 0 1px var(--line);
 }
 .best {
-  background: var(--ink);
+  --tile-bg: var(--ink);
+  --tile-sh: 0 0 0 2px var(--paper), 0 0 0 3.5px var(--ink);
   color: var(--on-dark);
-  box-shadow:
-    0 0 0 2px var(--paper),
-    0 0 0 3.5px var(--ink);
 }
 .calm {
-  background: var(--surface);
+  --tile-bg: var(--surface);
 }
 .today {
-  box-shadow: inset 0 0 0 1.5px var(--ink);
+  --tile-sh: inset 0 0 0 1.5px var(--ink);
 }
 .good.today {
-  box-shadow:
-    0 0 0 1.5px var(--ink),
-    inset 0 0 0 1.5px var(--paper);
+  --tile-sh: 0 0 0 1.5px var(--ink), inset 0 0 0 1.5px var(--paper);
 }
 .best.today {
-  box-shadow:
-    0 0 0 2px var(--paper),
-    0 0 0 3.5px var(--ink),
-    inset 0 0 0 1.5px var(--paper);
+  --tile-sh: 0 0 0 2px var(--paper), 0 0 0 3.5px var(--ink), inset 0 0 0 1.5px var(--paper);
 }
-.past {
+/* 지난 날 — 채움(::before)과 숫자·표지만 흐리게. 버튼 자체(초점 고리)는 그대로. */
+.past::before,
+.past > * {
   opacity: 0.45;
+}
+/* 초점 — 최고의 날 고리(먹, 2px 떨어짐)와 다른 인주색 3px 떨어진 고리(QA A11Y-3). 전역 잉크 링
+   (.root :focus-visible, !important)보다 특이도가 높게. */
+.days .day:focus-visible {
+  outline: 2px solid var(--seal) !important;
+  outline-offset: 3px !important;
 }
 
 .led {

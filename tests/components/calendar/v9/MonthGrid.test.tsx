@@ -5,7 +5,7 @@
 
 import { describe, it, expect, vi } from 'vitest'
 import { render, fireEvent } from '@testing-library/react'
-import MonthGrid from '@/components/calendar/v9/MonthGrid'
+import MonthGrid, { gridKeyTarget } from '@/components/calendar/v9/MonthGrid'
 import { buildMonthViewModel } from '@/lib/calendar-view/monthViewModel'
 import { makeV9Month, makeV9Day } from '../../../lib/calendar-view/_v9Month'
 
@@ -96,8 +96,55 @@ describe('MonthGrid', () => {
       <MonthGrid grid={grid} selected={19} onTap={() => {}} bestLabel="Best" locale="en" />
     )
     expect(container.querySelectorAll('button')).toHaveLength(30)
-    expect(cell(container, 17).getAttribute('aria-label')).toBe('Nov 17 · Tue, Avoid')
+    // 큰 날 · 지난 날도 이름에(QA A11Y-2 — ✦ 와 45% 흐림은 화면에만 보인다).
+    expect(cell(container, 17).getAttribute('aria-label')).toBe(
+      'Nov 17 · Tue, Avoid, key day, past'
+    )
     expect(cell(container, 19).getAttribute('aria-label')).toBe('Nov 19 · Thu, Today, Calm day')
     expect(grid.offset).toBe(0)
+  })
+
+  it('탭 정지는 하나 — 고른 날(없으면 오늘)만 tabIndex 0(QA A11Y-7)', () => {
+    const { container, rerender } = render(
+      <MonthGrid grid={gridOf()} selected={19} onTap={() => {}} bestLabel="Best" locale="en" />
+    )
+    const stops = () =>
+      Array.from(container.querySelectorAll('button')).filter((b) => b.tabIndex === 0)
+    expect(stops().map((b) => b.getAttribute('data-day'))).toEqual(['19'])
+    rerender(
+      <MonthGrid grid={gridOf()} selected={22} onTap={() => {}} bestLabel="Best" locale="en" />
+    )
+    expect(stops().map((b) => b.getAttribute('data-day'))).toEqual(['22'])
+  })
+
+  it('←/→ 하루, ↑/↓ 한 주, Home/End 그 주 — 초점만 옮기고 고르지 않는다', () => {
+    const onTap = vi.fn()
+    const { container } = render(
+      <MonthGrid grid={gridOf()} selected={19} onTap={onTap} bestLabel="Best" locale="en" />
+    )
+    cell(container, 19).focus()
+    fireEvent.keyDown(cell(container, 19), { key: 'ArrowRight' })
+    expect(document.activeElement).toBe(cell(container, 20))
+    expect(cell(container, 20).tabIndex).toBe(0)
+    expect(cell(container, 19).tabIndex).toBe(-1)
+    fireEvent.keyDown(cell(container, 20), { key: 'ArrowDown' })
+    expect(document.activeElement).toBe(cell(container, 27))
+    fireEvent.keyDown(cell(container, 27), { key: 'ArrowDown' })
+    expect(document.activeElement).toBe(cell(container, 30)) // 그 달 끝에서 멈춘다
+    fireEvent.keyDown(cell(container, 30), { key: 'Home', ctrlKey: true })
+    expect(document.activeElement).toBe(cell(container, 1))
+    expect(onTap).not.toHaveBeenCalled()
+  })
+
+  it('gridKeyTarget — 2026-11(1일 = 일요일, offset 0)', () => {
+    const o = { offset: 0, days: 30 }
+    expect(gridKeyTarget('ArrowLeft', 1, o)).toBe(1)
+    expect(gridKeyTarget('ArrowUp', 5, o)).toBe(1)
+    expect(gridKeyTarget('Home', 19, o)).toBe(15) // 19일(목) 줄의 일요일
+    expect(gridKeyTarget('End', 19, o)).toBe(21)
+    expect(gridKeyTarget('End', 29, o)).toBe(30) // 마지막 줄은 그 달 끝까지
+    expect(gridKeyTarget('End', 19, { ...o, ctrl: true })).toBe(30)
+    expect(gridKeyTarget('Home', 3, { offset: 3, days: 31 })).toBe(1)
+    expect(gridKeyTarget('Enter', 3, o)).toBeNull()
   })
 })

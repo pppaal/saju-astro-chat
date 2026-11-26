@@ -7,7 +7,8 @@
  * - 판정 단어는 그리드 마크에서(FIX9b E5) — 그리드 칸과 목록이 같은 말을 한다.
  * - 끝 마크: 두 체계가 모두 무겁다고 본 날(bothSystems)만 방향 — 좋은 날·최고의 날 ▲, 조심·피할 날
  *   ▼, 그 밖 —. 한쪽만 본 날은 —(합의를 지어내지 않는다). 범례(XLegend)는 블록 맨 아래 한 번.
- * - 지난 날 줄은 흐리게. 다음에 올 큰 날(지나지 않은 첫 줄)은 처음부터 펼쳐 '왜' 행을 보인다.
+ * - 지난 날 줄은 --mute 글자(견본만 흐리게 — 글자 대비 4.5:1 유지). 다음에 올 큰 날(지나지 않은
+ *   첫 줄)은 처음부터 펼쳐 '왜' 행을 보인다.
  *   지난 날을 펼치면 'PAST' 표지.
  */
 
@@ -58,8 +59,9 @@ export default function KeyDayList({ rows, locale }: KeyDayListProps) {
 
   return (
     <section className={s.sec} data-cal-section="key-days">
+      <h2 className={s.sr}>{pick(CAL_COPY.secKeyDays, locale)}</h2>
       <div className={s.lr}>
-        <span>
+        <span aria-hidden="true">
           {pick(CAL_COPY.keyDays, locale)}
           <i className={s.kd} aria-hidden="true" />
         </span>

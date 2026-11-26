@@ -12,6 +12,14 @@
    assembleDayTier · buildDayViewModel 경로라 월↔일 내용 일치). 받은 날짜는 세션 안에서
    캐시하고, 늦게 도착한 응답이 최신 선택을 덮지 않게 seq 가드를 둔다.
 
+   '오늘'은 이 화면의 오늘(dayVm.iso)이다 — /api/calendar/day 에 today= 로 실어 보내, 표본 날에
+   고정된 /calendar/preview 에서도 일간의 'Today'와 그리드의 오늘이 같은 날을 가리킨다(QA CODE-4).
+
+   다른 날을 받는 중이거나 받지 못했으면 이전 날의 일간을 그대로 두지 않는다 — 상태 줄 + 빈 뼈대만
+   (QA CODE-5). 상태·연 날 요약은 늘 붙어 있는 화면 읽기용 라이브 영역에 쓴다(A11Y-4). 화면 안의
+   버튼(재탭 · '하루 전체 보기' · '이달 전체 보기')이 보기를 갈아끼우면 새 보기의 H1 로 초점을
+   옮긴다(A11Y-1) — 그 버튼은 사라지므로.
+
    탭 기억: localStorage 'dp_tier'('month' | 'day' — 옛 셸의 숫자 0/1 도 읽는다). 저장소가
    막혀 있어도(사파리 프라이빗 등) 조용히 기본값(월간).
    ============================================================ */
@@ -21,7 +29,7 @@ import { useSearchParams } from 'next/navigation'
 import V9TopBar from '@/components/v9/V9TopBar'
 import Folio from '@/components/v9/Folio'
 import SegSwitch from '@/components/v9/SegSwitch'
-import { pick, type ElementKey, type Lang } from '@/components/v9/v9Copy'
+import { fill, pick, type ElementKey, type Lang } from '@/components/v9/v9Copy'
 import MonthView from '@/components/calendar/v9/MonthView'
 import DayView from '@/components/calendar/v9/DayView'
 import CalendarFooter from '@/components/calendar/v9/CalendarFooter'
@@ -111,6 +119,8 @@ export default function CalendarClient({
   const [dayData, setDayData] = useState<DayViewModel>(dayVm)
   const [dayLoading, setDayLoading] = useState(false)
   const [dayError, setDayError] = useState(false)
+  // 마지막으로 요청한 날 — dayData 와 다르면(받는 중 · 실패) 이전 날을 보이지 않는다.
+  const [wantIso, setWantIso] = useState(dayVm.iso)
   // 받아온 날짜 캐시(세션 내) + 늦게 도착한 응답이 최신 선택을 덮지 않게 seq 가드.
   const dayCacheRef = useRef<Map<string, DayViewModel>>(new Map())
   const reqSeqRef = useRef(0)
@@ -121,6 +131,7 @@ export default function CalendarClient({
       lastIsoRef.current = iso
       const seq = ++reqSeqRef.current
       setDayError(false)
+      setWantIso(iso)
 
       // 오늘(서버 빌드분) 또는 이미 받아둔 날짜 — 네트워크 없이 즉시.
       const cached = iso === dayVm.iso ? dayVm : dayCacheRef.current.get(iso)
@@ -136,6 +147,8 @@ export default function CalendarClient({
         const qs = new URLSearchParams(searchParams?.toString() ?? '')
         for (const [k, v] of Object.entries(dayFetchParams ?? {})) qs.set(k, v)
         qs.set('day', iso)
+        // 이 화면의 '오늘' — 라우트가 서버 시계 대신 이 날로 isToday 를 정한다(QA CODE-4).
+        qs.set('today', dayVm.iso)
         const res = await fetch(`/api/calendar/day?${qs.toString()}`)
         if (!res.ok) throw new Error(`day fetch ${res.status}`)
         const json = (await res.json()) as { data?: { vm?: DayViewModel } }
@@ -176,6 +189,11 @@ export default function CalendarClient({
     storeTab(next)
   }, [])
 
+  // 화면 안 버튼이 보기를 갈아끼운 뒤 새 보기의 H1 로 초점(A11Y-1). 일간이 아직 받는 중이면 상태
+  // 줄에 두었다가, 다 받으면 H1 로.
+  const mainRef = useRef<HTMLElement | null>(null)
+  const pendingFocusRef = useRef(false)
+
   // 아래로 내려가 있으면 스위치가 보이게 올린다(탭이 바뀐 걸 바로 보이게).
   const scrollToTop = useCallback(() => {
     const el = topRef.current
@@ -188,6 +206,7 @@ export default function CalendarClient({
     (iso: string) => {
       if (selectTimerRef.current) clearTimeout(selectTimerRef.current)
       void loadDay(iso)
+      pendingFocusRef.current = true
       changeTab('day')
       scrollToTop()
     },
@@ -195,11 +214,41 @@ export default function CalendarClient({
   )
 
   const backToMonth = () => {
+    pendingFocusRef.current = true
     changeTab('month')
     scrollToTop()
   }
 
   const busy = tab === 'day' && (dayLoading || dayError)
+  // 다른 날을 받는 중이거나 받지 못함 — 이전 날의 읽기를 그 날의 답처럼 두지 않는다(CODE-5).
+  const stale = busy && dayData.iso !== wantIso
+
+  useEffect(() => {
+    if (!pendingFocusRef.current) return
+    const root = mainRef.current
+    if (!root) return
+    const h1 = root.querySelector<HTMLElement>('h1')
+    if (h1) {
+      pendingFocusRef.current = false
+      h1.focus({ preventScroll: true })
+      return
+    }
+    root.querySelector<HTMLElement>('[data-day-status]')?.focus({ preventScroll: true })
+  }, [tab, stale, dayData])
+
+  // 라이브 영역 문구 — 상태(받는 중 · 실패) 또는 일간이 연 날의 요약. 월간의 고른 날 요약은
+  // MonthView 의 라이브 영역이 쓴다.
+  const liveText =
+    tab !== 'day'
+      ? ''
+      : dayLoading
+        ? pick(CAL_COPY.dayLoading, locale)
+        : dayError
+          ? pick(CAL_COPY.dayError, locale)
+          : fill(pick(CAL_COPY.liveDay, locale), {
+              label: dayData.hero.label,
+              date: dayData.hero.dateLabel,
+            })
 
   return (
     <div className={[s.page, locale === 'ko' ? s.ko : ''].filter(Boolean).join(' ')} lang={locale}>
@@ -226,9 +275,18 @@ export default function CalendarClient({
         />
       </div>
 
-      <main className={s.view} aria-busy={dayLoading && tab === 'day' ? true : undefined}>
+      {/* 늘 붙어 있는 라이브 영역 — 내용이 바뀔 때 읽힌다(함께 마운트되면 첫 알림을 놓친다). */}
+      <div className={s.sr} role="status" aria-live="polite" data-live="calendar">
+        {liveText}
+      </div>
+
+      <main
+        ref={mainRef}
+        className={s.view}
+        aria-busy={dayLoading && tab === 'day' ? true : undefined}
+      >
         {busy ? (
-          <div className={s.status} role="status" aria-live="polite">
+          <div className={s.status} data-day-status="" tabIndex={-1}>
             <span>
               {dayLoading ? pick(CAL_COPY.dayLoading, locale) : pick(CAL_COPY.dayError, locale)}
             </span>
@@ -251,7 +309,15 @@ export default function CalendarClient({
             onOpenDay={openDay}
             showCounselor={showCounselor}
             ctaSubject={ctaSubject}
+            // 일간에서 보던 날이 이 달이면 그 날을 고른 채로(QA CODE-6 — 두 탭이 같은 날을 가리킨다).
+            initialSelectedIso={dayData.iso}
           />
+        ) : stale ? (
+          <div className={s.pending} data-day-pending="" aria-hidden="true">
+            <span />
+            <span />
+            <span />
+          </div>
         ) : (
           <DayView
             vm={dayData}

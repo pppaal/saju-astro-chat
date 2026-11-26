@@ -173,6 +173,75 @@ describe('DayView', () => {
     expect(hero.textContent).toContain('Tuesday')
     expect(hero.textContent).not.toContain('Today ·')
     expect(container.textContent).toContain('Share this day')
+    // 사다리 — 일 칸 'This day', NOW 점 없음, 모서리 '10-yr → this day'(QA VC-3).
+    const ladder = container.querySelector('[data-cal-section="ladder"]') as HTMLElement
+    expect(ladder.textContent).toContain('10-yr → this day')
+    expect(ladder.querySelector('[data-now]')).toBeNull()
+    expect(ladder.querySelector('[data-scale="daily"]')?.textContent).toContain('This day')
+  })
+
+  it('오늘이면 사다리 일 칸에 NOW 점, 모서리 10-yr → today', () => {
+    const vm = buildDayViewModel(dayOf(), { lang: 'en', sex: '여', isToday: true })
+    const { container } = render(<DayView vm={vm} locale="en" />)
+    const ladder = container.querySelector('[data-cal-section="ladder"]') as HTMLElement
+    expect(ladder.textContent).toContain('10-yr → today')
+    expect(ladder.querySelector('[data-scale="daily"][data-now]')).not.toBeNull()
+  })
+
+  it('제목 — 번호 칸마다 h2(화면 읽기용), 분야 이름은 h3(QA A11Y-6)', () => {
+    const vm = buildDayViewModel(dayOf(), { lang: 'en', sex: '여', isToday: true })
+    const { container } = render(<DayView vm={vm} locale="en" />)
+    const h2 = Array.from(container.querySelectorAll('h2')).map((h) => h.textContent)
+    expect(h2).toEqual(
+      expect.arrayContaining([
+        'The day’s read',
+        'Try this',
+        'By area',
+        'Crossings',
+        'Hour by hour',
+        'Strongest driver per scale',
+      ])
+    )
+    const h3 = Array.from(container.querySelectorAll('[data-cal-section="day-area"] h3')).map(
+      (h) => h.textContent
+    )
+    expect(h3).toHaveLength(6)
+    // 제목 단계를 건너뛰지 않는다 — 톤 카드 h3 앞에도 h2(h1 → h3 금지).
+    const levels = Array.from(container.querySelectorAll('h1, h2, h3')).map((h) =>
+      Number(h.tagName.slice(1))
+    )
+    levels.forEach((lv, i) => {
+      if (i > 0) expect(lv - levels[i - 1]).toBeLessThanOrEqual(1)
+    })
+    expect(container.querySelector('h1')?.getAttribute('tabindex')).toBe('-1')
+  })
+
+  it('시진별 — 중립 시진은 칠하지 않는 견본 + 중립 이름, 범례에 중립(결정 QA-4)', () => {
+    const neutral = {
+      when: '11:15–13:15 (오시)',
+      whenEn: '11:15–13:15 (Horse hour)',
+      clockStart: '11:15',
+      clockEnd: '13:15',
+      sibsin: '',
+      tone: 'neutral' as const,
+      risingSignKo: '사수자리',
+      risingSignEn: 'Sagittarius',
+      strength: 0,
+    }
+    const vm = buildDayViewModel(dayOf({ hourCrossings: [...HOURS, neutral] }), {
+      lang: 'en',
+      sex: '여',
+      isToday: true,
+    })
+    const { container } = render(<DayView vm={vm} locale="en" />)
+    const row = container.querySelector('[data-hour-tone="neutral"]') as HTMLElement
+    expect(row.textContent).toContain('11:15–13:15')
+    expect(row.textContent).toContain('Neutral')
+    expect(row.hasAttribute('data-peak')).toBe(false)
+    const swatch = row.querySelector('i') as HTMLElement
+    expect(swatch.className).not.toMatch(/swGood|swCaution/)
+    const section = container.querySelector('[data-cal-section="day-hours"]') as HTMLElement
+    expect(section.textContent).toContain('unshaded hours are neutral')
   })
 
   it('ko — 같은 구조를 한국어로', () => {

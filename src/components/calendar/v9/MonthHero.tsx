@@ -39,7 +39,8 @@ export function HeroBand({ corner, headline, subline, locale, section, children 
         <span>{corner.left}</span>
         <span>{corner.right}</span>
       </div>
-      <h1 id="cal-h1" className={s.h1}>
+      {/* tabIndex -1 — 보기가 갈아끼워지면 CalendarClient 가 여기로 초점을 옮긴다(QA A11Y-1). */}
+      <h1 id="cal-h1" className={s.h1} tabIndex={-1}>
         {headline}
       </h1>
       {subline ? <p className={s.lede}>{subline}</p> : null}

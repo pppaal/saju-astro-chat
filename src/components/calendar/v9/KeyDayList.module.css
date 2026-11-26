@@ -33,7 +33,15 @@
 button.head {
   cursor: pointer;
 }
-.past .head {
+/* 지난 날 줄 — 글자는 --mute 색(4.5:1 이상), 견본만 흐리게(그리드 지난 날과 같은 45%). 줄 전체를
+   45% 로 흐리면 날짜·판정이 2.8:1, 뜻이 2.2:1 로 떨어졌다(QA A11Y-3). 초점 고리도 흐려지지 않는다. */
+.past .dt,
+.past .verdict,
+.past .meaning,
+.past .mk {
+  color: var(--mute);
+}
+.past .verdict > i {
   opacity: 0.45;
 }
 

@@ -11,7 +11,8 @@
  * 상담사 CTA(QA-8): 공개 샘플(/calendar/preview)은 showCounselor={false} 로 숨긴다. override 보기
  * (ctaSubject = 화면의 본명)는 저장된 본명과 같을 때만 이 달 PUSH · HOLD 질문을, 아니면 일반 질문을 싣는다.
  *
- * 그리드 탭: 처음엔 오늘이 골라져 있다. 다른 날을 누르면 고른 날 읽기가 열리고(onSelectDay —
+ * 그리드 탭: 처음엔 오늘이 골라져 있다 — 일간에서 이 달의 다른 날을 보다 왔으면 그 날(initialSelectedIso,
+ * QA CODE-6). 다른 날을 누르면 고른 날 읽기가 열리고(onSelectDay —
  * 호출자가 그날 일 데이터를 미리 받는다), 고른 날을 한 번 더 누르면 하루 전체로(gridTapIntent → dive
  * → onOpenDay). 오늘 블록·고른 날 읽기의 '하루 전체 보기'도 onOpenDay.
  */
@@ -20,7 +21,7 @@ import { useState } from 'react'
 import CounselorCTA from '@/components/report/CounselorCTA'
 import type { BirthSubject } from '@/lib/birth/sameBirth'
 import CrossCheckRow from '@/components/v9/CrossCheckRow'
-import { pick, type Lang } from '@/components/v9/v9Copy'
+import { fill, pick, type Lang } from '@/components/v9/v9Copy'
 import type { MonthGridCellVM, MonthViewModel } from '@/lib/calendar-view/monthViewModel'
 // 값으로 쓰는 재탭 규칙은 잎 모듈에서 — 뷰모델 모듈은 천체력 캐시를 끌고 와 클라이언트에 넣지 않는다.
 import { gridTapIntent } from '@/lib/calendar-view/gridTap'
@@ -49,6 +50,8 @@ interface MonthViewProps {
   showCounselor?: boolean
   /** override 보기의 본명 — 저장된 본명과 다르면 CTA 가 일반 질문을 싣는다. */
   ctaSubject?: BirthSubject
+  /** 처음 고를 날('YYYY-MM-DD') — 이 달이면 그 날, 아니면 오늘(일간에서 보던 날, QA CODE-6). */
+  initialSelectedIso?: string
 }
 
 /** 고른 날 읽기 — 큰 날 행과 같은 말(그리드 마크 판정 · 엔진 한 줄 · '왜' 행) + '하루 전체 보기'. */
@@ -63,7 +66,7 @@ function SelectedRead({
 }) {
   const { read } = cell
   return (
-    <div className={s.panel} data-cal-selected={cell.ds} aria-live="polite">
+    <div className={s.panel} data-cal-selected={cell.ds}>
       <div className={s.lr}>
         <span>{pick(CAL_COPY.selectedRead, locale)}</span>
         <span>{read.label}</span>
@@ -104,9 +107,17 @@ export default function MonthView({
   onOpenDay,
   showCounselor = true,
   ctaSubject,
+  initialSelectedIso,
 }: MonthViewProps) {
   const todayCell = vm.grid.cells.find((c) => c.isToday)
-  const [selected, setSelected] = useState<number>(todayCell?.d ?? 0)
+  const [selected, setSelected] = useState<number>(() => {
+    const d = Number(initialSelectedIso?.slice(8, 10))
+    const inMonth =
+      initialSelectedIso?.slice(0, 7) === vm.ym && vm.grid.cells.some((c) => c.d === d)
+    return inMonth ? d : (todayCell?.d ?? 0)
+  })
+  // 고른 날 요약 — 늘 붙어 있는 라이브 영역에(A11Y-4). 처음 렌더(복원된 고른 날)는 알리지 않는다.
+  const [live, setLive] = useState('')
   const isoOf = (d: number) => `${vm.ym}-${String(d).padStart(2, '0')}`
 
   const onTap = (d: number) => {
@@ -115,6 +126,11 @@ export default function MonthView({
       return
     }
     setSelected(d)
+    const c = vm.grid.cells.find((x) => x.d === d)
+    if (c)
+      setLive(
+        fill(pick(CAL_COPY.liveSelected, locale), { label: c.read.label, verdict: c.read.verdict })
+      )
     onSelectDay?.(isoOf(d))
   }
   // 오늘을 고른 상태면 읽기를 따로 열지 않는다 — 오늘의 읽기는 '03 / 오늘'에.
@@ -149,10 +165,13 @@ export default function MonthView({
           <span>{pick(CAL_COPY.dayByDay, locale)}</span>
           <span>{vm.monthShort}</span>
         </div>
-        <h2 className={s.h2}>
-          {vm.h2.lead}
-          {vm.h2.best ? <span className={s.lt}>{vm.h2.best}</span> : null}
-        </h2>
+        {/* 큰 날이 없는 달은 'Zero key days.' 같은 머리말 대신 머리말 없이(QA CODE-8). */}
+        {vm.h2.lead || vm.h2.best ? (
+          <h2 className={s.h2}>
+            {vm.h2.lead}
+            {vm.h2.best ? <span className={s.lt}>{vm.h2.best}</span> : null}
+          </h2>
+        ) : null}
         <DayBars
           bars={vm.bars}
           bestAnnotation={vm.bestAnnotation}
@@ -172,6 +191,9 @@ export default function MonthView({
           <span>{pick(CAL_COPY.gridCapA, locale)}</span>
           <span>{pick(CAL_COPY.gridCapB, locale)}</span>
         </p>
+        <div className={s.sr} role="status" aria-live="polite" data-live="selected">
+          {live}
+        </div>
         {selectedCell ? (
           <SelectedRead
             cell={selectedCell}

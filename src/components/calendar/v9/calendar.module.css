@@ -88,6 +88,8 @@
   letter-spacing: -0.035em;
   color: var(--on-dark);
   overflow-wrap: anywhere;
+  /* 줄을 고르게 — 한 낱말만 남는 마지막 줄(QA VC-10, FIX9 C3 'sensible break'). */
+  text-wrap: balance;
 }
 .h2 {
   margin: 16px 0 0;
@@ -97,6 +99,7 @@
   letter-spacing: -0.03em;
   color: var(--ink);
   overflow-wrap: anywhere;
+  text-wrap: balance;
 }
 .lt {
   display: block;
@@ -568,25 +571,34 @@
   display: flex;
   align-items: flex-start;
   gap: 12px;
+  /* 까치 한 줄 글자 크기를 이 줄 너비(cqi)에서 고른다 — 아래 .voice. */
+  container-type: inline-size;
 }
 .kkAv {
   flex-shrink: 0;
   margin-top: 2px;
   color: var(--ink);
 }
+/* 한 줄(FIX9 C3 · QA VC-11): 문장은 그대로, 글자 크기를 (줄 너비 − 마크 22 − 간격 12) ÷ 문장 너비(em,
+   --vem — KkachiLine 이 어림)로 — 17px(KO 15.5px) 위로는 키우지 않고, 12px 아래로는 줄이지 않는다
+   (그 아래가 필요한 긴 문장은 두 줄). cqi 를 모르는 브라우저는 앞의 고정 크기. */
 .voice {
   margin: 0;
   font-family: var(--serif);
   font-style: italic;
   font-size: 17px;
+  font-size: clamp(12px, calc((100cqi - 34px) / var(--vem, 1)), 17px);
   line-height: 1.25;
   color: var(--ink);
 }
-/* 한국어는 가짜 기울임 대신 바로 선 산세리프. */
+/* 한국어는 가짜 기울임 대신 바로 선 산세리프. 바닥은 11px — 한국어 한 끗 문장은 영어보다 길어
+   (엔진 문장 실측 최대 25em, 영어 21em) 320px 에서 12px 로는 넷이 두 줄이 됐다. 11px 은 이 화면의
+   가장 작은 산세리프 본문 크기와 같다. 390px 에선 모두 12px 위라 바뀌지 않는다. */
 .ko .voice {
   font-family: var(--sans);
   font-style: normal;
   font-size: 15.5px;
+  font-size: clamp(11px, calc((100cqi - 34px) / var(--vem, 1)), 15.5px);
   font-weight: 500;
   line-height: 1.4;
 }
@@ -613,6 +625,25 @@
   font-size: 14px;
   line-height: 1.4;
   color: var(--body);
+}
+/* 다른 날을 받는 중 · 실패 — 이전 날의 읽기 대신 빈 뼈대(QA CODE-5). */
+.pending {
+  margin: 18px var(--gutter) 0;
+  display: grid;
+  gap: 12px;
+}
+.pending > span {
+  display: block;
+  height: 18px;
+  border-radius: 6px;
+  background: var(--paper-2);
+}
+.pending > span:first-child {
+  height: 120px;
+  border-radius: 14px;
+}
+.pending > span:last-child {
+  width: 62%;
 }
 .retry {
   flex-shrink: 0;

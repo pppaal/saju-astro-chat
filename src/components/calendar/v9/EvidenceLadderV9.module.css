@@ -167,6 +167,16 @@
 .none {
   color: var(--mute);
 }
+/* 보조 줄 안의 행성 기호(조디악 릴리싱 랏의 지배 행성) — 9px mono 글자 높이에 맞춘 작은 기호. */
+.sg {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  vertical-align: -1px;
+}
+.nw {
+  white-space: nowrap;
+}
 
 @media (max-width: 359px) {
   .rung {

@@ -44,8 +44,10 @@ export const CAL_COPY = {
     ko: '날짜를 누르면 그날 읽기가, 한 번 더 누르면 하루 전체가 열려요.',
     en: 'Tap a date for its read, tap again for the full day.',
   },
-  /** 그리드 칸 스크린 리더 이름 — '{label}, {verdict}'. */
-  cellAria: { ko: '{label}, {verdict}', en: '{label}, {verdict}' },
+  /** 그리드 칸 스크린 리더 이름 — '{label}, {verdict}{keyDay}{past}'(QA A11Y-2). */
+  cellAria: { ko: '{label}, {verdict}{keyDay}{past}', en: '{label}, {verdict}{keyDay}{past}' },
+  cellKeyDay: { ko: ', 큰 날', en: ', key day' },
+  cellPast: { ko: ', 지난 날', en: ', past' },
   selectedRead: { ko: '고른 날', en: 'Selected day' },
 
   // ─── 02 큰 날 ───
@@ -72,6 +74,8 @@ export const CAL_COPY = {
   // ─── 04 사다리 ───
   ladderLabel: { ko: '04 / 시간대별 가장 센 근거', en: '04 / Strongest driver per scale' },
   ladderRange: { ko: '10년 → 오늘', en: '10-yr → today' },
+  /** 일간에서 오늘이 아닌 날을 연 경우(QA VC-3). */
+  ladderRangeDay: { ko: '10년 → 이날', en: '10-yr → this day' },
   ladderRangeMonth: { ko: '10년 → 이달', en: '10-yr → month' },
   sajuShort: { ko: '사주', en: 'Saju' },
   starsShort: { ko: '별자리', en: 'Stars' },
@@ -96,17 +100,29 @@ export const CAL_COPY = {
   dayHours: { ko: '04 / 시진별', en: '04 / Hour by hour' },
   dayHoursRange: { ko: '시진 · 상승궁', en: 'Hour · rising sign' },
   hoursCap: {
-    ko: '칸 색 = 그 시진의 사주 결(좋음 · 조심). 상승궁은 나란히 적을 뿐, 둘을 합쳐 읽지 않아요.',
-    en: 'Shading = the hour’s saju tone (good · ease off). The rising sign sits alongside — the two are not combined.',
+    ko: '칸 색 = 그 시진의 사주 결(좋음 · 조심), 빈 칸은 중립. 상승궁은 나란히 적을 뿐, 둘을 합쳐 읽지 않아요.',
+    en: 'Shading = the hour’s saju tone (good · ease off); unshaded hours are neutral. The rising sign sits alongside — the two are not combined.',
   },
   hourGood: { ko: '좋은 시진', en: 'Good hour' },
   hourCaution: { ko: '조심할 시진', en: 'Ease off' },
+  hourNeutral: { ko: '중립', en: 'Neutral' },
   dayLadder: { ko: '05 / 시간대별 가장 센 근거', en: '05 / Strongest driver per scale' },
   backToMonth: { ko: '이달 전체 보기', en: 'See the whole month' },
   backToMonthSub: {
     ko: '좋은 날 · 조심할 날 · 큰 날을 한 장에',
     en: 'Good, caution and key days on one page',
   },
+  // ─── 화면 읽기용 제목(sr-only h2 · QA A11Y-6) — 모서리 줄의 번호 없는 이름 ───
+  secTry: { ko: '해 볼 것', en: 'Try this' },
+  secKeyDays: { ko: '큰 날', en: 'Key days' },
+  secLadder: { ko: '시간대별 가장 센 근거', en: 'Strongest driver per scale' },
+  secArea: { ko: '분야별', en: 'By area' },
+  secCross: { ko: '겹치는 흐름', en: 'Crossings' },
+  secHours: { ko: '시진별', en: 'Hour by hour' },
+  /** 상태 알림(라이브 영역, QA A11Y-4) — 고른 날 · 연 날의 한 줄 요약. */
+  liveSelected: { ko: '고른 날 {label}, {verdict}', en: 'Selected {label}, {verdict}' },
+  liveDay: { ko: '일간 · {label} {date}', en: 'Daily · {label} {date}' },
+
   dayLoading: { ko: '그날의 운을 계산하고 있어요…', en: 'Reading that day…' },
   dayError: { ko: '그날 운을 불러오지 못했어요.', en: 'Couldn’t load that day.' },
   retry: { ko: '다시 시도', en: 'Retry' },

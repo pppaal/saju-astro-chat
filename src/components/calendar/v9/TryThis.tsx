@@ -24,8 +24,9 @@ export default function TryThis({
       : pick(push ? CAL_COPY.push : CAL_COPY.hold, locale)
   return (
     <section className={s.try} data-cal-section="try">
+      <h2 className={s.sr}>{pick(CAL_COPY.secTry, locale)}</h2>
       <div className={s.lr}>
-        <span>{pick(CAL_COPY.tryThis, locale)}</span>
+        <span aria-hidden="true">{pick(CAL_COPY.tryThis, locale)}</span>
         <span>{corner}</span>
       </div>
       <div className={s.ros}>

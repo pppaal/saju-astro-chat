@@ -200,6 +200,47 @@ describe('MonthView — 그리드 탭(재탭 줌인)', () => {
   })
 })
 
+describe('MonthView — 처음 고른 날 · 라이브 영역 · 제목 (QA CODE-6 · A11Y-4 · A11Y-6 · CODE-8)', () => {
+  it('initialSelectedIso 가 이 달이면 그 날을 고른 채로(일간에서 보던 날), 아니면 오늘', () => {
+    const { container } = renderMonth('en', { initialSelectedIso: '2026-11-24' })
+    expect(cellOf(container, 24).getAttribute('aria-pressed')).toBe('true')
+    expect(container.querySelector('[data-cal-selected="11-24"]')).not.toBeNull()
+    const other = renderMonth('en', { initialSelectedIso: '2026-12-03' })
+    expect(cellOf(other.container, 19).getAttribute('aria-pressed')).toBe('true')
+    expect(other.container.querySelector('[data-cal-selected]')).toBeNull()
+  })
+
+  it('고른 날 요약은 늘 붙어 있는 라이브 영역에 — 패널 자체는 aria-live 가 아니다', () => {
+    const { container } = renderMonth('en')
+    const live = container.querySelector('[data-live="selected"]') as HTMLElement
+    expect(live.getAttribute('aria-live')).toBe('polite')
+    expect(live.textContent).toBe('')
+    fireEvent.click(cellOf(container, 17))
+    expect(live.textContent).toBe('Selected Nov 17 · Tue, Avoid')
+    expect(container.querySelector('[data-cal-selected]')?.hasAttribute('aria-live')).toBe(false)
+  })
+
+  it("화면 읽기용 h2 — '해 볼 것' · '큰 날' · '시간대별 가장 센 근거'", () => {
+    const { container } = renderMonth('en')
+    const h2 = Array.from(container.querySelectorAll('h2')).map((h) => h.textContent)
+    expect(h2).toEqual(
+      expect.arrayContaining(['Try this', 'Key days', 'Strongest driver per scale'])
+    )
+    const ko = renderMonth('ko')
+    const h2ko = Array.from(ko.container.querySelectorAll('h2')).map((h) => h.textContent)
+    expect(h2ko).toEqual(expect.arrayContaining(['해 볼 것', '큰 날', '시간대별 가장 센 근거']))
+  })
+
+  it("큰 날이 없는 달은 '01 / 하루씩' 머리말 h2 를 그리지 않는다", () => {
+    const month = makeV9Month({ keyDays: [], bestDay: { date: '', score: 0 } })
+    const vm = buildMonthViewModel(month, makeV9Day(), { lang: 'en' })
+    const { container } = render(<MonthView vm={vm} locale="en" onOpenDay={() => {}} />)
+    const days = container.querySelector('[data-cal-section="days"]') as HTMLElement
+    expect(days.querySelector('h2')).toBeNull()
+    expect(days.textContent).not.toMatch(/Zero key days/i)
+  })
+})
+
 describe('MonthView — 상담사 CTA(QA-8: 샘플 숨김 · 다른 사람 차트는 일반 질문)', () => {
   const STORED_KEY = 'destinypal:birthInfo:v1'
   const SUBJECT = {
