@@ -127,15 +127,21 @@ export default function LifeCurve({ curve, locale }: { curve: LifeCurveVM; local
   )
 
   return (
-    <section className={s.sec} data-life-section="curve" aria-labelledby="life-curve">
+    <section
+      className={s.sec}
+      data-life-section="curve"
+      aria-labelledby={curve.heading.main ? 'life-curve' : undefined}
+    >
       <div className={s.lr}>
         <span>{pick(LIFE_COPY.curveLabel, locale)}</span>
         <span>{curve.rangeLabel}</span>
       </div>
-      <h2 id="life-curve" className={s.h2}>
-        {curve.heading.main}
-        {curve.heading.sub ? <span className={s.lt}>{curve.heading.sub}</span> : null}
-      </h2>
+      {curve.heading.main ? (
+        <h2 id="life-curve" className={s.h2}>
+          {curve.heading.main}
+          {curve.heading.sub ? <span className={s.lt}>{curve.heading.sub}</span> : null}
+        </h2>
+      ) : null}
       <div className={s.chart}>
         <span className={`${s.cl} ${s.clA}`}>{pick(LIFE_COPY.curveFlow, locale)}</span>
         <span className={`${s.cl} ${s.clB}`}>{pick(LIFE_COPY.curveDiv, locale)}</span>

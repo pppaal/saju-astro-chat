@@ -43,6 +43,15 @@ import type { Lang } from './dateLabels'
 /** 인생 읽기 범위 — 출생 해부터 84년(히어로 'Lifetime read · 1997–2081', 곡선 자르기, 먼 대운). */
 export const LIFE_READ_YEARS = 84
 
+/**
+ * 이 사람의 읽기 범위(년) — 기본 84년, 지금이 그 너머면 지금 + 3년까지 늘린다. 84세가 넘은 사람의
+ * 히어로 범위('Lifetime read · 1930–2014')가 지금(2026)을 빼던 문제(QA CODE-7). 곡선은 이 값을
+ * 곡선 지평(엔진 ≤ 90세)으로 다시 자른다.
+ */
+export function lifeReadYears(nowAge: number): number {
+  return Math.max(LIFE_READ_YEARS, nowAge + 3)
+}
+
 // ─── 화면 데이터 모양 ─────────────────────────────────────────────────────────
 
 export interface LifeHeroVM {
@@ -150,7 +159,11 @@ export interface LifeCurveVM {
   markers: Array<{ kind: LifeCurveMarkerKind; age: number; year: number }>
   /** 대운 띠 — 대운 천간 오행, 인생 읽기 범위로 자른 연도. */
   eras: Array<{ from: number; to: number; element: SajuElement; gz: string }>
-  heading: { main: string; sub: string | null }
+  /**
+   * main — 엔진의 '지금' 기울기(curve.now.slope). 지금이 곡선 지평 너머면 그 상태를 말하고, 엔진이
+   * 기울기를 내지 않았으면 null(지어내지 않는다 — 예전엔 'plateau' 문구로 메웠다).
+   */
+  heading: { main: string | null; sub: string | null }
   rangeLabel: string
   caption: string
 }
@@ -280,6 +293,10 @@ const COPY = {
   curveCrest: (age: number): Bi => ({
     en: `Next crest around ${age}.`,
     ko: `다음 마루는 ${age}세 무렵.`,
+  }),
+  curveBeyond: (age: number): Bi => ({
+    en: `This curve is drawn to age ${age} — you are already past its end.`,
+    ko: `곡선은 ${age}세까지 그려요 — 지금은 그 너머에 있어요.`,
   }),
   curveRange: (a0: number, a1: number, y0: number, y1: number): Bi => ({
     en: `Curve · age ${a0}–${a1} · ${y0}–${y1}`,
@@ -431,8 +448,9 @@ function buildHero(lifetime: DestinyLifetime, lang: Lang): LifeHeroVM {
   const lp = lifetime.lifePattern
   const shape = lp ? (lang === 'ko' ? lp.ko : (lp.en ?? lp.ko)) : ''
   const tagline = lp ? (lang === 'ko' ? lp.tagline : lp.taglineEn) : undefined
+  const nowAge = lifetime.nowAge ?? lifetime.currentYear - lifetime.birthYear
   const from = lifetime.birthYear
-  const to = lifetime.birthYear + LIFE_READ_YEARS
+  const to = lifetime.birthYear + lifeReadYears(nowAge)
   const stage = lifetime.lifeStages.find((s) => s.now)
   const turn = lifetime.nextLifeTurn
   return {
@@ -442,7 +460,7 @@ function buildHero(lifetime: DestinyLifetime, lang: Lang): LifeHeroVM {
     range: { from, to, label: `${from}–${to}` },
     lede: tagline ? (lang === 'en' ? `${tagline}.` : tagline) : '',
     now: {
-      age: lifetime.nowAge ?? lifetime.currentYear - lifetime.birthYear,
+      age: nowAge,
       year: lifetime.currentYear,
       note: stage ? pick(COPY.stageNote(stage.name, stage.nameEn ?? stage.name), lang) : '',
     },
@@ -595,11 +613,14 @@ function buildStrengths(
 function buildCurve(lifetime: DestinyLifetime, lang: Lang): LifeCurveVM | null {
   const curve = lifetime.lifeCurve
   if (!curve || curve.points.length === 0) return null
-  const fromYear = lifetime.birthYear
-  const toYear = lifetime.birthYear + LIFE_READ_YEARS
-  const inSpan = (age: number) => age >= 0 && age <= LIFE_READ_YEARS
-  const points = curve.points.filter((p) => inSpan(p.age))
   const nowAge = curve.nowAge
+  // 읽기 범위(지금을 담게 늘린 값)를 곡선 지평으로 자른다 — 보통 0–84세, 85–90세는 지금 + 3년까지.
+  const horizon = Math.max(LIFE_READ_YEARS, ...curve.points.map((p) => p.age))
+  const toAge = Math.min(lifeReadYears(nowAge), horizon)
+  const fromYear = lifetime.birthYear
+  const toYear = lifetime.birthYear + toAge
+  const inSpan = (age: number) => age >= 0 && age <= toAge
+  const points = curve.points.filter((p) => inSpan(p.age))
   const markers: LifeCurveVM['markers'] = []
   if (inSpan(nowAge)) markers.push({ kind: 'now', age: nowAge, year: lifetime.currentYear })
   const crest = curve.now?.nextPeak
@@ -615,23 +636,29 @@ function buildCurve(lifetime: DestinyLifetime, lang: Lang): LifeCurveVM | null {
     const to = Math.min(d.end, toYear)
     if (from < to) eras.push({ from, to, element: stemElement(d.gz.hanja), gz: d.gz.hanja })
   }
-  const slope = curve.now?.slope ?? 'plateau'
+  // 기울기는 엔진(curve.now)이 낸 것만. 지금이 곡선 지평 너머면 그 상태를 말한다.
+  const main = curve.now
+    ? pick(COPY.curveSlope[curve.now.slope], lang)
+    : nowAge > toAge
+      ? pick(COPY.curveBeyond(toAge), lang)
+      : null
   return {
     points,
-    span: { fromAge: 0, toAge: LIFE_READ_YEARS, fromYear, toYear },
+    span: { fromAge: 0, toAge, fromYear, toYear },
     markers,
     eras,
     heading: {
-      main: pick(COPY.curveSlope[slope], lang),
+      main,
       sub: crest && inSpan(crest.age) ? pick(COPY.curveCrest(crest.age), lang) : null,
     },
-    rangeLabel: pick(COPY.curveRange(0, LIFE_READ_YEARS, fromYear, toYear), lang),
+    rangeLabel: pick(COPY.curveRange(0, toAge, fromYear, toYear), lang),
     caption: pick(COPY.curveCaption, lang),
   }
 }
 
 function buildDecades(lifetime: DestinyLifetime, lang: Lang, calendarHref: string): LifeDecadesVM {
-  const readEnd = lifetime.birthYear + LIFE_READ_YEARS
+  const nowAge = lifetime.nowAge ?? lifetime.currentYear - lifetime.birthYear
+  const readEnd = lifetime.birthYear + lifeReadYears(nowAge)
   const turn = lifetime.nextLifeTurn
   const peak = lifetime.lifePattern?.peak
   const thisYear = lifetime.thisYear

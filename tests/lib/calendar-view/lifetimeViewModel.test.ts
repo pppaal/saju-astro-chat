@@ -175,6 +175,33 @@ describeRealEphemeris('Life 데이터 층 — 샘플 (real ephemeris)', () => {
     expect(moonChangesSignOnBirthDay(await natalOn('1997-03-22'))).toBe(false)
   }, 120000)
 
+  it('1930년생(96세, real): 곡선 지금 없음 → 지평 너머 문구 · 히어로 범위에 지금 · NOW 표지 없음', async () => {
+    const natal = await buildNatalContext({ ...SAMPLE, birthDate: '1930-05-05', now: NOW })
+    const life = await assembleLifetime({
+      natal,
+      lang: 'en',
+      birthYear: 1930,
+      targetYear: 2026,
+      sex: '여',
+      birthDisplay: '1930.5.5 14:30',
+      whoBirthLine: '1930.5.5 14:30',
+      place: 'Seoul',
+      now: NOW,
+      todayIso: TODAY,
+      focusDayCell: null,
+      gender: 'female',
+      timeUnknown: false,
+      cityUnknown: false,
+    })
+    expect(life.lifetime.lifeCurve?.now).toBeUndefined()
+    const vm = buildLifetimeViewModel(life, { lang: 'en' })
+    expect(vm.hero.range.from).toBe(1930)
+    expect(vm.hero.range.to).toBeGreaterThanOrEqual(2026)
+    expect(vm.curve?.markers.some((m) => m.kind === 'now')).toBe(false)
+    expect(vm.curve?.heading.main).toMatch(/past its end/)
+    expect(vm.curve?.heading.main).not.toBe('Right now the flow is even.')
+  }, 120000)
+
   it("다음 인생 마디 {2033, 35} — 'The last expansion window before midlife.', 홈 다이얼과 같음", async () => {
     const { first } = await sampleLife()
     const turn = first.lifetime.nextLifeTurn
@@ -490,6 +517,74 @@ describe('lifetimeViewModel — 순수', () => {
   it('splitLastWord — 한 단어면 lead 가 빈 문자열', () => {
     expect(splitLastWord('굴곡형')).toEqual({ lead: '', last: '굴곡형' })
     expect(splitLastWord('Smooth path')).toEqual({ lead: 'Smooth', last: 'path' })
+  })
+})
+
+describe('lifetimeViewModel — 84세 넘은 사람(QA CODE-7)', () => {
+  /** 엔진 곡선 모양 — 0–90세(지평), 지금 기울기는 엔진이 낸 것만. */
+  const curveOf = (
+    birthYear: number,
+    nowAge: number,
+    slope?: 'rising' | 'falling' | 'plateau'
+  ) => ({
+    points: Array.from({ length: 91 }, (_, age) => ({
+      age,
+      year: birthYear + age,
+      value: (age % 10) / 10,
+    })),
+    peaks: [],
+    troughs: [],
+    nowAge,
+    ...(slope ? { now: { slope } } : {}),
+  })
+
+  it('1930년생(96세): 히어로 범위가 지금을 담고, 곡선은 지평 너머 상태 — plateau 문구를 지어내지 않는다', () => {
+    const { lifetime, user } = fixture({
+      birthYear: 1930,
+      currentYear: 2026,
+      nowAge: 96,
+      lifeCurve: curveOf(1930, 96) as unknown as Lifetime['lifeCurve'],
+    })
+    for (const lang of ['en', 'ko'] as const) {
+      const vm = buildLifetimeViewModel({ lifetime, user }, { lang })
+      expect(vm.hero.range).toEqual({ from: 1930, to: 2029, label: '1930–2029' })
+      expect(vm.hero.range.to).toBeGreaterThanOrEqual(2026)
+      expect(vm.hero.now).toMatchObject({ age: 96, year: 2026 })
+      const curve = vm.curve!
+      expect(curve.span).toEqual({ fromAge: 0, toAge: 90, fromYear: 1930, toYear: 2020 })
+      expect(curve.markers.some((m) => m.kind === 'now')).toBe(false)
+      expect(curve.heading.main).toBe(
+        lang === 'en'
+          ? 'This curve is drawn to age 90 — you are already past its end.'
+          : '곡선은 90세까지 그려요 — 지금은 그 너머에 있어요.'
+      )
+      expect(curve.heading.main).not.toMatch(/even|고른 편/)
+    }
+  })
+
+  it('87세: 읽기 범위가 지금 + 3년(지평 90에서 자름) — NOW 표지와 엔진 기울기 그대로', () => {
+    const { lifetime, user } = fixture({
+      birthYear: 1939,
+      currentYear: 2026,
+      nowAge: 87,
+      lifeCurve: curveOf(1939, 87, 'falling') as unknown as Lifetime['lifeCurve'],
+    })
+    const vm = buildLifetimeViewModel({ lifetime, user }, { lang: 'en' })
+    expect(vm.hero.range.label).toBe('1939–2029')
+    expect(vm.curve?.span.toAge).toBe(90)
+    expect(vm.curve?.markers).toContainEqual({ kind: 'now', age: 87, year: 2026 })
+    expect(vm.curve?.heading.main).toBe('Right now the flow is easing off.')
+    expect(vm.curve?.rangeLabel).toBe('Curve · age 0–90 · 1939–2029')
+  })
+
+  it('지금이 범위 안인데 엔진이 기울기를 내지 않았으면 제목 줄 없음(null)', () => {
+    const { lifetime, user } = fixture({
+      lifeCurve: curveOf(1997, 29) as unknown as Lifetime['lifeCurve'],
+    })
+    const vm = buildLifetimeViewModel({ lifetime, user }, { lang: 'en' })
+    expect(vm.curve?.span.toAge).toBe(LIFE_READ_YEARS)
+    expect(vm.curve?.heading.main).toBeNull()
+    expect(vm.hero.range.label).toBe('1997–2081')
   })
 })
 
