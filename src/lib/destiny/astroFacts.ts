@@ -32,7 +32,8 @@ import { natalToJD, matchHouseForCusps, UNKNOWN_HOUSE } from '@/lib/astrology/fo
 import { calculateZodiacalReleasing } from '@/lib/astrology/foundation/zodiacalReleasing'
 import { calculateArabicLots, type ArabicLot } from '@/lib/astrology/foundation/arabicParts'
 import { parseHourMinute } from '@/lib/saju/timeParse'
-import { TIME_UNKNOWN_ANCHOR } from '@/lib/saju/birthTimeAnchor'
+import { astroAnchorTime } from '@/lib/saju/birthTimeAnchor'
+import { isPlaceDependentPoint, isPlaceUnreliable } from '@/lib/astrology/foundation/placeMask'
 import {
   calculateAlmutenFiguris,
   type AlmutenFigurisResult,
@@ -193,9 +194,11 @@ export async function collectAstroFacts(
   const [Y, M, D] = input.birthDate.split('-').map(Number)
   // AM/PM('11:30 PM') 정확히 24h 정규화 — 직접 split(':') 하면 PM 이 12h 빠지고
   // 분이 NaN 이 돼 자연차트(ASC/MC/하우스)가 어긋났다. 사주와 동일 파서 사용.
-  // 빈 값 폴백은 정오(시간 미상 앵커 SSOT) — 자정 폴백은 tz 변환에서 행성
-  // 위치가 전날로 밀릴 수 있다. 정상 경로는 caller 가 이미 앵커를 넣어 준다.
-  const { h, m: mi } = parseHourMinute(input.birthTime || TIME_UNKNOWN_ANCHOR)
+  // 시간 미상(birthTimeUnknown 또는 빈 값)이면 넘어온 시각 문자열이 아니라 정오 앵커 —
+  // 사주(collectSajuFacts)와 같은 규칙이라 '03:00' 같은 남은 시각이 행성 위치·차트 날짜를
+  // 움직이지 않는다(CONVENTIONS §5). 자정 폴백은 tz 변환에서 행성 위치가 전날로 밀릴 수 있다.
+  const birthTime = astroAnchorTime(input.birthTime, input.birthTimeUnknown)
+  const { h, m: mi } = parseHourMinute(birthTime)
 
   // 잘못된 IANA 타임존이면 natalToJD 의 tz 변환이 throw → 여기서 null 반환 →
   // buildNatalContext 가 하드 throw → 리포트·캘린더·운명이 모두 죽는다.
@@ -225,7 +228,10 @@ export async function collectAstroFacts(
     return null
   }
   const chart = toChart(natal)
-  const placeUnreliable = !!input.birthTimeUnknown || !!input.birthCityUnknown
+  const placeUnreliable = isPlaceUnreliable({
+    timeUnknown: input.birthTimeUnknown,
+    cityUnknown: input.birthCityUnknown,
+  })
 
   // 행성 — sign / house / dignity 평탄화.
   // house 는 ASC 의존 → placeUnreliable 면 null (미상 앵커 폴백 하우스 누출 차단).
@@ -308,7 +314,7 @@ export async function collectAstroFacts(
   // 함수라 키·버전은 그대로.
   const hellenisticRaw = input.includeHellenistic
     ? await cacheOrCalculate(
-        `hellenistic:v${HELLENISTIC_CACHE_VERSION}:${input.birthDate}:${input.birthTime || ''}:${input.latitude.toFixed(2)}:${input.longitude.toFixed(2)}:${safeTz}`,
+        `hellenistic:v${HELLENISTIC_CACHE_VERSION}:${input.birthDate}:${birthTime}:${input.latitude.toFixed(2)}:${input.longitude.toFixed(2)}:${safeTz}`,
         async () =>
           buildHellenistic(chart, natal, {
             Y,
@@ -350,14 +356,12 @@ export async function collectAstroFacts(
   }
 }
 
-/** 각(angle) 이름 — 본명 aspects 에 끼면 ASC/MC 의존. */
-const ANGLE_NAMES = new Set(['Ascendant', 'ASC', 'MC', 'Midheaven', 'IC', 'Descendant', 'DSC'])
-
 /**
  * 출생시각/출생지 미상(placeUnreliable) — ASC·하우스가 정오 앵커·기본 좌표 폴백이라
  * 그에 기대는 Hellenistic 항목을 가린다(엔진 감사 F1, CONVENTIONS §5):
  *  - lots(7 Arabic Parts — ASC 기준식)·ZR(Spirit/Fortune lot 시작)·Almuten(ASC hyleg) → 비움
- *  - natalAspects 는 행성-행성만 남기고(각 대상은 제거) 끝점의 house 를 지운다
+ *  - natalAspects 는 행성-행성만 남기고(앵글·앵글 파생점 대상은 제거 — placeMask 단일 판정)
+ *    끝점의 house 를 지운다
  *  - Chiron·Lilith 의 house 는 UNKNOWN_HOUSE(0)
  * 섹트·존엄(삼분성)은 ASC·하우스 항목이 아니라 여기서 두고, 섹트를 믿을 수 없을 때
  * maskSectDependentHellenistic 이 따로 가린다.
@@ -372,7 +376,7 @@ export function maskPlaceDependentHellenistic(h: AstroHellenisticFacts): AstroHe
     ...h,
     extraPoints: h.extraPoints?.map((p) => ({ ...p, house: UNKNOWN_HOUSE })),
     natalAspects: h.natalAspects
-      .filter((a) => !ANGLE_NAMES.has(a.from.name) && !ANGLE_NAMES.has(a.to.name))
+      .filter((a) => !isPlaceDependentPoint(a.from.name) && !isPlaceDependentPoint(a.to.name))
       .map((a) => ({ ...a, from: dropHouse(a.from), to: dropHouse(a.to) })),
     lots: [],
     zodiacalReleasing: { spirit: null, fortune: null },

@@ -14,6 +14,8 @@
 import { describe, it, expect, beforeAll } from 'vitest'
 import { formatAstroSelf, orbToDegMin, type AstroSelfInput } from '@/lib/destiny/astroSelfFormatter'
 import { collectAstroFacts } from '@/lib/destiny/astroFacts'
+import { calculateTransitChart } from '@/lib/astrology/foundation/transit'
+import { getUpcomingEclipses } from '@/lib/astrology/foundation/eclipses'
 import type { Chart, NatalInput } from '@/lib/astrology/foundation/types'
 
 const BIRTH = {
@@ -120,9 +122,9 @@ describe('formatAstroSelf — 기본 구조', () => {
 })
 
 describe('formatAstroSelf — skipAngles 분기', () => {
-  it('skipAngles=true → 출생지 미상 안내 + angle 헤더 제거', async () => {
+  it('skipAngles=true → 출생시각·출생지 미상 안내 + angle 헤더 제거', async () => {
     const out = await formatAstroSelf(baseInput({ skipAngles: true }))
-    expect(out).toContain('출생지 미상')
+    expect(out).toContain('출생시각·출생지 미상')
     expect(out).toContain('[행성 in 사인]')
     expect(out).not.toContain('[행성·angle in 사인 · house]')
     expect(out).toContain('[Natal aspects — 행성 사이]')
@@ -143,6 +145,78 @@ describe('formatAstroSelf — skipAngles 분기', () => {
     const firstBlock = aspectSection.split('\n\n')[0]
     expect(firstBlock).not.toContain('Ascendant')
     expect(firstBlock).not.toContain('MC ')
+  })
+})
+
+describe('formatAstroSelf — skipAngles 는 트랜짓·일식·항성·추가점까지 (재감사 AC-2·CNS-2)', () => {
+  // 본명 ASC 를 첫 일식 위치에, MC 를 트랜짓 태양 위치에 겹친 차트 — skipAngles=false 면
+  // 두 앵글 컨택이 반드시 찍히고, true 면 사라져야 한다(같은 하늘, 마스크만 다름).
+  async function angleBaitChart(): Promise<Chart> {
+    const eclipse = getUpcomingEclipses(NOW, 4)[0]
+    const transit = await calculateTransitChart({
+      iso: NOW.toISOString(),
+      latitude: BIRTH.latitude,
+      longitude: BIRTH.longitude,
+      timeZone: BIRTH.timezone,
+    })
+    const tSun = transit.planets.find((p) => p.name === 'Sun')!
+    return {
+      ...chart,
+      ascendant: { ...chart.ascendant, longitude: eclipse.longitude },
+      mc: { ...chart.mc, longitude: tSun.longitude },
+    }
+  }
+  const block = (out: string, header: string) => {
+    const i = out.indexOf(header)
+    return i < 0 ? '' : out.slice(i).split('\n\n')[0]
+  }
+
+  it('skipAngles=false → 본명 ASC 일식·MC 트랜짓 컨택이 찍힌다(대조)', async () => {
+    const out = await formatAstroSelf(baseInput({ chart: await angleBaitChart() }))
+    expect(block(out, '[Current transits')).toMatch(/natal MC in/)
+    expect(block(out, '[Upcoming Eclipses')).toMatch(/ Ascendant \(House \d+, orb /)
+  })
+
+  it('skipAngles=true → 앵글 대상 트랜짓·일식 없음 + 식점 House 없음 + 행성 일식 줄은 남음', async () => {
+    const out = await formatAstroSelf(
+      baseInput({ chart: await angleBaitChart(), skipAngles: true })
+    )
+    const transits = block(out, '[Current transits')
+    expect(transits).not.toMatch(/natal (MC|Ascendant) in/)
+    const eclipses = block(out, '[Upcoming Eclipses')
+    expect(eclipses).not.toMatch(/Ascendant|MC/)
+    expect(eclipses).not.toMatch(/House/)
+    for (const line of eclipses.split('\n').slice(1)) {
+      expect(line).toMatch(/^(일식|월식) \d{4}-\d{2}-\d{2} .+ \(orb [\d.]+°\)$/)
+    }
+  })
+
+  it('skipAngles=true → 항성 합에 앵글 없음', async () => {
+    const bait = await angleBaitChart()
+    const out = await formatAstroSelf(
+      baseInput({ chart: bait, natalInput: NATAL, skipAngles: true })
+    )
+    expect(block(out, '[Fixed Stars')).not.toMatch(/^(Ascendant|MC) ↔/m)
+  })
+
+  it('meta 가 있어 추가점이 붙어도 skipAngles=true 면 행운점·버텍스가 어디에도 없다', async () => {
+    const withMeta: Chart = {
+      ...chart,
+      meta: {
+        jdUT: 2447951.73,
+        isoUTC: '1990-03-01T05:30:00.000Z',
+        timeZone: BIRTH.timezone,
+        latitude: BIRTH.latitude,
+        longitude: BIRTH.longitude,
+        houseSystem: 'Placidus',
+      },
+    }
+    const shown = await formatAstroSelf(baseInput({ chart: withMeta }))
+    expect(shown).toMatch(/Fortune in /)
+    const masked = await formatAstroSelf(baseInput({ chart: withMeta, skipAngles: true }))
+    expect(masked).not.toMatch(/Fortune|Vertex/)
+    // 시각·장소와 무관한 추가점(카이런·릴리스)은 남는다
+    expect(masked).toMatch(/Chiron in /)
   })
 })
 

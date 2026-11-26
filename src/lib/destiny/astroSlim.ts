@@ -52,8 +52,10 @@ const ORB = /Orb:\s*(\d+)°(\d+)'/
 const TRN =
   /^([A-Za-z]+) \(transit\) in [A-Za-z]+ (Conjunction|Opposition|Trine|Square|Sextile) natal ([A-Za-z]+) in /
 const POS = /^([A-Za-z]+) in ([A-Za-z]+) (\d+)°(?:\d+')?(?:, House (\d+))?( R)?$/
+// 식점 하우스는 선택 — placeUnreliable(출생시각·출생지 미상)이면 formatAstroSelf 가 하우스를
+// 적지 않는다. 하우스 없이 온 줄도 버리지 않고 하우스 태그만 빼고 싣는다(재감사 AC-2·CNS-2).
 const ECL =
-  /^(일식|월식)\s+(\d{4})-(\d{2})-(\d{2})\s+([A-Za-z]+)\s+(\d+)°\s+(\w+)\s+([A-Za-z]+)\s+\(House\s*(\d+),\s*orb\s*([\d.]+)/
+  /^(일식|월식)\s+(\d{4})-(\d{2})-(\d{2})\s+([A-Za-z]+)\s+(\d+)°\s+(\w+)\s+([A-Za-z]+)\s+\((?:House\s*(\d+),\s*)?orb\s*([\d.]+)/
 
 const TRANSIT_LIMIT = 3.0
 const TRANSIT_TOP = 10
@@ -124,7 +126,7 @@ export function slimAstroSelf(block: string, opts: { locale: SlimLocale; year: n
             sign: string
             tgt: string
             asp: string
-            house: string
+            house: string | undefined
             n: number
             orb: string
           }>
@@ -148,9 +150,12 @@ export function slimAstroSelf(block: string, opts: { locale: SlimLocale; year: n
             const tgtL = l === 'ko' ? `본명 ${tgtRaw}` : `natal ${tgtRaw}`
             const head = idx === 0 ? `${it.md} ${kindL} ${sko(it.sign, l)} ` : `${it.md} ${kindL} `
             // (H{n}) 는 *일·월식이 떨어지는 본인 하우스* — 본명 행성 자체의
-            // 하우스 (예: 본명 달 H4) 와 다를 수 있어 라벨로 구분.
-            const houseTag = l === 'ko' ? `식점 H${it.house}` : `eclipse@H${it.house}`
-            const tail = idx === 0 ? ` ${it.orb}° (${houseTag})` : ` ${it.orb}°`
+            // 하우스 (예: 본명 달 H4) 와 다를 수 있어 라벨로 구분. 하우스가 없으면
+            // (placeUnreliable) 태그 자체를 붙이지 않는다.
+            const houseTag = it.house
+              ? ` (${l === 'ko' ? `식점 H${it.house}` : `eclipse@H${it.house}`})`
+              : ''
+            const tail = idx === 0 ? ` ${it.orb}°${houseTag}` : ` ${it.orb}°`
             out.push(`  ${head}→ ${tgtL} ${sym(it.asp, l)}${tail}`)
           })
         }

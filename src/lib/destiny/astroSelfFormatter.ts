@@ -8,6 +8,10 @@
  *   3. Current transit aspects (오늘 행성 → natal)
  *   4. Profection (해 단위 house — 나이 % 12)
  *
+ * skipAngles(= placeUnreliable: 출생시각 *또는* 출생지 미상) 면 모든 블록에서 앵글·앵글
+ * 파생점(행운점·버텍스)과 하우스를 뺀다 — 본명 위치·각, 항성 합, 트랜짓 대상, 일·월식
+ * 대상과 식점 하우스까지(placeMask 단일 판정, CALCULATION_SPEC §6, 재감사 AC-2·CNS-2).
+ *
  * 검증: tests/lib/destiny/astroSelfFormatter.test.ts.
  */
 
@@ -18,6 +22,7 @@ import { calculateSolarReturn, calculateLunarReturn } from '@/lib/astrology/foun
 import { calculateSecondaryProgressions } from '@/lib/astrology/foundation/progressions'
 import { findFixedStarConjunctions } from '@/lib/astrology/foundation/fixedStars'
 import { findEclipseImpact, getUpcomingEclipses } from '@/lib/astrology/foundation/eclipses'
+import { isPlaceDependentPoint } from '@/lib/astrology/foundation/placeMask'
 import type { NatalInput } from '@/lib/astrology/foundation/types'
 import { SIGN_KO_TO_EN } from '@/lib/astrology/signLabels'
 import { getDateComponentsInTimezone, getWeekdayInTimezone } from '@/lib/datetime'
@@ -161,10 +166,10 @@ export interface AstroSelfInput {
   /** 섹션 헤더 라벨 — default '점성' (둘 사람 비교 시 'A 점성' / 'B 점성' 등) */
   label?: string
   /**
-   * 출생 도시 미상일 때 ASC/MC/houses 출력을 모두 생략한다.
-   * 이 값들은 정확한 출생 좌표 없이는 계산이 무의미한데, 그동안 default
-   * Seoul 좌표로 계산된 결과가 그대로 LLM 에 들어가 "위치 의존 결론
-   * 금지" 룰과 충돌하던 버그를 막기 위함.
+   * placeUnreliable(출생시각 또는 출생지 미상)일 때 ASC/MC·앵글 파생점(행운점·버텍스)·
+   * 하우스 출력을 모든 블록에서 생략한다 — 본명 위치·각, 항성 합, 트랜짓·일식의 본명 대상,
+   * 식점 하우스, SR/LR/진행 앵글, 프로펙션. 이 값들은 정오 앵커·존 기준점 좌표로 계산된
+   * 날조라 LLM 에 들어가면 [Meta] 의 "ASC/MC/하우스 인용 금지" 와 충돌한다(재감사 AC-2·CNS-2).
    */
   skipAngles?: boolean
 }
@@ -179,16 +184,19 @@ export async function formatAstroSelf(input: AstroSelfInput): Promise<string> {
   if (!input.chart) return ''
   const chart = expandChart(input.chart, input.latitude, input.longitude)
   const skipAngles = !!input.skipAngles
-  const ANGLE_NAMES = new Set(['Ascendant', 'MC'])
+  // skipAngles 면 이 점이 낀 줄은 전부 뺀다(앵글 + 행운점·버텍스 — placeMask 단일 판정).
+  const masked = (name: string) => skipAngles && isPlaceDependentPoint(name)
   const out: string[] = [`== ${input.label ?? '점성'} ==`, '']
   if (skipAngles) {
-    out.push('# 출생지 미상 — house / Ascendant / MC 데이터 생략.')
+    out.push('# 출생시각·출생지 미상 — house / Ascendant / MC 데이터 생략.')
     out.push('')
   }
 
   // 행성 in 사인 (cityKnown 이면 ASC/MC + house 도 같이)
   out.push(skipAngles ? '[행성 in 사인]' : '[행성·angle in 사인 · house]')
-  const planetPoints = skipAngles ? chart.planets : [...chart.planets, chart.ascendant, chart.mc]
+  const planetPoints = skipAngles
+    ? chart.planets.filter((p) => !masked(p.name))
+    : [...chart.planets, chart.ascendant, chart.mc]
   for (const pl of planetPoints) {
     const houseStr = !skipAngles && pl.house > 0 ? `, House ${pl.house}` : ''
     out.push(
@@ -205,7 +213,7 @@ export async function formatAstroSelf(input: AstroSelfInput): Promise<string> {
   out.push(skipAngles ? '[Natal aspects — 행성 사이]' : '[Natal aspects — 행성·angle 사이]')
   const natalAspects = findNatalAspects(chart, { maxResults: 80 })
   for (const asp of natalAspects) {
-    if (skipAngles && (ANGLE_NAMES.has(asp.from.name) || ANGLE_NAMES.has(asp.to.name))) continue
+    if (masked(asp.from.name) || masked(asp.to.name)) continue
     const fromSign = signByName.get(asp.from.name) ?? '?'
     const toSign = signByName.get(asp.to.name) ?? '?'
     out.push(
@@ -222,7 +230,11 @@ export async function formatAstroSelf(input: AstroSelfInput): Promise<string> {
   try {
     const birthYear = input.natalInput?.year
     if (birthYear == null) throw new Error('no birth year for fixed-star precession')
-    const starConjs = findFixedStarConjunctions(chart, birthYear, 1.0).slice(0, 10)
+    const starConjs = findFixedStarConjunctions(chart, birthYear, 1.0, {
+      includeAngles: !skipAngles,
+    })
+      .filter((c) => !masked(c.planet))
+      .slice(0, 10)
     if (starConjs.length > 0) {
       out.push('[Fixed Stars — 본명 행성·angle ↔ 항성 합 (orb 1°)]')
       for (const c of starConjs) {
@@ -249,12 +261,16 @@ export async function formatAstroSelf(input: AstroSelfInput): Promise<string> {
       longitude: input.longitude,
       timeZone: input.timeZone,
     })
+    // placeUnreliable 면 본명 앵글·앵글 파생점을 대상으로 한 트랜짓은 날조 각이라 뺀다
+    // (findTransitAspects 는 본명 ASC·MC 를 늘 대상에 넣는다 — 재감사 AC-2·CNS-2).
     const transitAspects = findTransitAspects(
       transitChart,
       chart,
       ['conjunction', 'sextile', 'square', 'trine', 'opposition'],
       2.0
-    ).slice(0, 30)
+    )
+      .filter((asp) => !masked(asp.to.name))
+      .slice(0, 30)
     if (transitAspects.length > 0) {
       // 머리말 날짜는 그 순간의 차트 tz 날짜 — UTC 날짜(toISOString)는 UTC+12..+14 의
       // 현지 정오에서 전날이다.
@@ -283,12 +299,17 @@ export async function formatAstroSelf(input: AstroSelfInput): Promise<string> {
   try {
     const upcoming = getUpcomingEclipses(input.now ?? new Date(), 4)
     if (upcoming.length > 0) {
-      const impacts = findEclipseImpact(chart, upcoming, 3.0).slice(0, 8)
+      // placeUnreliable 면 본명 앵글 대상 임팩트를 빼고 식점 하우스도 적지 않는다 — 하우스는
+      // 폴백 커스프의 산물이다(재감사 AC-2·CNS-2). 하우스 미매칭(0)도 적지 않는다.
+      const impacts = findEclipseImpact(chart, upcoming, 3.0)
+        .filter((imp) => !masked(imp.affectedPoint))
+        .slice(0, 8)
       if (impacts.length > 0) {
         out.push('[Upcoming Eclipses — 본명 차트에 임팩트 (orb 3°)]')
         for (const imp of impacts) {
+          const houseStr = !skipAngles && imp.house > 0 ? `House ${imp.house}, ` : ''
           out.push(
-            `${imp.eclipse.type === 'solar' ? '일식' : '월식'} ${imp.eclipse.date} ${sign(imp.eclipse.sign)} ${imp.eclipse.degree}° ${imp.aspectType} ${label(imp.affectedPoint)} (House ${imp.house}, orb ${imp.orb.toFixed(2)}°)`
+            `${imp.eclipse.type === 'solar' ? '일식' : '월식'} ${imp.eclipse.date} ${sign(imp.eclipse.sign)} ${imp.eclipse.degree}° ${imp.aspectType} ${label(imp.affectedPoint)} (${houseStr}orb ${imp.orb.toFixed(2)}°)`
           )
         }
         out.push('')

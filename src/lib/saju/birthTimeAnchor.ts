@@ -58,3 +58,18 @@ export function resolveBirthTimeAnchor(
   const unknown = isBirthTimeUnknown(time, timeUnknownFlag)
   return { time: unknown ? TIME_UNKNOWN_ANCHOR : (time as string).trim(), timeUnknown: unknown }
 }
+
+/**
+ * 계산 진입점(사주·점성 facts·캘린더·리포트)용 앵커 — 명시 미상 플래그(true)거나 시각이
+ * 비었으면 정오 앵커, 아니면 입력 시각 그대로. 레거시 '00:00'=미상 휴리스틱은 쓰지 않는다
+ * (그 판정은 입력 경계의 resolveBirthTimeAnchor 가 이미 했고, 여기 오는 '00:00' 은 실제
+ * 자정 출생일 수 있다). 미상이면 남아 있는 시각 문자열('03:00' 등)이 행성 위치·차트 날짜를
+ * 움직이지 않게 한다 — collectSajuFacts 의 년·월·일주와 같은 규칙(CONVENTIONS §5).
+ */
+export function astroAnchorTime(
+  time: string | null | undefined,
+  timeUnknownFlag?: boolean | null
+): string {
+  const t = typeof time === 'string' ? time.trim() : ''
+  return timeUnknownFlag === true || !t ? TIME_UNKNOWN_ANCHOR : t
+}

@@ -13,7 +13,7 @@ import { performAnalyses } from '@/lib/saju/analyses'
 import { JIJANGGAN } from '@/lib/saju/constants'
 import { strengthClassOf } from '@/lib/saju/strengthScore'
 import { parseHourMinute } from '@/lib/saju/timeParse'
-import { TIME_UNKNOWN_ANCHOR } from '@/lib/saju/birthTimeAnchor'
+import { astroAnchorTime } from '@/lib/saju/birthTimeAnchor'
 import { logger } from '@/lib/logger'
 import type { NatalContext, NatalDayJijanggan } from './types'
 import type {
@@ -67,8 +67,11 @@ export async function buildNatalContext(
   const [yearStr, monthStr, dayStr] = input.birthDate.split('-')
   // AM/PM('11:30 PM') 정확히 24h 정규화 — 직접 split(':') 하면 PM 12h 누락 + 분
   // NaN(Number('30 PM'))으로 시주·하우스가 깨졌다. 사주와 동일 파서 사용.
-  // 빈 시각은 시간 미상 앵커(정오) — 사주(calculateSajuData)·점성(astroFacts)과 같은 규약(F15).
-  const { h: birthHour, m: birthMinute } = parseHourMinute(input.birthTime || TIME_UNKNOWN_ANCHOR)
+  // 시간 미상(birthTimeUnknown 또는 빈 시각)은 정오 앵커 — 남아 있는 시각 문자열이 아니라
+  // 앵커로 리턴·진행 입력을 만든다. 사주(collectSajuFacts)·점성(astroFacts)과 같은 규약(F15·G8).
+  const { h: birthHour, m: birthMinute } = parseHourMinute(
+    astroAnchorTime(input.birthTime, input.birthTimeUnknown)
+  )
 
   const natalInput: NatalInput = {
     year: Number(yearStr),

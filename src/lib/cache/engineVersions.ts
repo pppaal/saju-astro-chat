@@ -101,6 +101,10 @@ export { SAJU_ENGINE_VERSION }
 //     정오(신호·교차 id·창이 빌드 범위와 무관) — 도 이 v15 에 실린다.
 //     월 셀·포커스 1일 셀에 구워지므로 bump. 운명상담사 컨텍스트(본명 항성 블록)도
 //     ENGINE_VERSION_TAG 로 함께 무효화.
+//     재감사 G8 도 이 v15 에 실린다(웨이브당 한 번) — 시간·도시 미상이면 운명상담사 컨텍스트의
+//     트랜짓·일식이 본명 ASC/MC·행운점·버텍스를 대상으로 잡지 않고 식점 하우스를 달지 않으며,
+//     시간 미상이면 남은 시각 문자열이 아니라 정오 앵커로 NatalContext.input(리턴·진행 입력)을
+//     만든다. 운명상담사 컨텍스트 키는 ENGINE_VERSION_TAG 로 따라온다.
 export const CALENDAR_ENGINE_VERSION = 'v15'
 
 /**
