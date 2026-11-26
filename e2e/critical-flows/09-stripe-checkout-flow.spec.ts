@@ -99,8 +99,11 @@ test.describe('Credit-pack checkout — pricing page (UI)', () => {
   test('renders the 5-pack SSOT grid, and starter is not in the grid', async ({ page }) => {
     await page.goto('/pricing', { waitUntil: 'domcontentloaded' })
 
+    // 스트리밍 하이드레이션 순간 숨은 사본이 같이 잡힐 수 있어 보이는 것만 본다(strict 위반 방지).
     for (const pack of GRID_PACKS) {
-      await expect(page.getByTestId(`buy-pack-${pack}`)).toBeVisible({ timeout: 15000 })
+      await expect(page.getByTestId(`buy-pack-${pack}`).filter({ visible: true })).toBeVisible({
+        timeout: 15000,
+      })
     }
     // starter 는 첫구매 전용 임펄스 팩 — /pricing 그리드에서 제외 (pricing.ts).
     await expect(page.getByTestId('buy-pack-starter')).toHaveCount(0)
@@ -130,7 +133,7 @@ test.describe('Credit-pack checkout — pricing page (UI)', () => {
     await expect(consent).toBeVisible({ timeout: 15000 })
     await consent.getByRole('button', { name: /^(OK|동의)$/ }).click()
 
-    const buyButton = page.getByTestId('buy-pack-standard')
+    const buyButton = page.getByTestId('buy-pack-standard').filter({ visible: true })
     await expect(buyButton).toBeVisible({ timeout: 15000 })
     await buyButton.click()
 
@@ -145,6 +148,8 @@ test.describe('Credit-pack checkout — pricing page (UI)', () => {
   test('cancel redirect from Stripe returns to pricing', async ({ page }) => {
     await page.goto('/pricing?canceled=true', { waitUntil: 'domcontentloaded' })
     expect(page.url()).toContain('/pricing')
-    await expect(page.getByTestId('buy-pack-mini')).toBeVisible({ timeout: 15000 })
+    await expect(page.getByTestId('buy-pack-mini').filter({ visible: true })).toBeVisible({
+      timeout: 15000,
+    })
   })
 })
