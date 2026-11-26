@@ -52,7 +52,7 @@ export { DIAL_LABELS }
 
 // ─── 기하 상수 (gen9.py dial) ───
 
-export const DIAL_VIEWBOX = { width: 300, height: 300 } as const
+const DIAL_VIEWBOX = { width: 300, height: 300 } as const
 const CX = 150
 const CY = 150
 const R = 104

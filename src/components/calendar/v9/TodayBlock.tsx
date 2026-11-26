@@ -22,7 +22,7 @@ import s from './calendar.module.css'
  * 한 끗 문장 60개를 재서 맞췄다(어림 ÷ 실제 = EN 1.02–1.16, KO 1.04–1.05 — 늘 조금 넉넉). 그래도
  * 넘치면 줄이 바뀔 뿐 글이 잘리지 않는다.
  */
-export function voiceEm(text: string): number {
+function voiceEm(text: string): number {
   const ko = /[\uAC00-\uD7A3]/.test(text) // 한국어 줄은 산세리프(.ko .voice)
   let em = 0
   for (const ch of text) {

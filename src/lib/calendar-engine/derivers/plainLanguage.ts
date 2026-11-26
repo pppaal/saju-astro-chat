@@ -255,7 +255,7 @@ export function shinsalScene(name: string | undefined, lang: 'ko' | 'en' = 'ko')
 }
 
 /** 행성명(영문 'Venus' 또는 한글 '금성') → 쉬운 별 별명. 못 찾으면 원어. */
-export function planetPlain(name: string | undefined, ko: boolean): string {
+function planetPlain(name: string | undefined, ko: boolean): string {
   if (!name) return ''
   const key = PLANET_PLAIN[name] ? name : (KO_PLANET_TO_EN[name] ?? name)
   const entry = PLANET_PLAIN[key]

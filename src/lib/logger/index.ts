@@ -267,5 +267,3 @@ export const dbLogger = logger.domain('db')
 export const sajuLogger = logger.domain('saju')
 export const astroLogger = logger.domain('astro')
 export const tarotLogger = logger.domain('tarot')
-
-export default logger

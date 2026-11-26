@@ -243,7 +243,7 @@ type I18nContextType = {
 const I18nContext = createContext<I18nContextType | null>(null)
 
 // Only support en/ko
-export const SUPPORTED_LOCALES: Locale[] = ['en', 'ko']
+const SUPPORTED_LOCALES: Locale[] = ['en', 'ko']
 const isRtl = (_l: Locale) => false // No RTL languages supported
 
 const isRawKeyLeak = (value: string, path: string) => {

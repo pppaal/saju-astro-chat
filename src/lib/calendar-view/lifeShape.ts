@@ -29,9 +29,9 @@ import { currentManAge } from '@/lib/datetime/currentAge'
 import type { NatalContext } from '@/lib/calendar-engine/context/types'
 
 /** 곡선 호라이즌(만 나이 0..90) — 곡선 · 분류 · 화면 필터가 같은 값을 쓴다(감사 R2). */
-export const LIFE_CURVE_SPAN = 90
+const LIFE_CURVE_SPAN = 90
 /** 트랜짓 표본 간격(년) — 외행성은 느려 3년 표본 + 선형 보간으로 충분하다. */
-export const LIFE_CURVE_STEP = 3
+const LIFE_CURVE_STEP = 3
 
 /**
  * 인생 곡선용 실제 외행성 트랜짓 시계열(길이 LIFE_CURVE_SPAN + 1). 프로세스 메모가 있어
@@ -76,7 +76,7 @@ export function lifePatternFor(
 }
 
 /** 본명의 출생지 시간대 기준 만 나이(now 주입). */
-export function natalManAge(natal: NatalContext, now: Date): number {
+function natalManAge(natal: NatalContext, now: Date): number {
   return currentManAge({
     birthYear: natal.input.year,
     birthMonth: natal.input.month,

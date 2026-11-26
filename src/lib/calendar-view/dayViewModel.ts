@@ -117,7 +117,7 @@ export function toTimingRow(reason: DestinyDayReason, lang: Lang): TimingRowVM {
 }
 
 /** 일 교차 카드 행(day.crossActivations) → 타이밍 교차 행(원어 키에서 요청 로케일로). */
-export function crossToTimingRow(c: DayCross, lang: Lang): TimingRowVM {
+function crossToTimingRow(c: DayCross, lang: Lang): TimingRowVM {
   const ko = lang === 'ko'
   const sajuKo = c.sajuKo ?? c.sajuSide
   const astroKo = c.astroKo ?? c.astroSide

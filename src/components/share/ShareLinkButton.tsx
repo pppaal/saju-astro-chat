@@ -150,5 +150,3 @@ export function ShareLinkButton({
     </div>
   )
 }
-
-export default ShareLinkButton

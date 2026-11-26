@@ -6,7 +6,7 @@
  * phrase-level 로 교체하고, 변형 누수 대비 성인 어휘 토큰 fallback 도 둔다.
  * 게이트 나이는 만 19세 미만(결혼·투자·공직 콘텐츠 기준).
  */
-export const MINOR_GATE_AGE = 19
+const MINOR_GATE_AGE = 19
 
 const PHRASE_KO: Array<[string, string]> = [
   ['윗선의 인정·승진·공식 무대에 우호', '선생님·어른의 인정, 발표 무대에 좋아요'],

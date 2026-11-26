@@ -4,13 +4,7 @@
 // module (StreamProcessor / serverStreamProxy). Trimmed per knip audit.
 
 // Client-side stream processing
-export { streamProcessor, type StreamResult, type StreamProcessorOptions } from './StreamProcessor'
+export { streamProcessor, type StreamResult } from './StreamProcessor'
 
 // Server-side stream proxying
-export {
-  createSSEEvent,
-  createSSEDoneEvent,
-  createFallbackSSEStream,
-  type StreamProxyOptions,
-  type StreamTransformOptions,
-} from './serverStreamProxy'
+export { createSSEEvent, createSSEDoneEvent, createFallbackSSEStream } from './serverStreamProxy'

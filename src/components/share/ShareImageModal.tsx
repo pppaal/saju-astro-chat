@@ -151,5 +151,3 @@ export function ShareImageModal({
     </div>
   )
 }
-
-export default ShareImageModal

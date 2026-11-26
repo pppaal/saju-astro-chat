@@ -79,7 +79,7 @@ function ege(name: string): string {
 // 0=받침없음, 8=ㄹ. 한글이 없으면 null.
 // 조사 처리는 SSOT(@/lib/utils/josa) — 로컬 사용 + 기존 export 계약 유지용 재노출.
 import { josa, type JosaType } from '@/lib/utils/josa'
-export { josa, type JosaType }
+export { josa }
 // 값 뒤에 붙는 KO 조사를 받침에 맞게 골라 붙인다. 으로/로 는 ㄹ받침 예외 처리.
 // (무료 궁합 페이지의 헤드라인 한 줄에서도 재사용 — 조사 SSOT 가 갈리지 않게 export.)
 

@@ -49,7 +49,7 @@ export const LIFE_READ_YEARS = 84
  * 히어로 범위('Lifetime read · 1930–2014')가 지금(2026)을 빼던 문제(QA CODE-7). 곡선은 이 값을
  * 곡선 지평(엔진 ≤ 90세)으로 다시 자른다.
  */
-export function lifeReadYears(nowAge: number): number {
+function lifeReadYears(nowAge: number): number {
   return Math.max(LIFE_READ_YEARS, nowAge + 3)
 }
 

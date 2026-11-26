@@ -107,7 +107,7 @@ export interface KeyDayItem {
 }
 
 /** 오늘의 일 — 서버가 실은 todayDay, 없으면 focusDay(서버 렌더에선 오늘). */
-export function referenceDay(month: Pick<DestinyMonth, 'todayDay' | 'focusDay'>): number {
+function referenceDay(month: Pick<DestinyMonth, 'todayDay' | 'focusDay'>): number {
   return month.todayDay ?? month.focusDay
 }
 

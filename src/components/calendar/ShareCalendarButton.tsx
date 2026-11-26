@@ -23,7 +23,7 @@ export interface CalendarShareData {
 }
 
 /** 이달 공유 링크 설정 — 다른 모양의 버튼(v9 line 등)도 같은 데이터로 쓴다. */
-export function calendarShareLinkOptions(data: CalendarShareData): UseShareLinkOptions {
+function calendarShareLinkOptions(data: CalendarShareData): UseShareLinkOptions {
   const isKo = data.isKo
   return {
     endpoint: '/api/calendar/share',
@@ -62,5 +62,3 @@ export function ShareCalendarButton({
     />
   )
 }
-
-export default ShareCalendarButton

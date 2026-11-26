@@ -28,10 +28,10 @@ import {
   extractLongitudeSpeed,
 } from '@/lib/astrology/foundation/shared'
 
-export const DAY_MS = 86_400_000
+const DAY_MS = 86_400_000
 
 /** run 을 범위 밖으로 잇는 최대 일수(한쪽). 외행성 합의 연속 오브 구간(≈ 10년)을 덮는다. */
-export const RUN_CAP_DAYS = 4400
+const RUN_CAP_DAYS = 4400
 
 /**
  * 하루 최대 황경 이동(°/일) — 1900–2100 Swiss Ephemeris 실측 최대 × 1.25 여유.

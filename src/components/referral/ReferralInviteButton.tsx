@@ -74,5 +74,3 @@ export function ReferralInviteButton({ isKo }: { isKo: boolean }) {
     />
   )
 }
-
-export default ReferralInviteButton

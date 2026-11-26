@@ -15,7 +15,7 @@
  */
 
 /** 출생 시각·장소로 정해지는 앵글 이름(엔진·포매터마다 다른 표기를 모두 포함). */
-export const ANGLE_POINT_NAMES: ReadonlySet<string> = new Set([
+const ANGLE_POINT_NAMES: ReadonlySet<string> = new Set([
   'Ascendant',
   'ASC',
   'Asc',
@@ -30,7 +30,7 @@ export const ANGLE_POINT_NAMES: ReadonlySet<string> = new Set([
  * 앵글이나 출생 순간·좌표에서 계산한 점 — 행운점(ASC 기준 lot, 낮/밤 공식도 섹트 의존)과
  * 버텍스(ARMC·위도). 카이런·릴리스·남교점은 시각·장소와 거의 무관해 여기 없다.
  */
-export const ANGLE_DERIVED_POINT_NAMES: ReadonlySet<string> = new Set([
+const ANGLE_DERIVED_POINT_NAMES: ReadonlySet<string> = new Set([
   'PartOfFortune',
   'Part of Fortune',
   'Fortune',

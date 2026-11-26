@@ -59,11 +59,10 @@ export const TimezoneSchema = timezoneSchema
 
 /** Supported locales */
 export const LocaleSchema = localeSchema
-export {  type Locale }
+export { type Locale }
 
 /** Supported genders */
 const GenderSchema = genderSchema
-export {  type Gender }
 
 /** Latitude coordinate */
 export const LatitudeSchema = latitudeSchema
@@ -428,6 +427,5 @@ export function validationError(errors: ValidationError[]): ApiHandlerResult<nev
 // ============================================================
 // Re-exports for convenience
 // ============================================================
-
 
 export type { ZodSchema, ZodError } from 'zod'

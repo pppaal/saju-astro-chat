@@ -264,7 +264,7 @@ function koPointTokens(name: string): string {
  * 스냅샷은 kind 'natal-dignity'(정적 본명 — 사다리 입력에서 빠짐)로 낸다. evidence 를
  * 뺀 월 셀에서도 module 은 남으므로 module(또는 id 접두)로 가린다.
  */
-export const isDignitySignal = (s: ActiveSignal): boolean =>
+const isDignitySignal = (s: ActiveSignal): boolean =>
   s.evidence?.module === 'astro-dignity' || s.id.startsWith('astro.dignity.')
 
 // ─── 신호 이름·id 읽기 — evidence 를 비운 월 셀에서도 살아남는 표지로 구조를 복원 ───

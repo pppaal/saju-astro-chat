@@ -33,7 +33,7 @@ function absoluteImageUrl(cardImage: string): string | undefined {
  * 초안을 발행한다. platforms 미지정 시 설정된 모든 플랫폼.
  * 각 variant 의 caption/hashtags 를 사용하고 결과를 돌려준다.
  */
-export async function publishDraft(
+async function publishDraft(
   draft: SocialPostDraft,
   platforms?: SocialPlatform[]
 ): Promise<PublishResult[]> {

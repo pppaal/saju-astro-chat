@@ -899,5 +899,3 @@ export function CompatChartModal({
     </div>
   )
 }
-
-export default CompatChartModal

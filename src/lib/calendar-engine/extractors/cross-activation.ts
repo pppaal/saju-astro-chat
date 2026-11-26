@@ -288,7 +288,7 @@ const DIGNITY_MODULE = 'astro-dignity'
  * 부모(품위 제외)면 evidence 의 어스펙트·본명 접점·orb. planet 은 교차가 매칭된 점성 키.
  * 값이 없으면 그 필드를 비운다(지어내지 않는다).
  */
-export function crossParentRef(
+function crossParentRef(
   sajuSig: ActiveSignal,
   astroSig: ActiveSignal,
   planet: string

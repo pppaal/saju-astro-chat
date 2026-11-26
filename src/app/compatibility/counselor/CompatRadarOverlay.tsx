@@ -187,5 +187,3 @@ export function CompatRadarOverlay({
     </div>
   )
 }
-
-export default CompatRadarOverlay

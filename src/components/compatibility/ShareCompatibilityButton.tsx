@@ -420,5 +420,3 @@ export function ShareCompatibilityButton({
     </>
   )
 }
-
-export default ShareCompatibilityButton

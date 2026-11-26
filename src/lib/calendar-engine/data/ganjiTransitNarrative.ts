@@ -60,7 +60,7 @@ const SIBSIN_FLOW_TAIL: Record<GanjiTransitLayer, { ko: string; en: string }> = 
   decadal: { ko: '길게 흐르는 대운이에요', en: 'runs long through this decade' },
 }
 
-export function sibsinFlowLine(
+function sibsinFlowLine(
   sibsin: string | undefined,
   layer: GanjiTransitLayer,
   lang: Lang = 'ko'

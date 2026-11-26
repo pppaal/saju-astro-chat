@@ -1,10 +1,6 @@
 // src/lib/cities/index.ts
 // Unified cities module - consolidates cities.js functionality
 
-export * from './types'
-
-
-
 // --- API Search functions (from cities.js) ---
 
 let apiOrigin: string | null = null

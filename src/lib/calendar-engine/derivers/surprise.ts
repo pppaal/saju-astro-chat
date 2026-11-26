@@ -22,7 +22,7 @@ import { STATIC_NATAL_KINDS } from '../signalTaxonomy'
  * 신호 *타입* 키 — base-rate 묶음 단위. 이름의 (괄호 보조)·말미 메타를 떼어 같은
  * 이벤트를 한 버킷으로. 예: "지지충 申↔寅 (월주)" → "saju|hyeongchung|지지충 申↔寅".
  */
-export function signalTypeKey(s: ActiveSignal): string {
+function signalTypeKey(s: ActiveSignal): string {
   const raw = (s.korean ?? s.name ?? '').replace(/\s*\([^)]*\)\s*$/u, '').trim()
   return `${s.source}|${s.kind}|${raw}`
 }

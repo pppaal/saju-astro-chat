@@ -72,9 +72,7 @@ export interface RadarPillars {
  * 원국 글자 → 십성 묶음별 타일. 일간은 빼고(비교 기준), 시주가 없으면(시간 미상) 세 기둥만.
  * 엔진 pillars 의 십신(천간 sibsin · 지지 sibsin)을 그대로 읽는다 — 다시 판정하지 않는다.
  */
-export function radarCharsByGroup(
-  pillars: RadarPillars
-): Record<keyof SibsinCategoryCount, RadarChar[]> {
+function radarCharsByGroup(pillars: RadarPillars): Record<keyof SibsinCategoryCount, RadarChar[]> {
   const out: Record<keyof SibsinCategoryCount, RadarChar[]> = {
     재성: [],
     관성: [],

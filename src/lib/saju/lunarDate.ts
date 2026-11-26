@@ -21,7 +21,7 @@ import Calendar from 'korean-lunar-calendar'
 /** 라이브러리가 변환하는 마지막 음력 날짜(양력 2050-12-31). */
 export const LUNAR_MAX = { year: 2050, month: 11, day: 18 } as const
 /** 라이브러리가 변환하는 첫 음력 날짜. */
-export const LUNAR_MIN = { year: 1000, month: 1, day: 1 } as const
+const LUNAR_MIN = { year: 1000, month: 1, day: 1 } as const
 
 export type InvalidLunarDateReason = 'not-exist' | 'out-of-range'
 

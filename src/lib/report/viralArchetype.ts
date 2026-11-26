@@ -128,7 +128,7 @@ export const PARTNER_BY_ELEMENT: Record<string, BiLabel> = {
 // 직결되지만 용신은 "무엇이 필요한가"라 정체 라벨엔 덜 맞는다.
 export type StrengthState = 'strong' | 'weak' | 'balanced'
 
-export const STRENGTH_TAG: Record<StrengthState, BiLabel> = {
+const STRENGTH_TAG: Record<StrengthState, BiLabel> = {
   strong: { ko: '주도형', en: 'Driven' },
   weak: { ko: '조율형', en: 'Adaptive' },
   balanced: { ko: '균형형', en: 'Balanced' },

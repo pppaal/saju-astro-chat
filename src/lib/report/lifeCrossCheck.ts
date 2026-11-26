@@ -108,11 +108,11 @@ export function toCrossContext(natal: NatalContext, flags: CrossContextFlags): N
 // ─── Life 표시 행 ───────────────────────────────────────────────────────────
 
 /** Life 가 보여 주는 다섯 축(디자인 순서). 나머지 축은 전체 리포트에서. */
-export const LIFE_CROSS_KEYS = ['identity', 'temperament', 'relations', 'fortune', 'needs'] as const
-export type LifeCrossKey = (typeof LIFE_CROSS_KEYS)[number]
+const LIFE_CROSS_KEYS = ['identity', 'temperament', 'relations', 'fortune', 'needs'] as const
+type LifeCrossKey = (typeof LIFE_CROSS_KEYS)[number]
 
 /** 칸 하나 — 값('Water')과 둘째 줄('fluid and permeating'). */
-export interface LifeCrossCell {
+interface LifeCrossCell {
   text: string
   w?: string
 }

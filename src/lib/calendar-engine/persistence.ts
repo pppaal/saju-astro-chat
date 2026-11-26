@@ -88,7 +88,7 @@ function daeunCoverSegment(input: BuildContextInput, now: Date): string {
  * (만 99세 이하) birthKey 와 같다. now 를 키에 그대로 넣지 않는다: 본명은 불변이고, 시계에
  * 기대는 건 목록 길이뿐이다. 같은 now 로 빌드하므로 행의 목록은 그 키의 나이를 덮는다.
  */
-export function natalCacheKeyFor(input: BuildContextInput, now: Date): string {
+function natalCacheKeyFor(input: BuildContextInput, now: Date): string {
   const birthKey = birthKeyFor(input)
   const seg = daeunCoverSegment(input, now)
   return seg ? createHash('sha1').update(`${birthKey}|${seg}`).digest('hex').slice(0, 32) : birthKey

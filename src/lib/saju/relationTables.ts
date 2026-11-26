@@ -70,7 +70,7 @@ export const STEM_CLASH_4: ReadonlyArray<Pair> = [
 ]
 
 /** 천간충 5: 4쌍 + 戊甲, 己乙. */
-export const STEM_CLASH_5_EXTRA: ReadonlyArray<Pair> = [
+const STEM_CLASH_5_EXTRA: ReadonlyArray<Pair> = [
   ['戊', '甲'],
   ['己', '乙'],
 ]
@@ -92,7 +92,7 @@ export type StemClashMode = '4' | '5' | '10'
 export const STEM_CLASH_MODE: StemClashMode = '4'
 
 /** 천간충 10: 양간끼리/음간끼리 상충 전부. */
-export const STEM_CLASH_10: ReadonlyArray<Pair> = [
+const STEM_CLASH_10: ReadonlyArray<Pair> = [
   // 양간: 甲丙戊庚壬
   ['甲', '丙'],
   ['甲', '戊'],

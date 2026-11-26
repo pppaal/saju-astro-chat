@@ -262,5 +262,3 @@ export function CompatNatalOverlay({
     </div>
   )
 }
-
-export default CompatNatalOverlay

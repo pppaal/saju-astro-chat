@@ -24,7 +24,7 @@ function shortImage(rich: string | undefined): string {
 }
 
 // 10 천간 — 음양 + 오행 + 자연 image + 성격 키워드
-export const HEAVENLY_STEMS: Record<
+const HEAVENLY_STEMS: Record<
   string,
   { ko: string; yinYang: '양' | '음'; element: string; image: string; meaning: string }
 > = (() => {
@@ -47,7 +47,7 @@ export const HEAVENLY_STEMS: Record<
 })()
 
 // 12 지지 — 동물 + 오행 + 의미
-export const EARTHLY_BRANCHES: Record<
+const EARTHLY_BRANCHES: Record<
   string,
   { ko: string; animal: string; element: string; meaning: string }
 > = (() => {
@@ -68,7 +68,7 @@ export const EARTHLY_BRANCHES: Record<
 // 십성 (10 神) — 일간 기준 다른 천간/지지와의 관계.
 // chart-dictionary 의 sibsin-category 는 카테고리(비겁/식상/...) 단위라 개별 십성
 // 의미(비견·겁재 등)는 없음 → 이 매핑은 atoms 에서 유지.
-export const SIBSIN: Record<
+const SIBSIN: Record<
   string,
   { category: 'bigeop' | 'sikSang' | 'jaeSeong' | 'gwanSeong' | 'inSeong'; meaning: string }
 > = {
@@ -88,7 +88,7 @@ export const SIBSIN: Record<
 // @/lib/report/integratedReportLabels 에 있다. 위의 SIBSIN.meaning 은 tooltip 용 설명.
 
 // 십성 카테고리별 색 — 차트 전체에서 통일 (UI 토큰, chart-dictionary 범위 밖)
-export const SIBSIN_COLOR: Record<
+const SIBSIN_COLOR: Record<
   'bigeop' | 'sikSang' | 'jaeSeong' | 'gwanSeong' | 'inSeong',
   { bg: string; text: string; ring: string; label: string }
 > = {

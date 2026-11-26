@@ -316,7 +316,7 @@ export function getMoonPhaseName(phase: MoonPhase): string {
  * 아니다(전통·현대 정의 모두 행성만 — 재감사 AC-4: True Node 대립을 애스펙트로 세어 2026년
  * 보이드 정오의 약 1/5 을 놓쳤다).
  */
-export const VOC_ASPECT_TARGETS = [
+const VOC_ASPECT_TARGETS = [
   'Sun',
   'Mercury',
   'Venus',
@@ -516,7 +516,7 @@ const ATMOS_TEMP_C = 15
  * (예전 행성시는 남중을 12:00 으로 고정하고 적위만 근사해, 서울 실제 남중 12:18~12:46 과
  * 어긋난 시간 경계를 냈다 — 엔진 감사 ASTRO-5.)
  */
-export function nextSunEventJD(
+function nextSunEventJD(
   jdUT: number,
   event: 'rise' | 'set',
   latitude: number,

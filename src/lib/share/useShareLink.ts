@@ -57,14 +57,14 @@ export interface UseShareLinkResult {
 }
 
 /** 'copied' 표시 유지 시간. */
-export const SHARE_COPIED_MS = 2000
+const SHARE_COPIED_MS = 2000
 
 /** 사용자가 공유 시트를 닫은 경우 — 실패로 치지 않는다. */
 export function isShareAbort(err: unknown): boolean {
   return (err as { name?: unknown } | null)?.name === 'AbortError'
 }
 
-export function defaultShareLinkMessages(isKo: boolean): ShareLinkMessages {
+function defaultShareLinkMessages(isKo: boolean): ShareLinkMessages {
   return isKo
     ? {
         createFailed: '링크를 만들지 못했어요.',

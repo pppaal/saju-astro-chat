@@ -9,11 +9,11 @@
  * 미상 키는 호출부에서 KO 로 폴백 → KO 로케일·미상 라벨엔 영향 없음.
  */
 
-import { SHINSAL_NAME_EN, shinsalNameEn } from '@/lib/calendar-engine/derivers/signalI18n'
+import { shinsalNameEn } from '@/lib/calendar-engine/derivers/signalI18n'
 import { GEOKGUK_NAME_EN as GEOKGUK_NAME_EN_SSOT } from '@/lib/saju/geokgukNameEn'
 
 /** 격국 성패 단어 — 성격/파격/반성반파. */
-export const GEOKGUK_STATUS_EN: Record<string, string> = {
+const GEOKGUK_STATUS_EN: Record<string, string> = {
   성격: 'Formed',
   파격: 'Broken',
   반성반파: 'Mixed',
@@ -38,43 +38,9 @@ export function geokgukStatusLineEn(name: string, status?: string): string {
   return s ? `${n} · ${s}` : n
 }
 
-/**
- * 신살 KO→EN — 정본은 엔진 쪽 signalI18n.SHINSAL_NAME_EN(interpretations.json shinsal
- * name_en, 엔진이 낼 수 있는 신살 전부 + '~살' 별칭). 예전 여기 복사본은 건록을 12운성
- * 이름('Office Entry')으로 적어 교차 칩('Established Stipend')과 어긋났다(재감사 SI-2).
- */
-export const SHINSAL_EN: Readonly<Record<string, string>> = SHINSAL_NAME_EN
-
 /** 신살 EN 치환 — 트레일링 '살' 을 떼고도 재시도, 미상은 KO 그대로. */
 export function shinsalEn(name: string): string {
   return shinsalNameEn(name) ?? name
-}
-
-// ============================================================================
-// '본명 상세' 접힘 섹션 — 지장간·12운성·응용격국 EN 치환.
-// 누락 5신호 노출용. 모두 결정론적 고정 맵(엔진 무수정).
-// ============================================================================
-
-/** 오행 KO→EN. */
-const ELEMENT_EN: Record<string, string> = {
-  목: 'Wood',
-  화: 'Fire',
-  토: 'Earth',
-  금: 'Metal',
-  수: 'Water',
-}
-export function elementEn(el: string): string {
-  return ELEMENT_EN[el] ?? el
-}
-
-/** 지장간 층(정기/중기/여기) KO→EN. */
-const JIJANGGAN_LAYER_EN: Record<string, string> = {
-  정기: 'Primary',
-  중기: 'Mid',
-  여기: 'Residual',
-}
-export function jijangganLayerEn(layer: string): string {
-  return JIJANGGAN_LAYER_EN[layer] ?? layer
 }
 
 /** 12운성 단계 KO→EN (별칭 건록=임관, 제왕=왕지 포함).

@@ -393,6 +393,14 @@ jobs:
         run: npm run audit:unused
         continue-on-error: true
 
+      # 프로덕션 그래프만(knip.json 의 '!' 엔트리 — src/app · Next 플러그인 엔트리) — 테스트·스크립트만
+      # 쓰는 src 코드를 따로 드러낸다. 정보용(아직 test-only 모듈이 남아 있다).
+      - name: Unused production code audit (knip --production)
+        run: npx knip --production --include files,exports,dependencies
+        continue-on-error: true
+        env:
+          DATABASE_URL: postgresql://placeholder:placeholder@localhost:5432/placeholder
+
       - name: Check for secrets
         run: |
           # Check changed files for potential secrets. Skip workflow files —

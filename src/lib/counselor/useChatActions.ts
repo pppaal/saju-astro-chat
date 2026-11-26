@@ -144,10 +144,9 @@ export function useChatActions({
     let status: number | undefined
     let ok = false
     try {
-      const res = await fetch(
-        `/api/counselor/session/list?sessionId=${encodeURIComponent(id)}`,
-        { method: 'DELETE' }
-      )
+      const res = await fetch(`/api/counselor/session/list?sessionId=${encodeURIComponent(id)}`, {
+        method: 'DELETE',
+      })
       status = res.status
       ok = res.ok
       if (!res.ok) throw new Error(`HTTP ${res.status}`)

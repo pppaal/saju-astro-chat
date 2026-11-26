@@ -42,7 +42,7 @@ const SAJU_MONTH_BRANCH_ORDER = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 0, 1]
  * 사주월(寅-first) convention 의 (천간, 지지). monthIndex0 는 0~11 (월-1).
  * 연간(year stem)으로 寅월 월간을 정하고 거기서부터 순행.
  */
-export function sajuMonthStemBranch(
+function sajuMonthStemBranch(
   year: number,
   monthIndex0: number
 ): { stem: StemBranchInfo; branch: StemBranchInfo } {

@@ -20,7 +20,7 @@ vi.mock('@/components/report/integrated/IntegratedReport', () => ({
   },
 }))
 vi.mock('@/components/report/CounselorCTA', () => ({ default: () => null }))
-vi.mock('@/components/referral/ReferralInviteButton', () => ({ default: () => null }))
+vi.mock('@/components/referral/ReferralInviteButton', () => ({ ReferralInviteButton: () => null }))
 vi.mock('@/components/report/integrated/viral/ReportInviteTracker', () => ({
   default: () => null,
 }))
