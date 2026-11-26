@@ -22,10 +22,21 @@ export interface DayShareData {
   subline?: string
   curve?: number[]
   markerIndex?: number
+  /** 공유 시트 제목의 짧은 날짜 — 'Nov 24' / '11월 24일'. 오늘이 아닌 날 제목에 쓴다. */
+  shortDate?: string
+}
+
+/**
+ * 공유 시트 제목 — 오늘이면 'DestinyPal — Today' / 'DestinyPal 오늘의 운', 다른 날이면 그 날짜
+ * ('DestinyPal — Nov 24' / 'DestinyPal 11월 24일의 운'). '이날 공유하기'가 '오늘'을 달지 않게(QA COPY-1).
+ */
+export function dayShareTitle(isKo: boolean, isToday: boolean, shortDate?: string): string {
+  if (isToday || !shortDate) return isKo ? 'DestinyPal 오늘의 운' : 'DestinyPal — Today'
+  return isKo ? `DestinyPal ${shortDate}의 운` : `DestinyPal — ${shortDate}`
 }
 
 /** 하루 공유 링크 설정 — 다른 모양의 버튼(v9 row 등)도 같은 데이터로 쓴다. */
-export function dayShareLinkOptions(data: DayShareData): UseShareLinkOptions {
+export function dayShareLinkOptions(data: DayShareData, isToday = true): UseShareLinkOptions {
   const isKo = data.isKo
   return {
     endpoint: '/api/calendar/day/share',
@@ -39,7 +50,7 @@ export function dayShareLinkOptions(data: DayShareData): UseShareLinkOptions {
       curve: data.curve?.length ? data.curve.map((n) => Math.round(n)) : undefined,
       markerIndex: data.markerIndex,
     }),
-    title: isKo ? 'DestinyPal 오늘의 운' : 'DestinyPal — Today',
+    title: dayShareTitle(isKo, isToday, data.shortDate),
     text: data.headline || data.dateLabel,
     isKo,
     logTag: '[ShareDay]',
@@ -60,7 +71,7 @@ export function ShareDayButton({
   return (
     <ShareLinkButton
       variant="row"
-      link={dayShareLinkOptions(data)}
+      link={dayShareLinkOptions(data, isToday)}
       label={(isToday ? CAL_COPY.shareToday : CAL_COPY.shareDay)[lang]}
       copiedLabel={CAL_COPY.copied[lang]}
       creatingLabel={CAL_COPY.creating[lang]}

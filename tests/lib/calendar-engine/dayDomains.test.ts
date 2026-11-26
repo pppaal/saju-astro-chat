@@ -313,6 +313,76 @@ describe('classifyEvidence — 시별 달(moon) 절정', () => {
     expect(find(res, 'love').body).toContain('한 박자 늦추세요')
   })
 
+  it('EN 시각 클로즈는 전치사가 있는 문장 — "The flow picks up especially between …"(QA COPY-12)', () => {
+    const res = deriveDayDomains({
+      iljinSibsin: '비견',
+      sex: '남',
+      scoreBand: 'good',
+      evidence: moonEv,
+      ko: false,
+    })!
+    expect(find(res, 'love').bodyEn).toContain('The flow picks up especially between 1-3pm.')
+    expect(find(res, 'love').bodyEn).not.toContain('Especially 1-3pm the flow')
+  })
+
+  it("EN 어스펙트 없는 한 천체는 관사와 함께 — 'the Moon' (QA COPY-12)", () => {
+    const res = deriveDayDomains({
+      iljinSibsin: '비견',
+      sex: '남',
+      scoreBand: 'good',
+      ko: false,
+      evidence: {
+        transits: [{ body: 'Moon', polarity: 3 }],
+        shinsal: [],
+        crossActivations: [],
+      },
+    })!
+    const bodies = res.domains.map((d) => d.bodyEn).join(' ')
+    expect(bodies).toContain('Today, the Moon is the signal pushing this area forward.')
+    expect(bodies).not.toMatch(/Today, Moon\b/)
+  })
+
+  it('KO 본명 접점은 한글 — 카이런, 한글 이름이 없는 점은 접점 없이(라틴 글자 누출 없음)', () => {
+    const run = (target: string) =>
+      deriveDayDomains({
+        iljinSibsin: '비견',
+        sex: '남',
+        scoreBand: 'good',
+        ko: true,
+        evidence: {
+          transits: [{ body: 'Pluto', aspect: 'square', target, polarity: -3 }],
+          shinsal: [],
+          crossActivations: [],
+        },
+      })!
+        .domains.map((d) => d.body)
+        .join(' ')
+    expect(run('본명 Chiron')).toContain('명왕성–카이런 사각')
+    const unknown = run('본명 Pallas')
+    expect(unknown).toContain('명왕성 사각')
+    expect(unknown).not.toMatch(/[A-Za-z]/)
+  })
+
+  it('moonTime: false — 시각 클로즈를 엮지 않고, 달 근거(칩·톤)는 그대로(결정 QA-4)', () => {
+    const on = deriveDayDomains({
+      iljinSibsin: '비견',
+      sex: '남',
+      scoreBand: 'good',
+      evidence: moonEv,
+    })!
+    const off = deriveDayDomains({
+      iljinSibsin: '비견',
+      sex: '남',
+      scoreBand: 'good',
+      evidence: moonEv,
+      moonTime: false,
+    })!
+    expect(find(off, 'love').body).not.toContain('13-15시')
+    expect(find(off, 'love').bodyEn).not.toContain('1-3pm')
+    expect(find(off, 'love').evidence).toEqual(find(on, 'love').evidence)
+    expect(find(off, 'love').active).toBe(find(on, 'love').active)
+  })
+
   it('알 수 없는 달 본명 점(body)은 무시된다', () => {
     const unknown: DayEvidenceInput = {
       ...moonEv,

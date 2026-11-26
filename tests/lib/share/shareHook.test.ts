@@ -78,7 +78,7 @@ describe('dayShareHook', () => {
     }
     // 교체된 자리(mixed 9번째 = index 8)는 새 비도박 문구.
     expect(dayShareHook({ tone: 'mixed', score: 55, seed: 8, ko: false }).headline).toBe(
-      "Only take on what you can finish today. That's the skill."
+      'Only take on what you can finish today. That’s the skill.'
     )
     expect(dayShareHook({ tone: 'mixed', score: 55, seed: 8, ko: true }).headline).toBe(
       '오늘은 끝낼 수 있는 것만 골라 잡아. 그게 실력이야.'
@@ -113,5 +113,56 @@ describe('monthShareHook', () => {
     expect(monthShareHook({ tone: 'bright', seed: 5, monthSalt: 2, ko: true })).toEqual(
       monthShareHook({ tone: 'bright', seed: 5, monthSalt: 2, ko: true })
     )
+  })
+})
+
+describe('dayShareHook — 오늘이 아닌 날(isToday: false)은 날짜 중립 풀(QA COPY-1)', () => {
+  const DATE_WORD = /오늘|내일|어제|\btoday\b|\btomorrow\b|\byesterday\b/i
+  it('어떤 톤·시드에도 상대 날짜 말이 없다(ko/en)', () => {
+    for (const [tone, score] of [
+      ['positive', 90],
+      ['positive', 64],
+      ['mixed', 55],
+      ['caution', 30],
+    ] as const) {
+      for (let seed = 0; seed < 40; seed++) {
+        for (const ko of [true, false]) {
+          const h = dayShareHook({ tone, score, seed, daySalt: 24, isToday: false, ko })
+          expect(`${h.headline} ${h.subline ?? ''}`).not.toMatch(DATE_WORD)
+        }
+      }
+    }
+  })
+
+  it('같은 입력은 같은 후크, 기본(isToday 생략)은 오늘 풀 그대로', () => {
+    const a = dayShareHook({ tone: 'caution', score: 30, seed: 3, isToday: false, ko: true })
+    expect(dayShareHook({ tone: 'caution', score: 30, seed: 3, isToday: false, ko: true })).toEqual(
+      a
+    )
+    expect(dayShareHook({ tone: 'caution', score: 30, seed: 3, ko: true })).toEqual(
+      dayShareHook({ tone: 'caution', score: 30, seed: 3, isToday: true, ko: true })
+    )
+  })
+
+  it('EN 풀의 아포스트로피는 한 가지(’) — 곧은 따옴표 없음(QA COPY-12)', () => {
+    for (const isToday of [true, false]) {
+      for (const [tone, score] of [
+        ['positive', 90],
+        ['positive', 64],
+        ['mixed', 55],
+        ['caution', 30],
+      ] as const) {
+        for (let seed = 0; seed < 40; seed++) {
+          const h = dayShareHook({ tone, score, seed, isToday, ko: false })
+          expect(`${h.headline} ${h.subline ?? ''}`).not.toContain("'")
+        }
+      }
+    }
+    for (const tone of ['bright', 'careful', 'mixed', 'steady'] as const) {
+      for (let seed = 0; seed < 40; seed++) {
+        const h = monthShareHook({ tone, seed, ko: false })
+        expect(`${h.headline} ${h.subline ?? ''}`).not.toContain("'")
+      }
+    }
   })
 })

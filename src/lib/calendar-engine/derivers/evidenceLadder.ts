@@ -557,6 +557,25 @@ const spellAspectsEn = (t: string): string =>
     .split(' ')
     .map((tok) => ASPECT_WORD_EN[tok] ?? tok)
     .join(' ')
+// KO 결론도 같은 규칙(FIX9b F10 은 로케일을 가리지 않는다 · QA VC-7) — '달 □ 화성' → '달 스퀘어 화성'.
+// 말은 astro-transit aspectKorean · calendar-view ASPECT_WORD.ko 와 같다.
+const ASPECT_WORD_KO: Record<string, string> = {
+  '☌': '컨정션',
+  '☍': '어포지션',
+  '△': '트라인',
+  '□': '스퀘어',
+  '✶': '섹스타일',
+  '⚻': '퀸컹스',
+  '⚺': '세미섹스타일',
+  '⚼': '세스퀴쿼드러트',
+  Q: '퀸타일',
+  bQ: '바이퀸타일',
+}
+const spellAspectsKo = (t: string): string =>
+  t
+    .split(' ')
+    .map((tok) => ASPECT_WORD_KO[tok] ?? tok)
+    .join(' ')
 
 // 사주 결론 템플릿 — 전문어 0, 방향(부호)·시간층별. area/gloss 는 SIBSIN_DOMAIN.
 function sajuConclusion(sibsin: string, scale: LadderScale, polarity: number, lang: Lang): string {
@@ -611,7 +630,7 @@ function sajuConclusion(sibsin: string, scale: LadderScale, polarity: number, la
 function astroConclusion(s: ActiveSignal, scale: LadderScale, lang: Lang): string {
   const label = astroChipText(s, lang)
   return lang === 'ko'
-    ? `${label} 흐름이 ${SCALE_LABEL.ko[scale]}의 결을 잡아요`
+    ? `${spellAspectsKo(label)} 흐름이 ${SCALE_LABEL.ko[scale]}의 결을 잡아요`
     : `${spellAspectsEn(label)} sets the tone for ${SCALE_LABEL.en[scale].toLowerCase()}`
 }
 

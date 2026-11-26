@@ -70,13 +70,47 @@ export interface DayHeroOptions {
   isToday?: boolean
 }
 
+/**
+ * 오늘이 아닌 날의 엔진 문장 — '오늘 · 내일 · 어제'를 그날 기준 말로(QA COPY-1 · CODE-3).
+ * 엔진 템플릿(행동 처방 · 분야 본문 · 한 줄 · 교차 뜻 · 사다리 결론)은 오늘 화면 기준으로 적혀 있어,
+ * 지난 날·다가올 날 일간 화면에서 '11.24' 옆에 '오늘'이 찍혔다. 표시 층에서만 바꾼다 — 캐시된 셀과
+ * 판단(점수·톤·신호)은 그대로. KO '오늘'→'이날'(받침이 같아 조사가 그대로 맞는다), '내일'→'다음 날',
+ * '어제'→'전날'. EN 'today'→'that day' — 부사('money slips out that day')로도 명사('Leading that
+ * day is …', 'that day’s skill')로도 맞는다. 'tomorrow'→'the next day', 'yesterday'→'the day before',
+ * 'tonight'→'that night', 'tomorrow-you'→'future you'. KO '어제'→'전날'은 받침이 생겨 뒤 조사도 고친다.
+ */
+export function retimeDayText(text: string, ko: boolean): string {
+  if (!text) return text
+  if (ko) {
+    // '어제'(받침 없음) → '전날'(ㄹ 받침) — 바로 뒤 조사도 받침에 맞춘다('어제와' → '전날과').
+    const AFTER_BATCHIM: Record<string, string> = { 와: '과', 는: '은', 가: '이', 를: '을' }
+    return text
+      .replace(/오늘/g, '이날')
+      .replace(/내일/g, '다음 날')
+      .replace(/어제(와|는|가|를)?/g, (_m, p?: string) => `전날${p ? AFTER_BATCHIM[p] : ''}`)
+  }
+  const cap = (lower: string) => (first: string) =>
+    first === first.toUpperCase() ? lower[0].toUpperCase() + lower.slice(1) : lower
+  return text
+    .replace(/\btomorrow-you\b/g, 'future you')
+    .replace(/\b([Tt])onight\b/g, (_m, t: string) => cap('that night')(t))
+    .replace(/\b([Tt])omorrow morning\b/g, (_m, t: string) => cap('the next morning')(t))
+    .replace(/\b([Tt])oday\b/g, (_m, t: string) => cap('that day')(t))
+    .replace(/\b([Tt])omorrow\b/g, (_m, t: string) => cap('the next day')(t))
+    .replace(/\b([Yy])esterday\b/g, (_m, t: string) => cap('the day before')(t))
+}
+
 /** 인라인 마커("↑ 이달 · " / "↓ 오늘 · ")를 걷어내 쉬운말만 남긴다. */
 const stripMarker = (s: string) => s.replace(/^[↑↓▲▼]\s*[^·]*·\s*/, '').trim()
+
+/** 첫 글자 대문자 — 목록 항목(DO · EASE)이 문장처럼 읽히게. */
+const capitalizeFirst = (t: string) => (t ? t[0].toUpperCase() + t.slice(1) : t)
 
 export function buildDayHero(day: DestinyDay, opts: DayHeroOptions): DayHero {
   const ko = opts.lang === 'ko'
   const isToday = opts.isToday ?? true
   const dayWord = ko ? (isToday ? '오늘' : '이날') : isToday ? 'today' : 'this day'
+  const retime = (t: string, k: boolean) => (isToday ? t : retimeDayText(t, k))
 
   // ── 톤 권위 — day.dayTone 우선, 없으면 reconcile 폴백. ──
   const verdict: DayVerdict =
@@ -183,6 +217,8 @@ export function buildDayHero(day: DestinyDay, opts: DayHeroOptions): DayHero {
     score: verdict.score,
     seed: day.seed ?? 0,
     daySalt: Number(day.date?.slice(8, 10)) || 0,
+    // 오늘이 아닌 날은 날짜 중립 풀(QA COPY-1) — 히어로 H1 과 '이날 공유' 카드가 같은 후크.
+    isToday,
     ko,
   })
 
@@ -206,10 +242,22 @@ export function buildDayHero(day: DestinyDay, opts: DayHeroOptions): DayHero {
           : ''
 
   // ── 행동 처방(미성년이면 성인 도메인 카피 정화 — 감사 C3-hole). ──
-  const actions = minorSafeAll(
+  // 오늘이 아닌 날은 '오늘'을 그날 말로(retimeDayText). 문장 첫 글자는 대문자(QA COPY-12 — 엔진
+  // 풀의 EN 항목은 소문자로 시작한다).
+  const rawActions = minorSafeAll(
     deriveDayActions({ iljinSibsin: sibsinRaw, scoreBand: dayBand, seed: day.seed ?? 0 }),
     !!day.isMinor
   )
+  const actions: DayActions | null = rawActions
+    ? {
+        do: rawActions.do.map((t) => retime(t, true)),
+        doEn: rawActions.doEn.map((t) => capitalizeFirst(retime(t, false))),
+        avoid: rawActions.avoid.map((t) => retime(t, true)),
+        avoidEn: rawActions.avoidEn.map((t) => capitalizeFirst(retime(t, false))),
+        tip: retime(rawActions.tip, true),
+        tipEn: capitalizeFirst(retime(rawActions.tipEn, false)),
+      }
+    : null
 
   const oneLineRaw = ko ? day.oneLine : (day.oneLineEn ?? day.oneLine)
 
@@ -221,7 +269,7 @@ export function buildDayHero(day: DestinyDay, opts: DayHeroOptions): DayHero {
     toneWord,
     heroToneWord,
     hook,
-    oneLine: localizeLabel(oneLineRaw, ko),
+    oneLine: retime(localizeLabel(oneLineRaw, ko), ko),
     crossRows,
     reasonRow,
     strongestCross,
@@ -239,19 +287,29 @@ export function buildDayHero(day: DestinyDay, opts: DayHeroOptions): DayHero {
  */
 export function buildDayDomains(
   day: DestinyDay,
-  opts: { lang: 'ko' | 'en'; sex: string; dayBand: 'good' | 'mid' | 'low' }
+  opts: {
+    lang: 'ko' | 'en'
+    sex: string
+    dayBand: 'good' | 'mid' | 'low'
+    /** 오늘이 아닌 날 — 본문의 '오늘'을 그날 말로(retimeDayText). 기본 true. */
+    isToday?: boolean
+    /** 본문에 달 절정 시각 클로즈를 엮을지(deriveDayDomains moonTime). 기본 true. */
+    moonTime?: boolean
+  }
 ): DayDomainsResult | null {
-  return minorSafeAll(
+  const result = minorSafeAll(
     deriveDayDomains({
       iljinSibsin: String(day.iljinSibsin),
       sex: opts.sex,
       scoreBand: opts.dayBand,
       ko: opts.lang === 'ko',
       seed: day.seed ?? 0,
+      ...(opts.moonTime === false ? { moonTime: false } : {}),
       evidence: {
         transits: (day.transits ?? []).map((t) => ({
           body: (t as { body?: string }).body,
           aspect: (t as { aspect?: string }).aspect,
+          target: (t as { target?: string }).target,
           polarity: t.polarity,
         })),
         shinsal: day.shinsalActive ?? [],
@@ -274,4 +332,16 @@ export function buildDayDomains(
     }),
     !!day.isMinor
   )
+  if (!result || opts.isToday !== false) return result
+  // 오늘이 아닌 날 — 머리말·본문의 '오늘'을 그날 말로(QA COPY-1).
+  return {
+    ...result,
+    bandNote: retimeDayText(result.bandNote, true),
+    bandNoteEn: retimeDayText(result.bandNoteEn, false),
+    domains: result.domains.map((d) => ({
+      ...d,
+      body: retimeDayText(d.body, true),
+      bodyEn: retimeDayText(d.bodyEn, false),
+    })),
+  }
 }

@@ -170,7 +170,7 @@ const SIBSIN_ACTIONS: Record<string, SibsinActions> = {
     do: [
       {
         ko: '만들고 표현하는 일 (콘텐츠·기획·요리·운동)',
-        en: 'making and expressing — content, planning, cooking, a workout',
+        en: 'make and express — content, planning, cooking, a workout',
       },
       {
         ko: '재능을 수입으로 잇는 한 걸음 (판매·홍보·견적)',

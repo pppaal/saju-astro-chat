@@ -3,7 +3,7 @@
  * 렌더 테스트(tests/components/calendar/tiers/DayTier.test.tsx)가 표시 동일성을, 여기선 규칙을 본다.
  */
 import { describe, it, expect } from 'vitest'
-import { buildDayHero, buildDayDomains } from '@/lib/calendar-view/dayHero'
+import { buildDayHero, buildDayDomains, retimeDayText } from '@/lib/calendar-view/dayHero'
 import { dayShareHook } from '@/lib/share/shareHook'
 import type { DestinyDay } from '@/types/calendar'
 import { makeV9Day, SAMPLE_SEED } from './_v9Month'
@@ -111,5 +111,35 @@ describe('buildDayHero — 교차·근거', () => {
     expect(
       buildDayDomains(makeV9Day({ iljinSibsin: '—' }), { lang: 'en', sex: '여', dayBand: 'mid' })
     ).toBeNull()
+  })
+})
+
+describe('retimeDayText — 오늘이 아닌 날의 상대 날짜 말 (QA COPY-1)', () => {
+  it('EN — today · tomorrow · yesterday · tonight · tomorrow-you, 문장 첫 글자 대소문자 유지', () => {
+    expect(retimeDayText('Today, the Moon is the signal.', false)).toBe(
+      'That day, the Moon is the signal.'
+    )
+    expect(retimeDayText('Decide today on big money, but pay tomorrow.', false)).toBe(
+      'Decide that day on big money, but pay the next day.'
+    )
+    expect(retimeDayText('Eating well is part of today’s skill.', false)).toBe(
+      'Eating well is part of that day’s skill.'
+    )
+    expect(retimeDayText('Guard sleep first; hand tonight’s worries to tomorrow-you.', false)).toBe(
+      'Guard sleep first; hand that night’s worries to future you.'
+    )
+    expect(retimeDayText('Tomorrow morning, yesterday’s plan.', false)).toBe(
+      'The next morning, the day before’s plan.'
+    )
+  })
+  it('KO — 오늘 → 이날, 내일 → 다음 날, 어제 → 전날', () => {
+    expect(retimeDayText('오늘 만든 것은 내일의 밑천이 됩니다.', true)).toBe(
+      '이날 만든 것은 다음 날의 밑천이 됩니다.'
+    )
+    // '어제'는 받침이 없어 '전날'로 바꾸면 조사도 받침에 맞춘다.
+    expect(retimeDayText('어제와 결이 달라지는 날', true)).toBe('전날과 결이 달라지는 날')
+    expect(retimeDayText('어제 막혔던 게 오늘은 풀려. 어제는 어제가 아니다. 어제를', true)).toBe(
+      '전날 막혔던 게 이날은 풀려. 전날은 전날이 아니다. 전날을'
+    )
   })
 })

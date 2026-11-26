@@ -24,7 +24,11 @@ vi.mock('next-auth/react', () => ({
 }))
 
 import { ShareLinkButton } from '@/components/share/ShareLinkButton'
-import { ShareDayButton } from '@/components/calendar/ShareDayButton'
+import {
+  ShareDayButton,
+  dayShareLinkOptions,
+  dayShareTitle,
+} from '@/components/calendar/ShareDayButton'
 import { ShareCalendarButton } from '@/components/calendar/ShareCalendarButton'
 import { ReferralInviteButton } from '@/components/referral/ReferralInviteButton'
 
@@ -127,6 +131,26 @@ describe('useShareLink 로 옮긴 버튼들', () => {
       curve: [10, 56],
       markerIndex: 1,
     })
+  })
+
+  it("ShareDayButton: 오늘이 아닌 날의 공유 시트 제목은 그 날짜 — 'Today' 아님(QA COPY-1)", () => {
+    expect(dayShareTitle(false, true, 'Nov 24')).toBe('DestinyPal — Today')
+    expect(dayShareTitle(true, true, '11월 24일')).toBe('DestinyPal 오늘의 운')
+    expect(dayShareTitle(false, false, 'Nov 24')).toBe('DestinyPal — Nov 24')
+    expect(dayShareTitle(true, false, '11월 24일')).toBe('DestinyPal 11월 24일의 운')
+    const data = {
+      isKo: false,
+      dateLabel: 'November 24 2026',
+      score: 60,
+      tone: 'mixed' as const,
+      headline: 'h',
+      shortDate: 'Nov 24',
+    }
+    expect(dayShareLinkOptions(data, false).title).toBe('DestinyPal — Nov 24')
+    expect(dayShareLinkOptions(data).title).toBe('DestinyPal — Today')
+    // 서버 본문엔 제목 날짜를 싣지 않는다(공유 라우트 스키마 그대로).
+    const body = dayShareLinkOptions(data, false).body as () => Record<string, unknown>
+    expect(body()).not.toHaveProperty('shortDate')
   })
 
   it('ShareCalendarButton: highlights 최대 5개', async () => {

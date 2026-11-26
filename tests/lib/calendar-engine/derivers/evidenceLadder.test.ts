@@ -431,10 +431,11 @@ describe('deriveEvidenceLadder — EN 결론은 각 기호를 말로 (FIX9b F10)
     expect(en.conclusion).toBe('Venus trine Venus sets the tone for today')
     expect(en.conclusion).not.toMatch(ASPECT_GLYPH)
     expect(en.chips[0].text).toBe('Venus △ Venus')
-    // KO 결론은 이번 변경 범위 밖 — 그대로.
-    expect(deriveEvidenceLadder([venusTrine], 'ko', ['daily'])[0].conclusion).toContain(
-      '금성 △ 금성'
-    )
+    // KO 결론도 말로(QA VC-7) — '금성 트라인 금성'. 칩은 기호 유지.
+    const ko = deriveEvidenceLadder([venusTrine], 'ko', ['daily'])[0]
+    expect(ko.conclusion).toBe('금성 트라인 금성 흐름이 오늘의 결을 잡아요')
+    expect(ko.conclusion).not.toMatch(ASPECT_GLYPH)
+    expect(ko.chips[0].text).toBe('금성 △ 금성')
   })
 
   it('evidence 가 빠진 월 셀(name 폴백)에서도 square·conjunct 로 푼다', () => {
