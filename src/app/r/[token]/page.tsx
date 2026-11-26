@@ -455,11 +455,11 @@ export default async function SharedReadingPage({ params }: PageProps) {
             <p style={{ marginTop: 16, fontSize: 12, lineHeight: 1.7, color: MUTE }}>
               {reading.inviter
                 ? isKo
-                  ? `${reading.nameA}님 정보는 채워져 있어요 — 내 생년월일만 넣으면 바로 결과가 나와요.`
-                  : `${reading.nameA} is already filled in — just add your own birth date.`
+                  ? `${reading.nameA}님 정보는 채워져 있어요 — 내 출생 정보만 넣으면 바로 결과가 나와요.`
+                  : `${reading.nameA} is already filled in — just add your own birth details.`
                 : isKo
-                  ? '로그인 없이 두 사람 생년월일만 넣으면 바로 결과가 나와요.'
-                  : 'No sign-up — just two birth dates and you get the result.'}
+                  ? '로그인 없이 두 사람 출생 정보만 넣으면 바로 결과가 나와요.'
+                  : 'No sign-up — just two people’s birth details and you get the result.'}
             </p>
           </div>
         </div>
@@ -467,7 +467,7 @@ export default async function SharedReadingPage({ params }: PageProps) {
     )
   }
 
-  // 운흐름 캘린더 공유 — 기간 한 줄 총평이 주인공. 별도 레이아웃.
+  // 운세 달력 공유 — 기간 한 줄 총평이 주인공. 별도 레이아웃.
   if (isCalendarShare(reading)) {
     recordCounter('calendar.share.viewed', 1)
     return (
@@ -617,11 +617,11 @@ export default async function SharedReadingPage({ params }: PageProps) {
                 boxShadow: CTA_SHADOW,
               }}
             >
-              {isKo ? '내 운흐름도 무료로 보기 →' : 'See your own timing free →'}
+              {isKo ? '내 운세 달력도 무료로 보기 →' : 'See your own timing free →'}
             </Link>
             <p style={{ marginTop: 14, fontSize: 12, color: MUTE }}>
               {isKo
-                ? '생년월일로 이달의 큰 날과 흐름을 무료로 확인할 수 있어요.'
+                ? '출생 정보로 이달의 큰 날과 흐름을 무료로 확인할 수 있어요.'
                 : 'Find your key days and flow this month, free.'}
             </p>
           </div>
@@ -817,8 +817,8 @@ export default async function SharedReadingPage({ params }: PageProps) {
             </Link>
             <p style={{ marginTop: 14, fontSize: 12, color: MUTED }}>
               {isKo
-                ? '생년월일만 넣으면 사주와 별자리를 함께 읽은 통합 리포트가 무료로 나와요.'
-                : 'Just your birth date — get a free Saju + astrology report read together.'}
+                ? '출생 정보만 넣으면 사주와 별자리를 함께 읽은 통합 리포트가 무료로 나와요.'
+                : 'Just your birth details — get a free Saju + astrology report read together.'}
             </p>
           </div>
         </div>
@@ -977,8 +977,8 @@ export default async function SharedReadingPage({ params }: PageProps) {
             </Link>
             <p style={{ marginTop: 14, fontSize: 12, color: MUTE }}>
               {isKo
-                ? '생년월일만 넣으면 오늘의 점수와 이달 흐름을 무료로 볼 수 있어요.'
-                : 'Just your birth date — see today’s score and this month’s flow, free.'}
+                ? '출생 정보만 넣으면 오늘의 점수와 이달 흐름을 무료로 볼 수 있어요.'
+                : 'Just your birth details — see today’s score and this month’s flow, free.'}
             </p>
           </div>
         </div>
@@ -1241,8 +1241,8 @@ export default async function SharedReadingPage({ params }: PageProps) {
             </Link>
             <p style={{ marginTop: 14, fontSize: 12, color: MUTE }}>
               {isKo
-                ? '생년월일만 넣으면 대운 흐름과 큰 마디를 무료로 볼 수 있어요.'
-                : 'Just your birth date — see your life’s arc and turning points, free.'}
+                ? '출생 정보만 넣으면 대운 흐름과 큰 마디를 무료로 볼 수 있어요.'
+                : 'Just your birth details — see your life’s arc and turning points, free.'}
             </p>
           </div>
         </div>

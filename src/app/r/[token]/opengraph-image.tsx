@@ -395,7 +395,7 @@ export default async function Image({ params }: { params: Promise<{ token: strin
     const eyebrow = clamp(reading.periodLabel, 32)
     const hl = reading.highlights?.length ? clamp(reading.highlights[0], 60) : ''
     const cta = isKo
-      ? `내 운흐름도 무료로 · ${displayDomain}`
+      ? `내 운세 달력도 무료로 · ${displayDomain}`
       : `See your timing free · ${displayDomain}`
     const curve = dayCurveImg(reading.curve, reading.markerIndex ?? -1, '#e8cc8a')
     const fonts = await loadOgFonts(eyebrow, headline, hl, cta)
@@ -626,7 +626,9 @@ export default async function Image({ params }: { params: Promise<{ token: strin
     eyebrow = clamp(reading.periodLabel, 40)
     headline = clamp(reading.headline, 72)
     context = reading.highlights?.length ? clamp(reading.highlights[0], 70) : ''
-    cta = isKo ? `내 운흐름도 무료로 · ${displayDomain}` : `See your timing free · ${displayDomain}`
+    cta = isKo
+      ? `내 운세 달력도 무료로 · ${displayDomain}`
+      : `See your timing free · ${displayDomain}`
   } else if (reading && isReportShare(reading)) {
     // 동·서양 '같은 결' 교차 행 수가 2개 이상이면 eyebrow 를 "일치" 훅으로. 수는 리포트의
     // 톤 막대·도입부("align in N")와 같은 resonantCount(tallyCrossRows.same)만 쓴다 — 3개로

@@ -348,8 +348,8 @@ export default function BirthInfoModal({
       typeof window === 'undefined' ||
       window.confirm(
         isKo
-          ? '저장된 생년월일 정보를 삭제할까요? 다음 상담을 시작할 때 다시 입력해야 해요.'
-          : 'Delete your saved birth info? You will need to enter it again next time.'
+          ? '저장된 출생 정보를 삭제할까요? 다음 상담을 시작할 때 다시 입력해야 해요.'
+          : 'Delete your saved birth details? You will need to enter them again next time.'
       )
     if (!ok) return
     clearBirthInfo()
@@ -386,12 +386,14 @@ export default function BirthInfoModal({
     >
       <div className={styles.modalCard}>
         <h2 id="birth-info-title" className={styles.modalTitle}>
-          {title ?? (isKo ? '생년월일 정보 입력' : 'Enter birth info')}
+          {title ?? (isKo ? '출생 정보 입력' : 'Enter your birth details')}
         </h2>
         <p className={styles.modalSubtitle}>
+          {/* 시간 모름은 00:00 으로 계산하지 않는다 — birthTime null + birthTimeUnknown 으로 저장하고
+              엔진은 연 · 월 · 일 세 기둥만 읽는다(결정 9, QA COPY-9). */}
           {isKo
-            ? '한 번 입력하면 모든 서비스에서 자동으로 사용돼요. 시간 모르면 00:00으로 처리합니다.'
-            : 'Saved once, reused across every service. Unknown time defaults to 00:00.'}
+            ? '한 번 입력하면 모든 서비스에서 자동으로 사용돼요. 태어난 시간을 모르면 연·월·일만으로 읽어요.'
+            : 'Saved once, reused across every service. If you don’t know your birth time, we read the year, month and day only.'}
         </p>
 
         {options.length > 0 && (
