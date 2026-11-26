@@ -31,10 +31,14 @@ import { toMonth } from '@/lib/calendar-view'
 import { toGanji } from '@/lib/calendar-view/shared'
 import { assembleUserSummary } from './assembleUser'
 import { reconcileCellOneLine } from '@/lib/calendar-view/toDay'
-import { SIBSIN_EN } from '@/lib/saju/sibsinLabels'
-import { translateSignalLabel } from '@/lib/calendar-engine/derivers/signalI18n'
 import { assembleDayTier } from './assembleDayTier'
-import { crossKeys, stripCrossPair, PLANET_EN_FROM_KO, pickDayReason } from './crossPair'
+import {
+  crossKeys,
+  crossSajuEn,
+  stripCrossPair,
+  PLANET_EN_FROM_KO,
+  pickDayReason,
+} from './crossPair'
 
 import type { NatalContext } from '@/lib/calendar-engine/context/types'
 import type { CalendarCell } from '@/lib/calendar-engine/types'
@@ -255,7 +259,7 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
       if (prev && Math.abs(prev.polarity) >= Math.abs(s.polarity)) continue
       monthCrossByPair.set(pairKey, {
         saju: sajuKo,
-        sajuEn: SIBSIN_EN[sajuKo] ?? translateSignalLabel(sajuKo, 'en'),
+        sajuEn: crossSajuEn(sajuKo),
         astro: astroKo,
         astroEn: PLANET_EN_FROM_KO[astroKo] ?? astroKo,
         meaning: stripCrossPair(s.korean ?? ''),

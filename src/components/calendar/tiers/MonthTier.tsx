@@ -23,6 +23,7 @@ import styles from './MonthTier.module.css'
 import { useI18n } from '@/i18n/I18nProvider'
 import { toneMeaningFor, type MeaningTone } from '@/lib/calendar-engine/derivers/toneMeaning'
 import { sibsinArea, sibsinAreaEn, planetPlain } from '@/lib/calendar-engine/derivers/plainLanguage'
+import { SIBSIN_EN } from '@/lib/saju/sibsinLabels'
 import { ShareCalendarButton } from '@/components/calendar/ShareCalendarButton'
 import { monthShareHook } from '@/lib/share/shareHook'
 import { reconcileMonthTone } from '@/lib/calendar-engine/derivers/reconcile'
@@ -801,7 +802,13 @@ export function MonthTier({ month, onDive, onRise, showRise = true, onSelectDay 
           {(ganjiHanja || woolunSibsinRaw) && (
             <div className={styles.verdictSub}>
               <span className={styles.termTag}>
-                {[ganjiHanja, woolunSibsinRaw].filter(Boolean).join(' · ')}
+                {/* 용어 태그 — 간지 한자 + 월운 십신. EN 은 십신을 영문으로(한글 '편관' 누수 방지). */}
+                {[
+                  ganjiHanja,
+                  ko ? woolunSibsinRaw : (SIBSIN_EN[woolunSibsinRaw] ?? woolunSibsinRaw),
+                ]
+                  .filter(Boolean)
+                  .join(' · ')}
               </span>
             </div>
           )}

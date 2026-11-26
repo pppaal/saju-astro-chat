@@ -19,17 +19,21 @@ import {
 } from '@/lib/calendar-engine/derivers/layeredScore'
 import { CALENDAR_BANDS } from '@/lib/calendar-engine/derivers/constants'
 import { personSeed } from '@/lib/calendar-engine/derivers/personSeed'
-import { translateSignalLabel } from '@/lib/calendar-engine/derivers/signalI18n'
 import { isMinorAge, minorSafeText, sanitizeCrossEntry } from '@/lib/calendar-engine/minorSafe'
 import { computeDayPillarIndices } from '@/lib/saju/dayPillar'
 import { STEM_NAMES, BRANCH_NAMES } from '@/lib/saju/constants'
-import { SIBSIN_EN } from '@/lib/saju/sibsinLabels'
 import { currentManAge } from '@/lib/datetime/currentAge'
 import { toUser, toDay, bandMarkForScore } from '@/lib/calendar-view'
 import { reconcileCellOneLine, signalCat } from '@/lib/calendar-view/toDay'
 import { buildHourCrossings } from '@/lib/calendar-view/toHourCrossings'
 import { buildHourMoon } from '@/lib/calendar-view/toHourMoon'
-import { crossKeys, stripCrossPair, PLANET_EN_FROM_KO, pickDayReason } from './crossPair'
+import {
+  crossKeys,
+  crossSajuEn,
+  stripCrossPair,
+  PLANET_EN_FROM_KO,
+  pickDayReason,
+} from './crossPair'
 
 import type { NatalContext } from '@/lib/calendar-engine/context/types'
 import type { CalendarCell } from '@/lib/calendar-engine/types'
@@ -199,15 +203,25 @@ export async function assembleDayTier(input: AssembleDayTierInput): Promise<Dest
   const dayCrossSignals = allDaySignals.filter(
     (s) => s.kind === 'cross-activation'
   ) as DestinyDay['crossSignals']
+  // 응용격국 — id 는 *패턴 id*('jae-saeng-gwan', 신호 id 의 날짜 꼬리 없이)라 표시층 EN 맵
+  // (appliedPatternEn)이 그대로 찾는다. name 은 한자 라벨('財生官')만 — 신호 name 은
+  // '財生官 (재생관)' 이라 EN 화면 보조 글리프에 한글이 샜다(재감사 SI-3). evidence 가 빠진
+  // 셀(연 캐시 폴백)은 신호 id·name 을 파싱한다.
   const dayAppliedPatterns: DestinyDay['appliedPatterns'] = dayCell.signals
     .filter((s) => s.kind === 'applied-pattern')
     .map((s) => ({
-      id: s.id,
-      name: s.name,
+      id:
+        typeof s.evidence?.detail?.patternId === 'string'
+          ? (s.evidence.detail.patternId as string)
+          : (/^saju\.applied-pattern\.([^.]+)\./.exec(s.id)?.[1] ?? s.id),
+      name:
+        typeof s.evidence?.detail?.hanja === 'string'
+          ? (s.evidence.detail.hanja as string)
+          : s.name.replace(/\s*\([^)]*\)\s*$/, ''),
       korean:
         typeof s.evidence?.detail?.korean === 'string'
           ? (s.evidence.detail.korean as string)
-          : s.name,
+          : (/\(([^)]+)\)\s*$/.exec(s.name)?.[1] ?? s.name),
       polarity: s.polarity,
       weight: s.weight,
       activeAxes: Array.isArray(s.evidence?.detail?.activeAxes)
@@ -237,7 +251,7 @@ export async function assembleDayTier(input: AssembleDayTierInput): Promise<Dest
     const ko = lang === 'ko'
     dayCrossByPair.set(key, {
       id: s.id,
-      sajuSide: ko ? sajuKo : (SIBSIN_EN[sajuKo] ?? translateSignalLabel(sajuKo, 'en')),
+      sajuSide: ko ? sajuKo : crossSajuEn(sajuKo),
       astroSide: ko ? astroKo : (PLANET_EN_FROM_KO[astroKo] ?? astroKo),
       sajuKo, // raw — 분야 라우팅이 로케일에 흔들리지 않게(EN 에선 영문이라 키워드 매칭 실패).
       astroKo,

@@ -52,8 +52,12 @@ export interface LifetimeTierProps {
   user: DestinyUserSummary & {
     /** 격국 상태 한 줄 — '정인격 · 반성반파 (+정인 / -재성)'. */
     gyeokgukStatus?: string
+    /** EN 격국 상태 — 'Jeongin (Direct-resource) · Mixed'. */
+    gyeokgukStatusEn?: string
     /** 일간 통근 한 줄 — '월령 寅 실령 · 통근 얇음'. */
     rootStatus?: string
+    /** EN 통근 한 줄 — 'Month branch 寅 · out of season · thinly rooted'. */
+    rootStatusEn?: string
   }
   lifetime: DestinyLifetime
   onDive: () => void
@@ -153,9 +157,14 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
       ? lifePattern.line
       : (lifePattern.lineEn ?? lifePattern.line)
     : ''
-  const gyeokgukLabel = ko ? user.gyeokguk : user.gyeokgukEn || user.gyeokguk
+  // EN 머리말·태그는 EN 필드만 — KO 값으로 폴백하지 않는다(재감사 SI-1: 격국·강약·상태 태그가
+  // 한글로 샜다). 한자 글리프(强·弱·月支)는 허용.
+  const gyeokgukLabel = ko ? user.gyeokguk : user.gyeokgukEn
+  const gangyakLabel = ko ? user.gangyak : (user.gangyakEn ?? '')
   const yongsinLabel = ko ? user.yongsin.kr : (user.yongsin.en ?? user.yongsin.kr)
-  const statusTag = user.gyeokgukStatus || user.rootStatus || ''
+  const statusTag = ko
+    ? user.gyeokgukStatus || user.rootStatus || ''
+    : user.gyeokgukStatusEn || user.rootStatusEn || ''
 
   // ── 오행 — dominant(최다). 0 가능 → 빈배열 가드. ──
   const elementsEntries = Object.entries(user.elements || {}) as Array<
@@ -245,7 +254,7 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
     (ko ? '계절을 따라 흐르는 인생의 길이에요.' : 'A path that moves with the seasons.')
   const verdictTags = [
     ko ? lifePattern?.ko : (lifePattern?.en ?? lifePattern?.ko),
-    user.gangyak,
+    gangyakLabel,
     dominantEl ? `${EL_HANJA[dominantEl] ?? dominantEl}${ko ? ' 왕' : ' dominant'}` : '',
   ].filter(Boolean) as string[]
 
@@ -788,7 +797,7 @@ export function LifetimeTier({ user, lifetime, onDive }: LifetimeTierProps) {
             </span>
             <span>
               {ko ? '강약' : 'Strength'}
-              <b className={styles.cText}>{user.gangyak}</b>
+              <b className={styles.cText}>{gangyakLabel}</b>
             </span>
             <span className={styles.cYongsin}>
               {ko ? '용신' : 'Yongsin'}

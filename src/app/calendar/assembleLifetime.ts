@@ -28,9 +28,7 @@ import { getDateComponentsInTimezone } from '@/lib/datetime/timezone'
 import { getSibsinKo } from '@/lib/saju/cycleRelations'
 import { ganjiToKorean, ganjiToRoman } from '@/lib/saju/ganjiKo'
 import { sibsinArea, sibsinAreaEn } from '@/lib/calendar-engine/derivers/plainLanguage'
-import { SIBSIN_EN } from '@/lib/saju/sibsinLabels'
-import { translateSignalLabel } from '@/lib/calendar-engine/derivers/signalI18n'
-import { crossKeys, stripCrossPair, PLANET_EN_FROM_KO } from './crossPair'
+import { crossKeys, crossSajuEn, stripCrossPair, PLANET_EN_FROM_KO } from './crossPair'
 
 import type { NatalContext } from '@/lib/calendar-engine/context/types'
 import type { CalendarCell } from '@/lib/calendar-engine/types'
@@ -228,7 +226,7 @@ export function buildDecadeCross(focusDayCell: CalendarCell | null): DestinyDeca
     if (prev && Math.abs(prev.polarity) >= Math.abs(s.polarity)) continue
     byPair.set(key, {
       saju: sajuKo,
-      sajuEn: SIBSIN_EN[sajuKo] ?? translateSignalLabel(sajuKo, 'en'),
+      sajuEn: crossSajuEn(sajuKo),
       astro: astroKo,
       astroEn: PLANET_EN_FROM_KO[astroKo] ?? astroKo,
       meaning: stripCrossPair(s.korean ?? ''),

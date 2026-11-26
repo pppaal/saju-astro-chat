@@ -7,6 +7,8 @@
  * 미상 키는 호출부에서 KO 로 폴백 → KO 로케일·미상 라벨엔 영향 없음.
  */
 
+import { SHINSAL_NAME_EN, shinsalNameEn } from '@/lib/calendar-engine/derivers/signalI18n'
+
 /** 격국 성패 단어 — 성격/파격/반성반파. */
 export const GEOKGUK_STATUS_EN: Record<string, string> = {
   성격: 'Formed',
@@ -15,9 +17,10 @@ export const GEOKGUK_STATUS_EN: Record<string, string> = {
 }
 
 /**
- * 격국 이름 KO→EN (GeokgukType 전체 29종). toUser.GEOKGUK_EN_NAME(정격 8종)의
- * 상위집합 — 종격·비격·화기격·특수격까지 포함해 EN 로케일에서 격국명이 한국어로
- * 새지 않게 한다. 고전 격국 어휘라 사실상 불변. (정격 8종 표기는 toUser 와 동일 유지.)
+ * 격국 이름 KO→EN (GeokgukType 전체 29종 + 미정) — 캘린더 표면(Life 머리말·Day 본명
+ * 풀이)의 단일 출처. 종격·비격·화기격·특수격까지 포함해 EN 로케일에서 격국명이 한국어로
+ * 새지 않게 한다(재감사 SI-1: Life 는 예전 toUser 의 정격 8종 복사본만 써서 건록격·종격이
+ * 한글로 떴다). 고전 격국 어휘라 사실상 불변.
  */
 export const GEOKGUK_NAME_EN: Record<string, string> = {
   // 정격 8
@@ -69,61 +72,15 @@ export function geokgukStatusLineEn(name: string, status?: string): string {
 }
 
 /**
- * 신살 KO→EN. interpretations.json shinsal 의 name_en 을 기준으로 흔한 것들을
- * 담았다(별칭 ~살 포함). 미상은 호출부에서 KO 폴백.
+ * 신살 KO→EN — 정본은 엔진 쪽 signalI18n.SHINSAL_NAME_EN(interpretations.json shinsal
+ * name_en, 엔진이 낼 수 있는 신살 전부 + '~살' 별칭). 예전 여기 복사본은 건록을 12운성
+ * 이름('Office Entry')으로 적어 교차 칩('Established Stipend')과 어긋났다(재감사 SI-2).
  */
-export const SHINSAL_EN: Record<string, string> = {
-  겁살: 'Robbery Star',
-  도화: 'Peach Blossom',
-  역마: 'Traveling Horse',
-  화개: 'Floral Canopy',
-  천을귀인: 'Heavenly Benefactor',
-  양인: 'Blade Edge',
-  백호: 'White Tiger',
-  백호살: 'White Tiger',
-  괴강: 'Strong-Willed Star',
-  괴강살: 'Strong-Willed Star',
-  문창: 'Literary Star',
-  문창귀인: 'Literary Star',
-  문곡: 'Literary Arts Star',
-  천덕: 'Heavenly Virtue',
-  천덕귀인: 'Heavenly Virtue',
-  월덕: 'Monthly Virtue',
-  월덕귀인: 'Monthly Virtue',
-  학당귀인: "Scholar's Hall",
-  장성: 'General Star',
-  금여: 'Golden Carriage',
-  금여성: 'Golden Carriage Star',
-  공망: 'Voidness',
-  망신: 'Disgrace Star',
-  망신살: 'Disgrace Star',
-  원진: 'Resentment Star',
-  원진살: 'Resentment Star',
-  천라지망: 'Heaven-Earth Net',
-  태극귀인: 'Grand Polarity Star',
-  복성귀인: 'Fortune Star',
-  천의성: 'Healer Star',
-  암록: 'Hidden Stipend',
-  홍염살: 'Red Charm Star',
-  귀문관: 'Spirit Gate',
-  현침: 'Hanging Needle Star',
-  고신: 'Solitary Star',
-  재살: 'Disaster Star',
-  천살: 'Heavenly Disaster Star',
-  월살: 'Withering Star',
-  년살: 'Year Star',
-  지살: 'Earth Star',
-  육해: 'Six Harms Star',
-  반안: 'Saddle Star',
-  삼재: 'Three Calamities Period',
-  // 12운성 강왕 단계가 신살 목록에 함께 잡히는 경우(interpretations.json name_en 일치).
-  제왕: 'Sovereign',
-  건록: 'Office Entry',
-}
+export const SHINSAL_EN: Readonly<Record<string, string>> = SHINSAL_NAME_EN
 
-/** 신살 EN 치환 — strip 트레일링 '살' 후 재시도, 미상은 KO 그대로. */
+/** 신살 EN 치환 — 트레일링 '살' 을 떼고도 재시도, 미상은 KO 그대로. */
 export function shinsalEn(name: string): string {
-  return SHINSAL_EN[name] ?? SHINSAL_EN[name.replace(/살$/, '')] ?? name
+  return shinsalNameEn(name) ?? name
 }
 
 // ============================================================================
@@ -171,14 +128,44 @@ const TWELVE_STAGE_EN: Record<string, string> = {
   절: 'empty out, then restart',
   태: 'ideas quietly forming',
   양: 'quietly building strength',
+  양생: 'fresh-start momentum',
 }
 export function twelveStageEn(stage: string): string {
   return TWELVE_STAGE_EN[stage] ?? stage
 }
 
 /**
+ * 12운성 단계 → 한자 글리프(長生·臨官…). Day '본명 풀이' 칩의 보조 글리프(.natalHan)는
+ * 한자 자리다 — 예전엔 엔진의 한글 단계명('병'·'장생')을 그대로 찍어 EN 화면에 한글이
+ * 샜다(재감사 SI-3). 동의어(건록=임관, 제왕=왕지, 양생=장생)는 같은 글리프. 미상은 ''.
+ */
+const TWELVE_STAGE_HANJA: Record<string, string> = {
+  장생: '長生',
+  양생: '長生',
+  목욕: '沐浴',
+  관대: '冠帶',
+  임관: '臨官',
+  건록: '臨官',
+  왕지: '帝旺',
+  제왕: '帝旺',
+  쇠: '衰',
+  병: '病',
+  사: '死',
+  묘: '墓',
+  절: '絶',
+  태: '胎',
+  양: '養',
+}
+export function twelveStageHanja(stage: string): string {
+  return TWELVE_STAGE_HANJA[stage] ?? ''
+}
+
+/**
  * 응용격국 8종 — EN 이름 + 한 줄 뜻. KO 는 데이터의 korean/rule 을 그대로 쓰고,
  * EN 은 rule 이 한글뿐이라 여기 고정 글로스를 쓴다(EN 누출 방지).
+ * 키 = 추출기 패턴 id(saju-applied-pattern APPLIED_PATTERN_IDS) 그대로. 예전 키는
+ * 'gwanin-sangsaeng'·'jaesaeng-gwan' 처럼 철자가 달라 8개 중 2개만 맞았고 bigeop-talchae 는
+ * 아예 없었다(재감사 SI-3) — 테스트가 추출기 id 전부를 잠근다.
  */
 export const APPLIED_PATTERN_EN: Record<string, { name: string; gloss: string }> = {
   'sanggwan-gyeon-gwan': {
@@ -189,31 +176,37 @@ export const APPLIED_PATTERN_EN: Record<string, { name: string; gloss: string }>
     name: 'Eating God controls the Killing',
     gloss: 'creative output tames pressure — stress turned productive',
   },
-  'gwanin-sangsaeng': {
+  'gwan-in-sangsaeng': {
     name: 'Officer feeds Resource',
     gloss: 'authority and learning reinforce — status through study',
   },
-  'jaesaeng-gwan': {
+  'jae-saeng-gwan': {
     name: 'Wealth generates Officer',
     gloss: 'resources build standing — money supports position',
   },
-  'insaeng-bigeop': {
+  'in-saeng-bigeop': {
     name: 'Resource feeds Peers',
     gloss: 'support strengthens the self and allies',
   },
-  'bigeop-talJae': {
+  'bigeop-talchae': {
     name: 'Peers rob Wealth',
     gloss: 'rivals and expenses drain resources — guard money',
   },
-  'gwansal-honjap': {
+  'gwan-sal-honjap': {
     name: 'Officer and Killing mixed',
     gloss: 'conflicting demands from authority — keep boundaries clear',
   },
-  'hyosik-tal': {
+  'hyo-sik-tal': {
     name: 'Indirect Resource steals the Eating God',
     gloss: 'over-thinking smothers output — just ship it',
   },
 }
+
+/**
+ * 응용격국 EN — 패턴 id 또는 신호 id('saju.applied-pattern.<패턴 id>.<YYYY-MM-DD>')를 받는다.
+ * 신호 id 를 그대로 넘기던 호출부(DayTier)도 맞게 패턴 id 를 뽑아 찾는다.
+ */
 export function appliedPatternEn(id: string): { name: string; gloss: string } | undefined {
-  return APPLIED_PATTERN_EN[id]
+  const m = /^saju\.applied-pattern\.([^.]+)\./.exec(id)
+  return APPLIED_PATTERN_EN[m ? m[1] : id]
 }

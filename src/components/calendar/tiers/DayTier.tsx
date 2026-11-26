@@ -44,10 +44,12 @@ import {
   elementEn,
   jijangganLayerEn,
   twelveStageEn,
+  twelveStageHanja,
   appliedPatternEn,
   geokgukStatusLineEn,
 } from '@/lib/calendar-view/dayTierEnMaps'
 import { CALENDAR_BANDS } from '@/lib/calendar-engine/derivers/constants'
+import { SIBSIN_EN } from '@/lib/saju/sibsinLabels'
 
 // ============================================================================
 // HourSlot / DayVoc — 외부 참조(네비 계약). prop 형태 유지 (HourSlot 은 미사용).
@@ -323,6 +325,8 @@ export function DayTier({ day, onRise, sex = '남', isToday = true }: DayTierPro
   const strength = dayStrength(day.score)
   const sibsinRaw = String(day.iljinSibsin)
   const sibsinPlain = ko ? sibsinArea(sibsinRaw) : sibsinAreaEn(sibsinRaw)
+  // 용어 칩 — 십신 원어. EN 은 영문 십신명(한글 '정인' 이 EN 머리말·기둥 줄에 새던 자리).
+  const sibsinTerm = ko ? sibsinRaw : (SIBSIN_EN[sibsinRaw] ?? sibsinRaw)
 
   // ── 타이틀(라틴) — "June 15 2026". ──
   const [yyyy, mm, dd] = day.date.split('-')
@@ -746,7 +750,7 @@ export function DayTier({ day, onRise, sex = '남', isToday = true }: DayTierPro
           </div>
           <div className={styles.sibsinTag}>
             <span className={styles.sibsinPlain}>{sibsinPlain}</span>
-            <span className={styles.sibsinRaw}>{sibsinRaw}</span>
+            <span className={styles.sibsinRaw}>{sibsinTerm}</span>
           </div>
           {day.dayMaster && (
             <div className={styles.master}>
@@ -1010,7 +1014,7 @@ export function DayTier({ day, onRise, sex = '남', isToday = true }: DayTierPro
                 <span className={styles.chartDesc}>
                   {ko
                     ? `${dayWord}의 기운 ${day.iljin.kr} · ${sibsinPlain} (${sibsinRaw})`
-                    : `${isToday ? "today's" : "the day's"} pillar ${day.iljin.en} · ${sibsinPlain} (${sibsinRaw})`}
+                    : `${isToday ? "today's" : "the day's"} pillar ${day.iljin.en} · ${sibsinPlain} (${sibsinTerm})`}
                 </span>
               </div>
               {day.dayMaster && (
@@ -1090,7 +1094,8 @@ export function DayTier({ day, onRise, sex = '남', isToday = true }: DayTierPro
                         {ko
                           ? `${PILLAR_PLAIN[s.pillar]?.ko ?? s.pillar} · ${twelveStagePlain(s.stage)}`
                           : `${PILLAR_PLAIN[s.pillar]?.en ?? s.pillar} · ${twelveStageEn(s.stage)}`}{' '}
-                        <span className={styles.natalHan}>{s.stage}</span>
+                        {/* 보조 글리프는 한자(長生·病…) — 엔진 단계명은 한글이라 EN 에 새던 자리. */}
+                        <span className={styles.natalHan}>{twelveStageHanja(s.stage)}</span>
                       </span>
                     ))}
                   </div>

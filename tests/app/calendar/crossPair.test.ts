@@ -6,7 +6,9 @@
  * 무색·focus=어느 쪽이든. 통과하는 교차가 없으면 null.
  */
 import { describe, it, expect } from 'vitest'
-import { pickDayReason, reasonSignForMark } from '@/app/calendar/crossPair'
+import { crossSajuEn, pickDayReason, reasonSignForMark } from '@/app/calendar/crossPair'
+import { SAJU_ASTRO_MAPPINGS } from '@/lib/calendar-engine/data/saju-astro-mapping'
+import { SIBSIN_EN } from '@/lib/saju/sibsinLabels'
 import type { ActiveSignal, Polarity, SignalLayer } from '@/lib/calendar-engine/types'
 
 let seq = 0
@@ -160,5 +162,33 @@ describe('pickDayReason', () => {
   it('셀이 없으면 null', () => {
     expect(pickDayReason(null, 'good')).toBeNull()
     expect(pickDayReason(undefined, null)).toBeNull()
+  })
+})
+
+// 재감사 SI-2·CC-4 — 교차 사주 키는 어느 화면이든 같은 EN 라벨(crossSajuEn)로, 한글 없이.
+describe('crossSajuEn — 교차 사주 키 EN 라벨', () => {
+  const keys = [...new Set(SAJU_ASTRO_MAPPINGS.map((m) => m.saju))]
+
+  it('매핑의 사주 키 전부가 한글 없는 EN 라벨을 갖는다', () => {
+    expect(keys.length).toBeGreaterThanOrEqual(14)
+    for (const k of keys) {
+      const en = crossSajuEn(k)
+      expect(en, k).toBeTruthy()
+      expect(en, `${k} → ${en}`).not.toMatch(/[가-힣]/)
+    }
+  })
+
+  it('십신은 SIBSIN_EN, 신살은 정본 신살 이름(건록 = Established Stipend)', () => {
+    for (const k of Object.keys(SIBSIN_EN)) expect(crossSajuEn(k)).toBe(SIBSIN_EN[k])
+    expect(crossSajuEn('건록')).toBe('Established Stipend')
+    expect(crossSajuEn('도화')).toBe('Peach Blossom')
+    expect(crossSajuEn('역마')).toBe('Traveling Horse')
+    expect(crossSajuEn('양인')).toBe('Blade Edge')
+  })
+
+  it("pickDayReason 의 sajuEn 도 같은 라벨 — '건록 × Sun' 이 EN 칩에 서지 않는다", () => {
+    const r = pickDayReason({ signals: [cross('건록', 'Sun', 2, 'daily')] }, 'good')
+    expect(r?.saju).toBe('건록')
+    expect(r?.sajuEn).toBe('Established Stipend')
   })
 })

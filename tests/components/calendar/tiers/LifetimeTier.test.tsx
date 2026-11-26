@@ -152,6 +152,20 @@ describe('LifetimeTier (인생 전체 · LIGHT)', () => {
     expect(screen.getByTitle('gapsul (甲戌)')).toBeInTheDocument()
   })
 
+  it('EN 정체성 머리말 — 격국·강약·상태 태그가 영문(한글 KO 값으로 폴백하지 않음, 재감사 SI-1)', () => {
+    mockLocale = 'en'
+    const { container } = renderTier()
+    const header = [...container.querySelectorAll('header')].find((h) =>
+      h.textContent?.includes('Structure')
+    )!
+    expect(header.textContent).toContain('Jeongin (Direct-resource)')
+    expect(header.textContent).toContain('Balanced (中和)')
+    expect(header.textContent).toContain('Jeongin (Direct-resource) · Mixed')
+    expect(header.textContent).not.toMatch(/[가-힣]/)
+    // 정의 태그 줄의 강약도 영문.
+    expect(screen.queryByText('중화(中和)')).not.toBeInTheDocument()
+  })
+
   // ── 새 블록 — /destiny 경량 경로가 채우는 세운·대운 교차 ──
   it('대운층 사주×점성 교차 블록 — 페어·뜻·방향 표시', () => {
     renderTierWith({

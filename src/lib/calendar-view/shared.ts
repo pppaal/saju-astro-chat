@@ -186,6 +186,36 @@ export function rootLine(
   return parts.length ? parts.join(' · ') : undefined
 }
 
+/**
+ * rootLine 의 EN 짝 — 같은 입력·같은 단계 경계로 'Month branch 寅 · out of season ·
+ * thinly rooted'. 월지 글리프(한자)는 그대로, 득령/실령/평령·통근 단계는 영문(재감사 SI-1:
+ * Life EN 머리말 태그가 '월령 卯 평령 · 통근 얇음' 으로 샜다).
+ */
+export function rootLineEn(
+  monthBranch: string | undefined,
+  deukryeong: string | undefined,
+  tonggeunStrength: number | undefined
+): string | undefined {
+  const parts: string[] = []
+  if (monthBranch && deukryeong) {
+    const dEn =
+      deukryeong === '득령' ? 'in season' : deukryeong === '실령' ? 'out of season' : 'mid-season'
+    parts.push(`Month branch ${monthBranch} · ${dEn}`)
+  }
+  if (typeof tonggeunStrength === 'number') {
+    const tg =
+      tonggeunStrength >= 100
+        ? 'deeply rooted'
+        : tonggeunStrength >= 50
+          ? 'well rooted'
+          : tonggeunStrength > 0
+            ? 'thinly rooted'
+            : 'rootless'
+    parts.push(tg)
+  }
+  return parts.length ? parts.join(' · ') : undefined
+}
+
 // ── ISO ↔ Year/Month/Day 변환 ──────────────────────────────────────────────
 export function ymdFromIso(iso: string): { y: number; m: number; d: number } {
   return { y: +iso.slice(0, 4), m: +iso.slice(5, 7), d: +iso.slice(8, 10) }

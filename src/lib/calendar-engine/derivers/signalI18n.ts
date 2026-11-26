@@ -79,18 +79,88 @@ const ASTRO_EN: Record<string, string> = {
   본명: 'natal',
 }
 
-// shinsal (date-detail 에 이미 있지만 themeBreakdown 도 자주 나옴).
-// 영문은 interpretations.json name_en(정본)에 맞춰 dayTierEnMaps 와 동일하게 유지.
-const SHINSAL_EN: Record<string, string> = {
-  도화: 'Peach Blossom',
-  천을귀인: 'Heavenly Benefactor',
+// 신살 이름 KO→EN — 캘린더가 낼 수 있는 신살 전부(saju-shinsal SHINSAL_POLARITY 키 =
+// 엔진 ShinsalHit kind)와 그 '~살' 별칭. 영문은 interpretations.json shinsal name_en(정본).
+// 단일 출처: dayTierEnMaps.shinsalEn·교차 사주 키 라벨(crossPair.crossSajuEn)이 이 표를 쓴다.
+// 예전엔 11개만 있어 EN 화면에 '건록'·'문창'·'금여성' 등이 한글로 샜고(재감사 SI-2·CC-4),
+// '육해' 는 관계어 '해'만 치환돼 '육harm' 이 됐다.
+const SHINSAL_BASE_EN: Record<string, string> = {
+  // 12신살
+  장성: 'General Star',
+  반안: 'Saddle Star',
   역마: 'Traveling Horse',
+  육해: 'Six Harms Star',
   화개: 'Floral Canopy',
+  겁살: 'Robbery Star',
+  재살: 'Disaster Star',
+  천살: 'Heavenly Disaster Star',
+  월살: 'Withering Star',
+  망신: 'Disgrace Star',
+  지살: 'Earth Star',
+  년살: 'Year Star',
+  // 길성 (귀인·문창류)
+  천을귀인: 'Heavenly Benefactor',
+  태극귀인: 'Grand Polarity Star',
+  천덕귀인: 'Heavenly Virtue',
+  천덕: 'Heavenly Virtue',
+  월덕귀인: 'Monthly Virtue',
+  월덕: 'Monthly Virtue',
+  천주귀인: 'Heavenly Granary Star',
+  천관귀인: 'Heavenly Office Star',
+  복성귀인: 'Fortune Star',
+  암록: 'Hidden Stipend',
+  금여성: 'Golden Carriage Star',
+  금여: 'Golden Carriage',
+  천의성: 'Healer Star',
+  천문성: 'Heavenly Gate Star',
+  문창: 'Literary Star',
+  문창귀인: 'Literary Star',
+  문곡: 'Literary Arts Star',
+  학당귀인: "Scholar's Hall",
+  // 록·왕 — 신살로서의 이름(interpretations shinsal). 12운성 임관(Office Entry)과 다르다.
+  건록: 'Established Stipend',
+  제왕: 'Peak Star',
+  // 흉신·살
+  도화: 'Peach Blossom',
+  홍염: 'Red Charm Star',
+  현침: 'Hanging Needle Star',
+  고신: 'Solitary Star',
+  과숙: 'Widow Star',
+  괴강: 'Strong-Willed Star',
   양인: 'Blade Edge',
   백호: 'White Tiger',
-  괴강: 'Strong-Willed Star',
-  천덕귀인: 'Heavenly Virtue',
-  월덕귀인: 'Monthly Virtue',
+  공망: 'Voidness',
+  귀문관: 'Spirit Gate',
+  원진: 'Resentment Star',
+  천라지망: 'Heaven-Earth Net',
+  삼재: 'Three Calamities Period',
+}
+
+/**
+ * 신살 이름 → EN 정본 표 (별칭 '~살' 포함). 키가 '살'로 끝나지 않으면 '~살' 별칭을,
+ * '살'로 끝나면(겁살·재살…) 그대로 — 부분 치환('장성살' → 'General Star살')이 생기지 않게
+ * 긴 별칭 키도 표에 둔다.
+ */
+export const SHINSAL_NAME_EN: Readonly<Record<string, string>> = Object.freeze(
+  Object.fromEntries(
+    Object.entries(SHINSAL_BASE_EN).flatMap(([ko, en]) =>
+      ko.endsWith('살')
+        ? [[ko, en]]
+        : [
+            [ko, en],
+            [`${ko}살`, en],
+          ]
+    )
+  )
+)
+
+/** 신살 이름 하나의 EN — 표에 없으면 undefined (호출부가 폴백을 고른다). */
+export function shinsalNameEn(name: string): string | undefined {
+  return SHINSAL_NAME_EN[name] ?? SHINSAL_NAME_EN[name.replace(/살$/, '')]
+}
+
+// themeBreakdown 분류어 — 신살 이름이 아닌 묶음 라벨.
+const SHINSAL_CLASS_EN: Record<string, string> = {
   흉살: 'malefic',
   길성: 'lucky star',
 }
@@ -103,11 +173,14 @@ const GLUE_EN: Record<string, string> = {
   시진: 'hour pillar',
 }
 
+// 신살 표를 관계어보다 *먼저* 펼친다 — 공망·원진은 관계어 표(void·resentment)가 이기도록
+// 예전 치환 결과를 그대로 둔다(신살 이름으로만 쓰이는 키는 겹치지 않는다).
 const ALL_TERMS: Record<string, string> = {
   ...SIBSIN_EN,
+  ...SHINSAL_NAME_EN,
   ...SAJU_REL_EN,
   ...ASTRO_EN,
-  ...SHINSAL_EN,
+  ...SHINSAL_CLASS_EN,
   ...GLUE_EN,
 }
 

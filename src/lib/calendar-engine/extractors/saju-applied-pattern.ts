@@ -378,6 +378,9 @@ const APPLIED_PATTERNS: AppliedPattern[] = [
   },
 ]
 
+/** 추출기가 내는 응용 패턴 id 전부 — 표시층 EN 맵(dayTierEnMaps.APPLIED_PATTERN_EN) 커버리지 테스트용. */
+export const APPLIED_PATTERN_IDS: readonly string[] = APPLIED_PATTERNS.map((p) => p.id)
+
 const sajuAppliedPatternExtractor: SignalExtractor = {
   source: 'saju',
   kind: 'applied-pattern' as SignalKind,

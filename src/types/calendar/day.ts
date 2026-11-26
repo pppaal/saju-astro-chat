@@ -96,15 +96,15 @@ export interface DestinyGongmang {
 export type AppliedPatternId =
   | 'sanggwan-gyeon-gwan' // 상관견관 −2 / −3
   | 'siksin-jesal' // 식신제살 +2
-  | 'gwanin-sangsaeng' // 관인상생 +2
-  | 'jaesaeng-gwan' // 재생관 +2
-  | 'insaeng-bigeop' // 인생비겁 +2
-  | 'bigeop-talJae' // 비겁탈재 −2
-  | 'gwansal-honjap' // 관살혼잡 −1
-  | 'hyosik-tal' // 효식탈 −2
+  | 'gwan-in-sangsaeng' // 관인상생 +2
+  | 'jae-saeng-gwan' // 재생관 +2
+  | 'in-saeng-bigeop' // 인생비겁 +2
+  | 'bigeop-talchae' // 비겁탈재 −2
+  | 'gwan-sal-honjap' // 관살혼잡 −1
+  | 'hyo-sik-tal' // 효식탈 −2
 
 export interface DestinyAppliedPattern {
-  /** 패턴 ID. */
+  /** 패턴 ID — 추출기 패턴 id('jae-saeng-gwan'), 신호 id 의 날짜 꼬리 없이. */
   id: AppliedPatternId | string
   /** 한국어 라벨 — '상관견관'. */
   korean: string

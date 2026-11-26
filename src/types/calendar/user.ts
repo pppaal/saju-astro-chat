@@ -141,10 +141,12 @@ export interface DestinyUserSummary {
   huisin: DestinyYongsin
   /** 격국명 한글 — '정인격'. */
   gyeokguk: string
-  /** 격국명 영문 — 'Jeong-in (Direct Resource)'. */
+  /** 격국명 영문 — 'Jeongin (Direct-resource)'. 한글 접두 없음(EN 화면 그대로). */
   gyeokgukEn: string
   /** 신강·신약 표시 — '약(弱)' '강(强)' '중화'. */
   gangyak: string
+  /** 신강·신약 EN — 5단계('Very strong (强)' … 'Very weak (弱)'). EN 화면은 이 값을 쓴다. */
+  gangyakEn?: string
   /** 가장 두드러진 십성 + 비율. */
   dominantSibsin: {
     name: string

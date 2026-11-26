@@ -31,8 +31,9 @@
       "avoid": []
     },
     "gyeokguk": "정인격",
-    "gyeokgukEn": "정인격 · Jeongin (Direct-resource)",
+    "gyeokgukEn": "Jeongin (Direct-resource)",
     "gangyak": "중화(中和)",
+    "gangyakEn": "Balanced (中和)",
     "dominantSibsin": {
       "name": "재성",
       "pct": 43
@@ -295,7 +296,9 @@
     "intro": "사주로는 辛 일간으로 기운이 비교적 균형 잡혀, 용신 화·토가 받쳐줄 때 잘 풀려요. 격국은 정인격으로 배움·지원이 든든한 스타일. 본명에 재성이 43%로 가장 두드러져 — 행동 동력·물질 감각이 본 스타일. 일간 통근이 뿌리 없이 월령을 잃어 강약은 중화의 편이에요. 사주 8자 중 목 기운이 가장 많아 성장·확장 동력이 큰 편이에요. 조후로 보면 토이 받쳐주면 좋아서 초봄 신금은 무기토 생조 필요. 병화로 따뜻하게. 점성으로는 태양 물병자리·상승 물병자리·MC 전갈자리의 기질을 타고났고요. 이 둘이 평생 흐름의 바탕을 만들고, 그 위에서 시기별로 펼쳐져요.",
     "introEn": "",
     "gyeokgukStatus": "정인격 · 반성반파 (+정인 존재 / -재성이 인성 파괴)",
+    "gyeokgukStatusEn": "Jeongin (Direct-resource) · Mixed",
     "rootStatus": "월령 寅 실령 · 뿌리 없음",
+    "rootStatusEn": "Month branch 寅 · out of season · rootless",
     "iljuArchetype": {
       "ko": {
         "character": "양털 위 보석 — 우아하고 까다로운 감식안. 당신은 아무거나 받아들이지 않는, 안목이 까다로운 사람이에요.",
