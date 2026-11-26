@@ -28,48 +28,13 @@ import {
   TONE_TO_VERDICT,
   VERDICT,
   pick,
-  type Bi,
-  type CrossToneKey,
-  type ElementKey,
   type Lang,
 } from './v9Copy'
+import type { CardPillar, SajuCardData } from '@/lib/card/types'
 import s from './SajuCard.module.css'
 
-export interface CardPillar {
-  /** 천간 한자. */
-  stem: string
-  /** 지지 한자. */
-  branch: string
-  element: { stem: ElementKey; branch: ElementKey }
-  /** 로마자 읽기(Imsul). */
-  roman: string
-  /** 한글 읽기(임술). */
-  hangul: string
-}
-
-export interface SajuCardData {
-  pillars: {
-    hour: CardPillar | null
-    day: CardPillar
-    month: CardPillar
-    year: CardPillar
-  }
-  /** 시주 숨김(개인정보 기본값 또는 시간 미상) — 점선 빈 칸. */
-  hourHidden: boolean
-  dayMaster: { stem: string; element: ElementKey }
-  /** 태양·달·상승 별자리 이름. asc 가 null 이면(시간·장소 미상) '—'. */
-  bigThree: { sun: Bi; moon: Bi; asc: Bi | null }
-  /** 사주 타입 이름(세리프 이탤릭) — 'steady-building Free Spirit'. */
-  typeName: Bi
-  /** 인생 모양 — 'Late bloomer'. */
-  lifeShape: Bi | null
-  /** 정체성 축 — 사주 오행 × 별 오행 → 판정. */
-  identity: { saju: ElementKey; astro: ElementKey; verdictKey: CrossToneKey } | null
-  /** 합의 줄 — lineUp = 같음 + 서로 도움, total = tallyCrossRows().total. */
-  agree: { lineUp: number; total: number } | null
-  /** 뒷면에 비치는 세운 — { ganji: '丙午', year: 2026 }. */
-  backYear?: { ganji: string; year: number } | null
-}
+// 데이터 모양은 lib/card/types(엔진 빌더 buildSajuCardData 와 공용) — 여기서 다시 내보낸다.
+export type { CardPillar, SajuCardData }
 
 export type SajuCardVariant = 'full' | 'mini' | 'export'
 
