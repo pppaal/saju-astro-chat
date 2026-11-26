@@ -14,6 +14,8 @@ import { describe, it, expect } from 'vitest'
 import { deriveLifetimeFlow } from '@/lib/calendar-engine/derivers/lifetimeFlow'
 import type { NatalContext } from '@/lib/calendar-engine/context/types'
 import type { LifecycleMilestoneOverride } from '@/lib/calendar-engine/lifecycle/astroLifecycle'
+import cheonraActivation from '@/lib/calendar-engine/extractors/saju-shinsal-activation'
+import type { ExtractorContext } from '@/lib/calendar-engine/types'
 
 // ── fixture builder ───────────────────────────────────────────────
 type DaeunEntry = { startAge: number; startYear: number; stem: string; branch: string }
@@ -317,6 +319,92 @@ describe('deriveLifetimeFlow', () => {
       const n = makeNatal({ natalShinsal: [{ kind: '천을귀인' }] })
       const r = deriveLifetimeFlow(n)!
       expect(r.phases.every((p) => p.shinsalLine === undefined)).toBe(true)
+    })
+  })
+
+  // 천라지망 — 캘린더(saju-shinsal-activation)와 같은 짝 완성 규칙(G12 · G4 SDR-03): 대운
+  // 지지가 본명(보이는 기둥) 지지와 戌亥·辰巳 짝을 완성하면 활성. 본명 hit anchor 는 안 쓴다.
+  // 기본 fixture 의 청년기 대표 대운 = 乙亥(25), 중년기 = 癸酉(45).
+  describe('shinsalLine — 천라지망 짝 완성 (캘린더와 같은 규칙)', () => {
+    const young = (n: NatalContext, locale?: 'en') =>
+      deriveLifetimeFlow(n, locale ?? 'ko')!.phases.find((p) => p.labelKo === '청년기')!
+
+    it('본명 戌 하나 + 亥 대운 → 천라지망 활성 (ko/en)', () => {
+      const n = makeNatal({ branches: { year: '午', month: '寅', day: '酉', time: '戌' } })
+      const p = young(n)
+      expect(p.shinsalLineKo).toBe(
+        '천라지망 기운 — 묶인 듯 더딘 흐름, 절차와 약속을 꼼꼼히 챙길수록 풀려요'
+      )
+      expect(p.shinsalLineEn).toBe(
+        'Cheollajimang (Heaven-Earth Net) — a tied-down, slow stretch that loosens with careful rules and commitments'
+      )
+      expect(p.shinsalLineEn).not.toMatch(/[가-힣]/)
+      expect(young(n, 'en').shinsalLine).toBe(p.shinsalLineEn)
+    })
+
+    it('같은 지지(본명 亥 + 亥 대운)는 짝이 아니다 — 활성 없음', () => {
+      const n = makeNatal({ branches: { year: '午', month: '寅', day: '酉', time: '亥' } })
+      expect(young(n).shinsalLine).toBeUndefined()
+    })
+
+    it('본명 천라지망 hit 의 anchor 로는 깨우지 않는다 (짝 상대가 본명에 없으면 없음)', () => {
+      // 엔진이 낼 수 없는 fixture 지만, anchor 경로가 사라졌음을 고정한다.
+      const n = makeNatal({
+        branches: { year: '午', month: '寅', day: '酉', time: '亥' },
+        natalShinsal: [{ kind: '천라지망', target: '亥', pillars: ['time'] }],
+      })
+      expect(young(n).shinsalLine).toBeUndefined()
+    })
+
+    it('시간 미상(시주 없음)이면 시지는 짝 상대가 아니다', () => {
+      const n = makeNatal({ branches: { year: '午', month: '寅', day: '酉', time: undefined } })
+      expect(young(n).shinsalLine).toBeUndefined()
+    })
+
+    it('다른 신살의 anchor 매칭이 먼저 — 한 단계 한 신살', () => {
+      const n = makeNatal({
+        branches: { year: '午', month: '寅', day: '酉', time: '戌' },
+        natalShinsal: [{ kind: '천을귀인', target: '亥', pillars: ['day'] }],
+      })
+      expect(young(n).shinsalLineKo).toContain('천을귀인 기운')
+    })
+
+    it('12 대운 지지 × 본명 지지 조합: Life 활성 ⇔ 캘린더가 그 지지 날에 천라지망을 낸다', () => {
+      const BR = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥']
+      // 2026-01-06 = 庚辰 일 — 01-01..01-12 가 12지지를 한 번씩 돈다.
+      const branchOfDay = (iso: string) => {
+        const n = Math.round((Date.parse(`${iso}T00:00:00Z`) - Date.UTC(2026, 0, 6)) / 86_400_000)
+        return BR[(((4 + n) % 12) + 12) % 12]
+      }
+      const natalSets: Array<{ year: string; month: string; day: string; time?: string }> = [
+        { year: '午', month: '寅', day: '酉', time: '戌' },
+        { year: '辰', month: '寅', day: '酉', time: '子' },
+        { year: '巳', month: '亥', day: '酉', time: '午' },
+        { year: '戌', month: '亥', day: '辰', time: '巳' },
+        { year: '午', month: '寅', day: '酉', time: undefined },
+      ]
+      for (const branches of natalSets) {
+        const base = makeNatal({ branches })
+        const calendarDays = new Set(
+          cheonraActivation
+            .extract({
+              natal: base,
+              range: { start: '2026-01-01T00:00:00.000Z', end: '2026-01-12T23:59:59.999Z' },
+            } as unknown as ExtractorContext)
+            .filter((sig) => sig.evidence?.shinsalName === '천라지망')
+            .map((sig) => branchOfDay(sig.active.start.slice(0, 10)))
+        )
+        for (const b of BR) {
+          const n = makeNatal({
+            branches,
+            daeun: [{ startAge: 25, startYear: 2015, stem: '乙', branch: b }],
+          })
+          const line = young(n).shinsalLineKo ?? ''
+          expect(line.startsWith('천라지망'), `${JSON.stringify(branches)} 대운 ${b}`).toBe(
+            calendarDays.has(b)
+          )
+        }
+      }
     })
   })
 

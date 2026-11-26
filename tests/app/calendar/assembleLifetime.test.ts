@@ -134,16 +134,30 @@ describe('assembleLifetime', () => {
     expect(cellYear('2025-02-03')).toEqual(['乙巳'])
   }, 60000)
 
-  it('대운 교차(decadeCross) — decadal 층만, 페어 중복 없음, polarity≠0', async () => {
+  // 이 파일은 전역 swisseph 모의(0.1°/일 톱니) 위에서 돈다 — 모의는 가짜 회귀 군집을 만들어
+  // 어떤 10년 교차가 '그날 있다'는 값은 모의의 산물이다(G6 지적). 그래서 여기선 모의와 무관한
+  // 불변식만 본다: 행은 그 셀의 decadal 교차에서만, 같은 페어·같은 비영 부호로, 중복 없이,
+  // 최대 4행. 상충 0 교차는 행이 되지 않는다. 실제 하늘의 값(이 표본은 2026-07-06 에 10년 교차
+  // 없음·Life 빈 상태, 1990-05-15 2013-08-08 정인 × 목성 +2)은 assembleLifetime.real.node.test.ts.
+  it('대운 교차(decadeCross) — decadal 층만, 페어 중복 없음, polarity≠0 (모의 무관 불변식)', async () => {
     const { lifetime } = await run()
     const dc = lifetime.decadeCross ?? []
-    // 실측 셀: 甲戌 정재 대운(−) × 첫 토성 회귀(−) 는 정재×토성(+1) 매핑에 부모가 동의하지
-    // 않아 0(엔진 감사 E11, OD-10) — 상충 0 은 제외되므로 이 날의 10년 교차 행은 없다.
     const decadal = (focus?.signals ?? []).filter(
       (s) => s.kind === 'cross-activation' && s.layer === 'decadal'
     )
-    expect(decadal.map((s) => `${s.name}|${s.polarity}`)).toEqual(['정재 × 토성|0'])
-    expect(dc).toEqual([])
+    const pairOf = (r: { saju: string; astro: string }) => `${r.saju} × ${r.astro}`
+    for (const r of dc) {
+      expect(r.polarity).not.toBe(0)
+      expect(
+        decadal.some((s) => s.name.startsWith(pairOf(r)) && s.polarity === r.polarity),
+        pairOf(r)
+      ).toBe(true)
+    }
+    expect(new Set(dc.map(pairOf)).size).toBe(dc.length)
+    expect(dc.length).toBeLessThanOrEqual(4)
+    for (const s of decadal.filter((x) => x.polarity === 0)) {
+      expect(dc.some((r) => s.name.startsWith(pairOf(r)))).toBe(false)
+    }
   }, 60000)
 
   it('focusDayCell 의 결과는 같은 셀의 buildDecadeCross 와 같다(게이트 한 곳)', async () => {

@@ -41,6 +41,15 @@ export interface BuildContextInput {
   birthTimeUnknown?: boolean
   /** 출생지 미상 — 좌표가 기본값(서울). ASC·MC·하우스 의존 신호를 막는다. */
   birthCityUnknown?: boolean
+  /**
+   * 주입형 "지금"(CLAUDE.md 결정론) — 기본 호출 시점. 본명 컨텍스트에서 이 값에 기대는 건
+   * 대운 목록 길이 하나다: 목록은 최소 10칸이고, 만 나이가 첫 대운 + 100 을 넘으면 지금
+   * 흐르는 칸까지 늘어난다(daeunAge SSOT · daeunListLength). 그래서 NatalContextCache 키는
+   * now 자체가 아니라 그 길이를 정하는 값(만 100세 이상이면 만 나이)을 접는다 —
+   * persistence.natalCacheKeyFor. 읽는 쪽(periodPillars·toLifetime)은 범위 끝까지
+   * daeunCellsToCover 로 다시 잇는다.
+   */
+  now?: Date
 }
 
 /**
@@ -101,6 +110,8 @@ export async function buildNatalContext(
       longitude: input.longitude,
       calendarType: input.calendarType,
       lunarLeap: input.lunarLeap,
+      // 대운 목록 길이(만 100세+ 면 지금 칸까지)가 이 순간에 기댄다 — 서버 시계를 직접 읽지 않는다.
+      now: input.now,
     })._raw
   // 시간 미상이면 시주를 뺀 삼주 — raw.pillars.time 은 정오 앵커 자리표시라 판정에도,
   // 컨텍스트(시주 의존 추출기)에도 넣지 않는다.
@@ -192,17 +203,21 @@ export async function buildNatalContext(
   // preComputed.astroChart 옵션은 calendar/route.ts 의 cascade 캐시 패턴
   // (같은 요청 안 chart 재사용) 호환용 — 단 collectAstroFacts 가 LRU 캐시
   // 적중으로 같은 chart 반환하므로 새 path 에선 무시. 같은 입력 → 같은 chart.
-  const astroFacts = await collectAstroFacts({
-    birthDate: input.birthDate,
-    birthTime: input.birthTime,
-    latitude: input.latitude,
-    longitude: input.longitude,
-    timezone: input.timeZone,
-    // 출생시각/출생지 미상 → natal.placeUnreliable (ASC·MC·하우스 신뢰 불가).
-    birthTimeUnknown: timeUnknown,
-    birthCityUnknown: input.birthCityUnknown,
-    includeHellenistic: true,
-  })
+  const astroFacts = await collectAstroFacts(
+    {
+      birthDate: input.birthDate,
+      birthTime: input.birthTime,
+      latitude: input.latitude,
+      longitude: input.longitude,
+      timezone: input.timeZone,
+      // 출생시각/출생지 미상 → natal.placeUnreliable (ASC·MC·하우스 신뢰 불가).
+      birthTimeUnknown: timeUnknown,
+      birthCityUnknown: input.birthCityUnknown,
+      includeHellenistic: true,
+    },
+    // profection 기준 시각 — 본명 컨텍스트엔 싣지 않지만 숨은 시계 읽기를 남기지 않는다.
+    input.now
+  )
   if (!astroFacts) {
     throw new Error('buildNatalContext: collectAstroFacts returned null')
   }

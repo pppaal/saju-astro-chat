@@ -26,6 +26,13 @@ import { buildCalendar, makeOptionsKey } from './index'
 import type { NatalContext } from './context/types'
 import type { CalendarCell, CalendarBuildOptions, CalendarRange } from './types'
 import { CALENDAR_ENGINE_VERSION } from '@/lib/cache/engineVersions'
+import {
+  DAEUN_LIST_MIN_LENGTH,
+  DAEUN_SPAN_YEARS,
+  daeunManAge,
+  parseCivilDate,
+} from '@/lib/saju/daeunAge'
+import { lunarDateToSolarString } from '@/lib/saju/lunarDate'
 
 // 사주/점성 엔진 버전 시그니처 — 정의와 bump 이력은 @/lib/cache/engineVersions(leaf).
 // extractor·deriver 산식이 출력에 영향 주게 바뀌면 거기서 bump → birthKey 가 달라져
@@ -55,11 +62,46 @@ function birthKeyFor(input: BuildContextInput): string {
 }
 
 /**
+ * 본명 컨텍스트 중 `now` 에 기대는 부분(대운 목록 길이)을 정하는 키 조각 (G12).
+ * 목록은 최소 DAEUN_LIST_MIN_LENGTH(10)칸이라 만 나이가 첫 대운 + 100 이 되기 전엔 늘
+ * 같다 — 첫 대운 나이 ≥ 0 이므로 만 99세 이하는 조각이 비고 키는 예전 birthKey 그대로다.
+ * 만 100세 이상이면 지금 칸까지 늘어나므로 만 나이를 접는다(그 나이의 목록 = 그 키의 행).
+ * 만 나이는 출생지 tz 의 민용 생일 기준(daeunManAge — 엔진 목록과 같은 함수), 음력 입력은
+ * 민용(양력) 생일로 바꿔 잰다.
+ */
+function daeunCoverSegment(input: BuildContextInput, now: Date): string {
+  let civil = parseCivilDate(input.birthDate)
+  if (input.calendarType === 'lunar') {
+    try {
+      civil = parseCivilDate(lunarDateToSolarString(input.birthDate, input.lunarLeap === true))
+    } catch {
+      // 없는 음력 날짜는 빌드에서 throw 한다 — 키 조각은 입력 그대로의 날짜로 둔다.
+    }
+  }
+  if (!civil) return ''
+  const age = daeunManAge(civil, input.timeZone, now)
+  return age >= DAEUN_LIST_MIN_LENGTH * DAEUN_SPAN_YEARS ? `daeun-age:${age}` : ''
+}
+
+/**
+ * NatalContextCache 행 키 — birthKey(입력+엔진 버전) + 대운 목록 길이 조각. 조각이 비면
+ * (만 99세 이하) birthKey 와 같다. now 를 키에 그대로 넣지 않는다: 본명은 불변이고, 시계에
+ * 기대는 건 목록 길이뿐이다. 같은 now 로 빌드하므로 행의 목록은 그 키의 나이를 덮는다.
+ */
+export function natalCacheKeyFor(input: BuildContextInput, now: Date): string {
+  const birthKey = birthKeyFor(input)
+  const seg = daeunCoverSegment(input, now)
+  return seg ? createHash('sha1').update(`${birthKey}|${seg}`).digest('hex').slice(0, 32) : birthKey
+}
+
+/**
  * 본명 컨텍스트 — DB 캐시 우선, miss 면 빌드 후 영구 저장.
  * NatalContext 는 Date 필드가 없어 JSON round-trip 안전 (context/types.ts).
+ * `input.now`(기본 호출 시점)를 한 번 읽어 키와 빌드가 같은 순간을 쓴다(CLAUDE.md 결정론).
  */
 export async function getOrBuildNatalContext(input: BuildContextInput): Promise<NatalContext> {
-  const birthKey = birthKeyFor(input)
+  const now = input.now ?? new Date()
+  const birthKey = natalCacheKeyFor(input, now)
 
   try {
     const row = await prisma.natalContextCache.findUnique({ where: { birthKey } })
@@ -72,7 +114,7 @@ export async function getOrBuildNatalContext(input: BuildContextInput): Promise<
     logger.warn('[calendar-cache] natal read failed — building fresh', err)
   }
 
-  const natal = await buildNatalContext(input)
+  const natal = await buildNatalContext({ ...input, now })
 
   try {
     const data = natal as unknown as Prisma.InputJsonValue

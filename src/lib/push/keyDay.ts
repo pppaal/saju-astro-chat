@@ -37,7 +37,8 @@ export async function buildKeyDayPayload(
   // 현재 시각 주입점 — cron 경계에서 한 번 읽어 넘긴다(CLAUDE.md 결정론).
   now: Date = new Date()
 ): Promise<PushPayload | null> {
-  const natal = await getOrBuildNatalContext(birth)
+  // 같은 now 로 본명을 짓는다 — 대운 목록 길이(만 100세+)가 cron 경계의 순간을 본다.
+  const natal = await getOrBuildNatalContext({ ...birth, now })
   const today = getNowInTimezone(birth.timeZone, now)
   const cells = await getOrBuildMonthCells(birth, natal, today.year, today.month)
   if (cells.length === 0) return null

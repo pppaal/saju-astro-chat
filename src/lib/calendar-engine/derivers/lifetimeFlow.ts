@@ -21,7 +21,7 @@ import { getSibsinKo } from '@/lib/saju/cycleRelations'
 import { SIGN_KO as SIGN_KO_SSOT } from '@/lib/astrology/signLabels'
 import { STEM_KO, BRANCH_KO, ganjiToKorean, ganjiToRoman } from '@/lib/saju/ganjiKo'
 import { getStemElement } from '@/lib/saju/stemBranchUtils'
-import { getTwelveStage, canonicalTwelveStage } from '@/lib/saju/shinsal'
+import { getTwelveStage, canonicalTwelveStage, cheonraJimangPartner } from '@/lib/saju/shinsal'
 import { getJohuYongsin } from '@/lib/saju/johuYongsin'
 import { type TwelveStageType } from '@/lib/saju/interpretations'
 
@@ -630,6 +630,8 @@ const SHINSAL_SHORT_KO: Record<string, string> = {
   천살: '권위·부모 주제를 마주하는 흐름',
   육해: '관계 마찰·은근한 방해',
   육해살: '관계 마찰·은근한 방해',
+  // 짝 완성(戌亥·辰巳)으로만 켜진다 — 아래 '사실 4'. 표에 없으면 EN 에 한국어 이름이 샜다.
+  천라지망: '묶인 듯 더딘 흐름, 절차와 약속을 꼼꼼히 챙길수록 풀려요',
 }
 const SHINSAL_SHORT_EN: Record<string, { name: string; short: string }> = {
   천을귀인: { name: 'Cheoneul Gwiin (Nobleman)', short: 'supportive helpers, lucky breaks' },
@@ -662,7 +664,13 @@ const SHINSAL_SHORT_EN: Record<string, { name: string; short: string }> = {
   천살: { name: 'Cheonsal (Heaven Trial)', short: 'facing authority & parent themes' },
   육해: { name: 'Yukhae (Friction)', short: 'relational friction, quiet interference' },
   육해살: { name: 'Yukhaesal (Friction)', short: 'relational friction, quiet interference' },
+  천라지망: {
+    name: 'Cheollajimang (Heaven-Earth Net)',
+    short: 'a tied-down, slow stretch that loosens with careful rules and commitments',
+  },
 }
+/** 짝 신살(戌亥 = 천라, 辰巳 = 지망) — 대운 짝 완성 규칙으로만 활성(캘린더와 같은 규칙). */
+const CHEONRA_JIMANG = '천라지망'
 
 // 본명 4지지 위치명 → 한국어/영문 표기 (단계 카드 줄에 쓰는 짧은 라벨).
 const PILLAR_POS_KO: Record<string, string> = {
@@ -1384,39 +1392,44 @@ export function deriveLifetimeFlow(
     // (= ShinsalHit.target, 신살이 앉아있는 본명 간지 글자) 와 일치하면 그
     // 신살이 이 단계에 '활성' 된다고 본다. 단계에 대운이 여러 개 있어도
     // 카드 공간 제약 + "한 단계 한 신살" 원칙으로 primary 대운만 검사.
-    // natalShinsal 이 없거나 매칭이 없으면 silently skip. KO/EN 양쪽 baked.
+    // 매칭이 없으면 silently skip. KO/EN 양쪽 baked.
+    //
+    // 천라지망은 예외 — 캘린더(saju-shinsal-activation)와 같은 짝 완성 규칙(G4 · SDR-03,
+    // CONVENTIONS §8.1): 본명 hit 의 anchor 로 깨우지 않고, 대운 지지가 본명(보이는 기둥)
+    // 지지와 戌亥·辰巳 짝을 *완성*하면 활성(cheonraJimangPartner). 본명 戌 이면 亥 대운,
+    // 본명 辰 이면 巳 대운. 같은 지지(본명 戌 + 戌 대운)는 짝이 아니다. 예전엔 본명 hit
+    // anchor 를 써서 짝을 가진 차트에서만, 그것도 이미 가진 지지의 대운에 떴다(G12).
+    // 다른 신살의 anchor 매칭을 먼저 보고, 없을 때 천라지망 짝 완성을 본다.
     let shinsalLineKo: string | undefined
     let shinsalLineEn: string | undefined
-    const natalShinsal = natal.saju.natalShinsal
-    if (natalShinsal && natalShinsal.length > 0) {
-      const daeunBranch = primary.branch
-      const daeunStem = primary.stem
-      for (const sh of natalShinsal) {
-        const tgt = sh.target
-        if (!tgt) continue
-        const isBranch = tgt in BRANCH_KO
-        const isStem = tgt in STEM_KO
-        const matches = (isBranch && tgt === daeunBranch) || (isStem && tgt === daeunStem)
-        if (!matches) continue
-        // anchor 가 어느 기둥인지 — pillars[0] (대표 위치) 사용. 위치 라벨이
-        // 없는 경우엔 그냥 "본명" 만 쓴다.
-        const pillarKey = sh.pillars?.[0]
-        const kind = sh.kind
-        // 평이 우선 — relationLine/twelveStageLine 과 동일하게 surface 에서 raw
-        // 간지 메커닉 "(대운 巳(사) ↔ 본명 연지 巳(사))" 를 뺀다. 그 괄호가
-        // novice 표면에 한자를 흘리던 마지막 경로였다(감사 BUG-3). 신살 개념명 +
-        // 평이 의미만 남긴다.
-        // EN
-        {
-          const meta = SHINSAL_SHORT_EN[kind] ?? { name: kind, short: `${kind} activated` }
-          shinsalLineEn = `${meta.name} — ${meta.short}`
-        }
-        // KO
-        {
-          const short = SHINSAL_SHORT_KO[kind] ?? `${kind} 발현`
-          shinsalLineKo = `${kind} 기운 — ${short}`
-        }
-        break // 첫 매칭 한 개만
+    const setShinsalLines = (kind: string) => {
+      // 평이 우선 — relationLine/twelveStageLine 과 동일하게 surface 에서 raw
+      // 간지 메커닉 "(대운 巳(사) ↔ 본명 연지 巳(사))" 를 뺀다. 그 괄호가
+      // novice 표면에 한자를 흘리던 마지막 경로였다(감사 BUG-3). 신살 개념명 +
+      // 평이 의미만 남긴다.
+      const meta = SHINSAL_SHORT_EN[kind] ?? { name: kind, short: `${kind} activated` }
+      shinsalLineEn = `${meta.name} — ${meta.short}`
+      const short = SHINSAL_SHORT_KO[kind] ?? `${kind} 발현`
+      shinsalLineKo = `${kind} 기운 — ${short}`
+    }
+    const natalShinsal = natal.saju.natalShinsal ?? []
+    const daeunBranch = primary.branch
+    const daeunStem = primary.stem
+    for (const sh of natalShinsal) {
+      if ((sh.kind as string) === CHEONRA_JIMANG) continue // 아래 짝 완성 규칙으로만
+      const tgt = sh.target
+      if (!tgt) continue
+      const isBranch = tgt in BRANCH_KO
+      const isStem = tgt in STEM_KO
+      const matches = (isBranch && tgt === daeunBranch) || (isStem && tgt === daeunStem)
+      if (!matches) continue
+      setShinsalLines(sh.kind)
+      break // 첫 매칭 한 개만
+    }
+    if (!shinsalLineKo) {
+      const partner = cheonraJimangPartner(daeunBranch)
+      if (partner && natalBranches.some((nb) => nb.name === partner)) {
+        setShinsalLines(CHEONRA_JIMANG)
       }
     }
 

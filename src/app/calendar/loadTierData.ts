@@ -259,7 +259,8 @@ export async function loadTierData(
   const TARGET_DAY = today.day
   const targetDayIso = formatDateString(today.year, today.month, today.day)
 
-  const natal = await getOrBuildNatalContext(BIRTH)
+  // 같은 now 로 본명을 짓는다 — 대운 목록 길이(만 100세+)가 서버 시계가 아니라 이 순간을 본다.
+  const natal = await getOrBuildNatalContext({ ...BIRTH, now })
   // 캘린더는 그 달만 빌드. evidence 가 필요한 그 하루는 따로(focusDayCell).
   // 오늘+7일이 월을 넘으면 다음 달 cells 도 얹는다 — "다가오는 7일"이 월 경계에서
   // 잘려 다음 달 초 큰 날이 안 보이던 문제(감사 #13).
@@ -323,7 +324,8 @@ export async function loadLifetimeData(
   const today = getNowInTimezone(BIRTH.timeZone, now)
   const todayIso = formatDateString(today.year, today.month, today.day)
 
-  const natal = await getOrBuildNatalContext(BIRTH)
+  // 같은 now 로 본명을 짓는다 — 대운 목록 길이(만 100세+)가 서버 시계가 아니라 이 순간을 본다.
+  const natal = await getOrBuildNatalContext({ ...BIRTH, now })
   const birthDisplay = formatBirthLine(BIRTH.birthDate, BIRTH.birthTime, guard.timeUnknown)
   // 오늘 1일 evidence 셀 — 대운층 사주×점성 교차 원천(연 셀은 여전히 안 빌드).
   // /calendar 와 같은 캐시(getFocusDayCell)라 두 화면 방문 시 공유된다.
