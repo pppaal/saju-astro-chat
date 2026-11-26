@@ -117,7 +117,7 @@ export const SAJU_ASTRO_MAPPINGS: readonly CrossMapping[] = [
     astro: 'Sun',
     meaning: {
       ko: '정관 × 태양 — 정당한 권위·직위·공인의 결이 한 방향으로 살아남. 윗선의 인정·승진·공식 무대에 우호.',
-      en: 'Direct Officer × Sun — legitimate authority, office, and public standing line up the same way. Favours recognition from above, promotion, and the formal stage.',
+      en: 'Direct Officer × Sun — legitimate authority, office, and public standing line up the same way. Favors recognition from above, promotion, and the formal stage.',
     },
     polarity: 2,
     grade: 'A',
@@ -129,7 +129,7 @@ export const SAJU_ASTRO_MAPPINGS: readonly CrossMapping[] = [
     astro: 'Jupiter',
     meaning: {
       ko: '정관 × 목성 — 규범·자격이 사회적 신뢰로 넓어지는 결. 자격·면허·공직·법적 정당화에 우호.',
-      en: 'Direct Officer × Jupiter — rules and credentials broaden into social trust. Favours licences, public office, and legal legitimacy.',
+      en: 'Direct Officer × Jupiter — rules and credentials broaden into social trust. Favors licenses, public office, and legal legitimacy.',
     },
     polarity: 2,
     grade: 'A',
@@ -154,7 +154,7 @@ export const SAJU_ASTRO_MAPPINGS: readonly CrossMapping[] = [
     astro: 'Venus',
     meaning: {
       ko: '정재 × 금성 — 안정된 가치·관계·자산의 결이 동시에 살아남. 결혼·계약·구매에 우호.',
-      en: 'Direct Wealth × Venus — stable value, relationships, and assets light up together. Favours marriage, contracts, and purchases.',
+      en: 'Direct Wealth × Venus — stable value, relationships, and assets light up together. Favors marriage, contracts, and purchases.',
     },
     polarity: 2,
     grade: 'A',
@@ -165,7 +165,7 @@ export const SAJU_ASTRO_MAPPINGS: readonly CrossMapping[] = [
     astro: 'Jupiter',
     meaning: {
       ko: '편재 × 목성 — 큰물의 기회·확장 재물 결이 한 방향으로. 신사업·투자 검토에 우호.',
-      en: 'Indirect Wealth × Jupiter — big opportunities and expansive wealth line up the same way. Favours new ventures and weighing investments.',
+      en: 'Indirect Wealth × Jupiter — big opportunities and expansive wealth line up the same way. Favors new ventures and weighing investments.',
     },
     polarity: 2,
     grade: 'A',
@@ -176,7 +176,7 @@ export const SAJU_ASTRO_MAPPINGS: readonly CrossMapping[] = [
     astro: 'Mercury',
     meaning: {
       ko: '편재 × 수성 — 거래·중개·정보로 돈을 굴리는 결. 영업·딜·협상·매매 회전에 우호, 잔머리 과욕은 절제.',
-      en: 'Indirect Wealth × Mercury — money moves through deals, brokering, and information. Favours sales, negotiation, and fast turnover; rein in over-clever greed.',
+      en: 'Indirect Wealth × Mercury — money moves through deals, brokering, and information. Favors sales, negotiation, and fast turnover; rein in over-clever greed.',
     },
     polarity: 1,
     grade: 'A',
@@ -213,7 +213,7 @@ export const SAJU_ASTRO_MAPPINGS: readonly CrossMapping[] = [
     astro: 'Venus',
     meaning: {
       ko: '식신 × 금성 — 누리고 빚는 결. 미식·예술·공예처럼 솜씨를 즐기며 내놓는 일에 우호.',
-      en: 'Eating God × Venus — a streak for enjoying and crafting. Favours food, art, and craft where you take pleasure in the making.',
+      en: 'Eating God × Venus — a streak for enjoying and crafting. Favors food, art, and craft where you take pleasure in the making.',
     },
     polarity: 2,
     grade: 'A',
@@ -238,7 +238,7 @@ export const SAJU_ASTRO_MAPPINGS: readonly CrossMapping[] = [
     astro: 'Jupiter',
     meaning: {
       ko: '정인 × 목성 — 학습·확장·정통의 기운이 한 방향으로 흘러요. 자격·학위·해외 우호.',
-      en: 'Direct Resource × Jupiter — learning, expansion, and tradition all pull the same way. Favours credentials, degrees, and overseas moves.',
+      en: 'Direct Resource × Jupiter — learning, expansion, and tradition all pull the same way. Favors credentials, degrees, and overseas moves.',
     },
     polarity: 2,
     grade: 'A',
@@ -249,7 +249,7 @@ export const SAJU_ASTRO_MAPPINGS: readonly CrossMapping[] = [
     astro: 'Moon',
     meaning: {
       ko: '정인 × 달 — 수용·돌봄·어머니 결이 두 배. 휴식·치유·가족 챙기기에 우호.',
-      en: 'Direct Resource × Moon — receptivity, care, and a maternal note are doubly strong. Favours rest, healing, and family.',
+      en: 'Direct Resource × Moon — receptivity, care, and a maternal note are doubly strong. Favors rest, healing, and family.',
     },
     polarity: 1,
     grade: 'A',
@@ -260,7 +260,7 @@ export const SAJU_ASTRO_MAPPINGS: readonly CrossMapping[] = [
     astro: 'Saturn',
     meaning: {
       ko: '정인 × 토성 — 정통 학문을 끈기 있게 다지는 결. 자격 시험·장기 연구·체계적 공부에 우호.',
-      en: 'Direct Resource × Saturn — disciplined, patient mastery of orthodox study. Favours certification exams, long research, and systematic learning.',
+      en: 'Direct Resource × Saturn — disciplined, patient mastery of orthodox study. Favors certification exams, long research, and systematic learning.',
     },
     polarity: 1,
     grade: 'A',
@@ -272,7 +272,7 @@ export const SAJU_ASTRO_MAPPINGS: readonly CrossMapping[] = [
     astro: 'Mercury',
     meaning: {
       ko: '편인 × 수성 — 비주류 정보·이면을 캐는 결. 자료 조사·재해석·편집에 우호, 의심이 과하면 결론을 미루게 됨.',
-      en: 'Indirect Resource × Mercury — digging into unconventional information and hidden angles. Favours research, reinterpretation, and editing; excess suspicion can stall conclusions.',
+      en: 'Indirect Resource × Mercury — digging into unconventional information and hidden angles. Favors research, reinterpretation, and editing; excess suspicion can stall conclusions.',
     },
     polarity: 0,
     grade: 'A',
@@ -284,7 +284,7 @@ export const SAJU_ASTRO_MAPPINGS: readonly CrossMapping[] = [
     astro: 'Saturn',
     meaning: {
       ko: '편인 × 토성 — 고립된 사고·종교·연구의 결이 깊어지는 시기. 혼자 파고드는 일에 우호.',
-      en: 'Indirect Resource × Saturn — solitary thought, faith, and deep research run deeper. Favours single-minded study.',
+      en: 'Indirect Resource × Saturn — solitary thought, faith, and deep research run deeper. Favors single-minded study.',
     },
     polarity: 0,
     grade: 'A',
@@ -333,7 +333,7 @@ export const SAJU_ASTRO_MAPPINGS: readonly CrossMapping[] = [
     astro: 'Venus',
     meaning: {
       ko: '도화살 × 금성 — 관계·매력·인기 결이 동시에 살아남. 사교·연애·미적 활동에 우호.',
-      en: 'Peach Blossom × Venus — connection, charm, and popularity light up together. Favours socializing, romance, and aesthetic work.',
+      en: 'Peach Blossom × Venus — connection, charm, and popularity light up together. Favors socializing, romance, and aesthetic work.',
     },
     polarity: 2,
     grade: 'A',
@@ -344,7 +344,7 @@ export const SAJU_ASTRO_MAPPINGS: readonly CrossMapping[] = [
     astro: 'Moon',
     meaning: {
       ko: '도화살 × 달 — 정서적 끌림·인기·대중성이 살아나는 결. 감성 콘텐츠·공감·사람 모으는 일에 우호.',
-      en: 'Peach Blossom × Moon — emotional pull, popularity, and mass appeal come alive. Favours heartfelt content, empathy, and drawing a crowd.',
+      en: 'Peach Blossom × Moon — emotional pull, popularity, and mass appeal come alive. Favors heartfelt content, empathy, and drawing a crowd.',
     },
     polarity: 1,
     grade: 'A',
@@ -368,7 +368,7 @@ export const SAJU_ASTRO_MAPPINGS: readonly CrossMapping[] = [
     astro: 'Mercury',
     meaning: {
       ko: '역마살 × 수성 — 이동·소통·정보 결이 두 배. 출장·교섭·매체 활용에 우호.',
-      en: 'Traveling Horse × Mercury — movement, messages, and information all run twice as strong. Favours travel, negotiation, and media work.',
+      en: 'Traveling Horse × Mercury — movement, messages, and information all run twice as strong. Favors travel, negotiation, and media work.',
     },
     polarity: 1,
     grade: 'A',
@@ -537,7 +537,7 @@ export const SAJU_ASTRO_MAPPINGS: readonly CrossMapping[] = [
     astro: 'Moon',
     meaning: {
       ko: '정재 × 달 — 집·가족·생활비의 결. 가계 정돈, 집 정리, 가족과 쓰는 돈 계획에 우호.',
-      en: 'Direct Wealth × Moon — home, family, and living costs align. Favours tidying budgets, the house, and family spending plans.',
+      en: 'Direct Wealth × Moon — home, family, and living costs align. Favors tidying budgets, the house, and family spending plans.',
     },
     polarity: 1,
     grade: 'B',
@@ -575,7 +575,7 @@ export const SAJU_ASTRO_MAPPINGS: readonly CrossMapping[] = [
     astro: 'Sun',
     meaning: {
       ko: '건록 × 태양 — 제 이름 걸고 서는 결. 발표·면접·서명처럼 내 실력이 무대 중앙에 서는 일에 우호.',
-      en: 'Established Stipend × Sun — a streak for standing under your own name. Favours presentations, interviews, and signatures where your skill takes centre stage.',
+      en: 'Established Stipend × Sun — a streak for standing under your own name. Favors presentations, interviews, and signatures where your skill takes center stage.',
     },
     polarity: 2,
     grade: 'B',
@@ -587,7 +587,7 @@ export const SAJU_ASTRO_MAPPINGS: readonly CrossMapping[] = [
     astro: 'Sun',
     meaning: {
       ko: '식신 × 태양 — 만든 것을 공개 무대에 올리는 결. 발행·출시·시연에 우호.',
-      en: 'Eating God × Sun — a streak for putting your work on the public stage. Favours publishing, launching, and demos.',
+      en: 'Eating God × Sun — a streak for putting your work on the public stage. Favors publishing, launching, and demos.',
     },
     polarity: 1,
     grade: 'B',
@@ -599,7 +599,7 @@ export const SAJU_ASTRO_MAPPINGS: readonly CrossMapping[] = [
     astro: 'Sun',
     meaning: {
       ko: '도화살 × 태양 — 시선이 나에게 모이는 결. 프로필 사진·무대·라이브처럼 보여지는 일에 우호.',
-      en: 'Peach Blossom × Sun — eyes gather on you. Favours profile shots, stages, and going live — anything where you’re seen.',
+      en: 'Peach Blossom × Sun — eyes gather on you. Favors profile shots, stages, and going live — anything where you’re seen.',
     },
     polarity: 1,
     grade: 'B',
@@ -625,7 +625,7 @@ export const SAJU_ASTRO_MAPPINGS: readonly CrossMapping[] = [
     astro: 'Mercury',
     meaning: {
       ko: '정관 × 수성 — 공문서·결재의 결. 계약서 검토, 관공서 서류, 공식 메일 처리에 우호.',
-      en: 'Direct Officer × Mercury — a streak for official paperwork. Favours contract review, government forms, and formal mail.',
+      en: 'Direct Officer × Mercury — a streak for official paperwork. Favors contract review, government forms, and formal mail.',
     },
     polarity: 1,
     grade: 'B',
@@ -637,7 +637,7 @@ export const SAJU_ASTRO_MAPPINGS: readonly CrossMapping[] = [
     astro: 'Mercury',
     meaning: {
       ko: '정재 × 수성 — 장부가 맞아떨어지는 결. 정산·가계부·구독 정리, 미뤄둔 환불 요청에 우호.',
-      en: 'Direct Wealth × Mercury — the books balance today. Favours settling accounts, budgets, subscriptions, and that refund request you postponed.',
+      en: 'Direct Wealth × Mercury — the books balance today. Favors settling accounts, budgets, subscriptions, and that refund request you postponed.',
     },
     polarity: 1,
     grade: 'B',
@@ -649,7 +649,7 @@ export const SAJU_ASTRO_MAPPINGS: readonly CrossMapping[] = [
     astro: 'Mercury',
     meaning: {
       ko: '정인 × 수성 — 배운 게 정리되는 결. 필기·요약·복습, 배운 내용을 문서로 굳히기에 우호.',
-      en: 'Direct Resource × Mercury — learning settles into order. Favours notes, summaries, review, and writing down what you’ve learned.',
+      en: 'Direct Resource × Mercury — learning settles into order. Favors notes, summaries, review, and writing down what you’ve learned.',
     },
     polarity: 1,
     grade: 'B',
@@ -699,7 +699,7 @@ export const SAJU_ASTRO_MAPPINGS: readonly CrossMapping[] = [
     astro: 'Venus',
     meaning: {
       ko: '정관 × 금성 — 격식 있는 자리가 부드럽게 풀리는 결. 상견례·공식 행사·예의 갖춘 부탁에 우호.',
-      en: 'Direct Officer × Venus — formal occasions soften in your favour. Good for meeting the parents, official events, and courteous asks.',
+      en: 'Direct Officer × Venus — formal occasions soften in your favor. Good for meeting the parents, official events, and courteous asks.',
     },
     polarity: 1,
     grade: 'B',

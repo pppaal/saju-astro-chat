@@ -21,15 +21,15 @@ const PHRASE_KO: Array<[string, string]> = [
 ]
 const PHRASE_EN: Array<[string, string]> = [
   [
-    'Favours recognition from above, promotion, and the formal stage',
+    'Favors recognition from above, promotion, and the formal stage',
     'Good for recognition from teachers and grown-ups, and the stage',
   ],
   [
-    'Favours licences, public office, and legal legitimacy',
+    'Favors licenses, public office, and legal legitimacy',
     'Good for earning qualifications and learning the rules',
   ],
-  ['Favours marriage, contracts, and purchases', 'Good for promises, plans, and pocket-money care'],
-  ['Favours new ventures and weighing investments', 'Good for new challenges and making plans'],
+  ['Favors marriage, contracts, and purchases', 'Good for promises, plans, and pocket-money care'],
+  ['Favors new ventures and weighing investments', 'Good for new challenges and making plans'],
   [
     'Sleep on joint spending, guarantees, and love triangles',
     'Take it slow with money lent to friends and with promises',

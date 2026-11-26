@@ -185,7 +185,7 @@ const DIGNITY_LABEL_EN: Record<string, string> = {
 
 const DIGNITY_FLOW_EN: Record<string, string> = {
   domicile: 'operates at full natural strength',
-  exaltation: 'is honoured and elevated — at its best',
+  exaltation: 'is honored and elevated — at its best',
   detriment: 'works against its nature — strained',
   fall: 'is weakened and out of place',
 }

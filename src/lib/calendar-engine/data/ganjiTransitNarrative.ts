@@ -41,7 +41,7 @@ const SIBSIN_FLOW_PHRASE: Record<string, { ko: string; en: string }> = {
   비견: { ko: '내 힘과 동료·경쟁의 기운', en: 'your own strength and the pull of peers' },
   겁재: { ko: '경쟁심과 추진력', en: 'drive and a competitive edge' },
   식신: { ko: '표현과 아이디어의 기운', en: 'expression and flowing ideas' },
-  상관: { ko: '재치와 자기 색을 드러내는 기운', en: 'wit and the urge to show your colour' },
+  상관: { ko: '재치와 자기 색을 드러내는 기운', en: 'wit and the urge to show your color' },
   정재: { ko: '실속과 안정의 감각', en: 'a sense for substance and stability' },
   편재: { ko: '재물 감각과 기회 포착', en: 'a sharp eye for money and opportunity' },
   정관: {
@@ -56,7 +56,7 @@ const SIBSIN_FLOW_PHRASE: Record<string, { ko: string; en: string }> = {
 const SIBSIN_FLOW_TAIL: Record<GanjiTransitLayer, { ko: string; en: string }> = {
   daily: { ko: '흐르는 하루예요', en: 'runs through the day' },
   monthly: { ko: '흐르는 한 달이에요', en: 'runs through the month' },
-  yearly: { ko: '흐르는 한 해예요', en: 'colours the year' },
+  yearly: { ko: '흐르는 한 해예요', en: 'colors the year' },
   decadal: { ko: '길게 흐르는 대운이에요', en: 'runs long through this decade' },
 }
 

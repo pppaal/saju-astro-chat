@@ -86,7 +86,7 @@ describe('buildDayViewModel', () => {
     const vm = buildDayViewModel(day, { lang: 'en' })
     expect(vm.why?.note).toBe('Good for recognition from teachers and grown-ups, and the stage')
     const adult = buildDayViewModel(makeV9Day(), { lang: 'en' })
-    expect(adult.why?.note).toBe('Favours recognition from above, promotion, and the formal stage')
+    expect(adult.why?.note).toBe('Favors recognition from above, promotion, and the formal stage')
   })
 })
 
@@ -100,7 +100,7 @@ describe('toTimingRow — 근거 → 교차 행', () => {
         sub: sub('Transit', '26° Scorpio', 'trine natal Venus', 'orb 0.3°'),
       },
       mark: 'up',
-      note: 'Favours recognition from above, promotion, and the formal stage',
+      note: 'Favors recognition from above, promotion, and the formal stage',
       astroDetail: TODAY_REASON.astroDetail,
     })
     const ko = toTimingRow(TODAY_REASON, 'ko')

@@ -119,7 +119,10 @@ export { SAJU_ENGINE_VERSION }
 //     같은 웨이브의 신살 EN 이름 단일화(Life 신살 줄·운명상담사 컨텍스트가 SHINSAL_NAME_EN —
 //     'Traveling Horse'·'Blade Edge'·'Heavenly Benefactor')도 이 v17 에 실린다. 운명상담사
 //     컨텍스트 키는 ENGINE_VERSION_TAG 로 따라온다.
-export const CALENDAR_ENGINE_VERSION = 'v17'
+// v18: 셀에 구워지는 EN 문구를 미국식 철자로(QA R-CA-7 — 교차 매핑 meaning.en 'Favours' →
+//     'Favors' · 'licences' → 'licenses' · 'centre' → 'center', 품위 라벨 'honoured' → 'honored',
+//     간지 흐름 'colour' → 'color'). 신호 판정 · 점수는 그대로, 월 셀 · 포커스 1일 셀의 문구만 바뀐다.
+export const CALENDAR_ENGINE_VERSION = 'v18'
 
 /**
  * 본명 차트 Redis 캐시(CacheKeys.natalChart, `natal:v${N}:…`).
@@ -147,7 +150,7 @@ export const HELLENISTIC_CACHE_VERSION = 2
 
 /**
  * 엔진 버전 묶음 태그 — 여러 엔진 결과를 함께 캐시하는 키에 넣는다.
- * 예: 's5.cv17.n3.t3.h2'(현재 값). 어느 값이 올라가도 태그가 바뀐다.
+ * 예: 's5.cv18.n3.t3.h2'(현재 값). 어느 값이 올라가도 태그가 바뀐다.
  */
 export const ENGINE_VERSION_TAG = [
   `s${SAJU_ENGINE_VERSION}`,

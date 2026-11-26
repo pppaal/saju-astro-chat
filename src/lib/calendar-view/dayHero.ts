@@ -74,9 +74,11 @@ export interface DayHeroOptions {
  * 엔진 템플릿(행동 처방 · 분야 본문 · 한 줄 · 교차 뜻 · 사다리 결론)은 오늘 화면 기준으로 적혀 있어,
  * 지난 날·다가올 날 일간 화면에서 '11.24' 옆에 '오늘'이 찍혔다. 표시 층에서만 바꾼다 — 캐시된 셀과
  * 판단(점수·톤·신호)은 그대로. KO '오늘'→'이날'(받침이 같아 조사가 그대로 맞는다), '내일'→'다음 날',
- * '어제'→'전날'. EN 'today'→'that day' — 부사('money slips out that day')로도 명사('Leading that
- * day is …', 'that day’s skill')로도 맞는다. 'tomorrow'→'the next day', 'yesterday'→'the day before',
- * 'tonight'→'that night', 'tomorrow-you'→'future you'. KO '어제'→'전날'은 받침이 생겨 뒤 조사도 고친다.
+ * '어제'→'전날'. EN 'today'→'this day' — 라벨 · 리드 · 사다리('WHY THIS DAY', '10-yr → this day',
+ * dayWord)와 같은 말이라 한 칸에 'this day' · 'that day' 가 섞이지 않는다(QA R-CA-8). 부사('money
+ * slips out this day')로도 명사('this day’s skill')로도 맞는다. 'tomorrow'→'the next day',
+ * 'yesterday'→'the day before', 'tonight'→'that night', 'tomorrow-you'→'future you'.
+ * KO '어제'→'전날'은 받침이 생겨 뒤 조사도 고친다.
  */
 export function retimeDayText(text: string, ko: boolean): string {
   if (!text) return text
@@ -94,7 +96,7 @@ export function retimeDayText(text: string, ko: boolean): string {
     .replace(/\btomorrow-you\b/g, 'future you')
     .replace(/\b([Tt])onight\b/g, (_m, t: string) => cap('that night')(t))
     .replace(/\b([Tt])omorrow morning\b/g, (_m, t: string) => cap('the next morning')(t))
-    .replace(/\b([Tt])oday\b/g, (_m, t: string) => cap('that day')(t))
+    .replace(/\b([Tt])oday\b/g, (_m, t: string) => cap('this day')(t))
     .replace(/\b([Tt])omorrow\b/g, (_m, t: string) => cap('the next day')(t))
     .replace(/\b([Yy])esterday\b/g, (_m, t: string) => cap('the day before')(t))
 }

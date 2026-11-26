@@ -30,7 +30,7 @@ describe('minorSafe', () => {
   })
 
   it('en — marriage/investment/love triangle 등 차단', () => {
-    expect(minorSafeText('Favours marriage, contracts, and purchases.', 'en')).not.toMatch(
+    expect(minorSafeText('Favors marriage, contracts, and purchases.', 'en')).not.toMatch(
       /marriage/i
     )
     expect(minorSafeText('a love triangle looms', 'en')).not.toMatch(/love triangle/i)
@@ -60,7 +60,7 @@ describe('minorSafe', () => {
   it('sanitizeCrossEntry — ko/en 두 필드 in-place 정화', () => {
     const e: Record<string, unknown> = {
       meaning: '결혼·계약·구매에 우호',
-      meaningEn: 'Favours marriage, contracts, and purchases',
+      meaningEn: 'Favors marriage, contracts, and purchases',
     }
     sanitizeCrossEntry(e, 'meaning', 'meaningEn')
     expect(e.meaning).not.toContain('결혼')
@@ -70,7 +70,7 @@ describe('minorSafe', () => {
   it('deepMinorSafe — 중첩 객체·배열의 모든 문자열을 정화, ...En 키는 EN 어휘', () => {
     const src = {
       title: '결혼·계약·구매에 우호',
-      titleEn: 'Favours marriage, contracts, and purchases',
+      titleEn: 'Favors marriage, contracts, and purchases',
       items: ['투자 기회', { line: '승진 흐름', lineEn: 'a promotion ahead' }],
       score: 72,
       flag: true,

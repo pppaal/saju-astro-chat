@@ -117,13 +117,13 @@ describe('buildDayHero — 교차·근거', () => {
 describe('retimeDayText — 오늘이 아닌 날의 상대 날짜 말 (QA COPY-1)', () => {
   it('EN — today · tomorrow · yesterday · tonight · tomorrow-you, 문장 첫 글자 대소문자 유지', () => {
     expect(retimeDayText('Today, the Moon is the signal.', false)).toBe(
-      'That day, the Moon is the signal.'
+      'This day, the Moon is the signal.'
     )
     expect(retimeDayText('Decide today on big money, but pay tomorrow.', false)).toBe(
-      'Decide that day on big money, but pay the next day.'
+      'Decide this day on big money, but pay the next day.'
     )
     expect(retimeDayText('Eating well is part of today’s skill.', false)).toBe(
-      'Eating well is part of that day’s skill.'
+      'Eating well is part of this day’s skill.'
     )
     expect(retimeDayText('Guard sleep first; hand tonight’s worries to tomorrow-you.', false)).toBe(
       'Guard sleep first; hand that night’s worries to future you.'

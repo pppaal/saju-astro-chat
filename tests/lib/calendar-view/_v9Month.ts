@@ -91,7 +91,7 @@ export const TODAY_REASON = {
   astro: '태양',
   astroEn: 'Sun',
   meaning: '윗선의 인정·승진·공식 무대에 우호',
-  meaningEn: 'Favours recognition from above, promotion, and the formal stage',
+  meaningEn: 'Favors recognition from above, promotion, and the formal stage',
   polarity: 2,
   astroDetail: {
     transitPlanet: 'Sun',
