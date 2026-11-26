@@ -268,6 +268,28 @@ describe('POST /api/compatibility/share/invite — 404 / 422', () => {
     expect(getShareLink).not.toHaveBeenCalled()
   })
 
+  it('받은 사람에게 출생 tz 도 도시 좌표도 없으면 422 — 서울 기둥을 지어내지 않는다 (G13)', async () => {
+    const { tz: _tz, lat: _lat, lon: _lon, ...noPlace } = ME
+    const res = await POST(makeReq({ token: 'tok_inv', person: noPlace, lang: 'en' }))
+    expect(res.status).toBe(422)
+    const json = await res.json()
+    expect(json.error.message).toBe('Birth timezone or birth city (latitude/longitude) is required')
+    expect(getShareLink).not.toHaveBeenCalled()
+  })
+
+  it('tz 없이 도시 좌표만 있으면 그 도시 tz 로 계산한다(422 아님)', async () => {
+    const { tz: _tz, ...cityOnly } = ME
+    const res = await POST(makeReq({ token: 'tok_inv', person: cityOnly, lang: 'en' }))
+    expect(res.status).toBe(200)
+  })
+
+  it('공유 레코드의 공유자에게 tz·도시가 모두 없으면(옛 링크) 422', async () => {
+    const { tz: _tz, lat: _lat, lon: _lon, ...inviterNoPlace } = INVITER
+    getShareLink.mockImplementation(async () => ({ ...SHARE, inviter: inviterNoPlace }))
+    const res = await POST(makeReq({ token: 'tok_inv', person: ME, lang: 'en' }))
+    expect(res.status).toBe(422)
+  })
+
   it('잘못된 JSON 이면 invalid_json 422', async () => {
     const res = await POST(makeReq('{broken', true))
     expect(res.status).toBe(422)

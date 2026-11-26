@@ -115,3 +115,37 @@ export function resolveViewerTimezone(
 ): string {
   return resolveViewerTimezoneDetailed(input, opts).timeZone
 }
+
+/**
+ * 출생 타임존 — 서버 계산용 엄격판. 명시 tz → 출생 좌표(도시)의 tz 까지만 보고, 둘 다 없으면
+ * null 이다. 사용자 출생 데이터로 사주·차트를 계산하는 경로(궁합 상담사·초대 페어링)는 null 이면
+ * 서울(baseTimezone) 기둥을 지어내지 말고 422 로 거른다 — 제품은 전 세계에 팔린다.
+ */
+export function resolveBirthTimezoneStrict(
+  input: BirthTimezoneInput
+): ResolvedTimezone<'explicit' | 'coordinates'> | null {
+  if (isValidTimeZone(input.timezone)) {
+    return { timeZone: input.timezone as string, source: 'explicit' }
+  }
+  const fromCoords = timezoneFromCoordinates(input.latitude, input.longitude)
+  return fromCoords ? { timeZone: fromCoords, source: 'coordinates' } : null
+}
+
+/** 출생 타임존도 출생 도시도 없을 때의 422 메시지 — 다른 zod 메시지처럼 영어 한 줄. */
+export const BIRTH_TIMEZONE_REQUIRED_MESSAGE =
+  'Birth timezone or birth city (latitude/longitude) is required'
+
+/**
+ * 출생 타임존 — 화면(클라이언트) 폼·피커용. 저장 tz → 출생 도시 좌표의 tz → 보는 사람 기기 tz
+ * (getUserTimezone — 실패하면 'UTC') 순서(F5-2 resolver 와 같은 앞 두 단계). 서울을 하드코딩하지
+ * 않는다: tz 없이 저장된 상대도 도시가 있으면 그 도시 tz 로, 도시도 없으면 보는 사람 기기 tz 로
+ * 계산해 서버 422 를 피한다.
+ */
+export function resolveBirthTimezoneOnDevice(
+  input: BirthTimezoneInput,
+  deviceTimezone: string | null | undefined
+): string {
+  const strict = resolveBirthTimezoneStrict(input)
+  if (strict) return strict.timeZone
+  return isValidTimeZone(deviceTimezone) ? (deviceTimezone as string) : 'UTC'
+}

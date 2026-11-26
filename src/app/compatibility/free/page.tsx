@@ -37,11 +37,23 @@ import type { FreeReportTheme } from '@/lib/compatibility/freeReport/types'
 import type { CompatInviter } from '@/lib/share/shareLink'
 import { trackFunnel } from '@/lib/metrics/trackFunnel'
 import { logger } from '@/lib/logger'
-import { defaultLatitudeFor, defaultLongitudeFor } from '@/lib/saju/timezone'
+import { defaultLatitudeFor, defaultLongitudeFor, getUserTimezone } from '@/lib/saju/timezone'
+import { resolveBirthTimezoneOnDevice } from '@/lib/datetime/resolveTimezone'
 import s from './freeCompat.module.css'
 
-// 서울 폴백 — 도시 미선택 시 좌표가 없으면 계산이 깨지므로 검증에서 막는다.
-const DEFAULT_TZ = 'Asia/Seoul'
+/**
+ * 출생 타임존 — 저장 tz → 출생 도시 좌표의 tz → 보는 사람 기기 tz(F5-2 순서). 서울을
+ * 하드코딩하지 않는다(글로벌 제품, G13). 서버는 tz·도시가 모두 없으면 422 라 늘 채워 보낸다.
+ */
+const birthTzOf = (p: {
+  timeZone: string | null
+  latitude: number | null
+  longitude: number | null
+}) =>
+  resolveBirthTimezoneOnDevice(
+    { timezone: p.timeZone, latitude: p.latitude, longitude: p.longitude },
+    getUserTimezone()
+  )
 
 // BirthInfoFields 에 넘기는 라이트(종이) 테마 클래스 — 흰 입력 박스 + 골드 포커스.
 const lightFieldClasses = {
@@ -385,7 +397,7 @@ export default function FreeCompatibilityPage() {
             gender: personB.gender || undefined,
             lat: personB.latitude ?? undefined,
             lon: personB.longitude ?? undefined,
-            tz: personB.timeZone || undefined,
+            tz: birthTzOf(personB),
           },
           lang: locale,
         })
@@ -418,17 +430,17 @@ export default function FreeCompatibilityPage() {
         birthTimeUnknown: resolveBirthTimeAnchor(p.birthTime, p.timeUnknown).timeUnknown,
         gender: p.gender === 'female' ? 'female' : 'male',
         calendarType: 'solar' as const,
-        timezone: p.timeZone || DEFAULT_TZ,
-        // 좌표 미상 → 출생 타임존 기준점(Asia/Seoul = 서울 기본값, OD-2·SAJU-9).
-        latitude: p.latitude ?? defaultLatitudeFor(p.timeZone || DEFAULT_TZ),
-        longitude: p.longitude ?? defaultLongitudeFor(p.timeZone || DEFAULT_TZ),
+        timezone: birthTzOf(p),
+        // 좌표 미상 → 출생 타임존 기준점(존 기준 좌표, OD-2·SAJU-9).
+        latitude: p.latitude ?? defaultLatitudeFor(birthTzOf(p)),
+        longitude: p.longitude ?? defaultLongitudeFor(birthTzOf(p)),
       })
       const astroPayload = (p: Person) => ({
         date: p.birthDate,
         time: anchorOf(p),
-        latitude: p.latitude ?? defaultLatitudeFor(p.timeZone || DEFAULT_TZ),
-        longitude: p.longitude ?? defaultLongitudeFor(p.timeZone || DEFAULT_TZ),
-        timeZone: p.timeZone || DEFAULT_TZ,
+        latitude: p.latitude ?? defaultLatitudeFor(birthTzOf(p)),
+        longitude: p.longitude ?? defaultLongitudeFor(birthTzOf(p)),
+        timeZone: birthTzOf(p),
       })
 
       const [sajuA, sajuB, astroA, astroB] = await Promise.all([
@@ -532,7 +544,7 @@ export default function FreeCompatibilityPage() {
                     city: personA.city || undefined,
                     lat: personA.latitude ?? undefined,
                     lon: personA.longitude ?? undefined,
-                    tz: personA.timeZone || undefined,
+                    tz: birthTzOf(personA),
                   }
                 : undefined
             }

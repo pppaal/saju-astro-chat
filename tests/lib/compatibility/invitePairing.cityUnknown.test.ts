@@ -14,7 +14,10 @@ vi.mock('@/lib/astrology/cached', () => ({
   cachedCalculateNatalChart: vi.fn(async () => ({ planets: [], houses: [] })),
 }))
 
-import { computeInvitePairReport } from '@/lib/compatibility/invitePairing'
+import {
+  computeInvitePairReport,
+  BirthTimezoneRequiredError,
+} from '@/lib/compatibility/invitePairing'
 import { buildCompatReport } from '@/lib/compatibility/compatReport'
 import { cachedCalculateNatalChart } from '@/lib/astrology/cached'
 
@@ -43,5 +46,37 @@ describe('computeInvitePairReport — city-unknown flags', () => {
     // 차트는 여전히 타임존 기준점 좌표로 계산된다(마스크는 리포트 빌더 몫)
     const firstCall = vi.mocked(cachedCalculateNatalChart).mock.calls[0][0]
     expect(Number.isFinite(firstCall.latitude)).toBe(true)
+  })
+})
+
+describe('computeInvitePairReport — 출생 타임존 (서울 폴백 없음, G13)', () => {
+  it('tz 가 없으면 출생 도시 좌표의 tz 로 계산한다', async () => {
+    await computeInvitePairReport({
+      inviter: { birthDate: '1992-03-14', birthTime: '06:40', lat: 51.5074, lon: -0.1278 },
+      invitee: { birthDate: '1990-09-02', birthTime: '21:15', tz: 'America/New_York' },
+      lang: 'en',
+      now: NOW,
+    })
+    const calls = vi.mocked(cachedCalculateNatalChart).mock.calls.map((c) => c[0].timeZone)
+    expect(calls).toEqual(['Europe/London', 'America/New_York'])
+  })
+
+  it('tz 도 도시도 없는 사람은 BirthTimezoneRequiredError — 서울로 계산하지 않는다', async () => {
+    const run = (who: 'inviter' | 'invitee') =>
+      computeInvitePairReport({
+        inviter:
+          who === 'inviter'
+            ? { birthDate: '1992-03-14', birthTime: '06:40' }
+            : { birthDate: '1992-03-14', birthTime: '06:40', tz: 'Europe/Paris' },
+        invitee:
+          who === 'invitee'
+            ? { birthDate: '1990-09-02', birthTime: '21:15' }
+            : { birthDate: '1990-09-02', birthTime: '21:15', tz: 'Europe/Paris' },
+        lang: 'en',
+        now: NOW,
+      })
+    await expect(run('inviter')).rejects.toBeInstanceOf(BirthTimezoneRequiredError)
+    await expect(run('invitee')).rejects.toMatchObject({ who: 'invitee' })
+    expect(cachedCalculateNatalChart).not.toHaveBeenCalled()
   })
 })

@@ -13,6 +13,8 @@ vi.mock('@/lib/logger', () => ({
 import {
   resolveBirthTimezone,
   resolveBirthTimezoneDetailed,
+  resolveBirthTimezoneOnDevice,
+  resolveBirthTimezoneStrict,
   resolveViewerTimezone,
   resolveViewerTimezoneDetailed,
   timezoneFromCoordinates,
@@ -100,5 +102,37 @@ describe('datetime/timezone 기본값도 같은 기준 존', () => {
     expect(DEFAULT_TIMEZONE).toBe(BASE)
     expect(normalizeTimeZone('bogus')).toBe(BASE)
     expect(normalizeTimeZone('America/Chicago')).toBe('America/Chicago')
+  })
+})
+
+describe('resolveBirthTimezoneStrict — 서버 계산용(서울 폴백 없음, G13)', () => {
+  it('명시 tz → 좌표 tz', () => {
+    expect(resolveBirthTimezoneStrict({ timezone: 'Europe/Paris', ...NYC })).toEqual({
+      timeZone: 'Europe/Paris',
+      source: 'explicit',
+    })
+    expect(resolveBirthTimezoneStrict({ timezone: 'Not/AZone', ...LONDON })).toEqual({
+      timeZone: 'Europe/London',
+      source: 'coordinates',
+    })
+  })
+  it('tz 도 좌표도 없으면 null — baseTimezone 으로 떨어지지 않고 경고도 없다', () => {
+    expect(resolveBirthTimezoneStrict({})).toBeNull()
+    expect(resolveBirthTimezoneStrict({ timezone: '', latitude: null, longitude: null })).toBeNull()
+    expect(warn).not.toHaveBeenCalled()
+  })
+})
+
+describe('resolveBirthTimezoneOnDevice — 클라이언트 폼용(저장 tz → 도시 → 기기 tz, G13)', () => {
+  it('저장 tz 가 먼저, 다음은 출생 도시 좌표', () => {
+    expect(resolveBirthTimezoneOnDevice({ timezone: 'Asia/Tokyo', ...NYC }, 'Europe/Berlin')).toBe(
+      'Asia/Tokyo'
+    )
+    expect(resolveBirthTimezoneOnDevice({ ...NYC }, 'Europe/Berlin')).toBe('America/New_York')
+  })
+  it('둘 다 없으면 보는 사람 기기 tz — 서울이 아니다', () => {
+    expect(resolveBirthTimezoneOnDevice({}, 'America/Chicago')).toBe('America/Chicago')
+    expect(resolveBirthTimezoneOnDevice({}, undefined)).toBe('UTC')
+    expect(resolveBirthTimezoneOnDevice({}, 'garbage')).toBe('UTC')
   })
 })

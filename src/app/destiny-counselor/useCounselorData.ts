@@ -10,7 +10,8 @@ import { logger } from '@/lib/logger'
 import { withSpan } from '@/lib/telemetry'
 import { apiFetch } from '@/lib/api/client'
 import { getStoredBirthInfo } from '@/lib/birth/storage'
-import { defaultLatitudeFor, defaultLongitudeFor } from '@/lib/saju/timezone'
+import { defaultLatitudeFor, defaultLongitudeFor, getUserTimezone } from '@/lib/saju/timezone'
+import { resolveBirthTimezoneOnDevice } from '@/lib/datetime/resolveTimezone'
 
 type SearchParams = Record<string, string | string[] | undefined>
 
@@ -232,12 +233,20 @@ export function useCounselorData(sp: SearchParams) {
   const urlTimeZone =
     (Array.isArray(sp.timeZone) ? sp.timeZone[0] : sp.timeZone) ??
     (Array.isArray(sp.tz) ? sp.tz[0] : sp.tz)
-  const browserTz = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Asia/Seoul'
-  const resolvedTimeZone = urlTimeZone || birthSource.tzId || browserTz
-
   const latitude = latStr ? Number(latStr) : NaN
   const longitude = lonStr ? Number(lonStr) : NaN
-  // URL 좌표 > localStorage 폴백 좌표 > 출생 타임존 기준점(Asia/Seoul = 서울 기본값).
+  // 출생 tz — URL/저장 tz → 출생 도시 좌표의 tz → 보는 사람 기기 tz(getUserTimezone, 실패 시
+  // 'UTC'). 서울 하드코딩 폴백 없음(G13, F5-2 resolver 순서).
+  const resolvedTimeZone = resolveBirthTimezoneOnDevice(
+    {
+      timezone: urlTimeZone || birthSource.tzId,
+      latitude: Number.isFinite(latitude) ? latitude : birthSource.latitude,
+      longitude: Number.isFinite(longitude) ? longitude : birthSource.longitude,
+    },
+    getUserTimezone()
+  )
+
+  // URL 좌표 > localStorage 폴백 좌표 > 출생 타임존 기준점(존 기준 좌표).
   // 비한국 tz 에 서울 경도를 붙이면 시주가 ~15시간 밀렸다(엔진 감사 SAJU-9, OD-2).
   const resolvedLatitude = Number.isFinite(latitude)
     ? latitude

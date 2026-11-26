@@ -17,6 +17,8 @@ import { useCompatibilityForm } from '@/hooks/useCompatibilityForm'
 import { useCityAutocomplete } from '@/hooks/useCityAutocomplete'
 import { getStoredBirthInfo, normGender, timeToState } from '@/lib/birth/storage'
 import { isBirthTimeUnknown } from '@/lib/saju/birthTimeAnchor'
+import { getUserTimezone } from '@/lib/saju/timezone'
+import { resolveBirthTimezoneOnDevice } from '@/lib/datetime/resolveTimezone'
 import { validatePersons } from '../validatePersons'
 import { PersonCard, SubmitButton, type LoadOption } from '../components'
 import { useFocusTrap } from '@/hooks/useFocusTrap'
@@ -267,7 +269,11 @@ export function CompatPersonPickerModal({
       city: p.cityQuery || '',
       latitude: p.lat ?? undefined,
       longitude: p.lon ?? undefined,
-      timeZone: p.timeZone || 'Asia/Seoul',
+      // 저장 tz → 출생 도시 tz → 보는 사람 기기 tz (서울 하드코딩 없음, G13).
+      timeZone: resolveBirthTimezoneOnDevice(
+        { timezone: p.timeZone, latitude: p.lat, longitude: p.lon },
+        getUserTimezone()
+      ),
       relation: p.relation,
       // gender 가 빠지면 대운 순/역행이 잘못 계산되므로 반드시 함께.
       gender: p.gender,

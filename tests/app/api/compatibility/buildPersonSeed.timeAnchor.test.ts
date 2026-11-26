@@ -44,7 +44,12 @@ describe('buildPersonSeed — 시간 미상 정오 앵커', () => {
   })
 
   it('클라 필드명 변형(date/time)도 동일 처리', () => {
-    const seed = buildPersonSeed({ date: '1992-03-15', time: '00:00', gender: 'M' })
+    const seed = buildPersonSeed({
+      date: '1992-03-15',
+      time: '00:00',
+      gender: 'M',
+      timeZone: 'Asia/Seoul',
+    })
     expect(seed?.time).toBe(TIME_UNKNOWN_ANCHOR)
     expect(seed?.timeUnknown).toBe(true)
   })
@@ -53,5 +58,21 @@ describe('buildPersonSeed — 시간 미상 정오 앵커', () => {
     const seed = buildPersonSeed({ ...BASE, birthTime: '00:00', timeUnknown: false })
     expect(seed?.time).toBe('00:00')
     expect(seed?.timeUnknown).toBe(false)
+  })
+})
+
+describe('buildPersonSeed — 출생 타임존 (서울 기본값 없음, G13)', () => {
+  it('명시 tz 가 없으면 출생 도시 좌표의 tz', () => {
+    const seed = buildPersonSeed({ birthDate: '1990-05-15', latitude: 40.7128, longitude: -74.006 })
+    expect(seed?.timeZone).toBe('America/New_York')
+    expect(seed?.source.usedDefaultLocation).toBe(false)
+  })
+  it('tz 만 있고 도시가 없으면 그 tz + 존 기준 좌표(도시 미상)', () => {
+    const seed = buildPersonSeed({ birthDate: '1990-05-15', timeZone: 'Europe/London' })
+    expect(seed?.timeZone).toBe('Europe/London')
+    expect(seed?.source.usedDefaultLocation).toBe(true)
+  })
+  it('tz 도 도시도 없으면 seed 가 없다 — 서울 기둥을 지어내지 않는다', () => {
+    expect(buildPersonSeed({ birthDate: '1990-05-15', birthTime: '10:00' })).toBeNull()
   })
 })

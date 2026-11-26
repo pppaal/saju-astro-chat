@@ -24,7 +24,8 @@ function bucketForHour(h: number): Bucket {
 
 function localHour(tz?: string): number {
   try {
-    const effectiveTz = tz || Intl.DateTimeFormat().resolvedOptions().timeZone || 'Asia/Seoul'
+    // 보는 사람 기기 tz → 브라우저 기본 → UTC(서울 아님 — 글로벌 제품, G13).
+    const effectiveTz = tz || Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'
     const formatted = new Intl.DateTimeFormat('en-US', {
       timeZone: effectiveTz,
       hour: 'numeric',
@@ -102,12 +103,7 @@ const POOL: Record<Lang, Record<Bucket, string[]>> = {
       '{name}, good morning.',
       "{name}, how's the morning treating you?",
     ],
-    noon: [
-      'Midday already.',
-      'Had lunch?',
-      "What's on your mind today?",
-      "{name}, take a breath.",
-    ],
+    noon: ['Midday already.', 'Had lunch?', "What's on your mind today?", '{name}, take a breath.'],
     afternoon: [
       'Afternoon.',
       "How's it going so far?",
@@ -139,7 +135,7 @@ export interface PickGreetingInput {
   lang: Lang
   /** 사용자 이름. 있으면 {name}-템플릿도 후보에 포함. */
   name?: string
-  /** 사용자 기기 시간대(IANA). 없으면 브라우저 기본/Asia/Seoul. */
+  /** 사용자 기기 시간대(IANA). 없으면 브라우저 기본, 그것도 없으면 UTC. */
   tz?: string
   /** 테스트용 결정적 시드. 생략 시 Math.random(). */
   seed?: number

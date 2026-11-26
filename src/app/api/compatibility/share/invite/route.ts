@@ -25,7 +25,14 @@ import {
   longitudeSchema,
 } from '@/lib/api/zodValidation'
 import { getShareLink, isCompatShare } from '@/lib/share/shareLink'
-import { computeInvitePairReport } from '@/lib/compatibility/invitePairing'
+import {
+  computeInvitePairReport,
+  BirthTimezoneRequiredError,
+} from '@/lib/compatibility/invitePairing'
+import {
+  BIRTH_TIMEZONE_REQUIRED_MESSAGE,
+  resolveBirthTimezoneStrict,
+} from '@/lib/datetime/resolveTimezone'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -61,6 +68,17 @@ export const POST = withApiMiddleware(
     if (!parsed.success) {
       return apiError(ErrorCodes.VALIDATION_ERROR, 'invalid_invite_payload')
     }
+    // 받은 사람의 출생 tz 도 도시(좌표)도 없으면 서울 기둥을 지어내지 않고 422(G13).
+    const invitee = parsed.data.person
+    if (
+      !resolveBirthTimezoneStrict({
+        timezone: invitee.tz,
+        latitude: invitee.lat,
+        longitude: invitee.lon,
+      })
+    ) {
+      return apiError(ErrorCodes.VALIDATION_ERROR, BIRTH_TIMEZONE_REQUIRED_MESSAGE)
+    }
 
     // 만료(90일 TTL)·궁합 공유 아님·공유자 미동의(inviter 없음)는 모두 같은 404 —
     // 어떤 토큰이 옵트인 했는지 구분해 알려주지 않는다.
@@ -69,11 +87,21 @@ export const POST = withApiMiddleware(
       return apiError(ErrorCodes.NOT_FOUND, 'invite_not_found')
     }
 
-    const { report, timeUnknownA } = await computeInvitePairReport({
-      inviter: share.inviter,
-      invitee: parsed.data.person,
-      lang: parsed.data.lang === 'en' ? 'en' : 'ko',
-    })
+    let paired: Awaited<ReturnType<typeof computeInvitePairReport>>
+    try {
+      paired = await computeInvitePairReport({
+        inviter: share.inviter,
+        invitee,
+        lang: parsed.data.lang === 'en' ? 'en' : 'ko',
+      })
+    } catch (err) {
+      // 공유 레코드의 공유자에게 tz·도시가 모두 없는 옛 링크 — 서울로 계산하지 않는다.
+      if (err instanceof BirthTimezoneRequiredError) {
+        return apiError(ErrorCodes.VALIDATION_ERROR, BIRTH_TIMEZONE_REQUIRED_MESSAGE)
+      }
+      throw err
+    }
+    const { report, timeUnknownA } = paired
 
     // 공유자 쪽은 표시용 이름과 "시간 미상" 여부(추정 안내문용)만 — 출생정보 원본은 없다.
     return apiSuccess({

@@ -85,6 +85,8 @@ vi.mock('@/lib/llm/claudeSSE', () => ({ streamClaudeAsSSE: vi.fn() }))
 import { POST } from '@/app/api/compatibility/counselor/route'
 import { initializeApiContext } from '@/lib/api/middleware'
 import { streamClaudeAsSSE } from '@/lib/llm/claudeSSE'
+import { collectCompatSajuFacts } from '@/lib/compatibility/compatSajuFacts'
+import { currentSeun } from '@/lib/compatibility/sajuSynastryData'
 
 const ANN = {
   name: 'Ann',
@@ -210,5 +212,137 @@ describe('compat counselor route — saju block reaches the LLM when a birth tim
     const block = sajuBlock(ctx, '== Synastry ==')
     expect(block.length).toBeGreaterThan(500)
     expect(block).toMatch(/B H-(stem|branch)|B·Bob [^\n]*H-/)
+  })
+})
+
+describe('compat counselor route — 요청 경계 now 주입 (현재 대운·세운, G13)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    mockConsumeCredits.mockResolvedValue({ success: true, remaining: 99 })
+    mockClaim.mockResolvedValue(true)
+    mockRelease.mockResolvedValue(undefined)
+    mockCacheGet.mockResolvedValue(null)
+    mockCacheSet.mockResolvedValue(true)
+    vi.mocked(initializeApiContext).mockResolvedValue({
+      context: {
+        userId: 'user-123',
+        session: { user: { id: 'user-123' } },
+        ip: '127.0.0.1',
+        locale: 'en',
+        isAuthenticated: true,
+        isPremium: true,
+      },
+      error: undefined,
+    } as never)
+    vi.mocked(streamClaudeAsSSE).mockResolvedValue(
+      new Response('data: {"content":"ok","done":false}\n\n', {
+        headers: { 'Content-Type': 'text/event-stream' },
+      }) as never
+    )
+  })
+
+  const BOB = { ...BOB_NO_TIME, time: '09:10', timeUnknown: false }
+  const seeds = () =>
+    [
+      {
+        birthDate: ANN.date,
+        birthTime: ANN.time,
+        timeUnknown: false,
+        gender: 'female' as const,
+        timezone: ANN.timeZone,
+        longitude: ANN.longitude,
+      },
+      {
+        birthDate: BOB.date,
+        birthTime: BOB.time,
+        timeUnknown: false,
+        gender: 'male' as const,
+        timezone: BOB.timeZone,
+        longitude: BOB.longitude,
+      },
+    ] as const
+
+  /** 고정한 '지금'에서 라우트가 낸 현재 대운 줄·올해 세운 줄 = 같은 now 로 엔진을 직접 돌린 값. */
+  async function expectLinesAt(iso: string) {
+    const pinned = new Date(iso)
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(pinned)
+    try {
+      vi.mocked(streamClaudeAsSSE).mockClear()
+      const ctx = await payloadFor([ANN, BOB], 'en')
+      const [a, b] = seeds()
+      const facts = collectCompatSajuFacts(a, b, pinned)
+      const dA = facts.a.currentDaeun!
+      const dB = facts.b.currentDaeun!
+      expect(dA, 'A 현재 대운').toBeTruthy()
+      expect(dB, 'B 현재 대운').toBeTruthy()
+      expect(ctx).toContain(
+        `current daeun: A·Ann ${dA.age}~${dA.age! + 9} ${dA.stem}${dA.branch} · B·Bob ${dB.age}~${dB.age! + 9} ${dB.stem}${dB.branch}`
+      )
+      const seun = currentSeun(pinned)
+      expect(ctx).toContain(`this year's annual ${seun.year} ${seun.stem}${seun.branch} cross`)
+      return { dA, dB, seun, ctx }
+    } finally {
+      vi.useRealTimers()
+    }
+  }
+
+  it('2026-11-19: 세운 2026 丙午, 대운은 그날 만 나이의 칸', async () => {
+    const r = await expectLinesAt('2026-11-19T03:00:00Z')
+    expect(`${r.seun.year} ${r.seun.stem}${r.seun.branch}`).toBe('2026 丙午')
+  })
+
+  it('2041-06-01: 세운 2041 辛酉, 15년 뒤라 두 사람 모두 다음 대운 칸으로 넘어간다', async () => {
+    const before = collectCompatSajuFacts(...seeds(), new Date('2026-11-19T03:00:00Z'))
+    const r = await expectLinesAt('2041-06-01T03:00:00Z')
+    expect(`${r.seun.year} ${r.seun.stem}${r.seun.branch}`).toBe('2041 辛酉')
+    expect(r.dA.age).toBeGreaterThan(before.a.currentDaeun!.age!)
+    expect(r.dB.age).toBeGreaterThan(before.b.currentDaeun!.age!)
+  })
+
+  it('[만 나이]도 같은 now — 2026-11-19 에 Ann(1990-05-15) 36, Bob(1988-11-02) 38', async () => {
+    const r = await expectLinesAt('2026-11-19T03:00:00Z')
+    expect(r.ctx).toContain('A (Ann): 1990-05-15 08:30 (age 36)')
+    expect(r.ctx).toMatch(/B \(Bob\): 1988-11-02 09:10 \(age 38\)/)
+  })
+})
+
+describe('compat counselor route — 출생 tz·도시 둘 다 없으면 422 (서울 기둥 금지, G13)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    mockConsumeCredits.mockResolvedValue({ success: true, remaining: 99 })
+    mockClaim.mockResolvedValue(true)
+    vi.mocked(initializeApiContext).mockResolvedValue({
+      context: { userId: 'user-123', locale: 'en', isAuthenticated: true },
+      error: undefined,
+    } as never)
+  })
+
+  it('B 에 timeZone·좌표가 없으면 422 + 영어 메시지, 차감·LLM 호출 없음', async () => {
+    const bobNoPlace = { name: 'Bob', date: '1988-11-02', time: '09:10', gender: 'male' }
+    const res = await POST(request([ANN, bobNoPlace], 'en'))
+    expect(res.status).toBe(422)
+    const body = await res.json()
+    expect(body.error).toBe('validation_failed')
+    expect(body.details).toEqual([
+      {
+        path: 'persons.1.timeZone',
+        message: 'Birth timezone or birth city (latitude/longitude) is required',
+      },
+    ])
+    expect(mockConsumeCredits).not.toHaveBeenCalled()
+    expect(streamClaudeAsSSE).not.toHaveBeenCalled()
+  })
+
+  it('tz 가 없어도 도시 좌표가 있으면 그 도시 tz 로 계산한다(422 아님)', async () => {
+    vi.mocked(streamClaudeAsSSE).mockResolvedValue(
+      new Response('data: {"content":"ok","done":false}\n\n', {
+        headers: { 'Content-Type': 'text/event-stream' },
+      }) as never
+    )
+    const bobCityOnly = { ...BOB_NO_TIME, timeZone: undefined }
+    const res = await POST(request([ANN, bobCityOnly], 'en'))
+    expect(res.status).not.toBe(422)
+    expect(res.headers.get('Content-Type')).toBe('text/event-stream')
   })
 })

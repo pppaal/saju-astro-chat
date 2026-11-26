@@ -48,9 +48,15 @@ export interface ReportContextInput {
   /** 출생지 미상 — 기본 좌표(서울)로 계산되므로 ASC/MC/하우스·profection 군주를
    *  신뢰불가로 처리(시각만 알아도 위치 모르면 앵글/하우스가 날조됨). */
   birthCityUnknown?: boolean
+  /**
+   * 요청 경계에서 한 번 읽은 '지금' — 현재 대운(만 나이)·profection 의 기준. 페이지가 넘기고,
+   * 미지정이면 호출 시각(테스트·스크립트 호환). 계산 깊은 곳에서 시계를 다시 읽지 않는다(G13).
+   */
+  now?: Date
 }
 
 export async function buildReportContext(input: ReportContextInput): Promise<NatalContext> {
+  const now = input.now ?? new Date()
   // ─── raw 정제 ─────────────────────────────────────────────────────────
   // 출생시각 미상 → 삼주 분석(CONVENTIONS §5, OD-5). 정오 앵커는 년·월·일주만 고정하고
   // 오행·강약·용신·격국·관계·신살은 시주 없이 판정한다.
@@ -61,22 +67,26 @@ export async function buildReportContext(input: ReportContextInput): Promise<Nat
     gender: input.gender,
     timezone: input.timeZone,
     longitude: input.longitude,
+    now,
   })
-  const astroFacts = await collectAstroFacts({
-    birthDate: input.birthDate,
-    birthTime: input.birthTime,
-    latitude: input.latitude,
-    longitude: input.longitude,
-    timezone: input.timeZone,
-    // 출생시각/출생지 미상 → placeUnreliable: ASC/MC 애스펙트 skip, profection 군주 null.
-    birthTimeUnknown: input.birthTimeUnknown,
-    birthCityUnknown: input.birthCityUnknown,
-    // Phase A: 정통 점성 정적 분석 일체 받기 (Almuten/Lots/dignity 5-tier/
-    // Chiron·Lilith/aspects major+minor/sect). facts 가 다 만들어 줘서
-    // page 가 직접 호출할 필요 없음. 시간 흐름(Profection/Transit/SR/LR/
-    // Progression) 은 facts 가 안 만듦 — 통합 리포트도 안 받음.
-    includeHellenistic: true,
-  })
+  const astroFacts = await collectAstroFacts(
+    {
+      birthDate: input.birthDate,
+      birthTime: input.birthTime,
+      latitude: input.latitude,
+      longitude: input.longitude,
+      timezone: input.timeZone,
+      // 출생시각/출생지 미상 → placeUnreliable: ASC/MC 애스펙트 skip, profection 군주 null.
+      birthTimeUnknown: input.birthTimeUnknown,
+      birthCityUnknown: input.birthCityUnknown,
+      // Phase A: 정통 점성 정적 분석 일체 받기 (Almuten/Lots/dignity 5-tier/
+      // Chiron·Lilith/aspects major+minor/sect). facts 가 다 만들어 줘서
+      // page 가 직접 호출할 필요 없음. 시간 흐름(Profection/Transit/SR/LR/
+      // Progression) 은 facts 가 안 만듦 — 통합 리포트도 안 받음.
+      includeHellenistic: true,
+    },
+    now
+  )
   if (!astroFacts) {
     throw new Error('buildReportContext: collectAstroFacts returned null')
   }

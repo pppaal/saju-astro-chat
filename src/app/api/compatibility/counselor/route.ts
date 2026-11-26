@@ -61,6 +61,10 @@ import { koStructuralLabels } from '@/lib/llm/koStructuralLabels'
 import { collectCompatSajuFacts } from '@/lib/compatibility/compatSajuFacts'
 import { collectCompatAstroFacts } from '@/lib/compatibility/compatAstroFacts'
 import { getUserDisplayName } from '@/lib/user/displayName'
+import {
+  BIRTH_TIMEZONE_REQUIRED_MESSAGE,
+  resolveBirthTimezoneStrict,
+} from '@/lib/datetime/resolveTimezone'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -140,6 +144,9 @@ export async function POST(req: NextRequest) {
   // 클로저를 호출해 pre-stream throw 를 환불한다(refundKey dedupe 로 이중환불 없음).
   // 아직 차감 전이면 undefined → catch 에서 optional-call 이 no-op.
   let refundChargedCredit: ((reason: string, errorMessage?: string) => Promise<void>) | undefined
+  // 요청 경계에서 '지금'을 한 번만 읽어 아래로 내린다 — 현재 대운(만 나이)·세운·[만 나이]가
+  // 계산 깊은 곳에서 서버 시계를 읽지 않게(CLAUDE.md 결정론, G13). 테스트는 시스템 시각을 고정.
+  const now = new Date()
   try {
     // Apply middleware: authenticated guard — 로그인 필수. 비로그인은 401.
     // requireCredits 는 false — 새로고침 idempotent replay 일 때 차감을
@@ -184,6 +191,25 @@ export async function POST(req: NextRequest) {
       cvText,
       turnId: rawTurnId,
     } = validationResult.data
+
+    // 출생 타임존도 출생 도시(좌표)도 없는 사람 — 서울 기둥을 지어내지 않고 422(차감 전).
+    // 화면은 저장 tz → 도시 tz → 보는 사람 기기 tz 로 채워 보내므로(resolveBirthTimezoneOnDevice)
+    // 이 분기는 tz·좌표를 모두 뺀 직접 API 호출에서만 탄다. 사주·점성 시너스트리는 앞 두 사람만 계산.
+    const tzMissing = persons.slice(0, 2).flatMap((p, i) =>
+      resolveBirthTimezoneStrict({
+        timezone: p.timeZone,
+        latitude: p.latitude,
+        longitude: p.longitude,
+      })
+        ? []
+        : [{ path: `persons.${i}.timeZone`, message: BIRTH_TIMEZONE_REQUIRED_MESSAGE }]
+    )
+    if (tzMissing.length > 0) {
+      return NextResponse.json(
+        { error: 'validation_failed', details: tzMissing },
+        { status: HTTP_STATUS.UNPROCESSABLE_ENTITY ?? 422 }
+      )
+    }
     // person*Saju / person*Astro / fullContext 는 옛 client 가 보내던
     // legacy 필드 (Phase E 에 제거). 입력 validation 에서는 optional 로
     // 유지해 옛 client request 가 400 으로 막히지 않게 하되, 라우트에서는
@@ -205,7 +231,7 @@ export async function POST(req: NextRequest) {
     const persistSessionId = recoverUserId
       ? incomingSessionId && incomingSessionId.length <= 128
         ? incomingSessionId
-        : `compat_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`
+        : `compat_${now.getTime()}_${Math.random().toString(36).slice(2, 9)}`
       : ''
 
     // 이번 답변에 넣을 시너스트리 도메인 — 사용자가 체크박스로 사주만/점성만/둘
@@ -459,6 +485,9 @@ export async function POST(req: NextRequest) {
             time?: string
             relation?: string
             relationNote?: string
+            timeZone?: string
+            latitude?: number
+            longitude?: number
           },
           i: number
         ) => {
@@ -477,10 +506,19 @@ export async function POST(req: NextRequest) {
           // turns. Korean age = ageYears + 1 (one for the year of
           // birth, conventional 만 vs 한국나이 offset).
           // 만나이는 그 사람의 출생 시간대 기준으로 — 앞 두 사람은 seed 의 tz 를
-          // 넘긴다(3명+는 seed 가 없어 기본 tz). getAgeFromBirthDate 가 SSOT 위임.
+          // 넘기고, 3명+는 같은 엄격 resolver(명시 tz → 도시 좌표 tz, 없으면 UTC 날짜).
+          // getAgeFromBirthDate 가 SSOT 위임. 서울 기본값은 없다(G13).
           const personTz =
-            i === 0 ? person1Seed?.timeZone : i === 1 ? person2Seed?.timeZone : undefined
-          const age = p.date ? getAgeFromBirthDate(p.date, personTz) : null
+            i === 0
+              ? person1Seed?.timeZone
+              : i === 1
+                ? person2Seed?.timeZone
+                : resolveBirthTimezoneStrict({
+                    timezone: p.timeZone,
+                    latitude: p.latitude,
+                    longitude: p.longitude,
+                  })?.timeZone
+          const age = p.date ? getAgeFromBirthDate(p.date, personTz, now) : null
           const ageNote =
             age != null ? (normalizedLang === 'ko' ? ` (만 ${age}세)` : ` (age ${age})`) : ''
           // Person 1 is always the anchor — no relation suffix. For
@@ -569,7 +607,9 @@ export async function POST(req: NextRequest) {
               gender: person2Seed.gender,
               timezone: person2Seed.timeZone,
               longitude: person2Seed.longitude,
-            }
+            },
+            // 현재 대운(만 나이)의 기준 — 요청 경계에서 읽은 now.
+            now
           )
         : null
     try {
@@ -592,6 +632,8 @@ export async function POST(req: NextRequest) {
           // 그대로 전달(추가 연산 0). 상대가 내 용신 오행을 채워주나/기신 가중하나.
           yongsinA: compatSaju.a.base.yongsin,
           yongsinB: compatSaju.b.base.yongsin,
+          // 올해 세운 — 같은 now(서버 시계를 포매터 안에서 다시 읽지 않는다).
+          now,
         })
       }
     } catch (err) {

@@ -34,6 +34,9 @@ export default async function IntegratedReportPage({
   searchParams: Promise<SP>
 }) {
   const sp = await searchParams
+  // 요청 경계에서 '지금'을 한 번만 읽어 아래로 내린다 — 현재 대운·미성년 모드(만 나이)가
+  // 계산 깊은 곳에서 서버 시계를 읽지 않게(CLAUDE.md 결정론, G13).
+  const now = new Date()
   // 로케일 — 메인화면(I18nProvider/언어토글)이 쓰는 'locale' 쿠키를 그대로 따라감.
   // ?lang/?locale 쿼리가 있으면 그게 우선, 없으면 쿠키, 그것도 없으면 헤더(getServerLocale).
   const langOverride = one(sp.lang) ?? one(sp.locale)
@@ -108,6 +111,7 @@ export default async function IntegratedReportPage({
     timeZone,
     birthTimeUnknown,
     birthCityUnknown,
+    now,
   })) as unknown as Record<string, unknown>
 
   // 사용자 입력 메타 (이름·장소 등 raw 엔진이 안 알아채는 표시 전용 필드).
@@ -132,8 +136,8 @@ export default async function IntegratedReportPage({
     })(),
   }
 
-  const data = natalToReportData(ctx, lang)
-  const cross = buildCrossRows(ctx, lang)
+  const data = natalToReportData(ctx, lang, now)
+  const cross = buildCrossRows(ctx, lang, now)
 
   // 퍼널 — 무료 통합 리포트 결과 노출(date 가 있어 실제 풀이가 렌더되는 경우만).
   // 허브(funnel.free_hub.viewed) → 리포트 노출 → 상담사 CTA 클릭 으로 단계를 잇는다.
