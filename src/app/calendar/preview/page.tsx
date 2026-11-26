@@ -45,10 +45,14 @@ const TARGET_MONTH = 11 // 11월 — 샘플 고정 포커스 월
 const TARGET_DAY_ISO = '2026-11-19' // 샘플 고정 포커스 일
 // 샘플의 "지금" — 포커스 일 정오(서울, UTC+9). 만 나이·일 티어 기준을 고정한다.
 const SAMPLE_NOW = new Date('2026-11-19T03:00:00Z')
+// 샘플 출생지 표시 — ko/en 짝(Home 샘플 스탬프의 HOME_COPY.sampleCity 와 같은 값). 상단 칩 ·
+// 폴리오 · assembleTiers 가 한 값을 쓴다 — KO 화면에 라틴 'Seoul' 이 찍히던 회귀(R-VC-5).
+const SAMPLE_PLACE = { ko: '서울', en: 'Seoul' } as const
 
 export default async function DestinypalPreview() {
   // 서버 로케일 — 헤더 → 쿠키 → Accept-Language 정식 해석(클라이언트 로케일과 일치).
   const lang = await detectServerLocale()
+  const place = pick(SAMPLE_PLACE, lang)
 
   // ─── NatalContext + 그 달 cells (DB 캐시 우선) ────────────────────────
   // 본명도 샘플의 "지금"으로 — 현재 대운·만 나이가 서버 시계가 아니라 SAMPLE_NOW 기준(결정론).
@@ -72,7 +76,7 @@ export default async function DestinypalPreview() {
     sex: '여',
     birthDisplay: '1997-03-21 14:30',
     whoBirthLine: '1997.3.21 14:30',
-    place: lang === 'en' ? 'Seoul' : '서울',
+    place,
     focusDayCell,
     now: SAMPLE_NOW,
   })
@@ -83,7 +87,7 @@ export default async function DestinypalPreview() {
     nowIso: TARGET_DAY_ISO,
   })
   const dayVm = buildDayViewModel(day, { lang, sex: user.sex, isToday: true })
-  const stamp = { birthDate: BIRTH.birthDate, birthTime: BIRTH.birthTime, city: 'Seoul' }
+  const stamp = { birthDate: BIRTH.birthDate, birthTime: BIRTH.birthTime, city: place }
   const stem = user.ilgan?.hanja || topbar.ilganHanja
   const element = stem ? KO_TO_SAJU_ELEMENT[getStemElement(stem)] : undefined
 
