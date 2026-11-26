@@ -28,6 +28,8 @@ import {
   cellIsToday,
   cellPast,
   dayKindOf,
+  keyDayMeaning,
+  verdictPrefix,
   type KeyDayItem,
   type KeyDayMark,
 } from './keyDays'
@@ -40,6 +42,7 @@ import {
   numberWordEn,
   ordinal,
   weekdayInitials,
+  weekdayShort,
   type Lang,
 } from './dateLabels'
 import {
@@ -74,6 +77,21 @@ export interface MonthBarVM {
   keyDay: boolean
 }
 
+/**
+ * 그리드에서 고른 날의 읽기('Tap a date for its read') — 큰 날 행과 같은 규칙(그리드 마크의
+ * 판정 단어 + 같은 엔진 풀의 한 줄 + 그날 '왜' 교차 행). 큰 날을 고르면 목록 행과 같은 말이다.
+ */
+export interface MonthCellReadVM {
+  /** 'Nov 24 · Tue' / '11월 24일 · 화'. */
+  label: string
+  /** 판정 단어 — verdictPrefix(mark). */
+  verdict: string
+  /** 그날 한 줄 — keyDayMeaning(mark, d, lang, 월 시드). */
+  meaning: string
+  /** 그날 '왜' 교차 행 — 근거가 없으면 null. */
+  why: TimingRowVM | null
+}
+
 export interface MonthGridCellVM {
   d: number
   ds: string
@@ -83,12 +101,29 @@ export interface MonthGridCellVM {
   keyDay: boolean
   /** 그리드 최고의 날 — 'Best' 표지. */
   best: boolean
+  /** 고른 날의 읽기. */
+  read: MonthCellReadVM
 }
 
 /** 큰 날 행 — keyDays.ts 의 구조 행에서 원본 근거(ko/en 쌍) 대신 요청 로케일의 교차 행. */
 export type KeyDayRowVM = Omit<KeyDayItem, 'reason'> & {
+  /** 'Nov 5' / '11월 5일'. */
+  label: string
   /** 펼쳤을 때의 '왜' 교차 행 — 근거가 없으면 null. */
   why: TimingRowVM | null
+}
+
+/** 이달 공유 링크 재료(ShareCalendarButton) — 요약 문구·큰 날 몇 줄·이달 곡선 숫자만(원국 미전송). */
+export interface MonthShareVM {
+  /** 'November 2026' / '2026년 11월'. */
+  periodLabel: string
+  headline: string
+  /** 큰 날 최대 5줄 — 'Nov 24 · Best day'. */
+  highlights: string[]
+  /** 일별 막대 높이 0..100. */
+  curve: number[]
+  /** 곡선에서 오늘의 자리 — 이번 달이 아니면 없음. */
+  markerIndex?: number
 }
 
 export type LegendKey = 'good' | 'best' | 'caution' | 'avoid' | 'calm' | 'keyDay' | 'today' | 'past'
@@ -139,6 +174,8 @@ export interface MonthViewModel {
   ladder: LadderRowVM[]
   /** 상담사에게 이어 물을 질문(입력창 미리 채움). */
   cta: { question: string }
+  /** 이달 공유 링크 재료. */
+  share: MonthShareVM
 }
 
 // ─── 문구(ko/en 짝) ───
@@ -249,10 +286,8 @@ function ctaQuestion(ym: string, push: string | null, hold: string | null, lang:
   return `How should I spend ${monthName(ym, 'en')}?`
 }
 
-/** 이미 선택된 날을 다시 누르면 그날로 들어간다(재탭 줌인 — MonthTier 와 같은 규칙). */
-export function gridTapIntent(selectedDay: number, tappedDay: number): 'dive' | 'select' {
-  return selectedDay === tappedDay ? 'dive' : 'select'
-}
+/** 이미 선택된 날을 다시 누르면 그날로 들어간다(재탭 줌인) — 잎 모듈 gridTap 이 SSOT. */
+export { gridTapIntent } from './gridTap'
 
 /**
  * 월 뷰모델. today = 오늘의 일 티어(DestinyDay) — 이번 달이면 오늘 단면과 4칸 사다리를
@@ -314,10 +349,15 @@ export function buildMonthViewModel(
   )
 
   // ── 큰 날·막대·그리드 ──
+  const year = ym.slice(0, 4)
   const keyDays: KeyDayRowVM[] = buildKeyDayItems(
     { ...month, ...(month.todayDay == null && refDay ? { todayDay: refDay } : {}) },
     lang
-  ).map(({ reason, ...k }) => ({ ...k, why: reason ? toTimingRow(reason, lang) : null }))
+  ).map(({ reason, ...k }) => ({
+    ...k,
+    label: mdLabel(`${year}-${k.ds}`, lang),
+    why: reason ? toTimingRow(reason, lang) : null,
+  }))
   const keyDs = new Set(keyDays.map((k) => k.ds))
   const bestD = bestDs ? Number(bestDs.slice(-2)) : 0
   const flags = (c: (typeof calendar)[number]) => ({
@@ -332,14 +372,26 @@ export function buildMonthViewModel(
     ...flags(c),
     keyDay: keyDs.has(c.ds),
   }))
-  const gridCells: MonthGridCellVM[] = calendar.map((c) => ({
-    d: c.d,
-    ds: c.ds,
-    mark: dayKindOf(c.mark),
-    ...flags(c),
-    keyDay: keyDs.has(c.ds),
-    best: c.ds === bestDs,
-  }))
+  const seed = month.seed ?? 0
+  const gridCells: MonthGridCellVM[] = calendar.map((c) => {
+    // 큰 날 행과 같은 규칙(keyDays.ts) — 셀 마크, 마크가 비면 최고의 날만 best.
+    const rawMark = c.mark ?? (c.ds === bestDs ? 'best' : null)
+    const iso = `${year}-${c.ds}`
+    return {
+      d: c.d,
+      ds: c.ds,
+      mark: dayKindOf(c.mark),
+      ...flags(c),
+      keyDay: keyDs.has(c.ds),
+      best: c.ds === bestDs,
+      read: {
+        label: `${mdLabel(iso, lang)} · ${weekdayShort(iso, lang)}`,
+        verdict: verdictPrefix(rawMark, lang),
+        meaning: keyDayMeaning(rawMark, c.d, lang, seed),
+        why: c.reason ? toTimingRow(c.reason, lang) : null,
+      },
+    }
+  })
   const lastDay = calendar.length ? calendar[calendar.length - 1].d : 0
   const tickDays = [1, 8, 15, isCurrentMonth ? refDay : 0, bestD, lastDay].filter(
     (d) => d > 0 && d <= lastDay
@@ -390,6 +442,15 @@ export function buildMonthViewModel(
     ladderSource,
     ladder: toLadderRows(ladderSource === 'day' ? dayRungs : monthRungs, lang),
     cta: { question: ctaQuestion(ym, push, hold, lang) },
+    share: {
+      periodLabel: monthYearLong(ym, lang),
+      headline: hook.headline,
+      highlights: keyDays.slice(0, 5).map((k) => `${k.label} · ${k.verdict}`),
+      curve: bars.map((b) => Math.round(b.height * 100)),
+      ...(isCurrentMonth && bars.some((b) => b.isToday)
+        ? { markerIndex: bars.findIndex((b) => b.isToday) }
+        : {}),
+    },
   }
   const isMinor = opts.isMinor ?? !!today?.isMinor
   return isMinor ? deepMinorSafe(vm, !ko) : vm

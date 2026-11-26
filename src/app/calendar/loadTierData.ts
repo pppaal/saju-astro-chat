@@ -36,7 +36,20 @@ export type LoadTierResult =
   | { kind: 'guest'; lang: 'ko' | 'en' }
   // 익명 override 빌드 IP 한도 초과 — 잠시 후 재시도 안내.
   | { kind: 'rate-limited'; lang: 'ko' | 'en' }
-  | ({ kind: 'ok'; lang: 'ko' | 'en' } & AssembledTiers)
+  | ({
+      kind: 'ok'
+      lang: 'ko' | 'en'
+      /** 출생 스탬프 재료(lib/birth/format) — /destiny 와 같은 규약(도시는 입력된 이름만). */
+      birthStamp: BirthStamp
+    } & AssembledTiers)
+
+/** 상단 칩·폴리오의 출생 스탬프 재료 — formatBirthStamp 입력. */
+export interface BirthStamp {
+  birthDate: string
+  birthTime: string
+  birthTimeUnknown: boolean
+  city: string | null
+}
 
 export type LoadLifetimeResult =
   | { kind: 'no-birth' }
@@ -48,12 +61,7 @@ export type LoadLifetimeResult =
       /** 오늘 — 출생지 시간대의 민용 날짜 'YYYY-MM-DD'(겹침 캡션의 날짜). */
       todayIso: string
       /** 출생 스탬프 재료(lib/birth/format) — 도시는 입력된 이름만(기본값 'Seoul' 아님). */
-      birthStamp: {
-        birthDate: string
-        birthTime: string
-        birthTimeUnknown: boolean
-        city: string | null
-      }
+      birthStamp: BirthStamp
     } & AssembledLifetime)
 
 // 쿼리파라미터로 들어온 생일 — 로그인 없이도 캘린더/인생흐름을 그 사람 기준으로
@@ -317,7 +325,17 @@ export async function loadTierData(
     nextMonthCells,
   })
 
-  return { kind: 'ok', lang, ...assembled }
+  return {
+    kind: 'ok',
+    lang,
+    birthStamp: {
+      birthDate: BIRTH.birthDate,
+      birthTime: BIRTH.birthTime,
+      birthTimeUnknown: guard.timeUnknown,
+      city: guard.birthPlace ?? null,
+    },
+    ...assembled,
+  }
 }
 
 /**

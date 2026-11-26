@@ -22,7 +22,16 @@ import { deepMinorSafe } from '@/lib/calendar-engine/minorSafe'
 import type { PlanetGlyph } from '@/components/v9/Glyph'
 import { buildDayHero, buildDayDomains, type DayCross } from './dayHero'
 import { astroDetailSub, planetGlyph, planetLabel, signLabel } from './astroDetail'
-import { dotDate, dotMonthDay, monthYearShort, weekdayLong, type Lang } from './dateLabels'
+import {
+  dotDate,
+  dotMonthDay,
+  mdLabel,
+  monthName,
+  monthYearShort,
+  weekdayLong,
+  weekdayShort,
+  type Lang,
+} from './dateLabels'
 import { SIBSIN_HANJA } from '@/lib/saju/sibsinLabels'
 // 교차 사주 키 EN — 일 페이로드의 sajuSide 는 서버 언어로 구워져 있어 로케일 토글 시 원어 키에서
 // 월·일 교차 카드와 같은 함수로 다시 고른다.
@@ -287,6 +296,46 @@ export interface TodaySectionVM {
   why: string
   /** '왜 오늘' 교차 행 — day.reason 이 없으면 null. */
   reason: TimingRowVM | null
+  /** 하루 공유 링크 재료(ShareDayButton) — 점수·톤·후크·이달 곡선. 원국은 싣지 않는다. */
+  share: DayShareVM
+}
+
+/** 하루 공유 링크 재료 — /api/calendar/day/share 본문 그대로(점수·요약·곡선 숫자만). */
+export interface DayShareVM {
+  /** 'November 19 2026' / '11월 19일 목'. */
+  dateLabel: string
+  score: number
+  tone: 'positive' | 'mixed' | 'caution'
+  headline: string
+  subline?: string
+  /** 이달 일별 점수(3일 이상일 때만). */
+  curve?: number[]
+  /** 곡선에서 그날의 자리. */
+  markerIndex?: number
+}
+
+function dayShareOf(
+  day: DestinyDay,
+  lang: Lang,
+  hero: ReturnType<typeof buildDayHero>
+): DayShareVM {
+  const iso = day.date
+  const d = Number(iso.slice(8, 10))
+  const dateLabel =
+    lang === 'ko'
+      ? `${mdLabel(iso, 'ko')} ${weekdayShort(iso, 'ko')}`
+      : `${monthName(iso.slice(0, 7), 'en')} ${d} ${iso.slice(0, 4)}`
+  const scores = day.monthScores ?? []
+  const markerIndex = scores.findIndex((s) => s.today)
+  return {
+    dateLabel,
+    score: day.score,
+    tone: hero.verdict.tone,
+    headline: hero.hook.headline,
+    ...(hero.hook.subline ? { subline: hero.hook.subline } : {}),
+    ...(scores.length >= 3 ? { curve: scores.map((s) => s.score) } : {}),
+    ...(scores.length >= 3 && markerIndex >= 0 ? { markerIndex } : {}),
+  }
 }
 
 export function buildTodaySection(
@@ -311,7 +360,74 @@ export function buildTodaySection(
     line: hero.oneLine,
     why: hero.why,
     reason: day.reason ? toTimingRow(day.reason, lang) : null,
+    share: dayShareOf(day, lang, hero),
   }
+}
+
+// ─── 시진 줄(결정 19) — 시진 창과 그 한가운데 상승궁을 나란히. 교차가 아니다(배지·교차 톤 없음). ───
+
+export interface HourRowVM {
+  /** 실제 시진 창 '07:15–09:15'(엔진 창 그대로 — 평균태양시, G5). */
+  window: string
+  /** 시진 이름 — 'Rabbit hour' / '묘시'. */
+  name: string
+  /** 그 창 한가운데의 상승궁 — 'Leo rising' / '상승궁 사자자리'. 출생지를 모르면 ''. */
+  rising: string
+  /** 그 시진의 사주 결(십신) — 좋음/조심. 교차 방향이 아니다. */
+  tone: 'good' | 'caution'
+  /** 그날 가장 센 좋은 시진·조심 시진(같으면 이른 시각). */
+  peak: boolean
+  /** 생활 문장 — 절정 시진에만. */
+  narrative: string
+}
+
+/** '07:15–09:15 (묘시)' → '묘시'. */
+const hourNameOf = (when: string) => /\(([^)]+)\)/.exec(when)?.[1] ?? ''
+
+function hourRows(day: DestinyDay, lang: Lang): HourRowVM[] {
+  const ko = lang === 'ko'
+  const hours = day.hourCrossings ?? []
+  // 절정 = 같은 결 중 가장 센 시진(같은 세기면 이른 시각 — 어댑터가 이미 시각순).
+  const peakOf = (tone: 'good' | 'caution') => {
+    let best = -1
+    hours.forEach((h, i) => {
+      if (h.tone === tone && (best < 0 || h.strength > hours[best].strength)) best = i
+    })
+    return best
+  }
+  const peaks = new Set([peakOf('good'), peakOf('caution')].filter((i) => i >= 0))
+  return hours.map((h, i) => {
+    const peak = peaks.has(i)
+    const rising = ko
+      ? h.risingSignKo
+        ? `상승궁 ${h.risingSignKo}`
+        : ''
+      : h.risingSignEn
+        ? `${h.risingSignEn} rising`
+        : ''
+    return {
+      window:
+        h.clockStart && h.clockEnd
+          ? `${h.clockStart}–${h.clockEnd}`
+          : (ko ? h.when : h.whenEn).replace(/\s*\(.*\)/, '').trim(),
+      name: hourNameOf(ko ? h.when : h.whenEn),
+      rising,
+      tone: h.tone,
+      peak,
+      narrative: peak ? (ko ? (h.narrative ?? '') : (h.narrativeEn ?? '')) : '',
+    }
+  })
+}
+
+/** 상담사에게 이어 물을 질문 — 그날(오늘이면 '오늘'). */
+function dayCtaQuestion(day: DestinyDay, lang: Lang, isToday: boolean): string {
+  if (lang === 'ko')
+    return isToday
+      ? '오늘 제 운 흐름을 더 자세히 봐주세요.'
+      : `${mdLabel(day.date, 'ko')}의 운 흐름을 더 자세히 봐주세요.`
+  return isToday
+    ? 'Help me read today in more detail.'
+    : `Help me read ${mdLabel(day.date, 'en')} in more detail.`
 }
 
 // ─── 일 뷰모델 ───
@@ -341,6 +457,10 @@ export interface DayViewModel {
   } | null
   /** 교차 행(최대 4) — 맨 위가 '왜' 근거. */
   crossings: TimingRowVM[]
+  /** 시진 줄(시각순) — 시진 × 상승궁은 교차가 아니다(결정 19). */
+  hours: HourRowVM[]
+  /** 상담사에게 이어 물을 질문(입력창 미리 채움). */
+  cta: { question: string }
 }
 
 export interface DayViewModelOptions {
@@ -401,6 +521,8 @@ export function buildDayViewModel(day: DestinyDay, opts: DayViewModelOptions): D
           ? toTimingRow(day.reason, lang)
           : crossToTimingRow(c, lang)
       ),
+    hours: hourRows(day, lang),
+    cta: { question: dayCtaQuestion(day, lang, isToday) },
   }
   const isMinor = opts.isMinor ?? !!day.isMinor
   return isMinor ? deepMinorSafe(vm, !ko) : vm

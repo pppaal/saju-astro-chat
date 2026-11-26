@@ -250,3 +250,63 @@ describe('gridTapIntent — 재탭 줌인(MonthTier 동작 이식)', () => {
     expect(gridTapIntent(19, 20)).toBe('select')
   })
 })
+
+describe('buildMonthViewModel — 고른 날 읽기 · 큰 날 라벨 · 공유 재료 (A7)', () => {
+  it('그리드 칸의 읽기 = 큰 날 행과 같은 말(그리드 마크 판정 · 엔진 한 줄 · 왜 행)', () => {
+    const vm = buildMonthViewModel(makeV9Month(), makeV9Day(), { lang: 'en' })
+    for (const k of vm.keyDays) {
+      const cell = vm.grid.cells.find((c) => c.ds === k.ds)
+      expect(cell?.read.verdict, k.ds).toBe(k.verdict)
+      expect(cell?.read.meaning, k.ds).toBe(k.meaning)
+      expect(cell?.read.why, k.ds).toEqual(k.why)
+    }
+    const c17 = vm.grid.cells.find((c) => c.d === 17)
+    expect(c17?.read.label).toBe('Nov 17 · Tue')
+    expect(c17?.read.why?.mark).toBe('down')
+    // 근거가 없는 날은 왜 행 없음, 오늘(포커스 마크)은 잔잔.
+    expect(vm.grid.cells.find((c) => c.d === 3)?.read.why).toBeNull()
+    expect(vm.grid.cells.find((c) => c.d === 19)?.read.verdict).toBe('Calm day')
+    const ko = buildMonthViewModel(makeV9Month(), makeV9Day(), { lang: 'ko' })
+    expect(ko.grid.cells.find((c) => c.d === 17)?.read.label).toBe('11월 17일 · 화')
+  })
+
+  it("큰 날 행 날짜 라벨 — 'Nov 5' / '11월 5일'", () => {
+    const en = buildMonthViewModel(makeV9Month(), makeV9Day(), { lang: 'en' })
+    expect(en.keyDays.map((k) => k.label)).toEqual([
+      'Nov 5',
+      'Nov 9',
+      'Nov 14',
+      'Nov 17',
+      'Nov 24',
+      'Nov 29',
+    ])
+    const ko = buildMonthViewModel(makeV9Month(), makeV9Day(), { lang: 'ko' })
+    expect(ko.keyDays[0].label).toBe('11월 5일')
+  })
+
+  it('공유 재료 — 이달 라벨 · 후크 · 큰 날 최대 5줄 · 곡선 0..100 · 오늘 자리', () => {
+    const vm = buildMonthViewModel(makeV9Month(), makeV9Day(), { lang: 'en' })
+    expect(vm.share.periodLabel).toBe('November 2026')
+    expect(vm.share.headline).toBe(vm.hero.headline)
+    expect(vm.share.highlights).toEqual([
+      'Nov 5 · Calm day',
+      'Nov 9 · Good day',
+      'Nov 14 · Caution',
+      'Nov 17 · Avoid',
+      'Nov 24 · Best day',
+    ])
+    expect(vm.share.curve).toHaveLength(30)
+    expect(vm.share.curve[23]).toBe(Math.round((57 / 72) * 100))
+    expect(vm.share.markerIndex).toBe(18)
+    // 다른 달 — 오늘 자리 없음.
+    const other = buildMonthViewModel(
+      makeV9Month({
+        todayDay: undefined,
+        calendar: makeV9Month().calendar.map(({ isToday: _i, past: _p, ...c }) => c),
+      }),
+      null,
+      { lang: 'en', nowIso: '2026-12-02T03:00:00.000Z' }
+    )
+    expect(other.share.markerIndex).toBeUndefined()
+  })
+})

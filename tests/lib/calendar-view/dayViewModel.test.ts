@@ -150,3 +150,118 @@ describe('toLadderRows — 사다리 칸', () => {
     expect(ladderRangeLabel({ ...dec, range: undefined }, 'en')).toBe('')
   })
 })
+
+describe('buildDayViewModel — 공유 재료 · 시진 줄 · 상담 질문 (A7)', () => {
+  const HOURS: NonNullable<DestinyDay['hourCrossings']> = [
+    {
+      when: '05:15–07:15 (묘시)',
+      whenEn: '05:15–07:15 (Rabbit hour)',
+      clockStart: '05:15',
+      clockEnd: '07:15',
+      sibsin: '상관',
+      tone: 'caution',
+      risingSignKo: '천칭자리',
+      risingSignEn: 'Libra',
+      narrative: '말이 앞서기 쉬운 시간.',
+      narrativeEn: 'Words run ahead of you.',
+      strength: 0.6,
+    },
+    {
+      when: '07:15–09:15 (진시)',
+      whenEn: '07:15–09:15 (Dragon hour)',
+      clockStart: '07:15',
+      clockEnd: '09:15',
+      sibsin: '정관',
+      tone: 'good',
+      risingSignKo: '전갈자리',
+      risingSignEn: 'Scorpio',
+      narrative: '공식 일을 처리하기 좋은 시간.',
+      narrativeEn: 'Good for formal business.',
+      strength: 0.8,
+    },
+    {
+      when: '09:15–11:15 (사시)',
+      whenEn: '09:15–11:15 (Snake hour)',
+      clockStart: '09:15',
+      clockEnd: '11:15',
+      sibsin: '편관',
+      tone: 'good',
+      risingSignKo: '',
+      risingSignEn: '',
+      narrative: '편한 시간.',
+      narrativeEn: 'An easy hour.',
+      strength: 0.8,
+    },
+  ]
+
+  it('공유 재료 — 점수 · 톤 · 후크 · 이달 곡선(오늘 자리)', () => {
+    const day = makeV9Day({
+      monthScores: [
+        { day: 18, score: 41, today: false },
+        { day: 19, score: 44, today: true },
+        { day: 20, score: 30, today: false },
+      ],
+    })
+    const vm = buildDayViewModel(day, { lang: 'en', sex: '여' })
+    expect(vm.hero.share).toEqual({
+      dateLabel: 'November 19 2026',
+      score: 44,
+      tone: 'mixed',
+      headline: vm.hero.headline,
+      ...(vm.hero.subline ? { subline: vm.hero.subline } : {}),
+      curve: [41, 44, 30],
+      markerIndex: 1,
+    })
+    const ko = buildDayViewModel(day, { lang: 'ko', sex: '여' })
+    expect(ko.hero.share.dateLabel).toBe('11월 19일 목')
+    // 곡선이 짧으면 곡선·자리 없음.
+    const bare = buildDayViewModel(makeV9Day(), { lang: 'en', sex: '여' })
+    expect(bare.hero.share.curve).toBeUndefined()
+    expect(bare.hero.share.markerIndex).toBeUndefined()
+  })
+
+  it('시진 줄 — 실제 창 · 시진 이름 · 상승궁 나란히, 절정(같은 세기면 이른 시각)에만 생활 문장', () => {
+    const vm = buildDayViewModel(makeV9Day({ hourCrossings: HOURS }), { lang: 'en', sex: '여' })
+    expect(vm.hours).toEqual([
+      {
+        window: '05:15–07:15',
+        name: 'Rabbit hour',
+        rising: 'Libra rising',
+        tone: 'caution',
+        peak: true,
+        narrative: 'Words run ahead of you.',
+      },
+      {
+        window: '07:15–09:15',
+        name: 'Dragon hour',
+        rising: 'Scorpio rising',
+        tone: 'good',
+        peak: true,
+        narrative: 'Good for formal business.',
+      },
+      {
+        window: '09:15–11:15',
+        name: 'Snake hour',
+        rising: '',
+        tone: 'good',
+        peak: false,
+        narrative: '',
+      },
+    ])
+    const ko = buildDayViewModel(makeV9Day({ hourCrossings: HOURS }), { lang: 'ko', sex: '여' })
+    expect(ko.hours[0]).toMatchObject({ name: '묘시', rising: '상승궁 천칭자리' })
+    expect(buildDayViewModel(makeV9Day(), { lang: 'en', sex: '여' }).hours).toEqual([])
+  })
+
+  it('상담 질문 — 오늘이면 today, 다른 날이면 그 날짜', () => {
+    expect(buildDayViewModel(makeV9Day(), { lang: 'en', sex: '여' }).cta.question).toBe(
+      'Help me read today in more detail.'
+    )
+    const other = buildDayViewModel(makeV9Day({ date: '2026-11-24' }), {
+      lang: 'ko',
+      sex: '여',
+      isToday: false,
+    })
+    expect(other.cta.question).toBe('11월 24일의 운 흐름을 더 자세히 봐주세요.')
+  })
+})
