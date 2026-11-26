@@ -173,7 +173,8 @@ export async function assembleLifetime(input: AssembleLifetimeInput): Promise<As
     todayIso
   )
 
-  // ⑨ 다음 인생 마디 — 생애 마디 목록에서 올해 다음 첫 항목(대운 경계가 아니다, FIX9b E7).
+  // ⑨ 다음 인생 마디 — 생애 마디 목록에서 올해 다음 첫 점성 마디(대운 경계가 아니다, FIX9b E7).
+  //   대운만의 마디(kind 'daewoon')는 건너뛴다. ±2년 안의 대운을 흡수한 점성 마디는 점성 kind 라 남는다.
   const nextLifeTurn = pickNextLifeTurn(lifetime.milestones, targetYear)
   if (nextLifeTurn) lifetime.nextLifeTurn = nextLifeTurn
 
@@ -218,12 +219,16 @@ function localDateIso(natal: NatalContext, now: Date): string {
   return `${local.year}-${String(local.month).padStart(2, '0')}-${String(local.day).padStart(2, '0')}`
 }
 
-/** 생애 마디 중 올해 다음 첫 항목 → 다음 인생 마디. 없으면 undefined. */
+/**
+ * 생애 마디 중 올해 다음 첫 인생 전환 → 다음 인생 마디. 없으면 undefined.
+ * 대운만의 마디(kind 'daewoon' — 점성 마디와 ±2년 안에 겹치지 않은 대운 시작)는 인생 전환이 아니다
+ * (FIX9b E7: '大運 경계는 다른 사건'). 대운을 흡수한 점성 마디는 점성 kind 를 지녀 그대로 남는다.
+ */
 export function pickNextLifeTurn(
   milestones: DestinyLifetime['milestones'],
   currentYear: number
 ): DestinyNextLifeTurn | undefined {
-  const m = milestones.find((x) => x.year > currentYear)
+  const m = milestones.find((x) => x.year > currentYear && x.kind !== 'daewoon')
   if (!m) return undefined
   return {
     year: m.year,

@@ -12,7 +12,11 @@ import { describe, it, expect, beforeAll } from 'vitest'
 import { calculateSajuData } from '@/lib/saju/saju'
 import { buildNatalContext } from '@/lib/calendar-engine/context/build'
 import { buildCalendar } from '@/lib/calendar-engine'
-import { assembleLifetime, buildDecadeCross } from '@/app/calendar/assembleLifetime'
+import {
+  assembleLifetime,
+  buildDecadeCross,
+  pickNextLifeTurn,
+} from '@/app/calendar/assembleLifetime'
 import type { NatalContext } from '@/lib/calendar-engine/context/types'
 import type { CalendarCell } from '@/lib/calendar-engine/types'
 
@@ -183,8 +187,8 @@ describe('assembleLifetime', () => {
     expect(lifetime.share?.crossType.en).toBeTruthy()
     expect(lifetime.share?.screenPillars).toHaveLength(3)
     expect(lifetime.share?.lifeShape?.ko).toBe(lifetime.lifePattern?.ko)
-    // 다음 인생 마디 = 마디 중 올해(2026) 다음 첫 항목.
-    const next = lifetime.milestones.find((m) => m.year > 2026)
+    // 다음 인생 마디 = 마디 중 올해(2026) 다음 첫 항목 — 대운만의 마디는 건너뛴다(FIX9b E7).
+    const next = lifetime.milestones.find((m) => m.year > 2026 && m.kind !== 'daewoon')
     expect(lifetime.nextLifeTurn?.year).toBe(next?.year)
     // 상단 줄: 날짜만 / 출생 줄.
     expect(topbar.birthDate).toBe('1995.2.9')
@@ -428,5 +432,41 @@ describe('buildDecadeCross — 정직성 게이트', () => {
       dignity: 'fall',
     })
     expect(row.transit).toBeUndefined() // 트랜짓은 assembleLifetime 이 얹는다
+  })
+})
+
+describe('pickNextLifeTurn — 대운 경계는 인생 전환이 아니다(FIX9b E7, QA CODE-1)', () => {
+  type M = Parameters<typeof pickNextLifeTurn>[0][number]
+  const ms = (year: number, kind: M['kind'], label: string, extra: Partial<M> = {}): M => ({
+    year,
+    age: year - 1962,
+    label,
+    labelEn: label,
+    kind,
+    ...extra,
+  })
+
+  it('대운만의 마디가 먼저 와도 건너뛰고 다음 점성 마디를 고른다', () => {
+    const milestones = [
+      ms(2022, 'saturn', 'Second Saturn return'),
+      ms(2034, 'daewoon', 'Muo luck cycle', {
+        meaningCoreEn: 'Direct-Officer (Jeonggwan) decade opens',
+      }),
+      ms(2036, 'uranus', 'Uranus return', { meaningCoreEn: 'A late-life reset.' }),
+    ]
+    const next = pickNextLifeTurn(milestones, 2026)
+    expect(next).toMatchObject({ year: 2036, age: 74, labelEn: 'Uranus return' })
+    expect(next?.meaningCoreEn).toBe('A late-life reset.')
+  })
+
+  it('대운을 흡수한 점성 마디(점성 kind)는 그대로 남는다', () => {
+    const milestones = [
+      ms(2033, 'jupiter', 'Third Jupiter return', { bothSystems: true } as Partial<M>),
+    ]
+    expect(pickNextLifeTurn(milestones, 2026)?.year).toBe(2033)
+  })
+
+  it('올해 다음에 대운 마디뿐이면 없음', () => {
+    expect(pickNextLifeTurn([ms(2030, 'daewoon', 'Gyeongsin luck cycle')], 2026)).toBeUndefined()
   })
 })
