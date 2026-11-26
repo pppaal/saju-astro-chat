@@ -14,6 +14,7 @@ import {
   isCalendarShare,
   isDayShare,
   isLifeShare,
+  isLifeShareV2,
   isReportShare,
   bumpShareViews,
 } from '@/lib/share/shareLink'
@@ -58,6 +59,13 @@ const LIGHT_CURVE = {
   dotStroke: '#FBF6EC',
 }
 
+/** 인생 흐름 v2 한 줄 — '사주 타입 · 인생 모양'(메타 설명 · 공개 페이지 보조 줄). */
+function lifeShareV2Line(crossType: string, lifeShape: string | undefined, isKo: boolean): string {
+  const type = isKo ? `사주 타입 ‘${crossType}’` : `Saju type: ${crossType}`
+  if (!lifeShape) return type
+  return isKo ? `${type} · 인생 모양 ${lifeShape}` : `${type} · Life shape: ${lifeShape}`
+}
+
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { token } = await params
   const reading = await getShareLink(token)
@@ -99,6 +107,17 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       robots: { index: false, follow: false },
       openGraph: { title: dayTitle, description: dayDesc, type: 'article' },
       twitter: { card: 'summary_large_image', title: dayTitle, description: dayDesc },
+    }
+  }
+  if (isLifeShareV2(reading)) {
+    const v2Title = `${reading.crossType} — DestinyPal`
+    const v2Desc = lifeShareV2Line(reading.crossType, reading.lifeShape, isKo)
+    return {
+      title: v2Title,
+      description: v2Desc,
+      robots: { index: false, follow: false },
+      openGraph: { title: v2Title, description: v2Desc, type: 'article' },
+      twitter: { card: 'summary_large_image', title: v2Title, description: v2Desc },
     }
   }
   if (isLifeShare(reading)) {
@@ -967,7 +986,117 @@ export default async function SharedReadingPage({ params }: PageProps) {
     )
   }
 
-  // 인생/대운 곡선 공유 — 한 줄 + 인생 흐름 곡선이 주인공.
+  // 인생 흐름 공유 v2 — 사주 타입 + 인생 모양만(범위 · 연도 축 · 곡선 · 기둥 없음).
+  if (isLifeShareV2(reading)) {
+    recordCounter('life.share.viewed', 1)
+    return (
+      <main style={{ minHeight: '100vh', background: PAPER_BG, color: INK }}>
+        <div
+          style={{
+            maxWidth: 560,
+            margin: '0 auto',
+            padding: '40px 20px 96px',
+            textAlign: 'center',
+          }}
+          data-life-share="v2"
+        >
+          <Link
+            href="/"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 10,
+              color: GOLD_INK,
+              textDecoration: 'none',
+              fontWeight: 600,
+              letterSpacing: '0.04em',
+            }}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/logo/logo.png"
+              alt="DestinyPal"
+              width={30}
+              height={30}
+              style={{ borderRadius: 6 }}
+            />
+            DestinyPal
+          </Link>
+
+          <p
+            style={{
+              marginTop: 40,
+              fontSize: 12,
+              letterSpacing: '0.22em',
+              textTransform: 'uppercase',
+              color: MUTE,
+            }}
+          >
+            {SAJU_TYPE_LABEL.plain[isKo ? 'ko' : 'en']}
+          </p>
+          <h1
+            style={{
+              marginTop: 18,
+              fontSize: 40,
+              fontWeight: isKo ? 800 : 400,
+              fontStyle: isKo ? 'normal' : 'italic',
+              fontFamily: isKo ? undefined : "Georgia, 'Times New Roman', serif",
+              lineHeight: 1.15,
+              color: INK,
+              wordBreak: 'keep-all',
+              overflowWrap: 'anywhere',
+            }}
+          >
+            {reading.crossType}
+          </h1>
+          {reading.lifeShape ? (
+            <p style={{ marginTop: 16, fontSize: 16, lineHeight: 1.6, color: SUB }}>
+              <span
+                style={{
+                  fontSize: 11,
+                  letterSpacing: '0.18em',
+                  textTransform: 'uppercase',
+                  color: MUTE,
+                  marginRight: 8,
+                }}
+              >
+                {isKo ? '인생 모양' : 'Life shape'}
+              </span>
+              {reading.lifeShape}
+            </p>
+          ) : null}
+          {socialProof ? (
+            <p style={{ marginTop: 18, fontSize: 12.5, color: MUTE }}>{socialProof}</p>
+          ) : null}
+
+          <div style={{ marginTop: 40 }}>
+            <Link
+              href="/"
+              style={{
+                display: 'inline-block',
+                padding: '15px 30px',
+                borderRadius: 999,
+                background: INK,
+                color: '#fff',
+                fontWeight: 700,
+                textDecoration: 'none',
+                fontSize: 16,
+              }}
+            >
+              {isKo ? '내 사주 타입도 무료로 보기 →' : 'What’s yours? Get your free Saju Card →'}
+            </Link>
+            <p style={{ marginTop: 14, fontSize: 12, color: MUTE }}>
+              {isKo
+                ? '생년월일만 넣으면 돼요 · 무료 · 가입 필요 없어요.'
+                : 'Just your birth date — free, no sign-up.'}
+            </p>
+          </div>
+        </div>
+      </main>
+    )
+  }
+
+  // 인생/대운 곡선 공유(v1 · 옛 링크) — 한 줄 + 인생 흐름 곡선이 주인공.
   if (isLifeShare(reading)) {
     recordCounter('life.share.viewed', 1)
     const curveImg =

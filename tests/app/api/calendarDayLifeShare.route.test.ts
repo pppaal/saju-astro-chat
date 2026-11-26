@@ -1,13 +1,14 @@
 /**
  * Tests for POST /api/calendar/day/share and POST /api/life/share.
  *
- * 하루(일진)·인생(대운) 곡선 공유 링크 생성. 게스트/유저 모두 생성 가능
- * (바이럴 루프). 본문을 zod 로 검증하고(점수·곡선 숫자·라벨만 — 원국 미전송)
- * 토큰을 만들어 공개 URL 을 돌려준다.
+ * 하루(일진) 곡선 공유 · 인생 흐름 공유(v2) 링크 생성. 게스트/유저 모두 생성 가능
+ * (바이럴 루프). 본문을 zod 로 검증하고 토큰을 만들어 공개 URL 을 돌려준다.
  *
  * 커버:
  *  - JSON 파싱 실패 → invalid_json
- *  - zod 검증 실패(점수 범위/곡선 길이/필수 누락) → invalid_share_payload
+ *  - 하루: zod 검증 실패(점수 범위/곡선 길이/필수 누락) → invalid_share_payload
+ *  - 인생 v2: 사주 타입 · 인생 모양만 저장 — 날짜 같은 필드(birthDate · birthYear …)나
+ *    숫자가 든 이름, 옛 v1 본문(곡선 · 범위 라벨)은 거절(개인정보 — 오너 결정)
  *  - 정상 생성(게스트/유저) → token/path/url + source 카운트 + payload 모양
  *  - createShareLink null → INTERNAL_ERROR(share_create_failed)
  */
@@ -109,6 +110,14 @@ const validDay = {
 }
 
 const validLife = {
+  v: 2,
+  isKo: false,
+  crossType: 'steady-building Free Spirit',
+  lifeShape: 'Ups and downs',
+}
+
+// 옛 v1 본문(곡선 · 범위 라벨 · 연도 축) — 더는 만들지 않는다.
+const legacyLifeV1 = {
   isKo: true,
   rangeLabel: '1994–2078',
   headline: '마흔에, 판이 한 번 뒤집힌다.',
@@ -181,34 +190,39 @@ describe('POST /api/calendar/day/share', () => {
   })
 })
 
-describe('POST /api/life/share', () => {
+describe('POST /api/life/share (v2)', () => {
   it('JSON 파싱 실패면 invalid_json', async () => {
     const res = await POST_LIFE(makeReq(LIFE_URL, '{nope', true))
     expect(res.status).toBe(422)
     expect((await res.json()).error.message).toBe('invalid_json')
   })
 
-  it('곡선 2개 미만이면 invalid_share_payload', async () => {
-    const res = await POST_LIFE(makeReq(LIFE_URL, { ...validLife, curve: [50] }))
-    expect(res.status).toBe(422)
-  })
-
-  it('필수(curve) 누락이면 invalid_share_payload', async () => {
-    const { curve, ...rest } = validLife
-    const res = await POST_LIFE(makeReq(LIFE_URL, rest))
-    expect(res.status).toBe(422)
-  })
-
-  it('게스트 정상 생성 → token + source:guest + 곡선 반올림 + kind=life', async () => {
+  it('게스트 정상 생성 → token + source:guest + v2 페이로드(이름 둘뿐)', async () => {
     const res = await POST_LIFE(makeReq(LIFE_URL, validLife))
     const data = await res.json()
     expect(res.status).toBe(200)
     expect(data.data.path).toBe('/r/tok_abc123')
+    expect(data.data.url).toBe('https://destinypal.app/r/tok_abc123')
     expect(recordCounter).toHaveBeenCalledWith('life.share.created', 1, { source: 'guest' })
     const payload = createShareLink.mock.calls[0][0] as any
-    expect(payload.kind).toBe('life')
-    expect(payload.curve).toEqual([30, 45, 40, 70, 88, 60]) // 88.2 → 88
-    expect(payload.axisLabels).toEqual(['1994', '2022', '2050', '2078'])
+    expect(payload).toEqual({
+      v: 2,
+      kind: 'life',
+      isKo: false,
+      crossType: 'steady-building Free Spirit',
+      lifeShape: 'Ups and downs',
+    })
+  })
+
+  it('인생 모양 없이도 생성(lifeShape 생략)', async () => {
+    const { lifeShape, ...rest } = validLife
+    const res = await POST_LIFE(
+      makeReq(LIFE_URL, { ...rest, isKo: true, crossType: '착실히 쌓는 자유인' })
+    )
+    expect(res.status).toBe(200)
+    const payload = createShareLink.mock.calls[0][0] as any
+    expect(payload).toEqual({ v: 2, kind: 'life', isKo: true, crossType: '착실히 쌓는 자유인' })
+    expect(payload).not.toHaveProperty('lifeShape')
   })
 
   it('로그인 사용자 → source:user', async () => {
@@ -217,10 +231,43 @@ describe('POST /api/life/share', () => {
     expect(recordCounter).toHaveBeenCalledWith('life.share.created', 1, { source: 'user' })
   })
 
-  it('축 라벨 없이도 생성 가능', async () => {
-    const { axisLabels, ...rest } = validLife
-    const res = await POST_LIFE(makeReq(LIFE_URL, rest))
-    expect(res.status).toBe(200)
+  it.each([
+    ['birthDate', { birthDate: '1997-03-21' }],
+    ['birthYear', { birthYear: 1997 }],
+    ['birthTime', { birthTime: '14:30' }],
+    ['rangeLabel', { rangeLabel: '1997–2081' }],
+    ['curve', { curve: [10, 20, 30] }],
+    ['pillars', { pillars: ['丁丑', '癸卯', '壬戌'] }],
+  ])('날짜 같은 필드 %s 가 오면 거절(strict) — 저장하지 않는다', async (_k, extra) => {
+    const res = await POST_LIFE(makeReq(LIFE_URL, { ...validLife, ...extra }))
+    expect(res.status).toBe(422)
+    expect((await res.json()).error.message).toBe('invalid_share_payload')
+    expect(createShareLink).not.toHaveBeenCalled()
+  })
+
+  it('이름 칸에 숫자(연도 · 날짜)가 들어오면 거절', async () => {
+    for (const bad of [
+      { crossType: 'Free Spirit 1997' },
+      { lifeShape: '1997-03-21' },
+      { crossType: 'born 3/21' },
+    ]) {
+      const res = await POST_LIFE(makeReq(LIFE_URL, { ...validLife, ...bad }))
+      expect(res.status).toBe(422)
+    }
+    expect(createShareLink).not.toHaveBeenCalled()
+  })
+
+  it('v 누락 · 옛 v1 본문(곡선 · 범위 라벨)은 거절', async () => {
+    const { v, ...noVersion } = validLife
+    expect((await POST_LIFE(makeReq(LIFE_URL, noVersion))).status).toBe(422)
+    expect((await POST_LIFE(makeReq(LIFE_URL, legacyLifeV1))).status).toBe(422)
+    expect((await POST_LIFE(makeReq(LIFE_URL, { ...validLife, v: 1 }))).status).toBe(422)
+    expect(createShareLink).not.toHaveBeenCalled()
+  })
+
+  it('사주 타입이 비면 거절', async () => {
+    const res = await POST_LIFE(makeReq(LIFE_URL, { ...validLife, crossType: '  ' }))
+    expect(res.status).toBe(422)
   })
 
   it('createShareLink null → share_create_failed', async () => {

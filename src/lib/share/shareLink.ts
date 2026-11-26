@@ -153,6 +153,21 @@ export interface LifeShareLinkPayload {
   peakIndex?: number
 }
 
+/**
+ * 인생 흐름 공유 v2(v9.2) — 사주 타입 이름과 인생 모양 이름만. 개인정보(오너 결정): 생년월일 ·
+ * 연도 · 범위 라벨 · 곡선 · 기둥을 싣지 않는다. 이름은 공유한 사람의 언어(isKo)로 저장한다.
+ * v1(곡선 · 연도 축)은 90일 TTL 안의 옛 링크를 위해 계속 읽는다.
+ */
+export interface LifeShareLinkPayloadV2 {
+  v: 2
+  kind: 'life'
+  isKo: boolean
+  /** 사주 타입 이름 — '착실히 쌓는 자유인' / 'steady-building Free Spirit'. */
+  crossType: string
+  /** 인생 모양 이름 — '굴곡형' / 'Ups and downs'. 없으면 생략. */
+  lifeShape?: string
+}
+
 /** 무료 통합 리포트 공유 — 사주 "유형 별명" + 소름 한 줄을 OG/공개 페이지 주인공으로. */
 export interface ReportShareLinkPayload {
   v: 1
@@ -181,6 +196,7 @@ export type ShareLinkPayload =
   | CalendarShareLinkPayload
   | DayShareLinkPayload
   | LifeShareLinkPayload
+  | LifeShareLinkPayloadV2
   | ReportShareLinkPayload
 
 /** 타입 가드 — 공유 종류 분기(렌더/OG). 레거시(미지정)는 tarot. */
@@ -196,8 +212,14 @@ export function isDayShare(p: ShareLinkPayload): p is DayShareLinkPayload {
   return p.kind === 'day'
 }
 
+/** 인생 흐름 v1(곡선 · 연도 축) — 옛 링크. v2 는 isLifeShareV2. */
 export function isLifeShare(p: ShareLinkPayload): p is LifeShareLinkPayload {
-  return p.kind === 'life'
+  return p.kind === 'life' && p.v !== 2
+}
+
+/** 인생 흐름 v2(사주 타입 · 인생 모양만). */
+export function isLifeShareV2(p: ShareLinkPayload): p is LifeShareLinkPayloadV2 {
+  return p.kind === 'life' && p.v === 2
 }
 
 export function isReportShare(p: ShareLinkPayload): p is ReportShareLinkPayload {
@@ -232,7 +254,12 @@ export async function getShareLink(token: string): Promise<ShareLinkPayload | nu
   if (!clean) return null
   try {
     const payload = await cacheGet<ShareLinkPayload>(shareKey(clean))
-    if (!payload || payload.v !== 1) return null
+    if (!payload) return null
+    // v2 는 인생 흐름 공유만(사주 타입 · 인생 모양) — 형태까지 확인한다.
+    if (payload.v === 2) {
+      return payload.kind === 'life' && typeof payload.crossType === 'string' ? payload : null
+    }
+    if (payload.v !== 1) return null
     // 궁합·캘린더·하루·인생·리포트 공유는 cards 가 없고, 타로(레거시 포함)는 cards 배열.
     if (
       payload.kind === 'compatibility' ||

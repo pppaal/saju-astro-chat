@@ -16,6 +16,7 @@ import {
   isCalendarShare,
   isDayShare,
   isLifeShare,
+  isLifeShareV2,
   isReportShare,
   type ShareLinkPayload,
 } from '@/lib/share/shareLink'
@@ -182,7 +183,92 @@ export default async function Image({ params }: { params: Promise<{ token: strin
     )
   }
 
-  // ── 인생/대운 곡선 — 큰 그림 + 곡선 ──
+  // ── 인생 흐름 v2 — 사주 타입 + 인생 모양만(범위 · 연도 축 · 곡선 · 기둥 없음). 종이 바탕. ──
+  if (reading && isLifeShareV2(reading)) {
+    const typeName = clamp(reading.crossType, 34)
+    const shape = reading.lifeShape ? clamp(reading.lifeShape, 24) : ''
+    const eyebrow = SAJU_TYPE_LABEL.plain[isKo ? 'ko' : 'en']
+    const shapeLabel = isKo ? '인생 모양' : 'LIFE SHAPE'
+    const hook = isKo ? '당신의 카드는?' : 'What’s yours?'
+    const cta = isKo
+      ? `내 사주 타입도 무료로 · ${displayDomain}`
+      : `See your Saju type free · ${displayDomain}`
+    const fonts = await loadOgFonts(eyebrow, typeName, shapeLabel, shape, hook, cta, displayDomain)
+    return new ImageResponse(
+      <div
+        style={{
+          width: '100%',
+          height: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'space-between',
+          padding: 64,
+          background: '#F3EFE7',
+          color: '#1B1916',
+          fontFamily: 'NotoKR, sans-serif',
+        }}
+      >
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            paddingBottom: 18,
+            borderBottom: '2px solid #DED7CB',
+          }}
+        >
+          <div style={{ fontSize: 30, fontWeight: 700, color: '#1B1916' }}>{displayDomain}</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            <div style={{ fontSize: 24, letterSpacing: 4, color: '#6E695F' }}>{hook}</div>
+            <div
+              style={{
+                display: 'flex',
+                width: 46,
+                height: 46,
+                borderRadius: 6,
+                background: '#B8412C',
+                color: '#F3EFE7',
+                fontSize: 28,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              算
+            </div>
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+          <div style={{ display: 'flex', fontSize: 26, letterSpacing: 6, color: '#6E695F' }}>
+            {eyebrow}
+          </div>
+          <div
+            style={{
+              display: 'flex',
+              fontSize: typeName.length > 22 ? 76 : 92,
+              fontWeight: 800,
+              lineHeight: 1.05,
+              fontFamily: 'HeavyKR, sans-serif',
+              color: '#1B1916',
+            }}
+          >
+            {typeName}
+          </div>
+          {shape ? (
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: 18, marginTop: 6 }}>
+              <div style={{ fontSize: 24, letterSpacing: 5, color: '#6E695F' }}>{shapeLabel}</div>
+              <div style={{ fontSize: 40, fontWeight: 700, color: '#1B1916' }}>{shape}</div>
+            </div>
+          ) : null}
+        </div>
+
+        <div style={{ fontSize: 26, color: '#6E695F' }}>{cta}</div>
+      </div>,
+      { ...size, fonts: fonts.length ? fonts : undefined }
+    )
+  }
+
+  // ── 인생/대운 곡선(v1 · 옛 링크) — 큰 그림 + 곡선 ──
   if (reading && isLifeShare(reading)) {
     // 인생유형 별명(대기만성형 등)이 있으면 그게 카드 주인공(MBTI 풍 배지) — 사람들이
     // 공유하는 건 곡선이 아니라 "나 대기만성형이래" 정체성이다. 없으면(레거시 링크)
