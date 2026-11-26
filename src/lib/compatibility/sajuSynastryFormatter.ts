@@ -83,10 +83,14 @@ const TWELVE_SINSAL_EN: Record<string, string> = {
 // 신살 일주 페어 라벨 (백호/괴강 등) 한자 그대로 유지 — 한자는 영어 응답에 안 샌다.
 
 export function formatSajuSynastry(input: SajuSynastryInput): string {
-  if (input.pillarsA.length < 4 || input.pillarsB.length < 4) return ''
+  // 최소 년·월·일 3기둥. 시각 미상이면 compatSajuFacts 가 시주를 아예 빼고 3기둥을
+  // 넘긴다(삼주 판정 — 결정 9 / CONVENTIONS §5). 예전 가드는 4기둥을 요구해, 시간
+  // 모르는 한 사람만 있어도 상담사 사주 블록이 통째로 비었다(재감사 CS-1).
+  if (input.pillarsA.length < 3 || input.pillarsB.length < 3) return ''
   // 시각 미상이면 시주(時, index 3)는 정오 앵커(午시) 가정의 날조값 → cross 대상에서 제외.
   // 아래 모든 pillar 루프는 A.length / B.length 로 도므로, 잘라내면 자동으로
-  // 시주가 빠진다(일주=index 2 는 항상 유지). i 는 항상 A, j 는 항상 B 를 인덱싱.
+  // 시주가 빠진다(일주=index 2 는 항상 유지). 이미 3기둥이면 slice 는 그대로다.
+  // i 는 항상 A, j 는 항상 B 를 인덱싱.
   const A = input.timeUnknownA ? input.pillarsA.slice(0, 3) : input.pillarsA
   const B = input.timeUnknownB ? input.pillarsB.slice(0, 3) : input.pillarsB
   const aDay = A[2]

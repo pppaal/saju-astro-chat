@@ -302,7 +302,7 @@ export interface SajuPillarInput {
 }
 
 export interface SajuSynastryInput {
-  /** 년/월/일/시 순서 4 pillars */
+  /** 년/월/일/시 순서 4 pillars — 시각 미상이면 년/월/일 3 pillars(시주 없음)도 받는다. */
   pillarsA: SajuPillarInput[]
   pillarsB: SajuPillarInput[]
   currentDaeunA?: { stem: string; branch: string; age?: number } | null

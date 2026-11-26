@@ -158,8 +158,11 @@ describe('formatSajuSynastry', () => {
     pillarsB: pillars(['己', '丑'], ['甲', '申'], ['乙', '未'], ['丁', '亥']),
   }
 
-  it('returns empty string when fewer than 4 pillars', () => {
+  it('returns empty string when fewer than 3 pillars (year/month/day are the minimum)', () => {
     expect(formatSajuSynastry({ pillarsA: [P('甲', '子')], pillarsB: valid.pillarsB })).toBe('')
+    expect(
+      formatSajuSynastry({ pillarsA: valid.pillarsA.slice(0, 2), pillarsB: valid.pillarsB })
+    ).toBe('')
   })
 
   it('returns empty string when a day stem is missing', () => {
@@ -223,6 +226,35 @@ describe('formatSajuSynastry', () => {
     it('B 시각 미상이면 B 시주가 빠져 시주 천간합이 사라진다', () => {
       const out = formatSajuSynastry({ ...valid, timeUnknownB: true })
       expect(out).not.toContain('시천간 임 + B 시천간 정')
+    })
+
+    // 재감사 CS-1: compatSajuFacts 는 시간 미상이면 시주를 아예 빼고 3기둥을 넘긴다.
+    // 예전 4기둥 가드가 그 입력을 '' 로 돌려 유료 상담사에 사주 블록이 통째로 빠졌다.
+    // 3기둥 입력은 "4기둥 + 미상 플래그" 와 바이트 단위로 같은 삼주 블록이어야 한다.
+    it('3기둥(시주 없음) 입력도 4기둥+미상 플래그와 같은 삼주 블록을 만든다 (CS-1)', () => {
+      const now = new Date('2026-06-01T00:00:00Z')
+      for (const lang of ['ko', 'en'] as const) {
+        const fourB = formatSajuSynastry({ ...valid, timeUnknownB: true, now, lang })
+        const threeB = formatSajuSynastry({
+          ...valid,
+          pillarsB: valid.pillarsB.slice(0, 3),
+          timeUnknownB: true,
+          now,
+          lang,
+        })
+        expect(threeB.length).toBeGreaterThan(200)
+        expect(threeB).toBe(fourB)
+        const both = formatSajuSynastry({
+          pillarsA: valid.pillarsA.slice(0, 3),
+          pillarsB: valid.pillarsB.slice(0, 3),
+          timeUnknownA: true,
+          timeUnknownB: true,
+          now,
+          lang,
+        })
+        expect(both.length).toBeGreaterThan(200)
+        expect(both).not.toMatch(lang === 'en' ? /\bH-(stem|branch|pillar)\b/ : /시(지|천간|주) /)
+      }
     })
   })
 
