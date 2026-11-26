@@ -234,6 +234,13 @@ describe('reasonAstroDetail — 엔진의 부모 참조(crossParents)를 그대�
     expect(
       reasonAstroDetail(ref('astro.dignity.natal-almuten.Moon.Taurus.x.2026', 'dignity'))
     ).not.toHaveProperty('qualifier')
+    // 로트 접촉 — 부모 id 의 로트 이름(R-VC-8). 모르는 로트는 성격 없음.
+    expect(
+      reasonAstroDetail(ref('astro.arabic-part.Victory.Moon.2026-11-27', 'arabic-part'))
+    ).toEqual({ transitPlanet: 'Moon', sourceKind: 'arabic-part', qualifier: 'lot.Victory' })
+    expect(
+      reasonAstroDetail(ref('astro.arabic-part.Unknown.Moon.2026-11-27', 'arabic-part'))
+    ).not.toHaveProperty('qualifier')
     // 트랜짓(어스펙트) 부모는 성격을 싣지 않는다 — 어스펙트·본명 접점이 그 자리.
     expect(
       reasonAstroDetail(
@@ -454,6 +461,24 @@ describe('표시 — STARS 칸 보조 줄', () => {
     expect(spaced(astroDetailSub(dig, 'ko'))).toBe('트랜짓 · 황소자리 24° · 엑잘테이션(고양)')
     expect(spaced(astroDetailSub(ph, 'ko'))).toBe('트랜짓 · 황소자리 24° · 차오르는 달')
     expect(astroDetailSub(dig, 'en')).not.toBe(astroDetailSub(ph, 'en'))
+  })
+  it('로트 접촉 부모 — 위치 뒤에 로트 이름(R-VC-8)', () => {
+    const lot = {
+      transitPlanet: 'Moon',
+      sourceKind: 'arabic-part',
+      transitSign: 'Cancer',
+      transitDeg: 10,
+      qualifier: 'lot.Victory',
+    }
+    expect(spaced(astroDetailSub(lot, 'en'))).toBe('Transit · 10° Cancer · on Lot of Victory')
+    expect(spaced(astroDetailSub(lot, 'ko'))).toBe('트랜짓 · 게자리 10° · 승리의 로트')
+    // 로트 없는 같은 행성 교차와 갈린다.
+    const plain = { ...lot, qualifier: undefined }
+    expect(astroDetailSub(lot, 'en')).not.toBe(astroDetailSub(plain, 'en'))
+    // 모르는 로트 키는 아무 말도 붙이지 않는다.
+    expect(spaced(astroDetailSub({ ...lot, qualifier: 'lot.Unknown' }, 'en'))).toBe(
+      'Transit · 10° Cancer'
+    )
   })
   it('planetGlyph — 기호가 있는 천체만', () => {
     expect(planetGlyph('Sun')).toBe('sun')

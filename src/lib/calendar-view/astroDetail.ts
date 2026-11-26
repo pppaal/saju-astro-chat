@@ -35,6 +35,7 @@ import { createCache } from '@/lib/calendar-engine/cache'
 import { SIBSIN_HANJA } from '@/lib/saju/sibsinLabels'
 import { planetKoOr } from '@/lib/calendar-engine/derivers/evidenceLadder'
 import { SIGN_KO } from '@/lib/astrology/signLabels'
+import { LOT_EN, LOT_KO } from '@/lib/calendar-engine/extractors/astro-arabic-part'
 import type { PlanetGlyph } from '@/components/v9/Glyph'
 import { logger } from '@/lib/logger'
 
@@ -63,10 +64,14 @@ export function reasonAstroDetail(
   return out
 }
 
+/** 로트 접촉 부모의 qualifier 접두 — 'lot.Victory'. 품위·위상 키(소문자)와 겹치지 않는다. */
+const LOT_QUALIFIER = 'lot.'
+
 /**
  * 어스펙트 없는 점성 부모의 성격 — 엔진이 적은 부모 id 에서 읽는다(추정 아님): 품위
  * 'astro.dignity.{행성}|{품위}|{별자리}.{날}' → 품위 키, 달 위상 'astro.moon-phase.{날}.{위상}' →
- * 위상 키. 그 밖(이름에 성격이 없는 부모)은 undefined.
+ * 위상 키, 로트 접촉 'astro.arabic-part.{로트}.{행성}.{날}' → 'lot.{로트}'(R-VC-8). 그 밖(이름에
+ * 성격이 없는 부모)은 undefined.
  */
 function parentQualifier(astroId: string | undefined): string | undefined {
   if (!astroId) return undefined
@@ -74,7 +79,18 @@ function parentQualifier(astroId: string | undefined): string | undefined {
   if (dignity && DIGNITY_WORD.en[dignity[1]]) return dignity[1]
   const phase = /^astro\.moon-phase\.\d{4}-\d{2}-\d{2}\.([a-z_]+)$/.exec(astroId)
   if (phase && MOON_PHASE_WORD.en[phase[1]]) return phase[1]
+  const lot = /^astro\.arabic-part\.([A-Za-z]+)\./.exec(astroId)
+  if (lot && LOT_EN[lot[1]]) return `${LOT_QUALIFIER}${lot[1]}`
   return undefined
+}
+
+/** qualifier 'lot.Victory' → 'on Lot of Victory' / '승리의 로트'. 로트가 아니면 undefined. */
+function lotWord(qualifier: string, lang: Lang): string | undefined {
+  if (!qualifier.startsWith(LOT_QUALIFIER)) return undefined
+  const key = qualifier.slice(LOT_QUALIFIER.length)
+  if (lang === 'ko') return LOT_KO[key]?.label
+  const en = LOT_EN[key]?.label
+  return en ? `on ${en}` : undefined
 }
 
 /** 품위 말 — 근거 사다리 STARS 칸과 교차 행 보조 줄이 같은 말(astro-dignity 라벨과 같은 KO). */
@@ -320,9 +336,11 @@ export function astroDetailSub(detail: ReasonAstroDetail, lang: Lang): string {
     parts.push(ko ? `본명 ${natal} ${asp}` : `${asp} natal ${natal}`)
   } else if (detail.qualifier) {
     // 어스펙트 없는 부모 — 품위·달 위상 말('exalted' · 'waxing gibbous'). 같은 행성의 두 교차가
-    // 같은 줄로 보이지 않게(QA VC-5).
+    // 같은 줄로 보이지 않게(QA VC-5). 로트 접촉은 그 로트 이름('on Lot of Victory', R-VC-8).
+    const lot = lotWord(detail.qualifier, lang)
     const word = DIGNITY_WORD[lang][detail.qualifier] ?? MOON_PHASE_WORD[lang][detail.qualifier]
-    if (word) parts.push(ko ? word : word.toLowerCase())
+    if (lot) parts.push(lot)
+    else if (word) parts.push(ko ? word : word.toLowerCase())
   }
   if (typeof detail.orb === 'number') {
     parts.push(ko ? `오브 ${detail.orb.toFixed(1)}°` : `orb ${detail.orb.toFixed(1)}°`)

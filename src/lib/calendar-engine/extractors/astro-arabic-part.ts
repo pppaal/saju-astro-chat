@@ -6,8 +6,9 @@ import { getCachedTransitChart } from '../ephe-cache'
 import { shortestAngle } from '@/lib/astrology/foundation/utils'
 import { pointKo } from '../data/astroFlow'
 
-// 7대 Lot KO 라벨 + 영역. 트랜짓이 닿으면 그 영역이 자극됨.
-const LOT_KO: Record<string, { label: string; domain: string }> = {
+// 7대 Lot KO 라벨 + 영역. 트랜짓이 닿으면 그 영역이 자극됨. 교차 행 STARS 보조 줄(astroDetail)도
+// 같은 라벨을 쓴다.
+export const LOT_KO: Record<string, { label: string; domain: string }> = {
   Fortune: { label: '행운의 로트', domain: '몸·재물·운' },
   Spirit: { label: '정신의 로트', domain: '의지·커리어·목적' },
   Eros: { label: '에로스의 로트', domain: '사랑·욕망·끌림' },
@@ -16,7 +17,7 @@ const LOT_KO: Record<string, { label: string; domain: string }> = {
   Victory: { label: '승리의 로트', domain: '성취·희망·확장' },
   Nemesis: { label: '네메시스의 로트', domain: '시련·숨은 약점' },
 }
-const LOT_EN: Record<string, { label: string; domain: string }> = {
+export const LOT_EN: Record<string, { label: string; domain: string }> = {
   Fortune: { label: 'Lot of Fortune', domain: 'body, wealth, luck' },
   Spirit: { label: 'Lot of Spirit', domain: 'will, career, purpose' },
   Eros: { label: 'Lot of Eros', domain: 'love, desire, attraction' },

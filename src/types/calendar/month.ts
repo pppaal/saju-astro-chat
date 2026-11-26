@@ -43,8 +43,9 @@ export interface ReasonAstroDetail {
   /** 그 별자리 안의 도(0-29). */
   transitDeg?: number
   /**
-   * 어스펙트가 없는 부모의 성격 — 품위 키('exaltation', 부모 id 'astro.dignity.Moon|exaltation|…')
-   * 또는 달 위상 키('waxing_gibbous', 'astro.moon-phase.….waxing_gibbous'). 같은 행성의 두 교차
+   * 어스펙트가 없는 부모의 성격 — 품위 키('exaltation', 부모 id 'astro.dignity.Moon|exaltation|…'),
+   * 달 위상 키('waxing_gibbous', 'astro.moon-phase.….waxing_gibbous') 또는 로트 접촉
+   * ('lot.Victory', 'astro.arabic-part.Victory.Moon.…' — R-VC-8). 같은 행성의 두 교차
    * (☾ 달 ▲ · ☾ 달 ▼)가 보조 줄에서 구별되게(QA VC-5).
    */
   qualifier?: string
