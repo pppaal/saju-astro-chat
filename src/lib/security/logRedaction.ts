@@ -2,11 +2,9 @@
  * Secret redaction for log/telemetry sinks.
  *
  * Deliberately self-contained — it imports NOTHING from the logger (or any
- * heavy module), so the logger can import it without an import cycle. Unlike
- * errorSanitizer.ts (which produces short, generic *client-facing* messages and
- * also strips file paths/IPs), this strips only secret-shaped substrings and
- * preserves length/shape, so it is safe to run on full multi-line stack traces
- * without destroying their debug value.
+ * heavy module), so the logger can import it without an import cycle. It strips
+ * only secret-shaped substrings and preserves length/shape, so it is safe to
+ * run on full multi-line stack traces without destroying their debug value.
  */
 
 /** Secret/credential-shaped substrings that must never reach console/Sentry. */
