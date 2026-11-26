@@ -18,7 +18,7 @@
 
 import { deriveLifetimeFlow } from '@/lib/calendar-engine/derivers/lifetimeFlow'
 import { deriveLifetimePivots } from '@/lib/calendar-engine/derivers/lifetimePivots'
-import { buildLifeCurve, computeTransitAstroSeries } from '@/lib/calendar-engine/derivers/lifeCurve'
+import { lifeCurveAstroSeries, lifeCurveFromSeries } from '@/lib/calendar-view/lifeShape'
 import { calculateOuterPlanetMilestones } from '@/lib/calendar-engine/lifecycle/outerMilestones'
 import { currentManAge } from '@/lib/datetime/currentAge'
 import { toLifetime } from '@/lib/calendar-view'
@@ -74,8 +74,9 @@ export async function assembleLifetime(input: AssembleLifetimeInput): Promise<As
   //   예전엔 순차 await 라 콜드 스타트에서 (A+B) 만큼 다 기다렸다 → max(A,B) 로 단축.
   //   각자 실패해도 나머지는 정상(개별 try/catch, 기존 폴백 규약 유지).
   const [astroSeries, milestoneOverrides] = await Promise.all([
-    // 인생 곡선용 실 외행성 트랜짓 시계열(프로세스 메모로 재방문 무료).
-    computeTransitAstroSeries(natal, { span: 90, step: 3 }).catch(() => null),
+    // 인생 곡선용 실 외행성 트랜짓 시계열(프로세스 메모로 재방문 무료). 홈 사주 카드의
+    // 인생 모양(lifeShapeFor)과 같은 파이프라인·같은 상수(calendar-view/lifeShape).
+    lifeCurveAstroSeries(natal),
     // 생애 마디 실측(감사 A-3, G6) — 캘린더 라이프사이클 신호(→ 아래 10년 겹침의 부모)와
     // 같은 함수·같은 메모라 인생 마디와 겹침이 같은 순간을 읽는다. 실패 시 [] → 마디 없음
     // (평균 나이표로 채우지 않는다).
@@ -83,14 +84,7 @@ export async function assembleLifetime(input: AssembleLifetimeInput): Promise<As
   ])
 
   // 곡선 조립은 동기 — astroSeries 있을 때만. 실패(null)면 곡선만 빠지고 나머지 정상.
-  let lifeCurve: ReturnType<typeof buildLifeCurve> = null
-  if (astroSeries) {
-    try {
-      lifeCurve = buildLifeCurve(natal, { now, span: 90, astroSeries })
-    } catch {
-      lifeCurve = null
-    }
-  }
+  const lifeCurve = lifeCurveFromSeries(natal, astroSeries, now)
 
   // 동일 now 주입 — "현재 단계"와 "현재 pivot"이 같은 날짜를 본다.
   const lifetimeFlow = deriveLifetimeFlow(natal, lang, milestoneOverrides, now, lifeCurve)

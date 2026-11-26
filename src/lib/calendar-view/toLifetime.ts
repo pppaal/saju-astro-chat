@@ -32,7 +32,7 @@ import type {
   DestinyLifeCurve,
 } from '@/types/calendar'
 
-import { deriveLifePattern } from '@/lib/calendar-engine/derivers/lifePattern'
+import { lifePatternFor } from './lifeShape'
 import {
   daeunCellsToCover,
   runningDaeunIndex,
@@ -307,13 +307,8 @@ export function toLifetime(natal: NatalContext, opts: ToLifetimeOptions): Destin
   // 톤↔화면 곡선이 구조적으로 일치하게 한다(감사 30인: 라벨과 표시 곡선이 다른
   // 신호라 "가장 환하게 N세"가 저점 구간을 가리키던 모순 다수). 점성 성숙-트랜짓
   // 재평가(lifeCurve) 이후엔 blended 가 사주 곡선 형상을 뒤집지 않아 안전.
-  const lp = deriveLifePattern(
-    natal.saju as never,
-    nowAge,
-    opts.lifeCurve
-      ? { points: opts.lifeCurve.points.map((p) => ({ age: p.age, macro: p.macro })) }
-      : undefined
-  )
+  // 홈 사주 카드의 인생 모양(lifeShapeFor)과 같은 함수 — 곡선이 키를 덮어쓰는 규칙이 한 곳에.
+  const lp = lifePatternFor(natal, nowAge, opts.lifeCurve)
   const lifePattern = lp
     ? {
         key: lp.key,
