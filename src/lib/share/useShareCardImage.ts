@@ -13,7 +13,7 @@
  *   close()       idle 로. object URL 은 교체·닫기·언마운트 때 revoke 한다.
  *
  * 캡처 규칙(카드 쪽): CSS 변수/모듈 대신 인라인 hex, next/image 대신 <img> —
- * TarotShareCard·ReportShareCard·LifeShareCard 주석 참고.
+ * TarotShareCard·ReportShareCard 주석 참고.
  */
 
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react'

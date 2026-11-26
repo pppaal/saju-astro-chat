@@ -10,7 +10,6 @@ import {
   lifePatternTagline,
   type LifePatternKey,
 } from '@/lib/calendar-engine/derivers/lifePattern'
-import { lifeTypeStyle } from '@/components/calendar/lifeTypeStyle'
 
 // 甲 일간 · 신약: 壬子(인성 둘) = +2, 丙午(식상 둘) = −2.
 const FAV = { stem: '壬', branch: '子' }
@@ -120,7 +119,7 @@ describe('lifePattern — lead / body / tagline / peak', () => {
     expect(p?.lineEn).toBe(`${p?.leadEn} ${p?.peak?.noteEn}`)
   })
 
-  it('태그는 lifePattern 이 가진다 — lifeTypeStyle 은 그 값을 읽는다(옮긴 문구 그대로)', () => {
+  it('태그는 lifePattern 이 가진다(옮긴 문구 그대로)', () => {
     const expected: Record<LifePatternKey, [string, string]> = {
       'late-bloomer': ['늦게 피어 오래가는', 'Blooms late, lasts long'],
       'youth-peak': ['이십·삼십대가 전성기', 'Peaks in your 20s–30s'],
@@ -133,9 +132,8 @@ describe('lifePattern — lead / body / tagline / peak', () => {
     }
     for (const [key, [ko, en]] of Object.entries(expected)) {
       expect(lifePatternTagline(key)).toEqual({ ko, en })
-      expect(lifeTypeStyle(key)).toMatchObject({ taglineKo: ko, taglineEn: en })
     }
     expect(lifePatternTagline('toString')).toBeNull()
-    expect(lifeTypeStyle('nope').taglineEn).toBe('Your own life flow')
+    expect(lifePatternTagline('nope')).toBeNull()
   })
 })

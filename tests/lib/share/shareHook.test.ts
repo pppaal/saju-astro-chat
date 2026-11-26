@@ -1,10 +1,10 @@
 // tests/lib/share/shareHook.test.ts
 //
-// dayShareHook / lifeShareHook — 공유 카드용 도발 후크. 점수/톤/추세에서만
+// dayShareHook / monthShareHook — 공유 카드용 도발 후크. 점수/톤에서만
 // 뽑고(없는 사실 X), seed 로 결정론적이며, 톤 버킷이 카피와 어긋나지 않는다.
 
 import { describe, it, expect } from 'vitest'
-import { dayShareHook, lifeShareHook, monthShareHook } from '@/lib/share/shareHook'
+import { dayShareHook, monthShareHook } from '@/lib/share/shareHook'
 
 describe('dayShareHook', () => {
   it('같은 입력은 같은 후크(결정론)', () => {
@@ -113,30 +113,5 @@ describe('monthShareHook', () => {
     expect(monthShareHook({ tone: 'bright', seed: 5, monthSalt: 2, ko: true })).toEqual(
       monthShareHook({ tone: 'bright', seed: 5, monthSalt: 2, ko: true })
     )
-  })
-})
-
-describe('lifeShareHook', () => {
-  it('미래 피크면 그 나이대(십)를 후크에 박는다', () => {
-    const h = lifeShareHook({
-      slope: 'rising',
-      nowAge: 31,
-      peakAge: 41,
-      peakYear: 2035,
-      seed: 1994,
-      ko: true,
-    })
-    expect(h.headline).toContain('마흔')
-  })
-
-  it('피크가 과거/지금이면 추세 기반 후크', () => {
-    const rising = lifeShareHook({ slope: 'rising', nowAge: 60, peakAge: 40, seed: 1, ko: true })
-    const falling = lifeShareHook({ slope: 'falling', nowAge: 60, peakAge: 40, seed: 1, ko: true })
-    expect(rising.headline).not.toBe(falling.headline)
-  })
-
-  it('결정론 — 같은 입력 같은 결과', () => {
-    const args = { slope: 'plateau' as const, nowAge: 45, peakAge: 20, seed: 3, ko: false }
-    expect(lifeShareHook(args)).toEqual(lifeShareHook(args))
   })
 })

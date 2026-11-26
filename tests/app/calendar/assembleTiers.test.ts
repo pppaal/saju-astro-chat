@@ -140,7 +140,7 @@ describe('assembleTiers — user tier', () => {
 })
 
 // (10년 대운·1년 세운 티어는 제거 — assembleTiers 는 더 이상 decade/year 를 내지
-//  않는다. 대운은 인생 흐름(LifetimeTier)이, 세운은 인생 흐름 thisYear 한 줄이
+//  않는다. 대운은 인생 흐름(/destiny LifeFlow)이, 세운은 인생 흐름 thisYear 한 줄이
 //  커버하고 assembleLifetime.test 가 검증한다.)
 
 describe('assembleTiers — month tier', () => {
