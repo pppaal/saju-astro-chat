@@ -44,6 +44,7 @@ import { STEM_KO, BRANCH_KO } from '@/lib/saju/ganjiKo'
 import { ILGAN_ORDER } from '@/lib/saju/ilganCompat'
 import { STEM_ORDER, BRANCH_ORDER } from '@/lib/saju/pillar-lookup/constants'
 import { HEAVENLY_STEMS, EARTHLY_BRANCHES } from '@/data/yearly-fortune-generator'
+import { KO_TO_SAJU_ELEMENT } from '@/lib/saju/elementBridge'
 
 // ── 정본에서 파생한 기대값 ──────────────────────────────────────────────────
 const STEM_NAMES = STEMS.map((s) => s.name)
@@ -352,6 +353,35 @@ const CASES: Case[] = [
     expected: BRANCH_NAMES,
     via: 'BRANCH_NAMES',
   },
+  // D9 (wave 14) — E17 이 범위 밖이라 남겨 둔 서버 모듈 복사본 4개
+  {
+    files: ['src/lib/calendar-view/toHourMoon.ts'],
+    name: 'BRANCH_HANGUL',
+    kind: 'array',
+    expected: BRANCH_HANGUL,
+    via: 'BRANCH_HANGUL',
+  },
+  {
+    files: ['src/lib/calendar-engine/derivers/lifetimeFlow.ts'],
+    name: 'ELEMENT_KO_TO_KEY',
+    kind: 'record',
+    expected: ELEMENT_KO_TO_KEY,
+    via: 'ELEMENT_KO_TO_KEY',
+  },
+  {
+    files: ['src/lib/saju/tonggeun.ts'],
+    name: 'MONTH_ELEMENT_MAP',
+    kind: 'record',
+    expected: BRANCH_ELEMENT_KO,
+    via: 'BRANCH_ELEMENT_KO',
+  },
+  {
+    files: ['src/lib/saju/elementBridge.ts'],
+    name: 'KO_TO_SAJU_ELEMENT',
+    kind: 'record',
+    expected: ELEMENT_KO_TO_KEY,
+    via: 'ELEMENT_KO_TO_KEY',
+  },
 ]
 
 describe('table SSOT — 정본 파생값 자체 점검', () => {
@@ -484,6 +514,10 @@ describe('table SSOT — 소스 지역 복사본이 정본과 같다 (D8 1·2단
 })
 
 describe('table SSOT — export 된 복사본이 정본과 같다', () => {
+  it('elementBridge KO_TO_SAJU_ELEMENT', () => {
+    expect(KO_TO_SAJU_ELEMENT).toEqual(ELEMENT_KO_TO_KEY)
+  })
+
   it('ilganCompat ILGAN_ORDER', () => {
     expect([...ILGAN_ORDER]).toEqual(STEM_NAMES)
   })

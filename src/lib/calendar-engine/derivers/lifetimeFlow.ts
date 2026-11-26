@@ -21,6 +21,8 @@ import { getSibsinKo } from '@/lib/saju/cycleRelations'
 import { SIGN_KO as SIGN_KO_SSOT } from '@/lib/astrology/signLabels'
 import { STEM_KO, BRANCH_KO, ganjiToKorean, ganjiToRoman } from '@/lib/saju/ganjiKo'
 import { getStemElement } from '@/lib/saju/stemBranchUtils'
+// FiveElement 한글(목/화/토/금/수) → Elem 키(wood/fire/...) — 정본 파생 표(D8)
+import { ELEMENT_KO_TO_KEY } from '@/lib/saju/constants'
 import { getTwelveStage, canonicalTwelveStage, cheonraJimangPartner } from '@/lib/saju/shinsal'
 import { getJohuYongsin } from '@/lib/saju/johuYongsin'
 import { type TwelveStageType } from '@/lib/saju/interpretations'
@@ -850,14 +852,6 @@ const ELEMENT_IMPLICATION_EN: Record<Elem, string> = {
   earth: 'your strength is steadiness, roots, and mediating between people',
   metal: 'your strength is judgment, refinement, and decisive cuts',
   water: 'your strength is flexible thought and going deep',
-}
-// FiveElement (Korean 한글: 목/화/토/금/수) → Elem key (wood/fire/...)
-const ELEMENT_KO_TO_KEY: Record<string, Elem> = {
-  목: 'wood',
-  화: 'fire',
-  토: 'earth',
-  금: 'metal',
-  수: 'water',
 }
 
 export function deriveLifetimeFlow(

@@ -22,27 +22,13 @@ import { findTransitAspects } from '@/lib/astrology/foundation/transit'
 import { inferAspectPolarity } from '@/lib/calendar-engine/aspect-polarity'
 import { hourSegmentsForLocalDay } from '@/lib/calendar-engine/extractors/saju-hour'
 import { HOUR_BRANCH_NARRATIVE } from '@/lib/calendar-engine/data/hourBranchNarrative'
+// 시진 지지 한글 음(branchIdx 0 = 子) — HOUR_BRANCH_NARRATIVE 키. 정본 파생 표(D8).
+import { BRANCH_HANGUL } from '@/lib/saju/constants'
 import type { AspectType, Chart, ZodiacKo } from '@/lib/astrology/foundation/types'
 import type { NatalContext } from '@/lib/calendar-engine/context/types'
 import { SIGN_KO, PLANET_KO } from './shared'
 
 const MAJOR: AspectType[] = ['conjunction', 'sextile', 'square', 'trine', 'opposition']
-
-// 시진 지지 순서(branchIdx 0 = 子) — HOUR_BRANCH_NARRATIVE 키(한글 시지).
-const BRANCH_HANGUL = [
-  '자',
-  '축',
-  '인',
-  '묘',
-  '진',
-  '사',
-  '오',
-  '미',
-  '신',
-  '유',
-  '술',
-  '해',
-] as const
 
 /** 그날 시진 12개 — 실제 창(자정에서 나뉜 子 는 한 번만), 시작 시각 순. */
 interface SijinSample {
@@ -60,7 +46,8 @@ function sijinSamples(focusDayIso: string, longitude: number, timeZone: string):
   for (const seg of hourSegmentsForLocalDay(focusDayIso, longitude, timeZone)) {
     if (seen.has(seg.branchIdx)) continue
     seen.add(seg.branchIdx)
-    const nar = HOUR_BRANCH_NARRATIVE[BRANCH_HANGUL[seg.branchIdx]]
+    const nar =
+      HOUR_BRANCH_NARRATIVE[BRANCH_HANGUL[seg.branchIdx] as keyof typeof HOUR_BRANCH_NARRATIVE]
     const span = `${seg.clockStart}–${seg.clockEnd}`
     out.push({
       branchIdx: seg.branchIdx,

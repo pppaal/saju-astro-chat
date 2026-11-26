@@ -3,7 +3,7 @@
 // 일간 및 오행의 실제 힘을 정밀하게 계산
 
 import { FiveElement, SajuPillarsInput, MaybeTimeless } from './types'
-import { JIJANGGAN } from './constants'
+import { JIJANGGAN, BRANCH_ELEMENT_KO } from './constants' // 월지 → 오행: 정본 파생 표(D8)
 import { THREE_HARMONY, DIRECTIONAL_HARMONY } from './relationTables'
 import { getStemElement } from './stemBranchUtils'
 import { JIJANGGAN_WEIGHTS } from './strengthScore'
@@ -343,24 +343,6 @@ export function calculateHoeguk(pillars: MaybeTimeless<SajuPillarsInput>): Hoegu
 // ============ 득령 계산 ============
 
 /**
- * 월지별 왕상휴수사(旺相休囚死) 계산
- */
-const MONTH_ELEMENT_MAP: Record<string, FiveElement> = {
-  寅: '목',
-  卯: '목',
-  辰: '토',
-  巳: '화',
-  午: '화',
-  未: '토',
-  申: '금',
-  酉: '금',
-  戌: '토',
-  亥: '수',
-  子: '수',
-  丑: '토',
-}
-
-/**
  * 왕상휴수사 계산 — 當令者旺 · 令生者相 · 生令者休 · 剋令者囚 · 令剋者死
  * 旺(100): 월령이 같은 오행
  * 相(80): 월령이 나를 생함
@@ -372,7 +354,7 @@ const MONTH_ELEMENT_MAP: Record<string, FiveElement> = {
  */
 export function calculateDeukryeong(daymaster: string, monthBranch: string): DeukryeongResult {
   const daymasterElement = getStemElement(daymaster)
-  const monthElement = MONTH_ELEMENT_MAP[monthBranch] || '토'
+  const monthElement = BRANCH_ELEMENT_KO[monthBranch] || '토'
 
   // 오행 관계 매핑
   const relations: Record<
