@@ -233,8 +233,9 @@ export function deriveLifetimePivots(
       label: `${ganjiToKorean(`${d.stem}${d.branch}`)} 대운`,
       labelEn: `${ganjiToRoman(d.stem, d.branch)} luck cycle`,
       // 십신을 못 풀어도(최소 fixture·미상 글자) novice 표면 제목이 raw 干支 라벨로
-      // 새지 않도록 평이 폴백을 보장한다 — 클라이언트는 meaning 이 비면 label(干支)을
-      // 제목으로 쓰기 때문(LifetimeTier mMeaning). 干支 원명은 hover tag 로만 남는다.
+      // 새지 않도록 평이 폴백을 보장한다 — 인생 흐름의 '다음 인생 전환' 줄(assembleLifetime →
+      // lifetimeViewModel.nextTurn)은 meaningCore 가 비면 meaning, 그다음 label 을 쓴다.
+      // 干支 읽기는 label('○○ 대운')로 따로 실린다.
       meaning: m?.ko ?? GENERIC_DAEUN_MEANING.ko,
       meaningEn: m?.en ?? GENERIC_DAEUN_MEANING.en,
       meaningCore: firstSentence(m?.ko ?? GENERIC_DAEUN_MEANING.ko),

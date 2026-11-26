@@ -6,7 +6,7 @@
  * ── 단일 권위(바꾸지 않는다) ──
  *  · 날 수 = month.verdict(reconcileMonthTone — 좋음·조심·피함·잔잔 calmN). 그리드 밴드 카운트라
  *    여는 날짜와 무관(B1 #2). 잔잔 = 엔진의 중립 단어 Calm(FIX9b E5).
- *  · 톤·후크 = verdict.tone / verdict.shareTone → monthShareHook(MonthTier 와 같은 소스).
+ *  · 톤·후크 = verdict.tone / verdict.shareTone → monthShareHook(공유 카드와 같은 소스).
  *  · 해 볼 것 = pickTryThis(B1 — 오늘 이후만, HOLD 는 avoid-first).
  *  · 큰 날 = keyDays.ts(그리드 마크 라벨 — FIX9b E5 · 오너 결정).
  *  · 오늘·지난 날 = 서버가 주입된 now 로 실은 cell.isToday / cell.past / month.todayDay.

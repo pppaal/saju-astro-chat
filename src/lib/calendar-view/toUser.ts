@@ -99,7 +99,7 @@ export interface DestinypalUser {
   almutenFiguris: DestinyAlmutenFiguris
   /**
    * 본명 행성 dignities — DestinyDignityEntry[].
-   * YearTier 가 dignity 칩/도트 그릴 때 직접 읽음.
+   * 옛 YearTier 가 dignity 칩/도트를 그릴 때 읽던 필드 — v9.2 화면은 아직 읽지 않는다.
    */
   dignities: DestinyDignityEntry[]
   /**
@@ -358,7 +358,7 @@ export function toUser(natal: NatalContext, opts: ToUserOptions = {}): Destinypa
   const gyeokguk = gPrimary
   const gyeokgukEn = GEOKGUK_NAME_EN[gPrimary] ?? GEOKGUK_NAME_EN['미정']
 
-  // geokguk status (Phase 3 — 정통화 보완). EN 은 이름 · 성패만(요인 자유서술은 생략 — DayTier 와 같다).
+  // geokguk status (Phase 3 — 정통화 보완). EN 은 이름 · 성패만(요인 자유서술은 생략).
   const statusResult = advanced?.geokguk?.statusResult
   const geokgukStatus = geokgukStatusLine(
     gPrimary !== '미정' ? gPrimary : undefined,

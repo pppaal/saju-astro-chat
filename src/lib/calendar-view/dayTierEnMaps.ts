@@ -1,5 +1,7 @@
 /**
- * dayTierEnMaps — DayTier '자세히 보기' 전문가 섹션의 KO→EN 치환 맵.
+ * dayTierEnMaps — 사주 표시 용어(격국 성패 단어·신살 이름·12운성 단계·응용격국)의 KO→EN 치환 맵.
+ * 처음엔 옛 DayTier '자세히 보기' 전문가 섹션용이었고(v9.2 에서 삭제), 지금은 toUser(격국
+ * 이름 · 성패 줄)가 읽고 나머지 표는 엔진 EN 커버리지 테스트가 지킨다.
  *
  * EN 로케일에서 격국 성패 단어·신살 이름·12운성 단계가 한국어로 새던 것을
  * 영문화한다(엔진/공유데이터 무수정 — 컴포넌트 렌더 직전 best-effort 치환).
@@ -169,7 +171,7 @@ export const APPLIED_PATTERN_EN: Record<string, { name: string; gloss: string }>
 
 /**
  * 응용격국 EN — 패턴 id 또는 신호 id('saju.applied-pattern.<패턴 id>.<YYYY-MM-DD>')를 받는다.
- * 신호 id 를 그대로 넘기던 호출부(DayTier)도 맞게 패턴 id 를 뽑아 찾는다.
+ * 신호 id 를 그대로 넘기는 호출부도 맞게 패턴 id 를 뽑아 찾는다.
  */
 export function appliedPatternEn(id: string): { name: string; gloss: string } | undefined {
   const m = /^saju\.applied-pattern\.([^.]+)\./.exec(id)

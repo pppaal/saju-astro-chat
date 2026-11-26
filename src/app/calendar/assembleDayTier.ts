@@ -175,16 +175,17 @@ export async function assembleDayTier(input: AssembleDayTierInput): Promise<Dest
   const geokgukName = advanced?.geokguk?.primary ?? '미정'
 
   // ── 일진 cell.signals → DestinySignal[] 풀세트 projection ──
-  // adapter 의 DestinypalDaySignal 은 id/weight/layer/source 를 버리는데 DayTier 의
-  // signal stream + FixedStarRow + ArabicLotRow 정렬·필터에 모두 필요.
+  // adapter 의 DestinypalDaySignal 은 id/weight/layer/source 를 버린다. 이 풀세트는 옛 DayTier 의
+  // signal stream + FixedStarRow + ArabicLotRow 가 읽었고, v9.2 일간 화면(dayViewModel)은
+  // 아직 읽지 않는다 — 페이로드에만 실린다.
   type DSig = DestinyDay['allSignals'][number]
   const allDaySignals: DSig[] = dayCell.signals.map((s) => {
     const base = {
       id: s.id,
       cat: signalCat(s.kind, s.source),
       label: s.name,
-      // 엔진이 EN 라벨을 별도 방출했으면(있을 때만) 보존 — DayTier 신호 스트림이
-      // EN 로케일에서 s.english 우선 사용(없으면 localizeLabel 폴백, KO 유지).
+      // 엔진이 EN 라벨을 별도 방출했으면(있을 때만) 보존 — EN 로케일에서 s.english 를
+      // 우선 쓴다(없으면 localizeLabel 폴백, KO 유지).
       english: s.english,
       polarity: s.polarity,
       weight: s.weight,
@@ -263,7 +264,7 @@ export async function assembleDayTier(input: AssembleDayTierInput): Promise<Dest
       astroSide: ko ? astroKo : (PLANET_EN_FROM_KO[astroKo] ?? astroKo),
       sajuKo, // raw — 분야 라우팅이 로케일에 흔들리지 않게(EN 에선 영문이라 키워드 매칭 실패).
       astroKo,
-      // 양쪽 로케일 보관 — DayTier 가 클라이언트 로케일로 고른다(토글 불일치 방지).
+      // 양쪽 로케일 보관 — 일간 뷰모델(dayHero · dayViewModel)이 요청 로케일로 고른다(토글 불일치 방지).
       meaning: stripCrossPair(s.korean ?? ''),
       meaningEn: stripCrossPair(s.english ?? ''),
       polarity: s.polarity,
@@ -382,8 +383,8 @@ export async function assembleDayTier(input: AssembleDayTierInput): Promise<Dest
     cautionsEn: dayAdapter.cautionsEn,
     evidenceLadder: dayAdapter.evidenceLadder,
     evidenceLadderEn: dayAdapter.evidenceLadderEn,
-    // 출력 화해 verdict — 월 모집단 셀 기준(위 unified)이 권위. 빠뜨리면 DayTier
-    // 가 중립 fallback 으로 떨어져 tense/bright 화해가 프로덕션에서 죽는다.
+    // 출력 화해 verdict — 월 모집단 셀 기준(위 unified)이 권위. 빠뜨리면 일간 히어로
+    // (dayHero)가 폴백 판정으로 떨어져 tense/bright 화해가 프로덕션에서 죽는다.
     dayTone: unified?.dayTone ?? dayAdapter.dayTone,
     twelveStageMatrix: dayAdapter.twelveStageMatrix,
     monthScores: dayMonthScores,
@@ -407,8 +408,9 @@ export async function assembleDayTier(input: AssembleDayTierInput): Promise<Dest
     birthTimeZone: natal.input?.timeZone,
     now,
   })
-  // 미성년 플래그를 실어보내 DayTier 가 클라 파생 카피(행동·분야·깊이읽기)를 정화하게.
-  // 서버 minorSafe 패스는 cross/시진만 덮으므로(클라 파생은 여기서 못 만짐) 플래그 전달.
+  // 미성년 플래그를 실어보내 뷰모델(dayHero · dayViewModel · monthViewModel)이 파생 카피
+  // (행동·분야·깊이읽기)를 정화하게. 서버 minorSafe 패스는 cross/시진만 덮으므로(뷰모델
+  // 파생은 여기서 못 만짐) 플래그 전달.
   day.isMinor = isMinorAge(manAge)
   if (isMinorAge(manAge)) {
     const rows = (xs: unknown): Array<Record<string, unknown>> =>

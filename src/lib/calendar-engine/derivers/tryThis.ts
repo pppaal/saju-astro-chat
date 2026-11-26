@@ -1,7 +1,7 @@
 /**
  * tryThis — 월 화면 "이렇게 해보세요"(PUSH/HOLD) 날짜 선택의 단일 소스.
  *
- * MonthTier 의 do/avoid 한 줄과 이달 총평(deriveMonthSummary 의 bestDay·cautionDay)이
+ * 월간 화면의 '해 볼 것'(monthViewModel → TryThis)과 이달 총평(deriveMonthSummary 의 bestDay·cautionDay)이
  * 같은 함수를 읽어, 두 문장이 서로 다른 날을 가리키거나 *이미 지난 날* 을 추천하지
  * 않게 한다(계획 B1 #3 — 예전엔 HOLD 가 cautionDays[0] 이라 19일에 "11/8 무렵엔
  * 미루세요", PUSH 도 지난 최고일을 그대로 가리켰다).

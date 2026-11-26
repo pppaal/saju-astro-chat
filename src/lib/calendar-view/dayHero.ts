@@ -1,12 +1,11 @@
 /**
  * 일 히어로 — 하루 화면 머리(후크·톤 단어·한 줄·'왜'·행동)의 순수 파생.
  *
- * DayTier(현행 일 티어)가 컴포넌트 안에서 하던 계산(톤 권위 폴백·바람 단어·히어로 톤 단어·
- * 후크·평이 근거 두 목록·'왜' 한 줄·행동 처방)을 여기로 뺐다. DayTier 와 v9 뷰모델
- * (monthViewModel 의 오늘 · dayViewModel)이 같은 함수를 읽어, 같은 날의 히어로가 화면마다
- * 다를 수 없다. 모양·문구는 DayTier 그대로다(표시 변화 없음).
+ * 옛 DayTier(v9.2 에서 삭제)가 컴포넌트 안에서 하던 계산(톤 권위 폴백·바람 단어·히어로 톤 단어·
+ * 후크·평이 근거 두 목록·'왜' 한 줄·행동 처방)을 여기로 뺐다. v9 뷰모델(monthViewModel 의
+ * 오늘 · dayViewModel)이 같은 함수를 읽어, 같은 날의 히어로가 화면마다 다를 수 없다.
  *
- * 규칙(DayTier 에서 옮김):
+ * 규칙(옛 DayTier 에서 옮김):
  *  · 톤 권위 = day.dayTone, 없으면(구 캐시) reconcileDayTone 폴백. 점수 색은 verdict.band.
  *  · mixed 는 결(flavor)로 — volatile=기복 / 평이=잔잔·무난(감사 U1).
  *  · 맨 위 교차 = day.reason(월 리드아웃 '왜'와 같은 근거), 같은 페어의 다른 층 행은 뺀다(B1 #4).
@@ -282,7 +281,7 @@ export function buildDayHero(day: DestinyDay, opts: DayHeroOptions): DayHero {
 
 /**
  * 분야별 하루 — 그날 실제 신호(트랜짓·신살·교차·시진 달)를 근거로 분야 조언(deriveDayDomains).
- * 미성년이면 정화. 십신을 모르면 null. DayTier 와 dayViewModel 이 같은 함수를 읽는다.
+ * 미성년이면 정화. 십신을 모르면 null. dayViewModel 이 읽는다.
  * sex 는 연애 조언의 배우자성 분기(남=재성, 여=관성).
  */
 export function buildDayDomains(

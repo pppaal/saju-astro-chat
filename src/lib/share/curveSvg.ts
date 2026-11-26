@@ -6,8 +6,9 @@
 // <img> 로 박는다(버전 무관·픽셀 동일). 폰트/텍스트 없는 순수 도형이라
 // 한글 폰트 이슈도 없다.
 //
-// 인앱 그래프(DecadeTier BigYearGraph / DayTier HourGraph)와 같은
-// catmull-rom → 베지어 스무딩을 써서 화면과 공유 카드의 곡선 모양이 일치한다.
+// 곡선은 catmull-rom → 베지어 스무딩이다. 예전 인앱 그래프(옛 DecadeTier BigYearGraph ·
+// DayTier HourGraph — v9.2 에서 삭제)와 모양을 맞추려던 것이고, v9.2 인생 곡선(LifeCurve)은
+// 직선 폴리라인을 그린다.
 //
 // 순수·결정론: 같은 입력 → 같은 문자열. 클록·랜덤 없음.
 

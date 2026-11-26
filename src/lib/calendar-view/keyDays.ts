@@ -4,7 +4,7 @@
  * ── 판정 단어 = 그리드 마크 (FIX9b E5 · 오너 결정 DOCTRINE #1) ──
  * v9 목록은 날 라벨을 *그리드 마크*(점수 밴드)에서 읽는다 — 14일 그리드가 조심이면
  * 'Caution', 29일이 피함이면 'Avoid'. 목록·그리드·막대가 한 축(색=마크)이라 서로 반대말을
- * 하지 않는다. (기존 MonthTier 는 화해 톤 cell.tone 으로 라벨을 정했다 — 오너가 E5 를
+ * 하지 않는다. (옛 MonthTier(v9.2 에서 삭제)는 화해 톤 cell.tone 으로 라벨을 정했다 — 오너가 E5 를
  * 거절하면 markTone/verdictPrefix 대신 cell.tone 을 읽도록 이 파일의 dayKindOf 하나만
  * 바꾸면 된다.)
  *  · 판정 단어: verdictPrefix(mark) — best 'Best day' / good 'Good day' / caution 'Caution' /
@@ -13,7 +13,7 @@
  *
  * ── 어떤 날이 큰 날인가 ──
  * 선정은 수렴(deriveConvergence keyDays — month.keyDays)이 한다. 그리드 최고의 날이 목록에
- * 없으면 덧붙인다(MonthTier 와 같은 동작). 날짜순.
+ * 없으면 덧붙인다(옛 MonthTier 가 하던 그대로). 날짜순.
  *
  * 순수 함수 — 시계를 읽지 않는다. 지난 날은 서버가 실은 cell.past(주입된 now)로, 없으면
  * month.todayDay(없으면 focusDay — 서버 렌더에선 오늘)와 비교한다.
@@ -139,7 +139,7 @@ export function buildKeyDayItems(month: DestinyMonth, lang: Lang): KeyDayItem[] 
     if (!k.date || picks.has(k.date)) continue
     picks.set(k.date, { bothSystems: !!k.bothSystems })
   }
-  // 그리드 최고의 날이 큰 날 목록에 빠졌으면 채워 넣는다(MonthTier 와 같은 동작).
+  // 그리드 최고의 날이 큰 날 목록에 빠졌으면 채워 넣는다(옛 MonthTier 가 하던 그대로).
   if (bestDs && !picks.has(bestDs)) picks.set(bestDs, { bothSystems: false })
 
   const items: KeyDayItem[] = []

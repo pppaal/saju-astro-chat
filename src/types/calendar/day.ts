@@ -209,7 +209,7 @@ export interface DestinyDay extends DestinyIljinHeader {
    * 그날 '왜 이런 날' 근거 — 월 리드아웃(month.calendar[].reason)과 *같은 함수·같은
    * 월 셀*(crossPair.pickDayReason)에서 고른다. 그리드 마크 부호 게이트를 통과한
    * 교차만(good·best=+, caution·avoid=−). 통과하는 교차가 없으면 생략.
-   * DayTier 의 맨 위 교차가 이것을 먼저 보여줘 월·일 화면이 같은 근거를 말한다.
+   * 일간 뷰모델(dayViewModel '왜 오늘' 행)이 이것을 먼저 보여줘 월·일 화면이 같은 근거를 말한다.
    */
   reason?: DestinyCalendarCell['reason']
   /** 본명 4기둥(천간) × 일진 지지 12운성 (기둥별 실제값). */
@@ -226,7 +226,7 @@ export interface DestinyDay extends DestinyIljinHeader {
   seed?: number
   /**
    * 미성년(만 19세 미만) 여부 — 서버(assembleDayTier)가 만 나이로 판정해 실어보낸다.
-   * DayTier 가 클라이언트에서 파생하는 행동·분야·깊이읽기 카피(결혼·투자·도박·배우자
+   * 뷰모델(dayHero · dayViewModel · monthViewModel)이 파생하는 행동·분야·깊이읽기 카피(결혼·투자·도박·배우자
    * 등 성인 도메인)를 연령 적합 표현으로 치환하는 게이트. 서버 minorSafe 패스는
    * cross/시진만 덮으므로 클라 파생 카피는 이 플래그로 별도 정화한다(감사 C3-hole).
    */

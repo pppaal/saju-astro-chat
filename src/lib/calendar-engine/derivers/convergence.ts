@@ -121,8 +121,9 @@ function convergenceConfidence(
 // "2층 의미" 한 줄 — 그날 무거운 신호들의 순극성(톤)으로 구성.
 // 특정 점성 산문을 지어내지 않고 엔진이 이미 매긴 polarity 만 쓴다.
 // 톤 판정은 convergenceTone 으로 분리 — 큰 날 라벨 prefix 가 *같은 톤* 을 쓰게
-// (MonthTier 가 meaning 과 다른 소스로 prefix 를 붙여 "잔잔한 날 · 부딪힘을
-//  조심할 날" 식 모순이 났다 → keyDay.tone 으로 prefix 도 이 톤에 맞춘다).
+// (옛 MonthTier 가 meaning 과 다른 소스로 prefix 를 붙여 "잔잔한 날 · 부딪힘을
+//  조심할 날" 식 모순이 났다 → keyDay.tone 으로 prefix 도 이 톤에 맞췄다. v9.2 큰 날
+//  목록(keyDays.ts)은 판정 단어를 그리드 마크에서 읽는다).
 function convergenceTone(
   netPol: number,
   sumImp: number,
@@ -295,7 +296,7 @@ export function deriveConvergence(
         astroPolNet,
         sajuPolNet
       ),
-      // meaning 과 동일한 톤 — MonthTier 의 라벨 prefix 가 이 톤을 따라가 모순 제거.
+      // meaning 과 동일한 톤 — 라벨 prefix 를 붙이는 쪽이 이 톤을 따라가면 모순이 없다.
       tone: convergenceTone(netPol, sumImp, astroPolNet, sajuPolNet),
       window: aggregateWindow(heavySignals, c.datetime),
       confidence: convergenceConfidence(heavySignals, bothSystems, astroPolNet, sajuPolNet),

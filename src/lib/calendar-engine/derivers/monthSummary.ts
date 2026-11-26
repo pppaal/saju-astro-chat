@@ -69,7 +69,7 @@ export interface MonthSummaryInput {
   seed?: number
   /**
    * 월 톤 단일 권위(reconcileMonthTone). 주어지면 이 4분류로 여는/닫는 문장 톤을
-   * 정한다 — MonthTier 히어로와 *같은 소스*라 어긋날 수 없다(감사 D-1). 미지정 시
+   * 정한다 — 월간 히어로(monthViewModel)와 *같은 소스*라 어긋날 수 없다(감사 D-1). 미지정 시
    * 아래 카운트 기반 계산으로 폴백(하위호환).
    */
   monthTone?: MonthTone
@@ -526,7 +526,7 @@ export function deriveMonthSummary(i: MonthSummaryInput): string {
   // 1) 전반 톤 — 월 verdict(reconcileMonthTone) 단일 권위에서. 4분류(good/care/
   // volatile/flat)를 여기 3분류 Tone + isFlat 로 매핑한다: good→bright, care→
   // careful, volatile→mixed, flat→(mixed 풀 대신 flat 전용 문장). 예전엔 이 톤을
-  // 카운트로 다시 계산해 MonthTier 히어로와 어긋날 수 있었다(감사 D-1). monthTone
+  // 카운트로 다시 계산해 월 히어로와 어긋날 수 있었다(감사 D-1). monthTone
   // 미지정 시(하위호환)만 카운트 기반 폴백. good>0 가드·flat 분리 의미는 동일.
   const tone: Tone = i.monthTone
     ? i.monthTone === 'good'

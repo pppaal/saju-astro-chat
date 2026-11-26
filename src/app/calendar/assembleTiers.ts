@@ -193,7 +193,7 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
   // (인생 티어 — lifetimeFlow·lifetimePivots·toLifetime·인생 곡선 — 은 캘린더에서
   //  계산하지 않는다: 셸 기본 가시 티어가 월·일이라 결과가 버려졌다. /destiny 의
   //  assembleLifetime 이 담당. 월 narrative 의 '타고난 결'·'이 달의 결' 항목도
-  //  MonthTier 가 '이달 총평' 만 읽어 표시되지 않던 페이로드라 뺐다.)
+  //  옛 MonthTier 가 '이달 총평' 만 읽어 표시되지 않던 페이로드라 뺐다.)
   const { month: monthAdapter, calendar } = toMonth({
     ym: monthPrefix,
     label: `${TARGET_YEAR}년 ${TARGET_MONTH}월`,
@@ -217,8 +217,8 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
     window: k.window,
     confidence: k.confidence,
   }))
-  // 월운 천간 십신 — 본명 일간 기준 상대 십신. MonthTier 의 '한 줄 총평' 리드 문장
-  // ("이달은 '○○' 쪽으로 결이 기울어요") + 용어 태그(甲午 · 편재)가 이 값을 쓴다.
+  // 월운 천간 십신 — 본명 일간 기준 상대 십신. 월간 읽기 줄의 영역 말(monthViewModel
+  // areaClause — 'A mixed month · toward duty & standing')이 이 값을 쓴다.
   // 이전엔 어디서도 할당하지 않아 항상 undefined → 리드 문장 누락 + 태그에 십신 빠짐.
   const woolunStemSibsin = getSibsinKo(user.ilgan.hanja, woolunStem) || undefined
 
@@ -359,7 +359,8 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
 
   // 이달 총평 — 타이밍·톤·지배 테마를 이어지는 한 문단으로 합성(deriveMonthSummary).
   // 양쪽 로케일 요약을 함께 만들어 보관 — 클라이언트 로케일 토글 시 서버언어로
-  // 굳던 문제 해소. 정본 태그 '이달 총평', body=ko / bodyEn=en 를 MonthTier 가 고른다.
+  // 굳던 문제 해소. 정본 태그 '이달 총평', body=ko / bodyEn=en. (옛 MonthTier 가 이 문단을
+  // 그렸고, v9.2 월간 화면(monthViewModel)은 아직 읽지 않는다 — 페이로드에만 실린다.)
   // 지배 테마는 *신호 id* 로 한 번 고른 후보 목록(월 층 우호 신호, 그 달 영향 순)을 두
   // 로케일에 똑같이 넘긴다 — 예전엔 로케일별 topReasons 문자열(점수 높은 날의 일진 사유 포함)을
   // 따로 모아 KO·EN 이 다른 테마를 말하고 '오늘 천을귀인' 이 월 테마가 됐다(재감사 SI-4).
@@ -367,7 +368,7 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
 
   // ── 월 verdict — 톤의 단일 권위. 그리드 밴드 카운트(여는 날짜와 무관)로 1회 산출해
   //    month.verdict 에 부착하고, 총평(deriveMonthSummary)에도 같은 톤을 주입한다.
-  //    히어로 칩(MonthTier)·총평 문단·공유카드가 전부 이 하나를 읽어 어긋날 수 없다.
+  //    월간 히어로·날 수(monthViewModel)·총평 문단·공유카드가 전부 이 하나를 읽어 어긋날 수 없다.
   const monthVerdict = reconcileMonthTone({
     goodN: month.goodDays.length,
     cautionN: month.cautionDays.length,
@@ -376,7 +377,7 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
   })
   month.verdict = monthVerdict
 
-  // 총평이 짚는 날(밀어붙일 날·미룰 날)은 MonthTier "이렇게 해보세요"와 같은
+  // 총평이 짚는 날(밀어붙일 날·미룰 날)은 월간 '해 볼 것'(monthViewModel → TryThis)과 같은
   // pickTryThis 로 — 기준일(TARGET_DAY, 보통 오늘) 이후만. 예전엔 cautionDays[0]
   // 이라 19일에 "11/8 무렵엔 미루세요"처럼 지난 날을 짚었다(계획 B1 #3).
   const tryThis = pickTryThis(

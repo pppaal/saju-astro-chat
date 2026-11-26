@@ -168,17 +168,19 @@ export interface DestinypalDay {
   gongmang: DestinypalDayGongmang
   /**
    * 본명 일주(=일지) 지장간 — 정기/중기/여기 객체 shape.
-   * destinypal DayTier 가 `jijanggan.jeonggi / .junggi / .yeogi` 로 직접 읽음.
+   * 옛 DayTier 가 `jijanggan.jeonggi / .junggi / .yeogi` 로 읽던 필드 — v9.2 일간 화면
+   * (dayViewModel)은 아직 읽지 않는다.
    */
   jijanggan: DestinypalDayJijangganObj
   geokgukStatus?: string
 
-  // ── DayTier optional 필드 — adapter 가 빈 배열로라도 채워서 .map() 안전 ──
+  // ── 옛 DayTier 용 컬렉션 — adapter 가 빈 배열로라도 채운다. v9.2 일간 화면은 아래
+  //    crossSignals · allSignals · narrative 를 아직 읽지 않는다(페이로드에만 실린다). ──
   /** cross-activation 페어 (DestinyCrossActivation 호환 — 일단 빈 배열로 prefill). */
   crossSignals: DestinypalDayCrossActivation[]
-  /** 모든 신호 — UI 가 .allSignals?.length 로 fallback 분기. */
+  /** 모든 신호 — 옛 DayTier 가 .allSignals?.length 로 fallback 분기하던 필드. */
   allSignals: DestinypalDaySignal[]
-  /** narrative chip 묶음 — DayTier 가 .map. */
+  /** narrative chip 묶음 — 옛 DayTier 가 .map 하던 필드. */
   narrative: Array<{ tag: string; body: string }>
   /** 상위 우호 사유(KO). */
   topReasons: string[]
@@ -464,7 +466,7 @@ export function toDay(opts: ToDayOptions): DestinypalDay {
 
   // 상대 우호도 우선(그 사람 분포 백분위) — 없으면 절대 derivedScore 폴백.
   const shownScore = Math.round(opts.favorScore ?? cell.derivedScore)
-  // 양쪽 로케일을 함께 산출 — DayTier 가 클라이언트 로케일로 고른다(서버언어로
+  // 양쪽 로케일을 함께 산출 — 화면이 요청 로케일로 고른다(서버언어로
   // 굳어 토글 시 한/영이 섞이던 문제 해소). 길이는 동일하므로 reconcile 에 무해.
   const topReasons = (cell.topReasons ?? []).map((r) => humanizeReason(r, 'ko'))
   const topReasonsEn = (cell.topReasonsEn ?? []).map((r) => humanizeReason(r, 'en'))
@@ -502,7 +504,7 @@ export function toDay(opts: ToDayOptions): DestinypalDay {
     gongmang,
     jijanggan,
     geokgukStatus,
-    // optional 빈 컬렉션 — DayTier 가 .map() / .length 로 무조건 읽음.
+    // 빈 컬렉션 — 옛 DayTier 가 .map() / .length 로 무조건 읽던 자리(타입 호환용).
     crossSignals: [],
     allSignals: signals,
     narrative: [],

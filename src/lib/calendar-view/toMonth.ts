@@ -103,7 +103,7 @@ export function bandMarkForScore(
  *
  * scoring:
  *   - dayScores(일진층 favorScore) 우선, 없으면 cell.derivedScore.
- *   - 마크는 일 카드 톤·연 티어와 *같은 단일 밴드*(CALENDAR_BANDS): good ≥60 /
+ *   - 마크는 일 화면(assembleDayTier)과 *같은 단일 밴드*(CALENDAR_BANDS): good ≥60 /
  *     무색 40~59 / caution 30~39 / avoid <30 / best — month 최고점 1일.
  */
 export function toMonth(opts: ToMonthOptions): {
