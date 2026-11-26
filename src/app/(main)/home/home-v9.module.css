@@ -317,6 +317,12 @@
 .wcap {
   padding: 8px 22px 20px;
 }
+/* 우물(--paper-2) 위 글자 — --mute 는 paper-2 위에서 4.35:1 로 AA 미달(QA R-VH-2 · CI Lighthouse
+   color-contrast). 우물 안의 눈썹 · 캡션은 --body(8.05:1). */
+.wcap .eyebrow,
+.wcap .cap {
+  color: var(--body);
+}
 
 /* 상담사 CTA — 카드 바로 다음, 선 알약 + 가격 줄(오너 결정 1) */
 .counsel {
