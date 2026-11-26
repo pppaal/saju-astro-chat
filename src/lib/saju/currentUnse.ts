@@ -46,7 +46,7 @@ export function detectUnseRelations(
   return out
 }
 
-export interface StemBranch {
+interface StemBranch {
   stem: string
   branch: string
 }

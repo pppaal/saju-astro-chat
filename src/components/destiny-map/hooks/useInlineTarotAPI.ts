@@ -661,5 +661,3 @@ export function useInlineTarotAPI({ stateManager, lang, origin }: UseInlineTarot
     cleanup,
   }
 }
-
-export type UseInlineTarotAPIReturn = ReturnType<typeof useInlineTarotAPI>

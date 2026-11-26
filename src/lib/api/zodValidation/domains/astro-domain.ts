@@ -22,7 +22,6 @@ export const zodiacSignSchema = z.enum([
   'Aquarius',
   'Pisces',
 ])
-export type ZodiacSignValidated = z.infer<typeof zodiacSignSchema>
 
 export const zodiacSignKoreanSchema = z.enum([
   '양자리',
@@ -38,10 +37,8 @@ export const zodiacSignKoreanSchema = z.enum([
   '물병자리',
   '물고기자리',
 ])
-export type ZodiacSignKoreanValidated = z.infer<typeof zodiacSignKoreanSchema>
 
 export const houseSystemSchema = z.enum(['Placidus', 'WholeSign', 'Koch', 'Equal', 'Campanus'])
-export type HouseSystemValidated = z.infer<typeof houseSystemSchema>
 
 export const aspectTypeSchema = z.enum([
   'conjunction',
@@ -55,7 +52,6 @@ export const aspectTypeSchema = z.enum([
   'biquintile',
   'sesquiquadrate',
 ])
-export type AspectTypeValidated = z.infer<typeof aspectTypeSchema>
 
 export const planetNameSchema = z.enum([
   'Sun',
@@ -77,13 +73,10 @@ export const planetNameSchema = z.enum([
   'IC',
   'Descendant',
 ])
-export type PlanetNameValidated = z.infer<typeof planetNameSchema>
 
 export const astroElementSchema = z.enum(['fire', 'earth', 'air', 'water'])
-export type AstroElementValidated = z.infer<typeof astroElementSchema>
 
 export const modalitySchema = z.enum(['cardinal', 'fixed', 'mutable'])
-export type ModalityValidated = z.infer<typeof modalitySchema>
 
 // ============ Core Data Structures ============
 
@@ -99,7 +92,6 @@ export const planetBaseSchema = z.object({
   retrograde: z.boolean().optional(),
   graphId: z.string().max(40).optional(),
 })
-export type PlanetBaseValidated = z.infer<typeof planetBaseSchema>
 
 export const houseSchema = z.object({
   index: z.number().int().min(1).max(12),
@@ -108,7 +100,6 @@ export const houseSchema = z.object({
   formatted: z.string().max(50),
   graphId: z.string().max(40).optional(),
 })
-export type HouseValidated = z.infer<typeof houseSchema>
 
 export const chartMetaSchema = z.object({
   jdUT: z.number(),
@@ -118,7 +109,6 @@ export const chartMetaSchema = z.object({
   longitude: z.number().min(-180).max(180),
   houseSystem: houseSystemSchema,
 })
-export type ChartMetaValidated = z.infer<typeof chartMetaSchema>
 
 // ============ Aspect Structures ============
 
@@ -129,7 +119,6 @@ export const aspectEndSchema = z.object({
   sign: zodiacSignSchema.optional(),
   longitude: z.number().min(0).max(360),
 })
-export type AspectEndValidated = z.infer<typeof aspectEndSchema>
 
 export const aspectHitSchema = z.object({
   from: aspectEndSchema,
@@ -139,7 +128,6 @@ export const aspectHitSchema = z.object({
   applying: z.boolean().optional(),
   score: z.number().min(0).max(100).optional(),
 })
-export type AspectHitValidated = z.infer<typeof aspectHitSchema>
 
 // ============ Extra Points ============
 
@@ -154,7 +142,6 @@ export const extraPointSchema = z.object({
   description: z.string().max(500).optional(),
   graphId: z.string().max(40).optional(),
 })
-export type ExtraPointValidated = z.infer<typeof extraPointSchema>
 
 // ============ Chart Structures ============
 
@@ -165,7 +152,6 @@ export const chartSchema = z.object({
   houses: z.array(houseSchema),
   meta: chartMetaSchema.optional(),
 })
-export type ChartValidated = z.infer<typeof chartSchema>
 
 export const extendedChartSchema = chartSchema.extend({
   chiron: extraPointSchema.optional(),
@@ -174,14 +160,12 @@ export const extendedChartSchema = chartSchema.extend({
   partOfFortune: extraPointSchema.optional(),
   vertex: extraPointSchema.optional(),
 })
-export type ExtendedChartValidated = z.infer<typeof extendedChartSchema>
 
 export const progressedChartSchema = chartSchema.extend({
   progressionType: z.enum(['secondary', 'solarArc']),
   yearsProgressed: z.number().min(0).max(150),
   progressedDate: z.string().max(50),
 })
-export type ProgressedChartValidated = z.infer<typeof progressedChartSchema>
 
 export const returnChartSchema = chartSchema.extend({
   returnType: z.enum(['solar', 'lunar']),
@@ -189,7 +173,6 @@ export const returnChartSchema = chartSchema.extend({
   returnMonth: z.number().int().min(1).max(12).optional(),
   exactReturnTime: z.string().max(50),
 })
-export type ReturnChartValidated = z.infer<typeof returnChartSchema>
 
 // ============ Natal Input ============
 
@@ -205,18 +188,14 @@ export const natalInputSchema = z.object({
   // birth-input 검증 경계를 saju 와 공유하는 canonical primitive 로 통일.
   timeZone: timezoneSchema,
 })
-export type NatalInputValidated = z.infer<typeof natalInputSchema>
 
 // ============ Planet Position Records ============
 
 export const planetHousesSchema = z.record(z.string().max(30), z.number().int().min(1).max(12))
-export type PlanetHousesValidated = z.infer<typeof planetHousesSchema>
 
 export const planetSignsSchema = z.record(z.string().max(30), zodiacSignSchema)
-export type PlanetSignsValidated = z.infer<typeof planetSignsSchema>
 
 export const planetLongitudesSchema = z.record(z.string().max(30), z.number().min(0).max(360))
-export type PlanetLongitudesValidated = z.infer<typeof planetLongitudesSchema>
 
 // ============ Element Ratios ============
 
@@ -226,14 +205,12 @@ export const astroElementRatiosSchema = z.object({
   air: z.number().min(0).max(100),
   water: z.number().min(0).max(100),
 })
-export type AstroElementRatiosValidated = z.infer<typeof astroElementRatiosSchema>
 
 export const modalityRatiosSchema = z.object({
   cardinal: z.number().min(0).max(100),
   fixed: z.number().min(0).max(100),
   mutable: z.number().min(0).max(100),
 })
-export type ModalityRatiosValidated = z.infer<typeof modalityRatiosSchema>
 
 // ============ Transit Aspects ============
 
@@ -246,7 +223,6 @@ export const transitAspectSchema = z.object({
   exactDate: z.string().max(30).optional(),
   significance: z.enum(['major', 'minor', 'background']).optional(),
 })
-export type TransitAspectValidated = z.infer<typeof transitAspectSchema>
 
 // ============ Astrology Facts (Summary) ============
 
@@ -269,7 +245,6 @@ export const astrologyChartFactsSchema = z.object({
   aspects: z.record(z.string(), aspectHitSchema).optional(),
   elementRatios: astroElementRatiosSchema.optional(),
 })
-export type AstrologyChartFactsValidated = z.infer<typeof astrologyChartFactsSchema>
 
 // ============ Full Astrology Data Schema ============
 
@@ -283,7 +258,6 @@ export const astrologyDataSchema = z.object({
   meta: chartMetaSchema.optional(),
   transits: z.array(transitAspectSchema).optional(),
 })
-export type AstrologyDataValidated = z.infer<typeof astrologyDataSchema>
 
 // ============ Chat Context Schema ============
 
@@ -300,7 +274,6 @@ export const astroChatContextSchema = z
     activeTransits: z.array(transitAspectSchema).optional(),
   })
   .passthrough()
-export type AstroChatContextValidated = z.infer<typeof astroChatContextSchema>
 
 // ============ Synastry (Compatibility) Schemas ============
 
@@ -312,7 +285,6 @@ export const synastryAspectSchema = z.object({
   influence: z.enum(['harmonious', 'challenging', 'neutral']),
   description: z.string().max(1000).optional(),
 })
-export type SynastryAspectValidated = z.infer<typeof synastryAspectSchema>
 
 export const synastryResultSchema = z.object({
   aspects: z.array(synastryAspectSchema),
@@ -321,7 +293,6 @@ export const synastryResultSchema = z.object({
   challenges: z.array(z.string().max(500)),
   summary: z.string().max(3000),
 })
-export type SynastryResultValidated = z.infer<typeof synastryResultSchema>
 
 // ============ Composite Chart Schema ============
 
@@ -332,4 +303,3 @@ export const compositeChartSchema = z.object({
   compositeMC: planetBaseSchema.optional(),
   relationshipThemes: z.array(z.string().max(200)).optional(),
 })
-export type CompositeChartValidated = z.infer<typeof compositeChartSchema>

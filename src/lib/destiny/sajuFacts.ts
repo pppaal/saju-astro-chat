@@ -117,7 +117,7 @@ export interface SajuFacts {
   _raw: CalculateSajuDataResult
 }
 
-export interface DaeunEntry {
+interface DaeunEntry {
   age: number
   heavenlyStem: string
   earthlyBranch: string

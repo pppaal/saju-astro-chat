@@ -19,7 +19,7 @@
 //
 // 일주는 이 instant 로 다시 구하지 않는다 — 입력한 민용 날짜가 일주다(CONVENTIONS §1).
 
-export type BirthInstantKind = 'normal' | 'gap' | 'overlap'
+type BirthInstantKind = 'normal' | 'gap' | 'overlap'
 
 export interface WallClockInput {
   year: number

@@ -7,29 +7,9 @@
  */
 
 export { toUser } from './toUser'
-export type { DestinypalUser, DestinypalUserElements, ToUserOptions } from './toUser'
-
-export type { DestinypalLifeStage, ToLifeStagesOptions } from './toLifeStages'
 
 export { toLifetime } from './toLifetime'
-export type { ToLifetimeOptions } from './toLifetime'
-
-export type { DestinypalDaewoonEntry, ToDaewoonOptions } from './toDaewoon'
-
-export type { DestinypalMilestone } from './toMilestones'
 
 export { toMonth, bandMarkForScore } from './toMonth'
-export type { DestinypalMonth, DestinypalCalendarDay, ToMonthOptions } from './toMonth'
 
 export { toDay } from './toDay'
-export type {
-  DestinypalDay,
-  DestinypalDaySignal,
-  DestinypalDayTransit,
-  DestinypalDayAppliedPattern,
-  DestinypalDayCrossActivation,
-  DestinypalDayGongmang,
-  ToDayOptions,
-} from './toDay'
-
-export type { Ganji } from './shared'

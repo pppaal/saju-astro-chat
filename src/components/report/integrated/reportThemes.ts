@@ -6,7 +6,7 @@
  */
 
 export type Lang = 'ko' | 'en'
-export type Tone = 'resonant' | 'complement' | 'tension' | 'neutral'
+type Tone = 'resonant' | 'complement' | 'tension' | 'neutral'
 
 export interface ThemeRowLike {
   category: string

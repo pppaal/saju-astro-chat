@@ -1,13 +1,3 @@
-/**
- * Canonical Western zodiac sign labels — single source of truth.
- *
- * The EN(PascalCase) → KO map was previously duplicated across the fusion
- * engine, counselor context, and compatibility formatters. Import from here
- * instead of re-declaring it.
- */
-
-export type SignLang = 'ko' | 'en'
-
 export const SIGN_KO: Record<string, string> = {
   Aries: '양자리',
   Taurus: '황소자리',

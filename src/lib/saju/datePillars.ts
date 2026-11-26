@@ -41,7 +41,7 @@ const MONTH_BRANCHES_BY_TERM: Record<number, string> = {
   12: '子',
 }
 
-export interface SajuMonthRef {
+interface SajuMonthRef {
   branch: string
   sajuYear: number
   /** 1=寅(after 입춘) … 12=丑(before 입춘 of next yr) */

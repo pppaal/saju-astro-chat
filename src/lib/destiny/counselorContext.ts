@@ -414,16 +414,6 @@ export function counselorDayAnchor(day: CivilDay, timeZone: string): Date {
   ).utc
 }
 
-export interface CurrentPeriod {
-  seun?: { stem: string; branch: string } | null
-  wolun?: { stem: string; branch: string } | null
-  iljin?: { stem: string; branch: string } | null
-  relations?: Array<{
-    source: string
-    relation: { kind: string; detail?: string; pillars?: string[] }
-  }>
-}
-
 function buildInstructions(
   locale: Locale,
   sources: DestinySources,

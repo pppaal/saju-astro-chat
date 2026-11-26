@@ -14,7 +14,7 @@ import type { ElementCounts, FiveElement } from './shared'
 // Ilgan 본명 일간 (data.js user.ilgan)
 // ============================================================================
 
-export interface DestinyIlgan {
+interface DestinyIlgan {
   /** 한자 — '辛'. */
   hanja: string
   /** 한글 음양오행 — '신금'. */
@@ -29,7 +29,7 @@ export interface DestinyIlgan {
 // 용신·희신 — data.js user.yongsin / huisin (한글/한자/영문 묶음)
 // ============================================================================
 
-export interface DestinyYongsin {
+interface DestinyYongsin {
   /** 한자 — '火·土'. */
   hanja: string
   /** 한글 — '화·토'. */
@@ -48,7 +48,7 @@ export interface DestinyYongsin {
 // 점성 본명 핵심 — data.js user.astro (Sun/ASC/MC 한·영)
 // ============================================================================
 
-export interface DestinyAstroBasic {
+interface DestinyAstroBasic {
   /** 한글 zodiac — '물병자리'. */
   sun: string
   /** 한글 zodiac — '물병자리'. */
@@ -78,7 +78,7 @@ export interface DestinyAlmutenFiguris {
 // Sect — 낮·밤 출생. Hellenistic 해석 분기점.
 // ============================================================================
 
-export type Sect = 'day' | 'night'
+type Sect = 'day' | 'night'
 
 // ============================================================================
 // User 본명 카드 prop — data.js window.DESTINY.user 와 동형.

@@ -81,7 +81,7 @@ export interface MonthBarVM {
  * 그리드에서 고른 날의 읽기('Tap a date for its read') — 큰 날 행과 같은 규칙(그리드 마크의
  * 판정 단어 + 같은 엔진 풀의 한 줄 + 그날 '왜' 교차 행). 큰 날을 고르면 목록 행과 같은 말이다.
  */
-export interface MonthCellReadVM {
+interface MonthCellReadVM {
   /** 'Nov 24 · Tue' / '11월 24일 · 화'. */
   label: string
   /** 판정 단어 — verdictPrefix(mark). */
@@ -114,7 +114,7 @@ export type KeyDayRowVM = Omit<KeyDayItem, 'reason'> & {
 }
 
 /** 이달 공유 링크 재료(ShareCalendarButton) — 요약 문구·큰 날 몇 줄·이달 곡선 숫자만(원국 미전송). */
-export interface MonthShareVM {
+interface MonthShareVM {
   /** 'November 2026' / '2026년 11월'. */
   periodLabel: string
   headline: string

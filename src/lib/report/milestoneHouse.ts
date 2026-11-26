@@ -12,7 +12,7 @@
 // **본명에서 그 행성이 있는 하우스**. 이미 계산된 natal chart 에서 그대로 읽는다
 // (추가 에페메리스 연산 0).
 
-export type Bi = { ko: string; en: string }
+type Bi = { ko: string; en: string }
 
 /** 마디 종류 → 그 마디의 주체 천체(본명 하우스를 읽을 대상). */
 export const MILESTONE_BODY: Record<string, string> = {

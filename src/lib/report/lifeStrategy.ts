@@ -15,7 +15,7 @@ import { ZODIAC_ANIMALS } from '@/lib/fortune/zodiacDaily'
 import type { SibsinCategoryCount } from '@/lib/saju/sibsinAnalysis'
 import type { FiveElement } from '@/lib/saju/types'
 
-export interface LifeStrategyLucky {
+interface LifeStrategyLucky {
   /** 행운 요소의 근거 오행(주용신) — { ko:'금', hanja:'金', en:'Metal' }. 모르면 생략. */
   element?: { ko: string; hanja: string; en: string }
   /** 행운 색(ko) — 엔진 getLuckyColors 값 그대로. */
@@ -27,7 +27,7 @@ export interface LifeStrategyLucky {
   directionEn: string
   numbers: number[]
 }
-export interface LifeStrategyGuin {
+interface LifeStrategyGuin {
   /** 천을귀인 지지(한자) — 예: ['寅','午']. */
   branches: string[]
   /** 천을귀인 띠(한글) — 예: ['호랑이띠','말띠']. */
@@ -35,11 +35,11 @@ export interface LifeStrategyGuin {
   /** 천을귀인 띠(en) — 예: ['Tiger','Horse']. */
   animalsEn: string[]
 }
-export interface LifeStrategyCaution {
+interface LifeStrategyCaution {
   /** 곡선 저점(주의) 구간 — 미래 우선, 최대 2개. */
   years: Array<{ year: number; age: number }>
 }
-export interface LifeStrategyWealth {
+interface LifeStrategyWealth {
   /** 재물 획득 성향 한 줄(재성 기반). */
   styleKo: string
   styleEn: string

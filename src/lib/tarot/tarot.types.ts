@@ -207,7 +207,7 @@ export function getCardImagePath(cardId: number, _style: DeckStyle = 'celestial'
 export type Arcana = 'major' | 'minor'
 export type Suit = 'major' | 'wands' | 'cups' | 'swords' | 'pentacles'
 
-export interface CardMeaning {
+interface CardMeaning {
   keywords: string[]
   keywordsKo?: string[]
   meaning: string
@@ -236,7 +236,7 @@ export interface DrawnCard {
   isReversed: boolean
 }
 
-export interface SpreadPosition {
+interface SpreadPosition {
   title: string
   titleKo?: string
   // 자리의 의미 — LLM이 카드를 이 자리에 매핑할 때 추측 대신 사용할 컨텍스트.
@@ -264,40 +264,6 @@ export interface TarotTheme {
   spreads: Spread[]
 }
 
-// Premium Interpretation Types (Tier 4-6)
-
-export interface BirthCardInfo {
-  primary_card: string
-  korean: string
-  life_path: number
-  traits: string[]
-  shadow: string
-}
-
-export interface YearCardInfo {
-  year_card: string
-  year_card_korean: string
-  personal_year: number
-  theme: string
-}
-
-export interface PersonalizationData {
-  birth_card?: BirthCardInfo
-  year_card?: YearCardInfo
-  personal_connections: string[]
-}
-
-export interface NarrativeData {
-  opening_hook: string
-  resolution: string
-  card_transitions: string[]
-  arc_structure: string
-  tone: {
-    mood: string
-    keywords: string[]
-  }
-}
-
 export interface CardInsight {
   position: string
   card_name: string
@@ -314,17 +280,4 @@ export interface CardInsight {
     spiritual: string
     action: string
   }
-}
-
-export interface TarotInterpretationResult {
-  overall_message: string
-  card_insights: CardInsight[]
-  guidance: string
-  affirmation: string
-  combinations: string[]
-  followup_questions: string[]
-  fallback?: boolean
-  // Premium fields (Tier 4-6)
-  personalization?: PersonalizationData
-  narrative?: NarrativeData
 }

@@ -126,8 +126,6 @@ export const RATE_LIMIT_PRESETS = {
   UTILITY: { limit: 60, windowSeconds: 60 },
 } as const
 
-export type RateLimitPreset = keyof typeof RATE_LIMIT_PRESETS
-
 /**
  * Allowed locales
  */

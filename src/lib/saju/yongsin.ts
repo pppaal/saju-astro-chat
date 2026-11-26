@@ -34,11 +34,6 @@ export type YongsinType = '억부용신' | '조후용신' | '통관용신' | '�
 export type DaymasterStrength = StrengthBand
 
 /**
- * 월령 계절/기후 유형
- */
-export type SeasonClimate = '한습' | '온화' | '조열'
-
-/**
  * 용신 선정 결과
  */
 export interface YongsinResult {

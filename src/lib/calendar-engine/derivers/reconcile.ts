@@ -26,7 +26,7 @@
 import { CALENDAR_BANDS } from './constants'
 
 export type DayBand = 'good' | 'mid' | 'low'
-export type DayTone = 'positive' | 'mixed' | 'caution'
+type DayTone = 'positive' | 'mixed' | 'caution'
 
 export interface DayToneInput {
   /** 사용자에게 실제 보여주는 점수(day.score = favorScore ?? derivedScore). */
@@ -126,7 +126,7 @@ export function mixedFlavor(v: DayVerdict): 'volatile' | 'flat' {
  *  기복) · flat(둘 다 없음=평이/고른). */
 export type MonthTone = 'good' | 'care' | 'volatile' | 'flat'
 /** 공유카드/후크용 톤 별칭 — MonthTone 과 1:1. */
-export type MonthShareTone = 'bright' | 'careful' | 'mixed' | 'steady'
+type MonthShareTone = 'bright' | 'careful' | 'mixed' | 'steady'
 
 export interface MonthCounts {
   /** 좋은 날 수(good 밴드). */

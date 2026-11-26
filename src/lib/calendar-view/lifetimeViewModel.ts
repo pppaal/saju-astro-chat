@@ -88,18 +88,18 @@ export interface LifeOverlapVM {
   caption: string | null
 }
 
-export interface LifeTraitCellVM {
+interface LifeTraitCellVM {
   text: string
   w?: string
   sub?: string
 }
 
-export interface LifeTraitStarsVM extends LifeTraitCellVM {
+interface LifeTraitStarsVM extends LifeTraitCellVM {
   /** 보조 줄의 점들(기호를 그리는 화면용) — 정체성: 태양 · 상승, 욕망: 달. */
   points?: Array<{ glyph?: PlanetGlyph; text: string }>
 }
 
-export interface LifeTraitRowVM {
+interface LifeTraitRowVM {
   key: string
   axis: string
   verdict: CrossToneKey
@@ -123,9 +123,9 @@ export interface LifeTraitsVM {
   caveat: string | null
 }
 
-export type LifeStrengthKey = 'wealth' | 'status' | 'support' | 'creativity' | 'drive'
+type LifeStrengthKey = 'wealth' | 'status' | 'support' | 'creativity' | 'drive'
 
-export interface LifeStrengthRowVM {
+interface LifeStrengthRowVM {
   /** 십성 묶음 키(영문 슬러그) — 재성 wealth · 관성 status · 인성 support · 식상 creativity · 비겁 drive. */
   key: LifeStrengthKey
   label: string
@@ -152,7 +152,7 @@ export interface LifeStrengthsVM {
   caption: string
 }
 
-export type LifeCurveMarkerKind = 'now' | 'crest' | 'peak' | 'dip'
+type LifeCurveMarkerKind = 'now' | 'crest' | 'peak' | 'dip'
 
 export interface LifeCurveVM {
   points: DestinyLifeCurvePoint[]
@@ -169,9 +169,9 @@ export interface LifeCurveVM {
   caption: string
 }
 
-export type LifeDecadeState = 'past' | 'now' | 'future' | 'far'
+type LifeDecadeState = 'past' | 'now' | 'future' | 'far'
 
-export interface LifeDecadeRowVM {
+interface LifeDecadeRowVM {
   gz: string
   /** 레일 색 — 대운 천간 오행. */
   element: SajuElement
@@ -208,7 +208,7 @@ export interface LifeStrategyVM {
   watch?: { years: Array<{ age: number; year: number }>; note: string }
 }
 
-export interface LifeShareVM {
+interface LifeShareVM {
   typeName: string
   lifeShape: string | null
   /**

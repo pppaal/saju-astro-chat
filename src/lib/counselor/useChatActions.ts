@@ -20,7 +20,7 @@ import { emitSessionDeleted } from '@/lib/counselor/sessionEvents'
  * - onError({ kind, status }): 401 인 경우 "다시 로그인" 힌트 등 page 가 토스트로 안내
  */
 
-export type ChatActionsError = {
+type ChatActionsError = {
   kind: 'rename' | 'delete'
   status?: number
 }

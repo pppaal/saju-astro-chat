@@ -27,7 +27,7 @@ const DEFAULT_TYPEWRITER_PROMPTS: Record<LangKey, readonly string[]> = {
   ],
 }
 
-export interface ChatInputAreaLabels {
+interface ChatInputAreaLabels {
   /** 텍스트영역 placeholder (타이프라이터 가 비어 있을 때 fallback). */
   placeholder: string
   send: string
@@ -40,7 +40,7 @@ export interface ChatInputAreaLabels {
   clearInput?: string
 }
 
-export interface ChatInputAreaToolOverride {
+interface ChatInputAreaToolOverride {
   /** 화면에 보이는 라벨 텍스트 (.toolLabel). 없으면 '타로'/'차트' 기본. */
   label?: string
   ariaLabel?: string

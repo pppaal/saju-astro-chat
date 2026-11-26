@@ -42,7 +42,7 @@ export interface DestinyDaewoon {
 // data.js lifeStages[] 와 동형.
 // ============================================================================
 
-export type LifeStageId = 'early' | 'youth' | 'middle' | 'late'
+type LifeStageId = 'early' | 'youth' | 'middle' | 'late'
 
 export interface DestinyLifeStage {
   id: LifeStageId
@@ -71,7 +71,7 @@ export interface DestinyLifeStage {
 // data.js milestones[] 와 동형.
 // ============================================================================
 
-export type DestinyMilestoneKind =
+type DestinyMilestoneKind =
   | 'saju' // 사주 합·충 마디
   | 'daewoon' // 대운 전환
   | 'saturn' // 토성 회귀 (1st / 2nd / 3rd)
@@ -244,7 +244,7 @@ export interface DestinyLifeCurvePoint {
   value: number
 }
 /** 곡선 위 마디(전환점) — 피크/골. */
-export interface DestinyLifeCurveMark {
+interface DestinyLifeCurveMark {
   age: number
   year: number
   kind: 'peak' | 'trough'
@@ -259,7 +259,7 @@ export interface DestinyLifeCurve {
   /** "지금" 읽기 — 곡선 위 현재 위치의 추세 + 다음 마디(서사·앵커용). */
   now?: DestinyLifeCurveNow
 }
-export interface DestinyLifeCurveNow {
+interface DestinyLifeCurveNow {
   /** 현재 추세 — 차오름/가라앉음/고름. */
   slope: 'rising' | 'falling' | 'plateau'
   /** 현재 이후 첫 마루(없으면 생략). */
@@ -268,7 +268,7 @@ export interface DestinyLifeCurveNow {
   nextTrough?: DestinyLifeCurveMark
 }
 
-export interface DestinyLifePattern {
+interface DestinyLifePattern {
   key: string
   /** 한국어 유형명 — 대기만성형/초년발복형/… */
   ko: string

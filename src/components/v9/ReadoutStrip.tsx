@@ -6,7 +6,7 @@
 import type { ReactNode } from 'react'
 import s from './ReadoutStrip.module.css'
 
-export interface ReadoutCell {
+interface ReadoutCell {
   label: string
   value: ReactNode
   /** 값 뒤 작은 단위(SECONDS). */

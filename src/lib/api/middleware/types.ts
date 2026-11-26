@@ -39,7 +39,7 @@ export interface ApiContext {
 
 // ============ Option Types ============
 
-export interface RateLimitOptions {
+interface RateLimitOptions {
   /** Requests allowed per window */
   limit: number
   /** Window size in seconds */
@@ -55,7 +55,7 @@ export interface RateLimitOptions {
   failClosed?: boolean
 }
 
-export interface CreditOptions {
+interface CreditOptions {
   /** Credit type to consume */
   type: CreditType
   /** Amount of credits to consume */
@@ -112,5 +112,3 @@ export type ApiHandler<T> = (
 ) => Promise<ApiHandlerResult<T> | NextResponse | Response>
 
 // ============ Re-exports ============
-
-export type { CreditType }

@@ -249,15 +249,7 @@ export function apiSuccess<T>(
 // ============ Re-exports ============
 
 // Types
-export type {
-  ApiContext,
-  ApiHandler,
-  ApiHandlerResult,
-  MiddlewareOptions,
-  RateLimitOptions,
-  CreditOptions,
-  CreditType,
-} from './types'
+export type { ApiContext, ApiHandler, ApiHandlerResult, MiddlewareOptions } from './types'
 
 // Context utilities
 export { initializeApiContext, extractLocale } from './context'

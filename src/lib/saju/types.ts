@@ -34,17 +34,6 @@ export interface StemBranchInfo {
 
 export interface DayMaster extends StemBranchInfo {}
 
-export interface SibsinInput {
-  element: FiveElement
-  yin_yang: YinYang
-}
-
-// Ganji 타입 (간지: 천간 + 지지)
-export interface Ganji {
-  stem: string // 천간
-  branch: string // 지지
-}
-
 // --- 사주 팔자 구조 관련 타입 ---
 
 export interface PillarGanjiData {
@@ -265,17 +254,6 @@ export interface DaeunPillar {
 // 연운 사이클 데이터
 export interface AnnualCycleData {
   year: number
-  ganji?: string
-  heavenlyStem?: string
-  earthlyBranch?: string
-  element?: FiveElement
-  sibsin?: { cheon: string; ji: string }
-}
-
-// 일반 사이클 데이터 (유틸 함수용)
-export interface CycleData {
-  year?: number
-  month?: number
   ganji?: string
   heavenlyStem?: string
   earthlyBranch?: string

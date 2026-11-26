@@ -7,9 +7,9 @@
 import { redactSecrets } from '@/lib/security/logRedaction'
 import { captureToSentry } from './sentrySink'
 
-export type LogLevel = 'debug' | 'info' | 'warn' | 'error'
+type LogLevel = 'debug' | 'info' | 'warn' | 'error'
 
-export interface LogContext {
+interface LogContext {
   [key: string]: unknown
 }
 

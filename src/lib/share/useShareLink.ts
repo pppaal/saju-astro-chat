@@ -19,7 +19,7 @@ import { copyToClipboard } from '@/lib/utils/clipboard'
 
 export type ShareLinkPhase = 'idle' | 'creating' | 'copied'
 
-export interface ShareLinkMessages {
+interface ShareLinkMessages {
   /** 응답이 !ok 이거나 URL 이 없을 때. */
   createFailed: string
   /** 401 일 때(선택). 없으면 createFailed. */

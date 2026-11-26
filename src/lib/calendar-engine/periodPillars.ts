@@ -39,7 +39,7 @@ const DAY_MS = 86_400_000
 /** 표 밖 연도의 절입 근사 — 평균 회귀년(일). */
 const MEAN_TROPICAL_YEAR_DAYS = 365.24219
 
-export interface StemBranch {
+interface StemBranch {
   stem: string
   branch: string
 }

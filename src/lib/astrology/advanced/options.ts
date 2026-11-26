@@ -3,7 +3,7 @@ import { CALCULATION_STANDARDS } from '@/lib/config/calculationStandards'
 
 export type AstroTheme = 'western' | 'saju' | 'hybrid'
 
-export type HouseSystemType = 'Placidus' | 'WholeSign' | 'Koch' | 'Equal' | 'Campanus'
+type HouseSystemType = 'Placidus' | 'WholeSign' | 'Koch' | 'Equal' | 'Campanus'
 
 export type AstroOptions = {
   theme?: AstroTheme

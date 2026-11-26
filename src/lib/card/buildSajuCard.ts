@@ -39,7 +39,7 @@ import type { Bi, Lang } from '@/lib/i18n/bi'
 import type { ReportPillar } from '@/lib/report/reportTypes'
 import type { CardPillar, CardTraitRow, ElementKey, SajuCardData } from './types'
 
-export interface SajuCardBirth {
+interface SajuCardBirth {
   /** 양력 생년월일 'YYYY-MM-DD'. */
   date: string
   /** 출생 시각 'HH:MM'. 비었거나 timeUnknown 이면 정오 앵커 + 삼주(CONVENTIONS §5). */

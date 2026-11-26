@@ -112,7 +112,7 @@ export interface DestinyCalendarCell {
  * "이달의 큰 날" — convergence keyDays 1줄. 점(date)이 아니라 *구간(window)* 과
  * 사주↔점성 신뢰도(confidence)를 함께 담아 타이밍을 또렷이 보여준다.
  */
-export interface DestinyMonthKeyDay {
+interface DestinyMonthKeyDay {
   /** 표시용 'MM-DD' (또는 포맷된 라벨). */
   date: string
   /** 한 줄 의미. */

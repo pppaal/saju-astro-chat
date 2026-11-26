@@ -48,7 +48,7 @@ const SIBSIN_CATEGORY: Record<string, SibsinCategory> = {
 }
 
 /** 그날 실제 신호 한 개를 분야 근거로 표시 — 트랜짓·신살·교차. */
-export interface DomainEvidence {
+interface DomainEvidence {
   /** 표시 텍스트 (호출 시 locale 반영해서 ko/en 중 하나). */
   text: string
   polarity: number
@@ -61,7 +61,7 @@ export interface DomainEvidence {
   body?: string
 }
 
-export interface DayDomainAdvice {
+interface DayDomainAdvice {
   key: string
   icon: string
   label: string

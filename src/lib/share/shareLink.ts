@@ -17,14 +17,14 @@ import { logger } from '@/lib/logger'
 // 공유 링크 보존 기간 — 90일. 바이럴 링크는 단발성이라 영구일 필요 없다.
 export const SHARE_TTL_SECONDS = 90 * 24 * 60 * 60
 
-export interface ShareLinkCard {
+interface ShareLinkCard {
   name: string
   image: string
   isReversed: boolean
 }
 
 /** 타로 리딩 공유 — 기존(레거시) 페이로드. kind 없으면 'tarot' 로 본다. */
-export interface TarotShareLinkPayload {
+interface TarotShareLinkPayload {
   /** 스키마 버전 — 추후 형태 변경 시 분기. */
   v: 1
   /** 공유 종류. 레거시 타로 링크는 이 필드가 없어 undefined → 'tarot' 취급. */
@@ -101,7 +101,7 @@ export interface CalendarShareLinkPayload {
   markerIndex?: number
 }
 
-export type DayShareTone = 'positive' | 'mixed' | 'caution'
+type DayShareTone = 'positive' | 'mixed' | 'caution'
 
 /**
  * 하루(일진) 공유 — 점수 + 한 줄 + "이달 흐름" 곡선을 OG 의 주인공으로.

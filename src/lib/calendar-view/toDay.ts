@@ -56,7 +56,7 @@ import { pickBySeed } from '@/lib/calendar-engine/derivers/personSeed'
 // 않는다(예: 제왕·건록이 신살 목록에 잘못 끼던 문제).
 const TWELVE_STAGE_NAMES = new Set(['건록', '제왕'])
 
-export interface DestinypalDaySignal {
+interface DestinypalDaySignal {
   cat: string // 'saju/shinsal' | 'saju/pillar-sibsin' | 'astro/transit' | …
   label: string
   romaji?: string
@@ -64,7 +64,7 @@ export interface DestinypalDaySignal {
   kind?: string // raw signal kind (디버그/필터용)
 }
 
-export interface DestinypalDayTransit {
+interface DestinypalDayTransit {
   body: string // "Mercury"
   bodyKo?: string // "수성"
   aspect: string // "합" / "사각" / "삼각"
@@ -73,14 +73,14 @@ export interface DestinypalDayTransit {
   polarity: number
 }
 
-export interface DestinypalDayAppliedPattern {
+interface DestinypalDayAppliedPattern {
   id: string
   name: string
   body?: string
   polarity: number
 }
 
-export interface DestinypalDayCrossActivation {
+interface DestinypalDayCrossActivation {
   signalId: string
   name: string
   sajuLine?: string
@@ -89,7 +89,7 @@ export interface DestinypalDayCrossActivation {
   polarity: number
 }
 
-export interface DestinypalDayGongmang {
+interface DestinypalDayGongmang {
   /** 본명 일주에서 산출된 공망 2지지 — ['戌','亥'] 등 (항상 2개). */
   natalBranches: [string, string]
   /** 현재 시점에서 활성화된 공망 지지들 (대운/세운/월운/일진 등과 겹친 것). */
@@ -148,7 +148,7 @@ export interface DestinypalDay {
 }
 
 /** 본명 한 기둥의 천간이 일진 지지에 대해 갖는 12운성. */
-export interface TwelveStageCell {
+interface TwelveStageCell {
   pillar: string // 年 月 日 時
   stem: string // 본명 기둥 천간 (한자)
   branch: string // 일진 지지 (한자)

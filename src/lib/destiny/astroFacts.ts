@@ -68,7 +68,7 @@ export interface AstroFactsInput {
   includeHellenistic?: boolean
 }
 
-export interface PlanetFact {
+interface PlanetFact {
   name: string
   sign: string
   /**
@@ -82,7 +82,7 @@ export interface PlanetFact {
   dignity: string
 }
 
-export interface AspectFact {
+interface AspectFact {
   from: string
   to: string
   type: string

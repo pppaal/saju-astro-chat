@@ -274,7 +274,7 @@ ${openingInstructionEn}`
   return { systemPrompt, userPrompt }
 }
 
-export interface FallbackPayloadCard {
+interface FallbackPayloadCard {
   position: string
   interpretation: string
 }

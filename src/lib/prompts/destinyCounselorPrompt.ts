@@ -18,7 +18,7 @@ import { koStructuralLabels } from '@/lib/llm/koStructuralLabels'
 export type PromptLang = 'ko' | 'en'
 
 /** A chunk of prompt text in both languages. Edit `ko` → its `en` sits right beside it. */
-export type Bilingual = { ko: string; en: string }
+type Bilingual = { ko: string; en: string }
 
 const bi = (ko: string, en: string): Bilingual => ({ ko, en })
 

@@ -12,7 +12,7 @@ const LEGACY_CACHE_KEY = 'destinyChartData' // 레거시 호환
 const CACHE_DURATION = 3600000 // 1 hour in milliseconds
 const MAX_CACHE_ENTRIES = 10 // 최대 캐시 항목 수
 
-export interface ChartCacheData {
+interface ChartCacheData {
   saju?: Record<string, unknown>
   astro?: Record<string, unknown>
   advancedAstro?: Record<string, unknown>

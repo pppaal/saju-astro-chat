@@ -26,12 +26,12 @@ export interface CompatPersonSeed {
 }
 
 /** formatSajuSynastry 가 요구하는 1개 기둥 형태. */
-export interface SynastryPillar {
+interface SynastryPillar {
   stem: string
   branch: string
 }
 
-export interface PersonCompatSajuFacts {
+interface PersonCompatSajuFacts {
   /** 운명 상담사와 공유하는 표준 사주 facts (일간/오행/대운 등 풀세트). */
   base: SajuFacts
   /** [년·월·일·시] 4기둥 평면 — formatSajuSynastry input 그대로 매핑. 시간 미상이면 3기둥. */

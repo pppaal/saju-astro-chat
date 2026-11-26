@@ -41,14 +41,14 @@ const READ: Record<string, { ko: string; ro: string }> = {
   癸: { ko: '계', ro: 'gye' },
 }
 
-export type ElementRelation =
+type ElementRelation =
   | 'same' // 비화 — 같은 오행
   | 'aGeneratesB' // A 가 B 를 생
   | 'bGeneratesA'
   | 'aControlsB' // A 가 B 를 극
   | 'bControlsA'
 
-export interface IlganSide {
+interface IlganSide {
   han: string
   ko: string
   ro: string

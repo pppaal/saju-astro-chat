@@ -9,7 +9,7 @@
 // 변형을 골라 같은 사람·같은 날 → 같은 후크. Co-Star 식 직설을 노리되 운명을
 // 단정하지 않는 톤(권유/관찰)으로만 쓴다.
 
-export type ShareTone = 'positive' | 'mixed' | 'caution'
+type ShareTone = 'positive' | 'mixed' | 'caution'
 
 export interface DayHookInput {
   tone: ShareTone
@@ -602,7 +602,7 @@ export function dayShareHook(input: DayHookInput): ShareHook {
   return input.ko ? v.ko : v.en
 }
 
-export type MonthTone = 'bright' | 'careful' | 'mixed' | 'steady'
+type MonthTone = 'bright' | 'careful' | 'mixed' | 'steady'
 
 export interface MonthHookInput {
   tone: MonthTone

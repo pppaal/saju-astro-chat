@@ -36,7 +36,7 @@ import { lifecycleEventDef, type AstroLifecycleEventKind } from '../lifecycle/as
 export type LadderScale = 'decadal' | 'yearly' | 'monthly' | 'daily'
 export type Lang = 'ko' | 'en'
 
-export interface EvidenceChip {
+interface EvidenceChip {
   /** 짧은 용어 라벨 — '정재', '금성 △ 금성' 등. */
   text: string
   source: 'saju' | 'astro'
@@ -49,7 +49,7 @@ export interface LadderRange {
 }
 
 /** 사주 칸 — 십신 기둥(또는 십신이 없을 때 그 층 사주 지배신호의 짧은 라벨). */
-export interface RungSaju {
+interface RungSaju {
   ko: string
   en: string
   /** 십신 한자(正財). 십신이 아니면 ''. */
@@ -57,7 +57,7 @@ export interface RungSaju {
 }
 
 /** ZR L1 챕터 하나 — 영혼(spirit)·운명(fortune) 랏. */
-export interface RungLot {
+interface RungLot {
   lot: 'spirit' | 'fortune'
   /** 챕터 별자리 — 'Taurus'. */
   sign: string
@@ -69,7 +69,7 @@ export interface RungLot {
 }
 
 /** 행성 회귀 마디(라이프사이클) — '첫 토성 회귀'. */
-export interface RungEvent {
+interface RungEvent {
   /** 마디 kind — 'saturn_return_1'. */
   kind: string
   planet?: string

@@ -6,7 +6,7 @@ import {
   dignityTiers,
   dignityScore,
 } from '@/lib/astrology/foundation/dignities'
-import type { Chart, PlanetBase } from '@/lib/astrology/foundation/types'
+import type { Chart } from '@/lib/astrology/foundation/types'
 import type {
   ActiveSignal,
   ExtractorContext,
@@ -479,4 +479,3 @@ function planetLayer(planet: string): SignalLayer {
 export default astroDignityExtractor
 
 // Re-export type for callers that want to inspect natal planets list
-export type { PlanetBase }

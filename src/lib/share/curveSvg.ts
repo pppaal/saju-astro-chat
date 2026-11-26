@@ -12,7 +12,7 @@
 //
 // 순수·결정론: 같은 입력 → 같은 문자열. 클록·랜덤 없음.
 
-export interface CurveTheme {
+interface CurveTheme {
   /** 곡선 선 색. */
   stroke: string
   /** 면적 그라데이션 상단 색(하단은 투명). */
@@ -142,7 +142,7 @@ export function curveSvgDataUri(svg: string): string {
 // 못 그리므로 곡선과 똑같이 data-URI <img> 로 박고, 라이트 페이지(/r)는 그대로
 // <img> 로 쓴다. 필터(글로우)는 satori 비호환이라 그라데이션 stroke 만 쓴다.
 
-export interface GaugeTheme {
+interface GaugeTheme {
   /** 배경 트랙(안 채워진 부분) 색. */
   track: string
   /** 진행 호 그라데이션 — 시작(상단)→중간→끝. */

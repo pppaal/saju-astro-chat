@@ -155,7 +155,7 @@ const STRENGTH_FLAVOR: Record<StrengthState, BiLabel> = {
 // STEM_ELEMENT_KEY(saju/constants)를 import 하면 constants 의 모듈 최상위 표(지장간·
 // 합충형해)까지 함께 실려 두 번들이 약 4KB 커진다(E17 측정). 값은
 // tests/lib/saju/tableSsot.consistency.test.ts 가 정본과 같게 잠근다.
-export type DayElement = 'wood' | 'fire' | 'earth' | 'metal' | 'water'
+type DayElement = 'wood' | 'fire' | 'earth' | 'metal' | 'water'
 const STEM_ELEMENT: Record<string, DayElement> = {
   甲: 'wood',
   乙: 'wood',

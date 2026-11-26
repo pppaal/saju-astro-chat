@@ -63,7 +63,7 @@ const BRANCH_READ: Record<string, { ko: string; ro: string; animalKo: string; an
 /** 오행 한글 → 영문('Wood'). 정본 ELEMENT_KO_TO_EN(constants) 재노출 — 표 복사 금지. */
 export const ELEMENT_EN: Record<string, string> = ELEMENT_KO_TO_EN
 
-export interface IljuRelations {
+interface IljuRelations {
   /** 육합 — 일지와 짝을 이루는 지지(끌림). */
   yukhap: string | null
   /** 충 — 정면으로 부딪히는 지지. */

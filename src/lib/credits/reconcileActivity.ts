@@ -21,13 +21,13 @@
 
 import { prisma } from '@/lib/db/prisma'
 
-export type ChargeActivityType =
+type ChargeActivityType =
   | 'counselor_session'
   | 'compat_session'
   | 'tarot_reading'
   | 'tarot_followup'
 
-export interface OrphanedCharge {
+interface OrphanedCharge {
   transactionId: string
   userId: string
   createdAt: Date

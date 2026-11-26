@@ -5,7 +5,7 @@
 
 import s from './SegSwitch.module.css'
 
-export interface SegOption<V extends string> {
+interface SegOption<V extends string> {
   value: V
   label: string
 }

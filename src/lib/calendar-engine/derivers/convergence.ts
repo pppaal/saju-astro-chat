@@ -191,7 +191,7 @@ function pickToneChips(cands: ChipCand[], netPol: number): string[] {
     .map((c) => c.name)
 }
 
-export interface ConvergenceDay {
+interface ConvergenceDay {
   date: string // YYYY-MM-DD
   score: number
   astro: string[] // 그날 무거운 점성 이벤트

@@ -21,7 +21,7 @@ import { formatCityForDropdown } from '@/lib/cities/formatter'
  * 까지 넘겨, 좌표를 저장하는 폼(지인·궁합)도 그대로 동작한다.
  */
 
-export type BirthGender = 'male' | 'female' | ''
+type BirthGender = 'male' | 'female' | ''
 
 export interface BirthFieldsClasses {
   field?: string

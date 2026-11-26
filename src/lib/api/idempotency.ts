@@ -157,8 +157,6 @@ export function createIdempotencyStore(routeName: string) {
   return { keyFor, claim, release }
 }
 
-export type IdempotencyStore = ReturnType<typeof createIdempotencyStore>
-
 /**
  * 멱등 키에 섞을 짧은 content discriminator(keyFor 의 contentTag 인자용).
  * 같은 x-idempotency-key 를 서로 *다른* 내용으로 재사용해 첫 차감 이후 공짜로
@@ -306,5 +304,3 @@ export function createDrawNonceStore(routeName: string) {
 
   return { issue, consume, release }
 }
-
-export type DrawNonceStore = ReturnType<typeof createDrawNonceStore>

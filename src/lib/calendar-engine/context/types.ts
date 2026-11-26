@@ -5,7 +5,7 @@ import type {
   PlanetBase,
   ZodiacKo,
 } from '@/lib/astrology/foundation/types'
-import type { ZRPeriod, ZRStartLot } from '@/lib/astrology/foundation/zodiacalReleasing'
+import type { ZRPeriod } from '@/lib/astrology/foundation/zodiacalReleasing'
 import type { DignityTiers } from '@/lib/astrology/foundation/dignities'
 import type { ArabicLot } from '@/lib/astrology/foundation/arabicParts'
 import type { AlmutenFigurisResult } from '@/lib/astrology/foundation/almutenFiguris'
@@ -83,7 +83,6 @@ export interface NatalArabicLot extends ArabicLot {
 }
 
 // Re-export so consumers can import from one place.
-export type { AspectHit, ZRPeriod, ZRStartLot, DignityTiers, ArabicLot, AlmutenFigurisResult }
 
 /**
  * 본명 컨텍스트 — 사용자별로 1회 계산 후 캐시.
@@ -95,7 +94,7 @@ export interface NatalContext {
   astro: NatalAstroContext
 }
 
-export interface NatalSajuContext {
+interface NatalSajuContext {
   /**
    * 본명 기둥. 출생시각 미상이면 time 이 없다(삼주, CONVENTIONS §5) — 시주 의존
    * 추출기는 time 이 없으면 그 기둥을 건너뛴다. 정오 앵커 시주는 싣지 않는다.
@@ -150,7 +149,7 @@ export interface NatalSajuContext {
   dayJijanggan: NatalDayJijanggan
 }
 
-export interface NatalAstroContext {
+interface NatalAstroContext {
   chart: Chart
   /** 출생시각/출생지 미상 — true 면 소비자(adapter)가 ASC/MC/하우스(자정·서울 폴백)를
    *  내보내지 않아야 한다. chart(_chart)는 항상 폴백 값이 차 있어 별도 플래그로 가린다. */

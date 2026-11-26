@@ -30,7 +30,7 @@
 import type { Polarity, SignalLayer } from '../types'
 
 /** 사주 측의 매칭 키 — 십신 또는 신살명. */
-export type SajuMatchKey =
+type SajuMatchKey =
   | '비견'
   | '겁재'
   | '식신'
@@ -59,7 +59,7 @@ export type AstroMatchKey =
   | 'Neptune'
   | 'Pluto'
 
-export type CrossMappingGrade = 'A' | 'B' | 'C'
+type CrossMappingGrade = 'A' | 'B' | 'C'
 
 export interface CrossMapping {
   /** 매칭 키 (사주 측). 십신 또는 신살명. */

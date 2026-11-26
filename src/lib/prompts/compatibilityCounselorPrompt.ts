@@ -23,7 +23,7 @@ export type PromptLang = 'ko' | 'en'
 const ALL_SOURCES: DestinySources = { saju: true, astro: true }
 
 /** A chunk of prompt text in both languages. Edit `ko` → its `en` sits right beside it. */
-export type Bilingual = { ko: string; en: string }
+type Bilingual = { ko: string; en: string }
 
 const bi = (ko: string, en: string): Bilingual => ({ ko, en })
 

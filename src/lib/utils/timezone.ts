@@ -25,5 +25,4 @@ export {
   getDateInTimezone,
   currentYearInTimezone,
   currentMonthInTimezone,
-  type TzNowComponents,
 } from '@/lib/datetime/timezone'

@@ -15,7 +15,7 @@ import { getStemElement, getBranchElement } from '@/lib/saju/stemBranchUtils'
 import { FIVE_ELEMENT_RELATIONS } from '@/lib/saju/constants'
 import { favorOf as toneFavorOf, type YongsinLike } from './cycleTone'
 
-export type SibsinCategory = '비겁' | '식상' | '재성' | '관성' | '인성'
+type SibsinCategory = '비겁' | '식상' | '재성' | '관성' | '인성'
 export type LifePatternKey =
   | 'late-bloomer' // 대기만성
   | 'early-peak' // 초년발복 → 후반 하강
@@ -26,7 +26,7 @@ export type LifePatternKey =
   | 'hard' // 전반적 고전
   | 'undulating' // 굴곡형
 
-export interface DaeunFavor {
+interface DaeunFavor {
   startAge: number
   gz: string
   stemCat: SibsinCategory
@@ -61,7 +61,7 @@ export interface LifePattern {
   daeun: DaeunFavor[]
 }
 
-export interface LifePatternPeak {
+interface LifePatternPeak {
   age: number
   year: number
   past: boolean

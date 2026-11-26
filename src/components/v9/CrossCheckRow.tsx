@@ -27,7 +27,7 @@ import {
 } from './v9Copy'
 import s from './CrossCheckRow.module.css'
 
-export interface SajuCell {
+interface SajuCell {
   /** 십신·신살 한자(正官) — 라벨 옆. */
   hanja?: string
   /** 값(Direct Officer / 정관). */
@@ -38,13 +38,13 @@ export interface SajuCell {
   sub?: string
 }
 
-export interface StarPoint {
+interface StarPoint {
   glyph?: PlanetGlyph
   /** 'Sun 0°38′ Aries' / '태양 양자리 0°38′'. */
   text: string
 }
 
-export interface StarsCell {
+interface StarsCell {
   glyph?: PlanetGlyph
   text: string
   /** mono 보조 줄(SATURN RETURN · 9° ARIES · 2026). points 가 있으면 그것을 대신 그린다. */
@@ -83,7 +83,7 @@ interface BaseProps {
   className?: string
 }
 
-export interface TimingRowProps extends BaseProps {
+interface TimingRowProps extends BaseProps {
   kind: 'timing'
   saju: SajuCell
   stars: StarsCell
@@ -93,7 +93,7 @@ export interface TimingRowProps extends BaseProps {
   note?: string
 }
 
-export interface TraitRowProps extends BaseProps {
+interface TraitRowProps extends BaseProps {
   kind: 'trait'
   /** 축 이름(Identity / 정체성). */
   axis: string

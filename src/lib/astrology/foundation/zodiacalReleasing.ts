@@ -64,7 +64,7 @@ function periodYearsForSign(sign: ZodiacKo): number {
 }
 
 /** ZR period level. L1=year, L2=month, L3=2.5-day unit, L4=5-hour unit. */
-export type ZRLevel = 1 | 2 | 3 | 4
+type ZRLevel = 1 | 2 | 3 | 4
 
 /** ZR period 시작점 — Spirit (영혼·진로) 또는 Fortune (물질·몸). */
 export type ZRStartLot = 'Spirit' | 'Fortune'

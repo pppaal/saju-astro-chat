@@ -25,7 +25,7 @@ import { strengthClassOf, type StrengthBand } from '@/lib/saju/strengthScore'
 import { ELEMENT_KO, ELEMENT_EN, SIGN_KO, geokgukStatusLine, rootLine, rootLineEn } from './shared'
 import { GEOKGUK_NAME_EN, geokgukStatusLineEn } from './dayTierEnMaps'
 
-export interface DestinypalUserElements {
+interface DestinypalUserElements {
   목: number
   화: number
   토: number
@@ -33,7 +33,7 @@ export interface DestinypalUserElements {
   수: number
 }
 
-export interface DestinypalUserAstro {
+interface DestinypalUserAstro {
   sun?: string // 한글: "물병자리"
   asc?: string
   mc?: string

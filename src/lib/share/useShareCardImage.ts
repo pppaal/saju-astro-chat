@@ -22,7 +22,7 @@ import * as htmlToImage from 'html-to-image'
 import { logger } from '@/lib/logger'
 import { isShareAbort } from './useShareLink'
 
-export type ShareCardImagePhase = 'idle' | 'rendering' | 'preview'
+type ShareCardImagePhase = 'idle' | 'rendering' | 'preview'
 
 export interface UseShareCardImageOptions {
   /** 캡처 크기(px). height 를 생략하면 정사각. */

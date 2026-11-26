@@ -32,7 +32,7 @@ export function daysToDaeunAge(days: number): number {
 }
 
 /** 첫 대운 전 상태 — 대운이 아직 시작하지 않았고 startsAtAge(만 나이)에 시작한다. */
-export interface PreDaeun {
+interface PreDaeun {
   startsAtAge: number
 }
 

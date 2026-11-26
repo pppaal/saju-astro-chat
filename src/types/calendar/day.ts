@@ -20,7 +20,7 @@ import type { DestinyCalendarCell, ReasonAstroDetail } from './month'
 // 백엔드 evaluateGeokgukStatus() 결과 그대로 통과 + 한 줄 설명.
 // ============================================================================
 
-export interface DestinyGeokgukStatus {
+interface DestinyGeokgukStatus {
   /** 격국명 — '정인격'. */
   name: string
   /** 영문 라벨 — 'Jeong-in (Direct Resource)'. */
@@ -39,7 +39,7 @@ export interface DestinyGeokgukStatus {
 // 시기 지지가 본명 공망 지지에 닿을 때 활성.
 // ============================================================================
 
-export interface DestinyGongmang {
+interface DestinyGongmang {
   /** 본명 일주에서 산출된 공망 2지지 — ['戌','亥'] 등. */
   natalBranches: [string, string]
   /** 현재 시점에서 활성화된 공망 지지들 (대운/세운/월운/일진과 겹친 것). */
@@ -57,7 +57,7 @@ export interface DestinyGongmang {
 // 백엔드 saju-applied-pattern extractor 결과.
 // ============================================================================
 
-export type AppliedPatternId =
+type AppliedPatternId =
   | 'sanggwan-gyeon-gwan' // 상관견관 −2 / −3
   | 'siksin-jesal' // 식신제살 +2
   | 'gwan-in-sangsaeng' // 관인상생 +2
@@ -67,7 +67,7 @@ export type AppliedPatternId =
   | 'gwan-sal-honjap' // 관살혼잡 −1
   | 'hyo-sik-tal' // 효식탈 −2
 
-export interface DestinyAppliedPattern {
+interface DestinyAppliedPattern {
   /** 패턴 ID — 추출기 패턴 id('jae-saeng-gwan'), 신호 id 의 날짜 꼬리 없이. */
   id: AppliedPatternId | string
   /** 한국어 라벨 — '상관견관'. */
@@ -90,7 +90,7 @@ export interface DestinyAppliedPattern {
 // 백엔드 cross-activation extractor 결과.
 // ============================================================================
 
-export interface DestinyCrossActivation {
+interface DestinyCrossActivation {
   id: string
   /** 사주측 신호 라벨(표시·로케일). */
   sajuSide: string
@@ -124,7 +124,7 @@ export interface DestinyCrossActivation {
 // 본명 일주 (Iljun) 정보 — destinypal Day 카드 헤더용.
 // ============================================================================
 
-export interface DestinyIljinHeader {
+interface DestinyIljinHeader {
   /** ISO 'YYYY-MM-DD'. */
   date: string
   /** 한국어 — '2026년 6월 15일'. */

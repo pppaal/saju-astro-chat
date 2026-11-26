@@ -70,7 +70,7 @@ export type DailyRelation =
   | 'bihwa' // 비화 — 같은 오행
 
 /** 1(조심) ~ 5(아주 좋음) */
-export type DailyGrade = 1 | 2 | 3 | 4 | 5
+type DailyGrade = 1 | 2 | 3 | 4 | 5
 
 interface LocalizedText {
   ko: string

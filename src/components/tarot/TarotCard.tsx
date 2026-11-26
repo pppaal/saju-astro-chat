@@ -9,7 +9,7 @@ import styles from './TarotCard.module.css'
 // - Destiny Map (saju + astrology + tarot + Jung psychology)
 // - Any other feature that needs tarot card display
 
-export interface CardInsight {
+interface CardInsight {
   interpretation?: string
   spiritAnimal?: {
     name: string
@@ -36,7 +36,7 @@ export interface CardInsight {
   }
 }
 
-export interface TarotCardProps {
+interface TarotCardProps {
   // Basic card info
   name: string
   image: string

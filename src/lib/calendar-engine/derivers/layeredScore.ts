@@ -17,7 +17,7 @@ import type { CalendarCell, ActiveSignal, SignalLayer } from '../types'
 import { computeBaseRates, signalImportance, type BaseRateTable } from './surprise'
 import { scoreToGrade, type CalendarGrade } from './grade'
 
-export interface LayerCellScore {
+interface LayerCellScore {
   score: number // 0~100
   grade: CalendarGrade
   signed: number // 원 signed-surprise (디버그)

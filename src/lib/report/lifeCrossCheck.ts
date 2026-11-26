@@ -127,7 +127,7 @@ export interface LifeStarPoint {
   min?: number
 }
 
-export interface LifeCrossRow {
+interface LifeCrossRow {
   key: LifeCrossKey
   /** 축 이름('Identity' / '정체성') — 리포트 행의 category. */
   axis: string

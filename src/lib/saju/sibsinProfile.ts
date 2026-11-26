@@ -39,7 +39,7 @@ export const SIBSIN_ORDER = [
   '정인',
 ] as const
 
-export type SibsinName = (typeof SIBSIN_ORDER)[number]
+type SibsinName = (typeof SIBSIN_ORDER)[number]
 
 /** 십성 → 슬러그·영문명·계열. */
 const META: Record<SibsinName, { ro: string; en: string; groupKo: string; groupEn: string }> = {

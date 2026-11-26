@@ -41,16 +41,12 @@ const AstrologyBirthDataSchema = z.object({
   timeZone: timezoneSchema,
 })
 
-export type AstrologyBirthData = z.infer<typeof AstrologyBirthDataSchema>
-
 /**
  * Schema for advanced astrology endpoints (asteroids, fixed stars, etc.)
  */
 const AdvancedAstrologyRequestSchema = AstrologyBirthDataSchema.extend({
   includeAspects: z.boolean().optional().default(true),
 })
-
-export type AdvancedAstrologyRequest = z.infer<typeof AdvancedAstrologyRequestSchema>
 
 /**
  * Schema for transit calculations
@@ -59,8 +55,6 @@ const TransitRequestSchema = AstrologyBirthDataSchema.extend({
   transitDate: futureOkCalendarDateSchema,
   transitTime: strictTimeSchema.optional(),
 })
-
-export type TransitRequest = z.infer<typeof TransitRequestSchema>
 
 /**
  * Helper function to validate astrology request with proper error formatting

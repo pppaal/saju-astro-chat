@@ -24,8 +24,8 @@ export const SIBSIN_TYPES = [
   '정인',
 ] as const
 
-export type SibsinType = (typeof SIBSIN_TYPES)[number]
-export type SibsinCategory = '비겁' | '식상' | '재성' | '관성' | '인성'
+type SibsinType = (typeof SIBSIN_TYPES)[number]
+type SibsinCategory = '비겁' | '식상' | '재성' | '관성' | '인성'
 
 interface Pillar {
   stem: string

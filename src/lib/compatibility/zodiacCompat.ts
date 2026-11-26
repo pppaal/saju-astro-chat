@@ -25,7 +25,7 @@ import {
 import { josa } from '@/lib/utils/josa'
 import { BRANCH_ELEMENT_KEY } from '@/lib/saju/constants'
 
-export interface LocalizedText {
+interface LocalizedText {
   ko: string
   en: string
 }

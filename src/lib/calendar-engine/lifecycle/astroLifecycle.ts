@@ -214,7 +214,7 @@ export function firstSentence(text: string): string {
   return m ? m[1] : t
 }
 
-export interface LifecycleEntry {
+interface LifecycleEntry {
   /** Milestone kind. */
   event: AstroLifecycleEventKind
   /** Locale-resolved label. */

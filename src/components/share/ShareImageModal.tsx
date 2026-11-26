@@ -12,7 +12,7 @@ import { Check, Download, Link2, Loader2, Share2, X } from 'lucide-react'
 import type { ShareLinkPhase } from '@/lib/share/useShareLink'
 import styles from './ShareImageModal.module.css'
 
-export interface ShareImageModalLink {
+interface ShareImageModalLink {
   phase: ShareLinkPhase
   error: string | null
   onShare: () => void

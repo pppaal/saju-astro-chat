@@ -30,7 +30,7 @@ export interface CompatAstroPersonInput {
   timeUnknown?: boolean
 }
 
-export interface PersonCompatAstroFacts {
+interface PersonCompatAstroFacts {
   /** formatAstroSynastry / formatCompositeChart 가 받는 chart 인스턴스. */
   chart: Chart
   /** 위·경도 — formatAstroSynastry 가 같이 받음 (house overlay 계산). */

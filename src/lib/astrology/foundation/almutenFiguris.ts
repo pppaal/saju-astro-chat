@@ -42,7 +42,7 @@ export interface AlmutenFigurisInput {
   fortune?: { longitude: number }
 }
 
-export interface AlmutenPointBreakdown {
+interface AlmutenPointBreakdown {
   point: 'Sun' | 'Moon' | 'ASC' | 'Fortune'
   sign: string
   degree: number // within-sign 0..30

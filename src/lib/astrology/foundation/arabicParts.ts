@@ -33,14 +33,7 @@ const ZODIAC_ORDER: ZodiacKo[] = [
   'Pisces',
 ]
 
-export type ArabicLotName =
-  | 'Fortune'
-  | 'Spirit'
-  | 'Eros'
-  | 'Necessity'
-  | 'Courage'
-  | 'Victory'
-  | 'Nemesis'
+type ArabicLotName = 'Fortune' | 'Spirit' | 'Eros' | 'Necessity' | 'Courage' | 'Victory' | 'Nemesis'
 
 export interface ArabicLot {
   name: ArabicLotName

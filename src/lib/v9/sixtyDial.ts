@@ -77,11 +77,9 @@ function estimateWidth(text: string, fontSize: number, letterSpacing: number): n
 
 // ─── 모델 ───
 
-export type DialAnchor = 'start' | 'middle' | 'end'
+type DialAnchor = 'start' | 'middle' | 'end'
 
-export type { DialLine }
-
-export interface DialTick extends DialLine {
+interface DialTick extends DialLine {
   /** 60갑자 색인. */
   n: number
   /** 甲년(10년마다) — 긴 눈금. */

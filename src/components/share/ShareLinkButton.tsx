@@ -17,7 +17,7 @@ import { Check, Link as LinkIcon, Loader2, Share2 } from 'lucide-react'
 import { useShareLink, type UseShareLinkOptions } from '@/lib/share/useShareLink'
 import styles from './ShareLinkButton.module.css'
 
-export type ShareLinkButtonVariant = 'pill' | 'line' | 'row'
+type ShareLinkButtonVariant = 'pill' | 'line' | 'row'
 
 export interface ShareLinkButtonProps {
   /** 링크 발급·공유 설정 — useShareLink 옵션 그대로. */

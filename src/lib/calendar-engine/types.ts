@@ -1,8 +1,8 @@
 import type { FiveElement, SibsinKind } from '@/lib/saju/types'
 
-export type SignalSource = 'saju' | 'astro'
+type SignalSource = 'saju' | 'astro'
 
-export type SajuSignalKind =
+type SajuSignalKind =
   | 'shinsal' // 신살 일진 활성
   | 'hyeongchung' // 형충회합 (현재 일주 vs 본명)
   | 'pillar-sibsin' // 대운/세운/월운/일주의 십신 발현
@@ -13,7 +13,7 @@ export type SajuSignalKind =
   | 'gongmang' // 본명 일주 공망 2지지가 시기 지지(대운/세운/월운/일진)에 닿을 때 활성
   | 'applied-pattern' // 응용 격국 동적 매칭 (상관견관·식신제살·관인상생 등 본명+시기 페어)
 
-export type AstroSignalKind =
+type AstroSignalKind =
   | 'transit' // 트랜짓 어스펙트 (본명 → 트랜짓 행성)
   | 'natal-dignity' // 본명 5-tier Almuten 스냅샷 — 정적 본명(STATIC_NATAL_KINDS), 점수 제외
   | 'eclipse' // 일식·월식 임팩트
@@ -38,7 +38,7 @@ export type AstroSignalKind =
   | 'draconic' // 드라코닉 차트 (영혼 결) 트랜짓 컨택
   | 'harmonic' // 하모닉 차트 (특정 결 패턴 — 4/5/7/9) 트랜짓 컨택
 
-export type CrossSignalKind = 'cross-activation' // 사주-점성 동시 활성 페어 (A·B등급 매핑 사전 기반 의미 신호)
+type CrossSignalKind = 'cross-activation' // 사주-점성 동시 활성 페어 (A·B등급 매핑 사전 기반 의미 신호)
 
 export type SignalKind = SajuSignalKind | AstroSignalKind | CrossSignalKind
 

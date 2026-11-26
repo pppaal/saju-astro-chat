@@ -323,7 +323,7 @@ export interface TodaySectionVM {
 }
 
 /** 하루 공유 링크 재료 — /api/calendar/day/share 본문 그대로(점수·요약·곡선 숫자만). */
-export interface DayShareVM {
+interface DayShareVM {
   /** 'November 19 2026' / '11월 19일 목'. */
   dateLabel: string
   score: number
@@ -396,7 +396,7 @@ function retimeRow(row: TimingRowVM, lang: Lang, isToday: boolean): TimingRowVM 
 
 // ─── 시진 줄(결정 19) — 시진 창과 그 한가운데 상승궁을 나란히. 교차가 아니다(배지·교차 톤 없음). ───
 
-export interface HourRowVM {
+interface HourRowVM {
   /** 실제 시진 창 '07:15–09:15'(엔진 창 그대로 — 평균태양시, G5). */
   window: string
   /** 시진 이름 — 'Rabbit hour' / '묘시'. */

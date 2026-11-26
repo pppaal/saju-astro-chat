@@ -31,13 +31,13 @@ import {
   pick,
   type Lang,
 } from './v9Copy'
-import type { CardPillar, SajuCardData } from '@/lib/card/types'
+import type { SajuCardData } from '@/lib/card/types'
 import s from './SajuCard.module.css'
 
 // 데이터 모양은 lib/card/types(엔진 빌더 buildSajuCardData 와 공용) — 여기서 다시 내보낸다.
-export type { CardPillar, SajuCardData }
+export type { SajuCardData }
 
-export type SajuCardVariant = 'full' | 'mini' | 'export'
+type SajuCardVariant = 'full' | 'mini' | 'export'
 
 interface SajuCardProps {
   data: SajuCardData

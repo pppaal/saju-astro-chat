@@ -175,7 +175,7 @@ interface AnyCtx {
 
 // 격국 신뢰도 메타 — reportTypes.ReportData 에는 없는 보조 정보라 어댑터에서
 // 별도 채널로 흘려 §02 카드가 fallback/medium 일 때 헤딩을 약화하도록 한다.
-export interface ReportGeokgukMeta {
+interface ReportGeokgukMeta {
   confidence?: 'high' | 'medium' | 'low'
   fallback: boolean
 }

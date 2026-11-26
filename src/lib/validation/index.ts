@@ -23,7 +23,6 @@ export {
   validateProfile,
   validateMessages,
   // Types
-  type BirthInfoValidation,
 } from './patterns'
 
 // Zod-based request schemas live in @/lib/api/validator and @/lib/api/zodValidation

@@ -32,9 +32,3 @@ export function buildBirthInstant(dateStr: string, timeStr: string, timezone: st
     return new Date(Number.NaN)
   }
 }
-
-/**
- * Date 가 이미 UTC instant 라는 계약을 명시하는 type alias.
- * 호출자가 이 타입으로 받으면 "재해석 금지" 의도가 시그니처에 드러남.
- */
-export type BirthInstant = Date

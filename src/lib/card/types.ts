@@ -13,7 +13,7 @@ import type { CrossToneKey } from '@/lib/report/toneLabel'
 export type ElementKey = SajuElement
 
 /** 서양 4원소 키 — 카드 별 쪽(태양 별자리의 원소). 리포트 '정체성' 행의 별 칸과 같은 이름. */
-export type AstroElementKey = AstroElement
+type AstroElementKey = AstroElement
 
 export interface CardPillar {
   /** 천간 한자. */
@@ -56,7 +56,7 @@ export interface SajuCardData {
 }
 
 /** 축 행의 한 칸 — 값('Water')과 둘째 줄('fluid and permeating'). */
-export interface CardTraitCell {
+interface CardTraitCell {
   text: string
   w?: string
 }

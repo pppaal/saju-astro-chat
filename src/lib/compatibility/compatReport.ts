@@ -20,7 +20,7 @@ import {
   type SpouseStarGender,
 } from './sajuSynastryFormatter'
 
-export interface CompatBandScores {
+interface CompatBandScores {
   eastern_hap?: number
   eastern_chung?: number
   elements_match?: number

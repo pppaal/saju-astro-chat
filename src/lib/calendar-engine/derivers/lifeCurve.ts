@@ -98,7 +98,7 @@ const ASTRO_POLARITY: Record<AstroLifecycleEventKind, number> = {
 }
 const ASTRO_SIGMA = 1.8 // 마디 벨커브 폭(년)
 
-export interface LifeCurvePoint {
+interface LifeCurvePoint {
   year: number
   age: number
   saju: number // 정규화 전 raw 사주 점수
@@ -110,7 +110,7 @@ export interface LifeCurvePoint {
   macro: number // 넓은 평활(대운·외행성 위주 — 거시 굴곡, 마디 추출용)
   agree: boolean // 사주·점성 부호 일치
 }
-export interface LifeCurveExtremum {
+interface LifeCurveExtremum {
   year: number
   age: number
   kind: 'peak' | 'trough'

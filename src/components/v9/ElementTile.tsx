@@ -8,7 +8,7 @@
 import type { ElementKey } from './v9Copy'
 import s from './ElementTile.module.css'
 
-export type TileSize = 'xs' | 'sm' | 'md' | 'card' | 'lg'
+type TileSize = 'xs' | 'sm' | 'md' | 'card' | 'lg'
 
 interface ElementTileProps {
   /** 한자 한 글자(壬 · 戌 …). hidden 이면 무시. */

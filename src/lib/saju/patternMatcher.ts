@@ -69,16 +69,6 @@ export interface PatternAnalysis {
   compatiblePatterns: string[] // 상성이 좋은 패턴 ID
 }
 
-/** 유명인 프로필 */
-export interface CelebrityProfile {
-  name: string
-  birthYear: number
-  pillars: Partial<SajuPillars>
-  occupation: string
-  description: string
-  keyPatterns: string[]
-}
-
 // ============================================================
 // 패턴 정의
 // ============================================================
