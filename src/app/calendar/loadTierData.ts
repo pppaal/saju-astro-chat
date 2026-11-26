@@ -94,6 +94,30 @@ export interface BirthOverride {
 type SP = Record<string, string | string[] | undefined>
 const one = (v: string | string[] | undefined): string | undefined => (Array.isArray(v) ? v[0] : v)
 
+/** 출생 쿼리(override) 키 — 인생 흐름 → 달력으로 같은 사람을 넘길 때와 색인 판정에 같이 쓴다. */
+export const BIRTH_QUERY_KEYS = [
+  'date',
+  'time',
+  'tu',
+  'lat',
+  'lng',
+  'tz',
+  'gender',
+  'place',
+  'name',
+] as const
+
+/**
+ * 출생 쿼리가 하나라도 있는가 — 그런 URL 은 다른 사람의 개인 결과일 수 있어 색인하지 않는다
+ * (generateMetadata 의 robots noindex, canonical 은 맨 경로 그대로 — QA R-CA-9).
+ */
+export function hasBirthQuery(sp: SP): boolean {
+  return BIRTH_QUERY_KEYS.some((k) => {
+    const v = one(sp[k])
+    return typeof v === 'string' && v.trim() !== ''
+  })
+}
+
 /** 빈 문자열은 '없음' — 링크 빌더가 빈 값을 실어도 시각·출생지 미상으로 흐른다. */
 const blankToUndef = (v: unknown) => (typeof v === 'string' && v.trim() === '' ? undefined : v)
 /** 쿼리 좌표 — 빈 값은 없음, 그 밖은 숫자로 바꿔 공용 범위 스키마로(비숫자 → NaN → 거절). */

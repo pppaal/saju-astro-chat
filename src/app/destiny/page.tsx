@@ -7,15 +7,23 @@
    부터는 캘린더가 담당 — 지금 대운 행의 '하루 단위로 보기'가 /calendar 로 건너간다.
    ============================================================ */
 
+import type { Metadata } from 'next'
 import BirthRequiredFallback from '../calendar/birth-required'
 import BirthGate from '@/components/birth/BirthGate'
-import { loadLifetimeData, parseBirthOverride } from '../calendar/loadTierData'
+import {
+  BIRTH_QUERY_KEYS,
+  hasBirthQuery,
+  loadLifetimeData,
+  parseBirthOverride,
+} from '../calendar/loadTierData'
+import { generateLocalizedMetadata, getServerLocale } from '@/components/seo/SEO'
 import { buildLifetimeViewModel } from '@/lib/calendar-view/lifetimeViewModel'
 import { formatBirthStamp } from '@/lib/birth/format'
 import { shareDomain } from '@/lib/share/site'
 import { KO_TO_SAJU_ELEMENT } from '@/lib/saju/elementBridge'
 import { getStemElement } from '@/lib/saju/stemBranchUtils'
 import LifeFlow from './LifeFlow'
+import { LIFE_COPY } from './lifeCopy'
 import { splitRiver } from './sections/LifeHero'
 
 // 서버 컴포넌트 — 세션/쿼리 기반이라 force-dynamic.
@@ -23,8 +31,39 @@ export const dynamic = 'force-dynamic'
 
 type SP = Record<string, string | string[] | undefined>
 
+const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://destinypal.com'
+
+/**
+ * 로캘별 검색 메타 — 'Life Flow | DestinyPal' / '인생 흐름 | DestinyPal'(QA R-CA-9 · triage A4).
+ * 출생 쿼리(?date=…) 보기는 다른 사람의 개인 결과일 수 있어 noindex, canonical 은 맨 경로.
+ */
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<SP>
+}): Promise<Metadata> {
+  const sp = await searchParams
+  const locale = await getServerLocale()
+  const meta = generateLocalizedMetadata(
+    {
+      en: {
+        title: LIFE_COPY.metaTitle.en,
+        description: LIFE_COPY.metaDescription.en,
+        keywords: ['life flow', 'saju 10-year cycle', 'daeun', 'birth chart', 'DestinyPal'],
+      },
+      ko: {
+        title: LIFE_COPY.metaTitle.ko,
+        description: LIFE_COPY.metaDescription.ko,
+        keywords: ['인생 흐름', '대운', '사주', '출생 차트', 'DestinyPal'],
+      },
+      canonicalUrl: `${baseUrl}/destiny`,
+    },
+    locale
+  )
+  return hasBirthQuery(sp) ? { ...meta, robots: { index: false, follow: false } } : meta
+}
+
 /** 캘린더로 넘길 출생 쿼리 — override(?date=…)로 연 사람은 같은 사람으로 캘린더를 연다. */
-const BIRTH_QUERY_KEYS = ['date', 'time', 'tu', 'lat', 'lng', 'tz', 'gender', 'place', 'name']
 
 function calendarHrefFor(sp: SP, override: boolean): string {
   if (!override) return '/calendar'

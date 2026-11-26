@@ -10,7 +10,7 @@ import { ConsentProvider } from '@/contexts/ConsentContext'
 import { ConsentBanner } from '@/components/consent/ConsentBanner'
 
 import { JsonLd } from '@/components/seo/JsonLd'
-import { generateJsonLd } from '@/components/seo/SEO'
+import { generateJsonLd, SITE_DESCRIPTION } from '@/components/seo/SEO'
 import { GoogleAnalytics } from '@/components/analytics/GoogleAnalytics'
 import { MicrosoftClarity } from '@/components/analytics/MicrosoftClarity'
 import { VisitorBeacon } from '@/components/analytics/VisitorBeacon'
@@ -96,8 +96,8 @@ export const metadata: Metadata = {
     default: 'DestinyPal — AI Korean Astrology, Tarot, Compatibility & Fortune Calendar',
     template: '%s | DestinyPal',
   },
-  description:
-    'AI reads your Saju (Four Pillars) and natal astrology together — daily counsel, tarot, compatibility, and a fortune calendar. See the flow and timing when you need to decide.',
+  // 155자 이하, 엔진이 계산한다는 말로(SITE_DESCRIPTION — QA R-CA-9 · triage A5).
+  description: SITE_DESCRIPTION.en,
   keywords: [
     // Core brand
     'DestinyPal',
@@ -161,8 +161,7 @@ export const metadata: Metadata = {
     url: '/',
     siteName: 'DestinyPal',
     title: 'DestinyPal — AI Korean Astrology, Tarot & Fortune Calendar',
-    description:
-      'AI reads your Saju and natal astrology together — daily counsel, tarot, compatibility, and a fortune calendar. See the flow and timing when you need to decide.',
+    description: SITE_DESCRIPTION.en,
     images: [
       {
         url: '/og-card-v2.png',
@@ -175,8 +174,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'DestinyPal — AI Korean Astrology, Tarot & Fortune Calendar',
-    description:
-      'AI reads your Saju and natal astrology together — daily counsel, tarot, compatibility, and a fortune calendar.',
+    description: SITE_DESCRIPTION.en,
     images: ['/og-card-v2.png'],
     creator: '@destinypal',
     site: '@destinypal',
@@ -222,8 +220,8 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   const websiteJsonLd = generateJsonLd({
     type: 'WebSite',
     name: 'DestinyPal',
-    description:
-      'AI가 사주와 점성을 함께 분석해 운세 상담, 타로, 궁합, 캘린더, 리포트를 제공하는 AI 운세 플랫폼.',
+    // 서버 로캘로 고른다 — EN 우선 사이트에 KO 설명만 있던 문제(triage A5).
+    description: SITE_DESCRIPTION[serverLocale === 'ko' ? 'ko' : 'en'],
   })
 
   const organizationJsonLd = generateJsonLd({

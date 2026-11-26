@@ -11,6 +11,14 @@
 import type { Bi } from '@/lib/i18n/bi'
 
 export const CAL_COPY = {
+  // ─── 검색 메타(<title> · description) — 루트 템플릿 '%s | DestinyPal' 이 붙는다. 설명은 155자
+  //     이하, 엔진이 계산한다는 말로(AI 가 사주를 읽는다는 표현 금지 — QA R-CA-9 · triage A4).
+  metaTitle: { ko: '운세 달력', en: 'Fortune Calendar' },
+  metaDescription: {
+    ko: '사주와 출생 차트를 함께 계산해 이달의 좋은 날 · 조심할 날 · 큰 날을 짚어요. 날마다 왜 그런지, 시간대별 흐름까지 보여 줘요.',
+    en: 'Good days, caution days and key days this month, computed from your saju and birth chart together — with the reason behind each day and its best hours.',
+  },
+
   // ─── 상단 바 · 갈래 스위치 ───
   title: { ko: '운세 달력', en: 'Fortune calendar' },
   whoLabel: { ko: '내 출생 정보', en: 'Your birth details' },

@@ -10,6 +10,14 @@
 import type { Bi } from '@/lib/i18n/bi'
 
 export const LIFE_COPY = {
+  // ─── 검색 메타(<title> · description) — 루트 템플릿 '%s | DestinyPal' 이 붙는다. 설명은 155자
+  //     이하, 엔진이 계산한다는 말로(AI 가 사주를 읽는다는 표현 금지 — QA R-CA-9 · triage A4).
+  metaTitle: { ko: '인생 흐름', en: 'Life Flow' },
+  metaDescription: {
+    ko: '엔진이 사주와 출생 차트로 인생의 모양, 10년 대운, 다음 인생 전환을 함께 계산해요. 두 체계가 어디서 맞고 어디서 갈리는지 10년 단위로 보여 줘요.',
+    en: 'Your life shape, 10-year cycles and next life turn, computed from your saju and birth chart together — with where the two systems agree, decade by decade.',
+  },
+
   // ─── 상단 바 · 폴리오 ───
   title: { ko: '인생 흐름', en: 'Life flow' },
   whoLabel: { ko: '내 출생 정보', en: 'Your birth details' },

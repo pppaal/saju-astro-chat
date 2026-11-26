@@ -10,11 +10,14 @@
    아침 푸시 배너만 푸터 아래에 둔다(오너 결정).
    ============================================================ */
 
+import type { Metadata } from 'next'
 import CalendarClient from './CalendarClient'
 import BirthRequiredFallback from './birth-required'
 import BirthGate from '@/components/birth/BirthGate'
 import DailyFortunePushBanner from '@/components/push/DailyFortunePushBanner'
-import { loadTierData, parseBirthOverride } from './loadTierData'
+import { hasBirthQuery, loadTierData, parseBirthOverride } from './loadTierData'
+import { generateLocalizedMetadata, getServerLocale } from '@/components/seo/SEO'
+import { CAL_COPY } from '@/components/calendar/v9/calendarCopy'
 import { buildMonthViewModel } from '@/lib/calendar-view/monthViewModel'
 import { buildDayViewModel } from '@/lib/calendar-view/dayViewModel'
 import { formatBirthStamp } from '@/lib/birth/format'
@@ -27,6 +30,38 @@ import { getStemElement } from '@/lib/saju/stemBranchUtils'
 export const dynamic = 'force-dynamic'
 
 type SP = Record<string, string | string[] | undefined>
+
+const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://destinypal.com'
+
+/**
+ * 로캘별 검색 메타 — 'Fortune Calendar | DestinyPal' / '운세 달력 | DestinyPal'(QA R-CA-9 · triage
+ * A4). 출생 쿼리(?date=…) 보기는 다른 사람의 개인 결과일 수 있어 noindex, canonical 은 맨 경로.
+ */
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<SP>
+}): Promise<Metadata> {
+  const sp = await searchParams
+  const locale = await getServerLocale()
+  const meta = generateLocalizedMetadata(
+    {
+      en: {
+        title: CAL_COPY.metaTitle.en,
+        description: CAL_COPY.metaDescription.en,
+        keywords: ['fortune calendar', 'saju calendar', 'good days', 'astrology', 'DestinyPal'],
+      },
+      ko: {
+        title: CAL_COPY.metaTitle.ko,
+        description: CAL_COPY.metaDescription.ko,
+        keywords: ['운세 달력', '운세 캘린더', '좋은 날', '사주', 'DestinyPal'],
+      },
+      canonicalUrl: `${baseUrl}/calendar`,
+    },
+    locale
+  )
+  return hasBirthQuery(sp) ? { ...meta, robots: { index: false, follow: false } } : meta
+}
 
 export default async function DestinypalPage({ searchParams }: { searchParams: Promise<SP> }) {
   // ?date=&time=&lat=&lng=&tz=&gender= 가 있으면 로그인 없이 그 사람 기준으로.
