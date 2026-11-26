@@ -11,7 +11,12 @@
  *   getTwelveStage('辛','子')=장생,  ('辛','申')=왕지(해석 테이블 밖→stage 만 노출)
  */
 import { describe, it, expect } from 'vitest'
-import { deriveLifetimeFlow } from '@/lib/calendar-engine/derivers/lifetimeFlow'
+import {
+  deriveLifetimeFlow,
+  LIFE_SHINSAL_SHORT_EN,
+  lifeShinsalLineEn,
+} from '@/lib/calendar-engine/derivers/lifetimeFlow'
+import { SHINSAL_NAME_EN } from '@/lib/calendar-engine/derivers/signalI18n'
 import type { NatalContext } from '@/lib/calendar-engine/context/types'
 import type { LifecycleMilestoneOverride } from '@/lib/calendar-engine/lifecycle/astroLifecycle'
 import cheonraActivation from '@/lib/calendar-engine/extractors/saju-shinsal-activation'
@@ -108,6 +113,23 @@ function makeNatal(opts: NatalOpts = {}): NatalContext {
     astro: chart ? { chart } : undefined,
   } as unknown as NatalContext
 }
+
+describe('Life 신살 EN 이름 = 칩·캘린더 정본(SHINSAL_NAME_EN) — G14', () => {
+  it.each(Object.keys(LIFE_SHINSAL_SHORT_EN))('%s', (kind) => {
+    const name = SHINSAL_NAME_EN[kind]
+    expect(name, `${kind} 가 SHINSAL_NAME_EN 에 없다`).toBeTruthy()
+    expect(lifeShinsalLineEn(kind)).toBe(`${name} — ${LIFE_SHINSAL_SHORT_EN[kind]}`)
+    expect(lifeShinsalLineEn(kind)).not.toMatch(/[가-힣]/)
+  })
+
+  it('예전 Life 전용 철자가 없다(역마 · 양인 · 천을귀인)', () => {
+    expect(lifeShinsalLineEn('역마')).toMatch(/^Traveling Horse — /)
+    expect(lifeShinsalLineEn('양인')).toMatch(/^Blade Edge — /)
+    expect(lifeShinsalLineEn('천을귀인')).toMatch(/^Heavenly Benefactor — /)
+    const all = Object.keys(LIFE_SHINSAL_SHORT_EN).map(lifeShinsalLineEn).join('\n')
+    expect(all).not.toMatch(/Yeokma|Yangin|Gwiin|Dohwa|Travel Horse|Yang Blade/)
+  })
+})
 
 describe('deriveLifetimeFlow', () => {
   describe('undefined 가드', () => {
@@ -336,7 +358,7 @@ describe('deriveLifetimeFlow', () => {
         '천라지망 기운 — 묶인 듯 더딘 흐름, 절차와 약속을 꼼꼼히 챙길수록 풀려요'
       )
       expect(p.shinsalLineEn).toBe(
-        'Cheollajimang (Heaven-Earth Net) — a tied-down, slow stretch that loosens with careful rules and commitments'
+        'Heaven-Earth Net — a tied-down, slow stretch that loosens with careful rules and commitments'
       )
       expect(p.shinsalLineEn).not.toMatch(/[가-힣]/)
       expect(young(n, 'en').shinsalLine).toBe(p.shinsalLineEn)
@@ -610,7 +632,7 @@ describe('deriveLifetimeFlow', () => {
       const r = deriveLifetimeFlow(n)!
       const young = r.phases.find((p) => p.label === '청년기')!
       expect(young.shinsalLine).toContain('천을귀인 기운')
-      expect(young.shinsalLineEn).toContain('Cheoneul Gwiin (Nobleman)')
+      expect(young.shinsalLineEn).toContain('Heavenly Benefactor')
       expect(young.shinsalLineEn).not.toMatch(/[가-힣]/)
     })
 
@@ -702,13 +724,13 @@ describe('deriveLifetimeFlow', () => {
       expect(young.relationLine).not.toMatch(/[가-힣]/)
     })
 
-    it('영문 shinsalLine — SHINSAL_SHORT_EN name+short', () => {
+    it('영문 shinsalLine — 정본 이름(SHINSAL_NAME_EN) + 짧은 뜻', () => {
       const n = makeNatal({
         natalShinsal: [{ kind: '천을귀인', target: '亥', pillars: ['day'] }],
       })
       const r = deriveLifetimeFlow(n, 'en')!
       const young = r.phases.find((p) => p.label === 'Young adulthood')!
-      expect(young.shinsalLine).toContain('Cheoneul Gwiin (Nobleman)')
+      expect(young.shinsalLine).toContain('Heavenly Benefactor')
       expect(young.shinsalLine).toContain('supportive helpers')
     })
 

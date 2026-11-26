@@ -92,6 +92,22 @@ describeRealEphemeris('buildSajuCardData (real ephemeris)', () => {
     expect(card.backYear).toBeUndefined()
   }, 120_000)
 
+  // G14 — 별 쪽은 리포트 '정체성' 칸이 보여 주는 서양 원소다. 판정 계산은 air→木 단일값
+  // 근사(signToSajuElement)지만, 카드 이름에 그 근사(Wood)가 새면 리포트(Air)와 어긋난다.
+  it('공기 태양(1990-06-10 쌍둥이자리) — 카드 별 쪽 air, 리포트 정체성 칸도 Air', async () => {
+    const { card, crossRows } = await buildSajuCardReading({
+      birth: { ...SAMPLE, date: '1990-06-10', time: '10:00' },
+      now: NOW,
+    })
+    expect(card.bigThree.sun).toEqual({ ko: '쌍둥이자리', en: 'Gemini' })
+    expect(card.identity?.astro).toBe('air')
+    const row = crossRows.en.find((r) => r.key === 'identity')!
+    expect(row.right?.startsWith('Air')).toBe(true)
+    expect(crossRows.ko.find((r) => r.key === 'identity')?.right?.startsWith('공기')).toBe(true)
+    // 판정은 리포트 행 그대로(카드는 다시 계산하지 않는다).
+    expect(card.identity?.verdictKey).toBe(row.tone)
+  }, 120_000)
+
   it('출생시각 미상 — ASC 없음 · 시주 없음, 년 · 월 · 일주는 그대로', async () => {
     const card = await buildSajuCardData({
       birth: { ...SAMPLE, time: '', timeUnknown: true },

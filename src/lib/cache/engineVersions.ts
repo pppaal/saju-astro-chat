@@ -116,6 +116,9 @@ export { SAJU_ENGINE_VERSION }
 //     행성·종류·층, 트랜짓이면 어스펙트·본명 접점·orb). evidence 를 비운 월 셀에도 남아 '왜'
 //     근거의 점성 구조를 이름으로 추정하지 않는다(calendar-view/astroDetail). 신호 판정·점수는
 //     그대로지만 셀 모양이 바뀌므로 월 셀·포커스 1일 셀 캐시를 무효화한다.
+//     같은 웨이브의 신살 EN 이름 단일화(Life 신살 줄·운명상담사 컨텍스트가 SHINSAL_NAME_EN —
+//     'Traveling Horse'·'Blade Edge'·'Heavenly Benefactor')도 이 v17 에 실린다. 운명상담사
+//     컨텍스트 키는 ENGINE_VERSION_TAG 로 따라온다.
 export const CALENDAR_ENGINE_VERSION = 'v17'
 
 /**

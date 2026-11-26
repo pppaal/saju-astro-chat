@@ -6,11 +6,14 @@
  */
 
 import type { Bi } from '@/lib/i18n/bi'
-import type { SajuElement } from '@/lib/saju/elementBridge'
+import type { AstroElement, SajuElement } from '@/lib/saju/elementBridge'
 import type { CrossToneKey } from '@/lib/report/toneLabel'
 
 /** 오행 키 — v9 문구(ELEMENT)와 리포트 교차 평가기가 쓰는 다섯 칸. */
 export type ElementKey = SajuElement
+
+/** 서양 4원소 키 — 카드 별 쪽(태양 별자리의 원소). 리포트 '정체성' 행의 별 칸과 같은 이름. */
+export type AstroElementKey = AstroElement
 
 export interface CardPillar {
   /** 천간 한자. */
@@ -40,8 +43,12 @@ export interface SajuCardData {
   typeName: Bi
   /** 인생 모양 — 'Ups and downs' / '굴곡형'. */
   lifeShape: Bi | null
-  /** 정체성 축 — 사주 오행 × 별 오행 → 판정. */
-  identity: { saju: ElementKey; astro: ElementKey; verdictKey: CrossToneKey } | null
+  /**
+   * 정체성 축 — 사주 오행(일간) × 별 원소(태양 별자리의 서양 4원소) → 판정. 별 쪽은 리포트
+   * '정체성' 행이 보여 주는 원소 그대로다(공기 별자리는 'air' — 판정 계산의 air→木 근사가
+   * 이름으로 새지 않는다). 판정(verdictKey)은 리포트 행의 판정.
+   */
+  identity: { saju: ElementKey; astro: AstroElementKey; verdictKey: CrossToneKey } | null
   /** 합의 줄 — lineUp = 같음 + 서로 도움, total = tallyCrossRows().total. */
   agree: { lineUp: number; total: number } | null
   /** 뒷면에 비치는 세운 — { ganji: '丙午', year: 2026 }. 렌더하는 쪽이 넣는다. */

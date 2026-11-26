@@ -24,6 +24,7 @@ import { getStemElement } from '@/lib/saju/stemBranchUtils'
 import { getTwelveStage, canonicalTwelveStage, cheonraJimangPartner } from '@/lib/saju/shinsal'
 import { getJohuYongsin } from '@/lib/saju/johuYongsin'
 import { type TwelveStageType } from '@/lib/saju/interpretations'
+import { shinsalNameEn } from './signalI18n'
 
 const TWELVE_STAGE_TYPES: ReadonlySet<TwelveStageType> = new Set([
   '장생',
@@ -633,41 +634,52 @@ const SHINSAL_SHORT_KO: Record<string, string> = {
   // 짝 완성(戌亥·辰巳)으로만 켜진다 — 아래 '사실 4'. 표에 없으면 EN 에 한국어 이름이 샜다.
   천라지망: '묶인 듯 더딘 흐름, 절차와 약속을 꼼꼼히 챙길수록 풀려요',
 }
-const SHINSAL_SHORT_EN: Record<string, { name: string; short: string }> = {
-  천을귀인: { name: 'Cheoneul Gwiin (Nobleman)', short: 'supportive helpers, lucky breaks' },
-  천덕귀인: { name: 'Cheondeok Gwiin (Heavenly Virtue)', short: 'celestial protection' },
-  월덕귀인: { name: 'Woldeok Gwiin (Lunar Virtue)', short: 'lunar grace' },
-  문창귀인: { name: 'Munchang Gwiin (Scholar)', short: 'scholarship & expression thrive' },
-  문창: { name: 'Munchang (Scholar)', short: 'scholarship & expression thrive' },
-  학당귀인: { name: 'Hakdang Gwiin (Academy)', short: 'wisdom & learning' },
-  금여: { name: 'Geumyeo (Golden Carriage)', short: 'fortune and connections abundant' },
-  금여성: { name: 'Geumyeoseong (Golden Carriage)', short: 'fortune and connections abundant' },
-  도화: { name: 'Dohwa (Peach Blossom)', short: 'charm & relationships active, emotional swings' },
-  역마: { name: 'Yeokma (Travel Horse)', short: 'movement, travel, frequent shifts' },
-  역마살: { name: 'Yeokmasal (Travel Horse)', short: 'movement, travel, frequent shifts' },
-  양인: { name: 'Yangin (Yang Blade)', short: 'razor-sharp drive — balance matters' },
-  백호: { name: 'Baekho (White Tiger)', short: 'stay flexible with the unexpected' },
-  망신: { name: 'Mangsin (Loss of Face)', short: 'a season to firm up reputation & trust' },
-  망신살: { name: 'Mangsinsal (Loss of Face)', short: 'a season to firm up reputation & trust' },
-  겁살: { name: 'Geopsal (Robbery)', short: 'a season to mind wealth & trust' },
-  공망: { name: 'Gongmang (Void)', short: 'spaciousness, deep introspection' },
-  지살: { name: 'Jisal (Self-Start)', short: 'self-initiated moves, departures' },
-  년살: { name: 'Nyeonsal (Year Spike)', short: 'a Dohwa offshoot — feelings stirred' },
-  월살: { name: 'Wolsal (Snag)', short: 'small obstacles stall the cusp of change' },
-  반안: { name: 'Banan (Saddle)', short: 'shiny outside, firming up inside' },
-  반안살: { name: 'Banansal (Saddle)', short: 'shiny outside, firming up inside' },
-  장성: { name: 'Jangseong (General)', short: 'leadership and authority stirred' },
-  장성살: { name: 'Jangseongsal (General)', short: 'leadership and authority stirred' },
-  화개: { name: 'Hwagae (Canopy)', short: 'inwardness, art, spirituality activated' },
-  화개살: { name: 'Hwagaesal (Canopy)', short: 'inwardness, art, spirituality activated' },
-  재살: { name: 'Jaesal (Wealth Trial)', short: 'a season to mind wealth & trust' },
-  천살: { name: 'Cheonsal (Heaven Trial)', short: 'facing authority & parent themes' },
-  육해: { name: 'Yukhae (Friction)', short: 'relational friction, quiet interference' },
-  육해살: { name: 'Yukhaesal (Friction)', short: 'relational friction, quiet interference' },
-  천라지망: {
-    name: 'Cheollajimang (Heaven-Earth Net)',
-    short: 'a tied-down, slow stretch that loosens with careful rules and commitments',
-  },
+/**
+ * 신살 Life 줄 EN 의 짧은 뜻. 이름은 여기 두지 않는다 — 칩·캘린더와 같은 정본
+ * SHINSAL_NAME_EN(signalI18n)에서 읽는다(G14: 예전엔 'Yeokma (Travel Horse)'·'Yangin (Yang
+ * Blade)'·'Cheoneul Gwiin (Nobleman)' 처럼 Life 만 다른 철자를 썼다). 키는 모두 그 표에 있다.
+ */
+export const LIFE_SHINSAL_SHORT_EN: Readonly<Record<string, string>> = {
+  천을귀인: 'supportive helpers, lucky breaks',
+  천덕귀인: 'celestial protection',
+  월덕귀인: 'lunar grace',
+  문창귀인: 'scholarship & expression thrive',
+  문창: 'scholarship & expression thrive',
+  학당귀인: 'wisdom & learning',
+  금여: 'fortune and connections abundant',
+  금여성: 'fortune and connections abundant',
+  도화: 'charm & relationships active, emotional swings',
+  역마: 'movement, travel, frequent shifts',
+  역마살: 'movement, travel, frequent shifts',
+  양인: 'razor-sharp drive — balance matters',
+  백호: 'stay flexible with the unexpected',
+  망신: 'a season to firm up reputation & trust',
+  망신살: 'a season to firm up reputation & trust',
+  겁살: 'a season to mind wealth & trust',
+  공망: 'spaciousness, deep introspection',
+  지살: 'self-initiated moves, departures',
+  년살: 'a Peach Blossom offshoot — feelings stirred',
+  월살: 'small obstacles stall the cusp of change',
+  반안: 'shiny outside, firming up inside',
+  반안살: 'shiny outside, firming up inside',
+  장성: 'leadership and authority stirred',
+  장성살: 'leadership and authority stirred',
+  화개: 'inwardness, art, spirituality activated',
+  화개살: 'inwardness, art, spirituality activated',
+  재살: 'a season to mind wealth & trust',
+  천살: 'facing authority & parent themes',
+  육해: 'relational friction, quiet interference',
+  육해살: 'relational friction, quiet interference',
+  천라지망: 'a tied-down, slow stretch that loosens with careful rules and commitments',
+}
+
+/**
+ * 신살 Life 줄 EN — '{정본 이름} — {짧은 뜻}'. 이름은 SHINSAL_NAME_EN(칩·캘린더와 같은 표).
+ * 표에 없는 신살은 이름만 정본에서(없으면 원문), 뜻은 'activated'.
+ */
+export function lifeShinsalLineEn(kind: string): string {
+  const name = shinsalNameEn(kind) ?? kind
+  return `${name} — ${LIFE_SHINSAL_SHORT_EN[kind] ?? 'activated'}`
 }
 /** 짝 신살(戌亥 = 천라, 辰巳 = 지망) — 대운 짝 완성 규칙으로만 활성(캘린더와 같은 규칙). */
 const CHEONRA_JIMANG = '천라지망'
@@ -1379,8 +1391,7 @@ export function deriveLifetimeFlow(
       // 간지 메커닉 "(대운 巳(사) ↔ 본명 연지 巳(사))" 를 뺀다. 그 괄호가
       // novice 표면에 한자를 흘리던 마지막 경로였다(감사 BUG-3). 신살 개념명 +
       // 평이 의미만 남긴다.
-      const meta = SHINSAL_SHORT_EN[kind] ?? { name: kind, short: `${kind} activated` }
-      shinsalLineEn = `${meta.name} — ${meta.short}`
+      shinsalLineEn = lifeShinsalLineEn(kind)
       const short = SHINSAL_SHORT_KO[kind] ?? `${kind} 발현`
       shinsalLineKo = `${kind} 기운 — ${short}`
     }

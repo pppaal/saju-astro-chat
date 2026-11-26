@@ -31,6 +31,7 @@ import type { DestinySources } from '@/lib/destiny/counselorRequest'
 import { defaultLatitudeFor, defaultLongitudeFor } from '@/lib/saju/timezone'
 import { resolveBirthTimezone } from '@/lib/datetime/resolveTimezone'
 import { GEOKGUK_NAME_EN } from '@/lib/saju/geokgukNameEn'
+import { shinsalNameEn } from '@/lib/calendar-engine/derivers/signalI18n'
 
 const ALL_SOURCES: DestinySources = { saju: true, astro: true }
 
@@ -171,36 +172,44 @@ export const COUNSELOR_SHINSAL_LABEL: Readonly<Record<string, string>> = {
   천라지망: '걸림·답답',
   // 공망은 [합충] 에 이미 출력 → 여기선 skip
 }
-// EN locale: 한국어 신살명은 영어 사용자에게 의미가 없으니 이름은 음역,
+// EN locale: 한국어 신살명은 영어 사용자에게 의미가 없으니 이름은 칩·캘린더·Life 와 같은
+// 정본 EN 이름(SHINSAL_NAME_EN — G14, 예전엔 'Dohwa'·'Munchang' 같은 음역을 따로 썼다),
 // 라벨은 영어 뜻으로 — 한국어가 영어 응답에 새지 않게.
-export const COUNSELOR_SHINSAL_EN: Readonly<Record<string, { name: string; mean: string }>> = {
-  도화: { name: 'Dohwa', mean: 'charm, allure' },
-  홍염살: { name: 'Hongyeom', mean: 'sensual magnetism' },
-  백호: { name: 'Baekho', mean: 'intense, fierce' },
-  괴강: { name: 'Goegang', mean: 'charisma, force' },
-  양인: { name: 'Yangin', mean: 'sharp, aggressive' },
-  귀문관: { name: 'Gwimun', mean: 'obsessive, sensitive' },
-  원진: { name: 'Wonjin', mean: 'subtle aversion' },
-  고신: { name: 'Gosin', mean: 'solitary streak' },
-  금여성: { name: 'Geumyeo', mean: 'spouse fortune, grace' },
-  천덕귀인: { name: 'Cheondeok', mean: 'protection, virtue' },
-  월덕귀인: { name: 'Woldeok', mean: 'protection, virtue' },
-  천을귀인: { name: 'Cheoneul', mean: 'noble protection' },
-  태극귀인: { name: 'Taegeuk', mean: 'hidden fortune' },
-  암록: { name: 'Amrok', mean: 'hidden support' },
-  문창: { name: 'Munchang', mean: 'study, creativity' },
-  학당귀인: { name: 'Hakdang', mean: 'scholarship' },
-  문곡: { name: 'Mungok', mean: 'writing talent' },
-  천주귀인: { name: 'Cheonju', mean: 'material stability' },
-  건록: { name: 'Geollok', mean: 'self-foundation' },
-  제왕: { name: 'Jewang', mean: 'peak, stubborn' },
-  화개: { name: 'Hwagae', mean: 'art, spirituality, solitude' },
-  역마: { name: 'Yeokma', mean: 'movement, change' },
-  장성: { name: 'Jangseong', mean: 'authority, leadership' },
-  지살: { name: 'Jisal', mean: 'relocation' },
-  망신: { name: 'Mangsin', mean: 'legal/gossip trouble' },
-  천라지망: { name: 'Cheollajimang', mean: 'entanglement, stuck' },
+const COUNSELOR_SHINSAL_MEAN_EN: Readonly<Record<string, string>> = {
+  도화: 'charm, allure',
+  홍염살: 'sensual magnetism',
+  백호: 'intense, fierce',
+  괴강: 'charisma, force',
+  양인: 'sharp, aggressive',
+  귀문관: 'obsessive, sensitive',
+  원진: 'subtle aversion',
+  고신: 'solitary streak',
+  금여성: 'spouse fortune, grace',
+  천덕귀인: 'protection, virtue',
+  월덕귀인: 'protection, virtue',
+  천을귀인: 'noble protection',
+  태극귀인: 'hidden fortune',
+  암록: 'hidden support',
+  문창: 'study, creativity',
+  학당귀인: 'scholarship',
+  문곡: 'writing talent',
+  천주귀인: 'material stability',
+  건록: 'self-foundation',
+  제왕: 'peak, stubborn',
+  화개: 'art, spirituality, solitude',
+  역마: 'movement, change',
+  장성: 'authority, leadership',
+  지살: 'relocation',
+  망신: 'legal/gossip trouble',
+  천라지망: 'entanglement, stuck',
 }
+export const COUNSELOR_SHINSAL_EN: Readonly<Record<string, { name: string; mean: string }>> =
+  Object.fromEntries(
+    Object.entries(COUNSELOR_SHINSAL_MEAN_EN).map(([kind, mean]) => [
+      kind,
+      { name: shinsalNameEn(kind) ?? kind, mean },
+    ])
+  )
 
 /**
  * 오늘(로컬 날짜) 포함 N일치 일진 간지. queryDate 의 서버(UTC) 날짜가 아니라

@@ -25,12 +25,12 @@ import 'server-only'
 
 import { buildReportContext } from '@/lib/report/buildReportContext'
 import { buildCrossRows, natalToReportData, type CrossRowOut } from '@/lib/report/integratedAdapter'
-import { normSajuElement, signToSajuElement, tallyCrossRows } from '@/lib/report/natalCross'
+import { normSajuElement, tallyCrossRows } from '@/lib/report/natalCross'
 import { crossTypeName } from '@/lib/report/crossType'
 import { getArchetype } from '@/lib/report/viralArchetype'
 import { lifeShapeFor } from '@/lib/calendar-view/lifeShape'
 import { SIGN_KO } from '@/lib/astrology/signLabels'
-import { KO_TO_SAJU_ELEMENT } from '@/lib/saju/elementBridge'
+import { KO_TO_SAJU_ELEMENT, SIGN_TO_ASTRO_ELEMENT } from '@/lib/saju/elementBridge'
 import { getBranchElement, getStemElement } from '@/lib/saju/stemBranchUtils'
 import { ganjiToKorean, ganjiToRoman } from '@/lib/saju/ganjiKo'
 import { resolveBirthTimeAnchor } from '@/lib/saju/birthTimeAnchor'
@@ -170,10 +170,12 @@ export async function buildSajuCardReading({
   const P = data.saju.pillars
   const dayStem = P.day.stem
 
-  // 정체성 — 리포트 '정체성' 행과 같은 판정(일간 오행 × 태양 별자리 오행).
+  // 정체성 — 리포트 '정체성' 행과 같은 판정(일간 오행 × 태양 별자리). 별 쪽은 판정 계산용
+  // 단일값 오행(signToSajuElement — air→木 근사)이 아니라 리포트 칸이 보여 주는 서양 원소다
+  // (쌍둥이·천칭·물병 태양 = 'air'). 예전엔 근사값이 그대로 들어가 카드에 'Wood' 로 떴다.
   const identityRow = rows.find((r) => r.key === 'identity')
   const sajuEl = normSajuElement(natal.saju.dayMaster?.element)
-  const astroEl = signToSajuElement(sunSign)
+  const astroEl = sunSign ? SIGN_TO_ASTRO_ELEMENT[sunSign] : undefined
   const identity =
     identityRow && sajuEl && astroEl
       ? { saju: sajuEl, astro: astroEl, verdictKey: identityRow.tone }

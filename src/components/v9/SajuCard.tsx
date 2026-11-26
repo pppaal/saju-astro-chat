@@ -21,6 +21,7 @@ import ElementTile from './ElementTile'
 import { Glyph } from './Glyph'
 import { AgreeLine } from './Tally'
 import {
+  ASTRO_ELEMENT,
   CARD,
   ELEMENT,
   PROVENANCE,
@@ -203,7 +204,7 @@ function IdentityAgree({ data, locale }: { data: SajuCardData; locale: Lang }) {
           <span className={s.cl}>{pick(CARD.identity, locale)}</span>
           <span>
             {pick(ELEMENT[identity.saju].name, locale)} ×{' '}
-            {pick(ELEMENT[identity.astro].name, locale)}
+            {pick(ASTRO_ELEMENT[identity.astro].name, locale)}
           </span>
           <span className={s.s} aria-hidden="true">
             —

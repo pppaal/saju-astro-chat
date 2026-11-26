@@ -10,6 +10,7 @@
 import { pick, type Bi, type Lang } from '@/lib/i18n/bi'
 import { TONE_LABEL, type CrossToneKey } from '@/lib/report/toneLabel'
 import { DIAL_LABELS } from '@/lib/v9/ring'
+import type { AstroElement } from '@/lib/saju/elementBridge'
 
 export type { Bi, Lang, CrossToneKey }
 export { pick }
@@ -73,6 +74,19 @@ export const ELEMENT: Record<ElementKey, { name: Bi; hanja: string }> = {
   earth: { name: { ko: '토', en: 'Earth' }, hanja: '土' },
   metal: { name: { ko: '금', en: 'Metal' }, hanja: '金' },
   water: { name: { ko: '수', en: 'Water' }, hanja: '水' },
+}
+
+/**
+ * 서양 4원소 — 사주 카드 별 쪽(태양 별자리의 원소). 이름은 리포트 '정체성' 행의 별 칸과 같다
+ * (불·흙·물 별자리는 오행 이름 화·토·수, 공기 별자리는 '공기' — report AIR_ELEMENT_LABEL).
+ */
+export type AstroElementKey = AstroElement
+
+export const ASTRO_ELEMENT: Record<AstroElementKey, { name: Bi }> = {
+  fire: { name: { ko: '화', en: 'Fire' } },
+  earth: { name: { ko: '토', en: 'Earth' } },
+  air: { name: { ko: '공기', en: 'Air' } },
+  water: { name: { ko: '수', en: 'Water' } },
 }
 
 /** 사주 카드 — 머리말 훅, 기둥 칸 이름, 띠 라벨. */

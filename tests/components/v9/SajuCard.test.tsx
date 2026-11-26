@@ -97,11 +97,27 @@ describe('SajuCard full', () => {
     expect(within(q(ko, '[data-card-identity]')!).getByText(TONE_LABEL.tension.ko)).toBeTruthy()
     const same = render(
       <SajuCard
-        data={sampleCard({ identity: { saju: 'wood', astro: 'wood', verdictKey: 'resonant' } })}
+        data={sampleCard({ identity: { saju: 'fire', astro: 'fire', verdictKey: 'resonant' } })}
         locale="en"
       />
     ).container
     expect(q(same, '[data-card-identity]')?.textContent).toContain(TONE_LABEL.resonant.en)
+  })
+
+  it('별 쪽은 서양 원소 — 공기 태양은 Air / 공기(판정 계산의 air→木 근사가 이름으로 새지 않는다)', () => {
+    const air = sampleCard({
+      bigThree: {
+        sun: { ko: '쌍둥이자리', en: 'Gemini' },
+        moon: { ko: '사자자리', en: 'Leo' },
+        asc: null,
+      },
+      identity: { saju: 'water', astro: 'air', verdictKey: 'complement' },
+    })
+    const en = q(render(<SajuCard data={air} locale="en" />).container, '[data-card-identity]')!
+    expect(en.textContent).toContain('Water × Air')
+    expect(en.textContent).not.toContain('Wood')
+    const ko = q(render(<SajuCard data={air} locale="ko" />).container, '[data-card-identity]')!
+    expect(ko.textContent).toContain('수 × 공기')
   })
 
   it("합의 줄 'line up on N of M' 과 막대 비율", () => {

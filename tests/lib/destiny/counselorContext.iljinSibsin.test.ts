@@ -16,6 +16,7 @@ import {
   type DestinyBirth,
 } from '@/lib/destiny/counselorContext'
 import { getShinsalHits, type ShinsalPillarsInput } from '@/lib/saju/shinsal'
+import { SHINSAL_NAME_EN } from '@/lib/calendar-engine/derivers/signalI18n'
 
 const SAJU_ONLY = { saju: true, astro: false }
 
@@ -155,6 +156,15 @@ describe('상담사 신살 화이트리스트 = 엔진 신살 이름 (SDR-06)', 
     )
   })
 
+  // G14 — one EN name per term: the counselor (LLM context) uses the same names as the
+  // chips, the calendar and the Life tier.
+  it('every EN name equals the canonical SHINSAL_NAME_EN', () => {
+    for (const [kind, en] of Object.entries(COUNSELOR_SHINSAL_EN)) {
+      expect(SHINSAL_NAME_EN[kind], kind).toBeTruthy()
+      expect(en.name, kind).toBe(SHINSAL_NAME_EN[kind])
+    }
+  })
+
   it('1990-01-09 10:00 M Seoul (己巳 丁丑 甲戌 己巳): 문창 on year and hour, ko and en', async () => {
     const b: DestinyBirth = { ...birth('1990-01-09'), gender: 'male' }
     const now = new Date('2026-11-25T12:00:00Z')
@@ -165,8 +175,8 @@ describe('상담사 신살 화이트리스트 = 엔진 신살 이름 (SDR-06)', 
     expect(koLine).not.toContain('천라지망')
     const en = await buildDestinyContext(b, now, 'en', undefined, SAJU_ONLY)
     const enLine = en.stable.split('\n').find((l) => l.startsWith('sinsal:')) ?? ''
-    expect(enLine).toContain('Munchang(Y, study, creativity)')
-    expect(enLine).toContain('Munchang(H, study, creativity)')
-    expect(enLine).not.toContain('Cheollajimang')
+    expect(enLine).toContain('Literary Star(Y, study, creativity)')
+    expect(enLine).toContain('Literary Star(H, study, creativity)')
+    expect(enLine).not.toContain('Heaven-Earth Net')
   })
 })
