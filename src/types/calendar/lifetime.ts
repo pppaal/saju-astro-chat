@@ -6,8 +6,7 @@
 // 5-tier 의 최상위 layer — 유년기/청년기/중년기/장년기 4구간 + 대운 스파인 +
 // 마일스톤(Saturn Return / Jupiter Return / 외행성 사각 등) 통합 뷰.
 
-import type { ZRPeriod, ZRStartLot } from '@/lib/astrology/foundation/zodiacalReleasing'
-import type { Ganji, NarrativeChip, SibsinKind } from './shared'
+import type { Ganji, SibsinKind } from './shared'
 import type { RadarAxis } from '@/lib/report/sibsinRadar'
 import type { LifeStrategy } from '@/lib/report/lifeStrategy'
 import type { LifeCrossCheck } from '@/lib/report/lifeCrossCheck'
@@ -45,38 +44,6 @@ export interface DestinyDaewoon {
 
 export type LifeStageId = 'early' | 'youth' | 'middle' | 'late'
 
-/**
- * 현재 진행 stage 의 상세 — daewoonText + body + outer(점성 마일스톤)
- * + hapchung/shinsal/unseong 칩 묶음.
- */
-export interface DestinyLifeStageDetail {
-  /** 대운 진행 한 줄 — '丙子(병자) 2006–16 → 乙亥(을해) 2016–26 → ...'. */
-  daewoonText: string
-  /** 본문 paragraphs (각 한 문단, KO). */
-  body: string[]
-  /** 본문 paragraphs 영문 — 클라이언트 언어 토글용. 비면 body 폴백. */
-  bodyEn: string[]
-  /** 외행성 회귀 / outer transit 마일스톤. */
-  outer: Array<{
-    label: string
-    /** label 영문 — 클라이언트 토글용. 미지정 시 label 폴백. */
-    labelEn?: string
-    /** 'YYYY.MM' 표기. */
-    date: string
-    body: string
-    /** body 영문 — 클라이언트 토글용. 미지정 시 body 폴백. */
-    bodyEn?: string
-    /** 색상·아이콘 키 — 'jupiter' / 'saturn' / 'neptune' 등. */
-    kind: string
-  }>
-  /** 본명 × 대운 합·충 한 줄. */
-  hapchung?: NarrativeChip
-  /** 활성 신살 한 줄. */
-  shinsal?: NarrativeChip
-  /** 12운성 한 줄. */
-  unseong?: NarrativeChip
-}
-
 export interface DestinyLifeStage {
   id: LifeStageId
   /** 한국어 라벨 — '초년기'/'청년기'/'중년기'/'장년기'. */
@@ -97,8 +64,6 @@ export interface DestinyLifeStage {
   tone: string
   /** 한 줄 무드 영문 — 클라이언트 토글용. 미지정 시 tone 폴백. */
   toneEn?: string
-  /** 현재 진행 stage 만 detail 채움. 나머지는 null. */
-  detail: DestinyLifeStageDetail | null
 }
 
 // ============================================================================
@@ -147,27 +112,6 @@ export interface DestinyMilestone {
 }
 
 // ============================================================================
-// ZR L1 챕터 — Hellenistic Zodiacal Releasing 의 최상위 챕터 시퀀스.
-// data.js 에 명시 없음 — 백엔드 ZodiacalReleasingResult 가 그대로 매핑.
-//
-// 누락 5신호 중 ZR L1/L2 챕터 (sign + ruler + duration) 를 lifetime / decade
-// 뷰에서 그릴 수 있도록 typed projection 제공.
-// ============================================================================
-
-export interface DestinyZRChapter extends ZRPeriod {
-  /** Spirit (영혼·진로) 또는 Fortune (몸·물질). */
-  startLot: ZRStartLot
-  /** 본명 출생 연도 기준 서기 시작 연도. */
-  calendarStartYear: number
-  /** 본명 출생 연도 기준 서기 끝 연도 (exclusive). */
-  calendarEndYear: number
-  /** 현재 챕터 여부. */
-  now: boolean
-  /** UI 한 줄 — 'Sagittarius / Jupiter / 12 년'. */
-  label?: string
-}
-
-// ============================================================================
 // Lifetime 카드 prop.
 // ============================================================================
 
@@ -180,14 +124,10 @@ export interface DestinyLifetime {
   nowAge?: number
   /** 대운 스파인 (전체 — 10년 단위). */
   daewoon: DestinyDaewoon[]
-  /** 4구간 stage. 현재 진행 stage 만 detail 채움. */
+  /** 4구간 stage — 이름 · 나이 범위 · 지금 여부 · 톤(인생 흐름은 지금 단계 이름만 읽는다). */
   lifeStages: DestinyLifeStage[]
   /** 마일스톤 — 사주 + 점성 통합 dot 시퀀스. */
   milestones: DestinyMilestone[]
-  /** ZR L1 Spirit 챕터 시퀀스 — 진로·외적 사건. */
-  zrSpiritChapters: DestinyZRChapter[]
-  /** ZR L1 Fortune 챕터 시퀀스 — 몸·물질·체질. */
-  zrFortuneChapters: DestinyZRChapter[]
   /** 인생 유형(신강약 기준 대운 흐름) — 대기만성/초년발복/… 한 줄 + 대운 방향. */
   lifePattern?: DestinyLifePattern
   /** 인생 굴곡 곡선 — 사주·점성 다층 중첩(연 단위). 차트가 스파크라인으로 렌더. */

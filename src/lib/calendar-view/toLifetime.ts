@@ -1,16 +1,14 @@
 /**
- * NatalContext + lifetimeFlow / lifetimePivots → destinypal `lifetime` 객체 adapter.
+ * NatalContext + lifetimeFlow / lifetimePivots → 인생 흐름 `lifetime` 페이로드 adapter.
  *
- * destinypal LifetimeTier 가 받는 prop shape (`DestinyLifetime`):
- *   { birthYear, currentYear, daewoon[], lifeStages[], milestones[],
- *     zrSpiritChapters[], zrFortuneChapters[] }
+ * 출력(DestinyLifetime): { birthYear, currentYear, nowAge, daewoon[], lifeStages[],
+ *   milestones[], lifePattern, lifeCurve, sibsinRadar, lifeStrategy } — /destiny 의 뷰모델
+ * (calendar-view/lifetimeViewModel)과 상담사가 아닌 화면만 읽는다(상담사는 NatalContext).
  *
- * 본 adapter 는 toDaewoon / toLifeStages / toMilestones 를 한 번에 호출하고,
- * NatalContext.astro.zodiacalReleasing.{spirit, fortune}.periods 에서 ZR L1
- * 챕터를 자동으로 평탄화해 `DestinyZRChapter[]` 로 변환한다.
+ * 본 adapter 는 toDaewoon / toLifeStages / toMilestones 를 한 번에 호출한다.
  *
  * 입력:
- *  - natal: NatalContext  (zr periods 원천)
+ *  - natal: NatalContext
  *  - lifetimeFlow / lifetimePivots (deriver 결과)
  *  - currentYear (UI 기준 연도)
  *
@@ -21,14 +19,11 @@ import type { NatalContext } from '@/lib/calendar-engine/context/types'
 import type { LifetimeFlow } from '@/lib/calendar-engine/derivers/lifetimeFlow'
 import type { LifetimePivots } from '@/lib/calendar-engine/derivers/lifetimePivots'
 import type { LifeCurve } from '@/lib/calendar-engine/derivers/lifeCurve'
-import type { ZRPeriod, ZRStartLot } from '@/lib/astrology/foundation/zodiacalReleasing'
 import type {
   DestinyLifetime,
-  DestinyZRChapter,
   DestinyDaewoon,
   DestinyLifeStage,
   DestinyMilestone,
-  DestinyLifeStageDetail,
   DestinyLifeCurve,
 } from '@/types/calendar'
 
@@ -52,7 +47,7 @@ export interface ToLifetimeOptions {
   currentYear: number
   /**
    * 현재 *만 나이* (currentManAge — 생일 통과 반영). 만 나이 SSOT(감사 B1):
-   * 곡선 nowAge·lifePattern 시제·대운/ZR 챕터 now 플래그가 전부 이 값을 쓴다.
+   * 곡선 nowAge·lifePattern 시제·대운 now 플래그가 전부 이 값을 쓴다.
    * 미지정 시 연차 나이(currentYear−birthYear) 폴백 — 생일 전엔 1살 과다.
    */
   manAge?: number
@@ -62,9 +57,6 @@ export interface ToLifetimeOptions {
   lifetimePivots?: LifetimePivots
   /** buildLifeCurve 결과 (선택 — 없으면 lifeCurve 미노출). */
   lifeCurve?: LifeCurve
-  /** ZR 챕터 projection 범위 (만 나이). 기본 0..90. */
-  zrAgeFrom?: number
-  zrAgeTo?: number
 }
 
 /** buildLifeCurve(macro 곡선) → 렌더용 DestinyLifeCurve (value 0..1 정규화, ≤88세). */
@@ -118,42 +110,6 @@ function toDestinyLifeCurve(
 }
 
 /**
- * ZR L1 period → DestinyZRChapter projection.
- *
- * Hellenistic ZR L1 sequence (sign-walk by Spirit / Fortune lot) 를 본명
- * 출생연도 기준 서기 연도로 캘린더 매핑 + `now` flag (currentYear 가 챕터 안인가).
- */
-function zrPeriodsToChapters(
-  periods: ZRPeriod[],
-  startLot: ZRStartLot,
-  birthYear: number,
-  nowAge: number,
-  ageFrom: number,
-  ageTo: number
-): DestinyZRChapter[] {
-  const chapters: DestinyZRChapter[] = []
-  for (const p of periods) {
-    // 챕터가 ageRange 와 겹치는지
-    if (p.endYear <= ageFrom) continue
-    if (p.startYear >= ageTo) break
-    const calStart = birthYear + Math.round(p.startYear)
-    const calEnd = birthYear + Math.round(p.endYear)
-    // now 는 *만 나이 vs 챕터 나이 범위*로 판정 — 출생년 1/1 앵커의 달력 연도
-    // 비교(최대 ~12개월 조기)를 쓰지 않는다(감사 A-2). calStart/End 는 표시용.
-    const now = nowAge >= p.startYear && nowAge < p.endYear
-    chapters.push({
-      ...p,
-      startLot,
-      calendarStartYear: calStart,
-      calendarEndYear: calEnd,
-      now,
-      label: `${p.sign} / ${p.ruler} / ${p.durationYears}년`,
-    })
-  }
-  return chapters
-}
-
-/**
  * 본명 컨텍스트의 대운 목록이 만 나이를 덮지 못하면 같은 순서열로 이어 붙인 사본을
  * 돌려준다(덮으면 원본 그대로). 만 나이를 모르면 손대지 않는다.
  */
@@ -180,15 +136,9 @@ function withDaeunCovering(
 }
 
 /**
- * NatalContext + derivers → DestinyLifetime.
- *
- * 모든 5 필드 (daewoon / lifeStages / milestones / zrSpirit / zrFortune) 가
- * 입력만 주어지면 자동으로 채워진다. caller 는 `as unknown as` 없이 그대로
- * DestinyLifetime 으로 LifetimeTier 에 넘기면 됨.
+ * NatalContext + derivers → DestinyLifetime. 입력만 주어지면 모든 필드가 채워진다.
  */
 export function toLifetime(natal: NatalContext, opts: ToLifetimeOptions): DestinyLifetime {
-  const ageFrom = opts.zrAgeFrom ?? 0
-  const ageTo = opts.zrAgeTo ?? 90
   // 만 나이 SSOT — milestones(lifetimePivots)·lifeStages(lifetimeFlow)와 같은 축.
   const nowAge = opts.manAge ?? opts.currentYear - opts.birthYear
 
@@ -225,59 +175,9 @@ export function toLifetime(natal: NatalContext, opts: ToLifetimeOptions): Destin
   const windowStart = Math.max(0, windowEnd - DAEUN_LIST_MIN_LENGTH)
   const daewoon = daewoonRows.slice(windowStart, windowStart + DAEUN_LIST_MIN_LENGTH)
 
-  const lifeStagesRaw = toLifeStages(opts.lifetimeFlow, { birthYear: opts.birthYear })
-  // adapter 의 DestinypalLifeStage 와 DestinyLifeStage 는 detail 만 살짝 다름:
-  //  - adapter detail.daeunText?: string
-  //  - public  detail.daeunText:  string  (필수)
-  // 비어있으면 빈 문자열로 normalize.
-  const lifeStages: DestinyLifeStage[] = lifeStagesRaw.map((s) => {
-    if (!s.detail) {
-      return {
-        id: s.id,
-        name: s.name,
-        nameEn: s.nameEn,
-        ageFrom: s.ageFrom,
-        ageTo: s.ageTo,
-        yearFrom: s.yearFrom,
-        yearTo: s.yearTo,
-        now: s.now,
-        tone: s.tone,
-        toneEn: s.toneEn,
-        detail: null,
-      }
-    }
-    const detail: DestinyLifeStageDetail = {
-      daewoonText: s.detail.daeunText ?? '',
-      body: s.detail.body,
-      bodyEn: s.detail.bodyEn,
-      outer: s.detail.outer.map((o) => ({
-        // toLifeStages 는 outer.label = EN 마디줄, outer.body = KO 마디줄로 채운다
-        // (둘 다 같은 외행성 마디). 공개 타입은 KO 를 기본(label/body), EN 을
-        // labelEn/bodyEn 으로 둬 클라이언트 토글이 고르게 한다.
-        label: o.body || o.label,
-        labelEn: o.label || o.body,
-        date: o.date,
-        body: o.body || o.label,
-        bodyEn: o.label || o.body,
-        kind: o.kind ?? 'astro',
-      })),
-      hapchung: s.detail.hapchung,
-      shinsal: s.detail.shinsal,
-      unseong: s.detail.unseong,
-    }
-    return {
-      id: s.id,
-      name: s.name,
-      nameEn: s.nameEn,
-      ageFrom: s.ageFrom,
-      ageTo: s.ageTo,
-      yearFrom: s.yearFrom,
-      yearTo: s.yearTo,
-      now: s.now,
-      tone: s.tone,
-      toneEn: s.toneEn,
-      detail,
-    }
+  // 4구간 단계 — 이름 · 나이 범위 · 지금 여부 · 톤.
+  const lifeStages: DestinyLifeStage[] = toLifeStages(opts.lifetimeFlow, {
+    birthYear: opts.birthYear,
   })
 
   const milestones: DestinyMilestone[] = toMilestones(opts.lifetimePivots).map((m) => ({
@@ -292,15 +192,6 @@ export function toLifetime(natal: NatalContext, opts: ToLifetimeOptions): Destin
     kind: m.kind,
     now: m.now,
   }))
-
-  // ── ZR L1 챕터: Spirit / Fortune 자동 펼침 ──
-  const zr = natal.astro.zodiacalReleasing
-  const zrSpiritChapters: DestinyZRChapter[] = zr.spirit
-    ? zrPeriodsToChapters(zr.spirit.periods, 'Spirit', opts.birthYear, nowAge, ageFrom, ageTo)
-    : []
-  const zrFortuneChapters: DestinyZRChapter[] = zr.fortune
-    ? zrPeriodsToChapters(zr.fortune.periods, 'Fortune', opts.birthYear, nowAge, ageFrom, ageTo)
-    : []
 
   // 인생 유형 — 대운 흐름(대기만성/초년발복/청년절정/…).
   // 현재 *만* 나이를 넘겨 "정점" 서술이 지금~앞으로를 가리키게(과거/유아기 정점 방지
@@ -361,8 +252,6 @@ export function toLifetime(natal: NatalContext, opts: ToLifetimeOptions): Destin
     daewoon,
     lifeStages,
     milestones,
-    zrSpiritChapters,
-    zrFortuneChapters,
     lifePattern,
     lifeCurve: toDestinyLifeCurve(opts.lifeCurve, nowAge),
     sibsinRadar,

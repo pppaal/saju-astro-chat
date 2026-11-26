@@ -6,21 +6,21 @@
  *           gyeokguk, gyeokgukEn, gangyak, dominantSibsin, elements, astro,
  *           intro, introEn,
  *           // Phase 3 신규
- *           geokgukStatus, sect, almuten, lots }
+ *           geokgukStatus, sect, almuten }
  *
  * 정통화 보완 (audit):
  *   - "F등급" 라벨은 그대로 두되 geokgukStatus 라인 별도 노출 ("정인격 · 반성반파")
  *   - "재성 43%" 텍스트는 dominantSibsin 그대로 두되, rootLine (월령/통근) 추가 노출
  *   - astro: Sun/Asc/MC 외 sect ("낮"/"밤") + sect light (Sun/Moon) 표기
  *   - almuten: Almuten Figuris 후보 (가장 dignity score 높은 행성)
- *   - lots: 7대 Arabic Parts (Fortune/Spirit/Eros/Necessity/Courage/Victory/Nemesis)
+ *   (7대 Arabic Parts 칩과 일주 아키타입의 강점 · 약점 · 직업 · 연애 문단은 옛 LifetimeTier
+ *    전용이라 빠졌다 — 인생 흐름은 일주 character 한 줄만 읽는다.)
  */
 
 import type { NatalContext } from '@/lib/calendar-engine/context/types'
-import type { ArabicLotName } from '@/lib/astrology/foundation/arabicParts'
 import type { ZodiacKo } from '@/lib/astrology/foundation/types'
-import type { DestinyDignityEntry, DestinyAlmutenFiguris, DestinyArabicLot } from '@/types/calendar'
-import { getIljuArchetype, type IljuLangEntry } from '@/lib/chart-dictionary'
+import type { DestinyDignityEntry, DestinyAlmutenFiguris } from '@/types/calendar'
+import { getIljuArchetype } from '@/lib/chart-dictionary'
 import { strengthClassOf, type StrengthBand } from '@/lib/saju/strengthScore'
 import { ELEMENT_KO, ELEMENT_EN, SIGN_KO, geokgukStatusLine, rootLine, rootLineEn } from './shared'
 import { GEOKGUK_NAME_EN, geokgukStatusLineEn } from './dayTierEnMaps'
@@ -103,15 +103,10 @@ export interface DestinypalUser {
    */
   dignities: DestinyDignityEntry[]
   /**
-   * 7대 Arabic Parts — DestinyArabicLot[] (sign + degree + house + sect + korean).
-   * UI 가 .house / .sect / .korean 으로 읽음.
+   * 본명 일주 아키타입(ilju-60) 한 줄 — character(인생 흐름 히어로). 일주 간지 결손/DB 미스 시
+   * undefined (옵셔널 · 가드).
    */
-  lotsFull: DestinyArabicLot[]
-  /**
-   * 본명 일주 아키타입(ilju-60) 평이 프로즈 — character/strength/weakness/
-   * career/love. 일주 간지 결손/DB 미스 시 undefined (옵셔널 · 가드).
-   */
-  iljuArchetype?: { ko: IljuLangEntry; en: IljuLangEntry }
+  iljuArchetype?: { ko: { character: string }; en: { character: string } }
 }
 
 // ── 일간 한글 음 (한자→한글) ───────────────────────────────────────────────
@@ -251,35 +246,6 @@ function deriveAstro(natal: NatalContext): DestinypalUserAstro {
   }
 }
 
-const LOT_KO: Record<ArabicLotName, string> = {
-  Fortune: '복점·재물',
-  Spirit: '영점·진로',
-  Eros: '에로스·욕망',
-  Necessity: '필연·강제',
-  Courage: '용기·실행',
-  Victory: '승리·성취',
-  Nemesis: '응보·시련',
-}
-
-/**
- * NatalContext.astro.lots (house 포함) → DestinyArabicLot[].
- * sect 는 NatalContext.astro.sect 그대로. 섹트 미상이면 lot 공식(낮/밤)을 고를 수 없어
- * 빈 배열(컨텍스트의 lots 도 이미 비어 있다 — 방어).
- */
-function deriveLotsFull(natal: NatalContext): DestinyArabicLot[] {
-  const list = natal.astro.lots ?? []
-  const sect = natal.astro.sect
-  if (sect === null) return []
-  return list.map((lot) => ({
-    name: lot.name,
-    sign: lot.sign,
-    degree: lot.degreeInSign,
-    house: lot.house ?? 0,
-    sect,
-    korean: LOT_KO[lot.name],
-  }))
-}
-
 /**
  * NatalContext.astro.dignities → DestinyDignityEntry[] (shape 동일 — passthrough).
  */
@@ -340,7 +306,7 @@ export interface ToUserOptions {
  */
 function deriveIljuArchetype(
   natal: NatalContext
-): { ko: IljuLangEntry; en: IljuLangEntry } | undefined {
+): { ko: { character: string }; en: { character: string } } | undefined {
   const dayStemRaw = natal.saju.pillars?.day?.heavenlyStem?.name
   const dayBranchRaw = natal.saju.pillars?.day?.earthlyBranch?.name
   if (!dayStemRaw || !dayBranchRaw) return undefined
@@ -349,13 +315,13 @@ function deriveIljuArchetype(
   const ganji = `${stemHan}${dayBranchRaw}`
   const ko = getIljuArchetype(ganji, 'ko')
   const en = getIljuArchetype(ganji, 'en')
-  return ko && en ? { ko, en } : undefined
+  return ko && en ? { ko: { character: ko.character }, en: { character: en.character } } : undefined
 }
 
 /**
  * NatalContext → destinypal user 객체.
  *
- * lots / intro 같은 외부 결과는 NatalContext 에 안 들어있는 derive 결과라
+ * intro 같은 외부 결과는 NatalContext 에 안 들어있는 derive 결과라
  * 별도 옵션으로 받아 평탄화한다.
  */
 export function toUser(natal: NatalContext, opts: ToUserOptions = {}): DestinypalUser {
@@ -452,7 +418,6 @@ export function toUser(natal: NatalContext, opts: ToUserOptions = {}): Destinypa
     sectKind: natal.astro.sect ?? null,
     almutenFiguris: deriveAlmutenFigurisFull(natal),
     dignities: deriveDignitiesFull(natal),
-    lotsFull: deriveLotsFull(natal),
     iljuArchetype: deriveIljuArchetype(natal),
   }
 }

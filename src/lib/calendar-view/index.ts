@@ -9,11 +9,7 @@
 export { toUser } from './toUser'
 export type { DestinypalUser, DestinypalUserElements, ToUserOptions } from './toUser'
 
-export type {
-  DestinypalLifeStage,
-  DestinypalLifeStageDetail,
-  ToLifeStagesOptions,
-} from './toLifeStages'
+export type { DestinypalLifeStage, ToLifeStagesOptions } from './toLifeStages'
 
 export { toLifetime } from './toLifetime'
 export type { ToLifetimeOptions } from './toLifetime'

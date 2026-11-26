@@ -336,8 +336,6 @@ function fixture(over: Partial<Lifetime> = {}): { lifetime: Lifetime; user: User
     daewoon,
     lifeStages: [],
     milestones: [],
-    zrSpiritChapters: [],
-    zrFortuneChapters: [],
     ...over,
   } as Lifetime
   const user = {

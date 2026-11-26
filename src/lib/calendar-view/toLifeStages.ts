@@ -1,45 +1,24 @@
 /**
- * lifetimeFlow → destinypal `lifeStages[4]` 평탄화 adapter.
+ * lifetimeFlow → 인생 흐름 `lifeStages[4]` 평탄화 adapter.
  *
  * lifetimeFlow.phases (deriveLifetimeFlow 결과) 는 한 phase 당:
- *   { label, ageRange, text, daeunLine?, milestoneLine?, relationLine?,
- *     shinsalLine?, twelveStageLine?, current }
+ *   { label, ageRange, text, toneKo/toneEn, …, current }
  *
- * destinypal lifeStages 는:
- *   { id, name, ageFrom, ageTo, yearFrom, yearTo, now, tone, detail }
+ * lifeStages 는:
+ *   { id, name, nameEn, ageFrom, ageTo, yearFrom, yearTo, now, tone, toneEn }
  *
- * id 는 phases 의 라벨 순서 고정 매핑 (초년기→early, 청년기→youth, …).
- * detail 은 phase.current 가 true 인 단계에만 채운다 — destinypal UI 가
- * 펼친 카드를 한 단계에만 노출하는 디자인. text 는 destinypal 의 tone 줄로,
- * 나머지 사실 라인(daeunLine 등)은 detail.body 배열로 흩뿌린다.
+ * id 는 phases 의 라벨 순서 고정 매핑 (초년기→early, 청년기→youth, …). 인생 흐름 화면은
+ * 지금 단계의 이름만 읽는다('Living your young adulthood'). 예전 LifetimeTier 의 펼침 상세
+ * (대운 줄 · 관계 · 외행성 · 신살 · 12운성 문단)는 그 화면과 함께 빠졌다 — 상담사는
+ * NatalContext 를 읽는다.
  */
 
 import type { LifetimeFlow, LifePhase } from '@/lib/calendar-engine/derivers/lifetimeFlow'
 
-export interface DestinypalLifeStageDetail {
-  daeunText?: string // "丙子(병자) 2006–16 → 乙亥(을해) 2016–26 → 甲戌(갑술) 2026–36"
-  body: string[]
-  /** body 영문 — 클라이언트 언어 토글용. 비면 body 폴백. */
-  bodyEn: string[]
-  /**
-   * 외행성 마일스톤 — 항상 배열 (없으면 빈 배열).
-   * destinypal LifetimeTier 가 .map / .length 로 무조건 읽으므로 normalize.
-   */
-  outer: Array<{
-    label: string
-    date: string
-    body: string
-    kind?: string // 'jupiter' | 'saturn' | …
-  }>
-  hapchung?: { title: string; romaji?: string; body: string }
-  shinsal?: { title: string; romaji?: string; body: string; bodyEn?: string; kind?: string }
-  unseong?: { title: string; romaji?: string; body: string }
-}
-
 export interface DestinypalLifeStage {
   id: 'early' | 'youth' | 'middle' | 'late'
   name: string // 초년기 / 청년기 / 중년기 / 장년기
-  /** 영문 단계명 — 'Early years' 등. 클라이언트 토글용. */
+  /** 영문 단계명 — 'Early years' 등. */
   nameEn: string
   ageFrom: number
   ageTo: number
@@ -47,9 +26,8 @@ export interface DestinypalLifeStage {
   yearTo: number
   now: boolean
   tone: string // "편재 — 현실 성취의 무대"
-  /** 영문 톤 — 클라이언트 토글용. 비면 tone 폴백. */
+  /** 영문 톤. 비면 tone 폴백. */
   toneEn: string
-  detail: DestinypalLifeStageDetail | null
 }
 
 const LABEL_TO_ID: Record<string, DestinypalLifeStage['id']> = {
@@ -122,10 +100,10 @@ export interface ToLifeStagesOptions {
 }
 
 /**
- * lifetimeFlow.phases → destinypal lifeStages[4].
+ * lifetimeFlow.phases → lifeStages[4].
  *
  * lifetimeFlow.phases 가 4개 정확히 들어오면 그대로 매핑. 부족하면 LABEL_FALLBACK
- * 으로 빈 단계 채워 항상 4개 보장 (destinypal UI 가 4개 슬롯을 가정).
+ * 으로 빈 단계 채워 항상 4개 보장.
  */
 export function toLifeStages(
   lifetimeFlow: LifetimeFlow | undefined,
@@ -155,7 +133,6 @@ export function toLifeStages(
         now: false,
         tone: '',
         toneEn: '',
-        detail: null,
       }
     }
     const parsed = parseAgeRange(phase.ageRange)
@@ -165,53 +142,6 @@ export function toLifeStages(
     // 호환을 위해 새 필드가 없을 때만 폴백.
     const tone = phase.toneKo ?? deriveToneFromText(phase.textKo)
     const toneEn = phase.toneEn ?? deriveToneFromText(phase.textEn)
-    // 4단계 *전부* detail 을 채운다 — 데이터(daeunLine/relationLine/외행성/신살/
-    // 12운성)는 deriveLifetimeFlow 가 모든 단계에 대해 이미 만들어 넘긴다. 예전엔
-    // phase.current 단계만 펼치고 나머지를 버려, 프리미엄의 "인생 전체 흐름"(4단계
-    // 풀 서사)이 사라졌었다(사용자 지적). 현재 단계는 now 플래그로만 강조.
-    // body/bodyEn 양 언어 병행 — KO/EN 라인을 각각 모아 클라이언트가 토글로 고른다.
-    const detail: DestinypalLifeStageDetail | null = {
-      daeunText: phase.daeunLine,
-      // body[0] = 서술 본문(narrative) — 운세 톤(headline)을 제외해 중복 없음
-      // (감사 BUG-1). narrativeKo 가 없으면(구버전) textKo 폴백.
-      // KO body 는 반드시 *KO* 팩트라인으로 — 옛 phase.relationLine(=렌더언어)은
-      // 서버가 EN 렌더 시 영어라, KO 토글 시 "한국어 서사 + 영어 관계/12운성 줄"이
-      // 섞였다(감사 F6). *LineKo 를 우선, 없으면(구버전) 렌더언어 폴백.
-      body: [
-        phase.narrativeKo ?? phase.textKo,
-        ...((phase.relationLineKo ?? phase.relationLine)
-          ? [phase.relationLineKo ?? phase.relationLine!]
-          : []),
-        ...((phase.twelveStageLineKo ?? phase.twelveStageLine)
-          ? [phase.twelveStageLineKo ?? phase.twelveStageLine!]
-          : []),
-      ],
-      bodyEn: [
-        phase.narrativeEn ?? phase.textEn,
-        ...(phase.relationLineEn ? [phase.relationLineEn] : []),
-        ...(phase.twelveStageLineEn ? [phase.twelveStageLineEn] : []),
-      ],
-      outer:
-        (phase.milestoneLineKo ?? phase.milestoneLine)
-          ? [
-              {
-                label: phase.milestoneLineEn ?? phase.milestoneLineKo ?? phase.milestoneLine!,
-                date: '',
-                body: phase.milestoneLineKo ?? phase.milestoneLine!,
-              },
-            ]
-          : [],
-      shinsal:
-        (phase.shinsalLineKo ?? phase.shinsalLine)
-          ? {
-              // title 은 generic 마커 — 렌더 단(tier)에서 kind 로 로케일 라벨을 고른다.
-              title: '신살 활성',
-              kind: 'shinsal',
-              body: phase.shinsalLineKo ?? phase.shinsalLine!,
-              bodyEn: phase.shinsalLineEn,
-            }
-          : undefined,
-    }
     return {
       id: band.id,
       name: band.ko,
@@ -223,7 +153,6 @@ export function toLifeStages(
       now: phase.current,
       tone,
       toneEn,
-      detail,
     }
   })
 }

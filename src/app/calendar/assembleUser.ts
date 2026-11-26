@@ -73,7 +73,6 @@ export function assembleUserSummary(
     dignities: userBase.dignities,
     almutenFiguris: userBase.almutenFiguris,
     sect: userBase.sectKind,
-    lots: userBase.lotsFull,
     intro: userBase.intro,
     introEn: userBase.introEn,
     gyeokgukStatus: userBase.geokgukStatus,

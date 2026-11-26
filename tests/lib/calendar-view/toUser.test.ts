@@ -305,36 +305,6 @@ describe('toUser — NatalContext → destinypal user', () => {
     })
   })
 
-  describe('lots (Arabic Parts)', () => {
-    it('natal.astro.lots → lotsFull (house + sect + korean)', () => {
-      const natal = makeNatal({
-        sect: 'night',
-        lots: [{ name: 'Fortune', sign: 'Gemini', degreeInSign: 12.3, house: 3, formula: 'f' }],
-      })
-      expect(toUser(natal).lotsFull).toEqual([
-        {
-          name: 'Fortune',
-          sign: 'Gemini',
-          degree: 12.3,
-          house: 3,
-          sect: 'night',
-          korean: '복점·재물',
-        },
-      ])
-    })
-
-    it('natal.astro.lots 빈 → lotsFull 빈', () => {
-      expect(toUser(makeNatal({ lots: [] })).lotsFull).toEqual([])
-    })
-
-    it('lotsFull 의 house 결손 시 0 폴백', () => {
-      const natal = makeNatal({
-        lots: [{ name: 'Spirit', sign: 'Leo', degreeInSign: 1, formula: 'x' }],
-      })
-      expect(toUser(natal).lotsFull[0].house).toBe(0)
-    })
-  })
-
   describe('dignities passthrough', () => {
     it('natal.astro.dignities 를 DestinyDignityEntry[] 로 그대로 통과', () => {
       const natal = makeNatal({
