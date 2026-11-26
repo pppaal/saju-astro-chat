@@ -2,6 +2,13 @@ import { defineConfig, devices } from '@playwright/test'
 import path from 'node:path'
 
 const baseURL = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3005'
+
+// 로컬에서 Playwright 가 기대하는 chromium 리비전이 설치돼 있지 않을 때(예: 다른
+// 버전의 브라우저만 있는 샌드박스) PLAYWRIGHT_CHROMIUM_EXECUTABLE 로 실행 파일을
+// 지정한다. 설정하지 않으면(CI 포함) 기존과 같이 Playwright 기본 브라우저를 쓴다.
+// chromium 프로젝트에만 붙인다 — iPhone 기기 프로필은 webkit 이다.
+const chromiumExecutable = process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE
+const chromiumLaunch = chromiumExecutable ? { executablePath: chromiumExecutable } : {}
 const mockedFontResponses = path.join(process.cwd(), 'tests', 'playwright', 'google-fonts-mock.js')
 const distDir = process.env.NEXT_DIST_DIR || 'tmp/.next-playwright-calendar'
 
@@ -36,6 +43,7 @@ export default defineConfig({
       use: {
         ...devices['Desktop Chrome'],
         launchOptions: {
+          ...chromiumLaunch,
           args: ['--disable-dev-shm-usage', '--no-sandbox', '--disable-setuid-sandbox'],
         },
       },
