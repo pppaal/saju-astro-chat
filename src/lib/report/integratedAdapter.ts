@@ -542,6 +542,8 @@ export interface CrossRowOut {
   reason: string
   left?: string
   right?: string
+  /** 칸(left/right)이 없는 축의 한 문장 요지 — 평가기가 줄 때만(관계 · 길흉). */
+  gist?: string
   /** 공망/카르마(결핍 축) — resonant 톤이라도 '잘 맞아요' 집계에서 제외하기 위한 표식. */
   karmaAxis?: boolean
 }
@@ -824,6 +826,7 @@ export function buildCrossRows(
       reason: v.reason[lang],
       left: v.left?.[lang],
       right: v.right?.[lang],
+      ...(v.gist ? { gist: v.gist[lang] } : {}),
       karmaAxis: v.karmaAxis,
     }))
   return { synthesis: synth?.text[lang], rows }

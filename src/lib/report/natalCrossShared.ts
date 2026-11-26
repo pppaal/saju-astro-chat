@@ -43,6 +43,12 @@ export interface CrossVerdict {
   left?: { ko: string; en: string }
   right?: { ko: string; en: string }
   /**
+   * 한 문장 요지 — 칸(left/right)이 없는 축(관계 · 길흉)이 행에서 칸 대신 보여 줄 짧은
+   * 엔진 문구('Unions in your saju, soft aspects in your chart.'). 판정 갈래마다 고정
+   * 문구라 같은 입력이면 늘 같다. 칸이 있는 축은 칸이 요지를 대신해 비워 둔다.
+   */
+  gist?: { ko: string; en: string }
+  /**
    * 공망/카르마(결핍 축) 표식 — 두 시스템이 '같은 빈자리를 짚는다'는 합의(resonant
    * 톤)이지만, 그건 강점 수렴이 아니라 '평생 숙제'다. '잘 맞아요/aligns well' 집계에
    * 섞이면 막대그래프가 결핍 축을 강점으로 오인하게 하므로, 톤은 유지하되 이 플래그로

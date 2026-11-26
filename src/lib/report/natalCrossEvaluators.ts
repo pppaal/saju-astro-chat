@@ -308,12 +308,18 @@ export function evalFortune(
   const planetEmphasized = emphasizedPlanets.has(mapping.astro)
   const tk = planetTheme(mapping.astro, 'ko')
   const te = planetTheme(mapping.astro, 'en')
+  // 행 요지(gist) — 칸이 없는 축이라 행에서 reason 대신 보여 줄 한 문장. 갈래마다 고정.
+  const Te = te.charAt(0).toUpperCase() + te.slice(1)
   // polarity 0 은 길도 흉도 아닌 '중립 자원'(도화×Venus 매력, 비견×Saturn 자립 등)이다.
   // 예전엔 polarity>=0 으로 0 을 '복'에 묶어 거짓 긍정을 냈다(ENGINE-AUDIT) → 별도 분기.
   if (mapping.polarity === 0) {
     return planetEmphasized
       ? {
           tone: 'complement',
+          gist: {
+            ko: `${tk} — 양쪽 모두 쓰기 나름인 중립 자원으로 짚어요.`,
+            en: `${Te} — a neutral resource both sides point to.`,
+          },
           reason: {
             ko: `타고난 ${tk} 자원이 별자리에서도 또렷한 자리에 놓여요 — 길흉으로 가를 일이 아니라, 잘 쓰면 강점이 되는 '중립 자원'(매력·자립·전문성 같은)이에요. 좋고 나쁨을 따지기보다 이 기운을 어디에 쓸지 방향만 정하면 그대로 무기가 돼요.`,
             en: `Your innate ${te} resource also sits in a clear spot in your chart — not a matter of good or bad luck but a "neutral resource" (charm, self-reliance, expertise) that becomes a strength when used well. Rather than weighing it as fortune, just decide where to point it and it turns into a tool.`,
@@ -321,6 +327,10 @@ export function evalFortune(
         }
       : {
           tone: 'neutral',
+          gist: {
+            ko: `사주엔 ${tk} 자원, 별자리에선 잔잔해요.`,
+            en: `${Te} in your saju, quiet in your chart.`,
+          },
           reason: {
             ko: `사주엔 ${tk} 자원이 있는데 별자리에선 그 자리가 잔잔해요 — 길흉의 문제가 아니라 아직 깨우지 않은 중립 자원이에요. 의식적으로 꺼내 쓸 자리에 데려다 놓으면 그제야 제 몫을 해요.`,
             en: `Your Saju carries a ${te} resource while that spot is quiet in your chart — not a fortune question but a neutral resource not yet awakened. Bring it deliberately into places where it gets used and it starts to pull its weight.`,
@@ -332,6 +342,7 @@ export function evalFortune(
     return planetEmphasized
       ? {
           tone: 'resonant',
+          gist: { ko: `${tk} 쪽 복을 양쪽 모두 짚어요.`, en: `${Te} favored on both sides.` },
           reason: {
             ko: `타고난 복이 향하는 ${tk} 기운이 별자리에서도 힘 있는 자리에 놓여요 — 동·서양이 똑같이 이 분야를 복이자 강점으로 봐요. 위기 때 의외의 도움이 들어오거나 결정적 순간에 운이 따라주는 자리라, 평소 사람과 인연을 잘 가꿔두면 그 복이 더 자주 발동해요. 타고난 복도 쓰지 않으면 잠들어 있으니, 이 강점을 적극적으로 무대에 올리세요.`,
             en: `The ${te} energy your inborn luck favors also sits in a strong spot in your chart — both systems read this field as a blessing and a strength. It's a place where unexpected help arrives in a pinch or luck shows up at the decisive moment, so tending people and ties keeps that fortune firing more often. Even inborn luck sleeps if unused, so put this strength on stage on purpose.`,
@@ -339,6 +350,10 @@ export function evalFortune(
         }
       : {
           tone: 'complement',
+          gist: {
+            ko: `사주엔 ${tk} 복, 별자리에선 잔잔해요.`,
+            en: `A ${te} blessing in your saju, quieter in your chart.`,
+          },
           reason: {
             ko: `사주엔 ${tk} 기운의 복이 또렷한데, 별자리에선 그 자리가 잔잔해요 — 타고난 복이 자동으로 터지기보다 의식적으로 살려야 빛나는 구조예요. 가만히 기다리기보다 그 기운을 쓸 자리에 스스로를 데려다 놓으면, 잠재된 복이 현실의 결과로 바뀌어요. 있는 복을 안 쓰고 묵히지 않는 게 핵심이에요.`,
             en: `Your Saju carries a clear ${te} blessing, while that spot is quieter in your chart — the luck shines when you activate it on purpose rather than waiting for it to fire by itself. Instead of sitting still, put yourself where that energy gets used and the latent blessing turns into real results. The key is not to let good fortune sit idle.`,
@@ -348,6 +363,10 @@ export function evalFortune(
   return planetEmphasized
     ? {
         tone: 'tension',
+        gist: {
+          ko: `${tk} 쪽 센 기운이 양쪽에서 커져요.`,
+          en: `${Te} runs strong on both sides.`,
+        },
         reason: {
           ko: `타고난 강한 추진력이 향하는 ${tk} 쪽이 별자리에서도 도드라져요 — 추진력과 승부욕이 양쪽에서 증폭돼 힘이 두 배가 되는 자리예요. 잘 쓰면 누구도 못 따라오는 돌파력이 되지만, 욱하거나 과속하면 그 힘이 자기를 향하기 쉬워요. 센 기운일수록 '한 박자 쉬는' 안전장치를 미리 정해두면 강점만 남아요.`,
           en: `The ${te} side in your nature is pronounced in your chart too — drive and competitiveness amplify on both sides, doubling the force. Used well it's breakthrough power no one can match, but flare up or overspeed and that force turns on you. The stronger the energy, the more a pre-set "pause one beat" safeguard leaves only the strength.`,
@@ -355,6 +374,10 @@ export function evalFortune(
       }
     : {
         tone: 'complement',
+        gist: {
+          ko: `사주의 센 ${tk} 기운을 별자리가 눌러 줘요.`,
+          en: `${Te} runs strong in your saju, tempered by your chart.`,
+        },
         reason: {
           ko: `사주엔 추진력·승부욕의 센 기운이 있는데, 별자리에선 그 자리가 약해 거친 결이 한결 눌려요 — 안에선 뜨거운데 겉으론 차분해 보이는, 속도 조절이 되는 구조예요. 그 내면의 힘을 너무 억누르기만 하면 동력이 줄 수 있으니, 안전한 통로(운동·도전·목표)로 풀어주는 게 좋아요. 센 기운을 길들여 쓰는 데 유리한 조합이에요.`,
           en: `Your Saju carries strong drive and competitiveness, but that spot is weak in your chart, so the rough edge is tempered — hot inside yet calm outside, a built-in speed governor. Suppressing that inner force entirely can sap your momentum, so release it through safe channels (exercise, challenges, goals). It's a combination well-suited to taming strong energy into use.`,
@@ -375,20 +398,37 @@ export function evalRelations(
   if (hap + chung + harmonious + hard === 0) return null
   const sajuHarmony = hap - chung
   const astroHarmony = harmonious - hard
-  const base: { tone: CrossVerdict['tone']; ko: string; en: string } =
+  const base: {
+    tone: CrossVerdict['tone']
+    ko: string
+    en: string
+    gist: { ko: string; en: string }
+  } =
     sajuHarmony > 0 && astroHarmony > 0
       ? {
+          gist: {
+            ko: '사주엔 합(合), 별자리엔 부드러운 각.',
+            en: 'Unions in your saju, soft aspects in your chart.',
+          },
           tone: 'resonant',
           ko: '사람들과 잘 어울리고 관계가 매끄럽게 풀리는 편 — 사주의 합(合)과 별자리의 부드러운 각이 둘 다 그렇게 봐요. 사람을 끌어모으고 곁에 두는 게 타고난 자산이라, 인맥과 협업이 인생의 큰 동력이 돼요. 다만 다들 좋게 봐주는 만큼 싫은 소리를 미루다 속앓이하기 쉬우니, 할 말은 부드럽게라도 그때그때 해두는 게 관계를 더 오래 가게 해요.',
           en: "You get along easily and relationships flow — your Saju's unions and your chart's soft aspects both agree. Drawing people in and keeping them close is a natural asset, so connections and collaboration become a major engine in your life. Just don't let being well-liked make you swallow hard truths — saying the awkward thing gently and on time is what keeps the bond lasting.",
         }
       : sajuHarmony < 0 && astroHarmony < 0
         ? {
+            gist: {
+              ko: '사주엔 충(沖), 별자리엔 단단한 각.',
+              en: 'Clashes in your saju, hard aspects in your chart.',
+            },
             tone: 'tension',
             ko: '관계에서 부딪힘이 좀 있는 편인데 — 사주의 충(沖)과 별자리의 단단한 각이 둘 다 그렇게 짚어요. 사람과 쉽게 매끄럽진 않아도 그 마찰을 거치며 진짜 내 사람을 가려내고 더 단단해지는 타입이에요. 모두와 잘 지내려 애쓰기보다, 부딪혀도 끝까지 남는 소수에게 마음을 모으면 관계가 훨씬 편해져요.',
             en: "Relationships bring some friction — your Saju's clashes and your chart's hard aspects both point that way. You don't connect smoothly with everyone, but you grow tougher through the friction and sift out who's truly yours. Rather than straining to please everyone, pour your heart into the few who stay after the clash, and relationships get far easier.",
           }
         : {
+            gist: {
+              ko: '사주와 별자리가 관계를 서로 다른 결로 읽어요.',
+              en: 'Your saju and your chart read your ties differently.',
+            },
             tone: 'complement',
             ko: '어떤 관계는 매끄럽고 어떤 관계는 부딪혀요 — 사주와 별자리가 다른 결을 짚어, 상황 따라 두 모습이 다 나오는 균형형이에요. 잘 맞는 사람과는 깊게, 부딪히는 사람과는 거리를 두는 식으로 자연스럽게 나눠 쓰면 돼요. 모든 관계를 똑같이 잘하려 애쓰지 않는 게 오히려 에너지를 아끼는 길이에요.',
             en: 'Some ties flow, some clash — Saju and chart read different grains, so you show both sides depending on the situation, a balanced type. Go deep with the people who fit and keep distance from the ones who grate — you sort it naturally. Not trying to ace every relationship equally is actually how you save your energy.',
@@ -397,7 +437,7 @@ export function evalRelations(
   // ── 성별 자식성(子息星) — 남: 관성, 여: 식상 ──
   // 미성년 안전 모드: 자녀·후대 서술은 아동에게 부적합하므로 생략(기본 관계 해석만).
   if (isMinor) {
-    return { tone: base.tone, reason: { ko: base.ko, en: base.en } }
+    return { tone: base.tone, gist: base.gist, reason: { ko: base.ko, en: base.en } }
   }
   const g = gender === 'female'
   const starKo = g ? '식상' : '관성'
@@ -412,7 +452,11 @@ export function evalRelations(
     ? ` Also, ${whoEn} child indicator is ${starEn}, and it sits in your chart — a clear thread for raising the next generation, or nurturing something into being.`
     : ` Also, ${whoEn} child indicator is ${starEn}, and it's faint — the "raising" bond, whether children or work, grows by depth rather than volume.`
 
-  return { tone: base.tone, reason: { ko: base.ko + childKo, en: base.en + childEn } }
+  return {
+    tone: base.tone,
+    gist: base.gist,
+    reason: { ko: base.ko + childKo, en: base.en + childEn },
+  }
 }
 
 /** 강점: 12운성(일주) ↔ 차트에서 가장 위신 높은 행성.
