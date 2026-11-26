@@ -95,6 +95,14 @@ jobs:
       - name: Typecheck regression gate
         run: npm run ops:typecheck:gate
 
+      # 런타임 import 순환 금지 — 타입 전용 import(컴파일 시 지워짐)는 건너뛴다. madge 는 rc 로
+      # 설정을 읽어 madge_* 환경변수로 detectiveOptions 를 넘긴다(.madgerc 파일 없이).
+      - name: Circular import check (madge, runtime only)
+        run: npx --yes madge@8.0.0 --circular --extensions ts,tsx --ts-config tsconfig.json --no-spinner src
+        env:
+          madge_detectiveOptions__ts__skipTypeImports: 'true'
+          madge_detectiveOptions__tsx__skipTypeImports: 'true'
+
       - name: Destiny release gate
         run: npm run ops:destiny:release
 
