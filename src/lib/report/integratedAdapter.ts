@@ -371,7 +371,8 @@ export function natalToReportData(
     lon: p.longitude ?? p.lon ?? 0,
     sign: toAbbr(p.sign),
     deg: fmtDeg(p.longitude ?? p.lon),
-    house: p.house ?? 0,
+    // Chiron·Lilith 도 하우스는 ASC 의존 — astroFacts 가 이미 0 으로 가리지만 행성과 같은 규칙으로.
+    house: placeUnreliable ? 0 : (p.house ?? 0),
   }))
   const houses = placeUnreliable
     ? []
@@ -446,6 +447,7 @@ export function natalToReportData(
       timeZone: inp.timeZone ?? '',
       isoUTC: inp.isoUTC ?? '',
       birthTimeUnknown,
+      birthCityUnknown: !!inp.birthCityUnknown,
     },
     saju: {
       dayMaster: S.dayMaster?.name ?? '',
@@ -487,6 +489,7 @@ export function natalToReportData(
       // 'day' 로 채워 정오 앵커 섹트를 지어냈다.
       sect: A.sect === 'day' || A.sect === 'night' ? A.sect : null,
       houseSystem: A.houseSystem ?? 'Placidus',
+      placeUnreliable,
       // placeUnreliable(출생시각/출생지 미상) 면 facts 가 ascendant/mc 를 null 로 비워 보낸다
       // → 미상 앵커 폴백 각을 'Virgo'/'Gemini'/lon 0 으로 가짜로 채우지 않고 그대로 null 을 보존한다.
       ascendant: {
@@ -671,11 +674,18 @@ export function buildCrossRows(
   const allShinsal: string[] = (S.natalShinsal ?? []).map((h: any) => String(h.kind ?? h.name))
   const hasShinsal = (...names: string[]) =>
     names.some((n) => allShinsal.some((s) => s.includes(n)))
+  // 하우스 점유 수 — angularity 와 같은 게이트: 출생시각/출생지 미상(placeUnreliable)이면
+  // 하우스는 정오 앵커·기본 좌표 폴백이라 세지 않고 null(미상)로 넘긴다. 평가기는 null 이면
+  // 하우스를 근거로도, 문구로도 쓰지 않는다(CALCULATION_SPEC §6, 감사 CR-1).
   const houseCount: Record<number, number> = {}
-  for (const p of planets) {
-    if (typeof p.house === 'number') houseCount[p.house] = (houseCount[p.house] ?? 0) + 1
+  if (!placeUnreliable) {
+    for (const p of planets) {
+      if (typeof p.house === 'number' && p.house >= 1 && p.house <= 12)
+        houseCount[p.house] = (houseCount[p.house] ?? 0) + 1
+    }
   }
-  const inHouses = (...hs: number[]) => hs.reduce((a, h) => a + (houseCount[h] ?? 0), 0)
+  const inHouses = (...hs: number[]): number | null =>
+    placeUnreliable ? null : hs.reduce((a, h) => a + (houseCount[h] ?? 0), 0)
   const jaeseongCount = details?.['재성'] ?? 0
   const siksangCount = details?.['식상'] ?? 0
   // 길흉: 일주 신살을 먼저, 없으면 다른 기둥 신살로 폴백 — 대부분의 사주에서
@@ -786,7 +796,8 @@ export function buildCrossRows(
       evalWealth(
         jaeseongCount,
         inHouses(2, 8),
-        emphasized.has('Venus') || emphasized.has('Jupiter')
+        emphasized.has('Venus') || emphasized.has('Jupiter'),
+        (['Venus', 'Jupiter'] as const).filter((n) => emphasized.has(n))
       ),
     ],
     ['karma', evalVoid(gongmangBranches, southNodeSign)],

@@ -171,6 +171,22 @@ const TWELVE_STAGE_ORDER: TwelveStage[] = [
   '양',
 ]
 
+/**
+ * 12운성 동의어 → 정본 이름(SSOT). getTwelveStage 는 정통 표기 임관/왕지를 내지만
+ * 해석 사전(interpretations.json)·강약 표·글로스는 동의어 건록/제왕/장생 키를 쓴다
+ * (臨官=建祿, 帝旺=旺, 長生=養生 — 같은 자리의 다른 이름). 이름을 비교·조회하는 쪽은
+ * 반드시 이 함수로 정규화한다 — 리포트 강점 행·명식 라벨(stageLabel)·운흐름 대운 글로스가
+ * 같은 표를 쓴다(감사 CR-2: 임관/왕지 일주 1/6 이 강점 판정에서 약하게 읽혔다).
+ */
+export const TWELVE_STAGE_SYNONYMS: Readonly<Record<string, string>> = Object.freeze({
+  임관: '건록',
+  왕지: '제왕',
+  양생: '장생',
+})
+export function canonicalTwelveStage(stage: string): string {
+  return TWELVE_STAGE_SYNONYMS[stage] ?? stage
+}
+
 /* 일간별 장생 출발지 (정통 명리학 기준) */
 const DAYMASTER_BIRTH_BRANCH: Record<string, string> = {
   甲: '亥',

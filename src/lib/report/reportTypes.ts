@@ -27,6 +27,8 @@ export interface ReportData {
     isoUTC: string
     /** 출생시각 미상 — true면 ASC/MC/하우스 의존 해석이 근사치(배너 경고). */
     birthTimeUnknown?: boolean
+    /** 출생지 미상 — 시간대 기준 좌표로 계산해 ASC/MC/하우스를 내지 않는다(배너 안내). */
+    birthCityUnknown?: boolean
   }
   saju: {
     dayMaster: string
@@ -63,6 +65,10 @@ export interface ReportData {
     // 'day' | 'night' — 섹트를 정할 수 없으면(출생시각 미상 등, OD-5) null.
     sect: string | null
     houseSystem: string
+    /** 출생시각/출생지 미상 — ASC·MC·하우스는 산출 불가. planets/extraPoints 의 house 는
+     *  미상 표식 0(UNKNOWN_HOUSE)이고 houses 는 빈 배열 — UI 는 '0H'·'빈 하우스'로 그리지
+     *  않고 미상으로 표시한다(CALCULATION_SPEC §6, 감사 CR-5). 옛 샘플 호환 위해 optional. */
+    placeUnreliable?: boolean
     // 출생시각/출생지 미상(placeUnreliable) 시 ASC·MC 는 산출 불가 → null.
     // 미상 앵커 폴백 각을 가짜로 채우지 않는다(astroFacts 의 의도적 null-out 을 그대로 보존).
     ascendant: { lon: number | null; sign: string | null; deg: string }

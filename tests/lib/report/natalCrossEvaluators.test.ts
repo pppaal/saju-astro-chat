@@ -547,3 +547,105 @@ describe('분포 추출 헬퍼 edge', () => {
     expect(signToSajuElement(undefined)).toBeUndefined()
   })
 })
+
+// ── 생활영역 행 — 근거 인용(하우스 vs 담당 행성) · 하우스 미상(null) ─────────
+// 감사 CR-1·CR-7: 점성 쪽 근거는 ① 그 영역 하우스 점유 ② 담당 행성 강조(각도·본궁·고양)
+// 두 갈래다. 하우스가 비었거나(0) 미상(null — 출생시각/출생지 미상)인데 행성 강조로만 켜진
+// 행은 "houses of … run active / are lit / are strong" 이라고 말하면 안 되고 행성을 말해야
+// 한다. 하우스가 실제로 찼으면 하우스 문구를 그대로 쓴다.
+describe('생활영역 행 — 하우스/행성 근거 문구 분기 (CR-1·CR-7)', () => {
+  const HOUSE_EN = /houses? of/i
+  // KO 하우스 문구('별자리의 ○○ 자리')
+  const HOUSE_KO = /별자리의 (사랑·관계|사랑|이동·확장|내면·영성|자원·소유|소통·표현) 자리/
+
+  it('evalExpression — 행성만이면 수성을, 하우스가 찼으면 하우스를 말한다', () => {
+    for (const houses of [0, null]) {
+      const astroOnly = evalExpression(0, true, houses)!
+      expect(astroOnly.tone).toBe('complement')
+      expect(astroOnly.reason.en).toContain('Mercury')
+      expect(astroOnly.reason.en).not.toMatch(HOUSE_EN)
+      expect(astroOnly.reason.ko).toContain('수성')
+      expect(astroOnly.reason.ko).not.toMatch(HOUSE_KO)
+      expect(HANGUL.test(astroOnly.reason.en)).toBe(false)
+      const both = evalExpression(3, true, houses)!
+      expect(both.tone).toBe('resonant')
+      expect(both.reason.en).toContain('Mercury')
+      expect(both.reason.en).not.toMatch(HOUSE_EN)
+      expect(both.reason.ko).toContain('수성')
+    }
+    const byHouse = evalExpression(0, false, 2)!
+    expect(byHouse.reason.en).toContain('houses of communication')
+    expect(byHouse.reason.ko).toContain('소통·표현 자리')
+    // 하우스 미상(null)이고 수성도 약하면 점성 근거가 없다 — 행 생략(식상<2).
+    expect(evalExpression(1, false, null)).toBeNull()
+  })
+
+  it('evalMovement — 행성만이면 목성을 말한다', () => {
+    for (const houses of [0, null]) {
+      const v = evalMovement(false, houses, true)!
+      expect(v.reason.en).toContain('Jupiter')
+      expect(v.reason.en).not.toMatch(HOUSE_EN)
+      expect(v.reason.ko).toContain('목성')
+      expect(v.reason.ko).not.toMatch(HOUSE_KO)
+      const both = evalMovement(true, houses, true)!
+      expect(both.tone).toBe('resonant')
+      expect(both.reason.en).toContain('Jupiter')
+      expect(both.reason.en).not.toMatch(HOUSE_EN)
+    }
+    expect(evalMovement(false, 1, false)!.reason.en).toContain('houses of travel')
+    expect(evalMovement(false, null, false)).toBeNull()
+  })
+
+  it('evalSpirit — 행성만이면 해왕성을 말한다', () => {
+    for (const houses of [0, null]) {
+      const v = evalSpirit(false, houses, true)!
+      expect(v.reason.en).toContain('Neptune')
+      expect(v.reason.en).not.toMatch(HOUSE_EN)
+      expect(v.reason.ko).toContain('해왕성')
+      const both = evalSpirit(true, houses, true)!
+      expect(both.reason.en).toContain('Neptune')
+      expect(both.reason.ko).not.toMatch(HOUSE_KO)
+    }
+    expect(evalSpirit(false, 1, false)!.reason.en).toContain('houses of the inner life')
+  })
+
+  it('evalWealth — 행성만이면 강조된 길성 이름을 댄다(단수/복수 일치)', () => {
+    const venus = evalWealth(0, 0, true, ['Venus'])!
+    expect(venus.reason.en).toContain('the benefic Venus stands out')
+    expect(venus.reason.en).not.toMatch(HOUSE_EN)
+    expect(venus.reason.ko).toContain('길성 금성이')
+    const both = evalWealth(3, null, true, ['Venus', 'Jupiter'])!
+    expect(both.tone).toBe('resonant')
+    expect(both.reason.en).toContain('both benefics, Venus and Jupiter, stand out')
+    expect(both.reason.ko).toContain('길성 금성과 목성이')
+    // 이름을 모르는 옛 호출부도 하우스를 지어내지 않는다.
+    expect(evalWealth(0, 0, true)!.reason.en).toContain('a benefic planet stands out')
+    expect(evalWealth(0, 2, false)!.reason.en).toContain('houses of resources')
+    for (const v of [venus, both]) expect(HANGUL.test(v.reason.en)).toBe(false)
+  })
+
+  it('evalRomance — 금성만이면 금성을, 하우스 미상이면 중립 문구도 하우스를 말하지 않는다', () => {
+    for (const houses of [0, null]) {
+      const astroOnly = evalRomance(false, true, houses, 'male', 0)!
+      expect(astroOnly.reason.en).toContain('Venus')
+      expect(astroOnly.reason.en).not.toMatch(HOUSE_EN)
+      expect(astroOnly.reason.ko).toContain('금성')
+      expect(astroOnly.reason.ko).not.toMatch(HOUSE_KO)
+      const both = evalRomance(true, true, houses, 'female', 1)!
+      expect(both.tone).toBe('resonant')
+      expect(both.reason.en).toContain('Venus')
+      expect(both.reason.en).not.toMatch(HOUSE_EN)
+    }
+    // 하우스를 알고 비었으면 "lit houses of love" 부정은 사실이라 유지.
+    expect(evalRomance(false, false, 0, 'male', 2)!.reason.en).toContain('lit houses of love')
+    // 하우스 미상이면 비었다고도 말하지 않는다.
+    const unknown = evalRomance(false, false, null, 'male', 2)!
+    expect(unknown.tone).toBe('neutral')
+    expect(unknown.reason.en).toContain('a prominent Venus')
+    expect(unknown.reason.en).not.toMatch(HOUSE_EN)
+    expect(unknown.reason.ko).not.toMatch(HOUSE_KO)
+    expect(unknown.reason.ko).toContain('진중하게 가꾸는')
+    // 하우스가 찼으면 하우스 문구.
+    expect(evalRomance(false, false, 1, 'male', 0)!.reason.en).toContain('houses of love')
+  })
+})

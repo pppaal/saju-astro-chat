@@ -521,6 +521,10 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
     Porphyry: '포르피리우스',
   }
   const houseSysLabel = (hs: string): string => (lang === 'en' ? hs : (HOUSE_SYS_KO[hs] ?? hs))
+  // 하우스 미상 — 출생시각/출생지 미상(placeUnreliable). 어댑터가 house=0·houses=[] 로 비워
+  // 보내는데, 이를 '0H'·'빈 하우스'로 그리지 않고 미상으로 표시한다(CALCULATION_SPEC §6, 감사 CR-5).
+  // 옛 데이터(플래그 없음)는 커스프가 비었으면 미상으로 본다.
+  const houseUnknown = !!A.placeUnreliable || (A.houses ?? []).length === 0
   // 표준시: KO 는 IANA 식별자(Asia/Seoul) 를 빼고 UTC 오프셋만 노출.
   const tzLabel = (tz: string): string => {
     if (lang === 'en') return tz
@@ -818,6 +822,13 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
             <span>{t('timeUnknownBody')}</span>
           </div>
         )}
+        {/* 출생지만 미상 — 시각은 알아도 하우스·상승점은 출생지가 있어야 계산된다(감사 CR-5). */}
+        {!input.birthTimeUnknown && input.birthCityUnknown && (
+          <div className={s.timeUnknownNote} role="note">
+            <b>⚠ {t('cityUnknownTitle')}</b>
+            <span>{t('cityUnknownBody')}</span>
+          </div>
+        )}
 
         {/* ── 바이럴 한 장 요약 — 유형 별명 + 소름 한 줄 + 동·서양 일치 + 궁합.
             매칭(일간 10간) 없으면 자동 생략하고 기존 히어로만 노출. ── */}
@@ -918,10 +929,13 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
               [t('metaTz'), tzLabel(input.timeZone)],
               [
                 t('metaHouse'),
-                // 섹트 미상(null — 출생시각 미상 등)이면 낮/밤을 붙이지 않는다(OD-5).
-                A.sect === 'day' || A.sect === 'night'
-                  ? `${houseSysLabel(A.houseSystem)} · ${A.sect === 'day' ? t('day') : t('night')}`
-                  : houseSysLabel(A.houseSystem),
+                // 하우스 미상(placeUnreliable)이면 계산법 대신 '미상' — 계산하지 않은 하우스의
+                // 방식을 내세우지 않는다(CR-5). 섹트 미상(null)이면 낮/밤을 붙이지 않는다(OD-5).
+                `${houseUnknown ? t('houseUnknownMeta') : houseSysLabel(A.houseSystem)}${
+                  A.sect === 'day' || A.sect === 'night'
+                    ? ` · ${A.sect === 'day' ? t('day') : t('night')}`
+                    : ''
+                }`,
               ],
             ].map(([k, v]) => (
               <div className={s.metaCell} key={k}>
@@ -1398,7 +1412,10 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
                               {SIGN_META[abbr(p.sign)]?.glyph} {signLabel(abbr(p.sign), lang)}
                             </td>
                             <td className={s.plD}>{p.deg}</td>
-                            <td className={s.plH}>{p.house}H</td>
+                            <td className={s.plH}>
+                              {/* 하우스 미상(0)은 '0H' 가 아니라 '—'(CR-5). */}
+                              {!houseUnknown && p.house > 0 ? `${p.house}H` : '—'}
+                            </td>
                             <td className={s.plR}>{'retro' in p && p.retro ? '℞' : ''}</td>
                           </tr>
                         ))}
@@ -1410,30 +1427,35 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
                     {t('retroLegend')}
                   </div>
                   <div className={s.axes}>
+                    {/* ASC/MC 가 미상(null)이면 빈 칸으로 그리지 않는다 — 휠과 같은 규칙(CR-5). */}
                     {[
                       [lang === 'en' ? 'First impression' : '첫인상', A.ascendant],
                       [lang === 'en' ? 'Public face' : '사회적 위치', A.mc],
-                    ].map(([lab, ax]) => {
-                      const a = ax as { sign: string; deg: string }
-                      return (
-                        <div className={s.axisItem} key={lab as string}>
-                          <span>{lab as string}</span>
-                          <b className={elClass[SIGN_META[abbr(a.sign)]?.el]}>
-                            {SIGN_META[abbr(a.sign)]?.glyph} {a.deg}
-                          </b>
-                        </div>
-                      )
-                    })}
+                    ]
+                      .filter(([, ax]) => !!(ax as { sign: string | null }).sign)
+                      .map(([lab, ax]) => {
+                        const a = ax as { sign: string; deg: string }
+                        return (
+                          <div className={s.axisItem} key={lab as string}>
+                            <span>{lab as string}</span>
+                            <b className={elClass[SIGN_META[abbr(a.sign)]?.el]}>
+                              {SIGN_META[abbr(a.sign)]?.glyph} {a.deg}
+                            </b>
+                          </div>
+                        )
+                      })}
                     {(A.sect === 'day' || A.sect === 'night') && (
                       <div className={s.axisItem}>
                         <span>{t('sectLab')}</span>
                         <b>{A.sect === 'day' ? t('sectDay') : t('sectNight')}</b>
                       </div>
                     )}
-                    <div className={s.axisItem}>
-                      <span>{t('houseLab')}</span>
-                      <b>{houseSysLabel(A.houseSystem)}</b>
-                    </div>
+                    {!houseUnknown && (
+                      <div className={s.axisItem}>
+                        <span>{t('houseLab')}</span>
+                        <b>{houseSysLabel(A.houseSystem)}</b>
+                      </div>
+                    )}
                   </div>
                   {/* 6하우스 그리드 제거 — 아래 HouseDetail 이 12하우스 전체를 풀이로 대체. */}
                 </div>
@@ -1520,11 +1542,8 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
                       <div className={s.bigPrin}>{cd.core.principle}</div>
                       {(() => {
                         if (!hasSign) {
-                          // 상승궁은 정확한 출생 시각이 있어야 계산된다.
-                          const note =
-                            lang === 'en'
-                              ? "Your birth time is missing, so this sign can't be calculated yet — add an exact birth time to reveal it."
-                              : '출생 시각이 없어 별자리를 계산할 수 없어요 — 정확한 출생 시각을 넣으면 나타나요.'
+                          // 상승궁은 정확한 출생 시각과 출생지가 있어야 계산된다 — 빠진 쪽을 정직하게.
+                          const note = input.birthTimeUnknown ? t('ascNoTime') : t('ascNoPlace')
                           return <div className={s.bigRead}>{note}</div>
                         }
                         // 점성 해석 — 행성(역할) × 별자리(색) × 하우스(무대)를 한 문장으로.

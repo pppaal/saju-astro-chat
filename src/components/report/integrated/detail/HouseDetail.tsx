@@ -13,7 +13,7 @@
  */
 
 import { SIGN_META, type ReportData } from '@/lib/report/reportTypes'
-import { signLabel, type Lang } from '@/lib/report/integratedReportLabels'
+import { signLabel, UI, type Lang } from '@/lib/report/integratedReportLabels'
 import { elClass } from '../elementClass'
 import { getHouseRich, type HouseNumber } from '@/lib/chart-dictionary'
 import s from './HouseDetail.module.css'
@@ -46,11 +46,17 @@ export default function HouseDetail({ astro, lang, isMinor = false }: HouseDetai
 
   // planets + extraPoints 를 하나의 점유 목록으로 합친다.
   const occupants = [...(astro.planets ?? []), ...(astro.extraPoints ?? [])]
+  // 하우스 미상(출생시각/출생지 미상 — placeUnreliable): 어댑터가 house=0·houses=[] 로 비워
+  // 보낸다. 이걸 12칸 모두 '비어 있음 — 걱정 마세요'로 읽으면 미상을 풀이로 둔갑시킨다
+  // (감사 CR-5). 각 영역의 뜻만 보여주고, 점유·빈 칸·커스프 사인은 말하지 않는다.
+  // 옛 데이터(플래그 없음)는 커스프가 비었으면 미상으로 본다.
+  const unknown = !!astro.placeUnreliable || (astro.houses ?? []).length === 0
 
   return (
     <details className={s.box}>
       <summary>{en ? 'The 12 life areas (houses)' : '삶의 12가지 영역 풀이 (하우스)'}</summary>
       <div className={s.body}>
+        {unknown && <p className={s.ascNote}>{UI.houseUnknownNote[lang]}</p>}
         {HOUSE_NUMS.map((i) => {
           const rich = getHouseRich(i, lang, isMinor)
           const cusp = astro.houses?.find((h) => h.i === i)
@@ -81,7 +87,7 @@ export default function HouseDetail({ astro, lang, isMinor = false }: HouseDetai
                 </p>
               )}
 
-              {here.length > 0 ? (
+              {unknown ? null : here.length > 0 ? (
                 <div className={s.planets}>
                   {here.map((p) => (
                     <span className={s.planet} key={p.name}>

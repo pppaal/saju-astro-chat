@@ -17,6 +17,7 @@ import {
   type DignityStatus,
 } from '@/lib/chart-dictionary'
 import { getSibsinInterpretation, getTwelveStageInterpretation } from '@/lib/saju/interpretations'
+import { canonicalTwelveStage } from '@/lib/saju/shinsal'
 
 export type Lang = 'ko' | 'en'
 
@@ -108,6 +109,34 @@ export const UI: Record<string, BiLabel> = {
   timeUnknownBody: {
     ko: '태어난 시각을 몰라서 사주는 시주를 빼고 년·월·일 세 기둥(삼주)으로 풀었어요. 낮 12시는 날짜를 정확히 잡는 데만 썼어요. 일간과 큰 성향은 그대로 읽히지만, 오행 균형·강약 같은 판단은 시각을 알면 달라질 수 있어요. 달의 별자리도 바뀔 수 있고, 상승점·하우스처럼 시각에 기대는 항목은 보여드리지 않아요.',
     en: "We didn't know your birth time, so your Saju is read from three pillars (year, month, day) without the hour pillar; noon was used only to pin down the date. Your day master and core temperament still hold, but judgments like element balance and strength could shift once the time is known. Your Moon sign may differ too, and time-dependent items like the Ascendant and houses are left out.",
+  },
+  // 출생지 미상(시각은 앎) 안내 — 시간대 기준 좌표로 계산했고 하우스·상승점은 뺐다고
+  // 정직하게 알린다(CALCULATION_SPEC §6, 감사 CR-5: 예전엔 배너 없이 '0H'·빈 하우스가 나갔다).
+  cityUnknownTitle: {
+    ko: '태어난 도시를 몰라 하우스는 뺐어요',
+    en: 'No birth city, so houses are left out',
+  },
+  cityUnknownBody: {
+    ko: '태어난 도시를 몰라서 시간대의 기준 위치로 별자리를 계산했어요. 행성의 별자리는 그대로 읽히지만, 상승점·중천점과 하우스(삶의 영역)는 정확한 출생지가 있어야 계산돼서 보여드리지 않아요.',
+    en: "We didn't know your birth city, so the chart was cast from your time zone's reference location. Planet signs still hold, but the Ascendant, Midheaven and houses (life areas) need your exact birthplace, so they are left out.",
+  },
+  // 하우스 미상(placeUnreliable) — 메타 칸·하우스 풀이·첫인상 카드에서 '빈 하우스'·'0H'
+  // 대신 쓰는 정직한 안내(감사 CR-5).
+  houseUnknownMeta: {
+    ko: '미상 — 출생 시각·출생지가 필요해요',
+    en: 'Unknown — needs birth time and place',
+  },
+  houseUnknownNote: {
+    ko: '하우스(삶의 영역)는 정확한 출생 시각과 출생지가 있어야 계산돼요. 그래서 각 영역의 뜻만 보여드리고, 어느 행성이 어느 영역에 있는지는 말하지 않아요.',
+    en: 'Houses (life areas) need an exact birth time and birthplace, so here you get only what each area means — not which planets sit where.',
+  },
+  ascNoTime: {
+    ko: '출생 시각이 없어 별자리를 계산할 수 없어요 — 정확한 출생 시각을 넣으면 나타나요.',
+    en: "Your birth time is missing, so this sign can't be calculated yet — add an exact birth time to reveal it.",
+  },
+  ascNoPlace: {
+    ko: '출생지가 없어 별자리를 계산할 수 없어요 — 태어난 도시를 넣으면 나타나요.',
+    en: "Your birthplace is missing, so this sign can't be calculated yet — add your birth city to reveal it.",
   },
   day: { ko: '주간', en: 'diurnal' },
   night: { ko: '야간', en: 'nocturnal' },
@@ -298,12 +327,11 @@ export const sibsinShort = (name: string, lang: Lang): string => {
 }
 // 십이운성 동의어 정규화: 임관=건록, 왕지=제왕, 양생=장생.
 // interpretations.json 은 건록/제왕/장생만 키로 가지므로, 엔진이 동의어 이름을
-// 내보내면 EN name_en 조회가 실패해 한글이 그대로 누출된다(임관 등). 라벨·툴팁
-// 양쪽에서 같은 표를 써 canonical 이름으로 정규화한다.
-const STAGE_SYN: Record<string, string> = { 임관: '건록', 왕지: '제왕', 양생: '장생' }
+// 내보내면 EN name_en 조회가 실패해 한글이 그대로 누출된다(임관 등). 표는 saju SSOT
+// (canonicalTwelveStage) — 강점 교차 행·운흐름 대운 글로스와 같은 표(감사 CR-2).
 export const stageLabel = (stage: string, lang: Lang): string => {
   if (!stage) return stage
-  const norm = STAGE_SYN[stage] ?? stage
+  const norm = canonicalTwelveStage(stage)
   if (lang === 'ko') return norm
   return getTwelveStageInterpretation(norm as never)?.name_en ?? norm
 }
@@ -370,7 +398,7 @@ export function dignityHover(planet: string, tier: string, lang: Lang): string {
   return getAstroDignity(NODE_CORE_KEY[planet] ?? planet, st, lang)?.text ?? ''
 }
 export function stageHover(stage: string, lang: Lang): string {
-  const it = getTwelveStageInterpretation((STAGE_SYN[stage] ?? stage) as never)
+  const it = getTwelveStageInterpretation(canonicalTwelveStage(stage) as never)
   if (!it) return ''
   return lang === 'en' ? (it.meaning_en ?? '') : (it.meaning ?? '')
 }

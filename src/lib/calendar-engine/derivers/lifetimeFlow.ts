@@ -21,7 +21,7 @@ import { getSibsinKo } from '@/lib/saju/cycleRelations'
 import { SIGN_KO as SIGN_KO_SSOT } from '@/lib/astrology/signLabels'
 import { STEM_KO, BRANCH_KO, ganjiToKorean, ganjiToRoman } from '@/lib/saju/ganjiKo'
 import { getStemElement } from '@/lib/saju/stemBranchUtils'
-import { getTwelveStage } from '@/lib/saju/shinsal'
+import { getTwelveStage, canonicalTwelveStage } from '@/lib/saju/shinsal'
 import { getJohuYongsin } from '@/lib/saju/johuYongsin'
 import { type TwelveStageType } from '@/lib/saju/interpretations'
 
@@ -1430,9 +1430,9 @@ export function deriveLifetimeFlow(
       const stage = getTwelveStage(dm, primary.branch)
       // getTwelveStage 는 정통 표기 임관/왕지를 내는데, 해석 테이블·타입가드는
       // 동의어 건록/제왕 키를 쓴다. 정규화하지 않으면 임관·왕지 단계가 *항상*
-      // 해석을 잃고 "…기준 임관" 으로 끊겨 raw 용어만 남는다(감사 지적). 동의어를
-      // 매핑해 의미가 절대 비지 않게 한다.
-      const stageForLookup = stage === '임관' ? '건록' : stage === '왕지' ? '제왕' : stage
+      // 해석을 잃고 "…기준 임관" 으로 끊겨 raw 용어만 남는다(감사 지적). 동의어 표는
+      // saju SSOT(canonicalTwelveStage) — 리포트 강점 행·명식 라벨과 같은 표(CR-2).
+      const stageForLookup = canonicalTwelveStage(stage)
       // 추상 에너지 글로스만 사용 — 문자 그대로의 인생 사건/성공 비유(잉태/관을
       // 쓰는/권력의 정점)를 빼 연령·운(favor) 모순을 없앤다(감사 BUG-4).
       const glossKo =

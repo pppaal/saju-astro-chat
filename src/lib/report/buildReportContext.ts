@@ -32,6 +32,7 @@ import { JIJANGGAN } from '@/lib/saju/constants'
 import { strengthClassOf } from '@/lib/saju/strengthScore'
 import { parseHourMinute } from '@/lib/saju/timeParse'
 import { astroAnchorTime } from '@/lib/saju/birthTimeAnchor'
+import { UNKNOWN_HOUSE } from '@/lib/astrology/foundation/shared'
 import type { NatalContext, NatalDayJijanggan } from '@/lib/calendar-engine/context/types'
 import type { FiveElement, MaybeTimeless, SajuPillarsInput } from '@/lib/saju/types'
 
@@ -86,7 +87,18 @@ export async function buildReportContext(input: ReportContextInput): Promise<Nat
   const pillars = timeUnknown
     ? { year: raw.pillars.year, month: raw.pillars.month, day: raw.pillars.day }
     : raw.pillars
-  const chart = astroFacts._chart
+  // 출생시각/출생지 미상(placeUnreliable) — _chart 의 하우스는 정오 앵커·기본 좌표 폴백이라
+  // 날조값이다. collectAstroFacts().natal.planets 와 같은 규칙으로 행성 하우스를
+  // UNKNOWN_HOUSE(0)로, 커스프 목록을 비워 ctx 로 보낸다 — 어떤 소비자도 폴백 하우스로
+  // 생활영역 행·하우스 풀이를 지어낼 수 없게(CALCULATION_SPEC §6, 감사 CR-1).
+  const placeUnreliable = astroFacts.natal.placeUnreliable
+  const chart = placeUnreliable
+    ? {
+        ...astroFacts._chart,
+        planets: astroFacts._chart.planets.map((p) => ({ ...p, house: UNKNOWN_HOUSE })),
+        houses: [],
+      }
+    : astroFacts._chart
 
   // ─── 사주 분석 (page 가 자기 책임으로 호출) ──────────────────────────
   const timeSimple = timeUnknown
@@ -203,7 +215,7 @@ export async function buildReportContext(input: ReportContextInput): Promise<Nat
       chart,
       // 출생시각/출생지 미상 — adapter 가 _chart 의 자정/서울 폴백 ASC·MC·하우스를
       // 리포트로 흘리지 않도록 가리는 플래그(ENGINE-AUDIT: _chart 우회로 누출 차단).
-      placeUnreliable: astroFacts.natal.placeUnreliable,
+      placeUnreliable,
       extraPoints: hellenistic.extraPoints,
       sect: hellenistic.sect,
       location: {
