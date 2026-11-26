@@ -1,5 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { parseBirthOverride, parseBirthOverrideQuery } from '@/app/calendar/loadTierData'
+import { buildReportBirthQuery, type StoredBirthInfo } from '@/lib/birth/storage'
+import { BIRTH_NAME_MAX, BIRTH_PLACE_MAX } from '@/lib/birth/format'
 
 describe('parseBirthOverride — 쿼리파라미터 → 생일 override (로그인 없이 캘린더/인생흐름)', () => {
   it('date 가 없으면 null (세션/샘플 경로로)', () => {
@@ -89,7 +91,56 @@ describe('parseBirthOverride — 쿼리파라미터 → 생일 override (로그�
     expect(parseBirthOverride({ date: '2000-01-01', lat: '999', lng: '999' })).toBeNull()
     expect(parseBirthOverride({ date: '2000-01-01', tz: 'Not/AZone' })).toBeNull()
     expect(parseBirthOverride({ date: '2000-01-01', time: '7pm' })).toBeNull()
-    expect(parseBirthOverride({ date: '2000-01-01', name: 'n'.repeat(41) })).toBeNull()
+    expect(parseBirthOverride({ date: '2000-01-01', gender: 'g'.repeat(17) })).toBeNull()
+    expect(parseBirthOverride({ date: '2000-01-01', tu: 't'.repeat(9) })).toBeNull()
+  })
+
+  // R-CC-2 — 이름·장소는 표시용이다. 길이 때문에 override 전체가 무효가 되면 안 된다.
+  it('긴 이름·장소는 잘라서 받는다 — override 를 무효로 만들지 않는다', () => {
+    const o = parseBirthOverride({
+      date: '2000-01-01',
+      name: 'n'.repeat(200),
+      place: 'p'.repeat(300),
+    })
+    expect(o).not.toBeNull()
+    expect(o?.name).toBe('n'.repeat(BIRTH_NAME_MAX))
+    expect(o?.place).toBe('p'.repeat(BIRTH_PLACE_MAX))
+    // 코드 포인트 단위로 자른다 — 서로게이트 쌍(이모지)을 반으로 쪼개지 않는다.
+    const emoji = parseBirthOverride({ date: '2000-01-01', name: '🌙'.repeat(70) })
+    expect(emoji?.name).toBe('🌙'.repeat(BIRTH_NAME_MAX))
+  })
+
+  it.each([
+    ['41자 이름', 'Maria Fernanda de los Santos Rodriguez Ga', 'Seoul, KR'],
+    ['45자 이름', 'Maria Fernanda de los Santos Rodriguez Garcia', 'Seoul, KR'],
+    ['64자 이름', 'N'.repeat(64), 'Seoul, KR'],
+    [
+      '100자 넘는 도시',
+      'Alice',
+      'Llanfairpwllgwyngyllgogerychwyrndrobwllllantysiliogogogoch, Isle of Anglesey, Wales, United Kingdom',
+    ],
+    ['아주 긴 이름 + 도시', 'X'.repeat(90), 'Y'.repeat(150)],
+  ])('buildReportBirthQuery 출력(%s)은 페이지·API 파서 모두 ok', (_label, name, city) => {
+    const info: StoredBirthInfo = {
+      name,
+      birthDate: '1990-05-21',
+      birthTime: '14:30',
+      birthTimeUnknown: false,
+      gender: 'female',
+      city,
+      latitude: 37.5665,
+      longitude: 126.978,
+      timeZone: 'Asia/Seoul',
+      savedAt: '2020-01-01T00:00:00.000Z',
+    }
+    const sp = Object.fromEntries(new URLSearchParams(buildReportBirthQuery(info, 'en')))
+    const q = parseBirthOverrideQuery(sp)
+    expect(q.kind).toBe('ok')
+    const o = parseBirthOverride(sp)
+    expect(o).not.toBeNull()
+    expect(o?.birthDate).toBe('1990-05-21')
+    expect(o?.name).toBe(name.slice(0, BIRTH_NAME_MAX))
+    expect(o?.place).toBe(city.slice(0, BIRTH_PLACE_MAX))
   })
 
   it('parseBirthOverrideQuery — none · invalid(이슈 경로) · ok 를 가른다', () => {

@@ -26,6 +26,7 @@ import {
 } from '@/lib/userProfile'
 import { isBirthTimeUnknown, resolveBirthTimeAnchor } from '@/lib/saju/birthTimeAnchor'
 import { normalizeGender } from '@/lib/utils/gender'
+import { BIRTH_NAME_MAX, BIRTH_PLACE_MAX, clipDisplayText } from '@/lib/birth/format'
 
 export interface StoredBirthInfo {
   name?: string // 표시 이름 — 운명상담사/타로/궁합에 매핑
@@ -164,8 +165,9 @@ export function buildReportBirthQuery(info: StoredBirthInfo | null, locale: 'ko'
     if (typeof info.longitude === 'number') p.set('lng', String(info.longitude))
     if (info.timeZone) p.set('tz', info.timeZone)
     p.set('gender', info.gender)
-    if (info.name) p.set('name', info.name)
-    if (info.city) p.set('place', info.city)
+    // 표시용 — 수신 스키마와 같은 상한으로 잘라 싣는다(링크가 길어지지 않게, R-CC-2).
+    if (info.name) p.set('name', clipDisplayText(info.name, BIRTH_NAME_MAX))
+    if (info.city) p.set('place', clipDisplayText(info.city, BIRTH_PLACE_MAX))
   }
   return p.toString()
 }

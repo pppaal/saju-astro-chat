@@ -94,8 +94,7 @@ describe('GET /api/calendar/day — override 쿼리 zod 검증(422, 500 아님)'
     ['숫자가 아닌 좌표', { lat: 'abc', lng: '126.978' }],
     ['없는 타임존', { tz: 'Mars/Olympus_Mons' }],
     ['깨진 시각', { time: '25:99' }],
-    ['너무 긴 이름', { name: 'x'.repeat(41) }],
-    ['너무 긴 장소', { place: 'y'.repeat(81) }],
+    ['너무 긴 성별 값', { gender: 'g'.repeat(17) }],
   ])('%s → 422 invalid_birth_override, 엔진 미호출', async (_label, patch) => {
     const { status, body } = await call({ ...BASE, ...patch })
     expect(status).toBe(422)
@@ -103,6 +102,18 @@ describe('GET /api/calendar/day — override 쿼리 zod 검증(422, 500 아님)'
     expect(body.error.message).toBe('invalid_birth_override')
     expect(Array.isArray(body.error.details)).toBe(true)
     expect(getOrBuildNatalContext).not.toHaveBeenCalled()
+  })
+
+  // R-CC-2 — 앱이 만든 링크(BirthInfoModal 은 이름 64자까지)가 422 로 막히면 일별 보기가 영영 안 열린다.
+  it.each([
+    ['41자 이름', { name: 'x'.repeat(41) }],
+    ['64자 이름', { name: 'x'.repeat(64) }],
+    ['아주 긴 이름', { name: 'x'.repeat(200) }],
+    ['100자 넘는 장소', { place: 'y'.repeat(130) }],
+  ])('표시용 필드가 길어도(%s) 200 — 잘라서 받는다', async (_label, patch) => {
+    const { status } = await call({ ...BASE, ...patch })
+    expect(status).toBe(200)
+    expect(getOrBuildNatalContext).toHaveBeenCalled()
   })
 
   it('잘못된 day 는 그대로 422 invalid_day', async () => {

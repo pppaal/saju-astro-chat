@@ -212,6 +212,16 @@ describe('lib/birth/storage', () => {
       expect(p.get('timeZone')).toBeNull()
     })
 
+    it('caps the display-only name and place (R-CC-2)', () => {
+      const info: StoredBirthInfo = {
+        ...base({ name: 'N'.repeat(90), city: 'C'.repeat(200) }),
+        savedAt: '2020-01-01T00:00:00.000Z',
+      }
+      const p = new URLSearchParams(buildReportBirthQuery(info, 'en'))
+      expect(p.get('name')).toBe('N'.repeat(64))
+      expect(p.get('place')).toBe('C'.repeat(120))
+    })
+
     it('keeps a real midnight birth (explicit flag false) and sends tu=0', () => {
       const info: StoredBirthInfo = {
         ...base({ birthTime: '00:00', birthTimeUnknown: false }),

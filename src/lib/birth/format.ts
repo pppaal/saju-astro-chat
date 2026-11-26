@@ -31,6 +31,20 @@ export interface BirthStampOptions {
   city?: boolean
 }
 
+/**
+ * 출생 링크의 표시용 필드 길이 상한 — 이름(BirthInfoModal maxLength 와 같다) · 출생지.
+ * 링크 빌더(buildReportBirthQuery)와 수신 스키마(birthOverrideQuerySchema)가 같은 값을 쓴다.
+ * 표시용이라 넘치면 자를 뿐, 링크를 무효로 만들지 않는다(R-CC-2).
+ */
+export const BIRTH_NAME_MAX = 64
+export const BIRTH_PLACE_MAX = 120
+
+/** 코드 포인트 단위로 앞에서 `max` 자 — 서로게이트 쌍(이모지)을 반으로 쪼개지 않는다. */
+export function clipDisplayText(text: string, max: number): string {
+  if (text.length <= max) return text
+  return Array.from(text).slice(0, max).join('')
+}
+
 /** 저장된 도시 문자열에서 표시용 도시 이름 — 'Seoul, KR' → 'Seoul'. */
 export function cityLabel(city: string | null | undefined): string {
   return String(city ?? '')

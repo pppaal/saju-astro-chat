@@ -37,6 +37,7 @@ import {
   timezoneSchema,
 } from '@/lib/api/zodValidation/common'
 import { logger } from '@/lib/logger'
+import { BIRTH_NAME_MAX, BIRTH_PLACE_MAX, clipDisplayText } from '@/lib/birth/format'
 
 export type LoadTierResult =
   | { kind: 'no-birth' }
@@ -101,11 +102,22 @@ const coordinate = (schema: z.ZodNumber) =>
     const b = blankToUndef(v)
     return typeof b === 'string' ? Number(b) : b
   }, schema.optional())
+/**
+ * 표시용 텍스트(이름 · 출생지) — 빈 값은 없음, 넘치면 `max` 자로 자른다. 길이 때문에 override
+ * 전체가 무효가 되면 앱이 만든 링크(BirthInfoModal 은 이름 64자, 저장된 도시는 길이 무제한)가
+ * 게스트 BirthGate 루프 · /api/calendar/day 422 로 막힌다(R-CC-2).
+ */
+const displayText = (max: number) =>
+  z.preprocess((v) => {
+    const b = blankToUndef(v)
+    return typeof b === 'string' ? clipDisplayText(b, max) : b
+  }, z.string().optional())
 
 /**
  * 생일 override 쿼리 스키마 — 공용 zod 원시 스키마(dateSchema 1900..올해 · latitude/longitude 범위 ·
  * IANA 타임존)를 그대로 쓴다. /calendar · /destiny 페이지와 /api/calendar/day 가 같은 검사를
- * 거친다: 범위 밖 입력이 엔진 RangeError(500)까지 가지 않게(QA PMS-4).
+ * 거친다: 범위 밖 입력이 엔진 RangeError(500)까지 가지 않게(QA PMS-4). 계산에 쓰는 필드
+ * (date/time/tu/lat/lng/tz/gender)만 엄격히 거르고, 표시용 name/place 는 잘라서 받는다.
  */
 export const birthOverrideQuerySchema = z.object({
   date: dateSchema,
@@ -121,8 +133,8 @@ export const birthOverrideQuerySchema = z.object({
   lng: coordinate(longitudeSchema),
   tz: z.preprocess(blankToUndef, timezoneSchema.optional()),
   gender: z.preprocess(blankToUndef, z.string().max(16).optional()),
-  place: z.preprocess(blankToUndef, z.string().max(80).optional()),
-  name: z.preprocess(blankToUndef, z.string().max(40).optional()),
+  place: displayText(BIRTH_PLACE_MAX),
+  name: displayText(BIRTH_NAME_MAX),
 })
 
 export type BirthOverrideParse =
