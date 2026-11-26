@@ -182,3 +182,29 @@ export function formatPrice(
   }
   return `$${amount.toFixed(2)}`
 }
+
+// ============================================================================
+// "CREDITS FROM" — 홈·Explore·상담사 CTA 의 최저가 표기
+// ============================================================================
+
+/**
+ * 첫구매 한정이 아닌 팩 중 가장 싼 팩 — "Credits from $4.99" 의 기준.
+ * starter(firstPurchaseOnly)는 아무나 살 수 없으므로 "부터" 가격에서 뺀다.
+ * 가격(정가 KRW) 오름차순 첫째 — 표가 바뀌어도 이 함수가 기준을 다시 고른다.
+ */
+export function cheapestRegularPack(): CreditPack {
+  const regular = getAllCreditPackIds()
+    .map((id) => CREDIT_PACKS[id])
+    .filter((p) => !p.firstPurchaseOnly)
+  return regular.reduce((min, p) => (p.pricing.krw < min.pricing.krw ? p : min), regular[0])
+}
+
+/**
+ * 최저가 라벨 — en '$4.99' · ko '₩5,900'. 통화는 currencyForLocale(표시 = 청구 통화),
+ * 금액은 packAmount, 표기는 formatPrice 를 그대로 거친다.
+ */
+export function creditsFromLabel(locale: string | null | undefined): string {
+  const currency = currencyForLocale(locale)
+  const pack = cheapestRegularPack()
+  return formatPrice(packAmount(pack.id, currency), currency, locale === 'ko' ? 'ko' : 'en')
+}

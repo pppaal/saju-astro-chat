@@ -20,32 +20,11 @@ import {
   type ApiContext,
 } from '@/lib/api/middleware'
 import { recordCounter } from '@/lib/metrics'
+import { FUNNEL_EVENTS } from '@/lib/metrics/funnelEvents'
 
 export const dynamic = 'force-dynamic'
 
-// 허용 이벤트 — 무료 퍼널 단계. 새 단계는 여기 추가해야만 집계된다.
-const FUNNEL_EVENTS = [
-  'integrated_report.viewed',
-  'integrated_report.counselor_cta',
-  'compat_free.report_viewed',
-  'compat_free.counselor_cta',
-  'referral.link_clicked',
-  'referral.invite_clicked',
-  // 바이럴 루프 계측 — trackFunnel.ts 의 FunnelEvent 와 동일하게 유지.
-  'compat_free.share_clicked',
-  'compat_free.share_link',
-  'compat_free.share_image',
-  'compat_free.invite_landed',
-  'compat_free.invite_prefilled',
-  'compat_free.invite_converted',
-  'integrated_report.share_clicked',
-  'integrated_report.invite_landed',
-  'integrated_report.invite_converted',
-  // /destiny 인생유형 공유 — trackFunnel.ts 의 FunnelEvent 와 동일하게 유지.
-  'destiny.share_link',
-  'destiny.share_image',
-] as const
-
+// 허용 이벤트 — funnelEvents.ts 의 FUNNEL_EVENTS(SSOT). 새 단계는 거기 추가해야만 집계된다.
 const funnelSchema = z.object({ event: z.enum(FUNNEL_EVENTS) })
 
 export const POST = withApiMiddleware(

@@ -18,3 +18,20 @@ export const SIBSIN_EN: Record<string, string> = {
   편인: 'Indirect Resource',
   정인: 'Direct Resource',
 }
+
+/**
+ * 십신(十神) 한국어 → 한자 — SIBSIN_EN 과 같은 10개 키. v9 교차 행(SAJU 칸)이
+ * '正官 Direct Officer' 처럼 한자와 영문을 함께 쓸 때 읽는다.
+ */
+export const SIBSIN_HANJA: Record<string, string> = {
+  비견: '比肩',
+  겁재: '劫財',
+  식신: '食神',
+  상관: '傷官',
+  편재: '偏財',
+  정재: '正財',
+  편관: '偏官',
+  정관: '正官',
+  편인: '偏印',
+  정인: '正印',
+}
