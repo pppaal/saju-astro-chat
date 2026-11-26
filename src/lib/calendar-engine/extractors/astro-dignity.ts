@@ -46,7 +46,8 @@ const koSign = (s: string): string => SIGN_KO[s] ?? s
  *           triplicity 0.5 / term 0.3 / face 0.2)
  *
  * 본명 행성(natal planets)도 한 번 평가해 본명 5-tier Almuten 스냅샷 신호로
- * 같이 내보낸다 (layer: 'yearly', 활성 윈도우 = 전체 range).
+ * 같이 내보낸다 (layer: 'yearly', 활성 윈도우 = 범위에 닿는 민용 연도 각각 — 범위와 무관한
+ * 창·id). 출생 차트의 고정 사실이라 교차 부모가 아니다(재감사 CC-2).
  *
  * 창은 그 품위가 이어지는 *연속 정오 전체*다 — 범위 가장자리에 닿은 구간은 천체력으로
  * 범위 밖까지 이어 사인·텀·데칸 진입/이탈 정오를 찾는다(shared/noonRuns, 엔진 감사 X1).
@@ -408,8 +409,13 @@ const astroDignityExtractor: SignalExtractor = {
       }
     }
 
-    // ── Natal Almuten snapshot — 본명 5-tier 합산. 한 신호로 range 전체에 깔리는
-    //    배경 신호. 본명 행성이 자기 사인의 minor dignity ruler 인 경우만 노출.
+    // ── Natal Almuten snapshot — 본명 5-tier 합산. 범위에 닿는 *민용 연도* 마다 한 신호로
+    //    깔리는 배경 신호(yearly). 본명 행성이 자기 사인의 minor dignity ruler 인 경우만 노출.
+    //    창·id 는 (본명, 연도) 만의 함수 — 예전엔 창 = 빌드 범위라 1일 빌드와 월 빌드의 id·창이
+    //    갈렸다(재감사 CC-7). 출생 차트의 고정 사실이라 교차 부모는 아니다(cross-activation,
+    //    재감사 CC-2).
+    const almutenYears: number[] = []
+    for (let y = start.getUTCFullYear(); y <= end.getUTCFullYear(); y++) almutenYears.push(y)
     const natalPlanets = natal.astro.chart.planets ?? []
     for (const p of natalPlanets) {
       if (!p.sign) continue
@@ -429,28 +435,35 @@ const astroDignityExtractor: SignalExtractor = {
         score >= 1.5 ? 2 : score >= 0.5 ? 1 : score <= -1.5 ? -2 : score <= -0.5 ? -1 : 0
       if (polarity === 0) continue
 
-      signals.push({
-        id: `astro.dignity.natal-almuten.${p.name}.${p.sign}.${matchedMinor.join('-')}`,
-        source: 'astro',
-        kind: 'transit',
-        name: `Natal ${p.name} ${matchedMinor.join('+')} in ${p.sign}`,
-        korean: `본명 ${koPlanet(p.name)} 5-tier 디그니티 (${koSign(p.sign)})`,
-        polarity,
-        layer: 'yearly',
-        active: { start: range.start, peak: range.start, end: range.end },
-        weight: 0.4,
-        evidence: {
-          module: 'astro-dignity',
-          planets: [p.name],
-          detail: {
-            dignity: 'natal-almuten',
-            sign: p.sign,
-            degree: p.degree,
-            tiers,
-            score,
+      for (const year of almutenYears) {
+        const y = String(year).padStart(4, '0')
+        signals.push({
+          id: `astro.dignity.natal-almuten.${p.name}.${p.sign}.${matchedMinor.join('-')}.${y}`,
+          source: 'astro',
+          kind: 'transit',
+          name: `Natal ${p.name} ${matchedMinor.join('+')} in ${p.sign}`,
+          korean: `본명 ${koPlanet(p.name)} 5-tier 디그니티 (${koSign(p.sign)})`,
+          polarity,
+          layer: 'yearly',
+          active: {
+            start: `${y}-01-01T00:00:00.000Z`,
+            peak: `${y}-01-01T00:00:00.000Z`,
+            end: `${y}-12-31T23:59:59.999Z`,
           },
-        },
-      })
+          weight: 0.4,
+          evidence: {
+            module: 'astro-dignity',
+            planets: [p.name],
+            detail: {
+              dignity: 'natal-almuten',
+              sign: p.sign,
+              degree: p.degree,
+              tiers,
+              score,
+            },
+          },
+        })
+      }
     }
 
     return signals

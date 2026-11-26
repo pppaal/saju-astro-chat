@@ -47,7 +47,8 @@
  *    십신이 +3 과 −1 로 갈림) 교차 부모가 아니다 — evidenceLadder 의 정통 십신 규칙과 같다.
  *  - 점성: 하늘에서 실제로 움직이는 활성 행성만. 식(eclipse)·프로펙션·ZR·행성시(지정),
  *    솔라 아크·2차 진행·진행 달(상징 방향 — 라이프사이클의 진행 달 회귀 포함), 솔라·루나
- *    리턴(회귀 차트가 여는 1년·1달 주기 구간 — 오너 결정 15)은 제외.
+ *    리턴(회귀 차트가 여는 1년·1달 주기 구간 — 오너 결정 15), 본명 Almuten 스냅샷(출생
+ *    차트의 고정 품위 — 재감사 CC-2)은 제외.
  *
  * ── dedup ──
  * 같은 셀 안에서 (교차 name, layer) 당 가장 센 1개 — buildCalendar 의 groupIntoCells 가
@@ -149,10 +150,21 @@ function isProgressedLifecycle(s: ActiveSignal): boolean {
   const event = s.evidence?.detail?.event
   return typeof event === 'string' && event.startsWith('progressed_')
 }
+/**
+ * 본명 Almuten 스냅샷(astro-dignity 의 natal-almuten)도 교차 키가 아니다(재감사 CC-2) —
+ * kind 는 'transit' 이지만 planets[0] 은 *본명* 행성이고 품위는 출생 차트의 고정 사실이라,
+ * 하늘의 그 행성이 몰락(fall)인 날에도 매일 '비견 × 태양 ▲' 같은 교차를 만들었다
+ * (CALCULATION_SPEC §4 — 점성 부모는 하늘에서 움직이는 행성). 단독 배경 신호로는 남는다.
+ */
+function isNatalDignitySnapshot(s: ActiveSignal): boolean {
+  return s.evidence?.detail?.dignity === 'natal-almuten'
+}
 function extractAstroKey(s: ActiveSignal): string | undefined {
   if (s.source !== 'astro') return undefined
-  // affectedPoint(본명점)·상징적 지배성·상징 방향·회귀 주기 구간이라 활성 주체 아님 — 교차 제외.
-  if (NON_ACTIVE_ASTRO_KINDS.has(s.kind) || isProgressedLifecycle(s)) return undefined
+  // affectedPoint(본명점)·상징적 지배성·상징 방향·회귀 주기 구간·본명 품위라 활성 주체
+  // 아님 — 교차 제외.
+  if (NON_ACTIVE_ASTRO_KINDS.has(s.kind) || isProgressedLifecycle(s) || isNatalDignitySnapshot(s))
+    return undefined
   const planets = s.evidence?.planets ?? []
   return planets[0]
 }

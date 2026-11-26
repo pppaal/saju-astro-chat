@@ -49,11 +49,27 @@ const dayRange = (from: string, to: string) => ({
 const cellOf = (cells: CalendarCell[], day: string) =>
   cells.find((c) => c.datetime.startsWith(day))!
 
-/** 계약 필드 — name·layer·polarity·weight(3dp). */
+/** 계약 필드 — name·layer·polarity·weight(3dp), 그리고 id·창(재감사 CC-7). */
 function crossSet(cell: CalendarCell): string[] {
   return cell.signals
     .filter((s) => s.kind === 'cross-activation')
-    .map((s) => `${s.name}|${s.layer}|${s.polarity}|${s.weight.toFixed(3)}`)
+    .map(
+      (s) =>
+        `${s.id}|${s.name}|${s.layer}|${s.polarity}|${s.weight.toFixed(3)}|${s.active.start}~${s.active.end}`
+    )
+    .sort()
+}
+
+/** 하우스 오버레이·앵글 컨택·본명 Almuten 신호의 id·창 — 빌드 범위와 무관해야 한다(CC-7). */
+function staticWindowSet(cell: CalendarCell): string[] {
+  return cell.signals
+    .filter(
+      (s) =>
+        s.kind === 'house-transit' ||
+        s.kind === 'angle-contact' ||
+        s.evidence.detail?.dignity === 'natal-almuten'
+    )
+    .map((s) => `${s.id}|${s.active.start}|${s.active.peak}|${s.active.end}`)
     .sort()
 }
 
@@ -84,18 +100,18 @@ async function expectInvariant(natal: NatalContext, days: string[], label: strin
     if (!months.has(ym)) {
       months.set(ym, await buildCalendar(natal, monthRange(ym), { includeEvidence: true }))
     }
-    const month = crossSet(cellOf(months.get(ym)!, d))
-    const one = crossSet(
-      cellOf(await buildCalendar(natal, dayRange(d, d), { includeEvidence: true }), d)
+    const monthCell = cellOf(months.get(ym)!, d)
+    const oneCell = cellOf(await buildCalendar(natal, dayRange(d, d), { includeEvidence: true }), d)
+    const winCell = cellOf(
+      await buildCalendar(natal, dayRange(shift(d, -3), shift(d, 3)), { includeEvidence: true }),
+      d
     )
-    const win = crossSet(
-      cellOf(
-        await buildCalendar(natal, dayRange(shift(d, -3), shift(d, 3)), { includeEvidence: true }),
-        d
-      )
-    )
-    expect(one, `${label} ${d}: 1일 빌드 ≠ 월 빌드`).toEqual(month)
-    expect(win, `${label} ${d}: D±3 빌드 ≠ 월 빌드`).toEqual(month)
+    const month = crossSet(monthCell)
+    expect(crossSet(oneCell), `${label} ${d}: 1일 빌드 ≠ 월 빌드`).toEqual(month)
+    expect(crossSet(winCell), `${label} ${d}: D±3 빌드 ≠ 월 빌드`).toEqual(month)
+    const monthStatic = staticWindowSet(monthCell)
+    expect(staticWindowSet(oneCell), `${label} ${d}: 1일 빌드 창 ≠ 월 빌드`).toEqual(monthStatic)
+    expect(staticWindowSet(winCell), `${label} ${d}: D±3 빌드 창 ≠ 월 빌드`).toEqual(monthStatic)
   }
 }
 
@@ -234,6 +250,58 @@ describe('셀 교차의 부모·dedup (X2·X3·X4·X5)', () => {
       ).toBe(false)
     }
   })
+})
+
+describe('본명 고정 사실과 하우스 오버레이 (재감사 CC-2·CC-7)', () => {
+  it('본명 Almuten 은 교차 부모가 아니다 — 단독 배경 신호로만 남는다', () => {
+    let almutenCells = 0
+    for (const cell of sampleMonth) {
+      if (cell.signals.some((s) => s.evidence.detail?.dignity === 'natal-almuten')) almutenCells++
+      for (const s of cell.signals.filter((x) => x.kind === 'cross-activation')) {
+        const parents = (s.evidence.detail as { parentIds: string[] }).parentIds
+        expect(
+          parents.some((p) => p.includes('natal-almuten')),
+          `${cell.datetime} ${s.id}`
+        ).toBe(false)
+      }
+    }
+    expect(almutenCells).toBe(sampleMonth.length)
+  })
+
+  it('2026-10-15/16: 하늘의 태양은 몰락(천칭)이라 태양 교차가 ▲ 가 아니다', async () => {
+    const october = await buildCalendar(sample, monthRange('2026-10'), { includeEvidence: true })
+    for (const day of ['2026-10-15', '2026-10-16']) {
+      const cell = cellOf(october, day)
+      const sunCrosses = cell.signals.filter(
+        (s) => s.kind === 'cross-activation' && s.name.endsWith('× 태양') && s.layer === 'daily'
+      )
+      for (const s of sunCrosses) expect(s.polarity, `${day} ${s.id}`).toBeLessThanOrEqual(0)
+    }
+  }, 120_000)
+
+  it('화성의 본명 1하우스 통과는 실제 진입·이탈 정오 2026-10-16..11-30 — 월·1일 빌드 모두', async () => {
+    // 독립 기준(재감사 CC-7 판정): astronomy-engine 화성 × 독립 계산한 Placidus 커스프
+    // (ASC 130.04°, 2하우스 151.88°) — 10-15T18:00Z 진입, 11-30T21:00Z 이탈, 서울 정오 샘플.
+    const expectWindow = (cell: CalendarCell) => {
+      const mars = cell.signals.find((s) => s.id.startsWith('astro.house-transit.Mars.1.'))!
+      expect(mars.id).toBe('astro.house-transit.Mars.1.2026-10-16')
+      expect(mars.active.start).toBe('2026-10-16T00:00:00.000Z')
+      expect(mars.active.end.slice(0, 10)).toBe('2026-11-30')
+      const cross = cell.signals.find(
+        (s) => s.kind === 'cross-activation' && s.id.startsWith('cross.정재-x-Mars.monthly')
+      )
+      if (cross) expect(cross.id).toBe('cross.정재-x-Mars.monthly:2026-10-16~2026-11-30')
+    }
+    expectWindow(cellOf(sampleMonth, '2026-11-05'))
+    expectWindow(
+      cellOf(
+        await buildCalendar(sample, dayRange('2026-11-05', '2026-11-05'), {
+          includeEvidence: true,
+        }),
+        '2026-11-05'
+      )
+    )
+  }, 120_000)
 })
 
 describe('일 화면 교차 = 월 셀 교차 (X1 — assembleDayTier)', () => {

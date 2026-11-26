@@ -302,8 +302,11 @@ signals:
   eclipses (the key would be the affected natal point), profection and zodiacal
   releasing (time lords), planetary hours (the Chaldean hour ruler), solar
   arc, secondary progressions and the progressed Moon, including the progressed
-  lunar return milestone (symbolic directions), and solar and lunar returns
-  (cycle periods; they stay standalone astro signals). The Ascendant ruler of an
+  lunar return milestone (symbolic directions), solar and lunar returns
+  (cycle periods; they stay standalone astro signals), and the natal almuten
+  snapshot (`evidence.detail.dignity === 'natal-almuten'`: its `planets[0]` is a
+  natal planet and its dignity a fixed birth-chart fact; it stays a standalone
+  yearly background signal). The Ascendant ruler of an
   hour is not a key either (owner decision 19): the Day tier's 시진 rows
   (`src/lib/calendar-view/toHourCrossings.ts`) show the 시진 and the rising sign at
   the 시진's centre side by side, with no cross flag or cross meaning. Real planet returns
@@ -438,7 +441,12 @@ Server-rendered only: `src/app/calendar/page.tsx` ->
 no `/api/calendar` route.
 
 The engine is range-invariant: a 1-day build and a month build give the same
-signals for a day, so the Day tier reads its crosses from the month cell.
+signals for a day, so the Day tier reads its crosses from the month cell. Runs
+that touch the build range's edge (transits, dignities, moon phases, house
+overlays, angle contacts, node conjunctions) are extended past it on the
+ephemeris to their real first and last noon, and the natal almuten snapshot is
+windowed per civil year, so signal and cross ids and windows depend only on the
+person and the date.
 
 **Day reason** ("왜 이런 날", `pickDayReasonSignal` in
 `src/app/calendar/crossPair.ts`, shared by the Monthly readout and the Daily hero):
