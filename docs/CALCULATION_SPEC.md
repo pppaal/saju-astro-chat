@@ -175,7 +175,9 @@ correction.
   L3 = 2.5 days (Valens 30-day month / 12), L4 = 5 hours (OD-11).
 - Planetary hours (`electional.ts`) — the planetary day runs from the real local
   sunrise (`swe_rise_trans`); hours before sunrise belong to the previous day's
-  ruler; polar days with no sunrise or sunset have none.
+  ruler, and on a day whose sunset falls after midnight (64–66.5° in summer) the
+  hours before that sunset are still the previous day's day hours
+  (`planetaryHourOnCivilDay`); polar days with no sunrise or sunset have none.
 - Moon void of course ends at the Moon's real ingress into the next sign.
 - Life-cycle milestones (`calendar-engine/lifecycle/outerMilestones.ts`,
   `calculateOuterPlanetMilestones`) — every milestone is an exact instant from

@@ -3,6 +3,8 @@
  *
  *  - ASTRO-5  planetary day starts at the real sunrise (swe_rise_trans); hours before
  *             sunrise belong to the previous day's night and that day's ruler.
+ *  - AC-7     at 64–66.5° in summer a clock hour before an after-midnight sunset is still in
+ *             the previous planetary day's day hours (re-audit).
  *  - ASTRO-8  classifyAspects counts each unordered pair of distinct planets once, so the
  *             electional extractor can reach its threshold.
  *  - ASTRO-10 sect = the Sun above the horizon (true altitude), not the house number.
@@ -30,7 +32,7 @@ const { describeRealEphemeris } = await import('../../../helpers/realEphemeris')
 const { calculateNatalChart, toChart } = await import('@/lib/astrology/foundation/astrologyService')
 const { calculateTransitChart } = await import('@/lib/astrology/foundation/transit')
 const { findAspects } = await import('@/lib/astrology/foundation/aspects')
-const { classifyAspects, planetaryDayFrame, planetaryHourInFrame } =
+const { classifyAspects, planetaryDayFrame, planetaryHourInFrame, planetaryHourOnCivilDay } =
   await import('@/lib/astrology/foundation/electional')
 const { sunTrueAltitude, isDiurnalChart } = await import('@/lib/astrology/foundation/extraPoints')
 const { getSwisseph, checkEphemerisSource } = await import('@/lib/astrology/foundation/ephe')
@@ -133,6 +135,103 @@ describeRealEphemeris('planetary day — real sunrise (ASTRO-5)', () => {
         else expect(byHour.get(h), `${day} ${h}:30`).toBe(planet)
       }
     }
+  })
+
+  it('a clock hour before an after-midnight sunset is in the previous day’s day hours (64–66.5° summer, AC-7)', async () => {
+    const { resolveBirthInstant } = await import('@/lib/datetime/resolveBirthInstant')
+    const CHALDEAN = ['Saturn', 'Jupiter', 'Mars', 'Sun', 'Venus', 'Mercury', 'Moon']
+    const RULER = ['Sun', 'Moon', 'Mars', 'Mercury', 'Jupiter', 'Venus', 'Saturn'] // Sunday = 0
+    /** astronomy-engine reference: the last sunrise before t, then the next sunset and sunrise. */
+    function referenceRuler(t: number, lat: number, lon: number, tz: string): string {
+      const obs = new Astronomy.Observer(lat, lon, 0)
+      const rise = Astronomy.SearchRiseSet(
+        Astronomy.Body.Sun,
+        obs,
+        +1,
+        Astronomy.MakeTime(new Date(t)),
+        -2
+      )!
+      const r = rise.date.getTime()
+      const s = Astronomy.SearchRiseSet(
+        Astronomy.Body.Sun,
+        obs,
+        -1,
+        Astronomy.MakeTime(new Date(r)),
+        2
+      )!.date.getTime()
+      const r2 = Astronomy.SearchRiseSet(
+        Astronomy.Body.Sun,
+        obs,
+        +1,
+        Astronomy.MakeTime(new Date(s)),
+        2
+      )!.date.getTime()
+      const weekday = new Intl.DateTimeFormat('en-US', { timeZone: tz, weekday: 'short' }).format(
+        new Date(r)
+      )
+      const dow = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].indexOf(weekday)
+      const idx =
+        t < s ? Math.floor((t - r) / ((s - r) / 12)) : 12 + Math.floor((t - s) / ((r2 - s) / 12))
+      return CHALDEAN[(CHALDEAN.indexOf(RULER[dow]) + idx) % 7]
+    }
+    const places = [
+      {
+        name: 'Fairbanks',
+        latitude: 64.84,
+        longitude: -147.72,
+        timeZone: 'America/Anchorage',
+        days: ['2026-06-10', '2026-06-21', '2026-06-25'],
+      },
+      {
+        name: 'Nome',
+        latitude: 64.5,
+        longitude: -165.41,
+        timeZone: 'America/Nome',
+        days: ['2026-06-21'],
+      },
+      {
+        name: 'Nuuk',
+        latitude: 64.18,
+        longitude: -51.72,
+        timeZone: 'America/Nuuk',
+        days: ['2026-06-21'],
+      },
+    ]
+    let earlyHours = 0
+    for (const p of places) {
+      for (const day of p.days) {
+        const f = planetaryDayFrame(day, p.latitude, p.longitude, p.timeZone)!
+        expect(f, `${p.name} ${day} has a sunrise and a sunset`).not.toBeNull()
+        const signals = astroPlanetaryHourExtractor.extract(
+          ctx(p, `${day}T00:00:00.000Z`, `${day}T00:00:00.000Z`)
+        ) as Sig[]
+        const byHour = new Map<number, string>()
+        for (const s of signals) {
+          const m = /H(\d\d)\.(\w+)$/.exec(s.id)
+          if (m) byHour.set(Number(m[1]), m[2])
+        }
+        const [y, mo, d] = day.split('-').map(Number)
+        for (let h = 0; h < 24; h++) {
+          const ms = resolveBirthInstant(
+            { year: y, month: mo, day: d, hour: h, minute: 30 },
+            p.timeZone
+          ).utc.getTime()
+          const want = referenceRuler(ms, p.latitude, p.longitude, p.timeZone)
+          if (ms < f.prevSunset) earlyHours++
+          if (want === 'Mercury') expect(byHour.has(h), `${p.name} ${day} ${h}:30`).toBe(false)
+          else expect(byHour.get(h), `${p.name} ${day} ${h}:30`).toBe(want)
+        }
+      }
+    }
+    // The fixtures do contain hours before the frame's previous sunset (the case AC-7 dropped).
+    expect(earlyHours).toBeGreaterThanOrEqual(5)
+    // The audit example — Fairbanks 2026-06-21 00:30 AKDT is Saturday's day hour 11, Venus.
+    const fb = places[0]
+    const f = planetaryDayFrame('2026-06-21', fb.latitude, fb.longitude, fb.timeZone)!
+    const slot = planetaryHourOnCivilDay(Date.parse('2026-06-21T08:30:00Z'), f, () =>
+      planetaryDayFrame('2026-06-20', fb.latitude, fb.longitude, fb.timeZone)
+    )!
+    expect(slot).toMatchObject({ planet: 'Venus', dayRuler: 'Saturn', hourIndex: 11, isDay: true })
   })
 
   it('polar night and polar day have no planetary hours', () => {

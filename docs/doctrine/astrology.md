@@ -36,7 +36,8 @@ status: living
   L4 = 5시간(OD-11). L3 결 풀림(Loosing of the Bond)은 한 바퀴(211 × 2.5일 ≈ 17.3개월)보다 긴 L2
   에서만 난다 ([`zodiacalReleasing.ts`](../../src/lib/astrology/foundation/zodiacalReleasing.ts)).
 - **행성시:** 행성일은 실제 현지 일출(`swe_rise_trans`)부터. 일출 전 시간은 _전날_ 행성일의 지배성
-  순서에 속하고, 해가 뜨거나 지지 않는 극권의 날에는 행성시가 없다
+  순서에 속하고, 일몰이 자정을 넘는 날(64–66.5° 여름) 그 일몰 전 시각은 아직 전날 행성일의 _낮_
+  이다(재감사 AC-7). 해가 뜨거나 지지 않는 극권의 날에는 행성시가 없다
   ([`electional.ts`](../../src/lib/astrology/foundation/electional.ts)).
 - **보이드 오브 코스(VoC):** 달이 다음 사인에 _실제로 들어가는 시각_ 에 끝난다.
 - **솔라 아크:** 진짜 아크 = λ☉(출생 JD + 나이 일) − λ☉(출생). 같은 천체끼리의 자기각은 세지 않는다.

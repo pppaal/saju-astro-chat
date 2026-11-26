@@ -564,6 +564,25 @@ export function planetaryHourInFrame(
   }
 }
 
+/**
+ * 민용일 하루의 순간(UT ms)이 속한 행성시 — 그 날 틀로 보되, 틀의 *전날 일몰*보다 이른
+ * 순간은 전날 행성일의 낮이라 전날 민용일의 틀로 다시 본다(재감사 AC-7). 64–66.5° 여름처럼
+ * 일몰이 자정을 넘는 날(페어뱅크스 2026-06-21 00:30 AKDT → 토요일 낮 11번째 칸 = 금성)에
+ * 자정 직후 시각이 행성시를 잃던 문제. prevFrame 은 필요할 때만 부른다(전날 틀 계산은 비싸다).
+ * 그 날이나 전날이 극지 날(틀 없음)이면 null — 행성시 미정의.
+ */
+export function planetaryHourOnCivilDay(
+  ms: number,
+  frame: PlanetaryDayFrame,
+  prevFrame: () => PlanetaryDayFrame | null
+): PlanetaryHourSlot | null {
+  if (ms < frame.prevSunset) {
+    const prev = prevFrame()
+    return prev ? planetaryHourInFrame(ms, prev) : null
+  }
+  return planetaryHourInFrame(ms, frame)
+}
+
 /** calculatePlanetaryHour 의 행성일 보충 정보 — 실제 틀을 아는 호출자가 넘긴다. */
 export interface PlanetaryHourOptions {
   /** sunriseTime 이 속한 민용일의 요일(일=0). 기본 date.getUTCDay(). */

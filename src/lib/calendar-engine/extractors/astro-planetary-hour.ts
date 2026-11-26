@@ -1,6 +1,10 @@
 import type { ActiveSignal, ExtractorContext, SignalExtractor, Polarity } from '../types'
 import { pointPrinciple } from '../data/astroFlow'
-import { planetaryDayFrame, planetaryHourInFrame } from '@/lib/astrology/foundation/electional'
+import {
+  planetaryDayFrame,
+  planetaryHourOnCivilDay,
+  type PlanetaryDayFrame,
+} from '@/lib/astrology/foundation/electional'
 import { resolveBirthInstant } from '@/lib/datetime/resolveBirthInstant'
 
 /**
@@ -15,6 +19,8 @@ import { resolveBirthInstant } from '@/lib/datetime/resolveBirthInstant'
  * 남중을 12:00 으로 고정한 적위 근사라 서울 실제 남중(12:18~12:46)만큼 경계가 밀렸고, 일출
  * 전 시각을 *다음* 밤으로 감아 오늘 요일 지배성으로 세서 칼데안 순서가 3칸 틀렸다(엔진 감사
  * ASTRO-5). 태양이 뜨거나 지지 않는 극지 날은 행성시가 정의되지 않아 내지 않는다.
+ * 일몰이 자정을 넘는 날(64–66.5° 여름) 그 일몰 전 시각은 아직 전날 행성일의 낮이라 전날
+ * 틀로 본다(재감사 AC-7 — 예전엔 그 시각을 버렸다).
  *
  * 시각 키는 캘린더의 떠 있는 현지 키(YYYY-MM-DDTHH:00Z = 현지 벽시계 HH시). id 에 시각을
  * 박아(astro.planetary-hour.YYYY-MM-DD.H{hh}.{planet}) 24h 차트가 active 필드 없이도 시각을
@@ -60,6 +66,15 @@ const astroPlanetaryHourExtractor: SignalExtractor = {
       const dayIso = date.toISOString().slice(0, 10)
       const frame = planetaryDayFrame(dayIso, latitude, longitude, timeZone)
       if (!frame) continue // 극지 날(일출·일몰 없음) — 행성시 미정의
+      // 전날 민용일의 틀 — 그 날 틀의 전날 일몰보다 이른 시각이 있을 때만 한 번 구한다(AC-7).
+      let prevFrame: PlanetaryDayFrame | null | undefined
+      const prevFrameOf = () => {
+        if (prevFrame === undefined) {
+          const prevIso = new Date(t - 86_400_000).toISOString().slice(0, 10)
+          prevFrame = planetaryDayFrame(prevIso, latitude, longitude, timeZone)
+        }
+        return prevFrame
+      }
 
       /** 현지 벽시계 hh:mm 의 UT ms (출생 instant 와 같은 RFC 5545 resolver), 없는 날짜면 null. */
       const wallMs = (dayStartMs: number, hour: number, minute: number): number | null => {
@@ -90,7 +105,9 @@ const astroPlanetaryHourExtractor: SignalExtractor = {
       const planetAt = (clockHour: number): Planet | null => {
         const ms = uniform ? midnight! + (clockHour + 0.5) * 3600_000 : wallMs(t, clockHour, 30)
         if (ms === null) return null
-        return (planetaryHourInFrame(ms, frame)?.planet as Planet | undefined) ?? null
+        return (
+          (planetaryHourOnCivilDay(ms, frame, prevFrameOf)?.planet as Planet | undefined) ?? null
+        )
       }
 
       for (let h = 0; h < 24; h++) {
