@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { parseBirthOverride } from '@/app/calendar/loadTierData'
+import { parseBirthOverride, parseBirthOverrideQuery } from '@/app/calendar/loadTierData'
 
 describe('parseBirthOverride — 쿼리파라미터 → 생일 override (로그인 없이 캘린더/인생흐름)', () => {
   it('date 가 없으면 null (세션/샘플 경로로)', () => {
@@ -72,11 +72,36 @@ describe('parseBirthOverride — 쿼리파라미터 → 생일 override (로그�
     })
   })
 
-  it('숫자가 깨진 좌표는 서울 기본으로 폴백 + 출생지 미상', () => {
-    const o = parseBirthOverride({ date: '2000-01-01', lat: 'abc', lng: '' })
+  it('빈 좌표는 출생지 미상 — 서울 기본으로 폴백', () => {
+    const o = parseBirthOverride({ date: '2000-01-01', lat: '', lng: '' })
     expect(o?.latitude).toBe(37.5665)
     expect(o?.longitude).toBe(126.978)
     expect(o?.cityUnknown).toBe(true)
+    // 한쪽만 있어도 미상(좌표는 쌍으로만 쓴다).
+    expect(parseBirthOverride({ date: '2000-01-01', lat: '40.7' })?.cityUnknown).toBe(true)
+  })
+
+  it('검사에 걸린 override 는 null — 페이지는 세션/입력 게이트로(크래시 없음, QA PMS-4)', () => {
+    // 공용 zod 스키마: 1900..올해 · 위도 ±90 · 경도 ±180 · IANA tz · HH:MM · 길이 제한.
+    expect(parseBirthOverride({ date: '1850-01-01' })).toBeNull()
+    expect(parseBirthOverride({ date: '1995-02-30' })).toBeNull()
+    expect(parseBirthOverride({ date: '2000-01-01', lat: 'abc', lng: '126.9' })).toBeNull()
+    expect(parseBirthOverride({ date: '2000-01-01', lat: '999', lng: '999' })).toBeNull()
+    expect(parseBirthOverride({ date: '2000-01-01', tz: 'Not/AZone' })).toBeNull()
+    expect(parseBirthOverride({ date: '2000-01-01', time: '7pm' })).toBeNull()
+    expect(parseBirthOverride({ date: '2000-01-01', name: 'n'.repeat(41) })).toBeNull()
+  })
+
+  it('parseBirthOverrideQuery — none · invalid(이슈 경로) · ok 를 가른다', () => {
+    expect(parseBirthOverrideQuery({})).toEqual({ kind: 'none' })
+    expect(parseBirthOverrideQuery({ date: '' })).toEqual({ kind: 'none' })
+    const bad = parseBirthOverrideQuery({ date: '1850-01-01', lat: '999', lng: '1' })
+    expect(bad.kind).toBe('invalid')
+    if (bad.kind === 'invalid') {
+      expect(bad.issues.map((i) => i.path).sort()).toEqual(['date', 'lat'])
+    }
+    const ok = parseBirthOverrideQuery({ date: '1995-02-09', lat: '37.5', lng: '127' })
+    expect(ok.kind).toBe('ok')
   })
 
   it('배열 파라미터(중복 쿼리)는 첫 값을 쓴다', () => {

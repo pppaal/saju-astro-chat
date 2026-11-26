@@ -13,7 +13,9 @@
 //   · day=YYYY-MM-DD (필수) — 빌드할 날짜. 오늘 기준 ±370일로 제한(캐시 행
 //     증식·무한 풀빌드 방지 — 캘린더 UI 는 그 달만 보여주므로 충분).
 //   · 생일 override(date/time/lat/lng/tz/gender) — /calendar 페이지와 동일
-//     규약. 없으면 세션 사용자의 저장된 본명.
+//     규약·동일 zod 검사(parseBirthOverrideQuery: 공용 date/lat/lng/tz 스키마). 검사에
+//     걸리면 422 — 범위 밖 입력(1850년 · lat=999)이 엔진 RangeError 500 으로 새지 않는다.
+//     없으면 세션 사용자의 저장된 본명.
 
 import { NextRequest } from 'next/server'
 import {
@@ -30,7 +32,11 @@ import {
   getFocusDayCell,
 } from '@/lib/calendar-engine/persistence'
 import { assembleDayTier } from '@/app/calendar/assembleDayTier'
-import { parseBirthOverride, loadSessionBirth, type BirthInput } from '@/app/calendar/loadTierData'
+import {
+  parseBirthOverrideQuery,
+  loadSessionBirth,
+  type BirthInput,
+} from '@/app/calendar/loadTierData'
 import { buildDayViewModel } from '@/lib/calendar-view/dayViewModel'
 import { getNowInTimezone, formatDateString } from '@/lib/datetime/timezone'
 
@@ -63,8 +69,12 @@ export const GET = withApiMiddleware(
 
     // 생일 — override 쿼리(익명 '다른 사람 보기') 우선, 없으면 세션 본명.
     let birth: BirthInput
-    const override = parseBirthOverride(sp)
-    if (override) {
+    const parsed = parseBirthOverrideQuery(sp)
+    if (parsed.kind === 'invalid') {
+      return apiError(ErrorCodes.VALIDATION_ERROR, 'invalid_birth_override', parsed.issues)
+    }
+    if (parsed.kind === 'ok') {
+      const override = parsed.override
       birth = {
         birthDate: override.birthDate,
         birthTime: override.birthTime,

@@ -29,6 +29,14 @@ import { resolveBirthTimeAnchor } from '@/lib/saju/birthTimeAnchor'
 import { profileToCalendarBirth } from '@/lib/calendar-engine/profileBirth'
 import { defaultLatitudeFor, defaultLongitudeFor } from '@/lib/saju/timezone'
 import { resolveBirthTimezone } from '@/lib/datetime/resolveTimezone'
+import { z } from 'zod'
+import {
+  dateSchema,
+  latitudeSchema,
+  longitudeSchema,
+  timezoneSchema,
+} from '@/lib/api/zodValidation/common'
+import { logger } from '@/lib/logger'
 
 export type LoadTierResult =
   | { kind: 'no-birth' }
@@ -85,47 +93,112 @@ export interface BirthOverride {
 type SP = Record<string, string | string[] | undefined>
 const one = (v: string | string[] | undefined): string | undefined => (Array.isArray(v) ? v[0] : v)
 
-// searchParams → BirthOverride. date(YYYY-MM-DD)가 있어야 override 로 인정한다.
-// 없으면 null → 세션(로그인 사용자) 또는 샘플(익명) 경로로 흐른다.
-export function parseBirthOverride(sp: SP): BirthOverride | null {
-  const date = one(sp.date)
-  if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) return null
-  // 빈 문자열/비숫자 좌표는 NaN 으로 떨궈 타임존 기본으로 폴백(빈칸 → Number('')=0
-  // 같은 잘못된 (0,0) 좌표 방지).
-  const latRaw = one(sp.lat)
-  const lngRaw = one(sp.lng)
-  const lat = latRaw ? Number(latRaw) : NaN
-  const lng = lngRaw ? Number(lngRaw) : NaN
+/** 빈 문자열은 '없음' — 링크 빌더가 빈 값을 실어도 시각·출생지 미상으로 흐른다. */
+const blankToUndef = (v: unknown) => (typeof v === 'string' && v.trim() === '' ? undefined : v)
+/** 쿼리 좌표 — 빈 값은 없음, 그 밖은 숫자로 바꿔 공용 범위 스키마로(비숫자 → NaN → 거절). */
+const coordinate = (schema: z.ZodNumber) =>
+  z.preprocess((v) => {
+    const b = blankToUndef(v)
+    return typeof b === 'string' ? Number(b) : b
+  }, schema.optional())
+
+/**
+ * 생일 override 쿼리 스키마 — 공용 zod 원시 스키마(dateSchema 1900..올해 · latitude/longitude 범위 ·
+ * IANA 타임존)를 그대로 쓴다. /calendar · /destiny 페이지와 /api/calendar/day 가 같은 검사를
+ * 거친다: 범위 밖 입력이 엔진 RangeError(500)까지 가지 않게(QA PMS-4).
+ */
+export const birthOverrideQuerySchema = z.object({
+  date: dateSchema,
+  time: z.preprocess(
+    blankToUndef,
+    z
+      .string()
+      .regex(/^([01]?\d|2[0-3]):[0-5]\d$/)
+      .optional()
+  ),
+  tu: z.preprocess(blankToUndef, z.string().max(8).optional()),
+  lat: coordinate(latitudeSchema),
+  lng: coordinate(longitudeSchema),
+  tz: z.preprocess(blankToUndef, timezoneSchema.optional()),
+  gender: z.preprocess(blankToUndef, z.string().max(16).optional()),
+  place: z.preprocess(blankToUndef, z.string().max(80).optional()),
+  name: z.preprocess(blankToUndef, z.string().max(40).optional()),
+})
+
+export type BirthOverrideParse =
+  /** date 가 없다 — 세션(로그인 사용자) 또는 게스트 경로. */
+  | { kind: 'none' }
+  /** override 쿼리가 있지만 검사에 걸렸다 — API 는 422, 페이지는 override 없음으로. */
+  | { kind: 'invalid'; issues: Array<{ path: string; message: string }> }
+  | { kind: 'ok'; override: BirthOverride }
+
+// searchParams → BirthOverride. date 가 있어야 override 로 인정한다(없으면 'none').
+export function parseBirthOverrideQuery(sp: SP): BirthOverrideParse {
+  const rawDate = one(sp.date)
+  if (!rawDate || !rawDate.trim()) return { kind: 'none' }
+  const parsed = birthOverrideQuerySchema.safeParse({
+    date: rawDate,
+    time: one(sp.time),
+    tu: one(sp.tu),
+    lat: one(sp.lat),
+    lng: one(sp.lng),
+    tz: one(sp.tz),
+    gender: one(sp.gender),
+    place: one(sp.place),
+    name: one(sp.name),
+  })
+  if (!parsed.success) {
+    return {
+      kind: 'invalid',
+      issues: parsed.error.issues.map((i) => ({ path: i.path.join('.'), message: i.message })),
+    }
+  }
+  const q = parsed.data
+  const lat = q.lat
+  const lng = q.lng
+  const hasCoords = lat !== undefined && lng !== undefined
   // 시간 미상 → 정오 앵커(SSOT, tri-state). ?tu=1|0 명시 플래그가 있으면 신뢰
   // (tu=0 + time=00:00 = 실제 자정 출생 → 자정 그대로 계산), 없으면 레거시
   // 휴리스틱(생략/'00:00' = 미상 — 자정 그대로 계산하면 진태양시 보정으로
   // 일주가 전날로 밀린다).
-  const tuRaw = one(sp.tu)
-  const tuFlag = tuRaw === '1' ? true : tuRaw === '0' ? false : undefined
-  const timeAnchor = resolveBirthTimeAnchor(one(sp.time), tuFlag)
+  const tuFlag = q.tu === '1' ? true : q.tu === '0' ? false : undefined
+  const timeAnchor = resolveBirthTimeAnchor(q.time, tuFlag)
   // 출생 타임존 resolver — ?tz → 출생 좌표(?lat·?lng)의 tz → 사주 기준 존.
   const timeZone = resolveBirthTimezone(
-    {
-      timezone: one(sp.tz),
-      latitude: Number.isFinite(lat) ? lat : undefined,
-      longitude: Number.isFinite(lng) ? lng : undefined,
-    },
+    { timezone: q.tz, latitude: lat, longitude: lng },
     { context: 'calendar' }
   )
   return {
-    birthDate: date,
-    birthTime: timeAnchor.time,
-    timeUnknown: timeAnchor.timeUnknown,
-    cityUnknown: !Number.isFinite(lat) || !Number.isFinite(lng),
-    gender: one(sp.gender) === 'female' ? 'female' : 'male',
-    // 좌표 미상 → 출생 타임존의 기준점(Asia/Seoul = 서울 기본값). 비한국 tz 에 서울
-    // 경도를 붙이면 시주가 ~15시간 밀렸다(엔진 감사 SAJU-9, OD-2).
-    latitude: Number.isFinite(lat) ? lat : defaultLatitudeFor(timeZone),
-    longitude: Number.isFinite(lng) ? lng : defaultLongitudeFor(timeZone),
-    timeZone,
-    place: one(sp.place) || undefined,
-    name: one(sp.name) || undefined,
+    kind: 'ok',
+    override: {
+      birthDate: q.date,
+      birthTime: timeAnchor.time,
+      timeUnknown: timeAnchor.timeUnknown,
+      cityUnknown: !hasCoords,
+      gender: q.gender === 'female' ? 'female' : 'male',
+      // 좌표 미상 → 출생 타임존의 기준점(Asia/Seoul = 서울 기본값). 비한국 tz 에 서울
+      // 경도를 붙이면 시주가 ~15시간 밀렸다(엔진 감사 SAJU-9, OD-2).
+      latitude: hasCoords ? lat : defaultLatitudeFor(timeZone),
+      longitude: hasCoords ? lng : defaultLongitudeFor(timeZone),
+      timeZone,
+      place: q.place || undefined,
+      name: q.name || undefined,
+    },
   }
+}
+
+/**
+ * 페이지 경로(/calendar · /destiny) — 검사를 통과한 override 만. 검사에 걸린 쿼리는 override
+ * 없음으로 본다(세션 본명 또는 생년월일 입력 게이트) — 깨진 링크가 페이지를 죽이지 않는다.
+ */
+export function parseBirthOverride(sp: SP): BirthOverride | null {
+  const r = parseBirthOverrideQuery(sp)
+  if (r.kind === 'invalid') {
+    logger.warn('[calendar] invalid birth override query — ignored', {
+      fields: r.issues.map((i) => i.path),
+    })
+  }
+  return r.kind === 'ok' ? r.override : null
 }
 
 export interface BirthInput {
