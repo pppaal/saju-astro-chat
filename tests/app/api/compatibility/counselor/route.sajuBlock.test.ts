@@ -45,6 +45,8 @@ const { mockConsumeCredits, mockClaim, mockRelease, mockCacheGet, mockCacheSet }
 vi.mock('@/lib/cache/redis-cache', () => ({
   cacheGet: (...a: unknown[]) => mockCacheGet(...a),
   cacheSet: (...a: unknown[]) => mockCacheSet(...a),
+  // 운명상담사 컨텍스트 캐시(ensureCounselorContext — 세운 비교용)가 읽는 TTL.
+  CACHE_TTL: { NATAL_CHART: 60, CALENDAR_DATA: 60 },
 }))
 vi.mock('@/lib/credits/creditService', () => ({
   consumeCredits: (...a: unknown[]) => mockConsumeCredits(...a),
@@ -87,6 +89,8 @@ import { initializeApiContext } from '@/lib/api/middleware'
 import { streamClaudeAsSSE } from '@/lib/llm/claudeSSE'
 import { collectCompatSajuFacts } from '@/lib/compatibility/compatSajuFacts'
 import { currentSeun } from '@/lib/compatibility/sajuSynastryData'
+import { counselorDayAnchor } from '@/lib/destiny/counselorContext'
+import { ensureCounselorContext } from '@/lib/destiny/counselorContextCache'
 
 const ANN = {
   name: 'Ann',
@@ -108,7 +112,11 @@ const BOB_NO_TIME = {
   relation: 'partner',
 }
 
-function request(persons: unknown[], lang: 'en' | 'ko'): NextRequest {
+function request(
+  persons: unknown[],
+  lang: 'en' | 'ko',
+  extra: Record<string, unknown> = {}
+): NextRequest {
   return new NextRequest('http://localhost/api/compatibility/counselor', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -117,12 +125,17 @@ function request(persons: unknown[], lang: 'en' | 'ko'): NextRequest {
       lang,
       sources: { saju: true, astro: false },
       messages: [{ role: 'user', content: 'How is our compatibility?' }],
+      ...extra,
     }),
   })
 }
 
-async function payloadFor(persons: unknown[], lang: 'en' | 'ko'): Promise<string> {
-  const res = await POST(request(persons, lang))
+async function payloadFor(
+  persons: unknown[],
+  lang: 'en' | 'ko',
+  extra: Record<string, unknown> = {}
+): Promise<string> {
+  const res = await POST(request(persons, lang, extra))
   expect(res.headers.get('Content-Type')).toBe('text/event-stream')
   expect(streamClaudeAsSSE).toHaveBeenCalledTimes(1)
   const arg = vi.mocked(streamClaudeAsSSE).mock.calls[0][0] as { cachedUserContext?: string }
@@ -262,7 +275,25 @@ describe('compat counselor route — 요청 경계 now 주입 (현재 대운·�
       },
     ] as const
 
-  /** 고정한 '지금'에서 라우트가 낸 현재 대운 줄·올해 세운 줄 = 같은 now 로 엔진을 직접 돌린 값. */
+  /** 순간 iso 의 tz 민용 날짜(Intl — 엔진 코드 밖). */
+  const civilDayIn = (iso: string, tz: string) => {
+    const [y, m, d] = new Intl.DateTimeFormat('en-CA', {
+      timeZone: tz,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    })
+      .format(new Date(iso))
+      .split('-')
+      .map(Number)
+    return { year: y, month: m, day: d }
+  }
+
+  /**
+   * 고정한 '지금'에서 라우트가 낸 현재 대운 줄·올해 세운 줄 = 같은 날짜 규칙으로 엔진을 직접
+   * 돌린 값. 보는 사람 tz 가 없으면 '오늘' D 는 A 의 출생 tz(뉴욕) 날짜, 세운은 D·A 출생 tz,
+   * 대운은 각자 출생 tz 의 D 정오(운명상담사와 같은 규칙, 오너 결정 17).
+   */
   async function expectLinesAt(iso: string) {
     const pinned = new Date(iso)
     vi.useFakeTimers({ toFake: ['Date'] })
@@ -271,7 +302,11 @@ describe('compat counselor route — 요청 경계 now 주입 (현재 대운·�
       vi.mocked(streamClaudeAsSSE).mockClear()
       const ctx = await payloadFor([ANN, BOB], 'en')
       const [a, b] = seeds()
-      const facts = collectCompatSajuFacts(a, b, pinned)
+      const day = civilDayIn(iso, ANN.timeZone)
+      const facts = collectCompatSajuFacts(a, b, {
+        a: counselorDayAnchor(day, ANN.timeZone),
+        b: counselorDayAnchor(day, BOB.timeZone),
+      })
       const dA = facts.a.currentDaeun!
       const dB = facts.b.currentDaeun!
       expect(dA, 'A 현재 대운').toBeTruthy()
@@ -279,7 +314,7 @@ describe('compat counselor route — 요청 경계 now 주입 (현재 대운·�
       expect(ctx).toContain(
         `current daeun: A·Ann ${dA.age}~${dA.age! + 9} ${dA.stem}${dA.branch} · B·Bob ${dB.age}~${dB.age! + 9} ${dB.stem}${dB.branch}`
       )
-      const seun = currentSeun(pinned)
+      const seun = currentSeun(day, ANN.timeZone)
       expect(ctx).toContain(`this year's annual ${seun.year} ${seun.stem}${seun.branch} cross`)
       return { dA, dB, seun, ctx }
     } finally {
@@ -304,6 +339,87 @@ describe('compat counselor route — 요청 경계 now 주입 (현재 대운·�
     const r = await expectLinesAt('2026-11-19T03:00:00Z')
     expect(r.ctx).toContain('A (Ann): 1990-05-15 08:30 (age 36)')
     expect(r.ctx).toMatch(/B \(Bob\): 1988-11-02 09:10 \(age 38\)/)
+  })
+})
+
+describe('compat counselor 세운 = 운명상담사 세운 — 立春 날, 보는 사람 tz ≠ 출생 tz (오너 결정 17, G14)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    mockConsumeCredits.mockResolvedValue({ success: true, remaining: 99 })
+    mockClaim.mockResolvedValue(true)
+    mockRelease.mockResolvedValue(undefined)
+    mockCacheGet.mockResolvedValue(null)
+    mockCacheSet.mockResolvedValue(true)
+    vi.mocked(initializeApiContext).mockResolvedValue({
+      context: {
+        userId: 'user-123',
+        session: { user: { id: 'user-123' } },
+        ip: '127.0.0.1',
+        locale: 'en',
+        isAuthenticated: true,
+        isPremium: true,
+      },
+      error: undefined,
+    } as never)
+    vi.mocked(streamClaudeAsSSE).mockResolvedValue(
+      new Response('data: {"content":"ok","done":false}\n\n', {
+        headers: { 'Content-Type': 'text/event-stream' },
+      }) as never
+    )
+  })
+
+  const BOB = { ...BOB_NO_TIME, time: '09:10', timeUnknown: false }
+
+  /**
+   * 같은 '지금'·같은 보는 사람 tz 로 두 상담사를 돌린다 — 궁합 상담사는 라우트 페이로드의
+   * "this year's annual" 줄, 운명상담사는 ensureCounselorContext(A 의 출생 · 같은 userTimezone)
+   * daily 의 "Annual" 줄.
+   */
+  async function bothAt(iso: string, viewerTz: string) {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date(iso))
+    try {
+      vi.mocked(streamClaudeAsSSE).mockClear()
+      const ctx = await payloadFor([ANN, BOB], 'en', { userTimezone: viewerTz })
+      const compat = /this year's annual (\d+ \S\S) cross/.exec(ctx)?.[1] ?? null
+      const { dailyContext } = await ensureCounselorContext(
+        {
+          birthDate: ANN.date,
+          birthTime: ANN.time,
+          gender: ANN.gender,
+          timezone: ANN.timeZone,
+          latitude: ANN.latitude,
+          longitude: ANN.longitude,
+          userTimezone: viewerTz,
+        },
+        'user-123',
+        'en',
+        { saju: true, astro: false }
+      )
+      const destiny = /^Annual (\d+ \S\S) /m.exec(dailyContext)?.[1] ?? null
+      return { compat, destiny }
+    } finally {
+      vi.useRealTimers()
+    }
+  }
+
+  // 2026 立春 = 2026-02-03T20:02Z — 뉴욕(A 출생 tz) 현지 날짜로 2/3.
+  it('서울에서 보는 2/4 01:00(立春 순간 전) — 둘 다 2026 丙午 (예전 궁합은 순간 비교로 乙巳)', async () => {
+    const r = await bothAt('2026-02-03T16:00:00Z', 'Asia/Seoul')
+    expect(r.destiny).toBe('2026 丙午')
+    expect(r.compat).toBe(r.destiny)
+  })
+
+  it('LA 에서 보는 立春 당일 2/3 02:00(절입 시각 전) — 그날부터 새 세운, 둘 다 2026 丙午', async () => {
+    const r = await bothAt('2026-02-03T10:00:00Z', 'America/Los_Angeles')
+    expect(r.destiny).toBe('2026 丙午')
+    expect(r.compat).toBe(r.destiny)
+  })
+
+  it('LA 에서 보는 전날 2/2 21:00 — 둘 다 아직 2025 乙巳', async () => {
+    const r = await bothAt('2026-02-03T05:00:00Z', 'America/Los_Angeles')
+    expect(r.destiny).toBe('2025 乙巳')
+    expect(r.compat).toBe(r.destiny)
   })
 })
 

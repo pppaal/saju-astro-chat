@@ -86,13 +86,13 @@ function factBranchTags(pillarsA: SajuPillarInput[], pillarsB: SajuPillarInput[]
 describe('원진 — facts (chart/free report) equal the counselor formatter, cell by cell', () => {
   it('2000 seeded real-ganji pairs: every branch cell carries the same tags on both surfaces', () => {
     const next = rng(20261126)
-    const now = new Date('2026-06-01T00:00:00Z')
+    const seun = { stem: '丙', branch: '午', year: 2026 }
     let wonjinCells = 0
     for (let n = 0; n < 2000; n++) {
       const A = randomPillars(next)
       const B = randomPillars(next)
       const fmt = formatterBranchTags(
-        formatSajuSynastry({ pillarsA: A, pillarsB: B, lang: 'en', now })
+        formatSajuSynastry({ pillarsA: A, pillarsB: B, lang: 'en', seun })
       )
       const fac = factBranchTags(A, B)
       expect(Object.fromEntries(fac), `pair ${n}`).toEqual(Object.fromEntries(fmt))

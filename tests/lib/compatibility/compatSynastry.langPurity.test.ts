@@ -56,7 +56,7 @@ describe('compat synastry language purity', () => {
           currentDaeunB: { stem: STEMS[b % 10], branch: BRANCHES[b % 12], age: 20 + (b % 40) },
           nameA: 'A',
           nameB: 'B',
-          now: new Date('2026-06-16'),
+          seun: { stem: '丙', branch: '午', year: 2026 },
           lang: 'en',
         })
         for (const l of offenders(out)) leaks.add(l)

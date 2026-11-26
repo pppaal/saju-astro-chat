@@ -53,6 +53,10 @@ function relationLabel(locale: 'ko' | 'en', relation?: Relation, note?: string):
   return locale === 'ko' ? opt.labelKo : opt.labelEn
 }
 import { resolveCounselorSources } from '@/lib/destiny/counselorRequest'
+import { counselorDayAnchor } from '@/lib/destiny/counselorContext'
+import { resolveViewerTimezone } from '@/lib/datetime/resolveTimezone'
+import { getNowInTimezone } from '@/lib/datetime/timezone'
+import { currentSeun } from '@/lib/compatibility/sajuSynastryData'
 import { getRelation, buildRelationToneBlock } from '@/lib/compatibility/counselor/relationConfig'
 import { formatSajuSynastry } from '@/lib/compatibility/sajuSynastryFormatter'
 import { formatAstroSynastry } from '@/lib/compatibility/astroSynastryFormatter'
@@ -190,6 +194,7 @@ export async function POST(req: NextRequest) {
       messages = [],
       cvText,
       turnId: rawTurnId,
+      userTimezone,
     } = validationResult.data
 
     // 출생 타임존도 출생 도시(좌표)도 없는 사람 — 서울 기둥을 지어내지 않고 422(차감 전).
@@ -412,6 +417,20 @@ export async function POST(req: NextRequest) {
     const cityUnknownA = !!person1Seed?.source?.usedDefaultLocation
     const cityUnknownB = !!person2Seed?.source?.usedDefaultLocation
 
+    // 상담사 '오늘' — 운명상담사와 같은 규칙(오너 결정 17, 재감사 G3). 날짜 D 는 보는 사람의
+    // 현지 민용 날짜(resolveViewerTimezone — 기기 tz, 없으면 A 의 출생 tz). 세운은
+    // pillarsForLocalDate(D, A 출생 tz) — 立春이 든 그 현지 날이 새 세운. 대운·만 나이는
+    // 각자 출생 tz 의 D 정오(counselorDayAnchor). 예전엔 요청 순간을 절입 순간과 비교해
+    // 立春 당일 절입 시각 전에는 운명상담사와 다른 해를 말했다.
+    const viewerTz = resolveViewerTimezone(
+      { viewerTimezone: userTimezone, birth: { timezone: person1Seed?.timeZone ?? 'UTC' } },
+      { context: 'compatibility-counselor' }
+    )
+    const localToday = getNowInTimezone(viewerTz, now)
+    // 출생 tz 를 모르는 3번째+ 사람은 D 의 UTC 정오(UTC 날짜 = D).
+    const dayAnchorFor = (tz?: string | null): Date => counselorDayAnchor(localToday, tz || 'UTC')
+    const seun = person1Seed ? currentSeun(localToday, person1Seed.timeZone) : null
+
     // Phase E (2026-06-06): stale 모니터링 정리.
     // Phase A/B 후 사주/점성 시나스트리 블록은 compatSajuFacts /
     // compatAstroFacts 가 server-side 에서 만든다. client 가 보내는
@@ -518,7 +537,7 @@ export async function POST(req: NextRequest) {
                     latitude: p.latitude,
                     longitude: p.longitude,
                   })?.timeZone
-          const age = p.date ? getAgeFromBirthDate(p.date, personTz, now) : null
+          const age = p.date ? getAgeFromBirthDate(p.date, personTz, dayAnchorFor(personTz)) : null
           const ageNote =
             age != null ? (normalizedLang === 'ko' ? ` (만 ${age}세)` : ` (age ${age})`) : ''
           // Person 1 is always the anchor — no relation suffix. For
@@ -608,8 +627,8 @@ export async function POST(req: NextRequest) {
               timezone: person2Seed.timeZone,
               longitude: person2Seed.longitude,
             },
-            // 현재 대운(만 나이)의 기준 — 요청 경계에서 읽은 now.
-            now
+            // 현재 대운(만 나이)의 기준 — 상담사 '오늘' D 의 각자 출생 tz 정오.
+            { a: dayAnchorFor(person1Seed.timeZone), b: dayAnchorFor(person2Seed.timeZone) }
           )
         : null
     try {
@@ -632,8 +651,8 @@ export async function POST(req: NextRequest) {
           // 그대로 전달(추가 연산 0). 상대가 내 용신 오행을 채워주나/기신 가중하나.
           yongsinA: compatSaju.a.base.yongsin,
           yongsinB: compatSaju.b.base.yongsin,
-          // 올해 세운 — 같은 now(서버 시계를 포매터 안에서 다시 읽지 않는다).
-          now,
+          // 올해 세운 — 상담사 '오늘' D 의 세운(위 currentSeun, 운명상담사와 같은 날짜 규칙).
+          seun,
         })
       }
     } catch (err) {

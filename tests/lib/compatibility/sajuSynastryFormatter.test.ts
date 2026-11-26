@@ -228,18 +228,30 @@ describe('formatSajuSynastry', () => {
       expect(out).not.toContain('시천간 임 + B 시천간 정')
     })
 
+    // G14: 세운은 호출부가 상담사 '오늘'로 고른 값만 쓴다 — 포매터는 시계를 읽지 않는다.
+    it('세운 줄은 넘긴 seun 그대로, 없으면 생략(시계를 읽지 않는다)', () => {
+      const withSeun = formatSajuSynastry({
+        ...valid,
+        lang: 'en',
+        seun: { stem: '丙', branch: '午', year: 2026 },
+      })
+      expect(withSeun).toContain("this year's annual 2026 丙午 cross")
+      const without = formatSajuSynastry({ ...valid, lang: 'en' })
+      expect(without).not.toContain("this year's annual")
+    })
+
     // 재감사 CS-1: compatSajuFacts 는 시간 미상이면 시주를 아예 빼고 3기둥을 넘긴다.
     // 예전 4기둥 가드가 그 입력을 '' 로 돌려 유료 상담사에 사주 블록이 통째로 빠졌다.
     // 3기둥 입력은 "4기둥 + 미상 플래그" 와 바이트 단위로 같은 삼주 블록이어야 한다.
     it('3기둥(시주 없음) 입력도 4기둥+미상 플래그와 같은 삼주 블록을 만든다 (CS-1)', () => {
-      const now = new Date('2026-06-01T00:00:00Z')
+      const seun = { stem: '丙', branch: '午', year: 2026 }
       for (const lang of ['ko', 'en'] as const) {
-        const fourB = formatSajuSynastry({ ...valid, timeUnknownB: true, now, lang })
+        const fourB = formatSajuSynastry({ ...valid, timeUnknownB: true, seun, lang })
         const threeB = formatSajuSynastry({
           ...valid,
           pillarsB: valid.pillarsB.slice(0, 3),
           timeUnknownB: true,
-          now,
+          seun,
           lang,
         })
         expect(threeB.length).toBeGreaterThan(200)
@@ -249,7 +261,7 @@ describe('formatSajuSynastry', () => {
           pillarsB: valid.pillarsB.slice(0, 3),
           timeUnknownA: true,
           timeUnknownB: true,
-          now,
+          seun,
           lang,
         })
         expect(both.length).toBeGreaterThan(200)

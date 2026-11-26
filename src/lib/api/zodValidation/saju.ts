@@ -568,6 +568,9 @@ export const compatibilityCounselorRequestSchema = z.object({
   // 서버는 keepGeneratingOnDisconnect 로 끝까지 생성한 답을 이 키로 캐시해
   // 두고, 사용자가 돌아오면 /result?turnId=… 로 복원한다.
   turnId: z.string().max(80).optional(),
+  // 보는 사람 기기 시간대 — 상담사 '오늘'(세운·대운·만 나이의 날짜)의 기준. 운명상담사와
+  // 같은 규칙(resolveViewerTimezone): 없으면 첫 사람(A)의 출생 tz.
+  userTimezone: timezoneSchema.optional(),
 })
 
 export type CompatibilityCounselorRequestValidated = z.infer<

@@ -56,12 +56,15 @@ export interface CompatSajuFacts {
 export function collectCompatSajuFacts(
   seedA: CompatPersonSeed,
   seedB: CompatPersonSeed,
-  // 주입된 "지금" — 현재 대운(만 나이)의 기준. 미지정 시 호출 시점(collectSajuFacts 폴백).
-  now?: Date
+  // 주입된 "지금" — 현재 대운(만 나이)의 기준. 한 순간이면 두 사람 공통, { a, b } 면 사람별
+  // 기준 순간(궁합 상담사: 상담사 '오늘' D 의 각자 출생 tz 정오 — counselorDayAnchor, 운명상담사와
+  // 같은 규칙). 미지정 시 호출 시점(collectSajuFacts 폴백).
+  now?: Date | { a: Date; b: Date }
 ): CompatSajuFacts {
+  const [nowA, nowB] = now instanceof Date || now == null ? [now, now] : [now.a, now.b]
   return {
-    a: collectOne(seedA, now),
-    b: collectOne(seedB, now),
+    a: collectOne(seedA, nowA),
+    b: collectOne(seedB, nowB),
   }
 }
 

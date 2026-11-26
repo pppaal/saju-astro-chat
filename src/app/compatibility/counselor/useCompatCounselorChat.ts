@@ -152,6 +152,8 @@ export function useCompatCounselorChat(
         // 이번 답변에 넣을 시너스트리 도메인(사주/점성 체크박스).
         sources,
         lang: locale,
+        // 상담사 '오늘'(세운·대운·만 나이 날짜)의 기준 — 보는 사람 기기 시간대(운명상담사와 같다).
+        userTimezone: getUserTimezone(),
         messages: recentHistory,
         useRag: true,
         // 끊김 복구용 턴 식별자 — idempotencyKey 와 동일 값. 서버는 연결이

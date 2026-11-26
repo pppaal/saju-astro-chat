@@ -36,7 +36,6 @@ import {
   EL_CONTROLS,
   SIBSIN_GLOSS,
   CHEONULGWIIN,
-  currentSeun,
   sibsinOf,
   gongmangOf,
   twelveShinsalLabel,
@@ -398,8 +397,10 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
 
   // 6-2. 세운(올해) cross — 올해 세운 간지가 두 사람 일주·대운을 합/충/형으로
   // 건드리는지. "올해 우리 어때 / 언제" 질문의 시기 해상도. (월운·일진은 과잉)
-  {
-    const seun = currentSeun(input.now ?? new Date())
+  // 세운은 호출부가 상담사 '오늘'로 고른다(currentSeun(D, 출생 tz) — 운명상담사와 같은
+  // 날짜 규칙, 오너 결정 17). 없으면 이 블록을 생략한다 — 포매터는 시계를 읽지 않는다.
+  const seun = input.seun
+  if (seun) {
     const ss = seun.stem,
       sb = seun.branch
     const seunLines: string[] = []
