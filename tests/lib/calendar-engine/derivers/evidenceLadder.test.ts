@@ -459,3 +459,221 @@ describe('deriveEvidenceLadder — 이달 마찰 꼬리 (B2 #7d)', () => {
     expect(ko).not.toContain('삐걱')
   })
 })
+
+describe('deriveEvidenceLadder — 구조 칸(v9.2 A6): range · saju · astro', () => {
+  // 월 셀 모양(stripEvidence) — id·이름·층·부호·창만 남는다.
+  const win = (start: string, end: string) => ({
+    start: `${start}T00:00:00.000Z`,
+    peak: `${start}T12:00:00.000Z`,
+    end: `${end}T23:59:59.999Z`,
+  })
+  const s = (p: Partial<ActiveSignal> & Pick<ActiveSignal, 'id' | 'name' | 'kind' | 'layer'>) =>
+    ({
+      source: 'astro',
+      polarity: 0,
+      weight: 0.5,
+      active: win('2026-11-19', '2026-11-19'),
+      evidence: { module: p.kind, detail: {} },
+      ...p,
+    }) as ActiveSignal
+  const cell: ActiveSignal[] = [
+    s({
+      id: 'saju.pillar-sibsin.daeun.丙午',
+      name: '丙午 (정재)',
+      kind: 'pillar-sibsin',
+      source: 'saju',
+      layer: 'decadal',
+      polarity: -2,
+      weight: 0.95,
+      active: win('2026-03-21', '2031-03-20'),
+    }),
+    s({
+      id: 'saju.pillar-sibsin.seun.丙午',
+      name: '丙午 (편재)',
+      kind: 'pillar-sibsin',
+      source: 'saju',
+      layer: 'yearly',
+      polarity: -2,
+      weight: 0.85,
+      active: win('2026-02-04', '2027-02-03'),
+    }),
+    s({
+      id: 'saju.pillar-sibsin.wolun.己亥',
+      name: '己亥 (정관)',
+      kind: 'pillar-sibsin',
+      source: 'saju',
+      layer: 'monthly',
+      polarity: -2,
+      weight: 0.7,
+      active: win('2026-11-07', '2026-12-06'),
+    }),
+    s({
+      id: 'saju.pillar-sibsin.iljin.丙寅',
+      name: '丙寅 (정재)',
+      kind: 'pillar-sibsin',
+      source: 'saju',
+      layer: 'daily',
+      polarity: -2,
+      weight: 0.6,
+    }),
+    s({
+      id: 'astro.zr.spirit.l1.3.Taurus',
+      name: 'ZR Spirit L1: Taurus (Venus, 8년)',
+      kind: 'zodiacal-releasing',
+      layer: 'decadal',
+      polarity: 2,
+      weight: 0.9,
+      active: win('2024-03-21', '2032-03-21'),
+    }),
+    s({
+      id: 'astro.zr.fortune.l1.4.Aquarius',
+      name: 'ZR Fortune L1: Aquarius (Saturn, 30년)',
+      kind: 'zodiacal-releasing',
+      layer: 'decadal',
+      polarity: -2,
+      weight: 0.9,
+      active: win('2024-03-21', '2054-03-21'),
+    }),
+    s({
+      id: 'astro.lifecycle.saturn_return_1',
+      name: '첫 토성 회귀 — 진짜 어른됨의 통과의례',
+      kind: 'lifecycle',
+      layer: 'decadal',
+      polarity: -1,
+      weight: 0.95,
+      active: win('2026-04-21', '2027-01-29'),
+    }),
+    s({
+      id: 'astro.dignity.Saturn|fall|Aries.2026-02-14',
+      name: 'Saturn 폴 (추락) in Aries',
+      english: 'Saturn in Fall (Aries) — is weakened and out of place',
+      kind: 'transit',
+      layer: 'yearly',
+      polarity: -3,
+      weight: 0.7,
+      evidence: { module: 'astro-dignity', detail: {} },
+    }),
+    s({
+      id: 'astro.transit.Mars|Moon|conjunction.2026-11-09',
+      name: 'Mars ☌ Moon',
+      kind: 'transit',
+      layer: 'monthly',
+      polarity: -1,
+      weight: 0.83,
+    }),
+    s({
+      id: 'astro.transit.Sun|Lilith|square.2026-11-18',
+      name: 'Sun □ Lilith',
+      kind: 'transit',
+      layer: 'daily',
+      polarity: -1,
+      weight: 0.71,
+    }),
+  ]
+  const daeunRange = { start: '2021-03-21', end: '2031-03-20' }
+
+  it('range — 10년 = 대운 창(신호의 지지 5년 창이 아니다), 올해·이달 = 절기 창, 오늘 = 그 날짜', () => {
+    const rungs = deriveEvidenceLadder(cell, 'en', undefined, { daeunRange, dateIso: '2026-11-19' })
+    expect(rungs.map((r) => [r.scale, r.range])).toEqual([
+      ['decadal', daeunRange],
+      ['yearly', { start: '2026-02-04', end: '2027-02-03' }],
+      ['monthly', { start: '2026-11-07', end: '2026-12-06' }],
+      ['daily', { start: '2026-11-19', end: '2026-11-19' }],
+    ])
+    // 대운 창을 모르면 10년 range 는 생략(신호 창으로 대신하지 않는다).
+    expect(deriveEvidenceLadder(cell, 'en')[0].range).toBeUndefined()
+  })
+
+  it('saju — 십신 기둥 {ko, en, hanja}', () => {
+    const [dec] = deriveEvidenceLadder(cell, 'en')
+    expect(dec.saju).toEqual({ ko: '정재', en: 'Direct Wealth', hanja: '正財' })
+  })
+
+  it('astro — 10년 ZR 칸은 영혼·운명 L1 랏(별자리·주인·햇수·기간)', () => {
+    const [dec] = deriveEvidenceLadder(cell, 'en')
+    expect(dec.astro).toEqual({
+      kind: 'zodiacal-releasing',
+      planet: 'Saturn',
+      sign: 'Aquarius',
+      lots: [
+        {
+          lot: 'spirit',
+          sign: 'Taurus',
+          ruler: 'Venus',
+          years: 8,
+          range: { start: '2024-03-21', end: '2032-03-21' },
+        },
+        {
+          lot: 'fortune',
+          sign: 'Aquarius',
+          ruler: 'Saturn',
+          years: 30,
+          range: { start: '2024-03-21', end: '2054-03-21' },
+        },
+      ],
+    })
+  })
+
+  it('astro — 올해 칸: 품위(id 에서) + 그날 활성 행성 회귀 사건(첫 토성 회귀)', () => {
+    const year = deriveEvidenceLadder(cell, 'en')[1]
+    expect(year.astro).toEqual({
+      kind: 'dignity',
+      planet: 'Saturn',
+      dignity: 'fall',
+      sign: 'Aries',
+      event: {
+        kind: 'saturn_return_1',
+        planet: 'Saturn',
+        ko: '첫 토성 회귀',
+        en: 'First Saturn return',
+        range: { start: '2026-04-21', end: '2027-01-29' },
+      },
+    })
+  })
+
+  it('astro — 트랜짓 칸: 이름에서 행성·어스펙트·본명 접점(월 셀 evidence 없음)', () => {
+    const [, , month, day] = deriveEvidenceLadder(cell, 'en')
+    expect(month.astro).toEqual({
+      kind: 'transit',
+      planet: 'Mars',
+      aspect: 'conjunction',
+      natalPoint: 'Moon',
+    })
+    expect(day.astro).toEqual({
+      kind: 'transit',
+      planet: 'Sun',
+      aspect: 'square',
+      natalPoint: 'Lilith',
+    })
+  })
+
+  it('EN 칸의 표시 문구에 한글이 없다(saju.ko · event.ko 는 ko 쌍)', () => {
+    const rungs = deriveEvidenceLadder(cell, 'en', undefined, { daeunRange, dateIso: '2026-11-19' })
+    const shown = rungs.map((r) => ({
+      ...r,
+      saju: r.saju ? { en: r.saju.en, hanja: r.saju.hanja } : undefined,
+      astro: r.astro ? { ...r.astro, event: r.astro.event?.en } : undefined,
+    }))
+    expect(/[ㄱ-ㆎ가-힣]/.test(JSON.stringify(shown))).toBe(false)
+  })
+
+  it('ladderDaeunRange — 그 날짜가 든 대운 칸의 창(생일에 열려 다음 칸 생일 전날 닫힌다)', async () => {
+    const { ladderDaeunRange } = await import('@/lib/calendar-engine/derivers/evidenceLadder')
+    const natal = {
+      input: { year: 1997, month: 3, date: 21 },
+      saju: {
+        daeun: [
+          { startAge: 14, stem: '乙', branch: '巳' },
+          { startAge: 24, stem: '丙', branch: '午' },
+          { startAge: 34, stem: '丁', branch: '未' },
+        ],
+      },
+    }
+    expect(ladderDaeunRange(natal, '2026-11-19')).toEqual(daeunRange)
+    expect(ladderDaeunRange(natal, '2031-03-21')).toEqual({
+      start: '2031-03-21',
+      end: '2041-03-20',
+    })
+    expect(ladderDaeunRange({ ...natal, saju: { daeun: [] } }, '2026-11-19')).toBeUndefined()
+  })
+})

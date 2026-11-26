@@ -21,6 +21,48 @@ export type DestinyDayMark =
   | 'best' // 최고일 1개 (data.js month.bestDay)
   | 'focus' // 사용자 다이브 일 (data.js month.focusDay)
 
+/**
+ * '왜 이런 날' 근거의 점성 부모 — 교차를 만든 *하늘의* 신호를 구조로(v9 STARS 칸).
+ * 월 셀은 evidence 가 비어 있어 aspect·natalPoint 는 살아남은 부모 신호 이름
+ * ('Sun □ Moon')에서 읽고, orb 는 evidence 가 있는 날(오늘 — focusDayCell)에만 싣는다.
+ * 트랜짓 위치(transitSign·transitDeg)는 그날 현지 정오 트랜짓 차트(getCachedTransitChart)
+ * 에서 — 큰 날 최대 6개 + 오늘만(assembleTiers). 행성·별자리·어스펙트는 영문 키.
+ */
+export interface ReasonAstroDetail {
+  /** 하늘에서 움직이는 행성 — 'Sun'. */
+  transitPlanet: string
+  /** 부모 점성 신호 kind — 'transit' · 'dignity' · 'lifecycle' · 'fixed-star' · 'house-transit' 등. */
+  sourceKind: string
+  /** 트랜짓 어스펙트 키 — 'square'. 부모가 트랜짓일 때만. */
+  aspect?: string
+  /** 본명 접점 — 'Moon'. 부모가 트랜짓일 때만. */
+  natalPoint?: string
+  /** 정확각에서 벗어난 도(°) — evidence 가 있는 날만. */
+  orb?: number
+  /** 그날 현지 정오의 트랜짓 행성 별자리 — 'Scorpio'. */
+  transitSign?: string
+  /** 그 별자리 안의 도(0-29). */
+  transitDeg?: number
+}
+
+/**
+ * 그날 '왜 이런 날' 근거 — 월 셀과 일 티어(DestinyDay.reason)가 같은 모양. (type 별칭 — 미성년
+ * 정화 sanitizeCrossEntry 가 Record<string, unknown> 으로 받는다.)
+ */
+export type DestinyDayReason = {
+  saju: string
+  sajuEn: string
+  /** 십신 한자(正官) — 십신이 아닌 사주 키(신살)는 없음. */
+  sajuHanja?: string
+  astro: string
+  astroEn: string
+  meaning: string
+  meaningEn: string
+  polarity: number
+  /** 점성 부모의 구조 — 부모를 못 찾으면 없음. */
+  astroDetail?: ReasonAstroDetail
+}
+
 export interface DestinyCalendarCell {
   /** 일자 1..31. */
   d: number
@@ -33,19 +75,18 @@ export interface DestinyCalendarCell {
   /** 사용자 다이브 일자 여부. */
   focus: boolean
   /**
+   * 오늘 — 서버가 주입된 now 의 출생지 시간대 날짜(targetDayIso)로 정한다(assembleTiers).
+   * focus(다이브 일)와 별개 필드다: 다른 날로 다이브해도 오늘은 오늘이다.
+   */
+  isToday?: boolean
+  /** 오늘보다 앞선 날 — 그리드·막대가 흐리게 그린다. */
+  past?: boolean
+  /**
    * 그날 색·점수를 가장 크게 움직인 사주×점성 교차 — *쉬운 뜻*(meaning)으로.
    * 선택일 리드아웃의 "왜 이런 날인지" 근거. 전문용어(saju/astro)는 칩으로 따로
    * 보여주고, 본문은 plain. 그날 교차가 없으면 생략.
    */
-  reason?: {
-    saju: string
-    sajuEn: string
-    astro: string
-    astroEn: string
-    meaning: string
-    meaningEn: string
-    polarity: number
-  }
+  reason?: DestinyDayReason
   /**
    * 그날의 화해된 한 줄 — 일(日) 티어의 oneLine 과 *같은 소스*(월 셀 신호 +
    * layered.daily 점수 → reconcile → ONE_LINE_POOL). 월 리드아웃이 이걸 쓰면
@@ -123,6 +164,11 @@ export interface DestinyMonth {
   keyDays?: DestinyMonthKeyDay[]
   /** 사용자 다이브 일자 (1..31). */
   focusDay: number
+  /**
+   * 오늘의 일(1..31) — 이 달이 오늘이 든 달일 때만(assembleTiers, 주입된 now 기준).
+   * 지난 달·다음 달 페이로드엔 없다.
+   */
+  todayDay?: number
   /** 30일 캘린더 그라프. */
   calendar: DestinyCalendarCell[]
   /** 월운 천간 십신 — '편관'. */

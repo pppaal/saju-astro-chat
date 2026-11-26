@@ -21,6 +21,7 @@ import { CALENDAR_BANDS } from '@/lib/calendar-engine/derivers/constants'
 import {
   deriveEvidenceLadder,
   type EvidenceRung,
+  type LadderRange,
 } from '@/lib/calendar-engine/derivers/evidenceLadder'
 import { toGanji, type Ganji, pad2 } from './shared'
 
@@ -75,6 +76,11 @@ export interface ToMonthOptions {
    * key: YYYY-MM-DD.
    */
   dayScores?: Map<string, { score: number; grade: CalendarGrade }>
+  /**
+   * 근거 사다리 10년 칸의 기간 — 대표 셀(15일) 날짜의 대운 창(ladderDaeunRange). 호출부가
+   * 본명에서 구해 넘긴다(이 어댑터는 본명을 받지 않는다). 없으면 10년 칸 range 생략.
+   */
+  daeunRange?: LadderRange | null
 }
 
 /**
@@ -193,11 +199,12 @@ export function toMonth(opts: ToMonthOptions): {
         )
       : undefined
   const ladderScales = ['decadal', 'yearly', 'monthly'] as const
+  const ladderOpts = { daeunRange: opts.daeunRange }
   const evidenceLadder = repCell
-    ? deriveEvidenceLadder(repCell.signals, 'ko', [...ladderScales])
+    ? deriveEvidenceLadder(repCell.signals, 'ko', [...ladderScales], ladderOpts)
     : []
   const evidenceLadderEn = repCell
-    ? deriveEvidenceLadder(repCell.signals, 'en', [...ladderScales])
+    ? deriveEvidenceLadder(repCell.signals, 'en', [...ladderScales], ladderOpts)
     : []
 
   return {

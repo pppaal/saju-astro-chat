@@ -34,6 +34,8 @@ import { toMonth } from '@/lib/calendar-view'
 import { toGanji } from '@/lib/calendar-view/shared'
 import { assembleUserSummary } from './assembleUser'
 import { reconcileCellOneLine } from '@/lib/calendar-view/toDay'
+import { withReasonDetail, withTransitPositions } from '@/lib/calendar-view/astroDetail'
+import { ladderDaeunRange } from '@/lib/calendar-engine/derivers/evidenceLadder'
 import { assembleDayTier } from './assembleDayTier'
 import {
   crossKeys,
@@ -41,6 +43,7 @@ import {
   stripCrossPair,
   PLANET_EN_FROM_KO,
   pickDayReason,
+  pickDayReasonSignal,
 } from './crossPair'
 
 import type { NatalContext } from '@/lib/calendar-engine/context/types'
@@ -196,6 +199,8 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
     dayScores: layered.daily,
     // 펼침 기준일 — 보통 '오늘'. 안 주면 최고점수일로 펼쳐진다.
     focusDay: TARGET_DAY,
+    // 사다리 10년 칸의 기간 = 대표 셀(15일)이 든 대운 창.
+    daeunRange: ladderDaeunRange(natal, `${monthPrefix}-15`),
   })
   // 이달의 큰 날 — convergence keyDays(윈도우+신뢰도).
   const monthKeyDays = deriveConvergence(monthCells, 5, lang).keyDays.map((k) => ({
@@ -269,11 +274,29 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
   //    같은 날짜의 같은 월 셀로 같은 함수를 불러 day.reason 을 만든다(월·일 근거 일치,
   //    엔진 감사 X1).
   //    부호 게이트: good·best 는 +, caution·avoid 는 −, 무색은 어느 쪽이든(계획 B1 #4).
+  //    근거에는 십신 한자와 점성 부모의 구조(트랜짓 행성·어스펙트·본명 접점)를 붙인다 —
+  //    오늘은 evidence 셀(focusDayCell)로 부모를 정확히 찾고 orb 까지(astroDetail.ts).
   const monthCellByDs = new Map(monthCells.map((c) => [c.datetime.slice(5, 10), c]))
+  const todayDs = targetDayIso.slice(5, 10)
   for (const cell of month.calendar) {
-    const r = pickDayReason(monthCellByDs.get(cell.ds), cell.mark)
-    if (r) cell.reason = r
+    const src = monthCellByDs.get(cell.ds)
+    const r = pickDayReason(src, cell.mark)
+    const sig = pickDayReasonSignal(src, cell.mark)
+    if (r && src && sig) {
+      cell.reason = withReasonDetail(r, src, sig, cell.ds === todayDs ? focusDayCell : null)
+    } else if (r) {
+      cell.reason = r
+    }
   }
+
+  // ── 오늘·지난 날 — 주입된 now 의 출생지 시간대 날짜(targetDayIso)로 서버에서 정한다.
+  //    cell.focus(다이브 일)와 겹쳐 쓰지 않는다: 다른 날로 다이브해도 오늘은 오늘이다.
+  for (const cell of month.calendar) {
+    const iso = `${monthPrefix}-${String(cell.d).padStart(2, '0')}`
+    cell.isToday = iso === targetDayIso
+    cell.past = iso < targetDayIso
+  }
+  if (targetDayIso.slice(0, 7) === monthPrefix) month.todayDay = Number(targetDayIso.slice(8, 10))
 
   // ── 날짜별 "한 줄" — 일(日) 티어 oneLine 과 같은 소스(reconcileCellOneLine)를
   //    각 calendar 셀에 실어, 월 리드아웃 문장이 줌인한 일 화면 첫 줄로 그대로
@@ -304,6 +327,43 @@ export async function assembleTiers(args: AssembleTiersInput): Promise<Assembled
 
   // 일 티어 수확 — 맨 위에서 미리 발진해 둔 분리 어셈블러 결과.
   const day = await dayP
+
+  // ── 근거의 트랜짓 위치(별자리·도) — 큰 날(최대 6: 수렴 keyDays 5 + 최고의 날) 만 그날 현지
+  //    정오 트랜짓 차트(트랜짓 추출기와 같은 Redis 키)에서. 오늘은 일 티어(assembleDayTier)가
+  //    이미 같은 차트로 구한 위치를 그대로 쓴다 — 같은 근거·같은 위치, 조회 1회.
+  const positionDs = [
+    ...new Set([...monthKeyDays.map((k) => k.date), month.bestDay?.date].filter(Boolean)),
+  ].slice(0, 6) as string[]
+  const positionCells = positionDs
+    .map((ds) => month.calendar.find((c) => c.ds === ds))
+    .filter((c): c is NonNullable<typeof c> => !!c?.reason?.astroDetail && c.ds !== todayDs)
+  if (positionCells.length > 0) {
+    const placed = await withTransitPositions(
+      positionCells.map((c) => ({
+        dateIso: `${monthPrefix}-${c.ds.slice(3, 5)}`,
+        detail: c.reason!.astroDetail!,
+      })),
+      natal.astro.location
+    )
+    positionCells.forEach((c, i) => {
+      c.reason = { ...c.reason!, astroDetail: placed[i] }
+    })
+  }
+  const todayCell = month.calendar.find((c) => c.ds === todayDs)
+  const dayDetail = day.reason?.astroDetail
+  if (todayCell?.reason?.astroDetail && dayDetail?.transitSign) {
+    const sameParent = dayDetail.transitPlanet === todayCell.reason.astroDetail.transitPlanet
+    if (sameParent) {
+      todayCell.reason = {
+        ...todayCell.reason,
+        astroDetail: {
+          ...todayCell.reason.astroDetail,
+          transitSign: dayDetail.transitSign,
+          transitDeg: dayDetail.transitDeg,
+        },
+      }
+    }
+  }
 
   // (포커스 셀 중립화는 없다 — 계획 B1 #2. 예전엔 일 verdict 가 tense/bright 인
   //  날 포커스 셀 마크를 'focus' 로 지우고 버킷·크라운에서 빼, 이달 좋은 날 수·

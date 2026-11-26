@@ -27,12 +27,14 @@ import { toUser, toDay, bandMarkForScore } from '@/lib/calendar-view'
 import { reconcileCellOneLine, signalCat } from '@/lib/calendar-view/toDay'
 import { buildHourCrossings } from '@/lib/calendar-view/toHourCrossings'
 import { buildHourMoon } from '@/lib/calendar-view/toHourMoon'
+import { withReasonDetail, withTransitPositions } from '@/lib/calendar-view/astroDetail'
 import {
   crossKeys,
   crossSajuEn,
   stripCrossPair,
   PLANET_EN_FROM_KO,
   pickDayReason,
+  pickDayReasonSignal,
 } from './crossPair'
 
 import type { NatalContext } from '@/lib/calendar-engine/context/types'
@@ -272,10 +274,23 @@ export async function assembleDayTier(input: AssembleDayTierInput): Promise<Dest
   //    (bandMarkForScore)에서 — best 크라운은 good 과 같은 부호라 구분할 필요가 없다.
   //    점수가 없으면(월 셀 없음) 무색 → 어느 부호든.
   const reasonScore = layered.daily.get(targetDayIso)?.score
-  const dayReason = pickDayReason(
-    crossSourceCell,
-    reasonScore != null ? bandMarkForScore(reasonScore) : null
-  )
+  const reasonMark = reasonScore != null ? bandMarkForScore(reasonScore) : null
+  const reasonBase = pickDayReason(crossSourceCell, reasonMark)
+  const reasonSig = pickDayReasonSignal(crossSourceCell, reasonMark)
+  // 근거에 십신 한자 + 점성 부모 구조(evidence 셀이면 orb 까지) + 그날 현지 정오의 트랜짓
+  // 위치(별자리·도 — 트랜짓 추출기와 같은 캐시 키, 조회 1회). 월 셀 근거와 같은 규칙(astroDetail.ts).
+  let dayReason = reasonBase
+  if (reasonBase && reasonSig) {
+    const evidenceCell = focusDayCell ?? null
+    dayReason = withReasonDetail(reasonBase, crossSourceCell, reasonSig, evidenceCell)
+    if (dayReason.astroDetail) {
+      const [placed] = await withTransitPositions(
+        [{ dateIso: targetDayIso, detail: dayReason.astroDetail }],
+        natal.astro.location
+      )
+      dayReason = { ...dayReason, astroDetail: placed }
+    }
+  }
 
   // ── 타이밍 컨텍스트 (이달 흐름 추이 + 다가오는 7일) ──
   // 이달 일별 점수(추이선) — monthCells 순서대로, layered.daily 의 정규화 점수.

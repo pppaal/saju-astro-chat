@@ -11,13 +11,27 @@
  *
  * 순수 함수. LLM 0번. 사주 pillar-sibsin 이 4층 backbone(용신 대비 polarity),
  * 점성 신호는 같은 층에 있으면 칩 하나로 합류한다.
+ *
+ * ── 구조 필드(v9.2 사다리) ──
+ * 칸마다 표시 문자열(결론·칩)과 함께 구조를 싣는다 — 화면(v9 교차 행)이 문자열을 다시
+ * 쪼개지 않게:
+ *  · range — 그 층 기간(현지 민용 날짜, 양끝 포함). 10년은 *대운* 창(본명 대운 목록 —
+ *    호출부가 ladderDaeunRange 로 넘긴다; 신호 창은 천간·지지 5년 반쪽이라 쓰지 않는다),
+ *    올해·이달은 그 층 십신 기둥 신호의 절기 창(세운 立春~, 월운 節~), 오늘은 그 날.
+ *  · saju — 십신 기둥 {ko, en, hanja}.
+ *  · astro — 점성 칩의 구조 {kind, planet, dignity?, sign?, aspect?, natalPoint?, lots?, event?}.
+ *    10년 칸이 ZR 이면 lots 에 영혼·운명 L1 챕터(별자리·주인·햇수·기간)를, 올해 칸에는 그날
+ *    활성인 행성 회귀(라이프사이클 마디, 예: 첫 토성 회귀)를 event 로 단다.
+ * 행성·별자리·품위·어스펙트 값은 언어 무관 영문 키다(표시는 뷰모델이 지역화).
  */
 
 import type { ActiveSignal, SignalLayer } from '../types'
 import { STATIC_NATAL_KINDS } from '../signalTaxonomy'
 import { sibsinArea, sibsinAreaEn, sibsinGloss } from './plainLanguage'
-import { SIBSIN_EN } from '@/lib/saju/sibsinLabels'
+import { SIBSIN_EN, SIBSIN_HANJA } from '@/lib/saju/sibsinLabels'
 import { PLANET_KO } from '../data/planetNames'
+import { daeunWindows } from '../periodPillars'
+import { lifecycleEventDef, type AstroLifecycleEventKind } from '../lifecycle/astroLifecycle'
 
 export type LadderScale = 'decadal' | 'yearly' | 'monthly' | 'daily'
 export type Lang = 'ko' | 'en'
@@ -26,6 +40,63 @@ export interface EvidenceChip {
   /** 짧은 용어 라벨 — '정재', '금성 △ 금성' 등. */
   text: string
   source: 'saju' | 'astro'
+}
+
+/** 기간 — 현지 민용 날짜 'YYYY-MM-DD', 양끝 포함. */
+export interface LadderRange {
+  start: string
+  end: string
+}
+
+/** 사주 칸 — 십신 기둥(또는 십신이 없을 때 그 층 사주 지배신호의 짧은 라벨). */
+export interface RungSaju {
+  ko: string
+  en: string
+  /** 십신 한자(正財). 십신이 아니면 ''. */
+  hanja: string
+}
+
+/** ZR L1 챕터 하나 — 영혼(spirit)·운명(fortune) 랏. */
+export interface RungLot {
+  lot: 'spirit' | 'fortune'
+  /** 챕터 별자리 — 'Taurus'. */
+  sign: string
+  /** 그 별자리 주인 — 'Venus'. */
+  ruler: string
+  /** 챕터 햇수(ZR 소년수). */
+  years: number
+  range: LadderRange
+}
+
+/** 행성 회귀 마디(라이프사이클) — '첫 토성 회귀'. */
+export interface RungEvent {
+  /** 마디 kind — 'saturn_return_1'. */
+  kind: string
+  planet?: string
+  ko: string
+  en: string
+  /** 통과 창(첫 접근 1° ~ 마지막 통과 뒤 1°). */
+  range: LadderRange
+}
+
+/** 점성 칸 — 칩의 구조. 값은 언어 무관 영문 키. */
+export interface RungAstro {
+  /** 'transit' · 'dignity' · 'zodiacal-releasing' · 'lifecycle' · 그 밖의 점성 kind. */
+  kind: string
+  /** 그 신호의 행성(ZR 은 챕터 주인). */
+  planet?: string
+  /** 품위 키 — 'fall' · 'domicile' · 'term' …(kind 'dignity'). */
+  dignity?: string
+  /** 별자리 — 품위·ZR 챕터의 별자리. */
+  sign?: string
+  /** 어스펙트 키 — 'trine'(kind 'transit'). */
+  aspect?: string
+  /** 본명 접점 — 'Venus'(kind 'transit'). */
+  natalPoint?: string
+  /** ZR L1 영혼·운명 챕터(10년 칸이 ZR 일 때). */
+  lots?: RungLot[]
+  /** 그날 활성인 행성 회귀(올해 칸). */
+  event?: RungEvent
 }
 
 export interface EvidenceRung {
@@ -38,6 +109,20 @@ export interface EvidenceRung {
   polarity: number
   /** 용어 칩 — 결론의 출처를 살려 보여준다(버리지 않고 접기). */
   chips: EvidenceChip[]
+  /** 그 층의 기간(모듈 주석 — 10년은 대운 창). 모르면 없음. */
+  range?: LadderRange
+  /** 사주 칸 구조. */
+  saju?: RungSaju
+  /** 점성 칸 구조. */
+  astro?: RungAstro
+}
+
+/** deriveEvidenceLadder 의 기간 입력 — 신호만으로는 알 수 없는 값. */
+export interface LadderOptions {
+  /** 그 날짜의 대운 창(ladderDaeunRange). 없으면 10년 칸 range 생략. */
+  daeunRange?: LadderRange | null
+  /** 오늘 칸의 날짜 'YYYY-MM-DD'. 없으면 일진 기둥 신호의 창. */
+  dateIso?: string
 }
 
 const SCALE_ORDER: LadderScale[] = ['decadal', 'yearly', 'monthly', 'daily']
@@ -156,7 +241,8 @@ const POINT_KO_EXTRA: Record<string, string> = {
   IC: '천저점',
   Vertex: '버텍스',
 }
-const planetKoOr = (name: string, lang: Lang): string =>
+/** 행성·접점 표시명 — KO 는 한글(10행성·앵글·교점·소천체), EN 은 영문 키 그대로. */
+export const planetKoOr = (name: string, lang: Lang): string =>
   lang === 'ko' ? (PLANET_KO[name] ?? POINT_KO_EXTRA[name] ?? name) : name
 
 /** name 의 영문 행성/포인트 토큰만 한글로. 긴 키부터(‘True Node’ 가 ‘Node’ 보다
@@ -178,8 +264,248 @@ function koPointTokens(name: string): string {
  * 스냅샷은 kind 'natal-dignity'(정적 본명 — 사다리 입력에서 빠짐)로 낸다. evidence 를
  * 뺀 월 셀에서도 module 은 남으므로 module(또는 id 접두)로 가린다.
  */
-const isDignitySignal = (s: ActiveSignal): boolean =>
+export const isDignitySignal = (s: ActiveSignal): boolean =>
   s.evidence?.module === 'astro-dignity' || s.id.startsWith('astro.dignity.')
+
+// ─── 신호 이름·id 읽기 — evidence 를 비운 월 셀에서도 살아남는 표지로 구조를 복원 ───
+
+/** 트랜짓 이름의 어스펙트 기호 → 키 (astro-transit aspectSymbol 의 역). */
+export const ASPECT_KEY_BY_SYMBOL: Readonly<Record<string, string>> = {
+  '☌': 'conjunction',
+  '☍': 'opposition',
+  '△': 'trine',
+  '□': 'square',
+  '✶': 'sextile',
+  '⚻': 'quincunx',
+  '⚺': 'semisextile',
+  Q: 'quintile',
+  bQ: 'biquintile',
+  '⚼': 'sesquiquadrate',
+}
+
+/** 어스펙트 키 → 기호(표시용). */
+export const ASPECT_SYMBOL: Readonly<Record<string, string>> = Object.fromEntries(
+  Object.entries(ASPECT_KEY_BY_SYMBOL).map(([sym, key]) => [key, sym])
+)
+
+/**
+ * 트랜짓 이름('Sun □ Moon', 'Neptune ☍ True Node') → 트랜짓 행성·어스펙트 키·본명 접점.
+ * 이름 규약은 astro-transit 의 `${transit} ${기호} ${natal}`. 기호 토큰이 없으면 null.
+ */
+export function parseTransitName(
+  name: string
+): { transitPlanet: string; aspect: string; natalPoint: string } | null {
+  const tokens = name.trim().split(/\s+/)
+  const at = tokens.findIndex((t) => ASPECT_KEY_BY_SYMBOL[t] !== undefined)
+  if (at <= 0 || at >= tokens.length - 1) return null
+  return {
+    transitPlanet: tokens.slice(0, at).join(' '),
+    aspect: ASPECT_KEY_BY_SYMBOL[tokens[at]],
+    natalPoint: tokens.slice(at + 1).join(' '),
+  }
+}
+
+/** 위계 신호 id 'astro.dignity.{행성}|{품위}|{별자리}.{날짜}' → 구조. */
+function parseDignityId(id: string): { planet: string; dignity: string; sign: string } | null {
+  const m = /^astro\.dignity\.([^|]+)\|([^|]+)\|([^.]+)\./.exec(id)
+  return m ? { planet: m[1], dignity: m[2], sign: m[3] } : null
+}
+
+/**
+ * 하늘에서 움직이는 행성이 아닌 점성 kind — 교차 키가 될 수 없는 집합(cross-activation
+ * NON_ACTIVE_ASTRO_KINDS)에 본명 품위 스냅샷을 더한 것.
+ */
+const NON_ACTIVE_ASTRO_KINDS: ReadonlySet<string> = new Set([
+  'eclipse',
+  'profection',
+  'zodiacal-releasing',
+  'planetary-hour',
+  'solar-arc',
+  'progression',
+  'progressed-moon',
+  'solar-return',
+  'lunar-return',
+  'natal-dignity',
+])
+
+/** 라이프사이클 마디 kind → 회귀하는 행성(astro-lifecycle EVENT_PLANET). 진행 달은 없음. */
+function lifecyclePlanet(event: string): string | undefined {
+  if (event.startsWith('progressed_')) return undefined
+  if (event.startsWith('jupiter_')) return 'Jupiter'
+  if (event.startsWith('saturn_')) return 'Saturn'
+  if (event.startsWith('uranus_')) return 'Uranus'
+  if (event.startsWith('neptune_')) return 'Neptune'
+  if (event.startsWith('pluto_')) return 'Pluto'
+  if (event.startsWith('chiron_')) return 'Chiron'
+  return undefined
+}
+
+const lifecycleKindOf = (s: ActiveSignal): string =>
+  typeof s.evidence?.detail?.event === 'string'
+    ? (s.evidence.detail.event as string)
+    : s.id.replace(/^astro\.lifecycle\./, '')
+
+/** 이름 머리의 천체 — 'True Node' 처럼 두 단어인 점도 받는다. */
+const KNOWN_BODIES = [
+  'True Node',
+  'North Node',
+  'South Node',
+  'Sun',
+  'Moon',
+  'Mercury',
+  'Venus',
+  'Mars',
+  'Jupiter',
+  'Saturn',
+  'Uranus',
+  'Neptune',
+  'Pluto',
+  'Chiron',
+  'Lilith',
+] as const
+function leadingBody(name: string): string | undefined {
+  return KNOWN_BODIES.find((b) => name === b || name.startsWith(`${b} `))
+}
+
+/**
+ * 점성 신호의 활성(하늘의) 행성 — evidence.planets[0](교차 추출기와 같은 키)이 있으면 그것,
+ * 없으면(월 셀) id·이름에서 복원. 하늘에서 움직이는 행성이 아닌 kind 는 undefined.
+ */
+export function astroPlanetOf(s: ActiveSignal): string | undefined {
+  if (s.source !== 'astro' || NON_ACTIVE_ASTRO_KINDS.has(s.kind)) return undefined
+  if (s.kind === 'lifecycle') return lifecyclePlanet(lifecycleKindOf(s))
+  const fromEvidence = s.evidence?.planets?.[0]
+  if (fromEvidence) return fromEvidence
+  const m = /^astro\.(?:transit|dignity)\.([^|.]+)\|/.exec(s.id)
+  if (m) return m[1]
+  if (s.kind === 'moon-phase' || s.kind === 'void-of-course') return 'Moon'
+  return leadingBody(s.name)
+}
+
+/** ZR L1 이름 'ZR Spirit L1: Taurus (Venus, 8년)' → 랏 챕터. 다른 ZR 신호는 null. */
+function parseZrL1(s: ActiveSignal): RungLot | null {
+  const m = /^ZR (Spirit|Fortune) L1: (\w+) \((\w+), (\d+)년\)$/.exec(s.name)
+  if (!m) return null
+  return {
+    lot: m[1] === 'Spirit' ? 'spirit' : 'fortune',
+    sign: m[2],
+    ruler: m[3],
+    years: Number(m[4]),
+    range: windowRange(s),
+  }
+}
+
+/** ZR 신호 이름의 챕터 별자리·주인 'ZR Fortune L2: Pisces (Jupiter)' — 없으면 null. */
+function parseZrChapter(name: string): { sign: string; ruler: string } | null {
+  const m = /^ZR (?:Spirit|Fortune) L\d: (\w+) \((\w+)/.exec(name)
+  return m ? { sign: m[1], ruler: m[2] } : null
+}
+
+/** 신호 활성 창 → 현지 날짜 기간(떠 있는 ISO 의 날짜 부분). */
+const windowRange = (s: ActiveSignal): LadderRange => ({
+  start: s.active.start.slice(0, 10),
+  end: s.active.end.slice(0, 10),
+})
+
+/** 라이프사이클 신호 → 회귀 마디. 진행 달(상징 방향)·모르는 kind 는 null. */
+function lifecycleEvent(s: ActiveSignal): RungEvent | null {
+  const kind = lifecycleKindOf(s)
+  const planet = lifecyclePlanet(kind)
+  if (!planet) return null
+  let def: ReturnType<typeof lifecycleEventDef>
+  try {
+    def = lifecycleEventDef(kind as AstroLifecycleEventKind)
+  } catch {
+    return null
+  }
+  return {
+    kind,
+    planet,
+    ko: def.labelKo.split(' — ')[0].trim(),
+    en: def.labelEn,
+    range: windowRange(s),
+  }
+}
+
+/**
+ * 점성 지배신호 → 칸 구조. lots 는 같은 셀의 ZR L1 들(10년 칸이 ZR 일 때만).
+ */
+function astroStructure(s: ActiveSignal, live: readonly ActiveSignal[]): RungAstro {
+  if (isDignitySignal(s)) {
+    const d = parseDignityId(s.id)
+    return d
+      ? { kind: 'dignity', planet: d.planet, dignity: d.dignity, sign: d.sign }
+      : { kind: 'dignity', planet: astroPlanetOf(s) }
+  }
+  if (s.kind === 'transit') {
+    const parsed = parseTransitName(s.name)
+    const out: RungAstro = {
+      kind: 'transit',
+      planet: s.evidence?.planets?.[0] ?? parsed?.transitPlanet,
+    }
+    const aspect = s.evidence?.aspectType ?? parsed?.aspect
+    const natal = s.evidence?.planets?.[1] ?? parsed?.natalPoint
+    if (aspect) out.aspect = aspect
+    if (natal) out.natalPoint = natal
+    return out
+  }
+  if (s.kind === 'zodiacal-releasing') {
+    const ch = parseZrChapter(s.name)
+    const lots = live
+      .map(parseZrL1)
+      .filter((l): l is RungLot => l !== null)
+      .sort((a, b) => (a.lot === b.lot ? 0 : a.lot === 'spirit' ? -1 : 1))
+    const out: RungAstro = { kind: 'zodiacal-releasing' }
+    if (ch) {
+      out.planet = ch.ruler
+      out.sign = ch.sign
+    }
+    if (lots.length) out.lots = lots
+    return out
+  }
+  if (s.kind === 'lifecycle') {
+    const ev = lifecycleEvent(s)
+    return ev ? { kind: 'lifecycle', planet: ev.planet, event: ev } : { kind: 'lifecycle' }
+  }
+  const planet = astroPlanetOf(s) ?? s.evidence?.planets?.[0]
+  return planet ? { kind: s.kind, planet } : { kind: s.kind }
+}
+
+/** 그날 활성인 행성 회귀 중 가장 무거운 것(weight → id). */
+function activeLifecycleEvent(live: readonly ActiveSignal[]): {
+  event: RungEvent
+  polarity: number
+} | null {
+  let best: { sig: ActiveSignal; event: RungEvent } | null = null
+  for (const s of live) {
+    if (s.kind !== 'lifecycle') continue
+    const event = lifecycleEvent(s)
+    if (!event) continue
+    if (
+      !best ||
+      s.weight > best.sig.weight ||
+      (s.weight === best.sig.weight && s.id < best.sig.id)
+    ) {
+      best = { sig: s, event }
+    }
+  }
+  return best ? { event: best.event, polarity: best.sig.polarity } : null
+}
+
+/**
+ * 그 날짜의 대운 창 — 본명 대운 목록(daeunWindows, daeunAge SSOT)에서 그날이 든 칸.
+ * 첫 대운 전(OD-12)·출생일 미상이면 undefined. 순수(시계 읽지 않음).
+ */
+export function ladderDaeunRange(
+  natal: Parameters<typeof daeunWindows>[0],
+  dateIso: string
+): LadderRange | undefined {
+  const d = dateIso.slice(0, 10)
+  const w = daeunWindows(natal, { start: `${d}T00:00:00.000Z`, end: `${d}T23:59:59.999Z` }).find(
+    (x) => x.startDate <= d && d <= x.endDate
+  )
+  return w ? { start: w.startDate, end: w.endDate } : undefined
+}
 
 /**
  * 위계 칩 — name 은 'Saturn 폴 (추락) in Aries' 처럼 한글 라벨이 박혀 있어 EN 칩·결론에
@@ -296,7 +622,8 @@ function astroConclusion(s: ActiveSignal, scale: LadderScale, lang: Lang): strin
 export function deriveEvidenceLadder(
   signals: ActiveSignal[],
   lang: Lang = 'ko',
-  scales: LadderScale[] = SCALE_ORDER
+  scales: LadderScale[] = SCALE_ORDER,
+  opts: LadderOptions = {}
 ): EvidenceRung[] {
   // 정적 본명(명사) 표지는 흐름 근거가 아니므로 제외 — 점수 파이프라인과 동일 기준.
   const live = signals.filter((s) => !STATIC_NATAL_KINDS.has(s.kind))
@@ -327,9 +654,12 @@ export function deriveEvidenceLadder(
     const chips: EvidenceChip[] = []
     let conclusion = ''
     let polarity = 0
+    let saju: RungSaju | undefined
+    let astro: RungAstro | undefined
 
     if (sajuPrimary) {
       const sibsin = primarySibsin(sajuPrimary)!
+      saju = { ko: sibsin, en: SIBSIN_EN[sibsin] ?? sibsin, hanja: SIBSIN_HANJA[sibsin] ?? '' }
       // 칩은 십신 원어 — EN 은 표준 영문 라벨(SIBSIN_EN), 없으면 원어 폴백.
       chips.push({ text: lang === 'en' ? (SIBSIN_EN[sibsin] ?? sibsin) : sibsin, source: 'saju' })
       // 중립 십신(용신 무관, polarity 0)이 강한 점성 driver 를 가리지 않게 — 그 층에
@@ -345,10 +675,17 @@ export function deriveEvidenceLadder(
       const label =
         (lang === 'ko' ? sajuFallback.korean : sajuFallback.english) ?? sajuFallback.name
       chips.push({ text: shortLabel(label), source: 'saju' })
+      const en = sajuFallback.english ? shortLabel(sajuFallback.english) : ''
+      saju = {
+        ko: shortLabel(sajuFallback.korean ?? sajuFallback.name),
+        en: HANGUL.test(en) ? '' : en,
+        hanja: '',
+      }
     }
 
     if (astroDom) {
       chips.push({ text: astroChipText(astroDom, lang), source: 'astro' })
+      astro = astroStructure(astroDom, live)
       if (!conclusion) {
         conclusion = astroConclusion(astroDom, scale, lang)
         polarity = astroDom.polarity
@@ -356,10 +693,52 @@ export function deriveEvidenceLadder(
     }
 
     if (!conclusion) continue
-    rungs.push({ scale, scaleLabel: SCALE_LABEL[lang][scale], conclusion, polarity, chips })
+
+    // 올해 칸 — 그날 활성인 행성 회귀(첫 토성 회귀 등)를 사건으로 단다. 점성 칸이 있으면
+    // 그 위에, 없으면 회귀가 칸 방향과 어긋나지 않을 때만 점성 칸으로(칩 부호 규칙과 같은 정신).
+    if (scale === 'yearly') {
+      const life = activeLifecycleEvent(live)
+      if (life) {
+        if (astro) astro = { ...astro, event: life.event }
+        else if (polarity === 0 || Math.sign(life.polarity) === Math.sign(polarity))
+          astro = { kind: 'lifecycle', planet: life.event.planet, event: life.event }
+      }
+    }
+
+    const rung: EvidenceRung = {
+      scale,
+      scaleLabel: SCALE_LABEL[lang][scale],
+      conclusion,
+      polarity,
+      chips,
+    }
+    const range = rungRange(scale, sajuPrimary, opts)
+    if (range) rung.range = range
+    if (saju) rung.saju = saju
+    if (astro) rung.astro = astro
+    rungs.push(rung)
   }
 
   return rungs
+}
+
+const HANGUL = /[\u3131-\u318E\uAC00-\uD7A3]/
+
+/**
+ * 칸의 기간 — 10년은 대운 창(opts.daeunRange), 오늘은 opts.dateIso, 올해·이달은 그 층 십신
+ * 기둥 신호의 절기 창(periodPillars — 빌드 범위와 무관). 모르면 undefined.
+ */
+function rungRange(
+  scale: LadderScale,
+  backbone: ActiveSignal | undefined,
+  opts: LadderOptions
+): LadderRange | undefined {
+  if (scale === 'decadal') return opts.daeunRange ?? undefined
+  if (scale === 'daily' && opts.dateIso) {
+    const d = opts.dateIso.slice(0, 10)
+    return { start: d, end: d }
+  }
+  return backbone ? windowRange(backbone) : undefined
 }
 
 /** 칩용 짧은 라벨 — 선행 마커/레이어 태그/괄호 글로스 제거, 20자 컷. */

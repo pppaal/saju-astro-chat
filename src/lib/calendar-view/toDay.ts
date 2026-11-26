@@ -37,6 +37,7 @@ import { getGongmang, getTwelveStage } from '@/lib/saju/shinsal'
 import { humanizeReason } from './humanizeReason'
 import {
   deriveEvidenceLadder,
+  ladderDaeunRange,
   type EvidenceRung,
 } from '@/lib/calendar-engine/derivers/evidenceLadder'
 import {
@@ -471,8 +472,10 @@ export function toDay(opts: ToDayOptions): DestinypalDay {
   const cautionsEn = (cell.cautionsEn ?? []).map((r) => humanizeReason(r, 'en'))
 
   // ── 근거 사다리 — 10년→올해→이달→오늘 층별 지배신호 1개(쉬운 결론 + 용어 칩). ──
-  const evidenceLadder = deriveEvidenceLadder(cell.signals, 'ko')
-  const evidenceLadderEn = deriveEvidenceLadder(cell.signals, 'en')
+  // 10년 칸 기간은 본명 대운 창(신호 창은 천간·지지 5년 반쪽), 오늘 칸은 그 날짜.
+  const ladderOpts = { daeunRange: ladderDaeunRange(natal, dateIso), dateIso }
+  const evidenceLadder = deriveEvidenceLadder(cell.signals, 'ko', undefined, ladderOpts)
+  const evidenceLadderEn = deriveEvidenceLadder(cell.signals, 'en', undefined, ladderOpts)
 
   // ── 출력 화해 — 점수 밴드 ↔ 그날 고유 신호 net 을 한 verdict 로 묶는다(단일 권위). ──
   const dayTone = reconcileDayTone({
