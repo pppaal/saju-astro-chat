@@ -101,6 +101,13 @@ describe('golden markers guard (E16)', () => {
       'tests/lib/astrology/real-ephemeris-correctness.test.ts',
       // 사주 카드 빌더 · 홈 샘플 카드 골든(real ephemeris, wave 11 — G14 에서 게이트에 추가).
       'tests/lib/card/',
+      // 이름이 *.real.node 가 아닌 나머지 real-ephemeris 파일(wave 13 — H1 에서 게이트에 추가).
+      'tests/lib/report/lifeCrossCheck.parity.test.ts',
+      'tests/lib/report/tallyCrossRows.test.ts',
+      'tests/lib/calendar-view/lifetimeViewModel.test.ts',
+      'tests/lib/astrology/eclipses.test.ts',
+      'tests/lib/astrology/foundation/eclipses.test.ts',
+      'tests/lib/astrology/foundation/astroBugfixes.regression.test.ts',
     ]) {
       expect(gate, part).toContain(part)
     }
