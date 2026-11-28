@@ -8,10 +8,11 @@
   ],
   "project": [
     "src/**/*.{ts,tsx}!",
+    "!src/data/blog/buildIndex.ts!",
     "tests/**/*.{ts,tsx}",
     "e2e/**/*.{ts,tsx}",
     "scripts/**/*.{ts,mts}"
   ],
-  "ignoreDependencies": ["@prisma/config", "sharp", "playwright"],
+  "ignoreDependencies": ["@prisma/config", "sharp", "playwright", "resend!", "dotenv!"],
   "ignoreBinaries": ["wait-on", "du", "python3", "k6"]
 }

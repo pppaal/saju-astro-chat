@@ -185,9 +185,13 @@ E2E API run (`test:e2e:api`).
 - `destiny-release-gate`: `npm run ops:destiny:release`.
 - `security-check`: `npm audit` (moderate/high, non-blocking), `audit:unused`
   (knip, normal graph: tests/e2e/scripts are entries), `knip --production`
-  (production graph only — the `!` entries in `knip.json`; informational, it lists
-  src modules that only tests import), changed-file secret scan. All three are
-  `continue-on-error`.
+  (production graph only — the `!` entries in `knip.json`; informational: unused
+  files and dependencies are at 0 since H7 deleted the test-only modules, and it
+  still lists exports that only tests or scripts use), changed-file secret scan.
+  All three are `continue-on-error`. Script-only code under `src/` is excluded from
+  the production project with a `!path!` pattern (`src/data/blog/buildIndex.ts`,
+  used by `npm run blog:index`), and deps only scripts use carry a production-only
+  ignore (`resend!`, `dotenv!`).
 - `coverage`: `test:coverage` + PR comment.
 
 ### `security.yml` (PRs, weekly, manual)
