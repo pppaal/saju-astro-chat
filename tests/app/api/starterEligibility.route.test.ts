@@ -8,10 +8,18 @@ import { NextRequest, NextResponse } from 'next/server'
 
 const STATUS_MAP: Record<string, number> = { INTERNAL_ERROR: 500 }
 
+// 요청 로케일 — 표시/청구 통화 결정에 쓰이므로 테스트마다 바꾼다.
+const ctx = { locale: 'ko' as 'ko' | 'en' }
+
 vi.mock('@/lib/api/middleware', () => ({
   withApiMiddleware: vi.fn((handler: any) => {
     return async (req: any, ...args: any[]) => {
-      const context = { userId: 'user_1', isAuthenticated: true, ip: '127.0.0.1', locale: 'ko' }
+      const context = {
+        userId: 'user_1',
+        isAuthenticated: true,
+        ip: '127.0.0.1',
+        locale: ctx.locale,
+      }
       const result = await handler(req, context, ...args)
       if (result instanceof Response) return result
       if (result?.error) {
@@ -44,13 +52,32 @@ const req = () => new NextRequest('http://localhost:3000/api/me/starter-eligibil
 beforeEach(() => {
   vi.clearAllMocks()
   isStarterEligible.mockResolvedValue(true)
+  ctx.locale = 'ko'
 })
 
 describe('GET /api/me/starter-eligibility', () => {
   it('자격 있으면 eligible:true + 팩 정보', async () => {
     const data = await (await GET(req())).json()
     expect(data.data.eligible).toBe(true)
-    expect(data.data.pack).toEqual({ id: 'starter', credits: 8, krw: 2900, usd: 2.5 })
+    expect(data.data.pack).toEqual({
+      id: 'starter',
+      credits: 8,
+      // 서버가 확정한 청구 통화 + 그 통화의 금액 — 모달은 이걸 그대로 표시한다.
+      // 예전엔 krw/usd 를 둘 다 내려주고 모달이 locale 로 골라서, USD Price 가
+      // 없는데 $ 를 표시하고 ₩ 를 청구할 수 있었다.
+      currency: 'KRW',
+      amount: 2900,
+      krw: 2900,
+      usd: 2.5,
+    })
+  })
+
+  it('USD Price 미설정이면 영어 요청에도 KRW 로 내려준다 (표시 == 청구)', async () => {
+    ctx.locale = 'en'
+    const data = await (await GET(req())).json()
+    // 테스트 env 에 STRIPE_PRICE_CREDIT_*_USD 가 없으므로 USD 미지원 → KRW 폴백.
+    expect(data.data.pack.currency).toBe('KRW')
+    expect(data.data.pack.amount).toBe(2900)
   })
 
   it('자격 없으면 eligible:false + pack:null', async () => {

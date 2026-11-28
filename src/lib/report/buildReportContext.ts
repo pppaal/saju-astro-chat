@@ -1,0 +1,243 @@
+// src/lib/report/buildReportContext.ts
+//
+// 통합 리포트 *전용* 본명 컨텍스트 빌더 — Phase A (2026-06-06):
+// 정통 점성 깊이 (Almuten / Arabic Lots / dignity 5-tier / Chiron·Lilith /
+// aspects major+minor) 까지 facts 에서 받아 ctx 에 채움.
+//
+// 받는 것:
+//   - sajuFacts._raw — pillars/dayMaster/fiveElements/daeWoon
+//   - sajuFacts.yongsin / geokguk / strength / relations
+//   - 사주 추가 분석 (page 직접 호출):
+//       performAnalyses (격국/용신/통근/득령/형충/십신)
+//       annotateShinsal (신살)
+//       getTwelveStagesForPillars (12운성)
+//       dayJijanggan (일주 지장간)
+//   - astroFacts._chart (행성 + 하우스 + ASC/MC)
+//   - astroFacts.hellenistic — 정통 점성 정적 분석 일체:
+//       sect / extraPoints (Chiron/Lilith) / natalAspects (major+minor) /
+//       dignities (5-tier per planet) / lots (7 Arabic Lots) /
+//       zodiacalReleasing (Spirit/Fortune L1) / almutenFiguris
+//
+// 시간 흐름은 안 받음 — Profection / Transit / SR / LR / Progression /
+// 형충회합 시간 cross. 그건 운명상담사 LLM / 캘린더 영역.
+//
+// NatalContext shape 호환 — adapter (natalToReportData / buildCrossRows) 가
+// 같은 shape 받음.
+
+import { collectSajuFacts } from '@/lib/destiny/sajuFacts'
+import { collectAstroFacts } from '@/lib/destiny/astroFacts'
+import { performAnalyses } from '@/lib/saju/analyses'
+import { annotateShinsal, getTwelveStagesForPillars } from '@/lib/saju/shinsal'
+import { JIJANGGAN } from '@/lib/saju/constants'
+import { strengthClassOf } from '@/lib/saju/strengthScore'
+import { parseHourMinute } from '@/lib/saju/timeParse'
+import { astroAnchorTime } from '@/lib/saju/birthTimeAnchor'
+import { UNKNOWN_HOUSE } from '@/lib/astrology/foundation/shared'
+import type { NatalContext, NatalDayJijanggan } from '@/lib/calendar-engine/context/types'
+import type { FiveElement, MaybeTimeless, SajuPillarsInput } from '@/lib/saju/types'
+
+export interface ReportContextInput {
+  birthDate: string // 'YYYY-MM-DD' (solar)
+  birthTime: string // 'HH:MM'
+  gender: 'male' | 'female'
+  latitude: number
+  longitude: number
+  timeZone: string
+  /** 출생시각 미상 — astroFacts 가 ASC/MC 애스펙트·profection 군주를 신뢰불가로 처리. */
+  birthTimeUnknown?: boolean
+  /** 출생지 미상 — 기본 좌표(서울)로 계산되므로 ASC/MC/하우스·profection 군주를
+   *  신뢰불가로 처리(시각만 알아도 위치 모르면 앵글/하우스가 날조됨). */
+  birthCityUnknown?: boolean
+  /**
+   * 요청 경계에서 한 번 읽은 '지금' — 현재 대운(만 나이)·profection 의 기준. 페이지가 넘기고,
+   * 미지정이면 호출 시각(테스트·스크립트 호환). 계산 깊은 곳에서 시계를 다시 읽지 않는다(G13).
+   */
+  now?: Date
+}
+
+export async function buildReportContext(input: ReportContextInput): Promise<NatalContext> {
+  const now = input.now ?? new Date()
+  // ─── raw 정제 ─────────────────────────────────────────────────────────
+  // 출생시각 미상 → 삼주 분석(CONVENTIONS §5, OD-5). 정오 앵커는 년·월·일주만 고정하고
+  // 오행·강약·용신·격국·관계·신살은 시주 없이 판정한다.
+  const sajuFacts = collectSajuFacts({
+    birthDate: input.birthDate,
+    birthTime: input.birthTime,
+    birthTimeUnknown: input.birthTimeUnknown,
+    gender: input.gender,
+    timezone: input.timeZone,
+    longitude: input.longitude,
+    now,
+  })
+  const astroFacts = await collectAstroFacts(
+    {
+      birthDate: input.birthDate,
+      birthTime: input.birthTime,
+      latitude: input.latitude,
+      longitude: input.longitude,
+      timezone: input.timeZone,
+      // 출생시각/출생지 미상 → placeUnreliable: ASC/MC 애스펙트 skip, profection 군주 null.
+      birthTimeUnknown: input.birthTimeUnknown,
+      birthCityUnknown: input.birthCityUnknown,
+      // Phase A: 정통 점성 정적 분석 일체 받기 (Almuten/Lots/dignity 5-tier/
+      // Chiron·Lilith/aspects major+minor/sect). facts 가 다 만들어 줘서
+      // page 가 직접 호출할 필요 없음. 시간 흐름(Profection/Transit/SR/LR/
+      // Progression) 은 facts 가 안 만듦 — 통합 리포트도 안 받음.
+      includeHellenistic: true,
+    },
+    now
+  )
+  if (!astroFacts) {
+    throw new Error('buildReportContext: collectAstroFacts returned null')
+  }
+  const raw = sajuFacts._raw
+  const timeUnknown = sajuFacts.timeUnknown
+  // 시간 미상이면 시주를 뺀 삼주 — raw.pillars.time 은 정오 앵커 자리표시라 ctx 로도
+  // 흘리지 않는다(리포트 명식의 時 칸은 '?', 신살·12운성·십성 개수도 삼주).
+  const pillars = timeUnknown
+    ? { year: raw.pillars.year, month: raw.pillars.month, day: raw.pillars.day }
+    : raw.pillars
+  // 출생시각/출생지 미상(placeUnreliable) — _chart 의 하우스는 정오 앵커·기본 좌표 폴백이라
+  // 날조값이다. collectAstroFacts().natal.planets 와 같은 규칙으로 행성 하우스를
+  // UNKNOWN_HOUSE(0)로, 커스프 목록을 비워 ctx 로 보낸다 — 어떤 소비자도 폴백 하우스로
+  // 생활영역 행·하우스 풀이를 지어낼 수 없게(CALCULATION_SPEC §6, 감사 CR-1).
+  const placeUnreliable = astroFacts.natal.placeUnreliable
+  const chart = placeUnreliable
+    ? {
+        ...astroFacts._chart,
+        planets: astroFacts._chart.planets.map((p) => ({ ...p, house: UNKNOWN_HOUSE })),
+        houses: [],
+      }
+    : astroFacts._chart
+
+  // ─── 사주 분석 (page 가 자기 책임으로 호출) ──────────────────────────
+  const timeSimple = timeUnknown
+    ? null
+    : {
+        stem: raw.pillars.time.heavenlyStem.name,
+        branch: raw.pillars.time.earthlyBranch.name,
+      }
+  const pillarsInput: MaybeTimeless<SajuPillarsInput> = {
+    year: { stem: pillars.year.heavenlyStem.name, branch: pillars.year.earthlyBranch.name },
+    month: { stem: pillars.month.heavenlyStem.name, branch: pillars.month.earthlyBranch.name },
+    day: { stem: pillars.day.heavenlyStem.name, branch: pillars.day.earthlyBranch.name },
+    time: timeSimple,
+  }
+  const pillarsWithHour = {
+    year: pillarsInput.year,
+    month: pillarsInput.month,
+    day: pillarsInput.day,
+    hour: timeSimple,
+  }
+  const simplePillarsWithHour = { ...pillarsInput, time: timeSimple, hour: timeSimple }
+  const analyses = performAnalyses(
+    simplePillarsWithHour,
+    pillarsWithHour,
+    pillars.day.heavenlyStem.name,
+    pillars.month.earthlyBranch.name
+  )
+  const shinsalAnnot = annotateShinsal(pillars)
+  const twelveStages = getTwelveStagesForPillars(pillars)
+
+  // 일주(日柱) 지지의 지장간 3층 — adapter 의 mapPillar 가 사용.
+  const dayBranchName = pillars.day.earthlyBranch.name
+  const dayJj = JIJANGGAN[dayBranchName] ?? {}
+  const dayJijanggan: NatalDayJijanggan = {
+    jeonggi: dayJj['정기'] ?? '',
+    junggi: dayJj['중기'] || undefined,
+    yeogi: dayJj['여기'] || undefined,
+  }
+
+  // 대운 list — calendar-engine 의 buildNatalContext 와 동일 변환.
+  // d.age 는 만 나이 — 출생연도 + age = 해당 도달 연도.
+  const [Y, M, D] = input.birthDate.split('-').map(Number)
+  // SSOT 파서 — split(':') 는 'HH:MM PM' 의 PM 보정을 못 해 출생시각 표시가
+  // 어긋난다(collectAstroFacts·counselorContext 와 동일 규약).
+  // 시간 미상(birthTimeUnknown 또는 빈 값)은 정오 앵커(SSOT) — 남은 시각 문자열이 아니라
+  // 앵커로. page.tsx 가 이미 앵커를 넣어 주지만 진입점마다 같은 규칙을 지킨다(G8).
+  const { h, m: mi } = parseHourMinute(astroAnchorTime(input.birthTime, input.birthTimeUnknown))
+  const daeunList = (raw.daeWoon?.list ?? []).map((d) => ({
+    startAge: d.age,
+    startYear: Y + d.age,
+    stem: d.heavenlyStem,
+    branch: d.earthlyBranch,
+  }))
+
+  // ─── 점성 분석 — astroFacts.hellenistic 가 다 만들어줌 ──────────────
+  // includeHellenistic:true 로 collectAstroFacts 호출했으므로 정통 점성 정적
+  // 분석 일체 (sect / extraPoints (Chiron·Lilith) / natalAspects major+minor
+  // / dignities 5-tier / lots 7 Arabic / zodiacalReleasing / almutenFiguris)
+  // 가 facts.hellenistic 안에 들어있음. page 가 직접 호출할 필요 없음.
+  const hellenistic = astroFacts.hellenistic
+  if (!hellenistic) {
+    throw new Error(
+      'buildReportContext: astroFacts.hellenistic 없음 (includeHellenistic 옵션 확인)'
+    )
+  }
+
+  // ─── ctx 구성 (NatalContext shape 호환) ──────────────────────────────
+  return {
+    // gender 는 NatalInput 표준 필드가 아니지만, 교차 해석의 배우자성(남=재성/
+    // 여=관성) 분기가 ctx.input.gender 를 읽으므로 여기서 직접 실어 보낸다
+    // (page 의 사후 주입에 의존하지 않게 — 다른 호출자도 성별 해석을 받도록).
+    input: {
+      year: Y,
+      month: M,
+      date: D,
+      hour: h,
+      minute: mi,
+      latitude: input.latitude,
+      longitude: input.longitude,
+      timeZone: input.timeZone,
+      gender: input.gender,
+    } as NatalContext['input'],
+    saju: {
+      pillars,
+      dayMaster: pillars.day.heavenlyStem,
+      yongsin: {
+        primary: sajuFacts.yongsin?.primaryYongsin as FiveElement,
+        secondary: sajuFacts.yongsin?.secondaryYongsin as FiveElement | undefined,
+        avoid: [sajuFacts.yongsin?.kibsin, sajuFacts.yongsin?.gusin].filter(
+          Boolean
+        ) as FiveElement[],
+      },
+      geokguk: sajuFacts.geokguk ?? undefined,
+      // 강약 3분류 SSOT(strengthClassOf) — 캘린더 build.ts 와 같은 함수. 중화 → medium.
+      strength: strengthClassOf(sajuFacts.strength),
+      natalShinsal: shinsalAnnot.hits as never,
+      natalRelations: sajuFacts.relations as never,
+      daeun: daeunList,
+      fiveElements: raw.fiveElements,
+      analyses,
+      dayJijanggan,
+      // integratedAdapter.ts 가 stages 룩업 (`saju.twelveStages`) — page 가 직접 더하던
+      // 옛 패턴을 ctx 안으로 흡수. NatalContext type 에는 없지만 caller 가
+      // 사용하므로 안전한 추가 필드로 둠.
+      twelveStages,
+      // 회색 3 셀 해소 (RAW_DISTRIBUTION v5.4): facts 가 만들지만 ctx 가 안
+      // 받던 정통 사주 보조 정보. adapter 가 사주 카드 옆 한 줄로 표시.
+      rooted: sajuFacts.dayMaster.rooted,
+      gongmang: sajuFacts.gongmang,
+      johuYongsin: sajuFacts.johuYongsin,
+      gwansalHonjap: sajuFacts.gwansalHonjap,
+    } as unknown as NatalContext['saju'],
+    astro: {
+      chart,
+      // 출생시각/출생지 미상 — adapter 가 _chart 의 자정/서울 폴백 ASC·MC·하우스를
+      // 리포트로 흘리지 않도록 가리는 플래그(ENGINE-AUDIT: _chart 우회로 누출 차단).
+      placeUnreliable,
+      extraPoints: hellenistic.extraPoints,
+      sect: hellenistic.sect,
+      location: {
+        latitude: input.latitude,
+        longitude: input.longitude,
+        timeZone: input.timeZone,
+      },
+      natalAspects: hellenistic.natalAspects,
+      zodiacalReleasing: hellenistic.zodiacalReleasing,
+      dignities: hellenistic.dignities,
+      lots: hellenistic.lots,
+      almutenFiguris: hellenistic.almutenFiguris,
+    },
+  }
+}

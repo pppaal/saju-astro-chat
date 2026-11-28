@@ -125,7 +125,8 @@ function setupHappyPath(overrides: PurchaseOverrides = {}) {
     paymentIntents: {
       retrieve: vi.fn().mockResolvedValue({
         amount_received: 10000,
-        latest_charge: { balance_transaction: { amount: 10000, fee: 350 } },
+        currency: 'krw',
+        latest_charge: { balance_transaction: { amount: 10000, fee: 350, currency: 'krw' } },
       }),
     },
     refunds: { create: vi.fn().mockResolvedValue({ id: 're_1' }) },
@@ -148,6 +149,22 @@ describe('POST /api/me/refund-credit-pack', () => {
     it('purchaseId 누락은 422', async () => {
       setupHappyPath()
       const res = await POST(makeRequest({}))
+      expect(res.status).toBe(422)
+      expect((await res.json()).error.message).toContain('purchaseId')
+    })
+
+    // 깨진 JSON 바디도 422 — req.json() 의 catch 가 없으면 파싱 예외가 그대로
+    // 터져 500 이 된다. 셀프서비스 환불에서 500 은 "환불이 안 되는 건가" 하는
+    // 오해를 주고 사용자가 재시도를 반복하게 만든다.
+    it('깨진 JSON 바디는 500 이 아니라 422', async () => {
+      setupHappyPath()
+      const res = await POST(
+        new NextRequest('http://localhost:3000/api/me/refund-credit-pack', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json', 'user-agent': 'vitest' },
+          body: '{"purchaseId": ',
+        })
+      )
       expect(res.status).toBe(422)
       expect((await res.json()).error.message).toContain('purchaseId')
     })
@@ -278,6 +295,7 @@ describe('POST /api/me/refund-credit-pack', () => {
       setupHappyPath()
       stripeMock.paymentIntents.retrieve.mockResolvedValue({
         amount_received: 10000,
+        currency: 'krw',
         latest_charge: null,
       })
 
@@ -288,6 +306,60 @@ describe('POST /api/me/refund-credit-pack', () => {
       // formula: round(10000*0.035) + 300 = 650 → 환불 9350
       expect(data.feeWithheld).toBe(650)
       expect(data.refundedKrw).toBe(9350)
+    })
+
+    // USD 결제 — Stripe 금액은 최소 단위라 $9.99 = 999. 예전엔 원화 고정
+    // 수수료 300 을 그대로 더해 $3.35 를 떼고 $6.64 만 환불했다(33% 차감).
+    // 작은 팩은 수수료 > 결제액이라 refund_amount_zero 로 환불 자체가 실패했다.
+    it('USD 결제는 달러 고정 수수료로 계산한다 (원화 300 이 새지 않음)', async () => {
+      setupHappyPath()
+      stripeMock.paymentIntents.retrieve.mockResolvedValue({
+        amount_received: 999,
+        currency: 'usd',
+        latest_charge: null,
+      })
+
+      const res = await POST(makeRequest({ purchaseId: 'purchase-1' }))
+      const data = (await res.json()).data
+
+      expect(res.status).toBe(200)
+      // round(999*0.035) + 30 = 35 + 30 = 65 → 환불 934 ($9.34)
+      expect(data.feeWithheld).toBe(65)
+      expect(stripeMock.refunds.create).toHaveBeenCalledWith(
+        expect.objectContaining({ amount: 934 }),
+        expect.anything()
+      )
+    })
+
+    it('작은 USD 팩도 환불된다 — 예전엔 수수료가 결제액을 넘겨 실패했다', async () => {
+      setupHappyPath()
+      // starter $1.99 → 199. 예전 공식: round(199*0.035)+300 = 307 > 199 → 0원 환불.
+      stripeMock.paymentIntents.retrieve.mockResolvedValue({
+        amount_received: 199,
+        currency: 'usd',
+        latest_charge: null,
+      })
+
+      const res = await POST(makeRequest({ purchaseId: 'purchase-1' }))
+      expect(res.status).toBe(200)
+      const data = (await res.json()).data
+      // round(199*0.035) + 30 = 7 + 30 = 37 → 환불 162
+      expect(data.feeWithheld).toBe(37)
+      expect(data.feeWithheld).toBeLessThan(199)
+    })
+
+    it('통화를 못 읽으면 추측하지 않고 거부한다', async () => {
+      setupHappyPath()
+      stripeMock.paymentIntents.retrieve.mockResolvedValue({
+        amount_received: 10000,
+        latest_charge: null,
+        // currency 없음 — 0-decimal 여부를 모르면 수수료가 100배 어긋난다.
+      })
+
+      const res = await POST(makeRequest({ purchaseId: 'purchase-1' }))
+      expect(res.status).toBe(500)
+      expect((await res.json()).error.message).toBe('payment_currency_unavailable')
+      expect(stripeMock.refunds.create).not.toHaveBeenCalled()
     })
 
     it('Stripe 미설정이면 500 stripe_not_configured', async () => {
@@ -332,7 +404,8 @@ describe('POST /api/me/refund-credit-pack', () => {
       setupHappyPath()
       stripeMock.paymentIntents.retrieve.mockResolvedValue({
         amount_received: 300,
-        latest_charge: { balance_transaction: { amount: 300, fee: 350 } },
+        currency: 'krw',
+        latest_charge: { balance_transaction: { amount: 300, fee: 350, currency: 'krw' } },
       })
 
       const res = await POST(makeRequest({ purchaseId: 'purchase-1' }))

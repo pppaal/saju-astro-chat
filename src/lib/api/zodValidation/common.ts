@@ -3,6 +3,7 @@
  */
 
 import { z } from 'zod'
+import { isExistingLunarDate } from '@/lib/saju/lunarDate'
 
 // ============ Timezone Validation Cache ============
 
@@ -24,32 +25,80 @@ function isValidTimezone(tz: string): boolean {
 
 // ============ Primitive Schemas ============
 
+const DATE_FORMAT_RE = /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/
+const DATE_FORMAT_MESSAGE = 'Date must be in YYYY-MM-DD format'
+const DATE_RANGE_MESSAGE = 'Date must be between 1900 and the current year'
+
+/** 'YYYY-MM-DD' 가 실제 그레고리력(양력) 날짜인가 — 2월 30일·4월 31일 등은 false. */
+export function isValidGregorianDate(date: string): boolean {
+  const [year, month, day] = date.split('-').map(Number)
+  const parsed = new Date(year, month - 1, day)
+  return (
+    parsed.getFullYear() === year && parsed.getMonth() === month - 1 && parsed.getDate() === day
+  )
+}
+
+// Reject obviously nonsensical birth dates (year 1800 or 2099). The astro
+// and saju engines accept them silently and produce meaningless output,
+// which then anchors the entire counselor session.
+// 하한 1900 = 사주 엔진 절입표 지원 시작(KASI_START_YEAR, src/lib/saju/constants.ts).
+// 둘이 어긋나면 검증을 통과한 출생이 엔진에서 throw → 500 이 된다(엔진 감사 SAJU-5:
+// 1900–1939 가 그랬다 — E14 에서 절입표를 1900 까지 생성해 맞춤). 가드:
+// tests/sajuIntegrity.test.ts (KASI_START_YEAR === 1900), tests/app/api/sajuRoute.engine.route.test.ts.
+function isBirthYearInRange(date: string): boolean {
+  const year = Number(date.slice(0, 4))
+  const currentYear = new Date().getUTCFullYear()
+  return year >= 1900 && year <= currentYear
+}
+
 export const dateSchema = z
   .string()
-  .regex(/^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/, {
-    message: 'Date must be in YYYY-MM-DD format',
-  })
-  .refine(
-    (date) => {
-      const [year, month, day] = date.split('-').map(Number)
-      const parsed = new Date(year, month - 1, day)
-      return (
-        parsed.getFullYear() === year && parsed.getMonth() === month - 1 && parsed.getDate() === day
-      )
-    },
-    { message: 'Invalid date' }
-  )
-  // Reject obviously nonsensical birth dates (year 1800 or 2099). The astro
-  // and saju engines accept them silently and produce meaningless output,
-  // which then anchors the entire counselor session.
-  .refine(
-    (date) => {
-      const year = Number(date.slice(0, 4))
-      const currentYear = new Date().getUTCFullYear()
-      return year >= 1900 && year <= currentYear
-    },
-    { message: 'Date must be between 1900 and the current year' }
-  )
+  .regex(DATE_FORMAT_RE, { message: DATE_FORMAT_MESSAGE })
+  .refine(isValidGregorianDate, { message: 'Invalid date' })
+  .refine(isBirthYearInRange, { message: DATE_RANGE_MESSAGE })
+
+/**
+ * 달력 종류와 무관한 출생일 문자열 — 형식(YYYY-MM-DD)과 연도(1900..올해)만 본다.
+ * 그 날짜가 실제로 있는지는 calendarType 을 아는 스키마가 판정한다: 양력은
+ * isValidGregorianDate, 음력은 isExistingLunarDate(@/lib/saju/lunarDate — 엔진과 같은
+ * 변환기). 음력엔 양력 검사를 쓰면 안 된다 — 음력 1990-02-30 은 있는 날짜다(재감사 SP-3).
+ */
+export const calendarDateStringSchema = z
+  .string()
+  .regex(DATE_FORMAT_RE, { message: DATE_FORMAT_MESSAGE })
+  .refine(isBirthYearInRange, { message: DATE_RANGE_MESSAGE })
+
+/**
+ * calendarType 을 받는 모든 출생 스키마의 날짜 실재 검사(단일 출처 — G1 의
+ * sajuCalculationRequestSchema 규칙을 모든 스키마로 넓힘, G12). birthDate 필드는
+ * calendarDateStringSchema(형식·연도)로 두고, 객체에 `.superRefine(refineCalendarBirthDate)`
+ * 를 건다. 양력(또는 calendarType 생략) → 그레고리력 검사 'Invalid date'. 음력 → 엔진과
+ * 같은 변환기(isExistingLunarDate) — 작은달 30일·그해에 없는 윤달·지원 범위 밖은
+ * 'This lunar date does not exist'. 음력에 양력 검사를 쓰면 있는 날짜(음력 2월 30일)를
+ * 막고, 검사를 빼면 없는 날짜가 엔진까지 가 500 이 된다(재감사 SP-3).
+ */
+export function refineCalendarBirthDate(
+  v: { birthDate?: string; calendarType?: 'solar' | 'lunar'; lunarLeap?: boolean | null },
+  ctx: z.RefinementCtx
+): void {
+  // 형식이 틀린 날짜는 birthDate 필드 검사가 이미 이슈를 냈다 — 중복 메시지를 내지 않는다.
+  if (typeof v.birthDate !== 'string') return
+  if (!calendarDateStringSchema.safeParse(v.birthDate).success) return
+  if (v.calendarType === 'lunar') {
+    if (!isExistingLunarDate(v.birthDate, v.lunarLeap === true)) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['birthDate'],
+        message:
+          v.lunarLeap === true
+            ? 'This lunar date does not exist (check the day and the leap month)'
+            : 'This lunar date does not exist',
+      })
+    }
+  } else if (!isValidGregorianDate(v.birthDate)) {
+    ctx.addIssue({ code: 'custom', path: ['birthDate'], message: 'Invalid date' })
+  }
+}
 
 export const timeSchema = z.string().regex(/^([01]?\d|2[0-3]):([0-5]\d)(\s?(AM|PM))?$/i, {
   message: 'Time must be in HH:MM or HH:MM AM/PM format',
@@ -99,16 +148,21 @@ export const calendarTypeSchema = z.enum(['solar', 'lunar'])
 
 // ============ Birth Information Schema ============
 
-export const birthInfoSchema = z.object({
-  birthDate: dateSchema,
-  birthTime: timeSchema,
-  latitude: latitudeSchema,
-  longitude: longitudeSchema,
-  timezone: timezoneSchema,
-  gender: genderSchema.optional(),
-  calendarType: calendarTypeSchema.optional(),
-  userTimezone: timezoneSchema.optional(),
-})
+export const birthInfoSchema = z
+  .object({
+    // 형식·연도만 — 날짜 실재는 calendarType 별로 refineCalendarBirthDate 가 본다.
+    birthDate: calendarDateStringSchema,
+    birthTime: timeSchema,
+    latitude: latitudeSchema,
+    longitude: longitudeSchema,
+    timezone: timezoneSchema,
+    gender: genderSchema.optional(),
+    calendarType: calendarTypeSchema.optional(),
+    // 음력 윤달 여부 — calendarType==='lunar' 일 때만 의미 있음.
+    lunarLeap: z.boolean().optional(),
+    userTimezone: timezoneSchema.optional(),
+  })
+  .superRefine(refineCalendarBirthDate)
 
 export type BirthInfoValidated = z.infer<typeof birthInfoSchema>
 

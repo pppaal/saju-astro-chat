@@ -1,18 +1,13 @@
 // src/lib/astrology/foundation/shared.ts
 // Shared utilities for astrology calculations - prevents code duplication
 
-import dayjs from 'dayjs'
-import utc from 'dayjs/plugin/utc'
-import timezone from 'dayjs/plugin/timezone'
-dayjs.extend(utc)
-dayjs.extend(timezone)
-
 import { getSwisseph } from './ephe'
 import { NatalInput, PlanetBase, House } from './types'
 import { formatLongitude, normalize360 } from './utils'
 import { toAstroPlanetId, toAstroPointId } from '../graphIds'
 import { CALCULATION_STANDARDS } from '@/lib/config/calculationStandards'
 import { logger } from '@/lib/logger'
+import { resolveBirthInstant } from '@/lib/datetime/resolveBirthInstant'
 
 // ============================================================
 // Planet List (cached singleton)
@@ -70,35 +65,33 @@ export function getPlanetList(): Record<string, number> {
  */
 export function natalToJD(natal: NatalInput): number {
   const swisseph = getSwisseph()
-  const pad = (v: number) => String(v).padStart(2, '0')
-
   if (natal.hour < 0 || natal.hour > 23 || natal.minute < 0 || natal.minute > 59) {
     throw new Error(
       `Invalid natal datetime: ${natal.year}-${natal.month}-${natal.date} ${natal.hour}:${natal.minute}`
     )
   }
 
-  const local = dayjs.tz(
-    `${natal.year}-${pad(natal.month)}-${pad(natal.date)}T${pad(natal.hour)}:${pad(natal.minute)}:00`,
-    natal.timeZone
-  )
-
-  if (!local.isValid()) {
+  // 출생 instant — 사주(calculateSajuData)와 같은 resolver(OD-3, RFC 5545). 서머타임
+  // 공백은 직전 offset, 겹침은 첫 번째. 옛 dayjs.tz 는 겹침 offset 을 *서버의 현재* DST
+  // 상태로 골라 서버 날짜에 따라 JD 가 1시간 흔들렸고(ASTRO-7), 공백 시각은 사주와
+  // 1시간 다른 순간을 냈다(F4).
+  let utcDate: Date
+  try {
+    utcDate = resolveBirthInstant(
+      {
+        year: natal.year,
+        month: natal.month,
+        day: natal.date,
+        hour: natal.hour,
+        minute: natal.minute,
+      },
+      natal.timeZone
+    ).utc
+  } catch {
     throw new Error(
       `Invalid natal datetime: ${natal.year}-${natal.month}-${natal.date} ${natal.hour}:${natal.minute}`
     )
   }
-  if (
-    local.year() !== natal.year ||
-    local.month() + 1 !== natal.month ||
-    local.date() !== natal.date
-  ) {
-    throw new Error(
-      `Invalid natal datetime: ${natal.year}-${natal.month}-${natal.date} ${natal.hour}:${natal.minute}`
-    )
-  }
-
-  const utcDate = local.utc().toDate()
 
   const jdResult = swisseph.swe_utc_to_jd(
     utcDate.getUTCFullYear(),
@@ -137,20 +130,66 @@ export function jdToISO(jd: number): string {
 }
 
 /**
+ * 'YYYY-MM-DD' + 선택적 [T 또는 공백]HH:mm[:ss[.fff]] + 선택적 'Z' / ±hh:mm(±hhmm).
+ * 소수 초는 버린다 — swe_utc_to_jd 에 정수 초만 넘기던 옛 동작과 같다.
+ */
+const ISO_DATETIME =
+  /^(\d{4})-(\d{2})-(\d{2})(?:[T ](\d{2}):(\d{2})(?::(\d{2})(?:\.\d+)?)?)?(Z|[+-]\d{2}:?\d{2})?$/i
+
+/** ISO 문자열 → UTC instant. 형식·날짜가 틀리면 null. */
+function parseIsoInstant(iso: string, timeZone: string): Date | null {
+  const m = ISO_DATETIME.exec(iso.trim())
+  if (!m) return null
+  const wall = {
+    year: Number(m[1]),
+    month: Number(m[2]),
+    day: Number(m[3]),
+    hour: Number(m[4] ?? 0),
+    minute: Number(m[5] ?? 0),
+    second: Number(m[6] ?? 0),
+  }
+  const suffix = m[7]
+  try {
+    if (!suffix) {
+      // 접미사 없는 벽시계 — 출생 시각과 같은 resolver(RFC 5545 공백·겹침, 서버 시계 무관).
+      return resolveBirthInstant(wall, timeZone).utc
+    }
+    // 절대 순간: 벽시계를 UTC 로 읽고 offset 만큼 되돌린다(timeZone 인자는 무시).
+    const asUtc = resolveBirthInstant(wall, 'UTC').utc.getTime()
+    if (suffix.toUpperCase() === 'Z') return new Date(asUtc)
+    const sign = suffix[0] === '-' ? -1 : 1
+    const digits = suffix.slice(1).replace(':', '')
+    const offH = Number(digits.slice(0, 2))
+    const offM = Number(digits.slice(2, 4))
+    if (offH > 23 || offM > 59) return null
+    return new Date(asUtc - sign * (offH * 60 + offM) * 60_000)
+  } catch {
+    return null
+  }
+}
+
+/**
  * Convert ISO string to Julian Day
+ *
+ * - 'Z' 또는 ±hh:mm 이 붙은 문자열은 *절대 순간* 이라 그대로 존중한다 —
+ *   timeZone 인자는 무시. 옛 구현은 dayjs.tz(iso, tz) 가 접미사를 버리고 UTC
+ *   문자열을 tz 의 벽시계로 읽어, 서울 사용자의 '현재 트랜짓' 이 9시간 이르게
+ *   계산됐다(감사 ASTRO-4).
+ * - 접미사 없는 벽시계 문자열('YYYY-MM-DD[THH:mm[:ss]]')만 timeZone 으로 해석하며,
+ *   natalToJD 와 같은 resolveBirthInstant 를 쓴다(OD-3 — 공백은 직전 offset, 겹침은
+ *   첫 번째). 옛 dayjs.tz 는 겹침 offset 을 서버의 현재 DST 상태로 골랐다(ASTRO-7·F4).
+ *
  * @param iso - ISO datetime string
- * @param timeZone - Timezone string
+ * @param timeZone - IANA timezone for offset-less wall-clock strings
  * @returns Julian Day (UT)
  */
 export function isoToJD(iso: string, timeZone: string): number {
   const swisseph = getSwisseph()
 
-  const local = dayjs.tz(iso, timeZone)
-  if (!local.isValid()) {
+  const utcDate = parseIsoInstant(iso, timeZone)
+  if (!utcDate) {
     throw new Error(`Invalid ISO datetime: ${iso}`)
   }
-
-  const utcDate = local.utc().toDate()
 
   const jdResult = swisseph.swe_utc_to_jd(
     utcDate.getUTCFullYear(),

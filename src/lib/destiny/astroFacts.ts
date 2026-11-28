@@ -13,21 +13,33 @@
 import { toChart, type NatalChartData } from '@/lib/astrology/foundation/astrologyService'
 import { cachedCalculateNatalChart } from '@/lib/astrology/cached'
 import { cacheOrCalculate, CACHE_TTL } from '@/lib/cache/redis-cache'
+import { HELLENISTIC_CACHE_VERSION } from '@/lib/cache/engineVersions'
 import { findNatalAspects } from '@/lib/astrology/foundation/aspects'
-import { dignityOf, dignityTiers, dignityScore } from '@/lib/astrology/foundation/dignities'
+import {
+  dignityOf,
+  dignityTiers,
+  dignityScore,
+  triplicityOf,
+} from '@/lib/astrology/foundation/dignities'
 import { calculateProfection } from '@/lib/astrology/foundation/profections'
-import { calculateChiron, calculateLilith } from '@/lib/astrology/foundation/extraPoints'
+import {
+  calculateChiron,
+  calculateLilith,
+  isDiurnalChart,
+  sunTrueAltitude,
+} from '@/lib/astrology/foundation/extraPoints'
 import { natalToJD, matchHouseForCusps, UNKNOWN_HOUSE } from '@/lib/astrology/foundation/shared'
 import { calculateZodiacalReleasing } from '@/lib/astrology/foundation/zodiacalReleasing'
 import { calculateArabicLots, type ArabicLot } from '@/lib/astrology/foundation/arabicParts'
 import { parseHourMinute } from '@/lib/saju/timeParse'
-import { TIME_UNKNOWN_ANCHOR } from '@/lib/saju/birthTimeAnchor'
+import { astroAnchorTime } from '@/lib/saju/birthTimeAnchor'
+import { isPlaceDependentPoint, isPlaceUnreliable } from '@/lib/astrology/foundation/placeMask'
 import {
   calculateAlmutenFiguris,
   type AlmutenFigurisResult,
 } from '@/lib/astrology/foundation/almutenFiguris'
 import { currentManAge } from '@/lib/datetime/currentAge'
-import { normalizeTimeZone } from '@/lib/datetime/timezone'
+import { resolveBirthTimezone } from '@/lib/datetime/resolveTimezone'
 import { logger } from '@/lib/logger'
 import type { Chart, AspectHit, ZodiacKo } from '@/lib/astrology/foundation/types'
 import type {
@@ -56,7 +68,7 @@ export interface AstroFactsInput {
   includeHellenistic?: boolean
 }
 
-export interface PlanetFact {
+interface PlanetFact {
   name: string
   sign: string
   /**
@@ -70,7 +82,7 @@ export interface PlanetFact {
   dignity: string
 }
 
-export interface AspectFact {
+interface AspectFact {
   from: string
   to: string
   type: string
@@ -105,9 +117,15 @@ export interface AstroFacts {
   }
   profection: {
     age: number
-    activatedHouse: number
-    activatedSign: string
-    lordOfYear: string
+    /**
+     * 활성 하우스·사인·연주(Lord of the Year) — whole-sign 이라 ASC 사인에서 센다.
+     * placeUnreliable(출생시각/출생지 미상)이면 ASC 가 정오 앵커·기본 좌표 폴백이라
+     * 셋 다 null(OD-5 — 정오 앵커로 아무것도 지어내지 않는다). 소비자(상담사·캘린더·
+     * 리포트)는 null 이면 프로펙션 줄을 생략한다.
+     */
+    activatedHouse: number | null
+    activatedSign: string | null
+    lordOfYear: string | null
     /** 군주 행성의 현재 위치 (placeUnreliable 시 null). */
     lordPlacement: { sign: string; house?: number } | null
   } | null
@@ -133,8 +151,13 @@ export interface AstroFacts {
 }
 
 export interface AstroHellenisticFacts {
-  /** Sun 의 하우스 기반 day/night 분기 (sect-aware 계산 입력). */
-  sect: 'day' | 'night'
+  /**
+   * 섹트 — 태양 고도(isDiurnalChart) 기반 day/night (sect-aware 계산 입력).
+   * null = 섹트를 정할 수 없음(OD-5): 출생시각 미상이면 정오 앵커의 산물이라 언제나 null,
+   * 출생지만 미상이면 존 기준점의 태양 고도가 |고도| < SECT_HORIZON_MARGIN_DEG 일 때 null.
+   * null 이면 삼분성은 섹트와 무관한 참여 지배성만 센다(dignities), lot·ZR·Almuten 은 비운다.
+   */
+  sect: 'day' | 'night' | null
   /** Chiron + Lilith — 차트 planets 에 없는 천체 (트랜짓 입력용). */
   extraPoints?: ReturnType<typeof calculateChiron>[]
   /** 본명 aspects (major + minor, orb 3°). */
@@ -171,14 +194,21 @@ export async function collectAstroFacts(
   const [Y, M, D] = input.birthDate.split('-').map(Number)
   // AM/PM('11:30 PM') 정확히 24h 정규화 — 직접 split(':') 하면 PM 이 12h 빠지고
   // 분이 NaN 이 돼 자연차트(ASC/MC/하우스)가 어긋났다. 사주와 동일 파서 사용.
-  // 빈 값 폴백은 정오(시간 미상 앵커 SSOT) — 자정 폴백은 tz 변환에서 행성
-  // 위치가 전날로 밀릴 수 있다. 정상 경로는 caller 가 이미 앵커를 넣어 준다.
-  const { h, m: mi } = parseHourMinute(input.birthTime || TIME_UNKNOWN_ANCHOR)
+  // 시간 미상(birthTimeUnknown 또는 빈 값)이면 넘어온 시각 문자열이 아니라 정오 앵커 —
+  // 사주(collectSajuFacts)와 같은 규칙이라 '03:00' 같은 남은 시각이 행성 위치·차트 날짜를
+  // 움직이지 않는다(CONVENTIONS §5). 자정 폴백은 tz 변환에서 행성 위치가 전날로 밀릴 수 있다.
+  const birthTime = astroAnchorTime(input.birthTime, input.birthTimeUnknown)
+  const { h, m: mi } = parseHourMinute(birthTime)
 
   // 잘못된 IANA 타임존이면 natalToJD 의 tz 변환이 throw → 여기서 null 반환 →
   // buildNatalContext 가 하드 throw → 리포트·캘린더·운명이 모두 죽는다.
-  // 유효하지 않으면 기본값으로 떨궈 차트는 계산되게 한다.
-  const safeTz = normalizeTimeZone(input.timezone)
+  // 유효하지 않으면 출생 타임존 resolver(명시 tz → 출생 좌표의 tz → 사주 기준 존)로
+  // 떨궈 차트는 계산되게 한다.
+  const safeTz = resolveBirthTimezone({
+    timezone: input.timezone,
+    latitude: input.latitude,
+    longitude: input.longitude,
+  })
   // 본명 차트는 출생정보가 같으면 불변 — Redis 30일 캐시(cachedCalculateNatalChart)
   // 를 거쳐 리포트·캘린더·운명이 매 로드마다 Swiss Ephemeris 풀계산(~500ms)을
   // 반복하지 않게 한다. 캐시 없거나 미스면 cacheOrCalculate 가 그대로 계산(graceful).
@@ -198,7 +228,10 @@ export async function collectAstroFacts(
     return null
   }
   const chart = toChart(natal)
-  const placeUnreliable = !!input.birthTimeUnknown || !!input.birthCityUnknown
+  const placeUnreliable = isPlaceUnreliable({
+    timeUnknown: input.birthTimeUnknown,
+    cityUnknown: input.birthCityUnknown,
+  })
 
   // 행성 — sign / house / dignity 평탄화.
   // house 는 ASC 의존 → placeUnreliable 면 null (미상 앵커 폴백 하우스 누출 차단).
@@ -237,9 +270,9 @@ export async function collectAstroFacts(
   const strong = allAspects.filter((a) => a.orb <= 2).sort((x, y) => x.orb - y.orb)
   const mid = allAspects.filter((a) => a.orb > 2 && a.orb < 5).sort((x, y) => x.orb - y.orb)
 
-  // Profection — 만 나이 기반 활성 하우스 + 군주 행성.
-  // activatedHouse 는 나이만으로 결정 → 항상 신뢰 가능.
-  // 군주 행성 placement 는 ASC 의존 → placeUnreliable 면 null.
+  // Profection — 만 나이 기반 활성 하우스 + 군주 행성. whole-sign 이라 활성 사인·연주는
+  // ASC 사인에서 세고, 활성 하우스의 뜻도 그 사인 위에 선다 → placeUnreliable 면 셋 다 null
+  // (나이만 남김, OD-5). 군주 행성 placement 도 ASC 의존 → placeUnreliable 면 null.
   let profection: AstroFacts['profection'] = null
   try {
     // 주입된 now 를 그대로 넘긴다 — 예전엔 void now 로 버려 currentManAge 가
@@ -249,10 +282,12 @@ export async function collectAstroFacts(
       birthYear: Y,
       birthMonth: M,
       birthDate: D,
-      birthTimeZone: input.timezone,
+      birthTimeZone: safeTz,
       now,
     })
     const prof = calculateProfection(chart, manAge)
+    // whole-sign 프로펙션은 ASC 사인에서 센다 — placeUnreliable 이면 ASC 가 폴백 각이라
+    // 활성 하우스·사인·연주 모두 날조다(OD-5). 나이만 남긴다.
     const lordPlanet = placeUnreliable
       ? null
       : (chart.planets.find((p) => p.name === prof.lordOfYear) as
@@ -260,9 +295,9 @@ export async function collectAstroFacts(
           | undefined)
     profection = {
       age: prof.age,
-      activatedHouse: prof.activatedHouse,
-      activatedSign: prof.activatedSign,
-      lordOfYear: prof.lordOfYear,
+      activatedHouse: placeUnreliable ? null : prof.activatedHouse,
+      activatedSign: placeUnreliable ? null : prof.activatedSign,
+      lordOfYear: placeUnreliable ? null : prof.lordOfYear,
       lordPlacement: lordPlanet?.sign ? { sign: lordPlanet.sign, house: lordPlanet.house } : null,
     }
   } catch {
@@ -274,9 +309,12 @@ export async function collectAstroFacts(
   // 매 요청 ZR×2·Almuten·7 Arabic Lots·행성별 5단계 존엄을 재계산하던 것을
   // Redis 30일 캐시로 막는다(미스/Redis 없으면 graceful 재계산). 결과는 순수
   // 데이터라 JSON 직렬화 안전.
-  const hellenistic = input.includeHellenistic
+  // placeUnreliable 이면 캐시에서 꺼낸 뒤 ASC·하우스 의존 항목을 가린다(단일 출처 —
+  // 리포트·캘린더 컨텍스트가 각자 가리지 않아도 된다). 캐시 값 자체는 출생정보만의
+  // 함수라 키·버전은 그대로.
+  const hellenisticRaw = input.includeHellenistic
     ? await cacheOrCalculate(
-        `hellenistic:v1:${input.birthDate}:${input.birthTime || ''}:${input.latitude.toFixed(2)}:${input.longitude.toFixed(2)}:${safeTz}`,
+        `hellenistic:v${HELLENISTIC_CACHE_VERSION}:${input.birthDate}:${birthTime}:${input.latitude.toFixed(2)}:${input.longitude.toFixed(2)}:${safeTz}`,
         async () =>
           buildHellenistic(chart, natal, {
             Y,
@@ -286,11 +324,18 @@ export async function collectAstroFacts(
             mi,
             lat: input.latitude,
             lon: input.longitude,
-            tz: input.timezone,
+            tz: safeTz,
           }),
         CACHE_TTL.NATAL_CHART
       )
     : undefined
+  // 섹트도 같은 방식(캐시 뒤 마스킹)으로 — 시간 미상이면 정오 앵커의 산물, 출생지만
+  // 미상이면 존 기준점의 태양이 지평선 근처일 때 좌표 오차로 뒤집힐 수 있다(OD-5).
+  let hellenistic = hellenisticRaw
+  if (hellenistic && placeUnreliable) hellenistic = maskPlaceDependentHellenistic(hellenistic)
+  if (hellenistic && sectUnreliable(input, natal.meta?.jdUT)) {
+    hellenistic = maskSectDependentHellenistic(hellenistic)
+  }
 
   return {
     natal: {
@@ -311,6 +356,78 @@ export async function collectAstroFacts(
   }
 }
 
+/**
+ * 출생시각/출생지 미상(placeUnreliable) — ASC·하우스가 정오 앵커·기본 좌표 폴백이라
+ * 그에 기대는 Hellenistic 항목을 가린다(엔진 감사 F1, CONVENTIONS §5):
+ *  - lots(7 Arabic Parts — ASC 기준식)·ZR(Spirit/Fortune lot 시작)·Almuten(ASC hyleg) → 비움
+ *  - natalAspects 는 행성-행성만 남기고(앵글·앵글 파생점 대상은 제거 — placeMask 단일 판정)
+ *    끝점의 house 를 지운다
+ *  - Chiron·Lilith 의 house 는 UNKNOWN_HOUSE(0)
+ * 섹트·존엄(삼분성)은 ASC·하우스 항목이 아니라 여기서 두고, 섹트를 믿을 수 없을 때
+ * maskSectDependentHellenistic 이 따로 가린다.
+ */
+export function maskPlaceDependentHellenistic(h: AstroHellenisticFacts): AstroHellenisticFacts {
+  const dropHouse = <T extends { house?: number }>(end: T): Omit<T, 'house'> => {
+    const { house: _house, ...rest } = end
+    void _house
+    return rest
+  }
+  return {
+    ...h,
+    extraPoints: h.extraPoints?.map((p) => ({ ...p, house: UNKNOWN_HOUSE })),
+    natalAspects: h.natalAspects
+      .filter((a) => !isPlaceDependentPoint(a.from.name) && !isPlaceDependentPoint(a.to.name))
+      .map((a) => ({ ...a, from: dropHouse(a.from), to: dropHouse(a.to) })),
+    lots: [],
+    zodiacalReleasing: { spirit: null, fortune: null },
+    almutenFiguris: null,
+  }
+}
+
+/**
+ * 출생지만 미상일 때 섹트를 믿는 태양 고도 여유(°). 존 기준점과 실제 출생지는 경도·위도가
+ * 수 도 어긋날 수 있어, 지평선에서 이보다 가까운 태양은 낮/밤이 뒤집힐 수 있다.
+ */
+export const SECT_HORIZON_MARGIN_DEG = 3
+
+/**
+ * 섹트를 정할 수 없는가(OD-5 — 정오 앵커·기본 좌표로 아무것도 지어내지 않는다).
+ *  - 출생시각 미상 → 언제나 true (정오 앵커의 태양은 거의 늘 낮).
+ *  - 출생지만 미상(시각은 앎) → 넘겨받은 좌표(존 기준점)의 태양 참고도가
+ *    |고도| < SECT_HORIZON_MARGIN_DEG 이거나 고도를 구할 수 없으면 true.
+ *  - 둘 다 앎 → false.
+ */
+export function sectUnreliable(
+  input: Pick<AstroFactsInput, 'birthTimeUnknown' | 'birthCityUnknown' | 'latitude' | 'longitude'>,
+  jdUT: number | undefined
+): boolean {
+  if (input.birthTimeUnknown) return true
+  if (!input.birthCityUnknown) return false
+  const alt =
+    typeof jdUT === 'number' ? sunTrueAltitude(jdUT, input.latitude, input.longitude) : null
+  return alt === null || Math.abs(alt) < SECT_HORIZON_MARGIN_DEG
+}
+
+/**
+ * 섹트를 정할 수 없을 때(sectUnreliable) 섹트에 기대는 Hellenistic 항목을 가린다:
+ *  - sect → null
+ *  - dignities 의 삼분성은 섹트와 무관한 참여(participating) 지배성만 다시 센다(점수 재계산)
+ *  - lots(낮/밤 공식)·ZR(Spirit/Fortune lot 시작)·Almuten(섹트 가중) → 비움
+ */
+export function maskSectDependentHellenistic(h: AstroHellenisticFacts): AstroHellenisticFacts {
+  return {
+    ...h,
+    sect: null,
+    dignities: h.dignities.map((d) => {
+      const tiers = { ...d.tiers, triplicity: triplicityOf(d.planet, d.sign, null) !== null }
+      return { ...d, tiers, score: dignityScore(tiers) }
+    }),
+    lots: [],
+    zodiacalReleasing: { spirit: null, fortune: null },
+    almutenFiguris: null,
+  }
+}
+
 interface HellenisticInput {
   Y: number
   M: number
@@ -327,26 +444,51 @@ function buildHellenistic(
   natal: NatalChartData,
   meta: HellenisticInput
 ): AstroHellenisticFacts {
-  // 섹트 결정 — Sun 이 7~12궁 (지평선 위) 이면 day, 아니면 night.
-  const sun = chart.planets.find((p) => p.name === 'Sun')
-  const sect: 'day' | 'night' = sun && sun.house >= 7 ? 'day' : 'night'
+  // 출생 순간(UT JD) — 섹트(태양 고도)와 Chiron·Lilith 가 쓴다.
+  let utJd: number | undefined = natal.meta?.jdUT
+  if (utJd === undefined) {
+    try {
+      utJd = natalToJD({
+        year: meta.Y,
+        month: meta.M,
+        date: meta.D,
+        hour: meta.h,
+        minute: meta.mi,
+        latitude: meta.lat,
+        longitude: meta.lon,
+        timeZone: meta.tz,
+      })
+    } catch {
+      utJd = undefined
+    }
+  }
 
-  // Chiron + Lilith — 차트 planets 에 없는 천체. 실패해도 무시.
+  // 섹트 — 태양이 지평선 위(참고도 > 0°)면 day (isDiurnalChart SSOT). 극권 Whole Sign
+  // 폴백에서 하우스 번호로 정하던 섹트가 ~25% 뒤집혔다(엔진 감사 ASTRO-10).
+  const sun = chart.planets.find((p) => p.name === 'Sun')
+  const sect: 'day' | 'night' = isDiurnalChart({
+    jdUT: utJd,
+    latitude: meta.lat,
+    longitude: meta.lon,
+    sunHouse: sun?.house,
+    sunLongitude: sun?.longitude,
+    ascLongitude: chart.ascendant?.longitude,
+  })
+    ? 'day'
+    : 'night'
+
+  // Chiron + Lilith — 차트 planets 에 없는 천체(seas_18.se1 소행성 파일). 실패하면 빠지되
+  // 조용히 삼키지 않는다 — 배포에서 public/ephe 가 빠지면 리포트·트랜짓에서 Chiron 이
+  // 소리 없이 사라졌다(엔진 감사 ASTRO-12).
   let extraPoints: ReturnType<typeof calculateChiron>[] | undefined
   try {
-    const utJd = natalToJD({
-      year: meta.Y,
-      month: meta.M,
-      date: meta.D,
-      hour: meta.h,
-      minute: meta.mi,
-      latitude: meta.lat,
-      longitude: meta.lon,
-      timeZone: meta.tz,
-    })
+    if (utJd === undefined) throw new Error('natal instant unavailable')
     const houseCusps = chart.houses.map((h) => h.cusp)
     extraPoints = [calculateChiron(utJd, houseCusps), calculateLilith(utJd, houseCusps)]
-  } catch {
+  } catch (err) {
+    logger.warn('[astroFacts] Chiron/Lilith calc failed — extra points omitted', {
+      err: err instanceof Error ? err.message : String(err),
+    })
     extraPoints = undefined
   }
 

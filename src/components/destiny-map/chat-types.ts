@@ -11,8 +11,32 @@ export interface DestinySources {
   astro: boolean
 }
 
+// 상담 세션 목록 한 행 — /api/counselor/session/list 의 sessions[] 중 클라이언트가
+// 읽는 필드. Chat 히스토리 레일(useChatSession)과 CounselorSidebar 가 같이 쓴다.
+// meta 는 사이드바 부제 한 줄에 인물 이름을 띄워, 과거 채팅이 누구 정보로 본
+// 거였는지 한눈에 보이게 하는 데 쓰인다.
+interface SessionMeta {
+  /** destiny 세션: 누구 사주로 본 채팅인지 */
+  profile?: { name?: string | null } | null
+  /** compat 세션: 두 사람 */
+  persons?: Array<{ name?: string | null }> | null
+}
+
+export interface SessionItem {
+  id: string
+  /** 사용자가 바꿀 수 있는 제목. 저장 전이거나 auto-titler 이전 행이면 null. */
+  title?: string | null
+  summary?: string | null
+  /** 제목이 없을 때 사이드바가 보여 주는 미리보기 */
+  preview?: string | null
+  messageCount?: number
+  /** ISO 문자열 (CounselorChatSession.updatedAt, 항상 존재) */
+  updatedAt: string
+  meta?: SessionMeta | null
+}
+
 // Profile type for chat component
-export interface ChatProfile {
+interface ChatProfile {
   name?: string
   birthDate?: string
   birthTime?: string
@@ -27,7 +51,7 @@ export interface ChatProfile {
 }
 
 // Saju (Four Pillars) data structure
-export interface SajuPillar {
+interface SajuPillar {
   stem: string
   branch: string
   stemKo?: string
@@ -36,7 +60,7 @@ export interface SajuPillar {
   animal?: string
 }
 
-export interface SajuData {
+interface SajuData {
   yearPillar?: SajuPillar
   monthPillar?: SajuPillar
   dayPillar?: SajuPillar
@@ -54,7 +78,7 @@ export interface SajuData {
 }
 
 // Planet data for astrology
-export interface Planet {
+interface Planet {
   name: string
   sign: string
   signKo?: string
@@ -64,7 +88,7 @@ export interface Planet {
 }
 
 // House data for astrology
-export interface House {
+interface House {
   number: number
   sign: string
   degree?: number
@@ -72,7 +96,7 @@ export interface House {
 }
 
 // Aspect data for astrology
-export interface Aspect {
+interface Aspect {
   planet1: string
   planet2: string
   type: string
@@ -81,7 +105,7 @@ export interface Aspect {
 }
 
 // Main astrology data structure
-export interface AstroData {
+interface AstroData {
   planets?: Planet[]
   houses?: House[]
   aspects?: Aspect[]
@@ -99,7 +123,7 @@ export interface AstroData {
 }
 
 // Advanced astrology features
-export interface AdvancedAstroData {
+interface AdvancedAstroData {
   draconic?: {
     planets?: Planet[]
     ascendant?: { sign: string; degree?: number }
@@ -126,7 +150,7 @@ export interface AdvancedAstroData {
 }
 
 // Life prediction context for AI counselor
-export interface PredictionContext {
+interface PredictionContext {
   eventType?: string
   eventLabel?: string
   optimalPeriods?: Array<{

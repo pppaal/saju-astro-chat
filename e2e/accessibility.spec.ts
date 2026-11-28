@@ -14,11 +14,11 @@ test.describe('Page Structure', () => {
     expect(bodyText!.length).toBeGreaterThan(100)
   })
 
-  test('should have lang attribute set to Korean', async ({ page }) => {
+  test('should have a lang attribute (default locale en)', async ({ page }) => {
+    // 기본 로케일은 en — 한국어는 쿠키/Accept-Language 로 ko.
     await page.goto('/', { waitUntil: 'domcontentloaded' })
     const lang = await page.locator('html').getAttribute('lang')
-    expect(lang).toBeTruthy()
-    expect(lang).toBe('ko')
+    expect(lang).toBe('en')
   })
 
   test('should have descriptive title tag', async ({ page }) => {
@@ -83,31 +83,6 @@ test.describe('Image Accessibility', () => {
 })
 
 test.describe('Form Accessibility', () => {
-  test('form inputs should have associated labels or aria-labels', async ({ page }) => {
-    await page.goto('/saju', { waitUntil: 'domcontentloaded' })
-    const inputs = page.locator("input:not([type='hidden']):not([type='submit'])")
-    const count = await inputs.count()
-
-    if (count === 0) {
-      const bodyText = await page.locator('body').textContent()
-      expect(bodyText!.length).toBeGreaterThan(50)
-      return
-    }
-
-    for (let i = 0; i < Math.min(count, 3); i++) {
-      const input = inputs.nth(i)
-      if (await input.isVisible()) {
-        const id = await input.getAttribute('id')
-        const ariaLabel = await input.getAttribute('aria-label')
-        const ariaLabelledby = await input.getAttribute('aria-labelledby')
-        const placeholder = await input.getAttribute('placeholder')
-        const name = await input.getAttribute('name')
-        const hasLabel = id || ariaLabel || ariaLabelledby || placeholder || name
-        expect(hasLabel).toBeTruthy()
-      }
-    }
-  })
-
   test('buttons should have accessible names', async ({ page }) => {
     await page.goto('/', { waitUntil: 'domcontentloaded' })
     const buttons = page.locator('button')
@@ -123,21 +98,6 @@ test.describe('Form Accessibility', () => {
         const title = await button.getAttribute('title')
         const hasName = (text && text.trim()) || ariaLabel || title
         expect(hasName).toBeTruthy()
-      }
-    }
-  })
-
-  test('submit buttons should be clearly labeled', async ({ page }) => {
-    await page.goto('/saju', { waitUntil: 'domcontentloaded' })
-    const submitButtons = page.locator('button[type="submit"]')
-    const count = await submitButtons.count()
-
-    if (count > 0) {
-      const button = submitButtons.first()
-      if (await button.isVisible()) {
-        const text = await button.textContent()
-        expect(text).toBeTruthy()
-        expect(text!.trim().length).toBeGreaterThan(0)
       }
     }
   })

@@ -77,15 +77,6 @@ export async function getBlogPost(slug: string): Promise<BlogPost | null> {
 }
 
 /**
- * Preload multiple blog posts (for performance optimization)
- */
-export async function preloadBlogPosts(slugs: string[]): Promise<void> {
-  const promises = slugs.filter((slug) => !postCache.has(slug)).map((slug) => getBlogPost(slug))
-
-  await Promise.allSettled(promises)
-}
-
-/**
  * Get featured blog posts from index
  */
 export async function getFeaturedPosts(): Promise<BlogPost[]> {

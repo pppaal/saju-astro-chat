@@ -16,12 +16,14 @@ import {
   isCalendarShare,
   isDayShare,
   isLifeShare,
+  isLifeShareV2,
   isReportShare,
-  siteBaseUrl,
   type ShareLinkPayload,
-} from '@/lib/tarot/shareLink'
+} from '@/lib/share/shareLink'
+import { shareDomain } from '@/lib/share/site'
 import { buildCurveSvg, curveSvgDataUri, buildGaugeSvg } from '@/lib/share/curveSvg'
 import { loadOgFonts } from '@/lib/share/ogFont'
+import { SAJU_TYPE_LABEL } from '@/lib/report/viralArchetype'
 
 export const runtime = 'nodejs'
 export const size = { width: 1200, height: 630 }
@@ -89,9 +91,7 @@ export default async function Image({ params }: { params: Promise<{ token: strin
   const { token } = await params
   const reading: ShareLinkPayload | null = await getShareLink(token)
   const isKo = reading?.isKo ?? true
-  const displayDomain = siteBaseUrl()
-    .replace(/^https?:\/\//, '')
-    .replace(/\/$/, '')
+  const displayDomain = shareDomain()
 
   // ── 하루(일진) — 점수 + 한 줄 + 이달 흐름 곡선 ──
   if (reading && isDayShare(reading)) {
@@ -183,7 +183,92 @@ export default async function Image({ params }: { params: Promise<{ token: strin
     )
   }
 
-  // ── 인생/대운 곡선 — 큰 그림 + 곡선 ──
+  // ── 인생 흐름 v2 — 사주 타입 + 인생 모양만(범위 · 연도 축 · 곡선 · 기둥 없음). 종이 바탕. ──
+  if (reading && isLifeShareV2(reading)) {
+    const typeName = clamp(reading.crossType, 34)
+    const shape = reading.lifeShape ? clamp(reading.lifeShape, 24) : ''
+    const eyebrow = SAJU_TYPE_LABEL.plain[isKo ? 'ko' : 'en']
+    const shapeLabel = isKo ? '인생 모양' : 'LIFE SHAPE'
+    const hook = isKo ? '당신의 카드는?' : 'What’s yours?'
+    const cta = isKo
+      ? `내 사주 타입도 무료로 · ${displayDomain}`
+      : `See your Saju type free · ${displayDomain}`
+    const fonts = await loadOgFonts(eyebrow, typeName, shapeLabel, shape, hook, cta, displayDomain)
+    return new ImageResponse(
+      <div
+        style={{
+          width: '100%',
+          height: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'space-between',
+          padding: 64,
+          background: '#F3EFE7',
+          color: '#1B1916',
+          fontFamily: 'NotoKR, sans-serif',
+        }}
+      >
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            paddingBottom: 18,
+            borderBottom: '2px solid #DED7CB',
+          }}
+        >
+          <div style={{ fontSize: 30, fontWeight: 700, color: '#1B1916' }}>{displayDomain}</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            <div style={{ fontSize: 24, letterSpacing: 4, color: '#6E695F' }}>{hook}</div>
+            <div
+              style={{
+                display: 'flex',
+                width: 46,
+                height: 46,
+                borderRadius: 6,
+                background: '#B8412C',
+                color: '#F3EFE7',
+                fontSize: 28,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              算
+            </div>
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+          <div style={{ display: 'flex', fontSize: 26, letterSpacing: 6, color: '#6E695F' }}>
+            {eyebrow}
+          </div>
+          <div
+            style={{
+              display: 'flex',
+              fontSize: typeName.length > 22 ? 76 : 92,
+              fontWeight: 800,
+              lineHeight: 1.05,
+              fontFamily: 'HeavyKR, sans-serif',
+              color: '#1B1916',
+            }}
+          >
+            {typeName}
+          </div>
+          {shape ? (
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: 18, marginTop: 6 }}>
+              <div style={{ fontSize: 24, letterSpacing: 5, color: '#6E695F' }}>{shapeLabel}</div>
+              <div style={{ fontSize: 40, fontWeight: 700, color: '#1B1916' }}>{shape}</div>
+            </div>
+          ) : null}
+        </div>
+
+        <div style={{ fontSize: 26, color: '#6E695F' }}>{cta}</div>
+      </div>,
+      { ...size, fonts: fonts.length ? fonts : undefined }
+    )
+  }
+
+  // ── 인생/대운 곡선(v1 · 옛 링크) — 큰 그림 + 곡선 ──
   if (reading && isLifeShare(reading)) {
     // 인생유형 별명(대기만성형 등)이 있으면 그게 카드 주인공(MBTI 풍 배지) — 사람들이
     // 공유하는 건 곡선이 아니라 "나 대기만성형이래" 정체성이다. 없으면(레거시 링크)
@@ -310,7 +395,7 @@ export default async function Image({ params }: { params: Promise<{ token: strin
     const eyebrow = clamp(reading.periodLabel, 32)
     const hl = reading.highlights?.length ? clamp(reading.highlights[0], 60) : ''
     const cta = isKo
-      ? `내 운흐름도 무료로 · ${displayDomain}`
+      ? `내 운세 달력도 무료로 · ${displayDomain}`
       : `See your timing free · ${displayDomain}`
     const curve = dayCurveImg(reading.curve, reading.markerIndex ?? -1, '#e8cc8a')
     const fonts = await loadOgFonts(eyebrow, headline, hl, cta)
@@ -541,17 +626,21 @@ export default async function Image({ params }: { params: Promise<{ token: strin
     eyebrow = clamp(reading.periodLabel, 40)
     headline = clamp(reading.headline, 72)
     context = reading.highlights?.length ? clamp(reading.highlights[0], 70) : ''
-    cta = isKo ? `내 운흐름도 무료로 · ${displayDomain}` : `See your timing free · ${displayDomain}`
+    cta = isKo
+      ? `내 운세 달력도 무료로 · ${displayDomain}`
+      : `See your timing free · ${displayDomain}`
   } else if (reading && isReportShare(reading)) {
-    // resonant(동·서양이 둘 다 가리키는 주제 수)가 2개 이상이면 eyebrow 를 "일치"
-    // 훅으로 — 링크 미리보기에서 typeName 만 있던 밋밋함을 신뢰/호기심 신호로 보강.
-    const rc = reading.resonant?.length ?? 0
+    // 동·서양 '같은 결' 교차 행 수가 2개 이상이면 eyebrow 를 "일치" 훅으로. 수는 리포트의
+    // 톤 막대·도입부("align in N")와 같은 resonantCount(tallyCrossRows.same)만 쓴다 — 3개로
+    // 잘린 resonant 목록 길이를 세면 "3가지"로 줄어 리포트와 어긋났다(감사 CR-3). 수가 없는
+    // 옛 링크는 숫자 없이 사주 타입 라벨로(유형 이름은 사주만으로 계산 — 결정 2, CR-6).
+    const rc = typeof reading.resonantCount === 'number' ? reading.resonantCount : null
     eyebrow =
-      rc >= 2
+      rc !== null && rc >= 2
         ? isKo
           ? `🔮 사주 × 별자리가 ${rc}가지에서 일치`
           : `🔮 Korean astrology × zodiac agree on ${rc} things`
-        : `${reading.emoji}  ${isKo ? '사주 × 별자리 유형' : 'KOREAN ASTROLOGY × ZODIAC'}`
+        : `${reading.emoji}  ${SAJU_TYPE_LABEL.plain[isKo ? 'ko' : 'en']}`
     headline = clamp(reading.typeName, 40)
     // 엇갈림(clash)이 있으면 그게 가장 차트-고유한 클릭 훅 — oneLiner 보다 우선.
     context = reading.clash

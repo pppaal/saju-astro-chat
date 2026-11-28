@@ -16,7 +16,7 @@
  */
 
 import React from 'react'
-import type { CompatVerdictTone } from '@/lib/tarot/shareLink'
+import type { CompatVerdictTone } from '@/lib/share/shareLink'
 
 const GOLD = '#e8c88c'
 const TEXT = '#f3f0ff'
@@ -57,7 +57,7 @@ export function clampCard(text: string, max: number): string {
 }
 
 /** 점수 칩 — 테마 차원 라벨 + 0~100. (마찰은 로즈로 구분) */
-export interface CompatShareChip {
+interface CompatShareChip {
   label: string
   value: number
   clash?: boolean

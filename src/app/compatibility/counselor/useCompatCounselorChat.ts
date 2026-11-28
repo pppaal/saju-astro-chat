@@ -11,7 +11,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { logger } from '@/lib/logger'
-import { apiFetch } from '@/lib/api'
+import { apiFetch } from '@/lib/api/client'
 import { getErrorMessage as getCounselorErrorMessage } from '@/lib/counselor/errorMessage'
 import { savePendingChat } from '@/lib/chat/pendingChat'
 import { useCreditModal } from '@/contexts/CreditModalContext'
@@ -24,6 +24,23 @@ import {
 } from '@/lib/counselor/useCounselorChat'
 import type { DestinySources } from '@/components/destiny-map/chat-types'
 import type { ChatMessage, PersonData } from './types'
+import { getUserTimezone } from '@/lib/saju/timezone'
+import { resolveBirthTimezoneOnDevice } from '@/lib/datetime/resolveTimezone'
+
+/**
+ * 상담 요청에 싣는 사람마다 출생 타임존을 채운다 — 저장 tz → 출생 도시 tz → 보는 사람 기기 tz.
+ * 서버는 tz·도시가 모두 없는 사람을 422 로 거르므로(서울 기둥 금지, G13), tz 없이 저장된
+ * 옛 페어·지인도 여기서 도시 tz(없으면 기기 tz)로 채워 보낸다.
+ */
+function withBirthTimezone(p: PersonData): PersonData {
+  return {
+    ...p,
+    timeZone: resolveBirthTimezoneOnDevice(
+      { timezone: p.timeZone, latitude: p.latitude, longitude: p.longitude },
+      getUserTimezone()
+    ),
+  }
+}
 
 // 운명 상담사의 useChatApi 패턴과 동일 — 헤더 도착까지의 절대 시간 cap 과
 // chunk 사이 idle cap 을 분리해서 관리한다. 헤더가 30s 안에 안 오면 abort,
@@ -127,7 +144,7 @@ export function useCompatCounselorChat(
       // for long conversations.
       const recentHistory = history.slice(-10)
       const requestBody = JSON.stringify({
-        persons,
+        persons: persons.map(withBirthTimezone),
         person1Saju,
         person2Saju,
         person1Astro,
@@ -135,6 +152,8 @@ export function useCompatCounselorChat(
         // 이번 답변에 넣을 시너스트리 도메인(사주/점성 체크박스).
         sources,
         lang: locale,
+        // 상담사 '오늘'(세운·대운·만 나이 날짜)의 기준 — 보는 사람 기기 시간대(운명상담사와 같다).
+        userTimezone: getUserTimezone(),
         messages: recentHistory,
         useRag: true,
         // 끊김 복구용 턴 식별자 — idempotencyKey 와 동일 값. 서버는 연결이

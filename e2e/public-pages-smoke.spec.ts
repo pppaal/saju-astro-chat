@@ -21,11 +21,13 @@ const PUBLIC_ROUTES = [
   '/policy/refund',
   // 프로그램매틱 SEO 표면 — 무로그인·무DB 서버 렌더 페이지들.
   // 색인 대상이라 여기서 렌더 깨짐을 조기에 잡는다.
-  '/free',
+  // (/free 는 홈으로 308 통합 — 아래 redirect 테스트가 따로 본다.)
   '/fortune',
   '/fortune/horse',
   '/tarot/cards',
   '/tarot/cards/the-fool',
+  // v9.2 운세 달력 공개 샘플(고정 본명 · 2026-11-19) — 로그인·본명 없이 서버 렌더.
+  '/calendar/preview',
 ]
 
 const KEY_LEAK_PATTERNS = [
@@ -103,4 +105,18 @@ test.describe('Public pages smoke', () => {
     expect(cards).toBeGreaterThan(0)
     expect(hasEmptyMessage).toBe(false)
   })
+
+  // /free 는 홈으로 통합됐다(next.config redirects). 308 이고 쿼리를 그대로 넘겨야
+  // 소셜 바이오·공유 QR(?s=card)·푸시 링크가 끊기지 않는다.
+  for (const [from, to] of [
+    ['/free?s=card', '/?s=card'],
+    ['/ko/free?s=card', '/ko?s=card'],
+  ] as const) {
+    test(`${from} permanently redirects to ${to}`, async ({ request }) => {
+      const res = await request.get(from, { maxRedirects: 0 })
+      expect(res.status()).toBe(308)
+      const location = new URL(res.headers()['location'] ?? '', res.url())
+      expect(`${location.pathname}${location.search}`).toBe(to)
+    })
+  }
 })

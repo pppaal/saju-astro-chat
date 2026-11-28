@@ -86,17 +86,6 @@ vi.mock('@/lib/api/middleware', () => {
   }
 })
 
-// Mock the API client - using vi.hoisted to properly handle the mock function
-const { mockApiClientPost } = vi.hoisted(() => ({
-  mockApiClientPost: vi.fn(),
-}))
-
-vi.mock('@/lib/api/ApiClient', () => ({
-  apiClient: {
-    post: mockApiClientPost,
-  },
-}))
-
 // Mock the logger
 const { mockLoggerError } = vi.hoisted(() => ({
   mockLoggerError: vi.fn(),
@@ -238,7 +227,6 @@ describe('Tarot Prefetch API - POST Success Cases', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     // Mock successful backend prefetch (fire-and-forget)
-    mockApiClientPost.mockResolvedValue({ ok: true, data: { status: 'ok' } })
   })
 
   it('should return prefetching status for valid request', async () => {
@@ -247,14 +235,6 @@ describe('Tarot Prefetch API - POST Success Cases', () => {
 
     expect(response.status).toBe(200)
     expect(data.status).toBe('ok')
-  })
-
-  it('does NOT call any backend (dead self-referential prefetch removed)', async () => {
-    // 예전엔 apiClient.post('/api/tarot/prefetch', …) 로 자기 자신에게 보내던
-    // 보장된-실패 no-op 이 있었다. 제거됐으므로 apiClient 는 절대 호출되지 않는다.
-    await POST(makePostRequest(VALID_REQUEST_BODY))
-    await new Promise((resolve) => setTimeout(resolve, 10))
-    expect(mockApiClientPost).not.toHaveBeenCalled()
   })
 
   it('should work with different category and spread IDs', async () => {
@@ -295,7 +275,6 @@ describe('Tarot Prefetch API - POST Success Cases', () => {
 describe('Tarot Prefetch API - spread-aware credit cost', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    mockApiClientPost.mockResolvedValue({ ok: true })
   })
 
   it('checks 1 credit for a 3-card spread (real spread id)', async () => {
@@ -438,8 +417,6 @@ describe('Tarot Prefetch API - POST Validation', () => {
   })
 
   it('should accept valid IDs at boundary length (100 chars)', async () => {
-    mockApiClientPost.mockResolvedValue({ ok: true })
-
     const response = await POST(
       makePostRequest({
         categoryId: 'a'.repeat(100),
@@ -454,66 +431,11 @@ describe('Tarot Prefetch API - POST Validation', () => {
 })
 
 // ===================================================================
-// POST /api/tarot/prefetch - Backend Error Handling
-// ===================================================================
-describe('Tarot Prefetch API - Backend Error Handling', () => {
-  beforeEach(() => {
-    vi.clearAllMocks()
-  })
-
-  it('should return success even when backend prefetch fails', async () => {
-    // Backend error should be silently ignored (fire-and-forget)
-    mockApiClientPost.mockRejectedValue(new Error('Backend unavailable'))
-
-    const response = await POST(makePostRequest(VALID_REQUEST_BODY))
-    const data = await response.json()
-
-    // Should still return success since errors are caught
-    expect(response.status).toBe(200)
-    expect(data.status).toBe('ok')
-  })
-
-  it('should return success even when backend returns HTTP error', async () => {
-    mockApiClientPost.mockResolvedValue({ ok: false, status: 500, error: 'Internal Server Error' })
-
-    const response = await POST(makePostRequest(VALID_REQUEST_BODY))
-    const data = await response.json()
-
-    // Should still return success since fire-and-forget ignores response
-    expect(response.status).toBe(200)
-    expect(data.status).toBe('ok')
-  })
-
-  it('should return success even when backend times out', async () => {
-    mockApiClientPost.mockRejectedValue(new Error('Request timeout'))
-
-    const response = await POST(makePostRequest(VALID_REQUEST_BODY))
-    const data = await response.json()
-
-    expect(response.status).toBe(200)
-    expect(data.status).toBe('ok')
-  })
-
-  it('should not log errors for silent failures', async () => {
-    mockApiClientPost.mockRejectedValue(new Error('Backend error'))
-
-    await POST(makePostRequest(VALID_REQUEST_BODY))
-
-    // Wait for fire-and-forget to complete
-    await new Promise((resolve) => setTimeout(resolve, 10))
-
-    // The route uses .catch(() => {}) so no logging should occur
-    expect(mockLoggerError).not.toHaveBeenCalled()
-  })
-})
-
-// ===================================================================
 // POST /api/tarot/prefetch - Anonymous User Handling
 // ===================================================================
 describe('Tarot Prefetch API - Anonymous User Handling', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    mockApiClientPost.mockResolvedValue({ ok: true })
   })
 
   it('should allow anonymous users to prefetch', async () => {
@@ -587,7 +509,6 @@ describe('Tarot Prefetch API - Rate Limiting Configuration', () => {
 describe('Tarot Prefetch API - Edge Cases', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    mockApiClientPost.mockResolvedValue({ ok: true })
   })
 
   it('should handle special characters in categoryId', async () => {
@@ -668,9 +589,6 @@ describe('Tarot Prefetch API - Edge Cases', () => {
 
     expect(response.status).toBe(200)
     expect(data.status).toBe('ok')
-    // 백엔드 자기호출이 제거됐으므로 apiClient 는 호출되지 않는다.
-    await new Promise((resolve) => setTimeout(resolve, 10))
-    expect(mockApiClientPost).not.toHaveBeenCalled()
   })
 })
 
@@ -680,7 +598,6 @@ describe('Tarot Prefetch API - Edge Cases', () => {
 describe('Tarot Prefetch API - Concurrency', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    mockApiClientPost.mockResolvedValue({ ok: true })
   })
 
   it('should handle multiple concurrent prefetch requests', async () => {
@@ -697,10 +614,6 @@ describe('Tarot Prefetch API - Concurrency', () => {
       expect(response.status).toBe(200)
       expect(data.status).toBe('ok')
     }
-
-    // 자기호출 제거로 어느 요청도 apiClient 를 부르지 않는다.
-    await new Promise((resolve) => setTimeout(resolve, 50))
-    expect(mockApiClientPost).not.toHaveBeenCalled()
   })
 
   it('should handle rapid successive requests', async () => {
@@ -730,7 +643,6 @@ describe('Tarot Prefetch API - Concurrency', () => {
 describe('Tarot Prefetch API - Credit pre-flight', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    mockApiClientPost.mockResolvedValue({ ok: true, data: { status: 'ok' } })
   })
 
   it('blocks with 401 when the user is not authenticated (guests removed)', async () => {
@@ -741,8 +653,6 @@ describe('Tarot Prefetch API - Credit pre-flight', () => {
     const response = await POST(makePostRequest(VALID_REQUEST_BODY))
 
     expect(response.status).toBe(401)
-    // Must not kick off the background RAG prefetch when blocked.
-    expect(mockApiClientPost).not.toHaveBeenCalled()
   })
 
   it('blocks with 402 when a signed-in user has no credits', async () => {
@@ -753,7 +663,6 @@ describe('Tarot Prefetch API - Credit pre-flight', () => {
     const response = await POST(makePostRequest(VALID_REQUEST_BODY))
 
     expect(response.status).toBe(402)
-    expect(mockApiClientPost).not.toHaveBeenCalled()
   })
 
   it('proceeds (200) when credits are available', async () => {

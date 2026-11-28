@@ -69,17 +69,6 @@ function isMissing(name) {
   return false;
 }
 
-function checkEmailProvider() {
-  const provider = (process.env.EMAIL_PROVIDER || "none").toLowerCase();
-  if (provider === "none") return null; // email disabled
-  if (provider === "resend") {
-    return isMissing("RESEND_API_KEY") ? "RESEND_API_KEY" : null;
-  }
-  // Only "resend" is wired in src/lib/email/providers/index.ts.
-  // SendGrid/Nodemailer hooks are stubbed for future expansion.
-  return `Unknown EMAIL_PROVIDER: ${provider} (only "resend" is currently supported)`;
-}
-
 function main() {
   const isProduction = process.env.NODE_ENV === "production";
 
@@ -90,7 +79,6 @@ function main() {
     process.env.ENABLE_WEB_PUSH === "true" ||
     process.env.PUSH_NOTIFICATIONS_ENABLED === "true";
   const missingPush = requirePush ? pushMissing : [];
-  const emailError = checkEmailProvider();
   const missingProduction = isProduction ? REQUIRED_PRODUCTION.filter(isMissing) : [];
 
   // Production-specific checks
@@ -123,7 +111,6 @@ function main() {
 
   if (missing.length) problems.push(`Missing required: ${missing.join(", ")}`);
   if (missingPush.length) problems.push(`Push keys missing: ${missingPush.join(", ")}`);
-  if (emailError) problems.push(`Email config: ${emailError}`);
   if (missingProduction.length) problems.push(`Missing required for production: ${missingProduction.join(", ")}`);
 
   // Production-only errors

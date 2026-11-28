@@ -1,26 +1,18 @@
 {
   "$schema": "https://unpkg.com/knip@latest/schema.json",
   "entry": [
-    "src/app/**/*.{ts,tsx}",
-    "src/instrumentation.ts",
-    "src/instrumentation-client.ts",
+    "src/app/**/*.{ts,tsx}!",
     "tests/**/*.{ts,tsx}",
     "e2e/**/*.{ts,tsx}",
     "scripts/**/*.{ts,mts,mjs,js}"
   ],
   "project": [
-    "src/**/*.{ts,tsx}",
+    "src/**/*.{ts,tsx}!",
+    "!src/data/blog/buildIndex.ts!",
     "tests/**/*.{ts,tsx}",
     "e2e/**/*.{ts,tsx}",
     "scripts/**/*.{ts,mts}"
   ],
-  "ignore": [
-    "src/**/*.stories.{ts,tsx}",
-    "src/styles/**",
-    "src/data/**",
-    "tmp/**",
-    "artifacts/**",
-    "reports/**",
-    "docs/archive/**"
-  ]
+  "ignoreDependencies": ["@prisma/config", "sharp", "playwright", "resend!", "dotenv!"],
+  "ignoreBinaries": ["wait-on", "du", "python3", "k6"]
 }

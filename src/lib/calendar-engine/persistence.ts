@@ -25,28 +25,20 @@ import { buildNatalContext, type BuildContextInput } from './context/build'
 import { buildCalendar, makeOptionsKey } from './index'
 import type { NatalContext } from './context/types'
 import type { CalendarCell, CalendarBuildOptions, CalendarRange } from './types'
+import { CALENDAR_ENGINE_VERSION } from '@/lib/cache/engineVersions'
+import {
+  DAEUN_LIST_MIN_LENGTH,
+  DAEUN_SPAN_YEARS,
+  daeunManAge,
+  parseCivilDate,
+} from '@/lib/saju/daeunAge'
+import { lunarDateToSolarString } from '@/lib/saju/lunarDate'
 
-/**
- * 사주/점성 엔진 버전 시그니처. extractor·deriver 산식이 출력에 영향 주게
- * 바뀌면 bump → birthKey 가 달라져 모든 캐시가 무효화된다.
- */
-// v3: cross-activation 산식 변경(profection/zodiacal-releasing 상징 지배성 교차
-//     제외, 도화살/역마살 죽은 매핑 제거). 이 로직은 buildCalendar 안에서 돌아
-//     캐시 blob 에 구워지므로, 웜 캐시가 옛 교차 신호를 계속 내보내지 않도록 bump.
-// v4: 대운 커버리지 확장 매핑(정재×토성·식신×목성·비견×토성·겁재×명왕성) 추가.
-//     cross-activation 추출기가 빌드 시 셀에 구우므로, 웜 캐시도 새 교차를 얻도록 bump.
-// v5: 일/월 근거 커버리지 확장 — 교차 매핑 31→57쌍(달 5·태양 5·수성 5·금성 3·
-//     화성 7·천을귀인×목성). 웜 캐시가 새 교차 근거를 얻도록 bump.
-// v6: ZR 정통화(감사 A-1·A-2) — ① 나이 앵커를 출생년 1/1 → 실제 생일로(12월생
-//     경계 최대 ~12개월 조기 발화 교정), ② Loosing-of-the-Bond 를 "7번째 사인"
-//     오정의에서 Valens 점프(한 바퀴 후 반대편 진입) 규칙으로 재구현. ZR 신호
-//     창·이벤트가 셀에 구워지므로 웜 캐시가 옛 경계를 계속 내보내지 않게 bump.
-// v7: 자시(子時) 이중계상 교정(감사 C2) — 자시가 자정을 넘겨(23~01시) 두 날 셀에
-//     걸려, 매일 셀이 자기 자시 + 전날 자시 새벽 꼬리(다른 時柱 천간) 두 개를 갖고
-//     hourly 층을 이중 계상해 일점수를 부풀렸다. 각 셀은 그날 생성 시진만 남기도록
-//     dedup — 점수 골격이 이동하므로 웜 캐시가 옛 점수를 계속 내보내지 않게 bump.
-// (export — dataRetention 스윕이 옛 버전 NatalContextCache 고아 행을 지우는 기준.)
-export const CALENDAR_ENGINE_VERSION = 'v7'
+// 사주/점성 엔진 버전 시그니처 — 정의와 bump 이력은 @/lib/cache/engineVersions(leaf).
+// extractor·deriver 산식이 출력에 영향 주게 바뀌면 거기서 bump → birthKey 가 달라져
+// 모든 캐시가 무효화된다. 운명상담사 컨텍스트 키도 같은 값을 접는다(ENGINE_VERSION_TAG).
+// (re-export — dataRetention 스윕이 옛 버전 NatalContextCache 고아 행을 지우는 기준.)
+export { CALENDAR_ENGINE_VERSION }
 
 /**
  * 본명 입력 → 안정적 캐시 키. 위치는 4자리(≈11m)로 라운딩해 부동소수 잡음으로
@@ -62,17 +54,54 @@ function birthKeyFor(input: BuildContextInput): string {
     input.gender,
     input.calendarType ?? 'solar',
     input.lunarLeap ? 'leap' : '',
+    input.birthTimeUnknown ? 'tu' : '',
+    input.birthCityUnknown ? 'cu' : '',
     CALENDAR_ENGINE_VERSION,
   ].join('|')
   return createHash('sha1').update(canonical).digest('hex').slice(0, 32)
 }
 
 /**
+ * 본명 컨텍스트 중 `now` 에 기대는 부분(대운 목록 길이)을 정하는 키 조각 (G12).
+ * 목록은 최소 DAEUN_LIST_MIN_LENGTH(10)칸이라 만 나이가 첫 대운 + 100 이 되기 전엔 늘
+ * 같다 — 첫 대운 나이 ≥ 0 이므로 만 99세 이하는 조각이 비고 키는 예전 birthKey 그대로다.
+ * 만 100세 이상이면 지금 칸까지 늘어나므로 만 나이를 접는다(그 나이의 목록 = 그 키의 행).
+ * 만 나이는 출생지 tz 의 민용 생일 기준(daeunManAge — 엔진 목록과 같은 함수), 음력 입력은
+ * 민용(양력) 생일로 바꿔 잰다.
+ */
+function daeunCoverSegment(input: BuildContextInput, now: Date): string {
+  let civil = parseCivilDate(input.birthDate)
+  if (input.calendarType === 'lunar') {
+    try {
+      civil = parseCivilDate(lunarDateToSolarString(input.birthDate, input.lunarLeap === true))
+    } catch {
+      // 없는 음력 날짜는 빌드에서 throw 한다 — 키 조각은 입력 그대로의 날짜로 둔다.
+    }
+  }
+  if (!civil) return ''
+  const age = daeunManAge(civil, input.timeZone, now)
+  return age >= DAEUN_LIST_MIN_LENGTH * DAEUN_SPAN_YEARS ? `daeun-age:${age}` : ''
+}
+
+/**
+ * NatalContextCache 행 키 — birthKey(입력+엔진 버전) + 대운 목록 길이 조각. 조각이 비면
+ * (만 99세 이하) birthKey 와 같다. now 를 키에 그대로 넣지 않는다: 본명은 불변이고, 시계에
+ * 기대는 건 목록 길이뿐이다. 같은 now 로 빌드하므로 행의 목록은 그 키의 나이를 덮는다.
+ */
+function natalCacheKeyFor(input: BuildContextInput, now: Date): string {
+  const birthKey = birthKeyFor(input)
+  const seg = daeunCoverSegment(input, now)
+  return seg ? createHash('sha1').update(`${birthKey}|${seg}`).digest('hex').slice(0, 32) : birthKey
+}
+
+/**
  * 본명 컨텍스트 — DB 캐시 우선, miss 면 빌드 후 영구 저장.
  * NatalContext 는 Date 필드가 없어 JSON round-trip 안전 (context/types.ts).
+ * `input.now`(기본 호출 시점)를 한 번 읽어 키와 빌드가 같은 순간을 쓴다(CLAUDE.md 결정론).
  */
 export async function getOrBuildNatalContext(input: BuildContextInput): Promise<NatalContext> {
-  const birthKey = birthKeyFor(input)
+  const now = input.now ?? new Date()
+  const birthKey = natalCacheKeyFor(input, now)
 
   try {
     const row = await prisma.natalContextCache.findUnique({ where: { birthKey } })
@@ -85,7 +114,7 @@ export async function getOrBuildNatalContext(input: BuildContextInput): Promise<
     logger.warn('[calendar-cache] natal read failed — building fresh', err)
   }
 
-  const natal = await buildNatalContext(input)
+  const natal = await buildNatalContext({ ...input, now })
 
   try {
     const data = natal as unknown as Prisma.InputJsonValue
@@ -159,6 +188,12 @@ export async function getOrBuildMonthCells(
  * 를 쓰는 건 *포커스된 그 하루*(근거카드·교차·시진)뿐이다. 그래서 그 하루만 1일
  * 범위로 evidence 포함 빌드한다. (점수는 월 layered map 에서 오므로 이 1일 빌드의
  * 점수는 쓰지 않는다.)
+ *
+ * 1일 범위로 빌드해도 그날 셀의 신호·교차는 월 빌드의 그날 셀과 같다 — 엔진이 범위
+ * 불변이다(트랜짓·품위·달 위상 창을 범위 밖까지 잇고, 子時는 민용일 안에서 나누고,
+ * 교차는 셀 단위로 dedup; 엔진 감사 X1·E9, tests/lib/calendar-engine/rangeInvariance).
+ * 다른 것은 셀 묶음 모집단에 대한 상대값(derivedScore·salience)뿐이다. 그래서 일 화면
+ * 교차·인생 화면 10년 교차가 월 리드아웃과 같은 사실을 말한다.
  *
  * 이 하루(보통 '오늘')는 같은 유저가 반복 방문하므로, 1일치 evidence(작은 블롭)는
  * `day:${dateIso}` 키로 따로 캐싱한다 — 매 방문 Swiss Ephemeris 재계산 방지.

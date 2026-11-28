@@ -25,6 +25,9 @@ type Body = {
   pillarsB?: SajuPillarInput[] | null
   timeUnknownA?: boolean
   timeUnknownB?: boolean
+  /** 출생 도시 미상(좌표 = 타임존 기준점) — 점성 앵글·하우스만 가린다(재감사 CS-2). */
+  cityUnknownA?: boolean
+  cityUnknownB?: boolean
   /** 배우자성 판정용 성별(남=재성이 처, 여=관성이 부). 없으면 판정 불가로 양쪽 다 올림. */
   genderA?: string
   genderB?: string
@@ -87,6 +90,8 @@ export const POST = withApiMiddleware(async (req: NextRequest, _context: ApiCont
     pillarsB: sanitizePillars(body.pillarsB),
     timeUnknownA: body.timeUnknownA === true,
     timeUnknownB: body.timeUnknownB === true,
+    cityUnknownA: body.cityUnknownA === true,
+    cityUnknownB: body.cityUnknownB === true,
     // 신뢰 경계 — 클라 문자열을 SSOT 정규화기에 통과시켜 male/female 만 취한다
     // (other·prefer_not·미입력은 undefined → 배우자성 판정 불가로 양쪽 다 올림).
     genderA: toSpouseGender(body.genderA),

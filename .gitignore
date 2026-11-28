@@ -200,3 +200,6 @@ report-*.html
 
 # Obsidian — docs/ 를 vault 로 열면 생기는 로컬 설정 (개인용, 공유 안 함)
 .obsidian/
+
+# Next 16 `next dev` 가 AI 에이전트를 감지하면 루트에 만드는 생성 파일 (agentRules) — 커밋하지 않는다
+/AGENTS.md

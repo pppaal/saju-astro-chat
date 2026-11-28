@@ -8,6 +8,8 @@
 import { Redis } from '@upstash/redis'
 import { logger } from '@/lib/logger'
 import type { CacheResult, CacheWriteResult } from './types'
+import { NATAL_CHART_CACHE_VERSION, SAJU_ENGINE_VERSION } from '@/lib/cache/engineVersions'
+import { CALCULATION_STANDARDS } from '@/lib/config/calculationStandards'
 
 let redis: Redis | null = null
 
@@ -308,21 +310,27 @@ export async function cacheDel(key: string): Promise<boolean> {
  * - Old cache entries become stale automatically
  */
 export const CacheKeys = {
+  // 버전 = SAJU_ENGINE_VERSION (src/lib/saju/constants.ts). 엔진 산식이 결과를
+  // 바꾸면 거기서 +1 → 이 prefix 가 바뀌어 옛 캐시는 자연 만료된다.
   // v2: lunarLeap + timezone 추가. v1 키는 (a) 윤4월/평4월 충돌 (b) 동일 lunar
-  // Y/M/D 서로 다른 타임존 사용자 충돌이 있어 정확성 회귀가 있었음. 키 형태가
-  // 바뀌므로 prefix 도 v1 → v2 로 bump. 이전 캐시는 자연 만료.
+  // Y/M/D 서로 다른 타임존 사용자 충돌이 있어 정확성 회귀가 있었음.
+  // v3: 년·월주·대운을 생 UT instant 기준 절입 비교로(엔진 감사 E1, OD-1).
+  // v4: 첫 대운 전 current=null + preDaeun, meta.civilBirthDate·timeZone(엔진 감사 E14).
+  //     캐시 값의 daeWoon.current 는 계산 시점 값이라 /api/saju 가 요청마다 다시 고른다.
   saju: (
     birthDate: string,
     birthTime: string,
     gender: string,
     calendar: string = 'solar',
-    timezone: string = 'Asia/Seoul',
+    // 호출자는 출생 타임존을 넘긴다(resolveBirthTimezone). 기본값은 사주 기준 존 —
+    // 하드코딩 'Asia/Seoul' 대신 CALCULATION_STANDARDS 단일 출처(값은 같아 키 불변).
+    timezone: string = CALCULATION_STANDARDS.saju.baseTimezone,
     lunarLeap: boolean = false,
     // 진태양시(진경도) 보정 경도. 도시별로 시주가 달라지므로 키에 포함해야
     // 다른 도시 사용자끼리 캐시가 섞이지 않는다. 경도 없으면 옛 키 형태 유지.
     longitude?: number
   ) =>
-    `saju:v2:${birthDate}:${birthTime}:${gender}:${calendar}:${timezone}:${lunarLeap ? 'L' : 'N'}` +
+    `saju:v${SAJU_ENGINE_VERSION}:${birthDate}:${birthTime}:${gender}:${calendar}:${timezone}:${lunarLeap ? 'L' : 'N'}` +
     (typeof longitude === 'number' && Number.isFinite(longitude)
       ? `:lon=${longitude.toFixed(4)}`
       : ''),
@@ -377,7 +385,10 @@ export const CacheKeys = {
     // timeZone 은 현지시각→UT 변환(natalToJD)에 들어가 모든 행성·ASC·MC·하우스를
     // 바꾼다. 키에서 빠지면 같은 날짜/시각/좌표라도 tz 다른 두 요청이 충돌해 두
     // 번째가 첫 번째의 잘못된 차트를 받는다. v1→v2 로 기존(누락) 캐시 무효화.
-    `natal:v2:${birthDate}:${birthTime}:${latitude.toFixed(2)}:${longitude.toFixed(2)}:${timeZone}`,
+    // v3: natalToJD 가 사주와 같은 RFC 5545 resolver 를 쓴다(엔진 감사 E8) — 서머타임
+    //     공백·겹침 시각의 차트가 1시간 옮겨 가므로 옛 차트를 버린다.
+    //     버전 = NATAL_CHART_CACHE_VERSION (@/lib/cache/engineVersions).
+    `natal:v${NATAL_CHART_CACHE_VERSION}:${birthDate}:${birthTime}:${latitude.toFixed(2)}:${longitude.toFixed(2)}:${timeZone}`,
 } as const
 
 /**

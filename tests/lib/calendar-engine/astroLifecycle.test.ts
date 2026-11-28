@@ -1,13 +1,17 @@
 import { describe, it, expect } from 'vitest'
 import {
   buildLifecycleTiming,
+  firstSentence,
+  lifecycleEventDef,
+  typicalLifecycleAges,
   type AstroLifecycleEventKind,
   type LifecycleMilestoneOverride,
 } from '@/lib/calendar-engine/lifecycle/astroLifecycle'
 
 /**
- * buildLifecycleTiming — 출생연도 → 외행성 생애주기 마일스톤.
- * 결정론: now 를 주입해 과거/현재/예정 분류를 고정 검증한다.
+ * buildLifecycleTiming — 실측 마디(calculateOuterPlanetMilestones) → 생애 마디 항목.
+ * 날짜·나이는 실측 순간에서만 온다: 실측이 없는 kind 는 빠지고 평균 나이표로 채우지
+ * 않는다(G6 · 재감사 AC-1/AC-5). 결정론: now 를 주입해 과거/현재/예정 분류를 고정 검증한다.
  */
 
 const KINDS: AstroLifecycleEventKind[] = [
@@ -27,147 +31,134 @@ const KINDS: AstroLifecycleEventKind[] = [
 
 const NOW = new Date('2026-06-21T00:00:00.000Z') // currentYear = 2026
 
-describe('buildLifecycleTiming — 기본 테이블', () => {
-  it('12개 이벤트를 테이블 순서대로 반환한다', () => {
-    const { events } = buildLifecycleTiming(1990, 2100, true, undefined, NOW)
-    expect(events).toHaveLength(12)
-    expect(events.map((e) => e.event)).toEqual(KINDS)
+// 1990 출생 가상 실측 — 순서를 일부러 섞어 넣어도 결과는 테이블 순서.
+const EXACT: LifecycleMilestoneOverride[] = [
+  { kind: 'saturn_return_1', startYear: 2019, age: 29, exactDateISO: '2019-03-02' },
+  { kind: 'jupiter_return_1', startYear: 2001, age: 11, exactDateISO: '2001-09-14' },
+  { kind: 'pluto_square_pluto', startYear: 2026, age: 36, exactDateISO: '2026-02-10' },
+  { kind: 'uranus_opposition', startYear: 2032, age: 42, exactDateISO: '2032-05-01' },
+]
+
+describe('buildLifecycleTiming — 실측 마디만', () => {
+  it('실측이 있는 kind 만, 테이블 순서대로', () => {
+    const { events } = buildLifecycleTiming(EXACT, { endYear: 2100, now: NOW })
+    expect(events.map((e) => e.event)).toEqual([
+      'jupiter_return_1',
+      'saturn_return_1',
+      'pluto_square_pluto',
+      'uranus_opposition',
+    ])
   })
 
-  it('한글 라벨/의미/조언이 채워진다(isKo 기본 true)', () => {
-    const { events } = buildLifecycleTiming(1990, 2100, undefined, undefined, NOW)
-    for (const e of events) {
+  it('실측이 없으면(undefined·빈 배열) 아무 마디도 싣지 않는다 — 평균 나이표 폴백 없음', () => {
+    expect(buildLifecycleTiming(undefined, { endYear: 2100, now: NOW }).events).toEqual([])
+    expect(buildLifecycleTiming([], { endYear: 2100, now: NOW }).events).toEqual([])
+  })
+
+  it('startYear/age 중 하나라도 null 이면 그 kind 는 빠진다(표로 채우지 않음)', () => {
+    const { events } = buildLifecycleTiming(
+      [
+        { kind: 'saturn_return_1', startYear: 2019, age: null },
+        { kind: 'jupiter_return_1', startYear: null, age: 12 },
+        { kind: 'jupiter_return_2', startYear: 2014, age: 23 },
+      ],
+      { endYear: 2100, now: NOW }
+    )
+    expect(events.map((e) => e.event)).toEqual(['jupiter_return_2'])
+  })
+
+  it('startYear·age 는 실측 그대로, ageRange 는 단일 만 나이(ko "N세" / en "age N")', () => {
+    const ko = buildLifecycleTiming(EXACT, { endYear: 2100, now: NOW }).events
+    const en = buildLifecycleTiming(EXACT, { endYear: 2100, isKo: false, now: NOW }).events
+    const sat = ko.find((e) => e.event === 'saturn_return_1')!
+    expect(sat.startYear).toBe(2019)
+    expect(sat.age).toBe(29)
+    expect(sat.ageRange).toBe('29세')
+    expect(en.find((e) => e.event === 'saturn_return_1')!.ageRange).toBe('age 29')
+  })
+
+  it('한글 라벨/의미/조언(isKo 기본 true), isKo=false 면 영문', () => {
+    const ko = buildLifecycleTiming(EXACT, { endYear: 2100, now: NOW }).events
+    for (const e of ko) {
       expect(e.label).toBeTruthy()
       expect(e.meaning).toBeTruthy()
       expect(e.advice).toBeTruthy()
-      expect(e.ageRange).toMatch(/세$/)
     }
-    // 한글 라벨 샘플.
-    expect(events[0].label).toContain('목성 회귀')
-  })
-
-  it('isKo=false 면 영문 라벨/의미/조언 + "age~age세" 윈도우', () => {
-    const { events } = buildLifecycleTiming(1990, 2100, false, undefined, NOW)
-    expect(events[0].label).toBe('First Jupiter return')
-    expect(events[0].meaning).toContain('worldview')
-    expect(events[0].advice).toContain('curiosity')
-    // 영문이어도 평균 테이블 ageRange 는 "12~13세" 형태(코드상 한글 윈도우 유지).
-    expect(events[0].ageRange).toBe('12~13세')
-  })
-})
-
-describe('buildLifecycleTiming — startYear / ageRange 계산', () => {
-  it('평균 테이블 startYear = 출생연도 + ageStart', () => {
-    const { events } = buildLifecycleTiming(2000, 2100, true, undefined, NOW)
-    const sat1 = events.find((e) => e.event === 'saturn_return_1')!
-    expect(sat1.startYear).toBe(2000 + 29)
-    expect(sat1.ageRange).toBe('29~31세')
+    expect(ko[0].label).toContain('목성 회귀')
+    const en = buildLifecycleTiming(EXACT, { endYear: 2100, isKo: false, now: NOW }).events
+    expect(en[0].label).toBe('First Jupiter return')
+    expect(en[0].meaning).toContain('worldview')
+    expect(en[0].advice).toContain('curiosity')
+    for (const e of en) expect(`${e.label} ${e.meaning} ${e.advice}`).not.toMatch(/[가-힣]/)
   })
 })
 
 describe('buildLifecycleTiming — past/current/upcoming 분류(now 주입)', () => {
-  it('출생 1990, now 2026 (나이 36) 기준 토성 첫 회귀는 과거', () => {
-    const { events } = buildLifecycleTiming(1990, 2100, true, undefined, NOW)
-    const sat1 = events.find((e) => e.event === 'saturn_return_1')!
-    // startYear=2018, endYear=2021 < 2026 → past
-    expect(sat1.isPast).toBe(true)
-    expect(sat1.isCurrent).toBe(false)
-    expect(sat1.isUpcoming).toBe(false)
+  const at = (kind: AstroLifecycleEventKind, endYear = 2100) =>
+    buildLifecycleTiming(EXACT, { endYear, now: NOW }).events.find((e) => e.event === kind)!
+
+  it('실측 연도 < now 연도 → 과거', () => {
+    const sat1 = at('saturn_return_1')
+    expect([sat1.isPast, sat1.isCurrent, sat1.isUpcoming]).toEqual([true, false, false])
   })
 
-  it('현재 연도가 윈도우 안이면 isCurrent', () => {
-    // pluto_square_pluto: age 36~40. 출생 1990 → 2026~2030. now=2026 → current.
-    const { events } = buildLifecycleTiming(1990, 2100, true, undefined, NOW)
-    const pluto = events.find((e) => e.event === 'pluto_square_pluto')!
-    expect(pluto.isCurrent).toBe(true)
-    expect(pluto.isPast).toBe(false)
-    expect(pluto.isUpcoming).toBe(false)
+  it('실측 연도 = now 연도 → 현재', () => {
+    const pluto = at('pluto_square_pluto')
+    expect([pluto.isPast, pluto.isCurrent, pluto.isUpcoming]).toEqual([false, true, false])
   })
 
-  it('현재 연도보다 미래면서 endYear 안이면 isUpcoming', () => {
-    // uranus_opposition: age 40~43 → 2030~2033. now=2026, endYear 2100 → upcoming.
-    const { events } = buildLifecycleTiming(1990, 2100, true, undefined, NOW)
-    const ur = events.find((e) => e.event === 'uranus_opposition')!
-    expect(ur.isUpcoming).toBe(true)
-    expect(ur.isPast).toBe(false)
-    expect(ur.isCurrent).toBe(false)
+  it('미래이면서 endYear 안 → 예정, endYear 밖이면 예정 플래그 없음', () => {
+    const ur = at('uranus_opposition')
+    expect([ur.isPast, ur.isCurrent, ur.isUpcoming]).toEqual([false, false, true])
+    expect(at('uranus_opposition', 2027).isUpcoming).toBe(false)
   })
 
-  it('startYear 가 endYear(상한)를 넘으면 isUpcoming 이 false', () => {
-    // endYear 를 빡빡하게 잡으면 미래 이벤트도 upcoming 플래그가 안 붙는다.
-    const { events } = buildLifecycleTiming(1990, 2027, true, undefined, NOW)
-    const ur = events.find((e) => e.event === 'uranus_opposition')! // startYear 2030 > 2027
-    expect(ur.isUpcoming).toBe(false)
+  it('now 미지정이어도 동작한다(기본 new Date())', () => {
+    expect(buildLifecycleTiming(EXACT, { endYear: 2100 }).events).toHaveLength(4)
+  })
+})
+
+describe('lifecycleEventDef / typicalLifecycleAges', () => {
+  it('12 kind 모두 정의(ko/en 라벨·의미·조언)가 있다', () => {
+    for (const k of KINDS) {
+      const d = lifecycleEventDef(k)
+      expect(d.kind).toBe(k)
+      expect(
+        d.labelKo && d.labelEn && d.meaningKo && d.meaningEn && d.adviceKo && d.adviceEn
+      ).toBeTruthy()
+    }
   })
 
-  it('갓 태어난 사람(미래 출생)이면 모든 이벤트가 미래로 분류', () => {
-    const { events } = buildLifecycleTiming(2030, 2200, true, undefined, NOW)
-    for (const e of events) {
-      expect(e.isPast).toBe(false)
-      expect(e.isCurrent).toBe(false)
+  it('평균 나이표는 씨앗으로만 노출된다(kind·나이 범위만 — 날짜 없음)', () => {
+    const seeds = typicalLifecycleAges()
+    expect(seeds.map((s) => s.kind)).toEqual(KINDS)
+    for (const s of seeds) {
+      expect(Object.keys(s).sort()).toEqual(['ageEnd', 'ageStart', 'kind'])
+      expect(s.ageEnd).toBeGreaterThanOrEqual(s.ageStart)
     }
   })
 })
 
-describe('buildLifecycleTiming — overrides(실제 transit 덮어쓰기)', () => {
-  it('startYear/age 가 모두 잡힌 override 는 단일 나이 표기로 교체된다', () => {
-    const overrides: LifecycleMilestoneOverride[] = [
-      { kind: 'saturn_return_1', startYear: 2019, age: 29 },
-    ]
-    const { events } = buildLifecycleTiming(1990, 2100, true, overrides, NOW)
-    const sat1 = events.find((e) => e.event === 'saturn_return_1')!
-    expect(sat1.startYear).toBe(2019)
-    expect(sat1.ageRange).toBe('29세')
-    // override 단일 연도 기준 재분류: 2019 < 2026 → past.
-    expect(sat1.isPast).toBe(true)
-    expect(sat1.isCurrent).toBe(false)
+describe('meaningCore — 의미의 첫 문장(A4)', () => {
+  it('항목마다 마디 정의 의미의 첫 문장(ko/en)', () => {
+    const ko = buildLifecycleTiming(EXACT, { endYear: 2100, now: NOW }).events
+    const en = buildLifecycleTiming(EXACT, { endYear: 2100, isKo: false, now: NOW }).events
+    for (const e of [...ko, ...en]) {
+      expect(e.meaningCore).toBe(firstSentence(e.meaning))
+      expect(e.meaning.startsWith(e.meaningCore)).toBe(true)
+    }
+    const j3 = buildLifecycleTiming([{ kind: 'jupiter_return_3', startYear: 2033, age: 35 }], {
+      endYear: 2100,
+      isKo: false,
+      now: NOW,
+    }).events[0]
+    expect(j3.meaningCore).toBe('The last expansion window before midlife.')
   })
 
-  it('영문 override 단일 나이는 "age N" 표기', () => {
-    const overrides: LifecycleMilestoneOverride[] = [
-      { kind: 'saturn_return_1', startYear: 2026, age: 36 },
-    ]
-    const { events } = buildLifecycleTiming(1990, 2100, false, overrides, NOW)
-    const sat1 = events.find((e) => e.event === 'saturn_return_1')!
-    expect(sat1.ageRange).toBe('age 36')
-    // 단일 연도 == now 2026 → current.
-    expect(sat1.isCurrent).toBe(true)
-  })
-
-  it('startYear/age 중 하나라도 null 이면 평균 테이블 폴백', () => {
-    const overrides: LifecycleMilestoneOverride[] = [
-      { kind: 'saturn_return_1', startYear: 2019, age: null },
-      { kind: 'jupiter_return_1', startYear: null, age: 12 },
-    ]
-    const { events } = buildLifecycleTiming(1990, 2100, true, overrides, NOW)
-    const sat1 = events.find((e) => e.event === 'saturn_return_1')!
-    const jup1 = events.find((e) => e.event === 'jupiter_return_1')!
-    expect(sat1.startYear).toBe(1990 + 29) // 폴백
-    expect(sat1.ageRange).toBe('29~31세')
-    expect(jup1.startYear).toBe(1990 + 12)
-  })
-
-  it('일부 kind 만 override 하면 나머지는 평균 테이블 유지(부분 오버라이드)', () => {
-    const overrides: LifecycleMilestoneOverride[] = [
-      { kind: 'jupiter_return_1', startYear: 2002, age: 12 },
-    ]
-    const { events } = buildLifecycleTiming(1990, 2100, true, overrides, NOW)
-    const jup1 = events.find((e) => e.event === 'jupiter_return_1')!
-    const jup2 = events.find((e) => e.event === 'jupiter_return_2')!
-    expect(jup1.ageRange).toBe('12세') // overridden
-    expect(jup2.ageRange).toBe('24~25세') // 폴백
-  })
-
-  it('빈 overrides 배열은 평균 테이블과 동일 결과', () => {
-    const withEmpty = buildLifecycleTiming(1990, 2100, true, [], NOW)
-    const without = buildLifecycleTiming(1990, 2100, true, undefined, NOW)
-    expect(withEmpty.events).toEqual(without.events)
-  })
-})
-
-describe('buildLifecycleTiming — now 기본값(주입 생략)', () => {
-  it('now 미지정이어도 동작하고 12개 이벤트를 반환한다', () => {
-    const { events } = buildLifecycleTiming(1990, 2100)
-    expect(events).toHaveLength(12)
+  it('firstSentence — 첫 문장 끝(. ! ? 。 + 공백/끝)까지, 없으면 전체', () => {
+    expect(firstSentence('A one. Two.')).toBe('A one.')
+    expect(firstSentence('하나예요. 둘이에요.')).toBe('하나예요.')
+    expect(firstSentence('v1.2 works? yes.')).toBe('v1.2 works?')
+    expect(firstSentence('  no end  ')).toBe('no end')
   })
 })

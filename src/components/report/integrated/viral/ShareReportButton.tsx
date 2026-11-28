@@ -13,16 +13,14 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import * as htmlToImage from 'html-to-image'
 import { Share2, Download, Loader2, X, Link2, Check } from 'lucide-react'
-import { apiFetch } from '@/lib/api'
+import { apiFetch } from '@/lib/api/client'
 import { trackFunnel } from '@/lib/metrics/trackFunnel'
 import { logger } from '@/lib/logger'
 import { ReportShareCard, SHARE_CARD_SIZE, type ReportShareData } from './ReportShareCard'
-import type { ViralSummary } from './viralArchetype'
+import type { ViralSummary } from '@/lib/report/viralArchetype'
 
 export interface ShareReportButtonProps {
   summary: ViralSummary
-  name: string
-  dateLabel: string
   isKo: boolean
 }
 
@@ -41,7 +39,7 @@ async function preloadImages(srcs: string[]): Promise<void> {
   )
 }
 
-export function ShareReportButton({ summary, name, dateLabel, isKo }: ShareReportButtonProps) {
+export function ShareReportButton({ summary, isKo }: ShareReportButtonProps) {
   const cardRef = useRef<HTMLDivElement>(null)
   // 'idle' | 'rendering'(캡처 중) | 'preview'(모달)
   const [phase, setPhase] = useState<'idle' | 'rendering' | 'preview'>('idle')
@@ -55,7 +53,8 @@ export function ShareReportButton({ summary, name, dateLabel, isKo }: ShareRepor
   const [linkError, setLinkError] = useState<string | null>(null)
   const linkBusyRef = useRef(false)
 
-  const shareData: ReportShareData = { summary, name, dateLabel, isKo }
+  // 이름·생년월일은 받지도 싣지도 않는다 — 공유 PNG 는 유형 요약만(ReportShareCard 참고).
+  const shareData: ReportShareData = { summary, isKo }
 
   const shareLink = useCallback(async () => {
     if (linkBusyRef.current) return
@@ -76,6 +75,8 @@ export function ShareReportButton({ summary, name, dateLabel, isKo }: ShareRepor
             ? `${summary.oneLiner} 🔪 ${summary.edgeLine}`
             : summary.oneLiner,
           resonant: summary.resonant?.slice(0, 3),
+          // 리포트 톤 막대·도입부와 같은 '같은 결' 전체 수 — 미리보기 "N가지 일치"의 N(CR-3).
+          resonantCount: summary.resonantCount,
           // 일주 별명 + 엇갈림 — 랜딩/OG 를 카드처럼 차트-고유하게 만드는 훅.
           iljuLine: summary.iljuLine ?? undefined,
           clash: summary.clash ?? undefined,
@@ -181,7 +182,8 @@ export function ShareReportButton({ summary, name, dateLabel, isKo }: ShareRepor
     setBlob(null)
   }
 
-  const filename = `destinypal-type-${dateLabel.replace(/[^0-9a-zA-Z]+/g, '-')}.png`
+  // 파일명에도 생년월일을 넣지 않는다(공유 시트·메신저에 그대로 노출됨).
+  const filename = 'destinypal-type.png'
 
   const handleNativeShare = async () => {
     if (!blob) return

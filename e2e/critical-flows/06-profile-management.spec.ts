@@ -113,20 +113,6 @@ test.describe('Profile Management Flow', () => {
     }
   })
 
-  test("should display user's reading history", async ({ page }) => {
-    await page.goto('/myjourney/history', { waitUntil: 'domcontentloaded' })
-    await expect(page.locator('body')).toBeVisible()
-
-    const bodyText = await page.textContent('body')
-    const hasHistory =
-      bodyText?.includes('기록') ||
-      bodyText?.includes('history') ||
-      bodyText?.includes('이력') ||
-      bodyText!.length > 200
-
-    expect(hasHistory).toBe(true)
-  })
-
   test('should fetch user history via API', async ({ page }) => {
     const response = await page.request.get('/api/me/history', {})
 
@@ -138,17 +124,6 @@ test.describe('Profile Management Flow', () => {
     }
   })
 
-  test("should display user's circle/social connections", async ({ page }) => {
-    await page.goto('/myjourney/circle', { waitUntil: 'domcontentloaded' })
-    await expect(page.locator('body')).toBeVisible()
-
-    const bodyText = await page.textContent('body')
-    const hasCircle =
-      bodyText?.includes('circle') || bodyText?.includes('친구') || bodyText?.includes('인연')
-
-    expect(hasCircle).toBe(true)
-  })
-
   test('should fetch user circle via API', async ({ page }) => {
     const response = await page.request.get('/api/me/circle', {})
 
@@ -157,18 +132,6 @@ test.describe('Profile Management Flow', () => {
       expect(data).toBeDefined()
     } else {
       expect(response.status()).toBeGreaterThanOrEqual(401)
-    }
-  })
-
-  test('should navigate through myjourney sections', async ({ page }) => {
-    const sections = ['/myjourney', '/myjourney/profile', '/myjourney/history', '/myjourney/circle']
-
-    for (const section of sections) {
-      await page.goto(section, { waitUntil: 'domcontentloaded' })
-      await expect(page.locator('body')).toBeVisible()
-
-      const currentUrl = page.url()
-      expect(currentUrl).toContain('myjourney')
     }
   })
 
@@ -217,23 +180,6 @@ test.describe('Profile Management Flow', () => {
       bodyText!.length > 100
 
     expect(hasStatusInfo).toBe(true)
-  })
-
-  test('should display credit information in profile', async ({ page }) => {
-    await page.goto('/myjourney', { waitUntil: 'domcontentloaded' })
-
-    await page.waitForTimeout(2000)
-
-    const bodyText = await page.textContent('body')
-    const hasCredits =
-      bodyText?.includes('크레딧') ||
-      bodyText?.includes('credit') ||
-      bodyText?.includes('포인트') ||
-      bodyText?.includes('로그인') ||
-      bodyText?.includes('Sign in') ||
-      bodyText!.length > 100
-
-    expect(hasCredits).toBe(true)
   })
 
   test('should allow user to delete account', async ({ page }) => {

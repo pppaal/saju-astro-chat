@@ -91,7 +91,7 @@ vi.mock('@/lib/llm/claude', () => ({
   isClaudeAvailable: vi.fn().mockReturnValue(true),
 }))
 
-vi.mock('@/lib/metrics/index', () => ({
+vi.mock('@/lib/metrics', () => ({
   recordCounter: vi.fn(),
 }))
 
@@ -102,7 +102,7 @@ vi.mock('@/lib/logger', () => ({
 import { GET, POST } from '@/app/api/tarot/daily/route'
 import { cacheGet, cacheSet, cacheIncr } from '@/lib/cache/redis-cache'
 import { callClaude, extractJsonObject, isClaudeAvailable } from '@/lib/llm/claude'
-import { recordCounter } from '@/lib/metrics/index'
+import { recordCounter } from '@/lib/metrics'
 
 function makeReq(headers: Record<string, string> = {}) {
   return new NextRequest('http://localhost:3000/api/tarot/daily', {

@@ -11,10 +11,12 @@
 // 호출자는 항상 이 helper 만 사용. 직접 `new Date(...)` 또는 `Date.UTC(...)` 로
 // 출생 시각 만들기 금지 — 그건 곧 같은 클래스 버그 재발.
 
-import { toDate } from 'date-fns-tz'
+import { resolveBirthInstantFromDate } from './resolveBirthInstant'
 
 /**
  * 출생 시각 (또는 임의 wall-clock 시각) 을 UTC instant 로 정규화.
+ * resolveBirthInstant(OD-3, RFC 5545 — 공백은 직전 offset, 겹침은 첫 번째)의 문자열
+ * 래퍼 — 사주·점성과 같은 instant 를 낸다. 잘못된 입력이면 Invalid Date.
  *
  * @param dateStr "YYYY-MM-DD"
  * @param timeStr "HH:mm"
@@ -22,11 +24,11 @@ import { toDate } from 'date-fns-tz'
  * @returns UTC Date — 모든 도메인 계산의 single ground truth
  */
 export function buildBirthInstant(dateStr: string, timeStr: string, timezone: string): Date {
-  return toDate(`${dateStr}T${timeStr}:00`, { timeZone: timezone })
+  const m = /^(\d{1,2}):(\d{2})$/.exec(String(timeStr ?? '').trim())
+  if (!m) return new Date(Number.NaN)
+  try {
+    return resolveBirthInstantFromDate(dateStr, Number(m[1]), Number(m[2]), timezone).utc
+  } catch {
+    return new Date(Number.NaN)
+  }
 }
-
-/**
- * Date 가 이미 UTC instant 라는 계약을 명시하는 type alias.
- * 호출자가 이 타입으로 받으면 "재해석 금지" 의도가 시그니처에 드러남.
- */
-export type BirthInstant = Date

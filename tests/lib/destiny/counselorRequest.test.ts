@@ -43,7 +43,7 @@ describe('resolveCounselorLang — 단일 출처 언어 도출', () => {
   })
 })
 
-describe('resolveUserTz — userTimezone > timezone > 서울', () => {
+describe('resolveUserTz — userTimezone > 출생 tz(명시 → 좌표) > 기준 존', () => {
   it('userTimezone 우선', () => {
     expect(resolveUserTz({ userTimezone: 'America/New_York', timezone: 'Asia/Seoul' })).toBe(
       'America/New_York'
@@ -52,7 +52,20 @@ describe('resolveUserTz — userTimezone > timezone > 서울', () => {
   it('userTimezone 없으면 timezone', () => {
     expect(resolveUserTz({ timezone: 'Europe/Paris' })).toBe('Europe/Paris')
   })
-  it('둘 다 없으면 서울', () => {
+  it('둘 다 없으면 기준 존(서울)', () => {
     expect(resolveUserTz({})).toBe('Asia/Seoul')
+  })
+  it('tz 없이 출생 좌표만 → 그 좌표의 tz (뉴욕 출생이 서울 날짜를 받지 않게)', () => {
+    expect(resolveUserTz({ latitude: 40.7128, longitude: -74.006 })).toBe('America/New_York')
+  })
+  it('출생지 미상이면 좌표는 폴백이라 쓰지 않는다', () => {
+    expect(resolveUserTz({ latitude: 40.7128, longitude: -74.006, birthCityUnknown: true })).toBe(
+      'Asia/Seoul'
+    )
+  })
+  it('잘못된 userTimezone 은 건너뛴다', () => {
+    expect(resolveUserTz({ userTimezone: 'Not/A_Zone', timezone: 'Europe/Paris' })).toBe(
+      'Europe/Paris'
+    )
   })
 })

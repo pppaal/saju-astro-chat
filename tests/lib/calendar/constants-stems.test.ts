@@ -218,11 +218,17 @@ describe('XING (형)', () => {
     expect(Object.keys(XING)).toHaveLength(12)
   })
 
-  it('寅巳申 form mutual punishment', () => {
-    expect(XING['寅']).toContain('巳')
-    expect(XING['寅']).toContain('申')
-    expect(XING['巳']).toContain('寅')
-    expect(XING['巳']).toContain('申')
+  // 삼형 세트 중 충 페어(寅申·丑未)는 형이 아니다(hyeong.isHyeong canon, SD-07).
+  it('寅巳申: 巳 punishes both, 寅申 is a clash only', () => {
+    expect(XING['寅']).toEqual(['巳'])
+    expect(XING['申']).toEqual(['巳'])
+    expect(XING['巳']).toEqual(['寅', '申'])
+  })
+
+  it('丑戌未: 戌 punishes both, 丑未 is a clash only', () => {
+    expect(XING['丑']).toEqual(['戌'])
+    expect(XING['未']).toEqual(['戌'])
+    expect(XING['戌']).toEqual(['丑', '未'])
   })
 
   it('self-punishment branches', () => {

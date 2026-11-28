@@ -8,7 +8,7 @@ vi.mock('@/components/report/integrated/IntegratedReport.module.css', () => ({
 
 import { buildNatalContext } from '@/lib/calendar-engine/context/build'
 import { getTwelveStagesForPillars } from '@/lib/saju/shinsal'
-import { natalToReportData, buildCrossRows } from '@/components/report/integrated/adapter'
+import { natalToReportData, buildCrossRows } from '@/lib/report/integratedAdapter'
 import { IntegratedReport } from '@/components/report/integrated/IntegratedReport'
 
 describe('EN report parity', () => {

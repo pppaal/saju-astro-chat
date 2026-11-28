@@ -13,7 +13,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import * as htmlToImage from 'html-to-image'
 import { Share2, Download, Loader2, X, Link2, Check } from 'lucide-react'
-import { apiFetch } from '@/lib/api'
+import { apiFetch } from '@/lib/api/client'
 import { logger } from '@/lib/logger'
 import { makeShareQr } from '@/lib/share/qr'
 import {
@@ -21,7 +21,7 @@ import {
   COMPAT_SHARE_CARD_SIZE,
   type CompatShareCardData,
 } from './CompatShareCard'
-import type { CompatInviter } from '@/lib/tarot/shareLink'
+import type { CompatInviter } from '@/lib/share/shareLink'
 import { trackFunnel } from '@/lib/metrics/trackFunnel'
 
 export type CompatShareData = CompatShareCardData
@@ -35,9 +35,10 @@ export function ShareCompatibilityButton({
   inviter?: CompatInviter
 }) {
   const isKo = data.isKo
-  // 기본 ON — 프리필(친구가 자기 생일만 넣으면 됨)이 바이럴 전환의 핵심이라 켜둔다.
-  // 체크박스는 항상 보이고 문구에 "내 생년월일 포함"을 명시해 한 번에 끌 수 있다.
-  const [allowInvite, setAllowInvite] = useState(true)
+  // 기본 OFF(프라이버시 기본값) — 켜야만 내 출생정보가 공유 레코드에 저장된다.
+  // 켜면 친구는 자기 생일만 넣고 바로 "우리 궁합"을 보지만, 내 출생정보는 서버에서
+  // 계산에만 쓰이고 친구에게는 결과만 간다(/api/compatibility/share/invite).
+  const [allowInvite, setAllowInvite] = useState(false)
   const cardRef = useRef<HTMLDivElement>(null)
   // 'idle' | 'rendering'(캡처 중) | 'preview'(모달)
   const [phase, setPhase] = useState<'idle' | 'rendering' | 'preview'>('idle')
@@ -66,7 +67,7 @@ export function ShareCompatibilityButton({
           // 점수/등급을 링크에 실어 미리보기(OG/공개 페이지)에 큰 숫자 후크가 뜨게 한다.
           ...(typeof data.score === 'number' ? { score: data.score } : {}),
           ...(data.grade ? { grade: data.grade } : {}),
-          // 옵트인 했을 때만 공유자 출생정보를 링크에 실어 2-player 프리필 활성화.
+          // 옵트인 했을 때만 공유자 출생정보를 공유 레코드에 저장(서버 페어링용).
           ...(allowInvite && inviter ? { inviter } : {}),
         }),
       })
@@ -329,9 +330,9 @@ export function ShareCompatibilityButton({
               style={{ aspectRatio: '1 / 1', objectFit: 'cover' }}
             />
 
-            {/* 켜면 링크에 내 출생정보가 실려, 친구가 자기 생일만 넣고 바로
-                "우리 궁합"을 본다(2-player 프리필). 기본 ON — 문구에 포함 사실을
-                명시하고 체크박스로 언제든 끌 수 있다. */}
+            {/* 켜면 내 출생정보가 링크의 공유 레코드에 90일간 저장돼, 친구가 자기
+                생일만 넣고 바로 "우리 궁합"을 본다. 계산은 서버에서 하고 친구에겐
+                결과만 간다. 기본 OFF — 문구에 무엇이 저장되는지 명시한다. */}
             {inviter ? (
               <label
                 className="flex items-start gap-2 mb-3 text-xs cursor-pointer"
@@ -345,8 +346,8 @@ export function ShareCompatibilityButton({
                 />
                 <span>
                   {isKo
-                    ? '친구가 나와의 궁합을 바로 보게 하기 (내 생년월일이 링크에 포함돼요)'
-                    : 'Let friends check their match with me (your birth date is included in the link)'}
+                    ? '친구가 나와의 궁합을 바로 보게 하기 (내 성별·생년월일·태어난 시각·출생지가 링크와 함께 90일간 서버에 저장돼요. 친구에게는 궁합 결과만 보여요)'
+                    : 'Let friends check their match with me (your gender, birth date, time and place are stored on our server with the link for 90 days; friends only see the match result)'}
                 </span>
               </label>
             ) : null}
@@ -419,5 +420,3 @@ export function ShareCompatibilityButton({
     </>
   )
 }
-
-export default ShareCompatibilityButton

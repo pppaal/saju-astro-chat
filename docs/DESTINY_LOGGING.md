@@ -38,8 +38,10 @@ Behavior:
 - Production: single-line JSON (`level`, `message`, `timestamp`, `context`, `error`)
   for log collectors.
 - `warn` and `error` in production are additionally forwarded to Sentry via
-  `@/lib/telemetry` (`captureServerError`). Forwarding failures are swallowed to
-  avoid a logging loop.
+  `@/lib/logger/sentrySink` (`captureToSentry`, server side only). Forwarding
+  failures are swallowed to avoid a logging loop. `@/lib/telemetry`
+  (`captureServerError`, `captureException`) uses the same sink and must not
+  import the logger, so there is no logger <-> telemetry import cycle.
 
 The logger writes to the console / Sentry only. It does **not** write to the
 database, and there is no `UserInteraction` (or destiny-envelope) write path.
@@ -60,20 +62,19 @@ decision trace.
 
 ## In-Process Metrics
 
-`src/lib/metrics.ts` is an in-memory counter/timer/gauge registry
+`src/lib/metrics/core.ts` is an in-memory counter/timer/gauge registry
 (`recordCounter`, `recordTiming`, `recordGauge`, `getMetricsSnapshot`,
-`resetMetrics`, `toPrometheus`, `toOtlp`). `src/lib/metrics/index.ts` re-exports
-it and adds standardized helpers (`recordApiRequest`, `recordServiceOperation`,
+`resetMetrics`, `toPrometheus`, `toOtlp`). `src/lib/metrics/index.ts` (imported as
+`@/lib/metrics`) re-exports it and adds standardized helpers (`recordApiRequest`, `recordServiceOperation`,
 `recordAuthEvent`, `recordRateLimitHit`, `recordCreditUsage`, `recordExternalCall`,
 `recordCacheOperation`). `src/lib/metrics/schema.ts` defines the metric registry,
 standard labels, and SLA thresholds (p95 < 700ms, error rate < 0.5%).
 
-Metrics live in process memory (not persisted) and are exposed through
-`src/app/api/admin/metrics/route.ts` (admin-only):
-
-- default JSON dashboard summary
-- `?format=prometheus`
-- `?format=otlp`
+Metrics live in process memory (not persisted). There is no HTTP endpoint for
+them any more: the admin-only `/api/admin/metrics` route (JSON / Prometheus /
+OTLP export) had no caller and was removed in 2026-11. Read them in-process with
+`getMetricsSnapshot()`, `toPrometheus()` or `toOtlp()` if you need them. The
+`/admin` overview reads DB counts from `/api/admin/overview` instead.
 
 `destiny.report.*`, `tarot.reading.*`, and `astrology.chart.*` metric names are
 defined in the registry, but emission is sparse — only a few routes record
@@ -89,9 +90,9 @@ The only persisted per-request log is the anonymous visit beacon:
 
 It stores a daily-rotating salted visitor hash (no raw IP/UA), pathname,
 referrer host, login flag, optional `userId`, coarse country, and device class.
-Writes are best-effort (DB failure is swallowed and returns `200`). Admin funnel
-and visitor dashboards read from this table
-(`src/app/api/admin/metrics/funnel/route.ts`, `src/app/api/admin/visitors/route.ts`).
+Writes are best-effort (DB failure is swallowed and returns `200`). The admin
+visitor and free-funnel dashboards read from this table
+(`src/app/api/admin/visitors/route.ts`, `src/app/api/admin/free-funnel/route.ts`).
 
 ## UserInteraction Model
 
@@ -103,7 +104,7 @@ destiny logging mechanism the old doc proposed. Do not document it as active.
 ## Summary
 
 - Diagnostics: `src/lib/logger` → console + Sentry (warn/error in prod).
-- Monitoring: `src/lib/metrics` → in-memory, exposed at `/api/admin/metrics`.
+- Monitoring: `src/lib/metrics` → in-memory only (no HTTP export endpoint).
 - Persisted analytics: `PageView` via `/api/track/visit`.
 - Not implemented: the destiny-envelope / `UserInteraction` event schema and the
   per-answer decision trace described in the pre-restructure plan.

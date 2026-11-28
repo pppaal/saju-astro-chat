@@ -85,7 +85,7 @@ export interface UseClarifierCardOptions {
   excludeCardNames?: string[]
 }
 
-export interface ClarifierButtonProps {
+interface ClarifierButtonProps {
   onClick: () => void
   disabled: boolean
   'aria-disabled': boolean

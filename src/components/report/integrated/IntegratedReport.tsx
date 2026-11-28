@@ -16,7 +16,7 @@ import {
   DIGNITY_TIER_FRIENDLY,
   DIGNITY_TIER_TOOLTIP,
   ASPECT_FRIENDLY,
-} from './reportTypes'
+} from '@/lib/report/reportTypes'
 import {
   getGeokgukRich,
   getSibsinCategory,
@@ -43,7 +43,6 @@ import {
   relationTypeLabel,
   SIGN_TRAIT,
   TONE_LABEL,
-  elClass,
   TONE_COLOR,
   stemEl,
   branchEl,
@@ -61,7 +60,8 @@ import {
   stageHover,
   elementLabel,
   signLabel,
-} from './integratedReportLabels'
+} from '@/lib/report/integratedReportLabels'
+import { elClass } from './elementClass'
 
 import { GLOSSARY, type GlossarySection } from './reportGlossary'
 import { groupByTheme, buildHealthCard, THEME_DEFS } from './reportThemes'
@@ -72,10 +72,12 @@ import PlanetDetail from './detail/PlanetDetail'
 import HouseDetail from './detail/HouseDetail'
 import AspectDetail from './detail/AspectDetail'
 import ViralTopCard from './viral/ViralTopCard'
-import { buildViralSummary, normalizeStrength, pickHeadlineSibsin } from './viral/viralArchetype'
+import { buildViralSummary, normalizeStrength } from '@/lib/report/viralArchetype'
+import { pickHeadlineSibsin } from '@/lib/report/crossType'
+import { tallyCrossRows } from '@/lib/report/natalCross'
 import { ShareReportButton } from './viral/ShareReportButton'
 
-export type { Lang } from './integratedReportLabels'
+export type { Lang } from '@/lib/report/integratedReportLabels'
 
 // 통합 교차 카테고리 → 평어 한 줄 뜻. 동·서양이 같이 가리키는 주제를 맨 위 훅과
 // §05 목록에서 "라벨 — 쉬운 뜻"으로 읽히게 한다. 사용자별 하드코딩이 아니라
@@ -165,10 +167,10 @@ const CATEGORY_MEANING: Record<string, BiLabel> = {
 }
 
 // 카르마/성장 축은 resonant·tension 같은 '톤'이 아니라 평생 숙제 축이라, 톤 막대·
-// 톤별 조언·바이럴 요약에서 모두 빼야 한다. cross row 의 `karmaAxis` 플래그는
-// 매칭 분기에서만 켜져 중립 카르마 행을 놓치므로, 카테고리 기반으로 일관 판정한다.
-const KARMA_CATEGORIES = new Set(['공망/카르마', '성장 방향', 'Void / Karma', 'Growth Direction'])
-const isKarmaRow = (r: { category: string }) => KARMA_CATEGORIES.has(r.category)
+// 톤별 조언·바이럴 요약에서 모두 빼야 한다. 엔진(evalVoid·evalNorthNode)이 두 축의
+// 모든 분기에 `karmaAxis` 를 달아 주므로, 그 플래그 하나로 판정한다 — 표시 라벨(ko/en)
+// 문자열에 기대던 카테고리 목록은 도입부 집계(synthesize)와 규칙이 갈라졌었다.
+const isKarmaRow = (r: { karmaAxis?: boolean }) => r.karmaAxis === true
 // 엇갈림(clash) 훅 선택 우선순위 — 서술자(left/right)를 내는 교차 축은 욕망(needs)·
 // 기질(temperament)·정체성(identity) 셋뿐이다. 정체성은 tension 이 가장 흔해 그대로
 // 두면 clash 가 '정체성'으로 몰린다(친구끼리 훅 겹침). 더 개인적이고 서로 독립적인
@@ -519,6 +521,10 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
     Porphyry: '포르피리우스',
   }
   const houseSysLabel = (hs: string): string => (lang === 'en' ? hs : (HOUSE_SYS_KO[hs] ?? hs))
+  // 하우스 미상 — 출생시각/출생지 미상(placeUnreliable). 어댑터가 house=0·houses=[] 로 비워
+  // 보내는데, 이를 '0H'·'빈 하우스'로 그리지 않고 미상으로 표시한다(CALCULATION_SPEC §6, 감사 CR-5).
+  // 옛 데이터(플래그 없음)는 커스프가 비었으면 미상으로 본다.
+  const houseUnknown = !!A.placeUnreliable || (A.houses ?? []).length === 0
   // 표준시: KO 는 IANA 식별자(Asia/Seoul) 를 빼고 UTC 오프셋만 노출.
   const tzLabel = (tz: string): string => {
     if (lang === 'en') return tz
@@ -606,12 +612,15 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
     resonant: (cross?.rows ?? [])
       .filter((r) => r.tone === 'resonant' && !isKarmaRow(r))
       .map((r) => r.category),
+    // 공유 미리보기의 "N가지 일치"가 톤 막대·도입부와 같은 수를 말하도록 전체 수를 함께(CR-3).
+    resonantCount: tallyCrossRows(cross?.rows ?? []).same,
     yongsinElement: S.yongsin.primary,
     strength: S.strength,
     // 차트 합성 헤드라인 — 명식 전체 주도 십성으로 사람마다 다른 유형/한 줄, 마찰 있으면
     // 콕 집는 줄. 일지(배우자궁)가 아니라 최빈 십성을 써야 "완전 나"가 정체와 맞는다(C1).
     dominantSibsin: headlineSibsin,
-    hasTension: (cross?.rows ?? []).some((r) => r.tone === 'tension'),
+    // 결핍(카르마/성장) 축의 tension 은 동·서양 '엇갈림'이 아니라 숙제 축이라 제외.
+    hasTension: (cross?.rows ?? []).some((r) => r.tone === 'tension' && !isKarmaRow(r)),
     // 일주(60갑자) 별명 — 십성×강약만으론 친구끼리 카드 문장이 겹쳐 60-way 축 추가.
     iljuCharacter: ilju?.character ?? null,
     // 동·서양이 실제로 엇갈린 지점(우선순위로 고른 tension) — 카드 ⚡ 현실 모순 훅.
@@ -628,6 +637,9 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
     left?: string
     right?: string
     reason: string
+    /** 사주 단독 카드(체질 경향) — 교차 톤 배지·사주/점성 쌍 대신 사실 한 줄. */
+    sajuOnly?: boolean
+    facts?: string
   }
   const themesSection =
     cross && cross.rows.length > 0 ? (
@@ -638,13 +650,16 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
         </div>
         <p className={s.chapterLead}>{t('sec05Lead')}</p>
         <Explain section="s05" lang={lang} />
-        {/* 톤 분포 막대 — 사주×별자리가 얼마나 같은/다른 결인지 한눈에. */}
+        {/* 톤 분포 막대 — 사주×별자리가 얼마나 같은/다른 결인지 한눈에.
+            도입부 문장(synthesize)과 같은 tallyCrossRows 로 세어 숫자가 일치한다. */}
         {(() => {
-          const counts = { resonant: 0, complement: 0, tension: 0, neutral: 0 }
-          cross.rows.forEach((r) => {
-            if (isKarmaRow(r)) return
-            counts[r.tone]++
-          })
+          const tally = tallyCrossRows(cross.rows)
+          const counts = {
+            resonant: tally.same,
+            complement: tally.supportive,
+            tension: tally.twoPulls,
+            neutral: tally.unrelated,
+          }
           const segs = (['resonant', 'complement', 'tension', 'neutral'] as const).filter(
             (k) => counts[k] > 0
           )
@@ -672,7 +687,9 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
             </div>
           )
         })()}
-        {/* 테마 그룹 — 6개 큰 주제로 묶고, 건강은 오행 기반 카드로 합류. */}
+        {/* 테마 그룹 — 6개 큰 주제로 묶고, 건강은 오행 기반 카드로 합류. 체질 경향 카드는
+            사주(오행·용신)만으로 만든 사주 단독 카드라 교차 톤 배지·'점성이 보는 결' 없이
+            사실 한 줄로 그린다(감사 CR-4) — 보이는 교차 톤 배지는 교차 행에서만 나온다. */}
         {(() => {
           const groups = groupByTheme(cross.rows)
           const health = buildHealthCard(S.fiveElements, S.yongsin?.primary, lang)
@@ -701,9 +718,16 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
                           <span className={s.themeGloss}>{categoryMeaning(r.category, lang)}</span>
                         )}
                       </span>
-                      <span className={s.themeBadge}>{TONE_LABEL[r.tone][lang]}</span>
+                      <span className={s.themeBadge}>
+                        {r.sajuOnly ? t('healthBadge') : TONE_LABEL[r.tone][lang]}
+                      </span>
                     </div>
-                    {r.left && r.right && (
+                    {r.sajuOnly && r.facts && (
+                      <div className={s.themeSideV} style={{ marginTop: 6 }}>
+                        {r.facts}
+                      </div>
+                    )}
+                    {!r.sajuOnly && r.left && r.right && (
                       <div className={s.themeCross}>
                         <div className={s.themeSide}>
                           <div className={s.themeSideK}>{t('sajuSide')}</div>
@@ -812,6 +836,13 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
             <span>{t('timeUnknownBody')}</span>
           </div>
         )}
+        {/* 출생지만 미상 — 시각은 알아도 하우스·상승점은 출생지가 있어야 계산된다(감사 CR-5). */}
+        {!input.birthTimeUnknown && input.birthCityUnknown && (
+          <div className={s.timeUnknownNote} role="note">
+            <b>⚠ {t('cityUnknownTitle')}</b>
+            <span>{t('cityUnknownBody')}</span>
+          </div>
+        )}
 
         {/* ── 바이럴 한 장 요약 — 유형 별명 + 소름 한 줄 + 동·서양 일치 + 궁합.
             매칭(일간 10간) 없으면 자동 생략하고 기존 히어로만 노출. ── */}
@@ -819,14 +850,7 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
           <ViralTopCard
             summary={viral}
             lang={lang}
-            action={
-              <ShareReportButton
-                summary={viral}
-                name={input.name}
-                dateLabel={input.date}
-                isKo={lang === 'ko'}
-              />
-            }
+            action={<ShareReportButton summary={viral} isKo={lang === 'ko'} />}
           />
         )}
 
@@ -919,7 +943,13 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
               [t('metaTz'), tzLabel(input.timeZone)],
               [
                 t('metaHouse'),
-                `${houseSysLabel(A.houseSystem)} · ${A.sect === 'day' ? t('day') : t('night')}`,
+                // 하우스 미상(placeUnreliable)이면 계산법 대신 '미상' — 계산하지 않은 하우스의
+                // 방식을 내세우지 않는다(CR-5). 섹트 미상(null)이면 낮/밤을 붙이지 않는다(OD-5).
+                `${houseUnknown ? t('houseUnknownMeta') : houseSysLabel(A.houseSystem)}${
+                  A.sect === 'day' || A.sect === 'night'
+                    ? ` · ${A.sect === 'day' ? t('day') : t('night')}`
+                    : ''
+                }`,
               ],
             ].map(([k, v]) => (
               <div className={s.metaCell} key={k}>
@@ -1396,7 +1426,10 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
                               {SIGN_META[abbr(p.sign)]?.glyph} {signLabel(abbr(p.sign), lang)}
                             </td>
                             <td className={s.plD}>{p.deg}</td>
-                            <td className={s.plH}>{p.house}H</td>
+                            <td className={s.plH}>
+                              {/* 하우스 미상(0)은 '0H' 가 아니라 '—'(CR-5). */}
+                              {!houseUnknown && p.house > 0 ? `${p.house}H` : '—'}
+                            </td>
                             <td className={s.plR}>{'retro' in p && p.retro ? '℞' : ''}</td>
                           </tr>
                         ))}
@@ -1408,28 +1441,35 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
                     {t('retroLegend')}
                   </div>
                   <div className={s.axes}>
+                    {/* ASC/MC 가 미상(null)이면 빈 칸으로 그리지 않는다 — 휠과 같은 규칙(CR-5). */}
                     {[
                       [lang === 'en' ? 'First impression' : '첫인상', A.ascendant],
                       [lang === 'en' ? 'Public face' : '사회적 위치', A.mc],
-                    ].map(([lab, ax]) => {
-                      const a = ax as { sign: string; deg: string }
-                      return (
-                        <div className={s.axisItem} key={lab as string}>
-                          <span>{lab as string}</span>
-                          <b className={elClass[SIGN_META[abbr(a.sign)]?.el]}>
-                            {SIGN_META[abbr(a.sign)]?.glyph} {a.deg}
-                          </b>
-                        </div>
-                      )
-                    })}
-                    <div className={s.axisItem}>
-                      <span>{t('sectLab')}</span>
-                      <b>{A.sect === 'day' ? t('sectDay') : t('sectNight')}</b>
-                    </div>
-                    <div className={s.axisItem}>
-                      <span>{t('houseLab')}</span>
-                      <b>{houseSysLabel(A.houseSystem)}</b>
-                    </div>
+                    ]
+                      .filter(([, ax]) => !!(ax as { sign: string | null }).sign)
+                      .map(([lab, ax]) => {
+                        const a = ax as { sign: string; deg: string }
+                        return (
+                          <div className={s.axisItem} key={lab as string}>
+                            <span>{lab as string}</span>
+                            <b className={elClass[SIGN_META[abbr(a.sign)]?.el]}>
+                              {SIGN_META[abbr(a.sign)]?.glyph} {a.deg}
+                            </b>
+                          </div>
+                        )
+                      })}
+                    {(A.sect === 'day' || A.sect === 'night') && (
+                      <div className={s.axisItem}>
+                        <span>{t('sectLab')}</span>
+                        <b>{A.sect === 'day' ? t('sectDay') : t('sectNight')}</b>
+                      </div>
+                    )}
+                    {!houseUnknown && (
+                      <div className={s.axisItem}>
+                        <span>{t('houseLab')}</span>
+                        <b>{houseSysLabel(A.houseSystem)}</b>
+                      </div>
+                    )}
                   </div>
                   {/* 6하우스 그리드 제거 — 아래 HouseDetail 이 12하우스 전체를 풀이로 대체. */}
                 </div>
@@ -1516,11 +1556,8 @@ export function IntegratedReport({ data, cross, lang = 'ko' }: IntegratedReportP
                       <div className={s.bigPrin}>{cd.core.principle}</div>
                       {(() => {
                         if (!hasSign) {
-                          // 상승궁은 정확한 출생 시각이 있어야 계산된다.
-                          const note =
-                            lang === 'en'
-                              ? "Your birth time is missing, so this sign can't be calculated yet — add an exact birth time to reveal it."
-                              : '출생 시각이 없어 별자리를 계산할 수 없어요 — 정확한 출생 시각을 넣으면 나타나요.'
+                          // 상승궁은 정확한 출생 시각과 출생지가 있어야 계산된다 — 빠진 쪽을 정직하게.
+                          const note = input.birthTimeUnknown ? t('ascNoTime') : t('ascNoPlace')
                           return <div className={s.bigRead}>{note}</div>
                         }
                         // 점성 해석 — 행성(역할) × 별자리(색) × 하우스(무대)를 한 문장으로.

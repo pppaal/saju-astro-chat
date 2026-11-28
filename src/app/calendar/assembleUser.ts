@@ -7,7 +7,7 @@
    같은 매핑이 같은 user 를 만들므로 두 surface 의 본명 요약이 어긋나지 않는다.
    ============================================================ */
 
-import { toUser } from '@/components/calendar/adapters'
+import { toUser } from '@/lib/calendar-view'
 import type { NatalContext } from '@/lib/calendar-engine/context/types'
 import type { DestinyUserSummary } from '@/types/calendar'
 
@@ -65,10 +65,8 @@ export function assembleUserSummary(
       ascEn: userBase.astro.ascEn!,
       mcEn: userBase.astro.mcEn!,
     },
-    dignities: userBase.dignities,
     almutenFiguris: userBase.almutenFiguris,
     sect: userBase.sectKind,
-    lots: userBase.lotsFull,
     intro: userBase.intro,
     introEn: userBase.introEn,
     gyeokgukStatus: userBase.geokgukStatus,

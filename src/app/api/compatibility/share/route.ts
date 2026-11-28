@@ -22,10 +22,10 @@ import {
   createShareLink,
   getShareLink,
   isCompatShare,
-  siteBaseUrl,
   type CompatShareLinkPayload,
-} from '@/lib/tarot/shareLink'
-import { recordCounter } from '@/lib/metrics/index'
+} from '@/lib/share/shareLink'
+import { siteBaseUrl } from '@/lib/share/site'
+import { recordCounter } from '@/lib/metrics'
 import { bumpShareCreated } from '@/lib/metrics/shareCounts'
 import { rateLimit } from '@/lib/rateLimit'
 import { getClientIp } from '@/lib/request-ip'
@@ -34,7 +34,8 @@ import { logger } from '@/lib/logger'
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
-// 옵트인 시에만 실리는 공유자 출생정보 — 받은 사람의 2-player 프리필용.
+// 옵트인 시에만 실리는 공유자 출생정보 — 서버 페어링(/api/compatibility/share/invite)
+// 전용. 공유 레코드에만 저장되고 어떤 응답으로도 받은 사람에게 내려가지 않는다.
 const inviterSchema = z
   .object({
     name: z.string().trim().max(40).default(''),
@@ -110,10 +111,13 @@ export const POST = withApiMiddleware(
   createPublicStreamGuard({ route: '/api/compatibility/share', limit: 12, windowSeconds: 60 })
 )
 
-// 2-player 프리필 — 받은 사람이 ?token= 로 공유자(초대자) 출생정보만 받아 personA
-// 를 채운다. 옵트인 안 한 공유(inviter 없음)면 invite:null 로, 친구는 평소대로
-// 둘 다 입력. ID 스캔 방지용 IP 레이트리밋. verdict 등 민감하지 않은 표시값은
-// /r 페이지가 따로 보여주므로 여기선 inviter 만 노출(최소 권한).
+// 초대 확인 — 받은 사람 페이지가 ?token= 으로 "누가 초대했는지"(표시용 이름)만
+// 받는다. 공유자의 생년월일·시각·성별·도시·좌표·타임존은 내려보내지 않는다: 토큰은
+// /r 페이지 CTA 에 실린 공개값이라 전달·게시되면 누구나 이 GET 을 부를 수 있다.
+// 궁합 계산은 POST /api/compatibility/share/invite 가 서버에서 공유자 정보를 꺼내
+// 결과만 돌려준다. 옵트인 안 한 공유(inviter 없음)면 invite:null 로, 친구는 평소대로
+// 둘 다 입력. 예전 토큰도 같은 경로라 이제 출생정보 없이 이름만 돌려준다.
+// ID 스캔 방지용 IP 레이트리밋.
 export async function GET(req: NextRequest) {
   const ip = getClientIp(req.headers)
   const rl = await rateLimit(`compat:share:invite:${ip}`, { limit: 60, windowSeconds: 60 })
@@ -135,6 +139,6 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ invite: null })
   }
   return NextResponse.json({
-    invite: reading.inviter ? { nameA: reading.nameA, inviter: reading.inviter } : null,
+    invite: reading.inviter ? { name: reading.inviter.name || reading.nameA } : null,
   })
 }

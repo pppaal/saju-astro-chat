@@ -19,55 +19,32 @@ import {
 } from '@/lib/calendar-engine/derivers/layeredScore'
 import { CALENDAR_BANDS } from '@/lib/calendar-engine/derivers/constants'
 import { personSeed } from '@/lib/calendar-engine/derivers/personSeed'
-import { translateSignalLabel } from '@/lib/calendar-engine/derivers/signalI18n'
 import { isMinorAge, minorSafeText, sanitizeCrossEntry } from '@/lib/calendar-engine/minorSafe'
 import { computeDayPillarIndices } from '@/lib/saju/dayPillar'
 import { STEM_NAMES, BRANCH_NAMES } from '@/lib/saju/constants'
-import { SIBSIN_EN } from '@/lib/saju/sibsinLabels'
 import { currentManAge } from '@/lib/datetime/currentAge'
-import { toUser, toDay } from '@/components/calendar/adapters'
-import { reconcileCellOneLine } from '@/components/calendar/adapters/toDay'
-import { buildHourCrossings } from '@/components/calendar/adapters/toHourCrossings'
-import { buildHourMoon } from '@/components/calendar/adapters/toHourMoon'
-import { crossKeys, stripCrossPair, PLANET_EN_FROM_KO } from './crossPair'
+import { toUser, toDay, bandMarkForScore } from '@/lib/calendar-view'
+import { reconcileCellOneLine, signalCat } from '@/lib/calendar-view/toDay'
+import { buildHourCrossings } from '@/lib/calendar-view/toHourCrossings'
+import { buildHourMoon } from '@/lib/calendar-view/toHourMoon'
+import {
+  natalPointLongitudes,
+  reasonAstroDetail,
+  withReasonDetail,
+  withTransitPositions,
+} from '@/lib/calendar-view/astroDetail'
+import {
+  crossKeys,
+  stripCrossPair,
+  PLANET_EN_FROM_KO,
+  pickDayReason,
+  pickDayReasonSignal,
+} from './crossPair'
+import { crossSajuEn } from '@/lib/calendar-engine/derivers/signalI18n'
 
 import type { NatalContext } from '@/lib/calendar-engine/context/types'
 import type { CalendarCell } from '@/lib/calendar-engine/types'
 import type { DestinyDay } from '@/types/calendar'
-
-const SIG_KIND_TO_CAT: Record<string, string> = {
-  shinsal: 'saju/shinsal',
-  hyeongchung: 'saju/hyeongchung',
-  'pillar-sibsin': 'saju/pillar-sibsin',
-  'tonggeun-shift': 'saju/tonggeun-shift',
-  'saju-pattern': 'saju/saju-pattern',
-  jijanggan: 'saju/jijanggan',
-  'geokguk-status': 'saju/geokguk-status',
-  gongmang: 'saju/gongmang',
-  'applied-pattern': 'saju/applied-pattern',
-  transit: 'astro/transit',
-  eclipse: 'astro/eclipse',
-  progression: 'astro/progression',
-  'progressed-moon': 'astro/progressed-moon',
-  'solar-return': 'astro/solar-return',
-  'lunar-return': 'astro/lunar-return',
-  profection: 'astro/profection',
-  'zodiacal-releasing': 'astro/zodiacal-releasing',
-  lifecycle: 'astro/lifecycle',
-  electional: 'astro/electional',
-  'moon-phase': 'astro/moon-phase',
-  'void-of-course': 'astro/void-of-course',
-  'fixed-star': 'astro/fixed-star',
-  'arabic-part': 'astro/arabic-part',
-  'house-transit': 'astro/house-transit',
-  'angle-contact': 'astro/angle-contact',
-  midpoint: 'astro/midpoint',
-  asteroid: 'astro/asteroid',
-  'solar-arc': 'astro/solar-arc',
-  draconic: 'astro/draconic',
-  harmonic: 'astro/harmonic',
-  'cross-activation': 'cross/activation',
-}
 
 /**
  * 다가오는 '큰 날' — upcoming(대상일 다음날~7일, 일점수) 중 '좋은 날'(band 기준)의
@@ -88,6 +65,29 @@ export function pickNextBigDay(
   if (Number.isNaN(d0) || Number.isNaN(d1)) return null
   const dDay = Math.round((d1 - d0) / 86_400_000)
   return dDay >= 1 ? { date: best.date, dDay, score: best.score } : null
+}
+
+const LAYER_RANK: Record<string, number> = {
+  hourly: 0,
+  instant: 1,
+  daily: 2,
+  monthly: 3,
+  yearly: 4,
+  decadal: 5,
+}
+
+/** 같은 페어 교차 행 중 무엇을 남길지 — |polarity| → weight → 짧은 layer 순. */
+function crossRowOutranks(
+  a: { polarity: number; weight?: number; layer?: string },
+  b: { polarity: number; weight?: number; layer?: string }
+): boolean {
+  if (Math.abs(a.polarity) !== Math.abs(b.polarity)) {
+    return Math.abs(a.polarity) > Math.abs(b.polarity)
+  }
+  const wa = a.weight ?? 0
+  const wb = b.weight ?? 0
+  if (wa !== wb) return wa > wb
+  return (LAYER_RANK[a.layer ?? ''] ?? 9) < (LAYER_RANK[b.layer ?? ''] ?? 9)
 }
 
 export interface AssembleDayTierInput {
@@ -174,17 +174,18 @@ export async function assembleDayTier(input: AssembleDayTierInput): Promise<Dest
   const statusResult = advanced?.geokguk?.statusResult
   const geokgukName = advanced?.geokguk?.primary ?? '미정'
 
-  // ── 일진 cell.signals → DestinySignal[] 풀세트 projection ──
-  // adapter 의 DestinypalDaySignal 은 id/weight/layer/source 를 버리는데 DayTier 의
-  // signal stream + FixedStarRow + ArabicLotRow 정렬·필터에 모두 필요.
-  type DSig = DestinyDay['allSignals'][number]
+  // ── 일진 cell.signals → 사주·점성 신호 projection (signals · transits) ──
+  // adapter 의 DestinypalDaySignal 은 id/weight/layer/source 를 버린다. 풀세트(옛 allSignals)와
+  // 교차 신호 배열(옛 crossSignals)은 옛 DayTier 만 읽던 페이로드라 D9 에서 뺐다 — 교차는
+  // crossActivations 가, 신호 풀세트는 셀이 정본.
+  type DSig = DestinyDay['signals'][number] | DestinyDay['transits'][number]
   const allDaySignals: DSig[] = dayCell.signals.map((s) => {
     const base = {
       id: s.id,
-      cat: SIG_KIND_TO_CAT[s.kind] ?? `${s.source}/${s.kind}`,
+      cat: signalCat(s.kind, s.source),
       label: s.name,
-      // 엔진이 EN 라벨을 별도 방출했으면(있을 때만) 보존 — DayTier 신호 스트림이
-      // EN 로케일에서 s.english 우선 사용(없으면 localizeLabel 폴백, KO 유지).
+      // 엔진이 EN 라벨을 별도 방출했으면(있을 때만) 보존 — EN 로케일에서 s.english 를
+      // 우선 쓴다(없으면 localizeLabel 폴백, KO 유지).
       english: s.english,
       polarity: s.polarity,
       weight: s.weight,
@@ -207,18 +208,25 @@ export async function assembleDayTier(input: AssembleDayTierInput): Promise<Dest
   const daySajuSignals = allDaySignals.filter(
     (s) => s.kind !== 'transit' && s.kind !== 'cross-activation'
   ) as DestinyDay['signals']
-  const dayCrossSignals = allDaySignals.filter(
-    (s) => s.kind === 'cross-activation'
-  ) as DestinyDay['crossSignals']
+  // 응용격국 — id 는 *패턴 id*('jae-saeng-gwan', 신호 id 의 날짜 꼬리 없이)라 표시층 EN 맵
+  // (appliedPatternEn)이 그대로 찾는다. name 은 한자 라벨('財生官')만 — 신호 name 은
+  // '財生官 (재생관)' 이라 EN 화면 보조 글리프에 한글이 샜다(재감사 SI-3). evidence 가 빠진
+  // 셀(연 캐시 폴백)은 신호 id·name 을 파싱한다.
   const dayAppliedPatterns: DestinyDay['appliedPatterns'] = dayCell.signals
     .filter((s) => s.kind === 'applied-pattern')
     .map((s) => ({
-      id: s.id,
-      name: s.name,
+      id:
+        typeof s.evidence?.detail?.patternId === 'string'
+          ? (s.evidence.detail.patternId as string)
+          : (/^saju\.applied-pattern\.([^.]+)\./.exec(s.id)?.[1] ?? s.id),
+      name:
+        typeof s.evidence?.detail?.hanja === 'string'
+          ? (s.evidence.detail.hanja as string)
+          : s.name.replace(/\s*\([^)]*\)\s*$/, ''),
       korean:
         typeof s.evidence?.detail?.korean === 'string'
           ? (s.evidence.detail.korean as string)
-          : s.name,
+          : (/\(([^)]+)\)\s*$/.exec(s.name)?.[1] ?? s.name),
       polarity: s.polarity,
       weight: s.weight,
       activeAxes: Array.isArray(s.evidence?.detail?.activeAxes)
@@ -230,33 +238,73 @@ export async function assembleDayTier(input: AssembleDayTierInput): Promise<Dest
   // name("편관 × 화성")에서 파싱 — detail.sajuName/astroName 은 존재하지 않는 필드라
   // 양쪽이 늘 빈 ↔ 로 떴다. name 파싱 + korean/english 로 교정. 같은 페어가 여러
   // 층(daily/monthly…)에서 잡혀 중복되므로 페어 기준 1개(가장 센 것)만 남긴다.
+  // 원천은 *월 빌드 셀*(monthPopCell) — 월 리드아웃(assembleTiers)의 '왜' 와 같은 교차
+  // 사실(엔진 감사 X1). 엔진이 범위 불변이라 포커스 1일 셀과 교차는 같지만, 같은 셀을
+  // 직접 읽어 두 화면이 구조적으로 못 갈리게 한다. evidence 가 빠진 월 셀도 crossKeys 가
+  // name 파싱으로 페어를 복원한다. 월 셀이 없을 때만 포커스 셀.
+  const crossSourceCell = monthPopCell ?? dayCell
   const dayCrossByPair = new Map<string, DestinyDay['crossActivations'][number]>()
-  for (const s of dayCell.signals) {
+  for (const s of crossSourceCell.signals) {
     if (s.kind !== 'cross-activation') continue
-    // 포커스일 셀은 evidence.detail 이 살아 있어 구조화 키를 직접 쓴다(견고).
+    // detail 이 살아 있으면 구조화 키, 없으면(월 캐시 셀) name 파싱.
     const { sajuKo, astroKo } = crossKeys(s)
     if (!sajuKo || !astroKo) continue
     const key = `${sajuKo}|${astroKo}`
     const prev = dayCrossByPair.get(key)
-    if (prev && Math.abs(prev.polarity) >= Math.abs(s.polarity)) continue
+    // 전순서(|polarity| → weight → layer) — 셀 안 신호 순서와 무관하게 같은 페어 행을 고른다.
+    if (prev && !crossRowOutranks(s, prev)) continue
     const ko = lang === 'ko'
+    const crossDetail = reasonAstroDetail(s)
     dayCrossByPair.set(key, {
       id: s.id,
-      sajuSide: ko ? sajuKo : (SIBSIN_EN[sajuKo] ?? translateSignalLabel(sajuKo, 'en')),
+      sajuSide: ko ? sajuKo : crossSajuEn(sajuKo),
       astroSide: ko ? astroKo : (PLANET_EN_FROM_KO[astroKo] ?? astroKo),
       sajuKo, // raw — 분야 라우팅이 로케일에 흔들리지 않게(EN 에선 영문이라 키워드 매칭 실패).
       astroKo,
-      // 양쪽 로케일 보관 — DayTier 가 클라이언트 로케일로 고른다(토글 불일치 방지).
+      // 양쪽 로케일 보관 — 일간 뷰모델(dayHero · dayViewModel)이 요청 로케일로 고른다(토글 불일치 방지).
       meaning: stripCrossPair(s.korean ?? ''),
       meaningEn: stripCrossPair(s.english ?? ''),
       polarity: s.polarity,
       weight: s.weight,
       layer: s.layer,
+      ...(crossDetail ? { astroDetail: crossDetail } : {}),
     })
   }
   const dayCrossActivations: DestinyDay['crossActivations'] = [...dayCrossByPair.values()].sort(
     (a, b) => Math.abs(b.polarity) - Math.abs(a.polarity)
   )
+
+  // ── 그날 '왜' 근거 — 월 리드아웃(assembleTiers cell.reason)과 같은 함수·같은 월 셀.
+  //    부호 게이트의 마크는 월 그리드와 같은 점수(layered.daily)·같은 밴드 규칙
+  //    (bandMarkForScore)에서 — best 크라운은 good 과 같은 부호라 구분할 필요가 없다.
+  //    점수가 없으면(월 셀 없음) 무색 → 어느 부호든.
+  const reasonScore = layered.daily.get(targetDayIso)?.score
+  const reasonMark = reasonScore != null ? bandMarkForScore(reasonScore) : null
+  const reasonBase = pickDayReason(crossSourceCell, reasonMark)
+  const reasonSig = pickDayReasonSignal(crossSourceCell, reasonMark)
+  // 근거에 십신 한자 + 점성 부모 구조(교차의 부모 참조 crossParents) + 그날 현지 정오의 트랜짓
+  // 위치(별자리·도 — 트랜짓 추출기와 같은 캐시 키, 조회 1회)와 같은 차트에서 잰 orb(본명 황경은
+  // 이미 지은 본명 차트에서, QA-3). 월 셀 근거와 같은 규칙(astroDetail.ts) — /api/calendar/day 도
+  // 이 경로.
+  // 일간 '겹치는 흐름' 행도 같은 경로(QA VC-5) — 근거와 교차 행을 한 번에 넘겨, 같은 날짜의 트랜짓
+  // 차트는 한 호출 안에서 한 번만 읽는다(withTransitPositions 의 호출별 메모리 캐시).
+  let dayReason = reasonBase
+  if (reasonBase && reasonSig) dayReason = withReasonDetail(reasonBase, reasonSig)
+  const crossesWithDetail = dayCrossActivations.filter((c) => c.astroDetail)
+  const toPlace = [
+    ...(dayReason?.astroDetail ? [dayReason.astroDetail] : []),
+    ...crossesWithDetail.map((c) => c.astroDetail!),
+  ]
+  if (toPlace.length > 0) {
+    const placed = await withTransitPositions(
+      toPlace.map((detail) => ({ dateIso: targetDayIso, detail })),
+      natal.astro.location,
+      natalPointLongitudes(natal.astro)
+    )
+    let i = 0
+    if (dayReason?.astroDetail) dayReason = { ...dayReason, astroDetail: placed[i++] }
+    for (const c of crossesWithDetail) c.astroDetail = placed[i++]
+  }
 
   // ── 타이밍 컨텍스트 (이달 흐름 추이 + 다가오는 7일) ──
   // 이달 일별 점수(추이선) — monthCells 순서대로, layered.daily 의 정규화 점수.
@@ -306,9 +354,6 @@ export async function assembleDayTier(input: AssembleDayTierInput): Promise<Dest
     totalSignals: dayAdapter.totalSignals,
     signals: daySajuSignals,
     transits: dayTransits,
-    crossSignals: dayCrossSignals,
-    allSignals: allDaySignals,
-    jijanggan: dayAdapter.jijanggan,
     geokgukStatus: {
       name: geokgukName,
       status: statusResult?.status ?? '반성반파',
@@ -323,22 +368,25 @@ export async function assembleDayTier(input: AssembleDayTierInput): Promise<Dest
     },
     appliedPatterns: dayAppliedPatterns,
     crossActivations: dayCrossActivations,
+    ...(dayReason ? { reason: dayReason } : {}),
     shinsalActive: dayAdapter.shinsalActive,
-    narrative: dayAdapter.narrative,
     topReasons: dayAdapter.topReasons,
     topReasonsEn: dayAdapter.topReasonsEn,
     cautions: dayAdapter.cautions,
     cautionsEn: dayAdapter.cautionsEn,
     evidenceLadder: dayAdapter.evidenceLadder,
     evidenceLadderEn: dayAdapter.evidenceLadderEn,
-    // 출력 화해 verdict — 월 모집단 셀 기준(위 unified)이 권위. 빠뜨리면 DayTier
-    // 가 중립 fallback 으로 떨어져 tense/bright 화해가 프로덕션에서 죽는다.
+    // 출력 화해 verdict — 월 모집단 셀 기준(위 unified)이 권위. 빠뜨리면 일간 히어로
+    // (dayHero)가 폴백 판정으로 떨어져 tense/bright 화해가 프로덕션에서 죽는다.
     dayTone: unified?.dayTone ?? dayAdapter.dayTone,
     twelveStageMatrix: dayAdapter.twelveStageMatrix,
     monthScores: dayMonthScores,
     upcoming,
     nextBigDay,
-    hourCrossings: buildHourCrossings(dayCell, targetDayIso, natal.astro.location),
+    // 출생시각/출생지 미상이면 그 시각 상승궁을 구하지 않는다(좌표 폴백) — 사주 시진만.
+    hourCrossings: buildHourCrossings(dayCell, targetDayIso, natal.astro.location, {
+      placeUnreliable: natal.astro.placeUnreliable === true,
+    }),
     // 시(時)별 달 정밀 — 그날 12 시진 달을 재계산해 달×본명 어스펙트 절정 시각.
     // (위에서 미리 발진한 promise 를 여기서 수확.)
     hourMoon: await hourMoonP,
@@ -353,13 +401,15 @@ export async function assembleDayTier(input: AssembleDayTierInput): Promise<Dest
     birthTimeZone: natal.input?.timeZone,
     now,
   })
-  // 미성년 플래그를 실어보내 DayTier 가 클라 파생 카피(행동·분야·깊이읽기)를 정화하게.
-  // 서버 minorSafe 패스는 cross/시진만 덮으므로(클라 파생은 여기서 못 만짐) 플래그 전달.
+  // 미성년 플래그를 실어보내 뷰모델(dayHero · dayViewModel · monthViewModel)이 파생 카피
+  // (행동·분야·깊이읽기)를 정화하게. 서버 minorSafe 패스는 cross/시진만 덮으므로(뷰모델
+  // 파생은 여기서 못 만짐) 플래그 전달.
   day.isMinor = isMinorAge(manAge)
   if (isMinorAge(manAge)) {
     const rows = (xs: unknown): Array<Record<string, unknown>> =>
       (xs as Array<Record<string, unknown>>) ?? []
     for (const c of rows(day.crossActivations)) sanitizeCrossEntry(c, 'meaning', 'meaningEn')
+    if (day.reason) sanitizeCrossEntry(day.reason, 'meaning', 'meaningEn')
     for (const h of rows(day.hourCrossings)) {
       if (typeof h.narrative === 'string') h.narrative = minorSafeText(h.narrative, 'ko')
       if (typeof h.narrativeEn === 'string') h.narrativeEn = minorSafeText(h.narrativeEn, 'en')

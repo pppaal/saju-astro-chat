@@ -1,8 +1,9 @@
 /**
- * computeSynastryView (src/app/compatibility/counselor/computeSynastry.ts)
+ * computeSynastryView (src/lib/compatibility/synastryView.ts)
  *
- * 클라용 시너스트리 뷰 빌더 — calculateSynastry 엔진을 감싸 차트 렌더용
- * 구조(aspects/overlays/harmony/tension)로 reshape 한다.
+ * 시너스트리 뷰 빌더 — calculateSynastry 엔진을 감싸 차트 렌더용
+ * 구조(aspects/overlays/harmony/tension)로 reshape 한다. 예전 app 사본
+ * (compatibility/counselor/computeSynastry.ts)을 지우면서 이 테스트를 옮겼다.
  *
  * 커버:
  *  - toChartLike 가드: null/비객체/planets 없음/longitude 없음 → null
@@ -14,7 +15,7 @@
  */
 
 import { describe, it, expect } from 'vitest'
-import { computeSynastryView } from '@/app/compatibility/counselor/computeSynastry'
+import { computeSynastryView } from '@/lib/compatibility/synastryView'
 
 type Loose = Record<string, unknown>
 
@@ -86,10 +87,9 @@ describe('computeSynastryView — 입력 가드 (toChartLike)', () => {
     expect(computeSynastryView(noLon, makeNatalB())).toBeNull()
   })
 
-  it('houses 가 없거나 배열이 아니면 빈 배열로 대체 — 계산 자체는 진행', () => {
-    // houses 누락 시 getHouseForLongitude 가 빈 배열을 받지만 toChartLike 는
-    // houses 를 [] 로 채워 Chart 를 만든다. overlay 계산이 빈 houses 를 타면
-    // 엔진이 throw → computeSynastryView 가 catch 해 null 반환.
+  it('houses 가 없거나 12칸이 안 되면 null', () => {
+    // 하우스 오버레이가 이 뷰의 핵심 출력이라 toChartLike 가 유효한 12칸
+    // 하우스 없는 차트를 명시적으로 걸러 null 을 돌려준다.
     const noHouses = {
       planets: [planet('Sun', 10), planet('Venus', 130)],
       ascendant: planet('Ascendant', 0),
@@ -162,17 +162,17 @@ describe('computeSynastryView — 정상 계산 (ko)', () => {
 
   it('overlaysAtoB 는 개인행성만, 하우스 의미가 한글로 매핑된다', () => {
     expect(view.overlaysAtoB).toEqual([
-      { planet: '태양', house: 1, meaning: '자아·인상' },
-      { planet: '달', house: 3, meaning: '소통·일상' },
-      { planet: '금성', house: 5, meaning: '연애·즐거움' },
+      { planet: '태양', planetKey: 'Sun', house: 1, meaning: '자아·인상' },
+      { planet: '달', planetKey: 'Moon', house: 3, meaning: '소통·일상' },
+      { planet: '금성', planetKey: 'Venus', house: 5, meaning: '연애·즐거움' },
     ])
   })
 
   it('overlaysBtoA 도 개인행성만 (Mars 4하우스 = 가정·뿌리)', () => {
     expect(view.overlaysBtoA).toEqual([
-      { planet: '태양', house: 1, meaning: '자아·인상' },
-      { planet: '화성', house: 4, meaning: '가정·뿌리' },
-      { planet: '금성', house: 7, meaning: '동반자·결혼' },
+      { planet: '태양', planetKey: 'Sun', house: 1, meaning: '자아·인상' },
+      { planet: '화성', planetKey: 'Mars', house: 4, meaning: '가정·뿌리' },
+      { planet: '금성', planetKey: 'Venus', house: 7, meaning: '동반자·결혼' },
     ])
   })
 })
@@ -197,7 +197,12 @@ describe('computeSynastryView — 영어 (en)', () => {
   })
 
   it('overlay 하우스 의미가 영어로 매핑', () => {
-    expect(view.overlaysAtoB[0]).toEqual({ planet: 'Sun', house: 1, meaning: 'self·image' })
+    expect(view.overlaysAtoB[0]).toEqual({
+      planet: 'Sun',
+      planetKey: 'Sun',
+      house: 1,
+      meaning: 'self·image',
+    })
   })
 
   it('harmony/tension score 는 언어와 무관하게 동일', () => {

@@ -1,14 +1,24 @@
-import { buildLifecycleTiming } from '@/lib/calendar-engine/lifecycle/astroLifecycle'
+import { lifecycleEventDef } from '@/lib/calendar-engine/lifecycle/astroLifecycle'
+import { calculateOuterPlanetMilestones } from '@/lib/calendar-engine/lifecycle/outerMilestones'
+import { logger } from '@/lib/logger'
 import type { ActiveSignal, ExtractorContext, SignalExtractor, Polarity } from '../types'
 
 /**
- * 라이프사이클 마일스톤 추출기.
- * 12개 외행성 마일스톤 (Saturn Return, Uranus Opposition, Chiron Return 등).
+ * 라이프사이클 마일스톤 추출기 — 목성·토성·카이런·천왕성 회귀, 외행성 사각·마주봄,
+ * 진행 달 회귀.
  *
- * 활성 윈도우: ageStart~ageEnd (보통 2~4년).
- * polarity: 마일스톤은 본질적으로 변환 압력 → 약한 흉/중립으로 표시. 사용자 인식상 "쉽지 않은 시기".
+ * 날짜는 하늘에서 온다: 인생 화면의 마디와 *같은* 실측 순간(calculateOuterPlanetMilestones,
+ * 본명당 프로세스 메모)을 읽는다. 활성 창 = 그 마디의 통과 창 — 첫 통과로 이어지는 접근에서
+ * 정확각 1° 안에 든 순간부터 같은 역행 묶음의 마지막 통과 뒤 1° 밖으로 나가는 순간까지
+ * (LIFECYCLE_ORB_DEG). peak = 첫 정확 통과(인생 화면의 마디 날짜). 예전엔 평균 나이표로
+ * "출생연도 + 나이" 1월 1일부터 2~5년 창을 열어, 명왕성 사각이 실제보다 수년~수십 년
+ * 이르게 켜지고 그 창이 대운과 겹쳐 인생 '이 10년의 겹침'에 없는 사건을 올렸다
+ * (재감사 AC-3·CC-1, G6). 실측 순간이 없는 마디(한평생 안에 교차 없음·천체력 실패)는
+ * 신호를 내지 않는다 — 평균 나이는 사실이 아니다.
  *
- * 데이터 출처: calendar-engine/lifecycle/astroLifecycle.ts (단일 진실 출처).
+ * 창은 본명만의 함수라 빌드 범위(1일·월·연)와 무관하다 — 범위와 겹치는 마디만 낸다.
+ * polarity: 마일스톤은 본질적으로 변환 압력 → 약한 흉/중립. 사용자 인식상 "쉽지 않은 시기".
+ * 진행 달 회귀는 상징 방향이라 교차 키가 아니다(cross-activation isProgressedLifecycle).
  */
 
 const EVENT_POLARITY: Record<string, Polarity> = {
@@ -44,58 +54,50 @@ const EVENT_PLANET: Record<string, string> = {
 const astroLifecycleExtractor: SignalExtractor = {
   source: 'astro',
   kind: 'lifecycle',
-  extract(ctx: ExtractorContext): ActiveSignal[] {
+  async extract(ctx: ExtractorContext): Promise<ActiveSignal[]> {
     const { natal, range } = ctx
-    const birthYear = natal.input.year
-    const startYear = new Date(range.start).getUTCFullYear()
-    const endYear = new Date(range.end).getUTCFullYear()
+    let milestones: Awaited<ReturnType<typeof calculateOuterPlanetMilestones>>
+    try {
+      milestones = await calculateOuterPlanetMilestones(natal)
+    } catch (err) {
+      logger.warn('[astro-lifecycle] milestones unavailable — no lifecycle signals', err)
+      return []
+    }
+    const rangeStart = Date.parse(range.start)
+    const rangeEnd = Date.parse(range.end)
 
     const signals: ActiveSignal[] = []
-    // range 안의 각 연도에 대해 lifecycle 검사 — 단순히 endYear 기준으로 한번만 호출
-    const output = buildLifecycleTiming(birthYear, endYear)
-    // EN meaning 매핑 — 동일 TABLE 순서라 event 키로 짝지음.
-    const enByEvent = new Map(
-      buildLifecycleTiming(birthYear, endYear, false).events.map((e) => [e.event, e])
-    )
-
-    for (const entry of output.events) {
-      // 이벤트 윈도우가 range와 겹치는지
-      const eventStart = new Date(Date.UTC(entry.startYear, 0, 1))
-      // ageRange "29~30세" 형태에서 연수 길이 추정
-      const eventDuration = estimateDurationYears(entry.ageRange)
-      const eventEnd = new Date(Date.UTC(entry.startYear + eventDuration, 0, 1))
-      const rangeStart = new Date(range.start)
-      const rangeEnd = new Date(range.end)
-      if (eventEnd < rangeStart || eventStart > rangeEnd) continue
-
-      const peak = new Date((eventStart.getTime() + eventEnd.getTime()) / 2)
-      const planet = EVENT_PLANET[entry.event] ?? 'Sun'
+    for (const m of milestones) {
+      const start = Date.parse(m.window.start)
+      const end = Date.parse(m.window.end)
+      // 통과 창이 빌드 범위와 겹칠 때만.
+      if (end < rangeStart || start > rangeEnd) continue
+      const def = lifecycleEventDef(m.kind)
 
       signals.push({
-        id: `astro.lifecycle.${entry.event}`,
+        id: `astro.lifecycle.${m.kind}`,
         source: 'astro',
         kind: 'lifecycle',
-        name: entry.label,
-        // 마일스톤 의미문(meaning) 우선 — 없으면 라벨 폴백.
-        korean: entry.meaning ?? entry.label,
-        english:
-          enByEvent.get(entry.event)?.meaning ?? enByEvent.get(entry.event)?.label ?? entry.event,
-        polarity: EVENT_POLARITY[entry.event] ?? 0,
+        name: def.labelKo,
+        // 마일스톤 의미문(meaning).
+        korean: def.meaningKo,
+        english: def.meaningEn,
+        polarity: EVENT_POLARITY[m.kind] ?? 0,
         layer: 'decadal',
-        active: {
-          start: eventStart.toISOString(),
-          peak: peak.toISOString(),
-          end: eventEnd.toISOString(),
-        },
+        active: { start: m.window.start, peak: m.exactAt, end: m.window.end },
         weight: 0.95, // 라이프 챕터 결정짓는 신호
         evidence: {
           module: 'astro-lifecycle',
-          planets: [planet],
+          planets: [EVENT_PLANET[m.kind] ?? 'Sun'],
           detail: {
-            event: entry.event,
-            ageRange: entry.ageRange,
-            meaning: entry.meaning,
-            advice: entry.advice,
+            event: m.kind,
+            age: m.age,
+            exactDateISO: m.exactDateISO,
+            exactAt: m.exactAt,
+            lastExactAt: m.lastExactAt,
+            passCount: m.passCount,
+            meaning: def.meaningKo,
+            advice: def.adviceKo,
           },
         },
       })
@@ -103,13 +105,6 @@ const astroLifecycleExtractor: SignalExtractor = {
 
     return signals
   },
-}
-
-function estimateDurationYears(ageRange: string): number {
-  // "29~30세" → 2, "57~60세" → 4
-  const match = ageRange.match(/(\d+)\s*~\s*(\d+)/)
-  if (!match) return 2
-  return Math.max(1, Number(match[2]) - Number(match[1]) + 1)
 }
 
 export default astroLifecycleExtractor

@@ -121,7 +121,8 @@
     "title": "Help us improve",
     "description": "We anonymously track which features help you, to keep improving the app. Rejecting still lets you use every feature.",
     "reject": "No thanks",
-    "accept": "OK"
+    "accept": "OK",
+    "policyLink": "Privacy Policy"
   },
   "saju": {
     "stem": "Stem",

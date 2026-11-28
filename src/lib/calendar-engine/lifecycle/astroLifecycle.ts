@@ -1,31 +1,40 @@
 // src/lib/calendar-engine/lifecycle/astroLifecycle.ts
-// Single source of truth for outer-planet life-cycle timing.
+// Single source of truth for the life-cycle milestone *definitions* (labels,
+// meanings, advice) and for turning exact milestone instants into entries.
 //
-// Pure age-window math for outer-planet returns and oppositions. No LLM.
-// Mirrors saju's daewoon timing in age form. All deterministic — the
-// user's birth year is enough to surface "Saturn return at age 29".
+// The dates themselves come from the sky, never from this table: every
+// milestone is an exact instant computed by outerMilestones.ts
+// (calculateOuterPlanetMilestones — scan + bisection on the real ephemeris).
+// The ageStart/ageEnd columns below are *typical* ages only — search seeds for
+// that scan and the bell approximation in lifeCurve's no-ephemeris path. They
+// are never shown or used as a dated fact (G6 · re-audit AC-1/AC-3/AC-5/CC-1):
+// a milestone without an exact instant is omitted.
 //
 // Consumers:
-//   • calendar-engine/extractors/astro-lifecycle.ts — buildLifecycleTiming()
-//   • calendar-engine/derivers/lifetimeFlow.ts / lifetimePivots.ts
+//   • calendar-engine/lifecycle/outerMilestones.ts — exact instants + pass windows
+//   • calendar-engine/extractors/astro-lifecycle.ts — calendar signals (pass window)
+//   • calendar-engine/derivers/lifetimeFlow.ts / lifetimePivots.ts — Life milestones
 
+// Real first-pass ages for births 1900–2050 (Swiss Ephemeris sweep, G6) in comments.
 export type AstroLifecycleEventKind =
-  | 'jupiter_return_1' // 12yr
-  | 'jupiter_return_2' // 24yr
-  | 'progressed_lunar_1' // ~28-29yr
-  | 'saturn_return_1' // 29-30yr
-  | 'jupiter_return_3' // 36yr
-  | 'pluto_square_pluto' // 36-40yr
-  | 'uranus_opposition' // 40-43yr
-  | 'neptune_square' // 41-43yr
-  | 'chiron_return' // 50-51yr
-  | 'saturn_return_2' // 58-60yr
-  | 'jupiter_return_5' // 60yr
-  | 'uranus_return' // 83-84yr
+  | 'jupiter_return_1' // 11.3–12.0
+  | 'jupiter_return_2' // 23.2–23.9
+  | 'progressed_lunar_1' // 27.2–27.5 (secondary progression, day = year)
+  | 'saturn_return_1' // 28.4–29.9
+  | 'jupiter_return_3' // 35.2–35.9
+  | 'pluto_square_pluto' // 35.6–88.1 (Pluto's eccentric orbit)
+  | 'uranus_opposition' // 38.7–44.5
+  | 'neptune_square' // 38.7–42.1
+  | 'chiron_return' // 48.4–50.9
+  | 'saturn_return_2' // 58.2–59.0
+  | 'jupiter_return_5' // 58.5–59.8
+  | 'uranus_return' // 82.4–84.0
 
 export interface AstroLifecycleEvent {
   kind: AstroLifecycleEventKind
+  /** Typical age (search seed / approximation only — never a dated fact). */
   ageStart: number
+  /** Typical upper age (search seed / approximation only). */
   ageEnd: number
   labelKo: string
   labelEn: string
@@ -174,26 +183,50 @@ const TABLE: AstroLifecycleEvent[] = [
   },
 ]
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Legacy-compatible wrapper for calendar-engine extractor.
-// Mirrors the old astrology/foundation/lifecycleTiming.ts surface, but now
-// driven by the LifeReport TABLE above (single source of truth).
-// ─────────────────────────────────────────────────────────────────────────────
+/** Definition (labels · meaning · advice) of one milestone kind. */
+export function lifecycleEventDef(kind: AstroLifecycleEventKind): AstroLifecycleEvent {
+  const def = TABLE.find((e) => e.kind === kind)
+  if (!def) throw new Error(`unknown lifecycle kind: ${kind}`)
+  return def
+}
 
-export interface LifecycleEntry {
-  /** Old shape called this `event` (= LifeReport `kind`). */
+/**
+ * Typical ages per kind — the mean-age table. Use only as a search seed or for an
+ * explicitly approximate curve (lifeCurve without an ephemeris series). Never show
+ * these as a milestone date or age: buildLifecycleTiming only takes exact instants.
+ */
+export function typicalLifecycleAges(): ReadonlyArray<{
+  kind: AstroLifecycleEventKind
+  ageStart: number
+  ageEnd: number
+}> {
+  return TABLE.map(({ kind, ageStart, ageEnd }) => ({ kind, ageStart, ageEnd }))
+}
+
+/**
+ * First sentence of a ko/en line — up to and including the first '.', '!', '?' (or '。')
+ * that ends the text or is followed by whitespace. A line with no sentence end is
+ * returned whole (trimmed).
+ */
+export function firstSentence(text: string): string {
+  const t = text.trim()
+  const m = /^(.+?[.!?。])(?=\s|$)/u.exec(t)
+  return m ? m[1] : t
+}
+
+interface LifecycleEntry {
+  /** Milestone kind. */
   event: AstroLifecycleEventKind
-  /** Locale-resolved label (defaults to Korean). */
+  /** Locale-resolved label. */
   label: string
-  /** Pre-formatted age window, e.g. "29~30세". */
+  /** Exact age label, e.g. "29세" / "age 29". */
   ageRange: string
-  /** Birth year + ageStart. */
+  /** Calendar year of the first exact pass (in the birth time zone). */
   startYear: number
   /**
-   * 만 나이(SSOT) — override 면 실측 만 나이(outerMilestones 가 생일 앵커로 산출),
-   * 아니면 평균 테이블 ageStart. 소비처(lifetimePivots·lifetimeFlow)가 `startYear −
-   * birthYear`(달력 나이)로 재계산하면 연말 출생자가 생일 전 +1 살 어긋나므로(감사 F2),
-   * 여기서 정통 만 나이를 그대로 노출한다.
+   * 만 나이(SSOT) — outerMilestones 가 첫 정확 통과 순간에 생일 앵커로 산출한 만 나이.
+   * 소비처(lifetimePivots·lifetimeFlow)가 `startYear − birthYear`(달력 나이)로 재계산하면
+   * 연말 출생자가 생일 전 +1 살 어긋나므로(감사 F2) 여기서 그대로 노출한다.
    */
   age: number
   isPast: boolean
@@ -201,6 +234,12 @@ export interface LifecycleEntry {
   isUpcoming: boolean
   /** Locale-resolved meaning. */
   meaning: string
+  /**
+   * The meaning's first sentence (locale-resolved) — the short line a screen can quote
+   * on its own ('The last expansion window before midlife.'). Same table text, never
+   * the house-personalised tail that lifetimePivots appends.
+   */
+  meaningCore: string
   /** Locale-resolved advice. */
   advice: string
 }
@@ -210,80 +249,82 @@ export interface LifecycleTimingResult {
 }
 
 /**
- * Build life-cycle entries for a birth year, classifying each as
- * past / current / upcoming relative to the current UTC year.
- *
- * @param birthYear Gregorian birth year (e.g. 1990).
- * @param endYear   Inclusive upper bound — events whose startYear is past
- *                  this value will not be flagged as upcoming.
- * @param isKo      When true (default) use Korean labels; otherwise English.
- */
-/**
- * 정확한 transit 기반 마일스톤 오버라이드 — calculateOuterPlanetMilestones
- * 결과를 그대로 넘기면 각 event 의 startYear/ageRange 가 평균 테이블 대신
- * 실제 swisseph 교차 연도로 교체된다. 같은 출생연도의 두 사람이라도
- * 토성/목성 회귀가 다른 연도에 떨어지는 차이를 반영하기 위한 hook.
- *
- * 없는 kind 는 평균 테이블로 폴백 — 부분 오버라이드 허용.
+ * 실측 마디 — calculateOuterPlanetMilestones 의 kind 별 결과(첫 정확 통과의 연도·만 나이).
+ * startYear/age 가 비어 있으면(손으로 만든 픽스처 등) 그 kind 는 싣지 않는다 — 평균
+ * 나이표로 채우지 않는다.
  */
 export interface LifecycleMilestoneOverride {
   kind: AstroLifecycleEventKind
   startYear: number | null
   age: number | null
-  /** Optional — 외행성 transit 의 정확 일시 ISO. lifetimeFlow 가 단계 카드에
+  /** Optional — 첫 정확 통과의 출생지 달력 날짜 'YYYY-MM-DD'. lifetimeFlow 가 단계 카드에
    *  "토성 회귀 2024년 3월" 식으로 월까지 표기할 때 사용. 없으면 연도만. */
   exactDateISO?: string | null
 }
 
+/**
+ * calculateOuterPlanetMilestones 가 내는 완전한 실측 마디 — 인생 화면(마디·단계 카드)과
+ * 캘린더(라이프사이클 신호·교차·10년 겹침)가 *같은* 순간을 읽는 단일 출처.
+ */
+export interface LifecycleMilestone extends LifecycleMilestoneOverride {
+  startYear: number
+  age: number
+  exactDateISO: string
+  /** 첫 정확 통과 순간(UTC ISO). exactDateISO 는 이 순간의 출생지 날짜. */
+  exactAt: string
+  /** 같은 역행 묶음의 마지막 정확 통과(UTC ISO) — 한 번만 지나면 exactAt 과 같다. */
+  lastExactAt: string
+  /** 그 묶음의 정확 통과 횟수(역행이면 3·5·7). */
+  passCount: number
+  /**
+   * 통과 창(UTC ISO) — 첫 통과로 이어지는 접근에서 정확각 1° 안에 든 순간부터 마지막
+   * 통과 뒤 1° 밖으로 나가는 순간까지(LIFECYCLE_ORB_DEG). 캘린더 신호의 활성 창.
+   */
+  window: { start: string; end: string }
+}
+
+/**
+ * Exact milestones → locale-resolved entries in table order, each classified as
+ * past / current / upcoming against `now`.
+ *
+ * Only kinds with an exact instant appear: no mean-age fallback (a scan that ran and
+ * found nothing inside a human lifespan, or an unavailable ephemeris, means the
+ * milestone is not shown — G6).
+ *
+ * @param milestones exact milestones (calculateOuterPlanetMilestones); undefined = none.
+ * @param opts.endYear inclusive upper bound — a milestone after it is not flagged upcoming.
+ * @param opts.isKo    Korean labels when true (default); otherwise English.
+ * @param opts.now     "지금" 주입점 — isPast/isCurrent/isUpcoming 의 기준 연도. 기본값은 호출
+ *                     시점이라 프로덕션 동작은 그대로, 테스트는 고정해 결정론적으로 검증한다.
+ */
 export function buildLifecycleTiming(
-  birthYear: number,
-  endYear: number,
-  isKo: boolean = true,
-  /**
-   * Optional — kind 별 실제 transit 결과로 startYear/age 를 덮어쓰기. 미지정
-   * 시 옛 동작(평균 나이대 테이블) 그대로 유지(backward compat).
-   */
-  overrides?: readonly LifecycleMilestoneOverride[],
-  /**
-   * "지금" 주입점 — isPast/isCurrent/isUpcoming 플래그의 기준 연도. 기본값은
-   * 호출 시점이라 프로덕션 동작은 그대로, 테스트는 고정해 결정론적으로 검증한다.
-   * (엔진 규약: clock 을 계산 깊숙이 읽지 말고 주입 가능한 now 로 받는다.)
-   */
-  now: Date = new Date()
+  milestones: readonly LifecycleMilestoneOverride[] | undefined,
+  opts: { endYear: number; isKo?: boolean; now?: Date }
 ): LifecycleTimingResult {
+  const { endYear, isKo = true, now = new Date() } = opts
   const currentYear = now.getUTCFullYear()
-  const overrideByKind = new Map<AstroLifecycleEventKind, LifecycleMilestoneOverride>()
-  if (overrides) {
-    for (const o of overrides) overrideByKind.set(o.kind, o)
-  }
-  const events: LifecycleEntry[] = TABLE.map((evt) => {
-    const override = overrideByKind.get(evt.kind)
-    // override 가 있고 실제 연도/나이가 잡혔으면 그걸 쓴다. 못 잡혔으면
-    // 평균 테이블 폴백.
-    const useOverride = override && override.startYear != null && override.age != null
-    const startYear = useOverride ? override!.startYear! : birthYear + evt.ageStart
-    const age = useOverride ? override!.age! : evt.ageStart
-    // ageRange 표기 — override 일 땐 단일 나이("29세") 평균 테이블일 땐
-    // 옛 윈도우("28~31세") 그대로. 단일 표기가 transit 정밀도와 더 일치.
-    const ageRange = useOverride
-      ? isKo
-        ? `${age}세`
-        : `age ${age}`
-      : `${evt.ageStart}~${evt.ageEnd}세`
-    // isPast/Current/Upcoming 도 override 의 단일 연도 기준으로 재계산.
-    const endYearOfEvent = useOverride ? startYear : birthYear + evt.ageEnd
-    return {
+  const byKind = new Map<AstroLifecycleEventKind, LifecycleMilestoneOverride>()
+  for (const m of milestones ?? []) byKind.set(m.kind, m)
+  const events: LifecycleEntry[] = []
+  for (const evt of TABLE) {
+    const m = byKind.get(evt.kind)
+    // 실측 순간이 없으면 싣지 않는다 — 평균 나이는 사실이 아니다.
+    if (!m || m.startYear == null || m.age == null) continue
+    const startYear = m.startYear
+    const age = m.age
+    events.push({
       event: evt.kind,
       label: isKo ? evt.labelKo : evt.labelEn,
-      ageRange,
+      ageRange: isKo ? `${age}세` : `age ${age}`,
       startYear,
       age,
-      isPast: currentYear > endYearOfEvent,
-      isCurrent: currentYear >= startYear && currentYear <= endYearOfEvent,
+      isPast: currentYear > startYear,
+      isCurrent: currentYear === startYear,
       isUpcoming: currentYear < startYear && startYear <= endYear,
       meaning: isKo ? evt.meaningKo : evt.meaningEn,
+      meaningCore: firstSentence(isKo ? evt.meaningKo : evt.meaningEn),
       advice: isKo ? evt.adviceKo : evt.adviceEn,
-    }
-  })
+    })
+  }
   return { events }
 }

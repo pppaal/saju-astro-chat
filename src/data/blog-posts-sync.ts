@@ -2,7 +2,7 @@
  * Synchronous blog posts loader (for compatibility)
  *
  * This file provides synchronous access to blog posts by reading markdown files
- * at build time. For runtime async loading, use src/data/blog/loader.ts
+ * at build time. For runtime async loading on the client, use src/data/blogPostLoader.ts
  */
 import { readFileSync } from 'fs'
 import path from 'path'
@@ -11,6 +11,7 @@ import { generateCurrentYearFortuneBlogPost } from './yearly-fortune-generator'
 import { generateTarotCardPosts } from './seo-posts/tarotCardPosts'
 import { generateDayPillarPosts } from './seo-posts/dayPillarPosts'
 import { isBlockedBlogPost } from './blog/publicFilters'
+import { logger } from '@/lib/logger'
 
 export interface BlogPost {
   slug: string
@@ -46,7 +47,7 @@ function loadBlogPostsSync(): BlogPost[] {
       try {
         content = readFileSync(enPath, 'utf-8')
       } catch (_error) {
-        console.warn(`Missing English content for ${metadata.slug}`)
+        logger.warn(`[blog] Missing English content for ${metadata.slug}`)
       }
 
       try {
@@ -84,7 +85,7 @@ export const blogPosts: BlogPost[] = (() => {
 
     return cachedPosts
   } catch (error) {
-    console.error('Error loading blog posts:', error)
+    logger.error('[blog] Error loading blog posts', error)
     return []
   }
 })()

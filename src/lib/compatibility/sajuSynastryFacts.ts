@@ -14,6 +14,7 @@ import {
   BRANCH_CHUNG,
   BRANCH_HAE,
   BRANCH_PA,
+  BRANCH_WONJIN,
   STEM_EL,
   BRANCH_MAIN_STEM,
   sibseongFor,
@@ -202,7 +203,7 @@ export function computeSajuSynastryFacts(input: SajuSynastryInput): SajuCompatFa
     collectSpouse('B', bDay.stem, A, input.genderB)
   }
 
-  // 3. 기둥 관계 — 천간합/충 + 지지 합/충/형/자형/해/파 (동일 표·규칙).
+  // 3. 기둥 관계 — 천간합/충 + 지지 합/충/형/자형/해/파/원진 (동일 표·규칙).
   const pillarRelations: SajuCompatPillarRel[] = []
   for (let i = 0; i < 4; i++) {
     for (let j = 0; j < 4; j++) {
@@ -250,13 +251,19 @@ export function computeSajuSynastryFacts(input: SajuSynastryInput): SajuCompatFa
       if (SELF_HYEONG.has(aBr) && aBr === bBr) tags.push('자형')
       if (BRANCH_HAE[aBr] === bBr) tags.push('해')
       if (BRANCH_PA[aBr] === bBr) tags.push('파')
+      // 원진(元嗔) — 포매터(상담사)와 같은 표(RESENTMENT_PAIRS 파생). 子未·丑午 는 해와
+      // 겹쳐 ['해','원진'] 복합. 예전엔 포매터에만 있어 상담사가 짚는 원진(배우자궁
+      // 일지↔일지 포함)이 차트 모달·무료 리포트엔 없었다(재감사 CS-3).
+      if (BRANCH_WONJIN[aBr] === bBr) tags.push('원진')
       if (tags.length === 0) continue
       const hasClash = tags.some((t) => t === '충' || t === '형' || t === '자형')
+      // 원진은 해와 같은 '미묘한 마찰'(friction) — 밴드·교차 판정은 bond/clash 만 세므로
+      // 점수에는 영향이 없다.
       const tone: SajuCompatPillarRel['tone'] = hasClash
         ? 'clash'
         : tags.includes('육합')
           ? 'bond'
-          : tags.includes('해')
+          : tags.includes('해') || tags.includes('원진')
             ? 'friction'
             : 'minor'
       pillarRelations.push({

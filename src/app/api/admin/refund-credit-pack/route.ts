@@ -17,22 +17,21 @@ import {
 } from '@/lib/credits/creditService'
 import { reverseReferralRewardOnRefund } from '@/lib/referral'
 import { getStripeOrNull } from '@/lib/stripe/client'
+import { formulaFeeMinorUnits } from '@/lib/payments/stripeFees'
+import { asMinor } from '@/lib/payments/money'
 
 export const dynamic = 'force-dynamic'
 
 // Stripe 한국 표준 수수료 — balance_transaction 을 못 가져왔을 때 폴백.
 // (실제 청구된 수수료가 우선이며, 폴백은 보수적으로 환불액을 약간 적게)
-const STRIPE_FEE_PERCENT = Number(process.env.STRIPE_FEE_PERCENT || '3.5')
-const STRIPE_FEE_FIXED_KRW = Number(process.env.STRIPE_FEE_FIXED_KRW || '300')
 
 const REFUND_WINDOW_DAYS = 7
 
-function formulaFee(amount: number): number {
-  return Math.round(amount * (STRIPE_FEE_PERCENT / 100)) + STRIPE_FEE_FIXED_KRW
-}
-
 interface RefundResult {
   success: boolean
+  /** 결제 통화(ISO 4217 소문자). refundedKrw/feeWithheld 의 단위를 정한다. */
+  currency: string
+  /** 결제 통화의 최소 단위 — KRW 는 1원, USD 는 1센트. 이름은 레거시. */
   refundedKrw: number
   feeWithheld: number
   originalAmount: number
@@ -119,6 +118,9 @@ export const POST = withApiMiddleware(
     let originalAmount = 0
     let feeWithheld = 0
     let feeSource: 'balance_transaction' | 'formula' = 'formula'
+    // 결제 통화 — Stripe 에서 읽는다. 고정 수수료와 0-decimal 여부가 통화별이라
+    // 기본값으로 'krw' 를 박아두면 USD 결제에서 수수료가 100배로 어긋난다.
+    let currency = ''
 
     try {
       const pi = await stripe.paymentIntents.retrieve(stripePaymentId, {
@@ -131,10 +133,13 @@ export const POST = withApiMiddleware(
         // balance_transaction.amount/fee 는 결제 통화의 최소 단위 (KRW 는 1원).
         originalAmount = balanceTx.amount
         feeWithheld = balanceTx.fee
+        currency = balanceTx.currency || pi.currency || currency
         feeSource = 'balance_transaction'
       } else if (pi.amount_received) {
         originalAmount = pi.amount_received
-        feeWithheld = formulaFee(originalAmount)
+        currency = pi.currency || currency
+        // Stripe 금액은 결제 통화의 최소 단위 — 여기서 단위를 보증한다(asMinor).
+        feeWithheld = formulaFeeMinorUnits(asMinor(originalAmount), currency)
       } else {
         return apiError(ErrorCodes.INTERNAL_ERROR, 'payment_amount_unavailable')
       }
@@ -144,6 +149,13 @@ export const POST = withApiMiddleware(
         err,
       })
       return apiError(ErrorCodes.INTERNAL_ERROR, 'stripe_lookup_failed')
+    }
+
+    // 통화를 못 읽었으면 추측하지 않는다 — 0-decimal 여부를 틀리면 수수료가
+    // 100배/100분의1 로 어긋난다.
+    if (!currency) {
+      logger.error('[admin/refund-credit-pack] payment currency unavailable', { stripePaymentId })
+      return apiError(ErrorCodes.INTERNAL_ERROR, 'payment_currency_unavailable')
     }
 
     const refundAmount = Math.max(0, originalAmount - feeWithheld)
@@ -287,6 +299,7 @@ export const POST = withApiMiddleware(
 
     const result: RefundResult = {
       success: true,
+      currency,
       refundedKrw: refundAmount,
       feeWithheld,
       originalAmount,

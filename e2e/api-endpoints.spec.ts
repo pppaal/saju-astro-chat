@@ -43,11 +43,6 @@ test.describe('Content API Endpoints', () => {
     // API should respond with valid status codes
     expect([200, 400, 401, 403, 404, 500]).toContain(response.status())
   })
-
-  test('GET /api/weekly-fortune - should respond', async ({ page }) => {
-    const response = await page.request.get('/api/weekly-fortune')
-    expect([200, 401, 403]).toContain(response.status())
-  })
 })
 
 test.describe('User API Endpoints', () => {
@@ -59,16 +54,6 @@ test.describe('User API Endpoints', () => {
 
   test('GET /api/me/profile - should respond', async ({ page }) => {
     const response = await page.request.get('/api/me/profile')
-    expect([200, 401, 403]).toContain(response.status())
-  })
-
-  test('GET /api/me/premium - should respond', async ({ page }) => {
-    const response = await page.request.get('/api/me/premium')
-    expect([200, 401, 403]).toContain(response.status())
-  })
-
-  test('GET /api/me/history - should respond', async ({ page }) => {
-    const response = await page.request.get('/api/me/history')
     expect([200, 401, 403]).toContain(response.status())
   })
 
@@ -115,7 +100,7 @@ test.describe('Feature API Endpoints', () => {
     expect([400, 401, 403, 422, 500]).toContain(response.status())
   })
 
-  test('POST /api/destiny-map - should require auth or body', async ({ page }) => {
+  test('POST /api/destiny-counselor - should require auth or body', async ({ page }) => {
     const response = await page.request.post('/api/destiny-map', {
       data: {},
     })
@@ -160,20 +145,6 @@ test.describe('Referral API Endpoints', () => {
   })
 })
 
-test.describe('Readings API Endpoints', () => {
-  test('GET /api/readings - should respond', async ({ page }) => {
-    const response = await page.request.get('/api/readings')
-    expect([200, 401, 403]).toContain(response.status())
-  })
-})
-
-test.describe('Stats API Endpoints', () => {
-  test('GET /api/visitors-today - should respond', async ({ page }) => {
-    const response = await page.request.get('/api/visitors-today')
-    expect([200, 401, 403]).toContain(response.status())
-  })
-})
-
 test.describe('Counselor API Endpoints', () => {
   test('GET /api/counselor/chat-history - should respond', async ({ page }) => {
     const response = await page.request.get('/api/counselor/chat-history')
@@ -192,11 +163,6 @@ test.describe('Feedback API Endpoints', () => {
       data: {},
     })
     expect([400, 401, 403, 422, 500]).toContain(response.status())
-  })
-
-  test('GET /api/feedback/records - should respond', async ({ page }) => {
-    const response = await page.request.get('/api/feedback/records')
-    expect([200, 401, 403]).toContain(response.status())
   })
 })
 

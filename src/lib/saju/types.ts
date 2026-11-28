@@ -34,17 +34,6 @@ export interface StemBranchInfo {
 
 export interface DayMaster extends StemBranchInfo {}
 
-export interface SibsinInput {
-  element: FiveElement
-  yin_yang: YinYang
-}
-
-// Ganji 타입 (간지: 천간 + 지지)
-export interface Ganji {
-  stem: string // 천간
-  branch: string // 지지
-}
-
 // --- 사주 팔자 구조 관련 타입 ---
 
 export interface PillarGanjiData {
@@ -106,6 +95,15 @@ export interface SajuPillarsInput {
   time: SimplePillar
 }
 
+/**
+ * 시주가 없을 수 있는 4주 — 출생시각 미상이면 time 이 null(또는 생략)이고
+ * 판정은 년·월·일 세 기둥(삼주)으로 한다 (CONVENTIONS §5, OD-5).
+ * 강약·용신·격국·관계·신살 엔진의 입력 타입. 4주가 다 있는 값도 그대로 대입된다.
+ */
+export type MaybeTimeless<T extends { time: unknown }> = Omit<T, 'time'> & {
+  time?: T['time'] | null
+}
+
 // --- 공통 키 타입(관계/신살 등에서 사용) ---
 export type PillarKind = 'year' | 'month' | 'day' | 'time'
 
@@ -128,7 +126,14 @@ export interface CalculateSajuDataResult {
   daeWoon: {
     startAge: number
     isForward: boolean
+    /**
+     * 지금 걸린 대운 — calculateSajuData 의 now 기준(daeunAge.currentDaeun). 첫 대운 전
+     * (만 나이 < startAge)이면 null 이고 preDaeun 이 채워진다(OD-12, 엔진 감사 E14).
+     * now 에 의존하므로 캐시된 결과에서 그대로 쓰지 말고 currentDaeun 으로 다시 고른다.
+     */
     current: DaeunData | null
+    /** 첫 대운 전 상태 — '{startsAtAge}세부터 첫 대운'. 대운이 이미 시작했으면 null. */
+    preDaeun?: { startsAtAge: number } | null
     list: DaeunData[]
   }
 
@@ -140,7 +145,6 @@ export interface CalculateSajuDataResult {
       ganji: string
     }>
     annual: AnnualCycleData[]
-    monthly: MonthlyCycleData[]
   }
 
   fiveElements: {
@@ -152,6 +156,30 @@ export interface CalculateSajuDataResult {
   }
 
   dayMaster: StemBranchInfo
+
+  /**
+   * 출생시각 미상(CONVENTIONS §5). true 면 fiveElements 는 년·월·일 6글자만 센 값이고,
+   * timePillar / pillars.time 은 정오 앵커로 채운 *자리표시* 기둥이다 — 판정·표시에
+   * 쓰지 말 것(sajuFacts 는 pillars.time 을 null 로 낸다). 시각을 알면 생략.
+   */
+  timeUnknown?: boolean
+
+  /**
+   * 출생 instant — resolveBirthInstant(OD-3, RFC 5545) 결과. 점성(natalToJD)이 같은
+   * 입력에서 같은 instant 를 쓴다(엔진 감사 F4). instantKind: 'gap' = 없는 벽시계
+   * (서머타임 공백), 'overlap' = 두 번 있는 벽시계(첫 번째로 해석).
+   */
+  meta?: {
+    birthUtc: string
+    instantKind: 'normal' | 'gap' | 'overlap'
+    /**
+     * 출생지 민용 날짜(양력 'YYYY-MM-DD' — 음력 입력이면 변환된 양력)와 계산에 쓴
+     * (정규화된) IANA 타임존. 만 나이·현재 대운을 캐시된 결과에서 다시 고를 때 쓴다
+     * (/api/saju → daeunAge.currentDaeun, 엔진 감사 E14).
+     */
+    civilBirthDate?: string
+    timeZone?: string
+  }
 }
 
 // --- 관계(합/충/형/파/해/원진/삼합/육합/방합/공망) 결과 타입 ---
@@ -226,28 +254,6 @@ export interface DaeunPillar {
 // 연운 사이클 데이터
 export interface AnnualCycleData {
   year: number
-  ganji?: string
-  heavenlyStem?: string
-  earthlyBranch?: string
-  element?: FiveElement
-  sibsin?: { cheon: string; ji: string }
-}
-
-// 월운 사이클 데이터
-export interface MonthlyCycleData {
-  year: number
-  month: number
-  ganji?: string
-  heavenlyStem?: string
-  earthlyBranch?: string
-  element?: FiveElement
-  sibsin?: { cheon: string; ji: string }
-}
-
-// 일반 사이클 데이터 (유틸 함수용)
-export interface CycleData {
-  year?: number
-  month?: number
   ganji?: string
   heavenlyStem?: string
   earthlyBranch?: string

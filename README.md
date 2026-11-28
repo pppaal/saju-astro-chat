@@ -77,7 +77,7 @@ flowchart LR
     ASTRO --> FACTS
     subgraph FACTS["Deterministic facts + fusion"]
       direction LR
-      SF[sajuFacts / astroFacts] --> CR[cross / crossInterpret]
+      SF[sajuFacts / astroFacts] --> CR[cross-activation / natalCross]
     end
     FACTS --> CAL[Calendar · buildCalendar]
     FACTS --> CNS[Destiny counselor · buildDestinyContext]

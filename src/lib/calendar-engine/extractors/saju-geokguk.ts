@@ -1,5 +1,6 @@
 import type { ActiveSignal, ExtractorContext, SignalExtractor, Polarity } from '../types'
 import { getGeokgukRich } from '@/lib/chart-dictionary'
+import { civilDaysOf } from './shared/natalWindows'
 
 // 격국 성패 상태 → 흐름 한 줄.
 const STATUS_FLOW: Record<string, string> = {
@@ -27,10 +28,11 @@ const STATUS_LABEL_EN: Record<string, string> = {
  *
  * saju-pattern 과의 차이:
  *  - saju-pattern: 격국명(label) 만 emit. polarity +1, weight 0.9, decadal layer.
- *    index.ts groupIntoCells 의 `scoreSignals.filter((s) => s.kind !== 'saju-pattern')`
- *    에 걸려 매일 score 에서 제외. narrative(cell.signals)에만 노출.
- *  - saju-geokguk: 격국의 성패(quality) 신호. kind='geokguk-status' 라 위 필터 통과 →
- *    매일 score 에 기여. layer 'daily' 로 cell 마다 1개 emit.
+ *    STATIC_NATAL_KINDS(signalTaxonomy.ts)에 걸려 매일 score 에서 제외. narrative(cell.signals)
+ *    에만 노출.
+ *  - saju-geokguk: 격국의 성패(quality) 신호. kind='geokguk-status' 도 지금은
+ *    STATIC_NATAL_KINDS 라 score 에서 빠지고(아래 Phase 2 는 그 전 이력), layer 'daily' 로
+ *    cell 마다 1개 emit 해 서사·카드에서 쓴다.
  *
  * Phase 2 변경 (재감사 이슈 #1):
  *  - 종전: 'saju-pattern' kind + decadal layer (lifetime 1회) → score 에서 제외돼 매일 점수 미반영.
@@ -97,13 +99,11 @@ const sajuGeokgukExtractor: SignalExtractor = {
       ? `${taglineEn} (${STATUS_LABEL_EN[status] ?? status}) — ${statusFlowEn}`
       : `Structure (${STATUS_LABEL_EN[status] ?? status}) — ${statusFlowEn}`
 
-    // 매일 frame — range 의 모든 day cell 에 1 signal 씩 emit.
-    // layer 'daily' + 24h active window 로 1 day cell 에 정확히 1번 들어감.
-    const start = new Date(range.start)
-    const end = new Date(range.end)
-    for (let t = start.getTime(); t <= end.getTime(); t += 86_400_000) {
-      const d = new Date(t)
-      const dayIso = d.toISOString().slice(0, 10)
+    // 매일 frame — 범위가 닿는 모든 민용 날짜에 1 signal 씩 emit.
+    // layer 'daily' + 24h active window 로 1 day cell 에 정확히 1번 들어감. id·창은 (본명, 날짜)
+    // 만의 함수 — 날짜 문자열로 돌아 범위 시작 시각이 자정이 아니어도 끝 날을 빠뜨리지 않는다
+    // (shared/natalWindows, G13). 정적 본명(STATIC_NATAL_KINDS)이라 점수에는 들지 않는다.
+    for (const dayIso of civilDaysOf(range)) {
       signals.push({
         id: `saju.geokguk-status.${dayIso}.${geokguk}.${status}`,
         source: 'saju',

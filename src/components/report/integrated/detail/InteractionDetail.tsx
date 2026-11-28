@@ -4,8 +4,8 @@
  * 각 항목의 의미를 항목별 리스트로 노출한다. 자체 완결(상위 파일 미수정).
  */
 
-import type { ReportData } from '../reportTypes'
-import { relationTypeLabel, type Lang } from '../integratedReportLabels'
+import type { ReportData } from '@/lib/report/reportTypes'
+import { relationTypeLabel, type Lang } from '@/lib/report/integratedReportLabels'
 import {
   getShinsalInterpretation,
   shinsalDisplayText,

@@ -1,4 +1,4 @@
-export interface RecommendedSpreadOption {
+interface RecommendedSpreadOption {
   themeId: string
   themeTitle: string
   spreadId: string
@@ -10,12 +10,12 @@ export interface RecommendedSpreadOption {
   recommended?: boolean
 }
 
-export interface QuestionProfileField {
+interface QuestionProfileField {
   code: string
   label: string
 }
 
-export interface QuestionProfile {
+interface QuestionProfile {
   type: QuestionProfileField
   subject: QuestionProfileField
   focus: QuestionProfileField

@@ -1,88 +1,79 @@
 import { test, expect } from '@playwright/test'
 
 /**
- * Small-phone viewport visibility regressions.
+ * Small-phone viewport visibility regressions — v9.2 Home.
  *
- * The default `mobile.spec.ts` only checks that `body` renders — it
- * passes even when the chat bar is positioned off-screen. These tests
- * assert that specific UI controls actually fit inside the visible
- * viewport on the smallest realistic phones.
+ * The home is a scrolling paper document (no fixed chat bar any more). What
+ * must hold on the smallest realistic phones is the first screen: the header
+ * with its Sign in pill and the main CTA ("Get my free Saju Card") are inside
+ * the first viewport, and nothing makes the page scroll sideways.
  *
  * Runs under TWO Playwright projects:
  *  - `mobile-visibility`: iPhone SE (375x667), smallest mainstream iOS
  *  - `narrow-viewport`:   Galaxy Z Fold outer screen (280x653)
- * Both projects exercise the same assertions, so a regression that
- * only shows up on the narrowest screens is also caught.
+ * Both projects exercise the same assertions, so a regression that only
+ * shows up on the narrowest screens is also caught.
  */
 
-test.describe('Main page — controls reachable on small phones', () => {
-  test('top bar and chat bar are both inside the viewport', async ({ page }) => {
+async function expectInFirstViewport(
+  page: import('@playwright/test').Page,
+  locator: import('@playwright/test').Locator
+) {
+  const viewport = page.viewportSize()!
+  await expect(locator).toBeVisible()
+  const box = await locator.boundingBox()
+  expect(box).not.toBeNull()
+  expect(box!.y).toBeGreaterThanOrEqual(0)
+  expect(box!.y + box!.height).toBeLessThanOrEqual(viewport.height + 1)
+  expect(box!.x).toBeGreaterThanOrEqual(-1)
+  expect(box!.x + box!.width).toBeLessThanOrEqual(viewport.width + 1)
+}
+
+test.describe('Home — first screen on small phones', () => {
+  test('header with the Sign in pill is inside the first viewport', async ({ page }) => {
     await page.goto('/', { waitUntil: 'domcontentloaded' })
 
-    const viewport = page.viewportSize()!
+    // :visible — 스트리밍 교체 순간 숨은 사본이 잠깐 같이 있을 수 있다(strict 위반 방지).
+    const header = page.locator('header:visible').first()
+    await expectInFirstViewport(page, header)
 
-    // The hamburger button in the top bar must be tappable at the top.
-    const hamburger = page.getByRole('button', { name: /메뉴 열기|Open menu/i })
-    await expect(hamburger).toBeVisible()
-    const topBox = await hamburger.boundingBox()
-    expect(topBox).not.toBeNull()
-    expect(topBox!.y).toBeGreaterThanOrEqual(0)
-    expect(topBox!.y + topBox!.height).toBeLessThanOrEqual(viewport.height)
-
-    // The chat textarea — the main CTA — must be inside the viewport,
-    // not clipped at the bottom. This is the regression we hit on
-    // smaller phones when the home was hard-locked to 100dvh.
-    const textarea = page.locator('textarea').first()
-    await expect(textarea).toBeVisible()
-    const chatBox = await textarea.boundingBox()
-    expect(chatBox).not.toBeNull()
-    expect(chatBox!.y + chatBox!.height).toBeLessThanOrEqual(viewport.height + 1)
+    // Guests see "Sign in" / "로그인" (signed-in users would see "Menu").
+    const signIn = page.getByRole('button', { name: /^(Sign in|로그인)$/ })
+    await expectInFirstViewport(page, signIn)
   })
 
-  test('service chips and send button are reachable', async ({ page }) => {
+  test('the main CTA is inside the first viewport', async ({ page }) => {
     await page.goto('/', { waitUntil: 'domcontentloaded' })
 
-    const viewport = page.viewportSize()!
-
-    // The send button (round arrow) lives in the bottom-right of the
-    // chat bar. If the chat bar is clipped, this gets cut off entirely.
-    // The home composer labels it "운명 상담사에게 질문하기" / "Ask the destiny
-    // counselor" (it navigates to the counselor), so the old /보내기|Send/
-    // regex never matched it (element not found) — match those labels too.
-    const send = page.getByRole('button', { name: /보내기|Send|질문하기|counselor/i })
-    await expect(send).toBeVisible()
-    const sendBox = await send.boundingBox()
-    expect(sendBox).not.toBeNull()
-    expect(sendBox!.y + sendBox!.height).toBeLessThanOrEqual(viewport.height + 1)
-    expect(sendBox!.x + sendBox!.width).toBeLessThanOrEqual(viewport.width + 1)
+    await expect(page.locator('#home-headline:visible')).toBeVisible()
+    const cta = page.getByRole('button', { name: /Get my free Saju Card|내 무료 사주 카드 받기/ })
+    await expectInFirstViewport(page, cta)
   })
 
-  test('no horizontal overflow at iPhone SE width', async ({ page }) => {
+  test('no horizontal overflow', async ({ page }) => {
     await page.goto('/', { waitUntil: 'domcontentloaded' })
-    const bodyWidth = await page.evaluate(() => document.body.scrollWidth)
-    const viewportWidth = await page.evaluate(() => window.innerWidth)
-    expect(bodyWidth).toBeLessThanOrEqual(viewportWidth + 1)
+    await expect(page.locator('#home-headline:visible')).toBeVisible()
+    const { scrollWidth, innerWidth } = await page.evaluate(() => ({
+      scrollWidth: Math.max(document.documentElement.scrollWidth, document.body.scrollWidth),
+      innerWidth: window.innerWidth,
+    }))
+    expect(scrollWidth).toBeLessThanOrEqual(innerWidth + 1)
   })
 })
 
-test.describe('Main page — landscape short viewport', () => {
-  test('chat bar still reachable in landscape (scroll allowed)', async ({ page }) => {
-    // Force landscape — short height triggers the CSS branch that
-    // releases the no-scroll lock so the user can scroll to the chat
-    // bar. Verify the chat bar is actually reachable (visible after a
-    // scroll-into-view, not permanently clipped).
+test.describe('Home — landscape short viewport', () => {
+  test('the page scrolls and the CTA is reachable', async ({ page }) => {
     await page.setViewportSize({ width: 667, height: 375 })
     await page.goto('/', { waitUntil: 'domcontentloaded' })
 
-    // Just after hydration the home subtree re-renders once (birth-info
-    // read from localStorage + the overflow-lock effect), which briefly
-    // detaches the textarea node. Retry the scroll+assert so that
-    // transient detach doesn't fail the test — a real user never scrolls
-    // within that sub-second window.
-    const textarea = page.locator('textarea').first()
+    // The old home locked body scroll; the v9 home is a normal document.
+    const overflow = await page.evaluate(() => getComputedStyle(document.body).overflowY)
+    expect(overflow).not.toBe('hidden')
+
+    const cta = page.getByRole('button', { name: /Get my free Saju Card|내 무료 사주 카드 받기/ })
     await expect(async () => {
-      await textarea.scrollIntoViewIfNeeded()
-      await expect(textarea).toBeVisible()
+      await cta.scrollIntoViewIfNeeded()
+      await expect(cta).toBeVisible()
     }).toPass({ timeout: 10_000 })
   })
 })

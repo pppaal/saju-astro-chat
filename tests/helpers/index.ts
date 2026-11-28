@@ -33,10 +33,6 @@ export {
   mockRefundCredits,
   mockUpgradePlan,
   mockAddBonusCredits,
-  // Backend API Client
-  mockApiClient,
-  mockBackendResponse,
-  type MockBackendResponse,
   // Setup
   setupApiMocks,
   resetApiMocks,

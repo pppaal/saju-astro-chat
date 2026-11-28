@@ -5,10 +5,9 @@ import type { ExtractorContext, ActiveSignal } from '@/lib/calendar-engine/types
 /**
  * saju-gongmang — 시기(대운/세운/월운/일진) 지지가 본명 공망지에 닿을 때 발화.
  *
- * 여기서 잠그는 회귀: 월운(monthly)은 *그 달 중순(15일)* 절기달 기준이어야 한다.
- * 1일은 절입 직전이라 전월 절기달이 잡혀, 한 달 전체에 잘못된 월지가 도장됐다
- * (#1547 — saju-jijanggan/twelve-stage/yongsin 은 고쳐졌으나 gongmang 만 누락됐던
- * 비대칭 생존자였다).
+ * 여기서 잠그는 회귀: 월운(monthly)은 *절기월 창*이어야 한다 — 절입이 든 현지 날부터 다음
+ * 절입 전날까지(periodPillars, 재감사 G2 · TP-2). 예전엔 양력 달마다 15일의 절기월을
+ * 1일~말일에 도장해(#1547 의 15일 표본), 1일~절입 전날이 다음 달 월지를 달았다.
  *
  * 본명 일주 甲申 → 60갑자 甲申旬 → 공망지 午·未.
  */
@@ -56,11 +55,11 @@ describe('sajuGongmangExtractor — 메타 / 가드', () => {
   })
 })
 
-describe('sajuGongmangExtractor — 월운 월주는 그 달 중순(15일) 절기 기준', () => {
-  // 본명 甲申 → 공망 午·未. 2026-06: 1일은 망종 전이라 巳월, 15일은 午월.
-  // 午 ∈ 공망 → 중순 기준이면 6월 월운이 발화한다. 1일(巳) 기준이면 巳 ∉ 공망 →
-  // 6월 월운이 누락된다. 이 차이가 곧 #1547 회귀 가드.
-  it('2026-06 은 午월(중순)로 잡혀 공망 발동 — 巳월(1일) 아님', () => {
+describe('sajuGongmangExtractor — 월운은 절기월 창 (재감사 G2 · TP-2)', () => {
+  // 본명 甲申 → 공망 午·未. 망종 2026-06-06 00:48 KST → 서울(기본 존) 06-06 부터 甲午월,
+  // 06-01~05 는 癸巳월. 午월 공망 신호는 06-06 에 열리고, 巳 는 공망이 아니라 06-01~05 엔
+  // 월운 공망이 없다. (예전 15일 표본 규칙은 06-01 부터 午 를 도장했다.)
+  it('2026-06 의 午월 공망은 망종 날(06-06)부터 — 06-01~05(巳월)엔 없음', () => {
     const out = run(
       ctx({
         day: { stem: '甲', branch: '申' },
@@ -69,9 +68,11 @@ describe('sajuGongmangExtractor — 월운 월주는 그 달 중순(15일) 절�
       })
     )
     const monthly = out.filter((s) => s.layer === 'monthly')
-    // 중순 기준이면 午월 공망 발동이 존재해야 한다(1일=巳 기준이었다면 0개).
-    expect(monthly.length).toBeGreaterThan(0)
-    expect(monthly.some((s) => s.id.includes('wolun.2026-06.午'))).toBe(true)
-    expect(monthly.some((s) => s.id.includes('wolun.2026-06.巳'))).toBe(false)
+    expect(monthly).toHaveLength(1)
+    expect(monthly[0].id).toBe('saju.gongmang.wolun.2026-06-06.午')
+    expect(monthly[0].active.start).toBe('2026-06-06T00:00:00.000Z')
+    // 소서 2026-07-07 10:57 KST → 午월은 07-06 에 끝난다.
+    expect(monthly[0].active.end).toBe('2026-07-06T23:59:59.999Z')
+    expect(monthly.some((s) => s.id.includes('.巳'))).toBe(false)
   })
 })

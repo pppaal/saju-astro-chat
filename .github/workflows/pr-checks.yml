@@ -151,6 +151,15 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL || 'postgresql://placeholder:placeholder@localhost:5432/placeholder' }}
 
+      # 실제 천체력 테스트(tests/golden · *.real.node · destiny release gate)는 native
+      # swisseph 가 필요하다. npm ci 가 node-gyp 로 빌드하지만, 로드되지 않으면 여기서
+      # 다시 빌드하고 그래도 안 되면 잡을 실패시킨다 — CI 에선 그 테스트들이 skip 이 아니라
+      # 실패한다(tests/helpers/realEphemeris.ts, 엔진 감사 E16).
+      - name: Build and verify native swisseph
+        run: |
+          node -e "require('swisseph')" 2>/dev/null || npm rebuild swisseph
+          node -e "const s = require('swisseph'); if (typeof s.swe_calc_ut !== 'function') process.exit(1); console.log('swisseph', s.swe_version())"
+
       - name: Run unit tests
         if: matrix.test-suite == 'unit'
         run: npm test
@@ -192,6 +201,15 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL || 'postgresql://placeholder:placeholder@localhost:5432/placeholder' }}
 
+      # 실제 천체력 테스트(tests/golden · *.real.node · destiny release gate)는 native
+      # swisseph 가 필요하다. npm ci 가 node-gyp 로 빌드하지만, 로드되지 않으면 여기서
+      # 다시 빌드하고 그래도 안 되면 잡을 실패시킨다 — CI 에선 그 테스트들이 skip 이 아니라
+      # 실패한다(tests/helpers/realEphemeris.ts, 엔진 감사 E16).
+      - name: Build and verify native swisseph
+        run: |
+          node -e "require('swisseph')" 2>/dev/null || npm rebuild swisseph
+          node -e "const s = require('swisseph'); if (typeof s.swe_calc_ut !== 'function') process.exit(1); console.log('swisseph', s.swe_version())"
+
       - name: Type check
         run: npm run typecheck
 
@@ -204,8 +222,8 @@ jobs:
       - name: Typecheck regression gate
         run: npm run ops:typecheck:gate
 
-      - name: Destiny quality gate (quick)
-        run: npm run ops:destiny:gate:quick
+      - name: Mojibake lint
+        run: npm run lint:mojibake
 
       - name: Build
         run: npm run build
@@ -327,6 +345,15 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL || 'postgresql://placeholder:placeholder@localhost:5432/placeholder' }}
 
+      # 실제 천체력 테스트(tests/golden · *.real.node · destiny release gate)는 native
+      # swisseph 가 필요하다. npm ci 가 node-gyp 로 빌드하지만, 로드되지 않으면 여기서
+      # 다시 빌드하고 그래도 안 되면 잡을 실패시킨다 — CI 에선 그 테스트들이 skip 이 아니라
+      # 실패한다(tests/helpers/realEphemeris.ts, 엔진 감사 E16).
+      - name: Build and verify native swisseph
+        run: |
+          node -e "require('swisseph')" 2>/dev/null || npm rebuild swisseph
+          node -e "const s = require('swisseph'); if (typeof s.swe_calc_ut !== 'function') process.exit(1); console.log('swisseph', s.swe_version())"
+
       - name: Destiny release gate
         run: npm run ops:destiny:release
 
@@ -365,6 +392,14 @@ jobs:
       - name: Unused code/deps audit (knip)
         run: npm run audit:unused
         continue-on-error: true
+
+      # 프로덕션 그래프만(knip.json 의 '!' 엔트리 — src/app · Next 플러그인 엔트리) — 테스트·스크립트만
+      # 쓰는 src 코드를 따로 드러낸다. 정보용(아직 test-only 모듈이 남아 있다).
+      - name: Unused production code audit (knip --production)
+        run: npx knip --production --include files,exports,dependencies
+        continue-on-error: true
+        env:
+          DATABASE_URL: postgresql://placeholder:placeholder@localhost:5432/placeholder
 
       - name: Check for secrets
         run: |
@@ -413,6 +448,15 @@ jobs:
         run: npm ci
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL || 'postgresql://placeholder:placeholder@localhost:5432/placeholder' }}
+
+      # 실제 천체력 테스트(tests/golden · *.real.node · destiny release gate)는 native
+      # swisseph 가 필요하다. npm ci 가 node-gyp 로 빌드하지만, 로드되지 않으면 여기서
+      # 다시 빌드하고 그래도 안 되면 잡을 실패시킨다 — CI 에선 그 테스트들이 skip 이 아니라
+      # 실패한다(tests/helpers/realEphemeris.ts, 엔진 감사 E16).
+      - name: Build and verify native swisseph
+        run: |
+          node -e "require('swisseph')" 2>/dev/null || npm rebuild swisseph
+          node -e "const s = require('swisseph'); if (typeof s.swe_calc_ut !== 'function') process.exit(1); console.log('swisseph', s.swe_version())"
 
       - name: Generate coverage
         run: npm run test:coverage

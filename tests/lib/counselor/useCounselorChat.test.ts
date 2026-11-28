@@ -10,7 +10,7 @@
 //   - @/lib/chat/pendingTurn : read/write/clear + TTL 상수 (in-memory store)
 //   - @/lib/chat/pendingChat : save/clear (호출 spy)
 //   - next-auth/react        : tests/setup.ts 가 전역 mock (기본 unauthenticated)
-//   - useRecoverOnResume / chat-followups : 실제 모듈 그대로 사용
+//   - useRecoverOnResume / followups : 실제 모듈 그대로 사용
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { renderHook, act, waitFor } from '@testing-library/react'

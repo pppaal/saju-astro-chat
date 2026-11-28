@@ -1,7 +1,7 @@
 /**
  * personSeed — 본명(natal)에서 뽑은 안정적 *개인 시드*.
  *
- * 목적: 템플릿 문구 풀(toneMeaning·dayDomains·deepRead·monthSummary 등)을 이
+ * 목적: 템플릿 문구 풀(toneMeaning·dayDomains·deepRead 등)을 이
  * 시드로 회전해 **사람마다 다른 문구**를 결정론적으로 고른다. 같은 사람은 항상
  * 같은 값(재현가능), 다른 본명은 다른 값(개인화). 판단(점수·신호)이 아니라
  * *표현(wording)* 만 개인화하므로 근거를 해치지 않는다.

@@ -62,7 +62,7 @@ vi.mock('@/lib/http', () => ({ enforceBodySize: vi.fn(() => null) }))
 vi.mock('@/lib/logger', () => ({
   logger: { error: vi.fn(), info: vi.fn(), warn: vi.fn(), debug: vi.fn() },
 }))
-vi.mock('@/lib/metrics/index', () => ({ recordExternalCall: vi.fn() }))
+vi.mock('@/lib/metrics', () => ({ recordExternalCall: vi.fn() }))
 vi.mock('@/lib/user/displayName', () => ({ getUserDisplayName: vi.fn().mockResolvedValue(null) }))
 
 const mockSafeParse = vi.fn()

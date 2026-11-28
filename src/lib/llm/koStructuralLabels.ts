@@ -43,6 +43,8 @@ const WORD_MAP: ReadonlyArray<readonly [RegExp, string]> = [
   [/\btrine\b/g, '조화'],
   [/\bopposition\b/g, '대립'],
   [/\bconjunction\b/g, '결합'],
+  // 재감사 CS-6 — 생성기가 라벨을 놓쳐도 KO 컨텍스트에 영어 'sextile' 이 남지 않게(안전망).
+  [/\bsextile\b/g, '협력'],
   // 메타/플래그
   [/\bMeta\b/g, '메타'],
   [/\btimeUnknown\b/g, '시간미상'],

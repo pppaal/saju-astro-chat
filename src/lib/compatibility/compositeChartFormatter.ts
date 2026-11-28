@@ -12,9 +12,10 @@
  * Sun-Moon, Mars-Venus 같은 *관계 entity 자체* 의 톤을 보여줌.
  */
 
-import type { Chart, PlanetBase, ZodiacKo } from '@/lib/astrology/foundation/types'
+import type { AspectType, Chart, PlanetBase, ZodiacKo } from '@/lib/astrology/foundation/types'
 import { findNatalAspects } from '@/lib/astrology/foundation/aspects'
 import { PLANET_KO } from '@/lib/calendar-engine/data/planetNames'
+import { isPlaceUnreliable } from '@/lib/astrology/foundation/placeMask'
 
 // 관계 해석에 핵심인 점들만 composite — 외행성(목성~명왕성·노드) 은
 // generational 라 두 사람만의 신호로 약함. 루미너리 + 개인 행성 + ASC/MC.
@@ -23,23 +24,25 @@ const COMPOSITE_POINTS = new Set(['Sun', 'Moon', 'Mercury', 'Venus', 'Mars', 'As
 // 한글 행성명 — 캘린더 엔진 공용 정본(PLANET_KO) 재사용. composite 는 루미너리+
 // 개인 행성+ASC/MC 만 인덱싱하지만 superset 표를 그대로 써도 안전.
 
-// aspect 심볼 (synastry formatter 와 동일).
+// aspect 라벨 (synastry formatter 와 동일).
 // 기호 대신 한국어 뜻 직접 노출 — 깨진 □ 박스 + LLM 디코드 오역 방지
-// (synastry formatter 와 동일 정책).
-const ASP_SYM: Record<string, string> = {
-  Conjunction: '[결합]',
-  Opposition: '[대립]',
-  Trine: '[조화]',
-  Square: '[긴장]',
-  Sextile: '[협력]',
+// (synastry formatter 와 동일 정책). 키는 findNatalAspects 가 내는 소문자 AspectType —
+// 예전엔 'Conjunction' 처럼 대문자 키라 한 번도 매칭되지 않아, EN 은 범례 없는 맨
+// 영어('conjunction'), KO 는 영어 'sextile' 이 그대로 새었다(재감사 CS-6).
+const ASP_SYM: Partial<Record<AspectType, string>> = {
+  conjunction: '[결합]',
+  opposition: '[대립]',
+  trine: '[조화]',
+  square: '[긴장]',
+  sextile: '[협력]',
 }
 // EN locale — 한국어 관계어가 영어 응답에 새지 않게.
-const ASP_EN: Record<string, string> = {
-  Conjunction: '[conjunction]',
-  Opposition: '[opposition]',
-  Trine: '[trine]',
-  Square: '[square]',
-  Sextile: '[sextile]',
+const ASP_EN: Partial<Record<AspectType, string>> = {
+  conjunction: '[conjunction]',
+  opposition: '[opposition]',
+  trine: '[trine]',
+  square: '[square]',
+  sextile: '[sextile]',
 }
 
 // ZodiacKo 타입은 영어 12 zodiac (Aries..Pisces). 한글 노출용 별도 매핑.
@@ -78,11 +81,14 @@ interface CompositeInput {
   nameA?: string | null
   nameB?: string | null
   /**
-   * 출생 시각 미상 플래그. 어느 한 쪽이라도 미상이면 그 사람 ASC/MC 가 자정 기준
+   * 출생 시각 미상 플래그. 어느 한 쪽이라도 미상이면 그 사람 ASC/MC 가 정오 앵커의
    * 날조값이라, 두 ASC/MC 의 midpoint(=composite ASC/MC)도 무의미 → 제외한다.
    */
   timeUnknownA?: boolean
   timeUnknownB?: boolean
+  /** 출생 도시 미상(좌표 = 타임존 기준점) — 시간 미상과 같은 이유로 composite ASC/MC 제외(재감사 CS-2). */
+  cityUnknownA?: boolean
+  cityUnknownB?: boolean
   /** 출력 언어. 'en' 이면 한국어 라벨이 영어 응답에 새지 않게 영어로 렌더. 기본 'ko'. */
   lang?: 'ko' | 'en'
 }
@@ -123,8 +129,10 @@ export function formatCompositeChart(input: CompositeInput): string {
   const byNameA = new Map(chartA.planets.map((p) => [p.name, p]))
   const byNameB = new Map(chartB.planets.map((p) => [p.name, p]))
 
-  // 한 쪽이라도 시각 미상이면 ASC/MC midpoint 는 날조 → composite 에서 제외.
-  const angleUnknown = !!input.timeUnknownA || !!input.timeUnknownB
+  // 한 쪽이라도 시간·도시 미상이면 ASC/MC midpoint 는 날조 → composite 에서 제외(placeMask).
+  const angleUnknown =
+    isPlaceUnreliable({ timeUnknown: input.timeUnknownA, cityUnknown: input.cityUnknownA }) ||
+    isPlaceUnreliable({ timeUnknown: input.timeUnknownB, cityUnknown: input.cityUnknownB })
   const compPlanets: PlanetBase[] = []
   for (const name of COMPOSITE_POINTS) {
     if (angleUnknown && (name === 'Ascendant' || name === 'MC')) continue
@@ -196,7 +204,10 @@ export function formatCompositeChart(input: CompositeInput): string {
   const L = (ko: string, e: string) => (en ? e : ko)
   const pk = (n: string) => (en ? n : (PLANET_KO[n] ?? n))
   const zk = (sg: ZodiacKo) => (en ? sg : ZODIAC_KO_LABEL[sg])
-  const aspD = (t: string) => (en ? (ASP_EN[t] ?? t) : (ASP_SYM[t] ?? t))
+  const aspD = (t: string) => {
+    const k = t.toLowerCase() as AspectType
+    return en ? (ASP_EN[k] ?? t) : (ASP_SYM[k] ?? t)
+  }
 
   const critical: string[] = []
   const important: string[] = []

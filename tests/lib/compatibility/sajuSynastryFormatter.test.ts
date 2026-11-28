@@ -15,6 +15,7 @@ import {
   type SajuPillarInput,
 } from '@/lib/compatibility/sajuSynastryFormatter'
 import type { YongsinResult } from '@/lib/saju/yongsin'
+import { DOHWA_BY_DAY_BRANCH } from '@/lib/saju/shinsal'
 
 const P = (stem: string, branch: string): SajuPillarInput => ({ stem, branch })
 
@@ -157,8 +158,11 @@ describe('formatSajuSynastry', () => {
     pillarsB: pillars(['己', '丑'], ['甲', '申'], ['乙', '未'], ['丁', '亥']),
   }
 
-  it('returns empty string when fewer than 4 pillars', () => {
+  it('returns empty string when fewer than 3 pillars (year/month/day are the minimum)', () => {
     expect(formatSajuSynastry({ pillarsA: [P('甲', '子')], pillarsB: valid.pillarsB })).toBe('')
+    expect(
+      formatSajuSynastry({ pillarsA: valid.pillarsA.slice(0, 2), pillarsB: valid.pillarsB })
+    ).toBe('')
   })
 
   it('returns empty string when a day stem is missing', () => {
@@ -222,6 +226,47 @@ describe('formatSajuSynastry', () => {
     it('B 시각 미상이면 B 시주가 빠져 시주 천간합이 사라진다', () => {
       const out = formatSajuSynastry({ ...valid, timeUnknownB: true })
       expect(out).not.toContain('시천간 임 + B 시천간 정')
+    })
+
+    // G14: 세운은 호출부가 상담사 '오늘'로 고른 값만 쓴다 — 포매터는 시계를 읽지 않는다.
+    it('세운 줄은 넘긴 seun 그대로, 없으면 생략(시계를 읽지 않는다)', () => {
+      const withSeun = formatSajuSynastry({
+        ...valid,
+        lang: 'en',
+        seun: { stem: '丙', branch: '午', year: 2026 },
+      })
+      expect(withSeun).toContain("this year's annual 2026 丙午 cross")
+      const without = formatSajuSynastry({ ...valid, lang: 'en' })
+      expect(without).not.toContain("this year's annual")
+    })
+
+    // 재감사 CS-1: compatSajuFacts 는 시간 미상이면 시주를 아예 빼고 3기둥을 넘긴다.
+    // 예전 4기둥 가드가 그 입력을 '' 로 돌려 유료 상담사에 사주 블록이 통째로 빠졌다.
+    // 3기둥 입력은 "4기둥 + 미상 플래그" 와 바이트 단위로 같은 삼주 블록이어야 한다.
+    it('3기둥(시주 없음) 입력도 4기둥+미상 플래그와 같은 삼주 블록을 만든다 (CS-1)', () => {
+      const seun = { stem: '丙', branch: '午', year: 2026 }
+      for (const lang of ['ko', 'en'] as const) {
+        const fourB = formatSajuSynastry({ ...valid, timeUnknownB: true, seun, lang })
+        const threeB = formatSajuSynastry({
+          ...valid,
+          pillarsB: valid.pillarsB.slice(0, 3),
+          timeUnknownB: true,
+          seun,
+          lang,
+        })
+        expect(threeB.length).toBeGreaterThan(200)
+        expect(threeB).toBe(fourB)
+        const both = formatSajuSynastry({
+          pillarsA: valid.pillarsA.slice(0, 3),
+          pillarsB: valid.pillarsB.slice(0, 3),
+          timeUnknownA: true,
+          timeUnknownB: true,
+          seun,
+          lang,
+        })
+        expect(both.length).toBeGreaterThan(200)
+        expect(both).not.toMatch(lang === 'en' ? /\bH-(stem|branch|pillar)\b/ : /시(지|천간|주) /)
+      }
     })
   })
 
@@ -287,5 +332,22 @@ describe('formatSajuSynastry', () => {
       expect(lines.length).toBeGreaterThan(0)
       for (const l of lines) expect(l).not.toMatch(/[가-힣]/)
     })
+  })
+})
+
+// F2: 궁합 도화 cross 는 정본 DOHWA_BY_DAY_BRANCH(삼합국 年殺 자리)를 쓴다 — 로컬 복제 금지.
+// (출력 본문은 한자 괄호를 걷어 내므로 줄 머리 'A 일지 기준 도화 자리' 로 판정.)
+describe('formatSajuSynastry — 도화 cross follows DOHWA_BY_DAY_BRANCH', () => {
+  const BRANCHES = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥']
+  it.each(BRANCHES)('A day branch %s: fires only on the canon 도화 seat', (db) => {
+    const seat = DOHWA_BY_DAY_BRANCH[db]
+    expect(seat).toBeDefined()
+    for (const target of BRANCHES) {
+      const out = formatSajuSynastry({
+        pillarsA: pillars(['甲', db], ['甲', db], ['甲', db], ['甲', db]),
+        pillarsB: pillars(['乙', target], ['乙', target], ['乙', target], ['乙', target]),
+      })
+      expect(out.includes('A 일지 기준 도화 자리'), `${db}→${target}`).toBe(target === seat)
+    }
   })
 })

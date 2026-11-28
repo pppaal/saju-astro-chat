@@ -11,6 +11,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from '@/lib/auth/session'
 import { ensureCounselorContext } from '@/lib/destiny/counselorContextCache'
+import { resolveBirthTimezone } from '@/lib/datetime/resolveTimezone'
 import { streamClaudeAsSSE } from '@/lib/llm/claudeSSE'
 import { sanitizeForXmlTagBoundary, sanitizePriorTurns } from '@/lib/llm/promptSafety'
 import { logger } from '@/lib/logger'
@@ -40,9 +41,12 @@ import { ensureCounselorSessionRecord } from '@/lib/counselor/ensureSessionRecor
 import { cacheGet, cacheSet } from '@/lib/cache/redis-cache'
 import { getUserDisplayName, sanitizeDisplayName } from '@/lib/user/displayName'
 import { currentManAge } from '@/lib/datetime/currentAge'
+import { getNowInTimezone } from '@/lib/datetime'
+import { counselorDayAnchor } from '@/lib/destiny/counselorContext'
 import {
   resolveCounselorLang,
   resolveCounselorSources,
+  resolveUserTz,
   buildScopeLine,
 } from '@/lib/destiny/counselorRequest'
 
@@ -431,19 +435,32 @@ export async function POST(req: NextRequest) {
     // 으로 정규화(위 bodyName). 비어 있으면(구버전 클라 / 미지정) 위에서 미리
     // 발진해 둔 DB 이름 조회(displayNameP)를 여기서 수확 — 컨텍스트 빌드와 겹침.
     const userName = bodyName ?? (displayNameP ? await displayNameP : null)
-    // 만나이 앵커 — 출생 시간대 기준(currentManAge)으로 도출해 profection 나이와
-    // 동일 기준을 쓴다. 예전 computeAgeYears 는 서버 로컬 시계로 계산해, 생일
-    // 경계에서 이 앵커와 대운/프로펙션 나이가 1년 어긋날 수 있었다.
+    // 만나이 앵커 — 상담사 컨텍스트가 보는 그 날짜 D(보는 사람 tz 의 오늘)의 기준 순간
+    // (counselorDayAnchor — 출생 tz 의 D 정오)에서 출생 tz 기준 만 나이를 잰다. 대운 '(now)'
+    // 표시·프로펙션 나이가 같은 순간을 읽으므로 셋이 늘 같은 나이다. 예전엔 실제 시계를
+    // 출생 tz 로 읽어, 보는 사람 tz 와 출생 tz 의 날짜가 갈리는 생일 경계에서 하루(=1살)
+    // 어긋날 수 있었다(G12). tz 해석은 ensureCounselorContext 와 같은 resolver·같은 순서.
     const [aby, abm, abd] = (body.birthDate ?? '').split('-').map(Number)
-    const ageYearsFromBirth =
-      Number.isFinite(aby) && Number.isFinite(abm) && Number.isFinite(abd)
-        ? currentManAge({
-            birthYear: aby,
-            birthMonth: abm,
-            birthDate: abd,
-            birthTimeZone: body.timezone ?? 'Asia/Seoul',
-          })
-        : null
+    let ageYearsFromBirth: number | null = null
+    if (Number.isFinite(aby) && Number.isFinite(abm) && Number.isFinite(abd)) {
+      // 상담사 컨텍스트와 같은 출생 타임존 resolver(명시 tz → 출생 좌표의 tz → 기준 존).
+      const ageBirthTz = resolveBirthTimezone(
+        {
+          timezone: body.timezone,
+          latitude: body.birthCityUnknown ? undefined : body.latitude,
+          longitude: body.birthCityUnknown ? undefined : body.longitude,
+        },
+        { context: 'counselor/realtime' }
+      )
+      const counselorDay = getNowInTimezone(resolveUserTz({ ...body, timezone: ageBirthTz }))
+      ageYearsFromBirth = currentManAge({
+        birthYear: aby,
+        birthMonth: abm,
+        birthDate: abd,
+        birthTimeZone: ageBirthTz,
+        now: counselorDayAnchor(counselorDay, ageBirthTz),
+      })
+    }
     const metaParts: string[] = []
     if (userName) {
       // 호명은 인사/강조 시에만 자연스럽게. 매 답변마다 "○○님" 박는 인공

@@ -367,7 +367,10 @@ describe('Stripe Webhook Edge Cases (P1)', () => {
 
       expect(response.status).toBe(200)
       // standard pack = 30 credits (per CREDIT_PACKS config)
-      expect(addBonusCredits).toHaveBeenCalledWith('user-123', 30, 'purchase', 'pi_test_123')
+      expect(addBonusCredits).toHaveBeenCalledWith('user-123', 30, 'purchase', 'pi_test_123', {
+        amountMinor: 9900,
+        currency: 'krw',
+      })
     })
 
     it('should handle unrecognized event types gracefully', async () => {

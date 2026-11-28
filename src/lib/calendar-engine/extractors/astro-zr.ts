@@ -19,8 +19,10 @@ import type { ActiveSignal, ExtractorContext, Polarity, SignalExtractor } from '
  *  - Spirit ZR: Lot of Spirit 의 sign 에서 시작 — 영혼·의도·진로
  *  - Fortune ZR: Lot of Fortune 의 sign 에서 시작 — 운명·물질·몸
  *
- * 각 ZR 마다 L1 (years) / L2 (months) / L3 (days) 신호 + Peak / Loosing-of-Bond 이벤트.
- * L4 (시간 단위) 는 신호로 풀지 않고 계산만 지원 (캘린더 일자 단위라 일반적으로 L3 이 일자별 신호).
+ * 각 ZR 마다 L1 (years) / L2 (months) / L3 (행성년 1 = 2.5일, 20~75일 구간) 신호 +
+ * Peak / Loosing-of-Bond 이벤트. L4 (행성년 1 = 5시간) 는 신호로 풀지 않고 계산만 지원.
+ * L3 는 이제 위 층의 1/12 라(OD-11, 엔진 감사 ASTRO-6) L3 결 풀림은 한 바퀴(≈ 17.33개월)보다
+ * 긴 L2 에서만 난다 — 예전 1일 단위에선 거의 모든 L2 에서 났다. 층 라벨(L3 = daily)은 그대로다.
  */
 
 const RULER_POLARITY: Record<string, -1 | 0 | 1> = {
@@ -293,6 +295,8 @@ const astroZRExtractor: SignalExtractor = {
   kind: 'zodiacal-releasing',
   extract(ctx: ExtractorContext): ActiveSignal[] {
     const { natal, range } = ctx
+    // 섹트 미상(OD-5) — Spirit/Fortune lot(ZR 시작점)이 낮/밤 공식이라 계산하지 않는다.
+    if (natal.astro.sect === null) return []
     const isDayChart = natal.astro.sect === 'day'
     const lots = calculateArabicLots(natal.astro.chart, isDayChart)
     const spirit = lots.find((l) => l.name === 'Spirit')
@@ -343,6 +347,7 @@ const astroZRExtractor: SignalExtractor = {
 
         for (const parentL2 of l2List) {
           if (parentL2.endYear < rangeStartAge || parentL2.startYear > rangeEndAge) continue
+          // L3 = L2 의 1/12 단위(2.5일) — 한 L2 안 L3 는 보통 6~20개.
           const l3List = calculateZRSubPeriodsL3(parentL2)
           all.push(
             ...emitSubSignals({

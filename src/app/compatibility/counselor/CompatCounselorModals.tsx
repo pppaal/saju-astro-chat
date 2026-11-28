@@ -113,6 +113,10 @@ export function CompatCounselorModals({
         // (명시 플래그 false + '00:00' = 실제 자정 출생 → 시주 유효.)
         timeUnknownA={isBirthTimeUnknown(persons[0]?.time, persons[0]?.timeUnknown)}
         timeUnknownB={isBirthTimeUnknown(persons[1]?.time, persons[1]?.timeUnknown)}
+        // 도시 미상 — 좌표가 없으면 page 가 타임존 기준점으로 차트를 계산한다(서버
+        // buildPersonSeed 의 usedDefaultLocation 과 같은 판정). ASC·MC·하우스를 가린다.
+        cityUnknownA={persons[0]?.latitude == null || persons[0]?.longitude == null}
+        cityUnknownB={persons[1]?.latitude == null || persons[1]?.longitude == null}
         nameA={persons[0]?.name || ''}
         nameB={persons[1]?.name || ''}
         genderA={persons[0]?.gender}

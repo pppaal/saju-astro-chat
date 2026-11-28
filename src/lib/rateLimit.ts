@@ -8,5 +8,9 @@
  * - Tertiary: In-memory (emergency fallback)
  */
 
-export { rateLimit, resetRateLimit, getRateLimitStatus, rateLimitHealthCheck } from './cache/redis-rate-limit';
-export type { RateLimitResult } from './cache/redis-rate-limit';
+export {
+  rateLimit,
+  resetRateLimit,
+  getRateLimitStatus,
+  rateLimitHealthCheck,
+} from './cache/redis-rate-limit'

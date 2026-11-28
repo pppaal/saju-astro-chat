@@ -31,6 +31,15 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL || 'postgresql://placeholder:placeholder@localhost:5432/placeholder' }}
 
+      # 실제 천체력 테스트(tests/golden · *.real.node · destiny release gate)는 native
+      # swisseph 가 필요하다. npm ci 가 node-gyp 로 빌드하지만, 로드되지 않으면 여기서
+      # 다시 빌드하고 그래도 안 되면 잡을 실패시킨다 — CI 에선 그 테스트들이 skip 이 아니라
+      # 실패한다(tests/helpers/realEphemeris.ts, 엔진 감사 E16).
+      - name: Build and verify native swisseph
+        run: |
+          node -e "require('swisseph')" 2>/dev/null || npm rebuild swisseph
+          node -e "const s = require('swisseph'); if (typeof s.swe_calc_ut !== 'function') process.exit(1); console.log('swisseph', s.swe_version())"
+
       - name: Full Vitest suite shard
         run: >
           npm run test:nightly:shard --
@@ -70,52 +79,10 @@ jobs:
           if-no-files-found: ignore
           retention-days: 14
 
-  destiny-gate-nightly:
-    name: Destiny Gate Nightly
-    runs-on: ubuntu-latest
-    timeout-minutes: 60
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: npm
-
-      - name: Install dependencies
-        run: npm ci
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL || 'postgresql://placeholder:placeholder@localhost:5432/placeholder' }}
-
-      - name: Destiny full gate
-        run: npm run ops:destiny:gate
-
-      - name: Destiny gate summary
-        if: always()
-        run: |
-          echo "## Destiny nightly gate" >> "$GITHUB_STEP_SUMMARY"
-          echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "- Result: ${{ job.status }}" >> "$GITHUB_STEP_SUMMARY"
-          echo "- Command: npm run ops:destiny:gate" >> "$GITHUB_STEP_SUMMARY"
-
-      - name: Upload nightly vitest log placeholder
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: destiny-nightly-metadata
-          path: |
-            reports/ops/*.json
-            reports/ops/*.md
-          if-no-files-found: ignore
-          retention-days: 14
-
   nightly-summary:
     name: Destiny Nightly Summary
     runs-on: ubuntu-latest
-    needs: [vitest-nightly, destiny-gate-nightly]
+    needs: [vitest-nightly]
     if: always()
 
     steps:
@@ -132,7 +99,6 @@ jobs:
           echo "## Destiny nightly summary" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "- Vitest shards: ${{ needs.vitest-nightly.result }}" >> "$GITHUB_STEP_SUMMARY"
-          echo "- Destiny gate: ${{ needs.destiny-gate-nightly.result }}" >> "$GITHUB_STEP_SUMMARY"
           echo "- Workflow date: $(date -u +'%Y-%m-%d %H:%M UTC')" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
           node - <<'NODE' >> "$GITHUB_STEP_SUMMARY"
@@ -179,8 +145,8 @@ jobs:
           }
           NODE
 
-          if [ "${{ needs.vitest-nightly.result }}" != "success" ] || [ "${{ needs.destiny-gate-nightly.result }}" != "success" ]; then
+          if [ "${{ needs.vitest-nightly.result }}" != "success" ]; then
             echo "" >> "$GITHUB_STEP_SUMMARY"
-            echo "Nightly failed. Inspect the shard or gate job logs before the next release cut." >> "$GITHUB_STEP_SUMMARY"
+            echo "Nightly failed. Inspect the shard job logs before the next release cut." >> "$GITHUB_STEP_SUMMARY"
             exit 1
           fi

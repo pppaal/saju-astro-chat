@@ -9,6 +9,7 @@
 > 대기 중.
 
 ## 목차
+
 1. [무료/프리미엄 티어 정책](#무료프리미엄-티어-정책)
 2. [크레딧 시스템 정책](#크레딧-시스템-정책)
 3. [에러 응답 규칙](#에러-응답-규칙)
@@ -22,17 +23,17 @@
 ### 티어 구조
 
 ```typescript
-type PremiumTier = "free" | "basic" | "premium" | "enterprise"
+type PremiumTier = 'free' | 'basic' | 'premium' | 'enterprise'
 ```
 
 ### 티어별 제공 내용
 
-| 티어 | 월간 리딩 크레딧 | 궁합 분석 | 후속 질문 | 특별 기능 |
-|------|------------------|-----------|-----------|-----------|
-| **Free** | 3회 | 1회 | 0회 | - |
-| **Basic** | 30회 | 10회 | 10회 | 우선 지원 |
-| **Premium** | 100회 | 무제한 | 50회 | 모든 기능 |
-| **Enterprise** | 무제한 | 무제한 | 무제한 | 전담 지원 |
+| 티어           | 월간 리딩 크레딧 | 궁합 분석 | 후속 질문 | 특별 기능 |
+| -------------- | ---------------- | --------- | --------- | --------- |
+| **Free**       | 3회              | 1회       | 0회       | -         |
+| **Basic**      | 30회             | 10회      | 10회      | 우선 지원 |
+| **Premium**    | 100회            | 무제한    | 50회      | 모든 기능 |
+| **Enterprise** | 무제한           | 무제한    | 무제한    | 전담 지원 |
 
 ### 크레딧 소비 규칙
 
@@ -100,7 +101,7 @@ graph TD
 3. **환불 처리**
    ```typescript
    // Middleware에서 자동 제공
-   context.refundCreditsOnError?.(errorMessage, metadata);
+   context.refundCreditsOnError?.(errorMessage, metadata)
    ```
 
 ### 크레딧 에러 응답
@@ -117,6 +118,7 @@ graph TD
 ```
 
 **에러 코드**:
+
 - `no_credits`: 리딩 크레딧 부족
 - `compatibility_limit`: 궁합 분석 크레딧 부족
 - `followup_limit`: 후속 질문 크레딧 부족
@@ -144,20 +146,20 @@ graph TD
 
 ### HTTP 상태 코드 매핑
 
-| 상태 코드 | 에러 코드 | 설명 | 응답 예시 |
-|-----------|-----------|------|-----------|
-| **400** | `BAD_REQUEST` | 잘못된 요청 | 필수 파라미터 누락, 잘못된 형식 |
-| **401** | `UNAUTHORIZED` | 인증 필요 | 로그인하지 않은 사용자 |
-| **402** | (커스텀) | 결제 필요 | 크레딧 부족 |
-| **403** | `FORBIDDEN` | 권한 없음 | 접근 권한이 없는 리소스 |
-| **404** | `NOT_FOUND` | 리소스 없음 | 존재하지 않는 데이터 |
-| **413** | `PAYLOAD_TOO_LARGE` | 요청 크기 초과 | Body 크기 제한 초과 |
-| **422** | `VALIDATION_ERROR` | 검증 실패 | Zod 스키마 검증 실패 |
-| **429** | `RATE_LIMITED` | 요청 제한 초과 | Rate limit 초과 |
-| **500** | `INTERNAL_ERROR` | 서버 내부 오류 | 예상치 못한 에러 |
-| **502** | `BACKEND_ERROR` | 백엔드 서비스 오류 | AI 서비스 장애 |
-| **503** | `SERVICE_UNAVAILABLE` | 서비스 불가 | 서비스 점검 중 |
-| **504** | `TIMEOUT` | 요청 타임아웃 | 처리 시간 초과 |
+| 상태 코드 | 에러 코드             | 설명               | 응답 예시                       |
+| --------- | --------------------- | ------------------ | ------------------------------- |
+| **400**   | `BAD_REQUEST`         | 잘못된 요청        | 필수 파라미터 누락, 잘못된 형식 |
+| **401**   | `UNAUTHORIZED`        | 인증 필요          | 로그인하지 않은 사용자          |
+| **402**   | (커스텀)              | 결제 필요          | 크레딧 부족                     |
+| **403**   | `FORBIDDEN`           | 권한 없음          | 접근 권한이 없는 리소스         |
+| **404**   | `NOT_FOUND`           | 리소스 없음        | 존재하지 않는 데이터            |
+| **413**   | `PAYLOAD_TOO_LARGE`   | 요청 크기 초과     | Body 크기 제한 초과             |
+| **422**   | `VALIDATION_ERROR`    | 검증 실패          | Zod 스키마 검증 실패            |
+| **429**   | `RATE_LIMITED`        | 요청 제한 초과     | Rate limit 초과                 |
+| **500**   | `INTERNAL_ERROR`      | 서버 내부 오류     | 예상치 못한 에러                |
+| **502**   | `BACKEND_ERROR`       | 백엔드 서비스 오류 | AI 서비스 장애                  |
+| **503**   | `SERVICE_UNAVAILABLE` | 서비스 불가        | 서비스 점검 중                  |
+| **504**   | `TIMEOUT`             | 요청 타임아웃      | 처리 시간 초과                  |
 
 ### 다국어 에러 메시지
 
@@ -166,6 +168,7 @@ graph TD
 지원 언어: `en`, `ko`, `ja`, `zh`
 
 **예시**:
+
 ```typescript
 // 한국어 사용자
 {
@@ -218,20 +221,19 @@ graph TD
    - 변경 시 컴파일 타임에 즉시 검출
 
 2. **응답 생성 시 스키마 검증 필수**
+
    ```typescript
-   import { ResponseSchemas } from '@/lib/api/response-schemas';
+   import { ResponseSchemas } from '@/lib/api/response-schemas'
 
    // ✅ 올바른 사용
-   const response = createValidatedSuccessResponse(
-     DreamAnalysisSchema,
-     data
-   );
+   const response = createValidatedSuccessResponse(DreamAnalysisSchema, data)
 
    // ❌ 잘못된 사용 (검증 없이 반환)
-   return NextResponse.json({ data });
+   return NextResponse.json({ data })
    ```
 
 3. **타입 가드 활용**
+
    ```typescript
    if (isSuccessResponse(response)) {
      // response.data 사용 가능
@@ -245,6 +247,7 @@ graph TD
 ### 필수 검증 항목
 
 #### 성공 응답
+
 ```typescript
 {
   success: true,              // ✅ 필수
@@ -257,6 +260,7 @@ graph TD
 ```
 
 #### 에러 응답
+
 ```typescript
 {
   success: false,             // ✅ 필수
@@ -275,12 +279,12 @@ graph TD
 
 ### Rate Limit 기준
 
-| API 유형 | 제한 (요청/시간) | 윈도우 | 키 기준 |
-|----------|------------------|--------|---------|
-| **Public Stream** | 30req/60s | 60초 | IP |
-| **Authenticated** | 60req/60s | 60초 | IP |
-| **Premium Check** | 5req/60s | 60초 | Email |
-| **Admin** | 100req/60s | 60초 | UserId |
+| API 유형          | 제한 (요청/시간) | 윈도우 | 키 기준 |
+| ----------------- | ---------------- | ------ | ------- |
+| **Public Stream** | 30req/60s        | 60초   | IP      |
+| **Authenticated** | 60req/60s        | 60초   | IP      |
+| **Premium Check** | 5req/60s         | 60초   | Email   |
+| **Admin**         | 100req/60s       | 60초   | UserId  |
 
 ### Rate Limit 에러 응답
 
@@ -298,6 +302,7 @@ graph TD
 ```
 
 **필수 헤더**:
+
 ```http
 Retry-After: 60
 X-RateLimit-Limit: 30
@@ -332,7 +337,7 @@ API 응답 구조를 변경할 때 **반드시** 다음을 확인하세요:
 - **에러 핸들러**: `src/lib/api/errorHandler.ts`
 - **미들웨어**: `src/lib/api/middleware.ts`
 - **크레딧 시스템**: `src/lib/credits/withCredits.ts`
-- **요청 검증**: `src/lib/api/schemas.ts`
+- **요청 검증**: `src/lib/api/zodValidation.ts`, `src/lib/api/validator.ts`
 
 ---
 

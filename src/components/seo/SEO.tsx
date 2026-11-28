@@ -17,6 +17,16 @@ export interface SEOProps {
 }
 
 /**
+ * 사이트 설명 — 루트 메타(EN description · og · twitter)와 WebSite JSON-LD(서버 로캘별)가 같이 쓴다.
+ * 155자 이하(검색 스니펫 잘림 · e2e/seo.spec), 엔진이 계산한다는 말로 — 'AI 가 사주를 읽는다' 류
+ * 표현은 쓰지 않는다(판단은 엔진, 말만 AI — QA R-CA-9 · triage A5).
+ */
+export const SITE_DESCRIPTION = {
+  en: 'Your Saju (Four Pillars) and natal chart, computed and read together — daily counsel, tarot, compatibility and a fortune calendar for timing decisions.',
+  ko: '엔진이 사주와 출생 차트를 함께 계산해 운세 상담, 타로, 궁합, 운세 달력, 리포트를 제공하는 운세 플랫폼.',
+} as const
+
+/**
  * Middleware가 심어둔 `x-locale` 헤더로 현재 요청 locale을 파악.
  * 영어 시장 우선이라 default는 'en'.
  */

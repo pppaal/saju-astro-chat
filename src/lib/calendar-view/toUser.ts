@@ -1,0 +1,360 @@
+/**
+ * NatalContext → destinypal `user` 객체 adapter.
+ *
+ * 참고 shape (destinypal data.js):
+ *   user: { birth, birthKo, place, sex, score, grade, ilgan, yongsin, huisin,
+ *           gyeokguk, gyeokgukEn, gangyak, dominantSibsin, elements, astro,
+ *           intro, introEn,
+ *           // Phase 3 신규
+ *           geokgukStatus, sect, almuten }
+ *
+ * 정통화 보완 (audit):
+ *   - "F등급" 라벨은 그대로 두되 geokgukStatus 라인 별도 노출 ("정인격 · 반성반파")
+ *   - "재성 43%" 텍스트는 dominantSibsin 그대로 두되, rootLine (월령/통근) 추가 노출
+ *   - astro: Sun/Asc/MC 외 sect ("낮"/"밤") + sect light (Sun/Moon) 표기
+ *   - almuten: Almuten Figuris 후보 (가장 dignity score 높은 행성)
+ *   (7대 Arabic Parts 칩과 일주 아키타입의 강점 · 약점 · 직업 · 연애 문단은 옛 LifetimeTier
+ *    전용이라 빠졌다 — 인생 흐름은 일주 character 한 줄만 읽는다.)
+ */
+
+import type { NatalContext } from '@/lib/calendar-engine/context/types'
+import type { ZodiacKo } from '@/lib/astrology/foundation/types'
+import type { DestinyAlmutenFiguris } from '@/types/calendar'
+import { getIljuArchetype } from '@/lib/chart-dictionary'
+import { ELEMENT_KO, ELEMENT_EN, SIGN_KO, geokgukStatusLine, rootLine } from './shared'
+import { GEOKGUK_NAME_EN } from './dayTierEnMaps'
+
+interface DestinypalUserElements {
+  목: number
+  화: number
+  토: number
+  금: number
+  수: number
+}
+
+interface DestinypalUserAstro {
+  sun?: string // 한글: "물병자리"
+  asc?: string
+  mc?: string
+  sunEn?: ZodiacKo // 영문: "Aquarius"
+  ascEn?: ZodiacKo
+  mcEn?: ZodiacKo
+}
+
+export interface DestinypalUser {
+  birth: string // "1995-02-09 06:40"
+  birthKo: string // "1995년 2월 9일 06:40"
+  place: string
+  sex: '남' | '여' | string
+  // 옛 score/grade — 가짜 "종합 점수 S~F" 등급이라 2026-06-06 제거. 사주는
+  // 정량 등급으로 압축되지 않는다 (사용자 요청 + 아키텍처 정리).
+  ilgan: {
+    hanja: string
+    kr: string // "신금"
+    en: string // "Sin · Yin Metal"
+    element: string // "금"
+  }
+  yongsin: {
+    hanja: string // "火·土"
+    kr: string // "화·토"
+    en: string // "Fire · Earth"
+  }
+  huisin: {
+    hanja: string
+    kr: string
+    en: string
+  }
+  gyeokguk: string // "정인격"
+  /** EN 격국명 — 한글 접두 없이(GEOKGUK_NAME_EN, 29종 + 미정): "Jeongin (Direct-resource)". */
+  gyeokgukEn: string
+  gangyak: string // "강(强)" | "약(弱)" | "중화(中和)" — personSeed 입력이라 값 고정
+  dominantSibsin: { name: string; pct: number }
+  elements: DestinypalUserElements
+  astro: DestinypalUserAstro
+  intro: string
+  introEn: string
+
+  // ── Phase 3 정통화 신규 ──
+  /** 격국 성패 라인 — "정인격 · 반성반파 (+편인 보호 / -재성 분탈)" */
+  geokgukStatus?: string
+  /** 일간 뿌리 정통화 한 줄 — "월령 寅 실령 · 통근 얇음" */
+  rootStatus?: string
+  /**
+   * 섹트 (낮/밤) — DestinyUserSummary.sect 와 호환. tier 가 직접 읽음.
+   * null = 정할 수 없음(출생시각 미상 등 — NatalContext.astro.sect 가 null, OD-5).
+   * 정오 앵커로 'day' 를 지어내지 않는다.
+   */
+  sectKind: 'day' | 'night' | null
+  /**
+   * Almuten Figuris — DestinyAlmutenFiguris shape (planet + score + runnerUps).
+   * 본명 5점 합산 dignity 점수 — UI 가 직접 읽음.
+   */
+  almutenFiguris: DestinyAlmutenFiguris
+  /**
+   * 본명 일주 아키타입(ilju-60) 한 줄 — character(인생 흐름 히어로). 일주 간지 결손/DB 미스 시
+   * undefined (옵셔널 · 가드).
+   */
+  iljuArchetype?: { ko: { character: string }; en: { character: string } }
+}
+
+// ── 일간 한글 음 (한자→한글) ───────────────────────────────────────────────
+const STEM_ILGAN_KR: Record<string, string> = {
+  甲: '갑목',
+  乙: '을목',
+  丙: '병화',
+  丁: '정화',
+  戊: '무토',
+  己: '기토',
+  庚: '경금',
+  辛: '신금',
+  壬: '임수',
+  癸: '계수',
+}
+const STEM_ILGAN_EN: Record<string, string> = {
+  甲: 'Gap · Yang Wood',
+  乙: 'Eul · Yin Wood',
+  丙: 'Byeong · Yang Fire',
+  丁: 'Jeong · Yin Fire',
+  戊: 'Mu · Yang Earth',
+  己: 'Gi · Yin Earth',
+  庚: 'Gyeong · Yang Metal',
+  辛: 'Sin · Yin Metal',
+  壬: 'Im · Yang Water',
+  癸: 'Gye · Yin Water',
+}
+// 한글 일간 → 한자 (사주 엔진 dayMaster.name 은 보통 한글 "신")
+const STEM_KO_TO_HAN: Record<string, string> = {
+  갑: '甲',
+  을: '乙',
+  병: '丙',
+  정: '丁',
+  무: '戊',
+  기: '己',
+  경: '庚',
+  신: '辛',
+  임: '壬',
+  계: '癸',
+}
+
+// 격국 EN 이름은 dayTierEnMaps.GEOKGUK_NAME_EN(29종 + 미정) 한 표 — 예전 이 파일의 정격 8종
+// 복사본은 건록격·종격 등을 한글 그대로 내고, 정격도 '정인격 · Jeongin…' 처럼 한글 접두를
+// 달아 Life 의 EN 머리말이 한글로 샜다(재감사 SI-1).
+
+const GANGYAK_HANJA: Record<string, string> = {
+  strong: '강(强)',
+  weak: '약(弱)',
+  medium: '중화(中和)',
+}
+
+function fiveElements(natal: NatalContext): DestinypalUserElements {
+  const fe = natal.saju.fiveElements
+  return {
+    목: fe?.wood ?? 0,
+    화: fe?.fire ?? 0,
+    토: fe?.earth ?? 0,
+    금: fe?.metal ?? 0,
+    수: fe?.water ?? 0,
+  }
+}
+
+function deriveIlgan(natal: NatalContext) {
+  const dm = natal.saju.dayMaster
+  const han = dm?.name ? (STEM_KO_TO_HAN[dm.name] ?? dm.name) : ''
+  return {
+    hanja: han,
+    kr: STEM_ILGAN_KR[han] ?? dm?.name ?? '',
+    en: STEM_ILGAN_EN[han] ?? dm?.name ?? '',
+    element: dm?.element ?? '',
+  }
+}
+
+function yongsinTriad(natal: NatalContext) {
+  const p = natal.saju.yongsin?.primary
+  const s = natal.saju.yongsin?.secondary
+  const arr = [p, s].filter(Boolean) as string[]
+  const hanja = arr.length ? arr.join('·') : ''
+  const kr = arr.length ? arr.map((e) => ELEMENT_KO[e] ?? e).join('·') : ''
+  const en = arr.length ? arr.map((e) => ELEMENT_EN[e] ?? e).join(' · ') : ''
+  return { hanja, kr, en }
+}
+
+function huisinTriad(natal: NatalContext) {
+  // huisin = secondary yongsin (희신). secondary 가 없으면 빈 셋.
+  const s = natal.saju.yongsin?.secondary
+  if (!s) return { hanja: '', kr: '', en: '' }
+  return {
+    hanja: s,
+    kr: ELEMENT_KO[s] ?? s,
+    en: ELEMENT_EN[s] ?? s,
+  }
+}
+
+function deriveAstro(natal: NatalContext): DestinypalUserAstro {
+  const chart = natal.astro.chart
+  const sun = chart.planets.find((p) => p.name === 'Sun')
+  // 출생시각/출생지 미상(placeUnreliable) — chart 의 ASC·MC 는 정오 앵커·기본 좌표 폴백이라
+  // 상승궁·MC 를 내보내지 않는다(태양 별자리는 시각·장소 의존이 미미해 유지; CONVENTIONS §5).
+  const placeUnreliable = natal.astro.placeUnreliable === true
+  const asc = placeUnreliable ? undefined : chart.ascendant
+  const mc = placeUnreliable ? undefined : chart.mc
+  return {
+    sun: sun ? SIGN_KO[sun.sign] : undefined,
+    asc: asc ? SIGN_KO[asc.sign] : undefined,
+    mc: mc ? SIGN_KO[mc.sign] : undefined,
+    sunEn: sun?.sign,
+    ascEn: asc?.sign,
+    mcEn: mc?.sign,
+  }
+}
+
+/**
+ * NatalContext.astro.almutenFiguris → DestinyAlmutenFiguris (planet + score + runnerUps).
+ * 결과 없음 → fallback (planet '—', score 0).
+ */
+function deriveAlmutenFigurisFull(natal: NatalContext): DestinyAlmutenFiguris {
+  const af = natal.astro.almutenFiguris
+  if (!af || !af.winner) {
+    return { planet: '—', score: 0 }
+  }
+  const winnerScore = af.scores[af.winner] ?? 0
+  // runnerUps — winner 외 top 2 점수
+  const runnerUps = Object.entries(af.scores)
+    .filter(([p]) => p !== af.winner)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 2)
+    .map(([planet, score]) => ({ planet, score }))
+  return {
+    planet: af.winner,
+    score: winnerScore,
+    runnerUps,
+  }
+}
+
+export interface ToUserOptions {
+  /** "1995-02-09 06:40" — UI 노출용 birth 문자열. */
+  birthDisplay?: string
+  /** "서울" 등 출생지명. */
+  place?: string
+  /** "남"/"여" — saju 입력 sex. */
+  sex?: string
+  /** intro / introEn — lifetimeFlow.intro 그대로 들고 오면 됨. */
+  intro?: string
+  introEn?: string
+}
+
+// 한글 천간 → 한자 (일주 간지 합성용 — STEM_KO_TO_HAN 재사용해도 되나, 명시).
+// 일지는 엔진에서 이미 한자(寅·未…)로 들어오므로 천간만 한자화하면 됨.
+
+/**
+ * 본명 일주 간지(干支)로 ilju-60 아키타입 평이 프로즈를 ko/en *둘 다* 해소한다.
+ * 일간(辛) + 일지(未) → '辛未' → getIljuArchetype. 서버에서 양쪽 로케일을 미리
+ * 만들어 두어야 클라이언트 토글 시 한/영이 섞이지 않는다(intro/introEn 패턴과 동일).
+ * 일주 간지를 못 구하거나 DB 미스 시 undefined (가드 → 렌더 생략).
+ */
+function deriveIljuArchetype(
+  natal: NatalContext
+): { ko: { character: string }; en: { character: string } } | undefined {
+  const dayStemRaw = natal.saju.pillars?.day?.heavenlyStem?.name
+  const dayBranchRaw = natal.saju.pillars?.day?.earthlyBranch?.name
+  if (!dayStemRaw || !dayBranchRaw) return undefined
+  // 천간은 한글("신")일 수 있어 한자화. 이미 한자면 그대로.
+  const stemHan = STEM_KO_TO_HAN[dayStemRaw] ?? dayStemRaw
+  const ganji = `${stemHan}${dayBranchRaw}`
+  const ko = getIljuArchetype(ganji, 'ko')
+  const en = getIljuArchetype(ganji, 'en')
+  return ko && en ? { ko: { character: ko.character }, en: { character: en.character } } : undefined
+}
+
+/**
+ * NatalContext → destinypal user 객체.
+ *
+ * intro 같은 외부 결과는 NatalContext 에 안 들어있는 derive 결과라
+ * 별도 옵션으로 받아 평탄화한다.
+ */
+export function toUser(natal: NatalContext, opts: ToUserOptions = {}): DestinypalUser {
+  const advanced = natal.saju.analyses
+  // 옛 score/grade — 2026-06-06 폐기.
+
+  // dominant sibsin
+  let dominantSibsin: { name: string; pct: number } = { name: '', pct: 0 }
+  if (advanced?.sibsin) {
+    const cc = advanced.sibsin.categoryCount
+    const sum = cc.비겁 + cc.식상 + cc.재성 + cc.관성 + cc.인성
+    if (sum > 0) {
+      const entries: Array<[string, number]> = [
+        ['비겁', cc.비겁],
+        ['식상', cc.식상],
+        ['재성', cc.재성],
+        ['관성', cc.관성],
+        ['인성', cc.인성],
+      ]
+      entries.sort((a, b) => b[1] - a[1])
+      dominantSibsin = {
+        name: entries[0][0],
+        pct: Math.round((entries[0][1] / sum) * 100),
+      }
+    }
+  }
+
+  // gangyak (강약) — 3분류 표기(personSeed 입력이라 그대로).
+  const gangyak = GANGYAK_HANJA[natal.saju.strength] ?? '중화(中和)'
+
+  // gyeokguk — EN 은 한글 접두 없이 한 표에서(미상 이름도 한글을 내보내지 않는다).
+  const gPrimary = advanced?.geokguk?.primary ?? '미정'
+  const gyeokguk = gPrimary
+  const gyeokgukEn = GEOKGUK_NAME_EN[gPrimary] ?? GEOKGUK_NAME_EN['미정']
+
+  // geokguk status (Phase 3 — 정통화 보완).
+  const statusResult = advanced?.geokguk?.statusResult
+  const geokgukStatus = geokgukStatusLine(
+    gPrimary !== '미정' ? gPrimary : undefined,
+    statusResult?.status,
+    statusResult?.factors?.positive,
+    statusResult?.factors?.negative
+  )
+
+  // root (월령 + 통근)
+  const monthBranch = natal.saju.pillars?.month?.earthlyBranch?.name
+  const drStatus = advanced?.deukryeong?.status
+  const tgStrength = advanced?.tonggeun?.totalStrength
+  const rootStatus = rootLine(monthBranch, drStatus, tgStrength)
+
+  // birth strings — 출생시각 미상이면 시각 칸을 뺀다(input 의 시각은 정오 앵커라 실제 출생
+  // 시각처럼 보여주지 않는다; loadTierData.formatBirthLine 과 같은 규약).
+  const inp = natal.input
+  const timeUnknown = natal.saju.timeUnknown === true
+  const hhmm = inp
+    ? timeUnknown
+      ? ''
+      : ` ${String(inp.hour).padStart(2, '0')}:${String(inp.minute).padStart(2, '0')}`
+    : ''
+  const birth =
+    opts.birthDisplay ??
+    (inp
+      ? `${inp.year}-${String(inp.month).padStart(2, '0')}-${String(inp.date).padStart(2, '0')}${hhmm}`
+      : '')
+  const birthKo = inp ? `${inp.year}년 ${inp.month}월 ${inp.date}일${hhmm}` : ''
+
+  return {
+    birth,
+    birthKo,
+    place: opts.place ?? '',
+    sex: opts.sex ?? '',
+    ilgan: deriveIlgan(natal),
+    yongsin: yongsinTriad(natal),
+    huisin: huisinTriad(natal),
+    gyeokguk,
+    gyeokgukEn,
+    gangyak,
+    dominantSibsin,
+    elements: fiveElements(natal),
+    astro: deriveAstro(natal),
+    intro: opts.intro ?? '',
+    introEn: opts.introEn ?? '',
+    geokgukStatus,
+    rootStatus,
+    sectKind: natal.astro.sect ?? null,
+    almutenFiguris: deriveAlmutenFigurisFull(natal),
+    iljuArchetype: deriveIljuArchetype(natal),
+  }
+}

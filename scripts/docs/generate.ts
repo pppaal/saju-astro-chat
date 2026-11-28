@@ -22,6 +22,13 @@ import { CALCULATION_STANDARDS } from '@/lib/config/calculationStandards'
 import { ENABLED_SERVICES, REMOVED_PUBLIC_SERVICE_PREFIXES } from '@/config/enabledServices'
 import { tarotThemes, tarotCreditCostFor } from '@/lib/tarot/tarot-spreads-data'
 import { tarotDeck } from '@/lib/tarot/data'
+import { crossPolarityTruthTable } from '@/lib/calendar-engine/extractors/cross-activation'
+import { transitOrbLimit } from '@/lib/astrology/foundation/transit'
+import type { AspectType } from '@/lib/astrology/foundation/types'
+import {
+  CROSS_LAYER_BAND,
+  SAJU_ASTRO_MAPPINGS,
+} from '@/lib/calendar-engine/data/saju-astro-mapping'
 
 const ROOT = process.cwd()
 const DOCS_DIR = path.join(ROOT, 'docs')
@@ -61,6 +68,47 @@ function auditSummaryLines(): string[] {
 
 const STAMP = '<!-- 이 표는 자동 생성됩니다. 직접 수정하지 마세요 — `npm run docs:sync`. -->'
 
+// CALCULATION_STANDARDS 키마다 그 값을 읽는 src 파일 (정의 파일 제외). 키에 읽는 곳이
+// 하나도 없으면 throw — 'docs 가 말하는 정책 값을 코드가 실제로 읽는다'를 docs:sync(:check)
+// 가 강제한다 (엔진 감사 F16: baseTimezone 이 읽히지 않던 일).
+const CALC_STANDARDS_FILE = path.join('src', 'lib', 'config', 'calculationStandards.ts')
+function listSourceFiles(dir: string): string[] {
+  const out: string[] = []
+  for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+    const full = path.join(dir, e.name)
+    if (e.isDirectory()) out.push(...listSourceFiles(full))
+    else if (/\.(ts|tsx)$/.test(e.name)) out.push(full)
+  }
+  return out
+}
+// 주석 속 언급은 읽는 곳이 아니다 (대략적인 제거 — 판정용이라 충분).
+function stripComments(src: string): string {
+  return src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:])\/\/.*$/gm, '$1')
+}
+function calculationStandardReaders(group: string, key: string): string[] {
+  const pattern = new RegExp(`CALCULATION_STANDARDS\\.${group}\\.${key}\\b`)
+  return listSourceFiles(path.join(ROOT, 'src'))
+    .map((f) => path.relative(ROOT, f))
+    .filter((rel) => rel !== CALC_STANDARDS_FILE)
+    .filter((rel) => pattern.test(stripComments(fs.readFileSync(path.join(ROOT, rel), 'utf8'))))
+    .map((rel) => rel.split(path.sep).join('/'))
+    .sort()
+}
+function standardsTable(group: 'saju' | 'astrology'): string {
+  return table(
+    ['항목', '값', '읽는 곳'],
+    Object.entries(CALCULATION_STANDARDS[group]).map(([k, v]) => {
+      const readers = calculationStandardReaders(group, k)
+      if (readers.length === 0) {
+        throw new Error(
+          `[docs:sync] CALCULATION_STANDARDS.${group}.${k} 를 읽는 src 코드가 없다 — 연결하거나 키를 지울 것`
+        )
+      }
+      return [`\`${k}\``, `\`${String(v)}\``, readers.map((r) => `\`${r}\``).join('<br>')]
+    })
+  )
+}
+
 function table(headers: string[], rows: string[][]): string {
   const head = `| ${headers.join(' | ')} |`
   const sep = `| ${headers.map(() => '---').join(' | ')} |`
@@ -72,15 +120,8 @@ function table(headers: string[], rows: string[][]): string {
 const GENERATORS: Record<string, () => string> = {
   // 계산 표준(교리) — calculationStandards.ts 가 코드 SSOT
   'calculation-standards': () => {
-    const s = CALCULATION_STANDARDS
-    const saju = table(
-      ['항목', '값'],
-      Object.entries(s.saju).map(([k, v]) => [`\`${k}\``, `\`${String(v)}\``])
-    )
-    const astro = table(
-      ['항목', '값'],
-      Object.entries(s.astrology).map(([k, v]) => [`\`${k}\``, `\`${String(v)}\``])
-    )
+    const saju = standardsTable('saju')
+    const astro = standardsTable('astrology')
     return [
       STAMP,
       '',
@@ -201,6 +242,102 @@ const GENERATORS: Record<string, () => string> = {
       '',
       '> 코드 품질 점수(테스트 통과율·버그·커버리지)는 이 표로 안 나옴 —',
       '> 별도 에이전트 감사 필요. 여기는 "인벤토리 + 보안 신호" 현황판.',
+    ].join('\n')
+  },
+
+  // 사주×점성 교차 교리 — cross-activation combinePolarity 진리표(진리표 테스트와 같은 표)
+  // + 층별 교차 밴드 + 등급 수. CALCULATION_SPEC §4 (엔진 감사 F5).
+  'cross-doctrine': () => {
+    const sym = (n: number) => (n > 0 ? '+' : n < 0 ? '−' : '0')
+    const rows = crossPolarityTruthTable()
+    const signs = [1, 0, -1] as const
+    const polarity: string[] = []
+    for (const mapping of [1, -1, 0] as const) {
+      const body = signs.map((saju) => [
+        `saju ${sym(saju)}`,
+        ...signs.map((astro) =>
+          sym(
+            rows.find((r) => r.mapping === mapping && r.saju === saju && r.astro === astro)!.result
+          )
+        ),
+      ])
+      polarity.push(
+        `**Mapping ${sym(mapping)}**`,
+        '',
+        table(['', 'astro +', 'astro 0', 'astro −'], body),
+        ''
+      )
+    }
+    const band = table(
+      ['Planet', 'Cross layers'],
+      Object.entries(CROSS_LAYER_BAND).map(([planet, layers]) => [
+        `\`${planet}\``,
+        layers.map((l) => `\`${l}\``).join(', '),
+      ])
+    )
+    const grades = ['A', 'B', 'C']
+      .map((g) => [g, SAJU_ASTRO_MAPPINGS.filter((m) => m.grade === g).length] as const)
+      .filter(([, n]) => n > 0)
+      .map(([g, n]) => `${g} ${n}`)
+      .join(' · ')
+    return [
+      STAMP,
+      '',
+      '**Source:** [`cross-activation.ts`](../src/lib/calendar-engine/extractors/cross-activation.ts) `crossPolarityTruthTable()` (the table the truth-table test reads) and [`saju-astro-mapping.ts`](../src/lib/calendar-engine/data/saju-astro-mapping.ts).',
+      '',
+      '#### Pair polarity (sign of `combinePolarity`)',
+      '',
+      ...polarity,
+      '#### Layer band (`CROSS_LAYER_BAND`, checked at the narrowest parent layer)',
+      '',
+      band,
+      '',
+      `Mappings: ${SAJU_ASTRO_MAPPINGS.length} (${grades}); every grade is emitted, gated only by the band.`,
+    ].join('\n')
+  },
+
+  // 트랜짓 오브 — transit.ts transitOrbLimit(TRANSIT_ORBS × PLANET_ORB_MULTIPLIER, 트랜짓 천체
+  // 배율만). 캘린더 추출기·상담사·인생 곡선이 같은 한도를 읽는다(재감사 DOC-1).
+  'transit-orbs': () => {
+    const aspects: [AspectType, string][] = [
+      ['conjunction', '합 ☌'],
+      ['opposition', '대립 ☍'],
+      ['trine', '삼분 △'],
+      ['square', '사분 □'],
+      ['sextile', '육분 ⚹'],
+    ]
+    const bodies = [
+      'Sun',
+      'Moon',
+      'Mercury',
+      'Venus',
+      'Mars',
+      'Jupiter',
+      'Saturn',
+      'Uranus',
+      'Neptune',
+      'Pluto',
+      'True Node',
+    ]
+    const num = (n: number) => String(Number(n.toFixed(2)))
+    // 배율 표에 없는 천체는 1.0 — 빈 이름의 한도가 곧 기본 오브다.
+    const base = (a: AspectType) => transitOrbLimit('', a)
+    const rows = bodies.map((b) => [
+      b,
+      `× ${num(transitOrbLimit(b, 'conjunction') / base('conjunction'))}`,
+      ...aspects.map(([a]) => `${num(transitOrbLimit(b, a))}°`),
+    ])
+    return [
+      STAMP,
+      '',
+      '**출처:** [`transit.ts`](../../src/lib/astrology/foundation/transit.ts) `transitOrbLimit` — `TRANSIT_ORBS[애스펙트] × PLANET_ORB_MULTIPLIER[트랜짓 천체]`.',
+      '',
+      table(
+        ['트랜짓 천체', '배율', ...aspects.map(([a, label]) => `${label} (기본 ${num(base(a))}°)`)],
+        rows
+      ),
+      '',
+      '표에 없는 천체(카이런 등)는 배율 1.0. 본명 쪽 배율은 쓰지 않는다.',
     ].join('\n')
   },
 

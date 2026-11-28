@@ -17,7 +17,7 @@ import { storeDrawCards, type StoredDrawCard } from '@/lib/tarot/drawCardsCache'
 import { randomUUID } from 'crypto'
 
 import { parseRequestBody } from '@/lib/api/requestParser'
-import { recordApiRequest } from '@/lib/metrics/index'
+import { recordApiRequest } from '@/lib/metrics'
 import { tarotDrawSchema, createValidationErrorResponse } from '@/lib/api/zodValidation'
 import { logger } from '@/lib/logger'
 type TarotBody = {

@@ -7,7 +7,7 @@
  * Structure:
  * - Metadata: src/data/blog/metadata/blog-metadata.json
  * - Content: src/data/blog/posts/*.md
- * - Loader: src/data/blog/loader.ts (async)
+ * - Async loader (client, lazy): src/data/blogPostLoader.ts
  * - Sync Loader: src/data/blog-posts-sync.ts (for build time)
  *
  * This file re-exports from the sync loader for backward compatibility.

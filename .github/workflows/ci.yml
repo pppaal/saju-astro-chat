@@ -50,6 +50,15 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL || 'postgresql://placeholder:placeholder@localhost:5432/placeholder' }}
 
+      # 실제 천체력 테스트(tests/golden · *.real.node · destiny release gate)는 native
+      # swisseph 가 필요하다. npm ci 가 node-gyp 로 빌드하지만, 로드되지 않으면 여기서
+      # 다시 빌드하고 그래도 안 되면 잡을 실패시킨다 — CI 에선 그 테스트들이 skip 이 아니라
+      # 실패한다(tests/helpers/realEphemeris.ts, 엔진 감사 E16).
+      - name: Build and verify native swisseph
+        run: |
+          node -e "require('swisseph')" 2>/dev/null || npm rebuild swisseph
+          node -e "const s = require('swisseph'); if (typeof s.swe_calc_ut !== 'function') process.exit(1); console.log('swisseph', s.swe_version())"
+
       - name: Verify token encryption
         run: node scripts/verify-token-encryption.js
         env:
@@ -73,13 +82,6 @@ jobs:
           NEXT_PUBLIC_API_TOKEN: ${{ secrets.NEXT_PUBLIC_API_TOKEN || 'ci-placeholder' }}
           NEXT_PUBLIC_VAPID_PUBLIC_KEY: ${{ secrets.NEXT_PUBLIC_VAPID_PUBLIC_KEY || 'ci-placeholder' }}
           VAPID_PRIVATE_KEY: ${{ secrets.VAPID_PRIVATE_KEY || 'ci-placeholder' }}
-          EMAIL_PROVIDER: ${{ secrets.EMAIL_PROVIDER || 'resend' }}
-          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY || 'ci-placeholder' }}
-          SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY || 'ci-placeholder' }}
-          SMTP_HOST: ${{ secrets.SMTP_HOST || 'ci-placeholder' }}
-          SMTP_PORT: ${{ secrets.SMTP_PORT || '587' }}
-          SMTP_USER: ${{ secrets.SMTP_USER || 'ci-placeholder' }}
-          SMTP_PASS: ${{ secrets.SMTP_PASS || 'ci-placeholder' }}
 
       - name: Lint
         run: npm run lint
@@ -93,28 +95,16 @@ jobs:
       - name: Typecheck regression gate
         run: npm run ops:typecheck:gate
 
-      - name: Destiny quality gate (quick)
-        run: npm run ops:destiny:gate:quick
+      # 런타임 import 순환 금지 — 타입 전용 import(컴파일 시 지워짐)는 건너뛴다. madge 는 rc 로
+      # 설정을 읽어 madge_* 환경변수로 detectiveOptions 를 넘긴다(.madgerc 파일 없이).
+      - name: Circular import check (madge, runtime only)
+        run: npx --yes madge@8.0.0 --circular --extensions ts,tsx --ts-config tsconfig.json --no-spinner src
+        env:
+          madge_detectiveOptions__ts__skipTypeImports: 'true'
+          madge_detectiveOptions__tsx__skipTypeImports: 'true'
 
       - name: Destiny release gate
         run: npm run ops:destiny:release
-
-      - name: Generate typecheck snapshots
-        if: always()
-        run: |
-          npm run -s ops:typecheck:metrics
-          npm run -s ops:typecheck:hotspots
-
-      - name: Upload typecheck snapshots
-        if: always() && hashFiles('reports/typecheck/*.json') != ''
-        uses: actions/upload-artifact@v4
-        with:
-          name: typecheck-snapshots
-          path: reports/typecheck/*.json
-          retention-days: 30
-
-      - name: Critical smoke tests
-        run: npm run test:destiny-map
 
       - name: Accessibility axe regression
         run: npm run test:a11y

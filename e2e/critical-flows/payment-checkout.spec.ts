@@ -5,6 +5,9 @@
 import { test, expect, Page } from '@playwright/test'
 import { TestHelpers } from '../fixtures/test-helpers'
 
+// 같은 출처 Origin 을 실어 CSRF 가드를 지나 auth · validation 층을 본다(09-stripe 와 같은 방식).
+const ORIGIN = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000'
+
 test.describe('Payment Checkout Flow', () => {
   let helpers: TestHelpers
 
@@ -13,22 +16,6 @@ test.describe('Payment Checkout Flow', () => {
   })
 
   test.describe('Pricing Page', () => {
-    test('should display all subscription plans', async ({ page }) => {
-      await page.goto('/pricing', { waitUntil: 'domcontentloaded' })
-      await page.waitForTimeout(1000)
-
-      const bodyText = await page.textContent('body')
-
-      // Check for plan types
-      const hasPlans =
-        (bodyText?.toLowerCase().includes('free') ||
-          bodyText?.includes('무료')) &&
-        (bodyText?.toLowerCase().includes('premium') ||
-          bodyText?.includes('프리미엄'))
-
-      expect(hasPlans).toBe(true)
-    })
-
     test('should display pricing in KRW', async ({ page }) => {
       await page.goto('/pricing', { waitUntil: 'domcontentloaded' })
       await page.waitForTimeout(1000)
@@ -161,11 +148,11 @@ test.describe('Payment Checkout Flow', () => {
     test('should reject unauthenticated checkout requests', async ({ page }) => {
       const response = await page.request.post('/api/checkout', {
         data: {
-          plan: 'premium',
-          billingCycle: 'monthly',
+          creditPack: 'mini',
         },
         headers: {
           'Content-Type': 'application/json',
+          origin: ORIGIN,
         },
       })
 
@@ -178,6 +165,7 @@ test.describe('Payment Checkout Flow', () => {
         data: {},
         headers: {
           'Content-Type': 'application/json',
+          origin: ORIGIN,
         },
       })
 
@@ -185,45 +173,14 @@ test.describe('Payment Checkout Flow', () => {
       expect([401, 422]).toContain(response.status())
     })
 
-    test('should reject invalid plan', async ({ page }) => {
-      const response = await page.request.post('/api/checkout', {
-        data: {
-          plan: 'invalid-plan',
-          billingCycle: 'monthly',
-        },
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      })
-
-      // Should fail validation or be unauthorized
-      expect([401, 422]).toContain(response.status())
-    })
-
-    test('should reject both plan and creditPack', async ({ page }) => {
-      const response = await page.request.post('/api/checkout', {
-        data: {
-          plan: 'premium',
-          creditPack: 'mini',
-          billingCycle: 'monthly',
-        },
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      })
-
-      // Should fail validation or be unauthorized
-      expect([401, 422]).toContain(response.status())
-    })
-
     test('should include rate limit headers', async ({ page }) => {
       const response = await page.request.post('/api/checkout', {
         data: {
-          plan: 'premium',
-          billingCycle: 'monthly',
+          creditPack: 'mini',
         },
         headers: {
           'Content-Type': 'application/json',
+          origin: ORIGIN,
         },
       })
 
@@ -332,20 +289,6 @@ test.describe('Payment Checkout Flow', () => {
           data.data?.remainingCredits !== undefined
 
         expect(hasExpectedFields).toBe(true)
-      }
-    })
-  })
-
-  test.describe('Premium Status API', () => {
-    test('should return premium status', async ({ page }) => {
-      const response = await page.request.get('/api/me/premium')
-
-      if (response.ok()) {
-        const data = await response.json()
-        expect(data).toBeDefined()
-      } else {
-        // Unauthorized is acceptable
-        expect(response.status()).toBe(401)
       }
     })
   })

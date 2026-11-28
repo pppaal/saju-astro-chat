@@ -2,12 +2,12 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import BirthInfoModal from '@/app/(main)/components/BirthInfoModal'
+import BirthInfoModal from '@/components/birth/BirthInfoModal'
 import {
   getStoredBirthInfo,
   buildReportBirthQuery,
   type StoredBirthInfo,
-} from '@/app/(main)/birthInfoStorage'
+} from '@/lib/birth/storage'
 
 /**
  * 로그인 없이 열람 가능한 생일 기반 페이지(통합 리포트·운흐름 캘린더·운명)가
@@ -65,8 +65,8 @@ export default function BirthGate({
       <h1 className="max-w-md text-lg font-semibold">
         {title ??
           (isKo
-            ? '생년월일을 입력하면 바로 풀이가 나와요'
-            : 'Enter your birth info to see your reading')}
+            ? '출생 정보를 입력하면 바로 풀이가 나와요'
+            : 'Enter your birth details to see your reading')}
       </h1>
       <p className="mt-2 max-w-md text-sm opacity-70">
         {subtitle ??
@@ -80,7 +80,7 @@ export default function BirthGate({
         locale={locale}
         onClose={() => router.push('/')}
         onSaved={go}
-        title={isKo ? '생년월일 입력' : 'Enter birth info'}
+        title={isKo ? '출생 정보 입력' : 'Enter birth details'}
         submitLabel={isKo ? '입력하고 보기' : 'See my reading'}
       />
     </main>

@@ -6,12 +6,13 @@
 // <img> 로 박는다(버전 무관·픽셀 동일). 폰트/텍스트 없는 순수 도형이라
 // 한글 폰트 이슈도 없다.
 //
-// 인앱 그래프(DecadeTier BigYearGraph / DayTier HourGraph)와 같은
-// catmull-rom → 베지어 스무딩을 써서 화면과 공유 카드의 곡선 모양이 일치한다.
+// 곡선은 catmull-rom → 베지어 스무딩이다. 예전 인앱 그래프(옛 DecadeTier BigYearGraph ·
+// DayTier HourGraph — v9.2 에서 삭제)와 모양을 맞추려던 것이고, v9.2 인생 곡선(LifeCurve)은
+// 직선 폴리라인을 그린다.
 //
 // 순수·결정론: 같은 입력 → 같은 문자열. 클록·랜덤 없음.
 
-export interface CurveTheme {
+interface CurveTheme {
   /** 곡선 선 색. */
   stroke: string
   /** 면적 그라데이션 상단 색(하단은 투명). */
@@ -141,7 +142,7 @@ export function curveSvgDataUri(svg: string): string {
 // 못 그리므로 곡선과 똑같이 data-URI <img> 로 박고, 라이트 페이지(/r)는 그대로
 // <img> 로 쓴다. 필터(글로우)는 satori 비호환이라 그라데이션 stroke 만 쓴다.
 
-export interface GaugeTheme {
+interface GaugeTheme {
   /** 배경 트랙(안 채워진 부분) 색. */
   track: string
   /** 진행 호 그라데이션 — 시작(상단)→중간→끝. */
@@ -188,9 +189,4 @@ export function buildGaugeSvg(opts: GaugeSvgOptions): string {
     `transform="rotate(-90 ${cx} ${cy})"/>` +
     `</svg>`
   )
-}
-
-/** 게이지 SVG 문자열을 <img> src 용 data-URI 로. (curveSvgDataUri 와 동일) */
-export function gaugeSvgDataUri(svg: string): string {
-  return curveSvgDataUri(svg)
 }

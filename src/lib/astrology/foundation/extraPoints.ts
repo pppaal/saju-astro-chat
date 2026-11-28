@@ -196,9 +196,70 @@ export function calculateVertex(
   }
 }
 
+/** swe_azalt 의 대기 입력 — trueAltitude 는 대기차가 없는 기하학적 고도라 값과 무관하다. */
+const AZALT_PRESSURE_HPA = 1013.25
+const AZALT_TEMP_C = 15
+
 /**
- * 태양 위치로 주간/야간 차트 판별
- * 태양이 지평선 위(1-6하우스가 아닌 7-12하우스)면 주간
+ * 태양의 참고도(true altitude, °, 대기차 없음) — swe_calc_ut 의 태양 황경·황위·거리를
+ * swe_azalt(SE_ECL2HOR) 로 지평 좌표로 옮긴 값. 천체력을 못 쓰면(모의·네이티브 실패) null.
+ */
+export function sunTrueAltitude(jdUT: number, latitude: number, longitude: number): number | null {
+  if (![jdUT, latitude, longitude].every(Number.isFinite)) return null
+  try {
+    const sw = getSwisseph()
+    if (typeof sw.swe_azalt !== 'function') return null
+    const sun = sw.swe_calc_ut(jdUT, sw.SE_SUN, sw.SEFLG_SWIEPH)
+    if ('error' in sun) return null
+    const hor = sw.swe_azalt(
+      jdUT,
+      sw.SE_ECL2HOR,
+      longitude,
+      latitude,
+      0,
+      AZALT_PRESSURE_HPA,
+      AZALT_TEMP_C,
+      sun.longitude,
+      sun.latitude,
+      sun.distance
+    )
+    return Number.isFinite(hor?.trueAltitude) ? hor.trueAltitude : null
+  } catch {
+    return null
+  }
+}
+
+/**
+ * 섹트(sect) SSOT — 주간(day) 차트 = 태양이 지평선 위(참고도 > 0°), 헬레니즘 정의.
+ *
+ * astroFacts·/api/astrology·extraPoints(행운점)·arabicParts(lot 의 isDayChart 입력)가 모두
+ * 이 함수 하나로 섹트를 정한다. 정상 위도의 Placidus 에서는 하우스 규칙(7~12궁 = 지평선
+ * 위)과 같지만, 극권에서 Whole Sign 으로 폴백하면 하우스가 지평선을 따르지 않아 섹트가
+ * ~25% 뒤집혔고(엔진 감사 ASTRO-10) 그와 함께 행운점·정신점·ZR 시작·삼분성이 뒤집혔다.
+ *
+ * jdUT·위도·경도가 없거나 천체력을 못 쓰면 하우스 규칙(isNightChart — 하우스 미상이면
+ * ASC 기준 경도)으로 폴백한다.
+ */
+export function isDiurnalChart(args: {
+  jdUT?: number
+  latitude?: number
+  longitude?: number
+  sunHouse?: number
+  sunLongitude?: number
+  ascLongitude?: number
+}): boolean {
+  const { jdUT, latitude, longitude } = args
+  if (typeof jdUT === 'number' && typeof latitude === 'number' && typeof longitude === 'number') {
+    const alt = sunTrueAltitude(jdUT, latitude, longitude)
+    if (alt !== null) return alt > 0
+  }
+  return !isNightChart(args.sunHouse ?? 0, args.sunLongitude, args.ascLongitude)
+}
+
+/**
+ * 하우스 규칙 섹트 — 태양이 1~6하우스면 야간, 7~12하우스(지평선 위)면 주간.
+ * 섹트의 SSOT 는 isDiurnalChart(태양 고도)이고, 이 함수는 천체력을 못 쓸 때의 폴백이다
+ * (극권 Whole Sign 폴백에서는 지평선과 어긋난다 — ASTRO-10).
  */
 export function isNightChart(
   sunHouse: number,
@@ -237,8 +298,15 @@ export function extendChartWithExtraPoints(
     throw new Error('Sun or Moon not found in chart')
   }
 
-  // sun.house 가 UNKNOWN_HOUSE(0)여도 태양·ASC 경도로 sect 를 폴백 판별.
-  const nightChart = isNightChart(sun.house, sun.longitude, chart.ascendant.longitude)
+  // 섹트 = 태양 고도(isDiurnalChart). 천체력이 없으면 하우스·ASC 경도 규칙으로 폴백.
+  const nightChart = !isDiurnalChart({
+    jdUT: ut_jd,
+    latitude,
+    longitude,
+    sunHouse: sun.house,
+    sunLongitude: sun.longitude,
+    ascLongitude: chart.ascendant.longitude,
+  })
 
   return {
     ...chart,
@@ -273,7 +341,14 @@ export async function calculateExtraPoints(
   partOfFortune: ExtraPoint
   vertex: ExtraPoint
 }> {
-  const nightChart = isNightChart(sunHouse)
+  const nightChart = !isDiurnalChart({
+    jdUT: ut_jd,
+    latitude,
+    longitude,
+    sunHouse,
+    sunLongitude: sunLon,
+    ascLongitude: ascLon,
+  })
 
   return {
     chiron: calculateChiron(ut_jd, houseCusps),

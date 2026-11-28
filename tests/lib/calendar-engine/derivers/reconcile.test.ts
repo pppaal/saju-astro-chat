@@ -1,5 +1,9 @@
 import { describe, it, expect } from 'vitest'
-import { scoreToBand, reconcileDayTone } from '@/lib/calendar-engine/derivers/reconcile'
+import {
+  scoreToBand,
+  reconcileDayTone,
+  reconcileMonthTone,
+} from '@/lib/calendar-engine/derivers/reconcile'
 
 describe('scoreToBand', () => {
   it('maps score to the single shared bands (CALENDAR_BANDS 60/40)', () => {
@@ -90,5 +94,24 @@ describe('reconcileDayTone', () => {
     expect(v.score).toBe(73)
     // band 는 그 score 의 순수 함수 — 별도 scoreToBand 읽기가 필요 없다.
     expect(v.band).toBe(scoreToBand(73))
+  })
+})
+
+describe('reconcileMonthTone — calmN', () => {
+  it('calmN = totalN − goodN − cautionN − avoidN (30일 · 좋은 11 · 조심 4 · 피함 4 → 11)', () => {
+    const v = reconcileMonthTone({ goodN: 11, cautionN: 4, avoidN: 4, totalN: 30 })
+    expect(v.calmN).toBe(11)
+    // 기존 필드는 그대로.
+    expect(v.goodN).toBe(11)
+    expect(v.careN).toBe(8)
+    expect(v.cautionN).toBe(4)
+    expect(v.avoidN).toBe(4)
+    expect(v.totalN).toBe(30)
+    expect(v.goodN + v.cautionN + v.avoidN + v.calmN).toBe(v.totalN)
+  })
+
+  it('totalN 이 비었거나 모자라면 calmN 은 0 (음수 없음)', () => {
+    expect(reconcileMonthTone({ goodN: 3, cautionN: 2, avoidN: 1, totalN: 0 }).calmN).toBe(0)
+    expect(reconcileMonthTone({ goodN: 0, cautionN: 0, avoidN: 0, totalN: 31 }).calmN).toBe(31)
   })
 })

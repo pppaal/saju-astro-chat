@@ -5,6 +5,8 @@
 import { z } from 'zod'
 import {
   dateSchema,
+  calendarDateStringSchema,
+  refineCalendarBirthDate,
   timeSchema,
   timezoneSchema,
   latitudeSchema,
@@ -33,31 +35,44 @@ import {
 
 // ============ Saju API Schema ============
 
-export const sajuRequestSchema = z.object({
-  birthDate: dateSchema,
-  birthTime: timeSchema,
-  gender: genderSchema,
-  calendarType: z.enum(['solar', 'lunar']),
-  timezone: timezoneSchema,
-  userTimezone: timezoneSchema.optional(),
-  locale: localeSchema.optional(),
-})
+export const sajuRequestSchema = z
+  .object({
+    // 형식·연도만 — 날짜 실재는 calendarType 별로 refineCalendarBirthDate 가 본다.
+    birthDate: calendarDateStringSchema,
+    birthTime: timeSchema,
+    gender: genderSchema,
+    calendarType: z.enum(['solar', 'lunar']),
+    lunarLeap: z.boolean().optional(),
+    timezone: timezoneSchema,
+    userTimezone: timezoneSchema.optional(),
+    locale: localeSchema.optional(),
+  })
+  .superRefine(refineCalendarBirthDate)
 
 export type SajuRequest = z.infer<typeof sajuRequestSchema>
 
-export const sajuCalculationRequestSchema = z.object({
-  birthDate: dateSchema,
-  birthTime: timeSchema,
-  gender: genderSchema,
-  calendarType: z.enum(['solar', 'lunar']),
-  timezone: timezoneSchema,
-  userTimezone: timezoneSchema.optional(),
-  latitude: latitudeSchema.optional(),
-  longitude: longitudeSchema.optional(),
-  // 음력 윤달 여부. calendarType==='lunar' 일 때만 의미 있음.
-  // 윤4월 vs 평4월처럼 같은 Y/M/D에서 분기되는 케이스를 정확히 분리하기 위함.
-  lunarLeap: z.boolean().optional(),
-})
+export const sajuCalculationRequestSchema = z
+  .object({
+    // 형식·연도만 — 날짜가 실제로 있는지는 아래 superRefine 이 calendarType 별로 본다.
+    birthDate: calendarDateStringSchema,
+    // 빈 문자열 = 출생시각 미상(isBirthTimeUnknown 규약) — 라우트가 정오 앵커 + 삼주 분석.
+    birthTime: z.union([timeSchema, z.literal('')]),
+    // 명시적 "시간 모름" 플래그 — true 면 시각이 남아 있어도 미상(삼주, CONVENTIONS §5).
+    birthTimeUnknown: z.boolean().nullable().optional(),
+    gender: genderSchema,
+    calendarType: z.enum(['solar', 'lunar']),
+    timezone: timezoneSchema,
+    userTimezone: timezoneSchema.optional(),
+    latitude: latitudeSchema.optional(),
+    longitude: longitudeSchema.optional(),
+    // 음력 윤달 여부. calendarType==='lunar' 일 때만 의미 있음.
+    // 윤4월 vs 평4월처럼 같은 Y/M/D에서 분기되는 케이스를 정확히 분리하기 위함.
+    lunarLeap: z.boolean().optional(),
+  })
+  // 날짜 실재 검사 — 양력은 그레고리력, 음력은 엔진과 같은 변환기(lunarDate.ts). 없는 음력
+  // 날짜(작은달 30일·그해에 없는 윤달·음력 2050-11-18 이후)는 엔진의 500 대신 여기서
+  // VALIDATION_ERROR 로 막는다(재감사 SP-3). calendarType 을 받는 모든 스키마가 같은 검사.
+  .superRefine(refineCalendarBirthDate)
 
 export type SajuCalculationRequestValidated = z.infer<typeof sajuCalculationRequestSchema>
 
@@ -190,16 +205,20 @@ export type PrecomputeChartRequestValidated = z.infer<typeof precomputeChartRequ
 
 // ============ Destiny Map Schemas ============
 
-export const destinyMapRequestSchema = z.object({
-  birthDate: dateSchema,
-  birthTime: timeSchema,
-  gender: genderSchema,
-  calendarType: z.enum(['solar', 'lunar']).optional().default('solar'),
-  timezone: timezoneSchema,
-  locale: localeSchema.optional(),
-  latitude: latitudeSchema.optional(),
-  longitude: longitudeSchema.optional(),
-})
+export const destinyMapRequestSchema = z
+  .object({
+    // 형식·연도만 — 날짜 실재는 calendarType 별로 refineCalendarBirthDate 가 본다.
+    birthDate: calendarDateStringSchema,
+    birthTime: timeSchema,
+    gender: genderSchema,
+    calendarType: z.enum(['solar', 'lunar']).optional().default('solar'),
+    lunarLeap: z.boolean().optional(),
+    timezone: timezoneSchema,
+    locale: localeSchema.optional(),
+    latitude: latitudeSchema.optional(),
+    longitude: longitudeSchema.optional(),
+  })
+  .superRefine(refineCalendarBirthDate)
 
 export type DestinyMapRequestValidated = z.infer<typeof destinyMapRequestSchema>
 
@@ -481,31 +500,24 @@ export const compatibilityChatRequestSchema = z.object({
 
 export type CompatibilityChatRequestValidated = z.infer<typeof compatibilityChatRequestSchema>
 
+// 궁합 한 사람 — 형식·연도만 필드에서, 날짜 실재는 calendarType 별로(refineCalendarBirthDate).
+const compatibilityPersonSchema = z
+  .object({
+    birthDate: calendarDateStringSchema,
+    birthTime: timeSchema,
+    latitude: latitudeSchema,
+    longitude: longitudeSchema,
+    timezone: timezoneSchema,
+    gender: genderSchema.optional(),
+    calendarType: z.enum(['solar', 'lunar']).optional(),
+    lunarLeap: z.boolean().optional(),
+    userTimezone: timezoneSchema.optional(),
+  })
+  .superRefine(refineCalendarBirthDate)
+
 export const compatibilityAnalysisSchema = z.object({
-  person1: z.lazy(() =>
-    z.object({
-      birthDate: dateSchema,
-      birthTime: timeSchema,
-      latitude: latitudeSchema,
-      longitude: longitudeSchema,
-      timezone: timezoneSchema,
-      gender: genderSchema.optional(),
-      calendarType: z.enum(['solar', 'lunar']).optional(),
-      userTimezone: timezoneSchema.optional(),
-    })
-  ),
-  person2: z.lazy(() =>
-    z.object({
-      birthDate: dateSchema,
-      birthTime: timeSchema,
-      latitude: latitudeSchema,
-      longitude: longitudeSchema,
-      timezone: timezoneSchema,
-      gender: genderSchema.optional(),
-      calendarType: z.enum(['solar', 'lunar']).optional(),
-      userTimezone: timezoneSchema.optional(),
-    })
-  ),
+  person1: z.lazy(() => compatibilityPersonSchema),
+  person2: z.lazy(() => compatibilityPersonSchema),
   analysisType: z.enum(['romantic', 'friendship', 'business', 'family']).optional(),
   locale: localeSchema.optional(),
 })
@@ -556,6 +568,9 @@ export const compatibilityCounselorRequestSchema = z.object({
   // 서버는 keepGeneratingOnDisconnect 로 끝까지 생성한 답을 이 키로 캐시해
   // 두고, 사용자가 돌아오면 /result?turnId=… 로 복원한다.
   turnId: z.string().max(80).optional(),
+  // 보는 사람 기기 시간대 — 상담사 '오늘'(세운·대운·만 나이의 날짜)의 기준. 운명상담사와
+  // 같은 규칙(resolveViewerTimezone): 없으면 첫 사람(A)의 출생 tz.
+  userTimezone: timezoneSchema.optional(),
 })
 
 export type CompatibilityCounselorRequestValidated = z.infer<

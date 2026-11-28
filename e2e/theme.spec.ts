@@ -4,25 +4,60 @@ import { test, expect } from '@playwright/test'
  * Dark mode and theme tests
  */
 
+// v9 paper 화면(/, /destiny, /calendar)은 V9Root(data-surface="paper")가 렌더되면
+// html:has([data-surface='paper']) 규칙으로 light color-scheme 이 된다. 다크 기본값은
+// 그 밖의 라우트에서만 검증한다.
+const NON_V9_ROUTES = ['/pricing', '/tarot']
+// 홈(/)은 v9.2 로 바뀌어 언제나 paper 다. /destiny · /calendar 는 v9 화면이 들어오는 중이라
+// paper 루트가 있을 때만 light 를 기대한다.
+const V9_ROUTES = ['/destiny', '/calendar']
+
 test.describe('Dark Mode Default', () => {
-  test('should have dark theme by default', async ({ page }) => {
-    await page.goto('/', { waitUntil: 'domcontentloaded' })
+  for (const route of NON_V9_ROUTES) {
+    test(`should have dark theme by default on ${route}`, async ({ page }) => {
+      await page.goto(route, { waitUntil: 'domcontentloaded' })
 
-    const dataTheme = await page.locator('html').getAttribute('data-theme')
-    expect(dataTheme).toBe('dark')
-  })
-
-  test('should have dark color scheme', async ({ page }) => {
-    await page.goto('/', { waitUntil: 'domcontentloaded' })
-
-    const colorScheme = await page.evaluate(() => {
-      return window.getComputedStyle(document.documentElement).colorScheme
+      const dataTheme = await page.locator('html').getAttribute('data-theme')
+      expect(dataTheme).toBe('dark')
     })
 
-    expect(colorScheme).toContain('dark')
+    test(`should have dark color scheme on ${route}`, async ({ page }) => {
+      await page.goto(route, { waitUntil: 'domcontentloaded' })
+
+      const colorScheme = await page.evaluate(() => {
+        return window.getComputedStyle(document.documentElement).colorScheme
+      })
+
+      expect(colorScheme).toContain('dark')
+    })
+  }
+
+  for (const route of V9_ROUTES) {
+    test(`color scheme on ${route} follows the paper surface`, async ({ page }) => {
+      await page.goto(route, { waitUntil: 'domcontentloaded' })
+
+      const { hasPaper, colorScheme } = await page.evaluate(() => ({
+        hasPaper: document.querySelector('[data-surface="paper"]') !== null,
+        colorScheme: window.getComputedStyle(document.documentElement).colorScheme,
+      }))
+
+      expect(colorScheme).toContain(hasPaper ? 'light' : 'dark')
+    })
+  }
+
+  test('home (/) is the v9 paper surface with a light color scheme', async ({ page }) => {
+    await page.goto('/', { waitUntil: 'domcontentloaded' })
+
+    const { hasPaper, colorScheme } = await page.evaluate(() => ({
+      hasPaper: document.querySelector('[data-surface="paper"]') !== null,
+      colorScheme: window.getComputedStyle(document.documentElement).colorScheme,
+    }))
+
+    expect(hasPaper).toBe(true)
+    expect(colorScheme).toContain('light')
   })
 
-  test('should have dark background color', async ({ page }) => {
+  test('should have a background color', async ({ page }) => {
     await page.goto('/', { waitUntil: 'domcontentloaded' })
 
     const bgColor = await page.evaluate(() => {
@@ -51,7 +86,7 @@ test.describe('Theme Attributes', () => {
 })
 
 test.describe('Color Contrast', () => {
-  test('text should be visible on dark background', async ({ page }) => {
+  test('text should be visible on the page background', async ({ page }) => {
     await page.goto('/', { waitUntil: 'domcontentloaded' })
 
     const bodyText = await page.locator('body').textContent()
@@ -78,8 +113,9 @@ test.describe('Color Contrast', () => {
 })
 
 test.describe('Theme Consistency Across Pages', () => {
-  test('saju page should have dark theme', async ({ page }) => {
-    await page.goto('/saju', { waitUntil: 'domcontentloaded' })
+  // /saju · /dream 은 삭제된 서비스(홈으로 리다이렉트)라 살아 있는 비-v9 화면을 본다.
+  test('compatibility page should have dark theme', async ({ page }) => {
+    await page.goto('/compatibility', { waitUntil: 'domcontentloaded' })
 
     const dataTheme = await page.locator('html').getAttribute('data-theme')
     expect(dataTheme).toBe('dark')
@@ -92,8 +128,8 @@ test.describe('Theme Consistency Across Pages', () => {
     expect(dataTheme).toBe('dark')
   })
 
-  test('destiny-map page should have dark theme', async ({ page }) => {
-    await page.goto('/destiny-map', { waitUntil: 'domcontentloaded' })
+  test('destiny-counselor page should have dark theme', async ({ page }) => {
+    await page.goto('/destiny-counselor', { waitUntil: 'domcontentloaded' })
 
     const dataTheme = await page.locator('html').getAttribute('data-theme')
     expect(dataTheme).toBe('dark')
@@ -111,14 +147,18 @@ test.describe('CSS Variables', () => {
   test('should have CSS custom properties', async ({ page }) => {
     await page.goto('/', { waitUntil: 'domcontentloaded' })
 
-    // CSS 커스텀 속성이 정의되어 있는지 확인
-    const fontValue = await page.evaluate(() => {
-      const styles = window.getComputedStyle(document.documentElement)
-      return styles.getPropertyValue('--font-montserrat')
+    // next/font 변수 — 공용 글꼴(--font-montserrat 등)은 layout.tsx 가 <body> 에,
+    // v9 글꼴(--font-v9-sans/mono/serif)은 V9Root(data-surface="paper")가 단다.
+    const { bodyFont, v9Font } = await page.evaluate(() => {
+      const paper = document.querySelector('[data-surface="paper"]')
+      return {
+        bodyFont: window.getComputedStyle(document.body).getPropertyValue('--font-montserrat'),
+        v9Font: paper ? window.getComputedStyle(paper).getPropertyValue('--font-v9-sans') : '',
+      }
     })
 
-    // 폰트 CSS 변수가 정의되어 있어야 함
-    expect(fontValue.length).toBeGreaterThan(0)
+    expect(bodyFont.trim().length).toBeGreaterThan(0)
+    expect(v9Font.trim().length).toBeGreaterThan(0)
   })
 })
 
@@ -217,7 +257,7 @@ test.describe('Icon Visibility', () => {
 
 test.describe('Form Elements in Dark Mode', () => {
   test('input fields should be visible', async ({ page }) => {
-    await page.goto('/saju', { waitUntil: 'domcontentloaded' })
+    await page.goto('/compatibility', { waitUntil: 'domcontentloaded' })
 
     const inputs = page.locator('input')
     const count = await inputs.count()
@@ -234,7 +274,7 @@ test.describe('Form Elements in Dark Mode', () => {
   })
 
   test('textarea should be visible', async ({ page }) => {
-    await page.goto('/dream', { waitUntil: 'domcontentloaded' })
+    await page.goto('/destiny-counselor', { waitUntil: 'domcontentloaded' })
 
     const textareas = page.locator('textarea')
     const count = await textareas.count()

@@ -10,7 +10,7 @@ import styles from './Chat.module.css'
 import { type TarotResultSummary } from './InlineTarotModal'
 import { CHAT_I18N } from './chat-i18n'
 import { generateMessageId } from './chat-utils'
-import type { ChatProps, DestinySources } from './chat-types'
+import type { ChatProps, DestinySources, SessionItem } from './chat-types'
 import { loadPendingChat } from '@/lib/chat/pendingChat'
 import { useChatSession } from './hooks/useChatSession'
 import { useFileUpload } from './hooks/useFileUpload'
@@ -383,10 +383,10 @@ ${result.overallMessage}${result.guidance ? `\n\n**\uC870\uC5B8:** ${result.guid
   }
 
   // ---- Rename / delete a past chat (desktop rail) ----
-  const sessionLabel = (s: { title?: string; summary?: string }) =>
+  const sessionLabel = (s: Pick<SessionItem, 'title' | 'summary'>) =>
     s.title?.trim() || s.summary?.slice(0, 60) || t('chat.rail.savedLabel', 'Saved conversation')
 
-  const startRename = (s: { id: string; title?: string; summary?: string }) => {
+  const startRename = (s: Pick<SessionItem, 'id' | 'title' | 'summary'>) => {
     setRenamingId(s.id)
     setRenameValue(s.title?.trim() || s.summary?.slice(0, 60) || '')
     setDeleteConfirmId(null)

@@ -27,7 +27,6 @@ architecture follows from that split — see `OVERVIEW.md` and
 | Payments  | Stripe one-time **credit packs** (no subscriptions)          |
 | Data      | Prisma 7 + Postgres (Supabase)                               |
 | Cache/RL  | Upstash Redis (in-memory fallback)                           |
-| Mobile    | Capacitor (iOS/Android)                                      |
 
 Node **20** (`.nvmrc`; `engines: >=20 <21`). Package manager: **npm** (`npm ci`).
 
@@ -64,14 +63,14 @@ keys for those features. `BUILD_INSTRUCTIONS.md` has the deep setup/troubleshoot
 | `npm run db:studio`        | Prisma Studio                                            |
 
 CI additionally runs `ops:typecheck:gate` (no new type errors vs baseline) and
-the destiny quality/release gates. See `docs/TESTING_AND_GUARDRAILS.md` for the
-full gate list.
+the destiny release gate (`ops:destiny:release`). See
+`docs/TESTING_AND_GUARDRAILS.md` for the full gate list.
 
 ## Where things live
 
 ```
 src/
-  app/                 Next.js App Router — pages + ~100 API route handlers (api/**/route.ts; exact list: docs/reference/api-routes.md)
+  app/                 Next.js App Router — pages + ~90 API route handlers (api/**/route.ts; exact list: docs/reference/api-routes.md)
   components/          React UI
   lib/
     saju/              Saju four-pillars engine (deterministic) — ~50 files
@@ -88,7 +87,7 @@ src/
     config/            pricing.ts (SSOT for credit packs) + other constants
 docs/                  canonical docs — start at docs/DOCS_INDEX.md
 prisma/                schema (24 models) + migrations
-tests/ e2e/            ~730 test files; e2e/critical-flows are the money paths
+tests/ e2e/            ~850 test files; e2e/critical-flows are the money paths
 ```
 
 `docs/REPO_STRUCTURE.md` defines source-vs-generated boundaries.

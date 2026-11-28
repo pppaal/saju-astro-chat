@@ -6,29 +6,6 @@ import { test, expect } from '@playwright/test'
  */
 
 test.describe('Main Feature Pages', () => {
-  test('should load saju page with saju content', async ({ page }) => {
-    await page.goto('/saju', { waitUntil: 'domcontentloaded' })
-    await expect(page.locator('body')).toBeVisible()
-
-    const pageContent = await page.textContent('body')
-    const hasSajuContent =
-      pageContent?.includes('사주') ||
-      pageContent?.includes('Saju') ||
-      pageContent?.includes('생년월일') ||
-      pageContent!.length > 100
-    expect(hasSajuContent).toBe(true)
-  })
-
-  test('should load saju counselor page with chat interface', async ({ page }) => {
-    await page.goto('/saju/counselor', { waitUntil: 'domcontentloaded' })
-    await expect(page.locator('body')).toBeVisible()
-
-    // Should have chat elements
-    const chatElements = page.locator('textarea, [class*="chat"], [class*="message"]')
-    const count = await chatElements.count()
-    expect(count).toBeGreaterThan(0)
-  })
-
   test('should load tarot page with tarot content', async ({ page }) => {
     await page.goto('/tarot', { waitUntil: 'domcontentloaded' })
     await expect(page.locator('body')).toBeVisible()
@@ -50,68 +27,16 @@ test.describe('Main Feature Pages', () => {
     expect(bodyText!.length).toBeGreaterThan(50)
   })
 
-  test('should load destiny-map page with content', async ({ page }) => {
-    await page.goto('/destiny-map', { waitUntil: 'domcontentloaded' })
+  test('should load destiny-counselor page with content', async ({ page }) => {
+    await page.goto('/destiny-counselor', { waitUntil: 'domcontentloaded' })
     await expect(page.locator('body')).toBeVisible()
 
     const bodyText = await page.locator('body').textContent()
     expect(bodyText!.length).toBeGreaterThan(100)
   })
 
-  test('should load destiny-map counselor page', async ({ page }) => {
-    await page.goto('/destiny-map/counselor', { waitUntil: 'domcontentloaded' })
-    await expect(page.locator('body')).toBeVisible()
-
-    const bodyText = await page.locator('body').textContent()
-    expect(bodyText!.length).toBeGreaterThan(50)
-  })
-
-  test('should load destiny-map result page', async ({ page }) => {
-    await page.goto('/destiny-map/result', { waitUntil: 'domcontentloaded' })
-    await expect(page.locator('body')).toBeVisible()
-  })
-
-  test('should load astrology page with content', async ({ page }) => {
-    await page.goto('/astrology', { waitUntil: 'domcontentloaded' })
-    await expect(page.locator('body')).toBeVisible()
-
-    const bodyText = await page.locator('body').textContent()
-    const hasContent =
-      bodyText?.includes('점성') ||
-      bodyText?.includes('Astrology') ||
-      bodyText?.includes('별') ||
-      bodyText!.length > 100
-    expect(hasContent).toBe(true)
-  })
-
-  test('should load astrology counselor page', async ({ page }) => {
-    await page.goto('/astrology/counselor', { waitUntil: 'domcontentloaded' })
-    await expect(page.locator('body')).toBeVisible()
-  })
-
-  test('should load dream page with content', async ({ page }) => {
-    await page.goto('/dream', { waitUntil: 'domcontentloaded' })
-    await expect(page.locator('body')).toBeVisible()
-
-    const bodyText = await page.locator('body').textContent()
-    const hasContent =
-      bodyText?.includes('꿈') ||
-      bodyText?.includes('Dream') ||
-      bodyText?.includes('해몽') ||
-      bodyText!.length > 100
-    expect(hasContent).toBe(true)
-  })
-
-  test('should load iching page with content', async ({ page }) => {
-    await page.goto('/iching', { waitUntil: 'domcontentloaded' })
-    await expect(page.locator('body')).toBeVisible()
-
-    const bodyText = await page.locator('body').textContent()
-    expect(bodyText!.length).toBeGreaterThan(50)
-  })
-
-  test('should load numerology page with content', async ({ page }) => {
-    await page.goto('/numerology', { waitUntil: 'domcontentloaded' })
+  test('should load destiny-counselor counselor page', async ({ page }) => {
+    await page.goto('/destiny-counselor', { waitUntil: 'domcontentloaded' })
     await expect(page.locator('body')).toBeVisible()
 
     const bodyText = await page.locator('body').textContent()
@@ -119,37 +44,15 @@ test.describe('Main Feature Pages', () => {
   })
 
   test('should load calendar page with calendar elements', async ({ page }) => {
+    // v9.2 운세 달력 — 출생 정보가 없는 손님의 /calendar 는 종이 화면의 안내(BirthGate)를,
+    // 샘플(/calendar/preview)은 월 그리드를 그린다. 해시된 CSS 모듈 클래스 대신 data-* 로 찾는다.
     await page.goto('/calendar', { waitUntil: 'domcontentloaded' })
     await expect(page.locator('body')).toBeVisible()
+    await expect(page.locator('[data-surface="paper"]').first()).toBeAttached()
 
-    // Should have calendar-related elements
-    const calendarElements = page.locator('[class*="calendar"], [class*="month"], [class*="day"]')
-    const count = await calendarElements.count()
-    expect(count).toBeGreaterThan(0)
-  })
-
-  test('should load life-prediction page with content', async ({ page }) => {
-    await page.goto('/life-prediction', { waitUntil: 'domcontentloaded' })
-    await expect(page.locator('body')).toBeVisible()
-
-    const bodyText = await page.locator('body').textContent()
-    expect(bodyText!.length).toBeGreaterThan(50)
-  })
-
-  test('should load personality page with content', async ({ page }) => {
-    await page.goto('/personality', { waitUntil: 'domcontentloaded' })
-    await expect(page.locator('body')).toBeVisible()
-
-    const bodyText = await page.locator('body').textContent()
-    expect(bodyText!.length).toBeGreaterThan(50)
-  })
-
-  test('should load past-life page with content', async ({ page }) => {
-    await page.goto('/past-life', { waitUntil: 'domcontentloaded' })
-    await expect(page.locator('body')).toBeVisible()
-
-    const bodyText = await page.locator('body').textContent()
-    expect(bodyText!.length).toBeGreaterThan(50)
+    await page.goto('/calendar/preview', { waitUntil: 'domcontentloaded' })
+    const dayCells = page.locator('[data-mark]')
+    expect(await dayCells.count()).toBeGreaterThan(0)
   })
 })
 
@@ -158,28 +61,17 @@ test.describe('Compatibility Pages', () => {
     await page.goto('/compatibility', { waitUntil: 'domcontentloaded' })
     await expect(page.locator('body')).toBeVisible()
 
-    // Should have form inputs
+    // 두 사람 입력 폼은 하이드레이션 뒤에 그려진다.
     const inputs = page.locator('input, select')
-    const count = await inputs.count()
-    expect(count).toBeGreaterThan(0)
-  })
-
-  test('should load compatibility chat page', async ({ page }) => {
-    await page.goto('/compatibility/chat', { waitUntil: 'domcontentloaded' })
-    await expect(page.locator('body')).toBeVisible()
+    await expect(inputs.first()).toBeAttached({ timeout: 30000 })
+    expect(await inputs.count()).toBeGreaterThan(0)
   })
 
   test('should load compatibility counselor page', async ({ page }) => {
     await page.goto('/compatibility/counselor', { waitUntil: 'domcontentloaded' })
     await expect(page.locator('body')).toBeVisible()
   })
-
-  test('should load compatibility insights page', async ({ page }) => {
-    await page.goto('/compatibility/insights', { waitUntil: 'domcontentloaded' })
-    await expect(page.locator('body')).toBeVisible()
-  })
 })
-
 
 test.describe('User Account Pages', () => {
   test('should load profile page', async ({ page }) => {
@@ -191,51 +83,8 @@ test.describe('User Account Pages', () => {
     expect(bodyText!.length).toBeGreaterThan(50)
   })
 
-  test('should load myjourney page', async ({ page }) => {
-    await page.goto('/myjourney', { waitUntil: 'domcontentloaded' })
-    await expect(page.locator('body')).toBeVisible()
-
-    const bodyText = await page.locator('body').textContent()
-    expect(bodyText!.length).toBeGreaterThan(50)
-  })
-
-  test('should load myjourney history page', async ({ page }) => {
-    await page.goto('/myjourney/history', { waitUntil: 'domcontentloaded' })
-    await expect(page.locator('body')).toBeVisible()
-  })
-
-  test('should load myjourney circle page', async ({ page }) => {
-    await page.goto('/myjourney/circle', { waitUntil: 'domcontentloaded' })
-    await expect(page.locator('body')).toBeVisible()
-  })
-
   test('should load myjourney profile page', async ({ page }) => {
     await page.goto('/myjourney/profile', { waitUntil: 'domcontentloaded' })
-    await expect(page.locator('body')).toBeVisible()
-  })
-
-  test('should load notifications page', async ({ page }) => {
-    await page.goto('/notifications', { waitUntil: 'domcontentloaded' })
-    await expect(page.locator('body')).toBeVisible()
-  })
-})
-
-test.describe('ICP Pages', () => {
-  test('should load icp page with content', async ({ page }) => {
-    await page.goto('/icp', { waitUntil: 'domcontentloaded' })
-    await expect(page.locator('body')).toBeVisible()
-
-    const bodyText = await page.locator('body').textContent()
-    expect(bodyText!.length).toBeGreaterThan(50)
-  })
-
-  test('should load icp quiz page', async ({ page }) => {
-    await page.goto('/icp/quiz', { waitUntil: 'domcontentloaded' })
-    await expect(page.locator('body')).toBeVisible()
-  })
-
-  test('should load icp result page', async ({ page }) => {
-    await page.goto('/icp/result', { waitUntil: 'domcontentloaded' })
     await expect(page.locator('body')).toBeVisible()
   })
 })
@@ -263,14 +112,6 @@ test.describe('Static & Info Pages', () => {
     expect(count).toBeGreaterThan(0)
   })
 
-  test('should load about features page', async ({ page }) => {
-    await page.goto('/about/features', { waitUntil: 'domcontentloaded' })
-    await expect(page.locator('body')).toBeVisible()
-
-    const bodyText = await page.locator('body').textContent()
-    expect(bodyText!.length).toBeGreaterThan(100)
-  })
-
   test('should load pricing page with pricing content', async ({ page }) => {
     await page.goto('/pricing', { waitUntil: 'domcontentloaded' })
     await expect(page.locator('body')).toBeVisible()
@@ -293,14 +134,13 @@ test.describe('Static & Info Pages', () => {
     expect(bodyText!.length).toBeGreaterThan(100)
   })
 
-  test('should load contact page with form', async ({ page }) => {
+  test('should load contact page with an email link', async ({ page }) => {
     await page.goto('/contact', { waitUntil: 'domcontentloaded' })
     await expect(page.locator('body')).toBeVisible()
 
-    // Should have contact form or info
-    const formElements = page.locator('form, input, textarea')
-    const count = await formElements.count()
-    expect(count).toBeGreaterThan(0)
+    // 문의 폼은 없다 — 지원 메일 링크(mailto:)가 있다.
+    const mailLinks = page.locator('a[href^="mailto:"]')
+    expect(await mailLinks.count()).toBeGreaterThan(0)
   })
 
   test('should load blog page', async ({ page }) => {
@@ -359,31 +199,6 @@ test.describe('Destiny Matrix Pages', () => {
   })
 })
 
-test.describe('Premium Reports Pages', () => {
-  test('should load premium-reports page', async ({ page }) => {
-    await page.goto('/premium-reports', { waitUntil: 'domcontentloaded' })
-    await expect(page.locator('body')).toBeVisible()
-
-    const bodyText = await page.locator('body').textContent()
-    expect(bodyText!.length).toBeGreaterThan(50)
-  })
-
-  test('should load premium-reports comprehensive page', async ({ page }) => {
-    await page.goto('/premium-reports/comprehensive', { waitUntil: 'domcontentloaded' })
-    await expect(page.locator('body')).toBeVisible()
-  })
-
-  test('should load premium-reports themed page', async ({ page }) => {
-    await page.goto('/premium-reports/themed', { waitUntil: 'domcontentloaded' })
-    await expect(page.locator('body')).toBeVisible()
-  })
-
-  test('should load premium-reports timing page', async ({ page }) => {
-    await page.goto('/premium-reports/timing', { waitUntil: 'domcontentloaded' })
-    await expect(page.locator('body')).toBeVisible()
-  })
-})
-
 test.describe('Auth Pages', () => {
   test('should load signin page', async ({ page }) => {
     await page.goto('/auth/signin', { waitUntil: 'domcontentloaded' })
@@ -393,27 +208,5 @@ test.describe('Auth Pages', () => {
     const authElements = page.locator("button, form, [class*='auth'], [class*='login']")
     const count = await authElements.count()
     expect(count).toBeGreaterThan(0)
-  })
-})
-
-test.describe('Personality Sub-pages', () => {
-  test('should load personality quiz page', async ({ page }) => {
-    await page.goto('/personality/quiz', { waitUntil: 'domcontentloaded' })
-    await expect(page.locator('body')).toBeVisible()
-  })
-
-  test('should load personality result page', async ({ page }) => {
-    await page.goto('/personality/result', { waitUntil: 'domcontentloaded' })
-    await expect(page.locator('body')).toBeVisible()
-  })
-
-  test('should load personality combined page', async ({ page }) => {
-    await page.goto('/personality/combined', { waitUntil: 'domcontentloaded' })
-    await expect(page.locator('body')).toBeVisible()
-  })
-
-  test('should load personality compatibility page', async ({ page }) => {
-    await page.goto('/personality/compatibility', { waitUntil: 'domcontentloaded' })
-    await expect(page.locator('body')).toBeVisible()
   })
 })

@@ -13,7 +13,10 @@ import { getNowInTimezone } from '@/lib/datetime'
 import { normalizeGender } from '@/lib/utils/gender'
 import { resolveBirthTimeAnchor, TIME_UNKNOWN_ANCHOR } from '@/lib/saju/birthTimeAnchor'
 import { cacheGet, cacheSet, CACHE_TTL } from '@/lib/cache/redis-cache'
+import { ENGINE_VERSION_TAG } from '@/lib/cache/engineVersions'
 import { logger } from '@/lib/logger'
+import { defaultLatitudeFor, defaultLongitudeFor } from '@/lib/saju/timezone'
+import { resolveBirthTimezone } from '@/lib/datetime/resolveTimezone'
 
 export interface CounselorBirthInput {
   birthDate?: string
@@ -36,7 +39,8 @@ function birthFingerprint(b: CounselorBirthInput): string {
     // 차트/Meta 와 같은 정규화 값으로 — 'F'/'female'/'FEMALE' 이 서로 다른 캐시
     // 키로 갈려 같은 사람이 중복 빌드되던 fragmentation 방지.
     normalizeGender(b.gender) === 'female' ? 'female' : 'male',
-    b.timezone ?? 'Asia/Seoul',
+    // ensureCounselorContext 가 출생 타임존 resolver 로 이미 채운 값.
+    b.timezone ?? '',
     b.latitude ?? '',
     b.longitude ?? '',
   ].join('|')
@@ -68,7 +72,23 @@ export async function ensureCounselorContext(
   // 읽었다. '00:00' 입력도 미상으로 취급(프로필 저장 규약) — hourUnknown 판정과
   // 계산 앵커가 같은 헬퍼에서 나와 갈리지 않는다.
   const anchor = resolveBirthTimeAnchor(body.birthTime, body.birthTimeUnknown)
-  body = { ...body, birthTime: anchor.time, birthTimeUnknown: anchor.timeUnknown }
+  // 출생 타임존도 여기서 한 번 확정한다(resolveBirthTimezone — 명시 tz → 출생 좌표의 tz →
+  // 사주 기준 존). 키·Meta·차트·'오늘'이 모두 같은 존을 본다. 예전엔 tz 가 없으면
+  // 좌표가 뉴욕이어도 'Asia/Seoul' 로 계산하고 서울 날짜를 '오늘'로 잡았다.
+  const birthTz = resolveBirthTimezone(
+    {
+      timezone: body.timezone,
+      latitude: body.birthCityUnknown ? undefined : body.latitude,
+      longitude: body.birthCityUnknown ? undefined : body.longitude,
+    },
+    { context: 'counselorContextCache' }
+  )
+  body = {
+    ...body,
+    birthTime: anchor.time,
+    birthTimeUnknown: anchor.timeUnknown,
+    timezone: birthTz,
+  }
   const hourUnknown = anchor.timeUnknown
   // 좌표가 없으면 도시 미상으로 본다 — timezone 이 있든 없든. 예전엔 timezone 이
   // 있으면(&& !body.timezone) cityUnknown=false 라, 좌표 없이 timezone 만 온
@@ -86,8 +106,13 @@ export async function ensureCounselorContext(
   // sources(사주만/점성만/둘 다)도 키에 포함 — 소스 토글마다 컨텍스트 바이트가
   // 달라, 안 넣으면 "사주만"으로 빌드된 캐시가 "둘 다" 요청에 잘못 hit 한다.
   const srcTag = `s${sources.saju ? 1 : 0}${sources.astro ? 1 : 0}`
-  const stableCtxKey = `counselor:ctx:stable:v13:${lang}:${srcTag}:${userId}:${birthFingerprint(body)}:${hourUnknown ? 'tU' : 'tK'}:${cityUnknown ? 'cU' : 'cK'}:${userTz}`
-  const dailyCtxKey = `counselor:ctx:daily:v13:${lang}:${srcTag}:${userId}:${birthFingerprint(body)}:${hourUnknown ? 'tU' : 'tK'}:${cityUnknown ? 'cU' : 'cK'}:${userTz}:${localDateKey}`
+  // v13→v14: 2026-11 엔진 정합(절입 순간·관계·신살·강약/용신·프로펙션·교차)으로
+  // 컨텍스트 내용이 바뀌어 무효화. stable 은 TTL 30일이라 안 올리면 옛 판정이 남는다.
+  // 그 뒤로는 엔진 버전 묶음(ENGINE_VERSION_TAG — 사주·캘린더·본명·트랜짓·hellenistic)을
+  // 키에 접는다(엔진 감사 E14): 엔진이 올라가면 키가 저절로 바뀐다. v14 는 이제
+  // *컨텍스트 포맷*(이 파일·counselorContext 의 조립 규칙) 버전만 뜻한다.
+  const stableCtxKey = `counselor:ctx:stable:v14:${ENGINE_VERSION_TAG}:${lang}:${srcTag}:${userId}:${birthFingerprint(body)}:${hourUnknown ? 'tU' : 'tK'}:${cityUnknown ? 'cU' : 'cK'}:${userTz}`
+  const dailyCtxKey = `counselor:ctx:daily:v14:${ENGINE_VERSION_TAG}:${lang}:${srcTag}:${userId}:${birthFingerprint(body)}:${hourUnknown ? 'tU' : 'tK'}:${cityUnknown ? 'cU' : 'cK'}:${userTz}:${localDateKey}`
 
   // 두 키는 독립 — Redis 왕복을 병렬로 (직렬 대비 ~5ms, 매 상담 메시지 hot path).
   const [cachedStable, cachedDaily] = await Promise.all([
@@ -135,19 +160,20 @@ async function buildAndCacheContext(
   }
 ): Promise<{ stableContext: string; dailyContext: string }> {
   const { stableCtxKey, dailyCtxKey, localNow, hourUnknown, cityUnknown, userTz, sources } = opts
-  // 기준 시각(=buildDestinyContext 의 now)은 서버 TZ 와 무관해야 한다. 예전엔
-  // 서버-로컬 정오(new Date(y,m,d,12))라 UTC 서버와 KST 서버가 9h 어긋나,
-  // 트랜짓 어스펙트 목록·절기 경계 판정이 배포 환경에 따라 달라지는 결정론
-  // 누수가 있었다. 유저-tz 날짜의 UTC 정오로 고정한다(computeCurrentUnse 를
-  // 부르는 counselorContext.ts:659 와 동일 패턴 — main 2c20428).
+  // 보는 사람의 '오늘'(현지 민용 날짜)을 실어 나르는 Date — buildDestinyContext 는 이
+  // 값의 *UTC 필드(연·월·일)만* 읽는다(서버 TZ 무관). 순간으로 쓰지 않는다: 대운·세운·월운·
+  // 트랜짓은 그 안에서 그 날짜로 다시 정한다 — 세운·월운은 캘린더와 같은 pillarsForLocalDate,
+  // 순간이 필요한 계산은 출생 tz 의 그날 정오(counselorDayAnchor). 예전엔 이 UTC 정오를
+  // 그대로 순간으로 써서 UTC+12..+14 에선 다음 현지 날을 읽었다(재감사 TP-5 · CNS-1).
   const queryDate = new Date(Date.UTC(localNow.year, localNow.month - 1, localNow.day, 12, 0, 0))
-  const tz = body.timezone ?? 'Asia/Seoul'
+  // ensureCounselorContext 가 출생 타임존 resolver 로 채운 값 — 이 폴백은 방어용.
+  const tz = body.timezone ?? resolveBirthTimezone({}, { context: 'counselorContextCache' })
   const birthDate = body.birthDate ?? ''
   // body 는 ensureCounselorContext 에서 앵커 정규화 완료 — 이 폴백은 방어용.
   const birthTime = body.birthTime ?? TIME_UNKNOWN_ANCHOR
   const gender: 'male' | 'female' = normalizeGender(body.gender) === 'female' ? 'female' : 'male'
-  const latitude = body.latitude ?? 37.5665
-  const longitude = body.longitude ?? 126.978
+  const latitude = body.latitude ?? defaultLatitudeFor(tz)
+  const longitude = body.longitude ?? defaultLongitudeFor(tz)
   const birthTimeUnknown = hourUnknown
   const birthCityUnknown = cityUnknown
 
@@ -167,7 +193,7 @@ async function buildAndCacheContext(
   // 성별을 반대로 읽었다(대운 방향은 성별 의존). 차트와 같은 정규화 값을 쓴다.
   const genderTag = gender === 'female' ? 'F' : 'M'
   parts.push(
-    `[Meta] birthDate: ${body.birthDate} | birthTime: ${timeTag} | gender: ${genderTag} | location: ${locTag} | timezone: ${body.timezone ?? 'Asia/Seoul'} | birthTimeUnknown: ${birthTimeUnknown ? 'true' : 'false'} | birthCityUnknown: ${birthCityUnknown ? 'true' : 'false'}`
+    `[Meta] birthDate: ${body.birthDate} | birthTime: ${timeTag} | gender: ${genderTag} | location: ${locTag} | timezone: ${tz} | birthTimeUnknown: ${birthTimeUnknown ? 'true' : 'false'} | birthCityUnknown: ${birthCityUnknown ? 'true' : 'false'}`
   )
   if (birthTimeUnknown)
     parts.push(

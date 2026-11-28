@@ -6,8 +6,9 @@
    (/destiny)는 loadLifetimeData 로 life 티어를 받는다. (10년·1년 티어는 제거됨 —
    대운/세운 데이터는 인생 전체가 내부에서 소비.)
 
-   캘린더는 항상 '그 달'만 빌드한다(저비용). 인생 전체는 연 cells 풀빌드 없이
-   natal + focusDayCell 만 쓰는 loadLifetimeData 경로.
+   캘린더는 항상 '그 달'만 빌드한다(저비용) — 숨은 인생 티어는 계산하지 않는다.
+   인생 전체는 연 cells 풀빌드 없이 natal + focusDayCell 만 쓰는 loadLifetimeData 경로.
+   두 로더 모두 `now` 를 주입받아(기본 new Date()) 시계를 한 번만 읽는다.
    ============================================================ */
 
 import { headers } from 'next/headers'
@@ -25,22 +26,52 @@ import { assembleTiers, type AssembledTiers } from './assembleTiers'
 import { assembleLifetime, type AssembledLifetime } from './assembleLifetime'
 import { getNowInTimezone, formatDateString } from '@/lib/datetime/timezone'
 import { resolveBirthTimeAnchor } from '@/lib/saju/birthTimeAnchor'
+import { profileToCalendarBirth } from '@/lib/calendar-engine/profileBirth'
+import { defaultLatitudeFor, defaultLongitudeFor } from '@/lib/saju/timezone'
+import { resolveBirthTimezone } from '@/lib/datetime/resolveTimezone'
+import { z } from 'zod'
+import {
+  dateSchema,
+  latitudeSchema,
+  longitudeSchema,
+  timezoneSchema,
+} from '@/lib/api/zodValidation/common'
+import { logger } from '@/lib/logger'
+import { BIRTH_NAME_MAX, BIRTH_PLACE_MAX, clipDisplayText } from '@/lib/birth/format'
 
 export type LoadTierResult =
-  | { kind: 'login' }
   | { kind: 'no-birth' }
   // 익명 + 무입력 — 임의 샘플 대신 생년월일 입력 게이트를 띄운다(lang 전달).
   | { kind: 'guest'; lang: 'ko' | 'en' }
   // 익명 override 빌드 IP 한도 초과 — 잠시 후 재시도 안내.
   | { kind: 'rate-limited'; lang: 'ko' | 'en' }
-  | ({ kind: 'ok'; lang: 'ko' | 'en' } & AssembledTiers)
+  | ({
+      kind: 'ok'
+      lang: 'ko' | 'en'
+      /** 출생 스탬프 재료(lib/birth/format) — /destiny 와 같은 규약(도시는 입력된 이름만). */
+      birthStamp: BirthStamp
+    } & AssembledTiers)
+
+/** 상단 칩·폴리오의 출생 스탬프 재료 — formatBirthStamp 입력. */
+export interface BirthStamp {
+  birthDate: string
+  birthTime: string
+  birthTimeUnknown: boolean
+  city: string | null
+}
 
 export type LoadLifetimeResult =
-  | { kind: 'login' }
   | { kind: 'no-birth' }
   | { kind: 'guest'; lang: 'ko' | 'en' }
   | { kind: 'rate-limited'; lang: 'ko' | 'en' }
-  | ({ kind: 'ok'; lang: 'ko' | 'en' } & AssembledLifetime)
+  | ({
+      kind: 'ok'
+      lang: 'ko' | 'en'
+      /** 오늘 — 출생지 시간대의 민용 날짜 'YYYY-MM-DD'(겹침 캡션의 날짜). */
+      todayIso: string
+      /** 출생 스탬프 재료(lib/birth/format) — 도시는 입력된 이름만(기본값 'Seoul' 아님). */
+      birthStamp: BirthStamp
+    } & AssembledLifetime)
 
 // 쿼리파라미터로 들어온 생일 — 로그인 없이도 캘린더/인생흐름을 그 사람 기준으로
 // 빌드한다(통합 리포트와 같은 규약: date/time/lat/lng/tz/gender).
@@ -48,8 +79,10 @@ export interface BirthOverride {
   birthDate: string
   /** 계산 앵커 (HH:MM). 시간 미상이면 정오 — birthTimeAnchor SSOT. */
   birthTime: string
-  /** 시간 미상(?time= 생략/'00:00') — 표시에서 앵커 시각을 숨기는 용. */
+  /** 시간 미상(?time= 생략/'00:00') — 표시에서 앵커 시각을 숨기고 삼주로 판정. */
   timeUnknown: boolean
+  /** 출생지 미상(?lat/lng 없음·비숫자) — 좌표는 서울 기본, ASC·MC·하우스 의존 신호 제외. */
+  cityUnknown?: boolean
   gender: 'male' | 'female'
   latitude: number
   longitude: number
@@ -61,43 +94,147 @@ export interface BirthOverride {
 type SP = Record<string, string | string[] | undefined>
 const one = (v: string | string[] | undefined): string | undefined => (Array.isArray(v) ? v[0] : v)
 
-// searchParams → BirthOverride. date(YYYY-MM-DD)가 있어야 override 로 인정한다.
-// 없으면 null → 세션(로그인 사용자) 또는 샘플(익명) 경로로 흐른다.
-export function parseBirthOverride(sp: SP): BirthOverride | null {
-  const date = one(sp.date)
-  if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) return null
-  // 빈 문자열/비숫자 좌표는 NaN 으로 떨궈 서울 기본으로 폴백(빈칸 → Number('')=0
-  // 같은 잘못된 (0,0) 좌표 방지).
-  const latRaw = one(sp.lat)
-  const lngRaw = one(sp.lng)
-  const lat = latRaw ? Number(latRaw) : NaN
-  const lng = lngRaw ? Number(lngRaw) : NaN
+/** 출생 쿼리(override) 키 — 인생 흐름 → 달력으로 같은 사람을 넘길 때와 색인 판정에 같이 쓴다. */
+export const BIRTH_QUERY_KEYS = [
+  'date',
+  'time',
+  'tu',
+  'lat',
+  'lng',
+  'tz',
+  'gender',
+  'place',
+  'name',
+] as const
+
+/**
+ * 출생 쿼리가 하나라도 있는가 — 그런 URL 은 다른 사람의 개인 결과일 수 있어 색인하지 않는다
+ * (generateMetadata 의 robots noindex, canonical 은 맨 경로 그대로 — QA R-CA-9).
+ */
+export function hasBirthQuery(sp: SP): boolean {
+  return BIRTH_QUERY_KEYS.some((k) => {
+    const v = one(sp[k])
+    return typeof v === 'string' && v.trim() !== ''
+  })
+}
+
+/** 빈 문자열은 '없음' — 링크 빌더가 빈 값을 실어도 시각·출생지 미상으로 흐른다. */
+const blankToUndef = (v: unknown) => (typeof v === 'string' && v.trim() === '' ? undefined : v)
+/** 쿼리 좌표 — 빈 값은 없음, 그 밖은 숫자로 바꿔 공용 범위 스키마로(비숫자 → NaN → 거절). */
+const coordinate = (schema: z.ZodNumber) =>
+  z.preprocess((v) => {
+    const b = blankToUndef(v)
+    return typeof b === 'string' ? Number(b) : b
+  }, schema.optional())
+/**
+ * 표시용 텍스트(이름 · 출생지) — 빈 값은 없음, 넘치면 `max` 자로 자른다. 길이 때문에 override
+ * 전체가 무효가 되면 앱이 만든 링크(BirthInfoModal 은 이름 64자, 저장된 도시는 길이 무제한)가
+ * 게스트 BirthGate 루프 · /api/calendar/day 422 로 막힌다(R-CC-2).
+ */
+const displayText = (max: number) =>
+  z.preprocess((v) => {
+    const b = blankToUndef(v)
+    return typeof b === 'string' ? clipDisplayText(b, max) : b
+  }, z.string().optional())
+
+/**
+ * 생일 override 쿼리 스키마 — 공용 zod 원시 스키마(dateSchema 1900..올해 · latitude/longitude 범위 ·
+ * IANA 타임존)를 그대로 쓴다. /calendar · /destiny 페이지와 /api/calendar/day 가 같은 검사를
+ * 거친다: 범위 밖 입력이 엔진 RangeError(500)까지 가지 않게(QA PMS-4). 계산에 쓰는 필드
+ * (date/time/tu/lat/lng/tz/gender)만 엄격히 거르고, 표시용 name/place 는 잘라서 받는다.
+ */
+export const birthOverrideQuerySchema = z.object({
+  date: dateSchema,
+  time: z.preprocess(
+    blankToUndef,
+    z
+      .string()
+      .regex(/^([01]?\d|2[0-3]):[0-5]\d$/)
+      .optional()
+  ),
+  tu: z.preprocess(blankToUndef, z.string().max(8).optional()),
+  lat: coordinate(latitudeSchema),
+  lng: coordinate(longitudeSchema),
+  tz: z.preprocess(blankToUndef, timezoneSchema.optional()),
+  gender: z.preprocess(blankToUndef, z.string().max(16).optional()),
+  place: displayText(BIRTH_PLACE_MAX),
+  name: displayText(BIRTH_NAME_MAX),
+})
+
+export type BirthOverrideParse =
+  /** date 가 없다 — 세션(로그인 사용자) 또는 게스트 경로. */
+  | { kind: 'none' }
+  /** override 쿼리가 있지만 검사에 걸렸다 — API 는 422, 페이지는 override 없음으로. */
+  | { kind: 'invalid'; issues: Array<{ path: string; message: string }> }
+  | { kind: 'ok'; override: BirthOverride }
+
+// searchParams → BirthOverride. date 가 있어야 override 로 인정한다(없으면 'none').
+export function parseBirthOverrideQuery(sp: SP): BirthOverrideParse {
+  const rawDate = one(sp.date)
+  if (!rawDate || !rawDate.trim()) return { kind: 'none' }
+  const parsed = birthOverrideQuerySchema.safeParse({
+    date: rawDate,
+    time: one(sp.time),
+    tu: one(sp.tu),
+    lat: one(sp.lat),
+    lng: one(sp.lng),
+    tz: one(sp.tz),
+    gender: one(sp.gender),
+    place: one(sp.place),
+    name: one(sp.name),
+  })
+  if (!parsed.success) {
+    return {
+      kind: 'invalid',
+      issues: parsed.error.issues.map((i) => ({ path: i.path.join('.'), message: i.message })),
+    }
+  }
+  const q = parsed.data
+  const lat = q.lat
+  const lng = q.lng
+  const hasCoords = lat !== undefined && lng !== undefined
   // 시간 미상 → 정오 앵커(SSOT, tri-state). ?tu=1|0 명시 플래그가 있으면 신뢰
   // (tu=0 + time=00:00 = 실제 자정 출생 → 자정 그대로 계산), 없으면 레거시
   // 휴리스틱(생략/'00:00' = 미상 — 자정 그대로 계산하면 진태양시 보정으로
   // 일주가 전날로 밀린다).
-  const tuRaw = one(sp.tu)
-  const tuFlag = tuRaw === '1' ? true : tuRaw === '0' ? false : undefined
-  const timeAnchor = resolveBirthTimeAnchor(one(sp.time), tuFlag)
+  const tuFlag = q.tu === '1' ? true : q.tu === '0' ? false : undefined
+  const timeAnchor = resolveBirthTimeAnchor(q.time, tuFlag)
+  // 출생 타임존 resolver — ?tz → 출생 좌표(?lat·?lng)의 tz → 사주 기준 존.
+  const timeZone = resolveBirthTimezone(
+    { timezone: q.tz, latitude: lat, longitude: lng },
+    { context: 'calendar' }
+  )
   return {
-    birthDate: date,
-    birthTime: timeAnchor.time,
-    timeUnknown: timeAnchor.timeUnknown,
-    gender: one(sp.gender) === 'female' ? 'female' : 'male',
-    latitude: Number.isFinite(lat) ? lat : 37.5665,
-    longitude: Number.isFinite(lng) ? lng : 126.978,
-    timeZone: one(sp.tz) || 'Asia/Seoul',
-    place: one(sp.place) || undefined,
-    name: one(sp.name) || undefined,
+    kind: 'ok',
+    override: {
+      birthDate: q.date,
+      birthTime: timeAnchor.time,
+      timeUnknown: timeAnchor.timeUnknown,
+      cityUnknown: !hasCoords,
+      gender: q.gender === 'female' ? 'female' : 'male',
+      // 좌표 미상 → 출생 타임존의 기준점(Asia/Seoul = 서울 기본값). 비한국 tz 에 서울
+      // 경도를 붙이면 시주가 ~15시간 밀렸다(엔진 감사 SAJU-9, OD-2).
+      latitude: hasCoords ? lat : defaultLatitudeFor(timeZone),
+      longitude: hasCoords ? lng : defaultLongitudeFor(timeZone),
+      timeZone,
+      place: q.place || undefined,
+      name: q.name || undefined,
+    },
   }
 }
 
-// DB UserProfile.gender → 'male' | 'female'. canonical 'female'/'male' 저장,
-// 레거시 'F'/'M'/'U' 도 대소문자 무시 처리. 미상/기타는 male 기본.
-function normalizeGender(g: string | null | undefined): 'male' | 'female' {
-  const v = (g ?? '').trim().toLowerCase()
-  if (v === 'female' || v === 'f') return 'female'
-  return 'male'
+/**
+ * 페이지 경로(/calendar · /destiny) — 검사를 통과한 override 만. 검사에 걸린 쿼리는 override
+ * 없음으로 본다(세션 본명 또는 생년월일 입력 게이트) — 깨진 링크가 페이지를 죽이지 않는다.
+ */
+export function parseBirthOverride(sp: SP): BirthOverride | null {
+  const r = parseBirthOverrideQuery(sp)
+  if (r.kind === 'invalid') {
+    logger.warn('[calendar] invalid birth override query — ignored', {
+      fields: r.issues.map((i) => i.path),
+    })
+  }
+  return r.kind === 'ok' ? r.override : null
 }
 
 export interface BirthInput {
@@ -107,6 +244,10 @@ export interface BirthInput {
   latitude: number
   longitude: number
   timeZone: string
+  /** 출생시각 미상 — birthTime 은 정오 앵커, 사주는 삼주(CONVENTIONS §5). */
+  birthTimeUnknown?: boolean
+  /** 출생지 미상 — 좌표 기본값. 점성 ASC·MC·하우스 의존 신호 제외. */
+  birthCityUnknown?: boolean
 }
 
 export type SessionBirthResult =
@@ -140,32 +281,20 @@ export async function loadSessionBirth(): Promise<SessionBirthResult> {
     },
   })
   const profile = userRow?.profile
-  const isBirthComplete =
-    !!profile?.birthDate &&
-    !!profile?.birthTime &&
-    typeof profile?.latitude === 'number' &&
-    typeof profile?.longitude === 'number' &&
-    !!profile?.tzId
-  if (!isBirthComplete || !profile) return { kind: 'no-birth' }
-
+  // 프로필 → 본명 입력 단일 규칙(profileToCalendarBirth) — "오늘의 큰 날" 푸시
+  // (cron/keyday-push)와 같은 함수라 두 경로의 본명·birthKey 가 같다(엔진 감사 F1).
   // 시간 모름 → 정오 앵커(SSOT: birthTimeAnchor, tri-state). DB 명시 플래그가
   // 있으면 신뢰(false + '00:00' = 실제 자정 출생), NULL(레거시 행)이면
   // '00:00'=미상 휴리스틱. 예전엔 프로필 '00:00' 이 그대로 계산돼, 같은
   // 사용자가 딥링크(정오 폴백)로 들어오면 당일 일주·세션 진입이면 전날 일주를
   // 보는 자기모순이 있었다.
-  const anchor = resolveBirthTimeAnchor(profile.birthTime, profile.birthTimeUnknown)
+  const birth = profileToCalendarBirth(profile)
+  if (!birth || !profile) return { kind: 'no-birth' }
 
   return {
     kind: 'ok',
-    birth: {
-      birthDate: profile.birthDate!,
-      birthTime: anchor.time,
-      gender: normalizeGender(profile.gender),
-      latitude: profile.latitude!,
-      longitude: profile.longitude!,
-      timeZone: profile.tzId!,
-    },
-    timeUnknown: anchor.timeUnknown,
+    birth,
+    timeUnknown: birth.birthTimeUnknown === true,
     place: profile.birthCity || null,
   }
 }
@@ -183,7 +312,15 @@ type BirthGuardResult =
   | { kind: 'guest' }
   | { kind: 'no-birth' }
   | { kind: 'rate-limited' }
-  | { kind: 'ok'; birth: BirthInput; timeUnknown: boolean; place: string }
+  | {
+      kind: 'ok'
+      birth: BirthInput
+      timeUnknown: boolean
+      /** 표시용 출생지 — 없으면 언어별 기본값('Seoul' / '서울' / '미입력'). */
+      place: string
+      /** 실제 출생지 이름(입력값) — 없으면 undefined. 리포트 링크는 이것만 싣는다. */
+      birthPlace?: string
+    }
 
 async function resolveBirthGuard(
   override: BirthOverride | null | undefined,
@@ -206,9 +343,12 @@ async function resolveBirthGuard(
         latitude: override.latitude,
         longitude: override.longitude,
         timeZone: override.timeZone,
+        birthTimeUnknown: override.timeUnknown,
+        birthCityUnknown: override.cityUnknown,
       },
       timeUnknown: override.timeUnknown,
       place: override.place || (lang === 'en' ? 'Seoul' : '서울'),
+      birthPlace: override.place || undefined,
     }
   }
   const resolved = await loadSessionBirth()
@@ -222,14 +362,21 @@ async function resolveBirthGuard(
     birth: resolved.birth,
     timeUnknown: resolved.timeUnknown,
     place: resolved.place || (lang === 'en' ? 'Seoul' : '미입력'),
+    birthPlace: resolved.place || undefined,
   }
 }
 
 /**
  * 로그인 + 본명 가드를 통과하면 어셈블된 tier 데이터를, 아니면 fallback 종류를
  * 반환한다. 서버 컴포넌트(page.tsx)는 결과 kind 로 분기만 하면 된다.
+ *
+ * `now` 주입점 — 기본은 호출 시점(new Date()). 프로덕션은 그대로, 테스트는 고정해
+ * 같은 입력이면 같은 결과가 나오게 한다(결정론 규약).
  */
-export async function loadTierData(override?: BirthOverride | null): Promise<LoadTierResult> {
+export async function loadTierData(
+  override?: BirthOverride | null,
+  now: Date = new Date()
+): Promise<LoadTierResult> {
   const lang = await detectServerLocale()
 
   const guard = await resolveBirthGuard(override, lang)
@@ -241,16 +388,18 @@ export async function loadTierData(override?: BirthOverride | null): Promise<Loa
   const BIRTH_YEAR = Number(BIRTH.birthDate.split('-')[0])
 
   // '오늘' — 사용자 출생 타임존 기준(서버 UTC 와 무관하게 날짜 일관).
-  // now 단일 기준: 같은 인스턴트를 deriver(currentManAge)까지 흘려 "현재 단계"가
-  // TARGET_* 와 같은 날짜를 보게 한다(currentManAge 가 birthTimeZone 으로 포맷).
-  const now = new Date()
-  const today = getNowInTimezone(BIRTH.timeZone)
+  // now 단일 기준: 주입된 같은 인스턴트로 '오늘'을 정하고 deriver(currentManAge)까지
+  // 흘려 "현재 단계"가 TARGET_* 와 같은 날짜를 보게 한다(currentManAge 가
+  // birthTimeZone 으로 포맷). 예전엔 new Date() 와 getNowInTimezone() 이 시계를
+  // 따로 읽어 자정 경계에서 둘이 다른 날을 볼 수 있었다.
+  const today = getNowInTimezone(BIRTH.timeZone, now)
   const TARGET_YEAR = today.year
   const TARGET_MONTH = today.month
   const TARGET_DAY = today.day
   const targetDayIso = formatDateString(today.year, today.month, today.day)
 
-  const natal = await getOrBuildNatalContext(BIRTH)
+  // 같은 now 로 본명을 짓는다 — 대운 목록 길이(만 100세+)가 서버 시계가 아니라 이 순간을 본다.
+  const natal = await getOrBuildNatalContext({ ...BIRTH, now })
   // 캘린더는 그 달만 빌드. evidence 가 필요한 그 하루는 따로(focusDayCell).
   // 오늘+7일이 월을 넘으면 다음 달 cells 도 얹는다 — "다가오는 7일"이 월 경계에서
   // 잘려 다음 달 초 큰 날이 안 보이던 문제(감사 #13).
@@ -282,13 +431,20 @@ export async function loadTierData(override?: BirthOverride | null): Promise<Loa
     place,
     focusDayCell,
     now,
-    // 캘린더는 항상 'month' — 인생 곡선(90년) 계산을 건너뛴다(진입 속도). 인생
-    // 전체는 별도 loadLifetimeData 경로가 담당.
-    scope: 'month',
     nextMonthCells,
   })
 
-  return { kind: 'ok', lang, ...assembled }
+  return {
+    kind: 'ok',
+    lang,
+    birthStamp: {
+      birthDate: BIRTH.birthDate,
+      birthTime: BIRTH.birthTime,
+      birthTimeUnknown: guard.timeUnknown,
+      city: guard.birthPlace ?? null,
+    },
+    ...assembled,
+  }
 }
 
 /**
@@ -297,9 +453,12 @@ export async function loadTierData(override?: BirthOverride | null): Promise<Loa
  * 2.9s 계산 + ~39MB 캐시 행 왕복)를 냈지만, 인생 티어는 연 cells 를 전혀 쓰지
  * 않는다(감사 의존성 표) — 이 로더는 ~0.4s(콜드)/~0.1s(natal 웜)로 같은 화면을
  * 만든다. 결과는 birthKey 순수 파생이라 DB 캐시도 두지 않는다.
+ *
+ * `now` 주입점 — loadTierData 와 같은 규약(기본 new Date(), 테스트는 고정).
  */
 export async function loadLifetimeData(
-  override?: BirthOverride | null
+  override?: BirthOverride | null,
+  now: Date = new Date()
 ): Promise<LoadLifetimeResult> {
   const lang = await detectServerLocale()
 
@@ -311,11 +470,11 @@ export async function loadLifetimeData(
   const place = guard.place
   const BIRTH_YEAR = Number(BIRTH.birthDate.split('-')[0])
 
-  const now = new Date()
-  const today = getNowInTimezone(BIRTH.timeZone)
+  const today = getNowInTimezone(BIRTH.timeZone, now)
   const todayIso = formatDateString(today.year, today.month, today.day)
 
-  const natal = await getOrBuildNatalContext(BIRTH)
+  // 같은 now 로 본명을 짓는다 — 대운 목록 길이(만 100세+)가 서버 시계가 아니라 이 순간을 본다.
+  const natal = await getOrBuildNatalContext({ ...BIRTH, now })
   const birthDisplay = formatBirthLine(BIRTH.birthDate, BIRTH.birthTime, guard.timeUnknown)
   // 오늘 1일 evidence 셀 — 대운층 사주×점성 교차 원천(연 셀은 여전히 안 빌드).
   // /calendar 와 같은 캐시(getFocusDayCell)라 두 화면 방문 시 공유된다.
@@ -335,7 +494,33 @@ export async function loadLifetimeData(
     now,
     todayIso,
     focusDayCell,
+    // 축별 교차(리포트와 같은 판정)의 읽는 시점 보강 — 본명 캐시엔 없는 사람 정보.
+    gender: BIRTH.gender,
+    timeUnknown: guard.timeUnknown,
+    cityUnknown: BIRTH.birthCityUnknown === true,
+    birth: {
+      birthDate: BIRTH.birthDate,
+      birthTime: BIRTH.birthTime,
+      timeUnknown: guard.timeUnknown,
+      cityUnknown: BIRTH.birthCityUnknown === true,
+      latitude: BIRTH.latitude,
+      longitude: BIRTH.longitude,
+      timeZone: BIRTH.timeZone,
+      gender: BIRTH.gender,
+      place: guard.birthPlace,
+    },
   })
 
-  return { kind: 'ok', lang, ...assembled }
+  return {
+    kind: 'ok',
+    lang,
+    todayIso,
+    birthStamp: {
+      birthDate: BIRTH.birthDate,
+      birthTime: BIRTH.birthTime,
+      birthTimeUnknown: guard.timeUnknown,
+      city: guard.birthPlace ?? null,
+    },
+    ...assembled,
+  }
 }

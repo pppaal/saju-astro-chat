@@ -10,12 +10,14 @@
  *  - sajuSynastryFacts: 구조화 추출(computeSajuSynastryFacts) — 차트용
  * 이 파일은 그 둘을 재노출하고, 텍스트 라인 포맷(formatSajuSynastry)만 직접 보유한다.
  *
- * dev 검증: scripts/saju-synastry-format.ts.
+ * 검증: tests/lib/compatibility/sajuSynastryFormatter.test.ts.
  */
 
 import { HYEONG_PAIR_TRIO, BRANCH_HYEONG_PAIR, SELF_HYEONG, isHyeong } from '@/lib/saju/hyeong'
 import { ELEMENT_KO_TO_EN } from '@/lib/saju/constants'
+import { DOHWA_BY_DAY_BRANCH } from '@/lib/saju/shinsal'
 import { SIBSIN_EN } from '@/lib/saju/sibsinLabels'
+import { shinsalNameEn } from '@/lib/calendar-engine/derivers/signalI18n'
 import {
   type SajuPillarInput,
   type SajuSynastryInput,
@@ -35,7 +37,6 @@ import {
   EL_CONTROLS,
   SIBSIN_GLOSS,
   CHEONULGWIIN,
-  currentSeun,
   sibsinOf,
   gongmangOf,
   twelveShinsalLabel,
@@ -63,6 +64,15 @@ const SIBSIN_GLOSS_EN: Record<string, string> = {
   편인: 'protection, learning',
   정인: 'support, stability',
 }
+// 신살 cross 블록의 EN 이름 — 정본 SHINSAL_NAME_EN(상담 프롬프트 · Life · 상담사와 같은 이름).
+// 음역('Hongyeom' · 'Baekho' · 'Cheoneul-nobleman')을 쓰지 않는다(G14 후속).
+const SINSAL_EN = {
+  dohwa: shinsalNameEn('도화') ?? 'Peach Blossom',
+  hongyeom: shinsalNameEn('홍염') ?? 'Red Charm Star',
+  baekho: shinsalNameEn('백호') ?? 'White Tiger',
+  goegang: shinsalNameEn('괴강') ?? 'Strong-Willed Star',
+  cheoneul: shinsalNameEn('천을귀인') ?? 'Heavenly Benefactor',
+} as const
 // 12신살 — pickTwelveSingle 의 한국어 반환값 → 영어.
 const TWELVE_SINSAL_EN: Record<string, string> = {
   겁살: 'robbery-star',
@@ -82,10 +92,14 @@ const TWELVE_SINSAL_EN: Record<string, string> = {
 // 신살 일주 페어 라벨 (백호/괴강 등) 한자 그대로 유지 — 한자는 영어 응답에 안 샌다.
 
 export function formatSajuSynastry(input: SajuSynastryInput): string {
-  if (input.pillarsA.length < 4 || input.pillarsB.length < 4) return ''
+  // 최소 년·월·일 3기둥. 시각 미상이면 compatSajuFacts 가 시주를 아예 빼고 3기둥을
+  // 넘긴다(삼주 판정 — 결정 9 / CONVENTIONS §5). 예전 가드는 4기둥을 요구해, 시간
+  // 모르는 한 사람만 있어도 상담사 사주 블록이 통째로 비었다(재감사 CS-1).
+  if (input.pillarsA.length < 3 || input.pillarsB.length < 3) return ''
   // 시각 미상이면 시주(時, index 3)는 정오 앵커(午시) 가정의 날조값 → cross 대상에서 제외.
   // 아래 모든 pillar 루프는 A.length / B.length 로 도므로, 잘라내면 자동으로
-  // 시주가 빠진다(일주=index 2 는 항상 유지). i 는 항상 A, j 는 항상 B 를 인덱싱.
+  // 시주가 빠진다(일주=index 2 는 항상 유지). 이미 3기둥이면 slice 는 그대로다.
+  // i 는 항상 A, j 는 항상 B 를 인덱싱.
   const A = input.timeUnknownA ? input.pillarsA.slice(0, 3) : input.pillarsA
   const B = input.timeUnknownB ? input.pillarsB.slice(0, 3) : input.pillarsB
   const aDay = A[2]
@@ -298,7 +312,7 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
       important.push(
         L(
           `${labelA}의 천을귀인(${aCheonul.join('·')}, 일간 ${aDay.stem}) → ${labelB} ${PILLAR_LABELS[j]}지 ${B[j].branch} 활성 → 길성 보호`,
-          `${labelA}'s Cheoneul-nobleman(${aCheonul.join('·')}, day-master ${aDay.stem}) → ${labelB} ${PL[j]}-branch ${B[j].branch} activated → benefic protection`
+          `${labelA}'s ${SINSAL_EN.cheoneul}(${aCheonul.join('·')}, day-master ${aDay.stem}) → ${labelB} ${PL[j]}-branch ${B[j].branch} activated → benefic protection`
         )
       )
     }
@@ -308,7 +322,7 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
       important.push(
         L(
           `${labelB}의 천을귀인(${bCheonul.join('·')}, 일간 ${bDay.stem}) → ${labelA} ${PILLAR_LABELS[i]}지 ${A[i].branch} 활성 → 길성 보호`,
-          `${labelB}'s Cheoneul-nobleman(${bCheonul.join('·')}, day-master ${bDay.stem}) → ${labelA} ${PL[i]}-branch ${A[i].branch} activated → benefic protection`
+          `${labelB}'s ${SINSAL_EN.cheoneul}(${bCheonul.join('·')}, day-master ${bDay.stem}) → ${labelA} ${PL[i]}-branch ${A[i].branch} activated → benefic protection`
         )
       )
     }
@@ -393,8 +407,10 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
 
   // 6-2. 세운(올해) cross — 올해 세운 간지가 두 사람 일주·대운을 합/충/형으로
   // 건드리는지. "올해 우리 어때 / 언제" 질문의 시기 해상도. (월운·일진은 과잉)
-  {
-    const seun = currentSeun(input.now ?? new Date())
+  // 세운은 호출부가 상담사 '오늘'로 고른다(currentSeun(D, 출생 tz) — 운명상담사와 같은
+  // 날짜 규칙, 오너 결정 17). 없으면 이 블록을 생략한다 — 포매터는 시계를 읽지 않는다.
+  const seun = input.seun
+  if (seun) {
     const ss = seun.stem,
       sb = seun.branch
     const seunLines: string[] = []
@@ -663,24 +679,13 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
 
   // ── 신살 cross — 도화/홍염/백호/괴강. 정통 명리에 명시된 lookup table 로
   // 결정적으로 계산 (LLM 한테 personalShinsal 추측 맡기지 않음).
-  //   - 도화 (자오묘유): A 일지의 三合 마지막 지지가 B 의 지지에 있으면 자석 끌림.
+  //   - 도화 (자오묘유): A 일지 三合국의 年殺 자리(DOHWA_BY_DAY_BRANCH — 寅午戌→卯,
+  //     申子辰→酉, 巳酉丑→午, 亥卯未→子)가 B 의 지지에 있으면 자석 끌림. 정본 표를 쓴다
+  //     (예전 로컬 복제본과 같은 값 — F2 에서 확인 후 교체).
   //   - 홍염 (일간별 특정 지지): A 일간 홍염 지지가 B 지지에 있으면 색기·끌림.
   //   - 백호일주: 둘 다 백호 또는 한쪽 백호 + 상대 일지가 그 백호 일지와 충 → 격정.
   //   - 괴강일주: 둘 다 괴강이면 강력 충돌·자극.
-  const DOHWA: Record<string, string> = {
-    申: '酉',
-    子: '酉',
-    辰: '酉',
-    寅: '卯',
-    午: '卯',
-    戌: '卯',
-    巳: '午',
-    酉: '午',
-    丑: '午',
-    亥: '子',
-    卯: '子',
-    未: '子',
-  }
+  const DOHWA = DOHWA_BY_DAY_BRANCH
   const HONGYEOM: Record<string, string> = {
     甲: '午',
     乙: '午',
@@ -741,7 +746,7 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
           shinsalCrossLines.push(
             L(
               `${labelA} 일간(${aDay.stem}) 기준 홍염살(${aHy}) 이 ${labelB} ${PILLAR_LABELS[idx]}지(${br}) 에 적중 — 색기·연애 강도 +`,
-              `${labelA} day-master(${aDay.stem}) → Hongyeom star(${aHy}) hits ${labelB} ${PL[idx]}-branch(${br}) — sensuality / romance intensity +`
+              `${labelA} day-master(${aDay.stem}) → ${SINSAL_EN.hongyeom}(${aHy}) hits ${labelB} ${PL[idx]}-branch(${br}) — sensuality / romance intensity +`
             )
           )
         }
@@ -756,7 +761,7 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
           shinsalCrossLines.push(
             L(
               `${labelB} 일간(${bDay.stem}) 기준 홍염살(${bHy}) 이 ${labelA} ${PILLAR_LABELS[idx]}지(${br}) 에 적중 — 색기·연애 강도 +`,
-              `${labelB} day-master(${bDay.stem}) → Hongyeom star(${bHy}) hits ${labelA} ${PL[idx]}-branch(${br}) — sensuality / romance intensity +`
+              `${labelB} day-master(${bDay.stem}) → ${SINSAL_EN.hongyeom}(${bHy}) hits ${labelA} ${PL[idx]}-branch(${br}) — sensuality / romance intensity +`
             )
           )
         }
@@ -772,7 +777,7 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
     shinsalCrossLines.push(
       L(
         `${labelA}·${labelB} 둘 다 백호 일주(${aDayPair} / ${bDayPair}) — 격정·강한 의지 충돌 가능, 한쪽이 누그러져야 안정`,
-        `${labelA}·${labelB} both Baekho day-pillar(${aDayPair} / ${bDayPair}) — possible intense clash of strong wills; one must soften for stability`
+        `${labelA}·${labelB} both ${SINSAL_EN.baekho} day-pillar(${aDayPair} / ${bDayPair}) — possible intense clash of strong wills; one must soften for stability`
       )
     )
   } else if (aIsBaekho || bIsBaekho) {
@@ -784,7 +789,7 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
       shinsalCrossLines.push(
         L(
           `${baekhoSide} 백호 일주(${aIsBaekho ? aDayPair : bDayPair}) + ${otherSide} 일지가 그 백호 지지와 충(${baekhoBr}↔${otherDayBr}) — 격정 충돌 가능`,
-          `${baekhoSide} Baekho day-pillar(${aIsBaekho ? aDayPair : bDayPair}) + ${otherSide} day-branch clashes that Baekho branch(${baekhoBr}↔${otherDayBr}) — possible intense clash`
+          `${baekhoSide} ${SINSAL_EN.baekho} day-pillar(${aIsBaekho ? aDayPair : bDayPair}) + ${otherSide} day-branch clashes that ${SINSAL_EN.baekho} branch(${baekhoBr}↔${otherDayBr}) — possible intense clash`
         )
       )
     }
@@ -796,7 +801,7 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
     shinsalCrossLines.push(
       L(
         `${labelA}·${labelB} 둘 다 괴강 일주(${aDayPair} / ${bDayPair}) — 카리스마 강 대 강, 서로 안 꺾이면 부딪힘`,
-        `${labelA}·${labelB} both Goegang day-pillar(${aDayPair} / ${bDayPair}) — charisma vs charisma; if neither yields, they collide`
+        `${labelA}·${labelB} both ${SINSAL_EN.goegang} day-pillar(${aDayPair} / ${bDayPair}) — charisma vs charisma; if neither yields, they collide`
       )
     )
   }
@@ -902,7 +907,7 @@ export function formatSajuSynastry(input: SajuSynastryInput): string {
     out.push(
       L(
         '[CRITICAL · 신살 (도화·홍염·백호·괴강)]',
-        '[CRITICAL · sinsal (peach-blossom·Hongyeom·Baekho·Goegang)]'
+        `[CRITICAL · sinsal (${SINSAL_EN.dohwa}·${SINSAL_EN.hongyeom}·${SINSAL_EN.baekho}·${SINSAL_EN.goegang})]`
       )
     )
     out.push(...shinsalCrossLines)

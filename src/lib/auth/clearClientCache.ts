@@ -67,7 +67,7 @@ export async function clearClientCache(): Promise<ClearClientCacheResult> {
  * lingering after logout — so "Load saved info" kept showing for the
  * next (signed-out) visitor, and their name/birthdate leaked on shared
  * devices. Keys mirror their owning modules:
- *   - 'destinypal:birthInfo:v1'   → src/app/(main)/birthInfoStorage.ts (KEY)
+ *   - 'destinypal:birthInfo:v1'   → src/lib/birth/storage.ts (KEY)
  *   - 'destinypal_user_profile'   → src/lib/userProfile.ts (USER_PROFILE_KEY)
  */
 const LOCAL_USER_DATA_KEYS = ['destinypal:birthInfo:v1', 'destinypal_user_profile'] as const

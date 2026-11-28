@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { drawClarifierCard } from '@/lib/tarot/drawClarifierCard'
-import tarotDeck from '@/lib/tarot/data'
+import { tarotDeck } from '@/lib/tarot/data'
 
 // 회귀: 클래리파이어("한 장 더")가 스프레드에 이미 깔린 카드와 겹치던 버그.
 // 같은 리딩에 The Fool 이 두 번(스프레드 + 보충) 나오는 물리 덱 불가능한 중복을

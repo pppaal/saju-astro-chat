@@ -20,7 +20,7 @@ vi.mock('next-auth/react', () => ({
 vi.mock('@/i18n/I18nProvider', () => ({
   useI18n: () => ({ language: 'ko' }),
 }))
-vi.mock('@/lib/api', () => ({
+vi.mock('@/lib/api/client', () => ({
   apiFetch: vi.fn(async (_url: string) => ({
     ok: true,
     status: 200,

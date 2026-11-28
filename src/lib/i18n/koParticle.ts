@@ -46,8 +46,8 @@ function euroRo(word: string): '으로' | '로' {
   const last = word.charCodeAt(word.length - 1)
   if (last < 0xac00 || last > 0xd7a3) return '로'
   const j = (last - 0xac00) % 28
-  if (j === 0) return '로'   // 받침 없음
-  if (j === 8) return '로'   // ㄹ 받침
+  if (j === 0) return '로' // 받침 없음
+  if (j === 8) return '로' // ㄹ 받침
   return '으로'
 }
 
@@ -57,4 +57,12 @@ function euroRo(word: string): '으로' | '로' {
  */
 export function iyeyo(word: string): '이에요' | '예요' {
   return hasJongsung(word) ? '이에요' : '예요'
+}
+
+/**
+ * 전해 들은 말의 서술 '이래' / '래' — 받침 있으면 '이래', 없으면 '래'.
+ *   `‘${type}’${irae(type)}`  // ‘착실히 쌓는 자유인’이래 / ‘거침없는 개척자’래
+ */
+export function irae(word: string): '이래' | '래' {
+  return hasJongsung(word) ? '이래' : '래'
 }

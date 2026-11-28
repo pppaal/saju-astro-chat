@@ -58,6 +58,12 @@ function checkKoPurity(visibleText) {
   }
 }
 
+// 언어 토글처럼 lang="ko" 로 표시한 요소는 '한국어로 전환' 처럼 바꿀 언어로 쓰는 게 맞다
+// (WCAG 3.1.2 — HomeNav). EN 순도 검사에서는 그 요소의 글자를 뺀다.
+function stripLangKoElements(html) {
+  return html.replace(/<(span|a|button)\b[^>]*\blang="ko"[^>]*>[\s\S]*?<\/\1>/gi, ' ')
+}
+
 function checkEnPurity(visibleText) {
   if (/[가-힣]/.test(visibleText)) {
     throw new Error('/ EN HTML contains Korean characters')
@@ -82,7 +88,7 @@ async function main() {
     if (enHome.status !== 200) {
       throw new Error(`/ EN returned status ${enHome.status}`)
     }
-    const enVisible = extractVisibleText(enHome.html)
+    const enVisible = extractVisibleText(stripLangKoElements(enHome.html))
     checkEnPurity(enVisible)
     checkConsecutiveQuestionMarks('/', enHome.html)
     checkHomeSeoDump(enHome.html)

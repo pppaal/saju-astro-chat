@@ -21,7 +21,7 @@ import {
   type SavedTarotReading,
 } from '@/lib/tarot/tarot-storage'
 import { flattenTarotGuidance } from '@/lib/tarot/tarot-save-request'
-import { apiFetch } from '@/lib/api'
+import { apiFetch } from '@/lib/api/client'
 import { tarotLogger } from '@/lib/logger'
 import type { GameState, ReadingResponse, InterpretationResult } from '../types'
 import { CARD_COLORS, CardColor } from '../constants'

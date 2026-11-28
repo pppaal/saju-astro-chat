@@ -68,7 +68,7 @@ export function createSSEStreamProxy(options: StreamProxyOptions): Response {
   return new Response(stream, {
     headers: {
       'Content-Type': 'text/event-stream',
-      'Cache-Control': 'no-cache',
+      'Cache-Control': 'no-cache, no-transform',
       Connection: 'keep-alive',
       ...additionalHeaders,
     },
@@ -141,7 +141,7 @@ export function createFallbackSSEStream(
   return new Response(stream, {
     headers: {
       'Content-Type': 'text/event-stream',
-      'Cache-Control': 'no-cache',
+      'Cache-Control': 'no-cache, no-transform',
       Connection: 'keep-alive',
       ...additionalHeaders,
     },
@@ -227,7 +227,7 @@ export function createTransformedSSEStream(options: StreamTransformOptions): Res
   return new Response(stream, {
     headers: {
       'Content-Type': 'text/event-stream',
-      'Cache-Control': 'no-cache',
+      'Cache-Control': 'no-cache, no-transform',
       Connection: 'keep-alive',
       ...additionalHeaders,
     },

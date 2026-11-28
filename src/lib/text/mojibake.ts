@@ -32,7 +32,10 @@ const MOJIBAKE_CHAR_CLASS =
   '[\u00c2\u00c3\u00e2\u00ec\u00eb\u00ea\u00ed\u00f0\u0152\u0153\u0160\u0161\u017d\u017e\u0178\u201a\u201e\u2020\u2021\u2026\u2030\u2039\u203a\u20ac\u2122\ufffd]'
 const MOJIBAKE_REGEX = new RegExp(MOJIBAKE_CHAR_CLASS)
 const MOJIBAKE_SEGMENT_REGEX = new RegExp(`${MOJIBAKE_CHAR_CLASS}+`, 'g')
-const MOJIBAKE_SPLIT_REGEX = new RegExp(`(${MOJIBAKE_CHAR_CLASS})[ \\t]+(${MOJIBAKE_CHAR_CLASS})`, 'g')
+const MOJIBAKE_SPLIT_REGEX = new RegExp(
+  `(${MOJIBAKE_CHAR_CLASS})[ \\t]+(${MOJIBAKE_CHAR_CLASS})`,
+  'g'
+)
 const SUSPICIOUS_CHAR_REGEX = new RegExp(MOJIBAKE_CHAR_CLASS)
 
 const decoder = new TextDecoder('utf-8')
@@ -72,12 +75,7 @@ function normalizeLikelyMissingNbsp(value: string): string {
     const next = value[i + 1]
     const nextNext = value[i + 2]
 
-    if (
-      next === ' ' &&
-      nextNext &&
-      isByteLikeChar(current) &&
-      isByteLikeChar(nextNext)
-    ) {
+    if (next === ' ' && nextNext && isByteLikeChar(current) && isByteLikeChar(nextNext)) {
       result += `${current}\u00a0`
       i += 1
       continue
@@ -262,5 +260,3 @@ export function normalizeMojibakePayload<T>(input: T): T {
 
   return input
 }
-
-export const repairMojibakeDeep = normalizeMojibakePayload

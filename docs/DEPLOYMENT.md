@@ -68,9 +68,6 @@ CONCURRENTLY` 는 트랜잭션 안에서 실행할 수 없다(→ apply 시 실�
 # B. /premium-reports/themed → 테마 선택 → 리포트 생성
 # C. /calendar → 날짜 선택 → action plan
 # D. /tarot → 질문 → 카드 → 해석
-
-# 또는 로컬에서:
-ANTHROPIC_API_KEY=sk-... npx tsx scripts/probe-llm-output.ts
 ```
 
 ### 4. Build 검증

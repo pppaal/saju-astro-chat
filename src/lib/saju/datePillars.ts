@@ -9,7 +9,13 @@
 // just (date) → pillar values. The caller can layer profile-specific
 // computations (sibsin, sinsals, johu, yongsin alignment) on top.
 
-import { getSolarTermKST, MONTH_STEM_LOOKUP, STEM_NAMES, BRANCH_NAMES } from './constants'
+import {
+  getSolarTermKST,
+  MONTH_STEM_LOOKUP,
+  STEM_NAMES,
+  BRANCH_NAMES,
+  BRANCH_ELEMENT_KEY,
+} from './constants'
 
 // 천간/지지 이름 배열은 constants SSOT 에서 파생(복사 금지) — 예전엔 여기·cycleRelations·
 // shinsal 이 같은 배열을 따로 들고 있어 한쪽만 바뀌면 조용히 어긋났다.
@@ -35,7 +41,7 @@ const MONTH_BRANCHES_BY_TERM: Record<number, string> = {
   12: '子',
 }
 
-export interface SajuMonthRef {
+interface SajuMonthRef {
   branch: string
   sajuYear: number
   /** 1=寅(after 입춘) … 12=丑(before 입춘 of next yr) */
@@ -99,9 +105,33 @@ export function getSajuYearForDate(date: Date): number {
  * 60갑자: idx = (sajuYear - 4) mod 10 / 12.
  */
 export function getYearPillarForDate(date: Date): { stem: string; branch: string } {
-  const { sajuYear } = getMonthRefForDate(date)
-  const idx60 = (sajuYear - 4 + 6000) % 60
+  return yearPillarOfSajuYear(getMonthRefForDate(date).sajuYear)
+}
+
+/**
+ * 사주년 번호 → 세운 간지. 60갑자: idx = (sajuYear - 4) mod 60. getYearPillarForDate 와
+ * 캘린더 기간 창(calendar-engine/periodPillars)이 같은 산술을 쓴다.
+ */
+export function yearPillarOfSajuYear(sajuYear: number): { stem: string; branch: string } {
+  const idx60 = (((sajuYear - 4) % 60) + 60) % 60
   return { stem: STEMS[idx60 % 10], branch: BRANCHES[idx60 % 12] }
+}
+
+/**
+ * 사주년 + 그 달을 연 절(節) 번호(1=소한 … 12=대설) → 월주 간지. 寅월 천간은 연간에서
+ * 五虎遁(MONTH_STEM_LOOKUP)으로, 이후 달은 한 칸씩. 소한(丑월)은 사주년의 마지막 달이다
+ * (sajuYear 는 소한이 든 양력 연도 − 1). getMonthPillarForDate 와 periodPillars 가 공유.
+ */
+export function monthPillarOfTerm(
+  sajuYear: number,
+  termIndex: number
+): { stem: string; branch: string } {
+  const yearPillar = yearPillarOfSajuYear(sajuYear)
+  const firstStemIdx = STEMS.indexOf(MONTH_STEM_LOOKUP[yearPillar.stem])
+  // sajuMonthIndex 1=寅 → offset 0; 2=卯 → offset 1; … 12=丑 → offset 11.
+  const sajuMonthIndex = termIndex === 1 ? 12 : termIndex - 1
+  const monthStemIdx = (firstStemIdx + sajuMonthIndex - 1 + 10) % 10
+  return { stem: STEMS[monthStemIdx], branch: MONTH_BRANCHES_BY_TERM[termIndex] }
 }
 
 /**
@@ -115,6 +145,7 @@ export function getMonthPillarForDate(date: Date): { stem: string; branch: strin
   const firstMonthStem = MONTH_STEM_LOOKUP[yearPillar.stem]
   const firstStemIdx = STEMS.indexOf(firstMonthStem)
   // sajuMonthIndex 1=寅 → offset 0; 2=卯 → offset 1; … 12=丑 → offset 11.
+  // (표 밖 폴백의 양력 근사 branch 를 그대로 쓰려고 monthPillarOfTerm 대신 직접 센다.)
   const offsetFromTiger = ref.sajuMonthIndex - 1
   const monthStemIdx = (firstStemIdx + offsetFromTiger + 10) % 10
   return { stem: STEMS[monthStemIdx], branch: ref.branch }
@@ -124,23 +155,8 @@ export function getMonthPillarForDate(date: Date): { stem: string; branch: strin
  * Branch → 오행. 寅卯=목, 巳午=화, 申酉=금, 亥子=수, 辰未戌丑=토.
  * Avoids the Gregorian-month aliasing where May 1 (still 辰月/봄/목)
  * and May 31 (巳月/초여름/화) were both treated as 'wood' by month-based
- * mapping.
+ * mapping. 표는 정본 파생 BRANCH_ELEMENT_KEY(constants) — 리터럴 복사본 금지(plan D8).
  */
-const BRANCH_TO_ELEMENT: Record<string, 'wood' | 'fire' | 'earth' | 'metal' | 'water'> = {
-  寅: 'wood',
-  卯: 'wood',
-  巳: 'fire',
-  午: 'fire',
-  申: 'metal',
-  酉: 'metal',
-  亥: 'water',
-  子: 'water',
-  辰: 'earth',
-  未: 'earth',
-  戌: 'earth',
-  丑: 'earth',
-}
-
 function elementOfBranch(branch: string): 'wood' | 'fire' | 'earth' | 'metal' | 'water' {
-  return BRANCH_TO_ELEMENT[branch] || 'earth'
+  return BRANCH_ELEMENT_KEY[branch] || 'earth'
 }

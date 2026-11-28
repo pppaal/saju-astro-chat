@@ -1,0 +1,41 @@
+/* 가격 줄 — 'From 1 credit · Credits from $4.99' + 요금제 링크. sans 캡션 크기. */
+.line {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: 8px;
+  row-gap: 2px;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--mute);
+}
+.cost {
+  font-weight: 600;
+  color: var(--body);
+}
+.sep {
+  color: var(--mute);
+}
+.nw {
+  white-space: nowrap;
+}
+.link {
+  color: var(--ink);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  white-space: nowrap;
+}
+.dark {
+  color: var(--on-dark-3);
+}
+.dark .cost {
+  color: var(--on-dark-2);
+}
+.dark .sep {
+  color: var(--on-dark-3);
+}
+.dark .link {
+  color: var(--on-dark);
+}

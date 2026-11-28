@@ -10,9 +10,9 @@
 
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest'
 
-// Mock Sentry telemetry - must be before imports
-vi.mock('@/lib/telemetry', () => ({
-  captureServerError: vi.fn(),
+// Mock the Sentry sink - must be before imports
+vi.mock('@/lib/logger/sentrySink', () => ({
+  captureToSentry: vi.fn(),
 }))
 
 import {

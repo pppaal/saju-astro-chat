@@ -7,6 +7,7 @@
  * 시각화(휠·레이더·명식)에 필요해 클라에 있지만, *로직*은 서버에 남는다.
  */
 
+import { isPlaceUnreliable } from '@/lib/astrology/foundation/placeMask'
 import { computeSynastryView, type SynastryView } from './synastryView'
 import {
   computeSajuSynastryFacts,
@@ -19,7 +20,7 @@ import {
   type SpouseStarGender,
 } from './sajuSynastryFormatter'
 
-export interface CompatBandScores {
+interface CompatBandScores {
   eastern_hap?: number
   eastern_chung?: number
   elements_match?: number
@@ -103,9 +104,18 @@ export interface CompatReportInput {
   /** {stem,branch}[] (년·월·일·시) — A/B. 없으면 사주측 생략 */
   pillarsA: SajuPillarInput[] | null
   pillarsB: SajuPillarInput[] | null
-  /** 출생 시각 미상 — true 면 그 사람 시주(時)를 cross/배우자성/오행균형에서 제외. */
+  /**
+   * 출생 시각 미상 — true 면 그 사람 시주(時)를 cross/배우자성/오행균형에서 제외하고,
+   * 점성 앵글·하우스(시너스트리 뷰)도 가린다.
+   */
   timeUnknownA?: boolean
   timeUnknownB?: boolean
+  /**
+   * 출생 도시 미상(좌표 = 타임존 기준점) — 시주는 그대로 두고 점성 앵글·하우스만 가린다
+   * (placeUnreliable = 시간 또는 도시 미상, 재감사 CS-2).
+   */
+  cityUnknownA?: boolean
+  cityUnknownB?: boolean
   /**
    * A/B 성별 — 배우자성 판정용(남=재성이 처, 여=관성이 부). 없으면 재성·관성이
    * 모두 배우자성으로 올라가 남녀 모순 라벨이 섞인다.
@@ -144,12 +154,21 @@ export function buildCompatReport(input: CompatReportInput): CompatReport {
     pillarsB,
     timeUnknownA,
     timeUnknownB,
+    cityUnknownA,
+    cityUnknownB,
     genderA,
     genderB,
     lang = 'ko',
   } = input
 
-  const synView = computeSynastryView(astroA, astroB, lang, timeUnknownA, timeUnknownB)
+  // 점성 앵글·하우스 마스크 = 시간 *또는* 도시 미상(placeMask). 사주 시주 마스크는 시간만.
+  const synView = computeSynastryView(
+    astroA,
+    astroB,
+    lang,
+    isPlaceUnreliable({ timeUnknown: timeUnknownA, cityUnknown: cityUnknownA }),
+    isPlaceUnreliable({ timeUnknown: timeUnknownB, cityUnknown: cityUnknownB })
+  )
 
   const sajuFacts =
     pillarsA && pillarsB

@@ -14,7 +14,7 @@ export interface CrisisPayloadInput {
   cardCount: number
 }
 
-export interface CrisisPayloadCard {
+interface CrisisPayloadCard {
   position: string
   interpretation: string
 }

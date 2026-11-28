@@ -162,6 +162,20 @@ describe('CompatChartModal', () => {
       expect(init.method).toBe('POST')
     })
 
+    it('sends the city-unknown flags with the time flags (G8, CS-2)', async () => {
+      mockFetchResolving(fullReport)
+      render(<CompatChartModal open {...baseProps} timeUnknownB cityUnknownA />)
+      await waitFor(() => expect(global.fetch).toHaveBeenCalled())
+      const [, init] = (global.fetch as ReturnType<typeof vi.fn>).mock.calls[0]
+      const body = JSON.parse(init.body as string)
+      expect(body).toMatchObject({
+        timeUnknownA: false,
+        timeUnknownB: true,
+        cityUnknownA: true,
+        cityUnknownB: false,
+      })
+    })
+
     it('handles a null report (fetch returns no data) without crashing', async () => {
       mockFetchResolving(null)
       render(<CompatChartModal open {...baseProps} />)
@@ -195,6 +209,40 @@ describe('CompatChartModal', () => {
       const dialog = screen.getByRole('dialog', { name: '궁합 차트' })
       expect(dialog.textContent).toContain('충')
       expect(dialog.textContent).toContain('천간합')
+    })
+
+    // 재감사 CS-3: 상담사가 짚는 원진(배우자궁 일지↔일지 포함)이 모달에도 같은 facts 로 보인다.
+    it('renders a 원진 row (KO tag + gloss, EN "resentment")', async () => {
+      const withWonjin: CompatReport = {
+        ...fullReport,
+        pillarRelations: [
+          {
+            aPillar: '일',
+            bPillar: '일',
+            aChar: '寅',
+            bChar: '酉',
+            layer: 'branch',
+            tags: ['원진'],
+            tone: 'friction',
+            isDayInvolved: true,
+          },
+        ],
+      }
+      mockFetchResolving(withWonjin)
+      const { unmount } = render(<CompatChartModal open {...baseProps} />)
+      expect(await screen.findByText('사주 관계 — 어디서 끌리고 부딪히나')).toBeInTheDocument()
+      const ko = screen.getByRole('dialog', { name: '궁합 차트' }).textContent ?? ''
+      expect(ko).toContain('원진')
+      expect(ko).toContain('이유 없이 어긋나는 미묘한 반감')
+      unmount()
+
+      mockFetchResolving(withWonjin)
+      render(<CompatChartModal open {...baseProps} lang="en" />)
+      expect(await screen.findByText('Saju ties')).toBeInTheDocument()
+      const en = screen.getByRole('dialog', { name: 'Couple chart' }).textContent ?? ''
+      expect(en).toContain('resentment')
+      expect(en).toContain('a subtle resentment with no clear cause')
+      expect(en).not.toContain('원진')
     })
 
     it('renders the day-master core-natures block', async () => {

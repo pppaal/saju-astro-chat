@@ -164,6 +164,20 @@
   font-size: 11px;
   color: var(--ink-3);
 }
+/* 초대 모드 — 공유자 카드(이름만). 출생정보는 서버에만 있어 여기엔 없다. */
+.inviterName {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--ink);
+}
+.inviterNote {
+  margin: 8px 0 0;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--ink-3);
+  word-break: keep-all;
+}
 .field {
   display: flex;
   flex-direction: column;

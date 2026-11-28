@@ -41,7 +41,7 @@ const ALL_SERVICES: readonly EnabledService[] = [
     icon: '🗓️',
     menuKey: 'menu.calendar',
     descriptionKey: 'services.calendar.desc',
-    label: { en: 'Yearly/Monthly/Daily Fortune', ko: '일·월·년 운세' },
+    label: { en: 'Fortune calendar', ko: '운세 달력' },
     description: { en: 'Important Timing Guide', ko: '중요한 타이밍 가이드' },
   },
   {

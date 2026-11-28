@@ -361,6 +361,21 @@ const REQUIRED_SCHEMA = [
     ],
   },
   {
+    // 실결제액·통화. 이게 없으면 addBonusCredits 가 P2022 로 떨어진다 —
+    // creditService 에 폴백이 있어 크레딧 지급은 살지만(돈 받고 안 주는 일은
+    // 없다) 매출 컬럼이 조용히 NULL 로 쌓여 /api/admin/revenue 가 영원히
+    // "정가 추정" 으로만 보인다. 즉 장애가 아니라 **조용한 데이터 손실**로
+    // 나타나므로 여기 등록해 자동 복구시킨다.
+    table: 'BonusCreditPurchase',
+    migration: '20261005000000_purchase_actual_amount',
+    columns: [
+      // 백필 금지 — NULL 이어야 소비처가 기존 정가 추정으로 폴백해 과거 숫자가
+      // 보존된다. DEFAULT 를 넣으면 추정이 실측으로 위장된다(마이그레이션 주석).
+      { name: 'amountMinor', ddl: `ADD COLUMN IF NOT EXISTS "amountMinor" INTEGER` },
+      { name: 'currency', ddl: `ADD COLUMN IF NOT EXISTS "currency" TEXT` },
+    ],
+  },
+  {
     table: 'BonusCreditPurchase',
     migration: '20260528123217_add_bonus_credit_acknowledged_at',
     columns: [

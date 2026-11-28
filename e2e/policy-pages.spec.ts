@@ -102,9 +102,11 @@ test.describe('Policy Pages', () => {
     test('should have back to home navigation', async ({ page }) => {
       await page.goto('/policy/privacy', { waitUntil: 'domcontentloaded' })
 
-      const homeLink = page.locator('a[href="/"], a:has-text("홈"), [class*="logo"]')
-      const count = await homeLink.count()
-      expect(count).toBeGreaterThan(0)
+      // 정책 페이지 머리의 길은 앱 메뉴(☰) — 홈 링크가 있으면 그것도 된다.
+      const wayHome = page.locator(
+        'a[href="/"], button[aria-label="Open menu"], button[aria-label="메뉴 열기"]'
+      )
+      await expect(wayHome.first()).toBeVisible({ timeout: 15000 })
     })
   })
 

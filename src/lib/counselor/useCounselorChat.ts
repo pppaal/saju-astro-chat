@@ -36,10 +36,7 @@ import {
 } from '@/lib/chat/pendingTurn'
 import { savePendingChat, clearPendingChat } from '@/lib/chat/pendingChat'
 import { useRecoverOnResume } from '@/hooks/useRecoverOnResume'
-import {
-  generateFollowUpQuestions,
-  isGenericFollowUp,
-} from '@/components/destiny-map/chat-followups'
+import { generateFollowUpQuestions, isGenericFollowUp } from '@/lib/counselor/followups'
 
 /** 두 상담사 메시지 타입의 공통 분모 (destiny 는 id/streaming 도 사용). */
 export interface CounselorChatMessageBase {
@@ -60,7 +57,7 @@ export interface CounselorSendOptions<TMsg> {
   historyOverride?: TMsg[]
 }
 
-export interface CounselorTurn {
+interface CounselorTurn {
   /** user 발화 (trim/가공 후) */
   text: string
   /** 이번 턴 idempotency 키 — isRetry 면 직전 턴 키 재사용 */
@@ -70,7 +67,7 @@ export interface CounselorTurn {
   isRetry: boolean
 }
 
-export interface CounselorStreamOutcome {
+interface CounselorStreamOutcome {
   result: StreamResult
   /** onChunk 가 마지막으로 전달한 cleaned 누적 본문 (compat 의 잘림 판정용) */
   finalContent: string
@@ -81,7 +78,7 @@ export interface CounselorStreamOutcome {
 }
 
 /** completeTurn / applyRecovered 에 넘기는 훅 내부 헬퍼. */
-export interface CounselorTurnHelpers {
+interface CounselorTurnHelpers {
   /** 이 턴을 끊김 복원 대상으로 등록 — recoverable ref + pendingTurn 영속화. */
   markRecoverable: (assistantMsgId?: string) => void
   /** result 캐시 폴링 시작 (visibility/중복 가드는 내부에서). */
@@ -91,7 +88,7 @@ export interface CounselorTurnHelpers {
   setFollowUpQuestions: React.Dispatch<React.SetStateAction<string[]>>
 }
 
-export interface CounselorRecoveredTurn {
+interface CounselorRecoveredTurn {
   turnId: string
   userText: string
   /** 전송 당시 placeholder id — 새로고침 후 복원이면 빈 문자열일 수 있음. */

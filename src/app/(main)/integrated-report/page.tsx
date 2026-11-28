@@ -7,18 +7,21 @@
  * 자기 전용 buildReportContext 호출. 안 쓰는 hellenistic 5개
  * (Profection/Lots/ZR/Almuten/5-tier dignity) 계산 안 함.
  */
-import { buildReportContext } from './buildReportContext'
+import { buildReportContext } from '@/lib/report/buildReportContext'
 import { resolveBirthTimeAnchor } from '@/lib/saju/birthTimeAnchor'
-import { natalToReportData, buildCrossRows } from '@/components/report/integrated/adapter'
+import { natalToReportData, buildCrossRows } from '@/lib/report/integratedAdapter'
 import { IntegratedReport } from '@/components/report/integrated/IntegratedReport'
 import CounselorCTA from '@/components/report/CounselorCTA'
-import ReferralInviteButton from '@/components/referral/ReferralInviteButton'
+import { ReferralInviteButton } from '@/components/referral/ReferralInviteButton'
 import ReportInviteTracker from '@/components/report/integrated/viral/ReportInviteTracker'
 import BirthGate from '@/components/birth/BirthGate'
 import { getServerLocale } from '@/components/seo/SEO'
 import { cookies } from 'next/headers'
-import { fromZonedTime } from 'date-fns-tz'
-import { recordCounter } from '@/lib/metrics/index'
+import { resolveBirthInstantFromDate } from '@/lib/datetime/resolveBirthInstant'
+import { parseHourMinute } from '@/lib/saju/timeParse'
+import { defaultLatitudeFor, defaultLongitudeFor } from '@/lib/saju/timezone'
+import { resolveBirthTimezone } from '@/lib/datetime/resolveTimezone'
+import { recordCounter } from '@/lib/metrics'
 
 export const dynamic = 'force-dynamic'
 
@@ -31,6 +34,9 @@ export default async function IntegratedReportPage({
   searchParams: Promise<SP>
 }) {
   const sp = await searchParams
+  // 요청 경계에서 '지금'을 한 번만 읽어 아래로 내린다 — 현재 대운·미성년 모드(만 나이)가
+  // 계산 깊은 곳에서 서버 시계를 읽지 않게(CLAUDE.md 결정론, G13).
+  const now = new Date()
   // 로케일 — 메인화면(I18nProvider/언어토글)이 쓰는 'locale' 쿠키를 그대로 따라감.
   // ?lang/?locale 쿼리가 있으면 그게 우선, 없으면 쿠키, 그것도 없으면 헤더(getServerLocale).
   const langOverride = one(sp.lang) ?? one(sp.locale)
@@ -76,14 +82,24 @@ export default async function IntegratedReportPage({
   const rawLng = one(sp.lng)
   // 좌표 파싱 — 존재만 보면 ?lat=abc 같은 비숫자가 Number()→NaN 으로 엔진의
   // Swiss Ephemeris 앵글/하우스 계산까지 흘러간다(공유·수기편집 URL로 도달 가능).
-  // 유한수가 아니면 서울 기본값 + 미상 처리로 폴백해 NaN 주입을 막는다.
+  // 유한수가 아니면 타임존 기본값 + 미상 처리로 폴백해 NaN 주입을 막는다.
   const parsedLat = Number(rawLat)
   const parsedLng = Number(rawLng)
   const hasValidCoords = Number.isFinite(parsedLat) && Number.isFinite(parsedLng)
   const birthCityUnknown = !hasValidCoords
-  const latitude = hasValidCoords ? parsedLat : 37.5665
-  const longitude = hasValidCoords ? parsedLng : 126.978
-  const timeZone = one(sp.tz) ?? 'Asia/Seoul'
+  // 출생 타임존 resolver — ?tz → 출생 좌표(?lat·?lng)의 tz → 사주 기준 존.
+  const timeZone = resolveBirthTimezone(
+    {
+      timezone: one(sp.tz),
+      latitude: hasValidCoords ? parsedLat : undefined,
+      longitude: hasValidCoords ? parsedLng : undefined,
+    },
+    { context: 'integrated-report' }
+  )
+  // 좌표 미상 → 출생 타임존 기준점(Asia/Seoul = 서울 기본값, OD-2). 비한국 tz + 서울
+  // 경도 조합은 시주를 ~15시간 밀었다(SAJU-9).
+  const latitude = hasValidCoords ? parsedLat : defaultLatitudeFor(timeZone)
+  const longitude = hasValidCoords ? parsedLng : defaultLongitudeFor(timeZone)
   const gender = one(sp.gender) === 'female' ? 'female' : 'male'
 
   const ctx = (await buildReportContext({
@@ -95,6 +111,7 @@ export default async function IntegratedReportPage({
     timeZone,
     birthTimeUnknown,
     birthCityUnknown,
+    now,
   })) as unknown as Record<string, unknown>
 
   // 사용자 입력 메타 (이름·장소 등 raw 엔진이 안 알아채는 표시 전용 필드).
@@ -108,8 +125,10 @@ export default async function IntegratedReportPage({
     timeZone,
     isoUTC: (() => {
       try {
-        // 출생 현지시각(birthDate+birthTime, timeZone) → UTC 환산 표시.
-        const utc = fromZonedTime(`${birthDate}T${(birthTime || '00:00').slice(0, 5)}:00`, timeZone)
+        // 출생 현지시각(birthDate+birthTime, timeZone) → UTC 환산 표시. 엔진과 같은
+        // resolver(OD-3) — 서머타임 공백·겹침 시각도 사주·점성과 같은 순간을 보여 준다.
+        const { h, m } = parseHourMinute(birthTime || '00:00')
+        const utc = resolveBirthInstantFromDate(birthDate, h, m, timeZone).utc
         return `${utc.toISOString().slice(0, 16).replace('T', ' ')} UTC`
       } catch {
         return ''
@@ -117,8 +136,8 @@ export default async function IntegratedReportPage({
     })(),
   }
 
-  const data = natalToReportData(ctx, lang)
-  const cross = buildCrossRows(ctx, lang)
+  const data = natalToReportData(ctx, lang, now)
+  const cross = buildCrossRows(ctx, lang, now)
 
   // 퍼널 — 무료 통합 리포트 결과 노출(date 가 있어 실제 풀이가 렌더되는 경우만).
   // 허브(funnel.free_hub.viewed) → 리포트 노출 → 상담사 CTA 클릭 으로 단계를 잇는다.

@@ -1,11 +1,11 @@
 /**
  * 출생 "시간 모름" 규약 SSOT — 시간 미상이면 계산 앵커를 정오(12:00)로.
  *
- * 왜 정오인가: calculateSajuData 는 진태양시(경도) 보정을 출생 인스턴트 *전체*에
- * 적용한다(saju.ts effectiveDateTime). 자정(00:00) 앵커는 서울 기준 -32분 보정만으로
- * 인스턴트가 전날 23:28 로 밀려 일주가 전날 간지가 되고, 절입일엔 월주(입춘이면
- * 년주)까지 어긋난다. 정오는 보정(전 세계 ±1시간 남짓)이 날짜 경계를 절대 넘지
- * 못하는 안전한 앵커다. 통합 리포트가 먼저 쓰던 규약(integrated-report/page.tsx)을
+ * 왜 정오인가: 절입일엔 앵커 시각이 절입 전/후를 갈라 월주(입춘이면 년주)가
+ * 달라진다 — 년·월주는 생 UT 출생 instant 와 절입 instant 비교(OD-1, CONVENTIONS
+ * §2)라 자정 앵커는 대개 절입 전으로 떨어진다. 일주는 민용일이라 앵커와 무관하고
+ * (§1), 진경도 보정은 시주에만 쓴다. 정오는 하루의 중간값이자 ASC/하우스 범위의
+ * 중간값인 안정 앵커다. 통합 리포트가 먼저 쓰던 규약(integrated-report/page.tsx)을
  * 전 서비스 표준으로 올린 것 — 예전엔 궁합/운명상담사/캘린더 세션 경로가 '00:00'
  * 앵커를 써서 같은 사람의 일주가 화면마다 달랐다.
  *
@@ -57,4 +57,19 @@ export function resolveBirthTimeAnchor(
 ): BirthTimeAnchor {
   const unknown = isBirthTimeUnknown(time, timeUnknownFlag)
   return { time: unknown ? TIME_UNKNOWN_ANCHOR : (time as string).trim(), timeUnknown: unknown }
+}
+
+/**
+ * 계산 진입점(사주·점성 facts·캘린더·리포트)용 앵커 — 명시 미상 플래그(true)거나 시각이
+ * 비었으면 정오 앵커, 아니면 입력 시각 그대로. 레거시 '00:00'=미상 휴리스틱은 쓰지 않는다
+ * (그 판정은 입력 경계의 resolveBirthTimeAnchor 가 이미 했고, 여기 오는 '00:00' 은 실제
+ * 자정 출생일 수 있다). 미상이면 남아 있는 시각 문자열('03:00' 등)이 행성 위치·차트 날짜를
+ * 움직이지 않게 한다 — collectSajuFacts 의 년·월·일주와 같은 규칙(CONVENTIONS §5).
+ */
+export function astroAnchorTime(
+  time: string | null | undefined,
+  timeUnknownFlag?: boolean | null
+): string {
+  const t = typeof time === 'string' ? time.trim() : ''
+  return timeUnknownFlag === true || !t ? TIME_UNKNOWN_ANCHOR : t
 }

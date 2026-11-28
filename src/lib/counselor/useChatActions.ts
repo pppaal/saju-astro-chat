@@ -20,7 +20,7 @@ import { emitSessionDeleted } from '@/lib/counselor/sessionEvents'
  * - onError({ kind, status }): 401 인 경우 "다시 로그인" 힌트 등 page 가 토스트로 안내
  */
 
-export type ChatActionsError = {
+type ChatActionsError = {
   kind: 'rename' | 'delete'
   status?: number
 }
@@ -144,10 +144,9 @@ export function useChatActions({
     let status: number | undefined
     let ok = false
     try {
-      const res = await fetch(
-        `/api/counselor/session/list?sessionId=${encodeURIComponent(id)}`,
-        { method: 'DELETE' }
-      )
+      const res = await fetch(`/api/counselor/session/list?sessionId=${encodeURIComponent(id)}`, {
+        method: 'DELETE',
+      })
       status = res.status
       ok = res.ok
       if (!res.ok) throw new Error(`HTTP ${res.status}`)

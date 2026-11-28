@@ -3,21 +3,25 @@
  *
  * 두 사람의 natal chart (Sun~Pluto + Asc + MC + True Node + ExtraPoints
  * (Chiron/Lilith/Fortune/Vertex) + South Node 계산)를 받아 LLM이 그대로
- * 읽는 한 줄짜리 라인 list를 생성한다.
+ * 읽는 한 줄짜리 라인 list를 생성한다. 추가점은 chart.meta(출생 순간·좌표)가 있을 때만
+ * 계산된다 — compatAstroFacts 가 toChart(…, { withMeta: true }) 로 싣는다(재감사 CS-5).
+ *
+ * 시간 *또는* 도시 미상(placeUnreliable)인 사람은 앵글·앵글 파생점(ASC·MC·행운점·버텍스)
+ * 이 낀 각, 그 사람 하우스로의 오버레이, 그 사람 ASC 사인을 뺀다(placeMask, 재감사 CS-2).
  *
  * 출력 형식:
  *   Sun in Aquarius Conjunction Sun in Aquarius (Orb: 6°22')
  *   Partner A's Sun in the 4th Partner B's house
  *   Partner B's Sun in the 1st Partner A's house
  *
- * dev 검증: scripts/synastry-format.ts (95.02.09 06:40 男 + 91.02.03
- * 00:35 女 케이스에서 132 라인 출력 확인).
+ * 검증: tests/lib/compatibility/astroSynastryFormatter.test.ts.
  */
 
 import { extendChartWithExtraPoints } from '@/lib/astrology/foundation/extraPoints'
 import { calculateSynastry, OVERLAY_POINTS } from '@/lib/astrology/foundation/synastry'
 import { SIGN_KO } from '@/lib/astrology/signLabels'
 import { PLANET_KO as PLANET_KO_BASE } from '@/lib/calendar-engine/data/planetNames'
+import { isPlaceDependentPoint, isPlaceUnreliable } from '@/lib/astrology/foundation/placeMask'
 import type { AspectType, Chart, ExtraPoint, PlanetBase } from '@/lib/astrology/foundation/types'
 
 const ASPECT_TITLE: Record<AspectType, string> = {
@@ -219,18 +223,21 @@ export interface AstroSynastryInput {
   nameA?: string | null
   nameB?: string | null
   /**
-   * 출생 시각 미상 플래그. true 면 그 사람의 ASC/MC/하우스는 자정 기준 날조값이라
-   * synastry 에서 제외한다(앵글 aspect · 그 사람 하우스로의 overlay · ASC 표시).
+   * 출생 시각 미상 플래그. true 면 그 사람의 ASC/MC/하우스는 정오 앵커의 날조값이라
+   * synastry 에서 제외한다(앵글·행운점·버텍스 aspect · 그 사람 하우스로의 overlay · ASC 표시).
    * Moon 등 행성 경도는 시각 미상이어도 [Meta] 룰상 인용 허용이라 유지.
    */
   timeUnknownA?: boolean
   timeUnknownB?: boolean
+  /**
+   * 출생 도시 미상 플래그(좌표 = 출생 타임존 기준점). 시간 미상과 같은 마스크 — 기준점은
+   * 실제 출생지와 수백 km 떨어질 수 있어 ASC·MC·하우스가 날조다(재감사 CS-2).
+   */
+  cityUnknownA?: boolean
+  cityUnknownB?: boolean
   /** 출력 언어. 'en' 이면 한국어 라벨이 영어 응답에 새지 않게 영어로 렌더. 기본 'ko'. */
   lang?: 'ko' | 'en'
 }
-
-// ASC/MC = 출생 시각 의존 앵글. 시각 미상이면 cross 에서 제외 대상.
-const ANGLE_POINTS = new Set(['Ascendant', 'MC'])
 
 /**
  * 점성 synastry 라인 list를 한 string으로 반환 (LLM 직접 injection용).
@@ -242,6 +249,15 @@ export function formatAstroSynastry(input: AstroSynastryInput): string {
   const chartA = expandChart(input.chartA, input.latA, input.lonA)
   const chartB = expandChart(input.chartB, input.latB, input.lonB)
   const synastry = calculateSynastry({ chartA, chartB })
+  // 시간 또는 도시 미상 → 그 사람의 앵글·하우스는 날조(placeMask 단일 판정).
+  const maskA = isPlaceUnreliable({
+    timeUnknown: input.timeUnknownA,
+    cityUnknown: input.cityUnknownA,
+  })
+  const maskB = isPlaceUnreliable({
+    timeUnknown: input.timeUnknownB,
+    cityUnknown: input.cityUnknownB,
+  })
 
   // 행성 소유를 이름에 고정한다. 예전 aspect 줄은 "Moon Square Mars"처럼
   // 누구의 달·화성인지 라벨이 아예 없어서, 모델이 소유·방향을 멋대로
@@ -277,9 +293,10 @@ export function formatAstroSynastry(input: AstroSynastryInput): string {
   const generationalNames = new Set<string>()
   let generationalCount = 0
   for (const asp of synastry.aspects) {
-    // 시각 미상인 쪽의 앵글(ASC/MC) 이 낀 aspect 는 날조라 제외 (from=A, to=B).
-    if (input.timeUnknownA && ANGLE_POINTS.has(asp.from.name)) continue
-    if (input.timeUnknownB && ANGLE_POINTS.has(asp.to.name)) continue
+    // 미상인 쪽의 앵글·앵글 파생점(ASC/MC/행운점/버텍스)이 낀 aspect 는 날조라 제외
+    // (from=A, to=B). 상대(앎) 쪽 앵글에 닿는 미상 쪽 행성 각은 유효하다.
+    if (maskA && isPlaceDependentPoint(asp.from.name)) continue
+    if (maskB && isPlaceDependentPoint(asp.to.name)) continue
     const fromP = PERSONAL_POINTS.has(asp.from.name)
     const toP = PERSONAL_POINTS.has(asp.to.name)
     // 외행성↔외행성 컨정션 = 동세대 노이즈 → 묶어서 요약 1줄
@@ -346,8 +363,8 @@ export function formatAstroSynastry(input: AstroSynastryInput): string {
   }
   const overlayLinesAtoB: string[] = []
   const overlayLinesBtoA: string[] = []
-  // overlay A→B 는 B 의 하우스 경계가 필요 → B 시각 미상이면 통째 제외.
-  if (!input.timeUnknownB) {
+  // overlay A→B 는 B 의 하우스 경계가 필요 → B 시간·도시 미상이면 통째 제외.
+  if (!maskB) {
     for (const o of synastry.houseOverlaysAtoB) {
       if (!OVERLAY_POINTS.has(o.planet)) continue
       overlayLinesAtoB.push(
@@ -355,8 +372,8 @@ export function formatAstroSynastry(input: AstroSynastryInput): string {
       )
     }
   }
-  // overlay B→A 는 A 의 하우스가 필요 → A 시각 미상이면 제외.
-  if (!input.timeUnknownA) {
+  // overlay B→A 는 A 의 하우스가 필요 → A 시간·도시 미상이면 제외.
+  if (!maskA) {
     for (const o of synastry.houseOverlaysBtoA) {
       if (!OVERLAY_POINTS.has(o.planet)) continue
       overlayLinesBtoA.push(
@@ -364,9 +381,9 @@ export function formatAstroSynastry(input: AstroSynastryInput): string {
       )
     }
   }
-  // ASC 는 시각 의존 → 미상인 쪽은 '미상'으로 표기(날조 별자리 노출 금지).
-  const ascA = input.timeUnknownA ? L('미상', 'unknown') : signD(chartA.ascendant?.sign)
-  const ascB = input.timeUnknownB ? L('미상', 'unknown') : signD(chartB.ascendant?.sign)
+  // ASC 는 시각·장소 의존 → 미상인 쪽은 '미상'으로 표기(날조 별자리 노출 금지).
+  const ascA = maskA ? L('미상', 'unknown') : signD(chartA.ascendant?.sign)
+  const ascB = maskB ? L('미상', 'unknown') : signD(chartB.ascendant?.sign)
   const ascLine = `${L('상승점', 'ASC')} ${labelA} ${ascA} / ${labelB} ${ascB}`
 
   const out: string[] = [L('== 시너스트리 (점성 cross) ==', '== Synastry (astrology cross) ==')]

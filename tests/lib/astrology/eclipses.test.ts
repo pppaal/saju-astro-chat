@@ -13,17 +13,13 @@
  * @vitest-environment node
  */
 
-import { vi } from "vitest";
+import { vi } from 'vitest'
 
 // 전역 setup 의 mock 두 개를 이 파일에서만 해제 → 진짜 천체력을 쓴다.
-vi.unmock("swisseph");
-vi.unmock("@/lib/astrology/foundation/ephe");
+vi.unmock('swisseph')
+vi.unmock('@/lib/astrology/foundation/ephe')
 
-// CI 등 native swisseph 바이너리가 로드 안 되는 환경에서는 hard-fail 대신 skip.
-const swissephAvailable = await import("swisseph")
-  .then(() => true)
-  .catch(() => false);
-const describeWithEphemeris = swissephAvailable ? describe : describe.skip;
+const { describeRealEphemeris } = await import('../../helpers/realEphemeris')
 
 import {
   getAllEclipses,
@@ -31,317 +27,338 @@ import {
   getUpcomingEclipses,
   getEclipsesInSign,
   getEclipseAxis,
-} from "@/lib/astrology/foundation/eclipses";
-import type { Eclipse, EclipseImpact } from "@/lib/astrology/foundation/eclipses";
+} from '@/lib/astrology/foundation/eclipses'
+import type { Eclipse, EclipseImpact } from '@/lib/astrology/foundation/eclipses'
 
-describeWithEphemeris("Eclipse data", () => {
-  describe("getAllEclipses", () => {
-    it("returns array of eclipses", () => {
-      const eclipses = getAllEclipses();
-      expect(Array.isArray(eclipses)).toBe(true);
-      expect(eclipses.length).toBeGreaterThan(0);
-    });
+describeRealEphemeris('Eclipse data', () => {
+  describe('getAllEclipses', () => {
+    it('returns array of eclipses', () => {
+      const eclipses = getAllEclipses()
+      expect(Array.isArray(eclipses)).toBe(true)
+      expect(eclipses.length).toBeGreaterThan(0)
+    })
 
-    it("each eclipse has required fields", () => {
-      const eclipses = getAllEclipses();
-      const eclipse = eclipses[0];
+    it('each eclipse has required fields', () => {
+      const eclipses = getAllEclipses()
+      const eclipse = eclipses[0]
 
-      expect(eclipse).toHaveProperty("type");
-      expect(eclipse).toHaveProperty("date");
-      expect(eclipse).toHaveProperty("longitude");
-      expect(eclipse).toHaveProperty("sign");
-      expect(eclipse).toHaveProperty("degree");
-      expect(eclipse).toHaveProperty("description");
-    });
+      expect(eclipse).toHaveProperty('type')
+      expect(eclipse).toHaveProperty('date')
+      expect(eclipse).toHaveProperty('longitude')
+      expect(eclipse).toHaveProperty('sign')
+      expect(eclipse).toHaveProperty('degree')
+      expect(eclipse).toHaveProperty('description')
+    })
 
-    it("eclipse types are solar or lunar", () => {
-      const eclipses = getAllEclipses();
+    it('eclipse types are solar or lunar', () => {
+      const eclipses = getAllEclipses()
       eclipses.forEach((eclipse) => {
-        expect(["solar", "lunar"]).toContain(eclipse.type);
-      });
-    });
+        expect(['solar', 'lunar']).toContain(eclipse.type)
+      })
+    })
 
-    it("has eclipses from 2020 to 2030", () => {
-      const eclipses = getAllEclipses();
-      const years = eclipses.map((e) => new Date(e.date).getFullYear());
+    it('has eclipses from 2020 to 2030', () => {
+      const eclipses = getAllEclipses()
+      const years = eclipses.map((e) => new Date(e.date).getFullYear())
 
-      expect(Math.min(...years)).toBeLessThanOrEqual(2020);
-      expect(Math.max(...years)).toBeGreaterThanOrEqual(2030);
-    });
-  });
-});
+      expect(Math.min(...years)).toBeLessThanOrEqual(2020)
+      expect(Math.max(...years)).toBeGreaterThanOrEqual(2030)
+    })
+  })
+})
 
-describeWithEphemeris("getEclipsesBetween", () => {
-  it("filters eclipses by date range", () => {
-    const eclipses = getEclipsesBetween("2024-01-01", "2024-12-31");
+describeRealEphemeris('getEclipsesBetween', () => {
+  it('filters eclipses by date range', () => {
+    const eclipses = getEclipsesBetween('2024-01-01', '2024-12-31')
 
-    expect(eclipses.length).toBeGreaterThan(0);
+    expect(eclipses.length).toBeGreaterThan(0)
     eclipses.forEach((eclipse) => {
-      const year = new Date(eclipse.date).getFullYear();
-      expect(year).toBe(2024);
-    });
-  });
+      const year = new Date(eclipse.date).getFullYear()
+      expect(year).toBe(2024)
+    })
+  })
 
   // NOTE: This previously asserted an empty array for 2050 ("beyond data"),
   // a relic of the old hardcoded 2020–2030 eclipse table. Swiss Ephemeris
   // computes eclipses for any year (its data spans roughly 13201 BC – 17191 AD),
   // so 2050 has real eclipses. We now assert the astronomically correct result.
-  it("returns real eclipses for far-future years (Swiss Ephemeris range)", () => {
-    const eclipses = getEclipsesBetween("2050-01-01", "2050-12-31");
-    expect(eclipses.length).toBeGreaterThan(0);
+  it('returns real eclipses for far-future years (Swiss Ephemeris range)', () => {
+    const eclipses = getEclipsesBetween('2050-01-01', '2050-12-31')
+    expect(eclipses.length).toBeGreaterThan(0)
     eclipses.forEach((eclipse) => {
-      expect(new Date(eclipse.date).getFullYear()).toBe(2050);
-    });
-  });
+      expect(new Date(eclipse.date).getFullYear()).toBe(2050)
+    })
+  })
 
-  it("returns multiple eclipses per year", () => {
-    const eclipses = getEclipsesBetween("2025-01-01", "2025-12-31");
-    expect(eclipses.length).toBeGreaterThanOrEqual(2);
-  });
-});
+  it('returns multiple eclipses per year', () => {
+    const eclipses = getEclipsesBetween('2025-01-01', '2025-12-31')
+    expect(eclipses.length).toBeGreaterThanOrEqual(2)
+  })
+})
 
-describeWithEphemeris("getUpcomingEclipses", () => {
-  it("returns specified count of eclipses", () => {
-    const pastDate = new Date("2020-01-01");
-    const eclipses = getUpcomingEclipses(pastDate, 4);
-    expect(eclipses.length).toBeLessThanOrEqual(4);
-  });
+describeRealEphemeris('getUpcomingEclipses', () => {
+  it('returns specified count of eclipses', () => {
+    const pastDate = new Date('2020-01-01')
+    const eclipses = getUpcomingEclipses(pastDate, 4)
+    expect(eclipses.length).toBeLessThanOrEqual(4)
+  })
 
-  it("returns eclipses after the given date", () => {
-    const startDate = new Date("2025-01-01");
-    const eclipses = getUpcomingEclipses(startDate, 4);
+  it('returns eclipses after the given date', () => {
+    const startDate = new Date('2025-01-01')
+    const eclipses = getUpcomingEclipses(startDate, 4)
 
     eclipses.forEach((eclipse) => {
-      expect(new Date(eclipse.date) >= startDate).toBe(true);
-    });
-  });
+      expect(new Date(eclipse.date) >= startDate).toBe(true)
+    })
+  })
 
-  it("defaults to 4 eclipses if count not specified", () => {
-    const eclipses = getUpcomingEclipses(new Date("2020-01-01"));
-    expect(eclipses.length).toBeLessThanOrEqual(4);
-  });
-});
+  it('defaults to 4 eclipses if count not specified', () => {
+    const eclipses = getUpcomingEclipses(new Date('2020-01-01'))
+    expect(eclipses.length).toBeLessThanOrEqual(4)
+  })
+})
 
-describeWithEphemeris("getEclipsesInSign", () => {
-  it("filters eclipses by zodiac sign", () => {
-    const ariesEclipses = getEclipsesInSign("Aries");
+describeRealEphemeris('getEclipsesInSign', () => {
+  it('filters eclipses by zodiac sign', () => {
+    const ariesEclipses = getEclipsesInSign('Aries')
 
     ariesEclipses.forEach((eclipse) => {
-      expect(eclipse.sign).toBe("Aries");
-    });
-  });
+      expect(eclipse.sign).toBe('Aries')
+    })
+  })
 
-  it("returns empty array for signs with no eclipses in data", () => {
+  it('returns empty array for signs with no eclipses in data', () => {
     // Note: This might not be truly empty depending on data
-    const result = getEclipsesInSign("Aries");
-    expect(Array.isArray(result)).toBe(true);
-  });
+    const result = getEclipsesInSign('Aries')
+    expect(Array.isArray(result)).toBe(true)
+  })
 
-  it("can find Taurus eclipses", () => {
-    const taurusEclipses = getEclipsesInSign("Taurus");
-    expect(taurusEclipses.length).toBeGreaterThan(0);
-  });
-});
+  it('can find Taurus eclipses', () => {
+    const taurusEclipses = getEclipsesInSign('Taurus')
+    expect(taurusEclipses.length).toBeGreaterThan(0)
+  })
+})
 
-describeWithEphemeris("getEclipseAxis", () => {
-  it("returns primary and opposite signs", () => {
+describeRealEphemeris('getEclipseAxis', () => {
+  it('returns primary and opposite signs', () => {
     const eclipse: Eclipse = {
-      type: "solar",
-      date: "2025-04-08",
+      type: 'solar',
+      date: '2025-04-08',
       longitude: 19.22,
-      sign: "Aries",
+      sign: 'Aries',
       degree: 19,
-      description: "Test eclipse",
-    };
+      description: 'Test eclipse',
+    }
 
-    const axis = getEclipseAxis(eclipse);
+    const axis = getEclipseAxis(eclipse)
 
-    expect(axis).toHaveProperty("primary");
-    expect(axis).toHaveProperty("opposite");
-    expect(axis.primary).toBe("Aries");
-    expect(axis.opposite).toBe("Libra");
-  });
+    expect(axis).toHaveProperty('primary')
+    expect(axis).toHaveProperty('opposite')
+    expect(axis.primary).toBe('Aries')
+    expect(axis.opposite).toBe('Libra')
+  })
 
-  it("correctly calculates opposite for Taurus", () => {
+  it('correctly calculates opposite for Taurus', () => {
     const eclipse: Eclipse = {
-      type: "lunar",
-      date: "2022-11-08",
+      type: 'lunar',
+      date: '2022-11-08',
       longitude: 46.02,
-      sign: "Taurus",
+      sign: 'Taurus',
       degree: 16,
-      description: "Test eclipse",
-    };
+      description: 'Test eclipse',
+    }
 
-    const axis = getEclipseAxis(eclipse);
-    expect(axis.primary).toBe("Taurus");
-    expect(axis.opposite).toBe("Scorpio");
-  });
+    const axis = getEclipseAxis(eclipse)
+    expect(axis.primary).toBe('Taurus')
+    expect(axis.opposite).toBe('Scorpio')
+  })
 
-  it("correctly calculates opposite for Scorpio", () => {
+  it('correctly calculates opposite for Scorpio', () => {
     const eclipse: Eclipse = {
-      type: "lunar",
-      date: "2022-05-16",
-      longitude: 235.70,
-      sign: "Scorpio",
+      type: 'lunar',
+      date: '2022-05-16',
+      longitude: 235.7,
+      sign: 'Scorpio',
       degree: 25,
-      description: "Test eclipse",
-    };
+      description: 'Test eclipse',
+    }
 
-    const axis = getEclipseAxis(eclipse);
-    expect(axis.primary).toBe("Scorpio");
-    expect(axis.opposite).toBe("Taurus");
-  });
-});
+    const axis = getEclipseAxis(eclipse)
+    expect(axis.primary).toBe('Scorpio')
+    expect(axis.opposite).toBe('Taurus')
+  })
+})
 
-describeWithEphemeris("Eclipse interface", () => {
-  it("supports solar type", () => {
+describeRealEphemeris('Eclipse interface', () => {
+  it('supports solar type', () => {
     const solarEclipse: Eclipse = {
-      type: "solar",
-      date: "2024-04-08",
+      type: 'solar',
+      date: '2024-04-08',
       longitude: 19.22,
-      sign: "Aries",
+      sign: 'Aries',
       degree: 19,
-      description: "2024년 4월 개기일식",
-    };
-    expect(solarEclipse.type).toBe("solar");
-  });
+      description: '2024년 4월 개기일식',
+    }
+    expect(solarEclipse.type).toBe('solar')
+  })
 
-  it("supports lunar type", () => {
+  it('supports lunar type', () => {
     const lunarEclipse: Eclipse = {
-      type: "lunar",
-      date: "2024-03-25",
+      type: 'lunar',
+      date: '2024-03-25',
       longitude: 185.07,
-      sign: "Libra",
+      sign: 'Libra',
       degree: 5,
-      description: "2024년 3월 반영월식",
-    };
-    expect(lunarEclipse.type).toBe("lunar");
-  });
+      description: '2024년 3월 반영월식',
+    }
+    expect(lunarEclipse.type).toBe('lunar')
+  })
 
-  it("has longitude as number", () => {
+  it('has longitude as number', () => {
     const eclipse: Eclipse = {
-      type: "solar",
-      date: "2025-03-29",
-      longitude: 9.00,
-      sign: "Aries",
+      type: 'solar',
+      date: '2025-03-29',
+      longitude: 9.0,
+      sign: 'Aries',
       degree: 9,
-      description: "2025년 3월 부분일식",
-    };
-    expect(typeof eclipse.longitude).toBe("number");
-    expect(eclipse.longitude).toBeGreaterThanOrEqual(0);
-    expect(eclipse.longitude).toBeLessThan(360);
-  });
-});
+      description: '2025년 3월 부분일식',
+    }
+    expect(typeof eclipse.longitude).toBe('number')
+    expect(eclipse.longitude).toBeGreaterThanOrEqual(0)
+    expect(eclipse.longitude).toBeLessThan(360)
+  })
+})
 
-describeWithEphemeris("EclipseImpact interface", () => {
-  it("has required fields", () => {
+describeRealEphemeris('EclipseImpact interface', () => {
+  it('has required fields', () => {
     const impact: EclipseImpact = {
       eclipse: {
-        type: "solar",
-        date: "2024-04-08",
+        type: 'solar',
+        date: '2024-04-08',
         longitude: 19.22,
-        sign: "Aries",
+        sign: 'Aries',
         degree: 19,
-        description: "Test",
+        description: 'Test',
       },
-      affectedPoint: "Sun",
-      aspectType: "conjunction",
+      affectedPoint: 'Sun',
+      aspectType: 'conjunction',
       orb: 1.5,
       house: 1,
-      interpretation: "중요한 변화의 시기",
-    };
+      interpretation: '중요한 변화의 시기',
+    }
 
-    expect(impact.affectedPoint).toBe("Sun");
-    expect(impact.aspectType).toBe("conjunction");
-    expect(impact.orb).toBe(1.5);
-    expect(impact.house).toBe(1);
-  });
+    expect(impact.affectedPoint).toBe('Sun')
+    expect(impact.aspectType).toBe('conjunction')
+    expect(impact.orb).toBe(1.5)
+    expect(impact.house).toBe(1)
+  })
 
-  it("supports different aspect types", () => {
+  it('supports different aspect types', () => {
     const conjunctionImpact: EclipseImpact = {
-      eclipse: { type: "solar", date: "2024-04-08", longitude: 0, sign: "Aries", degree: 0, description: "" },
-      affectedPoint: "Sun",
-      aspectType: "conjunction",
+      eclipse: {
+        type: 'solar',
+        date: '2024-04-08',
+        longitude: 0,
+        sign: 'Aries',
+        degree: 0,
+        description: '',
+      },
+      affectedPoint: 'Sun',
+      aspectType: 'conjunction',
       orb: 1,
       house: 1,
-      interpretation: "",
-    };
+      interpretation: '',
+    }
     const oppositionImpact: EclipseImpact = {
-      eclipse: { type: "lunar", date: "2024-04-08", longitude: 180, sign: "Libra", degree: 0, description: "" },
-      affectedPoint: "Moon",
-      aspectType: "opposition",
+      eclipse: {
+        type: 'lunar',
+        date: '2024-04-08',
+        longitude: 180,
+        sign: 'Libra',
+        degree: 0,
+        description: '',
+      },
+      affectedPoint: 'Moon',
+      aspectType: 'opposition',
       orb: 2,
       house: 7,
-      interpretation: "",
-    };
+      interpretation: '',
+    }
     const squareImpact: EclipseImpact = {
-      eclipse: { type: "solar", date: "2024-04-08", longitude: 90, sign: "Cancer", degree: 0, description: "" },
-      affectedPoint: "Mars",
-      aspectType: "square",
+      eclipse: {
+        type: 'solar',
+        date: '2024-04-08',
+        longitude: 90,
+        sign: 'Cancer',
+        degree: 0,
+        description: '',
+      },
+      affectedPoint: 'Mars',
+      aspectType: 'square',
       orb: 2.5,
       house: 4,
-      interpretation: "",
-    };
+      interpretation: '',
+    }
 
-    expect(conjunctionImpact.aspectType).toBe("conjunction");
-    expect(oppositionImpact.aspectType).toBe("opposition");
-    expect(squareImpact.aspectType).toBe("square");
-  });
-});
+    expect(conjunctionImpact.aspectType).toBe('conjunction')
+    expect(oppositionImpact.aspectType).toBe('opposition')
+    expect(squareImpact.aspectType).toBe('square')
+  })
+})
 
-describeWithEphemeris("Eclipse signs in data", () => {
-  const allEclipses = getAllEclipses();
+describeRealEphemeris('Eclipse signs in data', () => {
+  const allEclipses = getAllEclipses()
 
-  it("includes eclipses in Aries", () => {
-    expect(allEclipses.some((e) => e.sign === "Aries")).toBe(true);
-  });
+  it('includes eclipses in Aries', () => {
+    expect(allEclipses.some((e) => e.sign === 'Aries')).toBe(true)
+  })
 
-  it("includes eclipses in Taurus", () => {
-    expect(allEclipses.some((e) => e.sign === "Taurus")).toBe(true);
-  });
+  it('includes eclipses in Taurus', () => {
+    expect(allEclipses.some((e) => e.sign === 'Taurus')).toBe(true)
+  })
 
-  it("includes eclipses in Gemini", () => {
-    expect(allEclipses.some((e) => e.sign === "Gemini")).toBe(true);
-  });
+  it('includes eclipses in Gemini', () => {
+    expect(allEclipses.some((e) => e.sign === 'Gemini')).toBe(true)
+  })
 
-  it("includes eclipses in Cancer", () => {
-    expect(allEclipses.some((e) => e.sign === "Cancer")).toBe(true);
-  });
+  it('includes eclipses in Cancer', () => {
+    expect(allEclipses.some((e) => e.sign === 'Cancer')).toBe(true)
+  })
 
-  it("includes eclipses in Libra", () => {
-    expect(allEclipses.some((e) => e.sign === "Libra")).toBe(true);
-  });
+  it('includes eclipses in Libra', () => {
+    expect(allEclipses.some((e) => e.sign === 'Libra')).toBe(true)
+  })
 
-  it("includes eclipses in Scorpio", () => {
-    expect(allEclipses.some((e) => e.sign === "Scorpio")).toBe(true);
-  });
+  it('includes eclipses in Scorpio', () => {
+    expect(allEclipses.some((e) => e.sign === 'Scorpio')).toBe(true)
+  })
 
-  it("includes eclipses in Sagittarius", () => {
-    expect(allEclipses.some((e) => e.sign === "Sagittarius")).toBe(true);
-  });
+  it('includes eclipses in Sagittarius', () => {
+    expect(allEclipses.some((e) => e.sign === 'Sagittarius')).toBe(true)
+  })
 
-  it("includes eclipses in Capricorn", () => {
-    expect(allEclipses.some((e) => e.sign === "Capricorn")).toBe(true);
-  });
-});
+  it('includes eclipses in Capricorn', () => {
+    expect(allEclipses.some((e) => e.sign === 'Capricorn')).toBe(true)
+  })
+})
 
-describeWithEphemeris("Eclipse types in data", () => {
-  const allEclipses = getAllEclipses();
+describeRealEphemeris('Eclipse types in data', () => {
+  const allEclipses = getAllEclipses()
 
-  it("has both solar and lunar eclipses", () => {
-    const solarCount = allEclipses.filter((e) => e.type === "solar").length;
-    const lunarCount = allEclipses.filter((e) => e.type === "lunar").length;
+  it('has both solar and lunar eclipses', () => {
+    const solarCount = allEclipses.filter((e) => e.type === 'solar').length
+    const lunarCount = allEclipses.filter((e) => e.type === 'lunar').length
 
-    expect(solarCount).toBeGreaterThan(0);
-    expect(lunarCount).toBeGreaterThan(0);
-  });
+    expect(solarCount).toBeGreaterThan(0)
+    expect(lunarCount).toBeGreaterThan(0)
+  })
 
-  it("has roughly equal solar and lunar eclipses", () => {
-    const solarCount = allEclipses.filter((e) => e.type === "solar").length;
-    const lunarCount = allEclipses.filter((e) => e.type === "lunar").length;
+  it('has roughly equal solar and lunar eclipses', () => {
+    const solarCount = allEclipses.filter((e) => e.type === 'solar').length
+    const lunarCount = allEclipses.filter((e) => e.type === 'lunar').length
 
     // They should be roughly balanced (within 30% of each other)
-    const ratio = Math.max(solarCount, lunarCount) / Math.min(solarCount, lunarCount);
-    expect(ratio).toBeLessThan(1.3);
-  });
-});
+    const ratio = Math.max(solarCount, lunarCount) / Math.min(solarCount, lunarCount)
+    expect(ratio).toBeLessThan(1.3)
+  })
+})

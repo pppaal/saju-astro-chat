@@ -1,0 +1,51 @@
+/* 푸터 — 면책 한 문단, 출처 줄(계산: 우리 엔진 · 상담의 말: AI), 워드마크 + 링크. 좌우 여백은
+   화면의 --gutter(인생 흐름 16/20/24px)를 따라 끝 폴리오와 같은 세로선에 선다(QA VL-10). */
+.foot {
+  margin: 0 var(--gutter, 20px);
+  padding: 18px 0 32px;
+}
+.foot p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--mute);
+}
+.foot p + p {
+  margin-top: 8px;
+}
+.pv b {
+  font-weight: 600;
+  color: var(--body);
+}
+.links {
+  margin-top: 16px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 16px;
+}
+.wm {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: var(--ink);
+}
+.links nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  font-size: 13px;
+}
+.links nav a {
+  color: var(--body);
+  text-decoration: none;
+}
+.links nav a:hover {
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}

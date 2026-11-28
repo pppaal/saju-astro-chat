@@ -9,7 +9,7 @@
 // 역방향 확률은 SSOT(TAROT_REVERSED_PROBABILITY)에서 가져온다 — 일반 뽑기·
 // 데일리와 같은 비율을 한 곳에서 보장(흐름마다 비율 어긋나는 회귀 방지).
 
-import tarotDeck from '@/lib/tarot/data'
+import { tarotDeck } from '@/lib/tarot/data'
 import { TAROT_REVERSED_PROBABILITY } from '@/lib/tarot/reversedProbability'
 
 export interface ClarifierCard {

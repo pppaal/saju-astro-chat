@@ -10,13 +10,6 @@ import { resolve } from 'path'
 describe('Scripts Smoke Tests', () => {
   const scriptsDir = resolve(process.cwd(), 'scripts')
 
-  describe('Code Quality Scripts', () => {
-    it('should have migrate console to logger script', () => {
-      const filePath = resolve(scriptsDir, 'migrate-console-to-logger.js')
-      expect(existsSync(filePath)).toBe(true)
-    })
-  })
-
   describe('Setup Scripts', () => {
     it('should have wait for server script', () => {
       const filePath = resolve(scriptsDir, 'wait-for-server.mjs')
@@ -51,7 +44,6 @@ describe('Scripts Smoke Tests', () => {
   describe('Scripts Summary', () => {
     it('should have all essential script files', () => {
       const scripts = [
-        'migrate-console-to-logger.js',
         'wait-for-server.mjs',
         'owasp-zap-baseline.mjs',
         'validate-env.js',
@@ -64,7 +56,7 @@ describe('Scripts Smoke Tests', () => {
         expect(existsSync(filePath)).toBe(true)
       })
 
-      expect(scripts.length).toBe(6)
+      expect(scripts.length).toBe(5)
     })
   })
 })

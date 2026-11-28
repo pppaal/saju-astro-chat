@@ -5,18 +5,20 @@
  *
  * Increment ①: SAJU section.
  */
-import { ELEMENT_KO_TO_EN } from '@/lib/saju/constants'
+import { ELEMENT_KO_TO_EN, STEMS } from '@/lib/saju/constants'
 import { STEM_HANJA_TO_HANGUL } from '@/lib/saju/graphIds'
 import { collectSajuFacts } from '@/lib/destiny/sajuFacts'
-import { computeCurrentUnse, type CurrentUnse } from '@/lib/saju/currentUnse'
-import { getSajuYearForDate } from '@/lib/saju/datePillars'
+import { computeCurrentUnse, type CivilDay, type CurrentUnse } from '@/lib/saju/currentUnse'
+import { pillarsForLocalDate } from '@/lib/calendar-engine/periodPillars'
+import { DAEUN_SPAN_YEARS } from '@/lib/saju/daeunAge'
+import { resolveBirthInstant } from '@/lib/datetime/resolveBirthInstant'
 import { collectAstroFacts } from '@/lib/destiny/astroFacts'
 import { getShinsalHits, getTwelveStagesForPillars, toSajuPillarsLike } from '@/lib/saju/shinsal'
 import { formatAstroSelf } from '@/lib/destiny/astroSelfFormatter'
 import { slimAstroSelf } from '@/lib/destiny/astroSlim'
 import { getIljinCalendar } from '@/lib/saju/unse'
 import { parseHourMinute } from '@/lib/saju/timeParse'
-import { TIME_UNKNOWN_ANCHOR } from '@/lib/saju/birthTimeAnchor'
+import { astroAnchorTime } from '@/lib/saju/birthTimeAnchor'
 import { isHyeong } from '@/lib/saju/hyeong'
 import { logger } from '@/lib/logger'
 import type { DayMaster, FiveElement, YinYang } from '@/lib/saju/types'
@@ -26,6 +28,10 @@ import { PLANET_KO as PLANET_KO_BASE } from '@/lib/calendar-engine/data/planetNa
 import { koStructuralLabels } from '@/lib/llm/koStructuralLabels'
 import { SIGN_KO } from '@/lib/astrology/signLabels'
 import type { DestinySources } from '@/lib/destiny/counselorRequest'
+import { defaultLatitudeFor, defaultLongitudeFor } from '@/lib/saju/timezone'
+import { resolveBirthTimezone } from '@/lib/datetime/resolveTimezone'
+import { GEOKGUK_NAME_EN } from '@/lib/saju/geokgukNameEn'
+import { shinsalNameEn } from '@/lib/calendar-engine/derivers/signalI18n'
 
 const ALL_SOURCES: DestinySources = { saju: true, astro: true }
 
@@ -87,15 +93,11 @@ const SIBSIN_EN: Record<string, string> = {
 }
 // 오행 KO→EN — 공용 SSOT(constants.ELEMENT_KO_TO_EN)에서 파생(복붙 금지).
 const ELEM_EN = ELEMENT_KO_TO_EN
+// facts.strength 는 3분류(신강·중화·신약) — sajuFacts 가 5단계 SSOT 에서 접는다.
 const STRENGTH_EN: Record<string, string> = {
   신강: 'strong',
+  중화: 'balanced',
   신약: 'weak',
-  극강: 'very strong',
-  강: 'strong',
-  중강: 'mod. strong',
-  중약: 'mod. weak',
-  약: 'weak',
-  극약: 'very weak',
 }
 const YTYPE_EN: Record<string, string> = {
   조후용신: 'Climatic',
@@ -129,36 +131,85 @@ const STAGE_EN: Record<string, string> = {
   태: 'conception',
   양: 'nurture',
 }
-// 격국(格局) 영어 라벨 — EN 로케일에서 한글이 새지 않게. 정격 8종은
-// SIBSIN_EN strip(식신격→Eating God)으로 충분하지만, 종격/비격/화기격/특수격
-// (GeokgukType 의 나머지 19종 + 미정)은 십성이 아니라 strip 으로 못 잡아
-// 한글 그대로 샜다(예: "양인격" → "양인 structure"). 특수격만 명시 매핑.
-// 라벨은 lifetimeFlow.GEOKGUK_EN 의 표기와 일치시킨다.
-const GEOKGUK_SPECIAL_EN: Record<string, string> = {
-  종왕격: 'Following-prosperity (Jongwang)',
-  종강격: 'Following-strength (Jonggang)',
-  종아격: 'Following-output (Jong-a)',
-  종재격: 'Following-wealth (Jongjae)',
-  종살격: 'Following-officer (Jongsal)',
-  건록격: 'Established-rank (Geollok)',
-  양인격: 'Yang-blade (Yangin)',
-  월겁격: 'Month-rob (Wolgeop)',
-  잡기격: 'Mixed (Japgi)',
-  갑기화토격: 'Gap-gi Earth-transformation',
-  을경화금격: 'Eul-gyeong Metal-transformation',
-  병신화수격: 'Byeong-sin Water-transformation',
-  정임화목격: 'Jeong-im Wood-transformation',
-  무계화화격: 'Mu-gye Fire-transformation',
-  곡직격: 'Curving-straight (Gokjik)',
-  염상격: 'Blazing-up (Yeomsang)',
-  가색격: 'Sowing-reaping (Gasaek)',
-  종혁격: 'Following-reform (Jonghyeok)',
-  윤하격: 'Flowing-down (Yunha)',
-  미정: 'undetermined',
-}
+// 격국(格局) 영어 라벨 — 캘린더 화면과 같은 단일 표(saju/geokgukNameEn, 27종 + 미정).
+// 예전 이 파일엔 특수격 전용 영어 표가 따로 있어 건록격이 화면('Geonrok (Officer stipend)')과
+// 다른 이름으로 LLM 에 갔다(G13).
 
 const WEEKDAY_KO = ['일', '월', '화', '수', '목', '금', '토']
 const WEEKDAY_EN = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+
+/**
+ * 상담사 컨텍스트 신살 화이트리스트(KO 라벨) — 키는 엔진이 실제로 내는 신살 이름
+ * (shinsal.ts ShinsalHit['kind']) 그대로여야 한다. 예전 '문창귀인'·'과숙' 키는 엔진이
+ * 내지 않는 이름이라 문창이 상담사에서만 조용히 빠졌다(SDR-06). 테스트가 키 ⊆ 엔진 이름을 잠근다.
+ */
+export const COUNSELOR_SHINSAL_LABEL: Readonly<Record<string, string>> = {
+  도화: '매력·이성',
+  홍염살: '색기·끌림',
+  백호: '격정·강렬',
+  괴강: '카리스마·강고',
+  양인: '날카로움·과격',
+  귀문관: '집착·예민',
+  원진: '미묘한 반감',
+  고신: '고독 기질',
+  금여성: '배우자 복·기품',
+  천덕귀인: '보호·덕',
+  월덕귀인: '보호·덕',
+  천을귀인: '귀인 보호',
+  태극귀인: '숨은 길성',
+  암록: '숨은 부조',
+  문창: '학문·창작',
+  학당귀인: '학문',
+  문곡: '글재능',
+  천주귀인: '의식주 안정',
+  건록: '자기 기반',
+  제왕: '정점·고집',
+  화개: '예술·종교·고독',
+  역마: '이동·변동',
+  장성: '권력·리더',
+  지살: '이동',
+  망신: '관재·구설',
+  천라지망: '걸림·답답',
+  // 공망은 [합충] 에 이미 출력 → 여기선 skip
+}
+// EN locale: 한국어 신살명은 영어 사용자에게 의미가 없으니 이름은 칩·캘린더·Life 와 같은
+// 정본 EN 이름(SHINSAL_NAME_EN — G14, 예전엔 'Dohwa'·'Munchang' 같은 음역을 따로 썼다),
+// 라벨은 영어 뜻으로 — 한국어가 영어 응답에 새지 않게.
+const COUNSELOR_SHINSAL_MEAN_EN: Readonly<Record<string, string>> = {
+  도화: 'charm, allure',
+  홍염살: 'sensual magnetism',
+  백호: 'intense, fierce',
+  괴강: 'charisma, force',
+  양인: 'sharp, aggressive',
+  귀문관: 'obsessive, sensitive',
+  원진: 'subtle aversion',
+  고신: 'solitary streak',
+  금여성: 'spouse fortune, grace',
+  천덕귀인: 'protection, virtue',
+  월덕귀인: 'protection, virtue',
+  천을귀인: 'noble protection',
+  태극귀인: 'hidden fortune',
+  암록: 'hidden support',
+  문창: 'study, creativity',
+  학당귀인: 'scholarship',
+  문곡: 'writing talent',
+  천주귀인: 'material stability',
+  건록: 'self-foundation',
+  제왕: 'peak, stubborn',
+  화개: 'art, spirituality, solitude',
+  역마: 'movement, change',
+  장성: 'authority, leadership',
+  지살: 'relocation',
+  망신: 'legal/gossip trouble',
+  천라지망: 'entanglement, stuck',
+}
+export const COUNSELOR_SHINSAL_EN: Readonly<Record<string, { name: string; mean: string }>> =
+  Object.fromEntries(
+    Object.entries(COUNSELOR_SHINSAL_MEAN_EN).map(([kind, mean]) => [
+      kind,
+      { name: shinsalNameEn(kind) ?? kind, mean },
+    ])
+  )
 
 /**
  * 오늘(로컬 날짜) 포함 N일치 일진 간지. queryDate 의 서버(UTC) 날짜가 아니라
@@ -290,7 +341,7 @@ const ASP_EN: Record<string, string> = {
   opposition: '[opposition]',
 }
 // 형(刑) 판정은 @/lib/saju/hyeong 의 isHyeong 단일 소스를 쓴다 — 본명 합충
-// 블록(아래 shown 필터)과 타이밍 교차 블록이 같은 보정 교리를 공유한다.
+// 블록(엔진 relations 가 isHyeong 으로 판정)과 타이밍 교차 블록이 같은 교리를 공유한다.
 // (이전엔 이 파일에 HYEONG_PAIR_TRIO/SELF_HYEONG/hyeongPair 가 복붙돼 있어
 //  compat sajuSynastryFormatter 의 동일 복사본과 드리프트할 위험이 있었음.)
 // 천간합 → 化 element (hangul) + fiveElements key
@@ -333,14 +384,34 @@ export interface DestinyBirth {
   birthCityUnknown?: boolean
 }
 
-export interface CurrentPeriod {
-  seun?: { stem: string; branch: string } | null
-  wolun?: { stem: string; branch: string } | null
-  iljin?: { stem: string; branch: string } | null
-  relations?: Array<{
-    source: string
-    relation: { kind: string; detail?: string; pillars?: string[] }
-  }>
+/**
+ * 상담사 본명 계산의 출생 타임존 — 사주·점성 섹션이 같은 resolver 를 거쳐 같은 존을 쓴다.
+ * 출생지 미상이면 좌표는 출생지가 아니라 폴백이라 tz 조회에 쓰지 않는다.
+ */
+function birthTimezoneOf(birth: DestinyBirth): string {
+  return resolveBirthTimezone(
+    {
+      timezone: birth.timezone,
+      latitude: birth.birthCityUnknown ? undefined : birth.latitude,
+      longitude: birth.birthCityUnknown ? undefined : birth.longitude,
+    },
+    { context: 'counselorContext' }
+  )
+}
+
+/**
+ * 상담사 '오늘'의 기준 순간 — 그 현지 날짜의 정오를 출생 타임존 벽시계로 읽은 순간
+ * (재감사 G3 · TP-5 · CNS-1). 캘린더 셀이 트랜짓을 재는 순간(isoToJD(`${날짜}T12:00:00`,
+ * 출생 tz) — 같은 resolver)과 같고, 출생 tz 로 읽으면 그 날짜다. 그래서 대운(만 나이 —
+ * 출생 tz 민용 생일)·프로펙션·솔라 리턴 연도·트랜짓이 모두 캘린더의 그 날짜 셀과 같은 날을
+ * 본다. 예전엔 'UTC 정오'를 썼는데, UTC+12..+14 에선 그게 이미 다음 현지 날(오클랜드 00–01시,
+ * 키리티마티 02시)이라 대운이 생일 하루 전에 바뀌고 트랜짓은 내일 하늘이었다.
+ */
+export function counselorDayAnchor(day: CivilDay, timeZone: string): Date {
+  return resolveBirthInstant(
+    { year: day.year, month: day.month, day: day.day, hour: 12, minute: 0 },
+    timeZone
+  ).utc
 }
 
 function buildInstructions(
@@ -438,9 +509,12 @@ export interface DestinyContextSplit {
 
 export async function buildDestinyContext(
   birth: DestinyBirth,
-  now: Date,
+  // 보는 사람의 '오늘'(현지 민용 날짜)을 실은 Date — *UTC 필드(연·월·일)만* 읽고 시각은
+  // 버린다. ensureCounselorContext 가 보는 사람 tz 의 오늘로 Date.UTC(y, m-1, d, 12) 를
+  // 만들어 넘긴다. 순간이 필요한 계산(대운·프로펙션·트랜짓·리턴)은 아래 dayAnchor 를 쓴다.
+  todayCarrier: Date,
   locale: Locale = 'ko',
-  // displayTz 는 더 이상 사용 안 함 — "오늘"은 주입된 now 에서 직접 뽑는다(아래
+  // displayTz 는 더 이상 사용 안 함 — "오늘"은 todayCarrier 에서 직접 뽑는다(아래
   // localNow). 호출부 호환을 위해 시그니처에는 남겨 둔다.
   _displayTz?: string,
   // 이번 답변에 넣을 데이터 소스(사주만/점성만/둘 다). 선택 안 된 시스템은
@@ -448,27 +522,30 @@ export async function buildDestinyContext(
   sources: DestinySources = ALL_SOURCES
 ): Promise<DestinyContextSplit> {
   const L = (ko: string, en: string) => (locale === 'ko' ? ko : en)
-  // "오늘"은 주입된 now 에서 직접 뽑는다. now 는 ensureCounselorContext 가 사용자
-  // tz 기준 그날의 *UTC 정오*(Date.UTC(...,12,0,0)) 로 만든 Date 라, UTC 필드가
-  // 곧 사용자-tz 날짜다. 예전엔 서버-로컬 필드(getFullYear/Month/Date)를 읽어,
-  // UTC+13/+14 호스트(예: Pacific/Auckland DST)에선 UTC 정오가 로컬 다음날
-  // 01~02시가 돼 "# 오늘" 앵커·일진 창·사주 연도 라벨이 하루 밀렸다. 서버-tz
-  // 의존을 없애려 getUTC* 로 읽는다(buildIljinWindowBlock 이 이미 getUTC* 사용).
-  const localNow = {
-    year: now.getUTCFullYear(),
-    month: now.getUTCMonth() + 1,
-    day: now.getUTCDate(),
+  // "오늘" = todayCarrier 의 UTC 필드(보는 사람 tz 의 민용 날짜 — TP-6 판정대로 보는 사람
+  // 기준을 유지). 서버-로컬 필드(getFullYear…)는 서버 TZ 에 따라 하루 밀리므로 getUTC* 로.
+  const localNow: CivilDay = {
+    year: todayCarrier.getUTCFullYear(),
+    month: todayCarrier.getUTCMonth() + 1,
+    day: todayCarrier.getUTCDate(),
   }
   const year = localNow.year
+  // 출생 타임존 resolver(명시 tz → 출생 좌표의 tz → 사주 기준 존) — 캘린더 셀과 같은 존
+  // (loadTierData 도 같은 resolver). 예전엔 tz 가 없으면 좌표가 뉴욕이어도 서울 존이었다.
+  const tz = birthTimezoneOf(birth)
+  // 그 날짜의 기준 순간 = 출생 tz 의 그날 정오(캘린더 셀의 트랜짓 표본 순간과 같다).
+  // 대운·만 나이·프로펙션·트랜짓·리턴이 모두 이 순간 하나를 읽는다 — 예전의 'UTC 정오'는
+  // UTC+12..+14 에서 이미 다음 현지 날이었다(재감사 TP-5 · CNS-1).
+  const dayAnchor = counselorDayAnchor(localNow, tz)
   // 사주 미선택이면 아예 빌드하지 않는다(원국·타이밍·일진 전부 스킵).
-  const saju = sources.saju ? buildSajuSection(birth, locale, year, localNow, now) : null
+  const saju = sources.saju ? buildSajuSection(birth, locale, localNow, dayAnchor, tz) : null
 
   // birth identity header 는 [Meta] 와 중복이라 제거 (route.ts 에서 [Meta]
   // 가 birthDate/birthTime/gender/location/tz/flags 단일 source 로 출력).
-  // tz 는 점성 계산용으로만 사용.
-  const lat = birth.latitude ?? 37.5665
-  const lon = birth.longitude ?? 126.978
-  const tz = birth.timezone ?? 'Asia/Seoul'
+  // 좌표 미상 → 출생 타임존 기준점(Asia/Seoul = 서울 기본값, OD-2). 사주 쪽은 경도
+  // 미상을 같은 존 기준 경도로 풀어(solarTimeCorrectionMinutes) 두 계산이 같은 위치다.
+  const lat = birth.latitude ?? defaultLatitudeFor(tz)
+  const lon = birth.longitude ?? defaultLongitudeFor(tz)
   const pad = (n: number) => String(n).padStart(2, '0')
   const today = `${localNow.year}-${pad(localNow.month)}-${pad(localNow.day)}`
 
@@ -484,9 +561,10 @@ export async function buildDestinyContext(
       // 본명 차트(collectAstroFacts)와 동일한 SSOT 파서 사용 — split(':') 로
       // 직접 파싱하면 '01:45 PM' 이 13:45 가 아닌 01:45 로 떨어져, 본명은 PM
       // 보정되는데 SR/LR/2차진행(natalInput 소비)만 12시간 어긋났다.
-      // 빈 값 폴백은 정오(시간 미상 앵커 SSOT) — 정상 경로는 캐시 레이어
-      // (counselorContextCache)가 이미 앵커를 넣어 준다.
-      const { h, m: mi } = parseHourMinute(birth.birthTime || TIME_UNKNOWN_ANCHOR)
+      // 시간 미상(birthTimeUnknown 또는 빈 값)은 정오 앵커(SSOT) — 남은 시각 문자열이 아니라
+      // 앵커로 SR·진행 입력을 만든다(본명 차트 collectAstroFacts 와 같은 규칙, G8). 정상 경로는
+      // 캐시 레이어(counselorContextCache)가 이미 앵커를 넣어 준다.
+      const { h, m: mi } = parseHourMinute(astroAnchorTime(birth.birthTime, birth.birthTimeUnknown))
       // ── 재료 준비실 ──
       // 옛 코드는 raw 호출(calculateNatalChart/findNatalAspects/dignityOf/
       // calculateProfection) + 어스펙트 분류 + 포매팅을 한 try 블록에서 다 했음.
@@ -503,7 +581,7 @@ export async function buildDestinyContext(
           birthTimeUnknown: birth.birthTimeUnknown,
           birthCityUnknown: birth.birthCityUnknown,
         },
-        now
+        dayAnchor
       )
       if (!aFacts) throw new Error('astro facts unavailable')
 
@@ -554,7 +632,8 @@ export async function buildDestinyContext(
         latitude: lat,
         longitude: lon,
         timeZone: tz,
-        now,
+        // 트랜짓·식·리턴·진행 = 그 날짜의 출생 tz 정오(캘린더 셀과 같은 하늘).
+        now: dayAnchor,
         natalInput: {
           year: Y,
           month: M,
@@ -575,14 +654,17 @@ export async function buildDestinyContext(
       })
       const cur = slimAstroSelf(block, { locale, year }).trim()
 
-      // Profection — facts.profection 에서 raw 값 받아 포매팅만.
+      // Profection — facts.profection 에서 raw 값 받아 포매팅만. whole-sign 이라 ASC 사인에서
+      // 세므로 placeUnreliable 이면 astroFacts 가 활성 하우스·연주를 null 로 비운다(OD-5) —
+      // 그때는 프로펙션 줄 자체를 내지 않는다(formatAstroSelf 의 skipAngles 와 같은 규칙).
       const prof = aFacts.profection
       let profLine = ''
-      if (prof) {
+      if (prof && prof.activatedHouse !== null) {
         const lp = prof.lordPlacement
         const lordRes = lp?.sign ? ` (${sgn(lp.sign)}${lp.house ? ` H${lp.house}` : ''})` : ''
-        const lordKo = placeUnreliable ? '' : `, Lord ${pkA(prof.lordOfYear, 'ko')}${lordRes}`
-        const lordEn = placeUnreliable ? '' : `, Lord ${prof.lordOfYear}${lordRes}`
+        const lord = placeUnreliable ? null : prof.lordOfYear
+        const lordKo = lord ? `, Lord ${pkA(lord, 'ko')}${lordRes}` : ''
+        const lordEn = lord ? `, Lord ${lord}${lordRes}` : ''
         profLine = L(
           `프로펙션 (만 ${prof.age}세 기준): H${prof.activatedHouse} 활성 (${HOUSE_THEME_KO[prof.activatedHouse]})${lordKo}`,
           `Profection (age ${prof.age} basis): H${prof.activatedHouse} active (${HOUSE_THEME_EN[prof.activatedHouse]})${lordEn}`
@@ -643,43 +725,46 @@ export async function buildDestinyContext(
 
 function buildSajuSection(
   birth: DestinyBirth,
-  locale: Locale = 'ko',
-  year?: number,
-  localNow?: { year: number; month: number; day: number },
-  // 주입된 "지금" — 대운/세운/월운·만나이 계산의 기준. collectSajuFacts →
-  // calculateSajuData 로 끝까지 전달돼야 원국을 제외한 시간 의존 값이 now 와
-  // 일치하고 테스트로 고정 가능하다. 없으면 호출 시점(new Date()).
-  now: Date = new Date()
+  locale: Locale,
+  // 보는 사람의 '오늘'(현지 민용 날짜) — 세운·월운·일진·일진 창의 날짜.
+  localNow: CivilDay,
+  // 그 날짜의 기준 순간(counselorDayAnchor — 출생 tz 정오). collectSajuFacts →
+  // calculateSajuData 로 끝까지 전달돼 대운(만 나이)이 그 날짜로 정해진다.
+  dayAnchor: Date,
+  // 출생 타임존(birthTimezoneOf) — 캘린더 셀과 같은 존.
+  tz: string
 ): { natal: string; timing: string; iljinWindow: string; dayMasterName: string } {
-  const tz = birth.timezone ?? 'Asia/Seoul'
   // ── 재료 준비실 ──
   // 옛 코드는 raw 호출(calculateSajuData/Strength/Geokguk/Yongsin/Relations) +
   // 텍스트 포매팅을 한 함수에서 다 했음. 2026-06-06 분리:
   //   - collectSajuFacts → 순수 데이터 객체 (다른 서비스도 같이 받아씀)
   //   - 아래 코드는 그 facts 를 텍스트로 포매팅하는 부분만 담당
   // daeWoon / shinsal 은 아직 facts 에 없어 raw saju 한 번 더 가져옴 (LRU cache hit).
+  // 출생시각 미상 → 삼주 분석(CONVENTIONS §5, OD-5): facts.pillars.time 은 null 이고
+  // 강약·용신·격국·관계·신살은 세 기둥 기준. 정오 앵커는 년·월·일주 고정용.
   const facts = collectSajuFacts({
     birthDate: birth.birthDate,
     birthTime: birth.birthTime,
+    birthTimeUnknown: birth.birthTimeUnknown,
     gender: birth.gender,
     timezone: tz,
+    // 미상이면 엔진이 존 기준 경도(defaultLongitudeFor 와 같은 값)를 쓴다 — 점성 쪽과 일치.
     longitude: birth.longitude,
-    now,
+    now: dayAnchor,
   })
-  // 현재 운(세운/월운/일진 + 본명 대비 충/합) — fusion 우회 없이 facts._raw 에서
-  // 직접 계산. _raw 는 longitude 진경도 보정이 적용된 결과라, 현재 운도 본명과
-  // 같은 평균태양시 기준이 된다. (예전엔 route 가 fusion saju adapter 로 만들어
-  // 주입했고, 그건 longitude 를 안 넘겨 KST LMT 로 떨어지던 불일치가 있었다.)
-  // 세운/월운/일진의 절기 경계 판정 인스턴트는 서버 TZ 와 무관해야 한다 — 예전엔
-  // 서버-로컬 정오(new Date(y,m,d,12))라, UTC 서버와 KST 서버가 절입 경계 근처에서
-  // 다른 간지를 냈다(ENGINE-AUDIT). 유저-tz 날짜의 UTC 정오로 고정(절기 비교는
-  // getTime, 일진은 getUTC* 로 통일 — currentUnse).
-  const current: CurrentUnse | null = localNow
-    ? computeCurrentUnse(
-        facts._raw,
-        new Date(Date.UTC(localNow.year, localNow.month - 1, localNow.day, 12, 0, 0))
-      )
-    : null
+  // 판정·표시에 쓰는 기둥 — 시간 미상이면 시주 없이 년·월·일.
+  const pillarKeys = facts.pillars.time
+    ? (['year', 'month', 'day', 'time'] as const)
+    : (['year', 'month', 'day'] as const)
+  // 현재 운(세운/월운/일진 + 본명 대비 충/합) — fusion 우회 없이 직접 계산. 본명 기둥·일간은
+  // facts._raw(상담사 본명과 같은 결과)에서 읽는다. (예전엔 route 가 fusion saju adapter 로
+  // 만들어 주입했고, 그건 longitude 를 안 넘겨 본명과 다른 기준이던 불일치가 있었다.)
+  // 세운·월운은 캘린더 셀과 *같은 헬퍼·같은 존*으로 그 날짜에서 고른다(재감사 G3 · TP-4 ·
+  // TP-5): pillarsForLocalDate(오늘, 출생 tz) — 節/立春 이 든 그 현지 날이 새 기둥. 예전엔
+  // '그 날짜의 UTC 정오' 순간을 절입 순간과 비교해, 절입일 절반가량에서 캘린더와 월운·세운이
+  // 갈렸고 UTC+12..+14 에선 하루 일찍 바뀌었다.
+  const period = pillarsForLocalDate(localNow.year, localNow.month, localNow.day, tz)
+  const current: CurrentUnse = computeCurrentUnse(facts._raw, localNow, period)
   // 옛 코드는 calculateSajuData 를 sajuFacts 안에서 한 번 + 여기서 daeWoon/
   // pillars 위한 raw 한 번 = 두 번 호출했음 (LRU cache hit 으로 무료지만 코드
   // 스멜). Phase C(2026-06-06): facts.pillars/dayMaster/fiveElements/daeun
@@ -721,8 +806,12 @@ function buildSajuSection(
   // 처럼 같은 오행의 인접 천간을 헷갈려 "庚(신금)" 같은 오독을 낸다(실제 발생).
   // ko 만 붙인다(en 사용자는 한글 음 불필요).
   const stemKo = locale === 'en' ? '' : (STEM_HANJA_TO_HANGUL[dm.name] ?? '')
+  // ko 는 붙여 쓰는 게 자연스럽고(壬임(양수)), en 은 띄어 쓴다(壬 (yang Water)) — 예전엔
+  // en 도 붙여 'yangWater' 가 LLM 답에 그대로 새었다(재감사 SI-6).
   out.push(
-    `${L('일간', 'day_master')}: ${dm.name}${stemKo}(${yinyang}${dmElDisp}) ${strLab} ${rootLab}`
+    locale === 'en'
+      ? `day_master: ${dm.name} (${yinyang} ${dmElDisp}) ${strLab} ${rootLab}`
+      : `일간: ${dm.name}${stemKo}(${yinyang}${dmElDisp}) ${strLab} ${rootLab}`
   )
   const fe = facts.fiveElements
   out.push(
@@ -761,9 +850,9 @@ function buildSajuSection(
     )
   }
   if (geok) {
-    // 특수격(GEOKGUK_SPECIAL_EN) 우선, 없으면 정격(십성)으로 strip.
+    // 캘린더 화면과 같은 EN 이름(GEOKGUK_NAME_EN). 표 밖 이름(없어야 정상)은 십성 strip 폴백.
     const bare = geok.replace(/격$/, '')
-    const geokEn = `${GEOKGUK_SPECIAL_EN[geok] ?? SIBSIN_EN[bare] ?? bare} structure`
+    const geokEn = `${GEOKGUK_NAME_EN[geok] ?? SIBSIN_EN[bare] ?? bare} structure`
     out.push(`${L('격국', 'geokguk')}: ${locale === 'en' ? geokEn : geok}`)
   }
   if (gwansalHonjap)
@@ -779,18 +868,22 @@ function buildSajuSection(
   out.push(L('기둥:', 'pillars:'))
   const bareSib = (t?: string | null) =>
     !t || t === '-' ? (t ?? '-') : locale === 'en' ? (SIBSIN_EN[t] ?? t) : t
-  for (const k of ['year', 'month', 'day', 'time'] as const) {
+  for (const k of pillarKeys) {
     const p = facts.pillars[k]
+    if (!p) continue
     const ss = k === 'day' ? (locale === 'en' ? 'Self' : '일간') : bareSib(p.stemSibsin)
     out.push(`  ${plab[k]} ${p.stem}${p.branch} ${ss}/${bareSib(p.branchSibsin)}`)
   }
+  // 시간 미상 — 시주 칸을 비워 두고 명시한다(LLM 이 시주를 지어내지 않게).
+  if (!facts.pillars.time)
+    out.push(`  ${plab.time} ${L('미상 (삼주 분석)', 'unknown (three-pillar reading)')}`)
   out.push('')
 
   // 지장간 (stems only)
   out.push(L('지장간:', 'hidden_stems:'))
-  for (const k of ['year', 'month', 'day', 'time'] as const) {
+  for (const k of pillarKeys) {
     const p = facts.pillars[k]
-    if (p.jijanggan.length) out.push(`  ${p.branch}: ${p.jijanggan.join('·')}`)
+    if (p?.jijanggan.length) out.push(`  ${p.branch}: ${p.jijanggan.join('·')}`)
   }
   out.push('')
 
@@ -809,18 +902,9 @@ function buildSajuSection(
     const el = m ? (m[3] ?? '') : ''
     return { entities, word, el }
   }
-  const shown = rel.filter((r) => {
-    if (r.kind === '지지파') return false
-    // 엔진(relations.ts)은 삼형 세트의 임의 두 지지를 형으로 잡아 丑未/寅申
-    // (충 only)까지, 자형도 12지 전부를 형으로 표기한다. 타이밍 교차 블록과
-    // 동일한 보정 교리(isHyeong)로 본명 형도 걸러 두 블록이 일관되게 한다.
-    if (r.kind === '지지형') {
-      const bs = (r.detail || '').match(BRANCH_RE) ?? []
-      const [b0, b1] = bs
-      if (b0 != null && b1 != null && !isHyeong(b0, b1)) return false
-    }
-    return true
-  })
+  // 본명 형은 엔진(relations.ts)이 이미 isHyeong 단일 교리로 판정하므로 여기서
+  // 다시 거르지 않는다(SD-07). 타이밍 교차 블록도 같은 isHyeong 을 쓴다.
+  const shown = rel.filter((r) => r.kind !== '지지파')
   if (shown.length) {
     out.push(L('합충:', 'combos:'))
     const gong: string[] = [],
@@ -883,90 +967,30 @@ function buildSajuSection(
       yearPillar: factPillarToShinsalInput(facts.pillars.year),
       monthPillar: factPillarToShinsalInput(facts.pillars.month),
       dayPillar: factPillarToShinsalInput(facts.pillars.day),
-      timePillar: factPillarToShinsalInput(facts.pillars.time),
+      // 시간 미상이면 null — 신살·12운성을 삼주에서만 찾는다.
+      timePillar: facts.pillars.time ? factPillarToShinsalInput(facts.pillars.time) : null,
     })
     const allHits = getShinsalHits(pillarsLike, {
       includeGeneralShinsal: true,
       includeLuckyDetails: true,
     }) as Array<{ kind?: string; pillars?: string[] }>
-    const SHINSAL_LABEL: Record<string, string> = {
-      도화: '매력·이성',
-      홍염살: '색기·끌림',
-      백호: '격정·강렬',
-      괴강: '카리스마·강고',
-      양인: '날카로움·과격',
-      귀문관: '집착·예민',
-      원진: '미묘한 반감',
-      고신: '고독 기질',
-      과숙: '고독 기질(여)',
-      금여성: '배우자 복·기품',
-      천덕귀인: '보호·덕',
-      월덕귀인: '보호·덕',
-      천을귀인: '귀인 보호',
-      태극귀인: '숨은 길성',
-      암록: '숨은 부조',
-      문창귀인: '학문·창작',
-      학당귀인: '학문',
-      문곡: '글재능',
-      천주귀인: '의식주 안정',
-      건록: '자기 기반',
-      제왕: '정점·고집',
-      화개: '예술·종교·고독',
-      역마: '이동·변동',
-      장성: '권력·리더',
-      지살: '이동',
-      망신: '관재·구설',
-      천라지망: '걸림·답답',
-      // 공망은 [합충] 에 이미 출력 → 여기선 skip
-    }
-    // EN locale: 한국어 신살명은 영어 사용자에게 의미가 없으니 이름은 음역,
-    // 라벨은 영어 뜻으로 — 한국어가 영어 응답에 새지 않게.
-    const SHINSAL_EN: Record<string, { name: string; mean: string }> = {
-      도화: { name: 'Dohwa', mean: 'charm, allure' },
-      홍염살: { name: 'Hongyeom', mean: 'sensual magnetism' },
-      백호: { name: 'Baekho', mean: 'intense, fierce' },
-      괴강: { name: 'Goegang', mean: 'charisma, force' },
-      양인: { name: 'Yangin', mean: 'sharp, aggressive' },
-      귀문관: { name: 'Gwimun', mean: 'obsessive, sensitive' },
-      원진: { name: 'Wonjin', mean: 'subtle aversion' },
-      고신: { name: 'Gosin', mean: 'solitary streak' },
-      과숙: { name: 'Gwasuk', mean: 'solitary streak (female)' },
-      금여성: { name: 'Geumyeo', mean: 'spouse fortune, grace' },
-      천덕귀인: { name: 'Cheondeok', mean: 'protection, virtue' },
-      월덕귀인: { name: 'Woldeok', mean: 'protection, virtue' },
-      천을귀인: { name: 'Cheoneul', mean: 'noble protection' },
-      태극귀인: { name: 'Taegeuk', mean: 'hidden fortune' },
-      암록: { name: 'Amrok', mean: 'hidden support' },
-      문창귀인: { name: 'Munchang', mean: 'study, creativity' },
-      학당귀인: { name: 'Hakdang', mean: 'scholarship' },
-      문곡: { name: 'Mungok', mean: 'writing talent' },
-      천주귀인: { name: 'Cheonju', mean: 'material stability' },
-      건록: { name: 'Geollok', mean: 'self-foundation' },
-      제왕: { name: 'Jewang', mean: 'peak, stubborn' },
-      화개: { name: 'Hwagae', mean: 'art, spirituality, solitude' },
-      역마: { name: 'Yeokma', mean: 'movement, change' },
-      장성: { name: 'Jangseong', mean: 'authority, leadership' },
-      지살: { name: 'Jisal', mean: 'relocation' },
-      망신: { name: 'Mangsin', mean: 'legal/gossip trouble' },
-      천라지망: { name: 'Cheollajimang', mean: 'entanglement, stuck' },
-    }
     const POS_EN: Record<string, string> = { year: 'Y', month: 'M', day: 'D', time: 'H' }
     const isEn = locale === 'en'
     const SKIP = new Set(['공망', '삼재']) // 삼재 는 시기성 신살, 본명 컨텍스트 약함
     const hits: string[] = []
     for (const h of allHits) {
       const kind = h?.kind
-      if (!kind || SKIP.has(kind) || !(kind in SHINSAL_LABEL)) continue
+      if (!kind || SKIP.has(kind) || !(kind in COUNSELOR_SHINSAL_LABEL)) continue
       const loc = (h.pillars ?? [])
         .map((p) =>
           isEn ? (POS_EN[p] ?? p) : ({ year: '년', month: '월', day: '일', time: '시' }[p] ?? p)
         )
         .join('·')
       if (isEn) {
-        const en = SHINSAL_EN[kind]
+        const en = COUNSELOR_SHINSAL_EN[kind]
         hits.push(en ? `${en.name}(${loc}, ${en.mean})` : `${kind}(${loc})`)
       } else {
-        hits.push(`${kind}(${loc}, ${SHINSAL_LABEL[kind]})`)
+        hits.push(`${kind}(${loc}, ${COUNSELOR_SHINSAL_LABEL[kind]})`)
       }
     }
     if (hits.length) out.push(`${L('신살', 'sinsal')}: ${hits.join(' / ')}`)
@@ -981,18 +1005,23 @@ function buildSajuSection(
       yearPillar: factPillarToShinsalInput(facts.pillars.year),
       monthPillar: factPillarToShinsalInput(facts.pillars.month),
       dayPillar: factPillarToShinsalInput(facts.pillars.day),
-      timePillar: factPillarToShinsalInput(facts.pillars.time),
+      // 시간 미상이면 null — 신살·12운성을 삼주에서만 찾는다.
+      timePillar: facts.pillars.time ? factPillarToShinsalInput(facts.pillars.time) : null,
     })
     const stages = getTwelveStagesForPillars(pillarsLike, 'day')
     if (stages) {
       // EN 로케일에선 단계명도 영어로 — 이전엔 stages[k] (장생/목욕…) 와
       // 괄호 anchor '(일간 X 기준)' 가 한국어 그대로 영어 컨텍스트에 새었다.
+      // ko 는 '년쇠·월사' 처럼 붙여 쓰고, en 은 기둥 코드와 단계를 띄운다('Y decline · M death')
+      // — 예전엔 en 도 붙여 'Ydecline·Mdeath' 가 됐다(재감사 SI-6). 기둥 코드는 위 기둥 줄
+      // ('Y 丁丑')과 같은 Y/M/D/H.
       const stg = (s: string) => (locale === 'en' ? (STAGE_EN[s] ?? s) : s)
-      const parts = (['year', 'month', 'day', 'time'] as const)
-        .map((k) => `${plab[k]}${stg(stages[k])}`)
-        .join('·')
+      const parts = pillarKeys
+        .filter((k) => !!stages[k])
+        .map((k) => `${plab[k]}${L('', ' ')}${stg(stages[k] as string)}`)
+        .join(L('·', ' · '))
       out.push(
-        `${L('12운성', '12-stages')}${L(`(일간 ${day} 기준)`, `(rel. to day master ${day})`)}: ${parts}`
+        L(`12운성(일간 ${day} 기준): ${parts}`, `12 stages (rel. to day master ${day}): ${parts}`)
       )
     }
   } catch {
@@ -1005,8 +1034,9 @@ function buildSajuSection(
   // 기둥 라인에서도 "일 辛未 일간/편인" 처럼 일간 라벨이 비견 아님.
   try {
     const tally: Record<string, number> = {}
-    for (const k of ['year', 'month', 'day', 'time'] as const) {
+    for (const k of pillarKeys) {
       const p = facts.pillars[k]
+      if (!p) continue
       if (k !== 'day') {
         const s = sibsinOf(day, p.stem)
         if (s && s !== '-') tally[s] = (tally[s] ?? 0) + 1
@@ -1038,24 +1068,39 @@ function buildSajuSection(
   // 나이 표기는 시작~끝 범위로. 단순 `32甲戌` 이면 LLM 이 "현재 32세 갑술
   // 대운 중" 으로 오인용 (compat 의 동일 버그와 같은 클래스). 10년 cycle
   // 임을 데이터 자체로 명시.
+  // 마지막(지금 흐르는) 대운도 끝을 닫는다 — 대운 칸은 [시작, 시작+10) 이라(daeunAge SSOT,
+  // DAEUN_SPAN_YEARS) 다음 칸이 목록에 없어도 끝 나이가 정해져 있다. 예전엔 '101~ 庚寅' 처럼
+  // 열어 둬, LLM 이 그 대운이 끝없이 이어진다고 읽을 수 있었다(G12).
   const ys = locale === 'en' ? '' : '세' // age suffix — EN 은 만나이 숫자만(한국어 '세' 누수 방지)
   if (dlist.length) {
     const tl = dlist.map((d, i) => {
       const nextAge = dlist[i + 1]?.age
-      const ageLabel =
-        typeof d.age === 'number'
-          ? typeof nextAge === 'number'
-            ? `${d.age}~${nextAge - 1}${ys}`
-            : `${d.age}${ys}~`
-          : `?${ys}`
+      const endAge =
+        typeof nextAge === 'number'
+          ? nextAge - 1
+          : typeof d.age === 'number'
+            ? d.age + DAEUN_SPAN_YEARS - 1
+            : null
+      const ageLabel = typeof d.age === 'number' ? `${d.age}~${endAge}${ys}` : `?${ys}`
       const gz = `${ageLabel} ${d.heavenlyStem}${d.earthlyBranch}`
       return cur && d.age === cur.age
         ? `${gz}(${L('현재 ', 'now ')}${sib1(d.sibsin?.cheon)}/${sib1(d.sibsin?.ji)})`
         : gz
     })
     timing.push(`${L('대운', 'daeun')}: ${tl.join(' / ')}`)
+    // 첫 대운 전(OD-12) — 현재 대운이 없다는 걸 데이터로 못박는다. 안 적으면 LLM 이
+    // 목록 첫 대운을 '지금 대운'으로 읽는다(옛 엔진의 list[0] 폴백과 같은 오류).
+    const pre = facts.daeun.preDaeun
+    if (!cur && pre) {
+      timing.push(
+        locale === 'en'
+          ? `before the first daeun: it starts at age ${pre.startsAtAge}; until then the month pillar governs`
+          : `첫 대운 전: ${pre.startsAtAge}세부터 첫 대운 — 그 전까지는 월주가 시기를 맡음`
+      )
+    }
   } else if (cur) {
-    const endAge = typeof cur.age === 'number' ? `${cur.age}~${cur.age + 9}${ys}` : `?${ys}`
+    const endAge =
+      typeof cur.age === 'number' ? `${cur.age}~${cur.age + DAEUN_SPAN_YEARS - 1}${ys}` : `?${ys}`
     timing.push(
       `${L('대운', 'daeun')} ${endAge}: ${cur.heavenlyStem}${cur.earthlyBranch} ${sib1(cur.sibsin?.cheon)}/${sib1(cur.sibsin?.ji)}`
     )
@@ -1072,11 +1117,11 @@ function buildSajuSection(
       ' '
     )
   }
-  // 세운 라벨의 연도는 절기 기준 사주연(getSajuYearForDate)이라야 간지와 맞는다.
-  // current.seun 간지는 입춘 경계로 산출되는데(currentUnse), 라벨만 Gregorian
-  // year 를 쓰면 1/1~입춘 구간에서 "2026 乙巳(=2025 간지)" 처럼 어긋났다.
+  // 세운 라벨의 연도는 그 세운의 사주년(입춘 기준 — period.year.sajuYear)이라야 간지와
+  // 맞는다. 라벨만 Gregorian year 를 쓰면 1/1~입춘 구간에서 "2026 乙巳(=2025 간지)" 처럼
+  // 어긋났다.
   if (current?.seun)
-    timing.push(periodLine(L('세운', 'Annual'), current.seun, getSajuYearForDate(now)))
+    timing.push(periodLine(L('세운', 'Annual'), current.seun, period.year.sajuYear))
   if (current?.wolun) timing.push(periodLine(L('월운', 'Monthly'), current.wolun))
   // 일진 standalone 라인은 `## 일진 8일` 블록 첫 줄(`05-28(오늘) X (X/X)`)
   // 과 동일 정보라 잉여. 교차 lines (`일진X ↔ ...`) 는 인라인으로 branch 를
@@ -1088,8 +1133,9 @@ function buildSajuSection(
       ['년', facts.pillars.year.branch],
       ['월', facts.pillars.month.branch],
       ['일', facts.pillars.day.branch],
-      ['시', facts.pillars.time.branch],
     ]
+    // 시간 미상이면 시지와의 형 교차를 만들지 않는다.
+    if (facts.pillars.time) natalBr.push(['시', facts.pillars.time.branch])
     const sp = locale === 'en' ? ' ' : ''
     const arrow = (s: string) =>
       locale === 'en'
@@ -1173,9 +1219,11 @@ function buildSajuSection(
     }
   }
 
-  const iljinWindow = localNow
-    ? buildIljinWindowBlock(facts.dayMaster as unknown as DayMaster, localNow, 7, locale)
-    : ''
+  // 일진 십신은 일간의 음양이 있어야 한다 — facts.dayMaster 는 {name, element, yinYang}
+  // 이라 getSibseong 이 읽는 yin_yang 이 없어 같은 음양 십신(비견·식신·편재·편관·편인)을
+  // 늘 반대쪽으로 냈다(TP-1). 천간 SSOT(STEMS)에서 일간 객체를 그대로 가져온다.
+  const dayMasterStem = STEMS.find((st) => st.name === facts.dayMaster.name)
+  const iljinWindow = dayMasterStem ? buildIljinWindowBlock(dayMasterStem, localNow, 7, locale) : ''
 
   return {
     natal:

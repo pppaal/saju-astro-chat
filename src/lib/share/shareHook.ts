@@ -1,7 +1,7 @@
 // src/lib/share/shareHook.ts
 //
 // "도발적" 한 줄(후크) 생성기 — 점수/톤/흐름 같은 엔진 신호에서만 뽑는다(없는
-// 사실을 지어내지 않음). 공유 카드 + 인앱 히어로(DayTier·MonthTier 최상단)에서
+// 사실을 지어내지 않음). 공유 카드 + 인앱 히어로(dayHero · monthViewModel 의 후크)에서
 // 같은 값을 쓴다 — 카드와 화면 문구가 항상 일치. 인앱의 차분한 결론(oneLine·
 // 총평)은 별도 레이어로 유지(펀치 후크 + 따뜻한 설명 대비).
 //
@@ -9,7 +9,7 @@
 // 변형을 골라 같은 사람·같은 날 → 같은 후크. Co-Star 식 직설을 노리되 운명을
 // 단정하지 않는 톤(권유/관찰)으로만 쓴다.
 
-export type ShareTone = 'positive' | 'mixed' | 'caution'
+type ShareTone = 'positive' | 'mixed' | 'caution'
 
 export interface DayHookInput {
   tone: ShareTone
@@ -23,6 +23,12 @@ export interface DayHookInput {
    * 공유카드 동작). 여전히 결정적(같은 사람·같은 날 → 같은 후크).
    */
   daySalt?: number
+  /**
+   * 오늘이 아닌 날(달력에서 지난 날·다가올 날을 연 일간 화면, 그날 공유)이면 false — 날짜 중립 풀
+   * (DAY_POOL_DATED)에서 고른다. 오늘 풀은 '오늘'·'내일' 같은 상대 날짜 말로 쓰여 11.24 옆에
+   * '오늘'이 찍히는 모순이 난다(QA COPY-1). 기본 true(기존 동작).
+   */
+  isToday?: boolean
   ko: boolean
 }
 
@@ -49,7 +55,7 @@ const DAY_POOL: Record<'high' | 'good' | 'mixed' | 'caution', HookVariant[]> = {
         subline: '미뤄둔 거, 오늘 꺼내면 통해.',
       },
       en: {
-        headline: "Today, whoever moves first wins. That's you.",
+        headline: 'Today, whoever moves first wins. That’s you.',
         subline: 'Bring up the thing you shelved — it lands.',
       },
     },
@@ -59,8 +65,8 @@ const DAY_POOL: Record<'high' | 'good' | 'mixed' | 'caution', HookVariant[]> = {
         subline: '받쳐주는 기운 제대로 왔어.',
       },
       en: {
-        headline: "Going for it? Go today. Tomorrow you'll say 'later' again.",
-        subline: "The wind's actually at your back.",
+        headline: 'Going for it? Go today. Tomorrow you’ll say ‘later’ again.',
+        subline: 'The wind’s actually at your back.',
       },
     },
     {
@@ -69,7 +75,7 @@ const DAY_POOL: Record<'high' | 'good' | 'mixed' | 'caution', HookVariant[]> = {
         subline: '흐름이 정점으로 꺾여 올라가는 중.',
       },
       en: {
-        headline: "Flinch today and you'll replay it for weeks.",
+        headline: 'Flinch today and you’ll replay it for weeks.',
         subline: 'The flow is climbing toward its peak.',
       },
     },
@@ -79,20 +85,20 @@ const DAY_POOL: Record<'high' | 'good' | 'mixed' | 'caution', HookVariant[]> = {
         subline: '먼저 연락하고 먼저 질러.',
       },
       en: {
-        headline: "The board tilted your way. Don't waste it.",
+        headline: 'The board tilted your way. Don’t waste it.',
         subline: 'Text first. Ask first.',
       },
     },
     {
       ko: { headline: "'나중에'가 오늘이야.", subline: '핑계 대던 그 일, 오늘 열려.' },
       en: {
-        headline: "'Later' is today.",
-        subline: "That thing you keep making excuses about? It's open today.",
+        headline: '‘Later’ is today.',
+        subline: 'That thing you keep making excuses about? It’s open today.',
       },
     },
     {
       ko: { headline: '오늘은 재보지 마. 그냥 질러.', subline: '밀면 밀리는 날.' },
-      en: { headline: "Don't measure it today. Just go.", subline: 'Push and it gives.' },
+      en: { headline: 'Don’t measure it today. Just go.', subline: 'Push and it gives.' },
     },
     {
       ko: { headline: '머뭇거리는 순간 남이 가져가.', subline: '오늘은 흐름이 네 편이야.' },
@@ -125,7 +131,7 @@ const DAY_POOL: Record<'high' | 'good' | 'mixed' | 'caution', HookVariant[]> = {
       },
       en: {
         headline: 'Some days reward holding back. Not this one.',
-        subline: "Say the thing you've been sitting on.",
+        subline: 'Say the thing you’ve been sitting on.',
       },
     },
     {
@@ -134,7 +140,7 @@ const DAY_POOL: Record<'high' | 'good' | 'mixed' | 'caution', HookVariant[]> = {
         subline: '작은 시도가 크게 돌아와.',
       },
       en: {
-        headline: "'Lucky you' — that's about you today.",
+        headline: '‘Lucky you’ — that’s about you today.',
         subline: 'Small tries come back big.',
       },
     },
@@ -143,7 +149,7 @@ const DAY_POOL: Record<'high' | 'good' | 'mixed' | 'caution', HookVariant[]> = {
     {
       ko: { headline: '오늘 먼저 말 꺼내도 안 튕겨.', subline: '받쳐주는 흐름이 같이 와.' },
       en: {
-        headline: "Say the thing first today. It won't get thrown back at you.",
+        headline: 'Say the thing first today. It won’t get thrown back at you.',
         subline: 'A supporting current comes with it.',
       },
     },
@@ -171,8 +177,8 @@ const DAY_POOL: Record<'high' | 'good' | 'mixed' | 'caution', HookVariant[]> = {
     {
       ko: { headline: "오늘은 '될까?'보다 '해볼까'가 맞아.", subline: '밀어주는 결이 와 있어.' },
       en: {
-        headline: "Today's a 'let's try' day, not a 'will it work' day.",
-        subline: "Momentum's on your side.",
+        headline: 'Today’s a ‘let’s try’ day, not a ‘will it work’ day.',
+        subline: 'Momentum’s on your side.',
       },
     },
     {
@@ -202,7 +208,7 @@ const DAY_POOL: Record<'high' | 'good' | 'mixed' | 'caution', HookVariant[]> = {
     {
       ko: { headline: '미뤄둔 연락 하나, 오늘 보내.', subline: '답이 순하게 돌아오는 쪽.' },
       en: {
-        headline: "Send the message you've been sitting on.",
+        headline: 'Send the message you’ve been sitting on.',
         subline: 'Replies come back soft today.',
       },
     },
@@ -228,7 +234,7 @@ const DAY_POOL: Record<'high' | 'good' | 'mixed' | 'caution', HookVariant[]> = {
     {
       ko: { headline: '다 하려다 아무것도 못 할 거잖아. 하나만.', subline: '되는 것만 붙잡아.' },
       en: {
-        headline: "You'll try to do it all and land nothing. Pick one.",
+        headline: 'You’ll try to do it all and land nothing. Pick one.',
         subline: 'Hold only what works.',
       },
     },
@@ -238,7 +244,7 @@ const DAY_POOL: Record<'high' | 'good' | 'mixed' | 'caution', HookVariant[]> = {
     },
     {
       ko: { headline: '기분 따라 움직이면 오늘 진다.', subline: '무게중심만 안 놓치면 돼.' },
-      en: { headline: 'Move on mood today and you lose.', subline: "Just don't drop your center." },
+      en: { headline: 'Move on mood today and you lose.', subline: 'Just don’t drop your center.' },
     },
     {
       ko: {
@@ -253,8 +259,8 @@ const DAY_POOL: Record<'high' | 'good' | 'mixed' | 'caution', HookVariant[]> = {
     {
       ko: { headline: '반은 맞고 반은 틀린 날. 욕심만 빼면 돼.', subline: '한쪽으로 쏠리지 마.' },
       en: {
-        headline: "Half right, half wrong. Don't get greedy and you're fine.",
-        subline: "Don't lean all one way.",
+        headline: 'Half right, half wrong. Don’t get greedy and you’re fine.',
+        subline: 'Don’t lean all one way.',
       },
     },
     {
@@ -263,7 +269,7 @@ const DAY_POOL: Record<'high' | 'good' | 'mixed' | 'caution', HookVariant[]> = {
         subline: '출렁여도 방향만 지켜.',
       },
       en: {
-        headline: "Your mood will seesaw today. That's normal.",
+        headline: 'Your mood will seesaw today. That’s normal.',
         subline: 'Sway, but hold your heading.',
       },
     },
@@ -279,12 +285,12 @@ const DAY_POOL: Record<'high' | 'good' | 'mixed' | 'caution', HookVariant[]> = {
     },
     {
       ko: {
-        headline: '이길 판만 골라 앉아. 오늘은 그게 실력이야.',
-        subline: '안 되는 판은 구경만 해.',
+        headline: '오늘은 끝낼 수 있는 것만 골라 잡아. 그게 실력이야.',
+        subline: '나머지는 내일 목록으로.',
       },
       en: {
-        headline: 'Only sit at tables you can win today.',
-        subline: 'Spectate the rest.',
+        headline: 'Only take on what you can finish today. That’s the skill.',
+        subline: 'The rest goes on tomorrow’s list.',
       },
     },
     {
@@ -302,7 +308,7 @@ const DAY_POOL: Record<'high' | 'good' | 'mixed' | 'caution', HookVariant[]> = {
         subline: '살짝 거스르는 기운 깔렸어.',
       },
       en: {
-        headline: "You'll want to burn it all down today. Don't.",
+        headline: 'You’ll want to burn it all down today. Don’t.',
         subline: 'A rough current runs underneath.',
       },
     },
@@ -312,7 +318,7 @@ const DAY_POOL: Record<'high' | 'good' | 'mixed' | 'caution', HookVariant[]> = {
         subline: '부딪히기 쉬운 날, 말 아껴.',
       },
       en: {
-        headline: "You'll text first and regret it. Not today.",
+        headline: 'You’ll text first and regret it. Not today.',
         subline: 'Friction comes easy — spend words carefully.',
       },
     },
@@ -329,7 +335,7 @@ const DAY_POOL: Record<'high' | 'good' | 'mixed' | 'caution', HookVariant[]> = {
     {
       ko: { headline: '오늘 예민한 거, 기분 탓 아냐.', subline: '몸도 마음도 좀 사려.' },
       en: {
-        headline: "That edge you feel today isn't in your head.",
+        headline: 'That edge you feel today isn’t in your head.',
         subline: 'Spare your body and your mood.',
       },
     },
@@ -349,7 +355,7 @@ const DAY_POOL: Record<'high' | 'good' | 'mixed' | 'caution', HookVariant[]> = {
         subline: '감정보다 한 박자 뒤에서 움직여.',
       },
       en: {
-        headline: "Snap today and you'll spend tomorrow cleaning it up. You know this.",
+        headline: 'Snap today and you’ll spend tomorrow cleaning it up. You know this.',
         subline: 'Move a beat behind the feeling.',
       },
     },
@@ -359,7 +365,7 @@ const DAY_POOL: Record<'high' | 'good' | 'mixed' | 'caution', HookVariant[]> = {
         subline: '지갑도 마음도 닫아두는 날.',
       },
       en: {
-        headline: "Don't buy the thing you don't need today.",
+        headline: 'Don’t buy the thing you don’t need today.',
         subline: 'Keep your wallet shut — the urge passes.',
       },
     },
@@ -369,14 +375,14 @@ const DAY_POOL: Record<'high' | 'good' | 'mixed' | 'caution', HookVariant[]> = {
         subline: '결론은 오늘 내리지 마.',
       },
       en: {
-        headline: "Everything will feel like being left on read today. Don't spiral.",
+        headline: 'Everything will feel like being left on read today. Don’t spiral.',
         subline: 'No conclusions today.',
       },
     },
     {
       ko: { headline: '오늘 보낸 장문은 내일의 이불킥이야.', subline: '짧게 말하고 길게 생각해.' },
       en: {
-        headline: "The long text you send today is tomorrow's cringe.",
+        headline: 'The long text you send today is tomorrow’s cringe.',
         subline: 'Speak short, think long.',
       },
     },
@@ -390,7 +396,186 @@ const DAY_POOL: Record<'high' | 'good' | 'mixed' | 'caution', HookVariant[]> = {
     {
       ko: { headline: '오늘은 이기려 들지 마. 져주는 게 이기는 날.', subline: '말싸움은 특히.' },
       en: {
-        headline: "Don't try to win today. Losing small is winning.",
+        headline: 'Don’t try to win today. Losing small is winning.',
+        subline: 'Arguments especially.',
+      },
+    },
+  ],
+}
+
+// 날짜 중립 풀 — 오늘이 아닌 날의 후크(QA COPY-1). 같은 목소리·같은 버킷, '오늘'·'내일'·'어제'
+// 같은 상대 날짜 말 없이('이날' · 'on this one'). 오늘 풀에서 원래 날짜 말이 없던 변형은 그대로
+// 옮기고, 나머지는 날짜 말만 바꿔 적었다.
+const DAY_POOL_DATED: Record<keyof typeof DAY_POOL, HookVariant[]> = {
+  high: [
+    {
+      ko: {
+        headline: '이날 겁먹고 넘기면 두고두고 생각날 거야.',
+        subline: '흐름이 정점으로 꺾여 올라가는 중.',
+      },
+      en: {
+        headline: 'Flinch on this one and you’ll replay it for weeks.',
+        subline: 'The flow is climbing toward its peak.',
+      },
+    },
+    {
+      ko: {
+        headline: '판이 너한테 기울었어. 안 쓰면 너만 손해.',
+        subline: '먼저 연락하고 먼저 질러.',
+      },
+      en: {
+        headline: 'The board tilted your way. Don’t waste it.',
+        subline: 'Text first. Ask first.',
+      },
+    },
+    {
+      ko: {
+        headline: '이날은 먼저 움직인 사람이 이겨. 그거 너야.',
+        subline: '미뤄둔 거, 이날 꺼내면 통해.',
+      },
+      en: {
+        headline: 'On this one, whoever moves first wins. That’s you.',
+        subline: 'Bring up the thing you shelved — it lands.',
+      },
+    },
+    {
+      ko: { headline: '머뭇거리는 순간 남이 가져가.', subline: '이날은 흐름이 네 편이야.' },
+      en: { headline: 'Hesitate and someone else takes it.', subline: 'This day is on your side.' },
+    },
+    {
+      ko: { headline: '이날 네가 던지면 상대가 받아.', subline: '제안·부탁·고백, 통하는 타이밍.' },
+      en: {
+        headline: 'Throw it on this one and they catch it.',
+        subline: 'Pitches, asks, confessions — the timing works.',
+      },
+    },
+    {
+      ko: {
+        headline: '참는 게 미덕인 날도 있는데, 이날은 아니야.',
+        subline: '하고 싶던 말, 이날 해.',
+      },
+      en: {
+        headline: 'Some days reward holding back. Not this one.',
+        subline: 'Say the thing you’ve been sitting on.',
+      },
+    },
+  ],
+  good: [
+    {
+      ko: { headline: '재보지 말고 하나만 질러봐. 열려.', subline: '작게 움직여도 풀리는 쪽.' },
+      en: {
+        headline: 'Stop weighing it. Commit to one thing — it opens.',
+        subline: 'Even a small move unlocks it.',
+      },
+    },
+    {
+      ko: { headline: '한 발만 더. 딱 거기서 열려.', subline: '생각보다 순하게 가.' },
+      en: {
+        headline: 'One more step. That’s where it opens.',
+        subline: 'Smoother than you expect.',
+      },
+    },
+    {
+      ko: { headline: '이날은 먼저 말 꺼내도 안 튕겨.', subline: '받쳐주는 흐름이 같이 와.' },
+      en: {
+        headline: 'Say the thing first on this one. It won’t get thrown back at you.',
+        subline: 'A supporting current comes with it.',
+      },
+    },
+    {
+      ko: { headline: '이날은 첫마디만 떼면 나머진 흘러가.', subline: '시작 문턱이 낮은 날.' },
+      en: {
+        headline: 'Get the first word out and the rest flows.',
+        subline: 'The threshold is low on this one.',
+      },
+    },
+    {
+      ko: { headline: '이날은 네 말에 무게가 실려.', subline: '회의든 부탁이든 먼저 말해.' },
+      en: {
+        headline: 'Your words carry weight on this one.',
+        subline: 'Meetings or favors — speak first.',
+      },
+    },
+  ],
+  mixed: [
+    {
+      ko: { headline: '다 하려다 아무것도 못 할 거잖아. 하나만.', subline: '되는 것만 붙잡아.' },
+      en: {
+        headline: 'You’ll try to do it all and land nothing. Pick one.',
+        subline: 'Hold only what works.',
+      },
+    },
+    {
+      ko: { headline: '서두르면 꼬여. 고르면 풀려.', subline: '딱 하나만, 천천히.' },
+      en: { headline: 'Rush and it tangles. Choose and it opens.', subline: 'One thing. Slowly.' },
+    },
+    {
+      ko: { headline: '반은 맞고 반은 틀린 날. 욕심만 빼면 돼.', subline: '한쪽으로 쏠리지 마.' },
+      en: {
+        headline: 'Half right, half wrong. Don’t get greedy and you’re fine.',
+        subline: 'Don’t lean all one way.',
+      },
+    },
+    {
+      ko: { headline: '다 애매하면 제일 작은 것부터 끝내.', subline: '하나 끝나면 결이 잡혀.' },
+      en: {
+        headline: 'If everything feels murky, finish the smallest thing.',
+        subline: 'One finished thing sets the grain.',
+      },
+    },
+    {
+      ko: {
+        headline: '잘 풀릴 땐 몰아서 하고, 막히면 바로 접어.',
+        subline: '이날은 흐름 타는 기술이 전부야.',
+      },
+      en: {
+        headline: 'When it flows, stack it. When it jams, fold fast.',
+        subline: 'This one is all about riding the current.',
+      },
+    },
+  ],
+  caution: [
+    {
+      ko: {
+        headline: '이날 너, 괜히 다 갈아엎고 싶어질 거야. 참아.',
+        subline: '살짝 거스르는 기운 깔렸어.',
+      },
+      en: {
+        headline: 'You’ll want to burn it all down on this one. Don’t.',
+        subline: 'A rough current runs underneath.',
+      },
+    },
+    {
+      ko: {
+        headline: '한 박자만 늦춰. 급하면 너만 손해 보는 날.',
+        subline: '말은 둥글게, 결정은 천천히.',
+      },
+      en: {
+        headline: 'Hold for one beat. Rushing only costs you here.',
+        subline: 'Keep words soft, decisions slow.',
+      },
+    },
+    {
+      ko: { headline: '이날 예민한 거, 기분 탓 아냐.', subline: '몸도 마음도 좀 사려.' },
+      en: {
+        headline: 'That edge you feel on this one isn’t in your head.',
+        subline: 'Spare your body and your mood.',
+      },
+    },
+    {
+      ko: {
+        headline: '안 사도 되는 거 이날 사려고 하지 마.',
+        subline: '지갑도 마음도 닫아두는 날.',
+      },
+      en: {
+        headline: 'Don’t buy the thing you don’t need on this one.',
+        subline: 'Keep your wallet shut — the urge passes.',
+      },
+    },
+    {
+      ko: { headline: '이날은 이기려 들지 마. 져주는 게 이기는 날.', subline: '말싸움은 특히.' },
+      en: {
+        headline: 'Don’t try to win on this one. Losing small is winning.',
         subline: 'Arguments especially.',
       },
     },
@@ -412,11 +597,12 @@ export function dayShareHook(input: DayHookInput): ShareHook {
         : input.score >= 72
           ? 'high'
           : 'good'
-  const v = pick(DAY_POOL[bucket], (input.seed ?? 0) + (input.daySalt ?? 0))
+  const pool = input.isToday === false ? DAY_POOL_DATED : DAY_POOL
+  const v = pick(pool[bucket], (input.seed ?? 0) + (input.daySalt ?? 0))
   return input.ko ? v.ko : v.en
 }
 
-export type MonthTone = 'bright' | 'careful' | 'mixed' | 'steady'
+type MonthTone = 'bright' | 'careful' | 'mixed' | 'steady'
 
 export interface MonthHookInput {
   tone: MonthTone
@@ -454,7 +640,7 @@ const MONTH_POOL: Record<MonthTone, HookVariant[]> = {
     {
       ko: { headline: '이번 달 안 풀리면 그게 이상한 거야.', subline: '바람이 네 쪽으로 불어.' },
       en: {
-        headline: "If this month doesn't open up, that'd be the weird part.",
+        headline: 'If this month doesn’t open up, that’d be the weird part.',
         subline: 'The wind blows your way.',
       },
     },
@@ -472,14 +658,14 @@ const MONTH_POOL: Record<MonthTone, HookVariant[]> = {
       },
       en: {
         headline: 'Your timing runs hot this month.',
-        subline: "That start you've been debating — do it this month.",
+        subline: 'That start you’ve been debating — do it this month.',
       },
     },
     {
       ko: { headline: '이번 달은 벌린 만큼 돌아와.', subline: '작게 말고 제대로 벌려.' },
       en: {
         headline: 'This month pays back what you put out.',
-        subline: "Don't go small.",
+        subline: 'Don’t go small.',
       },
     },
   ],
@@ -504,7 +690,7 @@ const MONTH_POOL: Record<MonthTone, HookVariant[]> = {
     {
       ko: { headline: '크게 지르고 싶겠지만 이번 달은 아냐.', subline: '마무리·점검에 힘 실어.' },
       en: {
-        headline: "You'll want to go big. Not this month.",
+        headline: 'You’ll want to go big. Not this month.',
         subline: 'Put your weight on finishing and checking.',
       },
     },
@@ -550,7 +736,7 @@ const MONTH_POOL: Record<MonthTone, HookVariant[]> = {
         subline: '좋은 날에 결정, 흐린 날엔 정비.',
       },
       en: {
-        headline: "Sharp ups and downs this month. It's a timing game.",
+        headline: 'Sharp ups and downs this month. It’s a timing game.',
         subline: 'Decide on good days, repair on murky ones.',
       },
     },
@@ -609,91 +795,4 @@ const MONTH_POOL: Record<MonthTone, HookVariant[]> = {
 export function monthShareHook(input: MonthHookInput): ShareHook {
   const v = pick(MONTH_POOL[input.tone], (input.seed ?? 0) + (input.monthSalt ?? 0))
   return input.ko ? v.ko : v.en
-}
-
-export type LifeSlope = 'rising' | 'falling' | 'plateau'
-
-export interface LifeHookInput {
-  slope: LifeSlope
-  /** 현재 만 나이. */
-  nowAge: number
-  /** 피크 나이(없으면 -1). */
-  peakAge?: number
-  /** 피크 연도(없으면 0). */
-  peakYear?: number
-  seed?: number
-  ko: boolean
-}
-
-const DECADE_KO: Record<number, string> = {
-  20: '스물',
-  30: '서른',
-  40: '마흔',
-  50: '쉰',
-  60: '예순',
-  70: '일흔',
-  80: '여든',
-}
-
-/** 인생 곡선 공유 후크 — 피크/추세에서만 뽑는다. */
-export function lifeShareHook(input: LifeHookInput): ShareHook {
-  const { ko } = input
-  const peakAge = input.peakAge ?? -1
-  const peakFuture = peakAge >= 0 && peakAge > input.nowAge + 2
-  if (peakFuture) {
-    const dec = Math.floor(peakAge / 10) * 10
-    const decKo = DECADE_KO[dec]
-    if (ko) {
-      const pool: ShareHook[] = [
-        {
-          headline: decKo
-            ? `${decKo}에, 판이 한 번 뒤집힌다.`
-            : `${peakAge}세, 판이 한 번 뒤집힌다.`,
-          subline: '흩어진 지금을 지나 흐름이 한곳으로 모여요.',
-        },
-        {
-          headline: decKo ? `진짜 판은 ${decKo}부터.` : `진짜 판은 ${peakAge}세부터.`,
-          subline: '지금은 그 정점으로 올라가는 길목.',
-        },
-      ]
-      return pick(pool, input.seed ?? 0)
-    }
-    const pool: ShareHook[] = [
-      {
-        headline: `Around ${peakAge}, the board flips once.`,
-        subline: 'Past today’s scatter, the flow gathers into one.',
-      },
-      {
-        headline: `The real game starts at ${peakAge}.`,
-        subline: 'Right now you’re on the climb toward it.',
-      },
-    ]
-    return pick(pool, input.seed ?? 0)
-  }
-  // 피크가 과거/지금 → 추세 기반.
-  if (input.slope === 'rising') {
-    return ko
-      ? {
-          headline: '지금, 흐름이 위로 꺾이는 자리.',
-          subline: '올라타기 딱 좋은 구간에 와 있어요.',
-        }
-      : {
-          headline: 'Right now the flow bends upward.',
-          subline: 'You’re at a good stretch to ride it.',
-        }
-  }
-  if (input.slope === 'falling') {
-    return ko
-      ? { headline: '지금은 거두고 정리할 때.', subline: '다음 마디를 위해 힘을 아끼는 구간.' }
-      : {
-          headline: 'Now is a time to gather and settle.',
-          subline: 'A stretch to save strength for the next turn.',
-        }
-  }
-  return ko
-    ? { headline: '흐름이 고르게 깔린 구간.', subline: '큰 굴곡 없이 다질 수 있는 시기.' }
-    : {
-        headline: 'A level stretch in the flow.',
-        subline: 'A time to consolidate without big swings.',
-      }
 }

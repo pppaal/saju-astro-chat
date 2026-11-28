@@ -19,8 +19,9 @@ import {
   ErrorCodes,
   type ApiContext,
 } from '@/lib/api/middleware'
-import { createShareLink, siteBaseUrl, type ReportShareLinkPayload } from '@/lib/tarot/shareLink'
-import { recordCounter } from '@/lib/metrics/index'
+import { createShareLink, type ReportShareLinkPayload } from '@/lib/share/shareLink'
+import { siteBaseUrl } from '@/lib/share/site'
+import { recordCounter } from '@/lib/metrics'
 import { bumpShareCreated } from '@/lib/metrics/shareCounts'
 import { logger } from '@/lib/logger'
 
@@ -33,6 +34,9 @@ const bodySchema = z.object({
   typeName: z.string().trim().min(1).max(60),
   oneLiner: z.string().trim().min(1).max(280),
   resonant: z.array(z.string().trim().max(120)).max(3).optional(),
+  // 동·서양 '같은 결' 교차 행의 전체 수(tallyCrossRows.same) — resonant 는 3개로 잘리므로
+  // 링크 미리보기의 "N가지 일치"는 이 값을 쓴다(감사 CR-3). 교차 축은 20개 미만이라 상한 30.
+  resonantCount: z.number().int().min(0).max(30).optional(),
   // 명식 도출 고정 사전 값들 — PII 아님. 랜딩/OG 의 개인화·클릭 훅.
   iljuLine: z.string().trim().min(1).max(120).optional(),
   clash: z
@@ -66,6 +70,7 @@ export const POST = withApiMiddleware(
       typeName: parsed.data.typeName,
       oneLiner: parsed.data.oneLiner,
       resonant: parsed.data.resonant?.filter(Boolean),
+      resonantCount: parsed.data.resonantCount,
       iljuLine: parsed.data.iljuLine,
       clash: parsed.data.clash,
     }

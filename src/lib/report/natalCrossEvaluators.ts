@@ -8,6 +8,8 @@
 import { GENERATES, CONTROLS, type SajuElement } from '@/lib/saju/elementBridge'
 import { type CrossMapping } from '@/lib/calendar-engine/data/saju-astro-mapping'
 import { dignityOf } from '@/lib/astrology/foundation/dignities'
+import { canonicalTwelveStage } from '@/lib/saju/shinsal'
+import { BRANCH_ELEMENT_KEY } from '@/lib/saju/constants'
 import { PLANET_LABEL } from './chartLabels'
 import {
   EL_KO,
@@ -23,6 +25,7 @@ import {
   planetTheme,
   AIR_TRAIT_OVERRIDE,
   AIR_ELEMENT_LABEL,
+  elementRelation,
   type CrossVerdict,
 } from './natalCrossShared'
 import { elementVerdict, ELEMENT_TRAIT, type DomainCtx } from './natalCrossVerdict'
@@ -165,6 +168,26 @@ export function evalNeeds(
           en: `You crave the ${tCrave.en} but actually need the ${tNeed.en} — chasing only what you want can crowd out what matters. It's not about cutting out what you love, but deliberately slotting a little ${tNeed.en} into your daily routine. That small correction alone eases a lot of the emptiness or burnout.`,
         },
       }
+    // 반대 방향 생극 — 필요(용신)가 끌림(달)을 생하거나 극하는 경우. 예전엔 이 두 갈래가
+    // 빠져 목(필요)×사자(火) 같은 상생 쌍이 '상관없음'(neutral)으로 읽혔다(plan B4 #9).
+    // 다른 오행 축(elementVerdict)과 같은 족: 생은 어느 방향이든 보완, 극은 어느 방향이든 긴장.
+    if (GENERATES[need] === moon)
+      return {
+        tone: 'complement',
+        reason: {
+          ko: `채워야 할 ${tNeed.ko} 기운이 평소 끌리는 ${tCrave.ko} 쪽을 자연스럽게 키워줘요 — 필요한 걸 채우면 좋아하는 일에도 힘이 붙는 구조예요. 끌림만 좇기보다 ${tNeed.ko} 쪽을 먼저 챙기면, 그 힘이 좋아하는 일로 흘러가 만족이 오래가요. 필요와 취향이 한 방향으로 이어져 있어 크게 어긋날 일은 적어요.`,
+          en: `The ${tNeed.en} energy you need naturally feeds the ${tCrave.en} side you're drawn to — fill what you need and what you love gains strength too. Rather than chasing the pull alone, tend the ${tNeed.en} side first and that energy flows into what you enjoy, so the satisfaction lasts. Need and taste run in one direction, so they rarely work against each other.`,
+        },
+      }
+    if (CONTROLS[need] === moon)
+      return {
+        tone: 'tension',
+        reason: {
+          ko: `정작 필요한 ${tNeed.ko} 기운이 평소 끌리는 ${tCrave.ko} 쪽을 눌러요 — 필요한 걸 채우려 하면 좋아하는 걸 참아야 하는 것처럼 느껴지는 구조예요. 둘 중 하나를 버리기보다, 필요한 ${tNeed.ko} 쪽은 하루 일과에 자리를 정해 두고 끌리는 일엔 따로 시간을 떼어 주면 서로 덜 부딪혀요. 그렇게 자리를 나눠 주면 허전함 없이 균형이 잡혀요.`,
+          en: `The ${tNeed.en} energy you actually need tends to press down on the ${tCrave.en} side you're drawn to — filling what you need can feel like giving up what you love. Rather than dropping either, fix a slot in your day for the ${tNeed.en} side and give what you crave its own separate time, and they clash less. Giving each its own place keeps you balanced without the emptiness.`,
+        },
+      }
+    // 다섯 오행은 같음·생·극 중 하나로 반드시 이어지므로, 여기는 매핑 밖 입력 방어용이다.
     return {
       tone: 'neutral',
       reason: {
@@ -286,12 +309,20 @@ export function evalFortune(
   const planetEmphasized = emphasizedPlanets.has(mapping.astro)
   const tk = planetTheme(mapping.astro, 'ko')
   const te = planetTheme(mapping.astro, 'en')
+  // 행 요지(gist) — 칸이 없는 축이라 행에서 reason 대신 보여 줄 한 문장. 갈래마다 고정.
+  // EN 은 주제 목록('expansion, faith and luck')을 형용사가 아니라 목적어로 둔다 — 관사('A
+  // expansion') · 수 일치('Action, desire and drive runs')가 깨지지 않게(QA COPY-3).
+  const Te = te.charAt(0).toUpperCase() + te.slice(1)
   // polarity 0 은 길도 흉도 아닌 '중립 자원'(도화×Venus 매력, 비견×Saturn 자립 등)이다.
   // 예전엔 polarity>=0 으로 0 을 '복'에 묶어 거짓 긍정을 냈다(ENGINE-AUDIT) → 별도 분기.
   if (mapping.polarity === 0) {
     return planetEmphasized
       ? {
           tone: 'complement',
+          gist: {
+            ko: `${tk} — 양쪽 모두 쓰기 나름인 중립 자원으로 짚어요.`,
+            en: `${Te} — a neutral resource both sides point to.`,
+          },
           reason: {
             ko: `타고난 ${tk} 자원이 별자리에서도 또렷한 자리에 놓여요 — 길흉으로 가를 일이 아니라, 잘 쓰면 강점이 되는 '중립 자원'(매력·자립·전문성 같은)이에요. 좋고 나쁨을 따지기보다 이 기운을 어디에 쓸지 방향만 정하면 그대로 무기가 돼요.`,
             en: `Your innate ${te} resource also sits in a clear spot in your chart — not a matter of good or bad luck but a "neutral resource" (charm, self-reliance, expertise) that becomes a strength when used well. Rather than weighing it as fortune, just decide where to point it and it turns into a tool.`,
@@ -299,9 +330,13 @@ export function evalFortune(
         }
       : {
           tone: 'neutral',
+          gist: {
+            ko: `사주엔 ${tk} 자원, 별자리에선 잔잔해요.`,
+            en: `Your saju holds ${te} as a resource; your chart is quiet there.`,
+          },
           reason: {
             ko: `사주엔 ${tk} 자원이 있는데 별자리에선 그 자리가 잔잔해요 — 길흉의 문제가 아니라 아직 깨우지 않은 중립 자원이에요. 의식적으로 꺼내 쓸 자리에 데려다 놓으면 그제야 제 몫을 해요.`,
-            en: `Your Saju carries a ${te} resource while that spot is quiet in your chart — not a fortune question but a neutral resource not yet awakened. Bring it deliberately into places where it gets used and it starts to pull its weight.`,
+            en: `Your Saju holds ${te} as a resource while that spot is quiet in your chart — not a fortune question but a neutral resource not yet awakened. Bring it deliberately into places where it gets used and it starts to pull its weight.`,
           },
         }
   }
@@ -310,6 +345,7 @@ export function evalFortune(
     return planetEmphasized
       ? {
           tone: 'resonant',
+          gist: { ko: `${tk} 쪽 복을 양쪽 모두 짚어요.`, en: `${Te} favored on both sides.` },
           reason: {
             ko: `타고난 복이 향하는 ${tk} 기운이 별자리에서도 힘 있는 자리에 놓여요 — 동·서양이 똑같이 이 분야를 복이자 강점으로 봐요. 위기 때 의외의 도움이 들어오거나 결정적 순간에 운이 따라주는 자리라, 평소 사람과 인연을 잘 가꿔두면 그 복이 더 자주 발동해요. 타고난 복도 쓰지 않으면 잠들어 있으니, 이 강점을 적극적으로 무대에 올리세요.`,
             en: `The ${te} energy your inborn luck favors also sits in a strong spot in your chart — both systems read this field as a blessing and a strength. It's a place where unexpected help arrives in a pinch or luck shows up at the decisive moment, so tending people and ties keeps that fortune firing more often. Even inborn luck sleeps if unused, so put this strength on stage on purpose.`,
@@ -317,15 +353,23 @@ export function evalFortune(
         }
       : {
           tone: 'complement',
+          gist: {
+            ko: `사주엔 ${tk} 복, 별자리에선 잔잔해요.`,
+            en: `Your saju favors ${te}; your chart is quieter there.`,
+          },
           reason: {
             ko: `사주엔 ${tk} 기운의 복이 또렷한데, 별자리에선 그 자리가 잔잔해요 — 타고난 복이 자동으로 터지기보다 의식적으로 살려야 빛나는 구조예요. 가만히 기다리기보다 그 기운을 쓸 자리에 스스로를 데려다 놓으면, 잠재된 복이 현실의 결과로 바뀌어요. 있는 복을 안 쓰고 묵히지 않는 게 핵심이에요.`,
-            en: `Your Saju carries a clear ${te} blessing, while that spot is quieter in your chart — the luck shines when you activate it on purpose rather than waiting for it to fire by itself. Instead of sitting still, put yourself where that energy gets used and the latent blessing turns into real results. The key is not to let good fortune sit idle.`,
+            en: `Your Saju clearly favors ${te}, while that spot is quieter in your chart — the luck shines when you activate it on purpose rather than waiting for it to fire by itself. Instead of sitting still, put yourself where that energy gets used and the latent blessing turns into real results. The key is not to let good fortune sit idle.`,
           },
         }
   }
   return planetEmphasized
     ? {
         tone: 'tension',
+        gist: {
+          ko: `${tk} 쪽 센 기운이 양쪽에서 커져요.`,
+          en: `Both sides push hard on ${te}.`,
+        },
         reason: {
           ko: `타고난 강한 추진력이 향하는 ${tk} 쪽이 별자리에서도 도드라져요 — 추진력과 승부욕이 양쪽에서 증폭돼 힘이 두 배가 되는 자리예요. 잘 쓰면 누구도 못 따라오는 돌파력이 되지만, 욱하거나 과속하면 그 힘이 자기를 향하기 쉬워요. 센 기운일수록 '한 박자 쉬는' 안전장치를 미리 정해두면 강점만 남아요.`,
           en: `The ${te} side in your nature is pronounced in your chart too — drive and competitiveness amplify on both sides, doubling the force. Used well it's breakthrough power no one can match, but flare up or overspeed and that force turns on you. The stronger the energy, the more a pre-set "pause one beat" safeguard leaves only the strength.`,
@@ -333,6 +377,10 @@ export function evalFortune(
       }
     : {
         tone: 'complement',
+        gist: {
+          ko: `사주의 센 ${tk} 기운을 별자리가 눌러 줘요.`,
+          en: `Your saju pushes hard on ${te}; your chart tempers it.`,
+        },
         reason: {
           ko: `사주엔 추진력·승부욕의 센 기운이 있는데, 별자리에선 그 자리가 약해 거친 결이 한결 눌려요 — 안에선 뜨거운데 겉으론 차분해 보이는, 속도 조절이 되는 구조예요. 그 내면의 힘을 너무 억누르기만 하면 동력이 줄 수 있으니, 안전한 통로(운동·도전·목표)로 풀어주는 게 좋아요. 센 기운을 길들여 쓰는 데 유리한 조합이에요.`,
           en: `Your Saju carries strong drive and competitiveness, but that spot is weak in your chart, so the rough edge is tempered — hot inside yet calm outside, a built-in speed governor. Suppressing that inner force entirely can sap your momentum, so release it through safe channels (exercise, challenges, goals). It's a combination well-suited to taming strong energy into use.`,
@@ -353,20 +401,37 @@ export function evalRelations(
   if (hap + chung + harmonious + hard === 0) return null
   const sajuHarmony = hap - chung
   const astroHarmony = harmonious - hard
-  const base: { tone: CrossVerdict['tone']; ko: string; en: string } =
+  const base: {
+    tone: CrossVerdict['tone']
+    ko: string
+    en: string
+    gist: { ko: string; en: string }
+  } =
     sajuHarmony > 0 && astroHarmony > 0
       ? {
+          gist: {
+            ko: '사주엔 합(合), 별자리엔 부드러운 각.',
+            en: 'Unions in your saju, soft aspects in your chart.',
+          },
           tone: 'resonant',
           ko: '사람들과 잘 어울리고 관계가 매끄럽게 풀리는 편 — 사주의 합(合)과 별자리의 부드러운 각이 둘 다 그렇게 봐요. 사람을 끌어모으고 곁에 두는 게 타고난 자산이라, 인맥과 협업이 인생의 큰 동력이 돼요. 다만 다들 좋게 봐주는 만큼 싫은 소리를 미루다 속앓이하기 쉬우니, 할 말은 부드럽게라도 그때그때 해두는 게 관계를 더 오래 가게 해요.',
           en: "You get along easily and relationships flow — your Saju's unions and your chart's soft aspects both agree. Drawing people in and keeping them close is a natural asset, so connections and collaboration become a major engine in your life. Just don't let being well-liked make you swallow hard truths — saying the awkward thing gently and on time is what keeps the bond lasting.",
         }
       : sajuHarmony < 0 && astroHarmony < 0
         ? {
+            gist: {
+              ko: '사주엔 충(沖), 별자리엔 단단한 각.',
+              en: 'Clashes in your saju, hard aspects in your chart.',
+            },
             tone: 'tension',
             ko: '관계에서 부딪힘이 좀 있는 편인데 — 사주의 충(沖)과 별자리의 단단한 각이 둘 다 그렇게 짚어요. 사람과 쉽게 매끄럽진 않아도 그 마찰을 거치며 진짜 내 사람을 가려내고 더 단단해지는 타입이에요. 모두와 잘 지내려 애쓰기보다, 부딪혀도 끝까지 남는 소수에게 마음을 모으면 관계가 훨씬 편해져요.',
             en: "Relationships bring some friction — your Saju's clashes and your chart's hard aspects both point that way. You don't connect smoothly with everyone, but you grow tougher through the friction and sift out who's truly yours. Rather than straining to please everyone, pour your heart into the few who stay after the clash, and relationships get far easier.",
           }
         : {
+            gist: {
+              ko: '사주와 별자리가 관계를 서로 다른 결로 읽어요.',
+              en: 'Your saju and your chart read your ties differently.',
+            },
             tone: 'complement',
             ko: '어떤 관계는 매끄럽고 어떤 관계는 부딪혀요 — 사주와 별자리가 다른 결을 짚어, 상황 따라 두 모습이 다 나오는 균형형이에요. 잘 맞는 사람과는 깊게, 부딪히는 사람과는 거리를 두는 식으로 자연스럽게 나눠 쓰면 돼요. 모든 관계를 똑같이 잘하려 애쓰지 않는 게 오히려 에너지를 아끼는 길이에요.',
             en: 'Some ties flow, some clash — Saju and chart read different grains, so you show both sides depending on the situation, a balanced type. Go deep with the people who fit and keep distance from the ones who grate — you sort it naturally. Not trying to ace every relationship equally is actually how you save your energy.',
@@ -375,7 +440,7 @@ export function evalRelations(
   // ── 성별 자식성(子息星) — 남: 관성, 여: 식상 ──
   // 미성년 안전 모드: 자녀·후대 서술은 아동에게 부적합하므로 생략(기본 관계 해석만).
   if (isMinor) {
-    return { tone: base.tone, reason: { ko: base.ko, en: base.en } }
+    return { tone: base.tone, gist: base.gist, reason: { ko: base.ko, en: base.en } }
   }
   const g = gender === 'female'
   const starKo = g ? '식상' : '관성'
@@ -390,10 +455,16 @@ export function evalRelations(
     ? ` Also, ${whoEn} child indicator is ${starEn}, and it sits in your chart — a clear thread for raising the next generation, or nurturing something into being.`
     : ` Also, ${whoEn} child indicator is ${starEn}, and it's faint — the "raising" bond, whether children or work, grows by depth rather than volume.`
 
-  return { tone: base.tone, reason: { ko: base.ko + childKo, en: base.en + childEn } }
+  return {
+    tone: base.tone,
+    gist: base.gist,
+    reason: { ko: base.ko + childKo, en: base.en + childEn },
+  }
 }
 
-/** 강점: 12운성(일주) ↔ 차트에서 가장 위신 높은 행성. */
+/** 강점: 12운성(일주) ↔ 차트에서 가장 위신 높은 행성.
+ *  표는 정본 이름(건록/제왕/장생) — 엔진은 임관/왕지로 내므로 canonicalTwelveStage 로
+ *  정규화해서 조회한다(감사 CR-2). */
 const STRONG_STAGES = new Set(['장생', '관대', '건록', '제왕'])
 const WEAK_STAGES = new Set(['병', '사', '묘', '절'])
 
@@ -404,8 +475,9 @@ export function evalStrength(
   sect?: 'day' | 'night'
 ): CrossVerdict | null {
   if (!twelveStage && !topDignity && rooted === undefined) return null
-  const sajuStrong = twelveStage ? STRONG_STAGES.has(twelveStage) : false
-  const sajuWeak = twelveStage ? WEAK_STAGES.has(twelveStage) : false
+  const stage = twelveStage ? canonicalTwelveStage(twelveStage) : undefined
+  const sajuStrong = stage ? STRONG_STAGES.has(stage) : false
+  const sajuWeak = stage ? WEAK_STAGES.has(stage) : false
   const astroStrong = !!topDignity
   const stk = topDignity ? planetTheme(topDignity.planet, 'ko') : ''
   const ste = topDignity ? planetTheme(topDignity.planet, 'en') : ''
@@ -905,28 +977,18 @@ export function evalKeyAspect(
 
 /**
  * 공망 × South Node — 둘 다 "이번 생에 자연스럽게 만들어지지 않는 영역"을
- * 가리키는 표상. 사주의 공망 지지(허虛한 자리)와 점성의 사우스노드 sign(과거
- * 카르마/익숙해서 자동으로 떨어지는 지점) 이 같은 오행을 가리키면 두 시스템이
- * 같은 카르마를 같은 방향으로 짚는 셈 — tension 으로 강하게 발현. 다른 오행을
- * 가리키면 카르마가 두 갈래로 흩어진 neutral.
+ * 가리키는 표상. 공망은 지지 *두 개*(旬空 한 쌍)이고, 6쌍 중 4쌍(戌亥·午未·辰巳·子丑)은
+ * 두 오행에 걸친다. 그래서 공망 오행 집합 = {두 지지의 본기 오행} 이고, 사우스노드
+ * sign(과거 카르마/익숙해서 자동으로 떨어지는 지점)의 오행이 그 집합에 들면 두 시스템이
+ * 같은 빈자리를 짚는 합의 — resonant(+karmaAxis). 판정은 배열 순서와 무관하다
+ * (예전엔 첫 지지만 봐 ['戌','亥'] 와 ['亥','戌'] 가 갈렸다 — 엔진 감사 X9).
+ * 집합 밖이면(생·극 포함) 카르마가 두 갈래로 흩어진 neutral — 공망은 '같은 자리냐'만
+ * 묻는 축이라 생극 족으로 세분하지 않는다. 어느 쪽이든 결핍(숙제) 축이라 karmaAxis 는
+ * 모든 반환에 붙는다(plan B4 #10).
  *
  * 지지 본기 오행 매핑 (子=水, 丑=土, 寅卯=木, 辰=土, 巳午=火, 未=土, 申酉=金,
- * 戌=土, 亥=水) — 인라인 상수로 두어 외부 의존 없음.
+ * 戌=土, 亥=水) — 정본 파생 표 BRANCH_ELEMENT_KEY(saju/constants)를 쓴다(복사 금지).
  */
-const BRANCH_TO_ELEMENT: Record<string, SajuElement> = {
-  子: 'water',
-  丑: 'earth',
-  寅: 'wood',
-  卯: 'wood',
-  辰: 'earth',
-  巳: 'fire',
-  午: 'fire',
-  未: 'earth',
-  申: 'metal',
-  酉: 'metal',
-  戌: 'earth',
-  亥: 'water',
-}
 
 export function evalVoid(
   gongmangBranches: string[] | undefined,
@@ -934,16 +996,23 @@ export function evalVoid(
 ): CrossVerdict | null {
   if (!gongmangBranches?.length || !southNodeSign) return null
 
-  const branches = gongmangBranches.slice(0, 2).join('·')
-  const branchEl = BRANCH_TO_ELEMENT[gongmangBranches[0]]
+  // 공망 오행 집합 — 두 지지 모두 본다. 오행 고정 순서(木火土金水)로 정렬해, 판정뿐
+  // 아니라 문구까지 입력 배열 순서와 무관하게 같게 한다.
+  const voidSet = new Set<SajuElement>()
+  for (const b of gongmangBranches.slice(0, 2)) {
+    const el = BRANCH_ELEMENT_KEY[b]
+    if (el) voidSet.add(el)
+  }
+  const voidEls = SAJU_ELS.filter((e) => voidSet.has(e))
   // air→木 근사 포함, 모든 sign→오행 변환은 단일 경로(signToSajuElement)로 통일한다 —
   // 예전엔 여기서 변환을 손으로 복제(third path)해 계약이 엇나갈 위험이 있었다(ENGINE-AUDIT E7).
-  const sajuFromAstro = signToSajuElement(toEnSign(southNodeSign) ?? southNodeSign)
+  const snSign = toEnSign(southNodeSign) ?? southNodeSign
+  const sajuFromAstro = signToSajuElement(snSign)
   // 지지/사우스노드 sign 중 하나라도 오행으로 못 풀면 거짓 neutral 을 내지 말고 행 생략.
-  if (!branchEl || !sajuFromAstro) return null
-  const matches = sajuFromAstro === branchEl
+  if (voidEls.length === 0 || !sajuFromAstro) return null
 
-  if (matches) {
+  if (voidEls.includes(sajuFromAstro)) {
+    const el = sajuFromAstro
     // 둘 다 같은 자리를 가리키므로 두 시스템은 '합의'한다(resonant). 내용이 어렵다는
     // 것과 시스템이 어긋난다는 것(tension)은 다른 축이다 — 톤은 '같은 얘길 해요'로.
     return {
@@ -952,16 +1021,22 @@ export function evalVoid(
       // '잘 맞아요' 집계엔 넣지 않도록 표식만 단다(톤·문구는 그대로).
       karmaAxis: true,
       reason: {
-        ko: `사주의 공망(空亡)이 ${EL_KO[branchEl]} 자리에 걸려 있는데 — 가졌어도 비어 도는 자리라 오행 개수와는 별개예요 — 별자리(사우스노드)도 똑같이 그 지점을 짚어요. 동·서양 둘 다 "이번 생엔 ${EL_KO[branchEl]} 영역이 자동으로는 안 채워진다"고 입을 모아요. 타고난 복이 아니라 의식적으로 만들어가야 하는 평생 과제라, 여기서 쌓은 건 온전히 자기 힘으로 얻은 거예요. 부족하다 느끼는 그 자리를 피하지 말고 작게라도 꾸준히 채워가면, 약점이 가장 단단한 강점으로 바뀌어요.`,
-        en: `Your chart's void (空亡) falls on the ${EL_EN[branchEl]} position — a seat that stays hollow even when occupied, separate from the raw element count — and the stars (South Node) point to the very same place. East and West agree this area "won't fill itself this life." It isn't an inborn gift but a lifelong task you build by hand, so whatever you earn here is fully your own. Don't avoid the spot that feels lacking; fill it in small, steady steps and the weak point becomes your most solid strength.`,
+        ko: `사주의 공망(空亡)이 ${EL_KO[el]} 자리에 걸려 있는데 — 가졌어도 비어 도는 자리라 오행 개수와는 별개예요 — 별자리(사우스노드)도 똑같이 그 지점을 짚어요. 동·서양 둘 다 "이번 생엔 ${EL_KO[el]} 영역이 자동으로는 안 채워진다"고 입을 모아요. 타고난 복이 아니라 의식적으로 만들어가야 하는 평생 과제라, 여기서 쌓은 건 온전히 자기 힘으로 얻은 거예요. 부족하다 느끼는 그 자리를 피하지 말고 작게라도 꾸준히 채워가면, 약점이 가장 단단한 강점으로 바뀌어요.`,
+        en: `Your chart's void (空亡) falls on the ${EL_EN[el]} position — a seat that stays hollow even when occupied, separate from the raw element count — and the stars (South Node) point to the very same place. East and West agree this area "won't fill itself this life." It isn't an inborn gift but a lifelong task you build by hand, so whatever you earn here is fully your own. Don't avoid the spot that feels lacking; fill it in small, steady steps and the weak point becomes your most solid strength.`,
       },
     }
   }
+  // 어긋남 — 양쪽이 짚는 오행을 이름으로 밝힌다(공망 두 오행 모두 + 사우스노드). 공기
+  // 별자리는 木 대신 '공기'로 표기(근사 혼동 방지).
+  const snLabel = signElementLabel(snSign) ?? { ko: EL_KO[sajuFromAstro], en: EL_EN[sajuFromAstro] }
+  const voidKo = voidEls.map((e) => EL_KO[e]).join('·')
+  const voidEn = voidEls.map((e) => EL_EN[e]).join(' and ')
   return {
     tone: 'neutral',
+    karmaAxis: true,
     reason: {
-      ko: `타고난 빈자리와 별자리가 짚는 빈자리가 서로 다른 영역을 가리켜요 — 풀어내야 할 과제가 두 갈래로 흩어져 있어요. 한 번에 하나씩 다루는 게 안전해요.`,
-      en: `Your makeup and the stars each flag a different empty area — karmic work is spread across two threads. Better to address one at a time.`,
+      ko: `타고난 빈자리(${voidKo})와 별자리가 짚는 빈자리(${snLabel.ko})가 서로 다른 영역을 가리켜요 — 풀어내야 할 과제가 두 갈래로 흩어져 있어요. 한 번에 하나씩 다루는 게 안전해요.`,
+      en: `Your makeup and the stars each flag a different empty area (${voidEn} vs. ${snLabel.en}) — karmic work is spread across two threads. Better to address one at a time.`,
     },
   }
 }
@@ -987,6 +1062,11 @@ function weakestSajuElementTied(
  * (결핍 = 채워야 할 것). 둘 다 "이번 생에 새로 키워가는 것"을 가리키는 표상이라,
  * 같은 오행을 가리키면 동·서양이 한 성장 방향을 또렷이 짚는 셈. evalVoid(공망 ×
  * 사우스노드 = 비움·과거)의 양(陽)짝.
+ *
+ * 톤은 다른 오행 축(elementVerdict)과 같은 족: 같음 → resonant, 생(어느 방향이든) →
+ * complement, 극(어느 방향이든) → tension. 예전엔 극도 complement('다르지만 서로 도와요')
+ * 로 내보내, 행 자체의 '서로 다른 두 갈래' 문구와 라벨이 어긋났다(엔진 감사 X8, OD-10).
+ * 결핍(숙제) 축이라 karmaAxis 는 모든 반환에 붙는다(plan B4 #10).
  */
 export function evalNorthNode(
   sajuCounts: Record<string, number> | undefined,
@@ -998,8 +1078,9 @@ export function evalNorthNode(
   if (!weak || !nn || !northNodeSign) return null
   const tw = ELEMENT_TRAIT[weak]
   const tn = signTraitOverride(northNodeSign) ?? ELEMENT_TRAIT[nn]
+  const rel = elementRelation(weak, nn)
   const v: CrossVerdict =
-    nn === weak
+    rel === 'same'
       ? {
           tone: 'resonant',
           // 결핍 수렴(가장 약한 오행 = 노스노드 방향)은 evalVoid 와 같은 부류의 '결핍 축'이다.
@@ -1011,16 +1092,20 @@ export function evalNorthNode(
             en: `Both systems point your growth the same way — toward the ${tw.en} — your weakest Saju element and your growth direction landing on the same spot, an unusually clear growth signal. It feels awkward and uncomfortable at first, so you keep avoiding it, but passing through exactly that discomfort is this life's core growth. Don't just repeat what you're good at — invest deliberate time in the ${tw.en} side and life opens to a new level.`,
           },
         }
-      : GENERATES[weak] === nn || GENERATES[nn] === weak
+      : rel === 'aGenB' || rel === 'bGenA'
         ? {
             tone: 'complement',
+            karmaAxis: true,
             reason: {
               ko: `사주가 채우라는 ${tw.ko} 결과 별자리가 가리키는 ${tn.ko} 방향이 서로 이어져요 — 두 성장 축이 생(生)으로 맞물려, 한쪽을 키우면 다른 쪽도 따라 자라요. 둘을 따로 떼어 부담스럽게 볼 필요 없이, ${tn.ko} 쪽을 입구 삼아 들어가면 ${tw.ko} 쪽도 자연스럽게 채워져요. 성장이 선순환으로 굴러가는, 비교적 수월한 배치예요.`,
               en: `The ${tw.en} energy your Saju asks you to fill and the ${tn.en} direction your chart points to feed each other — the two growth axes mesh as a generating cycle, so grow one and the other follows. No need to face them as two separate burdens; enter through the ${tn.en} door and the ${tw.en} side fills in naturally. A relatively easy layout where growth runs as a virtuous loop.`,
             },
           }
         : {
-            tone: 'complement',
+            // 극(剋) — 다섯 오행에선 같음·생 이 아니면 반드시 극이다(elementRelation 'none' 은
+            // 유효 오행 쌍에서 나오지 않는다). 두 성장 축이 서로 당기는 tension.
+            tone: 'tension',
+            karmaAxis: true,
             reason: {
               ko: `사주는 ${tw.ko} 기운을 채우라 하고, 별자리는 ${tn.ko} 방향을 가리켜요 — 성장 축이 서로 다른 두 갈래라 한 번에 둘 다 잡으려면 벅찰 수 있어요. 시기를 나눠 번갈아 키우는 게 핵심 — 한동안 ${tw.ko} 쪽에 집중했다가, 또 한동안 ${tn.ko} 쪽에 집중하는 식이면 둘 다 놓치지 않아요. 욕심내 동시에 밀어붙이기보다 리듬을 두는 게 멀리 가는 길이에요.`,
               en: `Saju asks you to build ${tw.en} energy while your chart's growth direction points to ${tn.en} — two separate growth directions, so chasing both at once can overwhelm. The key is to alternate by season: focus on ${tw.en} for a while, then on ${tn.en}, and you drop neither. Setting a rhythm rather than forcing both at once is how you go the distance.`,
@@ -1038,18 +1123,28 @@ export function evalNorthNode(
 // 정체성 축들이 "성향"을 본다면, 아래 축들은 "삶의 테마"(연애·이동·영성·재물)를
 // 동·서양 신호로 동시에 비춘다. 양쪽 신호가 다 있으면 그 테마가 인생에서 크게
 // 작동(resonant), 한쪽만 있으면 한 방향으로 풀림(complement), 둘 다 없으면 행 생략.
+//
+// 점성 쪽 근거는 두 갈래다 — ① 그 영역 하우스의 행성 점유 수, ② 담당 행성의 강조
+// (각도 1/4/7/10하우스 또는 본궁·고양). 하우스 수는 출생시각·출생지를 모르면(placeUnreliable)
+// null(미상)로 받는다 — 정오 앵커·기본 좌표 하우스로 행을 지어내지 않는다(CALCULATION_SPEC §6).
+// 문구는 실제로 켜진 근거만 인용한다: 하우스가 비었거나 미상이면 "하우스가 활발해요"
+// 대신 담당 행성을 말한다(감사 CR-1·CR-7).
+/** 하우스 점유가 실제로 있나 — null(미상)·0 은 false. */
+const housesLit = (count: number | null | undefined): boolean => (count ?? 0) > 0
 
 /** 연애·매력: 도화·홍염(사주) ↔ 금성 강조·5/7하우스(점성). */
 export function evalRomance(
   hasDohwa: boolean,
   venusStrong: boolean,
-  loveHouseCount: number,
+  /** 5/7하우스 점유 수 — 하우스 미상(placeUnreliable)이면 null. */
+  loveHouseCount: number | null,
   gender: 'male' | 'female' = 'male',
   spouseStarCount = 0,
   dayBranchClash = false,
   dayBranchCombine = false
 ): CrossVerdict | null {
-  const astroLove = venusStrong || loveHouseCount > 0
+  const loveHouses = housesLit(loveHouseCount)
+  const astroLove = venusStrong || loveHouses
   const spousePresent = spouseStarCount > 0
   // 배우자성(남=재성/여=관성)이 원국에 있으면 도화·금성이 약해도 이 축은 띄운다
   // — 성별로 갈리는 정통 육친 해석이라 거의 모든 차트에서 노출되게.
@@ -1057,11 +1152,17 @@ export function evalRomance(
 
   const base: { tone: CrossVerdict['tone']; ko: string; en: string } =
     hasDohwa && astroLove
-      ? {
-          tone: 'resonant',
-          ko: '사주의 끄는 매력과 별자리의 사랑·관계 자리가 둘 다 켜져 있어요 — 사람을 끌고, 관계가 인생의 큰 테마가 되는 편이에요. 매력을 즐기되 한 사람에게 깊이 머무는 연습이 인연을 오래 가게 해요.',
-          en: "Both your chart's pull and its houses of love and partnership are lit — you draw people in, and relationships become a central life theme. Enjoy the magnetism, but learning to stay deeply with one person is what makes love last.",
-        }
+      ? loveHouses
+        ? {
+            tone: 'resonant',
+            ko: '사주의 끄는 매력과 별자리의 사랑·관계 자리가 둘 다 켜져 있어요 — 사람을 끌고, 관계가 인생의 큰 테마가 되는 편이에요. 매력을 즐기되 한 사람에게 깊이 머무는 연습이 인연을 오래 가게 해요.',
+            en: "Both your chart's pull and its houses of love and partnership are lit — you draw people in, and relationships become a central life theme. Enjoy the magnetism, but learning to stay deeply with one person is what makes love last.",
+          }
+        : {
+            tone: 'resonant',
+            ko: '사주의 끄는 매력과 별자리에서 두드러진 사랑의 별 금성이 둘 다 켜져 있어요 — 사람을 끌고, 관계가 인생의 큰 테마가 되는 편이에요. 매력을 즐기되 한 사람에게 깊이 머무는 연습이 인연을 오래 가게 해요.',
+            en: "Both your Saju's magnetism and a prominent Venus, the planet of love, are lit — you draw people in, and relationships become a central life theme. Enjoy the magnetism, but learning to stay deeply with one person is what makes love last.",
+          }
       : hasDohwa
         ? {
             tone: 'complement',
@@ -1069,16 +1170,29 @@ export function evalRomance(
             en: 'Your natural magnetism is clear, while your chart handles love more quietly — your appeal is understated rather than flashy. One step forward of your own brings the right connection sooner.',
           }
         : astroLove
-          ? {
-              tone: 'complement',
-              ko: '사주는 연애를 담담하게 보는데, 별자리의 사랑·관계 자리가 활발해요 — 관계 속에서 자기를 발견하는 타입이에요. 관계에 기대되 자기 중심도 함께 챙기면 좋아요.',
-              en: "Your Saju treats romance evenly, but your chart's houses of love run active — you find yourself through relationships. Lean in, but keep your own center alongside.",
-            }
-          : {
-              tone: 'neutral',
-              ko: '도화나 별자리의 사랑 자리가 크게 두드러지진 않아요 — 연애가 인생 1순위 테마라기보다, 인연이 올 때 진중하게 가꾸는 타입이에요.',
-              en: 'Neither a strong romance star nor lit houses of love stand out — partnership is less a top life theme than something you tend earnestly when it arrives.',
-            }
+          ? loveHouses
+            ? {
+                tone: 'complement',
+                ko: '사주는 연애를 담담하게 보는데, 별자리의 사랑·관계 자리가 활발해요 — 관계 속에서 자기를 발견하는 타입이에요. 관계에 기대되 자기 중심도 함께 챙기면 좋아요.',
+                en: "Your Saju treats romance evenly, but your chart's houses of love run active — you find yourself through relationships. Lean in, but keep your own center alongside.",
+              }
+            : {
+                tone: 'complement',
+                ko: '사주는 연애를 담담하게 보는데, 별자리에선 사랑의 별 금성이 두드러져요 — 관계 속에서 자기를 발견하는 타입이에요. 관계에 기대되 자기 중심도 함께 챙기면 좋아요.',
+                en: 'Your Saju treats romance evenly, but Venus, the planet of love, stands out in your chart — you find yourself through relationships. Lean in, but keep your own center alongside.',
+              }
+          : loveHouseCount === null
+            ? {
+                // 하우스 미상 — 비었다고도 말하지 않는다(금성만 근거).
+                tone: 'neutral',
+                ko: '도화도, 별자리의 금성도 크게 두드러지진 않아요 — 연애가 인생 1순위 테마라기보다, 인연이 올 때 진중하게 가꾸는 타입이에요.',
+                en: 'Neither a strong romance star nor a prominent Venus stands out — partnership is less a top life theme than something you tend earnestly when it arrives.',
+              }
+            : {
+                tone: 'neutral',
+                ko: '도화나 별자리의 사랑 자리가 크게 두드러지진 않아요 — 연애가 인생 1순위 테마라기보다, 인연이 올 때 진중하게 가꾸는 타입이에요.',
+                en: 'Neither a strong romance star nor lit houses of love stand out — partnership is less a top life theme than something you tend earnestly when it arrives.',
+              }
 
   // ── 성별 배우자성(配偶星) — 남: 재성, 여: 관성 ──
   const g = gender === 'female'
@@ -1116,18 +1230,25 @@ export function evalRomance(
 /** 이동·변화: 역마(사주) ↔ 3/9하우스·목성(점성). */
 export function evalMovement(
   hasYeokma: boolean,
-  moveHouseCount: number,
+  /** 3/9하우스 점유 수 — 하우스 미상(placeUnreliable)이면 null. */
+  moveHouseCount: number | null,
   jupiterStrong: boolean
 ): CrossVerdict | null {
-  const astroMove = moveHouseCount > 0 || jupiterStrong
+  const moveHouses = housesLit(moveHouseCount)
+  const astroMove = moveHouses || jupiterStrong
   if (!hasYeokma && !astroMove) return null
   if (hasYeokma && astroMove)
     return {
       tone: 'resonant',
-      reason: {
-        ko: '사주의 역마(이동·변동)와 별자리의 이동·확장 자리가 함께 켜져 있어요 — 한자리에 오래 머물기보다 옮겨 다니며 크는 사람이에요. 변화를 불안이 아니라 자원으로 쓰면 길이 넓어져요.',
-        en: "Your chart's Traveling Horse (movement) and its houses of travel and expansion are both lit — you grow by moving rather than staying put. Treat change as a resource, not a worry, and the road widens.",
-      },
+      reason: moveHouses
+        ? {
+            ko: '사주의 역마(이동·변동)와 별자리의 이동·확장 자리가 함께 켜져 있어요 — 한자리에 오래 머물기보다 옮겨 다니며 크는 사람이에요. 변화를 불안이 아니라 자원으로 쓰면 길이 넓어져요.',
+            en: "Your chart's Traveling Horse (movement) and its houses of travel and expansion are both lit — you grow by moving rather than staying put. Treat change as a resource, not a worry, and the road widens.",
+          }
+        : {
+            ko: '사주의 역마(이동·변동)와 별자리에서 두드러진 확장의 별 목성이 함께 켜져 있어요 — 한자리에 오래 머물기보다 옮겨 다니며 크는 사람이에요. 변화를 불안이 아니라 자원으로 쓰면 길이 넓어져요.',
+            en: "Your Saju's Traveling Horse (movement) and a prominent Jupiter, the planet of expansion, are both lit — you grow by moving rather than staying put. Treat change as a resource, not a worry, and the road widens.",
+          },
     }
   if (hasYeokma)
     return {
@@ -1139,28 +1260,40 @@ export function evalMovement(
     }
   return {
     tone: 'complement',
-    reason: {
-      ko: '사주는 자리를 지키는 편인데 별자리의 이동·확장 자리가 활발해요 — 멀리 나가 보는 경험이 시야를 크게 넓혀줘요. 익숙한 곳을 벗어나는 시도를 가끔 의식적으로 해보면 좋아요.',
-      en: "Your Saju tends to hold its place, but your chart's houses of travel and expansion run active — going far stretches your view. Step out of the familiar on purpose now and then.",
-    },
+    reason: moveHouses
+      ? {
+          ko: '사주는 자리를 지키는 편인데 별자리의 이동·확장 자리가 활발해요 — 멀리 나가 보는 경험이 시야를 크게 넓혀줘요. 익숙한 곳을 벗어나는 시도를 가끔 의식적으로 해보면 좋아요.',
+          en: "Your Saju tends to hold its place, but your chart's houses of travel and expansion run active — going far stretches your view. Step out of the familiar on purpose now and then.",
+        }
+      : {
+          ko: '사주는 자리를 지키는 편인데 별자리에선 확장의 별 목성이 두드러져요 — 멀리 나가 보는 경험이 시야를 크게 넓혀줘요. 익숙한 곳을 벗어나는 시도를 가끔 의식적으로 해보면 좋아요.',
+          en: 'Your Saju tends to hold its place, but Jupiter, the planet of expansion, stands out in your chart — going far stretches your view. Step out of the familiar on purpose now and then.',
+        },
   }
 }
 
 /** 예술·영성: 화개(사주) ↔ 12하우스·해왕성(점성). */
 export function evalSpirit(
   hasHwagae: boolean,
-  twelfthCount: number,
+  /** 12하우스 점유 수 — 하우스 미상(placeUnreliable)이면 null. */
+  twelfthCount: number | null,
   neptuneStrong: boolean
 ): CrossVerdict | null {
-  const astroSpirit = twelfthCount > 0 || neptuneStrong
+  const twelfthLit = housesLit(twelfthCount)
+  const astroSpirit = twelfthLit || neptuneStrong
   if (!hasHwagae && !astroSpirit) return null
   if (hasHwagae && astroSpirit)
     return {
       tone: 'resonant',
-      reason: {
-        ko: '타고난 예술·고독의 기질과 별자리의 내면·영성 자리가 둘 다 켜져 있어요 — 보이지 않는 것을 읽고 표현하는 깊이가 있는 사람이에요. 혼자만의 시간을 충분히 두면 그 감각이 작품과 통찰로 흘러나와요.',
-        en: "Your art-and-solitude streak and its houses of the inner life are both lit — you read and express what others can't see. Give yourself enough solitude and that sense flows out as art and insight.",
-      },
+      reason: twelfthLit
+        ? {
+            ko: '타고난 예술·고독의 기질과 별자리의 내면·영성 자리가 둘 다 켜져 있어요 — 보이지 않는 것을 읽고 표현하는 깊이가 있는 사람이에요. 혼자만의 시간을 충분히 두면 그 감각이 작품과 통찰로 흘러나와요.',
+            en: "Your art-and-solitude streak and its houses of the inner life are both lit — you read and express what others can't see. Give yourself enough solitude and that sense flows out as art and insight.",
+          }
+        : {
+            ko: '타고난 예술·고독의 기질과 별자리에서 두드러진 꿈·영감의 별 해왕성이 둘 다 켜져 있어요 — 보이지 않는 것을 읽고 표현하는 깊이가 있는 사람이에요. 혼자만의 시간을 충분히 두면 그 감각이 작품과 통찰로 흘러나와요.',
+            en: "Your art-and-solitude streak and a prominent Neptune, the planet of dreams and inspiration, are both lit — you read and express what others can't see. Give yourself enough solitude and that sense flows out as art and insight.",
+          },
     }
   if (hasHwagae)
     return {
@@ -1172,29 +1305,61 @@ export function evalSpirit(
     }
   return {
     tone: 'complement',
-    reason: {
-      ko: '사주는 담백하고 현실적인데 별자리의 내면·영성 자리가 활발해요 — 보이지 않는 흐름에 예민하게 반응하는 면이 있어요. 명상·기록처럼 안을 들여다보는 습관이 중심을 잡아줘요.',
-      en: "Your Saju is plain and practical, but your chart's houses of the inner life run active — you're quietly sensitive to unseen currents. Habits that look inward, like journaling or meditation, steady your center.",
-    },
+    reason: twelfthLit
+      ? {
+          ko: '사주는 담백하고 현실적인데 별자리의 내면·영성 자리가 활발해요 — 보이지 않는 흐름에 예민하게 반응하는 면이 있어요. 명상·기록처럼 안을 들여다보는 습관이 중심을 잡아줘요.',
+          en: "Your Saju is plain and practical, but your chart's houses of the inner life run active — you're quietly sensitive to unseen currents. Habits that look inward, like journaling or meditation, steady your center.",
+        }
+      : {
+          ko: '사주는 담백하고 현실적인데 별자리에선 꿈·영감의 별 해왕성이 두드러져요 — 보이지 않는 흐름에 예민하게 반응하는 면이 있어요. 명상·기록처럼 안을 들여다보는 습관이 중심을 잡아줘요.',
+          en: "Your Saju is plain and practical, but Neptune, the planet of dreams and inspiration, stands out in your chart — you're quietly sensitive to unseen currents. Habits that look inward, like journaling or meditation, steady your center.",
+        },
   }
+}
+
+/** 길성(금성·목성) 이름 — 재물 행이 하우스 대신 행성을 인용할 때. KO 는 모두 '성'으로
+ *  끝나 주격 조사 '이'가 맞는다. 어느 쪽인지 모르면(구 호출부) 일반명 '길성'. */
+function beneficLabel(benefics: ReadonlyArray<'Venus' | 'Jupiter'>): {
+  ko: string
+  en: string
+  plural: boolean
+} {
+  const v = benefics.includes('Venus')
+  const j = benefics.includes('Jupiter')
+  if (v && j)
+    return { ko: '길성 금성과 목성', en: 'both benefics, Venus and Jupiter,', plural: true }
+  if (v) return { ko: '길성 금성', en: 'the benefic Venus', plural: false }
+  if (j) return { ko: '길성 목성', en: 'the benefic Jupiter', plural: false }
+  return { ko: '길성', en: 'a benefic planet', plural: false }
 }
 
 /** 재물 그릇: 재성 비중(사주) ↔ 2/8하우스·길성(점성). */
 export function evalWealth(
   jaeseongCount: number,
-  wealthHouseCount: number,
-  beneficStrong: boolean
+  /** 2/8하우스 점유 수 — 하우스 미상(placeUnreliable)이면 null. */
+  wealthHouseCount: number | null,
+  beneficStrong: boolean,
+  /** 강조된 길성(금성·목성) — 하우스 대신 행성을 인용할 때 이름을 댄다. */
+  benefics: ReadonlyArray<'Venus' | 'Jupiter'> = []
 ): CrossVerdict | null {
   const sajuWealth = jaeseongCount >= 2
-  const astroWealth = wealthHouseCount > 0 || beneficStrong
+  const wealthHouses = housesLit(wealthHouseCount)
+  const astroWealth = wealthHouses || beneficStrong
   if (!sajuWealth && !astroWealth) return null
+  const b = beneficLabel(benefics)
+  const standsOut = b.plural ? 'stand out' : 'stands out'
   if (sajuWealth && astroWealth)
     return {
       tone: 'resonant',
-      reason: {
-        ko: '타고난 돈 다루는 감각과 별자리의 자원·소유 자리가 둘 다 또렷해요 — 돈을 벌고 굴리는 감각이 양쪽에서 받쳐주는 편이에요. 한탕보다 흐름을 만들면 그 그릇이 꾸준히 커져요.',
-        en: 'Your inborn sense for money and its houses of resources are both strong — a feel for earning and growing money is backed on both sides. Build a steady flow rather than chasing a jackpot, and the capacity keeps growing.',
-      },
+      reason: wealthHouses
+        ? {
+            ko: '타고난 돈 다루는 감각과 별자리의 자원·소유 자리가 둘 다 또렷해요 — 돈을 벌고 굴리는 감각이 양쪽에서 받쳐주는 편이에요. 한탕보다 흐름을 만들면 그 그릇이 꾸준히 커져요.',
+            en: 'Your inborn sense for money and its houses of resources are both strong — a feel for earning and growing money is backed on both sides. Build a steady flow rather than chasing a jackpot, and the capacity keeps growing.',
+          }
+        : {
+            ko: `타고난 돈 다루는 감각이 또렷하고, 별자리에서도 ${b.ko}이 두드러져요 — 돈을 벌고 굴리는 감각이 양쪽에서 받쳐주는 편이에요. 한탕보다 흐름을 만들면 그 그릇이 꾸준히 커져요.`,
+            en: `Your inborn sense for money is strong, and ${b.en} ${standsOut} in your chart too — a feel for earning and growing money is backed on both sides. Build a steady flow rather than chasing a jackpot, and the capacity keeps growing.`,
+          },
     }
   if (sajuWealth)
     return {
@@ -1206,17 +1371,25 @@ export function evalWealth(
     }
   return {
     tone: 'complement',
-    reason: {
-      ko: '사주는 재물에 담담한데 별자리의 자원·소유 자리가 활발해요 — 가진 것을 잘 지키고 불리는 자리예요. 돈을 멀리하기보다 자기만의 기준으로 다루면 안정이 따라와요.',
-      en: "Your Saju is even about wealth, but your chart's houses of resources run active — a placement that keeps and grows what you hold. Rather than avoiding money, handle it on your own terms and stability follows.",
-    },
+    reason: wealthHouses
+      ? {
+          ko: '사주는 재물에 담담한데 별자리의 자원·소유 자리가 활발해요 — 가진 것을 잘 지키고 불리는 자리예요. 돈을 멀리하기보다 자기만의 기준으로 다루면 안정이 따라와요.',
+          en: "Your Saju is even about wealth, but your chart's houses of resources run active — a placement that keeps and grows what you hold. Rather than avoiding money, handle it on your own terms and stability follows.",
+        }
+      : {
+          ko: `사주는 재물에 담담한데 별자리에선 ${b.ko}이 두드러져요 — 가진 것을 잘 지키고 불리는 자리예요. 돈을 멀리하기보다 자기만의 기준으로 다루면 안정이 따라와요.`,
+          en: `Your Saju is even about wealth, but ${b.en} ${standsOut} in your chart — a placement that keeps and grows what you hold. Rather than avoiding money, handle it on your own terms and stability follows.`,
+        },
   }
 }
 
-/** 음양 리듬: 일간 음양(陽발산·외향 / 陰수용·내향) ↔ 출생 sect(주간=바깥 무대 / 야간=안 무대). */
+/**
+ * 음양 리듬: 일간 음양(陽발산·외향 / 陰수용·내향) ↔ 출생 sect(주간=바깥 무대 / 야간=안 무대).
+ * 섹트를 정할 수 없으면(null/undefined — 출생시각 미상 등, OD-5) 판정 없음(null) — 행이 빠진다.
+ */
 export function evalYinYang(
   dayMasterYy: string | undefined,
-  sect: string | undefined
+  sect: string | null | undefined
 ): CrossVerdict | null {
   const yy = dayMasterYy === '陽' ? 'yang' : dayMasterYy === '陰' ? 'yin' : undefined
   const s = sect === 'day' ? 'day' : sect === 'night' ? 'night' : undefined
@@ -1260,18 +1433,25 @@ export function evalYinYang(
 export function evalExpression(
   siksangCount: number,
   mercuryStrong: boolean,
-  exprHouseCount: number
+  /** 3/5하우스 점유 수 — 하우스 미상(placeUnreliable)이면 null. */
+  exprHouseCount: number | null
 ): CrossVerdict | null {
   const sajuExpr = siksangCount >= 2
-  const astroExpr = mercuryStrong || exprHouseCount > 0
+  const exprHouses = housesLit(exprHouseCount)
+  const astroExpr = mercuryStrong || exprHouses
   if (!sajuExpr && !astroExpr) return null
   if (sajuExpr && astroExpr)
     return {
       tone: 'resonant',
-      reason: {
-        ko: '타고난 표현·창의 기운과 별자리의 소통·표현 자리가 둘 다 또렷해요 — 생각을 밖으로 꺼내 전하는 힘이 양쪽에서 받쳐줘요. 말과 글, 만드는 일로 자기를 드러낼 때 가장 빛나요.',
-        en: 'Your inborn knack for speech and expression and its houses of communication are both strong — the power to voice and share ideas is backed on both sides. You shine brightest expressing yourself through words, writing, or making things.',
-      },
+      reason: exprHouses
+        ? {
+            ko: '타고난 표현·창의 기운과 별자리의 소통·표현 자리가 둘 다 또렷해요 — 생각을 밖으로 꺼내 전하는 힘이 양쪽에서 받쳐줘요. 말과 글, 만드는 일로 자기를 드러낼 때 가장 빛나요.',
+            en: 'Your inborn knack for speech and expression and its houses of communication are both strong — the power to voice and share ideas is backed on both sides. You shine brightest expressing yourself through words, writing, or making things.',
+          }
+        : {
+            ko: '타고난 표현·창의 기운이 또렷하고, 별자리에서도 소통의 별 수성이 두드러져요 — 생각을 밖으로 꺼내 전하는 힘이 양쪽에서 받쳐줘요. 말과 글, 만드는 일로 자기를 드러낼 때 가장 빛나요.',
+            en: 'Your inborn knack for speech and expression is strong, and Mercury, the planet of communication, stands out in your chart too — the power to voice and share ideas is backed on both sides. You shine brightest expressing yourself through words, writing, or making things.',
+          },
     }
   if (sajuExpr)
     return {
@@ -1283,9 +1463,14 @@ export function evalExpression(
     }
   return {
     tone: 'complement',
-    reason: {
-      ko: '사주는 말수가 적은 편인데 별자리의 소통·표현 자리가 활발해요 — 배우고 나누고 연결하는 데 에너지가 많이 흘러요. 꾸준히 쓰고 말하는 습관이 그 재능을 실력으로 굳혀줘요.',
-      en: "Your Saju is the quieter type, but your chart's houses of communication run active — much of your energy flows into learning, sharing, and connecting. A steady habit of writing and talking turns that gift into real skill.",
-    },
+    reason: exprHouses
+      ? {
+          ko: '사주는 말수가 적은 편인데 별자리의 소통·표현 자리가 활발해요 — 배우고 나누고 연결하는 데 에너지가 많이 흘러요. 꾸준히 쓰고 말하는 습관이 그 재능을 실력으로 굳혀줘요.',
+          en: "Your Saju is the quieter type, but your chart's houses of communication run active — much of your energy flows into learning, sharing, and connecting. A steady habit of writing and talking turns that gift into real skill.",
+        }
+      : {
+          ko: '사주는 말수가 적은 편인데 별자리에선 소통의 별 수성이 두드러져요 — 배우고 나누고 연결하는 데 에너지가 많이 흘러요. 꾸준히 쓰고 말하는 습관이 그 재능을 실력으로 굳혀줘요.',
+          en: 'Your Saju is the quieter type, but Mercury, the planet of communication, stands out in your chart — much of your energy flows into learning, sharing, and connecting. A steady habit of writing and talking turns that gift into real skill.',
+        },
   }
 }

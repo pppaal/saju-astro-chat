@@ -4,6 +4,7 @@ import Script from 'next/script'
 import { useEffect } from 'react'
 import { usePathname, useSearchParams } from 'next/navigation'
 import { useConsent } from '@/contexts/ConsentContext'
+import { gaBootstrapScript, sanitizeAnalyticsUrl } from '@/lib/security/analyticsUrl'
 
 type WindowWithGtag = Window & {
   gtag?: (...args: unknown[]) => void
@@ -32,11 +33,16 @@ export function GoogleAnalytics({ gaId, nonce }: { gaId: string; nonce?: string 
 
     const url = pathname + (searchParams?.toString() ? `?${searchParams.toString()}` : '')
 
-    // Send pageview with custom URL
+    // Send pageview — birth-query URLs (?date=&time=&lat=…) must never reach GA, so page_path and
+    // page_location keep only allowlisted query keys (QA-7). gtag('set') makes later events
+    // (web vitals, trackEvent) inherit the sanitized location instead of document.location.
     const gtag = getGtag()
-    if (gtag) {
+    const page = sanitizeAnalyticsUrl(url, window.location.origin)
+    if (gtag && page) {
+      gtag('set', { page_location: page.location, page_path: page.path })
       gtag('config', gaId, {
-        page_path: url,
+        page_path: page.path,
+        page_location: page.location,
       })
     }
   }, [pathname, searchParams, gaId, consentGranted, isGaIdValid])
@@ -75,97 +81,9 @@ export function GoogleAnalytics({ gaId, nonce }: { gaId: string; nonce?: string 
         id="google-analytics"
         strategy="afterInteractive"
         nonce={nonce}
-        dangerouslySetInnerHTML={{
-          __html: `
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('consent', 'update', {
-              ad_storage: 'granted',
-              analytics_storage: 'granted',
-              ad_user_data: 'granted',
-              ad_personalization: 'granted',
-            });
-            gtag('js', new Date());
-
-            gtag('config', '${gaId}', {
-              page_path: window.location.pathname,
-            });
-          `,
-        }}
+        // First config: same allowlist sanitizer, inlined (page_location defaults to the full URL).
+        dangerouslySetInnerHTML={{ __html: gaBootstrapScript(gaId) }}
       />
     </>
   )
-}
-
-// Helper function to track custom events
-const trackEvent = (eventName: string, params?: Record<string, unknown>) => {
-  const gtag = getGtag()
-  if (gtag) {
-    gtag('event', eventName, params)
-  }
-}
-
-// Pre-defined event trackers
-export const analytics = {
-  // User interactions
-  login: () => trackEvent('login'),
-  signup: () => trackEvent('sign_up'),
-  logout: () => trackEvent('logout'),
-
-  // Content engagement
-  likePost: (postId: string) => trackEvent('like_post', { post_id: postId }),
-  unlikePost: (postId: string) => trackEvent('unlike_post', { post_id: postId }),
-  commentPost: (postId: string) => trackEvent('comment', { post_id: postId }),
-  sharePost: (postId: string) => trackEvent('share', { post_id: postId }),
-  bookmarkPost: (postId: string) => trackEvent('bookmark', { post_id: postId }),
-
-  // Reading/Fortune features
-  generateDestinyMap: () => trackEvent('generate_destiny_map'),
-  matrixView: (source: string = 'unknown') => trackEvent('matrix_view', { source }),
-  matrixGenerate: (source: string = 'unknown') => trackEvent('matrix_generate', { source }),
-  matrixPdfDownload: () => trackEvent('matrix_pdf_download'),
-  viewAstrology: () => trackEvent('view_astrology'),
-  drawTarot: (category: string) => trackEvent('draw_tarot', { category }),
-  checkSaju: () => trackEvent('check_saju'),
-
-  // Search and discovery
-  search: (query: string) => trackEvent('search', { search_term: query }),
-  filterCategory: (category: string) => trackEvent('filter_category', { category }),
-
-  // Conversion funnel
-  viewPricing: () => trackEvent('view_pricing'),
-  startTrial: () => trackEvent('begin_checkout'),
-
-  // Free → Premium conversion funnel
-  freeResultView: (source: string = 'destiny-map') =>
-    trackEvent('free_result_view', { source }),
-  premiumCtaClick: (
-    location: string,
-    target: 'comprehensive' | 'themed' | 'pricing' | 'monthly' | 'yearly'
-  ) => trackEvent('premium_cta_click', { location, target }),
-  premiumThemeSelect: (theme: string, period?: string) =>
-    trackEvent('premium_theme_select', { theme, period: period || 'none' }),
-  premiumReportStart: (
-    type: 'comprehensive' | 'themed' | 'monthly' | 'yearly',
-    theme?: string
-  ) => trackEvent('premium_report_start', { type, theme: theme || 'none' }),
-
-  // Purchase events (for GA4 conversion tracking)
-  purchase: (params: { transaction_id: string; value: number; currency: string; plan: string }) =>
-    trackEvent('purchase', {
-      transaction_id: params.transaction_id,
-      value: params.value,
-      currency: params.currency,
-      items: [{ item_name: params.plan, price: params.value }],
-    }),
-
-  subscribe: (plan: string, value: number, currency: string = 'KRW') =>
-    trackEvent('subscribe', { plan, value, currency }),
-
-  cancelSubscription: (plan: string) => trackEvent('cancel_subscription', { plan }),
-
-  // Key conversion points
-  completeReading: (service: string) => trackEvent('complete_reading', { service }),
-
-  signupComplete: () => trackEvent('sign_up_complete'),
 }

@@ -8,23 +8,6 @@ test.describe('Credit Management Flow', () => {
     helpers = new TestHelpers(page)
   })
 
-  test('should display user credit balance', async ({ page }) => {
-    await page.goto('/myjourney', { waitUntil: 'domcontentloaded' })
-
-    // Look for credit display or any myjourney content
-    const bodyText = await page.textContent('body')
-    const hasCredits =
-      bodyText?.includes('크레딧') ||
-      bodyText?.includes('credit') ||
-      bodyText?.includes('포인트') ||
-      bodyText?.includes('myjourney') ||
-      bodyText?.includes('로그인') ||
-      bodyText?.includes('Sign in') ||
-      /\d+\s*(credit|크레딧|point|포인트)/i.test(bodyText || '')
-
-    expect(hasCredits).toBe(true)
-  })
-
   test('should fetch credit balance via API', async ({ page }) => {
     const response = await page.request.get('/api/me/credits', {})
 
@@ -66,27 +49,6 @@ test.describe('Credit Management Flow', () => {
         expect(finalCredits).toBeLessThanOrEqual(initialCredits)
       }
     }
-  })
-
-  test('should show low credit warning', async ({ page }) => {
-    // Mock low credits
-    await helpers.mockCredits(5)
-
-    await page.goto('/myjourney', { waitUntil: 'domcontentloaded' })
-
-    await page.waitForTimeout(2000)
-
-    const bodyText = await page.textContent('body')
-    // Look for any credit-related messaging or page content
-    const hasCreditInfo =
-      bodyText?.includes('크레딧') ||
-      bodyText?.includes('credit') ||
-      bodyText?.includes('충전') ||
-      bodyText?.includes('로그인') ||
-      bodyText?.includes('Sign in') ||
-      bodyText!.length > 100
-
-    expect(hasCreditInfo).toBe(true)
   })
 
   test('should handle zero credits gracefully', async ({ page }) => {
@@ -132,18 +94,17 @@ test.describe('Credit Management Flow', () => {
     expect(hasPricing).toBe(true)
   })
 
-  test('should display different pricing tiers', async ({ page }) => {
+  test('should display the credit pack tiers (SSOT grid, no subscription plans)', async ({
+    page,
+  }) => {
     await page.goto('/pricing', { waitUntil: 'domcontentloaded' })
 
-    await page.waitForTimeout(2000)
-
-    const bodyText = await page.textContent('body')
-    // Check for multiple tiers/plans
-    const hasTiers =
-      (bodyText?.includes('무료') || bodyText?.includes('Free')) &&
-      (bodyText?.includes('프리미엄') || bodyText?.includes('Premium'))
-
-    expect(hasTiers).toBe(true)
+    // 구독 Free/Premium 플랜은 없어졌다 — /pricing 은 pricing.ts 의 크레딧 팩 그리드(starter 제외).
+    for (const pack of ['mini', 'standard', 'plus', 'mega', 'ultimate']) {
+      await expect(page.getByTestId(`buy-pack-${pack}`).filter({ visible: true })).toBeVisible({
+        timeout: 15000,
+      })
+    }
   })
 
   test('should show credit prices and benefits', async ({ page }) => {
@@ -232,39 +193,11 @@ test.describe('Credit Management Flow', () => {
     }
   })
 
-  test('should show premium badge if user is premium', async ({ page }) => {
-    await helpers.mockPremiumUser()
-
-    await page.goto('/myjourney', { waitUntil: 'domcontentloaded' })
-
-    await page.waitForTimeout(2000)
-
-    const bodyText = await page.textContent('body')
-    // Look for premium indicators
-    const hasPremiumIndicator =
-      bodyText?.includes('프리미엄') || bodyText?.includes('Premium') || bodyText?.includes('PRO')
-
-    // Premium badge might not always be visible, so we just check the content
-    expect(typeof hasPremiumIndicator).toBe('boolean')
-  })
-
   test('should handle credit reset cron job', async ({ page }) => {
     const response = await page.request.get('/api/cron/reset-credits', {})
 
     // Cron endpoints usually require authorization
     expect([200, 401, 403]).toContain(response.status())
-  })
-
-  test('should track credit usage history', async ({ page }) => {
-    await page.goto('/myjourney/history', { waitUntil: 'domcontentloaded' })
-
-    await expect(page.locator('body')).toBeVisible()
-
-    const bodyText = await page.textContent('body')
-    const hasHistory =
-      bodyText?.includes('기록') || bodyText?.includes('history') || bodyText?.includes('이력')
-
-    expect(hasHistory).toBe(true)
   })
 
   test('should not charge credits for premium users', async ({ page }) => {
@@ -290,17 +223,6 @@ test.describe('Credit Management Flow', () => {
         expect(finalCredits).toEqual(initialCredits)
       }
     }
-  })
-
-  test('should handle referral credits', async ({ page }) => {
-    await page.goto('/myjourney', { waitUntil: 'domcontentloaded' })
-
-    const bodyText = await page.textContent('body')
-    const hasReferral =
-      bodyText?.includes('추천') || bodyText?.includes('referral') || bodyText?.includes('초대')
-
-    // Referral system might not be visible, just check it exists in content
-    expect(typeof hasReferral).toBe('boolean')
   })
 
   test('should display credit pricing clearly', async ({ page }) => {
@@ -333,35 +255,6 @@ test.describe('Credit Management Flow', () => {
       // Don't actually click it, just verify it exists
       await expect(cancelButton).toBeVisible()
     }
-  })
-
-  test('should show credit expiration if applicable', async ({ page }) => {
-    await page.goto('/myjourney', { waitUntil: 'domcontentloaded' })
-
-    await page.waitForTimeout(2000)
-
-    const bodyText = await page.textContent('body')
-    // Check if credit expiration is mentioned
-    const hasExpiration =
-      bodyText?.includes('만료') || bodyText?.includes('expire') || bodyText?.includes('유효')
-
-    // Not all systems have expiring credits
-    expect(typeof hasExpiration).toBe('boolean')
-  })
-
-  test('should handle Stripe webhook for subscription events', async ({ page }) => {
-    const response = await page.request.post('/api/webhook/stripe', {
-      data: {
-        type: 'customer.subscription.created',
-      },
-      headers: {
-        'stripe-signature': 'test_signature',
-      },
-      timeout: 30000,
-    })
-
-    // Webhook should validate signature - expect 400 for invalid signature
-    expect([200, 400, 401]).toContain(response.status())
   })
 
   test('should prevent negative credit balance', async ({ page }) => {

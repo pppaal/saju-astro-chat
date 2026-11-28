@@ -95,13 +95,6 @@ test.describe('Dark Mode & Theming', () => {
   })
 
   test.describe('Theme on Different Pages', () => {
-    test('should apply theme on saju page', async ({ page }) => {
-      await page.goto('/saju', { waitUntil: 'domcontentloaded' })
-
-      await page.emulateMedia({ colorScheme: 'dark' })
-      await expect(page.locator('body')).toBeVisible()
-    })
-
     test('should apply theme on tarot page', async ({ page }) => {
       await page.goto('/tarot', { waitUntil: 'domcontentloaded' })
 
@@ -109,8 +102,8 @@ test.describe('Dark Mode & Theming', () => {
       await expect(page.locator('body')).toBeVisible()
     })
 
-    test('should apply theme on destiny-map page', async ({ page }) => {
-      await page.goto('/destiny-map', { waitUntil: 'domcontentloaded' })
+    test('should apply theme on destiny-counselor page', async ({ page }) => {
+      await page.goto('/destiny-counselor', { waitUntil: 'domcontentloaded' })
 
       await page.emulateMedia({ colorScheme: 'dark' })
       await expect(page.locator('body')).toBeVisible()
@@ -150,20 +143,6 @@ test.describe('Dark Mode & Theming', () => {
         const styles = await button.evaluate((el) => ({
           bg: window.getComputedStyle(el).backgroundColor,
           color: window.getComputedStyle(el).color,
-        }))
-        expect(styles.bg).not.toBeNull()
-      }
-    })
-
-    test('should style inputs correctly in dark mode', async ({ page }) => {
-      await page.emulateMedia({ colorScheme: 'dark' })
-      await page.goto('/saju', { waitUntil: 'domcontentloaded' })
-
-      const input = page.locator('input').first()
-      if ((await input.count()) > 0) {
-        const styles = await input.evaluate((el) => ({
-          bg: window.getComputedStyle(el).backgroundColor,
-          border: window.getComputedStyle(el).borderColor,
         }))
         expect(styles.bg).not.toBeNull()
       }

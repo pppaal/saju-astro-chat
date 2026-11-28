@@ -1,5 +1,6 @@
 import {
   buildLifecycleTiming,
+  firstSentence,
   type LifecycleMilestoneOverride,
 } from '@/lib/calendar-engine/lifecycle/astroLifecycle'
 import type { NatalContext } from '../context/types'
@@ -7,6 +8,11 @@ import { currentManAge } from '@/lib/datetime/currentAge'
 import { STEMS } from '@/lib/saju/constants'
 import { getSibseong } from '@/lib/saju/core/sibsin'
 import { ganjiToKorean, ganjiToRoman } from '@/lib/saju/ganjiKo'
+import {
+  MILESTONE_BODY,
+  natalHouseOf,
+  personalizeMilestoneMeaning,
+} from '@/lib/report/milestoneHouse'
 
 /**
  * 십신(十神) → 대운 한 줄 의미(ko/en). 점성 마일스톤이 meaning 을 들고 오듯,
@@ -112,6 +118,9 @@ export interface LifePivot {
   meaning?: string // 점성 마일스톤 한 줄 의미(KO)
   /** 한 줄 의미 영문 — 미지정 시 클라이언트가 meaning 으로 폴백. */
   meaningEn?: string
+  /** 의미의 첫 문장(마디 정의 그대로 — 하우스 개인화 꼬리 없음). 화면이 단독 인용. */
+  meaningCore?: string
+  meaningCoreEn?: string
   bothSystems: boolean // 점성·사주가 같은 시기 (진짜 큰 전환)
   phase: 'past' | 'current' | 'upcoming'
 }
@@ -159,32 +168,60 @@ export function deriveLifetimePivots(
         ? 'upcoming'
         : 'current'
 
-  // 점성 라이프사이클 마일스톤 (출생~90세) — 이름 있는 핵심 전환들, 절대 누락 금지.
-  // ko/en 두 번 산출해 병행 baked(같은 TABLE 순서라 인덱스로 1:1 zip).
-  const astroKoEvents = buildLifecycleTiming(
-    birthYear,
-    birthYear + 90,
-    true,
-    astroMilestoneOverrides,
-    now
-  ).events
-  const astroEnEvents = buildLifecycleTiming(
-    birthYear,
-    birthYear + 90,
-    false,
-    astroMilestoneOverrides,
-    now
-  ).events
-  const astroEvents = astroKoEvents.map((e, i) => ({
-    // 만 나이 SSOT — LifecycleEntry.age(실측/테이블 만 나이). 옛 `startYear −
-    // birthYear`(달력 나이)는 연말 출생자를 생일 전 +1 살 어긋나게 했다(감사 F2).
-    age: e.age,
-    year: e.startYear,
-    label: e.label, // ko
-    labelEn: astroEnEvents[i]?.label ?? e.label,
-    meaning: e.meaning, // ko
-    meaningEn: astroEnEvents[i]?.meaning,
-  }))
+  // 점성 라이프사이클 마일스톤 (출생~90세) — 이름 있는 핵심 전환들. 실측 순간
+  // (calculateOuterPlanetMilestones)이 있는 마디만 싣는다: 평균 나이표 값은 사실이
+  // 아니라 쓰지 않는다(G6 — 예전엔 실측이 없으면 '명왕성 사각 36세'를 표에서 채웠다).
+  // ko/en 두 번 산출해 병행 baked(같은 TABLE 순서·같은 실측 집합이라 인덱스로 1:1 zip).
+  const astroKoEvents = buildLifecycleTiming(astroMilestoneOverrides, {
+    endYear: birthYear + 90,
+    isKo: true,
+    now,
+  }).events
+  const astroEnEvents = buildLifecycleTiming(astroMilestoneOverrides, {
+    endYear: birthYear + 90,
+    isKo: false,
+    now,
+  }).events
+  // 마디 뜻풀이 개인화 — 회귀는 본명에서 그 행성이 있는 하우스에서 일어나므로,
+  // 그 하우스를 붙이면 "누구나 같은 문장"이 그 사람 문장이 된다(실측: 인생총흐름
+  // 문장의 48%가 전원 공통이었고 그 절반이 이 마디 텍스트였다). 하우스를 못 읽으면
+  // 원문 그대로 — 없는 정보를 지어내지 않는다.
+  // 카이런은 chart.planets 가 아니라 extraPoints 에 있다 — 둘을 합쳐 봐야
+  // 카이런 회귀(50세)도 개인화된다(안 합치면 그 마디만 전원 공통으로 남는다).
+  const astroAny = natal.astro as
+    | {
+        chart?: { planets?: Array<{ name?: string; house?: number }> }
+        extraPoints?: Array<{ name?: string; house?: number }>
+      }
+    | undefined
+  const natalPlanets = [...(astroAny?.chart?.planets ?? []), ...(astroAny?.extraPoints ?? [])]
+  // 출생시각/출생지 미상(placeUnreliable)이면 하우스는 정오 앵커·기본 좌표 폴백이라
+  // 못 읽은 것으로 본다 — 원문 그대로(엔진 감사 F1, CONVENTIONS §5).
+  const placeUnreliable = natal.astro?.placeUnreliable === true
+  const houseFor = (kind: string): number | null => {
+    const body = MILESTONE_BODY[kind]
+    return body && !placeUnreliable ? natalHouseOf(natalPlanets, body) : null
+  }
+  const astroEvents = astroKoEvents.map((e, i) => {
+    const h = houseFor(e.event)
+    return {
+      // 만 나이 SSOT — LifecycleEntry.age(실측/테이블 만 나이). 옛 `startYear −
+      // birthYear`(달력 나이)는 연말 출생자를 생일 전 +1 살 어긋나게 했다(감사 F2).
+      age: e.age,
+      year: e.startYear,
+      label: e.label, // ko
+      labelEn: astroEnEvents[i]?.label ?? e.label,
+      meaning: personalizeMilestoneMeaning(e.event, h, e.meaning, true), // ko
+      meaningEn: personalizeMilestoneMeaning(
+        e.event,
+        h,
+        astroEnEvents[i]?.meaning ?? e.meaning,
+        false
+      ),
+      meaningCore: e.meaningCore,
+      meaningCoreEn: astroEnEvents[i]?.meaningCore ?? e.meaningCore,
+    }
+  })
 
   // 사주 대운 전환점 — ko/en 라벨 + 십신 한 줄 의미 모두 baked.
   const dayMaster = natal.saju?.dayMaster
@@ -196,10 +233,13 @@ export function deriveLifetimePivots(
       label: `${ganjiToKorean(`${d.stem}${d.branch}`)} 대운`,
       labelEn: `${ganjiToRoman(d.stem, d.branch)} luck cycle`,
       // 십신을 못 풀어도(최소 fixture·미상 글자) novice 표면 제목이 raw 干支 라벨로
-      // 새지 않도록 평이 폴백을 보장한다 — 클라이언트는 meaning 이 비면 label(干支)을
-      // 제목으로 쓰기 때문(LifetimeTier mMeaning). 干支 원명은 hover tag 로만 남는다.
+      // 새지 않도록 평이 폴백을 보장한다 — 인생 흐름의 '다음 인생 전환' 줄(assembleLifetime →
+      // lifetimeViewModel.nextTurn)은 meaningCore 가 비면 meaning, 그다음 label 을 쓴다.
+      // 干支 읽기는 label('○○ 대운')로 따로 실린다.
       meaning: m?.ko ?? GENERIC_DAEUN_MEANING.ko,
       meaningEn: m?.en ?? GENERIC_DAEUN_MEANING.en,
+      meaningCore: firstSentence(m?.ko ?? GENERIC_DAEUN_MEANING.ko),
+      meaningCoreEn: firstSentence(m?.en ?? GENERIC_DAEUN_MEANING.en),
     }
   })
 
@@ -228,6 +268,8 @@ export function deriveLifetimePivots(
       saju: matched?.label,
       meaning: a.meaning,
       meaningEn: a.meaningEn,
+      meaningCore: a.meaningCore,
+      meaningCoreEn: a.meaningCoreEn,
       bothSystems: Boolean(matched),
       phase: phaseOf(a.age),
     }
@@ -250,6 +292,8 @@ export function deriveLifetimePivots(
       saju: d.label,
       meaning: d.meaning, // 십신 한 줄 의미 — 빈 라벨 방지
       meaningEn: d.meaningEn,
+      meaningCore: d.meaningCore,
+      meaningCoreEn: d.meaningCoreEn,
       bothSystems: false,
       phase: phaseOf(d.age),
     })

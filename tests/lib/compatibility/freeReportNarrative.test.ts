@@ -354,6 +354,24 @@ describe('buildFreeCompatNarrative', () => {
     expect(view.glossary.length).toBeGreaterThan(5)
   })
 
+  it('glossary explains 원진 in both languages, same meaning as the 원진 pillar blurb (G13)', () => {
+    const bare: CompatReport = {
+      synView: null,
+      dayMaster: null,
+      spouseStars: [],
+      pillarRelations: [],
+    }
+    const ko = buildFreeCompatNarrative(bare, { labelA: 'A', labelB: 'B', lang: 'ko' })
+    const en = buildFreeCompatNarrative(bare, { labelA: 'A', labelB: 'B', lang: 'en' })
+    const koEntry = ko.glossary.find((g) => g.term.includes('원진'))
+    const enEntry = en.glossary.find((g) => /Wonjin/.test(g.term))
+    expect(koEntry?.body).toMatch(/서운함/)
+    expect(koEntry?.body).toMatch(/일지/)
+    expect(enEntry?.body).toMatch(/resentment/)
+    expect(enEntry?.body).toMatch(/spouse seat/)
+    expect(enEntry?.body).not.toMatch(/[가-힣]/)
+  })
+
   it('exposes score drivers — what lifted vs weighed the headline score', () => {
     const view = buildFreeCompatNarrative(fullReport(), {
       labelA: '준영',

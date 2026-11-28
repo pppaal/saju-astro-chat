@@ -1,5 +1,11 @@
 import { STEMS, ELEMENT_KO_TO_EN } from '@/lib/saju/constants'
-import { getYearPillarForDate, getMonthPillarForDate } from '@/lib/saju/datePillars'
+import {
+  calendarTimeZone,
+  daeunAnniversaryIso,
+  daeunWindows,
+  monthWindows,
+  yearWindows,
+} from '../periodPillars'
 import type { ActiveSignal, ExtractorContext, SignalExtractor, Polarity } from '../types'
 import type { FiveElement } from '@/lib/saju/types'
 
@@ -19,33 +25,30 @@ const sajuYongsinExtractor: SignalExtractor = {
   extract(ctx: ExtractorContext): ActiveSignal[] {
     const { natal, range } = ctx
     const yongsin = natal.saju.yongsin
-    const rangeStart = new Date(range.start)
-    const rangeEnd = new Date(range.end)
     const signals: ActiveSignal[] = []
+    // 창은 periodPillars 하나(재감사 G2 · TP-7) — 대운은 만 나이 생일 경계(예전엔 1/1 이라
+    // 생일 전 최대 11개월을 다음 대운으로 불렀다), 세운은 입춘이 든 현지 날(예전엔 2/4
+    // 00:00Z 고정), 월운은 절기월(예전엔 양력 달에 15일의 절기월, TP-2).
+    const tz = calendarTimeZone(natal)
 
     // ─── 대운 ───
-    for (const d of natal.saju.daeun) {
-      const stemInfo = STEMS.find((s) => s.name === d.stem)
+    for (const w of daeunWindows(natal, range)) {
+      const stemInfo = STEMS.find((s) => s.name === w.stem)
       if (!stemInfo) continue
       const element = stemInfo.element as FiveElement
       const verdict = classify(element, yongsin)
       if (!verdict) continue
 
-      const startIso = new Date(Date.UTC(d.startYear, 0, 1)).toISOString()
-      const endIso = new Date(Date.UTC(d.startYear + 10, 0, 0, 23, 59, 59)).toISOString()
-      if (new Date(endIso) < rangeStart || new Date(startIso) > rangeEnd) continue
-      const peakIso = new Date(Date.UTC(d.startYear + 5, 0, 1)).toISOString()
-
       signals.push(
         buildSignal({
-          idSuffix: `daeun.${d.startYear}.${d.stem}.${verdict.kind}`,
-          name: `${verdict.label} — ${d.stem}${d.branch} 대운`,
+          idSuffix: `daeun.${w.startYear}.${w.stem}.${verdict.kind}`,
+          name: `${verdict.label} — ${w.stem}${w.branch} 대운`,
           polarity: verdict.polarity,
           layer: 'decadal',
           weight: 0.95,
-          startIso,
-          peakIso,
-          endIso,
+          startIso: w.start,
+          peakIso: daeunAnniversaryIso(w, 5),
+          endIso: w.end,
           element,
           verdict: verdict.kind,
           yongsinPrimary: yongsin.primary,
@@ -54,30 +57,23 @@ const sajuYongsinExtractor: SignalExtractor = {
     }
 
     // ─── 세운 ───
-    const startYear = rangeStart.getUTCFullYear()
-    const endYear = rangeEnd.getUTCFullYear()
-    for (let year = startYear; year <= endYear; year++) {
-      const yp = getYearPillarForDate(new Date(Date.UTC(year, 6, 1)))
-      const stemInfo = STEMS.find((s) => s.name === yp.stem)
+    for (const w of yearWindows(range, tz)) {
+      const stemInfo = STEMS.find((s) => s.name === w.stem)
       if (!stemInfo) continue
       const element = stemInfo.element as FiveElement
       const verdict = classify(element, yongsin)
       if (!verdict) continue
 
-      const yStart = new Date(Date.UTC(year, 1, 4)).toISOString()
-      const yEnd = new Date(Date.UTC(year + 1, 1, 3, 23, 59, 59)).toISOString()
-      const yPeak = new Date(Date.UTC(year, 6, 1)).toISOString()
-
       signals.push(
         buildSignal({
-          idSuffix: `seun.${year}.${yp.stem}.${verdict.kind}`,
-          name: `${verdict.label} — ${yp.stem}${yp.branch} 세운`,
+          idSuffix: `seun.${w.sajuYear}.${w.stem}.${verdict.kind}`,
+          name: `${verdict.label} — ${w.stem}${w.branch} 세운`,
           polarity: verdict.polarity,
           layer: 'yearly',
           weight: 0.8,
-          startIso: yStart,
-          peakIso: yPeak,
-          endIso: yEnd,
+          startIso: w.start,
+          peakIso: w.peak,
+          endIso: w.end,
           element,
           verdict: verdict.kind,
           yongsinPrimary: yongsin.primary,
@@ -86,46 +82,28 @@ const sajuYongsinExtractor: SignalExtractor = {
     }
 
     // ─── 월운 ───
-    const monthCursor = new Date(Date.UTC(rangeStart.getUTCFullYear(), rangeStart.getUTCMonth(), 1))
-    while (monthCursor <= rangeEnd) {
-      // 월주는 *그 달 중순(15일)* 기준 — 1일은 절입(節, ~4~8일) 직전이라 전월
-      // 절기달이 잡혀 한 달 내내 한 칸 밀린 월지로 점수가 났다(saju-johu-yongsin·
-      // saju-pillar 와 동일 보정).
-      const midMonth = new Date(
-        Date.UTC(monthCursor.getUTCFullYear(), monthCursor.getUTCMonth(), 15)
-      )
-      const mp = getMonthPillarForDate(midMonth)
-      const stemInfo = STEMS.find((s) => s.name === mp.stem)
-      if (stemInfo) {
-        const element = stemInfo.element as FiveElement
-        const verdict = classify(element, yongsin)
-        if (verdict) {
-          const mStart = monthCursor.toISOString()
-          const mEnd = new Date(
-            Date.UTC(monthCursor.getUTCFullYear(), monthCursor.getUTCMonth() + 1, 0, 23, 59, 59)
-          ).toISOString()
-          const mPeak = new Date(
-            Date.UTC(monthCursor.getUTCFullYear(), monthCursor.getUTCMonth(), 15)
-          ).toISOString()
+    for (const w of monthWindows(range, tz)) {
+      const stemInfo = STEMS.find((s) => s.name === w.stem)
+      if (!stemInfo) continue
+      const element = stemInfo.element as FiveElement
+      const verdict = classify(element, yongsin)
+      if (!verdict) continue
 
-          signals.push(
-            buildSignal({
-              idSuffix: `wolun.${monthCursor.getUTCFullYear()}-${monthCursor.getUTCMonth() + 1}.${mp.stem}.${verdict.kind}`,
-              name: `${verdict.label} — ${mp.stem}${mp.branch} 월운`,
-              polarity: verdict.polarity,
-              layer: 'monthly',
-              weight: 0.6,
-              startIso: mStart,
-              peakIso: mPeak,
-              endIso: mEnd,
-              element,
-              verdict: verdict.kind,
-              yongsinPrimary: yongsin.primary,
-            })
-          )
-        }
-      }
-      monthCursor.setUTCMonth(monthCursor.getUTCMonth() + 1)
+      signals.push(
+        buildSignal({
+          idSuffix: `wolun.${w.startDate}.${w.stem}.${verdict.kind}`,
+          name: `${verdict.label} — ${w.stem}${w.branch} 월운`,
+          polarity: verdict.polarity,
+          layer: 'monthly',
+          weight: 0.6,
+          startIso: w.start,
+          peakIso: w.peak,
+          endIso: w.end,
+          element,
+          verdict: verdict.kind,
+          yongsinPrimary: yongsin.primary,
+        })
+      )
     }
 
     return signals

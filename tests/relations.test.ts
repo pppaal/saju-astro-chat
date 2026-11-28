@@ -61,7 +61,8 @@ describe('DEFAULT_RELATION_OPTIONS', () => {
     expect(DEFAULT_RELATION_OPTIONS.includeEarthly).toBe(true)
     expect(DEFAULT_RELATION_OPTIONS.includeGongmang).toBe(true)
     expect(DEFAULT_RELATION_OPTIONS.gongmangPolicy).toBe('dayPillar-60jiazi')
-    expect(DEFAULT_RELATION_OPTIONS.heavenlyClashMode).toBe('5')
+    // 엔진 공통 천간충 모드(STEM_CLASH_MODE) — 4쌍 (SD-11)
+    expect(DEFAULT_RELATION_OPTIONS.heavenlyClashMode).toBe('4')
   })
 })
 

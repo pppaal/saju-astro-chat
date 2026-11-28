@@ -1,7 +1,7 @@
 /**
  * /api/cron/daily-fortune — "매일 아침 오늘의 운세 한 줄" 웹 푸시 발송.
  *
- * 보안은 reset-credits 와 동일: IP 레이트리밋(5/min) → timing-safe
+ * 보안은 다른 cron 과 동일(withCronAuth): IP 레이트리밋(5/min) → timing-safe
  * CRON_SECRET 검증. VAPID 미설정이면 503 'not_configured' (throw 금지).
  *
  * 동작:
@@ -20,12 +20,11 @@ import { prisma } from '@/lib/db/prisma'
 import { logger } from '@/lib/logger'
 import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
 import { extractLocale } from '@/lib/api/middleware'
-import { rateLimit } from '@/lib/rateLimit'
-import { getClientIp } from '@/lib/request-ip'
-import { timingSafeCompare } from '@/lib/security/timingSafe'
+import { withCronAuth } from '@/lib/api/middleware/cronGuard'
 import { getWebPush } from '@/lib/push/webPush'
 import { buildDailyFortuneMessage } from '@/lib/push/dailyFortuneMessage'
 import { getNowInTimezone } from '@/lib/datetime/timezone'
+import { resolveViewerTimezone } from '@/lib/datetime/resolveTimezone'
 
 export const dynamic = 'force-dynamic'
 
@@ -37,40 +36,8 @@ const MAX_FAIL_COUNT = 5
 // 푸시 TTL — 아침 알림이라 12시간 지나면 의미 없음.
 const PUSH_TTL_SECONDS = 12 * 60 * 60
 
-function validateCronSecret(request: Request): boolean {
-  const authHeader = request.headers.get('authorization')
-  const cronSecret = process.env.CRON_SECRET
-
-  if (!cronSecret) {
-    logger.error('[Cron daily-fortune] CRON_SECRET not set - rejecting request')
-    return false
-  }
-
-  return timingSafeCompare(authHeader ?? '', `Bearer ${cronSecret}`)
-}
-
-export async function GET(request: Request) {
+async function handle(request: Request): Promise<NextResponse> {
   try {
-    // 시크릿 brute-force 방지 — IP 당 분당 5회 (인증 전 단계라
-    // withApiMiddleware 가드 미사용 라우트).
-    const ip = getClientIp(request.headers)
-    const rl = await rateLimit(`cron:daily-fortune:${ip}`, { limit: 5, windowSeconds: 60 })
-    if (!rl.allowed) {
-      return createErrorResponse({
-        code: ErrorCodes.RATE_LIMITED,
-        locale: extractLocale(request),
-        route: 'cron/daily-fortune',
-      })
-    }
-
-    if (!validateCronSecret(request)) {
-      return createErrorResponse({
-        code: ErrorCodes.UNAUTHORIZED,
-        locale: extractLocale(request),
-        route: 'cron/daily-fortune',
-      })
-    }
-
     const webpush = getWebPush()
     if (!webpush) {
       // VAPID env 미설정 — 기능 비활성. 빌드/기동은 깨지지 않고 cron 만 503.
@@ -110,7 +77,12 @@ export async function GET(request: Request) {
           // 07:00)에 돌므로 `now`(UTC 달력)를 그대로 주면 어제 일진으로 작성돼
           // 웹 캘린더(getNowInTimezone 기준)와 다른 날을 설명한다(감사 #4).
           // keyday 푸시(keyDay.ts)와 같은 기준으로 정렬.
-          const tz = sub.user?.profile?.tzId || 'Asia/Seoul'
+          // 수신자 기기 tz 는 저장돼 있지 않다 — 보는 사람 resolver 가 출생 tz(profile.tzId)
+          // → 사주 기준 존 순으로 고른다.
+          const tz = resolveViewerTimezone(
+            { birth: { timezone: sub.user?.profile?.tzId } },
+            { context: 'cron/daily-fortune' }
+          )
           const t = getNowInTimezone(tz)
           const message = buildDailyFortuneMessage({
             birthDate: sub.user?.profile?.birthDate ?? null,
@@ -186,7 +158,6 @@ export async function GET(request: Request) {
   }
 }
 
+export const GET = withCronAuth('daily-fortune', handle)
 // 일부 cron 서비스는 POST 만 지원.
-export async function POST(request: Request) {
-  return GET(request)
-}
+export const POST = GET

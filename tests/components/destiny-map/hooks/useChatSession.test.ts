@@ -1,9 +1,6 @@
 /**
  * useChatSession Hook Tests
  * 채팅 세션 상태/지속성(목록 로드, 로드/삭제/리네임, 새 채팅) 훅 테스트
- *
- * NOTE: useChatSession is @deprecated in favor of useChatSession.unified, but
- * still exercised here for coverage of the remaining behaviour.
  */
 
 import { vi, describe, it, expect, beforeEach } from 'vitest'

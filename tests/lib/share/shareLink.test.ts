@@ -1,0 +1,235 @@
+import { describe, it, expect, beforeEach, vi } from 'vitest'
+
+const mockCacheGet = vi.fn()
+const mockCacheSet = vi.fn()
+
+vi.mock('@/lib/cache/redis-cache', () => ({
+  cacheGet: (...args: unknown[]) => mockCacheGet(...args),
+  cacheSet: (...args: unknown[]) => mockCacheSet(...args),
+}))
+
+vi.mock('@/lib/logger', () => ({
+  logger: { info: vi.fn(), warn: vi.fn(), error: vi.fn(), debug: vi.fn() },
+}))
+
+import {
+  createShareLink,
+  getShareLink,
+  SHARE_TTL_SECONDS,
+  isDayShare,
+  isLifeShare,
+  isCalendarShare,
+  isCompatShare,
+  type ShareLinkPayload,
+  type DayShareLinkPayload,
+  type LifeShareLinkPayload,
+} from '@/lib/share/shareLink'
+
+const makePayload = (over: Partial<ShareLinkPayload> = {}): ShareLinkPayload => ({
+  v: 1,
+  isKo: true,
+  question: '연애운이 궁금해요',
+  spreadTitle: '쓰리카드',
+  cards: [{ name: 'The Sun', image: '/sun.png', isReversed: false }],
+  keyMessage: '밝은 흐름이 옵니다.',
+  ...over,
+})
+
+describe('share link store', () => {
+  beforeEach(() => {
+    mockCacheGet.mockReset()
+    mockCacheSet.mockReset()
+  })
+
+  describe('createShareLink', () => {
+    it('성공 시 토큰(base64url) 반환 + TTL 로 cacheSet', async () => {
+      mockCacheSet.mockResolvedValue(true)
+      const token = await createShareLink(makePayload())
+      expect(token).toBeTruthy()
+      expect(typeof token).toBe('string')
+      // base64url: A-Z a-z 0-9 - _ 만, 패딩 없음
+      expect(token).toMatch(/^[A-Za-z0-9_-]+$/)
+      expect(mockCacheSet).toHaveBeenCalledTimes(1)
+      const [key, payload, ttl] = mockCacheSet.mock.calls[0]
+      expect(key).toBe(`tarot:share:${token}`)
+      expect(payload).toEqual(makePayload())
+      expect(ttl).toBe(SHARE_TTL_SECONDS)
+    })
+
+    it('매번 다른 토큰 생성', async () => {
+      mockCacheSet.mockResolvedValue(true)
+      const a = await createShareLink(makePayload())
+      const b = await createShareLink(makePayload())
+      expect(a).not.toBe(b)
+    })
+
+    it('cacheSet 실패 시 null', async () => {
+      mockCacheSet.mockResolvedValue(false)
+      const token = await createShareLink(makePayload())
+      expect(token).toBeNull()
+    })
+  })
+
+  describe('getShareLink', () => {
+    it('정상 페이로드 반환', async () => {
+      const payload = makePayload()
+      mockCacheGet.mockResolvedValue(payload)
+      const result = await getShareLink('abc123')
+      expect(result).toEqual(payload)
+      expect(mockCacheGet).toHaveBeenCalledWith('tarot:share:abc123')
+    })
+
+    it('토큰 trim 후 조회', async () => {
+      mockCacheGet.mockResolvedValue(makePayload())
+      await getShareLink('  spaced  ')
+      expect(mockCacheGet).toHaveBeenCalledWith('tarot:share:spaced')
+    })
+
+    it('빈 토큰 → null (cache 조회 안 함)', async () => {
+      expect(await getShareLink('')).toBeNull()
+      expect(await getShareLink('   ')).toBeNull()
+      // @ts-expect-error null 입력 안전 처리 확인
+      expect(await getShareLink(null)).toBeNull()
+      expect(mockCacheGet).not.toHaveBeenCalled()
+    })
+
+    it('캐시 miss(null) → null', async () => {
+      mockCacheGet.mockResolvedValue(null)
+      expect(await getShareLink('tok')).toBeNull()
+    })
+
+    it('버전 불일치(v !== 1) → null', async () => {
+      mockCacheGet.mockResolvedValue({ ...makePayload(), v: 2 })
+      expect(await getShareLink('tok')).toBeNull()
+    })
+
+    it('cards 가 배열이 아니면 → null', async () => {
+      mockCacheGet.mockResolvedValue({ ...makePayload(), cards: 'nope' })
+      expect(await getShareLink('tok')).toBeNull()
+    })
+
+    it('cacheGet throw → null (catch 경로)', async () => {
+      mockCacheGet.mockRejectedValue(new Error('redis down'))
+      expect(await getShareLink('tok')).toBeNull()
+    })
+  })
+
+  describe('create → get 라운드트립 (인메모리 캐시 모킹)', () => {
+    it('저장한 페이로드를 토큰으로 그대로 회수', async () => {
+      const store = new Map<string, unknown>()
+      mockCacheSet.mockImplementation(async (k: string, v: unknown) => {
+        store.set(k, v)
+        return true
+      })
+      mockCacheGet.mockImplementation(async (k: string) => store.get(k) ?? null)
+
+      const payload = makePayload({ body: '추가 본문' })
+      const token = await createShareLink(payload)
+      expect(token).toBeTruthy()
+      const fetched = await getShareLink(token as string)
+      expect(fetched).toEqual(payload)
+    })
+  })
+
+  describe('compat 공유 — 옵트인 inviter(2-player 프리필)', () => {
+    const withInviter: ShareLinkPayload = {
+      v: 1,
+      kind: 'compatibility',
+      isKo: true,
+      nameA: '지민',
+      nameB: '서연',
+      verdict: '불 같은 끌림이지만 고집이 부딪쳐요.',
+      verdictTone: 'mixed',
+      inviter: {
+        name: '지민',
+        birthDate: '1992-03-14',
+        birthTime: '08:20',
+        gender: 'female',
+        city: 'Seoul',
+        lat: 37.5665,
+        lon: 126.978,
+        tz: 'Asia/Seoul',
+      },
+    }
+
+    it('inviter 포함 페이로드를 그대로 라운드트립(프리필 데이터 보존)', async () => {
+      const store = new Map<string, unknown>()
+      mockCacheSet.mockImplementation(async (k: string, v: unknown) => {
+        store.set(k, v)
+        return true
+      })
+      mockCacheGet.mockImplementation(async (k: string) => store.get(k) ?? null)
+      const token = await createShareLink(withInviter)
+      const fetched = await getShareLink(token as string)
+      expect(fetched).toEqual(withInviter)
+      expect(fetched && isCompatShare(fetched) && fetched.inviter?.birthDate).toBe('1992-03-14')
+    })
+
+    it('옵트인 안 한 공유는 inviter 가 없다(생일 미노출)', async () => {
+      const noInviter = { ...withInviter }
+      delete (noInviter as { inviter?: unknown }).inviter
+      mockCacheGet.mockResolvedValue(noInviter)
+      const fetched = await getShareLink('tok')
+      expect(fetched && isCompatShare(fetched) && fetched.inviter).toBeUndefined()
+    })
+  })
+
+  it('SHARE_TTL_SECONDS 는 90일', () => {
+    expect(SHARE_TTL_SECONDS).toBe(90 * 24 * 60 * 60)
+  })
+
+  describe('day / life 공유 kind (cards 없음)', () => {
+    const dayPayload: DayShareLinkPayload = {
+      v: 1,
+      kind: 'day',
+      isKo: true,
+      dateLabel: '6월 15일 토',
+      score: 87,
+      tone: 'positive',
+      headline: '먼저 움직이면 풀리는 하루.',
+      subline: '받쳐주는 흐름이 같이 와요.',
+      curve: [40, 55, 60, 87, 70, 65],
+      markerIndex: 3,
+    }
+    const lifePayload: LifeShareLinkPayload = {
+      v: 1,
+      kind: 'life',
+      isKo: true,
+      rangeLabel: '1994–2078',
+      headline: '마흔에 판이 한 번 뒤집힌다.',
+      curve: [30, 45, 40, 70, 88, 60],
+      axisLabels: ['1994', '2022', '2050', '2078'],
+      markerIndex: 2,
+      peakIndex: 4,
+    }
+
+    it('day 페이로드는 cards 없이도 라운드트립', async () => {
+      const store = new Map<string, unknown>()
+      mockCacheSet.mockImplementation(async (k: string, v: unknown) => {
+        store.set(k, v)
+        return true
+      })
+      mockCacheGet.mockImplementation(async (k: string) => store.get(k) ?? null)
+      const token = await createShareLink(dayPayload)
+      const fetched = await getShareLink(token as string)
+      expect(fetched).toEqual(dayPayload)
+      expect(fetched && isDayShare(fetched)).toBe(true)
+    })
+
+    it('life 페이로드는 cards 없이도 라운드트립', async () => {
+      mockCacheGet.mockResolvedValue(lifePayload)
+      const fetched = await getShareLink('tok')
+      expect(fetched).toEqual(lifePayload)
+      expect(fetched && isLifeShare(fetched)).toBe(true)
+    })
+
+    it('타입 가드는 서로 배타적', () => {
+      expect(isDayShare(dayPayload)).toBe(true)
+      expect(isLifeShare(dayPayload)).toBe(false)
+      expect(isCalendarShare(dayPayload)).toBe(false)
+      expect(isCompatShare(dayPayload)).toBe(false)
+      expect(isLifeShare(lifePayload)).toBe(true)
+      expect(isDayShare(lifePayload)).toBe(false)
+    })
+  })
+})

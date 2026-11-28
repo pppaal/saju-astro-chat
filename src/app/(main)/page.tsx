@@ -1,10 +1,17 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
+import { headers } from 'next/headers'
 import MainPageClient from './MainPageClient'
-import { getServerI18n } from '@/i18n/server'
+import { buildHomeDial } from './home/homeDial'
+import { detectServerLocale } from '@/i18n/server'
 import { generateJsonLd, generateLocalizedMetadata, getServerLocale } from '@/components/seo/SEO'
 import { JsonLd } from '@/components/seo/JsonLd'
+import V9Root from '@/components/v9/server/V9Root'
+import { recordCounter } from '@/lib/metrics'
 
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://destinypal.com'
+
+// v9 paper — 브라우저 UI(주소창·상태 막대)도 종이 색.
+export const viewport: Viewport = { themeColor: '#F3EFE7' }
 
 export async function generateMetadata({
   searchParams,
@@ -20,30 +27,31 @@ export async function generateMetadata({
 
   const enKeywords = [
     'DestinyPal',
-    'ai saju',
     'saju reading',
+    'saju card',
     'four pillars of destiny',
-    'ai astrology',
-    'natal chart reading',
-    'ai tarot reading',
-    'horoscope today',
+    'korean astrology',
+    'natal chart',
+    'saju and astrology',
+    'tarot reading',
     'compatibility test',
-    'synastry chart',
     'fortune calendar',
-    'ai life counselor',
+    'destiny counselor',
   ]
 
+  // 문구 원칙: 판단(사주·별자리 계산과 교차 검증)은 엔진이 하고, 말은 상담사에서만 AI 가 한다.
+  // 'AI 가 사주를 풀어 준다' 류 표현을 쓰지 않는다. meta description 은 155자 이하(검색 스니펫 잘림, e2e/seo.spec).
   const en = isReferral
     ? {
-        title: 'Join me on DestinyPal — AI Korean Astrology & Tarot',
+        title: 'Join me on DestinyPal — your free Saju Card',
         description:
-          "I'm on DestinyPal! AI reads your Saju & natal astrology for daily counsel, tarot, and compatibility. Open the link to get your own free AI reading.",
+          "I'm on DestinyPal. It computes your saju and birth chart from the same birth data and shows where they agree. Open the link for your own free Saju Card.",
         keywords: enKeywords,
       }
     : {
-        title: 'DestinyPal — AI Korean Astrology, Tarot, Compatibility & Fortune Calendar',
+        title: 'DestinyPal — Saju and the stars, computed and cross-checked',
         description:
-          'AI reads your Saju (Korean Four Pillars) and natal astrology together — daily counsel, tarot, compatibility, and a fortune calendar. See the flow and timing when you need to decide.',
+          'Free Saju Card: we compute your saju and birth chart separately and show where they agree or pull apart. Life flow, fortune calendar, tarot, AI counselor.',
         keywords: enKeywords,
       }
 
@@ -51,25 +59,25 @@ export async function generateMetadata({
     {
       en,
       ko: {
-        title: 'DestinyPal — AI 사주·점성·타로·궁합·캘린더',
+        title: 'DestinyPal — 사주와 별자리, 계산하고 교차 검증해요',
         description:
-          'AI가 사주와 점성을 함께 분석해 운세 상담, 타로, 궁합, 캘린더, 리포트를 한 곳에서 제공합니다. 결정이 필요한 순간 흐름과 타이밍을 알려드립니다.',
+          '무료 사주 카드를 받아 보세요. 엔진이 사주와 출생 차트를 따로 계산하고, 둘이 어디서 맞고 어디서 갈리는지 보여 줘요. 인생 흐름 · 운세 달력 · 타로 · 궁합, 그리고 그 결과를 쉬운 말로 풀어 주는 AI 상담사까지.',
         keywords: [
           'DestinyPal',
           '데스티니팔',
-          'AI 사주',
+          '무료 사주',
+          '사주 카드',
           '사주풀이',
-          '오늘의 운세',
-          'AI 타로',
-          'AI 궁합',
+          '사주 별자리',
           '운세 캘린더',
-          'AI 운명 상담',
+          '타로',
+          '궁합',
+          '운명 상담',
         ],
       },
       canonicalUrl: baseUrl,
-      // 새 DestinyPal 헥사곤 로고 (1200×630, RGB). 카톡/와츠앱이 옛 og:image
-      // URL 의 "이미지 없음" 결과를 며칠~몇 주 캐시하는 회귀를 우회하기 위해
-      // 파일명을 og-card-v2 로 변경 — 크롤러 입장에서 완전 새 URL = 새 fetch.
+      // 카톡/와츠앱이 옛 og:image URL 의 "이미지 없음" 결과를 오래 캐시하는 회귀를
+      // 우회하려고 파일명을 og-card-v2 로 바꿔 둔 그대로 쓴다.
       ogImage: '/og-card-v2.png',
     },
     locale
@@ -77,19 +85,30 @@ export async function generateMetadata({
 }
 
 export default async function MainPage() {
-  const { locale, messages } = await getServerI18n()
+  const locale = await detectServerLocale()
   const isKo = locale === 'ko'
 
-  // 구조화 데이터(JSON-LD)도 locale 맞춰 노출해야 영어 검색 결과에
-  // 영문 스니펫이 잡힌다 — 이전엔 KR-only 라 영어 인덱싱 누락.
+  // 다이얼 · 카드 뒷면의 '지금' 세운 — 보는 사람 시간대의 오늘(오너 결정 17). 요청 시간대는
+  // Vercel 지오 헤더에서 읽고, 없거나 깨졌으면 dialModel 규칙대로 UTC. 페이지는 locale 때문에
+  // 이미 요청마다 렌더되므로(headers) 立春 이 지나면 다음 요청부터 새 해가 보인다.
+  const requestHeaders = await headers()
+  const home = buildHomeDial({
+    now: new Date(),
+    timeZone: requestHeaders.get('x-vercel-ip-timezone'),
+  })
+
+  // 퍼널 — 홈 노출(옛 /free 허브의 funnel.free_hub.viewed 자리).
+  recordCounter('funnel.home.viewed', 1)
+
+  // 구조화 데이터(JSON-LD)도 locale 맞춰 노출해야 영어 검색 결과에 영문 스니펫이 잡힌다.
   const pageJsonLd = generateJsonLd({
     type: 'WebPage',
     name: isKo
-      ? 'DestinyPal — AI 사주·점성·타로·궁합·캘린더'
-      : 'DestinyPal — AI Korean Astrology, Tarot, Compatibility & Fortune Calendar',
+      ? 'DestinyPal — 사주와 별자리, 계산하고 교차 검증해요'
+      : 'DestinyPal — Saju and the stars, computed and cross-checked',
     description: isKo
-      ? 'AI가 사주와 점성을 함께 분석해 운세 상담, 타로, 궁합, 캘린더, 리포트를 제공합니다.'
-      : 'AI reads your Saju (Four Pillars) and natal astrology together — daily counsel, tarot, compatibility, calendar, and reports.',
+      ? '엔진이 사주와 출생 차트를 따로 계산하고, 둘이 어디서 맞고 갈리는지 보여 주는 무료 사주 카드.'
+      : 'A free Saju Card: our engine computes your saju and your birth chart separately and shows where they agree and where they pull apart.',
     url: baseUrl,
   })
   const faqJsonLd = generateJsonLd({
@@ -99,54 +118,54 @@ export default async function MainPage() {
           {
             question: 'DestinyPal은 무엇인가요?',
             answer:
-              'DestinyPal은 AI가 사주와 서양 점성을 함께 분석하는 운세 플랫폼입니다. 운명 상담, 운세 캘린더, 타로, 궁합, 프리미엄 리포트 — 5가지 도구로 결정의 순간에 흐름과 타이밍을 알려드립니다.',
+              'DestinyPal은 한국 사주와 서양 점성술을 같은 생년월일로 따로 계산하고, 두 체계가 어디서 맞고 어디서 갈리는지 보여 주는 서비스예요. 무료 사주 카드에서 시작해 인생 흐름, 운세 달력, 타로, 궁합, 운명 상담사로 이어져요.',
           },
           {
-            question: 'DestinyPal에서 무엇을 할 수 있나요?',
+            question: 'AI가 사주를 풀어 주나요?',
             answer:
-              'AI 운명 상담사와 대화하고, 매일의 운세 캘린더를 보고, 타로 카드를 뽑고, 사주 기반 궁합을 보고, 깊이 있는 AI 프리미엄 리포트를 받아볼 수 있습니다.',
+              '아니요. 어떤 신호가 중요한지, 사주와 별자리가 서로 맞는지, 타이밍이 언제인지는 결정론적 엔진이 계산해요. 같은 생년월일이면 언제나 같은 결과예요. AI는 운명 상담사에서 그 결과를 쉬운 말로 옮길 때만 써요.',
           },
           {
             question: '사주만 보나요? 점성술도 같이 보나요?',
             answer:
-              '네, DestinyPal은 한국 사주와 서양 점성을 융합 분석합니다. 두 시스템을 교차 검증해 더 정확한 흐름과 타이밍을 알려드립니다.',
+              '둘 다 봐요. 사주(천간·지지·오행·십성·격국·용신)와 출생 차트(Swiss Ephemeris)를 따로 계산하고 특성마다 같음 · 서로 도움 · 두 결 · 무관으로 나눠요. 타이밍 신호는 두 체계가 같은 쪽을 가리킬 때만 보여 드려요.',
           },
           {
             question: '무료로 사용할 수 있나요?',
             answer:
-              '회원가입 시 무료 크레딧을 드리며, 기본 운세·타로·궁합은 무료로 시작할 수 있습니다. 더 깊이 있는 AI 프리미엄 리포트는 유료입니다.',
+              '사주 카드, 인생 흐름, 운세 달력, 궁합, 사주 × 점성술 리포트는 가입 없이 무료예요. 타로 스프레드와 운명 상담사는 크레딧을 써요 — 한 번 결제하는 크레딧 팩이고 구독은 없어요.',
           },
           {
-            question: '한국어 사주 풀이도 정확한가요?',
+            question: '출생 시간을 모르면요?',
             answer:
-              '네, DestinyPal은 정통 한국 사주 명리(천간·지지·오행·십성·격국·용신)를 기반으로 분석합니다. 여기에 점성술 트랜짓과 어스펙트를 함께 보여 다층적 해석을 제공합니다.',
+              '시간을 모르면 연·월·일 세 기둥만으로 읽고, 시주나 상승궁 같은 값을 지어내지 않아요.',
           },
         ]
       : [
           {
             question: 'What is DestinyPal?',
             answer:
-              'DestinyPal is an AI platform that reads your Saju (Korean Four Pillars) alongside Western astrology. Five tools — destiny counselor, fortune calendar, tarot, compatibility, and premium reports — give you flow and timing when a decision is on the table.',
+              'DestinyPal computes your Korean saju (four pillars) and your Western birth chart from the same birth data, separately, and shows where the two systems agree and where they pull apart. Start with a free Saju Card, then go on to life flow, a fortune calendar, tarot, compatibility and the destiny counselor.',
           },
           {
-            question: 'What can I do on DestinyPal?',
+            question: 'Does an AI read my saju?',
             answer:
-              'Chat with an AI destiny counselor, see your daily fortune calendar, pull tarot cards, run Saju-based compatibility, and get deep AI premium reports.',
+              'No. Which signals matter, whether saju and astrology agree, and when the timing is — a deterministic engine computes all of it, so the same birth data always gives the same result. AI is used only in the counselor, to put that result into plain words.',
           },
           {
-            question: 'Is it just Saju, or do you read astrology too?',
+            question: 'Is it just saju, or do you read astrology too?',
             answer:
-              'Both. DestinyPal cross-reads Korean Saju with Western astrology so the two systems verify each other — sharper flow and timing than either alone.',
+              'Both. Your saju (stems, branches, five elements, ten gods, structure and useful element) and your birth chart (Swiss Ephemeris) are computed separately, and every trait is sorted as same, supportive, two pulls or unrelated. Timing signals reach you only when both systems agree.',
           },
           {
             question: 'Can I use it for free?',
             answer:
-              'You get free credits at signup, and basic readings (fortune, tarot, compatibility) are free to start. Deeper AI premium reports are paid.',
+              'The Saju Card, life flow, fortune calendar, compatibility and the saju × astrology report are free with no sign-up. Tarot spreads and the destiny counselor use credits — one-time credit packs, no subscription.',
           },
           {
-            question: 'How accurate is the Saju reading?',
+            question: "What if I don't know my birth time?",
             answer:
-              'DestinyPal is built on classical Korean Saju (Heavenly Stems, Earthly Branches, Five Elements, Ten Gods, formats, and Yongsin) and layered with astrological transits and aspects for multi-angle interpretation.',
+              'Without a birth time we read the year, month and day pillars only and never invent an hour pillar or a rising sign.',
           },
         ],
   })
@@ -155,7 +174,9 @@ export default async function MainPage() {
     <>
       <JsonLd data={pageJsonLd} />
       <JsonLd data={faqJsonLd} />
-      <MainPageClient initialLocale={locale} initialMessages={messages} />
+      <V9Root>
+        <MainPageClient initialLocale={locale} dial={home.dial} backYear={home.backYear} />
+      </V9Root>
     </>
   )
 }

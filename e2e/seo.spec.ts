@@ -178,13 +178,15 @@ test.describe('Locale SEO Tags', () => {
     await expect(hreflangEn).toHaveCount(1)
   })
 
-  test('homepage should use ko_KR og:locale and en_US alternate', async ({ page }) => {
+  test('homepage should use en_US og:locale and ko_KR alternate (default locale en)', async ({
+    page,
+  }) => {
     await page.goto('/', { waitUntil: 'domcontentloaded' })
 
     const ogLocale = page.locator('meta[property="og:locale"]')
-    await expect(ogLocale).toHaveAttribute('content', 'ko_KR')
+    await expect(ogLocale).toHaveAttribute('content', 'en_US')
 
-    const ogAltLocale = page.locator('meta[property="og:locale:alternate"][content="en_US"]')
+    const ogAltLocale = page.locator('meta[property="og:locale:alternate"][content="ko_KR"]')
     await expect(ogAltLocale).toHaveCount(1)
   })
 })
@@ -217,9 +219,9 @@ test.describe('Robots Meta', () => {
 test.describe('Page Titles by Route', () => {
   const routes = [
     { path: '/', name: 'homepage' },
-    { path: '/saju', name: 'saju' },
+    { path: '/destiny', name: 'life flow' },
+    { path: '/calendar', name: 'calendar' },
     { path: '/tarot', name: 'tarot' },
-    { path: '/dream', name: 'dream' },
     { path: '/compatibility', name: 'compatibility' },
     { path: '/pricing', name: 'pricing' },
     { path: '/about', name: 'about' },
@@ -261,12 +263,18 @@ test.describe('Favicon', () => {
 })
 
 test.describe('Language', () => {
-  test('html should have lang attribute set to Korean', async ({ page }) => {
+  test('html lang follows the locale (default en, ko with Accept-Language ko)', async ({
+    page,
+    browser,
+  }) => {
     await page.goto('/', { waitUntil: 'domcontentloaded' })
+    expect(await page.locator('html').getAttribute('lang')).toBe('en')
 
-    const lang = await page.locator('html').getAttribute('lang')
-    expect(lang).toBeTruthy()
-    expect(lang).toBe('ko')
+    const ko = await browser.newContext({ locale: 'ko-KR' })
+    const koPage = await ko.newPage()
+    await koPage.goto('/', { waitUntil: 'domcontentloaded' })
+    expect(await koPage.locator('html').getAttribute('lang')).toBe('ko')
+    await ko.close()
   })
 })
 

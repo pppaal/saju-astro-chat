@@ -14,7 +14,7 @@ import { initializeApiContext, createPublicStreamGuard, extractLocale } from '@/
 import { createSSEEvent, createSSEDoneEvent } from '@/lib/streaming'
 import { enforceBodySize } from '@/lib/http'
 import { logger } from '@/lib/logger'
-import { recordExternalCall } from '@/lib/metrics/index'
+import { recordExternalCall } from '@/lib/metrics'
 import { tarotInterpretStreamSchema, createValidationErrorResponse } from '@/lib/api/zodValidation'
 import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
 import { isClaudeAvailable } from '@/lib/llm/claude'
@@ -83,7 +83,7 @@ function streamRawReading(jsonText: string, extraHeaders?: Record<string, string
   return new Response(stream, {
     headers: {
       'Content-Type': 'text/event-stream',
-      'Cache-Control': 'no-cache',
+      'Cache-Control': 'no-cache, no-transform',
       Connection: 'keep-alive',
       ...(extraHeaders || {}),
     },
@@ -148,7 +148,7 @@ function streamJsonPayload(
   return new Response(stream, {
     headers: {
       'Content-Type': 'text/event-stream',
-      'Cache-Control': 'no-cache',
+      'Cache-Control': 'no-cache, no-transform',
       Connection: 'keep-alive',
       ...(extraHeaders || {}),
     },

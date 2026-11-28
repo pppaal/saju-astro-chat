@@ -1,5 +1,14 @@
 import { describe, it, expect } from 'vitest'
-import { iga, eulReul, eunNeun, waGwa, iyeyo } from '@/lib/i18n/koParticle'
+import { iga, eulReul, eunNeun, waGwa, iyeyo, irae } from '@/lib/i18n/koParticle'
+
+describe('irae — 전해 들은 말 이래/래 (Life 공유 문구, QA COPY-4)', () => {
+  it('받침 있으면 이래, 없으면 래', () => {
+    expect(irae('착실히 쌓는 자유인')).toBe('이래')
+    expect(irae('버팀목')).toBe('이래')
+    expect(irae('거침없는 개척자')).toBe('래')
+    expect(irae('')).toBe('래')
+  })
+})
 
 /**
  * 한국어 조사 자동 선택 유틸 테스트.

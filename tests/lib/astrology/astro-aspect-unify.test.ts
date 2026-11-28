@@ -67,7 +67,9 @@ describe('astro-aspect-unify: findTransitAspects numeric output is unchanged', (
   it('square at exactly the orb boundary: orb=5, score=0', () => {
     const transit = chart([planet('Mars', 95, 0.5)])
     const natal = chart([planet('Sun', 0, 1)])
-    const hits = findTransitAspects(transit, natal, ['square']).filter((h) => h.natalPoint === 'Sun')
+    const hits = findTransitAspects(transit, natal, ['square']).filter(
+      (h) => h.natalPoint === 'Sun'
+    )
     expect(hits).toHaveLength(1)
     expect(hits[0].orb).toBe(5)
     expect(hits[0].score).toBe(0)
@@ -117,7 +119,8 @@ describe('astro-aspect-unify: findAspects numeric output is unchanged', () => {
   // Transit Mars exact conjunction to natal Sun. Both at 100.
   // limit = max(orb(Mars)=6, orb(Sun)=8)=8; speedFactor for Mars speed=1 -> 1.
   // orb=0 -> orbWeight=1; aspectWeight(conj)=1; speedWeight=clamp(|relSpeed|/1.2,..).
-  // relSpeed = 1 - 1 = 0 -> speedWeight clamped to 0.6.
+  // 본명점은 고정 → relSpeed = 트랜짓 속도 1 (엔진 감사 ASTRO-13 — 예전엔 본명 출생 속도를
+  // 빼 1 − 1 = 0) -> speedWeight = clamp(1/1.2, 0.6, 1.2) = 0.8333.
   // score = 0.5*1 + 0.4*1 + 0.1*(applying? sw : sw*0.95).
   it('exact conjunction: orb 0 and hand-computed score', () => {
     const natal = chart([planet('Sun', 100, 1)])
@@ -128,7 +131,7 @@ describe('astro-aspect-unify: findAspects numeric output is unchanged', () => {
     expect(hits).toHaveLength(1)
     expect(hits[0].orb).toBe(0)
     // applying for exact aspect (absSep === target === 0) -> false branch.
-    const sw = 0.6 // clamp(0/1.2,0.6,1.2)
+    const sw = 1 / 1.2 // clamp(|transit speed 1|/1.2,0.6,1.2)
     const expected = Number((0.5 * 1 + 0.4 * 1 + 0.1 * (sw * 0.95)).toFixed(3))
     expect(hits[0].score).toBe(expected)
     expect(hits[0].applying).toBe(false)
@@ -188,8 +191,7 @@ describe('astro-aspect-unify: both engines share the core algorithm', () => {
       const absSep = Math.abs(signedSep)
       const target = 0
       if (absSep === target) return false
-      if (absSep > target)
-        return (signedSep > 0 && relSpeed < 0) || (signedSep < 0 && relSpeed > 0)
+      if (absSep > target) return (signedSep > 0 && relSpeed < 0) || (signedSep < 0 && relSpeed > 0)
       return (signedSep > 0 && relSpeed > 0) || (signedSep < 0 && relSpeed < 0)
     },
     computeScore: ({ orb, limit }) => 1 - orb / limit,
@@ -202,7 +204,16 @@ describe('astro-aspect-unify: both engines share the core algorithm', () => {
     const lonB = 0
     const relSpeed = -0.5
 
-    const core = evaluateAspect('Mars', lonA, 'Sun', lonB, 1, relSpeed, 'conjunction', minimalConfig)
+    const core = evaluateAspect(
+      'Mars',
+      lonA,
+      'Sun',
+      lonB,
+      1,
+      relSpeed,
+      'conjunction',
+      minimalConfig
+    )
     expect(core.applying).toBe(true)
     expect(core.orb).toBe(1)
 

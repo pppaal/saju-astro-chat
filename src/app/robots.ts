@@ -14,9 +14,7 @@ export default function robots(): MetadataRoute.Robots {
     '/auth/',
     '/profile/',
     '/success/',
-    '/api-docs/',
     '/offline/',
-    '/shared/',
     '/tarot/history/',
   ]
   const disallow = [...privatePaths, ...privatePaths.map((p) => `/ko${p}`)]

@@ -39,7 +39,7 @@ const CARD_IMAGE_STYLE: React.CSSProperties = {
   background: 'rgba(255,255,255,0.06)',
 }
 
-export interface ChatBubbleContentProps {
+interface ChatBubbleContentProps {
   // system 은 destiny 채팅 흐름에 가끔 섞여 들어옴 (returning context 등) — user 처럼 처리.
   role: 'user' | 'assistant' | 'system'
   content: string

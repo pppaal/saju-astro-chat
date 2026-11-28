@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
 import Link from 'next/link'
-import { CREDIT_UPDATE_EVENT } from '@/lib/api/ApiClient'
+import { CREDIT_UPDATE_EVENT } from '@/lib/api/client'
 import styles from './CreditBadge.module.css'
 
 interface CreditData {

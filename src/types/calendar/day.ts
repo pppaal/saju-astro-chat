@@ -1,53 +1,18 @@
 // src/types/destinypal/day.ts
 //
 // destinypal Day(1일 일진) 카드 prop.
-// data.js window.DESTINY.day 와 동형 + 누락 5신호 (지장간 / 격국 성패 /
-// 공망 / 응용격국 / cross-activation) 전부 포함.
+// data.js window.DESTINY.day 와 동형 + 누락 신호 (격국 성패 / 공망 / 응용격국 /
+// cross-activation) 포함.
 //
 // 5-tier 의 최하위 layer — 가장 풍부한 신호 묶음을 그리는 카드.
 // 백엔드 CalendarCell (한 datetime 의 signals[] + derivedScore + matched
 // patterns) 가 그대로 매핑.
 
-import type {
-  Ganji,
-  TaggedNarrative,
-  DestinySignal,
-  SajuSignal,
-  AstroSignal,
-  CrossSignal,
-  SibsinKind,
-  FiveElement,
-  Polarity,
-} from './shared'
+import type { Ganji, SajuSignal, AstroSignal, SibsinKind, Polarity } from './shared'
 import type { GeokgukStatus, GeokgukStatusResult } from '@/lib/saju/geokguk'
 import type { DayVerdict } from '@/lib/calendar-engine/derivers/reconcile'
 import type { EvidenceRung } from '@/lib/calendar-engine/derivers/evidenceLadder'
-
-// ============================================================================
-// 지장간 (Jijanggan) — 본명 일주(=일지) 의 정기·중기·여기 분해.
-// 누락 5신호 #1 — 본명 일주 3층.
-// 백엔드 PillarData.jijanggan + 일간 기준 십신.
-// ============================================================================
-
-export interface DestinyJijangganLayer {
-  /** 한자 — '戊' 등. */
-  stem: string
-  /** 일간 기준 십신. */
-  sibsin: SibsinKind | string
-  /** 5원소. */
-  element: FiveElement
-  /** 지장간 강도 라벨 (정기/중기/여기). */
-  layer: '정기' | '중기' | '여기'
-}
-
-export interface DestinyJijanggan {
-  /** 정기 (本氣) — 가장 강한 층. */
-  jeonggi: DestinyJijangganLayer
-  /** 중기 (中氣) — 중간 층. 일부 지지는 없음. */
-  junggi?: DestinyJijangganLayer
-  /** 여기 (餘氣) — 가장 약한 층. 일부 지지는 없음. */
-  yeogi?: DestinyJijangganLayer
-}
+import type { DestinyCalendarCell, ReasonAstroDetail } from './month'
 
 // ============================================================================
 // 격국 성패 (Geokguk Status) — 정인격 반성반파 등.
@@ -55,7 +20,7 @@ export interface DestinyJijanggan {
 // 백엔드 evaluateGeokgukStatus() 결과 그대로 통과 + 한 줄 설명.
 // ============================================================================
 
-export interface DestinyGeokgukStatus {
+interface DestinyGeokgukStatus {
   /** 격국명 — '정인격'. */
   name: string
   /** 영문 라벨 — 'Jeong-in (Direct Resource)'. */
@@ -74,7 +39,7 @@ export interface DestinyGeokgukStatus {
 // 시기 지지가 본명 공망 지지에 닿을 때 활성.
 // ============================================================================
 
-export interface DestinyGongmang {
+interface DestinyGongmang {
   /** 본명 일주에서 산출된 공망 2지지 — ['戌','亥'] 등. */
   natalBranches: [string, string]
   /** 현재 시점에서 활성화된 공망 지지들 (대운/세운/월운/일진과 겹친 것). */
@@ -92,18 +57,18 @@ export interface DestinyGongmang {
 // 백엔드 saju-applied-pattern extractor 결과.
 // ============================================================================
 
-export type AppliedPatternId =
+type AppliedPatternId =
   | 'sanggwan-gyeon-gwan' // 상관견관 −2 / −3
   | 'siksin-jesal' // 식신제살 +2
-  | 'gwanin-sangsaeng' // 관인상생 +2
-  | 'jaesaeng-gwan' // 재생관 +2
-  | 'insaeng-bigeop' // 인생비겁 +2
-  | 'bigeop-talJae' // 비겁탈재 −2
-  | 'gwansal-honjap' // 관살혼잡 −1
-  | 'hyosik-tal' // 효식탈 −2
+  | 'gwan-in-sangsaeng' // 관인상생 +2
+  | 'jae-saeng-gwan' // 재생관 +2
+  | 'in-saeng-bigeop' // 인생비겁 +2
+  | 'bigeop-talchae' // 비겁탈재 −2
+  | 'gwan-sal-honjap' // 관살혼잡 −1
+  | 'hyo-sik-tal' // 효식탈 −2
 
-export interface DestinyAppliedPattern {
-  /** 패턴 ID. */
+interface DestinyAppliedPattern {
+  /** 패턴 ID — 추출기 패턴 id('jae-saeng-gwan'), 신호 id 의 날짜 꼬리 없이. */
   id: AppliedPatternId | string
   /** 한국어 라벨 — '상관견관'. */
   korean: string
@@ -125,7 +90,7 @@ export interface DestinyAppliedPattern {
 // 백엔드 cross-activation extractor 결과.
 // ============================================================================
 
-export interface DestinyCrossActivation {
+interface DestinyCrossActivation {
   id: string
   /** 사주측 신호 라벨(표시·로케일). */
   sajuSide: string
@@ -135,7 +100,7 @@ export interface DestinyCrossActivation {
   sajuKo?: string
   /** 점성측 행성 raw(KO) — 분야 라우팅용. */
   astroKo?: string
-  /** A등급 매핑 의미(KO) — '정관 ↔ Saturn (책임·구조)'. */
+  /** A·B등급 매핑 의미(KO) — '정관 ↔ Saturn (책임·구조)'. */
   meaning: string
   /** 의미 영문 — 클라이언트 로케일 토글 시 서버언어 고정 방지(양쪽 보관). */
   meaningEn?: string
@@ -148,13 +113,18 @@ export interface DestinyCrossActivation {
    * 배경. 일 심층읽기("오늘의 흐름" 프레임)는 daily/monthly 만 쓴다(감사 #12).
    */
   layer?: string
+  /**
+   * 점성 부모 구조(교차의 crossParents) + 그날 현지 정오 트랜짓 위치·같은 순간의 orb — 일간
+   * '겹치는 흐름' STARS 칸 보조 줄(QA VC-5). '왜' 근거(reason.astroDetail)와 같은 경로.
+   */
+  astroDetail?: ReasonAstroDetail
 }
 
 // ============================================================================
 // 본명 일주 (Iljun) 정보 — destinypal Day 카드 헤더용.
 // ============================================================================
 
-export interface DestinyIljinHeader {
+interface DestinyIljinHeader {
   /** ISO 'YYYY-MM-DD'. */
   date: string
   /** 한국어 — '2026년 6월 15일'. */
@@ -183,14 +153,10 @@ export interface DestinyDay extends DestinyIljinHeader {
   signals: SajuSignal[]
   /** data.js day.transits[] — 점성측 트랜짓 신호. */
   transits: AstroSignal[]
-  /** cross-activation 페어. data.js 에 명시 없음 — 신규. */
-  crossSignals: CrossSignal[]
-  /** 모든 신호 (signals + transits + crossSignals) flatten — UI 정렬·필터용. */
-  allSignals: DestinySignal[]
+  // (옛 crossSignals · allSignals · jijanggan · narrative 는 v9.2 화면·API·상담사·푸시 어디서도
+  //  읽지 않아 D9 에서 뺐다 — 교차는 crossActivations, 신호 풀세트는 셀이 정본.)
 
-  // ── 누락 5신호 ──
-  /** 본명 일주 지장간 3층. */
-  jijanggan: DestinyJijanggan
+  // ── 누락 신호 ──
   /** 본명 격국 성패. */
   geokgukStatus: DestinyGeokgukStatus
   /** 공망 활성. */
@@ -199,6 +165,13 @@ export interface DestinyDay extends DestinyIljinHeader {
   appliedPatterns: DestinyAppliedPattern[]
   /** Cross activation (응용 격국과 별개 — 사주·점성 페어). */
   crossActivations: DestinyCrossActivation[]
+  /**
+   * 그날 '왜 이런 날' 근거 — 월 리드아웃(month.calendar[].reason)과 *같은 함수·같은
+   * 월 셀*(crossPair.pickDayReason)에서 고른다. 그리드 마크 부호 게이트를 통과한
+   * 교차만(good·best=+, caution·avoid=−). 통과하는 교차가 없으면 생략.
+   * 일간 뷰모델(dayViewModel '왜 오늘' 행)이 이것을 먼저 보여줘 월·일 화면이 같은 근거를 말한다.
+   */
+  reason?: DestinyCalendarCell['reason']
   /** 본명 4기둥(천간) × 일진 지지 12운성 (기둥별 실제값). */
   twelveStageMatrix: Array<{ pillar: string; stem: string; branch: string; stage: string }>
 
@@ -213,7 +186,7 @@ export interface DestinyDay extends DestinyIljinHeader {
   seed?: number
   /**
    * 미성년(만 19세 미만) 여부 — 서버(assembleDayTier)가 만 나이로 판정해 실어보낸다.
-   * DayTier 가 클라이언트에서 파생하는 행동·분야·깊이읽기 카피(결혼·투자·도박·배우자
+   * 뷰모델(dayHero · dayViewModel · monthViewModel)이 파생하는 행동·분야·깊이읽기 카피(결혼·투자·도박·배우자
    * 등 성인 도메인)를 연령 적합 표현으로 치환하는 게이트. 서버 minorSafe 패스는
    * cross/시진만 덮으므로 클라 파생 카피는 이 플래그로 별도 정화한다(감사 C3-hole).
    */
@@ -234,8 +207,6 @@ export interface DestinyDay extends DestinyIljinHeader {
   // ── 부속 (기존 destinypal data.js) ──
   /** 활성 신살 한글 이름들 — ['천을귀인','도화','역마']. */
   shinsalActive: string[]
-  /** narrative chip 묶음 (옵션). */
-  narrative?: TaggedNarrative[]
   /** 상위 우호 사유 3..5 (백엔드 CalendarCell.topReasons). KO. */
   topReasons?: string[]
   /** 상위 우호 사유 영문 — 토글용. */
@@ -257,24 +228,23 @@ export interface DestinyDay extends DestinyIljinHeader {
    * 산출. 점수는 그대로 두고 *서술 톤만* 조정한다. (reconcile.ts)
    */
   dayTone?: DayVerdict
-  /** 시간별 사주 × 점성 교차 — 시진(십신) × 그 시각 상승궁. */
+  /**
+   * 시진별 하루 리듬 — 시진(십신) 과 그 시진 한가운데 상승궁을 *나란히*(교차 아님, owner
+   * 결정 19). 시각은 엔진 시진 창 그대로(평균태양시, 재감사 TP-8). 시각순. 12 시진 전부 —
+   * 결이 없는 시진은 tone 'neutral'(strength 0, 서술 없음 · 결정 QA-4).
+   */
   hourCrossings?: Array<{
-    when: string // '5-7시 (묘시)'
-    whenEn: string // '5-7am (Rabbit hour)'
+    when: string // '07:15–09:15 (묘시)'
+    whenEn: string // '07:15–09:15 (Rabbit hour)'
+    clockStart: string // '07:15'
+    clockEnd: string // '09:15'
     sibsin: string
-    tone: 'good' | 'caution'
+    tone: 'good' | 'caution' | 'neutral'
     risingSignKo: string
     risingSignEn: string
-    ruler: string
-    rulerEn: string
     narrative?: string
     narrativeEn?: string
     strength: number
-    /** 십신 × 상승궁 룰러가 의미사전에 매칭되는 진짜 교차인지 (아니면 병치). */
-    matched: boolean
-    /** matched 일 때 사전 해석 한 줄. */
-    crossMeaning?: string
-    crossMeaningEn?: string
   }>
   /** 시(時)별 달 정밀 — 12 시진 달 재계산으로 뽑은 달×본명 어스펙트 절정 시각. */
   hourMoon?: Array<{

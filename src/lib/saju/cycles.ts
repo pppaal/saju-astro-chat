@@ -8,8 +8,9 @@
 //
 // 주의 — 두 가지 "월운" convention 이 공존한다(의도적으로 분리 유지):
 //   (A) 사주월(寅-first) convention: 월 1 → 寅. saju.ts 의 standalone
-//       getMonthlyCycles 와 calculateSajuData 내부 inline 월운 블록이 사용.
-//       => getSajuMonthlyCycles / buildSajuMonthEntry.
+//       getMonthlyCycles 가 사용 => getSajuMonthlyCycles. 인자는 *사주월 번호*다 —
+//       양력월을 그대로 넣으면 한 달 앞 간지가 나온다(calculateSajuData 의 옛
+//       unse.monthly 가 그랬다, 재감사 TP-10 으로 삭제).
 //   (B) 양력월(丑-first) + 절기 모드: unse.ts 의 getMonthlyCycles 가 사용.
 //       값 자체가 (A)와 다르므로 합치지 않는다. unse.ts 에 그대로 남겨둠.
 //
@@ -41,7 +42,7 @@ const SAJU_MONTH_BRANCH_ORDER = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 0, 1]
  * 사주월(寅-first) convention 의 (천간, 지지). monthIndex0 는 0~11 (월-1).
  * 연간(year stem)으로 寅월 월간을 정하고 거기서부터 순행.
  */
-export function sajuMonthStemBranch(
+function sajuMonthStemBranch(
   year: number,
   monthIndex0: number
 ): { stem: StemBranchInfo; branch: StemBranchInfo } {
@@ -52,6 +53,25 @@ export function sajuMonthStemBranch(
   const stem = STEMS[(firstMonthStemIndex + monthIndex0) % 10]
   const branch = BRANCHES[SAJU_MONTH_BRANCH_ORDER[monthIndex0 % 12]]
   return { stem, branch }
+}
+
+/**
+ * 간지 한 쌍을 steps 칸 옮긴다(음수 = 역행) — 대운 순서열(월주에서 순행/역행으로 한 칸씩)의
+ * 산술 primitive. 천간은 10, 지지는 12 주기로 따로 돈다(60갑자 순서 유지).
+ * 이름이 STEMS/BRANCHES 에 없으면 null.
+ */
+export function stepStemBranch(
+  stemName: string,
+  branchName: string,
+  steps: number
+): { stem: StemBranchInfo; branch: StemBranchInfo } | null {
+  const si = STEMS.findIndex((s) => s.name === stemName)
+  const bi = BRANCHES.findIndex((b) => b.name === branchName)
+  if (si < 0 || bi < 0 || !Number.isInteger(steps)) return null
+  return {
+    stem: STEMS[(((si + steps) % 10) + 10) % 10],
+    branch: BRANCHES[(((bi + steps) % 12) + 12) % 12],
+  }
 }
 
 /** 연운 1개의 십신 ({cheon, ji}) — 지지는 정기(main qi) 기준. */

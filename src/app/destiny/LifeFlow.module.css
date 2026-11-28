@@ -1,0 +1,1216 @@
+/* ============================================================
+   v9.2 인생 흐름(/destiny) — 화면 고유 배치만. 부품(상단 바 · 폴리오 · 교차 행 · 범례 · 집계 ·
+   오행 타일 · 사주 카드 · 가격 줄 · 푸터)의 모양은 components/v9 의 각 모듈이 갖는다.
+   디자인 원본: life9.tpl.html + base_v9.css(.band.hero · .hby · .lr · .type · .river · .ros ·
+   .sec · .stab · .chart · .legend · .tth · .tr · .panel · .od · .facts · .share).
+   토큰만 쓴다(원색 hex 금지) — 값은 V9Root 의 tokens.module.css.
+   폭: 390 기준 20px 여백, 340 아래 16px. 720 이상은 가운데 640px 한 칸 문서.
+   ============================================================ */
+
+.page {
+  --gutter: 20px;
+  position: relative;
+  width: 100%;
+  max-width: 680px;
+  margin: 0 auto;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: clip;
+}
+.page a {
+  color: inherit;
+  text-decoration: none;
+}
+.main {
+  display: block;
+}
+/* 한국어 — 어절 단위 줄바꿈, 제목 줄 간격을 조금 연다. */
+.ko {
+  word-break: keep-all;
+}
+.ko .h2 {
+  line-height: 1.16;
+}
+
+.folio {
+  margin-left: var(--gutter);
+  margin-right: var(--gutter);
+}
+.foot {
+  margin-left: var(--gutter);
+  margin-right: var(--gutter);
+}
+
+/* ---- 공용 글자 ---- */
+.hj {
+  font-family: var(--hanja);
+  font-weight: 700;
+}
+.eyebrow {
+  display: block;
+  font-family: var(--sans);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--mute);
+}
+.h2 {
+  margin: 16px 0 0;
+  font-weight: 600;
+  font-size: 29px;
+  line-height: 1.06;
+  letter-spacing: -0.03em;
+  color: var(--ink);
+}
+.lt {
+  display: block;
+  font-weight: 400;
+  color: var(--mute);
+}
+.h3 {
+  margin: 0;
+  font-weight: 600;
+  font-size: 20px;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+.sub {
+  margin: 10px 0 0;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--body);
+}
+.cap {
+  margin: 12px 0 0;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--mute);
+}
+.em {
+  font-weight: 700;
+  color: var(--ink);
+}
+/* 문장 속 한자 묶음(壬 · 丁未 · 天乙) — 한 덩어리로, 한자 글꼴로. */
+.hjRun {
+  font-family: var(--hanja);
+  font-weight: 700;
+  white-space: nowrap;
+}
+.cap .hjRun {
+  color: var(--ink);
+}
+
+/* 모서리 줄 — 계산 블록을 연다: 왼쪽 블록 이름, 오른쪽 범위. 오른쪽이 길면 말줄임. 두 칸 사이는
+   좁은 틈만(디자인 base_v9 .lr 은 틈 없이 양 끝 정렬) — 12px 이면 390 EN 출처 줄이 잘렸다. */
+.lr {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  height: 24px;
+  border-bottom: 1px solid var(--line);
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--mute);
+  white-space: nowrap;
+}
+.lr > span:first-child {
+  flex-shrink: 0;
+}
+.lr > span:last-child {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.lr > span:only-child {
+  overflow: visible;
+}
+.lr .hj {
+  font-size: 11px;
+  letter-spacing: 0.04em;
+}
+/* 출처 줄(읽기) — 자르지 않는다: 좁으면 오른쪽 칸이 다음 줄 오른쪽 끝으로 내려간다. */
+.lrWrap {
+  flex-wrap: wrap;
+  height: auto;
+  min-height: 24px;
+  padding: 3px 0 2px;
+  row-gap: 0;
+}
+.lrWrap > span:last-child {
+  margin-left: auto;
+  overflow: visible;
+}
+/* 한국어 — mono · 대문자 라벨의 라틴 자간(0.08–0.12em)은 한글을 한 자씩 벌려 놓는다. */
+.ko .lr,
+.ko .eyebrow,
+.ko .stamp,
+.ko .l,
+.ko .sth,
+.ko .st,
+.ko .stf,
+.ko .cl,
+.ko .legend,
+.ko .tth,
+.ko .rm,
+.ko .turn,
+.ko .here,
+.ko .lk,
+.ko .k {
+  letter-spacing: 0.02em;
+}
+
+/* ---- 계산 블록 ---- */
+.sec {
+  margin: 44px var(--gutter) 0;
+}
+
+/* ---- 히어로 — 먹 띠(12px 여백 · 반경 28) ---- */
+.band {
+  margin: 12px 12px 0;
+  padding: 20px 22px 22px;
+  border-radius: 28px;
+  background: var(--ink);
+  color: var(--on-dark);
+}
+.hby {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 13.5px;
+  line-height: 1.2;
+  color: var(--on-dark-2);
+}
+.av {
+  flex-shrink: 0;
+  color: var(--on-dark);
+}
+.stamp {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--on-dark-2);
+  white-space: nowrap;
+}
+.seal {
+  width: 24px;
+  height: 24px;
+  border-radius: 3px;
+  background: var(--seal);
+  color: var(--paper);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--hanja);
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.hby + .lr {
+  margin-top: 28px;
+}
+.lrDark {
+  border-bottom-color: var(--line-dark);
+  color: var(--on-dark-3);
+}
+.type {
+  margin: 18px 0 0;
+  font-weight: 600;
+  font-size: 74px;
+  line-height: 0.94;
+  letter-spacing: -0.045em;
+  color: var(--on-dark);
+  overflow-wrap: anywhere;
+}
+/* 세리프 이탤릭 — 유형 이름의 마지막 단어(허용된 두 자리 중 하나). */
+.type i {
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+}
+/* 한국어 유형 이름은 한 덩어리 — 한글엔 가짜 기울임을 쓰지 않는다. */
+.ko .type {
+  font-size: 54px;
+  line-height: 1.02;
+  letter-spacing: -0.03em;
+}
+.ko .type i {
+  font-family: var(--sans);
+  font-style: normal;
+  font-weight: 600;
+  letter-spacing: inherit;
+}
+.lede {
+  margin: 14px 0 0;
+  font-size: 17px;
+  line-height: 1.45;
+  color: var(--on-dark-2);
+}
+.river {
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid var(--line-dark);
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+.riverTile {
+  box-shadow: inset 0 0 0 1.5px var(--water-key);
+}
+.river > div > b {
+  display: block;
+  font-size: 16.5px;
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: -0.015em;
+  color: var(--on-dark);
+}
+.river > div > span {
+  display: block;
+  margin-top: 5px;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--on-dark-2);
+}
+
+/* NOW / NEXT LIFE TURN 판독 칸 */
+.ros {
+  margin-top: 22px;
+  display: grid;
+  grid-template-columns: 1fr;
+  border: 1px solid var(--line-dark);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.two {
+  grid-template-columns: 1fr 1fr;
+}
+.ro {
+  padding: 10px 12px 11px;
+  min-width: 0;
+}
+.ro + .ro {
+  border-left: 1px solid var(--line-dark);
+}
+.l {
+  display: block;
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--on-dark-3);
+  white-space: nowrap;
+}
+.v {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 8px;
+  font-weight: 600;
+  font-size: 30px;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  color: var(--on-dark);
+  white-space: nowrap;
+}
+.led {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--seal);
+  flex-shrink: 0;
+}
+.y {
+  display: block;
+  margin-top: 6px;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: var(--on-dark-3);
+}
+.nt {
+  display: block;
+  margin-top: 6px;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--on-dark-2);
+}
+
+/* ---- 읽기 — 엔진 템플릿(산세리프 로만), 첫 문장은 크게 먹 ---- */
+.read p {
+  margin: 10px 0 0;
+  font-size: 16.5px;
+  line-height: 1.55;
+  color: var(--body);
+}
+.read .q {
+  margin-top: 16px;
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+
+/* ---- 01 겹침 ---- */
+.xlist {
+  margin-top: 14px;
+}
+.xlegend {
+  margin-top: 12px;
+}
+.empty {
+  margin: 16px 0 0;
+  padding: 14px 16px 15px;
+  border: 1px dashed var(--line-2);
+  border-radius: 12px;
+  background: var(--surface);
+  font-size: 14.5px;
+  line-height: 1.5;
+  color: var(--body);
+}
+
+/* ---- 02 축별 ---- */
+.tally {
+  margin-top: 14px;
+}
+.xlistTrait {
+  margin-top: 10px;
+}
+.xmore {
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+}
+.xmore svg {
+  flex-shrink: 0;
+}
+
+/* ---- 03 강점 표 — 결 · 원국 글자 · N ---- */
+.stab {
+  margin-top: 18px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface);
+  overflow: hidden;
+}
+.sth,
+.str {
+  display: grid;
+  grid-template-columns: minmax(0, 150px) minmax(0, 1fr) 22px;
+  column-gap: 8px;
+  padding: 0 14px;
+}
+.sth {
+  padding-top: 8px;
+  padding-bottom: 7px;
+  border-bottom: 1px solid var(--line);
+  font-family: var(--mono);
+  font-size: 8.5px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--mute);
+}
+.r {
+  text-align: right;
+}
+.str {
+  min-height: 46px;
+  align-items: center;
+  border-top: 1px solid var(--line);
+}
+.sth + .str {
+  border-top: 0;
+}
+.nm {
+  font-weight: 600;
+  font-size: 14.5px;
+  line-height: 1.2;
+  letter-spacing: -0.015em;
+  color: var(--ink);
+  white-space: nowrap;
+}
+.nmHj {
+  margin-left: 4px;
+  font-family: var(--hanja);
+  font-weight: 500;
+  font-size: 11.5px;
+  color: var(--mute);
+}
+.st {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 1px 4px 0;
+  vertical-align: 2px;
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  line-height: 1.3;
+  text-transform: uppercase;
+  color: var(--ink);
+  box-shadow: inset 0 0 0 1px var(--ink);
+}
+.tiles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+  min-width: 0;
+  padding: 6px 0;
+}
+.none {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.02em;
+  color: var(--mute);
+  white-space: nowrap;
+}
+.n {
+  text-align: right;
+  font-family: var(--mono);
+  font-weight: 500;
+  font-size: 18px;
+  line-height: 1;
+  color: var(--ink);
+}
+.z .nm,
+.z .n {
+  color: var(--mute);
+}
+.stf {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px 10px;
+  padding: 8px 14px;
+  border-top: 1px solid var(--line);
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--mute);
+  white-space: nowrap;
+}
+.stf span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.stf i {
+  display: block;
+  width: 7px;
+  height: 7px;
+  border-radius: 2px;
+}
+.stf b {
+  font-weight: 500;
+  color: var(--ink);
+}
+.stf .z b {
+  color: var(--mute);
+}
+.sw_wood {
+  background: var(--wood);
+}
+.sw_fire {
+  background: var(--fire);
+}
+.sw_earth {
+  background: var(--earth);
+}
+.sw_metal {
+  background: var(--metal);
+  box-shadow: inset 0 0 0 1px var(--metal-key);
+}
+.sw_water {
+  background: var(--water);
+}
+
+/* ---- 04 곡선 판 — 모눈은 SVG 안(축척과 함께 늘어난다), 표지는 상자 ---- */
+.chart {
+  position: relative;
+  margin-top: 18px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+  overflow: hidden;
+}
+.chartSvg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.cl {
+  position: absolute;
+  top: 10px;
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  line-height: 1;
+  text-transform: uppercase;
+  color: var(--mute);
+  white-space: nowrap;
+}
+.clA {
+  left: 12px;
+}
+.clB {
+  right: 12px;
+}
+.grid {
+  stroke: var(--ink);
+  stroke-opacity: 0.07;
+  stroke-width: 1;
+}
+.axis {
+  stroke: var(--ink);
+  stroke-width: 1;
+}
+.tick {
+  fill: none;
+  stroke: var(--ink);
+  stroke-opacity: 0.55;
+  stroke-width: 1;
+}
+.eraMetal {
+  stroke: var(--metal-key);
+  stroke-width: 1;
+}
+.cvPast {
+  fill: none;
+  stroke: var(--ink);
+  stroke-opacity: 0.4;
+  stroke-width: 1.6;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+.cvLine {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 2;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+.needle {
+  stroke: var(--ink);
+  stroke-width: 1;
+}
+.box {
+  fill: var(--surface);
+  stroke: var(--ink);
+  stroke-width: 1;
+}
+.boxMute {
+  fill: var(--surface);
+  stroke: var(--line);
+  stroke-width: 1;
+}
+.boxText,
+.boxTextMute,
+.tickAge,
+.tickYear {
+  font-family: var(--mono);
+  font-weight: 500;
+  text-anchor: middle;
+}
+.boxText {
+  font-size: 9px;
+  letter-spacing: 0.6px;
+  fill: var(--ink);
+}
+.boxTextMute {
+  font-size: 9px;
+  letter-spacing: 0.4px;
+  fill: var(--mute);
+}
+.tickAge {
+  font-size: 10px;
+  fill: var(--ink);
+}
+.tickYear {
+  font-size: 8.5px;
+  fill: var(--mute);
+}
+.dotNow {
+  fill: var(--ink);
+  stroke: var(--surface);
+  stroke-width: 1.5;
+}
+.dotCrest {
+  fill: var(--ink);
+}
+.dotDip {
+  fill: var(--surface);
+  stroke: var(--ink);
+  stroke-width: 1.2;
+}
+.legend {
+  margin-top: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: 18px;
+  row-gap: 8px;
+  font-family: var(--mono);
+  font-size: 9.5px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--mute);
+}
+.legend > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  white-space: nowrap;
+}
+.lgDot {
+  display: block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--ink);
+}
+.lgHollow {
+  background: var(--surface);
+  box-shadow: inset 0 0 0 1px var(--ink);
+}
+.lgBar {
+  display: block;
+  width: 1px;
+  height: 11px;
+  background: var(--ink);
+}
+.lgEras {
+  display: inline-flex;
+  gap: 1px;
+}
+.lgEras i {
+  display: block;
+  width: 6px;
+  height: 3px;
+}
+.lgEraMetal {
+  box-shadow: inset 0 0 0 1px var(--metal-key);
+}
+
+/* ---- 05 시간표 — 연도 먼저, 대운 천간 색 레일 ---- */
+.tth,
+.tr {
+  display: grid;
+  grid-template-columns: 12px 72px 40px minmax(0, 1fr);
+  column-gap: 8px;
+}
+.tth {
+  margin-top: 18px;
+  padding: 0 0 7px;
+  border-bottom: 1px solid var(--line);
+  font-family: var(--mono);
+  font-size: 8.5px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--mute);
+  white-space: nowrap;
+}
+.tth .hj {
+  font-size: 9.5px;
+  letter-spacing: 0.04em;
+}
+.tlist {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.tr {
+  position: relative;
+  align-items: start;
+  padding: 11px 0 12px;
+  border-bottom: 1px solid var(--line);
+}
+.rl {
+  align-self: stretch;
+  display: flex;
+}
+.rail {
+  display: block;
+  width: 3px;
+  border-radius: 2px;
+  background: var(--line);
+}
+.rail_wood {
+  background: var(--wood);
+}
+.rail_fire {
+  background: var(--fire);
+}
+.rail_earth {
+  background: var(--earth);
+}
+.rail_metal {
+  background: var(--metal);
+  box-shadow: inset 0 0 0 1px var(--metal-key);
+}
+.rail_water {
+  background: var(--water);
+}
+.yr {
+  padding-top: 3px;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  color: var(--ink);
+  white-space: nowrap;
+}
+.gz {
+  padding-top: 2px;
+  font-family: var(--hanja);
+  font-weight: 700;
+  font-size: 16px;
+  line-height: 1;
+  letter-spacing: 0.04em;
+  color: var(--ink);
+  white-space: nowrap;
+}
+.tcell {
+  min-width: 0;
+}
+.th {
+  display: block;
+  font-weight: 600;
+  font-size: 16.5px;
+  line-height: 1.15;
+  letter-spacing: -0.015em;
+  color: var(--ink);
+}
+.rm {
+  display: block;
+  margin-top: 4px;
+  font-family: var(--mono);
+  font-size: 9.5px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--mute);
+}
+.turn {
+  display: inline-block;
+  margin-top: 7px;
+  padding: 2px 5px 1px;
+  font-family: var(--mono);
+  font-size: 8.5px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink);
+  box-shadow: inset 0 0 0 1px var(--ink);
+  white-space: nowrap;
+}
+.tr > .nt {
+  grid-column: 2 / 5;
+  margin: 8px 0 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--body);
+}
+.past .yr,
+.past .gz,
+.past .th,
+.far .yr,
+.far .gz,
+.far .th {
+  color: var(--mute);
+}
+.past .rail,
+.far .rail {
+  opacity: 0.45;
+}
+.now {
+  margin: 6px 0;
+  padding: 14px 12px 14px 0;
+  border: 0;
+  border-radius: 14px;
+  background: var(--surface);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+.now .rail {
+  width: 5px;
+  border-radius: 0 3px 3px 0;
+}
+.now .yr {
+  padding-top: 26px;
+}
+.now .gz {
+  padding-top: 25px;
+  font-size: 18px;
+}
+.now .th {
+  font-size: 18px;
+}
+.here {
+  display: inline-block;
+  margin-bottom: 8px;
+  padding: 2px 5px 1px;
+  font-family: var(--mono);
+  font-size: 8.5px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink);
+  box-shadow: inset 0 0 0 1px var(--ink);
+}
+.yrow {
+  grid-column: 2 / 5;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px 12px;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--body);
+}
+.lk {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  white-space: nowrap;
+}
+.lk svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* ---- 06 전략 — 한 판 안의 판독 넷 ---- */
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+}
+.odds {
+  margin-top: 18px;
+}
+.od {
+  padding: 16px 18px 18px;
+}
+.od + .od {
+  border-top: 1px solid var(--line);
+}
+.k {
+  display: block;
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--mute);
+  white-space: nowrap;
+}
+.od .h3 {
+  margin-top: 7px;
+}
+.od p {
+  margin: 7px 0 0;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--body);
+}
+.hd {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.pair {
+  display: flex;
+  gap: 4px;
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+.facts {
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border-top: 1px solid var(--line);
+}
+.facts > div {
+  padding-top: 10px;
+  min-width: 0;
+}
+.facts > div + div {
+  padding-left: 14px;
+  border-left: 1px solid var(--line);
+}
+.x {
+  display: block;
+  margin-top: 4px;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  color: var(--ink);
+}
+.big {
+  font-size: 26px;
+  letter-spacing: -0.03em;
+}
+.g {
+  display: block;
+  margin-top: 5px;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: var(--mute);
+}
+.yrs {
+  margin-top: 10px;
+  border-top: 0;
+}
+.yrs > div {
+  padding-top: 0;
+}
+
+/* ---- 공유 — 질문 옆 mini 카드, 아래 버튼 둘 ---- */
+.share {
+  margin: 28px var(--gutter) 0;
+  padding: 18px;
+}
+.shh {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.shh .eyebrow + .h2 {
+  margin-top: 12px;
+}
+/* mini 카드(150 × 232)를 공유 블록 크기(120 × 186 — 디자인 .card.mini)로 줄여 앉힌다. */
+.miniSlot {
+  position: relative;
+  width: 120px;
+  height: 186px;
+  margin: 2px 4px 0 0;
+  flex-shrink: 0;
+}
+.shh .miniSlot > * {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform-origin: 0 0;
+  transform: scale(0.8) rotate(-2deg);
+}
+.shr {
+  margin-top: 18px;
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 8px;
+}
+.btnLine {
+  height: 40px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  flex: 0 0 auto;
+  background: transparent;
+  color: var(--ink);
+  box-shadow: inset 0 0 0 1.5px var(--ink);
+  font-family: var(--sans);
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.btnLine:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+.btnLine svg {
+  flex-shrink: 0;
+}
+.grow {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.shareErr {
+  margin: 10px 0 0;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--body);
+  overflow-wrap: anywhere;
+}
+/* 화면 밖 캡처 틀 — 1080×1350 종이 위에 export 카드를 키워 가운데. */
+.exportHost {
+  position: fixed;
+  left: -12000px;
+  top: 0;
+  pointer-events: none;
+}
+.exportFrame {
+  position: relative;
+  width: 1080px;
+  height: 1350px;
+  background: var(--paper);
+  overflow: hidden;
+}
+.exportCard {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 306px;
+  height: 320px;
+  transform: translate(-50%, -50%) scale(2.8);
+}
+
+/* ---- 상담사 CTA ---- */
+.cta {
+  margin: 28px var(--gutter) 0;
+}
+
+/* ---- 좁은 화면 ---- */
+@media (max-width: 359px) {
+  .page {
+    --gutter: 16px;
+  }
+  .band {
+    margin-left: 8px;
+    margin-right: 8px;
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+  .type {
+    font-size: 60px;
+  }
+  .ko .type {
+    font-size: 44px;
+  }
+  .v {
+    font-size: 26px;
+  }
+  .sth,
+  .str {
+    grid-template-columns: minmax(0, 104px) minmax(0, 1fr) 20px;
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+  /* 좁으면 결 이름이 줄을 바꾸고, STRONGEST 는 이름 아래 줄로. */
+  .nm {
+    white-space: normal;
+  }
+  .st {
+    display: table;
+    margin: 4px 0 0;
+  }
+  .none {
+    white-space: normal;
+  }
+  .tth,
+  .tr {
+    grid-template-columns: 10px 64px 34px minmax(0, 1fr);
+    column-gap: 6px;
+  }
+  .yr {
+    font-size: 10px;
+  }
+  .shh {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .miniSlot {
+    align-self: center;
+  }
+  .shr {
+    flex-wrap: wrap;
+  }
+}
+@media (max-width: 299px) {
+  .type {
+    font-size: 52px;
+  }
+  .ko .type {
+    font-size: 38px;
+  }
+  .ro {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+  .v {
+    font-size: 23px;
+  }
+  .h2 {
+    font-size: 26px;
+  }
+}
+
+/* ---- 넓은 화면 — 가운데 한 칸 문서 ---- */
+@media (min-width: 720px) {
+  .page {
+    --gutter: 24px;
+    padding-top: 12px;
+  }
+  .band {
+    margin-left: 16px;
+    margin-right: 16px;
+    padding: 28px 32px 30px;
+  }
+  .type {
+    font-size: 88px;
+  }
+  .ko .type {
+    font-size: 64px;
+  }
+  .sec {
+    margin-top: 64px;
+  }
+  .h2 {
+    font-size: 34px;
+  }
+}

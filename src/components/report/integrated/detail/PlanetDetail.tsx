@@ -13,10 +13,10 @@ import {
   SIGN_TRAIT,
   signLabel,
   abbr,
-  elClass,
   planetHover,
-} from '../integratedReportLabels'
-import { SIGN_META, type ReportData } from '../reportTypes'
+} from '@/lib/report/integratedReportLabels'
+import { SIGN_META, type ReportData } from '@/lib/report/reportTypes'
+import { elClass } from '../elementClass'
 import { getPlanetCore, getHouseRich, type HouseNumber } from '@/lib/chart-dictionary'
 import s from './PlanetDetail.module.css'
 
@@ -89,7 +89,9 @@ function BodyRow({
         </b>
         <i className={s.coord}>
           <span className={`${s.glyph} ${elCls}`}>{sk?.glyph ?? ''}</span>{' '}
-          <span className={elCls}>{signLabel(abbr(b.sign), lang)}</span> {b.deg} · {b.house}H
+          <span className={elCls}>{signLabel(abbr(b.sign), lang)}</span> {b.deg}
+          {/* 하우스 미상(0 — 출생시각/출생지 미상)이면 '0H' 를 붙이지 않는다(CR-5). */}
+          {b.house > 0 ? ` · ${b.house}H` : null}
           {b.retro ? <span className={s.retro}> ℞</span> : null}
         </i>
       </div>

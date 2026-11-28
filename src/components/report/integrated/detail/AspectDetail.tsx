@@ -13,8 +13,14 @@ import {
   DIGNITY_TIER_FRIENDLY,
   DIGNITY_TIER_TOOLTIP,
   SIGN_META,
-} from '../reportTypes'
-import { type Lang, aspectHover, dignityHover, signLabel, abbr } from '../integratedReportLabels'
+} from '@/lib/report/reportTypes'
+import {
+  type Lang,
+  aspectHover,
+  dignityHover,
+  signLabel,
+  abbr,
+} from '@/lib/report/integratedReportLabels'
 import s from './AspectDetail.module.css'
 
 export interface AspectDetailProps {

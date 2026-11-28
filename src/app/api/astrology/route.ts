@@ -1,8 +1,5 @@
 // src/app/api/astrology/route.ts
 import { NextRequest } from 'next/server'
-import dayjs from 'dayjs'
-import utc from 'dayjs/plugin/utc'
-import timezone from 'dayjs/plugin/timezone'
 import {
   calculateNatalChart,
   toChart,
@@ -13,6 +10,7 @@ import {
   buildEngineMeta,
 } from '@/lib/astrology'
 import { calculateArabicLots } from '@/lib/astrology/foundation/arabicParts'
+import { isDiurnalChart } from '@/lib/astrology/foundation/extraPoints'
 import {
   calculateZodiacalReleasing,
   getActiveZRSub,
@@ -35,6 +33,7 @@ import { cacheOrCalculate, CacheKeys, CACHE_TTL } from '@/lib/cache/redis-cache'
 import { validateRequestBody, astrologyRequestSchema } from '@/lib/api/zodValidation'
 import { CALCULATION_STANDARDS } from '@/lib/config/calculationStandards'
 import { withSpan } from '@/lib/telemetry'
+import { resolveBirthInstant } from '@/lib/datetime/resolveBirthInstant'
 
 // Middleware imports
 import {
@@ -47,8 +46,7 @@ import {
 } from '@/lib/api/middleware'
 import { HTTP_STATUS } from '@/lib/constants/http'
 
-dayjs.extend(utc)
-dayjs.extend(timezone)
+const YEAR_MS = 365.25 * 86_400_000
 
 // ============ Handler ============
 
@@ -70,16 +68,18 @@ export const POST = withApiMiddleware(async (req: NextRequest, context: ApiConte
     return apiError(ErrorCodes.VALIDATION_ERROR, 'Invalid date components', { date })
   }
 
-  // 3. Parse time
+  // 3. Parse time — 출생 instant 는 natalToJD·사주와 같은 resolver(RFC 5545 공백·겹침)로
+  // 검증한다. 옛 dayjs.tz 는 2월 30일을 3월로 넘겨 '유효' 로 통과시켰고(→ 차트 계산 500),
+  // 겹침 시각 offset 을 서버의 현재 DST 상태로 골랐다.
   const { h, m } = parseHM(String(time))
-  const local = dayjs.tz(
-    `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')} ${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`,
-    'YYYY-MM-DD HH:mm',
-    String(timeZone)
-  )
-  if (!local.isValid()) {
+  let birthUtc: Date
+  try {
+    birthUtc = resolveBirthInstant({ year, month, day, hour: h, minute: m }, String(timeZone)).utc
+  } catch {
     return apiError(ErrorCodes.VALIDATION_ERROR, 'Invalid date/time/timeZone combination.')
   }
+  // 요청 경계에서 한 번만 시계를 읽는다(엔진 깊숙이 new Date() 금지).
+  const now = new Date()
 
   // 4. Calculate natal chart — ephemeris 실패 시 graceful fallback
   const opts = resolveOptions(options)
@@ -208,8 +208,18 @@ export const POST = withApiMiddleware(async (req: NextRequest, context: ApiConte
   try {
     const chartFull = chart as Chart
     const sun = chartFull.planets.find((p) => p.name === 'Sun')
-    // sect — Sun 이 지평선 위 (house 7..12) 이면 day. NatalContext.build 와 같은 규칙.
-    const sect: 'day' | 'night' = sun && (sun.house ?? 0) >= 7 ? 'day' : 'night'
+    // sect — 태양이 지평선 위(참고도 > 0°)면 day. isDiurnalChart SSOT(astroFacts·NatalContext
+    // 와 같은 함수). 하우스 번호 규칙은 극권 Whole Sign 폴백에서 뒤집혔다(엔진 감사 ASTRO-10).
+    const sect: 'day' | 'night' = isDiurnalChart({
+      jdUT: natalMeta?.jdUT,
+      latitude,
+      longitude,
+      sunHouse: sun?.house,
+      sunLongitude: sun?.longitude,
+      ascLongitude: chartFull.ascendant?.longitude,
+    })
+      ? 'day'
+      : 'night'
 
     let lots: ReturnType<typeof calculateArabicLots> = []
     try {
@@ -223,7 +233,9 @@ export const POST = withApiMiddleware(async (req: NextRequest, context: ApiConte
     const spiritLot = lots.find((l) => l.name === 'Spirit')
     const fortuneLot = lots.find((l) => l.name === 'Fortune')
 
-    const ageNow = Math.max(0, local.year() - year - (local.month() < month - 1 ? 1 : 0))
+    // ZR 나이 = 출생 instant 부터 지금까지(365.25일 년, calendar-engine astro-zr 과 같은 앵커).
+    // 옛 식은 `local`(= 출생 벽시계)의 연·월을 써서 늘 0 이었다 — 현재 ZR 이 출생 시점 구간.
+    const ageNow = Math.max(0, (now.getTime() - birthUtc.getTime()) / YEAR_MS)
     let spirit: { startSign: ZodiacKo; periods: ZRPeriod[] } | null = null
     let fortune: { startSign: ZodiacKo; periods: ZRPeriod[] } | null = null
     try {

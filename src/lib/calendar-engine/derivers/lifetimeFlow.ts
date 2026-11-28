@@ -21,9 +21,12 @@ import { getSibsinKo } from '@/lib/saju/cycleRelations'
 import { SIGN_KO as SIGN_KO_SSOT } from '@/lib/astrology/signLabels'
 import { STEM_KO, BRANCH_KO, ganjiToKorean, ganjiToRoman } from '@/lib/saju/ganjiKo'
 import { getStemElement } from '@/lib/saju/stemBranchUtils'
-import { getTwelveStage } from '@/lib/saju/shinsal'
+// FiveElement 한글(목/화/토/금/수) → Elem 키(wood/fire/...) — 정본 파생 표(D8)
+import { ELEMENT_KO_TO_KEY } from '@/lib/saju/constants'
+import { getTwelveStage, canonicalTwelveStage, cheonraJimangPartner } from '@/lib/saju/shinsal'
 import { getJohuYongsin } from '@/lib/saju/johuYongsin'
 import { type TwelveStageType } from '@/lib/saju/interpretations'
+import { shinsalNameEn } from './signalI18n'
 
 const TWELVE_STAGE_TYPES: ReadonlySet<TwelveStageType> = new Set([
   '장생',
@@ -630,39 +633,58 @@ const SHINSAL_SHORT_KO: Record<string, string> = {
   천살: '권위·부모 주제를 마주하는 흐름',
   육해: '관계 마찰·은근한 방해',
   육해살: '관계 마찰·은근한 방해',
+  // 짝 완성(戌亥·辰巳)으로만 켜진다 — 아래 '사실 4'. 표에 없으면 EN 에 한국어 이름이 샜다.
+  천라지망: '묶인 듯 더딘 흐름, 절차와 약속을 꼼꼼히 챙길수록 풀려요',
 }
-const SHINSAL_SHORT_EN: Record<string, { name: string; short: string }> = {
-  천을귀인: { name: 'Cheoneul Gwiin (Nobleman)', short: 'supportive helpers, lucky breaks' },
-  천덕귀인: { name: 'Cheondeok Gwiin (Heavenly Virtue)', short: 'celestial protection' },
-  월덕귀인: { name: 'Woldeok Gwiin (Lunar Virtue)', short: 'lunar grace' },
-  문창귀인: { name: 'Munchang Gwiin (Scholar)', short: 'scholarship & expression thrive' },
-  문창: { name: 'Munchang (Scholar)', short: 'scholarship & expression thrive' },
-  학당귀인: { name: 'Hakdang Gwiin (Academy)', short: 'wisdom & learning' },
-  금여: { name: 'Geumyeo (Golden Carriage)', short: 'fortune and connections abundant' },
-  금여성: { name: 'Geumyeoseong (Golden Carriage)', short: 'fortune and connections abundant' },
-  도화: { name: 'Dohwa (Peach Blossom)', short: 'charm & relationships active, emotional swings' },
-  역마: { name: 'Yeokma (Travel Horse)', short: 'movement, travel, frequent shifts' },
-  역마살: { name: 'Yeokmasal (Travel Horse)', short: 'movement, travel, frequent shifts' },
-  양인: { name: 'Yangin (Yang Blade)', short: 'razor-sharp drive — balance matters' },
-  백호: { name: 'Baekho (White Tiger)', short: 'stay flexible with the unexpected' },
-  망신: { name: 'Mangsin (Loss of Face)', short: 'a season to firm up reputation & trust' },
-  망신살: { name: 'Mangsinsal (Loss of Face)', short: 'a season to firm up reputation & trust' },
-  겁살: { name: 'Geopsal (Robbery)', short: 'a season to mind wealth & trust' },
-  공망: { name: 'Gongmang (Void)', short: 'spaciousness, deep introspection' },
-  지살: { name: 'Jisal (Self-Start)', short: 'self-initiated moves, departures' },
-  년살: { name: 'Nyeonsal (Year Spike)', short: 'a Dohwa offshoot — feelings stirred' },
-  월살: { name: 'Wolsal (Snag)', short: 'small obstacles stall the cusp of change' },
-  반안: { name: 'Banan (Saddle)', short: 'shiny outside, firming up inside' },
-  반안살: { name: 'Banansal (Saddle)', short: 'shiny outside, firming up inside' },
-  장성: { name: 'Jangseong (General)', short: 'leadership and authority stirred' },
-  장성살: { name: 'Jangseongsal (General)', short: 'leadership and authority stirred' },
-  화개: { name: 'Hwagae (Canopy)', short: 'inwardness, art, spirituality activated' },
-  화개살: { name: 'Hwagaesal (Canopy)', short: 'inwardness, art, spirituality activated' },
-  재살: { name: 'Jaesal (Wealth Trial)', short: 'a season to mind wealth & trust' },
-  천살: { name: 'Cheonsal (Heaven Trial)', short: 'facing authority & parent themes' },
-  육해: { name: 'Yukhae (Friction)', short: 'relational friction, quiet interference' },
-  육해살: { name: 'Yukhaesal (Friction)', short: 'relational friction, quiet interference' },
+/**
+ * 신살 Life 줄 EN 의 짧은 뜻. 이름은 여기 두지 않는다 — 칩·캘린더와 같은 정본
+ * SHINSAL_NAME_EN(signalI18n)에서 읽는다(G14: 예전엔 'Yeokma (Travel Horse)'·'Yangin (Yang
+ * Blade)'·'Cheoneul Gwiin (Nobleman)' 처럼 Life 만 다른 철자를 썼다). 키는 모두 그 표에 있다.
+ */
+export const LIFE_SHINSAL_SHORT_EN: Readonly<Record<string, string>> = {
+  천을귀인: 'supportive helpers, lucky breaks',
+  천덕귀인: 'celestial protection',
+  월덕귀인: 'lunar grace',
+  문창귀인: 'scholarship & expression thrive',
+  문창: 'scholarship & expression thrive',
+  학당귀인: 'wisdom & learning',
+  금여: 'fortune and connections abundant',
+  금여성: 'fortune and connections abundant',
+  도화: 'charm & relationships active, emotional swings',
+  역마: 'movement, travel, frequent shifts',
+  역마살: 'movement, travel, frequent shifts',
+  양인: 'razor-sharp drive — balance matters',
+  백호: 'stay flexible with the unexpected',
+  망신: 'a season to firm up reputation & trust',
+  망신살: 'a season to firm up reputation & trust',
+  겁살: 'a season to mind wealth & trust',
+  공망: 'spaciousness, deep introspection',
+  지살: 'self-initiated moves, departures',
+  년살: 'a Peach Blossom offshoot — feelings stirred',
+  월살: 'small obstacles stall the cusp of change',
+  반안: 'shiny outside, firming up inside',
+  반안살: 'shiny outside, firming up inside',
+  장성: 'leadership and authority stirred',
+  장성살: 'leadership and authority stirred',
+  화개: 'inwardness, art, spirituality activated',
+  화개살: 'inwardness, art, spirituality activated',
+  재살: 'a season to mind wealth & trust',
+  천살: 'facing authority & parent themes',
+  육해: 'relational friction, quiet interference',
+  육해살: 'relational friction, quiet interference',
+  천라지망: 'a tied-down, slow stretch that loosens with careful rules and commitments',
 }
+
+/**
+ * 신살 Life 줄 EN — '{정본 이름} — {짧은 뜻}'. 이름은 SHINSAL_NAME_EN(칩·캘린더와 같은 표).
+ * 표에 없는 신살은 이름만 정본에서(없으면 원문), 뜻은 'activated'.
+ */
+export function lifeShinsalLineEn(kind: string): string {
+  const name = shinsalNameEn(kind) ?? kind
+  return `${name} — ${LIFE_SHINSAL_SHORT_EN[kind] ?? 'activated'}`
+}
+/** 짝 신살(戌亥 = 천라, 辰巳 = 지망) — 대운 짝 완성 규칙으로만 활성(캘린더와 같은 규칙). */
+const CHEONRA_JIMANG = '천라지망'
 
 // 본명 4지지 위치명 → 한국어/영문 표기 (단계 카드 줄에 쓰는 짧은 라벨).
 const PILLAR_POS_KO: Record<string, string> = {
@@ -730,68 +752,40 @@ function shortDateEn(iso: string): string {
 
 // ─────────────────────────────────────────────────────────────
 // 격국 KO/EN — advancedAnalysis.geokguk.primary (한국어 명) 를 받아
-// EN 표시명과 한 줄 함축 설명을 만든다. description 은 advancedAnalysis 가
+// 한 줄 함축 설명을 만든다. description 은 advancedAnalysis 가
 // 한국어로만 주므로 KO 는 그대로, EN 은 여기 매핑 테이블에서 가져온다.
 // ─────────────────────────────────────────────────────────────
-const GEOKGUK_EN: Record<string, { name: string; short: string }> = {
-  식신격: { name: 'Eating-god (Siksin) pattern', short: 'creativity feeds wealth' },
-  상관격: { name: 'Hurting-officer (Sanggwan) pattern', short: 'free, original, talent-driven' },
-  편재격: { name: 'Indirect-wealth (Pyeonjae) pattern', short: 'enterprising, dynamic with money' },
-  정재격: { name: 'Direct-wealth (Jeongjae) pattern', short: 'steady, faithful accumulation' },
-  편관격: { name: 'Indirect-officer (Pyeongwan) pattern', short: 'decisive, willing to push hard' },
-  정관격: {
-    name: 'Direct-officer (Jeonggwan) pattern',
-    short: 'orderly, principled responsibility',
-  },
-  편인격: {
-    name: 'Indirect-resource (Pyeonin) pattern',
-    short: 'unconventional thinker, lone-wolf learner',
-  },
-  정인격: {
-    name: 'Direct-resource (Jeongin) pattern',
-    short: 'studious, dignified, well-supported',
-  },
-  종왕격: { name: 'Following-prosperity (Jongwang) pattern', short: 'rides one dominant force' },
-  종강격: {
-    name: 'Following-strength (Jonggang) pattern',
-    short: 'leans on support that overwhelms the chart',
-  },
-  종아격: {
-    name: 'Following-output (Jong‑a) pattern',
-    short: 'goes all-in on expression and output',
-  },
-  종재격: {
-    name: 'Following-wealth (Jongjae) pattern',
-    short: 'follows the dominant wealth force',
-  },
-  종살격: {
-    name: 'Following-officer (Jongsal) pattern',
-    short: 'follows overpowering authority/pressure',
-  },
-  건록격: { name: 'Established-rank (Geollok) pattern', short: 'born standing on your own feet' },
-  양인격: { name: 'Yang-blade (Yangin) pattern', short: 'sharp, intense, high-stakes drive' },
-  월겁격: { name: 'Month-rob (Wolgeop) pattern', short: 'strong peers, competition shapes you' },
-  잡기격: { name: 'Mixed (Japgi) pattern', short: 'mixed signals — multi-track development' },
-  곡직격: { name: 'Curving-straight (Gokjik) pattern', short: 'all-Wood — growth and uprightness' },
-  염상격: { name: 'Blazing-up (Yeomsang) pattern', short: 'all-Fire — bright, radiant force' },
-  가색격: { name: 'Sowing-reaping (Gasaek) pattern', short: 'all-Earth — fertile, gathering' },
-  종혁격: {
-    name: 'Following-reform (Jonghyeok) pattern',
-    short: 'all-Metal — sharp, refining force',
-  },
-  윤하격: { name: 'Flowing-down (Yunha) pattern', short: 'all-Water — fluid, deep, adaptive' },
-  갑기화토격: { name: 'Gap-gi Earth transformation pattern', short: 'two stems fuse into Earth' },
-  을경화금격: {
-    name: 'Eul-gyeong Metal transformation pattern',
-    short: 'two stems fuse into Metal',
-  },
-  병신화수격: {
-    name: 'Byeong-sin Water transformation pattern',
-    short: 'two stems fuse into Water',
-  },
-  정임화목격: { name: 'Jeong-im Wood transformation pattern', short: 'two stems fuse into Wood' },
-  무계화화격: { name: 'Mu-gye Fire transformation pattern', short: 'two stems fuse into Fire' },
-  미정: { name: 'Undetermined pattern', short: 'no clean pattern lock' },
+// EN 한 줄 함축(평이) — 격국 *이름* EN 은 saju/geokgukNameEn(GEOKGUK_NAME_EN) 단일 표가 맡는다
+// (G13: 예전 여기 name 필드는 쓰이지 않는 세 번째 표기 'Established-rank (Geollok) pattern' 이었다).
+const GEOKGUK_SHORT_EN: Record<string, string> = {
+  식신격: 'creativity feeds wealth',
+  상관격: 'free, original, talent-driven',
+  편재격: 'enterprising, dynamic with money',
+  정재격: 'steady, faithful accumulation',
+  편관격: 'decisive, willing to push hard',
+  정관격: 'orderly, principled responsibility',
+  편인격: 'unconventional thinker, lone-wolf learner',
+  정인격: 'studious, dignified, well-supported',
+  종왕격: 'rides one dominant force',
+  종강격: 'leans on support that overwhelms the chart',
+  종아격: 'goes all-in on expression and output',
+  종재격: 'follows the dominant wealth force',
+  종살격: 'follows overpowering authority/pressure',
+  건록격: 'born standing on your own feet',
+  양인격: 'sharp, intense, high-stakes drive',
+  월겁격: 'strong peers, competition shapes you',
+  잡기격: 'mixed signals — multi-track development',
+  곡직격: 'all-Wood — growth and uprightness',
+  염상격: 'all-Fire — bright, radiant force',
+  가색격: 'all-Earth — fertile, gathering',
+  종혁격: 'all-Metal — sharp, refining force',
+  윤하격: 'all-Water — fluid, deep, adaptive',
+  갑기화토격: 'two stems fuse into Earth',
+  을경화금격: 'two stems fuse into Metal',
+  병신화수격: 'two stems fuse into Water',
+  정임화목격: 'two stems fuse into Wood',
+  무계화화격: 'two stems fuse into Fire',
+  미정: 'no clean pattern lock',
 }
 // 한국어 1줄 함축 — geokguk.ts 의 description 은 본문에 가까운 한 문장이라
 // intro 한 줄에 박기엔 살짝 길다. 짧은 핵심만 적는다.
@@ -858,14 +852,6 @@ const ELEMENT_IMPLICATION_EN: Record<Elem, string> = {
   earth: 'your strength is steadiness, roots, and mediating between people',
   metal: 'your strength is judgment, refinement, and decisive cuts',
   water: 'your strength is flexible thought and going deep',
-}
-// FiveElement (Korean 한글: 목/화/토/금/수) → Elem key (wood/fire/...)
-const ELEMENT_KO_TO_KEY: Record<string, Elem> = {
-  목: 'wood',
-  화: 'fire',
-  토: 'earth',
-  금: 'metal',
-  수: 'water',
 }
 
 export function deriveLifetimeFlow(
@@ -948,10 +934,17 @@ export function deriveLifetimeFlow(
     yongEnList.length === 2 ? `${yongEnList[0]} or ${yongEnList[1]}` : (yongEnList[0] ?? '')
 
   // ── astro identity (Sun / Asc / MC) ──
+  // 출생시각/출생지 미상(placeUnreliable)이면 상승궁·MC 는 정오 앵커·기본 좌표 폴백이라
+  // 소개 문장에 넣지 않는다 — 태양 별자리만(CONVENTIONS §5, 엔진 감사 F1).
+  const placeUnreliable = natal.astro?.placeUnreliable === true
   const planets = (natal.astro?.chart?.planets ?? []) as Array<{ name?: string; sign?: string }>
   const sunSign = planets.find((p) => p.name === 'Sun')?.sign
-  const ascSign = (natal.astro?.chart?.ascendant as { sign?: string } | undefined)?.sign
-  const mcSign = (natal.astro?.chart?.mc as { sign?: string } | undefined)?.sign
+  const ascSign = placeUnreliable
+    ? undefined
+    : (natal.astro?.chart?.ascendant as { sign?: string } | undefined)?.sign
+  const mcSign = placeUnreliable
+    ? undefined
+    : (natal.astro?.chart?.mc as { sign?: string } | undefined)?.sign
   const astroIdParts: string[] = []
   if (isEn) {
     if (sunSign) astroIdParts.push(`Sun in ${SIGN[sunSign] ?? sunSign}`)
@@ -972,14 +965,14 @@ export function deriveLifetimeFlow(
   let geokgukIntroEn = ''
   if (geokgukPrimary && geokgukPrimary !== '미정') {
     const shortKo = GEOKGUK_SHORT_KO[geokgukPrimary] ?? ''
-    const en = GEOKGUK_EN[geokgukPrimary]
+    const shortEn = GEOKGUK_SHORT_EN[geokgukPrimary]
     // 평이 우선 — raw 격국명(정인격/종재격/병신화수격…)을 빼고 평이 결만 쓴다(감사
     // jargon + 화格 모순 노출 회피). 격국 라벨 자체는 expert fold/태그에만.
     if (shortKo) {
       geokgukIntroKo = `타고난 큰 틀로 보면 ${shortKo}.`
     }
-    if (en) {
-      geokgukIntroEn = `By your core make-up, ${en.short}.`
+    if (shortEn) {
+      geokgukIntroEn = `By your core make-up, ${shortEn}.`
     }
   }
 
@@ -1209,14 +1202,12 @@ export function deriveLifetimeFlow(
   // bilingual: 날짜 문자열을 KO/EN 양쪽으로 baked (kind 매핑 존재 판정은 KO 테이블
   // 기준 — 두 테이블 키가 동일).
   // 외행성 마디(토성/목성 회귀·천왕성 대립 등)를 단계 카드의 `outer` 로 채운다.
-  // 예전엔 astroMilestoneOverrides 만 직접 읽어, 그게 미지정(현재 전 경로)이면
-  // milestoneFacts 가 비어 `outer` 가 *항상 []* 였다(감사 CRITICAL — lifeStages 에서
-  // 외행성 마디 전체 누락). lifetimePivots 와 동일하게 buildLifecycleTiming 을 거쳐
-  // (override 있으면 실제 transit, 없으면 평균 테이블) 일관되게 채운다.
+  // lifetimePivots 와 동일하게 buildLifecycleTiming 을 거친다 — 실측 순간
+  // (calculateOuterPlanetMilestones)이 있는 마디만, 평균 나이표로 채우지 않는다(G6).
   const overrideByKind = new Map<string, LifecycleMilestoneOverride>()
   for (const o of astroMilestoneOverrides ?? []) overrideByKind.set(o.kind, o)
   const milestoneFacts: Array<{ kind: string; age: number; dateStrKo: string; dateStrEn: string }> =
-    buildLifecycleTiming(birthYear, birthYear + 90, true, astroMilestoneOverrides, now)
+    buildLifecycleTiming(astroMilestoneOverrides, { endYear: birthYear + 90, isKo: true, now })
       .events.filter((e) => MILESTONE_SHORT_KO[e.event])
       .map((e) => {
         const ov = overrideByKind.get(e.event)
@@ -1379,39 +1370,43 @@ export function deriveLifetimeFlow(
     // (= ShinsalHit.target, 신살이 앉아있는 본명 간지 글자) 와 일치하면 그
     // 신살이 이 단계에 '활성' 된다고 본다. 단계에 대운이 여러 개 있어도
     // 카드 공간 제약 + "한 단계 한 신살" 원칙으로 primary 대운만 검사.
-    // natalShinsal 이 없거나 매칭이 없으면 silently skip. KO/EN 양쪽 baked.
+    // 매칭이 없으면 silently skip. KO/EN 양쪽 baked.
+    //
+    // 천라지망은 예외 — 캘린더(saju-shinsal-activation)와 같은 짝 완성 규칙(G4 · SDR-03,
+    // CONVENTIONS §8.1): 본명 hit 의 anchor 로 깨우지 않고, 대운 지지가 본명(보이는 기둥)
+    // 지지와 戌亥·辰巳 짝을 *완성*하면 활성(cheonraJimangPartner). 본명 戌 이면 亥 대운,
+    // 본명 辰 이면 巳 대운. 같은 지지(본명 戌 + 戌 대운)는 짝이 아니다. 예전엔 본명 hit
+    // anchor 를 써서 짝을 가진 차트에서만, 그것도 이미 가진 지지의 대운에 떴다(G12).
+    // 다른 신살의 anchor 매칭을 먼저 보고, 없을 때 천라지망 짝 완성을 본다.
     let shinsalLineKo: string | undefined
     let shinsalLineEn: string | undefined
-    const natalShinsal = natal.saju.natalShinsal
-    if (natalShinsal && natalShinsal.length > 0) {
-      const daeunBranch = primary.branch
-      const daeunStem = primary.stem
-      for (const sh of natalShinsal) {
-        const tgt = sh.target
-        if (!tgt) continue
-        const isBranch = tgt in BRANCH_KO
-        const isStem = tgt in STEM_KO
-        const matches = (isBranch && tgt === daeunBranch) || (isStem && tgt === daeunStem)
-        if (!matches) continue
-        // anchor 가 어느 기둥인지 — pillars[0] (대표 위치) 사용. 위치 라벨이
-        // 없는 경우엔 그냥 "본명" 만 쓴다.
-        const pillarKey = sh.pillars?.[0]
-        const kind = sh.kind
-        // 평이 우선 — relationLine/twelveStageLine 과 동일하게 surface 에서 raw
-        // 간지 메커닉 "(대운 巳(사) ↔ 본명 연지 巳(사))" 를 뺀다. 그 괄호가
-        // novice 표면에 한자를 흘리던 마지막 경로였다(감사 BUG-3). 신살 개념명 +
-        // 평이 의미만 남긴다.
-        // EN
-        {
-          const meta = SHINSAL_SHORT_EN[kind] ?? { name: kind, short: `${kind} activated` }
-          shinsalLineEn = `${meta.name} — ${meta.short}`
-        }
-        // KO
-        {
-          const short = SHINSAL_SHORT_KO[kind] ?? `${kind} 발현`
-          shinsalLineKo = `${kind} 기운 — ${short}`
-        }
-        break // 첫 매칭 한 개만
+    const setShinsalLines = (kind: string) => {
+      // 평이 우선 — relationLine/twelveStageLine 과 동일하게 surface 에서 raw
+      // 간지 메커닉 "(대운 巳(사) ↔ 본명 연지 巳(사))" 를 뺀다. 그 괄호가
+      // novice 표면에 한자를 흘리던 마지막 경로였다(감사 BUG-3). 신살 개념명 +
+      // 평이 의미만 남긴다.
+      shinsalLineEn = lifeShinsalLineEn(kind)
+      const short = SHINSAL_SHORT_KO[kind] ?? `${kind} 발현`
+      shinsalLineKo = `${kind} 기운 — ${short}`
+    }
+    const natalShinsal = natal.saju.natalShinsal ?? []
+    const daeunBranch = primary.branch
+    const daeunStem = primary.stem
+    for (const sh of natalShinsal) {
+      if ((sh.kind as string) === CHEONRA_JIMANG) continue // 아래 짝 완성 규칙으로만
+      const tgt = sh.target
+      if (!tgt) continue
+      const isBranch = tgt in BRANCH_KO
+      const isStem = tgt in STEM_KO
+      const matches = (isBranch && tgt === daeunBranch) || (isStem && tgt === daeunStem)
+      if (!matches) continue
+      setShinsalLines(sh.kind)
+      break // 첫 매칭 한 개만
+    }
+    if (!shinsalLineKo) {
+      const partner = cheonraJimangPartner(daeunBranch)
+      if (partner && natalBranches.some((nb) => nb.name === partner)) {
+        setShinsalLines(CHEONRA_JIMANG)
       }
     }
 
@@ -1425,9 +1420,9 @@ export function deriveLifetimeFlow(
       const stage = getTwelveStage(dm, primary.branch)
       // getTwelveStage 는 정통 표기 임관/왕지를 내는데, 해석 테이블·타입가드는
       // 동의어 건록/제왕 키를 쓴다. 정규화하지 않으면 임관·왕지 단계가 *항상*
-      // 해석을 잃고 "…기준 임관" 으로 끊겨 raw 용어만 남는다(감사 지적). 동의어를
-      // 매핑해 의미가 절대 비지 않게 한다.
-      const stageForLookup = stage === '임관' ? '건록' : stage === '왕지' ? '제왕' : stage
+      // 해석을 잃고 "…기준 임관" 으로 끊겨 raw 용어만 남는다(감사 지적). 동의어 표는
+      // saju SSOT(canonicalTwelveStage) — 리포트 강점 행·명식 라벨과 같은 표(CR-2).
+      const stageForLookup = canonicalTwelveStage(stage)
       // 추상 에너지 글로스만 사용 — 문자 그대로의 인생 사건/성공 비유(잉태/관을
       // 쓰는/권력의 정점)를 빼 연령·운(favor) 모순을 없앤다(감사 BUG-4).
       const glossKo =

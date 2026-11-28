@@ -60,4 +60,3 @@ const MessageRow = React.memo(function MessageRow({
 })
 
 export default MessageRow
-export type { MessageRowProps }

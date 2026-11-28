@@ -1,63 +1,15 @@
 // Counselor chat: the LLM occasionally slips into report mode
-// (markdown headings, bold, tables, numbered "1️⃣" labels). The chat
-// bubble strips those before rendering so the message reads as one
+// (markdown headings, tables, numbered "1️⃣" labels). The chat bubble
+// strips those before rendering so the message reads as one
 // conversational flow. These tests pin the strip behavior so a future
 // regression doesn't put the purple `## 근거` boxes back.
+//
+// Runs against the real shared stripper (used by the destiny MessageRow and
+// the compatibility counselor). Bold/italic are intentionally preserved
+// there, so markdown emphasis is not asserted away here.
 
 import { describe, it, expect } from 'vitest'
-
-// The stripper is defined inside MessageRow.tsx (not exported). We
-// reproduce the exact regex sequence here and assert on it; the
-// component-level test would require RTL + jsdom which is overkill for
-// a pure string transform.
-
-const EMOJI_PATTERN =
-  '[\\u2600-\\u27BF\\u{1F300}-\\u{1F9FF}\\u{1FA70}-\\u{1FAFF}]'
-
-function stripReportMarkdown(input: string): string {
-  let text = input
-  text = text.replace(/^[ \t]{0,3}#{1,6}[ \t]+/gm, '')
-  text = text.replace(
-    /^[ \t]*\|?[ \t]*:?-{2,}:?(?:[ \t]*\|[ \t]*:?-{2,}:?)+[ \t]*\|?[ \t]*$\n?/gm,
-    ''
-  )
-  text = text.replace(/^[ \t]*\|(.+)\|[ \t]*$/gm, (_m, row: string) => {
-    const cells = row
-      .split('|')
-      .map((cell) => cell.trim())
-      .filter((cell) => cell.length > 0)
-    return cells.join(' · ')
-  })
-  text = text.replace(
-    new RegExp(`^[ \\t]*${EMOJI_PATTERN}[ \\t]+[^\\n]{1,60}$\\n?`, 'gmu'),
-    ''
-  )
-  text = text.replace(/^[ \t]*【([^】\n]+)】[ \t]*$\n?/gm, '')
-  text = text.replace(/【([^】\n]+)】/g, '$1')
-  text = text.replace(/^[ \t]*\[([^\[\]\n]{1,30})\][ \t]*$\n?/gm, '')
-  text = text.replace(/^[ \t]*(?:-{3,}|\*{3,}|_{3,})[ \t]*$\n?/gm, '')
-  text = text.replace(
-    /^([ \t]*)([^\n]{2,30})[ \t]*\n([ \t]*\n)/gm,
-    (m, _indent: string, line: string, blank: string) => {
-      const trimmed = line.trim()
-      if (!trimmed) return m
-      if (/[.?!~…」』》)]$/.test(trimmed)) return m
-      if (/(다|요|까|죠|네|음|함|임)$/.test(trimmed)) return m
-      if (/\?\s*$/.test(trimmed)) return m
-      if (/[()+\/·=,*]/.test(trimmed)) return m
-      return blank
-    }
-  )
-  text = text.replace(/\*\*([^*\n]+)\*\*/g, '$1')
-  text = text.replace(/(?<!\*)\*(?!\*)([^*\n]+?)(?<!\*)\*(?!\*)/g, '$1')
-  text = text.replace(/^[ \t]*[-*+][ \t]+/gm, '')
-  text = text.replace(/^[ \t]*\d+\.[ \t]+/gm, '')
-  text = text.replace(/^[ \t]*[→▶●■▷▸▪◆※][ \t]+/gm, '')
-  text = text.replace(/^[ \t]*->[ \t]+/gm, '')
-  text = text.replace(/`([^`\n]+)`/g, '$1')
-  text = text.replace(/\n{3,}/g, '\n\n')
-  return text.trim()
-}
+import { stripReportMarkdown } from '@/lib/text/stripReportMarkdown'
 
 describe('counselor chat: stripReportMarkdown', () => {
   it('drops `##` heading prefix but keeps the heading text', () => {
@@ -70,16 +22,6 @@ describe('counselor chat: stripReportMarkdown', () => {
     expect(stripReportMarkdown('### sub')).toBe('sub')
   })
 
-  it('strips **bold** markers, keeps the words', () => {
-    const input = '당신은 **책임감 있는 어른**이지만, 지금은 흔들립니다.'
-    expect(stripReportMarkdown(input)).toBe('당신은 책임감 있는 어른이지만, 지금은 흔들립니다.')
-  })
-
-  it('strips *italic* markers, keeps the words', () => {
-    const input = '*아주 중요한* 신호입니다.'
-    expect(stripReportMarkdown(input)).toBe('아주 중요한 신호입니다.')
-  })
-
   it('drops the markdown table separator row', () => {
     const input = '| 영역 | 특징 |\n|------|------|\n| 강점 | 지적 |'
     expect(stripReportMarkdown(input)).toBe('영역 · 특징\n강점 · 지적')
@@ -87,9 +29,7 @@ describe('counselor chat: stripReportMarkdown', () => {
 
   it('flattens a multi-row table into prose-friendly lines', () => {
     const input = '| 영역 | 특징 |\n|---|---|\n| 강점 | 책임감 |\n| 약점 | 외면 |'
-    expect(stripReportMarkdown(input)).toBe(
-      '영역 · 특징\n강점 · 책임감\n약점 · 외면'
-    )
+    expect(stripReportMarkdown(input)).toBe('영역 · 특징\n강점 · 책임감\n약점 · 외면')
   })
 
   it('removes leading dash/star/plus bullet markers', () => {
@@ -143,12 +83,10 @@ describe('counselor chat: stripReportMarkdown', () => {
   })
 
   it('drops standalone 【bracket】 label lines and unwraps inline brackets', () => {
-    expect(
-      stripReportMarkdown('【양쪽 동의 - 강】\n사주 정인격 + 점성 MC/10궁')
-    ).toBe('사주 정인격 + 점성 MC/10궁')
-    expect(stripReportMarkdown('답변은 【중요】한 흐름이다')).toBe(
-      '답변은 중요한 흐름이다'
+    expect(stripReportMarkdown('【양쪽 동의 - 강】\n사주 정인격 + 점성 MC/10궁')).toBe(
+      '사주 정인격 + 점성 MC/10궁'
     )
+    expect(stripReportMarkdown('답변은 【중요】한 흐름이다')).toBe('답변은 중요한 흐름이다')
   })
 
   it('drops leading arrow/triangle bullet markers (→ ▶ ● ■ ▷ ▸ ▪ ◆ ※)', () => {
@@ -166,7 +104,8 @@ describe('counselor chat: stripReportMarkdown', () => {
 
   it('drops standalone short label lines used as pseudo-headings', () => {
     // Short line + colon + no sentence ender, followed by paragraph
-    const input = '현재 당신의 상태: 표면화되는 시기\n\n그 안에서 당신은 흔들리고 있어요. 표면으로 올라온 감정이 부담스럽고 익숙하지 않아서요.'
+    const input =
+      '현재 당신의 상태: 표면화되는 시기\n\n그 안에서 당신은 흔들리고 있어요. 표면으로 올라온 감정이 부담스럽고 익숙하지 않아서요.'
     const output = stripReportMarkdown(input)
     expect(output).not.toContain('현재 당신의 상태: 표면화되는 시기')
     expect(output).toContain('그 안에서 당신은 흔들리고')
@@ -217,9 +156,8 @@ describe('counselor chat: stripReportMarkdown', () => {
 
     const output = stripReportMarkdown(input)
 
-    // No literal markdown syntax left over
+    // No structural markdown left over (emphasis is kept by design)
     expect(output).not.toMatch(/##\s/)
-    expect(output).not.toMatch(/\*\*/)
     expect(output).not.toMatch(/\|----+\|/)
     expect(output).not.toMatch(/^\s*\d+\.\s/m)
     // Content preserved

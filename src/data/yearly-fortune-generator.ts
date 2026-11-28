@@ -1,140 +1,60 @@
-import { BlogPost } from './blog-posts'
+// 타입만 — './blog-posts' 를 값으로 import 하면 blog-posts > blog-posts-sync >
+// seo-posts/dayPillarPosts > 이 파일 > blog-posts 순환이 생긴다.
+import type { BlogPost } from './blog-posts-sync'
 import { iga, waGwa } from '@/lib/i18n/koParticle'
+import { STEMS, BRANCHES, ELEMENT_KO_TO_EN } from '@/lib/saju/constants'
+import { STEM_KO, BRANCH_KO } from '@/lib/saju/ganjiKo'
 
 // 천간 (Heavenly Stems)
 // export: seo-posts/dayPillarPosts 가 같은 테이블을 재사용한다(중복 금지 — SSOT).
-export const HEAVENLY_STEMS = [
-  { ko: '갑', hanja: '甲', en: 'Jia', element: 'Wood', yin: false, color: 'Blue', colorKo: '청' },
-  { ko: '을', hanja: '乙', en: 'Eul', element: 'Wood', yin: true, color: 'Blue', colorKo: '청' },
-  { ko: '병', hanja: '丙', en: 'Byeong', element: 'Fire', yin: false, color: 'Red', colorKo: '적' },
-  { ko: '정', hanja: '丁', en: 'Jeong', element: 'Fire', yin: true, color: 'Red', colorKo: '적' },
-  { ko: '무', hanja: '戊', en: 'Mu', element: 'Earth', yin: false, color: 'Yellow', colorKo: '황' },
-  { ko: '기', hanja: '己', en: 'Gi', element: 'Earth', yin: true, color: 'Yellow', colorKo: '황' },
-  {
-    ko: '경',
-    hanja: '庚',
-    en: 'Gyeong',
-    element: 'Metal',
-    yin: false,
-    color: 'White',
-    colorKo: '백',
-  },
-  { ko: '신', hanja: '辛', en: 'Sin', element: 'Metal', yin: true, color: 'White', colorKo: '백' },
-  { ko: '임', hanja: '壬', en: 'Im', element: 'Water', yin: false, color: 'Black', colorKo: '흑' },
-  { ko: '계', hanja: '癸', en: 'Gye', element: 'Water', yin: true, color: 'Black', colorKo: '흑' },
-]
+// 한자·한글 음·오행·음양은 정본(saju/constants STEMS · ganjiKo)에서 파생한다 — 리터럴 복사
+// 금지(plan D8). 이 파일 고유의 것은 블로그용 영문 이름과 오행 색(五色)뿐이다.
+const STEM_EN = ['Jia', 'Eul', 'Byeong', 'Jeong', 'Mu', 'Gi', 'Gyeong', 'Sin', 'Im', 'Gye']
+const ELEMENT_COLOR: Record<string, { color: string; colorKo: string }> = {
+  Wood: { color: 'Blue', colorKo: '청' },
+  Fire: { color: 'Red', colorKo: '적' },
+  Earth: { color: 'Yellow', colorKo: '황' },
+  Metal: { color: 'White', colorKo: '백' },
+  Water: { color: 'Black', colorKo: '흑' },
+}
+export const HEAVENLY_STEMS = STEMS.map((s, i) => {
+  const element = ELEMENT_KO_TO_EN[s.element]
+  return {
+    ko: STEM_KO[s.name],
+    hanja: s.name,
+    en: STEM_EN[i],
+    element,
+    yin: s.yin_yang === '음',
+    ...ELEMENT_COLOR[element],
+  }
+})
 
 // 지지 (Earthly Branches) - 12띠
-export const EARTHLY_BRANCHES = [
-  {
-    ko: '자',
-    hanja: '子',
-    en: 'Rat',
-    animal: 'Rat',
-    animalKo: '쥐',
-    icon: '🐀',
-    hiddenElement: 'Water',
-  },
-  {
-    ko: '축',
-    hanja: '丑',
-    en: 'Ox',
-    animal: 'Ox',
-    animalKo: '소',
-    icon: '🐂',
-    hiddenElement: 'Earth',
-  },
-  {
-    ko: '인',
-    hanja: '寅',
-    en: 'Tiger',
-    animal: 'Tiger',
-    animalKo: '호랑이',
-    icon: '🐅',
-    hiddenElement: 'Wood',
-  },
-  {
-    ko: '묘',
-    hanja: '卯',
-    en: 'Rabbit',
-    animal: 'Rabbit',
-    animalKo: '토끼',
-    icon: '🐇',
-    hiddenElement: 'Wood',
-  },
-  {
-    ko: '진',
-    hanja: '辰',
-    en: 'Dragon',
-    animal: 'Dragon',
-    animalKo: '용',
-    icon: '🐉',
-    hiddenElement: 'Earth',
-  },
-  {
-    ko: '사',
-    hanja: '巳',
-    en: 'Snake',
-    animal: 'Snake',
-    animalKo: '뱀',
-    icon: '🐍',
-    hiddenElement: 'Fire',
-  },
-  {
-    ko: '오',
-    hanja: '午',
-    en: 'Horse',
-    animal: 'Horse',
-    animalKo: '말',
-    icon: '🐴',
-    hiddenElement: 'Fire',
-  },
-  {
-    ko: '미',
-    hanja: '未',
-    en: 'Goat',
-    animal: 'Goat',
-    animalKo: '양',
-    icon: '🐐',
-    hiddenElement: 'Earth',
-  },
-  {
-    ko: '신',
-    hanja: '申',
-    en: 'Monkey',
-    animal: 'Monkey',
-    animalKo: '원숭이',
-    icon: '🐵',
-    hiddenElement: 'Metal',
-  },
-  {
-    ko: '유',
-    hanja: '酉',
-    en: 'Rooster',
-    animal: 'Rooster',
-    animalKo: '닭',
-    icon: '🐓',
-    hiddenElement: 'Metal',
-  },
-  {
-    ko: '술',
-    hanja: '戌',
-    en: 'Dog',
-    animal: 'Dog',
-    animalKo: '개',
-    icon: '🐕',
-    hiddenElement: 'Earth',
-  },
-  {
-    ko: '해',
-    hanja: '亥',
-    en: 'Pig',
-    animal: 'Pig',
-    animalKo: '돼지',
-    icon: '🐖',
-    hiddenElement: 'Water',
-  },
+// 한자·한글 음·지지 오행(hiddenElement)은 정본(saju/constants BRANCHES · ganjiKo)에서 파생.
+// 띠 동물(영문·한글·아이콘)만 여기 둔다.
+const BRANCH_ANIMAL = [
+  { en: 'Rat', animalKo: '쥐', icon: '🐀' },
+  { en: 'Ox', animalKo: '소', icon: '🐂' },
+  { en: 'Tiger', animalKo: '호랑이', icon: '🐅' },
+  { en: 'Rabbit', animalKo: '토끼', icon: '🐇' },
+  { en: 'Dragon', animalKo: '용', icon: '🐉' },
+  { en: 'Snake', animalKo: '뱀', icon: '🐍' },
+  { en: 'Horse', animalKo: '말', icon: '🐴' },
+  { en: 'Goat', animalKo: '양', icon: '🐐' },
+  { en: 'Monkey', animalKo: '원숭이', icon: '🐵' },
+  { en: 'Rooster', animalKo: '닭', icon: '🐓' },
+  { en: 'Dog', animalKo: '개', icon: '🐕' },
+  { en: 'Pig', animalKo: '돼지', icon: '🐖' },
 ]
+export const EARTHLY_BRANCHES = BRANCHES.map((b, i) => ({
+  ko: BRANCH_KO[b.name],
+  hanja: b.name,
+  en: BRANCH_ANIMAL[i].en,
+  animal: BRANCH_ANIMAL[i].en,
+  animalKo: BRANCH_ANIMAL[i].animalKo,
+  icon: BRANCH_ANIMAL[i].icon,
+  hiddenElement: ELEMENT_KO_TO_EN[b.element],
+}))
 
 // 오행 특성
 export const ELEMENT_TRAITS = {
@@ -572,12 +492,7 @@ ${year}년 ${colorAnimalKo}의 해는 ${traits.ko.slice(0, 2).join('과 ')}의 �
     `
 }
 
-// 현재 연도 가져오기
-export function getCurrentYear(): number {
-  return new Date().getFullYear()
-}
-
-// 현재 연도의 운세 글 생성
-export function generateCurrentYearFortuneBlogPost(): BlogPost {
-  return generateYearlyFortuneBlogPost(getCurrentYear())
+// 현재 연도의 운세 글 생성. now 는 테스트가 연도를 고정할 수 있게 주입 가능.
+export function generateCurrentYearFortuneBlogPost(now: Date = new Date()): BlogPost {
+  return generateYearlyFortuneBlogPost(now.getFullYear())
 }

@@ -6,7 +6,7 @@
  */
 
 export type Lang = 'ko' | 'en'
-export type Tone = 'resonant' | 'complement' | 'tension' | 'neutral'
+type Tone = 'resonant' | 'complement' | 'tension' | 'neutral'
 
 export interface ThemeRowLike {
   category: string
@@ -180,11 +180,18 @@ const ORGAN: Record<El, { ko: string; en: string }> = {
   water: { ko: '신장·방광(호르몬·뼈·기력)', en: 'kidney & bladder (hormones, bones, stamina)' },
 }
 
+/**
+ * 체질 경향 카드 — 사주(오행 분포·용신)만으로 만든다. 교차 행이 아니므로 '사주가 보는 결 /
+ * 점성이 보는 결' 쌍이나 교차 톤 배지(같은 얘기·두 결…)를 달지 않는다 — 용신을 점성 쪽으로
+ * 표시하던 버그(감사 CR-4). tone 은 카드 색(편중=tension 색, 균형=resonant 색)에만 쓴다.
+ */
 export interface HealthCard {
   category: string
   tone: Tone
-  left?: string
-  right?: string
+  /** 사주 단독 카드 표식 — 렌더러가 교차 카드 레이아웃 대신 단일 사실 줄로 그린다. */
+  sajuOnly: true
+  /** 사실 한 줄 — "Dominant: Earth · Support element: Metal" / "우세: 토(土) · 보강 오행: 금(金)". */
+  facts: string
   reason: string
 }
 
@@ -255,12 +262,18 @@ export function buildHealthCard(
       : 'This is a five-element tendency, not a medical diagnosis — please see a doctor for any real symptoms.'
   )
 
+  const domFact = ok ? `우세: ${EL_KO[dom[0]]}` : `Dominant: ${EL_EN[dom[0]]}`
+  const supportFact =
+    yong && EL_KO[yong]
+      ? ok
+        ? `보강 오행: ${EL_KO[yong]}`
+        : `Support element: ${EL_EN[yong]}`
+      : ''
   return {
     category: ok ? '체질 경향' : 'Constitution',
     tone: lacking.length || excess ? 'tension' : 'resonant',
-    left: ok ? `${EL_KO[dom[0]]} 우세` : `${EL_EN[dom[0]]} dominant`,
-    right:
-      yong && EL_KO[yong] ? (ok ? `보강: ${EL_KO[yong]}` : `Support: ${EL_EN[yong]}`) : undefined,
+    sajuOnly: true,
+    facts: supportFact ? `${domFact} · ${supportFact}` : domFact,
     reason: parts.join(' '),
   }
 }

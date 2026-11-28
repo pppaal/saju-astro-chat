@@ -58,6 +58,8 @@ const patterns = {
   withApiMiddleware: /\bwithApiMiddleware\b/,
   middlewareImport: /from ['"]@\/lib\/api\/middleware['"]|from ['"].*\/lib\/api\/middleware['"]/,
   guard: /\bcreate[A-Za-z]+Guard\b/,
+  // cron 라우트: withCronAuth(lib/api/middleware/cronGuard) = IP 레이트리밋 + CRON_SECRET.
+  cronGuard: /\bwithCronAuth\b/,
   validation:
     /\b(parseAndValidate|validateAndParse|parseQueryParams|validateQueryParams|validateRequestBody|validateReportRequest)\b|\bsafeParse\b|from ['"]zod['"]|from ['"]@\/lib\/api\/validator['"]|from ['"]@\/lib\/api\/zodValidation['"]|\bcreateStreamRoute\b|\bErrorCodes\.VALIDATION_ERROR\b/,
   rateLimit: /\brateLimit\s*[:(]/,
@@ -103,7 +105,7 @@ const stats = routeFiles
     const text = readFileSafe(filePath)
     const methods = findMethods(text)
 
-    const usesGuard = patterns.guard.test(text)
+    const usesGuard = patterns.guard.test(text) || patterns.cronGuard.test(text)
     const usesMiddleware =
       patterns.withApiMiddleware.test(text) || patterns.middlewareImport.test(text) || usesGuard
 

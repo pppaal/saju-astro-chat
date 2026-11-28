@@ -53,6 +53,10 @@ function relationLabel(locale: 'ko' | 'en', relation?: Relation, note?: string):
   return locale === 'ko' ? opt.labelKo : opt.labelEn
 }
 import { resolveCounselorSources } from '@/lib/destiny/counselorRequest'
+import { counselorDayAnchor } from '@/lib/destiny/counselorContext'
+import { resolveViewerTimezone } from '@/lib/datetime/resolveTimezone'
+import { getNowInTimezone } from '@/lib/datetime/timezone'
+import { currentSeun } from '@/lib/compatibility/sajuSynastryData'
 import { getRelation, buildRelationToneBlock } from '@/lib/compatibility/counselor/relationConfig'
 import { formatSajuSynastry } from '@/lib/compatibility/sajuSynastryFormatter'
 import { formatAstroSynastry } from '@/lib/compatibility/astroSynastryFormatter'
@@ -61,70 +65,17 @@ import { koStructuralLabels } from '@/lib/llm/koStructuralLabels'
 import { collectCompatSajuFacts } from '@/lib/compatibility/compatSajuFacts'
 import { collectCompatAstroFacts } from '@/lib/compatibility/compatAstroFacts'
 import { getUserDisplayName } from '@/lib/user/displayName'
+import { formatPersonalShinsal } from '@/lib/compatibility/personalShinsal'
+import {
+  BIRTH_TIMEZONE_REQUIRED_MESSAGE,
+  resolveBirthTimezoneStrict,
+} from '@/lib/datetime/resolveTimezone'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 export const maxDuration = 90
 
 import { clampMessages, buildPersonSeed, getAgeFromBirthDate } from './routeSupport'
-
-// 개별(self) 신살 — 각자 타고난 신살은 extras.shinsal에 이미 계산돼 있으나
-// self 블록이 voided라 궁합 프롬프트엔 안 들어가던 신호. 단, 전부 쏟으면
-// 다시 노이즈가 되므로 *관계 해석에 유효한 특수 신살만* 화이트리스트로
-// 큐레이션 + 짧은 뜻을 붙인다. 12신살(자리)은 synastry [12신살] cross가,
-// 도화·홍염살·백호·괴강·천을귀인은 sajuSynastryFormatter 의 신살 cross
-// 블록이 양방향 deterministic 으로 다루므로 self 중복 제거 — 여기엔
-// 오직 *cross 가 없는* personality-only 신살만 남긴다.
-const PILLAR_KO: Record<string, string> = { year: '년', month: '월', day: '일', time: '시' }
-const PERSONAL_SHINSAL_KEEP: Record<string, string> = {
-  양인: '날카로움·과격',
-  귀문관: '집착·예민',
-  원진: '미묘한 반감',
-  고신: '고독 기질',
-  금여성: '배우자 복·기품',
-  천덕귀인: '보호·덕',
-  월덕귀인: '보호·덕',
-}
-// EN: 한국어 신살명은 영어 사용자에게 의미 없으니 음역 + 영어 뜻 (영어 응답 누수 방지).
-const PILLAR_EN: Record<string, string> = { year: 'Y', month: 'M', day: 'D', time: 'H' }
-const PERSONAL_SHINSAL_KEEP_EN: Record<string, { name: string; mean: string }> = {
-  양인: { name: 'Yangin', mean: 'sharp, aggressive' },
-  귀문관: { name: 'Gwimun', mean: 'obsessive, sensitive' },
-  원진: { name: 'Wonjin', mean: 'subtle aversion' },
-  고신: { name: 'Gosin', mean: 'solitary streak' },
-  금여성: { name: 'Geumyeo', mean: 'spouse fortune, grace' },
-  천덕귀인: { name: 'Cheondeok', mean: 'protection, virtue' },
-  월덕귀인: { name: 'Woldeok', mean: 'protection, virtue' },
-}
-
-function formatPersonalShinsal(
-  label: string,
-  shinsal: unknown,
-  lang: 'ko' | 'en' = 'ko'
-): string | null {
-  if (!Array.isArray(shinsal) || shinsal.length === 0) return null
-  const en = lang === 'en'
-  const byKind = new Map<string, Set<string>>()
-  for (const raw of shinsal) {
-    const h = raw as { kind?: string; pillars?: string[] }
-    if (!h?.kind || !(h.kind in PERSONAL_SHINSAL_KEEP)) continue
-    const set = byKind.get(h.kind) ?? new Set<string>()
-    for (const p of h.pillars ?? []) set.add((en ? PILLAR_EN[p] : PILLAR_KO[p]) ?? p)
-    byKind.set(h.kind, set)
-  }
-  if (byKind.size === 0) return null
-  const parts = [...byKind.entries()].map(([kind, ps]) => {
-    const loc = [...ps].join('·')
-    if (en) {
-      const e = PERSONAL_SHINSAL_KEEP_EN[kind]
-      const nm = e ? e.name : kind
-      const mn = e ? e.mean : ''
-      return `${nm}(${loc ? `${loc}, ` : ''}${mn})`
-    }
-    return `${kind}(${loc ? `${loc}, ` : ''}${PERSONAL_SHINSAL_KEEP[kind]})`
-  })
-  return `${label}: ${parts.join(' · ')}`
-}
 
 export async function POST(req: NextRequest) {
   // Hoisted to function scope so the outer catch can refund a credit that was
@@ -140,6 +91,9 @@ export async function POST(req: NextRequest) {
   // 클로저를 호출해 pre-stream throw 를 환불한다(refundKey dedupe 로 이중환불 없음).
   // 아직 차감 전이면 undefined → catch 에서 optional-call 이 no-op.
   let refundChargedCredit: ((reason: string, errorMessage?: string) => Promise<void>) | undefined
+  // 요청 경계에서 '지금'을 한 번만 읽어 아래로 내린다 — 현재 대운(만 나이)·세운·[만 나이]가
+  // 계산 깊은 곳에서 서버 시계를 읽지 않게(CLAUDE.md 결정론, G13). 테스트는 시스템 시각을 고정.
+  const now = new Date()
   try {
     // Apply middleware: authenticated guard — 로그인 필수. 비로그인은 401.
     // requireCredits 는 false — 새로고침 idempotent replay 일 때 차감을
@@ -183,7 +137,27 @@ export async function POST(req: NextRequest) {
       messages = [],
       cvText,
       turnId: rawTurnId,
+      userTimezone,
     } = validationResult.data
+
+    // 출생 타임존도 출생 도시(좌표)도 없는 사람 — 서울 기둥을 지어내지 않고 422(차감 전).
+    // 화면은 저장 tz → 도시 tz → 보는 사람 기기 tz 로 채워 보내므로(resolveBirthTimezoneOnDevice)
+    // 이 분기는 tz·좌표를 모두 뺀 직접 API 호출에서만 탄다. 사주·점성 시너스트리는 앞 두 사람만 계산.
+    const tzMissing = persons.slice(0, 2).flatMap((p, i) =>
+      resolveBirthTimezoneStrict({
+        timezone: p.timeZone,
+        latitude: p.latitude,
+        longitude: p.longitude,
+      })
+        ? []
+        : [{ path: `persons.${i}.timeZone`, message: BIRTH_TIMEZONE_REQUIRED_MESSAGE }]
+    )
+    if (tzMissing.length > 0) {
+      return NextResponse.json(
+        { error: 'validation_failed', details: tzMissing },
+        { status: HTTP_STATUS.UNPROCESSABLE_ENTITY ?? 422 }
+      )
+    }
     // person*Saju / person*Astro / fullContext 는 옛 client 가 보내던
     // legacy 필드 (Phase E 에 제거). 입력 validation 에서는 optional 로
     // 유지해 옛 client request 가 400 으로 막히지 않게 하되, 라우트에서는
@@ -205,7 +179,7 @@ export async function POST(req: NextRequest) {
     const persistSessionId = recoverUserId
       ? incomingSessionId && incomingSessionId.length <= 128
         ? incomingSessionId
-        : `compat_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`
+        : `compat_${now.getTime()}_${Math.random().toString(36).slice(2, 9)}`
       : ''
 
     // 이번 답변에 넣을 시너스트리 도메인 — 사용자가 체크박스로 사주만/점성만/둘
@@ -380,6 +354,25 @@ export async function POST(req: NextRequest) {
     // seed 가 null(생일 미파싱)이면 사주/점성 블록 자체가 안 만들어지므로 true 로 폴백.
     const timeUnknownA = person1Seed?.timeUnknown ?? true
     const timeUnknownB = person2Seed?.timeUnknown ?? true
+    // 도시 미상 — 좌표 없이 타임존 기준점으로 계산됐다. 점성 앵글·하우스·컴포지트 앵글은
+    // 시간 미상과 같은 마스크(placeMask: 시간 *또는* 도시 미상, 재감사 CS-2). 시주 마스크는
+    // 시간만 본다. [Meta] 줄도 같은 값을 쓴다.
+    const cityUnknownA = !!person1Seed?.source?.usedDefaultLocation
+    const cityUnknownB = !!person2Seed?.source?.usedDefaultLocation
+
+    // 상담사 '오늘' — 운명상담사와 같은 규칙(오너 결정 17, 재감사 G3). 날짜 D 는 보는 사람의
+    // 현지 민용 날짜(resolveViewerTimezone — 기기 tz, 없으면 A 의 출생 tz). 세운은
+    // pillarsForLocalDate(D, A 출생 tz) — 立春이 든 그 현지 날이 새 세운. 대운·만 나이는
+    // 각자 출생 tz 의 D 정오(counselorDayAnchor). 예전엔 요청 순간을 절입 순간과 비교해
+    // 立春 당일 절입 시각 전에는 운명상담사와 다른 해를 말했다.
+    const viewerTz = resolveViewerTimezone(
+      { viewerTimezone: userTimezone, birth: { timezone: person1Seed?.timeZone ?? 'UTC' } },
+      { context: 'compatibility-counselor' }
+    )
+    const localToday = getNowInTimezone(viewerTz, now)
+    // 출생 tz 를 모르는 3번째+ 사람은 D 의 UTC 정오(UTC 날짜 = D).
+    const dayAnchorFor = (tz?: string | null): Date => counselorDayAnchor(localToday, tz || 'UTC')
+    const seun = person1Seed ? currentSeun(localToday, person1Seed.timeZone) : null
 
     // Phase E (2026-06-06): stale 모니터링 정리.
     // Phase A/B 후 사주/점성 시나스트리 블록은 compatSajuFacts /
@@ -454,6 +447,9 @@ export async function POST(req: NextRequest) {
             time?: string
             relation?: string
             relationNote?: string
+            timeZone?: string
+            latitude?: number
+            longitude?: number
           },
           i: number
         ) => {
@@ -472,10 +468,19 @@ export async function POST(req: NextRequest) {
           // turns. Korean age = ageYears + 1 (one for the year of
           // birth, conventional 만 vs 한국나이 offset).
           // 만나이는 그 사람의 출생 시간대 기준으로 — 앞 두 사람은 seed 의 tz 를
-          // 넘긴다(3명+는 seed 가 없어 기본 tz). getAgeFromBirthDate 가 SSOT 위임.
+          // 넘기고, 3명+는 같은 엄격 resolver(명시 tz → 도시 좌표 tz, 없으면 UTC 날짜).
+          // getAgeFromBirthDate 가 SSOT 위임. 서울 기본값은 없다(G13).
           const personTz =
-            i === 0 ? person1Seed?.timeZone : i === 1 ? person2Seed?.timeZone : undefined
-          const age = p.date ? getAgeFromBirthDate(p.date, personTz) : null
+            i === 0
+              ? person1Seed?.timeZone
+              : i === 1
+                ? person2Seed?.timeZone
+                : resolveBirthTimezoneStrict({
+                    timezone: p.timeZone,
+                    latitude: p.latitude,
+                    longitude: p.longitude,
+                  })?.timeZone
+          const age = p.date ? getAgeFromBirthDate(p.date, personTz, dayAnchorFor(personTz)) : null
           const ageNote =
             age != null ? (normalizedLang === 'ko' ? ` (만 ${age}세)` : ` (age ${age})`) : ''
           // Person 1 is always the anchor — no relation suffix. For
@@ -551,6 +556,8 @@ export async function POST(req: NextRequest) {
             {
               birthDate: person1Seed.date,
               birthTime: person1Seed.time,
+              // 시간 미상 → 그쪽 사주는 삼주 판정(용신·신살에 정오 앵커 시주 불포함).
+              timeUnknown: timeUnknownA,
               gender: person1Seed.gender,
               timezone: person1Seed.timeZone,
               longitude: person1Seed.longitude,
@@ -558,10 +565,13 @@ export async function POST(req: NextRequest) {
             {
               birthDate: person2Seed.date,
               birthTime: person2Seed.time,
+              timeUnknown: timeUnknownB,
               gender: person2Seed.gender,
               timezone: person2Seed.timeZone,
               longitude: person2Seed.longitude,
-            }
+            },
+            // 현재 대운(만 나이)의 기준 — 상담사 '오늘' D 의 각자 출생 tz 정오.
+            { a: dayAnchorFor(person1Seed.timeZone), b: dayAnchorFor(person2Seed.timeZone) }
           )
         : null
     try {
@@ -584,6 +594,8 @@ export async function POST(req: NextRequest) {
           // 그대로 전달(추가 연산 0). 상대가 내 용신 오행을 채워주나/기신 가중하나.
           yongsinA: compatSaju.a.base.yongsin,
           yongsinB: compatSaju.b.base.yongsin,
+          // 올해 세운 — 상담사 '오늘' D 의 세운(위 currentSeun, 운명상담사와 같은 날짜 규칙).
+          seun,
         })
       }
     } catch (err) {
@@ -604,6 +616,7 @@ export async function POST(req: NextRequest) {
               latitude: person1Seed.latitude,
               longitude: person1Seed.longitude,
               timezone: person1Seed.timeZone,
+              timeUnknown: timeUnknownA,
             },
             {
               birthDate: person2Seed.date,
@@ -611,6 +624,7 @@ export async function POST(req: NextRequest) {
               latitude: person2Seed.latitude,
               longitude: person2Seed.longitude,
               timezone: person2Seed.timeZone,
+              timeUnknown: timeUnknownB,
             }
           )
         : null
@@ -629,6 +643,8 @@ export async function POST(req: NextRequest) {
           nameB: nB,
           timeUnknownA,
           timeUnknownB,
+          cityUnknownA,
+          cityUnknownB,
           lang,
         })
         // Composite chart — 두 차트의 entity 톤 (관계 자체). synastry 가
@@ -641,6 +657,8 @@ export async function POST(req: NextRequest) {
           nameB: nB,
           timeUnknownA,
           timeUnknownB,
+          cityUnknownA,
+          cityUnknownB,
         })
       } catch (err) {
         logger.warn('[compat counselor] astro synastry failed', {
@@ -657,7 +675,7 @@ export async function POST(req: NextRequest) {
       if (!seed) return
       const label = i === 0 ? 'A' : 'B'
       const timeUnknown = i === 0 ? timeUnknownA : timeUnknownB
-      const cityUnknown = !!seed.source?.usedDefaultLocation
+      const cityUnknown = i === 0 ? cityUnknownA : cityUnknownB
       // location/timezone 은 LLM 한테 직접 의미 없음 (이미 사주/점성 계산이
       // 적용된 결과만 전달). unknown 플래그만 가드 룰 위해 명시.
       metaLines.push(`[Meta] ${label}: timeUnknown=${timeUnknown}, cityUnknown=${cityUnknown}`)

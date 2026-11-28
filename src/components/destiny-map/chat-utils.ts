@@ -6,20 +6,6 @@ import { CHAT_LIMITS } from './chat-constants'
 import type { LangKey, Copy } from './chat-i18n'
 import { getErrorMessage as getErrorMessageShared } from '@/lib/counselor/errorMessage'
 
-// Re-export streamProcessor for stream handling
-
-export type { StreamResult, StreamProcessorOptions } from '@/lib/streaming'
-
-/**
- * Generate a unique session ID
- */
-export function generateSessionId(): string {
-  if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
-    return crypto.randomUUID()
-  }
-  return `session-${Date.now()}-${Math.random().toString(16).slice(2)}`
-}
-
 /**
  * Generate a unique message ID
  */

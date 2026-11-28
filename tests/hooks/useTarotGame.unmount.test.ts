@@ -53,13 +53,17 @@ vi.mock('../../../utils/errorHandling', () => ({
 let abortedSignals = 0
 let resolveFetch: ((value: unknown) => void) | null = null
 
-vi.mock('@/lib/api', () => ({
+vi.mock('@/lib/api/client', () => ({
   apiFetch: vi.fn((url: string, init?: RequestInit) => {
     // handleStartReading now does an up-front credit pre-flight via the
     // prefetch endpoint; resolve it OK so the flow proceeds to the draw, which
     // is the abortable in-flight fetch this test exercises.
     if (url.includes('/api/tarot/prefetch')) {
-      return Promise.resolve({ ok: true, status: 200, json: async () => ({ status: 'prefetching' }) })
+      return Promise.resolve({
+        ok: true,
+        status: 200,
+        json: async () => ({ status: 'prefetching' }),
+      })
     }
     const signal = init?.signal
     return new Promise((resolve, reject) => {

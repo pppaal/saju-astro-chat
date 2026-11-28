@@ -3,72 +3,11 @@
 // destinypal Month(1달 월운) 카드 prop.
 // data.js window.DESTINY.month + window.DESTINY.calendar 와 동형.
 //
-// 5-tier 의 네 번째 layer — 30일 캘린더 강도 그라프 + 5축 테마 점수 +
-// narrative 8칩 + Converge(특정일 사주·점성 동시 임팩트) 통합.
+// /calendar 월 티어 — 30일 캘린더 강도 그라프 + 이달의 큰 날 (keyDays) + 사주×점성 교차 통합.
 
-import type { Ganji, TaggedNarrative, SibsinKind } from './shared'
+import type { Ganji, SibsinKind } from './shared'
 import type { MonthVerdict } from '@/lib/calendar-engine/derivers/reconcile'
 import type { EvidenceRung } from '@/lib/calendar-engine/derivers/evidenceLadder'
-
-// ============================================================================
-// 응용 격국 패턴 — 한 달 동안 며칠 활성됐는가 (Phase B 보강).
-// ============================================================================
-
-export interface DestinyMonthAppliedPattern {
-  /** 한국어 이름 — '재생관'. */
-  name: string
-  /** 영문 — 'Wealth-Generates-Officer' (옵션). */
-  nameEn?: string
-  /** 30일 중 이 패턴이 활성된 날짜 수. */
-  activeDays: number
-  /** 0..100 평균 강도 (옵션). */
-  averageScore?: number
-}
-
-// ============================================================================
-// 조후(調候) — 월령 기반 한난조습 균형 가이드.
-// ============================================================================
-
-export interface DestinyMonthJohu {
-  /** 월령 지지 — '巳'. */
-  monthBranch: string
-  /** 핵심 한 줄 — '巳월 조후 — 수(水) 절실, 화(火) 과중 시 신장·심화 균형'. */
-  oneLine: string
-  /** 절실한 오행 — '水'. */
-  needed?: string
-  /** 과중·억제 대상 — '火'. */
-  excess?: string
-  /** 출처 표식 (어느 derivers 인지). */
-  source?: string
-}
-
-// ============================================================================
-// narrative card source 메타 (Phase B 보강) — 어느 derivers/extractor 산출인지.
-// ============================================================================
-
-export interface DestinyMonthNarrativeCard extends TaggedNarrative {
-  /** 출처 — 'sajuMonthDerivers' / 'astroMonthExtractor' / 'crossActivation' 등. */
-  source?: string
-}
-
-// ============================================================================
-// ZR L2 진행률 — narrative 위 1줄.
-// ============================================================================
-
-export interface DestinyMonthZRProgress {
-  /** ZR 종류 — 'fortune' | 'spirit'. */
-  kind: 'fortune' | 'spirit'
-  /** L2 sign 한국어 — '염소자리'. */
-  sign: string
-  /** L2 ruler 한국어 — '토성'. */
-  ruler: string
-  /** 0..1 진행률. */
-  progress: number
-  /** 'YYYY-MM' 시작. */
-  start?: string
-  /** 'YYYY-MM' 종료. */
-  end?: string
-}
 
 // ============================================================================
 // 캘린더 셀 — data.js calendar[] 와 동형.
@@ -79,44 +18,81 @@ export type DestinyDayMark =
   | 'avoid' // 피하기 (data.js month.avoidDays)
   | 'good' // 길일 (data.js month.goodDays)
   | 'best' // 최고일 1개 (data.js month.bestDay)
-  | 'converge' // 사주·점성 converge 일 (data.js month.converge.date)
   | 'focus' // 사용자 다이브 일 (data.js month.focusDay)
-  | 'phase' // 달 위상 변환 — 신월/상현/보름/하현 (◐)
-  | 'voc' // void-of-course 구간 (회색 띠)
-  | 'return' // Lunar Return ○
-  | 'lifecycle' // 외행성 exact (목성/토성/천왕성/해왕성/명왕성 transit exact) ◇
+
+/**
+ * '왜 이런 날' 근거의 점성 부모 — 교차를 만든 *하늘의* 신호를 구조로(v9 STARS 칸).
+ * 월 셀은 evidence 가 비어 있어 aspect·natalPoint 는 살아남은 부모 신호 이름
+ * ('Sun □ Moon')에서 읽고, orb 는 evidence 가 있는 날(오늘 — focusDayCell)에만 싣는다.
+ * 트랜짓 위치(transitSign·transitDeg)는 그날 현지 정오 트랜짓 차트(getCachedTransitChart)
+ * 에서 — 큰 날 최대 6개 + 오늘만(assembleTiers). 행성·별자리·어스펙트는 영문 키.
+ */
+export interface ReasonAstroDetail {
+  /** 하늘에서 움직이는 행성 — 'Sun'. */
+  transitPlanet: string
+  /** 부모 점성 신호 kind — 'transit' · 'dignity' · 'lifecycle' · 'fixed-star' · 'house-transit' 등. */
+  sourceKind: string
+  /** 트랜짓 어스펙트 키 — 'square'. 부모가 트랜짓일 때만. */
+  aspect?: string
+  /** 본명 접점 — 'Moon'. 부모가 트랜짓일 때만. */
+  natalPoint?: string
+  /** 정확각에서 벗어난 도(°) — evidence 가 있는 날만. */
+  orb?: number
+  /** 그날 현지 정오의 트랜짓 행성 별자리 — 'Scorpio'. */
+  transitSign?: string
+  /** 그 별자리 안의 도(0-29). */
+  transitDeg?: number
+  /**
+   * 어스펙트가 없는 부모의 성격 — 품위 키('exaltation', 부모 id 'astro.dignity.Moon|exaltation|…'),
+   * 달 위상 키('waxing_gibbous', 'astro.moon-phase.….waxing_gibbous') 또는 로트 접촉
+   * ('lot.Victory', 'astro.arabic-part.Victory.Moon.…' — R-VC-8). 같은 행성의 두 교차
+   * (☾ 달 ▲ · ☾ 달 ▼)가 보조 줄에서 구별되게(QA VC-5).
+   */
+  qualifier?: string
+}
+
+/**
+ * 그날 '왜 이런 날' 근거 — 월 셀과 일 티어(DestinyDay.reason)가 같은 모양. (type 별칭 — 미성년
+ * 정화 sanitizeCrossEntry 가 Record<string, unknown> 으로 받는다.)
+ */
+export type DestinyDayReason = {
+  saju: string
+  sajuEn: string
+  /** 십신 한자(正官) — 십신이 아닌 사주 키(신살)는 없음. */
+  sajuHanja?: string
+  astro: string
+  astroEn: string
+  meaning: string
+  meaningEn: string
+  polarity: number
+  /** 점성 부모의 구조 — 부모를 못 찾으면 없음. */
+  astroDetail?: ReasonAstroDetail
+}
 
 export interface DestinyCalendarCell {
   /** 일자 1..31. */
   d: number
   /** 'MM-DD' 문자열. */
   ds: string
-  /** ISO 'YYYY-MM-DD'. */
-  iso?: string
   /** 0..1 강도 (UI 그라프 높이). */
   intensity: number
-  /** 0..100 derivedScore (백엔드 CalendarCell.derivedScore). */
-  score?: number
   /** 특수 마크. */
   mark: DestinyDayMark | null
   /** 사용자 다이브 일자 여부. */
   focus: boolean
-  /** 이날 활성 신호 개수 (UI 상세 미리보기). */
-  signalCount?: number
+  /**
+   * 오늘 — 서버가 주입된 now 의 출생지 시간대 날짜(targetDayIso)로 정한다(assembleTiers).
+   * focus(다이브 일)와 별개 필드다: 다른 날로 다이브해도 오늘은 오늘이다.
+   */
+  isToday?: boolean
+  /** 오늘보다 앞선 날 — 그리드·막대가 흐리게 그린다. */
+  past?: boolean
   /**
    * 그날 색·점수를 가장 크게 움직인 사주×점성 교차 — *쉬운 뜻*(meaning)으로.
    * 선택일 리드아웃의 "왜 이런 날인지" 근거. 전문용어(saju/astro)는 칩으로 따로
    * 보여주고, 본문은 plain. 그날 교차가 없으면 생략.
    */
-  reason?: {
-    saju: string
-    sajuEn: string
-    astro: string
-    astroEn: string
-    meaning: string
-    meaningEn: string
-    polarity: number
-  }
+  reason?: DestinyDayReason
   /**
    * 그날의 화해된 한 줄 — 일(日) 티어의 oneLine 과 *같은 소스*(월 셀 신호 +
    * layered.daily 점수 → reconcile → ONE_LINE_POOL). 월 리드아웃이 이걸 쓰면
@@ -133,31 +109,11 @@ export interface DestinyCalendarCell {
   tone?: 'positive' | 'mixed' | 'caution'
 }
 
-// ============================================================================
-// Converge — 사주·점성 동시 임팩트 일.
-// data.js month.converge 와 동형 + 백엔드 cross-activation 페어 노출.
-// ============================================================================
-
-export interface DestinyConverge {
-  /** ISO 'YYYY-MM-DD'. */
-  date: string
-  /** 0..100 score. */
-  score: number
-  /** 점성측 활성 신호 라벨들. */
-  astro: string[]
-  /** 사주측 활성 신호 라벨들. */
-  saju: string[]
-  /** 두 시스템 모두 발화? */
-  bothSystems: boolean
-  /** 한 줄 의미. */
-  meaning: string
-}
-
 /**
  * "이달의 큰 날" — convergence keyDays 1줄. 점(date)이 아니라 *구간(window)* 과
  * 사주↔점성 신뢰도(confidence)를 함께 담아 타이밍을 또렷이 보여준다.
  */
-export interface DestinyMonthKeyDay {
+interface DestinyMonthKeyDay {
   /** 표시용 'MM-DD' (또는 포맷된 라벨). */
   date: string
   /** 한 줄 의미. */
@@ -185,7 +141,7 @@ export interface DestinyMonth {
   label: string
   /** 'YYYY-MM'. */
   ym: string
-  /** 월운 간지 — '甲午'. */
+  /** 월운 간지 — '甲午'. 이 양력 달에 *시작하는* 절기월(15일이 든 쪽, 그 달 대부분). */
   woolun: Ganji
   /** 월운 천간 십신. */
   woolunSibsin?: SibsinKind | string
@@ -202,34 +158,19 @@ export interface DestinyMonth {
   }
   /** 피하기 'MM-DD' 리스트. */
   avoidDays: string[]
-  /** narrative 8칩. */
-  narrative: TaggedNarrative[]
-  /** Converge 일. */
-  converge: DestinyConverge
   /** 이달의 큰 날 리스트 (convergence keyDays — 윈도우+신뢰도). */
   keyDays?: DestinyMonthKeyDay[]
   /** 사용자 다이브 일자 (1..31). */
   focusDay: number
+  /**
+   * 오늘의 일(1..31) — 이 달이 오늘이 든 달일 때만(assembleTiers, 주입된 now 기준).
+   * 지난 달·다음 달 페이로드엔 없다.
+   */
+  todayDay?: number
   /** 30일 캘린더 그라프. */
   calendar: DestinyCalendarCell[]
-  /** void-of-course 구간 시작 ISO 들 (data.js narrative tag 참조). */
-  voidOfCourseDates?: string[]
-  /** Lunar Return ISO (옵션). */
-  lunarReturnIso?: string
-  /** 응용 격국 패턴 daily count 블록 (Phase B 보강). */
-  appliedPatterns?: DestinyMonthAppliedPattern[]
-  /** 조후 한 줄 (월령 지지 기반). */
-  johu?: DestinyMonthJohu
-  /** narrative card 에 source 메타 (TaggedNarrative 의 super-set). */
-  narrativeWithSource?: DestinyMonthNarrativeCard[]
-  /** 월운 천간 십신 영문 — '편관'. */
+  /** 월운 천간 십신 — '편관'. */
   woolunStemSibsin?: SibsinKind | string
-  /** 월운 지지 십신 — '편관'. */
-  woolunBranchSibsin?: SibsinKind | string
-  /** 월운 한 줄 — '재생관 흐름' 같은 패턴 라벨. */
-  woolunPatternLabel?: string
-  /** ZR L2 progress — narrative 위 1줄. */
-  zrL2Progress?: DestinyMonthZRProgress
   /** 이 달의 사주×점성 교차 — monthly 층 cross-activation 페어 (월운 십신 ↔ 그 달 점성). */
   crossActivations?: Array<{
     saju: string

@@ -10,12 +10,14 @@
 // raw 엔진 입력 shape 에 그대로 묶여 있었다. 본 모듈이 그걸 흡수.
 //
 // 본 모듈은 **포매팅 0**. text 0. chart 인스턴스 + meta 만 반환.
+// chart 는 출생 순간·좌표(meta)를 싣는다 — 시너스트리 추가점(카이런·릴리스·행운점·버텍스·
+// 남교점)이 jdUT 를 요구한다(재감사 CS-5). 시간·도시 미상 마스킹은 포매터가 placeMask 로 한다.
 
 import { toChart } from '@/lib/astrology/foundation/astrologyService'
 import { cachedCalculateNatalChart } from '@/lib/astrology/cached'
 import type { Chart } from '@/lib/astrology/foundation/types'
 import { parseHourMinute } from '@/lib/saju/timeParse'
-import { TIME_UNKNOWN_ANCHOR } from '@/lib/saju/birthTimeAnchor'
+import { astroAnchorTime } from '@/lib/saju/birthTimeAnchor'
 import { logger } from '@/lib/logger'
 
 export interface CompatAstroPersonInput {
@@ -24,9 +26,11 @@ export interface CompatAstroPersonInput {
   latitude: number
   longitude: number
   timezone: string
+  /** 시간 미상 — true 면 남은 시각 문자열이 아니라 정오 앵커로 차트를 계산한다(CONVENTIONS §5). */
+  timeUnknown?: boolean
 }
 
-export interface PersonCompatAstroFacts {
+interface PersonCompatAstroFacts {
   /** formatAstroSynastry / formatCompositeChart 가 받는 chart 인스턴스. */
   chart: Chart
   /** 위·경도 — formatAstroSynastry 가 같이 받음 (house overlay 계산). */
@@ -64,15 +68,15 @@ function isValidSeed(seed: CompatAstroPersonInput): boolean {
   const [Y, M, D] = seed.birthDate.split('-').map(Number)
   // SSOT 파서 — 직접 split 하면 'HH:MM PM' 이 '45 PM'→NaN 으로 떨어져 *유효한*
   // AM/PM 생시를 가진 사람이 통째로 걸러졌다(시주/ASC 누락). 날짜만 검증.
-  // 빈 값 폴백은 정오(시간 미상 앵커 SSOT) — 정상 경로는 buildPersonSeed 가 이미
+  // 시간 미상(timeUnknown 또는 빈 값)은 정오 앵커(SSOT) — 정상 경로는 buildPersonSeed 가 이미
   // 앵커를 넣어 준다. 자정 폴백은 tz 변환에서 차트 날짜가 전날로 밀릴 수 있다.
-  const { h, m: mi } = parseHourMinute(seed.birthTime || TIME_UNKNOWN_ANCHOR)
+  const { h, m: mi } = parseHourMinute(astroAnchorTime(seed.birthTime, seed.timeUnknown))
   return [Y, M, D, h, mi].every(Number.isFinite)
 }
 
 async function collectOne(seed: CompatAstroPersonInput): Promise<PersonCompatAstroFacts> {
   const [Y, M, D] = seed.birthDate.split('-').map(Number)
-  const { h, m: mi } = parseHourMinute(seed.birthTime || TIME_UNKNOWN_ANCHOR)
+  const { h, m: mi } = parseHourMinute(astroAnchorTime(seed.birthTime, seed.timeUnknown))
   // 본명 차트 불변 → Redis 30일 캐시. 궁합은 두 사람치를 매번 풀계산하던
   // 가장 무거운 경로라 캐시 효과가 제일 크다(캐시 없으면 graceful 재계산).
   const natalRaw = await cachedCalculateNatalChart({
@@ -85,7 +89,9 @@ async function collectOne(seed: CompatAstroPersonInput): Promise<PersonCompatAst
     longitude: seed.longitude,
     timeZone: seed.timezone,
   })
-  const chart = toChart(natalRaw)
+  // meta(출생 순간·좌표)를 실어야 시너스트리 추가점이 돈다 — 예전 toChart 는 meta 를 버려
+  // expandChart 가 늘 jdUT==null 로 빠져나갔다(재감사 CS-5).
+  const chart = toChart(natalRaw, { withMeta: true })
   return {
     chart,
     latitude: seed.latitude,

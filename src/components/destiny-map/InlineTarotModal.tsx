@@ -21,10 +21,7 @@ import type {
 // dynamic — 인라인 모달 자체가 lazy 인데 그 안의 클래리파이어 모달까지
 // 이중으로 lazy 로 펴기 위함.
 const FollowupChat = dynamic(
-  () =>
-    import('@/app/tarot/[categoryName]/[spreadId]/components/stages/ResultsStage/FollowupChat').then(
-      (m) => m.FollowupChat
-    ),
+  () => import('@/components/tarot/FollowupChat').then((m) => m.FollowupChat),
   { ssr: false }
 )
 
@@ -167,6 +164,8 @@ const InlineTarotModal = memo(function InlineTarotModal({
       timestamp: Date.now(),
     }
     sessionStorage.setItem('tarotContext', JSON.stringify(tarotContext))
+    // 기존 동작 유지 — 상담 화면을 전체 로드로 떠나 타로가 tarotContext 를 새로 읽는다.
+    // eslint-disable-next-line @next/next/no-location-assign-relative-destination
     window.location.href = `/tarot?from=counselor`
   }
 

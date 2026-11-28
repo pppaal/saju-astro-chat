@@ -10,7 +10,7 @@ on:
 jobs:
   test:
     timeout-minutes: 30
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04 # Playwright 1.58 has no chromium build for ubuntu-latest (26.04)
 
     strategy:
       fail-fast: false
@@ -121,7 +121,7 @@ jobs:
   # blocks on real layout regressions.
   mobile-layout:
     timeout-minutes: 30
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04 # Playwright 1.58 has no chromium build for ubuntu-latest (26.04)
     continue-on-error: true
 
     strategy:

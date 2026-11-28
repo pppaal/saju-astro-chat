@@ -1,5 +1,16 @@
 # Audit ASTRO
 
+> **Status (2026-11-25, engine audit E15):** this is a point-in-time audit; line
+> numbers below are from that time. Since then: `natalToJD`, `isoToJD` and the
+> `/api/astrology` validation use the RFC 5545 resolver `resolveBirthInstant`
+> instead of dayjs.tz (risk 3); the polar Whole Sign fallback is documented in
+> `docs/doctrine/astrology.md` (risk 2); real-ephemeris goldens
+> (`tests/golden/astro.golden.node.test.ts`) pin positions against
+> astronomy-engine (§2.6 item 1); and `ephe.ts` checks the ephemeris source on
+> the first `getSwisseph()` (§2.6 item 3 — it logs an error rather than failing
+> fast). Current rules: `docs/doctrine/astrology.md` and
+> `docs/CALCULATION_SPEC.md` §2.
+
 ## 2.1 Entrypoints
 
 Primary runtime path:

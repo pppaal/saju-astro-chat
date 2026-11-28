@@ -7,7 +7,7 @@
  */
 
 import { getSibseong } from './core/sibsin'
-import type { FiveElement } from './types'
+import { STEM_ELEMENT_KO } from './constants'
 
 // ── 천간 음양/오행 (십신 계산용) ──
 const STEM_YIN: Record<string, boolean> = {
@@ -22,30 +22,19 @@ const STEM_YIN: Record<string, boolean> = {
   壬: false,
   癸: true,
 }
-const STEM_TO_KO_ELEMENT: Record<string, string> = {
-  甲: '목',
-  乙: '목',
-  丙: '화',
-  丁: '화',
-  戊: '토',
-  己: '토',
-  庚: '금',
-  辛: '금',
-  壬: '수',
-  癸: '수',
-}
+// 천간 → 오행은 정본 파생 표(constants.STEM_ELEMENT_KO)를 쓴다 — 리터럴 복사본 금지(plan D8).
 
 // ── 십신 (본명 일간 기준 상대 십신) ──
 // SSOT: 정본 getSibseong(core/sibsin) 에 위임. 이전엔 인덱스 연산으로 직접 구현했으나
 // 전 100조합 대조 결과 정본과 동일 — 출처 둘로 갈리지 않게 위임으로 통일.
 // (이 함수는 천간 한자를 받으므로 stem→{element,yin_yang} 매핑만 여기서 한다.)
 export function getSibsinKo(dayStem: string, targetStem: string): string {
-  const dayEl = STEM_TO_KO_ELEMENT[dayStem]
-  const tEl = STEM_TO_KO_ELEMENT[targetStem]
+  const dayEl = STEM_ELEMENT_KO[dayStem]
+  const tEl = STEM_ELEMENT_KO[targetStem]
   if (!dayEl || !tEl) return ''
   return getSibseong(
-    { element: dayEl as FiveElement, yin_yang: STEM_YIN[dayStem] ? '음' : '양' },
-    { element: tEl as FiveElement, yin_yang: STEM_YIN[targetStem] ? '음' : '양' }
+    { element: dayEl, yin_yang: STEM_YIN[dayStem] ? '음' : '양' },
+    { element: tEl, yin_yang: STEM_YIN[targetStem] ? '음' : '양' }
   )
 }
 

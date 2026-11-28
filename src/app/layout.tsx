@@ -2,7 +2,6 @@
 
 import type { Metadata, Viewport } from 'next'
 import './globals.css'
-import '../styles/mobile-touch.css'
 import StarrySky from '@/components/ui/StarrySky'
 import BackButtonWrapper from '@/components/ui/BackButtonWrapper'
 import Footer from '@/components/ui/Footer'
@@ -11,7 +10,7 @@ import { ConsentProvider } from '@/contexts/ConsentContext'
 import { ConsentBanner } from '@/components/consent/ConsentBanner'
 
 import { JsonLd } from '@/components/seo/JsonLd'
-import { generateJsonLd } from '@/components/seo/SEO'
+import { generateJsonLd, SITE_DESCRIPTION } from '@/components/seo/SEO'
 import { GoogleAnalytics } from '@/components/analytics/GoogleAnalytics'
 import { MicrosoftClarity } from '@/components/analytics/MicrosoftClarity'
 import { VisitorBeacon } from '@/components/analytics/VisitorBeacon'
@@ -69,16 +68,9 @@ const lora = localFont({
   preload: false,
 })
 
-const merriweather = localFont({
-  src: [
-    { path: './fonts/merriweather-latin-400-normal.woff2', weight: '400', style: 'normal' },
-    { path: './fonts/merriweather-latin-700-normal.woff2', weight: '700', style: 'normal' },
-  ],
-  display: 'swap',
-  variable: '--font-merriweather',
-  preload: false,
-})
-
+// `themeColor` drives the mobile status bar / browser chrome tint. The v9 paper
+// routes (/, /destiny, /calendar) override it with their own `viewport` export.
+//
 // `interactiveWidget: 'resizes-content'` tells the browser to shrink the
 // layout viewport when the on-screen keyboard opens instead of pushing fixed
 // elements upward. Without this, iOS Safari shifts Toast/CreditDepletedModal
@@ -92,6 +84,7 @@ export const viewport: Viewport & { interactiveWidget?: string } = {
   userScalable: true,
   viewportFit: 'cover',
   interactiveWidget: 'resizes-content',
+  themeColor: '#07091a',
 }
 
 export const metadata: Metadata = {
@@ -103,8 +96,8 @@ export const metadata: Metadata = {
     default: 'DestinyPal — AI Korean Astrology, Tarot, Compatibility & Fortune Calendar',
     template: '%s | DestinyPal',
   },
-  description:
-    'AI reads your Saju (Four Pillars) and natal astrology together — daily counsel, tarot, compatibility, and a fortune calendar. See the flow and timing when you need to decide.',
+  // 155자 이하, 엔진이 계산한다는 말로(SITE_DESCRIPTION — QA R-CA-9 · triage A5).
+  description: SITE_DESCRIPTION.en,
   keywords: [
     // Core brand
     'DestinyPal',
@@ -168,8 +161,7 @@ export const metadata: Metadata = {
     url: '/',
     siteName: 'DestinyPal',
     title: 'DestinyPal — AI Korean Astrology, Tarot & Fortune Calendar',
-    description:
-      'AI reads your Saju and natal astrology together — daily counsel, tarot, compatibility, and a fortune calendar. See the flow and timing when you need to decide.',
+    description: SITE_DESCRIPTION.en,
     images: [
       {
         url: '/og-card-v2.png',
@@ -182,8 +174,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'DestinyPal — AI Korean Astrology, Tarot & Fortune Calendar',
-    description:
-      'AI reads your Saju and natal astrology together — daily counsel, tarot, compatibility, and a fortune calendar.',
+    description: SITE_DESCRIPTION.en,
     images: ['/og-card-v2.png'],
     creator: '@destinypal',
     site: '@destinypal',
@@ -229,8 +220,8 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   const websiteJsonLd = generateJsonLd({
     type: 'WebSite',
     name: 'DestinyPal',
-    description:
-      'AI가 사주와 점성을 함께 분석해 운세 상담, 타로, 궁합, 캘린더, 리포트를 제공하는 AI 운세 플랫폼.',
+    // 서버 로캘로 고른다 — EN 우선 사이트에 KO 설명만 있던 문제(triage A5).
+    description: SITE_DESCRIPTION[serverLocale === 'ko' ? 'ko' : 'en'],
   })
 
   const organizationJsonLd = generateJsonLd({
@@ -238,19 +229,15 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   })
 
   return (
-    <html
-      lang={serverLocale}
-      data-theme="dark"
-      data-scroll-behavior="smooth"
-      style={{ colorScheme: 'dark', backgroundColor: '#07091a' }}
-    >
+    // 배경/color-scheme 은 globals.css 의 html 규칙에 있다(인라인 style 은
+    // html:has([data-surface='paper']) 규칙까지 이겨 v9 화면을 navy 로 덮는다).
+    <html lang={serverLocale} data-theme="dark" data-scroll-behavior="smooth">
       <head>
-        <link rel="manifest" href="/manifest.json" />
+        {/* manifest 링크는 metadata.manifest 가 낸다 — 손으로 또 쓰면 <link rel="manifest"> 가 두 개 */}
         <link rel="apple-touch-icon" href="/logo/logo.png" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="apple-mobile-web-app-title" content="DestinyPal" />
-        <meta name="theme-color" content="#07091a" />
         <JsonLd data={websiteJsonLd} />
         <JsonLd data={organizationJsonLd} />
       </head>
@@ -260,7 +247,6 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
           ${notoKr.variable}
           ${cinzel.variable}
           ${lora.variable}
-          ${merriweather.variable}
         `}
         style={{
           fontFamily:

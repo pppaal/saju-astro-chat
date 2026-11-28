@@ -1,8 +1,8 @@
 'use client'
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
-import { allExtensions } from '@/lib/i18n/extensions'
 import { repairMojibakeText } from '@/lib/text/mojibake'
+import { toSafeFallbackText } from './utils'
 
 type Locale = 'en' | 'ko'
 type DictValue = Record<string, unknown>
@@ -78,13 +78,6 @@ async function loadLocaleDictUncached(locale: Locale): Promise<DictValue> {
     (acc, mod) => deepMerge(acc, mod.default as DictValue),
     {} as DictValue
   )
-
-  // Merge extensions
-  if (allExtensions[locale]) {
-    for (const [ns, translations] of Object.entries(allExtensions[locale])) {
-      dict[ns] = { ...(dict[ns] || {}), ...translations }
-    }
-  }
 
   // Repair mojibake ONCE here, at dict-load time, instead of on every `t()` call.
   // The dict is static build-time JSON, so repairing each string value a single
@@ -250,20 +243,8 @@ type I18nContextType = {
 const I18nContext = createContext<I18nContextType | null>(null)
 
 // Only support en/ko
-export const SUPPORTED_LOCALES: Locale[] = ['en', 'ko']
+const SUPPORTED_LOCALES: Locale[] = ['en', 'ko']
 const isRtl = (_l: Locale) => false // No RTL languages supported
-
-const toSafeFallbackText = (path: string) => {
-  const candidate = path.split('.').pop() || path
-  const normalized = candidate
-    .replace(/[_-]+/g, ' ')
-    .replace(/([a-z])([A-Z])/g, '$1 $2')
-    .trim()
-  if (!normalized) {
-    return 'Content unavailable'
-  }
-  return normalized.charAt(0).toUpperCase() + normalized.slice(1)
-}
 
 const isRawKeyLeak = (value: string, path: string) => {
   const leaf = path.split('.').pop() || path

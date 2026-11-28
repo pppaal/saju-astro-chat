@@ -1,0 +1,180 @@
+/* ============================================================
+   ShareLinkButton — 링크 공유 버튼 3종.
+   - pill: 지금(다크 네이비 화면)의 골드 알약. 하루·이달·추천 버튼이 인라인
+     스타일로 그리던 모양을 그대로 옮겼다(시각 변화 없음).
+   - line / row: v9.2 paper 화면용(btn line · lrow). V9Root 안에서만 쓴다 —
+     --ink · --line · --mute · --sans 토큰이 그 루트에 있다.
+
+   !important 는 padding · min-height 에만 쓴다: globals.css 모바일(≤768px) 터치
+   규칙 `button:not(.btn-primary):not(.btn-ghost):not(.btn-soft)` 이 특이도 (0,3,1)
+   로 padding 을 10px 16px 로 덮는다. 인라인 스타일 시절엔 인라인이 이겼으므로
+   같은 모양을 지키려면 모듈 쪽이 이겨야 한다.
+   ============================================================ */
+
+/* ---- 감싸개 ---- */
+.stack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.stack.sm {
+  gap: 6px;
+}
+
+.block {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+/* ---- 공통 ---- */
+/* pill 은 예전 인라인 시절처럼 줄바꿈 때 아이콘도 함께 줄어든다(flex-shrink 기본값). */
+.icon {
+  width: 1rem;
+  height: 1rem;
+}
+
+.line .icon {
+  flex-shrink: 0;
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ---- pill (현재 모양) ---- */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px !important;
+  border-radius: 999px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.pill:disabled {
+  cursor: wait;
+}
+
+.pill.gold {
+  background: rgba(232, 204, 138, 0.12);
+  color: var(--ds-gold-on-dark-soft);
+  border: 1px solid rgba(232, 204, 138, 0.4);
+}
+
+.pill.brass {
+  background: rgba(212, 181, 114, 0.12);
+  color: var(--ds-gold-on-dark);
+  border: 1px solid rgba(212, 181, 114, 0.4);
+}
+
+.pill.sm {
+  padding: 11px 22px !important;
+  font-size: 14px;
+}
+
+.caption {
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: #9aa3b8;
+  text-align: center;
+}
+
+.error {
+  font-size: 12px;
+  color: #fda4af;
+}
+
+/* ---- line (v9 btn line) ---- */
+.line {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  height: 54px;
+  min-height: 0 !important;
+  padding: 0 22px !important;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink);
+  box-shadow: inset 0 0 0 1.5px var(--ink);
+  font-family: var(--sans);
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.line.sm {
+  height: 40px;
+  padding: 0 16px !important;
+  font-size: 14px;
+}
+
+.line:disabled,
+.row:disabled {
+  cursor: wait;
+}
+
+/* ---- row (v9 lrow) ---- */
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  min-height: 0 !important;
+  padding: 14px 0 15px !important;
+  border: 0;
+  border-top: 1px solid var(--line);
+  border-radius: 0;
+  background: transparent;
+  color: var(--ink);
+  font-family: var(--sans);
+  text-align: left;
+  cursor: pointer;
+}
+
+.rowText {
+  display: block;
+  min-width: 0;
+}
+
+.rowLabel {
+  display: block;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.rowSub {
+  display: block;
+  margin-top: 2px;
+  font-size: 12.5px;
+  color: var(--mute);
+}
+
+.rowIcon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+/* v9 화면의 에러 줄 — 빨강은 인주(--seal) 하나뿐. */
+.v9Error {
+  margin-top: 6px;
+  font-family: var(--sans);
+  font-size: 12.5px;
+  color: var(--seal);
+}

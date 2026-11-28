@@ -3,7 +3,7 @@
  * 가격 설정 및 A/B 테스트 유틸리티 테스트
  */
 
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi, afterEach } from 'vitest'
 import {
   CREDIT_PACKS,
   getCreditPackDiscount,
@@ -137,6 +137,44 @@ describe('PricingConfig', () => {
 
       it('should show Free for zero USD', () => {
         expect(formatPrice(0, 'USD', 'en')).toBe('Free')
+      })
+    })
+
+    // G14 — 숫자 모양은 실행 환경 로케일과 무관('en-US' 묶음 고정). 예전 toLocaleString() 은
+    // de-DE 브라우저에서 '₩5.900' 이 돼 서버 렌더 PriceLine 과 하이드레이트가 갈렸다.
+    describe('process/browser locale independence', () => {
+      afterEach(() => {
+        vi.restoreAllMocks()
+        vi.resetModules()
+      })
+
+      it('기본 로케일이 de-DE 여도 ko · en 출력이 같다 (KRW · USD)', async () => {
+        const RealNumberFormat = Intl.NumberFormat
+        const realToLocaleString = Number.prototype.toLocaleString
+        vi.spyOn(Intl, 'NumberFormat').mockImplementation(function (
+          locales?: string | string[],
+          options?: Intl.NumberFormatOptions
+        ) {
+          return new RealNumberFormat(locales ?? 'de-DE', options)
+        } as unknown as typeof Intl.NumberFormat)
+        vi.spyOn(Number.prototype, 'toLocaleString').mockImplementation(function (
+          this: number,
+          locales?: string | string[],
+          options?: Intl.NumberFormatOptions
+        ) {
+          return realToLocaleString.call(this, locales ?? 'de-DE', options)
+        })
+        // 대역이 정말 기본 로케일을 바꾼다(이 조건에서 예전 구현은 '₩5.900').
+        expect((5900).toLocaleString()).toBe('5.900')
+
+        vi.resetModules()
+        const { formatPrice: fresh } = await import('@/lib/config/pricing')
+        for (const locale of ['ko', 'en'] as const) {
+          expect(fresh(5900, 'KRW', locale)).toBe('₩5,900')
+          expect(fresh(1234567, 'KRW', locale)).toBe('₩1,234,567')
+          expect(fresh(4.99, 'USD', locale)).toBe('$4.99')
+          expect(fresh(1234.5, 'USD', locale)).toBe('$1,234.50')
+        }
       })
     })
   })

@@ -7,13 +7,25 @@
 // plus datetime/timezone.ts and utils/timezone.ts). utils/timezone.ts
 // previously held the implementation and datetime/ forwarded to it.
 // That direction is now reversed: this module is the single source of
-// truth, and lib/utils/timezone.ts is a thin re-export shim kept so
-// out-of-scope callers (destiny-map, astrology routes) don't have to
-// change their imports.
+// truth. The lib/utils/timezone.ts re-export shim lost its last caller
+// and was deleted; import from here (or `@/lib/datetime`).
 //
 // Production runs on a UTC server, so `new Date().getMonth()` and
 // friends return UTC values. Anything that means "the user's wall clock
 // right now" must go through one of these helpers instead.
+//
+// Choosing *which* zone (birth vs viewer, explicit → coordinates → base) is
+// resolveTimezone.ts's job. The defaults below are only the last-resort safety
+// net for a missing/invalid zone and read the same base zone.
+
+import { CALCULATION_STANDARDS } from '@/lib/config/calculationStandards'
+
+/**
+ * Default timezone — the last-resort zone when none is usable. Single source:
+ * CALCULATION_STANDARDS.saju.baseTimezone (resolveTimezone.ts falls back to the
+ * same value, with a warning).
+ */
+export const DEFAULT_TIMEZONE: string = CALCULATION_STANDARDS.saju.baseTimezone
 
 // ── core: read the wall-clock components currently shown at a tz ──
 
@@ -28,12 +40,12 @@ export type TzNowComponents = {
 }
 
 function partsFor(timezone: string | undefined, at: Date = new Date()): TzNowComponents {
-  // 기본값은 이 모듈이 export 하는 DEFAULT_TIMEZONE(Asia/Seoul)과 일치해야
-  // 한다. 'UTC' 기본이던 시절엔 UTC 날짜와 KST 날짜가 다른 매일 약 9시간
+  // 기본값은 이 모듈이 export 하는 DEFAULT_TIMEZONE(= 사주 기준 존)이다.
+  // 'UTC' 기본이던 시절엔 UTC 날짜와 KST 날짜가 다른 매일 약 9시간
   // 동안(KST 00:00~09:00) 무인자 호출·invalid fallback 이 어제 날짜를
   // 돌려줘 테스트가 시간대에 따라 실패했다. 프로덕션의 무인자 호출처는
   // 없음(전부 명시적 tz 전달) — 이 기본값은 안전망이다.
-  const tz = timezone || 'Asia/Seoul'
+  const tz = timezone || DEFAULT_TIMEZONE
   const parts = new Intl.DateTimeFormat('en-US', {
     timeZone: tz,
     year: 'numeric',
@@ -71,7 +83,7 @@ export function nowInTimezone(timezone: string): Date {
 
 /**
  * Full component-shape of "now". `month` is **1-12**. Defaults to
- * DEFAULT_TIMEZONE(Asia/Seoul) when no timezone is supplied. Internal/
+ * DEFAULT_TIMEZONE when no timezone is supplied. Internal/
  * canonical shape — the public `getNowInTimezone` below narrows to
  * {year, month, day} to preserve the historical datetime/ signature its
  * callers depend on.
@@ -82,20 +94,20 @@ export function getNowComponentsInTimezone(timezone?: string): TzNowComponents {
   } catch {
     // Invalid IANA name — fall back to DEFAULT_TIMEZONE rather than throwing
     // so a malformed profile doesn't break the entire request.
-    return partsFor('Asia/Seoul')
+    return partsFor(DEFAULT_TIMEZONE)
   }
 }
 
 /**
  * 주어진 *인스턴트*(injected now 등)를 특정 timezone 의 wall-clock 요소로
  * 분해한다. getNowComponentsInTimezone 과 달리 실제 시계가 아니라 넘긴 Date 를
- * 쓰므로 결정론 경로(주입식 now)에서 안전하다. Invalid IANA 는 Asia/Seoul 폴백.
+ * 쓰므로 결정론 경로(주입식 now)에서 안전하다. Invalid IANA 는 DEFAULT_TIMEZONE 폴백.
  */
 export function getDateComponentsInTimezone(at: Date, timezone?: string): TzNowComponents {
   try {
     return partsFor(timezone, at)
   } catch {
-    return partsFor('Asia/Seoul', at)
+    return partsFor(DEFAULT_TIMEZONE, at)
   }
 }
 
@@ -104,7 +116,7 @@ export function getDateComponentsInTimezone(at: Date, timezone?: string): TzNowC
  * 서버-로컬 getDay() 대신 사용해 서버 TZ 의존성을 없앤다.
  */
 export function getWeekdayInTimezone(at: Date, timezone?: string): number {
-  const tz = timezone || 'Asia/Seoul'
+  const tz = timezone || DEFAULT_TIMEZONE
   const wd = new Intl.DateTimeFormat('en-US', { timeZone: tz, weekday: 'short' }).format(at)
   const map: Record<string, number> = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 }
   return map[wd] ?? 0
@@ -139,8 +151,15 @@ export function isValidTimeZone(tz: string | null | undefined): boolean {
   }
 }
 
-/** Return `tz` if it's a usable IANA zone, else `fallback` (default Asia/Seoul). */
-export function normalizeTimeZone(tz: string | null | undefined, fallback = 'Asia/Seoul'): string {
+/**
+ * Return `tz` if it's a usable IANA zone, else `fallback` (default DEFAULT_TIMEZONE).
+ * For a birth or viewer zone with more clues (coordinates, request tz) use
+ * resolveBirthTimezone / resolveViewerTimezone (resolveTimezone.ts) instead.
+ */
+export function normalizeTimeZone(
+  tz: string | null | undefined,
+  fallback: string = DEFAULT_TIMEZONE
+): string {
   return isValidTimeZone(tz) ? (tz as string) : fallback
 }
 
@@ -151,15 +170,21 @@ export function normalizeTimeZone(tz: string | null | undefined, fallback = 'Asi
  * have always consumed. Use getNowComponentsInTimezone() when you also
  * need hour/minute/second.
  *
- * Defaults to DEFAULT_TIMEZONE(Asia/Seoul) when no timezone is supplied —
+ * Defaults to DEFAULT_TIMEZONE when no timezone is supplied —
  * pass an explicit IANA name for user-facing values.
+ *
+ * `now` 주입점 — 기본은 호출 시점(new Date()). 결정론 경로(서버 로더 등)는 이미
+ * 읽은 인스턴트를 넘겨 시계를 한 번만 읽는다(같은 now 를 deriver 까지 흘림).
  */
-export function getNowInTimezone(tz?: string): {
+export function getNowInTimezone(
+  tz?: string,
+  now: Date = new Date()
+): {
   year: number
   month: number
   day: number
 } {
-  const { year, month, day } = getNowComponentsInTimezone(tz)
+  const { year, month, day } = getDateComponentsInTimezone(now, tz)
   return { year, month, day }
 }
 
@@ -264,8 +289,3 @@ export function isValidTimezone(tz: string): boolean {
     return false
   }
 }
-
-/**
- * Default timezone
- */
-export const DEFAULT_TIMEZONE = 'Asia/Seoul'

@@ -81,7 +81,7 @@ USD 비용은 `calculateUsdCost(model, input, output, cacheRead)` 가 위 표로
 LLM 토큰 비용과는 무관하다.
 
 LLM 비용 가시성은 **프로세스 메모리 내 메트릭 카운터**로만 존재한다
-(`src/lib/metrics.ts` — in-memory `counters`/`timings`/`gauges` 객체). 프로세스
+(`src/lib/metrics/core.ts` — in-memory `counters`/`timings`/`gauges` 객체). 프로세스
 재시작 시 초기화된다. 매 Claude 호출 후 emit 되는 카운터:
 
 ```
@@ -151,3 +151,24 @@ external.anthropic.tokens    { model, type: 'input' | 'output' }
   또는 `CLAUDE_PRICING` 키를 사용할 것 (타입 `ClaudeModel` 로 강제됨).
 - 단가/모델 변경 시 `claude.ts` 의 `CLAUDE_PRICING` · `ClaudeModel` ·
   `DEFAULT/PREMIUM_CLAUDE_MODEL` · `MIN_CACHE_PREFIX_TOKENS` 를 함께 갱신할 것.
+
+## 10. 원가 메모 (구 `PRICING_COST_ANALYSIS.md` 에서 이관)
+
+2026-05 원가 분석 문서는 폐기된 30분·20턴 상담 세션 과금과 옛 팩 크레딧 수를
+전제로 해서 지웠다. 그중 지금도 유효한 판단만 옮긴다. 절대 금액은 팩 구성이나
+기능별 모델 배정이 바뀌면 다시 계산해야 하므로 여기 적지 않는다.
+
+- **마진은 실수령 기준으로 본다.** 표시가가 아니라 Stripe 수수료를 뺀 금액을
+  크레딧 수로 나눈 값이 크레딧당 매출이다. 큰 팩일수록 크레딧당 실수령이 낮아
+  마진이 가장 얇다. 팩 구성은 `src/lib/config/pricing.ts` 가 SSOT.
+- **비용은 출력 토큰이 좌우한다.** Haiku 기준 출력은 $5/1M, cache read 는
+  $0.10/1M 이라 캐시가 맞는 한 입력 쪽 비용은 작다. 같은 호출을 Sonnet 으로
+  돌리면 정확히 3배이므로, `src/lib/config/llm-policy.ts` 에서 기능별 모델을
+  올릴 때는 원가를 다시 본다.
+- **캐시는 원가 구조의 전제다.** 멀티턴 상담·궁합은 큰 prefix(시스템 프롬프트 +
+  차트 컨텍스트)를 매 턴 cache read 로 재사용한다는 가정 위에서 마진이 나온다.
+  hit ratio 가 0 으로 떨어지면 그 prefix 의 입력 단가가 10배(Haiku $0.10 → $1/1M)가
+  되어, 턴이 많은 사용 패턴부터 적자로 돌아설 수 있다.
+- **권장 알람 (미배선):** `claude.cache.hit_ratio_x1000` 이 800(80%) 아래로
+  내려가면 알림, 사용자 1명의 주간 LLM 비용이 비정상적으로 크면 알림(어뷰징 신호).
+  현재는 §8 대로 로그 경고만 있다.

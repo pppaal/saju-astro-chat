@@ -6,9 +6,9 @@
  */
 
 // Time constants (밀리초)
-const MINUTE_MS = 60 * 1000;
-const HOUR_MS = 60 * MINUTE_MS;
-const DAY_MS = 24 * HOUR_MS;
+const MINUTE_MS = 60 * 1000
+const HOUR_MS = 60 * MINUTE_MS
+const DAY_MS = 24 * HOUR_MS
 
 /**
  * 사주 계산 캐시 설정
@@ -22,7 +22,7 @@ export const SAJU_CACHE = {
   TTL_MS: 10 * MINUTE_MS,
   /** 캐시 유효 시간 (24시간) - 장기 캐시용 */
   LONG_TTL_MS: DAY_MS,
-} as const;
+} as const
 
 /**
  * 대운 계산 캐시 설정
@@ -33,7 +33,7 @@ const DAEUN_CACHE = {
   MAX_SIZE: 200,
   /** 캐시 유효 시간 (24시간) */
   TTL_MS: DAY_MS,
-} as const;
+} as const
 
 /**
  * 궁합 계산 캐시 설정
@@ -46,7 +46,7 @@ const COMPATIBILITY_CACHE = {
   TTL_MS: HOUR_MS,
   /** 퀵 궁합용 TTL (15분) */
   QUICK_TTL_MS: 15 * MINUTE_MS,
-} as const;
+} as const
 
 /**
  * 운명 지도(Destiny Map) 캐시 설정
@@ -57,7 +57,7 @@ const DESTINY_MAP_CACHE = {
   MAX_SIZE: 50,
   /** 캐시 유효 시간 (5분) */
   TTL_MS: 5 * MINUTE_MS,
-} as const;
+} as const
 
 /**
  * 일반 캐시 기본값
@@ -67,18 +67,7 @@ const DEFAULT_CACHE = {
   MAX_SIZE: 100,
   /** 기본 캐시 유효 시간 (10분) */
   TTL_MS: 10 * MINUTE_MS,
-} as const;
-
-/**
- * 계산 메모이제이션 캐시 설정
- * - 비싼 계산 결과를 캐싱 (사주, 그레이딩 등)
- */
-export const CALCULATION_CACHE = {
-  /** 최대 캐시 항목 수 */
-  MAX_SIZE: 500,
-  /** 캐시 유효 시간 (1시간) */
-  TTL_MS: HOUR_MS,
-} as const;
+} as const
 
 /**
  * Destiny Matrix 캐시 설정
@@ -95,7 +84,7 @@ const MATRIX_CACHE = {
   PENDING_MAX_SIZE: 100,
   /** Pending 요청 타임아웃 (30초) */
   PENDING_TIMEOUT_MS: 30 * 1000,
-} as const;
+} as const
 
 /**
  * 캐시 키 구분자
@@ -111,12 +100,4 @@ export const CACHE_KEY = {
   },
   /** 구분자 (URL-safe, 일반 입력값에 사용되지 않는 문자열) */
   SEPARATOR: '\x00',
-} as const;
-
-// Type exports
-export type SajuCacheConfig = typeof SAJU_CACHE;
-export type DaeunCacheConfig = typeof DAEUN_CACHE;
-export type CompatibilityCacheConfig = typeof COMPATIBILITY_CACHE;
-export type DestinyMapCacheConfig = typeof DESTINY_MAP_CACHE;
-export type CalculationCacheConfig = typeof CALCULATION_CACHE;
-export type MatrixCacheConfig = typeof MATRIX_CACHE;
+} as const

@@ -6,7 +6,7 @@ import {
   type ApiContext,
 } from '@/lib/api/middleware'
 import { getUserReferralCode, getReferralUrl } from '@/lib/referral'
-import { recordCounter } from '@/lib/metrics/index'
+import { recordCounter } from '@/lib/metrics'
 
 export const dynamic = 'force-dynamic'
 

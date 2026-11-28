@@ -119,29 +119,59 @@ describe('zodiacalReleasing — Fortune ZR + L2/L3/L4 sub-period + Peak/Loosing-
     })
   })
 
-  describe('L3 sub-period — days scale', () => {
-    it('L3 nested under L2 with day-scale durations', () => {
+  describe('L3 sub-period — 위 층의 1/12 (행성년 1 = 2.5일, OD-11)', () => {
+    it('L3 nested under L2: Mars L3 = 15 × 2.5일 = 37.5일', () => {
       const l1 = calculateZodiacalReleasing('Aries', 30)[0]
       const l2 = calculateZRSubPeriods(l1)[0] // Aries L2 (1.25 years)
       const l3 = calculateZRSubPeriodsL3(l2)
       // First L3 sign = L2 parent sign
       expect(l3[0].sign).toBe(l2.sign)
-      // First L3 duration in days = ruler.years days. Mars ruler = 15 days.
-      const expectedYears = 15 / 365.25
-      expect(l3[0].durationYears).toBeCloseTo(expectedYears, 5)
+      // 첫 L3 = 화성(Aries) 15단위 × 2.5일 = 37.5일. (예전 1일 단위 = 15일 — 엔진 감사 ASTRO-6)
+      expect(l3[0].durationYears * 365.25).toBeCloseTo(37.5, 6)
       // L3 start equals L2 start
       expect(l3[0].startYear).toBeCloseTo(l2.startYear, 5)
+      // 총 길이는 부모 L2 와 같다(마지막 조각은 잘림).
+      const total = l3.reduce((s, p) => s + p.durationYears, 0)
+      expect(total).toBeCloseTo(l2.durationYears, 8)
+    })
+
+    it('L3 결 풀림은 한 바퀴(211 × 2.5일 ≈ 17.33개월)보다 긴 L2 에서만', () => {
+      const lapYears = (211 * 2.5) / 365.25
+      for (const start of ['Aries', 'Leo', 'Capricorn', 'Aquarius', 'Gemini'] as const) {
+        for (const l1 of calculateZodiacalReleasing(start, 60)) {
+          for (const l2 of calculateZRSubPeriods(l1)) {
+            const lb = calculateZRSubPeriodsL3(l2).filter((p) => p.isLoosingOfTheBond)
+            if (l2.durationYears <= lapYears) expect(lb, `${start}/${l2.sign}`).toEqual([])
+          }
+        }
+      }
+    })
+
+    it('긴 L2(물병 30개월)는 한 바퀴 뒤 반대편(사자)으로 L3 결 풀림', () => {
+      const l1 = calculateZodiacalReleasing('Aquarius', 40)[0]
+      const l2 = calculateZRSubPeriods(l1)[0] // Aquarius L2 (30 months)
+      expect(l2.sign).toBe('Aquarius')
+      const l3 = calculateZRSubPeriodsL3(l2)
+      expect(l3[11].sign).toBe('Capricorn')
+      expect(l3[12].sign).toBe('Leo')
+      expect(l3[12].isLoosingOfTheBond).toBe(true)
+      // 첫 결 풀림은 한 바퀴(211 × 2.5일) 뒤.
+      expect((l3[12].startYear - l2.startYear) * 365.25).toBeCloseTo(527.5, 6)
+      // 결 풀림은 언제나 반대편 sign 으로의 점프다(사자 → 물병 반복 대신 다시 사자 —
+      // 물병 30단위 L2 만 두 번째 귀환까지 간다).
+      expect(l3.filter((p) => p.isLoosingOfTheBond).every((p) => p.sign === 'Leo')).toBe(true)
     })
   })
 
-  describe('L4 sub-period — hours scale', () => {
-    it('L4 nested under L3 with hour-scale durations', () => {
+  describe('L4 sub-period — L3 의 1/12 (행성년 1 = 5시간)', () => {
+    it('L4 nested under L3: Mars L4 = 15 × 5시간 = 75시간', () => {
       const l1 = calculateZodiacalReleasing('Aries', 30)[0]
       const l2 = calculateZRSubPeriods(l1)[0]
       const l3 = calculateZRSubPeriodsL3(l2)[0]
       const l4 = calculateZRSubPeriodsL4(l3)
-      const expectedYears = 15 / (365.25 * 24)
-      expect(l4[0].durationYears).toBeCloseTo(expectedYears, 8)
+      expect(l4[0].durationYears * 365.25 * 24).toBeCloseTo(75, 6)
+      // 층마다 1/12 — L3 첫 칸 / L4 첫 칸 = 12.
+      expect(l3.durationYears / l4[0].durationYears).toBeCloseTo(12, 8)
     })
   })
 

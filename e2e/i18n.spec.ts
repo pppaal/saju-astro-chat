@@ -33,14 +33,6 @@ test.describe('Korean Language Support', () => {
     expect(charsetCount + httpEquivCount).toBeGreaterThan(0)
   })
 
-  test('saju page should have Korean text', async ({ page }) => {
-    await page.goto('/saju', { waitUntil: 'domcontentloaded' })
-
-    const bodyText = await page.locator('body').textContent()
-    expect(bodyText).toBeTruthy()
-    expect(bodyText!.length).toBeGreaterThan(50)
-  })
-
   test('tarot page should have Korean text', async ({ page }) => {
     await page.goto('/tarot', { waitUntil: 'domcontentloaded' })
     const bodyText = await page.locator('body').textContent()
@@ -137,29 +129,8 @@ test.describe('Error Messages', () => {
 })
 
 test.describe('Form Labels', () => {
-  test('saju form should have labels or aria-labels', async ({ page }) => {
-    await page.goto('/saju', { waitUntil: 'domcontentloaded' })
-
-    // Check for labels or inputs with accessible names
-    const labels = page.locator('label')
-    const ariaLabels = page.locator('[aria-label]')
-    const placeholders = page.locator('[placeholder]')
-
-    const labelCount = await labels.count()
-    const ariaCount = await ariaLabels.count()
-    const placeholderCount = await placeholders.count()
-
-    // Should have at least one form of accessibility labeling
-    expect(labelCount + ariaCount + placeholderCount).toBeGreaterThan(0)
-
-    // Verify form inputs exist
-    const inputs = page.locator('input, select')
-    const inputCount = await inputs.count()
-    expect(inputCount).toBeGreaterThan(0)
-  })
-
-  test('destiny-map form should have labels or aria-labels', async ({ page }) => {
-    await page.goto('/destiny-map', { waitUntil: 'domcontentloaded' })
+  test('destiny-counselor form should have labels or aria-labels', async ({ page }) => {
+    await page.goto('/destiny-counselor', { waitUntil: 'domcontentloaded' })
 
     const labels = page.locator('label')
     const ariaLabels = page.locator('[aria-label]')
@@ -195,21 +166,6 @@ test.describe('Button Text', () => {
         // Button should have some accessible name
         expect(text || ariaLabel).toBeTruthy()
       }
-    }
-  })
-})
-
-test.describe('Placeholder Text', () => {
-  test('input placeholders should be present', async ({ page }) => {
-    await page.goto('/saju', { waitUntil: 'domcontentloaded' })
-
-    const inputs = page.locator('input[placeholder]')
-    const count = await inputs.count()
-
-    for (let i = 0; i < Math.min(count, 3); i++) {
-      const input = inputs.nth(i)
-      const placeholder = await input.getAttribute('placeholder')
-      expect(placeholder).toBeTruthy()
     }
   })
 })

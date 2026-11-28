@@ -1,9 +1,10 @@
 import { useState, useEffect, useCallback } from 'react'
 import { getUserTimezone } from '@/lib/saju/timezone'
+import { resolveBirthTimezoneOnDevice } from '@/lib/datetime/resolveTimezone'
 import { formatCityForDropdown, localizeStoredCity } from '@/lib/cities/formatter'
 import type { PersonForm, CityItem, Relation } from '@/app/compatibility/lib'
 import { makeEmptyPerson, getLatestPair } from '@/app/compatibility/lib'
-import { getStoredBirthInfo } from '@/app/(main)/birthInfoStorage'
+import { getStoredBirthInfo } from '@/lib/birth/storage'
 import { isBirthTimeUnknown } from '@/lib/saju/birthTimeAnchor'
 
 export function useCompatibilityForm(initialCount: number = 2, locale: 'ko' | 'en' = 'ko') {
@@ -48,7 +49,11 @@ export function useCompatibilityForm(initialCount: number = 2, locale: 'ko' | 'e
           cityQuery: home.city ? localizeStoredCity(home.city, locale) : next[0].cityQuery,
           lat: home.latitude ?? null,
           lon: home.longitude ?? null,
-          timeZone: home.timeZone || getUserTimezone() || 'Asia/Seoul',
+          // 저장 tz → 출생 도시 tz → 보는 사람 기기 tz (서울 하드코딩 없음, G13).
+          timeZone: resolveBirthTimezoneOnDevice(
+            { timezone: home.timeZone, latitude: home.latitude, longitude: home.longitude },
+            getUserTimezone()
+          ),
           // tri-state SSOT — 명시 플래그 우선, 레거시는 '00:00'=미상 휴리스틱.
           timeUnknown: isBirthTimeUnknown(home.birthTime, home.birthTimeUnknown),
         }
@@ -63,7 +68,10 @@ export function useCompatibilityForm(initialCount: number = 2, locale: 'ko' | 'e
           cityQuery: src.cityQuery ? localizeStoredCity(src.cityQuery, locale) : next[0].cityQuery,
           lat: src.lat,
           lon: src.lon,
-          timeZone: src.timeZone || getUserTimezone() || 'Asia/Seoul',
+          timeZone: resolveBirthTimezoneOnDevice(
+            { timezone: src.timeZone, latitude: src.lat, longitude: src.lon },
+            getUserTimezone()
+          ),
           timeUnknown: src.timeUnknown,
         }
       }
@@ -152,7 +160,15 @@ export function useCompatibilityForm(initialCount: number = 2, locale: 'ko' | 'e
           cityQuery: savedPerson.birthCity || '',
           lat: savedPerson.latitude || null,
           lon: savedPerson.longitude || null,
-          timeZone: savedPerson.tzId || getUserTimezone() || 'Asia/Seoul',
+          // tz 없이 저장된 지인도 도시(좌표)가 있으면 그 도시 tz 로 — 서울 기둥 금지(G13).
+          timeZone: resolveBirthTimezoneOnDevice(
+            {
+              timezone: savedPerson.tzId,
+              latitude: savedPerson.latitude,
+              longitude: savedPerson.longitude,
+            },
+            getUserTimezone()
+          ),
           relation: personIdx > 0 ? mapRelation(savedPerson.relation) : undefined,
         }
         return next

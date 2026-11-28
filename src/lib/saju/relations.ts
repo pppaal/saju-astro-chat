@@ -4,23 +4,23 @@ import { STEMS } from './constants'
 import type { FiveElement, PillarKind, RelationHit } from './types'
 import {
   STEM_COMBINE,
-  STEM_CLASH_4,
-  STEM_CLASH_5_EXTRA,
-  STEM_CLASH_10,
+  STEM_CLASH_BY_MODE,
+  STEM_CLASH_MODE,
   SIX_HARMONY,
   THREE_HARMONY,
+  DIRECTIONAL_HARMONY,
   BRANCH_CLASH,
   BREAK_PAIRS,
   HARM_PAIRS,
   RESENTMENT_PAIRS,
-  PUNISHMENT_TRIOS,
-  PUNISHMENT_PAIR,
-  ALL_BRANCHES,
   toBidiRecord,
   toPairKeySet,
   halfHarmonyPairs,
+  type StemClashMode,
 } from './relationTables'
+import { isHyeong } from './hyeong'
 import { getGongmang as getGongmangByPillar } from './pillarLookup'
+import { presentPillars } from './stemBranchUtils'
 
 /* ========== 옵션/유틸 ========== */
 export interface AnalyzeRelationsOptions {
@@ -29,7 +29,7 @@ export interface AnalyzeRelationsOptions {
   includeGongmang: boolean // 공망 포함
   includeHeavenlyTransformNote?: boolean // 천간 합화 오행 표기
   includeTrineElementNote?: boolean // 삼합/방합 변국 오행 표기
-  includeSelfPunish?: boolean // 자기형 포함(子子, 午午 등)
+  includeSelfPunish?: boolean // 자형(自刑) 포함 — 辰辰·午午·酉酉·亥亥 4지만(hyeong.isHyeong)
 
   // 공망 산정 기준
   // - 'dayPillar-60jiazi': 일주(60갑자) 기준 공망표 사용(권장, 첨부표와 일치)
@@ -37,11 +37,12 @@ export interface AnalyzeRelationsOptions {
   // - 'yearPillar-basic' : 연간만으로 6패턴 반복
   gongmangPolicy?: 'dayPillar-60jiazi' | 'dayMaster-basic' | 'yearPillar-basic'
 
-  // 천간충 판정 폭
-  // - '4'  : 갑-경, 을-신, 병-임, 정-계 (기존)
-  // - '5'  : 위 4쌍 + 무-갑, 기-을
-  // - '10' : 양간↔양간, 음간↔음간 전부(갑↔경, 병↔임, 무↔갑… 등 10쌍)
-  heavenlyClashMode?: '4' | '5' | '10'
+  // 천간충 판정 폭 — 기본값은 엔진 공통 STEM_CLASH_MODE('4', relationTables).
+  // 운·캘린더·궁합이 같은 4쌍만 보므로 본명도 기본은 4쌍이다(SD-11).
+  // - '4'  : 갑-경, 을-신, 병-임, 정-계 (기본)
+  // - '5'  : 위 4쌍 + 무-갑, 기-을 (옵션 전용)
+  // - '10' : 양간↔양간, 음간↔음간 전부 (옵션 전용)
+  heavenlyClashMode?: StemClashMode
 }
 
 export const DEFAULT_RELATION_OPTIONS: AnalyzeRelationsOptions = {
@@ -52,7 +53,7 @@ export const DEFAULT_RELATION_OPTIONS: AnalyzeRelationsOptions = {
   includeTrineElementNote: true,
   includeSelfPunish: true,
   gongmangPolicy: 'dayPillar-60jiazi',
-  heavenlyClashMode: '5',
+  heavenlyClashMode: STEM_CLASH_MODE,
 }
 
 const stemIndex = (name: string) => STEMS.findIndex((s) => s.name === name)
@@ -88,12 +89,11 @@ const HEAVENLY_COMBINES: Record<string, { pair: string; transform?: FiveElement 
   return r
 })()
 
-// 천간충 세트(모드별)
-const HEAVENLY_CLASH_SETS = {
-  '4': toPairKeySet(STEM_CLASH_4),
-  '5': toPairKeySet([...STEM_CLASH_4, ...STEM_CLASH_5_EXTRA]),
-  // 10쌍: 양간끼리/음간끼리 상충 전부
-  '10': toPairKeySet(STEM_CLASH_10),
+// 천간충 세트(모드별) — canon STEM_CLASH_BY_MODE 파생
+const HEAVENLY_CLASH_SETS: Record<StemClashMode, Set<string>> = {
+  '4': toPairKeySet(STEM_CLASH_BY_MODE['4']),
+  '5': toPairKeySet(STEM_CLASH_BY_MODE['5']),
+  '10': toPairKeySet(STEM_CLASH_BY_MODE['10']),
 }
 
 function analyzeHeavenly(
@@ -102,13 +102,8 @@ function analyzeHeavenly(
   clashMode: AnalyzeRelationsOptions['heavenlyClashMode']
 ): RelationHit[] {
   const hits: RelationHit[] = []
-  const pairs: Array<[PillarKind, string]> = [
-    ['year', p.year.heavenlyStem],
-    ['month', p.month.heavenlyStem],
-    ['day', p.day.heavenlyStem],
-    ['time', p.time.heavenlyStem],
-  ]
-  const CLASH = HEAVENLY_CLASH_SETS[clashMode || '5']
+  const pairs: Array<[PillarKind, string]> = presentPillars(p).map(([k, x]) => [k, x.heavenlyStem])
+  const CLASH = HEAVENLY_CLASH_SETS[clashMode || STEM_CLASH_MODE]
 
   for (let i = 0; i < pairs.length; i++) {
     for (let j = i + 1; j < pairs.length; j++) {
@@ -139,19 +134,28 @@ const EARTHLY_SIX_COMBINES: Record<string, string> = toBidiRecord(SIX_HARMONY.ma
 
 // 삼합(삼합국)
 const EARTHLY_TRINES: Array<{ set: [string, string, string]; element: FiveElement }> =
-  THREE_HARMONY.map((t) => ({ set: [...t.members] as [string, string, string], element: t.element }))
+  THREE_HARMONY.map((t) => ({
+    set: [...t.members] as [string, string, string],
+    element: t.element,
+  }))
 
-// 방합(반합) — 삼합 트리오의 인접 2지지 반합 쌍
+// 방합(방국) — 寅卯辰·巳午未·申酉戌·亥子丑
+const EARTHLY_DIRECTIONALS: Array<{ set: [string, string, string]; element: FiveElement }> =
+  DIRECTIONAL_HARMONY.map((d) => ({
+    set: [...d.members] as [string, string, string],
+    element: d.element,
+  }))
+
+// 반합 — 삼합 트리오에서 왕지(子卯午酉)를 포함한 2지지 쌍
 const EARTHLY_HALF_TRINES: Array<{ pair: [string, string]; element: FiveElement }> =
   halfHarmonyPairs().map((h) => ({ pair: [...h.pair] as [string, string], element: h.element }))
 
 // 충(정충)
 const EARTHLY_CLASH_PAIRS = toPairKeySet(BRANCH_CLASH)
 
-// 형(삼형 + 특수형 + 자기형 옵션). 자형은 엔진 정책상 12지지 전부 인정(완화판).
-const EARTHLY_PUNISH_SETS: Array<Set<string>> = PUNISHMENT_TRIOS.map((t) => new Set(t))
-const EARTHLY_PUNISH_PAIRS = toPairKeySet([PUNISHMENT_PAIR])
-const SELF_PUNISH_PAIRS = new Set(ALL_BRANCHES.map((b) => `${b}-${b}`))
+// 형(刑) — hyeong.isHyeong 단일 교리(SD-07). 삼형 세트 안의 寅申·丑未 는 충이지
+// 형이 아니고, 자형은 辰午酉亥 4지만이다. 옛 코드는 trio 의 임의 두 지지와 12지 전부의
+// 자형을 형으로 잡아 상담사·캘린더와 다른 형 목록을 냈다.
 
 // 파
 const EARTHLY_BREAK_PAIRS = toPairKeySet(BREAK_PAIRS)
@@ -168,12 +172,15 @@ function analyzeEarthly(
   includeSelfPunish: boolean
 ): RelationHit[] {
   const hits: RelationHit[] = []
-  const pairs: Array<[PillarKind, string]> = [
-    ['year', normalizeBranchName(p.year.earthlyBranch)],
-    ['month', normalizeBranchName(p.month.earthlyBranch)],
-    ['day', normalizeBranchName(p.day.earthlyBranch)],
-    ['time', normalizeBranchName(p.time.earthlyBranch)],
-  ]
+  const pairs: Array<[PillarKind, string]> = presentPillars(p).map(([k, x]) => [
+    k,
+    normalizeBranchName(x.earthlyBranch),
+  ])
+
+  const allBranches = pairs.map(([, v]) => v)
+  // 국(局)은 서로 다른 세 지지가 모두 있어야 성립 — 같은 지지가 두 번 있어도 한 멤버다
+  // (SD-01: 亥·亥·未 를 亥卯未 삼합으로 잡던 버그).
+  const hasAllMembers = (set: readonly string[]) => set.every((z) => allBranches.includes(z))
 
   // 2지지 관계
   for (let i = 0; i < pairs.length; i++) {
@@ -189,12 +196,8 @@ function analyzeEarthly(
       if (inSetPair(a, b, EARTHLY_CLASH_PAIRS)) {
         hits.push({ kind: '지지충', pillars: [ak, bk], detail: `${a}-${b} 충` })
       }
-      // 형
-      if (
-        EARTHLY_PUNISH_SETS.some((set) => set.has(a) && set.has(b)) ||
-        inSetPair(a, b, EARTHLY_PUNISH_PAIRS) ||
-        (includeSelfPunish && inSetPair(a, b, SELF_PUNISH_PAIRS))
-      ) {
+      // 형 (자형은 includeSelfPunish 일 때만)
+      if ((a !== b || includeSelfPunish) && isHyeong(a, b)) {
         hits.push({ kind: '지지형', pillars: [ak, bk], detail: `${a}-${b} 형` })
       }
       // 파
@@ -209,9 +212,9 @@ function analyzeEarthly(
       if (inSetPair(a, b, EARTHLY_YUANJIN_PAIRS)) {
         hits.push({ kind: '원진', pillars: [ak, bk], detail: `${a}-${b} 원진` })
       }
-      // 반합(半合) — 삼합 트리오의 2지지(같은 원소 팀의 절반). 삼합이 이미 성립하면
-      // 동일 세트 반합은 숨김(중복 방지). 옛 코드는 이를 '지지방합(같은 계절)'로 잘못
-      // 표기했으나, 亥-卯·申-子·寅-午 등은 교차 계절 삼합쌍이라 방합이 아니다(R2).
+      // 반합(半合) — 삼합 트리오의 왕지 포함 2지지(같은 원소 팀의 절반). 삼합이 이미
+      // 성립하면 동일 세트 반합은 숨김(중복 방지). 옛 코드는 이를 '지지방합(같은 계절)'로
+      // 잘못 표기했으나, 亥-卯·申-子·寅-午 등은 교차 계절 삼합쌍이라 방합이 아니다(R2).
       const half = EARTHLY_HALF_TRINES.find(
         ({ pair }) => (pair[0] === a && pair[1] === b) || (pair[0] === b && pair[1] === a)
       )
@@ -219,9 +222,7 @@ function analyzeEarthly(
         const sameSet = EARTHLY_TRINES.find(
           (tri) => tri.set.includes(half.pair[0]) && tri.set.includes(half.pair[1])
         )
-        const allBranches = pairs.map(([_, v]) => v)
-        const triSatisfied = !!sameSet && sameSet.set.every((z) => allBranches.includes(z))
-        if (!triSatisfied) {
+        if (!sameSet || !hasAllMembers(sameSet.set)) {
           hits.push({
             kind: '지지삼합',
             pillars: [ak, bk],
@@ -232,21 +233,24 @@ function analyzeEarthly(
     }
   }
 
-  // 삼합(3지지 충족 시)
-  const all = pairs.map(([k, v]) => ({ k, v }))
-  for (const tri of EARTHLY_TRINES) {
-    const present = all.filter((x) => tri.set.includes(x.v))
-    if (present.length >= 3) {
-      const ps = present.slice(0, 3).map((x) => x.k) as PillarKind[]
-      hits.push({
-        kind: '지지삼합',
-        pillars: ps,
-        detail: includeTrineNote
-          ? `${tri.set.join('·')} 삼합(${tri.element})`
-          : `${tri.set.join('·')} 삼합`,
-      })
-    }
+  // 삼합·방합 — 서로 다른 세 멤버가 모두 있을 때만. pillars 는 멤버 지지를 가진
+  // 기둥 전부(기둥 순서) — 같은 멤버가 두 기둥에 있으면 둘 다 국에 참여한다.
+  const pushTrio = (
+    kind: '지지삼합' | '지지방합',
+    word: '삼합' | '방합',
+    tri: { set: [string, string, string]; element: FiveElement }
+  ) => {
+    if (!hasAllMembers(tri.set)) return
+    const ps = pairs.filter(([, v]) => tri.set.includes(v)).map(([k]) => k)
+    const label = `${tri.set.join('·')} ${word}`
+    hits.push({
+      kind,
+      pillars: ps,
+      detail: includeTrineNote ? `${label}(${tri.element})` : label,
+    })
   }
+  for (const tri of EARTHLY_TRINES) pushTrio('지지삼합', '삼합', tri)
+  for (const tri of EARTHLY_DIRECTIONALS) pushTrio('지지방합', '방합', tri)
 
   return hits
 }
@@ -299,12 +303,10 @@ function analyzeGongmang(
   }
   const [b1, b2] = gm
 
-  const map: Array<[PillarKind, string]> = [
-    ['year', normalizeBranchName(p.year.earthlyBranch)],
-    ['month', normalizeBranchName(p.month.earthlyBranch)],
-    ['day', normalizeBranchName(p.day.earthlyBranch)],
-    ['time', normalizeBranchName(p.time.earthlyBranch)],
-  ]
+  const map: Array<[PillarKind, string]> = presentPillars(p).map(([k, x]) => [
+    k,
+    normalizeBranchName(x.earthlyBranch),
+  ])
 
   for (const [k, v] of map) {
     if (v === b1 || v === b2) {
@@ -315,11 +317,12 @@ function analyzeGongmang(
 }
 
 /* ========== 외부 API ========== */
+/** 관계 분석 입력 — time 이 null/생략이면(출생시각 미상) 년·월·일 삼주끼리만 본다(CONVENTIONS §5). */
 export interface PillarInput {
   year: { heavenlyStem: string; earthlyBranch: string }
   month: { heavenlyStem: string; earthlyBranch: string }
   day: { heavenlyStem: string; earthlyBranch: string }
-  time: { heavenlyStem: string; earthlyBranch: string }
+  time?: { heavenlyStem: string; earthlyBranch: string } | null
 }
 export interface AnalyzeInput {
   pillars: PillarInput
@@ -354,12 +357,13 @@ export function analyzeRelations(input: AnalyzeInput): RelationHit[] {
 }
 
 /* ========== 어댑터: 기존 Pillars 구조 → AnalyzeInput ========== */
+// time 이 null/생략이면(출생시각 미상) 삼주 입력으로 넘긴다.
 export function toAnalyzeInputFromSaju(
   p: {
     year: { heavenlyStem: { name: string }; earthlyBranch: { name: string } }
     month: { heavenlyStem: { name: string }; earthlyBranch: { name: string } }
     day: { heavenlyStem: { name: string }; earthlyBranch: { name: string } }
-    time: { heavenlyStem: { name: string }; earthlyBranch: { name: string } }
+    time?: { heavenlyStem: { name: string }; earthlyBranch: { name: string } } | null
   },
   dayMasterStemName?: string,
   options?: Partial<AnalyzeRelationsOptions>
@@ -369,7 +373,9 @@ export function toAnalyzeInputFromSaju(
       year: { heavenlyStem: p.year.heavenlyStem.name, earthlyBranch: p.year.earthlyBranch.name },
       month: { heavenlyStem: p.month.heavenlyStem.name, earthlyBranch: p.month.earthlyBranch.name },
       day: { heavenlyStem: p.day.heavenlyStem.name, earthlyBranch: p.day.earthlyBranch.name },
-      time: { heavenlyStem: p.time.heavenlyStem.name, earthlyBranch: p.time.earthlyBranch.name },
+      time: p.time
+        ? { heavenlyStem: p.time.heavenlyStem.name, earthlyBranch: p.time.earthlyBranch.name }
+        : null,
     },
     dayMasterStem: dayMasterStemName,
     options,

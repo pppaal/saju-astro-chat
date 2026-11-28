@@ -32,16 +32,16 @@ test.describe('Homepage & Navigation', () => {
   })
 
   test('should navigate to key pages', async ({ page }) => {
-    // Navigate to saju page
-    await page.goto('/saju', { waitUntil: 'domcontentloaded' })
+    // v9.2 의 핵심 화면 — 인생 흐름(/destiny), 운세 달력(/calendar), 타로, 운명 상담사.
+    // /saju · /dream 은 삭제된 서비스라 proxy 가 홈으로 보낸다(enabledServices
+    // REMOVED_PUBLIC_SERVICE_PREFIXES).
+    await page.goto('/destiny', { waitUntil: 'domcontentloaded' })
     await expect(page.locator('body')).toBeVisible()
-    expect(page.url()).toContain('/saju')
+    expect(page.url()).toContain('/destiny')
 
-    // Verify saju page has content
-    const sajuText = await page.locator('body').textContent()
-    expect(sajuText!.includes('사주') || sajuText!.includes('Saju') || sajuText!.length > 100).toBe(
-      true
-    )
+    await page.goto('/calendar', { waitUntil: 'domcontentloaded' })
+    await expect(page.locator('body')).toBeVisible()
+    expect(page.url()).toContain('/calendar')
 
     // Navigate to tarot page
     await page.goto('/tarot', { waitUntil: 'domcontentloaded' })
@@ -54,10 +54,17 @@ test.describe('Homepage & Navigation', () => {
       tarotText!.includes('타로') || tarotText!.includes('Tarot') || tarotText!.length > 100
     ).toBe(true)
 
-    // Navigate to destiny-map page
+    // 옛 /destiny-map 은 운명 상담사(/destiny-counselor)로 영구 리다이렉트된다(next.config.ts).
     await page.goto('/destiny-map', { waitUntil: 'domcontentloaded' })
     await expect(page.locator('body')).toBeVisible()
-    expect(page.url()).toContain('/destiny-map')
+    expect(page.url()).toContain('/destiny-counselor')
+  })
+
+  test('removed services redirect to home', async ({ page }) => {
+    for (const route of ['/saju', '/dream']) {
+      await page.goto(route, { waitUntil: 'domcontentloaded' })
+      expect(new URL(page.url()).pathname).toBe('/')
+    }
   })
 
   test('should be responsive on mobile', async ({ page }) => {
@@ -191,13 +198,12 @@ test.describe('Static Pages', () => {
     expect(hasTermsContent).toBe(true)
   })
 
-  test('should load contact page with form', async ({ page }) => {
+  test('should load contact page with an email link', async ({ page }) => {
     await page.goto('/contact', { waitUntil: 'domcontentloaded' })
     await expect(page.locator('body')).toBeVisible()
 
-    // Contact page should have form elements or contact info
-    const formElements = page.locator('form, input, textarea, [class*="contact"]')
-    const count = await formElements.count()
-    expect(count).toBeGreaterThan(0)
+    // 문의 폼은 없다 — 지원 메일 링크(mailto:)와 응답 시간 안내가 있다.
+    const mailLinks = page.locator('a[href^="mailto:"]')
+    expect(await mailLinks.count()).toBeGreaterThan(0)
   })
 })

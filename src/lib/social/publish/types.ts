@@ -37,7 +37,6 @@ export interface PublishAdapter {
 }
 
 // Threads 게시글 문자 상한(공식 500). 안전 여백으로 480 을 실사용 상한으로.
-export const THREADS_MAX_CHARS = 500
 const THREADS_SAFE_CHARS = 480
 // 쓰레드는 해시태그 도배가 스팸처럼 보인다(인스타 문법). 태그는 최대 1개만
 // 남긴다 — 인스타는 composeText 로 5~8개 그대로 유지되므로 영향 없음.

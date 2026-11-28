@@ -8,6 +8,8 @@ import {
   enrichSibsin,
   buildJijangganRaw,
 } from '@/app/api/saju/services/jijangganFormatter'
+import { getSibseong } from '@/lib/saju/core/sibsin'
+import { STEMS } from '@/lib/saju/constants'
 
 describe('jijangganFormatter', () => {
   describe('isRecord', () => {
@@ -188,9 +190,28 @@ describe('jijangganFormatter', () => {
     it('알 수 없는 stem name은 매핑 없음 -> name만 정규화', () => {
       const jg = { chogi: { name: 'Q' } }
       const result = enrichSibsin(jg, '甲')
-      // normalizeStemName('Q') => 'Q', map['Q'] undefined => else branch sets name
+      // normalizeStemName('Q') => 'Q', STEMS 에 없음 => 십신 없이 name 만 정규화
       expect(result.chogi?.name).toBe('Q')
       expect(result.chogi?.sibsin).toBeUndefined()
+    })
+
+    // SD-15: 예전 손 표(SIBSIN_TABLE)는 100칸 중 20칸의 음양이 뒤집혀 있었다
+    // (壬→甲 상관 등). 십신은 core/sibsin getSibseong 단일 소스(CONVENTIONS §7).
+    it('100칸 전부 core getSibseong 과 일치', () => {
+      for (const dm of STEMS) {
+        for (const target of STEMS) {
+          const result = enrichSibsin({ chogi: { name: target.name } }, dm.name)
+          expect(result.chogi?.sibsin, `${dm.name}→${target.name}`).toBe(getSibseong(dm, target))
+        }
+      }
+    })
+
+    it('예전 음양 뒤집힘 칸 회귀 가드: 壬→甲 식신, 壬→戊 편관, 庚→甲 편재, 癸→戊 정관', () => {
+      const sib = (dm: string, t: string) => enrichSibsin({ chogi: { name: t } }, dm).chogi?.sibsin
+      expect(sib('壬', '甲')).toBe('식신')
+      expect(sib('壬', '戊')).toBe('편관')
+      expect(sib('庚', '甲')).toBe('편재')
+      expect(sib('癸', '戊')).toBe('정관')
     })
   })
 

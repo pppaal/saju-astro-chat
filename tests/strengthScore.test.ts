@@ -117,13 +117,13 @@ describe('calculateStrengthScore', () => {
 
     expect(strength.total).toBeGreaterThanOrEqual(0)
     expect(strength.total).toBeLessThanOrEqual(100)
-    expect(['극강', '강', '중강', '중약', '약', '극약']).toContain(strength.level)
+    expect(['극신강', '신강', '중화', '신약', '극신약']).toContain(strength.level)
     expect(strength.supportScore).toBeGreaterThanOrEqual(0)
     expect(strength.resistScore).toBeGreaterThanOrEqual(0)
     expect(strength.items).toBeInstanceOf(Array)
   })
 
-  it('identifies 극강 level for very strong day master', () => {
+  it('identifies 극신강/신강 level for very strong day master', () => {
     // 丙 일간 + 巳午 화월 + 목 지원
     const pillars = createTestPillars(
       ['甲', '寅'], // 목 인성
@@ -135,10 +135,10 @@ describe('calculateStrengthScore', () => {
     const strength = calculateStrengthScore(pillars)
 
     // Should be strong or very strong
-    expect(['극강', '강', '중강']).toContain(strength.level)
+    expect(['극신강', '신강']).toContain(strength.level)
   })
 
-  it('identifies 약 or 극약 level for weak day master', () => {
+  it('identifies 신약 or 극신약 level for weak day master', () => {
     // 甲 일간 in 금월 with 금 overwhelming
     const pillars = createTestPillars(
       ['庚', '申'], // 금금
@@ -150,7 +150,7 @@ describe('calculateStrengthScore', () => {
     const strength = calculateStrengthScore(pillars)
 
     // Should be weak due to 극받는관계
-    expect(['약', '극약', '중약']).toContain(strength.level)
+    expect(['신약', '극신약']).toContain(strength.level)
   })
 
   it('calculates balance correctly', () => {
@@ -353,13 +353,8 @@ describe('calculateYongsinFitScore', () => {
 
 describe('Strength level determination', () => {
   it('maps total score to correct level', () => {
-    // Level thresholds:
-    // >= 85: 극강
-    // >= 70: 강
-    // >= 55: 중강
-    // >= 40: 중약
-    // >= 25: 약
-    // < 25: 극약
+    // Level thresholds — CONVENTIONS §10 5단계 (strengthBandOf):
+    // >= 80: 극신강 · >= 60: 신강 · >= 40: 중화 · > 20: 신약 · <= 20: 극신약
 
     const pillars = createTestPillars(['甲', '子'], ['乙', '丑'], ['丙', '寅'], ['丁', '卯'])
 
@@ -367,11 +362,10 @@ describe('Strength level determination', () => {
     const total = strength.total
     const level = strength.level
 
-    if (total >= 85) expect(level).toBe('극강')
-    else if (total >= 70) expect(level).toBe('강')
-    else if (total >= 55) expect(level).toBe('중강')
-    else if (total >= 40) expect(level).toBe('중약')
-    else if (total >= 25) expect(level).toBe('약')
-    else expect(level).toBe('극약')
+    if (total >= 80) expect(level).toBe('극신강')
+    else if (total >= 60) expect(level).toBe('신강')
+    else if (total >= 40) expect(level).toBe('중화')
+    else if (total > 20) expect(level).toBe('신약')
+    else expect(level).toBe('극신약')
   })
 })

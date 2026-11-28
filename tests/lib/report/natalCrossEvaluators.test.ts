@@ -60,18 +60,23 @@ describe('evalIdentity — ASC 첫인상 분기', () => {
   })
 })
 
-// ── evalNeeds — neutral arm + suffix 조합 ──────────────────────────────────
+// ── evalNeeds — 필요→끌림 방향 생극 arm + suffix 조합 ──────────────────────
 describe('evalNeeds — 미커버 arm', () => {
-  it('용신·달이 생극 무관계면 neutral', () => {
-    // 용신 금(metal), 달 사자(火). metal-fire: fire가 metal을 극(CONTROLS.fire=metal)
-    // → CONTROLS[moon=fire]===need(metal) → tension. 무관계 만들려면:
-    // 용신 금(metal), 달 게자리(水). metal→water(생), 즉 GENERATES[metal]=water=moon
-    // → GENERATES[need]===moon (반대). 위 코드는 GENERATES[moon]===need / CONTROLS[moon]===need 만 봄.
-    // moon=water: GENERATES[water]=wood(!=metal), CONTROLS[water]=fire(!=metal) → neutral.
+  it('용신이 달을 생하면 complement (plan B4 #9 — 예전엔 neutral)', () => {
+    // 용신 금(metal), 달 게자리(水): GENERATES[metal]=water=moon → 필요가 끌림을 키움.
     const v = evalNeeds('금', 'Cancer')!
-    expect(v.tone).toBe('neutral')
-    expect(v.reason.ko).toContain('따로 노는')
-    expect(v.reason.en).toContain('separate tracks')
+    expect(v.tone).toBe('complement')
+    expect(v.reason.ko).toContain('자연스럽게 키워줘요')
+    expect(v.reason.en).toContain('naturally feeds')
+    expect(HANGUL.test(v.reason.en)).toBe(false)
+  })
+  it('용신이 달을 극하면 tension (plan B4 #9 — 예전엔 neutral)', () => {
+    // 용신 수(water), 달 사자(火): CONTROLS[water]=fire=moon → 필요가 끌림을 누름.
+    const v = evalNeeds('수', 'Leo')!
+    expect(v.tone).toBe('tension')
+    expect(v.reason.ko).toContain('눌러요')
+    expect(v.reason.en).toContain('press down')
+    expect(HANGUL.test(v.reason.en)).toBe(false)
   })
   it('avoid 와 johu 가 동시에 붙는다(early-return 함정 없음)', () => {
     const v = evalNeeds('수', 'Cancer', '화', {
@@ -121,6 +126,31 @@ describe('evalFortune — polarity·강조 매트릭스', () => {
   it('빈 신살 배열 / undefined → null', () => {
     expect(evalFortune([], new Set())).toBeNull()
     expect(evalFortune(undefined)).toBeNull()
+  })
+
+  // QA COPY-3 — 주제 목록은 목적어로: 'A expansion…' · 'Action, desire and drive runs' 가 없다.
+  it('EN 요지는 갈래마다 문법이 맞다 (목성 = 모음으로 시작하는 주제)', () => {
+    const all = new Set(['Jupiter', 'Mars', 'Venus'])
+    expect(evalFortune(['건록'], new Set())!.gist!.en).toBe(
+      'Your saju favors expansion, faith and luck; your chart is quieter there.'
+    )
+    expect(evalFortune(['건록'], all)!.gist!.en).toBe(
+      'Expansion, faith and luck favored on both sides.'
+    )
+    expect(evalFortune(['양인'], new Set())!.gist!.en).toBe(
+      'Your saju pushes hard on action, desire and drive; your chart tempers it.'
+    )
+    expect(evalFortune(['양인'], all)!.gist!.en).toBe(
+      'Both sides push hard on action, desire and drive.'
+    )
+    for (const s of ['건록', '양인', '도화', '역마']) {
+      for (const emph of [new Set<string>(), all]) {
+        const v = evalFortune([s], emph)!
+        expect(v.gist!.en).not.toMatch(/\bA [aeiou]/i)
+        expect(v.gist!.en).not.toMatch(/runs strong|blessing in your/)
+        expect(v.reason.en).not.toMatch(/\ba (expansion|action|love|mind|self)\b/i)
+      }
+    }
   })
 })
 
@@ -279,12 +309,31 @@ describe('evalVoid — 공망 × 사우스노드', () => {
     const v = evalVoid(['寅'], 'Gemini')!
     expect(v.tone).toBe('resonant')
   })
-  it('다른 오행 가리키면 neutral', () => {
+  it('다른 오행 가리키면 neutral — 양쪽 오행을 이름으로 밝힌다', () => {
     // 공망 子(water) + South Node 사자(fire) → mismatch
     const v = evalVoid(['子'], 'Leo')!
     expect(v.tone).toBe('neutral')
+    expect(v.karmaAxis).toBe(true)
     expect(v.reason.ko).toContain('다른 영역')
+    expect(v.reason.ko).toContain('(수)')
+    expect(v.reason.ko).toContain('(화)')
+    expect(v.reason.en).toContain('(Water vs. Fire)')
     expect(HANGUL.test(v.reason.en)).toBe(false)
+  })
+  it('공망 두 지지가 다른 오행이면 두 오행 모두 밝힌다, 공기 사우스노드는 "공기"로', () => {
+    // 子丑 = 수·토, South Node 쌍둥이(air→木 근사) → 집합 밖
+    const v = evalVoid(['子', '丑'], 'Gemini')!
+    expect(v.tone).toBe('neutral')
+    expect(v.reason.ko).toContain('(토·수)')
+    expect(v.reason.ko).toContain('(공기)')
+    expect(v.reason.en).toContain('(Earth and Water vs. Air)')
+  })
+  it('두 번째 지지의 오행과 맞아도 resonant (엔진 감사 X9)', () => {
+    // 子丑 + South Node 처녀(土) — 丑=土. 예전엔 첫 지지(子=水)만 봐 neutral.
+    const v = evalVoid(['子', '丑'], 'Virgo')!
+    expect(v.tone).toBe('resonant')
+    expect(v.karmaAxis).toBe(true)
+    expect(v.reason.ko).toContain('토 자리')
   })
   it('빈 입력 null', () => {
     expect(evalVoid([], 'Cancer')).toBeNull()
@@ -309,13 +358,61 @@ describe('evalNorthNode — 노스노드 × 결핍 오행', () => {
     expect(v.reason.ko).toContain('맞물려')
     expect(HANGUL.test(v.reason.en)).toBe(false)
   })
-  it('생도 같음도 아니면 complement (두 갈래)', () => {
-    // wood 결핍(0). NN 금(metal). metal ctrl wood (극) → 분기 → complement(두 갈래)
+  it('극(剋) 관계면 tension (두 갈래) — 엔진 감사 X8, OD-10', () => {
+    // wood 결핍(0). NN 염소(Capricorn=earth). wood ctrl earth → 극 → tension(두 갈래).
+    // 예전엔 극도 complement('다르지만 서로 도와요')라 행 문구와 라벨이 어긋났다.
     const v = evalNorthNode({ wood: 0, fire: 2, earth: 2, metal: 3, water: 2 }, 'Capricorn')
-    // Capricorn=earth. weakest=wood. wood↔earth: wood ctrl earth → 극.
-    // GENERATES[wood]=fire(!=earth), GENERATES[earth]=metal(!=wood) → divergent → complement
-    expect(v!.tone).toBe('complement')
+    expect(v!.tone).toBe('tension')
+    expect(v!.karmaAxis).toBe(true)
     expect(v!.reason.ko).toContain('두 갈래')
+  })
+  it('결핍 5 × 노스노드 4 원소 — elementVerdict 족과 같고 모든 칸에 karmaAxis', () => {
+    // 오행 관계 기준표(elementVerdict 와 독립 구현): 같음 → resonant, 생 → complement, 극 → tension.
+    const GEN: Record<string, string> = {
+      wood: 'fire',
+      fire: 'earth',
+      earth: 'metal',
+      metal: 'water',
+      water: 'wood',
+    }
+    const CTL: Record<string, string> = {
+      wood: 'earth',
+      fire: 'metal',
+      earth: 'water',
+      metal: 'wood',
+      water: 'fire',
+    }
+    const family = (a: string, b: string) =>
+      a === b
+        ? 'resonant'
+        : GEN[a] === b || GEN[b] === a
+          ? 'complement'
+          : CTL[a] === b || CTL[b] === a
+            ? 'tension'
+            : 'neutral'
+    // signToSajuElement 는 metal 을 내지 않는다(air→木) — NN 원소는 4종.
+    const NN: Record<string, string> = {
+      Gemini: 'wood',
+      Leo: 'fire',
+      Taurus: 'earth',
+      Cancer: 'water',
+    }
+    const ELS = ['wood', 'fire', 'earth', 'metal', 'water']
+    let tension = 0
+    const bad: string[] = []
+    for (const weak of ELS) {
+      const counts = Object.fromEntries(ELS.map((e) => [e, e === weak ? 0 : 2]))
+      for (const [sign, nn] of Object.entries(NN)) {
+        const v = evalNorthNode(counts, sign)!
+        const want = family(weak, nn)
+        if (v.tone !== want || v.karmaAxis !== true)
+          bad.push(`${weak}×${sign}: ${v.tone} karmaAxis=${v.karmaAxis} (want ${want})`)
+        if (v.tone === 'tension') tension++
+        expect(HANGUL.test(v.reason.en)).toBe(false)
+      }
+    }
+    expect(bad).toEqual([])
+    expect(tension).toBe(8)
   })
   it('데이터 부족 null', () => {
     expect(evalNorthNode(undefined, 'Cancer')).toBeNull()
@@ -473,5 +570,107 @@ describe('분포 추출 헬퍼 edge', () => {
   it('signToSajuElement: air→wood 근사', () => {
     expect(signToSajuElement('Aquarius')).toBe('wood')
     expect(signToSajuElement(undefined)).toBeUndefined()
+  })
+})
+
+// ── 생활영역 행 — 근거 인용(하우스 vs 담당 행성) · 하우스 미상(null) ─────────
+// 감사 CR-1·CR-7: 점성 쪽 근거는 ① 그 영역 하우스 점유 ② 담당 행성 강조(각도·본궁·고양)
+// 두 갈래다. 하우스가 비었거나(0) 미상(null — 출생시각/출생지 미상)인데 행성 강조로만 켜진
+// 행은 "houses of … run active / are lit / are strong" 이라고 말하면 안 되고 행성을 말해야
+// 한다. 하우스가 실제로 찼으면 하우스 문구를 그대로 쓴다.
+describe('생활영역 행 — 하우스/행성 근거 문구 분기 (CR-1·CR-7)', () => {
+  const HOUSE_EN = /houses? of/i
+  // KO 하우스 문구('별자리의 ○○ 자리')
+  const HOUSE_KO = /별자리의 (사랑·관계|사랑|이동·확장|내면·영성|자원·소유|소통·표현) 자리/
+
+  it('evalExpression — 행성만이면 수성을, 하우스가 찼으면 하우스를 말한다', () => {
+    for (const houses of [0, null]) {
+      const astroOnly = evalExpression(0, true, houses)!
+      expect(astroOnly.tone).toBe('complement')
+      expect(astroOnly.reason.en).toContain('Mercury')
+      expect(astroOnly.reason.en).not.toMatch(HOUSE_EN)
+      expect(astroOnly.reason.ko).toContain('수성')
+      expect(astroOnly.reason.ko).not.toMatch(HOUSE_KO)
+      expect(HANGUL.test(astroOnly.reason.en)).toBe(false)
+      const both = evalExpression(3, true, houses)!
+      expect(both.tone).toBe('resonant')
+      expect(both.reason.en).toContain('Mercury')
+      expect(both.reason.en).not.toMatch(HOUSE_EN)
+      expect(both.reason.ko).toContain('수성')
+    }
+    const byHouse = evalExpression(0, false, 2)!
+    expect(byHouse.reason.en).toContain('houses of communication')
+    expect(byHouse.reason.ko).toContain('소통·표현 자리')
+    // 하우스 미상(null)이고 수성도 약하면 점성 근거가 없다 — 행 생략(식상<2).
+    expect(evalExpression(1, false, null)).toBeNull()
+  })
+
+  it('evalMovement — 행성만이면 목성을 말한다', () => {
+    for (const houses of [0, null]) {
+      const v = evalMovement(false, houses, true)!
+      expect(v.reason.en).toContain('Jupiter')
+      expect(v.reason.en).not.toMatch(HOUSE_EN)
+      expect(v.reason.ko).toContain('목성')
+      expect(v.reason.ko).not.toMatch(HOUSE_KO)
+      const both = evalMovement(true, houses, true)!
+      expect(both.tone).toBe('resonant')
+      expect(both.reason.en).toContain('Jupiter')
+      expect(both.reason.en).not.toMatch(HOUSE_EN)
+    }
+    expect(evalMovement(false, 1, false)!.reason.en).toContain('houses of travel')
+    expect(evalMovement(false, null, false)).toBeNull()
+  })
+
+  it('evalSpirit — 행성만이면 해왕성을 말한다', () => {
+    for (const houses of [0, null]) {
+      const v = evalSpirit(false, houses, true)!
+      expect(v.reason.en).toContain('Neptune')
+      expect(v.reason.en).not.toMatch(HOUSE_EN)
+      expect(v.reason.ko).toContain('해왕성')
+      const both = evalSpirit(true, houses, true)!
+      expect(both.reason.en).toContain('Neptune')
+      expect(both.reason.ko).not.toMatch(HOUSE_KO)
+    }
+    expect(evalSpirit(false, 1, false)!.reason.en).toContain('houses of the inner life')
+  })
+
+  it('evalWealth — 행성만이면 강조된 길성 이름을 댄다(단수/복수 일치)', () => {
+    const venus = evalWealth(0, 0, true, ['Venus'])!
+    expect(venus.reason.en).toContain('the benefic Venus stands out')
+    expect(venus.reason.en).not.toMatch(HOUSE_EN)
+    expect(venus.reason.ko).toContain('길성 금성이')
+    const both = evalWealth(3, null, true, ['Venus', 'Jupiter'])!
+    expect(both.tone).toBe('resonant')
+    expect(both.reason.en).toContain('both benefics, Venus and Jupiter, stand out')
+    expect(both.reason.ko).toContain('길성 금성과 목성이')
+    // 이름을 모르는 옛 호출부도 하우스를 지어내지 않는다.
+    expect(evalWealth(0, 0, true)!.reason.en).toContain('a benefic planet stands out')
+    expect(evalWealth(0, 2, false)!.reason.en).toContain('houses of resources')
+    for (const v of [venus, both]) expect(HANGUL.test(v.reason.en)).toBe(false)
+  })
+
+  it('evalRomance — 금성만이면 금성을, 하우스 미상이면 중립 문구도 하우스를 말하지 않는다', () => {
+    for (const houses of [0, null]) {
+      const astroOnly = evalRomance(false, true, houses, 'male', 0)!
+      expect(astroOnly.reason.en).toContain('Venus')
+      expect(astroOnly.reason.en).not.toMatch(HOUSE_EN)
+      expect(astroOnly.reason.ko).toContain('금성')
+      expect(astroOnly.reason.ko).not.toMatch(HOUSE_KO)
+      const both = evalRomance(true, true, houses, 'female', 1)!
+      expect(both.tone).toBe('resonant')
+      expect(both.reason.en).toContain('Venus')
+      expect(both.reason.en).not.toMatch(HOUSE_EN)
+    }
+    // 하우스를 알고 비었으면 "lit houses of love" 부정은 사실이라 유지.
+    expect(evalRomance(false, false, 0, 'male', 2)!.reason.en).toContain('lit houses of love')
+    // 하우스 미상이면 비었다고도 말하지 않는다.
+    const unknown = evalRomance(false, false, null, 'male', 2)!
+    expect(unknown.tone).toBe('neutral')
+    expect(unknown.reason.en).toContain('a prominent Venus')
+    expect(unknown.reason.en).not.toMatch(HOUSE_EN)
+    expect(unknown.reason.ko).not.toMatch(HOUSE_KO)
+    expect(unknown.reason.ko).toContain('진중하게 가꾸는')
+    // 하우스가 찼으면 하우스 문구.
+    expect(evalRomance(false, false, 1, 'male', 0)!.reason.en).toContain('houses of love')
   })
 })

@@ -8,6 +8,9 @@ import type { ActiveSignal, ExtractorContext, SignalExtractor } from '../types'
  * Lunar Return: 매월 달이 출생 시 위치로 돌아오는 순간. 차트는 1달 유효.
  *
  * 활성 윈도우는 다음 회귀 직전까지. peak는 회귀 정점.
+ * 범위 시작 *직전* 회귀(전년 솔라·전월 루나)도 만든다 — 그 창이 범위 첫머리를 덮기 때문이다.
+ * 예전엔 범위가 시작하는 해·달부터만 만들어, 같은 날이라도 빌드 범위(1일·한 달·앞뒤
+ * 3일)에 따라 루나리턴 신호와 그것을 부모로 한 교차가 생겼다 말았다(엔진 감사 X1 계열).
  * polarity는 0 (중립) — 회귀 차트의 ASC/MC sign이 톤을 결정하지만 별도 신호로 분리하지 않음.
  * "이 시기는 새 사이클 진입" 자체가 의미.
  */
@@ -18,16 +21,20 @@ const astroReturnExtractor: SignalExtractor = {
   async extract(ctx: ExtractorContext): Promise<ActiveSignal[]> {
     const { natal, range } = ctx
     const signals: ActiveSignal[] = []
+    // 출생시각/출생지 미상 — 회귀 차트의 ASC·MC 는 시각·장소에 기대므로 문구·근거에서 뺀다
+    // (CALCULATION_SPEC §6). 회귀 시점 자체는 남긴다.
+    const placeUnreliable = natal.astro.placeUnreliable === true
     const start = new Date(range.start)
     const end = new Date(range.end)
 
-    // ─── Solar Return — 매년 ───
-    const startYear = start.getUTCFullYear()
+    // ─── Solar Return — 매년 (범위 첫머리를 덮는 전년 회귀부터) ───
+    const startYear = start.getUTCFullYear() - 1
     const endYear = end.getUTCFullYear()
     for (let year = startYear; year <= endYear; year++) {
       try {
         const sr = await calculateSolarReturn({ natal: natal.input, year })
         const exactDate = new Date(sr.exactReturnTime)
+        const ascKo = placeUnreliable ? '' : ` (ASC ${sr.ascendant.sign})`
         const nextYearExact =
           year + 1 <= endYear + 1
             ? new Date(Date.UTC(year + 1, exactDate.getUTCMonth(), exactDate.getUTCDate()))
@@ -38,8 +45,8 @@ const astroReturnExtractor: SignalExtractor = {
           source: 'astro',
           kind: 'solar-return',
           name: `Solar Return ${year}`,
-          korean: `${year}년 솔라리턴 — 올해 전체의 기본 톤을 여는 생일 차트예요 (ASC ${sr.ascendant.sign})`,
-          english: `${year} Solar Return — the birthday chart that sets the whole year's baseline tone (ASC ${sr.ascendant.sign})`,
+          korean: `${year}년 솔라리턴 — 올해 전체의 기본 톤을 여는 생일 차트예요${ascKo}`,
+          english: `${year} Solar Return — the birthday chart that sets the whole year's baseline tone${ascKo}`,
           polarity: 0,
           layer: 'yearly',
           active: {
@@ -50,12 +57,11 @@ const astroReturnExtractor: SignalExtractor = {
           weight: 0.85,
           evidence: {
             module: 'astro-return',
-            planets: ['Sun', sr.ascendant.name],
+            planets: placeUnreliable ? ['Sun'] : ['Sun', sr.ascendant.name],
             detail: {
               returnType: 'solar',
               exactReturnTime: sr.exactReturnTime,
-              ascSign: sr.ascendant.sign,
-              mcSign: sr.mc.sign,
+              ...(placeUnreliable ? {} : { ascSign: sr.ascendant.sign, mcSign: sr.mc.sign }),
             },
           },
         })
@@ -64,8 +70,8 @@ const astroReturnExtractor: SignalExtractor = {
       }
     }
 
-    // ─── Lunar Return — 매월 ───
-    let cursor = new Date(start)
+    // ─── Lunar Return — 매월 (범위 첫머리를 덮는 전월 회귀부터) ───
+    let cursor = new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth() - 1, 1))
     while (cursor <= end) {
       const year = cursor.getUTCFullYear()
       const month = cursor.getUTCMonth() + 1
@@ -94,7 +100,7 @@ const astroReturnExtractor: SignalExtractor = {
             detail: {
               returnType: 'lunar',
               exactReturnTime: lr.exactReturnTime,
-              ascSign: lr.ascendant.sign,
+              ...(placeUnreliable ? {} : { ascSign: lr.ascendant.sign }),
             },
           },
         })

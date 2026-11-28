@@ -15,15 +15,6 @@ test.describe('Page Load Times', () => {
     await expect(page.locator('body')).toBeVisible()
   })
 
-  test('saju page should load within reasonable time', async ({ page }) => {
-    const startTime = Date.now()
-    await page.goto('/saju', { waitUntil: 'domcontentloaded' })
-    const loadTime = Date.now() - startTime
-
-    expect(loadTime).toBeLessThan(30000)
-    await expect(page.locator('body')).toBeVisible()
-  })
-
   test('tarot page should load within reasonable time', async ({ page }) => {
     const startTime = Date.now()
     await page.goto('/tarot', { waitUntil: 'domcontentloaded' })
@@ -33,9 +24,9 @@ test.describe('Page Load Times', () => {
     await expect(page.locator('body')).toBeVisible()
   })
 
-  test('destiny-map page should load within reasonable time', async ({ page }) => {
+  test('destiny-counselor page should load within reasonable time', async ({ page }) => {
     const startTime = Date.now()
-    await page.goto('/destiny-map', { waitUntil: 'domcontentloaded' })
+    await page.goto('/destiny-counselor', { waitUntil: 'domcontentloaded' })
     const loadTime = Date.now() - startTime
 
     expect(loadTime).toBeLessThan(30000)
@@ -116,7 +107,7 @@ test.describe('Memory Usage', () => {
     await page.goto('/', { waitUntil: 'domcontentloaded' })
 
     // Navigate to multiple pages
-    const pages = ['/saju', '/tarot', '/destiny-map', '/']
+    const pages = ['/calendar', '/tarot', '/destiny-counselor', '/']
     for (const url of pages) {
       await page.goto(url, { waitUntil: 'domcontentloaded' })
       await expect(page.locator('body')).toBeVisible()

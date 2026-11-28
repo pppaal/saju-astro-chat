@@ -64,3 +64,45 @@ describe('buildSibsinRadar', () => {
     expect(dominantAxis(null)).toBeNull()
   })
 })
+
+describe('buildSibsinRadar — 원국 글자(chars, A4)', () => {
+  // 壬 일간: 丁丑 · 癸卯 · 壬戌 · 丁未 (샘플 1997-03-21 14:30).
+  const P = (s: string, ss: string, b: string, bs: string) => ({
+    heavenlyStem: { name: s, sibsin: ss },
+    earthlyBranch: { name: b, sibsin: bs },
+  })
+  const pillars = {
+    year: P('丁', '정재', '丑', '정관'),
+    month: P('癸', '겁재', '卯', '상관'),
+    day: P('壬', '비견', '戌', '편관'),
+    time: P('丁', '정재', '未', '정관'),
+  }
+
+  it('묶음마다 글자 — 연 → 시, 일간 제외, 개수 = categoryCount', () => {
+    const r = buildSibsinRadar(cc({ 재성: 2, 관성: 3, 식상: 1, 비겁: 1 }), pillars)!
+    const by = Object.fromEntries(r.map((a) => [a.labelEn, a.chars]))
+    expect(by.Wealth).toEqual([
+      { ch: '丁', el: 'fire', pillar: 'year', part: 'stem' },
+      { ch: '丁', el: 'fire', pillar: 'hour', part: 'stem' },
+    ])
+    expect(by.Status?.map((c) => c.ch)).toEqual(['丑', '戌', '未'])
+    expect(by.Support).toEqual([])
+    expect(by.Creativity?.map((c) => c.ch)).toEqual(['卯'])
+    expect(by.Drive?.map((c) => `${c.ch}:${c.el}`)).toEqual(['癸:water'])
+    for (const a of r) expect(a.chars?.length).toBe(a.count)
+    expect(r.some((a) => a.estimated)).toBe(false)
+  })
+
+  it('시주 없음(시간 미상) → 시주 글자 빼고 estimated', () => {
+    const { time: _t, ...three } = pillars
+    const r = buildSibsinRadar(cc({ 재성: 1, 관성: 2, 식상: 1, 비겁: 1 }), three)!
+    expect(r.flatMap((a) => a.chars ?? []).some((c) => c.pillar === 'hour')).toBe(false)
+    expect(r.every((a) => a.estimated === true)).toBe(true)
+  })
+
+  it('기둥을 넘기지 않으면 chars 없음(예전 모양 그대로)', () => {
+    const r = buildSibsinRadar(cc({ 재성: 1 }))!
+    expect(r[0].chars).toBeUndefined()
+    expect(r[0].estimated).toBeUndefined()
+  })
+})

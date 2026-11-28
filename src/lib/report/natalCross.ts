@@ -9,7 +9,8 @@
  *  - natalCrossShared:     원소 정규화/관계·라벨·매핑·행성 결 헬퍼(공통 leaf)
  *  - natalCrossVerdict:    오행 관계 → 판정 문구(reason) 생성
  *  - natalCrossEvaluators: 도메인별 평가기(evalIdentity 등 23종)
- * 이 파일은 그 셋을 재노출하고, 도메인 판정들을 모으는 synthesize 만 직접 보유한다.
+ * 이 파일은 그 셋을 재노출하고, 도메인 판정들을 모으는 synthesize 와 톤 집계
+ * tallyCrossRows 만 직접 보유한다.
  */
 
 import { type SajuElement } from '@/lib/saju/elementBridge'
@@ -17,6 +18,7 @@ import { iyeyo } from '@/lib/i18n/koParticle'
 import {
   EL_KO,
   EL_EN,
+  type CrossTally,
   type CrossTone,
   type CrossVerdict,
   type NatalSynthesis,
@@ -28,6 +30,29 @@ export * from './natalCrossEvaluators'
 
 // ── 종합 ──────────────────────────────────────────────────────────────────
 
+/**
+ * 교차 행(또는 판정) 톤 집계 — karmaAxis 가 켜진 결핍 축(공망/카르마·성장 방향)은 뺀다.
+ * 그 축은 '같은 얘길 해요' 톤이라도 강점 수렴이 아니라 평생 숙제라, 막대·라벨이 결핍을
+ * 강점으로 오인하지 않게 한다. 도입부(synthesize)와 톤 막대가 이 한 함수로 세므로
+ * 예전처럼 두 규칙(karmaAxis vs 카테고리 이름)이 7/6/1 과 7·5·1·2 로 갈리지 않는다.
+ */
+export function tallyCrossRows(
+  rows: ReadonlyArray<{ tone: CrossTone; karmaAxis?: boolean }>
+): CrossTally {
+  let same = 0
+  let supportive = 0
+  let twoPulls = 0
+  let unrelated = 0
+  for (const r of rows) {
+    if (r.karmaAxis === true) continue
+    if (r.tone === 'resonant') same++
+    else if (r.tone === 'complement') supportive++
+    else if (r.tone === 'tension') twoPulls++
+    else unrelated++
+  }
+  return { same, supportive, twoPulls, unrelated, total: same + supportive + twoPulls + unrelated }
+}
+
 /** 도메인 판정들을 모아 전체 정체성 한 문장 생성. */
 export function synthesize(
   verdicts: CrossVerdict[],
@@ -35,17 +60,8 @@ export function synthesize(
   elementCounts?: Record<string, number>
 ): NatalSynthesis | null {
   if (verdicts.length === 0) return null
-  let resonant = 0
-  let complement = 0
-  let tension = 0
-  for (const v of verdicts) {
-    // 공망/카르마(결핍 축)는 '같은 얘길 해요'(resonant) 톤이라도 강점 수렴이 아니라
-    // 평생 숙제라, '잘 맞아요' 집계에서 제외한다(막대·라벨이 결핍을 강점으로 오인 방지).
-    if (v.karmaAxis) continue
-    if (v.tone === 'resonant') resonant++
-    else if (v.tone === 'complement') complement++
-    else if (v.tone === 'tension') tension++
-  }
+  const counts = tallyCrossRows(verdicts)
+  const { same: resonant, supportive: complement, twoPulls: tension, unrelated: neutral } = counts
   let tone: CrossTone = 'neutral'
   if (resonant >= complement && resonant >= tension && resonant > 0) tone = 'resonant'
   else if (complement >= tension && complement > 0) tone = 'complement'
@@ -142,11 +158,21 @@ export function synthesize(
   // 짧은 라벨 형태로. 예전엔 긴 카운팅 절 끝에 유형이 묻혀 "숫자로 시작하는
   // 6문장 run-on"이라 결론이 결론처럼 안 읽혔다. 라벨(같은 방향/서로 보완/부딪힘)로
   // '무엇이' 맞는지도 보존한다.
+  // 상관없는(neutral) 영역도 세어 밝힌다 — 빼고 말하면 세 숫자의 합이 톤 막대의
+  // 전체와 어긋난다. 0 이면 문장을 늘리지 않는다.
+  const countsKo =
+    `잘 맞는 ${resonant}곳 · 서로 돕는 ${complement}곳 · 부딪히는 ${tension}곳` +
+    (neutral > 0 ? ` · 상관없는 ${neutral}곳` : '')
+  const countsEn =
+    neutral > 0
+      ? `align in ${resonant}, complement in ${complement}, clash in ${tension}, and ${neutral} ${neutral === 1 ? "doesn't" : "don't"} connect`
+      : `align in ${resonant}, complement in ${complement}, and clash in ${tension}`
   return {
     tone,
     text: {
-      ko: `${labelKo} 사람이에요.${axisKo} 삶의 여러 영역에서 사주와 별자리를 맞대보면 잘 맞는 ${resonant}곳 · 서로 돕는 ${complement}곳 · 부딪히는 ${tension}곳이에요.${elabKo}${distKo}`,
-      en: `A ${labelEn} identity.${axisEn} Across several areas of life, Saju and astrology align in ${resonant}, complement in ${complement}, and clash in ${tension}.${elabEn}${distEn}`,
+      ko: `${labelKo} 사람이에요.${axisKo} 삶의 여러 영역에서 사주와 별자리를 맞대보면 ${countsKo}이에요.${elabKo}${distKo}`,
+      en: `A ${labelEn} identity.${axisEn} Across several areas of life, Saju and astrology ${countsEn}.${elabEn}${distEn}`,
     },
+    counts,
   }
 }

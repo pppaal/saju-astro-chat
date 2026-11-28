@@ -42,15 +42,6 @@ vi.mock('@/lib/streaming', () => ({
   createSSEDoneEvent: (...args: unknown[]) => mockCreateSSEDoneEvent(...args),
 }))
 
-// Mock apiClient
-const mockApiClientPost = vi.fn()
-
-vi.mock('@/lib/api/ApiClient', () => ({
-  apiClient: {
-    post: (...args: unknown[]) => mockApiClientPost(...args),
-  },
-}))
-
 // Mock enforceBodySize
 const mockEnforceBodySize = vi.fn()
 
@@ -84,7 +75,7 @@ vi.mock('@/lib/constants/http', () => ({
 }))
 
 // Mock metrics
-vi.mock('@/lib/metrics/index', () => ({
+vi.mock('@/lib/metrics', () => ({
   recordExternalCall: vi.fn(),
 }))
 
@@ -248,16 +239,6 @@ function setupDefaults() {
   mockTarotInterpretStreamSafeParse.mockReturnValue({
     success: true,
     data: VALID_REQUEST_BODY,
-  })
-
-  // Default: backend fallback OK
-  mockApiClientPost.mockResolvedValue({
-    ok: true,
-    data: {
-      overall_message: 'Backend interpretation',
-      card_insights: [{ position: 'Past', interpretation: 'Card interpretation' }],
-      guidance: [{ title: 'Advice', detail: 'Take action' }],
-    },
   })
 
   // Default: Claude available + returns single-chunk valid JSON stream.

@@ -43,16 +43,6 @@ const ALLOWLIST = new Set([
   // (Auth.js v5), not our middleware. These re-export `handlers.GET/POST`.
   'src/app/api/auth/[...nextauth]/route.ts',
 
-  // Public astrology calculators: protected manually with rateLimit +
-  // requirePublicToken (public, token-gated, rate-limited by design — see
-  // SECURITY_AUDIT_REPORT "public calculators"). They predate the wrapper and
-  // share one hand-rolled guard shape.
-  'src/app/api/astrology/advanced/draconic/route.ts',
-  'src/app/api/astrology/advanced/harmonics/route.ts',
-  'src/app/api/astrology/advanced/asteroids/route.ts',
-  'src/app/api/astrology/advanced/progressions/route.ts',
-  'src/app/api/astrology/advanced/solar-return/route.ts',
-
   // Counselor context warmer: csrfGuard + getServerSession (auth) + rateLimit
   // applied manually; side-effect-free cache warm, no credits/LLM.
   'src/app/api/counselor/warm/route.ts',

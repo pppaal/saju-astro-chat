@@ -1,7 +1,7 @@
 /**
  * Tests for src/proxy.ts (Next 16 middleware — CSRF + locale + CSP).
  *
- * 커버: 삭제 서비스 경로 리다이렉트, API 라우트의 CSRF(메서드/스킵/오리진),
+ * 커버: 삭제 서비스 경로 리다이렉트(+ /saju 아래 살아있는 SEO 사전 예외), API 라우트의 CSRF(메서드/스킵/오리진),
  * HTML 응답의 CSP/로케일 헤더와 로케일 쿠키.
  */
 
@@ -44,6 +44,49 @@ describe('proxy — removed service routes', () => {
   it('삭제 서비스 prefix 와 같은 이름의 API 경로는 리다이렉트하지 않는다', () => {
     const res = proxy(req('/api/astrology', { method: 'GET' }))
     expect(res.status).not.toBe(307)
+  })
+
+  it('옛 /saju 루트는 계속 홈으로 307 리다이렉트', () => {
+    const res = proxy(req('/saju'))
+    expect(res.status).toBe(307)
+    expect(res.headers.get('location')).toBe(`${ORIGIN}/`)
+  })
+
+  it('/saju/result · /saju/counselor 는 계속 홈으로 리다이렉트', () => {
+    for (const path of ['/saju/result', '/saju/counselor']) {
+      const res = proxy(req(path))
+      expect(res.status).toBe(307)
+      expect(res.headers.get('location')).toBe(`${ORIGIN}/`)
+    }
+  })
+
+  it.each(['/saju/ilju', '/saju/ilju/gapja', '/saju/sibsin', '/saju/sibsin/jeongjae'])(
+    'sitemap 이 광고하는 SEO 사전 %s 은 리다이렉트하지 않는다',
+    (path) => {
+      const res = proxy(req(path, { headers: { accept: 'text/html' } }))
+      expect(res.status).toBe(200)
+      expect(res.headers.get('location')).toBeNull()
+    }
+  )
+
+  it('/ko 아래 SEO 사전도 리다이렉트 없이 스트립 경로로 리라이트한다', () => {
+    const res = proxy(req('/ko/saju/sibsin/pyeongwan', { headers: { accept: 'text/html' } }))
+    expect(res.status).toBe(200)
+    expect(res.headers.get('location')).toBeNull()
+    expect(res.headers.get('x-middleware-rewrite')).toContain('/saju/sibsin/pyeongwan')
+    expect(res.headers.get('x-middleware-rewrite')).not.toContain('/ko/')
+    expect(res.headers.get('Content-Language')).toBe('ko')
+  })
+
+  it('SEO 사전 경로와 이름만 겹치는 경로(/saju/iljux)는 여전히 리다이렉트', () => {
+    const res = proxy(req('/saju/iljux'))
+    expect(res.status).toBe(307)
+  })
+
+  it('/compatibility/ilgan 은 리다이렉트하지 않는다', () => {
+    const res = proxy(req('/compatibility/ilgan', { headers: { accept: 'text/html' } }))
+    expect(res.status).toBe(200)
+    expect(res.headers.get('location')).toBeNull()
   })
 })
 
@@ -200,21 +243,21 @@ describe('proxy — /ko 경로 프리픽스 (한국어 고유 URL)', () => {
   })
 
   it('/ko 하위 경로는 스트립된 실제 경로로 리라이트한다', () => {
-    const res = proxy(req('/ko/free', { headers: { accept: 'text/html' } }))
-    expect(res.headers.get('x-middleware-rewrite')).toContain('/free')
+    const res = proxy(req('/ko/pricing', { headers: { accept: 'text/html' } }))
+    expect(res.headers.get('x-middleware-rewrite')).toContain('/pricing')
     expect(res.headers.get('x-middleware-rewrite')).not.toContain('/ko/')
     expect(res.headers.get('Content-Language')).toBe('ko')
   })
 
   it('accept 가 text/html 이 아니어도 /ko 는 리라이트된다(크롤러 대응)', () => {
-    const res = proxy(req('/ko/free', { headers: { accept: '*/*' } }))
-    expect(res.headers.get('x-middleware-rewrite')).toContain('/free')
+    const res = proxy(req('/ko/pricing', { headers: { accept: '*/*' } }))
+    expect(res.headers.get('x-middleware-rewrite')).toContain('/pricing')
     expect(res.headers.get('Content-Language')).toBe('ko')
   })
 
   it('en 쿠키가 있어도 /ko URL 이 우선하고 쿠키를 ko 로 갱신한다', () => {
     const res = proxy(
-      req('/ko/free', { headers: { accept: 'text/html' }, cookies: { locale: 'en' } })
+      req('/ko/pricing', { headers: { accept: 'text/html' }, cookies: { locale: 'en' } })
     )
     expect(res.headers.get('Content-Language')).toBe('ko')
     expect(res.cookies.get('locale')?.value).toBe('ko')
@@ -222,7 +265,7 @@ describe('proxy — /ko 경로 프리픽스 (한국어 고유 URL)', () => {
 
   it('쿠키가 이미 ko 면 다시 굽지 않는다', () => {
     const res = proxy(
-      req('/ko/free', { headers: { accept: 'text/html' }, cookies: { locale: 'ko' } })
+      req('/ko/pricing', { headers: { accept: 'text/html' }, cookies: { locale: 'ko' } })
     )
     expect(res.headers.get('Content-Language')).toBe('ko')
     expect(res.cookies.get('locale')).toBeUndefined()

@@ -2,16 +2,24 @@
 //
 // 운흐름 캘린더 — 선택한 날짜의 일(日) 티어 데이터.
 //
-// 월 그리드에서 오늘이 아닌 날을 골라 줌인하면 클라이언트(PreviewClient)가
-// 이 라우트로 그 날짜의 day 객체를 받아 DayTier 를 갈아끼운다. 어셈블은
+// 월 그리드에서 오늘이 아닌 날을 골라 들어가면 클라이언트(CalendarClient)가
+// 이 라우트로 그 날짜의 일 뷰모델(vm)을 받아 Daily 탭을 갈아끼운다. 뷰모델은
+// 여기(서버)서 만든다 — buildDayViewModel 은 천체력 캐시·절기표를 끌고 와 클라이언트
+// 번들에 넣지 않는다(페이지 렌더와 같은 함수·같은 lang). 어셈블은
 // 서버 렌더와 *동일한* assembleDayTier 경로 — 월 그리드 점수(밴드 색)와
 // 일 티어 점수가 같은 layered.daily 척도라 두 화면이 어긋나지 않는다.
 //
 // 입력:
 //   · day=YYYY-MM-DD (필수) — 빌드할 날짜. 오늘 기준 ±370일로 제한(캐시 행
 //     증식·무한 풀빌드 방지 — 캘린더 UI 는 그 달만 보여주므로 충분).
+//   · today=YYYY-MM-DD (선택) — 그 화면의 '오늘'(QA CODE-4). /calendar/preview 는 표본 날(11.19)에
+//     고정돼 있어, 서버 시계로 '오늘'을 정하면 실제 오늘을 열 때 일간이 'Today'라 하고 그리드는 19일을
+//     오늘로 그렸다. 주면 isToday = (day === today), 없을 때만 출생지 시간대의 서버 시계. day 와 같은
+//     검사(실재 날짜 · ±370일), 걸리면 422.
 //   · 생일 override(date/time/lat/lng/tz/gender) — /calendar 페이지와 동일
-//     규약. 없으면 세션 사용자의 저장된 본명.
+//     규약·동일 zod 검사(parseBirthOverrideQuery: 공용 date/lat/lng/tz 스키마). 검사에
+//     걸리면 422 — 범위 밖 입력(1850년 · lat=999)이 엔진 RangeError 500 으로 새지 않는다.
+//     없으면 세션 사용자의 저장된 본명.
 
 import { NextRequest } from 'next/server'
 import {
@@ -28,7 +36,13 @@ import {
   getFocusDayCell,
 } from '@/lib/calendar-engine/persistence'
 import { assembleDayTier } from '@/app/calendar/assembleDayTier'
-import { parseBirthOverride, loadSessionBirth, type BirthInput } from '@/app/calendar/loadTierData'
+import {
+  parseBirthOverrideQuery,
+  loadSessionBirth,
+  type BirthInput,
+} from '@/app/calendar/loadTierData'
+import { buildDayViewModel } from '@/lib/calendar-view/dayViewModel'
+import { getNowInTimezone, formatDateString } from '@/lib/datetime/timezone'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -56,11 +70,20 @@ export const GET = withApiMiddleware(
     if (!validDayIso(dayIso)) {
       return apiError(ErrorCodes.VALIDATION_ERROR, 'invalid_day')
     }
+    // 화면의 '오늘'(선택) — 있으면 그 값이 기준, 없을 때만 서버 시계(아래).
+    const refIso = typeof sp.today === 'string' ? sp.today : undefined
+    if (refIso !== undefined && !validDayIso(refIso)) {
+      return apiError(ErrorCodes.VALIDATION_ERROR, 'invalid_today')
+    }
 
     // 생일 — override 쿼리(익명 '다른 사람 보기') 우선, 없으면 세션 본명.
     let birth: BirthInput
-    const override = parseBirthOverride(sp)
-    if (override) {
+    const parsed = parseBirthOverrideQuery(sp)
+    if (parsed.kind === 'invalid') {
+      return apiError(ErrorCodes.VALIDATION_ERROR, 'invalid_birth_override', parsed.issues)
+    }
+    if (parsed.kind === 'ok') {
+      const override = parsed.override
       birth = {
         birthDate: override.birthDate,
         birthTime: override.birthTime,
@@ -68,6 +91,9 @@ export const GET = withApiMiddleware(
         latitude: override.latitude,
         longitude: override.longitude,
         timeZone: override.timeZone,
+        // 시간·출생지 미상 — 삼주 판정 + ASC·MC·하우스 신호 제외(같은 birthKey 로 월 캐시 공유).
+        birthTimeUnknown: override.timeUnknown,
+        birthCityUnknown: override.cityUnknown,
       }
     } else {
       const resolved = await loadSessionBirth()
@@ -108,7 +134,22 @@ export const GET = withApiMiddleware(
       nextMonthCells,
     })
 
-    return apiSuccess({ day })
+    // 그날이 그 화면의 오늘이면 '오늘' 라벨 — 클라이언트가 준 기준일(today=), 없으면 출생지
+    // 시간대의 서버 시계(페이지 렌더와 같은 기준).
+    let todayIso = refIso
+    if (!todayIso) {
+      const now = getNowInTimezone(birth.timeZone, new Date())
+      todayIso = formatDateString(now.year, now.month, now.day)
+    }
+    const isToday = dayIso === todayIso
+    const vm = buildDayViewModel(day, {
+      lang,
+      sex: birth.gender === 'female' ? '여' : '남',
+      isToday,
+    })
+
+    // 화면은 뷰모델만 그린다 — 원 페이로드(신호 전체)는 보내지 않는다.
+    return apiSuccess({ vm })
   },
   // 서버 렌더의 override 한도(IP 당 20/분)와 동일 결. 날짜 탐색은 클라이언트
   // 캐시(같은 날짜 재요청 없음)가 있어 정상 사용은 분당 수 회.

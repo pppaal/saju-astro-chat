@@ -48,6 +48,10 @@ export function getBranchMainStem(branchName: string): Stem | undefined {
   return STEMS.find((s) => s.name === stemName)
 }
 
+function isYinYang(v: unknown): v is YinYang {
+  return v === '양' || v === '음'
+}
+
 /**
  * 일간(dayMaster) vs 목표 간지(target) → 십신 문자열.
  *   같은 오행 + 같은 음양 = 비견 / 다른 음양 = 겁재
@@ -60,6 +64,12 @@ export function getSibseong(
   dayMaster: { element: FiveElement; yin_yang: YinYang },
   target: { element: FiveElement; yin_yang: YinYang }
 ): string {
+  // 음양이 없는 객체(예: {name, element, yinYang} 를 DayMaster 로 캐스팅)가 오면 비교가
+  // 늘 false 라 같은 음양 십신이 전부 반대쪽(겁재·상관·정재·정관·정인)으로 나온다(TP-1).
+  // 조용히 틀린 값을 내지 않게 여기서 바로 실패시킨다.
+  if (!isYinYang(dayMaster.yin_yang) || !isYinYang(target.yin_yang)) {
+    throw new TypeError('getSibseong: yin_yang ("양" | "음") is required on both arguments')
+  }
   if (dayMaster.element === target.element) {
     return dayMaster.yin_yang === target.yin_yang ? '비견' : '겁재'
   }

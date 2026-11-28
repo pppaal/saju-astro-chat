@@ -93,6 +93,10 @@ function TarotReadingPage() {
   // 항상 최신 readingSignature 를 가리키는 ref — 비동기 복원이 끝났을 때
   // "지금 화면의 리딩" 과 같은지 비교하기 위함(아래 복원 effect 참조).
   const readingSignatureRef = useRef(readingSignature)
+  // 렌더마다 최신값을 동기화하는 "latest ref" 패턴 — 비동기 콜백(복원 폴링)만 읽고 렌더
+  // 출력엔 안 쓰인다. react-hooks 7.1 의 refs 규칙이 새로 잡는 패턴이라 동작 변경 없이
+  // 렌더 중 대입을 그대로 둔다.
+  // eslint-disable-next-line react-hooks/refs
   readingSignatureRef.current = readingSignature
 
   // 새로고침 시 크레딧이 또 차감되던 회귀 — 같은 리딩에 대해선 해석 결과를

@@ -7,11 +7,12 @@
 import { describe, it, expect } from 'vitest'
 import {
   allPairSlugs,
+  canonicalPair,
   canonicalPairSlug,
   parsePairSlug,
   computeZodiacCompat,
 } from '@/lib/compatibility/zodiacCompat'
-import { getAnimalBySlug, ZODIAC_ANIMALS } from '@/lib/fortune/zodiacDaily'
+import { getAnimalBySlug, relationForDay, ZODIAC_ANIMALS } from '@/lib/fortune/zodiacDaily'
 
 const rat = getAnimalBySlug('rat')!
 const ox = getAnimalBySlug('ox')!
@@ -59,8 +60,46 @@ describe('computeZodiacCompat', () => {
     const ab = computeZodiacCompat(rat, horse)
     const ba = computeZodiacCompat(horse, rat)
     expect(ab.relation).toBe(ba.relation)
-    // 점수 시드는 (인덱스A*12+인덱스B) 기반이라 순서에 따라 ±로 갈릴 수 있으나
-    // 관계 자체는 대칭이어야 한다(고전 지지 관계는 대칭).
+    expect(ab.score).toBe(ba.score)
+  })
+
+  // 재감사 CS-4: 예전엔 시드 (idxA*12+idxB)%7 와 방향별 기준점(seng-in 80/out 78,
+  // geuk-in 55/out 58)이 순서를 타 144쌍 중 126쌍의 점수, 6쌍의 등급이 갈렸다.
+  it('A×B = B×A — 144 ordered pairs: identical result (score, grade, relation, copy)', () => {
+    for (const x of ZODIAC_ANIMALS) {
+      for (const y of ZODIAC_ANIMALS) {
+        const xy = computeZodiacCompat(x, y)
+        const yx = computeZodiacCompat(y, x)
+        expect(yx, `${x.slug}-${y.slug}`).toEqual(xy)
+        expect(yx.gradeLabel).toEqual(xy.gradeLabel)
+        // 결과의 a→b 는 정규 순서이고, 방향 관계(seng-in/out 등)는 그 a→b 기준이다.
+        expect(canonicalPairSlug(xy.a, xy.b)).toBe(`${xy.a.slug}-${xy.b.slug}`)
+        expect(xy.relation).toBe(relationForDay(xy.a.branch, xy.b.branch))
+      }
+    }
+  })
+
+  it('정규 슬러그의 점수는 그대로 — 역순은 정규 순서 값을 따른다', () => {
+    // 재감사 verdict corrected_expected: 정규 순서 값이 기준.
+    const pick = (slug: string) => {
+      const p = parsePairSlug(slug)!
+      return computeZodiacCompat(p.a, p.b)
+    }
+    expect(pick('rat-ox').score).toBe(93)
+    expect(pick('ox-rat').score).toBe(93)
+    expect(pick('rooster-rat').score).toBe(49)
+    expect(pick('rooster-rat').gradeLabel.en).toBe('High-friction')
+    expect(pick('horse-rabbit').score).toBe(47)
+    expect(pick('dog-rooster').score).toBe(50)
+    expect(pick('dog-rooster').gradeLabel.en).toBe('Needs work')
+    expect(pick('snake-rabbit').score).toBe(83)
+    expect(pick('snake-rabbit').gradeLabel.en).toBe('Excellent')
+  })
+
+  it('canonicalPair puts the earlier branch first', () => {
+    expect(canonicalPair(ox, rat)).toEqual({ a: rat, b: ox })
+    expect(canonicalPair(rat, ox)).toEqual({ a: rat, b: ox })
+    expect(computeZodiacCompat(ox, rat).a).toBe(rat)
   })
 
   it('충(沖) — 자오(rat×horse)는 저점', () => {

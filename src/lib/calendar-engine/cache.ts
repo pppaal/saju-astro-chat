@@ -9,7 +9,7 @@ import type { ExtractorCache } from './types'
  *
  * TODO(prod): Redis/DB-backed 캐시로 교체. 행성 위치는 사용자 무관이라 전역 공유 가능.
  */
-export class InMemoryCache implements ExtractorCache {
+class InMemoryCache implements ExtractorCache {
   private store = new Map<string, unknown>()
 
   get<T>(key: string): T | undefined {

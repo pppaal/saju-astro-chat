@@ -29,7 +29,7 @@ vi.mock('@/i18n/I18nProvider', () => ({
 // Default: reject-ish (401, not ok) so guest paths stay quiet. Per-test we
 // override with a routing implementation.
 const apiFetchMock = vi.fn(async () => ({ ok: false, status: 401, json: async () => ({}) }))
-vi.mock('@/lib/api', () => ({
+vi.mock('@/lib/api/client', () => ({
   apiFetch: (...args: unknown[]) => apiFetchMock(...(args as [])),
 }))
 
@@ -47,7 +47,7 @@ vi.mock('@/lib/cache/chartDataCache', () => ({
 vi.mock('@/lib/saju/saju', () => ({ calculateSajuData: vi.fn(() => ({})) }))
 
 let mockStoredBirthInfo: Record<string, unknown> | null = null
-vi.mock('@/app/(main)/birthInfoStorage', () => ({
+vi.mock('@/lib/birth/storage', () => ({
   getStoredBirthInfo: () => mockStoredBirthInfo,
 }))
 

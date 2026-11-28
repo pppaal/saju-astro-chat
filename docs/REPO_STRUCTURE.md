@@ -13,7 +13,7 @@ Keep the repository readable by separating long-lived source from disposable exe
 - `scripts/`: generation, audit, and maintenance entrypoints
 - `docs/`: durable human documentation
 - `reports/`: curated report outputs worth keeping
-- `tests/fixtures/`, `scripts/ops/fixtures/`: checked-in non-product inputs for evaluation and ops examples
+- `tests/fixtures/`: checked-in non-product inputs for evaluation
 - `artifacts/`, `qa-dumps/`, `tmp/`: disposable generated output, ignored by default
 
 ## Root Policy
@@ -24,7 +24,9 @@ Root should contain only:
 - platform and toolchain config
 - deployment manifests
 
-Historical writeups and refactor reports should live under `docs/archive/`, not in root.
+Historical writeups and refactor reports should not live in root. There is no in-repo
+archive: delete superseded docs and rely on git history (the old `docs/archive/` tree was
+removed on 2026-11-24).
 Top-level `data/` should not be used for mixed test inputs and generated output.
 
 ## Reports vs Artifacts

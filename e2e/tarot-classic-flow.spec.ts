@@ -63,14 +63,11 @@ test.describe('Tarot history — redesigned page', () => {
   test('history page loads with header chip + back button', async ({ page }) => {
     await page.goto('/tarot/history', { waitUntil: 'domcontentloaded' })
     await expect(page.locator('body')).toBeVisible()
-    const body = await page.locator('body').textContent()
-    // 새 디자인 헤더 텍스트
-    expect(
-      body!.includes('타로 리딩 기록') ||
-        body!.includes('Tarot Reading History') ||
-        body!.includes('돌아가기') ||
-        body!.includes('Back'),
-    ).toBe(true)
+    // 새 디자인 헤더 — 기록 페이지는 클라이언트에서 그려진다(dynamic import).
+    await expect(
+      page.getByText(/Tarot History|Tarot Reading History|타로 기록|타로 리딩 기록/).first()
+    ).toBeVisible({ timeout: 30000 })
+    await expect(page.getByText(/^(Back|돌아가기|뒤로)$/).first()).toBeVisible()
   })
 
   test('history page works on mobile viewport without horizontal scroll', async ({ page }) => {

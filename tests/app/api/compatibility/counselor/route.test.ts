@@ -238,9 +238,16 @@ const defaultContext = {
   isPremium: true,
 }
 
+// 출생 tz(또는 도시 좌표)가 있어야 한다 — 둘 다 없으면 라우트가 422(서울 기둥 금지, G13).
 const validPersons = [
-  { name: 'Person 1', date: '1990-01-15', time: '10:30' },
-  { name: 'Person 2', date: '1992-05-20', time: '14:00', relation: 'partner' },
+  { name: 'Person 1', date: '1990-01-15', time: '10:30', timeZone: 'Asia/Seoul' },
+  {
+    name: 'Person 2',
+    date: '1992-05-20',
+    time: '14:00',
+    relation: 'partner',
+    timeZone: 'Asia/Seoul',
+  },
 ]
 
 const validSajuProfile = {
@@ -537,6 +544,33 @@ describe('Compatibility Counselor API - POST', () => {
       await POST(req)
 
       const callArg = vi.mocked(streamClaudeAsSSE).mock.calls[0][0]
+      expect(callArg.userPrompt).toContain('How is our compatibility?')
+    })
+
+    it('city-unknown person: [Meta] carries cityUnknown per person and the paid answer still streams in full (G8, CS-2)', async () => {
+      const req = createRequest({
+        persons: [
+          { name: 'Ann', date: '1992-03-14', time: '06:40', timeZone: 'America/Los_Angeles' },
+          {
+            name: 'Bob',
+            date: '1990-09-02',
+            time: '21:15',
+            timeZone: 'America/New_York',
+            latitude: 40.71,
+            longitude: -74.01,
+            relation: 'partner',
+          },
+        ],
+        messages: [{ role: 'user', content: 'How is our compatibility?' }],
+        lang: 'en',
+      })
+      const response = await POST(req)
+
+      expect(response.headers.get('Content-Type')).toBe('text/event-stream')
+      expect(streamClaudeAsSSE).toHaveBeenCalledTimes(1)
+      const callArg = vi.mocked(streamClaudeAsSSE).mock.calls[0][0]
+      expect(callArg.cachedUserContext).toContain('[Meta] A: timeUnknown=false, cityUnknown=true')
+      expect(callArg.cachedUserContext).toContain('[Meta] B: timeUnknown=false, cityUnknown=false')
       expect(callArg.userPrompt).toContain('How is our compatibility?')
     })
 
@@ -906,8 +940,14 @@ describe('Compatibility Counselor API - POST', () => {
 
     it('should handle 3 persons', async () => {
       const threePersons = [
-        { name: 'A', date: '1990-01-01', time: '10:00' },
-        { name: 'B', date: '1992-02-02', time: '12:00', relation: 'partner' },
+        { name: 'A', date: '1990-01-01', time: '10:00', timeZone: 'Asia/Seoul' },
+        {
+          name: 'B',
+          date: '1992-02-02',
+          time: '12:00',
+          relation: 'partner',
+          timeZone: 'Asia/Seoul',
+        },
         { name: 'C', date: '1995-03-03', time: '14:00', relation: 'friend' },
       ]
 

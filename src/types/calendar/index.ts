@@ -10,9 +10,9 @@
 // DestinyThisYear):
 //   life     ← user.ts        (DestinyUserSummary)
 //   lifetime ← lifetime.ts    (DestinyLifetime — daewoon/stages/milestones/ZR)
-//   month    ← month.ts       (DestinyMonth    — 30일 캘린더/themes/converge)
-//   day      ← day.ts         (DestinyDay      — iljin/score/themes/누락 5신호)
-// shared.ts — Ganji / LayerTag / DestinySignal / NarrativeChip 등 공통.
+//   month    ← month.ts       (DestinyMonth    — 30일 캘린더/큰 날)
+//   day      ← day.ts         (DestinyDay      — iljin/score/themes/누락 신호)
+// shared.ts — Ganji / LayerTag / 신호 · 자리 등 공통.
 
 export * from './shared'
 export * from './user'

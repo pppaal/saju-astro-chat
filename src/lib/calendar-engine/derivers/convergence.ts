@@ -8,6 +8,7 @@ import {
 } from './convergence-heavy'
 import { toneMeaningFor, type MeaningTone } from './toneMeaning'
 import { toUtcMs } from '../timeUtc'
+import { STATIC_NATAL_KINDS } from '../signalTaxonomy'
 
 /**
  * 수렴(convergence) 디라이버 — "큰 날" 탐지.
@@ -120,8 +121,9 @@ function convergenceConfidence(
 // "2층 의미" 한 줄 — 그날 무거운 신호들의 순극성(톤)으로 구성.
 // 특정 점성 산문을 지어내지 않고 엔진이 이미 매긴 polarity 만 쓴다.
 // 톤 판정은 convergenceTone 으로 분리 — 큰 날 라벨 prefix 가 *같은 톤* 을 쓰게
-// (MonthTier 가 meaning 과 다른 소스로 prefix 를 붙여 "잔잔한 날 · 부딪힘을
-//  조심할 날" 식 모순이 났다 → keyDay.tone 으로 prefix 도 이 톤에 맞춘다).
+// (옛 MonthTier 가 meaning 과 다른 소스로 prefix 를 붙여 "잔잔한 날 · 부딪힘을
+//  조심할 날" 식 모순이 났다 → keyDay.tone 으로 prefix 도 이 톤에 맞췄다. v9.2 큰 날
+//  목록(keyDays.ts)은 판정 단어를 그리드 마크에서 읽는다).
 function convergenceTone(
   netPol: number,
   sumImp: number,
@@ -189,7 +191,7 @@ function pickToneChips(cands: ChipCand[], netPol: number): string[] {
     .map((c) => c.name)
 }
 
-export interface ConvergenceDay {
+interface ConvergenceDay {
   date: string // YYYY-MM-DD
   score: number
   astro: string[] // 그날 무거운 점성 이벤트
@@ -237,6 +239,8 @@ export function deriveConvergence(
     let astroPolNet = 0
     let sajuPolNet = 0
     for (const s of c.signals) {
+      // 정적 본명(본명 Almuten·격국 표지)은 그날의 사건이 아니다 — 점수 파이프라인과 같은 기준.
+      if (STATIC_NATAL_KINDS.has(s.kind)) continue
       const imp = Math.abs(s.polarity) * s.weight
       if (imp < MIN_IMPACT) continue
       const heavyAstro = isHeavyAstro(s)
@@ -292,7 +296,7 @@ export function deriveConvergence(
         astroPolNet,
         sajuPolNet
       ),
-      // meaning 과 동일한 톤 — MonthTier 의 라벨 prefix 가 이 톤을 따라가 모순 제거.
+      // meaning 과 동일한 톤 — 라벨 prefix 를 붙이는 쪽이 이 톤을 따라가면 모순이 없다.
       tone: convergenceTone(netPol, sumImp, astroPolNet, sajuPolNet),
       window: aggregateWindow(heavySignals, c.datetime),
       confidence: convergenceConfidence(heavySignals, bothSystems, astroPolNet, sajuPolNet),

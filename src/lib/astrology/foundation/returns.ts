@@ -1,12 +1,6 @@
 // src/lib/astrology/foundation/returns.ts
 // Solar Return & Lunar Return 계산
 
-import dayjs from 'dayjs'
-import utc from 'dayjs/plugin/utc'
-import timezone from 'dayjs/plugin/timezone'
-dayjs.extend(utc)
-dayjs.extend(timezone)
-
 import { ReturnChart, SolarReturnInput, LunarReturnInput, NatalInput, PlanetBase } from './types'
 import { formatLongitude, normalize360 } from './utils'
 import { calcHouses, inferHouseOf, mapHouseCupsFormatted } from './houses'
@@ -20,6 +14,10 @@ import {
   extractSwissLongitude,
 } from './shared'
 import { CALCULATION_STANDARDS } from '@/lib/config/calculationStandards'
+
+function isGregorianLeapYear(year: number): boolean {
+  return (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0
+}
 
 /**
  * 특정 경도에 태양이 도달하는 정확한 시간 찾기 (이분법)
@@ -138,7 +136,6 @@ export async function calculateSolarReturn(input: SolarReturnInput): Promise<Ret
   const PLANET_LIST = getPlanetList()
   const SW_FLAGS = getSwissEphFlags()
   const { natal, year } = input
-  const pad = (value: number) => String(value).padStart(2, '0')
 
   // 1. 출생 시 태양 위치 구하기
   const natalJD = natalToJD(natal)
@@ -149,33 +146,11 @@ export async function calculateSolarReturn(input: SolarReturnInput): Promise<Ret
   const natalSunLon = extractSwissLongitude(natalSunRes)
 
   // 2. 해당 연도의 생일 근처에서 태양이 동일 위치에 오는 시간 찾기
-  // 생일 5일 전부터 5일 후까지 검색
-  const returnDate = (() => {
-    if (natal.month !== 2 || natal.date !== 29) {
-      return natal.date
-    }
-
-    const candidate = dayjs.tz(
-      `${year}-${pad(natal.month)}-${pad(natal.date)}T12:00:00`,
-      natal.timeZone
-    )
-
-    if (
-      candidate.isValid() &&
-      candidate.year() === year &&
-      candidate.month() + 1 === natal.month &&
-      candidate.date() === natal.date
-    ) {
-      return natal.date
-    }
-
-    return 28
-  })()
-
-  const approxBirthday = dayjs.tz(
-    `${year}-${pad(natal.month)}-${pad(returnDate)}T12:00:00`,
-    natal.timeZone
-  )
+  // 생일 5일 전부터 5일 후까지 검색. 2/29 생은 평년이면 2/28 에서 시작한다.
+  // (옛 코드는 dayjs.tz 로 '그해 2/29 정오' 를 만들어 날짜가 넘어가는지로 윤년을 봤다 —
+  //  달력 산수라 타임존·서버 시계가 끼어들 이유가 없다. 쓰이지 않던 approxBirthday 도 삭제.)
+  const returnDate =
+    natal.month === 2 && natal.date === 29 && !isGregorianLeapYear(year) ? 28 : natal.date
   const startJD = natalToJD({ ...natal, year, date: returnDate, hour: 0, minute: 0 }) - 5
   const endJD = startJD + 10
 

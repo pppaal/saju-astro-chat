@@ -23,16 +23,19 @@ describe('Saju constants', () => {
   })
 
   it('has solar terms covering start to end year with 12 months each', () => {
-    // 입력 검증 범위(1940-2050) 모든 연도가 12개씩 있어야 함.
+    // 입력 검증 범위(1900-2050, API dateSchema 하한과 같음) 모든 연도가 12개씩 있어야 함.
+    expect(KASI_START_YEAR).toBe(1900)
     for (let y = KASI_START_YEAR; y <= KASI_END_YEAR; y++) {
       const yearData = KASI_SOLAR_TERMS[y]
       expect(yearData, `Missing solar terms for year ${y}`).toBeDefined()
       expect(Object.keys(yearData), `Year ${y} should have 12 terms`).toHaveLength(12)
     }
-    // 경계 大運 lookup 보강용 1939/2051 도 (선택적으로) 있다면 12개씩.
+    // 경계 大運 lookup 보강용 1899/2051 — 범위 첫·끝 출생(1900-01-01~05 子월, 2050-12 말)의
+    // 절기 lookup 에 반드시 필요하므로 12개씩 있어야 한다.
     for (const y of [KASI_START_YEAR - 1, KASI_END_YEAR + 1]) {
       const yearData = KASI_SOLAR_TERMS[y]
-      if (yearData) expect(Object.keys(yearData)).toHaveLength(12)
+      expect(yearData, `Missing boundary solar terms for year ${y}`).toBeDefined()
+      expect(Object.keys(yearData)).toHaveLength(12)
     }
   })
 

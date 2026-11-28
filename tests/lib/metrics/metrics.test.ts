@@ -1,5 +1,5 @@
 /**
- * Tests for src/lib/metrics.ts
+ * Tests for src/lib/metrics/core.ts
  * Core metrics collection functionality
  */
 import { describe, it, expect, beforeEach, vi } from 'vitest'

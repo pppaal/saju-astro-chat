@@ -28,5 +28,3 @@ export const tarotDeck = allRawCards.map((card) => ({
   ...card,
   image: getCardImagePath(card.id),
 }))
-
-export default tarotDeck

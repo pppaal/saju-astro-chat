@@ -16,8 +16,18 @@ import type { Chart } from './types'
 import { DOMICILE, EXALTATION, triplicityOf, termRulerAt, faceRulerAt } from './dignities'
 
 const SIGN_NAMES = [
-  'Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo',
-  'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces',
+  'Aries',
+  'Taurus',
+  'Gemini',
+  'Cancer',
+  'Leo',
+  'Virgo',
+  'Libra',
+  'Scorpio',
+  'Sagittarius',
+  'Capricorn',
+  'Aquarius',
+  'Pisces',
 ] as const
 
 // 전통 7행성만 essential dignity 를 가진다 (외행성·노드 제외 — dignities.ts 와 동일 교리).
@@ -32,7 +42,7 @@ export interface AlmutenFigurisInput {
   fortune?: { longitude: number }
 }
 
-export interface AlmutenPointBreakdown {
+interface AlmutenPointBreakdown {
   point: 'Sun' | 'Moon' | 'ASC' | 'Fortune'
   sign: string
   degree: number // within-sign 0..30

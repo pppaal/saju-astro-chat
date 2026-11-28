@@ -17,11 +17,16 @@ describe('sitemap — 언어별 URL 쌍', () => {
     expect(urls.has(`${BASE}/ko`)).toBe(true)
   })
 
-  it('무료 허브 등 주요 페이지도 /ko 변형을 가진다', () => {
-    expect(urls.has(`${BASE}/free`)).toBe(true)
-    expect(urls.has(`${BASE}/ko/free`)).toBe(true)
+  it('가격·무료 궁합 등 주요 페이지도 /ko 변형을 가진다', () => {
     expect(urls.has(`${BASE}/pricing`)).toBe(true)
     expect(urls.has(`${BASE}/ko/pricing`)).toBe(true)
+    expect(urls.has(`${BASE}/compatibility/free`)).toBe(true)
+    expect(urls.has(`${BASE}/ko/compatibility/free`)).toBe(true)
+  })
+
+  it('홈으로 308 통합된 /free 는 싣지 않는다(리다이렉트 URL 색인 방지)', () => {
+    expect(urls.has(`${BASE}/free`)).toBe(false)
+    expect(urls.has(`${BASE}/ko/free`)).toBe(false)
   })
 
   it('alternates 는 en/ko 가 서로 다른 URL 을 가리킨다', () => {
@@ -50,6 +55,37 @@ describe('sitemap — 언어별 URL 쌍', () => {
     const cardEntries = entries.filter((e) => e.url.includes('/tarot/cards/'))
     // 78장 × en/ko
     expect(cardEntries).toHaveLength(156)
+  })
+
+  it('60갑자 일주(허브 + 60개)가 en/ko 쌍으로 들어간다', () => {
+    expect(urls.has(`${BASE}/saju/ilju`)).toBe(true)
+    expect(urls.has(`${BASE}/ko/saju/ilju`)).toBe(true)
+    // 실제 슬러그 샘플 — 엔진이 만드는 값과 사이트맵이 어긋나지 않는지
+    expect(urls.has(`${BASE}/saju/ilju/gapja`)).toBe(true)
+    expect(urls.has(`${BASE}/ko/saju/ilju/sinmi`)).toBe(true)
+    const detail = entries.filter((e) => /\/saju\/ilju\/[a-z]+$/.test(e.url))
+    // 60개 × en/ko
+    expect(detail).toHaveLength(120)
+  })
+
+  it('일간 궁합은 **허브만** 올린다 — 상세 55쌍은 의도적 제외(thin content)', () => {
+    expect(urls.has(`${BASE}/compatibility/ilgan`)).toBe(true)
+    expect(urls.has(`${BASE}/ko/compatibility/ilgan`)).toBe(true)
+    // 실측에서 55쌍 중 서로 다른 사실집합이 15개뿐이었다(십성이 오행관계 ×
+    // 음양으로 결정돼 수렴). 40쌍이 사실상 중복이라 색인에 올리지 않고
+    // noindex + 사이트맵 제외로 둔다. 이 가드가 실수로 다시 들어오는 걸 막는다.
+    const pairs = entries.filter((e) => /\/compatibility\/ilgan\/[a-z]+-[a-z]+$/.test(e.url))
+    expect(pairs).toHaveLength(0)
+  })
+
+  it('십성 사전(허브 + 10개)이 en/ko 쌍으로 들어간다', () => {
+    expect(urls.has(`${BASE}/saju/sibsin`)).toBe(true)
+    expect(urls.has(`${BASE}/ko/saju/sibsin`)).toBe(true)
+    expect(urls.has(`${BASE}/saju/sibsin/jeongjae`)).toBe(true)
+    expect(urls.has(`${BASE}/ko/saju/sibsin/pyeongwan`)).toBe(true)
+    const detail = entries.filter((e) => /\/saju\/sibsin\/[a-z]+$/.test(e.url))
+    // 10개 × en/ko
+    expect(detail).toHaveLength(20)
   })
 
   it('중복 URL 이 없다', () => {

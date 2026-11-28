@@ -11,7 +11,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import * as htmlToImage from 'html-to-image'
 import { Share2, Download, Loader2, X, Link2, Check } from 'lucide-react'
-import { apiFetch } from '@/lib/api'
+import { apiFetch } from '@/lib/api/client'
 import { tarotLogger } from '@/lib/logger'
 import { makeShareQr } from '@/lib/share/qr'
 import { TarotShareCard, SHARE_CARD_SIZE, type ShareCardData } from './TarotShareCard'
@@ -185,7 +185,7 @@ export function ShareTarotButton({ data: shareData, language, body }: ShareTarot
   const onClickShare = async () => {
     setError(null)
     // 캡처 전에 QR 을 먼저 만들어 카드에 실어 보낸다(다음 렌더에 포함되게).
-    setQrDataUrl(await makeShareQr('/free?s=card'))
+    setQrDataUrl(await makeShareQr('/?s=card'))
     setPhase('rendering')
   }
 

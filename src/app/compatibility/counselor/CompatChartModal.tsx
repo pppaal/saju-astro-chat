@@ -42,6 +42,12 @@ interface CompatChartModalProps {
   /** 출생 시각 미상 — true 면 그 사람 시주(時)를 차트 cross 에서 제외(상담사와 동일). */
   timeUnknownA?: boolean
   timeUnknownB?: boolean
+  /**
+   * 출생 도시 미상(좌표 없이 타임존 기준점으로 계산) — 그 사람의 ASC·MC·하우스 오버레이를
+   * 시너스트리 뷰에서 뺀다(상담사와 같은 placeMask 규칙, 재감사 CS-2).
+   */
+  cityUnknownA?: boolean
+  cityUnknownB?: boolean
   nameA?: string
   nameB?: string
   /** 배우자성 판정용 성별(남=재성이 처, 여=관성이 부). 서버가 정규화한다. */
@@ -158,9 +164,23 @@ const REL_MEANING: Record<string, { ko: string; en: string }> = {
   자형: { ko: '스스로 안고 가는 내적 마찰', en: 'an inner friction you carry yourself' },
   해: { ko: '은근히 갉아먹는 결', en: 'a quiet wearing-away' },
   파: { ko: '깨고 흩어놓는 결', en: 'a breaking, scattering edge' },
+  원진: { ko: '이유 없이 어긋나는 미묘한 반감', en: 'a subtle resentment with no clear cause' },
 }
-// 여러 태그면 가장 결정적인 것 우선(충돌 > 결속 > 기타).
-const REL_PRIORITY = ['충', '형', '자형', '천간충', '천간합', '육합', '삼합', '방합', '파', '해']
+// 여러 태그면 가장 결정적인 것 우선(충돌 > 결속 > 기타). 해+원진(子未·丑午)은 원진 풀이를
+// 보인다 — 상담사 포매터의 note 순서(원진 > 해)와 같다.
+const REL_PRIORITY = [
+  '충',
+  '형',
+  '자형',
+  '천간충',
+  '천간합',
+  '육합',
+  '삼합',
+  '방합',
+  '원진',
+  '파',
+  '해',
+]
 function relGloss(tags: string[], isKo: boolean): string {
   const key = REL_PRIORITY.find((t) => tags.includes(t)) ?? tags[0]
   const m = key ? REL_MEANING[key] : undefined
@@ -272,6 +292,8 @@ export function CompatChartModal({
   person2Astro,
   timeUnknownA = false,
   timeUnknownB = false,
+  cityUnknownA = false,
+  cityUnknownB = false,
   nameA = '',
   nameB = '',
   genderA,
@@ -306,6 +328,8 @@ export function CompatChartModal({
       pillarsB: sajuToPillars(unwrapSaju(person2Saju)),
       timeUnknownA,
       timeUnknownB,
+      cityUnknownA,
+      cityUnknownB,
       genderA,
       genderB,
       lang,
@@ -339,6 +363,8 @@ export function CompatChartModal({
     person2Astro,
     timeUnknownA,
     timeUnknownB,
+    cityUnknownA,
+    cityUnknownB,
     genderA,
     genderB,
     lang,
@@ -873,5 +899,3 @@ export function CompatChartModal({
     </div>
   )
 }
-
-export default CompatChartModal

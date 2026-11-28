@@ -8,12 +8,12 @@ import { loadChartData, saveChartData } from '@/lib/cache/chartDataCache'
 import type { Lang, ChartData, UserContext, CounselorContextResponse } from '@/types/api'
 import { logger } from '@/lib/logger'
 import { withSpan } from '@/lib/telemetry'
-import { apiFetch } from '@/lib/api'
-import { getStoredBirthInfo } from '@/app/(main)/birthInfoStorage'
+import { apiFetch } from '@/lib/api/client'
+import { getStoredBirthInfo } from '@/lib/birth/storage'
+import { defaultLatitudeFor, defaultLongitudeFor, getUserTimezone } from '@/lib/saju/timezone'
+import { resolveBirthTimezoneOnDevice } from '@/lib/datetime/resolveTimezone'
 
 type SearchParams = Record<string, string | string[] | undefined>
-const DEFAULT_LATITUDE = 37.5665
-const DEFAULT_LONGITUDE = 126.978
 
 interface ProfileFallback {
   name?: string
@@ -226,16 +226,6 @@ export function useCounselorData(sp: SearchParams) {
     (Array.isArray(sp.lon) ? sp.lon[0] : sp.lon) ??
     (Array.isArray(sp.longitude) ? sp.longitude[0] : sp.longitude)
 
-  const latitude = latStr ? Number(latStr) : NaN
-  const longitude = lonStr ? Number(lonStr) : NaN
-  // URL 좌표 > localStorage 폴백 좌표 > 서울 기본값.
-  const resolvedLatitude = Number.isFinite(latitude)
-    ? latitude
-    : (birthSource.latitude ?? DEFAULT_LATITUDE)
-  const resolvedLongitude = Number.isFinite(longitude)
-    ? longitude
-    : (birthSource.longitude ?? DEFAULT_LONGITUDE)
-
   // Honor the birth-place timezone when the home modal forwarded one
   // (URL or server profile). Falling back to the browser's tz is wrong
   // for users who travel — Seoul-born user opening the counselor from
@@ -243,8 +233,27 @@ export function useCounselorData(sp: SearchParams) {
   const urlTimeZone =
     (Array.isArray(sp.timeZone) ? sp.timeZone[0] : sp.timeZone) ??
     (Array.isArray(sp.tz) ? sp.tz[0] : sp.tz)
-  const browserTz = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Asia/Seoul'
-  const resolvedTimeZone = urlTimeZone || birthSource.tzId || browserTz
+  const latitude = latStr ? Number(latStr) : NaN
+  const longitude = lonStr ? Number(lonStr) : NaN
+  // 출생 tz — URL/저장 tz → 출생 도시 좌표의 tz → 보는 사람 기기 tz(getUserTimezone, 실패 시
+  // 'UTC'). 서울 하드코딩 폴백 없음(G13, F5-2 resolver 순서).
+  const resolvedTimeZone = resolveBirthTimezoneOnDevice(
+    {
+      timezone: urlTimeZone || birthSource.tzId,
+      latitude: Number.isFinite(latitude) ? latitude : birthSource.latitude,
+      longitude: Number.isFinite(longitude) ? longitude : birthSource.longitude,
+    },
+    getUserTimezone()
+  )
+
+  // URL 좌표 > localStorage 폴백 좌표 > 출생 타임존 기준점(존 기준 좌표).
+  // 비한국 tz 에 서울 경도를 붙이면 시주가 ~15시간 밀렸다(엔진 감사 SAJU-9, OD-2).
+  const resolvedLatitude = Number.isFinite(latitude)
+    ? latitude
+    : (birthSource.latitude ?? defaultLatitudeFor(resolvedTimeZone))
+  const resolvedLongitude = Number.isFinite(longitude)
+    ? longitude
+    : (birthSource.longitude ?? defaultLongitudeFor(resolvedTimeZone))
   // 'F' / 'Female' / 'female' / 'f' / 'M' / 'Male' 다 처리. 기존
   // `lowercase === 'female'` 패턴은 'F'(한 글자) → 'f' 로 떨어져 매칭 실패
   // → 여자 사용자가 'male' 로 분류돼 대운 순/역행이 거꾸로 가던 회귀.
@@ -272,7 +281,13 @@ export function useCounselorData(sp: SearchParams) {
     // 예전 '00:00' 앵커는 진태양시 보정(-32분)으로 일주가 전날로 밀려, 상담사
     // 차트가 통합리포트와 다른 사주를 보여줬다. 캐시 키에도 앵커를 써서 옛
     // '00:00' 캐시와 자연 분리한다.
-    const anchoredBirthTime = resolveBirthTimeAnchor(birthTime, birthTimeUnknown).time
+    const { time: anchoredBirthTime, timeUnknown: anchoredTimeUnknown } = resolveBirthTimeAnchor(
+      birthTime,
+      birthTimeUnknown
+    )
+    // 차트 캐시 키의 시각 칸 — 미상은 빈 칸. 정오 앵커를 그대로 쓰면 실제 정오 출생(네 기둥)과
+    // 시간 미상(삼주, /api/saju 시주 null)이 같은 캐시를 나눠 쓴다.
+    const chartCacheTime = anchoredTimeUnknown ? '' : anchoredBirthTime
 
     // Guard against stale async writes: if the effect re-runs (birth data /
     // location / locale change) or the component unmounts before a fetch
@@ -296,7 +311,7 @@ export function useCounselorData(sp: SearchParams) {
     let advancedAstro: Record<string, unknown> | null = null
 
     // Try to load from cache with birth data validation
-    const cached = loadChartData(birthDate, anchoredBirthTime, resolvedLatitude, resolvedLongitude)
+    const cached = loadChartData(birthDate, chartCacheTime, resolvedLatitude, resolvedLongitude)
     if (cached) {
       logger.warn('[CounselorPage] Using cached chart data')
       saju = cached.saju ?? null
@@ -331,6 +346,8 @@ export function useCounselorData(sp: SearchParams) {
             body: JSON.stringify({
               birthDate,
               birthTime: anchoredBirthTime,
+              // 미상이면 /api/saju 가 삼주로 분석하고 시주를 null 로 낸다(CONVENTIONS §5).
+              birthTimeUnknown: anchoredTimeUnknown,
               gender: normalizedGender,
               calendarType: 'solar',
               timezone: resolvedTimeZone,
@@ -363,7 +380,7 @@ export function useCounselorData(sp: SearchParams) {
             advancedAstro: prev?.advancedAstro,
           }))
           try {
-            saveChartData(birthDate, anchoredBirthTime, resolvedLatitude, resolvedLongitude, {
+            saveChartData(birthDate, chartCacheTime, resolvedLatitude, resolvedLongitude, {
               saju: richSaju,
               astro: (astro as Record<string, unknown>) || undefined,
               advancedAstro: (advancedAstro as Record<string, unknown>) || undefined,
@@ -423,7 +440,7 @@ export function useCounselorData(sp: SearchParams) {
           }))
           // 캐시에 저장해서 다음 방문 때 즉시 hit
           try {
-            saveChartData(birthDate, anchoredBirthTime, resolvedLatitude, resolvedLongitude, {
+            saveChartData(birthDate, chartCacheTime, resolvedLatitude, resolvedLongitude, {
               saju: (saju as Record<string, unknown>) || undefined,
               astro: astroWithAspects,
               advancedAstro: (advancedAstro as Record<string, unknown>) || undefined,

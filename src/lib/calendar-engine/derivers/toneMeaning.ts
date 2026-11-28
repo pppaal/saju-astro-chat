@@ -1,10 +1,10 @@
 /**
  * 큰 날 톤 문구 — 좋음/주의/중립 톤별 일상어 한 줄.
  *
- * convergence(엔진)와 MonthTier(클라)가 *같은 풀*을 쓰게 분리한 SSOT.
+ * convergence(엔진)와 큰 날 목록(calendar-view/keyDays.ts)이 *같은 풀*을 쓰게 분리한 SSOT.
  * 분리 이유: 달력 셀 색은 일진 등급으로 칠하는데 리스트 의미는 수렴 톤으로 뽑아
- * 같은 날인데 "좋음 문구 + 주의 색"으로 어긋났다. 이제 MonthTier 가 셀 판정으로
- * 톤을 정해 이 풀에서 문구를 뽑으면 색과 글이 항상 일치한다.
+ * 같은 날인데 "좋음 문구 + 주의 색"으로 어긋났다. 이제 keyDays 가 그리드 마크로
+ * 톤을 정해 이 풀에서 문구를 뽑으므로 색과 글이 항상 일치한다.
  *
  * 카피 원칙(경쟁 벤치마크 리서치 — Co-Star/The Pattern vs 점신/포스텔러):
  *   · 단정문 — 헤지("~일 수도") 금지. 시적 상태 묘사("햇살이 드는 날") 대신
@@ -185,7 +185,7 @@ const TONE_POOL_EN: Record<MeaningTone, string[]> = {
     "don't ignore your body's signal",
     'delay the move and the big spend',
     'read the contract three times',
-    'put yourself first today',
+    'look after yourself first today',
     'skip the late round tonight',
     'pause so you miss nothing',
     'small slips grow — double-check',

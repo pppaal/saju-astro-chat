@@ -292,6 +292,9 @@ describe('fixedStars', () => {
         Zubeneschamali: 7, // Scorpio
         Zubenelgenubi: 7, // Scorpio
         'Deneb Algedi': 10, // Aquarius
+        Castor: 3, // Cancer (재감사 STAR-1: 옛 'A3 fix' 가 Leo 로 밀었다)
+        Pollux: 3, // Cancer
+        Alioth: 5, // Virgo (8°56′ — 옛 값 18°56′)
         Regulus: 4, // Leo (변경하지 않은 대조군)
       }
       for (const [name, sign] of Object.entries(expected)) {
@@ -453,6 +456,29 @@ describe('fixedStars', () => {
       expect(mcConj).toBeDefined()
     })
 
+    it('includeAngles: false tests the planets only (transit charts — re-audit STAR-2)', () => {
+      const chart = createMockChart({
+        planets: [
+          {
+            name: 'Sun',
+            longitude: 149.83,
+            sign: 'Leo',
+            degree: 29,
+            minute: 50,
+            formatted: "29°50' Leo",
+            house: 5,
+          },
+        ],
+        ascendant: { name: 'Ascendant', longitude: 56.17, sign: 'Taurus', house: 1 },
+        mc: { name: 'MC', longitude: 285.32, sign: 'Capricorn', house: 10 },
+      } as any)
+
+      const withAngles = findFixedStarConjunctions(chart, 2000, 1.0)
+      expect(withAngles.map((c) => c.planet).sort()).toEqual(['Ascendant', 'MC', 'Sun'])
+      const planetsOnly = findFixedStarConjunctions(chart, 2000, 1.0, { includeAngles: false })
+      expect(planetsOnly.map((c) => `${c.planet}:${c.star.name}`)).toEqual(['Sun:Regulus'])
+    })
+
     it('should sort conjunctions by orb', () => {
       const chart = createMockChart()
       const conjunctions = findFixedStarConjunctions(chart, 2024, 2.0)
@@ -574,7 +600,7 @@ describe('fixedStars', () => {
       // 같은 물리적 별을 두 번 넣은 것이다. 단순 경도 근접만으로는 판정하지
       // 않는다 — 서로 다른 실제 별이 황도 경도상 매우 가까이(별자리 경계를 넘어)
       // 놓일 수 있기 때문(예: Deneb Algedi=Delta Capricorni 23°33' Aquarius 와
-      // Sadalsuud=Beta Aquarii 23°24' Aquarius 는 0.08° 차의 서로 다른 별).
+      // Sadalsuud=Beta Aquarii 23°24' Aquarius 는 0.14° 차의 서로 다른 별).
       for (let i = 0; i < stars.length; i++) {
         for (let j = i + 1; j < stars.length; j++) {
           const d = Math.abs(stars[i].longitude - stars[j].longitude)

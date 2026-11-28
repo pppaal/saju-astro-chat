@@ -14,11 +14,13 @@ import {
   isCalendarShare,
   isDayShare,
   isLifeShare,
+  isLifeShareV2,
   isReportShare,
   bumpShareViews,
-} from '@/lib/tarot/shareLink'
+} from '@/lib/share/shareLink'
 import { buildCurveSvg, curveSvgDataUri } from '@/lib/share/curveSvg'
-import { recordCounter } from '@/lib/metrics/index'
+import { recordCounter } from '@/lib/metrics'
+import { SAJU_TYPE_LABEL } from '@/lib/report/viralArchetype'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -55,6 +57,13 @@ const LIGHT_CURVE = {
   dotLow: ROSE,
   marker: AMBER,
   dotStroke: '#FBF6EC',
+}
+
+/** 인생 흐름 v2 한 줄 — '사주 타입 · 인생 모양'(메타 설명 · 공개 페이지 보조 줄). */
+function lifeShareV2Line(crossType: string, lifeShape: string | undefined, isKo: boolean): string {
+  const type = isKo ? `사주 타입 ‘${crossType}’` : `Saju type: ${crossType}`
+  if (!lifeShape) return type
+  return isKo ? `${type} · 인생 모양 ${lifeShape}` : `${type} · Life shape: ${lifeShape}`
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
@@ -98,6 +107,17 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       robots: { index: false, follow: false },
       openGraph: { title: dayTitle, description: dayDesc, type: 'article' },
       twitter: { card: 'summary_large_image', title: dayTitle, description: dayDesc },
+    }
+  }
+  if (isLifeShareV2(reading)) {
+    const v2Title = `${reading.crossType} — DestinyPal`
+    const v2Desc = lifeShareV2Line(reading.crossType, reading.lifeShape, isKo)
+    return {
+      title: v2Title,
+      description: v2Desc,
+      robots: { index: false, follow: false },
+      openGraph: { title: v2Title, description: v2Desc, type: 'article' },
+      twitter: { card: 'summary_large_image', title: v2Title, description: v2Desc },
     }
   }
   if (isLifeShare(reading)) {
@@ -435,11 +455,11 @@ export default async function SharedReadingPage({ params }: PageProps) {
             <p style={{ marginTop: 16, fontSize: 12, lineHeight: 1.7, color: MUTE }}>
               {reading.inviter
                 ? isKo
-                  ? `${reading.nameA}님 정보는 채워져 있어요 — 내 생년월일만 넣으면 바로 결과가 나와요.`
-                  : `${reading.nameA} is already filled in — just add your own birth date.`
+                  ? `${reading.nameA}님 정보는 채워져 있어요 — 내 출생 정보만 넣으면 바로 결과가 나와요.`
+                  : `${reading.nameA} is already filled in — just add your own birth details.`
                 : isKo
-                  ? '로그인 없이 두 사람 생년월일만 넣으면 바로 결과가 나와요.'
-                  : 'No sign-up — just two birth dates and you get the result.'}
+                  ? '로그인 없이 두 사람 출생 정보만 넣으면 바로 결과가 나와요.'
+                  : 'No sign-up — just two people’s birth details and you get the result.'}
             </p>
           </div>
         </div>
@@ -447,7 +467,7 @@ export default async function SharedReadingPage({ params }: PageProps) {
     )
   }
 
-  // 운흐름 캘린더 공유 — 기간 한 줄 총평이 주인공. 별도 레이아웃.
+  // 운세 달력 공유 — 기간 한 줄 총평이 주인공. 별도 레이아웃.
   if (isCalendarShare(reading)) {
     recordCounter('calendar.share.viewed', 1)
     return (
@@ -498,7 +518,7 @@ export default async function SharedReadingPage({ params }: PageProps) {
               color: MUTE,
             }}
           >
-            {isKo ? '운흐름 캘린더' : 'DESTINY CALENDAR'}
+            {isKo ? '운세 달력' : 'Fortune calendar'}
           </p>
           <p style={{ marginTop: 12, fontSize: 18, fontWeight: 700, color: INK }}>
             {reading.periodLabel}
@@ -584,7 +604,7 @@ export default async function SharedReadingPage({ params }: PageProps) {
 
           <div style={{ marginTop: 44 }}>
             <Link
-              href="/free"
+              href="/"
               style={{
                 display: 'inline-block',
                 padding: '15px 30px',
@@ -597,11 +617,11 @@ export default async function SharedReadingPage({ params }: PageProps) {
                 boxShadow: CTA_SHADOW,
               }}
             >
-              {isKo ? '내 운흐름도 무료로 보기 →' : 'See your own timing free →'}
+              {isKo ? '내 운세 달력도 무료로 보기 →' : 'See your own timing free →'}
             </Link>
             <p style={{ marginTop: 14, fontSize: 12, color: MUTE }}>
               {isKo
-                ? '생년월일로 이달의 큰 날과 흐름을 무료로 확인할 수 있어요.'
+                ? '출생 정보로 이달의 큰 날과 흐름을 무료로 확인할 수 있어요.'
                 : 'Find your key days and flow this month, free.'}
             </p>
           </div>
@@ -664,7 +684,8 @@ export default async function SharedReadingPage({ params }: PageProps) {
               color: GOLD_SOFT,
             }}
           >
-            {isKo ? '사주 × 별자리 유형' : 'KOREAN ASTROLOGY × ZODIAC'}
+            {/* 유형 이름은 사주만으로 계산된다 → "사주 타입"(결정 2, 감사 CR-6). */}
+            {SAJU_TYPE_LABEL.plain[isKo ? 'ko' : 'en']}
           </p>
           <p style={{ marginTop: 16, fontSize: 52, lineHeight: 1 }}>{reading.emoji}</p>
           <h1
@@ -796,8 +817,8 @@ export default async function SharedReadingPage({ params }: PageProps) {
             </Link>
             <p style={{ marginTop: 14, fontSize: 12, color: MUTED }}>
               {isKo
-                ? '생년월일만 넣으면 사주와 별자리를 함께 읽은 통합 리포트가 무료로 나와요.'
-                : 'Just your birth date — get a free Saju + astrology report read together.'}
+                ? '출생 정보만 넣으면 사주와 별자리를 함께 읽은 통합 리포트가 무료로 나와요.'
+                : 'Just your birth details — get a free Saju + astrology report read together.'}
             </p>
           </div>
         </div>
@@ -939,7 +960,7 @@ export default async function SharedReadingPage({ params }: PageProps) {
 
           <div style={{ marginTop: 40 }}>
             <Link
-              href="/free"
+              href="/"
               style={{
                 display: 'inline-block',
                 padding: '15px 30px',
@@ -956,8 +977,8 @@ export default async function SharedReadingPage({ params }: PageProps) {
             </Link>
             <p style={{ marginTop: 14, fontSize: 12, color: MUTE }}>
               {isKo
-                ? '생년월일만 넣으면 오늘의 점수와 이달 흐름을 무료로 볼 수 있어요.'
-                : 'Just your birth date — see today’s score and this month’s flow, free.'}
+                ? '출생 정보만 넣으면 오늘의 점수와 이달 흐름을 무료로 볼 수 있어요.'
+                : 'Just your birth details — see today’s score and this month’s flow, free.'}
             </p>
           </div>
         </div>
@@ -965,7 +986,117 @@ export default async function SharedReadingPage({ params }: PageProps) {
     )
   }
 
-  // 인생/대운 곡선 공유 — 한 줄 + 인생 흐름 곡선이 주인공.
+  // 인생 흐름 공유 v2 — 사주 타입 + 인생 모양만(범위 · 연도 축 · 곡선 · 기둥 없음).
+  if (isLifeShareV2(reading)) {
+    recordCounter('life.share.viewed', 1)
+    return (
+      <main style={{ minHeight: '100vh', background: PAPER_BG, color: INK }}>
+        <div
+          style={{
+            maxWidth: 560,
+            margin: '0 auto',
+            padding: '40px 20px 96px',
+            textAlign: 'center',
+          }}
+          data-life-share="v2"
+        >
+          <Link
+            href="/"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 10,
+              color: GOLD_INK,
+              textDecoration: 'none',
+              fontWeight: 600,
+              letterSpacing: '0.04em',
+            }}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/logo/logo.png"
+              alt="DestinyPal"
+              width={30}
+              height={30}
+              style={{ borderRadius: 6 }}
+            />
+            DestinyPal
+          </Link>
+
+          <p
+            style={{
+              marginTop: 40,
+              fontSize: 12,
+              letterSpacing: '0.22em',
+              textTransform: 'uppercase',
+              color: MUTE,
+            }}
+          >
+            {SAJU_TYPE_LABEL.plain[isKo ? 'ko' : 'en']}
+          </p>
+          <h1
+            style={{
+              marginTop: 18,
+              fontSize: 40,
+              fontWeight: isKo ? 800 : 400,
+              fontStyle: isKo ? 'normal' : 'italic',
+              fontFamily: isKo ? undefined : "Georgia, 'Times New Roman', serif",
+              lineHeight: 1.15,
+              color: INK,
+              wordBreak: 'keep-all',
+              overflowWrap: 'anywhere',
+            }}
+          >
+            {reading.crossType}
+          </h1>
+          {reading.lifeShape ? (
+            <p style={{ marginTop: 16, fontSize: 16, lineHeight: 1.6, color: SUB }}>
+              <span
+                style={{
+                  fontSize: 11,
+                  letterSpacing: '0.18em',
+                  textTransform: 'uppercase',
+                  color: MUTE,
+                  marginRight: 8,
+                }}
+              >
+                {isKo ? '인생 모양' : 'Life shape'}
+              </span>
+              {reading.lifeShape}
+            </p>
+          ) : null}
+          {socialProof ? (
+            <p style={{ marginTop: 18, fontSize: 12.5, color: MUTE }}>{socialProof}</p>
+          ) : null}
+
+          <div style={{ marginTop: 40 }}>
+            <Link
+              href="/"
+              style={{
+                display: 'inline-block',
+                padding: '15px 30px',
+                borderRadius: 999,
+                background: INK,
+                color: '#fff',
+                fontWeight: 700,
+                textDecoration: 'none',
+                fontSize: 16,
+              }}
+            >
+              {isKo ? '내 사주 타입도 무료로 보기 →' : 'What’s yours? Get your free Saju Card →'}
+            </Link>
+            <p style={{ marginTop: 14, fontSize: 12, color: MUTE }}>
+              {isKo
+                ? '출생 정보만 넣으면 돼요 · 무료 · 가입 필요 없어요.'
+                : 'Just your birth details — free, no sign-up.'}
+            </p>
+          </div>
+        </div>
+      </main>
+    )
+  }
+
+  // 인생/대운 곡선 공유(v1 · 옛 링크) — 한 줄 + 인생 흐름 곡선이 주인공.
   if (isLifeShare(reading)) {
     recordCounter('life.share.viewed', 1)
     const curveImg =
@@ -1093,7 +1224,7 @@ export default async function SharedReadingPage({ params }: PageProps) {
 
           <div style={{ marginTop: 40 }}>
             <Link
-              href="/free"
+              href="/"
               style={{
                 display: 'inline-block',
                 padding: '15px 30px',
@@ -1110,8 +1241,8 @@ export default async function SharedReadingPage({ params }: PageProps) {
             </Link>
             <p style={{ marginTop: 14, fontSize: 12, color: MUTE }}>
               {isKo
-                ? '생년월일만 넣으면 대운 흐름과 큰 마디를 무료로 볼 수 있어요.'
-                : 'Just your birth date — see your life’s arc and turning points, free.'}
+                ? '출생 정보만 넣으면 대운 흐름과 큰 마디를 무료로 볼 수 있어요.'
+                : 'Just your birth details — see your life’s arc and turning points, free.'}
             </p>
           </div>
         </div>

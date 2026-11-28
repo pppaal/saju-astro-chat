@@ -53,6 +53,29 @@ describe('toneMeaningFor', () => {
     }
   })
 
+  it('EN 부정 줄은 KO "나부터 챙겨야 하는 날" 과 같은 뜻 — "put yourself first" 로 뒤집히지 않는다', () => {
+    // KO 는 자기 돌봄(챙기다), 옛 EN 'put yourself first' 는 이기적 우선으로 읽혀
+    // 원문과 반대말이 됐다. 같은 (day, seed) 의 KO/EN 은 같은 인덱스 짝이어야 한다.
+    for (const seed of [0, 1, 7, 42, 12345]) {
+      for (let d = 0; d <= 30; d++) {
+        const en = toneMeaningFor('negative', d, 'en', seed)
+        expect(en).not.toMatch(/put yourself first/)
+        if (toneMeaningFor('negative', d, 'ko', seed) === '나부터 챙겨야 하는 날') {
+          expect(en).toBe('look after yourself first today')
+        }
+      }
+    }
+  })
+
+  it('ko/en 풀은 톤마다 길이가 같다(인덱스 짝 유지)', () => {
+    for (const tone of TONES) {
+      const ko = distinctPhrases(tone, 'ko', 0)
+      const en = distinctPhrases(tone, 'en', 0)
+      expect(en.size, `${tone} ko/en pool length`).toBe(ko.size)
+      expect(ko.size).toBe(31)
+    }
+  })
+
   it('handles non-finite dayNum without throwing', () => {
     expect(() => toneMeaningFor('neutral', NaN, 'ko', 5)).not.toThrow()
     expect(typeof toneMeaningFor('neutral', NaN, 'ko', 5)).toBe('string')

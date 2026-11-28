@@ -7,7 +7,7 @@ import { normalize360, shortestAngle } from './utils'
 export interface FixedStar {
   name: string
   name_ko: string
-  longitude: number // 2000년 기준 황경 (세차 보정 필요)
+  longitude: number // J2000.0 황경(°) — 날짜 위치는 correctForPrecession
   magnitude: number // 등급
   nature: string // 행성적 성질
   constellation: string
@@ -22,8 +22,13 @@ export interface FixedStarConjunction {
   description: string
 }
 
-// 주요 항성 데이터 (2000년 기준 위치, 50개+)
-// 참고: 항성은 매년 약 50.3" 세차 운동하므로 실제 계산 시 보정 필요
+// 주요 항성 47개 — longitude 는 J2000.0 황경(°, 소수 둘째 자리).
+// 출처: Swiss Ephemeris 항성 카탈로그(sefstars.txt, Hipparcos/SIMBAD ICRS J2000 RA·Dec)를
+// J2000 황도로 회전한 값. 주석은 같은 값의 '도 사인 분'. 날짜의 위치는 correctForPrecession.
+// 예전 표는 분(′)을 소수로 적은 값(24°14′ → .14)과 사인 하나 어긋난 값(Castor·Pollux 30°,
+// Alioth 10°)이 섞여 항성 합 날짜가 최대 한 달 틀렸다(재감사 STAR-1).
+// tests/lib/astrology/foundation/fixedStars.catalogue.test.ts 가 모든 항목을 카탈로그
+// RA·Dec → 황도(astronomy-engine)와 맞춰 본다.
 const FIXED_STARS: FixedStar[] = [
   // ========== 왕의 별 4대 (Royal Stars) ==========
   {
@@ -40,7 +45,7 @@ const FIXED_STARS: FixedStar[] = [
   {
     name: 'Aldebaran',
     name_ko: '알데바란 (봄의 눈)',
-    longitude: 69.78, // 9 Gemini 47
+    longitude: 69.79, // 9 Gemini 47
     magnitude: 0.85,
     nature: 'Mars',
     constellation: 'Taurus',
@@ -50,7 +55,7 @@ const FIXED_STARS: FixedStar[] = [
   {
     name: 'Antares',
     name_ko: '안타레스 (전갈의 심장)',
-    longitude: 249.77, // 9 Sagittarius 46
+    longitude: 249.76, // 9 Sagittarius 46
     magnitude: 0.96,
     nature: 'Mars/Jupiter',
     constellation: 'Scorpius',
@@ -60,7 +65,7 @@ const FIXED_STARS: FixedStar[] = [
   {
     name: 'Fomalhaut',
     name_ko: '포말하우트 (물고기 입)',
-    longitude: 333.87, // 3 Pisces 52
+    longitude: 333.86, // 3 Pisces 52
     magnitude: 1.16,
     nature: 'Venus/Mercury',
     constellation: 'Piscis Austrinus',
@@ -81,7 +86,7 @@ const FIXED_STARS: FixedStar[] = [
   {
     name: 'Canopus',
     name_ko: '카노푸스 (항해자의 별)',
-    longitude: 104.97, // 14 Cancer 58
+    longitude: 104.96, // 14 Cancer 58
     magnitude: -0.72,
     nature: 'Saturn/Jupiter',
     constellation: 'Carina',
@@ -91,7 +96,7 @@ const FIXED_STARS: FixedStar[] = [
   {
     name: 'Arcturus',
     name_ko: '아르크투루스 (곰의 수호자)',
-    longitude: 204.14, // 24 Libra 14
+    longitude: 204.23, // 24 Libra 14
     magnitude: -0.05,
     nature: 'Mars/Jupiter',
     constellation: 'Bootes',
@@ -111,7 +116,7 @@ const FIXED_STARS: FixedStar[] = [
   {
     name: 'Capella',
     name_ko: '카펠라 (작은 염소)',
-    longitude: 81.85, // 21 Gemini 51
+    longitude: 81.86, // 21 Gemini 51
     magnitude: 0.08,
     nature: 'Mars/Mercury',
     constellation: 'Auriga',
@@ -131,7 +136,7 @@ const FIXED_STARS: FixedStar[] = [
   {
     name: 'Procyon',
     name_ko: '프로키온 (개의 앞)',
-    longitude: 115.62, // 25 Cancer 47
+    longitude: 115.79, // 25 Cancer 47
     magnitude: 0.34,
     nature: 'Mercury/Mars',
     constellation: 'Canis Minor',
@@ -162,7 +167,7 @@ const FIXED_STARS: FixedStar[] = [
   {
     name: 'Spica',
     name_ko: '스피카 (수확의 별)',
-    longitude: 203.83, // 23 Libra 50
+    longitude: 203.84, // 23 Libra 50
     magnitude: 0.97,
     nature: 'Venus/Mars',
     constellation: 'Virgo',
@@ -172,7 +177,7 @@ const FIXED_STARS: FixedStar[] = [
   {
     name: 'Vindemiatrix',
     name_ko: '빈데미아트릭스 (포도수확자)',
-    longitude: 189.92, // 9 Libra 56
+    longitude: 189.94, // 9 Libra 56
     magnitude: 2.83,
     nature: 'Saturn/Mercury',
     constellation: 'Virgo',
@@ -193,7 +198,7 @@ const FIXED_STARS: FixedStar[] = [
   {
     name: 'Alcyone',
     name_ko: '알키오네 (플레이아데스 7자매)',
-    longitude: 59.98, // 29 Taurus 58
+    longitude: 59.99, // 0 Gemini 00
     magnitude: 2.87,
     nature: 'Moon/Mars',
     constellation: 'Taurus',
@@ -206,7 +211,7 @@ const FIXED_STARS: FixedStar[] = [
   {
     name: 'Hyades',
     name_ko: '히아데스 (비의 별)',
-    longitude: 65.47, // 5 Gemini 48
+    longitude: 65.81, // 5 Gemini 48
     magnitude: 3.65,
     nature: 'Saturn/Mercury',
     constellation: 'Taurus',
@@ -227,7 +232,7 @@ const FIXED_STARS: FixedStar[] = [
   {
     name: 'Deneb Algedi',
     name_ko: '데네브 알게디 (염소 꼬리)',
-    longitude: 323.55, // 23 Aquarius 33 (= 300 + 23°33'). 사인 1개 어긋남 정정(Deneb Algedi).
+    longitude: 323.54, // 23 Aquarius 33
     magnitude: 2.87,
     nature: 'Saturn/Jupiter',
     constellation: 'Capricornus',
@@ -248,9 +253,7 @@ const FIXED_STARS: FixedStar[] = [
   {
     name: 'Dubhe',
     name_ko: '두베 (곰의 등)',
-    longitude: 135.2, // 15 Leo 12 (= 120 + 15°12'). A3 fix 후속: 값이 주석/실제
-    // J2000 위치보다 정확히 한 사인(30°) 낮은 15 Cancer 로 박혀 있어 orb 1° 합을
-    // 놓치고 한 사인 떨어진 행성에 가짜 합을 냈다(Dubhe).
+    longitude: 135.2, // 15 Leo 12
     magnitude: 1.79,
     nature: 'Mars',
     constellation: 'Ursa Major',
@@ -260,7 +263,7 @@ const FIXED_STARS: FixedStar[] = [
   {
     name: 'Alioth',
     name_ko: '알리오트 (북두칠성)',
-    longitude: 168.81, // 18 Virgo 56
+    longitude: 158.93, // 8 Virgo 56
     magnitude: 1.77,
     nature: 'Mars',
     constellation: 'Ursa Major',
@@ -271,7 +274,7 @@ const FIXED_STARS: FixedStar[] = [
   {
     name: 'Acrab',
     name_ko: '아크라브 (전갈 발톱)',
-    longitude: 243.17, // 3 Sagittarius 11
+    longitude: 243.19, // 3 Sagittarius 11
     magnitude: 2.62,
     nature: 'Saturn/Mars',
     constellation: 'Scorpius',
@@ -281,7 +284,7 @@ const FIXED_STARS: FixedStar[] = [
   {
     name: 'Dschubba',
     name_ko: '드슈바 (전갈 이마)',
-    longitude: 242.17, // 2 Sagittarius 34
+    longitude: 242.57, // 2 Sagittarius 34
     magnitude: 2.32,
     nature: 'Mars/Saturn',
     constellation: 'Scorpius',
@@ -291,7 +294,7 @@ const FIXED_STARS: FixedStar[] = [
   {
     name: 'Lesath',
     name_ko: '레사트 (전갈 침)',
-    longitude: 264.12, // 24 Sagittarius 01
+    longitude: 264.01, // 24 Sagittarius 01
     magnitude: 2.69,
     nature: 'Mercury/Mars',
     constellation: 'Scorpius',
@@ -301,7 +304,7 @@ const FIXED_STARS: FixedStar[] = [
   {
     name: 'Shaula',
     name_ko: '샤울라 (전갈 꼬리)',
-    longitude: 264.68, // 24 Sagittarius 35
+    longitude: 264.59, // 24 Sagittarius 35
     magnitude: 1.63,
     nature: 'Mercury/Mars',
     constellation: 'Scorpius',
@@ -312,10 +315,9 @@ const FIXED_STARS: FixedStar[] = [
   {
     name: 'Castor',
     name_ko: '카스토르 (쌍둥이 형)',
-    // A3 fix: 옛 코드 80.17° (20° Gemini 10') 는 의도 (주석 "20 Cancer 14") 와
-    // 사인 1개 어긋남 → Cancer 행성과의 conjunction 검출 못함. 정정: Cancer
-    // 시작 120° + 20°14' = 140.233°.
-    longitude: 140.233, // 20 Cancer 14
+    // 재감사 STAR-1: 옛 'A3 fix' 가 Cancer 를 120° 에서 시작해 30° 높게(20 Leo) 넣었다 —
+    // Cancer 는 90–120°. 카탈로그 값으로 정정.
+    longitude: 110.24, // 20 Cancer 14
     magnitude: 1.58,
     nature: 'Mercury',
     constellation: 'Gemini',
@@ -325,9 +327,8 @@ const FIXED_STARS: FixedStar[] = [
   {
     name: 'Pollux',
     name_ko: '폴룩스 (쌍둥이 동생)',
-    // A3 fix: 옛 코드 83.25° (23° Gemini 15') 는 의도 (주석 "23 Cancer 13") 와
-    // 사인 1개 어긋남. 정정: Cancer 시작 120° + 23°13' = 143.217°.
-    longitude: 143.217, // 23 Cancer 13
+    // 재감사 STAR-1: Castor 와 같은 30° 오류(23 Leo) — 카탈로그 값으로 정정.
+    longitude: 113.22, // 23 Cancer 13
     magnitude: 1.14,
     nature: 'Mars',
     constellation: 'Gemini',
@@ -337,7 +338,7 @@ const FIXED_STARS: FixedStar[] = [
   {
     name: 'Bellatrix',
     name_ko: '벨라트릭스 (여전사)',
-    longitude: 80.92, // 20 Gemini 57
+    longitude: 80.95, // 20 Gemini 57
     magnitude: 1.64,
     nature: 'Mars/Mercury',
     constellation: 'Orion',
@@ -347,7 +348,7 @@ const FIXED_STARS: FixedStar[] = [
   {
     name: 'Mintaka',
     name_ko: '민타카 (오리온 벨트)',
-    longitude: 82.43, // 22 Gemini 24
+    longitude: 82.36, // 22 Gemini 22
     magnitude: 2.23,
     nature: 'Saturn/Jupiter',
     constellation: 'Orion',
@@ -357,7 +358,7 @@ const FIXED_STARS: FixedStar[] = [
   {
     name: 'Alnilam',
     name_ko: '알닐람 (오리온 벨트 중앙)',
-    longitude: 83.57, // 23 Gemini 28
+    longitude: 83.46, // 23 Gemini 28
     magnitude: 1.7,
     nature: 'Jupiter/Saturn',
     constellation: 'Orion',
@@ -367,7 +368,7 @@ const FIXED_STARS: FixedStar[] = [
   {
     name: 'Alnitak',
     name_ko: '알니탁 (오리온 벨트)',
-    longitude: 84.68, // 24 Gemini 42
+    longitude: 84.68, // 24 Gemini 41
     magnitude: 1.74,
     nature: 'Jupiter/Saturn',
     constellation: 'Orion',
@@ -378,7 +379,7 @@ const FIXED_STARS: FixedStar[] = [
   {
     name: 'Sadalsuud',
     name_ko: '사달수드 (행운의 행운)',
-    longitude: 323.47, // 23 Aquarius 24
+    longitude: 323.4, // 23 Aquarius 24
     magnitude: 2.91,
     nature: 'Saturn/Mercury',
     constellation: 'Aquarius',
@@ -388,7 +389,7 @@ const FIXED_STARS: FixedStar[] = [
   {
     name: 'Sadalmelik',
     name_ko: '사달멜릭 (왕의 행운)',
-    longitude: 333.33, // 3 Pisces 21
+    longitude: 333.35, // 3 Pisces 21
     magnitude: 2.96,
     nature: 'Saturn/Jupiter',
     constellation: 'Aquarius',
@@ -398,7 +399,7 @@ const FIXED_STARS: FixedStar[] = [
   {
     name: 'Achernar',
     name_ko: '아케르나르 (강의 끝)',
-    longitude: 345.27, // 15 Pisces 19
+    longitude: 345.31, // 15 Pisces 19
     magnitude: 0.46,
     nature: 'Jupiter',
     constellation: 'Eridanus',
@@ -408,7 +409,7 @@ const FIXED_STARS: FixedStar[] = [
   {
     name: 'Markab',
     name_ko: '마르카브 (안장)',
-    longitude: 353.47, // 23 Pisces 29
+    longitude: 353.49, // 23 Pisces 29
     magnitude: 2.49,
     nature: 'Mars/Mercury',
     constellation: 'Pegasus',
@@ -418,7 +419,7 @@ const FIXED_STARS: FixedStar[] = [
   {
     name: 'Scheat',
     name_ko: '세아트 (다리)',
-    longitude: 359.23, // 29 Pisces 22
+    longitude: 359.37, // 29 Pisces 22
     magnitude: 2.42,
     nature: 'Mars/Mercury',
     constellation: 'Pegasus',
@@ -429,7 +430,7 @@ const FIXED_STARS: FixedStar[] = [
   {
     name: 'Alphard',
     name_ko: '알파르드 (외로운 별)',
-    longitude: 147.17, // 27 Leo 17
+    longitude: 147.28, // 27 Leo 17
     magnitude: 1.98,
     nature: 'Saturn/Venus',
     constellation: 'Hydra',
@@ -439,7 +440,7 @@ const FIXED_STARS: FixedStar[] = [
   {
     name: 'Acubens',
     name_ko: '아쿠벤스 (집게)',
-    longitude: 133.63, // 13 Leo 38 (= 120 + 13°38'). 사인 1개 어긋남 정정(Acubens).
+    longitude: 133.64, // 13 Leo 38
     magnitude: 4.25,
     nature: 'Saturn/Mercury',
     constellation: 'Cancer',
@@ -450,7 +451,7 @@ const FIXED_STARS: FixedStar[] = [
   {
     name: 'Zubeneschamali',
     name_ko: '주베네스카말리 (북쪽 집게)',
-    longitude: 229.37, // 19 Scorpio 22 (= 210 + 19°22'). 사인 1개 어긋남 정정(Zubeneschamali).
+    longitude: 229.37, // 19 Scorpio 22
     magnitude: 2.61,
     nature: 'Jupiter/Mercury',
     constellation: 'Libra',
@@ -460,7 +461,7 @@ const FIXED_STARS: FixedStar[] = [
   {
     name: 'Zubenelgenubi',
     name_ko: '주베넬게누비 (남쪽 집게)',
-    longitude: 225.08, // 15 Scorpio 05 (= 210 + 15°05'). 사인 1개 어긋남 정정(Zubenelgenubi).
+    longitude: 225.08, // 15 Scorpio 05
     magnitude: 2.75,
     nature: 'Saturn/Mars',
     constellation: 'Libra',
@@ -470,7 +471,7 @@ const FIXED_STARS: FixedStar[] = [
   {
     name: 'Rasalhague',
     name_ko: '라살하게 (뱀잡이 머리)',
-    longitude: 262.43, // 22 Sagittarius 27
+    longitude: 262.45, // 22 Sagittarius 27
     magnitude: 2.07,
     nature: 'Saturn/Venus',
     constellation: 'Ophiuchus',
@@ -480,7 +481,7 @@ const FIXED_STARS: FixedStar[] = [
   {
     name: 'Ras Algethi',
     name_ko: '라스 알게티 (헤라클레스 머리)',
-    longitude: 256.23, // 16 Sagittarius 09
+    longitude: 256.15, // 16 Sagittarius 09
     magnitude: 3.48,
     nature: 'Mars',
     constellation: 'Hercules',
@@ -492,7 +493,7 @@ const FIXED_STARS: FixedStar[] = [
   {
     name: 'Denebola',
     name_ko: '데네볼라 (사자 꼬리)',
-    longitude: 171.52, // 21 Virgo 37
+    longitude: 171.62, // 21 Virgo 37
     magnitude: 2.14,
     nature: 'Saturn/Venus',
     constellation: 'Leo',
@@ -512,7 +513,7 @@ const FIXED_STARS: FixedStar[] = [
   {
     name: 'Cor Caroli',
     name_ko: '코르 카롤리 (찰스의 심장)',
-    longitude: 174.32, // 24 Virgo 34
+    longitude: 174.57, // 24 Virgo 34
     magnitude: 2.9,
     nature: 'Venus/Mercury',
     constellation: 'Canes Venatici',
@@ -532,16 +533,27 @@ export function correctForPrecession(baseLongitude: number, year: number): numbe
   return normalize360(baseLongitude + yearsSince2000 * precessionPerYear)
 }
 
+export interface FixedStarConjunctionOptions {
+  /**
+   * ASC·MC 도 합 대상에 넣는다(기본 true — 본명 차트). 트랜짓 차트에서는 false: 트랜짓 ASC 는
+   * 하루에 황도를 한 바퀴 돌아 모든 항성과 매일 몇 분씩 합이 되고, 정오 MC 는 태양을 따라갈
+   * 뿐이라 '그 날의 사실' 이 아니다(재감사 STAR-2).
+   */
+  includeAngles?: boolean
+}
+
 /**
  * 항성과 행성의 합 찾기
  */
 export function findFixedStarConjunctions(
   chart: Chart,
   year: number = new Date().getFullYear(),
-  orb: number = 1.0
+  orb: number = 1.0,
+  options: FixedStarConjunctionOptions = {}
 ): FixedStarConjunction[] {
   const conjunctions: FixedStarConjunction[] = []
-  const allPoints = [...chart.planets, chart.ascendant, chart.mc]
+  const includeAngles = options.includeAngles ?? true
+  const allPoints = includeAngles ? [...chart.planets, chart.ascendant, chart.mc] : chart.planets
 
   for (const star of FIXED_STARS) {
     // 세차 보정된 항성 위치

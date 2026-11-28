@@ -1,27 +1,35 @@
 import type { ActiveSignal, ExtractorContext, SignalExtractor, Polarity } from '../types'
 import { pointPrinciple } from '../data/astroFlow'
+import {
+  planetaryDayFrame,
+  planetaryHourOnCivilDay,
+  type PlanetaryDayFrame,
+} from '@/lib/astrology/foundation/electional'
+import { resolveBirthInstant } from '@/lib/datetime/resolveBirthInstant'
 
 /**
  * 점성 행성시(Planetary Hours) 추출기 — 24시간 변별력(사주 시주의 점성 짝).
  *
- * 칼데안 순서(Saturn→Jupiter→Mars→Sun→Venus→Mercury→Moon)로 하루를 일출~일몰
- * 12등분 + 일몰~일출 12등분 = 24 행성시로 나눈다. 각 날의 첫 행성시(일출)는 그
- * 요일의 지배 행성. 시계 시각(0~23)별로 지배 행성을 매핑해 길흉 polarity 부여.
+ * 행성일은 현지 일출에 시작한다. 일출~일몰 12등분 + 일몰~다음 일출 12등분 = 24 행성시,
+ * 칼데안 순서(Saturn→Jupiter→Mars→Sun→Venus→Mercury→Moon)로 돌고 첫 칸(일출)은 그 요일의
+ * 지배성이다. 일출 *전* 시각은 전날 행성일의 밤이라 지배성도 전날 요일의 것이다.
+ * 시계 시각(0~23)마다 그 시각 30분의 행성시를 매핑해 길흉 polarity 를 준다.
  *
- * 일출·일몰은 위도 기반 태양 적위 근사(±30분 내외) — 정밀 천체계산 없이 가볍게.
- * id 에 시각을 박아(astro.planetary-hour.YYYY-MM-DD.H{hh}.{planet}) 24h 차트가
- * active 필드 없이도 시각을 복원하게 한다.
+ * 일출·일몰은 swe_rise_trans 의 실제 값(실제 위도·경도, 태양 윗가장자리 + 대기차). 예전엔
+ * 남중을 12:00 으로 고정한 적위 근사라 서울 실제 남중(12:18~12:46)만큼 경계가 밀렸고, 일출
+ * 전 시각을 *다음* 밤으로 감아 오늘 요일 지배성으로 세서 칼데안 순서가 3칸 틀렸다(엔진 감사
+ * ASTRO-5). 태양이 뜨거나 지지 않는 극지 날은 행성시가 정의되지 않아 내지 않는다.
+ * 일몰이 자정을 넘는 날(64–66.5° 여름) 그 일몰 전 시각은 아직 전날 행성일의 낮이라 전날
+ * 틀로 본다(재감사 AC-7 — 예전엔 그 시각을 버렸다).
+ *
+ * 시각 키는 캘린더의 떠 있는 현지 키(YYYY-MM-DDTHH:00Z = 현지 벽시계 HH시). id 에 시각을
+ * 박아(astro.planetary-hour.YYYY-MM-DD.H{hh}.{planet}) 24h 차트가 active 필드 없이도 시각을
+ * 복원하게 한다.
  *
  * 노이즈 방지: 중립(Mercury, polarity 0)은 emit 안 함.
  */
 
 type Planet = 'Sun' | 'Moon' | 'Mars' | 'Mercury' | 'Jupiter' | 'Venus' | 'Saturn'
-
-// 칼데안 순서 (느린 → 빠른). 행성시는 이 순서로 순환.
-const CHALDEAN: Planet[] = ['Saturn', 'Jupiter', 'Mars', 'Sun', 'Venus', 'Mercury', 'Moon']
-
-// 요일별 지배 행성 (일=0 … 토=6) — 그 날 첫 행성시(일출)의 행성.
-const DAY_RULER: Planet[] = ['Sun', 'Moon', 'Mars', 'Mercury', 'Jupiter', 'Venus', 'Saturn']
 
 const PLANET_POLARITY: Record<Planet, Polarity> = {
   Sun: 2,
@@ -43,27 +51,12 @@ const PLANET_KO: Record<Planet, string> = {
   Saturn: '토성시',
 }
 
-/**
- * 위도 기반 일출/일몰(로컬 시계 시각, 시간 단위). 태양 적위 근사.
- * 태양남중을 12:00으로 단순화(경도 보정·균시차 생략 → ±30분 내외). 극지방은
- * cosH 클램프로 백야/극야 처리.
- */
-function sunTimes(dayOfYear: number, latDeg: number): { sunrise: number; sunset: number } {
-  const decl = 23.44 * Math.sin((2 * Math.PI * (dayOfYear - 81)) / 365) // 태양 적위(deg)
-  const latRad = (latDeg * Math.PI) / 180
-  const declRad = (decl * Math.PI) / 180
-  let cosH = -Math.tan(latRad) * Math.tan(declRad)
-  cosH = Math.max(-1, Math.min(1, cosH))
-  const halfDayHours = (Math.acos(cosH) * 180) / Math.PI / 15 // 반일 길이(시간)
-  return { sunrise: 12 - halfDayHours, sunset: 12 + halfDayHours }
-}
-
 const astroPlanetaryHourExtractor: SignalExtractor = {
   source: 'astro',
   kind: 'planetary-hour',
   extract(ctx: ExtractorContext): ActiveSignal[] {
     const { natal, range } = ctx
-    const lat = natal.astro.location.latitude
+    const { latitude, longitude, timeZone } = natal.astro.location
     const signals: ActiveSignal[] = []
     const start = new Date(range.start)
     const end = new Date(range.end)
@@ -71,38 +64,55 @@ const astroPlanetaryHourExtractor: SignalExtractor = {
     for (let t = start.getTime(); t <= end.getTime(); t += 86_400_000) {
       const date = new Date(t)
       const dayIso = date.toISOString().slice(0, 10)
-      const yearStart = Date.UTC(date.getUTCFullYear(), 0, 0)
-      const dayOfYear = Math.floor(
-        (Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()) - yearStart) /
-          86_400_000
-      )
-      const { sunrise, sunset } = sunTimes(dayOfYear, lat)
-      const dayLen = sunset - sunrise
-      const dayHourLen = dayLen / 12
-      const nightHourLen = (24 - dayLen) / 12
-
-      const rulerIdx = CHALDEAN.indexOf(DAY_RULER[date.getUTCDay()])
-
-      // 24 행성시 구간 [start,end) (일출 기준 절대 시각, 야간은 24 넘김).
-      const intervals: Array<{ start: number; end: number; planet: Planet }> = []
-      for (let i = 0; i < 24; i++) {
-        const planet = CHALDEAN[(rulerIdx + i) % 7]
-        const s = i < 12 ? sunrise + i * dayHourLen : sunset + (i - 12) * nightHourLen
-        intervals.push({ start: s, end: 0, planet })
-      }
-      for (let i = 0; i < 24; i++) {
-        intervals[i].end = i < 23 ? intervals[i + 1].start : sunrise + 24
+      const frame = planetaryDayFrame(dayIso, latitude, longitude, timeZone)
+      if (!frame) continue // 극지 날(일출·일몰 없음) — 행성시 미정의
+      // 전날 민용일의 틀 — 그 날 틀의 전날 일몰보다 이른 시각이 있을 때만 한 번 구한다(AC-7).
+      let prevFrame: PlanetaryDayFrame | null | undefined
+      const prevFrameOf = () => {
+        if (prevFrame === undefined) {
+          const prevIso = new Date(t - 86_400_000).toISOString().slice(0, 10)
+          prevFrame = planetaryDayFrame(prevIso, latitude, longitude, timeZone)
+        }
+        return prevFrame
       }
 
-      const planetAt = (clockHour: number): Planet => {
-        let m = clockHour + 0.5
-        if (m < sunrise) m += 24
-        for (const iv of intervals) if (m >= iv.start && m < iv.end) return iv.planet
-        return intervals[intervals.length - 1].planet
+      /** 현지 벽시계 hh:mm 의 UT ms (출생 instant 와 같은 RFC 5545 resolver), 없는 날짜면 null. */
+      const wallMs = (dayStartMs: number, hour: number, minute: number): number | null => {
+        const d = new Date(dayStartMs)
+        try {
+          return resolveBirthInstant(
+            {
+              year: d.getUTCFullYear(),
+              month: d.getUTCMonth() + 1,
+              day: d.getUTCDate(),
+              hour,
+              minute,
+            },
+            timeZone
+          ).utc.getTime()
+        } catch {
+          return null
+        }
+      }
+      // 서머타임 전환이 없는 날(자정~다음 자정 = 24h)은 자정 + (h + 0.5)h 로 바로 —
+      // 시각마다 resolver 를 부르면 월 빌드가 수십 ms 늘었다. 전환일만 시각마다 푼다.
+      const midnight = wallMs(t, 0, 0)
+      const nextMidnight = wallMs(t + 86_400_000, 0, 0)
+      const uniform =
+        midnight !== null && nextMidnight !== null && nextMidnight - midnight === 86_400_000
+
+      /** 현지 벽시계 HH:30 의 행성시. */
+      const planetAt = (clockHour: number): Planet | null => {
+        const ms = uniform ? midnight! + (clockHour + 0.5) * 3600_000 : wallMs(t, clockHour, 30)
+        if (ms === null) return null
+        return (
+          (planetaryHourOnCivilDay(ms, frame, prevFrameOf)?.planet as Planet | undefined) ?? null
+        )
       }
 
       for (let h = 0; h < 24; h++) {
         const planet = planetAt(h)
+        if (!planet) continue
         const polarity = PLANET_POLARITY[planet]
         if (polarity === 0) continue // 중립 — 노이즈 방지
 
@@ -119,7 +129,13 @@ const astroPlanetaryHourExtractor: SignalExtractor = {
           active: {
             start: `${dayIso}T${hh}:00:00.000Z`,
             peak: `${dayIso}T${hh}:30:00.000Z`,
-            end: `${dayIso}T${String((h + 1) % 24).padStart(2, '0')}:00:00.000Z`,
+            // 23시 창은 그날 23:59:59.999 에서 닫는다 — `(h+1)%24` 는 같은 날 00:00 이라
+            // end < start 가 돼 교차·시간 셀에서 빠졌다(엔진 감사 X10). 다음 날 00:00 으로
+            // 열어 두면 day 셀 버킷이 다음 날까지 걸리므로 하루 끝 관례(…T23:59:59.999Z)를 쓴다.
+            end:
+              h === 23
+                ? `${dayIso}T23:59:59.999Z`
+                : `${dayIso}T${String(h + 1).padStart(2, '0')}:00:00.000Z`,
           },
           weight: 0.4,
           evidence: {

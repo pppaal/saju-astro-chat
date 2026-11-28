@@ -1,45 +1,13 @@
-import { computeDayBranch, SHINSAL_POLARITY } from './saju-shinsal'
+import { computeDayBranch, gradeOf, SHINSAL_POLARITY } from './saju-shinsal'
 import { getShinsalInterpretation } from '@/lib/saju/interpretations'
+import { cheonraJimangNet, cheonraJimangPartner } from '@/lib/saju/shinsal'
 import type { ActiveSignal, ExtractorContext, SignalExtractor, Polarity } from '../types'
 import type { ShinsalHit } from '@/lib/saju/types'
 import type { ShinsalGrade } from './saju-shinsal'
 
-/**
- * 신살 등급 분류 — saju-shinsal.ts 의 SHINSAL_GRADE 와 일관 doctrine 으로 유지.
- * 정통 4길성(classical-noble) → 록·마(rok-ma) → 도화·화개(dohwa-hwagae) → 속명(common).
- */
-const SHINSAL_GRADE_LOCAL: Record<string, ShinsalGrade> = {
-  // classical-noble: 정통 4길성
-  천을귀인: 'classical-noble',
-  천덕귀인: 'classical-noble',
-  월덕귀인: 'classical-noble',
-  태극귀인: 'classical-noble',
-
-  // rok-ma: 록·마·문창류
-  건록: 'rok-ma',
-  역마: 'rok-ma',
-  역마살: 'rok-ma',
-  금여성: 'rok-ma',
-  문창: 'rok-ma',
-  문곡: 'rok-ma',
-  학당귀인: 'rok-ma',
-  암록: 'rok-ma',
-  천주귀인: 'rok-ma',
-  천의성: 'rok-ma',
-  천문성: 'rok-ma',
-  제왕: 'rok-ma',
-
-  // dohwa-hwagae: 도화·화개·홍염
-  도화: 'dohwa-hwagae',
-  년살: 'dohwa-hwagae',
-  홍염살: 'dohwa-hwagae',
-  화개: 'dohwa-hwagae',
-  화개살: 'dohwa-hwagae',
-}
-
-function gradeOf(name: string): ShinsalGrade {
-  return SHINSAL_GRADE_LOCAL[name] ?? 'common'
-}
+// 신살 등급(classical-noble → rok-ma → dohwa-hwagae → common)은 saju-shinsal.ts 의
+// SHINSAL_GRADE/gradeOf 단일 출처를 쓴다. (직전엔 같은 표를 SHINSAL_GRADE_LOCAL 로
+// 복제해 들고 있었다.)
 
 /**
  * 본명 신살 일진 활성 추출기 (natalShinsal × daily branch).
@@ -56,8 +24,15 @@ function gradeOf(name: string): ShinsalGrade {
  *  - 이 추출기는 본명 차트가 이미 가지고 있던 신살이 그 anchor 지지를 만난
  *    날 깨어난다는 관점 — `natal.saju.natalShinsal` 필드를 소비.
  *
+ * 천라지망은 예외(G4 · SDR-03, CONVENTIONS §8): 짝 신살(戌+亥 = 천라, 辰+巳 = 지망)이라
+ * 본명 hit 의 anchor 로 깨우지 않고, 일진 지지가 본명 지지와 짝을 *완성*하는 날 활성으로
+ * 본다 — 본명 戌 이면 亥 일, 본명 辰 이면 巳 일. 본명에 이미 짝이 있으면 두 지지 날 모두.
+ * 지지 하나만 같은 날(본명 戌 + 戌 일)은 짝이 아니라 활성이 아니다.
+ *
  * 활성 윈도우: 해당 일진 1일.
  */
+
+const CHEONRA_JIMANG = '천라지망'
 
 // 신살별 polarity 는 saju-shinsal.ts 의 canonical SHINSAL_POLARITY 를 재사용한다.
 // (직전엔 이 파일이 자체 테이블을 들고 있어 천을귀인 2 vs 3, 도화 0 vs 1,
@@ -70,7 +45,15 @@ const sajuShinsalActivationExtractor: SignalExtractor = {
     const signals: ActiveSignal[] = []
     const { natal, range } = ctx
     const natalShinsal: ShinsalHit[] = natal.saju?.natalShinsal ?? []
-    if (natalShinsal.length === 0) return signals
+
+    // 천라지망 짝 완성용 본명 지지 — 보이는 기둥만(시간 미상이면 시주 없음).
+    const natalBranchPillars = new Map<string, string[]>()
+    const p = natal.saju?.pillars
+    for (const kind of ['year', 'month', 'day', 'time'] as const) {
+      const br = p?.[kind]?.earthlyBranch?.name
+      if (!br) continue
+      natalBranchPillars.set(br, [...(natalBranchPillars.get(br) ?? []), kind])
+    }
 
     // 같은 지지에 여러 신살이 anchor 돼있을 수 있어 anchor branch → kinds 맵.
     // 중복 hit (동일 신살이 여러 기둥에 anchor) 는 set 으로 dedup.
@@ -79,6 +62,8 @@ const sajuShinsalActivationExtractor: SignalExtractor = {
     for (const hit of natalShinsal) {
       const branch = hit.target
       if (!branch) continue
+      // 천라지망은 아래 짝 완성 규칙으로만 활성(본명 hit anchor 로 깨우지 않음).
+      if ((hit.kind as string) === CHEONRA_JIMANG) continue
       const inner = anchorMap.get(branch) ?? new Map<string, Set<string>>()
       const pillars = inner.get(hit.kind) ?? new Set<string>()
       for (const p of hit.pillars) pillars.add(p)
@@ -86,7 +71,7 @@ const sajuShinsalActivationExtractor: SignalExtractor = {
       anchorMap.set(branch, inner)
     }
 
-    if (anchorMap.size === 0) return signals
+    if (anchorMap.size === 0 && natalBranchPillars.size === 0) return signals
 
     const start = new Date(range.start)
     const end = new Date(range.end)
@@ -94,8 +79,12 @@ const sajuShinsalActivationExtractor: SignalExtractor = {
       const date = new Date(t)
       const targetBranch = computeDayBranch(date)
       if (!targetBranch) continue
-      const hitsForBranch = anchorMap.get(targetBranch)
-      if (!hitsForBranch) continue
+      const hitsForBranch = new Map(anchorMap.get(targetBranch) ?? [])
+      // 천라지망 — 일진 지지의 짝(戌↔亥, 辰↔巳)이 본명에 있으면 그 기둥들이 활성.
+      const partner = cheonraJimangPartner(targetBranch)
+      const partnerPillars = partner ? natalBranchPillars.get(partner) : undefined
+      if (partnerPillars) hitsForBranch.set(CHEONRA_JIMANG, new Set(partnerPillars))
+      if (hitsForBranch.size === 0) continue
 
       const dayIso = date.toISOString().slice(0, 10)
       const startIso = `${dayIso}T00:00:00.000Z`
@@ -121,12 +110,22 @@ const sajuShinsalActivationExtractor: SignalExtractor = {
             module: 'saju-shinsal-activation',
             shinsalName: kind,
             pillars,
-            detail: {
-              source: 'natal-anchor',
-              anchorBranch: targetBranch,
-              natalPillars: pillars,
-              grade,
-            },
+            detail:
+              kind === CHEONRA_JIMANG
+                ? {
+                    source: 'pair-completion',
+                    anchorBranch: targetBranch,
+                    partnerBranch: partner,
+                    net: cheonraJimangNet(targetBranch),
+                    natalPillars: pillars,
+                    grade,
+                  }
+                : {
+                    source: 'natal-anchor',
+                    anchorBranch: targetBranch,
+                    natalPillars: pillars,
+                    grade,
+                  },
           },
         })
       }

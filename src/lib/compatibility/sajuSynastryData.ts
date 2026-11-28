@@ -9,11 +9,18 @@ import { getGongmang as getGongmangByPillar } from '@/lib/saju/pillarLookup'
 import { pickTwelveSingle } from '@/lib/saju/shinsal'
 import { STEM_KO, BRANCH_KO } from '@/lib/saju/ganjiKo'
 import { getSibseong, BRANCH_MAIN_QI } from '@/lib/saju/core/sibsin'
-import { STEMS, FIVE_ELEMENT_RELATIONS, CHEONEUL_GWIIN_MAP } from '@/lib/saju/constants'
+import {
+  STEMS,
+  STEM_ELEMENT_KO,
+  BRANCH_ELEMENT_KO,
+  FIVE_ELEMENT_RELATIONS,
+  CHEONEUL_GWIIN_MAP,
+} from '@/lib/saju/constants'
 import type { FiveElement, YinYang } from '@/lib/saju/types'
 import type { YongsinResult } from '@/lib/saju/yongsin'
-import { RESENTMENT_PAIRS } from '@/lib/saju/relationTables'
-import { getYearPillarForDate, getSajuYearForDate } from '@/lib/saju/datePillars'
+import { RESENTMENT_PAIRS, STEM_CLASH, toBidiRecord } from '@/lib/saju/relationTables'
+import { pillarsForLocalDate } from '@/lib/calendar-engine/periodPillars'
+import type { CivilDay } from '@/lib/saju/currentUnse'
 
 export const STEM_HAP: Record<string, { other: string; element: string }> = {
   甲: { other: '己', element: '토' },
@@ -28,16 +35,8 @@ export const STEM_HAP: Record<string, { other: string; element: string }> = {
   癸: { other: '戊', element: '화' },
 }
 
-export const STEM_CHUNG: Record<string, string> = {
-  甲: '庚',
-  庚: '甲',
-  乙: '辛',
-  辛: '乙',
-  丙: '壬',
-  壬: '丙',
-  丁: '癸',
-  癸: '丁',
-}
+// 천간충 — 엔진 공통 모드(relationTables STEM_CLASH, 4쌍)에서 파생. 본명·운·캘린더와 동일.
+export const STEM_CHUNG: Record<string, string> = toBidiRecord(STEM_CLASH)
 
 export const BRANCH_HAP: Record<string, { other: string; element: string }> = {
   子: { other: '丑', element: '토' },
@@ -126,18 +125,8 @@ export const BANG_HAP = [
   { branches: ['亥', '子', '丑'], element: '수' },
 ]
 
-export const STEM_EL: Record<string, string> = {
-  甲: '목',
-  乙: '목',
-  丙: '화',
-  丁: '화',
-  戊: '토',
-  己: '토',
-  庚: '금',
-  辛: '금',
-  壬: '수',
-  癸: '수',
-}
+// 천간(한자) → 오행 한글 — 정본 파생 표 STEM_ELEMENT_KO(saju/constants) 재노출. 표 중복 금지.
+export const STEM_EL: Record<string, string> = STEM_ELEMENT_KO
 
 // 지지 본기 천간 (지지를 천간 시각으로 보는 매핑) — 지지 십성 계산용.
 // SSOT(@/lib/saju/core/sibsin.BRANCH_MAIN_QI) 재노출. 표 중복 금지.
@@ -184,20 +173,8 @@ export function spouseStarsFor(gender: SpouseStarGender): ReadonlySet<string> {
   return SPOUSE_STARS_UNKNOWN
 }
 
-export const BRANCH_EL: Record<string, string> = {
-  寅: '목',
-  卯: '목',
-  巳: '화',
-  午: '화',
-  辰: '토',
-  戌: '토',
-  丑: '토',
-  未: '토',
-  申: '금',
-  酉: '금',
-  子: '수',
-  亥: '수',
-}
+// 지지(한자) → 오행 한글 — 정본 파생 표 BRANCH_ELEMENT_KO(saju/constants) 재노출. 표 중복 금지.
+export const BRANCH_EL: Record<string, string> = BRANCH_ELEMENT_KO
 
 // 오행 극(克) 방향 — SSOT FIVE_ELEMENT_RELATIONS.극하는관계 재노출. 표 중복 금지.
 export const EL_CONTROLS: Record<string, string> = FIVE_ELEMENT_RELATIONS.극하는관계
@@ -220,15 +197,17 @@ export const SIBSIN_GLOSS: Record<string, string> = {
 // 방지). 소비처는 .includes 로만 보므로 두 지지의 순서는 무관.
 export const CHEONULGWIIN: Record<string, string[]> = CHEONEUL_GWIIN_MAP
 
-const STEM_ORDER = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸']
-
-// 현재 연도의 세운 간지. 두 사람 공통 시기축.
-// 입춘 경계는 절기 SSOT(datePillars)에 위임 — 예전엔 2/4 고정 근사 + Gregorian
-// 필드(getFullYear/Month/Date)로 직접 산출해, 실제 입춘(연마다 2/3~2/5 변동)과
-// 어긋나고 본명/월운/일진 차트의 절기 convention 과도 달랐다.
-export function currentSeun(now: Date): { stem: string; branch: string; year: number } {
-  const { stem, branch } = getYearPillarForDate(now)
-  return { stem, branch, year: getSajuYearForDate(now) }
+// 상담사 '오늘'의 세운 간지 — 두 사람 공통 시기축. 날짜 D 는 보는 사람의 현지 민용 날짜,
+// timeZone 은 기둥을 재는 출생 tz. 운명상담사·캘린더와 같은 헬퍼(pillarsForLocalDate)라
+// 立春이 든 그 현지 날이 새 세운이다(오너 결정 17 '그날부터 새 기운', CONVENTIONS §3).
+// 예전엔 요청 순간(now)을 절입 순간과 비교해(getYearPillarForDate), 立春 당일 절입 시각
+// 전에는 운명상담사와 다른 해를 말했다.
+export function currentSeun(
+  day: CivilDay,
+  timeZone: string
+): { stem: string; branch: string; year: number } {
+  const { year } = pillarsForLocalDate(day.year, day.month, day.day, timeZone)
+  return { stem: year.stem, branch: year.branch, year: year.sajuYear }
 }
 
 // 십성(十星) — 일간(day) 입장에서 상대 천간(other)이 무슨 십성인가.
@@ -310,13 +289,16 @@ export interface SajuPillarInput {
 }
 
 export interface SajuSynastryInput {
-  /** 년/월/일/시 순서 4 pillars */
+  /** 년/월/일/시 순서 4 pillars — 시각 미상이면 년/월/일 3 pillars(시주 없음)도 받는다. */
   pillarsA: SajuPillarInput[]
   pillarsB: SajuPillarInput[]
   currentDaeunA?: { stem: string; branch: string; age?: number } | null
   currentDaeunB?: { stem: string; branch: string; age?: number } | null
-  /** 세운 계산 기준 시각 (기본 now). 올해 세운↔두 사람 본명·대운 cross에 씀. */
-  now?: Date
+  /**
+   * 올해 세운 — 호출부가 상담사 '오늘'로 고른 기둥(currentSeun(D, 출생 tz)). 세운↔두 사람
+   * 본명·대운 cross 에 쓴다. 없으면 세운 줄을 생략한다(포매터는 시계를 읽지 않는다).
+   */
+  seun?: { stem: string; branch: string; year: number } | null
   /** A/B 실명. 있으면 라벨·오행·극 방향을 이름에 고정해 모델이 뒤집지 못하게 한다. */
   nameA?: string | null
   nameB?: string | null

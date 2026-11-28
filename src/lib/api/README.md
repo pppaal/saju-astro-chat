@@ -9,13 +9,14 @@ This directory contains shared API infrastructure for Next.js route handlers.
 - Guarded route wrappers (`middleware.ts`)
 - Request parsing and validation helpers (`requestParser.ts`, `validation.ts`, `zodValidation.ts`)
 - Standardized error handling (`errorHandler.ts`)
-- Typed API client for backend calls (`ApiClient.ts`)
+- Client-side fetch wrapper for internal routes (`client.ts`: `apiFetch`, credit-modal and balance-refresh events)
 - Response schema helpers (`response-schemas.ts`)
 
 ## Core Entry Points
 
 - `middleware.ts`
-- `ApiClient.ts`
+- `client.ts` (client code imports this, never the `index.ts` barrel)
+- `index.ts` (server-only barrel: error handler, sanitizers, chat-message schemas)
 - `validator.ts`
 - `zodValidation.ts`
 - `response-schemas.ts`
@@ -30,7 +31,7 @@ This directory contains shared API infrastructure for Next.js route handlers.
 
 - Prefer `withApiMiddleware(...)` plus guard presets over manual auth/rate-limit code.
 - Prefer schema-based validation (`zodValidation.ts`) over ad hoc parsing.
-- Use `ApiClient` helpers for backend calls and SSE proxy workflows.
+- Client code calls internal routes with `apiFetch` from `@/lib/api/client`. The `@/lib/api` barrel is server-only; ESLint forbids it in client trees.
 
 ## Link Fixes
 

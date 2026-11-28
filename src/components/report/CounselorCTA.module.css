@@ -1,0 +1,47 @@
+/* 상담사 CTA — v9 변형만(기본 골드 변형은 인라인 스타일 그대로). 토큰(var(--ink) 등)은
+   V9Root(tokens.module.css)가 준다 — v9 paper 화면 안에서만 쓴다.
+   디자인 원본 base_v9.css .cta / .btn.dark: 폭 전체 검은 알약 54px · 가운데 캡션 · 가격 줄. */
+
+.cta {
+  text-align: center;
+}
+
+/* .cta 를 붙여 특이도를 올린다 — 화면 CSS 의 'a { color: inherit }' 류가 알약 글자색을 덮지 않게. */
+.cta .pill {
+  height: 54px;
+  width: 100%;
+  padding: 0 22px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: var(--ink);
+  color: var(--on-dark);
+  font-family: var(--sans);
+  font-weight: 600;
+  font-size: 16px;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  text-decoration: none;
+}
+.cta .pill:hover {
+  color: var(--on-dark);
+  background: var(--ink-2);
+}
+.cta .pill svg {
+  flex-shrink: 0;
+}
+
+.cap {
+  margin: 12px 0 0;
+  font-family: var(--sans);
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--mute);
+}
+
+.price {
+  margin-top: 2px;
+  justify-content: center;
+}

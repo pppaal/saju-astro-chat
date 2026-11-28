@@ -14,6 +14,7 @@
  */
 
 import { koStructuralLabels } from '@/lib/llm/koStructuralLabels'
+import { shinsalNameEn } from '@/lib/calendar-engine/derivers/signalI18n'
 import type { DestinySources } from './destinyCounselorPrompt'
 
 export type PromptLang = 'ko' | 'en'
@@ -22,7 +23,7 @@ export type PromptLang = 'ko' | 'en'
 const ALL_SOURCES: DestinySources = { saju: true, astro: true }
 
 /** A chunk of prompt text in both languages. Edit `ko` → its `en` sits right beside it. */
-export type Bilingual = { ko: string; en: string }
+type Bilingual = { ko: string; en: string }
 
 const bi = (ko: string, en: string): Bilingual => ({ ko, en })
 
@@ -119,6 +120,12 @@ const ASTRO_RULES: Bilingual[] = [
   ),
 ]
 
+// EN 신살 이름 — 정본 SHINSAL_NAME_EN(데이터 블록이 쓰는 이름과 같다). 음역('Yangin' · 'Dohwa')을
+// 쓰지 않는다 — 개별 신살 블록(personalShinsal)과 시너스트리 신살 cross 블록이 정본 이름을 싣는다.
+const EN = (ko: string): string => shinsalNameEn(ko) ?? ko
+const PERSONAL_EN = `${['양인', '귀문관', '원진', '고신', '금여성'].map(EN).join(' · ')} · ${EN('천덕귀인')}/${EN('월덕귀인')}`
+const CROSS_EN = ['도화', '홍염', '백호', '괴강', '천을귀인'].map(EN).join(' / ')
+
 // 사주 시너스트리(saju)가 선택됐을 때만 의미 있는 규칙 — 지장간 cross·개별 신살은
 // 사주 블록을 가리키므로, 사주를 끄면 빠진다.
 const SAJU_RULES: Bilingual[] = [
@@ -128,7 +135,7 @@ const SAJU_RULES: Bilingual[] = [
   ),
   bi(
     `- [개별 신살 — 각자 타고난 것] 블록은 *cross 가 없는 personality 신살*(양인·귀문관·원진·고신·금여성·천덕/월덕귀인) 만 담겨 있다. 도화·홍염·백호·괴강·천을귀인 같은 cross 가능 신살은 시너스트리 신살 cross 블록에서 이미 양방향으로 다루므로 self 에선 제외됨. 이 블록은 *각자의 기질* 로 짧게 활용 (예: A 양인 → 한 번 꽂히면 끝장, B 귀문관 → 미세한 신호에 예민). 단독 나열은 피하고 관계 흐름에 묶어 한 줄 보탤 것.`,
-    `- The per-person sinsal block ([Personal sinsal (self)]) contains *only cross-less personality sinsal* (Yangin · Gwimun · Wonjin · Gosin · Geumyeo · Cheondeok/Woldeok). Cross-bearing sinsal (Dohwa / Hongyeom / Baekho / Goegang / Cheoneul) are already deterministically resolved both ways in the saju synastry sinsal-cross block, so they are intentionally omitted here. Use this block lightly to color *each side's individual temperament* (e.g. A Yangin → once locked in, all-in; B Gwimun → hypersensitive to subtle cues). Never list sinsal in isolation — weave a single line into the dynamic.`
+    `- The per-person sinsal block ([Personal sinsal (self)]) contains *only cross-less personality sinsal* (${PERSONAL_EN}). Cross-bearing sinsal (${CROSS_EN}) are already deterministically resolved both ways in the saju synastry sinsal-cross block, so they are intentionally omitted here. Use this block lightly to color *each side's individual temperament* (e.g. A ${EN('양인')} → once locked in, all-in; B ${EN('귀문관')} → hypersensitive to subtle cues). Never list sinsal in isolation — weave a single line into the dynamic.`
   ),
 ]
 

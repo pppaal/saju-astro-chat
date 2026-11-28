@@ -2,14 +2,16 @@
 //
 // 본문은 결정론 엔진(zodiacCompat.ts)이 두 띠의 고전 지지 관계(삼합·육합·충 등)로
 // 계산 — 상시(evergreen) 콘텐츠. 하단에서 개인화 제품(무료 궁합)으로 흘려보낸다.
-// URL 대칭(A×B=B×A): 역순 슬러그도 열리지만 canonical 은 정규 순서를 가리킨다.
+// URL 대칭(A×B=B×A): 역순 슬러그는 정규 슬러그로 308 리다이렉트한다 — 같은 커플이
+// URL 순서에 따라 다른 점수·등급을 보지 않게(재감사 CS-4). 메타데이터도 정규 순서로 만든다.
 
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { notFound } from 'next/navigation'
+import { notFound, permanentRedirect } from 'next/navigation'
 import { JsonLd } from '@/components/seo/JsonLd'
 import { generateJsonLd, generateLocalizedMetadata, getServerLocale } from '@/components/seo/SEO'
 import {
+  canonicalPair,
   canonicalPairSlug,
   computeZodiacCompat,
   parsePairSlug,
@@ -31,7 +33,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!parsed) {
     return { title: 'Not Found', robots: { index: false, follow: false } }
   }
-  const { a, b } = parsed
+  const { a, b } = canonicalPair(parsed.a, parsed.b)
   const locale = await getServerLocale()
   const c = computeZodiacCompat(a, b)
   // 역순 슬러그는 정규 슬러그로 canonical — 중복 색인 방지.
@@ -77,12 +79,13 @@ export default async function ZodiacCompatPage({ params }: Props) {
   const { pair } = await params
   const parsed = parsePairSlug(pair)
   if (!parsed) notFound()
-  const { a, b } = parsed
+  const canonicalSlug = canonicalPairSlug(parsed.a, parsed.b)
+  if (pair !== canonicalSlug) permanentRedirect(`/compatibility/zodiac/${canonicalSlug}`)
+  const { a, b } = canonicalPair(parsed.a, parsed.b)
   const locale = await getServerLocale()
   const isKo = locale === 'ko'
   const c = computeZodiacCompat(a, b)
   const tint = tintForScore(c.score)
-  const canonicalSlug = canonicalPairSlug(a, b)
 
   const pageJsonLd = generateJsonLd({
     type: 'WebPage',
@@ -216,7 +219,7 @@ export default async function ZodiacCompatPage({ params }: Props) {
             <Link href="/compatibility/free" style={{ color: '#a9833b', fontWeight: 700 }}>
               {isKo ? '💕 우리 진짜 궁합 무료로 보기 →' : '💕 Our real compatibility, free →'}
             </Link>
-            <Link href="/free" style={{ color: '#a9833b', fontWeight: 600 }}>
+            <Link href="/" style={{ color: '#a9833b', fontWeight: 600 }}>
               {isKo ? '✨ 무료 도구 전체 →' : '✨ All free tools →'}
             </Link>
           </p>

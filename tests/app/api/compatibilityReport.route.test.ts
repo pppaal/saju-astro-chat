@@ -281,3 +281,28 @@ describe('POST /api/compatibility/report — buildCompatReport 결과 전달', (
     expect(json.data).toEqual(report)
   })
 })
+
+describe('POST /api/compatibility/report — 도시 미상 플래그 (재감사 CS-2)', () => {
+  it('cityUnknownA/B 는 true 일 때만 true 로 전달 — 시간 미상과 독립', async () => {
+    await POST(
+      makeReq({
+        pillarsA: VALID_PILLARS,
+        pillarsB: VALID_PILLARS,
+        timeUnknownA: false,
+        cityUnknownA: true,
+        cityUnknownB: 'yes',
+      })
+    )
+    const arg = vi.mocked(buildCompatReport).mock.calls[0][0]
+    expect(arg.cityUnknownA).toBe(true)
+    expect(arg.cityUnknownB).toBe(false)
+    expect(arg.timeUnknownA).toBe(false)
+  })
+
+  it('플래그가 없으면 둘 다 false (옛 클라이언트 호환)', async () => {
+    await POST(makeReq({ pillarsA: VALID_PILLARS, pillarsB: VALID_PILLARS }))
+    const arg = vi.mocked(buildCompatReport).mock.calls[0][0]
+    expect(arg.cityUnknownA).toBe(false)
+    expect(arg.cityUnknownB).toBe(false)
+  })
+})

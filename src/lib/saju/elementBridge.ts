@@ -1,17 +1,14 @@
 // Bridge between Saju 오행 and Astrology 4-element vocabularies.
 // Pure data, no logic. Logic lives in normalizer/rule predicates.
 
+import { ELEMENT_KO_TO_KEY } from './constants'
+
 export type SajuElement = 'wood' | 'fire' | 'earth' | 'metal' | 'water'
 export type AstroElement = 'fire' | 'earth' | 'air' | 'water'
 
-// 오행(한글) ↔ saju element key
-export const KO_TO_SAJU_ELEMENT: Record<string, SajuElement> = {
-  목: 'wood',
-  화: 'fire',
-  토: 'earth',
-  금: 'metal',
-  수: 'water',
-}
+// 오행(한글) ↔ saju element key — 정본 파생 표(saju/constants ELEMENT_KO_TO_KEY, D8).
+// constants 는 이 파일에서 타입만 가져오므로 런타임 순환이 없다.
+export const KO_TO_SAJU_ELEMENT: Record<string, SajuElement> = ELEMENT_KO_TO_KEY
 
 // 5행 ↔ 4원소 후보 매핑.
 //

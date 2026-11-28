@@ -66,7 +66,9 @@ test.describe('Profile & Settings Flow', () => {
     test('should accept name input if available', async ({ page }) => {
       await page.goto('/profile', { waitUntil: 'domcontentloaded' })
 
-      const nameInput = page.locator('input[name*="name"], input[placeholder*="이름"], input[type="text"]').first()
+      const nameInput = page
+        .locator('input[name*="name"], input[placeholder*="이름"], input[type="text"]')
+        .first()
       if ((await nameInput.count()) > 0 && (await nameInput.isVisible())) {
         await nameInput.fill('테스트 이름')
         const value = await nameInput.inputValue()
@@ -83,28 +85,6 @@ test.describe('Profile & Settings Flow', () => {
         const value = await dateInput.inputValue()
         expect(value).toBe('1990-05-15')
       }
-    })
-  })
-
-  test.describe('Notifications Settings', () => {
-    test('should load notifications page with content', async ({ page }) => {
-      await page.goto('/notifications', { waitUntil: 'domcontentloaded' })
-      await expect(page.locator('body')).toBeVisible()
-
-      const bodyText = await page.locator('body').textContent()
-      expect(bodyText!.length).toBeGreaterThan(10)
-    })
-
-    test('should display notification settings or empty state', async ({ page }) => {
-      await page.goto('/notifications', { waitUntil: 'domcontentloaded' })
-
-      const toggles = page.locator(
-        'input[type="checkbox"], [role="switch"], button[class*="toggle"]'
-      )
-      const count = await toggles.count()
-
-      const bodyText = await page.locator('body').textContent()
-      expect(count > 0 || bodyText!.length > 50).toBe(true)
     })
   })
 
@@ -158,7 +138,9 @@ test.describe('Profile & Settings Flow', () => {
     test('should handle form submission', async ({ page }) => {
       await page.goto('/auth/signin', { waitUntil: 'domcontentloaded' })
 
-      const submitButton = page.locator('button[type="submit"], button:has-text("로그인"), button:has-text("Sign")')
+      const submitButton = page.locator(
+        'button[type="submit"], button:has-text("로그인"), button:has-text("Sign")'
+      )
       if ((await submitButton.count()) > 0) {
         await submitButton.first().click()
         await page.waitForTimeout(500)

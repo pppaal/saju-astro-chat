@@ -26,7 +26,7 @@
 import { CALENDAR_BANDS } from './constants'
 
 export type DayBand = 'good' | 'mid' | 'low'
-export type DayTone = 'positive' | 'mixed' | 'caution'
+type DayTone = 'positive' | 'mixed' | 'caution'
 
 export interface DayToneInput {
   /** 사용자에게 실제 보여주는 점수(day.score = favorScore ?? derivedScore). */
@@ -126,7 +126,7 @@ export function mixedFlavor(v: DayVerdict): 'volatile' | 'flat' {
  *  기복) · flat(둘 다 없음=평이/고른). */
 export type MonthTone = 'good' | 'care' | 'volatile' | 'flat'
 /** 공유카드/후크용 톤 별칭 — MonthTone 과 1:1. */
-export type MonthShareTone = 'bright' | 'careful' | 'mixed' | 'steady'
+type MonthShareTone = 'bright' | 'careful' | 'mixed' | 'steady'
 
 export interface MonthCounts {
   /** 좋은 날 수(good 밴드). */
@@ -140,7 +140,7 @@ export interface MonthCounts {
 }
 
 export interface MonthVerdict {
-  /** 히어로·톤워드·총평·공유카드가 다 따라야 할 단일 월 톤. */
+  /** 히어로·톤워드·공유카드가 다 따라야 할 단일 월 톤. */
   tone: MonthTone
   /** 공유/후크용 별칭(tone→map). */
   shareTone: MonthShareTone
@@ -150,12 +150,17 @@ export interface MonthVerdict {
   cautionN: number
   avoidN: number
   totalN: number
+  /**
+   * 평온(Calm) 날 수 = totalN − goodN − cautionN − avoidN (중간 밴드). 표면마다
+   * 따로 빼다 어긋나지 않게 여기서 한 번만 센다(음수는 0 으로).
+   */
+  calmN: number
 }
 
 /**
- * 월 카운트 → 단일 월 verdict. 예전엔 이 4분류 공식이 MonthTier(noviceTone)와
- * monthSummary(tone+isFlat) 두 곳에 복붙돼 주석으로만 "동일 공식"을 강제했다
- * (감사 D-1: 한쪽 임계만 바뀌면 히어로 칩과 총평 문단이 조용히 어긋남). 여기 한
+ * 월 카운트 → 단일 월 verdict. 예전엔 이 4분류 공식이 옛 MonthTier(noviceTone)와
+ * 옛 monthSummary(tone+isFlat, D9 에서 삭제) 두 곳에 복붙돼 주석으로만 "동일 공식"을
+ * 강제했다(감사 D-1: 한쪽 임계만 바뀌면 히어로 칩과 총평 문단이 조용히 어긋남). 여기 한
  * 곳에서만 판정한다.
  *
  * good  : 좋은날이 조심날의 2배 이상(그리고 >0) — 확실히 순한 달.
@@ -176,5 +181,6 @@ export function reconcileMonthTone(counts: MonthCounts): MonthVerdict {
           : 'volatile'
   const shareTone: MonthShareTone =
     tone === 'good' ? 'bright' : tone === 'care' ? 'careful' : tone === 'flat' ? 'steady' : 'mixed'
-  return { tone, shareTone, goodN, careN, cautionN, avoidN, totalN }
+  const calmN = Math.max(0, totalN - goodN - cautionN - avoidN)
+  return { tone, shareTone, goodN, careN, cautionN, avoidN, totalN, calmN }
 }

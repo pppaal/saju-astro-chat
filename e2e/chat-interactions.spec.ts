@@ -2,8 +2,8 @@ import { test, expect } from '@playwright/test'
 
 test.describe('Chat Interactions Tests', () => {
   test.describe('Destiny Map Chat', () => {
-    test('should load destiny-map counselor page with Korean content', async ({ page }) => {
-      await page.goto('/destiny-map/counselor', { waitUntil: 'domcontentloaded' })
+    test('should load destiny-counselor counselor page with Korean content', async ({ page }) => {
+      await page.goto('/destiny-counselor', { waitUntil: 'domcontentloaded' })
       await expect(page.locator('body')).toBeVisible()
 
       const bodyText = await page.locator('body').textContent()
@@ -18,7 +18,7 @@ test.describe('Chat Interactions Tests', () => {
     })
 
     test('should have message input field visible', async ({ page }) => {
-      await page.goto('/destiny-map/counselor', { waitUntil: 'domcontentloaded' })
+      await page.goto('/destiny-counselor', { waitUntil: 'domcontentloaded' })
 
       const input = page.locator('textarea, input[type="text"]')
       const count = await input.count()
@@ -36,7 +36,7 @@ test.describe('Chat Interactions Tests', () => {
     })
 
     test('should have send button visible', async ({ page }) => {
-      await page.goto('/destiny-map/counselor', { waitUntil: 'domcontentloaded' })
+      await page.goto('/destiny-counselor', { waitUntil: 'domcontentloaded' })
 
       const sendButton = page.locator(
         'button[type="submit"], button:has-text("전송"), button:has-text("Send"), button[class*="send"]'
@@ -56,7 +56,7 @@ test.describe('Chat Interactions Tests', () => {
     })
 
     test('should allow typing message and retain value', async ({ page }) => {
-      await page.goto('/destiny-map/counselor', { waitUntil: 'domcontentloaded' })
+      await page.goto('/destiny-counselor', { waitUntil: 'domcontentloaded' })
 
       const input = page.locator('textarea, input[type="text"]').first()
       if ((await input.count()) > 0 && (await input.isVisible())) {
@@ -68,78 +68,7 @@ test.describe('Chat Interactions Tests', () => {
     })
   })
 
-  test.describe('Saju Counselor Chat', () => {
-    test('should load saju counselor page with Korean content', async ({ page }) => {
-      await page.goto('/saju/counselor', { waitUntil: 'domcontentloaded' })
-      await expect(page.locator('body')).toBeVisible()
-
-      const bodyText = await page.locator('body').textContent()
-      expect(bodyText!.length).toBeGreaterThan(50)
-
-      const hasSajuContent =
-        bodyText!.includes('사주') ||
-        bodyText!.includes('상담') ||
-        bodyText!.includes('운세')
-      expect(hasSajuContent).toBe(true)
-    })
-
-    test('should have chat input on saju counselor visible', async ({ page }) => {
-      await page.goto('/saju/counselor', { waitUntil: 'domcontentloaded' })
-
-      const chatInput = page.locator('textarea, input[type="text"]')
-      const count = await chatInput.count()
-
-      if (count > 0) {
-        let visibleInput = false
-        for (let i = 0; i < count; i++) {
-          if (await chatInput.nth(i).isVisible()) {
-            visibleInput = true
-            break
-          }
-        }
-        expect(visibleInput).toBe(true)
-      }
-    })
-
-    test('should accept chat input on saju counselor', async ({ page }) => {
-      await page.goto('/saju/counselor', { waitUntil: 'domcontentloaded' })
-
-      const input = page.locator('textarea, input[type="text"]').first()
-      if ((await input.count()) > 0 && (await input.isVisible())) {
-        await input.fill('올해 재물운이 궁금해요')
-        const value = await input.inputValue()
-        expect(value).toContain('재물')
-      }
-    })
-  })
-
   test.describe('Compatibility Chat', () => {
-    test('should load compatibility chat page with content', async ({ page }) => {
-      await page.goto('/compatibility/chat', { waitUntil: 'domcontentloaded' })
-      await expect(page.locator('body')).toBeVisible()
-
-      const bodyText = await page.locator('body').textContent()
-      expect(bodyText!.length).toBeGreaterThan(50)
-    })
-
-    test('should have message input on compatibility chat visible', async ({ page }) => {
-      await page.goto('/compatibility/chat', { waitUntil: 'domcontentloaded' })
-
-      const input = page.locator('textarea, input[type="text"]')
-      const count = await input.count()
-
-      if (count > 0) {
-        let visibleInput = false
-        for (let i = 0; i < count; i++) {
-          if (await input.nth(i).isVisible()) {
-            visibleInput = true
-            break
-          }
-        }
-        expect(visibleInput).toBe(true)
-      }
-    })
-
     test('should load compatibility counselor page with content', async ({ page }) => {
       await page.goto('/compatibility/counselor', { waitUntil: 'domcontentloaded' })
       await expect(page.locator('body')).toBeVisible()
@@ -148,16 +77,14 @@ test.describe('Chat Interactions Tests', () => {
       expect(bodyText!.length).toBeGreaterThan(50)
 
       const hasCompatibilityContent =
-        bodyText!.includes('궁합') ||
-        bodyText!.includes('상담') ||
-        bodyText!.includes('연인')
+        bodyText!.includes('궁합') || bodyText!.includes('상담') || bodyText!.includes('연인')
       expect(hasCompatibilityContent).toBe(true)
     })
   })
 
   test.describe('Chat Message Handling', () => {
     test('should handle empty message submission gracefully', async ({ page }) => {
-      await page.goto('/destiny-map/counselor', { waitUntil: 'domcontentloaded' })
+      await page.goto('/destiny-counselor', { waitUntil: 'domcontentloaded' })
 
       const sendButton = page.locator('button[type="submit"], button:has-text("전송")')
       if ((await sendButton.count()) > 0 && (await sendButton.first().isVisible())) {
@@ -173,7 +100,7 @@ test.describe('Chat Interactions Tests', () => {
     })
 
     test('should be able to type long message', async ({ page }) => {
-      await page.goto('/destiny-map/counselor', { waitUntil: 'domcontentloaded' })
+      await page.goto('/destiny-counselor', { waitUntil: 'domcontentloaded' })
 
       const input = page.locator('textarea').first()
       if ((await input.count()) > 0 && (await input.isVisible())) {
@@ -186,7 +113,7 @@ test.describe('Chat Interactions Tests', () => {
     })
 
     test('should clear input after placeholder interaction', async ({ page }) => {
-      await page.goto('/destiny-map/counselor', { waitUntil: 'domcontentloaded' })
+      await page.goto('/destiny-counselor', { waitUntil: 'domcontentloaded' })
 
       const input = page.locator('textarea, input[type="text"]').first()
       if ((await input.count()) > 0 && (await input.isVisible())) {
@@ -200,7 +127,7 @@ test.describe('Chat Interactions Tests', () => {
 
   test.describe('Chat Keyboard Interactions', () => {
     test('should allow keyboard input', async ({ page }) => {
-      await page.goto('/destiny-map/counselor', { waitUntil: 'domcontentloaded' })
+      await page.goto('/destiny-counselor', { waitUntil: 'domcontentloaded' })
 
       const input = page.locator('textarea, input').first()
       if ((await input.count()) > 0 && (await input.isVisible())) {
@@ -212,7 +139,7 @@ test.describe('Chat Interactions Tests', () => {
     })
 
     test('should handle Shift+Enter in textarea for newline', async ({ page }) => {
-      await page.goto('/destiny-map/counselor', { waitUntil: 'domcontentloaded' })
+      await page.goto('/destiny-counselor', { waitUntil: 'domcontentloaded' })
 
       const textarea = page.locator('textarea').first()
       if ((await textarea.count()) > 0 && (await textarea.isVisible())) {
@@ -226,7 +153,7 @@ test.describe('Chat Interactions Tests', () => {
     })
 
     test('should focus input on Tab navigation', async ({ page }) => {
-      await page.goto('/destiny-map/counselor', { waitUntil: 'domcontentloaded' })
+      await page.goto('/destiny-counselor', { waitUntil: 'domcontentloaded' })
 
       await page.keyboard.press('Tab')
       await page.keyboard.press('Tab')
@@ -238,9 +165,11 @@ test.describe('Chat Interactions Tests', () => {
   })
 
   test.describe('Chat Mobile Experience', () => {
-    test('should render destiny counselor on mobile without horizontal scroll', async ({ page }) => {
+    test('should render destiny counselor on mobile without horizontal scroll', async ({
+      page,
+    }) => {
       await page.setViewportSize({ width: 375, height: 667 })
-      await page.goto('/destiny-map/counselor', { waitUntil: 'domcontentloaded' })
+      await page.goto('/destiny-counselor', { waitUntil: 'domcontentloaded' })
 
       await expect(page.locator('body')).toBeVisible()
 
@@ -251,11 +180,12 @@ test.describe('Chat Interactions Tests', () => {
 
     test('should have usable input on mobile', async ({ page }) => {
       await page.setViewportSize({ width: 375, height: 667 })
-      await page.goto('/destiny-map/counselor', { waitUntil: 'domcontentloaded' })
+      await page.goto('/destiny-counselor', { waitUntil: 'domcontentloaded' })
 
       const input = page.locator('textarea, input').first()
       if ((await input.count()) > 0 && (await input.isVisible())) {
-        await input.tap()
+        // 데스크톱 컨텍스트(hasTouch 없음)라 tap 대신 click — 포커스 후 입력되는지만 본다.
+        await input.click()
         await input.fill('모바일 테스트 메시지')
         const value = await input.inputValue()
         expect(value).toContain('모바일')
@@ -264,7 +194,7 @@ test.describe('Chat Interactions Tests', () => {
 
     test('should have touch-friendly send button on mobile', async ({ page }) => {
       await page.setViewportSize({ width: 375, height: 667 })
-      await page.goto('/destiny-map/counselor', { waitUntil: 'domcontentloaded' })
+      await page.goto('/destiny-counselor', { waitUntil: 'domcontentloaded' })
 
       const buttons = page.locator('button')
       const count = await buttons.count()
@@ -279,17 +209,6 @@ test.describe('Chat Interactions Tests', () => {
           }
         }
       }
-    })
-
-    test('should render saju counselor on mobile', async ({ page }) => {
-      await page.setViewportSize({ width: 375, height: 667 })
-      await page.goto('/saju/counselor', { waitUntil: 'domcontentloaded' })
-
-      await expect(page.locator('body')).toBeVisible()
-
-      const bodyWidth = await page.evaluate(() => document.body.scrollWidth)
-      const viewportWidth = await page.evaluate(() => window.innerWidth)
-      expect(bodyWidth).toBeLessThanOrEqual(viewportWidth + 20)
     })
   })
 
@@ -309,80 +228,15 @@ test.describe('Chat Interactions Tests', () => {
       expect(bodyText!.length).toBeGreaterThan(50)
 
       const hasTarotContent =
-        bodyText?.includes('타로') ||
-        bodyText?.includes('Tarot') ||
-        bodyText?.includes('카드')
+        bodyText?.includes('타로') || bodyText?.includes('Tarot') || bodyText?.includes('카드')
       expect(hasTarotContent).toBe(true)
-    })
-  })
-
-  test.describe('Astrology Counselor', () => {
-    test('should load astrology counselor page with Korean content', async ({ page }) => {
-      await page.goto('/astrology/counselor', { waitUntil: 'domcontentloaded' })
-      await expect(page.locator('body')).toBeVisible()
-
-      const bodyText = await page.locator('body').textContent()
-      expect(bodyText!.length).toBeGreaterThan(50)
-
-      const hasAstrologyContent =
-        bodyText!.includes('점성술') ||
-        bodyText!.includes('별자리') ||
-        bodyText!.includes('상담')
-      expect(hasAstrologyContent).toBe(true)
-    })
-
-    test('should have chat input on astrology counselor visible', async ({ page }) => {
-      await page.goto('/astrology/counselor', { waitUntil: 'domcontentloaded' })
-
-      const chatInput = page.locator('textarea, input[type="text"]')
-      const count = await chatInput.count()
-
-      if (count > 0) {
-        let visibleInput = false
-        for (let i = 0; i < count; i++) {
-          if (await chatInput.nth(i).isVisible()) {
-            visibleInput = true
-            break
-          }
-        }
-        expect(visibleInput).toBe(true)
-      }
-    })
-
-    test('should accept message on astrology counselor', async ({ page }) => {
-      await page.goto('/astrology/counselor', { waitUntil: 'domcontentloaded' })
-
-      const input = page.locator('textarea, input[type="text"]').first()
-      if ((await input.count()) > 0 && (await input.isVisible())) {
-        await input.fill('제 별자리 운세가 궁금해요')
-        const value = await input.inputValue()
-        expect(value).toContain('별자리')
-      }
     })
   })
 
   test.describe('Chat Page Load Performance', () => {
     test('should load destiny counselor within acceptable time', async ({ page }) => {
       const startTime = Date.now()
-      await page.goto('/destiny-map/counselor', { waitUntil: 'domcontentloaded' })
-      const loadTime = Date.now() - startTime
-
-      expect(loadTime).toBeLessThan(10000)
-      await expect(page.locator('body')).toBeVisible()
-    })
-
-    test('should load saju counselor within acceptable time', async ({ page }) => {
-      const startTime = Date.now()
-      await page.goto('/saju/counselor', { waitUntil: 'domcontentloaded' })
-      const loadTime = Date.now() - startTime
-
-      expect(loadTime).toBeLessThan(10000)
-      await expect(page.locator('body')).toBeVisible()
-    })
-
-    test('should load astrology counselor within acceptable time', async ({ page }) => {
-      const startTime = Date.now()
-      await page.goto('/astrology/counselor', { waitUntil: 'domcontentloaded' })
+      await page.goto('/destiny-counselor', { waitUntil: 'domcontentloaded' })
       const loadTime = Date.now() - startTime
 
       expect(loadTime).toBeLessThan(10000)

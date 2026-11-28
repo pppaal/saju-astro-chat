@@ -37,14 +37,14 @@ interface InsightEntry {
 }
 
 /** 발행 URL(threads.net/t/{id}) 폴백에서 media id 추출 — 구버전 초안용. */
-export function mediaIdFromUrl(url: string | undefined): string | null {
+function mediaIdFromUrl(url: string | undefined): string | null {
   if (!url) return null
   const m = url.match(/\/t\/([A-Za-z0-9_-]+)\/?$/)
   return m ? m[1] : null
 }
 
 /** 단일 미디어의 insights 조회. 실패 시 에러 메시지를 문자열로 돌려준다. */
-export async function fetchThreadsInsights(
+async function fetchThreadsInsights(
   mediaId: string
 ): Promise<{ metrics: SocialPostMetrics } | { error: string }> {
   const t = await getThreadsAccessToken()

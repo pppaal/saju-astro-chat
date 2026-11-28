@@ -2,85 +2,167 @@
  * Swiss Ephemeris 골든 회귀 가드 (standalone — vitest 목킹 우회).
  *
  * 왜 standalone 인가:
- *   tests/setup.ts 가 swisseph 와 ephe 모듈을 전역 목킹(행성 고정)해서,
- *   vitest 안에선 "코드가 안 깨지나"만 보고 "천체 계산이 맞나"는 검증 못 함.
- *   이 스크립트는 *실제* swisseph 로 고정 날짜의 행성 황경을 재계산해
- *   박아둔 골든 값과 대조 → ephemeris 라이브러리/플래그가 바뀌면 즉시 실패.
+ *   tests/setup.ts 가 swisseph 와 ephe 모듈을 전역 목킹(행성 고정)해서, vitest 안에선
+ *   목을 푼 파일(tests/golden/astro.golden.node.test.ts 등)만 천체 계산을 본다. 이
+ *   스크립트는 vitest 없이 *실제* swisseph 로 본명 차트를 계산해, 독립 천체력 골든과
+ *   대조 → ephemeris 라이브러리/데이터/플래그나 시간대 변환이 바뀌면 즉시 실패.
  *
- * 실행: npm run test:ephemeris-golden  (CI 스텝 권장)
- * 골든 재생성: 아래 GOLDEN 을 지우고 PRINT_MODE=1 로 실행한 출력으로 교체.
+ * 기준값: tests/golden/engine-golden.json 의 astro.charts — scripts/golden/build-engine-golden.mts
+ *   가 astronomy-engine(진황도·겉보기 위치)·접촉 교점·GAST 앵글·독립 Placidus 로 만든 값이다
+ *   (엔진 출력 아님). 예전 이 스크립트는 swisseph 자신이 낸 값 3날짜 × 10행성을 위도·경도 0,
+ *   UTC 로만 고정해 시간대 변환·ASC/MC·커스프·하우스·교점·역행을 전혀 안 봤다(엔진 감사 F10).
+ *   이제 서머타임·KMT·남반구·극권 WholeSign 폴백 차트까지 행성·교점·ASC/MC·커스프·하우스·
+ *   역행을 골든 허용오차(행성·교점·앵글 0.02°, 커스프 0.03°)로 본다.
+ *
+ * 실행: npm run test:ephemeris-golden  (CI pr-checks build-check)
+ * 골든 갱신: npm run golden:build (생성기) — 이 파일에 값을 손으로 적지 않는다.
  */
+import { readFileSync } from 'node:fs'
+import { dirname, resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
 
-// 고정 기준: lat=0, lon=0, UTC, 정오. (위치 무관한 황경 — angles 아님)
-const FIXED = { latitude: 0, longitude: 0, timeZone: 'UTC' } as const
-const PLANETS = [
-  'Sun', 'Moon', 'Mercury', 'Venus', 'Mars',
-  'Jupiter', 'Saturn', 'Uranus', 'Neptune', 'Pluto',
-] as const
-
-// 실제 Swiss Ephemeris 로 캡처한 황경(도). 라이브러리/데이터 변경 시 깨짐.
-const GOLDEN: Record<string, Record<string, number>> = {
-  '2020-01-01': { Sun: 280.519, Moon: 352.085, Mercury: 275.171, Venus: 315.022, Mars: 238.721, Jupiter: 276.786, Saturn: 291.453, Uranus: 32.69, Neptune: 346.274, Pluto: 292.402 },
-  '2024-06-15': { Sun: 84.876, Moon: 188.765, Mercury: 85.884, Venus: 87.833, Mars: 34.669, Jupiter: 64.767, Saturn: 349.258, Uranus: 54.961, Neptune: 359.854, Pluto: 301.688 },
-  '2026-12-31': { Sun: 279.811, Moon: 198.25, Mercury: 279.101, Venus: 232.991, Mars: 159.812, Jupiter: 146.472, Saturn: 8.313, Uranus: 62.318, Neptune: 1.713, Pluto: 304.337 },
+type Body = { lon: number; sign: string; house?: number; retrograde?: boolean }
+type GoldenChart = {
+  id: string
+  input: { date: string; time: string; tz: string; lat: number; lon: number }
+  houseSystem: string
+  planets: Record<string, Body>
+  trueNode: Body
+  ascendant: Body
+  mc: Body
+  cusps: number[]
+}
+type Golden = {
+  astro: {
+    tolerance: { planetDeg: number; nodeDeg: number; angleDeg: number; cuspDeg: number }
+    charts: GoldenChart[]
+  }
+}
+type NatalPlanet = {
+  name: string
+  longitude: number
+  sign: string
+  house: number
+  retrograde?: boolean
+}
+type Natal = {
+  planets: NatalPlanet[]
+  ascendant: { longitude: number; sign: string }
+  mc: { longitude: number; sign: string }
+  houses: Array<{ cusp: number }>
+  meta?: { houseSystem?: string }
 }
 
-// 결정적 계산이라 매우 타이트하게. 라이브러리 교체 시 보통 도 단위로 틀어짐.
-const TOLERANCE_DEG = 0.05
+const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
+const golden = JSON.parse(
+  readFileSync(resolve(ROOT, 'tests/golden/engine-golden.json'), 'utf8')
+) as Golden
+const TOL = golden.astro.tolerance
+
+const angDiff = (a: number, b: number) => Math.abs(((a - b + 540) % 360) - 180)
 
 async function main() {
   // tsx 정적 named-import 가 이 모듈 export 를 못 잡아 dynamic import 사용.
-  const transit = await import('../src/lib/astrology/foundation/transit')
-  const calculateTransitChart = (
-    transit as unknown as {
-      calculateTransitChart: (a: {
-        iso: string
-        latitude: number
-        longitude: number
-        timeZone: string
-      }) => Promise<{ planets: Array<{ name: string; longitude: number }> }>
-    }
-  ).calculateTransitChart
+  const service = (await import('../src/lib/astrology/foundation/astrologyService')) as unknown as {
+    calculateNatalChart: (a: {
+      year: number
+      month: number
+      date: number
+      hour: number
+      minute: number
+      latitude: number
+      longitude: number
+      timeZone: string
+    }) => Promise<Natal>
+  }
 
-  const printMode = process.env.PRINT_MODE === '1'
-  let failures = 0
+  const failures: string[] = []
+  const check = (ok: boolean, msg: string) => {
+    if (!ok) failures.push(msg)
+  }
+  let checks = 0
 
-  for (const date of Object.keys(GOLDEN)) {
-    const chart = await calculateTransitChart({ iso: `${date}T12:00:00`, ...FIXED })
-    const row: Record<string, number> = {}
-    for (const p of PLANETS) {
-      const pl = chart.planets.find((x) => x.name === p)
-      if (pl) row[p] = Math.round(pl.longitude * 1000) / 1000
-    }
-    if (printMode) {
-      console.log(`  '${date}': ${JSON.stringify(row)},`)
-      continue
-    }
-    for (const p of PLANETS) {
-      const expected = GOLDEN[date][p]
-      const actual = row[p]
-      if (typeof expected !== 'number') continue
-      if (typeof actual !== 'number') {
-        console.error(`❌ ${date} ${p}: 계산값 없음`)
-        failures++
+  for (const c of golden.astro.charts) {
+    const [year, month, date] = c.input.date.split('-').map(Number)
+    const [hour, minute] = c.input.time.split(':').map(Number)
+    const n = await service.calculateNatalChart({
+      year,
+      month,
+      date,
+      hour,
+      minute,
+      latitude: c.input.lat,
+      longitude: c.input.lon,
+      timeZone: c.input.tz,
+    })
+    const tag = `${c.id} ${c.input.date} ${c.input.time} ${c.input.tz}`
+
+    for (const [name, ref] of Object.entries(c.planets)) {
+      const p = n.planets.find((x) => x.name === name)
+      checks++
+      if (!p) {
+        failures.push(`${tag} ${name}: 계산값 없음`)
         continue
       }
-      // 황경 wrap(0/360) 고려한 최소 각거리
-      let diff = Math.abs(actual - expected) % 360
-      if (diff > 180) diff = 360 - diff
-      if (diff > TOLERANCE_DEG) {
-        console.error(`❌ ${date} ${p}: expected ${expected}°, got ${actual}° (Δ${diff.toFixed(3)}°)`)
-        failures++
-      }
+      const d = angDiff(p.longitude, ref.lon)
+      check(
+        d <= TOL.planetDeg,
+        `${tag} ${name}: ${p.longitude.toFixed(4)}° vs ${ref.lon}° (Δ${d.toFixed(4)}°)`
+      )
+      check(p.sign === ref.sign, `${tag} ${name} sign: ${p.sign} vs ${ref.sign}`)
+      check(p.house === ref.house, `${tag} ${name} house: ${p.house} vs ${ref.house}`)
+      check(
+        !!p.retrograde === !!ref.retrograde,
+        `${tag} ${name} retrograde: ${!!p.retrograde} vs ${!!ref.retrograde}`
+      )
     }
+
+    const node = n.planets.find((x) => x.name === 'True Node')
+    checks++
+    check(
+      !!node &&
+        angDiff(node.longitude, c.trueNode.lon) <= TOL.nodeDeg &&
+        node.sign === c.trueNode.sign,
+      `${tag} True Node: ${node?.longitude.toFixed(4)}° ${node?.sign} vs ${c.trueNode.lon}° ${c.trueNode.sign}`
+    )
+
+    checks += 2
+    for (const [label, got, ref] of [
+      ['ASC', n.ascendant, c.ascendant],
+      ['MC', n.mc, c.mc],
+    ] as const) {
+      check(
+        angDiff(got.longitude, ref.lon) <= TOL.angleDeg && got.sign === ref.sign,
+        `${tag} ${label}: ${got.longitude.toFixed(4)}° ${got.sign} vs ${ref.lon}° ${ref.sign}`
+      )
+    }
+
+    checks++
+    check(
+      n.meta?.houseSystem === c.houseSystem,
+      `${tag} house system: ${n.meta?.houseSystem} vs ${c.houseSystem}`
+    )
+    check(n.houses.length === 12, `${tag} houses: ${n.houses.length}`)
+    n.houses.forEach((h, i) => {
+      checks++
+      const d = angDiff(h.cusp, c.cusps[i])
+      check(
+        d <= TOL.cuspDeg,
+        `${tag} cusp ${i + 1}: ${h.cusp.toFixed(4)}° vs ${c.cusps[i]}° (Δ${d.toFixed(4)}°)`
+      )
+    })
   }
 
-  if (printMode) return
-  if (failures > 0) {
-    console.error(`\n천체력 골든 ${failures}건 불일치 — ephemeris 라이브러리/데이터가 바뀌었을 수 있음.`)
+  if (failures.length > 0) {
+    for (const f of failures) console.error(`❌ ${f}`)
+    console.error(
+      `\n천체력 골든 ${failures.length}건 불일치 — ephemeris 라이브러리/데이터/시간대 변환이 바뀌었을 수 있음.`
+    )
     process.exit(1)
   }
-  console.log(`✅ ephemeris golden 통과 (${Object.keys(GOLDEN).length} 날짜 × ${PLANETS.length} 행성, tol ${TOLERANCE_DEG}°)`)
+  console.log(
+    `✅ ephemeris golden 통과 (${golden.astro.charts.length} 차트, ${checks} 항목: 행성·교점·ASC/MC·커스프·하우스·역행, tol 행성 ${TOL.planetDeg}° / 커스프 ${TOL.cuspDeg}°)`
+  )
 }
 
 main().catch((e) => {

@@ -48,9 +48,9 @@ test.describe('Session Management', () => {
     const response = await page.request.get('/api/auth/session')
     expect(response.ok()).toBe(true)
 
+    // Auth.js v5 는 비로그인 세션을 null 로 돌려준다.
     const session = await response.json()
-    // Unauthenticated user should not have a user in session
-    expect(session.user).toBeUndefined()
+    expect(session?.user).toBeUndefined()
   })
 })
 

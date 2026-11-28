@@ -9,7 +9,6 @@ backend_ai/data
 coverage
 /reports
 logs
-android
 .vs
 .cursor
 .claude

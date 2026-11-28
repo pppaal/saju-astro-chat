@@ -6,7 +6,7 @@
  * phrase-level 로 교체하고, 변형 누수 대비 성인 어휘 토큰 fallback 도 둔다.
  * 게이트 나이는 만 19세 미만(결혼·투자·공직 콘텐츠 기준).
  */
-export const MINOR_GATE_AGE = 19
+const MINOR_GATE_AGE = 19
 
 const PHRASE_KO: Array<[string, string]> = [
   ['윗선의 인정·승진·공식 무대에 우호', '선생님·어른의 인정, 발표 무대에 좋아요'],
@@ -21,15 +21,15 @@ const PHRASE_KO: Array<[string, string]> = [
 ]
 const PHRASE_EN: Array<[string, string]> = [
   [
-    'Favours recognition from above, promotion, and the formal stage',
+    'Favors recognition from above, promotion, and the formal stage',
     'Good for recognition from teachers and grown-ups, and the stage',
   ],
   [
-    'Favours licences, public office, and legal legitimacy',
+    'Favors licenses, public office, and legal legitimacy',
     'Good for earning qualifications and learning the rules',
   ],
-  ['Favours marriage, contracts, and purchases', 'Good for promises, plans, and pocket-money care'],
-  ['Favours new ventures and weighing investments', 'Good for new challenges and making plans'],
+  ['Favors marriage, contracts, and purchases', 'Good for promises, plans, and pocket-money care'],
+  ['Favors new ventures and weighing investments', 'Good for new challenges and making plans'],
   [
     'Sleep on joint spending, guarantees, and love triangles',
     'Take it slow with money lent to friends and with promises',
@@ -86,6 +86,31 @@ export function minorSafeText<T extends string | undefined>(text: T, lang: 'ko' 
   for (const [a, b] of lang === 'ko' ? PHRASE_KO : PHRASE_EN) out = out.split(a).join(b)
   for (const [re, b] of lang === 'ko' ? TOKEN_KO : TOKEN_EN) out = out.replace(re, b)
   return out as T
+}
+
+/**
+ * 미성년 안전 — 파생 카피 객체의 모든 문자열을 재귀로 정화(감사 C3-hole). 키가
+ * `...En` 이면 EN 어휘로, `...Ko` 면 KO 어휘로, 그 외 키는 상위에서 물려받은 언어
+ * (최상위는 en 인자)로 minorSafeText 적용. minorSafeText 는 성인 도메인 토큰(결혼·투자·도박·배우자…)만
+ * 치환하므로 라벨·아이콘·키에 걸어도 무해하다. 입력은 바꾸지 않고 새 객체를 돌려준다.
+ */
+export function deepMinorSafe<T>(v: T, en: boolean): T {
+  if (typeof v === 'string') return minorSafeText(v, en ? 'en' : 'ko') as unknown as T
+  if (Array.isArray(v)) return v.map((x) => deepMinorSafe(x, en)) as unknown as T
+  if (v && typeof v === 'object') {
+    const out: Record<string, unknown> = {}
+    for (const [k, val] of Object.entries(v)) {
+      const childEn = /En$/.test(k) ? true : /Ko$/.test(k) ? false : en
+      out[k] = deepMinorSafe(val, childEn)
+    }
+    return out as unknown as T
+  }
+  return v
+}
+
+/** isMinor 면 deepMinorSafe(KO 기본, `...En` 키는 EN), 아니면 원본 그대로. */
+export function minorSafeAll<T>(o: T, isMinor: boolean): T {
+  return isMinor ? deepMinorSafe(o, false) : o
 }
 
 /** {ko,en} 두 필드를 한 번에 정화하는 헬퍼 — 객체 in-place 수정. */

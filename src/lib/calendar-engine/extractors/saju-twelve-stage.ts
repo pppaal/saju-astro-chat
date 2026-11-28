@@ -1,6 +1,11 @@
 import { getTwelveStage } from '@/lib/saju/shinsal'
-import { getSolarTermKST } from '@/lib/saju/constants'
-import { getYearPillarForDate, getMonthPillarForDate } from '@/lib/saju/datePillars'
+import {
+  calendarTimeZone,
+  daeunWindows,
+  monthWindows,
+  rangeDates,
+  yearWindows,
+} from '../periodPillars'
 import { computeDayBranch } from './saju-shinsal'
 import { iga } from '@/lib/i18n/koParticle'
 import type {
@@ -258,90 +263,53 @@ const sajuTwelveStageExtractor: SignalExtractor = {
     // 2-1) 대운 매트릭스 (decadal)
     // 정통: 대운 10년 = 천간 5년 + 지지 5년 분리 (반복반운). 12운성은
     // 지지 5년에 영향이 크다. 단순화를 위해 지지 5년 페어를 후반에 둔다.
-    const bMonth = natal.input.month - 1
-    const bDate = natal.input.date
-    for (const d of natal.saju.daeun) {
-      const daeunStartMs = Date.UTC(d.startYear, bMonth, bDate)
-      const daeunEndMs = Date.UTC(d.startYear + 10, bMonth, bDate) - 1
-      // range 와 겹치는지
-      if (daeunEndMs < start.getTime() || daeunStartMs > end.getTime()) continue
-
+    // 창은 periodPillars(만 나이 생일 경계, daeunAge SSOT) — 재감사 G2.
+    const { from, to } = rangeDates(range)
+    for (const w of daeunWindows(natal, range)) {
       // 대운 후반 5년(지지 5년) 페어
-      const branchHalfStartMs = Date.UTC(d.startYear + 5, bMonth, bDate)
+      if (w.endDate < from || w.midDate > to) continue
       const stageEmitInfo = {
         layer: 'decadal' as SignalLayer,
         active: {
-          start: new Date(branchHalfStartMs).toISOString(),
-          peak: new Date((branchHalfStartMs + daeunEndMs) / 2).toISOString(),
-          end: new Date(daeunEndMs).toISOString(),
+          start: w.mid,
+          peak: new Date((Date.parse(w.mid) + Date.parse(w.end)) / 2).toISOString(),
+          end: w.end,
         },
         scopeWeight: 1.0,
-        cyclicalLabel: `대운 ${d.stem}${d.branch} 지지`,
-        cyclicalBranch: d.branch,
-        idPrefix: `daeun.${d.startYear}.${d.branch}`,
+        cyclicalLabel: `대운 ${w.stem}${w.branch} 지지`,
+        cyclicalBranch: w.branch,
+        idPrefix: `daeun.${w.startYear}.${w.branch}`,
       }
       emitMatrixSignals(signals, dayStemName, natalBranches, stageEmitInfo)
     }
 
-    // 2-2) 세운 매트릭스 (yearly)
-    const ipchun = (y: number): Date => getSolarTermKST(y, 2) ?? new Date(Date.UTC(y, 1, 4))
-    const startYear = start.getUTCFullYear()
-    const endYear = end.getUTCFullYear()
-    for (let year = startYear - 1; year <= endYear; year++) {
-      const yStartDate = ipchun(year)
-      const yEndDate = new Date(ipchun(year + 1).getTime() - 1)
-      if (yEndDate < start || yStartDate > end) continue
-      const refDate = new Date(yStartDate.getTime() + 86_400_000)
-      const yp = getYearPillarForDate(refDate)
+    // 2-2) 세운 매트릭스 (yearly) — 입춘이 든 현지 날부터(periodPillars 절입일 규칙)
+    const tz = calendarTimeZone(natal)
+    for (const w of yearWindows(range, tz)) {
       const stageEmitInfo = {
         layer: 'yearly' as SignalLayer,
-        active: {
-          start: yStartDate.toISOString(),
-          peak: new Date((yStartDate.getTime() + yEndDate.getTime()) / 2).toISOString(),
-          end: yEndDate.toISOString(),
-        },
+        active: { start: w.start, peak: w.peak, end: w.end },
         scopeWeight: 0.85,
-        cyclicalLabel: `세운 ${yp.stem}${yp.branch}`,
-        cyclicalBranch: yp.branch,
-        idPrefix: `seun.${year}.${yp.branch}`,
+        cyclicalLabel: `세운 ${w.stem}${w.branch}`,
+        cyclicalBranch: w.branch,
+        idPrefix: `seun.${w.sajuYear}.${w.branch}`,
       }
       emitMatrixSignals(signals, dayStemName, natalBranches, stageEmitInfo)
     }
 
-    // 2-3) 월운 매트릭스 (monthly)
-    const monthCursor = new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth(), 1))
-    while (monthCursor <= end) {
-      // 월주는 그 달 중순(15일) 기준 — 1일은 절입 직전이라 전월 절기달이 잡힌다.
-      const midMonth = new Date(
-        Date.UTC(monthCursor.getUTCFullYear(), monthCursor.getUTCMonth(), 15)
-      )
-      const mp = getMonthPillarForDate(midMonth)
-      const mStart = new Date(monthCursor).toISOString()
-      const mEndMs = Date.UTC(
-        monthCursor.getUTCFullYear(),
-        monthCursor.getUTCMonth() + 1,
-        0,
-        23,
-        59,
-        59
-      )
-      const mPeak = new Date(
-        Date.UTC(monthCursor.getUTCFullYear(), monthCursor.getUTCMonth(), 15)
-      ).toISOString()
+    // 2-3) 월운 매트릭스 (monthly) — 절기월 창(절입이 든 현지 날 ~ 다음 절입 전날).
+    // 예전엔 양력 달마다 15일의 절기월을 1일~말일에 도장해, 1일~절입 전날이 다음 달
+    // 월운을 달고 saju-pillar 의 월운과 엇갈렸다(재감사 TP-2).
+    for (const w of monthWindows(range, tz)) {
       const stageEmitInfo = {
         layer: 'monthly' as SignalLayer,
-        active: {
-          start: mStart,
-          peak: mPeak,
-          end: new Date(mEndMs).toISOString(),
-        },
+        active: { start: w.start, peak: w.peak, end: w.end },
         scopeWeight: 0.7,
-        cyclicalLabel: `월운 ${mp.stem}${mp.branch}`,
-        cyclicalBranch: mp.branch,
-        idPrefix: `wolun.${monthCursor.getUTCFullYear()}-${monthCursor.getUTCMonth() + 1}.${mp.branch}`,
+        cyclicalLabel: `월운 ${w.stem}${w.branch}`,
+        cyclicalBranch: w.branch,
+        idPrefix: `wolun.${w.startDate}.${w.branch}`,
       }
       emitMatrixSignals(signals, dayStemName, natalBranches, stageEmitInfo)
-      monthCursor.setUTCMonth(monthCursor.getUTCMonth() + 1)
     }
 
     // 2-4) 일진 매트릭스 (daily) — 본명 일지가 가장 중요하므로 일진과

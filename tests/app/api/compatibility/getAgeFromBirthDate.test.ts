@@ -37,11 +37,19 @@ describe('getAgeFromBirthDate — currentManAge SSOT 위임', () => {
     expect(getAgeFromBirthDate('not-a-date')).toBe(30)
   })
 
-  it('tz 미지정이면 Asia/Seoul 기본', () => {
+  it('tz 미지정이면 UTC 날짜로 센다 — 서울 기본값 없음 (G13)', () => {
+    // 2026-06-20T20:00Z = 서울은 이미 06-21, UTC 는 06-20 — 06-21 생일 전후가 갈린다.
     vi.useFakeTimers()
-    vi.setSystemTime(new Date('2026-06-21T03:00:00Z'))
-    expect(getAgeFromBirthDate('2000-01-01')).toBe(
-      currentManAge({ birthYear: 2000, birthMonth: 1, birthDate: 1, birthTimeZone: 'Asia/Seoul' })
+    vi.setSystemTime(new Date('2026-06-20T20:00:00Z'))
+    expect(getAgeFromBirthDate('2000-06-21')).toBe(25)
+    expect(getAgeFromBirthDate('2000-06-21', 'Asia/Seoul')).toBe(26)
+  })
+
+  it('주입한 now 가 시스템 시계보다 우선한다 (요청 경계 now, G13)', () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2031-01-01T00:00:00Z'))
+    expect(getAgeFromBirthDate('1990-08-10', 'Asia/Seoul', new Date('2026-06-21T03:00:00Z'))).toBe(
+      35
     )
   })
 })

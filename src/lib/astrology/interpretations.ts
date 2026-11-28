@@ -35,8 +35,6 @@ export type AstroPlanetName =
   | 'Pluto'
   | 'Ascendant'
 
-export type AspectKind = 'conjunction' | 'sextile' | 'square' | 'trine' | 'opposition'
-
 /** 북교점 사인 → 남교점(정반대) 사인. */
 export function getSouthNodeOppositeSign(north: ZodiacName): ZodiacName {
   const opposite: Record<ZodiacName, ZodiacName> = {

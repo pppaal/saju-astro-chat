@@ -1,5 +1,25 @@
 # 엔진 정확성 감사 — Opus 5 종합
 
+> **상태 (2026-11-25, 엔진 감사 E15 문서 동기화):** 아래는 당시 시점의 감사 기록이다(줄 번호도 당시 기준).
+> 항목별 현재 상태 —
+>
+> - **E1 子時 일주:** 결정으로 종결 — 일주는 출생지 민용일 자정에 바뀐다(23:00–24:00 은 그날 일주 + 子時).
+>   이 항목의 전제("자평파 = 子時는 다음날")는 채택하지 않았다. `src/lib/saju/CONVENTIONS.md` §1·§4.
+> - **E2 현재 대운 한국나이:** 해결 — `daeunAge.currentDaeun`(만 나이·민용 생일), `/api/saju` 는 요청마다 다시 고르고
+>   첫 대운 전에는 `current = null`(§14).
+> - **E3 evalNorthNode karmaAxis:** 해결 — karma·growth 행은 모두 `karmaAxis`, 어느 톤 집계에도 넣지 않는다(`tallyCrossRows`).
+> - **E4 미상 입력 ASC/MC 누출:** 해결 — `placeUnreliable` 이면 엔진이 하우스·ASC·MC·lot·ZR·알무텐을 가린다(CALCULATION_SPEC §6).
+>   시간 미상은 삼주 분석.
+> - **E5 강약 척도 3곳:** 해결 — 강약 점수 SSOT 하나(`computeStrengthScore`, 중심 보정)와 매핑 함수 하나
+>   (`strengthBandOf` 5단계 · `strengthClassOf` 3분류)를 모든 표면이 공유(§10·§11).
+> - **E6 조후가 억부를 덮어씀:** 해결 — 조후는 궁통보감 조후 필요도 ≥ 4 일 때만 먼저 서고, 병약·통관·억부는 억부 허용
+>   그룹 안에서만, 추천과 회피는 서로소(§10).
+> - **E7 공기→오행:** 해결 — air→木 단일값 계약(`natalCrossShared.signToSajuElement`).
+> - **E8 `unse.getDaeunCycles`:** 해결 — 2026-06 제거, 대운 목록은 `calculateSajuData` 만.
+> - **E9 arabicParts sect 주석:** 해결 — 섹트 SSOT 는 태양 고도 `isDiurnalChart`.
+> - **LOW:** 대운 라운딩 floor 는 §13 에 근거와 함께 문서화, 용신 지장간 '정기 +0.5' 제거(§6). 나머지 LOW 항목은 이 문서
+>   밖에서 추적한다.
+
 사주 코어 / 대운·세운 / 점성 / cross 융합 / 결정론·adapter 5개 영역 Opus 읽기전용 감사.
 
 **좋은 소식 먼저:** 핵심 계산은 견고함 —

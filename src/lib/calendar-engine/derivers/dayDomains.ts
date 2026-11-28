@@ -13,6 +13,7 @@
 import { translateSignalLabel } from './signalI18n'
 import { hashStringToInt, pickBySeed } from './personSeed'
 import { PLANET_KO as PLANET_KO_BASE } from '@/lib/calendar-engine/data/planetNames'
+import { ASPECT_KO, planetKoOr } from './evidenceLadder'
 
 /** ko/en 한 쌍. */
 type Pair = { ko: string; en: string }
@@ -47,7 +48,7 @@ const SIBSIN_CATEGORY: Record<string, SibsinCategory> = {
 }
 
 /** 그날 실제 신호 한 개를 분야 근거로 표시 — 트랜짓·신살·교차. */
-export interface DomainEvidence {
+interface DomainEvidence {
   /** 표시 텍스트 (호출 시 locale 반영해서 ko/en 중 하나). */
   text: string
   polarity: number
@@ -56,9 +57,11 @@ export interface DomainEvidence {
   /** moon 근거일 때만 — 시각 창(괄호 제거 전 원본). 본문에 시각을 엮을 때 읽는다. */
   when?: string
   whenEn?: string
+  /** astro 근거일 때만 — 트랜짓 행성(영문). 한 행성당 한 칩으로 묶는 키. */
+  body?: string
 }
 
-export interface DayDomainAdvice {
+interface DayDomainAdvice {
   key: string
   icon: string
   label: string
@@ -967,25 +970,18 @@ const PLANET_DOMAINS: Record<string, string[]> = {
 }
 // 행성 한글 라벨 — 공용 SSOT(planetNames)에서 파생(앵글 키는 안 쓰지만 무해).
 const PLANET_KO_SHORT: Record<string, string> = { ...PLANET_KO_BASE }
-// 엔진 신호의 aspectType 은 영문('trine'…)이라, KO 표시는 영문→한글로 옮긴다.
-// (일부 경로는 한글일 수 있어 양방향 폴백.)
+// 엔진 신호의 aspectType 은 영문('trine'…)이라, KO 표시는 영문→한글로 옮긴다 — 이름은 엔진의 한 표
+// (evidenceLadder ASPECT_KO: 컨정션 · 스퀘어 · 트라인 …), STARS 보조 줄 · 사다리와 같은 이름(QA R-CA-4).
+// 일부 옛 경로는 한글 이름일 수 있어 한글 → 영문 키 폴백을 둔다(옛 평어 이름 포함).
 const ASPECT_EN: Record<string, string> = {
+  ...Object.fromEntries(Object.entries(ASPECT_KO).map(([key, ko]) => [ko, key])),
   합: 'conjunction',
   사각: 'square',
   삼각: 'trine',
   대립: 'opposition',
-  섹스타일: 'sextile',
-  퀸컹스: 'quincunx',
+  육각: 'sextile',
   반섹스타일: 'semisextile',
-}
-const ASPECT_KO: Record<string, string> = {
-  conjunction: '합',
-  square: '사각',
-  trine: '삼각',
-  opposition: '대립',
-  sextile: '육각',
-  quincunx: '퀸컹스',
-  semisextile: '반육각',
+  반육각: 'semisextile',
 }
 
 // 신살 이름(부분일치) → 분야. 명리 표준 의미.
@@ -1035,7 +1031,8 @@ function crossDomains(hay: string): string[] {
 }
 
 export interface DayEvidenceInput {
-  transits: Array<{ body?: string; aspect?: string; polarity: number }>
+  /** target = 본명 접점('본명 Mars') — 있으면 본문이 두 천체를 다 이름한다('the Moon–Mars square'). */
+  transits: Array<{ body?: string; aspect?: string; target?: string; polarity: number }>
   shinsal: string[]
   crossActivations: Array<{
     sajuSide: string
@@ -1090,10 +1087,29 @@ function classifyEvidence(input: DayEvidenceInput, ko: boolean): Record<string, 
     const doms = PLANET_DOMAINS[body]
     if (!doms) continue
     const aspect = t.aspect ?? ''
+    // 두 천체를 다 이름한다 — 'Moon square' 처럼 대상이 잘린 산문(QA COPY-12) 대신
+    // 'the Moon–Mars square' / '달–화성 사각'. 대상을 모르면(구 페이로드) 예전 모양.
+    const natal = (t.target ?? '').replace(/^본명\s*/, '').trim()
+    // 영문 키로 맞춘 뒤 한 표에서 KO 이름을 읽는다(옛 한글 이름이 와도 같은 이름으로).
+    const aspEn = aspect in ASPECT_KO ? aspect : (ASPECT_EN[aspect] ?? aspect)
+    const aspKo = ASPECT_KO[aspEn] ?? aspect
+    const bodyKo = PLANET_KO_SHORT[body] ?? body
+    // EN 관사 — 어스펙트 없는 한 천체는 'the Moon' · 'the Sun'(그 밖의 행성은 이름 그대로), 대상 없는
+    // 어스펙트는 'a Moon square'. 'Today, Moon is the signal …' 같은 관사 빠진 산문 대신(QA COPY-12).
+    const bodyEn = body === 'Sun' || body === 'Moon' ? `the ${body}` : body
+    // KO 본명 접점 — 행성·앵글·소천체 한글(카이런 · 릴리스 …). 한글 이름이 없는 점이면 접점 없이
+    // 예전 모양(라틴 글자를 KO 문장에 흘리지 않는다).
+    const natalKo = natal ? (PLANET_KO_SHORT[natal] ?? planetKoOr(natal, 'ko')) : ''
     const text = ko
-      ? `${PLANET_KO_SHORT[body] ?? body} ${ASPECT_KO[aspect] ?? aspect}`.trim()
-      : `${body} ${ASPECT_EN[aspect] ?? aspect}`.trim()
-    for (const d of doms) out[d].push({ text, polarity: t.polarity, kind: 'astro' })
+      ? natalKo && !/[A-Za-z]/.test(natalKo)
+        ? `${bodyKo}–${natalKo} ${aspKo}`.trim()
+        : `${bodyKo} ${aspKo}`.trim()
+      : natal && aspEn
+        ? `the ${body}–${natal} ${aspEn}`
+        : aspEn
+          ? `a ${body} ${aspEn}`
+          : bodyEn
+    for (const d of doms) out[d].push({ text, polarity: t.polarity, kind: 'astro', body })
   }
   // 신살 (사주) — EN 로케일에선 신살명을 영문으로(원문 한글 누출 방지).
   for (const s of input.shinsal) {
@@ -1117,7 +1133,7 @@ function classifyEvidence(input: DayEvidenceInput, ko: boolean): Record<string, 
     const doms = MOON_POINT_DOMAINS[mn.body]
     if (!doms) continue
     const short = (ko ? mn.when : mn.whenEn).replace(/\s*\(.*\)/, '').trim()
-    const text = ko ? `${short} 달${mn.aspectKo}` : `${short} Moon ${mn.aspectEn}`
+    const text = ko ? `${short} 달 ${mn.aspectKo}` : `${short} Moon ${mn.aspectEn}`
     for (const d of doms)
       out[d].push({ text, polarity: mn.polarity, kind: 'moon', when: mn.when, whenEn: mn.whenEn })
   }
@@ -1125,7 +1141,7 @@ function classifyEvidence(input: DayEvidenceInput, ko: boolean): Record<string, 
   // astro 칩은 *행성* 기준으로 묶는다 — 같은 행성이 여러 각(수성 사각·육각·삼각)
   // 으로 동시에 잡히면 한 행성당 가장 센 한 칩만 남겨 중복·기하 모순을 없앤다.
   const dedupKey = (e: DomainEvidence) =>
-    e.kind === 'astro' ? `astro:${e.text.split(' ')[0]}` : `${e.kind}:${e.text}`
+    e.kind === 'astro' ? `astro:${e.body ?? e.text.split(' ')[0]}` : `${e.kind}:${e.text}`
   for (const d of Object.keys(out)) {
     const seen = new Set<string>()
     const sorted = out[d]
@@ -1431,7 +1447,9 @@ function moonTimeClause(ev: DomainEvidence[], ko: boolean): string {
   const time = raw.replace(/\s*\(.*\)/, '').trim()
   if (!time) return ''
   if (best.polarity >= 0) {
-    return ko ? ` 특히 ${time}에 흐름이 살아나요.` : ` Especially ${time} the flow picks up.`
+    return ko
+      ? ` 특히 ${time}에 흐름이 살아나요.`
+      : ` The flow picks up especially between ${time}.`
   }
   return ko ? ` ${time}엔 한 박자 늦추세요.` : ` Around ${time}, ease off a beat.`
 }
@@ -1450,6 +1468,12 @@ export function deriveDayDomains(args: {
    * 표현만 개인화한다. 기본 0(레거시: 변주 풀의 첫 항목).
    */
   seed?: number
+  /**
+   * 시별 달 절정 시각을 본문에 엮을지(moonTimeClause). 기본 true. v9 일간 화면은 false —
+   * 같은 화면의 '시진별' 줄(사주 시진 결)과 다른 한 체계(달 어스펙트)의 시각이라 같은 창에
+   * 반대 동사가 붙었다(QA VC-4, 결정 QA-4). 달 근거는 톤·배지 계산에 그대로 남는다.
+   */
+  moonTime?: boolean
 }): DayDomainsResult | null {
   const cat = SIBSIN_CATEGORY[args.iljinSibsin]
   if (!cat) return null
@@ -1489,8 +1513,9 @@ export function deriveDayDomains(args: {
     body += strongSignalClause(ev, true)
     bodyEn += strongSignalClause(ev, false)
     // 시별 달 근거가 있으면 실제 절정 시각을 본문에 엮어 더 구체적으로(KO/EN).
-    const koClause = moonTimeClause(ev, true)
-    const enClause = moonTimeClause(ev, false)
+    const withMoonTime = args.moonTime !== false
+    const koClause = withMoonTime ? moonTimeClause(ev, true) : ''
+    const enClause = withMoonTime ? moonTimeClause(ev, false) : ''
     if (koClause) body += koClause
     if (enClause) bodyEn += enClause
     // '주목' 배지 = 그날 *십신이 관장하는* 분야(=오늘의 테마) 1~2개만 — 단,

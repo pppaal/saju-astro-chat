@@ -14,15 +14,17 @@ import { test, expect } from '@playwright/test'
  * id, etc.), pass a `mask` array to toHaveScreenshot. Keep the masked
  * set small — masking too much defeats the point of the snapshot.
  *
- * Why reducedMotion: the home page has a canvas particle layer + chat
- * input typewriter prompt + chip pulse animations. They never settle
- * to a stable pixel state, so without disabling motion the screenshot
- * test flakes on every run.
+ * Why reducedMotion: animated pages (tarot card flips, typewriter
+ * prompts, pulses) never settle to a stable pixel state, so without
+ * disabling motion the screenshot test flakes. The v9 home is static
+ * apart from the Saju Card tilt, which reduced motion also removes.
  */
 
 const HOME_ROUTE = '/'
 const TAROT_ROUTE = '/tarot/general-insight/quick-reading?question=test'
 const COMPATIBILITY_ROUTE = '/compatibility'
+// 운세 달력 공개 샘플 — 고정 본명·고정 날짜(2026-11-19)라 같은 화면이 나온다.
+const CALENDAR_PREVIEW_ROUTE = '/calendar/preview'
 
 /** Wait helpers — every route needs the same "settle" treatment before
  *  the screenshot, so factor it out instead of repeating boilerplate. */
@@ -40,8 +42,8 @@ test.describe('Visual regression — high-traffic routes', () => {
     await page.goto(HOME_ROUTE, { waitUntil: 'domcontentloaded' })
     await settle(page)
 
-    // The hex DP logo is the most stable above-the-fold anchor — wait
-    // for it before snapping so we don't catch a half-painted hero.
+    // The hero headline (#home-headline) is the most stable above-the-fold
+    // anchor — wait for it before snapping so we don't catch a half-painted hero.
     await expect(page.locator('[id="home-headline"]')).toBeVisible()
 
     await expect(page).toHaveScreenshot('home.png', {
@@ -67,6 +69,17 @@ test.describe('Visual regression — high-traffic routes', () => {
     await settle(page)
 
     await expect(page).toHaveScreenshot('compatibility.png', {
+      fullPage: false,
+    })
+  })
+
+  test('fortune calendar sample matches snapshot', async ({ page }) => {
+    await page.goto(CALENDAR_PREVIEW_ROUTE, { waitUntil: 'domcontentloaded' })
+    await settle(page)
+    // 히어로 H1(이달 후크)이 그려진 뒤에 찍는다 — 빈 뼈대(loading)를 찍지 않게.
+    await expect(page.locator('h1#cal-h1')).toBeVisible()
+
+    await expect(page).toHaveScreenshot('calendar-preview.png', {
       fullPage: false,
     })
   })

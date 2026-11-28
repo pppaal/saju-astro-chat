@@ -43,6 +43,12 @@ export interface CrossVerdict {
   left?: { ko: string; en: string }
   right?: { ko: string; en: string }
   /**
+   * 한 문장 요지 — 칸(left/right)이 없는 축(관계 · 길흉)이 행에서 칸 대신 보여 줄 짧은
+   * 엔진 문구('Unions in your saju, soft aspects in your chart.'). 판정 갈래마다 고정
+   * 문구라 같은 입력이면 늘 같다. 칸이 있는 축은 칸이 요지를 대신해 비워 둔다.
+   */
+  gist?: { ko: string; en: string }
+  /**
    * 공망/카르마(결핍 축) 표식 — 두 시스템이 '같은 빈자리를 짚는다'는 합의(resonant
    * 톤)이지만, 그건 강점 수렴이 아니라 '평생 숙제'다. '잘 맞아요/aligns well' 집계에
    * 섞이면 막대그래프가 결핍 축을 강점으로 오인하게 하므로, 톤은 유지하되 이 플래그로
@@ -51,9 +57,25 @@ export interface CrossVerdict {
   karmaAxis?: boolean
 }
 
+/**
+ * 교차 행 톤 집계 — 결핍(karmaAxis) 축을 뺀 나머지 행을 톤별로 센다. 리포트 도입부
+ * 문장(synthesize)과 톤 막대(IntegratedReport)가 같은 함수(tallyCrossRows)로 세어
+ * 두 숫자가 어긋나지 않게 한다. same=resonant · supportive=complement ·
+ * twoPulls=tension · unrelated=neutral, total=네 값의 합.
+ */
+export interface CrossTally {
+  same: number
+  supportive: number
+  twoPulls: number
+  unrelated: number
+  total: number
+}
+
 export interface NatalSynthesis {
   tone: CrossTone
   text: { ko: string; en: string }
+  /** 도입부 문장이 쓴 톤 집계(tallyCrossRows 결과) — UI 가 같은 숫자를 다시 셀 필요 없게. */
+  counts: CrossTally
 }
 
 // ── 라벨 사전 (공용 chartLabels 에서 파생 — 단일 소스) ──────────────────────

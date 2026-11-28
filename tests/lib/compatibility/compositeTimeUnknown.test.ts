@@ -74,3 +74,51 @@ describe('formatCompositeChart — 시각 미상 ASC/MC 제외', () => {
     expect(out).not.toContain('상승점')
   })
 })
+
+// 재감사 CS-6: ASP_SYM/ASP_EN 이 'Conjunction' 처럼 대문자 키였는데 findNatalAspects 는
+// 소문자 AspectType 을 내서 한 번도 매칭되지 않았다 — EN 은 범례 없는 맨 영어, KO 는
+// koStructuralLabels 를 거쳐도 'sextile' 이 영어로 남았다. 라우트와 같은 후처리로 확인.
+describe('formatCompositeChart — aspect labels map (KO/EN legend)', () => {
+  // 같은 차트 두 개 → composite = 그 차트. Sun 10 · Moon 10.5 · Mercury 70 · Venus 100 ·
+  // Mars 130 → 결합·육각·사각·삼각이 모두 생긴다. ASC 190 · MC 280.
+  const all = (): Chart =>
+    ({
+      planets: [
+        planet('Sun', 10),
+        planet('Moon', 10.5),
+        planet('Mercury', 70),
+        planet('Venus', 100),
+        planet('Mars', 130),
+      ],
+      ascendant: planet('Ascendant', 190),
+      mc: planet('MC', 280),
+      houses: [],
+    }) as unknown as Chart
+  const aspectLines = (out: string) => out.split('\n').filter((l) => l.startsWith('[C] '))
+
+  it('EN: every [C] line carries the bracketed legend label, never a bare aspect word', () => {
+    const out = formatCompositeChart({ chartA: all(), chartB: all(), lang: 'en' })
+    const lines = aspectLines(out)
+    expect(lines.length).toBeGreaterThan(3)
+    expect(out).toContain('[C] Sun [conjunction] Moon 0.5°')
+    expect(out).toContain('[C] Sun [sextile] Mercury 0.0°')
+    for (const l of lines) {
+      expect(l).toMatch(/\[(conjunction|opposition|trine|square|sextile)\]/)
+      expect(l).not.toMatch(/ (conjunction|opposition|trine|square|sextile) /)
+      expect(l).not.toMatch(/[가-힣]/)
+    }
+  })
+
+  it('KO (after the route post-processor): Korean legend labels, no English aspect words', async () => {
+    const { koStructuralLabels } = await import('@/lib/llm/koStructuralLabels')
+    const out = koStructuralLabels(formatCompositeChart({ chartA: all(), chartB: all() }))
+    const lines = out.split('\n').filter((l) => l.startsWith('[합성] '))
+    expect(lines.length).toBeGreaterThan(3)
+    expect(out).toContain('[합성] 태양 [결합] 달 0.5°')
+    expect(out).toContain('[합성] 태양 [협력] 수성 0.0°')
+    for (const l of lines) {
+      expect(l).toMatch(/\[(결합|대립|조화|긴장|협력)\]/)
+      expect(l).not.toMatch(/conjunction|opposition|trine|square|sextile/i)
+    }
+  })
+})

@@ -1,5 +1,13 @@
-import { STEMS, BRANCHES, JIJANGGAN, getSolarTermKST, ELEMENT_KO_TO_EN } from '@/lib/saju/constants'
-import { getYearPillarForDate, getMonthPillarForDate } from '@/lib/saju/datePillars'
+import { STEMS, BRANCHES, JIJANGGAN, ELEMENT_KO_TO_EN } from '@/lib/saju/constants'
+import {
+  calendarTimeZone,
+  daeunAnniversaryIso,
+  daeunWindows,
+  monthWindows,
+  rangeDates,
+  yearWindows,
+} from '../periodPillars'
+import { STEM_CLASH, toPairKeySet } from '@/lib/saju/relationTables'
 import { computeDayBranch, computeDayStem } from './saju-shinsal'
 import { getSibsinFromStemInfo as getSibsin } from './shared/sibsin'
 import { iga, eulReul, waGwa } from '@/lib/i18n/koParticle'
@@ -92,16 +100,8 @@ const STEM_COMBINE: Record<string, { pair: string; transform: FiveElement }> = {
 // 丑-未, 辰-戌 본기는 동일 戊·己 (충 아님). 따라서 별도 지지충 테이블을 두지
 // 않고 본명 일지·시기 지지의 지장간 3층 매트릭스만 돌리면 정통 지지충 본기
 // 페어가 모두 자동 검출된다.
-const STEM_CLASH: Set<string> = new Set([
-  '甲-庚',
-  '庚-甲',
-  '乙-辛',
-  '辛-乙',
-  '丙-壬',
-  '壬-丙',
-  '丁-癸',
-  '癸-丁',
-])
+// 쌍 목록은 엔진 공통 천간충(relationTables STEM_CLASH, 4쌍)에서 파생한다.
+const STEM_CLASH_KEYS: Set<string> = toPairKeySet(STEM_CLASH)
 
 interface StemInfoLite {
   name: string
@@ -193,38 +193,34 @@ const sajuJijangganExtractor: SignalExtractor = {
     const natalStems = collectNatalStems(natal)
     // 본명 일지(日支)의 지장간 — 충 검출용 (정통은 일지 지장간이 충 기준).
     const natalDayBranchJijanggan = JIJANGGAN[dayPillar.earthlyBranch?.name ?? ''] ?? {}
-    // 합화(化氣) 게이트 입력 — 월령 지지 오행 / 본명 천간 집합 (파합자 검출용).
+    // 합화(化氣) 게이트 입력 — 월령 지지 오행 (파합자는 natalStems 에서 합 자리만 빼고 센다).
     const monthBranchName = natal.saju.pillars.month?.earthlyBranch?.name ?? ''
     const monthBranchInfo = BRANCHES.find((b) => b.name === monthBranchName)
     const monthElement: FiveElement | undefined = monthBranchInfo?.element
-    const natalStemNames = natalStems.map((s) => s.name)
 
     const signals: ActiveSignal[] = []
 
-    // 입춘 helper — 세운 경계.
-    const ipchun = (y: number): Date => getSolarTermKST(y, 2) ?? new Date(Date.UTC(y, 1, 4))
-    const bMonth = natal.input.month - 1
-    const bDate = natal.input.date
+    // 세운·월운·대운 창 — periodPillars 하나(재감사 G2 · TP-2/3/7): 셀 = 출생지 시간대의
+    // 민용 날짜, 절입이 든 현지 날이 새 기둥, 대운은 만 나이 생일 경계.
+    const tz = calendarTimeZone(natal)
     const rangeStart = new Date(range.start)
     const rangeEnd = new Date(range.end)
+    const { from, to } = rangeDates(range)
 
     // ─── 1) 대운 지지 — 후반 5년 ───
-    for (const d of natal.saju.daeun) {
-      const branch = d.branch
+    for (const w of daeunWindows(natal, range)) {
+      const branch = w.branch
       const jijanggan = JIJANGGAN[branch]
       if (!jijanggan) continue
-
-      const midPoint = Date.UTC(d.startYear + 5, bMonth, bDate)
-      const endPoint = Date.UTC(d.startYear + 10, bMonth, bDate) - 1
-      if (new Date(endPoint) < rangeStart || new Date(midPoint) > rangeEnd) continue
+      if (w.endDate < from || w.midDate > to) continue
 
       const active = {
-        start: new Date(midPoint).toISOString(),
-        peak: new Date(Date.UTC(d.startYear + 7, bMonth, Math.max(1, bDate))).toISOString(),
-        end: new Date(endPoint).toISOString(),
+        start: w.mid,
+        peak: daeunAnniversaryIso(w, 7),
+        end: w.end,
       }
       emitJijangganSignals(signals, {
-        idPrefix: `saju.jijanggan.daeun.${d.startYear}.${branch}`,
+        idPrefix: `saju.jijanggan.daeun.${w.startYear}.${branch}`,
         layer: 'decadal',
         branchName: branch,
         jijanggan,
@@ -233,7 +229,6 @@ const sajuJijangganExtractor: SignalExtractor = {
         strength,
         yongsin,
         natalStems,
-        natalStemNames,
         natalDayBranchJijanggan,
         monthElement,
         active,
@@ -242,75 +237,45 @@ const sajuJijangganExtractor: SignalExtractor = {
     }
 
     // ─── 2) 세운 지지 (yearly) ───
-    const startYear = rangeStart.getUTCFullYear()
-    const endYear = rangeEnd.getUTCFullYear()
-    for (let year = startYear - 1; year <= endYear; year++) {
-      const yStartDate = ipchun(year)
-      const yEndDate = new Date(ipchun(year + 1).getTime() - 1)
-      if (yEndDate < rangeStart || yStartDate > rangeEnd) continue
-      const refDate = new Date(yStartDate.getTime() + 86_400_000)
-      const yp = getYearPillarForDate(refDate)
-      const jijanggan = JIJANGGAN[yp.branch]
+    for (const w of yearWindows(range, tz)) {
+      const jijanggan = JIJANGGAN[w.branch]
       if (!jijanggan) continue
-
-      const active = {
-        start: yStartDate.toISOString(),
-        peak: new Date((yStartDate.getTime() + yEndDate.getTime()) / 2).toISOString(),
-        end: yEndDate.toISOString(),
-      }
       emitJijangganSignals(signals, {
-        idPrefix: `saju.jijanggan.seun.${year}.${yp.branch}`,
+        idPrefix: `saju.jijanggan.seun.${w.sajuYear}.${w.branch}`,
         layer: 'yearly',
-        branchName: yp.branch,
+        branchName: w.branch,
         jijanggan,
         dayMaster,
         dayElement,
         strength,
         yongsin,
         natalStems,
-        natalStemNames,
         natalDayBranchJijanggan,
         monthElement,
-        active,
+        active: { start: w.start, peak: w.peak, end: w.end },
         baseWeight: 0.85,
       })
     }
 
-    // ─── 3) 월운 지지 (monthly) ───
-    const monthCursor = new Date(Date.UTC(rangeStart.getUTCFullYear(), rangeStart.getUTCMonth(), 1))
-    while (monthCursor <= rangeEnd) {
-      // 월주는 그 달 중순(15일) 기준 — 1일은 절입 직전이라 전월 절기달이 잡힌다.
-      const midMonth = new Date(
-        Date.UTC(monthCursor.getUTCFullYear(), monthCursor.getUTCMonth(), 15)
-      )
-      const mp = getMonthPillarForDate(midMonth)
-      const jijanggan = JIJANGGAN[mp.branch]
-      if (jijanggan) {
-        const mStart = new Date(monthCursor).toISOString()
-        const mEnd = new Date(
-          Date.UTC(monthCursor.getUTCFullYear(), monthCursor.getUTCMonth() + 1, 0, 23, 59, 59)
-        ).toISOString()
-        const mPeak = new Date(
-          Date.UTC(monthCursor.getUTCFullYear(), monthCursor.getUTCMonth(), 15)
-        ).toISOString()
-        emitJijangganSignals(signals, {
-          idPrefix: `saju.jijanggan.wolun.${monthCursor.getUTCFullYear()}-${monthCursor.getUTCMonth() + 1}.${mp.branch}`,
-          layer: 'monthly',
-          branchName: mp.branch,
-          jijanggan,
-          dayMaster,
-          dayElement,
-          strength,
-          yongsin,
-          natalStems,
-          natalStemNames,
-          natalDayBranchJijanggan,
-          monthElement,
-          active: { start: mStart, peak: mPeak, end: mEnd },
-          baseWeight: 0.7,
-        })
-      }
-      monthCursor.setUTCMonth(monthCursor.getUTCMonth() + 1)
+    // ─── 3) 월운 지지 (monthly) — 절기월 창 ───
+    for (const w of monthWindows(range, tz)) {
+      const jijanggan = JIJANGGAN[w.branch]
+      if (!jijanggan) continue
+      emitJijangganSignals(signals, {
+        idPrefix: `saju.jijanggan.wolun.${w.startDate}.${w.branch}`,
+        layer: 'monthly',
+        branchName: w.branch,
+        jijanggan,
+        dayMaster,
+        dayElement,
+        strength,
+        yongsin,
+        natalStems,
+        natalDayBranchJijanggan,
+        monthElement,
+        active: { start: w.start, peak: w.peak, end: w.end },
+        baseWeight: 0.7,
+      })
     }
 
     // ─── 4) 일진 지지 (daily) — 비용 큼, range 가 day 단위일 때만 ───
@@ -331,7 +296,6 @@ const sajuJijangganExtractor: SignalExtractor = {
         strength,
         yongsin,
         natalStems,
-        natalStemNames,
         natalDayBranchJijanggan,
         monthElement,
         active: {
@@ -357,7 +321,6 @@ interface EmitArgs {
   strength: 'strong' | 'medium' | 'weak'
   yongsin: { primary: FiveElement; secondary?: FiveElement; avoid: FiveElement[] }
   natalStems: Array<{ pos: string; name: string; info: StemInfoLite }>
-  natalStemNames: string[]
   natalDayBranchJijanggan: { [key: string]: string }
   monthElement?: FiveElement
   active: { start: string; peak: string; end: string }
@@ -416,10 +379,12 @@ function emitJijangganSignals(out: ActiveSignal[], args: EmitArgs): void {
     if (combineDef) {
       for (const ns of args.natalStems) {
         if (ns.name === combineDef.pair) {
+          // 파합자 후보 = 본명 천간에서 이 합을 이루는 그 한 자리(ns.pos)만 뺀 나머지.
+          // 같은 글자가 다른 자리에 또 있으면(爭合·妒合) 그 글자는 여전히 파합자다.
           const gate = isHwagiEstablished(
             combineDef.transform,
             args.monthElement,
-            args.natalStemNames,
+            args.natalStems.filter((s) => s.pos !== ns.pos).map((s) => s.name),
             ns.pos
           )
           const basePolarity = polarityForAmhap(combineDef.transform, args.yongsin)
@@ -486,7 +451,7 @@ function emitJijangganSignals(out: ActiveSignal[], args: EmitArgs): void {
     //   정기↔중기 또는 중기↔정기 : -2, 0.80 — 한쪽이 본기인 비대칭 충
     //   중기↔중기 / 여기 포함 페어 : -1, 0.60 — 미세 잠재 충 (암충 餘衝)
     for (const [natalLayer, natalStem] of Object.entries(args.natalDayBranchJijanggan)) {
-      if (STEM_CLASH.has(`${stemName}-${natalStem}`)) {
+      if (STEM_CLASH_KEYS.has(`${stemName}-${natalStem}`)) {
         const ladder = chungLadder(layer, natalLayer)
         out.push({
           id: `${args.idPrefix}.chung.${layer}.${stemName}-${natalLayer}.${natalStem}`,
@@ -598,7 +563,7 @@ interface HwagiGate {
 function isHwagiEstablished(
   transform: FiveElement,
   monthElement: FiveElement | undefined,
-  natalStemNames: string[],
+  otherNatalStems: string[],
   natalPairPos: string
 ): HwagiGate {
   const reasons: string[] = []
@@ -633,22 +598,19 @@ function isHwagiEstablished(
     reasons.push('month-unknown')
   }
 
-  // 2) 파합자 검출 — 합 페어 본인은 제외.
+  // 2) 파합자 검출 — otherNatalStems 는 합 페어 본인(본명 합 천간 그 한 자리)을 이미 뺀
+  //    나머지 본명 천간이다. 시기 지장간은 본명 천간 목록에 없으니 따로 뺄 것이 없다.
+  //    (甲己→토 의 甲, 戊癸→화 의 癸 가 자기 합을 깨지 않게 — 거울 차트와 대칭.)
   const breakerStems = HWAGI_BREAKERS[transform] ?? []
-  const pairSelfNames = new Set<string>() // 합 페어 본인 (본명 천간) — 시기 지장간은 본명 천간 set 에 없으니 굳이 안 빼도 됨.
-  // natalPairPos 의 천간이 breaker 후보에 있으면 자체 소거 (합에 묶여서 파합 못함).
   for (const breaker of breakerStems) {
-    if (natalStemNames.includes(breaker)) {
-      // 파합자 발견 — 단, 그 파합자가 본명에서 합 페어 천간 본인이면 합에 묶여 무력.
-      if (!pairSelfNames.has(breaker)) {
-        reasons.push(`breaker=${breaker}`)
-        if (status === 'full') {
-          status = 'partial' // full → partial 강등
-        } else if (status === 'partial') {
-          status = 'failed' // partial + 파합자 = 실패
-        }
-        break
+    if (otherNatalStems.includes(breaker)) {
+      reasons.push(`breaker=${breaker}`)
+      if (status === 'full') {
+        status = 'partial' // full → partial 강등
+      } else if (status === 'partial') {
+        status = 'failed' // partial + 파합자 = 실패
       }
+      break
     }
   }
 
@@ -727,7 +689,8 @@ function collectNatalStems(natal: {
       year: { heavenlyStem?: { name: string } }
       month: { heavenlyStem?: { name: string } }
       day: { heavenlyStem?: { name: string } }
-      time: { heavenlyStem?: { name: string } }
+      // 출생시각 미상이면 시주가 없다(삼주) — 그때는 시간(時干)을 건너뛴다.
+      time?: { heavenlyStem?: { name: string } } | null
     }
   }
 }): Array<{ pos: string; name: string; info: StemInfoLite }> {
@@ -736,7 +699,7 @@ function collectNatalStems(natal: {
     { pos: 'year', stem: natal.saju.pillars.year.heavenlyStem?.name },
     { pos: 'month', stem: natal.saju.pillars.month.heavenlyStem?.name },
     { pos: 'day', stem: natal.saju.pillars.day.heavenlyStem?.name },
-    { pos: 'time', stem: natal.saju.pillars.time.heavenlyStem?.name },
+    { pos: 'time', stem: natal.saju.pillars.time?.heavenlyStem?.name },
   ]
   for (const p of positions) {
     if (!p.stem) continue

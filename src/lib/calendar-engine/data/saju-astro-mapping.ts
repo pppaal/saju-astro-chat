@@ -1,29 +1,36 @@
 /**
- * 사주-점성 의미 매핑 사전 (A등급).
+ * 사주-점성 의미 매핑 사전 (A/B등급).
  *
- * 사주 십신/신살과 서양 점성 행성 사이의 학파 검증된 의미 대응.
+ * 사주 십신/신살과 서양 점성 행성 사이의 의미 대응.
  * "동시 활성" 페어 중 의미상 자연스럽게 강화·간섭하는 조합만 골라
- * cross-activation 신호로 emit 한다.
+ * cross-activation 신호로 emit 한다. 등급 필터는 없다 — A·B 모두 emit 되고,
+ * 유일한 게이트는 층별 교차 밴드(CROSS_LAYER_BAND, 파일 끝)다.
  *
  * ── 등급 기준 ──
  * A등급: 동·서 양 학파 문헌에서 직접 등치되거나, symbolic correspondence
  *        가 강하고 (예: 정관 = 책임·법·구조 ↔ Saturn = 책임·구조·시간) 둘
  *        다 같은 polarity 방향으로 작동하는 경우.
+ * B등급: 상징 대응은 분명하나 직접 등치는 아닌 보조 대응 — 외행성 장주기
+ *        대응(대운 전용 밴드)과 일/월 근거 커버리지용 빠른 행성 nuance.
+ * 어느 등급이든 매핑 부호는 *부모 극성 관례 아래 도달 가능*해야 한다 — 신살처럼
+ * 극성이 고정된 부모(SHINSAL_POLARITY: 도화 +1·역마 0·건록 +2·양인 −2·천을귀인 +3)와
+ * 반대 부호인 행은 두 부모가 동의할 수 없어 은퇴시킨다(엔진 감사 X6 — 도화×화성 −1).
  *
  * 본 파일은 데이터만 보관 — 매칭 로직은 cross-activation extractor 에 분리.
  *
- * 페어 polarity 합산 모델 (extractor combinePolarity):
- *   - 두 부모 부호가 같은 방향(++ 또는 --) → mapping.polarity 를 **부호 그대로** 사용
- *     (예: 편관×Mars −2 는 둘 다 압력이면 −2 유지 — 흉을 더 키움. sign 곱이 아님).
- *   - 부호가 반대(+− / −+) → 0 (의미 충돌 — 톤 무력화).
- *   - 한쪽 polarity = 0 → mapping.polarity 그대로 (부호 정보 부재 시 매핑이 결정).
+ * 페어 polarity 합산 모델 (extractor combinePolarity, OD-10):
+ *   - 두 부모 모두 매핑 부호, 또는 한쪽 매핑 부호 + 다른 쪽 0 → mapping.polarity 를
+ *     **부호·크기 그대로** (예: 편관×Mars −2 는 둘 다 압력이면 −2 유지 — 흉을 더 키움).
+ *   - 어느 부모든 매핑과 반대 부호(+− 충돌, 매핑 + 에 −− 부모, 매핑 − 에 ++ 부모),
+ *     또는 두 부모 모두 0 → 0 ('상쇄' 중립 카피).
+ * pair.layer   = 두 부모 중 *좁은* 층 (창이 교집합) — 밴드도 그 층에서 검사.
  * pair.weight  = saju.weight × astro.weight × 0.6 (cross 신호 noise 방지)
  */
 
 import type { Polarity, SignalLayer } from '../types'
 
 /** 사주 측의 매칭 키 — 십신 또는 신살명. */
-export type SajuMatchKey =
+type SajuMatchKey =
   | '비견'
   | '겁재'
   | '식신'
@@ -38,7 +45,6 @@ export type SajuMatchKey =
   | '역마'
   | '건록'
   | '양인'
-  | '천을귀인'
 
 /** 점성 측의 매칭 키 — 단일 행성명. astro extractor 가 evidence.planets[0] 에 박는 명칭과 일치. */
 export type AstroMatchKey =
@@ -53,7 +59,7 @@ export type AstroMatchKey =
   | 'Neptune'
   | 'Pluto'
 
-export type CrossMappingGrade = 'A' | 'B' | 'C'
+type CrossMappingGrade = 'A' | 'B' | 'C'
 
 export interface CrossMapping {
   /** 매칭 키 (사주 측). 십신 또는 신살명. */
@@ -69,8 +75,9 @@ export interface CrossMapping {
    *   0: 중립적 자원형 (도화 × Venus — 매력·관계).
    *
    * 최종 페어 polarity 는 extractor combinePolarity 가 산출:
-   * 두 부모 부호가 같은 방향이면 이 값을 **부호 그대로** 채택(편관×Mars −2 → −2),
-   * 부호가 반대면 0, 한쪽이 0 이면 이 값을 그대로 — 본 값은 의미 톤의 *방향* 을 결정.
+   * 두 부모가 이 값의 방향에 동의하면(둘 다 같은 부호, 또는 한쪽 같은 부호 + 다른 쪽 0)
+   * 이 값을 **부호 그대로** 채택(편관×Mars −2 → −2), 그 밖은 0 — 본 값은 의미 톤의
+   * *방향* 을 결정하고, 부모는 그 방향을 *허락*할 뿐 뒤집지 못한다.
    */
   polarity: Polarity
   grade: CrossMappingGrade
@@ -87,7 +94,7 @@ export interface CrossMapping {
 }
 
 /**
- * A등급 매핑 — 학파 검증된 의미 대응.
+ * A/B등급 매핑 — 등급 기준은 파일 머리.
  *
  * 한 쌍의 (sajuKey, astroKey) 가 둘 다 활성인 셀에서만 cross-activation 신호가
  * 발화. 한 쪽이 missing 이면 emit 하지 않음 — 노이즈 차단.
@@ -110,7 +117,7 @@ export const SAJU_ASTRO_MAPPINGS: readonly CrossMapping[] = [
     astro: 'Sun',
     meaning: {
       ko: '정관 × 태양 — 정당한 권위·직위·공인의 결이 한 방향으로 살아남. 윗선의 인정·승진·공식 무대에 우호.',
-      en: 'Direct Officer × Sun — legitimate authority, office, and public standing line up the same way. Favours recognition from above, promotion, and the formal stage.',
+      en: 'Direct Officer × Sun — legitimate authority, office, and public standing line up the same way. Favors recognition from above, promotion, and the formal stage.',
     },
     polarity: 2,
     grade: 'A',
@@ -122,7 +129,7 @@ export const SAJU_ASTRO_MAPPINGS: readonly CrossMapping[] = [
     astro: 'Jupiter',
     meaning: {
       ko: '정관 × 목성 — 규범·자격이 사회적 신뢰로 넓어지는 결. 자격·면허·공직·법적 정당화에 우호.',
-      en: 'Direct Officer × Jupiter — rules and credentials broaden into social trust. Favours licences, public office, and legal legitimacy.',
+      en: 'Direct Officer × Jupiter — rules and credentials broaden into social trust. Favors licenses, public office, and legal legitimacy.',
     },
     polarity: 2,
     grade: 'A',
@@ -147,7 +154,7 @@ export const SAJU_ASTRO_MAPPINGS: readonly CrossMapping[] = [
     astro: 'Venus',
     meaning: {
       ko: '정재 × 금성 — 안정된 가치·관계·자산의 결이 동시에 살아남. 결혼·계약·구매에 우호.',
-      en: 'Direct Wealth × Venus — stable value, relationships, and assets light up together. Favours marriage, contracts, and purchases.',
+      en: 'Direct Wealth × Venus — stable value, relationships, and assets light up together. Favors marriage, contracts, and purchases.',
     },
     polarity: 2,
     grade: 'A',
@@ -158,7 +165,7 @@ export const SAJU_ASTRO_MAPPINGS: readonly CrossMapping[] = [
     astro: 'Jupiter',
     meaning: {
       ko: '편재 × 목성 — 큰물의 기회·확장 재물 결이 한 방향으로. 신사업·투자 검토에 우호.',
-      en: 'Indirect Wealth × Jupiter — big opportunities and expansive wealth line up the same way. Favours new ventures and weighing investments.',
+      en: 'Indirect Wealth × Jupiter — big opportunities and expansive wealth line up the same way. Favors new ventures and weighing investments.',
     },
     polarity: 2,
     grade: 'A',
@@ -169,7 +176,7 @@ export const SAJU_ASTRO_MAPPINGS: readonly CrossMapping[] = [
     astro: 'Mercury',
     meaning: {
       ko: '편재 × 수성 — 거래·중개·정보로 돈을 굴리는 결. 영업·딜·협상·매매 회전에 우호, 잔머리 과욕은 절제.',
-      en: 'Indirect Wealth × Mercury — money moves through deals, brokering, and information. Favours sales, negotiation, and fast turnover; rein in over-clever greed.',
+      en: 'Indirect Wealth × Mercury — money moves through deals, brokering, and information. Favors sales, negotiation, and fast turnover; rein in over-clever greed.',
     },
     polarity: 1,
     grade: 'A',
@@ -206,7 +213,7 @@ export const SAJU_ASTRO_MAPPINGS: readonly CrossMapping[] = [
     astro: 'Venus',
     meaning: {
       ko: '식신 × 금성 — 누리고 빚는 결. 미식·예술·공예처럼 솜씨를 즐기며 내놓는 일에 우호.',
-      en: 'Eating God × Venus — a streak for enjoying and crafting. Favours food, art, and craft where you take pleasure in the making.',
+      en: 'Eating God × Venus — a streak for enjoying and crafting. Favors food, art, and craft where you take pleasure in the making.',
     },
     polarity: 2,
     grade: 'A',
@@ -231,7 +238,7 @@ export const SAJU_ASTRO_MAPPINGS: readonly CrossMapping[] = [
     astro: 'Jupiter',
     meaning: {
       ko: '정인 × 목성 — 학습·확장·정통의 기운이 한 방향으로 흘러요. 자격·학위·해외 우호.',
-      en: 'Direct Resource × Jupiter — learning, expansion, and tradition all pull the same way. Favours credentials, degrees, and overseas moves.',
+      en: 'Direct Resource × Jupiter — learning, expansion, and tradition all pull the same way. Favors credentials, degrees, and overseas moves.',
     },
     polarity: 2,
     grade: 'A',
@@ -242,7 +249,7 @@ export const SAJU_ASTRO_MAPPINGS: readonly CrossMapping[] = [
     astro: 'Moon',
     meaning: {
       ko: '정인 × 달 — 수용·돌봄·어머니 결이 두 배. 휴식·치유·가족 챙기기에 우호.',
-      en: 'Direct Resource × Moon — receptivity, care, and a maternal note are doubly strong. Favours rest, healing, and family.',
+      en: 'Direct Resource × Moon — receptivity, care, and a maternal note are doubly strong. Favors rest, healing, and family.',
     },
     polarity: 1,
     grade: 'A',
@@ -253,7 +260,7 @@ export const SAJU_ASTRO_MAPPINGS: readonly CrossMapping[] = [
     astro: 'Saturn',
     meaning: {
       ko: '정인 × 토성 — 정통 학문을 끈기 있게 다지는 결. 자격 시험·장기 연구·체계적 공부에 우호.',
-      en: 'Direct Resource × Saturn — disciplined, patient mastery of orthodox study. Favours certification exams, long research, and systematic learning.',
+      en: 'Direct Resource × Saturn — disciplined, patient mastery of orthodox study. Favors certification exams, long research, and systematic learning.',
     },
     polarity: 1,
     grade: 'A',
@@ -265,7 +272,7 @@ export const SAJU_ASTRO_MAPPINGS: readonly CrossMapping[] = [
     astro: 'Mercury',
     meaning: {
       ko: '편인 × 수성 — 비주류 정보·이면을 캐는 결. 자료 조사·재해석·편집에 우호, 의심이 과하면 결론을 미루게 됨.',
-      en: 'Indirect Resource × Mercury — digging into unconventional information and hidden angles. Favours research, reinterpretation, and editing; excess suspicion can stall conclusions.',
+      en: 'Indirect Resource × Mercury — digging into unconventional information and hidden angles. Favors research, reinterpretation, and editing; excess suspicion can stall conclusions.',
     },
     polarity: 0,
     grade: 'A',
@@ -277,7 +284,7 @@ export const SAJU_ASTRO_MAPPINGS: readonly CrossMapping[] = [
     astro: 'Saturn',
     meaning: {
       ko: '편인 × 토성 — 고립된 사고·종교·연구의 결이 깊어지는 시기. 혼자 파고드는 일에 우호.',
-      en: 'Indirect Resource × Saturn — solitary thought, faith, and deep research run deeper. Favours single-minded study.',
+      en: 'Indirect Resource × Saturn — solitary thought, faith, and deep research run deeper. Favors single-minded study.',
     },
     polarity: 0,
     grade: 'A',
@@ -326,7 +333,7 @@ export const SAJU_ASTRO_MAPPINGS: readonly CrossMapping[] = [
     astro: 'Venus',
     meaning: {
       ko: '도화살 × 금성 — 관계·매력·인기 결이 동시에 살아남. 사교·연애·미적 활동에 우호.',
-      en: 'Peach Blossom × Venus — connection, charm, and popularity light up together. Favours socializing, romance, and aesthetic work.',
+      en: 'Peach Blossom × Venus — connection, charm, and popularity light up together. Favors socializing, romance, and aesthetic work.',
     },
     polarity: 2,
     grade: 'A',
@@ -337,7 +344,7 @@ export const SAJU_ASTRO_MAPPINGS: readonly CrossMapping[] = [
     astro: 'Moon',
     meaning: {
       ko: '도화살 × 달 — 정서적 끌림·인기·대중성이 살아나는 결. 감성 콘텐츠·공감·사람 모으는 일에 우호.',
-      en: 'Peach Blossom × Moon — emotional pull, popularity, and mass appeal come alive. Favours heartfelt content, empathy, and drawing a crowd.',
+      en: 'Peach Blossom × Moon — emotional pull, popularity, and mass appeal come alive. Favors heartfelt content, empathy, and drawing a crowd.',
     },
     polarity: 1,
     grade: 'A',
@@ -349,7 +356,7 @@ export const SAJU_ASTRO_MAPPINGS: readonly CrossMapping[] = [
     astro: 'Mars',
     meaning: {
       ko: '역마살 × 화성 — 떠나려는 충동·추진이 두 배. 출장·이주·도전엔 동력, 다만 서두른 운전·일정은 한 박자 늦추기.',
-      en: 'Travelling Horse × Mars — the urge to move and push runs twice as hard. Drive for trips, relocation, and bold moves; just slow rushed driving and schedules by a beat.',
+      en: 'Traveling Horse × Mars — the urge to move and push runs twice as hard. Drive for trips, relocation, and bold moves; just slow rushed driving and schedules by a beat.',
     },
     polarity: 0,
     grade: 'A',
@@ -361,7 +368,7 @@ export const SAJU_ASTRO_MAPPINGS: readonly CrossMapping[] = [
     astro: 'Mercury',
     meaning: {
       ko: '역마살 × 수성 — 이동·소통·정보 결이 두 배. 출장·교섭·매체 활용에 우호.',
-      en: 'Travelling Horse × Mercury — movement, messages, and information all run twice as strong. Favours travel, negotiation, and media work.',
+      en: 'Traveling Horse × Mercury — movement, messages, and information all run twice as strong. Favors travel, negotiation, and media work.',
     },
     polarity: 1,
     grade: 'A',
@@ -372,12 +379,14 @@ export const SAJU_ASTRO_MAPPINGS: readonly CrossMapping[] = [
     astro: 'Mars',
     meaning: {
       ko: '양인살 × 화성 — 직진·과열·돌발이 한 시기에 몰리는 결. 칼·차·운동에 평소보다 주의.',
-      en: 'Yang Blade × Mars — headlong drive, overheating, and sudden moves all pile up. Take extra care with blades, vehicles, and intense exercise.',
+      en: 'Blade Edge × Mars — headlong drive, overheating, and sudden moves all pile up. Take extra care with blades, vehicles, and intense exercise.',
     },
     polarity: -2,
     grade: 'A',
     note: '양인(예봉·과열) ↔ Mars(blade·sudden injury). 양쪽 모두 첨예·과열축.',
   },
+  // 캘린더에선 발화하지 않는다 — 건록은 일 층 신살이고 목성 밴드는 월 층부터라, 좁은 부모
+  // 층(daily) 교차가 밴드 밖이다(엔진 감사 X7). 리포트의 건록 대표 매핑(natalCrossShared)으로 쓰인다.
   {
     saju: '건록',
     astro: 'Jupiter',
@@ -528,7 +537,7 @@ export const SAJU_ASTRO_MAPPINGS: readonly CrossMapping[] = [
     astro: 'Moon',
     meaning: {
       ko: '정재 × 달 — 집·가족·생활비의 결. 가계 정돈, 집 정리, 가족과 쓰는 돈 계획에 우호.',
-      en: 'Direct Wealth × Moon — home, family, and living costs align. Favours tidying budgets, the house, and family spending plans.',
+      en: 'Direct Wealth × Moon — home, family, and living costs align. Favors tidying budgets, the house, and family spending plans.',
     },
     polarity: 1,
     grade: 'B',
@@ -566,7 +575,7 @@ export const SAJU_ASTRO_MAPPINGS: readonly CrossMapping[] = [
     astro: 'Sun',
     meaning: {
       ko: '건록 × 태양 — 제 이름 걸고 서는 결. 발표·면접·서명처럼 내 실력이 무대 중앙에 서는 일에 우호.',
-      en: 'Established Stipend × Sun — a streak for standing under your own name. Favours presentations, interviews, and signatures where your skill takes centre stage.',
+      en: 'Established Stipend × Sun — a streak for standing under your own name. Favors presentations, interviews, and signatures where your skill takes center stage.',
     },
     polarity: 2,
     grade: 'B',
@@ -578,7 +587,7 @@ export const SAJU_ASTRO_MAPPINGS: readonly CrossMapping[] = [
     astro: 'Sun',
     meaning: {
       ko: '식신 × 태양 — 만든 것을 공개 무대에 올리는 결. 발행·출시·시연에 우호.',
-      en: 'Eating God × Sun — a streak for putting your work on the public stage. Favours publishing, launching, and demos.',
+      en: 'Eating God × Sun — a streak for putting your work on the public stage. Favors publishing, launching, and demos.',
     },
     polarity: 1,
     grade: 'B',
@@ -590,7 +599,7 @@ export const SAJU_ASTRO_MAPPINGS: readonly CrossMapping[] = [
     astro: 'Sun',
     meaning: {
       ko: '도화살 × 태양 — 시선이 나에게 모이는 결. 프로필 사진·무대·라이브처럼 보여지는 일에 우호.',
-      en: 'Peach Blossom × Sun — eyes gather on you. Favours profile shots, stages, and going live — anything where you’re seen.',
+      en: 'Peach Blossom × Sun — eyes gather on you. Favors profile shots, stages, and going live — anything where you’re seen.',
     },
     polarity: 1,
     grade: 'B',
@@ -616,7 +625,7 @@ export const SAJU_ASTRO_MAPPINGS: readonly CrossMapping[] = [
     astro: 'Mercury',
     meaning: {
       ko: '정관 × 수성 — 공문서·결재의 결. 계약서 검토, 관공서 서류, 공식 메일 처리에 우호.',
-      en: 'Direct Officer × Mercury — a streak for official paperwork. Favours contract review, government forms, and formal mail.',
+      en: 'Direct Officer × Mercury — a streak for official paperwork. Favors contract review, government forms, and formal mail.',
     },
     polarity: 1,
     grade: 'B',
@@ -628,7 +637,7 @@ export const SAJU_ASTRO_MAPPINGS: readonly CrossMapping[] = [
     astro: 'Mercury',
     meaning: {
       ko: '정재 × 수성 — 장부가 맞아떨어지는 결. 정산·가계부·구독 정리, 미뤄둔 환불 요청에 우호.',
-      en: 'Direct Wealth × Mercury — the books balance today. Favours settling accounts, budgets, subscriptions, and that refund request you postponed.',
+      en: 'Direct Wealth × Mercury — the books balance today. Favors settling accounts, budgets, subscriptions, and that refund request you postponed.',
     },
     polarity: 1,
     grade: 'B',
@@ -640,7 +649,7 @@ export const SAJU_ASTRO_MAPPINGS: readonly CrossMapping[] = [
     astro: 'Mercury',
     meaning: {
       ko: '정인 × 수성 — 배운 게 정리되는 결. 필기·요약·복습, 배운 내용을 문서로 굳히기에 우호.',
-      en: 'Direct Resource × Mercury — learning settles into order. Favours notes, summaries, review, and writing down what you’ve learned.',
+      en: 'Direct Resource × Mercury — learning settles into order. Favors notes, summaries, review, and writing down what you’ve learned.',
     },
     polarity: 1,
     grade: 'B',
@@ -690,7 +699,7 @@ export const SAJU_ASTRO_MAPPINGS: readonly CrossMapping[] = [
     astro: 'Venus',
     meaning: {
       ko: '정관 × 금성 — 격식 있는 자리가 부드럽게 풀리는 결. 상견례·공식 행사·예의 갖춘 부탁에 우호.',
-      en: 'Direct Officer × Venus — formal occasions soften in your favour. Good for meeting the parents, official events, and courteous asks.',
+      en: 'Direct Officer × Venus — formal occasions soften in your favor. Good for meeting the parents, official events, and courteous asks.',
     },
     polarity: 1,
     grade: 'B',
@@ -771,18 +780,8 @@ export const SAJU_ASTRO_MAPPINGS: readonly CrossMapping[] = [
     crossOnly: true,
     note: '비견(동배 경쟁) ↔ Mars(경쟁·열기). 겁재×Mars 의 완화판 — −1.',
   },
-  {
-    saju: '도화',
-    astro: 'Mars',
-    meaning: {
-      ko: '도화살 × 화성 — 끌림이 격정으로 달아오르는 결. 질투·성급한 고백은 하루 식히고.',
-      en: 'Peach Blossom × Mars — attraction heats into intensity. Cool jealousy and rushed confessions for a day.',
-    },
-    polarity: -1,
-    grade: 'B',
-    crossOnly: true,
-    note: '도화(끌림) ↔ Mars(격정·성급). 인연축의 과열 → −1.',
-  },
+  // 도화 × 화성(−1)은 은퇴(엔진 감사 X6) — 도화는 신살 극성이 +1 로 고정이라 두 부모가
+  // −1 에 동의할 수 없다. 옛 합성 규칙에선 화성이 길하거나 중립일 때만 −1 경고가 떴다(반전).
   {
     saju: '건록',
     astro: 'Mars',
@@ -796,34 +795,26 @@ export const SAJU_ASTRO_MAPPINGS: readonly CrossMapping[] = [
     note: '건록(실력·자리) ↔ Mars(추진). 실력의 승부축 → +1.',
   },
 
-  // ── 신살 길성 확장 ──
-  {
-    saju: '천을귀인',
-    astro: 'Jupiter',
-    meaning: {
-      ko: '천을귀인 × 목성 — 귀인이 실제로 움직이는 결. 부탁·소개 요청·멘토 연락을 미루지 말 것.',
-      en: 'Heavenly Benefactor × Jupiter — your helpers are actually in motion. Don’t postpone the ask, the intro request, or that message to a mentor.',
-    },
-    polarity: 2,
-    grade: 'A',
-    crossOnly: true,
-    note: '천을귀인(최상 길성·조력자) ↔ Jupiter(greater benefic·귀인운). 동·서 길성 아키타입 직접 등치 — A.',
-  },
+  // 천을귀인 × 목성은 은퇴(오너 결정 14) — 천을귀인은 일 층 신살이고 목성 밴드는 월 층부터라
+  // 교차가 좁은 부모 층(엔진 감사 X7)에서 발화할 수 없었다. crossOnly 라 리포트 대표 매핑
+  // (natalCrossShared)에도 쓰이지 않았다 — 대체 페어는 만들지 않는다.
 ]
 
 /**
  * 층별 교차 밴드 — 행성마다 *어느 시간 층에서* 교차신호를 낼 수 있는지.
- * 행성 속도에 맞춘다: 빠른 행성은 일/월에서만(긴 층에선 무의미), 느린/외행성은
+ * 행성 속도에 맞춘다: 빠른 행성은 시/일/월에서만(긴 층에선 무의미), 느린/외행성은
  * 대운/장주기에서만(짧은 층에선 노이즈 — 윈도우가 수개월~수년이라 상시 발화).
- * cross-activation 이 합성 신호의 layer 가 이 밴드에 없으면 emit 하지 않는다.
+ * cross-activation 이 합성 신호의 layer — 두 부모 중 *좁은* 층(엔진 감사 X7) — 가
+ * 이 밴드에 없으면 emit 하지 않는다. 시진(hourly) 부모의 교차는 hourly 층이라
+ * 빠른 행성(일 밴드가 있는 행성)과만 맞는다 — 2시간 시진 × 토성은 세운 교차가 아니다.
  * → "전부 켜기/끄기"가 아니라 *층마다 맞는 행성만* 교차.
  */
-const CROSS_LAYER_BAND: Record<AstroMatchKey, readonly SignalLayer[]> = {
-  Moon: ['daily'],
-  Sun: ['daily', 'monthly'],
-  Mercury: ['daily', 'monthly'],
-  Venus: ['daily', 'monthly'],
-  Mars: ['daily', 'monthly'],
+export const CROSS_LAYER_BAND: Readonly<Record<AstroMatchKey, readonly SignalLayer[]>> = {
+  Moon: ['hourly', 'daily'],
+  Sun: ['hourly', 'daily', 'monthly'],
+  Mercury: ['hourly', 'daily', 'monthly'],
+  Venus: ['hourly', 'daily', 'monthly'],
+  Mars: ['hourly', 'daily', 'monthly'],
   Jupiter: ['monthly', 'yearly', 'decadal'],
   Saturn: ['yearly', 'decadal'],
   Uranus: ['decadal'],

@@ -12,11 +12,7 @@
 
 import { NextResponse } from 'next/server'
 import { logger } from '@/lib/logger'
-import { createErrorResponse, ErrorCodes } from '@/lib/api/errorHandler'
-import { extractLocale } from '@/lib/api/middleware'
-import { rateLimit } from '@/lib/rateLimit'
-import { getClientIp } from '@/lib/request-ip'
-import { timingSafeCompare } from '@/lib/security/timingSafe'
+import { withCronAuth } from '@/lib/api/middleware/cronGuard'
 import { getDrafts } from '@/lib/social/draftStore'
 import { todayKeyKST } from '@/lib/social/generateDrafts'
 import { autoPublishLocales, configuredPlatforms, publishAndRecord } from '@/lib/social/publish'
@@ -32,16 +28,6 @@ export const runtime = 'nodejs'
 export const maxDuration = 60
 
 const AUTO_PLATFORMS: readonly AutoPublishPlatform[] = ['threads', 'instagram']
-
-function validateCronSecret(request: Request): boolean {
-  const authHeader = request.headers.get('authorization')
-  const cronSecret = process.env.CRON_SECRET
-  if (!cronSecret) {
-    logger.error('[Cron social-publish] CRON_SECRET not set - rejecting request')
-    return false
-  }
-  return timingSafeCompare(authHeader ?? '', `Bearer ${cronSecret}`)
-}
 
 interface PlatformOutcome {
   platform: AutoPublishPlatform
@@ -94,20 +80,7 @@ async function publishBatchFor(
   return { platform, published, id: lastId, error: lastErr }
 }
 
-async function handle(request: Request): Promise<NextResponse> {
-  const ip = getClientIp(request.headers)
-  const rl = await rateLimit(`cron:social-publish:${ip}`, { limit: 5, windowSeconds: 60 })
-  if (!rl.allowed) {
-    return createErrorResponse({
-      code: ErrorCodes.RATE_LIMITED,
-      locale: extractLocale(request),
-      route: 'cron/social-publish',
-    })
-  }
-  if (!validateCronSecret(request)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-
+async function handle(): Promise<NextResponse> {
   const locales = autoPublishLocales()
   const targets = AUTO_PLATFORMS.filter((p) => configuredPlatforms().includes(p))
   // 자동모드 OFF 또는 자동 발행 가능 플랫폼 미설정이면 no-op(수동 발행 흐름).
@@ -142,9 +115,5 @@ async function handle(request: Request): Promise<NextResponse> {
   })
 }
 
-export async function GET(request: Request) {
-  return handle(request)
-}
-export async function POST(request: Request) {
-  return handle(request)
-}
+export const GET = withCronAuth('social-publish', handle)
+export const POST = GET

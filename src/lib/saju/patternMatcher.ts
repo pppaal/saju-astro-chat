@@ -3,7 +3,13 @@
 
 import { FiveElement, SajuPillars, SibsinKind, PillarKind } from './types'
 import { JIJANGGAN, FIVE_ELEMENT_RELATIONS } from './constants'
-import { SIX_HARMONY, BRANCH_CLASH, STEM_COMBINE, THREE_HARMONY, toBidiRecord } from './relationTables'
+import {
+  SIX_HARMONY,
+  BRANCH_CLASH,
+  STEM_COMBINE,
+  THREE_HARMONY,
+  toBidiRecord,
+} from './relationTables'
 
 // 관계 도그마는 relationTables.ts(SSOT)에서 파생. 로컬 복제 금지.
 const PM_YUKHAP_MAP: Record<string, string> = toBidiRecord(SIX_HARMONY.map((h) => h.pair))
@@ -61,16 +67,6 @@ export interface PatternAnalysis {
   patternSummary: string
   uniqueTraits: string[]
   compatiblePatterns: string[] // 상성이 좋은 패턴 ID
-}
-
-/** 유명인 프로필 */
-export interface CelebrityProfile {
-  name: string
-  birthYear: number
-  pillars: Partial<SajuPillars>
-  occupation: string
-  description: string
-  keyPatterns: string[]
 }
 
 // ============================================================

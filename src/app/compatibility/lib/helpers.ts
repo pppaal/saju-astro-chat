@@ -18,7 +18,8 @@ export const makeEmptyPerson = (defaults?: Partial<PersonForm>): PersonForm => (
   cityQuery: '',
   lat: null,
   lon: null,
-  timeZone: getUserTimezone() || 'Asia/Seoul',
+  // 빈 카드 — 보는 사람 기기 tz(실패 시 'UTC'). 도시를 고르면 그 도시 tz 로 바뀐다(G13: 서울 하드코딩 없음).
+  timeZone: getUserTimezone(),
   suggestions: [],
   showDropdown: false,
   ...(defaults || {}),

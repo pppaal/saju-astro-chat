@@ -21,7 +21,6 @@ import {
   localeValues,
   genderValues,
   type Locale,
-  type Gender,
 } from './zodValidation/common'
 
 // ============================================================
@@ -59,11 +58,10 @@ export const TimezoneSchema = timezoneSchema
 
 /** Supported locales */
 export const LocaleSchema = localeSchema
-export {  type Locale }
+export { type Locale }
 
 /** Supported genders */
 const GenderSchema = genderSchema
-export {  type Gender }
 
 /** Latitude coordinate */
 export const LatitudeSchema = latitudeSchema
@@ -104,7 +102,6 @@ export type BirthData = z.infer<typeof BirthDataSchema>
 /** Standard API pagination - re-exported from zodValidation */
 import { paginationQuerySchema } from './zodValidation/common'
 export const PaginationSchema = paginationQuerySchema
-export type Pagination = z.infer<typeof PaginationSchema>
 
 /** Common query parameters */
 export const QueryParamsSchema = z.object({
@@ -123,7 +120,6 @@ export const DestinyMapRequestSchema = BirthDataSchema.extend({
   prompt: z.string().max(LIMITS.PROMPT).optional(),
   userTimezone: TimezoneSchema.optional(),
 })
-export type DestinyMapRequest = z.infer<typeof DestinyMapRequestSchema>
 
 /** Tarot request */
 export const TarotRequestSchema = z.object({
@@ -132,7 +128,6 @@ export const TarotRequestSchema = z.object({
   question: z.string().max(LIMITS.QUESTION).optional(),
   language: LocaleSchema.default('ko'),
 })
-export type TarotRequest = z.infer<typeof TarotRequestSchema>
 
 /** Tarot interpretation request */
 export const TarotInterpretSchema = z.object({
@@ -155,7 +150,6 @@ export const TarotInterpretSchema = z.object({
   sajuContext: z.record(z.string(), z.unknown()).optional(),
   astroContext: z.record(z.string(), z.unknown()).optional(),
 })
-export type TarotInterpretRequest = z.infer<typeof TarotInterpretSchema>
 
 /** Dream analysis request */
 export const DreamRequestSchema = z.object({
@@ -167,7 +161,6 @@ export const DreamRequestSchema = z.object({
   locale: LocaleSchema.default('en'),
   birth: BirthDataSchema.optional(),
 })
-export type DreamRequest = z.infer<typeof DreamRequestSchema>
 
 /** I-Ching request */
 export const IChingRequestSchema = z.object({
@@ -177,7 +170,6 @@ export const IChingRequestSchema = z.object({
   sajuElement: z.string().max(20).optional(),
   birth: BirthDataSchema.optional(),
 })
-export type IChingRequest = z.infer<typeof IChingRequestSchema>
 
 /** Calendar query */
 export const CalendarQuerySchema = z.object({
@@ -191,7 +183,6 @@ export const CalendarQuerySchema = z.object({
   month: z.coerce.number().int().min(1).max(12).optional(),
   locale: LocaleSchema.default('ko'),
 })
-export type CalendarQuery = z.infer<typeof CalendarQuerySchema>
 
 /** Compatibility request */
 export const CompatibilityRequestSchema = z.object({
@@ -200,7 +191,6 @@ export const CompatibilityRequestSchema = z.object({
   language: LocaleSchema.default('ko'),
   detailLevel: z.enum(['basic', 'detailed', 'comprehensive']).default('detailed'),
 })
-export type CompatibilityRequest = z.infer<typeof CompatibilityRequestSchema>
 
 /** Feedback request */
 export const FeedbackRequestSchema = z.object({
@@ -210,7 +200,6 @@ export const FeedbackRequestSchema = z.object({
   theme: z.string().max(LIMITS.THEME).optional(),
   locale: LocaleSchema.default('ko'),
 })
-export type FeedbackRequest = z.infer<typeof FeedbackRequestSchema>
 
 // ============================================================
 // Chat Message Schemas (shared across 8+ chat routes)
@@ -232,14 +221,12 @@ const IChingChangingLineSchema = z.object({
   lineIndex: z.number().int().min(0).max(5),
   locale: LocaleSchema.default('ko'),
 })
-export type IChingChangingLineRequest = z.infer<typeof IChingChangingLineSchema>
 
 /** Tarot prefetch request */
 export const TarotPrefetchSchema = z.object({
   categoryId: z.string().min(1).max(LIMITS.ID),
   spreadId: z.string().min(1).max(LIMITS.ID),
 })
-export type TarotPrefetchRequest = z.infer<typeof TarotPrefetchSchema>
 
 /** Compatibility persons array request */
 const CompatibilityPersonSchema = z.object({
@@ -273,7 +260,6 @@ const CompatibilityPersonsRequestSchema = z.object({
   persons: z.array(CompatibilityPersonSchema).min(2).max(4),
   locale: LocaleSchema.default('ko'),
 })
-export type CompatibilityPersonsRequest = z.infer<typeof CompatibilityPersonsRequestSchema>
 
 // ============================================================
 // Validation Functions
@@ -429,5 +415,4 @@ export function validationError(errors: ValidationError[]): ApiHandlerResult<nev
 // Re-exports for convenience
 // ============================================================
 
-
-export type { ZodSchema, ZodError } from 'zod'
+export type { ZodSchema } from 'zod'

@@ -27,7 +27,7 @@ vi.mock('@/lib/api/idempotency', () => ({
 vi.mock('@/lib/api/requestParser', () => ({
   parseRequestBody: async (req: NextRequest) => req.json(),
 }))
-vi.mock('@/lib/metrics/index', () => ({ recordApiRequest: vi.fn() }))
+vi.mock('@/lib/metrics', () => ({ recordApiRequest: vi.fn() }))
 vi.mock('@/lib/logger', () => ({
   logger: { warn: vi.fn(), error: vi.fn(), info: vi.fn(), debug: vi.fn() },
 }))

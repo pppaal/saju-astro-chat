@@ -25,11 +25,13 @@ vi.mock('@/lib/api/middleware', () => ({
 }))
 
 const recordCounter = vi.fn()
-vi.mock('@/lib/metrics/index', () => ({
+vi.mock('@/lib/metrics', () => ({
   recordCounter: (...a: any[]) => (recordCounter as any)(...a),
 }))
 
 import { POST } from '@/app/api/track/funnel/route'
+import { FUNNEL_EVENTS, type FunnelEvent } from '@/lib/metrics/funnelEvents'
+import type { FunnelEvent as BeaconEvent } from '@/lib/metrics/trackFunnel'
 
 function makeReq(body: unknown, raw = false) {
   return new NextRequest('http://localhost:3000/api/track/funnel', {
@@ -63,5 +65,45 @@ describe('POST /api/track/funnel', () => {
     const data = await res.json()
     expect(res.status).toBe(200)
     expect(data.data.skipped).toBe(true)
+  })
+
+  it('v9 홈·인생 흐름·캘린더 이벤트를 모두 받는다', async () => {
+    const v9 = [
+      'home.cta_clicked',
+      'home.birth_saved',
+      'home.signin_clicked',
+      'home.explore.life',
+      'home.explore.calendar',
+      'home.explore.tarot',
+      'home.explore.compat',
+      'home.explore.report',
+      'home.explore.counselor',
+      'home.counselor_cta',
+      'destiny.counselor_cta',
+      'calendar.counselor_cta',
+    ] as const satisfies readonly FunnelEvent[]
+    for (const event of v9) {
+      recordCounter.mockClear()
+      const res = await POST(makeReq({ event }))
+      const data = await res.json()
+      expect(res.status).toBe(200)
+      expect(data.data.ok).toBe(true)
+      expect(recordCounter).toHaveBeenCalledWith(`funnel.${event}`, 1)
+    }
+  })
+
+  it('allowlist 의 모든 이벤트를 집계한다 (라우트 = FUNNEL_EVENTS)', async () => {
+    for (const event of FUNNEL_EVENTS) {
+      const res = await POST(makeReq({ event }))
+      expect((await res.json()).data.ok).toBe(true)
+    }
+    expect(recordCounter).toHaveBeenCalledTimes(FUNNEL_EVENTS.length)
+    expect(new Set(FUNNEL_EVENTS).size).toBe(FUNNEL_EVENTS.length)
+  })
+
+  it('비콘 타입과 라우트 allowlist 가 같은 출처', () => {
+    const fromBeacon: BeaconEvent = 'home.cta_clicked'
+    const fromList: FunnelEvent = fromBeacon
+    expect(FUNNEL_EVENTS).toContain(fromList)
   })
 })

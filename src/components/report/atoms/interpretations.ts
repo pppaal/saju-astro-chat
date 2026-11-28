@@ -13,23 +13,8 @@
  */
 
 import { getHanjaRich } from '@/lib/chart-dictionary'
-
-// ── 한자 풀(stem / branch 순서) ───────────────────────────────────────────────
-const STEM_CHARS = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'] as const
-const BRANCH_CHARS = [
-  '子',
-  '丑',
-  '寅',
-  '卯',
-  '辰',
-  '巳',
-  '午',
-  '未',
-  '申',
-  '酉',
-  '戌',
-  '亥',
-] as const
+// 한자 풀(stem / branch 순서) — 정본 STEM_NAMES / BRANCH_NAMES(saju/constants). 복사 금지.
+import { STEM_NAMES, BRANCH_NAMES } from '@/lib/saju/constants'
 
 // hanja-rich 의 image 필드는 "큰 나무·동량목(棟梁木) — 곧게 위로 자라는 거목" 형태.
 // 기존 atoms 시그니처는 짧은 자연 image("큰 나무") 만 노출 → 첫 ·/— 앞만 추출.
@@ -39,7 +24,7 @@ function shortImage(rich: string | undefined): string {
 }
 
 // 10 천간 — 음양 + 오행 + 자연 image + 성격 키워드
-export const HEAVENLY_STEMS: Record<
+const HEAVENLY_STEMS: Record<
   string,
   { ko: string; yinYang: '양' | '음'; element: string; image: string; meaning: string }
 > = (() => {
@@ -47,7 +32,7 @@ export const HEAVENLY_STEMS: Record<
     string,
     { ko: string; yinYang: '양' | '음'; element: string; image: string; meaning: string }
   > = {}
-  for (const c of STEM_CHARS) {
+  for (const c of STEM_NAMES) {
     const entry = getHanjaRich(c, 'ko')
     if (!entry || !('yinYang' in entry)) continue
     map[c] = {
@@ -62,12 +47,12 @@ export const HEAVENLY_STEMS: Record<
 })()
 
 // 12 지지 — 동물 + 오행 + 의미
-export const EARTHLY_BRANCHES: Record<
+const EARTHLY_BRANCHES: Record<
   string,
   { ko: string; animal: string; element: string; meaning: string }
 > = (() => {
   const map: Record<string, { ko: string; animal: string; element: string; meaning: string }> = {}
-  for (const c of BRANCH_CHARS) {
+  for (const c of BRANCH_NAMES) {
     const entry = getHanjaRich(c, 'ko')
     if (!entry || !('animal' in entry)) continue
     map[c] = {
@@ -83,7 +68,7 @@ export const EARTHLY_BRANCHES: Record<
 // 십성 (10 神) — 일간 기준 다른 천간/지지와의 관계.
 // chart-dictionary 의 sibsin-category 는 카테고리(비겁/식상/...) 단위라 개별 십성
 // 의미(비견·겁재 등)는 없음 → 이 매핑은 atoms 에서 유지.
-export const SIBSIN: Record<
+const SIBSIN: Record<
   string,
   { category: 'bigeop' | 'sikSang' | 'jaeSeong' | 'gwanSeong' | 'inSeong'; meaning: string }
 > = {
@@ -99,24 +84,11 @@ export const SIBSIN: Record<
   정인: { category: 'inSeong', meaning: '학문·보호·전통 지원' },
 }
 
-// 십성 → 한 줄(2~5자) plain 한국어 키워드. 셀 칩 밑에 inline 으로 노출해서
-// "비견 뭐지" 라는 인지 부담 제거. 위의 SIBSIN.meaning 은 tooltip 용 풍부한 설명이고
-// 아래는 칩 옆에 항상 보이는 한 줄 라벨.
-export const SIBSIN_SHORT: Record<string, string> = {
-  비견: '자존·동료',
-  겁재: '경쟁·라이벌',
-  식신: '표현·창의',
-  상관: '재능·개성',
-  편재: '기회·재물',
-  정재: '안정·재물',
-  편관: '권력·압박',
-  정관: '명예·규율',
-  편인: '직관·지식',
-  정인: '학문·보호',
-}
+// 칩 옆에 항상 보이는 한 줄 라벨(SIBSIN_SHORT)은 서버 코드도 쓰도록
+// @/lib/report/integratedReportLabels 에 있다. 위의 SIBSIN.meaning 은 tooltip 용 설명.
 
 // 십성 카테고리별 색 — 차트 전체에서 통일 (UI 토큰, chart-dictionary 범위 밖)
-export const SIBSIN_COLOR: Record<
+const SIBSIN_COLOR: Record<
   'bigeop' | 'sikSang' | 'jaeSeong' | 'gwanSeong' | 'inSeong',
   { bg: string; text: string; ring: string; label: string }
 > = {
@@ -180,14 +152,6 @@ export const ELEMENT_REMEDY: Record<
     direction: { ko: '북쪽', en: 'North' },
     activity: { ko: '학습·명상·여행', en: 'study · meditation · travel' },
   },
-}
-
-// 헬퍼: 한자 → image
-export function imageOf(stemOrBranch: string | undefined): string | undefined {
-  if (!stemOrBranch) return undefined
-  return (
-    HEAVENLY_STEMS[stemOrBranch]?.image ?? EARTHLY_BRANCHES[stemOrBranch]?.meaning?.split('·')[0]
-  )
 }
 
 // 헬퍼: 한자 → 1줄 의미 (long-press tooltip 용)

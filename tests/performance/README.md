@@ -238,18 +238,19 @@ Server crashes during test
 
 ## Documentation
 
-- **[Full Performance Testing Guide](../../docs/archive/PERFORMANCE_TESTING.md)** - Complete documentation
 - **[K6 Tests README](./k6/README.md)** - K6-specific documentation
+- **[Troubleshooting](./TROUBLESHOOTING.md)** - Common failures and fixes
+- **[Quick Reference](./QUICK_REFERENCE.md)** - Command cheat sheet
 
 ## CI/CD Integration
 
-See [PERFORMANCE_TESTING.md](../../docs/archive/PERFORMANCE_TESTING.md#cicd-integration) for GitHub Actions examples.
+See the [k6 README](./k6/README.md#integration-with-cicd) for GitHub Actions examples.
 
 ## Support
 
 For issues or questions:
 
-1. Check [troubleshooting guide](../../docs/archive/PERFORMANCE_TESTING.md#troubleshooting)
+1. Check the [troubleshooting guide](./TROUBLESHOOTING.md)
 2. Review server logs
 3. File an issue in GitHub repository
 

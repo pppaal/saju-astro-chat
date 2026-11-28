@@ -57,9 +57,7 @@ Comprehensive PR validation:
 Long-running destiny validation:
 
 - Full Vitest suite, sharded across 3 parallel jobs
-- Full destiny quality gate
-- Nightly reports/ops artifact upload
-- GitHub Actions summary with shard + gate status
+- GitHub Actions summary with shard status
 - Shard-level Vitest JSON triage and aggregated top failure categories/files
 
 **When it runs:** Nightly and manual dispatch

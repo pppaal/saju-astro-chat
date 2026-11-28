@@ -75,9 +75,6 @@ vi.mock('@/i18n/locales/ko/destinymap.json', () => emptyDict)
 vi.mock('@/i18n/locales/ko/features.json', () => emptyDict)
 vi.mock('@/i18n/locales/ko/misc.json', () => emptyDict)
 
-// No extensions in tests — keep the merged dict equal to our controlled data.
-vi.mock('@/lib/i18n/extensions', () => ({ allExtensions: {} }))
-
 // NOTE: `readCookieLocale` / `writeCookieLocale` are module-private (not
 // exported), so they're exercised indirectly through the provider's
 // cookie-seeded initial locale rather than imported directly. See the

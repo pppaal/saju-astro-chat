@@ -1,0 +1,130 @@
+/* ============================================================
+   v9.2 "Two systems, one answer" — paper design tokens
+   Home(/) · Life(/destiny) · Calendar(/calendar) 전용. 디자인 원본
+   base_v9.css :root 를 그대로 옮기되 두 가지만 다르다:
+   - --wood: 파랑(#2F6F8F) → 녹청(green-teal). 행운색 조언 "Green · teal" 과
+     데이터 색이 같아야 한다(심사 지적, 오너 결정).
+   - 글꼴 토큰: 패밀리 이름 대신 next/font/local 변수(src/app/fonts/v9.ts)를
+     먼저 읽고, 한글·한자는 시스템 CJK 스택으로 떨어진다(한국어 웹폰트 없음).
+   전역 :root 가 아니라 CSS Module 클래스(.root)에 둔다 — 전역 CSS 는 클라이언트
+   내비게이션 뒤에도 문서에 남아 다른 라우트로 새기 때문. V9Root 가 이 클래스와
+   폰트 변수 클래스를 같은 요소에 붙인다.
+   ============================================================ */
+
+.root {
+  --paper: #f3efe7; /* page background */
+  --paper-2: #eae5db; /* wells, url bar, muted fills, caution days */
+  --surface: #fbf9f4; /* cards, plates, label strips */
+  --ink: #1b1916; /* primary text + dark bands + dark buttons + Water */
+  --ink-2: #2a2723; /* secondary dark */
+  /* tally: "different but supportive" — ink at half strength, never a hue */
+  --ink-50: rgba(27, 25, 22, 0.5);
+  --body: #46413a; /* body text */
+  --mute: #6e695f; /* captions, mono labels */
+  --line: #ded7cb; /* hairlines, borders, neutral days */
+  --line-2: #b9b1a3; /* a hairline that must still read as an outline on --surface (tally "unrelated") */
+  --seal: #b8412c; /* 인주 vermilion — the ONE red: Fire data, the 算 seal, the LED dot */
+  --seal-2: #b8412c; /* same hex on dark (no coral, no second red) */
+  --on-dark: #f3efe7; /* text on --ink */
+  --on-dark-2: rgba(243, 239, 231, 0.72);
+  --on-dark-3: rgba(243, 239, 231, 0.52);
+  /* calm-day hairline on ink (the ink analogue of --line) */
+  --on-dark-4: rgba(243, 239, 231, 0.34);
+  --line-dark: rgba(243, 239, 231, 0.16);
+  --foil: conic-gradient(
+    from 200deg,
+    #9edacb,
+    #a7c4ee,
+    #d7c2e4,
+    #f3d0b0,
+    #f5e7b3,
+    #b7e3d2,
+    #9edacb
+  );
+  --foil-lines: repeating-linear-gradient(
+    115deg,
+    rgba(255, 255, 255, 0) 0 3px,
+    rgba(255, 255, 255, 0.3) 3px 4px
+  );
+  /* 木 청 green-teal — retuned from #2F6F8F (blue) so the data colour matches the
+     "Green · teal" lucky-colour advice. ≈4.9:1 on --paper, so it still reads as text. */
+  --wood: #2a7360;
+  --fire: var(--seal); /* 火 적 = the seal vermilion, by definition */
+  --earth: #c4973b; /* 土 황 gold ochre */
+  --metal: #dcd6ca; /* 金 백 pale stone (always with --metal-key hairline) */
+  --water: #1b1916; /* 水 흑 ink */
+  --metal-key: #b3ab9c; /* hairline so Metal reads on paper */
+  --water-key: rgba(243, 239, 231, 0.55); /* inset so Water reads on ink */
+  --water-dark: #8e98a2; /* 水 as DATA on ink (dial ticks): a cool slate so it never reads as Metal's warm stone */
+  --grid:
+    repeating-linear-gradient(0deg, rgba(27, 25, 22, 0.07) 0 1px, transparent 1px 12px),
+    repeating-linear-gradient(90deg, rgba(27, 25, 22, 0.07) 0 1px, transparent 1px 12px);
+  --grid-dark:
+    repeating-linear-gradient(0deg, rgba(243, 239, 231, 0.09) 0 1px, transparent 1px 12px),
+    repeating-linear-gradient(90deg, rgba(243, 239, 231, 0.09) 0 1px, transparent 1px 12px);
+  --hatch: repeating-linear-gradient(45deg, rgba(27, 25, 22, 0.24) 0 1px, transparent 1px 4px);
+  --hatch-2: repeating-linear-gradient(
+    45deg,
+    rgba(27, 25, 22, 0.62) 0 1px,
+    transparent 1px 3px
+  ); /* dense hatch for small areas (tally "two pulls") */
+  --hatch-dark: repeating-linear-gradient(
+    45deg,
+    rgba(243, 239, 231, 0.6) 0 1px,
+    transparent 1px 3px
+  );
+  --star: polygon(
+    50% 0%,
+    63% 37%,
+    100% 50%,
+    63% 63%,
+    50% 100%,
+    37% 63%,
+    0% 50%,
+    37% 37%
+  ); /* ✦ key day */
+  --card-shadow: 0 24px 36px -20px rgba(27, 25, 22, 0.5), 0 2px 6px -2px rgba(27, 25, 22, 0.25);
+  --card-shadow-sm: 0 10px 18px -12px rgba(27, 25, 22, 0.5), 0 1px 3px -1px rgba(27, 25, 22, 0.25);
+  /* Hangul/Hanja: system CJK stack, as the rest of the app (no Korean webfont). */
+  --hanja: 'Apple SD Gothic Neo', 'Noto Sans KR', 'Noto Sans CJK KR', 'Malgun Gothic', sans-serif;
+  --serif:
+    var(--font-v9-serif), 'Apple SD Gothic Neo', 'Noto Sans KR', 'Noto Sans CJK KR',
+    'Malgun Gothic', serif;
+  --sans:
+    var(--font-v9-sans), system-ui, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Noto Sans CJK KR',
+    'Malgun Gothic', sans-serif;
+  --mono:
+    var(--font-v9-mono), ui-monospace, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Noto Sans CJK KR',
+    'Malgun Gothic', monospace;
+
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--sans);
+  /* body 의 'ss01'/'cv11' 은 Schibsted 의 스타일 세트를 켜 버린다 — 기본값으로 되돌림. */
+  font-feature-settings: normal;
+  min-height: 100dvh;
+}
+
+/* ---- 전역 CSS 누수 차단 (globals.css · mobile-enhancements.css · Tailwind preflight) ---- */
+
+/* 44px 터치 최소높이와 transition: all — v9 의 30px 칩·Sign in 알약을 부풀린다. */
+.root button {
+  min-height: 0;
+  transition: none;
+}
+
+/* globals.css 의 눌림 scale(.97) — 특이도 (0,2,1) 이라 단일 모듈 클래스로는 못 이긴다. */
+.root button:active:not(:disabled) {
+  transform: none;
+}
+
+/* 금색 포커스 링(전역 + mobile-enhancements 의 3px !important) → 잉크 링. */
+.root :focus-visible {
+  outline: 2px solid var(--ink) !important;
+  outline-offset: 2px !important;
+}
+
+/* Tailwind preflight svg{display:block} — v9 는 ▲▼ 마크·아이콘을 글줄 안에 그린다. */
+.root svg {
+  display: inline-block;
+}

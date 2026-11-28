@@ -32,7 +32,16 @@ export default function CreditDepletedModal({
 
   // 첫구매 한정 스타터팩 자격 — 모달이 열릴 때 1회 조회. 자격 있으면 인라인
   // 미끼 오퍼를 띄워 /pricing 평면그리드로 보내지 않고 피크 순간에 전환시킨다.
-  const [starter, setStarter] = useState<{ credits: number; krw: number; usd: number } | null>(null)
+  // currency/amount 는 서버가 resolveCheckoutCurrency 로 확정해 내려준 값 —
+  // /api/checkout 이 실제로 청구할 통화와 같다. 클라에서 locale 로 다시 고르면
+  // USD Price 미설정 시 $1.99 표시 → ₩2,900 청구가 된다.
+  const [starter, setStarter] = useState<{
+    credits: number
+    currency?: 'KRW' | 'USD'
+    amount?: number
+    krw: number
+    usd: number
+  } | null>(null)
   const [starterBusy, setStarterBusy] = useState(false)
   useEffect(() => {
     if (!isOpen) return
@@ -96,8 +105,14 @@ export default function CreditDepletedModal({
     }
   }, [starterBusy, saveReturnUrl, handlePurchase])
 
-  const formatStarterPrice = () =>
-    locale === 'en' && starter ? `$${starter.usd.toFixed(2)}` : `₩${starter?.krw.toLocaleString()}`
+  const formatStarterPrice = () => {
+    if (!starter) return ''
+    // 서버가 통화를 내려줬으면 그걸 따른다(표시 == 청구). 구버전 응답
+    // (currency 없음)만 기존 locale 기반 폴백 — KRW 가 기본 통화라 안전한 쪽.
+    const currency = starter.currency ?? (locale === 'en' ? 'USD' : 'KRW')
+    const amount = starter.amount ?? (currency === 'USD' ? starter.usd : starter.krw)
+    return currency === 'USD' ? `$${amount.toFixed(2)}` : `₩${amount.toLocaleString()}`
+  }
 
   // Esc 닫기 + body 스크롤 잠금 (공용 훅).
   useModalDismiss(isOpen, onClose)
@@ -179,7 +194,9 @@ export default function CreditDepletedModal({
             </span>
             <div className={styles.starterBody}>
               <div className={styles.starterInfo}>
-                <span className={styles.starterTitle}>{t('credits.starter.title', '스타터팩')}</span>
+                <span className={styles.starterTitle}>
+                  {t('credits.starter.title', '스타터팩')}
+                </span>
                 <span className={styles.starterMeta}>
                   {t('credits.starter.meta', `${starter.credits}크레딧 · 가장 저렴한 첫 시작`)}
                 </span>
@@ -199,15 +216,13 @@ export default function CreditDepletedModal({
         )}
 
         <div className={styles.buttons}>
-          <button
-            className={styles.purchaseButton}
-            onClick={handlePurchase}
-            autoFocus={!starter}
-          >
+          <button className={styles.purchaseButton} onClick={handlePurchase} autoFocus={!starter}>
             <span className={styles.buttonIcon} aria-hidden="true">
               ✦
             </span>
-            {starter ? t('credits.seeAllPacks', '모든 팩 보기') : t('credits.purchase', '크레딧 구매하기')}
+            {starter
+              ? t('credits.seeAllPacks', '모든 팩 보기')
+              : t('credits.purchase', '크레딧 구매하기')}
           </button>
           <button className={styles.laterButton} onClick={onClose}>
             {t('common.later', '나중에')}

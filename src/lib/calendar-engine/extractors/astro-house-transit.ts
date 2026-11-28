@@ -3,6 +3,7 @@ import type { Chart, House } from '@/lib/astrology/foundation/types'
 import type { ActiveSignal, ExtractorContext, SignalExtractor, SignalLayer } from '../types'
 import { PLANET_KO } from '../data/planetNames'
 import { ordinalEn } from '../ordinal'
+import { extendRun, maxDailyMotion, noonPlanetPosition, rangeDays } from './shared/noonRuns'
 
 /**
  * 하우스 오버레이 + ASC/MC 컨택 추출기.
@@ -17,7 +18,18 @@ import { ordinalEn } from '../ordinal'
  *
  * 추적 대상: Mars(월간) + Jupiter/Saturn/Uranus/Neptune/Pluto(연간) — 빠른
  * 행성은 하우스를 며칠 만에 지나 노이즈라 제외.
+ *
+ * 창(엔진 감사 X1 · 재감사 CC-7): 그 하우스(또는 ASC/MC 3° 안)에 든 *연속 정오 전체*.
+ * 범위 가장자리에 닿은 구간은 천체력으로 범위 밖까지 이어 진짜 진입·이탈 정오를 찾는다
+ * (shared/noonRuns — 트랜짓·품위 추출기와 같은 규칙). 예전엔 범위에서 잘려, 같은 날의
+ * 신호·교차 id 와 창이 1일 빌드와 월 빌드에서 달랐다(월 빌드도 매달 1일로 잘렸다).
  */
+
+/**
+ * 하우스·앵글 run 을 범위 밖으로 잇는 상한(일, 한쪽) — 느린 행성은 넓은 하우스에 수십 년
+ * 머문다(명왕성 ~30년). 건너뛰기(남은 각도 / 최대 이동) 덕에 평가는 수십 번이면 끝난다.
+ */
+const HOUSE_RUN_CAP_DAYS = 60 * 366
 
 const TRACK_LAYER: Record<string, SignalLayer> = {
   Mars: 'monthly',
@@ -28,6 +40,8 @@ const TRACK_LAYER: Record<string, SignalLayer> = {
   Pluto: 'yearly',
 }
 const SLOW = new Set(['Saturn', 'Uranus', 'Neptune', 'Pluto'])
+/** ASC/MC 컨택 오브(°). */
+const ANGLE_ORB_DEG = 3
 
 // PLANET_KO 는 정본(data/planetNames) 재사용 — 위 import. 로컬 복사본 제거.
 const PLANET_EN: Record<string, string> = {
@@ -83,6 +97,17 @@ function houseOf(longitude: number, houses: House[]): number {
     if (inArc(((longitude % 360) + 360) % 360, cusp, next)) return sorted[i].index
   }
   return 0
+}
+
+/** longitude 에서 그 하우스의 두 커스프까지 남은 각도(°) 중 작은 쪽 — 그 안에선 하우스가 못 바뀐다. */
+function houseMargin(longitude: number, house: number, houses: House[]): number {
+  const sorted = [...houses].sort((a, b) => a.index - b.index)
+  const i = sorted.findIndex((h) => h.index === house)
+  if (i < 0 || sorted.length < 12) return 0
+  const lon = ((longitude % 360) + 360) % 360
+  const toStart = (((lon - sorted[i].cusp) % 360) + 360) % 360
+  const toEnd = (((sorted[(i + 1) % 12].cusp - lon) % 360) + 360) % 360
+  return Math.min(toStart, toEnd)
 }
 
 function angleDist(a: number, b: number): number {
@@ -148,8 +173,10 @@ const astroHouseTransitExtractor: SignalExtractor = {
         // ASC/MC 컨택 (느린 행성만, orb ≤ 3°)
         if (SLOW.has(planet)) {
           let angle: 'ASC' | 'MC' | null = null
-          if (typeof ascLon === 'number' && angleDist(p.longitude, ascLon) <= 3) angle = 'ASC'
-          else if (typeof mcLon === 'number' && angleDist(p.longitude, mcLon) <= 3) angle = 'MC'
+          if (typeof ascLon === 'number' && angleDist(p.longitude, ascLon) <= ANGLE_ORB_DEG)
+            angle = 'ASC'
+          else if (typeof mcLon === 'number' && angleDist(p.longitude, mcLon) <= ANGLE_ORB_DEG)
+            angle = 'MC'
           const curA = openAngle.get(planet)
           if (angle) {
             if (curA && curA.angle === angle) curA.endIso = iso
@@ -166,6 +193,64 @@ const astroHouseTransitExtractor: SignalExtractor = {
     }
     for (const s of open.values()) houseSegs.push(s)
     for (const s of openAngle.values()) angleSegs.push(s)
+
+    // 범위 가장자리에 닿은 run 을 범위 밖까지 잇는다 — 같은 계산(noonPlanetPosition 은
+    // calculateTransitChart 와 같은 JD·플래그)이라 범위 안 판정과 값이 같다.
+    const days = rangeDays(range)
+    const firstDay = days[0]
+    const lastDay = days[days.length - 1]
+    const timeZone = natal.astro.location.timeZone
+    const angleOf = (lon: number): 'ASC' | 'MC' | null =>
+      typeof ascLon === 'number' && angleDist(lon, ascLon) <= ANGLE_ORB_DEG
+        ? 'ASC'
+        : typeof mcLon === 'number' && angleDist(lon, mcLon) <= ANGLE_ORB_DEG
+          ? 'MC'
+          : null
+    const extend = (
+      planet: string,
+      seg: { startIso: string; endIso: string },
+      marginAt: (lon: number) => number | null
+    ) => {
+      const sampleOn = (day: string) => {
+        const pos = noonPlanetPosition(planet, day, timeZone)
+        if (!pos) return null
+        const margin = marginAt(pos.longitude)
+        return margin === null ? null : { day, value: margin }
+      }
+      const run = {
+        vmax: maxDailyMotion(planet),
+        sampleOn,
+        marginOf: (x: { value: number }) => x.value,
+      }
+      const startDay = seg.startIso.slice(0, 10)
+      const endDay = seg.endIso.slice(0, 10)
+      if (startDay === firstDay) {
+        const anchor = sampleOn(startDay)
+        if (anchor) {
+          const edge = extendRun({ ...run, anchor, direction: -1, capDays: HOUSE_RUN_CAP_DAYS })
+          seg.startIso = `${edge.edgeDay}T12:00:00.000Z`
+        }
+      }
+      if (endDay === lastDay) {
+        const anchor = sampleOn(endDay)
+        if (anchor) {
+          const edge = extendRun({ ...run, anchor, direction: 1, capDays: HOUSE_RUN_CAP_DAYS })
+          seg.endIso = `${edge.edgeDay}T12:00:00.000Z`
+        }
+      }
+    }
+    for (const seg of houseSegs) {
+      extend(seg.planet, seg, (lon) =>
+        houseOf(lon, houses) === seg.house ? houseMargin(lon, seg.house, houses) : null
+      )
+    }
+    for (const seg of angleSegs) {
+      const angleLon = seg.angle === 'ASC' ? ascLon : mcLon
+      if (typeof angleLon !== 'number') continue
+      extend(seg.planet, seg, (lon) =>
+        angleOf(lon) === seg.angle ? ANGLE_ORB_DEG - angleDist(lon, angleLon) : null
+      )
+    }
 
     const signals: ActiveSignal[] = []
 

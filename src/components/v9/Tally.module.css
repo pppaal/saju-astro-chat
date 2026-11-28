@@ -1,0 +1,142 @@
+/* ---- 집계 — 엔진이 삶의 축을 네 판정으로 나눈 결과. 비례 막대 + mono 범례. 오행 색 없음. ----
+   판정 라벨과 같은 부호: same 먹 채움 · supportive 먹 테 · twoPulls 빗금 + 먹 테 · unrelated 실선 테. */
+.tally {
+  display: block;
+}
+.tb {
+  display: grid;
+  column-gap: 2px;
+  height: 10px;
+}
+.tb i {
+  display: block;
+  min-width: 0;
+  border-radius: 1.5px;
+}
+.same {
+  background: var(--ink);
+}
+.supportive {
+  background: var(--surface);
+  box-shadow: inset 0 0 0 1px var(--ink);
+}
+.twoPulls {
+  background: var(--hatch-2), var(--surface);
+  box-shadow: inset 0 0 0 1px var(--ink);
+}
+.unrelated {
+  background: transparent;
+  box-shadow: inset 0 0 0 1px var(--line-2);
+}
+.tk {
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: 14px;
+  row-gap: 5px;
+  font-family: var(--mono);
+  font-size: 9.5px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  line-height: 1.2;
+  text-transform: uppercase;
+  color: var(--mute);
+  white-space: nowrap;
+}
+.tk li {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.tk i {
+  display: block;
+  width: 9px;
+  height: 9px;
+  border-radius: 1.5px;
+  flex-shrink: 0;
+}
+.tk b {
+  font-weight: 600;
+  color: var(--ink);
+}
+.sm .tb {
+  height: 8px;
+}
+.sm .tk {
+  font-size: 9px;
+  letter-spacing: 0.04em;
+}
+.sm .tk i {
+  width: 8px;
+  height: 8px;
+}
+
+/* 먹 띠 위 */
+.dark .tk {
+  color: var(--on-dark-3);
+}
+.dark .tk b {
+  color: var(--on-dark);
+}
+.dark .same {
+  background: var(--on-dark);
+}
+.dark .supportive {
+  background: transparent;
+  box-shadow: inset 0 0 0 1px var(--on-dark);
+}
+.dark .twoPulls {
+  background: var(--hatch-dark);
+  box-shadow: inset 0 0 0 1px var(--on-dark);
+}
+.dark .unrelated {
+  box-shadow: inset 0 0 0 1px var(--on-dark-3);
+}
+
+/* ---- 한 줄 합의(카드): 문장 + 얇은 막대(맞는 칸 먹 · 나머지 실선). 칸 수 = total ---- */
+.one {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 7px;
+}
+.one .t {
+  font-size: 12.5px;
+  font-weight: 500;
+  line-height: 1.25;
+  letter-spacing: -0.005em;
+  color: var(--body);
+}
+.one .t b {
+  font-weight: 700;
+  color: var(--ink);
+}
+.one .bar {
+  display: grid;
+  height: 4px;
+}
+.one .bar i {
+  display: block;
+  min-width: 0;
+}
+.one .lineUp {
+  background: repeating-linear-gradient(
+    90deg,
+    var(--ink) 0 calc(100% / var(--cells) - 1.5px),
+    transparent calc(100% / var(--cells) - 1.5px) calc(100% / var(--cells))
+  );
+}
+.one .rest {
+  background: repeating-linear-gradient(
+    90deg,
+    var(--line-2) 0 calc(100% / var(--cells) - 1.5px),
+    transparent calc(100% / var(--cells) - 1.5px) calc(100% / var(--cells))
+  );
+}
+
+/* 한국어 — 범례의 라틴 대문자 자간은 한글('서로 도움')을 한 자씩 벌린다. */
+.ko .tk {
+  letter-spacing: 0.02em;
+}

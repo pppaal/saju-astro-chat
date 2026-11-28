@@ -10,6 +10,7 @@
  * 모듈 하나로 모으면 호출부가 늘어도 같은 규칙을 공유해 어긋날 수가 없다.
  */
 import type { NextRequest } from 'next/server'
+import { resolveViewerTimezone } from '@/lib/datetime/resolveTimezone'
 
 export type CounselorLang = 'ko' | 'en'
 
@@ -27,11 +28,29 @@ export function resolveCounselorLang(
 }
 
 /**
- * "오늘"/일진 기준이 되는 사용자 기기 시간대.
- * 우선순위: userTimezone(기기) → timezone(출생지) → 서울.
+ * "오늘"/일진 기준이 되는 보는 사람 시간대 — resolveViewerTimezone 단일 규칙.
+ * 우선순위: userTimezone(기기) → 출생 tz(명시 timezone → 출생 좌표의 tz) →
+ * CALCULATION_STANDARDS.saju.baseTimezone. 유효한 tz 를 실은 요청은 그대로다.
+ * 출생지 미상이면 좌표는 폴백이라 tz 조회에 쓰지 않는다.
  */
-export function resolveUserTz(body: { userTimezone?: string; timezone?: string }): string {
-  return body.userTimezone || body.timezone || 'Asia/Seoul'
+export function resolveUserTz(body: {
+  userTimezone?: string
+  timezone?: string
+  latitude?: number
+  longitude?: number
+  birthCityUnknown?: boolean
+}): string {
+  return resolveViewerTimezone(
+    {
+      viewerTimezone: body.userTimezone,
+      birth: {
+        timezone: body.timezone,
+        latitude: body.birthCityUnknown ? undefined : body.latitude,
+        longitude: body.birthCityUnknown ? undefined : body.longitude,
+      },
+    },
+    { context: 'counselor' }
+  )
 }
 
 /**

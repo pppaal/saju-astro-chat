@@ -1,121 +1,86 @@
 # Cache Versioning Strategy
 
+Last synced with the code: 2026-11-25 (engine audit E15).
+
 ## Overview
 
-Cache versioning prevents serving stale data after algorithm updates by automatically invalidating old cache entries when logic changes.
+Every cache key that stores an engine result carries a version. When a change alters what the
+engine returns for the same input, the version goes up, the key changes, and the old entries are
+never read again. They expire through their TTL.
 
-## How It Works
+Engine versions live in one dependency-free leaf module,
+[`engineVersions.ts`](./engineVersions.ts). Bump them there, never by editing a key string by hand.
 
-Each cache key includes a version number (e.g., `saju:v1:...`, `tarot:v2:...`). When you update calculation logic:
+## Engine versions (`src/lib/cache/engineVersions.ts`)
 
-1. Increment the version in the cache key
-2. Old cache entries (v1) are no longer accessible
-3. New calculations use the new version (v2)
-4. Old entries expire naturally via TTL
+| Constant                      | Key it versions                                                                       | Bump when                                                                                               |
+| ----------------------------- | ------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| `SAJU_ENGINE_VERSION`         | `saju:v{N}:…` (`CacheKeys.saju`, `/api/saju`)                                         | `calculateSajuData` output changes (pillars, 대운, strength, …). Defined in `src/lib/saju/constants.ts` |
+| `CALENDAR_ENGINE_VERSION`     | calendar `birthKey` → `NatalContextCache`, `CalendarBuildCache`, `day:` focus entries | any extractor or deriver output changes (`'v18'` today; history in the file)                            |
+| `NATAL_CHART_CACHE_VERSION`   | `natal:v{N}:…` (`CacheKeys.natalChart`)                                               | the natal chart for the same input changes                                                              |
+| `TRANSIT_CHART_CACHE_VERSION` | `ephe:transit:v{N}:…` (`calendar-engine/ephe-cache.ts`)                               | the transit chart behind an ISO key changes (e.g. `isoToJD` instant rules)                              |
+| `HELLENISTIC_CACHE_VERSION`   | `hellenistic:v{N}:…` (`destiny/astroFacts.ts`)                                        | lots, ZR, sect, almuten or other hellenistic output changes                                             |
+| `ENGINE_VERSION_TAG`          | `counselor:ctx:stable` / `counselor:ctx:daily` (`destiny/counselorContextCache.ts`)   | never by hand: it is built from the five values above, e.g. `s5.cv18.n3.t3.h2`                          |
+
+Rules:
+
+- **One constant per cached computation.** A cache that bundles several engine results (the
+  counselor context bakes saju, calendar, natal, transit and hellenistic facts) folds in
+  `ENGINE_VERSION_TAG`, so a bump in any engine invalidates it too. The counselor key's own `v14`
+  only versions the context _format_.
+- **One bump per release.** Several unreleased engine changes can ride the same bump; the comment
+  next to the constant records each one (see `CALENDAR_ENGINE_VERSION` v8).
+- **Write the reason next to the bump.** Every value has a dated history comment.
+- `dataRetention` deletes `NatalContextCache` rows whose `engineSignature` is not the current
+  `CALENDAR_ENGINE_VERSION`.
+
+Keys that vary by request state carry that state too: `/api/saju` adds `:tu` for time-unknown
+requests, the calendar `birthKey` folds the time-unknown and city-unknown flags, and the in-process
+saju LRU key includes the birthplace-local date of `now` (대운/세운 depend on it). `/api/saju`
+re-selects `daeWoon.current` with `currentDaeun` on every request, because the cached value is the
+one computed at cache time.
 
 ## Usage
-
-### Option 1: Use CacheKeys (Recommended)
 
 ```typescript
 import { CacheKeys, cacheOrCalculate, CACHE_TTL } from '@/lib/cache/redis-cache'
 
-// Keys automatically include versions
-const key = CacheKeys.saju(birthDate, birthTime, gender)
-// Result: "saju:v1:1990-01-01:10:00:M"
+// The key embeds SAJU_ENGINE_VERSION, e.g. "saju:v4:1990-01-01:10:00:M:solar:Asia/Seoul:N"
+const key = CacheKeys.saju(birthDate, birthTime, gender, 'solar', timezone, false, longitude)
 
-const result = await cacheOrCalculate(
-  key,
-  async () => calculateSaju(birthDate, birthTime, gender),
-  CACHE_TTL.NATAL_CHART
-)
+const result = await cacheOrCalculate(key, async () => compute(), CACHE_TTL.NATAL_CHART)
 ```
 
-### Option 2: Manual Version Management
+Non-engine keys (`tarot:v1`, `destiny:v1`, `grade:v1`, `cal:v1`, `dayCross:dd:v1`, `cal-ai:v1`, …)
+keep a literal version in `CacheKeys`; bump that literal when their stored shape or meaning changes.
 
-```typescript
-import { CACHE_VERSIONS, getCacheKey } from '@/lib/cache/cache-versions'
+## When to bump
 
-const key = getCacheKey('compatibility', { person1Id, person2Id }, CACHE_VERSIONS.COMPATIBILITY)
-```
+- **Algorithm changes:** a formula or rule changes the result for an existing input.
+- **Data format changes:** the stored structure changes.
+- **Bug fixes:** cached results contain the bug.
+- **External inputs:** ephemeris files, the solar-term table or tzdata regenerate with different
+  values.
 
-## When to Increment Versions
+Do not bump for refactors that keep the output byte-identical; the determinism digest
+(`tests/lib/calendar-engine/buildCalendar.determinism.test.ts`) and the golden tests show whether
+the output moved.
 
-Increment the version when:
-
-- **Algorithm changes**: Formula or calculation logic updated
-- **Data format changes**: Return structure modified
-- **Bug fixes**: Cached results contain errors
-- **External dependencies**: Updated API or library behavior
-
-## Example: Updating Saju Calculation
-
-```typescript
-// Before (v1):
-// CacheKeys.saju = (birthDate, birthTime, gender) =>
-//   `saju:v1:${birthDate}:${birthTime}:${gender}`
-
-// After fixing a bug in calculation:
-export const CacheKeys = {
-  saju: (birthDate: string, birthTime: string, gender: string) =>
-    `saju:v2:${birthDate}:${birthTime}:${gender}`, // v2: Fixed 간지 계산 버그
-}
-```
-
-## Version History
-
-### src/lib/cache/redis-cache.ts
-
-- `saju:v1` - Initial implementation
-- `tarot:v1` - Initial implementation
-- `destiny:v1` - Initial implementation
-- `grade:v1` - Initial implementation
-- `cal:v1` - Initial implementation
-- `yearly:v2` - Removed date filtering
-- `compat:v1` - Initial implementation
-
-## Best Practices
-
-1. **Document version changes**: Add comment explaining why version was incremented
-2. **Coordinate deployments**: Version changes take effect immediately
-3. **Monitor cache hit rates**: Version bump will temporarily reduce hit rate
-4. **Use semantic versioning**: v1 → v2 for major changes
-5. **Keep TTL reasonable**: Old entries expire naturally (1-7 days)
-
-## Cache TTL Configuration
+## TTLs
 
 ```typescript
 export const CACHE_TTL = {
   TAROT_READING: 60 * 60 * 24, // 1 day (oracle)
-  CALENDAR_DATA: 60 * 60 * 24, // 1 day (counselor realtime daily, calendar route)
-  COMPATIBILITY: 60 * 60 * 24 * 7, // 7 days (destiny-match discover)
+  CALENDAR_DATA: 60 * 60 * 24, // 1 day (counselor realtime daily context, calendar route)
   NATAL_CHART: 60 * 60 * 24 * 30, // 30 days (counselor stable context, ephe-cache)
 }
 ```
 
-## Monitoring
-
-Track cache performance in logs:
-
-```typescript
-logger.info('[Cache] Hit/Miss ratio', {
-  key: key.split(':').slice(0, 2).join(':'), // e.g., "saju:v1"
-  hit: cached !== null,
-})
-```
+The process-local L1 layer in front of Redis caps every entry at 5 minutes, so a version bump
+reaches every instance within that time even though L1 is not swept.
 
 ## Testing
 
-Test cache versioning in integration tests:
-
-```typescript
-// tests/lib/cache/cache-versioning.test.ts
-it('should not return v1 cache when using v2 key', async () => {
-  await cacheSet('saju:v1:data', oldResult, 3600)
-
-  const key = 'saju:v2:data' // Different version
-  const result = await cacheGet(key)
-
-  expect(result).toBeNull() // v2 key doesn't match v1 cache
-})
-```
+`tests/lib/cache/redis-cache*.test.ts` pin the versioned key formats (for example
+`saju:v${SAJU_ENGINE_VERSION}`), and `tests/lib/destiny/counselorContextCache.test.ts` checks that
+the counselor keys carry `ENGINE_VERSION_TAG`.

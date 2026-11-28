@@ -4,7 +4,7 @@ import React from 'react'
 import { getHanjaRich } from '@/lib/chart-dictionary'
 import { HanjaBubble } from './atoms/HanjaBubble'
 import { SibsinChip } from './atoms/SibsinChip'
-import { SIBSIN_SHORT } from './atoms/interpretations'
+import { SIBSIN_SHORT } from '@/lib/report/integratedReportLabels'
 
 type FiveElement = '목' | '화' | '토' | '금' | '수' | string
 
@@ -27,7 +27,7 @@ interface SajuChartProps {
     yearPillar?: PillarShape
     monthPillar?: PillarShape
     dayPillar?: PillarShape
-    timePillar?: PillarShape
+    timePillar?: PillarShape | null
     hourPillar?: PillarShape
     pillars?: { year?: PillarShape; month?: PillarShape; day?: PillarShape; time?: PillarShape }
     dayMaster?: { name?: string; element?: string }
@@ -91,8 +91,9 @@ function pickPillars(saju: SajuChartProps['saju']) {
   const month = saju.monthPillar || saju.pillars?.month
   const day = saju.dayPillar || saju.pillars?.day
   const time = saju.timePillar || saju.hourPillar || saju.pillars?.time
-  if (!year || !month || !day || !time) return null
-  return { year, month, day, time }
+  if (!year || !month || !day) return null
+  // 출생시각 미상(삼주) — /api/saju 가 시주를 null 로 낸다. 時 칸은 빈 셀('·')로 둔다.
+  return { year, month, day, time: time ?? {} }
 }
 
 export function SajuChart({ saju, lang = 'ko', theme = 'light', onPillarClick }: SajuChartProps) {
@@ -332,4 +333,3 @@ export function SajuChart({ saju, lang = 'ko', theme = 'light', onPillarClick }:
     </div>
   )
 }
-

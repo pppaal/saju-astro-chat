@@ -5,26 +5,13 @@ import Link from 'next/link'
 import { signIn, signOut, useSession } from 'next-auth/react'
 import { useI18n } from '@/i18n/I18nProvider'
 import { logger } from '@/lib/logger'
-import { apiFetch } from '@/lib/api'
+import { apiFetch } from '@/lib/api/client'
 import { emitSessionDeleted, onSessionDeleted } from '@/lib/counselor/sessionEvents'
 import { clearClientCacheAndSignOut } from '@/lib/auth/clearClientCache'
 import styles from './CounselorSidebar.module.css'
 import HexDPLogo from '@/components/branding/HexDPLogo'
 import PromptModal from '@/components/ui/PromptModal'
-
-type SessionItem = {
-  id: string
-  title?: string | null
-  preview?: string | null
-  updatedAt?: string | null
-  /** API 가 같이 내려주는 세션 meta — destiny: { profile: { name } } /
-   *  compat: { persons: [{name}, {name}], ... }. 사이드바 부제 한 줄에 인물
-   *  이름을 띄워서 과거 채팅이 누구 정보로 본 거였는지 한눈에 보이게. */
-  meta?: {
-    profile?: { name?: string | null } | null
-    persons?: Array<{ name?: string | null }> | null
-  } | null
-}
+import type { SessionItem } from './chat-types'
 
 /** 한 채팅 row 의 부제 — destiny: 'Jun' / compat: 'Jun ↔ Yuna'. 각 세션에
  *  저장된 인물 이름만 쓴다. 예전엔 destiny 에서 meta 가 비면 "현재 프로필 이름"

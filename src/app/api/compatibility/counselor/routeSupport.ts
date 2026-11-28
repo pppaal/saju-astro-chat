@@ -1,6 +1,8 @@
 import { normalizeGender } from '@/lib/utils/gender'
 import { currentManAge } from '@/lib/datetime/currentAge'
 import { resolveBirthTimeAnchor } from '@/lib/saju/birthTimeAnchor'
+import { defaultLatitudeFor, defaultLongitudeFor } from '@/lib/saju/timezone'
+import { resolveBirthTimezoneStrict } from '@/lib/datetime/resolveTimezone'
 import type { ChatMessage } from '@/lib/api'
 
 function clampMessages(messages: ChatMessage[], max = 8) {
@@ -19,7 +21,6 @@ type PersonSeed = {
   timeZone: string
   source: {
     usedDefaultLocation: boolean
-    usedDefaultTimezone: boolean
     usedDefaultGender: boolean
   }
 }
@@ -66,11 +67,20 @@ function buildPersonSeed(person: Record<string, unknown> | null | undefined): Pe
   const latRaw = typeof person.latitude === 'number' ? person.latitude : null
   const lonRaw = typeof person.longitude === 'number' ? person.longitude : null
   const hasLocation = latRaw !== null && lonRaw !== null
-  const latitude = hasLocation ? latRaw : 37.5665
-  const longitude = hasLocation ? lonRaw : 126.978
 
   const tzRaw = typeof person.timeZone === 'string' ? person.timeZone.trim() : ''
-  const timeZone = tzRaw.length > 0 ? tzRaw : 'Asia/Seoul'
+  // 출생 타임존 — 명시 tz → 출생 좌표(도시)의 tz. 둘 다 없으면 seed 를 만들지 않는다(서울
+  // 기둥을 지어내지 않음). 라우트는 그 사람을 차감 전에 422 로 거른다(G13).
+  const tzResolved = resolveBirthTimezoneStrict({
+    timezone: tzRaw,
+    latitude: hasLocation ? latRaw : undefined,
+    longitude: hasLocation ? lonRaw : undefined,
+  })
+  if (!tzResolved) return null
+  const timeZone = tzResolved.timeZone
+  // 좌표 미상 → 출생 타임존 기준점(존 기준 좌표, OD-2·SAJU-9).
+  const latitude = hasLocation ? latRaw : defaultLatitudeFor(timeZone)
+  const longitude = hasLocation ? lonRaw : defaultLongitudeFor(timeZone)
 
   // 공용 normalizer — 'F' / 'Female' / 'female' / 'f' / 'M' / 'Male' 다 처리.
   // 이전 `lowercase === 'female'` 패턴은 'F' 가 'f' 로 떨어져 매칭 실패 →
@@ -89,7 +99,6 @@ function buildPersonSeed(person: Record<string, unknown> | null | undefined): Pe
     timeZone,
     source: {
       usedDefaultLocation: !hasLocation,
-      usedDefaultTimezone: tzRaw.length === 0,
       // normalizer 가 'male'/'female' 둘 다 확정 못 한 경우 = 입력이 빠지거나
       // 알 수 없는 포맷 → 'male' fallback 을 썼다는 의미.
       usedDefaultGender: normalized !== 'male' && normalized !== 'female',
@@ -99,9 +108,10 @@ function buildPersonSeed(person: Record<string, unknown> | null | undefined): Pe
 
 // 만 나이는 currentManAge(SSOT)에 위임. 예전엔 `new Date(date)`(=UTC 자정)와
 // 서버-로컬 `new Date()` 필드를 섞어, 생일·연말 경계에서 ±1 어긋날 수 있었고
-// 상담사/대운 화면이 쓰는 만나이와 기준이 갈렸다. birthTimeZone 을 주면 그
-// 시간대 기준으로 계산(없으면 'Asia/Seoul' — buildPersonSeed 기본 tz 와 동일).
-function getAgeFromBirthDate(date?: string, birthTimeZone = 'Asia/Seoul'): number {
+// 상담사/대운 화면이 쓰는 만나이와 기준이 갈렸다. birthTimeZone 기준으로 계산한다 —
+// 출생 tz 를 모르는 사람(3번째 이후 인원)은 UTC 날짜로 센다(서울 기본값 없음, G13).
+// now 는 라우트가 요청 경계에서 한 번 읽어 넘긴다(미지정이면 호출 시각).
+function getAgeFromBirthDate(date?: string, birthTimeZone?: string, now?: Date): number {
   const parsed = parseDateString(date)
   if (!parsed) return 30
   const [y, m, d] = parsed.split('-').map(Number)
@@ -109,7 +119,8 @@ function getAgeFromBirthDate(date?: string, birthTimeZone = 'Asia/Seoul'): numbe
     birthYear: y,
     birthMonth: m,
     birthDate: d,
-    birthTimeZone,
+    birthTimeZone: birthTimeZone || 'UTC',
+    now,
   })
 }
 

@@ -15,7 +15,7 @@ import { getStemElement, getBranchElement } from '@/lib/saju/stemBranchUtils'
 import { FIVE_ELEMENT_RELATIONS } from '@/lib/saju/constants'
 import { favorOf as toneFavorOf, type YongsinLike } from './cycleTone'
 
-export type SibsinCategory = '비겁' | '식상' | '재성' | '관성' | '인성'
+type SibsinCategory = '비겁' | '식상' | '재성' | '관성' | '인성'
 export type LifePatternKey =
   | 'late-bloomer' // 대기만성
   | 'early-peak' // 초년발복 → 후반 하강
@@ -26,7 +26,7 @@ export type LifePatternKey =
   | 'hard' // 전반적 고전
   | 'undulating' // 굴곡형
 
-export interface DaeunFavor {
+interface DaeunFavor {
   startAge: number
   gz: string
   stemCat: SibsinCategory
@@ -43,8 +43,30 @@ export interface LifePattern {
   line: string
   /** 한 줄 서사(en). */
   lineEn: string
+  /** 서사의 첫 문장(인용 머리) — 정점 창이 지났으면 회고형. line 은 lead + body + (정점 절). */
+  lead: string
+  leadEn: string
+  /** 서사의 나머지 문장(정점 절 제외). */
+  body: string
+  bodyEn: string
+  /** 한 줄 태그 — '늦게 피어 오래가는' / 'Blooms late, lasts long'. */
+  tagline: string
+  taglineEn: string
+  /**
+   * 서사가 가리키는 정점 — 한 줄 서사 끝에 정점 절('… 2077년(80세) 무렵부터 …')을 붙였을 때만.
+   * note 는 그 절 그대로(엔진 문구), past 는 정점이 이미 지났는지.
+   */
+  peak?: LifePatternPeak
   /** 대운별 방향 시퀀스. */
   daeun: DaeunFavor[]
+}
+
+interface LifePatternPeak {
+  age: number
+  year: number
+  past: boolean
+  note: string
+  noteEn: string
 }
 
 // 오행 상생(GEN)·상극(CTRL) — 정본 FIVE_ELEMENT_RELATIONS(saju/constants)에서 파생.
@@ -89,65 +111,153 @@ interface SajuLike {
   daeun?: Array<{ stem: string; branch: string; startAge: number; startYear?: number }>
 }
 
-const PATTERN_KO: Record<LifePatternKey, { ko: string; en: string; line: string; lineEn: string }> =
-  {
-    'late-bloomer': {
-      ko: '대기만성형',
-      en: 'Late bloomer',
-      line: '어릴 땐 “왜 나만 이렇게 더디지” 싶어 속으로 많이 앓았을 거예요. 근데 당신은 원래 늦게 자리 잡는 사람이에요. 급하게 안 터지는 대신, 한번 잡으면 안 흔들려요. 나이 들수록 진가가 드러나는 쪽.',
-      lineEn:
-        'Early on you probably ached inside, wondering “why am I the slow one?” But you’re simply built to land late. You don’t pop off early — yet once you settle in, you don’t waver. Your real worth shows more with age.',
-    },
-    'early-peak': {
-      ko: '초년발복형',
-      en: 'Early peak',
-      line: '당신은 아주 일찍부터 두각을 드러내는 사람이에요. 어린 시절·10대에 이미 자기 색이 뚜렷하죠. 뒤로는 새로 벌이기보다, 그때 잡은 걸 지키고 다질 때 더 단단해져요.',
-      lineEn:
-        'You stand out very early — your own color is already clear in childhood and your teens. Later on, you grow steadier by protecting and refining what you grabbed then rather than starting new things.',
-    },
-    'youth-peak': {
-      ko: '청년절정형',
-      en: 'Youth peak',
-      line: '당신은 이십대·삼십대에 확 치고 나가는 사람이에요. 남들 아직 몸 풀 때 이미 자기 걸 잡고 달리죠. 그 기세를 잘 굴리면 그때 만든 게 평생을 받쳐줘요.',
-      lineEn:
-        'You’re someone who breaks out hard in your twenties and thirties. While others are still warming up, you’ve already grabbed your thing and started running. Ride that momentum well and what you build then carries the rest of your life.',
-    },
-    'midlife-peak': {
-      ko: '중년절정형',
-      en: 'Midlife peak',
-      line: '당신의 전성기는 인생 한가운데예요. 젊을 때 쌓은 게 중년에 한꺼번에 터지는 타입. 그 길목에서 마음먹고 밀어붙이면 진짜 멀리 가요.',
-      lineEn:
-        'Your prime is the middle of life. You’re the type whose early groundwork all pays off at once in midlife. Make your move at that crossing and it truly carries far.',
-    },
-    'steady-rise': {
-      ko: '점진상승형',
-      en: 'Steady rise',
-      line: '당신은 반짝 터지는 대신, 한 해 한 해 꾸준히 올라가는 사람이에요. 조급해 보여도 결국 멈춘 적 없이 높아지는 게 당신 강점.',
-      lineEn:
-        'Instead of flashing bright, you’re someone who climbs steadily year by year. It can feel slow, but never once stalling is exactly your strength.',
-    },
-    smooth: {
-      ko: '순탄형',
-      en: 'Smooth path',
-      line: '당신은 큰 사건 없이 무던하게 흘러가는 편이에요. 극적인 반전은 적어도, 그만큼 흔들림 없이 꾸준히 멀리 가는 힘이 있어요.',
-      lineEn:
-        'You tend to move through life without big incidents. There’s little dramatic reversal — and that’s exactly what lets you keep going far, unshaken.',
-    },
-    hard: {
-      ko: '인고형',
-      en: 'The long haul',
-      line: '쉬운 길은 아니었을 거예요. 남들보다 애써야 하는 일이 유독 많았던 사람. 근데 그렇게 버틴 만큼, 어지간한 일엔 안 흔들리는 단단함이 생겼어요.',
-      lineEn:
-        'It probably wasn’t an easy road — you’ve had to try harder than most, again and again. But all that enduring gave you a solidness ordinary troubles can’t shake.',
-    },
-    undulating: {
-      ko: '굴곡형',
-      en: 'Ups and downs',
-      line: '당신은 좋을 때와 힘든 때가 크게 번갈아 오는 사람이에요. 기복이 있는 대신, 그 리듬을 읽을 줄만 알면 오히려 그게 남들 없는 무기가 돼요.',
-      lineEn:
-        'For you, good stretches and hard stretches swing back and forth in a big way. The ups and downs are real — but once you learn to read that rhythm, it becomes a weapon others don’t have.',
-    },
-  }
+/**
+ * 유형별 고정 문구. 한 줄 서사(line)는 `${lead} ${body}` — 화면은 lead 를 인용 머리로,
+ * body 를 본문으로 나눠 그린다(v9.2 Life Reading). tagline 은 한 줄 태그(에센스) — 예전엔
+ * components/calendar/lifeTypeStyle 에 따로 있었다. 상담사 · 캘린더는 line/lineEn 을 그대로 쓴다.
+ */
+interface PatternCopy {
+  ko: string
+  en: string
+  /** 첫 문장(인용 머리). */
+  lead: string
+  leadEn: string
+  /** 나머지 문장. */
+  body: string
+  bodyEn: string
+  /** 한 줄 태그 — '늦게 피어 오래가는' / 'Blooms late, lasts long'. */
+  tagline: string
+  taglineEn: string
+  /**
+   * 홀로 서는 한 줄(ko) — Life 히어로 리드처럼 유형 이름 아래 따로 놓일 때. tagline 은 이름 앞에
+   * 붙는 꾸밈꼴('오르내림이 무기인 굴곡형')이라 혼자 두면 끊긴 말이 된다(QA VL-2). en 은
+   * taglineEn + '.' 이 이미 완결된 문장이라 따로 두지 않는다.
+   */
+  ledeKo: string
+}
+
+const PATTERN_KO: Record<LifePatternKey, PatternCopy> = {
+  'late-bloomer': {
+    ko: '대기만성형',
+    en: 'Late bloomer',
+    lead: '어릴 땐 “왜 나만 이렇게 더디지” 싶어 속으로 많이 앓았을 거예요.',
+    leadEn: 'Early on you probably ached inside, wondering “why am I the slow one?”',
+    body: '근데 당신은 원래 늦게 자리 잡는 사람이에요. 급하게 안 터지는 대신, 한번 잡으면 안 흔들려요. 나이 들수록 진가가 드러나는 쪽.',
+    bodyEn:
+      'But you’re simply built to land late. You don’t pop off early — yet once you settle in, you don’t waver. Your real worth shows more with age.',
+    tagline: '늦게 피어 오래가는',
+    taglineEn: 'Blooms late, lasts long',
+    ledeKo: '늦게 피어 오래가요.',
+  },
+  'early-peak': {
+    ko: '초년발복형',
+    en: 'Early peak',
+    lead: '당신은 아주 일찍부터 두각을 드러내는 사람이에요.',
+    leadEn:
+      'You stand out very early — your own color is already clear in childhood and your teens.',
+    body: '어린 시절·10대에 이미 자기 색이 뚜렷하죠. 뒤로는 새로 벌이기보다, 그때 잡은 걸 지키고 다질 때 더 단단해져요.',
+    bodyEn:
+      'Later on, you grow steadier by protecting and refining what you grabbed then rather than starting new things.',
+    tagline: '일찍부터 두각',
+    taglineEn: 'Ahead from the start',
+    ledeKo: '일찍부터 두각을 드러내요.',
+  },
+  'youth-peak': {
+    ko: '청년절정형',
+    en: 'Youth peak',
+    lead: '당신은 이십대·삼십대에 확 치고 나가는 사람이에요.',
+    leadEn: 'You’re someone who breaks out hard in your twenties and thirties.',
+    body: '남들 아직 몸 풀 때 이미 자기 걸 잡고 달리죠. 그 기세를 잘 굴리면 그때 만든 게 평생을 받쳐줘요.',
+    bodyEn:
+      'While others are still warming up, you’ve already grabbed your thing and started running. Ride that momentum well and what you build then carries the rest of your life.',
+    tagline: '이십·삼십대가 전성기',
+    taglineEn: 'Peaks in your 20s–30s',
+    ledeKo: '이십·삼십대가 전성기예요.',
+  },
+  'midlife-peak': {
+    ko: '중년절정형',
+    en: 'Midlife peak',
+    lead: '당신의 전성기는 인생 한가운데예요.',
+    leadEn: 'Your prime is the middle of life.',
+    body: '젊을 때 쌓은 게 중년에 한꺼번에 터지는 타입. 그 길목에서 마음먹고 밀어붙이면 진짜 멀리 가요.',
+    bodyEn:
+      'You’re the type whose early groundwork all pays off at once in midlife. Make your move at that crossing and it truly carries far.',
+    tagline: '한가운데가 절정',
+    taglineEn: 'Peaks at the middle',
+    ledeKo: '인생 한가운데가 절정이에요.',
+  },
+  'steady-rise': {
+    ko: '점진상승형',
+    en: 'Steady rise',
+    lead: '당신은 반짝 터지는 대신, 한 해 한 해 꾸준히 올라가는 사람이에요.',
+    leadEn: 'Instead of flashing bright, you’re someone who climbs steadily year by year.',
+    body: '조급해 보여도 결국 멈춘 적 없이 높아지는 게 당신 강점.',
+    bodyEn: 'It can feel slow, but never once stalling is exactly your strength.',
+    tagline: '멈춘 적 없이 오르는',
+    taglineEn: 'Never stops climbing',
+    ledeKo: '멈춘 적 없이 올라요.',
+  },
+  smooth: {
+    ko: '순탄형',
+    en: 'Smooth path',
+    lead: '당신은 큰 사건 없이 무던하게 흘러가는 편이에요.',
+    leadEn: 'You tend to move through life without big incidents.',
+    body: '극적인 반전은 적어도, 그만큼 흔들림 없이 꾸준히 멀리 가는 힘이 있어요.',
+    bodyEn:
+      'There’s little dramatic reversal — and that’s exactly what lets you keep going far, unshaken.',
+    tagline: '큰 파도 없이 멀리',
+    taglineEn: 'Calm and far-reaching',
+    ledeKo: '큰 파도 없이 멀리 가요.',
+  },
+  hard: {
+    ko: '인고형',
+    en: 'The long haul',
+    lead: '쉬운 길은 아니었을 거예요.',
+    leadEn:
+      'It probably wasn’t an easy road — you’ve had to try harder than most, again and again.',
+    body: '남들보다 애써야 하는 일이 유독 많았던 사람. 근데 그렇게 버틴 만큼, 어지간한 일엔 안 흔들리는 단단함이 생겼어요.',
+    bodyEn: 'But all that enduring gave you a solidness ordinary troubles can’t shake.',
+    tagline: '버틴 만큼 단단한',
+    taglineEn: 'Forged by endurance',
+    ledeKo: '버틴 만큼 단단해져요.',
+  },
+  undulating: {
+    ko: '굴곡형',
+    en: 'Ups and downs',
+    lead: '당신은 좋을 때와 힘든 때가 크게 번갈아 오는 사람이에요.',
+    leadEn: 'For you, good stretches and hard stretches swing back and forth in a big way.',
+    body: '기복이 있는 대신, 그 리듬을 읽을 줄만 알면 오히려 그게 남들 없는 무기가 돼요.',
+    bodyEn:
+      'The ups and downs are real — but once you learn to read that rhythm, it becomes a weapon others don’t have.',
+    tagline: '오르내림이 무기인',
+    taglineEn: 'Rides the waves',
+    ledeKo: '오르내림을 무기로 삼아요.',
+  },
+}
+
+/** 인용 머리 + 본문 → 한 줄 서사. 본문이 없으면 머리만. */
+const joinLine = (lead: string, body: string): string => (body ? `${lead} ${body}` : lead)
+
+/** 유형 한 줄 태그(ko/en) — 미정의 키면 null. */
+export function lifePatternTagline(key: string | undefined): { ko: string; en: string } | null {
+  const c =
+    key && Object.prototype.hasOwnProperty.call(PATTERN_KO, key)
+      ? PATTERN_KO[key as LifePatternKey]
+      : undefined
+  return c ? { ko: c.tagline, en: c.taglineEn } : null
+}
+
+/**
+ * 유형 리드(ko/en) — 이름 아래 홀로 서는 완결된 한 줄. ko 는 서술형('오르내림을 무기로 삼아요.'),
+ * en 은 태그 + 마침표('Rides the waves.'). 미정의 키면 null.
+ */
+export function lifePatternLede(key: string | undefined): { ko: string; en: string } | null {
+  const c =
+    key && Object.prototype.hasOwnProperty.call(PATTERN_KO, key)
+      ? PATTERN_KO[key as LifePatternKey]
+      : undefined
+  return c ? { ko: c.ledeKo, en: `${c.taglineEn}.` } : null
+}
 
 /** 정점 시점을 단정하는 유형 — favor 가 없어도 곡선 마루 시점만이라도 붙여 화면
  * 곡선과 한 줄 서사가 어긋나지 않게 한다(굴곡/순탄/고전은 정점을 단정하지 않음). */
@@ -243,8 +353,23 @@ export function deriveLifePattern(
     }
   }
 
-  const { line, lineEn } = personalize(key, seq, startYears, currentAge, curvePeakAge)
-  return { key, ...PATTERN_KO[key], line, lineEn, daeun: seq }
+  const p = personalize(key, seq, startYears, currentAge, curvePeakAge)
+  const copy = PATTERN_KO[key]
+  return {
+    key,
+    ko: copy.ko,
+    en: copy.en,
+    line: p.line,
+    lineEn: p.lineEn,
+    lead: p.lead,
+    leadEn: p.leadEn,
+    body: p.body,
+    bodyEn: p.bodyEn,
+    tagline: copy.tagline,
+    taglineEn: copy.taglineEn,
+    ...(p.peak ? { peak: p.peak } : {}),
+    daeun: seq,
+  }
 }
 
 /** macro 곡선 형상 → 인생유형 키 + 전역 정점 나이. lifePattern 과 곡선의 모순을
@@ -378,9 +503,58 @@ function ageBandKo(age: number): string {
   return best[1]
 }
 
+/** 서사 머리 · 본문(정점 창이 지났으면 회고형) — line 의 정점 절 앞부분. */
+interface StoryBase {
+  lead: string
+  leadEn: string
+  body: string
+  bodyEn: string
+}
+
+interface Personalized extends StoryBase {
+  line: string
+  lineEn: string
+  peak?: LifePatternPeak
+}
+
+/** 유형의 서사 머리 · 본문 — past 이고 회고 변형이 있으면 그것. */
+function storyBase(key: LifePatternKey, past: boolean): StoryBase {
+  const c = PATTERN_KO[key]
+  const p = past ? STORY_PAST[key] : undefined
+  return p ?? { lead: c.lead, leadEn: c.leadEn, body: c.body, bodyEn: c.bodyEn }
+}
+
+/** 정점 절을 붙인 결과 — line = 머리 + 본문 + 절, peak = 그 절의 구조. */
+function withPeak(
+  base: StoryBase,
+  noteKo: string,
+  noteEn: string,
+  at: { age: number; year: number | undefined; past: boolean }
+): Personalized {
+  return {
+    ...base,
+    line: `${joinLine(base.lead, base.body)} ${noteKo}`,
+    lineEn: `${joinLine(base.leadEn, base.bodyEn)} ${noteEn}`,
+    // 연도를 모르면(대운 시작 연도 없음) 구조 필드는 싣지 않는다 — 서사 문장만.
+    ...(at.year != null
+      ? { peak: { age: at.age, year: at.year, past: at.past, note: noteKo, noteEn } }
+      : {}),
+  }
+}
+
+/** 정점 절 없이 — 머리 + 본문만. */
+function plain(base: StoryBase): Personalized {
+  return {
+    ...base,
+    line: joinLine(base.lead, base.body),
+    lineEn: joinLine(base.leadEn, base.bodyEn),
+  }
+}
+
 /**
  * 한 줄 서사를 생애 곡선의 *정점 대운* 으로 개인화한다. 같은 유형 키라도 정점이
  * 오는 나이·연도·우호 십신이 사람마다 달라 문장이 갈린다(제너릭 폴백 제거).
+ * 정점 절을 붙였으면 그 정점(나이 · 연도 · 절 문장)을 구조로도 돌려준다(peak).
  */
 function personalize(
   key: LifePatternKey,
@@ -388,20 +562,19 @@ function personalize(
   startYears: Map<number, number>,
   currentAge?: number,
   curvePeakAge?: number
-): { line: string; lineEn: string } {
-  const base = PATTERN_KO[key]
-  if (seq.length === 0) return { line: base.line, lineEn: base.lineEn }
+): Personalized {
+  if (seq.length === 0) return plain(storyBase(key, false))
 
   // 곡선 정점 나이가 주어지면(B1) 그 나이를 덮는 대운을 정점으로 — lifePattern 의
   // "정점 시점"이 화면의 곡선 마루와 일치한다. 십신(cat)·연도·시제 모두 그 기준.
   if (typeof curvePeakAge === 'number') {
     const covering = seq.filter((c) => c.startAge <= curvePeakAge).slice(-1)[0] ?? seq[0]
     const past = typeof currentAge === 'number' ? curvePeakAge < currentAge : false
-    const baseLineKo = past ? (LINE_PAST_KO[key] ?? base.line) : base.line
-    const baseLineEn = past ? (LINE_PAST_EN[key] ?? base.lineEn) : base.lineEn
+    const base = storyBase(key, past)
     const cat = covering.stemCat
     const baseYr = startYears.get(covering.startAge)
     const yr = baseYr != null ? baseYr + (curvePeakAge - covering.startAge) : undefined
+    const at = { age: curvePeakAge, year: yr, past }
     const whenKo = yr
       ? `${yr}년(${curvePeakAge}세) 무렵`
       : `${ageBandKo(curvePeakAge)}(${curvePeakAge}세 무렵)`
@@ -411,14 +584,14 @@ function personalize(
     // (예: late-bloomer 인데 곡선 마루가 60대면 "마흔" 대신 실제 60대를 가리킨다).
     // 십신 방향은 favor 가 양일 때만 단정한다(없으면 시점만).
     if (covering.favor <= 0) {
-      if (!PEAK_WINDOW_KEYS.has(key)) return { line: baseLineKo, lineEn: baseLineEn }
+      if (!PEAK_WINDOW_KEYS.has(key)) return plain(base)
       const tKo = past
         ? `특히 ${whenKo}, 가장 깊이 무르익었던 철이었어요.`
         : `특히 ${whenKo}부터, 가장 깊이 무르익는 철이에요.`
       const tEn = past
         ? `Your fullest ripening was ${whenEn}.`
         : `Your fullest ripening comes ${whenEn} onward.`
-      return { line: `${baseLineKo} ${tKo}`, lineEn: `${baseLineEn} ${tEn}` }
+      return withPeak(base, tKo, tEn, at)
     }
     const detailKo = past
       ? `특히 ${whenKo}, ${CAT_KO[cat]} 쪽으로 가장 크게 열렸던 때였어요.`
@@ -426,7 +599,7 @@ function personalize(
     const detailEn = past
       ? `It opened widest ${whenEn}, toward ${CAT_EN[cat]}.`
       : `It opens widest ${whenEn} onward, toward ${CAT_EN[cat]}.`
-    return { line: `${baseLineKo} ${detailKo}`, lineEn: `${baseLineEn} ${detailEn}` }
+    return withPeak(base, detailKo, detailEn, at)
   }
 
   // 정점 대운을 *유형 서사가 가리키는 구간* 안에서 고른다 — 그래야 "대기만성인데
@@ -463,12 +636,11 @@ function personalize(
   // 정점 창이 이미 지난 사람에겐 base.line 의 미래 지시 어조도 회고형으로 바꾼다.
   // midlife-peak "…풀려요. 그때 승부를 보면 좋아요."(미래 조언)를 80세에게 그대로
   // 주던 문제(감사 BUG-6). 시간 창을 단정하는 유형만 past 변형을 둔다.
-  const baseLineKo = past ? (LINE_PAST_KO[key] ?? base.line) : base.line
-  const baseLineEn = past ? (LINE_PAST_EN[key] ?? base.lineEn) : base.lineEn
+  const base = storyBase(key, past)
 
   // 가리킬 만한 진짜 순풍(favor>0)이 없으면 강조 절을 붙이지 않는다 — 평탄/역풍
   // 곡선에 "가장 크게 힘을 실어줘요"를 붙이면 거짓이 된다.
-  if (peak.favor <= 0) return { line: baseLineKo, lineEn: baseLineEn }
+  if (peak.favor <= 0) return plain(base)
 
   // 그 대운에서 우호 방향을 끄는 십신(둘 다 같으면 stem, 다르면 stem 우선).
   const cat = peak.stemCat
@@ -486,22 +658,24 @@ function personalize(
     ? `Your strongest stretch was ${whenEn}, leaning toward ${CAT_EN[cat]}.`
     : `Your strongest stretch is ${whenEn} onward, leaning toward ${CAT_EN[cat]}.`
 
-  return {
-    line: `${baseLineKo} ${detailKo}`,
-    lineEn: `${baseLineEn} ${detailEn}`,
-  }
+  return withPeak(base, detailKo, detailEn, { age: peak.startAge, year: yr, past })
 }
 
 // 정점 시간 창을 단정하는 유형의 회고(past) 변형 — 그 창이 이미 지난 사람에게
-// 미래 지시 어조 대신 과거형으로(감사 BUG-6). 미정의 유형은 base.line 유지.
-const LINE_PAST_KO: Partial<Record<LifePatternKey, string>> = {
-  'midlife-peak':
-    '당신의 전성기는 인생 한가운데였어요. 젊을 때 쌓은 게 그 무렵 한꺼번에 터졌던 사람.',
-  'youth-peak': '당신은 이십대·삼십대에 확 치고 나갔던 사람이에요. 그때 만든 게 지금까지 받쳐줘요.',
-}
-const LINE_PAST_EN: Partial<Record<LifePatternKey, string>> = {
-  'midlife-peak':
-    'Your prime was the middle of life — the type whose early groundwork all paid off at once back then.',
-  'youth-peak':
-    'You broke out hard in your twenties and thirties. What you built then still holds you up today.',
+// 미래 지시 어조 대신 과거형으로(감사 BUG-6). 미정의 유형은 기본 머리 · 본문 유지.
+// 한 문장짜리 회고(midlife-peak EN)는 본문이 비어 있다 — line 은 머리만.
+const STORY_PAST: Partial<Record<LifePatternKey, StoryBase>> = {
+  'midlife-peak': {
+    lead: '당신의 전성기는 인생 한가운데였어요.',
+    body: '젊을 때 쌓은 게 그 무렵 한꺼번에 터졌던 사람.',
+    leadEn:
+      'Your prime was the middle of life — the type whose early groundwork all paid off at once back then.',
+    bodyEn: '',
+  },
+  'youth-peak': {
+    lead: '당신은 이십대·삼십대에 확 치고 나갔던 사람이에요.',
+    body: '그때 만든 게 지금까지 받쳐줘요.',
+    leadEn: 'You broke out hard in your twenties and thirties.',
+    bodyEn: 'What you built then still holds you up today.',
+  },
 }

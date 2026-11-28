@@ -1,6 +1,11 @@
 import { getGongmang } from '@/lib/saju/shinsal'
-import { getYearPillarForDate, getMonthPillarForDate } from '@/lib/saju/datePillars'
-import { getSolarTermKST } from '@/lib/saju/constants'
+import {
+  calendarTimeZone,
+  daeunAnniversaryIso,
+  daeunWindows,
+  monthWindows,
+  yearWindows,
+} from '../periodPillars'
 import { computeDayBranch } from './saju-shinsal'
 import type { ActiveSignal, ExtractorContext, SignalExtractor, SignalLayer } from '../types'
 
@@ -20,9 +25,10 @@ import type { ActiveSignal, ExtractorContext, SignalExtractor, SignalLayer } fro
  * ── 산출 방식 ──
  *   1. 본명 일간·일지 → `getGongmang()` (src/lib/saju/shinsal.ts) 로 2개 지지.
  *      e.g.  甲子순 → ['戌','亥'],   甲戌순 → ['申','酉'], …
- *   2. 대운 지지 → branch 가 공망지면 그 대운 10년 전체 활성.
- *   3. 세운 지지 → 입춘 기준 1년 활성.
- *   4. 월운 지지 → 그 달 전체 활성.
+ *   2. 대운 지지 → branch 가 공망지면 그 대운 10년 전체 활성(만 나이 생일 경계).
+ *   3. 세운 지지 → 입춘이 든 현지 날부터 1년 활성.
+ *   4. 월운 지지 → 그 절기월 전체 활성(절입이 든 현지 날 ~ 다음 절입 전날).
+ *   (2~4 의 창은 calendar-engine/periodPillars 하나 — 재감사 G2.)
  *   5. 일진 지지 → 그 1일 활성.
  *
  * ── doctrine notes ──
@@ -69,101 +75,73 @@ const sajuGongmangExtractor: SignalExtractor = {
     const rangeStart = new Date(range.start)
     const rangeEnd = new Date(range.end)
 
-    // 입춘(절기) — 세운 경계.
-    const ipchun = (y: number): Date => getSolarTermKST(y, 2) ?? new Date(Date.UTC(y, 1, 4))
-
-    // 본명 출생 월/일 — 대운 경계 anchor.
-    const bMonth = natal.input.month - 1
-    const bDate = natal.input.date
+    // 세운·월운·대운 창 — periodPillars 하나(재감사 G2 · TP-2/3): 셀 = 출생지 시간대의
+    // 민용 날짜, 절입이 든 현지 날이 새 기둥, 대운은 만 나이 생일 경계(daeunAge SSOT).
+    const tz = calendarTimeZone(natal)
 
     // ─── 1) 대운 지지 (decadal) ───
-    for (const d of natal.saju.daeun) {
-      if (!gongmangSet.has(d.branch)) continue
-      const startMs = Date.UTC(d.startYear, bMonth, bDate)
-      const endMs = Date.UTC(d.startYear + 10, bMonth, bDate) - 1
-      if (new Date(endMs) < rangeStart || new Date(startMs) > rangeEnd) continue
-      const peakMs = Date.UTC(d.startYear + 5, bMonth, Math.max(1, bDate))
+    for (const w of daeunWindows(natal, range)) {
+      if (!gongmangSet.has(w.branch)) continue
       signals.push(
         makeGongmangSignal({
-          idTail: `daeun.${d.startYear}.${d.branch}`,
+          idTail: `daeun.${w.startYear}.${w.branch}`,
           layer: 'decadal',
-          cyclicalBranch: d.branch,
-          cyclicalLabel: `대운 ${d.stem}${d.branch}`,
-          cyclicalPillar: `${d.stem}${d.branch}`,
-          cyclicalYear: d.startYear,
+          cyclicalBranch: w.branch,
+          cyclicalLabel: `대운 ${w.stem}${w.branch}`,
+          cyclicalPillar: `${w.stem}${w.branch}`,
+          cyclicalYear: w.startYear,
           natalGongmang: gongmangBranches,
           natalDayStem,
           natalDayBranch,
-          startIso: new Date(startMs).toISOString(),
-          peakIso: new Date(peakMs).toISOString(),
-          endIso: new Date(endMs).toISOString(),
+          startIso: w.start,
+          peakIso: daeunAnniversaryIso(w, 5),
+          endIso: w.end,
         })
       )
     }
 
-    // ─── 2) 세운 지지 (yearly) — 입춘 경계 ───
-    const startYear = rangeStart.getUTCFullYear()
-    const endYear = rangeEnd.getUTCFullYear()
-    for (let year = startYear - 1; year <= endYear; year++) {
-      const yStart = ipchun(year)
-      const yEnd = new Date(ipchun(year + 1).getTime() - 1)
-      if (yEnd < rangeStart || yStart > rangeEnd) continue
-      // 입춘 이후 안정 시점에 세운 천간지지 조회 (입춘 당일 경계 회피).
-      const refDate = new Date(yStart.getTime() + 86_400_000)
-      const yp = getYearPillarForDate(refDate)
-      if (!gongmangSet.has(yp.branch)) continue
-      const peakMs = (yStart.getTime() + yEnd.getTime()) / 2
+    // ─── 2) 세운 지지 (yearly) — 입춘이 든 현지 날부터 ───
+    for (const w of yearWindows(range, tz)) {
+      if (!gongmangSet.has(w.branch)) continue
       signals.push(
         makeGongmangSignal({
-          idTail: `seun.${year}.${yp.branch}`,
+          idTail: `seun.${w.sajuYear}.${w.branch}`,
           layer: 'yearly',
-          cyclicalBranch: yp.branch,
-          cyclicalLabel: `${year}년 세운 ${yp.stem}${yp.branch}`,
-          cyclicalPillar: `${yp.stem}${yp.branch}`,
-          cyclicalYear: year,
+          cyclicalBranch: w.branch,
+          cyclicalLabel: `${w.sajuYear}년 세운 ${w.stem}${w.branch}`,
+          cyclicalPillar: `${w.stem}${w.branch}`,
+          cyclicalYear: w.sajuYear,
           natalGongmang: gongmangBranches,
           natalDayStem,
           natalDayBranch,
-          startIso: yStart.toISOString(),
-          peakIso: new Date(peakMs).toISOString(),
-          endIso: yEnd.toISOString(),
+          startIso: w.start,
+          peakIso: w.peak,
+          endIso: w.end,
         })
       )
     }
 
-    // ─── 3) 월운 지지 (monthly) ───
-    const monthCursor = new Date(Date.UTC(rangeStart.getUTCFullYear(), rangeStart.getUTCMonth(), 1))
-    while (monthCursor <= rangeEnd) {
-      // 월주는 그 달 중순(15일) 기준 — 1일은 절입 직전이라 전월 절기달이 잡힌다.
-      // (saju-jijanggan/twelve-stage/yongsin 과 동일한 #1547 샘플링 규칙)
-      const midMonth = new Date(
-        Date.UTC(monthCursor.getUTCFullYear(), monthCursor.getUTCMonth(), 15)
+    // ─── 3) 월운 지지 (monthly) — 절기월 창 ───
+    // 예전엔 양력 달마다 15일의 절기월을 1일~말일에 도장했다(#1547 은 1일 표본보다 나았을
+    // 뿐, 1일~절입 전날은 다음 달 월지였다 — 재감사 TP-2).
+    for (const w of monthWindows(range, tz)) {
+      if (!gongmangSet.has(w.branch)) continue
+      signals.push(
+        makeGongmangSignal({
+          idTail: `wolun.${w.startDate}.${w.branch}`,
+          layer: 'monthly',
+          cyclicalBranch: w.branch,
+          cyclicalLabel: `${w.startDate.slice(0, 7)} 월운 ${w.stem}${w.branch}`,
+          cyclicalPillar: `${w.stem}${w.branch}`,
+          cyclicalYear: w.sajuYear,
+          natalGongmang: gongmangBranches,
+          natalDayStem,
+          natalDayBranch,
+          startIso: w.start,
+          peakIso: w.peak,
+          endIso: w.end,
+        })
       )
-      const mp = getMonthPillarForDate(midMonth)
-      if (gongmangSet.has(mp.branch)) {
-        const y = monthCursor.getUTCFullYear()
-        const m = monthCursor.getUTCMonth()
-        const mStartIso = new Date(Date.UTC(y, m, 1)).toISOString()
-        const mEndIso = new Date(Date.UTC(y, m + 1, 0, 23, 59, 59)).toISOString()
-        const mPeakIso = new Date(Date.UTC(y, m, 15)).toISOString()
-        signals.push(
-          makeGongmangSignal({
-            idTail: `wolun.${y}-${String(m + 1).padStart(2, '0')}.${mp.branch}`,
-            layer: 'monthly',
-            cyclicalBranch: mp.branch,
-            cyclicalLabel: `${y}-${String(m + 1).padStart(2, '0')} 월운 ${mp.stem}${mp.branch}`,
-            cyclicalPillar: `${mp.stem}${mp.branch}`,
-            cyclicalYear: y,
-            natalGongmang: gongmangBranches,
-            natalDayStem,
-            natalDayBranch,
-            startIso: mStartIso,
-            peakIso: mPeakIso,
-            endIso: mEndIso,
-          })
-        )
-      }
-      monthCursor.setUTCMonth(monthCursor.getUTCMonth() + 1)
     }
 
     // ─── 4) 일진 지지 (daily) ───

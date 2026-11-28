@@ -183,7 +183,7 @@ choco install k6
 # macOS
 brew install k6
 
-# Linux - see docs/archive/GETTING_STARTED_PERFORMANCE.md
+# Linux - see https://k6.io/docs/getting-started/installation
 ```
 
 **Option 2: Use Node.js tests instead**
@@ -527,8 +527,8 @@ npm run test:performance        # Terminal 2 - then run tests
 ## Still Having Issues?
 
 1. **Read full documentation:**
-   - [docs/PERFORMANCE_TESTING.md](../../docs/archive/PERFORMANCE_TESTING.md)
-   - [docs/GETTING_STARTED_PERFORMANCE.md](../../docs/archive/GETTING_STARTED_PERFORMANCE.md)
+   - [Performance Testing README](./README.md)
+   - [K6 Tests README](./k6/README.md)
 
 2. **Check example output:**
    - Look at expected results in documentation

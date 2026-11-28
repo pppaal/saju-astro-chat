@@ -5,6 +5,8 @@
 // CURRENCY & LOCALE
 // ============================================================================
 
+import { asMajor, type Major } from '@/lib/payments/money'
+
 const CURRENCIES = {
   KRW: 'KRW',
   USD: 'USD',
@@ -97,6 +99,47 @@ export const CREDIT_PACKS: Record<CreditPackType, CreditPack> = {
  */
 export const BASE_CREDIT_PRICE_KRW = 492
 
+// ============================================================================
+// CURRENCY RESOLUTION (SSOT — 표시 통화 == 청구 통화)
+// ============================================================================
+
+/**
+ * 결제 기본 통화. 통화별 Stripe Price 가 없으면 여기로 폴백한다.
+ */
+export const DEFAULT_CURRENCY: Currency = 'KRW'
+
+/**
+ * 로케일 → 통화. **표시와 청구가 반드시 이 함수 하나만 보게 한다.**
+ *
+ * 예전 버그: /pricing 은 `locale === 'ko' ? krw : usd` 로 표시했는데
+ * /api/checkout 은 팩당 Stripe Price ID 를 하나만 넘겼다. Stripe Price 는 통화가
+ * 하나뿐이라, 영어 방문자가 `$9.99` 를 보고 결제창에서 `₩12,900` 을 받았다
+ * (국경 간 디지털재 장바구니 이탈의 최대 원인). 표시·청구가 같은 함수를
+ * 거치게 해서 구조적으로 어긋날 수 없게 한다 — 실제 청구 통화는
+ * `resolveCheckoutCurrency`(prices.ts)가 Price 설정 여부까지 보고 확정한다.
+ */
+export function currencyForLocale(locale: string | null | undefined): Currency {
+  return locale === 'ko' ? 'KRW' : 'USD'
+}
+
+/**
+ * 팩 정가 — 통화별. 표시와 청구가 같은 값을 읽는다.
+ *
+ * **반환은 기본 단위(Major)다.** KRW 12900(=₩12,900), USD 9.99(=$9.99).
+ * Stripe 금액·환불 수수료는 최소 단위(Minor)라 섞으면 100배 틀린다 —
+ * 타입으로 막는다(money.ts). 최소 단위가 필요하면 `toMinor(...)` 를 거친다.
+ */
+export function packAmount(packId: CreditPackType, currency: Currency): Major {
+  const p = CREDIT_PACKS[packId].pricing
+  return asMajor(currency === 'KRW' ? p.krw : p.usd)
+}
+
+/** 크레딧당 단가 — 통화별, 기본 단위(그리드의 "1크레딧 ≈" 표시용). */
+export function packPerCredit(packId: CreditPackType, currency: Currency): Major {
+  const p = CREDIT_PACKS[packId]
+  return asMajor(currency === 'KRW' ? p.perCreditKrw : p.perCreditUsd)
+}
+
 /**
  * Bonus credit expiration period in months
  */
@@ -123,8 +166,17 @@ export function getAllCreditPackIds(): CreditPackType[] {
 }
 
 /**
- * Format price for display
+ * 가격 표기 — 숫자 모양은 'en-US' 묶음(쉼표 천 단위)으로 고정한다: KRW '₩5,900', USD '$4.99'.
+ * 실행 환경의 기본 로케일을 읽지 않는다(G14) — 예전엔 toLocaleString() 을 로케일 없이 불러,
+ * 서버 렌더한 PriceLine 이 de-DE 브라우저에서 '₩5.900' 으로 하이드레이트돼 달라졌다.
+ * ko/en 화면 모두 같은 숫자 모양(한국어도 쉼표 묶음)이고, locale 은 0원의 '무료'/'Free' 만 고른다.
  */
+const KRW_DIGITS = new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 })
+const USD_DIGITS = new Intl.NumberFormat('en-US', {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+})
+
 export function formatPrice(
   amount: number,
   currency: Currency,
@@ -135,7 +187,33 @@ export function formatPrice(
   }
 
   if (currency === 'KRW') {
-    return `₩${amount.toLocaleString()}`
+    return `₩${KRW_DIGITS.format(amount)}`
   }
-  return `$${amount.toFixed(2)}`
+  return `$${USD_DIGITS.format(amount)}`
+}
+
+// ============================================================================
+// "CREDITS FROM" — 홈·Explore·상담사 CTA 의 최저가 표기
+// ============================================================================
+
+/**
+ * 첫구매 한정이 아닌 팩 중 가장 싼 팩 — "Credits from $4.99" 의 기준.
+ * starter(firstPurchaseOnly)는 아무나 살 수 없으므로 "부터" 가격에서 뺀다.
+ * 가격(정가 KRW) 오름차순 첫째 — 표가 바뀌어도 이 함수가 기준을 다시 고른다.
+ */
+export function cheapestRegularPack(): CreditPack {
+  const regular = getAllCreditPackIds()
+    .map((id) => CREDIT_PACKS[id])
+    .filter((p) => !p.firstPurchaseOnly)
+  return regular.reduce((min, p) => (p.pricing.krw < min.pricing.krw ? p : min), regular[0])
+}
+
+/**
+ * 최저가 라벨 — en '$4.99' · ko '₩5,900'. 통화는 currencyForLocale(표시 = 청구 통화),
+ * 금액은 packAmount, 표기는 formatPrice 를 그대로 거친다.
+ */
+export function creditsFromLabel(locale: string | null | undefined): string {
+  const currency = currencyForLocale(locale)
+  const pack = cheapestRegularPack()
+  return formatPrice(packAmount(pack.id, currency), currency, locale === 'ko' ? 'ko' : 'en')
 }

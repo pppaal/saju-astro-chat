@@ -5,11 +5,18 @@ import type {
   PlanetBase,
   ZodiacKo,
 } from '@/lib/astrology/foundation/types'
-import type { ZRPeriod, ZRStartLot } from '@/lib/astrology/foundation/zodiacalReleasing'
+import type { ZRPeriod } from '@/lib/astrology/foundation/zodiacalReleasing'
 import type { DignityTiers } from '@/lib/astrology/foundation/dignities'
 import type { ArabicLot } from '@/lib/astrology/foundation/arabicParts'
 import type { AlmutenFigurisResult } from '@/lib/astrology/foundation/almutenFiguris'
-import type { SajuPillars, FiveElement, ShinsalHit, RelationHit, DayMaster } from '@/lib/saju/types'
+import type {
+  SajuPillars,
+  FiveElement,
+  ShinsalHit,
+  RelationHit,
+  DayMaster,
+  MaybeTimeless,
+} from '@/lib/saju/types'
 import type { AnalysesResult } from '@/lib/saju/analyses'
 
 /**
@@ -76,7 +83,6 @@ export interface NatalArabicLot extends ArabicLot {
 }
 
 // Re-export so consumers can import from one place.
-export type { AspectHit, ZRPeriod, ZRStartLot, DignityTiers, ArabicLot, AlmutenFigurisResult }
 
 /**
  * 본명 컨텍스트 — 사용자별로 1회 계산 후 캐시.
@@ -88,8 +94,14 @@ export interface NatalContext {
   astro: NatalAstroContext
 }
 
-export interface NatalSajuContext {
-  pillars: SajuPillars
+interface NatalSajuContext {
+  /**
+   * 본명 기둥. 출생시각 미상이면 time 이 없다(삼주, CONVENTIONS §5) — 시주 의존
+   * 추출기는 time 이 없으면 그 기둥을 건너뛴다. 정오 앵커 시주는 싣지 않는다.
+   */
+  pillars: MaybeTimeless<SajuPillars>
+  /** 출생시각 미상(삼주 분석) — 강약·용신·격국·신살·관계·오행 모두 년·월·일 기준. */
+  timeUnknown?: boolean
   dayMaster: DayMaster
   yongsin: {
     primary: FiveElement
@@ -108,7 +120,7 @@ export interface NatalSajuContext {
     branch: string
   }>
   /**
-   * 오행 분포 — 사주 8글자가 가진 wood/fire/earth/metal/water 개수.
+   * 오행 분포 — 사주 8글자(시간 미상이면 6글자)가 가진 wood/fire/earth/metal/water 개수.
    * 운명/궁합 차트의 ElementRadar + PersonaCard 부족 오행 진단의 source.
    * 사주 raw에서 그대로 (별도 계산 X) — buildNatalContext가 sajuResult.fiveElements 직패스.
    */
@@ -137,7 +149,7 @@ export interface NatalSajuContext {
   dayJijanggan: NatalDayJijanggan
 }
 
-export interface NatalAstroContext {
+interface NatalAstroContext {
   chart: Chart
   /** 출생시각/출생지 미상 — true 면 소비자(adapter)가 ASC/MC/하우스(자정·서울 폴백)를
    *  내보내지 않아야 한다. chart(_chart)는 항상 폴백 값이 차 있어 별도 플래그로 가린다. */
@@ -145,8 +157,12 @@ export interface NatalAstroContext {
   /** 본명 추가 천체(카이런·릴리스 등) — 트랜짓이 본명 점으로 참조. 차트 planets를
    *  오염시키지 않으려 별도 보관(dignity 등 다른 extractor엔 안 들어감). */
   extraPoints?: PlanetBase[]
-  /** 섹트 (낮/밤 출생) — 헬레니즘 계산에 필요 */
-  sect: 'day' | 'night'
+  /**
+   * 섹트 (낮/밤 출생) — 헬레니즘 계산에 필요. null = 정할 수 없음(출생시각 미상, 또는
+   * 출생지 미상 + 존 기준점의 태양이 지평선 근처 — astroFacts.sectUnreliable, OD-5).
+   * null 이면 lot·ZR 추출기는 신호를 내지 않고 품위 추출기는 참여 삼분성만 센다.
+   */
+  sect: 'day' | 'night' | null
   /** 사용자 정착 — Solar Return 등 일부 계산은 latitude/longitude 필요 */
   location: {
     latitude: number

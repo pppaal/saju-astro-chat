@@ -1,9 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import {
-  repairMojibakeText,
-  normalizeMojibakePayload,
-  repairMojibakeDeep,
-} from '@/lib/text/mojibake'
+import { repairMojibakeText, normalizeMojibakePayload } from '@/lib/text/mojibake'
 
 /** UTF-8 → latin1 재해석으로 실제 mojibake 문자열을 만든다 (이중 인코딩 재현). */
 function mojibakeOf(text: string): string {
@@ -100,9 +96,5 @@ describe('normalizeMojibakePayload', () => {
   it('빈 배열/객체도 안전하게 처리한다', () => {
     expect(normalizeMojibakePayload([])).toEqual([])
     expect(normalizeMojibakePayload({})).toEqual({})
-  })
-
-  it('repairMojibakeDeep 은 normalizeMojibakePayload 의 alias 다', () => {
-    expect(repairMojibakeDeep).toBe(normalizeMojibakePayload)
   })
 })

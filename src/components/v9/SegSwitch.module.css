@@ -1,0 +1,28 @@
+/* 두(이상) 갈래 스위치 — Monthly / Daily. 비활성 글자는 --body(--mute 는 paper-2 위에서 4.5:1 미달). */
+.seg {
+  height: 40px;
+  padding: 3px;
+  border-radius: 999px;
+  background: var(--paper-2);
+  display: grid;
+  grid-auto-columns: minmax(0, 1fr);
+  grid-auto-flow: column;
+}
+.opt {
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--body);
+  cursor: pointer;
+}
+.on {
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
