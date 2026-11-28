@@ -1,16 +1,13 @@
 import { describe, it, expect } from 'vitest'
-import * as SajuBarrel from '@/lib/saju'
-import {
-  calculateSajuData,
-  STEMS,
-  BRANCHES,
-  getPillarInfo,
-  STEM_LABELS,
-  BRANCH_LABELS,
-  analyzeSibsinPositions,
-} from '@/lib/saju'
+// 예전 `@/lib/saju` 배럴(index.ts)은 이 테스트만 import 해서 삭제됐다(knip --production,
+// H7). 같은 심볼을 원 모듈에서 직접 가져와 검사한다. 두 번째 강약 알고리즘이 없다는
+// SDR-07 가드는 원 모듈 쪽 tests/lib/saju/tonggeun.test.ts 에 있다.
+import { calculateSajuData } from '@/lib/saju/saju'
+import { STEMS, BRANCHES, STEM_LABELS, BRANCH_LABELS } from '@/lib/saju/constants'
+import { getPillarInfo } from '@/lib/saju/pillarLookup'
+import { analyzeSibsinPositions } from '@/lib/saju/sibsinAnalysis'
 
-describe('Saju/index exports', () => {
+describe('saju core modules', () => {
   describe('calculateSajuData', () => {
     it('should be a function', () => {
       expect(typeof calculateSajuData).toBe('function')
@@ -65,12 +62,6 @@ describe('Saju/index exports', () => {
 
       expect(result).toBeDefined()
       expect(result.pillars).toBeDefined()
-    })
-  })
-
-  describe('analyzeStrength (삭제됨 — 재감사 SDR-07)', () => {
-    it('barrel 이 두 번째 강약 알고리즘을 내보내지 않는다 — 강약은 strengthScore SSOT 하나', () => {
-      expect((SajuBarrel as Record<string, unknown>).analyzeStrength).toBeUndefined()
     })
   })
 

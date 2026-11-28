@@ -1,24 +1,23 @@
 import { describe, it, expect } from 'vitest'
 import * as datetimeTz from '@/lib/datetime/timezone'
-import * as utilsTz from '@/lib/utils/timezone'
 
 /**
  * STEP-4 timezone-utility consolidation guard.
  *
  * The two non-saju timezone utilities (`lib/datetime/timezone.ts` and
  * `lib/utils/timezone.ts`) were consolidated: `lib/datetime/timezone.ts`
- * is now the single canonical implementation, and `lib/utils/timezone.ts`
- * is a thin re-export shim kept so OUT-OF-SCOPE callers (destiny-map,
- * solar-return / convergence API routes) don't have to change imports.
+ * is the single canonical implementation. The `lib/utils/timezone.ts`
+ * re-export shim had no importer left outside this test and was deleted
+ * (knip --production, H7); its contract is now checked on the canonical
+ * module directly.
  *
  * Two contracts must hold:
- *  - datetime/ keeps its historical surface (getNowInTimezone returns the
- *    {year,month,day}-narrowed shape; isValidTimezone / DEFAULT_TIMEZONE /
- *    formatDateString / getIsoInTimezone / getDateInTimezone present).
- *  - utils/ keeps its historical surface, and CRUCIALLY its
- *    `getNowInTimezone` returns the FULL component object
- *    (year/month/day/hour/minute/second) — destiny-map/astrology/helpers
- *    destructures `.hour`/`.minute` off it.
+ *  - getNowInTimezone keeps the {year,month,day}-narrowed shape;
+ *    isValidTimezone / DEFAULT_TIMEZONE / formatDateString /
+ *    getIsoInTimezone / getDateInTimezone present.
+ *  - the full-component variant (getNowComponentsInTimezone) returns
+ *    year/month/day/hour/minute/second — the shape the old utils/
+ *    `getNowInTimezone` alias exposed.
  */
 
 describe('calendar-tz: datetime/ is the canonical timezone module', () => {
@@ -50,31 +49,32 @@ describe('calendar-tz: datetime/ is the canonical timezone module', () => {
   })
 })
 
-describe('calendar-tz: utils/ shim preserves its historical contract', () => {
-  it('re-exports the now-primitives', () => {
-    expect(typeof utilsTz.getNowInTimezone).toBe('function')
-    expect(typeof utilsTz.nowInTimezone).toBe('function')
-    expect(typeof utilsTz.getDateInTimezone).toBe('function')
-    expect(typeof utilsTz.currentYearInTimezone).toBe('function')
-    expect(typeof utilsTz.currentMonthInTimezone).toBe('function')
+describe('calendar-tz: full-component now-primitives (ex utils/ shim surface)', () => {
+  it('exposes the now-primitives', () => {
+    expect(typeof datetimeTz.getNowComponentsInTimezone).toBe('function')
+    expect(typeof datetimeTz.nowInTimezone).toBe('function')
+    expect(typeof datetimeTz.currentYearInTimezone).toBe('function')
+    expect(typeof datetimeTz.currentMonthInTimezone).toBe('function')
   })
 
-  it('utils.getNowInTimezone returns the FULL component object (.hour etc.)', () => {
-    const now = utilsTz.getNowInTimezone('Asia/Seoul')
-    // destiny-map/astrology/helpers.ts relies on these fields existing.
+  it('getNowComponentsInTimezone returns the FULL component object (.hour etc.)', () => {
+    const now = datetimeTz.getNowComponentsInTimezone('Asia/Seoul')
     for (const k of ['year', 'month', 'day', 'hour', 'minute', 'second']) {
       expect(now).toHaveProperty(k)
-      expect(typeof (now as Record<string, number>)[k]).toBe('number')
+      expect(typeof (now as unknown as Record<string, number>)[k]).toBe('number')
     }
   })
 
-  it('utils.nowInTimezone returns a Date carrying local wall-clock in UTC fields', () => {
-    const d = utilsTz.nowInTimezone('Asia/Seoul')
+  it('nowInTimezone returns a Date carrying local wall-clock in UTC fields', () => {
+    const d = datetimeTz.nowInTimezone('Asia/Seoul')
     expect(d).toBeInstanceOf(Date)
     expect(Number.isNaN(d.getTime())).toBe(false)
   })
 
-  it('shim and canonical agree on getDateInTimezone', () => {
-    expect(utilsTz.getDateInTimezone('UTC')).toBe(datetimeTz.getDateInTimezone('UTC'))
+  it('currentMonthInTimezone is 0-11 and currentYearInTimezone a 4-digit year', () => {
+    const m = datetimeTz.currentMonthInTimezone('UTC')
+    expect(m).toBeGreaterThanOrEqual(0)
+    expect(m).toBeLessThanOrEqual(11)
+    expect(datetimeTz.currentYearInTimezone('UTC')).toBeGreaterThanOrEqual(2000)
   })
 })

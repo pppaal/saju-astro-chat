@@ -7,9 +7,8 @@
 // plus datetime/timezone.ts and utils/timezone.ts). utils/timezone.ts
 // previously held the implementation and datetime/ forwarded to it.
 // That direction is now reversed: this module is the single source of
-// truth, and lib/utils/timezone.ts is a thin re-export shim kept so
-// out-of-scope callers (destiny-map, astrology routes) don't have to
-// change their imports.
+// truth. The lib/utils/timezone.ts re-export shim lost its last caller
+// and was deleted; import from here (or `@/lib/datetime`).
 //
 // Production runs on a UTC server, so `new Date().getMonth()` and
 // friends return UTC values. Anything that means "the user's wall clock
