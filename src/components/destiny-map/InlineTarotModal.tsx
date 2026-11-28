@@ -164,6 +164,8 @@ const InlineTarotModal = memo(function InlineTarotModal({
       timestamp: Date.now(),
     }
     sessionStorage.setItem('tarotContext', JSON.stringify(tarotContext))
+    // 기존 동작 유지 — 상담 화면을 전체 로드로 떠나 타로가 tarotContext 를 새로 읽는다.
+    // eslint-disable-next-line @next/next/no-location-assign-relative-destination
     window.location.href = `/tarot?from=counselor`
   }
 

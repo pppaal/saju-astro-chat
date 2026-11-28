@@ -31,6 +31,8 @@ export default function OfflinePage() {
         // 이 아니라 사용자가 보던 페이지(예: 운명상담사)로 그대로 복귀한다.
         // 예전엔 location.href='/' 라 다른 앱 갔다 오면 홈으로 튕겼음.
         if (window.location.pathname === '/offline') {
+          // SW 오프라인 폴백 페이지라 클라이언트 라우터 대신 전체 로드가 맞다(청크 미보장).
+          // eslint-disable-next-line @next/next/no-location-assign-relative-destination
           window.location.href = '/'
         } else {
           window.location.reload()

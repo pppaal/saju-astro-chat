@@ -1,5 +1,11 @@
 'use client'
 
+/* eslint-disable react-hooks/refs --
+   useChatActions() 가 ref(chatMenuRef) + 상태(chatMenuOpen…) + 콜백(toggleChatMenu…)을
+   한 객체로 반환한다. eslint-plugin-react-hooks 7.1 부터 이 규칙이 객체에 ref 가 하나라도
+   있으면 chatActions.* 전체 접근을 "렌더 중 ref 접근" 으로 오인(false positive)한다 —
+   destiny-counselor/page.tsx 의 같은 사유 disable 과 동일. */
+
 import { useEffect, useState, useRef, useCallback, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useI18n } from '@/i18n/I18nProvider'
