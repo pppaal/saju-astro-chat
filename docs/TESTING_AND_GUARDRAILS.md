@@ -169,7 +169,7 @@ Single `build-and-test` job: token-encryption verify, `check:env`, `lint`,
 (`npx madge@8.0.0 --circular --extensions ts,tsx --ts-config tsconfig.json src`,
 type-only imports skipped via `madge_detectiveOptions__*__skipTypeImports`),
 `ops:destiny:release`,
-`test:destiny-map` (critical smoke), `test:a11y`,
+`test:a11y`,
 coverage upload + threshold check (read from `vitest.config.ts`), `build`, SSR
 placeholder + mojibake smoke against a running server, bundle-size check, and an
 E2E API run (`test:e2e:api`).
@@ -255,8 +255,6 @@ These exist and run:
   `test:e2e:calendar` (Life · Calendar smoke), and the per-flow `test:e2e:*`
   Playwright specs
 - `npm run test:tarot` (`tests/lib/tarot`)
-- `npm run test:destiny-map` (report text sanitize/mask smoke,
-  `tests/destiny-map-sanitize.test.ts`)
 - `npm run test:ephemeris-golden`
 - `npm run qa:counselor-calendar:report`
 - Removed: `scripts/ops/qa-counselor-questions.ts` and the one-off
