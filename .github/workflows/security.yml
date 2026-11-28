@@ -47,13 +47,16 @@ jobs:
           #     brace-expansion 2→5) 빌드 도구 API 가 깨질 위험이 실제 이득보다
           #     크다. 특히 **node-gyp 은 swisseph(천체력) 네이티브 빌드용**이라
           #     깨지면 제품 핵심이 죽는다.
-          #     · Sentry 번들러 플러그인: @sentry/nextjs · @sentry/bundler-plugin-core ·
-          #       @sentry/webpack-plugin
+          #     · Sentry 번들러 플러그인: @sentry/nextjs · @sentry/bundler-plugins ·
+          #       @sentry/webpack-plugin — 10.78.0 으로 올려 critical(터널 라우트 미들웨어
+          #       우회)은 해소, 남은 건 번들러 플러그인이 끌어오는 glob 경유 moderate 뿐.
+          #       10.78 에서 bundler-plugin-core 가 bundler-plugins 로 이름이 바뀌어
+          #       항목명을 따라 바꿨다. (갱신 2026-11-28.)
           #     · 네이티브 빌드·fs 유틸: node-gyp · cacache · glob · minimatch ·
           #       brace-expansion
           #     재점검: 각 부모(sentry·node-gyp)가 패치 의존성을 올린 릴리스를 내면 제거.
           #     (등록일 2026-07-26.)
-          ALLOWLIST="@sentry/nextjs @sentry/bundler-plugin-core @sentry/webpack-plugin \
+          ALLOWLIST="@sentry/nextjs @sentry/bundler-plugins @sentry/webpack-plugin \
             node-gyp cacache glob minimatch brace-expansion"
 
           # 예외 목록에 없는 high/critical 만 센다 — 하나라도 있으면 차단.

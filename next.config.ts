@@ -1,5 +1,5 @@
 // Sentry error monitoring - re-enabled
-import { withSentryConfig } from '@sentry/nextjs'
+import { withSentryConfig } from '@sentry/nextjs/config'
 // Bundle Analyzer - enable with ANALYZE=true npm run build
 import bundleAnalyzer from '@next/bundle-analyzer'
 // 파일 경로: next.config.ts
