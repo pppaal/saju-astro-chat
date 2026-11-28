@@ -149,7 +149,7 @@ describe('Server Stream Proxy', () => {
       const response = createSSEStreamProxy({ source: sourceResponse })
 
       expect(response.headers.get('content-type')).toBe('text/event-stream')
-      expect(response.headers.get('cache-control')).toBe('no-cache')
+      expect(response.headers.get('cache-control')).toBe('no-cache, no-transform')
       expect(response.headers.get('connection')).toBe('keep-alive')
     })
 
@@ -562,7 +562,7 @@ describe('Server Stream Proxy', () => {
       })
 
       expect(response.headers.get('content-type')).toBe('text/event-stream')
-      expect(response.headers.get('cache-control')).toBe('no-cache')
+      expect(response.headers.get('cache-control')).toBe('no-cache, no-transform')
       expect(response.headers.get('connection')).toBe('keep-alive')
     })
   })

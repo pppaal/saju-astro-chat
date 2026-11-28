@@ -83,7 +83,7 @@ function streamRawReading(jsonText: string, extraHeaders?: Record<string, string
   return new Response(stream, {
     headers: {
       'Content-Type': 'text/event-stream',
-      'Cache-Control': 'no-cache',
+      'Cache-Control': 'no-cache, no-transform',
       Connection: 'keep-alive',
       ...(extraHeaders || {}),
     },
@@ -148,7 +148,7 @@ function streamJsonPayload(
   return new Response(stream, {
     headers: {
       'Content-Type': 'text/event-stream',
-      'Cache-Control': 'no-cache',
+      'Cache-Control': 'no-cache, no-transform',
       Connection: 'keep-alive',
       ...(extraHeaders || {}),
     },
